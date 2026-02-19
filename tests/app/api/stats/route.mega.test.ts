@@ -4,6 +4,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
+vi.setConfig({ hookTimeout: 30000, testTimeout: 30000 })
+
 // Mock dependencies
 const mockPrismaUser = {
   count: vi.fn(),

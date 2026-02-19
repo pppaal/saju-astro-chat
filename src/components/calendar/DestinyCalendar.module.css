@@ -2257,6 +2257,43 @@
   text-align: center;
 }
 
+.calendarEvidenceBox {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.calendarEvidenceBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.calendarEvidenceBadge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #dcfce7;
+  background: rgba(22, 163, 74, 0.45);
+  border: 1px solid rgba(134, 239, 172, 0.5);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.calendarEvidenceList {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--cal-text-primary);
+  font-size: 13px;
+  line-height: 1.55;
+  font-weight: 500;
+}
+
 .selectedDesc {
   font-size: 14px;
   color: var(--cal-text-secondary);
@@ -4186,6 +4223,32 @@
 
 .actionPlanTimeline {
   grid-column: 1 / -1;
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(125, 211, 252, 0.26);
+  background: linear-gradient(165deg, rgba(15, 23, 42, 0.82), rgba(10, 14, 32, 0.96));
+  padding: 18px;
+}
+
+.actionPlanTimeline::before {
+  content: '';
+  position: absolute;
+  inset: -120px -80px auto auto;
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.18), transparent 70%);
+  pointer-events: none;
+}
+
+.actionPlanTimeline::after {
+  content: '';
+  position: absolute;
+  inset: auto -120px -140px auto;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.14), transparent 70%);
+  pointer-events: none;
 }
 
 .actionPlanTimelineHeader {
@@ -4194,7 +4257,7 @@
   justify-content: space-between;
   gap: 12px;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .actionPlanTimelineMeta {
@@ -4261,14 +4324,20 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .actionPlanTimelineLegendItem {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
-  color: var(--cal-text-secondary);
+  font-size: 12px;
+  color: #e2e8f0;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-weight: 700;
 }
 
 .actionPlanTimelineDot {
@@ -4288,54 +4357,112 @@
 
 .actionPlanTimelineGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  position: relative;
+  z-index: 1;
 }
 
 .actionPlanTimelineSlot {
-  background: var(--cal-bg-tertiary);
-  border: 1px solid var(--cal-border-light);
-  border-radius: 12px;
-  padding: 10px;
-  min-height: 76px;
+  background: linear-gradient(160deg, rgba(27, 36, 74, 0.85), rgba(17, 22, 48, 0.9));
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 16px;
+  padding: 14px 14px 15px;
+  min-height: 124px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  transition: transform var(--cal-transition-fast);
+  gap: 10px;
+  transition:
+    transform var(--cal-transition-fast),
+    box-shadow var(--cal-transition-fast),
+    border-color var(--cal-transition-fast);
+  box-shadow: 0 6px 20px rgba(2, 6, 23, 0.28);
+  backdrop-filter: blur(3px);
+}
+
+.actionPlanTimelineSlot:hover {
+  transform: translateY(-3px);
+  border-color: rgba(125, 211, 252, 0.45);
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.38);
 }
 
 .actionPlanTimelineSlotBest {
-  background: rgba(34, 197, 94, 0.12);
-  border-color: rgba(34, 197, 94, 0.4);
+  background: linear-gradient(160deg, rgba(20, 83, 45, 0.34), rgba(17, 24, 39, 0.94));
+  border-color: rgba(74, 222, 128, 0.5);
+  box-shadow:
+    inset 3px 0 0 rgba(34, 197, 94, 0.95),
+    0 8px 22px rgba(4, 120, 87, 0.24);
 }
 
 .actionPlanTimelineSlotCaution {
-  background: rgba(244, 63, 94, 0.12);
-  border-color: rgba(244, 63, 94, 0.4);
+  background: linear-gradient(160deg, rgba(127, 29, 29, 0.34), rgba(17, 24, 39, 0.94));
+  border-color: rgba(251, 113, 133, 0.52);
+  box-shadow:
+    inset 3px 0 0 rgba(244, 63, 94, 0.95),
+    0 8px 22px rgba(190, 18, 60, 0.24);
 }
 
 .actionPlanTimelineTime {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--cal-text-tertiary);
+  gap: 8px;
+}
+
+.actionPlanTimelineTimeMain {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actionPlanTimelineClock {
+  font-size: 14px;
+  color: #c7d2fe;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.actionPlanTimelineTone {
+  font-size: 12px;
+  color: #e2e8f0;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-weight: 700;
+}
+
+.actionPlanTimelineSlotBest .actionPlanTimelineTone {
+  color: #dcfce7;
+  background: rgba(20, 83, 45, 0.55);
+  border-color: rgba(74, 222, 128, 0.5);
+}
+
+.actionPlanTimelineSlotCaution .actionPlanTimelineTone {
+  color: #ffe4e6;
+  background: rgba(127, 29, 29, 0.52);
+  border-color: rgba(251, 113, 133, 0.55);
 }
 
 .actionPlanTimelineBadge {
-  font-size: 10px;
-  padding: 2px 6px;
+  font-size: 12px;
+  padding: 3px 8px;
   border-radius: 999px;
-  background: var(--cal-bg-card);
-  border: 1px solid var(--cal-border);
-  color: var(--cal-text-secondary);
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  color: #f8fafc;
+  font-weight: 700;
 }
 
 .actionPlanTimelineNote {
-  font-size: 14px;
+  font-size: 17px;
   color: var(--cal-text-primary);
-  line-height: 1.4;
+  line-height: 1.6;
+  font-weight: 700;
+  letter-spacing: 0.1px;
 }
 
 .actionPlanCardHeader {
@@ -4373,9 +4500,46 @@
   line-height: 1.5;
 }
 
+.actionPlanEvidence {
+  margin-top: 12px;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.actionPlanEvidenceBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.actionPlanEvidenceBadge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #dcfce7;
+  background: rgba(22, 163, 74, 0.45);
+  border: 1px solid rgba(134, 239, 172, 0.5);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.actionPlanEvidenceList {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cal-text-primary);
+  font-weight: 500;
+}
+
 /* ========== Accessibility Modes ========== */
 .largeTextMode {
-  font-size: 112.5%;
+  font-size: 125%;
 }
 
 .largeTextMode .calendarTitle {
@@ -4430,6 +4594,51 @@
 .largeTextMode .actionPlanTimelineNote {
   font-size: 17px;
   line-height: 1.6;
+}
+
+/* Selected date detail panel: make key analysis sections clearly larger */
+.largeTextMode .selectedDayDate {
+  font-size: 22px;
+}
+
+.largeTextMode .selectedTitle {
+  font-size: 28px;
+}
+
+.largeTextMode .selectedDesc {
+  font-size: 19px;
+  line-height: 1.75;
+}
+
+.largeTextMode .scoreText {
+  font-size: 18px;
+}
+
+.largeTextMode .categoryTag {
+  font-size: 16px;
+}
+
+.largeTextMode .analysisTitle {
+  font-size: 24px;
+}
+
+.largeTextMode .analysisBadge {
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+}
+
+.largeTextMode .analysisItem {
+  font-size: 19px;
+  line-height: 1.75;
+}
+
+.largeTextMode .bestTimesTitle {
+  font-size: 22px;
+}
+
+.largeTextMode .bestTimeItem {
+  font-size: 17px;
 }
 
 .highContrastMode {
@@ -4572,13 +4781,17 @@
 
 @media (max-width: 900px) {
   .actionPlanTimelineGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .actionPlanTimeline {
+    padding: 14px;
   }
 }
 
 @media (max-width: 640px) {
   .actionPlanTimelineGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .actionPlanTimelineHeader {
@@ -4589,6 +4802,10 @@
   .actionPlanTimelineMeta {
     align-items: flex-start;
     width: 100%;
+  }
+
+  .actionPlanTimelineNote {
+    font-size: 16px;
   }
 }
 

@@ -1,9 +1,9 @@
 // src/lib/destiny-matrix/ai-report/promptBuilders.ts
 // AI 리포트 프롬프트 빌더 함수들
 
-import type { FusionReport, InsightDomain } from '../interpreter/types';
-import type { MatrixCalculationInput } from '../types';
-import type { AIReportGenerationOptions } from './reportTypes';
+import type { FusionReport, InsightDomain } from '../interpreter/types'
+import type { MatrixCalculationInput } from '../types'
+import type { AIReportGenerationOptions } from './reportTypes'
 
 // ===========================
 // 도메인 이름 매핑
@@ -17,18 +17,18 @@ const DOMAIN_NAMES: Record<InsightDomain, { ko: string; en: string }> = {
   health: { ko: '건강', en: 'Health' },
   spirituality: { ko: '영성', en: 'Spirituality' },
   timing: { ko: '타이밍', en: 'Timing' },
-};
+}
 
 const DAY_MASTER_NAMES: Record<string, { ko: string; en: string }> = {
-  '목': { ko: '목(木) - 나무', en: 'Wood' },
-  '화': { ko: '화(火) - 불', en: 'Fire' },
-  '토': { ko: '토(土) - 흙', en: 'Earth' },
-  '금': { ko: '금(金) - 금속', en: 'Metal' },
-  '수': { ko: '수(水) - 물', en: 'Water' },
-};
+  목: { ko: '목(木) - 나무', en: 'Wood' },
+  화: { ko: '화(火) - 불', en: 'Fire' },
+  토: { ko: '토(土) - 흙', en: 'Earth' },
+  금: { ko: '금(金) - 금속', en: 'Metal' },
+  수: { ko: '수(水) - 물', en: 'Water' },
+}
 
 export function getDomainName(domain: InsightDomain, lang: 'ko' | 'en'): string {
-  return DOMAIN_NAMES[domain]?.[lang] || domain;
+  return DOMAIN_NAMES[domain]?.[lang] || domain
 }
 
 // ===========================
@@ -40,7 +40,10 @@ export function buildProfileInfo(
   options: AIReportGenerationOptions,
   lang: 'ko' | 'en'
 ): string {
-  const dm = DAY_MASTER_NAMES[input.dayMasterElement] || { ko: input.dayMasterElement, en: input.dayMasterElement };
+  const dm = DAY_MASTER_NAMES[input.dayMasterElement] || {
+    ko: input.dayMasterElement,
+    en: input.dayMasterElement,
+  }
 
   if (lang === 'ko') {
     return `## 프로필
@@ -49,9 +52,13 @@ export function buildProfileInfo(
 - 일간(Day Master): ${dm.ko}
 - 격국: ${input.geokguk || '미분석'}
 - 용신: ${input.yongsin || '미분석'}
-- 주요 십신: ${Object.entries(input.sibsinDistribution || {}).map(([k, v]) => `${k}(${v})`).join(', ') || '없음'}
+- 주요 십신: ${
+      Object.entries(input.sibsinDistribution || {})
+        .map(([k, v]) => `${k}(${v})`)
+        .join(', ') || '없음'
+    }
 - 신살: ${input.shinsalList?.join(', ') || '없음'}
-- 현재 대운 오행: ${input.currentDaeunElement || '미입력'}`;
+- 현재 대운 오행: ${input.currentDaeunElement || '미입력'}`
   }
 
   return `## Profile
@@ -60,9 +67,13 @@ export function buildProfileInfo(
 - Day Master: ${dm.en}
 - Geokguk (Pattern): ${input.geokguk || 'Not analyzed'}
 - Yongsin (Favorable Element): ${input.yongsin || 'Not analyzed'}
-- Sibsin Distribution: ${Object.entries(input.sibsinDistribution || {}).map(([k, v]) => `${k}(${v})`).join(', ') || 'None'}
+- Sibsin Distribution: ${
+    Object.entries(input.sibsinDistribution || {})
+      .map(([k, v]) => `${k}(${v})`)
+      .join(', ') || 'None'
+  }
 - Shinsal: ${input.shinsalList?.join(', ') || 'None'}
-- Current Daeun Element: ${input.currentDaeunElement || 'Not provided'}`;
+- Current Daeun Element: ${input.currentDaeunElement || 'Not provided'}`
 }
 
 // ===========================
@@ -70,15 +81,15 @@ export function buildProfileInfo(
 // ===========================
 
 export function buildMatrixSummary(report: FusionReport, lang: 'ko' | 'en'): string {
-  const { overallScore, topInsights, domainAnalysis } = report;
+  const { overallScore, topInsights, domainAnalysis } = report
 
-  const insightSummary = topInsights.slice(0, 5).map((insight, i) =>
-    `${i + 1}. [${insight.category}] ${insight.title}: ${insight.description}`
-  ).join('\n');
+  const insightSummary = topInsights
+    .slice(0, 5)
+    .map((insight, i) => `${i + 1}. [${insight.category}] ${insight.title}: ${insight.description}`)
+    .join('\n')
 
-  const domainSummary = domainAnalysis?.map(d =>
-    `- ${d.domain}: ${d.score}/100 (${d.grade})`
-  ).join('\n') || '';
+  const domainSummary =
+    domainAnalysis?.map((d) => `- ${d.domain}: ${d.score}/100 (${d.grade})`).join('\n') || ''
 
   if (lang === 'ko') {
     return `### 종합 점수: ${overallScore.total}/100 (${overallScore.grade}등급)
@@ -87,7 +98,7 @@ export function buildMatrixSummary(report: FusionReport, lang: 'ko' | 'en'): str
 ${insightSummary}
 
 ### 도메인별 점수:
-${domainSummary}`;
+${domainSummary}`
   }
 
   return `### Overall Score: ${overallScore.total}/100 (Grade ${overallScore.grade})
@@ -96,7 +107,7 @@ ${domainSummary}`;
 ${insightSummary}
 
 ### Domain Scores:
-${domainSummary}`;
+${domainSummary}`
 }
 
 // ===========================
@@ -114,7 +125,7 @@ const JSON_RESPONSE_TEMPLATE = `{
   "timingAdvice": "...",
   "actionPlan": "...",
   "conclusion": "..."
-}`;
+}`
 
 // ===========================
 // 섹션 작성 지침
@@ -135,7 +146,7 @@ function getSectionInstructions(lang: 'ko' | 'en'): string {
 10. **conclusion**: 마무리 격려 메시지 (150-200자)
 
 응답은 반드시 아래 JSON 형식으로만 작성하세요:
-${JSON_RESPONSE_TEMPLATE}`;
+${JSON_RESPONSE_TEMPLATE}`
   }
 
   return `### Sections to Write:
@@ -151,7 +162,7 @@ ${JSON_RESPONSE_TEMPLATE}`;
 10. **conclusion**: Closing encouragement message (100-150 words)
 
 Response MUST be in this JSON format only:
-${JSON_RESPONSE_TEMPLATE}`;
+${JSON_RESPONSE_TEMPLATE}`
 }
 
 // ===========================
@@ -163,18 +174,19 @@ export function buildAIPrompt(
   report: FusionReport,
   options: AIReportGenerationOptions
 ): string {
-  const lang = options.lang || 'ko';
-  const detailLevel = options.detailLevel || 'detailed';
+  const lang = options.lang || 'ko'
+  const detailLevel = options.detailLevel || 'detailed'
 
-  const profileInfo = buildProfileInfo(input, options, lang);
-  const matrixSummary = buildMatrixSummary(report, lang);
+  const profileInfo = buildProfileInfo(input, options, lang)
+  const matrixSummary = buildMatrixSummary(report, lang)
   const focusInstruction = options.focusDomain
-    ? (lang === 'ko'
+    ? lang === 'ko'
       ? `특히 "${getDomainName(options.focusDomain, lang)}" 영역에 집중하여 분석하세요.`
-      : `Focus particularly on the "${getDomainName(options.focusDomain, lang)}" domain.`)
-    : '';
+      : `Focus particularly on the "${getDomainName(options.focusDomain, lang)}" domain.`
+    : ''
 
-  const sectionInstructions = getSectionInstructions(lang);
+  const sectionInstructions = getSectionInstructions(lang)
+  const graphRagEvidencePrompt = options.graphRagEvidencePrompt?.trim()
 
   if (lang === 'ko') {
     return `당신은 동양 사주명리학과 서양 점성술을 융합한 전문 운세 상담사입니다.
@@ -185,13 +197,15 @@ ${profileInfo}
 ## 매트릭스 분석 결과
 ${matrixSummary}
 
+${graphRagEvidencePrompt ? `## GraphRAG 근거 앵커\n${graphRagEvidencePrompt}\n` : ''}
+
 ## 요청사항
 ${focusInstruction}
 상세도: ${detailLevel === 'comprehensive' ? '매우 상세' : detailLevel === 'detailed' ? '상세' : '표준'}
 
 다음 섹션들을 각각 작성해주세요. 각 섹션은 따뜻하고 격려하는 톤으로, 실용적인 조언을 포함해야 합니다.
 
-${sectionInstructions}`;
+${sectionInstructions}`
   }
 
   return `You are an expert fortune consultant combining Eastern Saju (Four Pillars) and Western Astrology.
@@ -202,13 +216,15 @@ ${profileInfo}
 ## Matrix Analysis Results
 ${matrixSummary}
 
+${graphRagEvidencePrompt ? `## GraphRAG Evidence Anchors\n${graphRagEvidencePrompt}\n` : ''}
+
 ## Request
 ${focusInstruction}
 Detail Level: ${detailLevel}
 
 Write each of the following sections. Each section should have a warm, encouraging tone with practical advice.
 
-${sectionInstructions}`;
+${sectionInstructions}`
 }
 
 /**
@@ -221,11 +237,12 @@ export function buildThemedAIPrompt(
   _theme: string,
   options: AIReportGenerationOptions
 ): string {
-  const lang = options.lang || 'ko';
+  const lang = options.lang || 'ko'
 
-  const profileInfo = buildProfileInfo(input, options, lang);
-  const matrixSummary = buildMatrixSummary(report, lang);
-  const sectionInstructions = getSectionInstructions(lang);
+  const profileInfo = buildProfileInfo(input, options, lang)
+  const matrixSummary = buildMatrixSummary(report, lang)
+  const sectionInstructions = getSectionInstructions(lang)
+  const graphRagEvidencePrompt = options.graphRagEvidencePrompt?.trim()
 
   if (lang === 'ko') {
     return `
@@ -234,9 +251,11 @@ ${profileInfo}
 ## 매트릭스 분석 결과
 ${matrixSummary}
 
+${graphRagEvidencePrompt ? `## GraphRAG 근거 앵커\n${graphRagEvidencePrompt}\n` : ''}
+
 다음 섹션들을 각각 작성해주세요. 각 섹션은 따뜻하고 격려하는 톤으로, 실용적인 조언을 포함해야 합니다.
 
-${sectionInstructions}`;
+${sectionInstructions}`
   }
 
   return `
@@ -245,7 +264,9 @@ ${profileInfo}
 ## Matrix Analysis Results
 ${matrixSummary}
 
+${graphRagEvidencePrompt ? `## GraphRAG Evidence Anchors\n${graphRagEvidencePrompt}\n` : ''}
+
 Write each of the following sections. Each section should have a warm, encouraging tone with practical advice.
 
-${sectionInstructions}`;
+${sectionInstructions}`
 }

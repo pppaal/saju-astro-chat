@@ -181,7 +181,28 @@ export function useChatApi({
         setConnectionStatus(getConnectionStatus(responseTime))
 
         if (!res.ok) {
-          // 402 Payment Required - 크레딧 부족
+          let detail = ''
+          try {
+            const contentType = res.headers.get('content-type') || ''
+            if (contentType.includes('application/json')) {
+              const errJson = (await res.clone().json()) as {
+                message?: string
+                error?: string
+                code?: string
+              }
+              detail = [errJson.code, errJson.message, errJson.error].filter(Boolean).join(' | ')
+            } else {
+              detail = (await res.clone().text()).trim()
+            }
+          } catch {
+            detail = ''
+          }
+
+          logger.warn('[Chat] API error response', {
+            status: res.status,
+            detail: detail.slice(0, 240),
+          })
+
           if (res.status === 402) {
             logger.warn('[Chat] Insufficient credits (402)')
             showDepleted()
@@ -196,7 +217,7 @@ export function useChatApi({
             )
             return makeRequest(payload, attempt + 1)
           }
-          throw new Error(await res.text())
+          throw new Error(`API_ERROR:${res.status}${detail ? `:${detail}` : ''}`)
         }
         if (!res.body) {
           throw new Error('No response body')
@@ -325,6 +346,7 @@ export function useChatApi({
 
         if (res.headers.get('x-fallback') === '1') {
           setUsedFallback(true)
+          setNotice(tr.fallbackNote)
         }
 
         const assistantMsgId = generateMessageId('assistant')
@@ -334,9 +356,15 @@ export function useChatApi({
         await processStream(res, assistantMsgId, text)
       } catch (e: unknown) {
         logger.error('[Chat] send error:', e)
-        setConnectionStatus('offline')
+        const err = e as Error
+        const isCreditError =
+          err.message.includes('INSUFFICIENT_CREDITS') || err.message.includes('API_ERROR:402')
+        if (!isCreditError) {
+          setConnectionStatus('offline')
+        }
 
-        const errorMessage = getErrorMessage(e as Error, lang, tr)
+        const errorMessage = getErrorMessage(err, lang, tr)
+        setNotice(errorMessage)
 
         setMessages((prev) => [
           ...prev,

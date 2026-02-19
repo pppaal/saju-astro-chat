@@ -35,8 +35,7 @@ const BirthInfoForm = memo(function BirthInfoForm({
       birthDate: formData.birthDate,
       birthTime: formData.birthTime,
       birthPlace: formData.birthCity || '',
-      gender:
-        genderValue === 'M' ? 'Male' : genderValue === 'F' ? 'Female' : genderValue,
+      gender: genderValue === 'M' ? 'Male' : genderValue === 'F' ? 'Female' : genderValue,
       latitude: formData.latitude,
       longitude: formData.longitude,
       timezone: formData.timezone,
@@ -46,7 +45,7 @@ const BirthInfoForm = memo(function BirthInfoForm({
   }
 
   return (
-    <div className={styles.introContainer}>
+    <div className={`${styles.introContainer} ${styles.largeTextMode}`}>
       {canvasRef && <canvas ref={canvasRef} className={styles.particleCanvas} />}
       <BackButton />
 

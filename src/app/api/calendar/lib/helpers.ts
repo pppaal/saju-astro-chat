@@ -10,7 +10,7 @@ import type {
   ImportanceGrade,
   ImportantDate,
 } from '@/lib/destiny-map/destinyCalendar'
-import type { TranslationData } from '@/types/calendar-api'
+import type { CalendarEvidence, TranslationData } from '@/types/calendar-api'
 import type { PillarData } from '@/lib/Saju/types'
 import type { DomainKey, DomainScore, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
 import type { SajuPillarAccessor, FormattedDate, LocationCoord } from './types'
@@ -623,17 +623,42 @@ function getDomainWeight(
   return clamp01(scoreWeight * 0.55 + overlapWeight * 0.35 + peakBoost)
 }
 
+function toEvidenceDomain(domain: DomainKey | null): CalendarEvidence['matrix']['domain'] {
+  if (!domain) return 'general'
+  return domain
+}
+
 function buildMatrixOverlay(
   dateIso: string,
   matrixContext: MatrixCalendarContext,
   categories: EventCategory[],
-  lang: 'ko' | 'en'
-): { summary: string; recommendations: string[]; warnings: string[] } {
+  lang: 'ko' | 'en',
+  cross: { sajuEvidence?: string; astroEvidence?: string }
+): { summary: string; recommendations: string[]; warnings: string[]; evidence: CalendarEvidence } {
+  const monthKey = dateIso.slice(0, 7)
   if (!matrixContext) {
-    return { summary: '', recommendations: [], warnings: [] }
+    return {
+      summary: '',
+      recommendations: [],
+      warnings: [],
+      evidence: {
+        matrix: {
+          domain: 'general',
+          finalScoreAdjusted: 5,
+          overlapStrength: 0,
+          peakLevel: 'normal',
+          monthKey,
+        },
+        cross: {
+          sajuEvidence: cross.sajuEvidence || '',
+          astroEvidence: cross.astroEvidence || '',
+        },
+        confidence: 0,
+        source: 'rule',
+      },
+    }
   }
 
-  const monthKey = dateIso.slice(0, 7)
   const monthPoint = (matrixContext.overlapTimeline || []).find((p) => p.month === monthKey)
 
   const domainPeakCandidates = Object.entries(matrixContext.overlapTimelineByDomain || {})
@@ -668,6 +693,15 @@ function buildMatrixOverlay(
   }
   const weightedDomain = preferredDomain || topDomain || null
   const domainWeight = getDomainWeight(weightedDomain, monthPoint, matrixContext)
+  const overlapStrength = clamp01(monthPoint?.overlapStrength ?? 0)
+  const peakBoost =
+    monthPoint?.peakLevel === 'peak' ? 0.22 : monthPoint?.peakLevel === 'high' ? 0.12 : 0
+  const confidence = Math.round(
+    clamp01(domainWeight * 0.5 + overlapStrength * 0.3 + peakBoost * 0.2) * 100
+  )
+  const score = weightedDomain
+    ? (matrixContext.domainScores?.[weightedDomain]?.finalScoreAdjusted ?? 5)
+    : 5
 
   const summaryParts: string[] = []
   const recommendations: string[] = []
@@ -749,10 +783,30 @@ function buildMatrixOverlay(
     )
   }
 
+  const evidence: CalendarEvidence = {
+    matrix: {
+      domain: toEvidenceDomain(weightedDomain),
+      finalScoreAdjusted: Number(score.toFixed(2)),
+      overlapStrength: Number(overlapStrength.toFixed(2)),
+      peakLevel:
+        monthPoint?.peakLevel === 'peak' || monthPoint?.peakLevel === 'high'
+          ? monthPoint.peakLevel
+          : 'normal',
+      monthKey,
+    },
+    cross: {
+      sajuEvidence: cross.sajuEvidence || '',
+      astroEvidence: cross.astroEvidence || '',
+    },
+    confidence: Math.max(0, Math.min(100, confidence)),
+    source: 'rule',
+  }
+
   return {
     summary: summaryParts.join(' '),
     recommendations: dedupeTexts(recommendations),
     warnings: dedupeTexts(warnings),
+    evidence,
   }
 }
 
@@ -829,7 +883,16 @@ export function formatDateForResponse(
     lang
   )
   const warnings = buildEnhancedWarnings(date, translations, lang)
-  const matrixOverlay = buildMatrixOverlay(date.date, matrixContext || null, uniqueCategories, lang)
+  const matrixOverlay = buildMatrixOverlay(
+    date.date,
+    matrixContext || null,
+    uniqueCategories,
+    lang,
+    {
+      sajuEvidence: orderedSajuFactors[0],
+      astroEvidence: orderedAstroFactors[0],
+    }
+  )
   const baseSummary = generateSummary(
     date.grade,
     uniqueCategories,
@@ -860,6 +923,7 @@ export function formatDateForResponse(
       6
     ),
     warnings: dedupeTexts([...warnings, ...matrixOverlay.warnings]).slice(0, 6),
+    evidence: matrixOverlay.evidence,
   }
 }
 

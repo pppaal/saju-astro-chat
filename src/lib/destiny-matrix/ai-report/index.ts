@@ -10,6 +10,12 @@ export {
 export type { AIPremiumReport, AIReportGenerationOptions } from './reportTypes'
 
 export { generatePremiumPDF, type PDFGenerationOptions } from './pdfGenerator'
+export {
+  buildGraphRAGEvidence,
+  formatGraphRAGEvidenceForPrompt,
+  type GraphRAGEvidenceAnchor,
+  type GraphRAGEvidenceBundle,
+} from './graphRagEvidence'
 
 export {
   type ReportPeriod,

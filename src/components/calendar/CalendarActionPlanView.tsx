@@ -32,6 +32,7 @@ type AiTimelineSlot = {
   minute?: number
   note: string
   tone?: 'neutral' | 'best' | 'caution'
+  evidenceSummary?: string[]
 }
 
 type ActionPlanAiAccess = {
@@ -470,7 +471,14 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         toneValue === 'best' || toneValue === 'caution' || toneValue === 'neutral'
           ? toneValue
           : undefined
-      cleaned.push({ hour, minute, note, tone })
+      const evidenceRaw = (item as { evidenceSummary?: unknown }).evidenceSummary
+      const evidenceSummary = Array.isArray(evidenceRaw)
+        ? evidenceRaw
+            .map((line) => (typeof line === 'string' ? line.trim() : ''))
+            .filter(Boolean)
+            .slice(0, 3)
+        : undefined
+      cleaned.push({ hour, minute, note, tone, evidenceSummary })
     })
     return cleaned
   }, [])
@@ -499,6 +507,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           summary: trimText(baseInfo.summary, 240),
           ganzhi: trimText(baseInfo.ganzhi, 80),
           transitSunSign: trimText(baseInfo.transitSunSign, 80),
+          evidence: baseInfo.evidence,
         }
       : null
 
@@ -886,6 +895,37 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
   const todayTiming = baseInfo?.bestTimes?.[0]
   const todayCaution = baseInfo?.warnings?.[0]
+  const evidenceBadges = useMemo(
+    () => [
+      isKo ? 'matrix 기준' : 'Matrix-based',
+      isKo ? '교차 검증' : 'Cross-verified',
+      isKo ? '주의 신호' : 'Caution signal',
+    ],
+    [isKo]
+  )
+  const evidenceLines = useMemo(() => {
+    const lines: string[] = []
+    if (baseInfo?.evidence?.matrix) {
+      lines.push(
+        isKo
+          ? `Matrix 근거: ${baseInfo.evidence.matrix.domain}, 신뢰도 ${baseInfo.evidence.confidence}%`
+          : `Matrix evidence: ${baseInfo.evidence.matrix.domain}, confidence ${baseInfo.evidence.confidence}%`
+      )
+    }
+    const cross = [
+      baseInfo?.evidence?.cross?.sajuEvidence,
+      baseInfo?.evidence?.cross?.astroEvidence,
+    ]
+      .filter(Boolean)
+      .join(' / ')
+    if (cross) {
+      lines.push(isKo ? `교차 근거: ${cross}` : `Cross evidence: ${cross}`)
+    }
+    if (todayCaution) {
+      lines.push(isKo ? `주의 신호: ${todayCaution}` : `Caution signal: ${todayCaution}`)
+    }
+    return lines.slice(0, 3)
+  }, [baseInfo?.evidence, isKo, todayCaution])
 
   const bestDayChips = bestDays.map((entry) => ({
     label: formatDateLabel(entry.date),
@@ -1213,7 +1253,22 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
                 }`}
               >
                 <div className={styles.actionPlanTimelineTime}>
-                  {slot.label}
+                  <div className={styles.actionPlanTimelineTimeMain}>
+                    <span className={styles.actionPlanTimelineClock}>{slot.label}</span>
+                    <span className={styles.actionPlanTimelineTone}>
+                      {slot.tone === 'best'
+                        ? isKo
+                          ? '집중'
+                          : 'Focus'
+                        : slot.tone === 'caution'
+                          ? isKo
+                            ? '주의'
+                            : 'Caution'
+                          : isKo
+                            ? '기본'
+                            : 'Base'}
+                    </span>
+                  </div>
                   {slot.badge && (
                     <span className={styles.actionPlanTimelineBadge}>{slot.badge}</span>
                   )}
@@ -1238,6 +1293,20 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
               </li>
             ))}
           </ul>
+          <div className={styles.actionPlanEvidence}>
+            <div className={styles.actionPlanEvidenceBadges}>
+              {evidenceBadges.map((badge) => (
+                <span key={badge} className={styles.actionPlanEvidenceBadge}>
+                  {badge}
+                </span>
+              ))}
+            </div>
+            <ul className={styles.actionPlanEvidenceList}>
+              {evidenceLines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </div>
           {todayTiming && (
             <div className={styles.actionPlanTiming}>
               ⏰ {isKo ? '추천 시간' : 'Best timing'}: {todayTiming}

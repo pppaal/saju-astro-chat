@@ -531,5 +531,27 @@ describe('Calendar Helpers', () => {
       // Negative factors should be present
       expect(result.sajuFactors.length).toBeGreaterThan(0)
     })
+
+    it('should include matrix evidence object', () => {
+      const result = formatDateForResponse(
+        baseDateData as any,
+        'ko',
+        koTranslations as any,
+        enTranslations as any,
+        {
+          domainScores: { career: { finalScoreAdjusted: 8.1 } as any },
+          overlapTimeline: [{ month: '2025-03', overlapStrength: 0.7, peakLevel: 'high' } as any],
+          overlapTimelineByDomain: {
+            career: [{ month: '2025-03', overlapStrength: 0.7, peakLevel: 'high' } as any],
+          },
+          calendarSignals: [],
+        } as any
+      )
+
+      expect(result.evidence).toBeDefined()
+      expect(result.evidence?.matrix.domain).toBe('career')
+      expect(result.evidence?.confidence).toBeGreaterThanOrEqual(0)
+      expect(result.evidence?.confidence).toBeLessThanOrEqual(100)
+    })
   })
 })

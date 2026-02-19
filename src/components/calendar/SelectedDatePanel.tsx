@@ -22,6 +22,21 @@ interface ImportantDate {
   astroFactors: string[]
   recommendations: string[]
   warnings: string[]
+  evidence?: {
+    matrix: {
+      domain: 'career' | 'love' | 'money' | 'health' | 'move' | 'general'
+      finalScoreAdjusted: number
+      overlapStrength: number
+      peakLevel: 'peak' | 'high' | 'normal'
+      monthKey: string
+    }
+    cross: {
+      sajuEvidence: string
+      astroEvidence: string
+    }
+    confidence: number
+    source: 'rule' | 'rag' | 'hybrid'
+  }
   ganzhi?: string
   transitSunSign?: string
   crossVerified?: boolean
@@ -149,6 +164,31 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     return locale === 'ko' ? labels[cat].ko : labels[cat].en
   }
 
+  const termHelp = {
+    matrixBadge:
+      locale === 'ko'
+        ? 'matrix 기준 (여러 신호를 합친 종합 점수)'
+        : 'Matrix-based (combined score from multiple signals)',
+    crossBadge:
+      locale === 'ko'
+        ? '교차 검증 (사주+점성 결과가 같은 방향)'
+        : 'Cross-verified (Saju + Astrology point in same direction)',
+    cautionBadge: locale === 'ko' ? '주의 신호 (리스크 경고)' : 'Caution signal (risk warning)',
+    sajuTitle:
+      locale === 'ko'
+        ? '사주 분석 (타고난 구조와 오늘의 흐름)'
+        : 'Saju Analysis (natal pattern + today flow)',
+    astroTitle:
+      locale === 'ko'
+        ? '점성술 분석 (행성 움직임 기반)'
+        : 'Astrology Analysis (planetary movement based)',
+    dayPillar: locale === 'ko' ? '일주 (오늘의 핵심 기운)' : 'Day Pillar (today core energy)',
+    bestTimes:
+      locale === 'ko'
+        ? '오늘의 좋은 시간 (중요 일정을 넣기 좋은 시간대)'
+        : 'Best Times Today (better windows for key tasks)',
+  }
+
   const isSaved = selectedDate ? savedDates.has(selectedDate.date) : false
 
   return (
@@ -250,13 +290,34 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               <p className={styles.summaryText}>{selectedDate.summary}</p>
             </div>
           )}
+          {selectedDate.evidence && (
+            <div className={styles.calendarEvidenceBox}>
+              <div className={styles.calendarEvidenceBadges}>
+                <span className={styles.calendarEvidenceBadge}>{termHelp.matrixBadge}</span>
+                <span className={styles.calendarEvidenceBadge}>{termHelp.crossBadge}</span>
+                <span className={styles.calendarEvidenceBadge}>{termHelp.cautionBadge}</span>
+              </div>
+              <ul className={styles.calendarEvidenceList}>
+                <li>
+                  {locale === 'ko'
+                    ? `Matrix 근거: ${selectedDate.evidence.matrix.domain} 영역에서 점수가 높았고, 신뢰도는 ${selectedDate.evidence.confidence}%입니다.`
+                    : `Matrix evidence: strong score in ${selectedDate.evidence.matrix.domain}, confidence ${selectedDate.evidence.confidence}%.`}
+                </li>
+                <li>
+                  {locale === 'ko'
+                    ? `교차 근거: 사주(${selectedDate.evidence.cross.sajuEvidence || '근거 없음'})와 점성(${selectedDate.evidence.cross.astroEvidence || '근거 없음'})이 같은 방향을 가리킵니다.`
+                    : `Cross evidence: Saju (${selectedDate.evidence.cross.sajuEvidence || 'n/a'}) and Astrology (${selectedDate.evidence.cross.astroEvidence || 'n/a'}) support the same direction.`}
+                </li>
+              </ul>
+            </div>
+          )}
 
           <p className={styles.selectedDesc}>{selectedDate.description}</p>
 
           {/* Ganzhi info */}
           {selectedDate.ganzhi && (
             <div className={styles.ganzhiBox}>
-              <span className={styles.ganzhiLabel}>{locale === 'ko' ? '일주' : 'Day Pillar'}</span>
+              <span className={styles.ganzhiLabel}>{termHelp.dayPillar}</span>
               <span className={styles.ganzhiValue}>{selectedDate.ganzhi}</span>
               {selectedDate.transitSunSign && (
                 <>
@@ -273,7 +334,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             <div className={styles.bestTimesBox}>
               <h4 className={styles.bestTimesTitle}>
                 <span className={styles.bestTimesIcon}>⏰</span>
-                {locale === 'ko' ? '오늘의 좋은 시간' : 'Best Times Today'}
+                {termHelp.bestTimes}
               </h4>
               <div className={styles.bestTimesList}>
                 {selectedDate.bestTimes.map((time, i) => (
@@ -313,7 +374,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             <div className={styles.analysisSection}>
               <h4 className={styles.analysisTitle}>
                 <span className={styles.analysisBadge}>☯️</span>
-                {locale === 'ko' ? '사주 분석' : 'Saju Analysis'}
+                {termHelp.sajuTitle}
               </h4>
               <ul className={styles.analysisList}>
                 {selectedDate.sajuFactors.slice(0, 4).map((factor, i) => (
@@ -331,7 +392,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             <div className={styles.analysisSection}>
               <h4 className={styles.analysisTitle}>
                 <span className={styles.analysisBadge}>🌟</span>
-                {locale === 'ko' ? '점성술 분석' : 'Astrology Analysis'}
+                {termHelp.astroTitle}
               </h4>
               <ul className={styles.analysisList}>
                 {selectedDate.astroFactors.slice(0, 4).map((factor, i) => (
