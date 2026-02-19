@@ -122,11 +122,11 @@ export default function AboutPage() {
           <div className={styles.stars} aria-hidden />
           <h1 className={styles.heroTitle}>
             <span className={styles.heroLine}>
-              {`${translate('about.heroTitle1', 'Diagnose with Fate.')} `}
-            </span>
+              {translate('about.heroTitle1', 'Diagnose with Fate.')}
+            </span>{' '}
             <span className={styles.heroLine}>
-              {`${translate('about.heroTitle2', 'Analyze with Psychology.')} `}
-            </span>
+              {translate('about.heroTitle2', 'Analyze with Psychology.')}
+            </span>{' '}
             <span className={styles.heroLine}>
               {translate('about.heroTitle3', 'Heal with Spirituality.')}
             </span>
