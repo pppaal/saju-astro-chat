@@ -5,6 +5,7 @@ export * from './types'
 export {
   formatCityName,
   formatCityForDropdown,
+  localizeStoredCity,
   getCityNameInKorean,
   getCountryNameInKorean,
   getCityNameFromKorean,

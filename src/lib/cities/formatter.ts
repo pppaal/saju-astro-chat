@@ -83,6 +83,45 @@ export function formatCityForDropdown(
   return `${city}, ${countryDisplay}`;
 }
 
+function hasHangul(value: string): boolean {
+  return /[\u3131-\u314e\u314f-\u3163\uac00-\ud7a3]/.test(value);
+}
+
+function resolveCountryCode(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const trimmed = raw.trim();
+  if (trimmed.length === 2) return trimmed.toUpperCase();
+  const lower = trimmed.toLowerCase();
+  const found = Object.entries(COUNTRY_FULL_NAME).find(
+    ([, full]) => full.toLowerCase() === lower
+  );
+  return found?.[0];
+}
+
+/**
+ * Localize a stored city string (e.g. "Seoul, KR") for UI display.
+ */
+export function localizeStoredCity(
+  cityRaw: string | null | undefined,
+  locale: 'ko' | 'en' = 'en'
+): string {
+  const value = String(cityRaw || '').trim();
+  if (!value) return '';
+  if (locale !== 'ko') return value;
+  if (hasHangul(value)) return value;
+
+  const parts = value.split(',').map((part) => part.trim()).filter(Boolean);
+  const cityPart = parts[0] || value;
+  const countryCode = resolveCountryCode(parts[1]);
+
+  if (countryCode) {
+    return formatCityName(cityPart, countryCode, { locale: 'ko', style: 'short' });
+  }
+
+  const cityKr = getCityNameInKorean(cityPart);
+  return cityKr || cityPart;
+}
+
 /**
  * Get city name in Korean (for search)
  */

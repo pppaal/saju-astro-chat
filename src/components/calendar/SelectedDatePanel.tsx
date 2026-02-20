@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
 import { getPeakLabel, resolvePeakLevel } from './peakUtils'
+import { repairMojibakeText } from '@/lib/text/mojibake'
 
 type EventCategory = 'wealth' | 'career' | 'love' | 'health' | 'travel' | 'study' | 'general'
 type ImportanceGrade = 0 | 1 | 2 | 3 | 4
@@ -67,20 +68,6 @@ const CATEGORY_EMOJI: Record<EventCategory, string> = {
 
 const WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토']
 const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-
-const hasMojibake = (value: string) => /[ìëêðâÃÂ]/.test(value)
-
-const repairMojibakeText = (value: string): string => {
-  if (!value || !hasMojibake(value)) return value
-  try {
-    const bytes = Uint8Array.from([...value].map((ch) => ch.charCodeAt(0) & 0xff))
-    const decoded = new TextDecoder('utf-8').decode(bytes)
-    if (decoded && !decoded.includes('�')) return decoded
-  } catch {
-    // Keep original when decode fails
-  }
-  return value
-}
 
 const SelectedDatePanel = memo(function SelectedDatePanel({
   selectedDay,
@@ -560,3 +547,4 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 })
 
 export default SelectedDatePanel
+

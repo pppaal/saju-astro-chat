@@ -3,6 +3,7 @@ import { useSession } from 'next-auth/react'
 import type { UserProfile, GuestBirthInfo } from '@/lib/dream/types'
 import { logger } from '@/lib/logger'
 import { normalizeGender, toShortGender } from '@/lib/utils/gender'
+import { localizeStoredCity } from '@/lib/cities/formatter'
 
 export function useBirthInfo(locale: string) {
   const { status } = useSession()
@@ -82,7 +83,7 @@ export function useBirthInfo(locale: string) {
           }
         }
         if (user.birthCity) {
-          setBirthCity(user.birthCity)
+          setBirthCity(localizeStoredCity(user.birthCity, locale === 'ko' ? 'ko' : 'en'))
           setShowCityInput(true)
         }
         setUserProfile({

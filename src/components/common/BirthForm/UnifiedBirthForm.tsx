@@ -7,7 +7,7 @@ import TimePicker from '@/components/ui/TimePicker'
 import { GenderSelector } from './GenderSelector'
 import { ProfileLoader } from './ProfileLoader'
 import { CitySearchField } from './CitySearchField'
-import { formatCityForDropdown } from '@/lib/cities/formatter'
+import { formatCityForDropdown, localizeStoredCity } from '@/lib/cities/formatter'
 import { logger } from '@/lib/logger'
 import styles from './UnifiedBirthForm.module.css'
 
@@ -65,6 +65,10 @@ export function UnifiedBirthForm({
   headerSubtitle,
 }: UnifiedBirthFormProps) {
   const { status } = useSession()
+  const localizeCityForUI = useCallback(
+    (city: string | null | undefined) => localizeStoredCity(city, locale),
+    [locale]
+  )
 
   // Form state
   const [birthDate, setBirthDate] = useState(initialData?.birthDate || '')
@@ -73,7 +77,7 @@ export function UnifiedBirthForm({
   const [gender, setGender] = useState<'M' | 'F' | 'Male' | 'Female'>(
     initialData?.gender || (genderFormat === 'long' ? 'Male' : 'M')
   )
-  const [birthCity, setBirthCity] = useState(initialData?.birthCity || '')
+  const [birthCity, setBirthCity] = useState(() => localizeCityForUI(initialData?.birthCity))
   const [showCityInput, setShowCityInput] = useState(
     includeCityToggle ? !!initialData?.birthCity : includeCity
   )
@@ -161,7 +165,7 @@ export function UnifiedBirthForm({
 
         // Set birth city
         if ((includeCity || includeCityToggle) && user.birthCity && user.birthCity.trim() !== '') {
-          setBirthCity(user.birthCity)
+          setBirthCity(localizeCityForUI(user.birthCity))
           if (includeCityToggle) {
             setShowCityInput(true)
           }
@@ -186,7 +190,16 @@ export function UnifiedBirthForm({
         setLoadingProfile(false)
       }
     },
-    [status, locale, allowTimeUnknown, includeGender, genderFormat, includeCity, includeCityToggle]
+    [
+      status,
+      locale,
+      allowTimeUnknown,
+      includeGender,
+      genderFormat,
+      includeCity,
+      includeCityToggle,
+      localizeCityForUI,
+    ]
   )
 
   // Auto-load profile when user is authenticated

@@ -8,6 +8,7 @@ import { CATEGORY_EMOJI } from './constants'
 import { parseLocalDate } from './utils'
 import type { ImportantDate } from './types'
 import { getPeakLabel, resolvePeakLevel } from './peakUtils'
+import { repairMojibakeText } from '@/lib/text/mojibake'
 
 interface MonthHighlightsProps {
   allDates: ImportantDate[]
@@ -48,20 +49,6 @@ const MONTHS_EN = [
 const truncate = (text: string, len = 58) => {
   if (!text) return ''
   return text.length > len ? `${text.slice(0, len)}...` : text
-}
-
-const hasMojibake = (value: string) => /[ìëêðâÃÂ]/.test(value)
-
-const repairMojibakeText = (value: string): string => {
-  if (!value || !hasMojibake(value)) return value
-  try {
-    const bytes = Uint8Array.from([...value].map((ch) => ch.charCodeAt(0) & 0xff))
-    const decoded = new TextDecoder('utf-8').decode(bytes)
-    if (decoded && !decoded.includes('�')) return decoded
-  } catch {
-    // Keep original if conversion fails
-  }
-  return value
 }
 
 export default function MonthHighlights({
@@ -222,3 +209,4 @@ export default function MonthHighlights({
     </div>
   )
 }
+

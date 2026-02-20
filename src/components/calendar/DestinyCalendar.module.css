@@ -3139,7 +3139,27 @@
   }
 
   .monthNav {
+    gap: 12px;
+    flex-wrap: wrap;
     padding: 12px 16px;
+  }
+
+  .monthDisplay {
+    min-width: 0;
+  }
+
+  .todayBtn {
+    padding: 6px 10px;
+  }
+
+  .viewTabs {
+    max-width: none;
+    margin: 10px 12px 16px;
+  }
+
+  .viewTab {
+    font-size: 15px;
+    padding: 9px 10px;
   }
 
   .day {
@@ -3185,6 +3205,31 @@
 }
 
 @media (max-width: 480px) {
+  .monthNav {
+    gap: 8px;
+    padding: 10px 8px;
+  }
+
+  .monthName {
+    font-size: 18px;
+  }
+
+  .todayBtn {
+    font-size: 11px;
+    padding: 5px 9px;
+  }
+
+  .viewTabs {
+    margin: 8px 8px 14px;
+    padding: 4px;
+    gap: 4px;
+  }
+
+  .viewTab {
+    font-size: 13px;
+    padding: 8px 6px;
+  }
+
   .day {
     min-height: 48px;
   }

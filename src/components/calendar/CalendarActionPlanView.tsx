@@ -9,6 +9,7 @@ import { analyzePersona } from '@/lib/persona/analysis'
 import type { ICPAnalysis, ICPQuizAnswers } from '@/lib/icp/types'
 import type { PersonaAnalysis, PersonaQuizAnswers } from '@/lib/persona/types'
 import { logger } from '@/lib/logger'
+import { repairMojibakeText } from '@/lib/text/mojibake'
 import styles from './DestinyCalendar.module.css'
 import {
   CATEGORY_EMOJI,
@@ -373,6 +374,10 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
     []
   )
+  const cleanText = useCallback((value: string | null | undefined) => {
+    if (!value) return ''
+    return repairMojibakeText(value)
+  }, [])
 
   const extractBestHours = useCallback((value: string) => {
     if (!value || /년|월/.test(value)) {
@@ -417,10 +422,11 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       : [normalizeCategory(topCategory ?? 'general')]
 
     if (baseInfo?.bestTimes?.[0]) {
+      const bestTimeText = cleanText(baseInfo.bestTimes[0])
       pushItem(
         isKo
-          ? `${baseInfo.bestTimes[0]}에 핵심 일정 배치`
-          : `Schedule a key task at ${baseInfo.bestTimes[0]}`
+          ? `${bestTimeText}에 핵심 일정 배치`
+          : `Schedule a key task at ${bestTimeText}`
       )
     }
 
@@ -429,7 +435,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       pushItem(actions[0])
     })
 
-    baseInfo?.recommendations?.slice(0, 2).forEach((rec) => pushItem(rec))
+    baseInfo?.recommendations?.slice(0, 2).forEach((rec) => pushItem(cleanText(rec)))
 
     if (items.length < 3) {
       const grade = baseInfo?.grade ?? 2
@@ -447,8 +453,11 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       pushItem(fallback)
     }
 
-    return items.slice(0, 3)
-  }, [baseInfo, isKo, topCategory])
+    return items
+      .slice(0, 3)
+      .map((item) => cleanText(item))
+      .filter(Boolean)
+  }, [baseInfo, cleanText, isKo, topCategory])
 
   const sanitizeAiTimeline = useCallback((raw: unknown) => {
     if (!Array.isArray(raw)) return [] as AiTimelineSlot[]
@@ -772,7 +781,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
             : Math.floor((item.hour * 60 + minute) / intervalMinutes)
         const slot = slots[index]
         if (!slot) return
-        slot.note = item.note
+        slot.note = cleanText(item.note)
         if (item.tone) {
           slot.tone = item.tone
         }
@@ -810,8 +819,24 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       }
     })
 
+    slots.forEach((slot) => {
+      slot.note = cleanText(slot.note)
+      if (slot.badge) {
+        slot.badge = cleanText(slot.badge)
+      }
+    })
+
     return slots
-  }, [aiTimeline, baseTexts, baseTimelineSlots, bestHours, cautionHours, intervalMinutes, isKo])
+  }, [
+    aiTimeline,
+    baseTexts,
+    baseTimelineSlots,
+    bestHours,
+    cautionHours,
+    cleanText,
+    intervalMinutes,
+    isKo,
+  ])
 
   const weekItems = useMemo(() => {
     const items: string[] = []
@@ -854,9 +879,13 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       pushItem(fallback)
     }
 
-    return items.slice(0, 4)
+    return items
+      .slice(0, 4)
+      .map((item) => cleanText(item))
+      .filter(Boolean)
   }, [
     bestDays,
+    cleanText,
     cautionDays,
     topCategory,
     isKo,
@@ -866,8 +895,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     rangeDays,
   ])
 
-  const todayTiming = baseInfo?.bestTimes?.[0]
-  const todayCaution = baseInfo?.warnings?.[0]
+  const todayTiming = cleanText(baseInfo?.bestTimes?.[0])
+  const todayCaution = cleanText(baseInfo?.warnings?.[0])
   const evidenceBadges = useMemo(
     () => [
       isKo ? 'matrix 기준' : 'Matrix-based',
@@ -886,8 +915,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       )
     }
     const cross = [
-      baseInfo?.evidence?.cross?.sajuEvidence,
-      baseInfo?.evidence?.cross?.astroEvidence,
+      cleanText(baseInfo?.evidence?.cross?.sajuEvidence),
+      cleanText(baseInfo?.evidence?.cross?.astroEvidence),
     ]
       .filter(Boolean)
       .join(' / ')
@@ -897,8 +926,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     if (todayCaution) {
       lines.push(isKo ? `주의 신호: ${todayCaution}` : `Caution signal: ${todayCaution}`)
     }
-    return lines.slice(0, 3)
-  }, [baseInfo?.evidence, isKo, todayCaution])
+    return lines.slice(0, 3).map((line) => cleanText(line))
+  }, [baseInfo?.evidence, cleanText, isKo, todayCaution])
 
   const timelineInsight = useMemo(() => {
     if (!baseInfo) {

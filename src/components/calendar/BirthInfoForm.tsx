@@ -45,7 +45,7 @@ const BirthInfoForm = memo(function BirthInfoForm({
   }
 
   return (
-    <div className={`${styles.introContainer} ${styles.largeTextMode}`}>
+    <div className={styles.introContainer}>
       {canvasRef && <canvas ref={canvasRef} className={styles.particleCanvas} />}
       <BackButton />
 

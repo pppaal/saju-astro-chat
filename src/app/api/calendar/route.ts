@@ -39,6 +39,7 @@ import {
 export const dynamic = 'force-dynamic'
 
 import { LIMITS } from '@/lib/validation/patterns'
+import { normalizeMojibakePayload } from '@/lib/text/mojibake'
 // HTTP_STATUS not used directly, status codes used via createErrorResponse
 const _VALID_CALENDAR_PLACES = new Set(Object.keys(LOCATION_COORDS))
 const MAX_PLACE_LEN = LIMITS.PLACE
@@ -65,40 +66,6 @@ const EN_TO_KO_ELEMENT: Record<string, FiveElement> = {
   earth: '토',
   metal: '금',
   water: '수',
-}
-
-const MOJIBAKE_PATTERN = /[\u00EC\u00EB\u00EA\u00F0\u00E2\u00C3\u00C2]/
-
-function repairMojibakeText(value: string): string {
-  if (!MOJIBAKE_PATTERN.test(value)) {
-    return value
-  }
-  try {
-    const decoded = Buffer.from(value, 'latin1').toString('utf8')
-    if (decoded && !decoded.includes('\uFFFD')) {
-      return decoded
-    }
-  } catch {
-    // ignore decode error and keep original text
-  }
-  return value
-}
-
-function normalizeCalendarPayload<T>(input: T): T {
-  if (typeof input === 'string') {
-    return repairMojibakeText(input) as T
-  }
-  if (Array.isArray(input)) {
-    return input.map((item) => normalizeCalendarPayload(item)) as T
-  }
-  if (input && typeof input === 'object') {
-    const normalized: Record<string, unknown> = {}
-    for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
-      normalized[key] = normalizeCalendarPayload(value)
-    }
-    return normalized as T
-  }
-  return input
 }
 
 /**
@@ -422,7 +389,7 @@ export const GET = withApiMiddleware(
       // AI 날짜를 기존 날짜에 병합 가능
     }
 
-    const responsePayload = normalizeCalendarPayload({
+    const responsePayload = normalizeMojibakePayload({
       success: true,
       type: 'yearly',
       year,

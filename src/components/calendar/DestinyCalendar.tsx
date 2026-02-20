@@ -28,6 +28,7 @@ import styles from './DestinyCalendar.module.css'
 import { logger } from '@/lib/logger'
 import { normalizeGender, toLongGender } from '@/lib/utils/gender'
 import { getUserProfile } from '@/lib/userProfile'
+import { localizeStoredCity } from '@/lib/cities/formatter'
 
 // Types
 import type { EventCategory, ImportantDate, CalendarData, BirthInfo } from './types'
@@ -118,7 +119,13 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
         setBirthInfo((prev) => ({ ...prev, gender: longGender }))
       }
     }
-  }, [])
+    if (profile.birthCity) {
+      setBirthInfo((prev) => ({
+        ...prev,
+        birthPlace: localizeStoredCity(profile.birthCity, locale === 'ko' ? 'ko' : 'en'),
+      }))
+    }
+  }, [locale])
 
   // Load saved dates for authenticated users
   useEffect(() => {

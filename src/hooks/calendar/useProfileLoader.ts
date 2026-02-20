@@ -2,6 +2,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { getUserProfile } from '@/lib/userProfile'
 import { logger } from '@/lib/logger'
+import { localizeStoredCity } from '@/lib/cities/formatter'
 
 interface BirthInfo {
   birthDate: string
@@ -38,7 +39,8 @@ interface UseProfileLoaderReturn {
  */
 export function useProfileLoader(
   userId?: string,
-  onSuccess?: (info: BirthInfo, city: CityHit) => void
+  onSuccess?: (info: BirthInfo, city: CityHit) => void,
+  locale: 'ko' | 'en' = 'ko'
 ): UseProfileLoaderReturn {
   const [loadingProfile, setLoadingProfile] = useState(false)
   const [profileLoaded, setProfileLoaded] = useState(false)
@@ -69,10 +71,11 @@ export function useProfileLoader(
           const { user } = await res.json()
 
           if (user?.birthDate) {
+            const localizedCity = localizeStoredCity(user.birthCity || '', locale)
             const birthInfo: BirthInfo = {
               birthDate: user.birthDate,
               birthTime: user.birthTime || '12:00',
-              birthPlace: user.birthCity || '',
+              birthPlace: localizedCity,
               gender: user.gender === 'F' ? 'Female' : 'Male',
               latitude: user.latitude,
               longitude: user.longitude,
@@ -80,7 +83,7 @@ export function useProfileLoader(
             }
 
             const cityHit: CityHit = {
-              name: user.birthCity || 'Unknown',
+              name: localizedCity || 'Unknown',
               country: '',
               lat: user.latitude || 0,
               lon: user.longitude || 0,
@@ -106,10 +109,11 @@ export function useProfileLoader(
           profile?.latitude !== undefined &&
           profile?.longitude !== undefined
         ) {
+          const localizedCity = localizeStoredCity(profile.birthCity || '', locale)
           const birthInfo: BirthInfo = {
             birthDate: profile.birthDate,
             birthTime: profile.birthTime || '12:00',
-            birthPlace: profile.birthCity || '',
+            birthPlace: localizedCity,
             gender: profile.gender === 'Female' ? 'Female' : 'Male',
             latitude: profile.latitude,
             longitude: profile.longitude,
@@ -117,7 +121,7 @@ export function useProfileLoader(
           }
 
           const cityHit: CityHit = {
-            name: profile.birthCity || 'Unknown',
+            name: localizedCity || 'Unknown',
             country: '',
             lat: profile.latitude,
             lon: profile.longitude,
@@ -142,12 +146,12 @@ export function useProfileLoader(
         logger.error('[useProfileLoader] Failed to load profile', {
           error: err instanceof Error ? err.message : 'Unknown',
         })
-        setProfileError('Failed to load profile')
+        setProfileError(locale === 'ko' ? '프로필을 불러오지 못했습니다' : 'Failed to load profile')
       } finally {
         setLoadingProfile(false)
       }
     },
-    [profileLoaded]
+    [locale, profileLoaded]
   )
 
   // Auto-load profile when userId is provided and user is authenticated

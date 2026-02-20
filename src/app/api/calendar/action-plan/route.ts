@@ -10,6 +10,7 @@ import {
 import { createValidationErrorResponse, dateSchema } from '@/lib/api/zodValidation'
 import { LIST_LIMITS, TEXT_LIMITS } from '@/lib/constants/api-limits'
 import { logger } from '@/lib/logger'
+import { normalizeMojibakePayload, repairMojibakeText } from '@/lib/text/mojibake'
 import { calculateDailyPillar, generateHourlyAdvice } from '@/lib/prediction/ultra-precision-daily'
 import { STEM_ELEMENTS } from '@/lib/destiny-map/config/specialDays.data'
 import { getHourlyRecommendation } from '@/lib/destiny-map/calendar/specialDays-analysis'
@@ -424,10 +425,10 @@ const buildRuleBasedTimeline = (input: {
         }
       }
 
-      const note = `${energyText} · ${detailLine}`.trim()
+      const note = repairMojibakeText(`${energyText} · ${detailLine}`.trim())
       const evidenceSummary = [
-        matrixSummary || 'Matrix baseline evidence',
-        crossSummary || 'Cross evidence: baseline saju/astro flow',
+        repairMojibakeText(matrixSummary || 'Matrix baseline evidence'),
+        repairMojibakeText(crossSummary || 'Cross evidence: baseline saju/astro flow'),
       ]
       slots.push({ hour, minute, label, note, tone, evidenceSummary, source: 'rule' })
     }
@@ -445,14 +446,14 @@ const sanitizeTimelineForInterval = (raw: unknown, intervalMinutes: 30 | 60): Ti
     const minuteRaw = (item as { minute?: unknown }).minute
     const minute = minuteRaw === undefined ? 0 : Number(minuteRaw)
     const noteRaw = (item as { note?: unknown }).note
-    const note = typeof noteRaw === 'string' ? noteRaw.trim() : ''
+    const note = typeof noteRaw === 'string' ? repairMojibakeText(noteRaw.trim()) : ''
     const toneRaw = (item as { tone?: unknown }).tone
     const tone =
       toneRaw === 'best' || toneRaw === 'caution' || toneRaw === 'neutral' ? toneRaw : undefined
     const evidenceRaw = (item as { evidenceSummary?: unknown }).evidenceSummary
     const evidenceSummary = Array.isArray(evidenceRaw)
       ? evidenceRaw
-          .map((line) => (typeof line === 'string' ? line.trim() : ''))
+          .map((line) => (typeof line === 'string' ? repairMojibakeText(line.trim()) : ''))
           .filter(Boolean)
           .slice(0, 3)
       : undefined
@@ -791,22 +792,24 @@ export const POST = withApiMiddleware(
       aiCreditCost: CALENDAR_AI_CREDIT_COST,
     })
 
-    return apiSuccess({
-      timeline,
-      summary: summaryParts.join(' · ') || undefined,
-      intervalMinutes: safeInterval,
-      precisionMode: aiRefined
-        ? 'ai-graphrag'
-        : canUseAiPrecision
-          ? 'rule-based'
-          : 'premium-locked',
-      aiAccess: {
-        premiumOnly: CALENDAR_AI_PREMIUM_ONLY,
-        allowed: canUseAiPrecision,
-        isPremiumUser,
-        creditCost: CALENDAR_AI_CREDIT_COST,
-      },
-    })
+    return apiSuccess(
+      normalizeMojibakePayload({
+        timeline,
+        summary: repairMojibakeText(summaryParts.join(' · ')) || undefined,
+        intervalMinutes: safeInterval,
+        precisionMode: aiRefined
+          ? 'ai-graphrag'
+          : canUseAiPrecision
+            ? 'rule-based'
+            : 'premium-locked',
+        aiAccess: {
+          premiumOnly: CALENDAR_AI_PREMIUM_ONLY,
+          allowed: canUseAiPrecision,
+          isPremiumUser,
+          creditCost: CALENDAR_AI_CREDIT_COST,
+        },
+      })
+    )
   },
   createPublicStreamGuard({
     route: 'calendar-action-plan',
