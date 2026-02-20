@@ -1,0 +1,33 @@
+{
+  "version": "2026-02-20",
+  "global": {
+    "min": 0.7,
+    "max": 0.98
+  },
+  "by_mapping_type": {
+    "cheongan_sign": {
+      "mean_min": 0.78,
+      "mean_max": 0.9
+    },
+    "jiji_planet": {
+      "mean_min": 0.78,
+      "mean_max": 0.9
+    },
+    "geokguk_house": {
+      "mean_min": 0.78,
+      "mean_max": 0.92
+    },
+    "geokguk_planet": {
+      "mean_min": 0.78,
+      "mean_max": 0.92
+    },
+    "ohaeng_sign": {
+      "mean_min": 0.78,
+      "mean_max": 0.9
+    },
+    "sipsin_planet": {
+      "mean_min": 0.78,
+      "mean_max": 0.92
+    }
+  }
+}

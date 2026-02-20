@@ -1,0 +1,5 @@
+id,source,target,relation_type,weight,description
+EXT_CJ_001,CHEONGAN_을목,Taurus,cheongan_sign_extension,0.82,Extended crosswalk evidence: yin-wood stem with Taurus stability profile.
+EXT_CJ_002,CHEONGAN_정화,Sagittarius,cheongan_sign_extension,0.84,Extended crosswalk evidence: yin-fire stem with exploratory fire-sign trajectory.
+EXT_CJ_003,CHEONGAN_신금,Scorpio,cheongan_sign_extension,0.80,Extended crosswalk evidence: yin-metal discernment aligned with deep transformational analysis.
+EXT_CJ_004,BR_미,Venus,jiji_planet_extension,0.82,Extended crosswalk evidence: earth-branch buffering and Venus harmony/values mediation.

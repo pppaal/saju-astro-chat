@@ -1,0 +1,74 @@
+{
+  "version": "2026-02-20",
+  "base_source": "backend_ai/data/graph/saju/interpretations/geokguk.json",
+  "allowed_extension_ids": [
+    "GK_관인상생격",
+    "GK_살인상생격",
+    "GK_상관견관격",
+    "GK_상관생재격",
+    "GK_상관패인격",
+    "GK_식신생재격",
+    "GK_식신제살격",
+    "GK_재관쌍미격",
+    "GK_재자살인격",
+    "GK_종관격"
+  ],
+  "intentional_unmapped_base_ids": [
+    {
+      "id": "GK_가색격",
+      "reason": "Legacy or low-frequency pattern; mapped by generalized rules for now."
+    },
+    {
+      "id": "GK_갑기화토격",
+      "reason": "Legacy or low-frequency pattern; mapped by generalized rules for now."
+    },
+    {
+      "id": "GK_곡직격",
+      "reason": "Legacy or low-frequency pattern; mapped by generalized rules for now."
+    },
+    {
+      "id": "GK_무계화화격",
+      "reason": "Legacy or low-frequency pattern; mapped by generalized rules for now."
+    },
+    {
+      "id": "GK_병신화수격",
+      "reason": "Legacy or low-frequency pattern; mapped by generalized rules for now."
+    },
+    {
+      "id": "GK_염상격",
+      "reason": "Legacy or low-frequency pattern; mapped by generalized rules for now."
+    },
+    {
+      "id": "GK_월겁격",
+      "reason": "Legacy or low-frequency pattern; mapped by generalized rules for now."
+    },
+    {
+      "id": "GK_윤하격",
+      "reason": "Legacy or low-frequency pattern; mapped by generalized rules for now."
+    },
+    {
+      "id": "GK_을경화금격",
+      "reason": "Legacy or low-frequency pattern; mapped by generalized rules for now."
+    },
+    {
+      "id": "GK_잡기격",
+      "reason": "Legacy or low-frequency pattern; mapped by generalized rules for now."
+    },
+    {
+      "id": "GK_정임화목격",
+      "reason": "Legacy or low-frequency pattern; mapped by generalized rules for now."
+    },
+    {
+      "id": "GK_종살격",
+      "reason": "Legacy or low-frequency pattern; mapped by generalized rules for now."
+    },
+    {
+      "id": "GK_종왕격",
+      "reason": "Legacy or low-frequency pattern; mapped by generalized rules for now."
+    },
+    {
+      "id": "GK_종혁격",
+      "reason": "Legacy or low-frequency pattern; mapped by generalized rules for now."
+    }
+  ]
+}
