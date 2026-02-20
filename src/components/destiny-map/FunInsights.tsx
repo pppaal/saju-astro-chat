@@ -254,7 +254,9 @@ const FunInsights = memo(function FunInsights({
   }
 
   return (
-    <div className={`mt-8 space-y-6 ${className}`}>
+    <div
+      className={`mt-8 space-y-6 [&_p]:text-[1.02rem] md:[&_p]:text-[1.06rem] [&_li]:text-[1.02rem] md:[&_li]:text-[1.06rem] ${className}`}
+    >
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* 운명의 한 줄 요약 - 히어로 */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
@@ -276,7 +278,7 @@ const FunInsights = memo(function FunInsights({
               }`}
             >
               <span>{tab.emoji}</span>
-              <span className="text-sm font-medium">{tab.label}</span>
+              <span className="text-base font-semibold md:text-[1.05rem]">{tab.label}</span>
             </button>
           ))}
         </div>
