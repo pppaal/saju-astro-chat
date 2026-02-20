@@ -1,32 +1,32 @@
 // src/components/destiny-map/fun-insights/components/PremiumReportCTA.tsx
 // AI Premium Report CTA Component for FunInsights tabs
 
-"use client";
+'use client'
 
-import { useState, useCallback } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useI18n } from "@/i18n/I18nProvider";
+import { useState, useCallback } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useI18n } from '@/i18n/I18nProvider'
 
 export type ReportSection =
-  | "personality"
-  | "love"
-  | "career"
-  | "fortune"
-  | "health"
-  | "karma"
-  | "timing"
-  | "hidden"
-  | "comprehensive";
+  | 'personality'
+  | 'love'
+  | 'career'
+  | 'fortune'
+  | 'health'
+  | 'karma'
+  | 'timing'
+  | 'hidden'
+  | 'comprehensive'
 
 interface PremiumReportCTAProps {
-  section: ReportSection;
+  section: ReportSection
   /** Matrix data to be used for the AI report */
-  matrixData?: Record<string, unknown>;
+  matrixData?: Record<string, unknown>
   /** Compact variant for smaller spaces */
-  compact?: boolean;
+  compact?: boolean
   /** Class name for styling */
-  className?: string;
+  className?: string
 }
 
 const SECTION_INFO: Record<
@@ -34,121 +34,127 @@ const SECTION_INFO: Record<
   { emoji: string; ko: string; en: string; desc: { ko: string; en: string } }
 > = {
   personality: {
-    emoji: "🌟",
-    ko: "성격",
-    en: "Personality",
+    emoji: '🌟',
+    ko: '성격',
+    en: 'Personality',
     desc: {
-      ko: "AI가 당신의 숨겨진 성격과 잠재력을 심층 분석합니다",
-      en: "AI analyzes your hidden personality and potential",
+      ko: 'AI가 당신의 숨겨진 성격과 잠재력을 심층 분석합니다',
+      en: 'AI analyzes your hidden personality and potential',
     },
   },
   love: {
-    emoji: "💕",
-    ko: "연애",
-    en: "Love",
+    emoji: '💕',
+    ko: '연애',
+    en: 'Love',
     desc: {
-      ko: "AI가 당신의 연애 스타일과 인연 타이밍을 분석합니다",
-      en: "AI analyzes your love style and relationship timing",
+      ko: 'AI가 당신의 연애 스타일과 인연 타이밍을 분석합니다',
+      en: 'AI analyzes your love style and relationship timing',
     },
   },
   career: {
-    emoji: "💼",
-    ko: "커리어",
-    en: "Career",
+    emoji: '💼',
+    ko: '커리어',
+    en: 'Career',
     desc: {
-      ko: "AI가 당신의 직업 적성과 성공 시기를 분석합니다",
-      en: "AI analyzes your career aptitude and success timing",
+      ko: 'AI가 당신의 직업 적성과 성공 시기를 분석합니다',
+      en: 'AI analyzes your career aptitude and success timing',
     },
   },
   fortune: {
-    emoji: "🔮",
-    ko: "운세",
-    en: "Fortune",
+    emoji: '🔮',
+    ko: '운세',
+    en: 'Fortune',
     desc: {
-      ko: "AI가 당신의 종합 운세와 행운 포인트를 분석합니다",
-      en: "AI analyzes your overall fortune and lucky points",
+      ko: 'AI가 당신의 종합 운세와 행운 포인트를 분석합니다',
+      en: 'AI analyzes your overall fortune and lucky points',
     },
   },
   health: {
-    emoji: "💪",
-    ko: "건강",
-    en: "Health",
+    emoji: '💪',
+    ko: '건강',
+    en: 'Health',
     desc: {
-      ko: "AI가 당신의 건강 취약점과 치유 방법을 분석합니다",
-      en: "AI analyzes your health vulnerabilities and healing methods",
+      ko: 'AI가 당신의 건강 취약점과 치유 방법을 분석합니다',
+      en: 'AI analyzes your health vulnerabilities and healing methods',
     },
   },
   karma: {
-    emoji: "🌌",
-    ko: "카르마",
-    en: "Karma",
+    emoji: '🌌',
+    ko: '카르마',
+    en: 'Karma',
     desc: {
-      ko: "AI가 당신의 영혼 패턴과 카르마를 심층 분석합니다",
-      en: "AI analyzes your soul patterns and karma",
+      ko: 'AI가 당신의 영혼 패턴과 카르마를 심층 분석합니다',
+      en: 'AI analyzes your soul patterns and karma',
     },
   },
   timing: {
-    emoji: "⏰",
-    ko: "타이밍",
-    en: "Timing",
+    emoji: '⏰',
+    ko: '타이밍',
+    en: 'Timing',
     desc: {
-      ko: "AI가 당신의 인생 주요 시기를 정밀 분석합니다",
+      ko: 'AI가 당신의 인생 주요 시기를 정밀 분석합니다',
       en: "AI analyzes your life's key timing periods",
     },
   },
   hidden: {
-    emoji: "🌑",
-    ko: "숨겨진 자아",
-    en: "Hidden Self",
+    emoji: '🌑',
+    ko: '숨겨진 자아',
+    en: 'Hidden Self',
     desc: {
-      ko: "AI가 당신의 무의식과 그림자 자아를 분석합니다",
-      en: "AI analyzes your unconscious and shadow self",
+      ko: 'AI가 당신의 무의식과 그림자 자아를 분석합니다',
+      en: 'AI analyzes your unconscious and shadow self',
     },
   },
   comprehensive: {
-    emoji: "📜",
-    ko: "종합 리포트",
-    en: "Full Report",
+    emoji: '📜',
+    ko: '종합 리포트',
+    en: 'Full Report',
     desc: {
-      ko: "AI가 모든 영역을 종합 분석하여 심층 리포트를 제공합니다",
-      en: "AI provides a comprehensive analysis across all domains",
+      ko: 'AI가 모든 영역을 종합 분석하여 심층 리포트를 제공합니다',
+      en: 'AI provides a comprehensive analysis across all domains',
     },
   },
-};
+}
 
 export default function PremiumReportCTA({
   section,
   matrixData,
   compact = false,
-  className = "",
+  className = '',
 }: PremiumReportCTAProps) {
-  const { status } = useSession();
-  const { locale } = useI18n();
-  const router = useRouter();
-  const isKo = locale === "ko";
-  const [isHovered, setIsHovered] = useState(false);
+  const { status } = useSession()
+  const { locale } = useI18n()
+  const router = useRouter()
+  const isKo = locale === 'ko'
+  const [isHovered, setIsHovered] = useState(false)
+  const premiumDisabledForQa = true
 
-  const info = SECTION_INFO[section] || SECTION_INFO.comprehensive;
+  const info = SECTION_INFO[section] || SECTION_INFO.comprehensive
 
   const handleClick = useCallback(() => {
     // Store return URL and section preference
-    if (typeof window !== "undefined") {
-      localStorage.setItem("checkout_return_url", window.location.pathname);
-      localStorage.setItem("ai_report_section", section);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('checkout_return_url', window.location.pathname)
+      localStorage.setItem('ai_report_section', section)
       if (matrixData) {
-        localStorage.setItem("ai_report_matrix_data", JSON.stringify(matrixData));
+        localStorage.setItem('ai_report_matrix_data', JSON.stringify(matrixData))
       }
     }
 
     // If not logged in, redirect to login
-    if (status !== "authenticated") {
-      router.push("/auth/signin?callbackUrl=" + encodeURIComponent(window.location.pathname));
-      return;
+    if (status !== 'authenticated') {
+      router.push('/auth/signin?callbackUrl=' + encodeURIComponent(window.location.pathname))
+      return
     }
 
     // Navigate to pricing or dedicated AI report page
-    router.push("/pricing?feature=ai-report");
-  }, [section, matrixData, status, router]);
+    router.push('/pricing?feature=ai-report')
+  }, [section, matrixData, status, router])
+
+  // Temporarily disabled for QA checks requested by product.
+  if (premiumDisabledForQa) {
+    return null
+  }
 
   if (compact) {
     return (
@@ -169,31 +175,24 @@ export default function PremiumReportCTA({
           <div className="flex items-center gap-2">
             <span className="text-lg">{info.emoji}</span>
             <span className="text-sm font-medium text-violet-200">
-              {isKo ? "AI 심층 분석" : "AI Deep Analysis"}
+              {isKo ? 'AI 심층 분석' : 'AI Deep Analysis'}
             </span>
           </div>
           <div className="flex items-center gap-1 text-violet-300">
             <span className="text-xs">✦</span>
-            <span className="text-sm font-medium">
-              {isKo ? "1 크레딧" : "1 Credit"}
-            </span>
+            <span className="text-sm font-medium">{isKo ? '1 크레딧' : '1 Credit'}</span>
             <svg
-              className={`w-4 h-4 transition-transform duration-300 ${isHovered ? "translate-x-1" : ""}`}
+              className={`w-4 h-4 transition-transform duration-300 ${isHovered ? 'translate-x-1' : ''}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </div>
         </div>
       </button>
-    );
+    )
   }
 
   return (
@@ -217,11 +216,11 @@ export default function PremiumReportCTA({
           absolute inset-0 opacity-0 group-hover:opacity-100
           bg-gradient-to-r from-transparent via-violet-400/10 to-transparent
           transition-opacity duration-700
-          ${isHovered ? "animate-shimmer" : ""}
+          ${isHovered ? 'animate-shimmer' : ''}
         `}
         style={{
-          backgroundSize: "200% 100%",
-          animation: isHovered ? "shimmer 2s infinite" : "none",
+          backgroundSize: '200% 100%',
+          animation: isHovered ? 'shimmer 2s infinite' : 'none',
         }}
       />
 
@@ -234,32 +233,28 @@ export default function PremiumReportCTA({
           </div>
           <div>
             <h4 className="text-lg font-bold text-violet-100">
-              {isKo
-                ? `${info.ko} AI 심층 분석`
-                : `${info.en} AI Deep Analysis`}
+              {isKo ? `${info.ko} AI 심층 분석` : `${info.en} AI Deep Analysis`}
             </h4>
             <div className="flex items-center gap-2 text-violet-300/80 text-sm">
               <span className="flex items-center gap-1">
                 <span className="text-amber-400">✦</span>
-                <span>{isKo ? "1 크레딧" : "1 Credit"}</span>
+                <span>{isKo ? '1 크레딧' : '1 Credit'}</span>
               </span>
               <span className="text-violet-500">•</span>
-              <span>{isKo ? "AI 생성" : "AI Generated"}</span>
+              <span>{isKo ? 'AI 생성' : 'AI Generated'}</span>
             </div>
           </div>
         </div>
 
         {/* Description */}
-        <p className="text-sm text-violet-200/70 mb-4">
-          {isKo ? info.desc.ko : info.desc.en}
-        </p>
+        <p className="text-sm text-violet-200/70 mb-4">{isKo ? info.desc.ko : info.desc.en}</p>
 
         {/* Features */}
         <div className="flex flex-wrap gap-2 mb-4">
           {[
-            { ko: "개인 맞춤 분석", en: "Personalized Analysis" },
-            { ko: "실천 가이드", en: "Action Guide" },
-            { ko: "상세 인사이트", en: "Detailed Insights" },
+            { ko: '개인 맞춤 분석', en: 'Personalized Analysis' },
+            { ko: '실천 가이드', en: 'Action Guide' },
+            { ko: '상세 인사이트', en: 'Detailed Insights' },
           ].map((feature, idx) => (
             <span
               key={idx}
@@ -273,13 +268,13 @@ export default function PremiumReportCTA({
         {/* CTA Button */}
         <div className="flex items-center justify-between">
           <span className="text-sm text-violet-300/60">
-            {status !== "authenticated"
+            {status !== 'authenticated'
               ? isKo
-                ? "로그인 후 이용 가능"
-                : "Login required"
+                ? '로그인 후 이용 가능'
+                : 'Login required'
               : isKo
-                ? "지금 바로 분석받기"
-                : "Get your analysis now"}
+                ? '지금 바로 분석받기'
+                : 'Get your analysis now'}
           </span>
           <div
             className={`
@@ -291,9 +286,9 @@ export default function PremiumReportCTA({
             group-hover:shadow-lg group-hover:shadow-violet-500/30
           `}
           >
-            <span>{isKo ? "AI 분석 받기" : "Get AI Report"}</span>
+            <span>{isKo ? 'AI 분석 받기' : 'Get AI Report'}</span>
             <svg
-              className={`w-4 h-4 transition-transform duration-300 ${isHovered ? "translate-x-1" : ""}`}
+              className={`w-4 h-4 transition-transform duration-300 ${isHovered ? 'translate-x-1' : ''}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -325,7 +320,7 @@ export default function PremiumReportCTA({
         }
       `}</style>
     </div>
-  );
+  )
 }
 
-export { PremiumReportCTA };
+export { PremiumReportCTA }

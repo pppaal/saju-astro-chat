@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState, memo } from 'react'
+import { repairMojibakeDeep } from '@/lib/text/mojibake'
 
 // Import Tab Components
 import {
@@ -135,7 +136,7 @@ const FunInsights = memo(function FunInsights({
     const moonSign = findPlanetSign(astro, 'moon')
     const ascSign = astro?.ascendant?.sign?.toLowerCase() || null
 
-    return {
+    const generated = {
       dayMasterName,
       dayMasterInfo,
       dayElement,
@@ -155,6 +156,7 @@ const FunInsights = memo(function FunInsights({
       chironInsight: getChironInsight(astro, lang || 'ko'),
       currentFlow: getCurrentFlowAnalysis(saju, lang || 'ko'),
     }
+    return repairMojibakeDeep(generated)
   }, [saju, astro, lang, theme, hasFiveElements, hasValidAstro])
 
   // 운명 서사 생성 - 외부 상수 사용으로 대폭 간소화
@@ -166,12 +168,12 @@ const FunInsights = memo(function FunInsights({
     const dayEl = data.dayElement
     const strongEl = data.strongest[0]
 
-    return {
+    return repairMojibakeDeep({
       lifeTheme: LIFE_THEMES[data.dayMasterName] || LIFE_THEMES['갑'],
       emotionPattern: EMOTION_PATTERNS[strongEl],
       relationshipStyle: RELATIONSHIP_STYLES[dayEl],
       careerDestiny: CAREER_DESTINIES[strongEl],
-    }
+    })
   }, [data])
 
   // 운명이 풀리는 선택 5가지 - 외부 함수 사용으로 간소화
@@ -222,7 +224,7 @@ const FunInsights = memo(function FunInsights({
   // 탭 컴포넌트에 전달할 데이터 - useMemo로 메모이제이션
   const tabData = useMemo(() => {
     if (!data) return null
-    return {
+    return repairMojibakeDeep({
       dayMasterName: data.dayMasterName,
       dayMasterInfo: data.dayMasterInfo,
       dayElement: data.dayElement,
@@ -244,7 +246,7 @@ const FunInsights = memo(function FunInsights({
       chironInsight: data.chironInsight,
       luckyItems: data.luckyItems,
       normalizedElements, // 오행 균형 차트용
-    } as unknown as TabData
+    }) as unknown as TabData
   }, [data, saju, astro, lang, normalizedElements])
 
   if (!data) {

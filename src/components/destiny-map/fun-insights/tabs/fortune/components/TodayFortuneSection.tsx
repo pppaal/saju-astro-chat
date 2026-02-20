@@ -1,34 +1,44 @@
 // src/components/destiny-map/fun-insights/tabs/fortune/components/TodayFortuneSection.tsx
-"use client";
+'use client'
 
-import type { TodayFortune } from '../types';
+import { repairMojibakeText } from '@/lib/text/mojibake'
+import type { TodayFortune } from '../types'
 
 interface TodayFortuneSectionProps {
-  todayFortune: TodayFortune;
-  isKo: boolean;
+  todayFortune: TodayFortune
+  isKo: boolean
 }
 
 export default function TodayFortuneSection({ todayFortune, isKo }: TodayFortuneSectionProps) {
   return (
-    <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-indigo-900/20 border border-indigo-500/30 p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <span className="text-2xl">{todayFortune.fortune.emoji}</span>
-        <h3 className="text-lg font-bold text-indigo-300">{isKo ? "오늘의 운세" : "Today's Fortune"}</h3>
-        {todayFortune.ganji && <span className="text-sm text-gray-400">({todayFortune.ganji})</span>}
-      </div>
+    <section className="rounded-2xl border border-indigo-400/30 bg-gradient-to-br from-slate-900/85 to-indigo-950/25 p-6 shadow-[0_8px_32px_rgba(99,102,241,0.15)]">
+      <header className="mb-4 flex items-center gap-3">
+        <span className="text-2xl">{repairMojibakeText(todayFortune.fortune.emoji)}</span>
+        <h3 className="text-xl font-extrabold text-indigo-200">
+          {isKo ? '오늘의 운세' : "Today's Fortune"}
+        </h3>
+        {todayFortune.ganji && (
+          <span className="rounded-full border border-indigo-300/30 bg-indigo-300/10 px-2 py-1 text-xs font-medium text-indigo-100">
+            {repairMojibakeText(todayFortune.ganji)}
+          </span>
+        )}
+      </header>
 
       <div className="space-y-3">
-        <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-          <p className="text-indigo-300 font-bold text-sm mb-2">{todayFortune.fortune.mood}</p>
-          <p className="text-gray-300 text-sm leading-relaxed">{todayFortune.fortune.tip}</p>
-        </div>
-
-        <div className="p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
-          <p className="text-yellow-300 font-bold text-xs flex items-center gap-2">
-            <span>⏰</span> {isKo ? "행운의 시간" : "Lucky Time"}: {todayFortune.fortune.luckyTime}
+        <article className="rounded-xl border border-indigo-400/25 bg-indigo-500/10 p-4">
+          <p className="mb-2 text-sm font-bold text-indigo-200">
+            {repairMojibakeText(todayFortune.fortune.mood)}
           </p>
-        </div>
+          <p className="text-sm leading-relaxed text-slate-100">
+            {repairMojibakeText(todayFortune.fortune.tip)}
+          </p>
+        </article>
+
+        <p className="rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs font-semibold text-amber-200">
+          ⏰ {isKo ? '행운의 시간' : 'Lucky Time'}:{' '}
+          {repairMojibakeText(todayFortune.fortune.luckyTime)}
+        </p>
       </div>
-    </div>
-  );
+    </section>
+  )
 }

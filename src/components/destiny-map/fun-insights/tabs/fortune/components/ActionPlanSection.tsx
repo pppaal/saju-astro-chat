@@ -1,88 +1,109 @@
 // src/components/destiny-map/fun-insights/tabs/fortune/components/ActionPlanSection.tsx
-"use client";
+'use client'
 
-import type { FortuneActionPlan, ElementKey } from '../types';
+import { repairMojibakeText } from '@/lib/text/mojibake'
+import type { FortuneActionPlan, ElementKey } from '../types'
 
-const ELEMENT_META: Record<ElementKey, { icon: string; ko: string; en: string }> = {
-  wood: { icon: '🌱', ko: '목', en: 'Wood' },
-  fire: { icon: '🔥', ko: '화', en: 'Fire' },
-  earth: { icon: '🏔️', ko: '토', en: 'Earth' },
-  metal: { icon: '⚔️', ko: '금', en: 'Metal' },
-  water: { icon: '💧', ko: '수', en: 'Water' }
-};
+const ELEMENT_META: Record<ElementKey, { icon: string; ko: string; en: string; tone: string }> = {
+  wood: { icon: '🌱', ko: '목', en: 'Wood', tone: 'from-emerald-500/25 to-emerald-900/10' },
+  fire: { icon: '🔥', ko: '화', en: 'Fire', tone: 'from-rose-500/25 to-rose-900/10' },
+  earth: { icon: '🏔️', ko: '토', en: 'Earth', tone: 'from-amber-500/25 to-amber-900/10' },
+  metal: { icon: '⚔️', ko: '금', en: 'Metal', tone: 'from-slate-400/25 to-slate-900/10' },
+  water: { icon: '💧', ko: '수', en: 'Water', tone: 'from-cyan-500/25 to-cyan-900/10' },
+}
 
 interface ActionPlanSectionProps {
-  actionPlan: FortuneActionPlan;
-  isKo: boolean;
+  actionPlan: FortuneActionPlan
+  isKo: boolean
 }
 
 export default function ActionPlanSection({ actionPlan, isKo }: ActionPlanSectionProps) {
-  const todayMeta = ELEMENT_META[actionPlan.today.element];
-  const weekMeta = ELEMENT_META[actionPlan.week.element];
+  const todayMeta = ELEMENT_META[actionPlan.today.element]
+  const weekMeta = ELEMENT_META[actionPlan.week.element]
 
   return (
-    <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-emerald-900/20 border border-emerald-500/30 p-6">
-      <div className="flex items-center gap-3 mb-4">
+    <section className="rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-slate-900/85 to-slate-950/95 p-6 shadow-[0_10px_40px_rgba(16,185,129,0.12)]">
+      <div className="mb-5 flex flex-wrap items-center gap-3">
         <span className="text-2xl">✅</span>
-        <h3 className="text-lg font-bold text-emerald-300">
+        <h3 className="text-xl font-extrabold tracking-tight text-emerald-200">
           {isKo ? '행동 플랜' : 'Action Plan'}
         </h3>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200">
-          {isKo ? '오늘/이번 주 체크리스트' : 'Today/This Week Checklist'}
+        <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-100">
+          {isKo ? '오늘 · 이번 주 실행' : 'Today · This Week'}
         </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-emerald-300 font-bold text-sm">{isKo ? '오늘 체크리스트' : 'Today Checklist'}</p>
-            <span className="text-xs text-emerald-200">{todayMeta.icon} {isKo ? todayMeta.ko : todayMeta.en}</span>
-          </div>
-          {actionPlan.today.focus && (
-            <p className="text-emerald-200/90 text-xs mb-3">
-              {isKo ? '포커스' : 'Focus'}: {actionPlan.today.focus}
-            </p>
-          )}
-          <ul className="space-y-2 text-sm">
-            {actionPlan.today.items.map((item, idx) => (
-              <li key={idx} className="flex gap-2 text-gray-200">
-                <span className="text-emerald-400">✓</span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-          {actionPlan.today.timing && (
-            <p className="text-xs text-amber-300 mt-3">
-              ⏰ {isKo ? '추천 시간' : 'Best Timing'}: {actionPlan.today.timing}
-            </p>
-          )}
-        </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <article
+          className={`rounded-xl border border-emerald-400/25 bg-gradient-to-br ${todayMeta.tone} p-4`}
+        >
+          <header className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-extrabold text-emerald-100">
+                {isKo ? '오늘 체크리스트' : 'Today Checklist'}
+              </p>
+              <p className="mt-1 text-xs text-emerald-200/90">
+                {isKo ? '포커스' : 'Focus'}: {repairMojibakeText(actionPlan.today.focus)}
+              </p>
+            </div>
+            <span className="rounded-full border border-emerald-300/30 bg-emerald-200/10 px-2 py-1 text-xs font-bold text-emerald-100">
+              {todayMeta.icon} {isKo ? todayMeta.ko : todayMeta.en}
+            </span>
+          </header>
 
-        <div className="p-4 rounded-xl bg-teal-500/10 border border-teal-500/20">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-teal-300 font-bold text-sm">{isKo ? '이번 주 체크리스트' : 'This Week Checklist'}</p>
-            <span className="text-xs text-teal-200">{weekMeta.icon} {isKo ? weekMeta.ko : weekMeta.en}</span>
-          </div>
-          {actionPlan.week.focus && (
-            <p className="text-teal-200/90 text-xs mb-3">
-              {isKo ? '포커스' : 'Focus'}: {actionPlan.week.focus}
-            </p>
-          )}
-          <ul className="space-y-2 text-sm">
-            {actionPlan.week.items.map((item, idx) => (
-              <li key={idx} className="flex gap-2 text-gray-200">
-                <span className="text-teal-400">✓</span>
-                <span>{item}</span>
+          <ol className="space-y-2 text-sm text-slate-100">
+            {actionPlan.today.items.map((item, idx) => (
+              <li key={idx} className="flex items-start gap-2">
+                <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-400/20 text-[11px] font-bold text-emerald-200">
+                  {idx + 1}
+                </span>
+                <span>{repairMojibakeText(item)}</span>
               </li>
             ))}
-          </ul>
-          {actionPlan.week.caution && (
-            <p className="text-xs text-rose-300 mt-3">
-              ⚠ {isKo ? '주의' : 'Caution'}: {actionPlan.week.caution}
+          </ol>
+
+          {actionPlan.today.timing && (
+            <p className="mt-4 rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs font-semibold text-amber-200">
+              ⏰ {isKo ? '추천 시간' : 'Best Timing'}: {repairMojibakeText(actionPlan.today.timing)}
             </p>
           )}
-        </div>
+        </article>
+
+        <article
+          className={`rounded-xl border border-teal-400/25 bg-gradient-to-br ${weekMeta.tone} p-4`}
+        >
+          <header className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-extrabold text-teal-100">
+                {isKo ? '이번 주 체크리스트' : 'This Week Checklist'}
+              </p>
+              <p className="mt-1 text-xs text-teal-200/90">
+                {isKo ? '포커스' : 'Focus'}: {repairMojibakeText(actionPlan.week.focus)}
+              </p>
+            </div>
+            <span className="rounded-full border border-teal-300/30 bg-teal-200/10 px-2 py-1 text-xs font-bold text-teal-100">
+              {weekMeta.icon} {isKo ? weekMeta.ko : weekMeta.en}
+            </span>
+          </header>
+
+          <ol className="space-y-2 text-sm text-slate-100">
+            {actionPlan.week.items.map((item, idx) => (
+              <li key={idx} className="flex items-start gap-2">
+                <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-teal-400/20 text-[11px] font-bold text-teal-200">
+                  {idx + 1}
+                </span>
+                <span>{repairMojibakeText(item)}</span>
+              </li>
+            ))}
+          </ol>
+
+          {actionPlan.week.caution && (
+            <p className="mt-4 rounded-lg border border-rose-400/25 bg-rose-400/10 px-3 py-2 text-xs font-semibold text-rose-200">
+              ⚠ {isKo ? '주의' : 'Caution'}: {repairMojibakeText(actionPlan.week.caution)}
+            </p>
+          )}
+        </article>
       </div>
-    </div>
-  );
+    </section>
+  )
 }

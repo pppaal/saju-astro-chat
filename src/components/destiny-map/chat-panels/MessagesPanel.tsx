@@ -4,6 +4,7 @@ import React from 'react'
 import type { Message, FeedbackType } from '../chat-constants'
 import type { Copy } from '../chat-i18n'
 import MessageRow from '../MessageRow'
+import { repairMojibakeText } from '@/lib/text/mojibake'
 
 interface MessagesPanelProps {
   visibleMessages: Message[]
@@ -49,7 +50,7 @@ export const MessagesPanel = React.memo(function MessagesPanel({
       {notice && (
         <div className={styles.noticeBar}>
           <span className={styles.noticeIcon}>&#x26A0;&#xFE0F;</span>
-          <span>{notice}</span>
+          <span>{repairMojibakeText(notice)}</span>
         </div>
       )}
 
@@ -67,7 +68,7 @@ export const MessagesPanel = React.memo(function MessagesPanel({
                   className={styles.suggestionChip}
                   onClick={() => onSuggestion(q)}
                 >
-                  {q}
+                  {repairMojibakeText(q)}
                 </button>
               ))}
             </div>
@@ -122,7 +123,7 @@ export const MessagesPanel = React.memo(function MessagesPanel({
                 onClick={() => onFollowUp(q)}
               >
                 <span className={styles.followUpIcon}>&#x1F4AC;</span>
-                {q}
+                {repairMojibakeText(q)}
               </button>
             ))}
           </div>

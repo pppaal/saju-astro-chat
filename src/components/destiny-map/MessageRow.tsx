@@ -1,16 +1,17 @@
-"use client";
+'use client'
 
-import React from "react";
-import MarkdownMessage from "@/components/ui/MarkdownMessage";
-import type { Message, FeedbackType } from "./chat-constants";
+import React from 'react'
+import MarkdownMessage from '@/components/ui/MarkdownMessage'
+import type { Message, FeedbackType } from './chat-constants'
+import { repairMojibakeText } from '@/lib/text/mojibake'
 
 interface MessageRowProps {
-  message: Message;
-  index: number;
-  feedback: Record<string, FeedbackType>;
-  lang: string;
-  onFeedback: (id: string, type: FeedbackType) => void;
-  styles: Record<string, string>;
+  message: Message
+  index: number
+  feedback: Record<string, FeedbackType>
+  lang: string
+  onFeedback: (id: string, type: FeedbackType) => void
+  styles: Record<string, string>
 }
 
 /**
@@ -22,12 +23,13 @@ const MessageRow = React.memo(function MessageRow({
   feedback,
   lang,
   onFeedback,
-  styles: s
+  styles: s,
 }: MessageRowProps) {
-  const isAssistant = message.role === "assistant";
-  const rowClass = `${s.messageRow} ${isAssistant ? s.assistantRow : s.userRow}`;
-  const messageClass = isAssistant ? s.assistantMessage : s.userMessage;
-  const hasFeedback = isAssistant && message.content && message.id;
+  const isAssistant = message.role === 'assistant'
+  const normalizedContent = repairMojibakeText(message.content || '')
+  const rowClass = `${s.messageRow} ${isAssistant ? s.assistantRow : s.userRow}`
+  const messageClass = isAssistant ? s.assistantMessage : s.userMessage
+  const hasFeedback = isAssistant && message.content && message.id
 
   return (
     <div
@@ -38,30 +40,26 @@ const MessageRow = React.memo(function MessageRow({
       {isAssistant && <div className={s.counselorAvatar} />}
       <div className={s.messageBubble}>
         <div className={messageClass}>
-          {isAssistant ? (
-            <MarkdownMessage content={message.content} />
-          ) : (
-            message.content
-          )}
+          {isAssistant ? <MarkdownMessage content={normalizedContent} /> : normalizedContent}
         </div>
 
         {hasFeedback && (
           <div className={s.feedbackButtons}>
             <button
               type="button"
-              className={`${s.feedbackBtn} ${feedback[message.id!] === "up" ? s.feedbackActive : ""}`}
-              onClick={() => onFeedback(message.id!, "up")}
-              title={lang === "ko" ? "도움이 됐어요" : "Helpful"}
-              aria-label={lang === "ko" ? "도움이 됐어요" : "Helpful"}
+              className={`${s.feedbackBtn} ${feedback[message.id!] === 'up' ? s.feedbackActive : ''}`}
+              onClick={() => onFeedback(message.id!, 'up')}
+              title={lang === 'ko' ? '도움이 됐어요' : 'Helpful'}
+              aria-label={lang === 'ko' ? '도움이 됐어요' : 'Helpful'}
             >
               👍
             </button>
             <button
               type="button"
-              className={`${s.feedbackBtn} ${feedback[message.id!] === "down" ? s.feedbackActive : ""}`}
-              onClick={() => onFeedback(message.id!, "down")}
-              title={lang === "ko" ? "아쉬워요" : "Not helpful"}
-              aria-label={lang === "ko" ? "아쉬워요" : "Not helpful"}
+              className={`${s.feedbackBtn} ${feedback[message.id!] === 'down' ? s.feedbackActive : ''}`}
+              onClick={() => onFeedback(message.id!, 'down')}
+              title={lang === 'ko' ? '아쉬워요' : 'Not helpful'}
+              aria-label={lang === 'ko' ? '아쉬워요' : 'Not helpful'}
             >
               👎
             </button>
@@ -74,8 +72,8 @@ const MessageRow = React.memo(function MessageRow({
         </div>
       )}
     </div>
-  );
-});
+  )
+})
 
-export default MessageRow;
-export type { MessageRowProps };
+export default MessageRow
+export type { MessageRowProps }

@@ -76,10 +76,10 @@ export function useCounselorData(sp: SearchParams) {
 
   const loadingMessages = useMemo(
     () => [
-      t('destinyMap.counselor.loading1', 'Connecting with counselor...'),
-      t('destinyMap.counselor.loading2', 'Analyzing your profile...'),
-      t('destinyMap.counselor.loading3', 'Preparing data...'),
-      t('destinyMap.counselor.loading4', 'Ready to start!'),
+      t('destinyMap.counselor.loading1', '상담사와 연결 중...'),
+      t('destinyMap.counselor.loading2', '사주/점성 프로필을 분석 중...'),
+      t('destinyMap.counselor.loading3', '교차 데이터와 문맥을 준비 중...'),
+      t('destinyMap.counselor.loading4', '곧 상담을 시작할 수 있어요'),
     ],
     [t]
   )
