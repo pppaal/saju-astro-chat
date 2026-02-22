@@ -201,6 +201,7 @@ async function fetchMatrixSnapshot(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       cache: 'no-store',
+      signal: AbortSignal.timeout(4000),
       body: JSON.stringify({
         birthDate: input.birthDate,
         birthTime: input.birthTime,

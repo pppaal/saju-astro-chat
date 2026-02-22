@@ -149,6 +149,8 @@ function AiReportBarcodeProgress({ locale }: { locale: Locale }) {
       ? `예상 ${AI_REPORT_ESTIMATED_SECONDS}초 내외, 남은 시간 약 ${remaining}초`
       : `Expected around ${AI_REPORT_ESTIMATED_SECONDS}s, about ${remaining}s remaining`
   const elapsedText = locale === 'ko' ? `${elapsedSeconds}초 경과` : `${elapsedSeconds}s elapsed`
+  const percentText =
+    locale === 'ko' ? `진행률 ${progressPercent}%` : `Progress ${progressPercent}%`
   const statusText =
     elapsedSeconds <= AI_REPORT_ESTIMATED_SECONDS
       ? locale === 'ko'
@@ -162,7 +164,9 @@ function AiReportBarcodeProgress({ locale }: { locale: Locale }) {
     <div className="mt-3 w-full max-w-lg rounded-2xl border border-cyan-300/25 bg-slate-950/55 p-3 backdrop-blur-md">
       <div className="mb-2 flex items-center justify-between text-[11px] text-cyan-100/85">
         <span>{metaText}</span>
-        <span className="font-semibold">{elapsedText}</span>
+        <span className="font-semibold">
+          {elapsedText} · {percentText}
+        </span>
       </div>
 
       <div className="relative h-16 overflow-hidden rounded-lg border border-cyan-300/25 bg-slate-950/80">

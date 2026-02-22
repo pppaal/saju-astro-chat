@@ -1,4 +1,4 @@
-//src/app/astrology/page.tsx
+﻿// src/app/astrology/page.tsx
 
 'use client'
 
@@ -47,11 +47,10 @@ export default function Home() {
   const [time, setTime] = useState('')
   const [profileLoaded, setProfileLoaded] = useState(false)
 
-  // 프리미엄 상태 관리 - 임시로 모든 사용자에게 프리미엄 제공
+  // Temporary: keep premium access behavior unchanged
   const [isPremium, setIsPremium] = useState(true)
   const isLoggedIn = status === 'authenticated'
 
-  // Load profile data into form
   useEffect(() => {
     if (profileLoading || profileLoaded) {
       return
@@ -71,7 +70,6 @@ export default function Home() {
     setProfileLoaded(true)
   }, [profile, profileLoading, profileLoaded])
 
-  // 프리미엄 상태 체크
   useEffect(() => {
     if (status === 'authenticated') {
       fetch('/api/me/premium')
@@ -82,7 +80,7 @@ export default function Home() {
           }
         })
         .catch(() => {
-          // 에러 시 기본값 유지
+          // keep default
         })
     }
   }, [status])
@@ -114,6 +112,7 @@ export default function Home() {
       setSuggestions([])
       return
     }
+
     const tmr = setTimeout(async () => {
       try {
         const items = (await searchCities(q, { limit: 20 })) as CityItem[]
@@ -123,6 +122,7 @@ export default function Home() {
         setSuggestions([])
       }
     }, 150)
+
     return () => clearTimeout(tmr)
   }, [cityQuery])
 
@@ -131,6 +131,7 @@ export default function Home() {
       locale === 'ko'
         ? item.displayKr || formatCityForDropdown(item.name, item.country, 'ko')
         : item.displayEn || formatCityForDropdown(item.name, item.country, 'en')
+
     setCityQuery(displayName)
     setLatitude(item.lat)
     setLongitude(item.lon)
@@ -142,7 +143,7 @@ export default function Home() {
         setTimeZone(guessed)
       }
     } catch {
-      // ignore
+      // ignore timezone lookup errors
     }
   }
 
@@ -157,21 +158,21 @@ export default function Home() {
 
     try {
       if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-        throw new Error(t('error.dateRequired') || 'Please enter a valid birth date (YYYY-MM-DD).')
+        throw new Error(t('error.dateRequired', 'Please enter a valid birth date (YYYY-MM-DD).'))
       }
       if (!time || !/^\d{2}:\d{2}$/.test(time)) {
-        throw new Error(t('error.timeRequired') || 'Please enter a valid birth time (HH:MM).')
+        throw new Error(t('error.timeRequired', 'Please enter a valid birth time (HH:MM).'))
       }
       if (latitude == null || longitude == null) {
-        throw new Error(t('error.cityRequired') || 'Please search and select your birth city.')
+        throw new Error(t('error.cityRequired', 'Please search and select your birth city.'))
       }
       if (!timeZone) {
-        throw new Error(t('error.timezoneRequired') || 'Please select a time zone.')
+        throw new Error(t('error.timezoneRequired', 'Please select a time zone.'))
       }
     } catch (e: unknown) {
       setIsLoading(false)
       const message =
-        e instanceof Error ? e.message : (t('error.unknown') as string) || 'Unknown error.'
+        e instanceof Error ? e.message : t('error.unknown', 'An unknown error occurred.')
       setError(message)
       return
     }
@@ -210,7 +211,7 @@ export default function Home() {
       if (typeof possible === 'string' && possible.trim()) {
         setInterpretation(possible)
       } else {
-        throw new Error(t('error.noData') || 'No analysis data in server response.')
+        throw new Error(t('error.noData', 'No analysis data received from server.'))
       }
 
       if (result?.chartData && typeof result.chartData === 'object') {
@@ -221,10 +222,8 @@ export default function Home() {
       }
 
       const adv = result?.advanced ?? result?.data?.advanced ?? result?.chartData?.advanced ?? null
-
       setAdvanced(adv && typeof adv === 'object' ? (adv as Record<string, unknown>) : null)
 
-      // Save profile for reuse across services
       saveUserProfile({
         birthDate: date,
         birthTime: time,
@@ -233,9 +232,7 @@ export default function Home() {
       })
     } catch (err: unknown) {
       const message =
-        err instanceof Error
-          ? err.message
-          : (t('error.unknown') as string) || 'Unknown error occurred.'
+        err instanceof Error ? err.message : t('error.unknown', 'An unknown error occurred.')
       setError(message)
     } finally {
       setIsLoading(false)
@@ -249,9 +246,9 @@ export default function Home() {
       setAspects(null)
       setAdvanced(null)
       setError(null)
-    } else {
-      router.back()
+      return
     }
+    router.back()
   }
 
   const handleLoadProfile = async () => {
@@ -265,8 +262,6 @@ export default function Home() {
       }
       if (profile.birthCity) {
         setCityQuery(profile.birthCity)
-        // Try to extract coordinates from profile if available
-        // Otherwise user will need to search again
       }
       if (profile.timezone) {
         setTimeZone(profile.timezone)
@@ -277,16 +272,13 @@ export default function Home() {
   return (
     <ServicePageLayout
       icon="✧"
-      title={t('ui.titleAstrology') || 'AI Natal Chart'}
-      subtitle={
-        t('ui.subtitleAstrology') || 'Discover your cosmic map based on your birth information.'
-      }
+      title={t('ui.titleAstrology', 'AI Birth Chart')}
+      subtitle={t('ui.subtitleAstrology', 'Discover your cosmic map based on your birth info.')}
       particleColor="#ffd782"
       onBack={handleBack}
-      backLabel={t('app.back') || 'Back'}
+      backLabel={t('app.back', 'Back')}
     >
       <main className={styles.page}>
-        {/* Background Stars */}
         <div className={styles.constellations}>
           {[...Array(30)].map((_, i) => (
             <div
@@ -306,44 +298,35 @@ export default function Home() {
           <div className={`${styles.formContainer} ${styles.fadeIn}`}>
             <div className={styles.formHeader}>
               <div className={styles.formIcon}>✧</div>
-              <h1 className={styles.formTitle}>{t('ui.titleAstrology') || 'AI Natal Chart'}</h1>
+              <h1 className={styles.formTitle}>{t('ui.titleAstrology', 'AI Birth Chart')}</h1>
               <p className={styles.formSubtitle}>
-                {t('ui.subtitleAstrology') ||
-                  'Discover your cosmic map based on your birth information.'}
+                {t('ui.subtitleAstrology', 'Discover your cosmic map based on your birth info.')}
               </p>
             </div>
 
             <form onSubmit={handleSubmit}>
-              {/* Load Profile Button */}
               {!profileLoaded && !profileLoadedMsg && (
                 <button
                   type="button"
                   onClick={handleLoadProfile}
                   disabled={loadingProfileBtn}
-                  className="w-full mb-5 p-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700
-                    text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="w-full mb-5 p-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   <span>{loadingProfileBtn ? '⏳' : '👤'}</span>
                   <span>
                     {loadingProfileBtn
-                      ? locale === 'ko'
-                        ? '불러오는 중...'
-                        : 'Loading...'
-                      : locale === 'ko'
-                        ? '내 프로필 불러오기'
-                        : 'Load My Profile'}
+                      ? t('common.loading', 'Loading...')
+                      : t('common.loadMyProfile', 'Load My Profile')}
                   </span>
                 </button>
               )}
 
-              {/* Profile loaded success message */}
               {profileLoadedMsg && (
                 <div className="mb-5 p-3 bg-green-600/20 border border-green-600 rounded-lg text-green-400 text-center">
-                  ✓ {locale === 'ko' ? '프로필 불러오기 완료!' : 'Profile loaded!'}
+                  ✓ {t('common.profileLoaded', 'Profile loaded!')}
                 </div>
               )}
 
-              {/* Profile load error */}
               {profileLoadError && (
                 <div className="mb-5 p-3 bg-red-600/20 border border-red-600 rounded-lg text-red-400 text-sm">
                   ⚠️ {profileLoadError}
@@ -355,7 +338,7 @@ export default function Home() {
                   <DateTimePicker
                     value={date}
                     onChange={setDate}
-                    label={t('app.birthDate') || 'Birth Date'}
+                    label={t('app.birthDate', 'Birth Date')}
                     required
                     locale={locale as 'ko' | 'en'}
                   />
@@ -363,7 +346,7 @@ export default function Home() {
 
                 <div>
                   <label htmlFor="time" className={styles.label}>
-                    {t('app.birthTime') || 'Birth Time'}
+                    {t('app.birthTime', 'Birth Time')}
                   </label>
                   <input
                     type="time"
@@ -377,10 +360,9 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* City autocomplete */}
               <div className={styles.relative}>
                 <label htmlFor="city" className={styles.label}>
-                  {t('app.birthCity') || 'Birth City'}
+                  {t('app.birthCity', 'Birth City')}
                 </label>
                 <input
                   id="city"
@@ -394,7 +376,7 @@ export default function Home() {
                   }}
                   onFocus={() => setShowDropdown(true)}
                   onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-                  placeholder={t('app.cityPh') || 'Seoul'}
+                  placeholder={t('app.cityPh', 'Seoul')}
                   className={styles.input}
                 />
                 {showDropdown && suggestions.length > 0 && (
@@ -416,24 +398,22 @@ export default function Home() {
                   </ul>
                 )}
                 <p className={styles.inputHint}>
-                  {t('ui.tipChooseCity') ||
-                    'Tip: Choose a city (Korean/English supported); time zone will be set automatically.'}
+                  {t('ui.tipChooseCity', 'Selecting a city automatically sets the time zone.')}
                 </p>
               </div>
 
               <input type="hidden" name="latitude" value={latitude ?? ''} />
               <input type="hidden" name="longitude" value={longitude ?? ''} />
 
-              {/* Timezone */}
               <div className={styles.grid}>
                 <div>
                   <label htmlFor="timeZone" className={styles.label}>
-                    {t('ui.timeZone') || 'Time Zone'}
+                    {t('ui.timeZone', 'Time Zone')}
                   </label>
                   <input id="timeZone" readOnly value={timeZone} className={styles.input} />
                   <details className={styles.details}>
                     <summary className={styles.detailsSummary}>
-                      {t('ui.changeManually') || 'Change manually'}
+                      {t('ui.changeManually', 'Change manually')}
                     </summary>
                     <select
                       value={timeZone}
@@ -474,10 +454,10 @@ export default function Home() {
                         d="M4 12a 8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    {t('ui.analyzing') || 'Analyzing...'}
+                    {t('ui.analyzing', 'Analyzing...')}
                   </>
                 ) : (
-                  t('ui.generate') || 'Generate My Chart'
+                  t('ui.generate', 'Generate Chart')
                 )}
               </button>
             </form>

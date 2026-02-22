@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -93,6 +93,7 @@ export default function ServiceSearchBox({ translate, styles }: ServiceSearchBox
       const service =
         HOME_CORE_SERVICE_OPTIONS.find((s) => s.key === selectedService) ||
         HOME_CORE_SERVICE_OPTIONS[0]
+
       if (lifeQuestion.trim()) {
         router.push(`${service.path}?q=${encodeURIComponent(lifeQuestion.trim())}`)
       } else {
@@ -209,6 +210,7 @@ export default function ServiceSearchBox({ translate, styles }: ServiceSearchBox
             &#10148;
           </button>
         </div>
+
         <div className={styles.questionHints}>
           <button
             type="button"

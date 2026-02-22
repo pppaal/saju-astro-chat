@@ -13,6 +13,7 @@ import {
   ReportProfileForm,
   type ReportProfileInput,
 } from '@/app/premium-reports/_components/ReportProfileForm'
+import { savePremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
 
 interface SajuData {
   dayMasterElement: string
@@ -161,6 +162,16 @@ function TimingReportContent() {
           return
         }
         throw new Error(data.error?.message || '리포트 생성에 실패했습니다.')
+      }
+
+      if (data.report?.id) {
+        savePremiumReportSnapshot({
+          reportId: data.report.id,
+          reportType: 'timing',
+          period,
+          createdAt: new Date().toISOString(),
+          report: data.report,
+        })
       }
 
       analytics.matrixGenerate('premium-reports/timing')

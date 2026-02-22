@@ -396,6 +396,19 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       })
   }, [])
 
+  const decodeBareUnicodeTokens = useCallback((value: string) => {
+    if (!value || !/\bu[0-9A-Fa-f]{4,6}\b/.test(value)) return value
+    return value.replace(/\bu([0-9A-Fa-f]{4,6})\b/g, (raw, hex: string) => {
+      const codePoint = Number.parseInt(hex, 16)
+      if (!Number.isFinite(codePoint)) return raw
+      try {
+        return String.fromCodePoint(codePoint)
+      } catch {
+        return raw
+      }
+    })
+  }, [])
+
   const stripMatrixDomainText = useCallback((value: string) => {
     if (!value) return ''
     return value
@@ -414,9 +427,9 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       if (!value) return ''
       const repaired = repairMojibakeText(value)
       const decoded = decodeUnicodeEscapes(repaired)
-      return stripMatrixDomainText(decoded)
+      return stripMatrixDomainText(decodeBareUnicodeTokens(decoded))
     },
-    [decodeUnicodeEscapes, stripMatrixDomainText]
+    [decodeBareUnicodeTokens, decodeUnicodeEscapes, stripMatrixDomainText]
   )
 
   const extractBestHours = useCallback((value: string) => {

@@ -12,6 +12,7 @@ import {
   type QualityAudit,
   type CalculationDetails,
 } from '@/lib/destiny-matrix/ai-report/qualityAudit'
+import { readPremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
 
 interface ReportSection {
   title: string
@@ -90,6 +91,95 @@ function extractReportPayload(data: unknown): Record<string, unknown> | null {
   return null
 }
 
+function normalizeSections(rawSections: unknown): ReportSection[] {
+  if (Array.isArray(rawSections)) {
+    return rawSections
+      .filter(
+        (section): section is { title: unknown; content: unknown } =>
+          !!section && typeof section === 'object'
+      )
+      .map((section) => ({
+        title: String(section.title || '섹션'),
+        content: String(section.content || ''),
+      }))
+      .filter((section) => section.content.trim().length > 0)
+  }
+
+  if (!rawSections || typeof rawSections !== 'object') {
+    return []
+  }
+
+  return Object.entries(rawSections as Record<string, unknown>)
+    .map(([key, value]) => {
+      if (typeof value === 'string') {
+        return { title: key, content: value }
+      }
+      if (Array.isArray(value)) {
+        const content = value
+          .filter((item): item is string => typeof item === 'string')
+          .join('\n')
+          .trim()
+        return content ? { title: key, content } : null
+      }
+      if (value && typeof value === 'object' && 'content' in (value as Record<string, unknown>)) {
+        const content = String((value as Record<string, unknown>).content || '').trim()
+        return content ? { title: key, content } : null
+      }
+      return null
+    })
+    .filter((section): section is ReportSection => section !== null)
+}
+
+function buildReportData(
+  payload: Record<string, unknown>,
+  reportId: string,
+  fallback: {
+    type?: ReportData['type']
+    createdAt?: string
+    period?: string
+    theme?: string
+  } = {}
+): ReportData {
+  const fullData =
+    payload.fullData && typeof payload.fullData === 'object'
+      ? (payload.fullData as Record<string, unknown>)
+      : payload
+
+  let sections = normalizeSections(payload.sections)
+  if (sections.length === 0) {
+    sections = normalizeSections(fullData.sections)
+  }
+  if (sections.length === 0 && typeof payload.summary === 'string' && payload.summary.length > 0) {
+    sections = [{ title: '요약', content: payload.summary }]
+  }
+
+  return {
+    id: String(payload.id || reportId),
+    type: (payload.type as ReportData['type']) || fallback.type || 'comprehensive',
+    title: String(payload.title || 'AI 리포트'),
+    summary: String(payload.summary || ''),
+    createdAt: String(payload.createdAt || fallback.createdAt || new Date().toISOString()),
+    period: (payload.period as string | undefined) || fallback.period,
+    theme: (payload.theme as string | undefined) || fallback.theme,
+    score: payload.score as number | undefined,
+    grade: payload.grade as string | undefined,
+    sections,
+    keywords: payload.keywords as string[] | undefined,
+    insights: payload.insights as Array<{ title: string; content: string }> | undefined,
+    actionItems: payload.actionItems as string[] | undefined,
+    qualityAudit:
+      (payload.qualityAudit as QualityAudit | undefined) ||
+      (fullData.qualityAudit as QualityAudit | undefined),
+    calculationDetails:
+      (payload.calculationDetails as CalculationDetails | undefined) ||
+      (fullData.calculationDetails as CalculationDetails | undefined),
+    graphRagEvidence:
+      (payload.graphRagEvidence as GraphRAGEvidenceBundle | undefined) ||
+      (fullData.graphRagEvidence as GraphRAGEvidenceBundle | undefined),
+    fullData,
+  }
+}
+
 export default function ReportResultPage() {
   const params = useParams()
   const router = useRouter()
@@ -109,8 +199,22 @@ export default function ReportResultPage() {
       return
     }
 
-    setIsLoading(true)
     setError(null)
+    const snapshot = readPremiumReportSnapshot(reportId)
+
+    if (snapshot?.report) {
+      setReport(
+        buildReportData(snapshot.report, reportId, {
+          type: snapshot.reportType,
+          createdAt: snapshot.createdAt,
+          period: snapshot.period,
+          theme: snapshot.theme,
+        })
+      )
+      setIsLoading(false)
+    } else {
+      setIsLoading(true)
+    }
 
     try {
       let lastErrorMessage = '리포트를 불러오지 못했습니다.'
@@ -123,45 +227,7 @@ export default function ReportResultPage() {
         const payload = extractReportPayload(data)
 
         if (response.ok && success && payload) {
-          const fullData =
-            payload.fullData && typeof payload.fullData === 'object'
-              ? (payload.fullData as Record<string, unknown>)
-              : {}
-
-          let sections: ReportSection[] = []
-          if (Array.isArray(payload.sections) && payload.sections.length > 0) {
-            sections = payload.sections as ReportSection[]
-          } else if (Array.isArray(fullData.sections) && fullData.sections.length > 0) {
-            sections = fullData.sections as ReportSection[]
-          } else if (typeof payload.summary === 'string' && payload.summary.length > 0) {
-            sections = [{ title: '요약', content: payload.summary }]
-          }
-
-          setReport({
-            id: String(payload.id || reportId),
-            type: (payload.type as ReportData['type']) || 'comprehensive',
-            title: String(payload.title || 'AI 리포트'),
-            summary: String(payload.summary || ''),
-            createdAt: String(payload.createdAt || new Date().toISOString()),
-            period: payload.period as string | undefined,
-            theme: payload.theme as string | undefined,
-            score: payload.score as number | undefined,
-            grade: payload.grade as string | undefined,
-            sections,
-            keywords: payload.keywords as string[] | undefined,
-            insights: payload.insights as Array<{ title: string; content: string }> | undefined,
-            actionItems: payload.actionItems as string[] | undefined,
-            qualityAudit:
-              (payload.qualityAudit as QualityAudit | undefined) ||
-              (fullData.qualityAudit as QualityAudit | undefined),
-            calculationDetails:
-              (payload.calculationDetails as CalculationDetails | undefined) ||
-              (fullData.calculationDetails as CalculationDetails | undefined),
-            graphRagEvidence:
-              (payload.graphRagEvidence as GraphRAGEvidenceBundle | undefined) ||
-              (fullData.graphRagEvidence as GraphRAGEvidenceBundle | undefined),
-            fullData,
-          })
+          setReport(buildReportData(payload, reportId))
           return
         }
 
@@ -182,9 +248,13 @@ export default function ReportResultPage() {
         break
       }
 
-      setError(lastErrorMessage)
+      if (!snapshot) {
+        setError(lastErrorMessage)
+      }
     } catch {
-      setError('리포트를 불러오지 못했습니다.')
+      if (!snapshot) {
+        setError('리포트를 불러오지 못했습니다.')
+      }
     } finally {
       setIsLoading(false)
     }

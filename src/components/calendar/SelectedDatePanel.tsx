@@ -88,11 +88,11 @@ function decodeUtf8FromLatin1(value: string): string {
 function deepRepairText(value: string): string {
   const firstPass = repairMojibakeText(value || '')
   if (!/[ÃƒÃ‚Ã°Ã¢]/.test(firstPass)) {
-    return decodeUnicodeEscapes(firstPass)
+    return decodeBareUnicodeTokens(decodeUnicodeEscapes(firstPass))
   }
   const decoded = decodeUtf8FromLatin1(firstPass)
   const secondPass = repairMojibakeText(decoded)
-  return decodeUnicodeEscapes(secondPass || firstPass)
+  return decodeBareUnicodeTokens(decodeUnicodeEscapes(secondPass || firstPass))
 }
 
 function decodeUnicodeEscapes(value: string): string {
@@ -115,6 +115,19 @@ function decodeUnicodeEscapes(value: string): string {
     })
 }
 
+function decodeBareUnicodeTokens(value: string): string {
+  if (!value || !/\bu[0-9A-Fa-f]{4,6}\b/.test(value)) return value
+  return value.replace(/\bu([0-9A-Fa-f]{4,6})\b/g, (raw, hex: string) => {
+    const codePoint = Number.parseInt(hex, 16)
+    if (!Number.isFinite(codePoint)) return raw
+    try {
+      return String.fromCodePoint(codePoint)
+    } catch {
+      return raw
+    }
+  })
+}
+
 function stripMatrixDomainText(value: string): string {
   if (!value) return ''
   return value
@@ -126,6 +139,33 @@ function stripMatrixDomainText(value: string): string {
     .replace(/\bmatrix\b/gi, '')
     .replace(/\s{2,}/g, ' ')
     .replace(/^[\s,|:;\-]+|[\s,|:;\-]+$/g, '')
+}
+
+function getDomainLabel(
+  domain: 'career' | 'love' | 'money' | 'health' | 'move' | 'general' | undefined,
+  locale: 'ko' | 'en'
+): string {
+  const labels = {
+    ko: {
+      career: '직장/커리어',
+      love: '관계/연애',
+      money: '재물/금전',
+      health: '건강',
+      move: '이동/변화',
+      general: '전반',
+    },
+    en: {
+      career: 'career',
+      love: 'relationships',
+      money: 'finance',
+      health: 'health',
+      move: 'movement/change',
+      general: 'overall',
+    },
+  } as const
+
+  const key = (domain || 'general') as keyof (typeof labels)['ko']
+  return labels[locale][key]
 }
 
 function parseAstroEvidenceLine(value: string): string {
@@ -302,6 +342,21 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       }
     }
 
+    const googleUrl =
+      'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+      `&text=${encodeURIComponent(cleanedTitle)}` +
+      `&dates=${encodeURIComponent(`${dateStr}/${endStr}`)}` +
+      `&details=${encodeURIComponent(description)}`
+
+    const isMobile =
+      typeof navigator !== 'undefined' &&
+      /android|iphone|ipad|ipod/i.test(navigator.userAgent || '')
+
+    if (isMobile) {
+      window.open(googleUrl, '_blank', 'noopener,noreferrer')
+      return
+    }
+
     try {
       const blobUrl = URL.createObjectURL(icsBlob)
       const link = document.createElement('a')
@@ -317,11 +372,6 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       // Final fallback below.
     }
 
-    const googleUrl =
-      'https://calendar.google.com/calendar/render?action=TEMPLATE' +
-      `&text=${encodeURIComponent(cleanedTitle)}` +
-      `&dates=${encodeURIComponent(`${dateStr}/${endStr}`)}` +
-      `&details=${encodeURIComponent(description)}`
     window.open(googleUrl, '_blank', 'noopener,noreferrer')
   }, [selectedDate, selectedDay, locale, categoryLabels])
 
@@ -345,7 +395,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           : peakLevel === 'high'
             ? 'ìƒìŠ¹ êµ¬ê°„'
             : 'ì•ˆì • êµ¬ê°„'
-      const domainLabel = domain || 'ì „ë°˜'
+      const domainLabel = getDomainLabel(domain, 'ko')
       const timeLine = bestWindow
         ? `íŠ¹ížˆ ${bestWindow} ì „í›„ë¡œ ì¤‘ìš”í•œ ê²°ì •ì„ ë°°ì¹˜í•˜ì‹œë©´ íë¦„ì„ íƒ€ê¸° ì‰½ìŠµë‹ˆë‹¤.`
         : 'ì‹œê°„ëŒ€ë¥¼ ê³ ë¥¼ ìˆ˜ ìžˆë‹¤ë©´ ì˜¤ì „-ì˜¤í›„ ì¤‘ ê°€ìž¥ ì§‘ì¤‘ì´ ìž˜ ë˜ëŠ” êµ¬ê°„ì— í•µì‹¬ ì¼ì„ ë°°ì¹˜í•´ ë³´ì„¸ìš”.'
@@ -377,16 +427,28 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
   const isSaved = selectedDate ? savedDates.has(selectedDate.date) : false
 
-  const evidenceAstroDetails = (selectedDate?.evidence?.cross?.astroDetails || [])
-    .map((line) => parseAstroEvidenceLine(line))
-    .map((line) => stripMatrixDomainText(line))
-    .filter(Boolean)
-  const evidenceSajuDetails = (selectedDate?.evidence?.cross?.sajuDetails || [])
-    .map((line) => normalizeEvidenceLine(line))
-    .filter(Boolean)
   const evidenceBridges = (selectedDate?.evidence?.cross?.bridges || [])
     .map((line) => normalizeEvidenceLine(line))
     .filter(Boolean)
+
+  const evidenceSummaryPrimary = selectedDate?.evidence
+    ? locale === 'ko'
+      ? `신호 신뢰도 ${selectedDate.evidence.confidence}% · 종합 점수 ${selectedDate.evidence.matrix.finalScoreAdjusted}점`
+      : `Signal confidence ${selectedDate.evidence.confidence}% · Total score ${selectedDate.evidence.matrix.finalScoreAdjusted}`
+    : ''
+
+  const evidenceSummaryCross = selectedDate?.evidence
+    ? locale === 'ko'
+      ? `사주: ${normalizeEvidenceLine(selectedDate.evidence.cross.sajuEvidence || '정보 없음')} / 점성: ${parseAstroEvidenceLine(selectedDate.evidence.cross.astroEvidence || '정보 없음')}`
+      : `Saju: ${normalizeEvidenceLine(selectedDate.evidence.cross.sajuEvidence || 'n/a')} / Astrology: ${parseAstroEvidenceLine(selectedDate.evidence.cross.astroEvidence || 'n/a')}`
+    : ''
+
+  const evidenceBridgeSummary =
+    evidenceBridges.length > 0
+      ? locale === 'ko'
+        ? `핵심 결론: ${evidenceBridges[0]}`
+        : `Key takeaway: ${evidenceBridges[0]}`
+      : ''
 
   return (
     <div className={`${styles.selectedDayInfo} ${styles.largeTextMode}`}>
@@ -443,7 +505,9 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
       {selectedDate ? (
         <div className={styles.selectedDayContent}>
-          <h3 className={styles.selectedTitle}>{deepRepairText(selectedDate.title)}</h3>
+          <h3 className={styles.selectedTitle}>
+            {deepRepairText(stripMatrixDomainText(selectedDate.title))}
+          </h3>
 
           {selectedDate.grade >= 3 && selectedDate.warnings.length > 0 && (
             <div
@@ -489,7 +553,9 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             <div
               className={`${styles.summaryBox} ${selectedDate.grade >= 3 ? styles.summaryWarning : ''}`}
             >
-              <p className={styles.summaryText}>{deepRepairText(selectedDate.summary)}</p>
+              <p className={styles.summaryText}>
+                {deepRepairText(stripMatrixDomainText(selectedDate.summary))}
+              </p>
             </div>
           )}
 
@@ -508,24 +574,16 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 <span className={styles.calendarEvidenceBadge}>{termHelp.cautionBadge}</span>
               </div>
               <ul className={styles.calendarEvidenceList}>
-                <li>{`Signals: confidence=${selectedDate.evidence.confidence}%, score=${selectedDate.evidence.matrix.finalScoreAdjusted}`}</li>
-                <li>
-                  {`Cross set: Saju (${normalizeEvidenceLine(selectedDate.evidence.cross.sajuEvidence || 'n/a')}) / Astrology (${parseAstroEvidenceLine(selectedDate.evidence.cross.astroEvidence || 'n/a')})`}
-                </li>
-                {evidenceAstroDetails.map((line, idx) => (
-                  <li key={`astro-${idx}`}>{line}</li>
-                ))}
-                {evidenceSajuDetails.map((line, idx) => (
-                  <li key={`saju-${idx}`}>{line}</li>
-                ))}
-                {evidenceBridges.map((line, idx) => (
-                  <li key={`bridge-${idx}`}>{line}</li>
-                ))}
+                {evidenceSummaryPrimary && <li>{evidenceSummaryPrimary}</li>}
+                {evidenceSummaryCross && <li>{evidenceSummaryCross}</li>}
+                {evidenceBridgeSummary && <li>{evidenceBridgeSummary}</li>}
               </ul>
             </div>
           )}
 
-          <p className={styles.selectedDesc}>{deepRepairText(selectedDate.description)}</p>
+          <p className={styles.selectedDesc}>
+            {deepRepairText(stripMatrixDomainText(selectedDate.description))}
+          </p>
 
           {selectedDate.ganzhi && (
             <div className={styles.ganzhiBox}>

@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+﻿import { NextRequest } from 'next/server'
 import {
   withApiMiddleware,
   createAuthenticatedGuard,
@@ -30,36 +30,7 @@ const jsonToStringArray = (value: Prisma.JsonValue | null | undefined): string[]
   return []
 }
 
-const jsonToFactorArray = (value: Prisma.JsonValue | null | undefined): string[] => {
-  if (Array.isArray(value)) {
-    return value.filter(
-      (item): item is string => typeof item === 'string' && item.trim().length > 0
-    )
-  }
-  if (value && typeof value === 'object') {
-    return Object.entries(value as Record<string, unknown>)
-      .flatMap(([key, raw]) => {
-        if (raw === null || raw === undefined || raw === false) return []
-        if (Array.isArray(raw)) {
-          const list = raw.filter(
-            (item): item is string => typeof item === 'string' && item.trim().length > 0
-          )
-          return list.length > 0 ? [`${key}: ${list.join(', ')}`] : []
-        }
-        if (typeof raw === 'boolean') return raw ? [key] : []
-        if (typeof raw === 'number') return [`${key}: ${raw}`]
-        if (typeof raw === 'string' && raw.trim().length > 0) return [`${key}: ${raw}`]
-        return []
-      })
-      .slice(0, 20)
-  }
-  if (typeof value === 'string' && value.trim().length > 0) {
-    return [value]
-  }
-  return []
-}
-
-// GET - 특정 저장된 날짜 상세 조회
+// GET - specific saved date detail
 export async function GET(request: Request, routeContext: RouteContext) {
   const rawParams = await routeContext.params
   const paramValidation = idParamSchema.safeParse(rawParams)
@@ -89,8 +60,8 @@ export async function GET(request: Request, routeContext: RouteContext) {
             ...savedDate,
             categories: jsonToStringArray(savedDate.categories as Prisma.JsonValue),
             bestTimes: jsonToStringArray(savedDate.bestTimes as Prisma.JsonValue),
-            sajuFactors: jsonToFactorArray(savedDate.sajuFactors),
-            astroFactors: jsonToFactorArray(savedDate.astroFactors),
+            sajuFactors: savedDate.sajuFactors,
+            astroFactors: savedDate.astroFactors,
             recommendations: jsonToStringArray(savedDate.recommendations),
             warnings: jsonToStringArray(savedDate.warnings),
           },
@@ -110,7 +81,7 @@ export async function GET(request: Request, routeContext: RouteContext) {
   return handler(request as unknown as NextRequest)
 }
 
-// DELETE - 특정 저장된 날짜 삭제
+// DELETE - delete specific saved date
 export async function DELETE(request: NextRequest, routeContext: RouteContext) {
   const rawParams = await routeContext.params
   const paramValidation = idParamSchema.safeParse(rawParams)

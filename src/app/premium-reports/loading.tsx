@@ -1,5 +1,7 @@
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
+import { detectServerLocale } from '@/i18n/server'
 
-export default function Loading() {
-  return <UnifiedServiceLoading kind="aiReport" locale="ko" />
+export default async function Loading() {
+  const locale = await detectServerLocale()
+  return <UnifiedServiceLoading kind="aiReport" locale={locale} />
 }
