@@ -259,7 +259,7 @@ export const GET = withApiMiddleware(
         ...compatibilityResults.map((c) => ({
           id: c.id,
           date: c.createdAt.toISOString().split('T')[0],
-          service: 'personality-compatibility',
+          service: 'compatibility',
           theme: undefined,
           summary: `${c.person1Name || 'Person 1'} & ${c.person2Name || 'Person 2'} - 궁합 ${c.crossSystemScore}점`,
           type: 'compatibility-result',

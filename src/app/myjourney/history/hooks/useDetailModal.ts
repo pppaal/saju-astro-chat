@@ -203,7 +203,7 @@ export function useDetailModal(): UseDetailModalReturn {
           }
         }
       } else if (
-        record.service === 'personality-compatibility' &&
+        (record.service === 'personality-compatibility' || record.service === 'compatibility') &&
         record.type === 'compatibility-result'
       ) {
         const res = await fetch(`/api/personality/compatibility/save?id=${record.id}`)

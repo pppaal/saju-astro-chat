@@ -931,7 +931,7 @@ describe('History API – GET /api/me/history', () => {
       const data = await response.json()
 
       const record = data.data.history[0].records[0]
-      expect(record.service).toBe('personality-compatibility')
+      expect(record.service).toBe('compatibility')
       expect(record.summary).toBe('Alice & Bob - 궁합 88점')
       expect(record.type).toBe('compatibility-result')
     })

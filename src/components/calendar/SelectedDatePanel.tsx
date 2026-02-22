@@ -213,13 +213,13 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
   const categoryLabels = useMemo<Record<EventCategory, { ko: string; en: string }>>(
     () => ({
-      wealth: { ko: 'ìž¬ë¬¼ìš´', en: 'Wealth' },
-      career: { ko: 'ì»¤ë¦¬ì–´ìš´', en: 'Career' },
-      love: { ko: 'ì—°ì• ìš´', en: 'Love' },
-      health: { ko: 'ê±´ê°•ìš´', en: 'Health' },
-      travel: { ko: 'ì—¬í–‰ìš´', en: 'Travel' },
-      study: { ko: 'í•™ì—…ìš´', en: 'Study' },
-      general: { ko: 'ì „ì²´ìš´', en: 'General' },
+      wealth: { ko: '\uC7AC\uBB3C\uC6B4', en: 'Wealth' },
+      career: { ko: '\uCEE4\uB9AC\uC5B4\uC6B4', en: 'Career' },
+      love: { ko: '\uC5F0\uC560\uC6B4', en: 'Love' },
+      health: { ko: '\uAC74\uAC15\uC6B4', en: 'Health' },
+      travel: { ko: '\uC5EC\uD589\uC6B4', en: 'Travel' },
+      study: { ko: '\uD559\uC5C5\uC6B4', en: 'Study' },
+      general: { ko: '\uC804\uCCB4\uC6B4', en: 'General' },
     }),
     []
   )
@@ -227,30 +227,36 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   const termHelp = {
     matrixBadge:
       locale === 'ko'
-        ? 'ì¢…í•© ì‹ í˜¸ ê·¼ê±° (ì—¬ëŸ¬ ì‹ í˜¸ë¥¼ í•©ì¹œ ì ìˆ˜)'
+        ? '\uC885\uD569 \uC2E0\uD638 \uADFC\uAC70 (\uC5EC\uB7EC \uC2E0\uD638\uB97C \uD569\uCE5C \uC810\uC218)'
         : 'Combined signal basis (multi-signal score)',
     crossBadge:
       locale === 'ko'
-        ? 'êµì°¨ ê²€ì¦ (ì‚¬ì£¼+ì ì„± ê²°ê³¼ê°€ ê°™ì€ ë°©í–¥)'
+        ? '\uAD50\uCC28 \uAC80\uC99D (\uC0AC\uC8FC+\uC810\uC131 \uACB0\uACFC\uAC00 \uAC19\uC740 \uBC29\uD5A5)'
         : 'Cross-verified (Saju + Astrology aligned)',
     cautionBadge:
-      locale === 'ko' ? 'ì£¼ì˜ ì‹ í˜¸ (ë¦¬ìŠ¤í¬ ê²½ê³ )' : 'Caution signal (risk warning)',
+      locale === 'ko'
+        ? '\uC8FC\uC758 \uC2E0\uD638 (\uB9AC\uC2A4\uD06C \uACBD\uACE0)'
+        : 'Caution signal (risk warning)',
     sajuTitle:
       locale === 'ko'
-        ? 'ì‚¬ì£¼ ë¶„ì„ (íƒ€ê³ ë‚œ êµ¬ì¡°ì™€ ì˜¤ëŠ˜ì˜ íë¦„)'
+        ? '\uC0AC\uC8FC \uBD84\uC11D (\uD0C0\uACE0\uB09C \uAD6C\uC870\uC640 \uC624\uB298\uC758 \uD750\uB984)'
         : 'Saju Analysis (natal pattern + today flow)',
     astroTitle:
       locale === 'ko'
-        ? 'ì ì„± ë¶„ì„ (í–‰ì„± ì›€ì§ìž„ ê¸°ë°˜)'
+        ? '\uC810\uC131 \uBD84\uC11D (\uD589\uC131 \uC6C0\uC9C1\uC784 \uAE30\uBC18)'
         : 'Astrology Analysis (planetary movement based)',
     dayPillar:
-      locale === 'ko' ? 'ì¼ì£¼ (ì˜¤ëŠ˜ì˜ í•µì‹¬ ê¸°ìš´)' : 'Day Pillar (today core energy)',
+      locale === 'ko'
+        ? '\uC77C\uC8FC (\uC624\uB298\uC758 \uD575\uC2EC \uAE30\uC6B4)'
+        : 'Day Pillar (today core energy)',
     bestTimes:
       locale === 'ko'
-        ? 'ì˜¤ëŠ˜ì˜ ì¢‹ì€ ì‹œê°„ (ì¤‘ìš” ì¼ì •ì„ ë„£ê¸° ì¢‹ì€ ì‹œê°„ëŒ€)'
+        ? '\uC624\uB298\uC758 \uC88B\uC740 \uC2DC\uAC04 (\uC911\uC694 \uC77C\uC815\uC744 \uB123\uAE30 \uC88B\uC740 \uC2DC\uAC04\uB300)'
         : 'Best Times Today (better windows for key tasks)',
     dailyPeakTitle:
-      locale === 'ko' ? 'ë°ì¼ë¦¬ + í”¼í¬ ìœˆë„ìš° í†µí•© í•´ì„' : 'Daily + Peak Window Insight',
+      locale === 'ko'
+        ? '\uB370\uC77C\uB9AC + \uD53C\uD06C \uC708\uB3C4\uC6B0 \uD1B5\uD569 \uD574\uC11D'
+        : 'Daily + Peak Window Insight',
   }
 
   const handleAddToCalendar = useCallback(async () => {
@@ -691,7 +697,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             <div className={styles.warningsSection}>
               <h4 className={styles.warningsTitle}>
                 <span className={styles.warningsIcon}>{'\u26A1'}</span>
-                {locale === 'ko' ? 'ì˜¤ëŠ˜ì˜ ì£¼ì˜ë³´' : "Today's Alert"}
+                {locale === 'ko' ? '\uC624\uB298\uC758 \uC8FC\uC758\uBCF4' : "Today's Alert"}
               </h4>
               <ul className={styles.warningsList}>
                 {selectedDate.warnings.slice(0, 3).map((w, i) => (

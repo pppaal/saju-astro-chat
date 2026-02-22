@@ -1516,8 +1516,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  padding: 14px 16px;
+  gap: 14px;
+  padding: 12px 16px;
   background: var(--cal-bg-primary);
   position: sticky;
   top: 0;
@@ -1555,8 +1555,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
-  min-width: 100px;
+  gap: 6px;
+  min-width: 180px;
 }
 
 .monthYear {
@@ -1566,14 +1566,16 @@
 }
 
 .monthName {
-  font-size: 20px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--cal-text-primary);
   letter-spacing: -0.3px;
+  line-height: 1.05;
 }
 
 .todayBtn {
-  padding: 6px 14px;
+  height: 40px;
+  padding: 0 16px;
   background: var(--cal-accent-blue);
   border: none;
   border-radius: 16px;
@@ -3816,7 +3818,8 @@
 .yearNav {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  min-height: 40px;
 }
 
 .yearPickerLabel {
@@ -3825,7 +3828,9 @@
 }
 
 .yearBtn {
-  padding: 8px 14px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   background: var(--cal-bg-tertiary);
   border: none;
   border-radius: 8px;
@@ -3840,7 +3845,8 @@
 }
 
 .yearDisplay {
-  font-size: 16px;
+  height: 40px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--cal-text-primary);
   min-width: 88px;
@@ -3848,7 +3854,8 @@
   background: var(--cal-bg-tertiary);
   border: 1px solid var(--cal-border);
   border-radius: 8px;
-  padding: 6px 24px 6px 10px;
+  padding: 0 28px 0 12px;
+  line-height: 40px;
   appearance: none;
   cursor: pointer;
 }
