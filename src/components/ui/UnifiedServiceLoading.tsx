@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useMemo, useState } from 'react'
 import {
   BaseLoadingScreen,
   type LoadingStep,
@@ -22,6 +23,10 @@ interface LoadingConfig {
   steps: LoadingStep[]
   orbitItems: OrbitItem[]
 }
+
+const AI_REPORT_ESTIMATED_SECONDS = 45
+const AI_REPORT_MAX_SECONDS = 120
+const AI_REPORT_BAR_COUNT = 52
 
 function getCalendarConfig(locale: Locale): LoadingConfig {
   if (locale === 'en') {
@@ -114,6 +119,110 @@ function getConfig(kind: LoadingKind, locale: Locale): LoadingConfig {
   return getAiReportConfig(locale)
 }
 
+function AiReportBarcodeProgress({ locale }: { locale: Locale }) {
+  const [elapsedSeconds, setElapsedSeconds] = useState(0)
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setElapsedSeconds((prev) => Math.min(prev + 1, AI_REPORT_MAX_SECONDS))
+    }, 1000)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  const progressPercent = Math.min(
+    96,
+    Math.max(6, Math.round((elapsedSeconds / AI_REPORT_ESTIMATED_SECONDS) * 100))
+  )
+
+  const bars = useMemo(
+    () =>
+      Array.from({ length: AI_REPORT_BAR_COUNT }, (_, index) => {
+        const normalized = ((index * 17 + 13) % 37) / 36
+        return Math.round(28 + normalized * 64)
+      }),
+    []
+  )
+
+  const remaining = Math.max(AI_REPORT_ESTIMATED_SECONDS - elapsedSeconds, 0)
+  const metaText =
+    locale === 'ko'
+      ? `예상 ${AI_REPORT_ESTIMATED_SECONDS}초 내외, 남은 시간 약 ${remaining}초`
+      : `Expected around ${AI_REPORT_ESTIMATED_SECONDS}s, about ${remaining}s remaining`
+  const elapsedText = locale === 'ko' ? `${elapsedSeconds}초 경과` : `${elapsedSeconds}s elapsed`
+  const statusText =
+    elapsedSeconds <= AI_REPORT_ESTIMATED_SECONDS
+      ? locale === 'ko'
+        ? '근거를 교차 검증하며 최종 문장을 구성하고 있습니다.'
+        : 'Cross-validating evidence and composing final narrative.'
+      : locale === 'ko'
+        ? '마무리 단계입니다. 곧 결과 페이지로 전환됩니다.'
+        : 'Finalizing now. You will be redirected shortly.'
+
+  return (
+    <div className="mt-3 w-full max-w-lg rounded-2xl border border-cyan-300/25 bg-slate-950/55 p-3 backdrop-blur-md">
+      <div className="mb-2 flex items-center justify-between text-[11px] text-cyan-100/85">
+        <span>{metaText}</span>
+        <span className="font-semibold">{elapsedText}</span>
+      </div>
+
+      <div className="relative h-16 overflow-hidden rounded-lg border border-cyan-300/25 bg-slate-950/80">
+        <div
+          className="absolute inset-y-0 left-0 bg-cyan-400/12 transition-all duration-700"
+          style={{ width: `${progressPercent}%` }}
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 flex items-end gap-[2px] px-2 py-2">
+          {bars.map((height, index) => {
+            const threshold = Math.round(((index + 1) / AI_REPORT_BAR_COUNT) * 100)
+            const active = progressPercent >= threshold
+            return (
+              <span
+                key={`barcode-${index}`}
+                className="w-[2px] rounded-sm transition-opacity duration-500"
+                style={{
+                  height: `${height}%`,
+                  opacity: active ? 0.95 : 0.28,
+                  background: active
+                    ? 'linear-gradient(to top, rgba(103,232,249,0.7), rgba(147,197,253,0.95))'
+                    : 'rgba(103,232,249,0.35)',
+                }}
+              />
+            )
+          })}
+        </div>
+        <div className="barcodeSweep" aria-hidden="true" />
+      </div>
+
+      <p className="mt-2 text-[11px] text-slate-300">{statusText}</p>
+
+      <style jsx>{`
+        .barcodeSweep {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.2) 45%,
+            rgba(255, 255, 255, 0) 100%
+          );
+          transform: translateX(-120%);
+          animation: barcodeSweep 1.8s linear infinite;
+        }
+
+        @keyframes barcodeSweep {
+          from {
+            transform: translateX(-120%);
+          }
+          to {
+            transform: translateX(120%);
+          }
+        }
+      `}</style>
+    </div>
+  )
+}
+
 export default function UnifiedServiceLoading({
   kind,
   locale = 'ko',
@@ -129,6 +238,8 @@ export default function UnifiedServiceLoading({
       orbitItems={config.orbitItems}
       centerIcon={config.centerIcon}
       className={className}
-    />
+    >
+      {kind === 'aiReport' && <AiReportBarcodeProgress locale={locale} />}
+    </BaseLoadingScreen>
   )
 }
