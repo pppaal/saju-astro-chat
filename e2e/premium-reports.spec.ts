@@ -59,6 +59,63 @@ test.describe('Premium Reports Flow', () => {
       }
       expect(visibleButton).toBe(true)
     })
+
+    test('should persist AI report to history when authenticated', async ({ page }) => {
+      const payload = {
+        reportType: 'timing',
+        period: 'monthly',
+        reportData: {
+          categories: [{ name: 'focus', score: 78, description: 'e2e-check' }],
+          highlights: ['e2e highlight'],
+          recommendations: ['e2e recommendation'],
+        },
+        title: `E2E Timing Report ${Date.now()}`,
+        summary: 'Created by playwright e2e',
+        overallScore: 78,
+        grade: 'A',
+        locale: 'en',
+      }
+
+      const saveRes = await page.request.post('/api/destiny-matrix/save', {
+        data: payload,
+        timeout: 30000,
+      })
+
+      if ([401, 403].includes(saveRes.status())) {
+        expect([401, 403]).toContain(saveRes.status())
+        return
+      }
+
+      expect(saveRes.ok()).toBe(true)
+      const saveJson = await saveRes.json()
+      const savedId = saveJson?.data?.id || saveJson?.id
+      expect(savedId).toBeTruthy()
+
+      await expect
+        .poll(
+          async () => {
+            const historyRes = await page.request.get('/api/me/history?service=premium-reports', {
+              timeout: 30000,
+            })
+            if (!historyRes.ok()) return false
+
+            const raw = await historyRes.json()
+            const data = raw?.data ?? raw
+            const history = Array.isArray(data?.history) ? data.history : []
+            const records = history.flatMap(
+              (day: { records?: Array<{ id?: string; service?: string; type?: string }> }) =>
+                day.records || []
+            )
+            return records.some(
+              (record: { id?: string; service?: string; type?: string }) =>
+                record.id === savedId ||
+                (record.service === 'premium-reports' && record.type === 'destiny-matrix-report')
+            )
+          },
+          { timeout: 10000, intervals: [500, 1000] }
+        )
+        .toBe(true)
+    })
   })
 
   test.describe('Comprehensive Report Page', () => {
@@ -93,7 +150,9 @@ test.describe('Premium Reports Flow', () => {
     test('should display theme options', async ({ page }) => {
       await page.goto('/premium-reports/themed', { waitUntil: 'domcontentloaded' })
 
-      const themes = page.locator('[class*="theme"], [class*="option"], [class*="style"], [class*="card"]')
+      const themes = page.locator(
+        '[class*="theme"], [class*="option"], [class*="style"], [class*="card"]'
+      )
       const count = await themes.count()
 
       const bodyText = await page.locator('body').textContent()
@@ -132,7 +191,9 @@ test.describe('Premium Reports Flow', () => {
     test('should display pricing tiers or plans', async ({ page }) => {
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
 
-      const pricingTiers = page.locator('[class*="tier"], [class*="plan"], [class*="pricing"], [class*="card"]')
+      const pricingTiers = page.locator(
+        '[class*="tier"], [class*="plan"], [class*="pricing"], [class*="card"]'
+      )
       const count = await pricingTiers.count()
 
       const bodyText = await page.locator('body').textContent()
@@ -179,7 +240,9 @@ test.describe('Premium Reports Flow', () => {
       expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 20)
     })
 
-    test('should render premium reports page without horizontal scroll on mobile', async ({ page }) => {
+    test('should render premium reports page without horizontal scroll on mobile', async ({
+      page,
+    }) => {
       await page.setViewportSize({ width: 375, height: 667 })
       await page.goto('/premium-reports', { waitUntil: 'domcontentloaded' })
 

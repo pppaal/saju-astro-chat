@@ -232,12 +232,27 @@ export default function ReportResultPage() {
         }
 
         const apiError = (data as { error?: { code?: string; message?: string } }).error
+        const errorCode = apiError?.code
         if (apiError?.message) {
           lastErrorMessage = apiError.message
         }
 
+        if ((response.status === 401 || errorCode === 'UNAUTHORIZED') && !redirectedRef.current) {
+          redirectedRef.current = true
+          router.push(`/auth/signin?callbackUrl=${encodeURIComponent(window.location.pathname)}`)
+          return
+        }
+
+        if (response.status === 403 || errorCode === 'FORBIDDEN') {
+          break
+        }
+
         const shouldRetry =
-          response.status === 404 || apiError?.code === 'NOT_FOUND' || !response.ok
+          response.status === 404 ||
+          response.status >= 500 ||
+          errorCode === 'NOT_FOUND' ||
+          errorCode === 'DATABASE_ERROR' ||
+          errorCode === 'TIMEOUT'
         const hasNextAttempt = attempt < REPORT_FETCH_MAX_RETRIES - 1
 
         if (shouldRetry && hasNextAttempt) {
@@ -258,7 +273,7 @@ export default function ReportResultPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [reportId])
+  }, [reportId, router])
 
   useEffect(() => {
     if (status === 'unauthenticated' && !redirectedRef.current) {

@@ -207,6 +207,21 @@ export async function GET(request: Request, routeContext: RouteContext) {
         })
 
         if (!report) {
+          const reportOwner = await prisma.destinyMatrixReport.findUnique({
+            where: { id: reportId },
+            select: { userId: true, createdAt: true },
+          })
+
+          if (reportOwner) {
+            logger.warn('[Report Fetch Forbidden] Report ownership mismatch', {
+              reportId,
+              requesterUserId: context.userId,
+              ownerUserId: reportOwner.userId,
+              reportCreatedAt: reportOwner.createdAt.toISOString(),
+            })
+            return apiError(ErrorCodes.FORBIDDEN, '리포트 접근 권한이 없습니다.')
+          }
+
           return apiError(ErrorCodes.NOT_FOUND, '리포트를 찾을 수 없습니다.')
         }
 

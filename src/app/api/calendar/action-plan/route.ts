@@ -1021,25 +1021,12 @@ export const POST = withApiMiddleware(
             : null,
         })
       : null
-    if (!canUseAiPrecision) {
-      return apiError(
-        ErrorCodes.SERVICE_UNAVAILABLE,
-        lang === 'ko'
-          ? '고급 타임라인(그래프RAG) 사용이 허용되지 않았습니다.'
-          : 'Advanced timeline (GraphRAG) is not allowed.'
-      )
-    }
+    const usingAiRefinement = Boolean(
+      canUseAiPrecision && aiRefined && aiRefined.timeline && aiRefined.timeline.length > 0
+    )
+    const sourceTimeline = usingAiRefinement ? aiRefined!.timeline : baseTimeline
 
-    if (!aiRefined || !aiRefined.timeline || aiRefined.timeline.length === 0) {
-      return apiError(
-        ErrorCodes.SERVICE_UNAVAILABLE,
-        lang === 'ko'
-          ? '고급 타임라인(그래프RAG) 생성에 실패했습니다.'
-          : 'Failed to generate advanced timeline (GraphRAG).'
-      )
-    }
-
-    const timeline = aiRefined.timeline.map((slot) => {
+    const timeline = sourceTimeline.map((slot) => {
       const baseEvidence = (slot.evidenceSummary || []).filter(Boolean)
       const tone = slot.tone ?? 'neutral'
       const personalHint = buildPersonalizationHint({ locale: lang, tone, icp, persona })
@@ -1100,17 +1087,31 @@ export const POST = withApiMiddleware(
     if (personalizationTag) {
       summaryParts.push(personalizationTag)
     }
-    if (aiRefined?.summary) {
+    if (usingAiRefinement && aiRefined?.summary) {
       summaryParts.push(aiRefined.summary)
     }
+    if (!canUseAiPrecision) {
+      summaryParts.push(
+        lang === 'ko'
+          ? '정밀 AI 비활성화: 사주+점성 규칙 타임라인으로 제공'
+          : 'AI precision disabled: serving rule-based Saju+Astrology timeline'
+      )
+    } else if (!usingAiRefinement) {
+      summaryParts.push(
+        lang === 'ko'
+          ? '정밀 생성 실패: 사주+점성 규칙 타임라인으로 자동 전환'
+          : 'Precision generation failed: automatically switched to rule-based Saju+Astrology timeline'
+      )
+    }
 
-    logger.info('[ActionPlanTimeline] AI timeline generated (strict mode)', {
+    logger.info('[ActionPlanTimeline] timeline generated', {
       date,
       intervalMinutes: safeInterval,
       timezone,
       hasIcp: Boolean(icp),
       hasPersona: Boolean(persona),
       aiRefined: Boolean(aiRefined),
+      usingAiRefinement,
       canUseAiPrecision,
       isPremiumUser,
       aiCreditCost: CALENDAR_AI_CREDIT_COST,
@@ -1121,10 +1122,11 @@ export const POST = withApiMiddleware(
         timeline,
         summary: repairMojibakeText(summaryParts.join(' · ')) || undefined,
         intervalMinutes: safeInterval,
-        precisionMode: 'ai-graphrag',
+        precisionMode: usingAiRefinement ? 'ai-graphrag' : 'rule-fallback',
         aiAccess: {
           premiumOnly: CALENDAR_AI_PREMIUM_ONLY,
           allowed: canUseAiPrecision,
+          applied: usingAiRefinement,
           isPremiumUser,
           creditCost: CALENDAR_AI_CREDIT_COST,
         },

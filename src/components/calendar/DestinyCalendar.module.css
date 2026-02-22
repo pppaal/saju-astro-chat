@@ -1516,8 +1516,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  padding: 12px 16px;
+  gap: 12px;
+  padding: 10px 16px;
   background: var(--cal-bg-primary);
   position: sticky;
   top: 0;
@@ -1555,8 +1555,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  min-width: 180px;
+  gap: 2px;
+  min-width: 190px;
 }
 
 .monthYear {
@@ -1570,7 +1570,8 @@
   font-weight: 700;
   color: var(--cal-text-primary);
   letter-spacing: -0.3px;
-  line-height: 1.05;
+  line-height: 1.12;
+  margin: 0;
 }
 
 .todayBtn {
@@ -3818,6 +3819,7 @@
 .yearNav {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   min-height: 40px;
 }
@@ -3825,6 +3827,7 @@
 .yearPickerLabel {
   font-size: 12px;
   color: var(--cal-text-tertiary);
+  line-height: 1;
 }
 
 .yearBtn {
@@ -4639,7 +4642,7 @@
 .actionPlanTimelineGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
+  gap: 16px;
   position: relative;
   z-index: 1;
 }
@@ -4648,8 +4651,8 @@
   background: linear-gradient(160deg, rgba(27, 36, 74, 0.85), rgba(17, 22, 48, 0.9));
   border: 1px solid rgba(148, 163, 184, 0.24);
   border-radius: 16px;
-  padding: 14px 14px 15px;
-  min-height: 124px;
+  padding: 15px 15px 16px;
+  min-height: 168px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -4692,7 +4695,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--cal-text-tertiary);
   gap: 8px;
@@ -4705,14 +4708,14 @@
 }
 
 .actionPlanTimelineClock {
-  font-size: 14px;
+  font-size: 15px;
   color: #c7d2fe;
   font-weight: 800;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.3px;
 }
 
 .actionPlanTimelineTone {
-  font-size: 12px;
+  font-size: 13px;
   color: #e2e8f0;
   background: rgba(15, 23, 42, 0.45);
   border: 1px solid rgba(148, 163, 184, 0.35);
@@ -4734,8 +4737,8 @@
 }
 
 .actionPlanTimelineBadge {
-  font-size: 12px;
-  padding: 3px 8px;
+  font-size: 13px;
+  padding: 4px 10px;
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.7);
   border: 1px solid rgba(148, 163, 184, 0.45);
@@ -4744,11 +4747,27 @@
 }
 
 .actionPlanTimelineNote {
-  font-size: 18px;
+  font-size: 19px;
   color: var(--cal-text-primary);
-  line-height: 1.62;
-  font-weight: 700;
+  line-height: 1.65;
+  font-weight: 800;
   letter-spacing: 0.1px;
+  text-wrap: pretty;
+}
+
+.actionPlanTimelineEvidenceList {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #dbeafe;
+}
+
+.actionPlanTimelineEvidenceList li::marker {
+  color: #7dd3fc;
 }
 
 .actionPlanCardHeader {
@@ -4759,20 +4778,21 @@
 }
 
 .actionPlanCardTitle {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--cal-text-primary);
 }
 
 .actionPlanCardFocus {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--cal-text-secondary);
+  line-height: 1.5;
 }
 
 .actionPlanInsightLine {
   margin: 0 0 12px;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.6;
   color: #cbd5e1;
   background: rgba(15, 23, 42, 0.36);
   border: 1px solid rgba(148, 163, 184, 0.3);
@@ -4828,8 +4848,8 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.6;
   color: var(--cal-text-primary);
   font-weight: 500;
 }
@@ -4891,6 +4911,11 @@
 .largeTextMode .actionPlanTimelineNote {
   font-size: 17px;
   line-height: 1.6;
+}
+
+.largeTextMode .actionPlanTimelineEvidenceList {
+  font-size: 16px;
+  line-height: 1.65;
 }
 
 .largeTextMode .dailyPeakText,
@@ -5069,7 +5094,7 @@
 
 .actionPlanTiming {
   margin-top: 12px;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--cal-accent-secondary);
   background: rgba(6, 182, 212, 0.12);
   border: 1px solid rgba(6, 182, 212, 0.3);
@@ -5082,7 +5107,7 @@
 
 .actionPlanCaution {
   margin-top: 10px;
-  font-size: 12px;
+  font-size: 14px;
   color: #fecaca;
   background: rgba(244, 63, 94, 0.12);
   border: 1px solid rgba(244, 63, 94, 0.3);
@@ -5144,7 +5169,11 @@
   }
 
   .actionPlanTimelineNote {
-    font-size: 16px;
+    font-size: 17px;
+  }
+
+  .actionPlanTimelineEvidenceList {
+    font-size: 13px;
   }
 }
 

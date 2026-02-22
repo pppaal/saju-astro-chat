@@ -37,6 +37,16 @@ type AiTimelineSlot = {
   evidenceSummary?: string[]
 }
 
+type TimelineSlotView = {
+  hour: number
+  minute: number
+  label: string
+  note: string
+  tone: 'neutral' | 'best' | 'caution'
+  badge: string | null
+  evidenceSummary?: string[]
+}
+
 const DEFAULT_TODAY_KO = [
   '우선순위 3개 정리하기',
   '집중할 일 1개 25분 진행',
@@ -174,6 +184,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const [personaResult, setPersonaResult] = useState<PersonaAnalysis | null>(null)
   const [profileReady, setProfileReady] = useState(false)
   const [aiTimeline, setAiTimeline] = useState<AiTimelineSlot[] | null>(null)
+  const [aiSummary, setAiSummary] = useState<string | null>(null)
   const [aiStatus, setAiStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const aiCacheRef = useRef<Record<string, AiTimelineSlot[]>>({})
   const aiAbortRef = useRef<AbortController | null>(null)
@@ -422,14 +433,48 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       .replace(/^[\s,|:;\-]+|[\s,|:;\-]+$/g, '')
   }, [])
 
+  const decodeUtf8FromLatin1 = useCallback((value: string) => {
+    try {
+      const bytes = Uint8Array.from([...value].map((char) => char.charCodeAt(0) & 0xff))
+      return new TextDecoder('utf-8', { fatal: false }).decode(bytes)
+    } catch {
+      return value
+    }
+  }, [])
+
+  const isUnreadableText = useCallback((value: string) => {
+    if (!value) return true
+    if (value.includes('\uFFFD')) return true
+    const suspiciousMatches = value.match(/[ÃÂâìëêíð]/g) || []
+    if (suspiciousMatches.length >= 3) return true
+    const mojibakeRatio = suspiciousMatches.length / Math.max(1, value.length)
+    return mojibakeRatio > 0.15
+  }, [])
+
   const cleanText = useCallback(
-    (value: string | null | undefined) => {
-      if (!value) return ''
-      const repaired = repairMojibakeText(value)
-      const decoded = decodeUnicodeEscapes(repaired)
-      return stripMatrixDomainText(decodeBareUnicodeTokens(decoded))
+    (value: string | null | undefined, fallback = '') => {
+      if (!value) return fallback
+      let current = value
+      for (let pass = 0; pass < 3; pass++) {
+        const repaired = repairMojibakeText(current)
+        const decodedUnicode = decodeUnicodeEscapes(repaired)
+        const decodedTokens = decodeBareUnicodeTokens(decodedUnicode)
+        const stripped = stripMatrixDomainText(decodedTokens)
+        const latinDecoded = decodeUtf8FromLatin1(stripped)
+        current = stripMatrixDomainText(latinDecoded).replace(/\s+/g, ' ').trim()
+        if (!isUnreadableText(current)) {
+          return current
+        }
+      }
+      return fallback
     },
-    [decodeBareUnicodeTokens, decodeUnicodeEscapes, stripMatrixDomainText]
+    [
+      decodeBareUnicodeTokens,
+      decodeUnicodeEscapes,
+      decodeUtf8FromLatin1,
+      isUnreadableText,
+      stripMatrixDomainText,
+    ]
   )
 
   const extractBestHours = useCallback((value: string) => {
@@ -476,7 +521,11 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
     if (baseInfo?.bestTimes?.[0]) {
       const bestTimeText = cleanText(baseInfo.bestTimes[0])
-      pushItem(isKo ? `${bestTimeText}에 핵심 일정 배치` : `Schedule a key task at ${bestTimeText}`)
+      if (bestTimeText) {
+        pushItem(
+          isKo ? `${bestTimeText}에 핵심 일정 배치` : `Schedule a key task at ${bestTimeText}`
+        )
+      }
     }
 
     dayCategories.forEach((cat) => {
@@ -508,34 +557,37 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       .filter(Boolean)
   }, [baseInfo, cleanText, isKo, topCategory])
 
-  const sanitizeAiTimeline = useCallback((raw: unknown) => {
-    if (!Array.isArray(raw)) return [] as AiTimelineSlot[]
-    const cleaned: AiTimelineSlot[] = []
-    raw.forEach((item) => {
-      if (!item || typeof item !== 'object') return
-      const hour = Number((item as { hour?: unknown }).hour)
-      const minuteRaw = (item as { minute?: unknown }).minute
-      const minute = minuteRaw === undefined ? 0 : Number(minuteRaw)
-      const noteRaw = (item as { note?: unknown }).note
-      const note = typeof noteRaw === 'string' ? noteRaw.trim() : ''
-      if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !note) return
-      if (!Number.isInteger(minute) || (minute !== 0 && minute !== 30)) return
-      const toneValue = (item as { tone?: unknown }).tone
-      const tone =
-        toneValue === 'best' || toneValue === 'caution' || toneValue === 'neutral'
-          ? toneValue
+  const sanitizeAiTimeline = useCallback(
+    (raw: unknown) => {
+      if (!Array.isArray(raw)) return [] as AiTimelineSlot[]
+      const cleaned: AiTimelineSlot[] = []
+      raw.forEach((item) => {
+        if (!item || typeof item !== 'object') return
+        const hour = Number((item as { hour?: unknown }).hour)
+        const minuteRaw = (item as { minute?: unknown }).minute
+        const minute = minuteRaw === undefined ? 0 : Number(minuteRaw)
+        const noteRaw = (item as { note?: unknown }).note
+        const note = typeof noteRaw === 'string' ? cleanText(noteRaw, '') : ''
+        if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !note) return
+        if (!Number.isInteger(minute) || (minute !== 0 && minute !== 30)) return
+        const toneValue = (item as { tone?: unknown }).tone
+        const tone =
+          toneValue === 'best' || toneValue === 'caution' || toneValue === 'neutral'
+            ? toneValue
+            : undefined
+        const evidenceRaw = (item as { evidenceSummary?: unknown }).evidenceSummary
+        const evidenceSummary = Array.isArray(evidenceRaw)
+          ? evidenceRaw
+              .map((line) => (typeof line === 'string' ? cleanText(line, '') : ''))
+              .filter(Boolean)
+              .slice(0, 3)
           : undefined
-      const evidenceRaw = (item as { evidenceSummary?: unknown }).evidenceSummary
-      const evidenceSummary = Array.isArray(evidenceRaw)
-        ? evidenceRaw
-            .map((line) => (typeof line === 'string' ? line.trim() : ''))
-            .filter(Boolean)
-            .slice(0, 3)
-        : undefined
-      cleaned.push({ hour, minute, note, tone, evidenceSummary })
-    })
-    return cleaned
-  }, [])
+        cleaned.push({ hour, minute, note, tone, evidenceSummary })
+      })
+      return cleaned
+    },
+    [cleanText]
+  )
 
   const buildAiPayload = useCallback(() => {
     const trimList = (list: string[] | undefined, max: number) => {
@@ -608,6 +660,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
       if (!options?.force && aiCacheRef.current[aiCacheKey]) {
         setAiTimeline(aiCacheRef.current[aiCacheKey])
+        setAiSummary(null)
         setAiStatus('ready')
         return
       }
@@ -645,6 +698,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
         aiCacheRef.current[aiCacheKey] = timeline
         setAiTimeline(timeline)
+        setAiSummary(cleanText(json?.data?.summary, ''))
         setAiStatus('ready')
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
@@ -653,16 +707,18 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         logger.warn('[ActionPlan] AI timeline failed', {
           error: error instanceof Error ? error.message : String(error),
         })
+        setAiSummary(null)
         setAiStatus('error')
       }
     },
-    [aiCacheKey, baseInfo, buildAiPayload, profileReady, sanitizeAiTimeline]
+    [aiCacheKey, baseInfo, buildAiPayload, cleanText, profileReady, sanitizeAiTimeline]
   )
 
   useEffect(() => {
     if (!profileReady) return
     if (!baseInfo) {
       setAiTimeline(null)
+      setAiSummary(null)
       setAiStatus('idle')
       return
     }
@@ -695,10 +751,14 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       return isKo ? '정밀 타임라인 생성 중' : 'Generating precision timeline'
     }
     if (aiStatus === 'error') {
-      return isKo ? '정밀 생성 실패 · 기본 플랜 표시' : 'Precision failed · showing base plan'
+      return isKo
+        ? '정밀 생성 실패 · 사주+점성 규칙 플랜 표시'
+        : 'Precision failed · showing rule-based Saju+Astrology plan'
     }
     if (aiStatus === 'ready') {
-      return isKo ? `정밀 적용됨 · ${aiContextLabel}` : `Precision applied · ${aiContextLabel}`
+      return isKo
+        ? `근거 기반 타임라인 적용 · ${aiContextLabel}`
+        : `Evidence-based timeline applied · ${aiContextLabel}`
     }
     return isKo ? '정밀 준비됨' : 'Precision ready'
   }, [aiContextLabel, aiStatus, baseInfo, isKo])
@@ -760,7 +820,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const baseTimelineSlots = useMemo(() => {
     const slotsPerHour = intervalMinutes === 30 ? 2 : 1
     const totalSlots = 24 * slotsPerHour
-    const slots = Array.from({ length: totalSlots }, (_, index) => {
+    const slots: TimelineSlotView[] = Array.from({ length: totalSlots }, (_, index) => {
       const minute = intervalMinutes === 30 && index % 2 === 1 ? 30 : 0
       const hour = Math.floor(index / slotsPerHour)
       return {
@@ -770,6 +830,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         note: baseTexts(hour),
         tone: 'neutral' as 'neutral' | 'best' | 'caution',
         badge: null as string | null,
+        evidenceSummary: [],
       }
     })
 
@@ -782,44 +843,80 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       hour: number,
       note: string,
       tone?: 'neutral' | 'best' | 'caution',
-      minute = 0
+      minute = 0,
+      evidenceSummary?: string[]
     ) => {
       const index = getSlotIndex(hour, minute)
       const slot = slots[index]
       if (!slot) return
-      slot.note = note
+      slot.note = cleanText(note, slot.note)
       if (tone) {
         slot.tone = tone
+      }
+      if (evidenceSummary?.length) {
+        slot.evidenceSummary = evidenceSummary
+          .map((line) => cleanText(line, ''))
+          .filter(Boolean)
+          .slice(0, 2)
       }
     }
 
     const mainSlots = [
-      { hour: 9, minute: 0, note: todayItems[0] },
-      { hour: 14, minute: 0, note: todayItems[1] },
-      { hour: 20, minute: 0, note: todayItems[2] },
+      {
+        hour: 9,
+        minute: 0,
+        note: todayItems[0],
+        evidence: [isKo ? '사주 일진/시간대 기반 오전 집중 슬롯' : 'Saju daily-time focus slot'],
+      },
+      {
+        hour: 14,
+        minute: 0,
+        note: todayItems[1],
+        evidence: [
+          isKo ? '점성 흐름/실행 구간 기반 오후 슬롯' : 'Astrology execution-flow PM slot',
+        ],
+      },
+      {
+        hour: 20,
+        minute: 0,
+        note: todayItems[2],
+        evidence: [isKo ? '회복/정리 구간 기반 저녁 슬롯' : 'Recovery-and-review evening slot'],
+      },
     ]
     mainSlots.forEach((slot) => {
-      if (slot.note) applySlot(slot.hour, slot.note, undefined, slot.minute)
+      if (slot.note) applySlot(slot.hour, slot.note, undefined, slot.minute, slot.evidence)
     })
 
     if (baseInfo?.recommendations?.[0]) {
-      applySlot(10, baseInfo.recommendations[0])
+      applySlot(10, baseInfo.recommendations[0], 'best', 0, [
+        isKo
+          ? '추천 행동(사주+점성 교차 해석)'
+          : 'Recommended action (cross-interpreted from Saju+Astrology)',
+      ])
     }
     if (baseInfo?.recommendations?.[1]) {
-      applySlot(15, baseInfo.recommendations[1])
+      applySlot(15, baseInfo.recommendations[1], 'best', 0, [
+        isKo
+          ? '추천 행동(사주+점성 교차 해석)'
+          : 'Recommended action (cross-interpreted from Saju+Astrology)',
+      ])
     }
     if (baseInfo?.warnings?.[0]) {
-      applySlot(13, baseInfo.warnings[0], 'caution')
+      applySlot(13, baseInfo.warnings[0], 'caution', 0, [
+        isKo ? '주의 신호(교차 리스크)' : 'Caution signal (cross-risk)',
+      ])
     }
     if (baseInfo?.warnings?.[1]) {
-      applySlot(21, baseInfo.warnings[1], 'caution')
+      applySlot(21, baseInfo.warnings[1], 'caution', 0, [
+        isKo ? '주의 신호(교차 리스크)' : 'Caution signal (cross-risk)',
+      ])
     }
 
     return slots
-  }, [baseInfo, baseTexts, formatHourLabel, intervalMinutes, todayItems])
+  }, [baseInfo, baseTexts, cleanText, formatHourLabel, intervalMinutes, isKo, todayItems])
 
   const timelineSlots = useMemo(() => {
-    const slots = baseTimelineSlots.map((slot) => ({ ...slot }))
+    const slots: TimelineSlotView[] = baseTimelineSlots.map((slot) => ({ ...slot }))
 
     if (aiTimeline?.length) {
       aiTimeline.forEach((item) => {
@@ -830,9 +927,15 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
             : Math.floor((item.hour * 60 + minute) / intervalMinutes)
         const slot = slots[index]
         if (!slot) return
-        slot.note = cleanText(item.note)
+        slot.note = cleanText(item.note, slot.note)
         if (item.tone) {
           slot.tone = item.tone
+        }
+        if (item.evidenceSummary?.length) {
+          slot.evidenceSummary = item.evidenceSummary
+            .map((line) => cleanText(line, ''))
+            .filter(Boolean)
+            .slice(0, 3)
         }
       })
     }
@@ -846,6 +949,11 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         if (!slot.note || slot.note === baseTexts(hour)) {
           slot.note = isKo ? '핵심 일정 배치' : 'Place key task'
         }
+        if (!slot.evidenceSummary?.length) {
+          slot.evidenceSummary = [
+            isKo ? '좋은 시간대(사주+점성 공통 우세)' : 'Best time window (Saju+Astrology aligned)',
+          ]
+        }
       })
     })
 
@@ -854,6 +962,11 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         if (slot.hour !== hour) return
         if (slot.tone !== 'best') {
           slot.tone = 'caution'
+        }
+        if (!slot.evidenceSummary?.length) {
+          slot.evidenceSummary = [
+            isKo ? '주의 시간대(교차 리스크 신호)' : 'Caution time window (cross-risk signal)',
+          ]
         }
       })
     })
@@ -869,9 +982,20 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     })
 
     slots.forEach((slot) => {
-      slot.note = cleanText(slot.note)
+      slot.note = cleanText(slot.note, baseTexts(slot.hour))
       if (slot.badge) {
-        slot.badge = cleanText(slot.badge)
+        slot.badge = cleanText(slot.badge, slot.badge)
+      }
+      slot.evidenceSummary = (slot.evidenceSummary || [])
+        .map((line) => cleanText(line, ''))
+        .filter(Boolean)
+        .slice(0, 2)
+      if (!slot.evidenceSummary.length) {
+        slot.evidenceSummary = [
+          isKo
+            ? '사주 일진 + 점성 트랜짓 기본 신호'
+            : 'Baseline signal from Saju daily pillar + astrology transit',
+        ]
       }
     })
 
@@ -1009,20 +1133,23 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const evidenceLines = useMemo(() => {
     const lines: string[] = []
     if (baseInfo?.evidence?.matrix) {
+      const matrixDomain = baseInfo.evidence.matrix.domain || 'general'
+      const matrixScore = baseInfo.evidence.matrix.finalScoreAdjusted
+      const confidence = baseInfo.evidence.confidence
       lines.push(
         isKo
-          ? `종합 신호 근거: 신뢰도 ${baseInfo.evidence.confidence}%`
-          : `Combined signal evidence: confidence ${baseInfo.evidence.confidence}%`
+          ? `종합 신호: ${matrixDomain} 영역 · 점수 ${matrixScore ?? '-'} · 신뢰도 ${confidence ?? '-'}%`
+          : `Combined signal: ${matrixDomain} domain · score ${matrixScore ?? '-'} · confidence ${confidence ?? '-'}%`
       )
     }
-    const cross = [
-      cleanText(baseInfo?.evidence?.cross?.sajuEvidence),
-      cleanText(baseInfo?.evidence?.cross?.astroEvidence),
-    ]
-      .filter(Boolean)
-      .join(' / ')
-    if (cross) {
-      lines.push(isKo ? `교차 근거: ${cross}` : `Cross evidence: ${cross}`)
+    const sajuEvidence = cleanText(baseInfo?.evidence?.cross?.sajuEvidence, '')
+    const astroEvidence = cleanText(baseInfo?.evidence?.cross?.astroEvidence, '')
+    if (sajuEvidence || astroEvidence) {
+      lines.push(
+        isKo
+          ? `교차 근거: 사주 ${sajuEvidence || '신호 있음'} / 점성 ${astroEvidence || '신호 있음'}`
+          : `Cross evidence: Saju ${sajuEvidence || 'signal present'} / Astrology ${astroEvidence || 'signal present'}`
+      )
     }
     ;(baseInfo?.evidence?.cross?.astroDetails || []).forEach((line) => {
       const cleaned = cleanText(line)
@@ -1044,6 +1171,13 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     })
     if (todayCaution) {
       lines.push(isKo ? `주의 신호: ${todayCaution}` : `Caution signal: ${todayCaution}`)
+    }
+    if (!lines.length) {
+      lines.push(
+        isKo
+          ? '사주 일진과 점성 트랜짓의 공통 신호를 기준으로 행동 우선순위를 구성했습니다.'
+          : 'Priorities are built from overlapping Saju daily-pillar and astrology transit signals.'
+      )
     }
     return lines.slice(0, 6).map((line) => cleanText(line))
   }, [baseInfo?.evidence, cleanText, isKo, todayCaution])
@@ -1068,10 +1202,18 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       : isKo
         ? '주의 슬롯 없음'
         : 'No caution slots'
+    const precisionText =
+      aiStatus === 'error'
+        ? isKo
+          ? '규칙 기반 자동 전환'
+          : 'Auto-switched to rule-based mode'
+        : aiSummary
+          ? cleanText(aiSummary, '')
+          : ''
     return isKo
-      ? `${peakText} 기준 타임라인 · ${cautionText}`
-      : `${peakText} timeline · ${cautionText}`
-  }, [baseInfo, isKo, resolvedPeakLevel])
+      ? `${peakText} 기준 타임라인 · ${cautionText}${precisionText ? ` · ${precisionText}` : ''}`
+      : `${peakText} timeline · ${cautionText}${precisionText ? ` · ${precisionText}` : ''}`
+  }, [aiStatus, aiSummary, baseInfo, cleanText, isKo, resolvedPeakLevel])
 
   const todayInsight = useMemo(() => {
     if (evidenceLines[0]) return evidenceLines[0]
@@ -1504,6 +1646,13 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
                   )}
                 </div>
                 <div className={styles.actionPlanTimelineNote}>{slot.note}</div>
+                {slot.evidenceSummary && slot.evidenceSummary.length > 0 && (
+                  <ul className={styles.actionPlanTimelineEvidenceList}>
+                    {slot.evidenceSummary.map((line) => (
+                      <li key={`${slot.hour}-${slot.minute}-${line}`}>{line}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             ))}
           </div>

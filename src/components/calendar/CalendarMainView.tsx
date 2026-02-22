@@ -285,30 +285,21 @@ const CalendarMainView = memo(function CalendarMainView({
         {/* Year Summary Badges */}
         {yearSummary && (
           <div className={styles.summaryBadges}>
-            <span
-              className={styles.summaryBadge}
-              title={locale === 'ko' ? '최고의 날 (68점 이상)' : 'Best Days (68+ points)'}
-            >
+            <span className={styles.summaryBadge} title={locale === 'ko' ? '최고' : 'Best'}>
               <span className={styles.badgeEmoji}>🌟</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '최고' : 'Best'}</span>
               <span className={styles.badgeCount}>
                 {locale === 'ko' ? `${yearSummary.grade0}일` : `${yearSummary.grade0}d`}
               </span>
             </span>
-            <span
-              className={styles.summaryBadge}
-              title={locale === 'ko' ? '좋은 날 (62-67점)' : 'Good Days (62-67 points)'}
-            >
+            <span className={styles.summaryBadge} title={locale === 'ko' ? '좋음' : 'Good'}>
               <span className={styles.badgeEmoji}>✨</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '좋음' : 'Good'}</span>
               <span className={styles.badgeCount}>
                 {locale === 'ko' ? `${yearSummary.grade1}일` : `${yearSummary.grade1}d`}
               </span>
             </span>
-            <span
-              className={styles.summaryBadge}
-              title={locale === 'ko' ? '보통 날 (42-61점)' : 'Normal Days (42-61 points)'}
-            >
+            <span className={styles.summaryBadge} title={locale === 'ko' ? '보통' : 'Normal'}>
               <span className={styles.badgeEmoji}>◆</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '보통' : 'Normal'}</span>
               <span className={styles.badgeCount}>
@@ -317,7 +308,7 @@ const CalendarMainView = memo(function CalendarMainView({
             </span>
             <span
               className={`${styles.summaryBadge} ${styles.cautionBadge}`}
-              title={locale === 'ko' ? '안좋은 날 (28-41점)' : 'Bad Days (28-41 points)'}
+              title={locale === 'ko' ? '안좋음' : 'Bad'}
             >
               <span className={styles.badgeEmoji}>⚠️</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '안좋음' : 'Bad'}</span>
@@ -327,7 +318,7 @@ const CalendarMainView = memo(function CalendarMainView({
             </span>
             <span
               className={`${styles.summaryBadge} ${styles.worstBadge}`}
-              title={locale === 'ko' ? '최악의 날 (28점 미만)' : 'Worst Days (under 28 points)'}
+              title={locale === 'ko' ? '최악' : 'Worst'}
             >
               <span className={styles.badgeEmoji}>☠️</span>
               <span className={styles.badgeLabel}>{locale === 'ko' ? '최악' : 'Worst'}</span>
