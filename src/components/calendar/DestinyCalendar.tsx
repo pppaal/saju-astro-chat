@@ -136,7 +136,12 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
       try {
         const res = await fetch(`/api/calendar/save?year=${year}`)
         if (res.ok) {
-          const { savedDates: dates } = await res.json()
+          const raw = await res.json()
+          const payload =
+            raw && typeof raw === 'object' && 'data' in (raw as Record<string, unknown>)
+              ? (raw as { data: { savedDates?: Array<{ date: string }> } }).data
+              : (raw as { savedDates?: Array<{ date: string }> })
+          const dates = payload.savedDates || []
           setSavedDates(new Set(dates.map((d: { date: string }) => d.date)))
         }
       } catch (err) {
@@ -231,9 +236,7 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   // Form submit handler
   const handleBirthInfoSubmit = async (submittedInfo: BirthInfo) => {
     if (!submittedInfo.birthDate) {
-      setError(
-        locale === 'ko' ? '생년월일을 입력해주세요' : 'Please enter your birth date'
-      )
+      setError(locale === 'ko' ? '생년월일을 입력해주세요' : 'Please enter your birth date')
       return
     }
 

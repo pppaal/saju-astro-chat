@@ -61,6 +61,35 @@ interface ReportData {
   fullData?: Record<string, unknown>
 }
 
+const REPORT_FETCH_MAX_RETRIES = 8
+const REPORT_FETCH_RETRY_MS = 1200
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+function extractReportPayload(data: unknown): Record<string, unknown> | null {
+  if (!data || typeof data !== 'object') {
+    return null
+  }
+
+  const root = data as Record<string, unknown>
+  if (root.report && typeof root.report === 'object') {
+    return root.report as Record<string, unknown>
+  }
+
+  const nestedData = root.data
+  if (
+    nestedData &&
+    typeof nestedData === 'object' &&
+    'report' in nestedData &&
+    (nestedData as Record<string, unknown>).report &&
+    typeof (nestedData as Record<string, unknown>).report === 'object'
+  ) {
+    return (nestedData as Record<string, unknown>).report as Record<string, unknown>
+  }
+
+  return null
+}
+
 export default function ReportResultPage() {
   const params = useParams()
   const router = useRouter()
@@ -84,49 +113,76 @@ export default function ReportResultPage() {
     setError(null)
 
     try {
-      const response = await fetch(`/api/reports/${reportId}`)
-      const data = await response.json()
+      let lastErrorMessage = '리포트를 불러오지 못했습니다.'
 
-      if (!data.success) {
-        setError(data.error?.message || '리포트를 불러오지 못했습니다.')
-        return
+      for (let attempt = 0; attempt < REPORT_FETCH_MAX_RETRIES; attempt += 1) {
+        const response = await fetch(`/api/reports/${reportId}`, { cache: 'no-store' })
+        const data = await response.json().catch(() => ({}) as Record<string, unknown>)
+
+        const success = Boolean((data as { success?: boolean }).success)
+        const payload = extractReportPayload(data)
+
+        if (response.ok && success && payload) {
+          const fullData =
+            payload.fullData && typeof payload.fullData === 'object'
+              ? (payload.fullData as Record<string, unknown>)
+              : {}
+
+          let sections: ReportSection[] = []
+          if (Array.isArray(payload.sections) && payload.sections.length > 0) {
+            sections = payload.sections as ReportSection[]
+          } else if (Array.isArray(fullData.sections) && fullData.sections.length > 0) {
+            sections = fullData.sections as ReportSection[]
+          } else if (typeof payload.summary === 'string' && payload.summary.length > 0) {
+            sections = [{ title: '요약', content: payload.summary }]
+          }
+
+          setReport({
+            id: String(payload.id || reportId),
+            type: (payload.type as ReportData['type']) || 'comprehensive',
+            title: String(payload.title || 'AI 리포트'),
+            summary: String(payload.summary || ''),
+            createdAt: String(payload.createdAt || new Date().toISOString()),
+            period: payload.period as string | undefined,
+            theme: payload.theme as string | undefined,
+            score: payload.score as number | undefined,
+            grade: payload.grade as string | undefined,
+            sections,
+            keywords: payload.keywords as string[] | undefined,
+            insights: payload.insights as Array<{ title: string; content: string }> | undefined,
+            actionItems: payload.actionItems as string[] | undefined,
+            qualityAudit:
+              (payload.qualityAudit as QualityAudit | undefined) ||
+              (fullData.qualityAudit as QualityAudit | undefined),
+            calculationDetails:
+              (payload.calculationDetails as CalculationDetails | undefined) ||
+              (fullData.calculationDetails as CalculationDetails | undefined),
+            graphRagEvidence:
+              (payload.graphRagEvidence as GraphRAGEvidenceBundle | undefined) ||
+              (fullData.graphRagEvidence as GraphRAGEvidenceBundle | undefined),
+            fullData,
+          })
+          return
+        }
+
+        const apiError = (data as { error?: { code?: string; message?: string } }).error
+        if (apiError?.message) {
+          lastErrorMessage = apiError.message
+        }
+
+        const shouldRetry =
+          response.status === 404 || apiError?.code === 'NOT_FOUND' || !response.ok
+        const hasNextAttempt = attempt < REPORT_FETCH_MAX_RETRIES - 1
+
+        if (shouldRetry && hasNextAttempt) {
+          await sleep(REPORT_FETCH_RETRY_MS)
+          continue
+        }
+
+        break
       }
 
-      const apiReport = data.report
-      const fullData = apiReport.fullData || {}
-
-      let sections: ReportSection[] = []
-      if (Array.isArray(apiReport.sections) && apiReport.sections.length > 0) {
-        sections = apiReport.sections
-      } else if (Array.isArray(fullData.sections) && fullData.sections.length > 0) {
-        sections = fullData.sections as ReportSection[]
-      } else if (apiReport.summary) {
-        sections = [{ title: '요약', content: apiReport.summary }]
-      }
-
-      setReport({
-        id: apiReport.id,
-        type: apiReport.type,
-        title: apiReport.title,
-        summary: apiReport.summary,
-        createdAt: apiReport.createdAt,
-        period: apiReport.period,
-        theme: apiReport.theme,
-        score: apiReport.score,
-        grade: apiReport.grade,
-        sections,
-        keywords: apiReport.keywords,
-        insights: apiReport.insights,
-        actionItems: apiReport.actionItems,
-        qualityAudit: apiReport.qualityAudit || (fullData.qualityAudit as QualityAudit | undefined),
-        calculationDetails:
-          apiReport.calculationDetails ||
-          (fullData.calculationDetails as CalculationDetails | undefined),
-        graphRagEvidence:
-          apiReport.graphRagEvidence ||
-          (fullData.graphRagEvidence as GraphRAGEvidenceBundle | undefined),
-        fullData,
-      })
+      setError(lastErrorMessage)
     } catch {
       setError('리포트를 불러오지 못했습니다.')
     } finally {
