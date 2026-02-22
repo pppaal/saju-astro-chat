@@ -4,6 +4,8 @@
 import type { InsightDomain } from '../interpreter/types'
 import type { GraphRAGEvidenceBundle } from './graphRagEvidence'
 
+export type AIUserPlan = 'free' | 'starter' | 'pro' | 'premium'
+
 export interface AIPremiumReport {
   id: string
   generatedAt: string
@@ -57,6 +59,7 @@ export interface AIReportGenerationOptions {
   name?: string
   birthDate?: string
   lang?: 'ko' | 'en'
+  userPlan?: AIUserPlan
   focusDomain?: InsightDomain
   detailLevel?: 'standard' | 'detailed' | 'comprehensive'
   theme?: string

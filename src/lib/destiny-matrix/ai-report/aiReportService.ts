@@ -16,12 +16,13 @@ import type {
   ThemedReportSections,
 } from './types'
 import { THEME_META } from './types'
+import { logger } from '@/lib/logger'
 import { buildTimingPrompt } from './prompts/timingPrompts'
 import { buildThemedPrompt } from './prompts/themedPrompts'
 import { buildGraphRAGEvidence, formatGraphRAGEvidenceForPrompt } from './graphRagEvidence'
 
 // Extracted modules
-import type { AIPremiumReport, AIReportGenerationOptions } from './reportTypes'
+import type { AIPremiumReport, AIReportGenerationOptions, AIUserPlan } from './reportTypes'
 
 import { buildAIPrompt, buildThemedAIPrompt, buildMatrixSummary } from './promptBuilders'
 import { callAIBackend, callAIBackendGeneric } from './aiBackend'
@@ -175,6 +176,20 @@ function buildSecondPassInstruction(lang: 'ko' | 'en'): string {
   ].join('\n')
 }
 
+function getMaxRepairPassesByPlan(plan?: AIUserPlan): number {
+  switch (plan) {
+    case 'premium':
+      return 2
+    case 'pro':
+      return 1
+    case 'starter':
+      return 1
+    case 'free':
+    default:
+      return 0
+  }
+}
+
 // ===========================
 // 메인 생성 함수
 // ===========================
@@ -208,10 +223,11 @@ export async function generateAIPremiumReport(
   }
 
   // 2. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
-  const base = await callAIBackend(prompt, lang)
+  const base = await callAIBackend(prompt, lang, { userPlan: options.userPlan })
   let sections = base.sections as unknown as Record<string, unknown>
   let model = base.model
   let tokensUsed = base.tokensUsed
+  const maxRepairPasses = getMaxRepairPassesByPlan(options.userPlan)
 
   const sectionPaths = [
     'introduction',
@@ -241,7 +257,7 @@ export async function generateAIPremiumReport(
   const totalChars = countSectionChars(sections)
   const needsRepair = shortPaths.length > 0 || missingCross.length > 0 || totalChars < minTotalChars
 
-  if (needsRepair) {
+  if (needsRepair && maxRepairPasses > 0) {
     const repairPrompt = [
       prompt,
       buildDepthRepairInstruction(
@@ -255,24 +271,47 @@ export async function generateAIPremiumReport(
     ]
       .filter(Boolean)
       .join('\n')
-    const repaired = await callAIBackendGeneric<AIPremiumReport['sections']>(repairPrompt, lang)
-    sections = repaired.sections as unknown as Record<string, unknown>
-    model = repaired.model
-    tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
+    try {
+      const repaired = await callAIBackendGeneric<AIPremiumReport['sections']>(repairPrompt, lang, {
+        userPlan: options.userPlan,
+      })
+      sections = repaired.sections as unknown as Record<string, unknown>
+      model = repaired.model
+      tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
 
-    const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
-    const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
-    const secondTotalChars = countSectionChars(sections)
-    if (
-      secondShortPaths.length > 0 ||
-      secondMissingCross.length > 0 ||
-      secondTotalChars < minTotalChars
-    ) {
-      const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
-      const second = await callAIBackendGeneric<AIPremiumReport['sections']>(secondPrompt, lang)
-      sections = second.sections as unknown as Record<string, unknown>
-      model = second.model
-      tokensUsed = (tokensUsed || 0) + (second.tokensUsed || 0)
+      const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
+      const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
+      const secondTotalChars = countSectionChars(sections)
+      if (
+        maxRepairPasses > 1 &&
+        (secondShortPaths.length > 0 ||
+          secondMissingCross.length > 0 ||
+          secondTotalChars < minTotalChars)
+      ) {
+        const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
+        try {
+          const second = await callAIBackendGeneric<AIPremiumReport['sections']>(
+            secondPrompt,
+            lang,
+            {
+              userPlan: options.userPlan,
+            }
+          )
+          sections = second.sections as unknown as Record<string, unknown>
+          model = second.model
+          tokensUsed = (tokensUsed || 0) + (second.tokensUsed || 0)
+        } catch (error) {
+          logger.warn('[AI Report] Second repair pass failed; using first repaired result', {
+            error: error instanceof Error ? error.message : String(error),
+            plan: options.userPlan || 'free',
+          })
+        }
+      }
+    } catch (error) {
+      logger.warn('[AI Report] Repair pass failed; using base response', {
+        error: error instanceof Error ? error.message : String(error),
+        plan: options.userPlan || 'free',
+      })
     }
   }
 
@@ -332,6 +371,7 @@ export async function generateTimingReport(
     birthDate?: string
     targetDate?: string
     lang?: 'ko' | 'en'
+    userPlan?: AIUserPlan
   } = {}
 ): Promise<TimingAIPremiumReport> {
   const startTime = Date.now()
@@ -360,10 +400,13 @@ export async function generateTimingReport(
   )
 
   // 3. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
-  const base = await callAIBackendGeneric<TimingReportSections>(prompt, lang)
+  const base = await callAIBackendGeneric<TimingReportSections>(prompt, lang, {
+    userPlan: options.userPlan,
+  })
   let sections = base.sections as unknown as Record<string, unknown>
   let model = base.model
   let tokensUsed = base.tokensUsed
+  const maxRepairPasses = getMaxRepairPassesByPlan(options.userPlan)
 
   const sectionPaths = [
     'overview',
@@ -393,7 +436,7 @@ export async function generateTimingReport(
   const totalChars = countSectionChars(sections)
   const needsRepair = shortPaths.length > 0 || missingCross.length > 0 || totalChars < minTotalChars
 
-  if (needsRepair) {
+  if (needsRepair && maxRepairPasses > 0) {
     const repairPrompt = [
       prompt,
       buildDepthRepairInstruction(
@@ -407,24 +450,43 @@ export async function generateTimingReport(
     ]
       .filter(Boolean)
       .join('\n')
-    const repaired = await callAIBackendGeneric<TimingReportSections>(repairPrompt, lang)
-    sections = repaired.sections as unknown as Record<string, unknown>
-    model = repaired.model
-    tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
+    try {
+      const repaired = await callAIBackendGeneric<TimingReportSections>(repairPrompt, lang, {
+        userPlan: options.userPlan,
+      })
+      sections = repaired.sections as unknown as Record<string, unknown>
+      model = repaired.model
+      tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
 
-    const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
-    const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
-    const secondTotalChars = countSectionChars(sections)
-    if (
-      secondShortPaths.length > 0 ||
-      secondMissingCross.length > 0 ||
-      secondTotalChars < minTotalChars
-    ) {
-      const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
-      const second = await callAIBackendGeneric<TimingReportSections>(secondPrompt, lang)
-      sections = second.sections as unknown as Record<string, unknown>
-      model = second.model
-      tokensUsed = (tokensUsed || 0) + (second.tokensUsed || 0)
+      const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
+      const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
+      const secondTotalChars = countSectionChars(sections)
+      if (
+        maxRepairPasses > 1 &&
+        (secondShortPaths.length > 0 ||
+          secondMissingCross.length > 0 ||
+          secondTotalChars < minTotalChars)
+      ) {
+        const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
+        try {
+          const second = await callAIBackendGeneric<TimingReportSections>(secondPrompt, lang, {
+            userPlan: options.userPlan,
+          })
+          sections = second.sections as unknown as Record<string, unknown>
+          model = second.model
+          tokensUsed = (tokensUsed || 0) + (second.tokensUsed || 0)
+        } catch (error) {
+          logger.warn('[Timing Report] Second repair pass failed; using first repaired result', {
+            error: error instanceof Error ? error.message : String(error),
+            plan: options.userPlan || 'free',
+          })
+        }
+      }
+    } catch (error) {
+      logger.warn('[Timing Report] Repair pass failed; using base response', {
+        error: error instanceof Error ? error.message : String(error),
+        plan: options.userPlan || 'free',
+      })
     }
   }
 
@@ -480,6 +542,7 @@ export async function generateThemedReport(
     name?: string
     birthDate?: string
     lang?: 'ko' | 'en'
+    userPlan?: AIUserPlan
   } = {}
 ): Promise<ThemedAIPremiumReport> {
   const startTime = Date.now()
@@ -508,10 +571,13 @@ export async function generateThemedReport(
   )
 
   // 3. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
-  const base = await callAIBackendGeneric<ThemedReportSections>(prompt, lang)
+  const base = await callAIBackendGeneric<ThemedReportSections>(prompt, lang, {
+    userPlan: options.userPlan,
+  })
   let sections = base.sections as unknown as Record<string, unknown>
   let model = base.model
   let tokensUsed = base.tokensUsed
+  const maxRepairPasses = getMaxRepairPassesByPlan(options.userPlan)
 
   const sectionPaths = [
     'deepAnalysis',
@@ -531,7 +597,7 @@ export async function generateThemedReport(
   const totalChars = countSectionChars(sections)
   const needsRepair = shortPaths.length > 0 || missingCross.length > 0 || totalChars < minTotalChars
 
-  if (needsRepair) {
+  if (needsRepair && maxRepairPasses > 0) {
     const repairPrompt = [
       prompt,
       buildDepthRepairInstruction(
@@ -545,24 +611,43 @@ export async function generateThemedReport(
     ]
       .filter(Boolean)
       .join('\n')
-    const repaired = await callAIBackendGeneric<ThemedReportSections>(repairPrompt, lang)
-    sections = repaired.sections as unknown as Record<string, unknown>
-    model = repaired.model
-    tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
+    try {
+      const repaired = await callAIBackendGeneric<ThemedReportSections>(repairPrompt, lang, {
+        userPlan: options.userPlan,
+      })
+      sections = repaired.sections as unknown as Record<string, unknown>
+      model = repaired.model
+      tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
 
-    const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
-    const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
-    const secondTotalChars = countSectionChars(sections)
-    if (
-      secondShortPaths.length > 0 ||
-      secondMissingCross.length > 0 ||
-      secondTotalChars < minTotalChars
-    ) {
-      const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
-      const second = await callAIBackendGeneric<ThemedReportSections>(secondPrompt, lang)
-      sections = second.sections as unknown as Record<string, unknown>
-      model = second.model
-      tokensUsed = (tokensUsed || 0) + (second.tokensUsed || 0)
+      const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
+      const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
+      const secondTotalChars = countSectionChars(sections)
+      if (
+        maxRepairPasses > 1 &&
+        (secondShortPaths.length > 0 ||
+          secondMissingCross.length > 0 ||
+          secondTotalChars < minTotalChars)
+      ) {
+        const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
+        try {
+          const second = await callAIBackendGeneric<ThemedReportSections>(secondPrompt, lang, {
+            userPlan: options.userPlan,
+          })
+          sections = second.sections as unknown as Record<string, unknown>
+          model = second.model
+          tokensUsed = (tokensUsed || 0) + (second.tokensUsed || 0)
+        } catch (error) {
+          logger.warn('[Themed Report] Second repair pass failed; using first repaired result', {
+            error: error instanceof Error ? error.message : String(error),
+            plan: options.userPlan || 'free',
+          })
+        }
+      }
+    } catch (error) {
+      logger.warn('[Themed Report] Repair pass failed; using base response', {
+        error: error instanceof Error ? error.message : String(error),
+        plan: options.userPlan || 'free',
+      })
     }
   }
 
