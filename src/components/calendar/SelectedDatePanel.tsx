@@ -1,7 +1,6 @@
 'use client'
 
-// src/components/calendar/SelectedDatePanel.tsx
-import React, { useCallback, memo, useMemo } from 'react'
+import React, { memo, useCallback, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
@@ -74,7 +73,26 @@ const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 function normalizeEvidenceLine(value: string): string {
   if (!value) return ''
-  return repairMojibakeText(value).replace(/\s+/g, ' ').trim()
+  return deepRepairText(value).replace(/\s+/g, ' ').trim()
+}
+
+function decodeUtf8FromLatin1(value: string): string {
+  try {
+    const bytes = Uint8Array.from([...value].map((ch) => ch.charCodeAt(0) & 0xff))
+    return new TextDecoder('utf-8', { fatal: false }).decode(bytes)
+  } catch {
+    return value
+  }
+}
+
+function deepRepairText(value: string): string {
+  const firstPass = repairMojibakeText(value || '')
+  if (!/[ÃÂðâ]/.test(firstPass)) {
+    return firstPass
+  }
+  const decoded = decodeUtf8FromLatin1(firstPass)
+  const secondPass = repairMojibakeText(decoded)
+  return secondPass || firstPass
 }
 
 function parseAstroEvidenceLine(value: string): string {
@@ -83,16 +101,18 @@ function parseAstroEvidenceLine(value: string): string {
 
   const angle = line.match(/angle=([0-9.]+)deg/i)?.[1]
   const orb = line.match(/orb=([0-9.]+)deg/i)?.[1]
-  const allowed = line.match(/allowed=([0-9.]+)deg/i)?.[1]
+  const allowedRaw = line.match(/allowed=([^|]+)/i)?.[1]?.trim()
   const pair = line.match(/pair=([a-z_]+)/i)?.[1]?.replace(/_/g, ' ')
 
-  if (!angle && !orb && !allowed && !pair) return line
+  if (!angle && !orb && !allowedRaw && !pair) return line
+
+  const allowed = allowedRaw?.replace(/\s*,\s*/g, ', ')
 
   return [
     pair ? `pair: ${pair}` : '',
     angle ? `angle: ${angle}\u00B0` : '',
     orb ? `orb: ${orb}\u00B0` : '',
-    allowed ? `allow: ${allowed}\u00B0` : '',
+    allowed ? `allow: ${allowed}` : '',
   ]
     .filter(Boolean)
     .join(' | ')
@@ -114,43 +134,76 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   const WEEKDAYS = locale === 'ko' ? WEEKDAYS_KO : WEEKDAYS_EN
 
   const normalizedBestTimes = useMemo(
-    () => (selectedDate?.bestTimes || []).map((time) => repairMojibakeText(time)),
+    () => (selectedDate?.bestTimes || []).map((time) => deepRepairText(time)),
     [selectedDate?.bestTimes]
   )
+
+  const categoryLabels: Record<EventCategory, { ko: string; en: string }> = {
+    wealth: { ko: '재물운', en: 'Wealth' },
+    career: { ko: '커리어운', en: 'Career' },
+    love: { ko: '연애운', en: 'Love' },
+    health: { ko: '건강운', en: 'Health' },
+    travel: { ko: '여행운', en: 'Travel' },
+    study: { ko: '학업운', en: 'Study' },
+    general: { ko: '전체운', en: 'General' },
+  }
+
+  const termHelp = {
+    matrixBadge:
+      locale === 'ko'
+        ? 'matrix 기준 (여러 신호를 합친 종합 점수)'
+        : 'Matrix-based (combined score from multiple signals)',
+    crossBadge:
+      locale === 'ko'
+        ? '교차 검증 (사주+점성 결과가 같은 방향)'
+        : 'Cross-verified (Saju + Astrology aligned)',
+    cautionBadge:
+      locale === 'ko' ? '주의 신호 (리스크 경고)' : 'Caution signal (risk warning)',
+    sajuTitle:
+      locale === 'ko'
+        ? '사주 분석 (타고난 구조와 오늘의 흐름)'
+        : 'Saju Analysis (natal pattern + today flow)',
+    astroTitle:
+      locale === 'ko'
+        ? '점성 분석 (행성 움직임 기반)'
+        : 'Astrology Analysis (planetary movement based)',
+    dayPillar: locale === 'ko' ? '일주 (오늘의 핵심 기운)' : 'Day Pillar (today core energy)',
+    bestTimes:
+      locale === 'ko'
+        ? '오늘의 좋은 시간 (중요 일정을 넣기 좋은 시간대)'
+        : 'Best Times Today (better windows for key tasks)',
+    dailyPeakTitle: locale === 'ko' ? '데일리 + 피크 윈도우 통합 해석' : 'Daily + Peak Window Insight',
+  }
 
   const handleAddToCalendar = useCallback(() => {
     if (!selectedDate || !selectedDay) return
 
     const dateStr = selectedDate.date.replace(/-/g, '')
-    // All-day event DTEND must be the NEXT day (exclusive end per RFC 5545)
     const nextDay = new Date(selectedDay)
     nextDay.setDate(nextDay.getDate() + 1)
     const endStr = `${nextDay.getFullYear()}${String(nextDay.getMonth() + 1).padStart(2, '0')}${String(nextDay.getDate()).padStart(2, '0')}`
 
     const title = selectedDate.title
-    const catLabels: Record<EventCategory, string> = {
-      wealth: locale === 'ko' ? 'ìž¬ë¬¼ìš´' : 'Wealth',
-      career: locale === 'ko' ? 'ì»¤ë¦¬ì–´' : 'Career',
-      love: locale === 'ko' ? 'ì—°ì• ìš´' : 'Love',
-      health: locale === 'ko' ? 'ê±´ê°•ìš´' : 'Health',
-      travel: locale === 'ko' ? 'ì—¬í–‰ìš´' : 'Travel',
-      study: locale === 'ko' ? 'í•™ì—…ìš´' : 'Study',
-      general: locale === 'ko' ? 'ì „ì²´ìš´' : 'General',
-    }
-    const categories = selectedDate.categories.map((cat) => catLabels[cat]).join(', ')
+    const categories = selectedDate.categories
+      .map((cat) => (locale === 'ko' ? categoryLabels[cat].ko : categoryLabels[cat].en))
+      .join(', ')
+
     const descParts = [
       selectedDate.description,
-      categories ? `${locale === 'ko' ? 'ì¹´í…Œê³ ë¦¬' : 'Categories'}: ${categories}` : '',
-      `${locale === 'ko' ? 'ì ìˆ˜' : 'Score'}: ${selectedDate.score}/100`,
+      categories ? `${locale === 'ko' ? '카테고리' : 'Categories'}: ${categories}` : '',
+      `${locale === 'ko' ? '점수' : 'Score'}: ${selectedDate.score}/100`,
     ]
+
     if (selectedDate.recommendations.length > 0) {
-      descParts.push(`${locale === 'ko' ? 'ì¶”ì²œ' : 'Recommendations'}:`)
+      descParts.push(`${locale === 'ko' ? '추천' : 'Recommendations'}:`)
       selectedDate.recommendations.forEach((r) => descParts.push(`- ${r}`))
     }
+
     if (selectedDate.warnings.length > 0) {
-      descParts.push(`${locale === 'ko' ? 'ì£¼ì˜' : 'Warnings'}:`)
+      descParts.push(`${locale === 'ko' ? '주의' : 'Warnings'}:`)
       selectedDate.warnings.forEach((w) => descParts.push(`- ${w}`))
     }
+
     const description = descParts.filter(Boolean).join('\n')
 
     const now = new Date()
@@ -177,57 +230,11 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       'END:VCALENDAR',
     ].join('\r\n')
 
-    // iOS Safari doesn't support Blob URL + <a download>.
-    // Use data URI which works across iOS Safari, Android Chrome, and desktop.
     const dataUri = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(icsContent)
     window.open(dataUri, '_blank')
-  }, [selectedDate, selectedDay, locale])
+  }, [selectedDate, selectedDay, locale, categoryLabels])
 
-  if (!selectedDay) {
-    return null
-  }
-
-  const getCategoryLabel = (cat: EventCategory) => {
-    const labels: Record<EventCategory, { ko: string; en: string }> = {
-      wealth: { ko: 'ìž¬ë¬¼ìš´', en: 'Wealth' },
-      career: { ko: 'ì»¤ë¦¬ì–´', en: 'Career' },
-      love: { ko: 'ì—°ì• ìš´', en: 'Love' },
-      health: { ko: 'ê±´ê°•ìš´', en: 'Health' },
-      travel: { ko: 'ì—¬í–‰ìš´', en: 'Travel' },
-      study: { ko: 'í•™ì—…ìš´', en: 'Study' },
-      general: { ko: 'ì „ì²´ìš´', en: 'General' },
-    }
-    return locale === 'ko' ? labels[cat].ko : labels[cat].en
-  }
-
-  const termHelp = {
-    matrixBadge:
-      locale === 'ko'
-        ? 'matrix ê¸°ì¤€ (ì—¬ëŸ¬ ì‹ í˜¸ë¥¼ í•©ì¹œ ì¢…í•© ì ìˆ˜)'
-        : 'Matrix-based (combined score from multiple signals)',
-    crossBadge:
-      locale === 'ko'
-        ? 'êµì°¨ ê²€ì¦ (ì‚¬ì£¼+ì ì„± ê²°ê³¼ê°€ ê°™ì€ ë°©í–¥)'
-        : 'Cross-verified (Saju + Astrology point in same direction)',
-    cautionBadge:
-      locale === 'ko' ? 'ì£¼ì˜ ì‹ í˜¸ (ë¦¬ìŠ¤í¬ ê²½ê³ )' : 'Caution signal (risk warning)',
-    sajuTitle:
-      locale === 'ko'
-        ? 'ì‚¬ì£¼ ë¶„ì„ (íƒ€ê³ ë‚œ êµ¬ì¡°ì™€ ì˜¤ëŠ˜ì˜ íë¦„)'
-        : 'Saju Analysis (natal pattern + today flow)',
-    astroTitle:
-      locale === 'ko'
-        ? 'ì ì„±ìˆ  ë¶„ì„ (í–‰ì„± ì›€ì§ìž„ ê¸°ë°˜)'
-        : 'Astrology Analysis (planetary movement based)',
-    dayPillar:
-      locale === 'ko' ? 'ì¼ì£¼ (ì˜¤ëŠ˜ì˜ í•µì‹¬ ê¸°ìš´)' : 'Day Pillar (today core energy)',
-    bestTimes:
-      locale === 'ko'
-        ? 'ì˜¤ëŠ˜ì˜ ì¢‹ì€ ì‹œê°„ (ì¤‘ìš” ì¼ì •ì„ ë„£ê¸° ì¢‹ì€ ì‹œê°„ëŒ€)'
-        : 'Best Times Today (better windows for key tasks)',
-    dailyPeakTitle:
-      locale === 'ko' ? 'ë°ì¼ë¦¬ + í”¼í¬ ìœˆë„ìš° í†µí•© í•´ì„' : 'Daily + Peak Window Insight',
-  }
+  if (!selectedDay) return null
 
   const resolvedPeakLevel = selectedDate
     ? resolvePeakLevel(selectedDate.evidence?.matrix?.peakLevel, selectedDate.score)
@@ -235,44 +242,42 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
   const mergedTimingNarrative = (() => {
     if (!selectedDate) return ''
+
     const peakLevel = resolvedPeakLevel
     const bestWindow = normalizedBestTimes[0]
     const domain = selectedDate.evidence?.matrix.domain
 
     if (locale === 'ko') {
       const peakLabel =
-        peakLevel === 'peak'
-          ? 'ê°•í•œ í”¼í¬ êµ¬ê°„'
-          : peakLevel === 'high'
-            ? 'ìƒìŠ¹ êµ¬ê°„'
-            : 'ì•ˆì • êµ¬ê°„'
-      const domainLabel = domain || 'ì „ë°˜'
+        peakLevel === 'peak' ? '강한 피크 구간' : peakLevel === 'high' ? '상승 구간' : '안정 구간'
+      const domainLabel = domain || '전반'
       const timeLine = bestWindow
-        ? `íŠ¹ížˆ ${bestWindow} ì „í›„ë¡œ ì¤‘ìš”í•œ ê²°ì •ì„ ë°°ì¹˜í•˜ì‹œë©´ íë¦„ì„ íƒ€ê¸° ì‰½ìŠµë‹ˆë‹¤.`
-        : 'ì‹œê°„ëŒ€ë¥¼ ê³ ë¥¼ ìˆ˜ ìžˆë‹¤ë©´ ì˜¤ì „-ì˜¤í›„ ì¤‘ ê°€ìž¥ ì§‘ì¤‘ì´ ìž˜ ë˜ëŠ” êµ¬ê°„ì— í•µì‹¬ ì¼ì„ ë°°ì¹˜í•´ ë³´ì„¸ìš”.'
+        ? `특히 ${bestWindow} 전후로 중요한 결정을 배치하시면 흐름을 타기 쉽습니다.`
+        : '시간대를 고를 수 있다면 오전-오후 중 가장 집중이 잘 되는 구간에 핵심 일을 배치해 보세요.'
 
       if (selectedDate.grade >= 3) {
-        return `${peakLabel}ì´ì§€ë§Œ ${domainLabel} ì˜ì—­ì—ì„œëŠ” ì£¼ì˜ ì‹ í˜¸ê°€ í•¨ê»˜ ë³´ì—¬ ë¬´ë¦¬í•œ í™•ìž¥ë³´ë‹¤ ì†ì‹¤ ë°©ì–´ê°€ ìš°ì„ ìž…ë‹ˆë‹¤. ${timeLine}`
+        return `${peakLabel}이지만 ${domainLabel} 영역에서는 주의 신호가 함께 보여 무리한 확장보다 손실 방어가 우선입니다. ${timeLine}`
       }
-      return `${peakLabel}ì—ì„œ ${domainLabel} ì˜ì—­ì˜ íš¨ìœ¨ì´ ì˜¬ë¼ì˜¤ëŠ” ë‚ ìž…ë‹ˆë‹¤. ì†ë„ë¥¼ ì˜¬ë¦¬ë˜, í•µì‹¬ 1~2ê°œ ê³¼ì œì— ì§‘ì¤‘í• ìˆ˜ë¡ ì²´ê° ì„±ê³¼ê°€ ì»¤ì§‘ë‹ˆë‹¤. ${timeLine}`
+      return `${peakLabel}에서 ${domainLabel} 영역의 효율이 올라오는 날입니다. 속도를 올리되, 핵심 1~2개 과제에 집중할수록 체감 성과가 커집니다. ${timeLine}`
     }
 
     const peakLabel =
-      peakLevel === 'peak'
-        ? 'peak window'
-        : peakLevel === 'high'
-          ? 'rising window'
-          : 'steady window'
+      peakLevel === 'peak' ? 'peak window' : peakLevel === 'high' ? 'rising window' : 'steady window'
     const timeLine = bestWindow
       ? `Prioritize key decisions around ${bestWindow}.`
       : 'If possible, place key tasks in your highest-focus block.'
+
     if (selectedDate.grade >= 3) {
       return `This is a ${peakLabel}, but caution signals are active, so risk control should come before expansion. ${timeLine}`
     }
     return `This is a ${peakLabel} with stronger execution flow. Focus on one or two high-impact tasks for better outcomes. ${timeLine}`
   })()
 
+  const getCategoryLabel = (cat: EventCategory) =>
+    locale === 'ko' ? categoryLabels[cat].ko : categoryLabels[cat].en
+
   const isSaved = selectedDate ? savedDates.has(selectedDate.date) : false
+
   const evidenceAstroDetails = (selectedDate?.evidence?.cross?.astroDetails || [])
     .map((line) => parseAstroEvidenceLine(line))
     .filter(Boolean)
@@ -290,18 +295,16 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {selectedDay.getMonth() + 1}/{selectedDay.getDate()}
           {locale === 'ko' && ` (${WEEKDAYS[selectedDay.getDay()]})`}
         </span>
+
         {resolvedPeakLevel && (
           <span className={styles.peakLevelChip}>
-            {locale === 'ko'
-              ? getPeakLabel(resolvedPeakLevel, 'ko')
-              : getPeakLabel(resolvedPeakLevel, 'en')}
+            {locale === 'ko' ? getPeakLabel(resolvedPeakLevel, 'ko') : getPeakLabel(resolvedPeakLevel, 'en')}
           </span>
         )}
+
         <div className={styles.headerActions}>
-          {selectedDate && (
-            <span className={styles.selectedGrade}>{getGradeEmoji(selectedDate.grade)}</span>
-          )}
-          {/* Save button - authenticated users only */}
+          {selectedDate && <span className={styles.selectedGrade}>{getGradeEmoji(selectedDate.grade)}</span>}
+
           {status === 'authenticated' && selectedDate && (
             <button
               className={`${styles.saveBtn} ${isSaved ? styles.saved : ''}`}
@@ -310,49 +313,43 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               aria-label={
                 isSaved
                   ? locale === 'ko'
-                    ? 'ì €ìž¥ë¨ (í´ë¦­í•˜ì—¬ ì‚­ì œ)'
+                    ? '저장됨 (클릭하여 삭제)'
                     : 'Saved (click to remove)'
                   : locale === 'ko'
-                    ? 'ì´ ë‚ ì§œ ì €ìž¥í•˜ê¸°'
+                    ? '이 날짜 저장하기'
                     : 'Save this date'
               }
               title={
                 isSaved
                   ? locale === 'ko'
-                    ? 'ì €ìž¥ë¨ (í´ë¦­í•˜ì—¬ ì‚­ì œ)'
+                    ? '저장됨 (클릭하여 삭제)'
                     : 'Saved (click to remove)'
                   : locale === 'ko'
-                    ? 'ì´ ë‚ ì§œ ì €ìž¥í•˜ê¸°'
+                    ? '이 날짜 저장하기'
                     : 'Save this date'
               }
             >
-              {saving ? '...' : isSaved ? 'â˜…' : 'â˜†'}
+              {saving ? '...' : isSaved ? '\u2605' : '\u2606'}
             </button>
           )}
         </div>
       </div>
 
-      {/* Save message */}
       {saveMsg && <div className={styles.saveMsg}>{saveMsg}</div>}
 
       {selectedDate ? (
         <div className={styles.selectedDayContent}>
-          <h3 className={styles.selectedTitle}>{repairMojibakeText(selectedDate.title)}</h3>
+          <h3 className={styles.selectedTitle}>{deepRepairText(selectedDate.title)}</h3>
 
-          {/* Grade 3, 4 (ë‚˜ìœ ë‚ ): ê²½ê³ ë¥¼ ìƒë‹¨ì— ê°•ì¡° í‘œì‹œ */}
           {selectedDate.grade >= 3 && selectedDate.warnings.length > 0 && (
-            <div
-              className={`${styles.urgentWarningBox} ${selectedDate.grade === 4 ? styles.worstDay : ''}`}
-            >
+            <div className={`${styles.urgentWarningBox} ${selectedDate.grade === 4 ? styles.worstDay : ''}`}>
               <div className={styles.urgentWarningHeader}>
-                <span className={styles.urgentWarningIcon}>
-                  {selectedDate.grade === 4 ? 'ðŸš¨' : 'âš ï¸'}
-                </span>
+                <span className={styles.urgentWarningIcon}>{selectedDate.grade === 4 ? '\u{1F6A8}' : '\u26A0\uFE0F'}</span>
                 <span className={styles.urgentWarningTitle}>
                   {locale === 'ko'
                     ? selectedDate.grade === 4
-                      ? 'ì˜¤ëŠ˜ ì£¼ì˜í•´ì•¼ í•  ì !'
-                      : 'ì˜¤ëŠ˜ì˜ ì£¼ì˜ì‚¬í•­'
+                      ? '오늘 주의해야 할 점!'
+                      : '오늘의 주의사항'
                     : selectedDate.grade === 4
                       ? 'Critical Warnings!'
                       : "Today's Cautions"}
@@ -361,40 +358,36 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               <ul className={styles.urgentWarningList}>
                 {selectedDate.warnings.slice(0, 3).map((w, i) => (
                   <li key={i} className={styles.urgentWarningItem}>
-                    <span className={styles.urgentWarningDot}>â€¢</span>
-                    {repairMojibakeText(w)}
+                    <span className={styles.urgentWarningDot}>\u2022</span>
+                    {deepRepairText(w)}
                   </li>
                 ))}
               </ul>
             </div>
           )}
 
-          {/* Cross-verified badge - ì¢‹ì€ ë‚ ì—ë§Œ í‘œì‹œ */}
           {selectedDate.crossVerified && selectedDate.grade <= 1 && (
             <div className={styles.crossVerifiedBadge}>
-              <span className={styles.crossVerifiedIcon}>ðŸ”®</span>
+              <span className={styles.crossVerifiedIcon}>{'🔮'}</span>
               <span className={styles.crossVerifiedText}>
-                {locale === 'ko'
-                  ? 'ì‚¬ì£¼ + ì ì„±ìˆ  êµì°¨ ê²€ì¦ ì™„ë£Œ'
-                  : 'Saju + Astrology Cross-verified'}
+                {locale === 'ko' ? '사주 + 점성 교차 검증 완료' : 'Saju + Astrology Cross-verified'}
               </span>
             </div>
           )}
 
-          {/* Summary */}
           {selectedDate.summary && (
-            <div
-              className={`${styles.summaryBox} ${selectedDate.grade >= 3 ? styles.summaryWarning : ''}`}
-            >
-              <p className={styles.summaryText}>{repairMojibakeText(selectedDate.summary)}</p>
+            <div className={`${styles.summaryBox} ${selectedDate.grade >= 3 ? styles.summaryWarning : ''}`}>
+              <p className={styles.summaryText}>{deepRepairText(selectedDate.summary)}</p>
             </div>
           )}
+
           {mergedTimingNarrative && (
             <div className={styles.dailyPeakBox}>
               <div className={styles.dailyPeakTitle}>{termHelp.dailyPeakTitle}</div>
-              <p className={styles.dailyPeakText}>{repairMojibakeText(mergedTimingNarrative)}</p>
+              <p className={styles.dailyPeakText}>{deepRepairText(mergedTimingNarrative)}</p>
             </div>
           )}
+
           {selectedDate.evidence && (
             <div className={styles.calendarEvidenceBox}>
               <div className={styles.calendarEvidenceBadges}>
@@ -420,9 +413,8 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             </div>
           )}
 
-          <p className={styles.selectedDesc}>{repairMojibakeText(selectedDate.description)}</p>
+          <p className={styles.selectedDesc}>{deepRepairText(selectedDate.description)}</p>
 
-          {/* Ganzhi info */}
           {selectedDate.ganzhi && (
             <div className={styles.ganzhiBox}>
               <span className={styles.ganzhiLabel}>{termHelp.dayPillar}</span>
@@ -430,32 +422,30 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               {selectedDate.transitSunSign && (
                 <>
                   <span className={styles.ganzhiDivider}>|</span>
-                  <span className={styles.ganzhiLabel}>{locale === 'ko' ? 'íƒœì–‘' : 'Sun'}</span>
+                  <span className={styles.ganzhiLabel}>{locale === 'ko' ? '태양' : 'Sun'}</span>
                   <span className={styles.ganzhiValue}>{selectedDate.transitSunSign}</span>
                 </>
               )}
             </div>
           )}
 
-          {/* Best times */}
           {normalizedBestTimes.length > 0 && (
             <div className={styles.bestTimesBox}>
               <h4 className={styles.bestTimesTitle}>
-                <span className={styles.bestTimesIcon}>â°</span>
+                <span className={styles.bestTimesIcon}>\u23F0</span>
                 {termHelp.bestTimes}
               </h4>
               <div className={styles.bestTimesList}>
                 {normalizedBestTimes.map((time, i) => (
                   <span key={i} className={styles.bestTimeItem}>
                     <span className={styles.bestTimeNumber}>{i + 1}</span>
-                    {repairMojibakeText(time)}
+                    {deepRepairText(time)}
                   </span>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Categories */}
           <div className={styles.selectedCategories}>
             {selectedDate.categories.map((cat) => (
               <span key={cat} className={`${styles.categoryTag} ${styles[cat]}`}>
@@ -464,7 +454,6 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             ))}
           </div>
 
-          {/* Score bar */}
           <div className={styles.scoreWrapper}>
             <div className={styles.scoreBar}>
               <div
@@ -473,83 +462,78 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               />
             </div>
             <span className={styles.scoreText}>
-              {locale === 'ko' ? 'ì ìˆ˜' : 'Score'}: {selectedDate.score}/100
+              {locale === 'ko' ? '점수' : 'Score'}: {selectedDate.score}/100
             </span>
           </div>
 
-          {/* Saju analysis section */}
           {selectedDate.sajuFactors && selectedDate.sajuFactors.length > 0 && (
             <div className={styles.analysisSection}>
               <h4 className={styles.analysisTitle}>
-                <span className={styles.analysisBadge}>â˜¯ï¸</span>
+                <span className={styles.analysisBadge}>\u263F\uFE0F</span>
                 {termHelp.sajuTitle}
               </h4>
               <ul className={styles.analysisList}>
                 {selectedDate.sajuFactors.slice(0, 4).map((factor, i) => (
                   <li key={i} className={styles.analysisItem}>
                     <span className={styles.analysisDotSaju}></span>
-                    {repairMojibakeText(factor)}
+                    {deepRepairText(factor)}
                   </li>
                 ))}
               </ul>
             </div>
           )}
 
-          {/* Astrology analysis section */}
           {selectedDate.astroFactors && selectedDate.astroFactors.length > 0 && (
             <div className={styles.analysisSection}>
               <h4 className={styles.analysisTitle}>
-                <span className={styles.analysisBadge}>ðŸŒŸ</span>
+                <span className={styles.analysisBadge}>{'🌟'}</span>
                 {termHelp.astroTitle}
               </h4>
               <ul className={styles.analysisList}>
                 {selectedDate.astroFactors.slice(0, 4).map((factor, i) => (
                   <li key={i} className={styles.analysisItem}>
                     <span className={styles.analysisDotAstro}></span>
-                    {repairMojibakeText(factor)}
+                    {deepRepairText(factor)}
                   </li>
                 ))}
               </ul>
             </div>
           )}
 
-          {/* Recommendations */}
           {selectedDate.recommendations.length > 0 && (
             <div className={styles.recommendationsSection}>
               <h4 className={styles.recommendationsTitle}>
-                <span className={styles.recommendationsIcon}>âœ¨</span>
-                {locale === 'ko' ? 'ì˜¤ëŠ˜ì˜ í–‰ìš´ í‚¤' : 'Lucky Keys'}
+                <span className={styles.recommendationsIcon}>\u2728</span>
+                {locale === 'ko' ? '오늘의 행운 키' : 'Lucky Keys'}
               </h4>
               <div className={styles.recommendationsGrid}>
                 {selectedDate.recommendations.slice(0, 4).map((r, i) => (
                   <div key={i} className={styles.recommendationCard}>
                     <span className={styles.recommendationNumber}>{i + 1}</span>
-                    <span className={styles.recommendationText}>{repairMojibakeText(r)}</span>
+                    <span className={styles.recommendationText}>{deepRepairText(r)}</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Warnings - Grade 3 ì´ìƒì€ ìƒë‹¨ì—ì„œ ì´ë¯¸ í‘œì‹œí–ˆìœ¼ë¯€ë¡œ ìƒëžµ */}
           {selectedDate.warnings.length > 0 && selectedDate.grade < 3 && (
             <div className={styles.warningsSection}>
               <h4 className={styles.warningsTitle}>
-                <span className={styles.warningsIcon}>âš¡</span>
-                {locale === 'ko' ? 'ì˜¤ëŠ˜ì˜ ì£¼ì˜ë³´' : "Today's Alert"}
+                <span className={styles.warningsIcon}>\u26A1</span>
+                {locale === 'ko' ? '오늘의 주의보' : "Today's Alert"}
               </h4>
               <ul className={styles.warningsList}>
                 {selectedDate.warnings.slice(0, 3).map((w, i) => (
                   <li key={i} className={styles.warningItem}>
                     <span className={styles.warningDot}></span>
-                    {repairMojibakeText(w)}
+                    {deepRepairText(w)}
                   </li>
                 ))}
               </ul>
             </div>
           )}
 
-          {/* Large save button - authenticated users only */}
           {status === 'authenticated' && (
             <button
               className={`${styles.saveBtnLarge} ${isSaved ? styles.saved : ''}`}
@@ -557,40 +541,33 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               disabled={saving}
             >
               {saving ? (
-                <span>{locale === 'ko' ? 'ì €ìž¥ ì¤‘...' : 'Saving...'}</span>
+                <span>{locale === 'ko' ? '저장 중...' : 'Saving...'}</span>
               ) : isSaved ? (
                 <>
-                  <span>â˜…</span>
-                  <span>
-                    {locale === 'ko' ? 'ì €ìž¥ë¨ (í´ë¦­í•˜ì—¬ ì‚­ì œ)' : 'Saved (click to remove)'}
-                  </span>
+                  <span>\u2605</span>
+                  <span>{locale === 'ko' ? '저장됨 (클릭하여 삭제)' : 'Saved (click to remove)'}</span>
                 </>
               ) : (
                 <>
-                  <span>â˜†</span>
-                  <span>{locale === 'ko' ? 'ì´ ë‚ ì§œ ì €ìž¥í•˜ê¸°' : 'Save this date'}</span>
+                  <span>\u2606</span>
+                  <span>{locale === 'ko' ? '이 날짜 저장하기' : 'Save this date'}</span>
                 </>
               )}
             </button>
           )}
 
-          {/* Add to phone calendar button */}
           <button
             className={styles.calendarSyncBtn}
             onClick={handleAddToCalendar}
-            aria-label={locale === 'ko' ? 'íœ´ëŒ€í° ìº˜ë¦°ë”ì— ì¶”ê°€' : 'Add to phone calendar'}
+            aria-label={locale === 'ko' ? '휴대폰 캘린더에 추가' : 'Add to phone calendar'}
           >
-            <span>ðŸ“²</span>
-            <span>{locale === 'ko' ? 'ìº˜ë¦°ë”ì— ì¶”ê°€' : 'Add to Calendar'}</span>
+            <span>{'📲'}</span>
+            <span>{locale === 'ko' ? '캘린더에 추가' : 'Add to Calendar'}</span>
           </button>
         </div>
       ) : (
         <div className={styles.noInfo}>
-          <p>
-            {locale === 'ko'
-              ? 'ì´ ë‚ ì§œì— ëŒ€í•œ ì •ë³´ê°€ ì—†ìŠµë‹ˆë‹¤'
-              : 'No info for this date'}
-          </p>
+          <p>{locale === 'ko' ? '이 날짜에 대한 정보가 없습니다' : 'No info for this date'}</p>
         </div>
       )}
     </div>

@@ -7,6 +7,7 @@ import { DemoErrorState } from './DemoErrorState'
 import { DemoLoading } from './DemoLoading'
 import { DemoBadge } from './DemoBadge'
 import { DEFAULT_DEMO_PROFILE, type DemoProfile } from './types'
+import styles from './demo-ui.module.css'
 
 type DemoPayloadPreset = 'calendar' | 'destiny-map' | 'destiny-matrix' | 'report' | 'tarot'
 
@@ -26,7 +27,7 @@ function buildPayload(preset: DemoPayloadPreset, profile: DemoProfile): unknown 
         birthTime: profile.birthTime,
         birthPlace: profile.city,
         locale: 'en',
-        category: 'overall',
+        category: 'general',
         year: new Date().getFullYear(),
       }
     case 'destiny-map':
@@ -56,6 +57,7 @@ function buildPayload(preset: DemoPayloadPreset, profile: DemoProfile): unknown 
         birthDate: profile.birthDate,
         birthTime: profile.birthTime,
         timezone: profile.timezone,
+        gender: profile.gender,
         lang: 'en',
         queryDomain: 'career',
         maxInsights: 5,
@@ -79,7 +81,7 @@ export function DemoServiceRunner({
 }: DemoServiceRunnerProps) {
   const [profile, setProfile] = useState<DemoProfile>(DEFAULT_DEMO_PROFILE)
   const [result, setResult] = useState<unknown>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<unknown>(null)
   const [loading, setLoading] = useState(false)
   const requestUrl = useMemo(
     () => (token ? `${endpoint}?demo_token=${encodeURIComponent(token)}` : endpoint),
@@ -102,31 +104,32 @@ export function DemoServiceRunner({
         headers,
         body: JSON.stringify(buildPayload(payloadPreset, profile)),
       })
-      const json = await res.json().catch(() => ({}))
+      const json = await res.json().catch(() => null)
       if (!res.ok) {
-        throw new Error(json?.error || `Request failed (${res.status})`)
+        throw (json as { error?: unknown } | null)?.error || json || `Request failed (${res.status})`
       }
       setResult(json)
     } catch (err) {
       setResult(null)
-      setError(err instanceof Error ? err.message : 'Unknown error')
+      setError(err)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <main style={{ maxWidth: 1100, margin: '24px auto', padding: 16, display: 'grid', gap: 12 }}>
-      <header style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+    <main className={styles.page}>
+      <header className={styles.header}>
         <DemoBadge />
-        <h1 style={{ margin: 0 }}>{title}</h1>
+        <h1 className={styles.title}>{title}</h1>
       </header>
-      <p>{description}</p>
+      <p className={styles.description}>{description}</p>
       <DemoProfileForm value={profile} onChange={setProfile} />
-      <div>
-        <button type="button" onClick={onRun} disabled={loading}>
+      <div className={styles.actionRow}>
+        <button type="button" onClick={onRun} disabled={loading} className={styles.runButton}>
           {loading ? 'Running...' : 'Run Demo'}
         </button>
+        <span className={styles.helperText}>{endpoint}</span>
       </div>
       {loading && <DemoLoading />}
       {error && <DemoErrorState message={error} />}

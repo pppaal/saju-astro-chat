@@ -138,26 +138,52 @@ def build_card_details(
     return card_details
 
 
-def build_combinations_text(hybrid_rag, card_names: List[str]) -> str:
-    """Build card combinations text."""
-    pair_interpretations = hybrid_rag.get_all_card_pair_interpretations(card_names)
+def build_combinations_text(hybrid_rag, card_names: List[str], theme: str = "general") -> str:
+    """Build card combinations text with ranked, theme-focused summaries."""
     combinations_text = ""
+    combo_parts: List[str] = []
 
-    if pair_interpretations:
-        combo_parts = []
-        for pair_data in pair_interpretations[:5]:
+    advanced_rules = getattr(hybrid_rag, "advanced_rules", None)
+    if advanced_rules and hasattr(advanced_rules, "build_combination_summaries"):
+        summaries = advanced_rules.build_combination_summaries(card_names, theme=theme, limit=8)
+        for item in summaries:
+            cards = item.get("cards", []) or []
+            cards_key = " + ".join([c for c in cards if c])
+            if not cards_key:
+                continue
+            focus = str(item.get("focus", "")).strip()
+            advice = str(item.get("advice", "")).strip()
+            category = str(item.get("category", "")).strip()
+
+            if item.get("type") == "special":
+                if focus:
+                    title = f"✦ SPECIAL ({category}) {cards_key}" if category else f"✦ SPECIAL {cards_key}"
+                    combo_parts.append(f"{title}: {focus[:180]}")
+                    if advice:
+                        combo_parts.append(f"  조언: {advice[:140]}")
+                continue
+
+            if focus:
+                combo_parts.append(f"• {cards_key}: {focus[:170]}")
+            if advice:
+                combo_parts.append(f"  조언: {advice[:120]}")
+    else:
+        pair_interpretations = hybrid_rag.get_all_card_pair_interpretations(card_names)
+        for pair_data in pair_interpretations[:8]:
             if isinstance(pair_data, dict):
                 pair_key = f"{pair_data.get('card1', '')} + {pair_data.get('card2', '')}"
                 combo_meaning = (
-                    pair_data.get("love") or
-                    pair_data.get("career") or
-                    pair_data.get("advice") or
-                    ""
+                    pair_data.get("love")
+                    or pair_data.get("career")
+                    or pair_data.get("finance")
+                    or pair_data.get("advice")
+                    or ""
                 )
                 if combo_meaning:
-                    combo_parts.append(f"• {pair_key}: {combo_meaning[:150]}")
-        if combo_parts:
-            combinations_text = "\n".join(combo_parts)
+                    combo_parts.append(f"• {pair_key}: {str(combo_meaning)[:160]}")
+
+    if combo_parts:
+        combinations_text = "\n".join(combo_parts)
 
     return combinations_text
 

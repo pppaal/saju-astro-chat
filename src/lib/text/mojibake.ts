@@ -32,6 +32,7 @@ const MOJIBAKE_CHAR_CLASS =
   '[\u00c2\u00c3\u00e2\u00ec\u00eb\u00ea\u00ed\u00f0\u0152\u0153\u0160\u0161\u017d\u017e\u0178\u201a\u201e\u2020\u2021\u2026\u2030\u2039\u203a\u20ac\u2122\ufffd]'
 const MOJIBAKE_REGEX = new RegExp(MOJIBAKE_CHAR_CLASS)
 const MOJIBAKE_SEGMENT_REGEX = new RegExp(`${MOJIBAKE_CHAR_CLASS}+`, 'g')
+const MOJIBAKE_SPLIT_REGEX = new RegExp(`(${MOJIBAKE_CHAR_CLASS})[ \\t]+(${MOJIBAKE_CHAR_CLASS})`, 'g')
 const SUSPICIOUS_CHAR_REGEX = new RegExp(MOJIBAKE_CHAR_CLASS)
 
 const decoder = new TextDecoder('utf-8')
@@ -64,6 +65,75 @@ function decodeLegacyUtf8(value: string): string | null {
   return decoder.decode(bytes)
 }
 
+function normalizeLikelyMissingNbsp(value: string): string {
+  let result = ''
+  for (let i = 0; i < value.length; i++) {
+    const current = value[i]
+    const next = value[i + 1]
+    const nextNext = value[i + 2]
+
+    if (
+      next === ' ' &&
+      nextNext &&
+      isByteLikeChar(current) &&
+      isByteLikeChar(nextNext)
+    ) {
+      result += `${current}\u00a0`
+      i += 1
+      continue
+    }
+
+    result += current
+  }
+  return result
+}
+
+function isByteLikeChar(char: string): boolean {
+  const code = char.charCodeAt(0)
+  if (code <= 0xff) return true
+  return CP1252_REVERSE_MAP[char] !== undefined
+}
+
+function decodeByteLikeRuns(value: string): string {
+  let result = ''
+  let i = 0
+
+  while (i < value.length) {
+    const char = value[i]
+    if (!isByteLikeChar(char)) {
+      result += char
+      i += 1
+      continue
+    }
+
+    let j = i + 1
+    while (j < value.length && isByteLikeChar(value[j])) {
+      j += 1
+    }
+
+    const chunk = value.slice(i, j)
+    if (hasMojibake(chunk)) {
+      const decoded = decodeLegacyUtf8(chunk)
+      result += decoded && preferDecoded(chunk, decoded) ? decoded : chunk
+    } else {
+      result += chunk
+    }
+    i = j
+  }
+
+  return result
+}
+
+function normalizeSplitMojibake(value: string): string {
+  let current = value
+  for (let i = 0; i < 3; i++) {
+    const merged = current.replace(MOJIBAKE_SPLIT_REGEX, '$1$2')
+    if (merged === current) break
+    current = merged
+  }
+  return current
+}
+
 function mojibakeScore(value: string): number {
   const matches = value.match(MOJIBAKE_SEGMENT_REGEX)
   return matches ? matches.length : 0
@@ -77,13 +147,22 @@ function semanticGainScore(value: string): number {
 
 function preferDecoded(original: string, decoded: string): boolean {
   if (!decoded || decoded === original) return false
-  if (decoded.includes('\uFFFD') && !original.includes('\uFFFD')) return false
 
   const originalScore = mojibakeScore(original)
   const decodedScore = mojibakeScore(decoded)
   if (decodedScore < originalScore) return true
   if (decodedScore === originalScore && semanticGainScore(decoded) > semanticGainScore(original)) {
     return true
+  }
+  if (decoded.includes('\uFFFD') && !original.includes('\uFFFD')) {
+    const replacementCount = (decoded.match(/\uFFFD/g) || []).length
+    if (
+      replacementCount <= 2 &&
+      decodedScore <= originalScore &&
+      semanticGainScore(decoded) > semanticGainScore(original) + 1
+    ) {
+      return true
+    }
   }
   return false
 }
@@ -96,7 +175,7 @@ export function repairMojibakeText(value: string, maxPasses = 2): string {
   if (!value) return value
   if (!hasMojibake(value)) return value
 
-  let current = value
+  let current = normalizeSplitMojibake(value)
 
   for (let pass = 0; pass < maxPasses; pass++) {
     const fullDecoded = decodeLegacyUtf8(current)
@@ -104,6 +183,16 @@ export function repairMojibakeText(value: string, maxPasses = 2): string {
       current = fullDecoded
       if (!hasMojibake(current) && !SUSPICIOUS_CHAR_REGEX.test(current)) return current
       continue
+    }
+
+    const nbspNormalized = normalizeLikelyMissingNbsp(current)
+    if (nbspNormalized !== current) {
+      const nbspDecoded = decodeLegacyUtf8(nbspNormalized)
+      if (nbspDecoded && preferDecoded(current, nbspDecoded)) {
+        current = nbspDecoded
+        if (!hasMojibake(current) && !SUSPICIOUS_CHAR_REGEX.test(current)) return current
+        continue
+      }
     }
 
     let segmentChanged = false
@@ -118,6 +207,13 @@ export function repairMojibakeText(value: string, maxPasses = 2): string {
 
     if (segmentChanged && preferDecoded(current, segmentDecoded)) {
       current = segmentDecoded
+      if (!hasMojibake(current) && !SUSPICIOUS_CHAR_REGEX.test(current)) return current
+      continue
+    }
+
+    const runDecoded = decodeByteLikeRuns(current)
+    if (runDecoded !== current && preferDecoded(current, runDecoded)) {
+      current = runDecoded
       if (!hasMojibake(current) && !SUSPICIOUS_CHAR_REGEX.test(current)) return current
       continue
     }

@@ -28,6 +28,10 @@ interface UseCitySearchReturn {
   handleCitySelect: (city: CityHit) => CityHit
 }
 
+const MIN_QUERY_LENGTH = 2
+const SEARCH_LIMIT = 20
+const DEBOUNCE_MS = 140
+
 /**
  * Hook for city search with suggestions and timezone lookup
  */
@@ -39,6 +43,8 @@ export function useCitySearch(locale = 'ko'): UseCitySearchReturn {
   const [cityErr, setCityErr] = useState<string | null>(null)
 
   const debounceTimer = useRef<NodeJS.Timeout | null>(null)
+  const requestIdRef = useRef(0)
+  const localCacheRef = useRef<Map<string, CityHit[]>>(new Map())
 
   const handleCityInputChange = useCallback(
     (value: string) => {
@@ -51,15 +57,29 @@ export function useCitySearch(locale = 'ko'): UseCitySearchReturn {
       }
 
       const trimmed = value.trim()
-
-      if (trimmed.length < 2) {
+      if (trimmed.length < MIN_QUERY_LENGTH) {
         setSuggestions([])
+        setIsUserTyping(false)
+        return
+      }
+
+      const cached = localCacheRef.current.get(trimmed)
+      if (cached) {
+        setSuggestions(cached)
+        setOpenSug(cached.length > 0)
+        setIsUserTyping(false)
         return
       }
 
       debounceTimer.current = setTimeout(async () => {
+        const requestId = ++requestIdRef.current
         try {
-          const results = await searchCities(trimmed, { limit: 20 })
+          const results = await searchCities(trimmed, { limit: SEARCH_LIMIT })
+          if (requestId !== requestIdRef.current) {
+            return
+          }
+
+          localCacheRef.current.set(trimmed, results)
 
           if (results.length === 0) {
             setCityErr(locale === 'ko' ? '도시를 찾을 수 없습니다' : 'City not found')
@@ -75,9 +95,11 @@ export function useCitySearch(locale = 'ko'): UseCitySearchReturn {
           setCityErr(locale === 'ko' ? '검색 실패' : 'Search failed')
           setSuggestions([])
         } finally {
-          setIsUserTyping(false)
+          if (requestId === requestIdRef.current) {
+            setIsUserTyping(false)
+          }
         }
-      }, 300)
+      }, DEBOUNCE_MS)
     },
     [locale]
   )

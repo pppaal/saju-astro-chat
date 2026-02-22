@@ -6,6 +6,7 @@ import type * as SwissEph from 'swisseph'
 
 let sw: typeof SwissEph | null = null
 let ephePathSet = false
+let swissephLoadError: Error | null = null
 
 type SwissephMock = typeof SwissEph
 type JoinFn = (...parts: string[]) => string
@@ -26,6 +27,20 @@ const getInjectedJoin = (): JoinFn | null => {
   )
 }
 
+function toSwissephLoadError(error: unknown): Error {
+  const message = error instanceof Error ? error.message : String(error)
+  const wrapped = new Error(
+    [
+      'Failed to load native module "swisseph".',
+      'Ensure deployment includes "node_modules/swisseph/build/Release/swisseph.node".',
+      'For Next.js serverless deploys, configure outputFileTracingIncludes.',
+      `Original error: ${message}`,
+    ].join(' ')
+  )
+  ;(wrapped as Error & { cause?: unknown }).cause = error
+  return wrapped
+}
+
 /**
  * Returns the Swiss Ephemeris module. Server-only.
  * Throws an error if called from the browser.
@@ -39,9 +54,18 @@ export function getSwisseph(): typeof SwissEph {
     throw new Error('swisseph is server-only and must not run in the browser.')
   }
 
+  if (swissephLoadError) {
+    throw swissephLoadError
+  }
+
   if (!sw) {
-    // Dynamic require to avoid bundling into client
-    sw = getInjectedSwisseph() || (require('swisseph') as typeof SwissEph)
+    try {
+      // Dynamic require to avoid bundling into client
+      sw = getInjectedSwisseph() || (require('swisseph') as typeof SwissEph)
+    } catch (error) {
+      swissephLoadError = toSwissephLoadError(error)
+      throw swissephLoadError
+    }
   }
 
   if (!ephePathSet && sw) {

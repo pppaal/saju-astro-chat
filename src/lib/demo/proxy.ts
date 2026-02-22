@@ -26,6 +26,13 @@ export async function proxyToInternalApi(
     'content-type': 'application/json',
     origin: request.nextUrl.origin,
   }
+  const forwardedPublicToken =
+    request.headers.get('x-api-token') ||
+    process.env.PUBLIC_API_TOKEN ||
+    process.env.NEXT_PUBLIC_API_TOKEN
+  if (forwardedPublicToken) {
+    headers['x-api-token'] = forwardedPublicToken
+  }
   if (init.demoToken) {
     headers['x-demo-token'] = init.demoToken
   }

@@ -15,6 +15,7 @@ export interface FormState {
   birthDate: string
   birthTime: string
   city: string
+  isQuickMode: boolean
   gender: 'Male' | 'Female'
   genderOpen: boolean
   suggestions: CityHit[]
@@ -32,6 +33,7 @@ export const initialFormState: FormState = {
   birthDate: '',
   birthTime: '',
   city: '',
+  isQuickMode: true,
   gender: 'Male',
   genderOpen: false,
   suggestions: [],
@@ -72,6 +74,16 @@ export function formReducer(state: FormState, action: FormAction): FormState {
     default:
       return state
   }
+}
+
+export const QUICK_MODE_DEFAULT_CITY: CityHit = {
+  name: 'Seoul',
+  country: 'KR',
+  lat: 37.5665,
+  lon: 126.978,
+  timezone: 'Asia/Seoul',
+  displayKr: '서울, KR',
+  displayEn: 'Seoul, KR',
 }
 
 export const loadCitiesModule = (() => {

@@ -386,7 +386,10 @@ Each card interpretation MUST include the following structure (450-600 words):
         affirmation: isKorean
           ? '오늘 하루도 나답게 가면 돼요.'
           : 'Just be yourself today.',
-        combinations: [],
+        combinations:
+          Array.isArray(parsed.combinations) && parsed.combinations.length > 0
+            ? parsed.combinations
+            : buildLocalCombinationHints(cards, language),
         followup_questions: [],
         fallback: false,
       }
@@ -407,7 +410,7 @@ Each card interpretation MUST include the following structure (450-600 words):
       })),
       guidance: isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.',
       affirmation: isKorean ? '오늘도 화이팅!' : 'You got this!',
-      combinations: [],
+      combinations: buildLocalCombinationHints(cards, language),
       followup_questions: [],
       fallback: false,
     }
@@ -415,6 +418,49 @@ Each card interpretation MUST include the following structure (450-600 words):
     logger.error('GPT interpretation failed:', error)
     return generateSimpleFallback(cards, spreadTitle, language, userQuestion)
   }
+}
+
+function buildLocalCombinationHints(cards: CardInput[], language: string, limit = 6) {
+  const isKorean = language === 'ko'
+  const hints: Array<{ title: string; summary: string }> = []
+
+  for (let i = 0; i < cards.length; i += 1) {
+    for (let j = i + 1; j < cards.length; j += 1) {
+      const cardA = cards[i]
+      const cardB = cards[j]
+      const nameA = isKorean ? cardA.nameKo || cardA.name : cardA.name
+      const nameB = isKorean ? cardB.nameKo || cardB.name : cardB.name
+      const orientationA = cardA.isReversed
+        ? isKorean
+          ? '역방향'
+          : 'reversed'
+        : isKorean
+          ? '정방향'
+          : 'upright'
+      const orientationB = cardB.isReversed
+        ? isKorean
+          ? '역방향'
+          : 'reversed'
+        : isKorean
+          ? '정방향'
+          : 'upright'
+
+      const summary = isKorean
+        ? `${nameA}(${orientationA})와 ${nameB}(${orientationB}) 조합은 같은 주제에서 보완 또는 긴장 흐름을 만듭니다.`
+        : `${nameA} (${orientationA}) with ${nameB} (${orientationB}) creates either reinforcement or tension in the same theme.`
+
+      hints.push({
+        title: `${nameA} + ${nameB}`,
+        summary,
+      })
+
+      if (hints.length >= limit) {
+        return hints
+      }
+    }
+  }
+
+  return hints
 }
 
 // 간단한 fallback (GPT도 실패한 경우)
@@ -442,7 +488,7 @@ function generateSimpleFallback(
     })),
     guidance: isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.',
     affirmation: isKorean ? '오늘도 화이팅!' : 'You got this!',
-    combinations: [],
+    combinations: buildLocalCombinationHints(cards, language),
     followup_questions: [],
     fallback: true,
   }

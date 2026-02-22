@@ -16,6 +16,7 @@ import {
 } from '@/lib/api'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { optimizeTarotMessagesForBackend } from '../_lib/messageOptimizer'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
 import { tarotChatStreamRequestSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
@@ -43,6 +44,7 @@ const MAX_CARD_COUNT = LIST_LIMITS.MAX_CARDS
 const MAX_CARD_TEXT = TEXT_LIMITS.MAX_CARD_TEXT
 const MAX_TITLE_TEXT = TEXT_LIMITS.MAX_TITLE
 const MAX_GUIDANCE_TEXT = TEXT_LIMITS.MAX_GUIDANCE
+const MAX_CHAT_CONTEXT_CARDS = 8
 
 // Use shared normalizeMessages with local config
 function normalizeMessages(raw: unknown): ChatMessage[] {
@@ -57,7 +59,7 @@ function sanitizeCards(raw: unknown): CardContext[] {
     return []
   }
   const cards: CardContext[] = []
-  for (const card of raw.slice(0, MAX_CARD_COUNT)) {
+  for (const card of raw.slice(0, Math.min(MAX_CARD_COUNT, MAX_CHAT_CONTEXT_CARDS))) {
     if (!card || typeof card !== 'object') {
       continue
     }
@@ -436,6 +438,11 @@ export async function POST(req: NextRequest) {
     const validatedData = validationResult.data
     const language = (validatedData.language || context.locale) as 'ko' | 'en'
     const messages = normalizeMessages(validatedData.messages)
+    const optimizedMessages = optimizeTarotMessagesForBackend(messages, language, {
+      maxMessages: 8,
+      maxUserLength: 1400,
+      maxAssistantLength: 650,
+    })
     const tarotContext = sanitizeContext(validatedData.context)
     const counselorId = validatedData.counselor_id
     const counselorStyle = validatedData.counselor_style
@@ -470,7 +477,7 @@ export async function POST(req: NextRequest) {
     const systemInstruction = buildSystemInstruction(tarotContext, language, personalityData)
     const messagesWithSystem: ChatMessage[] = [
       { role: 'system', content: systemInstruction },
-      ...messages,
+      ...optimizedMessages,
     ]
 
     // Call backend streaming endpoint using apiClient
@@ -489,7 +496,7 @@ export async function POST(req: NextRequest) {
       })
 
       // Generate fallback response based on context
-      const lastUserMessage = messages.filter((m) => m.role === 'user').pop()?.content || ''
+      const lastUserMessage = optimizedMessages.filter((m) => m.role === 'user').pop()?.content || ''
       const fallbackMessage = generateFallbackMessage(tarotContext, lastUserMessage, language)
 
       return createFallbackSSEStream({

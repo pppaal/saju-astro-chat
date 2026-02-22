@@ -25,6 +25,18 @@ export interface ChartCalculationResult {
   currentTransits: unknown[]
 }
 
+function isSwissephUnavailableError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false
+  }
+  const message = error.message.toLowerCase()
+  return (
+    message.includes('swisseph') &&
+    (message.includes('build/release/swisseph.node') ||
+      message.includes('failed to load native module'))
+  )
+}
+
 /**
  * Compute Saju data with caching
  */
@@ -103,6 +115,12 @@ export async function computeAstroData(
     logger.warn('[chart-calculator] Computed astro:', (astro.sun as { sign?: string })?.sign)
     return { astro, natalChartData }
   } catch (e) {
+    if (isSwissephUnavailableError(e)) {
+      logger.error('[chart-calculator] swisseph unavailable, skipping astrology enrichment', {
+        message: e instanceof Error ? e.message : String(e),
+      })
+      return {}
+    }
     logger.warn('[chart-calculator] Failed to compute astro:', e)
     return {}
   }
@@ -148,6 +166,12 @@ export async function computeCurrentTransits(
     logger.warn('[chart-calculator] Current transits found:', currentTransits.length)
     return currentTransits
   } catch (e) {
+    if (isSwissephUnavailableError(e)) {
+      logger.error('[chart-calculator] swisseph unavailable, skipping transit enrichment', {
+        message: e instanceof Error ? e.message : String(e),
+      })
+      return []
+    }
     logger.warn('[chart-calculator] Failed to compute transits:', e)
     return []
   }

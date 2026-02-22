@@ -26,5 +26,18 @@ export async function POST(request: NextRequest) {
     demoToken: tokenValidation,
   })
   const json = await response.json().catch(() => ({}))
-  return NextResponse.json(json, { status: response.status })
+  if (response.ok) {
+    return NextResponse.json(json, { status: response.status })
+  }
+
+  const fallback = getDemoTarotPayload()
+  return NextResponse.json(
+    {
+      success: true,
+      fallback: true,
+      fallbackReason: (json as { error?: unknown } | null)?.error || 'tarot_api_failed',
+      ...fallback,
+    },
+    { status: 200 }
+  )
 }

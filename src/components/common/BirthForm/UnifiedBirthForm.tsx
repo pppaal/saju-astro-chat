@@ -31,6 +31,7 @@ interface UnifiedBirthFormProps {
   includeCity?: boolean
   includeCityToggle?: boolean
   allowTimeUnknown?: boolean
+  includeTime?: boolean
   includeGender?: boolean
   genderFormat?: 'short' | 'long' // 'M'/'F' or 'Male'/'Female'
 
@@ -54,6 +55,7 @@ export function UnifiedBirthForm({
   includeCity = true,
   includeCityToggle = false,
   allowTimeUnknown = true,
+  includeTime = true,
   includeGender = true,
   genderFormat = 'short',
   submitButtonText,
@@ -73,7 +75,9 @@ export function UnifiedBirthForm({
   // Form state
   const [birthDate, setBirthDate] = useState(initialData?.birthDate || '')
   const [birthTime, setBirthTime] = useState(initialData?.birthTime || '')
-  const [timeUnknown, setTimeUnknown] = useState(!initialData?.birthTime && allowTimeUnknown)
+  const [timeUnknown, setTimeUnknown] = useState(
+    includeTime ? !initialData?.birthTime && allowTimeUnknown : true
+  )
   const [gender, setGender] = useState<'M' | 'F' | 'Male' | 'Female'>(
     initialData?.gender || (genderFormat === 'long' ? 'Male' : 'M')
   )
@@ -255,7 +259,7 @@ export function UnifiedBirthForm({
 
     const birthInfo: BirthInfo = {
       birthDate,
-      birthTime: timeUnknown ? '12:00' : birthTime || '12:00',
+      birthTime: includeTime ? (timeUnknown ? '12:00' : birthTime || '12:00') : '12:00',
       ...(includeGender ? { gender } : {}),
       ...(includeCity || includeCityToggle
         ? {
@@ -281,7 +285,9 @@ export function UnifiedBirthForm({
     locale === 'ko' ? '정확한 예측을 위해 필요한 정보입니다' : 'Required for accurate predictions'
 
   const isFormValid =
-    birthDate && (timeUnknown || birthTime) && (!includeCity || !showCityInput || birthCity)
+    birthDate &&
+    (!includeTime || timeUnknown || birthTime) &&
+    (!includeCity || !showCityInput || birthCity)
 
   return (
     <div className={styles.container}>
@@ -331,6 +337,7 @@ export function UnifiedBirthForm({
         )}
 
         {/* Birth Time */}
+        {includeTime && (
         <div className={styles.fieldGroup}>
           <TimePicker
             value={birthTime}
@@ -361,6 +368,7 @@ export function UnifiedBirthForm({
             </label>
           )}
         </div>
+        )}
 
         {/* Birth City */}
         {includeCityToggle && (

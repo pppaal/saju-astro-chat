@@ -95,6 +95,35 @@ const nextConfig = {
   // This is required for Turbopack compatibility with native modules like swisseph
   serverExternalPackages: ['swisseph'],
 
+  // Ensure native addon and ephemeris files are traced into serverless outputs.
+  // Without this, routes that depend on swisseph can fail at runtime on deploy.
+  outputFileTracingIncludes: {
+    '/api/destiny-map/:path*': [
+      './node_modules/swisseph/build/Release/**/*.node',
+      './public/ephe/**/*',
+    ],
+    '/api/astrology/:path*': [
+      './node_modules/swisseph/build/Release/**/*.node',
+      './public/ephe/**/*',
+    ],
+    '/api/calendar': [
+      './node_modules/swisseph/build/Release/**/*.node',
+      './public/ephe/**/*',
+    ],
+    '/api/past-life': [
+      './node_modules/swisseph/build/Release/**/*.node',
+      './public/ephe/**/*',
+    ],
+    '/api/precompute-chart': [
+      './node_modules/swisseph/build/Release/**/*.node',
+      './public/ephe/**/*',
+    ],
+    '/api/life-prediction/:path*': [
+      './node_modules/swisseph/build/Release/**/*.node',
+      './public/ephe/**/*',
+    ],
+  },
+
   // Experimental performance features
   experimental: {
     optimizeCss: true, // CSS optimization

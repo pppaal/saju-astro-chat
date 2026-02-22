@@ -11,17 +11,14 @@ export async function POST(request: NextRequest) {
   }
 
   const payload = (await request.json().catch(() => ({}))) as Record<string, unknown>
-  const response = await proxyToInternalApi(request, '/api/destiny-matrix/report', {
+  const response = await proxyToInternalApi(request, '/api/destiny-matrix', {
     method: 'POST',
     body: {
       birthDate: payload.birthDate,
       birthTime: payload.birthTime,
       timezone: payload.timezone,
+      gender: payload.gender || 'male',
       lang: payload.lang || 'en',
-      queryDomain: payload.queryDomain || 'career',
-      maxInsights: payload.maxInsights || 5,
-      includeVisualizations: false,
-      includeDetailedData: false,
     },
     demoToken: tokenValidation,
   })
@@ -30,14 +27,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(json, { status: response.status })
   }
 
-  const report = (json as Record<string, unknown>).report as Record<string, unknown> | undefined
+  const report = json as Record<string, unknown>
+  const highlights = Array.isArray(report.highlights) ? report.highlights : []
+  const executiveSummary =
+    typeof report.summary === 'string'
+      ? report.summary
+      : typeof report.message === 'string'
+        ? report.message
+        : undefined
   const summary = {
     success: true,
     domain: payload.queryDomain || 'career',
-    topInsights: Array.isArray(report?.topInsights) ? report?.topInsights : [],
-    executiveSummary:
-      typeof report?.executiveSummary === 'string' ? report.executiveSummary : undefined,
-    actionItems: Array.isArray(report?.actionItems) ? report?.actionItems : [],
+    generatedFrom: 'destiny-matrix',
+    executiveSummary,
+    topInsights: highlights,
+    actionItems: Array.isArray(report.synergies) ? report.synergies : [],
+    raw: {
+      success: report.success,
+      warning: report.warning,
+      warningMessage: report.message,
+    },
   }
 
   return NextResponse.json(summary, { status: 200 })

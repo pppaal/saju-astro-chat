@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { DemoGateMessage } from './_components/DemoGateMessage'
 import { DemoBadge } from './_components/DemoBadge'
 import { validateDemoTokenForPage } from '@/lib/demo/requireDemoToken'
+import styles from './_components/demo-ui.module.css'
 
 const SERVICES = [
   {
@@ -47,20 +48,19 @@ export default async function DemoIndexPage({ searchParams }: DemoIndexPageProps
   }
 
   return (
-    <main style={{ maxWidth: 1024, margin: '24px auto', padding: 16 }}>
-      <header style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+    <main className={styles.page}>
+      <header className={styles.header}>
         <DemoBadge />
-        <h1 style={{ margin: 0 }}>Demo Services</h1>
+        <h1 className={styles.title}>Demo Services</h1>
       </header>
-      <p>Token-authenticated demo index for preview and production verification.</p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 12 }}>
+      <p className={styles.description}>
+        Token-authenticated demo index for preview and production verification.
+      </p>
+      <div className={styles.summaryGrid}>
         {SERVICES.map((service) => (
-          <article
-            key={service.path}
-            style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 14 }}
-          >
-            <h2 style={{ marginTop: 0 }}>{service.title}</h2>
-            <p>{service.desc}</p>
+          <article key={service.path} className={styles.summaryItem}>
+            <h2 className={styles.sectionTitle}>{service.title}</h2>
+            <p className={styles.description}>{service.desc}</p>
             <Link href={service.path}>Open</Link>
           </article>
         ))}

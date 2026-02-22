@@ -14,7 +14,6 @@ import { normalizeMojibakePayload, repairMojibakeText } from '@/lib/text/mojibak
 import { calculateDailyPillar, generateHourlyAdvice } from '@/lib/prediction/ultra-precision-daily'
 import { STEM_ELEMENTS } from '@/lib/destiny-map/config/specialDays.data'
 import { getHourlyRecommendation } from '@/lib/destiny-map/calendar/specialDays-analysis'
-import { getFactorTranslation } from '../lib'
 import { apiClient } from '@/lib/api/ApiClient'
 import { checkPremiumFromDatabase } from '@/lib/stripe/premiumCache'
 
@@ -185,13 +184,6 @@ const trimList = <T>(items: T[] | undefined, max: number): T[] | undefined => {
   return items.slice(0, max)
 }
 
-const HOUR_BRANCH_KEYS = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해']
-
-const getHourBranchKey = (hour: number) => {
-  const index = Math.floor(((hour + 1) % 24) / 2)
-  return HOUR_BRANCH_KEYS[index] ?? '자'
-}
-
 const extractHoursFromText = (value: string) => {
   if (!value || /년|월/.test(value)) return [] as number[]
   const normalized = value.replace(/\s+/g, '')
@@ -219,6 +211,9 @@ const cleanGuidanceText = (value: string, maxLength = 96): string => {
 
   const noEvidenceTail = normalized.replace(/\s*(근거|evidence)\s*:.*/i, '').trim()
   const noHype = noEvidenceTail
+    .replace(/\b(자시|축시|인시|묘시|진시|사시|오시|미시|신시|유시|술시|해시)\s*\(([^)]*)\)\s*:?/g, '')
+    .replace(/\b(자시|축시|인시|묘시|진시|사시|오시|미시|신시|유시|술시|해시)\b/g, '')
+    .replace(/\b(?:Ja|Chuk|In|Myo|Jin|Sa|O|Mi|Shin|Yu|Sul|Hae)-si\b[^:]*:?/gi, '')
     .replace(/인생을 바꿀[^.!\n]*/g, '')
     .replace(/완벽한 날[^.!\n]*/g, '')
     .replace(/1년에 몇 번[^.!\n]*/g, '')
@@ -230,6 +225,7 @@ const cleanGuidanceText = (value: string, maxLength = 96): string => {
     .trim()
 
   const cleaned = noHype.replace(/(?:\.\.\.|…|~)+$/g, '').trim()
+  if (cleaned.includes('\uFFFD')) return ''
   if (cleaned.length <= maxLength) return cleaned
   return `${cleaned.slice(0, Math.max(20, maxLength - 3)).trimEnd()}...`
 }
@@ -393,10 +389,158 @@ function pickCategoryByHour(categories: string[] | undefined, hour: number): str
   return (categories[index] || categories[0] || 'career').trim().toLowerCase()
 }
 
+type ActionPlanIcpProfile =
+  | {
+      primaryStyle?: string
+      secondaryStyle?: string | null
+      dominanceScore?: number
+      affiliationScore?: number
+      summary?: string
+      traits?: string[]
+    }
+  | null
+  | undefined
+
+type ActionPlanPersonaProfile =
+  | {
+      typeCode?: string
+      personaName?: string
+      summary?: string
+      strengths?: string[]
+      challenges?: string[]
+      guidance?: string
+      motivations?: string[]
+      axes?: Record<string, { pole: string; score: number }>
+    }
+  | null
+  | undefined
+
+function getHourlyWindowLabel(hour: number, locale: 'ko' | 'en'): string {
+  if (locale === 'ko') {
+    if (hour < 6) return '심야 저소음 구간: 정리·휴식 중심으로 운용하세요'
+    if (hour < 9) return '아침 시동 구간: 워밍업 후 핵심 업무를 시작하세요'
+    if (hour < 12) return '오전 집중 구간: 복잡한 판단/실행을 우선 배치하세요'
+    if (hour < 15) return '점심 이후 조정 구간: 협업·정리에 유리합니다'
+    if (hour < 18) return '오후 실행 구간: 결과물 마감 속도를 올리세요'
+    if (hour < 21) return '저녁 관계 구간: 소통·관계 관리의 효율이 높습니다'
+    return '야간 회복 구간: 과부하를 줄이고 다음 날을 준비하세요'
+  }
+
+  if (hour < 6) return 'Late-night low-noise window: favor cleanup and recovery'
+  if (hour < 9) return 'Morning ramp-up window: start with one core task'
+  if (hour < 12) return 'AM focus window: prioritize complex decisions and execution'
+  if (hour < 15) return 'Post-lunch adjustment window: good for collaboration and review'
+  if (hour < 18) return 'PM execution window: raise closure speed on deliverables'
+  if (hour < 21) return 'Evening relationship window: communication quality tends to improve'
+  return 'Night recovery window: reduce load and prep for tomorrow'
+}
+
+function buildPersonalizationHint(input: {
+  locale: 'ko' | 'en'
+  tone: TimelineTone
+  icp?: ActionPlanIcpProfile
+  persona?: ActionPlanPersonaProfile
+}): string {
+  const { locale, tone, icp, persona } = input
+  const hints: string[] = []
+
+  const dominance = icp?.dominanceScore
+  const affiliation = icp?.affiliationScore
+
+  if (typeof dominance === 'number') {
+    if (dominance >= 70) {
+      hints.push(
+        locale === 'ko'
+          ? tone === 'caution'
+            ? '결론을 미루고 체크리스트 3개부터 검증하세요'
+            : '1차 결론을 빠르게 내고 후속 보완으로 마무리하세요'
+          : tone === 'caution'
+            ? 'Delay final decision and validate 3 checklist items first'
+            : 'Lock a first decision quickly, then close with follow-up refinement'
+      )
+    } else if (dominance <= 35) {
+      hints.push(
+        locale === 'ko'
+          ? '의사결정 전에 기준 2~3개를 먼저 고정하세요'
+          : 'Fix 2-3 decision criteria before taking action'
+      )
+    }
+  }
+
+  if (typeof affiliation === 'number') {
+    if (affiliation >= 70) {
+      hints.push(
+        locale === 'ko'
+          ? '핵심 관계자 1명에게 먼저 공유해 오해를 줄이세요'
+          : 'Pre-brief one key stakeholder to reduce misunderstanding'
+      )
+    } else if (affiliation <= 30) {
+      hints.push(
+        locale === 'ko'
+          ? '알림을 끄고 40분 단독 집중 블록을 확보하세요'
+          : 'Silence notifications and secure a 40-minute solo focus block'
+      )
+    }
+  }
+
+  const decisionPole = persona?.axes?.decision?.pole
+  if (decisionPole === 'logic') {
+    hints.push(
+      locale === 'ko'
+        ? '판단은 감각보다 수치/근거 2개를 기준으로 두세요'
+        : 'Anchor decisions on two concrete metrics over intuition'
+    )
+  } else if (decisionPole === 'empathic') {
+    hints.push(
+      locale === 'ko'
+        ? '결정 전에 상대 영향 1가지를 먼저 확인하세요'
+        : 'Before deciding, check one human-impact factor first'
+    )
+  }
+
+  const rhythmPole = persona?.axes?.rhythm?.pole
+  if (rhythmPole === 'flow') {
+    hints.push(
+      locale === 'ko'
+        ? '짧은 스프린트 2회로 추진력을 유지하세요'
+        : 'Use two short sprints to maintain momentum'
+    )
+  } else if (rhythmPole === 'anchor') {
+    hints.push(
+      locale === 'ko'
+        ? '정해진 순서 3단계로 진행하면 흔들림이 줄어듭니다'
+        : 'Follow a fixed 3-step sequence to reduce drift'
+    )
+  }
+
+  return cleanGuidanceText(hints[0] || '', 84)
+}
+
+function buildPersonalSummaryTag(input: {
+  locale: 'ko' | 'en'
+  icp?: ActionPlanIcpProfile
+  persona?: ActionPlanPersonaProfile
+}): string | null {
+  const { locale, icp, persona } = input
+  const tokens: string[] = []
+
+  if (icp?.primaryStyle) tokens.push(locale === 'ko' ? `ICP ${icp.primaryStyle}` : `ICP ${icp.primaryStyle}`)
+  if (persona?.personaName) {
+    tokens.push(locale === 'ko' ? `페르소나 ${persona.personaName}` : `Persona ${persona.personaName}`)
+  } else if (persona?.typeCode) {
+    tokens.push(locale === 'ko' ? `페르소나 ${persona.typeCode}` : `Persona ${persona.typeCode}`)
+  }
+
+  if (tokens.length === 0) return null
+  return locale === 'ko' ? `개인화: ${tokens.join(', ')}` : `Personalization: ${tokens.join(', ')}`
+}
+
 const buildRuleBasedTimeline = (input: {
   date: string
   locale: 'ko' | 'en'
   intervalMinutes: 30 | 60
+  icp?: ActionPlanIcpProfile
+  persona?: ActionPlanPersonaProfile
   calendar?: {
     grade?: number
     categories?: string[]
@@ -409,7 +553,7 @@ const buildRuleBasedTimeline = (input: {
     evidence?: CalendarEvidence
   } | null
 }): TimelineSlot[] => {
-  const { date, locale, intervalMinutes, calendar } = input
+  const { date, locale, intervalMinutes, calendar, icp, persona } = input
   const [year, month, day] = date.split('-').map(Number)
   const dateValue = new Date(Date.UTC(year, month - 1, day))
   const weekdayIndex = Number.isNaN(dateValue.getTime()) ? 1 : dateValue.getUTCDay()
@@ -440,10 +584,7 @@ const buildRuleBasedTimeline = (input: {
       const minute = slotIdx === 0 ? 0 : 30
       const label = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
 
-      const branchKey = getHourBranchKey(hour)
-      const energyText =
-        getFactorTranslation(`hourlyEnergy_${branchKey}`, locale) ??
-        (locale === 'ko' ? '시간대 운세' : 'Hourly guidance')
+      const energyText = getHourlyWindowLabel(hour, locale)
 
       const hourlyRec = getHourlyRecommendation(hour, weekdayIndex, dayMasterElement)
       const advice = hourlyAdvice[hour]
@@ -483,6 +624,7 @@ const buildRuleBasedTimeline = (input: {
         primaryAstroLine ||
         primaryBridgeLine ||
         cleanGuidanceText(calendar?.evidence?.cross?.sajuDetails?.[0] || '', 112)
+      const personalHint = buildPersonalizationHint({ locale, tone, icp, persona })
 
       const best = hourlyRec.bestActivities.slice(0, 2).join(', ')
       const avoid = hourlyRec.avoidActivities.slice(0, 2).join(', ')
@@ -498,6 +640,9 @@ const buildRuleBasedTimeline = (input: {
             recHint ? `실행: ${recHint}` : `추천: ${best || '핵심 업무'}`
           }`
         }
+        if (personalHint) {
+          detailLine = `${detailLine}. 개인화: ${personalHint}`
+        }
       } else {
         if (tone === 'caution') {
           detailLine = `${focusHint}. ${
@@ -505,6 +650,9 @@ const buildRuleBasedTimeline = (input: {
           }.`
         } else {
           detailLine = `${focusHint}. ${recHint ? `Action: ${recHint}` : 'Action: do one focused task'}.`
+        }
+        if (personalHint) {
+          detailLine = `${detailLine} Personalized: ${personalHint}.`
         }
       }
 
@@ -521,7 +669,14 @@ const buildRuleBasedTimeline = (input: {
           [
             cleanGuidanceText(matrixSummary || 'Matrix baseline evidence', 90),
             cleanGuidanceText(crossSummary || 'Cross evidence: baseline saju/astro flow', 124),
-            cleanGuidanceText(primaryBridgeLine || '', 124),
+            cleanGuidanceText(
+              personalHint
+                ? locale === 'ko'
+                  ? `개인화 근거: ${personalHint}`
+                  : `Personalized basis: ${personalHint}`
+                : primaryBridgeLine || '',
+              124
+            ),
           ].filter(Boolean)
         )
       ).slice(0, 3)
@@ -801,6 +956,28 @@ export const POST = withApiMiddleware(
       date,
       locale: lang,
       intervalMinutes: safeInterval,
+      icp: icp
+        ? {
+            primaryStyle: icp.primaryStyle,
+            secondaryStyle: icp.secondaryStyle ?? null,
+            dominanceScore: icp.dominanceScore,
+            affiliationScore: icp.affiliationScore,
+            summary: icp.summary,
+            traits: trimList(icp.traits, 4),
+          }
+        : null,
+      persona: persona
+        ? {
+            typeCode: persona.typeCode,
+            personaName: persona.personaName,
+            summary: persona.summary,
+            strengths: trimList(persona.strengths, 4),
+            challenges: trimList(persona.challenges, 4),
+            guidance: persona.guidance,
+            motivations: trimList(persona.motivations, 4),
+            axes: persona.axes,
+          }
+        : null,
       calendar: calendar
         ? {
             grade: calendar.grade,
@@ -840,6 +1017,21 @@ export const POST = withApiMiddleware(
       : null
     const timeline = (aiRefined?.timeline || baseTimeline).map((slot) => {
       const baseEvidence = (slot.evidenceSummary || []).filter(Boolean)
+      const tone = slot.tone ?? 'neutral'
+      const personalHint = buildPersonalizationHint({ locale: lang, tone, icp, persona })
+      const personalLine = personalHint
+        ? lang === 'ko'
+          ? `개인화 포인트: ${personalHint}`
+          : `Personalization point: ${personalHint}`
+        : null
+      const note =
+        personalHint && !slot.note.includes(personalHint)
+          ? cleanGuidanceText(
+              `${slot.note} · ${lang === 'ko' ? `개인화: ${personalHint}` : `Personalized: ${personalHint}`}`,
+              180
+            )
+          : slot.note
+
       if (isPremiumUser) {
         const alternativeLine =
           lang === 'ko'
@@ -847,12 +1039,14 @@ export const POST = withApiMiddleware(
             : `Alternative: ${slot.tone === 'caution' ? 'pause decision and run checklist' : 'complete one key action and log result'}`
         return {
           ...slot,
-          evidenceSummary: [...baseEvidence.slice(0, 3), alternativeLine].slice(0, 4),
+          note,
+          evidenceSummary: [...baseEvidence.slice(0, 2), ...(personalLine ? [personalLine] : []), alternativeLine].slice(0, 4),
         }
       }
       return {
         ...slot,
-        evidenceSummary: baseEvidence.slice(0, 1),
+        note,
+        evidenceSummary: [...baseEvidence.slice(0, 2), ...(personalLine ? [personalLine] : [])].slice(0, 3),
       }
     })
 
@@ -870,6 +1064,10 @@ export const POST = withApiMiddleware(
           ? `주의: ${calendar.warnings.slice(0, 1).join(', ')}`
           : `Caution: ${calendar.warnings.slice(0, 1).join(', ')}`
       )
+    }
+    const personalizationTag = buildPersonalSummaryTag({ locale: lang, icp, persona })
+    if (personalizationTag) {
+      summaryParts.push(personalizationTag)
     }
     if (aiRefined?.summary) {
       summaryParts.push(aiRefined.summary)

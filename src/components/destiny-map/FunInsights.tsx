@@ -109,10 +109,11 @@ const FunInsights = memo(function FunInsights({
   const isKo = lang === 'ko'
 
   const hasFiveElements = Boolean(saju?.fiveElements && Object.keys(saju.fiveElements).length > 0)
+  const hasSajuCore = Boolean(saju?.dayMaster || saju?.pillars || hasFiveElements)
   const hasValidAstro = Boolean(findPlanetSign(astro, 'sun'))
 
   const data = useMemo(() => {
-    if (!hasFiveElements && !hasValidAstro) {
+    if (!hasSajuCore && !hasValidAstro) {
       return null
     }
 
@@ -157,7 +158,7 @@ const FunInsights = memo(function FunInsights({
       currentFlow: getCurrentFlowAnalysis(saju, lang || 'ko'),
     }
     return repairMojibakeDeep(generated)
-  }, [saju, astro, lang, theme, hasFiveElements, hasValidAstro])
+  }, [saju, astro, lang, theme, hasSajuCore, hasValidAstro])
 
   // 운명 서사 생성 - 외부 상수 사용으로 대폭 간소화
   const destinyNarrative = useMemo(() => {

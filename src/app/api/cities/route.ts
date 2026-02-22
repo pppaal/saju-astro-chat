@@ -27,7 +27,27 @@ type CityResult = City & {
   displayEn?: string
 }
 
+type IndexedCity = {
+  city: City
+  nameNorm: string
+  countryNorm: string
+  pairNorm: string
+  nameCompact: string
+  pairCompact: string
+  nameKr?: string
+  countryKr?: string
+  cityKrNorm?: string
+  countryKrNorm?: string
+  pairKrNorm?: string
+  cityKrCompact?: string
+  countryKrCompact?: string
+  pairKrCompact?: string
+  displayKr?: string
+  displayEn: string
+}
+
 let cachedCities: City[] | null = null
+let cachedIndex: IndexedCity[] | null = null
 let loading: Promise<City[]> | null = null
 
 const norm = (value: unknown) =>
@@ -37,7 +57,7 @@ const norm = (value: unknown) =>
     .toLowerCase()
 
 const compact = (value: unknown) => norm(value).replace(/[\s,./_-]+/g, '')
-const hasHangul = (value: string) => /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(value)
+const hasHangul = (value: string) => /[\u3131-\u314e\u314f-\u3163\uac00-\ud7a3]/.test(value)
 
 async function loadCities(): Promise<City[]> {
   if (cachedCities) {
@@ -71,6 +91,55 @@ async function loadCities(): Promise<City[]> {
   return loading
 }
 
+async function loadCityIndex(): Promise<IndexedCity[]> {
+  if (cachedIndex) {
+    return cachedIndex
+  }
+
+  const cities = await loadCities()
+  cachedIndex = cities.map((c) => {
+    const nameNorm = norm(c.name)
+    const countryNorm = norm(c.country)
+    const pairNorm = `${nameNorm}, ${countryNorm}`
+    const nameCompact = compact(c.name)
+    const pairCompact = compact(`${c.name}, ${c.country}`)
+
+    const nameKr = getCityNameInKorean(c.name) || undefined
+    const countryKr = getCountryNameInKorean(c.country) || undefined
+    const cityKrNorm = nameKr ? norm(nameKr) : undefined
+    const countryKrNorm = countryKr ? norm(countryKr) : undefined
+    const pairKrNorm = cityKrNorm && countryKrNorm ? `${cityKrNorm}, ${countryKrNorm}` : undefined
+    const cityKrCompact = nameKr ? compact(nameKr) : undefined
+    const countryKrCompact = countryKr ? compact(countryKr) : undefined
+    const pairKrCompact = pairKrNorm ? compact(pairKrNorm) : undefined
+
+    const displayKr =
+      nameKr && countryKr ? `${nameKr}, ${countryKr}` : nameKr ? `${nameKr}, ${c.country}` : undefined
+    const displayEn = `${c.name}, ${c.country}`
+
+    return {
+      city: c,
+      nameNorm,
+      countryNorm,
+      pairNorm,
+      nameCompact,
+      pairCompact,
+      nameKr,
+      countryKr,
+      cityKrNorm,
+      countryKrNorm,
+      pairKrNorm,
+      cityKrCompact,
+      countryKrCompact,
+      pairKrCompact,
+      displayKr,
+      displayEn,
+    }
+  })
+
+  return cachedIndex
+}
+
 export const GET = withApiMiddleware(
   async (request: NextRequest, _context: ApiContext) => {
     const { searchParams } = new URL(request.url)
@@ -95,81 +164,60 @@ export const GET = withApiMiddleware(
       return NextResponse.json({ results: [] })
     }
 
-    const data = await loadCities()
-    logger.info('[cities API] Loaded cities count:', { count: data.length })
-    const scored: { c: City; score: number }[] = []
+    const indexedData = await loadCityIndex()
+    logger.info('[cities API] Loaded cities count:', { count: indexedData.length })
+    const scored: { item: IndexedCity; score: number }[] = []
 
-    for (const c of data) {
-      const name = norm(c.name)
-      const cc = norm(c.country)
-      const pair = `${name}, ${cc}`
-      const nameCompact = compact(c.name)
-      const pairCompact = compact(pair)
-
-      // Get Korean translations
-      const cityKr = getCityNameInKorean(c.name)
-      const countryKr = getCountryNameInKorean(c.country)
-      const cityKrNorm = cityKr ? norm(cityKr) : null
-      const countryKrNorm = countryKr ? norm(countryKr) : null
-      const pairKr = cityKrNorm && countryKrNorm ? `${cityKrNorm}, ${countryKrNorm}` : null
-      const cityKrCompact = cityKr ? compact(cityKr) : null
-      const countryKrCompact = countryKr ? compact(countryKr) : null
-      const pairKrCompact = pairKr ? compact(pairKr) : null
-      const aliasMatch = koreanAlias ? norm(c.name) === norm(koreanAlias) : false
+    for (const item of indexedData) {
+      const aliasMatch = koreanAlias ? item.nameNorm === norm(koreanAlias) : false
 
       // Check English matches
       const engMatch =
-        name.startsWith(query) ||
-        name.includes(query) ||
-        pair.startsWith(query) ||
-        pair.includes(query) ||
+        item.nameNorm.startsWith(query) ||
+        item.nameNorm.includes(query) ||
+        item.pairNorm.startsWith(query) ||
+        item.pairNorm.includes(query) ||
         (queryCompact.length >= 2 &&
-          (nameCompact.includes(queryCompact) || pairCompact.includes(queryCompact)))
+          (item.nameCompact.includes(queryCompact) || item.pairCompact.includes(queryCompact)))
 
       // Check Korean matches
       const korMatch =
-        (cityKrNorm && (cityKrNorm.startsWith(query) || cityKrNorm.includes(query))) ||
-        (countryKrNorm && (countryKrNorm.startsWith(query) || countryKrNorm.includes(query))) ||
-        (pairKr && (pairKr.startsWith(query) || pairKr.includes(query))) ||
+        (item.cityKrNorm && (item.cityKrNorm.startsWith(query) || item.cityKrNorm.includes(query))) ||
+        (item.countryKrNorm &&
+          (item.countryKrNorm.startsWith(query) || item.countryKrNorm.includes(query))) ||
+        (item.pairKrNorm && (item.pairKrNorm.startsWith(query) || item.pairKrNorm.includes(query))) ||
         (queryCompact.length >= 2 &&
-          ((cityKrCompact && cityKrCompact.includes(queryCompact)) ||
-            (countryKrCompact && countryKrCompact.includes(queryCompact)) ||
-            (pairKrCompact && pairKrCompact.includes(queryCompact))))
+          ((item.cityKrCompact && item.cityKrCompact.includes(queryCompact)) ||
+            (item.countryKrCompact && item.countryKrCompact.includes(queryCompact)) ||
+            (item.pairKrCompact && item.pairKrCompact.includes(queryCompact))))
 
       if (engMatch || korMatch || aliasMatch) {
         // Calculate score (lower is better)
         let score = 100
 
         // Best match: starts with query
-        if (name.startsWith(query) || cityKrNorm?.startsWith(query)) {
+        if (item.nameNorm.startsWith(query) || item.cityKrNorm?.startsWith(query)) {
           score = 0
-        } else if (pair.startsWith(query) || pairKr?.startsWith(query)) {
+        } else if (item.pairNorm.startsWith(query) || item.pairKrNorm?.startsWith(query)) {
           score = 5
-        } else if (name.includes(query) || cityKrNorm?.includes(query)) {
+        } else if (item.nameNorm.includes(query) || item.cityKrNorm?.includes(query)) {
           score = 10
         } else {
           score = 15
         }
 
-        scored.push({ c, score })
+        scored.push({ item, score })
       }
     }
 
-    scored.sort((a, b) => a.score - b.score || a.c.name.localeCompare(b.c.name))
-    const results: CityResult[] = scored.slice(0, limit).map(({ c }) => {
-      const nameKr = getCityNameInKorean(c.name)
-      const countryKr = getCountryNameInKorean(c.country)
+    scored.sort((a, b) => a.score - b.score || a.item.city.name.localeCompare(b.item.city.name))
+    const results: CityResult[] = scored.slice(0, limit).map(({ item }) => {
       return {
-        ...c,
-        nameKr: nameKr || undefined,
-        countryKr: countryKr || undefined,
-        displayKr:
-          nameKr && countryKr
-            ? `${nameKr}, ${countryKr}`
-            : nameKr
-              ? `${nameKr}, ${c.country}`
-              : undefined,
-        displayEn: `${c.name}, ${c.country}`,
+        ...item.city,
+        nameKr: item.nameKr,
+        countryKr: item.countryKr,
+        displayKr: item.displayKr,
+        displayEn: item.displayEn,
       }
     })
 

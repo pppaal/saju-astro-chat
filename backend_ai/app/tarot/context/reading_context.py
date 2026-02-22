@@ -327,10 +327,15 @@ class ReadingContextBuilder:
         """Build card pair interpretation context"""
         parts = []
         card_pairs = self.advanced_rules.get_all_card_pair_interpretations(drawn_cards)
+        ranked_pairs = self.advanced_rules.rank_card_pair_interpretations(
+            card_pairs,
+            theme=theme,
+            limit=6,
+        )
 
-        if card_pairs:
+        if ranked_pairs:
             parts.append("\n## 카드 쌍 해석:")
-            for pair in card_pairs[:3]:
+            for pair in ranked_pairs:
                 parts.append(f"- {pair.get('card1')} + {pair.get('card2')}")
                 if theme == 'love' and pair.get('love'):
                     parts.append(f"  연애: {pair.get('love')}")

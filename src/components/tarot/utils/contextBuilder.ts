@@ -7,6 +7,8 @@ import type { DrawnCard } from '@/lib/Tarot/tarot.types'
 import type { InterpretationResult, ReadingResponse } from '../types'
 import type { PersistedContext, PersistedCard } from '../types/storage'
 
+const MAX_FOLLOWUP_CONTEXT_CARDS = 8
+
 /**
  * Build context from reading result and interpretation
  *
@@ -93,13 +95,20 @@ export function buildContextWithNewCard(
         : newCard.card.upright.keywords,
   }
 
+  const merged = [newCardData, ...(baseContext.cards || [])]
+  const deduped: PersistedCard[] = []
+  const seen = new Set<string>()
+
+  for (const card of merged) {
+    const key = `${card.position}|${card.name}|${card.is_reversed ? 'R' : 'U'}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    deduped.push(card)
+    if (deduped.length >= MAX_FOLLOWUP_CONTEXT_CARDS) break
+  }
+
   return {
     ...baseContext,
-    cards: [
-      // Add new card at the beginning
-      newCardData,
-      // Keep original cards as reference context
-      ...(baseContext.cards || []),
-    ],
+    cards: deduped,
   }
 }

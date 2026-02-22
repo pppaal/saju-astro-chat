@@ -528,11 +528,12 @@
   box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
 }
 
-/* ===== Redraw Button - Bottom Right ===== */
+/* ===== Redraw Button - Right Center ===== */
 .redrawButtonBottomRight {
   position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
   z-index: 200;
   padding: 0.6rem 1.2rem;
   font-size: 0.9rem;
@@ -553,11 +554,27 @@
   color: rgba(212, 175, 55, 1);
   border-color: rgba(212, 175, 55, 0.5);
   box-shadow: 0 4px 25px rgba(212, 175, 55, 0.3);
-  transform: translateY(-2px);
+  transform: translateY(-50%) translateX(-2px);
 }
 
 .redrawButtonBottomRight:active {
-  transform: translateY(0);
+  transform: translateY(-50%);
+}
+
+@media (max-width: 768px) {
+  .redrawButtonBottomRight {
+    top: auto;
+    bottom: 1rem;
+    right: 1rem;
+    transform: none;
+    padding: 0.55rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .redrawButtonBottomRight:hover,
+  .redrawButtonBottomRight:active {
+    transform: none;
+  }
 }
 
 /* ===== Results Screen ===== */

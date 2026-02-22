@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -133,7 +133,7 @@ export default function MatrixPeaksCalendar({ embedded = false }: MatrixPeaksCal
     if (submitted || hasAutoSubmitted.current) {
       return
     }
-    if (!birthInfo.birthDate || !birthInfo.birthPlace) {
+    if (!birthInfo.birthDate) {
       return
     }
     hasAutoSubmitted.current = true
@@ -171,7 +171,7 @@ export default function MatrixPeaksCalendar({ embedded = false }: MatrixPeaksCal
 
   if (!submitted) {
     if (embedded) {
-      if (!birthInfo.birthDate || !birthInfo.birthPlace) {
+      if (!birthInfo.birthDate) {
         return (
           <div className={`${styles.container} ${styles.largeTextMode}`}>
             <div className={styles.emptyState}>

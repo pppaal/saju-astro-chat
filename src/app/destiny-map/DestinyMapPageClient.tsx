@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import React, { useEffect, useCallback, useReducer } from 'react'
 import { useRouter } from 'next/navigation'
@@ -26,6 +26,7 @@ import {
   loadTimezoneModule,
   extractCityPart,
   resolveCityTimezone,
+  QUICK_MODE_DEFAULT_CITY,
 } from './useDestinyForm'
 import { useDestinyProfile } from './useDestinyProfile'
 
@@ -107,6 +108,10 @@ function DestinyMapContent({
 
   // City search with debounce
   useEffect(() => {
+    if (form.isQuickMode) {
+      dispatch({ type: 'SET_FIELDS', fields: { suggestions: [], openSug: false } })
+      return
+    }
     const raw = form.city.trim()
     const q = extractCityPart(raw)
     if (q.length < 1) {
@@ -130,11 +135,14 @@ function DestinyMapContent({
       }
     }, 120)
     return () => clearTimeout(timer)
-  }, [form.city, form.isUserTyping])
+  }, [form.city, form.isUserTyping, form.isQuickMode])
 
   // City lookup for coordinates
   useEffect(() => {
     const tryFindCity = async () => {
+      if (form.isQuickMode) {
+        return
+      }
       const q = extractCityPart(form.city)
       if (!q) {
         return
@@ -152,7 +160,7 @@ function DestinyMapContent({
       }
     }
     tryFindCity()
-  }, [form.city])
+  }, [form.city, form.isQuickMode])
 
   const onPick = useCallback((hit: CityHit) => {
     const cityDisplay = isKo
@@ -180,16 +188,41 @@ function DestinyMapContent({
       e.preventDefault()
       dispatch({ type: 'SET_FIELD', field: 'cityErr', value: null })
 
-      const lat = form.selectedCity?.lat?.toString() ?? ''
-      const lon = form.selectedCity?.lon?.toString() ?? ''
-      let tz = form.selectedCity?.timezone ?? 'Asia/Seoul'
-      if (form.selectedCity && !form.selectedCity.timezone) {
+      const quickModeCityDisplay = isKo
+        ? QUICK_MODE_DEFAULT_CITY.displayKr || formatCityForDropdown('Seoul', 'KR', 'ko')
+        : QUICK_MODE_DEFAULT_CITY.displayEn || formatCityForDropdown('Seoul', 'KR', 'en')
+
+      const selectedCity = form.isQuickMode ? (form.selectedCity ?? QUICK_MODE_DEFAULT_CITY) : form.selectedCity
+      const birthTimeValue = form.isQuickMode ? '12:00' : form.birthTime
+      const selectedCityDisplay = selectedCity
+        ? isKo
+          ? selectedCity.displayKr || formatCityForDropdown(selectedCity.name, selectedCity.country, 'ko')
+          : selectedCity.displayEn || formatCityForDropdown(selectedCity.name, selectedCity.country, 'en')
+        : quickModeCityDisplay
+      const cityValue = form.isQuickMode
+        ? form.selectedCity
+          ? form.city || selectedCityDisplay
+          : quickModeCityDisplay
+        : form.city
+
+      const lat = selectedCity?.lat?.toString() ?? ''
+      const lon = selectedCity?.lon?.toString() ?? ''
+      let tz = selectedCity?.timezone ?? 'Asia/Seoul'
+      if (selectedCity && !selectedCity.timezone) {
         try {
-          tz = await resolveCityTimezone(form.selectedCity)
+          tz = await resolveCityTimezone(selectedCity)
         } catch {}
       }
 
-      if (!form.birthDate || !form.birthTime || !form.city) {
+      if (!form.birthDate) {
+        dispatch({
+          type: 'SET_FIELD',
+          field: 'cityErr',
+          value: safeT('error.birthDateRequired', 'Birth date is required'),
+        })
+        return
+      }
+      if (!form.isQuickMode && (!form.birthTime || !form.city)) {
         dispatch({
           type: 'SET_FIELD',
           field: 'cityErr',
@@ -197,7 +230,7 @@ function DestinyMapContent({
         })
         return
       }
-      if (!form.selectedCity || !form.selectedCity.lat || !form.selectedCity.lon) {
+      if (!selectedCity || !selectedCity.lat || !selectedCity.lon) {
         dispatch({
           type: 'SET_FIELD',
           field: 'cityErr',
@@ -209,8 +242,8 @@ function DestinyMapContent({
       const params = new URLSearchParams()
       params.set('name', form.name || '')
       params.set('birthDate', form.birthDate || '')
-      params.set('birthTime', form.birthTime || '')
-      params.set('city', form.city || '')
+      params.set('birthTime', birthTimeValue || '')
+      params.set('city', cityValue || '')
       const apiGender = normalizeGender(form.gender)
       params.set('gender', apiGender || '')
       params.set('lang', locale || 'ko')
@@ -226,19 +259,19 @@ function DestinyMapContent({
       saveUserProfile({
         name: form.name || undefined,
         birthDate: form.birthDate || undefined,
-        birthTime: form.birthTime || undefined,
-        birthCity: form.city || undefined,
+        birthTime: birthTimeValue || undefined,
+        birthCity: cityValue || undefined,
         gender: form.gender as 'Male' | 'Female' | 'Other' | 'Prefer not to say',
         timezone: tz || undefined,
-        latitude: form.selectedCity?.lat,
-        longitude: form.selectedCity?.lon,
+        latitude: selectedCity?.lat,
+        longitude: selectedCity?.lon,
       })
 
       // 테마 선택 건너뛰고 바로 인생총운(life_path)으로 이동
       params.set('theme', 'focus_overall')
       router.push(`/destiny-map/result?${params.toString()}`)
     },
-    [form, safeT, locale, router]
+    [form, safeT, locale, router, isKo]
   )
 
   const handleCityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -273,6 +306,19 @@ function DestinyMapContent({
   const handleSelectFemale = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     dispatch({ type: 'SET_FIELDS', fields: { gender: 'Female', genderOpen: false } })
+  }, [])
+
+  const handleModeChange = useCallback((isQuickMode: boolean) => {
+    dispatch({
+      type: 'SET_FIELDS',
+      fields: {
+        isQuickMode,
+        cityErr: null,
+        openSug: false,
+        isUserTyping: false,
+        genderOpen: false,
+      },
+    })
   }, [])
 
   return (
@@ -333,6 +379,36 @@ function DestinyMapContent({
               </>
             )}
 
+            <div className={styles.modeToggle} role="tablist" aria-label="input mode">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={form.isQuickMode}
+                className={`${styles.modeButton} ${form.isQuickMode ? styles.modeButtonActive : ''}`}
+                onClick={() => handleModeChange(true)}
+              >
+                {isKo ? '퀵' : 'Quick'}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={!form.isQuickMode}
+                className={`${styles.modeButton} ${!form.isQuickMode ? styles.modeButtonActive : ''}`}
+                onClick={() => handleModeChange(false)}
+              >
+                {isKo ? '상세' : 'Detailed'}
+              </button>
+            </div>
+            <p className={styles.modeHint}>
+              {form.isQuickMode
+                ? isKo
+                  ? '생년월일만 입력하면 바로 분석합니다. (시간/도시는 기본값 적용)'
+                  : 'Birth date only. Time/city use defaults.'
+                : isKo
+                  ? '출생시간·도시·성별까지 입력해 정밀 분석합니다.'
+                  : 'Add time, city, and gender for precise analysis.'}
+            </p>
+
             <div className={styles.field}>
               <label className={styles.label}>{safeT('app.name') || 'Name'}</label>
               <input
@@ -345,7 +421,7 @@ function DestinyMapContent({
               />
             </div>
 
-            <div className={styles.grid2}>
+            <div className={form.isQuickMode ? styles.grid1 : styles.grid2}>
               <div className={styles.field}>
                 <DateTimePicker
                   value={form.birthDate}
@@ -355,118 +431,128 @@ function DestinyMapContent({
                   locale={locale as 'ko' | 'en'}
                 />
               </div>
-              <div className={styles.field}>
-                <label className={styles.label}>
-                  {safeT('app.birthTime') || 'Birth Time'}
-                  <span className={styles.requiredMark}>*</span>
-                </label>
-                <input
-                  className={styles.input}
-                  type="time"
-                  value={form.birthTime}
-                  onChange={(e) =>
-                    dispatch({ type: 'SET_FIELD', field: 'birthTime', value: e.target.value })
-                  }
-                  required
-                />
-              </div>
+              {!form.isQuickMode && (
+                <div className={styles.field}>
+                  <label className={styles.label}>
+                    {safeT('app.birthTime') || 'Birth Time'}
+                    <span className={styles.requiredMark}>*</span>
+                  </label>
+                  <input
+                    className={styles.input}
+                    type="time"
+                    value={form.birthTime}
+                    onChange={(e) =>
+                      dispatch({ type: 'SET_FIELD', field: 'birthTime', value: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+              )}
             </div>
 
-            <div className={styles.grid2}>
-              <div className={styles.field} style={{ position: 'relative' }}>
-                <label className={styles.label}>
-                  {safeT('app.birthCity') || 'Birth City'}
-                  <span className={styles.requiredMark}>*</span>
-                </label>
-                <input
-                  className={styles.input}
-                  placeholder={safeT('app.cityPh') || 'Enter your city'}
-                  value={form.city}
-                  onChange={handleCityChange}
-                  onFocus={handleCityFocus}
-                  onBlur={handleCityBlur}
-                  autoComplete="off"
-                  required
-                />
-                {form.openSug && form.suggestions.length > 0 && (
-                  <ul className={styles.dropdown}>
-                    {form.suggestions.map((s: CityHit, idx: number) => (
-                      <li
-                        key={`${s.name}-${s.country}-${idx}`}
-                        className={styles.dropdownItem}
-                        onMouseDown={(e) => {
-                          e.preventDefault()
-                          onPick(s)
-                        }}
-                      >
-                        <span className={styles.cityName}>
-                          {isKo
-                            ? s.displayKr || formatCityForDropdown(s.name, s.country, 'ko')
-                            : s.displayEn || formatCityForDropdown(s.name, s.country, 'en')}
-                        </span>
-                        {isKo && (
-                          <span className={styles.country}>
-                            {s.displayEn || formatCityForDropdown(s.name, s.country, 'en')}
+            {!form.isQuickMode && (
+              <div className={styles.grid2}>
+                <div className={styles.field} style={{ position: 'relative' }}>
+                  <label className={styles.label}>
+                    {safeT('app.birthCity') || 'Birth City'}
+                    <span className={styles.requiredMark}>*</span>
+                  </label>
+                  <input
+                    className={styles.input}
+                    placeholder={safeT('app.cityPh') || 'Enter your city'}
+                    value={form.city}
+                    onChange={handleCityChange}
+                    onFocus={handleCityFocus}
+                    onBlur={handleCityBlur}
+                    autoComplete="off"
+                    required
+                  />
+                  {form.openSug && form.suggestions.length > 0 && (
+                    <ul className={styles.dropdown}>
+                      {form.suggestions.map((s: CityHit, idx: number) => (
+                        <li
+                          key={`${s.name}-${s.country}-${idx}`}
+                          className={styles.dropdownItem}
+                          onMouseDown={(e) => {
+                            e.preventDefault()
+                            onPick(s)
+                          }}
+                        >
+                          <span className={styles.cityName}>
+                            {isKo
+                              ? s.displayKr || formatCityForDropdown(s.name, s.country, 'ko')
+                              : s.displayEn || formatCityForDropdown(s.name, s.country, 'en')}
                           </span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {form.cityErr && <div className={styles.error}>{form.cityErr}</div>}
-              </div>
-
-              <div className={styles.field}>
-                <label className={styles.label}>{safeT('app.gender') || 'Gender'}</label>
-                <div className={styles.genderSelectWrapper}>
-                  <button
-                    type="button"
-                    className={`${styles.genderSelect} ${form.genderOpen ? styles.genderSelectOpen : ''}`}
-                    onClick={handleGenderToggle}
-                    onBlur={handleGenderBlur}
-                  >
-                    <span className={styles.genderText}>
-                      {form.gender === 'Male'
-                        ? safeT('app.male') || (isKo ? '남성' : 'Male')
-                        : safeT('app.female') || (isKo ? '여성' : 'Female')}
-                    </span>
-                    <span
-                      className={`${styles.genderArrow} ${form.genderOpen ? styles.genderArrowOpen : ''}`}
-                    >
-                      v
-                    </span>
-                  </button>
-                  {form.genderOpen && (
-                    <div className={styles.genderDropdown}>
-                      <button
-                        type="button"
-                        className={`${styles.genderOption} ${form.gender === 'Male' ? styles.genderOptionActive : ''}`}
-                        onMouseDown={handleSelectMale}
-                      >
-                        <span className={styles.genderOptionText}>
-                          {safeT('app.male') || (isKo ? '남성' : 'Male')}
-                        </span>
-                        {form.gender === 'Male' && <span className={styles.genderCheck}>OK</span>}
-                      </button>
-                      <button
-                        type="button"
-                        className={`${styles.genderOption} ${form.gender === 'Female' ? styles.genderOptionActive : ''}`}
-                        onMouseDown={handleSelectFemale}
-                      >
-                        <span className={styles.genderOptionText}>
-                          {safeT('app.female') || (isKo ? '여성' : 'Female')}
-                        </span>
-                        {form.gender === 'Female' && <span className={styles.genderCheck}>OK</span>}
-                      </button>
-                    </div>
+                          {isKo && (
+                            <span className={styles.country}>
+                              {s.displayEn || formatCityForDropdown(s.name, s.country, 'en')}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
                   )}
+                  {form.cityErr && <div className={styles.error}>{form.cityErr}</div>}
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>{safeT('app.gender') || 'Gender'}</label>
+                  <div className={styles.genderSelectWrapper}>
+                    <button
+                      type="button"
+                      className={`${styles.genderSelect} ${form.genderOpen ? styles.genderSelectOpen : ''}`}
+                      onClick={handleGenderToggle}
+                      onBlur={handleGenderBlur}
+                    >
+                      <span className={styles.genderText}>
+                        {form.gender === 'Male'
+                          ? safeT('app.male') || (isKo ? '남성' : 'Male')
+                          : safeT('app.female') || (isKo ? '여성' : 'Female')}
+                      </span>
+                      <span
+                        className={`${styles.genderArrow} ${form.genderOpen ? styles.genderArrowOpen : ''}`}
+                      >
+                        v
+                      </span>
+                    </button>
+                    {form.genderOpen && (
+                      <div className={styles.genderDropdown}>
+                        <button
+                          type="button"
+                          className={`${styles.genderOption} ${form.gender === 'Male' ? styles.genderOptionActive : ''}`}
+                          onMouseDown={handleSelectMale}
+                        >
+                          <span className={styles.genderOptionText}>
+                            {safeT('app.male') || (isKo ? '남성' : 'Male')}
+                          </span>
+                          {form.gender === 'Male' && <span className={styles.genderCheck}>OK</span>}
+                        </button>
+                        <button
+                          type="button"
+                          className={`${styles.genderOption} ${form.gender === 'Female' ? styles.genderOptionActive : ''}`}
+                          onMouseDown={handleSelectFemale}
+                        >
+                          <span className={styles.genderOptionText}>
+                            {safeT('app.female') || (isKo ? '여성' : 'Female')}
+                          </span>
+                          {form.gender === 'Female' && <span className={styles.genderCheck}>OK</span>}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {form.isQuickMode && form.cityErr && <div className={styles.error}>{form.cityErr}</div>}
 
             <button className={styles.submitButton} type="submit">
               <span className={styles.buttonText}>
-                {safeT('app.analyze') || 'Begin Your Journey'}
+                {form.isQuickMode
+                  ? isKo
+                    ? '생년월일로 빠르게 분석'
+                    : 'Quick Analysis'
+                  : safeT('app.analyze') || 'Begin Your Journey'}
               </span>
               <span className={styles.buttonIcon}>{'->'}</span>
             </button>

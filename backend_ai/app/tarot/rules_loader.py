@@ -8,7 +8,7 @@ Extracted from tarot_hybrid_rag.py for better modularity.
 
 import os
 import json
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 
 
 class AdvancedRulesLoader:
@@ -49,6 +49,8 @@ class AdvancedRulesLoader:
         self.pattern_interpretations: Dict = {}
         self.pair_overrides: Dict = {}
         self._pair_override_index: Dict[str, Dict] = {}
+        self._pair_combo_index: Dict[str, Dict] = {}
+        self._card_alias_to_id: Dict[str, str] = {}
         self._load_all_rules()
 
     def _load_all_rules(self):
@@ -127,11 +129,127 @@ class AdvancedRulesLoader:
             with open(csv_path, encoding='utf-8-sig') as f:
                 reader = csv.DictReader(f)
                 self.card_pair_combinations = list(reader)
+            self._build_pair_combo_index()
+            self._build_card_alias_index()
         except Exception:
             pass
 
+    @staticmethod
+    def _normalize_card_name(card_name: str) -> str:
+        """Normalize card name for robust EN/KO lookup."""
+        normalized = str(card_name or "").strip().lower()
+        if not normalized:
+            return ""
+        normalized = normalized.replace("the ", "")
+        for token in [" of ", " ", "-", "_", ".", ",", "’", "'"]:
+            normalized = normalized.replace(token, "")
+        return normalized
+
+    def _card_id_to_english_name(self, card_id: str) -> Optional[str]:
+        """Convert card_id format to canonical English card name."""
+        if not card_id:
+            return None
+
+        major_names = [
+            'The Fool', 'The Magician', 'The High Priestess', 'The Empress', 'The Emperor',
+            'The Hierophant', 'The Lovers', 'The Chariot', 'Strength', 'The Hermit',
+            'Wheel of Fortune', 'Justice', 'The Hanged Man', 'Death',
+            'Temperance', 'The Devil', 'The Tower', 'The Star', 'The Moon', 'The Sun',
+            'Judgement', 'The World'
+        ]
+
+        if card_id.startswith("MAJOR_"):
+            try:
+                idx = int(card_id.split("_", 1)[1])
+                if 0 <= idx < len(major_names):
+                    return major_names[idx]
+            except Exception:
+                return None
+
+        suit_map = {
+            "WANDS": "Wands",
+            "CUPS": "Cups",
+            "SWORDS": "Swords",
+            "PENTACLES": "Pentacles",
+        }
+        rank_map = {
+            1: "Ace", 2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six",
+            7: "Seven", 8: "Eight", 9: "Nine", 10: "Ten", 11: "Page", 12: "Knight",
+            13: "Queen", 14: "King",
+        }
+        try:
+            suit_id, rank_raw = card_id.split("_", 1)
+            suit = suit_map.get(suit_id)
+            rank = rank_map.get(int(rank_raw))
+            if suit and rank:
+                return f"{rank} of {suit}"
+        except Exception:
+            return None
+
+        return None
+
+    def _register_card_alias(self, alias: str, card_id: str):
+        """Register one alias -> card_id mapping."""
+        normalized = self._normalize_card_name(alias)
+        if not normalized or not card_id:
+            return
+        # Keep first-seen mapping deterministic
+        if normalized not in self._card_alias_to_id:
+            self._card_alias_to_id[normalized] = card_id
+
+    def _build_pair_combo_index(self):
+        """Build fast lookup index for pair combinations."""
+        self._pair_combo_index = {}
+        for combo in self.card_pair_combinations:
+            id1 = str(combo.get("card1_id", "")).strip()
+            id2 = str(combo.get("card2_id", "")).strip()
+            if not id1 or not id2:
+                continue
+            self._pair_combo_index[self._pair_key(id1, id2)] = combo
+
+    def _build_card_alias_index(self):
+        """Build card alias index from pair CSV and overrides."""
+        self._card_alias_to_id = {}
+
+        for combo in self.card_pair_combinations:
+            card1_id = str(combo.get("card1_id", "")).strip()
+            card2_id = str(combo.get("card2_id", "")).strip()
+            card1_name = str(combo.get("card1_name", "")).strip()
+            card2_name = str(combo.get("card2_name", "")).strip()
+
+            if card1_id:
+                self._register_card_alias(card1_name, card1_id)
+                english = self._card_id_to_english_name(card1_id)
+                if english:
+                    self._register_card_alias(english, card1_id)
+            if card2_id:
+                self._register_card_alias(card2_name, card2_id)
+                english = self._card_id_to_english_name(card2_id)
+                if english:
+                    self._register_card_alias(english, card2_id)
+
+        overrides = self.pair_overrides or {}
+        for item in overrides.get("pairs", []) or []:
+            id1 = str(item.get("card1_id", "")).strip()
+            id2 = str(item.get("card2_id", "")).strip()
+            if id1:
+                english1 = self._card_id_to_english_name(id1)
+                if english1:
+                    self._register_card_alias(english1, id1)
+            if id2:
+                english2 = self._card_id_to_english_name(id2)
+                if english2:
+                    self._register_card_alias(english2, id2)
+
     def _card_name_to_id(self, card_name: str) -> Optional[str]:
-        """Convert English card name to card_id format"""
+        """Convert EN/KO card name to card_id format."""
+        if not card_name:
+            return None
+
+        alias_hit = self._card_alias_to_id.get(self._normalize_card_name(card_name))
+        if alias_hit:
+            return alias_hit
+
         major_names = [
             'Fool', 'Magician', 'High Priestess', 'Empress', 'Emperor',
             'Hierophant', 'Lovers', 'Chariot', 'Strength', 'Hermit',
@@ -139,8 +257,9 @@ class AdvancedRulesLoader:
             'Temperance', 'Devil', 'Tower', 'Star', 'Moon', 'Sun',
             'Judgement', 'World'
         ]
+        lower_name = str(card_name).lower()
         for idx, name in enumerate(major_names):
-            if name in card_name:
+            if name.lower() in lower_name:
                 return f"MAJOR_{idx}"
 
         suits = {'Wands': 'WANDS', 'Cups': 'CUPS', 'Swords': 'SWORDS', 'Pentacles': 'PENTACLES'}
@@ -148,9 +267,9 @@ class AdvancedRulesLoader:
                  'Seven': 7, 'Eight': 8, 'Nine': 9, 'Ten': 10,
                  'Page': 11, 'Knight': 12, 'Queen': 13, 'King': 14}
         for suit, suit_id in suits.items():
-            if suit in card_name:
+            if suit.lower() in lower_name:
                 for rank, rank_num in ranks.items():
-                    if rank in card_name:
+                    if rank.lower() in lower_name:
                         return f"{suit_id}_{rank_num}"
         return None
 
@@ -419,16 +538,7 @@ class AdvancedRulesLoader:
             return None
 
         override = self._pair_override_index.get(self._pair_key(card1_id, card2_id))
-        base = None
-        if self.card_pair_combinations:
-            for combo in self.card_pair_combinations:
-                combo_card1_id = combo.get('card1_id', '')
-                combo_card2_id = combo.get('card2_id', '')
-
-                if (combo_card1_id == card1_id and combo_card2_id == card2_id) or \
-                   (combo_card1_id == card2_id and combo_card2_id == card1_id):
-                    base = combo
-                    break
+        base = self._pair_combo_index.get(self._pair_key(card1_id, card2_id))
 
         if not override and not base:
             return None
@@ -449,6 +559,9 @@ class AdvancedRulesLoader:
         return {
             'card1': card1_name,
             'card2': card2_name,
+            'card1_id': card1_id,
+            'card2_id': card2_id,
+            'pair_key': self._pair_key(card1_id, card2_id),
             'element_relation': _pick('element_relation'),
             'love': _pick('love', 'love_interpretation'),
             'career': _pick('career', 'career_interpretation'),
@@ -610,14 +723,146 @@ class AdvancedRulesLoader:
 
     def get_all_card_pair_interpretations(self, cards: List) -> List[Dict]:
         """Get interpretations for all card pairs in a reading"""
-        results = []
+        results: List[Dict] = []
+        seen_pair_keys = set()
         card_names = [c.get('name', '') if isinstance(c, dict) else str(c) for c in cards]
         for i, card1 in enumerate(card_names):
             for card2 in card_names[i+1:]:
                 interpretation = self.find_card_pair_interpretation(card1, card2)
                 if interpretation:
+                    pair_key = interpretation.get("pair_key")
+                    if pair_key and pair_key in seen_pair_keys:
+                        continue
+                    if pair_key:
+                        seen_pair_keys.add(pair_key)
                     results.append(interpretation)
         return results
+
+    def rank_card_pair_interpretations(
+        self,
+        pair_interpretations: List[Dict],
+        theme: str = "general",
+        limit: Optional[int] = None,
+    ) -> List[Dict]:
+        """Rank pair interpretations by theme relevance and evidence richness."""
+        if not pair_interpretations:
+            return []
+
+        theme_key = (theme or "general").strip().lower()
+        theme_field_map = {
+            "love": "love",
+            "relationship": "love",
+            "career": "career",
+            "work": "career",
+            "wealth": "finance",
+            "money": "finance",
+            "finance": "finance",
+        }
+        preferred_field = theme_field_map.get(theme_key, "advice")
+
+        def _score(row: Dict, idx: int) -> Tuple[int, int]:
+            score = 0
+            preferred_text = str(row.get(preferred_field, "")).strip()
+            if preferred_text:
+                score += 45 + min(len(preferred_text) // 40, 15)
+            for extra in ("love", "career", "finance"):
+                text = str(row.get(extra, "")).strip()
+                if text:
+                    score += 3
+            advice = str(row.get("advice", "")).strip()
+            if advice:
+                score += 12 + min(len(advice) // 60, 8)
+            relation = str(row.get("element_relation", "")).strip()
+            if relation and relation not in {"??", "?", "unknown"}:
+                score += 6
+            # Stable tie-breaker: preserve original order when scores tie.
+            return (score, -idx)
+
+        indexed_rows = [(idx, dict(item)) for idx, item in enumerate(pair_interpretations)]
+        ranked_indexed = sorted(
+            indexed_rows,
+            key=lambda pair: _score(pair[1], pair[0]),
+            reverse=True,
+        )
+        ranked = [item for _, item in ranked_indexed]
+
+        deduped: List[Dict] = []
+        seen = set()
+        for item in ranked:
+            pair_key = item.get("pair_key")
+            if pair_key and pair_key in seen:
+                continue
+            if pair_key:
+                seen.add(pair_key)
+            deduped.append(item)
+            if limit and len(deduped) >= limit:
+                break
+        return deduped
+
+    def build_combination_summaries(
+        self,
+        cards: List,
+        theme: str = "general",
+        limit: int = 8,
+    ) -> List[Dict]:
+        """Build normalized combination summaries for API response/prompt usage."""
+        if not cards:
+            return []
+
+        card_names = [c.get('name', '') if isinstance(c, dict) else str(c) for c in cards]
+        pair_rows = self.get_all_card_pair_interpretations(card_names)
+        ranked_pairs = self.rank_card_pair_interpretations(pair_rows, theme=theme, limit=max(limit * 2, 8))
+
+        theme_key = (theme or "general").strip().lower()
+        theme_field_map = {
+            "love": "love",
+            "relationship": "love",
+            "career": "career",
+            "work": "career",
+            "wealth": "finance",
+            "money": "finance",
+            "finance": "finance",
+        }
+        preferred_field = theme_field_map.get(theme_key, "advice")
+
+        summaries: List[Dict] = []
+        for pair in ranked_pairs:
+            focus_text = (
+                str(pair.get(preferred_field, "")).strip()
+                or str(pair.get("advice", "")).strip()
+                or str(pair.get("love", "")).strip()
+                or str(pair.get("career", "")).strip()
+                or str(pair.get("finance", "")).strip()
+            )
+            if not focus_text:
+                continue
+            summaries.append(
+                {
+                    "type": "pair",
+                    "cards": [pair.get("card1", ""), pair.get("card2", "")],
+                    "pair_key": pair.get("pair_key", ""),
+                    "focus": focus_text[:260],
+                    "advice": str(pair.get("advice", "")).strip()[:220],
+                    "element_relation": str(pair.get("element_relation", "")).strip(),
+                }
+            )
+            if len(summaries) >= limit:
+                break
+
+        special = self.find_card_combination(card_names)
+        if special:
+            summaries.insert(
+                0,
+                {
+                    "type": "special",
+                    "category": special.get("category", ""),
+                    "cards": special.get("cards", []),
+                    "focus": str(special.get("korean") or special.get("meaning") or "").strip()[:300],
+                    "advice": str(special.get("advice", "")).strip()[:220],
+                },
+            )
+
+        return summaries[:limit]
 
     def get_jungian_archetype(self, card_name: str, is_reversed: bool = False) -> Optional[Dict]:
         """Get Jungian archetype interpretation for a card"""

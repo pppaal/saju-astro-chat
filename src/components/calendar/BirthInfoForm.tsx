@@ -2,7 +2,7 @@
 
 // src/components/calendar/BirthInfoForm.tsx
 // Consolidated BirthInfoForm component with optional canvas support
-import React, { memo, RefObject } from 'react'
+import React, { memo, RefObject, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import BackButton from '@/components/ui/BackButton'
@@ -27,6 +27,7 @@ const BirthInfoForm = memo(function BirthInfoForm({
   const { locale } = useI18n()
   const { status } = useSession()
   const signInUrl = buildSignInUrl()
+  const [isQuickMode, setIsQuickMode] = useState(true)
 
   const handleFormSubmit = async (formData: UnifiedBirthInfo) => {
     // Convert form data to parent's expected format
@@ -34,7 +35,7 @@ const BirthInfoForm = memo(function BirthInfoForm({
     const normalizedBirthInfo: BirthInfo = {
       birthDate: formData.birthDate,
       birthTime: formData.birthTime,
-      birthPlace: formData.birthCity || '',
+      birthPlace: formData.birthCity || 'Seoul',
       gender: genderValue === 'M' ? 'Male' : genderValue === 'F' ? 'Female' : genderValue,
       latitude: formData.latitude,
       longitude: formData.longitude,
@@ -65,6 +66,36 @@ const BirthInfoForm = memo(function BirthInfoForm({
         </div>
 
         <div className={styles.birthFormCard}>
+          <div className={styles.viewTabs} role="tablist" aria-label="calendar input mode">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={isQuickMode}
+              className={`${styles.viewTab} ${isQuickMode ? styles.viewTabActive : ''}`}
+              onClick={() => setIsQuickMode(true)}
+            >
+              {locale === 'ko' ? '퀵 모드' : 'Quick'}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!isQuickMode}
+              className={`${styles.viewTab} ${!isQuickMode ? styles.viewTabActive : ''}`}
+              onClick={() => setIsQuickMode(false)}
+            >
+              {locale === 'ko' ? '상세 모드' : 'Detailed'}
+            </button>
+          </div>
+          <p className={styles.tabHelperText}>
+            {isQuickMode
+              ? locale === 'ko'
+                ? '퀵 모드: 생년월일만 입력하면 바로 분석합니다.'
+                : 'Quick mode: analysis with birth date only.'
+              : locale === 'ko'
+                ? '상세 모드: 시간/도시/성별까지 입력해 정밀 분석합니다.'
+                : 'Detailed mode: add time, city, and gender for precision.'}
+          </p>
+
           <UnifiedBirthForm
             onSubmit={handleFormSubmit}
             locale={locale as 'ko' | 'en'}
@@ -78,7 +109,9 @@ const BirthInfoForm = memo(function BirthInfoForm({
               timezone: birthInfo.timezone,
             }}
             includeProfileLoader={true}
-            includeCity={true}
+            includeCity={!isQuickMode}
+            includeTime={!isQuickMode}
+            includeGender={!isQuickMode}
             allowTimeUnknown={true}
             genderFormat="long"
             submitButtonText={locale === 'ko' ? '운명의 날 찾기' : 'Find Your Destiny Days'}

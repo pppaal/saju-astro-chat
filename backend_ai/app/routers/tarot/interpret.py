@@ -221,7 +221,7 @@ def register_interpret_routes(bp: Blueprint):
             card_names = [cd['name'] for cd in card_details]
 
             # Build additional context
-            combinations_text = build_combinations_text(hybrid_rag, card_names)
+            combinations_text = build_combinations_text(hybrid_rag, card_names, mapped_theme)
             elemental_text = build_elemental_text(hybrid_rag, card_names)
 
             # Timing hint
@@ -291,6 +291,7 @@ def register_interpret_routes(bp: Blueprint):
 
             # Get card insights
             card_insights = _build_card_insights(drawn_cards, cards, card_interpretations, hybrid_rag)
+            combination_items = _build_combinations_payload(hybrid_rag, card_names, mapped_theme, is_korean)
 
             # Build response
             static_followup = []
@@ -316,7 +317,7 @@ def register_interpret_routes(bp: Blueprint):
                 "card_evidence": card_evidence,
                 "guidance": advice_text if advice_text else "ì¹´ë“œì˜ ì§€í˜œì— ê·€ ê¸°ìš¸ì´ì„¸ìš”.",
                 "affirmation": "ë‚˜ëŠ” ìš°ì£¼ì˜ ì§€í˜œë¥¼ ì‹ ë¢°í•©ë‹ˆë‹¤.",
-                "combinations": [],
+                "combinations": combination_items,
                 "followup_questions": dynamic_followup
             }
 
@@ -557,6 +558,54 @@ def _render_card_evidence_section(card_evidence: List[Dict[str, str]]) -> str:
             f"{row.get('evidence', '')}"
         )
     return "\n".join(lines)
+
+
+def _build_combinations_payload(
+    hybrid_rag,
+    card_names: List[str],
+    theme: str,
+    is_korean: bool,
+    limit: int = 8
+) -> List[Dict[str, Any]]:
+    """Build normalized combination payload for client rendering."""
+    advanced_rules = getattr(hybrid_rag, "advanced_rules", None)
+    if not advanced_rules or not hasattr(advanced_rules, "build_combination_summaries"):
+        return []
+
+    try:
+        raw_items = advanced_rules.build_combination_summaries(card_names, theme=theme, limit=limit)
+    except Exception as combo_err:
+        logger.warning(f"[TAROT] Failed to build combination payload: {combo_err}")
+        return []
+
+    normalized: List[Dict[str, Any]] = []
+    for item in raw_items:
+        cards = item.get("cards", []) or []
+        focus = str(item.get("focus", "")).strip()
+        advice = str(item.get("advice", "")).strip()
+        category = str(item.get("category", "")).strip()
+        if not cards or not focus:
+            continue
+
+        title = " + ".join([str(card).strip() for card in cards if str(card).strip()])
+        if not title:
+            continue
+
+        summary = focus[:260]
+        if advice:
+            summary = f"{summary} {'조언' if is_korean else 'Advice'}: {advice[:180]}"
+
+        normalized.append(
+            {
+                "type": item.get("type", "pair"),
+                "title": title,
+                "category": category,
+                "summary": summary,
+                "cards": cards,
+            }
+        )
+
+    return normalized[:limit]
 
 
 def _build_card_insights(

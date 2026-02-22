@@ -85,6 +85,15 @@ class TestCardNameToId:
 
         assert loader._card_name_to_id('Unknown Card') is None
 
+    def test_korean_card_alias_conversion(self):
+        """Korean card names from pair CSV should map to card_id."""
+        from backend_ai.app.tarot.rules_loader import AdvancedRulesLoader
+
+        loader = AdvancedRulesLoader()
+
+        # tarot_combinations.csv stores Korean aliases (e.g., 바보 for The Fool)
+        assert loader._card_name_to_id('바보') == 'MAJOR_0'
+
 
 class TestFindCardCombination:
     """Tests for find_card_combination method."""
@@ -277,6 +286,72 @@ class TestGetFollowupQuestions:
         result = loader.get_followup_questions('career', 'positive')
 
         assert 'opportunities' in result[0]
+
+
+class TestPairInterpretationCoverage:
+    """Tests for pair interpretation lookup/ranking/summaries."""
+
+    def test_pair_interpretation_with_korean_names(self):
+        """Korean card aliases should resolve pair interpretations."""
+        from backend_ai.app.tarot.rules_loader import AdvancedRulesLoader
+
+        loader = AdvancedRulesLoader()
+        result = loader.find_card_pair_interpretation('바보', '마법사')
+
+        assert result is not None
+        assert result.get('card1_id') == 'MAJOR_0'
+        assert result.get('card2_id') == 'MAJOR_1'
+        assert result.get('pair_key')
+
+    def test_rank_pair_interpretations_prefers_theme_field(self):
+        """Ranking should prioritize rows with theme-specific content."""
+        from backend_ai.app.tarot.rules_loader import AdvancedRulesLoader
+
+        loader = AdvancedRulesLoader()
+        sample = [
+            {
+                'pair_key': 'A||B',
+                'card1': 'A',
+                'card2': 'B',
+                'love': '',
+                'career': 'strong career signal',
+                'finance': '',
+                'advice': 'generic advice',
+                'element_relation': 'supportive',
+            },
+            {
+                'pair_key': 'C||D',
+                'card1': 'C',
+                'card2': 'D',
+                'love': '',
+                'career': '',
+                'finance': '',
+                'advice': 'generic advice',
+                'element_relation': '',
+            },
+        ]
+
+        ranked = loader.rank_card_pair_interpretations(sample, theme='career', limit=2)
+        assert len(ranked) == 2
+        assert ranked[0]['pair_key'] == 'A||B'
+
+    def test_combination_summaries_include_special_or_pairs(self):
+        """Summary builder should produce normalized items for response payload."""
+        from backend_ai.app.tarot.rules_loader import AdvancedRulesLoader
+
+        loader = AdvancedRulesLoader()
+        summaries = loader.build_combination_summaries(
+            ['The Fool', 'The Magician', 'The High Priestess'],
+            theme='career',
+            limit=5,
+        )
+
+        assert isinstance(summaries, list)
+        assert len(summaries) >= 1
+        first = summaries[0]
+        assert 'type' in first
+        assert 'cards' in first
+        assert 'focus' in first
 
 
 class TestSingletonPattern:

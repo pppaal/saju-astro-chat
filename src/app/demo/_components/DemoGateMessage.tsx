@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import styles from './demo-ui.module.css'
 
 interface DemoGateMessageProps {
   reason?: 'disabled' | 'misconfigured' | 'missing_or_invalid'
@@ -13,23 +14,19 @@ export function DemoGateMessage({ reason = 'missing_or_invalid' }: DemoGateMessa
         : 'A valid demo token is required.'
 
   return (
-    <main style={{ maxWidth: 820, margin: '40px auto', padding: 24 }}>
-      <div
-        style={{
-          border: '1px solid #e5e7eb',
-          borderRadius: 12,
-          padding: 20,
-          background: '#ffffff',
-        }}
-      >
-        <h1 style={{ marginTop: 0 }}>Demo access required</h1>
+    <main className={styles.gateWrap}>
+      <div className={styles.gateCard}>
+        <h1 className={styles.gateHeading}>Demo access required</h1>
         <p>{reasonText}</p>
         <p>
-          Open demo URLs with `?demo_token=YOUR_TOKEN` (preferred) or `?token=YOUR_TOKEN` (legacy),
-          or send header `x-demo-token: YOUR_TOKEN`.
+          Open demo URLs with <code className={styles.gateCode}>?demo_token=YOUR_TOKEN</code>{' '}
+          (preferred) or <code className={styles.gateCode}>?token=YOUR_TOKEN</code> (legacy), or
+          send header <code className={styles.gateCode}>x-demo-token: YOUR_TOKEN</code>.
         </p>
         <p>
-          Example: <code>/demo?demo_token=YOUR_TOKEN</code> or <code>/demo?token=YOUR_TOKEN</code>
+          Example:{' '}
+          <code className={styles.gateCode}>/demo?demo_token=YOUR_TOKEN</code> or{' '}
+          <code className={styles.gateCode}>/demo?token=YOUR_TOKEN</code>
         </p>
         <Link href="/">Back to home</Link>
       </div>

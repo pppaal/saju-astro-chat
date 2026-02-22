@@ -7,6 +7,7 @@ import { DemoLoading } from '../_components/DemoLoading'
 import { DemoErrorState } from '../_components/DemoErrorState'
 import { DemoResultCard } from '../_components/DemoResultCard'
 import { DEFAULT_DEMO_PROFILE, type DemoProfile } from '../_components/types'
+import styles from '../_components/demo-ui.module.css'
 
 interface CompatibilityClientProps {
   token?: string
@@ -27,7 +28,7 @@ export default function CompatibilityClient({ token }: CompatibilityClientProps)
   const [profileA, setProfileA] = useState<DemoProfile>(DEFAULT_DEMO_PROFILE)
   const [profileB, setProfileB] = useState<DemoProfile>(PARTNER_PROFILE)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<unknown>(null)
   const [result, setResult] = useState<unknown>(null)
   const requestUrl = useMemo(
     () =>
@@ -76,32 +77,35 @@ export default function CompatibilityClient({ token }: CompatibilityClientProps)
           locale: 'en',
         }),
       })
-      const json = await res.json().catch(() => ({}))
+      const json = await res.json().catch(() => null)
       if (!res.ok) {
-        throw new Error(json?.error || `Request failed (${res.status})`)
+        throw (json as { error?: unknown } | null)?.error || json || `Request failed (${res.status})`
       }
       setResult(json)
     } catch (err) {
       setResult(null)
-      setError(err instanceof Error ? err.message : 'Unknown error')
+      setError(err)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <main style={{ maxWidth: 1100, margin: '24px auto', padding: 16, display: 'grid', gap: 12 }}>
-      <header style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+    <main className={styles.page}>
+      <header className={styles.header}>
         <DemoBadge />
-        <h1 style={{ margin: 0 }}>Compatibility Demo</h1>
+        <h1 className={styles.title}>Compatibility Demo</h1>
       </header>
-      <p>Runs compatibility API with two editable profiles and demo token gate.</p>
+      <p className={styles.description}>
+        Runs compatibility API with two editable profiles and demo token gate.
+      </p>
       <DemoProfileForm value={profileA} onChange={setProfileA} title="Profile A" />
       <DemoProfileForm value={profileB} onChange={setProfileB} title="Profile B" />
-      <div>
-        <button type="button" onClick={onRun} disabled={loading}>
+      <div className={styles.actionRow}>
+        <button type="button" onClick={onRun} disabled={loading} className={styles.runButton}>
           {loading ? 'Running...' : 'Run Demo'}
         </button>
+        <span className={styles.helperText}>/api/demo/compatibility</span>
       </div>
       {loading && <DemoLoading />}
       {error && <DemoErrorState message={error} />}

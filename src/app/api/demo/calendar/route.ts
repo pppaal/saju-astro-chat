@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       birthTime: String(payload.birthTime || ''),
       birthPlace: String(payload.birthPlace || 'Seoul'),
       locale: String(payload.locale || 'en'),
-      category: String(payload.category || 'overall'),
+      category: String(payload.category || 'general'),
       year: Number(payload.year || new Date().getFullYear()),
     },
     demoToken: tokenValidation,

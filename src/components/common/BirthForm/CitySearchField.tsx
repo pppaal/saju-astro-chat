@@ -37,6 +37,7 @@ export function CitySearchField({
   const {
     suggestions,
     openSug,
+    isUserTyping,
     cityErr,
     setOpenSug,
     setSelectedCity,
@@ -102,6 +103,13 @@ export function CitySearchField({
       {cityErr && (
         <div id="city-error" className={styles.error} role="alert">
           {cityErr}
+        </div>
+      )}
+      {isUserTyping && (
+        <div className={styles.dropdown} role="status" aria-live="polite">
+          <div className={styles.dropdownItem}>
+            {locale === 'ko' ? '도시를 찾는 중...' : 'Searching cities...'}
+          </div>
         </div>
       )}
       {openSug && suggestions.length > 0 && (

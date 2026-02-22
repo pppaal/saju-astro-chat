@@ -1,0 +1,128 @@
+{
+  "generatedAt": "2026-02-22T05:04:05.292Z",
+  "results": [
+    {
+      "service": "destiny-map",
+      "ok": true,
+      "runMs": 972,
+      "jsonChars": 278445,
+      "topKeys": [
+        "status",
+        "warning",
+        "message",
+        "warnings",
+        "profile",
+        "lang",
+        "summary",
+        "themes",
+        "saju",
+        "astrology",
+        "safety",
+        "analysisDate",
+        "userTimezone",
+        "advancedAstrology"
+      ],
+      "error": null,
+      "contentHeight": 1900,
+      "hasRunButton": true
+    },
+    {
+      "service": "destiny-matrix",
+      "ok": true,
+      "runMs": 395,
+      "jsonChars": 14417,
+      "topKeys": [
+        "success",
+        "summary",
+        "highlights",
+        "synergies",
+        "copyright"
+      ],
+      "error": null,
+      "contentHeight": 1900,
+      "hasRunButton": true
+    },
+    {
+      "service": "tarot",
+      "ok": true,
+      "runMs": 972,
+      "jsonChars": 1510,
+      "topKeys": [
+        "success",
+        "fallback",
+        "fallbackReason",
+        "input",
+        "main_text",
+        "bullet_takeaways",
+        "evidence",
+        "cards"
+      ],
+      "error": null,
+      "contentHeight": 1900,
+      "hasRunButton": true
+    },
+    {
+      "service": "calendar",
+      "ok": true,
+      "runMs": 1433,
+      "jsonChars": 627466,
+      "topKeys": [
+        "success",
+        "type",
+        "year",
+        "aiEnhanced",
+        "birthInfo",
+        "summary",
+        "topDates",
+        "goodDates",
+        "badDates",
+        "worstDates",
+        "allDates",
+        "aiInsights"
+      ],
+      "error": null,
+      "contentHeight": 1900,
+      "hasRunButton": true
+    },
+    {
+      "service": "compatibility",
+      "ok": true,
+      "runMs": 1424,
+      "jsonChars": 679,
+      "topKeys": [
+        "interpretation",
+        "aiInterpretation",
+        "aiModelUsed",
+        "pairs",
+        "average",
+        "overall_score",
+        "timing",
+        "action_items",
+        "fusion_enabled",
+        "is_group",
+        "group_analysis",
+        "synergy_breakdown"
+      ],
+      "error": null,
+      "contentHeight": 1900,
+      "hasRunButton": true
+    },
+    {
+      "service": "report",
+      "ok": true,
+      "runMs": 399,
+      "jsonChars": 287,
+      "topKeys": [
+        "success",
+        "domain",
+        "generatedFrom",
+        "topInsights",
+        "actionItems",
+        "raw"
+      ],
+      "error": null,
+      "contentHeight": 1900,
+      "hasRunButton": true
+    }
+  ]
+}

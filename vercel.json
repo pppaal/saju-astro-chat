@@ -15,7 +15,8 @@
   },
   "functions": {
     "app/api/**/*.ts": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "node_modules/swisseph/build/Release/**/*.node"
     }
   },
   "crons": [

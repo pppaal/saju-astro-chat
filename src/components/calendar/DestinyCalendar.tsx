@@ -229,10 +229,10 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   }, [data, selectedDay, today, todayStr])
 
   // Form submit handler
-  const handleBirthInfoSubmit = (submittedInfo: BirthInfo) => {
-    if (!submittedInfo.birthDate || !submittedInfo.birthPlace) {
+  const handleBirthInfoSubmit = async (submittedInfo: BirthInfo) => {
+    if (!submittedInfo.birthDate) {
       setError(
-        locale === 'ko' ? '생년월일과 출생지를 입력해주세요' : 'Please enter birth date and city'
+        locale === 'ko' ? '생년월일을 입력해주세요' : 'Please enter your birth date'
       )
       return
     }
@@ -240,11 +240,12 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
     const normalizedBirthInfo: BirthInfo = {
       ...submittedInfo,
       birthTime: submittedInfo.birthTime || '12:00',
+      birthPlace: submittedInfo.birthPlace || 'Seoul',
     }
 
     setBirthInfo(normalizedBirthInfo)
     saveSharedBirthInfo(normalizedBirthInfo)
-    fetchCalendar(normalizedBirthInfo)
+    await fetchCalendar(normalizedBirthInfo)
   }
 
   // Date selection handler
@@ -395,16 +396,16 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
 
   // ===== RENDER =====
 
+  // Loading state
+  if (loading) {
+    return <UnifiedServiceLoading kind="calendar" locale={locale === 'ko' ? 'ko' : 'en'} />
+  }
+
   // Birth info form (before calendar data is loaded)
   if (!hasBirthInfo) {
     return (
       <BirthInfoForm canvasRef={canvasRef} birthInfo={birthInfo} onSubmit={handleBirthInfoSubmit} />
     )
-  }
-
-  // Loading state
-  if (loading) {
-    return <UnifiedServiceLoading kind="calendar" locale={locale === 'ko' ? 'ko' : 'en'} />
   }
 
   // Error state

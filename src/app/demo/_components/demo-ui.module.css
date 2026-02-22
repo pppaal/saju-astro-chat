@@ -1,0 +1,255 @@
+.page {
+  max-width: 1120px;
+  margin: 24px auto;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+  letter-spacing: 0.01em;
+}
+
+.description {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  padding: 5px 10px;
+  color: #04112a;
+  background: linear-gradient(135deg, #87f6ff, #55c9ff);
+  box-shadow: 0 8px 20px rgba(85, 201, 255, 0.3);
+}
+
+.panel {
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 16px;
+  background:
+    linear-gradient(180deg, rgba(140, 174, 255, 0.1), rgba(15, 23, 42, 0.04)),
+    var(--panel);
+  box-shadow: var(--shadow-sm);
+}
+
+.sectionTitle {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.input,
+.select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--input-border);
+  min-height: 40px;
+  padding: 8px 10px;
+  background: var(--input-bg);
+  color: var(--text-color);
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 2px rgba(168, 153, 255, 0.2);
+}
+
+.actionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.runButton {
+  border: 1px solid rgba(117, 230, 255, 0.42);
+  border-radius: 12px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #18325b, #0b1d43);
+  color: #d9f8ff;
+  font-weight: 700;
+}
+
+.runButton:disabled {
+  opacity: 0.55;
+}
+
+.helperText {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.loading {
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(86, 150, 255, 0.08);
+  color: var(--text-secondary);
+}
+
+.errorBox {
+  border: 1px solid rgba(252, 120, 139, 0.35);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(80, 17, 28, 0.7);
+  color: #ffd7df;
+  display: grid;
+  gap: 8px;
+}
+
+.errorTitle {
+  margin: 0;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #ffb1be;
+}
+
+.errorText {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: 0.83rem;
+}
+
+.resultMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.metaChip {
+  border-radius: 999px;
+  border: 1px solid var(--panel-border);
+  padding: 4px 10px;
+  font-size: 0.77rem;
+  color: var(--text-secondary);
+  background: rgba(135, 194, 255, 0.1);
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.summaryItem {
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(13, 28, 56, 0.45);
+}
+
+.summaryKey {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.summaryValue {
+  margin: 0;
+  font-size: 0.84rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-color);
+}
+
+.details {
+  border-top: 1px dashed var(--panel-border);
+  padding-top: 10px;
+}
+
+.detailsSummary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.jsonCode {
+  margin: 10px 0 0;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--panel-border);
+  background: rgba(3, 10, 24, 0.75);
+  color: #c8dbff;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  max-height: 520px;
+  overflow: auto;
+}
+
+.copyButton {
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.76rem;
+  background: rgba(111, 151, 255, 0.18);
+  color: var(--text-color);
+}
+
+.gateWrap {
+  max-width: 860px;
+  margin: 40px auto;
+  padding: 24px;
+}
+
+.gateCard {
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 20px;
+  background:
+    linear-gradient(180deg, rgba(137, 176, 255, 0.09), rgba(17, 31, 58, 0.16)),
+    var(--panel);
+}
+
+.gateHeading {
+  margin: 0 0 8px;
+}
+
+.gateCode {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(167, 179, 255, 0.18);
+}
+
+@media (max-width: 768px) {
+  .formGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
