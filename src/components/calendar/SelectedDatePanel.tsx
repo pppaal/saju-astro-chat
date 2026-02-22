@@ -73,7 +73,7 @@ const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 function normalizeEvidenceLine(value: string): string {
   if (!value) return ''
-  return deepRepairText(value).replace(/\s+/g, ' ').trim()
+  return stripMatrixDomainText(deepRepairText(value)).replace(/\s+/g, ' ').trim()
 }
 
 function decodeUtf8FromLatin1(value: string): string {
@@ -88,11 +88,40 @@ function decodeUtf8FromLatin1(value: string): string {
 function deepRepairText(value: string): string {
   const firstPass = repairMojibakeText(value || '')
   if (!/[ÃÂðâ]/.test(firstPass)) {
-    return firstPass
+    return decodeUnicodeEscapes(firstPass)
   }
   const decoded = decodeUtf8FromLatin1(firstPass)
   const secondPass = repairMojibakeText(decoded)
-  return secondPass || firstPass
+  return decodeUnicodeEscapes(secondPass || firstPass)
+}
+
+function decodeUnicodeEscapes(value: string): string {
+  if (!value || value.indexOf('\\u') === -1) return value
+
+  return value
+    .replace(/\\u\{([0-9A-Fa-f]{1,6})\}/g, (raw, hex: string) => {
+      const codePoint = Number.parseInt(hex, 16)
+      if (!Number.isFinite(codePoint)) return raw
+      try {
+        return String.fromCodePoint(codePoint)
+      } catch {
+        return raw
+      }
+    })
+    .replace(/\\u([0-9A-Fa-f]{4})/g, (raw, hex: string) => {
+      const codePoint = Number.parseInt(hex, 16)
+      if (!Number.isFinite(codePoint)) return raw
+      return String.fromCharCode(codePoint)
+    })
+}
+
+function stripMatrixDomainText(value: string): string {
+  if (!value) return ''
+  return value
+    .replace(/\bmatrix\s*domain\s*=\s*[^,|)\]]+/gi, '')
+    .replace(/\bdomain\s*=\s*[^,|)\]]+/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^[\s,|:;\-]+|[\s,|:;\-]+$/g, '')
 }
 
 function parseAstroEvidenceLine(value: string): string {
@@ -138,27 +167,29 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     [selectedDate?.bestTimes]
   )
 
-  const categoryLabels: Record<EventCategory, { ko: string; en: string }> = {
-    wealth: { ko: '재물운', en: 'Wealth' },
-    career: { ko: '커리어운', en: 'Career' },
-    love: { ko: '연애운', en: 'Love' },
-    health: { ko: '건강운', en: 'Health' },
-    travel: { ko: '여행운', en: 'Travel' },
-    study: { ko: '학업운', en: 'Study' },
-    general: { ko: '전체운', en: 'General' },
-  }
+  const categoryLabels = useMemo<Record<EventCategory, { ko: string; en: string }>>(
+    () => ({
+      wealth: { ko: '재물운', en: 'Wealth' },
+      career: { ko: '커리어운', en: 'Career' },
+      love: { ko: '연애운', en: 'Love' },
+      health: { ko: '건강운', en: 'Health' },
+      travel: { ko: '여행운', en: 'Travel' },
+      study: { ko: '학업운', en: 'Study' },
+      general: { ko: '전체운', en: 'General' },
+    }),
+    []
+  )
 
   const termHelp = {
     matrixBadge:
       locale === 'ko'
-        ? 'matrix 기준 (여러 신호를 합친 종합 점수)'
-        : 'Matrix-based (combined score from multiple signals)',
+        ? '종합 신호 근거 (여러 신호를 합친 점수)'
+        : 'Combined signal basis (multi-signal score)',
     crossBadge:
       locale === 'ko'
         ? '교차 검증 (사주+점성 결과가 같은 방향)'
         : 'Cross-verified (Saju + Astrology aligned)',
-    cautionBadge:
-      locale === 'ko' ? '주의 신호 (리스크 경고)' : 'Caution signal (risk warning)',
+    cautionBadge: locale === 'ko' ? '주의 신호 (리스크 경고)' : 'Caution signal (risk warning)',
     sajuTitle:
       locale === 'ko'
         ? '사주 분석 (타고난 구조와 오늘의 흐름)'
@@ -172,7 +203,8 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       locale === 'ko'
         ? '오늘의 좋은 시간 (중요 일정을 넣기 좋은 시간대)'
         : 'Best Times Today (better windows for key tasks)',
-    dailyPeakTitle: locale === 'ko' ? '데일리 + 피크 윈도우 통합 해석' : 'Daily + Peak Window Insight',
+    dailyPeakTitle:
+      locale === 'ko' ? '데일리 + 피크 윈도우 통합 해석' : 'Daily + Peak Window Insight',
   }
 
   const handleAddToCalendar = useCallback(() => {
@@ -262,7 +294,11 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     }
 
     const peakLabel =
-      peakLevel === 'peak' ? 'peak window' : peakLevel === 'high' ? 'rising window' : 'steady window'
+      peakLevel === 'peak'
+        ? 'peak window'
+        : peakLevel === 'high'
+          ? 'rising window'
+          : 'steady window'
     const timeLine = bestWindow
       ? `Prioritize key decisions around ${bestWindow}.`
       : 'If possible, place key tasks in your highest-focus block.'
@@ -280,6 +316,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
   const evidenceAstroDetails = (selectedDate?.evidence?.cross?.astroDetails || [])
     .map((line) => parseAstroEvidenceLine(line))
+    .map((line) => stripMatrixDomainText(line))
     .filter(Boolean)
   const evidenceSajuDetails = (selectedDate?.evidence?.cross?.sajuDetails || [])
     .map((line) => normalizeEvidenceLine(line))
@@ -298,12 +335,16 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
         {resolvedPeakLevel && (
           <span className={styles.peakLevelChip}>
-            {locale === 'ko' ? getPeakLabel(resolvedPeakLevel, 'ko') : getPeakLabel(resolvedPeakLevel, 'en')}
+            {locale === 'ko'
+              ? getPeakLabel(resolvedPeakLevel, 'ko')
+              : getPeakLabel(resolvedPeakLevel, 'en')}
           </span>
         )}
 
         <div className={styles.headerActions}>
-          {selectedDate && <span className={styles.selectedGrade}>{getGradeEmoji(selectedDate.grade)}</span>}
+          {selectedDate && (
+            <span className={styles.selectedGrade}>{getGradeEmoji(selectedDate.grade)}</span>
+          )}
 
           {status === 'authenticated' && selectedDate && (
             <button
@@ -342,9 +383,13 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           <h3 className={styles.selectedTitle}>{deepRepairText(selectedDate.title)}</h3>
 
           {selectedDate.grade >= 3 && selectedDate.warnings.length > 0 && (
-            <div className={`${styles.urgentWarningBox} ${selectedDate.grade === 4 ? styles.worstDay : ''}`}>
+            <div
+              className={`${styles.urgentWarningBox} ${selectedDate.grade === 4 ? styles.worstDay : ''}`}
+            >
               <div className={styles.urgentWarningHeader}>
-                <span className={styles.urgentWarningIcon}>{selectedDate.grade === 4 ? '\u{1F6A8}' : '\u26A0\uFE0F'}</span>
+                <span className={styles.urgentWarningIcon}>
+                  {selectedDate.grade === 4 ? '\u{1F6A8}' : '\u26A0\uFE0F'}
+                </span>
                 <span className={styles.urgentWarningTitle}>
                   {locale === 'ko'
                     ? selectedDate.grade === 4
@@ -358,7 +403,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               <ul className={styles.urgentWarningList}>
                 {selectedDate.warnings.slice(0, 3).map((w, i) => (
                   <li key={i} className={styles.urgentWarningItem}>
-                    <span className={styles.urgentWarningDot}>\u2022</span>
+                    <span className={styles.urgentWarningDot}>{'\u2022'}</span>
                     {deepRepairText(w)}
                   </li>
                 ))}
@@ -368,7 +413,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
           {selectedDate.crossVerified && selectedDate.grade <= 1 && (
             <div className={styles.crossVerifiedBadge}>
-              <span className={styles.crossVerifiedIcon}>{'🔮'}</span>
+              <span className={styles.crossVerifiedIcon}>{'\u{1F52E}'}</span>
               <span className={styles.crossVerifiedText}>
                 {locale === 'ko' ? '사주 + 점성 교차 검증 완료' : 'Saju + Astrology Cross-verified'}
               </span>
@@ -376,7 +421,9 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           )}
 
           {selectedDate.summary && (
-            <div className={`${styles.summaryBox} ${selectedDate.grade >= 3 ? styles.summaryWarning : ''}`}>
+            <div
+              className={`${styles.summaryBox} ${selectedDate.grade >= 3 ? styles.summaryWarning : ''}`}
+            >
               <p className={styles.summaryText}>{deepRepairText(selectedDate.summary)}</p>
             </div>
           )}
@@ -396,7 +443,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 <span className={styles.calendarEvidenceBadge}>{termHelp.cautionBadge}</span>
               </div>
               <ul className={styles.calendarEvidenceList}>
-                <li>{`Matrix: domain=${selectedDate.evidence.matrix.domain}, confidence=${selectedDate.evidence.confidence}%, score=${selectedDate.evidence.matrix.finalScoreAdjusted}`}</li>
+                <li>{`Signals: confidence=${selectedDate.evidence.confidence}%, score=${selectedDate.evidence.matrix.finalScoreAdjusted}`}</li>
                 <li>
                   {`Cross set: Saju (${normalizeEvidenceLine(selectedDate.evidence.cross.sajuEvidence || 'n/a')}) / Astrology (${parseAstroEvidenceLine(selectedDate.evidence.cross.astroEvidence || 'n/a')})`}
                 </li>
@@ -432,7 +479,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {normalizedBestTimes.length > 0 && (
             <div className={styles.bestTimesBox}>
               <h4 className={styles.bestTimesTitle}>
-                <span className={styles.bestTimesIcon}>\u23F0</span>
+                <span className={styles.bestTimesIcon}>{'\u23F0'}</span>
                 {termHelp.bestTimes}
               </h4>
               <div className={styles.bestTimesList}>
@@ -469,7 +516,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {selectedDate.sajuFactors && selectedDate.sajuFactors.length > 0 && (
             <div className={styles.analysisSection}>
               <h4 className={styles.analysisTitle}>
-                <span className={styles.analysisBadge}>\u263F\uFE0F</span>
+                <span className={styles.analysisBadge}>{'\u263F\uFE0F'}</span>
                 {termHelp.sajuTitle}
               </h4>
               <ul className={styles.analysisList}>
@@ -486,7 +533,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {selectedDate.astroFactors && selectedDate.astroFactors.length > 0 && (
             <div className={styles.analysisSection}>
               <h4 className={styles.analysisTitle}>
-                <span className={styles.analysisBadge}>{'🌟'}</span>
+                <span className={styles.analysisBadge}>{'\u{1F31F}'}</span>
                 {termHelp.astroTitle}
               </h4>
               <ul className={styles.analysisList}>
@@ -503,7 +550,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {selectedDate.recommendations.length > 0 && (
             <div className={styles.recommendationsSection}>
               <h4 className={styles.recommendationsTitle}>
-                <span className={styles.recommendationsIcon}>\u2728</span>
+                <span className={styles.recommendationsIcon}>{'\u2728'}</span>
                 {locale === 'ko' ? '오늘의 행운 키' : 'Lucky Keys'}
               </h4>
               <div className={styles.recommendationsGrid}>
@@ -520,7 +567,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {selectedDate.warnings.length > 0 && selectedDate.grade < 3 && (
             <div className={styles.warningsSection}>
               <h4 className={styles.warningsTitle}>
-                <span className={styles.warningsIcon}>\u26A1</span>
+                <span className={styles.warningsIcon}>{'\u26A1'}</span>
                 {locale === 'ko' ? '오늘의 주의보' : "Today's Alert"}
               </h4>
               <ul className={styles.warningsList}>
@@ -544,12 +591,14 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 <span>{locale === 'ko' ? '저장 중...' : 'Saving...'}</span>
               ) : isSaved ? (
                 <>
-                  <span>\u2605</span>
-                  <span>{locale === 'ko' ? '저장됨 (클릭하여 삭제)' : 'Saved (click to remove)'}</span>
+                  <span>{'\u2605'}</span>
+                  <span>
+                    {locale === 'ko' ? '저장됨 (클릭하여 삭제)' : 'Saved (click to remove)'}
+                  </span>
                 </>
               ) : (
                 <>
-                  <span>\u2606</span>
+                  <span>{'\u2606'}</span>
                   <span>{locale === 'ko' ? '이 날짜 저장하기' : 'Save this date'}</span>
                 </>
               )}
@@ -561,7 +610,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             onClick={handleAddToCalendar}
             aria-label={locale === 'ko' ? '휴대폰 캘린더에 추가' : 'Add to phone calendar'}
           >
-            <span>{'📲'}</span>
+            <span>{'\u{1F4F2}'}</span>
             <span>{locale === 'ko' ? '캘린더에 추가' : 'Add to Calendar'}</span>
           </button>
         </div>

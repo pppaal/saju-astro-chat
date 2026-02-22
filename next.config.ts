@@ -98,27 +98,21 @@ const nextConfig = {
   // Ensure native addon and ephemeris files are traced into serverless outputs.
   // Without this, routes that depend on swisseph can fail at runtime on deploy.
   outputFileTracingIncludes: {
-    '/api/destiny-map/:path*': [
+    '/app/api/destiny-map/**': [
       './node_modules/swisseph/build/Release/**/*.node',
       './public/ephe/**/*',
     ],
-    '/api/astrology/:path*': [
+    '/app/api/astrology/**': [
       './node_modules/swisseph/build/Release/**/*.node',
       './public/ephe/**/*',
     ],
-    '/api/calendar': [
+    '/app/api/calendar': ['./node_modules/swisseph/build/Release/**/*.node', './public/ephe/**/*'],
+    '/app/api/past-life': ['./node_modules/swisseph/build/Release/**/*.node', './public/ephe/**/*'],
+    '/app/api/precompute-chart': [
       './node_modules/swisseph/build/Release/**/*.node',
       './public/ephe/**/*',
     ],
-    '/api/past-life': [
-      './node_modules/swisseph/build/Release/**/*.node',
-      './public/ephe/**/*',
-    ],
-    '/api/precompute-chart': [
-      './node_modules/swisseph/build/Release/**/*.node',
-      './public/ephe/**/*',
-    ],
-    '/api/life-prediction/:path*': [
+    '/app/api/life-prediction/**': [
       './node_modules/swisseph/build/Release/**/*.node',
       './public/ephe/**/*',
     ],

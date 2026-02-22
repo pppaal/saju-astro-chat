@@ -218,43 +218,14 @@ export const GET = withApiMiddleware(
         birthDay: birthDate.getDate(),
       }
     } catch (astroError) {
-      logger.warn('[Calendar] Astrology calculation fallback:', astroError)
-      // 폴백: 단순 계산
-      const month = birthDate.getMonth()
-      const day = birthDate.getDate()
-      let sunSign = 'Aries'
-      if ((month === 2 && day >= 21) || (month === 3 && day <= 19)) {
-        sunSign = 'Aries'
-      } else if ((month === 3 && day >= 20) || (month === 4 && day <= 20)) {
-        sunSign = 'Taurus'
-      } else if ((month === 4 && day >= 21) || (month === 5 && day <= 20)) {
-        sunSign = 'Gemini'
-      } else if ((month === 5 && day >= 21) || (month === 6 && day <= 22)) {
-        sunSign = 'Cancer'
-      } else if ((month === 6 && day >= 23) || (month === 7 && day <= 22)) {
-        sunSign = 'Leo'
-      } else if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) {
-        sunSign = 'Virgo'
-      } else if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) {
-        sunSign = 'Libra'
-      } else if ((month === 9 && day >= 23) || (month === 10 && day <= 21)) {
-        sunSign = 'Scorpio'
-      } else if ((month === 10 && day >= 22) || (month === 11 && day <= 21)) {
-        sunSign = 'Sagittarius'
-      } else if ((month === 11 && day >= 22) || (month === 0 && day <= 19)) {
-        sunSign = 'Capricorn'
-      } else if ((month === 0 && day >= 20) || (month === 1 && day <= 18)) {
-        sunSign = 'Aquarius'
-      } else {
-        sunSign = 'Pisces'
-      }
-
-      astroProfile = {
-        sunSign,
-        sunElement: ZODIAC_TO_ELEMENT[sunSign] || 'fire',
-        birthMonth: birthDate.getMonth() + 1,
-        birthDay: birthDate.getDate(),
-      }
+      logger.error('[Calendar] Astrology calculation failed (strict mode):', astroError)
+      return createErrorResponse({
+        code: ErrorCodes.SERVICE_UNAVAILABLE,
+        message: 'Advanced astrology calculation unavailable',
+        locale: extractLocale(request),
+        route: 'calendar',
+        originalError: astroError instanceof Error ? astroError : new Error(String(astroError)),
+      })
     }
 
     let matrixCalendarContext: MatrixCalendarContext = null
@@ -302,7 +273,14 @@ export const GET = withApiMiddleware(
         domainScores: matrix.summary.domainScores || undefined,
       }
     } catch (matrixError) {
-      logger.warn('[Calendar] Matrix overlay fallback:', matrixError)
+      logger.error('[Calendar] Matrix overlay failed (strict mode):', matrixError)
+      return createErrorResponse({
+        code: ErrorCodes.SERVICE_UNAVAILABLE,
+        message: 'Destiny matrix calculation unavailable',
+        locale: extractLocale(request),
+        route: 'calendar',
+        originalError: matrixError instanceof Error ? matrixError : new Error(String(matrixError)),
+      })
     }
 
     // 로컬 계산으로 중요 날짜 가져오기 (Redis 캐싱 적용)
@@ -354,6 +332,15 @@ export const GET = withApiMiddleware(
 
     // AI 백엔드 호출 시도
     const aiDates = await fetchAIDates(sajuData, astroData, category || 'overall')
+    if (!aiDates) {
+      logger.error('[Calendar] AI date enrichment unavailable (strict mode)')
+      return createErrorResponse({
+        code: ErrorCodes.SERVICE_UNAVAILABLE,
+        message: 'AI date enrichment unavailable',
+        locale: extractLocale(request),
+        route: 'calendar',
+      })
+    }
     const formatCalendarDate = (d: (typeof filteredDates)[number]) =>
       formatDateForResponse(
         d,

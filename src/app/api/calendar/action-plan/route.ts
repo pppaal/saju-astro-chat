@@ -211,7 +211,10 @@ const cleanGuidanceText = (value: string, maxLength = 96): string => {
 
   const noEvidenceTail = normalized.replace(/\s*(근거|evidence)\s*:.*/i, '').trim()
   const noHype = noEvidenceTail
-    .replace(/\b(자시|축시|인시|묘시|진시|사시|오시|미시|신시|유시|술시|해시)\s*\(([^)]*)\)\s*:?/g, '')
+    .replace(
+      /\b(자시|축시|인시|묘시|진시|사시|오시|미시|신시|유시|술시|해시)\s*\(([^)]*)\)\s*:?/g,
+      ''
+    )
     .replace(/\b(자시|축시|인시|묘시|진시|사시|오시|미시|신시|유시|술시|해시)\b/g, '')
     .replace(/\b(?:Ja|Chuk|In|Myo|Jin|Sa|O|Mi|Shin|Yu|Sul|Hae)-si\b[^:]*:?/gi, '')
     .replace(/인생을 바꿀[^.!\n]*/g, '')
@@ -524,9 +527,12 @@ function buildPersonalSummaryTag(input: {
   const { locale, icp, persona } = input
   const tokens: string[] = []
 
-  if (icp?.primaryStyle) tokens.push(locale === 'ko' ? `ICP ${icp.primaryStyle}` : `ICP ${icp.primaryStyle}`)
+  if (icp?.primaryStyle)
+    tokens.push(locale === 'ko' ? `ICP ${icp.primaryStyle}` : `ICP ${icp.primaryStyle}`)
   if (persona?.personaName) {
-    tokens.push(locale === 'ko' ? `페르소나 ${persona.personaName}` : `Persona ${persona.personaName}`)
+    tokens.push(
+      locale === 'ko' ? `페르소나 ${persona.personaName}` : `Persona ${persona.personaName}`
+    )
   } else if (persona?.typeCode) {
     tokens.push(locale === 'ko' ? `페르소나 ${persona.typeCode}` : `Persona ${persona.typeCode}`)
   }
@@ -607,8 +613,8 @@ const buildRuleBasedTimeline = (input: {
       const recHint = cleanGuidanceText(pickByHour(calendar?.recommendations, hour) || '', 78)
       const warningHint = cleanGuidanceText(pickByHour(calendar?.warnings, hour) || '', 78)
       const matrixSummary =
-        calendar?.evidence?.matrix?.domain && typeof calendar?.evidence?.confidence === 'number'
-          ? `Matrix: ${calendar.evidence.matrix.domain} confidence ${calendar.evidence.confidence}%`
+        typeof calendar?.evidence?.confidence === 'number'
+          ? `Signals: confidence ${calendar.evidence.confidence}%`
           : null
       const primaryAstroLine =
         pickCrossLineByTone(calendar?.evidence?.cross?.astroDetails, tone) ||
@@ -1015,7 +1021,25 @@ export const POST = withApiMiddleware(
             : null,
         })
       : null
-    const timeline = (aiRefined?.timeline || baseTimeline).map((slot) => {
+    if (!canUseAiPrecision) {
+      return apiError(
+        ErrorCodes.SERVICE_UNAVAILABLE,
+        lang === 'ko'
+          ? '고급 타임라인(그래프RAG) 사용이 허용되지 않았습니다.'
+          : 'Advanced timeline (GraphRAG) is not allowed.'
+      )
+    }
+
+    if (!aiRefined || !aiRefined.timeline || aiRefined.timeline.length === 0) {
+      return apiError(
+        ErrorCodes.SERVICE_UNAVAILABLE,
+        lang === 'ko'
+          ? '고급 타임라인(그래프RAG) 생성에 실패했습니다.'
+          : 'Failed to generate advanced timeline (GraphRAG).'
+      )
+    }
+
+    const timeline = aiRefined.timeline.map((slot) => {
       const baseEvidence = (slot.evidenceSummary || []).filter(Boolean)
       const tone = slot.tone ?? 'neutral'
       const personalHint = buildPersonalizationHint({ locale: lang, tone, icp, persona })
@@ -1040,13 +1064,20 @@ export const POST = withApiMiddleware(
         return {
           ...slot,
           note,
-          evidenceSummary: [...baseEvidence.slice(0, 2), ...(personalLine ? [personalLine] : []), alternativeLine].slice(0, 4),
+          evidenceSummary: [
+            ...baseEvidence.slice(0, 2),
+            ...(personalLine ? [personalLine] : []),
+            alternativeLine,
+          ].slice(0, 4),
         }
       }
       return {
         ...slot,
         note,
-        evidenceSummary: [...baseEvidence.slice(0, 2), ...(personalLine ? [personalLine] : [])].slice(0, 3),
+        evidenceSummary: [
+          ...baseEvidence.slice(0, 2),
+          ...(personalLine ? [personalLine] : []),
+        ].slice(0, 3),
       }
     })
 
@@ -1073,7 +1104,7 @@ export const POST = withApiMiddleware(
       summaryParts.push(aiRefined.summary)
     }
 
-    logger.info('[ActionPlanTimeline] Rule-based timeline generated', {
+    logger.info('[ActionPlanTimeline] AI timeline generated (strict mode)', {
       date,
       intervalMinutes: safeInterval,
       timezone,
@@ -1090,11 +1121,7 @@ export const POST = withApiMiddleware(
         timeline,
         summary: repairMojibakeText(summaryParts.join(' · ')) || undefined,
         intervalMinutes: safeInterval,
-        precisionMode: aiRefined
-          ? 'ai-graphrag'
-          : canUseAiPrecision
-            ? 'rule-based'
-            : 'premium-locked',
+        precisionMode: 'ai-graphrag',
         aiAccess: {
           premiumOnly: CALENDAR_AI_PREMIUM_ONLY,
           allowed: canUseAiPrecision,

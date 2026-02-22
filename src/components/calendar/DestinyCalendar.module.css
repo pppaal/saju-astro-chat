@@ -2146,7 +2146,7 @@
 }
 
 .selectedDayDate {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--cal-text-primary);
 }
@@ -2213,7 +2213,7 @@
 }
 
 .selectedTitle {
-  font-size: 21px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--cal-text-primary);
   margin: 0 0 10px;
@@ -2246,7 +2246,7 @@
 }
 
 .crossVerifiedText {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--cal-accent-purple);
   letter-spacing: 0.3px;
@@ -2278,14 +2278,14 @@
 }
 
 .dailyPeakTitle {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   color: #bae6fd;
   margin-bottom: 6px;
 }
 
 .dailyPeakText {
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.62;
   color: var(--cal-text-primary);
   margin: 0;
@@ -2324,13 +2324,13 @@
   flex-direction: column;
   gap: 6px;
   color: var(--cal-text-primary);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.55;
   font-weight: 500;
 }
 
 .selectedDesc {
-  font-size: 17px;
+  font-size: 19px;
   color: var(--cal-text-secondary);
   line-height: 1.66;
   margin: 0 0 14px;
@@ -2378,14 +2378,14 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--cal-text-primary);
   margin: 0 0 10px;
 }
 
 .bestTimesIcon {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .bestTimesList {
@@ -2398,7 +2398,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--cal-text-secondary);
   padding: 8px 10px;
   background: var(--cal-bg-hover);
@@ -2409,12 +2409,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   background: var(--cal-accent-blue);
   color: #ffffff;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -2427,9 +2427,9 @@
 }
 
 .categoryTag {
-  padding: 6px 12px;
+  padding: 7px 13px;
   border-radius: 16px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   background: var(--cal-bg-tertiary);
   color: var(--cal-text-secondary);
@@ -2500,7 +2500,7 @@
 }
 
 .scoreText {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--cal-text-tertiary);
   font-weight: 500;
   white-space: nowrap;
@@ -2518,7 +2518,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--cal-text-primary);
   margin: 0 0 12px;
@@ -2528,11 +2528,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   background: var(--cal-bg-hover);
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 17px;
 }
 
 .analysisList {
@@ -2546,9 +2546,9 @@
   align-items: flex-start;
   gap: 10px;
   padding: 8px 0;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--cal-text-secondary);
-  line-height: 1.5;
+  line-height: 1.6;
   border-bottom: 1px solid var(--cal-border-light);
 }
 
@@ -2584,7 +2584,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 600;
   color: var(--cal-text-primary);
   margin: 0 0 12px;
@@ -2624,7 +2624,7 @@
 }
 
 .recommendationText {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--cal-text-secondary);
   line-height: 1.4;
 }
@@ -2638,7 +2638,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 600;
   color: var(--cal-grade-bad);
   margin: 0 0 12px;
@@ -2662,9 +2662,9 @@
   background: rgba(255, 69, 58, 0.08);
   border-radius: 10px;
   margin-bottom: 6px;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--cal-text-secondary);
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .warningItem:last-child {
@@ -4082,6 +4082,33 @@
   box-shadow: var(--cal-shadow-glow);
 }
 
+/* Make quick/detailed mode boundaries in intro form clearer */
+.birthFormCard .viewTabs {
+  border-color: rgba(168, 237, 234, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(168, 237, 234, 0.1),
+    var(--cal-shadow-sm);
+}
+
+.birthFormCard .viewTab {
+  border: 1px solid rgba(168, 237, 234, 0.26);
+  background: rgba(168, 237, 234, 0.06);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.birthFormCard .viewTab:hover {
+  border-color: rgba(168, 237, 234, 0.52);
+  background: rgba(168, 237, 234, 0.14);
+  color: #fff;
+}
+
+.birthFormCard .viewTabActive {
+  border-color: rgba(168, 237, 234, 0.72);
+  box-shadow:
+    0 0 0 1px rgba(168, 237, 234, 0.2),
+    0 8px 20px rgba(35, 197, 205, 0.2);
+}
+
 .tabHelperText {
   max-width: 720px;
   margin: 8px auto 14px;
@@ -4723,6 +4750,20 @@
 .largeTextMode .actionPlanTimelineNote {
   font-size: 17px;
   line-height: 1.6;
+}
+
+.largeTextMode .dailyPeakText,
+.largeTextMode .calendarEvidenceList {
+  font-size: 18px;
+  line-height: 1.68;
+}
+
+.largeTextMode .dailyPeakTitle {
+  font-size: 16px;
+}
+
+.largeTextMode .calendarEvidenceBadge {
+  font-size: 14px;
 }
 
 /* Selected date detail panel: make key analysis sections clearly larger */
