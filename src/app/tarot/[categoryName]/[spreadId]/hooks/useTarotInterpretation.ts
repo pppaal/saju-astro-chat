@@ -381,6 +381,17 @@ export function useTarotInterpretation({
       }
 
       try {
+        const normalizedQuestion =
+          userTopic.trim() ||
+          (language === 'ko'
+            ? `${spreadInfo.titleKo || spreadInfo.title} 리딩`
+            : `${spreadInfo.title} reading`)
+        const resolvedSpreadId = spreadId || spreadInfo.id
+
+        if (!resolvedSpreadId) {
+          throw new Error('Missing spreadId for tarot save request')
+        }
+
         const guidance = interpretation?.guidance
         const guidanceText = Array.isArray(guidance)
           ? guidance.map((item) => `${item.title}: ${item.detail}`).join('\n')
@@ -407,13 +418,13 @@ export function useTarotInterpretation({
 
         // Server API save
         if (session?.user) {
-          await apiFetch('/api/tarot/save', {
+          const saveResponse = await apiFetch('/api/tarot/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              question: userTopic,
+              question: normalizedQuestion,
               theme: categoryName,
-              spreadId: spreadId,
+              spreadId: resolvedSpreadId,
               spreadTitle:
                 language === 'ko' ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title,
               cards: readingResult.drawnCards.map((dc, idx) => ({
@@ -442,6 +453,18 @@ export function useTarotInterpretation({
               locale: language,
             }),
           })
+
+          if (!saveResponse.ok) {
+            const errorPayload = (await saveResponse.json().catch(() => null)) as {
+              error?: { message?: string }
+              message?: string
+            } | null
+            const errorMessage =
+              errorPayload?.error?.message ||
+              errorPayload?.message ||
+              `Save failed (${saveResponse.status})`
+            throw new Error(errorMessage)
+          }
         }
 
         setIsSaved(true)
