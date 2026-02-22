@@ -479,7 +479,8 @@
 .topRightControls {
   position: fixed;
   top: 4.25rem;
-  right: 1rem;
+  left: 1rem;
+  right: auto;
   z-index: 150;
   display: flex;
   align-items: center;
@@ -567,6 +568,11 @@
 }
 
 @media (max-width: 768px) {
+  .topRightControls {
+    top: 4rem;
+    left: 0.75rem;
+  }
+
   .instructions {
     padding-right: 6.6rem;
     padding-left: 1rem;

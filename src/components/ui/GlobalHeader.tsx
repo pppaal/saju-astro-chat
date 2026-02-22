@@ -39,6 +39,7 @@ function GlobalHeaderContent() {
   const { data: session, status } = useSession()
 
   const isMainPage = !pathname || pathname === '/' || pathname === ''
+  const isTarotReadingPage = Boolean(pathname && /^\/tarot\/[^/]+\/[^/]+/.test(pathname))
   const signInUrl = useMemo(() => buildSignInUrl(pathname || '/'), [pathname])
 
   const {
@@ -147,7 +148,7 @@ function GlobalHeaderContent() {
         </button>
       </nav>
 
-      <CreditDisplay />
+      {!isTarotReadingPage && <CreditDisplay />}
 
       {showDropdown && (
         <DropdownMenu items={menuItems} focusedIndex={focusedIndex} menuItemsRef={menuItemsRef} />
