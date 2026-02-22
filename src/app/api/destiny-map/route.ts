@@ -1,5 +1,10 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createPublicStreamGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
+import {
+  withApiMiddleware,
+  createSimpleGuard,
+  extractLocale,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { generateReport } from '@/lib/destiny-map/reportService'
 import type { SajuResult, AstrologyResult } from '@/lib/destiny-map/types'
@@ -424,7 +429,10 @@ export const POST = withApiMiddleware(
             hasAstrology: Boolean(report?.raw?.astrology),
           },
         }
-        fs.writeFileSync(file, JSON.stringify(safePayload, null, 2), { encoding: 'utf8', mode: 0o600 })
+        fs.writeFileSync(file, JSON.stringify(safePayload, null, 2), {
+          encoding: 'utf8',
+          mode: 0o600,
+        })
         logger.warn('[API] Debug log saved (dev only)')
       } catch (err) {
         logger.warn('[API] Log save failed:', err instanceof Error ? err.message : 'Unknown error')
@@ -511,7 +519,7 @@ export const POST = withApiMiddleware(
 
     return NextResponse.json(responsePayload)
   },
-  createPublicStreamGuard({
+  createSimpleGuard({
     route: 'destiny-map',
     limit: 60,
     windowSeconds: 60,
