@@ -1,6 +1,6 @@
 'use client'
 
-import React, { Suspense, useEffect, useCallback, useRef, useState } from 'react'
+import React, { Suspense, useEffect, useCallback, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -46,6 +46,8 @@ function TarotReadingPage() {
   const detailedSectionRef = useRef<HTMLDivElement | null>(null)
   const [expandedCard, setExpandedCard] = useState<number | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const requestedInterpretationKeyRef = useRef<string | null>(null)
+  const isInterpretationFetchingRef = useRef(false)
 
   // Custom hooks
   const gameHook = useTarotGame()
@@ -56,17 +58,67 @@ function TarotReadingPage() {
     selectedDeckStyle: gameHook.selectedDeckStyle,
     personalizationOptions: gameHook.personalizationOptions,
   })
+  const readingResult = gameHook.readingResult
+  const interpretationFallback = gameHook.interpretation?.fallback
+  const setInterpretation = gameHook.setInterpretation
+  const fetchInterpretation = interpretationHook.fetchInterpretation
 
-  // Fetch interpretation when reading result is available
+  const readingSignature = useMemo(() => {
+    if (!readingResult) {
+      return ''
+    }
+    const spreadKey = readingResult.spread?.id || spreadId || 'spread'
+    const cardsKey = readingResult.drawnCards
+      .map((dc) => `${dc.card.id}:${dc.isReversed ? 'r' : 'u'}`)
+      .join('|')
+    return `${spreadKey}:${cardsKey}`
+  }, [readingResult, spreadId])
+
+  // Fetch interpretation once per reading result (prevents re-fetch loop/rewrite)
   useEffect(() => {
-    if (gameHook.readingResult && gameHook.interpretation?.fallback) {
-      interpretationHook.fetchInterpretation(gameHook.readingResult).then((result) => {
-        if (result) {
-          gameHook.setInterpretation(result)
+    if (!readingSignature) {
+      requestedInterpretationKeyRef.current = null
+      isInterpretationFetchingRef.current = false
+      return
+    }
+
+    if (!readingResult || !interpretationFallback) {
+      return
+    }
+
+    if (
+      requestedInterpretationKeyRef.current === readingSignature ||
+      isInterpretationFetchingRef.current
+    ) {
+      return
+    }
+
+    requestedInterpretationKeyRef.current = readingSignature
+    isInterpretationFetchingRef.current = true
+    let cancelled = false
+
+    fetchInterpretation(readingResult)
+      .then((result) => {
+        if (!cancelled && result) {
+          setInterpretation(result)
         }
       })
+      .finally(() => {
+        if (!cancelled) {
+          isInterpretationFetchingRef.current = false
+        }
+      })
+
+    return () => {
+      cancelled = true
     }
-  }, [gameHook, interpretationHook])
+  }, [
+    readingSignature,
+    readingResult,
+    interpretationFallback,
+    setInterpretation,
+    fetchInterpretation,
+  ])
 
   // Card reveal with auto-scroll
   const handleCardReveal = useCallback(

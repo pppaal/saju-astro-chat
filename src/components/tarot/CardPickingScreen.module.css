@@ -81,7 +81,7 @@
   z-index: 100;
   width: 100%;
   background: transparent;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 7.25rem 0.5rem 3.5rem;
   flex-shrink: 0;
   position: relative;
   display: flex;
@@ -148,12 +148,14 @@
   animation: orbPulse 1.5s ease-in-out infinite;
 }
 
-.guidanceText {
+.instructions .guidanceText {
   font-size: 1rem;
   color: rgba(99, 210, 255, 0.85);
   margin: 0.5rem 0;
   font-weight: 500;
   animation: fadeIn 0.5s ease;
+  max-width: min(680px, calc(100vw - 11rem));
+  line-height: 1.35;
 }
 
 /* ===== First-time User Tooltip ===== */
@@ -333,7 +335,9 @@
   bottom: -80px;
   margin-left: -100px;
   transform-origin: center bottom;
-  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), z-index 0s;
+  transition:
+    transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+    z-index 0s;
   will-change: transform;
   border: none;
   background: none;
@@ -474,7 +478,7 @@
 /* ===== Top Right Controls (Progress + Redraw) ===== */
 .topRightControls {
   position: fixed;
-  top: 4rem;
+  top: 4.25rem;
   right: 1rem;
   z-index: 150;
   display: flex;
@@ -548,6 +552,7 @@
   backdrop-filter: blur(10px);
   white-space: nowrap;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
 }
 
 .redrawButtonBottomRight:hover {
@@ -562,18 +567,28 @@
 }
 
 @media (max-width: 768px) {
+  .instructions {
+    padding-right: 6.6rem;
+    padding-left: 1rem;
+  }
+
+  .instructions .guidanceText {
+    max-width: calc(100vw - 8.25rem);
+    font-size: 0.92rem;
+  }
+
   .redrawButtonBottomRight {
-    top: auto;
-    bottom: 1rem;
-    right: 1rem;
-    transform: none;
-    padding: 0.55rem 1rem;
-    font-size: 0.85rem;
+    top: 50%;
+    right: 0.75rem;
+    transform: translateY(-50%);
+    padding: 0.55rem 0.9rem;
+    font-size: 0.8rem;
+    max-width: 6.5rem;
   }
 
   .redrawButtonBottomRight:hover,
   .redrawButtonBottomRight:active {
-    transform: none;
+    transform: translateY(-50%);
   }
 }
 
