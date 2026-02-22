@@ -376,10 +376,48 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
     []
   )
-  const cleanText = useCallback((value: string | null | undefined) => {
-    if (!value) return ''
-    return repairMojibakeText(value)
+
+  const decodeUnicodeEscapes = useCallback((value: string) => {
+    if (!value || value.indexOf('\\u') === -1) return value
+    return value
+      .replace(/\\u\{([0-9A-Fa-f]{1,6})\}/g, (raw, hex: string) => {
+        const codePoint = Number.parseInt(hex, 16)
+        if (!Number.isFinite(codePoint)) return raw
+        try {
+          return String.fromCodePoint(codePoint)
+        } catch {
+          return raw
+        }
+      })
+      .replace(/\\u([0-9A-Fa-f]{4})/g, (raw, hex: string) => {
+        const codePoint = Number.parseInt(hex, 16)
+        if (!Number.isFinite(codePoint)) return raw
+        return String.fromCharCode(codePoint)
+      })
   }, [])
+
+  const stripMatrixDomainText = useCallback((value: string) => {
+    if (!value) return ''
+    return value
+      .replace(/\bmatrix\s*:\s*/gi, '')
+      .replace(/\bmatrix\s*domain\s*=\s*[^,|)\]]+/gi, '')
+      .replace(/\bmatrix\s*domain\s*:\s*[^,|)\]]+/gi, '')
+      .replace(/\bdomain\s*=\s*[^,|)\]]+/gi, '')
+      .replace(/\bdomain\s*:\s*[^,|)\]]+/gi, '')
+      .replace(/\bmatrix\b/gi, '')
+      .replace(/\s{2,}/g, ' ')
+      .replace(/^[\s,|:;\-]+|[\s,|:;\-]+$/g, '')
+  }, [])
+
+  const cleanText = useCallback(
+    (value: string | null | undefined) => {
+      if (!value) return ''
+      const repaired = repairMojibakeText(value)
+      const decoded = decodeUnicodeEscapes(repaired)
+      return stripMatrixDomainText(decoded)
+    },
+    [decodeUnicodeEscapes, stripMatrixDomainText]
+  )
 
   const extractBestHours = useCallback((value: string) => {
     if (!value || /년|월/.test(value)) {
