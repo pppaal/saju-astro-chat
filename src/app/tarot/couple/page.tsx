@@ -1,65 +1,73 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import styles from './couple-tarot.module.css';
-import { logger } from '@/lib/logger';
+import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import styles from './couple-tarot.module.css'
+import { logger } from '@/lib/logger'
 
 type Match = {
-  connectionId: string;
-  matchedAt: string;
-  compatibilityScore: number | null;
+  connectionId: string
+  matchedAt: string
+  compatibilityScore: number | null
   partner: {
-    profileId: string;
-    userId: string;
-    displayName: string;
-    photos: string[];
-  };
-};
+    profileId: string
+    userId: string
+    displayName: string
+    photos: string[]
+  }
+}
 
 type CoupleReading = {
-  id: string;
-  spreadTitle: string;
-  question: string;
-  createdAt: string;
-  isMyReading: boolean;
-  isPaidByMe: boolean;
+  id: string
+  spreadTitle: string
+  question: string
+  createdAt: string
+  isMyReading: boolean
+  isPaidByMe: boolean
   partner: {
-    id: string;
-    name: string | null;
-    image: string | null;
-  } | null;
-};
+    id: string
+    name: string | null
+    image: string | null
+  } | null
+}
 
 const COUPLE_SPREADS = [
   { id: 'couple-3', name: '커플 3카드', cards: 3, icon: '💕' },
   { id: 'relationship-5', name: '관계 5카드', cards: 5, icon: '💞' },
   { id: 'love-celtic', name: '연애 켈틱 크로스', cards: 10, icon: '🌹' },
-];
+]
 
 export default function CoupleTarotPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const redirectedRef = useRef(false)
 
-  const [loading, setLoading] = useState(true);
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [readings, setReadings] = useState<CoupleReading[]>([]);
-  const [selectedPartner, setSelectedPartner] = useState<Match | null>(null);
-  const [selectedSpread, setSelectedSpread] = useState<string>('couple-3');
-  const [question, setQuestion] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true)
+  const [matches, setMatches] = useState<Match[]>([])
+  const [readings, setReadings] = useState<CoupleReading[]>([])
+  const [selectedPartner, setSelectedPartner] = useState<Match | null>(null)
+  const [selectedSpread, setSelectedSpread] = useState<string>('couple-3')
+  const [question, setQuestion] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    if (status === 'loading') {return;}
-
-    if (!session) {
-      router.push('/auth/signin?callbackUrl=/tarot/couple');
-      return;
+    if (status === 'loading') {
+      return
     }
+
+    if (status === 'unauthenticated' && !redirectedRef.current) {
+      redirectedRef.current = true
+      router.push('/auth/signin?callbackUrl=/tarot/couple')
+      return
+    }
+    if (status !== 'authenticated') {
+      return
+    }
+    redirectedRef.current = false
 
     const loadData = async () => {
       try {
@@ -67,36 +75,36 @@ export default function CoupleTarotPage() {
         const [matchesRes, readingsRes] = await Promise.all([
           fetch('/api/destiny-match/matches'),
           fetch('/api/tarot/couple-reading'),
-        ]);
+        ])
 
         if (matchesRes.ok) {
-          const matchData = await matchesRes.json();
-          setMatches(matchData.matches || []);
+          const matchData = await matchesRes.json()
+          setMatches(matchData.matches || [])
         }
 
         if (readingsRes.ok) {
-          const readingData = await readingsRes.json();
-          setReadings(readingData.readings || []);
+          const readingData = await readingsRes.json()
+          setReadings(readingData.readings || [])
         }
       } catch (e) {
-        logger.error('Load data error:', { error: e });
-        setError('데이터를 불러오는 중 오류가 발생했습니다');
+        logger.error('Load data error:', { error: e })
+        setError('데이터를 불러오는 중 오류가 발생했습니다')
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    loadData();
-  }, [session, status, router]);
+    loadData()
+  }, [session, status, router])
 
   const handleStartReading = async () => {
     if (!selectedPartner) {
-      setError('파트너를 선택해주세요');
-      return;
+      setError('파트너를 선택해주세요')
+      return
     }
 
-    setSubmitting(true);
-    setError(null);
+    setSubmitting(true)
+    setError(null)
 
     try {
       // 타로 리딩 페이지로 이동 (커플 모드)
@@ -107,24 +115,24 @@ export default function CoupleTarotPage() {
         partnerName: selectedPartner.partner.displayName,
         spreadId: selectedSpread,
         question: question || '우리의 관계는 어떨까요?',
-      });
+      })
 
-      router.push(`/tarot/love/${selectedSpread}?${params.toString()}`);
+      router.push(`/tarot/love/${selectedSpread}?${params.toString()}`)
     } catch (e) {
-      logger.error('Start reading error:', { error: e });
-      setError('리딩을 시작하는 중 오류가 발생했습니다');
-      setSubmitting(false);
+      logger.error('Start reading error:', { error: e })
+      setError('리딩을 시작하는 중 오류가 발생했습니다')
+      setSubmitting(false)
     }
-  };
+  }
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    const date = new Date(dateStr)
     return date.toLocaleDateString('ko-KR', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    });
-  };
+    })
+  }
 
   if (status === 'loading' || loading) {
     return (
@@ -134,7 +142,7 @@ export default function CoupleTarotPage() {
           <p>로딩 중...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -158,7 +166,11 @@ export default function CoupleTarotPage() {
             <div className={styles.emptyIcon}>💫</div>
             <h2>매칭된 파트너가 없어요</h2>
             <p>먼저 Destiny Match에서 인연을 찾아보세요!</p>
-            <Link href="/destiny-match" className={styles.startButton} style={{ display: 'inline-block', marginTop: '1rem', textDecoration: 'none' }}>
+            <Link
+              href="/destiny-match"
+              className={styles.startButton}
+              style={{ display: 'inline-block', marginTop: '1rem', textDecoration: 'none' }}
+            >
               인연 찾으러 가기
             </Link>
           </div>
@@ -179,8 +191,8 @@ export default function CoupleTarotPage() {
                     onClick={() => setSelectedPartner(match)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setSelectedPartner(match);
+                        e.preventDefault()
+                        setSelectedPartner(match)
                       }
                     }}
                     aria-label={`Select ${match.partner.displayName} for couple tarot reading`}
@@ -199,14 +211,10 @@ export default function CoupleTarotPage() {
                     </div>
                     <div className={styles.partnerInfo}>
                       <p className={styles.partnerName}>{match.partner.displayName}</p>
-                      <p className={styles.partnerMeta}>
-                        매칭: {formatDate(match.matchedAt)}
-                      </p>
+                      <p className={styles.partnerMeta}>매칭: {formatDate(match.matchedAt)}</p>
                     </div>
                     {match.compatibilityScore && (
-                      <div className={styles.compatScore}>
-                        {match.compatibilityScore}%
-                      </div>
+                      <div className={styles.compatScore}>{match.compatibilityScore}%</div>
                     )}
                   </div>
                 ))}
@@ -228,8 +236,8 @@ export default function CoupleTarotPage() {
                     onClick={() => setSelectedSpread(spread.id)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setSelectedSpread(spread.id);
+                        e.preventDefault()
+                        setSelectedSpread(spread.id)
                       }
                     }}
                     aria-label={spread.name}
@@ -247,7 +255,20 @@ export default function CoupleTarotPage() {
               <h2 className={styles.sectionTitle}>
                 <span>💭</span> 궁금한 점 (선택)
               </h2>
-              <label htmlFor="couple-question-input" style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+              <label
+                htmlFor="couple-question-input"
+                style={{
+                  position: 'absolute',
+                  width: '1px',
+                  height: '1px',
+                  padding: 0,
+                  margin: '-1px',
+                  overflow: 'hidden',
+                  clip: 'rect(0, 0, 0, 0)',
+                  whiteSpace: 'nowrap',
+                  border: 0,
+                }}
+              >
                 커플 타로 질문 입력
               </label>
               <textarea
@@ -297,7 +318,9 @@ export default function CoupleTarotPage() {
                       {reading.partner?.name || '파트너'} · {formatDate(reading.createdAt)}
                     </p>
                   </div>
-                  <span className={`${styles.historyBadge} ${reading.isPaidByMe ? styles.paid : styles.shared}`}>
+                  <span
+                    className={`${styles.historyBadge} ${reading.isPaidByMe ? styles.paid : styles.shared}`}
+                  >
                     {reading.isPaidByMe ? '내가 결제' : '공유받음'}
                   </span>
                 </Link>
@@ -307,5 +330,5 @@ export default function CoupleTarotPage() {
         )}
       </div>
     </div>
-  );
+  )
 }

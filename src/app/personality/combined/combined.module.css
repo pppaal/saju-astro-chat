@@ -109,6 +109,35 @@
 .subtitle {
   color: rgba(255, 255, 255, 0.7);
   font-size: 1rem;
+  line-height: 1.6;
+}
+
+.quickSummary {
+  margin-bottom: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.quickCard {
+  padding: 0.95rem 1rem;
+  border-radius: 0.9rem;
+  background: rgba(0, 0, 0, 0.24);
+  border: 1px solid rgba(168, 85, 247, 0.22);
+}
+
+.quickCard h2 {
+  margin: 0 0 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.quickCard p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #fff;
 }
 
 /* Test Status */
@@ -356,6 +385,10 @@
     grid-template-columns: 1fr;
   }
 
+  .quickSummary {
+    grid-template-columns: 1fr;
+  }
+
   .title {
     font-size: 1.5rem;
   }
@@ -399,6 +432,15 @@
   .summaryGrid {
     gap: 0.75rem;
     margin-bottom: 1.5rem;
+  }
+
+  .quickSummary {
+    gap: 0.65rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .quickCard {
+    padding: 0.8rem 0.85rem;
   }
 
   .summaryCard {

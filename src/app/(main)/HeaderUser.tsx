@@ -6,6 +6,8 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 
+const HEADER_USER_SLOT_WIDTH = 'clamp(120px, 16vw, 220px)'
+
 export default function HeaderUser() {
   return <HeaderUserContent />
 }
@@ -52,12 +54,11 @@ function HeaderUserContent() {
       <div
         style={{
           marginLeft: 8,
-          minWidth: 80,
-          height: 34,
+          width: HEADER_USER_SLOT_WIDTH,
+          height: 44,
           borderRadius: 20,
           background: 'rgba(138,164,255,0.1)',
           border: '1px solid transparent',
-          padding: '6px 14px',
           boxSizing: 'border-box',
         }}
       />
@@ -67,10 +68,18 @@ function HeaderUserContent() {
   // Not logged in - show Login button
   if (!isAuthenticated) {
     return (
-      <div ref={dropdownRef} style={{ position: 'relative', marginLeft: 8 }}>
+      <div
+        ref={dropdownRef}
+        style={{ position: 'relative', marginLeft: 8, width: HEADER_USER_SLOT_WIDTH }}
+      >
         <button
           onClick={() => router.push(signInUrl)}
           style={{
+            width: '100%',
+            minHeight: 44,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             color: '#EAE6FF',
             fontSize: 14,
             whiteSpace: 'nowrap',
@@ -99,10 +108,15 @@ function HeaderUserContent() {
 
   // Logged in - show login status with name and dropdown for logout
   return (
-    <div ref={dropdownRef} style={{ position: 'relative', marginLeft: 8 }}>
+    <div
+      ref={dropdownRef}
+      style={{ position: 'relative', marginLeft: 8, width: HEADER_USER_SLOT_WIDTH }}
+    >
       <button
         onClick={() => setShowDropdown(!showDropdown)}
         style={{
+          width: '100%',
+          minHeight: 44,
           display: 'flex',
           alignItems: 'center',
           gap: 10,
@@ -157,6 +171,10 @@ function HeaderUserContent() {
             fontSize: 14,
             fontWeight: 500,
             whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            flex: 1,
+            textAlign: 'left',
             letterSpacing: '0.01em',
             background: 'linear-gradient(135deg, #ffffff 0%, #a8c8ff 100%)',
             WebkitBackgroundClip: 'text',

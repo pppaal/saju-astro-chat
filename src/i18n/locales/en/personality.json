@@ -386,6 +386,12 @@
           "C": "Scroll or browse without direction."
         }
       }
-    }
+    },
+    "quizHint": "Read each question once, choose your first instinct, and move on.",
+    "answeredOnPage": "Answered {{count}}/{{total}} on this page",
+    "quickRead": "Quick Read",
+    "strongestAxis": "Strongest Axis",
+    "growthFocus": "Growth Focus",
+    "todayAction": "One Action Today"
   }
 }

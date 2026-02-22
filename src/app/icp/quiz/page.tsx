@@ -156,6 +156,7 @@ export default function ICPQuizPage() {
 
   // Check if all questions on current page are answered
   const currentPageAnswered = currentQuestions.every((q) => answers[q.id])
+  const currentPageAnsweredCount = currentQuestions.filter((q) => Boolean(answers[q.id])).length
 
   const handleAnswerChange = (questionId: string, answerId: string) => {
     setAnswers((prev: ICPQuizAnswers) => {
@@ -294,6 +295,11 @@ export default function ICPQuizPage() {
           <p className={styles.subtitle}>
             {isKo ? '솔직하게 답변해주세요.' : 'Answer honestly to reveal your style.'}
           </p>
+          <p className={styles.readabilityHint}>
+            {isKo
+              ? '오래 고민하기보다, 평소 대인관계에서의 나와 가장 가까운 답을 선택해 주세요.'
+              : 'Pick the option that best matches your usual interpersonal pattern.'}
+          </p>
         </div>
 
         {/* Progress Bar */}
@@ -334,8 +340,8 @@ export default function ICPQuizPage() {
         {/* Current Page Info */}
         <div className={styles.pageInfo}>
           {isKo
-            ? `페이지 ${currentPage + 1} / ${totalPages} • 문항 ${startIndex + 1}-${endIndex}`
-            : `Page ${currentPage + 1} of ${totalPages} • Questions ${startIndex + 1}-${endIndex}`}
+            ? `페이지 ${currentPage + 1} / ${totalPages} | 문항 ${startIndex + 1}-${endIndex} | 페이지 내 응답 ${currentPageAnsweredCount}/${currentQuestions.length}`
+            : `Page ${currentPage + 1} of ${totalPages} | Questions ${startIndex + 1}-${endIndex} | Answered on page ${currentPageAnsweredCount}/${currentQuestions.length}`}
         </div>
 
         {/* Questions */}

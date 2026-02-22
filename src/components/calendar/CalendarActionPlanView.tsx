@@ -177,6 +177,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const [aiStatus, setAiStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const aiCacheRef = useRef<Record<string, AiTimelineSlot[]>>({})
   const aiAbortRef = useRef<AbortController | null>(null)
+  const timelineSlotRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const [activeRhythmHour, setActiveRhythmHour] = useState<number | null>(null)
 
   useEffect(() => {
     return () => {
@@ -834,6 +836,58 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     isKo,
   ])
 
+  const hourlyRhythm = useMemo(() => {
+    return Array.from({ length: 24 }, (_, hour) => {
+      const hourSlots = timelineSlots.filter((slot) => slot.hour === hour)
+      let tone: 'best' | 'caution' | 'neutral' = 'neutral'
+      if (hourSlots.some((slot) => slot.tone === 'caution')) {
+        tone = 'caution'
+      } else if (hourSlots.some((slot) => slot.tone === 'best')) {
+        tone = 'best'
+      }
+
+      const primarySlot =
+        hourSlots.find((slot) => slot.tone === tone && slot.note) ||
+        hourSlots.find((slot) => slot.note) ||
+        hourSlots[0]
+
+      return {
+        hour,
+        tone,
+        note: cleanText(primarySlot?.note || ''),
+      }
+    })
+  }, [timelineSlots, cleanText])
+
+  useEffect(() => {
+    const preferredHour =
+      timelineSlots.find((slot) => slot.tone === 'best')?.hour ??
+      timelineSlots.find((slot) => slot.tone === 'neutral')?.hour ??
+      9
+    setActiveRhythmHour(preferredHour)
+  }, [timelineSlots])
+
+  const handleRhythmSelect = useCallback(
+    (hour: number) => {
+      setActiveRhythmHour(hour)
+      const preferredSlot =
+        timelineSlots.find((slot) => slot.hour === hour && slot.tone === 'best') ||
+        timelineSlots.find((slot) => slot.hour === hour && slot.tone === 'neutral') ||
+        timelineSlots.find((slot) => slot.hour === hour)
+      if (!preferredSlot) return
+      const key = `${preferredSlot.hour}-${preferredSlot.minute ?? 0}`
+      const element = timelineSlotRefs.current[key]
+      if (!element) return
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    },
+    [timelineSlots]
+  )
+
+  const activeRhythmInfo = useMemo(() => {
+    if (activeRhythmHour === null) return null
+    return hourlyRhythm.find((item) => item.hour === activeRhythmHour) || null
+  }, [activeRhythmHour, hourlyRhythm])
+
   const weekItems = useMemo(() => {
     const items: string[] = []
     const pushItem = (item: string | undefined) => {
@@ -895,7 +949,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const todayCaution = cleanText(baseInfo?.warnings?.[0])
   const evidenceBadges = useMemo(
     () => [
-      isKo ? 'matrix 기준' : 'Matrix-based',
+      isKo ? '종합 신호 기반' : 'Combined signals',
       isKo ? '교차 검증' : 'Cross-verified',
       isKo ? '주의 신호' : 'Caution signal',
     ],
@@ -906,8 +960,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     if (baseInfo?.evidence?.matrix) {
       lines.push(
         isKo
-          ? `Matrix 근거: ${baseInfo.evidence.matrix.domain}, 신뢰도 ${baseInfo.evidence.confidence}%`
-          : `Matrix evidence: ${baseInfo.evidence.matrix.domain}, confidence ${baseInfo.evidence.confidence}%`
+          ? `종합 신호 근거: 신뢰도 ${baseInfo.evidence.confidence}%`
+          : `Combined signal evidence: confidence ${baseInfo.evidence.confidence}%`
       )
     }
     const cross = [
@@ -1303,19 +1357,79 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
               </div>
             </div>
           </div>
+          <div className={styles.actionPlanRhythmWrap}>
+            <div className={styles.actionPlanRhythmHeader}>
+              <span className={styles.actionPlanCardTitle}>
+                {isKo ? '원형 하루 리듬' : 'Circular Day Rhythm'}
+              </span>
+              <span className={styles.actionPlanCardFocus}>
+                {isKo
+                  ? '시간대를 누르면 아래 상세 슬롯으로 이동'
+                  : 'Tap an hour to jump to detailed slots'}
+              </span>
+            </div>
+            <div
+              className={styles.actionPlanRhythmRing}
+              role="list"
+              aria-label={isKo ? '하루 시간대 리듬' : 'Daily rhythm by hour'}
+            >
+              {hourlyRhythm.map((item) => {
+                const angle = (item.hour / 24) * 360
+                const isActive = activeRhythmHour === item.hour
+                return (
+                  <button
+                    key={`rhythm-${item.hour}`}
+                    type="button"
+                    role="listitem"
+                    className={`${styles.actionPlanRhythmSector} ${
+                      item.tone === 'best'
+                        ? styles.actionPlanRhythmSectorBest
+                        : item.tone === 'caution'
+                          ? styles.actionPlanRhythmSectorCaution
+                          : styles.actionPlanRhythmSectorNeutral
+                    } ${isActive ? styles.actionPlanRhythmSectorActive : ''}`}
+                    style={{
+                      transform: `rotate(${angle}deg) translateY(calc(-1 * var(--action-plan-ring-radius))) rotate(${-angle}deg)`,
+                    }}
+                    aria-label={`${item.hour}:00`}
+                    onClick={() => handleRhythmSelect(item.hour)}
+                  >
+                    {String(item.hour).padStart(2, '0')}
+                  </button>
+                )
+              })}
+              <div className={styles.actionPlanRhythmCenter}>
+                <div className={styles.actionPlanRhythmHour}>
+                  {activeRhythmHour !== null
+                    ? `${String(activeRhythmHour).padStart(2, '0')}:00`
+                    : isKo
+                      ? '시간 선택'
+                      : 'Select hour'}
+                </div>
+                <div className={styles.actionPlanRhythmNote}>
+                  {activeRhythmInfo?.note ||
+                    (isKo ? '원형에서 시간대를 선택하세요.' : 'Select an hour from the ring.')}
+                </div>
+              </div>
+            </div>
+          </div>
           <p className={styles.actionPlanInsightLine}>{timelineInsight}</p>
           <div className={styles.actionPlanTimelineGrid} role="list">
             {timelineSlots.map((slot) => (
               <div
                 key={`${slot.hour}-${slot.minute ?? 0}`}
                 role="listitem"
+                ref={(node) => {
+                  timelineSlotRefs.current[`${slot.hour}-${slot.minute ?? 0}`] = node
+                }}
                 className={`${styles.actionPlanTimelineSlot} ${
                   slot.tone === 'best'
                     ? styles.actionPlanTimelineSlotBest
                     : slot.tone === 'caution'
                       ? styles.actionPlanTimelineSlotCaution
                       : ''
-                }`}
+                } ${activeRhythmHour === slot.hour ? styles.actionPlanTimelineSlotLinked : ''}`}
+                onClick={() => setActiveRhythmHour(slot.hour)}
               >
                 <div className={styles.actionPlanTimelineTime}>
                   <div className={styles.actionPlanTimelineTimeMain}>

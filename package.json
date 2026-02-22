@@ -31,6 +31,7 @@
     "test:integration:setup": "node -e \"console.log('Run: .\\\\scripts\\\\setup-test-db.ps1 (Windows) or bash scripts/setup-test-db.sh (Linux/Mac)')\"",
     "test:tarot": "vitest run tests/lib/Tarot",
     "test:tarot:fallback-quality": "vitest run tests/lib/Tarot/fallbackQualityGoldenSet.test.ts",
+    "test:tarot:interpret-quality": "vitest run tests/lib/Tarot/interpretationQualityBenchmark.test.ts",
     "test:destiny-map": "vitest run tests/destiny-map-api-smoke.test.ts tests/destiny-map-sanitize.test.ts tests/destinyCalendar.test.ts tests/lib/destiny-map/destinyCalendar.test.ts",
     "test:performance": "vitest run tests/performance/api-endpoints.test.ts --reporter=verbose",
     "test:performance:watch": "vitest watch tests/performance/api-endpoints.test.ts",

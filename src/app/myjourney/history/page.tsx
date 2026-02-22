@@ -1,7 +1,7 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { Suspense, useEffect } from 'react'
+import { Suspense, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import BackButton from '@/components/ui/BackButton'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -30,6 +30,7 @@ function HistoryContent() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { t } = useI18n()
+  const redirectedRef = useRef(false)
 
   // Custom hooks for state management
   const {
@@ -58,8 +59,12 @@ function HistoryContent() {
 
   // Redirect if unauthenticated
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (status === 'unauthenticated' && !redirectedRef.current) {
+      redirectedRef.current = true
       router.replace('/myjourney')
+    }
+    if (status === 'authenticated') {
+      redirectedRef.current = false
     }
   }, [status, router])
 

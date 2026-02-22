@@ -1,27 +1,44 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import styles from '../DestinyMatch.module.css';
-import PhotoUploader from '../components/PhotoUploader';
-import { logger } from '@/lib/logger';
+import { useState, useEffect, useRef } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import styles from '../DestinyMatch.module.css'
+import PhotoUploader from '../components/PhotoUploader'
+import { logger } from '@/lib/logger'
 
 const INTEREST_OPTIONS = [
-  'Tarot', 'Astrology', 'Meditation', 'Yoga', 'Crystals',
-  'Moon Phases', 'Numerology', 'Dream Analysis', 'Energy Healing',
-  'Spirituality', 'Manifestation', 'Chakras', 'Herbalism', 'Nature',
-  'Music', 'Art', 'Travel', 'Reading', 'Coffee', 'Cooking',
-];
+  'Tarot',
+  'Astrology',
+  'Meditation',
+  'Yoga',
+  'Crystals',
+  'Moon Phases',
+  'Numerology',
+  'Dream Analysis',
+  'Energy Healing',
+  'Spirituality',
+  'Manifestation',
+  'Chakras',
+  'Herbalism',
+  'Nature',
+  'Music',
+  'Art',
+  'Travel',
+  'Reading',
+  'Coffee',
+  'Cooking',
+]
 
 export default function DestinyMatchSetupPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const redirectedRef = useRef(false)
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     displayName: '',
@@ -38,24 +55,33 @@ export default function DestinyMatchSetupPage() {
     genderPreference: 'all',
     isActive: true,
     isVisible: true,
-  });
+  })
 
-  const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [locationError, setLocationError] = useState<string | null>(null);
+  const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'success' | 'error'>(
+    'idle'
+  )
+  const [locationError, setLocationError] = useState<string | null>(null)
 
   // 기존 프로필 로드
   useEffect(() => {
-    if (status === 'loading') {return;}
-
-    if (!session) {
-      router.push('/auth/signin?callbackUrl=/destiny-match/setup');
-      return;
+    if (status === 'loading') {
+      return
     }
+
+    if (status === 'unauthenticated' && !redirectedRef.current) {
+      redirectedRef.current = true
+      router.push('/auth/signin?callbackUrl=/destiny-match/setup')
+      return
+    }
+    if (status !== 'authenticated') {
+      return
+    }
+    redirectedRef.current = false
 
     const loadProfile = async () => {
       try {
-        const res = await fetch('/api/destiny-match/profile');
-        const data = await res.json();
+        const res = await fetch('/api/destiny-match/profile')
+        const data = await res.json()
 
         if (data.profile) {
           setFormData({
@@ -73,23 +99,23 @@ export default function DestinyMatchSetupPage() {
             genderPreference: data.profile.genderPreference || 'all',
             isActive: data.profile.isActive ?? true,
             isVisible: data.profile.isVisible ?? true,
-          });
+          })
           if (data.profile.latitude && data.profile.longitude) {
-            setLocationStatus('success');
+            setLocationStatus('success')
           }
         } else if (session.user?.name) {
           // 새 프로필 - 기본 이름 설정
-          setFormData((prev) => ({ ...prev, displayName: session.user?.name || '' }));
+          setFormData((prev) => ({ ...prev, displayName: session.user?.name || '' }))
         }
       } catch (e) {
-        logger.error('Load profile error:', { error: e });
+        logger.error('Load profile error:', { error: e })
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    loadProfile();
-  }, [session, status, router]);
+    loadProfile()
+  }, [session, status, router])
 
   const handleInterestToggle = (interest: string) => {
     setFormData((prev) => ({
@@ -97,18 +123,18 @@ export default function DestinyMatchSetupPage() {
       interests: prev.interests.includes(interest)
         ? prev.interests.filter((i) => i !== interest)
         : [...prev.interests, interest].slice(0, 6), // 최대 6개
-    }));
-  };
+    }))
+  }
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
-      setLocationError('이 브라우저에서는 위치 서비스를 지원하지 않습니다');
-      setLocationStatus('error');
-      return;
+      setLocationError('이 브라우저에서는 위치 서비스를 지원하지 않습니다')
+      setLocationStatus('error')
+      return
     }
 
-    setLocationStatus('loading');
-    setLocationError(null);
+    setLocationStatus('loading')
+    setLocationError(null)
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -116,51 +142,51 @@ export default function DestinyMatchSetupPage() {
           ...prev,
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
-        }));
-        setLocationStatus('success');
+        }))
+        setLocationStatus('success')
       },
       (error) => {
-        let message = '위치를 가져올 수 없습니다';
+        let message = '위치를 가져올 수 없습니다'
         if (error.code === error.PERMISSION_DENIED) {
-          message = '위치 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해주세요.';
+          message = '위치 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해주세요.'
         } else if (error.code === error.POSITION_UNAVAILABLE) {
-          message = '위치 정보를 사용할 수 없습니다';
+          message = '위치 정보를 사용할 수 없습니다'
         } else if (error.code === error.TIMEOUT) {
-          message = '위치 요청 시간이 초과되었습니다';
+          message = '위치 요청 시간이 초과되었습니다'
         }
-        setLocationError(message);
-        setLocationStatus('error');
+        setLocationError(message)
+        setLocationStatus('error')
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
-    );
-  };
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSaving(true);
+    e.preventDefault()
+    setError(null)
+    setSaving(true)
 
     try {
       const res = await fetch('/api/destiny-match/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
-      });
+      })
 
-      const data = await res.json();
+      const data = await res.json()
 
       if (res.ok) {
-        router.push('/destiny-match');
+        router.push('/destiny-match')
       } else {
-        setError(data.error || '저장에 실패했습니다');
+        setError(data.error || '저장에 실패했습니다')
       }
     } catch (e) {
-      logger.error('Save error:', { error: e });
-      setError('저장 중 오류가 발생했습니다');
+      logger.error('Save error:', { error: e })
+      setError('저장 중 오류가 발생했습니다')
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   if (status === 'loading' || loading) {
     return (
@@ -170,7 +196,7 @@ export default function DestinyMatchSetupPage() {
           <p>로딩 중...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -302,7 +328,9 @@ export default function DestinyMatchSetupPage() {
                 <input
                   type="number"
                   value={formData.ageMin}
-                  onChange={(e) => setFormData({ ...formData, ageMin: parseInt(e.target.value) || 18 })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, ageMin: parseInt(e.target.value) || 18 })
+                  }
                   min={18}
                   max={99}
                 />
@@ -310,7 +338,9 @@ export default function DestinyMatchSetupPage() {
                 <input
                   type="number"
                   value={formData.ageMax}
-                  onChange={(e) => setFormData({ ...formData, ageMax: parseInt(e.target.value) || 99 })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, ageMax: parseInt(e.target.value) || 99 })
+                  }
                   min={18}
                   max={99}
                 />
@@ -324,7 +354,9 @@ export default function DestinyMatchSetupPage() {
                 id="maxDistance"
                 type="range"
                 value={formData.maxDistance}
-                onChange={(e) => setFormData({ ...formData, maxDistance: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  setFormData({ ...formData, maxDistance: parseInt(e.target.value) })
+                }
                 min={5}
                 max={200}
                 step={5}
@@ -370,7 +402,9 @@ export default function DestinyMatchSetupPage() {
                 />
                 프로필 공개
               </label>
-              <span className={styles.toggleHint}>비공개하면 다른 사람이 내 프로필을 볼 수 없어요</span>
+              <span className={styles.toggleHint}>
+                비공개하면 다른 사람이 내 프로필을 볼 수 없어요
+              </span>
             </div>
           </section>
 
@@ -380,5 +414,5 @@ export default function DestinyMatchSetupPage() {
         </form>
       </div>
     </div>
-  );
+  )
 }

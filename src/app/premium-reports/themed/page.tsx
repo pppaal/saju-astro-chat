@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -93,6 +93,7 @@ export default function ThemedReportPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { status } = useSession()
+  const redirectedRef = useRef(false)
   const { profile, isLoading: profileLoading } = useUserProfile()
 
   const [selectedTheme, setSelectedTheme] = useState<ThemeType | null>(null)
@@ -110,8 +111,12 @@ export default function ThemedReportPage() {
   }, [searchParams])
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (status === 'unauthenticated' && !redirectedRef.current) {
+      redirectedRef.current = true
       router.push('/auth/signin?callbackUrl=/premium-reports/themed')
+    }
+    if (status === 'authenticated') {
+      redirectedRef.current = false
     }
   }, [status, router])
 

@@ -40,6 +40,7 @@ export default function MatchChatPage({ params }: { params: Promise<{ connection
   const { connectionId } = use(params)
   const { data: session, status } = useSession()
   const router = useRouter()
+  const redirectedRef = useRef(false)
 
   const [loading, setLoading] = useState(true)
   const [connection, setConnection] = useState<Connection | null>(null)
@@ -124,10 +125,15 @@ export default function MatchChatPage({ params }: { params: Promise<{ connection
       return
     }
 
-    if (!session) {
+    if (status === 'unauthenticated' && !redirectedRef.current) {
+      redirectedRef.current = true
       router.push(`/auth/signin?callbackUrl=/destiny-match/chat/${connectionId}`)
       return
     }
+    if (status !== 'authenticated') {
+      return
+    }
+    redirectedRef.current = false
 
     loadConnection()
     loadMessages()

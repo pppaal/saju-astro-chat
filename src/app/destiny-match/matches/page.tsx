@@ -1,107 +1,123 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import styles from '../DestinyMatch.module.css';
-import { ShareButton } from '@/components/share/ShareButton';
-import { generateDestinyMatchCard } from '@/components/share/cards/DestinyMatchCard';
-import { logger } from '@/lib/logger';
+import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import styles from '../DestinyMatch.module.css'
+import { ShareButton } from '@/components/share/ShareButton'
+import { generateDestinyMatchCard } from '@/components/share/cards/DestinyMatchCard'
+import { logger } from '@/lib/logger'
 
 type MatchedPartner = {
-  profileId: string;
-  userId: string;
-  displayName: string;
-  bio: string | null;
-  occupation: string | null;
-  photos: string[];
-  city: string | null;
-  interests: string[];
-  verified: boolean;
-  age: number | null;
-  lastActiveAt: string;
-};
+  profileId: string
+  userId: string
+  displayName: string
+  bio: string | null
+  occupation: string | null
+  photos: string[]
+  city: string | null
+  interests: string[]
+  verified: boolean
+  age: number | null
+  lastActiveAt: string
+}
 
 type Match = {
-  connectionId: string;
-  matchedAt: string;
-  isSuperLikeMatch: boolean;
-  compatibilityScore: number | null;
-  chatStarted: boolean;
-  lastInteractionAt: string;
-  partner: MatchedPartner;
-};
+  connectionId: string
+  matchedAt: string
+  isSuperLikeMatch: boolean
+  compatibilityScore: number | null
+  chatStarted: boolean
+  lastInteractionAt: string
+  partner: MatchedPartner
+}
 
 export default function DestinyMatchesPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const redirectedRef = useRef(false)
 
-  const [loading, setLoading] = useState(true);
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true)
+  const [matches, setMatches] = useState<Match[]>([])
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (status === 'loading') {return;}
-
-    if (!session) {
-      router.push('/auth/signin?callbackUrl=/destiny-match/matches');
-      return;
+    if (status === 'loading') {
+      return
     }
+
+    if (status === 'unauthenticated' && !redirectedRef.current) {
+      redirectedRef.current = true
+      router.push('/auth/signin?callbackUrl=/destiny-match/matches')
+      return
+    }
+    if (status !== 'authenticated') {
+      return
+    }
+    redirectedRef.current = false
 
     const loadMatches = async () => {
       try {
-        const res = await fetch('/api/destiny-match/matches');
-        const data = await res.json();
+        const res = await fetch('/api/destiny-match/matches')
+        const data = await res.json()
 
         if (res.ok) {
-          setMatches(data.matches || []);
+          setMatches(data.matches || [])
         } else {
-          setError(data.error || '매치 목록 조회 실패');
+          setError(data.error || '매치 목록 조회 실패')
         }
       } catch (e) {
-        logger.error('Load matches error:', { error: e });
-        setError('매치 목록 조회 중 오류가 발생했습니다');
+        logger.error('Load matches error:', { error: e })
+        setError('매치 목록 조회 중 오류가 발생했습니다')
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    loadMatches();
-  }, [session, status, router]);
+    loadMatches()
+  }, [session, status, router])
 
   const handleUnmatch = async (connectionId: string) => {
-    if (!confirm('정말 매치를 해제하시겠어요?')) {return;}
+    if (!confirm('정말 매치를 해제하시겠어요?')) {
+      return
+    }
 
     try {
       const res = await fetch('/api/destiny-match/matches', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ connectionId }),
-      });
+      })
 
       if (res.ok) {
-        setMatches((prev) => prev.filter((m) => m.connectionId !== connectionId));
-        setSelectedMatch(null);
+        setMatches((prev) => prev.filter((m) => m.connectionId !== connectionId))
+        setSelectedMatch(null)
       }
     } catch (e) {
-      logger.error('Unmatch error:', { error: e });
+      logger.error('Unmatch error:', { error: e })
     }
-  };
+  }
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-    if (diffDays === 0) {return '오늘';}
-    if (diffDays === 1) {return '어제';}
-    if (diffDays < 7) {return `${diffDays}일 전`;}
-    return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
-  };
+    if (diffDays === 0) {
+      return '오늘'
+    }
+    if (diffDays === 1) {
+      return '어제'
+    }
+    if (diffDays < 7) {
+      return `${diffDays}일 전`
+    }
+    return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
+  }
 
   if (status === 'loading' || loading) {
     return (
@@ -111,7 +127,7 @@ export default function DestinyMatchesPage() {
           <p>매치 목록을 불러오는 중...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -145,16 +161,19 @@ export default function DestinyMatchesPage() {
             <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
               <ShareButton
                 generateCard={() => {
-                  const topMatch = matches.sort((a, b) =>
-                    (b.compatibilityScore || 0) - (a.compatibilityScore || 0)
-                  )[0];
+                  const topMatch = matches.sort(
+                    (a, b) => (b.compatibilityScore || 0) - (a.compatibilityScore || 0)
+                  )[0]
 
-                  return generateDestinyMatchCard({
-                    userName: session?.user?.name || 'You',
-                    matchCount: matches.length,
-                    topMatchName: topMatch?.partner.displayName,
-                    topMatchScore: topMatch?.compatibilityScore || undefined,
-                  }, 'og');
+                  return generateDestinyMatchCard(
+                    {
+                      userName: session?.user?.name || 'You',
+                      matchCount: matches.length,
+                      topMatchName: topMatch?.partner.displayName,
+                      topMatchScore: topMatch?.compatibilityScore || undefined,
+                    },
+                    'og'
+                  )
                 }}
                 filename="destiny-match-result.png"
                 shareTitle="My Destiny Match Results"
@@ -163,52 +182,55 @@ export default function DestinyMatchesPage() {
               />
             </div>
             <div className={styles.matchesList}>
-            {matches.map((match) => (
-              <div key={match.connectionId} className={styles.matchCard}>
-                <div
-                  style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}
-                  onClick={() => setSelectedMatch(match)}
-                >
-                  <div className={styles.matchPhoto}>
-                    {match.partner.photos?.[0] ? (
-                      <Image
-                        src={match.partner.photos[0]}
-                        alt={match.partner.displayName}
-                        width={56}
-                        height={56}
-                        className={styles.photoImage}
-                      />
-                    ) : (
-                      <span>👤</span>
+              {matches.map((match) => (
+                <div key={match.connectionId} className={styles.matchCard}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}
+                    onClick={() => setSelectedMatch(match)}
+                  >
+                    <div className={styles.matchPhoto}>
+                      {match.partner.photos?.[0] ? (
+                        <Image
+                          src={match.partner.photos[0]}
+                          alt={match.partner.displayName}
+                          width={56}
+                          height={56}
+                          className={styles.photoImage}
+                        />
+                      ) : (
+                        <span>👤</span>
+                      )}
+                    </div>
+                    <div className={styles.matchInfo}>
+                      <h3 className={styles.matchName}>
+                        {match.partner.displayName}
+                        {match.partner.age && `, ${match.partner.age}`}
+                        {match.isSuperLikeMatch && (
+                          <span className={styles.superLikeBadge}>⭐</span>
+                        )}
+                      </h3>
+                      {match.partner.occupation && (
+                        <p className={styles.matchOccupation}>{match.partner.occupation}</p>
+                      )}
+                      <p className={styles.matchDate}>
+                        {match.chatStarted ? '대화 중' : '매치됨'}:{' '}
+                        {formatDate(match.lastInteractionAt || match.matchedAt)}
+                      </p>
+                    </div>
+                    {match.compatibilityScore && (
+                      <div className={styles.matchScore}>{match.compatibilityScore}%</div>
                     )}
                   </div>
-                  <div className={styles.matchInfo}>
-                    <h3 className={styles.matchName}>
-                      {match.partner.displayName}
-                      {match.partner.age && `, ${match.partner.age}`}
-                      {match.isSuperLikeMatch && <span className={styles.superLikeBadge}>⭐</span>}
-                    </h3>
-                    {match.partner.occupation && (
-                      <p className={styles.matchOccupation}>{match.partner.occupation}</p>
-                    )}
-                    <p className={styles.matchDate}>
-                      {match.chatStarted ? '대화 중' : '매치됨'}: {formatDate(match.lastInteractionAt || match.matchedAt)}
-                    </p>
-                  </div>
-                  {match.compatibilityScore && (
-                    <div className={styles.matchScore}>{match.compatibilityScore}%</div>
-                  )}
+                  <Link
+                    href={`/destiny-match/chat/${match.connectionId}`}
+                    className={styles.chatButton}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    💬
+                  </Link>
                 </div>
-                <Link
-                  href={`/destiny-match/chat/${match.connectionId}`}
-                  className={styles.chatButton}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  💬
-                </Link>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
           </>
         )}
       </div>
@@ -246,7 +268,9 @@ export default function DestinyMatchesPage() {
                 {selectedMatch.partner.displayName}
                 {selectedMatch.partner.age && `, ${selectedMatch.partner.age}`}
                 {selectedMatch.partner.verified && <span className={styles.verified}>✓</span>}
-                {selectedMatch.isSuperLikeMatch && <span className={styles.superLikeBadge}>⭐ Super Like</span>}
+                {selectedMatch.isSuperLikeMatch && (
+                  <span className={styles.superLikeBadge}>⭐ Super Like</span>
+                )}
               </h2>
               {selectedMatch.partner.occupation && (
                 <p className={styles.modalOccupation}>{selectedMatch.partner.occupation}</p>
@@ -318,5 +342,5 @@ export default function DestinyMatchesPage() {
         </div>
       )}
     </div>
-  );
+  )
 }

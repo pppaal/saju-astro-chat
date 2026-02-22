@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
@@ -65,6 +65,7 @@ export default function ReportResultPage() {
   const params = useParams()
   const router = useRouter()
   const { status } = useSession()
+  const redirectedRef = useRef(false)
 
   const reportId = params?.id as string
 
@@ -134,12 +135,14 @@ export default function ReportResultPage() {
   }, [reportId])
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (status === 'unauthenticated' && !redirectedRef.current) {
+      redirectedRef.current = true
       router.push('/auth/signin')
       return
     }
 
     if (status === 'authenticated') {
+      redirectedRef.current = false
       void loadReport()
     }
   }, [status, router, loadReport])

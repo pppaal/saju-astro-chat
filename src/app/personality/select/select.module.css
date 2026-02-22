@@ -41,6 +41,28 @@
   max-width: 780px;
 }
 
+.guide {
+  margin-top: 16px;
+  max-width: 780px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(178, 213, 245, 0.28);
+  background: rgba(14, 35, 61, 0.7);
+}
+
+.guideTitle {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: #d9ecff;
+}
+
+.guideText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #bfd8f6;
+}
+
 .grid {
   margin-top: 28px;
   display: grid;
@@ -85,6 +107,18 @@
   font-size: 15px;
   line-height: 1.65;
   color: #bfd8f6;
+}
+
+.cardMeta {
+  display: inline-flex;
+  margin-top: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #d9ecff;
+  background: rgba(159, 195, 239, 0.14);
+  border: 1px solid rgba(159, 195, 239, 0.3);
 }
 
 .cta {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState, Suspense } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -60,6 +60,7 @@ function TimingReportContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { status } = useSession()
+  const redirectedRef = useRef(false)
   const { profile, isLoading: profileLoading } = useUserProfile()
 
   const period = toPeriod(searchParams?.get('period') ?? null)
@@ -73,8 +74,12 @@ function TimingReportContent() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (status === 'unauthenticated' && !redirectedRef.current) {
+      redirectedRef.current = true
       router.push(`/auth/signin?callbackUrl=/premium-reports/timing?period=${period}`)
+    }
+    if (status === 'authenticated') {
+      redirectedRef.current = false
     }
   }, [status, router, period])
 

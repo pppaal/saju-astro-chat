@@ -400,6 +400,12 @@
           "C": "그냥 폰 보면서 시간 보낸다"
         }
       }
-    }
+    },
+    "quizHint": "문항을 오래 고민하기보다, 가장 나다운 첫 반응을 선택해 주세요.",
+    "answeredOnPage": "현재 페이지 응답 {{count}}/{{total}}",
+    "quickRead": "한눈에 보기",
+    "strongestAxis": "가장 강한 축",
+    "growthFocus": "성장 포인트",
+    "todayAction": "오늘의 실천 1개"
   }
 }

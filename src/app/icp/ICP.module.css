@@ -36,8 +36,15 @@
 }
 
 @keyframes twinkle {
-  0%, 100% { opacity: 0.3; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.2); }
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 /* Back Button */
@@ -54,8 +61,14 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Card Container */
@@ -96,12 +109,17 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .title {
-  font-family: "Cinzel", serif;
+  font-family: 'Cinzel', serif;
   font-size: 1.9rem;
   font-weight: 700;
   background: linear-gradient(135deg, #9d4edd 0%, #ffd166 50%, #9d4edd 100%);
@@ -115,8 +133,12 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: 0% center; }
-  100% { background-position: 200% center; }
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 .subtitle {
@@ -124,6 +146,18 @@
   font-size: 1rem;
   line-height: 1.6;
   margin: 0;
+}
+
+.readabilityHint {
+  margin: 0.85rem auto 0;
+  padding: 0.55rem 0.8rem;
+  max-width: 560px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+  background: rgba(157, 78, 221, 0.12);
+  border: 1px solid rgba(157, 78, 221, 0.3);
+  border-radius: 10px;
 }
 
 /* Test Info */
@@ -271,7 +305,9 @@
 }
 
 @keyframes shimmerBtn {
-  100% { transform: translateX(100%); }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .submitButton:hover {
@@ -412,10 +448,10 @@
 }
 
 .questionText {
-  font-size: 1rem;
+  font-size: 1.06rem;
   color: white;
   margin: 0 0 1rem 0;
-  line-height: 1.5;
+  line-height: 1.65;
 }
 
 .options {
@@ -472,8 +508,9 @@
 }
 
 .optionText {
-  font-size: 0.95rem;
+  font-size: 0.96rem;
   color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
 }
 
 .optionSelected .optionText {
@@ -569,7 +606,8 @@
     padding: 1.5rem;
   }
 
-  .card, .quizCard {
+  .card,
+  .quizCard {
     padding: 2rem 1.5rem;
   }
 
@@ -600,7 +638,8 @@
     padding: 1rem;
   }
 
-  .card, .quizCard {
+  .card,
+  .quizCard {
     padding: 1.5rem;
     border-radius: 20px;
   }
@@ -708,7 +747,8 @@
     padding: 0.75rem;
   }
 
-  .card, .quizCard {
+  .card,
+  .quizCard {
     padding: 1.25rem 1rem;
     border-radius: 16px;
   }
@@ -759,7 +799,8 @@
     padding: 0.5rem;
   }
 
-  .card, .quizCard {
+  .card,
+  .quizCard {
     padding: 1rem 0.75rem;
     border-radius: 14px;
   }

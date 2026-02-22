@@ -89,7 +89,10 @@ export async function analyzeDestiny(input: DestinyInput): Promise<DestinyResult
 
     const response = await fetch(`${baseUrl}/api/destiny-map`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
+      },
       body: JSON.stringify(payload),
       cache: 'no-store',
     })

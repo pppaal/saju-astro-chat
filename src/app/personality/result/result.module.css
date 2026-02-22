@@ -35,8 +35,15 @@
 }
 
 @keyframes twinkle {
-  0%, 100% { opacity: 0.2; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.2); }
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 /* Container */
@@ -68,7 +75,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Empty State */
@@ -88,8 +97,13 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
 }
 
 .emptyState h1 {
@@ -149,7 +163,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: pulse 4s ease-in-out infinite, float 6s ease-in-out infinite;
+  animation:
+    pulse 4s ease-in-out infinite,
+    float 6s ease-in-out infinite;
   position: relative;
 }
 
@@ -158,23 +174,30 @@
   position: absolute;
   inset: -4px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255,255,255,0.3), transparent);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), transparent);
   animation: rotate 8s linear infinite;
 }
 
 @keyframes rotate {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 .orbIcon {
   font-size: 3rem;
   color: #fff;
-  text-shadow: 0 0 20px rgba(255,255,255,0.5);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
 }
 
 .heroContent {
@@ -275,7 +298,7 @@
 }
 
 .personaName {
-  font-family: "Cinzel", serif;
+  font-family: 'Cinzel', serif;
   font-size: clamp(2rem, 6vw, 3rem);
   font-weight: 800;
   background: linear-gradient(135deg, #a8edea 0%, #fff 50%, #fed6e3 100%);
@@ -307,7 +330,8 @@
   flex-wrap: wrap;
 }
 
-.typeCodeBadge, .consistencyBadge {
+.typeCodeBadge,
+.consistencyBadge {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -331,7 +355,8 @@
   line-height: 1.2;
 }
 
-.typeCodeLabel, .consistencyLabel {
+.typeCodeLabel,
+.consistencyLabel {
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
@@ -404,6 +429,90 @@
 
 .sectionIcon {
   font-size: 1.5rem;
+}
+
+.quickReadSection {
+  margin-top: 2rem;
+  animation: fadeInUp 0.8s ease-out 0.15s both;
+}
+
+.quickReadGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.85rem;
+}
+
+.quickReadCard {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 1rem 1.05rem;
+}
+
+.quickReadCard h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  color: #a8edea;
+}
+
+.quickReadCard p {
+  margin: 0;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.95rem;
+}
+
+.detailGuideSection {
+  margin-top: 2rem;
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.detailGuideIntro {
+  margin: 0 0 0.85rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.93rem;
+  line-height: 1.65;
+}
+
+.detailGuideGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.85rem;
+}
+
+.detailGuideCard {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 1rem 1.05rem;
+}
+
+.detailGuideCard h3 {
+  margin: 0 0 0.4rem;
+  color: #a8edea;
+  font-size: 0.96rem;
+}
+
+.detailGuideCard p {
+  margin: 0 0 0.45rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.87);
+  font-size: 0.92rem;
+}
+
+.detailGuideCard p:last-child {
+  margin-bottom: 0;
+}
+
+.detailMeta {
+  color: rgba(255, 255, 255, 0.68) !important;
+  font-size: 0.84rem !important;
+}
+
+.detailActionLabel {
+  color: #fed6e3 !important;
+  font-weight: 700;
+  margin-top: 0.25rem !important;
 }
 
 /* Motivations Section */
@@ -528,7 +637,9 @@
 }
 
 @keyframes fillBar {
-  from { width: 0 !important; }
+  from {
+    width: 0 !important;
+  }
 }
 
 .axisMarker {
@@ -601,7 +712,9 @@
   gap: 0.5rem;
 }
 
-.tagStrength, .tagChallenge, .tagRole {
+.tagStrength,
+.tagChallenge,
+.tagRole {
   padding: 0.5rem 1rem;
   border-radius: 999px;
   font-size: 0.85rem;
@@ -758,7 +871,10 @@
   animation: fadeInUp 0.8s ease-out 0.6s both;
 }
 
-.saveButton, .shareButton, .downloadButton, .retakeButton {
+.saveButton,
+.shareButton,
+.downloadButton,
+.retakeButton {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -908,7 +1024,9 @@
 }
 
 @keyframes cosmicSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .cosmicCore {
@@ -917,7 +1035,8 @@
 }
 
 @keyframes cosmicPulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
   }
@@ -942,8 +1061,13 @@
 }
 
 @keyframes fadeInOut {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* ===== AURA RINGS ===== */
@@ -954,7 +1078,9 @@
   z-index: -1;
 }
 
-.auraRing1, .auraRing2, .auraRing3 {
+.auraRing1,
+.auraRing2,
+.auraRing3 {
   position: absolute;
   border-radius: 30px;
   border: 2px solid transparent;
@@ -1037,7 +1163,10 @@
     align-items: stretch;
   }
 
-  .saveButton, .shareButton, .downloadButton, .retakeButton {
+  .saveButton,
+  .shareButton,
+  .downloadButton,
+  .retakeButton {
     justify-content: center;
   }
 

@@ -25,6 +25,24 @@ const normalizeQueryParam = (value: string | null): string | undefined => {
   return normalized
 }
 
+const toJsonObjectOrArray = (
+  value: unknown,
+  fallback: Record<string, never> | string[] = {}
+): Prisma.InputJsonValue => {
+  if (Array.isArray(value)) {
+    return value as Prisma.InputJsonValue
+  }
+  if (value && typeof value === 'object') {
+    return value as Prisma.InputJsonValue
+  }
+  return fallback as Prisma.InputJsonValue
+}
+
+const toStringArray = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return []
+  return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+}
+
 // POST - 날짜 저장
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
@@ -61,6 +79,11 @@ export const POST = withApiMiddleware(
         locale = 'ko',
       } = body
 
+      const normalizedSajuFactors = toJsonObjectOrArray(sajuFactors, [])
+      const normalizedAstroFactors = toJsonObjectOrArray(astroFactors, [])
+      const normalizedRecommendations = toStringArray(recommendations)
+      const normalizedWarnings = toStringArray(warnings)
+
       const savedDate = await prisma.savedCalendarDate.upsert({
         where: {
           userId_date: {
@@ -77,10 +100,10 @@ export const POST = withApiMiddleware(
           summary: summary || '',
           categories: categories || [],
           bestTimes: bestTimes && bestTimes.length > 0 ? bestTimes : [],
-          sajuFactors: sajuFactors ? (sajuFactors as Prisma.InputJsonValue) : {},
-          astroFactors: astroFactors ? (astroFactors as Prisma.InputJsonValue) : {},
-          recommendations: recommendations || '',
-          warnings: warnings || '',
+          sajuFactors: normalizedSajuFactors,
+          astroFactors: normalizedAstroFactors,
+          recommendations: normalizedRecommendations,
+          warnings: normalizedWarnings,
           birthDate: birthDate || '',
           birthTime: birthTime || '',
           birthPlace: birthPlace || '',
@@ -97,10 +120,10 @@ export const POST = withApiMiddleware(
           summary: summary || '',
           categories: categories || [],
           bestTimes: bestTimes && bestTimes.length > 0 ? bestTimes : [],
-          sajuFactors: sajuFactors ? (sajuFactors as Prisma.InputJsonValue) : {},
-          astroFactors: astroFactors ? (astroFactors as Prisma.InputJsonValue) : {},
-          recommendations: recommendations || '',
-          warnings: warnings || '',
+          sajuFactors: normalizedSajuFactors,
+          astroFactors: normalizedAstroFactors,
+          recommendations: normalizedRecommendations,
+          warnings: normalizedWarnings,
           birthDate: birthDate || '',
           birthTime: birthTime || '',
           birthPlace: birthPlace || '',

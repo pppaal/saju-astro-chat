@@ -61,13 +61,33 @@ const ZODIAC_TO_ELEMENT: Record<string, string> = {
 }
 
 const EN_TO_KO_ELEMENT: Record<string, FiveElement> = {
-  wood: '목',
-  fire: '화',
-  earth: '토',
-  metal: '금',
-  water: '수',
+  wood: '\uBAA9',
+  fire: '\uD654',
+  earth: '\uD1A0',
+  metal: '\uAE08',
+  water: '\uC218',
 }
 
+const CALENDAR_STRICT_ASTROLOGY = process.env.CALENDAR_STRICT_ASTROLOGY === 'true'
+const CALENDAR_STRICT_MATRIX = process.env.CALENDAR_STRICT_MATRIX === 'true'
+const CALENDAR_STRICT_AI_ENRICHMENT = process.env.CALENDAR_STRICT_AI_ENRICHMENT === 'true'
+
+function deriveFallbackSunSign(birthDate: Date): string {
+  const month = birthDate.getMonth()
+  const day = birthDate.getDate()
+  if ((month === 2 && day >= 21) || (month === 3 && day <= 19)) return 'Aries'
+  if ((month === 3 && day >= 20) || (month === 4 && day <= 20)) return 'Taurus'
+  if ((month === 4 && day >= 21) || (month === 5 && day <= 20)) return 'Gemini'
+  if ((month === 5 && day >= 21) || (month === 6 && day <= 22)) return 'Cancer'
+  if ((month === 6 && day >= 23) || (month === 7 && day <= 22)) return 'Leo'
+  if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return 'Virgo'
+  if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return 'Libra'
+  if ((month === 9 && day >= 23) || (month === 10 && day <= 21)) return 'Scorpio'
+  if ((month === 10 && day >= 22) || (month === 11 && day <= 21)) return 'Sagittarius'
+  if ((month === 11 && day >= 22) || (month === 0 && day <= 19)) return 'Capricorn'
+  if ((month === 0 && day >= 20) || (month === 1 && day <= 18)) return 'Aquarius'
+  return 'Pisces'
+}
 /**
  * GET /api/calendar
  * 중요 날짜 조회 (인증 불필요)
@@ -218,14 +238,24 @@ export const GET = withApiMiddleware(
         birthDay: birthDate.getDate(),
       }
     } catch (astroError) {
-      logger.error('[Calendar] Astrology calculation failed (strict mode):', astroError)
-      return createErrorResponse({
-        code: ErrorCodes.SERVICE_UNAVAILABLE,
-        message: 'Advanced astrology calculation unavailable',
-        locale: extractLocale(request),
-        route: 'calendar',
-        originalError: astroError instanceof Error ? astroError : new Error(String(astroError)),
-      })
+      if (CALENDAR_STRICT_ASTROLOGY) {
+        logger.error('[Calendar] Astrology calculation failed (strict mode):', astroError)
+        return createErrorResponse({
+          code: ErrorCodes.SERVICE_UNAVAILABLE,
+          message: 'Advanced astrology calculation unavailable',
+          locale: extractLocale(request),
+          route: 'calendar',
+          originalError: astroError instanceof Error ? astroError : new Error(String(astroError)),
+        })
+      }
+      logger.warn('[Calendar] Astrology calculation fallback:', astroError)
+      const sunSign = deriveFallbackSunSign(birthDate)
+      astroProfile = {
+        sunSign,
+        sunElement: ZODIAC_TO_ELEMENT[sunSign] || 'fire',
+        birthMonth: birthDate.getMonth() + 1,
+        birthDay: birthDate.getDate(),
+      }
     }
 
     let matrixCalendarContext: MatrixCalendarContext = null
@@ -273,14 +303,18 @@ export const GET = withApiMiddleware(
         domainScores: matrix.summary.domainScores || undefined,
       }
     } catch (matrixError) {
-      logger.error('[Calendar] Matrix overlay failed (strict mode):', matrixError)
-      return createErrorResponse({
-        code: ErrorCodes.SERVICE_UNAVAILABLE,
-        message: 'Destiny matrix calculation unavailable',
-        locale: extractLocale(request),
-        route: 'calendar',
-        originalError: matrixError instanceof Error ? matrixError : new Error(String(matrixError)),
-      })
+      if (CALENDAR_STRICT_MATRIX) {
+        logger.error('[Calendar] Matrix overlay failed (strict mode):', matrixError)
+        return createErrorResponse({
+          code: ErrorCodes.SERVICE_UNAVAILABLE,
+          message: 'Destiny matrix calculation unavailable',
+          locale: extractLocale(request),
+          route: 'calendar',
+          originalError:
+            matrixError instanceof Error ? matrixError : new Error(String(matrixError)),
+        })
+      }
+      logger.warn('[Calendar] Matrix overlay fallback:', matrixError)
     }
 
     // 로컬 계산으로 중요 날짜 가져오기 (Redis 캐싱 적용)
@@ -332,7 +366,7 @@ export const GET = withApiMiddleware(
 
     // AI 백엔드 호출 시도
     const aiDates = await fetchAIDates(sajuData, astroData, category || 'overall')
-    if (!aiDates) {
+    if (!aiDates && CALENDAR_STRICT_AI_ENRICHMENT) {
       logger.error('[Calendar] AI date enrichment unavailable (strict mode)')
       return createErrorResponse({
         code: ErrorCodes.SERVICE_UNAVAILABLE,

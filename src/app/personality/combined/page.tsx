@@ -66,6 +66,29 @@ export default function CombinedResultPage() {
           </p>
         </div>
 
+        <section className={styles.quickSummary}>
+          <article className={styles.quickCard}>
+            <h2>{isKo ? '핵심 유형 조합' : 'Core Combination'}</h2>
+            <p>
+              {isKo
+                ? `${icpResult!.primaryOctant.korean} + ${personaResult!.personaName}`
+                : `${icpResult!.primaryOctant.name} + ${personaResult!.personaName}`}
+            </p>
+          </article>
+          <article className={styles.quickCard}>
+            <h2>{isKo ? '지금 집중할 포인트' : 'Current Focus'}</h2>
+            <p>{insights[0]?.title ?? (isKo ? '분석 준비 완료' : 'Analysis ready')}</p>
+          </article>
+          <article className={styles.quickCard}>
+            <h2>{isKo ? '다음 권장 액션' : 'Recommended Next Action'}</h2>
+            <p>
+              {isKo
+                ? '궁합 분석으로 관계 시너지를 확인해보세요.'
+                : 'Check compatibility to validate relationship synergy.'}
+            </p>
+          </article>
+        </section>
+
         <SummaryGrid
           styles={styles}
           isKo={isKo}

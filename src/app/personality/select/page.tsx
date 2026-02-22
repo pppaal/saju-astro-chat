@@ -69,6 +69,14 @@ export default function PersonalitySelectPage() {
             ? '원하는 테스트를 먼저 진행하고, 두 테스트를 모두 완료하면 통합 결과를 볼 수 있습니다.'
             : 'Start with either test. Once both are completed, you can view the combined result.'}
         </p>
+        <div className={styles.guide}>
+          <h2 className={styles.guideTitle}>{isKo ? '추천 진행 순서' : 'Recommended Flow'}</h2>
+          <p className={styles.guideText}>
+            {isKo
+              ? '1) 성격 분석 또는 ICP 중 하나를 먼저 진행  2) 남은 테스트 완료  3) 통합 성격 분석에서 전체 해석 확인'
+              : '1) Start with Personality or ICP  2) Complete the other test  3) Review the full interpretation in Combined Analysis'}
+          </p>
+        </div>
 
         <div className={styles.grid}>
           {links.map((choice) => (
@@ -76,6 +84,15 @@ export default function PersonalitySelectPage() {
               <div className={styles.icon}>{choice.icon}</div>
               <h2 className={styles.cardTitle}>{isKo ? choice.titleKo : choice.titleEn}</h2>
               <p className={styles.cardDesc}>{isKo ? choice.descKo : choice.descEn}</p>
+              <span className={styles.cardMeta}>
+                {choice.id === 'personality'
+                  ? isKo
+                    ? '자기 성향 중심'
+                    : 'Self-trait focused'
+                  : isKo
+                    ? '관계 패턴 중심'
+                    : 'Relationship-pattern focused'}
+              </span>
               <span className={styles.cta}>{isKo ? '시작하기' : 'Start'}</span>
             </Link>
           ))}
