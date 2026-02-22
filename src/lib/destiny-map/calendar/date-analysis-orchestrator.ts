@@ -26,6 +26,7 @@
  */
 
 import { getSunSign } from './planetary-hours'
+import type { TransitAspectEvidence } from './transit-analysis'
 import { getGanzhiForDate } from './temporal-scoring'
 import { ELEMENT_RELATIONS, ZODIAC_TO_ELEMENT } from './constants'
 import { normalizeElement, getStemElement, getBranchElement } from './utils'
@@ -134,6 +135,7 @@ export interface ImportantDate {
     daysFromToday: number
     retrospectiveNote?: string
   }
+  astroAspectEvidence?: TransitAspectEvidence[]
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -498,5 +500,6 @@ export function analyzeDate(
     transitSync: advancedPrediction.transitSync,
     activityScores,
     timeContext,
+    astroAspectEvidence: astroResult.planetTransits.aspectEvidence.slice(0, 4),
   }
 }

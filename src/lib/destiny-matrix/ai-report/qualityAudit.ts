@@ -1,9 +1,10 @@
-import type { MatrixCell, MatrixSummary, MatrixCalculationInput } from '@/lib/destiny-matrix'
+﻿import type { MatrixCell, MatrixSummary, MatrixCalculationInput } from '@/lib/destiny-matrix'
 import type { TimingData } from './types'
 
 export interface QualityAudit {
   completenessScore: number
   crossEvidenceScore: number
+  orbEvidenceScore: number
   actionabilityScore: number
   clarityScore: number
   overallQualityScore: number
@@ -14,6 +15,7 @@ export interface QualityAudit {
 
 export interface CalculationDetails {
   inputSnapshot: {
+    profile?: Record<string, unknown>
     saju: Record<string, unknown>
     astrology: Record<string, unknown>
   }
@@ -48,15 +50,15 @@ const THEME_SPECIFIC_KEYS: Record<string, string> = {
 const SAJU_REGEX = /사주|오행|십신|대운|세운|월운|일간|격국|용신|신살|saju|bazi|daeun|saeun|sibsin/i
 const ASTRO_REGEX =
   /점성|행성|하우스|트랜싯|별자리|상승궁|천궁도|astrology|planet|house|transit|zodiac|progression/i
-
+const ORB_ANGLE_REGEX = /angle\s*[:=]\s*\d+(?:\.\d+)?\s*(?:deg|°)/i
+const ORB_ORB_REGEX = /\borb\s*[:=]\s*\d+(?:\.\d+)?\s*(?:deg|°)/i
+const ORB_ALLOWED_REGEX = /(allowed|allow)\s*[:=]\s*\d+(?:\.\d+)?\s*(?:deg|°)/i
 const PLACEHOLDER_REGEX = /(\?{3,}|todo|tbd|lorem ipsum)/i
 
 const clamp100 = (value: number): number => Math.max(0, Math.min(100, Math.round(value)))
 
 function toText(value: unknown): string {
-  if (typeof value === 'string') {
-    return value.trim()
-  }
+  if (typeof value === 'string') return value.trim()
   if (Array.isArray(value)) {
     return value
       .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
@@ -68,9 +70,7 @@ function toText(value: unknown): string {
 }
 
 function toSentenceCount(value: string): number {
-  if (!value) {
-    return 0
-  }
+  if (!value) return 0
   return value
     .split(/[.!?\n]+/)
     .map((segment) => segment.trim())
@@ -97,9 +97,7 @@ export function evaluateThemedReportQuality(input: {
 
   const requiredKeys = [...REQUIRED_SECTION_KEYS]
   const themeSpecific = input.theme ? THEME_SPECIFIC_KEYS[input.theme] : undefined
-  if (themeSpecific) {
-    requiredKeys.push(themeSpecific)
-  }
+  if (themeSpecific) requiredKeys.push(themeSpecific)
 
   const presentRequired = requiredKeys.filter((key) => toText(sections[key]).length > 0).length
   const completenessScore = clamp100((presentRequired / requiredKeys.length) * 100)
@@ -110,6 +108,14 @@ export function evaluateThemedReportQuality(input: {
   const crossEvidenceScore = clamp100(
     sectionCount > 0 ? (crossMatchedCount / sectionCount) * 100 : 0
   )
+
+  const orbMatchedCount = sectionTexts.filter(({ text }) => {
+    const hitCount = [ORB_ANGLE_REGEX, ORB_ORB_REGEX, ORB_ALLOWED_REGEX].filter((regex) =>
+      regex.test(text)
+    ).length
+    return hitCount >= 2
+  }).length
+  const orbEvidenceScore = clamp100(sectionCount > 0 ? (orbMatchedCount / sectionCount) * 100 : 0)
 
   const actionPlanText = toText(sections.actionPlan)
   const recommendationsText = toText(sections.recommendations)
@@ -128,10 +134,12 @@ export function evaluateThemedReportQuality(input: {
       : input.keywords && input.keywords.length > 0
         ? 1
         : 0
+
   const overallQualityScore = clamp100(
-    completenessScore * 0.3 +
-      crossEvidenceScore * 0.3 +
-      actionabilityScore * 0.25 +
+    completenessScore * 0.25 +
+      crossEvidenceScore * 0.25 +
+      orbEvidenceScore * 0.15 +
+      actionabilityScore * 0.2 +
       clarityScore * 0.15 +
       keywordBonus
   )
@@ -152,6 +160,13 @@ export function evaluateThemedReportQuality(input: {
     recommendations.push('각 섹션에 사주 근거 1개 + 점성 근거 1개를 함께 명시하세요.')
   } else {
     strengths.push('사주와 점성의 교차 근거가 안정적으로 포함됩니다.')
+  }
+
+  if (orbEvidenceScore < 55) {
+    issues.push('각도·오브·허용오브 근거 밀도가 낮습니다.')
+    recommendations.push('본문에 angle/orb/allowed 근거를 섹션당 최소 1세트 이상 명시하세요.')
+  } else {
+    strengths.push('각도·오브 근거가 실제 해석 문단에 반영됩니다.')
   }
 
   if (actionabilityScore < 60) {
@@ -175,6 +190,7 @@ export function evaluateThemedReportQuality(input: {
   return {
     completenessScore,
     crossEvidenceScore,
+    orbEvidenceScore,
     actionabilityScore,
     clarityScore,
     overallQualityScore,
@@ -192,7 +208,7 @@ export function toQualityMarkdown(input: {
 }): string {
   const { reportId, title, createdAt, quality } = input
   return [
-    `# Themed Report Quality Audit`,
+    '# Themed Report Quality Audit',
     '',
     `- Report ID: ${reportId}`,
     `- Title: ${title}`,
@@ -202,6 +218,7 @@ export function toQualityMarkdown(input: {
     `- Overall: ${quality.overallQualityScore}/100`,
     `- Completeness: ${quality.completenessScore}/100`,
     `- Cross Evidence: ${quality.crossEvidenceScore}/100`,
+    `- Orb Evidence: ${quality.orbEvidenceScore}/100`,
     `- Actionability: ${quality.actionabilityScore}/100`,
     `- Clarity: ${quality.clarityScore}/100`,
     '',
@@ -223,8 +240,10 @@ export function buildCalculationDetails(input: {
   matrixSummary?: MatrixSummary
   layerResults: Record<string, Record<string, MatrixCell>>
   topInsights?: Array<Record<string, unknown>>
+  profileContext?: Record<string, unknown>
 }): CalculationDetails {
-  const { matrixInput, timingData, matrixSummary, layerResults, topInsights } = input
+  const { matrixInput, timingData, matrixSummary, layerResults, topInsights, profileContext } =
+    input
 
   const sajuSnapshot: Record<string, unknown> = {
     dayMasterElement: matrixInput.dayMasterElement,
@@ -251,6 +270,9 @@ export function buildCalculationDetails(input: {
 
   return {
     inputSnapshot: {
+      profile:
+        profileContext ||
+        (matrixInput.profileContext ? { ...matrixInput.profileContext } : undefined),
       saju: sajuSnapshot,
       astrology: astrologySnapshot,
     },

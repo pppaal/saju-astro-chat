@@ -8,6 +8,7 @@ import { Heart, Briefcase, Coins, HeartPulse, Users } from 'lucide-react'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
 import { useUserProfile } from '@/hooks/useUserProfile'
+import PremiumPageScaffold from '@/app/premium-reports/_components/PremiumPageScaffold'
 import {
   ReportProfileForm,
   type ReportProfileInput,
@@ -218,19 +219,24 @@ export default function ThemedReportPage() {
           <UnifiedServiceLoading kind="aiReport" locale="ko" />
         </div>
       )}
-      <div className="min-h-[100svh] bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-        <header className="px-4 py-8">
+      <PremiumPageScaffold accent="violet">
+        <header className="px-4 py-10">
           <div className="mx-auto max-w-5xl">
             <Link
               href="/premium-reports"
-              className="inline-flex items-center text-sm text-slate-400 hover:text-slate-100"
+              className="inline-flex items-center rounded-full border border-white/15 bg-slate-900/60 px-3 py-1 text-sm text-slate-300 backdrop-blur-xl hover:border-cyan-300/60 hover:text-white"
             >
-              ← 리포트 선택으로 돌아가기
+              리포트 선택으로 돌아가기
             </Link>
-            <h1 className="mt-4 text-3xl font-bold text-white">테마 리포트</h1>
-            <p className="mt-2 text-slate-300">
-              관심 주제를 선택하고 통합 생년월일 폼으로 입력한 정보로 리포트를 생성하세요.
-            </p>
+            <div className="mt-5 rounded-3xl border border-white/15 bg-slate-900/60 p-7 backdrop-blur-xl">
+              <div className="inline-flex rounded-full border border-violet-300/40 bg-violet-400/10 px-3 py-1 text-xs font-semibold text-violet-200">
+                Themed
+              </div>
+              <h1 className="mt-3 text-3xl font-black text-white">테마 리포트</h1>
+              <p className="mt-2 text-slate-300">
+                관심 주제를 선택하고 통합 생년월일 폼으로 입력한 정보로 리포트를 생성하세요.
+              </p>
+            </div>
           </div>
         </header>
 
@@ -268,7 +274,7 @@ export default function ThemedReportPage() {
             </div>
 
             {selectedTheme && (
-              <div className="rounded-2xl border border-slate-700/50 bg-slate-800/40 p-5">
+              <div className="rounded-2xl border border-white/15 bg-slate-900/55 p-5 backdrop-blur-xl">
                 <h3 className="text-base font-semibold text-white">
                   {THEME_INFO[selectedTheme].label} 포함 내용
                 </h3>
@@ -286,7 +292,7 @@ export default function ThemedReportPage() {
             )}
           </section>
 
-          <section className="space-y-4">
+          <section className="space-y-4 rounded-3xl border border-white/15 bg-slate-900/55 p-5 backdrop-blur-xl">
             <ReportProfileForm locale="ko" initialName={profile.name} onSubmit={setProfileInput} />
 
             {error && (
@@ -300,7 +306,7 @@ export default function ThemedReportPage() {
               disabled={!canGenerate}
               className={`w-full rounded-xl px-4 py-4 text-center text-sm font-semibold text-white transition ${
                 canGenerate
-                  ? `bg-gradient-to-r ${selectedTheme ? THEME_INFO[selectedTheme].color : 'from-cyan-500 to-blue-500'} hover:opacity-90`
+                  ? `bg-gradient-to-r ${selectedTheme ? THEME_INFO[selectedTheme].color : 'from-cyan-500 to-blue-500'} hover:brightness-110`
                   : 'cursor-not-allowed bg-slate-700'
               }`}
             >
@@ -316,7 +322,7 @@ export default function ThemedReportPage() {
             </p>
           </section>
         </main>
-      </div>
+      </PremiumPageScaffold>
     </>
   )
 }

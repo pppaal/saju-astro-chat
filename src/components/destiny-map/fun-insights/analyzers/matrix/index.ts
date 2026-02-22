@@ -3,7 +3,7 @@
  * Destiny Fusion Matrix™ 통합 분석
  */
 
-import type { SajuData, AstroData } from '../../types';
+import type { SajuData, AstroData } from '../../types'
 import type {
   MatrixAnalysisResult,
   FullMatrixAnalysisResult,
@@ -13,21 +13,23 @@ import type {
   RelationAspectResult,
   AdvancedAnalysisResult,
   ExtraPointResult,
-} from './types';
+} from './types'
 
 // Layer modules
-import { analyzeElementFusion, getElementFusionDescription } from './elementFusion';
-import { analyzeSibsinPlanetFusion, getSibsinPlanetDescription } from './sibsinPlanetFusion';
-import { analyzeTimingOverlay } from './timingOverlay';
-import { analyzeRelationAspect } from './relationAspect';
-import { analyzeLifeCycle, getLifeCycleDescription } from './lifeCycle';
-import { analyzeAdvanced } from './advancedAnalysis';
-import { analyzeExtraPoint } from './extraPoint';
+import { analyzeElementFusion, getElementFusionDescription } from './elementFusion'
+import { analyzeSibsinPlanetFusion, getSibsinPlanetDescription } from './sibsinPlanetFusion'
+import { analyzeTimingOverlay } from './timingOverlay'
+import { analyzeRelationAspect } from './relationAspect'
+import { analyzeLifeCycle, getLifeCycleDescription } from './lifeCycle'
+import { analyzeAdvanced } from './advancedAnalysis'
+import { analyzeExtraPoint } from './extraPoint'
+import { analyzeSibsinHouseFusion } from './sibsinHouseFusion'
+import { analyzeAsteroidHouse } from './asteroidHouse'
 
 // Specialized analyzers
-import { calculateSynergy, getFusionSummary } from './synergy';
-import { analyzeLoveMatrix } from './loveAnalyzer';
-import { analyzeCareerMatrix } from './careerAnalyzer';
+import { calculateSynergy, getFusionSummary } from './synergy'
+import { analyzeLoveMatrix } from './loveAnalyzer'
+import { analyzeCareerMatrix } from './careerAnalyzer'
 
 /**
  * Main Matrix Analysis Function
@@ -38,26 +40,28 @@ export function getMatrixAnalysis(
   astro: AstroData | undefined,
   lang: string
 ): MatrixAnalysisResult | null {
-  if (!saju && !astro) {return null;}
+  if (!saju && !astro) {
+    return null
+  }
 
   // Layer 1: 오행-서양원소 융합
-  const elementFusions = analyzeElementFusion(saju, astro);
+  const elementFusions = analyzeElementFusion(saju, astro)
 
   // Layer 2: 십신-행성 융합
-  const sibsinPlanetFusions = analyzeSibsinPlanetFusion(saju);
+  const sibsinPlanetFusions = analyzeSibsinPlanetFusion(saju)
 
   // Layer 6: 12운성-하우스 생명력
-  const lifeCycles = analyzeLifeCycle(saju, astro, lang);
+  const lifeCycles = analyzeLifeCycle(saju, astro, lang)
 
   // 시너지 종합
   const allFusions = [
     ...elementFusions.map((f) => f.fusion),
     ...sibsinPlanetFusions.map((f) => f.fusion),
     ...lifeCycles.map((f) => f.fusion),
-  ];
+  ]
 
-  const synergy = calculateSynergy(allFusions, lang);
-  const fusionSummary = getFusionSummary(allFusions);
+  const synergy = calculateSynergy(allFusions, lang)
+  const fusionSummary = getFusionSummary(allFusions)
 
   return {
     elementFusions,
@@ -65,7 +69,7 @@ export function getMatrixAnalysis(
     lifeCycles,
     synergy,
     fusionSummary,
-  };
+  }
 }
 
 /**
@@ -78,20 +82,24 @@ export function getFullMatrixAnalysis(
   lang: string
 ): FullMatrixAnalysisResult | null {
   // Get base analysis
-  const baseResult = getMatrixAnalysis(saju, astro, lang);
-  if (!baseResult) {return null;}
+  const baseResult = getMatrixAnalysis(saju, astro, lang)
+  if (!baseResult) {
+    return null
+  }
 
   // Layer 4: 타이밍 오버레이
-  const timingOverlays = analyzeTimingOverlay(saju, lang);
+  const timingOverlays = analyzeTimingOverlay(saju, lang)
 
   // Layer 5: 관계-애스펙트
-  const relationAspects = analyzeRelationAspect(saju, astro, lang);
+  const relationAspects = analyzeRelationAspect(saju, astro, lang)
 
   // Layer 7: 고급분석 (격국 × 프로그레션)
-  const advancedAnalysis = analyzeAdvanced(saju, astro, lang);
+  const advancedAnalysis = analyzeAdvanced(saju, astro, lang)
 
   // Layer 10: 엑스트라포인트
-  const extraPoints = analyzeExtraPoint(saju, astro, lang);
+  const extraPoints = analyzeExtraPoint(saju, astro, lang)
+  const sibsinHouseFusions = analyzeSibsinHouseFusion(saju)
+  const asteroidHouseFusions = analyzeAsteroidHouse(astro, undefined, lang)
 
   return {
     ...baseResult,
@@ -99,7 +107,9 @@ export function getFullMatrixAnalysis(
     relationAspects,
     advancedAnalysis,
     extraPoints,
-  };
+    sibsinHouseFusions,
+    asteroidHouseFusions,
+  }
 }
 
 /**
@@ -110,7 +120,7 @@ export function getLoveMatrixAnalysis(
   astro: AstroData | undefined,
   lang: string
 ): LoveMatrixResult | null {
-  return analyzeLoveMatrix(saju, astro, lang);
+  return analyzeLoveMatrix(saju, astro, lang)
 }
 
 /**
@@ -121,7 +131,7 @@ export function getCareerMatrixAnalysis(
   astro: AstroData | undefined,
   lang: string
 ): CareerMatrixResult | null {
-  return analyzeCareerMatrix(saju, astro, lang);
+  return analyzeCareerMatrix(saju, astro, lang)
 }
 
 /**
@@ -132,7 +142,7 @@ export function getTimingOverlayAnalysis(
   astro: AstroData | undefined,
   lang: string
 ): TimingOverlayResult[] {
-  return analyzeTimingOverlay(saju, lang);
+  return analyzeTimingOverlay(saju, lang)
 }
 
 /**
@@ -143,7 +153,7 @@ export function getRelationAspectAnalysis(
   astro: AstroData | undefined,
   lang: string
 ): RelationAspectResult[] {
-  return analyzeRelationAspect(saju, astro, lang);
+  return analyzeRelationAspect(saju, astro, lang)
 }
 
 /**
@@ -154,7 +164,7 @@ export function getAdvancedAnalysisResult(
   astro: AstroData | undefined,
   lang: string
 ): AdvancedAnalysisResult[] {
-  return analyzeAdvanced(saju, astro, lang);
+  return analyzeAdvanced(saju, astro, lang)
 }
 
 /**
@@ -165,15 +175,11 @@ export function getExtraPointAnalysis(
   astro: AstroData | undefined,
   lang: string
 ): ExtraPointResult[] {
-  return analyzeExtraPoint(saju, astro, lang);
+  return analyzeExtraPoint(saju, astro, lang)
 }
 
 // Re-export types
-export * from './types';
+export * from './types'
 
 // Re-export description functions
-export {
-  getElementFusionDescription,
-  getSibsinPlanetDescription,
-  getLifeCycleDescription,
-};
+export { getElementFusionDescription, getSibsinPlanetDescription, getLifeCycleDescription }

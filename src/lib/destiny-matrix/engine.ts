@@ -67,7 +67,7 @@ import { ELEMENT_CORE_GRID, SIGN_TO_ELEMENT } from './data/layer1-element-core'
 import { SIBSIN_PLANET_MATRIX } from './data/layer2-sibsin-planet'
 import { SIBSIN_HOUSE_MATRIX } from './data/layer3-sibsin-house'
 import { TIMING_OVERLAY_MATRIX } from './data/layer4-timing-overlay'
-import { RELATION_ASPECT_MATRIX } from './data/layer5-relation-aspect'
+import { ASPECT_INFO, RELATION_ASPECT_MATRIX } from './data/layer5-relation-aspect'
 import { TWELVE_STAGE_HOUSE_MATRIX } from './data/layer6-stage-house'
 import { ADVANCED_ANALYSIS_MATRIX } from './data/layer7-advanced-analysis'
 import { SHINSAL_PLANET_MATRIX } from './data/layer8-shinsal-planet'
@@ -146,6 +146,41 @@ function createEmptyCell(): MatrixCell {
       keywordEn: 'Neutral',
     },
   }
+}
+
+function clampScore1to10(value: number): number {
+  if (value < 1) return 1
+  if (value > 10) return 10
+  return value
+}
+
+function getAspectDefaultMeta(aspectType: AspectType): { angle: number; orb: number } {
+  const meta = ASPECT_INFO[aspectType]
+  return {
+    angle: typeof meta?.angle === 'number' ? meta.angle : 0,
+    orb: typeof meta?.orb === 'number' ? meta.orb : 4,
+  }
+}
+
+function getOrbAdjustedScore(
+  baseScore: number,
+  actualOrb: number | undefined,
+  allowedOrb: number
+): number {
+  if (typeof actualOrb !== 'number' || actualOrb < 0) {
+    return clampScore1to10(baseScore)
+  }
+
+  let multiplier: number
+  if (actualOrb <= allowedOrb) {
+    const fit = 1 - actualOrb / Math.max(allowedOrb, 0.1)
+    multiplier = 1 + 0.12 * fit
+  } else {
+    const overflow = (actualOrb - allowedOrb) / Math.max(allowedOrb, 0.1)
+    multiplier = Math.max(0.7, 1 - 0.3 * overflow)
+  }
+
+  return clampScore1to10(Math.round(baseScore * multiplier))
 }
 
 // ===========================
@@ -260,12 +295,22 @@ function calculateLayer5(input: MatrixCalculationInput): Record<string, MatrixCe
       const matrixCell = RELATION_ASPECT_MATRIX[branchRel]?.[aspectType]
       if (matrixCell) {
         const key = `${branchRel}_${aspectType}`
-        if (!results[key]) {
-          results[key] = {
-            interaction: matrixCell,
-            sajuBasis: `${relation.kind} (${relation.detail || ''})`,
-            astroBasis: `${aspect.planet1}-${aspect.planet2} ${aspectType}`,
-          }
+        const defaults = getAspectDefaultMeta(aspectType)
+        const angle = typeof aspect.angle === 'number' ? aspect.angle : defaults.angle
+        const allowedOrb = defaults.orb
+        const adjustedScore = getOrbAdjustedScore(matrixCell.score, aspect.orb, allowedOrb)
+
+        const candidate: MatrixCell = {
+          interaction: {
+            ...matrixCell,
+            score: adjustedScore,
+          },
+          sajuBasis: `${relation.kind} (${relation.detail || ''})`,
+          astroBasis: `${aspect.planet1}-${aspect.planet2} ${aspectType} angle=${angle}deg orb=${typeof aspect.orb === 'number' ? aspect.orb : 'n/a'}deg allowed=${allowedOrb}deg`,
+        }
+
+        if (!results[key] || candidate.interaction.score > results[key].interaction.score) {
+          results[key] = candidate
         }
       }
     }

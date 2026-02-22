@@ -13,8 +13,15 @@ export { generateFivePagePDF, generatePremiumPDF, type PDFGenerationOptions } fr
 export {
   buildGraphRAGEvidence,
   formatGraphRAGEvidenceForPrompt,
+  summarizeGraphRAGEvidence,
+  summarizeDestinyMatrixEvidence,
   type GraphRAGEvidenceAnchor,
   type GraphRAGEvidenceBundle,
+  type GraphRAGEvidenceSummary,
+  type GraphRAGAnchorSummary,
+  type GraphRAGCrossEvidenceSet,
+  type DestinyMatrixEvidenceSummary,
+  type DestinyMatrixEvidenceSummaryItem,
 } from './graphRagEvidence'
 
 export {

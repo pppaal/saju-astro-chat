@@ -1,36 +1,38 @@
 const CP1252_REVERSE_MAP: Record<string, number> = {
-  '\u20ac': 0x80, // €
-  '\u201a': 0x82, // ‚
-  '\u0192': 0x83, // ƒ
-  '\u201e': 0x84, // „
-  '\u2026': 0x85, // …
-  '\u2020': 0x86, // †
-  '\u2021': 0x87, // ‡
-  '\u02c6': 0x88, // ˆ
-  '\u2030': 0x89, // ‰
-  '\u0160': 0x8a, // Š
-  '\u2039': 0x8b, // ‹
-  '\u0152': 0x8c, // Œ
-  '\u017d': 0x8e, // Ž
-  '\u2018': 0x91, // ‘
-  '\u2019': 0x92, // ’
-  '\u201c': 0x93, // “
-  '\u201d': 0x94, // ”
-  '\u2022': 0x95, // •
-  '\u2013': 0x96, // –
-  '\u2014': 0x97, // —
-  '\u02dc': 0x98, // ˜
-  '\u2122': 0x99, // ™
-  '\u0161': 0x9a, // š
-  '\u203a': 0x9b, // ›
-  '\u0153': 0x9c, // œ
-  '\u017e': 0x9e, // ž
-  '\u0178': 0x9f, // Ÿ
+  '\u20ac': 0x80,
+  '\u201a': 0x82,
+  '\u0192': 0x83,
+  '\u201e': 0x84,
+  '\u2026': 0x85,
+  '\u2020': 0x86,
+  '\u2021': 0x87,
+  '\u02c6': 0x88,
+  '\u2030': 0x89,
+  '\u0160': 0x8a,
+  '\u2039': 0x8b,
+  '\u0152': 0x8c,
+  '\u017d': 0x8e,
+  '\u2018': 0x91,
+  '\u2019': 0x92,
+  '\u201c': 0x93,
+  '\u201d': 0x94,
+  '\u2022': 0x95,
+  '\u2013': 0x96,
+  '\u2014': 0x97,
+  '\u02dc': 0x98,
+  '\u2122': 0x99,
+  '\u0161': 0x9a,
+  '\u203a': 0x9b,
+  '\u0153': 0x9c,
+  '\u017e': 0x9e,
+  '\u0178': 0x9f,
 }
 
-const MOJIBAKE_REGEX =
-  /(ðŸ|Ã.|Â.|â.|ì.|ë.|ê.|í.|Œ|œ|Š|š|Ž|ž|Ÿ|€|™|�|\u00c2|\u00c3|\u00e2|\u00ec|\u00eb|\u00ea|\u00ed)/
-const MOJIBAKE_SEGMENT_REGEX = /[ðÃÂâìëêíŒœŠšŽžŸ€™•…–—]+/g
+const MOJIBAKE_CHAR_CLASS =
+  '[\u00c2\u00c3\u00e2\u00ec\u00eb\u00ea\u00ed\u00f0\u0152\u0153\u0160\u0161\u017d\u017e\u0178\u201a\u201e\u2020\u2021\u2026\u2030\u2039\u203a\u20ac\u2122\ufffd]'
+const MOJIBAKE_REGEX = new RegExp(MOJIBAKE_CHAR_CLASS)
+const MOJIBAKE_SEGMENT_REGEX = new RegExp(`${MOJIBAKE_CHAR_CLASS}+`, 'g')
+const SUSPICIOUS_CHAR_REGEX = new RegExp(MOJIBAKE_CHAR_CLASS)
 
 const decoder = new TextDecoder('utf-8')
 
@@ -63,24 +65,36 @@ function decodeLegacyUtf8(value: string): string | null {
 }
 
 function mojibakeScore(value: string): number {
-  const matches = value.match(
-    /ðŸ|Ã.|Â.|â.|ì.|ë.|ê.|í.|Œ|œ|Š|š|Ž|ž|Ÿ|€|™|�|\u00c2|\u00c3|\u00e2|\u00ec|\u00eb|\u00ea|\u00ed/g
-  )
+  const matches = value.match(MOJIBAKE_SEGMENT_REGEX)
   return matches ? matches.length : 0
+}
+
+function semanticGainScore(value: string): number {
+  const hangul = (value.match(/[\uac00-\ud7a3]/g) || []).length
+  const emoji = (value.match(/[\u{1f300}-\u{1faff}]/gu) || []).length
+  return hangul * 2 + emoji
 }
 
 function preferDecoded(original: string, decoded: string): boolean {
   if (!decoded || decoded === original) return false
   if (decoded.includes('\uFFFD') && !original.includes('\uFFFD')) return false
-  return mojibakeScore(decoded) < mojibakeScore(original)
+
+  const originalScore = mojibakeScore(original)
+  const decodedScore = mojibakeScore(decoded)
+  if (decodedScore < originalScore) return true
+  if (decodedScore === originalScore && semanticGainScore(decoded) > semanticGainScore(original)) {
+    return true
+  }
+  return false
 }
 
 export function hasMojibake(value: string): boolean {
-  return MOJIBAKE_REGEX.test(value)
+  return MOJIBAKE_REGEX.test(value) || SUSPICIOUS_CHAR_REGEX.test(value)
 }
 
 export function repairMojibakeText(value: string, maxPasses = 2): string {
-  if (!value || !hasMojibake(value)) return value
+  if (!value) return value
+  if (!hasMojibake(value)) return value
 
   let current = value
 
@@ -88,7 +102,7 @@ export function repairMojibakeText(value: string, maxPasses = 2): string {
     const fullDecoded = decodeLegacyUtf8(current)
     if (fullDecoded && preferDecoded(current, fullDecoded)) {
       current = fullDecoded
-      if (!hasMojibake(current)) return current
+      if (!hasMojibake(current) && !SUSPICIOUS_CHAR_REGEX.test(current)) return current
       continue
     }
 
@@ -104,7 +118,7 @@ export function repairMojibakeText(value: string, maxPasses = 2): string {
 
     if (segmentChanged && preferDecoded(current, segmentDecoded)) {
       current = segmentDecoded
-      if (!hasMojibake(current)) return current
+      if (!hasMojibake(current) && !SUSPICIOUS_CHAR_REGEX.test(current)) return current
       continue
     }
 
@@ -134,5 +148,4 @@ export function normalizeMojibakePayload<T>(input: T): T {
   return input
 }
 
-// Backward-compatible alias used by existing callers.
 export const repairMojibakeDeep = normalizeMojibakePayload

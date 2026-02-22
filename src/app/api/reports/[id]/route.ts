@@ -13,6 +13,7 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { idParamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
+import { summarizeGraphRAGEvidence } from '@/lib/destiny-matrix/ai-report'
 
 type RouteContext = {
   params: Promise<{ id: string }>
@@ -216,6 +217,10 @@ export async function GET(request: Request, routeContext: RouteContext) {
           reportData,
           report.locale || (reportData?.lang as string) || 'ko'
         )
+        const graphRagEvidence =
+          reportData && isRecord(reportData) && 'graphRagEvidence' in reportData
+            ? reportData.graphRagEvidence
+            : undefined
 
         return apiSuccess({
           report: {
@@ -241,10 +246,10 @@ export async function GET(request: Request, routeContext: RouteContext) {
               reportData && isRecord(reportData) && 'calculationDetails' in reportData
                 ? reportData.calculationDetails
                 : undefined,
-            graphRagEvidence:
-              reportData && isRecord(reportData) && 'graphRagEvidence' in reportData
-                ? reportData.graphRagEvidence
-                : undefined,
+            graphRagEvidence,
+            graphRagEvidenceSummary: summarizeGraphRAGEvidence(
+              graphRagEvidence as Parameters<typeof summarizeGraphRAGEvidence>[0]
+            ),
             fullData: reportData,
           },
         })

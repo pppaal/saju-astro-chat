@@ -21,6 +21,8 @@ import {
   generateFivePagePDF,
   generatePremiumPDF,
   REPORT_CREDIT_COSTS,
+  summarizeDestinyMatrixEvidence,
+  summarizeGraphRAGEvidence,
   type AIPremiumReport,
   type ReportPeriod,
   type ReportTheme,
@@ -48,6 +50,21 @@ function calculateCreditCost(period?: ReportPeriod, theme?: ReportTheme): number
     return REPORT_CREDIT_COSTS[period]
   }
   return REPORT_CREDIT_COSTS.comprehensive
+}
+
+const toOptionalString = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : undefined
+}
+
+const toOptionalNumber = (value: unknown): number | undefined => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : undefined
+  }
+  return undefined
 }
 
 const HEAVENLY_STEMS = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계']
@@ -174,7 +191,6 @@ export const POST = withApiMiddleware(
 
       const validatedInput = validation.data!
       const { queryDomain, maxInsights, ...rest } = validatedInput
-      const matrixInput = rest as unknown as MatrixCalculationInput
 
       // 6. 추가 옵션 추출
       const name = requestBody.name as string | undefined
@@ -186,6 +202,20 @@ export const POST = withApiMiddleware(
         | 'comprehensive'
         | undefined
       const targetDate = requestBody.targetDate as string | undefined
+      const profileContext = {
+        birthDate: toOptionalString(requestBody.birthDate),
+        birthTime: toOptionalString(requestBody.birthTime),
+        birthCity: toOptionalString(requestBody.birthCity),
+        timezone: toOptionalString(requestBody.timezone),
+        latitude: toOptionalNumber(requestBody.latitude),
+        longitude: toOptionalNumber(requestBody.longitude),
+        houseSystem: toOptionalString(requestBody.houseSystem),
+        analysisAt: toOptionalString(requestBody.analysisAt) || new Date().toISOString(),
+      }
+      const matrixInput = {
+        ...(rest as MatrixCalculationInput),
+        profileContext,
+      } as MatrixCalculationInput
 
       // 7. 기본 매트릭스 계산
       const matrix = calculateDestinyMatrix(matrixInput)
@@ -253,6 +283,7 @@ export const POST = withApiMiddleware(
         })
         const calculationDetails = buildCalculationDetails({
           matrixInput,
+          profileContext,
           timingData,
           matrixSummary:
             matrix && typeof matrix === 'object' && 'summary' in matrix
@@ -308,6 +339,7 @@ export const POST = withApiMiddleware(
       const reportTitle = generateReportTitle(reportType, period, theme, targetDate)
       const reportSummary = extractReportSummary(aiReport)
       const overallScore = extractOverallScore(aiReport)
+      const destinyMatrixEvidenceSummary = summarizeDestinyMatrixEvidence(baseReport)
 
       const savedReport = await prisma.destinyMatrixReport.create({
         data: {
@@ -371,6 +403,11 @@ export const POST = withApiMiddleware(
         report: {
           ...aiReport,
           id: savedReport.id, // DB에 저장된 ID로 덮어쓰기
+          destinyMatrixEvidenceSummary,
+          graphRagEvidenceSummary: summarizeGraphRAGEvidence(
+            (aiReport as AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport)
+              .graphRagEvidence
+          ),
         },
       })
       return res

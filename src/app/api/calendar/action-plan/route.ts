@@ -41,6 +41,9 @@ type CalendarEvidence = {
   cross?: {
     sajuEvidence?: string
     astroEvidence?: string
+    sajuDetails?: string[]
+    astroDetails?: string[]
+    bridges?: string[]
   }
   confidence?: number
   source?: 'rule' | 'rag' | 'hybrid'
@@ -110,6 +113,18 @@ const actionPlanTimelineRequestSchema = z.object({
             .object({
               sajuEvidence: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
               astroEvidence: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+              sajuDetails: z
+                .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+                .max(LIST_LIMITS.MAX_LIST_ITEMS)
+                .optional(),
+              astroDetails: z
+                .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+                .max(LIST_LIMITS.MAX_LIST_ITEMS)
+                .optional(),
+              bridges: z
+                .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+                .max(LIST_LIMITS.MAX_LIST_ITEMS)
+                .optional(),
             })
             .optional(),
           confidence: z.number().min(0).max(100).optional(),
@@ -194,6 +209,70 @@ const extractHoursFromText = (value: string) => {
   const hour = Number(singleMatch[1])
   if (Number.isNaN(hour) || hour < 0 || hour > 23) return []
   return [hour]
+}
+
+const cleanGuidanceText = (value: string, maxLength = 96): string => {
+  const normalized = repairMojibakeText(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!normalized) return ''
+
+  const noEvidenceTail = normalized.replace(/\s*(근거|evidence)\s*:.*/i, '').trim()
+  const noHype = noEvidenceTail
+    .replace(/인생을 바꿀[^.!\n]*/g, '')
+    .replace(/완벽한 날[^.!\n]*/g, '')
+    .replace(/1년에 몇 번[^.!\n]*/g, '')
+    .replace(/에너지가 도와줘요!?/g, '')
+    .replace(/청첩장[^.!\n]*/g, '')
+    .replace(/예식장 예약[^.!\n]*/g, '')
+    .replace(/핵심 1~2개[^.!\n]*/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+
+  const cleaned = noHype.replace(/(?:\.\.\.|…|~)+$/g, '').trim()
+  if (cleaned.length <= maxLength) return cleaned
+  return `${cleaned.slice(0, Math.max(20, maxLength - 3)).trimEnd()}...`
+}
+
+const pickCrossLineByTone = (lines: string[] | undefined, tone: TimelineTone): string => {
+  const list = (lines || []).map((line) => cleanGuidanceText(line, 120)).filter(Boolean)
+  if (list.length === 0) return ''
+
+  const hardPattern = /(square|opposition|긴장|충돌|압박|friction|caution|\u26a0)/i
+  const softPattern = /(trine|sextile|지원|기회|흐름|support|flow|\u2705)/i
+
+  if (tone === 'caution') {
+    return list.find((line) => hardPattern.test(line)) || list[0]
+  }
+  if (tone === 'best') {
+    return list.find((line) => softPattern.test(line)) || list[0]
+  }
+  return list[0]
+}
+
+const buildCrossReasonText = (
+  cross:
+    | {
+        sajuEvidence?: string
+        astroEvidence?: string
+        sajuDetails?: string[]
+        astroDetails?: string[]
+        bridges?: string[]
+      }
+    | undefined,
+  tone: TimelineTone,
+  locale: 'ko' | 'en'
+): string => {
+  if (!cross) return ''
+  const astro =
+    pickCrossLineByTone(cross.astroDetails, tone) ||
+    cleanGuidanceText(cross.astroEvidence || '', 92)
+  const saju =
+    pickCrossLineByTone(cross.sajuDetails, tone) || cleanGuidanceText(cross.sajuEvidence || '', 80)
+  if (!astro && !saju) return ''
+  const merged = [astro, saju].filter(Boolean).join(' + ')
+  const prefix = locale === 'ko' ? '근거: ' : 'Evidence: '
+  return cleanGuidanceText(`${prefix}${merged}`, 132)
 }
 
 const CATEGORY_FOCUS_HINTS: Record<
@@ -384,16 +463,26 @@ const buildRuleBasedTimeline = (input: {
 
       const category = pickCategoryByHour(calendar?.categories, hour)
       const focusHint = getCategoryFocusHint(category, hour, locale)
-      const recHint = pickByHour(calendar?.recommendations, hour)
-      const warningHint = pickByHour(calendar?.warnings, hour)
-      const baseSummary = calendar?.summary?.trim()
+      const recHint = cleanGuidanceText(pickByHour(calendar?.recommendations, hour) || '', 78)
+      const warningHint = cleanGuidanceText(pickByHour(calendar?.warnings, hour) || '', 78)
       const matrixSummary =
         calendar?.evidence?.matrix?.domain && typeof calendar?.evidence?.confidence === 'number'
-          ? `${calendar.evidence.matrix.domain} matrix confidence ${calendar.evidence.confidence}%`
+          ? `Matrix: ${calendar.evidence.matrix.domain} confidence ${calendar.evidence.confidence}%`
           : null
-      const crossSummary = [calendar?.sajuFactors?.[0], calendar?.astroFactors?.[0]]
-        .filter(Boolean)
-        .join(' / ')
+      const primaryAstroLine =
+        pickCrossLineByTone(calendar?.evidence?.cross?.astroDetails, tone) ||
+        cleanGuidanceText(calendar?.evidence?.cross?.astroEvidence || '', 112)
+      const primaryBridgeLine =
+        pickCrossLineByTone(calendar?.evidence?.cross?.bridges, tone) ||
+        [calendar?.sajuFactors?.[0], calendar?.astroFactors?.[0]]
+          .map((line) => cleanGuidanceText(line || '', 96))
+          .filter(Boolean)
+          .join(' / ')
+      const crossReason = buildCrossReasonText(calendar?.evidence?.cross, tone, locale)
+      const crossSummary =
+        primaryAstroLine ||
+        primaryBridgeLine ||
+        cleanGuidanceText(calendar?.evidence?.cross?.sajuDetails?.[0] || '', 112)
 
       const best = hourlyRec.bestActivities.slice(0, 2).join(', ')
       const avoid = hourlyRec.avoidActivities.slice(0, 2).join(', ')
@@ -409,9 +498,6 @@ const buildRuleBasedTimeline = (input: {
             recHint ? `실행: ${recHint}` : `추천: ${best || '핵심 업무'}`
           }`
         }
-        if (baseSummary) {
-          detailLine = `${detailLine} 근거: ${baseSummary.slice(0, 70)}`
-        }
       } else {
         if (tone === 'caution') {
           detailLine = `${focusHint}. ${
@@ -420,16 +506,25 @@ const buildRuleBasedTimeline = (input: {
         } else {
           detailLine = `${focusHint}. ${recHint ? `Action: ${recHint}` : 'Action: do one focused task'}.`
         }
-        if (baseSummary) {
-          detailLine = `${detailLine} Why: ${baseSummary.slice(0, 90)}`
-        }
       }
 
-      const note = repairMojibakeText(`${energyText} · ${detailLine}`.trim())
-      const evidenceSummary = [
-        repairMojibakeText(matrixSummary || 'Matrix baseline evidence'),
-        repairMojibakeText(crossSummary || 'Cross evidence: baseline saju/astro flow'),
+      const noteParts = [
+        cleanGuidanceText(energyText, 54),
+        cleanGuidanceText(detailLine, 108),
+        crossReason,
       ]
+        .filter(Boolean)
+        .slice(0, 3)
+      const note = repairMojibakeText(noteParts.join(' \u00b7 ').trim())
+      const evidenceSummary = Array.from(
+        new Set(
+          [
+            cleanGuidanceText(matrixSummary || 'Matrix baseline evidence', 90),
+            cleanGuidanceText(crossSummary || 'Cross evidence: baseline saju/astro flow', 124),
+            cleanGuidanceText(primaryBridgeLine || '', 124),
+          ].filter(Boolean)
+        )
+      ).slice(0, 3)
       slots.push({ hour, minute, label, note, tone, evidenceSummary, source: 'rule' })
     }
   }

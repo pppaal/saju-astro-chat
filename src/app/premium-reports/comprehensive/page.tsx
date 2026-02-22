@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
+import PremiumPageScaffold from '@/app/premium-reports/_components/PremiumPageScaffold'
 import {
   ReportProfileForm,
   type ReportProfileInput,
@@ -142,27 +143,30 @@ export default function ComprehensiveReportPage() {
           <UnifiedServiceLoading kind="aiReport" locale="ko" />
         </div>
       )}
-      <div className="min-h-[100svh] bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-        <header className="px-4 py-8">
+      <PremiumPageScaffold accent="amber">
+        <header className="px-4 py-10">
           <div className="mx-auto max-w-5xl">
             <Link
               href="/premium-reports"
-              className="inline-flex items-center text-sm text-slate-400 hover:text-slate-100"
+              className="inline-flex items-center rounded-full border border-white/15 bg-slate-900/60 px-3 py-1 text-sm text-slate-300 backdrop-blur-xl hover:border-cyan-300/60 hover:text-white"
             >
-              ← 리포트 선택으로 돌아가기
+              리포트 선택으로 돌아가기
             </Link>
-            <div className="mt-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 p-6">
-              <h1 className="text-2xl font-bold text-white">종합 리포트</h1>
-              <p className="mt-2 text-sm text-white/90">
+            <div className="mt-5 rounded-3xl border border-white/15 bg-slate-900/60 p-7 backdrop-blur-xl">
+              <div className="inline-flex rounded-full border border-amber-300/35 bg-amber-400/10 px-3 py-1 text-xs font-semibold text-amber-200">
+                Comprehensive
+              </div>
+              <h1 className="mt-3 text-3xl font-black text-white">종합 리포트</h1>
+              <p className="mt-2 text-sm leading-6 text-slate-200">
                 사주와 점성의 핵심 시그널을 통합해 장기 전략을 제시합니다.
               </p>
-              <p className="mt-2 text-xs text-white/80">3 credits</p>
+              <p className="mt-3 text-xs font-semibold text-amber-200">3 credits</p>
             </div>
           </div>
         </header>
 
         <main className="mx-auto grid max-w-5xl gap-6 px-4 pb-20 lg:grid-cols-[1fr_1fr]">
-          <section className="rounded-2xl border border-slate-700/50 bg-slate-800/40 p-6">
+          <section className="rounded-3xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
             <h2 className="text-lg font-semibold text-white">포함 내용</h2>
             <ul className="mt-4 space-y-2">
               {FEATURES.map((feature) => (
@@ -173,7 +177,7 @@ export default function ComprehensiveReportPage() {
             </ul>
           </section>
 
-          <section className="space-y-4">
+          <section className="space-y-4 rounded-3xl border border-white/15 bg-slate-900/55 p-5 backdrop-blur-xl">
             <ReportProfileForm locale="ko" initialName={profile.name} onSubmit={setProfileInput} />
 
             {error && (
@@ -187,7 +191,7 @@ export default function ComprehensiveReportPage() {
               disabled={!canGenerate}
               className={`w-full rounded-xl px-4 py-4 text-sm font-semibold text-white transition ${
                 canGenerate
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:brightness-110'
                   : 'cursor-not-allowed bg-slate-700'
               }`}
             >
@@ -199,7 +203,7 @@ export default function ComprehensiveReportPage() {
             </p>
           </section>
         </main>
-      </div>
+      </PremiumPageScaffold>
     </>
   )
 }

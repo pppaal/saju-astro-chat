@@ -9,15 +9,15 @@ type GoldenCase = {
 
 const baseSections = {
   deepAnalysis:
-    'Saju structure shows baseline tendencies while astrology transit and house activation explain near-term expression.',
+    'Saju structure shows baseline tendencies while astrology transit and house activation explain near-term expression with angle=120deg orb=1.3deg allowed=6deg.',
   patterns:
-    'Saju ten-god flow and astrology planetary pattern together indicate repeatable behavior cycles.',
+    'Saju ten-god flow and astrology planetary pattern together indicate repeatable behavior cycles with angle=60deg orb=1.8deg allowed=5deg.',
   timing:
-    'Saju luck-cycle turning points align with astrology transit windows for practical decision timing.',
+    'Saju luck-cycle turning points align with astrology transit windows for practical decision timing using angle=90deg orb=1.4deg allowed=6deg.',
   recommendations:
-    'Use both saju baseline and astrology timing to pick lower-risk actions and sequence commitments.',
+    'Use both saju baseline and astrology timing to pick lower-risk actions and sequence commitments. Keep a weekly review and adjust scope when signals diverge.',
   actionPlan:
-    'Week 1 define one measurable goal. Week 2 execute one bounded action in the recommended timing window.',
+    'Week 1 define one measurable goal. Week 2 execute one bounded action in the recommended timing window. Week 3 review outcomes and adjust. Week 4 lock one repeatable routine.',
 }
 
 const cases: GoldenCase[] = [

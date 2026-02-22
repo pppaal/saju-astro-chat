@@ -1,8 +1,8 @@
-"use client";
+'use client'
 
-import type { TabProps } from './types';
-import { getHealthMatrixAnalysis } from '../analyzers/matrixAnalyzer';
-import { PremiumReportCTA } from '../components';
+import type { TabProps } from './types'
+import { getHealthMatrixAnalysis } from '../analyzers/matrixAnalyzer'
+import { PremiumReportCTA } from '../components'
 import {
   type HealthItem,
   type ChironInsight,
@@ -15,29 +15,36 @@ import {
   ShinsalHealthSection,
   HealthCheckPoints,
   ChironDeepAnalysis,
-} from './health';
+} from './health'
+import { ensureMinSentenceText } from './shared/textDepth'
 
 export default function HealthTab({ saju, astro, isKo, data }: TabProps) {
   // Early return if data is null
   if (!data) {
-    return <div className="text-gray-400 text-center p-6">Loading...</div>;
+    return <div className="text-gray-400 text-center p-6">Loading...</div>
   }
 
-  const healthAnalysis = (data as Record<string, unknown>).healthAnalysis as HealthItem[] | null;
-  const chironInsight = (data as Record<string, unknown>).chironInsight as ChironInsight | null;
-  const dayMasterName = data.dayMasterName || "";
+  const healthAnalysis = (data as Record<string, unknown>).healthAnalysis as HealthItem[] | null
+  const chironInsight = (data as Record<string, unknown>).chironInsight as ChironInsight | null
+  const dayMasterName = data.dayMasterName || ''
 
   // 매트릭스 분석 호출
-  const matrixHealth = getHealthMatrixAnalysis(saju || undefined, astro || undefined, isKo ? 'ko' : 'en');
+  const matrixHealth = getHealthMatrixAnalysis(
+    saju || undefined,
+    astro || undefined,
+    isKo ? 'ko' : 'en'
+  )
 
   // 일간별 건강 정보
-  const healthStory = getHealthStory(String(dayMasterName || ''), isKo);
+  const healthStory = getHealthStory(String(dayMasterName || ''), isKo)
 
   // 에너지 강도 분석
-  const advancedAnalysis = (saju as Record<string, unknown>)?.advancedAnalysis as Record<string, unknown> | undefined;
-  const extendedAnalysis = advancedAnalysis?.extended as Record<string, unknown> | undefined;
-  const energyStrength = extendedAnalysis?.strength as Record<string, unknown> | undefined;
-  const energyLevel = getEnergyLevel(energyStrength, isKo);
+  const advancedAnalysis = (saju as Record<string, unknown>)?.advancedAnalysis as
+    | Record<string, unknown>
+    | undefined
+  const extendedAnalysis = advancedAnalysis?.extended as Record<string, unknown> | undefined
+  const energyStrength = extendedAnalysis?.strength as Record<string, unknown> | undefined
+  const energyLevel = getEnergyLevel(energyStrength, isKo)
 
   return (
     <div className="space-y-6">
@@ -70,12 +77,16 @@ export default function HealthTab({ saju, astro, isKo, data }: TabProps) {
           <div className="flex items-center gap-3 mb-4">
             <span className="text-3xl">{energyLevel.emoji}</span>
             <h3 className="text-lg font-bold text-orange-300">
-              {isKo ? "나의 에너지 타입" : "My Energy Type"}: {energyLevel.level}
+              {isKo ? '나의 에너지 타입' : 'My Energy Type'}: {energyLevel.level}
             </h3>
           </div>
-          <p className="text-gray-200 text-sm leading-relaxed mb-3">{energyLevel.desc}</p>
+          <p className="text-gray-200 text-sm leading-relaxed mb-3">
+            {ensureMinSentenceText(energyLevel.desc, isKo, 'health')}
+          </p>
           <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20">
-            <p className="text-sm text-orange-200">{energyLevel.advice}</p>
+            <p className="text-sm text-orange-200">
+              {ensureMinSentenceText(energyLevel.advice, isKo, 'health')}
+            </p>
           </div>
         </div>
       )}
@@ -93,10 +104,7 @@ export default function HealthTab({ saju, astro, isKo, data }: TabProps) {
       )}
 
       {/* AI Premium Report CTA */}
-      <PremiumReportCTA
-        section="health"
-        matrixData={{ matrixHealth }}
-      />
+      <PremiumReportCTA section="health" matrixData={{ matrixHealth }} />
     </div>
-  );
+  )
 }

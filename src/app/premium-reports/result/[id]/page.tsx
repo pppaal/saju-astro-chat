@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
+import PremiumPageScaffold from '@/app/premium-reports/_components/PremiumPageScaffold'
 import {
   toQualityMarkdown,
   type QualityAudit,
@@ -23,6 +24,14 @@ interface GraphRAGEvidenceAnchor {
   sajuEvidence: string
   astrologyEvidence: string
   crossConclusion: string
+  crossEvidenceSets?: Array<{
+    id: string
+    astrologyEvidence: string
+    sajuEvidence: string
+    overlapDomains?: string[]
+    overlapScore?: number
+    combinedConclusion?: string
+  }>
 }
 
 interface GraphRAGEvidenceBundle {
@@ -214,28 +223,33 @@ export default function ReportResultPage() {
 
   if (error || !report) {
     return (
-      <div className="min-h-[100svh] bg-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-400 mb-4">{error || '리포트를 찾을 수 없습니다.'}</p>
-          <Link href="/premium-reports" className="text-purple-400 hover:text-purple-300">
-            리포트 목록으로 돌아가기
-          </Link>
+      <PremiumPageScaffold accent="violet">
+        <div className="flex min-h-[100svh] items-center justify-center px-4">
+          <div className="w-full max-w-md rounded-2xl border border-white/15 bg-slate-900/60 p-6 text-center backdrop-blur-xl">
+            <p className="mb-4 text-red-300">{error || '리포트를 찾을 수 없습니다.'}</p>
+            <Link
+              href="/premium-reports"
+              className="font-semibold text-cyan-200 hover:text-cyan-100"
+            >
+              리포트 목록으로 돌아가기
+            </Link>
+          </div>
         </div>
-      </div>
+      </PremiumPageScaffold>
     )
   }
 
   const showThemedDiagnostics = report.type === 'themed' && !!report.calculationDetails
 
   return (
-    <div className="min-h-[100svh] bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-      <header className="py-8 px-4 border-b border-slate-700/50">
+    <PremiumPageScaffold accent="cyan">
+      <header className="border-b border-white/10 px-4 py-8">
         <div className="max-w-5xl mx-auto">
           <Link
             href="/premium-reports"
-            className="text-gray-400 hover:text-white text-sm inline-flex items-center gap-1"
+            className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-slate-900/60 px-3 py-1 text-sm text-slate-300 backdrop-blur-xl hover:border-cyan-300/60 hover:text-white"
           >
-            ← 리포트 목록으로
+            리포트 목록으로
           </Link>
 
           <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -249,20 +263,20 @@ export default function ReportResultPage() {
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={handleDownloadPDF}
-                className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm"
+                className="rounded-lg border border-cyan-300/35 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-100 transition hover:bg-cyan-400/20"
               >
                 PDF 다운로드
               </button>
               <button
                 onClick={handleShare}
-                className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm"
+                className="rounded-lg border border-white/20 bg-slate-900/70 px-4 py-2 text-sm text-white transition hover:border-cyan-300/60"
               >
                 공유하기
               </button>
               {showThemedDiagnostics && report.qualityAudit && (
                 <button
                   onClick={handleDownloadQualityMarkdown}
-                  className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm"
+                  className="rounded-lg border border-indigo-300/40 bg-indigo-500/20 px-4 py-2 text-sm text-indigo-100 transition hover:bg-indigo-500/35"
                 >
                   품질 리포트(.md)
                 </button>
@@ -270,7 +284,7 @@ export default function ReportResultPage() {
               {showThemedDiagnostics && (
                 <button
                   onClick={handleDownloadCalculationJson}
-                  className="px-4 py-2 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-sm"
+                  className="rounded-lg border border-cyan-300/40 bg-cyan-500/20 px-4 py-2 text-sm text-cyan-100 transition hover:bg-cyan-500/35"
                 >
                   계산 근거(.json)
                 </button>
@@ -282,7 +296,7 @@ export default function ReportResultPage() {
 
       {report.score !== undefined && (
         <div className="max-w-5xl mx-auto px-4 mt-6">
-          <div className="rounded-xl p-6 bg-gradient-to-r from-purple-500 to-pink-500">
+          <div className="rounded-2xl border border-white/15 bg-gradient-to-r from-cyan-500/75 to-indigo-500/75 p-6 shadow-[0_16px_44px_rgba(14,165,233,0.35)]">
             <p className="text-white/80 text-sm">운세 점수</p>
             <p className="text-4xl font-bold text-white">{report.score}점</p>
             {report.grade && <p className="text-white/80 text-sm mt-1">등급: {report.grade}</p>}
@@ -291,7 +305,7 @@ export default function ReportResultPage() {
       )}
 
       <div className="max-w-5xl mx-auto px-4 mt-6">
-        <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+        <div className="rounded-2xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
           <h2 className="text-lg font-bold text-white mb-3">핵심 요약</h2>
           <p className="text-gray-300 whitespace-pre-line">{report.summary}</p>
           {report.keywords && report.keywords.length > 0 && (
@@ -299,7 +313,7 @@ export default function ReportResultPage() {
               {report.keywords.map((keyword) => (
                 <span
                   key={keyword}
-                  className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-sm"
+                  className="rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3 py-1 text-sm text-cyan-100"
                 >
                   #{keyword}
                 </span>
@@ -311,7 +325,7 @@ export default function ReportResultPage() {
 
       {showThemedDiagnostics && report.qualityAudit && (
         <div className="max-w-5xl mx-auto px-4 mt-6">
-          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+          <div className="rounded-2xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
             <h2 className="text-lg font-bold text-white mb-4">품질 점검</h2>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
               <div className="bg-slate-900/60 rounded p-3 text-slate-200">
@@ -363,7 +377,7 @@ export default function ReportResultPage() {
 
       {showThemedDiagnostics && report.calculationDetails && (
         <div className="max-w-5xl mx-auto px-4 mt-6">
-          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+          <div className="rounded-2xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
             <h2 className="text-lg font-bold text-white mb-4">사주/점성 계산 근거 전체 상세</h2>
 
             <details className="mb-3">
@@ -412,7 +426,7 @@ export default function ReportResultPage() {
 
       {report.graphRagEvidence && report.graphRagEvidence.anchors?.length > 0 && (
         <div className="max-w-5xl mx-auto px-4 mt-6">
-          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+          <div className="rounded-2xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
             <h2 className="text-lg font-bold text-white mb-2">GraphRAG 교차 근거</h2>
             <p className="text-xs text-slate-400 mb-4">
               mode: {report.graphRagEvidence.mode}
@@ -424,7 +438,7 @@ export default function ReportResultPage() {
               {report.graphRagEvidence.anchors.map((anchor) => (
                 <details
                   key={anchor.id}
-                  className="rounded-lg border border-slate-700/70 bg-slate-900/40 p-3"
+                  className="rounded-lg border border-white/15 bg-slate-950/45 p-3"
                 >
                   <summary className="cursor-pointer text-sm font-semibold text-slate-200">
                     [{anchor.id}] {anchor.section}
@@ -442,6 +456,43 @@ export default function ReportResultPage() {
                       <p className="text-emerald-300 font-semibold">Cross Conclusion</p>
                       <p className="text-slate-300">{anchor.crossConclusion}</p>
                     </div>
+                    {Array.isArray(anchor.crossEvidenceSets) &&
+                      anchor.crossEvidenceSets.length > 0 && (
+                        <div>
+                          <p className="text-violet-300 font-semibold mb-2">
+                            Paired Cross Evidence Sets
+                          </p>
+                          <div className="space-y-2">
+                            {anchor.crossEvidenceSets.map((set) => (
+                              <div
+                                key={`${anchor.id}-${set.id}`}
+                                className="rounded border border-violet-300/20 bg-violet-900/20 p-2"
+                              >
+                                <p className="text-violet-200 font-semibold">
+                                  {set.id}
+                                  {typeof set.overlapScore === 'number'
+                                    ? ` · overlap ${Math.round(set.overlapScore * 100)}%`
+                                    : ''}
+                                </p>
+                                <p className="text-cyan-200 mt-1">
+                                  Astrology (angle/orb): {set.astrologyEvidence}
+                                </p>
+                                <p className="text-amber-200 mt-1">
+                                  Saju 대응 근거: {set.sajuEvidence}
+                                </p>
+                                {set.overlapDomains && set.overlapDomains.length > 0 && (
+                                  <p className="text-slate-300 mt-1">
+                                    Overlap domains: {set.overlapDomains.join(', ')}
+                                  </p>
+                                )}
+                                {set.combinedConclusion && (
+                                  <p className="text-emerald-200 mt-1">{set.combinedConclusion}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                   </div>
                 </details>
               ))}
@@ -459,8 +510,8 @@ export default function ReportResultPage() {
                 onClick={() => setActiveSection(index)}
                 className={`px-4 py-2 rounded-lg whitespace-nowrap ${
                   activeSection === index
-                    ? 'bg-purple-500 text-white'
-                    : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                    ? 'bg-cyan-500 text-white'
+                    : 'bg-slate-700/70 text-gray-300 hover:bg-slate-600'
                 }`}
               >
                 {section.title}
@@ -472,7 +523,7 @@ export default function ReportResultPage() {
 
       {report.sections.length > 0 && (
         <main className="max-w-5xl mx-auto px-4 py-6 pb-20">
-          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+          <div className="rounded-2xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
             <h2 className="text-xl font-bold text-white mb-4">
               {report.sections[activeSection].title}
             </h2>
@@ -485,7 +536,7 @@ export default function ReportResultPage() {
 
       {report.actionItems && report.actionItems.length > 0 && (
         <div className="max-w-5xl mx-auto px-4 pb-20">
-          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+          <div className="rounded-2xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
             <h2 className="text-lg font-bold text-white mb-4">실천 가이드</h2>
             <ul className="space-y-2">
               {report.actionItems.map((item, index) => (
@@ -497,6 +548,6 @@ export default function ReportResultPage() {
           </div>
         </div>
       )}
-    </div>
+    </PremiumPageScaffold>
   )
 }

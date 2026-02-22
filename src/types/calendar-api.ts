@@ -126,6 +126,9 @@ export interface CalendarEvidence {
   cross: {
     sajuEvidence: string
     astroEvidence: string
+    sajuDetails?: string[]
+    astroDetails?: string[]
+    bridges?: string[]
   }
   confidence: number
   source: CalendarEvidenceSource

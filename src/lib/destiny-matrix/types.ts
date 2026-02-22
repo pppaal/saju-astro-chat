@@ -412,6 +412,9 @@ export interface MatrixCalculationInput {
     planet1: PlanetName
     planet2: PlanetName
     type: AspectType
+    // Optional precision fields used by GraphRAG evidence pairing.
+    angle?: number
+    orb?: number
   }>
   activeTransits?: TransitCycle[]
 
@@ -425,4 +428,15 @@ export interface MatrixCalculationInput {
   lang?: 'ko' | 'en'
   // Optional anchor month for deterministic 12-month timeline generation (YYYY-MM)
   startYearMonth?: string
+  // Optional profile context used for deterministic evidence traceability in AI reports.
+  profileContext?: {
+    birthDate?: string
+    birthTime?: string
+    birthCity?: string
+    timezone?: string
+    latitude?: number
+    longitude?: number
+    houseSystem?: string
+    analysisAt?: string
+  }
 }

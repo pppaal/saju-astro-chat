@@ -2,86 +2,202 @@
 // Destiny Fusion Matrix™ - Input Validation with Zod
 // 견고한 입력 검증 시스템
 
-import { z } from 'zod';
+import { z } from 'zod'
 
 // ===========================
 // 기본 타입 스키마
 // ===========================
 
-export const FiveElementSchema = z.enum(['목', '화', '토', '금', '수']);
+export const FiveElementSchema = z.enum(['목', '화', '토', '금', '수'])
 
 export const SibsinKindSchema = z.enum([
-  '비견', '겁재', '식신', '상관', '편재', '정재', '편관', '정관', '편인', '정인'
-]);
+  '비견',
+  '겁재',
+  '식신',
+  '상관',
+  '편재',
+  '정재',
+  '편관',
+  '정관',
+  '편인',
+  '정인',
+])
 
 export const TwelveStageSchema = z.enum([
-  '장생', '목욕', '관대', '건록', '제왕', '쇠', '병', '사', '묘', '절', '태', '양'
-]);
+  '장생',
+  '목욕',
+  '관대',
+  '건록',
+  '제왕',
+  '쇠',
+  '병',
+  '사',
+  '묘',
+  '절',
+  '태',
+  '양',
+])
 
 export const PlanetNameSchema = z.enum([
-  'Sun', 'Moon', 'Mercury', 'Venus', 'Mars',
-  'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'
-]);
+  'Sun',
+  'Moon',
+  'Mercury',
+  'Venus',
+  'Mars',
+  'Jupiter',
+  'Saturn',
+  'Uranus',
+  'Neptune',
+  'Pluto',
+])
 
 export const HouseNumberSchema = z.union([
-  z.literal(1), z.literal(2), z.literal(3), z.literal(4),
-  z.literal(5), z.literal(6), z.literal(7), z.literal(8),
-  z.literal(9), z.literal(10), z.literal(11), z.literal(12)
-]);
+  z.literal(1),
+  z.literal(2),
+  z.literal(3),
+  z.literal(4),
+  z.literal(5),
+  z.literal(6),
+  z.literal(7),
+  z.literal(8),
+  z.literal(9),
+  z.literal(10),
+  z.literal(11),
+  z.literal(12),
+])
 
-export const WesternElementSchema = z.enum(['fire', 'earth', 'air', 'water']);
+export const WesternElementSchema = z.enum(['fire', 'earth', 'air', 'water'])
 
 export const GeokgukTypeSchema = z.enum([
   // 정격
-  'jeonggwan', 'pyeongwan', 'jeongin', 'pyeongin',
-  'siksin', 'sanggwan', 'jeongjae', 'pyeonjae',
+  'jeonggwan',
+  'pyeongwan',
+  'jeongin',
+  'pyeongin',
+  'siksin',
+  'sanggwan',
+  'jeongjae',
+  'pyeonjae',
   // 특수격
-  'geonrok', 'yangin',
+  'geonrok',
+  'yangin',
   // 종격
-  'jonga', 'jongjae', 'jongsal', 'jonggang',
+  'jonga',
+  'jongjae',
+  'jongsal',
+  'jonggang',
   // 외격
-  'gokjik', 'yeomsang', 'gasaek', 'jonghyeok', 'yunha'
-]);
+  'gokjik',
+  'yeomsang',
+  'gasaek',
+  'jonghyeok',
+  'yunha',
+])
 
 export const TransitCycleSchema = z.enum([
-  'saturnReturn', 'jupiterReturn', 'uranusSquare',
-  'neptuneSquare', 'plutoTransit', 'nodeReturn', 'eclipse',
-  'mercuryRetrograde', 'venusRetrograde', 'marsRetrograde',
-  'jupiterRetrograde', 'saturnRetrograde'
-]);
+  'saturnReturn',
+  'jupiterReturn',
+  'uranusSquare',
+  'neptuneSquare',
+  'plutoTransit',
+  'nodeReturn',
+  'eclipse',
+  'mercuryRetrograde',
+  'venusRetrograde',
+  'marsRetrograde',
+  'jupiterRetrograde',
+  'saturnRetrograde',
+])
 
 export const ShinsalKindSchema = z.enum([
   // 길신
-  '천을귀인', '태극귀인', '천덕귀인', '월덕귀인', '문창귀인', '학당귀인',
-  '금여록', '천주귀인', '암록', '건록', '제왕',
+  '천을귀인',
+  '태극귀인',
+  '천덕귀인',
+  '월덕귀인',
+  '문창귀인',
+  '학당귀인',
+  '금여록',
+  '천주귀인',
+  '암록',
+  '건록',
+  '제왕',
   // 흉신
-  '도화', '홍염살', '양인', '백호', '겁살', '재살', '천살', '지살', '년살',
-  '월살', '망신', '고신', '괴강', '현침', '귀문관',
+  '도화',
+  '홍염살',
+  '양인',
+  '백호',
+  '겁살',
+  '재살',
+  '천살',
+  '지살',
+  '년살',
+  '월살',
+  '망신',
+  '고신',
+  '괴강',
+  '현침',
+  '귀문관',
   // 특수
-  '역마', '화개', '장성', '반안', '천라지망', '공망', '삼재', '원진'
-]);
+  '역마',
+  '화개',
+  '장성',
+  '반안',
+  '천라지망',
+  '공망',
+  '삼재',
+  '원진',
+])
 
-export const AsteroidNameSchema = z.enum(['Ceres', 'Pallas', 'Juno', 'Vesta']);
+export const AsteroidNameSchema = z.enum(['Ceres', 'Pallas', 'Juno', 'Vesta'])
 
 export const ExtraPointNameSchema = z.enum([
-  'Chiron', 'Lilith', 'PartOfFortune', 'Vertex', 'NorthNode', 'SouthNode'
-]);
+  'Chiron',
+  'Lilith',
+  'PartOfFortune',
+  'Vertex',
+  'NorthNode',
+  'SouthNode',
+])
 
 export const ZodiacSignSchema = z.enum([
-  '양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리',
-  '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'
-]);
+  '양자리',
+  '황소자리',
+  '쌍둥이자리',
+  '게자리',
+  '사자자리',
+  '처녀자리',
+  '천칭자리',
+  '전갈자리',
+  '사수자리',
+  '염소자리',
+  '물병자리',
+  '물고기자리',
+])
 
 export const AspectTypeSchema = z.enum([
-  'conjunction', 'opposition', 'trine', 'square', 'sextile',
-  'quincunx', 'semisextile', 'semisquare', 'sesquiquadrate'
-]);
+  'conjunction',
+  'opposition',
+  'trine',
+  'square',
+  'sextile',
+  'quincunx',
+  'semisextile',
+  'semisquare',
+  'sesquiquadrate',
+])
 
 export const InsightDomainSchema = z.enum([
-  'personality', 'career', 'relationship', 'wealth', 'health', 'spirituality', 'timing'
-]);
+  'personality',
+  'career',
+  'relationship',
+  'wealth',
+  'health',
+  'spirituality',
+  'timing',
+])
 
-export const LangSchema = z.enum(['ko', 'en']);
+export const LangSchema = z.enum(['ko', 'en'])
 
 // ===========================
 // 복합 타입 스키마
@@ -89,21 +205,41 @@ export const LangSchema = z.enum(['ko', 'en']);
 
 export const RelationHitSchema = z.object({
   kind: z.enum([
-    '천간합', '천간충',
-    '지지육합', '지지삼합', '지지방합',
-    '지지충', '지지형', '지지파', '지지해', '원진',
-    '공망'
+    '천간합',
+    '천간충',
+    '지지육합',
+    '지지삼합',
+    '지지방합',
+    '지지충',
+    '지지형',
+    '지지파',
+    '지지해',
+    '원진',
+    '공망',
   ]),
   pillars: z.array(z.string()).optional().default([]),
   detail: z.string().optional(),
   note: z.string().optional(),
-});
+})
 
 export const AspectSchema = z.object({
   planet1: PlanetNameSchema,
   planet2: PlanetNameSchema,
   type: AspectTypeSchema,
-});
+  angle: z.number().min(0).max(360).optional(),
+  orb: z.number().min(0).max(20).optional(),
+})
+
+export const ProfileContextSchema = z.object({
+  birthDate: z.string().optional(),
+  birthTime: z.string().optional(),
+  birthCity: z.string().optional(),
+  timezone: z.string().optional(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
+  houseSystem: z.string().optional(),
+  analysisAt: z.string().optional(),
+})
 
 // ===========================
 // 메인 입력 스키마
@@ -111,33 +247,76 @@ export const AspectSchema = z.object({
 
 // Valid sibsin kinds for validation
 const VALID_SIBSIN_KINDS = new Set([
-  '비견', '겁재', '식신', '상관', '편재', '정재', '편관', '정관', '편인', '정인'
-]);
+  '비견',
+  '겁재',
+  '식신',
+  '상관',
+  '편재',
+  '정재',
+  '편관',
+  '정관',
+  '편인',
+  '정인',
+])
 
 // Valid twelve stages for validation
 const VALID_TWELVE_STAGES = new Set([
-  '장생', '목욕', '관대', '건록', '제왕', '쇠', '병', '사', '묘', '절', '태', '양'
-]);
+  '장생',
+  '목욕',
+  '관대',
+  '건록',
+  '제왕',
+  '쇠',
+  '병',
+  '사',
+  '묘',
+  '절',
+  '태',
+  '양',
+])
 
 // Valid planet names for validation
 const VALID_PLANET_NAMES = new Set([
-  'Sun', 'Moon', 'Mercury', 'Venus', 'Mars',
-  'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'
-]);
+  'Sun',
+  'Moon',
+  'Mercury',
+  'Venus',
+  'Mars',
+  'Jupiter',
+  'Saturn',
+  'Uranus',
+  'Neptune',
+  'Pluto',
+])
 
 // Valid zodiac signs for validation
 const VALID_ZODIAC_SIGNS = new Set([
-  '양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리',
-  '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'
-]);
+  '양자리',
+  '황소자리',
+  '쌍둥이자리',
+  '게자리',
+  '사자자리',
+  '처녀자리',
+  '천칭자리',
+  '전갈자리',
+  '사수자리',
+  '염소자리',
+  '물병자리',
+  '물고기자리',
+])
 
 // Valid asteroid names for validation
-const VALID_ASTEROID_NAMES = new Set(['Ceres', 'Pallas', 'Juno', 'Vesta']);
+const VALID_ASTEROID_NAMES = new Set(['Ceres', 'Pallas', 'Juno', 'Vesta'])
 
 // Valid extra point names for validation
 const VALID_EXTRA_POINT_NAMES = new Set([
-  'Chiron', 'Lilith', 'PartOfFortune', 'Vertex', 'NorthNode', 'SouthNode'
-]);
+  'Chiron',
+  'Lilith',
+  'PartOfFortune',
+  'Vertex',
+  'NorthNode',
+  'SouthNode',
+])
 
 export const MatrixCalculationInputSchema = z.object({
   // 필수: 일간 오행
@@ -145,14 +324,20 @@ export const MatrixCalculationInputSchema = z.object({
 
   // 사주 데이터 (선택)
   pillarElements: z.array(FiveElementSchema).optional().default([]),
-  sibsinDistribution: z.record(z.string(), z.number()).optional().default({}).refine(
-    (dist) => Object.keys(dist).every(key => VALID_SIBSIN_KINDS.has(key)),
-    { message: 'Invalid sibsin kind in distribution' }
-  ),
-  twelveStages: z.record(z.string(), z.number()).optional().default({}).refine(
-    (stages) => Object.keys(stages).every(key => VALID_TWELVE_STAGES.has(key)),
-    { message: 'Invalid twelve stage' }
-  ),
+  sibsinDistribution: z
+    .record(z.string(), z.number())
+    .optional()
+    .default({})
+    .refine((dist) => Object.keys(dist).every((key) => VALID_SIBSIN_KINDS.has(key)), {
+      message: 'Invalid sibsin kind in distribution',
+    }),
+  twelveStages: z
+    .record(z.string(), z.number())
+    .optional()
+    .default({})
+    .refine((stages) => Object.keys(stages).every((key) => VALID_TWELVE_STAGES.has(key)), {
+      message: 'Invalid twelve stage',
+    }),
   relations: z.array(RelationHitSchema).optional().default([]),
   geokguk: GeokgukTypeSchema.optional(),
   yongsin: FiveElementSchema.optional(),
@@ -164,30 +349,43 @@ export const MatrixCalculationInputSchema = z.object({
 
   // 점성 데이터
   dominantWesternElement: WesternElementSchema.optional(),
-  planetHouses: z.record(z.string(), HouseNumberSchema).optional().default({}).refine(
-    (houses) => Object.keys(houses).every(key => VALID_PLANET_NAMES.has(key)),
-    { message: 'Invalid planet name in houses' }
-  ),
-  planetSigns: z.record(z.string(), ZodiacSignSchema).optional().default({}).refine(
-    (signs) => Object.keys(signs).every(key => VALID_PLANET_NAMES.has(key)),
-    { message: 'Invalid planet name in signs' }
-  ),
+  planetHouses: z
+    .record(z.string(), HouseNumberSchema)
+    .optional()
+    .default({})
+    .refine((houses) => Object.keys(houses).every((key) => VALID_PLANET_NAMES.has(key)), {
+      message: 'Invalid planet name in houses',
+    }),
+  planetSigns: z
+    .record(z.string(), ZodiacSignSchema)
+    .optional()
+    .default({})
+    .refine((signs) => Object.keys(signs).every((key) => VALID_PLANET_NAMES.has(key)), {
+      message: 'Invalid planet name in signs',
+    }),
   aspects: z.array(AspectSchema).optional().default([]),
   activeTransits: z.array(TransitCycleSchema).optional().default([]),
 
   // 소행성/엑스트라포인트
-  asteroidHouses: z.record(z.string(), HouseNumberSchema).optional().default({}).refine(
-    (houses) => Object.keys(houses).every(key => VALID_ASTEROID_NAMES.has(key)),
-    { message: 'Invalid asteroid name in houses' }
-  ),
-  extraPointSigns: z.record(z.string(), ZodiacSignSchema).optional().default({}).refine(
-    (signs) => Object.keys(signs).every(key => VALID_EXTRA_POINT_NAMES.has(key)),
-    { message: 'Invalid extra point name in signs' }
-  ),
+  asteroidHouses: z
+    .record(z.string(), HouseNumberSchema)
+    .optional()
+    .default({})
+    .refine((houses) => Object.keys(houses).every((key) => VALID_ASTEROID_NAMES.has(key)), {
+      message: 'Invalid asteroid name in houses',
+    }),
+  extraPointSigns: z
+    .record(z.string(), ZodiacSignSchema)
+    .optional()
+    .default({})
+    .refine((signs) => Object.keys(signs).every((key) => VALID_EXTRA_POINT_NAMES.has(key)), {
+      message: 'Invalid extra point name in signs',
+    }),
 
   // 옵션
   lang: LangSchema.optional().default('ko'),
-});
+  profileContext: ProfileContextSchema.optional(),
+})
 
 // ===========================
 // 리포트 API 입력 스키마
@@ -198,29 +396,29 @@ export const ReportRequestSchema = MatrixCalculationInputSchema.extend({
   maxInsights: z.number().min(1).max(20).optional().default(5),
   includeVisualizations: z.boolean().optional().default(true),
   includeDetailedData: z.boolean().optional().default(false),
-});
+})
 
 // ===========================
 // 타입 추출
 // ===========================
 
-export type ValidatedMatrixInput = z.infer<typeof MatrixCalculationInputSchema>;
-export type ValidatedReportRequest = z.infer<typeof ReportRequestSchema>;
+export type ValidatedMatrixInput = z.infer<typeof MatrixCalculationInputSchema>
+export type ValidatedReportRequest = z.infer<typeof ReportRequestSchema>
 
 // ===========================
 // 검증 함수
 // ===========================
 
 export interface ValidationResult<T> {
-  success: boolean;
-  data?: T;
-  errors?: ValidationError[];
+  success: boolean
+  data?: T
+  errors?: ValidationError[]
 }
 
 export interface ValidationError {
-  field: string;
-  message: string;
-  code: string;
+  field: string
+  message: string
+  code: string
 }
 
 /**
@@ -228,24 +426,24 @@ export interface ValidationError {
  */
 export function validateMatrixInput(input: unknown): ValidationResult<ValidatedMatrixInput> {
   try {
-    const result = MatrixCalculationInputSchema.safeParse(input);
+    const result = MatrixCalculationInputSchema.safeParse(input)
 
     if (result.success) {
-      return { success: true, data: result.data };
+      return { success: true, data: result.data }
     }
 
-    const errors: ValidationError[] = result.error.issues.map(err => ({
+    const errors: ValidationError[] = result.error.issues.map((err) => ({
       field: err.path.join('.'),
       message: err.message,
       code: err.code,
-    }));
+    }))
 
-    return { success: false, errors };
+    return { success: false, errors }
   } catch (error) {
     return {
       success: false,
       errors: [{ field: 'unknown', message: (error as Error).message, code: 'VALIDATION_ERROR' }],
-    };
+    }
   }
 }
 
@@ -254,24 +452,24 @@ export function validateMatrixInput(input: unknown): ValidationResult<ValidatedM
  */
 export function validateReportRequest(input: unknown): ValidationResult<ValidatedReportRequest> {
   try {
-    const result = ReportRequestSchema.safeParse(input);
+    const result = ReportRequestSchema.safeParse(input)
 
     if (result.success) {
-      return { success: true, data: result.data };
+      return { success: true, data: result.data }
     }
 
-    const errors: ValidationError[] = result.error.issues.map(err => ({
+    const errors: ValidationError[] = result.error.issues.map((err) => ({
       field: err.path.join('.'),
       message: err.message,
       code: err.code,
-    }));
+    }))
 
-    return { success: false, errors };
+    return { success: false, errors }
   } catch (error) {
     return {
       success: false,
       errors: [{ field: 'unknown', message: (error as Error).message, code: 'VALIDATION_ERROR' }],
-    };
+    }
   }
 }
 
@@ -280,19 +478,22 @@ export function validateReportRequest(input: unknown): ValidationResult<Validate
  */
 export function quickValidate(input: unknown): { valid: boolean; message?: string } {
   if (!input || typeof input !== 'object') {
-    return { valid: false, message: '입력 데이터가 객체 형식이어야 합니다.' };
+    return { valid: false, message: '입력 데이터가 객체 형식이어야 합니다.' }
   }
 
-  const obj = input as Record<string, unknown>;
+  const obj = input as Record<string, unknown>
 
   if (!obj.dayMasterElement) {
-    return { valid: false, message: 'dayMasterElement (일간 오행)은 필수입니다.' };
+    return { valid: false, message: 'dayMasterElement (일간 오행)은 필수입니다.' }
   }
 
-  const validElements = ['목', '화', '토', '금', '수'];
+  const validElements = ['목', '화', '토', '금', '수']
   if (!validElements.includes(obj.dayMasterElement as string)) {
-    return { valid: false, message: `dayMasterElement는 ${validElements.join(', ')} 중 하나여야 합니다.` };
+    return {
+      valid: false,
+      message: `dayMasterElement는 ${validElements.join(', ')} 중 하나여야 합니다.`,
+    }
   }
 
-  return { valid: true };
+  return { valid: true }
 }

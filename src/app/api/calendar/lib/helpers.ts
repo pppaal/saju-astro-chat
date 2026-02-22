@@ -17,6 +17,7 @@ import type { SajuPillarAccessor, FormattedDate, LocationCoord } from './types'
 import { getFactorTranslation } from './translations'
 import { KO_MESSAGES, EN_MESSAGES } from './constants'
 import { SCORE_THRESHOLDS } from '@/constants/scoring'
+import { normalizeMojibakePayload } from '@/lib/text/mojibake'
 
 type MatrixSignal = {
   level: 'high' | 'medium' | 'caution'
@@ -358,9 +359,7 @@ function getBadDayReason(
 
   // 충돌 원소
   if (astro.includes('conflictElement')) {
-    return lang === 'ko'
-      ? '오행 충돌! 에너지가 분산됩니다.'
-      : 'Element clash! Energy scattered.'
+    return lang === 'ko' ? '오행 충돌! 에너지가 분산됩니다.' : 'Element clash! Energy scattered.'
   }
 
   return null
@@ -381,14 +380,8 @@ export function generateBestTimes(
 
   if (lang === 'ko') {
     const times: Record<string, string[]> = {
-      career: [
-        '🌅 오전 10-12시: 미팅/협상 최적',
-        '🌆 오후 2-4시: 서류/계약 유리',
-      ],
-      wealth: [
-        '💰 오전 9-11시: 금융 거래 유리',
-        '📈 오후 1-3시: 투자 결정 적합',
-      ],
+      career: ['🌅 오전 10-12시: 미팅/협상 최적', '🌆 오후 2-4시: 서류/계약 유리'],
+      wealth: ['💰 오전 9-11시: 금융 거래 유리', '📈 오후 1-3시: 투자 결정 적합'],
       love: ['☕ 오후 3-5시: 데이트 최적', '🌙 저녁 7-9시: 로맨틱한 시간'],
       health: ['🌄 오전 6-8시: 운동 효과 UP', '🧘 저녁 6-8시: 휴식/명상 추천'],
       study: ['📚 오전 9-12시: 집중력 최고', '🌙 저녁 8-10시: 암기력 UP'],
@@ -628,12 +621,265 @@ function toEvidenceDomain(domain: DomainKey | null): CalendarEvidence['matrix'][
   return domain
 }
 
+type CrossEvidenceBundle = {
+  sajuEvidence?: string
+  astroEvidence?: string
+  sajuDetails?: string[]
+  astroDetails?: string[]
+  bridges?: string[]
+}
+
+type AspectEvidenceLite = {
+  key: string
+  planetA: string
+  planetB: string
+  signA: string
+  signB: string
+  aspect: 'conjunction' | 'sextile' | 'square' | 'trine' | 'opposition'
+  orb: number
+  tone: 'positive' | 'negative' | 'neutral'
+  impactScore: number
+  context: 'transitToNatalSun' | 'transitToTransit'
+}
+
+const ASPECT_SYMBOL: Record<AspectEvidenceLite['aspect'], string> = {
+  conjunction: '☌',
+  sextile: '✶',
+  square: '□',
+  trine: '△',
+  opposition: '☍',
+}
+
+const ASPECT_WORD_EN: Record<AspectEvidenceLite['aspect'], string> = {
+  conjunction: 'conjunct',
+  sextile: 'sextile',
+  square: 'square',
+  trine: 'trine',
+  opposition: 'oppose',
+}
+
+const PLANET_KO: Record<string, string> = {
+  Sun: '태양',
+  Moon: '달',
+  Mercury: '수성',
+  Venus: '금성',
+  Mars: '화성',
+  Jupiter: '목성',
+  Saturn: '토성',
+  'Natal Sun': '본명 태양',
+}
+
+function compactText(value: string, maxLength: number): string {
+  const normalized = value.replace(/\s+/g, ' ').trim()
+  if (!normalized) return ''
+  const sentenceCut = normalized.split(/[.!?。]/)[0]?.trim() || normalized
+  if (sentenceCut.length <= maxLength) {
+    return sentenceCut
+  }
+  return `${sentenceCut.slice(0, Math.max(8, maxLength - 1)).trimEnd()}…`
+}
+
+function formatOrb(orb: number): string {
+  const safe = Number.isFinite(orb) ? Math.max(0, orb) : 0
+  let degree = Math.floor(safe)
+  let minute = Math.round((safe - degree) * 60)
+  if (minute === 60) {
+    degree += 1
+    minute = 0
+  }
+  return `${degree}°${String(minute).padStart(2, '0')}'`
+}
+
+function isNegativeFactorKey(key: string): boolean {
+  const lower = key.toLowerCase()
+  return [
+    'chung',
+    'xing',
+    'hai',
+    'retrograde',
+    'gongmang',
+    'gwansal',
+    'samjae',
+    'conflict',
+    'void',
+    'backho',
+    'guimungwan',
+  ].some((token) => lower.includes(token))
+}
+
+function isPositiveFactorKey(key: string): boolean {
+  const lower = key.toLowerCase()
+  return [
+    'samhap',
+    'yukhap',
+    'cheoneul',
+    'gwiin',
+    'harmony',
+    'support',
+    'growth',
+    'jaeseong',
+    'inseong',
+  ].some((token) => lower.includes(token))
+}
+
+function getAspectMeaning(
+  aspect: AspectEvidenceLite['aspect'],
+  tone: AspectEvidenceLite['tone'],
+  lang: 'ko' | 'en'
+): string {
+  if (lang === 'ko') {
+    if (tone === 'negative') {
+      if (aspect === 'square') return '긴장·힘겨루기 구도'
+      if (aspect === 'opposition') return '충돌·관계 재조정 신호'
+      return '압박·검증 필요 신호'
+    }
+    if (tone === 'positive') {
+      if (aspect === 'trine') return '흐름·지원이 강한 구도'
+      if (aspect === 'sextile') return '기회·협력 창구 확대'
+      return '추진력·집중력 상승'
+    }
+    if (aspect === 'conjunction') return '에너지 증폭 구간'
+    return '중립 신호'
+  }
+
+  if (tone === 'negative') {
+    if (aspect === 'square') return 'pressure and power-friction pattern'
+    if (aspect === 'opposition') return 'polarity and negotiation pressure'
+    return 'high-friction caution signal'
+  }
+  if (tone === 'positive') {
+    if (aspect === 'trine') return 'smooth support flow'
+    if (aspect === 'sextile') return 'opportunity and collaboration window'
+    return 'momentum and concentration support'
+  }
+  if (aspect === 'conjunction') return 'amplified focus window'
+  return 'neutral signal'
+}
+
+function formatAstroEvidenceLine(
+  detail: AspectEvidenceLite,
+  index: number,
+  lang: 'ko' | 'en'
+): string {
+  const id = `A${index + 1}`
+  const icon = detail.tone === 'negative' ? '⚠️' : detail.tone === 'positive' ? '✅' : 'ℹ️'
+  const symbol = ASPECT_SYMBOL[detail.aspect]
+  const orbText = formatOrb(detail.orb)
+  const meaning = getAspectMeaning(detail.aspect, detail.tone, lang)
+
+  if (lang === 'ko') {
+    const planetA = PLANET_KO[detail.planetA] || detail.planetA
+    const planetB = PLANET_KO[detail.planetB] || detail.planetB
+    return `${icon} (${id}) ${planetA}(${detail.signA}) ${symbol} ${planetB}(${detail.signB}) (${orbText}) - ${meaning}`
+  }
+
+  const word = ASPECT_WORD_EN[detail.aspect]
+  return `${icon} (${id}) ${detail.planetA} in ${detail.signA} ${word} ${detail.planetB} in ${detail.signB} (${orbText}) - ${meaning}`
+}
+
+function toAspectEvidenceList(date: ImportantDate): AspectEvidenceLite[] {
+  if (!Array.isArray(date.astroAspectEvidence)) {
+    return []
+  }
+  return date.astroAspectEvidence
+    .filter((item): item is AspectEvidenceLite =>
+      Boolean(item && typeof item === 'object' && item.aspect && item.planetA && item.planetB)
+    )
+    .slice(0, 3)
+}
+
+function buildCrossEvidenceBundle(
+  date: ImportantDate,
+  lang: 'ko' | 'en',
+  orderedSajuFactors: string[],
+  orderedAstroFactors: string[]
+): CrossEvidenceBundle {
+  const aspectList = toAspectEvidenceList(date)
+  const astroDetails = aspectList.map((detail, index) =>
+    formatAstroEvidenceLine(detail, index, lang)
+  )
+
+  const usedSajuKey = new Set<string>()
+  const pickSajuKey = (preferNegative: boolean): string | undefined => {
+    const keys = date.sajuFactorKeys || []
+    const candidates = keys.filter((key) => !usedSajuKey.has(key))
+    const prioritized = candidates.find((key) =>
+      preferNegative ? isNegativeFactorKey(key) : isPositiveFactorKey(key)
+    )
+    const selected = prioritized || candidates[0]
+    if (selected) {
+      usedSajuKey.add(selected)
+    }
+    return selected
+  }
+
+  const sajuDetails: string[] = []
+  const bridges: string[] = []
+
+  aspectList.forEach((detail, index) => {
+    const sajuKey = pickSajuKey(detail.tone === 'negative')
+    const translatedSaju = sajuKey ? getFactorTranslation(sajuKey, lang) || sajuKey : ''
+    const sajuText = compactText(
+      translatedSaju || orderedSajuFactors[index] || orderedSajuFactors[0] || '',
+      72
+    )
+    if (!sajuText) {
+      return
+    }
+    sajuDetails.push(`(S${index + 1}) ${sajuText}`)
+    bridges.push(
+      lang === 'ko'
+        ? detail.tone === 'negative'
+          ? `A${index + 1} ↔ S${index + 1}: 점성 긴장 신호와 사주 경계 신호가 겹칩니다. 계약·의사결정은 재확인이 유리합니다.`
+          : `A${index + 1} ↔ S${index + 1}: 점성 호조와 사주 지원 신호가 겹칩니다. 핵심 과제 1~2개를 밀어붙이기 좋습니다.`
+        : detail.tone === 'negative'
+          ? `A${index + 1} ↔ S${index + 1}: Astro friction and Saju caution align. Re-check contracts and key decisions.`
+          : `A${index + 1} ↔ S${index + 1}: Astro support and Saju support align. Push one or two core priorities.`
+    )
+  })
+
+  if (astroDetails.length === 0 && orderedAstroFactors[0]) {
+    astroDetails.push(`(A1) ${compactText(orderedAstroFactors[0], 78)}`)
+  }
+  if (sajuDetails.length === 0 && orderedSajuFactors[0]) {
+    sajuDetails.push(`(S1) ${compactText(orderedSajuFactors[0], 78)}`)
+  }
+
+  const astroEvidence = compactText(astroDetails[0] || orderedAstroFactors[0] || '', 120)
+  const sajuEvidence = compactText(sajuDetails[0] || orderedSajuFactors[0] || '', 120)
+
+  const normalizedBridges =
+    bridges.length > 0
+      ? bridges
+      : astroEvidence && sajuEvidence
+        ? [
+            lang === 'ko'
+              ? 'A1 ↔ S1: 점성과 사주 근거가 같은 방향을 지지합니다.'
+              : 'A1 ↔ S1: Astrology and Saju evidence point in the same direction.',
+          ]
+        : []
+
+  return {
+    sajuEvidence,
+    astroEvidence,
+    sajuDetails: sajuDetails.slice(0, 3),
+    astroDetails: astroDetails.slice(0, 3),
+    bridges: normalizedBridges.slice(0, 3),
+  }
+}
+
 function buildMatrixOverlay(
   dateIso: string,
   matrixContext: MatrixCalendarContext,
   categories: EventCategory[],
   lang: 'ko' | 'en',
-  cross: { sajuEvidence?: string; astroEvidence?: string }
+  cross: {
+    sajuEvidence?: string
+    astroEvidence?: string
+    sajuDetails?: string[]
+    astroDetails?: string[]
+    bridges?: string[]
+  }
 ): { summary: string; recommendations: string[]; warnings: string[]; evidence: CalendarEvidence } {
   const monthKey = dateIso.slice(0, 7)
   if (!matrixContext) {
@@ -652,6 +898,9 @@ function buildMatrixOverlay(
         cross: {
           sajuEvidence: cross.sajuEvidence || '',
           astroEvidence: cross.astroEvidence || '',
+          sajuDetails: cross.sajuDetails || [],
+          astroDetails: cross.astroDetails || [],
+          bridges: cross.bridges || [],
         },
         confidence: 0,
         source: 'rule',
@@ -797,6 +1046,9 @@ function buildMatrixOverlay(
     cross: {
       sajuEvidence: cross.sajuEvidence || '',
       astroEvidence: cross.astroEvidence || '',
+      sajuDetails: cross.sajuDetails || [],
+      astroDetails: cross.astroDetails || [],
+      bridges: cross.bridges || [],
     },
     confidence: Math.max(0, Math.min(100, confidence)),
     source: 'rule',
@@ -883,15 +1135,18 @@ export function formatDateForResponse(
     lang
   )
   const warnings = buildEnhancedWarnings(date, translations, lang)
+  const crossEvidence = buildCrossEvidenceBundle(
+    date,
+    lang,
+    orderedSajuFactors,
+    orderedAstroFactors
+  )
   const matrixOverlay = buildMatrixOverlay(
     date.date,
     matrixContext || null,
     uniqueCategories,
     lang,
-    {
-      sajuEvidence: orderedSajuFactors[0],
-      astroEvidence: orderedAstroFactors[0],
-    }
+    crossEvidence
   )
   const baseSummary = generateSummary(
     date.grade,
@@ -907,7 +1162,7 @@ export function formatDateForResponse(
     ? dedupeTexts([matrixOverlay.summary, baseSummary]).join(' ')
     : baseSummary
 
-  return {
+  return normalizeMojibakePayload({
     date: date.date,
     grade: date.grade,
     score: date.score,
@@ -924,7 +1179,7 @@ export function formatDateForResponse(
     ),
     warnings: dedupeTexts([...warnings, ...matrixOverlay.warnings]).slice(0, 6),
     evidence: matrixOverlay.evidence,
-  }
+  })
 }
 
 // AI 백엔드에서 추가 날짜 정보 가져오기

@@ -35,6 +35,9 @@ interface ImportantDate {
     cross: {
       sajuEvidence: string
       astroEvidence: string
+      sajuDetails?: string[]
+      astroDetails?: string[]
+      bridges?: string[]
     }
     confidence: number
     source: 'rule' | 'rag' | 'hybrid'
@@ -57,17 +60,43 @@ interface SelectedDatePanelProps {
 }
 
 const CATEGORY_EMOJI: Record<EventCategory, string> = {
-  wealth: '💰',
-  career: '💼',
-  love: '💕',
-  health: '💪',
-  travel: '✈️',
-  study: '📚',
-  general: '⭐',
+  wealth: '\u{1F4B0}',
+  career: '\u{1F4BC}',
+  love: '\u{1F495}',
+  health: '\u{1F4AA}',
+  travel: '\u2708\uFE0F',
+  study: '\u{1F4DA}',
+  general: '\u2B50',
 }
 
-const WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토']
+const WEEKDAYS_KO = ['\uC77C', '\uC6D4', '\uD654', '\uC218', '\uBAA9', '\uAE08', '\uD1A0']
 const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+function normalizeEvidenceLine(value: string): string {
+  if (!value) return ''
+  return repairMojibakeText(value).replace(/\s+/g, ' ').trim()
+}
+
+function parseAstroEvidenceLine(value: string): string {
+  const line = normalizeEvidenceLine(value)
+  if (!line) return ''
+
+  const angle = line.match(/angle=([0-9.]+)deg/i)?.[1]
+  const orb = line.match(/orb=([0-9.]+)deg/i)?.[1]
+  const allowed = line.match(/allowed=([0-9.]+)deg/i)?.[1]
+  const pair = line.match(/pair=([a-z_]+)/i)?.[1]?.replace(/_/g, ' ')
+
+  if (!angle && !orb && !allowed && !pair) return line
+
+  return [
+    pair ? `pair: ${pair}` : '',
+    angle ? `angle: ${angle}\u00B0` : '',
+    orb ? `orb: ${orb}\u00B0` : '',
+    allowed ? `allow: ${allowed}\u00B0` : '',
+  ]
+    .filter(Boolean)
+    .join(' | ')
+}
 
 const SelectedDatePanel = memo(function SelectedDatePanel({
   selectedDay,
@@ -100,26 +129,26 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
     const title = selectedDate.title
     const catLabels: Record<EventCategory, string> = {
-      wealth: locale === 'ko' ? '재물운' : 'Wealth',
-      career: locale === 'ko' ? '커리어' : 'Career',
-      love: locale === 'ko' ? '연애운' : 'Love',
-      health: locale === 'ko' ? '건강운' : 'Health',
-      travel: locale === 'ko' ? '여행운' : 'Travel',
-      study: locale === 'ko' ? '학업운' : 'Study',
-      general: locale === 'ko' ? '전체운' : 'General',
+      wealth: locale === 'ko' ? 'ìž¬ë¬¼ìš´' : 'Wealth',
+      career: locale === 'ko' ? 'ì»¤ë¦¬ì–´' : 'Career',
+      love: locale === 'ko' ? 'ì—°ì• ìš´' : 'Love',
+      health: locale === 'ko' ? 'ê±´ê°•ìš´' : 'Health',
+      travel: locale === 'ko' ? 'ì—¬í–‰ìš´' : 'Travel',
+      study: locale === 'ko' ? 'í•™ì—…ìš´' : 'Study',
+      general: locale === 'ko' ? 'ì „ì²´ìš´' : 'General',
     }
     const categories = selectedDate.categories.map((cat) => catLabels[cat]).join(', ')
     const descParts = [
       selectedDate.description,
-      categories ? `${locale === 'ko' ? '카테고리' : 'Categories'}: ${categories}` : '',
-      `${locale === 'ko' ? '점수' : 'Score'}: ${selectedDate.score}/100`,
+      categories ? `${locale === 'ko' ? 'ì¹´í…Œê³ ë¦¬' : 'Categories'}: ${categories}` : '',
+      `${locale === 'ko' ? 'ì ìˆ˜' : 'Score'}: ${selectedDate.score}/100`,
     ]
     if (selectedDate.recommendations.length > 0) {
-      descParts.push(`${locale === 'ko' ? '추천' : 'Recommendations'}:`)
+      descParts.push(`${locale === 'ko' ? 'ì¶”ì²œ' : 'Recommendations'}:`)
       selectedDate.recommendations.forEach((r) => descParts.push(`- ${r}`))
     }
     if (selectedDate.warnings.length > 0) {
-      descParts.push(`${locale === 'ko' ? '주의' : 'Warnings'}:`)
+      descParts.push(`${locale === 'ko' ? 'ì£¼ì˜' : 'Warnings'}:`)
       selectedDate.warnings.forEach((w) => descParts.push(`- ${w}`))
     }
     const description = descParts.filter(Boolean).join('\n')
@@ -160,13 +189,13 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
   const getCategoryLabel = (cat: EventCategory) => {
     const labels: Record<EventCategory, { ko: string; en: string }> = {
-      wealth: { ko: '재물운', en: 'Wealth' },
-      career: { ko: '커리어', en: 'Career' },
-      love: { ko: '연애운', en: 'Love' },
-      health: { ko: '건강운', en: 'Health' },
-      travel: { ko: '여행운', en: 'Travel' },
-      study: { ko: '학업운', en: 'Study' },
-      general: { ko: '전체운', en: 'General' },
+      wealth: { ko: 'ìž¬ë¬¼ìš´', en: 'Wealth' },
+      career: { ko: 'ì»¤ë¦¬ì–´', en: 'Career' },
+      love: { ko: 'ì—°ì• ìš´', en: 'Love' },
+      health: { ko: 'ê±´ê°•ìš´', en: 'Health' },
+      travel: { ko: 'ì—¬í–‰ìš´', en: 'Travel' },
+      study: { ko: 'í•™ì—…ìš´', en: 'Study' },
+      general: { ko: 'ì „ì²´ìš´', en: 'General' },
     }
     return locale === 'ko' ? labels[cat].ko : labels[cat].en
   }
@@ -174,28 +203,30 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   const termHelp = {
     matrixBadge:
       locale === 'ko'
-        ? 'matrix 기준 (여러 신호를 합친 종합 점수)'
+        ? 'matrix ê¸°ì¤€ (ì—¬ëŸ¬ ì‹ í˜¸ë¥¼ í•©ì¹œ ì¢…í•© ì ìˆ˜)'
         : 'Matrix-based (combined score from multiple signals)',
     crossBadge:
       locale === 'ko'
-        ? '교차 검증 (사주+점성 결과가 같은 방향)'
+        ? 'êµì°¨ ê²€ì¦ (ì‚¬ì£¼+ì ì„± ê²°ê³¼ê°€ ê°™ì€ ë°©í–¥)'
         : 'Cross-verified (Saju + Astrology point in same direction)',
-    cautionBadge: locale === 'ko' ? '주의 신호 (리스크 경고)' : 'Caution signal (risk warning)',
+    cautionBadge:
+      locale === 'ko' ? 'ì£¼ì˜ ì‹ í˜¸ (ë¦¬ìŠ¤í¬ ê²½ê³ )' : 'Caution signal (risk warning)',
     sajuTitle:
       locale === 'ko'
-        ? '사주 분석 (타고난 구조와 오늘의 흐름)'
+        ? 'ì‚¬ì£¼ ë¶„ì„ (íƒ€ê³ ë‚œ êµ¬ì¡°ì™€ ì˜¤ëŠ˜ì˜ íë¦„)'
         : 'Saju Analysis (natal pattern + today flow)',
     astroTitle:
       locale === 'ko'
-        ? '점성술 분석 (행성 움직임 기반)'
+        ? 'ì ì„±ìˆ  ë¶„ì„ (í–‰ì„± ì›€ì§ìž„ ê¸°ë°˜)'
         : 'Astrology Analysis (planetary movement based)',
-    dayPillar: locale === 'ko' ? '일주 (오늘의 핵심 기운)' : 'Day Pillar (today core energy)',
+    dayPillar:
+      locale === 'ko' ? 'ì¼ì£¼ (ì˜¤ëŠ˜ì˜ í•µì‹¬ ê¸°ìš´)' : 'Day Pillar (today core energy)',
     bestTimes:
       locale === 'ko'
-        ? '오늘의 좋은 시간 (중요 일정을 넣기 좋은 시간대)'
+        ? 'ì˜¤ëŠ˜ì˜ ì¢‹ì€ ì‹œê°„ (ì¤‘ìš” ì¼ì •ì„ ë„£ê¸° ì¢‹ì€ ì‹œê°„ëŒ€)'
         : 'Best Times Today (better windows for key tasks)',
     dailyPeakTitle:
-      locale === 'ko' ? '데일리 + 피크 윈도우 통합 해석' : 'Daily + Peak Window Insight',
+      locale === 'ko' ? 'ë°ì¼ë¦¬ + í”¼í¬ ìœˆë„ìš° í†µí•© í•´ì„' : 'Daily + Peak Window Insight',
   }
 
   const resolvedPeakLevel = selectedDate
@@ -210,16 +241,20 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
     if (locale === 'ko') {
       const peakLabel =
-        peakLevel === 'peak' ? '강한 피크 구간' : peakLevel === 'high' ? '상승 구간' : '안정 구간'
-      const domainLabel = domain || '전반'
+        peakLevel === 'peak'
+          ? 'ê°•í•œ í”¼í¬ êµ¬ê°„'
+          : peakLevel === 'high'
+            ? 'ìƒìŠ¹ êµ¬ê°„'
+            : 'ì•ˆì • êµ¬ê°„'
+      const domainLabel = domain || 'ì „ë°˜'
       const timeLine = bestWindow
-        ? `특히 ${bestWindow} 전후로 중요한 결정을 배치하시면 흐름을 타기 쉽습니다.`
-        : '시간대를 고를 수 있다면 오전-오후 중 가장 집중이 잘 되는 구간에 핵심 일을 배치해 보세요.'
+        ? `íŠ¹ížˆ ${bestWindow} ì „í›„ë¡œ ì¤‘ìš”í•œ ê²°ì •ì„ ë°°ì¹˜í•˜ì‹œë©´ íë¦„ì„ íƒ€ê¸° ì‰½ìŠµë‹ˆë‹¤.`
+        : 'ì‹œê°„ëŒ€ë¥¼ ê³ ë¥¼ ìˆ˜ ìžˆë‹¤ë©´ ì˜¤ì „-ì˜¤í›„ ì¤‘ ê°€ìž¥ ì§‘ì¤‘ì´ ìž˜ ë˜ëŠ” êµ¬ê°„ì— í•µì‹¬ ì¼ì„ ë°°ì¹˜í•´ ë³´ì„¸ìš”.'
 
       if (selectedDate.grade >= 3) {
-        return `${peakLabel}이지만 ${domainLabel} 영역에서는 주의 신호가 함께 보여 무리한 확장보다 손실 방어가 우선입니다. ${timeLine}`
+        return `${peakLabel}ì´ì§€ë§Œ ${domainLabel} ì˜ì—­ì—ì„œëŠ” ì£¼ì˜ ì‹ í˜¸ê°€ í•¨ê»˜ ë³´ì—¬ ë¬´ë¦¬í•œ í™•ìž¥ë³´ë‹¤ ì†ì‹¤ ë°©ì–´ê°€ ìš°ì„ ìž…ë‹ˆë‹¤. ${timeLine}`
       }
-      return `${peakLabel}에서 ${domainLabel} 영역의 효율이 올라오는 날입니다. 속도를 올리되, 핵심 1~2개 과제에 집중할수록 체감 성과가 커집니다. ${timeLine}`
+      return `${peakLabel}ì—ì„œ ${domainLabel} ì˜ì—­ì˜ íš¨ìœ¨ì´ ì˜¬ë¼ì˜¤ëŠ” ë‚ ìž…ë‹ˆë‹¤. ì†ë„ë¥¼ ì˜¬ë¦¬ë˜, í•µì‹¬ 1~2ê°œ ê³¼ì œì— ì§‘ì¤‘í• ìˆ˜ë¡ ì²´ê° ì„±ê³¼ê°€ ì»¤ì§‘ë‹ˆë‹¤. ${timeLine}`
     }
 
     const peakLabel =
@@ -238,9 +273,18 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   })()
 
   const isSaved = selectedDate ? savedDates.has(selectedDate.date) : false
+  const evidenceAstroDetails = (selectedDate?.evidence?.cross?.astroDetails || [])
+    .map((line) => parseAstroEvidenceLine(line))
+    .filter(Boolean)
+  const evidenceSajuDetails = (selectedDate?.evidence?.cross?.sajuDetails || [])
+    .map((line) => normalizeEvidenceLine(line))
+    .filter(Boolean)
+  const evidenceBridges = (selectedDate?.evidence?.cross?.bridges || [])
+    .map((line) => normalizeEvidenceLine(line))
+    .filter(Boolean)
 
   return (
-    <div className={styles.selectedDayInfo}>
+    <div className={`${styles.selectedDayInfo} ${styles.largeTextMode}`}>
       <div className={styles.selectedDayHeader}>
         <span className={styles.selectedDayDate}>
           {selectedDay.getMonth() + 1}/{selectedDay.getDate()}
@@ -266,23 +310,23 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               aria-label={
                 isSaved
                   ? locale === 'ko'
-                    ? '저장됨 (클릭하여 삭제)'
+                    ? 'ì €ìž¥ë¨ (í´ë¦­í•˜ì—¬ ì‚­ì œ)'
                     : 'Saved (click to remove)'
                   : locale === 'ko'
-                    ? '이 날짜 저장하기'
+                    ? 'ì´ ë‚ ì§œ ì €ìž¥í•˜ê¸°'
                     : 'Save this date'
               }
               title={
                 isSaved
                   ? locale === 'ko'
-                    ? '저장됨 (클릭하여 삭제)'
+                    ? 'ì €ìž¥ë¨ (í´ë¦­í•˜ì—¬ ì‚­ì œ)'
                     : 'Saved (click to remove)'
                   : locale === 'ko'
-                    ? '이 날짜 저장하기'
+                    ? 'ì´ ë‚ ì§œ ì €ìž¥í•˜ê¸°'
                     : 'Save this date'
               }
             >
-              {saving ? '...' : isSaved ? '★' : '☆'}
+              {saving ? '...' : isSaved ? 'â˜…' : 'â˜†'}
             </button>
           )}
         </div>
@@ -295,20 +339,20 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         <div className={styles.selectedDayContent}>
           <h3 className={styles.selectedTitle}>{repairMojibakeText(selectedDate.title)}</h3>
 
-          {/* Grade 3, 4 (나쁜 날): 경고를 상단에 강조 표시 */}
+          {/* Grade 3, 4 (ë‚˜ìœ ë‚ ): ê²½ê³ ë¥¼ ìƒë‹¨ì— ê°•ì¡° í‘œì‹œ */}
           {selectedDate.grade >= 3 && selectedDate.warnings.length > 0 && (
             <div
               className={`${styles.urgentWarningBox} ${selectedDate.grade === 4 ? styles.worstDay : ''}`}
             >
               <div className={styles.urgentWarningHeader}>
                 <span className={styles.urgentWarningIcon}>
-                  {selectedDate.grade === 4 ? '🚨' : '⚠️'}
+                  {selectedDate.grade === 4 ? 'ðŸš¨' : 'âš ï¸'}
                 </span>
                 <span className={styles.urgentWarningTitle}>
                   {locale === 'ko'
                     ? selectedDate.grade === 4
-                      ? '오늘 주의해야 할 점!'
-                      : '오늘의 주의사항'
+                      ? 'ì˜¤ëŠ˜ ì£¼ì˜í•´ì•¼ í•  ì !'
+                      : 'ì˜¤ëŠ˜ì˜ ì£¼ì˜ì‚¬í•­'
                     : selectedDate.grade === 4
                       ? 'Critical Warnings!'
                       : "Today's Cautions"}
@@ -317,7 +361,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               <ul className={styles.urgentWarningList}>
                 {selectedDate.warnings.slice(0, 3).map((w, i) => (
                   <li key={i} className={styles.urgentWarningItem}>
-                    <span className={styles.urgentWarningDot}>•</span>
+                    <span className={styles.urgentWarningDot}>â€¢</span>
                     {repairMojibakeText(w)}
                   </li>
                 ))}
@@ -325,13 +369,13 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             </div>
           )}
 
-          {/* Cross-verified badge - 좋은 날에만 표시 */}
+          {/* Cross-verified badge - ì¢‹ì€ ë‚ ì—ë§Œ í‘œì‹œ */}
           {selectedDate.crossVerified && selectedDate.grade <= 1 && (
             <div className={styles.crossVerifiedBadge}>
-              <span className={styles.crossVerifiedIcon}>🔮</span>
+              <span className={styles.crossVerifiedIcon}>ðŸ”®</span>
               <span className={styles.crossVerifiedText}>
                 {locale === 'ko'
-                  ? '사주 + 점성술 교차 검증 완료'
+                  ? 'ì‚¬ì£¼ + ì ì„±ìˆ  êµì°¨ ê²€ì¦ ì™„ë£Œ'
                   : 'Saju + Astrology Cross-verified'}
               </span>
             </div>
@@ -359,16 +403,19 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 <span className={styles.calendarEvidenceBadge}>{termHelp.cautionBadge}</span>
               </div>
               <ul className={styles.calendarEvidenceList}>
+                <li>{`Matrix: domain=${selectedDate.evidence.matrix.domain}, confidence=${selectedDate.evidence.confidence}%, score=${selectedDate.evidence.matrix.finalScoreAdjusted}`}</li>
                 <li>
-                  {locale === 'ko'
-                    ? `Matrix 근거: ${selectedDate.evidence.matrix.domain} 영역에서 점수가 높았고, 신뢰도는 ${selectedDate.evidence.confidence}%입니다.`
-                    : `Matrix evidence: strong score in ${selectedDate.evidence.matrix.domain}, confidence ${selectedDate.evidence.confidence}%.`}
+                  {`Cross set: Saju (${normalizeEvidenceLine(selectedDate.evidence.cross.sajuEvidence || 'n/a')}) / Astrology (${parseAstroEvidenceLine(selectedDate.evidence.cross.astroEvidence || 'n/a')})`}
                 </li>
-                <li>
-                  {locale === 'ko'
-                    ? `교차 근거: 사주(${selectedDate.evidence.cross.sajuEvidence || '근거 없음'})와 점성(${selectedDate.evidence.cross.astroEvidence || '근거 없음'})이 같은 방향을 가리킵니다.`
-                    : `Cross evidence: Saju (${selectedDate.evidence.cross.sajuEvidence || 'n/a'}) and Astrology (${selectedDate.evidence.cross.astroEvidence || 'n/a'}) support the same direction.`}
-                </li>
+                {evidenceAstroDetails.map((line, idx) => (
+                  <li key={`astro-${idx}`}>{line}</li>
+                ))}
+                {evidenceSajuDetails.map((line, idx) => (
+                  <li key={`saju-${idx}`}>{line}</li>
+                ))}
+                {evidenceBridges.map((line, idx) => (
+                  <li key={`bridge-${idx}`}>{line}</li>
+                ))}
               </ul>
             </div>
           )}
@@ -383,7 +430,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               {selectedDate.transitSunSign && (
                 <>
                   <span className={styles.ganzhiDivider}>|</span>
-                  <span className={styles.ganzhiLabel}>{locale === 'ko' ? '태양' : 'Sun'}</span>
+                  <span className={styles.ganzhiLabel}>{locale === 'ko' ? 'íƒœì–‘' : 'Sun'}</span>
                   <span className={styles.ganzhiValue}>{selectedDate.transitSunSign}</span>
                 </>
               )}
@@ -394,7 +441,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {normalizedBestTimes.length > 0 && (
             <div className={styles.bestTimesBox}>
               <h4 className={styles.bestTimesTitle}>
-                <span className={styles.bestTimesIcon}>⏰</span>
+                <span className={styles.bestTimesIcon}>â°</span>
                 {termHelp.bestTimes}
               </h4>
               <div className={styles.bestTimesList}>
@@ -426,7 +473,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               />
             </div>
             <span className={styles.scoreText}>
-              {locale === 'ko' ? '점수' : 'Score'}: {selectedDate.score}/100
+              {locale === 'ko' ? 'ì ìˆ˜' : 'Score'}: {selectedDate.score}/100
             </span>
           </div>
 
@@ -434,7 +481,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {selectedDate.sajuFactors && selectedDate.sajuFactors.length > 0 && (
             <div className={styles.analysisSection}>
               <h4 className={styles.analysisTitle}>
-                <span className={styles.analysisBadge}>☯️</span>
+                <span className={styles.analysisBadge}>â˜¯ï¸</span>
                 {termHelp.sajuTitle}
               </h4>
               <ul className={styles.analysisList}>
@@ -452,7 +499,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {selectedDate.astroFactors && selectedDate.astroFactors.length > 0 && (
             <div className={styles.analysisSection}>
               <h4 className={styles.analysisTitle}>
-                <span className={styles.analysisBadge}>🌟</span>
+                <span className={styles.analysisBadge}>ðŸŒŸ</span>
                 {termHelp.astroTitle}
               </h4>
               <ul className={styles.analysisList}>
@@ -470,8 +517,8 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {selectedDate.recommendations.length > 0 && (
             <div className={styles.recommendationsSection}>
               <h4 className={styles.recommendationsTitle}>
-                <span className={styles.recommendationsIcon}>✨</span>
-                {locale === 'ko' ? '오늘의 행운 키' : 'Lucky Keys'}
+                <span className={styles.recommendationsIcon}>âœ¨</span>
+                {locale === 'ko' ? 'ì˜¤ëŠ˜ì˜ í–‰ìš´ í‚¤' : 'Lucky Keys'}
               </h4>
               <div className={styles.recommendationsGrid}>
                 {selectedDate.recommendations.slice(0, 4).map((r, i) => (
@@ -484,12 +531,12 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             </div>
           )}
 
-          {/* Warnings - Grade 3 이상은 상단에서 이미 표시했으므로 생략 */}
+          {/* Warnings - Grade 3 ì´ìƒì€ ìƒë‹¨ì—ì„œ ì´ë¯¸ í‘œì‹œí–ˆìœ¼ë¯€ë¡œ ìƒëžµ */}
           {selectedDate.warnings.length > 0 && selectedDate.grade < 3 && (
             <div className={styles.warningsSection}>
               <h4 className={styles.warningsTitle}>
-                <span className={styles.warningsIcon}>⚡</span>
-                {locale === 'ko' ? '오늘의 주의보' : "Today's Alert"}
+                <span className={styles.warningsIcon}>âš¡</span>
+                {locale === 'ko' ? 'ì˜¤ëŠ˜ì˜ ì£¼ì˜ë³´' : "Today's Alert"}
               </h4>
               <ul className={styles.warningsList}>
                 {selectedDate.warnings.slice(0, 3).map((w, i) => (
@@ -510,18 +557,18 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               disabled={saving}
             >
               {saving ? (
-                <span>{locale === 'ko' ? '저장 중...' : 'Saving...'}</span>
+                <span>{locale === 'ko' ? 'ì €ìž¥ ì¤‘...' : 'Saving...'}</span>
               ) : isSaved ? (
                 <>
-                  <span>★</span>
+                  <span>â˜…</span>
                   <span>
-                    {locale === 'ko' ? '저장됨 (클릭하여 삭제)' : 'Saved (click to remove)'}
+                    {locale === 'ko' ? 'ì €ìž¥ë¨ (í´ë¦­í•˜ì—¬ ì‚­ì œ)' : 'Saved (click to remove)'}
                   </span>
                 </>
               ) : (
                 <>
-                  <span>☆</span>
-                  <span>{locale === 'ko' ? '이 날짜 저장하기' : 'Save this date'}</span>
+                  <span>â˜†</span>
+                  <span>{locale === 'ko' ? 'ì´ ë‚ ì§œ ì €ìž¥í•˜ê¸°' : 'Save this date'}</span>
                 </>
               )}
             </button>
@@ -531,15 +578,19 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           <button
             className={styles.calendarSyncBtn}
             onClick={handleAddToCalendar}
-            aria-label={locale === 'ko' ? '휴대폰 캘린더에 추가' : 'Add to phone calendar'}
+            aria-label={locale === 'ko' ? 'íœ´ëŒ€í° ìº˜ë¦°ë”ì— ì¶”ê°€' : 'Add to phone calendar'}
           >
-            <span>📲</span>
-            <span>{locale === 'ko' ? '캘린더에 추가' : 'Add to Calendar'}</span>
+            <span>ðŸ“²</span>
+            <span>{locale === 'ko' ? 'ìº˜ë¦°ë”ì— ì¶”ê°€' : 'Add to Calendar'}</span>
           </button>
         </div>
       ) : (
         <div className={styles.noInfo}>
-          <p>{locale === 'ko' ? '이 날짜에 대한 정보가 없습니다' : 'No info for this date'}</p>
+          <p>
+            {locale === 'ko'
+              ? 'ì´ ë‚ ì§œì— ëŒ€í•œ ì •ë³´ê°€ ì—†ìŠµë‹ˆë‹¤'
+              : 'No info for this date'}
+          </p>
         </div>
       )}
     </div>
@@ -547,4 +598,3 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 })
 
 export default SelectedDatePanel
-

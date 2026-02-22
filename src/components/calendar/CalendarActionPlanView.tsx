@@ -423,11 +423,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
     if (baseInfo?.bestTimes?.[0]) {
       const bestTimeText = cleanText(baseInfo.bestTimes[0])
-      pushItem(
-        isKo
-          ? `${bestTimeText}에 핵심 일정 배치`
-          : `Schedule a key task at ${bestTimeText}`
-      )
+      pushItem(isKo ? `${bestTimeText}에 핵심 일정 배치` : `Schedule a key task at ${bestTimeText}`)
     }
 
     dayCategories.forEach((cat) => {
@@ -923,10 +919,28 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     if (cross) {
       lines.push(isKo ? `교차 근거: ${cross}` : `Cross evidence: ${cross}`)
     }
+    ;(baseInfo?.evidence?.cross?.astroDetails || []).forEach((line) => {
+      const cleaned = cleanText(line)
+      if (cleaned) {
+        lines.push(cleaned)
+      }
+    })
+    ;(baseInfo?.evidence?.cross?.sajuDetails || []).forEach((line) => {
+      const cleaned = cleanText(line)
+      if (cleaned) {
+        lines.push(cleaned)
+      }
+    })
+    ;(baseInfo?.evidence?.cross?.bridges || []).forEach((line) => {
+      const cleaned = cleanText(line)
+      if (cleaned) {
+        lines.push(cleaned)
+      }
+    })
     if (todayCaution) {
       lines.push(isKo ? `주의 신호: ${todayCaution}` : `Caution signal: ${todayCaution}`)
     }
-    return lines.slice(0, 3).map((line) => cleanText(line))
+    return lines.slice(0, 6).map((line) => cleanText(line))
   }, [baseInfo?.evidence, cleanText, isKo, todayCaution])
 
   const timelineInsight = useMemo(() => {
