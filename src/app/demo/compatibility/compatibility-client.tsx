@@ -79,7 +79,9 @@ export default function CompatibilityClient({ token }: CompatibilityClientProps)
       })
       const json = await res.json().catch(() => null)
       if (!res.ok) {
-        throw (json as { error?: unknown } | null)?.error || json || `Request failed (${res.status})`
+        throw (
+          (json as { error?: unknown } | null)?.error || json || `Request failed (${res.status})`
+        )
       }
       setResult(json)
     } catch (err) {
@@ -108,7 +110,7 @@ export default function CompatibilityClient({ token }: CompatibilityClientProps)
         <span className={styles.helperText}>/api/demo/compatibility</span>
       </div>
       {loading && <DemoLoading />}
-      {error && <DemoErrorState message={error} />}
+      {Boolean(error) && <DemoErrorState message={error} />}
       {Boolean(result) && <DemoResultCard title="Demo Result" data={result} />}
     </main>
   )

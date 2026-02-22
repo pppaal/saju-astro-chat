@@ -10,7 +10,8 @@
   "build": {
     "env": {
       "SKIP_ENV_VALIDATION": "1",
-      "NODE_OPTIONS": "--max-old-space-size=7168"
+      "NODE_OPTIONS": "--max-old-space-size=7168",
+      "NEXT_PRIVATE_DISABLE_TURBOPACK": "1"
     }
   },
   "functions": {

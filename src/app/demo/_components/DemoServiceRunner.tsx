@@ -106,7 +106,9 @@ export function DemoServiceRunner({
       })
       const json = await res.json().catch(() => null)
       if (!res.ok) {
-        throw (json as { error?: unknown } | null)?.error || json || `Request failed (${res.status})`
+        throw (
+          (json as { error?: unknown } | null)?.error || json || `Request failed (${res.status})`
+        )
       }
       setResult(json)
     } catch (err) {
@@ -132,7 +134,7 @@ export function DemoServiceRunner({
         <span className={styles.helperText}>{endpoint}</span>
       </div>
       {loading && <DemoLoading />}
-      {error && <DemoErrorState message={error} />}
+      {Boolean(error) && <DemoErrorState message={error} />}
       {Boolean(result) && <DemoResultCard title="Demo Result" data={result} />}
     </main>
   )
