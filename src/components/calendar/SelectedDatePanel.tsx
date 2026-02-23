@@ -184,27 +184,92 @@ function getDomainLabel(
   return labels[locale][key]
 }
 
-function parseAstroEvidenceLine(value: string): string {
-  const line = normalizeEvidenceLine(value)
+function getReliabilityBand(confidence: number | undefined): 'low' | 'medium' | 'high' {
+  if (typeof confidence !== 'number') return 'medium'
+  if (confidence < 45) return 'low'
+  if (confidence < 70) return 'medium'
+  return 'high'
+}
+
+function getReliabilityLabel(confidence: number | undefined, locale: 'ko' | 'en'): string {
+  const band = getReliabilityBand(confidence)
+  if (locale === 'ko') {
+    if (band === 'high') return '높음'
+    if (band === 'medium') return '중간'
+    return '낮음'
+  }
+  if (band === 'high') return 'High'
+  if (band === 'medium') return 'Medium'
+  return 'Low'
+}
+
+function getUnifiedDayLabel(
+  score: number,
+  confidence: number | undefined,
+  locale: 'ko' | 'en'
+): string {
+  const band = getReliabilityBand(confidence)
+  if (band === 'low' && score >= 70) return locale === 'ko' ? '해석 갈림' : 'Mixed signals'
+  if (score >= 85) return locale === 'ko' ? '최고' : 'Excellent'
+  if (score >= 70) return locale === 'ko' ? '좋음' : 'Good'
+  if (score >= 50) return locale === 'ko' ? '무난' : 'Neutral'
+  return locale === 'ko' ? '주의' : 'Caution'
+}
+
+function softenDecisionTone(value: string, locale: 'ko' | 'en'): string {
+  const line = safeDisplayText(value)
   if (!line) return ''
 
-  const angle = line.match(/angle=([0-9.]+)deg/i)?.[1]
-  const orb = line.match(/orb=([0-9.]+)deg/i)?.[1]
-  const allowedRaw = line.match(/allowed=([^|]+)/i)?.[1]?.trim()
-  const pair = line.match(/pair=([a-z_]+)/i)?.[1]?.replace(/_/g, ' ')
+  if (locale === 'ko') {
+    return line
+      .replace(/1년에 몇 번 없는/gi, '드문 편인')
+      .replace(/최고의 날/gi, '유리한 흐름')
+      .replace(/완벽한 타이밍/gi, '검토 후 진행하기 좋은 타이밍')
+      .replace(/결혼 결정/gi, '관계 관련 대화')
+      .replace(/프로포즈/gi, '중요한 감정 표현')
+      .replace(/오늘로 잡으세요/gi, '우선 검토해 보세요')
+      .replace(/지금 결정/gi, '재확인 후 결정')
+  }
 
-  if (!angle && !orb && !allowedRaw && !pair) return line
+  return line
+    .replace(/best day/gi, 'favorable timing')
+    .replace(/perfect timing/gi, 'a good time to review and act')
+    .replace(/decide now/gi, 'confirm once more before deciding')
+}
 
-  const allowed = allowedRaw?.replace(/\s*,\s*/g, ', ')
+function toUserFacingEvidenceLine(
+  value: string,
+  source: 'saju' | 'astro' | 'bridge',
+  locale: 'ko' | 'en'
+): string {
+  const normalized = normalizeEvidenceLine(value)
+  if (!normalized) return ''
 
-  return [
-    pair ? `pair: ${pair}` : '',
-    angle ? `angle: ${angle}\u00B0` : '',
-    orb ? `orb: ${orb}\u00B0` : '',
-    allowed ? `allow: ${allowed}` : '',
-  ]
-    .filter(Boolean)
-    .join(' | ')
+  const stripped = normalized
+    .replace(/\(([AS]\d+)\)\s*/gi, '')
+    .replace(/\b[AS]\d+\s*[↔\-]{1,2}\s*[AS]\d+\b[:：]?\s*/gi, '')
+    .replace(/\b[AS]\d+\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+
+  const hasTechnicalPayload =
+    /(pair=|angle=|orb=|allowed=|dayMaster=|geokguk=|yongsin=|sibsin=|daeun=|saeun=|profile=|matrix=|overlap=|orbFit=|set\s*\d+)/i.test(
+      normalized
+    )
+
+  if (hasTechnicalPayload) {
+    if (locale === 'ko') {
+      if (source === 'saju') return '사주 흐름에서 말과 약속의 균형을 점검하면 안정적입니다.'
+      if (source === 'astro')
+        return '점성 흐름에서 감정 반응이 커질 수 있어 속도 조절이 유리합니다.'
+      return '사주와 점성 신호를 함께 보면 방향은 비슷하지만 재확인이 중요합니다.'
+    }
+    if (source === 'saju') return 'Saju signals suggest checking communication and commitments.'
+    if (source === 'astro') return 'Astrology signals suggest pacing emotional reactions.'
+    return 'Saju and astrology are broadly aligned, but confirmation still helps.'
+  }
+
+  return stripped
 }
 
 const SelectedDatePanel = memo(function SelectedDatePanel({
@@ -241,18 +306,6 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   )
 
   const termHelp = {
-    matrixBadge:
-      locale === 'ko'
-        ? '\uC885\uD569 \uC2E0\uD638 \uADFC\uAC70 (\uC5EC\uB7EC \uC2E0\uD638\uB97C \uD569\uCE5C \uC810\uC218)'
-        : 'Combined signal basis (multi-signal score)',
-    crossBadge:
-      locale === 'ko'
-        ? '\uAD50\uCC28 \uAC80\uC99D (\uC0AC\uC8FC+\uC810\uC131 \uACB0\uACFC\uAC00 \uAC19\uC740 \uBC29\uD5A5)'
-        : 'Cross-verified (Saju + Astrology aligned)',
-    cautionBadge:
-      locale === 'ko'
-        ? '\uC8FC\uC758 \uC2E0\uD638 (\uB9AC\uC2A4\uD06C \uACBD\uACE0)'
-        : 'Caution signal (risk warning)',
     sajuTitle:
       locale === 'ko'
         ? '\uC0AC\uC8FC \uBD84\uC11D (\uD0C0\uACE0\uB09C \uAD6C\uC870\uC640 \uC624\uB298\uC758 \uD750\uB984)'
@@ -265,14 +318,6 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       locale === 'ko'
         ? '\uC77C\uC8FC (\uC624\uB298\uC758 \uD575\uC2EC \uAE30\uC6B4)'
         : 'Day Pillar (today core energy)',
-    bestTimes:
-      locale === 'ko'
-        ? '\uC624\uB298\uC758 \uC88B\uC740 \uC2DC\uAC04 (\uC911\uC694 \uC77C\uC815\uC744 \uB123\uAE30 \uC88B\uC740 \uC2DC\uAC04\uB300)'
-        : 'Best Times Today (better windows for key tasks)',
-    dailyPeakTitle:
-      locale === 'ko'
-        ? '\uB370\uC77C\uB9AC + \uD53C\uD06C \uC708\uB3C4\uC6B0 \uD1B5\uD569 \uD574\uC11D'
-        : 'Daily + Peak Window Insight',
   }
 
   const handleAddToCalendar = useCallback(async () => {
@@ -458,40 +503,55 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     selectedDate?.title,
     locale === 'ko' ? '오늘 흐름 요약' : 'Daily flow summary'
   )
-  const safeSummary = safeDisplayText(selectedDate?.summary, '')
-  const safeDescription = safeDisplayText(
-    selectedDate?.description,
-    locale === 'ko' ? '세부 설명을 불러오는 중입니다.' : 'Detailed explanation is loading.'
+  const safeSummary = softenDecisionTone(safeDisplayText(selectedDate?.summary, ''), locale)
+  const safeDescription = softenDecisionTone(
+    safeDisplayText(
+      selectedDate?.description,
+      locale === 'ko' ? '세부 설명을 불러오는 중입니다.' : 'Detailed explanation is loading.'
+    ),
+    locale
   )
-  const safeNarrative = safeDisplayText(mergedTimingNarrative, '')
+  const safeNarrative = softenDecisionTone(safeDisplayText(mergedTimingNarrative, ''), locale)
   const safeWarnings = (selectedDate?.warnings || [])
-    .map((line) => safeDisplayText(line))
+    .map((line) => softenDecisionTone(line, locale))
     .filter(Boolean)
   const safeRecommendations = (selectedDate?.recommendations || [])
-    .map((line) => safeDisplayText(line))
+    .map((line) => softenDecisionTone(line, locale))
     .filter(Boolean)
   const safeSajuFactors = (selectedDate?.sajuFactors || [])
-    .map((line) => safeDisplayText(line))
+    .map((line) => softenDecisionTone(line, locale))
     .filter(Boolean)
   const safeAstroFactors = (selectedDate?.astroFactors || [])
-    .map((line) => safeDisplayText(line))
+    .map((line) => softenDecisionTone(line, locale))
     .filter(Boolean)
 
   const evidenceBridges = (selectedDate?.evidence?.cross?.bridges || [])
-    .map((line) => normalizeEvidenceLine(line))
+    .map((line) => toUserFacingEvidenceLine(line, 'bridge', locale))
     .filter(Boolean)
+
+  const unifiedDayLabel = selectedDate
+    ? getUnifiedDayLabel(selectedDate.score, selectedDate.evidence?.confidence, locale)
+    : ''
+  const reliabilityLabel = selectedDate
+    ? getReliabilityLabel(selectedDate.evidence?.confidence, locale)
+    : ''
+  const domainLabel = selectedDate
+    ? getDomainLabel(selectedDate.evidence?.matrix.domain, locale)
+    : locale === 'ko'
+      ? '전반'
+      : 'overall'
 
   const evidenceSummaryPrimary = selectedDate?.evidence
     ? locale === 'ko'
-      ? `신호 신뢰도 ${selectedDate.evidence.confidence}% · 종합 점수 ${selectedDate.evidence.matrix.finalScoreAdjusted}점 · 핵심 영역 ${getDomainLabel(selectedDate.evidence.matrix.domain, 'ko')}`
-      : `Signal confidence ${selectedDate.evidence.confidence}% · Total score ${selectedDate.evidence.matrix.finalScoreAdjusted} · Core domain ${getDomainLabel(selectedDate.evidence.matrix.domain, 'en')}`
+      ? `오늘 등급 ${unifiedDayLabel} · 점수 ${selectedDate.score}/100 · 핵심 분야 ${domainLabel}`
+      : `Today rating ${unifiedDayLabel} · Score ${selectedDate.score}/100 · Focus ${domainLabel}`
     : ''
 
   const sajuCrossLine =
-    normalizeEvidenceLine(selectedDate?.evidence?.cross?.sajuEvidence || '') ||
+    toUserFacingEvidenceLine(selectedDate?.evidence?.cross?.sajuEvidence || '', 'saju', locale) ||
     (locale === 'ko' ? '사주 일진 신호 반영' : 'Saju daily-pillar signal reflected')
   const astroCrossLine =
-    parseAstroEvidenceLine(selectedDate?.evidence?.cross?.astroEvidence || '') ||
+    toUserFacingEvidenceLine(selectedDate?.evidence?.cross?.astroEvidence || '', 'astro', locale) ||
     (locale === 'ko' ? '점성 트랜짓 신호 반영' : 'Astrology transit signal reflected')
 
   const evidenceSummaryCross = selectedDate?.evidence
@@ -506,6 +566,43 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         ? `핵심 결론: ${evidenceBridges[0]}`
         : `Key takeaway: ${evidenceBridges[0]}`
       : ''
+
+  const quickThesis = (() => {
+    if (!selectedDate) return ''
+    if (locale === 'ko') {
+      if (unifiedDayLabel === '해석 갈림') {
+        return `${domainLabel} 중심 신호가 엇갈립니다. 큰 결정은 재확인 후 진행하세요.`
+      }
+      return `${domainLabel} 흐름은 ${unifiedDayLabel}이고, 말·약속은 한 번 더 확인하는 편이 좋습니다.`
+    }
+    if (unifiedDayLabel === 'Mixed signals') {
+      return `Signals around ${domainLabel} are mixed. Recheck major decisions before acting.`
+    }
+    return `Flow is ${unifiedDayLabel.toLowerCase()} for ${domainLabel}; verify communication and commitments once more.`
+  })()
+
+  const quickDos =
+    safeRecommendations.slice(0, 3).length > 0
+      ? safeRecommendations.slice(0, 3)
+      : locale === 'ko'
+        ? ['연락이나 협의를 먼저 시작해 보세요.', '중요 문서나 할 일을 1건 정리해 보세요.']
+        : ['Start one outreach or coordination task.', 'Close one important document or task.']
+
+  const quickDonts =
+    safeWarnings.slice(0, 2).length > 0
+      ? safeWarnings.slice(0, 2)
+      : locale === 'ko'
+        ? ['계약이나 큰 결정은 재확인 후 진행하세요.']
+        : ['Recheck contracts or major decisions before finalizing.']
+
+  const quickWindows =
+    normalizedBestTimes.slice(0, 2).length > 0
+      ? normalizedBestTimes.slice(0, 2)
+      : locale === 'ko'
+        ? ['집중 가능한 시간대 1개를 먼저 확보하세요.']
+        : ['Secure one focused time block first.']
+
+  const detailInsight = [safeSummary, safeNarrative, safeDescription].find(Boolean) || ''
 
   return (
     <div className={`${styles.selectedDayInfo} ${styles.largeTextMode}`}>
@@ -602,37 +699,76 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             </div>
           )}
 
-          {safeSummary && (
-            <div
-              className={`${styles.summaryBox} ${selectedDate.grade >= 3 ? styles.summaryWarning : ''}`}
-            >
-              <p className={styles.summaryText}>{safeSummary}</p>
-            </div>
-          )}
+          <div className={styles.quickScanCard}>
+            <p className={styles.quickScanThesis}>{quickThesis}</p>
 
-          {safeNarrative && (
-            <div className={styles.dailyPeakBox}>
-              <div className={styles.dailyPeakTitle}>{termHelp.dailyPeakTitle}</div>
-              <p className={styles.dailyPeakText}>{safeNarrative}</p>
+            <div className={styles.quickScanMeta}>
+              <span className={styles.quickMetaChip}>
+                {locale === 'ko' ? '오늘 등급' : 'Today'}: {unifiedDayLabel}
+              </span>
+              <span className={styles.quickMetaChip}>
+                {locale === 'ko' ? '핵심 분야' : 'Focus'}: {domainLabel}
+              </span>
+              <span className={styles.quickMetaChip}>
+                {locale === 'ko' ? '신뢰' : 'Reliability'}: {reliabilityLabel}
+              </span>
             </div>
-          )}
 
-          {selectedDate.evidence && (
-            <div className={styles.calendarEvidenceBox}>
-              <div className={styles.calendarEvidenceBadges}>
-                <span className={styles.calendarEvidenceBadge}>{termHelp.matrixBadge}</span>
-                <span className={styles.calendarEvidenceBadge}>{termHelp.crossBadge}</span>
-                <span className={styles.calendarEvidenceBadge}>{termHelp.cautionBadge}</span>
+            <div className={styles.quickActionGrid}>
+              <div className={styles.quickActionBlock}>
+                <h4 className={styles.quickActionTitle}>{locale === 'ko' ? '추천' : 'Do'}</h4>
+                <ul className={styles.quickActionList}>
+                  {quickDos.map((action, index) => (
+                    <li key={`do-${index}`}>{action}</li>
+                  ))}
+                </ul>
               </div>
-              <ul className={styles.calendarEvidenceList}>
-                {evidenceSummaryPrimary && <li>{evidenceSummaryPrimary}</li>}
-                {evidenceSummaryCross && <li>{evidenceSummaryCross}</li>}
-                {evidenceBridgeSummary && <li>{evidenceBridgeSummary}</li>}
-              </ul>
+              <div className={styles.quickActionBlock}>
+                <h4 className={styles.quickActionTitle}>{locale === 'ko' ? '주의' : "Don't"}</h4>
+                <ul className={styles.quickActionList}>
+                  {quickDonts.map((action, index) => (
+                    <li key={`dont-${index}`}>{action}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          )}
 
-          <p className={styles.selectedDesc}>{safeDescription}</p>
+            <div className={styles.quickWindows}>
+              <h4 className={styles.quickActionTitle}>
+                {locale === 'ko' ? '좋은 시간' : 'Peak windows'}
+              </h4>
+              <div className={styles.quickWindowList}>
+                {quickWindows.map((time, index) => (
+                  <span key={`window-${index}`} className={styles.quickWindowChip}>
+                    {time}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {(detailInsight || selectedDate.evidence) && (
+            <details className={styles.calendarEvidenceDetails}>
+              <summary className={styles.calendarEvidenceSummary}>
+                {locale === 'ko' ? '근거/상세 보기' : 'View details & evidence'}
+              </summary>
+              <div className={styles.calendarEvidenceInner}>
+                {detailInsight && <p className={styles.selectedDesc}>{detailInsight}</p>}
+                {selectedDate.evidence && (
+                  <ul className={styles.calendarEvidenceList}>
+                    {evidenceSummaryPrimary && <li>{evidenceSummaryPrimary}</li>}
+                    {evidenceSummaryCross && <li>{evidenceSummaryCross}</li>}
+                    {evidenceBridgeSummary && <li>{evidenceBridgeSummary}</li>}
+                    <li>
+                      {locale === 'ko'
+                        ? `교차 일치도(참고): ${selectedDate.evidence.confidence}%`
+                        : `Cross-match reference: ${selectedDate.evidence.confidence}%`}
+                    </li>
+                  </ul>
+                )}
+              </div>
+            </details>
+          )}
 
           {selectedDate.ganzhi && (
             <div className={styles.ganzhiBox}>
@@ -645,23 +781,6 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                   <span className={styles.ganzhiValue}>{selectedDate.transitSunSign}</span>
                 </>
               )}
-            </div>
-          )}
-
-          {normalizedBestTimes.length > 0 && (
-            <div className={styles.bestTimesBox}>
-              <h4 className={styles.bestTimesTitle}>
-                <span className={styles.bestTimesIcon}>{'\u23F0'}</span>
-                {termHelp.bestTimes}
-              </h4>
-              <div className={styles.bestTimesList}>
-                {normalizedBestTimes.map((time, i) => (
-                  <span key={i} className={styles.bestTimeItem}>
-                    <span className={styles.bestTimeNumber}>{i + 1}</span>
-                    {time}
-                  </span>
-                ))}
-              </div>
             </div>
           )}
 

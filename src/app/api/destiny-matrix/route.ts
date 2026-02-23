@@ -11,6 +11,8 @@ import type { FiveElement, RelationHit } from '@/lib/Saju/types'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
 import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/Saju/shinsal'
 import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
+import { STEMS } from '@/lib/Saju/constants'
+import { getRetrogradePlanetsForDate } from '@/lib/destiny-map/calendar/astrology/retrograde'
 import type {
   GeokgukType,
   ShinsalKind,
@@ -84,6 +86,7 @@ const TRANSIT_CYCLES: TransitCycle[] = [
 ]
 
 const TRANSIT_CYCLE_SET = new Set<string>(TRANSIT_CYCLES)
+const FIVE_ELEMENT_SET = new Set<FiveElement>(['목', '화', '토', '금', '수'])
 
 const MATRIX_SHINSAL_SET = new Set<string>([
   '천을귀인',
@@ -175,6 +178,138 @@ const EXTRA_POINT_ALIASES: Record<string, ExtraPointName> = {
   south_node: 'SouthNode',
 }
 
+type TransitSyncSnapshot = {
+  date: string
+  age: number
+  activeTransits: TransitCycle[]
+}
+
+function toDatePartsInTimeZone(
+  date: Date,
+  timeZone: string
+): { year: number; month: number; day: number } {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date)
+
+  const getPart = (type: 'year' | 'month' | 'day') =>
+    Number(parts.find((part) => part.type === type)?.value ?? '0')
+
+  return {
+    year: getPart('year'),
+    month: getPart('month'),
+    day: getPart('day'),
+  }
+}
+
+function calculateAgeAtDate(birthDate: string, targetDate: Date, timeZone: string): number {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(birthDate.trim())
+  if (!match) {
+    return 0
+  }
+  const birthYear = Number(match[1])
+  const birthMonth = Number(match[2])
+  const birthDay = Number(match[3])
+  const { year, month, day } = toDatePartsInTimeZone(targetDate, timeZone)
+
+  let age = year - birthYear
+  if (month < birthMonth || (month === birthMonth && day < birthDay)) {
+    age -= 1
+  }
+  return Math.max(0, age)
+}
+
+function inferLifecycleTransitCycles(age: number): TransitCycle[] {
+  const results = new Set<TransitCycle>()
+
+  const withinOneYear = (value: number, target: number) => Math.abs(value - target) <= 1
+
+  for (let trigger = 12; trigger <= 96; trigger += 12) {
+    if (withinOneYear(age, trigger)) {
+      results.add('jupiterReturn')
+      break
+    }
+  }
+
+  for (const trigger of [29, 58, 87]) {
+    if (withinOneYear(age, trigger)) {
+      results.add('saturnReturn')
+      break
+    }
+  }
+
+  for (const trigger of [21, 42, 63]) {
+    if (withinOneYear(age, trigger)) {
+      results.add('uranusSquare')
+      break
+    }
+  }
+
+  for (const trigger of [41, 82]) {
+    if (withinOneYear(age, trigger)) {
+      results.add('neptuneSquare')
+      break
+    }
+  }
+
+  for (const trigger of [18, 37, 56, 74]) {
+    if (withinOneYear(age, trigger)) {
+      results.add('nodeReturn')
+      break
+    }
+  }
+
+  if (age >= 36 && age <= 44) {
+    results.add('plutoTransit')
+  }
+
+  return [...results]
+}
+
+function inferRetrogradeTransitCycles(targetDate: Date): TransitCycle[] {
+  const retrogrades = getRetrogradePlanetsForDate(targetDate)
+  const map: Record<string, TransitCycle> = {
+    mercury: 'mercuryRetrograde',
+    venus: 'venusRetrograde',
+    mars: 'marsRetrograde',
+    jupiter: 'jupiterRetrograde',
+    saturn: 'saturnRetrograde',
+  }
+  return retrogrades
+    .map((planet) => map[planet])
+    .filter((cycle): cycle is TransitCycle => Boolean(cycle))
+}
+
+function inferTransitSnapshotForDate(
+  birthDate: string,
+  targetDate: Date,
+  timeZone: string
+): TransitSyncSnapshot {
+  const age = calculateAgeAtDate(birthDate, targetDate, timeZone)
+  const merged = new Set<TransitCycle>([
+    ...inferLifecycleTransitCycles(age),
+    ...inferRetrogradeTransitCycles(targetDate),
+  ])
+  const date = toDatePartsInTimeZone(targetDate, timeZone)
+  return {
+    date: `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`,
+    age,
+    activeTransits: [...merged],
+  }
+}
+
+function inferElementFromStemName(stemName?: string): FiveElement | undefined {
+  if (!stemName) {
+    return undefined
+  }
+  const stem = STEMS.find((item) => item.name === stemName)
+  const element = stem?.element
+  return element && FIVE_ELEMENT_SET.has(element) ? element : undefined
+}
+
 function normalizePlanetName(value: unknown): PlanetName | null {
   if (typeof value !== 'string') {
     return null
@@ -226,17 +361,24 @@ function normalizeRelationsInput(raw: unknown): RelationHit[] {
       continue
     }
     if (item && typeof item === 'object' && typeof (item as { kind?: unknown }).kind === 'string') {
-      const kind = RELATION_ALIASES[(item as { kind: string }).kind] || (item as { kind: string }).kind
+      const kind =
+        RELATION_ALIASES[(item as { kind: string }).kind] || (item as { kind: string }).kind
       const pillars = Array.isArray((item as { pillars?: unknown }).pillars)
-        ? ((item as { pillars: unknown[] }).pillars.filter((p): p is RelationHit['pillars'][number] =>
-            typeof p === 'string'
-          ))
+        ? (item as { pillars: unknown[] }).pillars.filter(
+            (p): p is RelationHit['pillars'][number] => typeof p === 'string'
+          )
         : []
       normalized.push({
         kind: kind as RelationHit['kind'],
         pillars,
-        detail: typeof (item as { detail?: unknown }).detail === 'string' ? (item as { detail: string }).detail : undefined,
-        note: typeof (item as { note?: unknown }).note === 'string' ? (item as { note: string }).note : undefined,
+        detail:
+          typeof (item as { detail?: unknown }).detail === 'string'
+            ? (item as { detail: string }).detail
+            : undefined,
+        note:
+          typeof (item as { note?: unknown }).note === 'string'
+            ? (item as { note: string }).note
+            : undefined,
       })
     }
   }
@@ -339,7 +481,8 @@ function inferTransitCycle(record: Record<string, unknown>): TransitCycle | null
   if (tp === 'uranus' && aspectType === 'square') return 'uranusSquare'
   if (tp === 'neptune' && aspectType === 'square') return 'neptuneSquare'
   if (tp === 'pluto') return 'plutoTransit'
-  if ((tp === 'northnode' || tp === 'southnode') && aspectType === 'conjunction') return 'nodeReturn'
+  if ((tp === 'northnode' || tp === 'southnode') && aspectType === 'conjunction')
+    return 'nodeReturn'
 
   return null
 }
@@ -564,6 +707,8 @@ export const POST = withApiMiddleware(
       let dayMasterElement = providedDayMaster
       let sibsinDistribution = providedSibsin
       let calculatedPillarElements = pillarElements
+      let normalizedCurrentDaeunElement = currentDaeunElement
+      let normalizedCurrentSaeunElement = currentSaeunElement
       let normalizedTwelveStages = normalizeTwelveStagesInput(twelveStages)
       let normalizedRelations = normalizeRelationsInput(relations)
       let normalizedShinsals = normalizeShinsalListInput(shinsalList)
@@ -572,10 +717,17 @@ export const POST = withApiMiddleware(
       const normalizedPlanetHouses = normalizePlanetHousesInput(planetHouses)
       const normalizedPlanetSigns = normalizePlanetSignsInput(planetSigns)
       const normalizedAspects = normalizeAspectsInput(aspects)
-      const normalizedActiveTransits = normalizeActiveTransitsInput(activeTransits)
+      let normalizedActiveTransits = normalizeActiveTransitsInput(activeTransits)
       const normalizedAsteroidHouses = normalizeAsteroidHousesInput(asteroidHouses)
       const normalizedExtraPointSigns = normalizeExtraPointSignsInput(extraPointSigns)
       let autoSajuData: ReturnType<typeof calculateSajuData> | null = null
+      let autoTimingSync:
+        | {
+            today: TransitSyncSnapshot
+            tomorrow: TransitSyncSnapshot
+            appliedTransits: TransitCycle[]
+          }
+        | undefined
 
       // If birthDate is provided, calculate saju automatically
       if (birthDate && !dayMasterElement) {
@@ -705,6 +857,18 @@ export const POST = withApiMiddleware(
                 normalizedYongsin = [advanced.yongsin.primary]
               }
             }
+
+            if (!normalizedCurrentDaeunElement) {
+              normalizedCurrentDaeunElement = inferElementFromStemName(
+                sajuData.daeWoon?.current?.heavenlyStem
+              )
+            }
+            if (!normalizedCurrentSaeunElement) {
+              const currentAnnualElement = sajuData.unse?.annual?.[0]?.element
+              if (currentAnnualElement && FIVE_ELEMENT_SET.has(currentAnnualElement)) {
+                normalizedCurrentSaeunElement = currentAnnualElement
+              }
+            }
           } catch (enrichmentError) {
             logger.warn('[Destiny Matrix] Auto enrichment skipped', { error: enrichmentError })
           }
@@ -714,6 +878,28 @@ export const POST = withApiMiddleware(
             { error: 'Failed to calculate saju from birth data' },
             { status: HTTP_STATUS.BAD_REQUEST }
           )
+        }
+      }
+
+      if (birthDate) {
+        const now = new Date()
+        const tomorrow = new Date(now)
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        const todaySnapshot = inferTransitSnapshotForDate(birthDate, now, timezone)
+        const tomorrowSnapshot = inferTransitSnapshotForDate(birthDate, tomorrow, timezone)
+        const appliedTransits =
+          normalizedActiveTransits.length > 0
+            ? normalizedActiveTransits
+            : todaySnapshot.activeTransits
+
+        if (normalizedActiveTransits.length === 0) {
+          normalizedActiveTransits = appliedTransits
+        }
+
+        autoTimingSync = {
+          today: todaySnapshot,
+          tomorrow: tomorrowSnapshot,
+          appliedTransits,
         }
       }
 
@@ -760,8 +946,8 @@ export const POST = withApiMiddleware(
         relations: normalizedRelations,
         geokguk: normalizedGeokguk as GeokgukType | undefined,
         yongsin: normalizedYongsin?.[0] as FiveElement | undefined,
-        currentDaeunElement,
-        currentSaeunElement,
+        currentDaeunElement: normalizedCurrentDaeunElement,
+        currentSaeunElement: normalizedCurrentSaeunElement,
         shinsalList: normalizedShinsals,
         dominantWesternElement: dominantWesternElement as WesternElement | undefined,
         planetHouses: normalizedPlanetHouses,
@@ -810,6 +996,15 @@ export const POST = withApiMiddleware(
           domainScores: matrix.summary.domainScores,
           overlapTimeline: matrix.summary.overlapTimeline,
           overlapTimelineByDomain: matrix.summary.overlapTimelineByDomain,
+          timingSync: autoTimingSync
+            ? {
+                today: autoTimingSync.today,
+                tomorrow: autoTimingSync.tomorrow,
+                appliedTransits: autoTimingSync.appliedTransits,
+                currentDaeunElement: normalizedCurrentDaeunElement || null,
+                currentSaeunElement: normalizedCurrentSaeunElement || null,
+              }
+            : undefined,
           layersProcessed: Object.keys(cellCounts).filter(
             (k) => cellCounts[k as keyof typeof cellCounts] > 0
           ).length,

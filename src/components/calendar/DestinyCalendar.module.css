@@ -2231,6 +2231,131 @@
   margin: 0 0 10px;
 }
 
+.quickScanCard {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(34, 197, 94, 0.12));
+  border: 1px solid rgba(125, 211, 252, 0.4);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.quickScanThesis {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.55;
+  color: var(--cal-text-primary);
+  font-weight: 650;
+}
+
+.quickScanMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.quickMetaChip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 650;
+  color: #cffafe;
+  background: rgba(3, 105, 161, 0.32);
+  border: 1px solid rgba(125, 211, 252, 0.42);
+  border-radius: 999px;
+  padding: 5px 10px;
+}
+
+.quickActionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.quickActionBlock {
+  background: rgba(2, 6, 23, 0.26);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 10px 11px;
+}
+
+.quickActionTitle {
+  margin: 0 0 7px;
+  font-size: 14px;
+  color: #e2e8f0;
+  font-weight: 700;
+}
+
+.quickActionList {
+  margin: 0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--cal-text-secondary);
+}
+
+.quickWindows {
+  margin-top: 12px;
+}
+
+.quickWindowList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quickWindowChip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ecfeff;
+  background: rgba(30, 64, 175, 0.38);
+  border: 1px solid rgba(147, 197, 253, 0.35);
+  border-radius: 10px;
+  padding: 7px 10px;
+}
+
+.calendarEvidenceDetails {
+  margin: 0 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  background: rgba(34, 197, 94, 0.1);
+  overflow: hidden;
+}
+
+.calendarEvidenceSummary {
+  cursor: pointer;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #dcfce7;
+  list-style: none;
+}
+
+.calendarEvidenceSummary::-webkit-details-marker {
+  display: none;
+}
+
+.calendarEvidenceSummary::after {
+  content: '\25BE';
+  float: right;
+  transition: transform 0.2s ease;
+}
+
+.calendarEvidenceDetails[open] .calendarEvidenceSummary::after {
+  transform: rotate(180deg);
+}
+
+.calendarEvidenceInner {
+  border-top: 1px solid rgba(74, 222, 128, 0.2);
+  padding: 10px 14px 14px;
+}
+
 /* AI Badge */
 .crossVerifiedBadge {
   display: inline-flex;
@@ -3216,6 +3341,14 @@
     grid-template-columns: 1fr;
   }
 
+  .quickActionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .quickScanThesis {
+    font-size: 18px;
+  }
+
   .introMain {
     padding: 80px 16px 32px;
   }
@@ -3240,6 +3373,14 @@
     margin: 8px 8px 14px;
     padding: 4px;
     gap: 4px;
+  }
+
+  .quickMetaChip {
+    font-size: 12px;
+  }
+
+  .quickWindowChip {
+    font-size: 13px;
   }
 
   .viewTab {

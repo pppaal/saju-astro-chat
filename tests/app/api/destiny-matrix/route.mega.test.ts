@@ -450,6 +450,64 @@ describe('POST /api/destiny-matrix', () => {
       })
     })
 
+    it('should auto-derive daeun/transit overlap for today and tomorrow', async () => {
+      vi.mocked(calculateSajuData).mockReturnValue({
+        yearPillar: {
+          heavenlyStem: { name: '\u7532', element: '\uBAA9', sibsin: '\uBE44\uACAC' },
+          earthlyBranch: { name: '\u5B50', element: '\uC218', sibsin: '\uD3B8\uC778' },
+        },
+        monthPillar: {
+          heavenlyStem: { name: '\u4E19', element: '\uD654', sibsin: '\uC2DD\uC2E0' },
+          earthlyBranch: { name: '\u5BC5', element: '\uBAA9', sibsin: '\uBE44\uACAC' },
+        },
+        dayPillar: {
+          heavenlyStem: { name: '\u7532', element: '\uBAA9', sibsin: '\uBE44\uACAC' },
+          earthlyBranch: { name: '\u5348', element: '\uD654', sibsin: '\uC2DD\uC2E0' },
+        },
+        timePillar: {
+          heavenlyStem: { name: '\u620A', element: '\uD1A0', sibsin: '\uC0C1\uAD00' },
+          earthlyBranch: { name: '\u7533', element: '\uAE08', sibsin: '\uD3B8\uC7AC' },
+        },
+        daeWoon: {
+          current: {
+            heavenlyStem: '\u7532',
+          },
+        },
+        unse: {
+          annual: [{ year: 2026, element: '\uD654' }],
+        },
+      } as never)
+
+      const body = {
+        birthDate: '1996-02-09',
+        birthTime: '08:30',
+        timezone: 'Asia/Seoul',
+        lang: 'ko',
+      }
+
+      const req = new NextRequest('http://localhost:3000/api/destiny-matrix', {
+        method: 'POST',
+        headers: withRateLimitHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(body),
+      })
+
+      const response = await POST(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.summary?.timingSync?.today?.date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      expect(data.summary?.timingSync?.tomorrow?.date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      expect(Array.isArray(data.summary?.timingSync?.today?.activeTransits)).toBe(true)
+      expect(Array.isArray(data.summary?.timingSync?.appliedTransits)).toBe(true)
+      expect(data.summary?.timingSync?.currentDaeunElement).toBe('\uBAA9')
+      expect(data.summary?.timingSync?.currentSaeunElement).toBe('\uD654')
+
+      const call = vi.mocked(calculateDestinyMatrix).mock.calls[0]
+      expect(call[0].currentDaeunElement).toBe('\uBAA9')
+      expect(call[0].currentSaeunElement).toBe('\uD654')
+      expect(Array.isArray(call[0].activeTransits)).toBe(true)
+    })
+
     it('should handle saju calculation failure', async () => {
       vi.mocked(calculateSajuData).mockImplementation(() => {
         throw new Error('Invalid date')
