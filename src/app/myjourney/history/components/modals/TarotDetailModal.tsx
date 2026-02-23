@@ -67,9 +67,16 @@ export function TarotDetailModal({ detail, selectedRecord, recordDate }: TarotDe
               (ci) => ci.card_name === card.name || ci.card_name === card.nameKo
             )
             const isExpanded = expandedCards.has(idx)
-            const cardImagePath = card.cardId
-              ? getCardImagePath(card.cardId)
-              : card.image || '/images/tarot/card-back.webp'
+            const numericCardId =
+              typeof card.cardId === 'number'
+                ? card.cardId
+                : typeof card.cardId === 'string' && /^\d+$/.test(card.cardId)
+                  ? Number(card.cardId)
+                  : null
+            const cardImagePath =
+              numericCardId !== null
+                ? getCardImagePath(numericCardId)
+                : card.image || '/images/tarot/card-back.webp'
 
             return (
               <div

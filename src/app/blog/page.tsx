@@ -4,7 +4,7 @@ import BlogClient from './BlogClient'
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
 export const metadata: Metadata = {
-  title: 'Blog | DestinyPal - Insights on Astrology, Saju, Tarot & More',
+  title: 'Blog - Insights on Astrology, Saju, Tarot & More',
   description:
     'Explore articles on Eastern and Western divination systems including Saju, Astrology, Tarot, I Ching, and Dream interpretation.',
   keywords: [
@@ -22,6 +22,8 @@ export const metadata: Metadata = {
     title: 'DestinyPal Blog - Insights & Guides',
     description: 'Explore the wisdom of Eastern and Western divination systems',
     type: 'website',
+    locale: 'ko_KR',
+    alternateLocale: ['en_US'],
     url: `${baseUrl}/blog`,
     siteName: 'DestinyPal',
     images: [
@@ -42,8 +44,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: `${baseUrl}/blog`,
     languages: {
-      en: `${baseUrl}/blog`,
-      ko: `${baseUrl}/blog`,
+      'ko-KR': `${baseUrl}/blog`,
+      'en-US': `${baseUrl}/blog`,
+      'x-default': `${baseUrl}/blog`,
     },
   },
 }

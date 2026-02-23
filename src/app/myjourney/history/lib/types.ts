@@ -84,7 +84,7 @@ export type TarotCard = {
   isReversed: boolean
   position?: string
   image?: string
-  cardId?: number
+  cardId?: number | string
 }
 
 export type TarotCardInsight = {

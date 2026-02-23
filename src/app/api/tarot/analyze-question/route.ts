@@ -317,6 +317,45 @@ function formatQuestionForPrompt(questionVariants: string[]): string {
   return `사용자 질문(원문): "${raw}"\n정규화/보정 버전: ${rest.map((q) => `"${q}"`).join(', ')}`
 }
 
+function revalidateWithRecommendations(
+  parsed: ParsedResult,
+  question: string,
+  language: string,
+  spreadOptions: SpreadOption[]
+): ParsedResult {
+  const selectedExists = spreadOptions.some(
+    (s) => s.themeId === parsed.themeId && s.id === parsed.spreadId
+  )
+
+  const recommended = recommendSpreads(question, 3)
+  if (!recommended.length) {
+    return parsed
+  }
+
+  const parsedInTop = recommended.some(
+    (r) => r.themeId === parsed.themeId && r.spreadId === parsed.spreadId
+  )
+
+  if (selectedExists && parsedInTop) {
+    return parsed
+  }
+
+  const top = recommended[0]
+  logger.info(
+    `[analyze-question] Revalidated by recommender: "${question}" -> ${top.themeId}/${top.spreadId} (was: ${parsed.themeId}/${parsed.spreadId})`
+  )
+
+  return {
+    themeId: top.themeId,
+    spreadId: top.spreadId,
+    reason: top.reasonKo || top.reason,
+    userFriendlyExplanation:
+      language === 'ko'
+        ? '질문 의도와 가장 가까운 스프레드로 조정했어요'
+        : "Adjusted to the spread that best matches your question's intent.",
+  }
+}
+
 // ============================================================
 // Main POST Handler
 // ============================================================
@@ -374,6 +413,7 @@ export const POST = withApiMiddleware(
       }
 
       let parsed: ParsedResult = fallbackParsed
+      let hasStructuredLLMResult = false
       if (patternMatch) {
         parsed = patternMatch.parsed
       } else {
@@ -392,6 +432,12 @@ export const POST = withApiMiddleware(
 
         try {
           parsed = responseText ? JSON.parse(responseText) : fallbackParsed
+          hasStructuredLLMResult = Boolean(
+            responseText &&
+              parsed &&
+              typeof parsed.themeId === 'string' &&
+              typeof parsed.spreadId === 'string'
+          )
         } catch {
           parsed = fallbackParsed
         }
@@ -399,6 +445,11 @@ export const POST = withApiMiddleware(
 
       // GPT 결과를 패턴 매칭으로 보정
       parsed = applyPatternCorrections(questionVariants, parsed, language)
+
+      // 3rd-stage revalidation: LLM 결과를 추천 엔진으로 다시 검증/보정
+      if (!patternMatch && hasStructuredLLMResult) {
+        parsed = revalidateWithRecommendations(parsed, trimmedQuestion, language, spreadOptions)
+      }
 
       // 선택된 스프레드 정보 찾기
       const selectedSpread = spreadOptions.find(

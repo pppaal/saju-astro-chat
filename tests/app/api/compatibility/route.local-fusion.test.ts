@@ -87,10 +87,10 @@ describe('POST /api/compatibility local fusion', () => {
     expect(data.synergy_breakdown).toBeNull()
     expect(Array.isArray(data.action_items)).toBe(true)
     expect(typeof data.interpretation).toBe('string')
-    expect(data.interpretation).toContain('## Overall Score')
-    expect(data.interpretation).toContain('## Saju Analysis')
-    expect(data.interpretation).toContain('## Astrology Analysis')
-    expect(data.interpretation).toContain('## Cross-System Analysis')
+    expect(data.interpretation).toContain('## 종합 점수')
+    expect(data.interpretation).toContain('## 사주 분석')
+    expect(data.interpretation).toContain('## 점성 분석')
+    expect(data.interpretation).toContain('## 교차 시스템 분석')
   })
 
   it('returns group analysis for 3 people', async () => {
@@ -138,6 +138,6 @@ describe('POST /api/compatibility local fusion', () => {
     expect(Array.isArray(data.pairs)).toBe(true)
     expect(data.pairs.length).toBe(3)
     expect(typeof data.interpretation).toBe('string')
-    expect(data.interpretation).toContain('## Detailed Scores')
+    expect(data.interpretation).toContain('## 상세 점수')
   })
 })

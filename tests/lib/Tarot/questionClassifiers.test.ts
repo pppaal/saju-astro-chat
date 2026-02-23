@@ -68,6 +68,12 @@ describe("Tarot Question Classifiers", () => {
       expect(isYesNoQuestion("할까 말까")).toBe(true);
     });
 
+    it("detects decision questions with 맞나/맞냐 phrasing", () => {
+      expect(isYesNoQuestion("거기로 가는 게 맞나?")).toBe(true);
+      expect(isYesNoQuestion("거기로 가는게 맞냐")).toBe(true);
+      expect(isYesNoQuestion("이 선택이 맞는지 궁금해")).toBe(true);
+    });
+
     it("caches results for repeated queries", () => {
       const question = "이 일을 할까?";
       const result1 = isYesNoQuestion(question);

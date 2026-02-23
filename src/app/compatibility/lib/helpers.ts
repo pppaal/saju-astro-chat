@@ -6,6 +6,7 @@
 import { getUserTimezone } from '@/lib/Saju/timezone'
 import type { PersonForm, ParsedSection } from './types'
 import { sectionPatterns } from './constants'
+import { repairMojibakeText } from '@/lib/text/mojibake'
 
 /**
  * Create an empty person form with optional defaults
@@ -34,10 +35,11 @@ export function parseResultSections(text: string): ParsedSection[] {
   let currentSection: { title: string; icon: string; content: string[] } | null = null
 
   for (const line of lines) {
+    const normalizedLine = repairMojibakeText(line)
     let foundSection = false
 
     for (const { pattern, icon, title } of sectionPatterns) {
-      if (pattern.test(line)) {
+      if (pattern.test(normalizedLine)) {
         if (currentSection && currentSection.content.length > 0) {
           sections.push({
             title: currentSection.title,
@@ -51,7 +53,7 @@ export function parseResultSections(text: string): ParsedSection[] {
       }
     }
 
-    if (!foundSection && line.match(/^#{1,3}\s+.+/)) {
+    if (!foundSection && normalizedLine.match(/^#{1,3}\s+.+/)) {
       // Generic heading
       if (currentSection && currentSection.content.length > 0) {
         sections.push({
@@ -60,16 +62,16 @@ export function parseResultSections(text: string): ParsedSection[] {
           content: currentSection.content.join('\n').trim(),
         })
       }
-      const headingText = line.replace(/^#+\s*/, '').trim()
+      const headingText = normalizedLine.replace(/^#+\s*/, '').trim()
       currentSection = { title: headingText, icon: '\u2728', content: [] }
     } else if (currentSection) {
-      currentSection.content.push(line)
-    } else if (line.trim()) {
+      currentSection.content.push(normalizedLine)
+    } else if (normalizedLine.trim()) {
       // Content before any section header
       if (!currentSection) {
         currentSection = { title: 'Overview', icon: '\u{1F4AB}', content: [] }
       }
-      currentSection.content.push(line)
+      currentSection.content.push(normalizedLine)
     }
   }
 

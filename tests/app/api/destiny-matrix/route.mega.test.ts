@@ -199,6 +199,7 @@ describe('POST /api/destiny-matrix', () => {
       expect(data.success).toBe(true)
       expect(data.summary.totalScore).toBe(85)
       expect(data.summary.cellsMatched).toBe(2)
+      expect(data.summary.actionChecklist?.today?.checklist?.length).toBeGreaterThanOrEqual(8)
       expect(data.highlights.strengths).toHaveLength(2)
       expect(data.copyright).toContain('Destiny Fusion Matrix™')
     })
@@ -501,6 +502,8 @@ describe('POST /api/destiny-matrix', () => {
       expect(Array.isArray(data.summary?.timingSync?.appliedTransits)).toBe(true)
       expect(data.summary?.timingSync?.currentDaeunElement).toBe('\uBAA9')
       expect(data.summary?.timingSync?.currentSaeunElement).toBe('\uD654')
+      expect(data.summary?.actionChecklist?.today?.checklist?.length).toBeGreaterThanOrEqual(8)
+      expect(data.summary?.actionChecklist?.tomorrow?.checklist?.length).toBeGreaterThanOrEqual(8)
 
       const call = vi.mocked(calculateDestinyMatrix).mock.calls[0]
       expect(call[0].currentDaeunElement).toBe('\uBAA9')

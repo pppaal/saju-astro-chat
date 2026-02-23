@@ -14,11 +14,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   if (isBlockedBlogPost({ slug })) {
     return {
-      title: 'Blog | DestinyPal',
+      title: 'Blog',
       description: 'Explore DestinyPal blog posts and guides.',
       keywords: ['blog', 'destiny', 'saju', 'astrology', 'tarot', 'i ching', 'dream'],
       alternates: {
         canonical: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'}/blog`,
+        languages: {
+          'ko-KR': `${process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'}/blog`,
+          'en-US': `${process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'}/blog`,
+          'x-default': `${process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'}/blog`,
+        },
       },
     }
   }
@@ -26,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!post || isBlockedBlogPost(post)) {
     return {
-      title: 'Post Not Found | DestinyPal Blog',
+      title: 'Post Not Found - Blog',
       description: 'The requested blog post could not be found.',
     }
   }
@@ -34,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
   return {
-    title: `${post.title} | DestinyPal Blog`,
+    title: post.title,
     description: post.excerpt,
     keywords: [
       post.category,
@@ -49,6 +54,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: post.title,
       description: post.excerpt,
       type: 'article',
+      locale: 'ko_KR',
+      alternateLocale: ['en_US'],
       publishedTime: post.date,
       authors: ['DestinyPal'],
       tags: [post.category],
@@ -72,8 +79,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: {
       canonical: `${baseUrl}/blog/${post.slug}`,
       languages: {
-        en: `${baseUrl}/blog/${post.slug}`,
-        ko: `${baseUrl}/blog/${post.slug}`,
+        'ko-KR': `${baseUrl}/blog/${post.slug}`,
+        'en-US': `${baseUrl}/blog/${post.slug}`,
+        'x-default': `${baseUrl}/blog/${post.slug}`,
       },
     },
   }

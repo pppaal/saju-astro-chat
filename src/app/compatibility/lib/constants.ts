@@ -42,12 +42,16 @@ export const sectionTitleKeys: Record<string, string> = {
   '상세 점수': 'compatibilityPage.sections.detailedScores',
   'Cross-System Analysis': 'compatibilityPage.sections.crossSystemAnalysis',
   '교차 시스템 분석': 'compatibilityPage.sections.crossSystemAnalysis',
+  'Plain-Language Compatibility Guide': 'compatibilityPage.sections.plainGuide',
+  '한눈에 보는 궁합 해설': 'compatibilityPage.sections.plainGuide',
   'Personality & Emotional Fit': 'compatibilityPage.sections.personalityEmotionalFit',
   '성격/감정 궁합': 'compatibilityPage.sections.personalityEmotionalFit',
   'Intimacy Chemistry': 'compatibilityPage.sections.intimacyChemistry',
   '속궁합 & 친밀도': 'compatibilityPage.sections.intimacyChemistry',
   'Future Flow & Best Meeting Windows': 'compatibilityPage.sections.futureTiming',
   '미래 흐름 & 만남 타이밍': 'compatibilityPage.sections.futureTiming',
+  'Scenario-Based Relationship Guide': 'compatibilityPage.sections.scenarioGuide',
+  '상황별 관계 운영 가이드': 'compatibilityPage.sections.scenarioGuide',
 }
 
 // Section patterns with icons for parsing results
@@ -146,6 +150,12 @@ export const sectionPatterns = [
   },
   {
     pattern:
+      /(?:^|\n)#+\s*(?:Plain(?:-|\s*)Language\s*Compatibility\s*Guide|\uD55C\uB208\uC5D0\s*\uBCF4\uB294\s*\uAD81\uD569\s*\uD574\uC124)/i,
+    icon: '\u{1F4D8}',
+    title: 'Plain-Language Compatibility Guide',
+  },
+  {
+    pattern:
       /(?:^|\n)#+\s*(?:Personality(?:\s*&\s*Emotional)?\s*(?:Fit)?|\uC131\uACA9\s*\/?\s*\uAC10\uC815\s*\uAD81\uD569)/i,
     icon: '\u{1F9E0}',
     title: 'Personality & Emotional Fit',
@@ -160,5 +170,11 @@ export const sectionPatterns = [
       /(?:^|\n)#+\s*(?:Future(?:\s*Flow)?(?:\s*&\s*Best\s*Meeting\s*Windows)?|\uBBF8\uB798\s*\uD750\uB984|\uB9CC\uB0A8\s*\uD0C0\uC774\uBC0D)/i,
     icon: '\u{1F4C5}',
     title: 'Future Flow & Best Meeting Windows',
+  },
+  {
+    pattern:
+      /(?:^|\n)#+\s*(?:Scenario(?:-|\s*)Based\s*Relationship\s*Guide|\uC0C1\uD669\uBCC4\s*\uAD00\uACC4\s*\uC6B4\uC601\s*\uAC00\uC774\uB4DC)/i,
+    icon: '\u{1F5FA}',
+    title: 'Scenario-Based Relationship Guide',
   },
 ]

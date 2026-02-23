@@ -131,8 +131,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    locale: 'en_US',
-    alternateLocale: ['ko_KR'],
+    locale: 'ko_KR',
+    alternateLocale: ['en_US'],
     url: '/',
     siteName: 'DestinyPal',
     title: 'DestinyPal | AI Spiritual Mental Care Platform',
@@ -169,6 +169,11 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: '/',
+    languages: {
+      'ko-KR': '/',
+      'en-US': '/',
+      'x-default': '/',
+    },
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION,

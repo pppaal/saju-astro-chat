@@ -273,7 +273,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
           spreadId: selectedSpread.id,
           spreadTitle: lang === 'ko' ? selectedSpread.titleKo || selectedSpread.title : selectedSpread.title,
           cards: drawnCards.map((dc, idx) => ({
-            cardId: dc.card.id,
+            cardId: String(dc.card.id),
             name: lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
             image: dc.card.image,
             isReversed: dc.isReversed,

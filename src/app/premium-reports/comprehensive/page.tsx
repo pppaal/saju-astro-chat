@@ -110,10 +110,15 @@ export default function ComprehensiveReportPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           period: 'comprehensive',
-          dayMasterElement: sajuData?.dayMasterElement || '목',
+          ...(sajuData?.dayMasterElement ? { dayMasterElement: sajuData.dayMasterElement } : {}),
           name: profileInput?.name || profile.name || '사용자',
           birthDate: finalBirthDate,
           birthTime: profileInput?.birthTime || profile.birthTime || undefined,
+          timezone: profileInput?.timezone || profile.timezone || undefined,
+          birthCity: profileInput?.birthCity || profile.birthCity || undefined,
+          gender: profileInput?.gender || undefined,
+          latitude: profileInput?.latitude ?? profile.latitude ?? undefined,
+          longitude: profileInput?.longitude ?? profile.longitude ?? undefined,
           detailLevel: 'comprehensive',
           lang: 'ko',
         }),
@@ -223,3 +228,5 @@ export default function ComprehensiveReportPage() {
     </>
   )
 }
+
+

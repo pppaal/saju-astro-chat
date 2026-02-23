@@ -114,7 +114,16 @@ vi.mock('@/lib/destiny-matrix/ai-report', () => ({
   generateAIPremiumReport: vi.fn(),
   generateTimingReport: vi.fn(),
   generateThemedReport: vi.fn(),
+  generateFivePagePDF: vi.fn(),
   generatePremiumPDF: vi.fn(),
+  summarizeDestinyMatrixEvidence: vi.fn().mockReturnValue({
+    totalInsights: 0,
+    totalSourceLinks: 0,
+    domains: {},
+    layerCoverage: [],
+    items: [],
+  }),
+  summarizeGraphRAGEvidence: vi.fn().mockReturnValue(null),
   REPORT_CREDIT_COSTS: {
     daily: 2,
     monthly: 3,

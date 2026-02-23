@@ -473,6 +473,14 @@ describe('POST /api/tarot/interpret-stream', () => {
   // Fallback Mode (No OPENAI_API_KEY)
   // -----------------------------------------------------------------
   describe('Fallback Mode (No OPENAI_API_KEY)', () => {
+    beforeEach(() => {
+      mockApiClientPost.mockResolvedValue({
+        ok: false,
+        status: 500,
+        error: 'Backend error',
+      })
+    })
+
     it('should use fallback payload when OPENAI_API_KEY is missing', async () => {
       const response = await POST(makePostRequest(VALID_REQUEST_BODY))
 
@@ -523,6 +531,11 @@ describe('POST /api/tarot/interpret-stream', () => {
   describe('OpenAI Streaming', () => {
     beforeEach(() => {
       process.env.OPENAI_API_KEY = 'test-api-key'
+      mockApiClientPost.mockResolvedValue({
+        ok: false,
+        status: 500,
+        error: 'Backend error',
+      })
     })
 
     afterEach(() => {
@@ -718,6 +731,11 @@ describe('POST /api/tarot/interpret-stream', () => {
   describe('Personalization Features', () => {
     beforeEach(() => {
       process.env.OPENAI_API_KEY = 'test-api-key'
+      mockApiClientPost.mockResolvedValue({
+        ok: false,
+        status: 500,
+        error: 'Backend error',
+      })
     })
 
     afterEach(() => {
@@ -864,6 +882,14 @@ describe('POST /api/tarot/interpret-stream', () => {
   // Locale Handling
   // -----------------------------------------------------------------
   describe('Locale Handling', () => {
+    beforeEach(() => {
+      mockApiClientPost.mockResolvedValue({
+        ok: false,
+        status: 500,
+        error: 'Backend error',
+      })
+    })
+
     it('should use body language over context locale when provided', async () => {
       mockInitializeApiContext.mockResolvedValue({
         context: { ...MOCK_CONTEXT, locale: 'ko' },
@@ -904,6 +930,14 @@ describe('POST /api/tarot/interpret-stream', () => {
   // SSE Stream Format
   // -----------------------------------------------------------------
   describe('SSE Stream Format', () => {
+    beforeEach(() => {
+      mockApiClientPost.mockResolvedValue({
+        ok: false,
+        status: 500,
+        error: 'Backend error',
+      })
+    })
+
     it('should return proper SSE headers', async () => {
       const response = await POST(makePostRequest(VALID_REQUEST_BODY))
 
@@ -925,6 +959,11 @@ describe('POST /api/tarot/interpret-stream', () => {
   describe('Card Processing', () => {
     beforeEach(() => {
       process.env.OPENAI_API_KEY = 'test-api-key'
+      mockApiClientPost.mockResolvedValue({
+        ok: false,
+        status: 500,
+        error: 'Backend error',
+      })
     })
 
     afterEach(() => {
@@ -1138,6 +1177,11 @@ describe('Tarot Stream - Internal Function Behavior', () => {
   describe('Question Mood Analysis', () => {
     beforeEach(() => {
       process.env.OPENAI_API_KEY = 'test-api-key'
+      mockApiClientPost.mockResolvedValue({
+        ok: false,
+        status: 500,
+        error: 'Backend error',
+      })
     })
 
     afterEach(() => {

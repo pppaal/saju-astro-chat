@@ -109,31 +109,31 @@ export function getErrorMessage(error: Error, lang: LangKey, tr: Copy): string {
   }
   if (message.includes('INSUFFICIENT_CREDITS') || message.includes('API_ERROR:402')) {
     return lang === 'ko'
-      ? 'í¬ë ˆë”§ì´ ë¶€ì¡±í•©ë‹ˆë‹¤. ì¶©ì „ í›„ ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”.'
+      ? '크레딧이 부족합니다. 충전 후 다시 시도해 주세요.'
       : 'Insufficient credits. Please recharge and try again.'
   }
 
   if (message.includes('timeout') || message.includes('connection')) {
     return lang === 'ko'
-      ? 'ì—°ê²°ì´ ì›í™œí•˜ì§€ ì•ŠìŠµë‹ˆë‹¤. ì¸í„°ë„· ì—°ê²°ì„ í™•ì¸í•˜ê³  ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”.'
+      ? '연결이 원활하지 않습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.'
       : 'Connection issue detected. Please check your internet and try again.'
   }
 
   if (message.includes('429') || message.includes('rate limit')) {
     return lang === 'ko'
-      ? 'ìš”ì²­ì´ ë§Žì•„ ìž ì‹œ ì œí•œë˜ì—ˆìŠµë‹ˆë‹¤. ìž ì‹œ í›„ ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”.'
+      ? '요청이 많아 잠시 제한되었습니다. 잠시 후 다시 시도해 주세요.'
       : 'Please try again in a moment. (Rate limit)'
   }
 
   if (message.includes('500') || message.includes('502') || message.includes('503')) {
     return lang === 'ko'
-      ? 'ìƒë‹´ ì„œë²„ì— ì¼ì‹œì ì¸ ë¬¸ì œê°€ ìžˆìŠµë‹ˆë‹¤. ìž ì‹œ í›„ ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”.'
+      ? '상담 서버에 일시적인 문제가 있습니다. 잠시 후 다시 시도해 주세요.'
       : 'Temporary server issue. Please try again shortly.'
   }
 
   if (message.includes('API_ERROR:')) {
     return lang === 'ko'
-      ? 'ìƒë‹´ ì„œë²„ ì‘ë‹µì— ë¬¸ì œê°€ ìžˆìŠµë‹ˆë‹¤. ìž ì‹œ í›„ ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”.'
+      ? '상담 서버 응답에 문제가 있습니다. 잠시 후 다시 시도해 주세요.'
       : 'The counselor server returned an error. Please try again shortly.'
   }
 
@@ -158,16 +158,16 @@ export function buildReturningSummary(
   const parts: string[] = []
 
   if (lastTopics) {
-    parts.push(lang === 'ko' ? `ìµœê·¼ ì£¼ì œ: ${lastTopics}` : `Recent topics: ${lastTopics}`)
+    parts.push(lang === 'ko' ? `최근 주제: ${lastTopics}` : `Recent topics: ${lastTopics}`)
   }
   if (tone) {
-    parts.push(lang === 'ko' ? `ê°ì • í†¤: ${tone}` : `Tone: ${tone}`)
+    parts.push(lang === 'ko' ? `감정 톤: ${tone}` : `Tone: ${tone}`)
   }
   if (recurrence) {
-    parts.push(lang === 'ko' ? `ë°˜ë³µ ì´ìŠˆ: ${recurrence}` : `Recurring: ${recurrence}`)
+    parts.push(lang === 'ko' ? `반복 이슈: ${recurrence}` : `Recurring: ${recurrence}`)
   }
 
-  return parts.join(' Â· ')
+  return parts.join(' · ')
 }
 
 // Import UserContext type for the function above

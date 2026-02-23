@@ -167,6 +167,28 @@ test.describe('Canonical URL', () => {
   })
 })
 
+test.describe('Locale SEO Tags', () => {
+  test('homepage should have hreflang links for ko-KR and en-US', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+    const hreflangKo = page.locator('link[rel="alternate"][hreflang="ko-KR"]')
+    const hreflangEn = page.locator('link[rel="alternate"][hreflang="en-US"]')
+
+    await expect(hreflangKo).toHaveCount(1)
+    await expect(hreflangEn).toHaveCount(1)
+  })
+
+  test('homepage should use ko_KR og:locale and en_US alternate', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+    const ogLocale = page.locator('meta[property="og:locale"]')
+    await expect(ogLocale).toHaveAttribute('content', 'ko_KR')
+
+    const ogAltLocale = page.locator('meta[property="og:locale:alternate"][content="en_US"]')
+    await expect(ogAltLocale).toHaveCount(1)
+  })
+})
+
 test.describe('Robots Meta', () => {
   test('homepage should allow indexing', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })

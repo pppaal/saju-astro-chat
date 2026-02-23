@@ -246,7 +246,9 @@ export function useTarotInterpretation({
         return await response.json()
       }
 
-      const shouldPreferBackendRag = result.drawnCards.length >= 6
+      // Always prefer backend Hybrid RAG first so every question is interpreted
+      // with question-aware tarot context (GraphRAG + domain rules).
+      const shouldPreferBackendRag = true
       if (shouldPreferBackendRag) {
         try {
           const ragResult = await requestNonStreamInterpretation()
@@ -428,7 +430,7 @@ export function useTarotInterpretation({
               spreadTitle:
                 language === 'ko' ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title,
               cards: readingResult.drawnCards.map((dc, idx) => ({
-                cardId: dc.card.id,
+                cardId: String(dc.card.id),
                 name: language === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
                 image: getCardImagePath(dc.card.id, selectedDeckStyle),
                 isReversed: dc.isReversed,

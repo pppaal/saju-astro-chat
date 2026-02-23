@@ -187,6 +187,7 @@ vi.stubGlobal('fetch', mockFetch)
 // ============================================================
 import { POST } from '@/app/api/tarot/analyze-question/route'
 import { rateLimit } from '@/lib/rateLimit'
+import * as recommendModule from '@/lib/Tarot/tarot-recommend'
 
 // ============================================================
 // Helpers
@@ -419,6 +420,39 @@ describe('Tarot Analyze Question API - POST', () => {
       const data = await response.json()
 
       expect(data.spreadTitle).toBe('과거, 현재, 미래')
+    })
+
+    it('should revalidate LLM result with recommender when intent mismatch is detected', async () => {
+      const recommendSpy = vi.spyOn(recommendModule, 'recommendSpreads').mockReturnValue([
+        {
+          themeId: 'daily-reading',
+          theme: { id: 'daily-reading' } as any,
+          spreadId: 'day-card',
+          spread: { id: 'day-card', title: 'Day Card', titleKo: '오늘의 카드', cardCount: 1 } as any,
+          reason: 'Daily recommendation',
+          reasonKo: '오늘의 흐름',
+          matchScore: 99,
+        },
+      ])
+
+      mockFetch.mockResolvedValueOnce(
+        createOpenAIResponse({
+          themeId: 'general-insight',
+          spreadId: 'past-present-future',
+          reason: 'General flow',
+          userFriendlyExplanation: 'General flow',
+        })
+      )
+
+      const req = createRequest({ question: '오늘 운세 어때?', language: 'ko' })
+      const response = await POST(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.themeId).toBe('daily-reading')
+      expect(data.spreadId).toBe('day-card')
+
+      recommendSpy.mockRestore()
     })
 
     it('should URL-encode the question in the path', async () => {

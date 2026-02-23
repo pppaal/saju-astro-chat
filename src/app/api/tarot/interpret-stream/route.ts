@@ -392,6 +392,28 @@ export async function POST(req: NextRequest) {
       previousReadings: previousReadings.length,
     })
 
+    // Always prefer backend Hybrid RAG (GraphRAG + tarot rules) first.
+    // This ensures question-aware interpretation quality for all questions.
+    const backendPrimaryBase = buildFallbackPayload(rawCards, language)
+    const backendPrimary = await fetchBackendFallback({
+      categoryId,
+      spreadId,
+      spreadTitle,
+      cards: rawCards,
+      userQuestion: userQuestion,
+      language,
+      birthdate,
+      includeAstrology,
+      includeSaju,
+      sajuContext,
+      astroContext,
+    })
+    const backendPrimaryPayload = normalizeBackendPayload(backendPrimary, backendPrimaryBase)
+    if (backendPrimaryPayload) {
+      logger.info('Tarot stream served by backend Hybrid RAG')
+      return streamJsonPayload(backendPrimaryPayload, { 'X-RAG-Source': 'backend' })
+    }
+
     // Credits already consumed by middleware
 
     const isKorean = language === 'ko'

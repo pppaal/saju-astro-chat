@@ -89,6 +89,14 @@ describe("Question Classifier Patterns", () => {
       expect(patterns.some(p => p.test("가는게 좋을까"))).toBe(true);
     });
 
+    it("matches 맞나/맞냐 decision phrasing", () => {
+      const patterns = yesNoMidPatterns;
+
+      expect(patterns.some(p => p.test("거기로 가는 게 맞나?"))).toBe(true);
+      expect(patterns.some(p => p.test("거기로 가는게 맞냐"))).toBe(true);
+      expect(patterns.some(p => p.test("이 선택이 맞는지 궁금해"))).toBe(true);
+    });
+
     it("is an array with multiple patterns", () => {
       expect(Array.isArray(yesNoMidPatterns)).toBe(true);
       expect(yesNoMidPatterns.length).toBeGreaterThan(20);

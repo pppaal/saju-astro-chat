@@ -57,13 +57,14 @@ export function useCompatibilityAnalysis() {
     return null;
   }, []);
 
-  const analyzeCompatibility = useCallback(async (persons: PersonForm[]) => {
+  const analyzeCompatibility = useCallback(async (persons: PersonForm[], locale: 'ko' | 'en' = 'en') => {
     setIsLoading(true);
     setError(null);
     setResultText(null);
 
     try {
       const body = {
+        locale,
         persons: persons.map((p, idx) => ({
           name: p.name || `Person ${idx + 1}`,
           date: p.date,

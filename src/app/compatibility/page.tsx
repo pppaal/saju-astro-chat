@@ -39,8 +39,64 @@ import {
   ActionButtons,
 } from './components'
 
+const KO_COMPAT_FALLBACKS: Record<string, string> = {
+  'compatibilityPage.analysisTitle': '궁합 분석',
+  'compatibilityPage.analysisSubtitle': '점성술 출생 데이터를 통해 관계 궁합 알아보기',
+  'compatibilityPage.backToForm': '뒤로',
+  'compatibilityPage.title': '관계 궁합',
+  'compatibilityPage.subtitle': '마음과 마음 사이의 우주적 연결을 탐험하세요',
+  'compatibilityPage.loadingProfile': '불러오는 중...',
+  'compatibilityPage.loadMyProfile': '내 프로필',
+  'compatibilityPage.profileLoaded': '프로필을 불러왔습니다!',
+  'compatibilityPage.numberOfPeople': '인원수 (2 ~ 4명)',
+  'compatibilityPage.resultTitle': '궁합 분석',
+  'compatibilityPage.growthActions': '성장을 위한 행동 지침',
+  'compatibilityPage.shareTitle': '우리의 궁합 결과',
+  'compatibilityPage.score': '점수',
+  'compatibilityPage.overallCompatibility': '종합 궁합',
+  'compatibilityPage.groupRoles': '그룹 내 역할',
+  'compatibilityPage.groupElementDistribution': '그룹 오행 분포',
+  'compatibilityPage.pairwiseMatrix': '1:1 궁합 매트릭스',
+  'compatibilityPage.timingGuide': '타이밍 가이드',
+  'compatibilityPage.thisMonth': '이번 달',
+  'compatibilityPage.groupActivities': '그룹 활동',
+  'compatibilityPage.recommendedDays': '추천 날짜',
+  'compatibilityPage.synergyBreakdown': '시너지 세부 분석',
+  'compatibilityPage.labels.saju': '사주',
+  'compatibilityPage.labels.astro': '점성',
+  'compatibilityPage.roles.leader': '리더',
+  'compatibilityPage.roles.mediator': '중재자',
+  'compatibilityPage.roles.catalyst': '촉매자',
+  'compatibilityPage.roles.stabilizer': '안정화 담당',
+  'compatibilityPage.roles.creative': '창의 담당',
+  'compatibilityPage.roles.emotional': '감정 중심',
+  'compatibilityPage.synergy.pairAverage': '페어 평균',
+  'compatibilityPage.synergy.fiveElementsBonus': '오행 보너스',
+  'compatibilityPage.synergy.astrologyBonus': '점성 보너스',
+  'compatibilityPage.synergy.roleBonus': '역할 보너스',
+  'compatibilityPage.synergy.samhapBonus': '삼합 보너스',
+  'compatibilityPage.synergy.banghapBonus': '방합 보너스',
+  'compatibilityPage.synergy.teamSizeAdjustment': '인원수 보정',
+  'compatibilityPage.synergy.bestPair': '최고 페어',
+  'compatibilityPage.synergy.weakestPair': '주의 페어',
+  'compatibilityPage.elementTitles.fiveElements': '오행 분포',
+  'compatibilityPage.elementTitles.astroElements': '점성 원소 분포',
+  'compatibilityPage.elementTitles.dominantElement': '강한 원소',
+  'compatibilityPage.elementTitles.lackingElement': '부족한 원소',
+  'compatibilityPage.elements.wood': '목(木)',
+  'compatibilityPage.elements.fire': '화(火)',
+  'compatibilityPage.elements.earth': '토(土)',
+  'compatibilityPage.elements.metal': '금(金)',
+  'compatibilityPage.elements.water': '수(水)',
+  'compatibilityPage.astroElements.fire': '불',
+  'compatibilityPage.astroElements.earth': '흙',
+  'compatibilityPage.astroElements.air': '바람',
+  'compatibilityPage.astroElements.water': '물',
+}
+
 export default function CompatPage() {
   const { t, locale } = useI18n()
+  const normalizedLocale: 'ko' | 'en' = locale.toLowerCase().startsWith('ko') ? 'ko' : 'en'
   const router = useRouter()
   const { data: session, status } = useSession()
 
@@ -53,7 +109,7 @@ export default function CompatPage() {
 
   // Use extracted hooks
   const { count, setCount, persons, setPersons, updatePerson, fillFromCircle, onPickCity } =
-    useCompatibilityForm(2, locale as 'ko' | 'en')
+    useCompatibilityForm(2, normalizedLocale)
 
   useCityAutocomplete(persons, setPersons)
 
@@ -82,8 +138,8 @@ export default function CompatPage() {
       setError(errorMsg)
       return
     }
-    await analyzeCompatibility(persons)
-  }, [persons, count, t, validate, setError, analyzeCompatibility])
+    await analyzeCompatibility(persons, normalizedLocale)
+  }, [persons, count, t, validate, setError, analyzeCompatibility, normalizedLocale])
 
   const handleBack = useCallback(() => {
     if (resultText) {
@@ -125,16 +181,26 @@ export default function CompatPage() {
     [apiScore, resultText]
   )
 
+  const compatT = useCallback(
+    (key: string, fallback: string) => {
+      if (normalizedLocale !== 'ko') {
+        return t(key, fallback)
+      }
+      return t(key, KO_COMPAT_FALLBACKS[key] || fallback)
+    },
+    [normalizedLocale, t]
+  )
+
   return (
     <ServicePageLayout
       icon={'\u{1F495}'}
-      title={t('compatibilityPage.analysisTitle', 'Compatibility Analysis')}
-      subtitle={t(
+      title={compatT('compatibilityPage.analysisTitle', 'Compatibility Analysis')}
+      subtitle={compatT(
         'compatibilityPage.analysisSubtitle',
         'Discover relationship compatibility through astrological birth data'
       )}
       onBack={handleBack}
-      backLabel={t('compatibilityPage.backToForm', 'Back')}
+      backLabel={compatT('compatibilityPage.backToForm', 'Back')}
     >
       <main className={styles.page}>
         {/* Background Hearts - deterministic positions to avoid hydration mismatch */}
@@ -158,7 +224,7 @@ export default function CompatPage() {
         {/* Tabs View */}
         {showTabs && !resultText && (
           <div className={styles.tabsWrapper}>
-            <CompatibilityTabs onStartAnalysis={handleStartAnalysis} />
+            <CompatibilityTabs onStartAnalysis={handleStartAnalysis} t={compatT} locale={normalizedLocale} />
           </div>
         )}
 
@@ -167,10 +233,10 @@ export default function CompatPage() {
             <div className={styles.formHeader}>
               <div className={styles.formIcon}>{'\u{1F495}'}</div>
               <h1 className={styles.formTitle}>
-                {t('compatibilityPage.title', 'Relationship Compatibility')}
+                {compatT('compatibilityPage.title', 'Relationship Compatibility')}
               </h1>
               <p className={styles.formSubtitle}>
-                {t('compatibilityPage.subtitle', 'Explore the cosmic connections between hearts')}
+                {compatT('compatibilityPage.subtitle', 'Explore the cosmic connections between hearts')}
               </p>
             </div>
 
@@ -192,11 +258,11 @@ export default function CompatPage() {
                   <span>{loadingProfileBtn ? '\u23F3' : '\u{1F464}'}</span>
                   <span>
                     {loadingProfileBtn
-                      ? t(
+                      ? compatT(
                           'compatibilityPage.loadingProfile',
                           'Loading...'
                         )
-                      : t(
+                      : compatT(
                           'compatibilityPage.loadMyProfile',
                           'Load My Profile'
                         )}
@@ -208,7 +274,7 @@ export default function CompatPage() {
               {profileLoadedMsg && (
                 <div className="mb-5 p-3 bg-green-600/20 border border-green-600 rounded-lg text-green-400 text-center">
                   {'\u2713'}{' '}
-                  {t(
+                  {compatT(
                     'compatibilityPage.profileLoaded',
                     'Profile loaded!'
                   )}
@@ -232,7 +298,7 @@ export default function CompatPage() {
               {/* Count Selector */}
               <div className={styles.countSelector}>
                 <label htmlFor="count" className={styles.countLabel}>
-                  {t('compatibilityPage.numberOfPeople', 'Number of People (2-4)')}
+                  {compatT('compatibilityPage.numberOfPeople', 'Number of People (2-4)')}
                 </label>
                 <input
                   id="count"
@@ -255,8 +321,8 @@ export default function CompatPage() {
                     isAuthenticated={!!session}
                     circlePeople={circlePeople}
                     showCircleDropdown={showCircleDropdown === idx}
-                    locale={locale}
-                    t={t}
+                    locale={normalizedLocale}
+                    t={compatT}
                     onUpdatePerson={updatePerson}
                     onSetPersons={setPersons}
                     onPickCity={onPickCity}
@@ -269,7 +335,7 @@ export default function CompatPage() {
               </div>
 
               {/* Submit Button */}
-              <SubmitButton isLoading={isLoading} t={t} />
+              <SubmitButton isLoading={isLoading} t={compatT} />
 
               {error && <div className={styles.error}>{error}</div>}
             </form>
@@ -283,7 +349,7 @@ export default function CompatPage() {
             <div className={styles.resultHeader}>
               <div className={styles.resultIcon}>{'\u{1F495}'}</div>
               <h1 className={styles.resultTitle}>
-                {t('compatibilityPage.resultTitle', 'Compatibility Analysis')}
+                {compatT('compatibilityPage.resultTitle', 'Compatibility Analysis')}
               </h1>
               <p className={styles.resultSubtitle}>
                 {persons.map((p) => p.name || 'Person').join(' & ')}
@@ -291,11 +357,11 @@ export default function CompatPage() {
             </div>
 
             {/* Overall Score Circle */}
-            {overallScore !== null && <OverallScoreCard score={overallScore} t={t} />}
+            {overallScore !== null && <OverallScoreCard score={overallScore} t={compatT} />}
 
             {/* Parsed Sections */}
             {sections.length > 0 ? (
-              <ResultSectionsDisplay sections={sections} t={t} />
+              <ResultSectionsDisplay sections={sections} t={compatT} locale={normalizedLocale} />
             ) : (
               // Fallback: plain text display with beautiful styling
               <div className={styles.interpretationText}>{resultText}</div>
@@ -307,12 +373,12 @@ export default function CompatPage() {
                 groupAnalysis={groupAnalysis}
                 synergyBreakdown={synergyBreakdown || undefined}
                 personCount={persons.length}
-                t={t}
+                t={compatT}
               />
             )}
 
             {/* Timing Guide Section */}
-            {timing && <TimingGuideCard timing={timing} isGroupResult={isGroupResult} t={t} />}
+            {timing && <TimingGuideCard timing={timing} isGroupResult={isGroupResult} t={compatT} />}
 
             {/* Action Items Section */}
             {actionItems.length > 0 && (
@@ -322,7 +388,7 @@ export default function CompatPage() {
                   <div className={styles.resultCardHeader}>
                     <span className={styles.resultCardIcon}>{'\u{1F4AA}'}</span>
                     <h3 className={styles.resultCardTitle}>
-                      {t('compatibilityPage.growthActions', 'Growth Actions')}
+                      {compatT('compatibilityPage.growthActions', 'Growth Actions')}
                     </h3>
                   </div>
                   <div className={styles.resultCardContent}>
@@ -340,7 +406,7 @@ export default function CompatPage() {
             )}
 
             {/* Action Buttons: Insights, Chat, Counselor, Tarot */}
-            <ActionButtons persons={persons} resultText={resultText} t={t} />
+            <ActionButtons persons={persons} resultText={resultText} t={compatT} />
 
             {/* Share Button */}
             <div className={styles.shareSection}>
@@ -359,9 +425,9 @@ export default function CompatPage() {
                   return generateCompatibilityCard(shareData, 'og')
                 }}
                 filename="compatibility-result.png"
-                shareTitle={t('compatibilityPage.shareTitle', 'Our Compatibility Result')}
+                shareTitle={compatT('compatibilityPage.shareTitle', 'Our Compatibility Result')}
                 shareText={`${persons[0]?.name || 'Person 1'} & ${persons[1]?.name || 'Person 2'}: ${overallScore ?? '?'}% compatible! Check yours at destinypal.me/compatibility`}
-                label={t('share.shareResult', 'Share Result')}
+                label={compatT('share.shareResult', 'Share Result')}
               />
             </div>
           </div>

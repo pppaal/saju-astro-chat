@@ -21,7 +21,7 @@ const cleanMarkdownLine = (line: string) => {
 }
 
 const SECTION_HEADING_REGEX =
-  /^(Overall Score|Relationship Analysis|Detailed Scores|Saju Analysis|Astrology Analysis|Cross-System Analysis|Personality & Emotional Fit|Intimacy Chemistry|Future Flow & Best Meeting Windows|Strengths|Challenges|Advice|Summary|종합 점수|관계 분석|상세 점수|사주 분석|점성 분석|교차 시스템 분석|성격\/감정 궁합|속궁합 & 친밀도|미래 흐름 & 만남 타이밍|강점|과제|조언|요약)$/i
+  /^(Overall Score|Relationship Analysis|Detailed Scores|Saju Analysis|Astrology Analysis|Cross-System Analysis|Plain-Language Compatibility Guide|Scenario-Based Relationship Guide|Personality & Emotional Fit|Intimacy Chemistry|Future Flow & Best Meeting Windows|Strengths|Challenges|Advice|Summary|[가-힣\s/&·]+분석|[가-힣\s/&·]+점수|[가-힣\s/&·]+궁합|한눈에 보는 궁합 해설|상황별 관계 운영 가이드|강점|과제|조언|요약)$/i
 
 const labelMapKo: Record<string, string> = {
   'Fusion score (Saju + Astrology)': '융합 점수 (사주 + 점성)',

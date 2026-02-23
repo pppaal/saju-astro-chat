@@ -39,6 +39,97 @@
     "switchToQuickMode": "Switch to Quick Mode",
     "switchToDetailedMode": "Switch to Detailed Mode",
     "quickModeHint": "Name and birth date only - fast and simple",
-    "detailedModeHint": "Includes birth time and location for precise analysis"
+    "detailedModeHint": "Includes birth time and location for precise analysis",
+    "sections": {
+      "overallScore": "Overall Score",
+      "relationshipAnalysis": "Relationship Analysis",
+      "detailedScores": "Detailed Scores",
+      "sajuAnalysis": "Saju Analysis",
+      "astrologyAnalysis": "Astrology Analysis",
+      "crossSystemAnalysis": "Cross-System Analysis",
+      "strengths": "Strengths",
+      "challenges": "Challenges",
+      "advice": "Advice",
+      "summary": "Summary",
+      "overview": "Overview",
+      "elementHarmony": "Element Harmony",
+      "loveCompatibility": "Love Compatibility",
+      "communication": "Communication",
+      "emotionalConnection": "Emotional Connection",
+      "sunSign": "Sun Sign",
+      "moonSign": "Moon Sign",
+      "venusAspect": "Venus Aspect",
+      "marsAspect": "Mars Aspect",
+      "plainGuide": "Plain-Language Compatibility Guide",
+      "personalityEmotionalFit": "Personality & Emotional Fit",
+      "intimacyChemistry": "Intimacy Chemistry",
+      "futureTiming": "Future Flow & Best Meeting Windows",
+      "scenarioGuide": "Scenario-Based Relationship Guide"
+    },
+    "roles": {
+      "leader": "Leader",
+      "mediator": "Mediator",
+      "catalyst": "Catalyst",
+      "stabilizer": "Stabilizer",
+      "creative": "Creative",
+      "emotional": "Emotional Core"
+    },
+    "labels": {
+      "saju": "Saju",
+      "astro": "Astro"
+    },
+    "synergy": {
+      "pairAverage": "Pair Average",
+      "fiveElementsBonus": "Five Elements Bonus",
+      "astrologyBonus": "Astrology Bonus",
+      "roleBonus": "Role Bonus",
+      "samhapBonus": "Samhap Bonus",
+      "banghapBonus": "Banghap Bonus",
+      "teamSizeAdjustment": "Team Size Adjustment",
+      "bestPair": "Best Pair",
+      "weakestPair": "Weakest Pair"
+    },
+    "elementTitles": {
+      "fiveElements": "Five Elements",
+      "astroElements": "Astro Elements",
+      "dominantElement": "Dominant element",
+      "lackingElement": "Lacking element"
+    },
+    "elements": {
+      "wood": "Wood (木)",
+      "fire": "Fire (火)",
+      "earth": "Earth (土)",
+      "metal": "Metal (金)",
+      "water": "Water (水)"
+    },
+    "astroElements": {
+      "fire": "Fire",
+      "earth": "Earth",
+      "air": "Air",
+      "water": "Water"
+    }
+  },
+  "compatibility": {
+    "tabs": {
+      "analysis": "Compatibility",
+      "analysisDesc": "Analyze relationship compatibility through astrological birth data",
+      "about": "About",
+      "aboutDesc": "Learn how compatibility analysis works and how to read the result"
+    },
+    "intro": {
+      "title": "Discover Your Connection",
+      "text": "Cross-analyze Eastern Saju and Western Astrology to understand your relationship dynamics and practical next steps.",
+      "start": "Start Compatibility Analysis"
+    },
+    "about": {
+      "whatIsTitle": "What is Compatibility Analysis?",
+      "whatIsText": "Compatibility analysis compares birth data to identify harmony signals and friction points in a relationship.",
+      "easternTitle": "Eastern Compatibility Lens",
+      "easternText": "Saju (Four Pillars) reads elemental flow and structural rhythm to explain baseline relationship tendencies.",
+      "elementsTitle": "Elemental Balance",
+      "elementsText": "Five-element and astrological element balance helps identify stability zones and likely conflict zones.",
+      "useTitle": "How to Use This",
+      "useText": "Treat the score as guidance, not a verdict. Keep strengths and actively tune weak points through communication and role clarity."
+    }
   }
 }

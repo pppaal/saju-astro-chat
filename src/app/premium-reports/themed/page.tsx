@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
@@ -33,44 +33,44 @@ const THEME_INFO: Record<
   }
 > = {
   love: {
-    label: '사랑/연애 리포트',
-    description: '관계 패턴, 인연 흐름, 타이밍을 종합 분석합니다.',
+    label: '??/?? ???',
+    description: '?? ??, ?? ??, ???? ?? ?????.',
     credits: 2,
     color: 'from-pink-500 to-rose-500',
     icon: Heart,
-    sections: ['관계 패턴', '인연 타이밍', '감정 조율', '실행 가이드'],
+    sections: ['?? ??', '?? ???', '?? ??', '?? ???'],
   },
   career: {
-    label: '커리어 리포트',
-    description: '일과 성장 방향, 전환 시점, 실행 전략을 제안합니다.',
+    label: '??? ???',
+    description: '?? ?? ??, ?? ??, ?? ??? ?????.',
     credits: 2,
     color: 'from-blue-500 to-indigo-500',
     icon: Briefcase,
-    sections: ['강점 분석', '직무 적합', '전환 타이밍', '실행 전략'],
+    sections: ['?? ??', '?? ??', '?? ???', '?? ??'],
   },
   wealth: {
-    label: '재물 리포트',
-    description: '수입 흐름과 소비/투자 습관을 점검하고 개선 포인트를 제시합니다.',
+    label: '?? ???',
+    description: '?? ??? ??/?? ??? ???? ?? ???? ?????.',
     credits: 2,
     color: 'from-amber-500 to-orange-500',
     icon: Coins,
-    sections: ['재무 패턴', '리스크 구간', '증가 타이밍', '실행 전략'],
+    sections: ['?? ??', '??? ??', '?? ???', '?? ??'],
   },
   health: {
-    label: '건강 리포트',
-    description: '에너지 리듬과 회복 우선순위를 분석합니다.',
+    label: '?? ???',
+    description: '??? ??? ?? ????? ?????.',
     credits: 2,
     color: 'from-emerald-500 to-teal-500',
     icon: HeartPulse,
-    sections: ['에너지 상태', '취약 구간', '회복 타이밍', '생활 가이드'],
+    sections: ['??? ??', '?? ??', '?? ???', '?? ???'],
   },
   family: {
-    label: '가족/관계 리포트',
-    description: '가족 내 역할과 소통 패턴을 해석해 조율 방안을 제시합니다.',
+    label: '??/?? ???',
+    description: '?? ? ??? ?? ??? ??? ?? ??? ?????.',
     credits: 2,
     color: 'from-violet-500 to-purple-500',
     icon: Users,
-    sections: ['관계 구조', '갈등 요인', '완화 타이밍', '실천 가이드'],
+    sections: ['?? ??', '?? ??', '?? ???', '?? ???'],
   },
 }
 
@@ -127,7 +127,7 @@ export default function ThemedReportPage() {
     }
 
     setProfileInput({
-      name: profile.name || '사용자',
+      name: profile.name || '???',
       birthDate: profile.birthDate,
       birthTime: profile.birthTime || '12:00',
       birthCity: profile.birthCity,
@@ -168,13 +168,13 @@ export default function ThemedReportPage() {
 
   const handleGenerate = async () => {
     if (!selectedTheme) {
-      setError('테마를 선택해주세요.')
+      setError('??? ??????.')
       return
     }
 
     const finalBirthDate = profileInput?.birthDate || profile.birthDate
     if (!finalBirthDate) {
-      setError('생년월일 정보를 먼저 저장해주세요.')
+      setError('???? ??? ?? ??????.')
       return
     }
 
@@ -187,10 +187,15 @@ export default function ThemedReportPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           theme: selectedTheme,
-          dayMasterElement: sajuData?.dayMasterElement || '목',
-          name: profileInput?.name || profile.name || '사용자',
+          ...(sajuData?.dayMasterElement ? { dayMasterElement: sajuData.dayMasterElement } : {}),
+          name: profileInput?.name || profile.name || '???',
           birthDate: finalBirthDate,
           birthTime: profileInput?.birthTime || profile.birthTime || undefined,
+          timezone: profileInput?.timezone || profile.timezone || undefined,
+          birthCity: profileInput?.birthCity || profile.birthCity || undefined,
+          gender: profileInput?.gender || undefined,
+          latitude: profileInput?.latitude ?? profile.latitude ?? undefined,
+          longitude: profileInput?.longitude ?? profile.longitude ?? undefined,
           lang: 'ko',
         }),
       })
@@ -202,7 +207,7 @@ export default function ThemedReportPage() {
           router.push('/pricing?reason=credits')
           return
         }
-        throw new Error(data.error?.message || '리포트 생성에 실패했습니다.')
+        throw new Error(data.error?.message || '??? ??? ??????.')
       }
 
       if (data.report?.id) {
@@ -218,7 +223,7 @@ export default function ThemedReportPage() {
       analytics.matrixGenerate('premium-reports/themed')
       router.push(`/premium-reports/result/${data.report.id}?type=themed`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
+      setError(err instanceof Error ? err.message : '? ? ?? ??? ??????.')
     } finally {
       setIsGenerating(false)
     }
@@ -242,15 +247,15 @@ export default function ThemedReportPage() {
               href="/premium-reports"
               className="inline-flex items-center rounded-full border border-white/15 bg-slate-900/60 px-3 py-1 text-sm text-slate-300 backdrop-blur-xl hover:border-cyan-300/60 hover:text-white"
             >
-              리포트 선택으로 돌아가기
+              ??? ???? ????
             </Link>
             <div className="mt-5 rounded-3xl border border-white/15 bg-slate-900/60 p-7 backdrop-blur-xl">
               <div className="inline-flex rounded-full border border-violet-300/40 bg-violet-400/10 px-3 py-1 text-xs font-semibold text-violet-200">
                 Themed
               </div>
-              <h1 className="mt-3 text-3xl font-black text-white">테마 리포트</h1>
+              <h1 className="mt-3 text-3xl font-black text-white">?? ???</h1>
               <p className="mt-2 text-slate-300">
-                관심 주제를 선택하고 통합 생년월일 폼으로 입력한 정보로 리포트를 생성하세요.
+                ?? ??? ???? ?? ???? ??? ??? ??? ???? ?????.
               </p>
             </div>
           </div>
@@ -258,7 +263,7 @@ export default function ThemedReportPage() {
 
         <main className="mx-auto grid max-w-5xl gap-6 px-4 pb-20 lg:grid-cols-[1.1fr_1fr]">
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold text-white">테마 선택</h2>
+            <h2 className="text-lg font-semibold text-white">?? ??</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {(Object.entries(THEME_INFO) as [ThemeType, (typeof THEME_INFO)[ThemeType]][]).map(
                 ([themeKey, theme]) => {
@@ -292,7 +297,7 @@ export default function ThemedReportPage() {
             {selectedTheme && (
               <div className="rounded-2xl border border-white/15 bg-slate-900/55 p-5 backdrop-blur-xl">
                 <h3 className="text-base font-semibold text-white">
-                  {THEME_INFO[selectedTheme].label} 포함 내용
+                  {THEME_INFO[selectedTheme].label} ?? ??
                 </h3>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {THEME_INFO[selectedTheme].sections.map((section) => (
@@ -327,14 +332,14 @@ export default function ThemedReportPage() {
               }`}
             >
               {isGenerating
-                ? '리포트 생성 중...'
+                ? '??? ?? ?...'
                 : selectedTheme
-                  ? `${THEME_INFO[selectedTheme].label} 생성하기`
-                  : '테마를 선택해주세요'}
+                  ? `${THEME_INFO[selectedTheme].label} ????`
+                  : '??? ??????'}
             </button>
 
             <p className="text-center text-xs text-slate-500">
-              생성된 리포트는 My Journey에서 다시 확인할 수 있습니다.
+              ??? ???? My Journey?? ?? ??? ? ????.
             </p>
           </section>
         </main>
@@ -342,3 +347,4 @@ export default function ThemedReportPage() {
     </>
   )
 }
+

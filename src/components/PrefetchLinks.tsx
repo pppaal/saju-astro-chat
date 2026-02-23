@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation'
  * This component should be placed in high-traffic pages like the homepage.
  */
 
-const CRITICAL_ROUTES = ['/destiny-map', '/pricing', '/premium-reports', '/tarot']
+const CRITICAL_ROUTES = ['/destiny-map', '/pricing']
 
 export default function PrefetchLinks() {
   const router = useRouter()
@@ -47,9 +47,9 @@ export default function PrefetchLinks() {
     }
 
     if ('requestIdleCallback' in window) {
-      idleHandle = window.requestIdleCallback(prefetchRoutes, { timeout: 1800 })
+      idleHandle = window.requestIdleCallback(prefetchRoutes, { timeout: 5000 })
     } else {
-      timeoutHandle = setTimeout(prefetchRoutes, 1200)
+      timeoutHandle = setTimeout(prefetchRoutes, 4500)
     }
 
     return () => {

@@ -175,11 +175,44 @@ const nextConfig = {
         : []),
     ]
 
+    const marketingCacheHeaders = [
+      { key: 'Cache-Control', value: 'public, s-maxage=900, stale-while-revalidate=86400' },
+    ]
+
     return [
       {
         // Apply security headers to all routes
         source: '/:path*',
         headers: securityHeaders,
+      },
+      {
+        // Cache anonymous marketing pages at the CDN edge
+        source: '/',
+        headers: marketingCacheHeaders,
+      },
+      {
+        source: '/pricing',
+        headers: marketingCacheHeaders,
+      },
+      {
+        source: '/blog',
+        headers: marketingCacheHeaders,
+      },
+      {
+        source: '/blog/:slug*',
+        headers: marketingCacheHeaders,
+      },
+      {
+        source: '/about',
+        headers: marketingCacheHeaders,
+      },
+      {
+        source: '/contact',
+        headers: marketingCacheHeaders,
+      },
+      {
+        source: '/faq',
+        headers: marketingCacheHeaders,
       },
       {
         source: '/:all*(svg|jpg|jpeg|png|gif|ico|webp|avif)',
@@ -288,33 +321,51 @@ const nextConfig = {
       moduleIds: 'deterministic', // Better long-term caching
       splitChunks: {
         chunks: 'all',
+        minSize: 30 * 1024,
+        maxInitialRequests: 18,
+        maxAsyncRequests: 30,
         cacheGroups: {
           // Separate large data files
           iching: {
             test: /[\\/]src[\\/]lib[\\/]iChing[\\/]/,
             name: 'iching-lib',
             priority: 10,
+            minChunks: 2,
+            reuseExistingChunk: true,
           },
           tarot: {
             test: /[\\/]src[\\/]lib[\\/]Tarot[\\/]/,
             name: 'tarot-lib',
             priority: 10,
+            minChunks: 2,
+            reuseExistingChunk: true,
           },
           saju: {
             test: /[\\/]src[\\/]lib[\\/]Saju[\\/]/,
             name: 'saju-lib',
             priority: 10,
+            minChunks: 2,
+            reuseExistingChunk: true,
           },
           // Vendor libraries
           react: {
             test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
             name: 'react-vendor',
             priority: 20,
+            reuseExistingChunk: true,
           },
           vendors: {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
             priority: 5,
+            minChunks: 2,
+            reuseExistingChunk: true,
+          },
+          common: {
+            name: 'common',
+            minChunks: 2,
+            priority: 1,
+            reuseExistingChunk: true,
           },
         },
       },

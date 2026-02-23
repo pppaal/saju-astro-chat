@@ -27,42 +27,42 @@ export const GroupRolesCard = React.memo<GroupRolesCardProps>(({ groupRoles, t }
           {groupRoles.leader && groupRoles.leader.length > 0 && (
             <div className={styles.roleItem}>
               <span className={styles.roleIcon}>👑</span>
-              <span className={styles.roleLabel}>Leader</span>
+              <span className={styles.roleLabel}>{t('compatibilityPage.roles.leader', 'Leader')}</span>
               <span className={styles.roleMembers}>{groupRoles.leader.join(', ')}</span>
             </div>
           )}
           {groupRoles.mediator && groupRoles.mediator.length > 0 && (
             <div className={styles.roleItem}>
               <span className={styles.roleIcon}>🤝</span>
-              <span className={styles.roleLabel}>Mediator</span>
+              <span className={styles.roleLabel}>{t('compatibilityPage.roles.mediator', 'Mediator')}</span>
               <span className={styles.roleMembers}>{groupRoles.mediator.join(', ')}</span>
             </div>
           )}
           {groupRoles.catalyst && groupRoles.catalyst.length > 0 && (
             <div className={styles.roleItem}>
               <span className={styles.roleIcon}>⚡</span>
-              <span className={styles.roleLabel}>Catalyst</span>
+              <span className={styles.roleLabel}>{t('compatibilityPage.roles.catalyst', 'Catalyst')}</span>
               <span className={styles.roleMembers}>{groupRoles.catalyst.join(', ')}</span>
             </div>
           )}
           {groupRoles.stabilizer && groupRoles.stabilizer.length > 0 && (
             <div className={styles.roleItem}>
               <span className={styles.roleIcon}>🛡️</span>
-              <span className={styles.roleLabel}>Stabilizer</span>
+              <span className={styles.roleLabel}>{t('compatibilityPage.roles.stabilizer', 'Stabilizer')}</span>
               <span className={styles.roleMembers}>{groupRoles.stabilizer.join(', ')}</span>
             </div>
           )}
           {groupRoles.creative && groupRoles.creative.length > 0 && (
             <div className={styles.roleItem}>
               <span className={styles.roleIcon}>🎨</span>
-              <span className={styles.roleLabel}>Creative</span>
+              <span className={styles.roleLabel}>{t('compatibilityPage.roles.creative', 'Creative')}</span>
               <span className={styles.roleMembers}>{groupRoles.creative.join(', ')}</span>
             </div>
           )}
           {groupRoles.emotional && groupRoles.emotional.length > 0 && (
             <div className={styles.roleItem}>
               <span className={styles.roleIcon}>💗</span>
-              <span className={styles.roleLabel}>Emotional Core</span>
+              <span className={styles.roleLabel}>{t('compatibilityPage.roles.emotional', 'Emotional Core')}</span>
               <span className={styles.roleMembers}>{groupRoles.emotional.join(', ')}</span>
             </div>
           )}

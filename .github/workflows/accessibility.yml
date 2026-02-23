@@ -1,6 +1,8 @@
 name: Accessibility Tests
 
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main, develop]
     paths:
@@ -99,7 +101,7 @@ jobs:
     name: Lighthouse Accessibility Audit
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
 
     steps:
       - name: 📥 Checkout code

@@ -13,6 +13,32 @@ import { tarotSaveRequestSchema, tarotQuerySchema } from '@/lib/api/zodValidatio
 
 export const dynamic = 'force-dynamic'
 
+function normalizeTarotSavePayload(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object') {
+    return raw
+  }
+
+  const payload = raw as Record<string, unknown>
+  if (!Array.isArray(payload.cards)) {
+    return payload
+  }
+
+  return {
+    ...payload,
+    cards: payload.cards.map((card) => {
+      if (!card || typeof card !== 'object') {
+        return card
+      }
+      const cardObj = card as Record<string, unknown>
+      return {
+        ...cardObj,
+        cardId:
+          typeof cardObj.cardId === 'number' ? String(cardObj.cardId) : cardObj.cardId,
+      }
+    }),
+  }
+}
+
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     const rawBody = await req.json().catch(() => null)
@@ -20,8 +46,10 @@ export const POST = withApiMiddleware(
       return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid JSON body')
     }
 
+    const normalizedBody = normalizeTarotSavePayload(rawBody)
+
     // Validate request body with Zod
-    const validationResult = tarotSaveRequestSchema.safeParse(rawBody)
+    const validationResult = tarotSaveRequestSchema.safeParse(normalizedBody)
     if (!validationResult.success) {
       logger.warn('[TarotSave] validation failed', { errors: validationResult.error.issues })
       return apiError(ErrorCodes.VALIDATION_ERROR, 'validation_failed', {

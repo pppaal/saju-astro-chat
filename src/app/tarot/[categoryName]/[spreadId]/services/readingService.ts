@@ -120,7 +120,7 @@ export async function saveReadingToStorage(input: SaveReadingInput): Promise<voi
         spreadId: spreadId,
         spreadTitle: language === 'ko' ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title,
         cards: readingResult.drawnCards.map((dc, idx) => ({
-          cardId: dc.card.id,
+          cardId: String(dc.card.id),
           name: language === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
           image: getCardImagePath(dc.card.id, selectedDeckStyle),
           isReversed: dc.isReversed,

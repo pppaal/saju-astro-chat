@@ -32,8 +32,12 @@ export const PairwiseMatrixCard = React.memo<PairwiseMatrixCardProps>(({ pairwis
               </div>
               {pair.summary && <p className={styles.pairSummary}>{pair.summary}</p>}
               <div className={styles.pairDetails}>
-                <span className={styles.pairSaju}>Saju: {pair.saju}</span>
-                <span className={styles.pairAstro}>Astro: {pair.astro}</span>
+                <span className={styles.pairSaju}>
+                  {t('compatibilityPage.labels.saju', 'Saju')}: {pair.saju}
+                </span>
+                <span className={styles.pairAstro}>
+                  {t('compatibilityPage.labels.astro', 'Astro')}: {pair.astro}
+                </span>
               </div>
               {pair.saju_details && pair.saju_details.length > 0 && (
                 <div className={styles.pairAnalysis}>

@@ -146,10 +146,15 @@ function TimingReportContent() {
         body: JSON.stringify({
           period,
           targetDate,
-          dayMasterElement: sajuData?.dayMasterElement || '목',
+          ...(sajuData?.dayMasterElement ? { dayMasterElement: sajuData.dayMasterElement } : {}),
           name: profileInput?.name || profile.name || '사용자',
           birthDate: finalBirthDate,
           birthTime: profileInput?.birthTime || profile.birthTime || undefined,
+          timezone: profileInput?.timezone || profile.timezone || undefined,
+          birthCity: profileInput?.birthCity || profile.birthCity || undefined,
+          gender: profileInput?.gender || undefined,
+          latitude: profileInput?.latitude ?? profile.latitude ?? undefined,
+          longitude: profileInput?.longitude ?? profile.longitude ?? undefined,
           lang: 'ko',
         }),
       })
@@ -272,3 +277,5 @@ export default function TimingReportPage() {
     </Suspense>
   )
 }
+
+

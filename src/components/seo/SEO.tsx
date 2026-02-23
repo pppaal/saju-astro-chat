@@ -29,11 +29,12 @@ export function generateMetadata({
   const pageTitle = title.trim()
   const socialTitle = pageTitle.includes(siteName) ? pageTitle : `${pageTitle} | ${siteName}`
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
+  const canonical = canonicalUrl || baseUrl
   const fullOgImage = ogImage.startsWith('http') ? ogImage : `${baseUrl}${ogImage}`
 
   return {
     // Let root layout template ("%s | DestinyPal") compose the final <title> once.
-    title: pageTitle,
+    title: pageTitle.includes(siteName) ? { absolute: pageTitle } : pageTitle,
     description,
     keywords: keywords.join(', '),
     authors: [{ name: author }],
@@ -43,9 +44,9 @@ export function generateMetadata({
     // Open Graph
     openGraph: {
       type: ogType,
-      locale: 'en_US',
-      alternateLocale: ['ko_KR'],
-      url: canonicalUrl || baseUrl,
+      locale: 'ko_KR',
+      alternateLocale: ['en_US'],
+      url: canonical,
       siteName,
       title: socialTitle,
       description,
@@ -84,11 +85,14 @@ export function generateMetadata({
       },
     },
 
-    ...(canonicalUrl && {
-      alternates: {
-        canonical: canonicalUrl,
+    alternates: {
+      canonical,
+      languages: {
+        'ko-KR': canonical,
+        'en-US': canonical,
+        'x-default': canonical,
       },
-    }),
+    },
 
     // Verification
     verification: {

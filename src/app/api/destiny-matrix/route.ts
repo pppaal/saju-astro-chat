@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createPublicStreamGuard } from '@/lib/api/middleware'
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix'
+import { buildPremiumActionChecklist } from '@/lib/destiny-matrix/actionChecklist'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import type { FiveElement, RelationHit } from '@/lib/Saju/types'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
@@ -962,6 +963,24 @@ export const POST = withApiMiddleware(
 
       // Calculate matrix (server-side only)
       const matrix = calculateDestinyMatrix(input)
+      const now = new Date()
+      const tomorrowDate = new Date(now)
+      tomorrowDate.setDate(tomorrowDate.getDate() + 1)
+      const todayParts = toDatePartsInTimeZone(now, timezone)
+      const tomorrowParts = toDatePartsInTimeZone(tomorrowDate, timezone)
+      const actionChecklist = buildPremiumActionChecklist({
+        summary: matrix.summary,
+        locale: lang,
+        todayDate: `${todayParts.year}-${String(todayParts.month).padStart(2, '0')}-${String(
+          todayParts.day
+        ).padStart(2, '0')}`,
+        todayTransits: autoTimingSync?.today.activeTransits || normalizedActiveTransits,
+        tomorrowDate: `${tomorrowParts.year}-${String(tomorrowParts.month).padStart(
+          2,
+          '0'
+        )}-${String(tomorrowParts.day).padStart(2, '0')}`,
+        tomorrowTransits: autoTimingSync?.tomorrow.activeTransits || normalizedActiveTransits,
+      })
 
       // Count matched cells per layer
       const cellCounts = {
@@ -996,6 +1015,7 @@ export const POST = withApiMiddleware(
           domainScores: matrix.summary.domainScores,
           overlapTimeline: matrix.summary.overlapTimeline,
           overlapTimelineByDomain: matrix.summary.overlapTimelineByDomain,
+          actionChecklist,
           timingSync: autoTimingSync
             ? {
                 today: autoTimingSync.today,

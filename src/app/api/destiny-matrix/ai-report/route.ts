@@ -37,6 +37,9 @@ import {
 import { canUseFeature, consumeCredits, getCreditBalance } from '@/lib/credits/creditService'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { calculateSajuData } from '@/lib/Saju/saju'
+import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
+import type { FiveElement } from '@/lib/Saju/types'
 
 // ===========================
 // 크레딧 비용 계산
@@ -50,6 +53,37 @@ function calculateCreditCost(period?: ReportPeriod, theme?: ReportTheme): number
     return REPORT_CREDIT_COSTS[period]
   }
   return REPORT_CREDIT_COSTS.comprehensive
+}
+
+const ELEMENT_MAP: Record<string, FiveElement> = {
+  목: '목',
+  화: '화',
+  토: '토',
+  금: '금',
+  수: '수',
+  wood: '목',
+  fire: '화',
+  earth: '토',
+  metal: '금',
+  water: '수',
+}
+
+const GEOKGUK_ALIASES: Partial<Record<string, MatrixCalculationInput['geokguk']>> = {
+  정관격: 'jeonggwan',
+  편관격: 'pyeongwan',
+  정인격: 'jeongin',
+  편인격: 'pyeongin',
+  식신격: 'siksin',
+  상관격: 'sanggwan',
+  정재격: 'jeongjae',
+  편재격: 'pyeonjae',
+  건록격: 'geonrok',
+  양인격: 'yangin',
+  종아격: 'jonga',
+  종재격: 'jongjae',
+  종살격: 'jongsal',
+  종강격: 'jonggang',
+  종왕격: 'jonggang',
 }
 
 const toOptionalString = (value: unknown): string | undefined => {
@@ -80,6 +114,101 @@ const STEM_ELEMENTS: Record<string, string> = {
   신: '금',
   임: '수',
   계: '수',
+}
+
+function normalizeGenderForSaju(value: unknown): 'male' | 'female' {
+  const normalized = toOptionalString(value)?.toLowerCase()
+  if (normalized === 'f' || normalized === 'female') {
+    return 'female'
+  }
+  return 'male'
+}
+
+function deriveSibsinDistributionFromSaju(sajuData: ReturnType<typeof calculateSajuData>) {
+  const distribution: Record<string, number> = {}
+  const pillars = [sajuData.yearPillar, sajuData.monthPillar, sajuData.dayPillar, sajuData.timePillar]
+  for (const pillar of pillars) {
+    if (pillar?.heavenlyStem?.sibsin) {
+      distribution[pillar.heavenlyStem.sibsin] = (distribution[pillar.heavenlyStem.sibsin] || 0) + 1
+    }
+    if (pillar?.earthlyBranch?.sibsin) {
+      distribution[pillar.earthlyBranch.sibsin] = (distribution[pillar.earthlyBranch.sibsin] || 0) + 1
+    }
+  }
+  return distribution
+}
+
+function enrichRequestWithDerivedSaju(requestBody: Record<string, unknown>): Record<string, unknown> {
+  const birthDate = toOptionalString(requestBody.birthDate)
+  if (!birthDate) {
+    return requestBody
+  }
+
+  const birthTime = toOptionalString(requestBody.birthTime) || '12:00'
+  const timezone = toOptionalString(requestBody.timezone) || 'Asia/Seoul'
+  const gender = normalizeGenderForSaju(requestBody.gender)
+
+  try {
+    const sajuData = calculateSajuData(birthDate, birthTime, gender, 'solar', timezone)
+    const dayElement = toOptionalString(sajuData.dayPillar?.heavenlyStem?.element)
+    const derivedDayMaster = dayElement ? ELEMENT_MAP[dayElement] : undefined
+
+    if (derivedDayMaster) {
+      requestBody.dayMasterElement = derivedDayMaster
+    }
+
+    const hasSibsinDistribution =
+      !!requestBody.sibsinDistribution &&
+      typeof requestBody.sibsinDistribution === 'object' &&
+      !Array.isArray(requestBody.sibsinDistribution) &&
+      Object.keys(requestBody.sibsinDistribution as Record<string, unknown>).length > 0
+    if (!hasSibsinDistribution) {
+      requestBody.sibsinDistribution = deriveSibsinDistributionFromSaju(sajuData)
+    }
+
+    const geokguk = toOptionalString(requestBody.geokguk)
+    const yongsin = toOptionalString(requestBody.yongsin)
+    if (!geokguk || !yongsin) {
+      const advanced = analyzeAdvancedSaju(
+        {
+          name: sajuData.dayPillar.heavenlyStem.name,
+          element: sajuData.dayPillar.heavenlyStem.element,
+          yin_yang: sajuData.dayPillar.heavenlyStem.yin_yang || '양',
+        },
+        {
+          yearPillar: sajuData.yearPillar,
+          monthPillar: sajuData.monthPillar,
+          dayPillar: sajuData.dayPillar,
+          timePillar: sajuData.timePillar,
+        }
+      )
+      if (!geokguk) {
+        requestBody.geokguk = GEOKGUK_ALIASES[advanced.geokguk.type] || advanced.geokguk.type
+      }
+      if (!yongsin) {
+        requestBody.yongsin = advanced.yongsin.primary
+      }
+    }
+
+    const annualElement = toOptionalString(sajuData.unse?.annual?.[0]?.element)
+    if (!requestBody.currentSaeunElement && annualElement && ELEMENT_MAP[annualElement]) {
+      requestBody.currentSaeunElement = ELEMENT_MAP[annualElement]
+    }
+  } catch (error) {
+    logger.warn('[destiny-matrix/ai-report] Failed to derive saju from birth profile', {
+      error: error instanceof Error ? error.message : String(error),
+      birthDate,
+    })
+  }
+
+  return requestBody
+}
+
+function normalizeAIUserPlan(plan: unknown): 'free' | 'starter' | 'pro' | 'premium' {
+  if (plan === 'starter' || plan === 'pro' || plan === 'premium') {
+    return plan
+  }
+  return 'free'
 }
 function buildTimingData(targetDate?: string): TimingData {
   // Parse target date or use today
@@ -150,13 +279,14 @@ export const POST = withApiMiddleware(
         })
       }
 
-      const requestBody = body as Record<string, unknown>
+      const requestBody = enrichRequestWithDerivedSaju({ ...(body as Record<string, unknown>) })
       const period = requestBody.period as ReportPeriod | undefined
       const theme = requestBody.theme as ReportTheme | undefined
 
       // 4. 크레딧 비용 계산 및 잔액 확인
       const creditCost = calculateCreditCost(period, theme)
       const balance = await getCreditBalance(userId)
+      const userPlan = normalizeAIUserPlan(balance.plan)
 
       if (balance.remainingCredits < creditCost) {
         return NextResponse.json(
@@ -270,6 +400,7 @@ export const POST = withApiMiddleware(
             name,
             birthDate,
             lang: matrixInput.lang || 'ko',
+            userPlan,
           }
         )
         const qualityAudit = evaluateThemedReportQuality({
@@ -306,6 +437,7 @@ export const POST = withApiMiddleware(
           birthDate,
           targetDate,
           lang: matrixInput.lang || 'ko',
+          userPlan,
         })
       } else {
         // 기존 종합 리포트
@@ -315,6 +447,7 @@ export const POST = withApiMiddleware(
           lang: matrixInput.lang || 'ko',
           focusDomain: queryDomain as InsightDomain | undefined,
           detailLevel: detailLevel || 'detailed',
+          userPlan,
         })
         aiReport = premiumReport
       }

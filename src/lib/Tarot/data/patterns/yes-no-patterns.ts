@@ -61,6 +61,8 @@ export const yesNoEndingPatterns: RegExp[] = [
   /안할까\??$/,
   /안갈까\??$/,
   /안볼까\??$/,
+  /맞나\??$/,
+  /맞냐\??$/,
 ]
 
 export const yesNoMidPatterns: RegExp[] = [
@@ -99,6 +101,10 @@ export const yesNoMidPatterns: RegExp[] = [
   /해도 괜찮나/,
   /괜찮을까/,
   /맞을까/,
+  /맞나/,
+  /맞냐/,
+  /맞는지/,
+  /(가는 ?게|가는게|하는 ?게|하는게|이게|이 선택이|이 길이).*(맞나|맞냐|맞는지)/,
   /좋을까/,
   /나쁠까/,
   /괜찮나/,
