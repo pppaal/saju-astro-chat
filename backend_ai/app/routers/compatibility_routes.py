@@ -4,6 +4,7 @@ Compatibility Analysis Routes
 """
 import logging
 import time
+import json
 from datetime import datetime
 from flask import Blueprint, request, jsonify, g
 from ..utils.request_utils import get_json_or_400
@@ -21,7 +22,9 @@ compatibility_bp = Blueprint('compatibility', __name__, url_prefix='/api/compati
 # Lazy load
 _compatibility_module = None
 _fusion_generate_module = None
+_hybrid_rag_builder = None
 HAS_COMPATIBILITY = True
+HAS_HYBRID_RAG = True
 
 
 def _get_compatibility():
@@ -51,6 +54,18 @@ def _get_fusion_generate():
         except ImportError:
             return None
     return _fusion_generate_module
+
+
+def _get_hybrid_rag_builder():
+    global _hybrid_rag_builder, HAS_HYBRID_RAG
+    if _hybrid_rag_builder is None:
+        try:
+            from backend_ai.app.hybrid_rag import build_rag_context as _builder
+            _hybrid_rag_builder = _builder
+        except ImportError:
+            HAS_HYBRID_RAG = False
+            return None
+    return _hybrid_rag_builder
 
 
 @compatibility_bp.route("", methods=["POST"])
@@ -121,6 +136,10 @@ def compatibility_chat():
         history = data.get("history", [])
         locale = data.get("locale", "ko")
         compatibility_context = data.get("compatibility_context", "")
+        full_context = data.get("full_context")
+        full_context_text = data.get("full_context_text", "")
+        use_rag = bool(data.get("use_rag", True))
+        theme = data.get("theme", "general")
         prompt = data.get("prompt", "")
 
         if not persons or len(persons) < 2:
@@ -161,6 +180,25 @@ def compatibility_chat():
 
         history_str = "\n".join(conversation_history) if conversation_history else "(첫 질문)"
 
+        full_context_block = ""
+        if full_context_text:
+            full_context_block = full_context_text
+        elif full_context:
+            try:
+                full_context_block = json.dumps(full_context, ensure_ascii=False, indent=2)
+            except Exception:
+                full_context_block = str(full_context)
+
+        rag_context = ""
+        if use_rag and HAS_HYBRID_RAG:
+            rag_builder = _get_hybrid_rag_builder()
+            if rag_builder:
+                try:
+                    rag_query = question or prompt or compatibility_context or "compatibility relationship analysis"
+                    rag_context = rag_builder(rag_query, top_k=12) or ""
+                except Exception as rag_error:
+                    logger.warning(f"[COMPAT_CHAT] Hybrid RAG failed: {rag_error}")
+
         # Build chat prompt
         if is_korean:
             system_instruction = """당신은 따뜻하고 공감 능력이 뛰어난 궁합 상담사입니다.
@@ -191,7 +229,13 @@ Counseling style:
 {persons_str}
 
 ## 궁합 분석 결과
-{compatibility_context[:1500] if compatibility_context else '(분석 결과 없음)'}
+{compatibility_context if compatibility_context else '(분석 결과 없음)'}
+
+## 전체 원본 컨텍스트 (SAJU + ASTRO RAW)
+{full_context_block if full_context_block else '(원본 컨텍스트 없음)'}
+
+## RAG 지식 컨텍스트 ({theme})
+{rag_context if rag_context else '(RAG 컨텍스트 없음)'}
 
 ## 대화
 {history_str}

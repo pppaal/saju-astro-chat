@@ -609,6 +609,9 @@ export const compatibilityChatRequestSchema = z.object({
     .min(2)
     .max(4),
   compatibilityResult: z.string().max(10000).optional(),
+  fullContext: z.record(z.string(), z.unknown()).optional(),
+  useRag: z.boolean().optional(),
+  theme: z.enum(['general', 'love', 'business', 'family']).optional(),
   messages: z.array(chatMessageSchema).max(20),
   lang: localeSchema.optional(),
   locale: localeSchema.optional(),
@@ -649,9 +652,15 @@ export type CompatibilityAnalysis = z.infer<typeof compatibilityAnalysisSchema>
 
 export const counselorPersonSchema = z.object({
   name: z.string().max(120).optional(),
+  date: dateSchema.optional(),
+  time: timeSchema.optional(),
   birthDate: dateSchema.optional(),
   birthTime: timeSchema.optional(),
   gender: genderSchema.optional(),
+  city: z.string().max(120).optional(),
+  latitude: latitudeSchema.optional(),
+  longitude: longitudeSchema.optional(),
+  timeZone: timezoneSchema.optional(),
   relation: z.string().max(50).optional(),
 })
 
@@ -661,6 +670,8 @@ export const compatibilityCounselorRequestSchema = z.object({
   person2Saju: sajuChatContextSchema.nullable().optional(),
   person1Astro: astroChatContextSchema.nullable().optional(),
   person2Astro: astroChatContextSchema.nullable().optional(),
+  fullContext: z.record(z.string(), z.unknown()).optional(),
+  useRag: z.boolean().optional(),
   lang: z.enum(['ko', 'en']).optional(),
   messages: z.array(chatMessageSchema).max(50).optional(),
   theme: z.enum(['general', 'love', 'business', 'family']).optional(),

@@ -1,11 +1,19 @@
 import { NextRequest } from 'next/server'
-import { withApiMiddleware, createAuthenticatedGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  extractLocale,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { createFallbackSSEStream } from '@/lib/streaming'
 import { apiClient } from '@/lib/api/ApiClient'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { logger } from '@/lib/logger'
 import { type ChatMessage } from '@/lib/api'
-import { compatibilityChatRequestSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
+import {
+  compatibilityChatRequestSchema,
+  createValidationErrorResponse,
+} from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -13,6 +21,25 @@ export const maxDuration = 60
 
 function clampMessages(messages: ChatMessage[], max = 6) {
   return messages.slice(-max)
+}
+
+function stringifyForPrompt(value: unknown): string {
+  try {
+    const seen = new WeakSet<object>()
+    return JSON.stringify(
+      value,
+      (_key, nested) => {
+        if (nested && typeof nested === 'object') {
+          if (seen.has(nested as object)) return '[Circular]'
+          seen.add(nested as object)
+        }
+        return nested
+      },
+      2
+    )
+  } catch {
+    return ''
+  }
 }
 
 export const POST = withApiMiddleware(
@@ -32,7 +59,15 @@ export const POST = withApiMiddleware(
     }
 
     const body = validationResult.data
-    const { persons, compatibilityResult = '', lang = context.locale, messages } = body
+    const {
+      persons,
+      compatibilityResult = '',
+      fullContext,
+      useRag = true,
+      theme = 'general',
+      lang = context.locale,
+      messages,
+    } = body
 
     const trimmedHistory = clampMessages(messages)
 
@@ -84,6 +119,10 @@ export const POST = withApiMiddleware(
           history: trimmedHistory,
           locale: lang,
           compatibility_context: compatibilityResult,
+          full_context: fullContext || null,
+          full_context_text: fullContext ? stringifyForPrompt(fullContext) : '',
+          use_rag: useRag,
+          theme,
         },
         { timeout: 60000 }
       )

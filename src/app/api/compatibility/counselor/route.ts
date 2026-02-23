@@ -23,6 +23,25 @@ function clampMessages(messages: ChatMessage[], max = 8) {
   return messages.slice(-max)
 }
 
+function stringifyForPrompt(value: unknown): string {
+  try {
+    const seen = new WeakSet<object>()
+    return JSON.stringify(
+      value,
+      (_key, nested) => {
+        if (nested && typeof nested === 'object') {
+          if (seen.has(nested as object)) return '[Circular]'
+          seen.add(nested as object)
+        }
+        return nested
+      },
+      2
+    )
+  } catch {
+    return ''
+  }
+}
+
 // Build SajuProfile from raw saju data
 function buildSajuProfile(saju: Record<string, unknown> | null | undefined): SajuProfile | null {
   if (!saju) {
@@ -236,6 +255,8 @@ export async function POST(req: NextRequest) {
       person2Saju = null,
       person1Astro = null,
       person2Astro = null,
+      fullContext,
+      useRag = true,
       lang = context.locale,
       messages = [],
       theme = 'general',
@@ -269,6 +290,19 @@ export async function POST(req: NextRequest) {
     } catch (fusionError) {
       logger.error('[Compatibility Counselor] Fusion error:', { error: fusionError })
     }
+
+    const resolvedFullContext =
+      fullContext ||
+      ({
+        persons,
+        person1Saju,
+        person2Saju,
+        person1Astro,
+        person2Astro,
+        fusionResult,
+        theme,
+      } as Record<string, unknown>)
+    const fullContextText = stringifyForPrompt(resolvedFullContext)
 
     // Build conversation context
     const historyText = trimmedHistory
@@ -306,6 +340,7 @@ export async function POST(req: NextRequest) {
       `== 참여자 정보 ==`,
       personsInfo,
       fusionContext ? `\n${fusionContext}` : '',
+      fullContextText ? `\n== FULL RAW CONTEXT (SAJU + ASTRO) ==\n${fullContextText}` : '',
       historyText ? `\n== 이전 대화 ==\n${historyText}` : '',
       `\n== 사용자 질문 ==\n${userQuestion}`,
       ``,
@@ -338,6 +373,9 @@ Based on the deep analysis above, provide friendly but professional guidance.
           history: trimmedHistory,
           locale: lang,
           compatibility_context: fusionContext,
+          full_context: resolvedFullContext,
+          full_context_text: fullContextText,
+          use_rag: useRag,
           theme,
           is_premium: true,
         },
