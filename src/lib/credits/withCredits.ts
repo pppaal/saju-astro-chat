@@ -25,8 +25,8 @@ interface CreditCheckResult {
 }
 
 /**
- * í¬ë ˆë”§ ì²´í¬ ë° ì†Œë¹„ í—¬í¼
- * API routeì—ì„œ ì‚¬ìš©
+ * 크레딧 체크 및 소비 헬퍼
+ * API route에서 사용
  */
 export async function checkAndConsumeCredits(
   type: CreditType = 'reading',
@@ -34,19 +34,19 @@ export async function checkAndConsumeCredits(
 ): Promise<CreditCheckResult> {
   const session = await getServerSession(authOptions)
 
-  // ë¹„ë¡œê·¸ì¸ ì‹œ free 1íšŒ í—ˆìš© (ë³„ë„ ë¡œì§ í•„ìš”)
+  // 비로그인 시 free 1회 허용 (별도 로직 필요)
   if (!session?.user?.id) {
     return {
       allowed: false,
-      error: 'ë¡œê·¸ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤',
+      error: '로그인이 필요합니다',
       errorCode: 'not_authenticated',
     }
   }
 
   const userId = session.user.id
 
-  // ðŸ”’ ë³´ì•ˆ: ê°œë°œ í™˜ê²½ì—ì„œë§Œ í¬ë ˆë”§ ìš°íšŒ í—ˆìš© (NODE_ENV ì²´í¬ ì¶”ê°€)
-  // í”„ë¡œë•ì…˜ì—ì„œëŠ” ì ˆëŒ€ ìš°íšŒ ë¶ˆê°€
+  // 보안: 개발 환경에서만 크레딧 우회 허용 (NODE_ENV 체크)
+  // 프로덕션에서는 절대 우회 불가
   const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
   const bypassEnabled = process.env.BYPASS_CREDITS === 'true' && isDevelopment
 
@@ -59,21 +59,20 @@ export async function checkAndConsumeCredits(
     }
   }
 
-  // í”„ë¡œë•ì…˜ì—ì„œ BYPASS_CREDITSê°€ ì„¤ì •ëœ ê²½ìš° ê²½ê³
+  // 프로덕션에서 BYPASS_CREDITS가 설정된 경우 경고
   if (process.env.BYPASS_CREDITS === 'true' && !isDevelopment) {
     logger.error(
       'SECURITY WARNING: BYPASS_CREDITS is enabled in production! This is a critical security issue.'
     )
   }
 
-  // í¬ë ˆë”§ ì²´í¬
+  // 크레딧 체크
   const canUse = await canUseCredits(userId, type, amount)
   if (!canUse.allowed) {
     const errorMessages: Record<string, string> = {
-      no_credits:
-        'ì´ë²ˆ ë‹¬ ë¦¬ë”© íšŸìˆ˜ë¥¼ ëª¨ë‘ ì‚¬ìš©í–ˆìŠµë‹ˆë‹¤. í”Œëžœì„ ì—…ê·¸ë ˆì´ë“œí•˜ì„¸ìš”.',
-      compatibility_limit: 'ì´ë²ˆ ë‹¬ ê¶í•© ë¶„ì„ íšŸìˆ˜ë¥¼ ëª¨ë‘ ì‚¬ìš©í–ˆìŠµë‹ˆë‹¤.',
-      followup_limit: 'ì´ë²ˆ ë‹¬ í›„ì†ì§ˆë¬¸ íšŸìˆ˜ë¥¼ ëª¨ë‘ ì‚¬ìš©í–ˆìŠµë‹ˆë‹¤.',
+      no_credits: '이번 달 리딩 횟수를 모두 사용했습니다. 플랜을 업그레이드하세요.',
+      compatibility_limit: '이번 달 궁합 분석 횟수를 모두 사용했습니다.',
+      followup_limit: '이번 달 후속질문 횟수를 모두 사용했습니다.',
     }
 
     // Get detailed limit info for compatibility/followUp errors
@@ -93,20 +92,20 @@ export async function checkAndConsumeCredits(
     return {
       allowed: false,
       userId,
-      error: errorMessages[canUse.reason || ''] || 'í¬ë ˆë”§ì´ ë¶€ì¡±í•©ë‹ˆë‹¤',
+      error: errorMessages[canUse.reason || ''] || '크레딧이 부족합니다',
       errorCode: canUse.reason,
       remaining: canUse.remaining,
       limitInfo,
     }
   }
 
-  // í¬ë ˆë”§ ì†Œë¹„
+  // 크레딧 소비
   const consumeResult = await consumeCredits(userId, type, amount)
   if (!consumeResult.success) {
     return {
       allowed: false,
       userId,
-      error: 'í¬ë ˆë”§ ì°¨ê° ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤',
+      error: '크레딧 차감 중 오류가 발생했습니다',
       errorCode: consumeResult.error,
     }
   }
@@ -119,8 +118,8 @@ export async function checkAndConsumeCredits(
 }
 
 /**
- * í¬ë ˆë”§ ì²´í¬ë§Œ (ì†Œë¹„ ì•ˆ í•¨)
- * pre-checkìš©
+ * 크레딧 체크만 (소비 안 함)
+ * pre-check용
  */
 export async function checkCreditsOnly(
   type: CreditType = 'reading',
@@ -131,7 +130,7 @@ export async function checkCreditsOnly(
   if (!session?.user?.id) {
     return {
       allowed: false,
-      error: 'ë¡œê·¸ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤',
+      error: '로그인이 필요합니다',
       errorCode: 'not_authenticated',
     }
   }
@@ -139,7 +138,7 @@ export async function checkCreditsOnly(
   const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
   const bypassEnabled = process.env.BYPASS_CREDITS === 'true' && isDevelopment
 
-  // ê°œë°œ/í…ŒìŠ¤íŠ¸ í™˜ê²½ì—ì„œ í¬ë ˆë”§ ìš°íšŒ
+  // 개발/테스트 환경에서 크레딧 우회
   if (bypassEnabled) {
     return {
       allowed: true,
@@ -148,7 +147,7 @@ export async function checkCreditsOnly(
     }
   }
 
-  // í”„ë¡œë•ì…˜ì—ì„œ BYPASS_CREDITSê°€ ì„¤ì •ëœ ê²½ìš° ê²½ê³
+  // 프로덕션에서 BYPASS_CREDITS가 설정된 경우 경고
   if (process.env.BYPASS_CREDITS === 'true' && !isDevelopment) {
     logger.error(
       'SECURITY WARNING: BYPASS_CREDITS is enabled in production! This is a critical security issue.'
@@ -159,14 +158,14 @@ export async function checkCreditsOnly(
   return {
     allowed: canUse.allowed,
     userId: session.user.id,
-    error: canUse.allowed ? undefined : 'í¬ë ˆë”§ì´ ë¶€ì¡±í•©ë‹ˆë‹¤',
+    error: canUse.allowed ? undefined : '크레딧이 부족합니다',
     errorCode: canUse.reason,
     remaining: canUse.remaining,
   }
 }
 
 /**
- * NextResponse ì—ëŸ¬ ë°˜í™˜ í—¬í¼
+ * NextResponse 에러 반환 헬퍼
  */
 export function creditErrorResponse(result: CreditCheckResult): NextResponse {
   if (result.errorCode === 'not_authenticated') {
@@ -186,8 +185,8 @@ export function creditErrorResponse(result: CreditCheckResult): NextResponse {
 }
 
 /**
- * ìœ ì € ê°€ìž… ì‹œ í¬ë ˆë”§ ì´ˆê¸°í™” í›…
- * (NextAuth callbacksì—ì„œ ì‚¬ìš©)
+ * 유저 가입 시 크레딧 초기화 훅
+ * (NextAuth callbacks에서 사용)
  */
 export async function ensureUserCredits(userId: string): Promise<void> {
   try {
