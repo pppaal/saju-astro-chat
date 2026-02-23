@@ -25,6 +25,7 @@ import {
 import { logger } from '@/lib/logger'
 import { validateRequestBody, astrologyRequestSchema } from '@/lib/api/zodValidation'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 
 // Middleware imports
 import {
@@ -117,7 +118,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     timeZone: '',
     latitude: 0,
     longitude: 0,
-    houseSystem: 'Placidus' as const,
+    houseSystem: CALCULATION_STANDARDS.astrology.houseSystem,
   }
   const natalMeta = natal.meta as ChartMeta | undefined
   const chartMeta = buildEngineMeta(natalMeta ?? defaultMeta, opts)

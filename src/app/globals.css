@@ -159,6 +159,10 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
   font-family:
+    var(--font-noto-kr),
+    var(--font-montserrat),
+    'Apple SD Gothic Neo',
+    'Malgun Gothic',
     system-ui,
     -apple-system,
     BlinkMacSystemFont,

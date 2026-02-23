@@ -11,6 +11,7 @@ import { prisma } from '@/lib/db/prisma'
 import { Prisma } from '@prisma/client'
 import { logger } from '@/lib/logger'
 import { personalitySaveRequestSchema } from '@/lib/api/zodValidation'
+import { sanitizePersonaPayload, sanitizePersonaText } from '@/lib/persona/sanitize'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,7 +41,14 @@ export const GET = withApiMiddleware(
         return apiSuccess({ saved: false })
       }
 
-      return apiSuccess({ saved: true, result })
+      return apiSuccess({
+        saved: true,
+        result: sanitizePersonaPayload({
+          ...result,
+          typeCode: sanitizePersonaText(result.typeCode),
+          personaName: sanitizePersonaText(result.personaName),
+        }),
+      })
     } catch (err) {
       logger.error('GET /api/personality error:', err)
       return apiError(ErrorCodes.DATABASE_ERROR, 'server_error')
@@ -79,14 +87,18 @@ export const POST = withApiMiddleware(
       analysisData,
       answers,
     } = validationResult.data
+    const safeTypeCode = sanitizePersonaText(typeCode)
+    const safePersonaName = sanitizePersonaText(personaName)
+    const safeAnalysisData = sanitizePersonaPayload(analysisData)
+    const safeAnswers = answers ? sanitizePersonaPayload(answers) : undefined
 
     try {
       const result = await prisma.personalityResult.upsert({
         where: { userId: context.userId! },
         create: {
           userId: context.userId!,
-          typeCode,
-          personaName,
+          typeCode: safeTypeCode,
+          personaName: safePersonaName,
           avatarGender,
           energyScore: Math.round(energyScore),
           cognitionScore: Math.round(cognitionScore),
@@ -96,12 +108,12 @@ export const POST = withApiMiddleware(
             consistencyScore !== null && consistencyScore !== undefined
               ? Math.round(consistencyScore)
               : null,
-          analysisData: analysisData as Prisma.InputJsonValue,
-          answers: answers ? (answers as Prisma.InputJsonValue) : Prisma.DbNull,
+          analysisData: safeAnalysisData as Prisma.InputJsonValue,
+          answers: safeAnswers ? (safeAnswers as Prisma.InputJsonValue) : Prisma.DbNull,
         },
         update: {
-          typeCode,
-          personaName,
+          typeCode: safeTypeCode,
+          personaName: safePersonaName,
           avatarGender,
           energyScore: Math.round(energyScore),
           cognitionScore: Math.round(cognitionScore),
@@ -111,8 +123,8 @@ export const POST = withApiMiddleware(
             consistencyScore !== null && consistencyScore !== undefined
               ? Math.round(consistencyScore)
               : null,
-          analysisData: analysisData as Prisma.InputJsonValue,
-          answers: answers ? (answers as Prisma.InputJsonValue) : Prisma.DbNull,
+          analysisData: safeAnalysisData as Prisma.InputJsonValue,
+          answers: safeAnswers ? (safeAnswers as Prisma.InputJsonValue) : Prisma.DbNull,
           updatedAt: new Date(),
         },
       })

@@ -1,14 +1,15 @@
-import Link from 'next/link';
+import Link from 'next/link'
+import { CheckCircle2, Download, Link2, Lock, RefreshCw, Save, Send, Timer } from 'lucide-react'
 
 interface ResultActionsProps {
-  styles: Record<string, string>;
-  authStatus: string;
-  saveStatus: string;
-  isSavedToDb: boolean;
-  handleSaveResult: () => void;
-  handleShare: () => void;
-  handleDownload: () => void;
-  t: (path: string, fallback?: string) => string;
+  styles: Record<string, string>
+  authStatus: string
+  saveStatus: string
+  isSavedToDb: boolean
+  handleSaveResult: () => void
+  handleShare: () => void
+  handleDownload: () => void
+  t: (path: string, fallback?: string) => string
 }
 
 export function ResultActions({
@@ -28,9 +29,15 @@ export function ResultActions({
         className={`${styles.saveButton} ${isSavedToDb ? styles.saved : ''}`}
         disabled={saveStatus === 'saving' || isSavedToDb}
       >
-        <span>
-          {saveStatus === 'saving' ? '\u23F3' : isSavedToDb ? '\u2705' : authStatus === 'authenticated' ? '\uD83D\uDCBE' : '\uD83D\uDD10'}
-        </span>
+        {saveStatus === 'saving' ? (
+          <Timer size={16} aria-hidden="true" />
+        ) : isSavedToDb ? (
+          <CheckCircle2 size={16} aria-hidden="true" />
+        ) : authStatus === 'authenticated' ? (
+          <Save size={16} aria-hidden="true" />
+        ) : (
+          <Lock size={16} aria-hidden="true" />
+        )}
         {saveStatus === 'saving'
           ? t('personality.saving', 'Saving...')
           : isSavedToDb
@@ -41,17 +48,17 @@ export function ResultActions({
       </button>
 
       <button onClick={handleShare} className={styles.shareButton}>
-        <span>{'\uD83D\uDCE4'}</span> {t('personality.share', 'Share Result')}
+        <Send size={16} aria-hidden="true" /> {t('personality.share', 'Share Result')}
       </button>
       <button onClick={handleDownload} className={styles.downloadButton}>
-        <span>{'\uD83D\uDCE5'}</span> {t('personality.download', 'Download JSON')}
+        <Download size={16} aria-hidden="true" /> {t('personality.download', 'Download JSON')}
       </button>
       <Link href="/personality/quiz" className={styles.retakeButton}>
-        <span>{'\uD83D\uDD04'}</span> {t('personality.retake', 'Retake Quiz')}
+        <RefreshCw size={16} aria-hidden="true" /> {t('personality.retake', 'Retake Quiz')}
       </Link>
       <Link href="/personality/combined" className={styles.retakeButton}>
-        <span>{'\uD83D\uDD17'}</span> {t('personality.combined', 'Combined Analysis')}
+        <Link2 size={16} aria-hidden="true" /> {t('personality.combined', 'Combined Analysis')}
       </Link>
     </section>
-  );
+  )
 }

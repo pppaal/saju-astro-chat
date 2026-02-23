@@ -1,8 +1,8 @@
 .page {
   min-height: 100vh;
-  padding: 2rem 1rem;
+  padding: 2rem 1rem 3rem;
   position: relative;
-  overflow: hidden;
+  overflow-x: clip;
 }
 
 .backButton {
@@ -14,10 +14,7 @@
 
 .stars {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   pointer-events: none;
   z-index: 0;
 }
@@ -26,15 +23,15 @@
   position: absolute;
   width: 2px;
   height: 2px;
-  background: rgba(255, 255, 255, 0.8);
   border-radius: 50%;
-  animation: twinkle 3s ease-in-out infinite;
+  background: rgba(167, 193, 255, 0.6);
+  animation: twinkle 4s ease-in-out infinite;
 }
 
 @keyframes twinkle {
   0%,
   100% {
-    opacity: 0.3;
+    opacity: 0.25;
   }
   50% {
     opacity: 1;
@@ -42,21 +39,19 @@
 }
 
 .loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 80vh;
-  gap: 1rem;
-  color: rgba(255, 255, 255, 0.8);
+  min-height: 76vh;
+  display: grid;
+  place-content: center;
+  gap: 0.9rem;
+  color: rgba(245, 248, 255, 0.8);
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(168, 85, 247, 0.3);
-  border-top-color: #a855f7;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
+  border: 3px solid rgba(104, 133, 214, 0.3);
+  border-top-color: #9ebaff;
   animation: spin 1s linear infinite;
 }
 
@@ -66,331 +61,507 @@
   }
 }
 
-.card {
-  max-width: 800px;
-  margin: 3rem auto 2rem;
-  padding: 2rem;
-  background: rgba(26, 26, 46, 0.9);
-  border-radius: 1.5rem;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+.container {
   position: relative;
   z-index: 1;
-  animation: fadeIn 0.5s ease-out;
+  max-width: 1040px;
+  margin: 3.25rem auto 0;
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(132, 164, 251, 0.2);
+  background:
+    radial-gradient(1000px 500px at 0% -10%, rgba(69, 106, 198, 0.16), transparent 55%),
+    radial-gradient(800px 400px at 100% -20%, rgba(74, 179, 206, 0.14), transparent 52%),
+    rgba(10, 16, 34, 0.78);
+  backdrop-filter: blur(10px);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.sampleBadge {
+  width: fit-content;
+  margin: 0 auto 1.2rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(143, 175, 255, 0.35);
+  background: rgba(75, 122, 236, 0.17);
+  color: #d6e2ff;
+  font-size: 0.8rem;
+  letter-spacing: 0.01em;
 }
 
-.header {
+.hero {
+  margin: 0 auto 1.5rem;
+  max-width: 760px;
   text-align: center;
-  margin-bottom: 2rem;
 }
 
-.icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+.overline {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(173, 198, 255, 0.86);
 }
 
-.title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 0.5rem;
+.heroTitle {
+  margin: 0.55rem 0;
+  font-size: clamp(1.6rem, 3.2vw, 2.35rem);
+  line-height: 1.28;
+  color: #f5f8ff;
+  letter-spacing: -0.01em;
 }
 
-.subtitle {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 1rem;
-  line-height: 1.6;
+.heroSubtitle {
+  margin: 0 auto;
+  max-width: 700px;
+  font-size: 1.03rem;
+  line-height: 1.72;
+  color: rgba(236, 243, 255, 0.9);
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
-.quickSummary {
-  margin-bottom: 1.5rem;
+.heroMeta {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.badge {
+  padding: 0.33rem 0.66rem;
+  border-radius: 999px;
+  border: 1px solid rgba(145, 178, 255, 0.32);
+  background: rgba(64, 93, 174, 0.22);
+  color: #dce8ff;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.todayPoint {
+  margin: 1rem auto 0;
+  padding: 0.9rem 1rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(131, 170, 255, 0.24);
+  background: rgba(12, 22, 48, 0.6);
+  text-align: left;
+  max-width: 740px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+  line-height: 1.68;
+  color: rgba(239, 246, 255, 0.95);
+}
+
+.todayPoint strong {
+  color: #f5f8ff;
+}
+
+.todayPoint span {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.section,
+.sectionNarrow {
+  margin: 1.2rem 0;
+}
+
+.sectionNarrow {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sectionTitle {
+  margin: 0 0 0.85rem;
+  font-size: clamp(1.08rem, 2.1vw, 1.42rem);
+  line-height: 1.4;
+  color: #f6f9ff;
+  letter-spacing: -0.01em;
+}
+
+.snapshotGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.card {
+  border-radius: 1rem;
+  border: 1px solid rgba(140, 171, 247, 0.2);
+  background: rgba(13, 21, 44, 0.66);
+  padding: 0.95rem 1rem;
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 0.94rem;
+  color: #edf3ff;
+  letter-spacing: 0.01em;
+}
+
+.card p {
+  margin: 0.45rem 0 0;
+  line-height: 1.7;
+  color: rgba(233, 241, 255, 0.9);
+  max-width: 720px;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.card ul {
+  margin: 0.52rem 0 0;
+  padding-left: 1.05rem;
+  display: grid;
+  gap: 0.35rem;
+  color: rgba(235, 242, 255, 0.92);
+  line-height: 1.65;
+  max-width: 720px;
+}
+
+.axisGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.axisCard {
+  border-radius: 1rem;
+  border: 1px solid rgba(138, 170, 251, 0.24);
+  background: rgba(12, 20, 41, 0.66);
+  padding: 0.95rem 1rem;
+  line-height: 1.64;
+  color: rgba(232, 241, 255, 0.93);
+}
+
+.axisHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 0.75rem;
 }
 
-.quickCard {
-  padding: 0.95rem 1rem;
-  border-radius: 0.9rem;
-  background: rgba(0, 0, 0, 0.24);
-  border: 1px solid rgba(168, 85, 247, 0.22);
-}
-
-.quickCard h2 {
-  margin: 0 0 0.45rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.74);
-}
-
-.quickCard p {
+.axisHeader h3 {
   margin: 0;
-  font-size: 0.92rem;
-  line-height: 1.55;
-  color: #fff;
+  font-size: 0.94rem;
+  color: #eef4ff;
 }
 
-/* Test Status */
-.testStatus {
+.axisScore {
+  font-size: 0.8rem;
+  color: rgba(173, 200, 255, 0.9);
+}
+
+.axisSpectrum {
+  margin: 0.2rem 0 0.3rem;
+  font-size: 0.8rem;
+  color: rgba(176, 203, 255, 0.82);
+}
+
+.axisCard p {
+  margin: 0.32rem 0;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.axisAction {
+  color: #d8e6ff;
+  font-weight: 600;
+}
+
+.bodyLine {
+  margin: 0 0 0.6rem;
+  line-height: 1.75;
+  color: rgba(236, 243, 255, 0.93);
+  max-width: 740px;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.insightGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.insightCard {
+  border-radius: 1rem;
+  border: 1px solid rgba(137, 170, 250, 0.2);
+  background: rgba(11, 18, 40, 0.68);
+  padding: 0.95rem 1rem;
+}
+
+.insightCard h3 {
+  margin: 0;
+  color: #f3f7ff;
+  font-size: 0.95rem;
+}
+
+.insightCard p {
+  margin: 0.45rem 0 0;
+  line-height: 1.68;
+  color: rgba(233, 242, 255, 0.92);
+  max-width: 730px;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.insightAction {
+  color: #d8e7ff;
+  font-weight: 600;
+}
+
+.playbookGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.scriptBox {
+  margin-top: 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(140, 172, 252, 0.22);
+  background: rgba(15, 24, 52, 0.65);
+  padding: 0.9rem 1rem;
+}
+
+.scriptBox h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #f4f8ff;
+}
+
+.scriptBox ul {
+  margin: 0.55rem 0 0;
+  padding-left: 1.05rem;
+  display: grid;
+  gap: 0.45rem;
+  line-height: 1.68;
+  color: rgba(234, 243, 255, 0.93);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.actionMain {
+  border-radius: 1rem;
+  border: 1px solid rgba(140, 173, 255, 0.28);
+  background: rgba(24, 36, 74, 0.7);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.actionMain h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #f4f8ff;
+}
+
+.actionMain p {
+  margin: 0.5rem 0 0;
+  line-height: 1.7;
+  color: rgba(237, 245, 255, 0.94);
+}
+
+.metric {
+  margin-top: 0.65rem;
+  color: rgba(217, 231, 255, 0.95);
+  font-size: 0.9rem;
+  line-height: 1.64;
+}
+
+.nextList {
+  margin: 0;
+  padding-left: 1.08rem;
+  display: grid;
+  gap: 0.35rem;
+  line-height: 1.7;
+  max-width: 740px;
+  color: rgba(235, 243, 255, 0.93);
+}
+
+.nextCta {
+  margin: 0.75rem 0 0;
+  color: rgba(184, 207, 255, 0.92);
+  line-height: 1.68;
+}
+
+.disclosure {
+  border-radius: 1rem;
+  border: 1px solid rgba(137, 171, 255, 0.26);
+  background: rgba(12, 20, 45, 0.64);
+  padding: 0.8rem 1rem;
+}
+
+.disclosure summary {
+  cursor: pointer;
+  color: #ebf3ff;
+  font-weight: 600;
+  outline: none;
+}
+
+.disclosure summary:focus-visible {
+  box-shadow: 0 0 0 2px rgba(155, 186, 255, 0.72);
+  border-radius: 0.45rem;
+}
+
+.disclosure p {
+  margin: 0.55rem 0 0;
+  line-height: 1.68;
+  color: rgba(230, 241, 255, 0.92);
+}
+
+.disclosure ul {
+  margin: 0.55rem 0 0;
+  padding-left: 1.05rem;
+  display: grid;
+  gap: 0.35rem;
+  color: rgba(230, 241, 255, 0.92);
+  line-height: 1.65;
+}
+
+.actions {
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(151, 179, 255, 0.2);
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.primaryButton,
+.secondaryButton {
+  text-decoration: none;
+  border-radius: 0.72rem;
+  padding: 0.7rem 1rem;
+  line-height: 1.35;
+  font-size: 0.9rem;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease,
+    background 0.2s ease;
+}
+
+.primaryButton {
+  color: #f5f8ff;
+  border: 1px solid rgba(156, 190, 255, 0.36);
+  background: linear-gradient(125deg, rgba(77, 117, 222, 0.9), rgba(55, 154, 186, 0.8));
+}
+
+.secondaryButton {
+  color: rgba(238, 245, 255, 0.96);
+  border: 1px solid rgba(142, 173, 248, 0.28);
+  background: rgba(52, 80, 149, 0.35);
+}
+
+.primaryButton:hover,
+.secondaryButton:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible,
+.startLink:focus-visible {
+  outline: 2px solid rgba(170, 198, 255, 0.88);
+  outline-offset: 2px;
+}
+
+/* Missing test status state */
+.header {
+  text-align: center;
+  margin-bottom: 1.4rem;
+}
+
+.icon {
+  font-size: 2.4rem;
+  margin-bottom: 0.65rem;
+}
+
+.title {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  color: #f5f8ff;
+}
+
+.subtitle {
+  margin: 0;
+  color: rgba(229, 240, 255, 0.86);
+  line-height: 1.68;
+}
+
+.testStatus {
+  display: grid;
+  gap: 0.6rem;
 }
 
 .statusItem {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 1rem;
-  color: rgba(255, 255, 255, 0.8);
+  gap: 0.65rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(139, 170, 246, 0.18);
+  background: rgba(11, 18, 39, 0.62);
+  color: rgba(236, 244, 255, 0.94);
+  padding: 0.85rem 0.95rem;
 }
 
-.statusItem.statusComplete {
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.3);
+.statusComplete {
+  border-color: rgba(94, 214, 173, 0.35);
+  background: rgba(24, 69, 53, 0.33);
 }
 
 .statusIcon {
-  font-size: 1.5rem;
+  font-size: 1rem;
 }
 
 .startLink {
   margin-left: auto;
-  padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  color: #fff;
-  border-radius: 0.5rem;
   text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: opacity 0.2s;
+  font-size: 0.82rem;
+  color: #e6f0ff;
+  border: 1px solid rgba(141, 173, 255, 0.3);
+  background: rgba(65, 101, 194, 0.38);
+  border-radius: 0.6rem;
+  padding: 0.32rem 0.62rem;
 }
 
-.startLink:hover {
-  opacity: 0.9;
-}
-
-/* Summary Grid */
-.summaryGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.summaryCard {
-  padding: 1.5rem;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1));
-  border-radius: 1rem;
-  border: 1px solid rgba(168, 85, 247, 0.2);
-  text-align: center;
-}
-
-.summaryIcon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.summaryLabel {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
-}
-
-.summaryValue {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 0.25rem;
-}
-
-.summaryCode {
-  font-size: 0.875rem;
-  color: #a855f7;
-  font-weight: 500;
-}
-
-/* Sections */
-.section {
-  margin-bottom: 2rem;
-}
-
-.sectionTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.sectionTitle::before {
-  content: '';
-  width: 4px;
-  height: 1.25rem;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  border-radius: 2px;
-}
-
-/* Axis Grid */
-.axisGrid {
-  display: grid;
-  gap: 1.25rem;
-}
-
-.axisItem {
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 0.75rem;
-}
-
-.axisLabel {
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 0.75rem;
-  font-weight: 500;
-}
-
-.axisBar {
-  height: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 0.5rem;
-}
-
-.axisFill {
-  height: 100%;
-  background: linear-gradient(90deg, #a855f7, #ec4899);
-  border-radius: 4px;
-  transition: width 0.8s ease-out;
-}
-
-.axisPoles {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-/* Insight Grid */
-.insightGrid {
-  display: grid;
-  gap: 1rem;
-}
-
-.insightCard {
-  padding: 1.5rem;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 1rem;
-  border: 1px solid rgba(168, 85, 247, 0.15);
-  animation: slideIn 0.5s ease-out both;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
+@media (max-width: 960px) {
+  .container {
+    max-width: 820px;
   }
-  to {
-    opacity: 1;
-    transform: translateX(0);
+
+  .snapshotGrid,
+  .axisGrid,
+  .insightGrid,
+  .playbookGrid {
+    grid-template-columns: 1fr;
   }
 }
 
-.insightIcon {
-  font-size: 1.5rem;
-  margin-bottom: 0.75rem;
-}
-
-.insightTitle {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 0.5rem;
-}
-
-.insightContent {
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.7);
-  line-height: 1.6;
-}
-
-/* Actions */
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  justify-content: center;
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.primaryButton {
-  padding: 0.875rem 1.5rem;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  color: #fff;
-  border-radius: 0.75rem;
-  text-decoration: none;
-  font-weight: 600;
-  transition:
-    opacity 0.2s,
-    transform 0.2s;
-}
-
-.primaryButton:hover {
-  opacity: 0.9;
-  transform: translateY(-2px);
-}
-
-.secondaryButton {
-  padding: 0.875rem 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border-radius: 0.75rem;
-  text-decoration: none;
-  font-weight: 500;
-  transition: background 0.2s;
-}
-
-.secondaryButton:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-/* Responsive */
 @media (max-width: 640px) {
-  .card {
-    margin: 4rem 0.5rem 2rem;
-    padding: 1.5rem;
+  .page {
+    padding: 1.5rem 0.75rem 2.4rem;
   }
 
-  .summaryGrid {
-    grid-template-columns: 1fr;
+  .container {
+    margin-top: 3rem;
+    padding: 1rem;
+    border-radius: 1.2rem;
   }
 
-  .quickSummary {
-    grid-template-columns: 1fr;
+  .heroTitle {
+    font-size: 1.36rem;
   }
 
-  .title {
-    font-size: 1.5rem;
+  .heroSubtitle,
+  .bodyLine,
+  .card p,
+  .insightCard p,
+  .axisCard p,
+  .nextCta {
+    font-size: 0.93rem;
+    line-height: 1.7;
   }
 
   .actions {
@@ -401,166 +572,5 @@
   .secondaryButton {
     width: 100%;
     text-align: center;
-  }
-}
-
-/* Mobile responsive - Small */
-@media (max-width: 480px) {
-  .page {
-    padding: 1.5rem 0.75rem;
-  }
-
-  .card {
-    margin: 3.5rem 0.25rem 1.5rem;
-    padding: 1.25rem;
-    border-radius: 1.25rem;
-  }
-
-  .icon {
-    font-size: 2.5rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .title {
-    font-size: 1.35rem;
-  }
-
-  .subtitle {
-    font-size: 0.9rem;
-  }
-
-  .summaryGrid {
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .quickSummary {
-    gap: 0.65rem;
-    margin-bottom: 1.25rem;
-  }
-
-  .quickCard {
-    padding: 0.8rem 0.85rem;
-  }
-
-  .summaryCard {
-    padding: 1.25rem;
-    border-radius: 0.875rem;
-  }
-
-  .summaryIcon {
-    font-size: 1.75rem;
-  }
-
-  .summaryLabel {
-    font-size: 0.7rem;
-  }
-
-  .summaryValue {
-    font-size: 1rem;
-  }
-
-  .summaryCode {
-    font-size: 0.8rem;
-  }
-
-  .sectionTitle {
-    font-size: 1.1rem;
-    margin-bottom: 1.25rem;
-  }
-
-  .statusItem {
-    padding: 0.875rem 1.25rem;
-    border-radius: 0.875rem;
-    gap: 0.75rem;
-  }
-
-  .statusIcon {
-    font-size: 1.25rem;
-  }
-
-  .startLink {
-    padding: 0.4rem 0.875rem;
-    font-size: 0.8rem;
-  }
-
-  .axisItem {
-    padding: 0.875rem;
-  }
-
-  .axisLabel {
-    font-size: 0.8rem;
-  }
-
-  .axisPoles {
-    font-size: 0.7rem;
-  }
-
-  .insightCard {
-    padding: 1.25rem;
-    border-radius: 0.875rem;
-  }
-
-  .insightIcon {
-    font-size: 1.25rem;
-  }
-
-  .insightTitle {
-    font-size: 0.95rem;
-  }
-
-  .insightContent {
-    font-size: 0.825rem;
-  }
-
-  .primaryButton,
-  .secondaryButton {
-    padding: 0.75rem 1.25rem;
-    border-radius: 0.625rem;
-  }
-}
-
-/* Mobile responsive - Extra Small */
-@media (max-width: 360px) {
-  .page {
-    padding: 1.25rem 0.5rem;
-  }
-
-  .card {
-    margin: 3rem 0 1rem;
-    padding: 1rem;
-    border-radius: 1rem;
-  }
-
-  .icon {
-    font-size: 2rem;
-  }
-
-  .title {
-    font-size: 1.2rem;
-  }
-
-  .subtitle {
-    font-size: 0.85rem;
-  }
-
-  .summaryCard {
-    padding: 1rem;
-  }
-
-  .summaryIcon {
-    font-size: 1.5rem;
-  }
-
-  .sectionTitle {
-    font-size: 1rem;
-  }
-
-  .statusItem {
-    padding: 0.75rem 1rem;
-  }
-
-  .insightCard {
-    padding: 1rem;
   }
 }

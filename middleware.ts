@@ -6,7 +6,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { REMOVED_PUBLIC_SERVICE_PREFIXES } from '@/config/enabledServices'
-import { isDemoEnabled, isValidDemoToken, normalizeToken } from '@/lib/demo/token'
 
 // Routes that should skip CSRF validation
 const CSRF_SKIP_ROUTES = new Set([
@@ -17,7 +16,6 @@ const CSRF_SKIP_ROUTES = new Set([
 ])
 
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
-const DEMO_COOKIE_NAME = 'dp_demo'
 
 // ── Module-level caches (computed once at cold start, reused across requests) ──
 
@@ -194,47 +192,6 @@ export function middleware(request: NextRequest) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/'
     return NextResponse.redirect(redirectUrl)
-  }
-
-  // Demo pages and APIs: accept demo token once, then grant short-lived cookie access.
-  if (pathname.startsWith('/demo') || pathname.startsWith('/api/demo')) {
-    if (request.cookies.get(DEMO_COOKIE_NAME)?.value === '1') {
-      return NextResponse.next()
-    }
-
-    const queryToken =
-      normalizeToken(request.nextUrl.searchParams.get('demo_token')) ??
-      normalizeToken(request.nextUrl.searchParams.get('token'))
-    const headerToken = normalizeToken(request.headers.get('x-demo-token'))
-    const providedToken = queryToken ?? headerToken
-
-    const tokenAccepted = isDemoEnabled() && isValidDemoToken(providedToken)
-    if (!tokenAccepted) {
-      // Let demo pages render their own gate UI and let API handlers return auth errors.
-      return NextResponse.next()
-    }
-
-    const shouldCleanUrl = pathname.startsWith('/demo') && Boolean(queryToken)
-    const response = shouldCleanUrl
-      ? NextResponse.redirect(
-          (() => {
-            const cleanUrl = request.nextUrl.clone()
-            cleanUrl.searchParams.delete('demo_token')
-            cleanUrl.searchParams.delete('token')
-            return cleanUrl
-          })()
-        )
-      : NextResponse.next()
-
-    response.cookies.set(DEMO_COOKIE_NAME, '1', {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: _isProd,
-      path: '/',
-      maxAge: 60 * 60,
-    })
-
-    return response
   }
 
   // Only apply to API routes

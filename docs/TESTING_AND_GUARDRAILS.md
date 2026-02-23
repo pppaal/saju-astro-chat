@@ -52,7 +52,7 @@ npm run test:e2e:smoke:public
 Current Playwright config (`playwright.config.ts`) starts local web server via:
 
 - `npm run dev`
-- test env defaults include `DEMO_TOKEN` and `SUPPORT_EMAIL`
+- test env defaults include `SUPPORT_EMAIL`
 
 Useful variants:
 

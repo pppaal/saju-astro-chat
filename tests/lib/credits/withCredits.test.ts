@@ -11,10 +11,6 @@ vi.mock('next-auth', () => ({
   getServerSession: vi.fn(),
 }))
 
-vi.mock('next/headers', () => ({
-  headers: vi.fn(),
-}))
-
 vi.mock('@/lib/auth/authOptions', () => ({
   authOptions: {},
 }))
@@ -35,7 +31,6 @@ vi.mock('@/lib/logger', () => ({
 }))
 
 import { getServerSession } from 'next-auth'
-import { headers } from 'next/headers'
 import {
   canUseCredits,
   consumeCredits,
@@ -55,7 +50,6 @@ describe('withCredits helpers', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     process.env = { ...originalEnv }
-    vi.mocked(headers).mockRejectedValue(new Error('outside request'))
   })
 
   afterEach(() => {
@@ -95,31 +89,6 @@ describe('withCredits helpers', () => {
       expect(result.allowed).toBe(true)
       expect(result.remaining).toBe(9999)
       expect(canUseCredits).not.toHaveBeenCalled()
-    })
-
-    it('should not bypass with demo token header alone (cookie required)', async () => {
-      process.env.DEMO_TOKEN = 'demo-test-token'
-      vi.mocked(headers).mockResolvedValue(new Headers({ 'x-demo-token': 'demo-test-token' }))
-      vi.mocked(getServerSession).mockResolvedValue(null)
-
-      const result = await checkAndConsumeCredits('reading', 1)
-
-      expect(result.allowed).toBe(false)
-      expect(result.errorCode).toBe('not_authenticated')
-    })
-
-    it('should bypass when demo token and demo cookie are both present', async () => {
-      process.env.DEMO_TOKEN = 'demo-test-token'
-      vi.mocked(headers).mockResolvedValue(
-        new Headers({ 'x-demo-token': 'demo-test-token', cookie: 'dp_demo=1' })
-      )
-
-      const result = await checkAndConsumeCredits('reading', 1)
-
-      expect(result.allowed).toBe(true)
-      expect(result.userId).toBe('demo-user')
-      expect(canUseCredits).not.toHaveBeenCalled()
-      expect(consumeCredits).not.toHaveBeenCalled()
     })
 
     it('should check and consume credits successfully', async () => {
@@ -236,19 +205,6 @@ describe('withCredits helpers', () => {
 
       expect(result.allowed).toBe(true)
       expect(result.remaining).toBe(9999)
-    })
-
-    it('should bypass check-only flow when demo token and cookie are present', async () => {
-      process.env.DEMO_TOKEN = 'demo-test-token'
-      vi.mocked(headers).mockResolvedValue(
-        new Headers({ 'x-demo-token': 'demo-test-token', cookie: 'dp_demo=1' })
-      )
-
-      const result = await checkCreditsOnly('reading', 1)
-
-      expect(result.allowed).toBe(true)
-      expect(result.userId).toBe('demo-user')
-      expect(canUseCredits).not.toHaveBeenCalled()
     })
 
     it('should check credits without consuming', async () => {

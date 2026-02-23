@@ -615,4 +615,3 @@ describe('Calendar Helpers', () => {
     })
   })
 })
-

@@ -8,6 +8,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { fetchWithRetry, FetchWithRetryError } from '@/lib/http'
 import { useConfetti } from '@/hooks/useConfetti'
+import { sanitizePersonaPayload, sanitizePersonaText } from '@/lib/persona/sanitize'
 import { generateShareCard } from './generateShareCard'
 
 export function usePersonaResult() {
@@ -74,7 +75,7 @@ export function usePersonaResult() {
       return null
     }
     try {
-      return analyzePersona(answers, locale)
+      return sanitizePersonaPayload(analyzePersona(answers, locale))
     } catch {
       return null
     }
@@ -98,8 +99,8 @@ export function usePersonaResult() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            typeCode: analysis.typeCode,
-            personaName: analysis.personaName,
+            typeCode: sanitizePersonaText(analysis.typeCode),
+            personaName: sanitizePersonaText(analysis.personaName),
             avatarGender: gender,
             energyScore: analysis.axes.energy.score,
             cognitionScore: analysis.axes.cognition.score,
@@ -107,17 +108,14 @@ export function usePersonaResult() {
             rhythmScore: analysis.axes.rhythm.score,
             consistencyScore: analysis.consistencyScore,
             analysisData: {
-              summary: analysis.summary,
-              keyMotivations: analysis.keyMotivations,
+              description: sanitizePersonaText(analysis.summary),
+              descriptionKo: locale === 'ko' ? sanitizePersonaText(analysis.summary) : undefined,
               strengths: analysis.strengths,
-              challenges: analysis.challenges,
-              recommendedRoles: analysis.recommendedRoles,
-              career: analysis.career,
-              compatibilityHint: analysis.compatibilityHint,
-              guidance: analysis.guidance,
-              growthTips: analysis.growthTips,
-              primaryColor: analysis.primaryColor,
-              secondaryColor: analysis.secondaryColor,
+              strengthsKo: locale === 'ko' ? analysis.strengths : undefined,
+              weaknesses: analysis.challenges,
+              weaknessesKo: locale === 'ko' ? analysis.challenges : undefined,
+              compatibleTypes: [],
+              careerSuggestions: analysis.recommendedRoles,
             },
             answers,
           }),
@@ -143,7 +141,7 @@ export function usePersonaResult() {
       }
       setSaveStatus('error')
     }
-  }, [analysis, authStatus, router, gender, answers])
+  }, [analysis, authStatus, router, gender, answers, locale])
 
   // Trigger confetti when analysis is ready (only once per result)
   useEffect(() => {
@@ -167,7 +165,7 @@ export function usePersonaResult() {
           JSON.stringify({
             typeCode: analysis.typeCode,
             personaName: analysis.personaName,
-            summary: analysis.summary,
+            summary: sanitizePersonaText(analysis.summary),
             axes: analysis.axes,
             timestamp: Date.now(),
           })
@@ -215,7 +213,7 @@ export function usePersonaResult() {
     try {
       // Try to generate and share image
       const imageBlob = await handleGenerateShareCard()
-      const shareText = `My Nova Persona: ${analysis.personaName} (${analysis.typeCode})\n${analysis.summary}\n\nDiscover yours at DestinyPal.me`
+      const shareText = `My Nova Persona: ${sanitizePersonaText(analysis.personaName)} (${analysis.typeCode})\n${sanitizePersonaText(analysis.summary)}\n\nDiscover yours at DestinyPal.me`
 
       if (imageBlob && navigator.share && navigator.canShare) {
         const file = new File([imageBlob], 'nova-persona.png', { type: 'image/png' })
@@ -240,7 +238,7 @@ export function usePersonaResult() {
       }
     } catch {
       // User cancelled or error
-      const shareText = `My Nova Persona: ${analysis.personaName} (${analysis.typeCode})\n${analysis.summary}`
+      const shareText = `My Nova Persona: ${sanitizePersonaText(analysis.personaName)} (${analysis.typeCode})\n${sanitizePersonaText(analysis.summary)}`
       navigator.clipboard.writeText(shareText)
       alert(t('personality.copiedToClipboard', 'Copied to clipboard!'))
     }

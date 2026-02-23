@@ -12,7 +12,6 @@ const roots = [
   'docs/RAG_AND_GRAPHRAG.md',
   'docs/DESTINY_MATRIX.md',
   'docs/PDF_REPORTING.md',
-  'docs/DEMO_AND_SEO.md',
   'docs/TESTING_AND_GUARDRAILS.md',
 ];
 

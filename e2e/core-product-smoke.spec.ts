@@ -73,25 +73,4 @@ test.describe('Core product smoke', () => {
       expect(bodyText).not.toMatch(pattern)
     }
   })
-
-  test('demo gate + token bootstrap cookie flow', async ({ page, context }) => {
-    const demoToken = process.env.DEMO_TOKEN || 'demo-test-token'
-
-    await page.goto('/demo', { waitUntil: 'domcontentloaded' })
-    await expect(page.getByRole('heading', { name: /demo access required/i })).toBeVisible()
-
-    await page.goto(`/demo?demo_token=${encodeURIComponent(demoToken)}`, {
-      waitUntil: 'domcontentloaded',
-    })
-    await expect(page).toHaveURL(/\/demo(\?.*)?$/)
-
-    const cookies = await context.cookies()
-    const demoCookie = cookies.find((cookie) => cookie.name === 'dp_demo')
-    expect(demoCookie?.value).toBe('1')
-
-    await page.goto('/demo/calendar', { waitUntil: 'domcontentloaded' })
-    await expect(page).toHaveURL(/\/demo\/calendar/)
-    await expect(page.locator('main h1, h1').first()).toBeVisible()
-    await expect(page.getByRole('heading', { name: /demo access required/i })).toHaveCount(0)
-  })
 })

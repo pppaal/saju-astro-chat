@@ -595,10 +595,14 @@ function buildEnhancedRecommendations(
     : []
 
   const softened = shouldGateIrreversible
-    ? [...translated, categoryAction, factorAction || '', timeHint || '', ...safeFallbacks].map((line) =>
-        line
-          .replace(/서명|예약|확정|결혼식|계약|결혼/g, '검토')
-          .replace(/signature|reservation|finalize|wedding ceremony|contract|wedding|marriage/gi, 'review')
+    ? [...translated, categoryAction, factorAction || '', timeHint || '', ...safeFallbacks].map(
+        (line) =>
+          line
+            .replace(/서명|예약|확정|결혼식|계약|결혼/g, '검토')
+            .replace(
+              /signature|reservation|finalize|wedding ceremony|contract|wedding|marriage/gi,
+              'review'
+            )
       )
     : [...translated, categoryAction, factorAction || '', timeHint || '']
 

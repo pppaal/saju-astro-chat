@@ -7,7 +7,6 @@ const VALID_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mdx', '.json',
 const SKIP_FILES = new Set([
   path.normalize('src/components/calendar/SelectedDatePanel.tsx'),
   path.normalize('src/components/calendar/CalendarActionPlanView.tsx'),
-  path.normalize('src/app/api/demo/ai-review/route.ts'),
 ])
 
 const SUSPICIOUS_PATTERNS = [

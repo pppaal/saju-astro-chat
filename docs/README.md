@@ -19,7 +19,6 @@ This is the canonical documentation index for the active codebase.
 
 ## Product Exposure And QA
 
-- `DEMO_AND_SEO.md`: demo token model and crawler guardrails
 - `TESTING_AND_GUARDRAILS.md`: required checks vs full suites
 
 ## Audit Outputs

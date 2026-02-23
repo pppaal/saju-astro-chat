@@ -7,7 +7,7 @@
 - `npm run -s build`: PASS (after cleaning `.next`/`tsconfig.tsbuildinfo` and rerunning)
 - `npm test`: TIMEOUT at 182s (suite is very large/noisy; targeted critical suites were run instead)
 - Targeted deterministic/contract suites:
-  - `npx vitest run tests/lib/Saju/determinism-golden.test.ts tests/lib/astrology/foundation/determinism-golden.test.ts tests/lib/destiny-matrix/fusion-properties-regression.test.ts tests/lib/destiny-matrix/ai-report-score-determinism.test.ts tests/lib/demo/requireDemoToken.test.ts tests/middleware/demo-gating.test.ts`: PASS (34 tests)
+  - `npx vitest run tests/lib/Saju/determinism-golden.test.ts tests/lib/astrology/foundation/determinism-golden.test.ts tests/lib/destiny-matrix/fusion-properties-regression.test.ts tests/lib/destiny-matrix/ai-report-score-determinism.test.ts`: PASS
   - `python -m pytest backend_ai/tests/unit/test_tarot_router_contract.py backend_ai/tests/unit/test_tarot_crisis_detection_contract.py backend_ai/tests/unit/test_tarot_interpret_evidence_route.py -q`: PASS (31 tests)
   - `python scripts/self_check.py` with `USE_CHROMADB=1 EXCLUDE_NON_SAJU_ASTRO=1 RAG_TRACE=1`: PASS
 
@@ -55,11 +55,10 @@
   - RAG prefetch managers:
     - `backend_ai/app/rag_manager.py`
     - `backend_ai/app/rag/optimized_manager.py`
-- Credits/paywall/demo gating:
+- Credits/paywall gating:
   - Next middleware gate: `middleware.ts`
   - API middleware guards: `src/lib/api/middleware/**`
   - Credits service: `src/lib/credits/creditService.ts`, `src/lib/credits/withCredits.ts`
-  - Demo token logic: `src/lib/demo/token.ts`, `src/lib/demo/requireDemoToken.ts`
 
 ## Data/Index Sources
 
@@ -87,7 +86,6 @@
 
 - Product pages: `/saju`, `/astrology`, `/destiny-map`, `/calendar`, `/tarot`, `/destiny-matrix`, `/compatibility`, `/icp`, `/personality`
 - Core APIs: `/api/saju`, `/api/astrology`, `/api/destiny-map`, `/api/calendar`, `/api/tarot`, `/api/destiny-matrix`, `/api/compatibility`, `/api/icp`, `/api/personality`
-- Demo APIs/pages are separately gated under `/demo/*` and `/api/demo/*`.
 
 ## High-Risk Architectural Duplication Found
 
