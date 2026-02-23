@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react'
 import { logger } from '@/lib/logger'
+import { tryNormalizeTime } from '@/lib/Saju/normalizer'
 import type { CityHit, FormState, FormAction } from './useDestinyForm'
 import { loadCitiesModule, resolveCityTimezone } from './useDestinyForm'
 
@@ -52,7 +53,7 @@ export function useDestinyProfile(
         fields.birthDate = user.birthDate
       }
       if (user.birthTime) {
-        fields.birthTime = user.birthTime
+        fields.birthTime = tryNormalizeTime(user.birthTime)?.time ?? user.birthTime
       }
       if (user.birthCity) {
         fields.city = user.birthCity

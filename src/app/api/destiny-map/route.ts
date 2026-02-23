@@ -20,6 +20,7 @@ import {
   isValidLatitude,
   isValidLongitude,
 } from '@/lib/validation'
+import { tryNormalizeTime } from '@/lib/Saju/normalizer'
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
@@ -130,7 +131,8 @@ export const POST = withApiMiddleware(
 
     const name = typeof body.name === 'string' ? body.name.trim().slice(0, LIMITS.NAME) : undefined
     const birthDate = typeof body.birthDate === 'string' ? body.birthDate.trim() : ''
-    const birthTime = typeof body.birthTime === 'string' ? body.birthTime.trim() : ''
+    const birthTimeRaw = typeof body.birthTime === 'string' ? body.birthTime.trim() : ''
+    const birthTime = birthTimeRaw ? (tryNormalizeTime(birthTimeRaw)?.time ?? birthTimeRaw) : ''
     const gender =
       typeof body.gender === 'string' && ALLOWED_GENDER.has(body.gender) ? body.gender : 'male'
     const city = typeof body.city === 'string' ? body.city.trim().slice(0, LIMITS.CITY) : undefined

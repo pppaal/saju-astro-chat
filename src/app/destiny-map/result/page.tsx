@@ -14,7 +14,6 @@ const FortuneDashboard = lazy(() => import('@/components/life-prediction/Fortune
 import { useI18n } from '@/i18n/I18nProvider'
 import { normalizeGender } from '@/lib/utils/gender'
 import BackButton from '@/components/ui/BackButton'
-import CreditBadge from '@/components/ui/CreditBadge'
 import ShareButton from '@/components/ui/ShareButton'
 import PersonalityInsight from '@/components/personality/PersonalityInsight'
 
@@ -297,7 +296,6 @@ export default function DestinyResultPage({
     <main className={styles.page}>
       <BackButton />
       <div className={styles.creditBadgeWrapper}>
-        <CreditBadge variant="compact" />
         <ShareButton variant="compact" />
       </div>
       <section className={styles.card}>

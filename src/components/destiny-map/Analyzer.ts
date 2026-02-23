@@ -1,6 +1,7 @@
 // src/components/destiny-map/Analyzer.ts
 import { logger } from '@/lib/logger'
 import { normalizeGender } from '@/lib/utils/gender'
+import { tryNormalizeTime } from '@/lib/Saju/normalizer'
 
 export type LangKey = 'en' | 'ko' | 'ja' | 'zh' | 'es'
 
@@ -76,7 +77,7 @@ export async function analyzeDestiny(input: DestinyInput): Promise<DestinyResult
     const payload = {
       name: input.name,
       birthDate: input.birthDate,
-      birthTime: input.birthTime,
+      birthTime: tryNormalizeTime(input.birthTime)?.time ?? input.birthTime,
       city: input.city,
       latitude: input.latitude,
       longitude: input.longitude,
