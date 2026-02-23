@@ -407,7 +407,7 @@ describe('Destiny Map API - POST /api/destiny-map', () => {
       expect(Array.isArray(data.details)).toBe(true)
     })
 
-    it('should return 422 when timezone is missing (Zod requires it)', async () => {
+    it('should allow missing timezone by applying server-side fallback', async () => {
       const request = makePostRequest({
         birthDate: '1990-05-15',
         birthTime: '14:30',
@@ -420,9 +420,9 @@ describe('Destiny Map API - POST /api/destiny-map', () => {
       const response = await POST(request)
       const data = await response.json()
 
-      expect(response.status).toBe(422)
-      expect(data.success).toBe(false)
-      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(response.status).toBe(200)
+      expect(data.error).toBeUndefined()
+      expect(data.profile).toBeDefined()
     })
   })
 

@@ -119,8 +119,21 @@ export const POST = withApiMiddleware(
       })
     }
 
+    // Normalize request shape for schema compatibility.
+    // Frontend sends `lang`/`userTimezone`; schema expects `locale`/`timezone`.
+    const validationBody = {
+      ...body,
+      locale: typeof body.locale === 'string' ? body.locale : body.lang,
+      timezone:
+        typeof body.timezone === 'string' && body.timezone.trim()
+          ? body.timezone.trim()
+          : typeof body.userTimezone === 'string' && body.userTimezone.trim()
+            ? body.userTimezone.trim()
+            : 'Asia/Seoul',
+    }
+
     // Validate core fields with Zod
-    const validationResult = destinyMapRequestSchema.safeParse(body)
+    const validationResult = destinyMapRequestSchema.safeParse(validationBody)
     if (!validationResult.success) {
       logger.warn('[DestinyMap] validation failed', { errors: validationResult.error.issues })
       return createValidationErrorResponse(validationResult.error, {
