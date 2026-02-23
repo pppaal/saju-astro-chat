@@ -135,7 +135,7 @@ const mockAstroResult = {
     negative: false,
     currentPhase: 'mars',
   },
-  planetTransits: { score: 5, factorKeys: [], positive: true, negative: false },
+  planetTransits: { score: 5, factorKeys: [], positive: true, negative: false, aspectEvidence: [] },
   eclipseImpact: 0,
 }
 
@@ -199,6 +199,7 @@ vi.mock('@/lib/destiny-map/calendar/scoring', () => ({
     sajuNegative: false,
     astroPositive: true,
     astroNegative: false,
+    crossAgreementPercent: 72,
   })),
 }))
 
@@ -220,7 +221,7 @@ vi.mock('@/lib/destiny-map/calendar/scoring-adapter', () => ({
 
 // --- grading ---
 vi.mock('@/lib/destiny-map/calendar/grading', () => ({
-  calculateGrade: vi.fn(() => ({ grade: 1, reason: 'positive' })),
+  calculateGrade: vi.fn(() => ({ grade: 1, adjustedScore: 65, gradeBonus: 0, gradeReasons: [] })),
   getGradeKeys: vi.fn(() => ({ titleKey: 'calendar.grade1', descKey: 'calendar.grade1Desc' })),
   getGradeRecommendations: vi.fn(() => ['enjoy', 'celebrate']),
   filterWarningsByGrade: vi.fn((_grade: number, warnings: string[]) => warnings),
@@ -439,6 +440,14 @@ describe('date-analysis-orchestrator', () => {
     it('uses the score from calculateTotalScore', () => {
       const result = analyzeDate(new Date(2024, 0, 1), makeSajuProfile(), makeAstroProfile())
       expect(result?.score).toBe(65)
+    })
+
+    it('returns raw/adjusted/display score fields consistently', () => {
+      const result = analyzeDate(new Date(2024, 0, 1), makeSajuProfile(), makeAstroProfile())
+      expect(result?.rawScore).toBe(65)
+      expect(result?.adjustedScore).toBe(65)
+      expect(result?.displayScore).toBe(65)
+      expect(result?.crossAgreementPercent).toBe(72)
     })
 
     it('uses the grade from calculateGrade', () => {

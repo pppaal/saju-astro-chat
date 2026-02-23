@@ -254,11 +254,11 @@ describe('Calendar Helpers', () => {
 
     it('should generate grade 2 high Korean summary', () => {
       const result = generateSummary(2, ['career'], 65, 'ko')
-      expect(result).toBe('괜찮은 커리어 운')
+      expect(result).toContain('괜찮은 커리어 운')
     })
 
     it('should generate grade 2 low Korean summary', () => {
-      const result = generateSummary(2, ['career'], 50, 'ko')
+      const result = generateSummary(2, ['career'], 30, 'ko')
       expect(result).toContain('평범한 하루')
     })
 
@@ -289,12 +289,12 @@ describe('Calendar Helpers', () => {
 
     it('should generate grade 2 high English summary', () => {
       const result = generateSummary(2, ['general'], 65, 'en')
-      expect(result).toBe('Decent day overall')
+      expect(result).toContain('Decent day overall')
     })
 
     it('should generate grade 2 low English summary', () => {
-      const result = generateSummary(2, ['general'], 50, 'en')
-      expect(result).toBe('Average day, take it easy')
+      const result = generateSummary(2, ['general'], 30, 'en')
+      expect(result).toContain('Average day, take it easy')
     })
 
     it('should generate grade 5 English with bad day reason', () => {
@@ -553,5 +553,66 @@ describe('Calendar Helpers', () => {
       expect(result.evidence?.confidence).toBeGreaterThanOrEqual(0)
       expect(result.evidence?.confidence).toBeLessThanOrEqual(100)
     })
+
+    it('should expose displayScore and debug scores when provided', () => {
+      const result = formatDateForResponse(
+        {
+          ...baseDateData,
+          score: 67,
+          rawScore: 67,
+          adjustedScore: 69,
+          displayScore: 69,
+        } as any,
+        'en',
+        koTranslations as any,
+        enTranslations as any
+      )
+
+      expect(result.score).toBe(69)
+      expect(result.rawScore).toBe(67)
+      expect(result.adjustedScore).toBe(69)
+      expect(result.displayScore).toBe(69)
+    })
+
+    it('should gate irreversible recommendations on low confidence communication warning', () => {
+      const result = formatDateForResponse(
+        {
+          ...baseDateData,
+          recommendationKeys: ['wedding', 'contract', 'rest'],
+          warningKeys: ['mercuryRetrograde'],
+          confidence: 30,
+        } as any,
+        'en',
+        koTranslations as any,
+        enTranslations as any
+      )
+
+      expect(result.recommendations.some((r) => r.includes('wedding'))).toBe(false)
+      expect(result.recommendations.some((r) => r.includes('contract'))).toBe(false)
+      expect(result.recommendations).toContain('Review and reconfirm before committing.')
+    })
+
+    it('should include crossAgreementPercent in evidence', () => {
+      const result = formatDateForResponse(
+        {
+          ...baseDateData,
+          crossAgreementPercent: 78,
+        } as any,
+        'en',
+        koTranslations as any,
+        enTranslations as any,
+        {
+          domainScores: { career: { finalScoreAdjusted: 8.1 } as any },
+          overlapTimeline: [{ month: '2025-03', overlapStrength: 0.7, peakLevel: 'high' } as any],
+          overlapTimelineByDomain: {
+            career: [{ month: '2025-03', overlapStrength: 0.7, peakLevel: 'high' } as any],
+          },
+          calendarSignals: [],
+        } as any
+      )
+
+      expect(result.evidence?.crossAgreementPercent).toBe(78)
+    })
   })
 })
+

@@ -47,6 +47,7 @@ describe('scoring', () => {
         expect(result).toHaveProperty('astroPositive');
         expect(result).toHaveProperty('astroNegative');
         expect(result).toHaveProperty('crossVerified');
+        expect(result).toHaveProperty('crossAgreementPercent');
       });
 
       it('should return breakdown with all score components', () => {
@@ -107,6 +108,16 @@ describe('scoring', () => {
 
         expect(result.grade).toBeGreaterThanOrEqual(0);
         expect(result.grade).toBeLessThanOrEqual(4);
+      });
+
+      it('should return crossAgreementPercent between 0 and 100', () => {
+        const sajuInput = createEmptySajuInput();
+        const astroInput = createEmptyAstroInput();
+
+        const result = calculateTotalScore(sajuInput, astroInput);
+
+        expect(result.crossAgreementPercent).toBeGreaterThanOrEqual(0);
+        expect(result.crossAgreementPercent).toBeLessThanOrEqual(100);
       });
     });
 

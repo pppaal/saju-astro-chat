@@ -16,7 +16,10 @@ import type { DomainKey, DomainScore, MonthlyOverlapPoint } from '@/lib/destiny-
 import type { SajuPillarAccessor, FormattedDate, LocationCoord } from './types'
 import { getFactorTranslation } from './translations'
 import { KO_MESSAGES, EN_MESSAGES } from './constants'
-import { SCORE_THRESHOLDS } from '@/constants/scoring'
+import {
+  DISPLAY_SCORE_LABEL_THRESHOLDS,
+  EVIDENCE_CONFIDENCE_THRESHOLDS,
+} from '@/lib/destiny-map/calendar/scoring-config'
 import { normalizeMojibakePayload } from '@/lib/text/mojibake'
 
 type MatrixSignal = {
@@ -24,6 +27,26 @@ type MatrixSignal = {
   trigger: string
   score: number
 }
+
+const IRREVERSIBLE_RECOMMENDATION_KEYS = new Set([
+  'majorDecision',
+  'bigDecision',
+  'wedding',
+  'contract',
+  'business',
+  'reservation',
+  'signature',
+])
+
+const COMMUNICATION_WARNING_TOKENS = [
+  'mercuryretrograde',
+  'misunderstanding',
+  'confusion',
+  'voidofcourse',
+  'communication',
+  'conflict',
+  'opposition',
+]
 
 export type MatrixCalendarContext = {
   calendarSignals?: MatrixSignal[]
@@ -159,7 +182,7 @@ export function generateSummary(
       base = KO_MESSAGES.GRADE_0[cat] || KO_MESSAGES.GRADE_0.general
     } else if (grade === 1) {
       base = KO_MESSAGES.GRADE_1[cat] || KO_MESSAGES.GRADE_1.general
-    } else if (grade === 2 && score >= SCORE_THRESHOLDS.AVERAGE) {
+    } else if (grade === 2 && score >= DISPLAY_SCORE_LABEL_THRESHOLDS.neutral) {
       base = KO_MESSAGES.GRADE_2_HIGH[cat] || KO_MESSAGES.GRADE_2_HIGH.general
     } else if (grade === 2) {
       base = KO_MESSAGES.GRADE_2_LOW
@@ -181,7 +204,7 @@ export function generateSummary(
     if (grade >= 3 && hasCautionSignal) {
       tails.push('속도보다 검토를 우선하고, 큰 결정보다 리스크 관리가 유리합니다.')
     }
-    if (score >= 70) {
+    if (score >= DISPLAY_SCORE_LABEL_THRESHOLDS.good) {
       tails.push(
         pickBySeed(seed, [
           '오전부터 중요한 일을 먼저 끝내면 성과가 커집니다.',
@@ -203,7 +226,7 @@ export function generateSummary(
     base = EN_MESSAGES.GRADE_0[cat] || EN_MESSAGES.GRADE_0.general
   } else if (grade === 1) {
     base = EN_MESSAGES.GRADE_1[cat] || EN_MESSAGES.GRADE_1.general
-  } else if (grade === 2 && score >= SCORE_THRESHOLDS.AVERAGE) {
+  } else if (grade === 2 && score >= DISPLAY_SCORE_LABEL_THRESHOLDS.neutral) {
     base = EN_MESSAGES.GRADE_2_HIGH
   } else if (grade === 2) {
     base = EN_MESSAGES.GRADE_2_LOW
@@ -225,7 +248,7 @@ export function generateSummary(
   if (grade >= 3 && hasCautionSignal) {
     tails.push('Prioritize verification over speed and avoid major commitments.')
   }
-  if (score >= 70) {
+  if (score >= DISPLAY_SCORE_LABEL_THRESHOLDS.good) {
     tails.push(
       pickBySeed(seed, [
         'Front-load your most important task in the morning window.',
@@ -538,7 +561,16 @@ function buildEnhancedRecommendations(
   translations: TranslationData,
   lang: 'ko' | 'en'
 ): string[] {
-  const translated = date.recommendationKeys.map((key) =>
+  const lowConfidence = (date.confidence ?? 100) < EVIDENCE_CONFIDENCE_THRESHOLDS.low
+  const communicationWarning = date.warningKeys.some((key) =>
+    COMMUNICATION_WARNING_TOKENS.some((token) => key.toLowerCase().includes(token))
+  )
+  const shouldGateIrreversible = lowConfidence || communicationWarning
+  const gatedRecommendationKeys = shouldGateIrreversible
+    ? date.recommendationKeys.filter((key) => !IRREVERSIBLE_RECOMMENDATION_KEYS.has(key))
+    : date.recommendationKeys
+
+  const translated = gatedRecommendationKeys.map((key) =>
     getTranslation(`calendar.recommendations.${key}`, translations)
   )
   const seed = `${date.date}|${date.score}|${date.grade}|${categories[0] || 'general'}`
@@ -553,10 +585,24 @@ function buildEnhancedRecommendations(
       ? `추천 시간 우선: ${bestTimes[0]}`
       : `Prioritize this time window: ${bestTimes[0]}`
     : null
-  return dedupeTexts([...translated, categoryAction, factorAction || '', timeHint || '']).slice(
-    0,
-    6
-  )
+  const safeFallbacks = shouldGateIrreversible
+    ? lang === 'ko'
+      ? ['검토/재확인을 우선하고 진행하세요.', '조건 조율 후 요약을 전송하세요.']
+      : [
+          'Review and reconfirm before committing.',
+          'Align terms first, then send a short written summary.',
+        ]
+    : []
+
+  const softened = shouldGateIrreversible
+    ? [...translated, categoryAction, factorAction || '', timeHint || '', ...safeFallbacks].map((line) =>
+        line
+          .replace(/서명|예약|확정|결혼식|계약|결혼/g, '검토')
+          .replace(/signature|reservation|finalize|wedding ceremony|contract|wedding|marriage/gi, 'review')
+      )
+    : [...translated, categoryAction, factorAction || '', timeHint || '']
+
+  return dedupeTexts(softened).slice(0, 6)
 }
 
 function buildEnhancedWarnings(
@@ -873,6 +919,7 @@ function buildMatrixOverlay(
   matrixContext: MatrixCalendarContext,
   categories: EventCategory[],
   lang: 'ko' | 'en',
+  crossAgreementPercent: number | undefined,
   cross: {
     sajuEvidence?: string
     astroEvidence?: string
@@ -903,6 +950,7 @@ function buildMatrixOverlay(
           bridges: cross.bridges || [],
         },
         confidence: 0,
+        crossAgreementPercent: Math.max(0, Math.min(100, Math.round(crossAgreementPercent ?? 0))),
         source: 'rule',
       },
     }
@@ -1051,6 +1099,10 @@ function buildMatrixOverlay(
       bridges: cross.bridges || [],
     },
     confidence: Math.max(0, Math.min(100, confidence)),
+    crossAgreementPercent: Math.max(
+      0,
+      Math.min(100, Math.round(crossAgreementPercent ?? confidence))
+    ),
     source: 'rule',
   }
 
@@ -1146,12 +1198,16 @@ export function formatDateForResponse(
     matrixContext || null,
     uniqueCategories,
     lang,
+    date.crossAgreementPercent,
     crossEvidence
   )
+  const displayScore = date.displayScore ?? date.adjustedScore ?? date.score
+  const rawScore = date.rawScore ?? date.score
+  const adjustedScore = date.adjustedScore ?? displayScore
   const baseSummary = generateSummary(
     date.grade,
     uniqueCategories,
-    date.score,
+    displayScore,
     lang,
     date.sajuFactorKeys,
     date.astroFactorKeys,
@@ -1165,7 +1221,10 @@ export function formatDateForResponse(
   return normalizeMojibakePayload({
     date: date.date,
     grade: date.grade,
-    score: date.score,
+    score: displayScore,
+    rawScore,
+    adjustedScore,
+    displayScore,
     categories: uniqueCategories,
     title: getTranslation(date.titleKey, translations),
     description: getTranslation(date.descKey, translations),

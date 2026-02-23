@@ -131,6 +131,7 @@ export interface CalendarEvidence {
     bridges?: string[]
   }
   confidence: number
+  crossAgreementPercent?: number
   source: CalendarEvidenceSource
 }
 

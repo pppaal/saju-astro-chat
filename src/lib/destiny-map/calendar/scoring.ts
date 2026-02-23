@@ -189,6 +189,72 @@ export interface ScoreResult {
   astroPositive: boolean;
   astroNegative: boolean;
   crossVerified: boolean;
+  crossAgreementPercent: number;
+}
+
+function mapSignalDirection(score: number, maxScore: number): -1 | 0 | 1 {
+  if (!Number.isFinite(score) || !Number.isFinite(maxScore) || maxScore <= 0) {
+    return 0;
+  }
+  const baseline = maxScore * 0.45;
+  const tolerance = maxScore * 0.05;
+  if (score >= baseline + tolerance) {return 1;}
+  if (score <= baseline - tolerance) {return -1;}
+  return 0;
+}
+
+function calculateCrossAgreementPercent(input: {
+  daeunScore: number;
+  seunScore: number;
+  wolunScore: number;
+  iljinScore: number;
+  yongsinScore: number;
+  transitSunScore: number;
+  transitMoonScore: number;
+  majorPlanetsScore: number;
+  lunarPhaseScore: number;
+  solarReturnScore: number;
+}): number {
+  const pairs = [
+    {
+      saju: mapSignalDirection(input.daeunScore, CATEGORY_MAX_SCORES.saju.daeun),
+      astro: mapSignalDirection(input.transitSunScore, CATEGORY_MAX_SCORES.astro.transitSun),
+      weight: CATEGORY_MAX_SCORES.saju.daeun + CATEGORY_MAX_SCORES.astro.transitSun,
+    },
+    {
+      saju: mapSignalDirection(input.seunScore, CATEGORY_MAX_SCORES.saju.seun),
+      astro: mapSignalDirection(input.transitMoonScore, CATEGORY_MAX_SCORES.astro.transitMoon),
+      weight: CATEGORY_MAX_SCORES.saju.seun + CATEGORY_MAX_SCORES.astro.transitMoon,
+    },
+    {
+      saju: mapSignalDirection(input.wolunScore, CATEGORY_MAX_SCORES.saju.wolun),
+      astro: mapSignalDirection(input.majorPlanetsScore, CATEGORY_MAX_SCORES.astro.majorPlanets),
+      weight: CATEGORY_MAX_SCORES.saju.wolun + CATEGORY_MAX_SCORES.astro.majorPlanets,
+    },
+    {
+      saju: mapSignalDirection(input.iljinScore, CATEGORY_MAX_SCORES.saju.iljin),
+      astro: mapSignalDirection(input.lunarPhaseScore, CATEGORY_MAX_SCORES.astro.lunarPhase),
+      weight: CATEGORY_MAX_SCORES.saju.iljin + CATEGORY_MAX_SCORES.astro.lunarPhase,
+    },
+    {
+      saju: mapSignalDirection(input.yongsinScore, CATEGORY_MAX_SCORES.saju.yongsin),
+      astro: mapSignalDirection(input.solarReturnScore, CATEGORY_MAX_SCORES.astro.solarReturn),
+      weight: CATEGORY_MAX_SCORES.saju.yongsin + CATEGORY_MAX_SCORES.astro.solarReturn,
+    },
+  ];
+
+  let matchedWeight = 0;
+  let totalWeight = 0;
+
+  for (const pair of pairs) {
+    totalWeight += pair.weight;
+    if (pair.saju === pair.astro) {
+      matchedWeight += pair.saju === 0 ? pair.weight * 0.5 : pair.weight;
+    }
+  }
+
+  if (totalWeight <= 0) {return 0;}
+  return Math.round((matchedWeight / totalWeight) * 100);
 }
 
 // ============================================================
@@ -460,6 +526,18 @@ export function calculateTotalScore(
   // 추가 점수는 보정으로 적용 (최대 ±10점)
   const astroBonus = Math.max(-10, Math.min(10, outerPlanetsScore + specialPointsScore + eclipseScore));
   const astroScore = Math.max(0, Math.min(50, baseAstroScore + astroBonus));
+  const crossAgreementPercent = calculateCrossAgreementPercent({
+    daeunScore,
+    seunScore,
+    wolunScore,
+    iljinScore,
+    yongsinScore,
+    transitSunScore,
+    transitMoonScore,
+    majorPlanetsScore,
+    lunarPhaseScore,
+    solarReturnScore,
+  });
 
   // 긍정/부정 판단 (v7: 명확한 기준값 사용)
   // 긍정: 25점 초과 (50점 중 상위 50%)
@@ -537,6 +615,7 @@ export function calculateTotalScore(
     astroPositive,
     astroNegative,
     crossVerified,
+    crossAgreementPercent,
   };
 }
 

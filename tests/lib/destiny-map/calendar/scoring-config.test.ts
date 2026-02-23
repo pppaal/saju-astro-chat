@@ -13,6 +13,9 @@ import {
   SOLAR_RETURN_SCORES,
   CROSS_VERIFICATION_SCORES,
   GRADE_THRESHOLDS,
+  DISPLAY_SCORE_LABEL_THRESHOLDS,
+  getDisplayGradeFromScore,
+  getDisplayLabelFromScore,
   normalizeToCategory,
   sumAndNormalize,
   calculateAdjustedScore,
@@ -402,6 +405,27 @@ describe('scoring-config', () => {
     it('should have realistic threshold values', () => {
       expect(GRADE_THRESHOLDS.grade0).toBeLessThanOrEqual(100);
       expect(GRADE_THRESHOLDS.grade3).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('display score label consistency', () => {
+    it('should use backend-exported display thresholds', () => {
+      expect(DISPLAY_SCORE_LABEL_THRESHOLDS.best).toBe(GRADE_THRESHOLDS.grade0);
+      expect(DISPLAY_SCORE_LABEL_THRESHOLDS.good).toBe(GRADE_THRESHOLDS.grade1);
+      expect(DISPLAY_SCORE_LABEL_THRESHOLDS.neutral).toBe(GRADE_THRESHOLDS.grade2);
+    });
+
+    it('should keep label and badge grade consistent on 68~70 boundary', () => {
+      const cases = [
+        { score: 68, grade: 0, labelKo: '최고' },
+        { score: 69, grade: 0, labelKo: '최고' },
+        { score: 70, grade: 0, labelKo: '최고' },
+      ];
+
+      for (const c of cases) {
+        expect(getDisplayGradeFromScore(c.score)).toBe(c.grade);
+        expect(getDisplayLabelFromScore(c.score, 'ko')).toBe(c.labelKo);
+      }
     });
   });
 

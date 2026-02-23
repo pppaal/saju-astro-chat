@@ -346,6 +346,38 @@ export const GRADE_THRESHOLDS = {
   // grade4: 28 미만 (최악) (~5%)
 } as const;
 
+export const DISPLAY_SCORE_LABEL_THRESHOLDS = {
+  best: GRADE_THRESHOLDS.grade0,
+  good: GRADE_THRESHOLDS.grade1,
+  neutral: GRADE_THRESHOLDS.grade2,
+} as const;
+
+export const EVIDENCE_CONFIDENCE_THRESHOLDS = {
+  low: 45,
+  medium: 70,
+} as const;
+
+export const PEAK_LEVEL_THRESHOLDS = {
+  peak: 85,
+  high: 70,
+} as const;
+
+export type DisplayScoreGrade = 0 | 1 | 2 | 3;
+
+export function getDisplayGradeFromScore(score: number): DisplayScoreGrade {
+  if (score >= DISPLAY_SCORE_LABEL_THRESHOLDS.best) {return 0;}
+  if (score >= DISPLAY_SCORE_LABEL_THRESHOLDS.good) {return 1;}
+  if (score >= DISPLAY_SCORE_LABEL_THRESHOLDS.neutral) {return 2;}
+  return 3;
+}
+
+export function getDisplayLabelFromScore(score: number, locale: 'ko' | 'en'): string {
+  if (score >= DISPLAY_SCORE_LABEL_THRESHOLDS.best) {return locale === 'ko' ? '최고' : 'Excellent';}
+  if (score >= DISPLAY_SCORE_LABEL_THRESHOLDS.good) {return locale === 'ko' ? '좋음' : 'Good';}
+  if (score >= DISPLAY_SCORE_LABEL_THRESHOLDS.neutral) {return locale === 'ko' ? '무난' : 'Neutral';}
+  return locale === 'ko' ? '주의' : 'Caution';
+}
+
 // ============================================================
 // 점수 계산 헬퍼 함수
 // ============================================================

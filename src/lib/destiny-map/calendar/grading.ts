@@ -54,14 +54,6 @@ function getGradeInputKey(input: GradeInput): string {
 // 등급 임계값 상수
 // ═══════════════════════════════════════════════════════════
 
-const GRADE_SCORE_THRESHOLDS = {
-  GRADE_0: 68, // 최고의날 (~5-8%)
-  GRADE_1: 62, // 좋은날 (~15%)
-  GRADE_2: 42, // 보통날 (~50%)
-  GRADE_3: 28, // 안좋은날 (~25%)
-  // Grade 4: < 28 최악의날 (~5%)
-} as const;
-
 const BONUS_LIMITS = {
   MIN: -6,
   MAX: 4,
@@ -196,13 +188,13 @@ const calculateComplexGradeMemo = memoize(
     let grade: ImportanceGrade;
     const hasBothChungAndXing = input.hasChung && input.hasXing;
 
-    if (adjustedScore >= GRADE_SCORE_THRESHOLDS.GRADE_0 && !hasBothChungAndXing) {
+    if (adjustedScore >= GRADE_THRESHOLDS.grade0 && !hasBothChungAndXing) {
       grade = 0;
-    } else if (adjustedScore >= GRADE_SCORE_THRESHOLDS.GRADE_1) {
+    } else if (adjustedScore >= GRADE_THRESHOLDS.grade1) {
       grade = 1;
-    } else if (adjustedScore >= GRADE_SCORE_THRESHOLDS.GRADE_2) {
+    } else if (adjustedScore >= GRADE_THRESHOLDS.grade2) {
       grade = 2;
-    } else if (adjustedScore >= GRADE_SCORE_THRESHOLDS.GRADE_3) {
+    } else if (adjustedScore >= GRADE_THRESHOLDS.grade3) {
       grade = 3;
     } else {
       grade = 4;

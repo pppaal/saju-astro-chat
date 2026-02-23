@@ -81,6 +81,9 @@ export interface ImportantDate {
   date: string
   grade: ImportanceGrade
   score: number
+  rawScore?: number
+  adjustedScore?: number
+  displayScore?: number
   categories: EventCategory[]
   titleKey: string
   descKey: string
@@ -93,6 +96,7 @@ export interface ImportantDate {
   warningKeys: string[]
   confidence?: number
   confidenceNote?: string
+  crossAgreementPercent?: number
   gongmangStatus?: {
     isEmpty: boolean
     emptyBranches: string[]
@@ -373,6 +377,12 @@ export function analyzeDate(
 
   const gradeResult = calculateGrade(gradeInput)
   const grade = gradeResult.grade
+  const rawScore = scoreResult.totalScore
+  const adjustedBase = Number.isFinite(gradeResult.adjustedScore)
+    ? gradeResult.adjustedScore
+    : rawScore
+  const adjustedScore = Math.round(Math.max(0, Math.min(100, adjustedBase)))
+  const displayScore = adjustedScore
 
   // 타이틀/설명 키 설정
   let { titleKey, descKey } = factors
@@ -419,42 +429,42 @@ export function analyzeDate(
   const activityScores = {
     marriage: calculateActivityScore(
       'love',
-      scoreResult.totalScore,
+      displayScore,
       advancedPrediction.gongmangStatus,
       advancedPrediction.shinsalActive,
       advancedPrediction.energyFlow
     ),
     career: calculateActivityScore(
       'career',
-      scoreResult.totalScore,
+      displayScore,
       advancedPrediction.gongmangStatus,
       advancedPrediction.shinsalActive,
       advancedPrediction.energyFlow
     ),
     investment: calculateActivityScore(
       'wealth',
-      scoreResult.totalScore,
+      displayScore,
       advancedPrediction.gongmangStatus,
       advancedPrediction.shinsalActive,
       advancedPrediction.energyFlow
     ),
     moving: calculateActivityScore(
       'travel',
-      scoreResult.totalScore,
+      displayScore,
       advancedPrediction.gongmangStatus,
       advancedPrediction.shinsalActive,
       advancedPrediction.energyFlow
     ),
     surgery: calculateActivityScore(
       'health',
-      scoreResult.totalScore,
+      displayScore,
       advancedPrediction.gongmangStatus,
       advancedPrediction.shinsalActive,
       advancedPrediction.energyFlow
     ),
     study: calculateActivityScore(
       'study',
-      scoreResult.totalScore,
+      displayScore,
       advancedPrediction.gongmangStatus,
       advancedPrediction.shinsalActive,
       advancedPrediction.energyFlow
@@ -480,7 +490,10 @@ export function analyzeDate(
   return {
     date: dateStr,
     grade,
-    score: scoreResult.totalScore,
+    score: displayScore,
+    rawScore,
+    adjustedScore,
+    displayScore,
     categories: factors.categories,
     titleKey,
     descKey,
@@ -493,6 +506,7 @@ export function analyzeDate(
     warningKeys,
     confidence,
     confidenceNote,
+    crossAgreementPercent: scoreResult.crossAgreementPercent,
     gongmangStatus: advancedPrediction.gongmangStatus,
     shinsalActive: advancedPrediction.shinsalActive,
     energyFlow: advancedPrediction.energyFlow,

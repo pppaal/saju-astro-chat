@@ -1,4 +1,6 @@
-﻿export type PeakLevel = 'peak' | 'high' | 'normal'
+import { PEAK_LEVEL_THRESHOLDS } from '@/lib/destiny-map/calendar/scoring-config'
+
+export type PeakLevel = 'peak' | 'high' | 'normal'
 
 const isPeakLevel = (value: unknown): value is PeakLevel =>
   value === 'peak' || value === 'high' || value === 'normal'
@@ -10,8 +12,8 @@ export function resolvePeakLevel(explicitLevel: unknown, score?: number | null):
   if (typeof score !== 'number' || Number.isNaN(score)) {
     return null
   }
-  if (score >= 85) return 'peak'
-  if (score >= 70) return 'high'
+  if (score >= PEAK_LEVEL_THRESHOLDS.peak) return 'peak'
+  if (score >= PEAK_LEVEL_THRESHOLDS.high) return 'high'
   return 'normal'
 }
 

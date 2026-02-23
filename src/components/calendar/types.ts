@@ -24,6 +24,7 @@ export interface CalendarEvidence {
     bridges?: string[]
   }
   confidence: number
+  crossAgreementPercent?: number
   source: CalendarEvidenceSource
 }
 
@@ -31,6 +32,9 @@ export interface ImportantDate {
   date: string
   grade: ImportanceGrade
   score: number
+  rawScore?: number
+  adjustedScore?: number
+  displayScore?: number
   categories: EventCategory[]
   title: string
   description: string

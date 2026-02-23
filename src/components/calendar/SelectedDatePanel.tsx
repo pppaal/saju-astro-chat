@@ -6,6 +6,11 @@ import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
 import { getPeakLabel, resolvePeakLevel } from './peakUtils'
 import { repairMojibakeText } from '@/lib/text/mojibake'
+import {
+  EVIDENCE_CONFIDENCE_THRESHOLDS,
+  getDisplayGradeFromScore,
+  getDisplayLabelFromScore,
+} from '@/lib/destiny-map/calendar/scoring-config'
 
 type EventCategory = 'wealth' | 'career' | 'love' | 'health' | 'travel' | 'study' | 'general'
 type ImportanceGrade = 0 | 1 | 2 | 3 | 4
@@ -14,6 +19,9 @@ interface ImportantDate {
   date: string
   grade: ImportanceGrade
   score: number
+  rawScore?: number
+  adjustedScore?: number
+  displayScore?: number
   categories: EventCategory[]
   title: string
   description: string
@@ -39,6 +47,7 @@ interface ImportantDate {
       bridges?: string[]
     }
     confidence: number
+    crossAgreementPercent?: number
     source: 'rule' | 'rag' | 'hybrid'
   }
   ganzhi?: string
@@ -186,8 +195,8 @@ function getDomainLabel(
 
 function getReliabilityBand(confidence: number | undefined): 'low' | 'medium' | 'high' {
   if (typeof confidence !== 'number') return 'medium'
-  if (confidence < 45) return 'low'
-  if (confidence < 70) return 'medium'
+  if (confidence < EVIDENCE_CONFIDENCE_THRESHOLDS.low) return 'low'
+  if (confidence < EVIDENCE_CONFIDENCE_THRESHOLDS.medium) return 'medium'
   return 'high'
 }
 
@@ -201,19 +210,6 @@ function getReliabilityLabel(confidence: number | undefined, locale: 'ko' | 'en'
   if (band === 'high') return 'High'
   if (band === 'medium') return 'Medium'
   return 'Low'
-}
-
-function getUnifiedDayLabel(
-  score: number,
-  confidence: number | undefined,
-  locale: 'ko' | 'en'
-): string {
-  const band = getReliabilityBand(confidence)
-  if (band === 'low' && score >= 70) return locale === 'ko' ? '해석 갈림' : 'Mixed signals'
-  if (score >= 85) return locale === 'ko' ? '최고' : 'Excellent'
-  if (score >= 70) return locale === 'ko' ? '좋음' : 'Good'
-  if (score >= 50) return locale === 'ko' ? '무난' : 'Neutral'
-  return locale === 'ko' ? '주의' : 'Caution'
 }
 
 function softenDecisionTone(value: string, locale: 'ko' | 'en'): string {
@@ -319,6 +315,8 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         ? '\uC77C\uC8FC (\uC624\uB298\uC758 \uD575\uC2EC \uAE30\uC6B4)'
         : 'Day Pillar (today core energy)',
   }
+  const displayScore = selectedDate?.displayScore ?? selectedDate?.score ?? 0
+  const displayGrade = getDisplayGradeFromScore(displayScore)
 
   const handleAddToCalendar = useCallback(async () => {
     if (!selectedDate || !selectedDay) return
@@ -345,7 +343,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         locale === 'ko' ? '오늘 흐름 요약' : 'Daily flow summary'
       ),
       categories ? `${locale === 'ko' ? '카테고리' : 'Categories'}: ${categories}` : '',
-      `${locale === 'ko' ? '점수' : 'Score'}: ${selectedDate.score}/100`,
+      `${locale === 'ko' ? '점수' : 'Score'}: ${displayScore}/100`,
     ]
 
     if (selectedDate.recommendations.length > 0) {
@@ -450,12 +448,12 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     }
 
     window.open(googleUrl, '_blank', 'noopener,noreferrer')
-  }, [selectedDate, selectedDay, locale, categoryLabels])
+  }, [selectedDate, selectedDay, locale, categoryLabels, displayScore])
 
   if (!selectedDay) return null
 
   const resolvedPeakLevel = selectedDate
-    ? resolvePeakLevel(selectedDate.evidence?.matrix?.peakLevel, selectedDate.score)
+    ? resolvePeakLevel(selectedDate.evidence?.matrix?.peakLevel, displayScore)
     : null
 
   const mergedTimingNarrative = (() => {
@@ -529,9 +527,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     .map((line) => toUserFacingEvidenceLine(line, 'bridge', locale))
     .filter(Boolean)
 
-  const unifiedDayLabel = selectedDate
-    ? getUnifiedDayLabel(selectedDate.score, selectedDate.evidence?.confidence, locale)
-    : ''
+  const unifiedDayLabel = selectedDate ? getDisplayLabelFromScore(displayScore, locale) : ''
   const reliabilityLabel = selectedDate
     ? getReliabilityLabel(selectedDate.evidence?.confidence, locale)
     : ''
@@ -543,8 +539,8 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
   const evidenceSummaryPrimary = selectedDate?.evidence
     ? locale === 'ko'
-      ? `오늘 등급 ${unifiedDayLabel} · 점수 ${selectedDate.score}/100 · 핵심 분야 ${domainLabel}`
-      : `Today rating ${unifiedDayLabel} · Score ${selectedDate.score}/100 · Focus ${domainLabel}`
+      ? `오늘 등급 ${unifiedDayLabel} · 점수 ${displayScore}/100 · 핵심 분야 ${domainLabel}`
+      : `Today rating ${unifiedDayLabel} · Score ${displayScore}/100 · Focus ${domainLabel}`
     : ''
 
   const sajuCrossLine =
@@ -570,13 +566,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   const quickThesis = (() => {
     if (!selectedDate) return ''
     if (locale === 'ko') {
-      if (unifiedDayLabel === '해석 갈림') {
-        return `${domainLabel} 중심 신호가 엇갈립니다. 큰 결정은 재확인 후 진행하세요.`
-      }
       return `${domainLabel} 흐름은 ${unifiedDayLabel}이고, 말·약속은 한 번 더 확인하는 편이 좋습니다.`
-    }
-    if (unifiedDayLabel === 'Mixed signals') {
-      return `Signals around ${domainLabel} are mixed. Recheck major decisions before acting.`
     }
     return `Flow is ${unifiedDayLabel.toLowerCase()} for ${domainLabel}; verify communication and commitments once more.`
   })()
@@ -622,7 +612,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
         <div className={styles.headerActions}>
           {selectedDate && (
-            <span className={styles.selectedGrade}>{getGradeEmoji(selectedDate.grade)}</span>
+            <span className={styles.selectedGrade}>{getGradeEmoji(displayGrade)}</span>
           )}
 
           {status === 'authenticated' && selectedDate && (
@@ -761,8 +751,8 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                     {evidenceBridgeSummary && <li>{evidenceBridgeSummary}</li>}
                     <li>
                       {locale === 'ko'
-                        ? `교차 일치도(참고): ${selectedDate.evidence.confidence}%`
-                        : `Cross-match reference: ${selectedDate.evidence.confidence}%`}
+                        ? `교차 일치도(참고): ${selectedDate.evidence.crossAgreementPercent ?? selectedDate.evidence.confidence}%`
+                        : `Cross-agreement (reference): ${selectedDate.evidence.crossAgreementPercent ?? selectedDate.evidence.confidence}%`}
                     </li>
                   </ul>
                 )}
@@ -795,12 +785,12 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           <div className={styles.scoreWrapper}>
             <div className={styles.scoreBar}>
               <div
-                className={`${styles.scoreFill} ${getScoreClass(selectedDate.score)}`}
-                style={{ width: `${selectedDate.score}%` }}
+                className={`${styles.scoreFill} ${getScoreClass(displayScore)}`}
+                style={{ width: `${displayScore}%` }}
               />
             </div>
             <span className={styles.scoreText}>
-              {locale === 'ko' ? '점수' : 'Score'}: {selectedDate.score}/100
+              {locale === 'ko' ? '점수' : 'Score'}: {displayScore}/100
             </span>
           </div>
 
