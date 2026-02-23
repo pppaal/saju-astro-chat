@@ -215,7 +215,10 @@ export function useDetailModal(): UseDetailModalReturn {
             setCompatibilityDetail(payload.result)
           }
         }
-      } else if (record.service === 'destiny-matrix' && record.type === 'destiny-matrix-report') {
+      } else if (
+        (record.service === 'destiny-matrix' || record.service === 'premium-reports') &&
+        record.type === 'destiny-matrix-report'
+      ) {
         const res = await fetch(`/api/destiny-matrix/save?id=${record.id}`)
         if (res.ok) {
           const payload = unwrapResponse<{ result?: DestinyMatrixContent }>(await res.json())

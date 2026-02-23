@@ -12,6 +12,7 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
+import { createErrorResponse } from '@/lib/api/errorHandler'
 import { idParamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { summarizeGraphRAGEvidence } from '@/lib/destiny-matrix/ai-report'
 
@@ -219,10 +220,26 @@ export async function GET(request: Request, routeContext: RouteContext) {
               ownerUserId: reportOwner.userId,
               reportCreatedAt: reportOwner.createdAt.toISOString(),
             })
-            return apiError(ErrorCodes.FORBIDDEN, '리포트 접근 권한이 없습니다.')
+            return createErrorResponse({
+              code: ErrorCodes.FORBIDDEN,
+              message: '리포트 접근 권한이 없습니다.',
+              locale: context.locale,
+              route: '/api/reports/[id]',
+              headers: {
+                'X-Report-Fetch-Reason': 'owner-mismatch',
+              },
+            })
           }
 
-          return apiError(ErrorCodes.NOT_FOUND, '리포트를 찾을 수 없습니다.')
+          return createErrorResponse({
+            code: ErrorCodes.NOT_FOUND,
+            message: '리포트를 찾을 수 없습니다.',
+            locale: context.locale,
+            route: '/api/reports/[id]',
+            headers: {
+              'X-Report-Fetch-Reason': 'not-found',
+            },
+          })
         }
 
         const reportData = report.reportData as Record<string, unknown>
@@ -270,7 +287,15 @@ export async function GET(request: Request, routeContext: RouteContext) {
         })
       } catch (error) {
         logger.error('Report Fetch Error:', error)
-        return apiError(ErrorCodes.DATABASE_ERROR, '리포트 조회 중 오류가 발생했습니다.')
+        return createErrorResponse({
+          code: ErrorCodes.DATABASE_ERROR,
+          message: '리포트 조회 중 오류가 발생했습니다.',
+          locale: context.locale,
+          route: '/api/reports/[id]',
+          headers: {
+            'X-Report-Fetch-Reason': 'db-error',
+          },
+        })
       }
     },
     createAuthenticatedGuard({

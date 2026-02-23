@@ -4,20 +4,20 @@
  * Displays filtered list of service records grouped by date
  */
 
-import React from 'react';
-import { EmptyState } from '@/components/ui/EmptyState';
-import type { DailyHistory, ServiceRecord } from '../lib';
-import { SERVICE_CONFIG, INITIAL_DISPLAY_COUNT, formatDate } from '../lib';
-import styles from '../history.module.css';
+import React from 'react'
+import { EmptyState } from '@/components/ui/EmptyState'
+import type { DailyHistory, ServiceRecord } from '../lib'
+import { SERVICE_CONFIG, INITIAL_DISPLAY_COUNT, formatDate } from '../lib'
+import styles from '../history.module.css'
 
 export interface RecordsListProps {
-  filteredHistory: DailyHistory[];
-  filteredRecordsCount: number;
-  showAllRecords: boolean;
-  onToggleShowAll: () => void;
-  onRecordClick: (record: ServiceRecord) => void;
-  onBackClick: () => void;
-  translate: (key: string) => string;
+  filteredHistory: DailyHistory[]
+  filteredRecordsCount: number
+  showAllRecords: boolean
+  onToggleShowAll: () => void
+  onRecordClick: (record: ServiceRecord) => void
+  onBackClick: () => void
+  translate: (key: string) => string
 }
 
 export function RecordsList({
@@ -40,45 +40,50 @@ export function RecordsList({
           onClick: onBackClick,
         }}
       />
-    );
+    )
   }
 
   // Limit displayed history based on showAllRecords
   const displayedHistory = showAllRecords
     ? filteredHistory
     : (() => {
-        let count = 0;
-        const limited: DailyHistory[] = [];
+        let count = 0
+        const limited: DailyHistory[] = []
         for (const day of filteredHistory) {
-          if (count >= INITIAL_DISPLAY_COUNT) {break;}
-          const remaining = INITIAL_DISPLAY_COUNT - count;
+          if (count >= INITIAL_DISPLAY_COUNT) {
+            break
+          }
+          const remaining = INITIAL_DISPLAY_COUNT - count
           if (day.records.length <= remaining) {
-            limited.push(day);
-            count += day.records.length;
+            limited.push(day)
+            count += day.records.length
           } else {
-            limited.push({ ...day, records: day.records.slice(0, remaining) });
-            count += remaining;
+            limited.push({ ...day, records: day.records.slice(0, remaining) })
+            count += remaining
           }
         }
-        return limited;
-      })();
+        return limited
+      })()
 
   const isRecordClickable = (record: ServiceRecord): boolean => {
     return (
       (record.service === 'iching' && record.type === 'reading') ||
-      (record.service === 'tarot' && (record.type === 'reading' || record.type === 'tarot-reading')) ||
+      (record.service === 'tarot' &&
+        (record.type === 'reading' || record.type === 'tarot-reading')) ||
       (record.service === 'destiny-map' && record.type === 'consultation') ||
       (record.service === 'destiny-calendar' && record.type === 'calendar') ||
       (record.service === 'personality-icp' && record.type === 'icp-result') ||
-      (record.service === 'personality-compatibility' && record.type === 'compatibility-result') ||
-      (record.service === 'destiny-matrix' && record.type === 'destiny-matrix-report')
-    );
-  };
+      ((record.service === 'personality-compatibility' || record.service === 'compatibility') &&
+        record.type === 'compatibility-result') ||
+      ((record.service === 'destiny-matrix' || record.service === 'premium-reports') &&
+        record.type === 'destiny-matrix-report')
+    )
+  }
 
   const getServiceTitle = (service: string): string => {
-    const titleKey = SERVICE_CONFIG[service]?.titleKey;
+    const titleKey = SERVICE_CONFIG[service]?.titleKey
     if (titleKey) {
-      return translate(titleKey);
+      return translate(titleKey)
     }
     // Convert camelCase or kebab-case to Title Case
     return service
@@ -86,8 +91,8 @@ export function RecordsList({
       .split(/[-\s]/)
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ')
-      .trim();
-  };
+      .trim()
+  }
 
   return (
     <div className={styles.recordsSection}>
@@ -100,7 +105,7 @@ export function RecordsList({
             </div>
             <div className={styles.dayRecords}>
               {day.records.map((record) => {
-                const isClickable = isRecordClickable(record);
+                const isClickable = isRecordClickable(record)
                 return (
                   <div
                     key={record.id}
@@ -117,16 +122,20 @@ export function RecordsList({
                     </span>
                     <div className={styles.recordContent}>
                       <div className={styles.recordTitle}>
-                        <span className={styles.serviceName}>{getServiceTitle(record.service)}</span>
+                        <span className={styles.serviceName}>
+                          {getServiceTitle(record.service)}
+                        </span>
                         {isClickable && (
-                          <span className={styles.viewDetail}>{translate('history.viewDetail')}</span>
+                          <span className={styles.viewDetail}>
+                            {translate('history.viewDetail')}
+                          </span>
                         )}
                       </div>
                       {record.summary && <p className={styles.recordSummary}>{record.summary}</p>}
                     </div>
                     <span className={styles.recordArrow}>→</span>
                   </div>
-                );
+                )
               })}
             </div>
           </div>
@@ -143,5 +152,5 @@ export function RecordsList({
         </button>
       )}
     </div>
-  );
+  )
 }
