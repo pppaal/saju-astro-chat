@@ -120,7 +120,7 @@ export const PersonCard = React.memo<PersonCardProps>(
               onClick={loadMyProfile}
               disabled={profileLoading}
             >
-              {profileLoading ? '...' : '👤'} {t('compatibilityPage.loadMyProfile', 'My Profile')}
+              {profileLoading ? '...' : '\u{1F464}'} {t('compatibilityPage.loadMyProfile', 'My Profile')}
             </button>
             {circlePeople.length > 0 && (
               <CircleDropdown
@@ -158,7 +158,7 @@ export const PersonCard = React.memo<PersonCardProps>(
           circleImportButton={headerButton}
         />
 
-        {/* 빠른/상세 모드 토글 */}
+        {/* Quick / detailed mode toggle */}
         <div className={styles.modeToggle}>
           <button
             type="button"
@@ -170,7 +170,7 @@ export const PersonCard = React.memo<PersonCardProps>(
                 : t('compatibilityPage.switchToDetailedMode', 'Switch to Detailed Mode')
             }
           >
-            <span className={styles.modeToggleIcon}>{isDetailedMode ? '⚡' : '📋'}</span>
+            <span className={styles.modeToggleIcon}>{isDetailedMode ? '\u26A1' : '\u{1F4CB}'}</span>
             <span className={styles.modeToggleText}>
               {isDetailedMode
                 ? t('compatibilityPage.detailedMode', 'Detailed Mode')
@@ -187,7 +187,7 @@ export const PersonCard = React.memo<PersonCardProps>(
           </p>
         </div>
         <div className={styles.grid}>
-          {/* 필수 필드: 이름, 생년월일 (항상 표시) */}
+          {/* Required fields: name, date of birth (always shown) */}
           <div>
             <label htmlFor={`name-${idx}`} className={styles.label}>
               {t('compatibilityPage.name', 'Name')}
@@ -212,7 +212,7 @@ export const PersonCard = React.memo<PersonCardProps>(
             />
           </div>
 
-          {/* 상세 필드: 시간, 도시, 타임존 (상세 모드에만 표시) */}
+          {/* Detailed fields: time, city, timezone (only in detailed mode) */}
           {isDetailedMode && (
             <>
               <div>

@@ -131,6 +131,11 @@ function mapRelationKindToBranchRelation(kind: string): BranchRelation | null {
     지지파: 'pa',
     지지해: 'hae',
     원진: 'wonjin',
+    // Fallback mappings for stem-level and void relations.
+    // This avoids dropping signals when mixed relation feeds are provided.
+    천간합: 'yukhap',
+    천간충: 'chung',
+    공망: 'hae',
   }
   return mapping[kind] || null
 }

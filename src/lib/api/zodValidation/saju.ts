@@ -284,6 +284,37 @@ export type DestinyMatrixSaveRequestValidated = z.infer<typeof destinyMatrixSave
 // Re-export for backwards compatibility
 export { fiveElementSchema } from './domains/saju-domain'
 
+const destinyMatrixAspectDirectSchema = z.object({
+  planet1: z.string().max(30),
+  planet2: z.string().max(30),
+  type: z.string().max(30),
+  angle: z.number().min(0).max(360).optional(),
+  orb: z.number().min(0).max(20).optional(),
+})
+
+const destinyMatrixAspectSchema = z.union([aspectHitSchema, destinyMatrixAspectDirectSchema])
+
+const destinyMatrixTransitCycleSchema = z.union([
+  z.string().max(40),
+  z.object({
+    type: z.string().max(40).optional(),
+    transitPlanet: z.string().max(30).optional(),
+    natalPlanet: z.string().max(30).optional(),
+    aspectType: z.string().max(30).optional(),
+  }),
+  transitAspectSchema,
+])
+
+const destinyMatrixRelationSchema = z.union([
+  z.string().max(50),
+  z.object({
+    kind: z.string().max(50),
+    pillars: z.array(z.string().max(20)).optional(),
+    detail: z.string().max(200).optional(),
+    note: z.string().max(500).optional(),
+  }),
+])
+
 export const destinyMatrixCalculationSchema = z
   .object({
     birthDate: dateSchema.optional(),
@@ -294,7 +325,7 @@ export const destinyMatrixCalculationSchema = z
     pillarElements: z.array(fiveElementSchema).optional(),
     sibsinDistribution: sibsinDistributionSchema.optional(),
     twelveStages: twelveStagesRecordSchema.optional(),
-    relations: z.array(z.string().max(50)).optional(),
+    relations: z.array(destinyMatrixRelationSchema).optional(),
     geokguk: z.string().max(100).optional(),
     yongsin: z.array(fiveElementSchema).optional(),
     currentDaeunElement: fiveElementSchema.optional(),
@@ -303,8 +334,8 @@ export const destinyMatrixCalculationSchema = z
     dominantWesternElement: z.enum(['fire', 'earth', 'air', 'water']).optional(),
     planetHouses: planetHousesSchema.optional(),
     planetSigns: planetSignsSchema.optional(),
-    aspects: z.array(aspectHitSchema).optional(),
-    activeTransits: z.array(transitAspectSchema).optional(),
+    aspects: z.array(destinyMatrixAspectSchema).optional(),
+    activeTransits: z.array(destinyMatrixTransitCycleSchema).optional(),
     asteroidHouses: planetHousesSchema.optional(),
     extraPointSigns: planetSignsSchema.optional(),
     lang: z.enum(['ko', 'en']).optional(),

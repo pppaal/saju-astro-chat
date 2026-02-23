@@ -127,7 +127,7 @@ export default function CompatPage() {
 
   return (
     <ServicePageLayout
-      icon="💕"
+      icon={'\u{1F495}'}
       title={t('compatibilityPage.analysisTitle', 'Compatibility Analysis')}
       subtitle={t(
         'compatibilityPage.analysisSubtitle',
@@ -150,7 +150,7 @@ export default function CompatPage() {
                 animationDuration: `${6 + (i % 4)}s`,
               }}
             >
-              💖
+              {'\u{1F496}'}
             </div>
           ))}
         </div>
@@ -165,7 +165,7 @@ export default function CompatPage() {
         {!showTabs && !resultText && (
           <div className={`${styles.formContainer} ${styles.fadeIn}`}>
             <div className={styles.formHeader}>
-              <div className={styles.formIcon}>💕</div>
+              <div className={styles.formIcon}>{'\u{1F495}'}</div>
               <h1 className={styles.formTitle}>
                 {t('compatibilityPage.title', 'Relationship Compatibility')}
               </h1>
@@ -189,16 +189,16 @@ export default function CompatPage() {
                   className="w-full mb-5 p-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700
                     text-white rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
-                  <span>{loadingProfileBtn ? '⏳' : '👤'}</span>
+                  <span>{loadingProfileBtn ? '\u23F3' : '\u{1F464}'}</span>
                   <span>
                     {loadingProfileBtn
                       ? t(
                           'compatibilityPage.loadingProfile',
-                          locale === 'ko' ? '불러오는 중...' : 'Loading...'
+                          'Loading...'
                         )
                       : t(
                           'compatibilityPage.loadMyProfile',
-                          locale === 'ko' ? '내 프로필 불러오기' : 'Load My Profile'
+                          'Load My Profile'
                         )}
                   </span>
                 </button>
@@ -207,10 +207,10 @@ export default function CompatPage() {
               {/* Profile loaded success message */}
               {profileLoadedMsg && (
                 <div className="mb-5 p-3 bg-green-600/20 border border-green-600 rounded-lg text-green-400 text-center">
-                  ✓{' '}
+                  {'\u2713'}{' '}
                   {t(
                     'compatibilityPage.profileLoaded',
-                    locale === 'ko' ? '프로필 불러오기 완료!' : 'Profile loaded!'
+                    'Profile loaded!'
                   )}
                 </div>
               )}
@@ -218,27 +218,27 @@ export default function CompatPage() {
               {/* Profile load error */}
               {profileLoadError && (
                 <div className="mb-5 p-3 bg-red-600/20 border border-red-600 rounded-lg text-red-400 text-sm">
-                  ⚠️ {profileLoadError}
+                  {'\u26A0\uFE0F'} {profileLoadError}
                 </div>
               )}
 
               {/* Circle load error */}
               {circleError && (
                 <div className="mb-5 p-3 bg-red-600/20 border border-red-600 rounded-lg text-red-400 text-sm">
-                  ⚠️ {circleError}
+                  {'\u26A0\uFE0F'} {circleError}
                 </div>
               )}
 
               {/* Count Selector */}
               <div className={styles.countSelector}>
                 <label htmlFor="count" className={styles.countLabel}>
-                  {t('compatibilityPage.numberOfPeople', 'Number of People (2-5)')}
+                  {t('compatibilityPage.numberOfPeople', 'Number of People (2-4)')}
                 </label>
                 <input
                   id="count"
                   type="number"
                   min={2}
-                  max={5}
+                  max={4}
                   value={count}
                   onChange={(e) => setCount(Number(e.target.value))}
                   className={styles.countInput}
@@ -281,7 +281,7 @@ export default function CompatPage() {
           <div className={`${styles.resultsContainer} ${styles.fadeIn}`}>
             {/* Result Header */}
             <div className={styles.resultHeader}>
-              <div className={styles.resultIcon}>💕</div>
+              <div className={styles.resultIcon}>{'\u{1F495}'}</div>
               <h1 className={styles.resultTitle}>
                 {t('compatibilityPage.resultTitle', 'Compatibility Analysis')}
               </h1>
@@ -320,7 +320,7 @@ export default function CompatPage() {
                 <div className={styles.resultCard}>
                   <div className={styles.resultCardGlow} />
                   <div className={styles.resultCardHeader}>
-                    <span className={styles.resultCardIcon}>💪</span>
+                    <span className={styles.resultCardIcon}>{'\u{1F4AA}'}</span>
                     <h3 className={styles.resultCardTitle}>
                       {t('compatibilityPage.growthActions', 'Growth Actions')}
                     </h3>

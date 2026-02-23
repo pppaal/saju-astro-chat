@@ -183,8 +183,8 @@ export const AspectTypeSchema = z.enum([
   'sextile',
   'quincunx',
   'semisextile',
-  'semisquare',
-  'sesquiquadrate',
+  'quintile',
+  'biquintile',
 ])
 
 export const InsightDomainSchema = z.enum([

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { allExtensions } from '@/lib/i18n/extensions'
+import { repairMojibakeText } from '@/lib/text/mojibake'
 
 type Locale = 'en' | 'ko'
 type DictValue = Record<string, unknown>
@@ -137,6 +138,13 @@ const isRawKeyLeak = (value: string, path: string) => {
   return value === path || value === leaf
 }
 
+const normalizeTranslationText = (value: string) => {
+  if (!value) {
+    return value
+  }
+  return repairMojibakeText(value).trim()
+}
+
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocale] = useState<Locale>('en')
   const [hydrated, setHydrated] = useState(false)
@@ -211,48 +219,67 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       return cur
     }
 
-    const isLikelyCorrupted = (value: string) =>
-      /[\u0400-\u04FF]/.test(value) || value.includes('�')
+    const isLikelyCorrupted = (value: string) => {
+      if (!value) {
+        return true
+      }
+      if (/[^\u0009\u000A\u000D\u0020-\u007E\u00A0-\uD7FF\uE000-\uFFFD]/.test(value)) {
+        return true
+      }
+      if (/[\u0400-\u04FF]/.test(value) || value.includes('\uFFFD')) {
+        return true
+      }
+      const suspiciousMatches = value.match(/[\u00C3\u00C2\u00E2\u00EC\u00EB\u00EA\u00ED\u00F0]/g) || []
+      if (suspiciousMatches.length >= 3) {
+        return true
+      }
+      return suspiciousMatches.length / Math.max(1, value.length) > 0.15
+    }
 
     return (path: string, fallback?: string) => {
       const currentDict = dictsCache[locale]
       if (!currentDict) {
-        return fallback || toSafeFallbackText(path)
+        if (fallback) {
+          return normalizeTranslationText(fallback)
+        }
+        return toSafeFallbackText(path)
       }
 
       const got = getter(currentDict, path)
       if (typeof got === 'string') {
-        if (isRawKeyLeak(got, path)) {
+        const normalizedGot = normalizeTranslationText(got)
+        if (isRawKeyLeak(normalizedGot, path)) {
           const fb = getter(dictsCache.en, path)
           if (typeof fb === 'string' && !isRawKeyLeak(fb, path)) {
-            return fb
+            return normalizeTranslationText(fb)
           }
           if (fallback) {
-            return fallback
+            return normalizeTranslationText(fallback)
           }
           return toSafeFallbackText(path)
         }
-        // Some locale files were corrupted (Cyrillic/�). If detected, fall back to English.
-        if (locale === 'ko' && isLikelyCorrupted(got)) {
+
+        if (locale === 'ko' && isLikelyCorrupted(normalizedGot)) {
           const fb = getter(dictsCache.en, path)
           if (typeof fb === 'string') {
-            return fb
+            return normalizeTranslationText(fb)
           }
           if (fallback) {
-            return fallback
+            return normalizeTranslationText(fallback)
           }
           return toSafeFallbackText(path)
         }
-        return got
+
+        return normalizedGot
       }
 
       const fb = getter(dictsCache.en, path)
       if (typeof fb === 'string') {
-        return fb
+        return normalizeTranslationText(fb)
       }
 
       if (fallback) {
-        return fallback
+        return normalizeTranslationText(fallback)
       }
 
       return toSafeFallbackText(path)
@@ -282,3 +309,4 @@ export function useI18n() {
   }
   return ctx
 }
+

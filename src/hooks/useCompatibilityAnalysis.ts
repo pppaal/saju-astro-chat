@@ -13,6 +13,22 @@ interface CompatibilityResult {
   error?: string;
 }
 
+const QUICK_MODE_DEFAULTS = {
+  time: '12:00',
+  city: 'Seoul, KR',
+  latitude: 37.5665,
+  longitude: 126.978,
+  timeZone: 'Asia/Seoul',
+} as const
+
+const getQuickModeTimezone = () => {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || QUICK_MODE_DEFAULTS.timeZone
+  } catch {
+    return QUICK_MODE_DEFAULTS.timeZone
+  }
+}
+
 export function useCompatibilityAnalysis() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,11 +44,13 @@ export function useCompatibilityAnalysis() {
     if (count < 2 || count > 4) {return t('compatibilityPage.errorAddPeople', 'Add between 2 and 4 people.');}
     for (let i = 0; i < persons.length; i++) {
       const p = persons[i];
-      if (!p.date || !p.time) {return `${i + 1}: ${t('compatibilityPage.errorDateTimeRequired', 'date and time are required.')}`;}
-      if (p.lat == null || p.lon == null) {return `${i + 1}: ${t('compatibilityPage.errorSelectCity', 'select a city from suggestions.')}`;}
-      if (!p.timeZone) {return `${i + 1}: ${t('compatibilityPage.errorTimezoneRequired', 'timezone is required.')}`;}
-      if (i > 0 && !p.relation) {return `${i + 1}: ${t('compatibilityPage.errorRelationRequired', 'relation to Person 1 is required.')}`;}
-      if (i > 0 && p.relation === 'other' && !p.relationNote?.trim()) {
+      const isDetailedMode = Boolean(p.isDetailedMode);
+      if (!p.date) {return `${i + 1}: ${t('compatibilityPage.errorDateTimeRequired', 'date and time are required.')}`;}
+      if (isDetailedMode && !p.time) {return `${i + 1}: ${t('compatibilityPage.errorDateTimeRequired', 'date and time are required.')}`;}
+      if (isDetailedMode && (p.lat == null || p.lon == null)) {return `${i + 1}: ${t('compatibilityPage.errorSelectCity', 'select a city from suggestions.')}`;}
+      if (isDetailedMode && !p.timeZone) {return `${i + 1}: ${t('compatibilityPage.errorTimezoneRequired', 'timezone is required.')}`;}
+      if (i > 0 && isDetailedMode && !p.relation) {return `${i + 1}: ${t('compatibilityPage.errorRelationRequired', 'relation to Person 1 is required.')}`;}
+      if (i > 0 && isDetailedMode && p.relation === 'other' && !p.relationNote?.trim()) {
         return `${i + 1}: ${t('compatibilityPage.errorOtherNote', "add a note for relation 'other'.")}`;
       }
     }
@@ -49,12 +67,12 @@ export function useCompatibilityAnalysis() {
         persons: persons.map((p, idx) => ({
           name: p.name || `Person ${idx + 1}`,
           date: p.date,
-          time: p.time,
-          city: p.cityQuery,
-          latitude: p.lat,
-          longitude: p.lon,
-          timeZone: p.timeZone,
-          relationToP1: idx === 0 ? undefined : p.relation,
+          time: p.time || QUICK_MODE_DEFAULTS.time,
+          city: p.cityQuery || QUICK_MODE_DEFAULTS.city,
+          latitude: p.lat ?? QUICK_MODE_DEFAULTS.latitude,
+          longitude: p.lon ?? QUICK_MODE_DEFAULTS.longitude,
+          timeZone: p.timeZone || getQuickModeTimezone(),
+          relationToP1: idx === 0 ? undefined : (p.relation || 'friend'),
           relationNoteToP1: idx === 0 ? undefined : p.relationNote,
         })),
       };

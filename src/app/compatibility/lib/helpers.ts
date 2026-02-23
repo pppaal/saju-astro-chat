@@ -3,9 +3,9 @@
  * Extracted from page.tsx for modularity
  */
 
-import { getUserTimezone } from '@/lib/Saju/timezone';
-import type { PersonForm, ParsedSection } from './types';
-import { sectionPatterns } from './constants';
+import { getUserTimezone } from '@/lib/Saju/timezone'
+import type { PersonForm, ParsedSection } from './types'
+import { sectionPatterns } from './constants'
 
 /**
  * Create an empty person form with optional defaults
@@ -21,20 +21,20 @@ export const makeEmptyPerson = (defaults?: Partial<PersonForm>): PersonForm => (
   suggestions: [],
   showDropdown: false,
   ...(defaults || {}),
-});
+})
 
 /**
  * Parse result text into sections for beautiful display
  */
 export function parseResultSections(text: string): ParsedSection[] {
-  const sections: ParsedSection[] = [];
+  const sections: ParsedSection[] = []
 
   // Split by common section markers
-  const lines = text.split('\n');
-  let currentSection: { title: string; icon: string; content: string[] } | null = null;
+  const lines = text.split('\n')
+  let currentSection: { title: string; icon: string; content: string[] } | null = null
 
   for (const line of lines) {
-    let foundSection = false;
+    let foundSection = false
 
     for (const { pattern, icon, title } of sectionPatterns) {
       if (pattern.test(line)) {
@@ -43,11 +43,11 @@ export function parseResultSections(text: string): ParsedSection[] {
             title: currentSection.title,
             icon: currentSection.icon,
             content: currentSection.content.join('\n').trim(),
-          });
+          })
         }
-        currentSection = { title, icon, content: [] };
-        foundSection = true;
-        break;
+        currentSection = { title, icon, content: [] }
+        foundSection = true
+        break
       }
     }
 
@@ -58,18 +58,18 @@ export function parseResultSections(text: string): ParsedSection[] {
           title: currentSection.title,
           icon: currentSection.icon,
           content: currentSection.content.join('\n').trim(),
-        });
+        })
       }
-      const headingText = line.replace(/^#+\s*/, '').trim();
-      currentSection = { title: headingText, icon: '✨', content: [] };
+      const headingText = line.replace(/^#+\s*/, '').trim()
+      currentSection = { title: headingText, icon: '\u2728', content: [] }
     } else if (currentSection) {
-      currentSection.content.push(line);
+      currentSection.content.push(line)
     } else if (line.trim()) {
       // Content before any section header
       if (!currentSection) {
-        currentSection = { title: 'Overview', icon: '💫', content: [] };
+        currentSection = { title: 'Overview', icon: '\u{1F4AB}', content: [] }
       }
-      currentSection.content.push(line);
+      currentSection.content.push(line)
     }
   }
 
@@ -79,10 +79,10 @@ export function parseResultSections(text: string): ParsedSection[] {
       title: currentSection.title,
       icon: currentSection.icon,
       content: currentSection.content.join('\n').trim(),
-    });
+    })
   }
 
-  return sections;
+  return sections
 }
 
 /**
@@ -90,17 +90,19 @@ export function parseResultSections(text: string): ParsedSection[] {
  */
 export function extractScore(text: string): number | null {
   const patterns = [
-    /(\d{1,3})(?:\s*)?(?:%|점|\/100|out of 100)/i,
-    /(?:score|점수|compatibility|궁합)[\s:]*(\d{1,3})/i,
-    /(\d{1,3})(?:\s*)?(?:percent|퍼센트)/i,
-  ];
+    /(\d{1,3})(?:\s*)?(?:%|\uC810|\/100|out of 100)/i,
+    /(?:score|\uC810\uC218|compatibility|\uAD81\uD569)[\s:]*(\d{1,3})/i,
+    /(\d{1,3})(?:\s*)?(?:percent|\uD37C\uC13C\uD2B8)/i,
+  ]
 
   for (const pattern of patterns) {
-    const match = text.match(pattern);
+    const match = text.match(pattern)
     if (match) {
-      const score = parseInt(match[1], 10);
-      if (score >= 0 && score <= 100) {return score;}
+      const score = Number.parseInt(match[1], 10)
+      if (score >= 0 && score <= 100) {
+        return score
+      }
     }
   }
-  return null;
+  return null
 }

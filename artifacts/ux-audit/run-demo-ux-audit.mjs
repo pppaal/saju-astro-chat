@@ -83,4 +83,4 @@ try {
 }
 
 await fs.writeFile('artifacts/ux-audit/demo-ux-audit.json', JSON.stringify({ generatedAt: new Date().toISOString(), results }, null, 2), 'utf8');
-console.log(JSON.stringify({ results }, null, 2));
+process.stdout.write(`${JSON.stringify({ results }, null, 2)}\n`);

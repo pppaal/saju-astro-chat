@@ -14,6 +14,7 @@ import {
   GeokgukTypeSchema,
   ShinsalKindSchema,
   TransitCycleSchema,
+  AspectTypeSchema,
   MatrixCalculationInputSchema,
 } from '@/lib/destiny-matrix/validation';
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types';
@@ -149,6 +150,25 @@ describe('TransitCycleSchema', () => {
 
   it('rejects invalid transit', () => {
     expect(() => TransitCycleSchema.parse('invalid')).toThrow();
+  });
+});
+
+describe('AspectTypeSchema', () => {
+  it('accepts shared foundation aspect types', () => {
+    const aspects = [
+      'conjunction',
+      'sextile',
+      'square',
+      'trine',
+      'opposition',
+      'semisextile',
+      'quincunx',
+      'quintile',
+      'biquintile',
+    ];
+    aspects.forEach((aspect) => {
+      expect(() => AspectTypeSchema.parse(aspect)).not.toThrow();
+    });
   });
 });
 

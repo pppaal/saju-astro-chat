@@ -28,18 +28,21 @@ export function useMyCircle(status: 'authenticated' | 'loading' | 'unauthenticat
           const data = await res.json()
           setCirclePeople(data.people || [])
         } else {
-          setCircleError('Failed to load circle')
-          logger.error('Failed to load circle: HTTP', res.status)
+          setCirclePeople([])
+          // Circle is optional; avoid surfacing noisy errors in UI.
+          setCircleError(null)
+          logger.warn('Failed to load circle: HTTP', res.status)
         }
       } catch (e) {
         // Ignore abort errors - they're expected when component unmounts
         if (e instanceof Error && e.name === 'AbortError') {
           return
         }
-        logger.error('Failed to load circle:', {
+        logger.warn('Failed to load circle:', {
           error: e instanceof Error ? e.message : String(e),
         })
-        setCircleError('Failed to load circle')
+        setCirclePeople([])
+        setCircleError(null)
       }
     }
 

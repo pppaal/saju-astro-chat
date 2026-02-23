@@ -137,6 +137,21 @@ describe("calculateDestinyMatrix", () => {
     expect(Object.keys(result.layer5_relationAspect).length).toBeGreaterThan(0);
   });
 
+  it("maps stem and gongmang relations into layer5 instead of dropping", () => {
+    const input: MatrixCalculationInput = {
+      ...createMinimalInput(),
+      relations: [
+        { kind: "???", detail: "??" },
+        { kind: "???", detail: "??" },
+        { kind: "??", detail: "??" },
+      ],
+      aspects: [{ planet1: "Sun", planet2: "Moon", type: "conjunction" }],
+    };
+    const result = calculateDestinyMatrix(input);
+
+    expect(Object.keys(result.layer5_relationAspect).length).toBeGreaterThan(0);
+  });
+
   it("calculates layer6 from twelve stages and houses", () => {
     const input: MatrixCalculationInput = {
       ...createMinimalInput(),

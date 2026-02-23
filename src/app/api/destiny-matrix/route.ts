@@ -8,6 +8,9 @@ import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import type { FiveElement, RelationHit } from '@/lib/Saju/types'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
+import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/Saju/shinsal'
+import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
 import type {
   GeokgukType,
   ShinsalKind,
@@ -36,6 +39,363 @@ const ELEMENT_MAP: Record<string, FiveElement> = {
   earth: '토',
   metal: '금',
   water: '수',
+}
+
+const PLANET_ALIASES: Record<string, PlanetName> = {
+  sun: 'Sun',
+  moon: 'Moon',
+  mercury: 'Mercury',
+  venus: 'Venus',
+  mars: 'Mars',
+  jupiter: 'Jupiter',
+  saturn: 'Saturn',
+  uranus: 'Uranus',
+  neptune: 'Neptune',
+  pluto: 'Pluto',
+}
+
+const ASPECT_TYPES: AspectType[] = [
+  'conjunction',
+  'sextile',
+  'square',
+  'trine',
+  'opposition',
+  'semisextile',
+  'quincunx',
+  'quintile',
+  'biquintile',
+]
+
+const ASPECT_TYPE_SET = new Set<string>(ASPECT_TYPES)
+
+const TRANSIT_CYCLES: TransitCycle[] = [
+  'saturnReturn',
+  'jupiterReturn',
+  'uranusSquare',
+  'neptuneSquare',
+  'plutoTransit',
+  'nodeReturn',
+  'eclipse',
+  'mercuryRetrograde',
+  'venusRetrograde',
+  'marsRetrograde',
+  'jupiterRetrograde',
+  'saturnRetrograde',
+]
+
+const TRANSIT_CYCLE_SET = new Set<string>(TRANSIT_CYCLES)
+
+const MATRIX_SHINSAL_SET = new Set<string>([
+  '천을귀인',
+  '태극귀인',
+  '천덕귀인',
+  '월덕귀인',
+  '문창귀인',
+  '학당귀인',
+  '금여록',
+  '천주귀인',
+  '암록',
+  '건록',
+  '제왕',
+  '도화',
+  '홍염살',
+  '양인',
+  '백호',
+  '겁살',
+  '재살',
+  '천살',
+  '지살',
+  '년살',
+  '월살',
+  '망신',
+  '고신',
+  '괴강',
+  '현침',
+  '귀문관',
+  '병부',
+  '효신살',
+  '상문살',
+  '역마',
+  '화개',
+  '장성',
+  '반안',
+  '천라지망',
+  '공망',
+  '삼재',
+  '원진',
+])
+
+const SHINSAL_ALIASES: Record<string, string> = {
+  금여성: '금여록',
+  문창: '문창귀인',
+}
+
+const GEOKGUK_ALIASES: Partial<Record<string, GeokgukType>> = {
+  정관격: 'jeonggwan',
+  편관격: 'pyeongwan',
+  정인격: 'jeongin',
+  편인격: 'pyeongin',
+  식신격: 'siksin',
+  상관격: 'sanggwan',
+  정재격: 'jeongjae',
+  편재격: 'pyeonjae',
+  건록격: 'geonrok',
+  양인격: 'yangin',
+  종아격: 'jonga',
+  종재격: 'jongjae',
+  종살격: 'jongsal',
+  종강격: 'jonggang',
+  종왕격: 'jonggang',
+}
+
+const RELATION_ALIASES: Record<string, string> = {
+  합: '지지육합',
+  충: '지지충',
+  형: '지지형',
+  파: '지지파',
+  해: '지지해',
+}
+
+const ASTEROID_ALIASES: Record<string, AsteroidName> = {
+  ceres: 'Ceres',
+  pallas: 'Pallas',
+  juno: 'Juno',
+  vesta: 'Vesta',
+}
+
+const EXTRA_POINT_ALIASES: Record<string, ExtraPointName> = {
+  chiron: 'Chiron',
+  lilith: 'Lilith',
+  partoffortune: 'PartOfFortune',
+  part_of_fortune: 'PartOfFortune',
+  vertex: 'Vertex',
+  northnode: 'NorthNode',
+  north_node: 'NorthNode',
+  southnode: 'SouthNode',
+  south_node: 'SouthNode',
+}
+
+function normalizePlanetName(value: unknown): PlanetName | null {
+  if (typeof value !== 'string') {
+    return null
+  }
+  return PLANET_ALIASES[value.trim().toLowerCase()] || null
+}
+
+function normalizeAspectType(value: unknown): AspectType | null {
+  if (typeof value !== 'string') {
+    return null
+  }
+  const normalized = value.trim().toLowerCase()
+  return ASPECT_TYPE_SET.has(normalized) ? (normalized as AspectType) : null
+}
+
+function normalizeNumber(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value
+  }
+  return undefined
+}
+
+function normalizeTwelveStagesInput(raw: unknown): Record<string, number> {
+  if (!raw || typeof raw !== 'object') {
+    return {}
+  }
+  const normalized: Record<string, number> = {}
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (['year', 'month', 'day', 'time'].includes(key) && typeof value === 'string') {
+      normalized[value] = (normalized[value] || 0) + 1
+      continue
+    }
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      normalized[key] = value
+    }
+  }
+  return normalized
+}
+
+function normalizeRelationsInput(raw: unknown): RelationHit[] {
+  if (!Array.isArray(raw)) {
+    return []
+  }
+  const normalized: RelationHit[] = []
+  for (const item of raw) {
+    if (typeof item === 'string') {
+      const kind = RELATION_ALIASES[item] || item
+      normalized.push({ kind: kind as RelationHit['kind'], pillars: [] })
+      continue
+    }
+    if (item && typeof item === 'object' && typeof (item as { kind?: unknown }).kind === 'string') {
+      const kind = RELATION_ALIASES[(item as { kind: string }).kind] || (item as { kind: string }).kind
+      const pillars = Array.isArray((item as { pillars?: unknown }).pillars)
+        ? ((item as { pillars: unknown[] }).pillars.filter((p): p is RelationHit['pillars'][number] =>
+            typeof p === 'string'
+          ))
+        : []
+      normalized.push({
+        kind: kind as RelationHit['kind'],
+        pillars,
+        detail: typeof (item as { detail?: unknown }).detail === 'string' ? (item as { detail: string }).detail : undefined,
+        note: typeof (item as { note?: unknown }).note === 'string' ? (item as { note: string }).note : undefined,
+      })
+    }
+  }
+  return normalized
+}
+
+function normalizeShinsalListInput(raw: unknown): ShinsalKind[] {
+  if (!Array.isArray(raw)) {
+    return []
+  }
+  const dedup = new Set<ShinsalKind>()
+  for (const item of raw) {
+    if (typeof item !== 'string') {
+      continue
+    }
+    const normalized = SHINSAL_ALIASES[item] || item
+    if (MATRIX_SHINSAL_SET.has(normalized)) {
+      dedup.add(normalized as ShinsalKind)
+    }
+  }
+  return [...dedup]
+}
+
+function normalizePlanetHousesInput(raw: unknown): Partial<Record<PlanetName, HouseNumber>> {
+  if (!raw || typeof raw !== 'object') {
+    return {}
+  }
+  const normalized: Partial<Record<PlanetName, HouseNumber>> = {}
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    const planet = normalizePlanetName(key)
+    if (!planet || typeof value !== 'number') {
+      continue
+    }
+    const house = Math.trunc(value)
+    if (house >= 1 && house <= 12) {
+      normalized[planet] = house as HouseNumber
+    }
+  }
+  return normalized
+}
+
+function normalizePlanetSignsInput(raw: unknown): Partial<Record<PlanetName, ZodiacKo>> {
+  if (!raw || typeof raw !== 'object') {
+    return {}
+  }
+  const normalized: Partial<Record<PlanetName, ZodiacKo>> = {}
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    const planet = normalizePlanetName(key)
+    if (!planet || typeof value !== 'string') {
+      continue
+    }
+    normalized[planet] = value as ZodiacKo
+  }
+  return normalized
+}
+
+function normalizeAspectsInput(raw: unknown): MatrixCalculationInput['aspects'] {
+  if (!Array.isArray(raw)) {
+    return []
+  }
+  const normalized: MatrixCalculationInput['aspects'] = []
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') {
+      continue
+    }
+    const record = item as Record<string, unknown>
+    const directPlanet1 = normalizePlanetName(record.planet1)
+    const directPlanet2 = normalizePlanetName(record.planet2)
+    const fromPlanet = normalizePlanetName((record.from as { name?: unknown } | undefined)?.name)
+    const toPlanet = normalizePlanetName((record.to as { name?: unknown } | undefined)?.name)
+    const planet1 = directPlanet1 || fromPlanet
+    const planet2 = directPlanet2 || toPlanet
+    const type = normalizeAspectType(record.type)
+    if (!planet1 || !planet2 || !type) {
+      continue
+    }
+    normalized.push({
+      planet1,
+      planet2,
+      type,
+      angle: normalizeNumber(record.angle),
+      orb: normalizeNumber(record.orb),
+    })
+  }
+  return normalized
+}
+
+function inferTransitCycle(record: Record<string, unknown>): TransitCycle | null {
+  const directType = typeof record.type === 'string' ? record.type : null
+  if (directType && TRANSIT_CYCLE_SET.has(directType)) {
+    return directType as TransitCycle
+  }
+
+  const tp = typeof record.transitPlanet === 'string' ? record.transitPlanet.toLowerCase() : ''
+  const np = typeof record.natalPlanet === 'string' ? record.natalPlanet.toLowerCase() : ''
+  const aspectType = typeof record.aspectType === 'string' ? record.aspectType.toLowerCase() : ''
+
+  if (tp === 'saturn' && np === 'saturn' && aspectType === 'conjunction') return 'saturnReturn'
+  if (tp === 'jupiter' && np === 'jupiter' && aspectType === 'conjunction') return 'jupiterReturn'
+  if (tp === 'uranus' && aspectType === 'square') return 'uranusSquare'
+  if (tp === 'neptune' && aspectType === 'square') return 'neptuneSquare'
+  if (tp === 'pluto') return 'plutoTransit'
+  if ((tp === 'northnode' || tp === 'southnode') && aspectType === 'conjunction') return 'nodeReturn'
+
+  return null
+}
+
+function normalizeActiveTransitsInput(raw: unknown): TransitCycle[] {
+  if (!Array.isArray(raw)) {
+    return []
+  }
+  const dedup = new Set<TransitCycle>()
+  for (const item of raw) {
+    if (typeof item === 'string' && TRANSIT_CYCLE_SET.has(item)) {
+      dedup.add(item as TransitCycle)
+      continue
+    }
+    if (item && typeof item === 'object') {
+      const inferred = inferTransitCycle(item as Record<string, unknown>)
+      if (inferred) {
+        dedup.add(inferred)
+      }
+    }
+  }
+  return [...dedup]
+}
+
+function normalizeAsteroidHousesInput(raw: unknown): Partial<Record<AsteroidName, HouseNumber>> {
+  if (!raw || typeof raw !== 'object') {
+    return {}
+  }
+  const normalized: Partial<Record<AsteroidName, HouseNumber>> = {}
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    const asteroid = ASTEROID_ALIASES[key.trim().toLowerCase()]
+    if (!asteroid || typeof value !== 'number') {
+      continue
+    }
+    const house = Math.trunc(value)
+    if (house >= 1 && house <= 12) {
+      normalized[asteroid] = house as HouseNumber
+    }
+  }
+  return normalized
+}
+
+function normalizeExtraPointSignsInput(raw: unknown): Partial<Record<ExtraPointName, ZodiacKo>> {
+  if (!raw || typeof raw !== 'object') {
+    return {}
+  }
+  const normalized: Partial<Record<ExtraPointName, ZodiacKo>> = {}
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    const normalizedKey = key.replace(/\s+/g, '').toLowerCase()
+    const point = EXTRA_POINT_ALIASES[normalizedKey]
+    if (!point || typeof value !== 'string') {
+      continue
+    }
+    normalized[point] = value as ZodiacKo
+  }
+  return normalized
 }
 
 /**
@@ -204,6 +564,18 @@ export const POST = withApiMiddleware(
       let dayMasterElement = providedDayMaster
       let sibsinDistribution = providedSibsin
       let calculatedPillarElements = pillarElements
+      let normalizedTwelveStages = normalizeTwelveStagesInput(twelveStages)
+      let normalizedRelations = normalizeRelationsInput(relations)
+      let normalizedShinsals = normalizeShinsalListInput(shinsalList)
+      let normalizedGeokguk = geokguk
+      let normalizedYongsin = yongsin
+      const normalizedPlanetHouses = normalizePlanetHousesInput(planetHouses)
+      const normalizedPlanetSigns = normalizePlanetSignsInput(planetSigns)
+      const normalizedAspects = normalizeAspectsInput(aspects)
+      const normalizedActiveTransits = normalizeActiveTransitsInput(activeTransits)
+      const normalizedAsteroidHouses = normalizeAsteroidHousesInput(asteroidHouses)
+      const normalizedExtraPointSigns = normalizeExtraPointSignsInput(extraPointSigns)
+      let autoSajuData: ReturnType<typeof calculateSajuData> | null = null
 
       // If birthDate is provided, calculate saju automatically
       if (birthDate && !dayMasterElement) {
@@ -215,6 +587,7 @@ export const POST = withApiMiddleware(
             'solar',
             timezone
           )
+          autoSajuData = sajuData
 
           // Extract day master element
           const dayElement = sajuData.dayPillar?.heavenlyStem?.element
@@ -247,12 +620,124 @@ export const POST = withApiMiddleware(
             }
           }
           sibsinDistribution = sibsinMap
+
+          const normalizedPillars =
+            sajuData.pillars ||
+            ({
+              year: sajuData.yearPillar,
+              month: sajuData.monthPillar,
+              day: sajuData.dayPillar,
+              time: sajuData.timePillar,
+            } as const)
+
+          // Non-fatal auto enrichment: keep base matrix generation resilient.
+          try {
+            // Auto-compute twelve stages if missing or invalid shape.
+            if (Object.keys(normalizedTwelveStages).length === 0) {
+              const sajuLike = toSajuPillarsLike({
+                yearPillar: sajuData.yearPillar,
+                monthPillar: sajuData.monthPillar,
+                dayPillar: sajuData.dayPillar,
+                timePillar: sajuData.timePillar,
+              })
+              const stageByPillar = getTwelveStagesForPillars(sajuLike, 'day')
+              normalizedTwelveStages = Object.values(stageByPillar).reduce<Record<string, number>>(
+                (acc, stage) => {
+                  acc[stage] = (acc[stage] || 0) + 1
+                  return acc
+                },
+                {}
+              )
+            }
+
+            // Auto-compute branch/stem relations if caller did not provide.
+            if (normalizedRelations.length === 0) {
+              const relationInput = toAnalyzeInputFromSaju(
+                {
+                  year: normalizedPillars.year,
+                  month: normalizedPillars.month,
+                  day: normalizedPillars.day,
+                  time: normalizedPillars.time,
+                },
+                sajuData.dayPillar?.heavenlyStem?.name
+              )
+              normalizedRelations = analyzeRelations(relationInput)
+            }
+
+            // Auto-compute shinsal and normalize aliases to matrix keys.
+            if (normalizedShinsals.length === 0) {
+              const sajuLike = toSajuPillarsLike({
+                yearPillar: sajuData.yearPillar,
+                monthPillar: sajuData.monthPillar,
+                dayPillar: sajuData.dayPillar,
+                timePillar: sajuData.timePillar,
+              })
+              const autoShinsalHits = getShinsalHits(sajuLike, {
+                includeLuckyDetails: true,
+                includeGeneralShinsal: true,
+                includeTwelveAll: true,
+                useMonthCompletion: true,
+              })
+              normalizedShinsals = normalizeShinsalListInput(autoShinsalHits.map((hit) => hit.kind))
+            }
+
+            // Auto-populate geokguk/yongsin when omitted.
+            if (!normalizedGeokguk || !normalizedYongsin || normalizedYongsin.length === 0) {
+              const advanced = analyzeAdvancedSaju(
+                {
+                  name: sajuData.dayPillar.heavenlyStem.name,
+                  element: sajuData.dayPillar.heavenlyStem.element,
+                  yin_yang: sajuData.dayPillar.heavenlyStem.yin_yang || '양',
+                },
+                {
+                  yearPillar: sajuData.yearPillar,
+                  monthPillar: sajuData.monthPillar,
+                  dayPillar: sajuData.dayPillar,
+                  timePillar: sajuData.timePillar,
+                }
+              )
+              if (!normalizedGeokguk) {
+                normalizedGeokguk =
+                  GEOKGUK_ALIASES[advanced.geokguk.type] ||
+                  (normalizedGeokguk as GeokgukType | undefined)
+              }
+              if (!normalizedYongsin || normalizedYongsin.length === 0) {
+                normalizedYongsin = [advanced.yongsin.primary]
+              }
+            }
+          } catch (enrichmentError) {
+            logger.warn('[Destiny Matrix] Auto enrichment skipped', { error: enrichmentError })
+          }
         } catch (sajuError) {
           logger.error('Saju calculation failed:', sajuError)
           return NextResponse.json(
             { error: 'Failed to calculate saju from birth data' },
             { status: HTTP_STATUS.BAD_REQUEST }
           )
+        }
+      }
+
+      // Keep geokguk/yongsin mapping robust in manual-input mode too.
+      if (typeof normalizedGeokguk === 'string') {
+        normalizedGeokguk = GEOKGUK_ALIASES[normalizedGeokguk] || normalizedGeokguk
+      }
+      if (Array.isArray(normalizedYongsin) && normalizedYongsin.length > 0) {
+        normalizedYongsin = normalizedYongsin.map((v) => ELEMENT_MAP[v] || v)
+      }
+
+      // If callers send parsed saju objects directly, derive defaults when missing.
+      if (!autoSajuData && birthDate && dayMasterElement) {
+        try {
+          const sajuData = calculateSajuData(
+            birthDate,
+            birthTime,
+            gender as 'male' | 'female',
+            'solar',
+            timezone
+          )
+          autoSajuData = sajuData
+        } catch {
+          // No-op: manual mode may still be valid.
         }
       }
 
@@ -271,24 +756,20 @@ export const POST = withApiMiddleware(
         dayMasterElement,
         pillarElements: calculatedPillarElements,
         sibsinDistribution,
-        twelveStages,
-        relations: relations as unknown as RelationHit[],
-        geokguk: geokguk as GeokgukType | undefined,
-        yongsin: yongsin?.[0] as FiveElement | undefined,
+        twelveStages: normalizedTwelveStages,
+        relations: normalizedRelations,
+        geokguk: normalizedGeokguk as GeokgukType | undefined,
+        yongsin: normalizedYongsin?.[0] as FiveElement | undefined,
         currentDaeunElement,
         currentSaeunElement,
-        shinsalList: shinsalList as unknown as ShinsalKind[] | undefined,
+        shinsalList: normalizedShinsals,
         dominantWesternElement: dominantWesternElement as WesternElement | undefined,
-        planetHouses: planetHouses as Partial<Record<PlanetName, HouseNumber>>,
-        planetSigns: planetSigns as Partial<Record<PlanetName, ZodiacKo>>,
-        aspects: aspects as unknown as Array<{
-          planet1: PlanetName
-          planet2: PlanetName
-          type: AspectType
-        }>,
-        activeTransits: activeTransits as unknown as TransitCycle[] | undefined,
-        asteroidHouses: asteroidHouses as Partial<Record<AsteroidName, HouseNumber>> | undefined,
-        extraPointSigns: extraPointSigns as Partial<Record<ExtraPointName, ZodiacKo>> | undefined,
+        planetHouses: normalizedPlanetHouses,
+        planetSigns: normalizedPlanetSigns,
+        aspects: normalizedAspects,
+        activeTransits: normalizedActiveTransits,
+        asteroidHouses: normalizedAsteroidHouses,
+        extraPointSigns: normalizedExtraPointSigns,
         lang,
         startYearMonth,
       }
