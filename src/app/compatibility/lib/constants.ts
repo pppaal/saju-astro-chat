@@ -14,23 +14,40 @@ export const relationIcons: Record<Relation, string> = {
 // Section title translation keys mapping
 export const sectionTitleKeys: Record<string, string> = {
   'Overall Score': 'compatibilityPage.sections.overallScore',
+  '종합 점수': 'compatibilityPage.sections.overallScore',
   'Saju Analysis': 'compatibilityPage.sections.sajuAnalysis',
+  '사주 분석': 'compatibilityPage.sections.sajuAnalysis',
   'Astrology Analysis': 'compatibilityPage.sections.astrologyAnalysis',
+  '점성 분석': 'compatibilityPage.sections.astrologyAnalysis',
   'Element Harmony': 'compatibilityPage.sections.elementHarmony',
   'Love Compatibility': 'compatibilityPage.sections.loveCompatibility',
   Communication: 'compatibilityPage.sections.communication',
   'Emotional Connection': 'compatibilityPage.sections.emotionalConnection',
   Strengths: 'compatibilityPage.sections.strengths',
+  강점: 'compatibilityPage.sections.strengths',
   Challenges: 'compatibilityPage.sections.challenges',
+  과제: 'compatibilityPage.sections.challenges',
   Advice: 'compatibilityPage.sections.advice',
+  조언: 'compatibilityPage.sections.advice',
   Summary: 'compatibilityPage.sections.summary',
+  요약: 'compatibilityPage.sections.summary',
   'Sun Sign': 'compatibilityPage.sections.sunSign',
   'Moon Sign': 'compatibilityPage.sections.moonSign',
   'Venus Aspect': 'compatibilityPage.sections.venusAspect',
   'Mars Aspect': 'compatibilityPage.sections.marsAspect',
   Overview: 'compatibilityPage.sections.overview',
   'Relationship Analysis': 'compatibilityPage.sections.relationshipAnalysis',
+  '관계 분석': 'compatibilityPage.sections.relationshipAnalysis',
   'Detailed Scores': 'compatibilityPage.sections.detailedScores',
+  '상세 점수': 'compatibilityPage.sections.detailedScores',
+  'Cross-System Analysis': 'compatibilityPage.sections.crossSystemAnalysis',
+  '교차 시스템 분석': 'compatibilityPage.sections.crossSystemAnalysis',
+  'Personality & Emotional Fit': 'compatibilityPage.sections.personalityEmotionalFit',
+  '성격/감정 궁합': 'compatibilityPage.sections.personalityEmotionalFit',
+  'Intimacy Chemistry': 'compatibilityPage.sections.intimacyChemistry',
+  '속궁합 & 친밀도': 'compatibilityPage.sections.intimacyChemistry',
+  'Future Flow & Best Meeting Windows': 'compatibilityPage.sections.futureTiming',
+  '미래 흐름 & 만남 타이밍': 'compatibilityPage.sections.futureTiming',
 }
 
 // Section patterns with icons for parsing results
@@ -112,8 +129,7 @@ export const sectionPatterns = [
     title: 'Mars Aspect',
   },
   {
-    pattern:
-      /(?:^|\n)#+\s*(?:Relationship|\uAD00\uACC4)\s*(?:Analysis|\uBD84\uC11D)/i,
+    pattern: /(?:^|\n)#+\s*(?:Relationship|\uAD00\uACC4)\s*(?:Analysis|\uBD84\uC11D)/i,
     icon: '\u{1F491}',
     title: 'Relationship Analysis',
   },
@@ -121,5 +137,28 @@ export const sectionPatterns = [
     pattern: /(?:^|\n)#+\s*(?:Detailed|\uC0C1\uC138)\s*(?:Scores?|\uC810\uC218)/i,
     icon: '\u{1F4CA}',
     title: 'Detailed Scores',
+  },
+  {
+    pattern:
+      /(?:^|\n)#+\s*(?:Cross(?:-|\s*)System|\uAD50\uCC28\s*\uC2DC\uC2A4\uD15C)\s*(?:Analysis|\uBD84\uC11D)?/i,
+    icon: '\u{1F91D}',
+    title: 'Cross-System Analysis',
+  },
+  {
+    pattern:
+      /(?:^|\n)#+\s*(?:Personality(?:\s*&\s*Emotional)?\s*(?:Fit)?|\uC131\uACA9\s*\/?\s*\uAC10\uC815\s*\uAD81\uD569)/i,
+    icon: '\u{1F9E0}',
+    title: 'Personality & Emotional Fit',
+  },
+  {
+    pattern: /(?:^|\n)#+\s*(?:Intimacy(?:\s*Chemistry)?|\uC18D\uAD81\uD569|\uCE5C\uBC00\uB3C4)/i,
+    icon: '\u{1F525}',
+    title: 'Intimacy Chemistry',
+  },
+  {
+    pattern:
+      /(?:^|\n)#+\s*(?:Future(?:\s*Flow)?(?:\s*&\s*Best\s*Meeting\s*Windows)?|\uBBF8\uB798\s*\uD750\uB984|\uB9CC\uB0A8\s*\uD0C0\uC774\uBC0D)/i,
+    icon: '\u{1F4C5}',
+    title: 'Future Flow & Best Meeting Windows',
   },
 ]

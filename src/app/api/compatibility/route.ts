@@ -13,7 +13,10 @@ import {
   type AstrologyProfile,
   type SajuProfile,
 } from '@/lib/compatibility/cosmicCompatibility'
-import { calculateFusionCompatibility } from '@/lib/compatibility/compatibilityFusion'
+import {
+  calculateFusionCompatibility,
+  type FusionCompatibilityResult,
+} from '@/lib/compatibility/compatibilityFusion'
 import { performCrossSystemAnalysis } from '@/lib/compatibility/crossSystemAnalysis'
 import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehensive'
 import {
@@ -29,6 +32,7 @@ import { calculateSynastry } from '@/lib/astrology/foundation/synastry'
 import type { Chart, AspectType } from '@/lib/astrology/foundation/types'
 import type { Relation, PersonInput } from './types'
 import { compatibilityRequestSchema } from '@/lib/api/zodValidation'
+import { normalizeMojibakePayload } from '@/lib/text/mojibake'
 
 const MAX_NOTE = LIMITS.NOTE
 const SIGN_ORDER = [
@@ -61,7 +65,24 @@ const SIGN_TO_ELEMENT: Record<string, 'fire' | 'earth' | 'air' | 'water'> = {
   Pisces: 'water',
 }
 
-const ASPECT_LABEL: Record<AspectType, string> = {
+type LocaleCode = 'ko' | 'en'
+
+const SIGN_LABEL_KO: Record<string, string> = {
+  Aries: '양자리',
+  Taurus: '황소자리',
+  Gemini: '쌍둥이자리',
+  Cancer: '게자리',
+  Leo: '사자자리',
+  Virgo: '처녀자리',
+  Libra: '천칭자리',
+  Scorpio: '전갈자리',
+  Sagittarius: '사수자리',
+  Capricorn: '염소자리',
+  Aquarius: '물병자리',
+  Pisces: '물고기자리',
+}
+
+const ASPECT_LABEL_EN: Record<AspectType, string> = {
   conjunction: 'Conjunction',
   sextile: 'Sextile',
   square: 'Square',
@@ -71,6 +92,18 @@ const ASPECT_LABEL: Record<AspectType, string> = {
   quincunx: 'Quincunx',
   quintile: 'Quintile',
   biquintile: 'Bi-quintile',
+}
+
+const ASPECT_LABEL_KO: Record<AspectType, string> = {
+  conjunction: '합',
+  sextile: '섹스타일',
+  square: '스퀘어',
+  trine: '트라인',
+  opposition: '대립',
+  semisextile: '세미섹스타일',
+  quincunx: '퀸컹스',
+  quintile: '퀸타일',
+  biquintile: '바이퀸타일',
 }
 
 type PairScore = {
@@ -93,6 +126,22 @@ type PairAnalysis = {
   advice: string[]
   topAspects: string[]
   topHouseOverlays: string[]
+  fusionInsights: PairFusionInsights | null
+}
+
+type PairFusionInsights = {
+  deepAnalysis: string
+  dayMasterHarmony: number | null
+  sunMoonHarmony: number | null
+  venusMarsSynergy: number | null
+  emotionalIntensity: number | null
+  intellectualAlignment: number | null
+  spiritualConnection: number | null
+  conflictResolutionStyle: string | null
+  shortTerm: string | null
+  mediumTerm: string | null
+  longTerm: string | null
+  recommendedActions: string[]
 }
 
 type PersonAnalysis = {
@@ -117,17 +166,26 @@ function relationWeight(relation?: Relation) {
   return 0.9
 }
 
-function relationLabel(relation?: Relation, note?: string) {
+function normalizeLocale(locale?: string): LocaleCode {
+  return String(locale || '')
+    .toLowerCase()
+    .startsWith('ko')
+    ? 'ko'
+    : 'en'
+}
+
+function relationLabel(locale: LocaleCode, relation?: Relation, note?: string) {
+  const isKo = locale === 'ko'
   if (relation === 'lover') {
-    return 'lover'
+    return isKo ? '연인' : 'lover'
   }
   if (relation === 'friend') {
-    return 'friend'
+    return isKo ? '친구' : 'friend'
   }
   if (relation === 'other') {
-    return note?.trim() || 'other'
+    return note?.trim() || (isKo ? '기타' : 'other')
   }
-  return 'related'
+  return isKo ? '관계' : 'related'
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -180,12 +238,33 @@ function elementEnFromSaju(value: string) {
 }
 
 function elementKo(value: string) {
-  if (value === 'wood') return 'Wood(木)'
-  if (value === 'fire') return 'Fire(火)'
-  if (value === 'earth') return 'Earth(土)'
-  if (value === 'metal') return 'Metal(金)'
-  if (value === 'water') return 'Water(水)'
+  if (value === 'wood') return '목(木)'
+  if (value === 'fire') return '화(火)'
+  if (value === 'earth') return '토(土)'
+  if (value === 'metal') return '금(金)'
+  if (value === 'water') return '수(水)'
   return value
+}
+
+function elementLabel(locale: LocaleCode, value: string) {
+  const normalized = elementEnFromSaju(value)
+  if (locale === 'ko') {
+    return elementKo(normalized)
+  }
+  if (normalized === 'wood') return 'Wood'
+  if (normalized === 'fire') return 'Fire'
+  if (normalized === 'earth') return 'Earth'
+  if (normalized === 'metal') return 'Metal'
+  if (normalized === 'water') return 'Water'
+  return normalized
+}
+
+function signLabel(locale: LocaleCode, sign: string) {
+  const normalized = normalizeSign(sign)
+  if (locale === 'ko') {
+    return `${SIGN_LABEL_KO[normalized] || normalized}(${normalized})`
+  }
+  return normalized
 }
 
 function parseBirthParts(date: string, time: string) {
@@ -368,17 +447,32 @@ async function buildAstrologyProfileFromBirth(person: PersonInput): Promise<Pers
   }
 }
 
-function formatAspectLine(aspect: {
-  from: { name: string }
-  to: { name: string }
-  type: AspectType
-  orb: number
-}) {
-  const label = ASPECT_LABEL[aspect.type] || aspect.type
-  return `${aspect.from.name} ${label} ${aspect.to.name} (orb ${aspect.orb.toFixed(2)}deg)`
+function formatAspectLine(
+  aspect: {
+    from: { name: string }
+    to: { name: string }
+    type: AspectType
+    orb: number
+  },
+  locale: LocaleCode
+) {
+  const label =
+    locale === 'ko'
+      ? ASPECT_LABEL_KO[aspect.type] || aspect.type
+      : ASPECT_LABEL_EN[aspect.type] || aspect.type
+  return locale === 'ko'
+    ? `${aspect.from.name} ${label} ${aspect.to.name} (오브 ${aspect.orb.toFixed(2)}°)`
+    : `${aspect.from.name} ${label} ${aspect.to.name} (orb ${aspect.orb.toFixed(2)}°)`
 }
 
-function describeScoreBand(score: number) {
+function describeScoreBand(score: number, locale: LocaleCode) {
+  if (locale === 'ko') {
+    if (score >= 85) return '매우 우수'
+    if (score >= 75) return '우수'
+    if (score >= 65) return '양호'
+    if (score >= 55) return '조율 가능'
+    return '주의 필요'
+  }
   if (score >= 85) return 'Excellent'
   if (score >= 75) return 'Very Good'
   if (score >= 65) return 'Good'
@@ -393,54 +487,116 @@ function buildPairInsights(input: {
   finalScore: number
   harmonyAspectCount: number
   tensionAspectCount: number
+  locale: LocaleCode
 }) {
+  const isKo = input.locale === 'ko'
   const strengths: string[] = []
   const challenges: string[] = []
   const advice: string[] = []
 
   if (input.sajuScore !== null) {
     if (input.sajuScore >= 75) {
-      strengths.push('Saju day-master and elemental flow support long-term stability.')
+      strengths.push(
+        isKo
+          ? '사주 일간과 오행 흐름이 잘 맞아 장기 안정성에 유리합니다.'
+          : 'Saju day-master and elemental flow support long-term stability.'
+      )
     } else if (input.sajuScore < 55) {
-      challenges.push('Saju pattern shows different life rhythm and needs active adjustment.')
+      challenges.push(
+        isKo
+          ? '사주 구조의 생활 리듬 차이가 커서 의식적인 조율이 필요합니다.'
+          : 'Saju pattern shows different life rhythm and needs active adjustment.'
+      )
     }
   }
 
   if (input.astrologyScore !== null) {
     if (input.astrologyScore >= 75) {
-      strengths.push('Astrology synastry supports emotional and romantic chemistry.')
+      strengths.push(
+        isKo
+          ? '점성 시너스트리에서 감정 교감과 연애 케미 신호가 좋습니다.'
+          : 'Astrology synastry supports emotional and romantic chemistry.'
+      )
     } else if (input.astrologyScore < 55) {
-      challenges.push('Astrology shows communication or emotional style mismatch.')
+      challenges.push(
+        isKo
+          ? '점성 기준에서 소통 방식 또는 감정 표현 스타일 차이가 보입니다.'
+          : 'Astrology shows communication or emotional style mismatch.'
+      )
     }
   }
 
   if (input.crossScore !== null) {
     if (input.crossScore >= 70) {
-      strengths.push('Cross-system signal (Saju x Astrology) is consistent and coherent.')
+      strengths.push(
+        isKo
+          ? '사주와 점성의 교차 신호가 같은 방향으로 정합적입니다.'
+          : 'Cross-system signal (Saju x Astrology) is consistent and coherent.'
+      )
     } else if (input.crossScore < 50) {
-      challenges.push('Cross-system signal diverges, so interpretation must be handled carefully.')
+      challenges.push(
+        isKo
+          ? '사주·점성 신호가 엇갈려 해석과 의사결정에 추가 확인이 필요합니다.'
+          : 'Cross-system signal diverges, so interpretation must be handled carefully.'
+      )
     }
   }
 
   if (input.harmonyAspectCount >= input.tensionAspectCount) {
-    strengths.push('More harmonious synastry aspects than tense aspects.')
+    strengths.push(
+      isKo
+        ? '긴장 어스펙트보다 조화 어스펙트가 더 많습니다.'
+        : 'More harmonious synastry aspects than tense aspects.'
+    )
   } else {
-    challenges.push('Tense synastry aspects are dominant in current chart comparison.')
+    challenges.push(
+      isKo
+        ? '현재 차트 비교에서 긴장 어스펙트 비중이 더 큽니다.'
+        : 'Tense synastry aspects are dominant in current chart comparison.'
+    )
   }
 
   if (input.finalScore >= 80) {
-    advice.push('Protect the current strengths with regular emotional check-ins.')
-    advice.push('Plan shared long-term goals while momentum is strong.')
+    advice.push(
+      isKo
+        ? '정기적으로 감정 상태를 체크해 현재 강점을 유지하세요.'
+        : 'Protect the current strengths with regular emotional check-ins.'
+    )
+    advice.push(
+      isKo
+        ? '상승 흐름일 때 중장기 공동 목표를 구체화하세요.'
+        : 'Plan shared long-term goals while momentum is strong.'
+    )
   } else if (input.finalScore >= 65) {
-    advice.push('Set a weekly communication ritual to reduce misunderstandings.')
-    advice.push('Use role-sharing in practical matters to reduce friction.')
+    advice.push(
+      isKo
+        ? '주간 소통 루틴을 정해 오해를 누적시키지 마세요.'
+        : 'Set a weekly communication ritual to reduce misunderstandings.'
+    )
+    advice.push(
+      isKo
+        ? '실무 역할을 분담해 일상 마찰을 줄이세요.'
+        : 'Use role-sharing in practical matters to reduce friction.'
+    )
   } else {
-    advice.push('Define boundaries and expectations explicitly before major commitments.')
-    advice.push('Treat conflict resolution as a repeatable process, not a one-time fix.')
+    advice.push(
+      isKo
+        ? '큰 결정을 하기 전 경계와 기대치를 문장으로 명확히 합의하세요.'
+        : 'Define boundaries and expectations explicitly before major commitments.'
+    )
+    advice.push(
+      isKo
+        ? '갈등 해결을 일회성이 아닌 반복 가능한 프로세스로 설계하세요.'
+        : 'Treat conflict resolution as a repeatable process, not a one-time fix.'
+    )
   }
 
   if (input.tensionAspectCount > input.harmonyAspectCount) {
-    advice.push('When conflict rises, pause first and revisit with structured dialogue.')
+    advice.push(
+      isKo
+        ? '충돌이 커질수록 즉시 결론 내리기보다 멈춘 뒤 구조화된 대화로 재접근하세요.'
+        : 'When conflict rises, pause first and revisit with structured dialogue.'
+    )
   }
 
   return {
@@ -450,22 +606,117 @@ function buildPairInsights(input: {
   }
 }
 
-function scoreText(value: number | null) {
-  return value === null ? 'N/A' : `${value}/100`
+function scoreText(value: number | null, locale: LocaleCode) {
+  return value === null ? (locale === 'ko' ? '정보 없음' : 'N/A') : `${value}/100`
+}
+
+const WEEKDAY_INDEX: Record<string, number> = {
+  sun: 0,
+  mon: 1,
+  tue: 2,
+  wed: 3,
+  thu: 4,
+  fri: 5,
+  sat: 6,
+  일: 0,
+  월: 1,
+  화: 2,
+  수: 3,
+  목: 4,
+  금: 5,
+  토: 6,
+}
+
+function weekdayInTimeZone(date: Date, timeZone: string): number {
+  const short = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone })
+    .format(date)
+    .toLowerCase()
+    .slice(0, 3)
+  return WEEKDAY_INDEX[short] ?? date.getDay()
+}
+
+function formatDateBadge(date: Date, timeZone: string, locale: LocaleCode): string {
+  const formatter = new Intl.DateTimeFormat(locale === 'ko' ? 'ko-KR' : 'en-US', {
+    timeZone,
+    month: '2-digit',
+    day: '2-digit',
+    weekday: 'short',
+  })
+  return formatter.format(date)
+}
+
+function parseWeekdayIndexes(label: string): number[] {
+  const tokens = String(label || '')
+    .split(/[,\s/]+/)
+    .map((token) => token.trim().toLowerCase())
+    .filter(Boolean)
+
+  const indexes = tokens
+    .map((token) => WEEKDAY_INDEX[token] ?? WEEKDAY_INDEX[token.slice(0, 3)] ?? -1)
+    .filter((value) => value >= 0)
+
+  return [...new Set(indexes)]
+}
+
+function buildUpcomingDates(
+  weekdayLabel: string,
+  timeZone: string,
+  locale: LocaleCode,
+  limit = 3
+): string[] {
+  const targetWeekdays = parseWeekdayIndexes(weekdayLabel)
+  if (targetWeekdays.length === 0) {
+    return []
+  }
+
+  const matches: string[] = []
+  const now = new Date()
+  for (let offset = 0; offset < 28 && matches.length < limit; offset++) {
+    const candidate = new Date(now)
+    candidate.setDate(now.getDate() + offset)
+    const candidateWeekday = weekdayInTimeZone(candidate, timeZone)
+    if (targetWeekdays.includes(candidateWeekday)) {
+      matches.push(formatDateBadge(candidate, timeZone, locale))
+    }
+  }
+  return matches
+}
+
+function pickFusionInsights(fusion: FusionCompatibilityResult): PairFusionInsights {
+  return {
+    deepAnalysis: fusion.aiInsights.deepAnalysis,
+    dayMasterHarmony: fusion.details.sajuAnalysis?.dayMasterHarmony ?? null,
+    sunMoonHarmony: fusion.details.astrologyAnalysis?.sunMoonHarmony ?? null,
+    venusMarsSynergy: fusion.details.astrologyAnalysis?.venusMarsSynergy ?? null,
+    emotionalIntensity: fusion.relationshipDynamics?.emotionalIntensity ?? null,
+    intellectualAlignment: fusion.relationshipDynamics?.intellectualAlignment ?? null,
+    spiritualConnection: fusion.relationshipDynamics?.spiritualConnection ?? null,
+    conflictResolutionStyle: fusion.relationshipDynamics?.conflictResolutionStyle ?? null,
+    shortTerm: fusion.futureGuidance?.shortTerm ?? null,
+    mediumTerm: fusion.futureGuidance?.mediumTerm ?? null,
+    longTerm: fusion.futureGuidance?.longTerm ?? null,
+    recommendedActions: fusion.recommendedActions.map((item) => item.action).slice(0, 6),
+  }
 }
 
 function buildTimingPayload(
   pair: PairAnalysis | null,
   persons: PersonInput[],
   analyses: PersonAnalysis[],
-  isGroup: boolean
+  isGroup: boolean,
+  locale: LocaleCode
 ) {
   if (!pair) return null
+  const baseTimeZone = persons[pair.pair[0]]?.timeZone || 'Asia/Seoul'
 
-  const monthLabel = new Intl.DateTimeFormat('en-US', { month: 'long' }).format(new Date())
+  const monthLabel = new Intl.DateTimeFormat(locale === 'ko' ? 'ko-KR' : 'en-US', {
+    month: 'long',
+  }).format(new Date())
   const firstPersonElement = analyses[0]?.sajuProfile
-    ? elementKo(elementEnFromSaju(analyses[0].sajuProfile.dayMaster.element))
-    : 'Mixed'
+    ? elementLabel(locale, analyses[0].sajuProfile.dayMaster.element)
+    : locale === 'ko'
+      ? '혼합'
+      : 'Mixed'
 
   const base = {
     current_month: {
@@ -473,57 +724,97 @@ function buildTimingPayload(
       element: firstPersonElement,
       analysis:
         pair.weightedScore >= 75
-          ? 'Good month for transparent communication and shared plans.'
-          : 'Use this month for pacing, boundary setting, and trust recovery.',
+          ? locale === 'ko'
+            ? '투명한 소통과 공동 계획 수립에 유리한 달입니다.'
+            : 'Good month for transparent communication and shared plans.'
+          : locale === 'ko'
+            ? '속도 조절과 경계 설정, 신뢰 회복에 집중해야 하는 달입니다.'
+            : 'Use this month for pacing, boundary setting, and trust recovery.',
     },
   }
 
   if (isGroup) {
+    const groupActivities = [
+      {
+        type: 'collaboration',
+        days: locale === 'ko' ? '화, 목' : 'Tue, Thu',
+        activities:
+          locale === 'ko'
+            ? ['계획 회의', '창의 워크숍']
+            : ['Planning sessions', 'Creative workshops'],
+        reason:
+          locale === 'ko'
+            ? '그룹 내 전략적 참여와 감정적 참여의 균형을 맞춰줍니다.'
+            : 'Balances strategic and emotional participation in group dynamics.',
+      },
+      {
+        type: 'bonding',
+        days: locale === 'ko' ? '토' : 'Sat',
+        activities:
+          locale === 'ko'
+            ? ['깊은 대화', '팀 여가 활동']
+            : ['Long-form conversation', 'Team leisure activity'],
+        reason:
+          locale === 'ko'
+            ? '과한 압박 없이 약한 페어 연결을 보완합니다.'
+            : 'Improves weaker pair links without high pressure.',
+      },
+    ] as const
+
     return {
       ...base,
-      group_activities: [
-        {
-          type: 'collaboration',
-          days: 'Tue, Thu',
-          activities: ['Planning sessions', 'Creative workshops'],
-          reason: 'Balances strategic and emotional participation in group dynamics.',
-        },
-        {
-          type: 'bonding',
-          days: 'Sat',
-          activities: ['Long-form conversation', 'Team leisure activity'],
-          reason: 'Improves weaker pair links without high pressure.',
-        },
-      ],
+      group_activities: groupActivities.map((activity) => ({
+        ...activity,
+        next_dates: buildUpcomingDates(activity.days, baseTimeZone, locale),
+      })),
     }
   }
 
-  const firstName = persons[pair.pair[0]]?.name || `Person ${pair.pair[0] + 1}`
-  const secondName = persons[pair.pair[1]]?.name || `Person ${pair.pair[1] + 1}`
+  const firstName =
+    persons[pair.pair[0]]?.name ||
+    (locale === 'ko' ? `사람 ${pair.pair[0] + 1}` : `Person ${pair.pair[0] + 1}`)
+  const secondName =
+    persons[pair.pair[1]]?.name ||
+    (locale === 'ko' ? `사람 ${pair.pair[1] + 1}` : `Person ${pair.pair[1] + 1}`)
+
+  const goodDays = [
+    {
+      type: 'connection',
+      days: locale === 'ko' ? '월, 금' : 'Mon, Fri',
+      activities: locale === 'ko' ? ['깊은 대화', '데이트'] : ['Deep talk', 'Date night'],
+      reason:
+        locale === 'ko'
+          ? `${firstName}와 ${secondName}는 이 날짜에 감정 표현의 명확성이 높아질 수 있습니다.`
+          : `${firstName} and ${secondName} can improve emotional clarity on these days.`,
+    },
+    {
+      type: 'planning',
+      days: locale === 'ko' ? '수' : 'Wed',
+      activities:
+        locale === 'ko'
+          ? ['재정 계획', '생활 루틴 정렬']
+          : ['Financial planning', 'Routine alignment'],
+      reason:
+        locale === 'ko'
+          ? '현실적 마찰과 기대치 불일치를 줄이기 좋은 타이밍입니다.'
+          : 'Best for reducing practical friction and expectation mismatch.',
+    },
+  ] as const
 
   return {
     ...base,
-    good_days: [
-      {
-        type: 'connection',
-        days: 'Mon, Fri',
-        activities: ['Deep talk', 'Date night'],
-        reason: `${firstName} and ${secondName} can improve emotional clarity on these days.`,
-      },
-      {
-        type: 'planning',
-        days: 'Wed',
-        activities: ['Financial planning', 'Routine alignment'],
-        reason: 'Best for reducing practical friction and expectation mismatch.',
-      },
-    ],
+    good_days: goodDays.map((day) => ({
+      ...day,
+      next_dates: buildUpcomingDates(day.days, baseTimeZone, locale),
+    })),
   }
 }
 
 function buildGroupPayload(
   names: string[],
   analyses: PersonAnalysis[],
-  pairAnalyses: PairAnalysis[]
+  pairAnalyses: PairAnalysis[],
+  locale: LocaleCode
 ): {
   groupAnalysis: Record<string, unknown> | null
   synergyBreakdown: Record<string, unknown> | null
@@ -582,12 +873,23 @@ function buildGroupPayload(
   const pairwiseMatrix = pairAnalyses.map((pair) => ({
     pair: pair.pairLabel,
     index: pair.pair,
-    saju: scoreText(pair.sajuScore),
-    astro: scoreText(pair.astrologyScore),
+    saju: scoreText(pair.sajuScore, locale),
+    astro: scoreText(pair.astrologyScore, locale),
     score: pair.weightedScore,
-    summary: `${describeScoreBand(pair.weightedScore)} fit with relation weight applied.`,
-    saju_details: pair.sajuScore ? [`Saju score ${pair.sajuScore}/100`] : [],
-    astro_details: pair.astrologyScore ? [`Astrology score ${pair.astrologyScore}/100`] : [],
+    summary:
+      locale === 'ko'
+        ? `관계 가중치를 반영한 ${describeScoreBand(pair.weightedScore, locale)} 조합입니다.`
+        : `${describeScoreBand(pair.weightedScore, locale)} fit with relation weight applied.`,
+    saju_details: pair.sajuScore
+      ? [locale === 'ko' ? `사주 점수 ${pair.sajuScore}/100` : `Saju score ${pair.sajuScore}/100`]
+      : [],
+    astro_details: pair.astrologyScore
+      ? [
+          locale === 'ko'
+            ? `점성 점수 ${pair.astrologyScore}/100`
+            : `Astrology score ${pair.astrologyScore}/100`,
+        ]
+      : [],
     fusion_insights: pair.strengths.slice(0, 2),
   }))
 
@@ -614,10 +916,18 @@ function buildGroupPayload(
   const weakest = sortedPairs[sortedPairs.length - 1] || null
 
   const specialFormations: string[] = []
-  if (!lackingOheng) specialFormations.push('Balanced five-element coverage')
-  if (!lackingAstro) specialFormations.push('Balanced astro element coverage')
+  if (!lackingOheng) {
+    specialFormations.push(locale === 'ko' ? '오행 균형 분포' : 'Balanced five-element coverage')
+  }
+  if (!lackingAstro) {
+    specialFormations.push(
+      locale === 'ko' ? '점성 원소 균형 분포' : 'Balanced astro element coverage'
+    )
+  }
   if (pairAnalyses.some((p) => (p.crossScore || 0) >= 80)) {
-    specialFormations.push('Strong cross-system resonance')
+    specialFormations.push(
+      locale === 'ko' ? '강한 교차 시스템 공명' : 'Strong cross-system resonance'
+    )
   }
 
   return {
@@ -646,38 +956,45 @@ function buildGroupPayload(
       size_adjustment: sizeAdjustment,
       special_formations: specialFormations,
       best_pair: {
-        pair: best?.pairLabel || 'N/A',
+        pair: best?.pairLabel || (locale === 'ko' ? '정보 없음' : 'N/A'),
         score: best?.weightedScore || 0,
-        summary: best?.strengths?.[0] || 'No data',
+        summary: best?.strengths?.[0] || (locale === 'ko' ? '데이터 없음' : 'No data'),
       },
       weakest_pair: {
-        pair: weakest?.pairLabel || 'N/A',
+        pair: weakest?.pairLabel || (locale === 'ko' ? '정보 없음' : 'N/A'),
         score: weakest?.weightedScore || 0,
-        summary: weakest?.challenges?.[0] || 'No data',
+        summary: weakest?.challenges?.[0] || (locale === 'ko' ? '데이터 없음' : 'No data'),
       },
     },
   }
 }
 
 function buildInterpretationMarkdown(params: {
+  locale: LocaleCode
   names: string[]
   persons: PersonInput[]
   analyses: PersonAnalysis[]
   pairAnalyses: PairAnalysis[]
   finalScore: number
+  timing: ReturnType<typeof buildTimingPayload> | null
 }) {
-  const { names, persons, analyses, pairAnalyses, finalScore } = params
+  const { locale, names, persons, analyses, pairAnalyses, finalScore, timing } = params
+  const isKo = locale === 'ko'
   const primaryPair = pairAnalyses[0]
 
   if (!primaryPair) {
     return [
-      '## Overall Score',
+      isKo ? '## 종합 점수' : '## Overall Score',
       '',
-      'No pair result could be generated from the input.',
+      isKo
+        ? '입력값으로부터 페어 결과를 생성하지 못했습니다.'
+        : 'No pair result could be generated from the input.',
       '',
-      '## Advice',
+      isKo ? '## 조언' : '## Advice',
       '',
-      '- Please verify date, time, latitude/longitude, and timezone for all people.',
+      isKo
+        ? '- 모든 사람의 생년월일, 출생시간, 위도/경도, 시간대를 다시 확인해주세요.'
+        : '- Please verify date, time, latitude/longitude, and timezone for all people.',
     ].join('\n')
   }
 
@@ -690,110 +1007,276 @@ function buildInterpretationMarkdown(params: {
   const p2Astro = analyses[bIndex]?.astroProfile
 
   const lines: string[] = []
-  lines.push('## Overall Score')
+  lines.push(isKo ? '## 종합 점수' : '## Overall Score')
   lines.push('')
   lines.push(
-    `${primaryPair.pairLabel}: ${primaryPair.weightedScore}/100 (${describeScoreBand(primaryPair.weightedScore)})`
+    `${primaryPair.pairLabel}: ${primaryPair.weightedScore}/100 (${describeScoreBand(primaryPair.weightedScore, locale)})`
   )
-  lines.push(`Global average across ${pairAnalyses.length} pair(s): ${finalScore}/100`)
-  lines.push('This result is computed locally from Saju + Astrology + cross-system scoring.')
+  lines.push(
+    isKo
+      ? `전체 ${pairAnalyses.length}개 페어 평균: ${finalScore}/100`
+      : `Global average across ${pairAnalyses.length} pair(s): ${finalScore}/100`
+  )
+  lines.push(
+    isKo
+      ? '이 결과는 사주 + 점성 + 교차 시스템 점수를 기반으로 계산되었습니다.'
+      : 'This result is computed locally from Saju + Astrology + cross-system scoring.'
+  )
   lines.push('')
 
-  lines.push('## Relationship Analysis')
+  lines.push(isKo ? '## 관계 분석' : '## Relationship Analysis')
   lines.push('')
   for (let i = 1; i < persons.length; i++) {
     lines.push(
-      `${names[0]} ↔ ${names[i]}: ${relationLabel(persons[i].relationToP1, persons[i].relationNoteToP1)}`
+      `${names[0]} ↔ ${names[i]}: ${relationLabel(locale, persons[i].relationToP1, persons[i].relationNoteToP1)}`
     )
   }
   lines.push('')
 
-  lines.push('## Detailed Scores')
+  lines.push(isKo ? '## 상세 점수' : '## Detailed Scores')
   lines.push('')
   pairAnalyses.forEach((pair) => {
     lines.push(
-      `${pair.pairLabel}: ${pair.weightedScore}/100 (Saju ${scoreText(pair.sajuScore)}, Astrology ${scoreText(pair.astrologyScore)}, Cross ${scoreText(pair.crossScore)})`
+      locale === 'ko'
+        ? `${pair.pairLabel}: ${pair.weightedScore}/100 (사주 ${scoreText(pair.sajuScore, locale)}, 점성 ${scoreText(pair.astrologyScore, locale)}, 교차 ${scoreText(pair.crossScore, locale)})`
+        : `${pair.pairLabel}: ${pair.weightedScore}/100 (Saju ${scoreText(pair.sajuScore, locale)}, Astrology ${scoreText(pair.astrologyScore, locale)}, Cross ${scoreText(pair.crossScore, locale)})`
     )
   })
   lines.push('')
 
-  lines.push('## Saju Analysis')
+  lines.push(isKo ? '## 사주 분석' : '## Saju Analysis')
   lines.push('')
   if (p1Saju && p2Saju) {
     lines.push(
-      `Day Master: ${p1Name} ${p1Saju.dayMaster.name} (${elementKo(elementEnFromSaju(p1Saju.dayMaster.element))}) vs ${p2Name} ${p2Saju.dayMaster.name} (${elementKo(elementEnFromSaju(p2Saju.dayMaster.element))})`
+      isKo
+        ? `일간 비교: ${p1Name} ${p1Saju.dayMaster.name} (${elementLabel(locale, p1Saju.dayMaster.element)}) vs ${p2Name} ${p2Saju.dayMaster.name} (${elementLabel(locale, p2Saju.dayMaster.element)})`
+        : `Day Master: ${p1Name} ${p1Saju.dayMaster.name} (${elementLabel(locale, p1Saju.dayMaster.element)}) vs ${p2Name} ${p2Saju.dayMaster.name} (${elementLabel(locale, p2Saju.dayMaster.element)})`
     )
-    lines.push(`Saju compatibility score: ${scoreText(primaryPair.sajuScore)}`)
     lines.push(
-      `Month branch interaction: ${p1Saju.pillars.month.branch} ↔ ${p2Saju.pillars.month.branch}`
+      isKo
+        ? `사주 궁합 점수: ${scoreText(primaryPair.sajuScore, locale)}`
+        : `Saju compatibility score: ${scoreText(primaryPair.sajuScore, locale)}`
+    )
+    lines.push(
+      isKo
+        ? `월지 상호작용: ${p1Saju.pillars.month.branch} ↔ ${p2Saju.pillars.month.branch}`
+        : `Month branch interaction: ${p1Saju.pillars.month.branch} ↔ ${p2Saju.pillars.month.branch}`
     )
   } else {
-    lines.push('Saju profile could not be fully computed for this pair.')
+    lines.push(
+      isKo
+        ? '이 페어의 사주 프로필을 완전히 계산하지 못했습니다.'
+        : 'Saju profile could not be fully computed for this pair.'
+    )
   }
   lines.push('')
 
-  lines.push('## Astrology Analysis')
+  lines.push(isKo ? '## 점성 분석' : '## Astrology Analysis')
   lines.push('')
   if (p1Astro && p2Astro) {
     lines.push(
-      `${p1Name}: Sun ${p1Astro.sun.sign}, Moon ${p1Astro.moon.sign}, Venus ${p1Astro.venus.sign}, Mars ${p1Astro.mars.sign}`
+      isKo
+        ? `${p1Name}: 태양 ${signLabel(locale, p1Astro.sun.sign)}, 달 ${signLabel(locale, p1Astro.moon.sign)}, 금성 ${signLabel(locale, p1Astro.venus.sign)}, 화성 ${signLabel(locale, p1Astro.mars.sign)}`
+        : `${p1Name}: Sun ${signLabel(locale, p1Astro.sun.sign)}, Moon ${signLabel(locale, p1Astro.moon.sign)}, Venus ${signLabel(locale, p1Astro.venus.sign)}, Mars ${signLabel(locale, p1Astro.mars.sign)}`
     )
     lines.push(
-      `${p2Name}: Sun ${p2Astro.sun.sign}, Moon ${p2Astro.moon.sign}, Venus ${p2Astro.venus.sign}, Mars ${p2Astro.mars.sign}`
+      isKo
+        ? `${p2Name}: 태양 ${signLabel(locale, p2Astro.sun.sign)}, 달 ${signLabel(locale, p2Astro.moon.sign)}, 금성 ${signLabel(locale, p2Astro.venus.sign)}, 화성 ${signLabel(locale, p2Astro.mars.sign)}`
+        : `${p2Name}: Sun ${signLabel(locale, p2Astro.sun.sign)}, Moon ${signLabel(locale, p2Astro.moon.sign)}, Venus ${signLabel(locale, p2Astro.venus.sign)}, Mars ${signLabel(locale, p2Astro.mars.sign)}`
     )
-    lines.push(`Astrology compatibility score: ${scoreText(primaryPair.astrologyScore)}`)
+    lines.push(
+      isKo
+        ? `점성 궁합 점수: ${scoreText(primaryPair.astrologyScore, locale)}`
+        : `Astrology compatibility score: ${scoreText(primaryPair.astrologyScore, locale)}`
+    )
 
     if (primaryPair.topAspects.length > 0) {
-      lines.push('Top synastry aspects:')
+      lines.push(isKo ? '주요 시너스트리 어스펙트:' : 'Top synastry aspects:')
       primaryPair.topAspects.slice(0, 6).forEach((aspect) => lines.push(`- ${aspect}`))
     }
     if (primaryPair.topHouseOverlays.length > 0) {
-      lines.push('Key house overlays:')
+      lines.push(isKo ? '핵심 하우스 오버레이:' : 'Key house overlays:')
       primaryPair.topHouseOverlays.slice(0, 4).forEach((overlay) => lines.push(`- ${overlay}`))
     }
   } else {
-    lines.push('Astrology profile could not be fully computed for this pair.')
+    lines.push(
+      isKo
+        ? '이 페어의 점성 프로필을 완전히 계산하지 못했습니다.'
+        : 'Astrology profile could not be fully computed for this pair.'
+    )
   }
   lines.push('')
 
-  lines.push('## Cross-System Analysis')
+  lines.push(isKo ? '## 교차 시스템 분석' : '## Cross-System Analysis')
   lines.push('')
-  lines.push(`Fusion score (Saju + Astrology): ${scoreText(primaryPair.fusionScore)}`)
-  lines.push(`Cross-system consistency score: ${scoreText(primaryPair.crossScore)}`)
+  lines.push(
+    isKo
+      ? `융합 점수(사주 + 점성): ${scoreText(primaryPair.fusionScore, locale)}`
+      : `Fusion score (Saju + Astrology): ${scoreText(primaryPair.fusionScore, locale)}`
+  )
+  lines.push(
+    isKo
+      ? `교차 시스템 일관성 점수: ${scoreText(primaryPair.crossScore, locale)}`
+      : `Cross-system consistency score: ${scoreText(primaryPair.crossScore, locale)}`
+  )
   if (primaryPair.crossScore !== null) {
     if (primaryPair.crossScore >= 75) {
-      lines.push('Saju and Astrology are pointing in a similar direction.')
+      lines.push(
+        isKo
+          ? '사주와 점성이 비슷한 방향을 가리키고 있습니다.'
+          : 'Saju and Astrology are pointing in a similar direction.'
+      )
     } else if (primaryPair.crossScore >= 55) {
-      lines.push('Saju and Astrology are partially aligned; practical tuning is important.')
+      lines.push(
+        isKo
+          ? '사주와 점성이 부분적으로 맞습니다. 실무적인 조율이 중요합니다.'
+          : 'Saju and Astrology are partially aligned; practical tuning is important.'
+      )
     } else {
-      lines.push('Saju and Astrology show different emphasis; communication quality is critical.')
+      lines.push(
+        isKo
+          ? '사주와 점성의 강조점이 다릅니다. 소통 품질이 핵심입니다.'
+          : 'Saju and Astrology show different emphasis; communication quality is critical.'
+      )
     }
   }
   lines.push('')
 
-  lines.push('## Strengths')
+  const fusion = primaryPair.fusionInsights
+
+  lines.push(isKo ? '## 성격/감정 궁합' : '## Personality & Emotional Fit')
+  lines.push('')
+  if (fusion) {
+    if (fusion.dayMasterHarmony !== null) {
+      lines.push(
+        isKo
+          ? `사주 성향 조화(일간): ${fusion.dayMasterHarmony}/100`
+          : `Saju personality alignment (Day Master): ${fusion.dayMasterHarmony}/100`
+      )
+    }
+    if (fusion.sunMoonHarmony !== null) {
+      lines.push(
+        isKo
+          ? `감정/가치관 조화(태양·달): ${fusion.sunMoonHarmony}/100`
+          : `Emotional/value harmony (Sun-Moon): ${fusion.sunMoonHarmony}/100`
+      )
+    }
+    if (fusion.intellectualAlignment !== null) {
+      lines.push(
+        isKo
+          ? `대화/사고 결(지적 정렬): ${fusion.intellectualAlignment}/100`
+          : `Conversation/thinking alignment: ${fusion.intellectualAlignment}/100`
+      )
+    }
+    if (fusion.conflictResolutionStyle) {
+      lines.push(
+        isKo
+          ? `갈등 해결 스타일: ${fusion.conflictResolutionStyle}`
+          : `Conflict resolution style: ${fusion.conflictResolutionStyle}`
+      )
+    }
+  } else {
+    lines.push(
+      isKo
+        ? '성향/감정 조화 지표를 일부 계산하지 못해 핵심 점수 위주로 해석했습니다.'
+        : 'Some personality/emotion indicators were unavailable, so this section uses core scores.'
+    )
+  }
+  lines.push('')
+
+  lines.push(isKo ? '## 속궁합 & 친밀도' : '## Intimacy Chemistry')
+  lines.push('')
+  if (fusion?.venusMarsSynergy !== null && fusion?.venusMarsSynergy !== undefined) {
+    lines.push(
+      isKo
+        ? `로맨스/끌림 지수(금성·화성): ${fusion.venusMarsSynergy}/100`
+        : `Romance/attraction index (Venus-Mars): ${fusion.venusMarsSynergy}/100`
+    )
+  } else {
+    lines.push(
+      isKo
+        ? `점성 기반 친밀도: ${scoreText(primaryPair.astrologyScore, locale)}`
+        : `Astrology-based intimacy score: ${scoreText(primaryPair.astrologyScore, locale)}`
+    )
+  }
+  if (fusion?.emotionalIntensity !== null && fusion?.emotionalIntensity !== undefined) {
+    lines.push(
+      isKo
+        ? `감정 몰입도: ${fusion.emotionalIntensity}/100`
+        : `Emotional intensity: ${fusion.emotionalIntensity}/100`
+    )
+  }
+  lines.push(
+    isKo
+      ? '핵심: 속궁합은 끌림 강도만이 아니라 감정 안정성과 소통 품질이 함께 맞을 때 오래 갑니다.'
+      : 'Key point: Intimacy lasts when attraction and communication/emotional stability rise together.'
+  )
+  lines.push('')
+
+  lines.push(isKo ? '## 미래 흐름 & 만남 타이밍' : '## Future Flow & Best Meeting Windows')
+  lines.push('')
+  if (fusion?.shortTerm) {
+    lines.push(
+      isKo ? `단기(1~6개월): ${fusion.shortTerm}` : `Short term (1-6 months): ${fusion.shortTerm}`
+    )
+  }
+  if (fusion?.mediumTerm) {
+    lines.push(
+      isKo
+        ? `중기(6개월~2년): ${fusion.mediumTerm}`
+        : `Mid term (6 months-2 years): ${fusion.mediumTerm}`
+    )
+  }
+  if (fusion?.longTerm) {
+    lines.push(isKo ? `장기(2년+): ${fusion.longTerm}` : `Long term (2+ years): ${fusion.longTerm}`)
+  }
+  if (timing?.good_days?.length) {
+    timing.good_days.forEach((day) => {
+      const nextDates =
+        Array.isArray((day as { next_dates?: unknown }).next_dates) &&
+        (day as { next_dates?: unknown[] }).next_dates?.length
+          ? (day as { next_dates: string[] }).next_dates.join(', ')
+          : null
+      if (nextDates) {
+        lines.push(
+          isKo
+            ? `추천 만남일(${day.days}) 다음 일정: ${nextDates}`
+            : `Recommended meeting days (${day.days}) next windows: ${nextDates}`
+        )
+      }
+    })
+  }
+  lines.push('')
+
+  lines.push(isKo ? '## 강점' : '## Strengths')
   lines.push('')
   primaryPair.strengths.forEach((item) => lines.push(`- ${item}`))
   lines.push('')
 
-  lines.push('## Challenges')
+  lines.push(isKo ? '## 과제' : '## Challenges')
   lines.push('')
   if (primaryPair.challenges.length === 0) {
-    lines.push('- No major challenge signal detected from current calculations.')
+    lines.push(
+      isKo
+        ? '- 현재 계산 기준에서 큰 위험 신호는 감지되지 않았습니다.'
+        : '- No major challenge signal detected from current calculations.'
+    )
   } else {
     primaryPair.challenges.forEach((item) => lines.push(`- ${item}`))
   }
   lines.push('')
 
-  lines.push('## Advice')
+  lines.push(isKo ? '## 조언' : '## Advice')
   lines.push('')
   primaryPair.advice.forEach((item) => lines.push(`- ${item}`))
   lines.push('')
 
-  lines.push('## Summary')
+  lines.push(isKo ? '## 요약' : '## Summary')
   lines.push('')
   lines.push(
-    `${p1Name} & ${p2Name} currently rate ${primaryPair.weightedScore}/100. Focus on consistent communication and role clarity to improve long-term compatibility.`
+    isKo
+      ? `${p1Name} & ${p2Name} 현재 점수는 ${primaryPair.weightedScore}/100입니다. 장기 궁합을 높이려면 일관된 소통과 역할 명확화에 집중하세요.`
+      : `${p1Name} & ${p2Name} currently rate ${primaryPair.weightedScore}/100. Focus on consistent communication and role clarity to improve long-term compatibility.`
   )
 
   return lines.join('\n')
@@ -819,6 +1302,7 @@ export const POST = withApiMiddleware(
     }
 
     const body = validationResult.data
+    const locale = normalizeLocale(body.locale || 'en')
     const persons: PersonInput[] = body.persons.map(
       (person, index) =>
         ({
@@ -834,7 +1318,10 @@ export const POST = withApiMiddleware(
         }) as PersonInput
     )
 
-    const names = persons.map((person, index) => person.name?.trim() || `Person ${index + 1}`)
+    const names = persons.map(
+      (person, index) =>
+        person.name?.trim() || (locale === 'ko' ? `사람 ${index + 1}` : `Person ${index + 1}`)
+    )
     const pairs: [number, number][] = []
 
     for (let i = 0; i < persons.length; i++) {
@@ -881,6 +1368,7 @@ export const POST = withApiMiddleware(
       let astrologyScore: number | null = null
       let fusionScore: number | null = null
       let crossScore: number | null = null
+      let fusionInsights: PairFusionInsights | null = null
 
       if (sajuA && sajuB) {
         try {
@@ -916,6 +1404,7 @@ export const POST = withApiMiddleware(
         try {
           const fusion = calculateFusionCompatibility(sajuA, astroA, sajuB, astroB)
           fusionScore = Math.round(fusion.overallScore)
+          fusionInsights = pickFusionInsights(fusion)
         } catch (error) {
           logger.warn('[Compatibility] Fusion analysis failed', { pair: [a, b], error })
         }
@@ -962,7 +1451,7 @@ export const POST = withApiMiddleware(
         try {
           const synastry = calculateSynastry({ chartA, chartB })
           const top = synastry.aspects.slice(0, 8)
-          top.forEach((aspect) => topAspects.push(formatAspectLine(aspect)))
+          top.forEach((aspect) => topAspects.push(formatAspectLine(aspect, locale)))
 
           harmonyAspectCount = synastry.aspects.filter((aspect) =>
             ['conjunction', 'trine', 'sextile'].includes(aspect.type)
@@ -973,12 +1462,16 @@ export const POST = withApiMiddleware(
 
           synastry.houseOverlaysAtoB.slice(0, 2).forEach((overlay) => {
             topHouseOverlays.push(
-              `${names[a]}'s ${overlay.planet} in ${names[b]}'s House ${overlay.inHouse}`
+              locale === 'ko'
+                ? `${names[a]}의 ${overlay.planet} → ${names[b]} 하우스 ${overlay.inHouse}`
+                : `${names[a]}'s ${overlay.planet} in ${names[b]}'s House ${overlay.inHouse}`
             )
           })
           synastry.houseOverlaysBtoA.slice(0, 2).forEach((overlay) => {
             topHouseOverlays.push(
-              `${names[b]}'s ${overlay.planet} in ${names[a]}'s House ${overlay.inHouse}`
+              locale === 'ko'
+                ? `${names[b]}의 ${overlay.planet} → ${names[a]} 하우스 ${overlay.inHouse}`
+                : `${names[b]}'s ${overlay.planet} in ${names[a]}'s House ${overlay.inHouse}`
             )
           })
         } catch (error) {
@@ -993,13 +1486,14 @@ export const POST = withApiMiddleware(
         finalScore: weightedScore,
         harmonyAspectCount,
         tensionAspectCount,
+        locale,
       })
 
       const pairLabel = `${names[a]} & ${names[b]}`
       pairAnalyses.push({
         pair: [a, b],
         pairLabel,
-        relationLabel: relationLabel(relation, relationNote),
+        relationLabel: relationLabel(locale, relation, relationNote),
         rawScore,
         weightedScore,
         sajuScore,
@@ -1011,6 +1505,7 @@ export const POST = withApiMiddleware(
         advice: insight.advice,
         topAspects,
         topHouseOverlays,
+        fusionInsights,
       })
 
       pairScores.push({
@@ -1024,22 +1519,29 @@ export const POST = withApiMiddleware(
       : 0
 
     const primaryPair = pairAnalyses[0] || null
+    const isGroup = persons.length > 2
+    const { groupAnalysis, synergyBreakdown } = buildGroupPayload(
+      names,
+      personAnalyses,
+      pairAnalyses,
+      locale
+    )
+    const timing = buildTimingPayload(primaryPair, persons, personAnalyses, isGroup, locale)
     const interpretation = buildInterpretationMarkdown({
+      locale,
       names,
       persons,
       analyses: personAnalyses,
       pairAnalyses,
       finalScore,
+      timing,
     })
-
-    const isGroup = persons.length > 2
-    const { groupAnalysis, synergyBreakdown } = buildGroupPayload(
-      names,
-      personAnalyses,
-      pairAnalyses
-    )
-    const timing = buildTimingPayload(primaryPair, persons, personAnalyses, isGroup)
-    const actionItems = unique(pairAnalyses.flatMap((pair) => pair.advice)).slice(0, 8)
+    const actionItems = unique(
+      pairAnalyses.flatMap((pair) => [
+        ...pair.advice,
+        ...(pair.fusionInsights?.recommendedActions || []),
+      ])
+    ).slice(0, 10)
     const fusionEnabled = pairAnalyses.some((pair) => pair.fusionScore !== null)
 
     const session = await getServerSession(authOptions)
@@ -1066,7 +1568,7 @@ export const POST = withApiMiddleware(
       }
     }
 
-    const response = NextResponse.json({
+    const responsePayload = normalizeMojibakePayload({
       interpretation,
       aiInterpretation: interpretation,
       aiModelUsed: 'local-fusion-v2',
@@ -1074,6 +1576,21 @@ export const POST = withApiMiddleware(
       pair_details: pairAnalyses,
       average: finalScore,
       overall_score: finalScore,
+      relationship_dynamics: primaryPair?.fusionInsights
+        ? {
+            emotionalIntensity: primaryPair.fusionInsights.emotionalIntensity,
+            intellectualAlignment: primaryPair.fusionInsights.intellectualAlignment,
+            spiritualConnection: primaryPair.fusionInsights.spiritualConnection,
+            conflictResolutionStyle: primaryPair.fusionInsights.conflictResolutionStyle,
+          }
+        : null,
+      future_guidance: primaryPair?.fusionInsights
+        ? {
+            shortTerm: primaryPair.fusionInsights.shortTerm,
+            mediumTerm: primaryPair.fusionInsights.mediumTerm,
+            longTerm: primaryPair.fusionInsights.longTerm,
+          }
+        : null,
       timing,
       action_items: actionItems,
       fusion_enabled: fusionEnabled,
@@ -1081,6 +1598,7 @@ export const POST = withApiMiddleware(
       group_analysis: isGroup ? groupAnalysis : null,
       synergy_breakdown: isGroup ? synergyBreakdown : null,
     })
+    const response = NextResponse.json(responsePayload)
 
     response.headers.set('Cache-Control', 'no-store')
     return response

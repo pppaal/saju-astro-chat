@@ -16,7 +16,9 @@ export const TimingGuideCard = React.memo<TimingGuideCardProps>(({ timing, isGro
         <div className={styles.resultCardGlow} />
         <div className={styles.resultCardHeader}>
           <span className={styles.resultCardIcon}>{'\u23F0'}</span>
-          <h3 className={styles.resultCardTitle}>{t('compatibilityPage.timingGuide', 'Timing Guide')}</h3>
+          <h3 className={styles.resultCardTitle}>
+            {t('compatibilityPage.timingGuide', 'Timing Guide')}
+          </h3>
         </div>
         <div className={styles.resultCardContent}>
           {timing.current_month && (
@@ -25,7 +27,8 @@ export const TimingGuideCard = React.memo<TimingGuideCardProps>(({ timing, isGro
                 {'\u{1F4C5}'} {t('compatibilityPage.thisMonth', 'This Month')}
               </h4>
               <p className={styles.timingBranch}>
-                {repairMojibakeText(timing.current_month.branch)} ({repairMojibakeText(timing.current_month.element)})
+                {repairMojibakeText(timing.current_month.branch)} (
+                {repairMojibakeText(timing.current_month.element)})
               </p>
               <p>{repairMojibakeText(timing.current_month.analysis)}</p>
             </div>
@@ -42,6 +45,12 @@ export const TimingGuideCard = React.memo<TimingGuideCardProps>(({ timing, isGro
                   <span className={styles.dayActivities}>
                     {activity.activities.map((v) => repairMojibakeText(v)).join(', ')}
                   </span>
+                  {activity.next_dates && activity.next_dates.length > 0 && (
+                    <span className={styles.dayReason}>
+                      {'📍 '}
+                      {activity.next_dates.map((v) => repairMojibakeText(v)).join(', ')}
+                    </span>
+                  )}
                   <span className={styles.dayReason}>{repairMojibakeText(activity.reason)}</span>
                 </div>
               ))}
@@ -59,6 +68,12 @@ export const TimingGuideCard = React.memo<TimingGuideCardProps>(({ timing, isGro
                   <span className={styles.dayActivities}>
                     {day.activities.map((v) => repairMojibakeText(v)).join(', ')}
                   </span>
+                  {day.next_dates && day.next_dates.length > 0 && (
+                    <span className={styles.dayReason}>
+                      {'📍 '}
+                      {day.next_dates.map((v) => repairMojibakeText(v)).join(', ')}
+                    </span>
+                  )}
                   <span className={styles.dayReason}>{repairMojibakeText(day.reason)}</span>
                 </div>
               ))}
