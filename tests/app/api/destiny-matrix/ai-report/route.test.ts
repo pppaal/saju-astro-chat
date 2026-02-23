@@ -169,6 +169,7 @@ import {
   generateAIPremiumReport,
   generateTimingReport,
   generateThemedReport,
+  generateFivePagePDF,
   generatePremiumPDF,
 } from '@/lib/destiny-matrix/ai-report'
 import { rateLimit } from '@/lib/rateLimit'
@@ -875,9 +876,11 @@ describe('POST /api/destiny-matrix/ai-report', () => {
       expect(data.error.upgrade).toBe(true)
     })
 
-    it('should not return PDF for non-comprehensive reports even if format=pdf', async () => {
-      // For timing reports, premiumReport is null so PDF path is not entered
+    it('should return 5-page PDF for non-comprehensive reports when format=pdf', async () => {
+      vi.mocked(canUseFeature).mockResolvedValue(true)
       vi.mocked(generateTimingReport).mockResolvedValue(MOCK_TIMING_REPORT as any)
+      const pdfBuffer = new Uint8Array([0x25, 0x50, 0x44, 0x46])
+      vi.mocked(generateFivePagePDF).mockResolvedValue(pdfBuffer as any)
       vi.mocked(prisma.destinyMatrixReport.create).mockResolvedValue({
         ...MOCK_SAVED_REPORT,
         reportType: 'timing',
@@ -890,13 +893,11 @@ describe('POST /api/destiny-matrix/ai-report', () => {
       })
 
       const response = await POST(req)
-      const data = await response.json()
 
-      // Should return JSON since premiumReport is null for timing
       expect(response.status).toBe(200)
-      expect(data.success).toBe(true)
-      expect(data.reportType).toBe('timing')
-      expect(canUseFeature).not.toHaveBeenCalled()
+      expect(response.headers.get('Content-Type')).toBe('application/pdf')
+      expect(generateFivePagePDF).toHaveBeenCalledTimes(1)
+      expect(canUseFeature).toHaveBeenCalledTimes(1)
     })
   })
 
