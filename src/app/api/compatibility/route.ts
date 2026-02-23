@@ -480,6 +480,103 @@ function describeScoreBand(score: number, locale: LocaleCode) {
   return 'Challenging'
 }
 
+type PlainThemeKind = 'personality' | 'emotional' | 'intimacy' | 'home' | 'communication'
+
+function plainThemeLabel(locale: LocaleCode, theme: PlainThemeKind) {
+  if (locale === 'ko') {
+    if (theme === 'personality') return '성격 궁합'
+    if (theme === 'emotional') return '감정 궁합'
+    if (theme === 'intimacy') return '친밀·속궁합'
+    if (theme === 'home') return '생활·가정 궁합'
+    return '소통 궁합'
+  }
+
+  if (theme === 'personality') return 'Personality fit'
+  if (theme === 'emotional') return 'Emotional fit'
+  if (theme === 'intimacy') return 'Intimacy chemistry'
+  if (theme === 'home') return 'Home/Family fit'
+  return 'Communication fit'
+}
+
+function plainThemeComment(locale: LocaleCode, theme: PlainThemeKind, score: number) {
+  const isKo = locale === 'ko'
+  const high = score >= 75
+  const mid = score >= 60
+
+  if (theme === 'personality') {
+    if (high)
+      return isKo
+        ? '기본 성향과 생활 리듬이 비슷해 마찰이 적습니다.'
+        : 'Your baseline traits and daily rhythm align well.'
+    if (mid)
+      return isKo
+        ? '성향 차이가 있어 역할 분담을 정하면 더 편해집니다.'
+        : 'Some trait differences exist; role clarity will help.'
+    return isKo
+      ? '기본 성향 차이가 커서 갈등 규칙을 먼저 합의하는 것이 좋습니다.'
+      : 'Trait gaps are larger; agree on conflict rules early.'
+  }
+
+  if (theme === 'emotional') {
+    if (high)
+      return isKo
+        ? '감정 표현과 공감 타이밍이 잘 맞습니다.'
+        : 'Your emotional expression and empathy timing match well.'
+    if (mid)
+      return isKo
+        ? '감정 온도 차이가 있어 확인 질문이 필요합니다.'
+        : 'Emotional temperature differs; check-in questions help.'
+    return isKo
+      ? '감정 해석 방식이 달라 오해가 누적되기 쉽습니다.'
+      : 'Different emotional interpretation can create repeated misunderstandings.'
+  }
+
+  if (theme === 'intimacy') {
+    if (high)
+      return isKo
+        ? '애정 표현 템포와 친밀도 기대치가 잘 맞는 편입니다.'
+        : 'Affection tempo and intimacy expectations are well aligned.'
+    if (mid)
+      return isKo
+        ? '끌림은 있으나 속도 조절과 배려 신호가 중요합니다.'
+        : 'Attraction exists, but pacing and reassurance signals matter.'
+    return isKo
+      ? '친밀도 기대치 차이가 커서 경계와 합의가 먼저 필요합니다.'
+      : 'Intimacy expectations differ; boundaries and consent-first alignment are needed.'
+  }
+
+  if (theme === 'home') {
+    if (high)
+      return isKo
+        ? '생활 루틴, 책임 분담, 현실 감각이 잘 맞습니다.'
+        : 'Routine, responsibilities, and practical cadence fit well.'
+    if (mid)
+      return isKo
+        ? '가사·재정 같은 현실 영역에서 기준 맞추기가 필요합니다.'
+        : 'Home and money expectations need explicit alignment.'
+    return isKo
+      ? '실생활 운영 방식이 달라 규칙 없는 동거/협업은 피하는 게 좋습니다.'
+      : 'Daily-life operating styles differ; define rules before close co-living/collaboration.'
+  }
+
+  if (high)
+    return isKo
+      ? '대화 리듬과 문제 해결 방식이 안정적입니다.'
+      : 'Conversation rhythm and problem-solving style are stable.'
+  if (mid)
+    return isKo
+      ? '핵심 주제는 서면/체크리스트로 합의하면 효과적입니다.'
+      : 'For important topics, written checklists improve alignment.'
+  return isKo
+    ? '말의 의도 해석이 자주 엇갈려 구조화된 대화가 필요합니다.'
+    : 'Intent interpretation often diverges; structured dialogue is required.'
+}
+
+function plainThemeLine(locale: LocaleCode, theme: PlainThemeKind, score: number) {
+  const safeScore = clamp(Math.round(score), 0, 100)
+  return `- ${plainThemeLabel(locale, theme)}: ${safeScore}/100 (${describeScoreBand(safeScore, locale)}) - ${plainThemeComment(locale, theme, safeScore)}`
+}
+
 function buildPairInsights(input: {
   sajuScore: number | null
   astrologyScore: number | null
@@ -1005,6 +1102,47 @@ function buildInterpretationMarkdown(params: {
   const p2Saju = analyses[bIndex]?.sajuProfile
   const p1Astro = analyses[aIndex]?.astroProfile
   const p2Astro = analyses[bIndex]?.astroProfile
+  const fusion = primaryPair.fusionInsights
+
+  const personalityScore = clamp(
+    Math.round(
+      (primaryPair.sajuScore ?? primaryPair.weightedScore) * 0.65 +
+        (primaryPair.crossScore ?? primaryPair.weightedScore) * 0.35
+    ),
+    0,
+    100
+  )
+  const emotionalScore = clamp(
+    Math.round(
+      (fusion?.sunMoonHarmony ?? primaryPair.astrologyScore ?? primaryPair.weightedScore) * 0.7 +
+        (fusion?.emotionalIntensity ?? primaryPair.weightedScore) * 0.3
+    ),
+    0,
+    100
+  )
+  const intimacyScore = clamp(
+    Math.round(
+      (fusion?.venusMarsSynergy ?? primaryPair.astrologyScore ?? primaryPair.weightedScore) * 0.75 +
+        (fusion?.emotionalIntensity ?? primaryPair.weightedScore) * 0.25
+    ),
+    0,
+    100
+  )
+  const homeScore = clamp(
+    Math.round(
+      (primaryPair.sajuScore ?? primaryPair.weightedScore) * 0.7 + primaryPair.weightedScore * 0.3
+    ),
+    0,
+    100
+  )
+  const communicationScore = clamp(
+    Math.round(
+      (fusion?.intellectualAlignment ?? primaryPair.crossScore ?? primaryPair.weightedScore) * 0.7 +
+        primaryPair.weightedScore * 0.3
+    ),
+    0,
+    100
+  )
 
   const lines: string[] = []
   lines.push(isKo ? '## 종합 점수' : '## Overall Score')
@@ -1042,6 +1180,15 @@ function buildInterpretationMarkdown(params: {
         : `${pair.pairLabel}: ${pair.weightedScore}/100 (Saju ${scoreText(pair.sajuScore, locale)}, Astrology ${scoreText(pair.astrologyScore, locale)}, Cross ${scoreText(pair.crossScore, locale)})`
     )
   })
+  lines.push('')
+
+  lines.push(isKo ? '## 한눈에 보는 궁합 해설' : '## Plain-Language Compatibility Guide')
+  lines.push('')
+  lines.push(plainThemeLine(locale, 'personality', personalityScore))
+  lines.push(plainThemeLine(locale, 'emotional', emotionalScore))
+  lines.push(plainThemeLine(locale, 'intimacy', intimacyScore))
+  lines.push(plainThemeLine(locale, 'home', homeScore))
+  lines.push(plainThemeLine(locale, 'communication', communicationScore))
   lines.push('')
 
   lines.push(isKo ? '## 사주 분석' : '## Saju Analysis')
@@ -1142,8 +1289,6 @@ function buildInterpretationMarkdown(params: {
   }
   lines.push('')
 
-  const fusion = primaryPair.fusionInsights
-
   lines.push(isKo ? '## 성격/감정 궁합' : '## Personality & Emotional Fit')
   lines.push('')
   if (fusion) {
@@ -1230,8 +1375,13 @@ function buildInterpretationMarkdown(params: {
   if (fusion?.longTerm) {
     lines.push(isKo ? `장기(2년+): ${fusion.longTerm}` : `Long term (2+ years): ${fusion.longTerm}`)
   }
-  if (timing?.good_days?.length) {
-    timing.good_days.forEach((day) => {
+  if (
+    timing &&
+    'good_days' in timing &&
+    Array.isArray(timing.good_days) &&
+    timing.good_days.length
+  ) {
+    timing.good_days.forEach((day: { days: string; next_dates?: string[] }) => {
       const nextDates =
         Array.isArray((day as { next_dates?: unknown }).next_dates) &&
         (day as { next_dates?: unknown[] }).next_dates?.length
