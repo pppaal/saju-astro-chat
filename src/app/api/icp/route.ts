@@ -215,7 +215,7 @@ export const POST = withApiMiddleware(
     const icpData = validationResult.data
 
     const result = await createResultWithFallback({
-      userId: context.userId!,
+      user: { connect: { id: context.userId! } },
       testVersion: icpData.testVersion || 'icp_v2',
       resultId: icpData.resultId || null,
       primaryStyle: icpData.primaryStyle,

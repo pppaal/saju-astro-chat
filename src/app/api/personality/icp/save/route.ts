@@ -203,7 +203,7 @@ export const POST = withApiMiddleware(
 
     try {
       const icpResult = await createIcpResultWithFallback({
-        userId: context.userId!,
+        user: { connect: { id: context.userId! } },
         testVersion: testVersion || 'icp_v2',
         resultId: resultId || null,
         primaryStyle,

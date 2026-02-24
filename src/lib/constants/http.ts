@@ -22,6 +22,8 @@ export const HTTP_STATUS = {
   FORBIDDEN: 403,
   /** Resource not found */
   NOT_FOUND: 404,
+  /** Unprocessable entity - validation failed */
+  UNPROCESSABLE_ENTITY: 422,
   /** Conflict - resource already exists */
   CONFLICT: 409,
   /** Payload too large */
@@ -32,7 +34,7 @@ export const HTTP_STATUS = {
   SERVER_ERROR: 500,
   /** Service unavailable */
   SERVICE_UNAVAILABLE: 503,
-} as const;
+} as const
 
 /**
  * HTTP Timeout Durations (milliseconds)
@@ -45,7 +47,7 @@ export const HTTP_TIMEOUTS = {
   LONG_OPERATION: 120000,
   /** Health check timeout */
   HEALTH_CHECK: 5000,
-} as const;
+} as const
 
 /**
  * Cache Control Headers (seconds)
@@ -58,4 +60,4 @@ export const CACHE_MAX_AGE = {
   CITY_DATA: 86400,
   /** Public API data (1 hour) */
   PUBLIC_API: 3600,
-} as const;
+} as const
