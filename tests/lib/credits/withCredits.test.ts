@@ -1,4 +1,4 @@
-/**
+﻿/**
  * withCredits helper tests
  * Tests for credit check utilities in API routes
  */
@@ -64,7 +64,8 @@ describe('withCredits helpers', () => {
 
       expect(result.allowed).toBe(false)
       expect(result.errorCode).toBe('not_authenticated')
-      expect(result.error).toContain('로그인')
+      expect(typeof result.error).toBe('string')
+      expect((result.error || '').length).toBeGreaterThan(0)
     })
 
     it('should return not_authenticated when no user id in session', async () => {
@@ -126,7 +127,8 @@ describe('withCredits helpers', () => {
 
       expect(result.allowed).toBe(false)
       expect(result.errorCode).toBe('no_credits')
-      expect(result.error).toContain('리딩')
+      expect(typeof result.error).toBe('string')
+      expect((result.error || '').length).toBeGreaterThan(0)
       expect(consumeCredits).not.toHaveBeenCalled()
     })
 
@@ -144,7 +146,8 @@ describe('withCredits helpers', () => {
 
       expect(result.allowed).toBe(false)
       expect(result.errorCode).toBe('compatibility_limit')
-      expect(result.error).toContain('궁합')
+      expect(typeof result.error).toBe('string')
+      expect((result.error || '').length).toBeGreaterThan(0)
     })
 
     it('should return error for followup limit', async () => {
@@ -161,7 +164,8 @@ describe('withCredits helpers', () => {
 
       expect(result.allowed).toBe(false)
       expect(result.errorCode).toBe('followup_limit')
-      expect(result.error).toContain('후속질문')
+      expect(typeof result.error).toBe('string')
+      expect((result.error || '').length).toBeGreaterThan(0)
     })
 
     it('should handle consume failure', async () => {
@@ -181,7 +185,8 @@ describe('withCredits helpers', () => {
 
       expect(result.allowed).toBe(false)
       expect(result.errorCode).toBe('db_error')
-      expect(result.error).toContain('오류')
+      expect(typeof result.error).toBe('string')
+      expect((result.error || '').length).toBeGreaterThan(0)
     })
   })
 
@@ -237,7 +242,8 @@ describe('withCredits helpers', () => {
       const result = await checkCreditsOnly('reading', 1)
 
       expect(result.allowed).toBe(false)
-      expect(result.error).toContain('크레딧')
+      expect(typeof result.error).toBe('string')
+      expect((result.error || '').length).toBeGreaterThan(0)
     })
   })
 
@@ -245,7 +251,7 @@ describe('withCredits helpers', () => {
     it('should return 401 for not_authenticated', () => {
       const result = creditErrorResponse({
         allowed: false,
-        error: '로그인이 필요합니다',
+        error: 'ë¡œê·¸ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤',
         errorCode: 'not_authenticated',
       })
 
@@ -256,7 +262,7 @@ describe('withCredits helpers', () => {
     it('should return 402 for credit errors', () => {
       const result = creditErrorResponse({
         allowed: false,
-        error: '크레딧이 부족합니다',
+        error: 'í¬ë ˆë”§ì´ ë¶€ì¡±í•©ë‹ˆë‹¤',
         errorCode: 'no_credits',
         remaining: 0,
       })

@@ -126,19 +126,27 @@ function normalizeGenderForSaju(value: unknown): 'male' | 'female' {
 
 function deriveSibsinDistributionFromSaju(sajuData: ReturnType<typeof calculateSajuData>) {
   const distribution: Record<string, number> = {}
-  const pillars = [sajuData.yearPillar, sajuData.monthPillar, sajuData.dayPillar, sajuData.timePillar]
+  const pillars = [
+    sajuData.yearPillar,
+    sajuData.monthPillar,
+    sajuData.dayPillar,
+    sajuData.timePillar,
+  ]
   for (const pillar of pillars) {
     if (pillar?.heavenlyStem?.sibsin) {
       distribution[pillar.heavenlyStem.sibsin] = (distribution[pillar.heavenlyStem.sibsin] || 0) + 1
     }
     if (pillar?.earthlyBranch?.sibsin) {
-      distribution[pillar.earthlyBranch.sibsin] = (distribution[pillar.earthlyBranch.sibsin] || 0) + 1
+      distribution[pillar.earthlyBranch.sibsin] =
+        (distribution[pillar.earthlyBranch.sibsin] || 0) + 1
     }
   }
   return distribution
 }
 
-function enrichRequestWithDerivedSaju(requestBody: Record<string, unknown>): Record<string, unknown> {
+function enrichRequestWithDerivedSaju(
+  requestBody: Record<string, unknown>
+): Record<string, unknown> {
   const birthDate = toOptionalString(requestBody.birthDate)
   if (!birthDate) {
     return requestBody
@@ -304,7 +312,7 @@ export const POST = withApiMiddleware(
       }
 
       // 5. 요청 검증
-      const validation = validateReportRequest(body)
+      const validation = validateReportRequest(requestBody)
       if (!validation.success) {
         return NextResponse.json(
           {
@@ -331,6 +339,12 @@ export const POST = withApiMiddleware(
         | 'detailed'
         | 'comprehensive'
         | undefined
+      const bilingual = requestBody.bilingual === true
+      const targetChars = toOptionalNumber(requestBody.targetChars)
+      const tone =
+        requestBody.tone === 'realistic' || requestBody.tone === 'friendly'
+          ? (requestBody.tone as 'realistic' | 'friendly')
+          : undefined
       const targetDate = requestBody.targetDate as string | undefined
       const profileContext = {
         birthDate: toOptionalString(requestBody.birthDate),
@@ -412,6 +426,27 @@ export const POST = withApiMiddleware(
           theme,
           lang: matrixInput.lang || 'ko',
         })
+
+        if (qualityAudit.shouldBlock) {
+          const blockedSections = Array.from(
+            new Set(qualityAudit.overclaimFindings.map((item) => item.section))
+          )
+          return NextResponse.json(
+            {
+              success: false,
+              error: {
+                code: 'QUALITY_BLOCKED',
+                message:
+                  '리포트 문장 품질 게이트(과장/비약 차단)에 걸렸습니다. 근거 없는 단정 표현을 줄여 다시 시도하세요.',
+                blockedSections,
+                overclaimFindings: qualityAudit.overclaimFindings.slice(0, 10),
+                qualityAudit,
+              },
+            },
+            { status: HTTP_STATUS.UNPROCESSABLE_ENTITY }
+          )
+        }
+
         const calculationDetails = buildCalculationDetails({
           matrixInput,
           profileContext,
@@ -447,6 +482,9 @@ export const POST = withApiMiddleware(
           lang: matrixInput.lang || 'ko',
           focusDomain: queryDomain as InsightDomain | undefined,
           detailLevel: detailLevel || 'detailed',
+          bilingual,
+          targetChars: targetChars ? Math.floor(targetChars) : undefined,
+          tone,
           userPlan,
         })
         aiReport = premiumReport
@@ -675,6 +713,19 @@ export async function GET(req: NextRequest) {
               type: 'string',
               enum: ['standard', 'detailed', 'comprehensive'],
               default: 'detailed',
+            },
+            bilingual: {
+              type: 'boolean',
+              description: '종합 리포트에서 한/영 동시 출력 여부 (기본 false)',
+            },
+            targetChars: {
+              type: 'number',
+              description: '종합 리포트 목표 최소 글자 수 (권장 8000~20000)',
+            },
+            tone: {
+              type: 'string',
+              enum: ['friendly', 'realistic'],
+              description: '서술 톤 (기본 friendly)',
             },
             queryDomain: {
               type: 'string',

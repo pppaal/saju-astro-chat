@@ -11,6 +11,7 @@ import {
   parseBirthDate,
   generateSummary,
   generateBestTimes,
+  gateRecommendations,
   formatDateForResponse,
   fetchAIDates,
   LOCATION_COORDS,
@@ -339,6 +340,37 @@ describe('Calendar Helpers', () => {
     it('should return study-specific times', () => {
       const result = generateBestTimes(0, ['study'], 'en')
       expect(result[0]).toContain('Peak focus')
+    })
+  })
+
+  describe('gateRecommendations', () => {
+    it('removes irreversible recommendations when confidence is low', () => {
+      const result = gateRecommendations({
+        recommendations: ['Sign now', 'Finalize contract today', 'Review details with your team'],
+        recommendationKeys: ['majorDecision', 'contract', 'review'],
+        confidence: 20,
+        grade: 0 as any,
+        lang: 'en',
+        irreversibleKeyPresent: true,
+      })
+
+      expect(result.some((line) => /sign|finalize|contract/i.test(line))).toBe(false)
+      expect(result.some((line) => /review|reconfirm|draft/i.test(line))).toBe(true)
+    })
+
+    it('removes irreversible recommendations when communication warning exists', () => {
+      const result = gateRecommendations({
+        recommendations: ['계약서 서명 진행', '핵심 내용 점검 후 메시지 요약 전송'],
+        recommendationKeys: ['contract', 'review'],
+        warningKeys: ['mercuryRetrograde'],
+        warnings: ['커뮤니케이션 오류 가능성이 있어 재확인이 필요합니다.'],
+        confidence: 90,
+        grade: 1 as any,
+        lang: 'ko',
+      })
+
+      expect(result.some((line) => /계약|서명|확정/.test(line))).toBe(false)
+      expect(result.some((line) => /검토|재확인|확인|요약|24시간/.test(line))).toBe(true)
     })
   })
 

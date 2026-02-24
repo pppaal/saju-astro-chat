@@ -62,6 +62,9 @@ export interface AIReportGenerationOptions {
   userPlan?: AIUserPlan
   focusDomain?: InsightDomain
   detailLevel?: 'standard' | 'detailed' | 'comprehensive'
+  bilingual?: boolean
+  targetChars?: number
+  tone?: 'friendly' | 'realistic'
   theme?: string
   graphRagEvidencePrompt?: string
 }

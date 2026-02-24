@@ -299,6 +299,28 @@ describe('AI Backend', () => {
       expect(result.model).toBe('gpt-4o-2024-08-06')
     })
 
+    it('should honor maxTokensOverride within plan ceiling', async () => {
+      const mockResponse = {
+        choices: [{ message: { content: '{"data":"test"}' } }],
+        model: 'gpt-4o',
+        usage: { total_tokens: 100 },
+      }
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      })
+
+      await callAIBackendGeneric('Test prompt', 'ko', {
+        userPlan: 'premium',
+        maxTokensOverride: 11200,
+      })
+
+      const fetchArgs = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]
+      const body = JSON.parse(fetchArgs[1].body as string)
+      expect(body.max_tokens).toBe(11200)
+    })
+
     it.skip('should handle timeout', async () => {
       // Skipped: This test takes 120+ seconds to complete
       // Testing timeout behavior is not critical for unit tests

@@ -563,6 +563,19 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         : `Key takeaway: ${evidenceBridges[0]}`
       : ''
 
+  const evidenceScoreLine = (() => {
+    if (!selectedDate?.evidence) return ''
+    const agreement = selectedDate.evidence.crossAgreementPercent
+    if (typeof agreement === 'number' && Number.isFinite(agreement)) {
+      return locale === 'ko'
+        ? `교차 정합도(참고): ${agreement}%`
+        : `Cross-agreement (reference): ${agreement}%`
+    }
+    return locale === 'ko'
+      ? `근거 강도(참고): ${selectedDate.evidence.confidence}%`
+      : `Evidence strength (reference): ${selectedDate.evidence.confidence}%`
+  })()
+
   const quickThesis = (() => {
     if (!selectedDate) return ''
     if (locale === 'ko') {
@@ -749,11 +762,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                     {evidenceSummaryPrimary && <li>{evidenceSummaryPrimary}</li>}
                     {evidenceSummaryCross && <li>{evidenceSummaryCross}</li>}
                     {evidenceBridgeSummary && <li>{evidenceBridgeSummary}</li>}
-                    <li>
-                      {locale === 'ko'
-                        ? `교차 일치도(참고): ${selectedDate.evidence.crossAgreementPercent ?? selectedDate.evidence.confidence}%`
-                        : `Cross-agreement (reference): ${selectedDate.evidence.crossAgreementPercent ?? selectedDate.evidence.confidence}%`}
-                    </li>
+                    {evidenceScoreLine && <li>{evidenceScoreLine}</li>}
                   </ul>
                 )}
               </div>

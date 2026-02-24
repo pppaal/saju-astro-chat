@@ -47,6 +47,8 @@ type TimelineSlotView = {
   evidenceSummary?: string[]
 }
 
+type ActionPlanPrecisionMode = 'ai-graphrag' | 'rule-fallback' | null
+
 const DEFAULT_TODAY_KO = [
   '우선순위 3개 정리하기',
   '집중할 일 1개 25분 진행',
@@ -186,6 +188,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const [aiTimeline, setAiTimeline] = useState<AiTimelineSlot[] | null>(null)
   const [aiSummary, setAiSummary] = useState<string | null>(null)
   const [aiStatus, setAiStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [aiPrecisionMode, setAiPrecisionMode] = useState<ActionPlanPrecisionMode>(null)
   const aiCacheRef = useRef<Record<string, AiTimelineSlot[]>>({})
   const aiAbortRef = useRef<AbortController | null>(null)
   const timelineSlotRefs = useRef<Record<string, HTMLDivElement | null>>({})
@@ -590,56 +593,98 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   )
 
   const buildAiPayload = useCallback(() => {
-    const trimList = (list: string[] | undefined, max: number) => {
-      if (!list || list.length === 0) return undefined
-      return list.filter(Boolean).slice(0, max)
-    }
     const trimText = (value: string | undefined, max: number) => {
       if (!value) return undefined
-      return value.slice(0, max)
+      return cleanText(value, '').slice(0, max) || undefined
     }
+    const trimList = (list: string[] | undefined, max: number, maxText = 220) => {
+      if (!list || list.length === 0) return undefined
+      const compact = list
+        .map((item) => trimText(item, maxText))
+        .filter((item): item is string => Boolean(item))
+      return compact.length ? compact.slice(0, max) : undefined
+    }
+    const compactEvidence = baseInfo?.evidence
+      ? {
+          matrix: baseInfo.evidence.matrix
+            ? {
+                domain: baseInfo.evidence.matrix.domain,
+                finalScoreAdjusted:
+                  typeof baseInfo.evidence.matrix.finalScoreAdjusted === 'number'
+                    ? Math.max(0, Math.min(10, baseInfo.evidence.matrix.finalScoreAdjusted))
+                    : undefined,
+                overlapStrength:
+                  typeof baseInfo.evidence.matrix.overlapStrength === 'number'
+                    ? Math.max(0, Math.min(1, baseInfo.evidence.matrix.overlapStrength))
+                    : undefined,
+                peakLevel: baseInfo.evidence.matrix.peakLevel,
+                monthKey: trimText(baseInfo.evidence.matrix.monthKey, 20),
+              }
+            : undefined,
+          cross: baseInfo.evidence.cross
+            ? {
+                sajuEvidence: trimText(baseInfo.evidence.cross.sajuEvidence, 360),
+                astroEvidence: trimText(baseInfo.evidence.cross.astroEvidence, 360),
+                sajuDetails: trimList(baseInfo.evidence.cross.sajuDetails, 2, 260),
+                astroDetails: trimList(baseInfo.evidence.cross.astroDetails, 2, 260),
+                bridges: trimList(baseInfo.evidence.cross.bridges, 2, 260),
+              }
+            : undefined,
+          confidence:
+            typeof baseInfo.evidence.confidence === 'number'
+              ? Math.max(0, Math.min(100, baseInfo.evidence.confidence))
+              : undefined,
+          source:
+            baseInfo.evidence.source === 'rule' ||
+            baseInfo.evidence.source === 'rag' ||
+            baseInfo.evidence.source === 'hybrid'
+              ? baseInfo.evidence.source
+              : undefined,
+        }
+      : undefined
 
-    const calendarPayload = baseInfo
+    const compactCalendar = baseInfo
       ? {
           grade: baseInfo.grade,
           score: baseInfo.score,
-          categories: trimList(baseInfo.categories, 4),
-          bestTimes: trimList(baseInfo.bestTimes, 4),
-          warnings: trimList(baseInfo.warnings, 3),
-          recommendations: trimList(baseInfo.recommendations, 3),
-          sajuFactors: trimList(baseInfo.sajuFactors, 3),
-          astroFactors: trimList(baseInfo.astroFactors, 3),
-          title: trimText(baseInfo.title, 180),
+          categories: trimList(baseInfo.categories, 4, 32),
+          bestTimes: trimList(baseInfo.bestTimes, 4, 120),
+          warnings: trimList(baseInfo.warnings, 3, 220),
+          recommendations: trimList(baseInfo.recommendations, 3, 220),
+          sajuFactors: trimList(baseInfo.sajuFactors, 3, 220),
+          astroFactors: trimList(baseInfo.astroFactors, 3, 220),
+          title: trimText(baseInfo.title, 120),
           summary: trimText(baseInfo.summary, 240),
-          ganzhi: trimText(baseInfo.ganzhi, 80),
-          transitSunSign: trimText(baseInfo.transitSunSign, 80),
-          evidence: baseInfo.evidence,
+          ganzhi: trimText(baseInfo.ganzhi, 60),
+          transitSunSign: trimText(baseInfo.transitSunSign, 60),
+          evidence: compactEvidence,
         }
       : null
 
-    const icpPayload = icpResult
+    const compactIcp = icpResult
       ? {
-          primaryStyle: icpResult.primaryStyle,
-          secondaryStyle: icpResult.secondaryStyle,
+          primaryStyle: trimText(icpResult.primaryStyle, 10),
+          secondaryStyle: trimText(icpResult.secondaryStyle ?? undefined, 10),
           dominanceScore: icpResult.dominanceScore,
           affiliationScore: icpResult.affiliationScore,
           summary: trimText(isKo ? icpResult.summaryKo : icpResult.summary, 240),
           traits: trimList(
             (isKo ? icpResult.primaryOctant.traitsKo : icpResult.primaryOctant.traits) ?? [],
-            4
+            4,
+            80
           ),
         }
       : null
 
-    const personaPayload = personaResult
+    const compactPersona = personaResult
       ? {
-          typeCode: personaResult.typeCode,
-          personaName: trimText(personaResult.personaName, 120),
+          typeCode: trimText(personaResult.typeCode, 20),
+          personaName: trimText(personaResult.personaName, 80),
           summary: trimText(personaResult.summary, 240),
-          strengths: trimList(personaResult.strengths, 4),
-          challenges: trimList(personaResult.challenges, 4),
+          strengths: trimList(personaResult.strengths, 4, 80),
+          challenges: trimList(personaResult.challenges, 4, 80),
           guidance: trimText(personaResult.guidance, 240),
-          motivations: trimList(personaResult.keyMotivations, 4),
+          motivations: trimList(personaResult.keyMotivations, 4, 80),
           axes: personaResult.axes,
         }
       : null
@@ -648,11 +693,20 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       date: dateKey,
       locale: analysisLocale,
       intervalMinutes,
-      calendar: calendarPayload,
-      icp: icpPayload,
-      persona: personaPayload,
+      calendar: compactCalendar,
+      icp: compactIcp,
+      persona: compactPersona,
     }
-  }, [analysisLocale, baseInfo, dateKey, icpResult, intervalMinutes, isKo, personaResult])
+  }, [
+    analysisLocale,
+    baseInfo,
+    cleanText,
+    dateKey,
+    icpResult,
+    intervalMinutes,
+    isKo,
+    personaResult,
+  ])
 
   const fetchAiTimeline = useCallback(
     async (options?: { force?: boolean }) => {
@@ -662,6 +716,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         setAiTimeline(aiCacheRef.current[aiCacheKey])
         setAiSummary(null)
         setAiStatus('ready')
+        setAiPrecisionMode(null)
         return
       }
 
@@ -672,6 +727,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       aiAbortRef.current = controller
 
       setAiStatus('loading')
+      setAiPrecisionMode(null)
 
       try {
         const payload = buildAiPayload()
@@ -699,6 +755,12 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         aiCacheRef.current[aiCacheKey] = timeline
         setAiTimeline(timeline)
         setAiSummary(cleanText(json?.data?.summary, ''))
+        setAiPrecisionMode(
+          json?.data?.precisionMode === 'ai-graphrag' ||
+            json?.data?.precisionMode === 'rule-fallback'
+            ? json.data.precisionMode
+            : null
+        )
         setAiStatus('ready')
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
@@ -708,6 +770,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           error: error instanceof Error ? error.message : String(error),
         })
         setAiSummary(null)
+        setAiPrecisionMode(null)
         setAiStatus('error')
       }
     },
@@ -720,6 +783,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       setAiTimeline(null)
       setAiSummary(null)
       setAiStatus('idle')
+      setAiPrecisionMode(null)
       return
     }
     void fetchAiTimeline()
@@ -755,13 +819,18 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         ? '정밀 생성 실패 · 사주+점성 규칙 플랜 표시'
         : 'Precision failed · showing rule-based Saju+Astrology plan'
     }
+    if (aiStatus === 'ready' && aiPrecisionMode === 'rule-fallback') {
+      return isKo
+        ? '규칙 기반 개인화 타임라인 · 사주+점성 근거 적용'
+        : 'Rule-based personalized timeline · Saju+Astrology grounded'
+    }
     if (aiStatus === 'ready') {
       return isKo
         ? `근거 기반 타임라인 적용 · ${aiContextLabel}`
         : `Evidence-based timeline applied · ${aiContextLabel}`
     }
     return isKo ? '정밀 준비됨' : 'Precision ready'
-  }, [aiContextLabel, aiStatus, baseInfo, isKo])
+  }, [aiContextLabel, aiPrecisionMode, aiStatus, baseInfo, isKo])
 
   const aiButtonLabel = useMemo(() => {
     if (aiStatus === 'loading') {
@@ -818,19 +887,44 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   }, [baseInfo])
 
   const baseTimelineSlots = useMemo(() => {
+    const defaultCategory = normalizeCategory(baseInfo?.categories?.[0] ?? topCategory ?? 'general')
+    const defaultActions = isKo
+      ? CATEGORY_ACTIONS[defaultCategory].day.ko
+      : CATEGORY_ACTIONS[defaultCategory].day.en
+    const baseSignal = isKo
+      ? '사주 일진 + 점성 트랜짓 공통 신호'
+      : 'Saju daily-pillar + astrology transit overlap'
+    const sajuPrimary = cleanText(baseInfo?.sajuFactors?.[0], '')
+    const astroPrimary = cleanText(baseInfo?.astroFactors?.[0], '')
+    const defaultActionByHour = (hour: number) => {
+      if (hour < 12) return defaultActions[0]
+      if (hour < 18) return defaultActions[1] ?? defaultActions[0]
+      return defaultActions[2] ?? defaultActions[0]
+    }
+    const defaultEvidenceByHour = (hour: number) => {
+      const primary = hour < 12 ? sajuPrimary : astroPrimary || sajuPrimary
+      if (!primary) return baseSignal
+      return `${baseSignal}: ${primary}`
+    }
+
     const slotsPerHour = intervalMinutes === 30 ? 2 : 1
     const totalSlots = 24 * slotsPerHour
     const slots: TimelineSlotView[] = Array.from({ length: totalSlots }, (_, index) => {
       const minute = intervalMinutes === 30 && index % 2 === 1 ? 30 : 0
       const hour = Math.floor(index / slotsPerHour)
+      const defaultAction = cleanText(defaultActionByHour(hour), '')
+      const defaultNote = cleanText(
+        `${baseTexts(hour)}${defaultAction ? ` · ${defaultAction}` : ''}`,
+        baseTexts(hour)
+      )
       return {
         hour,
         minute,
         label: formatHourLabel(hour, minute),
-        note: baseTexts(hour),
+        note: defaultNote,
         tone: 'neutral' as 'neutral' | 'best' | 'caution',
         badge: null as string | null,
-        evidenceSummary: [],
+        evidenceSummary: [cleanText(defaultEvidenceByHour(hour), baseSignal)],
       }
     })
 
@@ -913,7 +1007,16 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     }
 
     return slots
-  }, [baseInfo, baseTexts, cleanText, formatHourLabel, intervalMinutes, isKo, todayItems])
+  }, [
+    baseInfo,
+    baseTexts,
+    cleanText,
+    formatHourLabel,
+    intervalMinutes,
+    isKo,
+    todayItems,
+    topCategory,
+  ])
 
   const timelineSlots = useMemo(() => {
     const slots: TimelineSlotView[] = baseTimelineSlots.map((slot) => ({ ...slot }))
@@ -1207,13 +1310,17 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         ? isKo
           ? '규칙 기반 자동 전환'
           : 'Auto-switched to rule-based mode'
-        : aiSummary
-          ? cleanText(aiSummary, '')
-          : ''
+        : aiPrecisionMode === 'rule-fallback'
+          ? isKo
+            ? '규칙 기반 개인화 모드'
+            : 'Rule-based personalized mode'
+          : aiSummary
+            ? cleanText(aiSummary, '')
+            : ''
     return isKo
       ? `${peakText} 기준 타임라인 · ${cautionText}${precisionText ? ` · ${precisionText}` : ''}`
       : `${peakText} timeline · ${cautionText}${precisionText ? ` · ${precisionText}` : ''}`
-  }, [aiStatus, aiSummary, baseInfo, cleanText, isKo, resolvedPeakLevel])
+  }, [aiPrecisionMode, aiStatus, aiSummary, baseInfo, cleanText, isKo, resolvedPeakLevel])
 
   const todayInsight = useMemo(() => {
     if (evidenceLines[0]) return evidenceLines[0]

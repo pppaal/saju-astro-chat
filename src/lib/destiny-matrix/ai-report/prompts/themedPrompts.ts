@@ -546,6 +546,8 @@ ${sections}
 7. 목록, 번호, 이모지, 제목 표기는 금지하고 문단만 사용
 8. 섹션마다 사주 근거 문장과 점성 근거 문장을 포함한 뒤 교차 결론을 반드시 제시
 9. 전체 분량은 예시보다 최소 3배 이상으로 충분히 길게 작성
+10. 절대/확정 표현(절대, 무조건, 반드시 성공, 100%, 완벽, 확정, 인생 끝/파탄)은 금지
+11. 강한 주장 문장에는 반드시 "근거:" 또는 "evidence:" 표기를 포함
 
 ## 응답 형식
 반드시 아래 JSON 형식으로만 응답하세요:
@@ -593,6 +595,8 @@ ${sections}
 3. Maintain warm and encouraging tone
 4. Analyze by "cross-fusing" Eastern and Western data
 5. Avoid deterministic statements, use "tendency", "possibility" expressions
+6. Do not use absolute certainty claims (e.g., always, never, guaranteed, 100%, perfect, destined to fail)
+7. If a strong claim is made, include an explicit evidence marker ("evidence:" or "source:")
 
 ## Response Format
 Respond ONLY in this JSON format:

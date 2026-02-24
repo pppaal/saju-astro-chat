@@ -19,6 +19,18 @@ describe('sanitizePersonaText', () => {
     const result = sanitizePersonaText(input)
     expect(result).toBe('ABC !@#$%^&*()')
   })
+
+  it('repairs UTF-8 mojibake into readable Korean when possible', () => {
+    const input = '\xEC\x95\x88\xEB\x85\x95\xED\x95\x98\xEC\x84\xB8\xEC\x9A\x94'
+    const result = sanitizePersonaText(input)
+    expect(result).toBe('안녕하세요')
+  })
+
+  it('keeps clean Korean text unchanged', () => {
+    const input = '오늘의 행동 계획을 확인해보세요.'
+    const result = sanitizePersonaText(input)
+    expect(result).toBe(input)
+  })
 })
 
 describe('sanitizePersonaPayload', () => {

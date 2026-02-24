@@ -275,7 +275,11 @@ describe('generateAIPremiumReport - Fetch Behavior', () => {
 
     await generateAIPremiumReport(input, matrixReport)
 
-    expect(callAIBackend).toHaveBeenCalledWith(expect.any(String), 'ko')
+    expect(callAIBackend).toHaveBeenCalledWith(
+      expect.any(String),
+      'ko',
+      expect.objectContaining({})
+    )
   })
 
   it('should send request body with prompt', async () => {
@@ -288,6 +292,28 @@ describe('generateAIPremiumReport - Fetch Behavior', () => {
     const callArgs = mockCallAIBackend.mock.calls[0]
     expect(callArgs[0]).toBeTruthy() // prompt should exist
     expect(callArgs[1]).toBe('ko') // lang
+  })
+
+  it('should apply long-form bilingual options for comprehensive detail', async () => {
+    const input = createMockInput()
+    const matrixReport = createMockReport()
+
+    await generateAIPremiumReport(input, matrixReport, {
+      detailLevel: 'comprehensive',
+      bilingual: true,
+      targetChars: 20000,
+      tone: 'realistic',
+      userPlan: 'premium',
+    })
+
+    const callArgs = mockCallAIBackend.mock.calls[0]
+    expect(callArgs[0]).toContain('출력 제약')
+    expect(callArgs[0]).toContain('한/영 동시')
+    expect(callArgs[0]).toContain('20000자')
+    expect(callArgs[2]).toMatchObject({
+      userPlan: 'premium',
+      maxTokensOverride: 11200,
+    })
   })
 })
 

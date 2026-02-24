@@ -121,7 +121,7 @@ export default function CombinedResultPage() {
 
         <section className={styles.section} aria-labelledby="axes-title">
           <h2 id="axes-title" className={styles.sectionTitle}>
-            {isKo ? 'Axis Translator' : 'Axis Translator'}
+            {isKo ? '축별 해석' : 'Axis Translator'}
           </h2>
           <div className={styles.axisGrid}>
             {narrative.axes.map((axis) => (
@@ -172,7 +172,7 @@ export default function CombinedResultPage() {
 
         <section className={styles.section} aria-labelledby="playbook-title">
           <h2 id="playbook-title" className={styles.sectionTitle}>
-            {isKo ? 'Relationship Playbook' : 'Relationship Playbook'}
+            {isKo ? '관계 운영 플레이북' : 'Relationship Playbook'}
           </h2>
           <div className={styles.playbookGrid}>
             <article className={styles.card}>
@@ -204,7 +204,7 @@ export default function CombinedResultPage() {
 
         <section className={styles.section} aria-labelledby="rolefit-title">
           <h2 id="rolefit-title" className={styles.sectionTitle}>
-            {isKo ? 'Work / Role Fit' : 'Work / Role Fit'}
+            {isKo ? '업무/역할 적합도' : 'Work / Role Fit'}
           </h2>
           <div className={styles.snapshotGrid}>
             <article className={styles.card}>
@@ -236,7 +236,7 @@ export default function CombinedResultPage() {
 
         <section className={styles.section} aria-labelledby="action-title">
           <h2 id="action-title" className={styles.sectionTitle}>
-            {isKo ? 'Action Plan' : 'Action Plan'}
+            {isKo ? '행동 계획' : 'Action Plan'}
           </h2>
           <article className={styles.actionMain}>
             <h3>{isKo ? '오늘 10분' : 'Today 10 Minutes'}</h3>

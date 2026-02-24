@@ -708,8 +708,9 @@ function buildHero(result: PersonaAnalysis, locale: PersonaLocale): PersonaNarra
     HERO_DEFINITION_OVERRIDES[typeCode]?.ko ??
     fallbackDefinition
 
-  const strongest = topAndBottomAxes(result).strongest
-  const growth = topAndBottomAxes(result).growth
+  const topBottom = topAndBottomAxes(result)
+  const strongest = topBottom.strongest
+  const growth = topBottom.growth
   const strongestMeta = AXIS_META[strongest.key]
   const growthMeta = AXIS_META[growth.key]
 
@@ -730,8 +731,14 @@ function buildHero(result: PersonaAnalysis, locale: PersonaLocale): PersonaNarra
         '이 프로필은 성향의 우열이 아니라, 현재 업무·관계에서 자주 나타나는 작동 방식을 설명합니다.',
         'This profile describes recurring operating patterns, not personal superiority.'
       ),
+      sanitizePersonaText(result.compatibilityHint) ||
+        t(
+          locale,
+          '협업에서는 서로 다른 강점을 역할로 분리할수록 마찰 비용이 줄어듭니다.',
+          'In collaboration, friction drops when different strengths are separated by role.'
+        ),
     ],
-    3
+    4
   )
 
   return {
@@ -809,9 +816,9 @@ function buildSnapshot(
 
   const strengthsShort = sanitizePersonaList(
     [
-      shortStrength(entries[0], locale),
-      shortStrength(entries[1], locale),
-      shortStrength(entries[2], locale),
+      shortStrength(sortedHigh[0], locale),
+      shortStrength(sortedHigh[1], locale),
+      shortStrength(sortedHigh[2], locale),
     ],
     3
   )
@@ -845,12 +852,17 @@ function buildSnapshot(
       detailedStrength(sortedHigh[0], locale),
       detailedStrength(sortedHigh[1], locale),
       detailedStrength(sortedHigh[2], locale),
+      ...sanitizePersonaList(result.strengths, 2),
     ],
-    3
+    4
   )
   const risksLong = sanitizePersonaList(
-    [detailedRisk(sortedLow[0], locale), detailedRisk(sortedLow[1], locale)],
-    2
+    [
+      detailedRisk(sortedLow[0], locale),
+      detailedRisk(sortedLow[1], locale),
+      ...sanitizePersonaList(result.challenges, 2),
+    ],
+    3
   )
 
   return {
@@ -907,6 +919,8 @@ function buildMechanism(
   const cognition = axisScore(result, 'cognition')
   const decision = axisScore(result, 'decision')
   const rhythm = axisScore(result, 'rhythm')
+  const strongest = topAndBottomAxes(result).strongest
+  const strongestMeta = AXIS_META[strongest.key]
 
   const lines = sanitizePersonaList(
     [
@@ -917,8 +931,8 @@ function buildMechanism(
       ),
       t(
         locale,
-        `결정 ${decision}%가 가장 높아, 의사결정 장면에서 기준을 먼저 세우는 경향이 나타납니다.`,
-        `Decision at ${decision}% is highest, so decisions tend to start from explicit criteria.`
+        `${strongestMeta.titleKo} ${strongest.score}%가 상대적으로 높아, 관련 장면에서 일관된 강점이 먼저 나타납니다.`,
+        `${strongestMeta.titleEn} at ${strongest.score}% is relatively strongest, so its pattern appears first in relevant situations.`
       ),
       t(
         locale,
@@ -1120,6 +1134,14 @@ function buildActionPlan(
       '10 min: in one meeting today, use one criterion and one check question first.'
     )
   const metric = t(locale, METRIC_BY_AXIS[growth.key].ko, METRIC_BY_AXIS[growth.key].en)
+  const growthTip = sanitizePersonaList(result.growthTips, 1)[0]
+  const growthTipLine = growthTip
+    ? t(locale, `이번 주 2: ${growthTip}`, `Week task 2: ${growthTip}`)
+    : t(
+        locale,
+        '이번 주 2: 의사결정 로그에 “선택 기준/대안/결과”를 1줄씩 남깁니다.',
+        'Week task 2: keep one-line decision logs for criteria, alternatives, and outcomes.'
+      )
 
   return {
     today: {
@@ -1134,11 +1156,7 @@ function buildActionPlan(
           `이번 주 1: ${AXIS_META[growth.key].titleKo} 축 보완을 위해 회의 전 3줄 프리브리프를 3회 실행합니다.`,
           `Week task 1: run a three-line pre-brief three times to improve ${AXIS_META[growth.key].titleEn}.`
         ),
-        t(
-          locale,
-          '이번 주 2: 의사결정 로그에 “선택 기준/대안/결과”를 1줄씩 남깁니다.',
-          'Week task 2: keep one-line decision logs for criteria, alternatives, and outcomes.'
-        ),
+        growthTipLine,
         t(
           locale,
           '이번 주 3: 금요일 15분 회고에서 지연 원인 1개와 개선 1개를 확정합니다.',

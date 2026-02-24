@@ -3,6 +3,9 @@
   padding: 2rem 1rem 3rem;
   position: relative;
   overflow-x: clip;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .backButton {
@@ -84,7 +87,7 @@
   border: 1px solid rgba(143, 175, 255, 0.35);
   background: rgba(75, 122, 236, 0.17);
   color: #d6e2ff;
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   letter-spacing: 0.01em;
 }
 
@@ -96,7 +99,7 @@
 
 .overline {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.87rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(173, 198, 255, 0.86);
@@ -113,7 +116,7 @@
 .heroSubtitle {
   margin: 0 auto;
   max-width: 700px;
-  font-size: 1.03rem;
+  font-size: 1.08rem;
   line-height: 1.72;
   color: rgba(236, 243, 255, 0.9);
   word-break: keep-all;
@@ -134,7 +137,7 @@
   border: 1px solid rgba(145, 178, 255, 0.32);
   background: rgba(64, 93, 174, 0.22);
   color: #dce8ff;
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   line-height: 1.35;
 }
 
@@ -174,7 +177,7 @@
 
 .sectionTitle {
   margin: 0 0 0.85rem;
-  font-size: clamp(1.08rem, 2.1vw, 1.42rem);
+  font-size: clamp(1.15rem, 2.1vw, 1.5rem);
   line-height: 1.4;
   color: #f6f9ff;
   letter-spacing: -0.01em;
@@ -195,15 +198,16 @@
 
 .card h3 {
   margin: 0;
-  font-size: 0.94rem;
+  font-size: 1rem;
   color: #edf3ff;
   letter-spacing: 0.01em;
 }
 
 .card p {
   margin: 0.45rem 0 0;
-  line-height: 1.7;
+  line-height: 1.76;
   color: rgba(233, 241, 255, 0.9);
+  font-size: 1rem;
   max-width: 720px;
   word-break: keep-all;
   overflow-wrap: break-word;
@@ -215,7 +219,8 @@
   display: grid;
   gap: 0.35rem;
   color: rgba(235, 242, 255, 0.92);
-  line-height: 1.65;
+  line-height: 1.72;
+  font-size: 0.98rem;
   max-width: 720px;
 }
 
@@ -230,7 +235,7 @@
   border: 1px solid rgba(138, 170, 251, 0.24);
   background: rgba(12, 20, 41, 0.66);
   padding: 0.95rem 1rem;
-  line-height: 1.64;
+  line-height: 1.72;
   color: rgba(232, 241, 255, 0.93);
 }
 
@@ -243,18 +248,18 @@
 
 .axisHeader h3 {
   margin: 0;
-  font-size: 0.94rem;
+  font-size: 1rem;
   color: #eef4ff;
 }
 
 .axisScore {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   color: rgba(173, 200, 255, 0.9);
 }
 
 .axisSpectrum {
   margin: 0.2rem 0 0.3rem;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   color: rgba(176, 203, 255, 0.82);
 }
 
@@ -271,8 +276,9 @@
 
 .bodyLine {
   margin: 0 0 0.6rem;
-  line-height: 1.75;
+  line-height: 1.82;
   color: rgba(236, 243, 255, 0.93);
+  font-size: 1.02rem;
   max-width: 740px;
   word-break: keep-all;
   overflow-wrap: break-word;
@@ -294,13 +300,14 @@
 .insightCard h3 {
   margin: 0;
   color: #f3f7ff;
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .insightCard p {
   margin: 0.45rem 0 0;
-  line-height: 1.68;
+  line-height: 1.75;
   color: rgba(233, 242, 255, 0.92);
+  font-size: 0.99rem;
   max-width: 730px;
   word-break: keep-all;
   overflow-wrap: break-word;
@@ -327,7 +334,7 @@
 
 .scriptBox h3 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: #f4f8ff;
 }
 
@@ -336,7 +343,8 @@
   padding-left: 1.05rem;
   display: grid;
   gap: 0.45rem;
-  line-height: 1.68;
+  line-height: 1.74;
+  font-size: 0.98rem;
   color: rgba(234, 243, 255, 0.93);
   word-break: keep-all;
   overflow-wrap: break-word;
@@ -352,21 +360,22 @@
 
 .actionMain h3 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: #f4f8ff;
 }
 
 .actionMain p {
   margin: 0.5rem 0 0;
-  line-height: 1.7;
+  line-height: 1.78;
+  font-size: 1rem;
   color: rgba(237, 245, 255, 0.94);
 }
 
 .metric {
   margin-top: 0.65rem;
   color: rgba(217, 231, 255, 0.95);
-  font-size: 0.9rem;
-  line-height: 1.64;
+  font-size: 0.97rem;
+  line-height: 1.72;
 }
 
 .nextList {
@@ -374,7 +383,7 @@
   padding-left: 1.08rem;
   display: grid;
   gap: 0.35rem;
-  line-height: 1.7;
+  line-height: 1.76;
   max-width: 740px;
   color: rgba(235, 243, 255, 0.93);
 }
@@ -382,7 +391,8 @@
 .nextCta {
   margin: 0.75rem 0 0;
   color: rgba(184, 207, 255, 0.92);
-  line-height: 1.68;
+  line-height: 1.75;
+  font-size: 1rem;
 }
 
 .disclosure {
@@ -396,6 +406,7 @@
   cursor: pointer;
   color: #ebf3ff;
   font-weight: 600;
+  font-size: 0.98rem;
   outline: none;
 }
 
@@ -406,8 +417,9 @@
 
 .disclosure p {
   margin: 0.55rem 0 0;
-  line-height: 1.68;
+  line-height: 1.75;
   color: rgba(230, 241, 255, 0.92);
+  font-size: 0.98rem;
 }
 
 .disclosure ul {
@@ -416,7 +428,8 @@
   display: grid;
   gap: 0.35rem;
   color: rgba(230, 241, 255, 0.92);
-  line-height: 1.65;
+  line-height: 1.72;
+  font-size: 0.97rem;
 }
 
 .actions {
@@ -435,7 +448,7 @@
   border-radius: 0.72rem;
   padding: 0.7rem 1rem;
   line-height: 1.35;
-  font-size: 0.9rem;
+  font-size: 0.96rem;
   transition:
     transform 0.2s ease,
     opacity 0.2s ease,

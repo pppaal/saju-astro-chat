@@ -7,6 +7,7 @@ describe('buildPersonaNarrative', () => {
     const narrative = buildPersonaNarrative(sample, 'ko')
 
     expect(narrative.hero.code).toBe('RSLA')
+    expect(narrative.hero.subcopy.length).toBeGreaterThanOrEqual(3)
     expect(narrative.confidence.score).toBe(25)
     expect(narrative.snapshot.strengths).toHaveLength(3)
     expect(narrative.snapshot.cautions).toHaveLength(2)
@@ -31,5 +32,14 @@ describe('buildPersonaNarrative', () => {
     expect(energyAxis?.leftLabel).toBe('내향 (Grounded)')
     expect(energyAxis?.rightLabel).toBe('외향 (Radiant)')
     expect(narrative.actionPlan.today.metric).toContain('회의 지연률')
+  })
+
+  it('builds snapshot strengths from top scoring axes first', () => {
+    const sample = buildPersonaRenderSample('RSLA', 'ko')
+    const narrative = buildPersonaNarrative(sample, 'ko')
+    const combined = narrative.snapshot.strengths.join(' ')
+
+    expect(combined).toContain('기준 중심 빠른 판단')
+    expect(combined).not.toContain('실행 구조 빠른 정리')
   })
 })

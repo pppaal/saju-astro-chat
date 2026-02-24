@@ -222,8 +222,21 @@ export async function generateAIPremiumReport(
     })
   }
 
+  const requestedChars =
+    typeof options.targetChars === 'number' && Number.isFinite(options.targetChars)
+      ? Math.max(2500, Math.min(22000, Math.floor(options.targetChars)))
+      : options.detailLevel === 'comprehensive'
+        ? lang === 'ko'
+          ? 10000
+          : 8000
+        : undefined
+  const maxTokensOverride = requestedChars ? Math.ceil(requestedChars / 2) + 1200 : undefined
+
   // 2. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
-  const base = await callAIBackend(prompt, lang, { userPlan: options.userPlan })
+  const base = await callAIBackend(prompt, lang, {
+    userPlan: options.userPlan,
+    maxTokensOverride,
+  })
   let sections = base.sections as unknown as Record<string, unknown>
   let model = base.model
   let tokensUsed = base.tokensUsed
@@ -250,7 +263,7 @@ export async function generateAIPremiumReport(
     'actionPlan',
   ]
   const minCharsPerSection = lang === 'ko' ? 220 : 170
-  const minTotalChars = lang === 'ko' ? 2600 : 2200
+  const minTotalChars = Math.max(lang === 'ko' ? 2600 : 2200, requestedChars || 0)
 
   const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
   const missingCross = getMissingCrossPaths(sections, crossPaths)
@@ -274,6 +287,7 @@ export async function generateAIPremiumReport(
     try {
       const repaired = await callAIBackendGeneric<AIPremiumReport['sections']>(repairPrompt, lang, {
         userPlan: options.userPlan,
+        maxTokensOverride,
       })
       sections = repaired.sections as unknown as Record<string, unknown>
       model = repaired.model
@@ -295,6 +309,7 @@ export async function generateAIPremiumReport(
             lang,
             {
               userPlan: options.userPlan,
+              maxTokensOverride,
             }
           )
           sections = second.sections as unknown as Record<string, unknown>

@@ -48,6 +48,171 @@ const COMMUNICATION_WARNING_TOKENS = [
   'opposition',
 ]
 
+const CROSS_AGREEMENT_ALIGNMENT_THRESHOLD = 60
+
+const CONFLICT_LABEL_TOKENS = [
+  'conflict',
+  'mixed',
+  'split',
+  '\uCDA9\uB3CC',
+  '\uD574\uC11D \uAC08\uB9BC',
+  '\uAC08\uB9BC',
+  '\uAE34\uC7A5+\uACBD\uACC4',
+]
+
+const CAUTION_WARNING_TOKENS = [
+  ...COMMUNICATION_WARNING_TOKENS,
+  'caution',
+  'extremecaution',
+  'recheck',
+  '\uC7AC\uD655\uC778',
+  '\uC624\uB958',
+]
+
+const IRREVERSIBLE_RECOMMENDATION_PATTERNS = [
+  /\b(sign(?:\s+now)?|finalize|confirm|book(?:ing)?|wedding|invitation|big decision|resign|launch|commit now)\b/i,
+  /(contract|signature|reservation|final decision|major decision|big launch)/i,
+  /(\uACC4\uC57D|\uC11C\uBA85|\uD655\uC815|\uC608\uC57D|\uACB0\uD63C\uC2DD|\uCCAD\uCCA9\uC7A5|\uC774\uC9C1\s*\uD655\uC815|\uCC3D\uC5C5\s*\uD655\uC815|\uB7F0\uCE6D|\uD070\s*\uACB0\uC815|\uC989\uC2DC\s*\uACB0\uC815)/i,
+]
+
+const VERIFICATION_TONE_PATTERNS = [
+  /\uC11C\uBA85/g,
+  /\uC608\uC57D/g,
+  /\uD655\uC815/g,
+  /\uACB0\uD63C\uC2DD/g,
+  /\uCCAD\uCCA9\uC7A5/g,
+  /\uACC4\uC57D/g,
+  /\uD070\s*\uACB0\uC815/g,
+  /\uC989\uC2DC\s*\uACB0\uC815/g,
+  /\uC624\uB298\uB85C\s*\uC7A1\uC73C\uC138\uC694/g,
+  /\uCD5C\uC6B0\uC120/g,
+]
+
+type RecommendationGateInput = {
+  recommendations: string[]
+  recommendationKeys?: string[]
+  warningKeys?: string[]
+  warnings?: string[]
+  confidence?: number
+  grade?: ImportanceGrade
+  title?: string
+  summary?: string
+  lang: 'ko' | 'en'
+  forceGate?: boolean
+  irreversibleKeyPresent?: boolean
+}
+
+function includesToken(value: string, tokens: string[]): boolean {
+  const lower = value.toLowerCase()
+  return tokens.some((token) => lower.includes(token.toLowerCase()))
+}
+
+function isAlignedAcrossSystems(crossAgreementPercent: number | undefined): boolean {
+  return (
+    typeof crossAgreementPercent === 'number' &&
+    Number.isFinite(crossAgreementPercent) &&
+    crossAgreementPercent >= CROSS_AGREEMENT_ALIGNMENT_THRESHOLD
+  )
+}
+
+function shouldGateRecommendationSet(input: RecommendationGateInput): boolean {
+  if (input.forceGate) {
+    return true
+  }
+
+  const confidence = input.confidence ?? 100
+  const lowConfidence = confidence < EVIDENCE_CONFIDENCE_THRESHOLDS.low
+  const warningKeyBlob = (input.warningKeys || []).join(' ')
+  const warningTextBlob = (input.warnings || []).join(' ')
+  const titleBlob = `${input.title || ''} ${input.summary || ''}`
+
+  const hasCommunicationWarning =
+    includesToken(warningKeyBlob, COMMUNICATION_WARNING_TOKENS) ||
+    includesToken(warningTextBlob, CAUTION_WARNING_TOKENS)
+
+  const hasConflictLabel =
+    includesToken(titleBlob, CONFLICT_LABEL_TOKENS) ||
+    includesToken(warningTextBlob, CONFLICT_LABEL_TOKENS)
+
+  const hasCautionFlag =
+    (typeof input.grade === 'number' && input.grade >= 3) ||
+    includesToken(warningKeyBlob, CAUTION_WARNING_TOKENS)
+
+  return lowConfidence || hasCommunicationWarning || hasConflictLabel || hasCautionFlag
+}
+
+function softenRecommendationTone(value: string, lang: 'ko' | 'en'): string {
+  if (lang === 'ko') {
+    let softened = value
+    for (const pattern of VERIFICATION_TONE_PATTERNS) {
+      softened = softened.replace(pattern, '\uAC80\uD1A0')
+    }
+    return softened
+      .replace(/\uC9C0\uAE08\s*\uACB0\uC815/g, '\uC7AC\uD655\uC778 \uD6C4 \uACB0\uC815')
+      .replace(
+        /\uC644\uBCBD\uD55C\s*\uD0C0\uC774\uBC0D/g,
+        '\uAC80\uD1A0 \uD6C4 \uC9C4\uD589\uD558\uAE30 \uC88B\uC740 \uD0C0\uC774\uBC0D'
+      )
+      .replace(/\uCD5C\uACE0\uC758 \uB0A0/g, '\uC720\uB9AC\uD55C \uD750\uB984')
+      .trim()
+  }
+
+  return value
+    .replace(/\b(sign now|finalize now|decide now|commit now)\b/gi, 'review and verify first')
+    .replace(/\b(contract|signature|reservation|wedding|launch|book)\b/gi, 'review')
+    .replace(/\btop priority\b/gi, 'review priority')
+    .trim()
+}
+
+function isIrreversibleRecommendationText(value: string): boolean {
+  return IRREVERSIBLE_RECOMMENDATION_PATTERNS.some((pattern) => pattern.test(value))
+}
+
+export function gateRecommendations(input: RecommendationGateInput): string[] {
+  const shouldGate = shouldGateRecommendationSet(input)
+  const candidateLines =
+    shouldGate && input.irreversibleKeyPresent ? [] : [...input.recommendations]
+
+  if (!shouldGate) {
+    return dedupeTexts(candidateLines).slice(0, 6)
+  }
+
+  const filtered = candidateLines
+    .filter((line) => !isIrreversibleRecommendationText(line))
+    .map((line) => softenRecommendationTone(line, input.lang))
+    .filter(Boolean)
+
+  const fallback =
+    input.lang === 'ko'
+      ? [
+          '\uAC80\uD1A0/\uC7AC\uD655\uC778\uC744 \uC6B0\uC120\uD558\uACE0 \uC9C4\uD589\uD558\uC138\uC694.',
+          '\uC870\uAC74 \uC815\uB9AC \uD6C4 \uC694\uC57D \uBA54\uC2DC\uC9C0\uB85C \uD569\uC758 \uB0B4\uC6A9\uC744 \uD655\uC778\uD558\uC138\uC694.',
+          '\uCD08\uC548\uB9CC \uB9CC\uB4E4\uACE0 \uD655\uC815\uC740 24\uC2DC\uAC04 \uD6C4\uC5D0 \uB2E4\uC2DC \uBCF4\uC138\uC694.',
+        ]
+      : [
+          'Review and reconfirm before committing.',
+          'Align terms first, then send a short written summary.',
+          'Draft now and revisit final confirmation after 24 hours.',
+        ]
+
+  const merged = filtered.length > 0 ? filtered : fallback
+  const hasVerificationCue = merged.some((line) =>
+    /\uAC80\uD1A0|\uC7AC\uD655\uC778|24\uC2DC\uAC04|review|verify|recheck|draft|24 hours/i.test(
+      line
+    )
+  )
+
+  if (!hasVerificationCue) {
+    merged.push(
+      input.lang === 'ko'
+        ? '\uC694\uC57D \uBA54\uC2DC\uC9C0\uB85C \uD575\uC2EC \uC870\uAC74\uC744 \uD55C \uBC88 \uB354 \uD655\uC778\uD558\uC138\uC694.'
+        : 'Send a short summary message and verify core terms once more.'
+    )
+  }
+
+  return dedupeTexts(merged).slice(0, 6)
+}
+
 export type MatrixCalendarContext = {
   calendarSignals?: MatrixSignal[]
   overlapTimeline?: MonthlyOverlapPoint[]
@@ -157,7 +322,8 @@ export function generateSummary(
   sajuFactorKeys?: string[],
   astroFactorKeys?: string[],
   crossVerified: boolean = false,
-  dateSeed: string = ''
+  dateSeed: string = '',
+  crossAgreementPercent?: number
 ): string {
   const cat = categories[0] || 'general'
   const seed = `${dateSeed}|${cat}|${score}|${grade}`
@@ -195,8 +361,10 @@ export function generateSummary(
     }
 
     const tails: string[] = []
-    if (crossVerified) {
+    if (crossVerified && isAlignedAcrossSystems(crossAgreementPercent)) {
       tails.push('사주·점성 시그널이 같은 방향으로 맞물립니다.')
+    } else if (crossVerified) {
+      tails.push('신호가 엇갈립니다. 확정 전 재확인이 유리합니다.')
     }
     if (grade <= 2 && hasPositiveSignal) {
       tails.push('좋은 흐름이 겹치니 핵심 1~2개 목표에 집중하세요.')
@@ -239,8 +407,10 @@ export function generateSummary(
   }
 
   const tails: string[] = []
-  if (crossVerified) {
+  if (crossVerified && isAlignedAcrossSystems(crossAgreementPercent)) {
     tails.push('Saju and astrology are aligned in the same direction.')
+  } else if (crossVerified) {
+    tails.push('Signals are mixed. Re-check before final commitments.')
   }
   if (grade <= 2 && hasPositiveSignal) {
     tails.push('Multiple supportive signals overlap. Focus on 1-2 core priorities.')
@@ -585,28 +755,19 @@ function buildEnhancedRecommendations(
       ? `추천 시간 우선: ${bestTimes[0]}`
       : `Prioritize this time window: ${bestTimes[0]}`
     : null
-  const safeFallbacks = shouldGateIrreversible
-    ? lang === 'ko'
-      ? ['검토/재확인을 우선하고 진행하세요.', '조건 조율 후 요약을 전송하세요.']
-      : [
-          'Review and reconfirm before committing.',
-          'Align terms first, then send a short written summary.',
-        ]
-    : []
 
-  const softened = shouldGateIrreversible
-    ? [...translated, categoryAction, factorAction || '', timeHint || '', ...safeFallbacks].map(
-        (line) =>
-          line
-            .replace(/서명|예약|확정|결혼식|계약|결혼/g, '검토')
-            .replace(
-              /signature|reservation|finalize|wedding ceremony|contract|wedding|marriage/gi,
-              'review'
-            )
-      )
-    : [...translated, categoryAction, factorAction || '', timeHint || '']
-
-  return dedupeTexts(softened).slice(0, 6)
+  return gateRecommendations({
+    recommendations: [...translated, categoryAction, factorAction || '', timeHint || ''],
+    recommendationKeys: gatedRecommendationKeys,
+    warningKeys: date.warningKeys,
+    confidence: date.confidence,
+    grade: date.grade,
+    lang,
+    forceGate: shouldGateIrreversible,
+    irreversibleKeyPresent: date.recommendationKeys.some((key) =>
+      IRREVERSIBLE_RECOMMENDATION_KEYS.has(key)
+    ),
+  })
 }
 
 function buildEnhancedWarnings(
@@ -842,9 +1003,11 @@ function buildCrossEvidenceBundle(
   date: ImportantDate,
   lang: 'ko' | 'en',
   orderedSajuFactors: string[],
-  orderedAstroFactors: string[]
+  orderedAstroFactors: string[],
+  crossAgreementPercent: number | undefined
 ): CrossEvidenceBundle {
   const aspectList = toAspectEvidenceList(date)
+  const isAligned = isAlignedAcrossSystems(crossAgreementPercent)
   const astroDetails = aspectList.map((detail, index) =>
     formatAstroEvidenceLine(detail, index, lang)
   )
@@ -881,10 +1044,14 @@ function buildCrossEvidenceBundle(
       lang === 'ko'
         ? detail.tone === 'negative'
           ? `A${index + 1} ↔ S${index + 1}: 점성 긴장 신호와 사주 경계 신호가 겹칩니다. 계약·의사결정은 재확인이 유리합니다.`
-          : `A${index + 1} ↔ S${index + 1}: 점성 호조와 사주 지원 신호가 겹칩니다. 핵심 과제 1~2개를 밀어붙이기 좋습니다.`
+          : isAligned
+            ? `A${index + 1} ↔ S${index + 1}: 점성 호조와 사주 지원 신호가 겹칩니다. 핵심 과제 1~2개를 밀어붙이기 좋습니다.`
+            : `A${index + 1} ↔ S${index + 1}: 지지 신호가 부분적으로 보이지만 교차 정합도가 낮아 확정 전 재확인이 필요합니다.`
         : detail.tone === 'negative'
           ? `A${index + 1} ↔ S${index + 1}: Astro friction and Saju caution align. Re-check contracts and key decisions.`
-          : `A${index + 1} ↔ S${index + 1}: Astro support and Saju support align. Push one or two core priorities.`
+          : isAligned
+            ? `A${index + 1} ↔ S${index + 1}: Astro support and Saju support align. Push one or two core priorities.`
+            : `A${index + 1} ↔ S${index + 1}: Support signals exist, but cross-agreement is low. Re-check before final commitments.`
     )
   })
 
@@ -904,8 +1071,12 @@ function buildCrossEvidenceBundle(
       : astroEvidence && sajuEvidence
         ? [
             lang === 'ko'
-              ? 'A1 ↔ S1: 점성과 사주 근거가 같은 방향을 지지합니다.'
-              : 'A1 ↔ S1: Astrology and Saju evidence point in the same direction.',
+              ? isAligned
+                ? 'A1 ↔ S1: 점성과 사주 근거가 같은 방향을 지지합니다.'
+                : 'A1 ↔ S1: 신호가 엇갈립니다. 확정 전 재확인이 유리합니다.'
+              : isAligned
+                ? 'A1 ↔ S1: Astrology and Saju evidence point in the same direction.'
+                : 'A1 ↔ S1: Signals are mixed. Re-check before final commitments.',
           ]
         : []
 
@@ -954,7 +1125,10 @@ function buildMatrixOverlay(
           bridges: cross.bridges || [],
         },
         confidence: 0,
-        crossAgreementPercent: Math.max(0, Math.min(100, Math.round(crossAgreementPercent ?? 0))),
+        crossAgreementPercent:
+          typeof crossAgreementPercent === 'number' && Number.isFinite(crossAgreementPercent)
+            ? Math.max(0, Math.min(100, Math.round(crossAgreementPercent)))
+            : undefined,
         source: 'rule',
       },
     }
@@ -1103,10 +1277,10 @@ function buildMatrixOverlay(
       bridges: cross.bridges || [],
     },
     confidence: Math.max(0, Math.min(100, confidence)),
-    crossAgreementPercent: Math.max(
-      0,
-      Math.min(100, Math.round(crossAgreementPercent ?? confidence))
-    ),
+    crossAgreementPercent:
+      typeof crossAgreementPercent === 'number' && Number.isFinite(crossAgreementPercent)
+        ? Math.max(0, Math.min(100, Math.round(crossAgreementPercent)))
+        : undefined,
     source: 'rule',
   }
 
@@ -1195,7 +1369,8 @@ export function formatDateForResponse(
     date,
     lang,
     orderedSajuFactors,
-    orderedAstroFactors
+    orderedAstroFactors,
+    date.crossAgreementPercent
   )
   const matrixOverlay = buildMatrixOverlay(
     date.date,
@@ -1216,11 +1391,31 @@ export function formatDateForResponse(
     date.sajuFactorKeys,
     date.astroFactorKeys,
     date.crossVerified,
-    date.date
+    date.date,
+    date.crossAgreementPercent
   )
   const finalSummary = matrixOverlay.summary
     ? dedupeTexts([matrixOverlay.summary, baseSummary]).join(' ')
     : baseSummary
+  const title = getTranslation(date.titleKey, translations)
+  const warningsForResponse = dedupeTexts([...warnings, ...matrixOverlay.warnings]).slice(0, 6)
+  const recommendationsForResponse = gateRecommendations({
+    recommendations: dedupeTexts([...recommendations, ...matrixOverlay.recommendations]).slice(
+      0,
+      6
+    ),
+    recommendationKeys: date.recommendationKeys,
+    warningKeys: date.warningKeys,
+    warnings: warningsForResponse,
+    confidence: matrixOverlay.evidence.confidence ?? date.confidence,
+    grade: date.grade,
+    title,
+    summary: finalSummary,
+    lang,
+    irreversibleKeyPresent: date.recommendationKeys.some((key) =>
+      IRREVERSIBLE_RECOMMENDATION_KEYS.has(key)
+    ),
+  })
 
   return normalizeMojibakePayload({
     date: date.date,
@@ -1230,17 +1425,14 @@ export function formatDateForResponse(
     adjustedScore,
     displayScore,
     categories: uniqueCategories,
-    title: getTranslation(date.titleKey, translations),
+    title,
     description: getTranslation(date.descKey, translations),
     summary: finalSummary,
     bestTimes,
     sajuFactors: orderedSajuFactors,
     astroFactors: orderedAstroFactors,
-    recommendations: dedupeTexts([...recommendations, ...matrixOverlay.recommendations]).slice(
-      0,
-      6
-    ),
-    warnings: dedupeTexts([...warnings, ...matrixOverlay.warnings]).slice(0, 6),
+    recommendations: recommendationsForResponse,
+    warnings: warningsForResponse,
     evidence: matrixOverlay.evidence,
   })
 }

@@ -1,6 +1,10 @@
 const CONTROL_CHAR_REGEX = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g
 const ESCAPED_UNICODE_REGEX = /\\u([0-9a-fA-F]{4})/g
 const SURROGATE_REGEX = /[\uD800-\uDFFF]/g
+const REPLACEMENT_CHAR_REGEX = /\uFFFD/g
+const HANGUL_REGEX = /[\u3131-\u318e\uac00-\ud7a3]/g
+const MOJIBAKE_MARKER_REGEX =
+  /(?:\u00C3|\u00C2|\u00EC|\u00ED|\u00EB|\u00EA|\u00F0|\u0081|\u0084|\u0088|\u008B|\u008D|\u008E|\u008F|\uFFFD)/g
 
 function decodeEscapedUnicode(input: string): string {
   if (!input.includes('\\u')) {
@@ -16,15 +20,69 @@ function decodeEscapedUnicode(input: string): string {
   })
 }
 
+function scoreKoreanReadability(input: string): number {
+  const hangulCount = input.match(HANGUL_REGEX)?.length ?? 0
+  const replacementCount = input.match(REPLACEMENT_CHAR_REGEX)?.length ?? 0
+  const mojibakeCount = input.match(MOJIBAKE_MARKER_REGEX)?.length ?? 0
+  return hangulCount * 3 - replacementCount * 4 - mojibakeCount * 2
+}
+
+function hasMojibakeMarkers(input: string): boolean {
+  MOJIBAKE_MARKER_REGEX.lastIndex = 0
+  return MOJIBAKE_MARKER_REGEX.test(input)
+}
+
+function decodeLatin1AsUtf8(input: string): string {
+  const bytes = new Uint8Array(input.length)
+  for (let i = 0; i < input.length; i += 1) {
+    const code = input.charCodeAt(i)
+    if (code > 0xff) {
+      return input
+    }
+    bytes[i] = code
+  }
+
+  try {
+    return new TextDecoder('utf-8', { fatal: false }).decode(bytes)
+  } catch {
+    return input
+  }
+}
+
+function repairMojibake(input: string): string {
+  if (!hasMojibakeMarkers(input)) {
+    return input
+  }
+
+  const attempt1 = decodeLatin1AsUtf8(input)
+  const attempt2 = decodeLatin1AsUtf8(attempt1)
+  const originalScore = scoreKoreanReadability(input)
+  const attempt1Score = scoreKoreanReadability(attempt1)
+  const attempt2Score = scoreKoreanReadability(attempt2)
+
+  if (attempt2Score > attempt1Score && attempt2Score >= originalScore + 2) {
+    return attempt2
+  }
+
+  if (attempt1Score >= originalScore + 2) {
+    return attempt1
+  }
+
+  return input
+}
+
 export function sanitizePersonaText(value: unknown): string {
   if (typeof value !== 'string') {
     return ''
   }
 
-  return decodeEscapedUnicode(value)
+  return repairMojibake(
+    decodeEscapedUnicode(value)
+      .replace(/\r\n?/g, '\n')
+      .replace(CONTROL_CHAR_REGEX, '')
+      .replace(/\uFEFF/g, '')
+  )
     .replace(/\r\n?/g, '\n')
-    .replace(CONTROL_CHAR_REGEX, '')
-    .replace(/\uFEFF/g, '')
     .replace(SURROGATE_REGEX, '')
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
