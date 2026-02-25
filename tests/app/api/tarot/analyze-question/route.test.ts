@@ -428,7 +428,12 @@ describe('Tarot Analyze Question API - POST', () => {
           themeId: 'daily-reading',
           theme: { id: 'daily-reading' } as any,
           spreadId: 'day-card',
-          spread: { id: 'day-card', title: 'Day Card', titleKo: '오늘의 카드', cardCount: 1 } as any,
+          spread: {
+            id: 'day-card',
+            title: 'Day Card',
+            titleKo: '오늘의 카드',
+            cardCount: 1,
+          } as any,
           reason: 'Daily recommendation',
           reasonKo: '오늘의 흐름',
           matchScore: 99,
@@ -669,6 +674,48 @@ describe('Tarot Analyze Question API - POST', () => {
       expect(response.status).toBe(200)
       expect(data.themeId).toBe('general-insight')
       expect(data.spreadId).toBe('past-present-future')
+    })
+
+    it('should always return a valid spread for diverse non-dangerous questions when OpenAI fails', async () => {
+      mockFetch.mockRejectedValue(new Error('OpenAI unavailable'))
+
+      const validSpreadKeys = new Set([
+        'general-insight/past-present-future',
+        'general-insight/quick-reading',
+        'decisions-crossroads/yes-no-why',
+        'decisions-crossroads/two-paths',
+        'decisions-crossroads/timing-window',
+        'love-relationships/crush-feelings',
+        'daily-reading/day-card',
+      ])
+
+      const questions = [
+        '몸과 마음의 균형을 어떻게 회복할까요?',
+        '그 사람 마음이 궁금해',
+        '오늘 운동 갈까?',
+        '면접 결과 어떨까?',
+        '이번 주 운세',
+        '돈이 들어올까?',
+        'A와 B 중 뭐가 나을까?',
+        'How can I recover my balance?',
+        'Should I text them?',
+        '???',
+        'asdf qwer zxcv',
+      ]
+
+      for (const question of questions) {
+        const req = createRequest({ question, language: 'ko' })
+        const response = await POST(req)
+        const data = await response.json()
+
+        expect(response.status).toBe(200)
+        expect(data.isDangerous).toBe(false)
+        expect(typeof data.cardCount).toBe('number')
+        expect(data.path).toContain('/tarot/')
+
+        const spreadKey = `${data.themeId}/${data.spreadId}`
+        expect(validSpreadKeys.has(spreadKey), `${question} -> ${spreadKey}`).toBe(true)
+      }
     })
   })
 })

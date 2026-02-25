@@ -149,7 +149,7 @@ const allYesNoPatterns = [
 ]
 
 const crushRelationshipContextPattern =
-  /그 ?사람|그사람|상대(방)?|짝사랑|썸남|썸녀|썸 ?타|연애|호감|관심|나를|날|저를|they|he|she|crush|like me|into me|feelings for/i
+  /그 ?사람|그사람|상대(방)?|짝사랑|썸남|썸녀|썸 ?타|연애|호감|관심|좋아하는 ?사람|나를|날|저를|they|he|she|crush|like me|into me|feelings for/i
 
 const nonRelationshipMindContextPattern =
   /몸과 ?마음|마음의 ?균형|마음 ?균형|멘탈|우울|불안|회복|치유|스트레스|번아웃|수면|건강|컨디션|심리/i
@@ -173,7 +173,7 @@ export function isYesNoQuestion(question: string): boolean {
   const openEndedGuidePatterns =
     /어떻게|왜|무엇|뭐|무슨|어떤 ?방법|어떤 ?방식|how to|how can i|how do i|how should i|what should i do|what can i do/i
   const explicitDecisionSignals =
-    /할까 ?말까|a ?vs ?b|vs|둘 ?중|아니면|should i|shall i|can i|may i|해도 ?될까|해야 ?할까|할지 ?말지|할지/i
+    /할까 ?말까|a ?vs ?b|vs|둘 ?중|아니면|should i|shall i|해도 ?될까|해야 ?할까|할지 ?말지|할지/i
   if (openEndedGuidePatterns.test(question) && !explicitDecisionSignals.test(question)) {
     return false
   }
