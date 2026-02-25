@@ -81,6 +81,11 @@ describe('Tarot Question Classifiers', () => {
       expect(result1).toBe(result2)
       expect(result1).toBe(true)
     })
+
+    it('does not treat open-ended guidance questions as yes/no', () => {
+      expect(isYesNoQuestion('몸과 마음의 균형을 어떻게 회복할까요?')).toBe(false)
+      expect(isYesNoQuestion('How can I recover my balance?')).toBe(false)
+    })
   })
 
   describe('isCrushQuestion', () => {
@@ -103,6 +108,10 @@ describe('Tarot Question Classifiers', () => {
 
     it('does not classify mind-body recovery questions as crush', () => {
       expect(isCrushQuestion('몸과 마음의 균형을 어떻게 회복할까요?')).toBe(false)
+    })
+
+    it('does not classify generic mind-state questions as crush without relationship context', () => {
+      expect(isCrushQuestion('마음이 너무 복잡하고 불안해요')).toBe(false)
     })
   })
 
