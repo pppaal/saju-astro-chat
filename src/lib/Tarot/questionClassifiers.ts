@@ -148,6 +148,15 @@ const allYesNoPatterns = [
   ...yesNoEnglishPatterns,
 ]
 
+const crushRelationshipContextPattern =
+  /그 ?사람|그사람|상대(방)?|짝사랑|썸남|썸녀|썸 ?타|연애|호감|관심|나를|날|저를|they|he|she|crush|like me|into me|feelings for/i
+
+const nonRelationshipMindContextPattern =
+  /몸과 ?마음|마음의 ?균형|마음 ?균형|멘탈|우울|불안|회복|치유|스트레스|번아웃|수면|건강|컨디션|심리/i
+
+const directCrushSignalPattern =
+  /좋아해\??$|좋아하나|좋아할까|사랑해\??$|is .* into me|does .* like me|have feelings/i
+
 // ============================================================
 // Classifier Functions
 // ============================================================
@@ -193,7 +202,23 @@ export function isYesNoQuestion(question: string): boolean {
 }
 
 export function isCrushQuestion(question: string): boolean {
-  return testPatternsWithCache('crush', question, crushPatterns)
+  if (
+    nonRelationshipMindContextPattern.test(question) &&
+    !crushRelationshipContextPattern.test(question)
+  ) {
+    return false
+  }
+
+  const matched = testPatternsWithCache('crush', question, crushPatterns)
+  if (!matched) {
+    return false
+  }
+
+  if (crushRelationshipContextPattern.test(question)) {
+    return true
+  }
+
+  return directCrushSignalPattern.test(question)
 }
 
 export function isReconciliationQuestion(question: string): boolean {
