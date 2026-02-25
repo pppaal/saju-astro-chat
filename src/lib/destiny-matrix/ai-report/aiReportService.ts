@@ -121,6 +121,13 @@ function getMissingCrossPaths(sections: Record<string, unknown>, crossPaths: str
   })
 }
 
+function getCrossCoverageRatio(sections: Record<string, unknown>, crossPaths: string[]): number {
+  const texts = crossPaths.map((path) => getPathText(sections, path)).filter((t) => t.length > 0)
+  if (texts.length === 0) return 0
+  const hit = texts.filter((t) => hasCrossInText(t)).length
+  return hit / texts.length
+}
+
 function buildDepthRepairInstruction(
   lang: 'ko' | 'en',
   sectionPaths: string[],
@@ -173,6 +180,27 @@ function buildSecondPassInstruction(lang: 'ko' | 'en'): string {
     'Second-pass rewrite: if depth is still weak, expand each section to at least 6 sentences.',
     'Include one practical example and execution sequence (today-this week-this month) in each section.',
     'Prefer concrete action-oriented language over abstract filler.',
+  ].join('\n')
+}
+
+function buildCrossCoverageRepairInstruction(
+  lang: 'ko' | 'en',
+  ratio: number,
+  targetRatio: number
+): string {
+  if (lang === 'ko') {
+    return [
+      '',
+      `중요: 사주+점성 교차 서술 비율이 낮습니다. 현재=${Math.round(ratio * 100)}%, 목표=${Math.round(targetRatio * 100)}%`,
+      '각 핵심 섹션마다 사주 근거 1문장 + 점성 근거 1문장 + 교차 결론 1문장을 반드시 포함하세요.',
+      '단순 일반론을 줄이고, 근거어(사주/점성/하우스/대운/트랜싯)를 문장에 명시하세요.',
+    ].join('\n')
+  }
+  return [
+    '',
+    `IMPORTANT: Cross-basis narrative coverage is low. current=${Math.round(ratio * 100)}%, target=${Math.round(targetRatio * 100)}%`,
+    'For each core section include: 1 Saju basis sentence + 1 Astrology basis sentence + 1 cross conclusion sentence.',
+    'Avoid generic filler and explicitly mention grounding terms (saju/astrology/house/daeun/transit).',
   ].join('\n')
 }
 
@@ -255,20 +283,30 @@ export async function generateAIPremiumReport(
     'conclusion',
   ]
   const crossPaths = [
+    'introduction',
     'personalityDeep',
     'careerPath',
     'relationshipDynamics',
     'wealthPotential',
+    'healthGuidance',
+    'lifeMission',
     'timingAdvice',
     'actionPlan',
+    'conclusion',
   ]
   const minCharsPerSection = lang === 'ko' ? 220 : 170
   const minTotalChars = Math.max(lang === 'ko' ? 2600 : 2200, requestedChars || 0)
+  const minCrossCoverage = 0.6
 
   const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
   const missingCross = getMissingCrossPaths(sections, crossPaths)
+  const crossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
   const totalChars = countSectionChars(sections)
-  const needsRepair = shortPaths.length > 0 || missingCross.length > 0 || totalChars < minTotalChars
+  const needsRepair =
+    shortPaths.length > 0 ||
+    missingCross.length > 0 ||
+    totalChars < minTotalChars ||
+    crossCoverageRatio < minCrossCoverage
 
   if (needsRepair && maxRepairPasses > 0) {
     const repairPrompt = [
@@ -281,6 +319,9 @@ export async function generateAIPremiumReport(
         minTotalChars
       ),
       missingCross.length > 0 ? buildCrossRepairInstruction(lang, missingCross) : '',
+      crossCoverageRatio < minCrossCoverage
+        ? buildCrossCoverageRepairInstruction(lang, crossCoverageRatio, minCrossCoverage)
+        : '',
     ]
       .filter(Boolean)
       .join('\n')
@@ -295,12 +336,14 @@ export async function generateAIPremiumReport(
 
       const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
       const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
+      const secondCrossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
       const secondTotalChars = countSectionChars(sections)
       if (
         maxRepairPasses > 1 &&
         (secondShortPaths.length > 0 ||
           secondMissingCross.length > 0 ||
-          secondTotalChars < minTotalChars)
+          secondTotalChars < minTotalChars ||
+          secondCrossCoverageRatio < minCrossCoverage)
       ) {
         const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
         try {
@@ -439,17 +482,26 @@ export async function generateTimingReport(
     'overview',
     'energy',
     'opportunities',
+    'cautions',
     'domains.career',
     'domains.love',
+    'domains.wealth',
+    'domains.health',
     'actionPlan',
   ]
   const minCharsPerSection = lang === 'ko' ? 170 : 130
   const minTotalChars = lang === 'ko' ? 1900 : 1600
+  const minCrossCoverage = 0.6
 
   const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
   const missingCross = getMissingCrossPaths(sections, crossPaths)
+  const crossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
   const totalChars = countSectionChars(sections)
-  const needsRepair = shortPaths.length > 0 || missingCross.length > 0 || totalChars < minTotalChars
+  const needsRepair =
+    shortPaths.length > 0 ||
+    missingCross.length > 0 ||
+    totalChars < minTotalChars ||
+    crossCoverageRatio < minCrossCoverage
 
   if (needsRepair && maxRepairPasses > 0) {
     const repairPrompt = [
@@ -462,6 +514,9 @@ export async function generateTimingReport(
         minTotalChars
       ),
       missingCross.length > 0 ? buildCrossRepairInstruction(lang, missingCross) : '',
+      crossCoverageRatio < minCrossCoverage
+        ? buildCrossCoverageRepairInstruction(lang, crossCoverageRatio, minCrossCoverage)
+        : '',
     ]
       .filter(Boolean)
       .join('\n')
@@ -475,12 +530,14 @@ export async function generateTimingReport(
 
       const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
       const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
+      const secondCrossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
       const secondTotalChars = countSectionChars(sections)
       if (
         maxRepairPasses > 1 &&
         (secondShortPaths.length > 0 ||
           secondMissingCross.length > 0 ||
-          secondTotalChars < minTotalChars)
+          secondTotalChars < minTotalChars ||
+          secondCrossCoverageRatio < minCrossCoverage)
       ) {
         const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
         try {
@@ -604,13 +661,28 @@ export async function generateThemedReport(
     'dynamics',
     'actionPlan',
   ]
-  const crossPaths = ['deepAnalysis', 'patterns', 'timing', 'actionPlan']
+  const crossPaths = [
+    'deepAnalysis',
+    'patterns',
+    'timing',
+    'compatibility',
+    'strategy',
+    'prevention',
+    'dynamics',
+    'actionPlan',
+  ]
   const minCharsPerSection = lang === 'ko' ? 180 : 140
   const minTotalChars = lang === 'ko' ? 1700 : 1400
+  const minCrossCoverage = 0.6
   const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
   const missingCross = getMissingCrossPaths(sections, crossPaths)
+  const crossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
   const totalChars = countSectionChars(sections)
-  const needsRepair = shortPaths.length > 0 || missingCross.length > 0 || totalChars < minTotalChars
+  const needsRepair =
+    shortPaths.length > 0 ||
+    missingCross.length > 0 ||
+    totalChars < minTotalChars ||
+    crossCoverageRatio < minCrossCoverage
 
   if (needsRepair && maxRepairPasses > 0) {
     const repairPrompt = [
@@ -623,6 +695,9 @@ export async function generateThemedReport(
         minTotalChars
       ),
       missingCross.length > 0 ? buildCrossRepairInstruction(lang, missingCross) : '',
+      crossCoverageRatio < minCrossCoverage
+        ? buildCrossCoverageRepairInstruction(lang, crossCoverageRatio, minCrossCoverage)
+        : '',
     ]
       .filter(Boolean)
       .join('\n')
@@ -636,12 +711,14 @@ export async function generateThemedReport(
 
       const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
       const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
+      const secondCrossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
       const secondTotalChars = countSectionChars(sections)
       if (
         maxRepairPasses > 1 &&
         (secondShortPaths.length > 0 ||
           secondMissingCross.length > 0 ||
-          secondTotalChars < minTotalChars)
+          secondTotalChars < minTotalChars ||
+          secondCrossCoverageRatio < minCrossCoverage)
       ) {
         const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
         try {

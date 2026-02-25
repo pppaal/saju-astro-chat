@@ -353,7 +353,7 @@ function buildCrossEvidenceSets(
     const bDomains = inferAspectDomains(b)
     return getAspectSortScore(b, bDomains) - getAspectSortScore(a, aDomains)
   })
-  const maxAspectEvidence = Math.min(8, Math.max(4, Math.ceil(rankedAspects.length * 0.6)))
+  const maxAspectEvidence = Math.min(12, Math.max(6, Math.ceil(rankedAspects.length * 0.85)))
   const selectedAspects = rankedAspects.slice(0, maxAspectEvidence)
   const fallbackAspect: AspectInput = {
     planet1: 'Sun',
@@ -391,7 +391,7 @@ function buildCrossEvidenceSets(
   })
 
   const transitSets: GraphRAGCrossEvidenceSet[] = (input.activeTransits || [])
-    .slice(0, 2)
+    .slice(0, 4)
     .map((transit, idx) => {
       const transitDomains: InsightDomain[] =
         transit.includes('Return') || transit.includes('Retrograde')
@@ -412,7 +412,7 @@ function buildCrossEvidenceSets(
     })
 
   const matrixSets: GraphRAGCrossEvidenceSet[] = report.topInsights
-    .slice(0, 2)
+    .slice(0, 6)
     .map((insight, idx) => {
       const source = insight.sources?.[0]
       return {
@@ -434,19 +434,23 @@ function buildCrossEvidenceSets(
 
 function selectEvidenceSetsForSection(
   section: string,
-  sets: GraphRAGCrossEvidenceSet[]
+  sets: GraphRAGCrossEvidenceSet[],
+  mode: BuildOptions['mode']
 ): GraphRAGCrossEvidenceSet[] {
   const sectionDomains = SECTION_DOMAIN_MAP[section] || ['personality']
+  const targetSetCount = mode === 'comprehensive' ? 6 : 4
   const ranked = [...sets].sort((a, b) => {
     const aHits = a.overlapDomains.filter((d) => sectionDomains.includes(d)).length
     const bHits = b.overlapDomains.filter((d) => sectionDomains.includes(d)).length
     if (bHits !== aHits) return bHits - aHits
     return b.overlapScore - a.overlapScore
   })
-  const selected = ranked.slice(0, 3)
-  if (selected.length >= 2) return selected
+  const selected = ranked.slice(0, targetSetCount)
   if (ranked.length === 0) return selected
-  return [...selected, ranked[0]]
+  while (selected.length < targetSetCount) {
+    selected.push(ranked[selected.length % ranked.length])
+  }
+  return selected
 }
 
 function astroSnapshot(input: MatrixCalculationInput): string {
@@ -530,7 +534,7 @@ export function buildGraphRAGEvidence(
 
   const anchors = sections.map((section, idx) => {
     const id = `E${idx + 1}`
-    const selectedSets = selectEvidenceSetsForSection(section, crossEvidenceSets)
+    const selectedSets = selectEvidenceSetsForSection(section, crossEvidenceSets, options.mode)
     return {
       id,
       section,

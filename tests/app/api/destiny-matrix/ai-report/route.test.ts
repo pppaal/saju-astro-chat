@@ -580,6 +580,8 @@ describe('POST /api/destiny-matrix/ai-report', () => {
       expect(data.reportType).toBe('comprehensive')
       expect(data.report).toBeDefined()
       expect(data.report.id).toBe('saved-report-db-001')
+      expect(data.report.crossConsistencyAudit).toBeDefined()
+      expect(typeof data.report.crossConsistencyAudit.score).toBe('number')
     })
 
     it('should call generateAIPremiumReport with correct params', async () => {

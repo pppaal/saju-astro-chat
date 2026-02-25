@@ -34,6 +34,7 @@ import {
   evaluateThemedReportQuality,
   buildCalculationDetails,
 } from '@/lib/destiny-matrix/ai-report/qualityAudit'
+import { auditCrossConsistency } from '@/lib/destiny-matrix/ai-report/crossConsistencyAudit'
 import { canUseFeature, consumeCredits, getCreditBalance } from '@/lib/credits/creditService'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
@@ -489,6 +490,27 @@ export const POST = withApiMiddleware(
         })
         aiReport = premiumReport
       }
+
+      const crossConsistencyAudit = auditCrossConsistency({
+        mode: theme ? 'themed' : period && period !== 'comprehensive' ? 'timing' : 'comprehensive',
+        matrixInput,
+        report: aiReport,
+        graphEvidence:
+          (aiReport as AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport)
+            .graphRagEvidence || null,
+      })
+
+      if (crossConsistencyAudit.score < 70) {
+        logger.warn('[destiny-matrix/ai-report] Cross consistency score is low', {
+          score: crossConsistencyAudit.score,
+          blockers: crossConsistencyAudit.blockers,
+        })
+      }
+
+      aiReport = {
+        ...(aiReport as Record<string, unknown>),
+        crossConsistencyAudit,
+      } as AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
 
       // 11. 크레딧 차감 (성공한 경우에만)
       const consumeResult = await consumeCredits(userId, 'reading', creditCost)
