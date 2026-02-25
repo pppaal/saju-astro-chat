@@ -4,11 +4,11 @@ import { generateMetadata } from '@/components/seo/SEO'
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
 export const metadata = generateMetadata({
-  title: 'Destiny Map Counselor',
+  title: 'Destiny Counselor',
   description:
-    '1:1 AI counselor chat with Saju + Astrology based destiny insights and action guidance.',
+    '1:1 AI counselor chat with Saju + Astrology based insights and practical action guidance.',
   keywords: [
-    'destiny map counselor',
+    'destiny counselor',
     'ai counselor',
     'saju counselor',
     'astrology counseling',

@@ -208,6 +208,7 @@ describe('generateAIPremiumReport - Basic Generation', () => {
 
     expect(result.renderedMarkdown).toBeTruthy()
     expect(result.renderedText).toBeTruthy()
+    expect(result.deterministicCore).toBeTruthy()
     expect(result.renderedMarkdown).toContain('섹션:')
   })
 })
@@ -338,6 +339,20 @@ describe('generateAIPremiumReport - Fetch Behavior', () => {
     const callArgs = mockCallAIBackend.mock.calls[0]
     expect(callArgs[0]).toContain('사용자 질문 의도')
     expect(callArgs[0]).toContain('예/아니오(결정형)')
+    expect(callArgs[0]).toContain('Deterministic Core')
+  })
+
+  it('should reflect deterministic profile in prompt block', async () => {
+    const input = createMockInput()
+    const matrixReport = createMockReport()
+
+    await generateAIPremiumReport(input, matrixReport, {
+      userQuestion: '가도 되나요?',
+      deterministicProfile: 'strict',
+    })
+
+    const callArgs = mockCallAIBackend.mock.calls[0]
+    expect(callArgs[0]).toContain('Profile: strict')
   })
 })
 

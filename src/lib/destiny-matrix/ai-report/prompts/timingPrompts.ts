@@ -345,10 +345,12 @@ export function buildTimingPrompt(
   targetDate: string,
   matrixSummary: string,
   graphRagEvidencePrompt?: string,
-  userQuestion?: string
+  userQuestion?: string,
+  deterministicCorePrompt?: string
 ): string {
   const isKo = lang === 'ko'
   const questionIntentInstruction = buildQuestionIntentInstruction(userQuestion, lang)
+  const deterministicBlock = deterministicCorePrompt?.trim()
 
   // 기간별 섹션 선택
   const sections =
@@ -386,6 +388,7 @@ ${formatTimingData(timingData, lang)}
 ${matrixSummary}
 
 ${graphRagEvidencePrompt ? `## GraphRAG 근거 앵커\n${graphRagEvidencePrompt}\n` : ''}
+${deterministicBlock ? `${deterministicBlock}\n` : ''}
 ${questionIntentInstruction ? `${questionIntentInstruction}\n` : ''}
 
 ═══════════════════════════════════════════════════════════════
@@ -438,6 +441,7 @@ ${formatTimingData(timingData, lang)}
 ${matrixSummary}
 
 ${graphRagEvidencePrompt ? `## GraphRAG Evidence Anchors\n${graphRagEvidencePrompt}\n` : ''}
+${deterministicBlock ? `${deterministicBlock}\n` : ''}
 ${questionIntentInstruction ? `${questionIntentInstruction}\n` : ''}
 
 ═══════════════════════════════════════════════════════════════

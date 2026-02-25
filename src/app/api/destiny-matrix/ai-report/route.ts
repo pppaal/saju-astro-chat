@@ -102,6 +102,11 @@ const toOptionalNumber = (value: unknown): number | undefined => {
   return undefined
 }
 
+const toOptionalRecord = (value: unknown): Record<string, unknown> | undefined => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
+  return value as Record<string, unknown>
+}
+
 const HEAVENLY_STEMS = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계']
 const EARTHLY_BRANCHES = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해']
 const STEM_ELEMENTS: Record<string, string> = {
@@ -219,6 +224,116 @@ function normalizeAIUserPlan(plan: unknown): 'free' | 'starter' | 'pro' | 'premi
   }
   return 'free'
 }
+
+type ReportTier = 'free' | 'premium'
+
+type FreeAIDigestReport = {
+  id: string
+  tier: 'free'
+  generatedAt: string
+  lang: 'ko' | 'en'
+  headline: string
+  summary: string
+  overallScore: number
+  grade: string
+  topInsights: Array<{
+    title: string
+    reason: string
+    action: string
+  }>
+  focusAreas: Array<{
+    domain: string
+    score: number
+    summary: string
+  }>
+  caution: string[]
+  nextSteps: string[]
+}
+
+function normalizeReportTier(value: unknown): ReportTier {
+  if (typeof value === 'string' && value.toLowerCase() === 'free') {
+    return 'free'
+  }
+  return 'premium'
+}
+
+function buildFreeDigestReport(
+  baseReport: {
+    overallScore: { total: number; grade: string; gradeDescription: string }
+    topInsights: Array<{
+      title: string
+      description: string
+      actionItems?: Array<{ text: string }>
+      category?: string
+    }>
+    domainAnalysis: Array<{
+      domain: string
+      score: number
+      summary: string
+      hasData?: boolean
+    }>
+    lang: 'ko' | 'en'
+  }
+): FreeAIDigestReport {
+  const topInsights = (baseReport.topInsights || []).slice(0, 3).map((item) => ({
+    title: item.title,
+    reason: item.description,
+    action:
+      item.actionItems && item.actionItems.length > 0
+        ? item.actionItems[0]?.text || (baseReport.lang === 'ko' ? '핵심 우선순위를 1개 정하세요.' : 'Pick one top priority first.')
+        : baseReport.lang === 'ko'
+          ? '핵심 우선순위를 1개 정하세요.'
+          : 'Pick one top priority first.',
+  }))
+
+  const focusAreas = (baseReport.domainAnalysis || [])
+    .filter((d) => d.hasData !== false)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map((d) => ({
+      domain: d.domain,
+      score: d.score,
+      summary: d.summary,
+    }))
+
+  const caution = (baseReport.topInsights || [])
+    .filter((item) => item.category === 'caution' || item.category === 'challenge')
+    .slice(0, 2)
+    .map((item) => item.title)
+
+  return {
+    id: `free_${Date.now()}`,
+    tier: 'free',
+    generatedAt: new Date().toISOString(),
+    lang: baseReport.lang,
+    headline:
+      baseReport.lang === 'ko'
+        ? 'AI 리포트 무료 버전 요약'
+        : 'AI Report Free Version Summary',
+    summary:
+      baseReport.lang === 'ko'
+        ? `${baseReport.overallScore.gradeDescription} 핵심 신호를 빠르게 요약했습니다.`
+        : `A quick summary of key signals. ${baseReport.overallScore.gradeDescription}`,
+    overallScore: Math.round(baseReport.overallScore.total),
+    grade: baseReport.overallScore.grade,
+    topInsights,
+    focusAreas,
+    caution,
+    nextSteps:
+      baseReport.lang === 'ko'
+        ? [
+            '오늘 기준 실행 과제 1~2개만 선정하세요.',
+            '중요 결정 전 조건/기한/리스크를 다시 확인하세요.',
+            '프리미엄 버전에서 교차 근거와 상세 행동 플랜을 확인하세요.',
+          ]
+        : [
+            'Select only 1-2 execution tasks for today.',
+            'Re-check terms, deadlines, and risks before major decisions.',
+            'Use the premium version for deeper cross-evidence and action planning.',
+          ],
+  }
+}
+
 function buildTimingData(targetDate?: string): TimingData {
   // Parse target date or use today
   const date = targetDate ? new Date(targetDate) : new Date()
@@ -291,13 +406,15 @@ export const POST = withApiMiddleware(
       const requestBody = enrichRequestWithDerivedSaju({ ...(body as Record<string, unknown>) })
       const period = requestBody.period as ReportPeriod | undefined
       const theme = requestBody.theme as ReportTheme | undefined
+      const reportTier = normalizeReportTier(requestBody.reportTier)
+      const isFreeTier = reportTier === 'free'
 
       // 4. 크레딧 비용 계산 및 잔액 확인
-      const creditCost = calculateCreditCost(period, theme)
+      const creditCost = isFreeTier ? 0 : calculateCreditCost(period, theme)
       const balance = await getCreditBalance(userId)
-      const userPlan = normalizeAIUserPlan(balance.plan)
+      const userPlan = isFreeTier ? 'free' : normalizeAIUserPlan(balance.plan)
 
-      if (balance.remainingCredits < creditCost) {
+      if (!isFreeTier && balance.remainingCredits < creditCost) {
         return NextResponse.json(
           {
             success: false,
@@ -343,6 +460,12 @@ export const POST = withApiMiddleware(
       const bilingual = requestBody.bilingual === true
       const targetChars = toOptionalNumber(requestBody.targetChars)
       const userQuestion = toOptionalString(requestBody.userQuestion)
+      const deterministicProfile =
+        requestBody.deterministicProfile === 'strict' ||
+        requestBody.deterministicProfile === 'balanced' ||
+        requestBody.deterministicProfile === 'aggressive'
+          ? requestBody.deterministicProfile
+          : 'balanced'
       const tone =
         requestBody.tone === 'realistic' || requestBody.tone === 'friendly'
           ? (requestBody.tone as 'realistic' | 'friendly')
@@ -358,9 +481,24 @@ export const POST = withApiMiddleware(
         houseSystem: toOptionalString(requestBody.houseSystem),
         analysisAt: toOptionalString(requestBody.analysisAt) || new Date().toISOString(),
       }
+      const sajuSnapshot =
+        toOptionalRecord(requestBody.sajuSnapshot) || toOptionalRecord(requestBody.saju)
+      const astrologySnapshot =
+        toOptionalRecord(requestBody.astrologySnapshot) || toOptionalRecord(requestBody.astrology)
+      const crossSnapshot =
+        toOptionalRecord(requestBody.crossSnapshot) ||
+        toOptionalRecord(requestBody.graphRagEvidence) ||
+        toOptionalRecord(requestBody.matrixSummary)
+      const currentDateIso =
+        toOptionalString(requestBody.currentDateIso) ||
+        (profileContext.analysisAt ? profileContext.analysisAt.slice(0, 10) : new Date().toISOString().slice(0, 10))
       const matrixInput = {
         ...(rest as MatrixCalculationInput),
         profileContext,
+        sajuSnapshot,
+        astrologySnapshot,
+        crossSnapshot,
+        currentDateIso,
       } as MatrixCalculationInput
 
       // 7. 기본 매트릭스 계산
@@ -398,6 +536,37 @@ export const POST = withApiMiddleware(
         queryDomain as InsightDomain | undefined
       )
 
+      if (isFreeTier) {
+        const freeReport = buildFreeDigestReport({
+          overallScore: {
+            total: baseReport.overallScore.total,
+            grade: baseReport.overallScore.grade,
+            gradeDescription: baseReport.overallScore.gradeDescription,
+          },
+          topInsights: baseReport.topInsights.map((insight) => ({
+            title: insight.title,
+            description: insight.description,
+            actionItems: insight.actionItems?.map((action) => ({ text: action.text })),
+            category: insight.category,
+          })),
+          domainAnalysis: baseReport.domainAnalysis.map((domain) => ({
+            domain: domain.domain,
+            score: domain.score,
+            summary: domain.summary,
+            hasData: domain.hasData,
+          })),
+          lang: matrixInput.lang || 'ko',
+        })
+
+        return NextResponse.json({
+          success: true,
+          creditsUsed: 0,
+          remainingCredits: balance.remainingCredits,
+          reportType: 'free',
+          report: freeReport,
+        })
+      }
+
       // 9. 타이밍 데이터 생성 (period 또는 theme이 있는 경우)
       const timingData: TimingData = buildTimingData(targetDate)
 
@@ -418,6 +587,7 @@ export const POST = withApiMiddleware(
             lang: matrixInput.lang || 'ko',
             userPlan,
             userQuestion,
+            deterministicProfile,
           }
         )
         const qualityAudit = evaluateThemedReportQuality({
@@ -477,6 +647,7 @@ export const POST = withApiMiddleware(
           lang: matrixInput.lang || 'ko',
           userPlan,
           userQuestion,
+          deterministicProfile,
         })
       } else {
         // 기존 종합 리포트
@@ -491,6 +662,7 @@ export const POST = withApiMiddleware(
           tone,
           userPlan,
           userQuestion,
+          deterministicProfile,
         })
         aiReport = premiumReport
       }
@@ -735,6 +907,12 @@ export async function GET(req: NextRequest) {
             name: { type: 'string', description: '사용자 이름 (선택)' },
             birthDate: { type: 'string', description: '생년월일 (선택)' },
             format: { type: 'string', enum: ['json', 'pdf'], default: 'json' },
+            reportTier: {
+              type: 'string',
+              enum: ['free', 'premium'],
+              default: 'premium',
+              description: 'free는 무료 요약 리포트(크레딧 차감 없음), premium은 상세 AI 리포트',
+            },
             detailLevel: {
               type: 'string',
               enum: ['standard', 'detailed', 'comprehensive'],
@@ -756,6 +934,27 @@ export async function GET(req: NextRequest) {
             userQuestion: {
               type: 'string',
               description: '사용자 원문 질문. 예/아니오 질문은 행동 가이드 중심으로 자동 라우팅됩니다.',
+            },
+            deterministicProfile: {
+              type: 'string',
+              enum: ['strict', 'balanced', 'aggressive'],
+              description: '결정형 판정식 가중치 프로파일 (기본 balanced)',
+            },
+            currentDateIso: {
+              type: 'string',
+              description: '기준 날짜(YYYY-MM-DD). 미입력 시 서버 오늘 날짜로 자동 주입',
+            },
+            sajuSnapshot: {
+              type: 'object',
+              description: '사주 전체 원본 스냅샷(JSON object)',
+            },
+            astrologySnapshot: {
+              type: 'object',
+              description: '점성 전체 원본 스냅샷(JSON object)',
+            },
+            crossSnapshot: {
+              type: 'object',
+              description: '교차/그래프 근거 전체 원본 스냅샷(JSON object)',
             },
             queryDomain: {
               type: 'string',
@@ -779,7 +978,7 @@ export async function GET(req: NextRequest) {
     },
     pricing: {
       creditCost: REPORT_CREDIT_COSTS.comprehensive,
-      description: `AI 리포트 1회 생성 = ${REPORT_CREDIT_COSTS.comprehensive} 크레딧`,
+      description: `Premium AI 리포트 1회 생성 = ${REPORT_CREDIT_COSTS.comprehensive} 크레딧 (Free 요약 버전은 0 크레딧)`,
       availablePlans: ['pro', 'premium'],
     },
   })

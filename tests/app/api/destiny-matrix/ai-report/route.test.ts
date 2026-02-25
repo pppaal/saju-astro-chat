@@ -50,8 +50,20 @@ vi.mock('@/lib/destiny-matrix', () => ({
   FusionReportGenerator: vi.fn().mockImplementation(() => ({
     generateReport: vi.fn().mockReturnValue({
       id: 'report-123',
-      overallScore: { total: 85, grade: 'A' },
-      topInsights: [{ text: 'Test insight' }],
+      overallScore: { total: 85, grade: 'A', gradeDescription: '테스트 등급 설명' },
+      topInsights: [
+        {
+          title: '테스트 인사이트',
+          description: '테스트 설명',
+          category: 'strength',
+          actionItems: [{ text: '테스트 액션' }],
+        },
+      ],
+      domainAnalysis: [
+        { domain: 'career', score: 82, summary: '커리어 강점', hasData: true },
+        { domain: 'wealth', score: 74, summary: '재물 흐름 보통', hasData: true },
+      ],
+      lang: 'ko',
     }),
   })),
   validateReportRequest: vi.fn(),
@@ -663,6 +675,21 @@ describe('POST /api/destiny-matrix/ai-report', () => {
       await POST(req)
 
       expect(consumeCredits).toHaveBeenCalledWith('user-abc-123', 'reading', 7)
+    })
+
+    it('should return free digest report without consuming credits', async () => {
+      const req = createPostRequest({ ...MOCK_VALID_INPUT, reportTier: 'free' })
+      const response = await POST(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.success).toBe(true)
+      expect(data.reportType).toBe('free')
+      expect(data.creditsUsed).toBe(0)
+      expect(data.report?.tier).toBe('free')
+      expect(data.report?.topInsights?.length).toBeGreaterThan(0)
+      expect(consumeCredits).not.toHaveBeenCalled()
+      expect(prisma.destinyMatrixReport.create).not.toHaveBeenCalled()
     })
   })
 

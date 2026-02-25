@@ -5,8 +5,8 @@ import { generateJsonLd, generateMetadata, generateServiceSchema, SERVICE_FAQS }
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com";
 
 export const metadata = generateMetadata({
-  title: "Destiny Map",
-  description: "Combine Saju and Western astrology to map your destiny with personalized insights.",
+  title: "Destiny Counselor",
+  description: "Get practical AI counseling by combining Saju and Western astrology signals.",
   keywords: [
     "destiny map",
     "saju",
@@ -22,8 +22,8 @@ export const metadata = generateMetadata({
 export default function DestinyMapLayout({ children }: { children: ReactNode }) {
   const pageJsonLd = generateJsonLd({
     type: "WebPage",
-    name: "Destiny Map",
-    description: "Combine Saju and Western astrology to map your destiny with personalized insights.",
+    name: "Destiny Counselor",
+    description: "Get practical AI counseling by combining Saju and Western astrology signals.",
     url: `${baseUrl}/destiny-map`,
   });
   const serviceJsonLd = generateServiceSchema("destiny-map");

@@ -4,6 +4,8 @@
 import type { InsightDomain } from '../interpreter/types'
 import type { GraphRAGEvidenceBundle } from './graphRagEvidence'
 import type { CrossConsistencyAudit } from './crossConsistencyAudit'
+import type { DeterministicCoreOutput } from './deterministicCore'
+import type { DeterministicProfile } from './deterministicCoreConfig'
 
 export type AIUserPlan = 'free' | 'starter' | 'pro' | 'premium'
 
@@ -44,6 +46,7 @@ export interface AIPremiumReport {
   // Pre-rendered narrative payload for downstream AI/chat reuse
   renderedMarkdown?: string
   renderedText?: string
+  deterministicCore?: DeterministicCoreOutput
 
   // 원본 매트릭스 데이터 참조
   matrixSummary: {
@@ -76,4 +79,6 @@ export interface AIReportGenerationOptions {
   theme?: string
   graphRagEvidencePrompt?: string
   userQuestion?: string
+  deterministicCorePrompt?: string
+  deterministicProfile?: DeterministicProfile
 }

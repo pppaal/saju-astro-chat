@@ -188,6 +188,7 @@ export function buildAIPrompt(
 
   const sectionInstructions = getSectionInstructions(lang)
   const questionIntentInstruction = buildQuestionIntentInstruction(options.userQuestion, lang)
+  const deterministicCorePrompt = options.deterministicCorePrompt?.trim()
   const graphRagEvidencePrompt = options.graphRagEvidencePrompt?.trim()
   const requestedChars =
     typeof options.targetChars === 'number' && Number.isFinite(options.targetChars)
@@ -236,6 +237,7 @@ ${profileInfo}
 ${matrixSummary}
 
 ${graphRagEvidencePrompt ? `## GraphRAG 근거 앵커\n${graphRagEvidencePrompt}\n` : ''}
+${deterministicCorePrompt ? `${deterministicCorePrompt}\n` : ''}
 ${questionIntentInstruction ? `${questionIntentInstruction}\n` : ''}
 ${outputStyleInstruction}
 
@@ -257,6 +259,7 @@ ${profileInfo}
 ${matrixSummary}
 
 ${graphRagEvidencePrompt ? `## GraphRAG Evidence Anchors\n${graphRagEvidencePrompt}\n` : ''}
+${deterministicCorePrompt ? `${deterministicCorePrompt}\n` : ''}
 ${questionIntentInstruction ? `${questionIntentInstruction}\n` : ''}
 ${outputStyleInstruction}
 

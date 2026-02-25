@@ -2,6 +2,7 @@
 'use client'
 
 import { repairMojibakeText } from '@/lib/text/mojibake'
+import { ensureMinSentenceText } from '../../shared/textDepth'
 import type { TodayFortune } from '../types'
 
 interface TodayFortuneSectionProps {
@@ -10,6 +11,9 @@ interface TodayFortuneSectionProps {
 }
 
 export default function TodayFortuneSection({ todayFortune, isKo }: TodayFortuneSectionProps) {
+  const enrich = (text: string, min = 4) =>
+    ensureMinSentenceText(repairMojibakeText(text), isKo, 'fortune', min)
+
   return (
     <section className="rounded-2xl border border-indigo-400/30 bg-gradient-to-br from-slate-900/85 to-indigo-950/25 p-6 shadow-[0_8px_32px_rgba(99,102,241,0.15)]">
       <header className="mb-4 flex items-center gap-3">
@@ -27,10 +31,10 @@ export default function TodayFortuneSection({ todayFortune, isKo }: TodayFortune
       <div className="space-y-3">
         <article className="rounded-xl border border-indigo-400/25 bg-indigo-500/10 p-4">
           <p className="mb-2 text-sm font-bold text-indigo-200">
-            {repairMojibakeText(todayFortune.fortune.mood)}
+            {enrich(todayFortune.fortune.mood, 4)}
           </p>
           <p className="text-sm leading-relaxed text-slate-100">
-            {repairMojibakeText(todayFortune.fortune.tip)}
+            {enrich(todayFortune.fortune.tip, 4)}
           </p>
         </article>
 

@@ -333,13 +333,13 @@ function DestinyMapContent({
           </div>
           <div className={styles.header}>
             <div className={styles.iconWrapper}>
-              <span className={styles.icon}>MAP</span>
+              <span className={styles.icon}>AI</span>
             </div>
-            <h1 className={styles.title}>{safeT('menu.destinyMap', 'Destiny Map')}</h1>
+            <h1 className={styles.title}>{safeT('menu.destinyMap', 'Destiny Counselor')}</h1>
             <p className={styles.subtitle}>
               {safeT(
                 'app.subtitle',
-                'Discover your cosmic blueprint through AI-powered fusion of Saju, Astrology, and Tarot'
+                'Get practical counseling from Saju + Astrology + AI cross-analysis.'
               )}
             </p>
           </div>

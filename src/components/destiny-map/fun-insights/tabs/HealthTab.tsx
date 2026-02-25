@@ -1,6 +1,8 @@
 'use client'
 
+import { repairMojibakeDeep } from '@/lib/text/mojibake'
 import type { TabProps } from './types'
+import { expandNarrativeDeep } from './shared/longForm'
 import { getHealthMatrixAnalysis } from '../analyzers/matrixAnalyzer'
 import { PremiumReportCTA } from '../components'
 import {
@@ -24,19 +26,29 @@ export default function HealthTab({ saju, astro, isKo, data }: TabProps) {
     return <div className="text-gray-400 text-center p-6">Loading...</div>
   }
 
-  const healthAnalysis = (data as Record<string, unknown>).healthAnalysis as HealthItem[] | null
-  const chironInsight = (data as Record<string, unknown>).chironInsight as ChironInsight | null
+  const healthAnalysis = expandNarrativeDeep(
+    repairMojibakeDeep((data as Record<string, unknown>).healthAnalysis as HealthItem[] | null),
+    { isKo, topic: 'health', minSentences: 4 }
+  )
+  const chironInsight = expandNarrativeDeep(
+    repairMojibakeDeep((data as Record<string, unknown>).chironInsight as ChironInsight | null),
+    { isKo, topic: 'healing', minSentences: 4 }
+  )
   const dayMasterName = data.dayMasterName || ''
 
   // 매트릭스 분석 호출
-  const matrixHealth = getHealthMatrixAnalysis(
-    saju || undefined,
-    astro || undefined,
-    isKo ? 'ko' : 'en'
+  const matrixHealth = expandNarrativeDeep(
+    repairMojibakeDeep(
+      getHealthMatrixAnalysis(saju || undefined, astro || undefined, isKo ? 'ko' : 'en')
+    ),
+    { isKo, topic: 'health', minSentences: 4 }
   )
 
   // 일간별 건강 정보
-  const healthStory = getHealthStory(String(dayMasterName || ''), isKo)
+  const healthStory = expandNarrativeDeep(
+    repairMojibakeDeep(getHealthStory(String(dayMasterName || ''), isKo)),
+    { isKo, topic: 'health', minSentences: 4 }
+  )
 
   // 에너지 강도 분석
   const advancedAnalysis = (saju as Record<string, unknown>)?.advancedAnalysis as
@@ -44,7 +56,10 @@ export default function HealthTab({ saju, astro, isKo, data }: TabProps) {
     | undefined
   const extendedAnalysis = advancedAnalysis?.extended as Record<string, unknown> | undefined
   const energyStrength = extendedAnalysis?.strength as Record<string, unknown> | undefined
-  const energyLevel = getEnergyLevel(energyStrength, isKo)
+  const energyLevel = expandNarrativeDeep(
+    repairMojibakeDeep(getEnergyLevel(energyStrength, isKo)),
+    { isKo, topic: 'health', minSentences: 4 }
+  )
 
   return (
     <div className="space-y-6">

@@ -1,16 +1,30 @@
 "use client";
 
 import { memo } from 'react';
+import { repairMojibakeDeep } from '@/lib/text/mojibake';
+import { ensureMinSentenceText } from './shared/textDepth';
+import { expandNarrativeDeep } from './shared/longForm';
 import type { TabProps } from './types';
 import { getTimingMatrixAnalysis } from '../analyzers/matrixAnalyzer';
 import type { TimingMatrixResult } from '../analyzers/types/domain.types';
 import { PremiumReportCTA } from '../components';
 
 const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
-  const timingMatrix = getTimingMatrixAnalysis(saju ?? undefined, astro ?? undefined, isKo ? 'ko' : 'en') as TimingMatrixResult | null;
+  const timingMatrix = expandNarrativeDeep(
+    repairMojibakeDeep(
+      getTimingMatrixAnalysis(
+        saju ?? undefined,
+        astro ?? undefined,
+        isKo ? 'ko' : 'en'
+      ) as TimingMatrixResult | null
+    ),
+    { isKo, topic: 'timing', minSentences: 4 }
+  );
 
   // 현재 날짜 기준 계산
   const currentYear = new Date().getFullYear();
+  const enrich = (text: string | undefined, topic: 'timing' | 'warning' = 'timing', min = 4) =>
+    ensureMinSentenceText(text || '', isKo, topic, min);
 
   // Find current period from daeunTimeline array
   const currentPeriod = timingMatrix?.daeunTimeline?.find(item => item.isCurrent);
@@ -41,7 +55,7 @@ const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
               />
             </div>
             <p className="text-gray-300 text-sm leading-relaxed">
-              {isKo ? timingMatrix.overallMessage?.ko : timingMatrix.overallMessage?.en}
+              {enrich(isKo ? timingMatrix.overallMessage?.ko : timingMatrix.overallMessage?.en, 'timing', 4)}
             </p>
           </div>
         </div>
@@ -72,11 +86,13 @@ const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
                 <span className="text-gray-300">{currentPeriod.heavenlyStem}{currentPeriod.earthlyBranch}</span>
               </div>
               <p className="text-gray-300 text-sm leading-relaxed mb-2">
-                {currentPeriod.description ? (isKo ? currentPeriod.description.ko : currentPeriod.description.en) : ''}
+                {currentPeriod.description
+                  ? enrich(isKo ? currentPeriod.description.ko : currentPeriod.description.en, 'timing', 4)
+                  : ''}
               </p>
               {currentPeriod.advice && (
                 <p className="text-indigo-400 text-xs">
-                  {isKo ? currentPeriod.advice.ko : currentPeriod.advice.en}
+                  {enrich(isKo ? currentPeriod.advice.ko : currentPeriod.advice.en, 'timing', 4)}
                 </p>
               )}
             </div>
@@ -118,7 +134,7 @@ const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
                 <span className="text-amber-300 font-bold text-sm">{isKo ? '대운 전환기' : 'Luck Transition'}</span>
               </div>
               <p className="text-gray-300 text-xs mt-1">
-                {isKo ? timingMatrix.overallMessage.ko : timingMatrix.overallMessage.en}
+                {enrich(isKo ? timingMatrix.overallMessage.ko : timingMatrix.overallMessage.en, 'timing', 4)}
               </p>
             </div>
           )}
@@ -168,12 +184,16 @@ const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
                 </div>
                 {transit.description && (
                   <p className="text-gray-300 text-sm leading-relaxed mb-2">
-                    {isKo ? transit.description.ko : transit.description.en}
+                    {enrich(isKo ? transit.description.ko : transit.description.en, 'timing', 4)}
                   </p>
                 )}
                 {transit.advice && (
                   <p className={`text-xs ${transit.isActive ? 'text-purple-400' : 'text-gray-500'}`}>
-                    {isKo ? transit.advice.ko : transit.advice.en}
+                    {enrich(
+                      isKo ? transit.advice.ko : transit.advice.en,
+                      transit.isActive ? 'timing' : 'warning',
+                      4
+                    )}
                   </p>
                 )}
               </div>
@@ -233,9 +253,13 @@ const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
           {/* 역행 주의사항 */}
           <div className="mt-4 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20">
             <p className="text-orange-300 text-xs leading-relaxed">
-              {isKo
+              {enrich(
+                isKo
                 ? '* 역행 기간에는 해당 행성 관련 영역의 재고와 성찰이 필요해요. 새로운 시작보다 마무리에 집중하세요.'
-                : '* During retrogrades, reflect on areas related to that planet. Focus on completion rather than new beginnings.'}
+                : '* During retrogrades, reflect on areas related to that planet. Focus on completion rather than new beginnings.',
+                'warning',
+                4
+              )}
             </p>
           </div>
         </div>
@@ -266,7 +290,11 @@ const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
                   <span className="text-white font-bold">{timingMatrix.periodLuck.year.stem}{timingMatrix.periodLuck.year.branch}</span>
                 </div>
                 <p className="text-gray-300 text-xs leading-relaxed">
-                  {isKo ? timingMatrix.periodLuck.year.description.ko : timingMatrix.periodLuck.year.description.en}
+                  {enrich(
+                    isKo ? timingMatrix.periodLuck.year.description.ko : timingMatrix.periodLuck.year.description.en,
+                    'timing',
+                    4
+                  )}
                 </p>
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-xs text-gray-500">{isKo ? '에너지' : 'Energy'}</span>
@@ -287,7 +315,11 @@ const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
                   <span className="text-white font-bold">{timingMatrix.periodLuck.month.stem}{timingMatrix.periodLuck.month.branch}</span>
                 </div>
                 <p className="text-gray-300 text-xs leading-relaxed">
-                  {isKo ? timingMatrix.periodLuck.month.description.ko : timingMatrix.periodLuck.month.description.en}
+                  {enrich(
+                    isKo ? timingMatrix.periodLuck.month.description.ko : timingMatrix.periodLuck.month.description.en,
+                    'timing',
+                    4
+                  )}
                 </p>
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-xs text-gray-500">{isKo ? '에너지' : 'Energy'}</span>
@@ -308,7 +340,11 @@ const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
                   <span className="text-white font-bold">{timingMatrix.periodLuck.day.stem}{timingMatrix.periodLuck.day.branch}</span>
                 </div>
                 <p className="text-gray-300 text-xs leading-relaxed">
-                  {isKo ? timingMatrix.periodLuck.day.description.ko : timingMatrix.periodLuck.day.description.en}
+                  {enrich(
+                    isKo ? timingMatrix.periodLuck.day.description.ko : timingMatrix.periodLuck.day.description.en,
+                    'timing',
+                    4
+                  )}
                 </p>
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-xs text-gray-500">{isKo ? '에너지' : 'Energy'}</span>
@@ -363,7 +399,7 @@ const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
                   <span className="text-green-400 font-bold">{period.score}%</span>
                 </div>
                 <p className="text-gray-300 text-sm leading-relaxed mb-2">
-                  {isKo ? period.description.ko : period.description.en}
+                  {enrich(isKo ? period.description.ko : period.description.en, 'timing', 4)}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {period.goodFor.map((item: string, i: number) => (
@@ -426,10 +462,10 @@ const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
                   <span className="text-red-400 font-bold">{period.score}{isKo ? '점' : 'pts'}</span>
                 </div>
                 <p className="text-gray-300 text-sm leading-relaxed mb-2">
-                  {isKo ? period.description.ko : period.description.en}
+                  {enrich(isKo ? period.description.ko : period.description.en, 'warning', 4)}
                 </p>
                 <p className="text-gray-400 text-xs mb-2 italic">
-                  {isKo ? period.advice.ko : period.advice.en}
+                  {enrich(isKo ? period.advice.ko : period.advice.en, 'warning', 4)}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {period.avoidFor.map((item: string, i: number) => (
@@ -444,9 +480,13 @@ const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
 
           <div className="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
             <p className="text-amber-300 text-xs leading-relaxed">
-              {isKo
+              {enrich(
+                isKo
                 ? '* 주의 시기라고 해서 모든 것이 나쁜 것은 아닙니다. 내실을 다지고 준비하는 시간으로 활용하세요.'
-                : '* Caution periods are not all bad. Use them as time to strengthen your foundation and prepare.'}
+                : '* Caution periods are not all bad. Use them as time to strengthen your foundation and prepare.',
+                'warning',
+                4
+              )}
             </p>
           </div>
         </div>
@@ -460,9 +500,13 @@ const TimingTab = memo(function TimingTab({ isKo, saju, astro }: TabProps) {
             {isKo ? '타이밍 분석을 위해 더 많은 정보가 필요해요' : 'More info needed for timing analysis'}
           </h3>
           <p className="text-gray-500 text-sm">
-            {isKo
+            {enrich(
+              isKo
               ? '사주와 점성 정보가 있으면 대운, 트랜짓, 역행 등 상세한 타이밍 분석을 제공해드려요.'
-              : 'With saju and astrology data, we can provide detailed timing analysis including major luck, transits, and retrogrades.'}
+              : 'With saju and astrology data, we can provide detailed timing analysis including major luck, transits, and retrogrades.',
+              'timing',
+              4
+            )}
           </p>
         </div>
       )}

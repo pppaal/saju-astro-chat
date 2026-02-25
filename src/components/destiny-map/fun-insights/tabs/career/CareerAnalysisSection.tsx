@@ -1,4 +1,5 @@
 import type { CareerAnalysis } from './types';
+import { ensureMinSentenceText } from '../shared/textDepth';
 
 interface CareerAnalysisSectionProps {
   careerAnalysis: CareerAnalysis;
@@ -6,6 +7,9 @@ interface CareerAnalysisSectionProps {
 }
 
 export default function CareerAnalysisSection({ careerAnalysis, isKo }: CareerAnalysisSectionProps) {
+  const enrich = (text?: string, min = 4) =>
+    ensureMinSentenceText(text || '', isKo, 'career', min);
+
   return (
     <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-emerald-900/20 border border-emerald-500/30 p-6">
       <div className="flex items-center gap-3 mb-4">
@@ -20,26 +24,26 @@ export default function CareerAnalysisSection({ careerAnalysis, isKo }: CareerAn
             <p className="text-emerald-300 font-bold mb-2 text-sm">💪 {isKo ? "직업적 강점" : "Career Strength"}</p>
             <ul className="text-gray-200 text-sm leading-relaxed space-y-1">
               {careerAnalysis.strengths?.map((s, i) => (
-                <li key={i}>• {s}</li>
+                <li key={i}>• {enrich(s, 3)}</li>
               ))}
             </ul>
           </div>
           <div className="p-4 rounded-xl bg-teal-500/10 border border-teal-500/20">
             <p className="text-teal-300 font-bold mb-2 text-sm">🎯 {isKo ? "일하는 스타일" : "Work Style"}</p>
-            <p className="text-gray-300 text-sm leading-relaxed">{careerAnalysis.workStyle}</p>
+            <p className="text-gray-300 text-sm leading-relaxed">{enrich(careerAnalysis.workStyle, 4)}</p>
           </div>
         </div>
 
         {/* 이상적인 직업 */}
         <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
           <p className="text-cyan-300 font-bold mb-2 text-sm">✨ {isKo ? "잘 맞는 일" : "Ideal Work"}</p>
-          <p className="text-gray-300 text-sm leading-relaxed">{careerAnalysis.idealEnvironment}</p>
+          <p className="text-gray-300 text-sm leading-relaxed">{enrich(careerAnalysis.idealEnvironment, 4)}</p>
         </div>
 
         {/* 주의사항 */}
         <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20">
           <p className="text-orange-300 font-bold mb-2 text-sm">⚠️ {isKo ? "주의할 점" : "Watch Out"}</p>
-          <p className="text-gray-300 text-sm leading-relaxed">{careerAnalysis.avoidEnvironment}</p>
+          <p className="text-gray-300 text-sm leading-relaxed">{enrich(careerAnalysis.avoidEnvironment, 4)}</p>
         </div>
 
         {/* 추천 산업 */}
@@ -60,13 +64,13 @@ export default function CareerAnalysisSection({ careerAnalysis, isKo }: CareerAn
             {careerAnalysis.publicImage && (
               <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
                 <p className="text-purple-300 font-bold text-sm mb-2">🎯 {isKo ? "공식 이미지" : "Public Image"}</p>
-                <p className="text-gray-300 text-sm leading-relaxed">{careerAnalysis.publicImage}</p>
+                <p className="text-gray-300 text-sm leading-relaxed">{enrich(careerAnalysis.publicImage, 4)}</p>
               </div>
             )}
             {careerAnalysis.jupiterBlessings && (
               <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
                 <p className="text-yellow-300 font-bold text-sm mb-2">🌟 {isKo ? "행운의 분야" : "Lucky Field"}</p>
-                <p className="text-gray-300 text-sm leading-relaxed">{careerAnalysis.jupiterBlessings}</p>
+                <p className="text-gray-300 text-sm leading-relaxed">{enrich(careerAnalysis.jupiterBlessings, 4)}</p>
               </div>
             )}
           </div>
@@ -76,7 +80,7 @@ export default function CareerAnalysisSection({ careerAnalysis, isKo }: CareerAn
         {careerAnalysis.sibsinCareer && (
           <div className="p-4 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20">
             <p className="text-fuchsia-300 font-bold text-sm mb-2">🔮 {isKo ? "에너지 활용법" : "Energy Utilization"}</p>
-            <p className="text-gray-300 text-sm leading-relaxed">{careerAnalysis.sibsinCareer}</p>
+            <p className="text-gray-300 text-sm leading-relaxed">{enrich(careerAnalysis.sibsinCareer, 4)}</p>
           </div>
         )}
 
@@ -86,13 +90,13 @@ export default function CareerAnalysisSection({ careerAnalysis, isKo }: CareerAn
             {careerAnalysis.leadershipStyle && (
               <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
                 <p className="text-blue-300 font-bold text-sm mb-2">👑 {isKo ? "리더십 스타일" : "Leadership Style"}</p>
-                <p className="text-gray-300 text-sm leading-relaxed">{careerAnalysis.leadershipStyle}</p>
+                <p className="text-gray-300 text-sm leading-relaxed">{enrich(careerAnalysis.leadershipStyle, 4)}</p>
               </div>
             )}
             {careerAnalysis.teamworkStyle && (
               <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
                 <p className="text-cyan-300 font-bold text-sm mb-2">🤝 {isKo ? "협업 스타일" : "Teamwork Style"}</p>
-                <p className="text-gray-300 text-sm leading-relaxed">{careerAnalysis.teamworkStyle}</p>
+                <p className="text-gray-300 text-sm leading-relaxed">{enrich(careerAnalysis.teamworkStyle, 4)}</p>
               </div>
             )}
           </div>
@@ -104,13 +108,13 @@ export default function CareerAnalysisSection({ careerAnalysis, isKo }: CareerAn
             {careerAnalysis.careerPath && (
               <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20">
                 <p className="text-violet-300 font-bold text-sm mb-2">🛤️ {isKo ? "커리어 패스" : "Career Path"}</p>
-                <p className="text-gray-300 text-sm leading-relaxed">{careerAnalysis.careerPath}</p>
+                <p className="text-gray-300 text-sm leading-relaxed">{enrich(careerAnalysis.careerPath, 4)}</p>
               </div>
             )}
             {careerAnalysis.currentPhase && (
               <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20">
                 <p className="text-rose-300 font-bold text-sm mb-2">📍 {isKo ? "현재 단계" : "Current Phase"}</p>
-                <p className="text-gray-300 text-sm leading-relaxed">{careerAnalysis.currentPhase}</p>
+                <p className="text-gray-300 text-sm leading-relaxed">{enrich(careerAnalysis.currentPhase, 4)}</p>
               </div>
             )}
           </div>
@@ -120,7 +124,7 @@ export default function CareerAnalysisSection({ careerAnalysis, isKo }: CareerAn
         {careerAnalysis.decisionStyle && (
           <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
             <p className="text-amber-300 font-bold text-sm mb-2">🧠 {isKo ? "의사결정 스타일" : "Decision Making Style"}</p>
-            <p className="text-gray-300 text-sm leading-relaxed">{careerAnalysis.decisionStyle}</p>
+            <p className="text-gray-300 text-sm leading-relaxed">{enrich(careerAnalysis.decisionStyle, 4)}</p>
           </div>
         )}
 
@@ -129,7 +133,7 @@ export default function CareerAnalysisSection({ careerAnalysis, isKo }: CareerAn
           <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20">
             <p className="text-sm flex items-start gap-3">
               <span className="text-xl">💡</span>
-              <span className="text-emerald-200 leading-relaxed">{careerAnalysis.growthTip}</span>
+              <span className="text-emerald-200 leading-relaxed">{enrich(careerAnalysis.growthTip, 5)}</span>
             </p>
           </div>
         )}

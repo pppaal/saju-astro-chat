@@ -410,6 +410,15 @@ describe('PromptBuilders', () => {
         expect(result).toContain('User Question Intent');
         expect(result).toContain('Open guidance question');
       });
+
+      it('should include deterministic core block when provided', () => {
+        const result = buildAIPrompt(mockInput, mockReport, {
+          lang: 'ko',
+          deterministicCorePrompt: '## Deterministic Core (모든 데이터 통합)\n- SAJU coverage: ...',
+        });
+        expect(result).toContain('Deterministic Core');
+        expect(result).toContain('SAJU coverage');
+      });
     });
   });
 

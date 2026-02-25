@@ -1,4 +1,5 @@
 import type { HiddenSelfAnalysis } from './types';
+import { ensureMinSentenceText } from '../shared/textDepth';
 
 interface HiddenFortuneCardProps {
   hiddenPotential: NonNullable<HiddenSelfAnalysis['hiddenPotential']>;
@@ -6,6 +7,9 @@ interface HiddenFortuneCardProps {
 }
 
 export default function HiddenFortuneCard({ hiddenPotential, isKo }: HiddenFortuneCardProps) {
+  const enrich = (text?: string, min = 4) =>
+    ensureMinSentenceText(text || '', isKo, 'hidden', min);
+
   return (
     <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-amber-900/20 border border-amber-500/30 p-6">
       <div className="flex items-center gap-3 mb-4">
@@ -23,12 +27,12 @@ export default function HiddenFortuneCard({ hiddenPotential, isKo }: HiddenFortu
           <span className="text-white font-medium">Part of Fortune × {hiddenPotential.element}</span>
         </div>
         <p className="text-gray-300 text-sm leading-relaxed mb-3">
-          {isKo ? hiddenPotential.description?.ko : hiddenPotential.description?.en}
+          {enrich(isKo ? hiddenPotential.description?.ko : hiddenPotential.description?.en, 4)}
         </p>
         <div className="p-3 rounded-lg bg-amber-500/15 border border-amber-500/25">
           <p className="text-amber-300 text-xs font-bold mb-1">{isKo ? '✨ 활성화 방법' : '✨ Activation'}</p>
           <p className="text-gray-300 text-xs">
-            {isKo ? hiddenPotential.activation?.ko : hiddenPotential.activation?.en}
+            {enrich(isKo ? hiddenPotential.activation?.ko : hiddenPotential.activation?.en, 4)}
           </p>
         </div>
       </div>

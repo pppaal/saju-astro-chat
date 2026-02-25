@@ -86,7 +86,7 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
         <div className={styles.loadingContainer}>
           <div className={styles.loadingText}>
             <h2 className={styles.counselorTitle}>
-              {t('destinyMap.counselor.title', 'DestinyPal Counselor')}
+              {t('destinyMap.counselor.title', 'Destiny Counselor')}
             </h2>
             <p className={styles.loadingMessage}>
               {t('destinyMap.counselor.authChecking', 'Checking login status...')}
@@ -132,7 +132,7 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
   if (isLoading && isAuthed) {
     return (
       <CounselorLoadingScreen
-        title={t('destinyMap.counselor.title', 'DestinyPal Counselor')}
+        title={t('destinyMap.counselor.title', 'Destiny Counselor')}
         loadingStep={loadingStep}
         loadingMessages={loadingMessages}
       />
@@ -167,7 +167,7 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
               <span className={styles.counselorAvatar}>🔮</span>
               <div>
                 <h1 className={styles.headerTitle}>
-                  {t('destinyMap.counselor.title', 'DestinyPal Counselor')}
+                  {t('destinyMap.counselor.title', 'Destiny Counselor')}
                 </h1>
                 <span className={styles.onlineStatus}>
                   <span className={styles.onlineDot} />

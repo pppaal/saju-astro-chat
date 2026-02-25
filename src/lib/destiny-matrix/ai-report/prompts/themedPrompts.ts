@@ -495,10 +495,12 @@ export function buildThemedPrompt(
   matrixSummary: string,
   astroSummary?: string,
   graphRagEvidencePrompt?: string,
-  userQuestion?: string
+  userQuestion?: string,
+  deterministicCorePrompt?: string
 ): string {
   const isKo = lang === 'ko'
   const questionIntentInstruction = buildQuestionIntentInstruction(userQuestion, lang)
+  const deterministicBlock = deterministicCorePrompt?.trim()
   const sections = THEME_SECTIONS[theme][lang]
   const themeLabel = THEME_LABELS[theme][lang]
 
@@ -534,6 +536,7 @@ ${matrixSummary}
 
 ${astroSummary ? `## 점성술 분석 요약\n${astroSummary}` : ''}
 ${graphRagEvidencePrompt ? `\n## GraphRAG 근거 앵커\n${graphRagEvidencePrompt}` : ''}
+${deterministicBlock ? `\n${deterministicBlock}` : ''}
 ${questionIntentInstruction ? `\n${questionIntentInstruction}` : ''}
 
 ═══════════════════════════════════════════════════════════════
@@ -588,6 +591,7 @@ ${matrixSummary}
 
 ${astroSummary ? `## Astrology Analysis Summary\n${astroSummary}` : ''}
 ${graphRagEvidencePrompt ? `\n## GraphRAG Evidence Anchors\n${graphRagEvidencePrompt}` : ''}
+${deterministicBlock ? `\n${deterministicBlock}` : ''}
 ${questionIntentInstruction ? `\n${questionIntentInstruction}` : ''}
 
 ═══════════════════════════════════════════════════════════════

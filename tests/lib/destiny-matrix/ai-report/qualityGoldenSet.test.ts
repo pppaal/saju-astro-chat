@@ -130,9 +130,47 @@ const cases: GoldenCase[] = [
   },
 ]
 
+const variants = [
+  {
+    id: 'vA',
+    deep:
+      'Evidence: Saju day-master tendencies and astrology house activation both support practical adaptation with angle=120deg orb=1.2deg allowed=6deg.',
+    action:
+      'Today define one concrete step, this week execute one bounded experiment, and this month lock one repeatable routine.',
+  },
+  {
+    id: 'vB',
+    deep:
+      'Source: Saju timing pressure and astrology transit momentum converge, so prioritization beats expansion with angle=90deg orb=1.1deg allowed=6deg.',
+    action:
+      'Start with one measurable objective, remove one low-value task, and review outcomes every 7 days.',
+  },
+]
+
+const expandedCases: GoldenCase[] = cases.flatMap((item, idx) =>
+  variants.map((v) => ({
+    id: `${item.id}-${v.id}`,
+    theme: item.theme,
+    sections: {
+      ...item.sections,
+      deepAnalysis: `${item.sections.deepAnalysis} ${v.deep}`,
+      actionPlan: `${item.sections.actionPlan} ${v.action}`,
+      recommendations: `${item.sections.recommendations} Evidence: keep risk limits and written checkpoints.`,
+      patterns: `${item.sections.patterns} angle=60deg orb=1.6deg allowed=5deg.`,
+      timing: `${item.sections.timing} source: timeline overlap confirms window.`,
+      ...(idx % 2 === 0
+        ? {}
+        : {
+            // add additional practical sentence density
+            actionPlan: `${item.sections.actionPlan} ${v.action} Keep one fallback option with a clear stop rule.`,
+          }),
+    },
+  }))
+)
+
 describe('quality golden set', () => {
   it('keeps cross evidence quality above floor across deterministic cases', () => {
-    for (const item of cases) {
+    for (const item of expandedCases) {
       const result = evaluateThemedReportQuality({
         theme: item.theme,
         lang: 'en',
@@ -141,6 +179,9 @@ describe('quality golden set', () => {
       expect(result.crossEvidenceScore, item.id).toBeGreaterThanOrEqual(80)
       expect(result.overallQualityScore, item.id).toBeGreaterThanOrEqual(75)
       expect(result.completenessScore, item.id).toBeGreaterThanOrEqual(80)
+      expect(result.actionabilityScore, item.id).toBeGreaterThanOrEqual(60)
+      expect(result.antiOverclaimScore, item.id).toBeGreaterThanOrEqual(70)
+      expect(result.shouldBlock, item.id).toBe(false)
     }
   })
 })

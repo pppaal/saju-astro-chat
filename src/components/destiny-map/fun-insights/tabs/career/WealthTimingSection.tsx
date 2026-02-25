@@ -1,4 +1,5 @@
 import type { CareerAnalysis } from './types';
+import { ensureMinSentenceText } from '../shared/textDepth';
 
 interface WealthTimingSectionProps {
   careerAnalysis: CareerAnalysis;
@@ -9,6 +10,8 @@ export default function WealthTimingSection({ careerAnalysis, isKo }: WealthTimi
   if (!(careerAnalysis.wealthScore || careerAnalysis.wealthStyle || careerAnalysis.successTiming)) {
     return null;
   }
+  const enrich = (text?: string, min = 4) =>
+    ensureMinSentenceText(text || '', isKo, 'career', min);
 
   return (
     <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-amber-900/20 border border-amber-500/30 p-6">
@@ -32,13 +35,16 @@ export default function WealthTimingSection({ careerAnalysis, isKo }: WealthTimi
               />
             </div>
             <p className="text-gray-400 text-xs mt-2">
-              {isKo
+              {enrich(
+                isKo
                 ? careerAnalysis.wealthScore >= 80 ? "타고난 재물복이 있어요!"
                   : careerAnalysis.wealthScore >= 60 ? "꾸준한 노력으로 부를 쌓아요."
                   : "전략적인 재테크가 필요해요."
                 : careerAnalysis.wealthScore >= 80 ? "You have natural wealth fortune!"
                   : careerAnalysis.wealthScore >= 60 ? "Build wealth through steady effort."
-                  : "Strategic financial planning is key."}
+                  : "Strategic financial planning is key.",
+                4
+              )}
             </p>
           </div>
         )}
@@ -47,7 +53,7 @@ export default function WealthTimingSection({ careerAnalysis, isKo }: WealthTimi
         {careerAnalysis.wealthStyle && (
           <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
             <p className="text-yellow-300 font-bold text-sm mb-2">🏦 {isKo ? "재물 스타일" : "Wealth Style"}</p>
-            <p className="text-gray-300 text-sm leading-relaxed">{careerAnalysis.wealthStyle}</p>
+            <p className="text-gray-300 text-sm leading-relaxed">{enrich(careerAnalysis.wealthStyle, 4)}</p>
           </div>
         )}
 
@@ -55,7 +61,7 @@ export default function WealthTimingSection({ careerAnalysis, isKo }: WealthTimi
         {careerAnalysis.successTiming && (
           <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20">
             <p className="text-orange-300 font-bold text-sm mb-2">⏰ {isKo ? "성공 시기" : "Success Timing"}</p>
-            <p className="text-gray-300 text-sm leading-relaxed">{careerAnalysis.successTiming}</p>
+            <p className="text-gray-300 text-sm leading-relaxed">{enrich(careerAnalysis.successTiming, 4)}</p>
           </div>
         )}
       </div>

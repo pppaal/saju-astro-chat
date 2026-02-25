@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 import { useUserProfile } from '@/hooks/useUserProfile'
@@ -18,26 +18,48 @@ interface SajuData {
   dayMasterElement: string
 }
 
+type ReportTier = 'free' | 'premium'
+
+interface FreeDigestReport {
+  tier: 'free'
+  headline: string
+  summary: string
+  overallScore: number
+  grade: string
+  topInsights?: Array<{ title: string; reason: string; action: string }>
+  focusAreas?: Array<{ domain: string; score: number; summary: string }>
+  caution?: string[]
+  nextSteps?: string[]
+}
+
 const FEATURES = [
-  '성향/기질 핵심 분석',
-  '커리어/재물 흐름 분석',
-  '관계/가족 역학 분석',
-  '건강/에너지 리듬 분석',
-  '강점/리스크 요인 정리',
-  '실행 가능한 행동 가이드',
+  '??/?? ?? ??',
+  '???/?? ?? ??',
+  '??/?? ?? ??',
+  '??/??? ?? ??',
+  '??/??? ?? ??',
+  '?? ??? ?? ???',
 ]
+
+function toTier(value: string | null): ReportTier {
+  return value === 'free' ? 'free' : 'premium'
+}
 
 export default function ComprehensiveReportPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { status } = useSession()
   const redirectedRef = useRef(false)
   const { profile, isLoading: profileLoading } = useUserProfile()
 
-  const [profileInput, setProfileInput] = useState<ReportProfileInput | null>(null)
+  const reportTier = toTier(searchParams?.get('tier') ?? null)
+  const { profileInput, setProfileInput } = useReportProfileState(profile)
+
   const [sajuData, setSajuData] = useState<SajuData | null>(null)
   const [sajuLoading, setSajuLoading] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [freeReport, setFreeReport] = useState<FreeDigestReport | null>(null)
 
   useEffect(() => {
     if (status === 'unauthenticated' && !redirectedRef.current) {
@@ -48,23 +70,6 @@ export default function ComprehensiveReportPage() {
       redirectedRef.current = false
     }
   }, [status, router])
-
-  useEffect(() => {
-    if (!profile.birthDate || profileInput) {
-      return
-    }
-
-    setProfileInput({
-      name: profile.name || '사용자',
-      birthDate: profile.birthDate,
-      birthTime: profile.birthTime || '12:00',
-      birthCity: profile.birthCity,
-      gender: profile.gender === 'Female' ? 'F' : profile.gender === 'Male' ? 'M' : undefined,
-      timezone: profile.timezone,
-      latitude: profile.latitude,
-      longitude: profile.longitude,
-    })
-  }, [profile, profileInput])
 
   const loadSajuData = useCallback(async () => {
     if (status !== 'authenticated') {
@@ -97,21 +102,23 @@ export default function ComprehensiveReportPage() {
   const handleGenerate = async () => {
     const finalBirthDate = profileInput?.birthDate || profile.birthDate
     if (!finalBirthDate) {
-      setError('생년월일 정보를 먼저 저장해주세요.')
+      setError('???? ??? ?? ??????.')
       return
     }
 
     setError(null)
     setIsGenerating(true)
+    setFreeReport(null)
 
     try {
       const response = await fetch('/api/destiny-matrix/ai-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          reportTier,
           period: 'comprehensive',
           ...(sajuData?.dayMasterElement ? { dayMasterElement: sajuData.dayMasterElement } : {}),
-          name: profileInput?.name || profile.name || '사용자',
+          name: profileInput?.name || profile.name || '???',
           birthDate: finalBirthDate,
           birthTime: profileInput?.birthTime || profile.birthTime || undefined,
           timezone: profileInput?.timezone || profile.timezone || undefined,
@@ -119,7 +126,7 @@ export default function ComprehensiveReportPage() {
           gender: profileInput?.gender || undefined,
           latitude: profileInput?.latitude ?? profile.latitude ?? undefined,
           longitude: profileInput?.longitude ?? profile.longitude ?? undefined,
-          detailLevel: 'comprehensive',
+          detailLevel: reportTier === 'premium' ? 'comprehensive' : 'standard',
           lang: 'ko',
         }),
       })
@@ -131,7 +138,12 @@ export default function ComprehensiveReportPage() {
           router.push('/pricing?reason=credits')
           return
         }
-        throw new Error(data.error?.message || '리포트 생성에 실패했습니다.')
+        throw new Error(data.error?.message || '??? ??? ??????.')
+      }
+
+      if (reportTier === 'free') {
+        setFreeReport(data.report as FreeDigestReport)
+        return
       }
 
       if (data.report?.id) {
@@ -147,7 +159,7 @@ export default function ComprehensiveReportPage() {
       analytics.matrixGenerate('premium-reports/comprehensive')
       router.push(`/premium-reports/result/${data.report.id}?type=comprehensive`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
+      setError(err instanceof Error ? err.message : '? ? ?? ??? ??????.')
     } finally {
       setIsGenerating(false)
     }
@@ -159,7 +171,7 @@ export default function ComprehensiveReportPage() {
 
   return (
     <>
-      {isGenerating && (
+      {isGenerating && reportTier === 'premium' && (
         <div className="fixed inset-0 z-[120]">
           <UnifiedServiceLoading kind="aiReport" locale="ko" />
         </div>
@@ -171,28 +183,54 @@ export default function ComprehensiveReportPage() {
               href="/premium-reports"
               className="inline-flex items-center rounded-full border border-white/15 bg-slate-900/60 px-3 py-1 text-sm text-slate-300 backdrop-blur-xl hover:border-cyan-300/60 hover:text-white"
             >
-              리포트 선택으로 돌아가기
+              ??? ???? ????
             </Link>
             <div className="mt-5 rounded-3xl border border-white/15 bg-slate-900/60 p-7 backdrop-blur-xl">
               <div className="inline-flex rounded-full border border-amber-300/35 bg-amber-400/10 px-3 py-1 text-xs font-semibold text-amber-200">
                 Comprehensive
               </div>
-              <h1 className="mt-3 text-3xl font-black text-white">종합 리포트</h1>
+              <h1 className="mt-3 text-3xl font-black text-white">?? ???</h1>
               <p className="mt-2 text-sm leading-6 text-slate-200">
-                사주와 점성의 핵심 시그널을 통합해 장기 전략을 제시합니다.
+                ??? ??? ?? ???? ??? ?? ??? ?????.
               </p>
-              <p className="mt-3 text-xs font-semibold text-amber-200">3 credits</p>
+
+              <div className="mt-5 inline-flex rounded-xl border border-white/15 bg-slate-950/50 p-1">
+                <button
+                  onClick={() => router.replace('/premium-reports/comprehensive?tier=free')}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                    reportTier === 'free'
+                      ? 'bg-emerald-500 text-white'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  FREE VERSION
+                </button>
+                <button
+                  onClick={() => router.replace('/premium-reports/comprehensive?tier=premium')}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                    reportTier === 'premium'
+                      ? 'bg-amber-500 text-slate-950'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  PREMIUM VERSION
+                </button>
+              </div>
+
+              <p className="mt-3 text-xs font-semibold text-amber-200">
+                {reportTier === 'premium' ? '3 credits � ?? ?? + PDF' : '0 credits � ?? ?? ???'}
+              </p>
             </div>
           </div>
         </header>
 
         <main className="mx-auto grid max-w-5xl gap-6 px-4 pb-20 lg:grid-cols-[1fr_1fr]">
           <section className="rounded-3xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
-            <h2 className="text-lg font-semibold text-white">포함 내용</h2>
+            <h2 className="text-lg font-semibold text-white">?? ??</h2>
             <ul className="mt-4 space-y-2">
               {FEATURES.map((feature) => (
                 <li key={feature} className="text-sm text-slate-200">
-                  • {feature}
+                  � {feature}
                 </li>
               ))}
             </ul>
@@ -212,16 +250,62 @@ export default function ComprehensiveReportPage() {
               disabled={!canGenerate}
               className={`w-full rounded-xl px-4 py-4 text-sm font-semibold text-white transition ${
                 canGenerate
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:brightness-110'
+                  ? reportTier === 'premium'
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:brightness-110'
+                    : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110'
                   : 'cursor-not-allowed bg-slate-700'
               }`}
             >
-              {isGenerating ? '리포트 생성 중...' : '종합 리포트 생성하기'}
+              {isGenerating
+                ? '??? ?? ?...'
+                : reportTier === 'premium'
+                  ? '???? ?? ??? ????'
+                  : '?? ?? ??? ????'}
             </button>
 
             <p className="text-center text-xs text-slate-500">
-              생성된 리포트는 My Journey에서 다시 확인할 수 있습니다.
+              {reportTier === 'premium'
+                ? '??? ???? My Journey?? ?? ??? ? ????.'
+                : '?? ??? ?? ?? ??? ?? ?????.'}
             </p>
+
+            {freeReport && (
+              <section className="rounded-2xl border border-emerald-300/35 bg-emerald-500/10 p-4 text-sm text-emerald-50">
+                <h3 className="text-base font-bold text-emerald-100">{freeReport.headline}</h3>
+                <p className="mt-2 leading-6 text-emerald-100/90">{freeReport.summary}</p>
+                <p className="mt-3 font-semibold">
+                  ?? ?? {freeReport.overallScore}? � ?? {freeReport.grade}
+                </p>
+
+                {freeReport.topInsights && freeReport.topInsights.length > 0 && (
+                  <div className="mt-4 space-y-3">
+                    {freeReport.topInsights.map((item) => (
+                      <article
+                        key={`${item.title}-${item.action}`}
+                        className="rounded-xl border border-emerald-200/35 bg-emerald-950/35 p-3"
+                      >
+                        <p className="font-semibold text-emerald-50">{item.title}</p>
+                        <p className="mt-1 text-emerald-100/85">{item.reason}</p>
+                        <p className="mt-2 text-xs font-semibold text-emerald-200">
+                          ??: {item.action}
+                        </p>
+                      </article>
+                    ))}
+                  </div>
+                )}
+
+                {freeReport.nextSteps && freeReport.nextSteps.length > 0 && (
+                  <div className="mt-4 rounded-xl border border-emerald-200/35 bg-emerald-950/25 p-3">
+                    <p className="font-semibold text-emerald-100">?? ??</p>
+                    <ul className="mt-2 space-y-1 text-emerald-100/90">
+                      {freeReport.nextSteps.map((step) => (
+                        <li key={step}>� {step}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </section>
+            )}
           </section>
         </main>
       </PremiumPageScaffold>
@@ -229,4 +313,34 @@ export default function ComprehensiveReportPage() {
   )
 }
 
+function useReportProfileState(profile: {
+  birthDate?: string
+  birthTime?: string
+  birthCity?: string
+  timezone?: string
+  latitude?: number
+  longitude?: number
+  name?: string
+  gender?: string
+}) {
+  const [profileInput, setProfileInput] = useState<ReportProfileInput | null>(null)
 
+  useEffect(() => {
+    if (!profile.birthDate || profileInput) {
+      return
+    }
+
+    setProfileInput({
+      name: profile.name || '???',
+      birthDate: profile.birthDate,
+      birthTime: profile.birthTime || '12:00',
+      birthCity: profile.birthCity,
+      gender: profile.gender === 'Female' ? 'F' : profile.gender === 'Male' ? 'M' : undefined,
+      timezone: profile.timezone,
+      latitude: profile.latitude,
+      longitude: profile.longitude,
+    })
+  }, [profile, profileInput])
+
+  return { profileInput, setProfileInput }
+}

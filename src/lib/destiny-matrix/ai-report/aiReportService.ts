@@ -21,6 +21,8 @@ import { buildTimingPrompt } from './prompts/timingPrompts'
 import { buildThemedPrompt } from './prompts/themedPrompts'
 import { buildGraphRAGEvidence, formatGraphRAGEvidenceForPrompt } from './graphRagEvidence'
 import { renderSectionsAsMarkdown, renderSectionsAsText } from './reportRendering'
+import { buildDeterministicCore } from './deterministicCore'
+import type { DeterministicProfile } from './deterministicCoreConfig'
 
 // Extracted modules
 import type { AIPremiumReport, AIReportGenerationOptions, AIUserPlan } from './reportTypes'
@@ -237,17 +239,27 @@ export async function generateAIPremiumReport(
     focusDomain: options.focusDomain,
   })
   const graphRagEvidencePrompt = formatGraphRAGEvidenceForPrompt(graphRagEvidence, lang)
+  const deterministicCore = buildDeterministicCore({
+    matrixInput: input,
+    matrixReport,
+    graphEvidence: graphRagEvidence,
+    userQuestion: options.userQuestion,
+    lang,
+    profile: options.deterministicProfile,
+  })
 
   let prompt: string
   if (options.theme && options.theme !== 'comprehensive') {
     prompt = buildThemedAIPrompt(input, matrixReport, options.theme, {
       ...options,
       graphRagEvidencePrompt,
+      deterministicCorePrompt: deterministicCore.promptBlock,
     })
   } else {
     prompt = buildAIPrompt(input, matrixReport, {
       ...options,
       graphRagEvidencePrompt,
+      deterministicCorePrompt: deterministicCore.promptBlock,
     })
   }
 
@@ -390,6 +402,7 @@ export async function generateAIPremiumReport(
 
     sections: sections as AIPremiumReport['sections'],
     graphRagEvidence,
+    deterministicCore,
     renderedMarkdown: renderSectionsAsMarkdown(
       sections as Record<string, unknown>,
       [
@@ -460,6 +473,7 @@ export async function generateTimingReport(
     lang?: 'ko' | 'en'
     userPlan?: AIUserPlan
     userQuestion?: string
+    deterministicProfile?: DeterministicProfile
   } = {}
 ): Promise<TimingAIPremiumReport> {
   const startTime = Date.now()
@@ -467,6 +481,14 @@ export async function generateTimingReport(
   const targetDate = options.targetDate || new Date().toISOString().split('T')[0]
   const graphRagEvidence = buildGraphRAGEvidence(input, matrixReport, { mode: 'timing', period })
   const graphRagEvidencePrompt = formatGraphRAGEvidenceForPrompt(graphRagEvidence, lang)
+  const deterministicCore = buildDeterministicCore({
+    matrixInput: input,
+    matrixReport,
+    graphEvidence: graphRagEvidence,
+    userQuestion: options.userQuestion,
+    lang,
+    profile: options.deterministicProfile,
+  })
 
   // 1. 매트릭스 요약 빌드
   const matrixSummary = buildMatrixSummary(matrixReport, lang)
@@ -485,7 +507,8 @@ export async function generateTimingReport(
     targetDate,
     matrixSummary,
     graphRagEvidencePrompt,
-    options.userQuestion
+    options.userQuestion,
+    deterministicCore.promptBlock
   )
 
   // 3. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
@@ -619,6 +642,7 @@ export async function generateTimingReport(
     timingData,
     sections: sections as unknown as TimingReportSections,
     graphRagEvidence,
+    deterministicCore,
     renderedMarkdown: renderSectionsAsMarkdown(
       sections as Record<string, unknown>,
       [
@@ -675,12 +699,21 @@ export async function generateThemedReport(
     lang?: 'ko' | 'en'
     userPlan?: AIUserPlan
     userQuestion?: string
+    deterministicProfile?: DeterministicProfile
   } = {}
 ): Promise<ThemedAIPremiumReport> {
   const startTime = Date.now()
   const lang = options.lang || 'ko'
   const graphRagEvidence = buildGraphRAGEvidence(input, matrixReport, { mode: 'themed', theme })
   const graphRagEvidencePrompt = formatGraphRAGEvidenceForPrompt(graphRagEvidence, lang)
+  const deterministicCore = buildDeterministicCore({
+    matrixInput: input,
+    matrixReport,
+    graphEvidence: graphRagEvidence,
+    userQuestion: options.userQuestion,
+    lang,
+    profile: options.deterministicProfile,
+  })
 
   // 1. 매트릭스 요약 빌드
   const matrixSummary = buildMatrixSummary(matrixReport, lang)
@@ -700,7 +733,8 @@ export async function generateThemedReport(
     matrixSummary,
     undefined,
     graphRagEvidencePrompt,
-    options.userQuestion
+    options.userQuestion,
+    deterministicCore.promptBlock
   )
 
   // 3. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
@@ -832,6 +866,7 @@ export async function generateThemedReport(
 
     sections: sections as unknown as ThemedReportSections,
     graphRagEvidence,
+    deterministicCore,
     renderedMarkdown: renderSectionsAsMarkdown(
       sections as Record<string, unknown>,
       [

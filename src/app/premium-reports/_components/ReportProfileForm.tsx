@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useMemo, useState } from 'react'
 import { UnifiedBirthForm, type BirthInfo } from '@/components/common/BirthForm'
@@ -32,17 +32,19 @@ export function ReportProfileForm({
     () =>
       locale === 'ko'
         ? {
-            title: '분석 대상 정보',
-            nameLabel: '이름 (선택)',
-            namePlaceholder: '예: 홍길동',
-            submitButton: '분석 정보 저장',
-            savedTitle: '현재 저장된 입력',
+            title: '??? ?? ??',
+            subtitle: '?? ??? ?? ?? ??? ??? ?? ??? ????.',
+            nameLabel: '?? (??)',
+            namePlaceholder: '?: ???',
+            submitButton: '?? ??',
+            savedTitle: '?? ??? ??',
           }
         : {
-            title: 'Profile for Analysis',
+            title: 'Report Profile',
+            subtitle: 'Use this calendar-style form to build a stable analysis baseline.',
             nameLabel: 'Name (optional)',
             namePlaceholder: 'e.g. Alex',
-            submitButton: 'Save profile input',
+            submitButton: 'Save Input',
             savedTitle: 'Saved input',
           },
     [locale]
@@ -50,7 +52,7 @@ export function ReportProfileForm({
 
   const handleSubmit = (birth: BirthInfo) => {
     const payload: ReportProfileInput = {
-      name: name.trim() || (locale === 'ko' ? '사용자' : 'User'),
+      name: name.trim() || (locale === 'ko' ? '???' : 'User'),
       birthDate: birth.birthDate,
       birthTime: birth.birthTime || '12:00',
       gender: birth.gender,
@@ -65,40 +67,45 @@ export function ReportProfileForm({
   }
 
   return (
-    <section className="rounded-2xl border border-slate-700/50 bg-slate-800/40 p-6">
-      <h2 className="mb-4 text-lg font-semibold text-white">{labels.title}</h2>
+    <section className="rounded-3xl border border-cyan-400/30 bg-gradient-to-br from-[#08132a]/90 via-[#0d1e3f]/90 to-[#11123a]/90 p-6 shadow-[0_20px_55px_rgba(6,20,52,0.45)] backdrop-blur-xl">
+      <div className="mb-5">
+        <h2 className="text-xl font-extrabold tracking-tight text-cyan-50">{labels.title}</h2>
+        <p className="mt-1 text-sm leading-6 text-cyan-100/85">{labels.subtitle}</p>
+      </div>
 
       <div className="mb-4">
-        <label className="mb-2 block text-sm text-slate-300">{labels.nameLabel}</label>
+        <label className="mb-2 block text-sm font-semibold text-cyan-100">{labels.nameLabel}</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={labels.namePlaceholder}
-          className="w-full rounded-lg border border-slate-600 bg-slate-900/60 p-3 text-white placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none"
+          className="w-full rounded-xl border border-cyan-400/35 bg-[#091733]/80 px-4 py-3 text-base font-medium text-white placeholder:text-cyan-200/40 outline-none transition focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/25"
         />
       </div>
 
-      <UnifiedBirthForm
-        onSubmit={handleSubmit}
-        locale={locale}
-        includeProfileLoader={true}
-        includeCity={false}
-        includeCityToggle={true}
-        allowTimeUnknown={true}
-        includeGender={true}
-        genderFormat="short"
-        submitButtonText={labels.submitButton}
-        submitButtonIcon=""
-        showHeader={false}
-      />
+      <div className="rounded-2xl border border-cyan-300/25 bg-[#071127]/70 p-4">
+        <UnifiedBirthForm
+          onSubmit={handleSubmit}
+          locale={locale}
+          includeProfileLoader={true}
+          includeCity={false}
+          includeCityToggle={true}
+          allowTimeUnknown={true}
+          includeGender={true}
+          genderFormat="short"
+          submitButtonText={labels.submitButton}
+          submitButtonIcon=""
+          showHeader={false}
+        />
+      </div>
 
       {lastSaved && (
-        <div className="mt-4 rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3 text-sm text-cyan-100">
+        <div className="mt-4 rounded-xl border border-emerald-300/35 bg-emerald-500/10 p-3 text-sm text-emerald-100">
           <p className="font-medium">{labels.savedTitle}</p>
           <p className="mt-1">
-            {lastSaved.name} · {lastSaved.birthDate} {lastSaved.birthTime}
-            {lastSaved.birthCity ? ` · ${lastSaved.birthCity}` : ''}
+            {lastSaved.name} � {lastSaved.birthDate} {lastSaved.birthTime}
+            {lastSaved.birthCity ? ` � ${lastSaved.birthCity}` : ''}
           </p>
         </div>
       )}

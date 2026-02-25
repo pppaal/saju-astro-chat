@@ -1,6 +1,8 @@
 'use client'
 
 import { memo, useMemo } from 'react'
+import { repairMojibakeDeep } from '@/lib/text/mojibake'
+import { expandNarrativeDeep } from './shared/longForm'
 import type { TabProps } from './types'
 import { getFullMatrixAnalysis } from '../analyzers'
 import { PremiumReportCTA } from '../components'
@@ -30,15 +32,27 @@ import {
 function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
   // Compute full matrix once and reuse by section.
   const fullMatrix = useMemo(
-    () => getFullMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang),
+    () => repairMojibakeDeep(getFullMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang)),
     [saju, astro, lang]
   )
 
-  const matrixAnalysis = fullMatrix ?? null
-  const timingOverlays = fullMatrix?.timingOverlays ?? []
-  const relationAspects = fullMatrix?.relationAspects ?? []
-  const advancedAnalysis = fullMatrix?.advancedAnalysis ?? []
-  const extraPoints = fullMatrix?.extraPoints ?? []
+  const matrixAnalysis = repairMojibakeDeep(fullMatrix ?? null)
+  const timingOverlays = expandNarrativeDeep(
+    repairMojibakeDeep(fullMatrix?.timingOverlays ?? []),
+    { isKo, topic: 'timing', minSentences: 4 }
+  )
+  const relationAspects = expandNarrativeDeep(
+    repairMojibakeDeep(fullMatrix?.relationAspects ?? []),
+    { isKo, topic: 'fortune', minSentences: 4 }
+  )
+  const advancedAnalysis = expandNarrativeDeep(
+    repairMojibakeDeep(fullMatrix?.advancedAnalysis ?? []),
+    { isKo, topic: 'fortune', minSentences: 4 }
+  )
+  const extraPoints = expandNarrativeDeep(
+    repairMojibakeDeep(fullMatrix?.extraPoints ?? []),
+    { isKo, topic: 'hidden', minSentences: 4 }
+  )
 
   const topSibsinHouse = useMemo(
     () =>
@@ -60,7 +74,10 @@ function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
     return <div className="text-gray-400 text-center p-6">Loading...</div>
   }
 
-  const currentFlow = data.currentFlow as CurrentFlow | null
+  const currentFlow = expandNarrativeDeep(
+    repairMojibakeDeep(data.currentFlow as CurrentFlow | null),
+    { isKo, topic: 'fortune', minSentences: 4 }
+  )
   const dayElement = data.dayElement as string | undefined
 
   // Extract saju data
@@ -83,16 +100,30 @@ function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
 
   // Calculate fortunes
   const dayMasterName = data.dayMasterName || ''
-  const yearFortune = calculateYearFortune({ sajuExt, dayMasterName, dayElement, isKo })
-  const monthFortune = calculateMonthFortune({ sajuExt, isKo })
-  const todayFortune = calculateTodayFortune({ sajuExt, isKo })
-  const actionPlan = calculateActionPlan({
-    todayFortune,
-    monthFortune,
-    yearFortune,
-    dayElement,
-    isKo,
-  })
+  const yearFortune = expandNarrativeDeep(
+    repairMojibakeDeep(calculateYearFortune({ sajuExt, dayMasterName, dayElement, isKo })),
+    { isKo, topic: 'fortune', minSentences: 4 }
+  )
+  const monthFortune = expandNarrativeDeep(
+    repairMojibakeDeep(calculateMonthFortune({ sajuExt, isKo })),
+    { isKo, topic: 'fortune', minSentences: 4 }
+  )
+  const todayFortune = expandNarrativeDeep(
+    repairMojibakeDeep(calculateTodayFortune({ sajuExt, isKo })),
+    { isKo, topic: 'fortune', minSentences: 4 }
+  )
+  const actionPlan = expandNarrativeDeep(
+    repairMojibakeDeep(
+      calculateActionPlan({
+        todayFortune,
+        monthFortune,
+        yearFortune,
+        dayElement,
+        isKo,
+      })
+    ),
+    { isKo, topic: 'fortune', minSentences: 4 }
+  )
 
   return (
     <div className="space-y-6">
@@ -109,7 +140,7 @@ function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
       />
 
       {/* Current Flow (Daeun + Seun) */}
-      {currentFlow && <CurrentFlowSection currentFlow={currentFlow} />}
+      {currentFlow && <CurrentFlowSection currentFlow={currentFlow} isKo={isKo} />}
 
       {/* Year Fortune */}
       {yearFortune && (

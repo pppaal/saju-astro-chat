@@ -9,6 +9,7 @@ import {
   saturnHouseDetails,
 } from '../constants'
 import { getDaeunRelation } from '../utils'
+import { ensureMinSentenceText } from '../../shared/textDepth'
 
 interface EnergyStatusSectionProps {
   dayMaster: string
@@ -31,6 +32,12 @@ export default function EnergyStatusSection({
   saturnHouse,
   isKo,
 }: EnergyStatusSectionProps) {
+  const enrich = (
+    text: string | undefined,
+    topic: 'fortune' | 'warning' = 'fortune',
+    min = 3
+  ) => ensureMinSentenceText(text || '', isKo, topic, min)
+
   return (
     <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-purple-900/30 border border-purple-500/30 p-6">
       <div className="flex items-center gap-3 mb-4">
@@ -105,9 +112,13 @@ export default function EnergyStatusSection({
             <div className="p-2 rounded-lg bg-orange-500/10">
               <span className="text-orange-400 font-medium">⚠️ {isKo ? '주의' : 'Caution'}</span>
               <p className="text-gray-300 mt-1">
-                {isKo
-                  ? dayMasterFortuneTraits[dayMaster].caution
-                  : dayMasterFortuneTraits[dayMaster].cautionEn}
+                {enrich(
+                  isKo
+                    ? dayMasterFortuneTraits[dayMaster].caution
+                    : dayMasterFortuneTraits[dayMaster].cautionEn,
+                  'warning',
+                  3
+                )}
               </p>
             </div>
           </div>
@@ -145,8 +156,8 @@ export default function EnergyStatusSection({
                   <p className="text-cyan-400 font-bold text-sm mb-1">
                     🔄 {dayMaster} × {daeunStem} = {relation.relation}
                   </p>
-                  <p className="text-gray-300 text-sm mb-2">{relation.message}</p>
-                  <p className="text-teal-400 text-xs">💡 {relation.advice}</p>
+                  <p className="text-gray-300 text-sm mb-2">{enrich(relation.message, 'fortune', 3)}</p>
+                  <p className="text-teal-400 text-xs">💡 {enrich(relation.advice, 'fortune', 3)}</p>
                 </div>
               )}
             </div>
@@ -166,15 +177,23 @@ export default function EnergyStatusSection({
                   : `Lucky Area: House ${jupiterHouse}`}
               </p>
               <p className="text-gray-200 text-sm leading-relaxed mb-3">
-                {isKo ? jupiterHouseDetails[jupiterHouse].ko : jupiterHouseDetails[jupiterHouse].en}
+                {enrich(
+                  isKo ? jupiterHouseDetails[jupiterHouse].ko : jupiterHouseDetails[jupiterHouse].en,
+                  'fortune',
+                  4
+                )}
               </p>
               <div className="p-2 rounded-lg bg-green-500/10">
                 <p className="text-green-300 text-xs">
                   🎯 {isKo ? '추천 활동: ' : 'Recommended: '}
                   <span className="text-green-200">
-                    {isKo
-                      ? jupiterHouseDetails[jupiterHouse].action
-                      : jupiterHouseDetails[jupiterHouse].actionEn}
+                    {enrich(
+                      isKo
+                        ? jupiterHouseDetails[jupiterHouse].action
+                        : jupiterHouseDetails[jupiterHouse].actionEn,
+                      'fortune',
+                      3
+                    )}
                   </span>
                 </p>
               </div>
@@ -191,15 +210,23 @@ export default function EnergyStatusSection({
                   : `Testing Area: House ${saturnHouse}`}
               </p>
               <p className="text-gray-200 text-sm leading-relaxed mb-3">
-                {isKo ? saturnHouseDetails[saturnHouse].ko : saturnHouseDetails[saturnHouse].en}
+                {enrich(
+                  isKo ? saturnHouseDetails[saturnHouse].ko : saturnHouseDetails[saturnHouse].en,
+                  'warning',
+                  4
+                )}
               </p>
               <div className="p-2 rounded-lg bg-amber-500/10">
                 <p className="text-amber-300 text-xs">
                   💪 {isKo ? '극복 방법: ' : 'How to overcome: '}
                   <span className="text-amber-200">
-                    {isKo
-                      ? saturnHouseDetails[saturnHouse].lesson
-                      : saturnHouseDetails[saturnHouse].lessonEn}
+                    {enrich(
+                      isKo
+                        ? saturnHouseDetails[saturnHouse].lesson
+                        : saturnHouseDetails[saturnHouse].lessonEn,
+                      'warning',
+                      3
+                    )}
                   </span>
                 </p>
               </div>
