@@ -956,6 +956,7 @@ export const POST = withApiMiddleware(
         })
       }
     }
+    const hasOpenAiKey = Boolean(process.env.OPENAI_API_KEY)
     const canUseAiPrecision = !CALENDAR_AI_PREMIUM_ONLY || isPremiumUser
 
     const baseTimeline = buildRuleBasedTimeline({
@@ -1021,6 +1022,13 @@ export const POST = withApiMiddleware(
             : null,
         })
       : null
+    const aiFailureReason = !canUseAiPrecision
+      ? 'premium_required'
+      : !hasOpenAiKey
+        ? 'missing_openai_api_key'
+        : !aiRefined
+          ? 'openai_request_failed_or_empty'
+          : null
     const usingAiRefinement = Boolean(
       canUseAiPrecision && aiRefined && aiRefined.timeline && aiRefined.timeline.length > 0
     )
@@ -1096,6 +1104,12 @@ export const POST = withApiMiddleware(
           ? '정밀 AI 비활성화: 사주+점성 규칙 타임라인으로 제공'
           : 'AI precision disabled: serving rule-based Saju+Astrology timeline'
       )
+    } else if (!hasOpenAiKey) {
+      summaryParts.push(
+        lang === 'ko'
+          ? '정밀 생성 비활성화: OPENAI_API_KEY 누락으로 규칙 타임라인으로 제공'
+          : 'AI precision disabled: missing OPENAI_API_KEY, serving rule-based timeline'
+      )
     } else if (!usingAiRefinement) {
       summaryParts.push(
         lang === 'ko'
@@ -1115,6 +1129,7 @@ export const POST = withApiMiddleware(
       canUseAiPrecision,
       isPremiumUser,
       aiCreditCost: CALENDAR_AI_CREDIT_COST,
+      aiFailureReason,
     })
 
     return apiSuccess(
@@ -1128,6 +1143,8 @@ export const POST = withApiMiddleware(
           allowed: canUseAiPrecision,
           applied: usingAiRefinement,
           isPremiumUser,
+          hasOpenAiKey,
+          failureReason: aiFailureReason,
           creditCost: CALENDAR_AI_CREDIT_COST,
         },
       })

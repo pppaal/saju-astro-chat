@@ -775,12 +775,32 @@ function buildEnhancedWarnings(
   translations: TranslationData,
   lang: 'ko' | 'en'
 ): string[] {
-  const translated = date.warningKeys.map((key) =>
+  const severeWarningKeys = new Set([
+    'extremeCaution',
+    'confusion',
+    'accident',
+    'injury',
+    'legal',
+    'danger',
+    'surgery',
+    'eclipseDay',
+    'eclipseNear',
+  ])
+  const lowConfidence = (date.confidence ?? 100) < EVIDENCE_CONFIDENCE_THRESHOLDS.low
+  const crossAligned = isAlignedAcrossSystems(date.crossAgreementPercent)
+  const warningKeysForGrade =
+    date.grade <= 1
+      ? date.warningKeys.filter((key) => {
+          if (severeWarningKeys.has(key)) return true
+          if (key.toLowerCase().includes('retrograde')) return lowConfidence || !crossAligned
+          return false
+        })
+      : date.warningKeys
+
+  const translated = warningKeysForGrade.map((key) =>
     getTranslation(`calendar.warnings.${key}`, translations)
   )
   const factors = [...date.sajuFactorKeys, ...date.astroFactorKeys]
-  const lowConfidence = (date.confidence ?? 100) < EVIDENCE_CONFIDENCE_THRESHOLDS.low
-  const crossAligned = isAlignedAcrossSystems(date.crossAgreementPercent)
   let contextual = buildContextWarnings(date.grade, factors, lang)
 
   if (date.grade <= 1) {

@@ -530,7 +530,7 @@ describe('Calendar Helpers', () => {
       )
 
       expect(result.recommendations).toContain('휴식하세요')
-      expect(result.warnings).toContain('주의하세요')
+      expect(result.warnings).not.toContain('주의하세요')
     })
 
     it('should use English translations when locale is en', () => {
