@@ -778,11 +778,34 @@ function buildEnhancedWarnings(
   const translated = date.warningKeys.map((key) =>
     getTranslation(`calendar.warnings.${key}`, translations)
   )
-  const contextual = buildContextWarnings(
-    date.grade,
-    [...date.sajuFactorKeys, ...date.astroFactorKeys],
-    lang
-  )
+  const factors = [...date.sajuFactorKeys, ...date.astroFactorKeys]
+  const lowConfidence = (date.confidence ?? 100) < EVIDENCE_CONFIDENCE_THRESHOLDS.low
+  const crossAligned = isAlignedAcrossSystems(date.crossAgreementPercent)
+  let contextual = buildContextWarnings(date.grade, factors, lang)
+
+  if (date.grade <= 1) {
+    const lower = factors.map((f) => f.toLowerCase())
+    contextual = []
+
+    // Keep safety-critical cautions even on high-grade days.
+    if (lower.some((f) => f.includes('accident') || f.includes('backho'))) {
+      contextual.push(
+        lang === 'ko'
+          ? '이동·운동 시 안전수칙을 강화하세요.'
+          : 'Use extra safety precautions for movement and exercise.'
+      )
+    }
+
+    // Show communication caution on high-grade days only when confidence/alignment is weak.
+    if (lower.some((f) => f.includes('retrograde')) && (lowConfidence || !crossAligned)) {
+      contextual.push(
+        lang === 'ko'
+          ? '커뮤니케이션 오류 가능성이 있어 재확인이 필요합니다.'
+          : 'Communication errors are more likely today.'
+      )
+    }
+  }
+
   return dedupeTexts([...translated, ...contextual]).slice(0, 6)
 }
 

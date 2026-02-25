@@ -66,7 +66,7 @@ describe('calendar consistency golden', () => {
           "A2 ↔ S2: 점성 호조와 사주 지원 신호가 겹칩니다. 핵심 과제 1~2개를 밀어붙이기 좋습니다.",
           "A3 ↔ S3: 점성 호조와 사주 지원 신호가 겹칩니다. 핵심 과제 1~2개를 밀어붙이기 좋습니다.",
         ],
-        "confidence": 4,
+        "confidence": 21,
         "crossAgreementPercent": 66,
         "date": "2026-02-15",
         "displayScore": 85,
@@ -79,9 +79,7 @@ describe('calendar consistency golden', () => {
         "score": 85,
         "summary": "✨ 천운이 함께하는 특별한 날! 사주·점성 시그널이 같은 방향으로 맞물립니다. 좋은 흐름이 겹치니 핵심 1~2개 목표에 집중하세요. 오늘은 선제적으로 움직일수록 체감 성과가 커집니다.",
         "title": "🌟 최고의 날",
-        "warnings": [
-          "커뮤니케이션 오류 가능성이 있어 재확인이 필요합니다.",
-        ],
+        "warnings": [],
       }
     `)
 

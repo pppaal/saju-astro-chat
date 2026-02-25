@@ -20,17 +20,17 @@ export function CounselorLoadingScreen({
         <div className={styles.avatarWrapper}>
           <div className={styles.avatarGlow} />
           <div className={styles.avatar}>
-            <span className={styles.avatarEmoji}>??</span>
+            <span className={styles.avatarEmoji}>🔮</span>
           </div>
           <div className={styles.orbits}>
             <div className={styles.orbit1}>
-              <span>?</span>
+              <span>✨</span>
             </div>
             <div className={styles.orbit2}>
-              <span>??</span>
+              <span>🌙</span>
             </div>
             <div className={styles.orbit3}>
-              <span>?</span>
+              <span>⭐</span>
             </div>
           </div>
         </div>
@@ -41,7 +41,10 @@ export function CounselorLoadingScreen({
 
           <div className={styles.progressDots}>
             {loadingMessages.map((_, idx) => (
-              <div key={idx} className={`${styles.dot} ${idx <= loadingStep ? styles.dotActive : ''}`} />
+              <div
+                key={idx}
+                className={`${styles.dot} ${idx <= loadingStep ? styles.dotActive : ''}`}
+              />
             ))}
           </div>
         </div>
