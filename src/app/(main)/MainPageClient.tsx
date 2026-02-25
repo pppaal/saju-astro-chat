@@ -15,12 +15,7 @@ import { useVisitorMetrics } from '@/hooks/useVisitorMetrics'
 import { useScrollVisibility, useScrollAnimation } from '@/hooks/useMainPageHooks'
 
 // Critical components - loaded immediately
-import {
-  MainHeader,
-  ServiceSearchBox,
-  StatsSection,
-  ParticleCanvas,
-} from './components'
+import { MainHeader, ServiceSearchBox, StatsSection, ParticleCanvas } from './components'
 import PrefetchLinks from '@/components/PrefetchLinks'
 
 // Non-critical component - lazy loaded with suspense
@@ -160,7 +155,10 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
             {translate('landing.heroTitle', 'Know yourself. Shape tomorrow.')}
           </h1>
           <p className={styles.heroSub}>
-            {translate('landing.heroSub', 'Where destiny, psychology, and spirituality meet')}
+            {translate(
+              'landing.heroSub',
+              "A single report that connects Saju, astrology, and personality into today's action plan"
+            )}
           </p>
 
           {/* Google-style Question Search Box */}
