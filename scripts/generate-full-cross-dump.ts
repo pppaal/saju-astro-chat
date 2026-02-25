@@ -155,11 +155,25 @@ function buildMatrixInput(d: any): any {
         typeof a.planet1 === 'string' &&
         typeof a.planet2 === 'string' &&
         typeof a.type === 'string' &&
-        ['conjunction', 'opposition', 'trine', 'square', 'sextile', 'quincunx', 'semisextile', 'quintile', 'biquintile'].includes(a.type)
+        [
+          'conjunction',
+          'opposition',
+          'trine',
+          'square',
+          'sextile',
+          'quincunx',
+          'semisextile',
+          'quintile',
+          'biquintile',
+        ].includes(a.type)
     )
 
   const shinsalList = Array.from(
-    new Set((Array.isArray(saju?.shinsalHits) ? saju.shinsalHits : []).map((x: any) => x?.kind).filter(Boolean))
+    new Set(
+      (Array.isArray(saju?.shinsalHits) ? saju.shinsalHits : [])
+        .map((x: any) => x?.kind)
+        .filter(Boolean)
+    )
   )
 
   const asteroids = astro?.asteroids || []
@@ -294,7 +308,9 @@ function run(): void {
   lines.push('# FULL CROSS DUMP (사주 + 점성 + 교차 전체)')
   lines.push('')
   lines.push(`- Generated: ${dump.generatedAt}`)
-  lines.push(`- Source profile: ${safe(source?.profile?.birthDate)} ${safe(source?.profile?.birthTime)} ${safe(source?.profile?.birthCity)}`)
+  lines.push(
+    `- Source profile: ${safe(source?.profile?.birthDate)} ${safe(source?.profile?.birthTime)} ${safe(source?.profile?.birthCity)}`
+  )
   lines.push('')
   lines.push('## 1) 사주 원본')
   lines.push('```json')

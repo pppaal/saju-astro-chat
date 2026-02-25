@@ -55,7 +55,8 @@ describe('crossConsistencyAudit', () => {
       report: {
         sections: {
           introduction: '사주와 점성의 교차 근거를 기반으로 삶의 큰 흐름을 정리합니다.',
-          personalityDeep: '사주 일간과 점성 1하우스 배치를 함께 보면 성향이 안정적으로 교차됩니다.',
+          personalityDeep:
+            '사주 일간과 점성 1하우스 배치를 함께 보면 성향이 안정적으로 교차됩니다.',
           careerPath: '사주 격국과 점성 10하우스가 함께 커리어 방향을 지지합니다.',
           relationshipDynamics: '사주 대운과 점성 7하우스를 함께 보면 관계 리듬이 보입니다.',
           wealthPotential: '사주 재성 구조와 점성 목성 흐름을 함께 보며 재물 전략을 잡습니다.',
@@ -72,7 +73,9 @@ describe('crossConsistencyAudit', () => {
           sajuEvidence: 'saju basis',
           astrologyEvidence: 'astro basis',
           crossConclusion: 'cross',
-          crossEvidenceSets: [{ id: `X${idx + 1}`, overlapDomains: [], overlapScore: 60, orbFitScore: 60 } as any],
+          crossEvidenceSets: [
+            { id: `X${idx + 1}`, overlapDomains: [], overlapScore: 60, orbFitScore: 60 } as any,
+          ],
         })),
       } as any,
     })
@@ -102,4 +105,3 @@ describe('crossConsistencyAudit', () => {
     expect(result.blockers.length).toBeGreaterThan(0)
   })
 })
-
