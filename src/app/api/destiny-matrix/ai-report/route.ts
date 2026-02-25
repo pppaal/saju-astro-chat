@@ -342,6 +342,7 @@ export const POST = withApiMiddleware(
         | undefined
       const bilingual = requestBody.bilingual === true
       const targetChars = toOptionalNumber(requestBody.targetChars)
+      const userQuestion = toOptionalString(requestBody.userQuestion)
       const tone =
         requestBody.tone === 'realistic' || requestBody.tone === 'friendly'
           ? (requestBody.tone as 'realistic' | 'friendly')
@@ -416,6 +417,7 @@ export const POST = withApiMiddleware(
             birthDate,
             lang: matrixInput.lang || 'ko',
             userPlan,
+            userQuestion,
           }
         )
         const qualityAudit = evaluateThemedReportQuality({
@@ -474,6 +476,7 @@ export const POST = withApiMiddleware(
           targetDate,
           lang: matrixInput.lang || 'ko',
           userPlan,
+          userQuestion,
         })
       } else {
         // 기존 종합 리포트
@@ -487,6 +490,7 @@ export const POST = withApiMiddleware(
           targetChars: targetChars ? Math.floor(targetChars) : undefined,
           tone,
           userPlan,
+          userQuestion,
         })
         aiReport = premiumReport
       }
@@ -508,9 +512,9 @@ export const POST = withApiMiddleware(
       }
 
       aiReport = {
-        ...(aiReport as Record<string, unknown>),
+        ...aiReport,
         crossConsistencyAudit,
-      } as AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
+      }
 
       // 11. 크레딧 차감 (성공한 경우에만)
       const consumeResult = await consumeCredits(userId, 'reading', creditCost)
@@ -748,6 +752,10 @@ export async function GET(req: NextRequest) {
               type: 'string',
               enum: ['friendly', 'realistic'],
               description: '서술 톤 (기본 friendly)',
+            },
+            userQuestion: {
+              type: 'string',
+              description: '사용자 원문 질문. 예/아니오 질문은 행동 가이드 중심으로 자동 라우팅됩니다.',
             },
             queryDomain: {
               type: 'string',

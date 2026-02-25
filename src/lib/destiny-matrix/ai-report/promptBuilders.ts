@@ -4,6 +4,7 @@
 import type { FusionReport, InsightDomain } from '../interpreter/types'
 import type { MatrixCalculationInput } from '../types'
 import type { AIReportGenerationOptions } from './reportTypes'
+import { buildQuestionIntentInstruction } from './questionIntent'
 
 // ===========================
 // 도메인 이름 매핑
@@ -186,6 +187,7 @@ export function buildAIPrompt(
     : ''
 
   const sectionInstructions = getSectionInstructions(lang)
+  const questionIntentInstruction = buildQuestionIntentInstruction(options.userQuestion, lang)
   const graphRagEvidencePrompt = options.graphRagEvidencePrompt?.trim()
   const requestedChars =
     typeof options.targetChars === 'number' && Number.isFinite(options.targetChars)
@@ -234,6 +236,7 @@ ${profileInfo}
 ${matrixSummary}
 
 ${graphRagEvidencePrompt ? `## GraphRAG 근거 앵커\n${graphRagEvidencePrompt}\n` : ''}
+${questionIntentInstruction ? `${questionIntentInstruction}\n` : ''}
 ${outputStyleInstruction}
 
 ## 요청사항
@@ -254,6 +257,7 @@ ${profileInfo}
 ${matrixSummary}
 
 ${graphRagEvidencePrompt ? `## GraphRAG Evidence Anchors\n${graphRagEvidencePrompt}\n` : ''}
+${questionIntentInstruction ? `${questionIntentInstruction}\n` : ''}
 ${outputStyleInstruction}
 
 ## Request

@@ -20,6 +20,7 @@ import { logger } from '@/lib/logger'
 import { buildTimingPrompt } from './prompts/timingPrompts'
 import { buildThemedPrompt } from './prompts/themedPrompts'
 import { buildGraphRAGEvidence, formatGraphRAGEvidenceForPrompt } from './graphRagEvidence'
+import { renderSectionsAsMarkdown, renderSectionsAsText } from './reportRendering'
 
 // Extracted modules
 import type { AIPremiumReport, AIReportGenerationOptions, AIUserPlan } from './reportTypes'
@@ -389,6 +390,34 @@ export async function generateAIPremiumReport(
 
     sections: sections as AIPremiumReport['sections'],
     graphRagEvidence,
+    renderedMarkdown: renderSectionsAsMarkdown(
+      sections as Record<string, unknown>,
+      [
+        'introduction',
+        'personalityDeep',
+        'careerPath',
+        'relationshipDynamics',
+        'wealthPotential',
+        'healthGuidance',
+        'lifeMission',
+        'timingAdvice',
+        'actionPlan',
+        'conclusion',
+      ],
+      lang
+    ),
+    renderedText: renderSectionsAsText(sections as Record<string, unknown>, [
+      'introduction',
+      'personalityDeep',
+      'careerPath',
+      'relationshipDynamics',
+      'wealthPotential',
+      'healthGuidance',
+      'lifeMission',
+      'timingAdvice',
+      'actionPlan',
+      'conclusion',
+    ]),
 
     matrixSummary: {
       overallScore: matrixReport.overallScore.total,
@@ -430,6 +459,7 @@ export async function generateTimingReport(
     targetDate?: string
     lang?: 'ko' | 'en'
     userPlan?: AIUserPlan
+    userQuestion?: string
   } = {}
 ): Promise<TimingAIPremiumReport> {
   const startTime = Date.now()
@@ -454,7 +484,8 @@ export async function generateTimingReport(
     timingData,
     targetDate,
     matrixSummary,
-    graphRagEvidencePrompt
+    graphRagEvidencePrompt,
+    options.userQuestion
   )
 
   // 3. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
@@ -588,6 +619,34 @@ export async function generateTimingReport(
     timingData,
     sections: sections as unknown as TimingReportSections,
     graphRagEvidence,
+    renderedMarkdown: renderSectionsAsMarkdown(
+      sections as Record<string, unknown>,
+      [
+        'overview',
+        'energy',
+        'opportunities',
+        'cautions',
+        'domains.career',
+        'domains.love',
+        'domains.wealth',
+        'domains.health',
+        'actionPlan',
+        'luckyElements',
+      ],
+      lang
+    ),
+    renderedText: renderSectionsAsText(sections as Record<string, unknown>, [
+      'overview',
+      'energy',
+      'opportunities',
+      'cautions',
+      'domains.career',
+      'domains.love',
+      'domains.wealth',
+      'domains.health',
+      'actionPlan',
+      'luckyElements',
+    ]),
     periodScore,
 
     meta: {
@@ -615,6 +674,7 @@ export async function generateThemedReport(
     birthDate?: string
     lang?: 'ko' | 'en'
     userPlan?: AIUserPlan
+    userQuestion?: string
   } = {}
 ): Promise<ThemedAIPremiumReport> {
   const startTime = Date.now()
@@ -639,7 +699,8 @@ export async function generateThemedReport(
     timingData,
     matrixSummary,
     undefined,
-    graphRagEvidencePrompt
+    graphRagEvidencePrompt,
+    options.userQuestion
   )
 
   // 3. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
@@ -771,6 +832,30 @@ export async function generateThemedReport(
 
     sections: sections as unknown as ThemedReportSections,
     graphRagEvidence,
+    renderedMarkdown: renderSectionsAsMarkdown(
+      sections as Record<string, unknown>,
+      [
+        'deepAnalysis',
+        'patterns',
+        'timing',
+        'compatibility',
+        'strategy',
+        'prevention',
+        'dynamics',
+        'actionPlan',
+      ],
+      lang
+    ),
+    renderedText: renderSectionsAsText(sections as Record<string, unknown>, [
+      'deepAnalysis',
+      'patterns',
+      'timing',
+      'compatibility',
+      'strategy',
+      'prevention',
+      'dynamics',
+      'actionPlan',
+    ]),
     themeScore,
     keywords,
 

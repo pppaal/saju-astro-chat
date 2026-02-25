@@ -3,6 +3,7 @@
 
 import type { InsightDomain } from '../interpreter/types'
 import type { GraphRAGEvidenceBundle } from './graphRagEvidence'
+import type { CrossConsistencyAudit } from './crossConsistencyAudit'
 
 export type AIUserPlan = 'free' | 'starter' | 'pro' | 'premium'
 
@@ -37,6 +38,13 @@ export interface AIPremiumReport {
   // GraphRAG evidence anchors used to ground generated sections
   graphRagEvidence?: GraphRAGEvidenceBundle
 
+  // Cross consistency audit metadata
+  crossConsistencyAudit?: CrossConsistencyAudit
+
+  // Pre-rendered narrative payload for downstream AI/chat reuse
+  renderedMarkdown?: string
+  renderedText?: string
+
   // 원본 매트릭스 데이터 참조
   matrixSummary: {
     overallScore: number
@@ -67,4 +75,5 @@ export interface AIReportGenerationOptions {
   tone?: 'friendly' | 'realistic'
   theme?: string
   graphRagEvidencePrompt?: string
+  userQuestion?: string
 }

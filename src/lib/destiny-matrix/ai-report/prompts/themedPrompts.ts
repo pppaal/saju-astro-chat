@@ -2,6 +2,7 @@
 // 테마별 심화 리포트용 프롬프트 생성
 
 import type { ReportTheme, TimingData } from '../types'
+import { buildQuestionIntentInstruction } from '../questionIntent'
 
 // ===========================
 // 테마별 프롬프트 섹션
@@ -493,9 +494,11 @@ export function buildThemedPrompt(
   timingData: TimingData,
   matrixSummary: string,
   astroSummary?: string,
-  graphRagEvidencePrompt?: string
+  graphRagEvidencePrompt?: string,
+  userQuestion?: string
 ): string {
   const isKo = lang === 'ko'
+  const questionIntentInstruction = buildQuestionIntentInstruction(userQuestion, lang)
   const sections = THEME_SECTIONS[theme][lang]
   const themeLabel = THEME_LABELS[theme][lang]
 
@@ -531,6 +534,7 @@ ${matrixSummary}
 
 ${astroSummary ? `## 점성술 분석 요약\n${astroSummary}` : ''}
 ${graphRagEvidencePrompt ? `\n## GraphRAG 근거 앵커\n${graphRagEvidencePrompt}` : ''}
+${questionIntentInstruction ? `\n${questionIntentInstruction}` : ''}
 
 ═══════════════════════════════════════════════════════════════
 ${sections}
@@ -584,6 +588,7 @@ ${matrixSummary}
 
 ${astroSummary ? `## Astrology Analysis Summary\n${astroSummary}` : ''}
 ${graphRagEvidencePrompt ? `\n## GraphRAG Evidence Anchors\n${graphRagEvidencePrompt}` : ''}
+${questionIntentInstruction ? `\n${questionIntentInstruction}` : ''}
 
 ═══════════════════════════════════════════════════════════════
 ${sections}

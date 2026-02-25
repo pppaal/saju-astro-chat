@@ -199,6 +199,17 @@ describe('generateAIPremiumReport - Basic Generation', () => {
     expect(result.meta.tokensUsed).toBe(1500)
     expect(result.meta.processingTime).toBeGreaterThan(0)
   })
+
+  it('should include rendered narrative payload', async () => {
+    const input = createMockInput()
+    const matrixReport = createMockReport()
+
+    const result = await generateAIPremiumReport(input, matrixReport)
+
+    expect(result.renderedMarkdown).toBeTruthy()
+    expect(result.renderedText).toBeTruthy()
+    expect(result.renderedMarkdown).toContain('섹션:')
+  })
 })
 
 describe('generateAIPremiumReport - Options', () => {
@@ -314,6 +325,19 @@ describe('generateAIPremiumReport - Fetch Behavior', () => {
       userPlan: 'premium',
       maxTokensOverride: 11200,
     })
+  })
+
+  it('should pass user question intent to prompt when provided', async () => {
+    const input = createMockInput()
+    const matrixReport = createMockReport()
+
+    await generateAIPremiumReport(input, matrixReport, {
+      userQuestion: '여기로 가는게 맞냐?',
+    })
+
+    const callArgs = mockCallAIBackend.mock.calls[0]
+    expect(callArgs[0]).toContain('사용자 질문 의도')
+    expect(callArgs[0]).toContain('예/아니오(결정형)')
   })
 })
 
