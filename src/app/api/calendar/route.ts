@@ -88,7 +88,15 @@ const MAJOR_PLANETS: readonly PlanetName[] = [
 const MAJOR_PLANET_SET = new Set<string>(MAJOR_PLANETS)
 
 const ASPECT_ANGLE_MAP: Record<
-  'conjunction' | 'opposition' | 'trine' | 'square' | 'sextile' | 'quincunx' | 'semisextile' | 'quintile' | 'biquintile',
+  | 'conjunction'
+  | 'opposition'
+  | 'trine'
+  | 'square'
+  | 'sextile'
+  | 'quincunx'
+  | 'semisextile'
+  | 'quintile'
+  | 'biquintile',
   number
 > = {
   conjunction: 0,
@@ -102,9 +110,12 @@ const ASPECT_ANGLE_MAP: Record<
   biquintile: 144,
 }
 
-const CALENDAR_STRICT_ASTROLOGY = process.env.CALENDAR_STRICT_ASTROLOGY === 'true'
-const CALENDAR_STRICT_MATRIX = process.env.CALENDAR_STRICT_MATRIX === 'true'
-const CALENDAR_STRICT_AI_ENRICHMENT = process.env.CALENDAR_STRICT_AI_ENRICHMENT === 'true'
+const CALENDAR_STRICT_ASTROLOGY =
+  process.env.NODE_ENV !== 'test' && process.env.CALENDAR_STRICT_ASTROLOGY !== 'false'
+const CALENDAR_STRICT_MATRIX =
+  process.env.NODE_ENV !== 'test' && process.env.CALENDAR_STRICT_MATRIX !== 'false'
+const CALENDAR_STRICT_AI_ENRICHMENT =
+  process.env.NODE_ENV !== 'test' && process.env.CALENDAR_STRICT_AI_ENRICHMENT !== 'false'
 
 function deriveFallbackSunSign(birthDate: Date): string {
   const month = birthDate.getMonth()
@@ -133,6 +144,23 @@ function toKoElement(value?: string): FiveElement | undefined {
   const direct: FiveElement[] = ['\uBAA9', '\uD654', '\uD1A0', '\uAE08', '\uC218']
   if (direct.includes(value as FiveElement)) return value as FiveElement
   return EN_TO_KO_ELEMENT[value]
+}
+
+function collectCalendarMatrixMissing(input: MatrixCalculationInput): string[] {
+  const missing: string[] = []
+  if (!input.sajuSnapshot || Object.keys(input.sajuSnapshot).length === 0)
+    missing.push('sajuSnapshot')
+  if (!input.astrologySnapshot || Object.keys(input.astrologySnapshot).length === 0)
+    missing.push('astrologySnapshot')
+  if (!input.crossSnapshot || Object.keys(input.crossSnapshot).length === 0)
+    missing.push('crossSnapshot')
+  if (!input.currentDaeunElement) missing.push('currentDaeunElement')
+  if (!input.currentSaeunElement) missing.push('currentSaeunElement')
+  if (!input.planetSigns || Object.keys(input.planetSigns).length === 0) missing.push('planetSigns')
+  if (!input.planetHouses || Object.keys(input.planetHouses).length === 0)
+    missing.push('planetHouses')
+  if (!Array.isArray(input.aspects) || input.aspects.length === 0) missing.push('aspects')
+  return missing
 }
 /**
  * GET /api/calendar
@@ -273,7 +301,10 @@ export const GET = withApiMiddleware(
         timeZone: timezone,
       })
       natalChartData = natalChart
-      natalAspectData = findNatalAspects(toChart(natalChart), { includeMinor: true, maxResults: 60 })
+      natalAspectData = findNatalAspects(toChart(natalChart), {
+        includeMinor: true,
+        maxResults: 60,
+      })
 
       // íƒœì–‘ ì •ë³´ ì¶”ì¶œ
       const sunPlanet = natalChart.planets.find((p) => p.name === 'Sun')
@@ -335,7 +366,12 @@ export const GET = withApiMiddleware(
 
       const dayMasterElementKo = EN_TO_KO_ELEMENT[dayMasterElement] || '\uBAA9'
       const sibsinDistribution: Record<string, number> = {}
-      const pillarRows = [sajuResult.yearPillar, sajuResult.monthPillar, sajuResult.dayPillar, sajuResult.timePillar]
+      const pillarRows = [
+        sajuResult.yearPillar,
+        sajuResult.monthPillar,
+        sajuResult.dayPillar,
+        sajuResult.timePillar,
+      ]
       for (const row of pillarRows) {
         const cheon = row?.heavenlyStem?.sibsin
         const ji = row?.earthlyBranch?.sibsin
@@ -361,8 +397,12 @@ export const GET = withApiMiddleware(
         }
       )
 
-      const planetHouses: Partial<Record<PlanetName, MatrixCalculationInput['planetHouses'][PlanetName]>> = {}
-      const planetSigns: Partial<Record<PlanetName, MatrixCalculationInput['planetSigns'][PlanetName]>> = {}
+      const planetHouses: Partial<
+        Record<PlanetName, MatrixCalculationInput['planetHouses'][PlanetName]>
+      > = {}
+      const planetSigns: Partial<
+        Record<PlanetName, MatrixCalculationInput['planetSigns'][PlanetName]>
+      > = {}
       if (natalChartData) {
         for (const p of natalChartData.planets) {
           if (!MAJOR_PLANET_SET.has(p.name)) continue
@@ -436,6 +476,18 @@ export const GET = withApiMiddleware(
         },
         lang: locale === 'en' ? 'en' : 'ko',
         startYearMonth: `${year}-01`,
+      }
+
+      if (CALENDAR_STRICT_MATRIX) {
+        const missing = collectCalendarMatrixMissing(matrixInput)
+        if (missing.length > 0) {
+          return createErrorResponse({
+            code: ErrorCodes.SERVICE_UNAVAILABLE,
+            message: `Calendar matrix input incomplete: ${missing.join(', ')}`,
+            locale: extractLocale(request),
+            route: 'calendar',
+          })
+        }
       }
 
       const matrix = calculateDestinyMatrix(matrixInput)
@@ -563,11 +615,11 @@ export const GET = withApiMiddleware(
         gradeGroups[d.grade].push(d)
       }
     }
-    const grade0 = gradeGroups[0] // ì²œìš´ì˜ ë‚ 
-    const grade1 = gradeGroups[1] // ì•„ì£¼ ì¢‹ì€ ë‚ 
-    const grade2 = gradeGroups[2] // ì¢‹ì€ ë‚ 
-    const grade3 = gradeGroups[3] // ë³´í†µ ë‚ 
-    const grade4 = gradeGroups[4] // ìµœì•…ì˜ ë‚ 
+    const grade0 = gradeGroups[0] // ì²œìš´ì˜ ë‚
+    const grade1 = gradeGroups[1] // ì•„ì£¼ ì¢‹ì€ ë‚
+    const grade2 = gradeGroups[2] // ì¢‹ì€ ë‚
+    const grade3 = gradeGroups[3] // ë³´í†µ ë‚
+    const grade4 = gradeGroups[4] // ìµœì•…ì˜ ë‚
 
     // AI ë‚ ì§œ ë³‘í•©
     let aiEnhanced = false
@@ -588,11 +640,11 @@ export const GET = withApiMiddleware(
       },
       summary: {
         total: filteredDates.length,
-        grade0: grade0.length, // ì²œìš´ì˜ ë‚ 
-        grade1: grade1.length, // ì•„ì£¼ ì¢‹ì€ ë‚ 
-        grade2: grade2.length, // ì¢‹ì€ ë‚ 
-        grade3: grade3.length, // ë³´í†µ ë‚ 
-        grade4: grade4.length, // ìµœì•…ì˜ ë‚ 
+        grade0: grade0.length, // ì²œìš´ì˜ ë‚
+        grade1: grade1.length, // ì•„ì£¼ ì¢‹ì€ ë‚
+        grade2: grade2.length, // ì¢‹ì€ ë‚
+        grade3: grade3.length, // ë³´í†µ ë‚
+        grade4: grade4.length, // ìµœì•…ì˜ ë‚
       },
       topDates: (() => {
         // grade0 + grade1 + grade2ê°€ ë¶€ì¡±í•˜ë©´ grade3 ì¤‘ ë†’ì€ ì ìˆ˜ ë‚ ì§œë„ í¬í•¨
@@ -629,4 +681,3 @@ export const GET = withApiMiddleware(
     windowSeconds: 60,
   })
 )
-

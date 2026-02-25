@@ -172,9 +172,9 @@ export default function ThemedReportPage() {
     () =>
       Boolean(
         selectedTheme &&
-          (profileInput?.birthDate || profile.birthDate) &&
-          !isGenerating &&
-          reportTier === 'premium'
+        (profileInput?.birthDate || profile.birthDate) &&
+        !isGenerating &&
+        reportTier === 'premium'
       ),
     [selectedTheme, profileInput?.birthDate, profile.birthDate, isGenerating, reportTier]
   )
@@ -273,10 +273,8 @@ export default function ThemedReportPage() {
                 Themed
               </div>
               <h1 className="mt-3 text-3xl font-black text-white">?? ???</h1>
-              <p className="mt-2 text-slate-300">
-                ??? ??? ??? ??? ?? ???? ?? ?????.
-              </p>
-              <p className="mt-3 text-xs font-semibold text-violet-200">3 credits · Premium ??</p>
+              <p className="mt-2 text-slate-300">??? ??? ??? ??? ?? ???? ?? ?????.</p>
+              <p className="mt-3 text-xs font-semibold text-violet-200">3 credits ? Premium ??</p>
             </div>
           </div>
         </header>

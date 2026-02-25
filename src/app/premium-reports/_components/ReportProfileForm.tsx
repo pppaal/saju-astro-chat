@@ -104,8 +104,8 @@ export function ReportProfileForm({
         <div className="mt-4 rounded-xl border border-emerald-300/35 bg-emerald-500/10 p-3 text-sm text-emerald-100">
           <p className="font-medium">{labels.savedTitle}</p>
           <p className="mt-1">
-            {lastSaved.name} · {lastSaved.birthDate} {lastSaved.birthTime}
-            {lastSaved.birthCity ? ` · ${lastSaved.birthCity}` : ''}
+            {lastSaved.name} ? {lastSaved.birthDate} {lastSaved.birthTime}
+            {lastSaved.birthCity ? ` ? ${lastSaved.birthCity}` : ''}
           </p>
         </div>
       )}

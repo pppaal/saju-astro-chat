@@ -218,7 +218,7 @@ export default function ComprehensiveReportPage() {
               </div>
 
               <p className="mt-3 text-xs font-semibold text-amber-200">
-                {reportTier === 'premium' ? '3 credits · ?? ?? + PDF' : '0 credits · ?? ?? ???'}
+                {reportTier === 'premium' ? '3 credits ? ?? ?? + PDF' : '0 credits ? ?? ?? ???'}
               </p>
             </div>
           </div>
@@ -230,7 +230,7 @@ export default function ComprehensiveReportPage() {
             <ul className="mt-4 space-y-2">
               {FEATURES.map((feature) => (
                 <li key={feature} className="text-sm text-slate-200">
-                  • {feature}
+                  ? {feature}
                 </li>
               ))}
             </ul>
@@ -274,7 +274,7 @@ export default function ComprehensiveReportPage() {
                 <h3 className="text-base font-bold text-emerald-100">{freeReport.headline}</h3>
                 <p className="mt-2 leading-6 text-emerald-100/90">{freeReport.summary}</p>
                 <p className="mt-3 font-semibold">
-                  ?? ?? {freeReport.overallScore}? · ?? {freeReport.grade}
+                  ?? ?? {freeReport.overallScore}? ? ?? {freeReport.grade}
                 </p>
 
                 {freeReport.topInsights && freeReport.topInsights.length > 0 && (
@@ -299,7 +299,7 @@ export default function ComprehensiveReportPage() {
                     <p className="font-semibold text-emerald-100">?? ??</p>
                     <ul className="mt-2 space-y-1 text-emerald-100/90">
                       {freeReport.nextSteps.map((step) => (
-                        <li key={step}>• {step}</li>
+                        <li key={step}>? {step}</li>
                       ))}
                     </ul>
                   </div>

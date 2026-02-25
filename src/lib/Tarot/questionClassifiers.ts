@@ -160,6 +160,15 @@ export function isYesNoQuestion(question: string): boolean {
     return false
   }
 
+  // 0-1. "어떻게/why/how to" 형태의 방법 질문은 기본적으로 Yes/No가 아님
+  const openEndedGuidePatterns =
+    /어떻게|왜|무엇|뭐|무슨|어떤 ?방법|어떤 ?방식|how to|how can i|how do i|how should i|what should i do|what can i do/i
+  const explicitDecisionSignals =
+    /할까 ?말까|a ?vs ?b|vs|둘 ?중|아니면|should i|shall i|can i|may i|해도 ?될까|해야 ?할까|할지 ?말지|할지/i
+  if (openEndedGuidePatterns.test(question) && !explicitDecisionSignals.test(question)) {
+    return false
+  }
+
   // 1. 기본 패턴 매칭
   if (testPatternsWithCache('yesNo', question, allYesNoPatterns)) {
     return true

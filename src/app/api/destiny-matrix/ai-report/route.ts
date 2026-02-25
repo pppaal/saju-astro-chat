@@ -40,6 +40,16 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
+import {
+  calculateNatalChart,
+  toChart,
+  findNatalAspects,
+  calculateTransitChart,
+  findMajorTransits,
+  calculateSecondaryProgressions,
+  calculateSolarReturn,
+  calculateLunarReturn,
+} from '@/lib/astrology'
 import type { FiveElement } from '@/lib/Saju/types'
 
 // ===========================
@@ -218,6 +228,148 @@ function enrichRequestWithDerivedSaju(
   return requestBody
 }
 
+async function enrichRequestWithDerivedAstrology(
+  requestBody: Record<string, unknown>
+): Promise<Record<string, unknown>> {
+  const hasAstroSnapshot =
+    !!requestBody.astrologySnapshot &&
+    typeof requestBody.astrologySnapshot === 'object' &&
+    !Array.isArray(requestBody.astrologySnapshot)
+  if (hasAstroSnapshot) {
+    return requestBody
+  }
+
+  const birthDate = toOptionalString(requestBody.birthDate)
+  const birthTime = toOptionalString(requestBody.birthTime)
+  if (!birthDate || !birthTime) return requestBody
+
+  const [year, month, date] = birthDate.split('-').map((v) => Number(v))
+  const [hour, minute] = birthTime.split(':').map((v) => Number(v))
+  if ([year, month, date, hour, minute].some((v) => !Number.isFinite(v))) return requestBody
+
+  const latitude = toOptionalNumber(requestBody.latitude) ?? 37.5665
+  const longitude = toOptionalNumber(requestBody.longitude) ?? 126.978
+  const timeZone = toOptionalString(requestBody.timezone) || 'Asia/Seoul'
+
+  try {
+    const natal = await calculateNatalChart({
+      year,
+      month,
+      date,
+      hour,
+      minute,
+      latitude,
+      longitude,
+      timeZone,
+    })
+    const natalChart = toChart(natal)
+    const natalAspects = findNatalAspects(natalChart, { includeMinor: true, maxResults: 80 })
+    const nowIso = new Date().toISOString()
+    const transit = await calculateTransitChart({
+      iso: nowIso,
+      latitude,
+      longitude,
+      timeZone,
+    })
+    const majorTransits = findMajorTransits(transit, natalChart, 1.0).slice(0, 40)
+
+    const natalInput = { year, month, date, hour, minute, latitude, longitude, timeZone }
+    const progressions = await calculateSecondaryProgressions({
+      natal: natalInput,
+      targetDate: nowIso.slice(0, 10),
+    })
+    const solarReturn = await calculateSolarReturn({
+      natal: natalInput,
+      year: new Date().getFullYear(),
+    })
+    const lunarReturn = await calculateLunarReturn({
+      natal: natalInput,
+      year: new Date().getFullYear(),
+      month: new Date().getMonth() + 1,
+    })
+
+    const planetSigns: Record<string, string> = {}
+    const planetHouses: Record<string, number> = {}
+    for (const p of natal.planets) {
+      if (typeof p.name === 'string' && typeof p.sign === 'string') {
+        planetSigns[p.name] = p.sign
+      }
+      if (typeof p.name === 'string' && Number.isFinite(p.house)) {
+        planetHouses[p.name] = p.house
+      }
+    }
+
+    requestBody.astrologySnapshot = {
+      natalChart: natal,
+      natalAspects,
+      currentTransits: {
+        asOfIso: nowIso,
+        majorTransits,
+      },
+      progressions,
+      returns: {
+        solarReturn,
+        lunarReturn,
+      },
+    }
+    if (!requestBody.planetSigns || typeof requestBody.planetSigns !== 'object') {
+      requestBody.planetSigns = planetSigns
+    }
+    if (!requestBody.planetHouses || typeof requestBody.planetHouses !== 'object') {
+      requestBody.planetHouses = planetHouses
+    }
+    if (!Array.isArray(requestBody.aspects)) {
+      requestBody.aspects = natalAspects.map((a) => ({
+        planet1: a.from.name,
+        planet2: a.to.name,
+        type: a.type,
+        orb: a.orb,
+      }))
+    }
+  } catch (error) {
+    logger.warn('[destiny-matrix/ai-report] Failed to derive astrology from birth profile', {
+      error: error instanceof Error ? error.message : String(error),
+      birthDate,
+    })
+  }
+
+  return requestBody
+}
+
+function mergeTimingData(
+  autoTiming: TimingData,
+  requestTiming?: Record<string, unknown>
+): TimingData {
+  const req = requestTiming || {}
+  return {
+    daeun: (toOptionalRecord(req.daeun) as TimingData['daeun']) || autoTiming.daeun,
+    seun: (toOptionalRecord(req.seun) as TimingData['seun']) || autoTiming.seun,
+    wolun: (toOptionalRecord(req.wolun) as TimingData['wolun']) || autoTiming.wolun,
+    iljin: (toOptionalRecord(req.iljin) as TimingData['iljin']) || autoTiming.iljin,
+  }
+}
+
+function listAiReportMissing(
+  matrixInput: MatrixCalculationInput,
+  timingData: TimingData
+): string[] {
+  const missing: string[] = []
+  if (!matrixInput.sajuSnapshot || Object.keys(matrixInput.sajuSnapshot).length === 0) {
+    missing.push('sajuSnapshot')
+  }
+  if (!matrixInput.astrologySnapshot || Object.keys(matrixInput.astrologySnapshot).length === 0) {
+    missing.push('astrologySnapshot')
+  }
+  if (!matrixInput.crossSnapshot || Object.keys(matrixInput.crossSnapshot).length === 0) {
+    missing.push('crossSnapshot')
+  }
+  if (!timingData.seun) missing.push('timingData.seun')
+  if (!timingData.wolun) missing.push('timingData.wolun')
+  if (!timingData.iljin) missing.push('timingData.iljin')
+  if (!timingData.daeun) missing.push('timingData.daeun')
+  return missing
+}
+
 function normalizeAIUserPlan(plan: unknown): 'free' | 'starter' | 'pro' | 'premium' {
   if (plan === 'starter' || plan === 'pro' || plan === 'premium') {
     return plan
@@ -257,30 +409,31 @@ function normalizeReportTier(value: unknown): ReportTier {
   return 'premium'
 }
 
-function buildFreeDigestReport(
-  baseReport: {
-    overallScore: { total: number; grade: string; gradeDescription: string }
-    topInsights: Array<{
-      title: string
-      description: string
-      actionItems?: Array<{ text: string }>
-      category?: string
-    }>
-    domainAnalysis: Array<{
-      domain: string
-      score: number
-      summary: string
-      hasData?: boolean
-    }>
-    lang: 'ko' | 'en'
-  }
-): FreeAIDigestReport {
+function buildFreeDigestReport(baseReport: {
+  overallScore: { total: number; grade: string; gradeDescription: string }
+  topInsights: Array<{
+    title: string
+    description: string
+    actionItems?: Array<{ text: string }>
+    category?: string
+  }>
+  domainAnalysis: Array<{
+    domain: string
+    score: number
+    summary: string
+    hasData?: boolean
+  }>
+  lang: 'ko' | 'en'
+}): FreeAIDigestReport {
   const topInsights = (baseReport.topInsights || []).slice(0, 3).map((item) => ({
     title: item.title,
     reason: item.description,
     action:
       item.actionItems && item.actionItems.length > 0
-        ? item.actionItems[0]?.text || (baseReport.lang === 'ko' ? '핵심 우선순위를 1개 정하세요.' : 'Pick one top priority first.')
+        ? item.actionItems[0]?.text ||
+          (baseReport.lang === 'ko'
+            ? '핵심 우선순위를 1개 정하세요.'
+            : 'Pick one top priority first.')
         : baseReport.lang === 'ko'
           ? '핵심 우선순위를 1개 정하세요.'
           : 'Pick one top priority first.',
@@ -307,9 +460,7 @@ function buildFreeDigestReport(
     generatedAt: new Date().toISOString(),
     lang: baseReport.lang,
     headline:
-      baseReport.lang === 'ko'
-        ? 'AI 리포트 무료 버전 요약'
-        : 'AI Report Free Version Summary',
+      baseReport.lang === 'ko' ? 'AI 리포트 무료 버전 요약' : 'AI Report Free Version Summary',
     summary:
       baseReport.lang === 'ko'
         ? `${baseReport.overallScore.gradeDescription} 핵심 신호를 빠르게 요약했습니다.`
@@ -403,7 +554,8 @@ export const POST = withApiMiddleware(
         })
       }
 
-      const requestBody = enrichRequestWithDerivedSaju({ ...(body as Record<string, unknown>) })
+      let requestBody = enrichRequestWithDerivedSaju({ ...(body as Record<string, unknown>) })
+      requestBody = await enrichRequestWithDerivedAstrology(requestBody)
       const period = requestBody.period as ReportPeriod | undefined
       const theme = requestBody.theme as ReportTheme | undefined
       const reportTier = normalizeReportTier(requestBody.reportTier)
@@ -446,7 +598,8 @@ export const POST = withApiMiddleware(
       }
 
       const validatedInput = validation.data!
-      const { queryDomain, maxInsights, ...rest } = validatedInput
+      const { queryDomain, maxInsights, includeVisualizations, includeDetailedData, ...rest } =
+        validatedInput
 
       // 6. 추가 옵션 추출
       const name = requestBody.name as string | undefined
@@ -491,7 +644,9 @@ export const POST = withApiMiddleware(
         toOptionalRecord(requestBody.matrixSummary)
       const currentDateIso =
         toOptionalString(requestBody.currentDateIso) ||
-        (profileContext.analysisAt ? profileContext.analysisAt.slice(0, 10) : new Date().toISOString().slice(0, 10))
+        (profileContext.analysisAt
+          ? profileContext.analysisAt.slice(0, 10)
+          : new Date().toISOString().slice(0, 10))
       const matrixInput = {
         ...(rest as MatrixCalculationInput),
         profileContext,
@@ -504,13 +659,36 @@ export const POST = withApiMiddleware(
       // 7. 기본 매트릭스 계산
       const matrix = calculateDestinyMatrix(matrixInput)
       const layerResults = extractAllLayerCells(matrix as MatrixLayers)
+      const detailBasedMaxInsights =
+        detailLevel === 'comprehensive' ? 20 : detailLevel === 'detailed' ? 10 : 5
+      const resolvedMaxInsights = Math.min(20, Math.max(1, maxInsights ?? detailBasedMaxInsights))
+      const autoTimingData: TimingData = buildTimingData(targetDate)
+      const timingData: TimingData = mergeTimingData(
+        autoTimingData,
+        toOptionalRecord(requestBody.timingData)
+      )
+      const strictCompleteness = process.env.NODE_ENV !== 'test'
+      const missingKeys = listAiReportMissing(matrixInput, timingData)
+      if (strictCompleteness && missingKeys.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'INCOMPLETE_CONTEXT',
+              message: '필수 데이터 누락으로 AI report 생성을 중단했습니다.',
+              missing: missingKeys,
+            },
+          },
+          { status: HTTP_STATUS.UNPROCESSABLE_ENTITY }
+        )
+      }
 
       // 8. 기본 리포트 생성
       const generator = new FusionReportGenerator({
         lang: matrixInput.lang || 'ko',
-        maxTopInsights: maxInsights ?? 5,
-        includeVisualizations: true,
-        includeDetailedData: false,
+        maxTopInsights: resolvedMaxInsights,
+        includeVisualizations,
+        includeDetailedData,
         weightConfig: {
           baseWeights: {
             layer1_elementCore: 1.0,
@@ -568,7 +746,6 @@ export const POST = withApiMiddleware(
       }
 
       // 9. 타이밍 데이터 생성 (period 또는 theme이 있는 경우)
-      const timingData: TimingData = buildTimingData(targetDate)
 
       // 10. 리포트 타입별 분기 처리
       let aiReport: AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
@@ -933,7 +1110,8 @@ export async function GET(req: NextRequest) {
             },
             userQuestion: {
               type: 'string',
-              description: '사용자 원문 질문. 예/아니오 질문은 행동 가이드 중심으로 자동 라우팅됩니다.',
+              description:
+                '사용자 원문 질문. 예/아니오 질문은 행동 가이드 중심으로 자동 라우팅됩니다.',
             },
             deterministicProfile: {
               type: 'string',

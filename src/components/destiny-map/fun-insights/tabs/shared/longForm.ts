@@ -1,4 +1,6 @@
-import { ensureMinSentenceText, type DepthTopic } from './textDepth'
+import { ensureMinSentenceText } from './textDepth'
+
+type DepthTopic = Parameters<typeof ensureMinSentenceText>[2]
 
 const DETAIL_KEY_REGEX =
   /(description|desc|detail|advice|message|summary|impact|focus|caution|warning|healing|wound|gift|style|pattern|path|phase|theme|flow|tip|fortune|narrative|analysis|needs|language|conflict|response|mission|direction|identity|interpretation|ideal|attract|danger|work|love|money|health|support|activation|turning|approach|lesson|public|decision|growth)/i

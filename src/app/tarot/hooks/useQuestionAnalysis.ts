@@ -18,6 +18,7 @@ interface PreviewInfo {
   cardCount: number
   spreadTitle: string
   path?: string
+  source: 'quick' | 'ai'
 }
 
 interface UseQuestionAnalysisProps {
@@ -51,11 +52,17 @@ export function useQuestionAnalysis({
   const [aiExplanation, setAiExplanation] = useState<string | null>(null)
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
   const gptDebounceRef = useRef<NodeJS.Timeout | null>(null)
+  const previewRequestIdRef = useRef(0)
+  const previewAbortRef = useRef<AbortController | null>(null)
 
   // Debounced preview logic
   useEffect(() => {
     if (gptDebounceRef.current) {
       clearTimeout(gptDebounceRef.current)
+    }
+    if (previewAbortRef.current) {
+      previewAbortRef.current.abort()
+      previewAbortRef.current = null
     }
 
     const trimmed = question.trim()
@@ -71,10 +78,11 @@ export function useQuestionAnalysis({
       }
 
       setDangerWarning(null)
-      setIsLoadingPreview(true)
+      setAiExplanation(null)
 
       // Quick keyword-based recommendation as fallback
       const fallbackResult = getQuickRecommendation(trimmed, isKo)
+      const shouldShowLoading = !fallbackResult.isKeywordMatch
 
       // If keyword match succeeded, show immediately
       if (fallbackResult.isKeywordMatch) {
@@ -82,19 +90,31 @@ export function useQuestionAnalysis({
           cardCount: fallbackResult.cardCount,
           spreadTitle: fallbackResult.spreadTitle,
           path: fallbackResult.path,
+          source: 'quick',
         })
         setIsLoadingPreview(false)
-        return
+      } else {
+        setPreviewInfo(null)
+        setIsLoadingPreview(true)
       }
 
       // GPT analysis with debounce
+      const requestId = ++previewRequestIdRef.current
       gptDebounceRef.current = setTimeout(async () => {
+        const abortController = new AbortController()
+        previewAbortRef.current = abortController
+
         try {
           const response = await fetch('/api/tarot/analyze-question', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ question: trimmed, language }),
+            signal: abortController.signal,
           })
+
+          if (requestId !== previewRequestIdRef.current) {
+            return
+          }
 
           if (response.ok) {
             const data = await response.json()
@@ -106,33 +126,50 @@ export function useQuestionAnalysis({
                 cardCount: data.cardCount,
                 spreadTitle: data.spreadTitle,
                 path: data.path,
+                source: 'ai',
               })
               setAiExplanation(data.userFriendlyExplanation)
             }
-          } else {
+          } else if (!fallbackResult.isKeywordMatch) {
             // API failure - use keyword fallback
             setPreviewInfo({
               cardCount: fallbackResult.cardCount,
               spreadTitle: fallbackResult.spreadTitle,
               path: fallbackResult.path,
+              source: 'quick',
             })
           }
         } catch (error) {
+          if (error instanceof Error && error.name === 'AbortError') {
+            return
+          }
+          if (requestId !== previewRequestIdRef.current) {
+            return
+          }
           tarotLogger.error(
             'GPT analysis failed:',
             error instanceof Error ? error : new Error(String(error))
           )
-          // Failure - use keyword fallback
-          setPreviewInfo({
-            cardCount: fallbackResult.cardCount,
-            spreadTitle: fallbackResult.spreadTitle,
-            path: fallbackResult.path,
-          })
+          // Failure - use keyword fallback only if quick preview wasn't already shown
+          if (!fallbackResult.isKeywordMatch) {
+            setPreviewInfo({
+              cardCount: fallbackResult.cardCount,
+              spreadTitle: fallbackResult.spreadTitle,
+              path: fallbackResult.path,
+              source: 'quick',
+            })
+          }
         } finally {
-          setIsLoadingPreview(false)
+          if (requestId === previewRequestIdRef.current && shouldShowLoading) {
+            setIsLoadingPreview(false)
+          }
+          if (previewAbortRef.current === abortController) {
+            previewAbortRef.current = null
+          }
         }
       }, 400) // 400ms debounce
     } else {
+      previewRequestIdRef.current += 1
       setPreviewInfo(null)
       setDangerWarning(null)
       setAiExplanation(null)
@@ -142,6 +179,10 @@ export function useQuestionAnalysis({
     return () => {
       if (gptDebounceRef.current) {
         clearTimeout(gptDebounceRef.current)
+      }
+      if (previewAbortRef.current) {
+        previewAbortRef.current.abort()
+        previewAbortRef.current = null
       }
     }
   }, [question, isKo, language, getQuickRecommendation])
@@ -172,10 +213,11 @@ export function useQuestionAnalysis({
 
   // Start reading handler
   const handleStartReading = useCallback(async () => {
-    if (!question.trim() || dangerWarning || isLoadingPreview) return
+    const trimmedQuestion = question.trim()
+    if (!trimmedQuestion || dangerWarning) return
 
-    // If preview already has path, use it directly
-    if (previewInfo?.path) {
+    // AI-verified preview can be used directly.
+    if (previewInfo?.path && previewInfo.source === 'ai') {
       router.push(previewInfo.path)
       return
     }
@@ -184,7 +226,7 @@ export function useQuestionAnalysis({
     setIsAnalyzing(true)
 
     try {
-      const aiResult = await analyzeWithAI(question)
+      const aiResult = await analyzeWithAI(trimmedQuestion)
 
       if (aiResult?.isDangerous) {
         setDangerWarning(aiResult.message || '')
@@ -199,26 +241,17 @@ export function useQuestionAnalysis({
         }, 500)
       } else {
         // AI failed - use keyword fallback
-        const result = getQuickRecommendation(question, isKo)
+        const result = getQuickRecommendation(trimmedQuestion, isKo)
         router.push(result.path)
       }
     } catch {
       // Error - use keyword fallback
-      const result = getQuickRecommendation(question, isKo)
+      const result = getQuickRecommendation(trimmedQuestion, isKo)
       router.push(result.path)
     } finally {
       setIsAnalyzing(false)
     }
-  }, [
-    question,
-    dangerWarning,
-    isLoadingPreview,
-    previewInfo,
-    router,
-    analyzeWithAI,
-    getQuickRecommendation,
-    isKo,
-  ])
+  }, [question, dangerWarning, previewInfo, router, analyzeWithAI, getQuickRecommendation, isKo])
 
   return {
     previewInfo,

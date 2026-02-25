@@ -36,11 +36,16 @@ function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
     [saju, astro, lang]
   )
 
-  const matrixAnalysis = repairMojibakeDeep(fullMatrix ?? null)
-  const timingOverlays = expandNarrativeDeep(
-    repairMojibakeDeep(fullMatrix?.timingOverlays ?? []),
-    { isKo, topic: 'timing', minSentences: 4 }
-  )
+  const matrixAnalysis = expandNarrativeDeep(repairMojibakeDeep(fullMatrix ?? null), {
+    isKo,
+    topic: 'fortune',
+    minSentences: 4,
+  })
+  const timingOverlays = expandNarrativeDeep(repairMojibakeDeep(fullMatrix?.timingOverlays ?? []), {
+    isKo,
+    topic: 'timing',
+    minSentences: 4,
+  })
   const relationAspects = expandNarrativeDeep(
     repairMojibakeDeep(fullMatrix?.relationAspects ?? []),
     { isKo, topic: 'fortune', minSentences: 4 }
@@ -49,10 +54,11 @@ function FortuneTab({ saju, astro, lang, isKo, data }: TabProps) {
     repairMojibakeDeep(fullMatrix?.advancedAnalysis ?? []),
     { isKo, topic: 'fortune', minSentences: 4 }
   )
-  const extraPoints = expandNarrativeDeep(
-    repairMojibakeDeep(fullMatrix?.extraPoints ?? []),
-    { isKo, topic: 'hidden', minSentences: 4 }
-  )
+  const extraPoints = expandNarrativeDeep(repairMojibakeDeep(fullMatrix?.extraPoints ?? []), {
+    isKo,
+    topic: 'hidden',
+    minSentences: 4,
+  })
 
   const topSibsinHouse = useMemo(
     () =>

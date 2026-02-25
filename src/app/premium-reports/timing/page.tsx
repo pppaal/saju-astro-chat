@@ -132,7 +132,10 @@ function TimingReportContent() {
   }, [loadSajuData])
 
   const canGenerate = useMemo(
-    () => Boolean((profileInput?.birthDate || profile.birthDate) && !isGenerating && reportTier === 'premium'),
+    () =>
+      Boolean(
+        (profileInput?.birthDate || profile.birthDate) && !isGenerating && reportTier === 'premium'
+      ),
     [profileInput?.birthDate, profile.birthDate, isGenerating, reportTier]
   )
 
@@ -228,7 +231,7 @@ function TimingReportContent() {
               <h1 className="mt-3 text-3xl font-black text-white">{periodInfo.label}</h1>
               <p className="mt-2 text-sm text-slate-200">{periodInfo.description}</p>
               <p className="mt-3 text-xs font-semibold text-cyan-200">
-                {periodInfo.credits} credits · Premium ??
+                {periodInfo.credits} credits ? Premium ??
               </p>
             </div>
           </div>
