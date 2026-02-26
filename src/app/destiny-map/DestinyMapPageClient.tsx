@@ -91,7 +91,7 @@ function DestinyMapContent({
         }
       }
     }
-    // Detect timezone on client side only (SSR에서 서버 타임존 방지)
+    // Detect timezone on client side only (avoid SSR/client timezone mismatch)
     resolveTimezone()
     return () => {
       active = false
@@ -162,26 +162,29 @@ function DestinyMapContent({
     tryFindCity()
   }, [form.city, form.isQuickMode])
 
-  const onPick = useCallback((hit: CityHit) => {
-    const cityDisplay = isKo
-      ? hit.displayKr || formatCityForDropdown(hit.name, hit.country, 'ko')
-      : hit.displayEn || formatCityForDropdown(hit.name, hit.country, 'en')
-    dispatch({
-      type: 'PICK_CITY',
-      city: cityDisplay,
-      selectedCity: { ...hit, timezone: hit.timezone },
-    })
-    resolveCityTimezone(hit)
-      .then((timezone) => {
-        dispatch({
-          type: 'UPDATE_SELECTED_CITY_TZ',
-          name: hit.name,
-          country: hit.country,
-          timezone,
-        })
+  const onPick = useCallback(
+    (hit: CityHit) => {
+      const cityDisplay = isKo
+        ? hit.displayKr || formatCityForDropdown(hit.name, hit.country, 'ko')
+        : hit.displayEn || formatCityForDropdown(hit.name, hit.country, 'en')
+      dispatch({
+        type: 'PICK_CITY',
+        city: cityDisplay,
+        selectedCity: { ...hit, timezone: hit.timezone },
       })
-      .catch(() => {})
-  }, [isKo])
+      resolveCityTimezone(hit)
+        .then((timezone) => {
+          dispatch({
+            type: 'UPDATE_SELECTED_CITY_TZ',
+            name: hit.name,
+            country: hit.country,
+            timezone,
+          })
+        })
+        .catch(() => {})
+    },
+    [isKo]
+  )
 
   const onSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -192,12 +195,16 @@ function DestinyMapContent({
         ? QUICK_MODE_DEFAULT_CITY.displayKr || formatCityForDropdown('Seoul', 'KR', 'ko')
         : QUICK_MODE_DEFAULT_CITY.displayEn || formatCityForDropdown('Seoul', 'KR', 'en')
 
-      const selectedCity = form.isQuickMode ? (form.selectedCity ?? QUICK_MODE_DEFAULT_CITY) : form.selectedCity
+      const selectedCity = form.isQuickMode
+        ? (form.selectedCity ?? QUICK_MODE_DEFAULT_CITY)
+        : form.selectedCity
       const birthTimeValue = form.isQuickMode ? '12:00' : form.birthTime
       const selectedCityDisplay = selectedCity
         ? isKo
-          ? selectedCity.displayKr || formatCityForDropdown(selectedCity.name, selectedCity.country, 'ko')
-          : selectedCity.displayEn || formatCityForDropdown(selectedCity.name, selectedCity.country, 'en')
+          ? selectedCity.displayKr ||
+            formatCityForDropdown(selectedCity.name, selectedCity.country, 'ko')
+          : selectedCity.displayEn ||
+            formatCityForDropdown(selectedCity.name, selectedCity.country, 'en')
         : quickModeCityDisplay
       const cityValue = form.isQuickMode
         ? form.selectedCity
@@ -252,7 +259,7 @@ function DestinyMapContent({
       if (tz) {
         params.set('tz', tz)
       }
-      params.set('userTz', form.userTimezone) // 사용자 현재 타임존 (운세 날짜용)
+      params.set('userTz', form.userTimezone) // User current timezone (fortune date context)
 
       // Save user profile for reuse across services
       const { saveUserProfile } = await import('@/lib/userProfile')
@@ -267,9 +274,9 @@ function DestinyMapContent({
         longitude: selectedCity?.lon,
       })
 
-      // 테마 선택 건너뛰고 바로 인생총운(life_path)으로 이동
-      params.set('theme', 'focus_overall')
-      router.push(`/destiny-map/result?${params.toString()}`)
+      // Skip extra step and open counselor chat directly
+      params.set('theme', 'life')
+      router.push(`/destiny-counselor/chat?${params.toString()}`)
     },
     [form, safeT, locale, router, isKo]
   )
@@ -335,7 +342,7 @@ function DestinyMapContent({
             <div className={styles.iconWrapper}>
               <span className={styles.icon}>AI</span>
             </div>
-            <h1 className={styles.title}>{safeT('menu.destinyMap', 'Destiny Counselor')}</h1>
+            <h1 className={styles.title}>destiny-counselor</h1>
             <p className={styles.subtitle}>
               {safeT(
                 'app.subtitle',
@@ -402,10 +409,10 @@ function DestinyMapContent({
             <p className={styles.modeHint}>
               {form.isQuickMode
                 ? isKo
-                  ? '생년월일만 입력하면 바로 분석합니다. (시간/도시는 기본값 적용)'
+                  ? '생년월일만 입력하면 바로 상담을 시작합니다. (시간/도시는 기본값 적용)'
                   : 'Birth date only. Time/city use defaults.'
                 : isKo
-                  ? '출생시간·도시·성별까지 입력해 정밀 분석합니다.'
+                  ? '출생시간·도시·성별까지 입력해 정밀 상담을 시작합니다.'
                   : 'Add time, city, and gender for precise analysis.'}
             </p>
 
@@ -535,7 +542,9 @@ function DestinyMapContent({
                           <span className={styles.genderOptionText}>
                             {safeT('app.female') || (isKo ? '여성' : 'Female')}
                           </span>
-                          {form.gender === 'Female' && <span className={styles.genderCheck}>OK</span>}
+                          {form.gender === 'Female' && (
+                            <span className={styles.genderCheck}>OK</span>
+                          )}
                         </button>
                       </div>
                     )}
@@ -550,7 +559,7 @@ function DestinyMapContent({
               <span className={styles.buttonText}>
                 {form.isQuickMode
                   ? isKo
-                    ? '생년월일로 빠르게 분석'
+                    ? '생년월일로 빠르게 시작'
                     : 'Quick Analysis'
                   : safeT('app.analyze') || 'Begin Your Journey'}
               </span>

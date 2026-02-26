@@ -73,7 +73,7 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
 
   const handleLogin = useCallback(() => {
     const search = typeof window !== 'undefined' ? window.location.search : ''
-    router.push(buildSignInUrl(`/destiny-map/counselor${search}`))
+    router.push(buildSignInUrl(`/destiny-counselor/chat${search}`))
   }, [router])
 
   const handleBack = useCallback(() => router.back(), [router])
@@ -101,26 +101,23 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
     <main className={styles.page}>
       <div className={styles.authGate}>
         <div className={styles.authCard}>
-          <div className={styles.authIcon}>🔒</div>
+          <div className={styles.authIcon}>LOCK</div>
           <h1 className={styles.authTitle}>
-            {t(
-              'destinyMap.counselor.loginRequiredTitle',
-              '상담사 채팅은 로그인 후 이용할 수 있어요'
-            )}
+            {t('destinyMap.counselor.loginRequiredTitle', 'Login is required for counselor chat')}
           </h1>
           <p className={styles.authDesc}>
             {t(
               'destinyMap.counselor.loginRequiredDesc',
-              '맞춤형 상담과 이전 대화 기록을 불러오려면 로그인해주세요.'
+              'Please sign in to continue with personalized counseling and history.'
             )}
           </p>
           <button type="button" className={styles.loginButton} onClick={handleLogin}>
-            {t('destinyMap.counselor.loginCta', '로그인하고 시작하기')}
+            {t('destinyMap.counselor.loginCta', 'Sign in and continue')}
           </button>
           <p className={styles.loginHint}>
             {t(
               'destinyMap.counselor.loginHint',
-              '계정이 없으면 로그인 과정에서 바로 회원가입할 수 있습니다.'
+              'If you do not have an account, you can create one in the sign-in flow.'
             )}
           </p>
         </div>
@@ -128,7 +125,6 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
     </main>
   )
 
-  // Loading screen
   if (isLoading && isAuthed) {
     return (
       <CounselorLoadingScreen
@@ -139,32 +135,30 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
     )
   }
 
-  // Chat screen
   return (
     <AuthGate
       statusOverride={authStatus}
       callbackUrl={
         typeof window !== 'undefined'
-          ? `/destiny-map/counselor${window.location.search}`
-          : '/destiny-map/counselor'
+          ? `/destiny-counselor/chat${window.location.search}`
+          : '/destiny-counselor/chat'
       }
       fallback={loginFallback}
     >
       <main className={`${styles.page} ${showChat ? styles.fadeIn : ''}`}>
-        {/* Header */}
         <header className={styles.header}>
           <button
             type="button"
             className={styles.backButton}
             onClick={handleBack}
-            aria-label={t('common.back', '뒤로가기')}
+            aria-label={t('common.back', 'Back')}
           >
-            <span className={styles.backIcon}>←</span>
+            <span className={styles.backIcon}>{'<'}</span>
           </button>
 
           <div className={styles.headerInfo}>
             <div className={styles.counselorBadge}>
-              <span className={styles.counselorAvatar}>🔮</span>
+              <span className={styles.counselorAvatar}>AI</span>
               <div>
                 <h1 className={styles.headerTitle}>
                   {t('destinyMap.counselor.title', 'Destiny Counselor')}
@@ -180,13 +174,12 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
           <div className={styles.headerActions}>
             <CreditBadge variant="compact" />
             <Link href="/" className={styles.homeButton} aria-label="Home">
-              <span className={styles.homeIcon}>🏠</span>
-              <span className={styles.homeLabel}>홈</span>
+              <span className={styles.homeIcon}>HOME</span>
+              <span className={styles.homeLabel}>Home</span>
             </Link>
           </div>
         </header>
 
-        {/* Theme Selection Bar */}
         <div className={styles.themeBar}>
           <div className={styles.themeScroll}>
             {themeOptions.map((opt) => (
@@ -203,7 +196,6 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
           </div>
         </div>
 
-        {/* Chat Area */}
         <div className={styles.chatWrapper}>
           <ErrorBoundary
             fallback={<ChatErrorFallback error={new Error('Chat error')} reset={handleChatReset} />}
@@ -238,7 +230,6 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
           </ErrorBoundary>
         </div>
 
-        {/* Initial Question Auto-send */}
         {initialQuestion && <InitialQuestionSender question={initialQuestion} />}
       </main>
     </AuthGate>
