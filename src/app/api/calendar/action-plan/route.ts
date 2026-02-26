@@ -29,6 +29,37 @@ type TimelineSlot = {
   source?: 'rule' | 'rag' | 'hybrid'
 }
 
+const OPENAI_RETRYABLE_STATUS = new Set([408, 409, 425, 429, 500, 502, 503, 504])
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const tryParseTimelineJson = (
+  content: string
+): { timeline?: unknown; summary?: unknown } | null => {
+  const trimmed = content.trim()
+  const fenced = trimmed
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim()
+
+  const candidates = [trimmed, fenced]
+  const firstBrace = fenced.indexOf('{')
+  const lastBrace = fenced.lastIndexOf('}')
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    candidates.push(fenced.slice(firstBrace, lastBrace + 1))
+  }
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate) as { timeline?: unknown; summary?: unknown }
+    } catch {
+      continue
+    }
+  }
+  return null
+}
+
 type CalendarEvidence = {
   matrix?: {
     domain?: 'career' | 'love' | 'money' | 'health' | 'move' | 'general'
@@ -697,6 +728,7 @@ const buildRuleBasedTimeline = (input: {
 const sanitizeTimelineForInterval = (raw: unknown, intervalMinutes: 30 | 60): TimelineSlot[] => {
   if (!Array.isArray(raw)) return []
   const cleaned: TimelineSlot[] = []
+  const dedupe = new Set<string>()
   for (const item of raw) {
     if (!item || typeof item !== 'object') continue
     const hour = Number((item as { hour?: unknown }).hour)
@@ -717,10 +749,13 @@ const sanitizeTimelineForInterval = (raw: unknown, intervalMinutes: 30 | 60): Ti
 
     if (!Number.isInteger(hour) || hour < 0 || hour > 23) continue
     if (!Number.isInteger(minute) || (minute !== 0 && minute !== 30)) continue
-    if (intervalMinutes === 60 && minute !== 0) continue
+    const normalizedMinute = intervalMinutes === 60 ? 0 : minute
     if (!note) continue
+    const key = `${hour}:${normalizedMinute}`
+    if (dedupe.has(key)) continue
+    dedupe.add(key)
 
-    cleaned.push({ hour, minute, note, tone, evidenceSummary, source: 'rag' })
+    cleaned.push({ hour, minute: normalizedMinute, note, tone, evidenceSummary, source: 'rag' })
   }
   return cleaned
 }
@@ -893,42 +928,56 @@ Rules:
 
   const model = 'gpt-4o-mini'
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${openAiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        temperature: 0.3,
-        response_format: { type: 'json_object' },
-        max_tokens: 1600,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-      }),
-    })
+    let response: Response | null = null
+    let responseBody = ''
+    const maxAttempts = 2
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${openAiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          temperature: 0.3,
+          response_format: { type: 'json_object' },
+          max_tokens: 1600,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+        }),
+      })
 
-    if (!response.ok) {
-      const bodyText = await response.text().catch(() => '')
+      if (response.ok) break
+
+      responseBody = await response.text().catch(() => '')
+      if (!OPENAI_RETRYABLE_STATUS.has(response.status) || attempt >= maxAttempts) {
+        return {
+          timeline: null,
+          errorReason: `openai_http_${response.status}`,
+          debug: responseBody.slice(0, 240),
+        }
+      }
+      await sleep(250 * attempt)
+    }
+
+    if (!response || !response.ok) {
       return {
         timeline: null,
-        errorReason: `openai_http_${response.status}`,
-        debug: bodyText.slice(0, 240),
+        errorReason: 'openai_no_response',
+        debug: responseBody.slice(0, 240),
       }
     }
+
     const payload = await response.json()
     const content = payload?.choices?.[0]?.message?.content
     if (!content || typeof content !== 'string') {
       return { timeline: null, errorReason: 'openai_empty_content' }
     }
-
-    let parsed: { timeline?: unknown; summary?: unknown }
-    try {
-      parsed = JSON.parse(content) as { timeline?: unknown; summary?: unknown }
-    } catch {
+    const parsed = tryParseTimelineJson(content)
+    if (!parsed) {
       return {
         timeline: null,
         errorReason: 'openai_invalid_json',

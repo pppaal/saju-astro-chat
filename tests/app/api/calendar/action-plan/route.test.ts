@@ -187,4 +187,52 @@ describe('calendar action-plan route', () => {
     expect(target?.note.includes('\u0001')).toBe(false)
     expect((target?.evidenceSummary || []).join(' ')).not.toContain('\u0001')
   })
+
+  it('keeps AI slot when minute=30 in 60-minute mode by normalizing to :00', async () => {
+    ;(global.fetch as any) = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                timeline: [
+                  {
+                    hour: 10,
+                    minute: 30,
+                    note: 'Normalized minute slot should still apply',
+                    tone: 'best',
+                    evidenceSummary: ['Evidence line'],
+                  },
+                ],
+                summary: 'Summary',
+              }),
+            },
+          },
+        ],
+      }),
+    }))
+
+    const request = createRequest({
+      date: '2025-03-15',
+      locale: 'en',
+      intervalMinutes: 60,
+      calendar: {
+        grade: 1,
+        bestTimes: ['10-11'],
+        recommendations: ['Do one key action'],
+        warnings: [],
+        sajuFactors: ['Saju baseline'],
+        astroFactors: ['Astro baseline'],
+      },
+    })
+
+    const response = await POST(request as any)
+    const json = await response.json()
+    const timeline = json.data.timeline as Array<{ hour: number; note: string }>
+    const target = timeline.find((slot) => slot.hour === 10)
+
+    expect(target).toBeDefined()
+    expect(target?.note).toContain('Normalized minute slot')
+  })
 })
