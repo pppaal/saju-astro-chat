@@ -205,6 +205,7 @@ const extractHoursFromText = (value: string) => {
 
 const cleanGuidanceText = (value: string, maxLength = 96): string => {
   const normalized = repairMojibakeText(value || '')
+    .replace(/[\u0000-\u001F\u007F]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
   if (!normalized) return ''
@@ -702,14 +703,14 @@ const sanitizeTimelineForInterval = (raw: unknown, intervalMinutes: 30 | 60): Ti
     const minuteRaw = (item as { minute?: unknown }).minute
     const minute = minuteRaw === undefined ? 0 : Number(minuteRaw)
     const noteRaw = (item as { note?: unknown }).note
-    const note = typeof noteRaw === 'string' ? repairMojibakeText(noteRaw.trim()) : ''
+    const note = typeof noteRaw === 'string' ? cleanGuidanceText(noteRaw, 140) : ''
     const toneRaw = (item as { tone?: unknown }).tone
     const tone =
       toneRaw === 'best' || toneRaw === 'caution' || toneRaw === 'neutral' ? toneRaw : undefined
     const evidenceRaw = (item as { evidenceSummary?: unknown }).evidenceSummary
     const evidenceSummary = Array.isArray(evidenceRaw)
       ? evidenceRaw
-          .map((line) => (typeof line === 'string' ? repairMojibakeText(line.trim()) : ''))
+          .map((line) => (typeof line === 'string' ? cleanGuidanceText(line, 120) : ''))
           .filter(Boolean)
           .slice(0, 3)
       : undefined
@@ -785,9 +786,14 @@ async function generatePrecisionTimelineWithRag(input: {
     summary?: string
     evidence?: CalendarEvidence
   } | null
-}): Promise<{ timeline: TimelineSlot[]; summary?: string } | null> {
+}): Promise<{
+  timeline: TimelineSlot[] | null
+  summary?: string
+  errorReason?: string
+  debug?: string
+}> {
   const openAiKey = process.env.OPENAI_API_KEY
-  if (!openAiKey) return null
+  if (!openAiKey) return { timeline: null, errorReason: 'missing_openai_api_key' }
 
   const bestHours = new Set<number>()
   input.calendar?.bestTimes?.forEach((time) => {
@@ -812,7 +818,21 @@ async function generatePrecisionTimelineWithRag(input: {
     coreSlots.push({ hour: slot.hour, minute: slot.minute ?? 0 })
     if (coreSlots.length >= 5) break
   }
-  if (coreSlots.length === 0) return null
+  if (coreSlots.length === 0) {
+    const fallbackHours = [10, 15, 21]
+    for (const hour of fallbackHours) {
+      const slot = input.baseTimeline.find((candidate) => candidate.hour === hour)
+      if (!slot) continue
+      const key = `${slot.hour}:${slot.minute ?? 0}`
+      if (seenCore.has(key)) continue
+      seenCore.add(key)
+      coreSlots.push({ hour: slot.hour, minute: slot.minute ?? 0 })
+      if (coreSlots.length >= 3) break
+    }
+  }
+  if (coreSlots.length === 0) {
+    return { timeline: null, errorReason: 'no_core_slots' }
+  }
 
   const ragContext = await fetchCalendarRagContext({
     locale: input.locale,
@@ -871,6 +891,7 @@ Rules:
       })),
   })
 
+  const model = 'gpt-4o-mini'
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -879,7 +900,7 @@ Rules:
         Authorization: `Bearer ${openAiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model,
         temperature: 0.3,
         response_format: { type: 'json_object' },
         max_tokens: 1600,
@@ -890,14 +911,34 @@ Rules:
       }),
     })
 
-    if (!response.ok) return null
+    if (!response.ok) {
+      const bodyText = await response.text().catch(() => '')
+      return {
+        timeline: null,
+        errorReason: `openai_http_${response.status}`,
+        debug: bodyText.slice(0, 240),
+      }
+    }
     const payload = await response.json()
     const content = payload?.choices?.[0]?.message?.content
-    if (!content || typeof content !== 'string') return null
+    if (!content || typeof content !== 'string') {
+      return { timeline: null, errorReason: 'openai_empty_content' }
+    }
 
-    const parsed = JSON.parse(content) as { timeline?: unknown; summary?: unknown }
+    let parsed: { timeline?: unknown; summary?: unknown }
+    try {
+      parsed = JSON.parse(content) as { timeline?: unknown; summary?: unknown }
+    } catch {
+      return {
+        timeline: null,
+        errorReason: 'openai_invalid_json',
+        debug: content.slice(0, 240),
+      }
+    }
     const timeline = sanitizeTimelineForInterval(parsed.timeline, input.intervalMinutes)
-    if (timeline.length === 0) return null
+    if (timeline.length === 0) {
+      return { timeline: null, errorReason: 'openai_empty_timeline' }
+    }
     const coreKeySet = new Set(coreSlots.map((slot) => `${slot.hour}:${slot.minute}`))
     const patchMap = new Map<string, TimelineSlot>()
     timeline.forEach((slot) => {
@@ -922,8 +963,12 @@ Rules:
     })
     const summary = typeof parsed.summary === 'string' ? parsed.summary.slice(0, 240) : undefined
     return { timeline: merged, summary }
-  } catch {
-    return null
+  } catch (error) {
+    return {
+      timeline: null,
+      errorReason: 'openai_exception',
+      debug: error instanceof Error ? error.message.slice(0, 240) : String(error).slice(0, 240),
+    }
   }
 }
 
@@ -1000,7 +1045,7 @@ export const POST = withApiMiddleware(
         : null,
     })
 
-    const aiRefined = canUseAiPrecision
+    const aiResult = canUseAiPrecision
       ? await generatePrecisionTimelineWithRag({
           date,
           locale: lang,
@@ -1021,13 +1066,16 @@ export const POST = withApiMiddleware(
               }
             : null,
         })
+      : { timeline: null, errorReason: 'premium_required' }
+    const aiRefined = aiResult.timeline
+      ? { timeline: aiResult.timeline, summary: aiResult.summary }
       : null
     const aiFailureReason = !canUseAiPrecision
       ? 'premium_required'
       : !hasOpenAiKey
         ? 'missing_openai_api_key'
         : !aiRefined
-          ? 'openai_request_failed_or_empty'
+          ? aiResult.errorReason || 'openai_request_failed_or_empty'
           : null
     const usingAiRefinement = Boolean(
       canUseAiPrecision && aiRefined && aiRefined.timeline && aiRefined.timeline.length > 0
@@ -1130,6 +1178,8 @@ export const POST = withApiMiddleware(
       isPremiumUser,
       aiCreditCost: CALENDAR_AI_CREDIT_COST,
       aiFailureReason,
+      aiFailureDebug: aiResult.debug,
+      aiModel: 'gpt-4o-mini',
     })
 
     return apiSuccess(

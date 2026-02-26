@@ -455,6 +455,29 @@ describe('date-analysis-orchestrator', () => {
       expect(result?.grade).toBe(1)
     })
 
+    it('downgrades top-grade outputs when cross agreement is extremely low', () => {
+      ;(calculateTotalScore as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+        totalScore: 74,
+        crossVerified: true,
+        sajuPositive: true,
+        sajuNegative: false,
+        astroPositive: true,
+        astroNegative: false,
+        crossAgreementPercent: 3,
+      })
+      ;(calculateGrade as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+        grade: 0,
+        adjustedScore: 74,
+        gradeBonus: 0,
+        gradeReasons: [],
+      })
+
+      const result = analyzeDate(new Date(2024, 0, 2), makeSajuProfile(), makeAstroProfile())
+      expect(result?.grade).toBe(3)
+      expect((result?.displayScore ?? 100) <= 41).toBe(true)
+      expect(result?.warningKeys).toContain('confusion')
+    })
+
     it('uses crossVerified from calculateTotalScore', () => {
       const result = analyzeDate(new Date(2024, 0, 1), makeSajuProfile(), makeAstroProfile())
       expect(result?.crossVerified).toBe(true)

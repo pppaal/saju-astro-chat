@@ -457,6 +457,8 @@ describe('Calendar Helpers', () => {
       date: '2025-03-15',
       grade: 0 as const,
       score: 95,
+      confidence: 90,
+      crossAgreementPercent: 82,
       categories: ['career' as any, 'career' as any],
       titleKey: 'calendar.good_day',
       descKey: 'calendar.good_desc',
@@ -622,6 +624,27 @@ describe('Calendar Helpers', () => {
       expect(result.recommendations.some((r) => r.includes('wedding'))).toBe(false)
       expect(result.recommendations.some((r) => r.includes('contract'))).toBe(false)
       expect(result.recommendations).toContain('Review and reconfirm before committing.')
+    })
+
+    it('should switch to mixed-signals mode when cross agreement is very low on top grades', () => {
+      const result = formatDateForResponse(
+        {
+          ...baseDateData,
+          grade: 0,
+          score: 84,
+          recommendationKeys: ['wedding', 'contract', 'rest'],
+          crossAgreementPercent: 3,
+          confidence: 90,
+        } as any,
+        'en',
+        koTranslations as any,
+        enTranslations as any
+      )
+
+      expect(result.title).toBe('Mixed signals')
+      expect(result.description).toContain('Signals are mixed')
+      expect(result.recommendations.some((r) => /wedding|contract/i.test(r))).toBe(false)
+      expect(result.warnings.some((w) => /communication errors/i.test(w))).toBe(true)
     })
 
     it('should include crossAgreementPercent in evidence', () => {

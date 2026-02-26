@@ -115,6 +115,18 @@ function isAlignedAcrossSystems(crossAgreementPercent: number | undefined): bool
   )
 }
 
+function isLowCoherenceSignal(
+  confidence: number | undefined,
+  crossAgreementPercent: number | undefined
+): boolean {
+  const lowConfidence = (confidence ?? 100) < EVIDENCE_CONFIDENCE_THRESHOLDS.low
+  const lowAgreement =
+    typeof crossAgreementPercent === 'number' &&
+    Number.isFinite(crossAgreementPercent) &&
+    crossAgreementPercent < CROSS_AGREEMENT_ALIGNMENT_THRESHOLD
+  return lowConfidence || lowAgreement
+}
+
 function shouldGateRecommendationSet(input: RecommendationGateInput): boolean {
   if (input.forceGate) {
     return true
@@ -1440,8 +1452,27 @@ export function formatDateForResponse(
   const finalSummary = matrixOverlay.summary
     ? dedupeTexts([matrixOverlay.summary, baseSummary]).join(' ')
     : baseSummary
-  const title = getTranslation(date.titleKey, translations)
-  const warningsForResponse = dedupeTexts([...warnings, ...matrixOverlay.warnings]).slice(0, 6)
+  const coherenceConfidence = date.confidence ?? matrixOverlay.evidence.confidence
+  const coherenceAgreement =
+    date.crossAgreementPercent ?? matrixOverlay.evidence.crossAgreementPercent
+  const lowCoherence = isLowCoherenceSignal(coherenceConfidence, coherenceAgreement)
+  const forceConservativeMode = date.grade <= 1 && lowCoherence
+
+  const defaultTitle = getTranslation(date.titleKey, translations)
+  const title = forceConservativeMode
+    ? lang === 'ko'
+      ? '해석 갈림'
+      : 'Mixed signals'
+    : defaultTitle
+  const warningsForResponseBase = dedupeTexts([...warnings, ...matrixOverlay.warnings]).slice(0, 6)
+  const warningsForResponse = forceConservativeMode
+    ? dedupeTexts([
+        ...warningsForResponseBase,
+        lang === 'ko'
+          ? '커뮤니케이션 오류 가능성이 있어 재확인이 필요합니다.'
+          : 'Communication errors are more likely today. Re-check before committing.',
+      ]).slice(0, 6)
+    : warningsForResponseBase
   const recommendationsForResponse = gateRecommendations({
     recommendations: dedupeTexts([...recommendations, ...matrixOverlay.recommendations]).slice(
       0,
@@ -1455,10 +1486,24 @@ export function formatDateForResponse(
     title,
     summary: finalSummary,
     lang,
+    forceGate: forceConservativeMode,
     irreversibleKeyPresent: date.recommendationKeys.some((key) =>
       IRREVERSIBLE_RECOMMENDATION_KEYS.has(key)
     ),
   })
+  const finalDescription = forceConservativeMode
+    ? lang === 'ko'
+      ? '신호가 엇갈립니다. 큰 결정은 재확인 후 진행하세요.'
+      : 'Signals are mixed. Re-check major decisions before committing.'
+    : getTranslation(date.descKey, translations)
+  const summarized = forceConservativeMode
+    ? dedupeTexts([
+        finalSummary,
+        lang === 'ko'
+          ? '핵심 결론: 신뢰도/교차 정합이 낮아 검토 중심으로 운영하는 편이 안전합니다.'
+          : 'Core conclusion: low confidence/cross-alignment, so operate in review-first mode.',
+      ]).join(' ')
+    : finalSummary
 
   return normalizeMojibakePayload({
     date: date.date,
@@ -1469,8 +1514,8 @@ export function formatDateForResponse(
     displayScore,
     categories: uniqueCategories,
     title,
-    description: getTranslation(date.descKey, translations),
-    summary: finalSummary,
+    description: finalDescription,
+    summary: summarized,
     bestTimes,
     sajuFactors: orderedSajuFactors,
     astroFactors: orderedAstroFactors,
