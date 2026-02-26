@@ -11,15 +11,23 @@ import { INTEGRATED_PROFILES } from '../src/lib/assessment/integratedProfiles'
 
 type AuditIssue = { scope: string; message: string }
 
+// Keep this conservative: detect explicit fortune/advice wording only.
+// We avoid broad stems that can trigger false positives in neutral diagnostic text.
 const FORBIDDEN_PATTERNS: Array<{ label: string; regex: RegExp }> = [
-  { label: '조심 계열', regex: /조심(?:하세요|해요|하십시오|하라)/ },
-  { label: '피하 계열', regex: /피하(?:세요|십시오|라|자)\b/ },
+  { label: '운세/운 계열', regex: /(?:운세|운이\s*(?:좋|나쁘)|운을)/ },
+  {
+    label: '조심 계열',
+    regex: /(?:조심(?:해|하세요|해요|하십시오|하라|해야)|조심하는(?!\s*편이다))/,
+  },
+  { label: '피해야/피하는 계열', regex: /(?:피하는\s*게|피해야|피하는(?!\s*편이다))/ },
+  { label: '명령형 금지(하면 안 돼)', regex: /하면\s*안\s*(?:돼|되|됩니다|된다)/ },
   { label: '문제될 수 계열', regex: /문제될\s*수/ },
-  { label: '운/운이 계열', regex: /운이/ },
 ]
 
 const ICP_ALLOWED_ENDINGS = [
   '편이다.',
+  '느끼는 편이다.',
+  '경향이 있다.',
   '한다.',
   '할 수 있다.',
   '수 있다.',
@@ -90,7 +98,11 @@ function auditIcpContent(): AuditIssue[] {
 
 function auditIntegratedProfiles(): AuditIssue[] {
   const issues: AuditIssue[] = []
-  const profileIds = Object.keys(INTEGRATED_PROFILES)
+  const profileIds = Object.keys(INTEGRATED_PROFILES) as Array<
+    (typeof INTEGRATED_PROFILE_IDS)[number] | string
+  >
+  const expectedIdSet = new Set(INTEGRATED_PROFILE_IDS)
+  const actualIdSet = new Set(profileIds)
 
   if (profileIds.length !== 12) {
     issues.push({
@@ -99,12 +111,23 @@ function auditIntegratedProfiles(): AuditIssue[] {
     })
   }
 
-  if (profileIds.join('|') !== INTEGRATED_PROFILE_IDS.join('|')) {
-    issues.push({
-      scope: 'integrated',
-      message: 'Integrated profile ID 목록이 기준 순서/구성과 다릅니다.',
-    })
-  }
+  INTEGRATED_PROFILE_IDS.forEach((expectedId) => {
+    if (!actualIdSet.has(expectedId)) {
+      issues.push({
+        scope: 'integrated',
+        message: `필수 Integrated profile ID(${expectedId})가 누락되었습니다.`,
+      })
+    }
+  })
+
+  profileIds.forEach((actualId) => {
+    if (!expectedIdSet.has(actualId as (typeof INTEGRATED_PROFILE_IDS)[number])) {
+      issues.push({
+        scope: 'integrated',
+        message: `알 수 없는 Integrated profile ID(${actualId})가 포함되어 있습니다.`,
+      })
+    }
+  })
 
   INTEGRATED_PROFILE_IDS.forEach((id) => {
     const profile = INTEGRATED_PROFILES[id]
@@ -132,24 +155,32 @@ function auditIntegratedProfiles(): AuditIssue[] {
       }
     })
 
-    const requiredLists: Array<[string, string[]]> = [
-      ['strengthsKo', profile.strengthsKo],
-      ['strengthsEn', profile.strengthsEn],
-      ['watchoutsKo', profile.watchoutsKo],
-      ['watchoutsEn', profile.watchoutsEn],
-      ['howYouShowUpKo.dating', profile.howYouShowUpKo.dating],
-      ['howYouShowUpKo.work', profile.howYouShowUpKo.work],
-      ['howYouShowUpKo.friendsFamily', profile.howYouShowUpKo.friendsFamily],
-      ['howYouShowUpEn.dating', profile.howYouShowUpEn.dating],
-      ['howYouShowUpEn.work', profile.howYouShowUpEn.work],
-      ['howYouShowUpEn.friendsFamily', profile.howYouShowUpEn.friendsFamily],
+    const requiredLists: Array<[string, string[], number]> = [
+      ['strengthsKo', profile.strengthsKo, 3],
+      ['strengthsEn', profile.strengthsEn, 3],
+      ['watchoutsKo', profile.watchoutsKo, 3],
+      ['watchoutsEn', profile.watchoutsEn, 3],
+      ['howYouShowUpKo.dating', profile.howYouShowUpKo.dating, 2],
+      ['howYouShowUpKo.work', profile.howYouShowUpKo.work, 2],
+      ['howYouShowUpKo.friendsFamily', profile.howYouShowUpKo.friendsFamily, 2],
+      ['howYouShowUpEn.dating', profile.howYouShowUpEn.dating, 2],
+      ['howYouShowUpEn.work', profile.howYouShowUpEn.work, 2],
+      ['howYouShowUpEn.friendsFamily', profile.howYouShowUpEn.friendsFamily, 2],
     ]
 
-    requiredLists.forEach(([field, list]) => {
-      if (!Array.isArray(list) || list.length === 0) {
-        issues.push({ scope: 'integrated', message: `${id}.${field} 항목이 비어 있습니다.` })
+    requiredLists.forEach(([field, list, expectedLength]) => {
+      if (!Array.isArray(list)) {
+        issues.push({ scope: 'integrated', message: `${id}.${field} 형식이 배열이 아닙니다.` })
         return
       }
+
+      if (list.length !== expectedLength) {
+        issues.push({
+          scope: 'integrated',
+          message: `${id}.${field} 항목 수가 ${expectedLength}개가 아닙니다 (${list.length}개).`,
+        })
+      }
+
       list.forEach((item, index) => {
         if (!item || !item.trim()) {
           issues.push({
