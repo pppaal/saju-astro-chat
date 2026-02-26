@@ -114,8 +114,10 @@ const CALENDAR_STRICT_ASTROLOGY =
   process.env.NODE_ENV !== 'test' && process.env.CALENDAR_STRICT_ASTROLOGY !== 'false'
 const CALENDAR_STRICT_MATRIX =
   process.env.NODE_ENV !== 'test' && process.env.CALENDAR_STRICT_MATRIX !== 'false'
+// AI enrichment should be best-effort by default.
+// Enable strict failure only when explicitly opted in.
 const CALENDAR_STRICT_AI_ENRICHMENT =
-  process.env.NODE_ENV !== 'test' && process.env.CALENDAR_STRICT_AI_ENRICHMENT !== 'false'
+  process.env.NODE_ENV !== 'test' && process.env.CALENDAR_STRICT_AI_ENRICHMENT === 'true'
 
 function deriveFallbackSunSign(birthDate: Date): string {
   const month = birthDate.getMonth()
@@ -592,6 +594,9 @@ export const GET = withApiMiddleware(
         locale: extractLocale(request),
         route: 'calendar',
       })
+    }
+    if (!aiDates && !CALENDAR_STRICT_AI_ENRICHMENT) {
+      logger.warn('[Calendar] AI date enrichment unavailable (fallback to local rules)')
     }
     const formatCalendarDate = (d: (typeof filteredDates)[number]) =>
       formatDateForResponse(
