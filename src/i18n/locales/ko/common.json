@@ -83,7 +83,7 @@
     "serverErrorMessage": "서버에서 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
   },
   "menu": {
-    "destinyMap": "?? ???",
+    "destinyMap": "운명 지도",
     "aiReports": "AI 프리미엄 리포트",
     "report": "리포트",
     "lifePrediction": "인생 예측",

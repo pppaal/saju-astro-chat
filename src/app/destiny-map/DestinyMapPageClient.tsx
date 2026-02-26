@@ -340,9 +340,9 @@ function DestinyMapContent({
           </div>
           <div className={styles.header}>
             <div className={styles.iconWrapper}>
-              <span className={styles.icon}>AI</span>
+              <span className={styles.icon}>🔮</span>
             </div>
-            <h1 className={styles.title}>destiny-counselor</h1>
+            <h1 className={styles.title}>{safeT('menu.destinyMap', '운명 지도')}</h1>
             <p className={styles.subtitle}>
               {safeT(
                 'app.subtitle',
@@ -362,7 +362,7 @@ function DestinyMapContent({
                   disabled={form.loadingProfile}
                 >
                   <span className={styles.loadProfileIcon}>
-                    {form.loadingProfile ? '...' : form.profileLoaded ? 'OK' : 'ME'}
+                    {form.loadingProfile ? '⏳' : form.profileLoaded ? '✅' : '👤'}
                   </span>
                   <span className={styles.loadProfileText}>
                     {form.loadingProfile
@@ -374,7 +374,7 @@ function DestinyMapContent({
                 </button>
                 {form.profileLoaded && (
                   <div className={styles.successBanner}>
-                    <span className={styles.successIcon}>OK</span>
+                    <span className={styles.successIcon}>✅</span>
                     <span className={styles.successText}>
                       {safeT(
                         'app.profileLoadedSuccess',
@@ -569,16 +569,16 @@ function DestinyMapContent({
 
           <div className={styles.features}>
             <div className={styles.feature}>
-              <span className={styles.featureIcon}>E</span>
-              <span className={styles.featureText}>{isKo ? '동양 운세' : 'Eastern Fortune'}</span>
+              <span className={styles.featureIcon}>☯️</span>
+              <span className={styles.featureText}>{isKo ? '사주' : 'Saju'}</span>
             </div>
             <div className={styles.feature}>
-              <span className={styles.featureIcon}>W</span>
-              <span className={styles.featureText}>{isKo ? '서양 운세' : 'Western Fortune'}</span>
+              <span className={styles.featureIcon}>✨</span>
+              <span className={styles.featureText}>{isKo ? '점성술' : 'Astrology'}</span>
             </div>
             <div className={styles.feature}>
-              <span className={styles.featureIcon}>T</span>
-              <span className={styles.featureText}>{isKo ? '타로 인사이트' : 'Tarot Insight'}</span>
+              <span className={styles.featureIcon}>🃏</span>
+              <span className={styles.featureText}>{isKo ? '타로' : 'Tarot'}</span>
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 {
   "destinyMap": {
-    "title": "?? ???",
+    "title": "운명 지도",
     "subtitle": "Your AI-analyzed fortune journey",
     "inputPlaceholder": "질문 입력",
     "analyzing": "분석 중...",
@@ -32,7 +32,7 @@
       "retry": "다시 시도"
     },
     "counselor": {
-      "title": "?? ???",
+      "title": "DestinyPal 상담사",
       "online": "온라인",
       "voiceComingSoon": "음성 (준비중)",
       "loading1": "상담사와 연결하는 중...",

@@ -101,23 +101,26 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
     <main className={styles.page}>
       <div className={styles.authGate}>
         <div className={styles.authCard}>
-          <div className={styles.authIcon}>LOCK</div>
+          <div className={styles.authIcon}>🔒</div>
           <h1 className={styles.authTitle}>
-            {t('destinyMap.counselor.loginRequiredTitle', 'Login is required for counselor chat')}
+            {t(
+              'destinyMap.counselor.loginRequiredTitle',
+              '상담사 채팅은 로그인 후 이용할 수 있어요'
+            )}
           </h1>
           <p className={styles.authDesc}>
             {t(
               'destinyMap.counselor.loginRequiredDesc',
-              'Please sign in to continue with personalized counseling and history.'
+              '맞춤형 상담과 이전 대화 기록을 불러오려면 로그인해주세요.'
             )}
           </p>
           <button type="button" className={styles.loginButton} onClick={handleLogin}>
-            {t('destinyMap.counselor.loginCta', 'Sign in and continue')}
+            {t('destinyMap.counselor.loginCta', '로그인하고 시작하기')}
           </button>
           <p className={styles.loginHint}>
             {t(
               'destinyMap.counselor.loginHint',
-              'If you do not have an account, you can create one in the sign-in flow.'
+              '계정이 없으면 로그인 과정에서 바로 회원가입할 수 있습니다.'
             )}
           </p>
         </div>
@@ -151,14 +154,14 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
             type="button"
             className={styles.backButton}
             onClick={handleBack}
-            aria-label={t('common.back', 'Back')}
+            aria-label={t('common.back', '뒤로가기')}
           >
-            <span className={styles.backIcon}>{'<'}</span>
+            <span className={styles.backIcon}>←</span>
           </button>
 
           <div className={styles.headerInfo}>
             <div className={styles.counselorBadge}>
-              <span className={styles.counselorAvatar}>AI</span>
+              <span className={styles.counselorAvatar}>🔮</span>
               <div>
                 <h1 className={styles.headerTitle}>
                   {t('destinyMap.counselor.title', 'Destiny Counselor')}
@@ -174,8 +177,8 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
           <div className={styles.headerActions}>
             <CreditBadge variant="compact" />
             <Link href="/" className={styles.homeButton} aria-label="Home">
-              <span className={styles.homeIcon}>HOME</span>
-              <span className={styles.homeLabel}>Home</span>
+              <span className={styles.homeIcon}>🏠</span>
+              <span className={styles.homeLabel}>홈</span>
             </Link>
           </div>
         </header>
