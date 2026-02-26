@@ -50,7 +50,7 @@ vi.mock('@/lib/constants/api-limits', () => ({
 
 // Mock Zod validation schema
 vi.mock('@/lib/api/zodValidation', async (importOriginal) => {
-  const actual = await importOriginal() as Record<string, unknown>
+  const actual = (await importOriginal()) as Record<string, unknown>
   return {
     ...actual,
     counselorSessionSaveRequestSchema: {
@@ -85,7 +85,11 @@ function createValidSafeParse() {
     const errors: any[] = []
 
     // Validate sessionId - required, string, min 1, max 100
-    if (!data.sessionId || typeof data.sessionId !== 'string' || data.sessionId.trim().length === 0) {
+    if (
+      !data.sessionId ||
+      typeof data.sessionId !== 'string' ||
+      data.sessionId.trim().length === 0
+    ) {
       errors.push({ path: ['sessionId'], message: 'sessionId is required' })
     } else if (data.sessionId.length > 100) {
       errors.push({ path: ['sessionId'], message: 'sessionId must be at most 100 characters' })
@@ -108,7 +112,10 @@ function createValidSafeParse() {
         if (!msg.content || typeof msg.content !== 'string' || msg.content.length === 0) {
           errors.push({ path: ['messages', i, 'content'], message: 'content is required' })
         } else if (msg.content.length > 10000) {
-          errors.push({ path: ['messages', i, 'content'], message: 'content must be at most 10000 characters' })
+          errors.push({
+            path: ['messages', i, 'content'],
+            message: 'content must be at most 10000 characters',
+          })
         }
       }
     }
@@ -507,6 +514,59 @@ describe('/api/counselor/session/save', () => {
           locale: 'ko',
         }),
       })
+    })
+
+    it('should recover from create unique constraint race by updating same-user session', async () => {
+      mockFindUnique.mockResolvedValueOnce(null).mockResolvedValueOnce({
+        userId: mockUserId,
+      })
+      mockCreate.mockRejectedValueOnce({ code: 'P2002' })
+      mockUpdate.mockResolvedValueOnce({
+        id: 'session-race',
+        userId: mockUserId,
+      })
+
+      const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
+        method: 'POST',
+        body: JSON.stringify({ ...validSessionData, sessionId: 'session-race' }),
+      })
+
+      const { POST } = await import('@/app/api/counselor/session/save/route')
+      const response = await POST(req)
+      const result = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(result).toEqual({
+        success: true,
+        sessionId: 'session-race',
+      })
+      expect(mockUpdate).toHaveBeenCalledWith({
+        where: { id: 'session-race' },
+        data: expect.objectContaining({
+          messages: validSessionData.messages,
+          messageCount: 2,
+        }),
+      })
+    })
+
+    it('should return 403 when create race reveals session owned by another user', async () => {
+      mockFindUnique.mockResolvedValueOnce(null).mockResolvedValueOnce({
+        userId: 'other-user-id',
+      })
+      mockCreate.mockRejectedValueOnce({ code: 'P2002' })
+
+      const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
+        method: 'POST',
+        body: JSON.stringify({ ...validSessionData, sessionId: 'session-race-owner' }),
+      })
+
+      const { POST } = await import('@/app/api/counselor/session/save/route')
+      const response = await POST(req)
+      const result = await response.json()
+
+      expect(response.status).toBe(403)
+      expect(result.error.code).toBe('FORBIDDEN')
+      expect(mockUpdate).not.toHaveBeenCalled()
     })
   })
 
