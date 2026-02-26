@@ -15,6 +15,10 @@ import { logger } from '@/lib/logger'
 import { createErrorResponse } from '@/lib/api/errorHandler'
 import { idParamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { summarizeGraphRAGEvidence } from '@/lib/destiny-matrix/ai-report'
+import {
+  getThemedSectionKeys,
+  normalizeReportTheme,
+} from '@/lib/destiny-matrix/ai-report/themeSchema'
 
 type RouteContext = {
   params: Promise<{ id: string }>
@@ -36,9 +40,19 @@ const SECTION_TITLES_KO: Record<string, string> = {
   patterns: '?? ??',
   timing: '?? ???',
   compatibility: '?? ??',
+  spouseProfile: 'ë°°ìš°ìžìƒ/ì´ìƒí˜•',
+  marriageTiming: 'ê²°í˜¼ íƒ€ì´ë°',
   strategy: '??',
+  roleFit: 'ì§ë¬´ ì í•©',
+  turningPoints: 'ì „í™˜ì ',
+  incomeStreams: 'ìˆ˜ìž…ì› ë¶„ì„',
+  riskManagement: 'ë¦¬ìŠ¤í¬ ê´€ë¦¬',
   prevention: '?? ???',
+  riskWindows: 'ìœ„í—˜ êµ¬ê°„',
+  recoveryPlan: 'íšŒë³µ ë£¨í‹´',
   dynamics: '?? ??',
+  communication: 'ì†Œí†µ ë°©ì‹',
+  legacy: 'ê°€ì¡± ìœ ì‚°/ì„¸ëŒ€ ê³¼ì œ',
   recommendations: '?? ???',
   introduction: '?? ??',
   personalityDeep: '?? ??',
@@ -66,9 +80,19 @@ const SECTION_TITLES_EN: Record<string, string> = {
   patterns: 'Patterns',
   timing: 'Timing',
   compatibility: 'Compatibility',
+  spouseProfile: 'Spouse Profile',
+  marriageTiming: 'Marriage Timing',
   strategy: 'Strategy',
+  roleFit: 'Role Fit',
+  turningPoints: 'Turning Points',
+  incomeStreams: 'Income Streams',
+  riskManagement: 'Risk Management',
   prevention: 'Prevention',
+  riskWindows: 'Risk Windows',
+  recoveryPlan: 'Recovery Plan',
   dynamics: 'Dynamics',
+  communication: 'Communication',
+  legacy: 'Legacy',
   recommendations: 'Recommendations',
   introduction: 'Introduction',
   personalityDeep: 'Personality',
@@ -109,7 +133,8 @@ function toSentenceBlock(value: unknown): string | null {
 function normalizeSections(
   reportType: string,
   reportData: Record<string, unknown>,
-  locale: string
+  locale: string,
+  theme?: string | null
 ): ReportSection[] {
   const rawSections = reportData.sections
   if (Array.isArray(rawSections) && rawSections.length > 0) {
@@ -145,15 +170,13 @@ function normalizeSections(
   }
 
   if (reportType === 'themed') {
-    pushIf('deepAnalysis', rawSections.deepAnalysis)
-    pushIf('patterns', rawSections.patterns)
-    pushIf('timing', rawSections.timing)
-    if ('compatibility' in rawSections) pushIf('compatibility', rawSections.compatibility)
-    if ('strategy' in rawSections) pushIf('strategy', rawSections.strategy)
-    if ('prevention' in rawSections) pushIf('prevention', rawSections.prevention)
-    if ('dynamics' in rawSections) pushIf('dynamics', rawSections.dynamics)
-    pushIf('recommendations', rawSections.recommendations)
-    pushIf('actionPlan', rawSections.actionPlan)
+    const normalizedTheme = normalizeReportTheme(theme)
+    const orderedKeys = normalizedTheme
+      ? [...getThemedSectionKeys(normalizedTheme)]
+      : ['deepAnalysis', 'patterns', 'timing', 'recommendations', 'actionPlan']
+    for (const key of orderedKeys) {
+      pushIf(key, rawSections[key])
+    }
     return sections
   }
 
@@ -247,7 +270,8 @@ export async function GET(request: Request, routeContext: RouteContext) {
         const sections = normalizeSections(
           report.reportType,
           reportData,
-          report.locale || (reportData?.lang as string) || 'ko'
+          report.locale || (reportData?.lang as string) || 'ko',
+          report.theme
         )
         const graphRagEvidence =
           reportData && isRecord(reportData) && 'graphRagEvidence' in reportData

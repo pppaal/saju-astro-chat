@@ -117,7 +117,7 @@ export default function PremiumReportsPage() {
     Number.isFinite(profileInput?.latitude) &&
     Number.isFinite(profileInput?.longitude)
 
-  const canRun = hasProfile && !isGenerating
+  const canRun = !isGenerating
   const selectedThemeInfo = THEME_PRESETS[selectedTheme]
 
   const handleStartFree = () => {
@@ -274,7 +274,7 @@ export default function PremiumReportsPage() {
                     onClick={handleStartFree}
                     disabled={!canRun}
                     className={`mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white transition ${
-                      canRun
+                      canRun && hasProfile
                         ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110'
                         : 'cursor-not-allowed bg-slate-700'
                     }`}
@@ -344,7 +344,7 @@ export default function PremiumReportsPage() {
                     onClick={handleGeneratePremium}
                     disabled={!canRun}
                     className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white transition ${
-                      canRun
+                      canRun && hasProfile
                         ? `bg-gradient-to-r ${selectedThemeInfo.color} hover:brightness-110`
                         : 'cursor-not-allowed bg-slate-700'
                     }`}

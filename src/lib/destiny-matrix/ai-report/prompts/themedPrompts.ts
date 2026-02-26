@@ -3,6 +3,7 @@
 
 import type { ReportTheme, TimingData } from '../types'
 import { buildQuestionIntentInstruction } from '../questionIntent'
+import { getThemedSectionKeys } from '../themeSchema'
 
 // ===========================
 // 테마별 프롬프트 섹션
@@ -476,6 +477,34 @@ const THEME_LABELS: Record<ReportTheme, { ko: string; en: string }> = {
   health: { ko: '건강 & 웰빙 심층 분석', en: 'Health & Wellness Deep Analysis' },
   family: { ko: '가족 & 관계 심층 분석', en: 'Family & Relationships Deep Analysis' },
 }
+function buildThemedResponseSchema(theme: ReportTheme): string {
+  const keyToLine: Record<string, string> = {
+    deepAnalysis: '  "deepAnalysis": "...",',
+    patterns: '  "patterns": "...",',
+    timing: '  "timing": "...",',
+    compatibility: '  "compatibility": "...",',
+    spouseProfile: '  "spouseProfile": "...",',
+    marriageTiming: '  "marriageTiming": "...",',
+    strategy: '  "strategy": "...",',
+    roleFit: '  "roleFit": "...",',
+    turningPoints: '  "turningPoints": "...",',
+    incomeStreams: '  "incomeStreams": "...",',
+    riskManagement: '  "riskManagement": "...",',
+    prevention: '  "prevention": "...",',
+    riskWindows: '  "riskWindows": "...",',
+    recoveryPlan: '  "recoveryPlan": "...",',
+    dynamics: '  "dynamics": "...",',
+    communication: '  "communication": "...",',
+    legacy: '  "legacy": "...",',
+    recommendations: '  "recommendations": ["...", "...", "...", "...", "..."],',
+    actionPlan: '  "actionPlan": "..."',
+  }
+
+  const lines = getThemedSectionKeys(theme)
+    .map((key) => keyToLine[key])
+    .filter(Boolean)
+  return ['{', ...lines, '}'].join('\n')
+}
 
 // ===========================
 // 메인 프롬프트 빌더
@@ -503,6 +532,7 @@ export function buildThemedPrompt(
   const deterministicBlock = deterministicCorePrompt?.trim()
   const sections = THEME_SECTIONS[theme][lang]
   const themeLabel = THEME_LABELS[theme][lang]
+  const responseSchema = buildThemedResponseSchema(theme)
 
   // 십신 분포 포맷
   const sibsinText = profileData.sibsinDistribution
@@ -558,17 +588,8 @@ ${sections}
 
 ## 응답 형식
 반드시 아래 JSON 형식으로만 응답하세요:
-{
-  "deepAnalysis": "...",
-  "patterns": "...",
-  "timing": "...",
-  ${theme === 'love' ? '"compatibility": "...",' : ''}
-  ${theme === 'career' || theme === 'wealth' ? '"strategy": "...",' : ''}
-  ${theme === 'health' ? '"prevention": "...",' : ''}
-  ${theme === 'family' ? '"dynamics": "...",' : ''}
-  "recommendations": ["...", "...", "...", "...", "..."],
-  "actionPlan": "..."
-}`
+${responseSchema}
+`
     : `You are an expert fortune consultant combining Eastern Saju and Western Astrology.
 Based on the data below, write a ${themeLabel} report.
 
@@ -609,17 +630,8 @@ ${sections}
 
 ## Response Format
 Respond ONLY in this JSON format:
-{
-  "deepAnalysis": "...",
-  "patterns": "...",
-  "timing": "...",
-  ${theme === 'love' ? '"compatibility": "...",' : ''}
-  ${theme === 'career' || theme === 'wealth' ? '"strategy": "...",' : ''}
-  ${theme === 'health' ? '"prevention": "...",' : ''}
-  ${theme === 'family' ? '"dynamics": "...",' : ''}
-  "recommendations": ["...", "...", "...", "...", "..."],
-  "actionPlan": "..."
-}`
+${responseSchema}
+`
 
   return prompt
 }

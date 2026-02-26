@@ -1,6 +1,7 @@
 import type { FusionReport, InsightDomain } from '../interpreter/types'
 import type { MatrixCalculationInput } from '../types'
 import type { ReportPeriod, ReportTheme } from './types'
+import { getThemedSectionKeys } from './themeSchema'
 
 const ASPECT_ANGLE_MAP: Record<string, number> = {
   conjunction: 0,
@@ -498,11 +499,7 @@ function timingSections(): string[] {
 }
 
 function themedSections(theme: ReportTheme): string[] {
-  const base = ['deepAnalysis', 'patterns', 'timing']
-  if (theme === 'love') return [...base, 'compatibility', 'recommendations', 'actionPlan']
-  if (theme === 'health') return [...base, 'prevention', 'recommendations', 'actionPlan']
-  if (theme === 'family') return [...base, 'dynamics', 'recommendations', 'actionPlan']
-  return [...base, 'strategy', 'recommendations', 'actionPlan']
+  return [...getThemedSectionKeys(theme)]
 }
 
 export function buildGraphRAGEvidence(

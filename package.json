@@ -16,6 +16,7 @@
     "lint": "eslint . --ext .ts,.tsx,.js",
     "audit:personality-questions": "tsx scripts/audit-personality-questions.ts",
     "audit:assessment": "tsx scripts/audit-assessment-content.ts",
+    "review:assessment": "node scripts/review-assessment-examples.mjs",
     "lint:mojibake": "node scripts/check-mojibake-lint.mjs",
     "lint:fix": "eslint . --ext .ts,.tsx,.js --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,json,css}\"",

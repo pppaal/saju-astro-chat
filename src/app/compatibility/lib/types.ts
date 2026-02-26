@@ -33,6 +33,7 @@ export type PersonForm = {
   name: string
   date: string
   time: string
+  gender?: 'M' | 'F' | 'Male' | 'Female'
   cityQuery: string
   lat: number | null
   lon: number | null

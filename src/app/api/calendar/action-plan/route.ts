@@ -16,6 +16,7 @@ import { STEM_ELEMENTS } from '@/lib/destiny-map/config/specialDays.data'
 import { getHourlyRecommendation } from '@/lib/destiny-map/calendar/specialDays-analysis'
 import { apiClient } from '@/lib/api/ApiClient'
 import { checkPremiumFromDatabase } from '@/lib/stripe/premiumCache'
+import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
 
 type TimelineTone = 'best' | 'caution' | 'neutral'
 
@@ -393,12 +394,24 @@ function getTimeBucket(hour: number): 'morning' | 'day' | 'evening' {
   return 'evening'
 }
 
+function normalizeActionCategory(category?: string): string {
+  if (!category) return 'career'
+  const normalized = normalizeReportTheme(category)
+  if (normalized) return normalized
+
+  const key = category.trim().toLowerCase()
+  if (key === 'money') return 'wealth'
+  if (key === 'move') return 'travel'
+  if (key === 'general') return 'career'
+  return key || 'career'
+}
+
 function getCategoryFocusHint(
   category: string | undefined,
   hour: number,
   locale: 'ko' | 'en'
 ): string {
-  const normalized = category || 'career'
+  const normalized = normalizeActionCategory(category)
   const hint = CATEGORY_FOCUS_HINTS[normalized]
   if (!hint) return locale === 'ko' ? '핵심 1가지에 집중하세요' : 'Focus on one core action'
   const bucket = getTimeBucket(hour)
@@ -421,7 +434,7 @@ function pickCategoryByHour(categories: string[] | undefined, hour: number): str
       : hour < 16
         ? Math.min(1, categories.length - 1)
         : Math.min(2, categories.length - 1)
-  return (categories[index] || categories[0] || 'career').trim().toLowerCase()
+  return normalizeActionCategory(categories[index] || categories[0] || 'career')
 }
 
 type ActionPlanIcpProfile =

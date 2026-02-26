@@ -636,6 +636,28 @@ describe('POST /api/destiny-matrix/ai-report', () => {
       })
     })
 
+    it('should pass derived timingData to comprehensive report generation', async () => {
+      const req = createPostRequest({
+        ...MOCK_VALID_INPUT,
+        birthDate: '1995-02-09',
+        birthTime: '06:40',
+        targetDate: '2026-02-25',
+      })
+
+      await POST(req)
+
+      expect(generateAIPremiumReport).toHaveBeenCalledTimes(1)
+      const args = vi.mocked(generateAIPremiumReport).mock.calls[0]
+      expect(args[2]).toMatchObject({
+        timingData: expect.objectContaining({
+          daeun: expect.objectContaining({ isCurrent: true }),
+          seun: expect.any(Object),
+          wolun: expect.any(Object),
+          iljin: expect.any(Object),
+        }),
+      })
+    })
+
     it('should default detailLevel to "detailed"', async () => {
       const req = createPostRequest(MOCK_VALID_INPUT)
       await POST(req)

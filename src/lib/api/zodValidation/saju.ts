@@ -539,6 +539,7 @@ export const compatibilityPersonInputSchema = z
     name: z.string().max(120).optional(),
     date: dateSchema,
     time: timeSchema,
+    gender: genderSchema.optional(),
     latitude: z
       .number()
       .refine((val) => val >= -90 && val <= 90, { message: 'Latitude must be between -90 and 90' }),

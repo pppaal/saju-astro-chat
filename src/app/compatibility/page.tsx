@@ -166,6 +166,12 @@ export default function CompatPage() {
           name: profile.name || next[0].name,
           date: profile.birthDate || next[0].date,
           time: profile.birthTime || next[0].time,
+          gender:
+            profile.gender?.toLowerCase() === 'female' || profile.gender?.toLowerCase() === 'f'
+              ? 'F'
+              : profile.gender?.toLowerCase() === 'male' || profile.gender?.toLowerCase() === 'm'
+                ? 'M'
+                : next[0].gender,
           cityQuery: profile.birthCity || next[0].cityQuery,
           timeZone: profile.timezone || next[0].timeZone,
         }
@@ -224,7 +230,11 @@ export default function CompatPage() {
         {/* Tabs View */}
         {showTabs && !resultText && (
           <div className={styles.tabsWrapper}>
-            <CompatibilityTabs onStartAnalysis={handleStartAnalysis} t={compatT} locale={normalizedLocale} />
+            <CompatibilityTabs
+              onStartAnalysis={handleStartAnalysis}
+              t={compatT}
+              locale={normalizedLocale}
+            />
           </div>
         )}
 
@@ -236,7 +246,10 @@ export default function CompatPage() {
                 {compatT('compatibilityPage.title', 'Relationship Compatibility')}
               </h1>
               <p className={styles.formSubtitle}>
-                {compatT('compatibilityPage.subtitle', 'Explore the cosmic connections between hearts')}
+                {compatT(
+                  'compatibilityPage.subtitle',
+                  'Explore the cosmic connections between hearts'
+                )}
               </p>
             </div>
 
@@ -258,14 +271,8 @@ export default function CompatPage() {
                   <span>{loadingProfileBtn ? '\u23F3' : '\u{1F464}'}</span>
                   <span>
                     {loadingProfileBtn
-                      ? compatT(
-                          'compatibilityPage.loadingProfile',
-                          'Loading...'
-                        )
-                      : compatT(
-                          'compatibilityPage.loadMyProfile',
-                          'Load My Profile'
-                        )}
+                      ? compatT('compatibilityPage.loadingProfile', 'Loading...')
+                      : compatT('compatibilityPage.loadMyProfile', 'Load My Profile')}
                   </span>
                 </button>
               )}
@@ -273,11 +280,7 @@ export default function CompatPage() {
               {/* Profile loaded success message */}
               {profileLoadedMsg && (
                 <div className="mb-5 p-3 bg-green-600/20 border border-green-600 rounded-lg text-green-400 text-center">
-                  {'\u2713'}{' '}
-                  {compatT(
-                    'compatibilityPage.profileLoaded',
-                    'Profile loaded!'
-                  )}
+                  {'\u2713'} {compatT('compatibilityPage.profileLoaded', 'Profile loaded!')}
                 </div>
               )}
 
@@ -378,7 +381,9 @@ export default function CompatPage() {
             )}
 
             {/* Timing Guide Section */}
-            {timing && <TimingGuideCard timing={timing} isGroupResult={isGroupResult} t={compatT} />}
+            {timing && (
+              <TimingGuideCard timing={timing} isGroupResult={isGroupResult} t={compatT} />
+            )}
 
             {/* Action Items Section */}
             {actionItems.length > 0 && (

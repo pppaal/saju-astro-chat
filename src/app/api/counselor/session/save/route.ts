@@ -14,6 +14,7 @@ import {
 } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
 
 export const dynamic = 'force-dynamic'
 
@@ -70,6 +71,7 @@ export const POST = withApiMiddleware(
     }
 
     const { sessionId, theme = 'chat', messages, locale = 'ko' } = validationResult.data
+    const normalizedTheme = normalizeReportTheme(theme) || theme
 
     if (!sessionId || !messages.length) {
       return createErrorResponse({
@@ -112,7 +114,7 @@ export const POST = withApiMiddleware(
           data: {
             id: sessionId,
             userId,
-            theme,
+            theme: normalizedTheme,
             locale,
             messages,
             messageCount: messages.length,
@@ -164,6 +166,7 @@ export const POST = withApiMiddleware(
       sessionId,
       userId,
       saveMode,
+      theme: normalizedTheme,
       messageCount: messages.length,
     })
 

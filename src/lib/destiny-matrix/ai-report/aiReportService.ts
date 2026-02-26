@@ -23,6 +23,7 @@ import { buildGraphRAGEvidence, formatGraphRAGEvidenceForPrompt } from './graphR
 import { renderSectionsAsMarkdown, renderSectionsAsText } from './reportRendering'
 import { buildDeterministicCore } from './deterministicCore'
 import type { DeterministicProfile } from './deterministicCoreConfig'
+import { getThemedSectionKeys } from './themeSchema'
 
 // Extracted modules
 import type { AIPremiumReport, AIReportGenerationOptions, AIUserPlan } from './reportTypes'
@@ -39,10 +40,23 @@ import {
 const SAJU_REGEX = /사주|오행|십신|대운|일간|격국|용신|신살/i
 const ASTRO_REGEX =
   /점성|행성|하우스|트랜싯|별자리|상승궁|천궁도|astrology|planet|house|transit|zodiac/i
+const CROSS_REGEX = /교차|cross|융합|통합|integrat|synthesize/i
+const ACTION_REGEX =
+  /해야|하세요|실행|점검|정리|기록|실천|계획|오늘|이번주|이번 달|today|this week|this month|action|plan|step|execute|schedule/i
 
 function hasCrossInText(text: string): boolean {
   if (!text || typeof text !== 'string') return false
   return SAJU_REGEX.test(text) && ASTRO_REGEX.test(text)
+}
+
+function hasActionInText(text: string): boolean {
+  if (!text || typeof text !== 'string') return false
+  return ACTION_REGEX.test(text)
+}
+
+function hasEvidenceTriplet(text: string): boolean {
+  if (!text || typeof text !== 'string') return false
+  return SAJU_REGEX.test(text) && ASTRO_REGEX.test(text) && CROSS_REGEX.test(text)
 }
 
 function countSectionChars(sections: Record<string, unknown>): number {
@@ -131,6 +145,28 @@ function getCrossCoverageRatio(sections: Record<string, unknown>, crossPaths: st
   return hit / texts.length
 }
 
+function getCoverageRatioByPredicate(
+  sections: Record<string, unknown>,
+  paths: string[],
+  predicate: (text: string) => boolean
+): number {
+  const texts = paths.map((path) => getPathText(sections, path)).filter((t) => t.length > 0)
+  if (texts.length === 0) return 0
+  const hit = texts.filter((t) => predicate(t)).length
+  return hit / texts.length
+}
+
+function getMissingPathsByPredicate(
+  sections: Record<string, unknown>,
+  paths: string[],
+  predicate: (text: string) => boolean
+): string[] {
+  return paths.filter((path) => {
+    const text = getPathText(sections, path)
+    return !!text && !predicate(text)
+  })
+}
+
 function buildDepthRepairInstruction(
   lang: 'ko' | 'en',
   sectionPaths: string[],
@@ -186,6 +222,60 @@ function buildSecondPassInstruction(lang: 'ko' | 'en'): string {
   ].join('\n')
 }
 
+function buildActionRepairInstruction(
+  lang: 'ko' | 'en',
+  ratio: number,
+  targetRatio: number,
+  missingPaths: string[]
+): string {
+  if (lang === 'ko') {
+    return [
+      '',
+      `중요: 실행 문장 비율이 낮습니다. 현재=${Math.round(ratio * 100)}%, 목표=${Math.round(targetRatio * 100)}%`,
+      missingPaths.length > 0 ? `보강 필요 섹션: ${missingPaths.join(', ')}` : '',
+      '각 핵심 섹션마다 반드시 오늘-이번주-이번달 순서의 실행 문장(행동 지시) 최소 2개를 넣으세요.',
+      '추상적 위로 문장 대신 실제 행동 가능한 문장을 사용하세요.',
+    ]
+      .filter(Boolean)
+      .join('\n')
+  }
+  return [
+    '',
+    `IMPORTANT: Actionable sentence coverage is low. current=${Math.round(ratio * 100)}%, target=${Math.round(targetRatio * 100)}%`,
+    missingPaths.length > 0 ? `Sections needing action steps: ${missingPaths.join(', ')}` : '',
+    'Each core section must include at least 2 concrete action sentences using a today-this week-this month sequence.',
+    'Replace abstract comfort with executable guidance.',
+  ]
+    .filter(Boolean)
+    .join('\n')
+}
+
+function buildEvidenceRepairInstruction(
+  lang: 'ko' | 'en',
+  ratio: number,
+  targetRatio: number,
+  missingPaths: string[]
+): string {
+  if (lang === 'ko') {
+    return [
+      '',
+      `중요: 근거 트리플(사주+점성+교차) 비율이 낮습니다. 현재=${Math.round(ratio * 100)}%, 목표=${Math.round(targetRatio * 100)}%`,
+      missingPaths.length > 0 ? `보강 필요 섹션: ${missingPaths.join(', ')}` : '',
+      '각 핵심 섹션에서 반드시 사주 근거 1문장 + 점성 근거 1문장 + 교차 결론 1문장을 포함하세요.',
+    ]
+      .filter(Boolean)
+      .join('\n')
+  }
+  return [
+    '',
+    `IMPORTANT: Evidence triplet coverage (Saju+Astrology+Cross) is low. current=${Math.round(ratio * 100)}%, target=${Math.round(targetRatio * 100)}%`,
+    missingPaths.length > 0 ? `Sections needing evidence triplet: ${missingPaths.join(', ')}` : '',
+    'For each core section include 1 Saju basis sentence + 1 Astrology basis sentence + 1 cross conclusion sentence.',
+  ]
+    .filter(Boolean)
+    .join('\n')
+}
+
 function buildCrossCoverageRepairInstruction(
   lang: 'ko' | 'en',
   ratio: number,
@@ -210,14 +300,14 @@ function buildCrossCoverageRepairInstruction(
 function getMaxRepairPassesByPlan(plan?: AIUserPlan): number {
   switch (plan) {
     case 'premium':
-      return 2
+      return 3
     case 'pro':
-      return 1
+      return 3
     case 'starter':
-      return 1
+      return 2
     case 'free':
     default:
-      return 0
+      return 2
   }
 }
 
@@ -232,6 +322,7 @@ export async function generateAIPremiumReport(
 ): Promise<AIPremiumReport> {
   const startTime = Date.now()
   const lang = options.lang || 'ko'
+  const detailLevel = options.detailLevel || 'detailed'
 
   // 1. 프롬프트 빌드
   const graphRagEvidence = buildGraphRAGEvidence(input, matrixReport, {
@@ -265,12 +356,16 @@ export async function generateAIPremiumReport(
 
   const requestedChars =
     typeof options.targetChars === 'number' && Number.isFinite(options.targetChars)
-      ? Math.max(2500, Math.min(22000, Math.floor(options.targetChars)))
-      : options.detailLevel === 'comprehensive'
+      ? Math.max(3500, Math.min(32000, Math.floor(options.targetChars)))
+      : detailLevel === 'comprehensive'
         ? lang === 'ko'
-          ? 10000
-          : 8000
-        : undefined
+          ? 18000
+          : 14000
+        : detailLevel === 'detailed'
+          ? lang === 'ko'
+            ? 11000
+            : 8500
+          : undefined
   const maxTokensOverride = requestedChars ? Math.ceil(requestedChars / 2) + 1200 : undefined
 
   // 2. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
@@ -307,19 +402,62 @@ export async function generateAIPremiumReport(
     'actionPlan',
     'conclusion',
   ]
-  const minCharsPerSection = lang === 'ko' ? 220 : 170
-  const minTotalChars = Math.max(lang === 'ko' ? 2600 : 2200, requestedChars || 0)
-  const minCrossCoverage = 0.6
+  const minCharsPerSection =
+    detailLevel === 'comprehensive'
+      ? lang === 'ko'
+        ? 950
+        : 700
+      : detailLevel === 'detailed'
+        ? lang === 'ko'
+          ? 550
+          : 420
+        : lang === 'ko'
+          ? 320
+          : 240
+  const minTotalChars = Math.max(
+    detailLevel === 'comprehensive'
+      ? lang === 'ko'
+        ? 14000
+        : 11000
+      : detailLevel === 'detailed'
+        ? lang === 'ko'
+          ? 8000
+          : 6200
+        : lang === 'ko'
+          ? 4500
+          : 3500,
+    requestedChars || 0
+  )
+  const minCrossCoverage =
+    detailLevel === 'comprehensive' ? 0.9 : detailLevel === 'detailed' ? 0.75 : 0.65
+  const minActionCoverage =
+    detailLevel === 'comprehensive' ? 0.85 : detailLevel === 'detailed' ? 0.7 : 0.6
+  const minEvidenceTripletCoverage =
+    detailLevel === 'comprehensive' ? 0.85 : detailLevel === 'detailed' ? 0.7 : 0.6
 
   const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
   const missingCross = getMissingCrossPaths(sections, crossPaths)
   const crossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
+  const missingActionPaths = getMissingPathsByPredicate(sections, crossPaths, hasActionInText)
+  const actionCoverageRatio = getCoverageRatioByPredicate(sections, crossPaths, hasActionInText)
+  const missingEvidenceTripletPaths = getMissingPathsByPredicate(
+    sections,
+    crossPaths,
+    hasEvidenceTriplet
+  )
+  const evidenceTripletCoverageRatio = getCoverageRatioByPredicate(
+    sections,
+    crossPaths,
+    hasEvidenceTriplet
+  )
   const totalChars = countSectionChars(sections)
   const needsRepair =
     shortPaths.length > 0 ||
     missingCross.length > 0 ||
     totalChars < minTotalChars ||
-    crossCoverageRatio < minCrossCoverage
+    crossCoverageRatio < minCrossCoverage ||
+    actionCoverageRatio < minActionCoverage ||
+    evidenceTripletCoverageRatio < minEvidenceTripletCoverage
 
   if (needsRepair && maxRepairPasses > 0) {
     const repairPrompt = [
@@ -334,6 +472,22 @@ export async function generateAIPremiumReport(
       missingCross.length > 0 ? buildCrossRepairInstruction(lang, missingCross) : '',
       crossCoverageRatio < minCrossCoverage
         ? buildCrossCoverageRepairInstruction(lang, crossCoverageRatio, minCrossCoverage)
+        : '',
+      actionCoverageRatio < minActionCoverage
+        ? buildActionRepairInstruction(
+            lang,
+            actionCoverageRatio,
+            minActionCoverage,
+            missingActionPaths
+          )
+        : '',
+      evidenceTripletCoverageRatio < minEvidenceTripletCoverage
+        ? buildEvidenceRepairInstruction(
+            lang,
+            evidenceTripletCoverageRatio,
+            minEvidenceTripletCoverage,
+            missingEvidenceTripletPaths
+          )
         : '',
     ]
       .filter(Boolean)
@@ -350,13 +504,25 @@ export async function generateAIPremiumReport(
       const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
       const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
       const secondCrossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
+      const secondActionCoverageRatio = getCoverageRatioByPredicate(
+        sections,
+        crossPaths,
+        hasActionInText
+      )
+      const secondEvidenceTripletCoverageRatio = getCoverageRatioByPredicate(
+        sections,
+        crossPaths,
+        hasEvidenceTriplet
+      )
       const secondTotalChars = countSectionChars(sections)
       if (
         maxRepairPasses > 1 &&
         (secondShortPaths.length > 0 ||
           secondMissingCross.length > 0 ||
           secondTotalChars < minTotalChars ||
-          secondCrossCoverageRatio < minCrossCoverage)
+          secondCrossCoverageRatio < minCrossCoverage ||
+          secondActionCoverageRatio < minActionCoverage ||
+          secondEvidenceTripletCoverageRatio < minEvidenceTripletCoverage)
       ) {
         const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
         try {
@@ -543,19 +709,35 @@ export async function generateTimingReport(
     'domains.health',
     'actionPlan',
   ]
-  const minCharsPerSection = lang === 'ko' ? 170 : 130
-  const minTotalChars = lang === 'ko' ? 1900 : 1600
-  const minCrossCoverage = 0.6
+  const minCharsPerSection = lang === 'ko' ? 300 : 230
+  const minTotalChars = lang === 'ko' ? 5200 : 4000
+  const minCrossCoverage = 0.72
+  const minActionCoverage = 0.65
+  const minEvidenceTripletCoverage = 0.65
 
   const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
   const missingCross = getMissingCrossPaths(sections, crossPaths)
   const crossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
+  const missingActionPaths = getMissingPathsByPredicate(sections, crossPaths, hasActionInText)
+  const actionCoverageRatio = getCoverageRatioByPredicate(sections, crossPaths, hasActionInText)
+  const missingEvidenceTripletPaths = getMissingPathsByPredicate(
+    sections,
+    crossPaths,
+    hasEvidenceTriplet
+  )
+  const evidenceTripletCoverageRatio = getCoverageRatioByPredicate(
+    sections,
+    crossPaths,
+    hasEvidenceTriplet
+  )
   const totalChars = countSectionChars(sections)
   const needsRepair =
     shortPaths.length > 0 ||
     missingCross.length > 0 ||
     totalChars < minTotalChars ||
-    crossCoverageRatio < minCrossCoverage
+    crossCoverageRatio < minCrossCoverage ||
+    actionCoverageRatio < minActionCoverage ||
+    evidenceTripletCoverageRatio < minEvidenceTripletCoverage
 
   if (needsRepair && maxRepairPasses > 0) {
     const repairPrompt = [
@@ -571,6 +753,22 @@ export async function generateTimingReport(
       crossCoverageRatio < minCrossCoverage
         ? buildCrossCoverageRepairInstruction(lang, crossCoverageRatio, minCrossCoverage)
         : '',
+      actionCoverageRatio < minActionCoverage
+        ? buildActionRepairInstruction(
+            lang,
+            actionCoverageRatio,
+            minActionCoverage,
+            missingActionPaths
+          )
+        : '',
+      evidenceTripletCoverageRatio < minEvidenceTripletCoverage
+        ? buildEvidenceRepairInstruction(
+            lang,
+            evidenceTripletCoverageRatio,
+            minEvidenceTripletCoverage,
+            missingEvidenceTripletPaths
+          )
+        : '',
     ]
       .filter(Boolean)
       .join('\n')
@@ -585,13 +783,25 @@ export async function generateTimingReport(
       const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
       const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
       const secondCrossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
+      const secondActionCoverageRatio = getCoverageRatioByPredicate(
+        sections,
+        crossPaths,
+        hasActionInText
+      )
+      const secondEvidenceTripletCoverageRatio = getCoverageRatioByPredicate(
+        sections,
+        crossPaths,
+        hasEvidenceTriplet
+      )
       const secondTotalChars = countSectionChars(sections)
       if (
         maxRepairPasses > 1 &&
         (secondShortPaths.length > 0 ||
           secondMissingCross.length > 0 ||
           secondTotalChars < minTotalChars ||
-          secondCrossCoverageRatio < minCrossCoverage)
+          secondCrossCoverageRatio < minCrossCoverage ||
+          secondActionCoverageRatio < minActionCoverage ||
+          secondEvidenceTripletCoverageRatio < minEvidenceTripletCoverage)
       ) {
         const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
         try {
@@ -746,38 +956,36 @@ export async function generateThemedReport(
   let tokensUsed = base.tokensUsed
   const maxRepairPasses = getMaxRepairPassesByPlan(options.userPlan)
 
-  const sectionPaths = [
-    'deepAnalysis',
-    'patterns',
-    'timing',
-    'compatibility',
-    'strategy',
-    'prevention',
-    'dynamics',
-    'actionPlan',
-  ]
-  const crossPaths = [
-    'deepAnalysis',
-    'patterns',
-    'timing',
-    'compatibility',
-    'strategy',
-    'prevention',
-    'dynamics',
-    'actionPlan',
-  ]
-  const minCharsPerSection = lang === 'ko' ? 180 : 140
-  const minTotalChars = lang === 'ko' ? 1700 : 1400
-  const minCrossCoverage = 0.6
+  const sectionPaths = [...getThemedSectionKeys(theme)]
+  const crossPaths = sectionPaths.filter((path) => path !== 'recommendations')
+  const minCharsPerSection = lang === 'ko' ? 320 : 240
+  const minTotalChars = lang === 'ko' ? 5600 : 4200
+  const minCrossCoverage = 0.72
+  const minActionCoverage = 0.65
+  const minEvidenceTripletCoverage = 0.65
   const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
   const missingCross = getMissingCrossPaths(sections, crossPaths)
   const crossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
+  const missingActionPaths = getMissingPathsByPredicate(sections, crossPaths, hasActionInText)
+  const actionCoverageRatio = getCoverageRatioByPredicate(sections, crossPaths, hasActionInText)
+  const missingEvidenceTripletPaths = getMissingPathsByPredicate(
+    sections,
+    crossPaths,
+    hasEvidenceTriplet
+  )
+  const evidenceTripletCoverageRatio = getCoverageRatioByPredicate(
+    sections,
+    crossPaths,
+    hasEvidenceTriplet
+  )
   const totalChars = countSectionChars(sections)
   const needsRepair =
     shortPaths.length > 0 ||
     missingCross.length > 0 ||
     totalChars < minTotalChars ||
-    crossCoverageRatio < minCrossCoverage
+    crossCoverageRatio < minCrossCoverage ||
+    actionCoverageRatio < minActionCoverage ||
+    evidenceTripletCoverageRatio < minEvidenceTripletCoverage
 
   if (needsRepair && maxRepairPasses > 0) {
     const repairPrompt = [
@@ -793,6 +1001,22 @@ export async function generateThemedReport(
       crossCoverageRatio < minCrossCoverage
         ? buildCrossCoverageRepairInstruction(lang, crossCoverageRatio, minCrossCoverage)
         : '',
+      actionCoverageRatio < minActionCoverage
+        ? buildActionRepairInstruction(
+            lang,
+            actionCoverageRatio,
+            minActionCoverage,
+            missingActionPaths
+          )
+        : '',
+      evidenceTripletCoverageRatio < minEvidenceTripletCoverage
+        ? buildEvidenceRepairInstruction(
+            lang,
+            evidenceTripletCoverageRatio,
+            minEvidenceTripletCoverage,
+            missingEvidenceTripletPaths
+          )
+        : '',
     ]
       .filter(Boolean)
       .join('\n')
@@ -807,13 +1031,25 @@ export async function generateThemedReport(
       const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
       const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
       const secondCrossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
+      const secondActionCoverageRatio = getCoverageRatioByPredicate(
+        sections,
+        crossPaths,
+        hasActionInText
+      )
+      const secondEvidenceTripletCoverageRatio = getCoverageRatioByPredicate(
+        sections,
+        crossPaths,
+        hasEvidenceTriplet
+      )
       const secondTotalChars = countSectionChars(sections)
       if (
         maxRepairPasses > 1 &&
         (secondShortPaths.length > 0 ||
           secondMissingCross.length > 0 ||
           secondTotalChars < minTotalChars ||
-          secondCrossCoverageRatio < minCrossCoverage)
+          secondCrossCoverageRatio < minCrossCoverage ||
+          secondActionCoverageRatio < minActionCoverage ||
+          secondEvidenceTripletCoverageRatio < minEvidenceTripletCoverage)
       ) {
         const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
         try {
@@ -869,28 +1105,10 @@ export async function generateThemedReport(
     deterministicCore,
     renderedMarkdown: renderSectionsAsMarkdown(
       sections as Record<string, unknown>,
-      [
-        'deepAnalysis',
-        'patterns',
-        'timing',
-        'compatibility',
-        'strategy',
-        'prevention',
-        'dynamics',
-        'actionPlan',
-      ],
+      sectionPaths,
       lang
     ),
-    renderedText: renderSectionsAsText(sections as Record<string, unknown>, [
-      'deepAnalysis',
-      'patterns',
-      'timing',
-      'compatibility',
-      'strategy',
-      'prevention',
-      'dynamics',
-      'actionPlan',
-    ]),
+    renderedText: renderSectionsAsText(sections as Record<string, unknown>, sectionPaths),
     themeScore,
     keywords,
 

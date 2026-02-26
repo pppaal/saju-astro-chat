@@ -47,12 +47,12 @@ const REQUIRED_SECTION_KEYS = [
   'actionPlan',
 ]
 
-const THEME_SPECIFIC_KEYS: Record<string, string> = {
-  love: 'compatibility',
-  career: 'strategy',
-  wealth: 'strategy',
-  health: 'prevention',
-  family: 'dynamics',
+const THEME_SPECIFIC_KEYS: Record<string, string[]> = {
+  love: ['compatibility', 'spouseProfile', 'marriageTiming'],
+  career: ['strategy', 'roleFit', 'turningPoints'],
+  wealth: ['strategy', 'incomeStreams', 'riskManagement'],
+  health: ['prevention', 'riskWindows', 'recoveryPlan'],
+  family: ['dynamics', 'communication', 'legacy'],
 }
 
 const SAJU_REGEX = /사주|오행|십신|대운|세운|월운|일간|격국|용신|신살|saju|bazi|daeun|saeun|sibsin/i
@@ -119,7 +119,7 @@ export function evaluateThemedReportQuality(input: {
 
   const requiredKeys = [...REQUIRED_SECTION_KEYS]
   const themeSpecific = input.theme ? THEME_SPECIFIC_KEYS[input.theme] : undefined
-  if (themeSpecific) requiredKeys.push(themeSpecific)
+  if (themeSpecific?.length) requiredKeys.push(...themeSpecific)
 
   const presentRequired = requiredKeys.filter((key) => toText(sections[key]).length > 0).length
   const completenessScore = clamp100((presentRequired / requiredKeys.length) * 100)

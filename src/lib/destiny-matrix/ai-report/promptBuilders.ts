@@ -45,6 +45,39 @@ export function buildProfileInfo(
     ko: input.dayMasterElement,
     en: input.dayMasterElement,
   }
+  const timing = options.timingData
+  const timingKo = [
+    timing?.daeun
+      ? `- 현재 대운: ${timing.daeun.heavenlyStem}${timing.daeun.earthlyBranch} (${timing.daeun.element}, ${timing.daeun.startAge}~${timing.daeun.endAge}세)`
+      : '',
+    timing?.seun
+      ? `- 세운: ${timing.seun.year}년 ${timing.seun.heavenlyStem}${timing.seun.earthlyBranch} (${timing.seun.element})`
+      : '',
+    timing?.wolun
+      ? `- 월운: ${timing.wolun.month}월 ${timing.wolun.heavenlyStem}${timing.wolun.earthlyBranch} (${timing.wolun.element})`
+      : '',
+    timing?.iljin
+      ? `- 일진: ${timing.iljin.date} ${timing.iljin.heavenlyStem}${timing.iljin.earthlyBranch} (${timing.iljin.element})`
+      : '',
+  ]
+    .filter(Boolean)
+    .join('\n')
+  const timingEn = [
+    timing?.daeun
+      ? `- Current Daeun: ${timing.daeun.heavenlyStem}${timing.daeun.earthlyBranch} (${timing.daeun.element}, age ${timing.daeun.startAge}-${timing.daeun.endAge})`
+      : '',
+    timing?.seun
+      ? `- Seun: ${timing.seun.year} ${timing.seun.heavenlyStem}${timing.seun.earthlyBranch} (${timing.seun.element})`
+      : '',
+    timing?.wolun
+      ? `- Wolun: month ${timing.wolun.month} ${timing.wolun.heavenlyStem}${timing.wolun.earthlyBranch} (${timing.wolun.element})`
+      : '',
+    timing?.iljin
+      ? `- Iljin: ${timing.iljin.date} ${timing.iljin.heavenlyStem}${timing.iljin.earthlyBranch} (${timing.iljin.element})`
+      : '',
+  ]
+    .filter(Boolean)
+    .join('\n')
 
   if (lang === 'ko') {
     return `## 프로필
@@ -59,7 +92,8 @@ export function buildProfileInfo(
         .join(', ') || '없음'
     }
 - 신살: ${input.shinsalList?.join(', ') || '없음'}
-- 현재 대운 오행: ${input.currentDaeunElement || '미입력'}`
+- 현재 대운 오행: ${input.currentDaeunElement || '미입력'}
+${timingKo}`
   }
 
   return `## Profile
@@ -74,7 +108,8 @@ export function buildProfileInfo(
       .join(', ') || 'None'
   }
 - Shinsal: ${input.shinsalList?.join(', ') || 'None'}
-- Current Daeun Element: ${input.currentDaeunElement || 'Not provided'}`
+- Current Daeun Element: ${input.currentDaeunElement || 'Not provided'}
+${timingEn}`
 }
 
 // ===========================
@@ -135,32 +170,32 @@ const JSON_RESPONSE_TEMPLATE = `{
 function getSectionInstructions(lang: 'ko' | 'en'): string {
   if (lang === 'ko') {
     return `### 작성할 섹션:
-1. **introduction**: 전체 운명 요약 (200-300자)
-2. **personalityDeep**: 성격 심층 분석 - 일간 오행, 격국, 십신 분포 기반 (400-600자)
-3. **careerPath**: 커리어 경로 & 적성 분석 (400-600자)
-4. **relationshipDynamics**: 관계 역학 - 연애, 결혼, 대인관계 (400-600자)
-5. **wealthPotential**: 재물운 & 재테크 성향 (300-500자)
-6. **healthGuidance**: 건강 가이드 - 오행 균형 기반 (300-400자)
-7. **lifeMission**: 인생 사명 & 영적 성장 방향 (300-400자)
-8. **timingAdvice**: 중요한 시기 & 타이밍 조언 (300-400자)
-9. **actionPlan**: 구체적 실천 가이드 5가지 (400-500자)
-10. **conclusion**: 마무리 격려 메시지 (150-200자)
+1. **introduction**: 전체 운명 요약 (700-1200자)
+2. **personalityDeep**: 성격 심층 분석 - 일간 오행, 격국, 십신 분포 기반 (900-1500자)
+3. **careerPath**: 커리어 경로 & 적성 분석 (900-1500자)
+4. **relationshipDynamics**: 관계 역학 - 연애, 결혼, 대인관계 (900-1500자)
+5. **wealthPotential**: 재물운 & 재테크 성향 (700-1200자)
+6. **healthGuidance**: 건강 가이드 - 오행 균형 기반 (700-1100자)
+7. **lifeMission**: 인생 사명 & 영적 성장 방향 (700-1100자)
+8. **timingAdvice**: 중요한 시기 & 타이밍 조언 (700-1200자)
+9. **actionPlan**: 구체적 실천 가이드 5가지 (900-1400자)
+10. **conclusion**: 마무리 격려 메시지 (500-800자)
 
 응답은 반드시 아래 JSON 형식으로만 작성하세요:
 ${JSON_RESPONSE_TEMPLATE}`
   }
 
   return `### Sections to Write:
-1. **introduction**: Overall destiny summary (150-250 words)
-2. **personalityDeep**: Deep personality analysis based on Day Master, Geokguk, Sibsin (300-400 words)
-3. **careerPath**: Career path & aptitude analysis (300-400 words)
-4. **relationshipDynamics**: Relationship dynamics - love, marriage, interpersonal (300-400 words)
-5. **wealthPotential**: Wealth potential & financial tendencies (200-300 words)
-6. **healthGuidance**: Health guidance based on Five Elements balance (200-300 words)
-7. **lifeMission**: Life mission & spiritual growth direction (200-300 words)
-8. **timingAdvice**: Important timing & period advice (200-300 words)
-9. **actionPlan**: 5 specific action items (300-400 words)
-10. **conclusion**: Closing encouragement message (100-150 words)
+1. **introduction**: Overall destiny summary (350-550 words)
+2. **personalityDeep**: Deep personality analysis based on Day Master, Geokguk, Sibsin (450-700 words)
+3. **careerPath**: Career path & aptitude analysis (450-700 words)
+4. **relationshipDynamics**: Relationship dynamics - love, marriage, interpersonal (450-700 words)
+5. **wealthPotential**: Wealth potential & financial tendencies (350-550 words)
+6. **healthGuidance**: Health guidance based on Five Elements balance (300-500 words)
+7. **lifeMission**: Life mission & spiritual growth direction (300-500 words)
+8. **timingAdvice**: Important timing & period advice (350-550 words)
+9. **actionPlan**: 5 specific action items (450-700 words)
+10. **conclusion**: Closing encouragement message (220-320 words)
 
 Response MUST be in this JSON format only:
 ${JSON_RESPONSE_TEMPLATE}`

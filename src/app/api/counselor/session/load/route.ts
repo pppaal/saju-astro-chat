@@ -3,6 +3,7 @@ import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/
 import { prisma } from '@/lib/db/prisma'
 import { counselorSessionLoadQuerySchema } from '@/lib/api/zodValidation'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,6 +23,7 @@ export const GET = withApiMiddleware(
       )
     }
     const { theme, sessionId } = queryValidation.data
+    const normalizedTheme = normalizeReportTheme(theme) || theme
 
     let chatSession
 
@@ -38,7 +40,7 @@ export const GET = withApiMiddleware(
       chatSession = await prisma.counselorChatSession.findFirst({
         where: {
           userId,
-          theme,
+          theme: normalizedTheme,
         },
         orderBy: {
           updatedAt: 'desc',

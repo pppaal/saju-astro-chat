@@ -85,9 +85,19 @@ export interface ThemedReportSections {
   patterns: string // 패턴 분석
   timing: string // 테마별 타이밍
   compatibility?: string // 궁합 (love)
+  spouseProfile?: string // 배우자상/이상형 (love)
+  marriageTiming?: string // 결혼 타이밍 (love)
   strategy?: string // 전략 (career/wealth)
+  roleFit?: string // 직무 적합/포지션 핏 (career)
+  turningPoints?: string // 전환점 분석 (career)
+  incomeStreams?: string // 수입원 다각화 (wealth)
+  riskManagement?: string // 리스크 관리 (wealth)
   prevention?: string // 예방 (health)
+  riskWindows?: string // 건강 위험 구간 (health)
+  recoveryPlan?: string // 회복 루틴 (health)
   dynamics?: string // 역학 (family)
+  communication?: string // 가족 소통 방식 (family)
+  legacy?: string // 가족 유산/세대 과제 (family)
   recommendations: string[] // 추천 사항
   actionPlan: string // 실천 가이드
 }

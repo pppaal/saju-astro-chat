@@ -14,6 +14,7 @@ import {
   type ReportProfileInput,
 } from '@/app/premium-reports/_components/ReportProfileForm'
 import { savePremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
+import { REPORT_CREDIT_COSTS } from '@/lib/destiny-matrix/ai-report'
 
 interface SajuData {
   dayMasterElement: string
@@ -35,19 +36,19 @@ const PERIOD_INFO: Record<
   daily: {
     label: '?? ??? ???',
     description: '??? ??? ?? ??? ?? ???? ?????.',
-    credits: 1,
+    credits: REPORT_CREDIT_COSTS.daily,
     color: 'from-yellow-500 to-orange-500',
   },
   monthly: {
     label: '?? ??? ???',
     description: '??? ?? ?? ??? ??? ?????.',
-    credits: 2,
+    credits: REPORT_CREDIT_COSTS.monthly,
     color: 'from-blue-500 to-cyan-500',
   },
   yearly: {
     label: '?? ??? ???',
     description: '?? ??? ??? ??? ???? ?????.',
-    credits: 3,
+    credits: REPORT_CREDIT_COSTS.yearly,
     color: 'from-purple-500 to-pink-500',
   },
 }

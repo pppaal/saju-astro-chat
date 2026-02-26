@@ -984,6 +984,7 @@ export const POST = withApiMiddleware(
           bilingual,
           targetChars: targetChars ? Math.floor(targetChars) : undefined,
           tone,
+          timingData,
           userPlan,
           userQuestion,
           deterministicProfile,

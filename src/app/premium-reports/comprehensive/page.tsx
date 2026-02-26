@@ -13,6 +13,7 @@ import {
   type ReportProfileInput,
 } from '@/app/premium-reports/_components/ReportProfileForm'
 import { savePremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
+import { REPORT_CREDIT_COSTS } from '@/lib/destiny-matrix/ai-report'
 
 interface SajuData {
   dayMasterElement: string
@@ -218,7 +219,9 @@ export default function ComprehensiveReportPage() {
               </div>
 
               <p className="mt-3 text-xs font-semibold text-amber-200">
-                {reportTier === 'premium' ? '3 credits ? ?? ?? + PDF' : '0 credits ? ?? ?? ???'}
+                {reportTier === 'premium'
+                  ? `${REPORT_CREDIT_COSTS.comprehensive} credits - Premium report + PDF`
+                  : '0 credits - Free digest report'}
               </p>
             </div>
           </div>

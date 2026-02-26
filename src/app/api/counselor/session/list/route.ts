@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { withApiMiddleware, createAuthenticatedGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  extractLocale,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import {
@@ -7,6 +12,7 @@ import {
   counselorSessionDeleteQuerySchema,
   createValidationErrorResponse,
 } from '@/lib/api/zodValidation'
+import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,12 +33,13 @@ export const GET = withApiMiddleware(
       })
     }
     const { theme, limit } = queryValidation.data
+    const normalizedTheme = normalizeReportTheme(theme) || theme
 
     // Single query to get user's sessions
     const sessions = await prisma.counselorChatSession.findMany({
       where: {
         userId,
-        ...(theme && { theme }),
+        ...(normalizedTheme && { theme: normalizedTheme }),
       },
       orderBy: { updatedAt: 'desc' },
       take: limit,

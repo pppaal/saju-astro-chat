@@ -301,13 +301,21 @@ function ageFromDate(date: string) {
   return clamp(age, 1, 120)
 }
 
+function normalizeSajuGender(value?: PersonInput['gender']): 'male' | 'female' {
+  if (!value) return 'male'
+  const normalized = String(value).trim().toLowerCase()
+  if (normalized === 'f' || normalized === 'female') return 'female'
+  return 'male'
+}
+
 function buildSajuProfileFromBirth(
   date: string,
   time: string,
-  timezone: string
+  timezone: string,
+  gender?: PersonInput['gender']
 ): SajuProfile | null {
   try {
-    const result = calculateSajuData(date, time, 'male', 'solar', timezone)
+    const result = calculateSajuData(date, time, normalizeSajuGender(gender), 'solar', timezone)
     return {
       dayMaster: {
         name: result.dayMaster.name,
@@ -1219,7 +1227,11 @@ function buildInterpretationMarkdown(params: {
     100
   )
   const reunionScore = clamp(
-    Math.round(communicationScore * 0.35 + emotionalScore * 0.35 + (primaryPair.crossScore ?? primaryPair.weightedScore) * 0.3),
+    Math.round(
+      communicationScore * 0.35 +
+        emotionalScore * 0.35 +
+        (primaryPair.crossScore ?? primaryPair.weightedScore) * 0.3
+    ),
     0,
     100
   )
@@ -1552,6 +1564,7 @@ export const POST = withApiMiddleware(
           name: sanitizeString(person.name, LIMITS.NAME),
           date: person.date,
           time: person.time,
+          gender: person.gender,
           latitude: person.latitude,
           longitude: person.longitude,
           timeZone: person.timeZone,
@@ -1575,7 +1588,12 @@ export const POST = withApiMiddleware(
 
     const personAnalyses: PersonAnalysis[] = await Promise.all(
       persons.map(async (person) => {
-        const sajuProfile = buildSajuProfileFromBirth(person.date, person.time, person.timeZone)
+        const sajuProfile = buildSajuProfileFromBirth(
+          person.date,
+          person.time,
+          person.timeZone,
+          person.gender
+        )
         const astroBundle = await buildAstrologyProfileFromBirth(person)
         return {
           sajuProfile,

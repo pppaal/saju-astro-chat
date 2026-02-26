@@ -6,6 +6,7 @@ import type { GraphRAGEvidenceBundle } from './graphRagEvidence'
 import type { CrossConsistencyAudit } from './crossConsistencyAudit'
 import type { DeterministicCoreOutput } from './deterministicCore'
 import type { DeterministicProfile } from './deterministicCoreConfig'
+import type { TimingData } from './types'
 
 export type AIUserPlan = 'free' | 'starter' | 'pro' | 'premium'
 
@@ -81,4 +82,5 @@ export interface AIReportGenerationOptions {
   userQuestion?: string
   deterministicCorePrompt?: string
   deterministicProfile?: DeterministicProfile
+  timingData?: TimingData
 }
