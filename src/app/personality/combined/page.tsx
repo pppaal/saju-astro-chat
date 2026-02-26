@@ -6,12 +6,24 @@ import { useSearchParams } from 'next/navigation'
 import BackButton from '@/components/ui/BackButton'
 import { TestStatusCard, useCombinedResult } from './components'
 import { buildHybridNarrativeSample } from '@/lib/persona/hybridNarrative'
+import type { IcpDimensionKey } from '@/lib/assessment/integratedProfile'
 import styles from './combined.module.css'
 
 export default function CombinedResultPage() {
   const searchParams = useSearchParams()
   const sampleMode = (searchParams.get('sample') ?? '').toLowerCase() === 'bc-rsla'
-  const { hasIcp, hasPersona, loading, isKo, starPositions, hybridNarrative } = useCombinedResult()
+  const {
+    hasIcp,
+    hasPersona,
+    loading,
+    isKo,
+    starPositions,
+    hybridNarrative,
+    personaResult,
+    icpDimensions,
+    integratedProfile,
+    integratedProfileId,
+  } = useCombinedResult()
 
   const sampleNarrative = useMemo(
     () => (sampleMode ? buildHybridNarrativeSample(isKo ? 'ko' : 'en') : null),
@@ -19,6 +31,72 @@ export default function CombinedResultPage() {
   )
 
   const narrative = sampleMode ? sampleNarrative : hybridNarrative
+  const integratedName = integratedProfile
+    ? isKo
+      ? integratedProfile.nameKo
+      : integratedProfile.nameEn
+    : null
+  const integratedOneLine = integratedProfile
+    ? isKo
+      ? integratedProfile.oneLineKo
+      : integratedProfile.oneLineEn
+    : null
+  const integratedStrengths = integratedProfile
+    ? isKo
+      ? integratedProfile.strengthsKo
+      : integratedProfile.strengthsEn
+    : []
+  const integratedWatchouts = integratedProfile
+    ? isKo
+      ? integratedProfile.watchoutsKo
+      : integratedProfile.watchoutsEn
+    : []
+  const integratedShowUp = integratedProfile
+    ? isKo
+      ? integratedProfile.howYouShowUpKo
+      : integratedProfile.howYouShowUpEn
+    : null
+  const integratedPlaybook = integratedProfile
+    ? isKo
+      ? integratedProfile.communicationPlaybookKo
+      : integratedProfile.communicationPlaybookEn
+    : null
+
+  const dimensionLabels: Record<
+    IcpDimensionKey,
+    { ko: string; en: string; koDesc: string; enDesc: string }
+  > = {
+    assertiveness: {
+      ko: '주장성',
+      en: 'Assertiveness',
+      koDesc: '갈등에서도 입장을 분명하게 전달하는 경향',
+      enDesc: 'Tendency to state your view clearly in tension',
+    },
+    rumination: {
+      ko: '반추',
+      en: 'Rumination',
+      koDesc: '관계 스트레스가 오래 남아 사고를 점유하는 경향',
+      enDesc: 'Tendency for social stress to stay active in thought',
+    },
+    empathy: {
+      ko: '공감',
+      en: 'Empathy',
+      koDesc: '상대 관점을 이해하려는 시도 강도',
+      enDesc: 'Degree of trying to understand the other side',
+    },
+    boundary: {
+      ko: '경계 설정',
+      en: 'Boundary',
+      koDesc: '시간·에너지 기준을 세우고 유지하는 경향',
+      enDesc: 'Tendency to set and hold time-energy limits',
+    },
+    recovery: {
+      ko: '회복력',
+      en: 'Recovery',
+      koDesc: '갈등 이후 정서를 정리하고 복귀하는 속도',
+      enDesc: 'Speed of emotional reset after conflict',
+    },
+  }
 
   if (loading) {
     return (
@@ -59,6 +137,105 @@ export default function CombinedResultPage() {
               : 'BC + RSLA sample report preview mode.'}
           </div>
         )}
+
+        {personaResult &&
+          icpDimensions &&
+          integratedProfile &&
+          integratedShowUp &&
+          integratedPlaybook && (
+            <section className={styles.section} aria-labelledby="integrated-result-title">
+              <h2 id="integrated-result-title" className={styles.sectionTitle}>
+                {isKo ? 'Integrated Result' : 'Integrated Result'}
+              </h2>
+
+              <div className={styles.snapshotGrid}>
+                <article className={styles.card}>
+                  <h3>{isKo ? 'Personality Summary' : 'Personality Summary'}</h3>
+                  <p>
+                    {personaResult.personaName} ({personaResult.typeCode})
+                  </p>
+                  <p>{personaResult.summary}</p>
+                </article>
+
+                <article className={styles.card}>
+                  <h3>{isKo ? 'ICP Summary (5 Dimensions)' : 'ICP Summary (5 Dimensions)'}</h3>
+                  <ul>
+                    {icpDimensions.ranked.map((dimension) => {
+                      const labelMeta = dimensionLabels[dimension.key]
+                      const label = isKo ? labelMeta.ko : labelMeta.en
+                      const desc = isKo ? labelMeta.koDesc : labelMeta.enDesc
+                      return (
+                        <li key={dimension.key}>
+                          <strong>{label}</strong> {dimension.score} · {desc}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </article>
+              </div>
+
+              <article className={styles.card}>
+                <h3>
+                  {integratedName} ({integratedProfileId})
+                </h3>
+                <p>{integratedOneLine}</p>
+                <div className={styles.snapshotGrid}>
+                  <div>
+                    <h3>{isKo ? '강점 3' : '3 Strengths'}</h3>
+                    <ul>
+                      {integratedStrengths.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3>{isKo ? '주의 3' : '3 Watchouts'}</h3>
+                    <ul>
+                      {integratedWatchouts.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <div className={styles.snapshotGrid}>
+                  <div>
+                    <h3>{isKo ? '연애에서 보이는 패턴' : 'Dating Pattern'}</h3>
+                    <ul>
+                      {integratedShowUp.dating.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3>{isKo ? '일할 때 보이는 패턴' : 'Work Pattern'}</h3>
+                    <ul>
+                      {integratedShowUp.work.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <div className={styles.snapshotGrid}>
+                  <div>
+                    <h3>{isKo ? '친구/가족과의 패턴' : 'Friends/Family Pattern'}</h3>
+                    <ul>
+                      {integratedShowUp.friendsFamily.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3>{isKo ? 'Communication Playbook' : 'Communication Playbook'}</h3>
+                    <ul>
+                      <li>{integratedPlaybook.conflictOpener}</li>
+                      <li>{integratedPlaybook.boundarySetting}</li>
+                      <li>{integratedPlaybook.repairReconnect}</li>
+                    </ul>
+                  </div>
+                </div>
+              </article>
+            </section>
+          )}
 
         <section className={styles.hero} aria-labelledby="hybrid-hero-title">
           <p className={styles.overline}>

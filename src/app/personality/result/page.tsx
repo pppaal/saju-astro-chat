@@ -146,6 +146,7 @@ export default function ResultPage() {
             authStatus={authStatus}
             saveStatus={saveStatus}
             isSavedToDb={isSavedToDb}
+            hasIcpResult={hasIcpResult}
             handleSaveResult={handleSaveResult}
             handleShare={handleShare}
             handleDownload={handleDownload}

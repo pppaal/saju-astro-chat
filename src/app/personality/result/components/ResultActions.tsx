@@ -6,6 +6,7 @@ interface ResultActionsProps {
   authStatus: string
   saveStatus: string
   isSavedToDb: boolean
+  hasIcpResult: boolean
   handleSaveResult: () => void
   handleShare: () => void
   handleDownload: () => void
@@ -17,6 +18,7 @@ export function ResultActions({
   authStatus,
   saveStatus,
   isSavedToDb,
+  hasIcpResult,
   handleSaveResult,
   handleShare,
   handleDownload,
@@ -56,9 +58,16 @@ export function ResultActions({
       <Link href="/personality/quiz" className={styles.retakeButton}>
         <RefreshCw size={16} aria-hidden="true" /> {t('personality.retake', 'Retake Quiz')}
       </Link>
-      <Link href="/personality/combined" className={styles.retakeButton}>
-        <Link2 size={16} aria-hidden="true" /> {t('personality.combined', 'Combined Analysis')}
-      </Link>
+      {hasIcpResult ? (
+        <Link href="/personality/combined" className={styles.retakeButton}>
+          <Link2 size={16} aria-hidden="true" /> {t('personality.combined', 'Combined Analysis')}
+        </Link>
+      ) : (
+        <Link href="/icp/quiz" className={styles.retakeButton}>
+          <Link2 size={16} aria-hidden="true" />{' '}
+          {t('personality.continueWithIcp', 'Continue with ICP Test')}
+        </Link>
+      )}
     </section>
   )
 }

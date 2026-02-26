@@ -32,12 +32,13 @@ export function ReportProfileForm({
     () =>
       locale === 'ko'
         ? {
-            title: '??? ?? ??',
-            subtitle: '?? ??? ?? ?? ??? ??? ?? ??? ????.',
-            nameLabel: '?? (??)',
-            namePlaceholder: '?: ???',
-            submitButton: '?? ??',
-            savedTitle: '?? ??? ??',
+            title: '공통 프로필 입력',
+            subtitle:
+              '생년월일, 출생시간, 출생도시를 먼저 입력하면 Free/Premium 모두 같은 기준으로 분석합니다.',
+            nameLabel: '이름 (선택)',
+            namePlaceholder: '예: 홍길동',
+            submitButton: '입력 저장',
+            savedTitle: '저장된 입력',
           }
         : {
             title: 'Report Profile',
@@ -52,7 +53,7 @@ export function ReportProfileForm({
 
   const handleSubmit = (birth: BirthInfo) => {
     const payload: ReportProfileInput = {
-      name: name.trim() || (locale === 'ko' ? '???' : 'User'),
+      name: name.trim() || (locale === 'ko' ? '사용자' : 'User'),
       birthDate: birth.birthDate,
       birthTime: birth.birthTime || '12:00',
       gender: birth.gender,
@@ -89,8 +90,8 @@ export function ReportProfileForm({
           onSubmit={handleSubmit}
           locale={locale}
           includeProfileLoader={true}
-          includeCity={false}
-          includeCityToggle={true}
+          includeCity={true}
+          includeCityToggle={false}
           allowTimeUnknown={true}
           includeGender={true}
           genderFormat="short"
@@ -104,8 +105,8 @@ export function ReportProfileForm({
         <div className="mt-4 rounded-xl border border-emerald-300/35 bg-emerald-500/10 p-3 text-sm text-emerald-100">
           <p className="font-medium">{labels.savedTitle}</p>
           <p className="mt-1">
-            {lastSaved.name} ? {lastSaved.birthDate} {lastSaved.birthTime}
-            {lastSaved.birthCity ? ` ? ${lastSaved.birthCity}` : ''}
+            {lastSaved.name} · {lastSaved.birthDate} {lastSaved.birthTime}
+            {lastSaved.birthCity ? ` · ${lastSaved.birthCity}` : ''}
           </p>
         </div>
       )}

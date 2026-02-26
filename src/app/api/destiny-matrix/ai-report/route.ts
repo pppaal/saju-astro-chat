@@ -40,6 +40,7 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
+import { STEMS as SAJU_STEMS } from '@/lib/Saju/constants'
 import {
   calculateNatalChart,
   toChart,
@@ -96,6 +97,15 @@ const GEOKGUK_ALIASES: Partial<Record<string, MatrixCalculationInput['geokguk']>
   종강격: 'jonggang',
   종왕격: 'jonggang',
 }
+
+const DERIVED_SAJU_KEY = '__derivedSajuData'
+const STEM_ELEMENT_BY_NAME: Record<string, FiveElement> = SAJU_STEMS.reduce(
+  (acc, item) => {
+    acc[item.name] = item.element
+    return acc
+  },
+  {} as Record<string, FiveElement>
+)
 
 const toOptionalString = (value: unknown): string | undefined => {
   if (typeof value !== 'string') return undefined
@@ -160,6 +170,127 @@ function deriveSibsinDistributionFromSaju(sajuData: ReturnType<typeof calculateS
   return distribution
 }
 
+function getDerivedSajuData(
+  requestBody: Record<string, unknown>
+): ReturnType<typeof calculateSajuData> | undefined {
+  const candidate = requestBody[DERIVED_SAJU_KEY]
+  if (!candidate || typeof candidate !== 'object') return undefined
+  return candidate as ReturnType<typeof calculateSajuData>
+}
+
+function parseYearFromBirthDate(birthDate?: string): number | undefined {
+  if (!birthDate) return undefined
+  const year = Number(birthDate.slice(0, 4))
+  return Number.isFinite(year) ? year : undefined
+}
+
+function buildDerivedSajuSnapshot(
+  requestBody: Record<string, unknown>,
+  sajuData: ReturnType<typeof calculateSajuData>
+): Record<string, unknown> {
+  return {
+    source: 'auto-derived-from-birth',
+    birthDate: toOptionalString(requestBody.birthDate),
+    birthTime: toOptionalString(requestBody.birthTime),
+    timezone: toOptionalString(requestBody.timezone) || 'Asia/Seoul',
+    dayMaster: sajuData.dayMaster,
+    pillars: sajuData.pillars,
+    fiveElements: sajuData.fiveElements,
+    daeWoon: sajuData.daeWoon,
+    unse: sajuData.unse,
+    derivedAt: new Date().toISOString(),
+  }
+}
+
+function buildDerivedCrossSnapshot(requestBody: Record<string, unknown>): Record<string, unknown> {
+  const relationCount = Array.isArray(requestBody.relations) ? requestBody.relations.length : 0
+  const aspectCount = Array.isArray(requestBody.aspects) ? requestBody.aspects.length : 0
+  const domainScoreMap =
+    toOptionalRecord(requestBody.domainScores) || toOptionalRecord(requestBody.domainAnalysis)
+  const domainScoreCount = domainScoreMap ? Object.keys(domainScoreMap).length : 0
+  const currentDateIso =
+    toOptionalString(requestBody.currentDateIso) ||
+    toOptionalString(requestBody.targetDate) ||
+    new Date().toISOString().slice(0, 10)
+
+  return {
+    source: 'auto-derived-from-input',
+    currentDateIso,
+    anchors: {
+      dayMasterElement: toOptionalString(requestBody.dayMasterElement),
+      geokguk: toOptionalString(requestBody.geokguk),
+      yongsin: toOptionalString(requestBody.yongsin),
+      currentDaeunElement: toOptionalString(requestBody.currentDaeunElement),
+      currentSaeunElement: toOptionalString(requestBody.currentSaeunElement),
+    },
+    coverage: {
+      relationCount,
+      aspectCount,
+      domainScoreCount,
+      hasAstrologySnapshot: !!toOptionalRecord(requestBody.astrologySnapshot),
+      hasSajuSnapshot: !!toOptionalRecord(requestBody.sajuSnapshot),
+    },
+    derivedAt: new Date().toISOString(),
+  }
+}
+
+function ensureDerivedSnapshots(requestBody: Record<string, unknown>): Record<string, unknown> {
+  const hasSajuSnapshot =
+    !!toOptionalRecord(requestBody.sajuSnapshot) || !!toOptionalRecord(requestBody.saju)
+  const hasCrossSnapshot =
+    !!toOptionalRecord(requestBody.crossSnapshot) ||
+    !!toOptionalRecord(requestBody.graphRagEvidence) ||
+    !!toOptionalRecord(requestBody.matrixSummary)
+
+  const derivedSaju = getDerivedSajuData(requestBody)
+  if (!hasSajuSnapshot && derivedSaju) {
+    requestBody.sajuSnapshot = buildDerivedSajuSnapshot(requestBody, derivedSaju)
+  }
+  if (!hasCrossSnapshot) {
+    requestBody.crossSnapshot = buildDerivedCrossSnapshot(requestBody)
+  }
+  return requestBody
+}
+
+function buildAutoDaeunTiming(
+  requestBody: Record<string, unknown>,
+  targetDate?: string
+): TimingData['daeun'] {
+  const derivedSaju = getDerivedSajuData(requestBody)
+  const target = targetDate ? new Date(targetDate) : new Date()
+  const targetYear = target.getFullYear()
+  const birthYear = parseYearFromBirthDate(toOptionalString(requestBody.birthDate))
+  const age = birthYear ? Math.max(0, targetYear - birthYear) : 0
+  const startAge = Math.floor(age / 10) * 10
+  const fallbackCycleIdx = Math.floor(age / 10)
+  const fallbackStem = HEAVENLY_STEMS[((fallbackCycleIdx % 10) + 10) % 10]
+  const fallbackBranch = EARTHLY_BRANCHES[((fallbackCycleIdx % 12) + 12) % 12]
+
+  const derivedCurrent = derivedSaju?.daeWoon?.current
+  const heavenlyStem = toOptionalString(derivedCurrent?.heavenlyStem) || fallbackStem
+  const earthlyBranch = toOptionalString(derivedCurrent?.earthlyBranch) || fallbackBranch
+  const derivedStartAge = toOptionalNumber(derivedCurrent?.age)
+  const resolvedStartAge =
+    derivedStartAge !== undefined && Number.isFinite(derivedStartAge)
+      ? Math.max(0, Math.floor(derivedStartAge))
+      : startAge
+  const element =
+    STEM_ELEMENT_BY_NAME[heavenlyStem] ||
+    (STEM_ELEMENTS[heavenlyStem] as string | undefined) ||
+    toOptionalString(requestBody.currentDaeunElement) ||
+    toOptionalString(requestBody.currentSaeunElement) ||
+    '토'
+
+  return {
+    heavenlyStem,
+    earthlyBranch,
+    element,
+    startAge: resolvedStartAge,
+    endAge: resolvedStartAge + 9,
+    isCurrent: true,
+  }
+}
+
 function enrichRequestWithDerivedSaju(
   requestBody: Record<string, unknown>
 ): Record<string, unknown> {
@@ -174,6 +305,7 @@ function enrichRequestWithDerivedSaju(
 
   try {
     const sajuData = calculateSajuData(birthDate, birthTime, gender, 'solar', timezone)
+    requestBody[DERIVED_SAJU_KEY] = sajuData as unknown as Record<string, unknown>
     const dayElement = toOptionalString(sajuData.dayPillar?.heavenlyStem?.element)
     const derivedDayMaster = dayElement ? ELEMENT_MAP[dayElement] : undefined
 
@@ -217,6 +349,19 @@ function enrichRequestWithDerivedSaju(
     const annualElement = toOptionalString(sajuData.unse?.annual?.[0]?.element)
     if (!requestBody.currentSaeunElement && annualElement && ELEMENT_MAP[annualElement]) {
       requestBody.currentSaeunElement = ELEMENT_MAP[annualElement]
+    }
+
+    const currentDaeunStem = toOptionalString(sajuData.daeWoon?.current?.heavenlyStem)
+    if (
+      !requestBody.currentDaeunElement &&
+      currentDaeunStem &&
+      STEM_ELEMENT_BY_NAME[currentDaeunStem]
+    ) {
+      requestBody.currentDaeunElement = STEM_ELEMENT_BY_NAME[currentDaeunStem]
+    }
+
+    if (!toOptionalRecord(requestBody.sajuSnapshot)) {
+      requestBody.sajuSnapshot = buildDerivedSajuSnapshot(requestBody, sajuData)
     }
   } catch (error) {
     logger.warn('[destiny-matrix/ai-report] Failed to derive saju from birth profile', {
@@ -556,6 +701,7 @@ export const POST = withApiMiddleware(
 
       let requestBody = enrichRequestWithDerivedSaju({ ...(body as Record<string, unknown>) })
       requestBody = await enrichRequestWithDerivedAstrology(requestBody)
+      requestBody = ensureDerivedSnapshots(requestBody)
       const period = requestBody.period as ReportPeriod | undefined
       const theme = requestBody.theme as ReportTheme | undefined
       const reportTier = normalizeReportTier(requestBody.reportTier)
@@ -663,6 +809,7 @@ export const POST = withApiMiddleware(
         detailLevel === 'comprehensive' ? 20 : detailLevel === 'detailed' ? 10 : 5
       const resolvedMaxInsights = Math.min(20, Math.max(1, maxInsights ?? detailBasedMaxInsights))
       const autoTimingData: TimingData = buildTimingData(targetDate)
+      autoTimingData.daeun = buildAutoDaeunTiming(requestBody, targetDate)
       const timingData: TimingData = mergeTimingData(
         autoTimingData,
         toOptionalRecord(requestBody.timingData)

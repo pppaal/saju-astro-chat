@@ -125,7 +125,8 @@ function extractTimingDetails(
   const unse = asRecord(saju.unse)
   const daeWoon = asRecord(saju.daeWoon) || asRecord(saju.daeun)
   const annualList = asArray(unse?.annual).length > 0 ? asArray(unse?.annual) : asArray(saju.yeonun)
-  const monthlyList = asArray(unse?.monthly).length > 0 ? asArray(unse?.monthly) : asArray(saju.wolun)
+  const monthlyList =
+    asArray(unse?.monthly).length > 0 ? asArray(unse?.monthly) : asArray(saju.wolun)
   const iljinList = asArray(unse?.iljin).length > 0 ? asArray(unse?.iljin) : asArray(saju.iljin)
 
   const targetYear = targetDate.getFullYear()
@@ -226,8 +227,8 @@ function parseTimeString(input: unknown): string | null {
 function buildPersonSeed(person: Record<string, unknown> | null | undefined): PersonSeed | null {
   if (!person) return null
   const date = parseDateString(person.birthDate ?? person.date)
-  const time = parseTimeString(person.birthTime ?? person.time)
-  if (!date || !time) return null
+  const time = parseTimeString(person.birthTime ?? person.time) || '12:00'
+  if (!date) return null
 
   const latRaw = typeof person.latitude === 'number' ? person.latitude : null
   const lonRaw = typeof person.longitude === 'number' ? person.longitude : null
@@ -451,13 +452,15 @@ function hasArrayData(value: unknown): boolean {
 }
 
 function isNonEmptyObject(value: unknown): boolean {
-  return !!value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value as Record<string, unknown>).length > 0
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    Object.keys(value as Record<string, unknown>).length > 0
+  )
 }
 
-function collectMissingSajuKeys(
-  label: string,
-  saju: Record<string, unknown> | null
-): string[] {
+function collectMissingSajuKeys(label: string, saju: Record<string, unknown> | null): string[] {
   if (!saju) return [`${label}.saju`]
   const missing: string[] = []
   const unse = asRecord(saju.unse)
@@ -471,16 +474,16 @@ function collectMissingSajuKeys(
     missing.push(`${label}.saju.wolun(monthly)`)
   if (!hasArrayData(unse?.iljin) && !hasArrayData(saju.iljin))
     missing.push(`${label}.saju.ilun(iljin)`)
-  if (!isNonEmptyObject(daeWoon) || (!hasArrayData(daeWoon?.list) && !hasArrayData(daeWoon?.cycles)))
+  if (
+    !isNonEmptyObject(daeWoon) ||
+    (!hasArrayData(daeWoon?.list) && !hasArrayData(daeWoon?.cycles))
+  )
     missing.push(`${label}.saju.daeun`)
 
   return missing
 }
 
-function collectMissingAstroKeys(
-  label: string,
-  astro: Record<string, unknown> | null
-): string[] {
+function collectMissingAstroKeys(label: string, astro: Record<string, unknown> | null): string[] {
   if (!astro) return [`${label}.astro`]
   const missing: string[] = []
   const planets = asRecord(astro.planets)
@@ -488,7 +491,8 @@ function collectMissingAstroKeys(
   const currentTransits = asRecord(astro.currentTransits)
   const returns = asRecord(astro.returns)
 
-  if (!isNonEmptyObject(planets?.sun) && !isNonEmptyObject(astro.sun)) missing.push(`${label}.astro.sun`)
+  if (!isNonEmptyObject(planets?.sun) && !isNonEmptyObject(astro.sun))
+    missing.push(`${label}.astro.sun`)
   if (!isNonEmptyObject(planets?.moon) && !isNonEmptyObject(astro.moon))
     missing.push(`${label}.astro.moon`)
   if (!isNonEmptyObject(planets?.venus) && !isNonEmptyObject(astro.venus))
@@ -499,8 +503,7 @@ function collectMissingAstroKeys(
     missing.push(`${label}.astro.ascendant`)
   if (!hasArrayData(natalData?.planets)) missing.push(`${label}.astro.natal.planets`)
   if (!hasArrayData(natalData?.aspects)) missing.push(`${label}.astro.natal.aspects`)
-  if (!hasArrayData(currentTransits?.majorTransits))
-    missing.push(`${label}.astro.transits.major`)
+  if (!hasArrayData(currentTransits?.majorTransits)) missing.push(`${label}.astro.transits.major`)
   if (!hasArrayData(currentTransits?.aspects)) missing.push(`${label}.astro.transits.aspects`)
   if (!isNonEmptyObject(astro.progressions)) missing.push(`${label}.astro.progressions`)
   if (!isNonEmptyObject(returns?.solarReturn)) missing.push(`${label}.astro.returns.solar`)
@@ -592,7 +595,8 @@ function buildSajuProfile(saju: Record<string, unknown> | null | undefined): Saj
     ((saju?.dayMaster as Record<string, unknown>)?.name as string) ||
     ((saju?.dayMaster as Record<string, unknown>)?.heavenlyStem as string) ||
     'ê°‘'
-  const dayMasterElement = ((saju?.dayMaster as Record<string, unknown>)?.element as string) || 'ëª©'
+  const dayMasterElement =
+    ((saju?.dayMaster as Record<string, unknown>)?.element as string) || 'ëª©'
   const dayMasterYinYang =
     ((saju?.dayMaster as Record<string, unknown>)?.yin_yang as string) || 'ì–‘'
 
@@ -782,18 +786,12 @@ function buildExtendedAstroProfile(
     jupiter: jupiter.sign
       ? { sign: jupiter.sign, element: elementFromSign(jupiter.sign) }
       : undefined,
-    saturn: saturn.sign
-      ? { sign: saturn.sign, element: elementFromSign(saturn.sign) }
-      : undefined,
-    uranus: uranus.sign
-      ? { sign: uranus.sign, element: elementFromSign(uranus.sign) }
-      : undefined,
+    saturn: saturn.sign ? { sign: saturn.sign, element: elementFromSign(saturn.sign) } : undefined,
+    uranus: uranus.sign ? { sign: uranus.sign, element: elementFromSign(uranus.sign) } : undefined,
     neptune: neptune.sign
       ? { sign: neptune.sign, element: elementFromSign(neptune.sign) }
       : undefined,
-    pluto: pluto.sign
-      ? { sign: pluto.sign, element: elementFromSign(pluto.sign) }
-      : undefined,
+    pluto: pluto.sign ? { sign: pluto.sign, element: elementFromSign(pluto.sign) } : undefined,
     northNode: northNode.sign
       ? { sign: northNode.sign, element: elementFromSign(northNode.sign) }
       : undefined,
@@ -867,7 +865,9 @@ function formatFusionForPrompt(fusion: FusionCompatibilityResult, lang: string):
   // Future Guidance
   lines.push(`### ${isKo ? 'ë¯¸ëž˜ ê°€ì´ë˜ìŠ¤' : 'Future Guidance'}`)
   lines.push(`**${isKo ? 'ë‹¨ê¸°(1-6ê°œì›”)' : 'Short-term'}**: ${fusion.futureGuidance.shortTerm}`)
-  lines.push(`**${isKo ? 'ì¤‘ê¸°(6ê°œì›”-2ë…„)' : 'Medium-term'}**: ${fusion.futureGuidance.mediumTerm}`)
+  lines.push(
+    `**${isKo ? 'ì¤‘ê¸°(6ê°œì›”-2ë…„)' : 'Medium-term'}**: ${fusion.futureGuidance.mediumTerm}`
+  )
   lines.push(`**${isKo ? 'ìž¥ê¸°(2ë…„+)' : 'Long-term'}**: ${fusion.futureGuidance.longTerm}`)
   lines.push(``)
 
@@ -948,7 +948,8 @@ export async function POST(req: NextRequest) {
     let fusionResult: FusionCompatibilityResult | null = null
     let fusionContext = ''
     let extendedSajuCompatibility: ReturnType<typeof performExtendedSajuAnalysis> | null = null
-    let extendedAstroCompatibility: ReturnType<typeof performExtendedAstrologyAnalysis> | null = null
+    let extendedAstroCompatibility: ReturnType<typeof performExtendedAstrologyAnalysis> | null =
+      null
     const person1Seed = buildPersonSeed((persons?.[0] as Record<string, unknown>) || null)
     const person2Seed = buildPersonSeed((persons?.[1] as Record<string, unknown>) || null)
     const now = new Date()
@@ -960,7 +961,8 @@ export async function POST(req: NextRequest) {
     const effectivePerson2Saju = mergeSajuContext(person2Saju, autoPerson2Saju)
     const effectivePerson1Astro = mergeAstroContext(person1Astro, autoPerson1Astro)
     const effectivePerson2Astro = mergeAstroContext(person2Astro, autoPerson2Astro)
-    const strictCompleteness = process.env.NODE_ENV !== 'test'
+    const strictCompleteness =
+      process.env.NODE_ENV !== 'test' && process.env.COMPATIBILITY_COUNSELOR_STRICT === 'true'
     const completenessMissing = [
       ...collectMissingSajuKeys('person1', effectivePerson1Saju),
       ...collectMissingSajuKeys('person2', effectivePerson2Saju),
@@ -977,6 +979,11 @@ export async function POST(req: NextRequest) {
             ? `필수 데이터 누락으로 리포트 생성을 중단했습니다. 누락: ${completenessMissing.join(', ')}`
             : `Report generation stopped due to missing required data: ${completenessMissing.join(', ')}`,
         done: true,
+      })
+    }
+    if (!strictCompleteness && completenessMissing.length > 0) {
+      logger.warn('[compatibility/counselor] continuing with partial context', {
+        missing: completenessMissing,
       })
     }
     const p1Age = getAgeFromBirthDate(persons?.[0]?.date)
@@ -1018,209 +1025,211 @@ export async function POST(req: NextRequest) {
       logger.error('[Compatibility Counselor] Fusion error:', { error: fusionError })
     }
 
-      const resolvedFullContext =
-        fullContext ||
-        ({
-          persons,
-          person1Saju: effectivePerson1Saju,
-          person2Saju: effectivePerson2Saju,
-          person1Astro: effectivePerson1Astro,
-          person2Astro: effectivePerson2Astro,
-          autoEnrichment: {
-            person1: {
-              seed: person1Seed,
-              hasAutoSaju: !!autoPerson1Saju,
-              hasAutoAstro: !!autoPerson1Astro,
-            },
-            person2: {
-              seed: person2Seed,
-              hasAutoSaju: !!autoPerson2Saju,
-              hasAutoAstro: !!autoPerson2Astro,
-            },
-          },
-          fusionResult,
-          extendedSajuCompatibility,
-          extendedAstroCompatibility,
-          timingDetails,
-          theme,
-        } as Record<string, unknown>)
-      const fullContextText = stringifyForPrompt(resolvedFullContext)
-      const contextTrace = {
-        currentDateIso: new Date().toISOString().slice(0, 10),
-        hasFusionResult: !!fusionResult,
-        hasExtendedSajuCompatibility: !!extendedSajuCompatibility,
-        hasExtendedAstroCompatibility: !!extendedAstroCompatibility,
-        hasDaeun:
-          Boolean(timingDetails.person1.hasDaeun) || Boolean(timingDetails.person2.hasDaeun),
-        hasSaeun:
-          Boolean(timingDetails.person1.hasSaeun) || Boolean(timingDetails.person2.hasSaeun),
-        hasWolun:
-          Boolean(timingDetails.person1.hasWolun) || Boolean(timingDetails.person2.hasWolun),
-        hasIlun: Boolean(timingDetails.person1.hasIlun) || Boolean(timingDetails.person2.hasIlun),
-        timingCoverage: {
-          person1: (timingDetails.person1.counts as Record<string, number>) || {},
-          person2: (timingDetails.person2.counts as Record<string, number>) || {},
-        },
+    const resolvedFullContext =
+      fullContext ||
+      ({
+        persons,
+        person1Saju: effectivePerson1Saju,
+        person2Saju: effectivePerson2Saju,
+        person1Astro: effectivePerson1Astro,
+        person2Astro: effectivePerson2Astro,
         autoEnrichment: {
           person1: {
-            hasSeed: !!person1Seed,
+            seed: person1Seed,
             hasAutoSaju: !!autoPerson1Saju,
             hasAutoAstro: !!autoPerson1Astro,
           },
           person2: {
-            hasSeed: !!person2Seed,
+            seed: person2Seed,
             hasAutoSaju: !!autoPerson2Saju,
             hasAutoAstro: !!autoPerson2Astro,
           },
         },
-        person1SajuKeys: countObjectKeys(effectivePerson1Saju),
-        person2SajuKeys: countObjectKeys(effectivePerson2Saju),
-        person1AstroKeys: countObjectKeys(effectivePerson1Astro),
-        person2AstroKeys: countObjectKeys(effectivePerson2Astro),
-        fullContextKeys: countObjectKeys(resolvedFullContext),
-      }
+        fusionResult,
+        extendedSajuCompatibility,
+        extendedAstroCompatibility,
+        timingDetails,
+        theme,
+      } as Record<string, unknown>)
+    const fullContextText = stringifyForPrompt(resolvedFullContext)
+    const contextTrace = {
+      currentDateIso: new Date().toISOString().slice(0, 10),
+      hasFusionResult: !!fusionResult,
+      hasExtendedSajuCompatibility: !!extendedSajuCompatibility,
+      hasExtendedAstroCompatibility: !!extendedAstroCompatibility,
+      hasDaeun: Boolean(timingDetails.person1.hasDaeun) || Boolean(timingDetails.person2.hasDaeun),
+      hasSaeun: Boolean(timingDetails.person1.hasSaeun) || Boolean(timingDetails.person2.hasSaeun),
+      hasWolun: Boolean(timingDetails.person1.hasWolun) || Boolean(timingDetails.person2.hasWolun),
+      hasIlun: Boolean(timingDetails.person1.hasIlun) || Boolean(timingDetails.person2.hasIlun),
+      timingCoverage: {
+        person1: (timingDetails.person1.counts as Record<string, number>) || {},
+        person2: (timingDetails.person2.counts as Record<string, number>) || {},
+      },
+      autoEnrichment: {
+        person1: {
+          hasSeed: !!person1Seed,
+          hasAutoSaju: !!autoPerson1Saju,
+          hasAutoAstro: !!autoPerson1Astro,
+        },
+        person2: {
+          hasSeed: !!person2Seed,
+          hasAutoSaju: !!autoPerson2Saju,
+          hasAutoAstro: !!autoPerson2Astro,
+        },
+      },
+      person1SajuKeys: countObjectKeys(effectivePerson1Saju),
+      person2SajuKeys: countObjectKeys(effectivePerson2Saju),
+      person1AstroKeys: countObjectKeys(effectivePerson1Astro),
+      person2AstroKeys: countObjectKeys(effectivePerson2Astro),
+      fullContextKeys: countObjectKeys(resolvedFullContext),
+      strictCompleteness,
+      missingFields: completenessMissing,
+    }
 
-      // Build conversation context
-      const historyText = trimmedHistory
-        .filter((m) => m.role !== 'system')
-        .map((m) => `${m.role === 'user' ? 'Q' : 'A'}: ${guardText(m.content, 400)}`)
-        .join('\n')
-        .slice(0, 2000)
+    // Build conversation context
+    const historyText = trimmedHistory
+      .filter((m) => m.role !== 'system')
+      .map((m) => `${m.role === 'user' ? 'Q' : 'A'}: ${guardText(m.content, 400)}`)
+      .join('\n')
+      .slice(0, 2000)
 
-      const userQuestion = lastUser ? guardText(lastUser.content, 600) : ''
+    const userQuestion = lastUser ? guardText(lastUser.content, 600) : ''
 
-      // Format persons info
-      const personsInfo = persons
-        .map(
-          (p: { name?: string; date?: string; time?: string; relation?: string }, i: number) =>
-            `Person ${i + 1}: ${p.name || `Person ${i + 1}`} (${p.date} ${p.time})${i > 0 ? ` - ${p.relation || 'partner'}` : ''}`
-        )
-        .join('\n')
+    // Format persons info
+    const personsInfo = persons
+      .map(
+        (p: { name?: string; date?: string; time?: string; relation?: string }, i: number) =>
+          `Person ${i + 1}: ${p.name || `Person ${i + 1}`} (${p.date} ${p.time})${i > 0 ? ` - ${p.relation || 'partner'}` : ''}`
+      )
+      .join('\n')
 
-      // Theme-specific context
-      const themeContextMap: Record<string, string> = {
-        general: lang === 'ko' ? 'ì „ë°˜ì ì¸ ê¶í•© ìƒë‹´' : 'General compatibility counseling',
-        love: lang === 'ko' ? 'ì—°ì• /ê²°í˜¼ ê¶í•© ì „ë¬¸ ìƒë‹´' : 'Romance/Marriage compatibility',
-        business:
-          lang === 'ko' ? 'ë¹„ì¦ˆë‹ˆìŠ¤ íŒŒíŠ¸ë„ˆì‹­ ê¶í•© ìƒë‹´' : 'Business partnership compatibility',
-        family: lang === 'ko' ? 'ê°€ì¡± ê´€ê³„ ê¶í•© ìƒë‹´' : 'Family relationship compatibility',
-      }
-      const themeContext =
-        themeContextMap[theme as string] || (lang === 'ko' ? 'ê¶í•© ìƒë‹´' : 'Compatibility counseling')
-
-      // Build enhanced prompt for counselor
-      const counselorPrompt = [
-        `== í”„ë¦¬ë¯¸ì—„ ê¶í•© ìƒë‹´ì‚¬ ==`,
-        `í…Œë§ˆ: ${themeContext}`,
-        ``,
-        `== ì°¸ì—¬ìž ì •ë³´ ==`,
-        personsInfo,
-        fusionContext ? `\n${fusionContext}` : '',
-        extendedSajuCompatibility
-          ? `\n== EXTENDED SAJU COMPATIBILITY ==\n${stringifyForPrompt(extendedSajuCompatibility)}`
-          : '',
-        extendedAstroCompatibility
-          ? `\n== EXTENDED ASTROLOGY COMPATIBILITY ==\n${stringifyForPrompt(extendedAstroCompatibility)}`
-          : '',
-        `\n== TIMING DETAIL (DAEUN/SEUN/WOLUN/ILUN) ==\n${stringifyForPrompt(timingDetails)}`,
-        `\n== DETERMINISTIC CONTEXT TRACE ==\n${stringifyForPrompt(contextTrace)}`,
-        fullContextText ? `\n== FULL RAW CONTEXT (SAJU + ASTRO) ==\n${fullContextText}` : '',
-        historyText ? `\n== ì´ì „ ëŒ€í™” ==\n${historyText}` : '',
-        `\n== ì‚¬ìš©ìž ì§ˆë¬¸ ==\n${userQuestion}`,
-        ``,
-        `== ìƒë‹´ì‚¬ ì§€ì¹¨ ==`,
+    // Theme-specific context
+    const themeContextMap: Record<string, string> = {
+      general: lang === 'ko' ? 'ì „ë°˜ì ì¸ ê¶í•© ìƒë‹´' : 'General compatibility counseling',
+      love: lang === 'ko' ? 'ì—°ì• /ê²°í˜¼ ê¶í•© ì „ë¬¸ ìƒë‹´' : 'Romance/Marriage compatibility',
+      business:
         lang === 'ko'
-          ? `ë‹¹ì‹ ì€ ì‚¬ì£¼ëª…ë¦¬í•™ê³¼ ì ì„±í•™ì„ ê²°í•©í•œ ì „ë¬¸ ê¶í•© ìƒë‹´ì‚¬ìž…ë‹ˆë‹¤.
+          ? 'ë¹„ì¦ˆë‹ˆìŠ¤ íŒŒíŠ¸ë„ˆì‹­ ê¶í•© ìƒë‹´'
+          : 'Business partnership compatibility',
+      family: lang === 'ko' ? 'ê°€ì¡± ê´€ê³„ ê¶í•© ìƒë‹´' : 'Family relationship compatibility',
+    }
+    const themeContext =
+      themeContextMap[theme as string] ||
+      (lang === 'ko' ? 'ê¶í•© ìƒë‹´' : 'Compatibility counseling')
+
+    // Build enhanced prompt for counselor
+    const counselorPrompt = [
+      `== í”„ë¦¬ë¯¸ì—„ ê¶í•© ìƒë‹´ì‚¬ ==`,
+      `í…Œë§ˆ: ${themeContext}`,
+      ``,
+      `== ì°¸ì—¬ìž ì •ë³´ ==`,
+      personsInfo,
+      fusionContext ? `\n${fusionContext}` : '',
+      extendedSajuCompatibility
+        ? `\n== EXTENDED SAJU COMPATIBILITY ==\n${stringifyForPrompt(extendedSajuCompatibility)}`
+        : '',
+      extendedAstroCompatibility
+        ? `\n== EXTENDED ASTROLOGY COMPATIBILITY ==\n${stringifyForPrompt(extendedAstroCompatibility)}`
+        : '',
+      `\n== TIMING DETAIL (DAEUN/SEUN/WOLUN/ILUN) ==\n${stringifyForPrompt(timingDetails)}`,
+      `\n== DETERMINISTIC CONTEXT TRACE ==\n${stringifyForPrompt(contextTrace)}`,
+      fullContextText ? `\n== FULL RAW CONTEXT (SAJU + ASTRO) ==\n${fullContextText}` : '',
+      historyText ? `\n== ì´ì „ ëŒ€í™” ==\n${historyText}` : '',
+      `\n== ì‚¬ìš©ìž ì§ˆë¬¸ ==\n${userQuestion}`,
+      ``,
+      `== ìƒë‹´ì‚¬ ì§€ì¹¨ ==`,
+      lang === 'ko'
+        ? `ë‹¹ì‹ ì€ ì‚¬ì£¼ëª…ë¦¬í•™ê³¼ ì ì„±í•™ì„ ê²°í•©í•œ ì „ë¬¸ ê¶í•© ìƒë‹´ì‚¬ìž…ë‹ˆë‹¤.
 ìœ„ì˜ ì‹¬ì¸µ ë¶„ì„ ë°ì´í„°ë¥¼ ë°”íƒ•ìœ¼ë¡œ ì¹œê·¼í•˜ì§€ë§Œ ì „ë¬¸ì ì¸ ì–´ì¡°ë¡œ ë‹µë³€í•˜ì„¸ìš”.
 - êµ¬ì²´ì ì¸ ì¡°ì–¸ê³¼ ì‹¤ì²œ ê°€ëŠ¥í•œ íŒì„ ì œê³µí•˜ì„¸ìš”
 - ìˆ¨ê²¨ì§„ íŒ¨í„´ê³¼ ì‹œë„ˆì§€ë¥¼ ì‰½ê²Œ ì„¤ëª…í•´ì£¼ì„¸ìš”
 - ë¯¸ëž˜ ê°€ì´ë˜ìŠ¤ë¥¼ ì‹œê¸°ë³„ë¡œ ì•ˆë‚´í•˜ì„¸ìš”
 - ê¸ì •ì ì´ë©´ì„œë„ í˜„ì‹¤ì ì¸ ì¡°ì–¸ì„ í•´ì£¼ì„¸ìš”`
-          : `You are an expert compatibility counselor combining Saju and Astrology.
+        : `You are an expert compatibility counselor combining Saju and Astrology.
 Based on the deep analysis above, provide friendly but professional guidance.
 - Give specific, actionable advice
 - Explain hidden patterns and synergies simply
 - Provide time-based future guidance
 - Be positive yet realistic`,
-      ]
-        .filter(Boolean)
-        .join('\n')
+    ]
+      .filter(Boolean)
+      .join('\n')
 
-      // Call backend AI (extended timeout for fusion analysis)
-      try {
-        const response = await apiClient.post<Record<string, unknown>>(
-          '/api/compatibility/chat',
-          {
-            persons,
-            prompt: counselorPrompt,
-            question: userQuestion,
-            history: trimmedHistory,
-            locale: lang,
-            compatibility_context: fusionContext,
-            compatibility_saju_extended: extendedSajuCompatibility,
-            compatibility_astrology_extended: extendedAstroCompatibility,
-            compatibility_timing_detail: timingDetails,
-            full_context: resolvedFullContext,
-            full_context_text: fullContextText,
-            use_rag: useRag,
-            theme,
-            is_premium: true,
-          },
-          { timeout: 80000 }
-        )
+    // Call backend AI (extended timeout for fusion analysis)
+    try {
+      const response = await apiClient.post<Record<string, unknown>>(
+        '/api/compatibility/chat',
+        {
+          persons,
+          prompt: counselorPrompt,
+          question: userQuestion,
+          history: trimmedHistory,
+          locale: lang,
+          compatibility_context: fusionContext,
+          compatibility_saju_extended: extendedSajuCompatibility,
+          compatibility_astrology_extended: extendedAstroCompatibility,
+          compatibility_timing_detail: timingDetails,
+          full_context: resolvedFullContext,
+          full_context_text: fullContextText,
+          use_rag: useRag,
+          theme,
+          is_premium: true,
+        },
+        { timeout: 80000 }
+      )
 
-        if (!response.ok) {
-          throw new Error(`Backend returned ${response.status}`)
-        }
-
-        const aiData = response.data as Record<string, unknown>
-        const answer = String(
-          (aiData?.data as Record<string, unknown>)?.response ||
-            aiData?.response ||
-            aiData?.interpretation ||
-            (lang === 'ko'
-              ? '\uC8C4\uC1A1\uD569\uB2C8\uB2E4. \uC751\uB2F5\uC744 \uC0DD\uC131\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.'
-              : "Sorry, couldn't generate response. Please try again.")
-        )
-
-        // Stream response in chunks for better UX
-        const encoder = new TextEncoder()
-        return new Response(
-          new ReadableStream({
-            start(controller) {
-              const chunks = answer.match(/.{1,60}/g) || [answer]
-              chunks.forEach((chunk: string, index: number) => {
-                setTimeout(() => {
-                  controller.enqueue(encoder.encode(`data: ${chunk}\n\n`))
-                  if (index === chunks.length - 1) {
-                    controller.enqueue(encoder.encode('data: [DONE]\n\n'))
-                    controller.close()
-                  }
-                }, index * 15)
-              })
-            },
-          }),
-          {
-            headers: {
-              'Content-Type': 'text/event-stream',
-              'Cache-Control': 'no-cache',
-              Connection: 'keep-alive',
-            },
-          }
-        )
-      } catch (fetchError) {
-        logger.error('[Compatibility Counselor] Backend error:', { error: fetchError })
-
-        const fallback =
-          lang === 'ko'
-            ? 'AI \uC11C\uBC84 \uC5F0\uACB0\uC5D0 \uBB38\uC81C\uAC00 \uC788\uC2B5\uB2C8\uB2E4. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.'
-            : 'AI server connection issue. Please try again later.'
-
-        return createFallbackSSEStream({
-          content: fallback,
-          done: true,
-        })
+      if (!response.ok) {
+        throw new Error(`Backend returned ${response.status}`)
       }
+
+      const aiData = response.data as Record<string, unknown>
+      const answer = String(
+        (aiData?.data as Record<string, unknown>)?.response ||
+          aiData?.response ||
+          aiData?.interpretation ||
+          (lang === 'ko'
+            ? '\uC8C4\uC1A1\uD569\uB2C8\uB2E4. \uC751\uB2F5\uC744 \uC0DD\uC131\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.'
+            : "Sorry, couldn't generate response. Please try again.")
+      )
+
+      // Stream response in chunks for better UX
+      const encoder = new TextEncoder()
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            const chunks = answer.match(/.{1,60}/g) || [answer]
+            chunks.forEach((chunk: string, index: number) => {
+              setTimeout(() => {
+                controller.enqueue(encoder.encode(`data: ${chunk}\n\n`))
+                if (index === chunks.length - 1) {
+                  controller.enqueue(encoder.encode('data: [DONE]\n\n'))
+                  controller.close()
+                }
+              }, index * 15)
+            })
+          },
+        }),
+        {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive',
+          },
+        }
+      )
+    } catch (fetchError) {
+      logger.error('[Compatibility Counselor] Backend error:', { error: fetchError })
+
+      const fallback =
+        lang === 'ko'
+          ? 'AI \uC11C\uBC84 \uC5F0\uACB0\uC5D0 \uBB38\uC81C\uAC00 \uC788\uC2B5\uB2C8\uB2E4. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.'
+          : 'AI server connection issue. Please try again later.'
+
+      return createFallbackSSEStream({
+        content: fallback,
+        done: true,
+      })
+    }
   } catch (error) {
     logger.error('[Compatibility Counselor] Error:', { error: error })
     return NextResponse.json(
@@ -1229,4 +1238,3 @@ Based on the deep analysis above, provide friendly but professional guidance.
     )
   }
 }
-
