@@ -1,4 +1,5 @@
 import type { HiddenSelfAnalysis } from './types';
+import { ensureMinSentenceText } from '../shared/textDepth';
 
 interface SpecialShinsalSectionProps {
   specialShinsal: NonNullable<HiddenSelfAnalysis['specialShinsal']>;
@@ -6,6 +7,9 @@ interface SpecialShinsalSectionProps {
 }
 
 export default function SpecialShinsalSection({ specialShinsal, isKo }: SpecialShinsalSectionProps) {
+  const enrich = (text?: string, min = 4) =>
+    ensureMinSentenceText(text || '', isKo, 'hidden', min);
+
   return (
     <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-indigo-900/20 border border-indigo-500/30 p-6">
       <div className="flex items-center gap-3 mb-4">
@@ -27,12 +31,12 @@ export default function SpecialShinsalSection({ specialShinsal, isKo }: SpecialS
               <span className="text-indigo-300 text-sm">{item.planet}</span>
             </div>
             <p className="text-gray-300 text-sm leading-relaxed mb-2">
-              {isKo ? item.description.ko : item.description.en}
+              {enrich(isKo ? item.description.ko : item.description.en, 4)}
             </p>
             <div className="p-2 rounded-lg bg-green-500/10 border border-green-500/20">
               <p className="text-green-300 text-xs">
                 <span className="font-bold">{isKo ? '숨겨진 강점: ' : 'Hidden strength: '}</span>
-                {isKo ? item.hiddenStrength.ko : item.hiddenStrength.en}
+                {enrich(isKo ? item.hiddenStrength.ko : item.hiddenStrength.en, 3)}
               </p>
             </div>
           </div>

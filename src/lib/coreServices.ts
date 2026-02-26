@@ -22,9 +22,9 @@ export const HOME_CORE_SERVICE_OPTIONS: readonly HomeCoreServiceOption[] = [
   {
     key: 'destinyMap',
     labelKey: 'menu.destinyMap',
-    labelFallback: 'Destiny Map',
+    labelFallback: 'Destiny Counselor',
     icon: '\u{1F5FA}\uFE0F',
-    path: '/destiny-map',
+    path: '/destiny-counselor',
     coreKey: 'destiny-map',
   },
   {

@@ -1,6 +1,6 @@
 {
   "destinyMap": {
-    "title": "Destiny Map",
+    "title": "Destiny Counselor",
     "subtitle": "Your AI-analyzed fortune journey",
     "inputPlaceholder": "Enter your question...",
     "analyzing": "Analyzing...",
@@ -32,7 +32,7 @@
       "retry": "Retry"
     },
     "counselor": {
-      "title": "DestinyPal Counselor",
+      "title": "Destiny Counselor",
       "online": "Online",
       "voiceComingSoon": "Voice (Coming Soon)",
       "loading1": "Connecting with your counselor...",

@@ -2,6 +2,7 @@
 
 import { useMemo, useState, memo } from 'react'
 import { repairMojibakeDeep } from '@/lib/text/mojibake'
+import { expandNarrativeDeep } from './fun-insights/tabs/shared/longForm'
 
 // Import Tab Components
 import {
@@ -108,21 +109,33 @@ const FunInsights = memo(function FunInsights({
 }: Props) {
   const isKo = lang === 'ko'
 
-  const hasFiveElements = Boolean(saju?.fiveElements && Object.keys(saju.fiveElements).length > 0)
-  const hasSajuCore = Boolean(saju?.dayMaster || saju?.pillars || hasFiveElements)
-  const hasValidAstro = Boolean(findPlanetSign(astro, 'sun'))
+  const normalizedSaju = useMemo(
+    () => (saju ? (repairMojibakeDeep(saju) as SajuData) : saju),
+    [saju]
+  )
+  const normalizedAstro = useMemo(
+    () => (astro ? (repairMojibakeDeep(astro) as AstroData) : astro),
+    [astro]
+  )
+
+  const hasFiveElements = Boolean(
+    normalizedSaju?.fiveElements && Object.keys(normalizedSaju.fiveElements).length > 0
+  )
+  const hasSajuCore = Boolean(normalizedSaju?.dayMaster || normalizedSaju?.pillars || hasFiveElements)
+  const hasValidAstro = Boolean(findPlanetSign(normalizedAstro, 'sun'))
 
   const data = useMemo(() => {
     if (!hasSajuCore && !hasValidAstro) {
       return null
     }
 
-    const rawDayMasterName = saju?.dayMaster?.name || saju?.dayMaster?.heavenlyStem || '갑'
+    const rawDayMasterName =
+      normalizedSaju?.dayMaster?.name || normalizedSaju?.dayMaster?.heavenlyStem || '갑'
     const dayMasterName = tianGanMap[rawDayMasterName] || rawDayMasterName
     const dayMasterInfo = dayMasterData[dayMasterName] || dayMasterData['갑']
     const dayElement = dayMasterInfo.element
 
-    const fiveElements = saju?.fiveElements || {
+    const fiveElements = normalizedSaju?.fiveElements || {
       wood: 20,
       fire: 20,
       earth: 20,
@@ -133,9 +146,9 @@ const FunInsights = memo(function FunInsights({
       ([, a], [, b]) => (b as number) - (a as number)
     )
 
-    const sunSign = findPlanetSign(astro, 'sun')
-    const moonSign = findPlanetSign(astro, 'moon')
-    const ascSign = astro?.ascendant?.sign?.toLowerCase() || null
+    const sunSign = findPlanetSign(normalizedAstro, 'sun')
+    const moonSign = findPlanetSign(normalizedAstro, 'moon')
+    const ascSign = normalizedAstro?.ascendant?.sign?.toLowerCase() || null
 
     const generated = {
       dayMasterName,
@@ -147,18 +160,18 @@ const FunInsights = memo(function FunInsights({
       sunSign,
       moonSign,
       ascSign,
-      crossAnalysis: getCrossAnalysis(saju, astro, lang || 'ko'),
-      dates: getRecommendedDates(saju, astro, lang || 'ko'),
-      luckyItems: getLuckyItems(saju, lang || 'ko'),
-      sibsinAnalysis: getSibsinAnalysis(saju, lang || 'ko'),
-      healthAnalysis: getHealthAnalysis(saju, lang || 'ko'),
-      report: generateReport(saju, astro, lang || 'ko', theme || 'overall'),
+      crossAnalysis: getCrossAnalysis(normalizedSaju, normalizedAstro, lang || 'ko'),
+      dates: getRecommendedDates(normalizedSaju, normalizedAstro, lang || 'ko'),
+      luckyItems: getLuckyItems(normalizedSaju, lang || 'ko'),
+      sibsinAnalysis: getSibsinAnalysis(normalizedSaju, lang || 'ko'),
+      healthAnalysis: getHealthAnalysis(normalizedSaju, lang || 'ko'),
+      report: generateReport(normalizedSaju, normalizedAstro, lang || 'ko', theme || 'overall'),
       // 🔥 새로운 고급 분석 추가
-      chironInsight: getChironInsight(astro, lang || 'ko'),
-      currentFlow: getCurrentFlowAnalysis(saju, lang || 'ko'),
+      chironInsight: getChironInsight(normalizedAstro, lang || 'ko'),
+      currentFlow: getCurrentFlowAnalysis(normalizedSaju, lang || 'ko'),
     }
     return repairMojibakeDeep(generated)
-  }, [saju, astro, lang, theme, hasSajuCore, hasValidAstro])
+  }, [normalizedSaju, normalizedAstro, lang, theme, hasSajuCore, hasValidAstro])
 
   // 운명 서사 생성 - 외부 상수 사용으로 대폭 간소화
   const destinyNarrative = useMemo(() => {
@@ -169,13 +182,16 @@ const FunInsights = memo(function FunInsights({
     const dayEl = data.dayElement
     const strongEl = data.strongest[0]
 
-    return repairMojibakeDeep({
-      lifeTheme: LIFE_THEMES[data.dayMasterName] || LIFE_THEMES['갑'],
-      emotionPattern: EMOTION_PATTERNS[strongEl],
-      relationshipStyle: RELATIONSHIP_STYLES[dayEl],
-      careerDestiny: CAREER_DESTINIES[strongEl],
-    })
-  }, [data])
+    return expandNarrativeDeep(
+      repairMojibakeDeep({
+        lifeTheme: LIFE_THEMES[data.dayMasterName] || LIFE_THEMES['갑'],
+        emotionPattern: EMOTION_PATTERNS[strongEl],
+        relationshipStyle: RELATIONSHIP_STYLES[dayEl],
+        careerDestiny: CAREER_DESTINIES[strongEl],
+      }),
+      { isKo, topic: 'personality', minSentences: 4 }
+    )
+  }, [data, isKo])
 
   // 운명이 풀리는 선택 5가지 - 외부 함수 사용으로 간소화
   const _destinyChoices = useMemo(() => {
@@ -202,8 +218,8 @@ const FunInsights = memo(function FunInsights({
 
   // combinedLifeTheme 계산
   const combinedLifeTheme = useMemo(() => {
-    return getCombinedLifeTheme(saju, lang || 'ko')
-  }, [saju, lang])
+    return getCombinedLifeTheme(normalizedSaju, lang || 'ko')
+  }, [normalizedSaju, lang])
 
   // Hooks must be called before conditional returns
   // 오행 정규화 (탭 컴포넌트에 전달할 데이터보다 먼저 정의) - useMemo로 메모이제이션
@@ -225,30 +241,33 @@ const FunInsights = memo(function FunInsights({
   // 탭 컴포넌트에 전달할 데이터 - useMemo로 메모이제이션
   const tabData = useMemo(() => {
     if (!data) return null
-    return repairMojibakeDeep({
-      dayMasterName: data.dayMasterName,
-      dayMasterInfo: data.dayMasterInfo,
-      dayElement: data.dayElement,
-      fiveElements: data.fiveElements,
-      strongest: data.strongest,
-      weakest: data.weakest,
-      sunSign: data.sunSign,
-      moonSign: data.moonSign,
-      ascSign: data.ascSign,
-      personalityAnalysis: getPersonalityAnalysis(saju, astro, lang),
-      loveAnalysis: getLoveAnalysis(saju, astro, lang),
-      careerAnalysis: getCareerAnalysis(saju, astro, lang),
-      karmaAnalysis: getKarmaAnalysis(saju, astro, lang),
-      healthAdvanced: null,
-      sibsinAnalysis: data.sibsinAnalysis,
-      healthAnalysis: data.healthAnalysis,
-      crossAnalysis: data.crossAnalysis,
-      currentFlow: data.currentFlow,
-      chironInsight: data.chironInsight,
-      luckyItems: data.luckyItems,
-      normalizedElements, // 오행 균형 차트용
-    }) as unknown as TabData
-  }, [data, saju, astro, lang, normalizedElements])
+    return expandNarrativeDeep(
+      repairMojibakeDeep({
+        dayMasterName: data.dayMasterName,
+        dayMasterInfo: data.dayMasterInfo,
+        dayElement: data.dayElement,
+        fiveElements: data.fiveElements,
+        strongest: data.strongest,
+        weakest: data.weakest,
+        sunSign: data.sunSign,
+        moonSign: data.moonSign,
+        ascSign: data.ascSign,
+        personalityAnalysis: getPersonalityAnalysis(normalizedSaju, normalizedAstro, lang),
+        loveAnalysis: getLoveAnalysis(normalizedSaju, normalizedAstro, lang),
+        careerAnalysis: getCareerAnalysis(normalizedSaju, normalizedAstro, lang),
+        karmaAnalysis: getKarmaAnalysis(normalizedSaju, normalizedAstro, lang),
+        healthAdvanced: null,
+        sibsinAnalysis: data.sibsinAnalysis,
+        healthAnalysis: data.healthAnalysis,
+        crossAnalysis: data.crossAnalysis,
+        currentFlow: data.currentFlow,
+        chironInsight: data.chironInsight,
+        luckyItems: data.luckyItems,
+        normalizedElements, // 오행 균형 차트용
+      }),
+      { isKo, topic: 'general', minSentences: 4 }
+    ) as unknown as TabData
+  }, [data, normalizedSaju, normalizedAstro, lang, normalizedElements, isKo])
 
   if (!data) {
     return null
@@ -290,8 +309,8 @@ const FunInsights = memo(function FunInsights({
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'personality' && (
         <PersonalityTab
-          saju={saju}
-          astro={astro}
+          saju={normalizedSaju}
+          astro={normalizedAstro}
           lang={lang}
           isKo={isKo}
           data={tabData}
@@ -302,8 +321,8 @@ const FunInsights = memo(function FunInsights({
 
       {activeTab === 'love' && (
         <LoveTab
-          saju={saju}
-          astro={astro}
+          saju={normalizedSaju}
+          astro={normalizedAstro}
           lang={lang}
           isKo={isKo}
           data={tabData}
@@ -313,8 +332,8 @@ const FunInsights = memo(function FunInsights({
 
       {activeTab === 'career' && (
         <CareerTab
-          saju={saju}
-          astro={astro}
+          saju={normalizedSaju}
+          astro={normalizedAstro}
           lang={lang}
           isKo={isKo}
           data={tabData}
@@ -324,8 +343,8 @@ const FunInsights = memo(function FunInsights({
 
       {activeTab === 'fortune' && (
         <FortuneTab
-          saju={saju}
-          astro={astro}
+          saju={normalizedSaju}
+          astro={normalizedAstro}
           lang={lang}
           isKo={isKo}
           data={tabData}
@@ -335,8 +354,8 @@ const FunInsights = memo(function FunInsights({
 
       {activeTab === 'health' && (
         <HealthTab
-          saju={saju}
-          astro={astro}
+          saju={normalizedSaju}
+          astro={normalizedAstro}
           lang={lang}
           isKo={isKo}
           data={tabData}
@@ -346,8 +365,8 @@ const FunInsights = memo(function FunInsights({
 
       {activeTab === 'karma' && (
         <KarmaTab
-          saju={saju}
-          astro={astro}
+          saju={normalizedSaju}
+          astro={normalizedAstro}
           lang={lang}
           isKo={isKo}
           data={tabData}
@@ -357,8 +376,8 @@ const FunInsights = memo(function FunInsights({
 
       {activeTab === 'timing' && (
         <TimingTab
-          saju={saju}
-          astro={astro}
+          saju={normalizedSaju}
+          astro={normalizedAstro}
           lang={lang}
           isKo={isKo}
           data={tabData}
@@ -368,8 +387,8 @@ const FunInsights = memo(function FunInsights({
 
       {activeTab === 'hidden' && (
         <HiddenSelfTab
-          saju={saju}
-          astro={astro}
+          saju={normalizedSaju}
+          astro={normalizedAstro}
           lang={lang}
           isKo={isKo}
           data={tabData}

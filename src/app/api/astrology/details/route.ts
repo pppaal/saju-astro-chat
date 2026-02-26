@@ -30,6 +30,7 @@ import { astrologyDetailsSchema, createValidationErrorResponse } from '@/lib/api
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { extractLocale } from '@/lib/api/middleware'
+import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -155,7 +156,7 @@ export async function POST(request: Request) {
       timeZone: String(timeZone),
       latitude,
       longitude,
-      houseSystem: 'Placidus',
+      houseSystem: CALCULATION_STANDARDS.astrology.houseSystem,
     }
     const chartMeta = buildEngineMeta(chart.meta ?? defaultMeta, opts)
 

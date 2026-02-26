@@ -7,6 +7,14 @@ export interface QualityAudit {
   orbEvidenceScore: number
   actionabilityScore: number
   clarityScore: number
+  antiOverclaimScore: number
+  overclaimIssueCount: number
+  overclaimFindings: Array<{
+    section: string
+    sentence: string
+    reason: 'absolute_without_evidence' | 'extreme_without_evidence'
+  }>
+  shouldBlock: boolean
   overallQualityScore: number
   issues: string[]
   strengths: string[]
@@ -54,6 +62,12 @@ const ORB_ANGLE_REGEX = /angle\s*[:=]\s*\d+(?:\.\d+)?\s*(?:deg|°)/i
 const ORB_ORB_REGEX = /\borb\s*[:=]\s*\d+(?:\.\d+)?\s*(?:deg|°)/i
 const ORB_ALLOWED_REGEX = /(allowed|allow)\s*[:=]\s*\d+(?:\.\d+)?\s*(?:deg|°)/i
 const PLACEHOLDER_REGEX = /(\?{3,}|todo|tbd|lorem ipsum)/i
+const EVIDENCE_MARKER_REGEX = /(근거\s*:|evidence\s*:|source\s*:|sources\s*:)/i
+const HEDGING_REGEX = /(가능|경향|추정|권장|유의|consider|may|might|likely|tend|could|appears?)/i
+const ABSOLUTE_CLAIM_REGEX =
+  /(절대|무조건|반드시\s.*(된다|성공|이긴다|맞다)|완벽|확정|100%|guaranteed|certainly|always|never)/i
+const EXTREME_OUTCOME_REGEX =
+  /(인생\s*(끝|망|파탄)|완전\s*(실패|붕괴)|반드시\s*(파국|대박)|destined to fail|ruined)/i
 
 const clamp100 = (value: number): number => Math.max(0, Math.min(100, Math.round(value)))
 
@@ -75,6 +89,14 @@ function toSentenceCount(value: string): number {
     .split(/[.!?\n]+/)
     .map((segment) => segment.trim())
     .filter(Boolean).length
+}
+
+function splitSentences(value: string): string[] {
+  if (!value) return []
+  return value
+    .split(/[.!?\n]+/)
+    .map((segment) => segment.trim())
+    .filter(Boolean)
 }
 
 function collectSectionTexts(
@@ -128,6 +150,34 @@ export function evaluateThemedReportQuality(input: {
   const clarityRaw = (avgChars >= 120 ? 1 : avgChars / 120) * (hasPlaceholder ? 0.65 : 1)
   const clarityScore = clamp100(clarityRaw * 100)
 
+  // Overclaim / leap guard
+  const overclaimFindings: QualityAudit['overclaimFindings'] = []
+  for (const { key, text } of sectionTexts) {
+    const sentences = splitSentences(text)
+    const hasSectionEvidence = EVIDENCE_MARKER_REGEX.test(text)
+    for (const sentence of sentences) {
+      const hasAbsolute = ABSOLUTE_CLAIM_REGEX.test(sentence)
+      const hasExtreme = EXTREME_OUTCOME_REGEX.test(sentence)
+      if (!hasAbsolute && !hasExtreme) continue
+
+      const hasSentenceEvidence = EVIDENCE_MARKER_REGEX.test(sentence)
+      const hasHedging = HEDGING_REGEX.test(sentence)
+      if (hasSentenceEvidence || hasSectionEvidence || hasHedging) continue
+
+      overclaimFindings.push({
+        section: key,
+        sentence,
+        reason: hasExtreme ? 'extreme_without_evidence' : 'absolute_without_evidence',
+      })
+      if (overclaimFindings.length >= 20) break
+    }
+  }
+  const overclaimIssueCount = overclaimFindings.length
+  const antiOverclaimScore = clamp100(
+    sectionCount > 0 ? (1 - overclaimIssueCount / sectionCount) * 100 : 100
+  )
+  const shouldBlock = overclaimIssueCount >= 2 || antiOverclaimScore < 60
+
   const keywordBonus =
     input.keywords && input.keywords.length >= 3
       ? 2
@@ -140,7 +190,8 @@ export function evaluateThemedReportQuality(input: {
       crossEvidenceScore * 0.25 +
       orbEvidenceScore * 0.15 +
       actionabilityScore * 0.2 +
-      clarityScore * 0.15 +
+      clarityScore * 0.1 +
+      antiOverclaimScore * 0.05 +
       keywordBonus
   )
 
@@ -183,6 +234,20 @@ export function evaluateThemedReportQuality(input: {
     strengths.push('리포트 문장 가독성이 양호합니다.')
   }
 
+  if (antiOverclaimScore < 70) {
+    issues.push('과장/비약 가능성이 높은 단정 문장이 감지되었습니다.')
+    recommendations.push(
+      '단정 문장을 줄이고, 근거 표기(근거:) 또는 완충 표현(가능/경향)을 추가하세요.'
+    )
+  } else {
+    strengths.push('과장/비약 리스크가 낮은 서술 패턴입니다.')
+  }
+
+  if (shouldBlock) {
+    issues.push('과장/비약 리스크로 자동 차단 기준에 도달했습니다.')
+    recommendations.push('근거 없는 절대 표현을 제거한 뒤 다시 생성하세요.')
+  }
+
   if (recommendations.length === 0) {
     recommendations.push('현재 품질 점수 유지 위해 교차 근거와 실행 가이드의 균형을 유지하세요.')
   }
@@ -193,6 +258,10 @@ export function evaluateThemedReportQuality(input: {
     orbEvidenceScore,
     actionabilityScore,
     clarityScore,
+    antiOverclaimScore,
+    overclaimIssueCount,
+    overclaimFindings,
+    shouldBlock,
     overallQualityScore,
     issues,
     strengths,
@@ -221,6 +290,17 @@ export function toQualityMarkdown(input: {
     `- Orb Evidence: ${quality.orbEvidenceScore}/100`,
     `- Actionability: ${quality.actionabilityScore}/100`,
     `- Clarity: ${quality.clarityScore}/100`,
+    `- Anti Overclaim: ${quality.antiOverclaimScore}/100`,
+    `- Overclaim Issues: ${quality.overclaimIssueCount}`,
+    `- Blocked: ${quality.shouldBlock ? 'YES' : 'NO'}`,
+    ...(quality.overclaimFindings.length > 0
+      ? [
+          '- Overclaim Findings:',
+          ...quality.overclaimFindings
+            .slice(0, 5)
+            .map((item) => `  - [${item.section}] (${item.reason}) ${item.sentence.slice(0, 120)}`),
+        ]
+      : []),
     '',
     '## Strengths',
     ...quality.strengths.map((item) => `- ${item}`),

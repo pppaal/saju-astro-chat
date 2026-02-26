@@ -19,7 +19,6 @@ type PageRecord = {
     placeholderLeak: string[]
     mojibake: string[]
     mixedLanguage: boolean
-    demoNoindexMissing: boolean
   }
   discoveredLinks: string[]
 }
@@ -73,17 +72,6 @@ const START_ROUTES = [
   '/report',
 ]
 
-const DEMO_ROUTES = [
-  '/demo',
-  '/demo/calendar',
-  '/demo/destiny-map',
-  '/demo/destiny-matrix',
-  '/demo/tarot',
-  '/demo/compatibility',
-  '/demo/report',
-]
-const DEMO_ROUTE_SET = new Set(DEMO_ROUTES)
-
 const MAX_PAGES_TO_VISIT = 180
 const MAX_LINKS_PER_PAGE = 200
 const MAX_BROKEN_LINK_CHECKS = 600
@@ -121,25 +109,10 @@ function shouldCrawlRoute(route: string): boolean {
   ) {
     return false
   }
-  if (withoutQuery.startsWith('/demo') && !DEMO_ROUTE_SET.has(withoutQuery)) {
-    return false
-  }
   if (/\[[^/]+]/.test(withoutQuery)) {
     return false
   }
   return true
-}
-
-function withDemoTokenIfNeeded(route: string, demoToken: string): string {
-  if (!route.startsWith('/demo')) {
-    return route
-  }
-  const [pathname, search = ''] = route.split('?')
-  const params = new URLSearchParams(search)
-  if (!params.has('demo_token')) params.set('demo_token', demoToken)
-  if (!params.has('token')) params.set('token', demoToken)
-  const nextSearch = params.toString()
-  return nextSearch ? `${pathname}?${nextSearch}` : pathname
 }
 
 function hasMixedLanguage(text: string): boolean {
@@ -195,16 +168,6 @@ test.describe('site audit crawl', () => {
     const infraWarnings: string[] = []
     const allInternalLinks = new Map<string, Set<string>>()
 
-    const demoEnabled = process.env.DEMO_ENABLED === '1'
-    const inferredLocalToken = base.includes('localhost') ? 'demo-test-token' : ''
-    const demoToken = (process.env.DEMO_TOKEN || inferredLocalToken).trim()
-    if (demoEnabled && demoToken.length > 0) {
-      await page.goto(`${base}/demo?demo_token=${encodeURIComponent(demoToken)}`, {
-        waitUntil: 'domcontentloaded',
-      })
-      for (const route of DEMO_ROUTES) queue.add(route)
-    }
-
     while (queue.size > 0) {
       if (visited.size >= MAX_PAGES_TO_VISIT) break
 
@@ -213,11 +176,7 @@ test.describe('site audit crawl', () => {
       if (visited.has(nextRoute) || !shouldCrawlRoute(nextRoute)) continue
       visited.add(nextRoute)
 
-      const routeWithToken =
-        demoEnabled && demoToken.length > 0
-          ? withDemoTokenIfNeeded(nextRoute, demoToken)
-          : nextRoute
-      const url = `${base}${routeWithToken}`
+      const url = `${base}${nextRoute}`
       const consoleErrors: string[] = []
       const failedRequests: Array<{ url: string; method: string; failure: string | null }> = []
 
@@ -269,9 +228,6 @@ test.describe('site audit crawl', () => {
       const placeholderLeak = findPatternMatches(visibleText, PLACEHOLDER_PATTERNS)
       const mojibake = findPatternMatches(visibleText, MOJIBAKE_PATTERNS)
       const mixedLanguage = hasMixedLanguage(mainText)
-      const demoNoindexMissing =
-        nextRoute.startsWith('/demo') && !/noindex/i.test(html) && !/x-robots-tag/i.test(html)
-
       const links = await page
         .locator('a[href]')
         .evaluateAll((nodes) =>
@@ -321,7 +277,6 @@ test.describe('site audit crawl', () => {
           placeholderLeak,
           mojibake,
           mixedLanguage,
-          demoNoindexMissing,
         },
         discoveredLinks: discoveredLinks.slice(0, 300),
       }
@@ -381,10 +336,6 @@ test.describe('site audit crawl', () => {
       ) {
         p0.push(
           `- [P0] \`${r.route}\` status=${r.status ?? 'n/a'} placeholder=${r.checks.placeholderLeak.join('|') || 'none'} mojibake=${r.checks.mojibake.join('|') || 'none'} evidence: \`${r.screenshot}\`, \`${r.htmlFile}\`, \`${r.jsonFile}\``
-        )
-      } else if (r.checks.demoNoindexMissing) {
-        p1.push(
-          `- [P1] \`${r.route}\` missing demo noindex evidence: \`${r.htmlFile}\`, \`${r.jsonFile}\``
         )
       } else if (r.checks.mixedLanguage) {
         p2.push(

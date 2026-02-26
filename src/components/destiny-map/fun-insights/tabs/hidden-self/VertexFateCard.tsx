@@ -1,4 +1,5 @@
 import type { HiddenSelfAnalysis } from './types';
+import { ensureMinSentenceText } from '../shared/textDepth';
 
 interface VertexFateCardProps {
   vertex: NonNullable<HiddenSelfAnalysis['vertex']>;
@@ -6,6 +7,9 @@ interface VertexFateCardProps {
 }
 
 export default function VertexFateCard({ vertex, isKo }: VertexFateCardProps) {
+  const enrich = (text?: string, min = 4) =>
+    ensureMinSentenceText(text || '', isKo, 'hidden', min);
+
   return (
     <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-fuchsia-900/20 border border-fuchsia-500/30 p-6">
       <div className="flex items-center gap-3 mb-4">
@@ -24,7 +28,7 @@ export default function VertexFateCard({ vertex, isKo }: VertexFateCardProps) {
             <p className="text-fuchsia-300 font-bold text-sm">{isKo ? '운명적 만남 패턴' : 'Fated Meeting Pattern'}</p>
           </div>
           <p className="text-gray-300 text-sm leading-relaxed">
-            {isKo ? vertex.fatePattern.ko : vertex.fatePattern.en}
+            {enrich(isKo ? vertex.fatePattern.ko : vertex.fatePattern.en, 4)}
           </p>
         </div>
 
@@ -34,7 +38,7 @@ export default function VertexFateCard({ vertex, isKo }: VertexFateCardProps) {
             <p className="text-purple-300 font-bold text-sm">{isKo ? '인생 전환점' : 'Life Turning Points'}</p>
           </div>
           <p className="text-gray-300 text-sm leading-relaxed">
-            {isKo ? vertex.turningPoints.ko : vertex.turningPoints.en}
+            {enrich(isKo ? vertex.turningPoints.ko : vertex.turningPoints.en, 4)}
           </p>
         </div>
       </div>

@@ -1,4 +1,11 @@
-export { StarsBackground } from './StarsBackground';
-export { HeroSection } from './HeroSection';
-export { TraitsGrid } from './TraitsGrid';
-export { ResultActions } from './ResultActions';
+export { StarsBackground } from './StarsBackground'
+export { Hero } from './Hero'
+export { ConfidenceBadge } from './ConfidenceBadge'
+export { SnapshotGrid } from './SnapshotGrid'
+export { AxisCards } from './AxisCards'
+export { Mechanism } from './Mechanism'
+export { Playbook } from './Playbook'
+export { RoleFit } from './RoleFit'
+export { ActionPlan } from './ActionPlan'
+export { Disclosure } from './Disclosure'
+export { ResultActions } from './ResultActions'

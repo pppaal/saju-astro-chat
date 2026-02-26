@@ -199,6 +199,18 @@ describe('generateAIPremiumReport - Basic Generation', () => {
     expect(result.meta.tokensUsed).toBe(1500)
     expect(result.meta.processingTime).toBeGreaterThan(0)
   })
+
+  it('should include rendered narrative payload', async () => {
+    const input = createMockInput()
+    const matrixReport = createMockReport()
+
+    const result = await generateAIPremiumReport(input, matrixReport)
+
+    expect(result.renderedMarkdown).toBeTruthy()
+    expect(result.renderedText).toBeTruthy()
+    expect(result.deterministicCore).toBeTruthy()
+    expect(result.renderedMarkdown).toContain('섹션:')
+  })
 })
 
 describe('generateAIPremiumReport - Options', () => {
@@ -275,7 +287,11 @@ describe('generateAIPremiumReport - Fetch Behavior', () => {
 
     await generateAIPremiumReport(input, matrixReport)
 
-    expect(callAIBackend).toHaveBeenCalledWith(expect.any(String), 'ko')
+    expect(callAIBackend).toHaveBeenCalledWith(
+      expect.any(String),
+      'ko',
+      expect.objectContaining({})
+    )
   })
 
   it('should send request body with prompt', async () => {
@@ -288,6 +304,55 @@ describe('generateAIPremiumReport - Fetch Behavior', () => {
     const callArgs = mockCallAIBackend.mock.calls[0]
     expect(callArgs[0]).toBeTruthy() // prompt should exist
     expect(callArgs[1]).toBe('ko') // lang
+  })
+
+  it('should apply long-form bilingual options for comprehensive detail', async () => {
+    const input = createMockInput()
+    const matrixReport = createMockReport()
+
+    await generateAIPremiumReport(input, matrixReport, {
+      detailLevel: 'comprehensive',
+      bilingual: true,
+      targetChars: 20000,
+      tone: 'realistic',
+      userPlan: 'premium',
+    })
+
+    const callArgs = mockCallAIBackend.mock.calls[0]
+    expect(callArgs[0]).toContain('출력 제약')
+    expect(callArgs[0]).toContain('한/영 동시')
+    expect(callArgs[0]).toContain('20000자')
+    expect(callArgs[2]).toMatchObject({
+      userPlan: 'premium',
+      maxTokensOverride: 11200,
+    })
+  })
+
+  it('should pass user question intent to prompt when provided', async () => {
+    const input = createMockInput()
+    const matrixReport = createMockReport()
+
+    await generateAIPremiumReport(input, matrixReport, {
+      userQuestion: '여기로 가는게 맞냐?',
+    })
+
+    const callArgs = mockCallAIBackend.mock.calls[0]
+    expect(callArgs[0]).toContain('사용자 질문 의도')
+    expect(callArgs[0]).toContain('예/아니오(결정형)')
+    expect(callArgs[0]).toContain('Deterministic Core')
+  })
+
+  it('should reflect deterministic profile in prompt block', async () => {
+    const input = createMockInput()
+    const matrixReport = createMockReport()
+
+    await generateAIPremiumReport(input, matrixReport, {
+      userQuestion: '가도 되나요?',
+      deterministicProfile: 'strict',
+    })
+
+    const callArgs = mockCallAIBackend.mock.calls[0]
+    expect(callArgs[0]).toContain('Profile: strict')
   })
 })
 

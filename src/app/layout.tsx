@@ -222,7 +222,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           ${lora.variable}
           ${merriweather.variable}
         `}
-        style={{ fontFamily: 'var(--font-montserrat), var(--font-noto-kr), system-ui, sans-serif' }}
+        style={{
+          fontFamily:
+            "var(--font-noto-kr), var(--font-montserrat), 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif",
+        }}
       >
         <a href="#main-content" className="skip-to-main">
           Skip to main content

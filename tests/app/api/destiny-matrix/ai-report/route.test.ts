@@ -50,8 +50,20 @@ vi.mock('@/lib/destiny-matrix', () => ({
   FusionReportGenerator: vi.fn().mockImplementation(() => ({
     generateReport: vi.fn().mockReturnValue({
       id: 'report-123',
-      overallScore: { total: 85, grade: 'A' },
-      topInsights: [{ text: 'Test insight' }],
+      overallScore: { total: 85, grade: 'A', gradeDescription: '테스트 등급 설명' },
+      topInsights: [
+        {
+          title: '테스트 인사이트',
+          description: '테스트 설명',
+          category: 'strength',
+          actionItems: [{ text: '테스트 액션' }],
+        },
+      ],
+      domainAnalysis: [
+        { domain: 'career', score: 82, summary: '커리어 강점', hasData: true },
+        { domain: 'wealth', score: 74, summary: '재물 흐름 보통', hasData: true },
+      ],
+      lang: 'ko',
     }),
   })),
   validateReportRequest: vi.fn(),
@@ -152,6 +164,7 @@ vi.mock('@/lib/constants/http', () => ({
     PAYMENT_REQUIRED: 402,
     FORBIDDEN: 403,
     NOT_FOUND: 404,
+    UNPROCESSABLE_ENTITY: 422,
     RATE_LIMITED: 429,
     SERVER_ERROR: 500,
   },
@@ -579,6 +592,8 @@ describe('POST /api/destiny-matrix/ai-report', () => {
       expect(data.reportType).toBe('comprehensive')
       expect(data.report).toBeDefined()
       expect(data.report.id).toBe('saved-report-db-001')
+      expect(data.report.crossConsistencyAudit).toBeDefined()
+      expect(typeof data.report.crossConsistencyAudit.score).toBe('number')
     })
 
     it('should call generateAIPremiumReport with correct params', async () => {
@@ -597,6 +612,27 @@ describe('POST /api/destiny-matrix/ai-report', () => {
         name: 'Test User',
         birthDate: '1990-05-15',
         detailLevel: 'comprehensive',
+      })
+    })
+
+    it('should pass long-form options to comprehensive report generation', async () => {
+      const req = createPostRequest({
+        ...MOCK_VALID_INPUT,
+        detailLevel: 'comprehensive',
+        bilingual: true,
+        targetChars: 20000,
+        tone: 'realistic',
+      })
+
+      await POST(req)
+
+      expect(generateAIPremiumReport).toHaveBeenCalledTimes(1)
+      const args = vi.mocked(generateAIPremiumReport).mock.calls[0]
+      expect(args[2]).toMatchObject({
+        detailLevel: 'comprehensive',
+        bilingual: true,
+        targetChars: 20000,
+        tone: 'realistic',
       })
     })
 
@@ -639,6 +675,21 @@ describe('POST /api/destiny-matrix/ai-report', () => {
       await POST(req)
 
       expect(consumeCredits).toHaveBeenCalledWith('user-abc-123', 'reading', 7)
+    })
+
+    it('should return free digest report without consuming credits', async () => {
+      const req = createPostRequest({ ...MOCK_VALID_INPUT, reportTier: 'free' })
+      const response = await POST(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.success).toBe(true)
+      expect(data.reportType).toBe('free')
+      expect(data.creditsUsed).toBe(0)
+      expect(data.report?.tier).toBe('free')
+      expect(data.report?.topInsights?.length).toBeGreaterThan(0)
+      expect(consumeCredits).not.toHaveBeenCalled()
+      expect(prisma.destinyMatrixReport.create).not.toHaveBeenCalled()
     })
   })
 
@@ -814,6 +865,36 @@ describe('POST /api/destiny-matrix/ai-report', () => {
       const details = callArg.data.reportData.calculationDetails as Record<string, unknown>
       expect(details.layerResults).toBeDefined()
       expect(details.inputSnapshot).toBeDefined()
+    })
+
+    it('should block themed report when overclaim guard is triggered', async () => {
+      vi.mocked(generateThemedReport).mockResolvedValue({
+        ...MOCK_THEMED_REPORT,
+        theme: 'career',
+        sections: {
+          deepAnalysis: '절대 실패하지 않는다. 반드시 대박난다.',
+          patterns: '무조건 이긴다. 100% 성공이다.',
+          timing: '지금 안 하면 인생 파탄이다.',
+          recommendations: ['당장 올인해라.'],
+          actionPlan: '즉시 전재산 투자.',
+          strategy: '완벽한 확정 성공 루트.',
+        },
+      } as any)
+
+      const req = createPostRequest({ ...MOCK_VALID_INPUT, theme: 'career' })
+      const response = await POST(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(422)
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('QUALITY_BLOCKED')
+      expect(data.error.blockedSections).toContain('deepAnalysis')
+      expect(Array.isArray(data.error.overclaimFindings)).toBe(true)
+      expect(data.error.overclaimFindings.length).toBeGreaterThan(0)
+      expect(data.error.qualityAudit).toBeDefined()
+      expect(data.error.qualityAudit.shouldBlock).toBe(true)
+      expect(consumeCredits).not.toHaveBeenCalled()
+      expect(prisma.destinyMatrixReport.create).not.toHaveBeenCalled()
     })
   })
 

@@ -2,6 +2,7 @@
 'use client'
 
 import { repairMojibakeText } from '@/lib/text/mojibake'
+import { ensureMinSentenceText } from '../../shared/textDepth'
 import type { FortuneActionPlan, ElementKey } from '../types'
 
 const ELEMENT_META: Record<ElementKey, { icon: string; ko: string; en: string; tone: string }> = {
@@ -20,6 +21,8 @@ interface ActionPlanSectionProps {
 export default function ActionPlanSection({ actionPlan, isKo }: ActionPlanSectionProps) {
   const todayMeta = ELEMENT_META[actionPlan.today.element]
   const weekMeta = ELEMENT_META[actionPlan.week.element]
+  const enrich = (text: string, topic: 'fortune' | 'warning' = 'fortune', min = 3) =>
+    ensureMinSentenceText(repairMojibakeText(text), isKo, topic, min)
 
   return (
     <section className="rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-slate-900/85 to-slate-950/95 p-6 shadow-[0_10px_40px_rgba(16,185,129,0.12)]">
@@ -43,7 +46,7 @@ export default function ActionPlanSection({ actionPlan, isKo }: ActionPlanSectio
                 {isKo ? '오늘 체크리스트' : 'Today Checklist'}
               </p>
               <p className="mt-1 text-xs text-emerald-200/90">
-                {isKo ? '포커스' : 'Focus'}: {repairMojibakeText(actionPlan.today.focus)}
+                {isKo ? '포커스' : 'Focus'}: {enrich(actionPlan.today.focus, 'fortune', 3)}
               </p>
             </div>
             <span className="rounded-full border border-emerald-300/30 bg-emerald-200/10 px-2 py-1 text-xs font-bold text-emerald-100">
@@ -78,7 +81,7 @@ export default function ActionPlanSection({ actionPlan, isKo }: ActionPlanSectio
                 {isKo ? '이번 주 체크리스트' : 'This Week Checklist'}
               </p>
               <p className="mt-1 text-xs text-teal-200/90">
-                {isKo ? '포커스' : 'Focus'}: {repairMojibakeText(actionPlan.week.focus)}
+                {isKo ? '포커스' : 'Focus'}: {enrich(actionPlan.week.focus, 'fortune', 3)}
               </p>
             </div>
             <span className="rounded-full border border-teal-300/30 bg-teal-200/10 px-2 py-1 text-xs font-bold text-teal-100">
@@ -99,7 +102,7 @@ export default function ActionPlanSection({ actionPlan, isKo }: ActionPlanSectio
 
           {actionPlan.week.caution && (
             <p className="mt-4 rounded-lg border border-rose-400/25 bg-rose-400/10 px-3 py-2 text-xs font-semibold text-rose-200">
-              ⚠ {isKo ? '주의' : 'Caution'}: {repairMojibakeText(actionPlan.week.caution)}
+              ⚠ {isKo ? '주의' : 'Caution'}: {enrich(actionPlan.week.caution, 'warning', 3)}
             </p>
           )}
         </article>

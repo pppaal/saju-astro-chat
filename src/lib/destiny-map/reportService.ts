@@ -15,6 +15,7 @@ import {
   cleanseText,
   getDateInTimezone,
   extractDefaultElements,
+  hasBrokenPlaceholderArtifacts,
   validateSections,
 } from './report-helpers'
 
@@ -79,7 +80,7 @@ export async function generateReport({
     theme,
     lang,
     date: analysisDate, // 같은 날에만 캐시 유효
-    mode: 'template_v12', // v12: Fix warning response to include processed saju/fiveElements
+    mode: 'template_v13', // v13: Repair broken backend template placeholders and reset stale cache
     name: hashName(name),
     gender,
     userTimezone: userTimezone || 'unknown',
@@ -238,10 +239,34 @@ export async function generateReport({
     }
   }
 
+  // Template mode must stay readable/structured. If backend output is broken, regenerate locally.
+  if (!useAI) {
+    const hasStructuredShape =
+      aiText.trim().startsWith('{') ||
+      aiText.includes('"lifeTimeline"') ||
+      aiText.includes('"categoryAnalysis"')
+    const hasBrokenPlaceholders = hasBrokenPlaceholderArtifacts(aiText)
+
+    if (!hasStructuredShape || hasBrokenPlaceholders) {
+      logger.warn(
+        '[DestinyMap] Broken/non-structured template response detected; falling back to local structured report',
+        {
+          modelUsed,
+          hasStructuredShape,
+          hasBrokenPlaceholders,
+        }
+      )
+      aiText = generateLocalStructuredReport(result, theme, lang, name)
+      modelUsed = 'local-template-repair'
+    }
+  }
+
   // 3.5) Validate required sections / cross evidence
   // Skip validation for local-template and error-fallback responses to allow graceful degradation
   const validationWarnings =
-    modelUsed === 'error-fallback' || modelUsed === 'local-template'
+    modelUsed === 'error-fallback' ||
+    modelUsed === 'local-template' ||
+    modelUsed === 'local-template-repair'
       ? []
       : validateSections(theme, aiText)
   if (!backendAvailable) {

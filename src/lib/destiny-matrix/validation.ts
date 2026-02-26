@@ -382,6 +382,12 @@ export const MatrixCalculationInputSchema = z.object({
       message: 'Invalid extra point name in signs',
     }),
 
+  // Full snapshots (optional) for downstream deterministic grounding
+  sajuSnapshot: z.record(z.string(), z.unknown()).optional(),
+  astrologySnapshot: z.record(z.string(), z.unknown()).optional(),
+  crossSnapshot: z.record(z.string(), z.unknown()).optional(),
+  currentDateIso: z.string().optional(),
+
   // 옵션
   lang: LangSchema.optional().default('ko'),
   profileContext: ProfileContextSchema.optional(),

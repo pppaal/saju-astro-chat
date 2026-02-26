@@ -6,10 +6,20 @@ import type { ICPAnalysis } from '@/lib/icp/types'
 import type { PersonaAnalysis } from '@/lib/persona/types'
 import { analyzeICP } from '@/lib/icp/analysis'
 import { analyzePersona } from '@/lib/persona/analysis'
-import { generateCombinedInsights } from '../insightGenerators'
+import { buildHybridNarrative, type HybridNarrative } from '@/lib/persona/hybridNarrative'
 import { scoreIcpTest } from '@/lib/icpTest/scoring'
 import { resolveHybridArchetype } from '@/lib/icpTest/hybrid'
 import type { IcpHybridResult, IcpResult } from '@/lib/icpTest/types'
+import {
+  computeIcpDimensions,
+  computeIntegratedProfileId,
+  type IcpDimensionResult,
+  type IntegratedProfileId,
+} from '@/lib/assessment/integratedProfile'
+import {
+  INTEGRATED_PROFILES,
+  type IntegratedProfileTemplate,
+} from '@/lib/assessment/integratedProfiles'
 
 export interface CombinedResult {
   icpResult: ICPAnalysis | null
@@ -18,9 +28,12 @@ export interface CombinedResult {
   hasPersona: boolean
   loading: boolean
   isKo: boolean
-  insights: ReturnType<typeof generateCombinedInsights>
   starPositions: Array<{ left: string; top: string; animationDelay: string }>
   hybridResult: IcpHybridResult | null
+  hybridNarrative: HybridNarrative | null
+  icpDimensions: IcpDimensionResult | null
+  integratedProfileId: IntegratedProfileId | null
+  integratedProfile: IntegratedProfileTemplate | null
 }
 
 export function useCombinedResult(): CombinedResult {
@@ -29,6 +42,7 @@ export function useCombinedResult(): CombinedResult {
 
   const [icpResult, setIcpResult] = useState<ICPAnalysis | null>(null)
   const [icpV2Result, setIcpV2Result] = useState<IcpResult | null>(null)
+  const [icpRawAnswers, setIcpRawAnswers] = useState<Record<string, unknown> | null>(null)
   const [personaResult, setPersonaResult] = useState<PersonaAnalysis | null>(null)
   const [hasIcp, setHasIcp] = useState(false)
   const [hasPersona, setHasPersona] = useState(false)
@@ -44,11 +58,15 @@ export function useCombinedResult(): CombinedResult {
         const v2Result = scoreIcpTest(parsed)
         setIcpResult(analysis)
         setIcpV2Result(v2Result)
+        setIcpRawAnswers(parsed)
         setHasIcp(true)
       } catch {
         setHasIcp(false)
         setIcpV2Result(null)
+        setIcpRawAnswers(null)
       }
+    } else {
+      setIcpRawAnswers(null)
     }
 
     // Load Persona results
@@ -71,14 +89,43 @@ export function useCombinedResult(): CombinedResult {
     loadResults()
   }, [loadResults])
 
-  const insights = useMemo(
-    () => generateCombinedInsights(icpResult, personaResult, isKo),
-    [icpResult, personaResult, isKo]
-  )
-
   const hybridResult = useMemo(
     () => (icpV2Result ? resolveHybridArchetype(icpV2Result, personaResult) : null),
     [icpV2Result, personaResult]
+  )
+
+  const icpDimensions = useMemo(
+    () => (icpRawAnswers ? computeIcpDimensions(icpRawAnswers) : null),
+    [icpRawAnswers]
+  )
+
+  const integratedProfileId = useMemo(
+    () =>
+      personaResult && icpDimensions
+        ? computeIntegratedProfileId(
+            { axes: personaResult.axes, typeCode: personaResult.typeCode },
+            icpDimensions
+          )
+        : null,
+    [icpDimensions, personaResult]
+  )
+
+  const integratedProfile = useMemo(
+    () => (integratedProfileId ? INTEGRATED_PROFILES[integratedProfileId] : null),
+    [integratedProfileId]
+  )
+
+  const hybridNarrative = useMemo(
+    () =>
+      icpResult && personaResult
+        ? buildHybridNarrative({
+            icp: icpResult,
+            persona: personaResult,
+            hybrid: hybridResult,
+            locale: isKo ? 'ko' : 'en',
+          })
+        : null,
+    [hybridResult, icpResult, isKo, personaResult]
   )
 
   // Memoize star positions to avoid recalculation
@@ -99,8 +146,11 @@ export function useCombinedResult(): CombinedResult {
     hasPersona,
     loading,
     isKo,
-    insights,
     starPositions,
     hybridResult,
+    hybridNarrative,
+    icpDimensions,
+    integratedProfileId,
+    integratedProfile,
   }
 }

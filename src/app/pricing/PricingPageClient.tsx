@@ -9,6 +9,7 @@ import styles from './pricing.module.css'
 import {
   PLANS,
   CREDIT_PACKS,
+  BASE_CREDIT_PRICE_KRW,
   YEARLY_DISCOUNT_PERCENT,
   YEARLY_DISCOUNT_MULTIPLIER,
   type PlanType,
@@ -33,13 +34,11 @@ interface PlanDisplay {
 }
 
 interface CreditPackDisplay {
-  id: string
+  id: CreditPackType
   nameKey: string
   price: number
   priceEn: number
   readings: number
-  perReading: string
-  perReadingEn: string
   gradient: string
   popular?: boolean
 }
@@ -115,8 +114,6 @@ const creditPacks: CreditPackDisplay[] = (
   price: CREDIT_PACKS[packId].pricing.krw,
   priceEn: CREDIT_PACKS[packId].pricing.usd,
   readings: CREDIT_PACKS[packId].credits,
-  perReading: `KRW ${CREDIT_PACKS[packId].perCreditKrw}`,
-  perReadingEn: `$${CREDIT_PACKS[packId].perCreditUsd.toFixed(2)}`,
   gradient: CREDIT_PACK_GRADIENTS[packId],
   popular: CREDIT_PACKS[packId].popular,
 }))
@@ -206,6 +203,7 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
   const [loadingCredit, setLoadingCredit] = useState<string | null>(null)
+  const baseCreditPriceUsd = CREDIT_PACKS.mini.perCreditUsd
 
   // 결제 후 돌아갈 URL 저장 (referrer 또는 이전에 저장된 값 유지)
   useEffect(() => {
@@ -276,6 +274,9 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
     [pt]
   )
 
+  const formatKrw = (value: number) => `₩${value.toLocaleString('ko-KR')}`
+  const formatUsd = (value: number) => `$${value.toFixed(2)}`
+
   const formatPrice = (price: number, priceEn: number) => {
     if (price === 0) {
       return pt('free')
@@ -283,15 +284,15 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
     if (isKo) {
       if (billingCycle === 'yearly') {
         const yearly = Math.floor(price * YEARLY_DISCOUNT_MULTIPLIER)
-        return `KRW ${yearly.toLocaleString()}`
+        return formatKrw(yearly)
       }
-      return `KRW ${price.toLocaleString()}`
+      return formatKrw(price)
     }
     if (billingCycle === 'yearly') {
       const yearly = Math.floor(priceEn * YEARLY_DISCOUNT_MULTIPLIER * 100) / 100
-      return `$${yearly.toFixed(2)}`
+      return formatUsd(yearly)
     }
-    return `$${priceEn.toFixed(2)}`
+    return formatUsd(priceEn)
   }
 
   const getPeriod = () => {
@@ -486,7 +487,7 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
                   <div className={styles.creditHeader} style={{ background: pack.gradient }}>
                     <h3 className={styles.creditName}>{pt(`creditPackNames.${pack.nameKey}`)}</h3>
                     <div className={styles.creditPrice}>
-                      {isKo ? `KRW ${pack.price.toLocaleString()}` : `$${pack.priceEn.toFixed(2)}`}
+                      {isKo ? formatKrw(pack.price) : formatUsd(pack.priceEn)}
                     </div>
                   </div>
                   <div className={styles.creditBody}>
@@ -495,7 +496,10 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
                       <span className={styles.creditLabel}>{pt('readings')}</span>
                     </div>
                     <div className={styles.perReading}>
-                      {pt('perReading')} {isKo ? pack.perReading : pack.perReadingEn}
+                      {pt('perReading')}{' '}
+                      {isKo
+                        ? `${formatKrw(CREDIT_PACKS[pack.id].perCreditKrw)} (≈ ${formatUsd(CREDIT_PACKS[pack.id].perCreditUsd)})`
+                        : `${formatUsd(CREDIT_PACKS[pack.id].perCreditUsd)} (≈ ${formatKrw(CREDIT_PACKS[pack.id].perCreditKrw)})`}
                     </div>
                     <button
                       className={`${styles.creditButton} ${pack.popular ? styles.creditButtonPopular : ''}`}
@@ -593,6 +597,11 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
           <div className={styles.guaranteeIcon}>SAFE</div>
           <h3 className={styles.guaranteeTitle}>{pt('guarantee')}</h3>
           <p className={styles.guaranteeText}>{pt('guaranteeDesc')}</p>
+          <p className={styles.guaranteeText}>
+            {isKo
+              ? `기준 단가: 1 credit ≈ ${formatKrw(BASE_CREDIT_PRICE_KRW)} (≈ ${formatUsd(baseCreditPriceUsd)})`
+              : `Reference rate: 1 credit ≈ ${formatUsd(baseCreditPriceUsd)} (≈ ${formatKrw(BASE_CREDIT_PRICE_KRW)})`}
+          </p>
         </section>
 
         {/* CTA */}

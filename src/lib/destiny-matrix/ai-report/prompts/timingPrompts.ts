@@ -2,6 +2,7 @@
 // 타이밍 리포트용 프롬프트 생성
 
 import type { ReportPeriod, TimingData } from '../types'
+import { buildQuestionIntentInstruction } from '../questionIntent'
 
 // ===========================
 // 기간별 프롬프트 섹션
@@ -343,9 +344,13 @@ export function buildTimingPrompt(
   timingData: TimingData,
   targetDate: string,
   matrixSummary: string,
-  graphRagEvidencePrompt?: string
+  graphRagEvidencePrompt?: string,
+  userQuestion?: string,
+  deterministicCorePrompt?: string
 ): string {
   const isKo = lang === 'ko'
+  const questionIntentInstruction = buildQuestionIntentInstruction(userQuestion, lang)
+  const deterministicBlock = deterministicCorePrompt?.trim()
 
   // 기간별 섹션 선택
   const sections =
@@ -383,6 +388,8 @@ ${formatTimingData(timingData, lang)}
 ${matrixSummary}
 
 ${graphRagEvidencePrompt ? `## GraphRAG 근거 앵커\n${graphRagEvidencePrompt}\n` : ''}
+${deterministicBlock ? `${deterministicBlock}\n` : ''}
+${questionIntentInstruction ? `${questionIntentInstruction}\n` : ''}
 
 ═══════════════════════════════════════════════════════════════
 ${sections}
@@ -434,6 +441,8 @@ ${formatTimingData(timingData, lang)}
 ${matrixSummary}
 
 ${graphRagEvidencePrompt ? `## GraphRAG Evidence Anchors\n${graphRagEvidencePrompt}\n` : ''}
+${deterministicBlock ? `${deterministicBlock}\n` : ''}
+${questionIntentInstruction ? `${questionIntentInstruction}\n` : ''}
 
 ═══════════════════════════════════════════════════════════════
 ${sections}

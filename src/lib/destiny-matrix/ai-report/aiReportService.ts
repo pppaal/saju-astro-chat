@@ -20,6 +20,9 @@ import { logger } from '@/lib/logger'
 import { buildTimingPrompt } from './prompts/timingPrompts'
 import { buildThemedPrompt } from './prompts/themedPrompts'
 import { buildGraphRAGEvidence, formatGraphRAGEvidenceForPrompt } from './graphRagEvidence'
+import { renderSectionsAsMarkdown, renderSectionsAsText } from './reportRendering'
+import { buildDeterministicCore } from './deterministicCore'
+import type { DeterministicProfile } from './deterministicCoreConfig'
 
 // Extracted modules
 import type { AIPremiumReport, AIReportGenerationOptions, AIUserPlan } from './reportTypes'
@@ -121,6 +124,13 @@ function getMissingCrossPaths(sections: Record<string, unknown>, crossPaths: str
   })
 }
 
+function getCrossCoverageRatio(sections: Record<string, unknown>, crossPaths: string[]): number {
+  const texts = crossPaths.map((path) => getPathText(sections, path)).filter((t) => t.length > 0)
+  if (texts.length === 0) return 0
+  const hit = texts.filter((t) => hasCrossInText(t)).length
+  return hit / texts.length
+}
+
 function buildDepthRepairInstruction(
   lang: 'ko' | 'en',
   sectionPaths: string[],
@@ -176,6 +186,27 @@ function buildSecondPassInstruction(lang: 'ko' | 'en'): string {
   ].join('\n')
 }
 
+function buildCrossCoverageRepairInstruction(
+  lang: 'ko' | 'en',
+  ratio: number,
+  targetRatio: number
+): string {
+  if (lang === 'ko') {
+    return [
+      '',
+      `중요: 사주+점성 교차 서술 비율이 낮습니다. 현재=${Math.round(ratio * 100)}%, 목표=${Math.round(targetRatio * 100)}%`,
+      '각 핵심 섹션마다 사주 근거 1문장 + 점성 근거 1문장 + 교차 결론 1문장을 반드시 포함하세요.',
+      '단순 일반론을 줄이고, 근거어(사주/점성/하우스/대운/트랜싯)를 문장에 명시하세요.',
+    ].join('\n')
+  }
+  return [
+    '',
+    `IMPORTANT: Cross-basis narrative coverage is low. current=${Math.round(ratio * 100)}%, target=${Math.round(targetRatio * 100)}%`,
+    'For each core section include: 1 Saju basis sentence + 1 Astrology basis sentence + 1 cross conclusion sentence.',
+    'Avoid generic filler and explicitly mention grounding terms (saju/astrology/house/daeun/transit).',
+  ].join('\n')
+}
+
 function getMaxRepairPassesByPlan(plan?: AIUserPlan): number {
   switch (plan) {
     case 'premium':
@@ -208,22 +239,45 @@ export async function generateAIPremiumReport(
     focusDomain: options.focusDomain,
   })
   const graphRagEvidencePrompt = formatGraphRAGEvidenceForPrompt(graphRagEvidence, lang)
+  const deterministicCore = buildDeterministicCore({
+    matrixInput: input,
+    matrixReport,
+    graphEvidence: graphRagEvidence,
+    userQuestion: options.userQuestion,
+    lang,
+    profile: options.deterministicProfile,
+  })
 
   let prompt: string
   if (options.theme && options.theme !== 'comprehensive') {
     prompt = buildThemedAIPrompt(input, matrixReport, options.theme, {
       ...options,
       graphRagEvidencePrompt,
+      deterministicCorePrompt: deterministicCore.promptBlock,
     })
   } else {
     prompt = buildAIPrompt(input, matrixReport, {
       ...options,
       graphRagEvidencePrompt,
+      deterministicCorePrompt: deterministicCore.promptBlock,
     })
   }
 
+  const requestedChars =
+    typeof options.targetChars === 'number' && Number.isFinite(options.targetChars)
+      ? Math.max(2500, Math.min(22000, Math.floor(options.targetChars)))
+      : options.detailLevel === 'comprehensive'
+        ? lang === 'ko'
+          ? 10000
+          : 8000
+        : undefined
+  const maxTokensOverride = requestedChars ? Math.ceil(requestedChars / 2) + 1200 : undefined
+
   // 2. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
-  const base = await callAIBackend(prompt, lang, { userPlan: options.userPlan })
+  const base = await callAIBackend(prompt, lang, {
+    userPlan: options.userPlan,
+    maxTokensOverride,
+  })
   let sections = base.sections as unknown as Record<string, unknown>
   let model = base.model
   let tokensUsed = base.tokensUsed
@@ -242,20 +296,30 @@ export async function generateAIPremiumReport(
     'conclusion',
   ]
   const crossPaths = [
+    'introduction',
     'personalityDeep',
     'careerPath',
     'relationshipDynamics',
     'wealthPotential',
+    'healthGuidance',
+    'lifeMission',
     'timingAdvice',
     'actionPlan',
+    'conclusion',
   ]
   const minCharsPerSection = lang === 'ko' ? 220 : 170
-  const minTotalChars = lang === 'ko' ? 2600 : 2200
+  const minTotalChars = Math.max(lang === 'ko' ? 2600 : 2200, requestedChars || 0)
+  const minCrossCoverage = 0.6
 
   const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
   const missingCross = getMissingCrossPaths(sections, crossPaths)
+  const crossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
   const totalChars = countSectionChars(sections)
-  const needsRepair = shortPaths.length > 0 || missingCross.length > 0 || totalChars < minTotalChars
+  const needsRepair =
+    shortPaths.length > 0 ||
+    missingCross.length > 0 ||
+    totalChars < minTotalChars ||
+    crossCoverageRatio < minCrossCoverage
 
   if (needsRepair && maxRepairPasses > 0) {
     const repairPrompt = [
@@ -268,12 +332,16 @@ export async function generateAIPremiumReport(
         minTotalChars
       ),
       missingCross.length > 0 ? buildCrossRepairInstruction(lang, missingCross) : '',
+      crossCoverageRatio < minCrossCoverage
+        ? buildCrossCoverageRepairInstruction(lang, crossCoverageRatio, minCrossCoverage)
+        : '',
     ]
       .filter(Boolean)
       .join('\n')
     try {
       const repaired = await callAIBackendGeneric<AIPremiumReport['sections']>(repairPrompt, lang, {
         userPlan: options.userPlan,
+        maxTokensOverride,
       })
       sections = repaired.sections as unknown as Record<string, unknown>
       model = repaired.model
@@ -281,12 +349,14 @@ export async function generateAIPremiumReport(
 
       const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
       const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
+      const secondCrossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
       const secondTotalChars = countSectionChars(sections)
       if (
         maxRepairPasses > 1 &&
         (secondShortPaths.length > 0 ||
           secondMissingCross.length > 0 ||
-          secondTotalChars < minTotalChars)
+          secondTotalChars < minTotalChars ||
+          secondCrossCoverageRatio < minCrossCoverage)
       ) {
         const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
         try {
@@ -295,6 +365,7 @@ export async function generateAIPremiumReport(
             lang,
             {
               userPlan: options.userPlan,
+              maxTokensOverride,
             }
           )
           sections = second.sections as unknown as Record<string, unknown>
@@ -331,6 +402,35 @@ export async function generateAIPremiumReport(
 
     sections: sections as AIPremiumReport['sections'],
     graphRagEvidence,
+    deterministicCore,
+    renderedMarkdown: renderSectionsAsMarkdown(
+      sections as Record<string, unknown>,
+      [
+        'introduction',
+        'personalityDeep',
+        'careerPath',
+        'relationshipDynamics',
+        'wealthPotential',
+        'healthGuidance',
+        'lifeMission',
+        'timingAdvice',
+        'actionPlan',
+        'conclusion',
+      ],
+      lang
+    ),
+    renderedText: renderSectionsAsText(sections as Record<string, unknown>, [
+      'introduction',
+      'personalityDeep',
+      'careerPath',
+      'relationshipDynamics',
+      'wealthPotential',
+      'healthGuidance',
+      'lifeMission',
+      'timingAdvice',
+      'actionPlan',
+      'conclusion',
+    ]),
 
     matrixSummary: {
       overallScore: matrixReport.overallScore.total,
@@ -372,6 +472,8 @@ export async function generateTimingReport(
     targetDate?: string
     lang?: 'ko' | 'en'
     userPlan?: AIUserPlan
+    userQuestion?: string
+    deterministicProfile?: DeterministicProfile
   } = {}
 ): Promise<TimingAIPremiumReport> {
   const startTime = Date.now()
@@ -379,6 +481,14 @@ export async function generateTimingReport(
   const targetDate = options.targetDate || new Date().toISOString().split('T')[0]
   const graphRagEvidence = buildGraphRAGEvidence(input, matrixReport, { mode: 'timing', period })
   const graphRagEvidencePrompt = formatGraphRAGEvidenceForPrompt(graphRagEvidence, lang)
+  const deterministicCore = buildDeterministicCore({
+    matrixInput: input,
+    matrixReport,
+    graphEvidence: graphRagEvidence,
+    userQuestion: options.userQuestion,
+    lang,
+    profile: options.deterministicProfile,
+  })
 
   // 1. 매트릭스 요약 빌드
   const matrixSummary = buildMatrixSummary(matrixReport, lang)
@@ -396,7 +506,9 @@ export async function generateTimingReport(
     timingData,
     targetDate,
     matrixSummary,
-    graphRagEvidencePrompt
+    graphRagEvidencePrompt,
+    options.userQuestion,
+    deterministicCore.promptBlock
   )
 
   // 3. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
@@ -424,17 +536,26 @@ export async function generateTimingReport(
     'overview',
     'energy',
     'opportunities',
+    'cautions',
     'domains.career',
     'domains.love',
+    'domains.wealth',
+    'domains.health',
     'actionPlan',
   ]
   const minCharsPerSection = lang === 'ko' ? 170 : 130
   const minTotalChars = lang === 'ko' ? 1900 : 1600
+  const minCrossCoverage = 0.6
 
   const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
   const missingCross = getMissingCrossPaths(sections, crossPaths)
+  const crossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
   const totalChars = countSectionChars(sections)
-  const needsRepair = shortPaths.length > 0 || missingCross.length > 0 || totalChars < minTotalChars
+  const needsRepair =
+    shortPaths.length > 0 ||
+    missingCross.length > 0 ||
+    totalChars < minTotalChars ||
+    crossCoverageRatio < minCrossCoverage
 
   if (needsRepair && maxRepairPasses > 0) {
     const repairPrompt = [
@@ -447,6 +568,9 @@ export async function generateTimingReport(
         minTotalChars
       ),
       missingCross.length > 0 ? buildCrossRepairInstruction(lang, missingCross) : '',
+      crossCoverageRatio < minCrossCoverage
+        ? buildCrossCoverageRepairInstruction(lang, crossCoverageRatio, minCrossCoverage)
+        : '',
     ]
       .filter(Boolean)
       .join('\n')
@@ -460,12 +584,14 @@ export async function generateTimingReport(
 
       const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
       const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
+      const secondCrossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
       const secondTotalChars = countSectionChars(sections)
       if (
         maxRepairPasses > 1 &&
         (secondShortPaths.length > 0 ||
           secondMissingCross.length > 0 ||
-          secondTotalChars < minTotalChars)
+          secondTotalChars < minTotalChars ||
+          secondCrossCoverageRatio < minCrossCoverage)
       ) {
         const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
         try {
@@ -516,6 +642,35 @@ export async function generateTimingReport(
     timingData,
     sections: sections as unknown as TimingReportSections,
     graphRagEvidence,
+    deterministicCore,
+    renderedMarkdown: renderSectionsAsMarkdown(
+      sections as Record<string, unknown>,
+      [
+        'overview',
+        'energy',
+        'opportunities',
+        'cautions',
+        'domains.career',
+        'domains.love',
+        'domains.wealth',
+        'domains.health',
+        'actionPlan',
+        'luckyElements',
+      ],
+      lang
+    ),
+    renderedText: renderSectionsAsText(sections as Record<string, unknown>, [
+      'overview',
+      'energy',
+      'opportunities',
+      'cautions',
+      'domains.career',
+      'domains.love',
+      'domains.wealth',
+      'domains.health',
+      'actionPlan',
+      'luckyElements',
+    ]),
     periodScore,
 
     meta: {
@@ -543,12 +698,22 @@ export async function generateThemedReport(
     birthDate?: string
     lang?: 'ko' | 'en'
     userPlan?: AIUserPlan
+    userQuestion?: string
+    deterministicProfile?: DeterministicProfile
   } = {}
 ): Promise<ThemedAIPremiumReport> {
   const startTime = Date.now()
   const lang = options.lang || 'ko'
   const graphRagEvidence = buildGraphRAGEvidence(input, matrixReport, { mode: 'themed', theme })
   const graphRagEvidencePrompt = formatGraphRAGEvidenceForPrompt(graphRagEvidence, lang)
+  const deterministicCore = buildDeterministicCore({
+    matrixInput: input,
+    matrixReport,
+    graphEvidence: graphRagEvidence,
+    userQuestion: options.userQuestion,
+    lang,
+    profile: options.deterministicProfile,
+  })
 
   // 1. 매트릭스 요약 빌드
   const matrixSummary = buildMatrixSummary(matrixReport, lang)
@@ -567,7 +732,9 @@ export async function generateThemedReport(
     timingData,
     matrixSummary,
     undefined,
-    graphRagEvidencePrompt
+    graphRagEvidencePrompt,
+    options.userQuestion,
+    deterministicCore.promptBlock
   )
 
   // 3. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
@@ -589,13 +756,28 @@ export async function generateThemedReport(
     'dynamics',
     'actionPlan',
   ]
-  const crossPaths = ['deepAnalysis', 'patterns', 'timing', 'actionPlan']
+  const crossPaths = [
+    'deepAnalysis',
+    'patterns',
+    'timing',
+    'compatibility',
+    'strategy',
+    'prevention',
+    'dynamics',
+    'actionPlan',
+  ]
   const minCharsPerSection = lang === 'ko' ? 180 : 140
   const minTotalChars = lang === 'ko' ? 1700 : 1400
+  const minCrossCoverage = 0.6
   const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
   const missingCross = getMissingCrossPaths(sections, crossPaths)
+  const crossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
   const totalChars = countSectionChars(sections)
-  const needsRepair = shortPaths.length > 0 || missingCross.length > 0 || totalChars < minTotalChars
+  const needsRepair =
+    shortPaths.length > 0 ||
+    missingCross.length > 0 ||
+    totalChars < minTotalChars ||
+    crossCoverageRatio < minCrossCoverage
 
   if (needsRepair && maxRepairPasses > 0) {
     const repairPrompt = [
@@ -608,6 +790,9 @@ export async function generateThemedReport(
         minTotalChars
       ),
       missingCross.length > 0 ? buildCrossRepairInstruction(lang, missingCross) : '',
+      crossCoverageRatio < minCrossCoverage
+        ? buildCrossCoverageRepairInstruction(lang, crossCoverageRatio, minCrossCoverage)
+        : '',
     ]
       .filter(Boolean)
       .join('\n')
@@ -621,12 +806,14 @@ export async function generateThemedReport(
 
       const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
       const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
+      const secondCrossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
       const secondTotalChars = countSectionChars(sections)
       if (
         maxRepairPasses > 1 &&
         (secondShortPaths.length > 0 ||
           secondMissingCross.length > 0 ||
-          secondTotalChars < minTotalChars)
+          secondTotalChars < minTotalChars ||
+          secondCrossCoverageRatio < minCrossCoverage)
       ) {
         const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
         try {
@@ -679,6 +866,31 @@ export async function generateThemedReport(
 
     sections: sections as unknown as ThemedReportSections,
     graphRagEvidence,
+    deterministicCore,
+    renderedMarkdown: renderSectionsAsMarkdown(
+      sections as Record<string, unknown>,
+      [
+        'deepAnalysis',
+        'patterns',
+        'timing',
+        'compatibility',
+        'strategy',
+        'prevention',
+        'dynamics',
+        'actionPlan',
+      ],
+      lang
+    ),
+    renderedText: renderSectionsAsText(sections as Record<string, unknown>, [
+      'deepAnalysis',
+      'patterns',
+      'timing',
+      'compatibility',
+      'strategy',
+      'prevention',
+      'dynamics',
+      'actionPlan',
+    ]),
     themeScore,
     keywords,
 

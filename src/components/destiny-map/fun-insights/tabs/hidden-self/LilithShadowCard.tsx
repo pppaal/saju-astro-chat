@@ -1,4 +1,5 @@
 import type { HiddenSelfAnalysis } from './types';
+import { ensureMinSentenceText } from '../shared/textDepth';
 
 interface LilithShadowCardProps {
   lilithShadow: NonNullable<HiddenSelfAnalysis['lilithShadow']>;
@@ -6,6 +7,9 @@ interface LilithShadowCardProps {
 }
 
 export default function LilithShadowCard({ lilithShadow, isKo }: LilithShadowCardProps) {
+  const enrich = (text?: string, topic: 'hidden' | 'healing' = 'hidden', min = 4) =>
+    ensureMinSentenceText(text || '', isKo, topic, min);
+
   return (
     <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-purple-900/20 border border-purple-500/30 p-6">
       <div className="flex items-center gap-3 mb-4">
@@ -26,20 +30,24 @@ export default function LilithShadowCard({ lilithShadow, isKo }: LilithShadowCar
           )}
         </div>
         <p className="text-gray-300 text-sm leading-relaxed mb-3">
-          {isKo ? lilithShadow.description?.ko : lilithShadow.description?.en}
+          {enrich(isKo ? lilithShadow.description?.ko : lilithShadow.description?.en, 'hidden', 4)}
         </p>
         <div className="p-3 rounded-lg bg-purple-500/15 border border-purple-500/25">
           <p className="text-purple-300 text-xs font-bold mb-1">{isKo ? '💜 통합 방법' : '💜 Integration'}</p>
           <p className="text-gray-300 text-xs">
-            {isKo ? lilithShadow.integration?.ko : lilithShadow.integration?.en}
+            {enrich(isKo ? lilithShadow.integration?.ko : lilithShadow.integration?.en, 'healing', 4)}
           </p>
         </div>
       </div>
 
       <p className="text-gray-500 text-xs">
-        {isKo
+        {enrich(
+          isKo
           ? '* 릴리스는 억압된 본능적 욕구를 나타냅니다. 이를 인정하면 더 완전한 자아를 실현할 수 있어요.'
-          : '* Lilith represents suppressed instinctual desires. Acknowledging them helps realize a more complete self.'}
+          : '* Lilith represents suppressed instinctual desires. Acknowledging them helps realize a more complete self.',
+          'hidden',
+          4
+        )}
       </p>
     </div>
   );

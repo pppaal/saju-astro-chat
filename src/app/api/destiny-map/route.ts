@@ -95,6 +95,39 @@ function maskPayload(body: unknown) {
   }
 }
 
+function hasObject(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value)
+}
+
+function hasArray(value: unknown): boolean {
+  return Array.isArray(value) && value.length > 0
+}
+
+function collectDestinyMapMissing(
+  raw: Record<string, unknown>,
+  hasCrossSummary: boolean
+): string[] {
+  const missing: string[] = []
+  const saju = hasObject(raw.saju) ? (raw.saju as Record<string, unknown>) : null
+  const astro = hasObject(raw.astrology) ? (raw.astrology as Record<string, unknown>) : null
+  const unse = saju && hasObject(saju.unse) ? (saju.unse as Record<string, unknown>) : null
+
+  if (!saju) missing.push('raw.saju')
+  if (!astro) missing.push('raw.astrology')
+  if (!saju || !hasObject(saju.dayMaster)) missing.push('raw.saju.dayMaster')
+  if (!saju || !hasObject(saju.pillars)) missing.push('raw.saju.pillars')
+  if (!unse || !hasArray(unse.daeun)) missing.push('raw.saju.unse.daeun')
+  if (!unse || !hasArray(unse.annual)) missing.push('raw.saju.unse.annual')
+  if (!unse || !hasArray(unse.monthly)) missing.push('raw.saju.unse.monthly')
+  if (!unse || !hasArray(unse.iljin)) missing.push('raw.saju.unse.iljin')
+  if (!hasObject(raw.progressions)) missing.push('raw.progressions')
+  if (!hasObject(raw.solarReturn)) missing.push('raw.solarReturn')
+  if (!hasObject(raw.lunarReturn)) missing.push('raw.lunarReturn')
+  if (!hasCrossSummary) missing.push('crossHighlights.summary')
+
+  return missing
+}
+
 /**
  * POST /api/destiny-map
  * Generate a themed destiny-map report using astro + saju inputs.
@@ -232,6 +265,22 @@ export const POST = withApiMiddleware(
     report.summary = sanitizeLocaleText(report.summary || '', cleanLang)
     if (report.crossHighlights?.summary) {
       report.crossHighlights.summary = sanitizeLocaleText(report.crossHighlights.summary, cleanLang)
+    }
+    const strictCompleteness = process.env.NODE_ENV !== 'test'
+    if (strictCompleteness && report.meta?.modelUsed !== 'filtered') {
+      const missing = collectDestinyMapMissing(
+        (report.raw || {}) as Record<string, unknown>,
+        !!report.crossHighlights?.summary
+      )
+      if (missing.length > 0) {
+        logger.error('[DestinyMap] strict completeness failed', { missing })
+        return createErrorResponse({
+          code: ErrorCodes.INTERNAL_ERROR,
+          message: `필수 데이터 누락으로 리포트 생성을 중단했습니다: ${missing.join(', ')}`,
+          locale: cleanLang,
+          route: 'destiny-map',
+        })
+      }
     }
     // Normalize theme interpretation strings
     if (report.themes) {

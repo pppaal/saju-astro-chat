@@ -1,3 +1,5 @@
+import { ensureMinSentenceText } from '../shared/textDepth';
+
 interface PersonalizedAdvice {
   emoji: string;
   title: { ko: string; en: string };
@@ -13,6 +15,8 @@ interface PersonalizedAdviceSectionProps {
 
 export default function PersonalizedAdviceSection({ personalizedAdvices, isKo }: PersonalizedAdviceSectionProps) {
   if (personalizedAdvices.length === 0) return null;
+  const enrich = (text: string, min = 4) =>
+    ensureMinSentenceText(text, isKo, 'personality', min);
 
   return (
     <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-indigo-900/20 border border-indigo-500/30 p-6">
@@ -42,12 +46,12 @@ export default function PersonalizedAdviceSection({ personalizedAdvices, isKo }:
                   )}
                 </div>
                 <p className="text-gray-300 text-sm mb-2">
-                  {isKo ? advice.summary.ko : advice.summary.en}
+                  {enrich(isKo ? advice.summary.ko : advice.summary.en, 3)}
                 </p>
               </div>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed pl-11">
-              {isKo ? advice.detail.ko : advice.detail.en}
+              {enrich(isKo ? advice.detail.ko : advice.detail.en, 4)}
             </p>
           </div>
         ))}

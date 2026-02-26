@@ -22,7 +22,6 @@ export default function robots(): MetadataRoute.Robots {
           '/api-docs/',
           '/offline/',
           '/shared/',
-          '/demo/',
           '/astrology/',
           '/saju/',
           '/numerology/',

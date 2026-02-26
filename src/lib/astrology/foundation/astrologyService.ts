@@ -3,8 +3,9 @@ import { Chart, ZodiacKo } from './types'
 import { formatLongitude } from './utils'
 import { calcHouses, inferHouseOf } from './houses'
 import { getSwisseph } from './ephe'
-import { getPlanetList, natalToJD } from './shared'
+import { getPlanetList, natalToJD, extractLongitudeSpeed } from './shared'
 import { toAstroHouseId, toAstroPlanetId, toAstroPointId } from '../graphIds'
+import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 
 // --- 출생 차트 public API ---
 export interface NatalChartInput {
@@ -56,7 +57,12 @@ export async function calculateNatalChart(input: NatalChartInput): Promise<Natal
   const ut_jd = natalToJD(input)
 
   // Houses / ASC / MC
-  const housesRes = calcHouses(ut_jd, input.latitude, input.longitude, 'Placidus')
+  const housesRes = calcHouses(
+    ut_jd,
+    input.latitude,
+    input.longitude,
+    CALCULATION_STANDARDS.astrology.houseSystem
+  )
   const ascendantInfo = formatLongitude(housesRes.ascendant)
   const mcInfo = formatLongitude(housesRes.mc)
 
@@ -88,11 +94,11 @@ export async function calculateNatalChart(input: NatalChartInput): Promise<Natal
     const longitude = res.longitude
     const info = formatLongitude(longitude)
     const houseNum = inferHouseOf(longitude, housesRes.house)
-    const speed = res.speed
+    const speed = extractLongitudeSpeed(res as unknown as Record<string, unknown>)
     const retrograde = typeof speed === 'number' ? speed < 0 : undefined
 
     const graphId =
-      name === 'True Node'
+      name === 'True Node' || name === 'Mean Node' || name === 'North Node'
         ? (toAstroPointId('NorthNode') ?? undefined)
         : (toAstroPlanetId(name) ?? undefined)
 
@@ -121,7 +127,7 @@ export async function calculateNatalChart(input: NatalChartInput): Promise<Natal
       timeZone: input.timeZone,
       latitude: input.latitude,
       longitude: input.longitude,
-      houseSystem: 'Placidus',
+      houseSystem: CALCULATION_STANDARDS.astrology.houseSystem,
     },
   }
 }

@@ -1,0 +1,1504 @@
+{
+  "generatedAt": "2026-02-25T03:00:59.739Z",
+  "question": "여기로 가는게 맞냐? 맞다면 어떻게 해야 해?",
+  "caseCount": 10,
+  "results": [
+    {
+      "id": "C1_full_reference",
+      "note": "기준 케이스(데이터 풍부)",
+      "byProfile": [
+        {
+          "profile": "strict",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 87,
+            "confidence": 100,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: strict\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=87, confidence=100, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "balanced",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 87,
+            "confidence": 100,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: balanced\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=87, confidence=100, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "aggressive",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 89,
+            "confidence": 100,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: aggressive\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=89, confidence=100, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        }
+      ]
+    },
+    {
+      "id": "C2_low_anchor",
+      "note": "교차 앵커 부족",
+      "byProfile": [
+        {
+          "profile": "strict",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 4,
+              "graphSetCount": 24,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "DELAY",
+            "score": 79,
+            "confidence": 70,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": [
+              "교차 근거 앵커 부족"
+            ]
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: strict\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=4, sets=24, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=DELAY, score=79, confidence=70, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=교차 근거 앵커 부족\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "balanced",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 4,
+              "graphSetCount": 24,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "DELAY",
+            "score": 79,
+            "confidence": 70,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": [
+              "교차 근거 앵커 부족"
+            ]
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: balanced\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=4, sets=24, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=DELAY, score=79, confidence=70, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=교차 근거 앵커 부족\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "aggressive",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 4,
+              "graphSetCount": 24,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "DELAY",
+            "score": 81,
+            "confidence": 70,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": [
+              "교차 근거 앵커 부족"
+            ]
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: aggressive\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=4, sets=24, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=DELAY, score=81, confidence=70, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=교차 근거 앵커 부족\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        }
+      ]
+    },
+    {
+      "id": "C3_no_graph",
+      "note": "GraphRAG 없음",
+      "byProfile": [
+        {
+          "profile": "strict",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 0,
+              "graphSetCount": 0,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "DELAY",
+            "score": 79,
+            "confidence": 70,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": [
+              "교차 근거 앵커 부족"
+            ]
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: strict\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=0, sets=0, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=DELAY, score=79, confidence=70, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=교차 근거 앵커 부족\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "balanced",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 0,
+              "graphSetCount": 0,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "DELAY",
+            "score": 79,
+            "confidence": 70,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": [
+              "교차 근거 앵커 부족"
+            ]
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: balanced\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=0, sets=0, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=DELAY, score=79, confidence=70, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=교차 근거 앵커 부족\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "aggressive",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 0,
+              "graphSetCount": 0,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "DELAY",
+            "score": 81,
+            "confidence": 70,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": [
+              "교차 근거 앵커 부족"
+            ]
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: aggressive\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=0, sets=0, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=DELAY, score=81, confidence=70, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=교차 근거 앵커 부족\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        }
+      ]
+    },
+    {
+      "id": "C4_sparse_aspects",
+      "note": "aspect 빈약",
+      "byProfile": [
+        {
+          "profile": "strict",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 2,
+              "aspectsWithOrb": 2,
+              "aspectsWithAngle": 2,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 78,
+            "confidence": 100,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: strict\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=2, orb=2, angle=2, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=78, confidence=100, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "balanced",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 2,
+              "aspectsWithOrb": 2,
+              "aspectsWithAngle": 2,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 78,
+            "confidence": 100,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: balanced\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=2, orb=2, angle=2, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=78, confidence=100, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "aggressive",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 2,
+              "aspectsWithOrb": 2,
+              "aspectsWithAngle": 2,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 80,
+            "confidence": 100,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: aggressive\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=2, orb=2, angle=2, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=80, confidence=100, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        }
+      ]
+    },
+    {
+      "id": "C5_no_relations_shinsal",
+      "note": "관계/신살 정보 없음",
+      "byProfile": [
+        {
+          "profile": "strict",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 0,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 0
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 79,
+            "confidence": 100,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: strict\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=0, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=0\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=79, confidence=100, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "balanced",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 0,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 0
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 79,
+            "confidence": 100,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: balanced\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=0, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=0\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=79, confidence=100, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "aggressive",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 0,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 0
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 81,
+            "confidence": 100,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: aggressive\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=0, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=0\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=81, confidence=100, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        }
+      ]
+    },
+    {
+      "id": "C6_yongsin_mismatch",
+      "note": "용신-세운 불일치",
+      "byProfile": [
+        {
+          "profile": "strict",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "DELAY",
+            "score": 71,
+            "confidence": 100,
+            "reasons": [
+              "세운(수)과 용신(화) 불일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: strict\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=DELAY, score=71, confidence=100, reasons=세운(수)과 용신(화) 불일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "balanced",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 73,
+            "confidence": 100,
+            "reasons": [
+              "세운(수)과 용신(화) 불일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: balanced\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=73, confidence=100, reasons=세운(수)과 용신(화) 불일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "aggressive",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 73,
+            "confidence": 100,
+            "reasons": [
+              "세운(수)과 용신(화) 불일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: aggressive\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=73, confidence=100, reasons=세운(수)과 용신(화) 불일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        }
+      ]
+    },
+    {
+      "id": "C7_missing_birth_time",
+      "note": "출생시각 누락",
+      "byProfile": [
+        {
+          "profile": "strict",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "DELAY",
+            "score": 79,
+            "confidence": 88,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": [
+              "출생시각/날짜 맥락 불완전"
+            ]
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: strict\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=DELAY, score=79, confidence=88, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=출생시각/날짜 맥락 불완전\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "balanced",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "DELAY",
+            "score": 81,
+            "confidence": 88,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": [
+              "출생시각/날짜 맥락 불완전"
+            ]
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: balanced\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=DELAY, score=81, confidence=88, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=출생시각/날짜 맥락 불완전\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "aggressive",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "DELAY",
+            "score": 83,
+            "confidence": 88,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": [
+              "출생시각/날짜 맥락 불완전"
+            ]
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: aggressive\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=DELAY, score=83, confidence=88, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=출생시각/날짜 맥락 불완전\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        }
+      ]
+    },
+    {
+      "id": "C8_no_timing_core",
+      "note": "용신/대운/세운 미제공",
+      "byProfile": [
+        {
+          "profile": "strict",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": false,
+              "hasDaeun": false,
+              "hasSaeun": false,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 77,
+            "confidence": 100,
+            "reasons": [
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: strict\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=false, daeun=false, saeun=false, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=77, confidence=100, reasons=대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "balanced",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": false,
+              "hasDaeun": false,
+              "hasSaeun": false,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 77,
+            "confidence": 100,
+            "reasons": [
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: balanced\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=false, daeun=false, saeun=false, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=77, confidence=100, reasons=대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "aggressive",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": false,
+              "hasDaeun": false,
+              "hasSaeun": false,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 77,
+            "confidence": 100,
+            "reasons": [
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: aggressive\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=false, daeun=false, saeun=false, shinsal=14\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=77, confidence=100, reasons=대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        }
+      ]
+    },
+    {
+      "id": "C9_sparse_astro",
+      "note": "점성 데이터 희소",
+      "byProfile": [
+        {
+          "profile": "strict",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 2,
+              "planetSignCount": 2,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 0,
+              "extraPointCount": 0,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 87,
+            "confidence": 85,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: strict\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=2, planetSigns=2, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=0, extraPoints=0, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=87, confidence=85, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "balanced",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 2,
+              "planetSignCount": 2,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 0,
+              "extraPointCount": 0,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 87,
+            "confidence": 85,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: balanced\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=2, planetSigns=2, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=0, extraPoints=0, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=87, confidence=85, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "aggressive",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 6,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 14
+            },
+            "astrology": {
+              "planetHouseCount": 2,
+              "planetSignCount": 2,
+              "aspectCount": 9,
+              "aspectsWithOrb": 9,
+              "aspectsWithAngle": 9,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 0,
+              "extraPointCount": 0,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 10,
+              "graphSetCount": 60,
+              "topInsightCount": 10,
+              "driverCount": 10,
+              "cautionCount": 0,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "GO",
+            "score": 89,
+            "confidence": 85,
+            "reasons": [
+              "세운(화)이 용신(화)과 일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용"
+            ],
+            "blockers": []
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: aggressive\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=14\n- ASTRO coverage: planetHouses=2, planetSigns=2, aspects=9, orb=9, angle=9, dominantElement=true, asteroids=0, extraPoints=0, activeTransits=0\n- CROSS coverage: anchors=10, sets=60, topInsights=10, drivers=10, cautions=0, domainScores=0\n- DECISION: verdict=GO, score=89, confidence=85, reasons=세운(화)이 용신(화)과 일치 | 대운 데이터 누락으로 신뢰도 보수 적용, blockers=-\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        }
+      ]
+    },
+    {
+      "id": "C10_combined_risk",
+      "note": "복합 리스크(누락+불일치+경고 집중)",
+      "byProfile": [
+        {
+          "profile": "strict",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 0,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 0
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 1,
+              "aspectsWithOrb": 1,
+              "aspectsWithAngle": 1,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 2,
+              "graphSetCount": 12,
+              "topInsightCount": 4,
+              "driverCount": 0,
+              "cautionCount": 4,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "NO",
+            "score": 28,
+            "confidence": 70,
+            "reasons": [
+              "세운(수)과 용신(화) 불일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용",
+              "주의 신호 4개 감점"
+            ],
+            "blockers": [
+              "교차 근거 앵커 부족",
+              "출생시각/날짜 맥락 불완전"
+            ]
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: strict\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=0, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=0\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=1, orb=1, angle=1, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=2, sets=12, topInsights=4, drivers=0, cautions=4, domainScores=0\n- DECISION: verdict=NO, score=28, confidence=70, reasons=세운(수)과 용신(화) 불일치 | 대운 데이터 누락으로 신뢰도 보수 적용 | 주의 신호 4개 감점, blockers=교차 근거 앵커 부족 | 출생시각/날짜 맥락 불완전\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "balanced",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 0,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 0
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 1,
+              "aspectsWithOrb": 1,
+              "aspectsWithAngle": 1,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 2,
+              "graphSetCount": 12,
+              "topInsightCount": 4,
+              "driverCount": 0,
+              "cautionCount": 4,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "NO",
+            "score": 34,
+            "confidence": 70,
+            "reasons": [
+              "세운(수)과 용신(화) 불일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용",
+              "주의 신호 4개 감점"
+            ],
+            "blockers": [
+              "교차 근거 앵커 부족",
+              "출생시각/날짜 맥락 불완전"
+            ]
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: balanced\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=0, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=0\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=1, orb=1, angle=1, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=2, sets=12, topInsights=4, drivers=0, cautions=4, domainScores=0\n- DECISION: verdict=NO, score=34, confidence=70, reasons=세운(수)과 용신(화) 불일치 | 대운 데이터 누락으로 신뢰도 보수 적용 | 주의 신호 4개 감점, blockers=교차 근거 앵커 부족 | 출생시각/날짜 맥락 불완전\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        },
+        {
+          "profile": "aggressive",
+          "coverage": {
+            "saju": {
+              "hasDayMaster": true,
+              "pillarElementCount": 8,
+              "sibsinKeys": 6,
+              "relationCount": 0,
+              "hasGeokguk": true,
+              "hasYongsin": true,
+              "hasDaeun": false,
+              "hasSaeun": true,
+              "shinsalCount": 0
+            },
+            "astrology": {
+              "planetHouseCount": 11,
+              "planetSignCount": 11,
+              "aspectCount": 1,
+              "aspectsWithOrb": 1,
+              "aspectsWithAngle": 1,
+              "hasDominantElement": true,
+              "asteroidHouseCount": 4,
+              "extraPointCount": 4,
+              "activeTransitCount": 0
+            },
+            "cross": {
+              "graphAnchorCount": 2,
+              "graphSetCount": 12,
+              "topInsightCount": 4,
+              "driverCount": 0,
+              "cautionCount": 4,
+              "domainScoreCount": 0
+            }
+          },
+          "decision": {
+            "enabled": true,
+            "verdict": "NO",
+            "score": 36,
+            "confidence": 70,
+            "reasons": [
+              "세운(수)과 용신(화) 불일치",
+              "대운 데이터 누락으로 신뢰도 보수 적용",
+              "주의 신호 4개 감점"
+            ],
+            "blockers": [
+              "교차 근거 앵커 부족",
+              "출생시각/날짜 맥락 불완전"
+            ]
+          },
+          "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: aggressive\n- SAJU coverage: dayMaster=true, pillars=8, sibsinKeys=6, relations=0, geokguk=true, yongsin=true, daeun=false, saeun=true, shinsal=0\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=1, orb=1, angle=1, dominantElement=true, asteroids=4, extraPoints=4, activeTransits=0\n- CROSS coverage: anchors=2, sets=12, topInsights=4, drivers=0, cautions=4, domainScores=0\n- DECISION: verdict=NO, score=36, confidence=70, reasons=세운(수)과 용신(화) 불일치 | 대운 데이터 누락으로 신뢰도 보수 적용 | 주의 신호 4개 감점, blockers=교차 근거 앵커 부족 | 출생시각/날짜 맥락 불완전\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+        }
+      ]
+    }
+  ]
+}

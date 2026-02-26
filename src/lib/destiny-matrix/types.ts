@@ -424,6 +424,12 @@ export interface MatrixCalculationInput {
   // Extra Point data (Layer 10)
   extraPointSigns?: Partial<Record<ExtraPointName, ZodiacKo>>
 
+  // Full raw snapshots for complete downstream grounding
+  sajuSnapshot?: Record<string, unknown>
+  astrologySnapshot?: Record<string, unknown>
+  crossSnapshot?: Record<string, unknown>
+  currentDateIso?: string
+
   // Options
   lang?: 'ko' | 'en'
   // Optional anchor month for deterministic 12-month timeline generation (YYYY-MM)

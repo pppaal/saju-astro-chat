@@ -61,7 +61,6 @@ npm run -s docs:stats
   - `STRIPE_PRICE_STARTER_*`, `STRIPE_PRICE_PRO_*`
   - `STRIPE_PRICE_PREMIUM_YEARLY`
   - `STRIPE_PRICE_CREDIT_*`
-  - `DEMO_TOKEN`
 
 5. Broken documentation links fixed
 

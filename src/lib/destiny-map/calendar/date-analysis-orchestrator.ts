@@ -59,6 +59,7 @@ import {
   filterWarningsByGrade,
 } from './grading'
 import { calculateActivityScore } from './activity-scoring'
+import { EVIDENCE_CONFIDENCE_THRESHOLDS, GRADE_THRESHOLDS } from './scoring-config'
 
 // 타입
 import type {
@@ -81,6 +82,9 @@ export interface ImportantDate {
   date: string
   grade: ImportanceGrade
   score: number
+  rawScore?: number
+  adjustedScore?: number
+  displayScore?: number
   categories: EventCategory[]
   titleKey: string
   descKey: string
@@ -93,6 +97,7 @@ export interface ImportantDate {
   warningKeys: string[]
   confidence?: number
   confidenceNote?: string
+  crossAgreementPercent?: number
   gongmangStatus?: {
     isEmpty: boolean
     emptyBranches: string[]
@@ -136,6 +141,56 @@ export interface ImportantDate {
     retrospectiveNote?: string
   }
   astroAspectEvidence?: TransitAspectEvidence[]
+}
+
+const CROSS_ALIGNMENT_THRESHOLD = 60
+const EXTREME_CROSS_MISMATCH_THRESHOLD = 15
+
+function applyCoherenceGradeGuard(input: {
+  grade: ImportanceGrade
+  adjustedScore: number
+  confidence?: number
+  crossAgreementPercent?: number
+}): {
+  grade: ImportanceGrade
+  adjustedScore: number
+  downgraded: boolean
+  extraWarningKeys: string[]
+} {
+  const lowConfidence =
+    typeof input.confidence === 'number' && input.confidence < EVIDENCE_CONFIDENCE_THRESHOLDS.low
+  const lowAgreement =
+    typeof input.crossAgreementPercent === 'number' &&
+    Number.isFinite(input.crossAgreementPercent) &&
+    input.crossAgreementPercent < CROSS_ALIGNMENT_THRESHOLD
+  const severeMismatch =
+    typeof input.crossAgreementPercent === 'number' &&
+    Number.isFinite(input.crossAgreementPercent) &&
+    input.crossAgreementPercent <= EXTREME_CROSS_MISMATCH_THRESHOLD
+
+  if (input.grade <= 1 && (lowConfidence || lowAgreement)) {
+    if (severeMismatch || (lowConfidence && lowAgreement)) {
+      return {
+        grade: 3,
+        adjustedScore: Math.min(input.adjustedScore, GRADE_THRESHOLDS.grade2 - 1),
+        downgraded: true,
+        extraWarningKeys: ['confusion', 'recheck'],
+      }
+    }
+    return {
+      grade: 2,
+      adjustedScore: Math.min(input.adjustedScore, GRADE_THRESHOLDS.grade1 - 1),
+      downgraded: true,
+      extraWarningKeys: ['confusion'],
+    }
+  }
+
+  return {
+    grade: input.grade,
+    adjustedScore: input.adjustedScore,
+    downgraded: false,
+    extraWarningKeys: [],
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -372,11 +427,30 @@ export function analyzeDate(
   }
 
   const gradeResult = calculateGrade(gradeInput)
-  const grade = gradeResult.grade
+  let grade = gradeResult.grade
+  const rawScore = scoreResult.totalScore
+  const adjustedBase = Number.isFinite(gradeResult.adjustedScore)
+    ? gradeResult.adjustedScore
+    : rawScore
+  let adjustedScore = Math.round(Math.max(0, Math.min(100, adjustedBase)))
 
   // 타이틀/설명 키 설정
+  const { confidence, confidenceNote } = calculateConfidence({
+    sajuProfile,
+    crossVerified: scoreResult.crossVerified,
+  })
+  const coherenceGuard = applyCoherenceGradeGuard({
+    grade,
+    adjustedScore,
+    confidence,
+    crossAgreementPercent: scoreResult.crossAgreementPercent,
+  })
+  grade = coherenceGuard.grade
+  adjustedScore = Math.round(Math.max(0, Math.min(100, coherenceGuard.adjustedScore)))
+  const displayScore = adjustedScore
+
   let { titleKey, descKey } = factors
-  if (grade === 0 || !titleKey) {
+  if (grade === 0 || !titleKey || coherenceGuard.downgraded) {
     const keys = getGradeKeys(grade)
     titleKey = keys.titleKey
     descKey = keys.descKey
@@ -389,7 +463,10 @@ export function analyzeDate(
       ? [...gradeRecs, ...factors.recommendationKeys]
       : [...factors.recommendationKeys, ...gradeRecs]
 
-  const warningKeys = filterWarningsByGrade(grade, factors.warningKeys)
+  const warningKeys = filterWarningsByGrade(grade, [
+    ...factors.warningKeys,
+    ...coherenceGuard.extraWarningKeys,
+  ])
 
   // ─────────────────────────────────────────────────────
   // Step 8: 고급 예측 분석
@@ -407,11 +484,6 @@ export function analyzeDate(
   // Step 9: 신뢰도 계산
   // ─────────────────────────────────────────────────────
 
-  const { confidence, confidenceNote } = calculateConfidence({
-    sajuProfile,
-    crossVerified: scoreResult.crossVerified,
-  })
-
   // ─────────────────────────────────────────────────────
   // Step 10: 활동별 점수 계산
   // ─────────────────────────────────────────────────────
@@ -419,42 +491,42 @@ export function analyzeDate(
   const activityScores = {
     marriage: calculateActivityScore(
       'love',
-      scoreResult.totalScore,
+      displayScore,
       advancedPrediction.gongmangStatus,
       advancedPrediction.shinsalActive,
       advancedPrediction.energyFlow
     ),
     career: calculateActivityScore(
       'career',
-      scoreResult.totalScore,
+      displayScore,
       advancedPrediction.gongmangStatus,
       advancedPrediction.shinsalActive,
       advancedPrediction.energyFlow
     ),
     investment: calculateActivityScore(
       'wealth',
-      scoreResult.totalScore,
+      displayScore,
       advancedPrediction.gongmangStatus,
       advancedPrediction.shinsalActive,
       advancedPrediction.energyFlow
     ),
     moving: calculateActivityScore(
       'travel',
-      scoreResult.totalScore,
+      displayScore,
       advancedPrediction.gongmangStatus,
       advancedPrediction.shinsalActive,
       advancedPrediction.energyFlow
     ),
     surgery: calculateActivityScore(
       'health',
-      scoreResult.totalScore,
+      displayScore,
       advancedPrediction.gongmangStatus,
       advancedPrediction.shinsalActive,
       advancedPrediction.energyFlow
     ),
     study: calculateActivityScore(
       'study',
-      scoreResult.totalScore,
+      displayScore,
       advancedPrediction.gongmangStatus,
       advancedPrediction.shinsalActive,
       advancedPrediction.energyFlow
@@ -480,7 +552,10 @@ export function analyzeDate(
   return {
     date: dateStr,
     grade,
-    score: scoreResult.totalScore,
+    score: displayScore,
+    rawScore,
+    adjustedScore,
+    displayScore,
     categories: factors.categories,
     titleKey,
     descKey,
@@ -493,6 +568,7 @@ export function analyzeDate(
     warningKeys,
     confidence,
     confidenceNote,
+    crossAgreementPercent: scoreResult.crossAgreementPercent,
     gongmangStatus: advancedPrediction.gongmangStatus,
     shinsalActive: advancedPrediction.shinsalActive,
     energyFlow: advancedPrediction.energyFlow,

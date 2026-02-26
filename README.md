@@ -59,27 +59,6 @@ Minimum local setup:
 
 Production also needs Stripe, Redis, and webhook configuration. See `BUILD_INSTRUCTIONS.md` and `.env.example`.
 
-## Demo Mode
-
-Server-side demo access is enabled with env variables:
-
-- `DEMO_ENABLED=1` (optional, default enabled when unset)
-- `DEMO_TOKEN=<your-token>`
-
-Usage:
-
-- Open `/demo?demo_token=<your-token>`
-- Or call demo APIs with header `x-demo-token: <your-token>`
-
-Demo routes:
-
-- `/demo/destiny-map`
-- `/demo/destiny-matrix`
-- `/demo/tarot`
-- `/demo/calendar`
-- `/demo/compatibility`
-- `/demo/report`
-
 ## Repository Snapshot
 
 Measured with `npm run docs:stats` on 2026-02-15 (Asia/Seoul):

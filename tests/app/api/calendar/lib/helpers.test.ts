@@ -11,6 +11,7 @@ import {
   parseBirthDate,
   generateSummary,
   generateBestTimes,
+  gateRecommendations,
   formatDateForResponse,
   fetchAIDates,
   LOCATION_COORDS,
@@ -254,11 +255,11 @@ describe('Calendar Helpers', () => {
 
     it('should generate grade 2 high Korean summary', () => {
       const result = generateSummary(2, ['career'], 65, 'ko')
-      expect(result).toBe('괜찮은 커리어 운')
+      expect(result).toContain('괜찮은 커리어 운')
     })
 
     it('should generate grade 2 low Korean summary', () => {
-      const result = generateSummary(2, ['career'], 50, 'ko')
+      const result = generateSummary(2, ['career'], 30, 'ko')
       expect(result).toContain('평범한 하루')
     })
 
@@ -289,12 +290,12 @@ describe('Calendar Helpers', () => {
 
     it('should generate grade 2 high English summary', () => {
       const result = generateSummary(2, ['general'], 65, 'en')
-      expect(result).toBe('Decent day overall')
+      expect(result).toContain('Decent day overall')
     })
 
     it('should generate grade 2 low English summary', () => {
-      const result = generateSummary(2, ['general'], 50, 'en')
-      expect(result).toBe('Average day, take it easy')
+      const result = generateSummary(2, ['general'], 30, 'en')
+      expect(result).toContain('Average day, take it easy')
     })
 
     it('should generate grade 5 English with bad day reason', () => {
@@ -339,6 +340,37 @@ describe('Calendar Helpers', () => {
     it('should return study-specific times', () => {
       const result = generateBestTimes(0, ['study'], 'en')
       expect(result[0]).toContain('Peak focus')
+    })
+  })
+
+  describe('gateRecommendations', () => {
+    it('removes irreversible recommendations when confidence is low', () => {
+      const result = gateRecommendations({
+        recommendations: ['Sign now', 'Finalize contract today', 'Review details with your team'],
+        recommendationKeys: ['majorDecision', 'contract', 'review'],
+        confidence: 20,
+        grade: 0 as any,
+        lang: 'en',
+        irreversibleKeyPresent: true,
+      })
+
+      expect(result.some((line) => /sign|finalize|contract/i.test(line))).toBe(false)
+      expect(result.some((line) => /review|reconfirm|draft/i.test(line))).toBe(true)
+    })
+
+    it('removes irreversible recommendations when communication warning exists', () => {
+      const result = gateRecommendations({
+        recommendations: ['계약서 서명 진행', '핵심 내용 점검 후 메시지 요약 전송'],
+        recommendationKeys: ['contract', 'review'],
+        warningKeys: ['mercuryRetrograde'],
+        warnings: ['커뮤니케이션 오류 가능성이 있어 재확인이 필요합니다.'],
+        confidence: 90,
+        grade: 1 as any,
+        lang: 'ko',
+      })
+
+      expect(result.some((line) => /계약|서명|확정/.test(line))).toBe(false)
+      expect(result.some((line) => /검토|재확인|확인|요약|24시간/.test(line))).toBe(true)
     })
   })
 
@@ -425,6 +457,8 @@ describe('Calendar Helpers', () => {
       date: '2025-03-15',
       grade: 0 as const,
       score: 95,
+      confidence: 90,
+      crossAgreementPercent: 82,
       categories: ['career' as any, 'career' as any],
       titleKey: 'calendar.good_day',
       descKey: 'calendar.good_desc',
@@ -498,7 +532,7 @@ describe('Calendar Helpers', () => {
       )
 
       expect(result.recommendations).toContain('휴식하세요')
-      expect(result.warnings).toContain('주의하세요')
+      expect(result.warnings).not.toContain('주의하세요')
     })
 
     it('should use English translations when locale is en', () => {
@@ -552,6 +586,87 @@ describe('Calendar Helpers', () => {
       expect(result.evidence?.matrix.domain).toBe('career')
       expect(result.evidence?.confidence).toBeGreaterThanOrEqual(0)
       expect(result.evidence?.confidence).toBeLessThanOrEqual(100)
+    })
+
+    it('should expose displayScore and debug scores when provided', () => {
+      const result = formatDateForResponse(
+        {
+          ...baseDateData,
+          score: 67,
+          rawScore: 67,
+          adjustedScore: 69,
+          displayScore: 69,
+        } as any,
+        'en',
+        koTranslations as any,
+        enTranslations as any
+      )
+
+      expect(result.score).toBe(69)
+      expect(result.rawScore).toBe(67)
+      expect(result.adjustedScore).toBe(69)
+      expect(result.displayScore).toBe(69)
+    })
+
+    it('should gate irreversible recommendations on low confidence communication warning', () => {
+      const result = formatDateForResponse(
+        {
+          ...baseDateData,
+          recommendationKeys: ['wedding', 'contract', 'rest'],
+          warningKeys: ['mercuryRetrograde'],
+          confidence: 30,
+        } as any,
+        'en',
+        koTranslations as any,
+        enTranslations as any
+      )
+
+      expect(result.recommendations.some((r) => r.includes('wedding'))).toBe(false)
+      expect(result.recommendations.some((r) => r.includes('contract'))).toBe(false)
+      expect(result.recommendations).toContain('Review and reconfirm before committing.')
+    })
+
+    it('should switch to mixed-signals mode when cross agreement is very low on top grades', () => {
+      const result = formatDateForResponse(
+        {
+          ...baseDateData,
+          grade: 0,
+          score: 84,
+          recommendationKeys: ['wedding', 'contract', 'rest'],
+          crossAgreementPercent: 3,
+          confidence: 90,
+        } as any,
+        'en',
+        koTranslations as any,
+        enTranslations as any
+      )
+
+      expect(result.title).toBe('Mixed signals')
+      expect(result.description).toContain('Signals are mixed')
+      expect(result.recommendations.some((r) => /wedding|contract/i.test(r))).toBe(false)
+      expect(result.warnings.some((w) => /communication errors/i.test(w))).toBe(true)
+    })
+
+    it('should include crossAgreementPercent in evidence', () => {
+      const result = formatDateForResponse(
+        {
+          ...baseDateData,
+          crossAgreementPercent: 78,
+        } as any,
+        'en',
+        koTranslations as any,
+        enTranslations as any,
+        {
+          domainScores: { career: { finalScoreAdjusted: 8.1 } as any },
+          overlapTimeline: [{ month: '2025-03', overlapStrength: 0.7, peakLevel: 'high' } as any],
+          overlapTimelineByDomain: {
+            career: [{ month: '2025-03', overlapStrength: 0.7, peakLevel: 'high' } as any],
+          },
+          calendarSignals: [],
+        } as any
+      )
+
+      expect(result.evidence?.crossAgreementPercent).toBe(78)
     })
   })
 })

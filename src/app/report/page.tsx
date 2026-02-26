@@ -4,8 +4,8 @@ import { redirect } from 'next/navigation'
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
 export const metadata: Metadata = {
-  title: 'Premium AI Report',
-  description: 'Premium AI report center for timing, themed, and comprehensive insights.',
+  title: 'AI Report Center',
+  description: 'AI report center with free summary and premium deep analysis.',
   alternates: {
     canonical: `${baseUrl}/premium-reports`,
     languages: {

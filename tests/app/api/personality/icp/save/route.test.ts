@@ -77,10 +77,7 @@ vi.mock('@/lib/api/zodValidation', () => ({
 import { POST, GET } from '@/app/api/personality/icp/save/route'
 import { prisma, Prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import {
-  icpSaveRequestSchema,
-  personalityIcpSaveGetQuerySchema,
-} from '@/lib/api/zodValidation'
+import { icpSaveRequestSchema, personalityIcpSaveGetQuerySchema } from '@/lib/api/zodValidation'
 
 // ===========================
 // Test fixtures
@@ -109,7 +106,7 @@ const VALID_ICP_DATA = {
     descriptionKo: '당신은 자연스럽게 자기 주장이 강하고 자신감 있는 사람입니다.',
     strengths: ['Leadership skills', 'Clear communication', 'Decision-making'],
     strengthsKo: ['리더십 능력', '명확한 의사소통', '의사결정력'],
-    challenges: ['May come across as dominant', 'Can overlook others\' feelings'],
+    challenges: ['May come across as dominant', "Can overlook others' feelings"],
     challengesKo: ['지배적으로 보일 수 있음', '다른 사람의 감정을 간과할 수 있음'],
     tips: ['Practice active listening', 'Show empathy'],
     tipsKo: ['적극적 경청 연습하기', '공감 표현하기'],
@@ -221,9 +218,7 @@ describe('POST /api/personality/icp/save', () => {
 
   describe('Validation', () => {
     it('should return 400 when validation fails due to missing primaryStyle', async () => {
-      setupValidationFailure([
-        { path: ['primaryStyle'], message: 'Required' },
-      ])
+      setupValidationFailure([{ path: ['primaryStyle'], message: 'Required' }])
 
       const req = createPostRequest({
         dominanceScore: 45,
@@ -242,7 +237,11 @@ describe('POST /api/personality/icp/save', () => {
 
     it('should return 400 when validation fails due to invalid primaryStyle', async () => {
       setupValidationFailure([
-        { path: ['primaryStyle'], message: 'Invalid enum value. Expected \'PA\' | \'BC\' | \'DE\' | \'FG\' | \'HI\' | \'JK\' | \'LM\' | \'NO\'' },
+        {
+          path: ['primaryStyle'],
+          message:
+            "Invalid enum value. Expected 'PA' | 'BC' | 'DE' | 'FG' | 'HI' | 'JK' | 'LM' | 'NO'",
+        },
       ])
 
       const req = createPostRequest({
@@ -259,9 +258,7 @@ describe('POST /api/personality/icp/save', () => {
     })
 
     it('should return 400 when validation fails due to missing dominanceScore', async () => {
-      setupValidationFailure([
-        { path: ['dominanceScore'], message: 'Required' },
-      ])
+      setupValidationFailure([{ path: ['dominanceScore'], message: 'Required' }])
 
       const req = createPostRequest({
         primaryStyle: 'PA',
@@ -278,9 +275,7 @@ describe('POST /api/personality/icp/save', () => {
     })
 
     it('should return 400 when validation fails due to missing affiliationScore', async () => {
-      setupValidationFailure([
-        { path: ['affiliationScore'], message: 'Required' },
-      ])
+      setupValidationFailure([{ path: ['affiliationScore'], message: 'Required' }])
 
       const req = createPostRequest({
         primaryStyle: 'PA',
@@ -345,9 +340,7 @@ describe('POST /api/personality/icp/save', () => {
     })
 
     it('should return 400 when validation fails due to missing octantScores', async () => {
-      setupValidationFailure([
-        { path: ['octantScores'], message: 'Required' },
-      ])
+      setupValidationFailure([{ path: ['octantScores'], message: 'Required' }])
 
       const req = createPostRequest({
         primaryStyle: 'PA',
@@ -364,9 +357,7 @@ describe('POST /api/personality/icp/save', () => {
     })
 
     it('should return 400 when validation fails due to missing analysisData', async () => {
-      setupValidationFailure([
-        { path: ['analysisData'], message: 'Required' },
-      ])
+      setupValidationFailure([{ path: ['analysisData'], message: 'Required' }])
 
       const req = createPostRequest({
         primaryStyle: 'PA',
@@ -384,7 +375,10 @@ describe('POST /api/personality/icp/save', () => {
 
     it('should return 400 when analysisData.description exceeds max length', async () => {
       setupValidationFailure([
-        { path: ['analysisData', 'description'], message: 'String must contain at most 5000 character(s)' },
+        {
+          path: ['analysisData', 'description'],
+          message: 'String must contain at most 5000 character(s)',
+        },
       ])
 
       const req = createPostRequest({
@@ -436,9 +430,7 @@ describe('POST /api/personality/icp/save', () => {
     })
 
     it('should log validation warning when validation fails', async () => {
-      setupValidationFailure([
-        { path: ['primaryStyle'], message: 'Required' },
-      ])
+      setupValidationFailure([{ path: ['primaryStyle'], message: 'Required' }])
 
       const req = createPostRequest({})
 
@@ -464,6 +456,28 @@ describe('POST /api/personality/icp/save', () => {
       expect(data.success).toBe(true)
       expect(data.data.id).toBe('icp-result-uuid-123')
       expect(data.data.createdAt).toBeDefined()
+    })
+
+    it('should retry without missing optional columns when create hits P2022', async () => {
+      setupValidationSuccess(VALID_ICP_DATA)
+      vi.mocked(prisma.iCPResult.create)
+        .mockRejectedValueOnce({ code: 'P2022', meta: { column: 'testVersion' } } as any)
+        .mockResolvedValueOnce({
+          id: 'icp-compat-1',
+          createdAt: new Date('2024-01-15T10:00:00Z'),
+        } as any)
+
+      const req = createPostRequest(VALID_ICP_DATA)
+      const response = await POST(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.success).toBe(true)
+      expect(data.data.id).toBe('icp-compat-1')
+      expect(prisma.iCPResult.create).toHaveBeenCalledTimes(2)
+      const retryArgs = vi.mocked(prisma.iCPResult.create).mock.calls[1][0] as any
+      expect(retryArgs.data).not.toHaveProperty('testVersion')
+      expect(retryArgs.select).toEqual({ id: true, createdAt: true })
     })
 
     it('should create ICP result with minimal required fields', async () => {
@@ -710,9 +724,7 @@ describe('POST /api/personality/icp/save', () => {
   describe('Database Error Handling', () => {
     it('should handle database error gracefully', async () => {
       setupValidationSuccess(VALID_ICP_DATA)
-      vi.mocked(prisma.iCPResult.create).mockRejectedValue(
-        new Error('Database connection failed')
-      )
+      vi.mocked(prisma.iCPResult.create).mockRejectedValue(new Error('Database connection failed'))
 
       const req = createPostRequest(VALID_ICP_DATA)
       const response = await POST(req)
@@ -732,10 +744,9 @@ describe('POST /api/personality/icp/save', () => {
       const req = createPostRequest(VALID_ICP_DATA)
       await POST(req)
 
-      expect(logger.error).toHaveBeenCalledWith(
-        '[ICP save POST] Database error',
-        { error: dbError }
-      )
+      expect(logger.error).toHaveBeenCalledWith('[ICP save POST] Database error', {
+        error: dbError,
+      })
     })
 
     it('should handle Prisma-specific errors', async () => {
@@ -774,10 +785,9 @@ describe('POST /api/personality/icp/save', () => {
       const response = await POST(req)
 
       expect(response.status).toBe(500)
-      expect(logger.error).toHaveBeenCalledWith(
-        '[ICP save POST] Database error',
-        { error: poolError }
-      )
+      expect(logger.error).toHaveBeenCalledWith('[ICP save POST] Database error', {
+        error: poolError,
+      })
     })
   })
 })
@@ -806,9 +816,7 @@ describe('GET /api/personality/icp/save', () => {
     })
 
     it('should return 400 when id validation fails', async () => {
-      setupGetValidationFailure([
-        { path: ['id'], message: 'Invalid id format' },
-      ])
+      setupGetValidationFailure([{ path: ['id'], message: 'Invalid id format' }])
 
       const req = createGetRequest('id=invalid')
       const response = await GET(req)
@@ -874,6 +882,25 @@ describe('GET /api/personality/icp/save', () => {
       expect(data.data.result.affiliationScore).toBe(MOCK_SAVED_RESULT.affiliationScore)
       expect(data.data.result.octantScores).toEqual(MOCK_SAVED_RESULT.octantScores)
       expect(data.data.result.analysisData).toEqual(MOCK_SAVED_RESULT.analysisData)
+    })
+
+    it('should retry GET with legacy select when newer columns are missing', async () => {
+      setupGetValidationSuccess({ id: 'icp-result-uuid-123' })
+      vi.mocked(prisma.iCPResult.findFirst)
+        .mockRejectedValueOnce({ code: 'P2022', meta: { column: 'testVersion' } } as any)
+        .mockResolvedValueOnce(MOCK_SAVED_RESULT as any)
+
+      const req = createGetRequest('id=icp-result-uuid-123')
+      const response = await GET(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.success).toBe(true)
+      expect(data.data.result.id).toBe(MOCK_SAVED_RESULT.id)
+      expect(data.data.result.testVersion).toBeNull()
+      expect(prisma.iCPResult.findFirst).toHaveBeenCalledTimes(2)
+      const retryArgs = vi.mocked(prisma.iCPResult.findFirst).mock.calls[1][0] as any
+      expect(retryArgs.select).not.toHaveProperty('testVersion')
     })
 
     it('should only return ICP results belonging to the authenticated user (userId check)', async () => {
@@ -980,10 +1007,7 @@ describe('GET /api/personality/icp/save', () => {
       const req = createGetRequest('id=icp-result-uuid-123')
       await GET(req)
 
-      expect(logger.error).toHaveBeenCalledWith(
-        '[ICP save GET] Database error',
-        { error: dbError }
-      )
+      expect(logger.error).toHaveBeenCalledWith('[ICP save GET] Database error', { error: dbError })
     })
 
     it('should handle connection pool exhausted error', async () => {
@@ -1172,9 +1196,15 @@ describe('POST then GET workflow', () => {
     const getData = await getResponse.json()
 
     // Verify analysisData is retrieved correctly
-    expect(getData.data.result.analysisData.description).toBe(VALID_ICP_DATA.analysisData.description)
-    expect(getData.data.result.analysisData.strengths).toEqual(VALID_ICP_DATA.analysisData.strengths)
-    expect(getData.data.result.analysisData.challenges).toEqual(VALID_ICP_DATA.analysisData.challenges)
+    expect(getData.data.result.analysisData.description).toBe(
+      VALID_ICP_DATA.analysisData.description
+    )
+    expect(getData.data.result.analysisData.strengths).toEqual(
+      VALID_ICP_DATA.analysisData.strengths
+    )
+    expect(getData.data.result.analysisData.challenges).toEqual(
+      VALID_ICP_DATA.analysisData.challenges
+    )
   })
 })
 

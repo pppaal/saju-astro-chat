@@ -1,3 +1,5 @@
+import { ensureMinSentenceText } from '../shared/textDepth';
+
 interface StrengthsWeaknessesSectionProps {
   strengthsWeaknesses: {
     strengths: { text: string; source: string }[];
@@ -19,7 +21,9 @@ export default function StrengthsWeaknessesSection({ strengthsWeaknesses, isKo }
             {strengthsWeaknesses.strengths.slice(0, 3).map((strength, idx) => (
               <div key={idx} className="flex items-start gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/20">
                 <span className="text-green-400 mt-0.5">✓</span>
-                <p className="text-gray-200 text-sm leading-relaxed">{strength.text}</p>
+                <p className="text-gray-200 text-sm leading-relaxed">
+                  {ensureMinSentenceText(strength.text, isKo, 'personality', 3)}
+                </p>
               </div>
             ))}
           </div>
@@ -37,12 +41,16 @@ export default function StrengthsWeaknessesSection({ strengthsWeaknesses, isKo }
               <div key={idx} className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
                 <div className="flex items-start gap-3 mb-2">
                   <span className="text-amber-400 mt-0.5">!</span>
-                  <p className="text-gray-200 text-sm leading-relaxed">{weakness.text}</p>
+                  <p className="text-gray-200 text-sm leading-relaxed">
+                    {ensureMinSentenceText(weakness.text, isKo, 'personality', 3)}
+                  </p>
                 </div>
                 <div className="ml-6 mt-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
                   <div className="flex items-start gap-2">
                     <span className="text-blue-400 text-sm">💡</span>
-                    <p className="text-gray-300 text-xs leading-relaxed">{weakness.advice}</p>
+                    <p className="text-gray-300 text-xs leading-relaxed">
+                      {ensureMinSentenceText(weakness.advice, isKo, 'warning', 4)}
+                    </p>
                   </div>
                 </div>
               </div>

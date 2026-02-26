@@ -4,6 +4,7 @@
 import type { FusionReport, InsightDomain } from '../interpreter/types'
 import type { MatrixCalculationInput } from '../types'
 import type { AIReportGenerationOptions } from './reportTypes'
+import { buildQuestionIntentInstruction } from './questionIntent'
 
 // ===========================
 // 도메인 이름 매핑
@@ -186,7 +187,45 @@ export function buildAIPrompt(
     : ''
 
   const sectionInstructions = getSectionInstructions(lang)
+  const questionIntentInstruction = buildQuestionIntentInstruction(options.userQuestion, lang)
+  const deterministicCorePrompt = options.deterministicCorePrompt?.trim()
   const graphRagEvidencePrompt = options.graphRagEvidencePrompt?.trim()
+  const requestedChars =
+    typeof options.targetChars === 'number' && Number.isFinite(options.targetChars)
+      ? Math.max(2500, Math.min(22000, Math.floor(options.targetChars)))
+      : detailLevel === 'comprehensive'
+        ? lang === 'ko'
+          ? 10000
+          : 8000
+        : undefined
+  const outputStyleInstruction =
+    lang === 'ko'
+      ? [
+          '## 출력 제약',
+          requestedChars ? `- 전체 최소 분량: ${requestedChars}자` : '',
+          options.bilingual
+            ? '- 모든 섹션은 한국어 본문 뒤에 English 버전을 이어서 작성 (한/영 동시 제공).'
+            : '',
+          options.tone === 'realistic'
+            ? '- 과장 금지. 현실적인 조건, 제약, 우선순위를 중심으로 작성.'
+            : '',
+          '- 각 섹션에서 실행 가능 문장을 포함하고, 근거 없는 단정 표현을 피하세요.',
+        ]
+          .filter(Boolean)
+          .join('\n')
+      : [
+          '## Output Constraints',
+          requestedChars ? `- Minimum total length: ${requestedChars} characters` : '',
+          options.bilingual
+            ? '- Provide both Korean and English for each section (Korean first, then English).'
+            : '',
+          options.tone === 'realistic'
+            ? '- Avoid hype. Prioritize realistic constraints, tradeoffs, and next actions.'
+            : '',
+          '- Include actionable statements and avoid unsupported absolute claims.',
+        ]
+          .filter(Boolean)
+          .join('\n')
 
   if (lang === 'ko') {
     return `당신은 동양 사주명리학과 서양 점성술을 융합한 전문 운세 상담사입니다.
@@ -198,6 +237,9 @@ ${profileInfo}
 ${matrixSummary}
 
 ${graphRagEvidencePrompt ? `## GraphRAG 근거 앵커\n${graphRagEvidencePrompt}\n` : ''}
+${deterministicCorePrompt ? `${deterministicCorePrompt}\n` : ''}
+${questionIntentInstruction ? `${questionIntentInstruction}\n` : ''}
+${outputStyleInstruction}
 
 ## 요청사항
 ${focusInstruction}
@@ -217,6 +259,9 @@ ${profileInfo}
 ${matrixSummary}
 
 ${graphRagEvidencePrompt ? `## GraphRAG Evidence Anchors\n${graphRagEvidencePrompt}\n` : ''}
+${deterministicCorePrompt ? `${deterministicCorePrompt}\n` : ''}
+${questionIntentInstruction ? `${questionIntentInstruction}\n` : ''}
+${outputStyleInstruction}
 
 ## Request
 ${focusInstruction}

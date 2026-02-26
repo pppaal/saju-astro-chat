@@ -1,6 +1,8 @@
 // src/components/destiny-map/fun-insights/tabs/fortune/components/LifeCycleSection.tsx
 "use client";
 
+import { ensureMinSentenceText } from '../../shared/textDepth';
+
 interface LifeCycle {
   stage: string;
   lifeArea: string;
@@ -20,6 +22,8 @@ interface LifeCycleSectionProps {
 
 export default function LifeCycleSection({ lifeCycles, isKo }: LifeCycleSectionProps) {
   if (lifeCycles.length === 0) {return null;}
+  const enrich = (text?: string, min = 3) =>
+    ensureMinSentenceText(text || '', isKo, 'fortune', min);
 
   return (
     <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-violet-900/20 border border-violet-500/30 p-6">
@@ -29,9 +33,12 @@ export default function LifeCycleSection({ lifeCycles, isKo }: LifeCycleSectionP
       </div>
 
       <p className="text-gray-400 text-sm mb-4">
-        {isKo
+        {enrich(
+          isKo
           ? "12운성과 하우스가 만나 당신의 생명력이 어디에서 어떻게 흐르는지 보여줍니다."
-          : "Where your life energy flows based on 12 Life Stages × Houses."}
+          : "Where your life energy flows based on 12 Life Stages × Houses.",
+          4
+        )}
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -56,10 +63,10 @@ export default function LifeCycleSection({ lifeCycles, isKo }: LifeCycleSectionP
               </span>
             </div>
             <p className="text-sm text-gray-300 mb-1">
-              {isKo ? cycle.fusion.keyword.ko : cycle.fusion.keyword.en}
+              {enrich(isKo ? cycle.fusion.keyword.ko : cycle.fusion.keyword.en, 3)}
             </p>
             <p className="text-xs text-gray-500">
-              {isKo ? cycle.stageInfo.ko.split(' - ')[1] : cycle.stageInfo.en.split(' - ')[1]}
+              {enrich(isKo ? cycle.stageInfo.ko.split(' - ')[1] : cycle.stageInfo.en.split(' - ')[1], 3)}
             </p>
           </div>
         ))}
@@ -71,7 +78,7 @@ export default function LifeCycleSection({ lifeCycles, isKo }: LifeCycleSectionP
           {isKo ? "💫 생명력 흐름 요약" : "💫 Life Energy Summary"}
         </p>
         <p className="text-gray-300 text-sm">
-          {(() => {
+          {enrich((() => {
             const highEnergy = lifeCycles.filter(c => c.fusion.score >= 8);
             const lowEnergy = lifeCycles.filter(c => c.fusion.score <= 4);
 
@@ -87,7 +94,7 @@ export default function LifeCycleSection({ lifeCycles, isKo }: LifeCycleSectionP
             return isKo
               ? "전반적으로 균형 잡힌 에너지 흐름을 보이고 있어요."
               : "Overall balanced energy flow.";
-          })()}
+          })(), 4)}
         </p>
       </div>
     </div>

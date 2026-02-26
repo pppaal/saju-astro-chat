@@ -1,6 +1,8 @@
 "use client";
 
 import { memo } from 'react';
+import { repairMojibakeDeep } from '@/lib/text/mojibake';
+import { expandNarrativeDeep } from './shared/longForm';
 import type { TabProps } from './types';
 import { getStrengthsAndWeaknesses, getMatrixAnalysis } from '../analyzers';
 import { getShadowPersonalityAnalysis } from '../analyzers/matrixAnalyzer';
@@ -27,11 +29,39 @@ function PersonalityTab({ saju, astro, lang, isKo, data, destinyNarrative, combi
   }
 
   // TabData.personalityAnalysis is Record<string, unknown> | null, cast to local interface
-  const personalityAnalysis = data.personalityAnalysis as PersonalityAnalysis | null;
-  const strengthsWeaknesses = getStrengthsAndWeaknesses(saju ?? undefined, astro ?? undefined, lang);
-  const personalizedAdvices = getPersonalizedAdvice(saju ?? undefined, astro ?? undefined, lang);
-  const matrixAnalysis = getMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang);
-  const shadowAnalysis = getShadowPersonalityAnalysis(saju ?? undefined, astro ?? undefined, isKo ? 'ko' : 'en') as ShadowPersonalityResult | null;
+  const personalityAnalysis = repairMojibakeDeep(
+    data.personalityAnalysis as PersonalityAnalysis | null
+  );
+  const strengthsWeaknesses = expandNarrativeDeep(
+    repairMojibakeDeep(getStrengthsAndWeaknesses(saju ?? undefined, astro ?? undefined, lang)),
+    { isKo, topic: 'personality', minSentences: 4 }
+  );
+  const personalizedAdvices = expandNarrativeDeep(
+    repairMojibakeDeep(getPersonalizedAdvice(saju ?? undefined, astro ?? undefined, lang)),
+    { isKo, topic: 'personality', minSentences: 4 }
+  );
+  const matrixAnalysis = expandNarrativeDeep(
+    repairMojibakeDeep(getMatrixAnalysis(saju ?? undefined, astro ?? undefined, lang)),
+    { isKo, topic: 'personality', minSentences: 4 }
+  );
+  const shadowAnalysis = expandNarrativeDeep(
+    repairMojibakeDeep(
+    getShadowPersonalityAnalysis(
+      saju ?? undefined,
+      astro ?? undefined,
+      isKo ? 'ko' : 'en'
+    ) as ShadowPersonalityResult | null
+    ),
+    { isKo, topic: 'hidden', minSentences: 4 }
+  );
+  const expandedPersonalityAnalysis = expandNarrativeDeep(personalityAnalysis, {
+    isKo,
+    topic: 'personality',
+    minSentences: 5,
+  });
+  const expandedDestinyNarrative = destinyNarrative
+    ? expandNarrativeDeep(destinyNarrative, { isKo, topic: 'personality', minSentences: 4 })
+    : destinyNarrative;
 
   return (
     <div className="space-y-6">
@@ -39,9 +69,11 @@ function PersonalityTab({ saju, astro, lang, isKo, data, destinyNarrative, combi
 
       {strengthsWeaknesses && <StrengthsWeaknessesSection strengthsWeaknesses={strengthsWeaknesses} isKo={isKo} />}
 
-      {personalityAnalysis && <PersonalityAnalysisSection personalityAnalysis={personalityAnalysis} isKo={isKo} />}
+      {expandedPersonalityAnalysis && (
+        <PersonalityAnalysisSection personalityAnalysis={expandedPersonalityAnalysis} isKo={isKo} />
+      )}
 
-      <EmotionPatternCard destinyNarrative={destinyNarrative} isKo={isKo} />
+      <EmotionPatternCard destinyNarrative={expandedDestinyNarrative} isKo={isKo} />
 
       {personalizedAdvices.length > 0 && <PersonalizedAdviceSection personalizedAdvices={personalizedAdvices} isKo={isKo} />}
 

@@ -269,6 +269,23 @@ describe('ICP API Route - GET /api/icp', () => {
       NO: 65.0,
     })
   })
+
+  it('should retry GET with legacy select when a newer column is missing', async () => {
+    const mockResult = createSavedICPResult()
+    vi.mocked(prisma.iCPResult.findFirst)
+      .mockRejectedValueOnce({ code: 'P2022', meta: { column: 'testVersion' } } as any)
+      .mockResolvedValueOnce(mockResult as any)
+
+    const response = await GET(makeGetRequest())
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(data.saved).toBe(true)
+    expect(data.result.testVersion).toBeNull()
+    expect(prisma.iCPResult.findFirst).toHaveBeenCalledTimes(2)
+    const retryArgs = vi.mocked(prisma.iCPResult.findFirst).mock.calls[1][0] as any
+    expect(retryArgs.select).not.toHaveProperty('testVersion')
+  })
 })
 
 describe('ICP API Route - POST /api/icp', () => {
@@ -568,6 +585,30 @@ describe('ICP API Route - POST /api/icp', () => {
         userId: MOCK_USER_ID,
       }),
     })
+  })
+
+  it('should retry POST without missing optional columns when create hits P2022', async () => {
+    const payload = createICPSavePayload()
+    vi.mocked(prisma.iCPResult.create)
+      .mockRejectedValueOnce({ code: 'P2022', meta: { column: 'testVersion' } } as any)
+      .mockResolvedValueOnce({
+        id: 'icp-result-compat',
+        primaryStyle: 'PA',
+        secondaryStyle: 'NO',
+        dominanceScore: 72.5,
+        affiliationScore: 45.3,
+      } as any)
+
+    const response = await POST(makePostRequest(payload))
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(data.success).toBe(true)
+    expect(data.testVersion).toBeNull()
+    expect(prisma.iCPResult.create).toHaveBeenCalledTimes(2)
+    const retryArgs = vi.mocked(prisma.iCPResult.create).mock.calls[1][0] as any
+    expect(retryArgs.select).toBeDefined()
+    expect(retryArgs.data).not.toHaveProperty('testVersion')
   })
 })
 

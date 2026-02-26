@@ -52,18 +52,7 @@ export default function BlogClient() {
 
   const featuredPost = postsForRender.find((post) => post.featured)
   const regularPosts = postsForRender.filter((post) => !post.featured)
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    if (isKo) {
-      return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`
-    }
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
-  }
+  const guideLabel = isKo ? '상시 가이드' : 'Evergreen Guide'
 
   return (
     <main className={styles.page}>
@@ -84,8 +73,8 @@ export default function BlogClient() {
           <h1 className={styles.title}>{isKo ? '인사이트 & 가이드' : 'Insights & Guides'}</h1>
           <p className={styles.subtitle}>
             {isKo
-              ? '점성술, 사주, 타로 등 동서양 점술의 지혜를 탐구하세요'
-              : 'Explore the wisdom of Eastern and Western divination systems'}
+              ? '업데이트되는 상시 가이드로 점성술·사주·타로 인사이트를 빠르게 확인하세요'
+              : 'Explore evergreen guides for practical insights across astrology, Saju, and Tarot'}
           </p>
         </section>
 
@@ -141,12 +130,7 @@ export default function BlogClient() {
                   {isKo ? featuredPost.excerptKo : featuredPost.excerpt}
                 </p>
                 <div className={styles.cardMeta}>
-                  <span className={styles.cardDate}>
-                    <span role="img" aria-hidden="true">
-                      📅
-                    </span>{' '}
-                    {formatDate(featuredPost.date)}
-                  </span>
+                  <span className={styles.cardGuide}>{guideLabel}</span>
                   <span className={styles.cardReadTime}>
                     <span role="img" aria-hidden="true">
                       ⏱
@@ -177,12 +161,7 @@ export default function BlogClient() {
                 <h2 className={styles.cardTitle}>{isKo ? post.titleKo : post.title}</h2>
                 <p className={styles.cardExcerpt}>{isKo ? post.excerptKo : post.excerpt}</p>
                 <div className={styles.cardMeta}>
-                  <span className={styles.cardDate}>
-                    <span role="img" aria-hidden="true">
-                      📅
-                    </span>{' '}
-                    {formatDate(post.date)}
-                  </span>
+                  <span className={styles.cardGuide}>{guideLabel}</span>
                   <span className={styles.cardReadTime}>
                     <span role="img" aria-hidden="true">
                       ⏱

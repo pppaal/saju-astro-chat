@@ -4,12 +4,29 @@ import { useI18n } from '@/i18n/I18nProvider'
 import BackButton from '@/components/ui/BackButton'
 import ScrollToTop from '@/components/ui/ScrollToTop'
 import { SUPPORT_EMAIL } from '@/lib/config/contact'
+import { BASE_CREDIT_PRICE_KRW, CREDIT_PACKS } from '@/lib/config/pricing'
 import styles from '../policy.module.css'
 
-type Section = { title: string; titleKo: string; body: string; bodyKo: string }
+type Section = { title: string; titleKo: string; body: string; bodyKo: string; strict?: boolean }
 
 const PSP_NAME = 'Stripe'
 const EFFECTIVE_DATE = '2026-01-25'
+const MINI_PACK_PER_CREDIT_USD = CREDIT_PACKS.mini.perCreditUsd
+const MINI_PACK_RATE_EN = `₩${BASE_CREDIT_PRICE_KRW.toLocaleString()}/credit (≈ $${MINI_PACK_PER_CREDIT_USD.toFixed(2)}/credit)`
+const MINI_PACK_RATE_KO = `₩${BASE_CREDIT_PRICE_KRW.toLocaleString()}/크레딧 (약 $${MINI_PACK_PER_CREDIT_USD.toFixed(2)}/크레딧)`
+
+const QUICK_SUMMARY = {
+  en: [
+    'First-time subscriptions are covered by a 7-day guarantee.',
+    'Unused credit packs are refundable within 7 days from purchase.',
+    'If we fail to deliver due to our technical issue, we restore credits first and support you quickly.',
+  ],
+  ko: [
+    '최초 구독은 7일 보장 정책이 적용됩니다.',
+    '미사용 크레딧 팩은 구매 후 7일 이내 환불 가능합니다.',
+    '당사 기술 이슈로 제공 실패 시, 크레딧을 먼저 복구하고 빠르게 지원합니다.',
+  ],
+}
 
 const sections: Section[] = [
   {
@@ -77,7 +94,7 @@ A) New Subscription - 7 Day Guarantee:
 - Full refund available within 7 days of initial subscription purchase
 - This applies ONLY to first-time subscribers
 - If you've used any premium features during this period, refund amount may be prorated
-- Monthly credits used will be deducted at the Mini Pack rate (₩633/credit) from the refund
+- Monthly credits used will be deducted at the Mini Pack rate (${MINI_PACK_RATE_EN}) from the refund
 
 B) Subscription Renewal:
 - Renewal charges are NON-REFUNDABLE
@@ -100,7 +117,7 @@ A) 신규 구독 - 7일 보장:
 - 최초 구독 구매 후 7일 이내 전액 환불 가능
 - 이는 최초 구독자에게만 적용됨
 - 이 기간 동안 프리미엄 기능을 사용한 경우 환불액이 비례 차감될 수 있음
-- 사용한 월간 크레딧은 미니팩 기준 가격(₩633/크레딧)으로 환불액에서 차감됨
+- 사용한 월간 크레딧은 미니팩 기준 가격(${MINI_PACK_RATE_KO})으로 환불액에서 차감됨
 
 B) 구독 갱신:
 - 갱신 결제는 환불 불가
@@ -227,6 +244,7 @@ D) 처리 시간:
   {
     title: '6. Chargebacks and Fraud Prevention',
     titleKo: '6. 지불거절(차지백) 및 사기 방지',
+    strict: true,
     body: `IMPORTANT: Contact us before disputing charges with your bank.
 
 Chargeback Consequences:
@@ -285,6 +303,7 @@ We are committed to fair resolution. Most issues can be resolved through direct 
   {
     title: '7. Account Termination and Forfeiture',
     titleKo: '7. 계정 해지 및 권리 상실',
+    strict: true,
     body: `Voluntary Account Deletion:
 - Unused credits are forfeited upon account deletion
 - Active subscriptions must be canceled before deletion
@@ -425,10 +444,29 @@ Keep all receipts and confirmation emails for your records.`,
 ]
 
 function SectionView({ s, isKo }: { s: Section; isKo: boolean }) {
+  const title = isKo ? s.titleKo : s.title
+  const body = isKo ? s.bodyKo : s.body
+
+  if (s.strict) {
+    return (
+      <section className={styles.section}>
+        <details className={styles.strictDetails}>
+          <summary className={styles.strictSummary}>
+            <span>{title}</span>
+            <span className={styles.strictHint}>
+              {isKo ? '자세한 정책 보기' : 'View detailed legal terms'}
+            </span>
+          </summary>
+          <pre className={styles.sectionBody}>{body}</pre>
+        </details>
+      </section>
+    )
+  }
+
   return (
     <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>{isKo ? s.titleKo : s.title}</h2>
-      <pre className={styles.sectionBody}>{isKo ? s.bodyKo : s.body}</pre>
+      <h2 className={styles.sectionTitle}>{title}</h2>
+      <pre className={styles.sectionBody}>{body}</pre>
     </section>
   )
 }
@@ -451,6 +489,14 @@ export default function RefundPage() {
             <p className={styles.effectiveDate}>
               {t('policy.refund.effective', 'Effective date')}: {EFFECTIVE_DATE}
             </p>
+          </div>
+          <div className={styles.summaryCard}>
+            <h2 className={styles.summaryTitle}>{isKo ? '빠른 요약' : 'Quick summary'}</h2>
+            <ul className={styles.summaryList}>
+              {(isKo ? QUICK_SUMMARY.ko : QUICK_SUMMARY.en).map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
           </div>
           <div className={styles.content}>
             {sections.map((s: Section, i: number) => (

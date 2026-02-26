@@ -23,7 +23,6 @@ Last audited: 2026-02-15 (Asia/Seoul)
 | `docs/RAG_AND_GRAPHRAG.md`             | Retrieval architecture and tracing           | AI/backend engineers        | 2026-02-15   |
 | `docs/DESTINY_MATRIX.md`               | Destiny matrix engine overview               | Product/backend engineers   | 2026-02-15   |
 | `docs/PDF_REPORTING.md`                | Report generation flow                       | Backend/reporting engineers | 2026-02-15   |
-| `docs/DEMO_AND_SEO.md`                 | Demo token flow and SEO controls             | Frontend/backend engineers  | 2026-02-15   |
 | `docs/TESTING_AND_GUARDRAILS.md`       | Required checks and optional suites          | All engineers               | 2026-02-15   |
 | `docs/API_AUDIT_REPORT.md`             | Generated API inventory and security signals | Backend/security engineers  | 2026-02-15   |
 | `docs/DOCS_AUDIT_REPORT_2026-02-15.md` | Documentation re-audit execution report      | Maintainers                 | 2026-02-15   |

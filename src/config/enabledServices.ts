@@ -30,8 +30,8 @@ export const ENABLED_SERVICES: readonly EnabledService[] = [
     icon: '🗺️',
     menuKey: 'menu.destinyMap',
     descriptionKey: 'services.destinyMap.desc',
-    label: { en: 'Destiny Map', ko: '운명 지도' },
-    description: { en: 'AI Fortune Analysis', ko: 'AI 운세 분석' },
+    label: { en: 'Destiny Counselor', ko: '운명 상담사' },
+    description: { en: 'AI Counseling', ko: 'AI 운명 상담' },
   },
   {
     id: 'tarot',
@@ -49,7 +49,7 @@ export const ENABLED_SERVICES: readonly EnabledService[] = [
     menuKey: 'menu.report',
     descriptionKey: 'services.report.desc',
     label: { en: 'Report', ko: '리포트' },
-    description: { en: 'Premium AI Reports', ko: '프리미엄 AI 리포트' },
+    description: { en: 'AI Reports (Free/Premium)', ko: 'AI 리포트 (무료/프리미엄)' },
   },
   {
     id: 'calendar',

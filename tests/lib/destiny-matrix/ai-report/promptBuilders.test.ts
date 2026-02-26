@@ -390,6 +390,36 @@ describe('PromptBuilders', () => {
         expect(result).toContain('상세도: 상세');
       });
     });
+
+    describe('question intent routing', () => {
+      it('should include binary-decision guidance for Korean yes/no question', () => {
+        const result = buildAIPrompt(mockInput, mockReport, {
+          lang: 'ko',
+          userQuestion: '여기로 가는게 맞냐?',
+        });
+        expect(result).toContain('사용자 질문 의도');
+        expect(result).toContain('예/아니오(결정형)');
+        expect(result).toContain('지금 해야 할 행동');
+      });
+
+      it('should include open-guidance marker for English question', () => {
+        const result = buildAIPrompt(mockInput, mockReport, {
+          lang: 'en',
+          userQuestion: 'How can I approach my career transition better?',
+        });
+        expect(result).toContain('User Question Intent');
+        expect(result).toContain('Open guidance question');
+      });
+
+      it('should include deterministic core block when provided', () => {
+        const result = buildAIPrompt(mockInput, mockReport, {
+          lang: 'ko',
+          deterministicCorePrompt: '## Deterministic Core (모든 데이터 통합)\n- SAJU coverage: ...',
+        });
+        expect(result).toContain('Deterministic Core');
+        expect(result).toContain('SAJU coverage');
+      });
+    });
   });
 
   describe('buildThemedAIPrompt', () => {

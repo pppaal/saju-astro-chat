@@ -40,7 +40,6 @@
 - Timing-safe comparison utilities (`src/lib/security/timingSafe.ts`).
 - Public token validation helpers (`src/lib/auth/publicToken.ts`).
 - Secret/token redaction patterns (`src/lib/security/errorSanitizer.ts`).
-- Demo token guard supports not-found behavior in route utilities (`src/lib/demo/requireDemoToken.ts`).
 
 ### Main security/safety risks
 

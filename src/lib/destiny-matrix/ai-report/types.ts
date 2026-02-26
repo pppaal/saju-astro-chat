@@ -3,6 +3,8 @@
 
 import type { InsightDomain } from '../interpreter/types'
 import type { GraphRAGEvidenceBundle } from './graphRagEvidence'
+import type { CrossConsistencyAudit } from './crossConsistencyAudit'
+import type { DeterministicCoreOutput } from './deterministicCore'
 
 // ===========================
 // 기간별/테마별 옵션
@@ -154,6 +156,14 @@ export interface TimingAIPremiumReport {
   // GraphRAG evidence anchors used to ground generated sections
   graphRagEvidence?: GraphRAGEvidenceBundle
 
+  // Cross consistency audit metadata
+  crossConsistencyAudit?: CrossConsistencyAudit
+
+  // Pre-rendered narrative payload for downstream AI/chat reuse
+  renderedMarkdown?: string
+  renderedText?: string
+  deterministicCore?: DeterministicCoreOutput
+
   // 점수
   periodScore: {
     overall: number
@@ -199,6 +209,14 @@ export interface ThemedAIPremiumReport {
 
   // GraphRAG evidence anchors used to ground generated sections
   graphRagEvidence?: GraphRAGEvidenceBundle
+
+  // Cross consistency audit metadata
+  crossConsistencyAudit?: CrossConsistencyAudit
+
+  // Pre-rendered narrative payload for downstream AI/chat reuse
+  renderedMarkdown?: string
+  renderedText?: string
+  deterministicCore?: DeterministicCoreOutput
 
   // 테마별 점수
   themeScore: {

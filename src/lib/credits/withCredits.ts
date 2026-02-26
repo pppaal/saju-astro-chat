@@ -1,6 +1,5 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { headers } from 'next/headers'
 import { authOptions } from '@/lib/auth/authOptions'
 import {
   consumeCredits,
@@ -9,7 +8,6 @@ import {
   initializeUserCredits,
 } from './creditService'
 import { logger } from '@/lib/logger'
-import { isValidDemoToken } from '@/lib/demo/token'
 
 export type CreditType = 'reading' | 'compatibility' | 'followUp'
 
@@ -26,18 +24,6 @@ interface CreditCheckResult {
   }
 }
 
-const DEMO_COOKIE_NAME = 'dp_demo'
-
-function hasDemoAccessCookie(cookieHeader: string | null): boolean {
-  if (!cookieHeader) {
-    return false
-  }
-  return cookieHeader
-    .split(';')
-    .map((entry) => entry.trim())
-    .some((entry) => entry === `${DEMO_COOKIE_NAME}=1`)
-}
-
 /**
  * 크레딧 체크 및 소비 헬퍼
  * API route에서 사용
@@ -46,21 +32,6 @@ export async function checkAndConsumeCredits(
   type: CreditType = 'reading',
   amount: number = 1
 ): Promise<CreditCheckResult> {
-  try {
-    const requestHeaders = await headers()
-    const demoToken = requestHeaders.get('x-demo-token')
-    const hasDemoCookie = hasDemoAccessCookie(requestHeaders.get('cookie'))
-    if (isValidDemoToken(demoToken) && hasDemoCookie) {
-      return {
-        allowed: true,
-        userId: 'demo-user',
-        remaining: 9999,
-      }
-    }
-  } catch {
-    // headers() is unavailable outside request scope; continue normal auth path.
-  }
-
   const session = await getServerSession(authOptions)
 
   // 비로그인 시 free 1회 허용 (별도 로직 필요)
@@ -74,7 +45,7 @@ export async function checkAndConsumeCredits(
 
   const userId = session.user.id
 
-  // 🔒 보안: 개발 환경에서만 크레딧 우회 허용 (NODE_ENV 체크 추가)
+  // 보안: 개발 환경에서만 크레딧 우회 허용 (NODE_ENV 체크)
   // 프로덕션에서는 절대 우회 불가
   const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
   const bypassEnabled = process.env.BYPASS_CREDITS === 'true' && isDevelopment
@@ -154,21 +125,6 @@ export async function checkCreditsOnly(
   type: CreditType = 'reading',
   amount: number = 1
 ): Promise<CreditCheckResult> {
-  try {
-    const requestHeaders = await headers()
-    const demoToken = requestHeaders.get('x-demo-token')
-    const hasDemoCookie = hasDemoAccessCookie(requestHeaders.get('cookie'))
-    if (isValidDemoToken(demoToken) && hasDemoCookie) {
-      return {
-        allowed: true,
-        userId: 'demo-user',
-        remaining: 9999,
-      }
-    }
-  } catch {
-    // headers() is unavailable outside request scope; continue normal auth path.
-  }
-
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.id) {

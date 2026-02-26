@@ -34,6 +34,13 @@ const TOKEN_LIMITS_BY_PLAN = {
   premium: 8000,
 } as const
 
+const TOKEN_CEILING_BY_PLAN = {
+  free: 4000,
+  starter: 6000,
+  pro: 10000,
+  premium: 14000,
+} as const
+
 interface AIBackendResponse<T> {
   sections: T
   model: string
@@ -93,7 +100,10 @@ const AI_PROVIDERS: AIProvider[] = [
 export async function callAIBackend(
   prompt: string,
   lang: 'ko' | 'en',
-  options?: { userPlan?: keyof typeof TOKEN_LIMITS_BY_PLAN }
+  options?: {
+    userPlan?: keyof typeof TOKEN_LIMITS_BY_PLAN
+    maxTokensOverride?: number
+  }
 ): Promise<AIBackendResponse<AIPremiumReport['sections']>> {
   return callAIBackendGeneric<AIPremiumReport['sections']>(prompt, lang, options)
 }
@@ -105,7 +115,10 @@ export async function callAIBackend(
 export async function callAIBackendGeneric<T>(
   prompt: string,
   lang: 'ko' | 'en',
-  options?: { userPlan?: keyof typeof TOKEN_LIMITS_BY_PLAN }
+  options?: {
+    userPlan?: keyof typeof TOKEN_LIMITS_BY_PLAN
+    maxTokensOverride?: number
+  }
 ): Promise<AIBackendResponse<T>> {
   const systemMessage =
     lang === 'ko'
@@ -114,7 +127,13 @@ export async function callAIBackendGeneric<T>(
 
   // 플랜별 토큰 한도 결정 (비용 절감)
   const userPlan = options?.userPlan || 'free'
-  const maxTokens = TOKEN_LIMITS_BY_PLAN[userPlan]
+  const baseMaxTokens = TOKEN_LIMITS_BY_PLAN[userPlan]
+  const planCeiling = TOKEN_CEILING_BY_PLAN[userPlan]
+  const requestedOverride = options?.maxTokensOverride
+  const maxTokens =
+    typeof requestedOverride === 'number' && Number.isFinite(requestedOverride)
+      ? Math.max(800, Math.min(planCeiling, Math.floor(requestedOverride)))
+      : baseMaxTokens
 
   // 활성화된 프로바이더만 필터링
   const enabledProviders = AI_PROVIDERS.filter((p) => p.enabled && p.apiKey)

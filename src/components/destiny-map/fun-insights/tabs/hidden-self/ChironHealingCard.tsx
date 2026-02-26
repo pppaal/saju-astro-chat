@@ -1,4 +1,5 @@
 import type { HiddenSelfAnalysis } from './types';
+import { ensureMinSentenceText } from '../shared/textDepth';
 
 interface ChironHealingCardProps {
   chiron: NonNullable<HiddenSelfAnalysis['chiron']>;
@@ -6,6 +7,9 @@ interface ChironHealingCardProps {
 }
 
 export default function ChironHealingCard({ chiron, isKo }: ChironHealingCardProps) {
+  const enrich = (text?: string, topic: 'healing' | 'hidden' = 'healing', min = 4) =>
+    ensureMinSentenceText(text || '', isKo, topic, min);
+
   return (
     <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-teal-900/20 border border-teal-500/30 p-6">
       <div className="flex items-center gap-3 mb-4">
@@ -25,7 +29,7 @@ export default function ChironHealingCard({ chiron, isKo }: ChironHealingCardPro
             <p className="text-rose-300 font-bold text-sm">{isKo ? '핵심 상처' : 'Core Wound'}</p>
           </div>
           <p className="text-gray-300 text-sm leading-relaxed">
-            {isKo ? chiron.wound.ko : chiron.wound.en}
+            {enrich(isKo ? chiron.wound.ko : chiron.wound.en, 'healing', 4)}
           </p>
         </div>
 
@@ -36,7 +40,7 @@ export default function ChironHealingCard({ chiron, isKo }: ChironHealingCardPro
             <p className="text-teal-300 font-bold text-sm">{isKo ? '치유 경로' : 'Healing Path'}</p>
           </div>
           <p className="text-gray-300 text-sm leading-relaxed">
-            {isKo ? chiron.healing.ko : chiron.healing.en}
+            {enrich(isKo ? chiron.healing.ko : chiron.healing.en, 'healing', 4)}
           </p>
         </div>
 
@@ -47,7 +51,7 @@ export default function ChironHealingCard({ chiron, isKo }: ChironHealingCardPro
             <p className="text-amber-300 font-bold text-sm">{isKo ? '치유자의 선물' : 'Healer\'s Gift'}</p>
           </div>
           <p className="text-gray-300 text-sm leading-relaxed">
-            {isKo ? chiron.gift.ko : chiron.gift.en}
+            {enrich(isKo ? chiron.gift.ko : chiron.gift.en, 'hidden', 4)}
           </p>
         </div>
       </div>

@@ -11,6 +11,7 @@ import { getSwisseph } from './ephe'
 import { NatalInput, PlanetBase, House } from './types'
 import { formatLongitude, normalize360 } from './utils'
 import { toAstroPlanetId, toAstroPointId } from '../graphIds'
+import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 
 // ============================================================
 // Planet List (cached singleton)
@@ -28,6 +29,10 @@ export function getPlanetList(): Record<string, number> {
   }
 
   const sw = getSwisseph()
+  const useTrueNode = CALCULATION_STANDARDS.astrology.nodeType === 'true'
+  const meanNodeId = (sw as unknown as { SE_MEAN_NODE?: number }).SE_MEAN_NODE
+  const nodeId = useTrueNode ? sw.SE_TRUE_NODE : (meanNodeId ?? sw.SE_TRUE_NODE)
+  const nodeLabel = useTrueNode ? 'True Node' : 'Mean Node'
   planetListCache = {
     Sun: sw.SE_SUN,
     Moon: sw.SE_MOON,
@@ -39,7 +44,7 @@ export function getPlanetList(): Record<string, number> {
     Uranus: sw.SE_URANUS,
     Neptune: sw.SE_NEPTUNE,
     Pluto: sw.SE_PLUTO,
-    'True Node': sw.SE_TRUE_NODE,
+    [nodeLabel]: nodeId,
   }
   return planetListCache
 }
@@ -266,10 +271,26 @@ export function createPlanetData(
     speed,
     retrograde,
     graphId:
-      name === 'True Node'
+      name === 'True Node' || name === 'Mean Node' || name === 'North Node'
         ? (toAstroPointId('NorthNode') ?? undefined)
         : (toAstroPlanetId(name) ?? undefined),
   }
+}
+
+/**
+ * Normalize Swiss Ephemeris speed field across bindings.
+ * Some bindings expose `longitudeSpeed` instead of `speed`.
+ */
+export function extractLongitudeSpeed(result: Record<string, unknown>): number | undefined {
+  const longitudeSpeed = result.longitudeSpeed
+  if (typeof longitudeSpeed === 'number' && Number.isFinite(longitudeSpeed)) {
+    return longitudeSpeed
+  }
+  const speed = result.speed
+  if (typeof speed === 'number' && Number.isFinite(speed)) {
+    return speed
+  }
+  return undefined
 }
 
 // ============================================================

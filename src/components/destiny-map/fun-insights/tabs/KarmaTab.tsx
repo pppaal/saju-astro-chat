@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { repairMojibakeDeep } from '@/lib/text/mojibake'
+import { expandNarrativeDeep } from './shared/longForm'
 import type { TabProps } from './types'
 import type { KarmaAnalysisResult } from '../analyzers/karmaAnalyzer'
 import type { SajuDataExtended, PlanetData } from './data'
@@ -36,12 +38,13 @@ const TABS: TabConfig[] = [
 export default function KarmaTab({ saju, astro, isKo, data }: TabProps) {
   const [activeTab, setActiveTab] = useState<TabId>('soul')
 
-  const karmaAnalysis = (data as Record<string, unknown>)
-    .karmaAnalysis as KarmaAnalysisResult | null
-  const matrixKarma = getKarmaMatrixAnalysis(
-    saju || undefined,
-    astro || undefined,
-    isKo ? 'ko' : 'en'
+  const karmaAnalysis = expandNarrativeDeep(
+    repairMojibakeDeep((data as Record<string, unknown>).karmaAnalysis as KarmaAnalysisResult | null),
+    { isKo, topic: 'karma', minSentences: 4 }
+  )
+  const matrixKarma = expandNarrativeDeep(
+    repairMojibakeDeep(getKarmaMatrixAnalysis(saju || undefined, astro || undefined, isKo ? 'ko' : 'en')),
+    { isKo, topic: 'karma', minSentences: 4 }
   )
 
   // 데이터 추출
@@ -52,7 +55,7 @@ export default function KarmaTab({ saju, astro, isKo, data }: TabProps) {
     sajuExt?.fourPillars?.day?.heavenlyStem ??
     ''
   const sinsal = sajuExt?.advancedAnalysis?.sinsal ?? {}
-  const luckyList = (sinsal?.luckyList ?? [])
+  const luckyList = repairMojibakeDeep((sinsal?.luckyList ?? [])
     .map((item: unknown) =>
       typeof item === 'string'
         ? item
@@ -60,8 +63,8 @@ export default function KarmaTab({ saju, astro, isKo, data }: TabProps) {
           (item as { name?: string; shinsal?: string })?.shinsal ??
           '')
     )
-    .filter(Boolean)
-  const unluckyList = (sinsal?.unluckyList ?? [])
+    .filter(Boolean))
+  const unluckyList = repairMojibakeDeep((sinsal?.unluckyList ?? [])
     .map((item: unknown) =>
       typeof item === 'string'
         ? item
@@ -69,8 +72,11 @@ export default function KarmaTab({ saju, astro, isKo, data }: TabProps) {
           (item as { name?: string; shinsal?: string })?.shinsal ??
           '')
     )
-    .filter(Boolean)
-  const elementAnalysis = analyzeElements(sajuExt)
+    .filter(Boolean))
+  const elementAnalysis = expandNarrativeDeep(
+    repairMojibakeDeep(analyzeElements(sajuExt)),
+    { isKo, topic: 'karma', minSentences: 4 }
+  )
 
   // 점성술 데이터
   const planets = astro?.planets as PlanetData[] | undefined
@@ -99,84 +105,91 @@ export default function KarmaTab({ saju, astro, isKo, data }: TabProps) {
   }
 
   // Get narratives for each section
-  const soulNarrative = ensureMinNarrativeParagraphs(
-    getSoulIdentityNarrative(dayMaster || undefined, karmaAnalysis?.soulType, isKo),
-    isKo,
-    'karma'
+  const soulNarrative = repairMojibakeDeep(
+    ensureMinNarrativeParagraphs(
+      getSoulIdentityNarrative(dayMaster || undefined, karmaAnalysis?.soulType, isKo),
+      isKo,
+      'karma'
+    )
   )
-  const directionNarrative = ensureMinNarrativeParagraphs(
-    getLifeDirectionNarrative(
-      northNodeHouse,
-      saturnHouse,
-      matrixKarma?.nodeAxis ?? undefined,
-      isKo
-    ),
-    isKo,
-    'karma'
+  const directionNarrative = repairMojibakeDeep(
+    ensureMinNarrativeParagraphs(
+      getLifeDirectionNarrative(
+        northNodeHouse,
+        saturnHouse,
+        matrixKarma?.nodeAxis ?? undefined,
+        isKo
+      ),
+      isKo,
+      'karma'
+    )
   )
-  const pastLifeNarrative = ensureMinNarrativeParagraphs(
-    getPastLifeNarrative(
-      luckyList,
-      unluckyList,
-      matrixKarma?.pastLifeHints ?? [],
-      karmaAnalysis?.pastLifeTheme,
-      isKo
-    ),
-    isKo,
-    'karma'
+  const pastLifeNarrative = repairMojibakeDeep(
+    ensureMinNarrativeParagraphs(
+      getPastLifeNarrative(
+        luckyList,
+        unluckyList,
+        matrixKarma?.pastLifeHints ?? [],
+        karmaAnalysis?.pastLifeTheme,
+        isKo
+      ),
+      isKo,
+      'karma'
+    )
   )
-  const growthNarrative = ensureMinNarrativeParagraphs(
-    getGrowthHealingNarrative(
-      karmaAnalysis?.woundToHeal,
-      karmaAnalysis?.soulMission,
-      matrixKarma?.karmicRelations ?? [],
-      isKo
-    ),
-    isKo,
-    'karma'
+  const growthNarrative = repairMojibakeDeep(
+    ensureMinNarrativeParagraphs(
+      getGrowthHealingNarrative(
+        karmaAnalysis?.woundToHeal,
+        karmaAnalysis?.soulMission,
+        matrixKarma?.karmicRelations ?? [],
+        isKo
+      ),
+      isKo,
+      'karma'
+    )
   )
-  const energyNarrative = ensureMinNarrativeParagraphs(
-    getEnergyBalanceNarrative(elementAnalysis, isKo),
-    isKo,
-    'karma'
+  const energyNarrative = repairMojibakeDeep(
+    ensureMinNarrativeParagraphs(getEnergyBalanceNarrative(elementAnalysis, isKo), isKo, 'karma')
   )
 
   const renderNarrative = (paragraphs: string[]) => (
     <div className="space-y-4">
       {paragraphs.map((p, idx) => {
-        if (p === '') {
+        const text = repairMojibakeDeep(p)
+        if (text === '') {
           return <div key={idx} className="h-2" />
         }
         // Check if it's a section header
-        if (p.startsWith('【') || p.includes('【')) {
+        if (text.startsWith('【') || text.includes('【')) {
           return (
             <h4 key={idx} className="text-lg font-bold text-purple-300 mt-6 mb-2">
-              {p}
+              {text}
             </h4>
           )
         }
         // Check if it's a sub-item (starts with emoji or special character)
-        if (p.match(/^[🎯💫✨📚💡📖😓🏆💔🩹🎁🌀⭐💰🌟⚡🗡️]/)) {
+        if (text.match(/^[🎯💫✨📚💡📖😓🏆💔🩹🎁🌀⭐💰🌟⚡🗡️]/u)) {
           return (
             <p
               key={idx}
               className="text-gray-200 text-sm leading-relaxed pl-2 border-l-2 border-purple-500/30"
             >
-              {p}
+              {text}
             </p>
           )
         }
         // Check if it's an indented advice line
-        if (p.startsWith('   →')) {
+        if (text.startsWith('   →')) {
           return (
             <p key={idx} className="text-purple-300 text-sm italic pl-6 leading-relaxed">
-              {p.substring(4)}
+              {text.substring(4)}
             </p>
           )
         }
         return (
           <p key={idx} className="text-gray-300 text-sm leading-relaxed">
-            {p}
+            {text}
           </p>
         )
       })}

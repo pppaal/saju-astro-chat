@@ -1,18 +1,4 @@
 // src/app/api/icp/route.ts
-/**
- * ICP (Interpersonal Circumplex) Analysis API
- * 대인관계 원형 모델 분석 API - 설문 기반 ICP 스타일 분석
- *
- * 8개 옥탄트:
- * - PA: Dominant-Assured (지배적-확신형)
- * - BC: Competitive-Arrogant (경쟁적-거만형)
- * - DE: Cold-Distant (냉담-거리형)
- * - FG: Submissive-Introverted (복종적-내향형)
- * - HI: Submissive-Unassured (복종적-불확신형)
- * - JK: Cooperative-Agreeable (협력적-동조형)
- * - LM: Warm-Friendly (따뜻-친화형)
- * - NO: Nurturant-Extroverted (양육적-외향형)
- */
 
 import { NextRequest, NextResponse } from 'next/server'
 import {
@@ -27,37 +13,184 @@ import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
-// GET: 저장된 ICP 결과 조회
-export const GET = withApiMiddleware(
-  async (req: NextRequest, context: ApiContext) => {
-    const latestResult = await prisma.iCPResult.findFirst({
-      where: { userId: context.userId! },
+const ICP_RESULT_SELECT_FULL = {
+  id: true,
+  testVersion: true,
+  resultId: true,
+  primaryStyle: true,
+  secondaryStyle: true,
+  dominanceScore: true,
+  affiliationScore: true,
+  confidence: true,
+  axes: true,
+  completionSeconds: true,
+  missingAnswerCount: true,
+  octantScores: true,
+  analysisData: true,
+  answers: true,
+  locale: true,
+  createdAt: true,
+} as const
+
+const ICP_RESULT_SELECT_LEGACY = {
+  id: true,
+  primaryStyle: true,
+  secondaryStyle: true,
+  dominanceScore: true,
+  affiliationScore: true,
+  octantScores: true,
+  analysisData: true,
+  answers: true,
+  locale: true,
+  createdAt: true,
+} as const
+
+const ICP_OPTIONAL_COLUMNS = [
+  'testVersion',
+  'resultId',
+  'confidence',
+  'axes',
+  'completionSeconds',
+  'missingAnswerCount',
+] as const
+
+function isMissingColumnError(
+  error: unknown
+): error is { code: string; message?: string; meta?: unknown } {
+  return (
+    !!error &&
+    typeof error === 'object' &&
+    'code' in error &&
+    (error as { code?: string }).code === 'P2022'
+  )
+}
+
+function parseMissingColumn(error: unknown): string | null {
+  if (!isMissingColumnError(error)) return null
+
+  const metaColumn =
+    error.meta && typeof error.meta === 'object' && 'column' in error.meta
+      ? (error.meta as { column?: unknown }).column
+      : null
+
+  if (typeof metaColumn === 'string' && metaColumn.trim()) {
+    const cleaned = metaColumn.trim().replace(/[`"']/g, '')
+    const parts = cleaned.split('.')
+    return parts[parts.length - 1] || null
+  }
+
+  if (typeof error.message === 'string') {
+    const match = error.message.match(/column\s+[`"']?([a-zA-Z0-9_]+)[`"']?\s+does not exist/i)
+    if (match?.[1]) return match[1]
+  }
+
+  return null
+}
+
+function readOptionalField<T>(value: unknown, key: string): T | null {
+  if (!value || typeof value !== 'object') return null
+  if (!(key in value)) return null
+  const raw = (value as Record<string, unknown>)[key]
+  return raw == null ? null : (raw as T)
+}
+
+function normalizeIcpResult<T extends Record<string, unknown>>(
+  result: T
+): T & {
+  testVersion: string | null
+  resultId: string | null
+  confidence: number | null
+  axes: Prisma.JsonValue | null
+  completionSeconds: number | null
+  missingAnswerCount: number | null
+} {
+  return {
+    ...result,
+    testVersion: readOptionalField<string>(result, 'testVersion'),
+    resultId: readOptionalField<string>(result, 'resultId'),
+    confidence: readOptionalField<number>(result, 'confidence'),
+    axes: readOptionalField<Prisma.JsonValue>(result, 'axes'),
+    completionSeconds: readOptionalField<number>(result, 'completionSeconds'),
+    missingAnswerCount: readOptionalField<number>(result, 'missingAnswerCount'),
+  }
+}
+
+async function findLatestResultWithFallback(userId: string) {
+  try {
+    return await prisma.iCPResult.findFirst({
+      where: { userId },
       orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        testVersion: true,
-        resultId: true,
-        primaryStyle: true,
-        secondaryStyle: true,
-        dominanceScore: true,
-        affiliationScore: true,
-        confidence: true,
-        axes: true,
-        completionSeconds: true,
-        missingAnswerCount: true,
-        octantScores: true,
-        analysisData: true,
-        answers: true,
-        locale: true,
-        createdAt: true,
-      },
+      select: ICP_RESULT_SELECT_FULL,
     })
+  } catch (error) {
+    if (!isMissingColumnError(error)) throw error
+
+    logger.warn('[ICP] Missing column detected on GET, using legacy select', {
+      missingColumn: parseMissingColumn(error),
+      userId,
+    })
+
+    return prisma.iCPResult.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      select: ICP_RESULT_SELECT_LEGACY,
+    })
+  }
+}
+
+async function createResultWithFallback(data: Prisma.ICPResultCreateInput) {
+  try {
+    return await prisma.iCPResult.create({ data })
+  } catch (error) {
+    if (!isMissingColumnError(error)) throw error
+
+    const retryData: Record<string, unknown> = { ...data }
+    const droppedColumns = new Set<string>()
+    let currentError: unknown = error
+
+    while (isMissingColumnError(currentError)) {
+      const missingColumn = parseMissingColumn(currentError)
+      if (!missingColumn) throw currentError
+
+      if (!ICP_OPTIONAL_COLUMNS.includes(missingColumn as (typeof ICP_OPTIONAL_COLUMNS)[number])) {
+        throw currentError
+      }
+
+      if (!(missingColumn in retryData) || droppedColumns.has(missingColumn)) {
+        throw currentError
+      }
+
+      delete retryData[missingColumn]
+      droppedColumns.add(missingColumn)
+
+      logger.warn('[ICP] Missing column detected on POST, retrying without field', {
+        missingColumn,
+      })
+
+      try {
+        return await prisma.iCPResult.create({
+          data: retryData as Prisma.ICPResultCreateInput,
+          select: ICP_RESULT_SELECT_LEGACY,
+        })
+      } catch (retryError) {
+        currentError = retryError
+      }
+    }
+
+    throw currentError
+  }
+}
+
+// GET: saved ICP result
+export const GET = withApiMiddleware(
+  async (_req: NextRequest, context: ApiContext) => {
+    const latestResult = await findLatestResultWithFallback(context.userId!)
 
     if (!latestResult) {
       return NextResponse.json({ saved: false })
     }
 
-    return NextResponse.json({ saved: true, result: latestResult })
+    return NextResponse.json({ saved: true, result: normalizeIcpResult(latestResult) })
   },
   createAuthenticatedGuard({
     route: '/api/icp',
@@ -66,7 +199,7 @@ export const GET = withApiMiddleware(
   })
 )
 
-// POST: ICP 결과 저장 (로그인 필요)
+// POST: save ICP result
 export const POST = withApiMiddleware(
   async (request: NextRequest, context: ApiContext) => {
     const rawBody = await request.json()
@@ -81,37 +214,36 @@ export const POST = withApiMiddleware(
 
     const icpData = validationResult.data
 
-    // Save to database
-    const result = await prisma.iCPResult.create({
-      data: {
-        userId: context.userId!,
-        testVersion: icpData.testVersion || 'icp_v2',
-        resultId: icpData.resultId || null,
-        primaryStyle: icpData.primaryStyle,
-        secondaryStyle: icpData.secondaryStyle,
-        dominanceScore: icpData.dominanceScore,
-        affiliationScore: icpData.affiliationScore,
-        confidence: icpData.confidence ?? null,
-        axes: (icpData.axes || {}) as Prisma.JsonObject,
-        completionSeconds: icpData.completionSeconds ?? null,
-        missingAnswerCount: icpData.missingAnswerCount ?? 0,
-        octantScores: (icpData.octantScores || {}) as Prisma.JsonObject,
-        analysisData: (icpData.analysisData || {}) as Prisma.JsonObject,
-        answers: (icpData.answers || {}) as Prisma.JsonObject,
-        locale: icpData.locale || 'en',
-      },
+    const result = await createResultWithFallback({
+      user: { connect: { id: context.userId! } },
+      testVersion: icpData.testVersion || 'icp_v2',
+      resultId: icpData.resultId || null,
+      primaryStyle: icpData.primaryStyle,
+      secondaryStyle: icpData.secondaryStyle,
+      dominanceScore: icpData.dominanceScore,
+      affiliationScore: icpData.affiliationScore,
+      confidence: icpData.confidence ?? null,
+      axes: (icpData.axes || {}) as Prisma.JsonObject,
+      completionSeconds: icpData.completionSeconds ?? null,
+      missingAnswerCount: icpData.missingAnswerCount ?? 0,
+      octantScores: (icpData.octantScores || {}) as Prisma.JsonObject,
+      analysisData: (icpData.analysisData || {}) as Prisma.JsonObject,
+      answers: (icpData.answers || {}) as Prisma.JsonObject,
+      locale: icpData.locale || 'en',
     })
+
+    const normalizedResult = normalizeIcpResult(result)
 
     return NextResponse.json({
       success: true,
-      id: result.id,
-      testVersion: result.testVersion,
-      resultId: result.resultId,
-      primaryStyle: result.primaryStyle,
-      secondaryStyle: result.secondaryStyle,
-      dominanceScore: result.dominanceScore,
-      affiliationScore: result.affiliationScore,
-      confidence: result.confidence,
+      id: normalizedResult.id,
+      testVersion: normalizedResult.testVersion,
+      resultId: normalizedResult.resultId,
+      primaryStyle: normalizedResult.primaryStyle,
+      secondaryStyle: normalizedResult.secondaryStyle,
+      dominanceScore: normalizedResult.dominanceScore,
+      affiliationScore: normalizedResult.affiliationScore,
+      confidence: normalizedResult.confidence,
       message: 'ICP result saved successfully',
     })
   },

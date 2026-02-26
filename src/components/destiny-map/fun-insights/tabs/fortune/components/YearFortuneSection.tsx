@@ -2,6 +2,7 @@
 "use client";
 
 import type { YearFortune } from '../types';
+import { ensureMinSentenceText } from '../../shared/textDepth';
 
 interface YearFortuneSectionProps {
   yearFortune: YearFortune;
@@ -10,6 +11,9 @@ interface YearFortuneSectionProps {
 }
 
 export default function YearFortuneSection({ yearFortune, dayMaster, isKo }: YearFortuneSectionProps) {
+  const enrich = (text?: string, topic: 'fortune' | 'warning' = 'fortune', min = 4) =>
+    ensureMinSentenceText(text || '', isKo, topic, min);
+
   return (
     <div className="rounded-2xl bg-gradient-to-br from-slate-900/80 to-fuchsia-900/20 border border-fuchsia-500/30 p-6">
       <div className="flex items-center gap-3 mb-4">
@@ -32,21 +36,21 @@ export default function YearFortuneSection({ yearFortune, dayMaster, isKo }: Yea
       <div className="space-y-3">
         <div className="p-4 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20">
           <p className="text-fuchsia-300 font-bold text-base mb-2">{yearFortune.fortune.theme}</p>
-          <p className="text-gray-300 text-sm leading-relaxed mb-2">{yearFortune.fortune.desc}</p>
-          <p className="text-fuchsia-200 text-sm">{yearFortune.fortune.advice}</p>
+          <p className="text-gray-300 text-sm leading-relaxed mb-2">{enrich(yearFortune.fortune.desc, 'fortune', 4)}</p>
+          <p className="text-fuchsia-200 text-sm">{enrich(yearFortune.fortune.advice, 'fortune', 4)}</p>
         </div>
 
         <div className="p-4 rounded-xl bg-white/5 border border-white/10">
           <p className="text-fuchsia-400 font-bold text-sm mb-2">📌 {yearFortune.relation.relation}</p>
-          <p className="text-gray-300 text-sm leading-relaxed mb-3">{yearFortune.relation.impact}</p>
+          <p className="text-gray-300 text-sm leading-relaxed mb-3">{enrich(yearFortune.relation.impact, 'fortune', 4)}</p>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="p-2 rounded-lg bg-fuchsia-500/10">
               <span className="text-fuchsia-300 font-medium">{isKo ? "집중할 것" : "Focus"}</span>
-              <p className="text-gray-400 mt-1">{yearFortune.relation.focus}</p>
+              <p className="text-gray-400 mt-1">{enrich(yearFortune.relation.focus, 'fortune', 3)}</p>
             </div>
             <div className="p-2 rounded-lg bg-red-500/10">
               <span className="text-red-300 font-medium">{isKo ? "주의할 것" : "Caution"}</span>
-              <p className="text-gray-400 mt-1">{yearFortune.relation.caution}</p>
+              <p className="text-gray-400 mt-1">{enrich(yearFortune.relation.caution, 'warning', 3)}</p>
             </div>
           </div>
         </div>

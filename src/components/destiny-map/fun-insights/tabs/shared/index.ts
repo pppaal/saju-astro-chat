@@ -28,3 +28,5 @@ export {
   Card,
   InsightCard,
 } from './TabBase';
+
+export { expandNarrativeDeep } from './longForm';

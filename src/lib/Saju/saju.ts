@@ -28,6 +28,7 @@ import {
 } from './constants'
 import { toBranchId, toGanjiId, toSajuElementId, toStemId } from './graphIds'
 import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
+import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 
 // 내부 타입(간단화)
 type DayMaster = { name: string; element: FiveElement; yin_yang: YinYang }
@@ -123,7 +124,7 @@ function parseHourMinute(t: string): { h: number; m: number } {
 }
 
 /* ========== 대운 시작나이 라운딩 정책 ========== */
-const DAEUN_ROUNDING: 'round' | 'ceil' | 'floor' = 'round'
+const DAEUN_ROUNDING = CALCULATION_STANDARDS.saju.daeunRounding
 function daysToDaeunAge(days: number): number {
   const v = days / 3
   let age: number
