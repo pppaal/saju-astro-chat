@@ -1962,6 +1962,7 @@
   flex-wrap: wrap;
   max-width: 680px;
   margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .legendItem {
@@ -2022,6 +2023,7 @@
   max-width: 800px;
   width: 100%;
   border: 1px solid var(--cal-border-light);
+  overflow: hidden;
 }
 
 .graphHeader {
@@ -2072,15 +2074,17 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 0;
+  gap: 1px;
   height: 50px;
   width: 100%;
+  min-width: 0;
 }
 
 .sparkBar {
   flex: 1 1 0;
   width: 0;
-  margin: 0 1px;
+  min-width: 2px;
+  margin: 0;
   border-radius: 3px 3px 0 0;
   transition: all var(--cal-transition-fast);
   cursor: pointer;
@@ -3023,11 +3027,12 @@
 
 .highlightsList {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
 }
 
 .highlightCard {
+  width: 100%;
   padding: 16px;
   background: linear-gradient(145deg, rgba(30, 30, 50, 0.8), rgba(20, 20, 40, 0.9));
   border-radius: 14px;
@@ -3324,12 +3329,27 @@
   }
 
   .legend {
-    gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-items: center;
+    gap: 8px 10px;
     padding: 12px 16px;
   }
 
   .legendItem {
     font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .fortuneGraph {
+    margin: 10px 12px;
+    width: auto;
+    padding: 14px 12px;
+  }
+
+  .highlightsList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
   .features {
@@ -3433,8 +3453,12 @@
     padding: 16px 12px;
   }
 
+  .highlightsList {
+    grid-template-columns: 1fr;
+  }
+
   .highlightCard {
-    width: 120px;
+    width: 100%;
     padding: 12px;
   }
 
