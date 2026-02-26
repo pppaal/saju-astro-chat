@@ -3596,10 +3596,19 @@
     position: fixed;
     padding: 10px 16px;
     align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+  .topBar::-webkit-scrollbar {
+    display: none;
   }
   .brand {
     grid-column: 1;
     grid-row: 1;
+    min-width: max-content;
   }
   .brandText {
     font-size: 1.1rem;
@@ -3609,6 +3618,8 @@
     grid-row: 1;
     gap: 6px;
     justify-self: end;
+    min-width: max-content;
+    flex-wrap: nowrap;
   }
   .nav {
     grid-column: 1 / -1;
