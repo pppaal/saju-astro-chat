@@ -797,17 +797,19 @@ const WEEKDAY_INDEX: Record<string, number> = {
   토: 6,
 }
 
-function weekdayInTimeZone(date: Date, timeZone: string): number {
-  const short = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone })
+function weekdayInTimeZone(date: Date, tz: string = 'Asia/Seoul'): number {
+  const safeTz = typeof tz === 'string' && tz.trim() ? tz.trim() : 'Asia/Seoul'
+  const short = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: safeTz })
     .format(date)
     .toLowerCase()
     .slice(0, 3)
   return WEEKDAY_INDEX[short] ?? date.getDay()
 }
 
-function formatDateBadge(date: Date, timeZone: string, locale: LocaleCode): string {
+function formatDateBadge(date: Date, tz: string = 'Asia/Seoul', locale: LocaleCode): string {
+  const safeTz = typeof tz === 'string' && tz.trim() ? tz.trim() : 'Asia/Seoul'
   const formatter = new Intl.DateTimeFormat(locale === 'ko' ? 'ko-KR' : 'en-US', {
-    timeZone,
+    timeZone: safeTz,
     month: '2-digit',
     day: '2-digit',
     weekday: 'short',
@@ -830,10 +832,11 @@ function parseWeekdayIndexes(label: string): number[] {
 
 function buildUpcomingDates(
   weekdayLabel: string,
-  timeZone: string,
+  tz: string = 'Asia/Seoul',
   locale: LocaleCode,
   limit = 3
 ): string[] {
+  const safeTz = typeof tz === 'string' && tz.trim() ? tz.trim() : 'Asia/Seoul'
   const targetWeekdays = parseWeekdayIndexes(weekdayLabel)
   if (targetWeekdays.length === 0) {
     return []
@@ -844,9 +847,9 @@ function buildUpcomingDates(
   for (let offset = 0; offset < 28 && matches.length < limit; offset++) {
     const candidate = new Date(now)
     candidate.setDate(now.getDate() + offset)
-    const candidateWeekday = weekdayInTimeZone(candidate, timeZone)
+    const candidateWeekday = weekdayInTimeZone(candidate, safeTz)
     if (targetWeekdays.includes(candidateWeekday)) {
-      matches.push(formatDateBadge(candidate, timeZone, locale))
+      matches.push(formatDateBadge(candidate, safeTz, locale))
     }
   }
   return matches
