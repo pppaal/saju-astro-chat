@@ -47,6 +47,27 @@ const ACTION_REGEX =
 const TIMING_REGEX =
   /대운|세운|월운|일진|타이밍|시기|전환점|transit|timing|window|period|daeun|seun|wolun|iljin/i
 
+function buildDirectToneOverride(lang: 'ko' | 'en'): string {
+  if (lang === 'ko') {
+    return [
+      '## 말투 강제 규칙',
+      '- 친구식 위로체 대신 전문가 컨설팅 톤으로 작성합니다.',
+      '- 각 단락 첫 문장은 결론형으로 시작합니다.',
+      '- 두루뭉술한 표현 대신 명확한 판단 문장을 사용합니다.',
+      '- 근거(사주/점성) -> 해석 -> 행동 순서를 유지합니다.',
+      '- 불릿이 아니라 문단형으로 작성하되, 문장은 짧고 단정하게 씁니다.',
+    ].join('\n')
+  }
+  return [
+    '## Tone Override',
+    '- Use a professional consultant tone, not friendly consolation.',
+    '- Start each paragraph with a conclusion sentence.',
+    '- Prefer clear judgments over vague hedging.',
+    '- Keep the flow: evidence (Saju/Astrology) -> interpretation -> action.',
+    '- Keep short, assertive paragraph sentences.',
+  ].join('\n')
+}
+
 function hasCrossInText(text: string): boolean {
   if (!text || typeof text !== 'string') return false
   return SAJU_REGEX.test(text) && ASTRO_REGEX.test(text)
@@ -551,7 +572,7 @@ function containsBannedPhrase(text: string): boolean {
   return BANNED_PHRASE_PATTERNS.some((pattern) => pattern.test(text))
 }
 
-export function sanitizeSectionNarrative(text: string): string {
+function sanitizeSectionNarrative(text: string): string {
   if (!text || typeof text !== 'string') return ''
   let cleaned = text
   for (const pattern of BOILERPLATE_PATTERNS) {
@@ -690,12 +711,13 @@ function buildSectionPrompt(
       '당신은 사주+점성 통합 상담가입니다.',
       `섹션 이름: ${sectionKey}`,
       '스타일 규칙:',
+      '- 첫 문장은 반드시 결론형으로 시작합니다. (예: "결론부터 말하면 ...입니다.")',
       '- 쉬운 한국어로 쓰고 설명형으로 풉니다.',
       '- 문장 길이는 15~35자로 맞춥니다.',
       '- 문단마다 4~7문장으로 작성합니다.',
       '- 구체 명사를 최소 2개 넣습니다.',
       `- 이 섹션 명사 후보: ${concreteNouns}`,
-      '- 과장, 단정, 공포 조장은 금지합니다.',
+      '- 과장, 공포 조장은 금지합니다. 단, 근거가 있을 때는 해석을 모호하게 흐리지 말고 명확히 말합니다.',
       '- 불릿/번호 목록 없이 자연 문단으로만 작성합니다.',
       '- "이 구간의 핵심 초점은" 문장을 절대 쓰지 않습니다.',
       '- 다음 표현을 절대 쓰지 않습니다: 격국의 결, 긴장 신호, 상호작용, 시사, 결이, 프레임, 검증, 근거 세트.',
@@ -1070,7 +1092,7 @@ export async function generateTimingReport(
   const matrixSummary = buildMatrixSummary(matrixReport, lang)
 
   // 2. 프롬프트 빌드
-  const prompt = buildTimingPrompt(
+  const prompt = `${buildTimingPrompt(
     period,
     lang,
     {
@@ -1085,7 +1107,7 @@ export async function generateTimingReport(
     graphRagEvidencePrompt,
     options.userQuestion,
     deterministicCore.promptBlock
-  )
+  )}\n\n${buildDirectToneOverride(lang)}`
 
   // 3. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
   const base = await callAIBackendGeneric<TimingReportSections>(prompt, lang, {
@@ -1342,7 +1364,7 @@ export async function generateThemedReport(
   const matrixSummary = buildMatrixSummary(matrixReport, lang)
 
   // 2. 프롬프트 빌드
-  const prompt = buildThemedPrompt(
+  const prompt = `${buildThemedPrompt(
     theme,
     lang,
     {
@@ -1358,7 +1380,7 @@ export async function generateThemedReport(
     graphRagEvidencePrompt,
     options.userQuestion,
     deterministicCore.promptBlock
-  )
+  )}\n\n${buildDirectToneOverride(lang)}`
 
   // 3. AI 백엔드 호출 + 품질 게이트(길이/교차 근거)
   const base = await callAIBackendGeneric<ThemedReportSections>(prompt, lang, {
