@@ -4,30 +4,46 @@
  * Handles all API interactions: analyze question, draw cards, interpret, save
  */
 
-import { useCallback, useRef } from 'react';
-import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data';
-import type { DrawnCard, CardInsight } from '@/lib/Tarot/tarot.types';
-import { logger } from '@/lib/logger';
-import type { UseInlineTarotStateReturn } from './useInlineTarotState';
+import { useCallback, useRef } from 'react'
+import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
+import type { DrawnCard, CardInsight } from '@/lib/Tarot/tarot.types'
+import { logger } from '@/lib/logger'
+import type { UseInlineTarotStateReturn } from './useInlineTarotState'
 
-type LangKey = 'en' | 'ko' | 'ja' | 'zh' | 'es' | 'fr' | 'de' | 'pt' | 'ru';
+type LangKey = 'en' | 'ko' | 'ja' | 'zh' | 'es' | 'fr' | 'de' | 'pt' | 'ru'
 
 interface Profile {
-  name?: string;
-  birthDate?: string;
-  birthTime?: string;
-  city?: string;
-  gender?: string;
+  name?: string
+  birthDate?: string
+  birthTime?: string
+  city?: string
+  gender?: string
 }
 
 interface UseInlineTarotAPIOptions {
-  stateManager: UseInlineTarotStateReturn;
-  lang: LangKey;
-  profile: Profile;
+  stateManager: UseInlineTarotStateReturn
+  lang: LangKey
+  profile: Profile
+}
+
+function extractSseEvents(chunk: string, buffer: string) {
+  const merged = buffer + chunk
+  const normalized = merged.replace(/\r\n/g, '\n')
+  const parts = normalized.split('\n\n')
+  const nextBuffer = parts.pop() ?? ''
+  return { events: parts, nextBuffer }
+}
+
+function extractDataPayload(eventBlock: string): string {
+  return eventBlock
+    .split('\n')
+    .filter((line) => line.startsWith('data:'))
+    .map((line) => line.slice(5).trimStart())
+    .join('')
 }
 
 export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTarotAPIOptions) {
-  const { state, actions, recommendedSpreads } = stateManager;
+  const { state, actions, recommendedSpreads } = stateManager
   const {
     selectedSpread,
     selectedCategory,
@@ -39,14 +55,16 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
     affirmation,
     isSaving,
     isSaved,
-  } = state;
-  const abortControllerRef = useRef<AbortController | null>(null);
+  } = state
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   // AI auto-select spread based on question
   const analyzeQuestion = useCallback(async () => {
-    if (!concern.trim()) {return;}
+    if (!concern.trim()) {
+      return
+    }
 
-    actions.setIsAnalyzing(true);
+    actions.setIsAnalyzing(true)
     try {
       const res = await fetch('/api/tarot/analyze-question', {
         method: 'POST',
@@ -58,166 +76,203 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
           question: concern,
           language: lang,
         }),
-      });
+      })
 
       if (!res.ok) {
-        throw new Error('Failed to analyze question');
+        throw new Error('Failed to analyze question')
       }
 
-      const data = await res.json();
+      const data = await res.json()
 
       // Handle dangerous questions
       if (data.isDangerous) {
-        alert(data.message);
-        actions.setIsAnalyzing(false);
-        return;
+        alert(data.message)
+        actions.setIsAnalyzing(false)
+        return
       }
 
-      const selectedId = data.spreadId;
-      const reason = data.reason || data.userFriendlyExplanation || '';
+      const selectedId = data.spreadId
+      const reason = data.reason || data.userFriendlyExplanation || ''
 
       // Find the spread
-      let spread = recommendedSpreads.find((s) => s.id === selectedId);
+      let spread = recommendedSpreads.find((s) => s.id === selectedId)
 
       if (!spread && recommendedSpreads.length > 0) {
         // Try different category if AI suggested one
         if (data.themeId && data.themeId !== selectedCategory) {
-          const newCategory = tarotThemes.find((t) => t.id === data.themeId);
+          const newCategory = tarotThemes.find((t) => t.id === data.themeId)
           if (newCategory) {
-            spread = newCategory.spreads.find((s) => s.id === selectedId);
+            spread = newCategory.spreads.find((s) => s.id === selectedId)
             if (spread) {
-              actions.setSelectedCategory(data.themeId);
+              actions.setSelectedCategory(data.themeId)
             }
           }
         }
 
         // Fallback to first recommended
         if (!spread) {
-          spread = recommendedSpreads[0];
+          spread = recommendedSpreads[0]
         }
       }
 
       if (spread) {
-        actions.selectSpreadAndProceed(spread, reason);
+        actions.selectSpreadAndProceed(spread, reason)
       } else {
-        actions.setStep('spread-select');
+        actions.setStep('spread-select')
       }
     } catch (err) {
-      logger.error('[InlineTarot] auto-select error:', err);
-      actions.setStep('spread-select');
+      logger.error('[InlineTarot] auto-select error:', err)
+      actions.setStep('spread-select')
     } finally {
-      actions.setIsAnalyzing(false);
+      actions.setIsAnalyzing(false)
     }
-  }, [concern, selectedCategory, lang, recommendedSpreads, actions]);
+  }, [concern, selectedCategory, lang, recommendedSpreads, actions])
 
   // Fetch streaming interpretation
-  const fetchInterpretation = useCallback(async (cards: DrawnCard[]) => {
-    if (!selectedSpread) {return;}
+  const fetchInterpretation = useCallback(
+    async (cards: DrawnCard[]) => {
+      if (!selectedSpread) {
+        return
+      }
 
-    // Cancel any existing request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
+      // Cancel any existing request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+      abortControllerRef.current = new AbortController()
 
-    const payload = {
-      categoryId: selectedCategory,
-      spreadId: selectedSpread.id,
-      spreadTitle: lang === 'ko' ? selectedSpread.titleKo || selectedSpread.title : selectedSpread.title,
-      cards: cards.map((dc, idx) => ({
-        name: lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
-        isReversed: dc.isReversed,
-        position: lang === 'ko'
-          ? selectedSpread.positions[idx]?.titleKo || selectedSpread.positions[idx]?.title
-          : selectedSpread.positions[idx]?.title,
-        meaning: dc.isReversed
-          ? (lang === 'ko' ? dc.card.reversed.meaningKo || dc.card.reversed.meaning : dc.card.reversed.meaning)
-          : (lang === 'ko' ? dc.card.upright.meaningKo || dc.card.upright.meaning : dc.card.upright.meaning),
-        keywords: dc.isReversed
-          ? (lang === 'ko' ? dc.card.reversed.keywordsKo || dc.card.reversed.keywords : dc.card.reversed.keywords)
-          : (lang === 'ko' ? dc.card.upright.keywordsKo || dc.card.upright.keywords : dc.card.upright.keywords),
-      })),
-      language: lang,
-      userQuestion: concern,
-      birthdate: profile.birthDate,
-    };
+      const payload = {
+        category: selectedCategory,
+        categoryId: selectedCategory,
+        spreadId: selectedSpread.id,
+        spreadTitle:
+          lang === 'ko' ? selectedSpread.titleKo || selectedSpread.title : selectedSpread.title,
+        cards: cards.map((dc, idx) => ({
+          name: lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
+          isReversed: dc.isReversed,
+          position:
+            lang === 'ko'
+              ? selectedSpread.positions[idx]?.titleKo || selectedSpread.positions[idx]?.title
+              : selectedSpread.positions[idx]?.title,
+          meaning: dc.isReversed
+            ? lang === 'ko'
+              ? dc.card.reversed.meaningKo || dc.card.reversed.meaning
+              : dc.card.reversed.meaning
+            : lang === 'ko'
+              ? dc.card.upright.meaningKo || dc.card.upright.meaning
+              : dc.card.upright.meaning,
+          keywords: dc.isReversed
+            ? lang === 'ko'
+              ? dc.card.reversed.keywordsKo || dc.card.reversed.keywords
+              : dc.card.reversed.keywords
+            : lang === 'ko'
+              ? dc.card.upright.keywordsKo || dc.card.upright.keywords
+              : dc.card.upright.keywords,
+        })),
+        language: lang,
+        userQuestion: concern,
+        birthdate: profile.birthDate,
+      }
 
-    try {
-      const res = await fetch('/api/tarot/interpret/stream', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
-        },
-        body: JSON.stringify(payload),
-        signal: abortControllerRef.current.signal,
-      });
+      try {
+        const res = await fetch('/api/tarot/interpret/stream', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
+          },
+          body: JSON.stringify(payload),
+          signal: abortControllerRef.current.signal,
+        })
 
-      if (!res.ok || !res.body) {throw new Error('Stream failed');}
+        if (!res.ok || !res.body) {
+          throw new Error('Stream failed')
+        }
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      const tempInsights: CardInsight[] = [];
+        const reader = res.body.getReader()
+        const decoder = new TextDecoder()
+        const tempInsights: CardInsight[] = []
+        let sseBuffer = ''
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {break;}
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) {
+            break
+          }
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
+          const chunk = decoder.decode(value, { stream: true })
+          const { events, nextBuffer } = extractSseEvents(chunk, sseBuffer)
+          sseBuffer = nextBuffer
 
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) {continue;}
-          const data = line.slice(6);
-          if (data === '[DONE]') {break;}
-
-          try {
-            const parsed = JSON.parse(data);
-
-            if (parsed.section === 'overall_message') {
-              actions.setOverallMessage((prev: string) => prev + (parsed.content || ''));
-            } else if (parsed.section === 'card_insight') {
-              const idx = parsed.index ?? 0;
-              if (!tempInsights[idx]) {
-                tempInsights[idx] = {
-                  position: selectedSpread.positions[idx]?.title || '',
-                  card_name: cards[idx]?.card.name || '',
-                  is_reversed: cards[idx]?.isReversed || false,
-                  interpretation: '',
-                };
-              }
-              tempInsights[idx].interpretation += parsed.content || '';
-              actions.setCardInsights([...tempInsights]);
-
-              if (parsed.extras) {
-                Object.assign(tempInsights[idx], parsed.extras);
-                actions.setCardInsights([...tempInsights]);
-              }
-            } else if (parsed.section === 'guidance') {
-              actions.setGuidance((prev: string) => prev + (parsed.content || ''));
-            } else if (parsed.section === 'affirmation') {
-              actions.setAffirmation((prev: string) => prev + (parsed.content || ''));
+          for (const eventBlock of events) {
+            const data = extractDataPayload(eventBlock)
+            if (!data || data === '[DONE]') {
+              continue
             }
-          } catch {
-            // Skip malformed JSON
+
+            try {
+              const parsed = JSON.parse(data)
+
+              if (parsed.section === 'overall_message') {
+                actions.setOverallMessage((prev: string) => prev + (parsed.content || ''))
+              } else if (parsed.section === 'card_insight') {
+                const idx = parsed.index ?? 0
+                if (!tempInsights[idx]) {
+                  tempInsights[idx] = {
+                    position: selectedSpread.positions[idx]?.title || '',
+                    card_name: cards[idx]?.card.name || '',
+                    is_reversed: cards[idx]?.isReversed || false,
+                    interpretation: '',
+                  }
+                }
+                tempInsights[idx].interpretation += parsed.content || ''
+                actions.setCardInsights([...tempInsights])
+
+                if (parsed.extras) {
+                  Object.assign(tempInsights[idx], parsed.extras)
+                  actions.setCardInsights([...tempInsights])
+                }
+              } else if (parsed.section === 'guidance') {
+                actions.setGuidance((prev: string) => prev + (parsed.content || ''))
+              } else if (parsed.section === 'affirmation') {
+                actions.setAffirmation((prev: string) => prev + (parsed.content || ''))
+              }
+            } catch {
+              // Skip malformed JSON
+            }
           }
         }
-      }
 
-      actions.setStep('result');
-    } catch (err) {
-      if (err instanceof Error && err.name !== 'AbortError') {
-        logger.error('[InlineTarot] interpret error:', err);
+        const finalPayload = extractDataPayload(sseBuffer)
+        if (finalPayload && finalPayload !== '[DONE]') {
+          try {
+            const parsed = JSON.parse(finalPayload)
+            if (parsed.section === 'overall_message' && typeof parsed.content === 'string') {
+              actions.setOverallMessage((prev: string) => prev + parsed.content)
+            }
+          } catch {
+            // Ignore tail parsing errors
+          }
+        }
+
+        actions.setStep('result')
+      } catch (err) {
+        if (err instanceof Error && err.name !== 'AbortError') {
+          logger.error('[InlineTarot] interpret error:', err)
+        }
+        actions.setStep('result')
       }
-      actions.setStep('result');
-    }
-  }, [selectedSpread, selectedCategory, concern, lang, profile.birthDate, actions]);
+    },
+    [selectedSpread, selectedCategory, concern, lang, profile.birthDate, actions]
+  )
 
   // Draw cards from API
   const drawCards = useCallback(async () => {
-    if (!selectedSpread) {return;}
+    if (!selectedSpread) {
+      return
+    }
 
-    actions.setIsDrawing(true);
+    actions.setIsDrawing(true)
     try {
       const res = await fetch('/api/tarot', {
         method: 'POST',
@@ -229,38 +284,40 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
           categoryId: selectedCategory,
           spreadId: selectedSpread.id,
         }),
-      });
+      })
 
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
-        logger.error('[InlineTarot] API error:', { status: res.status, errorData });
-        throw new Error(`Failed to draw cards: ${res.status}`);
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }))
+        logger.error('[InlineTarot] API error:', { status: res.status, errorData })
+        throw new Error(`Failed to draw cards: ${res.status}`)
       }
 
-      const data = await res.json();
-      actions.setDrawnCards(data.drawnCards);
+      const data = await res.json()
+      actions.setDrawnCards(data.drawnCards)
 
       // Animate card reveals
       for (let i = 0; i < data.drawnCards.length; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        actions.incrementRevealedCount();
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        actions.incrementRevealedCount()
       }
 
       // Start interpretation
-      actions.setStep('interpreting');
-      await fetchInterpretation(data.drawnCards);
+      actions.setStep('interpreting')
+      await fetchInterpretation(data.drawnCards)
     } catch (err) {
-      logger.error('[InlineTarot] draw error:', err);
+      logger.error('[InlineTarot] draw error:', err)
     } finally {
-      actions.setIsDrawing(false);
+      actions.setIsDrawing(false)
     }
-  }, [selectedSpread, selectedCategory, actions, fetchInterpretation]);
+  }, [selectedSpread, selectedCategory, actions, fetchInterpretation])
 
   // Save tarot reading to database
   const saveReading = useCallback(async () => {
-    if (isSaving || isSaved || !selectedSpread) {return;}
+    if (isSaving || isSaved || !selectedSpread) {
+      return
+    }
 
-    actions.setIsSaving(true);
+    actions.setIsSaving(true)
     try {
       const res = await fetch('/api/tarot/save', {
         method: 'POST',
@@ -271,15 +328,17 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
           question: concern,
           theme: selectedCategory,
           spreadId: selectedSpread.id,
-          spreadTitle: lang === 'ko' ? selectedSpread.titleKo || selectedSpread.title : selectedSpread.title,
+          spreadTitle:
+            lang === 'ko' ? selectedSpread.titleKo || selectedSpread.title : selectedSpread.title,
           cards: drawnCards.map((dc, idx) => ({
             cardId: String(dc.card.id),
             name: lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
             image: dc.card.image,
             isReversed: dc.isReversed,
-            position: lang === 'ko'
-              ? selectedSpread.positions[idx]?.titleKo || selectedSpread.positions[idx]?.title
-              : selectedSpread.positions[idx]?.title,
+            position:
+              lang === 'ko'
+                ? selectedSpread.positions[idx]?.titleKo || selectedSpread.positions[idx]?.title
+                : selectedSpread.positions[idx]?.title,
           })),
           overallMessage,
           cardInsights,
@@ -288,34 +347,47 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
           source: 'counselor',
           locale: lang,
         }),
-      });
+      })
 
       if (res.ok) {
-        actions.setIsSaved(true);
+        actions.setIsSaved(true)
       } else {
-        const err = await res.json().catch(() => ({}));
-        logger.error('[InlineTarot] save error:', err);
+        const err = await res.json().catch(() => ({}))
+        logger.error('[InlineTarot] save error:', err)
       }
     } catch (err) {
-      logger.error('[InlineTarot] save error:', err);
+      logger.error('[InlineTarot] save error:', err)
     } finally {
-      actions.setIsSaving(false);
+      actions.setIsSaving(false)
     }
-  }, [selectedSpread, drawnCards, overallMessage, cardInsights, guidance, affirmation, isSaving, isSaved, concern, selectedCategory, lang, actions]);
+  }, [
+    selectedSpread,
+    drawnCards,
+    overallMessage,
+    cardInsights,
+    guidance,
+    affirmation,
+    isSaving,
+    isSaved,
+    concern,
+    selectedCategory,
+    lang,
+    actions,
+  ])
 
   // Cleanup on unmount
   const cleanup = useCallback(() => {
     if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
+      abortControllerRef.current.abort()
     }
-  }, []);
+  }, [])
 
   return {
     analyzeQuestion,
     drawCards,
     saveReading,
     cleanup,
-  };
+  }
 }
 
-export type UseInlineTarotAPIReturn = ReturnType<typeof useInlineTarotAPI>;
+export type UseInlineTarotAPIReturn = ReturnType<typeof useInlineTarotAPI>

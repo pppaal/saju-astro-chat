@@ -81,13 +81,15 @@
   z-index: 100;
   width: 100%;
   background: transparent;
-  padding: 0.5rem 7.25rem 0.5rem 3.5rem;
+  padding: 0.5rem 1rem;
   flex-shrink: 0;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   pointer-events: none;
+  margin: 0 auto;
+  max-width: min(980px, calc(100vw - 2rem));
 }
 
 .instructionTitle {
@@ -154,7 +156,7 @@
   margin: 0.5rem 0;
   font-weight: 500;
   animation: fadeIn 0.5s ease;
-  max-width: min(680px, calc(100vw - 11rem));
+  max-width: min(680px, calc(100vw - 2rem));
   line-height: 1.35;
 }
 
