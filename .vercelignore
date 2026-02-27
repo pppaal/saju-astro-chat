@@ -7,7 +7,7 @@ backend_ai/venv
 backend_ai/.venv
 backend_ai/data
 coverage
-reports
+/reports
 logs
 android
 .vs
