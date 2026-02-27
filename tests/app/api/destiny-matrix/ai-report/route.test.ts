@@ -174,7 +174,7 @@ vi.mock('@/lib/constants/http', () => ({
 // Import route handlers and mocked modules AFTER mocks
 // ===========================
 
-import { GET, POST } from '@/app/api/destiny-matrix/ai-report/route'
+import { GET, POST, __testables } from '@/app/api/destiny-matrix/ai-report/route'
 import { getServerSession } from 'next-auth'
 import { getCreditBalance, consumeCredits, canUseFeature } from '@/lib/credits/creditService'
 import { validateReportRequest, calculateDestinyMatrix } from '@/lib/destiny-matrix'
@@ -1449,6 +1449,48 @@ describe('POST /api/destiny-matrix/ai-report', () => {
         }),
       })
     })
+  })
+})
+
+describe('Derived Matrix Inputs', () => {
+  it('derives dominant western element from planetSigns', () => {
+    const derived = __testables.deriveDominantWesternElementFromPlanetSigns({
+      Sun: 'Aquarius',
+      Moon: 'Gemini',
+      Mercury: 'Aquarius',
+      Venus: 'Libra',
+    })
+    expect(derived).toBe('air')
+  })
+
+  it('derives shinsal/twelveStages/relations for standard fixture', () => {
+    const enriched = __testables.enrichRequestWithDerivedSaju({
+      birthDate: '1995-02-09',
+      birthTime: '06:40',
+      timezone: 'Asia/Seoul',
+      gender: 'male',
+    })
+    expect(Array.isArray(enriched.shinsalList)).toBe(true)
+    expect((enriched.shinsalList as unknown[]).length).toBeGreaterThan(0)
+    expect(enriched.twelveStages && typeof enriched.twelveStages === 'object').toBe(true)
+    expect(Object.keys(enriched.twelveStages as Record<string, unknown>).length).toBeGreaterThan(0)
+    expect(Array.isArray(enriched.relations)).toBe(true)
+    expect((enriched.relations as unknown[]).length).toBeGreaterThan(0)
+  })
+
+  it('prefers derived saju timing seun when available', () => {
+    const enriched = __testables.enrichRequestWithDerivedSaju({
+      birthDate: '1995-02-09',
+      birthTime: '06:40',
+      timezone: 'Asia/Seoul',
+      gender: 'male',
+    })
+    const timing = __testables.buildTimingDataFromDerivedSaju(
+      enriched,
+      new Date().toISOString().slice(0, 10)
+    )
+    expect(timing.seun).toBeDefined()
+    expect(timing.daeun).toBeDefined()
   })
 })
 

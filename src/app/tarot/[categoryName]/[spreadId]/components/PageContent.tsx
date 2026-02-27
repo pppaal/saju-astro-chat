@@ -6,6 +6,7 @@ import type { GameState, ReadingResponse, InterpretationResult } from '../types'
 import type { Spread, DeckStyle } from '@/lib/Tarot/tarot.types'
 import type { CardColor } from '../constants'
 import type { TarotPersonalizationOptions } from '../hooks/useTarotGame'
+import type { TarotDrawError } from '../../../utils/errorHandling'
 import '../tarot-reading-mobile.module.css'
 
 export interface PageContentProps {
@@ -26,6 +27,7 @@ export interface PageContentProps {
   // Results state
   readingResult: ReadingResponse | null
   interpretation: InterpretationResult | null
+  drawError: TarotDrawError | null
 
   // Refs
   detailedSectionRef: React.RefObject<HTMLDivElement | null>
@@ -56,7 +58,7 @@ export interface PageContentProps {
 }
 
 export function PageContent(props: PageContentProps) {
-  const { gameState, spreadInfo, translate, language } = props
+  const { gameState, spreadInfo, translate, language, drawError } = props
 
   // Loading state
   if (gameState === 'loading') {
@@ -69,10 +71,39 @@ export function PageContent(props: PageContentProps) {
 
   // Error state
   if (gameState === 'error' || !spreadInfo) {
+    const errorTitle =
+      drawError?.code === 'credit_exhausted'
+        ? translate('tarot.reading.creditExhaustedTitle', '크레딧이 부족합니다')
+        : drawError?.code === 'auth_failed'
+          ? translate('tarot.reading.authFailedTitle', '인증이 필요합니다')
+          : translate('tarot.reading.invalidAccess', 'Invalid Access')
+
+    const errorDescription =
+      drawError?.code === 'credit_exhausted'
+        ? translate(
+            'tarot.reading.creditExhaustedDesc',
+            '카드 리딩 크레딧이 부족합니다. 충전 후 다시 시도해 주세요.'
+          )
+        : drawError?.code === 'auth_failed'
+          ? translate(
+              'tarot.reading.authFailedDesc',
+              '로그인 또는 인증 상태를 확인한 후 다시 시도해 주세요.'
+            )
+          : drawError?.message || undefined
+
+    const primaryActionHref = drawError?.code === 'credit_exhausted' ? '/pricing' : undefined
+    const primaryActionText =
+      drawError?.code === 'credit_exhausted'
+        ? translate('tarot.reading.buyCredits', '크레딧 충전')
+        : undefined
+
     return (
       <ErrorState
-        title={translate('tarot.reading.invalidAccess', 'Invalid Access')}
+        title={errorTitle}
+        description={errorDescription}
         linkText={translate('tarot.reading.backToHome', 'Back to Home')}
+        primaryActionHref={primaryActionHref}
+        primaryActionText={primaryActionText}
       />
     )
   }

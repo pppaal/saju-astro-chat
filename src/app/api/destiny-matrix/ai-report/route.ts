@@ -38,8 +38,11 @@ import { auditCrossConsistency } from '@/lib/destiny-matrix/ai-report/crossConsi
 import { canUseFeature, consumeCredits, getCreditBalance } from '@/lib/credits/creditService'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
+import { mapMajorTransitsToActiveTransits } from '@/lib/destiny-matrix/ai-report/transitMapping'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
+import { getShinsalHits, getTwelveStagesForPillars } from '@/lib/Saju/shinsal'
 import { STEMS as SAJU_STEMS } from '@/lib/Saju/constants'
 import {
   calculateNatalChart,
@@ -142,12 +145,151 @@ const STEM_ELEMENTS: Record<string, string> = {
   계: '수',
 }
 
+const WESTERN_SIGN_ELEMENT_MAP: Record<string, MatrixCalculationInput['dominantWesternElement']> = {
+  aries: 'fire',
+  taurus: 'earth',
+  gemini: 'air',
+  cancer: 'water',
+  leo: 'fire',
+  virgo: 'earth',
+  libra: 'air',
+  scorpio: 'water',
+  sagittarius: 'fire',
+  capricorn: 'earth',
+  aquarius: 'air',
+  pisces: 'water',
+  양: 'fire',
+  황소: 'earth',
+  쌍둥이: 'air',
+  게: 'water',
+  사자: 'fire',
+  처녀: 'earth',
+  천칭: 'air',
+  전갈: 'water',
+  사수: 'fire',
+  염소: 'earth',
+  물병: 'air',
+  물고기: 'water',
+}
+
+const SHINSAL_WHITELIST = new Set<string>([
+  '천을귀인',
+  '태극귀인',
+  '천덕귀인',
+  '월덕귀인',
+  '문창귀인',
+  '학당귀인',
+  '금여록',
+  '천주귀인',
+  '암록',
+  '건록',
+  '제왕',
+  '도화',
+  '홍염살',
+  '양인',
+  '백호',
+  '겁살',
+  '재살',
+  '천살',
+  '지살',
+  '년살',
+  '월살',
+  '망신',
+  '고신',
+  '괴강',
+  '현침',
+  '귀문관',
+  '병부',
+  '효신살',
+  '상문살',
+  '역마',
+  '화개',
+  '장성',
+  '반안',
+  '천라지망',
+  '공망',
+  '삼재',
+  '원진',
+])
+
 function normalizeGenderForSaju(value: unknown): 'male' | 'female' {
   const normalized = toOptionalString(value)?.toLowerCase()
   if (normalized === 'f' || normalized === 'female') {
     return 'female'
   }
   return 'male'
+}
+
+function normalizeWesternSignName(raw: string): string {
+  return raw.trim().toLowerCase()
+}
+
+function deriveDominantWesternElementFromPlanetSigns(
+  planetSigns?: Record<string, unknown>
+): MatrixCalculationInput['dominantWesternElement'] | undefined {
+  if (!planetSigns) return undefined
+  const score: Record<'fire' | 'earth' | 'air' | 'water', number> = {
+    fire: 0,
+    earth: 0,
+    air: 0,
+    water: 0,
+  }
+  const coreWeights: Record<string, number> = {
+    sun: 3,
+    moon: 3,
+    mercury: 2,
+    venus: 2,
+    mars: 2,
+    jupiter: 1,
+    saturn: 1,
+  }
+  for (const [planet, signValue] of Object.entries(planetSigns)) {
+    if (typeof signValue !== 'string') continue
+    const sign = normalizeWesternSignName(signValue)
+    const element = WESTERN_SIGN_ELEMENT_MAP[sign]
+    if (!element) continue
+    const weight = coreWeights[planet.trim().toLowerCase()] || 1
+    score[element] += weight
+  }
+  const sorted = Object.entries(score).sort((a, b) => b[1] - a[1])
+  if (!sorted[0] || sorted[0][1] <= 0) return undefined
+  return sorted[0][0] as MatrixCalculationInput['dominantWesternElement']
+}
+
+function normalizeTwelveStageKey(stage: string): string {
+  if (stage === '건록') return '임관'
+  if (stage === '제왕') return '왕지'
+  return stage
+}
+
+function deriveAdvancedSajuMatrixFields(
+  sajuData: ReturnType<typeof calculateSajuData>
+): Pick<MatrixCalculationInput, 'twelveStages' | 'relations' | 'shinsalList'> {
+  const stagesByPillar = getTwelveStagesForPillars(sajuData.pillars)
+  const stageCount: Record<string, number> = {}
+  for (const stage of Object.values(stagesByPillar)) {
+    const key = normalizeTwelveStageKey(stage)
+    stageCount[key] = (stageCount[key] || 0) + 1
+  }
+
+  const relations = analyzeRelations(
+    toAnalyzeInputFromSaju(sajuData.pillars, sajuData.dayMaster?.name)
+  )
+
+  const shinsalHits = getShinsalHits(sajuData.pillars, {
+    includeTwelveAll: true,
+    includeGeneralShinsal: true,
+    includeLuckyDetails: true,
+  })
+  const shinsalList = [
+    ...new Set(shinsalHits.map((hit) => hit.kind).filter((k) => SHINSAL_WHITELIST.has(k))),
+  ]
+
+  return {
+    twelveStages: stageCount as MatrixCalculationInput['twelveStages'],
+    relations,
+    shinsalList: shinsalList as MatrixCalculationInput['shinsalList'],
+  }
 }
 
 function deriveSibsinDistributionFromSaju(sajuData: ReturnType<typeof calculateSajuData>) {
@@ -322,6 +464,27 @@ function enrichRequestWithDerivedSaju(
       requestBody.sibsinDistribution = deriveSibsinDistributionFromSaju(sajuData)
     }
 
+    const hasRelations = Array.isArray(requestBody.relations) && requestBody.relations.length > 0
+    const hasTwelveStages =
+      !!requestBody.twelveStages &&
+      typeof requestBody.twelveStages === 'object' &&
+      !Array.isArray(requestBody.twelveStages) &&
+      Object.keys(requestBody.twelveStages as Record<string, unknown>).length > 0
+    const hasShinsalList =
+      Array.isArray(requestBody.shinsalList) && requestBody.shinsalList.length > 0
+    if (!hasRelations || !hasTwelveStages || !hasShinsalList) {
+      const derivedAdvanced = deriveAdvancedSajuMatrixFields(sajuData)
+      if (!hasRelations && derivedAdvanced.relations.length > 0) {
+        requestBody.relations = derivedAdvanced.relations
+      }
+      if (!hasTwelveStages && Object.keys(derivedAdvanced.twelveStages || {}).length > 0) {
+        requestBody.twelveStages = derivedAdvanced.twelveStages
+      }
+      if (!hasShinsalList && (derivedAdvanced.shinsalList || []).length > 0) {
+        requestBody.shinsalList = derivedAdvanced.shinsalList
+      }
+    }
+
     const geokguk = toOptionalString(requestBody.geokguk)
     const yongsin = toOptionalString(requestBody.yongsin)
     if (!geokguk || !yongsin) {
@@ -463,6 +626,14 @@ async function enrichRequestWithDerivedAstrology(
     if (!requestBody.planetHouses || typeof requestBody.planetHouses !== 'object') {
       requestBody.planetHouses = planetHouses
     }
+    if (!requestBody.dominantWesternElement) {
+      const derivedDominant = deriveDominantWesternElementFromPlanetSigns(
+        (requestBody.planetSigns as Record<string, unknown>) || planetSigns
+      )
+      if (derivedDominant) {
+        requestBody.dominantWesternElement = derivedDominant
+      }
+    }
     if (!Array.isArray(requestBody.aspects)) {
       requestBody.aspects = natalAspects.map((a) => ({
         planet1: a.from.name,
@@ -481,6 +652,19 @@ async function enrichRequestWithDerivedAstrology(
   return requestBody
 }
 
+function ensureDerivedDominantWesternElement(
+  requestBody: Record<string, unknown>
+): Record<string, unknown> {
+  if (requestBody.dominantWesternElement) return requestBody
+  const derived = deriveDominantWesternElementFromPlanetSigns(
+    toOptionalRecord(requestBody.planetSigns)
+  )
+  if (derived) {
+    requestBody.dominantWesternElement = derived
+  }
+  return requestBody
+}
+
 function mergeTimingData(
   autoTiming: TimingData,
   requestTiming?: Record<string, unknown>
@@ -492,6 +676,65 @@ function mergeTimingData(
     wolun: (toOptionalRecord(req.wolun) as TimingData['wolun']) || autoTiming.wolun,
     iljin: (toOptionalRecord(req.iljin) as TimingData['iljin']) || autoTiming.iljin,
   }
+}
+
+function buildTimingDataFromDerivedSaju(
+  requestBody: Record<string, unknown>,
+  targetDate?: string
+): Partial<TimingData> {
+  const derivedSaju = getDerivedSajuData(requestBody)
+  if (!derivedSaju) return {}
+
+  const target = targetDate ? new Date(targetDate) : new Date()
+  const targetYear = target.getFullYear()
+  const targetMonth = target.getMonth() + 1
+
+  const currentDaeun = derivedSaju.daeWoon?.current
+  const annualCurrent = (derivedSaju.unse?.annual || []).find((row) => row.year === targetYear)
+  const annualFallback = (derivedSaju.unse?.annual || [])[0]
+  const monthlyCurrent = (derivedSaju.unse?.monthly || []).find(
+    (row) => row.year === targetYear && row.month === targetMonth
+  )
+  const monthlyFallback = (derivedSaju.unse?.monthly || [])[0]
+
+  const daeun =
+    currentDaeun && currentDaeun.heavenlyStem && currentDaeun.earthlyBranch
+      ? {
+          heavenlyStem: currentDaeun.heavenlyStem,
+          earthlyBranch: currentDaeun.earthlyBranch,
+          element:
+            STEM_ELEMENT_BY_NAME[currentDaeun.heavenlyStem] ||
+            toOptionalString(requestBody.currentDaeunElement) ||
+            '토',
+          startAge: Math.max(0, Math.floor(currentDaeun.age || 0)),
+          endAge: Math.max(9, Math.floor((currentDaeun.age || 0) + 9)),
+          isCurrent: true,
+        }
+      : undefined
+
+  const seunSource = annualCurrent || annualFallback
+  const seun =
+    seunSource && seunSource.year
+      ? {
+          year: seunSource.year,
+          heavenlyStem: seunSource.heavenlyStem || '',
+          earthlyBranch: seunSource.earthlyBranch || '',
+          element: seunSource.element || '토',
+        }
+      : undefined
+
+  const wolunSource = monthlyCurrent || monthlyFallback
+  const wolun =
+    wolunSource && wolunSource.month
+      ? {
+          month: wolunSource.month,
+          heavenlyStem: wolunSource.heavenlyStem || '',
+          earthlyBranch: wolunSource.earthlyBranch || '',
+          element: wolunSource.element || '토',
+        }
+      : undefined
+
+  return { daeun, seun, wolun }
 }
 
 function listAiReportMissing(
@@ -701,6 +944,7 @@ export const POST = withApiMiddleware(
 
       let requestBody = enrichRequestWithDerivedSaju({ ...(body as Record<string, unknown>) })
       requestBody = await enrichRequestWithDerivedAstrology(requestBody)
+      requestBody = ensureDerivedDominantWesternElement(requestBody)
       requestBody = ensureDerivedSnapshots(requestBody)
       const period = requestBody.period as ReportPeriod | undefined
       const theme = requestBody.theme as ReportTheme | undefined
@@ -793,8 +1037,20 @@ export const POST = withApiMiddleware(
         (profileContext.analysisAt
           ? profileContext.analysisAt.slice(0, 10)
           : new Date().toISOString().slice(0, 10))
+      const rawMajorTransits = (
+        astrologySnapshot?.currentTransits as Record<string, unknown> | undefined
+      )?.majorTransits
+      const derivedActiveTransits = mapMajorTransitsToActiveTransits(rawMajorTransits, 8)
+      const normalizedActiveTransits: NonNullable<MatrixCalculationInput['activeTransits']> =
+        Array.isArray((rest as MatrixCalculationInput).activeTransits)
+          ? ((rest as MatrixCalculationInput).activeTransits as NonNullable<
+              MatrixCalculationInput['activeTransits']
+            >)
+          : []
       const matrixInput = {
         ...(rest as MatrixCalculationInput),
+        activeTransits:
+          normalizedActiveTransits.length > 0 ? normalizedActiveTransits : derivedActiveTransits,
         profileContext,
         sajuSnapshot,
         astrologySnapshot,
@@ -809,9 +1065,14 @@ export const POST = withApiMiddleware(
         detailLevel === 'comprehensive' ? 20 : detailLevel === 'detailed' ? 10 : 5
       const resolvedMaxInsights = Math.min(20, Math.max(1, maxInsights ?? detailBasedMaxInsights))
       const autoTimingData: TimingData = buildTimingData(targetDate)
+      const derivedTiming = buildTimingDataFromDerivedSaju(requestBody, targetDate)
       autoTimingData.daeun = buildAutoDaeunTiming(requestBody, targetDate)
-      const timingData: TimingData = mergeTimingData(
+      const mergedAutoTiming = mergeTimingData(
         autoTimingData,
+        derivedTiming as Record<string, unknown>
+      )
+      const timingData: TimingData = mergeTimingData(
+        mergedAutoTiming,
         toOptionalRecord(requestBody.timingData)
       )
       const strictCompleteness = process.env.NODE_ENV !== 'test'
@@ -1515,4 +1776,10 @@ function scoreToGrade(score: number | null): string | null {
     return 'C'
   }
   return 'D'
+}
+
+export const __testables = {
+  deriveDominantWesternElementFromPlanetSigns,
+  buildTimingDataFromDerivedSaju,
+  enrichRequestWithDerivedSaju,
 }

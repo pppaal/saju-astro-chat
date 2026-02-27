@@ -13,6 +13,7 @@ import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
 import type { GameState, ReadingResponse, InterpretationResult } from '../types'
 import { CARD_COLORS, CardColor } from '../constants'
+import { classifyTarotDrawError, type TarotDrawError } from '../../../utils/errorHandling'
 
 const TAROT_PERSONALIZATION_KEY = 'tarot_personalization_options'
 
@@ -31,6 +32,7 @@ interface UseTarotGameReturn {
   selectionOrderMap: Map<number, number>
   readingResult: ReadingResponse | null
   interpretation: InterpretationResult | null
+  drawError: TarotDrawError | null
   revealedCards: number[]
   isSpreading: boolean
   userTopic: string
@@ -69,6 +71,7 @@ export function useTarotGame(): UseTarotGameReturn {
   const selectionOrderRef = useRef<Map<number, number>>(new Map())
   const [readingResult, setReadingResult] = useState<ReadingResponse | null>(null)
   const [interpretation, setInterpretation] = useState<InterpretationResult | null>(null)
+  const [drawError, setDrawError] = useState<TarotDrawError | null>(null)
   const [revealedCards, setRevealedCards] = useState<number[]>([])
   const [isSpreading, setIsSpreading] = useState(false)
   const [personalizationOptions, setPersonalizationOptions] = useState<TarotPersonalizationOptions>(
@@ -142,6 +145,7 @@ export function useTarotGame(): UseTarotGameReturn {
 
   const handleStartReading = useCallback(() => {
     setGameState('picking')
+    setDrawError(null)
     setIsSpreading(true)
     // Prefetch RAG context (non-blocking)
     apiFetch('/api/tarot/prefetch', {
@@ -196,6 +200,7 @@ export function useTarotGame(): UseTarotGameReturn {
     setSelectedIndices([])
     setSelectionOrderMap(new Map())
     selectionOrderRef.current = new Map()
+    setDrawError(null)
     setIsSpreading(true)
   }, [])
 
@@ -225,6 +230,7 @@ export function useTarotGame(): UseTarotGameReturn {
 
     const fetchReading = async () => {
       setGameState('revealing')
+      let handledApiError = false
       try {
         const response = await apiFetch('/api/tarot', {
           method: 'POST',
@@ -239,11 +245,18 @@ export function useTarotGame(): UseTarotGameReturn {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+          const isKoLocale =
+            typeof document !== 'undefined'
+              ? document.documentElement.lang.toLowerCase().startsWith('ko')
+              : true
+          setDrawError(classifyTarotDrawError(response.status, errorData, isKoLocale))
+          handledApiError = true
           tarotLogger.error('Tarot API error', { status: response.status, errorData })
           throw new Error(`Failed to fetch reading: ${errorData.error || response.statusText}`)
         }
 
         const data = await response.json()
+        setDrawError(null)
         setReadingResult(data)
 
         // Basic interpretation while waiting for AI
@@ -267,6 +280,13 @@ export function useTarotGame(): UseTarotGameReturn {
           setGameState('results')
         }, 1000)
       } catch (error) {
+        if (!handledApiError) {
+          const isKoLocale =
+            typeof document !== 'undefined'
+              ? document.documentElement.lang.toLowerCase().startsWith('ko')
+              : true
+          setDrawError(classifyTarotDrawError(500, { error: 'Network error' }, isKoLocale))
+        }
         tarotLogger.error('Failed to fetch reading', error instanceof Error ? error : undefined)
         setGameState('error')
       }
@@ -285,6 +305,7 @@ export function useTarotGame(): UseTarotGameReturn {
     selectionOrderMap,
     readingResult,
     interpretation,
+    drawError,
     revealedCards,
     isSpreading,
     userTopic,

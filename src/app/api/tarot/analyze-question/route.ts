@@ -36,6 +36,15 @@ interface PatternMatch {
   matchedQuestion: string
 }
 
+type AnalyzeSource = 'pattern' | 'llm' | 'fallback'
+type AnalyzeFallbackReason =
+  | 'auth_failed'
+  | 'rate_limited'
+  | 'server_error'
+  | 'parse_failed'
+  | 'no_candidate'
+  | 'invalid_spread'
+
 // ============================================================
 // OpenAI API 호출 헬퍼
 // ============================================================
@@ -356,6 +365,50 @@ function revalidateWithRecommendations(
   }
 }
 
+function resolveDeterministicFallback(
+  question: string,
+  language: string,
+  spreadOptions: SpreadOption[]
+): ParsedResult {
+  const recommended = recommendSpreads(question, 1)
+  if (recommended.length > 0) {
+    const top = recommended[0]
+    return {
+      themeId: top.themeId,
+      spreadId: top.spreadId,
+      reason: top.reasonKo || top.reason,
+      userFriendlyExplanation:
+        language === 'ko'
+          ? '질문과 가장 가까운 기본 스프레드로 연결했어요'
+          : 'Routed to the closest default spread for your question.',
+    }
+  }
+
+  const defaultSpread =
+    spreadOptions.find((s) => s.themeId === 'general-insight' && s.id === 'quick-reading') ||
+    spreadOptions[0]
+
+  if (defaultSpread) {
+    return {
+      themeId: defaultSpread.themeId,
+      spreadId: defaultSpread.id,
+      reason: language === 'ko' ? '기본 스프레드 추천' : 'Default spread recommendation',
+      userFriendlyExplanation:
+        language === 'ko'
+          ? '질문을 해석할 수 있는 기본 스프레드로 연결했어요'
+          : 'Routed to a default spread that can interpret your question.',
+    }
+  }
+
+  return {
+    themeId: 'general-insight',
+    spreadId: 'past-present-future',
+    reason: language === 'ko' ? '기본 흐름 확인' : 'General flow check',
+    userFriendlyExplanation:
+      language === 'ko' ? '기본 흐름 스프레드를 사용했어요' : 'Using general flow spread.',
+  }
+}
+
 // ============================================================
 // Main POST Handler
 // ============================================================
@@ -402,49 +455,90 @@ export const POST = withApiMiddleware(
 
       const patternMatch = findPatternMatch(questionVariants, language)
 
-      const fallbackParsed: ParsedResult = {
-        themeId: 'general-insight',
-        spreadId: 'past-present-future',
-        reason: '일반적인 운세 확인',
-        userFriendlyExplanation:
-          language === 'ko'
-            ? '전반적인 흐름을 볼 수 있는 스프레드를 준비했어요'
-            : "I've prepared a spread to see the overall flow",
-      }
-
-      let parsed: ParsedResult = fallbackParsed
+      let parsed: ParsedResult = resolveDeterministicFallback(
+        trimmedQuestion,
+        language,
+        spreadOptions
+      )
+      let source: AnalyzeSource = 'fallback'
+      let fallbackReason: AnalyzeFallbackReason | null = null
       let hasStructuredLLMResult = false
       if (patternMatch) {
         parsed = patternMatch.parsed
+        source = 'pattern'
+        fallbackReason = null
       } else {
         // GPT-4o-mini로 분석
         const systemPrompt = buildSystemPrompt(spreadListForPrompt)
 
         let responseText = ''
+        let openAiFailed = false
         try {
           responseText = await callOpenAI([
             { role: 'system', content: systemPrompt },
             { role: 'user', content: formatQuestionForPrompt(questionVariants) },
           ])
         } catch (error) {
+          openAiFailed = true
+          fallbackReason = 'server_error'
           logger.warn('[analyze-question] OpenAI unavailable, using fallback routing', error)
         }
 
         try {
-          parsed = responseText ? JSON.parse(responseText) : fallbackParsed
-          hasStructuredLLMResult = Boolean(
-            responseText &&
-              parsed &&
-              typeof parsed.themeId === 'string' &&
-              typeof parsed.spreadId === 'string'
-          )
+          if (responseText) {
+            const maybeParsed = JSON.parse(responseText) as Partial<ParsedResult>
+            hasStructuredLLMResult = Boolean(
+              maybeParsed &&
+              typeof maybeParsed.themeId === 'string' &&
+              typeof maybeParsed.spreadId === 'string'
+            )
+
+            if (hasStructuredLLMResult) {
+              parsed = {
+                themeId: maybeParsed.themeId as string,
+                spreadId: maybeParsed.spreadId as string,
+                reason:
+                  typeof maybeParsed.reason === 'string'
+                    ? maybeParsed.reason
+                    : language === 'ko'
+                      ? '질문 의도 기반 추천'
+                      : 'Intent-based recommendation',
+                userFriendlyExplanation:
+                  typeof maybeParsed.userFriendlyExplanation === 'string'
+                    ? maybeParsed.userFriendlyExplanation
+                    : language === 'ko'
+                      ? '질문 의도와 가까운 스프레드를 선택했어요'
+                      : 'Selected the spread closest to your intent.',
+              }
+              source = 'llm'
+              fallbackReason = null
+            } else {
+              fallbackReason = 'parse_failed'
+            }
+          } else if (!openAiFailed) {
+            fallbackReason = 'no_candidate'
+          }
         } catch {
-          parsed = fallbackParsed
+          fallbackReason = 'parse_failed'
+        }
+
+        if (!hasStructuredLLMResult) {
+          parsed = resolveDeterministicFallback(trimmedQuestion, language, spreadOptions)
+          source = 'fallback'
         }
       }
 
       // GPT 결과를 패턴 매칭으로 보정
       parsed = applyPatternCorrections(questionVariants, parsed, language)
+      const correctedPattern = findPatternMatch(questionVariants, language)
+      if (
+        correctedPattern &&
+        correctedPattern.parsed.themeId === parsed.themeId &&
+        correctedPattern.parsed.spreadId === parsed.spreadId
+      ) {
+        source = 'pattern'
+        fallbackReason = null
+      }
 
       // 3rd-stage revalidation: LLM 결과를 추천 엔진으로 다시 검증/보정
       if (!patternMatch && hasStructuredLLMResult) {
@@ -457,34 +551,41 @@ export const POST = withApiMiddleware(
       )
 
       if (!selectedSpread) {
-        const recommended = recommendSpreads(trimmedQuestion, 1)
-        if (recommended.length > 0) {
-          const first = recommended[0]
+        const fallbackParsed = resolveDeterministicFallback(
+          trimmedQuestion,
+          language,
+          spreadOptions
+        )
+        const fallbackSpread = spreadOptions.find(
+          (s) => s.themeId === fallbackParsed.themeId && s.id === fallbackParsed.spreadId
+        )
+
+        if (fallbackSpread) {
           return NextResponse.json({
             isDangerous: false,
-            themeId: first.themeId,
-            spreadId: first.spreadId,
-            spreadTitle: first.spread.titleKo || first.spread.title,
-            cardCount: first.spread.cardCount,
-            reason: first.reasonKo || first.reason,
-            userFriendlyExplanation:
-              language === 'ko'
-                ? '질문과 가장 가까운 스프레드를 추천했어요'
-                : 'I picked the closest match for your question.',
-            path: `/tarot/${first.themeId}/${first.spreadId}?question=${encodeURIComponent(trimmedQuestion)}`,
+            themeId: fallbackParsed.themeId,
+            spreadId: fallbackParsed.spreadId,
+            spreadTitle: fallbackSpread.titleKo || fallbackSpread.title,
+            cardCount: fallbackSpread.cardCount,
+            reason: fallbackParsed.reason,
+            userFriendlyExplanation: fallbackParsed.userFriendlyExplanation,
+            source: 'fallback' as AnalyzeSource,
+            fallback_reason: 'invalid_spread' as AnalyzeFallbackReason,
+            path: `/tarot/${fallbackParsed.themeId}/${fallbackParsed.spreadId}?question=${encodeURIComponent(trimmedQuestion)}`,
           })
         }
+
         return NextResponse.json({
           isDangerous: false,
           themeId: 'general-insight',
           spreadId: 'past-present-future',
           spreadTitle: '과거, 현재, 미래',
           cardCount: 3,
-          reason: '일반적인 운세 확인',
+          reason: language === 'ko' ? '기본 흐름 확인' : 'General flow check',
           userFriendlyExplanation:
-            language === 'ko'
-              ? '전반적인 흐름을 볼 수 있는 스프레드를 준비했어요'
-              : "I've prepared a spread to see the overall flow",
+            language === 'ko' ? '기본 흐름 스프레드를 사용했어요' : 'Using general flow spread.',
+          source: 'fallback' as AnalyzeSource,
+          fallback_reason: 'invalid_spread' as AnalyzeFallbackReason,
           path: `/tarot/general-insight/past-present-future?question=${encodeURIComponent(trimmedQuestion)}`,
         })
       }
@@ -497,6 +598,8 @@ export const POST = withApiMiddleware(
         cardCount: selectedSpread.cardCount,
         reason: parsed.reason,
         userFriendlyExplanation: parsed.userFriendlyExplanation,
+        source,
+        fallback_reason: source === 'fallback' ? fallbackReason || 'no_candidate' : null,
         path: `/tarot/${parsed.themeId}/${parsed.spreadId}?question=${encodeURIComponent(trimmedQuestion)}`,
       })
       return res

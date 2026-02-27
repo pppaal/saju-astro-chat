@@ -113,4 +113,10 @@ describe('tarot spread selection regression', () => {
     const spreadKey = `${top.themeId}/${top.spreadId}`
     expect(validSpreadKeys.has(spreadKey)).toBe(true)
   })
+
+  it('quick recommendation does not lock generic questions to past-present-future', () => {
+    const quick = getQuickRecommendation('내가 가진 숨은 강점은?', true)
+    expect(quick.path).not.toContain('/tarot/general-insight/past-present-future')
+    expect(quick.path).toContain('/tarot/')
+  })
 })

@@ -24,6 +24,60 @@ interface CardInput {
   keywordsKo?: string[]
 }
 
+const MAX_CARD_MEANING_LENGTH = 500
+
+function truncateToMax(value: unknown, maxLength: number): string | unknown {
+  if (typeof value !== 'string') return value
+  if (value.length <= maxLength) return value
+  return value.slice(0, maxLength)
+}
+
+function normalizeInterpretRequestBody(rawBody: unknown): {
+  body: unknown
+  truncatedCount: number
+} {
+  if (!rawBody || typeof rawBody !== 'object') {
+    return { body: rawBody, truncatedCount: 0 }
+  }
+
+  const source = rawBody as Record<string, unknown>
+  if (!Array.isArray(source.cards)) {
+    return { body: rawBody, truncatedCount: 0 }
+  }
+
+  let truncatedCount = 0
+  const normalizedCards = source.cards.map((card) => {
+    if (!card || typeof card !== 'object') {
+      return card
+    }
+
+    const cardRecord = card as Record<string, unknown>
+    const nextMeaning = truncateToMax(cardRecord.meaning, MAX_CARD_MEANING_LENGTH)
+    const nextMeaningKo = truncateToMax(cardRecord.meaningKo, MAX_CARD_MEANING_LENGTH)
+
+    if (typeof cardRecord.meaning === 'string' && cardRecord.meaning !== nextMeaning) {
+      truncatedCount += 1
+    }
+    if (typeof cardRecord.meaningKo === 'string' && cardRecord.meaningKo !== nextMeaningKo) {
+      truncatedCount += 1
+    }
+
+    return {
+      ...cardRecord,
+      meaning: nextMeaning,
+      meaningKo: nextMeaningKo,
+    }
+  })
+
+  return {
+    body: {
+      ...source,
+      cards: normalizedCards,
+    },
+    truncatedCount,
+  }
+}
+
 export const POST = withApiMiddleware(
   async (req: NextRequest, context) => {
     try {
@@ -33,9 +87,16 @@ export const POST = withApiMiddleware(
       }
 
       const rawBody = await req.json()
+      const { body: normalizedBody, truncatedCount } = normalizeInterpretRequestBody(rawBody)
+      if (truncatedCount > 0) {
+        logger.info('[Tarot interpret] truncated oversized card meaning fields', {
+          truncatedCount,
+          max: MAX_CARD_MEANING_LENGTH,
+        })
+      }
 
       // Validate with Zod
-      const validationResult = tarotInterpretRequestSchema.safeParse(rawBody)
+      const validationResult = tarotInterpretRequestSchema.safeParse(normalizedBody)
       if (!validationResult.success) {
         logger.warn('[Tarot interpret] validation failed', {
           errors: validationResult.error.issues,
@@ -381,11 +442,8 @@ Each card interpretation MUST include the following structure (450-600 words):
         overall_message: parsed.overall || '',
         card_insights,
         guidance:
-          parsed.advice ||
-          (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
-        affirmation: isKorean
-          ? '오늘 하루도 나답게 가면 돼요.'
-          : 'Just be yourself today.',
+          parsed.advice || (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
+        affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
         combinations:
           Array.isArray(parsed.combinations) && parsed.combinations.length > 0
             ? parsed.combinations

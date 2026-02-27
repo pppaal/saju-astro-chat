@@ -439,19 +439,13 @@ function selectEvidenceSetsForSection(
   mode: BuildOptions['mode']
 ): GraphRAGCrossEvidenceSet[] {
   const sectionDomains = SECTION_DOMAIN_MAP[section] || ['personality']
-  const targetSetCount = mode === 'comprehensive' ? 6 : 4
-  const ranked = [...sets].sort((a, b) => {
-    const aHits = a.overlapDomains.filter((d) => sectionDomains.includes(d)).length
-    const bHits = b.overlapDomains.filter((d) => sectionDomains.includes(d)).length
-    if (bHits !== aHits) return bHits - aHits
-    return b.overlapScore - a.overlapScore
-  })
-  const selected = ranked.slice(0, targetSetCount)
-  if (ranked.length === 0) return selected
-  while (selected.length < targetSetCount) {
-    selected.push(ranked[selected.length % ranked.length])
-  }
-  return selected
+  const targetSetCount = mode === 'comprehensive' ? 2 : 4
+  const rankedByOverlap = [...sets].sort((a, b) => b.overlapScore - a.overlapScore)
+  const matchedDomain = rankedByOverlap.filter((set) =>
+    set.overlapDomains.some((d) => sectionDomains.includes(d))
+  )
+  const pool = matchedDomain.length > 0 ? matchedDomain : rankedByOverlap
+  return pool.slice(0, targetSetCount)
 }
 
 function astroSnapshot(input: MatrixCalculationInput): string {

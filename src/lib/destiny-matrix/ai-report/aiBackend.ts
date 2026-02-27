@@ -15,7 +15,7 @@ function parseTimeoutMs(value: string | undefined, fallback: number): number {
 // NOTE:
 // 9초는 3k+ 토큰 JSON 응답에 너무 짧아 AbortError가 빈번합니다.
 // 기본값을 현실적으로 상향하고, 환경변수로 조절 가능하게 둡니다.
-const DEFAULT_TIMEOUT_MS = parseTimeoutMs(process.env.AI_BACKEND_TIMEOUT_MS, 60000)
+const DEFAULT_TIMEOUT_MS = parseTimeoutMs(process.env.AI_BACKEND_TIMEOUT_MS, 120000)
 const OPENAI_TIMEOUT_MS = parseTimeoutMs(
   process.env.AI_BACKEND_OPENAI_TIMEOUT_MS,
   DEFAULT_TIMEOUT_MS
@@ -46,6 +46,8 @@ interface AIBackendResponse<T> {
   model: string
   tokensUsed?: number
 }
+
+type AIPlan = keyof typeof TOKEN_LIMITS_BY_PLAN
 
 // AI 프로바이더 설정
 interface AIProvider {
@@ -101,8 +103,9 @@ export async function callAIBackend(
   prompt: string,
   lang: 'ko' | 'en',
   options?: {
-    userPlan?: keyof typeof TOKEN_LIMITS_BY_PLAN
+    userPlan?: AIPlan
     maxTokensOverride?: number
+    modelOverride?: string
   }
 ): Promise<AIBackendResponse<AIPremiumReport['sections']>> {
   return callAIBackendGeneric<AIPremiumReport['sections']>(prompt, lang, options)
@@ -116,8 +119,9 @@ export async function callAIBackendGeneric<T>(
   prompt: string,
   lang: 'ko' | 'en',
   options?: {
-    userPlan?: keyof typeof TOKEN_LIMITS_BY_PLAN
+    userPlan?: AIPlan
     maxTokensOverride?: number
+    modelOverride?: string
   }
 ): Promise<AIBackendResponse<T>> {
   const systemMessage =
@@ -126,7 +130,7 @@ export async function callAIBackendGeneric<T>(
       : 'You are a professional destiny analyst. You provide deep insights by combining Eastern and Western astrology. Please respond in JSON format.'
 
   // 플랜별 토큰 한도 결정 (비용 절감)
-  const userPlan = options?.userPlan || 'free'
+  const userPlan: AIPlan = options?.userPlan || 'free'
   const baseMaxTokens = TOKEN_LIMITS_BY_PLAN[userPlan]
   const planCeiling = TOKEN_CEILING_BY_PLAN[userPlan]
   const requestedOverride = options?.maxTokensOverride
@@ -143,6 +147,8 @@ export async function callAIBackendGeneric<T>(
     throw new Error('No AI providers available')
   }
 
+  const preferredOpenAIModel = options?.modelOverride || process.env.FUSION_MODEL || 'gpt-4o-mini'
+
   // 각 프로바이더를 순서대로 시도
   let lastError: Error | null = null
 
@@ -153,9 +159,12 @@ export async function callAIBackendGeneric<T>(
         plan: userPlan,
         maxTokens,
         timeoutMs: getProviderTimeoutMs(provider.name),
+        model: provider.name === 'openai' ? preferredOpenAIModel : provider.model,
       })
 
-      const result = await callProviderAPI<T>(provider, prompt, systemMessage, maxTokens)
+      const result = await callProviderAPI<T>(provider, prompt, systemMessage, maxTokens, {
+        modelOverride: provider.name === 'openai' ? preferredOpenAIModel : undefined,
+      })
 
       const durationMs = Date.now() - startTime
       logger.info(`[AI Backend] ${provider.name} succeeded`, {
@@ -201,7 +210,10 @@ async function callProviderAPI<T>(
   provider: AIProvider,
   prompt: string,
   systemMessage: string,
-  maxTokens: number
+  maxTokens: number,
+  options?: {
+    modelOverride?: string
+  }
 ): Promise<AIBackendResponse<T>> {
   const controller = new AbortController()
   const timeoutMs = getProviderTimeoutMs(provider.name)
@@ -210,7 +222,9 @@ async function callProviderAPI<T>(
   try {
     // OpenAI API 호출
     if (provider.name === 'openai') {
-      return await callOpenAICompatible<T>(provider, prompt, systemMessage, maxTokens, controller)
+      return await callOpenAICompatible<T>(provider, prompt, systemMessage, maxTokens, controller, {
+        modelOverride: options?.modelOverride,
+      })
     }
 
     // Replicate API 호출 (다른 형식)
@@ -230,52 +244,79 @@ async function callOpenAICompatible<T>(
   prompt: string,
   systemMessage: string,
   maxTokens: number,
-  controller: AbortController
+  controller: AbortController,
+  options?: {
+    modelOverride?: string
+  }
 ): Promise<AIBackendResponse<T>> {
-  const response = await fetch(provider.endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${provider.apiKey}`,
-    },
-    body: JSON.stringify({
-      model: provider.model,
-      messages: [
-        { role: 'system', content: systemMessage },
-        { role: 'user', content: prompt },
-      ],
-      max_tokens: maxTokens,
-      temperature: 0.7,
-    }),
-    signal: controller.signal,
-  })
+  const preferredModel = options?.modelOverride || provider.model
+  const fallbackModel = provider.model
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    logger.error(`[AI Backend] ${provider.name} API error`, { status: response.status, errorData })
-    const apiMessage =
-      typeof errorData?.error?.message === 'string' ? errorData.error.message : undefined
-    const apiCode = typeof errorData?.error?.code === 'string' ? errorData.error.code : undefined
-    const isInvalidKey =
-      response.status === 401 &&
-      (apiCode === 'invalid_api_key' || apiMessage?.toLowerCase().includes('invalid api key'))
+  const requestOnce = async (model: string): Promise<AIBackendResponse<T>> => {
+    const response = await fetch(provider.endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${provider.apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: systemMessage },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: maxTokens,
+        temperature: 0.7,
+      }),
+      signal: controller.signal,
+    })
 
-    if (isInvalidKey && provider.enabled) {
-      provider.enabled = false
-      logger.warn(`[AI Backend] Disabled ${provider.name} provider due to invalid API key`)
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      logger.error(`[AI Backend] ${provider.name} API error`, {
+        status: response.status,
+        errorData,
+      })
+      const apiMessage =
+        typeof errorData?.error?.message === 'string' ? errorData.error.message : undefined
+      const apiCode = typeof errorData?.error?.code === 'string' ? errorData.error.code : undefined
+      const isInvalidKey =
+        response.status === 401 &&
+        (apiCode === 'invalid_api_key' || apiMessage?.toLowerCase().includes('invalid api key'))
+
+      if (isInvalidKey && provider.enabled) {
+        provider.enabled = false
+        logger.warn(`[AI Backend] Disabled ${provider.name} provider due to invalid API key`)
+      }
+
+      const detail = apiMessage ? ` - ${apiMessage}` : ''
+      throw new Error(`${provider.name} API error: ${response.status}${detail}`)
     }
 
-    const detail = apiMessage ? ` - ${apiMessage}` : ''
-    throw new Error(`${provider.name} API error: ${response.status}${detail}`)
+    const data = await response.json()
+    const responseText = data?.choices?.[0]?.message?.content || ''
+
+    return {
+      sections: extractJSONFromResponse<T>(responseText),
+      model: data?.model || model,
+      tokensUsed: data?.usage?.total_tokens,
+    }
   }
 
-  const data = await response.json()
-  const responseText = data?.choices?.[0]?.message?.content || ''
+  try {
+    return await requestOnce(preferredModel)
+  } catch (error) {
+    const shouldRetryWithFallback =
+      preferredModel !== fallbackModel &&
+      error instanceof Error &&
+      error.message.includes('No JSON found in AI response')
+    if (!shouldRetryWithFallback) throw error
 
-  return {
-    sections: extractJSONFromResponse<T>(responseText),
-    model: data?.model || provider.model,
-    tokensUsed: data?.usage?.total_tokens,
+    logger.warn('[AI Backend] Preferred model returned non-JSON. Retrying with fallback model.', {
+      preferredModel,
+      fallbackModel,
+    })
+    return await requestOnce(fallbackModel)
   }
 }
 

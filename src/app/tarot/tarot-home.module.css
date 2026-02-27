@@ -195,7 +195,9 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
 }
 
@@ -280,6 +282,29 @@
 
 .dangerIcon {
   font-size: 1.1rem;
+}
+
+.fallbackNotice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: rgba(254, 240, 138, 0.95);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.fallbackNotice p {
+  margin: 0;
+}
+
+.fallbackReasonCode {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: 0.75rem;
+  color: rgba(254, 240, 138, 0.75);
 }
 
 .themeSection {
@@ -457,7 +482,9 @@
   color: rgba(255, 255, 255, 0.4);
   font-size: 1.1rem;
   cursor: pointer;
-  transition: color 0.2s ease, background 0.2s ease;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
   border-radius: 8px;
 }
 

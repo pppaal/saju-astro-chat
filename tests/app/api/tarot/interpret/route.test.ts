@@ -426,4 +426,45 @@ describe('POST /api/tarot/interpret', () => {
     expect(response.status).toBe(400)
     expect(data.error).toBe('validation_failed')
   })
+
+  it('should accept oversized card meanings by truncating to schema limit', async () => {
+    const { apiClient } = await import('@/lib/api/ApiClient')
+
+    vi.mocked(apiClient.post).mockResolvedValue({
+      ok: true,
+      data: {
+        overall_message: 'Truncated meaning accepted',
+        card_insights: [],
+        guidance: 'Guidance',
+      },
+    })
+
+    const veryLongMeaning = 'A'.repeat(2000)
+    const req = new NextRequest('http://localhost/api/tarot/interpret', {
+      method: 'POST',
+      body: JSON.stringify({
+        categoryId: 'general',
+        spreadId: 'three-card',
+        spreadTitle: 'General Spread',
+        cards: [
+          {
+            name: 'The Fool',
+            nameKo: '바보',
+            isReversed: false,
+            position: 'Past',
+            meaning: veryLongMeaning,
+            meaningKo: veryLongMeaning,
+          },
+        ],
+        language: 'ko',
+      }),
+    })
+
+    const response = await POST(req)
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(data.overall_message).toBeDefined()
+    expect(vi.mocked(apiClient.post)).toHaveBeenCalledTimes(1)
+  })
 })

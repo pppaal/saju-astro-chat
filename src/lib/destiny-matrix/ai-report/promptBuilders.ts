@@ -244,6 +244,12 @@ export function buildAIPrompt(
           options.tone === 'realistic'
             ? '- 과장 금지. 현실적인 조건, 제약, 우선순위를 중심으로 작성.'
             : '',
+          detailLevel === 'comprehensive'
+            ? '- comprehensive 모드: 각 섹션 최소 9문장 이상, 섹션당 최소 1200자 이상을 목표로 작성.'
+            : '',
+          detailLevel === 'comprehensive'
+            ? '- timingAdvice/actionPlan에는 반드시 대운·세운·월운·일진과 점성 트랜짓 타이밍을 함께 명시.'
+            : '',
           '- 각 섹션에서 실행 가능 문장을 포함하고, 근거 없는 단정 표현을 피하세요.',
         ]
           .filter(Boolean)
@@ -256,6 +262,12 @@ export function buildAIPrompt(
             : '',
           options.tone === 'realistic'
             ? '- Avoid hype. Prioritize realistic constraints, tradeoffs, and next actions.'
+            : '',
+          detailLevel === 'comprehensive'
+            ? '- Comprehensive mode: write at least 9 sentences per section and target 1200+ chars per section.'
+            : '',
+          detailLevel === 'comprehensive'
+            ? '- In timingAdvice/actionPlan, explicitly include Daeun/Seun/Wolun/Iljin and transit timing together.'
             : '',
           '- Include actionable statements and avoid unsupported absolute claims.',
         ]

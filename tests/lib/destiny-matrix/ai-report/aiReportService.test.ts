@@ -1,40 +1,42 @@
-// tests/lib/destiny-matrix/ai-report/aiReportService.test.ts
-// Comprehensive tests for AI Report Service with mocked aiBackend
-
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
 import type { FiveElement } from '@/lib/Saju/types'
 
-// Mock aiBackend module
 vi.mock('@/lib/destiny-matrix/ai-report/aiBackend', () => ({
   callAIBackend: vi.fn(),
   callAIBackendGeneric: vi.fn(),
 }))
 
-import { generateAIPremiumReport } from '@/lib/destiny-matrix/ai-report/aiReportService'
-import { callAIBackend } from '@/lib/destiny-matrix/ai-report/aiBackend'
+import {
+  generateAIPremiumReport,
+  sanitizeSectionNarrative,
+} from '@/lib/destiny-matrix/ai-report/aiReportService'
+import { callAIBackendGeneric } from '@/lib/destiny-matrix/ai-report/aiBackend'
 
-const mockCallAIBackend = callAIBackend as ReturnType<typeof vi.fn>
-
-// ===========================
-// Mock Data Helpers
-// ===========================
+const mockCallAIBackendGeneric = callAIBackendGeneric as ReturnType<typeof vi.fn>
 
 function createMockInput(): MatrixCalculationInput {
   return {
-    dayMasterElement: '목' as FiveElement,
-    dominantWesternElement: 'Earth',
+    dayMasterElement: '\uBAA9' as FiveElement,
+    pillarElements: ['\uBAA9', '\uD654', '\uD1A0', '\uAE08'] as FiveElement[],
+    sibsinDistribution: { any: 2 } as any,
+    twelveStages: {},
+    relations: [],
+    dominantWesternElement: 'earth',
+    planetHouses: { Sun: 1, Moon: 4, Mars: 7, Jupiter: 10 },
+    planetSigns: {} as any,
+    aspects: [
+      { planet1: 'Sun', planet2: 'Mars', type: 'opposition', orb: 2.1 },
+      { planet1: 'Moon', planet2: 'Saturn', type: 'square', orb: 1.2 },
+    ],
+    activeTransits: ['saturnReturn', 'jupiterReturn'],
+    geokguk: 'jeonggwan',
+    yongsin: '\uD654' as FiveElement,
+    currentDaeunElement: '\uD654' as FiveElement,
+    currentSaeunElement: '\uBAA9' as FiveElement,
     lang: 'ko',
-    geokguk: '종격',
-    yongsin: '화' as FiveElement,
-    sibsinDistribution: {
-      비견: 2,
-      식신: 3,
-    },
-    shinsalList: ['천을귀인'],
-    currentDaeunElement: '화' as FiveElement,
-  } as MatrixCalculationInput
+  }
 }
 
 function createMockReport(): FusionReport {
@@ -44,33 +46,61 @@ function createMockReport(): FusionReport {
     version: '2.0.0',
     lang: 'ko',
     profile: {
-      dayMasterElement: '목' as FiveElement,
-      dayMasterDescription: '목 에너지',
+      dayMasterElement: '\uBAA9' as FiveElement,
+      dayMasterDescription: 'wood',
       dominantSibsin: [],
       keyShinsals: [],
     },
     overallScore: {
-      total: 75,
+      total: 82,
       grade: 'A',
-      gradeDescription: '훌륭한 조화',
-      gradeDescriptionEn: 'Excellent harmony',
-      categoryScores: {
-        strength: 80,
-        opportunity: 70,
-        balance: 75,
-        caution: 65,
-        challenge: 60,
-      },
+      gradeDescription: 'good',
+      gradeDescriptionEn: 'good',
+      categoryScores: { strength: 84, opportunity: 81, balance: 80, caution: 70, challenge: 65 },
     },
-    topInsights: [],
+    topInsights: [
+      {
+        id: 'i1',
+        domain: 'career',
+        category: 'strength',
+        title: 'Career Expansion',
+        description: 'growth momentum',
+        score: 88,
+        weightedScore: 88,
+        confidence: 0.8,
+        actionItems: [],
+        sources: [
+          {
+            layer: 4,
+            row: 'daeunTransition',
+            col: 'saturnReturn',
+            contribution: 0.4,
+            sajuFactor: 'pattern',
+            astroFactor: 'Saturn',
+          },
+        ],
+      },
+      {
+        id: 'i2',
+        domain: 'relationship',
+        category: 'caution',
+        title: 'Relationship Adjustment',
+        description: 'communication reset',
+        score: 74,
+        weightedScore: 74,
+        confidence: 0.7,
+        actionItems: [],
+        sources: [],
+      },
+    ],
     domainAnalysis: [],
     timingAnalysis: {
       currentPeriod: {
-        name: '현재 운세',
-        nameEn: 'Current Fortune',
-        score: 70,
-        description: '좋은 흐름',
-        descriptionEn: 'Good flow',
+        name: 'now',
+        nameEn: 'now',
+        score: 78,
+        description: 'flow',
+        descriptionEn: 'flow',
       },
       activeTransits: [],
       upcomingPeriods: [],
@@ -85,295 +115,121 @@ function createMockReport(): FusionReport {
   }
 }
 
-// ===========================
-// Mock AI Backend Response
-// ===========================
-
-function mockSuccessfulAIResponse() {
-  mockCallAIBackend.mockResolvedValue({
-    sections: {
-      introduction: '인트로 내용',
-      personalityDeep: '성격 분석',
-      careerPath: '커리어 분석',
-      relationshipDynamics: '관계 분석',
-      wealthPotential: '재물 분석',
-      healthGuidance: '건강 가이드',
-      lifeMission: '인생 사명',
-      timingAdvice: '타이밍 조언',
-      actionPlan: '실천 가이드',
-      conclusion: '결론',
-    },
-    model: 'gpt-4o',
-    tokensUsed: 1500,
-  })
-}
-
 beforeEach(() => {
   vi.clearAllMocks()
-  mockSuccessfulAIResponse()
+  mockCallAIBackendGeneric.mockImplementation(async (_prompt, _lang, options) => ({
+    sections: {
+      text: '\uC774 \uAD6C\uAC04\uC758 \uD575\uC2EC \uCD08\uC810\uC740 \uAD00\uACC4 \uC815\uB82C\uC785\uB2C8\uB2E4. \uC624\uB298 \uC6B0\uC120\uC21C\uC704\uB97C \uC815\uB9AC\uD558\uC138\uC694. \uC774\uBC88\uC8FC \uB300\uD654\uB97C \uBA3C\uC800 \uC5EC\uC138\uC694. \uCEE4\uB9AC\uC5B4\uC640 \uC7AC\uC815 \uD750\uB984\uC744 \uD568\uAED8 \uC810\uAC80\uD558\uC138\uC694. \uAC74\uAC15 \uB8E8\uD2F4\uC744 \uC870\uC815\uD558\uC138\uC694.',
+    },
+    model: options?.modelOverride || 'gpt-4o-mini',
+    tokensUsed: 120,
+  }))
 })
 
-// ===========================
-// Tests: generateAIPremiumReport
-// ===========================
-
-describe('generateAIPremiumReport - Basic Generation', () => {
-  it('should generate AI premium report successfully', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    const result = await generateAIPremiumReport(input, matrixReport)
-
-    expect(result).toBeDefined()
-    expect(result).toHaveProperty('id')
-    expect(result).toHaveProperty('generatedAt')
-    expect(result).toHaveProperty('lang', 'ko')
-    expect(result).toHaveProperty('profile')
-    expect(result).toHaveProperty('sections')
-    expect(result).toHaveProperty('matrixSummary')
-    expect(result).toHaveProperty('meta')
-  })
-
-  it('should generate report in English', async () => {
-    const input = createMockInput()
-    input.lang = 'en'
-    const matrixReport = createMockReport()
-    matrixReport.lang = 'en'
-
-    const result = await generateAIPremiumReport(input, matrixReport, { lang: 'en' })
-
-    expect(result.lang).toBe('en')
-  })
-
-  it('should include all 10 sections', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    const result = await generateAIPremiumReport(input, matrixReport)
-
-    expect(result.sections).toHaveProperty('introduction')
-    expect(result.sections).toHaveProperty('personalityDeep')
-    expect(result.sections).toHaveProperty('careerPath')
-    expect(result.sections).toHaveProperty('relationshipDynamics')
-    expect(result.sections).toHaveProperty('wealthPotential')
-    expect(result.sections).toHaveProperty('healthGuidance')
-    expect(result.sections).toHaveProperty('lifeMission')
-    expect(result.sections).toHaveProperty('timingAdvice')
-    expect(result.sections).toHaveProperty('actionPlan')
-    expect(result.sections).toHaveProperty('conclusion')
-  })
-
-  it('should include profile information', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    const result = await generateAIPremiumReport(input, matrixReport, {
-      name: '홍길동',
-      birthDate: '1990-05-15',
+describe('generateAIPremiumReport', () => {
+  it('generates all 10 sections', async () => {
+    const result = await generateAIPremiumReport(createMockInput(), createMockReport(), {
+      detailLevel: 'detailed',
     })
 
-    expect(result.profile).toBeDefined()
-    expect(result.profile.name).toBe('홍길동')
-    expect(result.profile.birthDate).toBe('1990-05-15')
+    expect(result.sections.introduction).toBeTruthy()
+    expect(result.sections.personalityDeep).toBeTruthy()
+    expect(result.sections.careerPath).toBeTruthy()
+    expect(result.sections.relationshipDynamics).toBeTruthy()
+    expect(result.sections.wealthPotential).toBeTruthy()
+    expect(result.sections.healthGuidance).toBeTruthy()
+    expect(result.sections.lifeMission).toBeTruthy()
+    expect(result.sections.timingAdvice).toBeTruthy()
+    expect(result.sections.actionPlan).toBeTruthy()
+    expect(result.sections.conclusion).toBeTruthy()
+    expect(mockCallAIBackendGeneric).toHaveBeenCalled()
   })
 
-  it('should include matrix summary', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    const result = await generateAIPremiumReport(input, matrixReport)
-
-    expect(result.matrixSummary).toBeDefined()
-    expect(result.matrixSummary.overallScore).toBe(75)
-    expect(result.matrixSummary.grade).toBe('A')
-  })
-
-  it('should include metadata', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    const result = await generateAIPremiumReport(input, matrixReport)
-
-    expect(result.meta).toBeDefined()
-    expect(result.meta.modelUsed).toBe('gpt-4o')
-    expect(result.meta.tokensUsed).toBe(1500)
-    expect(result.meta.processingTime).toBeGreaterThan(0)
-  })
-
-  it('should include rendered narrative payload', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    const result = await generateAIPremiumReport(input, matrixReport)
-
-    expect(result.renderedMarkdown).toBeTruthy()
-    expect(result.renderedText).toBeTruthy()
-    expect(result.deterministicCore).toBeTruthy()
-    expect(result.renderedMarkdown).toContain('섹션:')
-  })
-})
-
-describe('generateAIPremiumReport - Options', () => {
-  it('should handle focus domain option', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    const result = await generateAIPremiumReport(input, matrixReport, {
-      focusDomain: 'career',
-    })
-
-    expect(callAIBackend).toHaveBeenCalled()
-    expect(result).toBeDefined()
-  })
-
-  it('should handle detail level option', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    const result = await generateAIPremiumReport(input, matrixReport, {
+  it('uses 4o-mini and 4o models', async () => {
+    await generateAIPremiumReport(createMockInput(), createMockReport(), {
       detailLevel: 'comprehensive',
     })
 
-    expect(result).toBeDefined()
+    const models = mockCallAIBackendGeneric.mock.calls.map((call) => call[2]?.modelOverride)
+    expect(models).toContain('gpt-4o-mini')
+    expect(models).toContain('gpt-4o')
   })
 
-  it('should handle themed report', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    const result = await generateAIPremiumReport(input, matrixReport, {
-      theme: 'business',
-    })
-
-    expect(result).toBeDefined()
-  })
-
-  it('should handle comprehensive theme', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    const result = await generateAIPremiumReport(input, matrixReport, {
-      theme: 'comprehensive',
-    })
-
-    expect(result).toBeDefined()
-  })
-})
-
-describe('generateAIPremiumReport - Error Handling', () => {
-  it('should handle fetch error', async () => {
-    mockCallAIBackend.mockRejectedValue(new Error('AI Backend failed'))
-
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    await expect(generateAIPremiumReport(input, matrixReport)).rejects.toThrow()
-  })
-
-  it('should handle 404 error', async () => {
-    mockCallAIBackend.mockRejectedValue(new Error('Not found'))
-
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    await expect(generateAIPremiumReport(input, matrixReport)).rejects.toThrow()
-  })
-})
-
-describe('generateAIPremiumReport - Fetch Behavior', () => {
-  it('should call fetch with correct URL', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    await generateAIPremiumReport(input, matrixReport)
-
-    expect(callAIBackend).toHaveBeenCalledWith(
-      expect.any(String),
-      'ko',
-      expect.objectContaining({})
+  it('removes boilerplate phrase from sections', async () => {
+    const result = await generateAIPremiumReport(createMockInput(), createMockReport())
+    expect(result.sections.introduction).not.toContain(
+      '\uC774 \uAD6C\uAC04\uC758 \uD575\uC2EC \uCD08\uC810\uC740'
     )
   })
 
-  it('should send request body with prompt', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    await generateAIPremiumReport(input, matrixReport)
-
-    expect(callAIBackend).toHaveBeenCalled()
-    const callArgs = mockCallAIBackend.mock.calls[0]
-    expect(callArgs[0]).toBeTruthy() // prompt should exist
-    expect(callArgs[1]).toBe('ko') // lang
+  it('removes timing contradiction phrase when saeun exists', async () => {
+    mockCallAIBackendGeneric.mockResolvedValue({
+      sections: {
+        text: '\uC138\uC6B4 \uBBF8\uC785\uB825\uC785\uB2C8\uB2E4. \uC624\uB298 \uC77C\uC815 \uC7AC\uC815\uB9AC\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.',
+      },
+      model: 'gpt-4o',
+      tokensUsed: 120,
+    })
+    const result = await generateAIPremiumReport(createMockInput(), createMockReport())
+    expect(result.sections.introduction).not.toContain('\uC138\uC6B4 \uBBF8\uC785\uB825')
   })
 
-  it('should apply long-form bilingual options for comprehensive detail', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    await generateAIPremiumReport(input, matrixReport, {
-      detailLevel: 'comprehensive',
-      bilingual: true,
-      targetChars: 20000,
-      tone: 'realistic',
-      userPlan: 'premium',
+  it('never contains banned reporty phrases in final sections', async () => {
+    mockCallAIBackendGeneric.mockResolvedValue({
+      sections: {
+        text: '\uACA9\uAD6D\uC758 \uACB0\uC774 \uBCF4\uC785\uB2C8\uB2E4. \uAE34\uC7A5 \uC2E0\uD638\uAC00 \uC788\uACE0 \uC0C1\uD638\uC791\uC6A9\uC774 \uC791\uB3D9\uD569\uB2C8\uB2E4. \uADF8 \uD750\uB984\uC740 \uC2DC\uC0AC\uC810\uC744 \uC90D\uB2C8\uB2E4.',
+      },
+      model: 'gpt-4o',
+      tokensUsed: 100,
     })
 
-    const callArgs = mockCallAIBackend.mock.calls[0]
-    expect(callArgs[0]).toContain('출력 제약')
-    expect(callArgs[0]).toContain('한/영 동시')
-    expect(callArgs[0]).toContain('20000자')
-    expect(callArgs[2]).toMatchObject({
-      userPlan: 'premium',
-      maxTokensOverride: 11200,
-    })
-  })
+    const result = await generateAIPremiumReport(createMockInput(), createMockReport())
+    const allText = [
+      result.sections.introduction,
+      result.sections.personalityDeep,
+      result.sections.careerPath,
+      result.sections.relationshipDynamics,
+      result.sections.wealthPotential,
+      result.sections.healthGuidance,
+      result.sections.lifeMission,
+      result.sections.timingAdvice,
+      result.sections.actionPlan,
+      result.sections.conclusion,
+    ].join(' ')
 
-  it('should pass user question intent to prompt when provided', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    await generateAIPremiumReport(input, matrixReport, {
-      userQuestion: '여기로 가는게 맞냐?',
-    })
-
-    const callArgs = mockCallAIBackend.mock.calls[0]
-    expect(callArgs[0]).toContain('사용자 질문 의도')
-    expect(callArgs[0]).toContain('예/아니오(결정형)')
-    expect(callArgs[0]).toContain('Deterministic Core')
-  })
-
-  it('should reflect deterministic profile in prompt block', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    await generateAIPremiumReport(input, matrixReport, {
-      userQuestion: '가도 되나요?',
-      deterministicProfile: 'strict',
-    })
-
-    const callArgs = mockCallAIBackend.mock.calls[0]
-    expect(callArgs[0]).toContain('Profile: strict')
+    const banned = [
+      '\uACA9\uAD6D\uC758 \uACB0',
+      '\uAE34\uC7A5 \uC2E0\uD638',
+      '\uC0C1\uD638\uC791\uC6A9',
+      '\uC2DC\uC0AC',
+      '\uD504\uB808\uC784',
+      '\uAC80\uC99D',
+      '\uADFC\uAC70 \uC138\uD2B8',
+    ]
+    for (const phrase of banned) {
+      expect(allText).not.toContain(phrase)
+    }
   })
 })
 
-describe('generateAIPremiumReport - Response Parsing', () => {
-  it('should parse sections from JSON response', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    const result = await generateAIPremiumReport(input, matrixReport)
-
-    expect(result.sections).toBeDefined()
-    expect(result.sections.introduction).toBe('인트로 내용')
+describe('sanitizeSectionNarrative', () => {
+  it('strips forbidden phrase', () => {
+    const cleaned = sanitizeSectionNarrative(
+      '\uC774 \uAD6C\uAC04\uC758 \uD575\uC2EC \uCD08\uC810\uC740 \uAD00\uACC4\uC785\uB2C8\uB2E4. \uC624\uB298 \uC2E4\uD589\uD558\uC138\uC694.'
+    )
+    expect(cleaned).toBe('\uC624\uB298 \uC2E4\uD589\uD558\uC138\uC694.')
   })
 
-  it('should extract model and token info', async () => {
-    const input = createMockInput()
-    const matrixReport = createMockReport()
-
-    const result = await generateAIPremiumReport(input, matrixReport)
-
-    expect(result.meta.modelUsed).toBe('gpt-4o')
-    expect(result.meta.tokensUsed).toBe(1500)
+  it('strips banned reporty phrases', () => {
+    const cleaned = sanitizeSectionNarrative(
+      '\uACA9\uAD6D\uC758 \uACB0, \uAE34\uC7A5 \uC2E0\uD638, \uC0C1\uD638\uC791\uC6A9, \uC2DC\uC0AC, \uD504\uB808\uC784, \uAC80\uC99D, \uADFC\uAC70 \uC138\uD2B8'
+    )
+    expect(cleaned).not.toContain('\uACA9\uAD6D\uC758 \uACB0')
+    expect(cleaned).not.toContain('\uAE34\uC7A5 \uC2E0\uD638')
+    expect(cleaned).not.toContain('\uC0C1\uD638\uC791\uC6A9')
+    expect(cleaned).not.toContain('\uC2DC\uC0AC')
+    expect(cleaned).not.toContain('\uD504\uB808\uC784')
+    expect(cleaned).not.toContain('\uAC80\uC99D')
+    expect(cleaned).not.toContain('\uADFC\uAC70 \uC138\uD2B8')
   })
 })

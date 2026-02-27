@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
 // ============================================================
@@ -205,6 +205,14 @@ function createRequest(body: Record<string, unknown>): NextRequest {
   })
 }
 
+function createRequestWithoutToken(body: Record<string, unknown>): NextRequest {
+  return new NextRequest('http://localhost/api/tarot/analyze-question', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+}
+
 function createOpenAIResponse(content: Record<string, unknown>) {
   return {
     ok: true,
@@ -219,8 +227,13 @@ function createOpenAIResponse(content: Record<string, unknown>) {
 // Tests
 // ============================================================
 describe('Tarot Analyze Question API - POST', () => {
+  const originalPublicToken = process.env.NEXT_PUBLIC_API_TOKEN
+  const originalLegacyPublicToken = process.env.PUBLIC_API_TOKEN
+
   beforeEach(() => {
     vi.clearAllMocks()
+    process.env.NEXT_PUBLIC_API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN || 'test-public-token'
+    process.env.PUBLIC_API_TOKEN = process.env.PUBLIC_API_TOKEN || 'test-public-token'
     // Default: OpenAI returns a valid response
     mockFetch.mockResolvedValue(
       createOpenAIResponse({
@@ -230,6 +243,23 @@ describe('Tarot Analyze Question API - POST', () => {
         userFriendlyExplanation: '예/아니오로 답변할 수 있는 질문이에요',
       })
     )
+  })
+
+  afterEach(() => {
+    process.env.NEXT_PUBLIC_API_TOKEN = originalPublicToken
+    process.env.PUBLIC_API_TOKEN = originalLegacyPublicToken
+  })
+
+  // ----------------------------------------------------------
+  // Auth Guard
+  // ----------------------------------------------------------
+  describe('Auth Guard', () => {
+    it('should return 401 when x-api-token is missing', async () => {
+      const req = createRequestWithoutToken({ question: '오늘 뭐할까?', language: 'ko' })
+      const response = await POST(req)
+
+      expect(response.status).toBe(401)
+    })
   })
 
   // ----------------------------------------------------------
@@ -509,8 +539,10 @@ describe('Tarot Analyze Question API - POST', () => {
 
       expect(response.status).toBe(200)
       expect(data.isDangerous).toBe(false)
-      expect(data.themeId).toBe('general-insight')
-      expect(data.spreadId).toBe('past-present-future')
+      expect(data.source).toBe('fallback')
+      expect(data.fallback_reason).toBe('server_error')
+      expect(typeof data.themeId).toBe('string')
+      expect(typeof data.spreadId).toBe('string')
     })
 
     it('should use fallback when OpenAI returns non-JSON', async () => {
@@ -527,8 +559,10 @@ describe('Tarot Analyze Question API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.themeId).toBe('general-insight')
-      expect(data.spreadId).toBe('past-present-future')
+      expect(data.source).toBe('fallback')
+      expect(data.fallback_reason).toBe('parse_failed')
+      expect(typeof data.themeId).toBe('string')
+      expect(typeof data.spreadId).toBe('string')
     })
 
     it('should use fallback when OpenAI returns empty content', async () => {
@@ -545,8 +579,10 @@ describe('Tarot Analyze Question API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.themeId).toBe('general-insight')
-      expect(data.spreadId).toBe('past-present-future')
+      expect(data.source).toBe('fallback')
+      expect(data.fallback_reason).toBe('no_candidate')
+      expect(typeof data.themeId).toBe('string')
+      expect(typeof data.spreadId).toBe('string')
     })
 
     it('should use Korean fallback explanation when language is ko', async () => {
@@ -556,7 +592,8 @@ describe('Tarot Analyze Question API - POST', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(data.userFriendlyExplanation).toContain('스프레드를 준비했어요')
+      expect(data.userFriendlyExplanation).toContain('기본 스프레드')
+      expect(data.source).toBe('fallback')
     })
 
     it('should use English fallback explanation when language is en', async () => {
@@ -566,7 +603,8 @@ describe('Tarot Analyze Question API - POST', () => {
       const response = await POST(req)
       const data = await response.json()
 
-      expect(data.userFriendlyExplanation).toContain('overall flow')
+      expect(data.userFriendlyExplanation).toContain('default spread')
+      expect(data.source).toBe('fallback')
     })
   })
 
@@ -672,8 +710,10 @@ describe('Tarot Analyze Question API - POST', () => {
 
       // Should fall back gracefully
       expect(response.status).toBe(200)
-      expect(data.themeId).toBe('general-insight')
-      expect(data.spreadId).toBe('past-present-future')
+      expect(data.source).toBe('fallback')
+      expect(data.fallback_reason).toBe('server_error')
+      expect(typeof data.themeId).toBe('string')
+      expect(typeof data.spreadId).toBe('string')
     })
 
     it('should always return a valid spread for diverse non-dangerous questions when OpenAI fails', async () => {
@@ -712,6 +752,7 @@ describe('Tarot Analyze Question API - POST', () => {
         expect(data.isDangerous).toBe(false)
         expect(typeof data.cardCount).toBe('number')
         expect(data.path).toContain('/tarot/')
+        expect(['llm', 'pattern', 'fallback']).toContain(data.source)
 
         const spreadKey = `${data.themeId}/${data.spreadId}`
         expect(validSpreadKeys.has(spreadKey), `${question} -> ${spreadKey}`).toBe(true)

@@ -38,6 +38,8 @@ export default function TarotHomePage() {
     isAnalyzing,
     aiExplanation,
     isLoadingPreview,
+    fallbackReason,
+    fallbackNotice,
     handleStartReading: startReading,
   } = useQuestionAnalysis({ question, language, isKo, getQuickRecommendation })
 
@@ -193,6 +195,13 @@ export default function TarotHomePage() {
                 <div className={styles.dangerWarning}>
                   <span className={styles.dangerIcon}>⚠️</span>
                   <p>{dangerWarning}</p>
+                </div>
+              )}
+
+              {fallbackReason && fallbackNotice && !dangerWarning && (
+                <div className={styles.fallbackNotice} role="status" aria-live="polite">
+                  <p>{fallbackNotice}</p>
+                  <span className={styles.fallbackReasonCode}>{fallbackReason}</span>
                 </div>
               )}
             </div>
