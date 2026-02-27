@@ -3,6 +3,7 @@
 import { useMemo, useState, memo } from 'react'
 import { repairMojibakeDeep } from '@/lib/text/mojibake'
 import { expandNarrativeDeep } from './fun-insights/tabs/shared/longForm'
+import PremiumNarrativeCard from '@/components/reports/PremiumNarrativeCard'
 
 // Import Tab Components
 import {
@@ -121,7 +122,9 @@ const FunInsights = memo(function FunInsights({
   const hasFiveElements = Boolean(
     normalizedSaju?.fiveElements && Object.keys(normalizedSaju.fiveElements).length > 0
   )
-  const hasSajuCore = Boolean(normalizedSaju?.dayMaster || normalizedSaju?.pillars || hasFiveElements)
+  const hasSajuCore = Boolean(
+    normalizedSaju?.dayMaster || normalizedSaju?.pillars || hasFiveElements
+  )
   const hasValidAstro = Boolean(findPlanetSign(normalizedAstro, 'sun'))
 
   const data = useMemo(() => {
@@ -269,6 +272,24 @@ const FunInsights = memo(function FunInsights({
     ) as unknown as TabData
   }, [data, normalizedSaju, normalizedAstro, lang, normalizedElements, isKo])
 
+  const premiumStyleReport = useMemo(() => {
+    const raw = String(data?.report || '').trim()
+    if (!raw) return null
+    const lines = raw
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+    const firstLine = lines[0] || ''
+    const body = lines.slice(1).join('\n\n').trim()
+    const titleFromBracket =
+      firstLine.match(/^【(.+)】$/)?.[1] || firstLine.match(/^\[(.+)\]$/)?.[1] || ''
+
+    return {
+      title: titleFromBracket || (isKo ? 'AI 프리미엄 리포트' : 'AI Premium Report'),
+      content: body || raw,
+    }
+  }, [data?.report, isKo])
+
   if (!data) {
     return null
   }
@@ -281,6 +302,14 @@ const FunInsights = memo(function FunInsights({
       {/* 운명의 한 줄 요약 - 히어로 */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       <HeroSection isKo={isKo} data={data} destinyNarrative={destinyNarrative} />
+
+      {premiumStyleReport && (
+        <PremiumNarrativeCard
+          title={premiumStyleReport.title}
+          content={premiumStyleReport.content}
+          defaultOpen
+        />
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* 탭 네비게이션 */}

@@ -292,7 +292,7 @@ ${outputStyleInstruction}
 ${focusInstruction}
 상세도: ${detailLevel === 'comprehensive' ? '매우 상세' : detailLevel === 'detailed' ? '상세' : '표준'}
 
-다음 섹션들을 각각 작성해주세요. 각 섹션은 따뜻하고 격려하는 톤으로, 실용적인 조언을 포함해야 합니다.
+다음 섹션들을 각각 작성해주세요. 각 섹션은 결론을 먼저 말하는 직설적 컨설턴트 톤으로 작성하고, 근거와 실행 지시를 분명히 포함해야 합니다.
 
 ${sectionInstructions}`
   }
@@ -314,7 +314,7 @@ ${outputStyleInstruction}
 ${focusInstruction}
 Detail Level: ${detailLevel}
 
-Write each of the following sections. Each section should have a warm, encouraging tone with practical advice.
+Write each section in a direct consultant tone: conclusion-first, evidence-based, and action-oriented.
 
 ${sectionInstructions}`
 }
@@ -345,7 +345,7 @@ ${matrixSummary}
 
 ${graphRagEvidencePrompt ? `## GraphRAG 근거 앵커\n${graphRagEvidencePrompt}\n` : ''}
 
-다음 섹션들을 각각 작성해주세요. 각 섹션은 따뜻하고 격려하는 톤으로, 실용적인 조언을 포함해야 합니다.
+다음 섹션들을 각각 작성해주세요. 각 섹션은 결론을 먼저 말하는 직설적 컨설턴트 톤으로 작성하고, 근거와 실행 지시를 분명히 포함해야 합니다.
 
 ${sectionInstructions}`
   }
@@ -358,7 +358,7 @@ ${matrixSummary}
 
 ${graphRagEvidencePrompt ? `## GraphRAG Evidence Anchors\n${graphRagEvidencePrompt}\n` : ''}
 
-Write each of the following sections. Each section should have a warm, encouraging tone with practical advice.
+Write each section in a direct consultant tone: conclusion-first, evidence-based, and action-oriented.
 
 ${sectionInstructions}`
 }

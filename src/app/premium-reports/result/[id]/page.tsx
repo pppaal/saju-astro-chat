@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
 import PremiumPageScaffold from '@/app/premium-reports/_components/PremiumPageScaffold'
+import PremiumNarrativeCard from '@/components/reports/PremiumNarrativeCard'
 import {
   toQualityMarkdown,
   type QualityAudit,
@@ -667,14 +668,12 @@ export default function ReportResultPage() {
 
       {report.sections.length > 0 && (
         <main className="max-w-5xl mx-auto px-4 py-6 pb-20">
-          <div className="rounded-2xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
-            <h2 className="text-xl font-bold text-white mb-4">
-              {report.sections[activeSection].title}
-            </h2>
-            <div className="text-gray-300 whitespace-pre-line leading-relaxed">
-              {report.sections[activeSection].content}
-            </div>
-          </div>
+          <PremiumNarrativeCard
+            title={report.sections[activeSection].title}
+            content={report.sections[activeSection].content}
+            defaultOpen
+            className="border-white/15 bg-white/95"
+          />
         </main>
       )}
 
