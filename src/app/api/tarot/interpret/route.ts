@@ -24,6 +24,13 @@ interface CardInput {
   keywordsKo?: string[]
 }
 
+type ParsedTarotJson = {
+  overall?: unknown
+  cards?: unknown
+  advice?: unknown
+  combinations?: unknown
+}
+
 const MAX_CARD_MEANING_LENGTH = 500
 
 function truncateToMax(value: unknown, maxLength: number): string | unknown {
@@ -76,6 +83,91 @@ function normalizeInterpretRequestBody(rawBody: unknown): {
     },
     truncatedCount,
   }
+}
+
+function stripMarkdownCodeFence(raw: string): string {
+  const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/i)
+  return (fenceMatch?.[1] || raw).trim()
+}
+
+function extractJsonObjectSlice(raw: string): string | null {
+  const start = raw.indexOf('{')
+  const end = raw.lastIndexOf('}')
+  if (start < 0 || end <= start) {
+    return null
+  }
+  return raw.slice(start, end + 1)
+}
+
+function sanitizeJsonLikeText(raw: string): string {
+  return raw
+    .replace(/^\uFEFF/, '')
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/\/\/[^\n\r]*/g, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/,\s*([}\]])/g, '$1')
+}
+
+function normalizeSingleQuoteJson(raw: string): string {
+  return raw
+    .replace(/([{,]\s*)'([^']+?)'\s*:/g, '$1"$2":')
+    .replace(/:\s*'([^'\\]*(?:\\.[^'\\]*)*)'(?=\s*[,}])/g, (_match, value: string) => {
+      const normalized = value.replace(/"/g, '\\"')
+      return `: "${normalized}"`
+    })
+}
+
+function tryParseJsonCandidate(raw: string): ParsedTarotJson | null {
+  const attempts: string[] = []
+  const fenced = stripMarkdownCodeFence(raw)
+  const directSlice = extractJsonObjectSlice(raw)
+  const fencedSlice = extractJsonObjectSlice(fenced)
+
+  attempts.push(raw, fenced)
+  if (directSlice) attempts.push(directSlice)
+  if (fencedSlice) attempts.push(fencedSlice)
+
+  const uniqueAttempts = Array.from(new Set(attempts.map((item) => item.trim()).filter(Boolean)))
+  for (const candidate of uniqueAttempts) {
+    try {
+      const parsed = JSON.parse(candidate) as unknown
+      if (parsed && typeof parsed === 'object') {
+        return parsed as ParsedTarotJson
+      }
+    } catch {
+      // continue
+    }
+
+    try {
+      const sanitized = sanitizeJsonLikeText(candidate)
+      const parsed = JSON.parse(sanitized) as unknown
+      if (parsed && typeof parsed === 'object') {
+        return parsed as ParsedTarotJson
+      }
+    } catch {
+      // continue
+    }
+
+    try {
+      const normalizedSingleQuote = normalizeSingleQuoteJson(sanitizeJsonLikeText(candidate))
+      const parsed = JSON.parse(normalizedSingleQuote) as unknown
+      if (parsed && typeof parsed === 'object') {
+        return parsed as ParsedTarotJson
+      }
+    } catch {
+      // continue
+    }
+  }
+
+  return null
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {}
+  }
+  return value as Record<string, unknown>
 }
 
 export const POST = withApiMiddleware(
@@ -411,15 +503,15 @@ Each card interpretation MUST include the following structure (450-600 words):
   try {
     const result = await callGPT(unifiedPrompt, 8000)
 
-    // Parse JSON response
-    const jsonMatch = result.match(/\{[\s\S]*\}/)
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0])
+    const parsed = tryParseJsonCandidate(result)
+    if (parsed) {
+      const parsedCards = Array.isArray(parsed.cards) ? parsed.cards : []
 
       // 카드별 해석이 비어있거나 너무 짧으면 기본 meaning 사용
       const card_insights = cards.map((card, i) => {
-        const cardData = parsed.cards?.[i] || {}
-        let interpretation = cardData.interpretation || ''
+        const cardData = asRecord(parsedCards[i])
+        let interpretation =
+          typeof cardData.interpretation === 'string' ? cardData.interpretation : ''
 
         // 해석이 너무 짧거나 없으면 카드의 기본 meaning 사용
         if (!interpretation || interpretation.length < 50) {
@@ -439,10 +531,11 @@ Each card interpretation MUST include the following structure (450-600 words):
       })
 
       return {
-        overall_message: parsed.overall || '',
+        overall_message: typeof parsed.overall === 'string' ? parsed.overall : '',
         card_insights,
         guidance:
-          parsed.advice || (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
+          (typeof parsed.advice === 'string' && parsed.advice) ||
+          (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
         affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
         combinations:
           Array.isArray(parsed.combinations) && parsed.combinations.length > 0
@@ -452,6 +545,10 @@ Each card interpretation MUST include the following structure (450-600 words):
         fallback: false,
       }
     }
+
+    logger.warn('[Tarot interpret] GPT returned non-JSON content; using text fallback payload', {
+      preview: result.slice(0, 280),
+    })
 
     // JSON 파싱 실패 시 전체 텍스트를 overall로 사용
     return {

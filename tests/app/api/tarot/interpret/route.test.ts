@@ -297,6 +297,59 @@ describe('POST /api/tarot/interpret', () => {
     expect(data.overall_message).toBeDefined()
   })
 
+  it('should recover from loose GPT JSON (code fence + trailing comma)', async () => {
+    const { apiClient } = await import('@/lib/api/ApiClient')
+    vi.mocked(apiClient.post).mockRejectedValue(new Error('Backend down'))
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [
+          {
+            message: {
+              content: [
+                '```json',
+                '{',
+                '  "overall": "Recovered interpretation",',
+                '  "cards": [',
+                '    { "position": "Past", "interpretation": "Detailed message about your current flow and next step." },',
+                '  ],',
+                '  "advice": "Take one practical action today.",',
+                '}',
+                '```',
+              ].join('\n'),
+            },
+          },
+        ],
+      }),
+    })
+
+    const req = new NextRequest('http://localhost/api/tarot/interpret', {
+      method: 'POST',
+      body: JSON.stringify({
+        categoryId: 'love',
+        spreadId: 'three-card',
+        spreadTitle: 'Love Spread',
+        cards: [
+          {
+            name: 'The Fool',
+            isReversed: false,
+            position: 'Past',
+            meaning: 'New beginning',
+          },
+        ],
+      }),
+    })
+
+    const response = await POST(req)
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(data.fallback).toBe(false)
+    expect(data.overall_message).toBe('Recovered interpretation')
+    expect(data.guidance).toBe('Take one practical action today.')
+  })
+
   it('should use simple fallback when GPT also fails', async () => {
     const { apiClient } = await import('@/lib/api/ApiClient')
     vi.mocked(apiClient.post).mockRejectedValue(new Error('Backend down'))
