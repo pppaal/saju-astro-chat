@@ -57,6 +57,14 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
     isSaved,
   } = state
   const abortControllerRef = useRef<AbortController | null>(null)
+  const defaultOverallMessage =
+    lang === 'ko'
+      ? '카드가 보여준 흐름을 기준으로 현재 상황의 핵심을 정리했습니다.'
+      : 'I summarized the core of your current situation based on the cards.'
+  const defaultGuidance =
+    lang === 'ko'
+      ? '오늘은 큰 결론보다, 바로 실행 가능한 한 가지 행동부터 시작해 보세요.'
+      : 'Today, start with one practical action rather than forcing a big conclusion.'
 
   // AI auto-select spread based on question
   const analyzeQuestion = useCallback(async () => {
@@ -255,15 +263,40 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
           }
         }
 
+        const hasOverall = tempInsights.length > 0 || !!overallMessage.trim()
+        if (!hasOverall) {
+          actions.setOverallMessage(defaultOverallMessage)
+        }
+        if (!guidance.trim()) {
+          actions.setGuidance(defaultGuidance)
+        }
+
         actions.setStep('result')
       } catch (err) {
         if (err instanceof Error && err.name !== 'AbortError') {
           logger.error('[InlineTarot] interpret error:', err)
         }
+        if (!overallMessage.trim()) {
+          actions.setOverallMessage(defaultOverallMessage)
+        }
+        if (!guidance.trim()) {
+          actions.setGuidance(defaultGuidance)
+        }
         actions.setStep('result')
       }
     },
-    [selectedSpread, selectedCategory, concern, lang, profile.birthDate, actions]
+    [
+      selectedSpread,
+      selectedCategory,
+      concern,
+      lang,
+      profile.birthDate,
+      actions,
+      overallMessage,
+      guidance,
+      defaultOverallMessage,
+      defaultGuidance,
+    ]
   )
 
   // Draw cards from API

@@ -199,7 +199,11 @@ async function fetchMatrixSnapshot(
 
     const response = await fetch(new URL('/api/destiny-matrix', req.nextUrl.origin), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        origin: req.nextUrl.origin,
+        referer: req.nextUrl.origin,
+      },
       cache: 'no-store',
       signal: AbortSignal.timeout(4000),
       body: JSON.stringify({

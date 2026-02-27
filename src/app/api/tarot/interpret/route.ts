@@ -118,6 +118,10 @@ function normalizeSingleQuoteJson(raw: string): string {
     })
 }
 
+function normalizeUnquotedKeysJson(raw: string): string {
+  return raw.replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_-]*)(\s*:)/g, '$1"$2"$3')
+}
+
 function tryParseJsonCandidate(raw: string): ParsedTarotJson | null {
   const attempts: string[] = []
   const fenced = stripMarkdownCodeFence(raw)
@@ -158,6 +162,18 @@ function tryParseJsonCandidate(raw: string): ParsedTarotJson | null {
     } catch {
       // continue
     }
+
+    try {
+      const normalizedUnquotedKeys = normalizeUnquotedKeysJson(
+        normalizeSingleQuoteJson(sanitizeJsonLikeText(candidate))
+      )
+      const parsed = JSON.parse(normalizedUnquotedKeys) as unknown
+      if (parsed && typeof parsed === 'object') {
+        return parsed as ParsedTarotJson
+      }
+    } catch {
+      // continue
+    }
   }
 
   return null
@@ -178,7 +194,18 @@ export const POST = withApiMiddleware(
         return oversized
       }
 
-      const rawBody = await req.json()
+      let rawBody: unknown
+      try {
+        rawBody = await req.json()
+      } catch (parseErr) {
+        logger.warn('[Tarot interpret] invalid JSON request body', {
+          error: parseErr instanceof Error ? parseErr.message : String(parseErr),
+        })
+        return NextResponse.json(
+          { error: 'invalid_json_body' },
+          { status: HTTP_STATUS.BAD_REQUEST }
+        )
+      }
       const { body: normalizedBody, truncatedCount } = normalizeInterpretRequestBody(rawBody)
       if (truncatedCount > 0) {
         logger.info('[Tarot interpret] truncated oversized card meaning fields', {
@@ -336,11 +363,23 @@ async function callGPT(prompt: string, maxTokens = 400): Promise<string> {
   })
 
   if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.status}`)
+    const errorText = await response.text().catch(() => '')
+    throw new Error(`OpenAI API error: ${response.status} ${errorText.slice(0, 280)}`)
   }
 
-  const data = await response.json()
-  return data.choices[0]?.message?.content || ''
+  const rawText = await response.text()
+  let data: { choices?: Array<{ message?: { content?: string } }> } | null = null
+  try {
+    data = JSON.parse(rawText) as { choices?: Array<{ message?: { content?: string } }> }
+  } catch (parseErr) {
+    logger.warn('[Tarot interpret] OpenAI JSON parse failed', {
+      error: parseErr instanceof Error ? parseErr.message : String(parseErr),
+      preview: rawText.slice(0, 280),
+    })
+    throw new Error('OpenAI response parse failed')
+  }
+
+  return data?.choices?.[0]?.message?.content || ''
 }
 
 // GPT를 사용한 해석 생성 (백엔드 없이 직접 호출) - 통합 프롬프트로 속도 최적화

@@ -3,22 +3,22 @@
 
 export interface StreamResult {
   /** Cleaned content without markers */
-  content: string;
+  content: string
   /** Extracted follow-up questions (if any) */
-  followUps: string[];
+  followUps: string[]
   /** Whether stream completed successfully */
-  success: boolean;
+  success: boolean
   /** Error message if failed */
-  error?: string;
+  error?: string
 }
 
 export interface StreamProcessorOptions {
   /** Callback for real-time content updates */
-  onChunk?: (accumulated: string, cleaned: string) => void;
+  onChunk?: (accumulated: string, cleaned: string) => void
   /** Callback when stream is done */
-  onDone?: (result: StreamResult) => void;
+  onDone?: (result: StreamResult) => void
   /** Callback on error */
-  onError?: (error: Error) => void;
+  onError?: (error: Error) => void
 }
 
 /**
@@ -26,84 +26,143 @@ export interface StreamProcessorOptions {
  * Handles Server-Sent Events streams with follow-up question parsing
  */
 export class StreamProcessor {
-  private decoder = new TextDecoder();
+  private decoder = new TextDecoder()
+  private sseBuffer = ''
 
   /**
    * Process a fetch Response with SSE stream
    */
-  async process(
-    response: Response,
-    options: StreamProcessorOptions = {}
-  ): Promise<StreamResult> {
-    const { onChunk, onDone, onError } = options;
+  async process(response: Response, options: StreamProcessorOptions = {}): Promise<StreamResult> {
+    const { onChunk, onDone, onError } = options
 
     if (!response.body) {
-      const error = new Error("No response body");
-      onError?.(error);
+      const error = new Error('No response body')
+      onError?.(error)
       return {
-        content: "",
+        content: '',
         followUps: [],
         success: false,
         error: error.message,
-      };
+      }
     }
 
-    const reader = response.body.getReader();
-    let accumulated = "";
+    const reader = response.body.getReader()
+    let accumulated = ''
+    this.sseBuffer = ''
 
     try {
       while (true) {
-        const { done, value } = await reader.read();
-        if (done) {break;}
+        const { done, value } = await reader.read()
+        if (done) {
+          const tail = this.flushSSEBuffer()
+          for (const data of tail) {
+            if (data === '[DONE]') {
+              break
+            } else if (data.startsWith('[ERROR]')) {
+              const errorMsg = data.slice(7).trim() || 'Stream error'
+              throw new Error(errorMsg)
+            } else {
+              accumulated += data
+              const cleaned = this.cleanFollowupMarkers(accumulated)
+              onChunk?.(accumulated, cleaned)
+            }
+          }
+          break
+        }
 
-        const chunk = this.decoder.decode(value, { stream: true });
-        const parsed = this.parseSSEChunk(chunk);
+        const chunk = this.decoder.decode(value, { stream: true })
+        const parsed = this.parseSSEChunk(chunk)
 
         for (const data of parsed) {
-          if (data === "[DONE]") {
-            break;
-          } else if (data.startsWith("[ERROR]")) {
-            const errorMsg = data.slice(7).trim() || "Stream error";
-            throw new Error(errorMsg);
+          if (data === '[DONE]') {
+            break
+          } else if (data.startsWith('[ERROR]')) {
+            const errorMsg = data.slice(7).trim() || 'Stream error'
+            throw new Error(errorMsg)
           } else {
-            accumulated += data;
-            const cleaned = this.cleanFollowupMarkers(accumulated);
-            onChunk?.(accumulated, cleaned);
+            accumulated += data
+            const cleaned = this.cleanFollowupMarkers(accumulated)
+            onChunk?.(accumulated, cleaned)
           }
         }
       }
 
       // Parse final result
-      const result = this.parseResult(accumulated);
-      onDone?.(result);
-      return result;
+      const result = this.parseResult(accumulated)
+      onDone?.(result)
+      return result
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      onError?.(error);
+      const error = err instanceof Error ? err : new Error(String(err))
+      onError?.(error)
       return {
         content: this.cleanFollowupMarkers(accumulated),
         followUps: [],
         success: false,
         error: error.message,
-      };
+      }
     }
   }
 
   /**
    * Parse SSE chunk into data segments
-   * Format: "data: content\n"
+   * Supports multi-line SSE events and chunk boundaries.
    */
   private parseSSEChunk(chunk: string): string[] {
-    const results: string[] = [];
-    const lines = chunk.split("\n");
+    const normalized = (this.sseBuffer + chunk).replace(/\r\n/g, '\n')
+    const events = normalized.split('\n\n')
+    this.sseBuffer = events.pop() ?? ''
 
-    for (const line of lines) {
-      if (line.startsWith("data: ")) {
-        results.push(line.slice(6));
+    const results: string[] = []
+
+    for (const eventBlock of events) {
+      const lines = eventBlock.split('\n')
+      const dataLines = lines
+        .filter((line) => line.startsWith('data:'))
+        .map((line) => line.slice(5).trimStart())
+
+      if (dataLines.length === 0) {
+        continue
       }
+
+      const payload = dataLines.join('')
+      results.push(this.normalizeSSEData(payload))
     }
 
-    return results;
+    return results
+  }
+
+  private flushSSEBuffer(): string[] {
+    if (!this.sseBuffer.trim()) {
+      return []
+    }
+    const tail = this.sseBuffer
+    this.sseBuffer = ''
+    return this.parseSSEChunk(tail + '\n\n')
+  }
+
+  /**
+   * Normalize SSE payload:
+   * - keep control tokens ([DONE], [ERROR]) as-is
+   * - if JSON payload has "content", return that text only
+   */
+  private normalizeSSEData(payload: string): string {
+    const trimmed = payload.trim()
+    if (!trimmed) {
+      return ''
+    }
+    if (trimmed === '[DONE]' || trimmed.startsWith('[ERROR]')) {
+      return trimmed
+    }
+
+    try {
+      const parsed = JSON.parse(trimmed) as { content?: unknown }
+      if (parsed && typeof parsed === 'object' && typeof parsed.content === 'string') {
+        return parsed.content
+      }
+    } catch {
+      // Non-JSON payload: return original text.
+    }
+    return trimmed
   }
 
   /**
@@ -112,13 +171,10 @@ export class StreamProcessor {
    */
   cleanFollowupMarkers(text: string): string {
     return text
-      .replace(/\|\|FOLLOWUP\|\|.*/s, "") // Full marker with content
-      .replace(
-        /\|\|F(?:O(?:L(?:L(?:O(?:W(?:U(?:P(?:\|(?:\|)?)?)?)?)?)?)?)?)?$/s,
-        ""
-      ) // Any partial state
-      .replace(/\|$/s, "") // Single pipe at end
-      .trim();
+      .replace(/\|\|FOLLOWUP\|\|.*/s, '') // Full marker with content
+      .replace(/\|\|F(?:O(?:L(?:L(?:O(?:W(?:U(?:P(?:\|(?:\|)?)?)?)?)?)?)?)?)?$/s, '') // Any partial state
+      .replace(/\|$/s, '') // Single pipe at end
+      .trim()
   }
 
   /**
@@ -127,20 +183,19 @@ export class StreamProcessor {
   private parseResult(accumulated: string): StreamResult {
     if (!accumulated) {
       return {
-        content: "",
+        content: '',
         followUps: [],
         success: true,
-      };
+      }
     }
 
-    const { cleanContent, followUps } =
-      this.extractFollowUpQuestions(accumulated);
+    const { cleanContent, followUps } = this.extractFollowUpQuestions(accumulated)
 
     return {
       content: cleanContent,
       followUps,
       success: true,
-    };
+    }
   }
 
   /**
@@ -148,35 +203,33 @@ export class StreamProcessor {
    * Format: ||FOLLOWUP||["q1", "q2", "q3"]
    */
   extractFollowUpQuestions(text: string): {
-    cleanContent: string;
-    followUps: string[];
+    cleanContent: string
+    followUps: string[]
   } {
-    const followUpMatch = text.match(/\|\|FOLLOWUP\|\|\s*\[([^\]]+)\]/s);
+    const followUpMatch = text.match(/\|\|FOLLOWUP\|\|\s*\[([^\]]+)\]/s)
 
     if (!followUpMatch) {
       return {
         cleanContent: this.cleanFollowupMarkers(text),
         followUps: [],
-      };
+      }
     }
 
     try {
       // Fix common AI mistakes: curly quotes → straight quotes
-      let jsonStr = "[" + followUpMatch[1] + "]";
-      jsonStr = this.normalizeJsonQuotes(jsonStr);
+      let jsonStr = '[' + followUpMatch[1] + ']'
+      jsonStr = this.normalizeJsonQuotes(jsonStr)
 
-      const followUps = JSON.parse(jsonStr) as string[];
-      const cleanContent = text
-        .replace(/\|\|FOLLOWUP\|\|\s*\[[^\]]+\]/s, "")
-        .trim();
+      const followUps = JSON.parse(jsonStr) as string[]
+      const cleanContent = text.replace(/\|\|FOLLOWUP\|\|\s*\[[^\]]+\]/s, '').trim()
 
-      return { cleanContent, followUps };
+      return { cleanContent, followUps }
     } catch {
       // If JSON parsing fails, just remove the marker
       return {
-        cleanContent: text.replace(/\|\|FOLLOWUP\|\|.*/s, "").trim(),
+        cleanContent: text.replace(/\|\|FOLLOWUP\|\|.*/s, '').trim(),
         followUps: [],
-      };
+      }
     }
   }
 
@@ -187,9 +240,9 @@ export class StreamProcessor {
     return str
       .replace(/[""]/g, '"') // Fix curly double quotes
       .replace(/['']/g, "'") // Fix curly single quotes
-      .replace(/,\s*]/g, "]"); // Fix trailing comma
+      .replace(/,\s*]/g, ']') // Fix trailing comma
   }
 }
 
 // Singleton instance for convenience
-export const streamProcessor = new StreamProcessor();
+export const streamProcessor = new StreamProcessor()
