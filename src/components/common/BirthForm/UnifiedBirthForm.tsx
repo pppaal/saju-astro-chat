@@ -23,6 +23,7 @@ export interface BirthInfo {
 
 interface UnifiedBirthFormProps {
   onSubmit: (birthInfo: BirthInfo) => void
+  onProfileLoaded?: (birthInfo: BirthInfo) => void
   locale?: 'ko' | 'en'
   initialData?: Partial<BirthInfo>
 
@@ -49,6 +50,7 @@ interface UnifiedBirthFormProps {
 
 export function UnifiedBirthForm({
   onSubmit,
+  onProfileLoaded,
   locale = 'ko',
   initialData,
   includeProfileLoader = true,
@@ -185,6 +187,38 @@ export function UnifiedBirthForm({
         }
 
         setProfileLoaded(true)
+
+        if (onProfileLoaded) {
+          const loadedBirthInfo: BirthInfo = {
+            birthDate: user.birthDate,
+            birthTime:
+              includeTime && user.birthTime && user.birthTime.trim() !== ''
+                ? user.birthTime
+                : '12:00',
+            ...(includeGender
+              ? {
+                  gender:
+                    genderFormat === 'long'
+                      ? user.gender === 'F'
+                        ? 'Female'
+                        : 'Male'
+                      : user.gender === 'F'
+                        ? 'F'
+                        : 'M',
+                }
+              : {}),
+            ...(includeCity || includeCityToggle
+              ? {
+                  birthCity: user.birthCity ? localizeCityForUI(user.birthCity) : undefined,
+                  latitude: typeof user.latitude === 'number' ? Number(user.latitude) : undefined,
+                  longitude:
+                    typeof user.longitude === 'number' ? Number(user.longitude) : undefined,
+                  timezone: user.tzId || undefined,
+                }
+              : {}),
+          }
+          onProfileLoaded(loadedBirthInfo)
+        }
       } catch (err) {
         logger.error('[UnifiedBirthForm] Failed to load profile:', err)
         if (!isAutoLoad) {
@@ -196,8 +230,10 @@ export function UnifiedBirthForm({
     },
     [
       status,
+      onProfileLoaded,
       locale,
       allowTimeUnknown,
+      includeTime,
       includeGender,
       genderFormat,
       includeCity,
@@ -338,36 +374,36 @@ export function UnifiedBirthForm({
 
         {/* Birth Time */}
         {includeTime && (
-        <div className={styles.fieldGroup}>
-          <TimePicker
-            value={birthTime}
-            onChange={setBirthTime}
-            label={locale === 'ko' ? '태어난 시간' : 'Birth Time'}
-            disabled={timeUnknown}
-            required={!allowTimeUnknown}
-            locale={locale}
-          />
-          {allowTimeUnknown && (
-            <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={timeUnknown}
-                onChange={(e) => {
-                  setTimeUnknown(e.target.checked)
-                  if (e.target.checked) {
-                    setBirthTime('')
-                  }
-                }}
-                className={styles.checkbox}
-              />
-              <span>
-                {locale === 'ko'
-                  ? '출생 시간을 모름 (정오 12:00으로 설정됩니다)'
-                  : 'Time unknown (will use 12:00 noon)'}
-              </span>
-            </label>
-          )}
-        </div>
+          <div className={styles.fieldGroup}>
+            <TimePicker
+              value={birthTime}
+              onChange={setBirthTime}
+              label={locale === 'ko' ? '태어난 시간' : 'Birth Time'}
+              disabled={timeUnknown}
+              required={!allowTimeUnknown}
+              locale={locale}
+            />
+            {allowTimeUnknown && (
+              <label className={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  checked={timeUnknown}
+                  onChange={(e) => {
+                    setTimeUnknown(e.target.checked)
+                    if (e.target.checked) {
+                      setBirthTime('')
+                    }
+                  }}
+                  className={styles.checkbox}
+                />
+                <span>
+                  {locale === 'ko'
+                    ? '출생 시간을 모름 (정오 12:00으로 설정됩니다)'
+                    : 'Time unknown (will use 12:00 noon)'}
+                </span>
+              </label>
+            )}
+          </div>
         )}
 
         {/* Birth City */}

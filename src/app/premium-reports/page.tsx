@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react'
 import {
   ArrowRight,
   Briefcase,
+  CalendarDays,
   Coins,
   Crown,
   Heart,
@@ -25,53 +26,95 @@ import { savePremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
 
 type ReportMode = 'free' | 'premium'
 type ReportTheme = 'love' | 'career' | 'wealth' | 'health' | 'family'
+type PremiumSelectionType = 'theme' | 'comprehensive' | 'timing'
 
-const THEME_PRESETS: Record<
-  ReportTheme,
+type PremiumOption = {
+  key: string
+  type: PremiumSelectionType
+  label: string
+  description: string
+  color: string
+  icon: typeof Heart
+  sections: string[]
+  theme?: ReportTheme
+  period?: 'yearly'
+}
+
+const FALLBACK_CITY = 'Seoul, South Korea'
+const FALLBACK_LAT = 37.5665
+const FALLBACK_LON = 126.978
+
+const PREMIUM_OPTIONS: PremiumOption[] = [
   {
-    label: string
-    description: string
-    color: string
-    icon: typeof Heart
-    sections: string[]
-  }
-> = {
-  love: {
+    key: 'comprehensive',
+    type: 'comprehensive',
+    label: '인생총운',
+    description: '전체 흐름, 핵심 전환점, 장기 실행전략을 종합 리포트로 제공합니다.',
+    color: 'from-amber-500 to-orange-500',
+    icon: Crown,
+    sections: ['전체 흐름', '장기 전환점', '핵심 과제', '종합 실행안'],
+  },
+  {
+    key: 'yearly',
+    type: 'timing',
+    period: 'yearly',
+    label: '신년운',
+    description: '올해의 기회 구간, 주의 시점, 영역별 타이밍을 집중 분석합니다.',
+    color: 'from-cyan-500 to-blue-500',
+    icon: CalendarDays,
+    sections: ['연간 흐름', '기회 시점', '주의 구간', '올해 행동 가이드'],
+  },
+  {
+    key: 'love',
+    type: 'theme',
+    theme: 'love',
     label: '연애/관계',
     description: '감정 리듬, 소통 포인트, 관계 안정성과 전환 타이밍을 분석합니다.',
     color: 'from-pink-500 to-rose-500',
     icon: Heart,
     sections: ['관계 흐름', '소통 포인트', '리스크 신호', '실행 가이드'],
   },
-  career: {
+  {
+    key: 'career',
+    type: 'theme',
+    theme: 'career',
     label: '커리어/직업',
     description: '일의 방향성, 기회 창, 협업/리더십 패턴, 의사결정 타이밍을 제시합니다.',
     color: 'from-blue-500 to-indigo-500',
     icon: Briefcase,
     sections: ['일의 방향', '성장 구간', '협업 전략', '행동 플랜'],
   },
-  wealth: {
+  {
+    key: 'wealth',
+    type: 'theme',
+    theme: 'wealth',
     label: '재물/자산',
     description: '현금흐름 안정성, 투자 시기, 소비 습관 리스크, 자산 운영 힌트를 제공합니다.',
     color: 'from-amber-500 to-orange-500',
     icon: Coins,
     sections: ['수입/지출', '투자 타이밍', '주의 구간', '현실 실행안'],
   },
-  health: {
+  {
+    key: 'health',
+    type: 'theme',
+    theme: 'health',
     label: '건강/컨디션',
     description: '에너지 변동, 회복 루틴, 과부하 신호, 생활 패턴 최적화 포인트를 분석합니다.',
     color: 'from-emerald-500 to-teal-500',
     icon: HeartPulse,
     sections: ['에너지 리듬', '회복 루틴', '주의 지표', '실천 체크'],
   },
-  family: {
+  {
+    key: 'family',
+    type: 'theme',
+    theme: 'family',
     label: '가족/생활',
     description: '가정 내 역할, 정서 흐름, 갈등 완화 포인트, 생활 균형 전략을 제안합니다.',
     color: 'from-violet-500 to-purple-500',
     icon: Users,
     sections: ['관계 역학', '정서 흐름', '갈등 완화', '현실 조정안'],
   },
-}
+]
 
 function normalizeGender(value?: ReportProfileInput['gender']): 'male' | 'female' {
   if (value === 'F' || value === 'Female') {
@@ -81,13 +124,15 @@ function normalizeGender(value?: ReportProfileInput['gender']): 'male' | 'female
 }
 
 function createDestinyMapUrl(profile: ReportProfileInput): string {
+  const latitude = Number.isFinite(profile.latitude) ? profile.latitude : FALLBACK_LAT
+  const longitude = Number.isFinite(profile.longitude) ? profile.longitude : FALLBACK_LON
   const params = new URLSearchParams({
     name: profile.name || '사용자',
     birthDate: profile.birthDate,
     birthTime: profile.birthTime || '12:00',
-    city: profile.birthCity || '',
-    lat: String(profile.latitude ?? ''),
-    lon: String(profile.longitude ?? ''),
+    city: profile.birthCity?.trim() || FALLBACK_CITY,
+    lat: String(latitude),
+    lon: String(longitude),
     userTz: profile.timezone || 'Asia/Seoul',
     gender: normalizeGender(profile.gender),
     lang: 'ko',
@@ -101,7 +146,7 @@ export default function PremiumReportsPage() {
   const { data: session, status } = useSession()
 
   const [mode, setMode] = useState<ReportMode>('free')
-  const [selectedTheme, setSelectedTheme] = useState<ReportTheme>('love')
+  const [selectedOptionKey, setSelectedOptionKey] = useState<string>('comprehensive')
   const [profileInput, setProfileInput] = useState<ReportProfileInput | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -111,18 +156,14 @@ export default function PremiumReportsPage() {
     return typeof fromSession === 'string' ? fromSession : ''
   }, [session])
 
-  const hasProfile =
-    !!profileInput?.birthDate &&
-    !!profileInput?.birthCity &&
-    Number.isFinite(profileInput?.latitude) &&
-    Number.isFinite(profileInput?.longitude)
-
+  const hasProfile = Boolean(profileInput?.birthDate)
   const canRun = !isGenerating
-  const selectedThemeInfo = THEME_PRESETS[selectedTheme]
+  const selectedOption =
+    PREMIUM_OPTIONS.find((option) => option.key === selectedOptionKey) ?? PREMIUM_OPTIONS[0]
 
   const handleStartFree = () => {
     if (!profileInput || !hasProfile) {
-      setError('출생도시를 목록에서 선택해 좌표까지 저장한 뒤 진행해주세요.')
+      setError('출생정보를 저장한 뒤 진행해주세요.')
       return
     }
     setError(null)
@@ -136,7 +177,7 @@ export default function PremiumReportsPage() {
     }
 
     if (!profileInput || !hasProfile) {
-      setError('출생도시를 목록에서 선택해 좌표까지 저장한 뒤 진행해주세요.')
+      setError('출생정보를 저장한 뒤 진행해주세요.')
       return
     }
 
@@ -144,28 +185,38 @@ export default function PremiumReportsPage() {
     setIsGenerating(true)
 
     try {
+      const payload: Record<string, unknown> = {
+        reportTier: 'premium',
+        detailLevel: selectedOption.type === 'timing' ? 'detailed' : 'comprehensive',
+        lang: 'ko',
+        name: profileInput.name || '사용자',
+        birthDate: profileInput.birthDate,
+        birthTime: profileInput.birthTime || '12:00',
+        birthCity: profileInput.birthCity || FALLBACK_CITY,
+        timezone: profileInput.timezone || 'Asia/Seoul',
+        gender: profileInput.gender,
+        latitude: Number.isFinite(profileInput.latitude) ? profileInput.latitude : FALLBACK_LAT,
+        longitude: Number.isFinite(profileInput.longitude) ? profileInput.longitude : FALLBACK_LON,
+      }
+
+      if (selectedOption.type === 'theme' && selectedOption.theme) {
+        payload.theme = selectedOption.theme
+      } else if (selectedOption.type === 'timing' && selectedOption.period) {
+        payload.period = selectedOption.period
+        payload.targetDate = `${new Date().getFullYear()}-01-01`
+      } else {
+        payload.period = 'comprehensive'
+      }
+
       const response = await fetch('/api/destiny-matrix/ai-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          reportTier: 'premium',
-          theme: selectedTheme,
-          detailLevel: 'comprehensive',
-          lang: 'ko',
-          name: profileInput.name || '사용자',
-          birthDate: profileInput.birthDate,
-          birthTime: profileInput.birthTime || '12:00',
-          birthCity: profileInput.birthCity,
-          timezone: profileInput.timezone || 'Asia/Seoul',
-          gender: profileInput.gender,
-          latitude: profileInput.latitude,
-          longitude: profileInput.longitude,
-        }),
+        body: JSON.stringify(payload),
       })
 
       const data = (await response.json()) as {
         success?: boolean
-        report?: { id?: string }
+        report?: { id?: string; reportType?: 'timing' | 'themed' | 'comprehensive' }
         error?: { code?: string; message?: string }
       }
 
@@ -182,16 +233,30 @@ export default function PremiumReportsPage() {
         throw new Error('리포트 ID를 받지 못했습니다.')
       }
 
+      const reportType: 'timing' | 'themed' | 'comprehensive' =
+        data.report?.reportType ||
+        (selectedOption.type === 'theme'
+          ? 'themed'
+          : selectedOption.type === 'timing'
+            ? 'timing'
+            : 'comprehensive')
+
       savePremiumReportSnapshot({
         reportId,
-        reportType: 'themed',
-        theme: selectedTheme,
+        reportType,
+        period:
+          selectedOption.type === 'timing'
+            ? selectedOption.period
+            : reportType === 'comprehensive'
+              ? 'comprehensive'
+              : undefined,
+        theme: selectedOption.type === 'theme' ? selectedOption.theme : undefined,
         createdAt: new Date().toISOString(),
         report: (data.report ?? {}) as Record<string, unknown>,
       })
 
       analytics.matrixGenerate('premium-reports')
-      router.push(`/premium-reports/result/${reportId}?type=themed`)
+      router.push(`/premium-reports/result/${reportId}?type=${reportType}`)
     } catch (e) {
       setError(e instanceof Error ? e.message : '리포트 생성 중 오류가 발생했습니다.')
     } finally {
@@ -218,8 +283,7 @@ export default function PremiumReportsPage() {
               공통 입력 후 Free / Premium 선택
             </h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300 md:text-base">
-              먼저 출생 정보 공통폼을 입력하고, 무료 인사이트 또는 프리미엄 테마 분석으로 바로
-              이어집니다.
+              먼저 출생 정보를 입력하면, 무료 인사이트 또는 프리미엄 리포트로 바로 이어집니다.
             </p>
           </div>
         </header>
@@ -272,7 +336,7 @@ export default function PremiumReportsPage() {
                   </p>
                   <button
                     onClick={handleStartFree}
-                    disabled={!canRun}
+                    disabled={!canRun || !hasProfile}
                     className={`mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white transition ${
                       canRun && hasProfile
                         ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110'
@@ -287,37 +351,30 @@ export default function PremiumReportsPage() {
                 <div className="mt-4">
                   <div className="mb-3 flex items-center gap-2 text-violet-100">
                     <Crown className="h-4 w-4" />
-                    <span className="text-sm font-semibold">
-                      테마를 선택하고 프리미엄 리포트를 생성하세요
-                    </span>
+                    <span className="text-sm font-semibold">리포트 타입을 선택하고 생성하세요</span>
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {(
-                      Object.entries(THEME_PRESETS) as [
-                        ReportTheme,
-                        (typeof THEME_PRESETS)[ReportTheme],
-                      ][]
-                    ).map(([themeKey, theme]) => {
-                      const Icon = theme.icon
-                      const isSelected = selectedTheme === themeKey
+                    {PREMIUM_OPTIONS.map((option) => {
+                      const Icon = option.icon
+                      const isSelected = selectedOption.key === option.key
 
                       return (
                         <button
-                          key={themeKey}
-                          onClick={() => setSelectedTheme(themeKey)}
+                          key={option.key}
+                          onClick={() => setSelectedOptionKey(option.key)}
                           className={`rounded-2xl border p-4 text-left transition ${
                             isSelected
-                              ? `border-violet-300 bg-gradient-to-br ${theme.color} shadow-lg shadow-violet-500/25`
+                              ? `border-violet-300 bg-gradient-to-br ${option.color} shadow-lg shadow-violet-500/25`
                               : 'border-slate-700 bg-slate-800/40 hover:border-slate-500'
                           }`}
                         >
                           <div className="mb-2 inline-flex rounded-lg bg-black/25 p-2 text-white">
                             <Icon className="h-4 w-4" />
                           </div>
-                          <p className="text-sm font-bold text-white">{theme.label}</p>
+                          <p className="text-sm font-bold text-white">{option.label}</p>
                           <p className="mt-1 text-xs leading-5 text-slate-100/90">
-                            {theme.description}
+                            {option.description}
                           </p>
                         </button>
                       )
@@ -326,10 +383,10 @@ export default function PremiumReportsPage() {
 
                   <div className="mt-3 rounded-xl border border-violet-300/30 bg-violet-500/10 p-3">
                     <p className="text-xs font-semibold text-violet-100">
-                      선택된 테마: {selectedThemeInfo.label}
+                      선택된 리포트: {selectedOption.label}
                     </p>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {selectedThemeInfo.sections.map((section) => (
+                      {selectedOption.sections.map((section) => (
                         <span
                           key={section}
                           className="rounded-full border border-violet-300/40 bg-slate-950/50 px-3 py-1 text-[11px] text-violet-100"
@@ -342,10 +399,10 @@ export default function PremiumReportsPage() {
 
                   <button
                     onClick={handleGeneratePremium}
-                    disabled={!canRun}
+                    disabled={!canRun || !hasProfile}
                     className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white transition ${
                       canRun && hasProfile
-                        ? `bg-gradient-to-r ${selectedThemeInfo.color} hover:brightness-110`
+                        ? `bg-gradient-to-r ${selectedOption.color} hover:brightness-110`
                         : 'cursor-not-allowed bg-slate-700'
                     }`}
                   >

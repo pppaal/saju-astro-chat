@@ -51,18 +51,25 @@ export function ReportProfileForm({
     [locale]
   )
 
-  const handleSubmit = (birth: BirthInfo) => {
-    const payload: ReportProfileInput = {
-      name: name.trim() || (locale === 'ko' ? '사용자' : 'User'),
-      birthDate: birth.birthDate,
-      birthTime: birth.birthTime || '12:00',
-      gender: birth.gender,
-      birthCity: birth.birthCity,
-      latitude: birth.latitude,
-      longitude: birth.longitude,
-      timezone: birth.timezone,
-    }
+  const toPayload = (birth: BirthInfo): ReportProfileInput => ({
+    name: name.trim() || (locale === 'ko' ? '사용자' : 'User'),
+    birthDate: birth.birthDate,
+    birthTime: birth.birthTime || '12:00',
+    gender: birth.gender,
+    birthCity: birth.birthCity,
+    latitude: birth.latitude,
+    longitude: birth.longitude,
+    timezone: birth.timezone,
+  })
 
+  const handleSubmit = (birth: BirthInfo) => {
+    const payload = toPayload(birth)
+    setLastSaved(payload)
+    onSubmit(payload)
+  }
+
+  const handleProfileLoaded = (birth: BirthInfo) => {
+    const payload = toPayload(birth)
     setLastSaved(payload)
     onSubmit(payload)
   }
@@ -88,6 +95,7 @@ export function ReportProfileForm({
       <div className="rounded-2xl border border-cyan-300/25 bg-[#071127]/70 p-4">
         <UnifiedBirthForm
           onSubmit={handleSubmit}
+          onProfileLoaded={handleProfileLoaded}
           locale={locale}
           includeProfileLoader={true}
           includeCity={true}
