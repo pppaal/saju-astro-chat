@@ -42,7 +42,7 @@ export function useCounselorData(sp: SearchParams) {
   const birthDate = (Array.isArray(sp.birthDate) ? sp.birthDate[0] : sp.birthDate) ?? ''
   const birthTime = (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime) ?? ''
   const city = (Array.isArray(sp.city) ? sp.city[0] : sp.city) ?? ''
-  const gender = (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? ''
+  const rawGender = (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? ''
   const theme = (Array.isArray(sp.theme) ? sp.theme[0] : sp.theme) ?? 'life'
   const langParam = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? 'ko'
   const lang: Lang = langParam === 'en' ? 'en' : 'ko'
@@ -57,6 +57,7 @@ export function useCounselorData(sp: SearchParams) {
 
   const latitude = latStr ? Number(latStr) : NaN
   const longitude = lonStr ? Number(lonStr) : NaN
+  const normalizedGender = String(rawGender).toLowerCase() === 'female' ? 'female' : 'male'
 
   // Theme selection state (can be changed by user)
   const [selectedTheme, setSelectedTheme] = useState(theme)
@@ -114,7 +115,7 @@ export function useCounselorData(sp: SearchParams) {
     if (!saju || !saju.dayMaster) {
       try {
         logger.warn('[CounselorPage] Computing fresh saju data...')
-        const genderVal = gender === 'Male' || gender === 'male' ? 'male' : 'female'
+        const genderVal = normalizedGender
         const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul'
         const computed = calculateSajuData(birthDate, birthTime, genderVal, 'solar', userTz)
         saju = computed as unknown as Record<string, unknown>
@@ -315,7 +316,7 @@ export function useCounselorData(sp: SearchParams) {
             birth: {
               date: birthDate,
               time: birthTime,
-              gender: gender === 'Male' || gender === 'male' ? 'male' : 'female',
+              gender: normalizedGender,
               latitude,
               longitude,
             },
@@ -342,7 +343,7 @@ export function useCounselorData(sp: SearchParams) {
       }
     }
     prefetchRAG()
-  }, [selectedTheme, birthDate, birthTime, gender, latitude, longitude])
+  }, [selectedTheme, birthDate, birthTime, normalizedGender, latitude, longitude])
 
   // Premium: Load user context (persona + recent sessions) for returning users
   useEffect(() => {
@@ -453,7 +454,7 @@ export function useCounselorData(sp: SearchParams) {
   // Loading animation
   useEffect(() => {
     if (!birthDate || !birthTime || isNaN(latitude) || isNaN(longitude)) {
-      router.push('/destiny-map')
+      router.push('/destiny-counselor')
       return
     }
 
@@ -498,7 +499,7 @@ export function useCounselorData(sp: SearchParams) {
     birthDate,
     birthTime,
     city,
-    gender,
+    gender: normalizedGender,
     theme: selectedTheme,
     lang,
     initialQuestion,

@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useCallback, use } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useCallback, useMemo } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import dynamic from 'next/dynamic'
@@ -35,9 +35,26 @@ const Chat = dynamic(() => import('@/components/destiny-map/Chat'), {
 
 type SearchParams = Record<string, string | string[] | undefined>
 
-export default function CounselorPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+export default function CounselorPage() {
   const { t } = useI18n()
-  const sp = use(searchParams)
+  const rawSearchParams = useSearchParams()
+  const sp = useMemo<SearchParams>(() => {
+    const result: SearchParams = {}
+    rawSearchParams.forEach((value, key) => {
+      const current = result[key]
+      if (typeof current === 'undefined') {
+        result[key] = value
+        return
+      }
+      if (Array.isArray(current)) {
+        result[key] = [...current, value]
+        return
+      }
+      result[key] = [current, value]
+    })
+    return result
+  }, [rawSearchParams])
+
   const router = useRouter()
   const { status: authStatus } = useSession()
   const isAuthed = authStatus === 'authenticated'
@@ -77,7 +94,6 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
   }, [router])
 
   const handleBack = useCallback(() => router.back(), [router])
-
   const handleChatReset = useCallback(() => window.location.reload(), [])
 
   if (isCheckingAuth) {
@@ -101,26 +117,23 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
     <main className={styles.page}>
       <div className={styles.authGate}>
         <div className={styles.authCard}>
-          <div className={styles.authIcon}>🔒</div>
+          <div className={styles.authIcon}>{'\uD83D\uDD12'}</div>
           <h1 className={styles.authTitle}>
-            {t(
-              'destinyMap.counselor.loginRequiredTitle',
-              '상담사 채팅은 로그인 후 이용할 수 있어요'
-            )}
+            {t('destinyMap.counselor.loginRequiredTitle', 'Counselor chat requires login.')}
           </h1>
           <p className={styles.authDesc}>
             {t(
               'destinyMap.counselor.loginRequiredDesc',
-              '맞춤형 상담과 이전 대화 기록을 불러오려면 로그인해주세요.'
+              'Sign in to load your personalized context and chat history.'
             )}
           </p>
           <button type="button" className={styles.loginButton} onClick={handleLogin}>
-            {t('destinyMap.counselor.loginCta', '로그인하고 시작하기')}
+            {t('destinyMap.counselor.loginCta', 'Sign in and continue')}
           </button>
           <p className={styles.loginHint}>
             {t(
               'destinyMap.counselor.loginHint',
-              '계정이 없으면 로그인 과정에서 바로 회원가입할 수 있습니다.'
+              'If you do not have an account yet, you can create one from the sign-in flow.'
             )}
           </p>
         </div>
@@ -154,14 +167,14 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
             type="button"
             className={styles.backButton}
             onClick={handleBack}
-            aria-label={t('common.back', '뒤로가기')}
+            aria-label={t('common.back', 'Back')}
           >
-            <span className={styles.backIcon}>←</span>
+            <span className={styles.backIcon}>{'\u2190'}</span>
           </button>
 
           <div className={styles.headerInfo}>
             <div className={styles.counselorBadge}>
-              <span className={styles.counselorAvatar}>🔮</span>
+              <span className={styles.counselorAvatar}>{'\uD83D\uDD2E'}</span>
               <div>
                 <h1 className={styles.headerTitle}>
                   {t('destinyMap.counselor.title', 'Destiny Counselor')}
@@ -177,8 +190,8 @@ export default function CounselorPage({ searchParams }: { searchParams: Promise<
           <div className={styles.headerActions}>
             <CreditBadge variant="compact" />
             <Link href="/" className={styles.homeButton} aria-label="Home">
-              <span className={styles.homeIcon}>🏠</span>
-              <span className={styles.homeLabel}>홈</span>
+              <span className={styles.homeIcon}>{'\uD83C\uDFE0'}</span>
+              <span className={styles.homeLabel}>{t('common.home', 'Home')}</span>
             </Link>
           </div>
         </header>

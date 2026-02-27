@@ -42,7 +42,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
           rows={2}
           className={styles.textarea}
           disabled={loading}
-          maxLength={5000}
+          maxLength={2000}
         />
         <button
           type="button"

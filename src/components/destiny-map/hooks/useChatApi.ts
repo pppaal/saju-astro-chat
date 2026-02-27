@@ -104,6 +104,7 @@ export function useChatApi({
   const [usedFallback, setUsedFallback] = React.useState(false)
   const [followUpQuestions, setFollowUpQuestions] = React.useState<string[]>([])
   const [showCrisisModal, setShowCrisisModal] = React.useState(false)
+  const MAX_CHAT_MESSAGE_CHARS = 2000
 
   // Throttled message update to reduce re-renders during streaming
   const pendingContentRef = React.useRef<string | null>(null)
@@ -302,7 +303,9 @@ export function useChatApi({
   // Main send handler
   const handleSend = React.useCallback(
     async (directText?: string) => {
-      const text = directText
+      const trimmed = (directText || '').trim()
+      const text =
+        trimmed.length > MAX_CHAT_MESSAGE_CHARS ? trimmed.slice(0, MAX_CHAT_MESSAGE_CHARS) : trimmed
       if (!text || loading) {
         return
       }
@@ -321,13 +324,30 @@ export function useChatApi({
       setNotice(null)
       setUsedFallback(false)
 
+      const normalizedGender =
+        typeof profile.gender === 'string'
+          ? profile.gender.toLowerCase() === 'female'
+            ? 'female'
+            : profile.gender.toLowerCase() === 'male'
+              ? 'male'
+              : undefined
+          : undefined
+      const normalizedLatitude =
+        typeof profile.latitude === 'number' && Number.isFinite(profile.latitude)
+          ? profile.latitude
+          : undefined
+      const normalizedLongitude =
+        typeof profile.longitude === 'number' && Number.isFinite(profile.longitude)
+          ? profile.longitude
+          : undefined
+
       const payload: ChatPayload = {
         name: profile.name,
         birthDate: profile.birthDate,
         birthTime: profile.birthTime,
-        latitude: profile.latitude,
-        longitude: profile.longitude,
-        gender: profile.gender,
+        latitude: normalizedLatitude,
+        longitude: normalizedLongitude,
+        gender: normalizedGender,
         city: profile.city,
         theme,
         lang,
@@ -395,6 +415,7 @@ export function useChatApi({
       makeRequest,
       processStream,
       tr,
+      MAX_CHAT_MESSAGE_CHARS,
     ]
   )
 

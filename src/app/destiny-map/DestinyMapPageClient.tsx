@@ -237,7 +237,9 @@ function DestinyMapContent({
         })
         return
       }
-      if (!selectedCity || !selectedCity.lat || !selectedCity.lon) {
+      const hasValidCoordinates =
+        !!selectedCity && Number.isFinite(selectedCity.lat) && Number.isFinite(selectedCity.lon)
+      if (!hasValidCoordinates) {
         dispatch({
           type: 'SET_FIELD',
           field: 'cityErr',
@@ -252,7 +254,7 @@ function DestinyMapContent({
       params.set('birthTime', birthTimeValue || '')
       params.set('city', cityValue || '')
       const apiGender = normalizeGender(form.gender)
-      params.set('gender', apiGender || '')
+      params.set('gender', apiGender === 'female' ? 'female' : 'male')
       params.set('lang', locale || 'ko')
       params.set('latitude', lat)
       params.set('longitude', lon)
@@ -342,11 +344,11 @@ function DestinyMapContent({
             <div className={styles.iconWrapper}>
               <span className={styles.icon}>🔮</span>
             </div>
-            <h1 className={styles.title}>{safeT('menu.destinyMap', '운명 지도')}</h1>
+            <h1 className={styles.title}>{safeT('menu.destinyCounselor', 'Destiny Counselor')}</h1>
             <p className={styles.subtitle}>
               {safeT(
-                'app.subtitle',
-                'Get practical counseling from Saju + Astrology + AI cross-analysis.'
+                'destinyCounselor.subtitle',
+                'Start your Destiny Counselor session with Saju + Astrology analysis.'
               )}
             </p>
           </div>
@@ -558,9 +560,7 @@ function DestinyMapContent({
             <button className={styles.submitButton} type="submit">
               <span className={styles.buttonText}>
                 {form.isQuickMode
-                  ? isKo
-                    ? '생년월일로 빠르게 시작'
-                    : 'Quick Analysis'
+                  ? safeT('destinyCounselor.quickStart', isKo ? '빠른 상담 시작' : 'Quick Start')
                   : safeT('app.analyze') || 'Begin Your Journey'}
               </span>
               <span className={styles.buttonIcon}>{'->'}</span>
