@@ -701,6 +701,7 @@ export const POST = withApiMiddleware(
         activeTransits = [],
         asteroidHouses = {},
         extraPointSigns = {},
+        advancedAstroSignals,
         lang = 'ko',
         startYearMonth,
       } = validationResult.data
@@ -957,6 +958,7 @@ export const POST = withApiMiddleware(
         activeTransits: normalizedActiveTransits,
         asteroidHouses: normalizedAsteroidHouses,
         extraPointSigns: normalizedExtraPointSigns,
+        advancedAstroSignals,
         lang,
         startYearMonth,
       }

@@ -338,6 +338,20 @@ export const destinyMatrixCalculationSchema = z
     activeTransits: z.array(destinyMatrixTransitCycleSchema).optional(),
     asteroidHouses: planetHousesSchema.optional(),
     extraPointSigns: planetSignsSchema.optional(),
+    advancedAstroSignals: z
+      .object({
+        solarReturn: z.boolean().optional(),
+        lunarReturn: z.boolean().optional(),
+        progressions: z.boolean().optional(),
+        draconic: z.boolean().optional(),
+        harmonics: z.boolean().optional(),
+        fixedStars: z.boolean().optional(),
+        eclipses: z.boolean().optional(),
+        midpoints: z.boolean().optional(),
+        asteroids: z.boolean().optional(),
+        extraPoints: z.boolean().optional(),
+      })
+      .optional(),
     lang: z.enum(['ko', 'en']).optional(),
     startYearMonth: z
       .string()

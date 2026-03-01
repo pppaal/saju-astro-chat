@@ -255,6 +255,13 @@ describe('tarot-recommend', () => {
       expect(result.length).toBeGreaterThan(0)
     })
 
+    it('routes binary no-space choice phrasing to two-paths', () => {
+      const result = recommendSpreads('A할까B할까') as SpreadRecommendation[]
+      expect(result.length).toBeGreaterThan(0)
+      expect(result[0].themeId).toBe('decisions-crossroads')
+      expect(result[0].spreadId).toBe('two-paths')
+    })
+
     it('handles English questions', () => {
       const result = recommendSpreads('Will I find love soon?') as SpreadRecommendation[]
       expect(result.length).toBeGreaterThan(0)

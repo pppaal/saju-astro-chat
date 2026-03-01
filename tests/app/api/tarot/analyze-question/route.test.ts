@@ -760,4 +760,52 @@ describe('Tarot Analyze Question API - POST', () => {
       }
     })
   })
+
+  // ----------------------------------------------------------
+  // Weird Question Routing (Fallback path)
+  // ----------------------------------------------------------
+  describe('Weird Question Routing', () => {
+    it('routes noisy / no-space / slang-like questions to the intended spread when OpenAI is unavailable', async () => {
+      mockFetch.mockRejectedValue(new Error('OpenAI unavailable'))
+
+      const cases = [
+        {
+          question: '개한테뽀뽀할까???',
+          expectedTheme: 'decisions-crossroads',
+          expectedSpread: 'yes-no-why',
+        },
+        {
+          question: 'A할까B할까 ㄹㅇ 고민됨',
+          expectedTheme: 'decisions-crossroads',
+          expectedSpread: 'two-paths',
+        },
+        {
+          question: '언제 연락하는게 좋을까 타이밍만 알려줘',
+          expectedTheme: 'decisions-crossroads',
+          expectedSpread: 'timing-window',
+        },
+        {
+          question: '그사람 나 좋아하나',
+          expectedTheme: 'love-relationships',
+          expectedSpread: 'crush-feelings',
+        },
+        {
+          question: '오늘하루운세',
+          expectedTheme: 'daily-reading',
+          expectedSpread: 'day-card',
+        },
+      ]
+
+      for (const c of cases) {
+        const req = createRequest({ question: c.question, language: 'ko' })
+        const response = await POST(req)
+        const data = await response.json()
+
+        expect(response.status).toBe(200)
+        expect(data.source).toBe('fallback')
+        expect(data.themeId).toBe(c.expectedTheme)
+        expect(data.spreadId).toBe(c.expectedSpread)
+      }
+    })
+  })
 })

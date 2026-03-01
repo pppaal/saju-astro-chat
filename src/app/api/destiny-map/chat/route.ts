@@ -18,6 +18,7 @@ import { sanitizeLocaleText, maskTextWithName } from '@/lib/destiny-map/sanitize
 import { logger } from '@/lib/logger'
 import { type ChatMessage } from '@/lib/api'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { buildThemeDepthGuide } from '@/lib/prompts/fortuneWithIcp'
 
 import { ALLOWED_LOCALES, ALLOWED_GENDERS, MESSAGE_LIMITS } from '@/lib/constants/api-limits'
 // HTTP_STATUS not used directly, status codes handled via createErrorResponse
@@ -271,6 +272,7 @@ export async function POST(request: NextRequest) {
 
     const chatPrompt = [
       buildChatPrompt(lang, theme, snapshot, trimmedHistory),
+      buildThemeDepthGuide(theme, lang === 'ko' ? 'ko' : 'en'),
       cvSnippet ? `User CV (partial):\n${cvSnippet}` : '',
     ]
       .filter(Boolean)

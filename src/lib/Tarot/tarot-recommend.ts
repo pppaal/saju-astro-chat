@@ -433,6 +433,45 @@ export function checkDangerousQuestion(question: string): {
 
 function findDirectMatch(question: string): SpreadRecommendation | null {
   const normalizedQuestion = question.toLowerCase()
+
+  // Strong pre-rule: explicit timing intent should route to timing-window first.
+  const timingIntentPattern = /언제|시기|타이밍|때가|when|timing|best time|right time/i
+  if (timingIntentPattern.test(normalizedQuestion)) {
+    const theme = tarotThemes.find((t) => t.id === 'decisions-crossroads')
+    const spread = theme?.spreads.find((s) => s.id === 'timing-window')
+    if (theme && spread) {
+      return {
+        themeId: 'decisions-crossroads',
+        theme,
+        spreadId: 'timing-window',
+        spread,
+        reason: 'Find the right timing',
+        reasonKo: '적절한 타이밍을 봐요',
+        matchScore: 125,
+      }
+    }
+  }
+
+  // Strong pre-rule: binary A/B choice phrasing should go to two-paths,
+  // even when each clause ends with "~할까" (which would otherwise hit yes-no-why).
+  const binaryChoicePattern =
+    /([a-z0-9가-힣]+)\s*할까\s*([a-z0-9가-힣]+)\s*할까|(\b[a-z]\b)\s*(vs|or)\s*(\b[a-z]\b)|아니면|둘\s*중|vs/i
+  if (binaryChoicePattern.test(normalizedQuestion)) {
+    const theme = tarotThemes.find((t) => t.id === 'decisions-crossroads')
+    const spread = theme?.spreads.find((s) => s.id === 'two-paths')
+    if (theme && spread) {
+      return {
+        themeId: 'decisions-crossroads',
+        theme,
+        spreadId: 'two-paths',
+        spread,
+        reason: 'Compare your options',
+        reasonKo: '두 선택지를 비교해봐요',
+        matchScore: 120,
+      }
+    }
+  }
+
   const matchResults: MatchResult[] = []
 
   for (const match of directMatchesLower) {

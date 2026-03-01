@@ -9,6 +9,7 @@ import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { sanitizeLocaleText, maskTextWithName } from '@/lib/destiny-map/sanitize'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { DATE_RE, TIME_RE } from '@/lib/validation/patterns'
+import { buildThemeDepthGuide } from '@/lib/prompts/fortuneWithIcp'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -135,9 +136,12 @@ export const POST = createStreamRoute<AstrologyChatStreamValidated>({
       .slice(0, 1500)
 
     const userQuestion = lastUser ? guardText(lastUser.content, 500) : ''
+    const normalizedLang = lang === 'ko' ? 'ko' : 'en'
+    const themeDepthGuide = buildThemeDepthGuide(theme, normalizedLang)
 
     const chatPrompt = [
       astrologyCounselorSystemPrompt(lang),
+      themeDepthGuide,
       `Name: ${name || 'User'}`,
       `Birth: ${birthDate} ${birthTime}`,
       `Gender: ${gender}`,

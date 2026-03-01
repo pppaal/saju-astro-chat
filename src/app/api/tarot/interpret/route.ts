@@ -11,6 +11,7 @@ import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withC
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { tarotInterpretRequestSchema } from '@/lib/api/zodValidation'
+import { evaluateTarotInterpretationQuality } from '@/lib/Tarot/interpretationQuality'
 
 interface CardInput {
   name: string
@@ -29,6 +30,27 @@ type ParsedTarotJson = {
   cards?: unknown
   advice?: unknown
   combinations?: unknown
+}
+
+type TarotInsight = {
+  position: string
+  card_name: string
+  is_reversed: boolean
+  interpretation: string
+  spirit_animal: null
+  chakra: null
+  element: null
+  shadow: null
+}
+
+type TarotInterpretResult = {
+  overall_message: string
+  card_insights: TarotInsight[]
+  guidance: string
+  affirmation: string
+  combinations: Array<{ title: string; summary: string }> | unknown[]
+  followup_questions: unknown[]
+  fallback: boolean
 }
 
 const MAX_CARD_MEANING_LENGTH = 500
@@ -186,6 +208,183 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>
 }
 
+function isTooGenericGuidance(guidance: string, language: string): boolean {
+  const normalized = guidance.toLowerCase().replace(/\s+/g, ' ').trim()
+  if (!normalized || normalized.length < 25) return true
+
+  if (language === 'ko') {
+    return /(메시지에 귀 기울|화이팅|힘내|좋은 하루)/i.test(guidance)
+  }
+  return /(listen to the cards|you got this|stay positive|good luck)/i.test(normalized)
+}
+
+function buildActionableGuidance(language: string, userQuestion: string | undefined): string {
+  const question = (userQuestion || '').trim()
+  const focusLabel =
+    question.length > 0
+      ? language === 'ko'
+        ? `질문(${question}) 기준으로`
+        : `Based on your question (${question})`
+      : ''
+
+  if (language === 'ko') {
+    return [
+      `1) 오늘: ${focusLabel || '현재 카드 흐름 기준으로'} 가장 중요한 변수 1개를 정하고, 실행할 행동 1개를 20분 안에 시작하세요.`,
+      '2) 이번 주: 결과를 3줄로 기록하세요. (무엇을 했는지/어떤 반응이 있었는지/다음 수정 포인트)',
+      '3) 다음 7일: 반복 패턴 1개를 끊는 실험을 하고, 효과가 있으면 같은 방식으로 1회 더 실행하세요.',
+    ].join('\n')
+  }
+
+  return [
+    `1) Today: ${focusLabel || 'Using your current card flow'}, pick one controllable variable and execute one 20-minute action block.`,
+    '2) This week: log outcomes in 3 lines (what you did / response you saw / what to adjust).',
+    '3) Within 7 days: run one repeat-pattern interruption experiment, then repeat once if it works.',
+  ].join('\n')
+}
+
+function buildMinimumOverall(
+  language: string,
+  cards: CardInput[],
+  userQuestion: string | undefined,
+  currentOverall: string
+): string {
+  if (currentOverall.trim().length >= 90) {
+    return currentOverall
+  }
+
+  const cardNames = cards
+    .slice(0, 3)
+    .map((card) => (language === 'ko' ? card.nameKo || card.name : card.name))
+    .join(', ')
+
+  if (language === 'ko') {
+    const q = (userQuestion || '').trim()
+    const qLine = q ? `질문 "${q}" 기준으로 보면, ` : ''
+    return `${qLine}${cardNames} 카드 조합은 지금은 성급한 결정보다 우선순위 정리와 실행 리듬 회복이 핵심이라는 신호예요. 감정 반응으로 바로 움직이기보다, 작은 실행 단위를 먼저 만들고 결과를 확인하면서 조정하면 흐름이 안정됩니다. 결론: 오늘 바로 실행 가능한 1개 행동부터 시작하세요.`
+  }
+
+  const q = (userQuestion || '').trim()
+  const qLine = q ? `For your question "${q}", ` : ''
+  return `${qLine}the combination of ${cardNames} suggests that stabilizing priorities and execution rhythm matters more than reacting fast. Start with one small concrete action, observe the outcome, and iterate from evidence. Conclusion: begin with one action you can complete today.`
+}
+
+function buildMinimumInsight(language: string, card: CardInput): string {
+  const cardName = language === 'ko' ? card.nameKo || card.name : card.name
+  const orientation = card.isReversed
+    ? language === 'ko'
+      ? '역방향'
+      : 'reversed'
+    : language === 'ko'
+      ? '정방향'
+      : 'upright'
+  const baseMeaning =
+    (language === 'ko' ? card.meaningKo || card.meaning : card.meaning) ||
+    (language === 'ko'
+      ? '현재 상황의 핵심 변수를 확인하고 단계별 실행으로 전환하세요.'
+      : 'Check the key variable in your current situation and move with staged execution.')
+
+  if (language === 'ko') {
+    return `${cardName}(${orientation}) 카드는 지금 국면에서 감정 반응보다 구조화된 선택이 중요하다고 말해요. ${baseMeaning} 오늘은 이 카드가 가리키는 변수 1개만 정리하고, 이번 주에는 결과 기록으로 판단 정확도를 높이세요.`
+  }
+
+  return `${cardName} (${orientation}) signals that structured choices beat emotional reaction in this phase. ${baseMeaning} Today, isolate one variable this card points to, and this week, use outcome logging to improve decision accuracy.`
+}
+
+function normalizeResultPayload(raw: unknown): Partial<TarotInterpretResult> {
+  if (!raw || typeof raw !== 'object') return {}
+  return raw as Partial<TarotInterpretResult>
+}
+
+function enforceInterpretationQuality(input: {
+  rawResult: unknown
+  cards: CardInput[]
+  language: string
+  userQuestion?: string
+}): TarotInterpretResult {
+  const payload = normalizeResultPayload(input.rawResult)
+  const isKorean = input.language === 'ko'
+
+  const normalizedInsights: TarotInsight[] = input.cards.map((card, i) => {
+    const rawInsight =
+      Array.isArray(payload.card_insights) &&
+      payload.card_insights[i] &&
+      typeof payload.card_insights[i] === 'object'
+        ? (payload.card_insights[i] as Record<string, unknown>)
+        : {}
+
+    const interpretation =
+      typeof rawInsight.interpretation === 'string' && rawInsight.interpretation.trim().length >= 80
+        ? rawInsight.interpretation.trim()
+        : buildMinimumInsight(input.language, card)
+
+    return {
+      position:
+        typeof rawInsight.position === 'string' && rawInsight.position.trim()
+          ? rawInsight.position
+          : card.position,
+      card_name:
+        typeof rawInsight.card_name === 'string' && rawInsight.card_name.trim()
+          ? rawInsight.card_name
+          : card.name,
+      is_reversed:
+        typeof rawInsight.is_reversed === 'boolean' ? rawInsight.is_reversed : card.isReversed,
+      interpretation,
+      spirit_animal: null,
+      chakra: null,
+      element: null,
+      shadow: null,
+    }
+  })
+
+  const initialOverall =
+    typeof payload.overall_message === 'string' ? payload.overall_message.trim() : ''
+  const initialGuidance = typeof payload.guidance === 'string' ? payload.guidance.trim() : ''
+
+  let overall = buildMinimumOverall(input.language, input.cards, input.userQuestion, initialOverall)
+  let guidance = isTooGenericGuidance(initialGuidance, input.language)
+    ? buildActionableGuidance(input.language, input.userQuestion)
+    : initialGuidance
+
+  const quality = evaluateTarotInterpretationQuality({
+    language: input.language,
+    cards: input.cards.map((card) => ({ name: card.name, position: card.position })),
+    result: {
+      overall_message: overall,
+      card_insights: normalizedInsights,
+      guidance,
+      fallback: Boolean(payload.fallback),
+    },
+  })
+
+  if (quality.overallScore < 60) {
+    overall = buildMinimumOverall(input.language, input.cards, input.userQuestion, '')
+    guidance = buildActionableGuidance(input.language, input.userQuestion)
+    logger.warn('[Tarot interpret] low-quality interpretation auto-repaired', {
+      score: quality.overallScore,
+      grade: quality.grade,
+      issues: quality.issues.slice(0, 4),
+    })
+  }
+
+  return {
+    overall_message: overall,
+    card_insights: normalizedInsights,
+    guidance,
+    affirmation:
+      typeof payload.affirmation === 'string' && payload.affirmation.trim()
+        ? payload.affirmation
+        : isKorean
+          ? '오늘의 선택을 작은 실행으로 증명해보세요.'
+          : 'Prove today’s choice with one small execution.',
+    combinations:
+      Array.isArray(payload.combinations) && payload.combinations.length > 0
+        ? payload.combinations
+        : buildLocalCombinationHints(input.cards, input.language),
+    followup_questions: Array.isArray(payload.followup_questions) ? payload.followup_questions : [],
+    fallback: Boolean(payload.fallback),
+  }
+}
+
 export const POST = withApiMiddleware(
   async (req: NextRequest, context) => {
     try {
@@ -298,6 +497,13 @@ export const POST = withApiMiddleware(
           includeAstrology ? astroContext : undefined
         )
       }
+
+      result = enforceInterpretationQuality({
+        rawResult: result,
+        cards: validatedCards,
+        language,
+        userQuestion,
+      })
 
       // ======== 기록 저장 (로그인 사용자만) ========
       const session = context.session

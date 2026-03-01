@@ -54,7 +54,44 @@ export default function ComprehensiveReportPage() {
   const { profile, isLoading: profileLoading } = useUserProfile()
 
   const reportTier = toTier(searchParams?.get('tier') ?? null)
-  const { profileInput, setProfileInput } = useReportProfileState(profile)
+  const queryProfileInput = useMemo<ReportProfileInput | null>(() => {
+    const birthDate = searchParams?.get('birthDate') || ''
+    if (!birthDate) return null
+
+    const name = searchParams?.get('name') || profile.name || '사용자'
+    const birthTime = searchParams?.get('birthTime') || profile.birthTime || '12:00'
+    const birthCity = searchParams?.get('birthCity') || profile.birthCity || undefined
+    const timezone = searchParams?.get('timezone') || profile.timezone || 'Asia/Seoul'
+    const genderParam = searchParams?.get('gender')
+    const latitudeParam = searchParams?.get('lat')
+    const longitudeParam = searchParams?.get('lon')
+
+    const latitude = latitudeParam ? Number(latitudeParam) : profile.latitude
+    const longitude = longitudeParam ? Number(longitudeParam) : profile.longitude
+    const gender =
+      genderParam === 'F' || genderParam === 'Female'
+        ? 'F'
+        : genderParam === 'M' || genderParam === 'Male'
+          ? 'M'
+          : profile.gender === 'Female'
+            ? 'F'
+            : profile.gender === 'Male'
+              ? 'M'
+              : undefined
+
+    return {
+      name,
+      birthDate,
+      birthTime,
+      birthCity,
+      gender,
+      timezone,
+      latitude: Number.isFinite(latitude as number) ? (latitude as number) : undefined,
+      longitude: Number.isFinite(longitude as number) ? (longitude as number) : undefined,
+    }
+  }, [profile, searchParams])
+
+  const { profileInput, setProfileInput } = useReportProfileState(profile, queryProfileInput)
 
   const [sajuData, setSajuData] = useState<SajuData | null>(null)
   const [sajuLoading, setSajuLoading] = useState(false)
@@ -316,19 +353,27 @@ export default function ComprehensiveReportPage() {
   )
 }
 
-function useReportProfileState(profile: {
-  birthDate?: string
-  birthTime?: string
-  birthCity?: string
-  timezone?: string
-  latitude?: number
-  longitude?: number
-  name?: string
-  gender?: string
-}) {
+function useReportProfileState(
+  profile: {
+    birthDate?: string
+    birthTime?: string
+    birthCity?: string
+    timezone?: string
+    latitude?: number
+    longitude?: number
+    name?: string
+    gender?: string
+  },
+  queryProfileInput: ReportProfileInput | null
+) {
   const [profileInput, setProfileInput] = useState<ReportProfileInput | null>(null)
 
   useEffect(() => {
+    if (queryProfileInput && !profileInput) {
+      setProfileInput(queryProfileInput)
+      return
+    }
+
     if (!profile.birthDate || profileInput) {
       return
     }
@@ -343,7 +388,7 @@ function useReportProfileState(profile: {
       latitude: profile.latitude,
       longitude: profile.longitude,
     })
-  }, [profile, profileInput])
+  }, [profile, profileInput, queryProfileInput])
 
   return { profileInput, setProfileInput }
 }

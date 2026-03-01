@@ -36,6 +36,7 @@ import {
 import type { FiveElement } from '@/lib/Saju/types'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { compatibilityCounselorRequestSchema } from '@/lib/api/zodValidation'
+import { buildThemeDepthGuide } from '@/lib/prompts/fortuneWithIcp'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -1116,6 +1117,8 @@ export async function POST(req: NextRequest) {
     const themeContext =
       themeContextMap[theme as string] ||
       (lang === 'ko' ? 'ê¶í•© ìƒë‹´' : 'Compatibility counseling')
+    const normalizedLang = lang === 'ko' ? 'ko' : 'en'
+    const themeDepthGuide = buildThemeDepthGuide(String(theme || 'general'), normalizedLang)
 
     // Build enhanced prompt for counselor
     const counselorPrompt = [
@@ -1136,6 +1139,8 @@ export async function POST(req: NextRequest) {
       fullContextText ? `\n== FULL RAW CONTEXT (SAJU + ASTRO) ==\n${fullContextText}` : '',
       historyText ? `\n== ì´ì „ ëŒ€í™” ==\n${historyText}` : '',
       `\n== ì‚¬ìš©ìž ì§ˆë¬¸ ==\n${userQuestion}`,
+      ``,
+      `== INTERPRETATION QUALITY CONTRACT ==\n${themeDepthGuide}`,
       ``,
       `== ìƒë‹´ì‚¬ ì§€ì¹¨ ==`,
       lang === 'ko'

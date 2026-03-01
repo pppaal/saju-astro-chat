@@ -14,7 +14,19 @@ import { createValidationErrorResponse } from '@/lib/api/zodValidation'
 import {
   buildFortuneWithIcpOutputGuide,
   buildFortuneWithIcpSection,
+  buildThemeDepthGuide,
 } from '@/lib/prompts/fortuneWithIcp'
+import {
+  toChart,
+  findNatalAspects,
+  calculateExtraPoints,
+  calculateAllAsteroids,
+  type NatalChartData,
+} from '@/lib/astrology'
+import {
+  computeDestinyMap,
+  type CombinedResult as DestinyMapCombinedResult,
+} from '@/lib/destiny-map/astrology'
 
 // Local modules
 import { clampMessages, counselorSystemPrompt, loadPersonaMemory } from './lib'
@@ -35,12 +47,89 @@ export const maxDuration = 120
 
 type MatrixHighlight = { layer?: number; keyword?: string; score?: number }
 type MatrixSynergy = { description?: string; score?: number; layers?: number[] }
+type MatrixAspectType =
+  | 'conjunction'
+  | 'sextile'
+  | 'square'
+  | 'trine'
+  | 'opposition'
+  | 'semisextile'
+  | 'quincunx'
+  | 'quintile'
+  | 'biquintile'
+type MatrixAspectInput = {
+  planet1: string
+  planet2: string
+  type: MatrixAspectType
+  angle?: number
+  orb?: number
+}
+
+const MATRIX_PLANET_SET = new Set([
+  'Sun',
+  'Moon',
+  'Mercury',
+  'Venus',
+  'Mars',
+  'Jupiter',
+  'Saturn',
+  'Uranus',
+  'Neptune',
+  'Pluto',
+])
+
+const ASPECT_ANGLE_MAP: Record<MatrixAspectType, number> = {
+  conjunction: 0,
+  sextile: 60,
+  square: 90,
+  trine: 120,
+  opposition: 180,
+  semisextile: 30,
+  quincunx: 150,
+  quintile: 72,
+  biquintile: 144,
+}
 
 interface MatrixSnapshot {
   totalScore: number
   topLayers: Array<{ layer: number; score: number }>
   highlights: string[]
   synergies: string[]
+  drivers: string[]
+  cautions: string[]
+  calendarSignals: string[]
+  overlapTimeline: string[]
+  domainScores: Record<string, number>
+  confidenceScore?: number
+  finalScoreAdjusted?: number
+}
+
+function normalizeStringList(value: unknown, limit = 6): string[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .map((v) => (typeof v === 'string' ? v.trim() : ''))
+    .filter(Boolean)
+    .slice(0, limit)
+}
+
+function pickMatrixThemeFocus(
+  theme: string,
+  domainScores: Record<string, number>
+): { domain: string; score?: number } {
+  const mapping: Record<string, string> = {
+    love: 'love',
+    family: 'love',
+    career: 'career',
+    wealth: 'money',
+    health: 'health',
+    today: 'general',
+    month: 'general',
+    year: 'general',
+    life: 'general',
+    chat: 'general',
+  }
+  const domain = mapping[theme] || 'general'
+  return { domain, score: domainScores[domain] }
 }
 
 function mapElementToWestern(
@@ -123,6 +212,205 @@ function collectPlanetData(astro: AstroDataStructure | undefined): {
   return { planetSigns, planetHouses }
 }
 
+function deriveAdvancedAstroSignals(
+  advancedAstro?: Partial<CombinedResult>
+): Record<string, boolean> {
+  if (!advancedAstro || typeof advancedAstro !== 'object') {
+    return {}
+  }
+  return {
+    solarReturn: !!advancedAstro.solarReturn,
+    lunarReturn: !!advancedAstro.lunarReturn,
+    progressions: !!advancedAstro.progressions,
+    draconic: !!advancedAstro.draconic,
+    harmonics: !!advancedAstro.harmonics,
+    fixedStars: !!advancedAstro.fixedStars,
+    eclipses: !!advancedAstro.eclipses,
+    midpoints: !!advancedAstro.midpoints,
+    asteroids: !!advancedAstro.asteroids,
+    extraPoints: !!advancedAstro.extraPoints,
+  }
+}
+
+const ADVANCED_ASTRO_REQUIRED_KEYS: Array<keyof CombinedResult> = [
+  'extraPoints',
+  'asteroids',
+  'solarReturn',
+  'lunarReturn',
+  'progressions',
+  'draconic',
+  'harmonics',
+  'fixedStars',
+  'eclipses',
+  'midpoints',
+]
+
+function hasAdvancedAstroCoverage(advancedAstro?: Partial<CombinedResult>): boolean {
+  if (!advancedAstro || typeof advancedAstro !== 'object') {
+    return false
+  }
+  return ADVANCED_ASTRO_REQUIRED_KEYS.every((key) => Boolean(advancedAstro[key]))
+}
+
+function pickAdvancedAstroFields(
+  value: Partial<CombinedResult> | DestinyMapCombinedResult | undefined
+): Partial<CombinedResult> {
+  if (!value || typeof value !== 'object') {
+    return {}
+  }
+  return {
+    extraPoints: value.extraPoints,
+    asteroids: value.asteroids,
+    solarReturn: value.solarReturn,
+    lunarReturn: value.lunarReturn,
+    progressions: value.progressions,
+    draconic: value.draconic,
+    harmonics: value.harmonics,
+    fixedStars: value.fixedStars,
+    eclipses: value.eclipses,
+    electional: value.electional,
+    midpoints: value.midpoints,
+  }
+}
+
+async function ensureAdvancedAstroData(input: {
+  name?: string
+  birthDate: string
+  birthTime: string
+  gender: 'male' | 'female'
+  latitude: number
+  longitude: number
+  theme: string
+  advancedAstro?: Partial<CombinedResult>
+}): Promise<Partial<CombinedResult> | undefined> {
+  if (hasAdvancedAstroCoverage(input.advancedAstro)) {
+    return input.advancedAstro
+  }
+
+  try {
+    const computed = await computeDestinyMap({
+      name: input.name,
+      birthDate: input.birthDate,
+      birthTime: input.birthTime,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      gender: input.gender,
+      theme: input.theme,
+    })
+
+    const computedAdvanced = pickAdvancedAstroFields(computed)
+    if (input.advancedAstro && typeof input.advancedAstro === 'object') {
+      return {
+        ...computedAdvanced,
+        ...pickAdvancedAstroFields(input.advancedAstro),
+      }
+    }
+    return computedAdvanced
+  } catch (error) {
+    logger.warn('[chat-stream] advanced astro auto-compute failed', {
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return input.advancedAstro
+  }
+}
+
+async function deriveMatrixAstroInputs(natalChartData?: NatalChartData): Promise<{
+  aspects: MatrixAspectInput[]
+  asteroidHouses: Record<string, number>
+  extraPointSigns: Record<string, string>
+}> {
+  const empty = {
+    aspects: [] as MatrixAspectInput[],
+    asteroidHouses: {} as Record<string, number>,
+    extraPointSigns: {} as Record<string, string>,
+  }
+  if (!natalChartData) return empty
+
+  try {
+    const chart = toChart(natalChartData)
+    const natalAspectsRaw = findNatalAspects(chart, { includeMinor: true, maxResults: 120 })
+    const aspects: MatrixAspectInput[] = natalAspectsRaw
+      .filter((a) => MATRIX_PLANET_SET.has(a.from.name) && MATRIX_PLANET_SET.has(a.to.name))
+      .map((a) => {
+        const t = a.type as MatrixAspectType
+        return {
+          planet1: a.from.name,
+          planet2: a.to.name,
+          type: t,
+          angle: ASPECT_ANGLE_MAP[t],
+          orb: typeof a.orb === 'number' ? a.orb : undefined,
+        }
+      })
+      .slice(0, 60)
+
+    const meta = natalChartData.meta
+    if (
+      !meta?.jdUT ||
+      !Array.isArray(natalChartData.houses) ||
+      natalChartData.houses.length === 0
+    ) {
+      return { ...empty, aspects }
+    }
+
+    const houseCusps = natalChartData.houses.map((h) => h.cusp)
+    const asteroidHouses: Record<string, number> = {}
+    try {
+      const asteroids = calculateAllAsteroids(meta.jdUT, houseCusps)
+      for (const key of ['Ceres', 'Pallas', 'Juno', 'Vesta'] as const) {
+        const house = asteroids[key]?.house
+        if (typeof house === 'number' && house >= 1 && house <= 12) {
+          asteroidHouses[key] = house
+        }
+      }
+    } catch (error) {
+      logger.warn('[chat-stream] asteroid derivation failed', {
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
+
+    const sun = natalChartData.planets.find((p) => p.name === 'Sun')
+    const moon = natalChartData.planets.find((p) => p.name === 'Moon')
+    const extraPointSigns: Record<string, string> = {}
+
+    if (
+      meta.latitude != null &&
+      meta.longitude != null &&
+      sun &&
+      moon &&
+      natalChartData.ascendant &&
+      houseCusps.length > 0
+    ) {
+      try {
+        const extras = await calculateExtraPoints(
+          meta.jdUT,
+          meta.latitude,
+          meta.longitude,
+          natalChartData.ascendant.longitude,
+          sun.longitude,
+          moon.longitude,
+          sun.house,
+          houseCusps
+        )
+        extraPointSigns.Chiron = extras.chiron.sign
+        extraPointSigns.Lilith = extras.lilith.sign
+        extraPointSigns.PartOfFortune = extras.partOfFortune.sign
+        extraPointSigns.Vertex = extras.vertex.sign
+      } catch (error) {
+        logger.warn('[chat-stream] extra-point derivation failed', {
+          error: error instanceof Error ? error.message : String(error),
+        })
+      }
+    }
+
+    return { aspects, asteroidHouses, extraPointSigns }
+  } catch (error) {
+    logger.warn('[chat-stream] matrix astro derivation failed', {
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return empty
+  }
+}
+
 function buildTopLayers(highlights: MatrixHighlight[]): Array<{ layer: number; score: number }> {
   const grouped = new Map<number, number[]>()
   for (const item of highlights) {
@@ -146,7 +434,11 @@ function buildTopLayers(highlights: MatrixHighlight[]): Array<{ layer: number; s
     .slice(0, 3)
 }
 
-function buildMatrixProfileSection(snapshot: MatrixSnapshot | null, lang: string): string {
+function buildMatrixProfileSection(
+  snapshot: MatrixSnapshot | null,
+  lang: string,
+  theme: string
+): string {
   if (!snapshot) {
     return ''
   }
@@ -154,25 +446,60 @@ function buildMatrixProfileSection(snapshot: MatrixSnapshot | null, lang: string
   const layerText = snapshot.topLayers.map((l) => `L${l.layer}:${l.score}`).join(', ') || 'none'
   const highlightText = snapshot.highlights.slice(0, 5).join(' | ') || 'none'
   const synergyText = snapshot.synergies.slice(0, 3).join(' | ') || 'none'
+  const driverText = snapshot.drivers.slice(0, 5).join(' | ') || 'none'
+  const cautionText = snapshot.cautions.slice(0, 5).join(' | ') || 'none'
+  const signalText = snapshot.calendarSignals.slice(0, 4).join(' | ') || 'none'
+  const timelineText = snapshot.overlapTimeline.slice(0, 4).join(' | ') || 'none'
+  const domainScoreText =
+    Object.entries(snapshot.domainScores)
+      .slice(0, 6)
+      .map(([k, v]) => `${k}:${typeof v === 'number' ? Number(v).toFixed(1) : '-'}`)
+      .join(', ') || 'none'
+  const focus = pickMatrixThemeFocus(theme, snapshot.domainScores)
+  const hasCommRisk = /communication|mercury|수성|소통|오해|문서|계약/i.test(cautionText)
 
   if (lang === 'ko') {
     return [
       '[Destiny Matrix Profile Context]',
       `total_score=${snapshot.totalScore}`,
+      `final_score_adjusted=${snapshot.finalScoreAdjusted ?? '-'}`,
+      `confidence_score=${snapshot.confidenceScore ?? '-'}`,
       `top_layers=${layerText}`,
       `highlights=${highlightText}`,
       `synergies=${synergyText}`,
+      `drivers=${driverText}`,
+      `cautions=${cautionText}`,
+      `calendar_signals=${signalText}`,
+      `overlap_timeline=${timelineText}`,
+      `domain_scores=${domainScoreText}`,
+      `theme_focus=${focus.domain}${typeof focus.score === 'number' ? `(${focus.score.toFixed(1)})` : ''}`,
       '응답 초반에 "Matrix snapshot:" 소제목으로 2-3문장으로 요약하고, 이후 기존 사주/점성/교차 해석을 이어가세요.',
+      '테마 해석에서는 theme_focus와 domain_scores를 최우선으로 반영하세요.',
+      hasCommRisk
+        ? '중요: 커뮤니케이션/문서 리스크가 보이면 서명/확정/발송을 즉시 권하지 말고 재확인-검토 행동으로 제시하세요.'
+        : '중요: 추천과 주의가 서로 충돌하지 않게 작성하세요.',
     ].join('\n')
   }
 
   return [
     '[Destiny Matrix Profile Context]',
     `total_score=${snapshot.totalScore}`,
+    `final_score_adjusted=${snapshot.finalScoreAdjusted ?? '-'}`,
+    `confidence_score=${snapshot.confidenceScore ?? '-'}`,
     `top_layers=${layerText}`,
     `highlights=${highlightText}`,
     `synergies=${synergyText}`,
+    `drivers=${driverText}`,
+    `cautions=${cautionText}`,
+    `calendar_signals=${signalText}`,
+    `overlap_timeline=${timelineText}`,
+    `domain_scores=${domainScoreText}`,
+    `theme_focus=${focus.domain}${typeof focus.score === 'number' ? `(${focus.score.toFixed(1)})` : ''}`,
     'Start with a short "Matrix snapshot:" section (2-3 sentences), then continue with the existing saju/astro/cross narrative.',
+    'Prioritize theme_focus and domain_scores in actionable advice.',
+    hasCommRisk
+      ? 'If communication/document risk is present, do not recommend immediate signing/finalizing; prefer verification actions.'
+      : 'Ensure recommendations never contradict cautions.',
   ].join('\n')
 }
 
@@ -184,10 +511,14 @@ async function fetchMatrixSnapshot(
     gender: 'male' | 'female'
     lang: string
     astro: AstroDataStructure | undefined
+    natalChartData?: NatalChartData
+    advancedAstro?: Partial<CombinedResult>
   }
 ): Promise<MatrixSnapshot | null> {
   try {
     const { planetSigns, planetHouses } = collectPlanetData(input.astro)
+    const derived = await deriveMatrixAstroInputs(input.natalChartData)
+    const advancedAstroSignals = deriveAdvancedAstroSignals(input.advancedAstro)
     const dominantWesternElement = mapElementToWestern(
       ((input.astro as Record<string, unknown> | undefined)?.dominantElement as
         | string
@@ -214,6 +545,10 @@ async function fetchMatrixSnapshot(
         dominantWesternElement,
         planetSigns,
         planetHouses,
+        aspects: derived.aspects,
+        asteroidHouses: derived.asteroidHouses,
+        extraPointSigns: derived.extraPointSigns,
+        advancedAstroSignals,
       }),
     })
 
@@ -222,7 +557,16 @@ async function fetchMatrixSnapshot(
     }
     const data = (await response.json()) as {
       success?: boolean
-      summary?: { totalScore?: number }
+      summary?: {
+        totalScore?: number
+        finalScoreAdjusted?: number
+        confidenceScore?: number
+        drivers?: unknown[]
+        cautions?: unknown[]
+        calendarSignals?: unknown[]
+        overlapTimeline?: unknown[]
+        domainScores?: Record<string, number>
+      }
       highlights?: { strengths?: MatrixHighlight[]; cautions?: MatrixHighlight[] }
       synergies?: MatrixSynergy[]
     }
@@ -252,6 +596,22 @@ async function fetchMatrixSnapshot(
       topLayers,
       highlights,
       synergies,
+      drivers: normalizeStringList(data.summary?.drivers, 6),
+      cautions: normalizeStringList(data.summary?.cautions, 6),
+      calendarSignals: normalizeStringList(data.summary?.calendarSignals, 5),
+      overlapTimeline: normalizeStringList(data.summary?.overlapTimeline, 5),
+      domainScores:
+        data.summary?.domainScores && typeof data.summary.domainScores === 'object'
+          ? data.summary.domainScores
+          : {},
+      confidenceScore:
+        typeof data.summary?.confidenceScore === 'number'
+          ? data.summary.confidenceScore
+          : undefined,
+      finalScoreAdjusted:
+        typeof data.summary?.finalScoreAdjusted === 'number'
+          ? data.summary.finalScoreAdjusted
+          : undefined,
     }
   } catch (error) {
     logger.warn('[chat-stream] Matrix snapshot fetch failed', {
@@ -448,6 +808,16 @@ export async function POST(req: NextRequest) {
     const finalSaju = chartResult.saju
     const finalAstro = chartResult.astro
     const { natalChartData, currentTransits } = chartResult
+    const enrichedAdvancedAstro = await ensureAdvancedAstroData({
+      name,
+      birthDate: effectiveBirthDate,
+      birthTime: effectiveBirthTime,
+      gender: effectiveGender,
+      latitude: effectiveLatitude,
+      longitude: effectiveLongitude,
+      theme,
+      advancedAstro: advancedAstro as Partial<CombinedResult> | undefined,
+    })
 
     // Messages are already validated by Zod as ChatMessage[]
     const trimmedHistory = clampMessages(messages)
@@ -480,7 +850,7 @@ export async function POST(req: NextRequest) {
     const contextSections = buildContextSections({
       saju: finalSaju,
       astro: finalAstro,
-      advancedAstro: advancedAstro as Partial<CombinedResult> | undefined,
+      advancedAstro: enrichedAdvancedAstro,
       natalChartData,
       currentTransits,
       birthDate: effectiveBirthDate,
@@ -503,8 +873,10 @@ export async function POST(req: NextRequest) {
       gender: effectiveGender,
       lang,
       astro: finalAstro,
+      natalChartData,
+      advancedAstro: enrichedAdvancedAstro,
     })
-    const matrixProfileSection = buildMatrixProfileSection(matrixSnapshot, lang)
+    const matrixProfileSection = buildMatrixProfileSection(matrixSnapshot, lang, theme)
 
     // Theme descriptions for context
     const themeDescriptions: Record<string, { ko: string; en: string }> = {
@@ -527,11 +899,13 @@ export async function POST(req: NextRequest) {
 
     const fortuneIcpSection = buildFortuneWithIcpSection(counselingBrief, lang)
     const fortuneGuide = buildFortuneWithIcpOutputGuide(lang)
+    const themeDepthGuide = buildThemeDepthGuide(theme, lang)
 
     // Build prompt - FULL analysis with all advanced engines
     const chatPrompt = [
       counselorSystemPrompt(lang),
       fortuneGuide,
+      themeDepthGuide,
       `Name: ${name || 'User'}`,
       themeContext,
       fortuneIcpSection,
@@ -574,7 +948,7 @@ export async function POST(req: NextRequest) {
         saju: finalSaju || undefined,
         astro: finalAstro || undefined,
         // Advanced astrology features (draconic, harmonics, progressions, etc.)
-        advanced_astro: advancedAstro || undefined,
+        advanced_astro: enrichedAdvancedAstro || undefined,
         // Fallback: Pass birth info for backend to compute if needed
         birth: {
           date: effectiveBirthDate,

@@ -364,14 +364,26 @@ function calculateLayer7(input: MatrixCalculationInput): Record<string, MatrixCe
   // Get yongsin row if available
   const yongsinRow = input.yongsin ? (`yongsin_${input.yongsin}` as AdvancedAnalysisRow) : null
 
-  const progressionTypes: ProgressionType[] = [
-    'secondary',
-    'solarArc',
-    'solarReturn',
-    'lunarReturn',
-    'draconic',
-    'harmonics',
-  ]
+  const progressionTypes: ProgressionType[] = (() => {
+    const signals = input.advancedAstroSignals
+    if (!signals) {
+      return ['secondary', 'solarArc', 'solarReturn', 'lunarReturn', 'draconic', 'harmonics']
+    }
+
+    const selected: ProgressionType[] = []
+    if (signals.progressions) selected.push('secondary', 'solarArc')
+    if (signals.solarReturn) selected.push('solarReturn')
+    if (signals.lunarReturn) selected.push('lunarReturn')
+    if (signals.draconic) selected.push('draconic')
+    if (signals.harmonics) selected.push('harmonics')
+
+    // Keep backward compatibility: if no signal is true, fallback to full set
+    if (selected.length === 0) {
+      return ['secondary', 'solarArc', 'solarReturn', 'lunarReturn', 'draconic', 'harmonics']
+    }
+
+    return Array.from(new Set(selected))
+  })()
 
   for (const progType of progressionTypes) {
     // Geokguk analysis

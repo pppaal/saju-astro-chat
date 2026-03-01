@@ -347,8 +347,9 @@ describe('POST /api/tarot/interpret', () => {
 
     expect(response.status).toBe(200)
     expect(data.fallback).toBe(false)
-    expect(data.overall_message).toBe('Recovered interpretation')
-    expect(data.guidance).toBe('Take one practical action today.')
+    expect(typeof data.overall_message).toBe('string')
+    expect(data.overall_message.length).toBeGreaterThanOrEqual(90)
+    expect(typeof data.guidance).toBe('string')
   })
 
   it('should use simple fallback when GPT also fails', async () => {
@@ -520,5 +521,55 @@ describe('POST /api/tarot/interpret', () => {
     expect(response.status).toBe(200)
     expect(data.overall_message).toBeDefined()
     expect(vi.mocked(apiClient.post)).toHaveBeenCalledTimes(1)
+  })
+
+  it('should auto-repair low-quality interpretation payloads', async () => {
+    const { apiClient } = await import('@/lib/api/ApiClient')
+
+    vi.mocked(apiClient.post).mockResolvedValue({
+      ok: true,
+      data: {
+        overall_message: 'ok',
+        card_insights: [
+          {
+            position: 'Past',
+            card_name: 'The Fool',
+            interpretation: 'short',
+          },
+        ],
+        guidance: 'Listen to the cards.',
+      },
+    })
+
+    const req = new NextRequest('http://localhost/api/tarot/interpret', {
+      method: 'POST',
+      body: JSON.stringify({
+        categoryId: 'general',
+        spreadId: 'three-card',
+        spreadTitle: 'General Spread',
+        cards: [
+          {
+            name: 'The Fool',
+            isReversed: false,
+            position: 'Past',
+            meaning: 'New beginning',
+          },
+        ],
+        language: 'en',
+        userQuestion: 'Should I contact them this week?',
+      }),
+    })
+
+    const response = await POST(req)
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(typeof data.overall_message).toBe('string')
+    expect(data.overall_message.length).toBeGreaterThanOrEqual(90)
+    expect(typeof data.guidance).toBe('string')
+    expect(data.guidance).toContain('1) Today:')
+    expect(data.guidance).toContain('Within 7 days')
+    expect(Array.isArray(data.card_insights)).toBe(true)
+    expect(data.card_insights[0].interpretation.length).toBeGreaterThanOrEqual(80)
   })
 })

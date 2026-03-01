@@ -123,7 +123,7 @@ function normalizeGender(value?: ReportProfileInput['gender']): 'male' | 'female
   return 'male'
 }
 
-function createDestinyMapUrl(profile: ReportProfileInput): string {
+function createFreeAiReportUrl(profile: ReportProfileInput): string {
   const latitude = Number.isFinite(profile.latitude) ? profile.latitude : FALLBACK_LAT
   const longitude = Number.isFinite(profile.longitude) ? profile.longitude : FALLBACK_LON
   const params = new URLSearchParams({
@@ -133,12 +133,12 @@ function createDestinyMapUrl(profile: ReportProfileInput): string {
     city: profile.birthCity?.trim() || FALLBACK_CITY,
     lat: String(latitude),
     lon: String(longitude),
-    userTz: profile.timezone || 'Asia/Seoul',
-    gender: normalizeGender(profile.gender),
+    timezone: profile.timezone || 'Asia/Seoul',
+    gender: normalizeGender(profile.gender) === 'female' ? 'F' : 'M',
     lang: 'ko',
-    theme: 'focus_overall',
+    tier: 'free',
   })
-  return `/destiny-map/result?${params.toString()}`
+  return `/premium-reports/comprehensive?${params.toString()}`
 }
 
 export default function PremiumReportsPage() {
@@ -167,7 +167,7 @@ export default function PremiumReportsPage() {
       return
     }
     setError(null)
-    router.push(createDestinyMapUrl(profileInput))
+    router.push(createFreeAiReportUrl(profileInput))
   }
 
   const handleGeneratePremium = async () => {
@@ -327,11 +327,9 @@ export default function PremiumReportsPage() {
               {mode === 'free' ? (
                 <div className="mt-4 rounded-2xl border border-emerald-300/35 bg-gradient-to-br from-emerald-500/15 to-teal-500/10 p-5">
                   <p className="text-xs font-semibold text-emerald-200">FREE INSIGHTS</p>
-                  <h2 className="mt-1 text-xl font-extrabold text-white">
-                    Destiny-Map Free Insights
-                  </h2>
+                  <h2 className="mt-1 text-xl font-extrabold text-white">AI Report Free Digest</h2>
                   <p className="mt-2 text-sm leading-6 text-slate-100">
-                    기존 Destiny-Map 무료 인사이트 화면으로 이동해 기본 성향, 흐름, 핵심 포인트를
+                    무료 AI 요약 리포트 화면으로 이동해 핵심 점수, 상위 인사이트, 즉시 실행 항목을
                     확인합니다.
                   </p>
                   <button
@@ -343,7 +341,7 @@ export default function PremiumReportsPage() {
                         : 'cursor-not-allowed bg-slate-700'
                     }`}
                   >
-                    Free Insights 시작
+                    Free AI Report 시작
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
