@@ -3,7 +3,7 @@
  * Reusable hooks for main page functionality
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react'
 
 /**
  * Hook for scroll visibility detection
@@ -13,15 +13,15 @@ import { useEffect, useState } from 'react';
  * @returns boolean indicating if scroll position exceeds threshold
  */
 export function useScrollVisibility(threshold: number): boolean {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    const handleScroll = () => setVisible(window.scrollY > threshold);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [threshold]);
+    const handleScroll = () => setVisible(window.scrollY > threshold)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [threshold])
 
-  return visible;
+  return visible
 }
 
 /**
@@ -31,25 +31,50 @@ export function useScrollVisibility(threshold: number): boolean {
  * @param selector - CSS selector for elements to observe
  * @param styles - CSS module styles object containing 'visible' class
  */
-export function useScrollAnimation(
-  selector: string,
-  styles: Record<string, string>
-): void {
+export function useScrollAnimation(selector: string, styles: Record<string, string>): void {
   useEffect(() => {
+    const observedElements = new Set<Element>()
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add(styles.visible);
+            entry.target.classList.add(styles.visible)
+            observer.unobserve(entry.target)
+            observedElements.delete(entry.target)
           }
-        });
+        })
       },
       { threshold: 0.2, rootMargin: '0px 0px -100px 0px' }
-    );
+    )
 
-    const elements = document.querySelectorAll(selector);
-    elements.forEach((el) => observer.observe(el));
+    const observeMatchingElements = () => {
+      const elements = document.querySelectorAll(selector)
+      elements.forEach((el) => {
+        if (observedElements.has(el) || el.classList.contains(styles.visible)) {
+          return
+        }
+        observer.observe(el)
+        observedElements.add(el)
+      })
+    }
 
-    return () => elements.forEach((el) => observer.unobserve(el));
-  }, [selector, styles]);
+    observeMatchingElements()
+
+    const mutationObserver = new MutationObserver(() => {
+      observeMatchingElements()
+    })
+
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    })
+
+    return () => {
+      mutationObserver.disconnect()
+      observedElements.forEach((el) => observer.unobserve(el))
+      observedElements.clear()
+      observer.disconnect()
+    }
+  }, [selector, styles])
 }

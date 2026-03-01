@@ -15,7 +15,13 @@ import { useVisitorMetrics } from '@/hooks/useVisitorMetrics'
 import { useScrollVisibility, useScrollAnimation } from '@/hooks/useMainPageHooks'
 
 // Critical components - loaded immediately
-import { MainHeader, ServiceSearchBox, StatsSection, ParticleCanvas } from './components'
+import {
+  MainHeader,
+  ServiceSearchBox,
+  StatsSection,
+  ParticleCanvas,
+  TarotSection,
+} from './components'
 import PrefetchLinks from '@/components/PrefetchLinks'
 
 // Non-critical component - lazy loaded with suspense
@@ -33,11 +39,6 @@ const ChatDemoSection = dynamic(
 )
 
 const DestinyMapFeature = dynamic(() => import('./components/DestinyMapFeature'), {
-  loading: () => <div className={styles.featureSectionSkeleton} />,
-  ssr: false,
-})
-
-const TarotSection = dynamic(() => import('./components/TarotSection'), {
   loading: () => <div className={styles.featureSectionSkeleton} />,
   ssr: false,
 })
@@ -202,9 +203,7 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
         <DestinyMapFeature translate={translate} styles={styles} />
       </DeferredSection>
 
-      <DeferredSection skeletonClassName={styles.featureSectionSkeleton}>
-        <TarotSection translate={translate} locale={locale} />
-      </DeferredSection>
+      <TarotSection translate={translate} locale={locale} />
 
       <DeferredSection skeletonClassName={styles.featureSectionSkeleton} minHeight={240}>
         <CTASection translate={translate} styles={styles} />
