@@ -1,4 +1,4 @@
-import type { FusionReport, InsightDomain } from '../interpreter/types'
+﻿import type { FusionReport, InsightDomain } from '../interpreter/types'
 import type { MatrixCalculationInput } from '../types'
 import type { ReportPeriod, ReportTheme } from './types'
 import { getThemedSectionKeys } from './themeSchema'
@@ -154,6 +154,9 @@ export interface GraphRAGAnchorSummary {
   section: string
   setCount: number
   sets: GraphRAGCrossEvidenceSet[]
+  avgOverlapScore: number
+  avgOrbFitScore: number
+  lowTrustSetCount: number
 }
 
 export interface GraphRAGEvidenceSummary {
@@ -162,6 +165,11 @@ export interface GraphRAGEvidenceSummary {
   period?: ReportPeriod
   totalAnchors: number
   totalSets: number
+  avgOverlapScore: number
+  avgOrbFitScore: number
+  highTrustSetCount: number
+  lowTrustSetCount: number
+  cautionSections: string[]
   anchors: GraphRAGAnchorSummary[]
 }
 
@@ -387,7 +395,7 @@ function buildCrossEvidenceSets(
       overlapDomains,
       overlapScore: Number(overlapScore.toFixed(2)),
       orbFitScore: Number(orbFitScore.toFixed(2)),
-      combinedConclusion: `This pair overlaps in ${overlapDomains.join(', ')} and should ground "${topInsight}".`,
+      combinedConclusion: `Cross-domain overlap(${overlapDomains.join(', ')}) is high for "${topInsight}". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section.`,
     }
   })
 
@@ -408,7 +416,7 @@ function buildCrossEvidenceSets(
         overlapDomains: scopedOverlap,
         overlapScore: Number((0.45 + scopedOverlap.length * 0.12).toFixed(2)),
         orbFitScore: 0.5,
-        combinedConclusion: `Transit ${transit} should be interpreted against current Saju timing cycle (${input.currentDaeunElement || 'N/A'}/${input.currentSaeunElement || 'N/A'}).`,
+        combinedConclusion: `Transit ${transit} must be interpreted with the current Saju timing cycle (${input.currentDaeunElement || 'N/A'}/${input.currentSaeunElement || 'N/A'}). If signals diverge, prioritize verification and delay irreversible commitments.`,
       }
     })
 
@@ -426,7 +434,7 @@ function buildCrossEvidenceSets(
         overlapDomains: [insight.domain],
         overlapScore: 0.6,
         orbFitScore: 0.5,
-        combinedConclusion: `Matrix insight "${insight.title}" must stay consistent with section narrative.`,
+        combinedConclusion: `Matrix insight "${insight.title}" should define the section core claim, with explicit justification from both Saju and Astrology evidence before giving action guidance.`,
       }
     })
 
@@ -531,7 +539,7 @@ export function buildGraphRAGEvidence(
       section,
       sajuEvidence: `dayMaster=${dayMaster}, geokguk=${geokguk}, yongsin=${yongsin}, sibsin=${sibsin}, ${daeun}, ${saeun}${profileContext ? `, profile=${profileContext}` : ''}`,
       astrologyEvidence: astro,
-      crossConclusion: `Use ${matrix} as deterministic anchor, then synthesize Saju+Astrology specifically for "${section}" using evidence sets: ${selectedSets.map((s) => s.id).join(', ')}.`,
+      crossConclusion: `Anchor with ${matrix}, then synthesize Saju+Astrology for "${section}" using ${selectedSets.map((s) => s.id).join(', ')}. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.`,
       crossEvidenceSets: selectedSets,
     }
   })
@@ -550,11 +558,16 @@ export function formatGraphRAGEvidenceForPrompt(
 ): string {
   const lines: string[] = []
   if (lang === 'ko') {
-    lines.push('Apply the GraphRAG anchors section-by-section.')
+    lines.push('GraphRAG 앵커를 섹션별로 적용하세요.')
+    lines.push('각 섹션은 반드시 사주 근거 1문장 + 점성 근거 1문장 + 교차 결론 1문장을 포함하세요.')
+    lines.push('각 섹션마다 최소 1개 이상의 paired evidence set([Xn]/[Tn]/[Mn])를 인용하세요.')
+    lines.push('angle/orb/allowed 수치가 있으면 그대로 유지해 근거 추적 가능성을 보장하세요.')
     lines.push(
-      'Each section must include Saju basis + Astrology basis + cross conclusion, and cite at least one paired evidence set.'
+      'overlapScore<0.60 또는 orbFit<0.50인 set은 "재확인 필요"로 해석하고 확정/서명/즉시결정을 권하지 마세요.'
     )
-    lines.push('For every cited set, keep numeric angle/orb/allowed values if provided.')
+    lines.push(
+      '교차 근거가 낮으면 "같은 방향" 단정 문장을 금지하고, 검증 중심 행동으로 전환하세요.'
+    )
   } else {
     lines.push('Apply the GraphRAG anchors section-by-section.')
     lines.push(
@@ -564,6 +577,12 @@ export function formatGraphRAGEvidenceForPrompt(
       'Each section must cite at least one paired evidence set: Astrology (angle/orb) + matching Saju basis.'
     )
     lines.push('Cite set IDs inline (e.g., [X1], [T1]) so evidence traces are auditable.')
+    lines.push(
+      'If overlapScore<0.60 or orbFit<0.50, mark it as "recheck required" and avoid irreversible recommendations.'
+    )
+    lines.push(
+      'Do not claim "same direction" when cross evidence quality is low; switch to verification-first guidance.'
+    )
   }
 
   for (const anchor of evidence.anchors) {
@@ -588,13 +607,53 @@ export function summarizeGraphRAGEvidence(
     return null
   }
 
-  const anchors: GraphRAGAnchorSummary[] = evidence.anchors.map((anchor) => ({
-    id: anchor.id,
-    section: anchor.section,
-    setCount: anchor.crossEvidenceSets?.length || 0,
-    sets: (anchor.crossEvidenceSets || []).slice(0, 3),
-  }))
+  const anchors: GraphRAGAnchorSummary[] = evidence.anchors.map((anchor) => {
+    const sets = anchor.crossEvidenceSets || []
+    const avgOverlapScore =
+      sets.length > 0
+        ? Number((sets.reduce((sum, set) => sum + set.overlapScore, 0) / sets.length).toFixed(2))
+        : 0
+    const avgOrbFitScore =
+      sets.length > 0
+        ? Number((sets.reduce((sum, set) => sum + set.orbFitScore, 0) / sets.length).toFixed(2))
+        : 0
+    const lowTrustSetCount = sets.filter(
+      (set) => set.overlapScore < 0.6 || set.orbFitScore < 0.5
+    ).length
+    return {
+      id: anchor.id,
+      section: anchor.section,
+      setCount: sets.length,
+      sets: sets.slice(0, 3),
+      avgOverlapScore,
+      avgOrbFitScore,
+      lowTrustSetCount,
+    }
+  })
   const totalSets = anchors.reduce((sum, anchor) => sum + anchor.setCount, 0)
+  const allSets = evidence.anchors.flatMap((anchor) => anchor.crossEvidenceSets || [])
+  const avgOverlapScore =
+    allSets.length > 0
+      ? Number(
+          (allSets.reduce((sum, set) => sum + set.overlapScore, 0) / allSets.length).toFixed(2)
+        )
+      : 0
+  const avgOrbFitScore =
+    allSets.length > 0
+      ? Number((allSets.reduce((sum, set) => sum + set.orbFitScore, 0) / allSets.length).toFixed(2))
+      : 0
+  const highTrustSetCount = allSets.filter(
+    (set) => set.overlapScore >= 0.75 && set.orbFitScore >= 0.65
+  ).length
+  const lowTrustSetCount = allSets.filter(
+    (set) => set.overlapScore < 0.6 || set.orbFitScore < 0.5
+  ).length
+  const cautionSections = anchors
+    .filter(
+      (anchor) =>
+        anchor.lowTrustSetCount > 0 || anchor.avgOverlapScore < 0.6 || anchor.avgOrbFitScore < 0.5
+    )
+    .map((anchor) => anchor.section)
 
   return {
     mode: evidence.mode,
@@ -602,6 +661,11 @@ export function summarizeGraphRAGEvidence(
     period: evidence.period,
     totalAnchors: anchors.length,
     totalSets,
+    avgOverlapScore,
+    avgOrbFitScore,
+    highTrustSetCount,
+    lowTrustSetCount,
+    cautionSections,
     anchors,
   }
 }

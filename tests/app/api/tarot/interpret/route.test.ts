@@ -260,19 +260,20 @@ describe('POST /api/tarot/interpret', () => {
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({
-        choices: [
-          {
-            message: {
-              content: JSON.stringify({
-                overall: 'GPT interpretation',
-                cards: [{ position: 'Past', interpretation: 'Card interpretation' }],
-                advice: 'GPT advice',
-              }),
+      text: async () =>
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  overall: 'GPT interpretation',
+                  cards: [{ position: 'Past', interpretation: 'Card interpretation' }],
+                  advice: 'GPT advice',
+                }),
+              },
             },
-          },
-        ],
-      }),
+          ],
+        }),
     })
 
     const req = new NextRequest('http://localhost/api/tarot/interpret', {
@@ -304,25 +305,26 @@ describe('POST /api/tarot/interpret', () => {
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({
-        choices: [
-          {
-            message: {
-              content: [
-                '```json',
-                '{',
-                '  "overall": "Recovered interpretation",',
-                '  "cards": [',
-                '    { "position": "Past", "interpretation": "Detailed message about your current flow and next step." },',
-                '  ],',
-                '  "advice": "Take one practical action today.",',
-                '}',
-                '```',
-              ].join('\n'),
+      text: async () =>
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: [
+                  '```json',
+                  '{',
+                  '  "overall": "Recovered interpretation",',
+                  '  "cards": [',
+                  '    { "position": "Past", "interpretation": "Detailed message about your current flow and next step." },',
+                  '  ],',
+                  '  "advice": "Take one practical action today.",',
+                  '}',
+                  '```',
+                ].join('\n'),
+              },
             },
-          },
-        ],
-      }),
+          ],
+        }),
     })
 
     const req = new NextRequest('http://localhost/api/tarot/interpret', {

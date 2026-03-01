@@ -51,7 +51,7 @@ export const LAYER_SEMANTICS: LayerSemanticDefinition[] = [
     nameEn: 'Element Core',
     meaningKo: '사주 오행과 서양 원소의 기본 체질 정합성',
     meaningEn: 'Core constitution alignment between Saju elements and Western elements',
-    answersKo: ['타고난 기본 에너지 구조는?', '과열/고갈이 어디서 시작되는가?'],
+    answersKo: ['타고난 기본 에너지 구조는?', '과열·고갈이 어디서 시작되는가?'],
     answersEn: ['What is the innate energy baseline?', 'Where does overload or depletion begin?'],
     evidenceSources: ['dayMasterElement', 'pillarElements', 'dominantWesternElement'],
     confidenceRule: 'Need day master + pillar elements + dominant western element',
@@ -69,7 +69,7 @@ export const LAYER_SEMANTICS: LayerSemanticDefinition[] = [
     nameEn: 'Sibsin-Planet',
     meaningKo: '역할 성향(십신)과 행성 기능의 결합',
     meaningEn: 'Role tendencies (Sibsin) mapped to planetary functions',
-    answersKo: ['현재 행동 스타일의 강점/약점은?', '의사결정 기질은 어떤가?'],
+    answersKo: ['현재 행동 스타일의 강점/약점은?', '의사결정 기질은 어떠한가?'],
     answersEn: [
       'What are current behavioral strengths/weaknesses?',
       'How is decision style shaped?',
@@ -105,9 +105,9 @@ export const LAYER_SEMANTICS: LayerSemanticDefinition[] = [
     id: 'layer4',
     nameKo: '타이밍',
     nameEn: 'Timing Overlay',
-    meaningKo: '지금 시점의 실행 리스크/가속 신호',
+    meaningKo: '현재 시점의 실행 리스크/가속 신호',
     meaningEn: 'Immediate execution risk/acceleration signals',
-    answersKo: ['지금 해도 되는가?', '오늘/이번주 리스크는?'],
+    answersKo: ['지금 실행해도 되는가?', '오늘/이번주 리스크는?'],
     answersEn: ['Is this executable now?', 'What is the immediate risk this week?'],
     evidenceSources: ['activeTransits', 'currentDaeunElement', 'currentSaeunElement'],
     confidenceRule: 'Need current transit cycles plus at least one luck-cycle signal',
@@ -192,7 +192,7 @@ export const LAYER_SEMANTICS: LayerSemanticDefinition[] = [
     nameEn: 'Asteroid-House',
     meaningKo: '세부 관계/전략 성향의 미세 조정',
     meaningEn: 'Fine-grained relationship/strategy tuning via asteroids',
-    answersKo: ['세부 조정 포인트는?', '관계 계약 조건에서 무엇을 보완할까?'],
+    answersKo: ['세부 조정 포인트는?', '계약 조건에서 무엇을 보완할까?'],
     answersEn: ['What fine adjustments are needed?', 'What should be tightened in agreements?'],
     evidenceSources: ['asteroidHouses', 'dayMasterElement'],
     confidenceRule: 'Need asteroid house coverage (Ceres/Pallas/Juno/Vesta)',
@@ -205,7 +205,7 @@ export const LAYER_SEMANTICS: LayerSemanticDefinition[] = [
   },
   {
     id: 'layer10',
-    nameKo: '엑스트라포인트',
+    nameKo: '엑스트라 포인트',
     nameEn: 'Extra Points',
     meaningKo: '심층 심리/의미 축(Chiron/Lilith/Fortune/Vertex/Nodes)',
     meaningEn: 'Deep psychological/meaning axis via extra points',
@@ -269,9 +269,9 @@ export function buildMatrixSemanticContract(
       'layer1',
     ],
     globalConflictPolicy:
-      'If risk signals (timing/communication/conflict) are active, block irreversible recommendations and switch to verification-first actions.',
+      'If timing/communication/conflict risk is active, block irreversible recommendations and switch to verification-first actions.',
     lowConfidencePolicy:
-      'When confidence is low, provide reversible steps only and include explicit recheck checkpoints.',
+      'When confidence is low, provide reversible steps only and explicitly include recheck checkpoints.',
     layers,
   }
 }

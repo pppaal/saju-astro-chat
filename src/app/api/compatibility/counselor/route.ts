@@ -595,11 +595,10 @@ function buildSajuProfile(saju: Record<string, unknown> | null | undefined): Saj
   const dayMasterName =
     ((saju?.dayMaster as Record<string, unknown>)?.name as string) ||
     ((saju?.dayMaster as Record<string, unknown>)?.heavenlyStem as string) ||
-    'ê°‘'
-  const dayMasterElement =
-    ((saju?.dayMaster as Record<string, unknown>)?.element as string) || 'ëª©'
+    '갑'
+  const dayMasterElement = ((saju?.dayMaster as Record<string, unknown>)?.element as string) || '목'
   const dayMasterYinYang =
-    ((saju?.dayMaster as Record<string, unknown>)?.yin_yang as string) || 'ì–‘'
+    ((saju?.dayMaster as Record<string, unknown>)?.yin_yang as string) || '양'
 
   const pillars = (saju?.pillars as Record<string, Record<string, string>>) || {}
 
@@ -620,20 +619,20 @@ function buildSajuProfile(saju: Record<string, unknown> | null | undefined): Saj
     },
     pillars: {
       year: {
-        stem: pillars?.year?.heavenlyStem || 'ç”²',
-        branch: pillars?.year?.earthlyBranch || 'å­',
+        stem: pillars?.year?.heavenlyStem || '甲',
+        branch: pillars?.year?.earthlyBranch || '子',
       },
       month: {
-        stem: pillars?.month?.heavenlyStem || 'ç”²',
-        branch: pillars?.month?.earthlyBranch || 'å­',
+        stem: pillars?.month?.heavenlyStem || '甲',
+        branch: pillars?.month?.earthlyBranch || '子',
       },
       day: {
-        stem: pillars?.day?.heavenlyStem || 'ç”²',
-        branch: pillars?.day?.earthlyBranch || 'å­',
+        stem: pillars?.day?.heavenlyStem || '甲',
+        branch: pillars?.day?.earthlyBranch || '子',
       },
       time: {
-        stem: pillars?.time?.heavenlyStem || 'ç”²',
-        branch: pillars?.time?.earthlyBranch || 'å­',
+        stem: pillars?.time?.heavenlyStem || '甲',
+        branch: pillars?.time?.earthlyBranch || '子',
       },
     },
     elements,
@@ -820,66 +819,64 @@ function formatFusionForPrompt(fusion: FusionCompatibilityResult, lang: string):
   const scoreInfo = interpretCompatibilityScore(fusion.overallScore)
 
   const lines = [
-    `## ${isKo ? 'ì¢…í•© ê¶í•© ë¶„ì„' : 'Comprehensive Compatibility Analysis'}`,
-    `${isKo ? 'ë“±ê¸‰' : 'Grade'}: ${scoreInfo.grade} ${scoreInfo.emoji} - ${scoreInfo.title}`,
-    `${isKo ? 'ì ìˆ˜' : 'Score'}: ${fusion.overallScore}/100`,
+    `## ${isKo ? '종합 궁합 분석' : 'Comprehensive Compatibility Analysis'}`,
+    `${isKo ? '등급' : 'Grade'}: ${scoreInfo.grade} ${scoreInfo.emoji} - ${scoreInfo.title}`,
+    `${isKo ? '점수' : 'Score'}: ${fusion.overallScore}/100`,
     ``,
-    `### ${isKo ? 'AI ì‹¬ì¸µ ë¶„ì„' : 'AI Deep Analysis'}`,
+    `### ${isKo ? 'AI 심층 분석' : 'AI Deep Analysis'}`,
     fusion.aiInsights.deepAnalysis,
     ``,
   ]
 
   if (fusion.aiInsights.hiddenPatterns.length > 0) {
-    lines.push(`### ${isKo ? 'ìˆ¨ê²¨ì§„ íŒ¨í„´' : 'Hidden Patterns'}`)
+    lines.push(`### ${isKo ? '숨겨진 패턴' : 'Hidden Patterns'}`)
     fusion.aiInsights.hiddenPatterns.forEach((p) => lines.push(`- ${p}`))
     lines.push(``)
   }
 
   if (fusion.aiInsights.synergySources.length > 0) {
-    lines.push(`### ${isKo ? 'ì‹œë„ˆì§€ ìš”ì†Œ' : 'Synergy Sources'}`)
+    lines.push(`### ${isKo ? '시너지 요인' : 'Synergy Sources'}`)
     fusion.aiInsights.synergySources.forEach((s) => lines.push(`- ${s}`))
     lines.push(``)
   }
 
   if (fusion.aiInsights.growthOpportunities.length > 0) {
-    lines.push(`### ${isKo ? 'ì„±ìž¥ ê¸°íšŒ' : 'Growth Opportunities'}`)
+    lines.push(`### ${isKo ? '성장 기회' : 'Growth Opportunities'}`)
     fusion.aiInsights.growthOpportunities.forEach((g) => lines.push(`- ${g}`))
     lines.push(``)
   }
 
   // Relationship Dynamics
-  lines.push(`### ${isKo ? 'ê´€ê³„ ì—­í•™' : 'Relationship Dynamics'}`)
+  lines.push(`### ${isKo ? '관계 역학' : 'Relationship Dynamics'}`)
   lines.push(
-    `- ${isKo ? 'ê°ì •ì  ê°•ë„' : 'Emotional Intensity'}: ${fusion.relationshipDynamics.emotionalIntensity}%`
+    `- ${isKo ? '감정적 강도' : 'Emotional Intensity'}: ${fusion.relationshipDynamics.emotionalIntensity}%`
   )
   lines.push(
-    `- ${isKo ? 'ì§€ì  ì¡°í™”' : 'Intellectual Alignment'}: ${fusion.relationshipDynamics.intellectualAlignment}%`
+    `- ${isKo ? '지적 조화' : 'Intellectual Alignment'}: ${fusion.relationshipDynamics.intellectualAlignment}%`
   )
   lines.push(
-    `- ${isKo ? 'ì˜ì  ì—°ê²°' : 'Spiritual Connection'}: ${fusion.relationshipDynamics.spiritualConnection}%`
+    `- ${isKo ? '영적 연결' : 'Spiritual Connection'}: ${fusion.relationshipDynamics.spiritualConnection}%`
   )
   lines.push(
-    `- ${isKo ? 'ê°ˆë“± í•´ê²° ìŠ¤íƒ€ì¼' : 'Conflict Style'}: ${fusion.relationshipDynamics.conflictResolutionStyle}`
+    `- ${isKo ? '갈등 해결 스타일' : 'Conflict Style'}: ${fusion.relationshipDynamics.conflictResolutionStyle}`
   )
   lines.push(``)
 
   // Future Guidance
-  lines.push(`### ${isKo ? 'ë¯¸ëž˜ ê°€ì´ë˜ìŠ¤' : 'Future Guidance'}`)
-  lines.push(`**${isKo ? 'ë‹¨ê¸°(1-6ê°œì›”)' : 'Short-term'}**: ${fusion.futureGuidance.shortTerm}`)
-  lines.push(
-    `**${isKo ? 'ì¤‘ê¸°(6ê°œì›”-2ë…„)' : 'Medium-term'}**: ${fusion.futureGuidance.mediumTerm}`
-  )
-  lines.push(`**${isKo ? 'ìž¥ê¸°(2ë…„+)' : 'Long-term'}**: ${fusion.futureGuidance.longTerm}`)
+  lines.push(`### ${isKo ? '미래 가이던스' : 'Future Guidance'}`)
+  lines.push(`**${isKo ? '단기(1-6개월)' : 'Short-term'}**: ${fusion.futureGuidance.shortTerm}`)
+  lines.push(`**${isKo ? '중기(6개월-2년)' : 'Medium-term'}**: ${fusion.futureGuidance.mediumTerm}`)
+  lines.push(`**${isKo ? '장기(2년+)' : 'Long-term'}**: ${fusion.futureGuidance.longTerm}`)
   lines.push(``)
 
   // Recommended Actions
   if (fusion.recommendedActions.length > 0) {
-    lines.push(`### ${isKo ? 'ì¶”ì²œ í–‰ë™' : 'Recommended Actions'}`)
+    lines.push(`### ${isKo ? '추천 행동' : 'Recommended Actions'}`)
     fusion.recommendedActions.forEach((action) => {
       const priority =
-        action.priority === 'high' ? 'ðŸ”´' : action.priority === 'medium' ? 'ðŸŸ¡' : 'ðŸŸ¢'
+        action.priority === 'high' ? 'HIGH' : action.priority === 'medium' ? 'MEDIUM' : 'LOW'
       lines.push(`${priority} [${action.category}] ${action.action}`)
-      lines.push(`   ${isKo ? 'ì´ìœ ' : 'Why'}: ${action.reasoning}`)
+      lines.push(`   ${isKo ? '이유' : 'Why'}: ${action.reasoning}`)
     })
   }
 
@@ -894,7 +891,7 @@ export async function POST(req: NextRequest) {
       limit: 30,
       windowSeconds: 60,
       requireCredits: true,
-      creditType: 'compatibility', // ê¶í•© ìƒë‹´ì€ compatibility íƒ€ìž… ì‚¬ìš©
+      creditType: 'compatibility', // 궁합 상담은 compatibility 타입 사용
       creditAmount: 1,
     })
 
@@ -1106,27 +1103,24 @@ export async function POST(req: NextRequest) {
 
     // Theme-specific context
     const themeContextMap: Record<string, string> = {
-      general: lang === 'ko' ? 'ì „ë°˜ì ì¸ ê¶í•© ìƒë‹´' : 'General compatibility counseling',
-      love: lang === 'ko' ? 'ì—°ì• /ê²°í˜¼ ê¶í•© ì „ë¬¸ ìƒë‹´' : 'Romance/Marriage compatibility',
+      general: lang === 'ko' ? '전반적인 궁합 상담' : 'General compatibility counseling',
+      love: lang === 'ko' ? '연애/결혼 궁합 전문 상담' : 'Romance/Marriage compatibility',
       business:
-        lang === 'ko'
-          ? 'ë¹„ì¦ˆë‹ˆìŠ¤ íŒŒíŠ¸ë„ˆì‹­ ê¶í•© ìƒë‹´'
-          : 'Business partnership compatibility',
-      family: lang === 'ko' ? 'ê°€ì¡± ê´€ê³„ ê¶í•© ìƒë‹´' : 'Family relationship compatibility',
+        lang === 'ko' ? '비즈니스 파트너십 궁합 상담' : 'Business partnership compatibility',
+      family: lang === 'ko' ? '가족 관계 궁합 상담' : 'Family relationship compatibility',
     }
     const themeContext =
-      themeContextMap[theme as string] ||
-      (lang === 'ko' ? 'ê¶í•© ìƒë‹´' : 'Compatibility counseling')
+      themeContextMap[theme as string] || (lang === 'ko' ? '궁합 상담' : 'Compatibility counseling')
     const normalizedLang = lang === 'ko' ? 'ko' : 'en'
     const themeDepthGuide = buildThemeDepthGuide(String(theme || 'general'), normalizedLang)
     const evidenceGuide = buildEvidenceGroundingGuide(normalizedLang)
 
     // Build enhanced prompt for counselor
     const counselorPrompt = [
-      `== í”„ë¦¬ë¯¸ì—„ ê¶í•© ìƒë‹´ì‚¬ ==`,
-      `í…Œë§ˆ: ${themeContext}`,
+      `== 프리미엄 궁합 상담사 ==`,
+      `테마: ${themeContext}`,
       ``,
-      `== ì°¸ì—¬ìž ì •ë³´ ==`,
+      `== 참여자 정보 ==`,
       personsInfo,
       fusionContext ? `\n${fusionContext}` : '',
       extendedSajuCompatibility
@@ -1138,20 +1132,20 @@ export async function POST(req: NextRequest) {
       `\n== TIMING DETAIL (DAEUN/SEUN/WOLUN/ILUN) ==\n${stringifyForPrompt(timingDetails)}`,
       `\n== DETERMINISTIC CONTEXT TRACE ==\n${stringifyForPrompt(contextTrace)}`,
       fullContextText ? `\n== FULL RAW CONTEXT (SAJU + ASTRO) ==\n${fullContextText}` : '',
-      historyText ? `\n== ì´ì „ ëŒ€í™” ==\n${historyText}` : '',
-      `\n== ì‚¬ìš©ìž ì§ˆë¬¸ ==\n${userQuestion}`,
+      historyText ? `\n== 이전 대화 ==\n${historyText}` : '',
+      `\n== 사용자 질문 ==\n${userQuestion}`,
       ``,
       `== INTERPRETATION QUALITY CONTRACT ==\n${themeDepthGuide}`,
       `\n== EVIDENCE GATE ==\n${evidenceGuide}`,
       ``,
-      `== ìƒë‹´ì‚¬ ì§€ì¹¨ ==`,
+      `== 상담사 지침 ==`,
       lang === 'ko'
-        ? `ë‹¹ì‹ ì€ ì‚¬ì£¼ëª…ë¦¬í•™ê³¼ ì ì„±í•™ì„ ê²°í•©í•œ ì „ë¬¸ ê¶í•© ìƒë‹´ì‚¬ìž…ë‹ˆë‹¤.
-ìœ„ì˜ ì‹¬ì¸µ ë¶„ì„ ë°ì´í„°ë¥¼ ë°”íƒ•ìœ¼ë¡œ ì¹œê·¼í•˜ì§€ë§Œ ì „ë¬¸ì ì¸ ì–´ì¡°ë¡œ ë‹µë³€í•˜ì„¸ìš”.
-- êµ¬ì²´ì ì¸ ì¡°ì–¸ê³¼ ì‹¤ì²œ ê°€ëŠ¥í•œ íŒì„ ì œê³µí•˜ì„¸ìš”
-- ìˆ¨ê²¨ì§„ íŒ¨í„´ê³¼ ì‹œë„ˆì§€ë¥¼ ì‰½ê²Œ ì„¤ëª…í•´ì£¼ì„¸ìš”
-- ë¯¸ëž˜ ê°€ì´ë˜ìŠ¤ë¥¼ ì‹œê¸°ë³„ë¡œ ì•ˆë‚´í•˜ì„¸ìš”
-- ê¸ì •ì ì´ë©´ì„œë„ í˜„ì‹¤ì ì¸ ì¡°ì–¸ì„ í•´ì£¼ì„¸ìš”`
+        ? `당신은 사주명리학과 점성학을 결합한 전문 궁합 상담사입니다.
+위의 심층 분석 데이터를 바탕으로 친근하지만 전문적인 어조로 답변하세요.
+- 구체적인 조언과 실천 가능한 팁을 제공합니다.
+- 숨겨진 패턴과 시너지를 쉽게 설명합니다.
+- 미래 가이던스를 시기별로 안내합니다.
+- 긍정적이면서도 현실적인 조언을 제공합니다.`
         : `You are an expert compatibility counselor combining Saju and Astrology.
 Based on the deep analysis above, provide friendly but professional guidance.
 - Give specific, actionable advice

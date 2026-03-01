@@ -121,6 +121,38 @@ function getWesternElementFromSign(sign: string): WesternElement {
   return SIGN_TO_ELEMENT[sign] || 'earth'
 }
 
+const PLANET_NAME_ALIASES: Record<string, PlanetName> = {
+  sun: 'Sun',
+  moon: 'Moon',
+  mercury: 'Mercury',
+  venus: 'Venus',
+  mars: 'Mars',
+  jupiter: 'Jupiter',
+  saturn: 'Saturn',
+  uranus: 'Uranus',
+  neptune: 'Neptune',
+  pluto: 'Pluto',
+}
+
+const SHINSAL_ALIASES: Record<string, string> = {
+  '\uAE08\uC5EC\uC131': '\uAE08\uC5EC\uB85D',
+  '\uBB38\uCC3D': '\uBB38\uCC3D\uADC0\uC778',
+}
+
+function normalizePlanetNameKey(value: string): PlanetName | null {
+  const normalized = value.trim().toLowerCase()
+  return PLANET_NAME_ALIASES[normalized] || null
+}
+
+function normalizeShinsalKey(value: string): ShinsalKind | null {
+  const raw = value.trim()
+  const normalized = SHINSAL_ALIASES[raw] || raw
+  if (Object.prototype.hasOwnProperty.call(SHINSAL_PLANET_MATRIX, normalized)) {
+    return normalized as ShinsalKind
+  }
+  return null
+}
+
 function mapRelationKindToBranchRelation(kind: string): BranchRelation | null {
   const mapping: Record<string, BranchRelation> = {
     지지삼합: 'samhap',
@@ -218,8 +250,11 @@ function calculateLayer2(input: MatrixCalculationInput): Record<string, MatrixCe
   const sibsinList = Object.keys(input.sibsinDistribution) as SibsinKind[]
 
   for (const sibsin of sibsinList) {
-    for (const [planet, house] of Object.entries(input.planetHouses)) {
-      const planetName = planet as PlanetName
+    for (const [planetRaw, house] of Object.entries(input.planetHouses)) {
+      const planetName = normalizePlanetNameKey(planetRaw)
+      if (!planetName) {
+        continue
+      }
       const matrixCell = SIBSIN_PLANET_MATRIX[sibsin]?.[planetName]
       if (matrixCell) {
         const key = `${sibsin}_${planetName}`
@@ -240,7 +275,11 @@ function calculateLayer3(input: MatrixCalculationInput): Record<string, MatrixCe
   const sibsinList = Object.keys(input.sibsinDistribution) as SibsinKind[]
 
   for (const sibsin of sibsinList) {
-    for (const [planet, house] of Object.entries(input.planetHouses)) {
+    for (const [planetRaw, house] of Object.entries(input.planetHouses)) {
+      const planetName = normalizePlanetNameKey(planetRaw)
+      if (!planetName) {
+        continue
+      }
       const houseNum = house as HouseNumber
       const matrixCell = SIBSIN_HOUSE_MATRIX[sibsin]?.[houseNum]
       if (matrixCell) {
@@ -249,7 +288,7 @@ function calculateLayer3(input: MatrixCalculationInput): Record<string, MatrixCe
           results[key] = {
             interaction: matrixCell,
             sajuBasis: `십신 ${sibsin}`,
-            astroBasis: `${planet} in H${houseNum}`,
+            astroBasis: `${planetName} in H${houseNum}`,
           }
         }
       }
@@ -416,11 +455,16 @@ function calculateLayer7(input: MatrixCalculationInput): Record<string, MatrixCe
 
 function calculateLayer8(input: MatrixCalculationInput): Record<string, MatrixCell> {
   const results: Record<string, MatrixCell> = {}
-  const shinsalList = input.shinsalList || []
+  const shinsalList = (input.shinsalList || [])
+    .map((shinsal) => normalizeShinsalKey(String(shinsal)))
+    .filter((shinsal): shinsal is ShinsalKind => Boolean(shinsal))
 
   for (const shinsal of shinsalList) {
-    for (const [planet, house] of Object.entries(input.planetHouses)) {
-      const planetName = planet as PlanetName
+    for (const [planetRaw, house] of Object.entries(input.planetHouses)) {
+      const planetName = normalizePlanetNameKey(planetRaw)
+      if (!planetName) {
+        continue
+      }
       const matrixCell = SHINSAL_PLANET_MATRIX[shinsal]?.[planetName]
       if (matrixCell) {
         const key = `${shinsal}_${planetName}`

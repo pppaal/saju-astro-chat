@@ -48,7 +48,7 @@ import { normalizeMojibakePayload } from '@/lib/text/mojibake'
 const _VALID_CALENDAR_PLACES = new Set(Object.keys(LOCATION_COORDS))
 const MAX_PLACE_LEN = LIMITS.PLACE
 
-// Zodiac â†’ element mapping (extracted to avoid duplication in try/catch blocks)
+// Zodiac to element mapping (extracted to avoid duplication in try/catch blocks)
 const ZODIAC_TO_ELEMENT: Record<string, string> = {
   Aries: 'fire',
   Leo: 'fire',
@@ -166,15 +166,15 @@ function collectCalendarMatrixMissing(input: MatrixCalculationInput): string[] {
 }
 /**
  * GET /api/calendar
- * ì¤‘ìš” ë‚ ì§œ ì¡°íšŒ (ì¸ì¦ ë¶ˆí•„ìš”)
+ * 중요 날짜 조회 (인증 불필요)
  *
  * Query params:
- * - birthDate: ìƒë…„ì›”ì¼ (YYYY-MM-DD) - í•„ìˆ˜
- * - birthTime: ì¶œìƒì‹œê°„ (HH:MM) - ì„ íƒ
- * - birthPlace: ì¶œìƒìž¥ì†Œ - ì„ íƒ
- * - year: ì—°ë„ (ê¸°ë³¸: í˜„ìž¬ë…„ë„)
- * - category: ì¹´í…Œê³ ë¦¬ í•„í„°
- * - locale: ì–¸ì–´ (ko, en)
+ * - birthDate: 생년월일 (YYYY-MM-DD) - 필수
+ * - birthTime: 출생시간 (HH:MM) - 선택
+ * - birthPlace: 출생장소 - 선택
+ * - year: 연도 (기본: 현재년도)
+ * - category: 카테고리 필터
+ * - locale: 언어 (ko, en)
  */
 export const GET = withApiMiddleware(
   async (request: NextRequest, _context: ApiContext) => {
@@ -211,7 +211,7 @@ export const GET = withApiMiddleware(
     const birthPlace =
       birthPlaceRaw.length > 0 && birthPlaceRaw.length <= MAX_PLACE_LEN ? birthPlaceRaw : 'Seoul'
 
-    // ìƒë…„ì›”ì¼ íŒŒì‹± (UTC ì˜¤í”„ì…‹ ì˜í–¥ ì—†ì´ ê³ ì •)
+    // 생년월일 파싱 (UTC 오프셋 영향 없이 고정)
     const birthDate = parseBirthDate(birthDateParam)
     if (!birthDate) {
       return createErrorResponse({
@@ -220,11 +220,11 @@ export const GET = withApiMiddleware(
         route: 'calendar',
       })
     }
-    // birthPlaceëŠ” í•­ìƒ ìœ íš¨í•œ ê°’ì´ ìžˆìŒ (ê¸°ë³¸ê°’: Seoul)
+    // birthPlace는 항상 유효한 값이 있음 (기본값: Seoul)
     const coords = LOCATION_COORDS[birthPlace] || LOCATION_COORDS['Seoul']
     const timezone = coords.tz
 
-    // âœ… ì •í™•í•œ ì‚¬ì£¼ ê³„ì‚° (saju.ts ì‚¬ìš© - ì ˆê¸° ê¸°ë°˜ ì›”ì£¼, ìžì‹œ êµì°¨ ì²˜ë¦¬)
+    // 정확한 사주 계산 (saju.ts 사용 - 절기 기반 월주, 자시 교차 처리)
     let sajuResult
     try {
       const sajuGender = gender.toLowerCase() === 'female' ? ('female' as const) : ('male' as const)
@@ -240,8 +240,8 @@ export const GET = withApiMiddleware(
       })
     }
 
-    // ì‚¬ì£¼ ë°ì´í„°ì—ì„œ í•„ìš”í•œ ì •ë³´ ì¶”ì¶œ
-    // Null safety: pillars ê°ì²´ê°€ ì—†ì„ ìˆ˜ ìžˆìŒ
+    // 사주 데이터에서 필요한 정보 추출
+    // Null safety: pillars 객체가 없을 수 있음
     const sajuPillars = sajuResult?.pillars || {}
     const pillars = {
       year: {
@@ -265,7 +265,7 @@ export const GET = withApiMiddleware(
     const dayMasterStem = pillars.day.stem
     const dayMasterElement = STEM_TO_ELEMENT[dayMasterStem] || 'wood'
 
-    // ëŒ€ìš´ ì¶”ì¶œ - DaeunCycle íƒ€ìž…ì— ë§žì¶¤
+    // 대운 추출 - DaeunCycle 타입에 맞춤
     const daeunCycles =
       sajuResult.unse?.daeun
         ?.map((d) => ({
@@ -286,7 +286,7 @@ export const GET = withApiMiddleware(
       pillars,
     }
 
-    // âœ… ì •í™•í•œ ì ì„±ìˆ  ê³„ì‚° (Swiss Ephemeris ì‚¬ìš©)
+    // 정확한 점성술 계산 (Swiss Ephemeris 사용)
     const [birthHour, birthMinute] = birthTimeParam.split(':').map(Number)
     let astroProfile
     let natalChartData: Awaited<ReturnType<typeof calculateNatalChart>> | null = null
@@ -308,7 +308,7 @@ export const GET = withApiMiddleware(
         maxResults: 60,
       })
 
-      // íƒœì–‘ ì •ë³´ ì¶”ì¶œ
+      // 태양 정보 추출
       const sunPlanet = natalChart.planets.find((p) => p.name === 'Sun')
       const sunSign = sunPlanet?.sign || 'Aries'
       const sunLongitude = sunPlanet?.longitude || 0
@@ -537,7 +537,7 @@ export const GET = withApiMiddleware(
       logger.warn('[Calendar] Matrix overlay fallback:', matrixError)
     }
 
-    // ë¡œì»¬ ê³„ì‚°ìœ¼ë¡œ ì¤‘ìš” ë‚ ì§œ ê°€ì ¸ì˜¤ê¸° (Redis ìºì‹± ì ìš©)
+    // 로컬 계산으로 중요 날짜 가져오기 (Redis 캐싱 적용)
     const cacheKey = CacheKeys.yearlyCalendar(
       birthDateParam,
       birthTimeParam,
@@ -549,19 +549,19 @@ export const GET = withApiMiddleware(
       cacheKey,
       async () => {
         return calculateYearlyImportantDates(year, sajuProfile, astroProfile, {
-          minGrade: 4, // grade 4(ìµœì•…ì˜ ë‚ )ê¹Œì§€ í¬í•¨
+          minGrade: 4, // grade 4(최악의 날)까지 포함
         })
       },
       CACHE_TTL.CALENDAR_DATA // 1 day
     )
 
-    // ì¹´í…Œê³ ë¦¬ í•„í„°ë§
+    // 카테고리 필터링
     let filteredDates = localDates
     if (category) {
       filteredDates = localDates.filter((d) => d.categories.includes(category))
     }
 
-    // AI ë°±ì—”ë“œì—ì„œ ì¶”ê°€ ì •ë³´ ì‹œë„
+    // AI 백엔드에서 추가 정보 시도
     const sajuData = {
       birth_date: birthDateParam,
       birth_time: birthTimeParam,
@@ -584,7 +584,7 @@ export const GET = withApiMiddleware(
       },
     }
 
-    // AI ë°±ì—”ë“œ í˜¸ì¶œ ì‹œë„
+    // AI 백엔드 호출 시도
     const aiDates = await fetchAIDates(sajuData, astroData, category || 'overall')
     if (!aiDates && CALENDAR_STRICT_AI_ENRICHMENT) {
       logger.error('[Calendar] AI date enrichment unavailable (strict mode)')
@@ -607,7 +607,7 @@ export const GET = withApiMiddleware(
         matrixCalendarContext
       )
 
-    // 5ë“±ê¸‰ë³„ ê·¸ë£¹í™” (single-pass instead of repeated filter calls)
+    // 5등급별 그룹화 (single-pass instead of repeated filter calls)
     const gradeGroups: Record<number, typeof filteredDates> = {
       0: [],
       1: [],
@@ -620,17 +620,17 @@ export const GET = withApiMiddleware(
         gradeGroups[d.grade].push(d)
       }
     }
-    const grade0 = gradeGroups[0] // ì²œìš´ì˜ ë‚
-    const grade1 = gradeGroups[1] // ì•„ì£¼ ì¢‹ì€ ë‚
-    const grade2 = gradeGroups[2] // ì¢‹ì€ ë‚
-    const grade3 = gradeGroups[3] // ë³´í†µ ë‚
-    const grade4 = gradeGroups[4] // ìµœì•…ì˜ ë‚
+    const grade0 = gradeGroups[0] // 천운의 날
+    const grade1 = gradeGroups[1] // 아주 좋은 날
+    const grade2 = gradeGroups[2] // 좋은 날
+    const grade3 = gradeGroups[3] // 보통 날
+    const grade4 = gradeGroups[4] // 최악의 날
 
-    // AI ë‚ ì§œ ë³‘í•©
+    // AI 날짜 병합
     let aiEnhanced = false
     if (aiDates) {
       aiEnhanced = true
-      // AI ë‚ ì§œë¥¼ ê¸°ì¡´ ë‚ ì§œì— ë³‘í•© ê°€ëŠ¥
+      // AI 날짜를 기존 날짜에 병합 가능
     }
 
     const responsePayload = normalizeMojibakePayload({
@@ -645,14 +645,14 @@ export const GET = withApiMiddleware(
       },
       summary: {
         total: filteredDates.length,
-        grade0: grade0.length, // ì²œìš´ì˜ ë‚
-        grade1: grade1.length, // ì•„ì£¼ ì¢‹ì€ ë‚
-        grade2: grade2.length, // ì¢‹ì€ ë‚
-        grade3: grade3.length, // ë³´í†µ ë‚
-        grade4: grade4.length, // ìµœì•…ì˜ ë‚
+        grade0: grade0.length, // 천운의 날
+        grade1: grade1.length, // 아주 좋은 날
+        grade2: grade2.length, // 좋은 날
+        grade3: grade3.length, // 보통 날
+        grade4: grade4.length, // 최악의 날
       },
       topDates: (() => {
-        // grade0 + grade1 + grade2ê°€ ë¶€ì¡±í•˜ë©´ grade3 ì¤‘ ë†’ì€ ì ìˆ˜ ë‚ ì§œë„ í¬í•¨
+        // grade0 + grade1 + grade2가 부족하면 grade3 중 높은 점수 날짜도 포함
         const topCandidates = [...grade0, ...grade1, ...grade2]
         if (topCandidates.length < 5) {
           const topGrade3 = grade3
