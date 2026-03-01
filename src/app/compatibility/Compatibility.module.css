@@ -27,7 +27,8 @@
 }
 
 @keyframes floatHeart {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) rotate(0deg);
     opacity: 0.2;
   }
@@ -97,7 +98,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -108,7 +110,7 @@
 }
 
 .formTitle {
-  font-family: "Cinzel", serif;
+  font-family: 'Cinzel', serif;
   font-size: 2.2rem;
   font-weight: 800;
   background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%);
@@ -159,7 +161,9 @@
 .countInput:focus {
   outline: none;
   border-color: #fcb69f;
-  box-shadow: 0 0 0 4px rgba(252, 182, 159, 0.2), 0 0 30px rgba(252, 182, 159, 0.15);
+  box-shadow:
+    0 0 0 4px rgba(252, 182, 159, 0.2),
+    0 0 30px rgba(252, 182, 159, 0.15);
 }
 
 /* Person Card */
@@ -570,7 +574,8 @@
 }
 
 @keyframes shake {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
   25% {
@@ -631,7 +636,7 @@
 }
 
 .resultTitle {
-  font-family: "Cinzel", serif;
+  font-family: 'Cinzel', serif;
   font-size: 2rem;
   font-weight: 800;
   background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%);
@@ -776,13 +781,15 @@
 }
 
 .resultCardContent {
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.8;
-  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.98);
+  line-height: 1.95;
+  font-size: 1.03rem;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .resultCardContent p {
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.9rem;
 }
 
 .resultCardContent p:last-child {
@@ -798,23 +805,24 @@
   display: flex;
   justify-content: space-between;
   margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.96rem;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
 }
 
 .scoreBarTrack {
-  height: 10px;
-  background: rgba(255, 255, 255, 0.1);
+  height: 11px;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 999px;
   overflow: hidden;
 }
 
 .scoreBarFill {
   height: 100%;
-  background: linear-gradient(90deg, #fcb69f, #ff9a9e);
+  background: linear-gradient(90deg, #ffd1bf, #ff9d9d);
   border-radius: 999px;
   transition: width 1s ease-out;
-  box-shadow: 0 0 20px rgba(252, 182, 159, 0.5);
+  box-shadow: 0 0 20px rgba(255, 196, 176, 0.7);
 }
 
 /* Compatibility Meter */

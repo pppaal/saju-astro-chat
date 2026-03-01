@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import { sectionTitleKeys, type ParsedSection } from '../../lib'
 import { ScoreBar } from '../shared'
 import styles from '../../Compatibility.module.css'
@@ -21,7 +21,13 @@ const cleanMarkdownLine = (line: string) => {
 }
 
 const SECTION_HEADING_REGEX =
-  /^(Overall Score|Relationship Analysis|Detailed Scores|Saju Analysis|Astrology Analysis|Cross-System Analysis|Plain-Language Compatibility Guide|Scenario-Based Relationship Guide|Personality & Emotional Fit|Intimacy Chemistry|Future Flow & Best Meeting Windows|Strengths|Challenges|Advice|Summary|[가-힣\s/&·]+분석|[가-힣\s/&·]+점수|[가-힣\s/&·]+궁합|한눈에 보는 궁합 해설|상황별 관계 운영 가이드|강점|과제|조언|요약)$/i
+  /^(overall score|relationship analysis|detailed scores|saju analysis|astrology analysis|cross-system analysis|plain-language compatibility guide|scenario-based relationship guide|personality & emotional fit|intimacy chemistry|future flow & best meeting windows|strengths|challenges|advice|summary|한눈에 보는 궁합 해설|상황별 관계 운영 가이드|강점|과제|조언|요약)$/i
+
+const SCORE_KEYWORD_LINE_REGEX =
+  /^(?:score|overall score|compatibility score|점수|종합 점수|총점)\s*[:：]?\s*(\d{1,3})(?:\s*%|\/100)?$/i
+const SCORE_VALUE_LINE_REGEX = /^(\d{1,3})\s*(?:%|\/100)$/i
+const SCORE_LABEL_ONLY_REGEX =
+  /^(?:score|overall score|compatibility score|점수|종합 점수|총점)\s*[:：]?$/i
 
 const labelMapKo: Record<string, string> = {
   'Fusion score (Saju + Astrology)': '융합 점수 (사주 + 점성)',
@@ -46,6 +52,72 @@ export const ResultSectionsDisplay = React.memo<ResultSectionsDisplayProps>(
             ? t(sectionTitleKeys[repairedTitle], repairedTitle)
             : repairedTitle
 
+          const renderedRows: React.ReactNode[] = []
+          const lines = section.content.split('\n')
+          const seenParagraphs = new Set<string>()
+          let expectScoreValueNext = false
+          let prevParagraphKey = ''
+
+          for (let i = 0; i < lines.length; i += 1) {
+            const cleanLine = cleanMarkdownLine(lines[i])
+            if (!cleanLine || SECTION_HEADING_REGEX.test(cleanLine)) {
+              continue
+            }
+
+            const scoreKeywordMatch = cleanLine.match(SCORE_KEYWORD_LINE_REGEX)
+            if (scoreKeywordMatch) {
+              const lineScore = Number.parseInt(scoreKeywordMatch[1], 10)
+              if (lineScore >= 0 && lineScore <= 100) {
+                renderedRows.push(<ScoreBar key={`score-${idx}-${i}`} score={lineScore} t={t} />)
+              }
+              expectScoreValueNext = false
+              continue
+            }
+
+            if (SCORE_LABEL_ONLY_REGEX.test(cleanLine)) {
+              expectScoreValueNext = true
+              continue
+            }
+
+            const scoreValueMatch = expectScoreValueNext
+              ? cleanLine.match(SCORE_VALUE_LINE_REGEX)
+              : null
+            if (scoreValueMatch) {
+              const lineScore = Number.parseInt(scoreValueMatch[1], 10)
+              if (lineScore >= 0 && lineScore <= 100) {
+                renderedRows.push(
+                  <ScoreBar key={`score-next-${idx}-${i}`} score={lineScore} t={t} />
+                )
+              }
+              expectScoreValueNext = false
+              continue
+            }
+            expectScoreValueNext = false
+
+            const normalizedLabelKey = cleanLine.replace(/:$/, '')
+            const displayLine =
+              locale === 'ko' && labelMapKo[normalizedLabelKey]
+                ? `${labelMapKo[normalizedLabelKey]}${cleanLine.endsWith(':') ? ':' : ''}`
+                : cleanLine
+
+            const paragraph = displayLine.trim()
+            if (!paragraph) {
+              continue
+            }
+
+            const paragraphKey = paragraph.toLowerCase()
+            if (paragraphKey === prevParagraphKey) {
+              continue
+            }
+            if (paragraph.length > 40 && seenParagraphs.has(paragraphKey)) {
+              continue
+            }
+
+            seenParagraphs.add(paragraphKey)
+            prevParagraphKey = paragraphKey
+            renderedRows.push(<p key={`line-${idx}-${i}`}>{paragraph}</p>)
+          }
+
           return (
             <div
               key={idx}
@@ -56,35 +128,7 @@ export const ResultSectionsDisplay = React.memo<ResultSectionsDisplayProps>(
                 <span className={styles.resultCardIcon}>{repairMojibakeText(section.icon)}</span>
                 <h3 className={styles.resultCardTitle}>{translatedTitle}</h3>
               </div>
-              <div className={styles.resultCardContent}>
-                {section.content.split('\n').map((line, i) => {
-                  const cleanLine = cleanMarkdownLine(line)
-                  if (!cleanLine || SECTION_HEADING_REGEX.test(cleanLine)) {
-                    return null
-                  }
-
-                  const scoreMatch = cleanLine.match(/(\d{1,3})(?:\s*)?(?:%|\uC810|\/100)/)
-                  if (scoreMatch) {
-                    const lineScore = Number.parseInt(scoreMatch[1], 10)
-                    if (lineScore >= 0 && lineScore <= 100) {
-                      return (
-                        <div key={i}>
-                          <p>{cleanLine.replace(scoreMatch[0], '').trim()}</p>
-                          <ScoreBar score={lineScore} t={t} />
-                        </div>
-                      )
-                    }
-                  }
-
-                  const normalizedLabelKey = cleanLine.replace(/:$/, '')
-                  const displayLine =
-                    locale === 'ko' && labelMapKo[normalizedLabelKey]
-                      ? `${labelMapKo[normalizedLabelKey]}${cleanLine.endsWith(':') ? ':' : ''}`
-                      : cleanLine
-
-                  return displayLine.trim() ? <p key={i}>{displayLine}</p> : null
-                })}
-              </div>
+              <div className={styles.resultCardContent}>{renderedRows}</div>
             </div>
           )
         })}
