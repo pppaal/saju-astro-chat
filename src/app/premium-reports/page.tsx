@@ -43,6 +43,7 @@ type PremiumOption = {
 const FALLBACK_CITY = 'Seoul, South Korea'
 const FALLBACK_LAT = 37.5665
 const FALLBACK_LON = 126.978
+const PREMIUM_API_TIMEOUT_MS = 60000
 
 const PREMIUM_OPTIONS: PremiumOption[] = [
   {
@@ -181,6 +182,8 @@ export default function PremiumReportsPage() {
 
     setError(null)
     setIsGenerating(true)
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), PREMIUM_API_TIMEOUT_MS)
 
     try {
       const payload: Record<string, unknown> = {
@@ -210,9 +213,12 @@ export default function PremiumReportsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       })
 
-      const data = (await response.json()) as {
+      clearTimeout(timeout)
+
+      const data = (await response.json().catch(() => ({}))) as {
         success?: boolean
         report?: { id?: string; reportType?: 'timing' | 'themed' | 'comprehensive' }
         error?: { code?: string; message?: string }
@@ -256,8 +262,13 @@ export default function PremiumReportsPage() {
       analytics.matrixGenerate('premium-reports')
       router.push(`/premium-reports/result/${reportId}?type=${reportType}`)
     } catch (e) {
-      setError(e instanceof Error ? e.message : '리포트 생성 중 오류가 발생했습니다.')
+      if (e instanceof Error && e.name === 'AbortError') {
+        setError('응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.')
+      } else {
+        setError(e instanceof Error ? e.message : '리포트 생성 중 오류가 발생했습니다.')
+      }
     } finally {
+      clearTimeout(timeout)
       setIsGenerating(false)
     }
   }
@@ -386,9 +397,9 @@ export default function PremiumReportsPage() {
 
               <button
                 onClick={mode === 'free' ? handleStartFree : handleGeneratePremium}
-                disabled={!canRun || !hasProfile}
+                disabled={!canRun}
                 className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white transition ${
-                  canRun && hasProfile
+                  canRun
                     ? mode === 'free'
                       ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110'
                       : `bg-gradient-to-r ${selectedOption.color} hover:brightness-110`
@@ -398,6 +409,12 @@ export default function PremiumReportsPage() {
                 {mode === 'free' ? 'Free 분석하기' : 'Premium 분석하기'}
                 <ArrowRight className="h-4 w-4" />
               </button>
+
+              {!hasProfile && (
+                <p className="mt-2 text-xs text-amber-200">
+                  출생 정보를 입력하면 바로 분석을 시작할 수 있습니다.
+                </p>
+              )}
             </article>
 
             <article className="rounded-2xl border border-white/15 bg-slate-900/50 p-4 text-xs leading-6 text-slate-300 backdrop-blur-xl">
