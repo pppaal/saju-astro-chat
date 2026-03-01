@@ -36,7 +36,7 @@ import {
 import type { FiveElement } from '@/lib/Saju/types'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { compatibilityCounselorRequestSchema } from '@/lib/api/zodValidation'
-import { buildThemeDepthGuide } from '@/lib/prompts/fortuneWithIcp'
+import { buildThemeDepthGuide, buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -1119,6 +1119,7 @@ export async function POST(req: NextRequest) {
       (lang === 'ko' ? 'ê¶í•© ìƒë‹´' : 'Compatibility counseling')
     const normalizedLang = lang === 'ko' ? 'ko' : 'en'
     const themeDepthGuide = buildThemeDepthGuide(String(theme || 'general'), normalizedLang)
+    const evidenceGuide = buildEvidenceGroundingGuide(normalizedLang)
 
     // Build enhanced prompt for counselor
     const counselorPrompt = [
@@ -1141,6 +1142,7 @@ export async function POST(req: NextRequest) {
       `\n== ì‚¬ìš©ìž ì§ˆë¬¸ ==\n${userQuestion}`,
       ``,
       `== INTERPRETATION QUALITY CONTRACT ==\n${themeDepthGuide}`,
+      `\n== EVIDENCE GATE ==\n${evidenceGuide}`,
       ``,
       `== ìƒë‹´ì‚¬ ì§€ì¹¨ ==`,
       lang === 'ko'

@@ -15,6 +15,7 @@ import {
   buildFortuneWithIcpOutputGuide,
   buildFortuneWithIcpSection,
   buildThemeDepthGuide,
+  buildEvidenceGroundingGuide,
 } from '@/lib/prompts/fortuneWithIcp'
 import {
   toChart,
@@ -102,6 +103,10 @@ interface MatrixSnapshot {
   domainScores: Record<string, number>
   confidenceScore?: number
   finalScoreAdjusted?: number
+  semanticHints: string[]
+  layerThemeBriefs: string[]
+  globalConflictPolicy?: string
+  lowConfidencePolicy?: string
 }
 
 function normalizeStringList(value: unknown, limit = 6): string[] {
@@ -455,6 +460,8 @@ function buildMatrixProfileSection(
       .slice(0, 6)
       .map(([k, v]) => `${k}:${typeof v === 'number' ? Number(v).toFixed(1) : '-'}`)
       .join(', ') || 'none'
+  const semanticText = snapshot.semanticHints.slice(0, 6).join(' | ') || 'none'
+  const themeLayerText = snapshot.layerThemeBriefs.slice(0, 4).join(' | ') || 'none'
   const focus = pickMatrixThemeFocus(theme, snapshot.domainScores)
   const hasCommRisk = /communication|mercury|수성|소통|오해|문서|계약/i.test(cautionText)
 
@@ -472,7 +479,11 @@ function buildMatrixProfileSection(
       `calendar_signals=${signalText}`,
       `overlap_timeline=${timelineText}`,
       `domain_scores=${domainScoreText}`,
+      `layer_semantics=${semanticText}`,
+      `layer_theme_briefs=${themeLayerText}`,
       `theme_focus=${focus.domain}${typeof focus.score === 'number' ? `(${focus.score.toFixed(1)})` : ''}`,
+      `global_conflict_policy=${snapshot.globalConflictPolicy || '-'}`,
+      `low_confidence_policy=${snapshot.lowConfidencePolicy || '-'}`,
       '응답 초반에 "Matrix snapshot:" 소제목으로 2-3문장으로 요약하고, 이후 기존 사주/점성/교차 해석을 이어가세요.',
       '테마 해석에서는 theme_focus와 domain_scores를 최우선으로 반영하세요.',
       hasCommRisk
@@ -494,9 +505,14 @@ function buildMatrixProfileSection(
     `calendar_signals=${signalText}`,
     `overlap_timeline=${timelineText}`,
     `domain_scores=${domainScoreText}`,
+    `layer_semantics=${semanticText}`,
+    `layer_theme_briefs=${themeLayerText}`,
     `theme_focus=${focus.domain}${typeof focus.score === 'number' ? `(${focus.score.toFixed(1)})` : ''}`,
+    `global_conflict_policy=${snapshot.globalConflictPolicy || '-'}`,
+    `low_confidence_policy=${snapshot.lowConfidencePolicy || '-'}`,
     'Start with a short "Matrix snapshot:" section (2-3 sentences), then continue with the existing saju/astro/cross narrative.',
     'Prioritize theme_focus and domain_scores in actionable advice.',
+    'Follow layer_semantics axes and keep evidence -> interpretation -> action flow.',
     hasCommRisk
       ? 'If communication/document risk is present, do not recommend immediate signing/finalizing; prefer verification actions.'
       : 'Ensure recommendations never contradict cautions.',
@@ -513,6 +529,8 @@ async function fetchMatrixSnapshot(
     astro: AstroDataStructure | undefined
     natalChartData?: NatalChartData
     advancedAstro?: Partial<CombinedResult>
+    currentTransits?: unknown[]
+    theme: string
   }
 ): Promise<MatrixSnapshot | null> {
   try {
@@ -549,6 +567,7 @@ async function fetchMatrixSnapshot(
         asteroidHouses: derived.asteroidHouses,
         extraPointSigns: derived.extraPointSigns,
         advancedAstroSignals,
+        activeTransits: Array.isArray(input.currentTransits) ? input.currentTransits : [],
       }),
     })
 
@@ -569,6 +588,29 @@ async function fetchMatrixSnapshot(
       }
       highlights?: { strengths?: MatrixHighlight[]; cautions?: MatrixHighlight[] }
       synergies?: MatrixSynergy[]
+      semantics?: {
+        globalConflictPolicy?: string
+        lowConfidencePolicy?: string
+        layers?: Array<{
+          id?: string
+          nameKo?: string
+          nameEn?: string
+          meaningKo?: string
+          meaningEn?: string
+          active?: boolean
+          signalStrength?: string
+          matchedCells?: number
+        }>
+      }
+      layerThemeProfiles?: Array<{
+        layerId?: string
+        layerNameKo?: string
+        themeInsights?: Array<{
+          domain?: string
+          summaryKo?: string
+          summaryEn?: string
+        }>
+      }>
     }
     if (!data?.success) {
       return null
@@ -590,6 +632,44 @@ async function fetchMatrixSnapshot(
         (s) => `${s.description || 'synergy'}${s.score ? `(${Number(s.score).toFixed(1)})` : ''}`
       )
       .slice(0, 3)
+    const semanticHints = Array.isArray(data.semantics?.layers)
+      ? data.semantics.layers
+          .filter((layer) => layer?.active)
+          .slice(0, 6)
+          .map((layer) => {
+            const name = layer.nameKo || layer.nameEn || layer.id || 'layer'
+            const meaning = layer.meaningKo || layer.meaningEn || ''
+            const cells = typeof layer.matchedCells === 'number' ? layer.matchedCells : 0
+            const signal = layer.signalStrength || 'low'
+            return `${name}[${signal}/${cells}] ${meaning}`.trim()
+          })
+      : []
+    const themeDomainMap: Record<string, string> = {
+      love: 'love',
+      family: 'love',
+      career: 'career',
+      wealth: 'money',
+      health: 'health',
+      today: 'career',
+      month: 'career',
+      year: 'career',
+      life: 'career',
+      chat: 'career',
+    }
+    const themeDomain = themeDomainMap[input.theme] || 'career'
+    const layerThemeBriefs = Array.isArray(data.layerThemeProfiles)
+      ? data.layerThemeProfiles
+          .slice(0, 6)
+          .map((layer) => {
+            const insight = Array.isArray(layer.themeInsights)
+              ? layer.themeInsights.find((v) => v.domain === themeDomain)
+              : undefined
+            const summary = insight?.summaryKo || insight?.summaryEn || ''
+            if (!summary) return ''
+            return `${layer.layerNameKo || layer.layerId || 'layer'}: ${summary}`
+          })
+          .filter(Boolean)
+      : []
 
     return {
       totalScore: Number(data.summary?.totalScore || 0),
@@ -612,6 +692,10 @@ async function fetchMatrixSnapshot(
         typeof data.summary?.finalScoreAdjusted === 'number'
           ? data.summary.finalScoreAdjusted
           : undefined,
+      semanticHints,
+      layerThemeBriefs,
+      globalConflictPolicy: data.semantics?.globalConflictPolicy,
+      lowConfidencePolicy: data.semantics?.lowConfidencePolicy,
     }
   } catch (error) {
     logger.warn('[chat-stream] Matrix snapshot fetch failed', {
@@ -875,6 +959,8 @@ export async function POST(req: NextRequest) {
       astro: finalAstro,
       natalChartData,
       advancedAstro: enrichedAdvancedAstro,
+      currentTransits,
+      theme,
     })
     const matrixProfileSection = buildMatrixProfileSection(matrixSnapshot, lang, theme)
 
@@ -900,12 +986,14 @@ export async function POST(req: NextRequest) {
     const fortuneIcpSection = buildFortuneWithIcpSection(counselingBrief, lang)
     const fortuneGuide = buildFortuneWithIcpOutputGuide(lang)
     const themeDepthGuide = buildThemeDepthGuide(theme, lang)
+    const evidenceGuide = buildEvidenceGroundingGuide(lang)
 
     // Build prompt - FULL analysis with all advanced engines
     const chatPrompt = [
       counselorSystemPrompt(lang),
       fortuneGuide,
       themeDepthGuide,
+      evidenceGuide,
       `Name: ${name || 'User'}`,
       themeContext,
       fortuneIcpSection,

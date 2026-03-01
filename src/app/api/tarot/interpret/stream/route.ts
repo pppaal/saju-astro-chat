@@ -2,7 +2,12 @@
 // Streaming Tarot Interpretation API - Real-time SSE for first interpretation
 
 import { NextRequest } from 'next/server'
-import { withApiMiddleware, createPublicStreamGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
+import {
+  withApiMiddleware,
+  createPublicStreamGuard,
+  extractLocale,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { createSSEStreamProxy } from '@/lib/streaming'
 import { apiClient } from '@/lib/api/ApiClient'
 import { logger } from '@/lib/logger'
@@ -50,6 +55,7 @@ export const POST = withApiMiddleware(
             name: c.name,
             is_reversed: c.isReversed,
             position: c.position || '',
+            meaning: `Key message from ${c.name}`,
           })),
           overall_message: '',
           guidance: '',
@@ -65,7 +71,7 @@ export const POST = withApiMiddleware(
       logger.error('[TarotInterpretStream] Backend error:', {
         status: streamResult.status,
         error: streamResult.error,
-      });
+      })
       return createErrorResponse({
         code: ErrorCodes.BACKEND_ERROR,
         message: streamResult.error || 'Backend service error',

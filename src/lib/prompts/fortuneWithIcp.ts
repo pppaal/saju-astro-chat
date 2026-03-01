@@ -138,3 +138,33 @@ export function buildThemeDepthGuide(theme: string, lang: 'ko' | 'en'): string {
     '- End with one immediate next action.',
   ].join('\n')
 }
+
+export function buildEvidenceGroundingGuide(lang: 'ko' | 'en'): string {
+  if (lang === 'ko') {
+    return [
+      '[근거 게이트]',
+      '- 각 핵심 문단은 최소 1개 이상의 명시 근거를 포함한다.',
+      '- 답변 전체 기준 최소 3개 근거를 사용한다: 사주 1 + 점성 1 + 매트릭스/타이밍 1.',
+      '- 근거가 약하면 강한 단정과 비가역 행동 권유를 금지한다.',
+      '- 커뮤니케이션/문서 리스크가 보이면 서명/확정/발송/결제 즉시 실행을 금지한다.',
+      '',
+      '[검증 체크리스트]',
+      '- recommendation과 caution은 서로 모순되면 안 된다.',
+      '- 미리보기와 상세에서 같은 문장을 반복하지 않는다.',
+      '- 행동 가이드는 검증 가능한 체크포인트를 2개 이상 포함한다.',
+    ].join('\n')
+  }
+
+  return [
+    '[Evidence Gate]',
+    '- Every core paragraph must include at least one explicit evidence item.',
+    '- Use at least 3 evidence items overall: 1 saju + 1 astrology + 1 matrix/timing.',
+    '- If evidence is weak, avoid strong claims and irreversible action recommendations.',
+    '- If communication/document risk exists, block immediate sign/finalize/send/pay actions.',
+    '',
+    '[Validation Checklist]',
+    '- Recommendations must not contradict cautions.',
+    '- No sentence repetition between preview and detail.',
+    '- Include at least two verifiable checkpoints in actionable guidance.',
+  ].join('\n')
+}

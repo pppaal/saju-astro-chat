@@ -6,6 +6,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createPublicStreamGuard } from '@/lib/api/middleware'
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix'
+import { buildMatrixSemanticContract } from '@/lib/destiny-matrix/layerSemantics'
+import { buildLayerThemeProfiles } from '@/lib/destiny-matrix/layerThemeProfiles'
 import { buildPremiumActionChecklist } from '@/lib/destiny-matrix/actionChecklist'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import type { FiveElement, RelationHit } from '@/lib/Saju/types'
@@ -965,6 +967,8 @@ export const POST = withApiMiddleware(
 
       // Calculate matrix (server-side only)
       const matrix = calculateDestinyMatrix(input)
+      const semanticContract = buildMatrixSemanticContract(matrix)
+      const layerThemeProfiles = buildLayerThemeProfiles(matrix, input)
       const now = new Date()
       const tomorrowDate = new Date(now)
       tomorrowDate.setDate(tomorrowDate.getDate() + 1)
@@ -1048,6 +1052,8 @@ export const POST = withApiMiddleware(
           })),
         },
         synergies: matrix.summary.topSynergies?.slice(0, 3),
+        semantics: semanticContract,
+        layerThemeProfiles,
         // Copyright notice
         copyright: '© 2024 Destiny Fusion Matrix™. All Rights Reserved.',
       })

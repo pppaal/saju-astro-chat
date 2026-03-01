@@ -116,7 +116,12 @@ vi.mock('@/lib/api/zodValidation', () => ({
     return new Response(
       JSON.stringify({
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'Validation failed', status: 422, details: error.issues },
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Validation failed',
+          status: 422,
+          details: error.issues,
+        },
       }),
       { status: 422, headers: { 'Content-Type': 'application/json' } }
     )
@@ -151,10 +156,7 @@ const MOCK_PARSED_DATA = {
   language: 'ko',
 }
 
-function createPostRequest(
-  body: unknown,
-  headers?: Record<string, string>
-): NextRequest {
+function createPostRequest(body: unknown, headers?: Record<string, string>): NextRequest {
   return new NextRequest('http://localhost:3000/api/tarot/interpret/stream', {
     method: 'POST',
     body: JSON.stringify(body),
@@ -249,14 +251,11 @@ describe('POST /api/tarot/interpret/stream', () => {
   // =========================================================================
   describe('Input Validation', () => {
     it('should return 400 for invalid JSON body', async () => {
-      const invalidRequest = new NextRequest(
-        'http://localhost:3000/api/tarot/interpret/stream',
-        {
-          method: 'POST',
-          body: 'not valid json',
-          headers: { 'Content-Type': 'application/json' },
-        }
-      )
+      const invalidRequest = new NextRequest('http://localhost:3000/api/tarot/interpret/stream', {
+        method: 'POST',
+        body: 'not valid json',
+        headers: { 'Content-Type': 'application/json' },
+      })
 
       const response = await POST(invalidRequest)
       const data = await response.json()
@@ -288,9 +287,7 @@ describe('POST /api/tarot/interpret/stream', () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
-          issues: [
-            { path: ['cards'], message: 'Array must contain at least 1 element(s)' },
-          ],
+          issues: [{ path: ['cards'], message: 'Array must contain at least 1 element(s)' }],
         },
       })
 
@@ -312,9 +309,7 @@ describe('POST /api/tarot/interpret/stream', () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
-          issues: [
-            { path: ['cards'], message: 'Array must contain at most 15 element(s)' },
-          ],
+          issues: [{ path: ['cards'], message: 'Array must contain at most 15 element(s)' }],
         },
       })
 
@@ -330,9 +325,7 @@ describe('POST /api/tarot/interpret/stream', () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
-          issues: [
-            { path: ['cards', 0, 'name'], message: 'Required' },
-          ],
+          issues: [{ path: ['cards', 0, 'name'], message: 'Required' }],
         },
       })
 
@@ -369,9 +362,7 @@ describe('POST /api/tarot/interpret/stream', () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
-          issues: [
-            { path: ['category'], message: 'String must contain at most 64 character(s)' },
-          ],
+          issues: [{ path: ['category'], message: 'String must contain at most 64 character(s)' }],
         },
       })
 
@@ -427,14 +418,15 @@ describe('POST /api/tarot/interpret/stream', () => {
         success: false,
         error: {
           issues: [
-            { path: ['cards', 0, 'position'], message: 'String must contain at most 80 character(s)' },
+            {
+              path: ['cards', 0, 'position'],
+              message: 'String must contain at most 80 character(s)',
+            },
           ],
         },
       })
 
-      const invalidCards = [
-        { name: 'The Fool', isReversed: false, position: 'A'.repeat(100) },
-      ]
+      const invalidCards = [{ name: 'The Fool', isReversed: false, position: 'A'.repeat(100) }]
       const req = createPostRequest({ ...VALID_REQUEST_BODY, cards: invalidCards })
       const response = await POST(req)
       const data = await response.json()
@@ -542,9 +534,24 @@ describe('POST /api/tarot/interpret/stream', () => {
         expect.objectContaining({
           context: expect.objectContaining({
             cards: [
-              { name: 'The Fool', is_reversed: false, position: 'Past' },
-              { name: 'The Magician', is_reversed: true, position: 'Present' },
-              { name: 'The High Priestess', is_reversed: false, position: 'Future' },
+              expect.objectContaining({
+                name: 'The Fool',
+                is_reversed: false,
+                position: 'Past',
+                meaning: expect.any(String),
+              }),
+              expect.objectContaining({
+                name: 'The Magician',
+                is_reversed: true,
+                position: 'Present',
+                meaning: expect.any(String),
+              }),
+              expect.objectContaining({
+                name: 'The High Priestess',
+                is_reversed: false,
+                position: 'Future',
+                meaning: expect.any(String),
+              }),
             ],
           }),
         }),
@@ -615,9 +622,7 @@ describe('POST /api/tarot/interpret/stream', () => {
       expect(mockPostSSEStream).toHaveBeenCalledWith(
         '/api/tarot/chat-stream',
         expect.objectContaining({
-          messages: [
-            { role: 'user', content: 'What does my love life look like?' },
-          ],
+          messages: [{ role: 'user', content: 'What does my love life look like?' }],
         }),
         expect.any(Object)
       )
@@ -641,9 +646,7 @@ describe('POST /api/tarot/interpret/stream', () => {
       expect(mockPostSSEStream).toHaveBeenCalledWith(
         '/api/tarot/chat-stream',
         expect.objectContaining({
-          messages: [
-            { role: 'user', content: 'general reading' },
-          ],
+          messages: [{ role: 'user', content: 'general reading' }],
         }),
         expect.any(Object)
       )
@@ -653,11 +656,9 @@ describe('POST /api/tarot/interpret/stream', () => {
       const req = createPostRequest(VALID_REQUEST_BODY)
       await POST(req)
 
-      expect(mockPostSSEStream).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.any(Object),
-        { timeout: 20000 }
-      )
+      expect(mockPostSSEStream).toHaveBeenCalledWith(expect.any(String), expect.any(Object), {
+        timeout: 20000,
+      })
     })
 
     it('should include counselorId when provided', async () => {
@@ -847,9 +848,7 @@ describe('POST /api/tarot/interpret/stream', () => {
         success: true,
         data: {
           ...MOCK_PARSED_DATA,
-          cards: [
-            { name: 'The Fool', isReversed: true, position: 'Center' },
-          ],
+          cards: [{ name: 'The Fool', isReversed: true, position: 'Center' }],
         },
       })
 
@@ -859,11 +858,14 @@ describe('POST /api/tarot/interpret/stream', () => {
       await POST(req)
 
       const callArgs = mockPostSSEStream.mock.calls[0]
-      expect(callArgs[1].context.cards[0]).toEqual({
-        name: 'The Fool',
-        is_reversed: true,
-        position: 'Center',
-      })
+      expect(callArgs[1].context.cards[0]).toEqual(
+        expect.objectContaining({
+          name: 'The Fool',
+          is_reversed: true,
+          position: 'Center',
+          meaning: expect.any(String),
+        })
+      )
     })
 
     it('should handle empty position string', async () => {
@@ -871,9 +873,7 @@ describe('POST /api/tarot/interpret/stream', () => {
         success: true,
         data: {
           ...MOCK_PARSED_DATA,
-          cards: [
-            { name: 'The Fool', isReversed: false, position: '' },
-          ],
+          cards: [{ name: 'The Fool', isReversed: false, position: '' }],
         },
       })
 
@@ -891,9 +891,7 @@ describe('POST /api/tarot/interpret/stream', () => {
         success: true,
         data: {
           ...MOCK_PARSED_DATA,
-          cards: [
-            { name: 'The Fool', isReversed: false },
-          ],
+          cards: [{ name: 'The Fool', isReversed: false }],
         },
       })
 
@@ -1087,7 +1085,14 @@ describe('POST /api/tarot/interpret/stream', () => {
         '/api/tarot/chat-stream',
         expect.objectContaining({
           context: expect.objectContaining({
-            cards: [{ name: 'The Star', is_reversed: false, position: '' }],
+            cards: [
+              expect.objectContaining({
+                name: 'The Star',
+                is_reversed: false,
+                position: '',
+                meaning: expect.any(String),
+              }),
+            ],
           }),
         }),
         expect.any(Object)

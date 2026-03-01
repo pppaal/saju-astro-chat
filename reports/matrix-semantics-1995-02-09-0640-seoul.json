@@ -1,0 +1,1425 @@
+{
+  "profile": {
+    "birthDate": "1995-02-09",
+    "birthTime": "06:40",
+    "city": "Seoul",
+    "gender": "male",
+    "timezone": "Asia/Seoul",
+    "latitude": 37.5665,
+    "longitude": 126.978
+  },
+  "generatedAt": "2026-03-01T09:50:29.103Z",
+  "semanticsContract": {
+    "version": "1.0",
+    "interpretationOrder": [
+      "layer4",
+      "layer5",
+      "layer2",
+      "layer3",
+      "layer7",
+      "layer6",
+      "layer8",
+      "layer9",
+      "layer10",
+      "layer1"
+    ],
+    "globalConflictPolicy": "If risk signals (timing/communication/conflict) are active, block irreversible recommendations and switch to verification-first actions.",
+    "lowConfidencePolicy": "When confidence is low, provide reversible steps only and include explicit recheck checkpoints.",
+    "layers": [
+      {
+        "id": "layer1",
+        "nameKo": "기운 핵심",
+        "nameEn": "Element Core",
+        "meaningKo": "사주 오행과 서양 원소의 기본 체질 정합성",
+        "meaningEn": "Core constitution alignment between Saju elements and Western elements",
+        "answersKo": ["타고난 기본 에너지 구조는?", "과열/고갈이 어디서 시작되는가?"],
+        "answersEn": [
+          "What is the innate energy baseline?",
+          "Where does overload or depletion begin?"
+        ],
+        "evidenceSources": ["dayMasterElement", "pillarElements", "dominantWesternElement"],
+        "confidenceRule": "Need day master + pillar elements + dominant western element",
+        "conflictRule": "When layer1 conflicts with higher timing layers, treat as baseline not immediate action trigger",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["rhythm adjustment", "habit tuning"],
+          "blockedActions": ["immediate commitment"]
+        },
+        "matchedCells": 4,
+        "active": true,
+        "signalStrength": "low"
+      },
+      {
+        "id": "layer2",
+        "nameKo": "십신-행성",
+        "nameEn": "Sibsin-Planet",
+        "meaningKo": "역할 성향(십신)과 행성 기능의 결합",
+        "meaningEn": "Role tendencies (Sibsin) mapped to planetary functions",
+        "answersKo": ["현재 행동 스타일의 강점/약점은?", "의사결정 기질은 어떤가?"],
+        "answersEn": [
+          "What are current behavioral strengths/weaknesses?",
+          "How is decision style shaped?"
+        ],
+        "evidenceSources": ["sibsinDistribution", "planetHouses", "planetSigns"],
+        "confidenceRule": "Need non-empty sibsin distribution and major planets",
+        "conflictRule": "If layer2 contradicts layer4 risk, keep strategy but delay irreversible execution",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["draft", "strategy", "review"],
+          "blockedActions": ["sign now", "finalize now"]
+        },
+        "matchedCells": 60,
+        "active": true,
+        "signalStrength": "high"
+      },
+      {
+        "id": "layer3",
+        "nameKo": "십신-하우스",
+        "nameEn": "Sibsin-House",
+        "meaningKo": "삶의 영역별(하우스) 에너지 배치",
+        "meaningEn": "Life-domain allocation via house placements",
+        "answersKo": ["어느 생활영역을 우선해야 하나?", "에너지가 분산되는 지점은?"],
+        "answersEn": ["Which life domain should be prioritized?", "Where is energy scattered?"],
+        "evidenceSources": ["sibsinDistribution", "planetHouses"],
+        "confidenceRule": "Need valid house coverage across personal planets",
+        "conflictRule": "Use as priority map; do not override timing warnings",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["priority setting", "scope control"],
+          "blockedActions": ["overexpansion"]
+        },
+        "matchedCells": 36,
+        "active": true,
+        "signalStrength": "high"
+      },
+      {
+        "id": "layer4",
+        "nameKo": "타이밍",
+        "nameEn": "Timing Overlay",
+        "meaningKo": "지금 시점의 실행 리스크/가속 신호",
+        "meaningEn": "Immediate execution risk/acceleration signals",
+        "answersKo": ["지금 해도 되는가?", "오늘/이번주 리스크는?"],
+        "answersEn": ["Is this executable now?", "What is the immediate risk this week?"],
+        "evidenceSources": ["activeTransits", "currentDaeunElement", "currentSaeunElement"],
+        "confidenceRule": "Need current transit cycles plus at least one luck-cycle signal",
+        "conflictRule": "Timing risk has precedence over opportunity layers for irreversible actions",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["verify", "delay 24h", "double-check"],
+          "blockedActions": ["contract signing", "final booking", "public launch"]
+        },
+        "matchedCells": 1,
+        "active": true,
+        "signalStrength": "low"
+      },
+      {
+        "id": "layer5",
+        "nameKo": "관계-애스펙트",
+        "nameEn": "Relation-Aspect",
+        "meaningKo": "관계 역학과 상호작용 긴장/조화",
+        "meaningEn": "Relational dynamics from branch relations and aspects",
+        "answersKo": ["갈등 원인은 어디인가?", "협업/연애에서 조화 포인트는?"],
+        "answersEn": ["Where does friction come from?", "Where is relational harmony available?"],
+        "evidenceSources": ["relations", "aspects"],
+        "confidenceRule": "Need validated relation hits and major aspect mapping",
+        "conflictRule": "When clash/conflict cells dominate, require communication safeguards",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["expectation alignment", "written recap"],
+          "blockedActions": ["ultimatum", "same-day hard commitment"]
+        },
+        "matchedCells": 40,
+        "active": true,
+        "signalStrength": "high"
+      },
+      {
+        "id": "layer6",
+        "nameKo": "십이운성-하우스",
+        "nameEn": "Stage-House",
+        "meaningKo": "생명력/성장단계가 영역별로 드러나는 패턴",
+        "meaningEn": "Vitality and growth-stage pattern by life domain",
+        "answersKo": ["현재 성장 단계는?", "소모되는 영역은 어디인가?"],
+        "answersEn": ["What growth stage is active?", "Which domain is draining?"],
+        "evidenceSources": ["twelveStages", "planetHouses"],
+        "confidenceRule": "Need valid twelve-stage extraction from pillars",
+        "conflictRule": "Low-stage conflict requires load reduction before expansion",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["load balancing", "recovery block"],
+          "blockedActions": ["overcommitment"]
+        },
+        "matchedCells": 24,
+        "active": true,
+        "signalStrength": "high"
+      },
+      {
+        "id": "layer7",
+        "nameKo": "고급 분석",
+        "nameEn": "Advanced Analysis",
+        "meaningKo": "격국/용신과 고급 점성(프로그레션·리턴)의 교차",
+        "meaningEn": "Cross of Geokguk/Yongsin with advanced astrology (progressions/returns)",
+        "answersKo": ["중장기 방향은?", "구조적 전환 포인트는?"],
+        "answersEn": [
+          "What is the mid-long term direction?",
+          "Where are structural turning points?"
+        ],
+        "evidenceSources": ["geokguk", "yongsin", "advancedAstroSignals"],
+        "confidenceRule": "Need geokguk or yongsin plus at least one advanced astrology signal",
+        "conflictRule": "Use for direction-setting, not same-day execution override",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["roadmap update", "milestone planning"],
+          "blockedActions": ["instant pivot"]
+        },
+        "matchedCells": 6,
+        "active": true,
+        "signalStrength": "low"
+      },
+      {
+        "id": "layer8",
+        "nameKo": "신살-행성",
+        "nameEn": "Shinsal-Planet",
+        "meaningKo": "특수기운(신살)의 증폭/경고 신호",
+        "meaningEn": "Amplification/warning from special Shinsal signatures",
+        "answersKo": ["예외적 기회/위험은?", "과잉반응 포인트는?"],
+        "answersEn": [
+          "Where are exceptional opportunities/risks?",
+          "Where is overreaction likely?"
+        ],
+        "evidenceSources": ["shinsalList", "planetHouses"],
+        "confidenceRule": "Need normalized shinsal list mapped to matrix set",
+        "conflictRule": "Treat as amplifier; must be gated by timing and confidence",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["risk buffer", "guardrail setup"],
+          "blockedActions": ["all-in decisions"]
+        },
+        "matchedCells": 120,
+        "active": true,
+        "signalStrength": "high"
+      },
+      {
+        "id": "layer9",
+        "nameKo": "소행성-하우스",
+        "nameEn": "Asteroid-House",
+        "meaningKo": "세부 관계/전략 성향의 미세 조정",
+        "meaningEn": "Fine-grained relationship/strategy tuning via asteroids",
+        "answersKo": ["세부 조정 포인트는?", "관계 계약 조건에서 무엇을 보완할까?"],
+        "answersEn": [
+          "What fine adjustments are needed?",
+          "What should be tightened in agreements?"
+        ],
+        "evidenceSources": ["asteroidHouses", "dayMasterElement"],
+        "confidenceRule": "Need asteroid house coverage (Ceres/Pallas/Juno/Vesta)",
+        "conflictRule": "Supportive detail layer; cannot overrule layer4 risk gates",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["term negotiation", "detail refinement"],
+          "blockedActions": ["blind acceptance"]
+        },
+        "matchedCells": 8,
+        "active": true,
+        "signalStrength": "medium"
+      },
+      {
+        "id": "layer10",
+        "nameKo": "엑스트라포인트",
+        "nameEn": "Extra Points",
+        "meaningKo": "심층 심리/의미 축(Chiron/Lilith/Fortune/Vertex/Nodes)",
+        "meaningEn": "Deep psychological/meaning axis via extra points",
+        "answersKo": ["반복되는 내적 패턴은?", "의미/치유 축은 어디인가?"],
+        "answersEn": ["What inner patterns keep repeating?", "Where is the meaning-healing axis?"],
+        "evidenceSources": ["extraPointSigns", "sibsinDistribution", "dayMasterElement"],
+        "confidenceRule": "Need extra point signs with stable base layers",
+        "conflictRule": "Interpretive depth layer; actions must remain reversible under low confidence",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["reflection", "message draft", "boundary statement"],
+          "blockedActions": ["emotion-driven final decisions"]
+        },
+        "matchedCells": 28,
+        "active": true,
+        "signalStrength": "high"
+      }
+    ]
+  },
+  "semanticsDefinition": [
+    {
+      "id": "layer1",
+      "nameKo": "기운 핵심",
+      "nameEn": "Element Core",
+      "meaningKo": "사주 오행과 서양 원소의 기본 체질 정합성",
+      "meaningEn": "Core constitution alignment between Saju elements and Western elements",
+      "answersKo": ["타고난 기본 에너지 구조는?", "과열/고갈이 어디서 시작되는가?"],
+      "answersEn": [
+        "What is the innate energy baseline?",
+        "Where does overload or depletion begin?"
+      ],
+      "evidenceSources": ["dayMasterElement", "pillarElements", "dominantWesternElement"],
+      "confidenceRule": "Need day master + pillar elements + dominant western element",
+      "conflictRule": "When layer1 conflicts with higher timing layers, treat as baseline not immediate action trigger",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["rhythm adjustment", "habit tuning"],
+        "blockedActions": ["immediate commitment"]
+      }
+    },
+    {
+      "id": "layer2",
+      "nameKo": "십신-행성",
+      "nameEn": "Sibsin-Planet",
+      "meaningKo": "역할 성향(십신)과 행성 기능의 결합",
+      "meaningEn": "Role tendencies (Sibsin) mapped to planetary functions",
+      "answersKo": ["현재 행동 스타일의 강점/약점은?", "의사결정 기질은 어떤가?"],
+      "answersEn": [
+        "What are current behavioral strengths/weaknesses?",
+        "How is decision style shaped?"
+      ],
+      "evidenceSources": ["sibsinDistribution", "planetHouses", "planetSigns"],
+      "confidenceRule": "Need non-empty sibsin distribution and major planets",
+      "conflictRule": "If layer2 contradicts layer4 risk, keep strategy but delay irreversible execution",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["draft", "strategy", "review"],
+        "blockedActions": ["sign now", "finalize now"]
+      }
+    },
+    {
+      "id": "layer3",
+      "nameKo": "십신-하우스",
+      "nameEn": "Sibsin-House",
+      "meaningKo": "삶의 영역별(하우스) 에너지 배치",
+      "meaningEn": "Life-domain allocation via house placements",
+      "answersKo": ["어느 생활영역을 우선해야 하나?", "에너지가 분산되는 지점은?"],
+      "answersEn": ["Which life domain should be prioritized?", "Where is energy scattered?"],
+      "evidenceSources": ["sibsinDistribution", "planetHouses"],
+      "confidenceRule": "Need valid house coverage across personal planets",
+      "conflictRule": "Use as priority map; do not override timing warnings",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["priority setting", "scope control"],
+        "blockedActions": ["overexpansion"]
+      }
+    },
+    {
+      "id": "layer4",
+      "nameKo": "타이밍",
+      "nameEn": "Timing Overlay",
+      "meaningKo": "지금 시점의 실행 리스크/가속 신호",
+      "meaningEn": "Immediate execution risk/acceleration signals",
+      "answersKo": ["지금 해도 되는가?", "오늘/이번주 리스크는?"],
+      "answersEn": ["Is this executable now?", "What is the immediate risk this week?"],
+      "evidenceSources": ["activeTransits", "currentDaeunElement", "currentSaeunElement"],
+      "confidenceRule": "Need current transit cycles plus at least one luck-cycle signal",
+      "conflictRule": "Timing risk has precedence over opportunity layers for irreversible actions",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["verify", "delay 24h", "double-check"],
+        "blockedActions": ["contract signing", "final booking", "public launch"]
+      }
+    },
+    {
+      "id": "layer5",
+      "nameKo": "관계-애스펙트",
+      "nameEn": "Relation-Aspect",
+      "meaningKo": "관계 역학과 상호작용 긴장/조화",
+      "meaningEn": "Relational dynamics from branch relations and aspects",
+      "answersKo": ["갈등 원인은 어디인가?", "협업/연애에서 조화 포인트는?"],
+      "answersEn": ["Where does friction come from?", "Where is relational harmony available?"],
+      "evidenceSources": ["relations", "aspects"],
+      "confidenceRule": "Need validated relation hits and major aspect mapping",
+      "conflictRule": "When clash/conflict cells dominate, require communication safeguards",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["expectation alignment", "written recap"],
+        "blockedActions": ["ultimatum", "same-day hard commitment"]
+      }
+    },
+    {
+      "id": "layer6",
+      "nameKo": "십이운성-하우스",
+      "nameEn": "Stage-House",
+      "meaningKo": "생명력/성장단계가 영역별로 드러나는 패턴",
+      "meaningEn": "Vitality and growth-stage pattern by life domain",
+      "answersKo": ["현재 성장 단계는?", "소모되는 영역은 어디인가?"],
+      "answersEn": ["What growth stage is active?", "Which domain is draining?"],
+      "evidenceSources": ["twelveStages", "planetHouses"],
+      "confidenceRule": "Need valid twelve-stage extraction from pillars",
+      "conflictRule": "Low-stage conflict requires load reduction before expansion",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["load balancing", "recovery block"],
+        "blockedActions": ["overcommitment"]
+      }
+    },
+    {
+      "id": "layer7",
+      "nameKo": "고급 분석",
+      "nameEn": "Advanced Analysis",
+      "meaningKo": "격국/용신과 고급 점성(프로그레션·리턴)의 교차",
+      "meaningEn": "Cross of Geokguk/Yongsin with advanced astrology (progressions/returns)",
+      "answersKo": ["중장기 방향은?", "구조적 전환 포인트는?"],
+      "answersEn": ["What is the mid-long term direction?", "Where are structural turning points?"],
+      "evidenceSources": ["geokguk", "yongsin", "advancedAstroSignals"],
+      "confidenceRule": "Need geokguk or yongsin plus at least one advanced astrology signal",
+      "conflictRule": "Use for direction-setting, not same-day execution override",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["roadmap update", "milestone planning"],
+        "blockedActions": ["instant pivot"]
+      }
+    },
+    {
+      "id": "layer8",
+      "nameKo": "신살-행성",
+      "nameEn": "Shinsal-Planet",
+      "meaningKo": "특수기운(신살)의 증폭/경고 신호",
+      "meaningEn": "Amplification/warning from special Shinsal signatures",
+      "answersKo": ["예외적 기회/위험은?", "과잉반응 포인트는?"],
+      "answersEn": ["Where are exceptional opportunities/risks?", "Where is overreaction likely?"],
+      "evidenceSources": ["shinsalList", "planetHouses"],
+      "confidenceRule": "Need normalized shinsal list mapped to matrix set",
+      "conflictRule": "Treat as amplifier; must be gated by timing and confidence",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["risk buffer", "guardrail setup"],
+        "blockedActions": ["all-in decisions"]
+      }
+    },
+    {
+      "id": "layer9",
+      "nameKo": "소행성-하우스",
+      "nameEn": "Asteroid-House",
+      "meaningKo": "세부 관계/전략 성향의 미세 조정",
+      "meaningEn": "Fine-grained relationship/strategy tuning via asteroids",
+      "answersKo": ["세부 조정 포인트는?", "관계 계약 조건에서 무엇을 보완할까?"],
+      "answersEn": ["What fine adjustments are needed?", "What should be tightened in agreements?"],
+      "evidenceSources": ["asteroidHouses", "dayMasterElement"],
+      "confidenceRule": "Need asteroid house coverage (Ceres/Pallas/Juno/Vesta)",
+      "conflictRule": "Supportive detail layer; cannot overrule layer4 risk gates",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["term negotiation", "detail refinement"],
+        "blockedActions": ["blind acceptance"]
+      }
+    },
+    {
+      "id": "layer10",
+      "nameKo": "엑스트라포인트",
+      "nameEn": "Extra Points",
+      "meaningKo": "심층 심리/의미 축(Chiron/Lilith/Fortune/Vertex/Nodes)",
+      "meaningEn": "Deep psychological/meaning axis via extra points",
+      "answersKo": ["반복되는 내적 패턴은?", "의미/치유 축은 어디인가?"],
+      "answersEn": ["What inner patterns keep repeating?", "Where is the meaning-healing axis?"],
+      "evidenceSources": ["extraPointSigns", "sibsinDistribution", "dayMasterElement"],
+      "confidenceRule": "Need extra point signs with stable base layers",
+      "conflictRule": "Interpretive depth layer; actions must remain reversible under low confidence",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["reflection", "message draft", "boundary statement"],
+        "blockedActions": ["emotion-driven final decisions"]
+      }
+    }
+  ],
+  "summary": {
+    "totalScore": 6,
+    "sajuComponentScore": 0.602,
+    "astroComponentScore": 0.651,
+    "alignmentScore": 0.952,
+    "overlapStrength": 0.092,
+    "timeOverlapWeight": 1.028,
+    "finalScoreAdjusted": 6.1,
+    "confidenceScore": 0.99,
+    "drivers": ["High cross-system agreement"],
+    "cautions": [],
+    "calendarSignals": [],
+    "domainScores": {
+      "career": {
+        "domain": "career",
+        "baseFinalScore": 10,
+        "finalScoreAdjusted": 10,
+        "sajuComponentScore": 0.602,
+        "astroComponentScore": 0.651,
+        "alignmentScore": 0.952,
+        "overlapStrength": 0.129,
+        "timeOverlapWeight": 1.039,
+        "confidenceScore": 0.99,
+        "drivers": ["High cross-system agreement"],
+        "cautions": []
+      },
+      "love": {
+        "domain": "love",
+        "baseFinalScore": 10,
+        "finalScoreAdjusted": 10,
+        "sajuComponentScore": 0.602,
+        "astroComponentScore": 0.651,
+        "alignmentScore": 0.952,
+        "overlapStrength": 0.129,
+        "timeOverlapWeight": 1.039,
+        "confidenceScore": 0.99,
+        "drivers": ["High cross-system agreement"],
+        "cautions": []
+      },
+      "money": {
+        "domain": "money",
+        "baseFinalScore": 10,
+        "finalScoreAdjusted": 10,
+        "sajuComponentScore": 0.602,
+        "astroComponentScore": 0.651,
+        "alignmentScore": 0.952,
+        "overlapStrength": 0.129,
+        "timeOverlapWeight": 1.039,
+        "confidenceScore": 0.99,
+        "drivers": ["High cross-system agreement"],
+        "cautions": []
+      },
+      "health": {
+        "domain": "health",
+        "baseFinalScore": 10,
+        "finalScoreAdjusted": 10,
+        "sajuComponentScore": 0.602,
+        "astroComponentScore": 0.651,
+        "alignmentScore": 0.952,
+        "overlapStrength": 0.129,
+        "timeOverlapWeight": 1.039,
+        "confidenceScore": 0.99,
+        "drivers": ["High cross-system agreement"],
+        "cautions": []
+      },
+      "move": {
+        "domain": "move",
+        "baseFinalScore": 10,
+        "finalScoreAdjusted": 10,
+        "sajuComponentScore": 0.602,
+        "astroComponentScore": 0.651,
+        "alignmentScore": 0.952,
+        "overlapStrength": 0.129,
+        "timeOverlapWeight": 1.039,
+        "confidenceScore": 0.99,
+        "drivers": ["High cross-system agreement"],
+        "cautions": []
+      }
+    },
+    "overlapTimeline": [
+      {
+        "month": "2026-03",
+        "overlapStrength": 0.018,
+        "timeOverlapWeight": 1.005,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-04",
+        "overlapStrength": 0.166,
+        "timeOverlapWeight": 1.05,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-05",
+        "overlapStrength": 0.221,
+        "timeOverlapWeight": 1.066,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-06",
+        "overlapStrength": 0.134,
+        "timeOverlapWeight": 1.04,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-07",
+        "overlapStrength": 0.1,
+        "timeOverlapWeight": 1.03,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-08",
+        "overlapStrength": 0.132,
+        "timeOverlapWeight": 1.04,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-09",
+        "overlapStrength": 0.16,
+        "timeOverlapWeight": 1.048,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-10",
+        "overlapStrength": 0,
+        "timeOverlapWeight": 1,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-11",
+        "overlapStrength": 0.084,
+        "timeOverlapWeight": 1.025,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-12",
+        "overlapStrength": 0.094,
+        "timeOverlapWeight": 1.028,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2027-01",
+        "overlapStrength": 0.025,
+        "timeOverlapWeight": 1.008,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2027-02",
+        "overlapStrength": 0.055,
+        "timeOverlapWeight": 1.016,
+        "peakLevel": "normal"
+      }
+    ],
+    "overlapTimelineByDomain": {
+      "career": [
+        {
+          "month": "2026-03",
+          "overlapStrength": 0.023,
+          "timeOverlapWeight": 1.007,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-04",
+          "overlapStrength": 0.216,
+          "timeOverlapWeight": 1.065,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-05",
+          "overlapStrength": 0.287,
+          "timeOverlapWeight": 1.086,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-06",
+          "overlapStrength": 0.174,
+          "timeOverlapWeight": 1.052,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-07",
+          "overlapStrength": 0.13,
+          "timeOverlapWeight": 1.039,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-08",
+          "overlapStrength": 0.172,
+          "timeOverlapWeight": 1.051,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-09",
+          "overlapStrength": 0.208,
+          "timeOverlapWeight": 1.062,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-10",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-11",
+          "overlapStrength": 0.109,
+          "timeOverlapWeight": 1.033,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-12",
+          "overlapStrength": 0.122,
+          "timeOverlapWeight": 1.037,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-01",
+          "overlapStrength": 0.032,
+          "timeOverlapWeight": 1.01,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-02",
+          "overlapStrength": 0.072,
+          "timeOverlapWeight": 1.021,
+          "peakLevel": "normal"
+        }
+      ],
+      "love": [
+        {
+          "month": "2026-03",
+          "overlapStrength": 0.023,
+          "timeOverlapWeight": 1.007,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-04",
+          "overlapStrength": 0.216,
+          "timeOverlapWeight": 1.065,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-05",
+          "overlapStrength": 0.287,
+          "timeOverlapWeight": 1.086,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-06",
+          "overlapStrength": 0.174,
+          "timeOverlapWeight": 1.052,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-07",
+          "overlapStrength": 0.13,
+          "timeOverlapWeight": 1.039,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-08",
+          "overlapStrength": 0.172,
+          "timeOverlapWeight": 1.051,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-09",
+          "overlapStrength": 0.208,
+          "timeOverlapWeight": 1.062,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-10",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-11",
+          "overlapStrength": 0.109,
+          "timeOverlapWeight": 1.033,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-12",
+          "overlapStrength": 0.122,
+          "timeOverlapWeight": 1.037,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-01",
+          "overlapStrength": 0.032,
+          "timeOverlapWeight": 1.01,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-02",
+          "overlapStrength": 0.072,
+          "timeOverlapWeight": 1.021,
+          "peakLevel": "normal"
+        }
+      ],
+      "money": [
+        {
+          "month": "2026-03",
+          "overlapStrength": 0.023,
+          "timeOverlapWeight": 1.007,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-04",
+          "overlapStrength": 0.216,
+          "timeOverlapWeight": 1.065,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-05",
+          "overlapStrength": 0.287,
+          "timeOverlapWeight": 1.086,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-06",
+          "overlapStrength": 0.174,
+          "timeOverlapWeight": 1.052,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-07",
+          "overlapStrength": 0.13,
+          "timeOverlapWeight": 1.039,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-08",
+          "overlapStrength": 0.172,
+          "timeOverlapWeight": 1.051,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-09",
+          "overlapStrength": 0.208,
+          "timeOverlapWeight": 1.062,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-10",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-11",
+          "overlapStrength": 0.109,
+          "timeOverlapWeight": 1.033,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-12",
+          "overlapStrength": 0.122,
+          "timeOverlapWeight": 1.037,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-01",
+          "overlapStrength": 0.032,
+          "timeOverlapWeight": 1.01,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-02",
+          "overlapStrength": 0.072,
+          "timeOverlapWeight": 1.021,
+          "peakLevel": "normal"
+        }
+      ],
+      "health": [
+        {
+          "month": "2026-03",
+          "overlapStrength": 0.023,
+          "timeOverlapWeight": 1.007,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-04",
+          "overlapStrength": 0.216,
+          "timeOverlapWeight": 1.065,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-05",
+          "overlapStrength": 0.287,
+          "timeOverlapWeight": 1.086,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-06",
+          "overlapStrength": 0.174,
+          "timeOverlapWeight": 1.052,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-07",
+          "overlapStrength": 0.13,
+          "timeOverlapWeight": 1.039,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-08",
+          "overlapStrength": 0.172,
+          "timeOverlapWeight": 1.051,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-09",
+          "overlapStrength": 0.208,
+          "timeOverlapWeight": 1.062,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-10",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-11",
+          "overlapStrength": 0.109,
+          "timeOverlapWeight": 1.033,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-12",
+          "overlapStrength": 0.122,
+          "timeOverlapWeight": 1.037,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-01",
+          "overlapStrength": 0.032,
+          "timeOverlapWeight": 1.01,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-02",
+          "overlapStrength": 0.072,
+          "timeOverlapWeight": 1.021,
+          "peakLevel": "normal"
+        }
+      ],
+      "move": [
+        {
+          "month": "2026-03",
+          "overlapStrength": 0.023,
+          "timeOverlapWeight": 1.007,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-04",
+          "overlapStrength": 0.216,
+          "timeOverlapWeight": 1.065,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-05",
+          "overlapStrength": 0.287,
+          "timeOverlapWeight": 1.086,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-06",
+          "overlapStrength": 0.174,
+          "timeOverlapWeight": 1.052,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-07",
+          "overlapStrength": 0.13,
+          "timeOverlapWeight": 1.039,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-08",
+          "overlapStrength": 0.172,
+          "timeOverlapWeight": 1.051,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-09",
+          "overlapStrength": 0.208,
+          "timeOverlapWeight": 1.062,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-10",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-11",
+          "overlapStrength": 0.109,
+          "timeOverlapWeight": 1.033,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-12",
+          "overlapStrength": 0.122,
+          "timeOverlapWeight": 1.037,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-01",
+          "overlapStrength": 0.032,
+          "timeOverlapWeight": 1.01,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-02",
+          "overlapStrength": 0.072,
+          "timeOverlapWeight": 1.021,
+          "peakLevel": "normal"
+        }
+      ]
+    },
+    "strengthPoints": [
+      {
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "conjunction",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "💥",
+            "colorCode": "purple",
+            "keyword": "극강시너지",
+            "keywordEn": "Extreme synergy",
+            "advice": "삼합의 조화로운 에너지가 합의 강화력과 만나 최고조의 시너지를 이룹니다. 이 시기에는 중요한 결정이나 새로운 시작이 극강의 성공 가능성을 보입니다. 다만 너무 강한 에너지는 주변과의 균형을 깨뜨릴 수 있으니 겸손함을 잃지 마세요."
+          },
+          "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+          "astroBasis": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg"
+        }
+      },
+      {
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "trine",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "🌟",
+            "colorCode": "purple",
+            "keyword": "최상조화",
+            "keywordEn": "Best harmony",
+            "advice": "삼합의 조화와 삼각의 자연스러운 흐름이 결합되어 최상의 조화를 이룹니다. 모든 일이 자연스럽게 풀리고 행운이 따르는 시기입니다. 이 흐름에 몸을 맡기되, 안주하지 말고 지속적으로 발전을 추구하세요."
+          },
+          "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+          "astroBasis": "Moon-Mercury trine angle=120deg orb=4.65deg allowed=6deg"
+        }
+      },
+      {
+        "layer": 5,
+        "rowKey": "chung",
+        "colKey": "opposition",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "💥",
+            "colorCode": "purple",
+            "keyword": "극심충돌",
+            "keywordEn": "Extreme clash",
+            "advice": "충과 충이 만나 최고조의 대립과 긴장이 발생합니다. 극단적 변화나 큰 충돌이 예상되는 시기입니다. 감정을 절제하고 신중하게 행동하되, 필요하다면 과감한 결단도 고려하세요."
+          },
+          "sajuBasis": "천간충 (乙-辛 충)",
+          "astroBasis": "Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg"
+        }
+      },
+      {
+        "layer": 6,
+        "rowKey": "임관",
+        "colKey": "H10",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "🏆",
+            "colorCode": "purple",
+            "keyword": "커리어정점",
+            "keywordEn": "Career peak",
+            "advice": "임관의 성취 에너지가 10하우스 커리어 영역에서 정점에 달합니다. 직업적 성공과 사회적 지위 확립의 시기입니다. 리더십을 발휘하고 성과를 거두세요. 단, 정상에서의 겸손과 후진 양성에도 힘쓰세요."
+          },
+          "sajuBasis": "십이운성 임관",
+          "astroBasis": "Jupiter in H10"
+        }
+      },
+      {
+        "layer": 8,
+        "rowKey": "천을귀인",
+        "colKey": "Sun",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "👑",
+            "colorCode": "purple",
+            "keyword": "귀인조력",
+            "keywordEn": "Noble aid",
+            "advice": "귀인의 도움이 최고조입니다. 중요한 사람을 만나거나 중대한 결정을 내리기에 최적의 시기입니다. 감사하는 마음으로 관계를 돈독히 하세요."
+          },
+          "sajuBasis": "신살 천을귀인",
+          "astroBasis": "Sun in H1"
+        }
+      },
+      {
+        "layer": 8,
+        "rowKey": "천을귀인",
+        "colKey": "Jupiter",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "🎯",
+            "colorCode": "purple",
+            "keyword": "대길귀인",
+            "keywordEn": "Great fortune noble",
+            "advice": "대길의 운이 함께합니다. 중요한 프로젝트나 투자를 시작하기 좋은 시기이며, 긍정적 태도로 기회를 잡으세요."
+          },
+          "sajuBasis": "신살 천을귀인",
+          "astroBasis": "Jupiter in H10"
+        }
+      },
+      {
+        "layer": 8,
+        "rowKey": "괴강",
+        "colKey": "Pluto",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "🔱",
+            "colorCode": "purple",
+            "keyword": "권력극단",
+            "keywordEn": "Power extreme",
+            "advice": "권력과 힘이 최고조로 극단에 달합니다. 세상을 바꿀 수 있는 엄청난 에너지가 있으나, 파멸로 이어질 수도 있습니다. 지혜롭게 다스리세요."
+          },
+          "sajuBasis": "신살 괴강",
+          "astroBasis": "Pluto in H10"
+        }
+      },
+      {
+        "layer": 9,
+        "rowKey": "Pallas",
+        "colKey": "금",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "⚔️",
+            "colorCode": "purple",
+            "keyword": "결단전략",
+            "keywordEn": "Decision strategy",
+            "advice": "팔라스가 금(金) 기운과 만나 최강의 결단력과 정확한 판단 전략을 발휘합니다. 핵심을 꿰뚫어보고 날카로운 결정을 내리는 능력이 탁월합니다. 명확하게 결단하고 불필요한 것을 과감히 정리하세요. 단, 지나친 냉철함이 관계나 협력을 해치지 않도록 유연성도 갖추세요."
+          },
+          "sajuBasis": "일간 금",
+          "astroBasis": "소행성 Pallas"
+        }
+      },
+      {
+        "layer": 10,
+        "rowKey": "PartOfFortune",
+        "colKey": "편재",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "💰",
+            "colorCode": "purple",
+            "keyword": "투자행운",
+            "keywordEn": "Investment fortune",
+            "advice": "행운점이 편재와 만나 최고 수준의 투자 행운이 발휘됩니다. 사업, 투자, 부동산에서 탁월한 성공 가능성이 있습니다. 계산된 리스크를 감수하고 기회를 잡으세요. 단, 과욕은 화를 부르니 분수를 지키세요."
+          },
+          "sajuBasis": "십신 편재",
+          "astroBasis": "PartOfFortune in Libra"
+        }
+      },
+      {
+        "layer": 10,
+        "rowKey": "PartOfFortune",
+        "colKey": "정재",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "🏦",
+            "colorCode": "purple",
+            "keyword": "저축행운",
+            "keywordEn": "Savings fortune",
+            "advice": "행운점이 정재와 만나 최고 수준의 저축 행운이 발휘됩니다. 안정적인 재테크와 장기 투자에서 큰 성공이 예상됩니다. 꾸준히 모으고 관리하면 부를 축적합니다. 단, 지나친 절약이 삶의 질을 떨어뜨릴 수 있습니다."
+          },
+          "sajuBasis": "십신 정재",
+          "astroBasis": "PartOfFortune in Libra"
+        }
+      }
+    ],
+    "balancePoints": [
+      {
+        "layer": 2,
+        "rowKey": "편재",
+        "colKey": "Saturn",
+        "cell": {
+          "interaction": {
+            "level": "balance",
+            "score": 5,
+            "icon": "⚖️",
+            "colorCode": "blue",
+            "keyword": "손실",
+            "keywordEn": "Loss",
+            "advice": "재정적 제약이 있을 수 있습니다. 절약하고 장기적 계획을 세우세요."
+          },
+          "sajuBasis": "십신 편재",
+          "astroBasis": "Saturn in H1"
+        }
+      },
+      {
+        "layer": 2,
+        "rowKey": "상관",
+        "colKey": "Mercury",
+        "cell": {
+          "interaction": {
+            "level": "balance",
+            "score": 5,
+            "icon": "⚡",
+            "colorCode": "blue",
+            "keyword": "날카",
+            "keywordEn": "Sharp",
+            "advice": "날카로운 통찰력이 생깁니다. 비판적 사고를 건설적으로 활용하고, 공격적 언어는 자제하세요."
+          },
+          "sajuBasis": "십신 상관",
+          "astroBasis": "Mercury in H1"
+        }
+      },
+      {
+        "layer": 2,
+        "rowKey": "정인",
+        "colKey": "Uranus",
+        "cell": {
+          "interaction": {
+            "level": "balance",
+            "score": 5,
+            "icon": "⚖️",
+            "colorCode": "blue",
+            "keyword": "혁신",
+            "keywordEn": "Innovate",
+            "advice": "전통과 혁신의 균형을 찾으세요. 새로운 방법을 시도하되, 기본은 지키세요."
+          },
+          "sajuBasis": "십신 정인",
+          "astroBasis": "Uranus in H12"
+        }
+      },
+      {
+        "layer": 2,
+        "rowKey": "정재",
+        "colKey": "Uranus",
+        "cell": {
+          "interaction": {
+            "level": "balance",
+            "score": 5,
+            "icon": "⚖️",
+            "colorCode": "blue",
+            "keyword": "변화",
+            "keywordEn": "Change",
+            "advice": "재정 상황에 변화가 있을 수 있습니다. 유연하게 대처하되, 안정을 우선하세요."
+          },
+          "sajuBasis": "십신 정재",
+          "astroBasis": "Uranus in H12"
+        }
+      },
+      {
+        "layer": 2,
+        "rowKey": "비견",
+        "colKey": "Mercury",
+        "cell": {
+          "interaction": {
+            "level": "balance",
+            "score": 6,
+            "icon": "🔄",
+            "colorCode": "blue",
+            "keyword": "중립",
+            "keywordEn": "Neutral",
+            "advice": "논리적 사고와 자아가 균형을 이룹니다. 대화와 협상에 유리한 시기입니다."
+          },
+          "sajuBasis": "십신 비견",
+          "astroBasis": "Mercury in H1"
+        }
+      }
+    ],
+    "cautionPoints": [
+      {
+        "layer": 1,
+        "rowKey": "금",
+        "colKey": "fire",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "❌",
+            "colorCode": "red",
+            "keyword": "상극",
+            "keywordEn": "Conflict",
+            "advice": "갈등과 마찰이 예상됩니다. 충동적 결정을 피하고, 냉정함을 유지하며 장기적 관점을 가지세요."
+          },
+          "sajuBasis": "사주 금",
+          "astroBasis": "점성 fire"
+        }
+      },
+      {
+        "layer": 1,
+        "rowKey": "수",
+        "colKey": "fire",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "❌",
+            "colorCode": "red",
+            "keyword": "상극",
+            "keywordEn": "Conflict",
+            "advice": "극단적 대립이 예상됩니다. 감정 조절이 중요하며, 중재자를 통한 해결을 고려하세요."
+          },
+          "sajuBasis": "사주 수",
+          "astroBasis": "점성 fire"
+        }
+      },
+      {
+        "layer": 2,
+        "rowKey": "상관",
+        "colKey": "Saturn",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "❌",
+            "colorCode": "red",
+            "keyword": "좌절",
+            "keywordEn": "Frustrate",
+            "advice": "좌절감이 클 수 있습니다. 제약을 성장의 기회로 삼고, 인내심을 가지세요."
+          },
+          "sajuBasis": "십신 상관",
+          "astroBasis": "Saturn in H1"
+        }
+      },
+      {
+        "layer": 5,
+        "rowKey": "chung",
+        "colKey": "square",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "☠️",
+            "colorCode": "red",
+            "keyword": "파괴위험",
+            "keywordEn": "Destruction risk",
+            "advice": "충의 충돌과 사각의 긴장이 만나 극심한 파괴 위험이 있습니다. 중요한 결정이나 대립 상황은 반드시 피해야 하는 시기입니다. 최대한 방어적 자세를 취하고, 무리한 도전을 삼가세요."
+          },
+          "sajuBasis": "천간충 (乙-辛 충)",
+          "astroBasis": "Jupiter-Saturn square angle=90deg orb=0.47deg allowed=6deg"
+        }
+      },
+      {
+        "layer": 6,
+        "rowKey": "사",
+        "colKey": "H1",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "☠️",
+            "colorCode": "red",
+            "keyword": "자아종결",
+            "keywordEn": "Self end",
+            "advice": "사의 종결 에너지가 1하우스 자아 영역에서 극심하게 작용합니다. 기존 자아가 끝나고 완전한 재탄생이 필요한 시기입니다. 과거의 자신을 놓아주고 새로운 정체성을 준비하세요. 단, 극단적인 행동은 피하고 내면의 변화에 집중하세요."
+          },
+          "sajuBasis": "십이운성 사",
+          "astroBasis": "Sun in H1"
+        }
+      },
+      {
+        "layer": 6,
+        "rowKey": "사",
+        "colKey": "H11",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "💀",
+            "colorCode": "red",
+            "keyword": "희망종결",
+            "keywordEn": "Hope end",
+            "advice": "사의 종결 에너지가 11하우스 희망 영역에서 암흑을 드리웁니다. 희망이 사라지고 친구 관계가 끊어질 수 있는 시기입니다. 혼자만의 시간을 갖고 새로운 꿈을 찾으세요. 단, 절대 포기하지 말고 전문가의 도움을 받으세요."
+          },
+          "sajuBasis": "십이운성 사",
+          "astroBasis": "Venus in H11"
+        }
+      },
+      {
+        "layer": 6,
+        "rowKey": "사",
+        "colKey": "H7",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "💀",
+            "colorCode": "red",
+            "keyword": "관계종결",
+            "keywordEn": "Relation end",
+            "advice": "사의 종결 에너지가 7하우스 관계 영역에서 이별을 암시합니다. 관계가 종결되거나 파트너십이 해체될 수 있습니다. 집착을 놓고 건강한 이별을 준비하세요. 단, 폭력적이거나 극단적인 행동은 절대 피하세요."
+          },
+          "sajuBasis": "십이운성 사",
+          "astroBasis": "Mars in H7"
+        }
+      },
+      {
+        "layer": 6,
+        "rowKey": "사",
+        "colKey": "H10",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "📉",
+            "colorCode": "red",
+            "keyword": "커리어종결",
+            "keywordEn": "Career end",
+            "advice": "사의 종결 에너지가 10하우스 커리어 영역에서 극심한 도전을 줍니다. 직업을 잃거나 사회적 지위가 무너질 수 있는 시기입니다. 새로운 방향을 모색하고 재기를 준비하세요. 단, 명예에 연연하지 말고 본질적인 가치에 집중하세요."
+          },
+          "sajuBasis": "십이운성 사",
+          "astroBasis": "Jupiter in H10"
+        }
+      },
+      {
+        "layer": 8,
+        "rowKey": "겁살",
+        "colKey": "Mars",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "⚔️",
+            "colorCode": "red",
+            "keyword": "겁살극강",
+            "keywordEn": "Rob kill peak",
+            "advice": "극심한 주의가 필요합니다. 재물과 건강 모두 심각한 손실 위험이 있습니다. 위험한 활동과 투자를 반드시 피하고, 안전을 최우선으로 하세요. 이 시기를 조용히 지나면 무사할 수 있습니다."
+          },
+          "sajuBasis": "신살 겁살",
+          "astroBasis": "Mars in H7"
+        }
+      },
+      {
+        "layer": 8,
+        "rowKey": "천라지망",
+        "colKey": "Mars",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "⛓️",
+            "colorCode": "red",
+            "keyword": "행동속박",
+            "keywordEn": "Action bound",
+            "advice": "극심한 주의가 필요합니다. 행동이 극도로 제한받고 움직일 수 없는 시기입니다. 무리한 행동을 반드시 피하고, 조용히 기다리세요. 인내하면 매우 위험한 상황을 넘기고 자유를 되찾을 수 있습니다."
+          },
+          "sajuBasis": "신살 천라지망",
+          "astroBasis": "Mars in H7"
+        }
+      }
+    ],
+    "topSynergies": [
+      {
+        "layers": [2, 2, 2],
+        "description": "59개의 극강 시너지 발견",
+        "score": 8.983050847457626
+      }
+    ]
+  },
+  "layerCellCounts": {
+    "layer1": 4,
+    "layer2": 60,
+    "layer3": 36,
+    "layer4": 1,
+    "layer5": 40,
+    "layer6": 24,
+    "layer7": 6,
+    "layer8": 120,
+    "layer9": 8,
+    "layer10": 28
+  }
+}

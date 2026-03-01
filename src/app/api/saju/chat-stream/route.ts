@@ -5,7 +5,7 @@ import { sajuChatStreamSchema, type SajuChatStreamValidated } from '@/lib/api/zo
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { sanitizeLocaleText, maskTextWithName } from '@/lib/destiny-map/sanitize'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { buildThemeDepthGuide } from '@/lib/prompts/fortuneWithIcp'
+import { buildThemeDepthGuide, buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -113,10 +113,12 @@ export const POST = createStreamRoute<SajuChatStreamValidated>({
     const userQuestion = lastUser ? guardText(lastUser.content, 500) : ''
     const normalizedLang = lang === 'ko' ? 'ko' : 'en'
     const themeDepthGuide = buildThemeDepthGuide(theme, normalizedLang)
+    const evidenceGuide = buildEvidenceGroundingGuide(normalizedLang)
 
     const chatPrompt = [
       sajuCounselorSystemPrompt(lang),
       themeDepthGuide,
+      evidenceGuide,
       `Name: ${name || 'User'}`,
       `Birth: ${birthDate} ${birthTime}`,
       `Gender: ${gender}`,

@@ -19,7 +19,10 @@ import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { optimizeTarotMessagesForBackend } from '../_lib/messageOptimizer'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
-import { tarotChatStreamRequestSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
+import {
+  tarotChatStreamRequestSchema,
+  createValidationErrorResponse,
+} from '@/lib/api/zodValidation'
 interface CardContext {
   position: string
   name: string
@@ -67,9 +70,12 @@ function sanitizeCards(raw: unknown): CardContext[] {
     const position =
       typeof record.position === 'string' ? record.position.trim().slice(0, MAX_TITLE_TEXT) : ''
     const name = typeof record.name === 'string' ? record.name.trim().slice(0, MAX_TITLE_TEXT) : ''
-    const meaning =
-      typeof record.meaning === 'string' ? record.meaning.trim().slice(0, MAX_CARD_TEXT) : ''
-    if (!position || !name || !meaning) {
+    const rawMeaning = typeof record.meaning === 'string' ? record.meaning.trim() : ''
+    const meaning = (rawMeaning || `Key message from ${name || 'this card'}`).slice(
+      0,
+      MAX_CARD_TEXT
+    )
+    if (!position || !name) {
       continue
     }
     const isReversed = Boolean(record.is_reversed ?? record.isReversed)
@@ -496,7 +502,8 @@ export async function POST(req: NextRequest) {
       })
 
       // Generate fallback response based on context
-      const lastUserMessage = optimizedMessages.filter((m) => m.role === 'user').pop()?.content || ''
+      const lastUserMessage =
+        optimizedMessages.filter((m) => m.role === 'user').pop()?.content || ''
       const fallbackMessage = generateFallbackMessage(tarotContext, lastUserMessage, language)
 
       return createFallbackSSEStream({

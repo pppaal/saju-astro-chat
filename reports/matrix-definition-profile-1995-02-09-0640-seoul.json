@@ -1,0 +1,886 @@
+{
+  "profile": {
+    "birthDate": "1995-02-09",
+    "birthTime": "06:40",
+    "city": "Seoul",
+    "gender": "male",
+    "timezone": "Asia/Seoul",
+    "latitude": 37.5665,
+    "longitude": 126.978
+  },
+  "generatedAt": "2026-03-01T09:56:02.269Z",
+  "semanticsDefinition": [
+    {
+      "id": "layer1",
+      "nameKo": "기운 핵심",
+      "nameEn": "Element Core",
+      "meaningKo": "사주 오행과 서양 원소의 기본 체질 정합성",
+      "meaningEn": "Core constitution alignment between Saju elements and Western elements",
+      "answersKo": ["타고난 기본 에너지 구조는?", "과열/고갈이 어디서 시작되는가?"],
+      "answersEn": [
+        "What is the innate energy baseline?",
+        "Where does overload or depletion begin?"
+      ],
+      "evidenceSources": ["dayMasterElement", "pillarElements", "dominantWesternElement"],
+      "confidenceRule": "Need day master + pillar elements + dominant western element",
+      "conflictRule": "When layer1 conflicts with higher timing layers, treat as baseline not immediate action trigger",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["rhythm adjustment", "habit tuning"],
+        "blockedActions": ["immediate commitment"]
+      }
+    },
+    {
+      "id": "layer2",
+      "nameKo": "십신-행성",
+      "nameEn": "Sibsin-Planet",
+      "meaningKo": "역할 성향(십신)과 행성 기능의 결합",
+      "meaningEn": "Role tendencies (Sibsin) mapped to planetary functions",
+      "answersKo": ["현재 행동 스타일의 강점/약점은?", "의사결정 기질은 어떤가?"],
+      "answersEn": [
+        "What are current behavioral strengths/weaknesses?",
+        "How is decision style shaped?"
+      ],
+      "evidenceSources": ["sibsinDistribution", "planetHouses", "planetSigns"],
+      "confidenceRule": "Need non-empty sibsin distribution and major planets",
+      "conflictRule": "If layer2 contradicts layer4 risk, keep strategy but delay irreversible execution",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["draft", "strategy", "review"],
+        "blockedActions": ["sign now", "finalize now"]
+      }
+    },
+    {
+      "id": "layer3",
+      "nameKo": "십신-하우스",
+      "nameEn": "Sibsin-House",
+      "meaningKo": "삶의 영역별(하우스) 에너지 배치",
+      "meaningEn": "Life-domain allocation via house placements",
+      "answersKo": ["어느 생활영역을 우선해야 하나?", "에너지가 분산되는 지점은?"],
+      "answersEn": ["Which life domain should be prioritized?", "Where is energy scattered?"],
+      "evidenceSources": ["sibsinDistribution", "planetHouses"],
+      "confidenceRule": "Need valid house coverage across personal planets",
+      "conflictRule": "Use as priority map; do not override timing warnings",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["priority setting", "scope control"],
+        "blockedActions": ["overexpansion"]
+      }
+    },
+    {
+      "id": "layer4",
+      "nameKo": "타이밍",
+      "nameEn": "Timing Overlay",
+      "meaningKo": "지금 시점의 실행 리스크/가속 신호",
+      "meaningEn": "Immediate execution risk/acceleration signals",
+      "answersKo": ["지금 해도 되는가?", "오늘/이번주 리스크는?"],
+      "answersEn": ["Is this executable now?", "What is the immediate risk this week?"],
+      "evidenceSources": ["activeTransits", "currentDaeunElement", "currentSaeunElement"],
+      "confidenceRule": "Need current transit cycles plus at least one luck-cycle signal",
+      "conflictRule": "Timing risk has precedence over opportunity layers for irreversible actions",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["verify", "delay 24h", "double-check"],
+        "blockedActions": ["contract signing", "final booking", "public launch"]
+      }
+    },
+    {
+      "id": "layer5",
+      "nameKo": "관계-애스펙트",
+      "nameEn": "Relation-Aspect",
+      "meaningKo": "관계 역학과 상호작용 긴장/조화",
+      "meaningEn": "Relational dynamics from branch relations and aspects",
+      "answersKo": ["갈등 원인은 어디인가?", "협업/연애에서 조화 포인트는?"],
+      "answersEn": ["Where does friction come from?", "Where is relational harmony available?"],
+      "evidenceSources": ["relations", "aspects"],
+      "confidenceRule": "Need validated relation hits and major aspect mapping",
+      "conflictRule": "When clash/conflict cells dominate, require communication safeguards",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["expectation alignment", "written recap"],
+        "blockedActions": ["ultimatum", "same-day hard commitment"]
+      }
+    },
+    {
+      "id": "layer6",
+      "nameKo": "십이운성-하우스",
+      "nameEn": "Stage-House",
+      "meaningKo": "생명력/성장단계가 영역별로 드러나는 패턴",
+      "meaningEn": "Vitality and growth-stage pattern by life domain",
+      "answersKo": ["현재 성장 단계는?", "소모되는 영역은 어디인가?"],
+      "answersEn": ["What growth stage is active?", "Which domain is draining?"],
+      "evidenceSources": ["twelveStages", "planetHouses"],
+      "confidenceRule": "Need valid twelve-stage extraction from pillars",
+      "conflictRule": "Low-stage conflict requires load reduction before expansion",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["load balancing", "recovery block"],
+        "blockedActions": ["overcommitment"]
+      }
+    },
+    {
+      "id": "layer7",
+      "nameKo": "고급 분석",
+      "nameEn": "Advanced Analysis",
+      "meaningKo": "격국/용신과 고급 점성(프로그레션·리턴)의 교차",
+      "meaningEn": "Cross of Geokguk/Yongsin with advanced astrology (progressions/returns)",
+      "answersKo": ["중장기 방향은?", "구조적 전환 포인트는?"],
+      "answersEn": ["What is the mid-long term direction?", "Where are structural turning points?"],
+      "evidenceSources": ["geokguk", "yongsin", "advancedAstroSignals"],
+      "confidenceRule": "Need geokguk or yongsin plus at least one advanced astrology signal",
+      "conflictRule": "Use for direction-setting, not same-day execution override",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["roadmap update", "milestone planning"],
+        "blockedActions": ["instant pivot"]
+      }
+    },
+    {
+      "id": "layer8",
+      "nameKo": "신살-행성",
+      "nameEn": "Shinsal-Planet",
+      "meaningKo": "특수기운(신살)의 증폭/경고 신호",
+      "meaningEn": "Amplification/warning from special Shinsal signatures",
+      "answersKo": ["예외적 기회/위험은?", "과잉반응 포인트는?"],
+      "answersEn": ["Where are exceptional opportunities/risks?", "Where is overreaction likely?"],
+      "evidenceSources": ["shinsalList", "planetHouses"],
+      "confidenceRule": "Need normalized shinsal list mapped to matrix set",
+      "conflictRule": "Treat as amplifier; must be gated by timing and confidence",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["risk buffer", "guardrail setup"],
+        "blockedActions": ["all-in decisions"]
+      }
+    },
+    {
+      "id": "layer9",
+      "nameKo": "소행성-하우스",
+      "nameEn": "Asteroid-House",
+      "meaningKo": "세부 관계/전략 성향의 미세 조정",
+      "meaningEn": "Fine-grained relationship/strategy tuning via asteroids",
+      "answersKo": ["세부 조정 포인트는?", "관계 계약 조건에서 무엇을 보완할까?"],
+      "answersEn": ["What fine adjustments are needed?", "What should be tightened in agreements?"],
+      "evidenceSources": ["asteroidHouses", "dayMasterElement"],
+      "confidenceRule": "Need asteroid house coverage (Ceres/Pallas/Juno/Vesta)",
+      "conflictRule": "Supportive detail layer; cannot overrule layer4 risk gates",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["term negotiation", "detail refinement"],
+        "blockedActions": ["blind acceptance"]
+      }
+    },
+    {
+      "id": "layer10",
+      "nameKo": "엑스트라포인트",
+      "nameEn": "Extra Points",
+      "meaningKo": "심층 심리/의미 축(Chiron/Lilith/Fortune/Vertex/Nodes)",
+      "meaningEn": "Deep psychological/meaning axis via extra points",
+      "answersKo": ["반복되는 내적 패턴은?", "의미/치유 축은 어디인가?"],
+      "answersEn": ["What inner patterns keep repeating?", "Where is the meaning-healing axis?"],
+      "evidenceSources": ["extraPointSigns", "sibsinDistribution", "dayMasterElement"],
+      "confidenceRule": "Need extra point signs with stable base layers",
+      "conflictRule": "Interpretive depth layer; actions must remain reversible under low confidence",
+      "actionPolicy": {
+        "allowIrreversible": false,
+        "allowedActions": ["reflection", "message draft", "boundary statement"],
+        "blockedActions": ["emotion-driven final decisions"]
+      }
+    }
+  ],
+  "semanticsContract": {
+    "version": "1.0",
+    "interpretationOrder": [
+      "layer4",
+      "layer5",
+      "layer2",
+      "layer3",
+      "layer7",
+      "layer6",
+      "layer8",
+      "layer9",
+      "layer10",
+      "layer1"
+    ],
+    "globalConflictPolicy": "If risk signals (timing/communication/conflict) are active, block irreversible recommendations and switch to verification-first actions.",
+    "lowConfidencePolicy": "When confidence is low, provide reversible steps only and include explicit recheck checkpoints.",
+    "layers": [
+      {
+        "id": "layer1",
+        "nameKo": "기운 핵심",
+        "nameEn": "Element Core",
+        "meaningKo": "사주 오행과 서양 원소의 기본 체질 정합성",
+        "meaningEn": "Core constitution alignment between Saju elements and Western elements",
+        "answersKo": ["타고난 기본 에너지 구조는?", "과열/고갈이 어디서 시작되는가?"],
+        "answersEn": [
+          "What is the innate energy baseline?",
+          "Where does overload or depletion begin?"
+        ],
+        "evidenceSources": ["dayMasterElement", "pillarElements", "dominantWesternElement"],
+        "confidenceRule": "Need day master + pillar elements + dominant western element",
+        "conflictRule": "When layer1 conflicts with higher timing layers, treat as baseline not immediate action trigger",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["rhythm adjustment", "habit tuning"],
+          "blockedActions": ["immediate commitment"]
+        },
+        "matchedCells": 4,
+        "active": true,
+        "signalStrength": "low"
+      },
+      {
+        "id": "layer2",
+        "nameKo": "십신-행성",
+        "nameEn": "Sibsin-Planet",
+        "meaningKo": "역할 성향(십신)과 행성 기능의 결합",
+        "meaningEn": "Role tendencies (Sibsin) mapped to planetary functions",
+        "answersKo": ["현재 행동 스타일의 강점/약점은?", "의사결정 기질은 어떤가?"],
+        "answersEn": [
+          "What are current behavioral strengths/weaknesses?",
+          "How is decision style shaped?"
+        ],
+        "evidenceSources": ["sibsinDistribution", "planetHouses", "planetSigns"],
+        "confidenceRule": "Need non-empty sibsin distribution and major planets",
+        "conflictRule": "If layer2 contradicts layer4 risk, keep strategy but delay irreversible execution",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["draft", "strategy", "review"],
+          "blockedActions": ["sign now", "finalize now"]
+        },
+        "matchedCells": 60,
+        "active": true,
+        "signalStrength": "high"
+      },
+      {
+        "id": "layer3",
+        "nameKo": "십신-하우스",
+        "nameEn": "Sibsin-House",
+        "meaningKo": "삶의 영역별(하우스) 에너지 배치",
+        "meaningEn": "Life-domain allocation via house placements",
+        "answersKo": ["어느 생활영역을 우선해야 하나?", "에너지가 분산되는 지점은?"],
+        "answersEn": ["Which life domain should be prioritized?", "Where is energy scattered?"],
+        "evidenceSources": ["sibsinDistribution", "planetHouses"],
+        "confidenceRule": "Need valid house coverage across personal planets",
+        "conflictRule": "Use as priority map; do not override timing warnings",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["priority setting", "scope control"],
+          "blockedActions": ["overexpansion"]
+        },
+        "matchedCells": 36,
+        "active": true,
+        "signalStrength": "high"
+      },
+      {
+        "id": "layer4",
+        "nameKo": "타이밍",
+        "nameEn": "Timing Overlay",
+        "meaningKo": "지금 시점의 실행 리스크/가속 신호",
+        "meaningEn": "Immediate execution risk/acceleration signals",
+        "answersKo": ["지금 해도 되는가?", "오늘/이번주 리스크는?"],
+        "answersEn": ["Is this executable now?", "What is the immediate risk this week?"],
+        "evidenceSources": ["activeTransits", "currentDaeunElement", "currentSaeunElement"],
+        "confidenceRule": "Need current transit cycles plus at least one luck-cycle signal",
+        "conflictRule": "Timing risk has precedence over opportunity layers for irreversible actions",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["verify", "delay 24h", "double-check"],
+          "blockedActions": ["contract signing", "final booking", "public launch"]
+        },
+        "matchedCells": 0,
+        "active": false,
+        "signalStrength": "low"
+      },
+      {
+        "id": "layer5",
+        "nameKo": "관계-애스펙트",
+        "nameEn": "Relation-Aspect",
+        "meaningKo": "관계 역학과 상호작용 긴장/조화",
+        "meaningEn": "Relational dynamics from branch relations and aspects",
+        "answersKo": ["갈등 원인은 어디인가?", "협업/연애에서 조화 포인트는?"],
+        "answersEn": ["Where does friction come from?", "Where is relational harmony available?"],
+        "evidenceSources": ["relations", "aspects"],
+        "confidenceRule": "Need validated relation hits and major aspect mapping",
+        "conflictRule": "When clash/conflict cells dominate, require communication safeguards",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["expectation alignment", "written recap"],
+          "blockedActions": ["ultimatum", "same-day hard commitment"]
+        },
+        "matchedCells": 40,
+        "active": true,
+        "signalStrength": "high"
+      },
+      {
+        "id": "layer6",
+        "nameKo": "십이운성-하우스",
+        "nameEn": "Stage-House",
+        "meaningKo": "생명력/성장단계가 영역별로 드러나는 패턴",
+        "meaningEn": "Vitality and growth-stage pattern by life domain",
+        "answersKo": ["현재 성장 단계는?", "소모되는 영역은 어디인가?"],
+        "answersEn": ["What growth stage is active?", "Which domain is draining?"],
+        "evidenceSources": ["twelveStages", "planetHouses"],
+        "confidenceRule": "Need valid twelve-stage extraction from pillars",
+        "conflictRule": "Low-stage conflict requires load reduction before expansion",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["load balancing", "recovery block"],
+          "blockedActions": ["overcommitment"]
+        },
+        "matchedCells": 24,
+        "active": true,
+        "signalStrength": "high"
+      },
+      {
+        "id": "layer7",
+        "nameKo": "고급 분석",
+        "nameEn": "Advanced Analysis",
+        "meaningKo": "격국/용신과 고급 점성(프로그레션·리턴)의 교차",
+        "meaningEn": "Cross of Geokguk/Yongsin with advanced astrology (progressions/returns)",
+        "answersKo": ["중장기 방향은?", "구조적 전환 포인트는?"],
+        "answersEn": [
+          "What is the mid-long term direction?",
+          "Where are structural turning points?"
+        ],
+        "evidenceSources": ["geokguk", "yongsin", "advancedAstroSignals"],
+        "confidenceRule": "Need geokguk or yongsin plus at least one advanced astrology signal",
+        "conflictRule": "Use for direction-setting, not same-day execution override",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["roadmap update", "milestone planning"],
+          "blockedActions": ["instant pivot"]
+        },
+        "matchedCells": 6,
+        "active": true,
+        "signalStrength": "low"
+      },
+      {
+        "id": "layer8",
+        "nameKo": "신살-행성",
+        "nameEn": "Shinsal-Planet",
+        "meaningKo": "특수기운(신살)의 증폭/경고 신호",
+        "meaningEn": "Amplification/warning from special Shinsal signatures",
+        "answersKo": ["예외적 기회/위험은?", "과잉반응 포인트는?"],
+        "answersEn": [
+          "Where are exceptional opportunities/risks?",
+          "Where is overreaction likely?"
+        ],
+        "evidenceSources": ["shinsalList", "planetHouses"],
+        "confidenceRule": "Need normalized shinsal list mapped to matrix set",
+        "conflictRule": "Treat as amplifier; must be gated by timing and confidence",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["risk buffer", "guardrail setup"],
+          "blockedActions": ["all-in decisions"]
+        },
+        "matchedCells": 120,
+        "active": true,
+        "signalStrength": "high"
+      },
+      {
+        "id": "layer9",
+        "nameKo": "소행성-하우스",
+        "nameEn": "Asteroid-House",
+        "meaningKo": "세부 관계/전략 성향의 미세 조정",
+        "meaningEn": "Fine-grained relationship/strategy tuning via asteroids",
+        "answersKo": ["세부 조정 포인트는?", "관계 계약 조건에서 무엇을 보완할까?"],
+        "answersEn": [
+          "What fine adjustments are needed?",
+          "What should be tightened in agreements?"
+        ],
+        "evidenceSources": ["asteroidHouses", "dayMasterElement"],
+        "confidenceRule": "Need asteroid house coverage (Ceres/Pallas/Juno/Vesta)",
+        "conflictRule": "Supportive detail layer; cannot overrule layer4 risk gates",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["term negotiation", "detail refinement"],
+          "blockedActions": ["blind acceptance"]
+        },
+        "matchedCells": 8,
+        "active": true,
+        "signalStrength": "medium"
+      },
+      {
+        "id": "layer10",
+        "nameKo": "엑스트라포인트",
+        "nameEn": "Extra Points",
+        "meaningKo": "심층 심리/의미 축(Chiron/Lilith/Fortune/Vertex/Nodes)",
+        "meaningEn": "Deep psychological/meaning axis via extra points",
+        "answersKo": ["반복되는 내적 패턴은?", "의미/치유 축은 어디인가?"],
+        "answersEn": ["What inner patterns keep repeating?", "Where is the meaning-healing axis?"],
+        "evidenceSources": ["extraPointSigns", "sibsinDistribution", "dayMasterElement"],
+        "confidenceRule": "Need extra point signs with stable base layers",
+        "conflictRule": "Interpretive depth layer; actions must remain reversible under low confidence",
+        "actionPolicy": {
+          "allowIrreversible": false,
+          "allowedActions": ["reflection", "message draft", "boundary statement"],
+          "blockedActions": ["emotion-driven final decisions"]
+        },
+        "matchedCells": 28,
+        "active": true,
+        "signalStrength": "high"
+      }
+    ]
+  },
+  "layerThemeProfiles": [
+    {
+      "layerId": "layer1",
+      "layerNameKo": "기운 핵심",
+      "layerNameEn": "Element Core",
+      "matchedCells": 4,
+      "avgScore": 4.5,
+      "topKeywordsKo": ["증폭", "열화", "상극"],
+      "cautionKeywordsKo": ["상극", "상극"],
+      "themeInsights": [
+        {
+          "domain": "career",
+          "impactScore": 0.7,
+          "stance": "low",
+          "summaryKo": "직업 관점에서 사주 오행과 서양 원소의 기본 체질 정합성이(가) 0.7점 영향으로 작동합니다. 핵심 신호는 증폭, 열화, 주의 신호는 상극, 상극입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For career, this layer contributes 0.7 via Core constitution alignment between Saju elements and Western elements. Primary signals: 증폭, 열화. Caution signals: 상극, 상극. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "love",
+          "impactScore": 0.9,
+          "stance": "low",
+          "summaryKo": "연애 관점에서 사주 오행과 서양 원소의 기본 체질 정합성이(가) 0.9점 영향으로 작동합니다. 핵심 신호는 증폭, 열화, 주의 신호는 상극, 상극입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For love, this layer contributes 0.9 via Core constitution alignment between Saju elements and Western elements. Primary signals: 증폭, 열화. Caution signals: 상극, 상극. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "money",
+          "impactScore": 0.9,
+          "stance": "low",
+          "summaryKo": "금전 관점에서 사주 오행과 서양 원소의 기본 체질 정합성이(가) 0.9점 영향으로 작동합니다. 핵심 신호는 증폭, 열화, 주의 신호는 상극, 상극입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For money, this layer contributes 0.9 via Core constitution alignment between Saju elements and Western elements. Primary signals: 증폭, 열화. Caution signals: 상극, 상극. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "health",
+          "impactScore": 1.1,
+          "stance": "low",
+          "summaryKo": "건강 관점에서 사주 오행과 서양 원소의 기본 체질 정합성이(가) 1.1점 영향으로 작동합니다. 핵심 신호는 증폭, 열화, 주의 신호는 상극, 상극입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For health, this layer contributes 1.1 via Core constitution alignment between Saju elements and Western elements. Primary signals: 증폭, 열화. Caution signals: 상극, 상극. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "move",
+          "impactScore": 0.9,
+          "stance": "low",
+          "summaryKo": "이동/변화 관점에서 사주 오행과 서양 원소의 기본 체질 정합성이(가) 0.9점 영향으로 작동합니다. 핵심 신호는 증폭, 열화, 주의 신호는 상극, 상극입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For move, this layer contributes 0.9 via Core constitution alignment between Saju elements and Western elements. Primary signals: 증폭, 열화. Caution signals: 상극, 상극. Recommended mode: calibrate and execute."
+        }
+      ]
+    },
+    {
+      "layerId": "layer2",
+      "layerNameKo": "십신-행성",
+      "layerNameEn": "Sibsin-Planet",
+      "matchedCells": 60,
+      "avgScore": 6.4,
+      "topKeywordsKo": ["횡재", "양육", "학위"],
+      "cautionKeywordsKo": ["좌절", "극단", "낭비"],
+      "themeInsights": [
+        {
+          "domain": "career",
+          "impactScore": 2.2,
+          "stance": "low",
+          "summaryKo": "직업 관점에서 역할 성향(십신)과 행성 기능의 결합이(가) 2.2점 영향으로 작동합니다. 핵심 신호는 횡재, 양육, 주의 신호는 좌절, 극단입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For career, this layer contributes 2.2 via Role tendencies (Sibsin) mapped to planetary functions. Primary signals: 횡재, 양육. Caution signals: 좌절, 극단. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "love",
+          "impactScore": 1.3,
+          "stance": "low",
+          "summaryKo": "연애 관점에서 역할 성향(십신)과 행성 기능의 결합이(가) 1.3점 영향으로 작동합니다. 핵심 신호는 횡재, 양육, 주의 신호는 좌절, 극단입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For love, this layer contributes 1.3 via Role tendencies (Sibsin) mapped to planetary functions. Primary signals: 횡재, 양육. Caution signals: 좌절, 극단. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "money",
+          "impactScore": 1.6,
+          "stance": "low",
+          "summaryKo": "금전 관점에서 역할 성향(십신)과 행성 기능의 결합이(가) 1.6점 영향으로 작동합니다. 핵심 신호는 횡재, 양육, 주의 신호는 좌절, 극단입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For money, this layer contributes 1.6 via Role tendencies (Sibsin) mapped to planetary functions. Primary signals: 횡재, 양육. Caution signals: 좌절, 극단. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "health",
+          "impactScore": 0.6,
+          "stance": "low",
+          "summaryKo": "건강 관점에서 역할 성향(십신)과 행성 기능의 결합이(가) 0.6점 영향으로 작동합니다. 핵심 신호는 횡재, 양육, 주의 신호는 좌절, 극단입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For health, this layer contributes 0.6 via Role tendencies (Sibsin) mapped to planetary functions. Primary signals: 횡재, 양육. Caution signals: 좌절, 극단. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "move",
+          "impactScore": 0.6,
+          "stance": "low",
+          "summaryKo": "이동/변화 관점에서 역할 성향(십신)과 행성 기능의 결합이(가) 0.6점 영향으로 작동합니다. 핵심 신호는 횡재, 양육, 주의 신호는 좌절, 극단입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For move, this layer contributes 0.6 via Role tendencies (Sibsin) mapped to planetary functions. Primary signals: 횡재, 양육. Caution signals: 좌절, 극단. Recommended mode: calibrate and execute."
+        }
+      ]
+    },
+    {
+      "layerId": "layer3",
+      "layerNameKo": "십신-하우스",
+      "layerNameEn": "Sibsin-House",
+      "matchedCells": 36,
+      "avgScore": 6.5,
+      "topKeywordsKo": ["가정양육", "부동산", "결혼재물"],
+      "cautionKeywordsKo": ["관계파괴", "숨은지출", "가정갈등"],
+      "themeInsights": [
+        {
+          "domain": "career",
+          "impactScore": 1.6,
+          "stance": "low",
+          "summaryKo": "직업 관점에서 삶의 영역별(하우스) 에너지 배치이(가) 1.6점 영향으로 작동합니다. 핵심 신호는 가정양육, 부동산, 주의 신호는 관계파괴, 숨은지출입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For career, this layer contributes 1.6 via Life-domain allocation via house placements. Primary signals: 가정양육, 부동산. Caution signals: 관계파괴, 숨은지출. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "love",
+          "impactScore": 1.6,
+          "stance": "low",
+          "summaryKo": "연애 관점에서 삶의 영역별(하우스) 에너지 배치이(가) 1.6점 영향으로 작동합니다. 핵심 신호는 가정양육, 부동산, 주의 신호는 관계파괴, 숨은지출입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For love, this layer contributes 1.6 via Life-domain allocation via house placements. Primary signals: 가정양육, 부동산. Caution signals: 관계파괴, 숨은지출. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "money",
+          "impactScore": 1.3,
+          "stance": "low",
+          "summaryKo": "금전 관점에서 삶의 영역별(하우스) 에너지 배치이(가) 1.3점 영향으로 작동합니다. 핵심 신호는 가정양육, 부동산, 주의 신호는 관계파괴, 숨은지출입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For money, this layer contributes 1.3 via Life-domain allocation via house placements. Primary signals: 가정양육, 부동산. Caution signals: 관계파괴, 숨은지출. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "health",
+          "impactScore": 0.7,
+          "stance": "low",
+          "summaryKo": "건강 관점에서 삶의 영역별(하우스) 에너지 배치이(가) 0.7점 영향으로 작동합니다. 핵심 신호는 가정양육, 부동산, 주의 신호는 관계파괴, 숨은지출입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For health, this layer contributes 0.7 via Life-domain allocation via house placements. Primary signals: 가정양육, 부동산. Caution signals: 관계파괴, 숨은지출. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "move",
+          "impactScore": 1.3,
+          "stance": "low",
+          "summaryKo": "이동/변화 관점에서 삶의 영역별(하우스) 에너지 배치이(가) 1.3점 영향으로 작동합니다. 핵심 신호는 가정양육, 부동산, 주의 신호는 관계파괴, 숨은지출입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For move, this layer contributes 1.3 via Life-domain allocation via house placements. Primary signals: 가정양육, 부동산. Caution signals: 관계파괴, 숨은지출. Recommended mode: calibrate and execute."
+        }
+      ]
+    },
+    {
+      "layerId": "layer4",
+      "layerNameKo": "타이밍",
+      "layerNameEn": "Timing Overlay",
+      "matchedCells": 0,
+      "avgScore": 0,
+      "topKeywordsKo": [],
+      "cautionKeywordsKo": [],
+      "themeInsights": [
+        {
+          "domain": "career",
+          "impactScore": 0,
+          "stance": "low",
+          "summaryKo": "직업 관점에서 지금 시점의 실행 리스크/가속 신호이(가) 0.0점 영향으로 작동합니다. 핵심 신호는 중립, 주의 신호는 특이 리스크 없음입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 점검 우선 전략이 적합합니다.",
+          "summaryEn": "For career, this layer contributes 0.0 via Immediate execution risk/acceleration signals. Primary signals: neutral. Caution signals: no major caution. Recommended mode: verify before action."
+        },
+        {
+          "domain": "love",
+          "impactScore": 0,
+          "stance": "low",
+          "summaryKo": "연애 관점에서 지금 시점의 실행 리스크/가속 신호이(가) 0.0점 영향으로 작동합니다. 핵심 신호는 중립, 주의 신호는 특이 리스크 없음입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 점검 우선 전략이 적합합니다.",
+          "summaryEn": "For love, this layer contributes 0.0 via Immediate execution risk/acceleration signals. Primary signals: neutral. Caution signals: no major caution. Recommended mode: verify before action."
+        },
+        {
+          "domain": "money",
+          "impactScore": 0,
+          "stance": "low",
+          "summaryKo": "금전 관점에서 지금 시점의 실행 리스크/가속 신호이(가) 0.0점 영향으로 작동합니다. 핵심 신호는 중립, 주의 신호는 특이 리스크 없음입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 점검 우선 전략이 적합합니다.",
+          "summaryEn": "For money, this layer contributes 0.0 via Immediate execution risk/acceleration signals. Primary signals: neutral. Caution signals: no major caution. Recommended mode: verify before action."
+        },
+        {
+          "domain": "health",
+          "impactScore": 0,
+          "stance": "low",
+          "summaryKo": "건강 관점에서 지금 시점의 실행 리스크/가속 신호이(가) 0.0점 영향으로 작동합니다. 핵심 신호는 중립, 주의 신호는 특이 리스크 없음입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 점검 우선 전략이 적합합니다.",
+          "summaryEn": "For health, this layer contributes 0.0 via Immediate execution risk/acceleration signals. Primary signals: neutral. Caution signals: no major caution. Recommended mode: verify before action."
+        },
+        {
+          "domain": "move",
+          "impactScore": 0,
+          "stance": "low",
+          "summaryKo": "이동/변화 관점에서 지금 시점의 실행 리스크/가속 신호이(가) 0.0점 영향으로 작동합니다. 핵심 신호는 중립, 주의 신호는 특이 리스크 없음입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 점검 우선 전략이 적합합니다.",
+          "summaryEn": "For move, this layer contributes 0.0 via Immediate execution risk/acceleration signals. Primary signals: neutral. Caution signals: no major caution. Recommended mode: verify before action."
+        }
+      ]
+    },
+    {
+      "layerId": "layer5",
+      "layerNameKo": "관계-애스펙트",
+      "layerNameEn": "Relation-Aspect",
+      "matchedCells": 40,
+      "avgScore": 5.6,
+      "topKeywordsKo": ["극강시너지", "최상조화", "극심충돌"],
+      "cautionKeywordsKo": ["파괴위험", "미세방해", "파손가중"],
+      "themeInsights": [
+        {
+          "domain": "career",
+          "impactScore": 0.6,
+          "stance": "low",
+          "summaryKo": "직업 관점에서 관계 역학과 상호작용 긴장/조화이(가) 0.6점 영향으로 작동합니다. 핵심 신호는 극강시너지, 최상조화, 주의 신호는 파괴위험, 미세방해입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For career, this layer contributes 0.6 via Relational dynamics from branch relations and aspects. Primary signals: 극강시너지, 최상조화. Caution signals: 파괴위험, 미세방해. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "love",
+          "impactScore": 2.5,
+          "stance": "low",
+          "summaryKo": "연애 관점에서 관계 역학과 상호작용 긴장/조화이(가) 2.5점 영향으로 작동합니다. 핵심 신호는 극강시너지, 최상조화, 주의 신호는 파괴위험, 미세방해입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For love, this layer contributes 2.5 via Relational dynamics from branch relations and aspects. Primary signals: 극강시너지, 최상조화. Caution signals: 파괴위험, 미세방해. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "money",
+          "impactScore": 0.6,
+          "stance": "low",
+          "summaryKo": "금전 관점에서 관계 역학과 상호작용 긴장/조화이(가) 0.6점 영향으로 작동합니다. 핵심 신호는 극강시너지, 최상조화, 주의 신호는 파괴위험, 미세방해입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For money, this layer contributes 0.6 via Relational dynamics from branch relations and aspects. Primary signals: 극강시너지, 최상조화. Caution signals: 파괴위험, 미세방해. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "health",
+          "impactScore": 0.6,
+          "stance": "low",
+          "summaryKo": "건강 관점에서 관계 역학과 상호작용 긴장/조화이(가) 0.6점 영향으로 작동합니다. 핵심 신호는 극강시너지, 최상조화, 주의 신호는 파괴위험, 미세방해입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For health, this layer contributes 0.6 via Relational dynamics from branch relations and aspects. Primary signals: 극강시너지, 최상조화. Caution signals: 파괴위험, 미세방해. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "move",
+          "impactScore": 1.4,
+          "stance": "low",
+          "summaryKo": "이동/변화 관점에서 관계 역학과 상호작용 긴장/조화이(가) 1.4점 영향으로 작동합니다. 핵심 신호는 극강시너지, 최상조화, 주의 신호는 파괴위험, 미세방해입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For move, this layer contributes 1.4 via Relational dynamics from branch relations and aspects. Primary signals: 극강시너지, 최상조화. Caution signals: 파괴위험, 미세방해. Recommended mode: calibrate and execute."
+        }
+      ]
+    },
+    {
+      "layerId": "layer6",
+      "layerNameKo": "십이운성-하우스",
+      "layerNameEn": "Stage-House",
+      "matchedCells": 24,
+      "avgScore": 6.2,
+      "topKeywordsKo": ["커리어정점", "커리어성장", "자아성취"],
+      "cautionKeywordsKo": ["자아종결", "희망종결", "관계종결"],
+      "themeInsights": [
+        {
+          "domain": "career",
+          "impactScore": 0.9,
+          "stance": "low",
+          "summaryKo": "직업 관점에서 생명력/성장단계가 영역별로 드러나는 패턴이(가) 0.9점 영향으로 작동합니다. 핵심 신호는 커리어정점, 커리어성장, 주의 신호는 자아종결, 희망종결입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For career, this layer contributes 0.9 via Vitality and growth-stage pattern by life domain. Primary signals: 커리어정점, 커리어성장. Caution signals: 자아종결, 희망종결. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "love",
+          "impactScore": 0.6,
+          "stance": "low",
+          "summaryKo": "연애 관점에서 생명력/성장단계가 영역별로 드러나는 패턴이(가) 0.6점 영향으로 작동합니다. 핵심 신호는 커리어정점, 커리어성장, 주의 신호는 자아종결, 희망종결입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For love, this layer contributes 0.6 via Vitality and growth-stage pattern by life domain. Primary signals: 커리어정점, 커리어성장. Caution signals: 자아종결, 희망종결. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "money",
+          "impactScore": 1.2,
+          "stance": "low",
+          "summaryKo": "금전 관점에서 생명력/성장단계가 영역별로 드러나는 패턴이(가) 1.2점 영향으로 작동합니다. 핵심 신호는 커리어정점, 커리어성장, 주의 신호는 자아종결, 희망종결입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For money, this layer contributes 1.2 via Vitality and growth-stage pattern by life domain. Primary signals: 커리어정점, 커리어성장. Caution signals: 자아종결, 희망종결. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "health",
+          "impactScore": 2.5,
+          "stance": "low",
+          "summaryKo": "건강 관점에서 생명력/성장단계가 영역별로 드러나는 패턴이(가) 2.5점 영향으로 작동합니다. 핵심 신호는 커리어정점, 커리어성장, 주의 신호는 자아종결, 희망종결입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For health, this layer contributes 2.5 via Vitality and growth-stage pattern by life domain. Primary signals: 커리어정점, 커리어성장. Caution signals: 자아종결, 희망종결. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "move",
+          "impactScore": 0.9,
+          "stance": "low",
+          "summaryKo": "이동/변화 관점에서 생명력/성장단계가 영역별로 드러나는 패턴이(가) 0.9점 영향으로 작동합니다. 핵심 신호는 커리어정점, 커리어성장, 주의 신호는 자아종결, 희망종결입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For move, this layer contributes 0.9 via Vitality and growth-stage pattern by life domain. Primary signals: 커리어정점, 커리어성장. Caution signals: 자아종결, 희망종결. Recommended mode: calibrate and execute."
+        }
+      ]
+    },
+    {
+      "layerId": "layer7",
+      "layerNameKo": "고급 분석",
+      "layerNameEn": "Advanced Analysis",
+      "matchedCells": 6,
+      "avgScore": 8.7,
+      "topKeywordsKo": ["가속방향", "열정연간", "열정영혼"],
+      "cautionKeywordsKo": [],
+      "themeInsights": [
+        {
+          "domain": "career",
+          "impactScore": 2.6,
+          "stance": "low",
+          "summaryKo": "직업 관점에서 격국/용신과 고급 점성(프로그레션·리턴)의 교차이(가) 2.6점 영향으로 작동합니다. 핵심 신호는 가속방향, 열정연간, 주의 신호는 특이 리스크 없음입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 가속 우선 전략이 적합합니다.",
+          "summaryEn": "For career, this layer contributes 2.6 via Cross of Geokguk/Yongsin with advanced astrology (progressions/returns). Primary signals: 가속방향, 열정연간. Caution signals: no major caution. Recommended mode: accelerate with control."
+        },
+        {
+          "domain": "love",
+          "impactScore": 1.3,
+          "stance": "low",
+          "summaryKo": "연애 관점에서 격국/용신과 고급 점성(프로그레션·리턴)의 교차이(가) 1.3점 영향으로 작동합니다. 핵심 신호는 가속방향, 열정연간, 주의 신호는 특이 리스크 없음입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 가속 우선 전략이 적합합니다.",
+          "summaryEn": "For love, this layer contributes 1.3 via Cross of Geokguk/Yongsin with advanced astrology (progressions/returns). Primary signals: 가속방향, 열정연간. Caution signals: no major caution. Recommended mode: accelerate with control."
+        },
+        {
+          "domain": "money",
+          "impactScore": 2.2,
+          "stance": "low",
+          "summaryKo": "금전 관점에서 격국/용신과 고급 점성(프로그레션·리턴)의 교차이(가) 2.2점 영향으로 작동합니다. 핵심 신호는 가속방향, 열정연간, 주의 신호는 특이 리스크 없음입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 가속 우선 전략이 적합합니다.",
+          "summaryEn": "For money, this layer contributes 2.2 via Cross of Geokguk/Yongsin with advanced astrology (progressions/returns). Primary signals: 가속방향, 열정연간. Caution signals: no major caution. Recommended mode: accelerate with control."
+        },
+        {
+          "domain": "health",
+          "impactScore": 0.9,
+          "stance": "low",
+          "summaryKo": "건강 관점에서 격국/용신과 고급 점성(프로그레션·리턴)의 교차이(가) 0.9점 영향으로 작동합니다. 핵심 신호는 가속방향, 열정연간, 주의 신호는 특이 리스크 없음입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 가속 우선 전략이 적합합니다.",
+          "summaryEn": "For health, this layer contributes 0.9 via Cross of Geokguk/Yongsin with advanced astrology (progressions/returns). Primary signals: 가속방향, 열정연간. Caution signals: no major caution. Recommended mode: accelerate with control."
+        },
+        {
+          "domain": "move",
+          "impactScore": 1.7,
+          "stance": "low",
+          "summaryKo": "이동/변화 관점에서 격국/용신과 고급 점성(프로그레션·리턴)의 교차이(가) 1.7점 영향으로 작동합니다. 핵심 신호는 가속방향, 열정연간, 주의 신호는 특이 리스크 없음입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 가속 우선 전략이 적합합니다.",
+          "summaryEn": "For move, this layer contributes 1.7 via Cross of Geokguk/Yongsin with advanced astrology (progressions/returns). Primary signals: 가속방향, 열정연간. Caution signals: no major caution. Recommended mode: accelerate with control."
+        }
+      ]
+    },
+    {
+      "layerId": "layer8",
+      "layerNameKo": "신살-행성",
+      "layerNameEn": "Shinsal-Planet",
+      "matchedCells": 120,
+      "avgScore": 5.4,
+      "topKeywordsKo": ["귀인조력", "대길귀인", "권력극단"],
+      "cautionKeywordsKo": ["겁살극강", "행동속박", "부동산손실"],
+      "themeInsights": [
+        {
+          "domain": "career",
+          "impactScore": 0.8,
+          "stance": "low",
+          "summaryKo": "직업 관점에서 특수기운(신살)의 증폭/경고 신호이(가) 0.8점 영향으로 작동합니다. 핵심 신호는 귀인조력, 대길귀인, 주의 신호는 겁살극강, 행동속박입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For career, this layer contributes 0.8 via Amplification/warning from special Shinsal signatures. Primary signals: 귀인조력, 대길귀인. Caution signals: 겁살극강, 행동속박. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "love",
+          "impactScore": 1.1,
+          "stance": "low",
+          "summaryKo": "연애 관점에서 특수기운(신살)의 증폭/경고 신호이(가) 1.1점 영향으로 작동합니다. 핵심 신호는 귀인조력, 대길귀인, 주의 신호는 겁살극강, 행동속박입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For love, this layer contributes 1.1 via Amplification/warning from special Shinsal signatures. Primary signals: 귀인조력, 대길귀인. Caution signals: 겁살극강, 행동속박. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "money",
+          "impactScore": 0.8,
+          "stance": "low",
+          "summaryKo": "금전 관점에서 특수기운(신살)의 증폭/경고 신호이(가) 0.8점 영향으로 작동합니다. 핵심 신호는 귀인조력, 대길귀인, 주의 신호는 겁살극강, 행동속박입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For money, this layer contributes 0.8 via Amplification/warning from special Shinsal signatures. Primary signals: 귀인조력, 대길귀인. Caution signals: 겁살극강, 행동속박. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "health",
+          "impactScore": 1.4,
+          "stance": "low",
+          "summaryKo": "건강 관점에서 특수기운(신살)의 증폭/경고 신호이(가) 1.4점 영향으로 작동합니다. 핵심 신호는 귀인조력, 대길귀인, 주의 신호는 겁살극강, 행동속박입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For health, this layer contributes 1.4 via Amplification/warning from special Shinsal signatures. Primary signals: 귀인조력, 대길귀인. Caution signals: 겁살극강, 행동속박. Recommended mode: calibrate and execute."
+        },
+        {
+          "domain": "move",
+          "impactScore": 1.4,
+          "stance": "low",
+          "summaryKo": "이동/변화 관점에서 특수기운(신살)의 증폭/경고 신호이(가) 1.4점 영향으로 작동합니다. 핵심 신호는 귀인조력, 대길귀인, 주의 신호는 겁살극강, 행동속박입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 조율 우선 전략이 적합합니다.",
+          "summaryEn": "For move, this layer contributes 1.4 via Amplification/warning from special Shinsal signatures. Primary signals: 귀인조력, 대길귀인. Caution signals: 겁살극강, 행동속박. Recommended mode: calibrate and execute."
+        }
+      ]
+    },
+    {
+      "layerId": "layer9",
+      "layerNameKo": "소행성-하우스",
+      "layerNameEn": "Asteroid-House",
+      "matchedCells": 8,
+      "avgScore": 8,
+      "topKeywordsKo": ["결단전략", "분석소통", "순결헌신"],
+      "cautionKeywordsKo": [],
+      "themeInsights": [
+        {
+          "domain": "career",
+          "impactScore": 1.6,
+          "stance": "low",
+          "summaryKo": "직업 관점에서 세부 관계/전략 성향의 미세 조정이(가) 1.6점 영향으로 작동합니다. 핵심 신호는 결단전략, 분석소통, 주의 신호는 특이 리스크 없음입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 가속 우선 전략이 적합합니다.",
+          "summaryEn": "For career, this layer contributes 1.6 via Fine-grained relationship/strategy tuning via asteroids. Primary signals: 결단전략, 분석소통. Caution signals: no major caution. Recommended mode: accelerate with control."
+        },
+        {
+          "domain": "love",
+          "impactScore": 2,
+          "stance": "low",
+          "summaryKo": "연애 관점에서 세부 관계/전략 성향의 미세 조정이(가) 2.0점 영향으로 작동합니다. 핵심 신호는 결단전략, 분석소통, 주의 신호는 특이 리스크 없음입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 가속 우선 전략이 적합합니다.",
+          "summaryEn": "For love, this layer contributes 2.0 via Fine-grained relationship/strategy tuning via asteroids. Primary signals: 결단전략, 분석소통. Caution signals: no major caution. Recommended mode: accelerate with control."
+        },
+        {
+          "domain": "money",
+          "impactScore": 1.2,
+          "stance": "low",
+          "summaryKo": "금전 관점에서 세부 관계/전략 성향의 미세 조정이(가) 1.2점 영향으로 작동합니다. 핵심 신호는 결단전략, 분석소통, 주의 신호는 특이 리스크 없음입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 가속 우선 전략이 적합합니다.",
+          "summaryEn": "For money, this layer contributes 1.2 via Fine-grained relationship/strategy tuning via asteroids. Primary signals: 결단전략, 분석소통. Caution signals: no major caution. Recommended mode: accelerate with control."
+        },
+        {
+          "domain": "health",
+          "impactScore": 1.2,
+          "stance": "low",
+          "summaryKo": "건강 관점에서 세부 관계/전략 성향의 미세 조정이(가) 1.2점 영향으로 작동합니다. 핵심 신호는 결단전략, 분석소통, 주의 신호는 특이 리스크 없음입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 가속 우선 전략이 적합합니다.",
+          "summaryEn": "For health, this layer contributes 1.2 via Fine-grained relationship/strategy tuning via asteroids. Primary signals: 결단전략, 분석소통. Caution signals: no major caution. Recommended mode: accelerate with control."
+        },
+        {
+          "domain": "move",
+          "impactScore": 2,
+          "stance": "low",
+          "summaryKo": "이동/변화 관점에서 세부 관계/전략 성향의 미세 조정이(가) 2.0점 영향으로 작동합니다. 핵심 신호는 결단전략, 분석소통, 주의 신호는 특이 리스크 없음입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 가속 우선 전략이 적합합니다.",
+          "summaryEn": "For move, this layer contributes 2.0 via Fine-grained relationship/strategy tuning via asteroids. Primary signals: 결단전략, 분석소통. Caution signals: no major caution. Recommended mode: accelerate with control."
+        }
+      ]
+    },
+    {
+      "layerId": "layer10",
+      "layerNameKo": "엑스트라포인트",
+      "layerNameEn": "Extra Points",
+      "matchedCells": 28,
+      "avgScore": 7.3,
+      "topKeywordsKo": ["투자행운", "저축행운", "양육치유"],
+      "cautionKeywordsKo": ["단절상처", "집착그림자", "반항상처"],
+      "themeInsights": [
+        {
+          "domain": "career",
+          "impactScore": 0.7,
+          "stance": "low",
+          "summaryKo": "직업 관점에서 심층 심리/의미 축(Chiron/Lilith/Fortune/Vertex/Nodes)이(가) 0.7점 영향으로 작동합니다. 핵심 신호는 투자행운, 저축행운, 주의 신호는 단절상처, 집착그림자입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 가속 우선 전략이 적합합니다.",
+          "summaryEn": "For career, this layer contributes 0.7 via Deep psychological/meaning axis via extra points. Primary signals: 투자행운, 저축행운. Caution signals: 단절상처, 집착그림자. Recommended mode: accelerate with control."
+        },
+        {
+          "domain": "love",
+          "impactScore": 1.5,
+          "stance": "low",
+          "summaryKo": "연애 관점에서 심층 심리/의미 축(Chiron/Lilith/Fortune/Vertex/Nodes)이(가) 1.5점 영향으로 작동합니다. 핵심 신호는 투자행운, 저축행운, 주의 신호는 단절상처, 집착그림자입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 가속 우선 전략이 적합합니다.",
+          "summaryEn": "For love, this layer contributes 1.5 via Deep psychological/meaning axis via extra points. Primary signals: 투자행운, 저축행운. Caution signals: 단절상처, 집착그림자. Recommended mode: accelerate with control."
+        },
+        {
+          "domain": "money",
+          "impactScore": 1.1,
+          "stance": "low",
+          "summaryKo": "금전 관점에서 심층 심리/의미 축(Chiron/Lilith/Fortune/Vertex/Nodes)이(가) 1.1점 영향으로 작동합니다. 핵심 신호는 투자행운, 저축행운, 주의 신호는 단절상처, 집착그림자입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 가속 우선 전략이 적합합니다.",
+          "summaryEn": "For money, this layer contributes 1.1 via Deep psychological/meaning axis via extra points. Primary signals: 투자행운, 저축행운. Caution signals: 단절상처, 집착그림자. Recommended mode: accelerate with control."
+        },
+        {
+          "domain": "health",
+          "impactScore": 2.2,
+          "stance": "low",
+          "summaryKo": "건강 관점에서 심층 심리/의미 축(Chiron/Lilith/Fortune/Vertex/Nodes)이(가) 2.2점 영향으로 작동합니다. 핵심 신호는 투자행운, 저축행운, 주의 신호는 단절상처, 집착그림자입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 가속 우선 전략이 적합합니다.",
+          "summaryEn": "For health, this layer contributes 2.2 via Deep psychological/meaning axis via extra points. Primary signals: 투자행운, 저축행운. Caution signals: 단절상처, 집착그림자. Recommended mode: accelerate with control."
+        },
+        {
+          "domain": "move",
+          "impactScore": 1.8,
+          "stance": "low",
+          "summaryKo": "이동/변화 관점에서 심층 심리/의미 축(Chiron/Lilith/Fortune/Vertex/Nodes)이(가) 1.8점 영향으로 작동합니다. 핵심 신호는 투자행운, 저축행운, 주의 신호는 단절상처, 집착그림자입니다. 일간 금 + 점성 fire 조합 기준으로, 이 레이어는 가속 우선 전략이 적합합니다.",
+          "summaryEn": "For move, this layer contributes 1.8 via Deep psychological/meaning axis via extra points. Primary signals: 투자행운, 저축행운. Caution signals: 단절상처, 집착그림자. Recommended mode: accelerate with control."
+        }
+      ]
+    }
+  ]
+}
