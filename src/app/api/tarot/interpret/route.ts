@@ -292,6 +292,34 @@ function buildMinimumInsight(language: string, card: CardInput): string {
   return `${cardName} (${orientation}) signals that structured choices beat emotional reaction in this phase. ${baseMeaning} Today, isolate one variable this card points to, and this week, use outcome logging to improve decision accuracy.`
 }
 
+function ensureCardAnchoring(
+  language: string,
+  card: CardInput,
+  interpretation: string,
+  userQuestion?: string
+): string {
+  const cardName = language === 'ko' ? card.nameKo || card.name : card.name
+  const position = language === 'ko' ? card.positionKo || card.position : card.position
+  const question = (userQuestion || '').trim()
+  const normalized = interpretation.trim()
+
+  const hasCardName = normalized.includes(cardName)
+  const hasPosition = position ? normalized.includes(position) : false
+  const hasQuestionAnchor = question.length === 0 || normalized.includes(question.slice(0, 12))
+
+  if (hasCardName && hasPosition && hasQuestionAnchor) {
+    return normalized
+  }
+
+  if (language === 'ko') {
+    const questionLine = question ? `질문 "${question}"을 기준으로, ` : ''
+    return `${questionLine}${position}의 ${cardName} 카드는 ${normalized}`
+  }
+
+  const questionLine = question ? `For your question "${question}", ` : ''
+  return `${questionLine}${cardName} in the ${position} position indicates: ${normalized}`
+}
+
 function normalizeResultPayload(raw: unknown): Partial<TarotInterpretResult> {
   if (!raw || typeof raw !== 'object') return {}
   return raw as Partial<TarotInterpretResult>
@@ -314,10 +342,16 @@ function enforceInterpretationQuality(input: {
         ? (payload.card_insights[i] as Record<string, unknown>)
         : {}
 
-    const interpretation =
+    const baseInterpretation =
       typeof rawInsight.interpretation === 'string' && rawInsight.interpretation.trim().length >= 80
         ? rawInsight.interpretation.trim()
         : buildMinimumInsight(input.language, card)
+    const interpretation = ensureCardAnchoring(
+      input.language,
+      card,
+      baseInterpretation,
+      input.userQuestion
+    )
 
     return {
       position:
@@ -604,9 +638,17 @@ async function callGPT(prompt: string, maxTokens = 400): Promise<string> {
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
+        messages: [
+          {
+            role: 'system',
+            content:
+              'Return a single valid JSON object only. Do not include markdown fences, comments, or trailing text.',
+          },
+          { role: 'user', content: prompt },
+        ],
         max_tokens: maxTokens,
         temperature: 0.75,
+        response_format: { type: 'json_object' },
       }),
     },
     {
@@ -630,23 +672,82 @@ async function callGPT(prompt: string, maxTokens = 400): Promise<string> {
     throw new Error(`OpenAI API error: ${response.status} ${errorText.slice(0, 280)}`)
   }
 
+  // Read the body once as text to avoid stream-consumption issues on JSON parse fallback.
+  const rawText = await response.text().catch(() => '')
   let data: { choices?: Array<{ message?: { content?: string } }> } | null = null
   try {
-    data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> }
+    data = JSON.parse(rawText) as { choices?: Array<{ message?: { content?: string } }> }
   } catch (parseErr) {
-    const rawText = await response.text().catch(() => '')
-    try {
-      data = JSON.parse(rawText) as { choices?: Array<{ message?: { content?: string } }> }
-    } catch {
-      logger.warn('[Tarot interpret] OpenAI JSON parse failed', {
-        error: parseErr instanceof Error ? parseErr.message : String(parseErr),
-        preview: rawText.slice(0, 280),
-      })
-      throw new Error('OpenAI response parse failed')
-    }
+    logger.warn('[Tarot interpret] OpenAI JSON parse failed', {
+      error: parseErr instanceof Error ? parseErr.message : String(parseErr),
+      preview: rawText.slice(0, 280),
+    })
+    throw new Error('OpenAI response parse failed')
   }
 
   return data?.choices?.[0]?.message?.content || ''
+}
+
+type PromptBudget = {
+  overallGuide: string
+  perCardGuide: string
+  adviceGuide: string
+  maxTokens: number
+}
+
+function getPromptBudget(cardCount: number, isKorean: boolean): PromptBudget {
+  if (cardCount >= 8) {
+    return isKorean
+      ? {
+          overallGuide: '220-380자',
+          perCardGuide: '120-220자',
+          adviceGuide: '120-180자',
+          maxTokens: 2400,
+        }
+      : {
+          overallGuide: '140-220 words',
+          perCardGuide: '60-100 words',
+          adviceGuide: '70-110 words',
+          maxTokens: 2400,
+        }
+  }
+
+  if (cardCount >= 5) {
+    return isKorean
+      ? {
+          overallGuide: '320-520자',
+          perCardGuide: '180-320자',
+          adviceGuide: '140-220자',
+          maxTokens: 2600,
+        }
+      : {
+          overallGuide: '180-300 words',
+          perCardGuide: '90-150 words',
+          adviceGuide: '90-130 words',
+          maxTokens: 2600,
+        }
+  }
+
+  return isKorean
+    ? {
+        overallGuide: '500-850자',
+        perCardGuide: '260-480자',
+        adviceGuide: '160-260자',
+        maxTokens: 3000,
+      }
+    : {
+        overallGuide: '260-420 words',
+        perCardGuide: '120-220 words',
+        adviceGuide: '100-150 words',
+        maxTokens: 3000,
+      }
+}
+
+function truncatePromptContext(input: string | undefined, maxLength = 1200): string {
+  if (!input) return ''
+  const normalized = input.trim()
+  if (normalized.length <= maxLength) return normalized
+  return `${normalized.slice(0, maxLength)}\n...[truncated]`
 }
 
 // GPT를 사용한 해석 생성 (백엔드 없이 직접 호출) - 통합 프롬프트로 속도 최적화
@@ -659,6 +760,7 @@ async function generateGPTInterpretation(
   astroContext?: string
 ) {
   const isKorean = language === 'ko'
+  const budget = getPromptBudget(cards.length, isKorean)
 
   // 위치별 카드 정보
   const cardListText = cards
@@ -671,7 +773,9 @@ async function generateGPTInterpretation(
     .join('\n')
 
   let q = userQuestion || (isKorean ? '일반 운세' : 'general reading')
-  const contextBlock = [sajuContext, astroContext].filter(Boolean).join('\n')
+  const compactSaju = truncatePromptContext(sajuContext)
+  const compactAstro = truncatePromptContext(astroContext)
+  const contextBlock = [compactSaju, compactAstro].filter(Boolean).join('\n')
   if (contextBlock) {
     q = `${q}\n${contextBlock}`
   }
@@ -692,18 +796,18 @@ async function generateGPTInterpretation(
       return isKorean
         ? `    {
       "position": "${pos}",
-      "interpretation": "${ordinal} 카드 해석 (700-1000자, 위와 동일한 형식)"
+      "interpretation": "${ordinal} 카드 해석 (${budget.perCardGuide})"
     }`
         : `    {
       "position": "${pos}",
-      "interpretation": "${ordinal} card interpretation (450-600 words, same format as above)"
+      "interpretation": "${ordinal} card interpretation (${budget.perCardGuide})"
     }`
     })
     .join(',\n')
 
   // 통합 프롬프트 (전체 해석 + 카드별 해석 + 조언)
   const unifiedPrompt = isKorean
-    ? `당신은 20년 경력의 직관적인 타로 리더예요. 유튜브에서 수백만 뷰를 받는 타로 채널처럼, 깊이 있고 섬세하게 해석해주세요.
+    ? `당신은 실전형 타로 리더입니다. 핵심만 정확하고 따뜻하게 전달하세요.
 
 ## 스프레드: ${spreadTitle}
 ## 질문: "${q}"
@@ -711,50 +815,26 @@ async function generateGPTInterpretation(
 ## 뽑힌 카드
 ${cardListText}
 
-## 중요: 반드시 모든 ${cards.length}개 카드에 대해 해석을 작성하세요!
-각 카드마다 최소 700자 이상의 풍부한 해석을 제공해야 합니다.
+## 중요
+- 반드시 모든 ${cards.length}개 카드 해석 포함
+- 장황한 설명 금지, 질문에 직접 답
+- 출력은 오직 JSON
 
 ## 출력 형식 (JSON)
 다음 형식으로 정확히 JSON 응답:
 {
-  "overall": "전체 메시지 (800-1200자). 질문자의 현재 상황에 공감하며 따뜻하게 시작해요. 카드들이 전체적으로 그리는 큰 그림을 먼저 보여주고, 질문자의 현재 에너지와 앞으로의 흐름을 자연스럽게 풀어주세요. 마지막엔 '결론:'으로 핵심 메시지 정리.",
+  "overall": "전체 메시지 (${budget.overallGuide})",
   "cards": [
 ${cardExamples}
   ],
-  "advice": "실용적이고 구체적인 행동 지침 (180-250자). '오늘부터 이렇게 해보세요' 식의 단계별 조언. 추상적이지 않고 실천 가능한 것만."
+  "advice": "실행 지침 (${budget.adviceGuide})"
 }
 
-## 카드 해석 작성 가이드
-각 카드 해석은 반드시 다음 구조를 포함해야 합니다 (700-1000자):
-
-1) **카드 비주얼 묘사** (2-3줄): '이 카드를 보면요~' 하며 색감, 인물의 표정, 배경 상징물을 생생하게 그려내요.
-
-2) **위치별 의미** (3-4줄): 이 위치에서 이 카드가 나온 게 왜 의미 있는지, 질문자의 상황과 어떻게 맞아떨어지는지 구체적으로 연결해요.
-
-3) **감정적 레이어** (2-3줄): 이 카드가 전하는 감정, 에너지, 분위기를 섬세하게 전달해요.
-
-4) **실용적 메시지** (3-4줄): 이 카드가 말하는 구체적인 조언.
-
-5) **숨은 의미** (1-2줄): 역방향이나 카드 조합에서만 보이는 깊은 통찰.
-
-## 해석 원칙 (매우 중요!)
-1. **질문에 직접 답변**: "${q}"를 항상 염두에 두고, 이 질문에 대한 답을 카드에서 찾아요
-2. **스토리텔링**: 각 카드를 따로따로 보지 말고, 전체가 하나의 이야기를 만들도록 연결해요
-3. **디테일 묘사**: "좋은 카드네요" 같은 뻔한 말 대신, 카드 속 구체적인 이미지를 언급하며 설명해요
-4. **공감과 솔직함**: 듣기 좋은 말만 하지 않고, 필요하면 경고도 따뜻하게 전달해요
-5. **역방향 의미**: 역방향 카드는 단순히 "반대"가 아니라, 에너지의 차단/과잉/내면화를 섬세하게 구분해요
-
-## 말투 (절대 규칙!)
-✅ 사용: "~해요", "~네요", "~거든요", "~죠", "~ㄹ 거예요"
-❌ 금지: "~것입니다", "~하겠습니다", "~합니다", "~하옵니다" (딱딱한 격식체/고어체)
-✅ 예시: "지금 좀 힘드시죠? 이 카드가 말해주고 있어요."
-❌ 나쁜 예: "현재 어려움을 겪고 계실 것입니다."
-
-## 금지 사항
-- AI 티 나는 표현: "제 생각에는", "저는 믿습니다", "추천드립니다" ❌
-- 뻔한 일반론: "긍정적인 마음가짐이 중요합니다" ❌
-- 짧은 해석: 각 카드는 최소 700자 이상, 풍성하게!`
-    : `You are a 20-year veteran intuitive tarot reader. Read like a million-view YouTube tarot channel - deep, detailed, and insightful.
+## 작성 규칙
+- 각 카드 해석은 위치 의미 + 현재 상황 연결 + 오늘 실행 포인트를 포함
+- 역방향 카드는 막힘/지연/내면화 관점으로 구체화
+- 추상적 문장 금지, 바로 실행 가능한 문장 사용`
+    : `You are a practical tarot reader. Be precise, warm, and concise.
 
 ## Spread: ${spreadTitle}
 ## Question: "${q}"
@@ -762,52 +842,28 @@ ${cardExamples}
 ## Cards Drawn
 ${cardListText}
 
-## IMPORTANT: You MUST provide interpretation for ALL ${cards.length} cards!
-Each card must have at least 450 words of rich interpretation.
+## IMPORTANT
+- Include all ${cards.length} card interpretations
+- No verbose filler
+- Output JSON only
 
 ## Output Format (JSON)
 Respond in this exact JSON format:
 {
-  "overall": "Overall message (500-700 words). Start with warm empathy for the querent's current situation. Show the big picture these cards paint together, the querent's current energy, and the flow ahead. End with 'Conclusion:' summarizing the core message.",
+  "overall": "Overall message (${budget.overallGuide})",
   "cards": [
 ${cardExamples}
   ],
-  "advice": "Practical, specific action steps (120-150 words). 'Starting today, try this...' style step-by-step guidance. Nothing abstract, only actionable."
+  "advice": "Practical action steps (${budget.adviceGuide})"
 }
 
-## Card Interpretation Guide
-Each card interpretation MUST include the following structure (450-600 words):
-
-1) **Visual Description** (2-3 lines): 'When I look at this card...' Paint colors, facial expressions, background symbols vividly.
-
-2) **Position Meaning** (3-4 lines): Why this card appearing in this position matters, how it connects to the querent's situation.
-
-3) **Emotional Layer** (2-3 lines): The feelings, energy, atmosphere this card conveys.
-
-4) **Practical Message** (3-4 lines): Specific advice from this card.
-
-5) **Hidden Meaning** (1-2 lines): Deep insights from reversals or card combinations.
-
-## Reading Principles (Critical!)
-1. **Answer the Question**: Always keep "${q}" in mind, find answers in the cards
-2. **Storytelling**: Connect all cards into one cohesive narrative, not separate readings
-3. **Detail Description**: Instead of generic "good card", mention specific imagery from the card
-4. **Empathy & Honesty**: Don't just say nice things - give warnings warmly when needed
-5. **Reversal Nuance**: Reversed cards aren't just "opposite" - distinguish blocked/excess/internalized energy
-
-## Tone Rules (Absolute!)
-✅ Use: Natural, conversational, warm but honest
-❌ Avoid: "I believe", "I think", "I suggest", "In my opinion" (AI-like phrases)
-✅ Example: "You're going through a tough time, aren't you? This card is telling you..."
-❌ Bad: "I believe you may be experiencing difficulties."
-
-## Prohibited
-- AI-sounding: "I believe", "I suggest", "I recommend" ❌
-- Generic platitudes: "Positive mindset is important" ❌
-- Short readings: Each card minimum 450 words, make it rich!`
+## Rules
+- Each card interpretation must include: position meaning + current situation link + one concrete action.
+- For reversed cards, explain blockage/delay/internalization explicitly.
+- Avoid generic platitudes; keep it actionable.`
 
   try {
-    const result = await callGPT(unifiedPrompt, 8000)
+    const result = await callGPT(unifiedPrompt, budget.maxTokens)
 
     const parsed = tryParseJsonCandidate(result)
     if (parsed) {
