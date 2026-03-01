@@ -24,6 +24,7 @@ export interface BirthInfo {
 interface UnifiedBirthFormProps {
   onSubmit: (birthInfo: BirthInfo) => void
   onProfileLoaded?: (birthInfo: BirthInfo) => void
+  onChange?: (birthInfo: BirthInfo) => void
   locale?: 'ko' | 'en'
   initialData?: Partial<BirthInfo>
 
@@ -51,6 +52,7 @@ interface UnifiedBirthFormProps {
 export function UnifiedBirthForm({
   onSubmit,
   onProfileLoaded,
+  onChange,
   locale = 'ko',
   initialData,
   includeProfileLoader = true,
@@ -324,6 +326,40 @@ export function UnifiedBirthForm({
     birthDate &&
     (!includeTime || timeUnknown || birthTime) &&
     (!includeCity || !showCityInput || birthCity)
+
+  useEffect(() => {
+    if (!onChange || !birthDate) return
+
+    const birthInfo: BirthInfo = {
+      birthDate,
+      birthTime: includeTime ? (timeUnknown ? '12:00' : birthTime || '12:00') : '12:00',
+      ...(includeGender ? { gender } : {}),
+      ...(includeCity || includeCityToggle
+        ? {
+            birthCity: showCityInput ? birthCity : undefined,
+            latitude: showCityInput ? cityData.latitude : undefined,
+            longitude: showCityInput ? cityData.longitude : undefined,
+            timezone: showCityInput ? cityData.timezone : undefined,
+          }
+        : {}),
+    }
+    onChange(birthInfo)
+  }, [
+    onChange,
+    birthDate,
+    birthTime,
+    timeUnknown,
+    includeTime,
+    includeGender,
+    gender,
+    includeCity,
+    includeCityToggle,
+    showCityInput,
+    birthCity,
+    cityData.latitude,
+    cityData.longitude,
+    cityData.timezone,
+  ])
 
   return (
     <div className={styles.container}>

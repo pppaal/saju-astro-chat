@@ -74,6 +74,12 @@ export function ReportProfileForm({
     onSubmit(payload)
   }
 
+  const handleChange = (birth: BirthInfo) => {
+    const payload = toPayload(birth)
+    setLastSaved(payload)
+    onSubmit(payload)
+  }
+
   return (
     <section className="rounded-3xl border border-cyan-400/30 bg-gradient-to-br from-[#08132a]/90 via-[#0d1e3f]/90 to-[#11123a]/90 p-6 shadow-[0_20px_55px_rgba(6,20,52,0.45)] backdrop-blur-xl">
       <div className="mb-5">
@@ -96,6 +102,7 @@ export function ReportProfileForm({
         <UnifiedBirthForm
           onSubmit={handleSubmit}
           onProfileLoaded={handleProfileLoaded}
+          onChange={handleChange}
           locale={locale}
           includeProfileLoader={true}
           includeCity={true}

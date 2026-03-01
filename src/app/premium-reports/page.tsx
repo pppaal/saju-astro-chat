@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -49,7 +49,7 @@ const PREMIUM_OPTIONS: PremiumOption[] = [
     key: 'comprehensive',
     type: 'comprehensive',
     label: '인생총운',
-    description: '전체 흐름, 핵심 전환점, 장기 실행전략을 종합 리포트로 제공합니다.',
+    description: '전체 흐름, 전환점, 장기 실행 전략을 종합 리포트로 제공합니다.',
     color: 'from-amber-500 to-orange-500',
     icon: Crown,
     sections: ['전체 흐름', '장기 전환점', '핵심 과제', '종합 실행안'],
@@ -79,7 +79,7 @@ const PREMIUM_OPTIONS: PremiumOption[] = [
     type: 'theme',
     theme: 'career',
     label: '커리어/직업',
-    description: '일의 방향성, 기회 창, 협업/리더십 패턴, 의사결정 타이밍을 제시합니다.',
+    description: '일의 방향성, 기회 창, 협업 패턴, 의사결정 타이밍을 제시합니다.',
     color: 'from-blue-500 to-indigo-500',
     icon: Briefcase,
     sections: ['일의 방향', '성장 구간', '협업 전략', '행동 플랜'],
@@ -89,7 +89,7 @@ const PREMIUM_OPTIONS: PremiumOption[] = [
     type: 'theme',
     theme: 'wealth',
     label: '재물/자산',
-    description: '현금흐름 안정성, 투자 시기, 소비 습관 리스크, 자산 운영 힌트를 제공합니다.',
+    description: '현금흐름, 투자 시기, 소비 리스크, 자산 운영 힌트를 제공합니다.',
     color: 'from-amber-500 to-orange-500',
     icon: Coins,
     sections: ['수입/지출', '투자 타이밍', '주의 구간', '현실 실행안'],
@@ -99,7 +99,7 @@ const PREMIUM_OPTIONS: PremiumOption[] = [
     type: 'theme',
     theme: 'health',
     label: '건강/컨디션',
-    description: '에너지 변동, 회복 루틴, 과부하 신호, 생활 패턴 최적화 포인트를 분석합니다.',
+    description: '에너지 변동, 회복 루틴, 과부하 신호, 생활 패턴 최적화를 분석합니다.',
     color: 'from-emerald-500 to-teal-500',
     icon: HeartPulse,
     sections: ['에너지 리듬', '회복 루틴', '주의 지표', '실천 체크'],
@@ -109,7 +109,7 @@ const PREMIUM_OPTIONS: PremiumOption[] = [
     type: 'theme',
     theme: 'family',
     label: '가족/생활',
-    description: '가정 내 역할, 정서 흐름, 갈등 완화 포인트, 생활 균형 전략을 제안합니다.',
+    description: '가정 내 역할, 정서 흐름, 갈등 완화 포인트를 제안합니다.',
     color: 'from-violet-500 to-purple-500',
     icon: Users,
     sections: ['관계 역학', '정서 흐름', '갈등 완화', '현실 조정안'],
@@ -117,13 +117,11 @@ const PREMIUM_OPTIONS: PremiumOption[] = [
 ]
 
 function normalizeGender(value?: ReportProfileInput['gender']): 'male' | 'female' {
-  if (value === 'F' || value === 'Female') {
-    return 'female'
-  }
+  if (value === 'F' || value === 'Female') return 'female'
   return 'male'
 }
 
-function createFreeAiReportUrl(profile: ReportProfileInput): string {
+function createDestinyMapUrl(profile: ReportProfileInput): string {
   const latitude = Number.isFinite(profile.latitude) ? profile.latitude : FALLBACK_LAT
   const longitude = Number.isFinite(profile.longitude) ? profile.longitude : FALLBACK_LON
   const params = new URLSearchParams({
@@ -133,12 +131,12 @@ function createFreeAiReportUrl(profile: ReportProfileInput): string {
     city: profile.birthCity?.trim() || FALLBACK_CITY,
     lat: String(latitude),
     lon: String(longitude),
-    timezone: profile.timezone || 'Asia/Seoul',
-    gender: normalizeGender(profile.gender) === 'female' ? 'F' : 'M',
+    userTz: profile.timezone || 'Asia/Seoul',
+    gender: normalizeGender(profile.gender),
     lang: 'ko',
-    tier: 'free',
+    theme: 'focus_overall',
   })
-  return `/premium-reports/comprehensive?${params.toString()}`
+  return `/destiny-map/result?${params.toString()}`
 }
 
 export default function PremiumReportsPage() {
@@ -163,11 +161,11 @@ export default function PremiumReportsPage() {
 
   const handleStartFree = () => {
     if (!profileInput || !hasProfile) {
-      setError('출생정보를 저장한 뒤 진행해주세요.')
+      setError('출생 정보를 입력한 뒤 분석하기를 눌러주세요.')
       return
     }
     setError(null)
-    router.push(createFreeAiReportUrl(profileInput))
+    router.push(createDestinyMapUrl(profileInput))
   }
 
   const handleGeneratePremium = async () => {
@@ -177,7 +175,7 @@ export default function PremiumReportsPage() {
     }
 
     if (!profileInput || !hasProfile) {
-      setError('출생정보를 저장한 뒤 진행해주세요.')
+      setError('출생 정보를 입력한 뒤 분석하기를 눌러주세요.')
       return
     }
 
@@ -283,7 +281,7 @@ export default function PremiumReportsPage() {
               공통 입력 후 Free / Premium 선택
             </h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300 md:text-base">
-              먼저 출생 정보를 입력하면, 무료 인사이트 또는 프리미엄 리포트로 바로 이어집니다.
+              캘린더처럼 공통 폼 한 번 입력하고, Free 또는 Premium을 선택해 바로 분석합니다.
             </p>
           </div>
         </header>
@@ -327,29 +325,18 @@ export default function PremiumReportsPage() {
               {mode === 'free' ? (
                 <div className="mt-4 rounded-2xl border border-emerald-300/35 bg-gradient-to-br from-emerald-500/15 to-teal-500/10 p-5">
                   <p className="text-xs font-semibold text-emerald-200">FREE INSIGHTS</p>
-                  <h2 className="mt-1 text-xl font-extrabold text-white">AI Report Free Digest</h2>
+                  <h2 className="mt-1 text-xl font-extrabold text-white">
+                    Destiny-Map Free Insights
+                  </h2>
                   <p className="mt-2 text-sm leading-6 text-slate-100">
-                    무료 AI 요약 리포트 화면으로 이동해 핵심 점수, 상위 인사이트, 즉시 실행 항목을
-                    확인합니다.
+                    무료 인사이트로 이동해 기본 성향, 흐름, 핵심 포인트를 확인합니다.
                   </p>
-                  <button
-                    onClick={handleStartFree}
-                    disabled={!canRun || !hasProfile}
-                    className={`mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white transition ${
-                      canRun && hasProfile
-                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110'
-                        : 'cursor-not-allowed bg-slate-700'
-                    }`}
-                  >
-                    Free AI Report 시작
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
                 </div>
               ) : (
                 <div className="mt-4">
                   <div className="mb-3 flex items-center gap-2 text-violet-100">
                     <Crown className="h-4 w-4" />
-                    <span className="text-sm font-semibold">리포트 타입을 선택하고 생성하세요</span>
+                    <span className="text-sm font-semibold">테마를 선택하세요</span>
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -394,21 +381,23 @@ export default function PremiumReportsPage() {
                       ))}
                     </div>
                   </div>
-
-                  <button
-                    onClick={handleGeneratePremium}
-                    disabled={!canRun || !hasProfile}
-                    className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white transition ${
-                      canRun && hasProfile
-                        ? `bg-gradient-to-r ${selectedOption.color} hover:brightness-110`
-                        : 'cursor-not-allowed bg-slate-700'
-                    }`}
-                  >
-                    Premium 리포트 생성
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
                 </div>
               )}
+
+              <button
+                onClick={mode === 'free' ? handleStartFree : handleGeneratePremium}
+                disabled={!canRun || !hasProfile}
+                className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white transition ${
+                  canRun && hasProfile
+                    ? mode === 'free'
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110'
+                      : `bg-gradient-to-r ${selectedOption.color} hover:brightness-110`
+                    : 'cursor-not-allowed bg-slate-700'
+                }`}
+              >
+                {mode === 'free' ? 'Free 분석하기' : 'Premium 분석하기'}
+                <ArrowRight className="h-4 w-4" />
+              </button>
             </article>
 
             <article className="rounded-2xl border border-white/15 bg-slate-900/50 p-4 text-xs leading-6 text-slate-300 backdrop-blur-xl">
