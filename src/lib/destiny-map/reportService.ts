@@ -7,6 +7,7 @@ import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { cacheGet, cacheSet, makeCacheKey } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
+import { fetchWithRetry } from '@/lib/http'
 
 // Import from centralized modules
 import { hashName, maskDisplayName, maskTextWithName } from '@/lib/security'
@@ -165,42 +166,52 @@ export async function generateReport({
         headers['X-API-KEY'] = apiToken
       }
 
-      const controller = new AbortController()
       // 템플릿 모드: 30초, AI 모드: 180초
       const timeoutMs = useAI ? 180000 : 30000
-      const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+      const payload = {
+        theme,
+        prompt: effectivePrompt || '',
+        prompt_trimmed: promptWasTrimmed,
+        saju: result.saju,
+        astro: result.astrology,
+        locale: lang,
+        render_mode: useAI ? 'gpt' : 'template',
+        advancedSaju: result.saju?.advancedAnalysis,
+        extraPoints: result.extraPoints,
+        solarReturn: result.solarReturn,
+        lunarReturn: result.lunarReturn,
+        progressions: result.progressions,
+        draconic: result.draconic,
+        harmonics: result.harmonics,
+        asteroids: result.asteroids,
+        fixedStars: result.fixedStars,
+        eclipses: result.eclipses,
+        electional: result.electional,
+        midpoints: result.midpoints,
+      }
 
-      let response: Response
-      try {
-        response = await fetch(`${backendUrl}/ask`, {
+      const response = await fetchWithRetry(
+        `${backendUrl}/ask`,
+        {
           method: 'POST',
           headers,
-          body: JSON.stringify({
-            theme,
-            prompt: effectivePrompt || '',
-            prompt_trimmed: promptWasTrimmed,
-            saju: result.saju,
-            astro: result.astrology,
-            locale: lang,
-            render_mode: useAI ? 'gpt' : 'template',
-            advancedSaju: result.saju?.advancedAnalysis,
-            extraPoints: result.extraPoints,
-            solarReturn: result.solarReturn,
-            lunarReturn: result.lunarReturn,
-            progressions: result.progressions,
-            draconic: result.draconic,
-            harmonics: result.harmonics,
-            asteroids: result.asteroids,
-            fixedStars: result.fixedStars,
-            eclipses: result.eclipses,
-            electional: result.electional,
-            midpoints: result.midpoints,
-          }),
-          signal: controller.signal,
-        })
-      } finally {
-        clearTimeout(timeoutId)
-      }
+          body: JSON.stringify(payload),
+        },
+        {
+          maxRetries: 2,
+          initialDelayMs: 800,
+          maxDelayMs: 4000,
+          timeoutMs,
+          retryStatusCodes: [408, 425, 429, 500, 502, 503, 504],
+          onRetry: (attempt, error, delayMs) => {
+            logger.warn('[DestinyMap] backend retry scheduled', {
+              attempt,
+              delayMs,
+              reason: error.message,
+            })
+          },
+        }
+      )
 
       if (!response.ok) {
         throw new Error(`Flask server error: ${response.status}`)

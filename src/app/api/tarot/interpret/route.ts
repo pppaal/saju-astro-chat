@@ -6,7 +6,7 @@ import { withApiMiddleware, createPublicStreamGuard } from '@/lib/api/middleware
 import { apiClient } from '@/lib/api/ApiClient'
 import { prisma } from '@/lib/db/prisma'
 import { captureServerError } from '@/lib/telemetry'
-import { enforceBodySize } from '@/lib/http'
+import { enforceBodySize, fetchWithRetry } from '@/lib/http'
 import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withCredits'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
@@ -348,35 +348,61 @@ export const POST = withApiMiddleware(
 
 // GPT-4o-mini API 호출 헬퍼 (속도 최적화)
 async function callGPT(prompt: string, maxTokens = 400): Promise<string> {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not set')
+  }
+
+  const response = await fetchWithRetry(
+    'https://api.openai.com/v1/chat/completions',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: maxTokens,
+        temperature: 0.75,
+      }),
     },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: maxTokens,
-      temperature: 0.75,
-    }),
-  })
+    {
+      maxRetries: 2,
+      initialDelayMs: 700,
+      maxDelayMs: 4000,
+      timeoutMs: 30000,
+      retryStatusCodes: [408, 409, 425, 429, 500, 502, 503, 504],
+      onRetry: (attempt, error, delayMs) => {
+        logger.warn('[Tarot interpret] OpenAI retry scheduled', {
+          attempt,
+          delayMs,
+          reason: error.message,
+        })
+      },
+    }
+  )
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => '')
     throw new Error(`OpenAI API error: ${response.status} ${errorText.slice(0, 280)}`)
   }
 
-  const rawText = await response.text()
   let data: { choices?: Array<{ message?: { content?: string } }> } | null = null
   try {
-    data = JSON.parse(rawText) as { choices?: Array<{ message?: { content?: string } }> }
+    data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> }
   } catch (parseErr) {
-    logger.warn('[Tarot interpret] OpenAI JSON parse failed', {
-      error: parseErr instanceof Error ? parseErr.message : String(parseErr),
-      preview: rawText.slice(0, 280),
-    })
-    throw new Error('OpenAI response parse failed')
+    const rawText = await response.text().catch(() => '')
+    try {
+      data = JSON.parse(rawText) as { choices?: Array<{ message?: { content?: string } }> }
+    } catch {
+      logger.warn('[Tarot interpret] OpenAI JSON parse failed', {
+        error: parseErr instanceof Error ? parseErr.message : String(parseErr),
+        preview: rawText.slice(0, 280),
+      })
+      throw new Error('OpenAI response parse failed')
+    }
   }
 
   return data?.choices?.[0]?.message?.content || ''
