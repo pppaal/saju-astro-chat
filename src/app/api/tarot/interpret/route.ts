@@ -54,6 +54,8 @@ type TarotInterpretResult = {
 }
 
 const MAX_CARD_MEANING_LENGTH = 500
+const OPENAI_TIMEOUT_MS = 40000
+const OPENAI_MAX_RETRIES = 1
 
 function truncateToMax(value: unknown, maxLength: number): string | unknown {
   if (typeof value !== 'string') return value
@@ -385,8 +387,30 @@ function enforceInterpretationQuality(input: {
   }
 }
 
+function buildEmergencyFallbackResult(
+  cards: CardInput[],
+  language: string,
+  userQuestion?: string
+): TarotInterpretResult {
+  return enforceInterpretationQuality({
+    rawResult: {
+      overall_message: '',
+      card_insights: [],
+      guidance: '',
+      fallback: true,
+    },
+    cards,
+    language,
+    userQuestion,
+  })
+}
+
 export const POST = withApiMiddleware(
   async (req: NextRequest, context) => {
+    let fallbackCards: CardInput[] = []
+    let fallbackLanguage = 'ko'
+    let fallbackQuestion: string | undefined
+
     try {
       const oversized = enforceBodySize(req, 256 * 1024)
       if (oversized) {
@@ -446,6 +470,10 @@ export const POST = withApiMiddleware(
         astroContext,
       } = validationResult.data
 
+      fallbackCards = validatedCards
+      fallbackLanguage = language
+      fallbackQuestion = userQuestion
+
       const creditResult = await checkAndConsumeCredits('reading', 1)
       if (!creditResult.allowed) {
         return creditErrorResponse(creditResult)
@@ -488,14 +516,19 @@ export const POST = withApiMiddleware(
         result = interpretation
       } else {
         logger.warn('Backend unavailable, using GPT interpretation')
-        result = await generateGPTInterpretation(
-          validatedCards,
-          spreadTitle,
-          language,
-          userQuestion,
-          includeSaju ? sajuContext : undefined,
-          includeAstrology ? astroContext : undefined
-        )
+        try {
+          result = await generateGPTInterpretation(
+            validatedCards,
+            spreadTitle,
+            language,
+            userQuestion,
+            includeSaju ? sajuContext : undefined,
+            includeAstrology ? astroContext : undefined
+          )
+        } catch (gptErr) {
+          logger.error('GPT interpretation failed:', gptErr)
+          result = buildEmergencyFallbackResult(validatedCards, language, userQuestion)
+        }
       }
 
       result = enforceInterpretationQuality({
@@ -539,10 +572,12 @@ export const POST = withApiMiddleware(
 
       // Return fallback even on error
       logger.error('Tarot interpretation error:', err)
-      return NextResponse.json(
-        { error: 'Server error', fallback: true },
-        { status: HTTP_STATUS.SERVER_ERROR }
+      const fallback = buildEmergencyFallbackResult(
+        fallbackCards,
+        fallbackLanguage,
+        fallbackQuestion
       )
+      return NextResponse.json(fallback, { status: HTTP_STATUS.OK })
     }
   },
   createPublicStreamGuard({
@@ -575,10 +610,10 @@ async function callGPT(prompt: string, maxTokens = 400): Promise<string> {
       }),
     },
     {
-      maxRetries: 2,
+      maxRetries: OPENAI_MAX_RETRIES,
       initialDelayMs: 700,
       maxDelayMs: 4000,
-      timeoutMs: 30000,
+      timeoutMs: OPENAI_TIMEOUT_MS,
       retryStatusCodes: [408, 409, 425, 429, 500, 502, 503, 504],
       onRetry: (attempt, error, delayMs) => {
         logger.warn('[Tarot interpret] OpenAI retry scheduled', {
