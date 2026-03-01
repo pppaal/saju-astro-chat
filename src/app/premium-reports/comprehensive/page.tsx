@@ -34,12 +34,12 @@ interface FreeDigestReport {
 }
 
 const FEATURES = [
-  '??/?? ?? ??',
-  '???/?? ?? ??',
-  '??/?? ?? ??',
-  '??/??? ?? ??',
-  '??/??? ?? ??',
-  '?? ??? ?? ???',
+  '사주·점성 통합 성향 분석',
+  '대운/세운 기반 타이밍 분석',
+  '연애/커리어/재무/건강 요약',
+  '강점·주의점·실행전략 제안',
+  '교차 근거 기반 해석 흐름',
+  '실행 가능한 체크리스트 제공',
 ]
 
 function toTier(value: string | null): ReportTier {
@@ -140,7 +140,7 @@ export default function ComprehensiveReportPage() {
   const handleGenerate = async () => {
     const finalBirthDate = profileInput?.birthDate || profile.birthDate
     if (!finalBirthDate) {
-      setError('???? ??? ?? ??????.')
+      setError('생년월일 정보를 확인해 주세요.')
       return
     }
 
@@ -156,7 +156,7 @@ export default function ComprehensiveReportPage() {
           reportTier,
           period: 'comprehensive',
           ...(sajuData?.dayMasterElement ? { dayMasterElement: sajuData.dayMasterElement } : {}),
-          name: profileInput?.name || profile.name || '???',
+          name: profileInput?.name || profile.name || '사용자',
           birthDate: finalBirthDate,
           birthTime: profileInput?.birthTime || profile.birthTime || undefined,
           timezone: profileInput?.timezone || profile.timezone || undefined,
@@ -176,7 +176,7 @@ export default function ComprehensiveReportPage() {
           router.push('/pricing?reason=credits')
           return
         }
-        throw new Error(data.error?.message || '??? ??? ??????.')
+        throw new Error(data.error?.message || '리포트 생성에 실패했습니다.')
       }
 
       if (reportTier === 'free') {
@@ -197,7 +197,7 @@ export default function ComprehensiveReportPage() {
       analytics.matrixGenerate('premium-reports/comprehensive')
       router.push(`/premium-reports/result/${data.report.id}?type=comprehensive`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '? ? ?? ??? ??????.')
+      setError(err instanceof Error ? err.message : '요청 처리 중 오류가 발생했습니다.')
     } finally {
       setIsGenerating(false)
     }
@@ -221,15 +221,15 @@ export default function ComprehensiveReportPage() {
               href="/premium-reports"
               className="inline-flex items-center rounded-full border border-white/15 bg-slate-900/60 px-3 py-1 text-sm text-slate-300 backdrop-blur-xl hover:border-cyan-300/60 hover:text-white"
             >
-              ??? ???? ????
+              프리미엄 리포트
             </Link>
             <div className="mt-5 rounded-3xl border border-white/15 bg-slate-900/60 p-7 backdrop-blur-xl">
               <div className="inline-flex rounded-full border border-amber-300/35 bg-amber-400/10 px-3 py-1 text-xs font-semibold text-amber-200">
                 Comprehensive
               </div>
-              <h1 className="mt-3 text-3xl font-black text-white">?? ???</h1>
+              <h1 className="mt-3 text-3xl font-black text-white">종합 리포트</h1>
               <p className="mt-2 text-sm leading-6 text-slate-200">
-                ??? ??? ?? ???? ??? ?? ??? ?????.
+                사주·점성·매트릭스 근거를 한 번에 통합해 전체 흐름을 해석합니다.
               </p>
 
               <div className="mt-5 inline-flex rounded-xl border border-white/15 bg-slate-950/50 p-1">
@@ -266,7 +266,7 @@ export default function ComprehensiveReportPage() {
 
         <main className="mx-auto grid max-w-5xl gap-6 px-4 pb-20 lg:grid-cols-[1fr_1fr]">
           <section className="rounded-3xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
-            <h2 className="text-lg font-semibold text-white">?? ??</h2>
+            <h2 className="text-lg font-semibold text-white">포함 내용</h2>
             <ul className="mt-4 space-y-2">
               {FEATURES.map((feature) => (
                 <li key={feature} className="text-sm text-slate-200">
@@ -297,16 +297,16 @@ export default function ComprehensiveReportPage() {
               }`}
             >
               {isGenerating
-                ? '??? ?? ?...'
+                ? '리포트 생성 중...'
                 : reportTier === 'premium'
-                  ? '???? ?? ??? ????'
-                  : '?? ?? ??? ????'}
+                  ? '프리미엄 종합 리포트 생성'
+                  : '무료 요약 리포트 생성'}
             </button>
 
             <p className="text-center text-xs text-slate-500">
               {reportTier === 'premium'
-                ? '??? ???? My Journey?? ?? ??? ? ????.'
-                : '?? ??? ?? ?? ??? ?? ?????.'}
+                ? '프리미엄 리포트는 My Journey에서 다시 확인할 수 있습니다.'
+                : '무료 요약은 저장되지 않으니 필요한 내용은 메모해 주세요.'}
             </p>
 
             {freeReport && (
@@ -314,7 +314,7 @@ export default function ComprehensiveReportPage() {
                 <h3 className="text-base font-bold text-emerald-100">{freeReport.headline}</h3>
                 <p className="mt-2 leading-6 text-emerald-100/90">{freeReport.summary}</p>
                 <p className="mt-3 font-semibold">
-                  ?? ?? {freeReport.overallScore}? ? ?? {freeReport.grade}
+                  종합 점수 {freeReport.overallScore}점 · 등급 {freeReport.grade}
                 </p>
 
                 {freeReport.topInsights && freeReport.topInsights.length > 0 && (
@@ -327,7 +327,7 @@ export default function ComprehensiveReportPage() {
                         <p className="font-semibold text-emerald-50">{item.title}</p>
                         <p className="mt-1 text-emerald-100/85">{item.reason}</p>
                         <p className="mt-2 text-xs font-semibold text-emerald-200">
-                          ??: {item.action}
+                          실행: {item.action}
                         </p>
                       </article>
                     ))}
@@ -336,7 +336,7 @@ export default function ComprehensiveReportPage() {
 
                 {freeReport.nextSteps && freeReport.nextSteps.length > 0 && (
                   <div className="mt-4 rounded-xl border border-emerald-200/35 bg-emerald-950/25 p-3">
-                    <p className="font-semibold text-emerald-100">?? ??</p>
+                    <p className="font-semibold text-emerald-100">다음 단계</p>
                     <ul className="mt-2 space-y-1 text-emerald-100/90">
                       {freeReport.nextSteps.map((step) => (
                         <li key={step}>? {step}</li>
@@ -379,7 +379,7 @@ function useReportProfileState(
     }
 
     setProfileInput({
-      name: profile.name || '???',
+      name: profile.name || '사용자',
       birthDate: profile.birthDate,
       birthTime: profile.birthTime || '12:00',
       birthCity: profile.birthCity,

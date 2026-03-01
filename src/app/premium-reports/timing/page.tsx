@@ -34,20 +34,20 @@ const PERIOD_INFO: Record<
   }
 > = {
   daily: {
-    label: '?? ??? ???',
-    description: '??? ??? ?? ??? ?? ???? ?????.',
+    label: '일간 타이밍 분석',
+    description: '하루 단위로 집중/주의 구간을 정밀하게 점검합니다.',
     credits: REPORT_CREDIT_COSTS.daily,
     color: 'from-yellow-500 to-orange-500',
   },
   monthly: {
-    label: '?? ??? ???',
-    description: '??? ?? ?? ??? ??? ?????.',
+    label: '월간 타이밍 분석',
+    description: '한 달의 흐름과 전환 포인트를 분석합니다.',
     credits: REPORT_CREDIT_COSTS.monthly,
     color: 'from-blue-500 to-cyan-500',
   },
   yearly: {
-    label: '?? ??? ???',
-    description: '?? ??? ??? ??? ???? ?????.',
+    label: '연간 타이밍 분석',
+    description: '연간 핵심 구간과 변곡점을 분석합니다.',
     credits: REPORT_CREDIT_COSTS.yearly,
     color: 'from-purple-500 to-pink-500',
   },
@@ -98,7 +98,7 @@ function TimingReportContent() {
     }
 
     setProfileInput({
-      name: profile.name || '???',
+      name: profile.name || '사용자',
       birthDate: profile.birthDate,
       birthTime: profile.birthTime || '12:00',
       birthCity: profile.birthCity,
@@ -148,7 +148,7 @@ function TimingReportContent() {
 
     const finalBirthDate = profileInput?.birthDate || profile.birthDate
     if (!finalBirthDate) {
-      setError('???? ??? ?? ??????.')
+      setError('생년월일 정보를 확인해 주세요.')
       return
     }
 
@@ -164,7 +164,7 @@ function TimingReportContent() {
           period,
           targetDate,
           ...(sajuData?.dayMasterElement ? { dayMasterElement: sajuData.dayMasterElement } : {}),
-          name: profileInput?.name || profile.name || '???',
+          name: profileInput?.name || profile.name || '사용자',
           birthDate: finalBirthDate,
           birthTime: profileInput?.birthTime || profile.birthTime || undefined,
           timezone: profileInput?.timezone || profile.timezone || undefined,
@@ -183,7 +183,7 @@ function TimingReportContent() {
           router.push('/pricing?reason=credits')
           return
         }
-        throw new Error(data.error?.message || '??? ??? ??????.')
+        throw new Error(data.error?.message || '리포트 생성에 실패했습니다.')
       }
 
       if (data.report?.id) {
@@ -199,7 +199,7 @@ function TimingReportContent() {
       analytics.matrixGenerate('premium-reports/timing')
       router.push(`/premium-reports/result/${data.report.id}?type=timing`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '? ? ?? ??? ??????.')
+      setError(err instanceof Error ? err.message : '요청 처리 중 오류가 발생했습니다.')
     } finally {
       setIsGenerating(false)
     }
@@ -223,7 +223,7 @@ function TimingReportContent() {
               href="/premium-reports"
               className="inline-flex items-center rounded-full border border-white/15 bg-slate-900/60 px-3 py-1 text-sm text-slate-300 backdrop-blur-xl hover:border-cyan-300/60 hover:text-white"
             >
-              ??? ???? ????
+              프리미엄 리포트
             </Link>
             <div className="mt-5 rounded-3xl border border-white/15 bg-slate-900/60 p-7 backdrop-blur-xl">
               <div className="inline-flex rounded-full border border-cyan-300/40 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-200">
@@ -232,7 +232,7 @@ function TimingReportContent() {
               <h1 className="mt-3 text-3xl font-black text-white">{periodInfo.label}</h1>
               <p className="mt-2 text-sm text-slate-200">{periodInfo.description}</p>
               <p className="mt-3 text-xs font-semibold text-cyan-200">
-                {periodInfo.credits} credits ? Premium ??
+                {periodInfo.credits} credits · Premium 전용
               </p>
             </div>
           </div>
@@ -240,7 +240,7 @@ function TimingReportContent() {
 
         <main className="mx-auto grid max-w-5xl gap-6 px-4 pb-20 lg:grid-cols-[1fr_1fr]">
           <section className="rounded-3xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
-            <h2 className="text-lg font-semibold text-white">?? ??</h2>
+            <h2 className="text-lg font-semibold text-white">분석 날짜</h2>
             <div className="mt-4">
               <DateTimePicker
                 value={targetDate}
@@ -254,18 +254,18 @@ function TimingReportContent() {
               />
             </div>
             <p className="mt-3 text-sm text-slate-300">
-              {period === 'daily' && '??? ?? ???? ?? ??? ?????.'}
-              {period === 'monthly' && '??? ??? ??? ?? ??? ?????.'}
-              {period === 'yearly' && '??? ??? ??? ??? ??? ?????.'}
+              {period === 'daily' && '선택한 날짜의 집중/주의 타이밍을 제공합니다.'}
+              {period === 'monthly' && '선택한 달의 상승/조정 구간을 제공합니다.'}
+              {period === 'yearly' && '선택한 해의 전환점과 핵심 타이밍을 제공합니다.'}
             </p>
 
             <div className="mt-4 rounded-xl border border-white/15 bg-slate-950/40 p-3 text-xs text-slate-300">
-              ?? ??? ?? ????? ?????.
+              무료 버전은 종합 요약만 제공합니다.
               <button
                 onClick={() => router.push('/premium-reports/comprehensive?tier=free')}
                 className="ml-2 font-semibold text-emerald-300 hover:text-emerald-200"
               >
-                ?? ?? ??
+                무료 버전 보기
               </button>
             </div>
           </section>
@@ -288,7 +288,7 @@ function TimingReportContent() {
                   : 'cursor-not-allowed bg-slate-700'
               }`}
             >
-              {isGenerating ? '??? ?? ?...' : `${periodInfo.label} ????`}
+              {isGenerating ? '리포트 생성 중...' : `${periodInfo.label} 생성하기`}
             </button>
           </section>
         </main>

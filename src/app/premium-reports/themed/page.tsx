@@ -34,44 +34,44 @@ const THEME_INFO: Record<
   }
 > = {
   love: {
-    label: '??/?? ???',
-    description: '?? ??, ?? ??, ?? ???? ?? ?????.',
+    label: '연애/결혼 심화',
+    description: '관계 패턴, 궁합 흐름, 감정 리듬까지 깊게 분석합니다.',
     credits: 3,
     color: 'from-pink-500 to-rose-500',
     icon: Heart,
-    sections: ['?? ??', '?? ??', '?? ??', '?? ???'],
+    sections: ['연애 성향', '궁합 포인트', '시기 분석', '실행 전략'],
   },
   career: {
-    label: '??? ???',
-    description: '?? ??, ?? ???, ???? ??? ?????.',
+    label: '커리어 전략',
+    description: '직무 적성, 성장 경로, 전환 타이밍을 구체적으로 제시합니다.',
     credits: 3,
     color: 'from-blue-500 to-indigo-500',
     icon: Briefcase,
-    sections: ['?? ???', '??? ??', '?? ???', '?? ??'],
+    sections: ['성장 곡선', '전환 시기', '강점 활용', '실행 계획'],
   },
   wealth: {
-    label: '?? ???',
-    description: '??/?? ??? ?? ???? ??? ?????.',
+    label: '재무 전략',
+    description: '수입/지출 패턴과 투자 리듬을 기반으로 재무 전략을 설계합니다.',
     credits: 3,
     color: 'from-amber-500 to-orange-500',
     icon: Coins,
-    sections: ['?? ??', '?? ??', '?? ??', '?? ??'],
+    sections: ['현금흐름', '리스크 구간', '투자 성향', '실행 원칙'],
   },
   health: {
-    label: '?? ???',
-    description: '?? ??, ?? ??, ?? ?? ???? ?????.',
+    label: '건강 밸런스',
+    description: '체력 흐름, 소진 신호, 회복 루틴을 함께 분석합니다.',
     credits: 3,
     color: 'from-emerald-500 to-teal-500',
     icon: HeartPulse,
-    sections: ['??? ??', '?? ??', '?? ??', '?? ??'],
+    sections: ['체력 리듬', '취약 구간', '회복 전략', '생활 습관'],
   },
   family: {
-    label: '??/?? ???',
-    description: '?? ? ??, ?? ??, ?? ?? ???? ?????.',
+    label: '가족/관계 심화',
+    description: '관계 역학, 갈등 포인트, 대화 전략을 정리해드립니다.',
     credits: 3,
     color: 'from-violet-500 to-purple-500',
     icon: Users,
-    sections: ['?? ??', '?? ??', '?? ??', '?? ??'],
+    sections: ['관계 구조', '갈등 패턴', '회복 포인트', '대화 전략'],
   },
 }
 
@@ -134,7 +134,7 @@ export default function ThemedReportPage() {
     }
 
     setProfileInput({
-      name: profile.name || '???',
+      name: profile.name || '사용자',
       birthDate: profile.birthDate,
       birthTime: profile.birthTime || '12:00',
       birthCity: profile.birthCity,
@@ -186,13 +186,13 @@ export default function ThemedReportPage() {
     }
 
     if (!selectedTheme) {
-      setError('??? ??????.')
+      setError('테마를 선택해 주세요.')
       return
     }
 
     const finalBirthDate = profileInput?.birthDate || profile.birthDate
     if (!finalBirthDate) {
-      setError('???? ??? ?? ??????.')
+      setError('생년월일 정보를 확인해 주세요.')
       return
     }
 
@@ -207,7 +207,7 @@ export default function ThemedReportPage() {
           reportTier: 'premium',
           theme: selectedTheme,
           ...(sajuData?.dayMasterElement ? { dayMasterElement: sajuData.dayMasterElement } : {}),
-          name: profileInput?.name || profile.name || '???',
+          name: profileInput?.name || profile.name || '사용자',
           birthDate: finalBirthDate,
           birthTime: profileInput?.birthTime || profile.birthTime || undefined,
           timezone: profileInput?.timezone || profile.timezone || undefined,
@@ -226,7 +226,7 @@ export default function ThemedReportPage() {
           router.push('/pricing?reason=credits')
           return
         }
-        throw new Error(data.error?.message || '??? ??? ??????.')
+        throw new Error(data.error?.message || '리포트 생성에 실패했습니다.')
       }
 
       if (data.report?.id) {
@@ -242,7 +242,7 @@ export default function ThemedReportPage() {
       analytics.matrixGenerate('premium-reports/themed')
       router.push(`/premium-reports/result/${data.report.id}?type=themed`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '? ? ?? ??? ??????.')
+      setError(err instanceof Error ? err.message : '요청 처리 중 오류가 발생했습니다.')
     } finally {
       setIsGenerating(false)
     }
@@ -266,22 +266,24 @@ export default function ThemedReportPage() {
               href="/premium-reports"
               className="inline-flex items-center rounded-full border border-white/15 bg-slate-900/60 px-3 py-1 text-sm text-slate-300 backdrop-blur-xl hover:border-cyan-300/60 hover:text-white"
             >
-              ??? ???? ????
+              프리미엄 리포트
             </Link>
             <div className="mt-5 rounded-3xl border border-white/15 bg-slate-900/60 p-7 backdrop-blur-xl">
               <div className="inline-flex rounded-full border border-violet-300/40 bg-violet-400/10 px-3 py-1 text-xs font-semibold text-violet-200">
                 Themed
               </div>
-              <h1 className="mt-3 text-3xl font-black text-white">?? ???</h1>
-              <p className="mt-2 text-slate-300">??? ??? ??? ??? ?? ???? ?? ?????.</p>
-              <p className="mt-3 text-xs font-semibold text-violet-200">3 credits ? Premium ??</p>
+              <h1 className="mt-3 text-3xl font-black text-white">테마 심화 리포트</h1>
+              <p className="mt-2 text-slate-300">
+                원하는 테마를 선택하면 사주+점성 교차 근거로 깊이 있게 해석합니다.
+              </p>
+              <p className="mt-3 text-xs font-semibold text-violet-200">3 credits · Premium 전용</p>
             </div>
           </div>
         </header>
 
         <main className="mx-auto grid max-w-5xl gap-6 px-4 pb-20 lg:grid-cols-[1.1fr_1fr]">
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold text-white">?? ??</h2>
+            <h2 className="text-lg font-semibold text-white">테마 선택</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {(Object.entries(THEME_INFO) as [ThemeType, (typeof THEME_INFO)[ThemeType]][]).map(
                 ([themeKey, theme]) => {
@@ -315,7 +317,7 @@ export default function ThemedReportPage() {
             {selectedTheme && (
               <div className="rounded-2xl border border-white/15 bg-slate-900/55 p-5 backdrop-blur-xl">
                 <h3 className="text-base font-semibold text-white">
-                  {THEME_INFO[selectedTheme].label} ?? ??
+                  {THEME_INFO[selectedTheme].label} 포함 내용
                 </h3>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {THEME_INFO[selectedTheme].sections.map((section) => (
@@ -331,12 +333,12 @@ export default function ThemedReportPage() {
             )}
 
             <div className="rounded-xl border border-white/15 bg-slate-950/40 p-3 text-xs text-slate-300">
-              ?? ??? ?? ????? ?????.
+              무료 버전은 종합 요약만 제공합니다.
               <button
                 onClick={() => router.push('/premium-reports/comprehensive?tier=free')}
                 className="ml-2 font-semibold text-emerald-300 hover:text-emerald-200"
               >
-                ?? ?? ??
+                무료 버전 보기
               </button>
             </div>
           </section>
@@ -360,14 +362,14 @@ export default function ThemedReportPage() {
               }`}
             >
               {isGenerating
-                ? '??? ?? ?...'
+                ? '리포트 생성 중...'
                 : selectedTheme
-                  ? `${THEME_INFO[selectedTheme].label} ????`
-                  : '??? ??????'}
+                  ? `${THEME_INFO[selectedTheme].label} 생성하기`
+                  : '테마를 선택해 주세요'}
             </button>
 
             <p className="text-center text-xs text-slate-500">
-              ??? ???? My Journey?? ?? ??? ? ????.
+              생성 후 My Journey에서 다시 확인할 수 있습니다.
             </p>
           </section>
         </main>
