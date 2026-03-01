@@ -10,6 +10,7 @@ import { HTTP_STATUS } from '@/lib/constants/http'
 import { tarotAnalyzeQuestionSchema as AnalyzeQuestionSchema } from '@/lib/api/zodValidation'
 import { prepareForMatching } from '@/lib/Tarot/utils/koreanTextNormalizer'
 import { recommendSpreads } from '@/lib/Tarot/tarot-recommend'
+import { fetchWithRetry } from '@/lib/http'
 
 // ============================================================
 // Types
@@ -49,20 +50,42 @@ type AnalyzeFallbackReason =
 // OpenAI API 호출 헬퍼
 // ============================================================
 async function callOpenAI(messages: { role: string; content: string }[], maxTokens = 400) {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY_MISSING')
+  }
+
+  const response = await fetchWithRetry(
+    'https://api.openai.com/v1/chat/completions',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini', // 질문 분류는 단순 작업이므로 mini 사용 (96% 저렴)
+        messages,
+        max_tokens: maxTokens,
+        temperature: 0.3, // 복잡한 뉘앙스 파악을 위해 약간 높임
+        response_format: { type: 'json_object' },
+      }),
     },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini', // 질문 분류는 단순 작업이므로 mini 사용 (96% 저렴)
-      messages,
-      max_tokens: maxTokens,
-      temperature: 0.3, // 복잡한 뉘앙스 파악을 위해 약간 높임
-      response_format: { type: 'json_object' },
-    }),
-  })
+    {
+      maxRetries: 2,
+      initialDelayMs: 600,
+      maxDelayMs: 2500,
+      timeoutMs: 15000,
+      retryStatusCodes: [408, 409, 425, 429, 500, 502, 503, 504],
+      onRetry: (attempt, error, delayMs) => {
+        logger.warn('[analyze-question] OpenAI retry scheduled', {
+          attempt,
+          delayMs,
+          reason: error.message,
+        })
+      },
+    }
+  )
 
   if (!response.ok) {
     const error = await response.text()
@@ -368,11 +391,35 @@ function revalidateWithRecommendations(
 function resolveDeterministicFallback(
   question: string,
   language: string,
-  spreadOptions: SpreadOption[]
+  spreadOptions: SpreadOption[],
+  questionVariants: string[] = []
 ): ParsedResult {
-  const recommended = recommendSpreads(question, 1)
-  if (recommended.length > 0) {
-    const top = recommended[0]
+  const candidates = Array.from(
+    new Set([question, ...questionVariants].map((q) => q.trim()))
+  ).filter(Boolean)
+
+  const ranked = candidates.flatMap((q) =>
+    recommendSpreads(q, 3).map((rec) => ({
+      ...rec,
+      sourceQuestion: q,
+    }))
+  )
+
+  const sorted = ranked.sort((a, b) => {
+    if (b.matchScore !== a.matchScore) {
+      return b.matchScore - a.matchScore
+    }
+    // Prefer non-default general fallback when scores tie
+    const aIsDefault = a.themeId === 'general-insight' && a.spreadId === 'past-present-future'
+    const bIsDefault = b.themeId === 'general-insight' && b.spreadId === 'past-present-future'
+    if (aIsDefault !== bIsDefault) {
+      return aIsDefault ? 1 : -1
+    }
+    return 0
+  })
+
+  if (sorted.length > 0) {
+    const top = sorted[0]
     return {
       themeId: top.themeId,
       spreadId: top.spreadId,
@@ -458,7 +505,8 @@ export const POST = withApiMiddleware(
       let parsed: ParsedResult = resolveDeterministicFallback(
         trimmedQuestion,
         language,
-        spreadOptions
+        spreadOptions,
+        questionVariants
       )
       let source: AnalyzeSource = 'fallback'
       let fallbackReason: AnalyzeFallbackReason | null = null
@@ -480,7 +528,10 @@ export const POST = withApiMiddleware(
           ])
         } catch (error) {
           openAiFailed = true
-          fallbackReason = 'server_error'
+          fallbackReason =
+            error instanceof Error && /OPENAI_API_KEY_MISSING/.test(error.message)
+              ? 'auth_failed'
+              : 'server_error'
           logger.warn('[analyze-question] OpenAI unavailable, using fallback routing', error)
         }
 
@@ -523,7 +574,12 @@ export const POST = withApiMiddleware(
         }
 
         if (!hasStructuredLLMResult) {
-          parsed = resolveDeterministicFallback(trimmedQuestion, language, spreadOptions)
+          parsed = resolveDeterministicFallback(
+            trimmedQuestion,
+            language,
+            spreadOptions,
+            questionVariants
+          )
           source = 'fallback'
         }
       }
@@ -554,7 +610,8 @@ export const POST = withApiMiddleware(
         const fallbackParsed = resolveDeterministicFallback(
           trimmedQuestion,
           language,
-          spreadOptions
+          spreadOptions,
+          questionVariants
         )
         const fallbackSpread = spreadOptions.find(
           (s) => s.themeId === fallbackParsed.themeId && s.id === fallbackParsed.spreadId

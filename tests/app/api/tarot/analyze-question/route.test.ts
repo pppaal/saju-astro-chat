@@ -234,6 +234,7 @@ describe('Tarot Analyze Question API - POST', () => {
     vi.clearAllMocks()
     process.env.NEXT_PUBLIC_API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN || 'test-public-token'
     process.env.PUBLIC_API_TOKEN = process.env.PUBLIC_API_TOKEN || 'test-public-token'
+    process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'test-openai-key'
     // Default: OpenAI returns a valid response
     mockFetch.mockResolvedValue(
       createOpenAIResponse({
@@ -531,7 +532,7 @@ describe('Tarot Analyze Question API - POST', () => {
   // ----------------------------------------------------------
   describe('OpenAI Failure and Fallback', () => {
     it('should use fallback spread when OpenAI call fails', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('OpenAI API timeout'))
+      mockFetch.mockRejectedValue(new Error('OpenAI API timeout'))
 
       const req = createRequest({ question: '오늘의 흐름은?', language: 'ko' })
       const response = await POST(req)
@@ -586,7 +587,7 @@ describe('Tarot Analyze Question API - POST', () => {
     })
 
     it('should use Korean fallback explanation when language is ko', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('fail'))
+      mockFetch.mockRejectedValue(new Error('fail'))
 
       const req = createRequest({ question: '흐름 보기', language: 'ko' })
       const response = await POST(req)
@@ -597,7 +598,7 @@ describe('Tarot Analyze Question API - POST', () => {
     })
 
     it('should use English fallback explanation when language is en', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('fail'))
+      mockFetch.mockRejectedValue(new Error('fail'))
 
       const req = createRequest({ question: 'What is my future?', language: 'en' })
       const response = await POST(req)
