@@ -69,6 +69,17 @@ export function useDestinyProfile(
             }
           } catch {
             logger.warn('City search failed for:', cityName)
+            if (typeof user.latitude === 'number' && typeof user.longitude === 'number') {
+              fields.selectedCity = {
+                name: cityName,
+                country: 'KR',
+                lat: user.latitude,
+                lon: user.longitude,
+                timezone: user.tzId || 'Asia/Seoul',
+                displayKr: user.birthCity,
+                displayEn: user.birthCity,
+              }
+            }
           }
         }
       }

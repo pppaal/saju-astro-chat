@@ -344,11 +344,15 @@ function DestinyMapContent({
             <div className={styles.iconWrapper}>
               <span className={styles.icon}>🔮</span>
             </div>
-            <h1 className={styles.title}>{safeT('menu.destinyCounselor', 'Destiny Counselor')}</h1>
+            <h1 className={styles.title}>
+              {safeT('destinyCounselor.title', isKo ? 'AI 상담사' : 'AI Counselor')}
+            </h1>
             <p className={styles.subtitle}>
               {safeT(
                 'destinyCounselor.subtitle',
-                'Start your Destiny Counselor session with Saju + Astrology analysis.'
+                isKo
+                  ? '사주 + 점성술 기반으로 상담을 시작합니다.'
+                  : 'Start your counselor session with Saju + Astrology analysis.'
               )}
             </p>
           </div>

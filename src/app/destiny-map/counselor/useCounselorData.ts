@@ -16,6 +16,8 @@ import { logger } from '@/lib/logger'
 import { getPublicBackendUrl } from '@/lib/backend-url'
 
 type SearchParams = Record<string, string | string[] | undefined>
+const DEFAULT_LATITUDE = 37.5665
+const DEFAULT_LONGITUDE = 126.978
 
 export function useCounselorData(sp: SearchParams) {
   const { t, setLocale } = useI18n()
@@ -57,6 +59,8 @@ export function useCounselorData(sp: SearchParams) {
 
   const latitude = latStr ? Number(latStr) : NaN
   const longitude = lonStr ? Number(lonStr) : NaN
+  const resolvedLatitude = Number.isFinite(latitude) ? latitude : DEFAULT_LATITUDE
+  const resolvedLongitude = Number.isFinite(longitude) ? longitude : DEFAULT_LONGITUDE
   const normalizedGender = String(rawGender).toLowerCase() === 'female' ? 'female' : 'male'
 
   // Theme selection state (can be changed by user)
@@ -65,22 +69,22 @@ export function useCounselorData(sp: SearchParams) {
   // Available themes with labels
   const themeOptions = useMemo<Array<{ key: string; icon: string; label: string }>>(
     () => [
-      { key: 'life', icon: '🌌', label: t('destinyMap.counselor.theme.life', '인생 전체') },
-      { key: 'love', icon: '💞', label: t('destinyMap.counselor.theme.love', '연애') },
-      { key: 'career', icon: '💼', label: t('destinyMap.counselor.theme.career', '직업') },
-      { key: 'wealth', icon: '💰', label: t('destinyMap.counselor.theme.wealth', '재물') },
-      { key: 'health', icon: '🩺', label: t('destinyMap.counselor.theme.health', '건강') },
-      { key: 'family', icon: '🏠', label: t('destinyMap.counselor.theme.family', '가족') },
+      { key: 'life', icon: '🌌', label: lang === 'ko' ? '종합 상담' : 'General' },
+      { key: 'love', icon: 'ðŸ’ž', label: t('destinyMap.counselor.theme.love', 'ì—°ì• ') },
+      { key: 'career', icon: 'ðŸ’¼', label: t('destinyMap.counselor.theme.career', 'ì§ì—…') },
+      { key: 'wealth', icon: 'ðŸ’°', label: t('destinyMap.counselor.theme.wealth', 'ìž¬ë¬¼') },
+      { key: 'health', icon: 'ðŸ©º', label: t('destinyMap.counselor.theme.health', 'ê±´ê°•') },
+      { key: 'family', icon: 'ðŸ ', label: t('destinyMap.counselor.theme.family', 'ê°€ì¡±') },
     ],
-    [t]
+    [lang, t]
   )
 
   const loadingMessages = useMemo(
     () => [
-      t('destinyMap.counselor.loading1', '상담사와 연결 중...'),
-      t('destinyMap.counselor.loading2', '사주/점성 프로필을 분석 중...'),
-      t('destinyMap.counselor.loading3', '교차 데이터와 문맥을 준비 중...'),
-      t('destinyMap.counselor.loading4', '곧 상담을 시작할 수 있어요'),
+      t('destinyMap.counselor.loading1', 'ìƒë‹´ì‚¬ì™€ ì—°ê²° ì¤‘...'),
+      t('destinyMap.counselor.loading2', 'ì‚¬ì£¼/ì ì„± í”„ë¡œí•„ì„ ë¶„ì„ ì¤‘...'),
+      t('destinyMap.counselor.loading3', 'êµì°¨ ë°ì´í„°ì™€ ë¬¸ë§¥ì„ ì¤€ë¹„ ì¤‘...'),
+      t('destinyMap.counselor.loading4', 'ê³§ ìƒë‹´ì„ ì‹œìž‘í•  ìˆ˜ ìžˆì–´ìš”'),
     ],
     [t]
   )
@@ -94,7 +98,7 @@ export function useCounselorData(sp: SearchParams) {
 
   // Load pre-computed chart data from cache OR compute fresh
   useEffect(() => {
-    if (!birthDate || !birthTime || isNaN(latitude) || isNaN(longitude)) {
+    if (!birthDate || !birthTime) {
       return
     }
 
@@ -103,7 +107,7 @@ export function useCounselorData(sp: SearchParams) {
     let advancedAstro: Record<string, unknown> | null = null
 
     // Try to load from cache with birth data validation
-    const cached = loadChartData(birthDate, birthTime, latitude, longitude)
+    const cached = loadChartData(birthDate, birthTime, resolvedLatitude, resolvedLongitude)
     if (cached) {
       logger.warn('[CounselorPage] Using cached chart data')
       saju = cached.saju ?? null
@@ -161,8 +165,8 @@ export function useCounselorData(sp: SearchParams) {
           const requestBody = {
             date: birthDate,
             time: birthTime,
-            latitude,
-            longitude,
+            latitude: resolvedLatitude,
+            longitude: resolvedLongitude,
             timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',
           }
 
@@ -199,37 +203,37 @@ export function useCounselorData(sp: SearchParams) {
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
-            // Solar Return (현재 연도)
+            // Solar Return (í˜„ìž¬ ì—°ë„)
             fetch(`/api/astrology/advanced/solar-return`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
-            // Lunar Return (현재 월)
+            // Lunar Return (í˜„ìž¬ ì›”)
             fetch(`/api/astrology/advanced/lunar-return`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
-            // Progressions (현재 날짜)
+            // Progressions (í˜„ìž¬ ë‚ ì§œ)
             fetch(`/api/astrology/advanced/progressions`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
-            // Fixed Stars (항성)
+            // Fixed Stars (í•­ì„±)
             fetch(`/api/astrology/advanced/fixed-stars`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
-            // Eclipses (이클립스)
+            // Eclipses (ì´í´ë¦½ìŠ¤)
             fetch(`/api/astrology/advanced/eclipses`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
-            // Midpoints (미드포인트)
+            // Midpoints (ë¯¸ë“œí¬ì¸íŠ¸)
             fetch(`/api/astrology/advanced/midpoints`, {
               method: 'POST',
               headers: advancedHeaders,
@@ -277,7 +281,7 @@ export function useCounselorData(sp: SearchParams) {
             advanced.midpoints = await midpointsRes.json()
           }
 
-          logger.warn('[CounselorPage] ✅ Advanced astrology fetched:', Object.keys(advanced))
+          logger.warn('[CounselorPage] âœ… Advanced astrology fetched:', Object.keys(advanced))
 
           // Update chartData with advanced astrology
           setChartData((prev) => ({
@@ -286,7 +290,7 @@ export function useCounselorData(sp: SearchParams) {
           }))
 
           // Save to cache
-          saveChartData(birthDate, birthTime, latitude, longitude, {
+          saveChartData(birthDate, birthTime, resolvedLatitude, resolvedLongitude, {
             saju: saju || undefined,
             astro: astro || undefined,
             advancedAstro: advanced,
@@ -317,8 +321,8 @@ export function useCounselorData(sp: SearchParams) {
               date: birthDate,
               time: birthTime,
               gender: normalizedGender,
-              latitude,
-              longitude,
+              latitude: resolvedLatitude,
+              longitude: resolvedLongitude,
             },
           }),
         })
@@ -343,7 +347,7 @@ export function useCounselorData(sp: SearchParams) {
       }
     }
     prefetchRAG()
-  }, [selectedTheme, birthDate, birthTime, normalizedGender, latitude, longitude])
+  }, [selectedTheme, birthDate, birthTime, normalizedGender, resolvedLatitude, resolvedLongitude])
 
   // Premium: Load user context (persona + recent sessions) for returning users
   useEffect(() => {
@@ -453,7 +457,7 @@ export function useCounselorData(sp: SearchParams) {
 
   // Loading animation
   useEffect(() => {
-    if (!birthDate || !birthTime || isNaN(latitude) || isNaN(longitude)) {
+    if (!birthDate || !birthTime) {
       router.push('/destiny-counselor')
       return
     }
@@ -487,8 +491,8 @@ export function useCounselorData(sp: SearchParams) {
   }, [
     birthDate,
     birthTime,
-    latitude,
-    longitude,
+    resolvedLatitude,
+    resolvedLongitude,
     router,
     loadingMessages.length,
     prefetchStatus.done,
@@ -503,8 +507,8 @@ export function useCounselorData(sp: SearchParams) {
     theme: selectedTheme,
     lang,
     initialQuestion,
-    latitude,
-    longitude,
+    latitude: resolvedLatitude,
+    longitude: resolvedLongitude,
     selectedTheme,
     setSelectedTheme,
     themeOptions,
