@@ -24,6 +24,7 @@ import { renderSectionsAsMarkdown, renderSectionsAsText } from './reportRenderin
 import { buildDeterministicCore } from './deterministicCore'
 import type { DeterministicProfile } from './deterministicCoreConfig'
 import { getThemedSectionKeys } from './themeSchema'
+import { buildLifeCyclePromptBlock, buildThemeSchemaPromptBlock } from '../interpretationSchema'
 
 // Extracted modules
 import type { AIPremiumReport, AIReportGenerationOptions, AIUserPlan } from './reportTypes'
@@ -66,6 +67,17 @@ function buildDirectToneOverride(lang: 'ko' | 'en'): string {
     '- Keep the flow: evidence (Saju/Astrology) -> interpretation -> action.',
     '- Keep short, assertive paragraph sentences.',
   ].join('\n')
+}
+
+function inferAgeFromBirthDate(birthDate?: string): number | null {
+  if (!birthDate) return null
+  const parsed = new Date(birthDate)
+  if (Number.isNaN(parsed.getTime())) return null
+  const now = new Date()
+  let age = now.getFullYear() - parsed.getFullYear()
+  const m = now.getMonth() - parsed.getMonth()
+  if (m < 0 || (m === 0 && now.getDate() < parsed.getDate())) age -= 1
+  return Number.isFinite(age) && age >= 0 ? age : null
 }
 
 function hasCrossInText(text: string): boolean {
@@ -117,7 +129,7 @@ function hasRepetitiveSentences(text: string): boolean {
   return [...sentenceCounts.values()].some((count) => count >= 2)
 }
 
-const LIST_LINE_REGEX = /^\s*(?:[-*•]|\d+[.)]|[A-Za-z][.)]|[\uAC00-\uD7A3][.)])\s+/m
+const LIST_LINE_REGEX = /^\s*(?:[-*•]|\d+[.)]|[A-Za-z][.)]|[가-힣][.)])\s+/m
 
 function hasListLikeStyle(text: string): boolean {
   if (!text || typeof text !== 'string') return false
@@ -1226,6 +1238,9 @@ export async function generateTimingReport(
     lang,
     profile: options.deterministicProfile,
   })
+  const inferredAge = inferAgeFromBirthDate(options.birthDate)
+  const lifecyclePrompt = inferredAge !== null ? buildLifeCyclePromptBlock(inferredAge, lang) : ''
+  const themeSchemaPrompt = buildThemeSchemaPromptBlock('comprehensive', lang)
 
   // 1. ë§¤íŠ¸ë¦­ìŠ¤ ìš”ì•½ ë¹Œë“œ
   const matrixSummary = buildMatrixSummary(matrixReport, lang)
@@ -1246,7 +1261,7 @@ export async function generateTimingReport(
     graphRagEvidencePrompt,
     options.userQuestion,
     deterministicCore.promptBlock
-  )}\n\n${buildDirectToneOverride(lang)}`
+  )}\n\n${themeSchemaPrompt}\n\n${lifecyclePrompt}\n\n${buildDirectToneOverride(lang)}`
 
   // 3. AI ë°±ì—”ë“œ í˜¸ì¶œ + í’ˆì§ˆ ê²Œì´íŠ¸(ê¸¸ì´/êµì°¨ ê·¼ê±°)
   const base = await callAIBackendGeneric<TimingReportSections>(prompt, lang, {
@@ -1498,6 +1513,9 @@ export async function generateThemedReport(
     lang,
     profile: options.deterministicProfile,
   })
+  const inferredAge = inferAgeFromBirthDate(options.birthDate)
+  const lifecyclePrompt = inferredAge !== null ? buildLifeCyclePromptBlock(inferredAge, lang) : ''
+  const themeSchemaPrompt = buildThemeSchemaPromptBlock(theme, lang)
 
   // 1. ë§¤íŠ¸ë¦­ìŠ¤ ìš”ì•½ ë¹Œë“œ
   const matrixSummary = buildMatrixSummary(matrixReport, lang)
@@ -1519,7 +1537,7 @@ export async function generateThemedReport(
     graphRagEvidencePrompt,
     options.userQuestion,
     deterministicCore.promptBlock
-  )}\n\n${buildDirectToneOverride(lang)}`
+  )}\n\n${themeSchemaPrompt}\n\n${lifecyclePrompt}\n\n${buildDirectToneOverride(lang)}`
 
   // 3. AI ë°±ì—”ë“œ í˜¸ì¶œ + í’ˆì§ˆ ê²Œì´íŠ¸(ê¸¸ì´/êµì°¨ ê·¼ê±°)
   const base = await callAIBackendGeneric<ThemedReportSections>(prompt, lang, {
