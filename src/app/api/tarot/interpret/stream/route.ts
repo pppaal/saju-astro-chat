@@ -64,7 +64,7 @@ export const POST = withApiMiddleware(
         counselor_id: counselorId,
         counselor_style: counselorStyle,
       },
-      { timeout: 20000 }
+      { timeout: 60000, retries: 1, retryDelay: 1200 }
     )
 
     if (!streamResult.ok) {

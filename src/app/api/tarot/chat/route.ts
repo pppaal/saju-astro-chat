@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
         },
         language,
       },
-      { timeout: 20000 }
+      { timeout: 60000, retries: 2, retryDelay: 1200 }
     )
 
     // Use backend response or fallback with runtime type validation

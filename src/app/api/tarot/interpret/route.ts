@@ -534,7 +534,7 @@ export const POST = withApiMiddleware(
             saju_context: includeSaju ? sajuContext : undefined,
             astro_context: includeAstrology ? astroContext : undefined,
           },
-          { timeout: 20000, retries: 2, retryDelay: 800 }
+          { timeout: 60000, retries: 2, retryDelay: 1200 }
         )
 
         if (response.ok) {
