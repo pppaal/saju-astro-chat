@@ -27,16 +27,14 @@ function warnOnce(key: keyof typeof warned, message: string): void {
 }
 
 export function getBackendUrl(): string {
-  const hasExplicitBackend =
-    Boolean(process.env.AI_BACKEND_URL) ||
-    Boolean(process.env.BACKEND_AI_URL) ||
-    Boolean(process.env.NEXT_PUBLIC_AI_BACKEND)
+  const normalize = (value?: string | null) => (typeof value === 'string' ? value.trim() : '')
+  const aiBackend = normalize(process.env.AI_BACKEND_URL)
+  const legacyBackend = normalize(process.env.BACKEND_AI_URL)
+  const publicBackend = normalize(process.env.NEXT_PUBLIC_AI_BACKEND)
 
-  const url =
-    process.env.AI_BACKEND_URL ||
-    process.env.BACKEND_AI_URL ||
-    process.env.NEXT_PUBLIC_AI_BACKEND ||
-    'http://localhost:5000'
+  const hasExplicitBackend = Boolean(aiBackend) || Boolean(legacyBackend) || Boolean(publicBackend)
+
+  const url = aiBackend || legacyBackend || publicBackend || 'http://localhost:5000'
 
   // Production 환경에서 HTTP 사용 경고
   if (
@@ -57,13 +55,7 @@ export function getBackendUrl(): string {
   if (process.env.BACKEND_AI_URL && !process.env.AI_BACKEND_URL) {
     warnOnce('deprecated', '[Backend] BACKEND_AI_URL is deprecated; use AI_BACKEND_URL')
   }
-  const publicBackend = process.env.NEXT_PUBLIC_AI_BACKEND
-  if (
-    publicBackend &&
-    !process.env.AI_BACKEND_URL &&
-    !process.env.BACKEND_AI_URL &&
-    !isLocalBackendUrl(publicBackend)
-  ) {
+  if (publicBackend && !aiBackend && !legacyBackend && !isLocalBackendUrl(publicBackend)) {
     warnOnce(
       'public',
       '[Backend] NEXT_PUBLIC_AI_BACKEND is public; prefer AI_BACKEND_URL for security'
