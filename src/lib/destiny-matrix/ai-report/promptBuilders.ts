@@ -5,6 +5,7 @@ import type { FusionReport, InsightDomain } from '../interpreter/types'
 import type { MatrixCalculationInput } from '../types'
 import type { AIReportGenerationOptions } from './reportTypes'
 import { buildQuestionIntentInstruction } from './questionIntent'
+import { buildLifeCyclePromptBlock, buildThemeSchemaPromptBlock } from '../interpretationSchema'
 
 // ===========================
 // 도메인 이름 매핑
@@ -30,6 +31,17 @@ const DAY_MASTER_NAMES: Record<string, { ko: string; en: string }> = {
 
 export function getDomainName(domain: InsightDomain, lang: 'ko' | 'en'): string {
   return DOMAIN_NAMES[domain]?.[lang] || domain
+}
+
+function inferCurrentAge(birthDate?: string): number | null {
+  if (!birthDate) return null
+  const parsed = new Date(birthDate)
+  if (Number.isNaN(parsed.getTime())) return null
+  const now = new Date()
+  let age = now.getFullYear() - parsed.getFullYear()
+  const m = now.getMonth() - parsed.getMonth()
+  if (m < 0 || (m === 0 && now.getDate() < parsed.getDate())) age -= 1
+  return Number.isFinite(age) && age >= 0 ? age : null
 }
 
 // ===========================
@@ -225,6 +237,17 @@ export function buildAIPrompt(
   const questionIntentInstruction = buildQuestionIntentInstruction(options.userQuestion, lang)
   const deterministicCorePrompt = options.deterministicCorePrompt?.trim()
   const graphRagEvidencePrompt = options.graphRagEvidencePrompt?.trim()
+  const age = inferCurrentAge(options.birthDate)
+  const lifeCyclePrompt = age !== null ? buildLifeCyclePromptBlock(age, lang) : ''
+  const schemaTheme =
+    options.theme === 'love' ||
+    options.theme === 'career' ||
+    options.theme === 'wealth' ||
+    options.theme === 'health' ||
+    options.theme === 'family'
+      ? options.theme
+      : 'comprehensive'
+  const themeSchemaPrompt = buildThemeSchemaPromptBlock(schemaTheme, lang)
   const requestedChars =
     typeof options.targetChars === 'number' && Number.isFinite(options.targetChars)
       ? Math.max(2500, Math.min(22000, Math.floor(options.targetChars)))
@@ -284,6 +307,8 @@ ${profileInfo}
 ${matrixSummary}
 
 ${graphRagEvidencePrompt ? `## GraphRAG 근거 앵커\n${graphRagEvidencePrompt}\n` : ''}
+${themeSchemaPrompt ? `${themeSchemaPrompt}\n` : ''}
+${lifeCyclePrompt ? `${lifeCyclePrompt}\n` : ''}
 ${deterministicCorePrompt ? `${deterministicCorePrompt}\n` : ''}
 ${questionIntentInstruction ? `${questionIntentInstruction}\n` : ''}
 ${outputStyleInstruction}
@@ -306,6 +331,8 @@ ${profileInfo}
 ${matrixSummary}
 
 ${graphRagEvidencePrompt ? `## GraphRAG Evidence Anchors\n${graphRagEvidencePrompt}\n` : ''}
+${themeSchemaPrompt ? `${themeSchemaPrompt}\n` : ''}
+${lifeCyclePrompt ? `${lifeCyclePrompt}\n` : ''}
 ${deterministicCorePrompt ? `${deterministicCorePrompt}\n` : ''}
 ${questionIntentInstruction ? `${questionIntentInstruction}\n` : ''}
 ${outputStyleInstruction}

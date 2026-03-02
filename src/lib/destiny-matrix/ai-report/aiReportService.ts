@@ -771,10 +771,13 @@ function buildSectionPrompt(
   sectionKey: keyof AIPremiumReport['sections'],
   factPack: string[],
   lang: 'ko' | 'en',
-  draftText?: string
+  draftText?: string,
+  targetMinChars?: number
 ): string {
   const facts = factPack.map((fact) => `- ${fact}`).join('\n')
   const concreteNouns = SECTION_CONCRETE_NOUNS[sectionKey].join(', ')
+  const minChars = Math.max(220, Math.floor(targetMinChars || (lang === 'ko' ? 420 : 320)))
+  const longForm = minChars >= (lang === 'ko' ? 600 : 450)
   if (lang === 'ko') {
     return [
       '당신은 사주+점성 통합 상담가입니다.',
@@ -782,8 +785,9 @@ function buildSectionPrompt(
       '스타일 규칙:',
       '- 첫 문장은 결론형으로 시작하되, 시작 표현을 섹션마다 다르게 씁니다.',
       '- 쉬운 한국어 설명문으로 씁니다.',
-      '- 문장 길이는 15~35자로 맞춥니다.',
-      '- 문단마다 4~7문장으로 작성합니다.',
+      longForm ? '- 문장 길이는 22~60자로 맞춥니다.' : '- 문장 길이는 15~35자로 맞춥니다.',
+      longForm ? '- 문단마다 8~14문장으로 작성합니다.' : '- 문단마다 4~7문장으로 작성합니다.',
+      `- 이 섹션은 최소 ${minChars}자 이상으로 작성합니다.`,
       '- 구체 명사를 최소 2개 포함합니다.',
       `- 이 섹션 명사 후보: ${concreteNouns}`,
       '- 과장/공포 조장 금지. 근거가 있을 때만 단정합니다.',
@@ -806,7 +810,13 @@ function buildSectionPrompt(
     `Section: ${sectionKey}`,
     'Style rules:',
     '- Start with a direct conclusion, but vary opening expressions by section.',
-    '- Use concise declarative sentences with concrete details.',
+    longForm
+      ? '- Use medium-length declarative sentences with concrete detail and context.'
+      : '- Use concise declarative sentences with concrete details.',
+    longForm
+      ? '- Write 8-14 connected sentences for this section.'
+      : '- Write 4-7 connected sentences for this section.',
+    `- This section must be at least ${minChars} characters.`,
     '- No hype, no absolutes, and no fear language.',
     '- No bullet or numbered output; prose paragraphs only.',
     '- Avoid repeating semantically equivalent sentences.',
@@ -955,7 +965,7 @@ function summarizeTopInsightsByCategory(
   return rows.length > 0
     ? rows.join(', ')
     : lang === 'ko'
-      ? 'í•µì‹¬ ì‹ í˜¸ ì •ë¦¬ ì¤‘'
+      ? '핵심 신호 정리 중'
       : 'Core signals in review'
 }
 
@@ -980,16 +990,16 @@ function buildComprehensiveFallbackSections(
 
   if (lang === 'ko') {
     return {
-      introduction: `í˜„ìž¬ ë¦¬í¬íŠ¸ëŠ” ê·œì¹™ ê¸°ë°˜ ì•ˆì „ ëª¨ë“œë¡œ ìƒì„±ë˜ì—ˆìŠµë‹ˆë‹¤. ì‚¬ì£¼ ì¼ê°„ ${input.dayMasterElement}ê³¼ ì ì„± í•µì‹¬ ë°°ì¹˜ì˜ ê³µí†µ ë¶„ëª¨ë¥¼ ìš°ì„  ì •ë¦¬í•´, ì˜¤ëŠ˜ ì‹¤í–‰ ê°€ëŠ¥í•œ ê²°ë¡ ë§Œ ë‚¨ê²¼ìŠµë‹ˆë‹¤. ê°•ì  ì‹ í˜¸ëŠ” ${strengths}ë¡œ ìš”ì•½ë˜ê³ , ì£¼ì˜ ì‹ í˜¸ëŠ” ${cautions}ë¡œ ì§‘ì•½ë©ë‹ˆë‹¤.`,
-      personalityDeep: `ê¸°ë³¸ ì„±í–¥ì€ ì¼ê°„ ${input.dayMasterElement}ì˜ ì˜ì‚¬ê²°ì • ë¦¬ë“¬ê³¼ ì ì„±ì˜ ì‚¬ê³ Â·ê°ì • ì¶•ì´ í•¨ê»˜ ìž‘ë™í•˜ëŠ” êµ¬ì¡°ìž…ë‹ˆë‹¤. ê°•ì ì€ ë¹ ë¥¸ íŒë‹¨ê³¼ êµ¬ì¡°í™” ëŠ¥ë ¥ì´ê³ , ì•½ì ì€ ê³¼ì† ê²°ë¡ ê³¼ í™•ì¸ ëˆ„ë½ìž…ë‹ˆë‹¤. ì¤‘ìš”í•œ ì„ íƒì¼ìˆ˜ë¡ íŒë‹¨ê³¼ ì‹¤í–‰ ì‹œì ì„ ë¶„ë¦¬í•˜ëŠ” ë°©ì‹ì´ ì•ˆì •ì ìž…ë‹ˆë‹¤.`,
-      careerPath: `ì»¤ë¦¬ì–´ ê´€ì ì˜ ìƒìœ„ ì§€í‘œëŠ” ${topDomains || 'career(í‰ê°€ ì¤‘)'}ìž…ë‹ˆë‹¤. ì‹¤í–‰ ë°©ì‹ì€ í•œ ë²ˆì— ë„“ížˆê¸°ë³´ë‹¤ í•µì‹¬ ê³¼ì—… 1~2ê°œë¥¼ ì™„ê²°í•˜ê³  ë‹¤ìŒ ë‹¨ê³„ë¡œ í™•ìž¥í•˜ëŠ” ì „ê°œê°€ ìœ ë¦¬í•©ë‹ˆë‹¤. ì™¸ë¶€ í˜‘ì—…ì€ ì—­í• ê³¼ ë§ˆê° ì •ì˜ë¥¼ ë¨¼ì € ê³ ì •í•´ì•¼ ì„±ê³¼ ë³€ë™ì„ ì¤„ì¼ ìˆ˜ ìžˆìŠµë‹ˆë‹¤.`,
-      relationshipDynamics: `ê´€ê³„ ì˜ì—­ì—ì„œëŠ” ì˜ë„ ì „ë‹¬ë³´ë‹¤ í•´ì„ ì˜¤ì°¨ ê´€ë¦¬ê°€ í•µì‹¬ìž…ë‹ˆë‹¤. í‘œí˜„ì„ ì§§ê²Œ í•˜ê³  í™•ì¸ ì§ˆë¬¸ì„ ì¶”ê°€í•˜ë©´ ë¶ˆí•„ìš”í•œ ê°ì • ì†Œëª¨ë¥¼ ì¤„ì¼ ìˆ˜ ìžˆìŠµë‹ˆë‹¤. ê°€ê¹Œìš´ ê´€ê³„ì¼ìˆ˜ë¡ ê²°ë¡ ì„ ì„œë‘ë¥´ê¸°ë³´ë‹¤ ë§¥ë½ì„ ë¨¼ì € ë§žì¶”ëŠ” ëŒ€í™” êµ¬ì¡°ê°€ ì•ˆì •ì„±ì„ ë†’ìž…ë‹ˆë‹¤.`,
-      wealthPotential: `ìž¬ì •ì—ì„œëŠ” ê¸°íšŒ ì‹ í˜¸ì™€ ë³´ìˆ˜ ì‹ í˜¸ê°€ ë™ì‹œì— ì¡´ìž¬í•˜ë¯€ë¡œ ìˆ˜ìµ ê¸°ëŒ€ë§Œìœ¼ë¡œ í™•ì •í•˜ì§€ ì•ŠëŠ” ì›ì¹™ì´ í•„ìš”í•©ë‹ˆë‹¤. ì´ë²ˆ ì‚¬ì´í´ì€ ì§€ì¶œ í†µì œÂ·í˜„ê¸ˆíë¦„ ê°€ì‹œí™”Â·ì¡°ê±´ ê²€ì¦ì˜ 3ì¶•ì´ ìš°ì„ ìž…ë‹ˆë‹¤. í° ì˜ì‚¬ê²°ì •ì€ ë‹¹ì¼ í™•ì •ë³´ë‹¤ 24ì‹œê°„ ìž¬ê²€í† ê°€ ì†ì‹¤ ë°©ì§€ì— ìœ ë¦¬í•©ë‹ˆë‹¤.`,
-      healthGuidance: `ì—ë„ˆì§€ íŒ¨í„´ì€ ë‹¨ê¸° ì§‘ì¤‘ í›„ íšŒë³µì´ ëŠ¦ì–´ì§€ëŠ” í˜•íƒœê°€ ë°˜ë³µë  ìˆ˜ ìžˆìŠµë‹ˆë‹¤. ë¬´ë¦¬í•œ í™•ìž¥ë³´ë‹¤ ìˆ˜ë©´Â·ìˆ˜ë¶„Â·ë¦¬ë“¬ ê³ ì •ì´ ê²°ê³¼ë¥¼ ì§€ì¼œì¤ë‹ˆë‹¤. ì¼ì •ì´ ë°€ë¦¬ëŠ” ë‚ ì¼ìˆ˜ë¡ ê°•ë„ ë†’ì€ ìž‘ì—…ë³´ë‹¤ ì˜¤ë¥˜ ë¹„ìš©ì´ í° ìž‘ì—…ì˜ ê²€ìˆ˜ ìš°ì„ ìˆœìœ„ë¥¼ ì˜¬ë¦¬ëŠ” ê²ƒì´ ì¢‹ìŠµë‹ˆë‹¤.`,
-      lifeMission: `ìž¥ê¸° ë°©í–¥ì„±ì€ ë‹¨ê¸° ì„±ê³¼ë³´ë‹¤ ëˆ„ì  ì‹ ë¢°ë¥¼ ë§Œë“œëŠ” êµ¬ì¡°ì— ë§žì¶°ì ¸ ìžˆìŠµë‹ˆë‹¤. ë³¸ì¸ì˜ ê¸°ì¤€ì„ ëª…í™•ížˆ ì„¤ëª…í•˜ê³  ì‹¤í–‰ ê¸°ë¡ì„ ë‚¨ê¸°ëŠ” ìŠµê´€ì´ ì˜í–¥ë ¥ì„ í‚¤ì›ë‹ˆë‹¤. ì¦‰í¥ì  ìŠ¹ë¶€ë³´ë‹¤ ì¼ê´€ëœ í’ˆì§ˆì´ ìš´ì˜ ë³€ë™í­ì„ ì¤„ì´ëŠ” í•µì‹¬ ë ˆë²„ë¦¬ì§€ìž…ë‹ˆë‹¤.`,
-      timingAdvice: `ê²°ì • ì½”ì–´ íŒì •ì€ ${deterministicCore.decision.enabled ? `${deterministicCore.decision.verdict}(${deterministicCore.decision.score}ì )` : 'ì¼ë°˜ ëª¨ë“œ'}ìž…ë‹ˆë‹¤. ì‹¤í–‰ ì°½ì„ ì—´ ë•ŒëŠ” ê°•ì  ì‹ í˜¸(${strengths})ë¥¼ ìš°ì„  ì‚¬ìš©í•˜ê³ , ì£¼ì˜ ì‹ í˜¸(${cautions})ê°€ ê±¸ë¦¬ëŠ” ì˜ì—­ì€ í™•ì • ì „ì— ì´ì¤‘ í™•ì¸ì„ ë„£ì–´ì•¼ í•©ë‹ˆë‹¤. íŠ¹ížˆ ë¬¸ì„œÂ·í•©ì˜Â·ëŒ€ì™¸ ì»¤ë®¤ë‹ˆì¼€ì´ì…˜ì€ ì²´í¬ë¦¬ìŠ¤íŠ¸ ê¸°ë°˜ìœ¼ë¡œ ì§„í–‰í•˜ì‹­ì‹œì˜¤.`,
-      actionPlan: `ì˜¤ëŠ˜ ì‹¤í–‰ì•ˆì€ ì„¸ ë‹¨ê³„ë¡œ ê³ ì •í•˜ì‹­ì‹œì˜¤. ì²«ì§¸, ë°˜ë“œì‹œ ëë‚¼ ê²°ê³¼ë¬¼ 1ê°œë¥¼ ì •ì˜í•©ë‹ˆë‹¤. ë‘˜ì§¸, ì™¸ë¶€ ì „ë‹¬ ì „ ì¡°ê±´Â·ê¸°í•œÂ·ì±…ìž„ì„ í•œ ì¤„ë¡œ ìž¬í™•ì¸í•©ë‹ˆë‹¤. ì…‹ì§¸, ë‹¹ì¼ í™•ì •ì´ í•„ìš”í•œ ì•ˆê±´ë§Œ ì²˜ë¦¬í•˜ê³  ë‚˜ë¨¸ì§€ëŠ” ìž¬ê²€í†  ìŠ¬ë¡¯ìœ¼ë¡œ ë„˜ê²¨ ë¦¬ìŠ¤í¬ë¥¼ ë¶„ë¦¬í•©ë‹ˆë‹¤.`,
-      conclusion: `ì´ ë¦¬í¬íŠ¸ëŠ” ë°ì´í„° í•´ì„ì˜ ì¼ê´€ì„±ì„ ìš°ì„ í•œ ì•ˆì • ëª¨ë“œ ê²°ê³¼ìž…ë‹ˆë‹¤. í•µì‹¬ì€ ê°•ì  êµ¬ê°„ì—ì„œ ì†ë„ë¥¼ ë‚´ê³ , ì£¼ì˜ êµ¬ê°„ì—ì„œëŠ” í™•ì¸ ë‹¨ê³„ë¥¼ ìƒëžµí•˜ì§€ ì•ŠëŠ” ê²ƒìž…ë‹ˆë‹¤. ê°™ì€ íŒ¨í„´ì„ 2ì£¼ë§Œ ìœ ì§€í•´ë„ ì„±ê³¼ì˜ ìž¬í˜„ì„±ì´ ë¶„ëª…ížˆ ì˜¬ë¼ê°‘ë‹ˆë‹¤.`,
+      introduction: `현재 리포트는 규칙 기반 안전 모드로 생성되었습니다. 사주 일간 ${input.dayMasterElement}과 점성 핵심 배치의 공통 분모를 우선 정리해, 오늘 실행 가능한 결론만 남겼습니다. 강점 신호는 ${strengths}, 주의 신호는 ${cautions}로 요약됩니다.`,
+      personalityDeep: `기본 성향은 일간 ${input.dayMasterElement}의 의사결정 리듬과 점성의 사고·감정 축이 함께 작동하는 구조입니다. 강점은 빠른 판단과 구조화 능력이고, 약점은 과속 결론과 확인 누락입니다. 중요한 선택일수록 판단 시점과 실행 시점을 분리하면 안정성이 올라갑니다.`,
+      careerPath: `커리어 관점의 상위 지표는 ${topDomains || 'career(평가 중)'}입니다. 실행 방식은 한 번에 넓히기보다 핵심 과업 1~2개를 완결하고 다음 단계로 확장하는 전개가 유리합니다. 외부 협업은 역할과 마감 정의를 먼저 고정해야 성과 변동을 줄일 수 있습니다.`,
+      relationshipDynamics: `관계 영역에서는 의도 전달보다 해석 오차 관리가 핵심입니다. 표현을 짧게 하고 확인 질문을 추가하면 불필요한 감정 소모를 줄일 수 있습니다. 가까운 관계일수록 결론을 서두르기보다 맥락을 먼저 맞추는 대화 구조가 안정적입니다.`,
+      wealthPotential: `재정에서는 기회 신호와 보수 신호가 동시에 존재하므로 수익 기대만으로 확정하지 않는 원칙이 필요합니다. 이번 사이클은 지출 통제·현금흐름 가시화·조건 검증의 3축이 우선입니다. 큰 의사결정은 당일 확정보다 24시간 재검토가 손실 방지에 유리합니다.`,
+      healthGuidance: `에너지 패턴은 단기 집중 후 회복이 늦어지는 형태가 반복될 수 있습니다. 무리한 확장보다 수면·수분·리듬 고정이 결과를 지켜줍니다. 일정이 밀리는 날일수록 강도 높은 작업보다 오류 비용이 큰 작업의 검수 우선순위를 올리는 것이 좋습니다.`,
+      lifeMission: `장기 방향성은 단기 성과보다 누적 신뢰를 만드는 구조에 맞춰져 있습니다. 본인의 기준을 명확히 설명하고 실행 기록을 남기는 습관이 영향력을 키웁니다. 즉흥적 승부보다 일관된 품질이 운의 변동폭을 줄이는 핵심 레버리지입니다.`,
+      timingAdvice: `결정 코어 판정은 ${deterministicCore.decision.enabled ? `${deterministicCore.decision.verdict}(${deterministicCore.decision.score}점)` : '일반 모드'}입니다. 실행 창을 열 때는 강점 신호(${strengths})를 우선 사용하고, 주의 신호(${cautions})가 걸리는 영역은 확정 전에 이중 확인을 넣어야 합니다. 특히 문서·합의·대외 커뮤니케이션은 체크리스트 기반으로 진행하세요.`,
+      actionPlan: `오늘 실행안은 세 단계로 고정하세요. 첫째, 반드시 끝낼 결과물 1개를 정의합니다. 둘째, 외부 전달 전 조건·기한·책임을 한 줄로 재확인합니다. 셋째, 당일 확정이 필요한 안건만 처리하고 나머지는 재검토 슬롯으로 넘겨 리스크를 분리합니다.`,
+      conclusion: `이 리포트는 데이터 해석의 일관성을 우선한 안전 모드 결과입니다. 핵심은 강점 구간에서 속도를 내고, 주의 구간에서는 확인 단계를 생략하지 않는 것입니다. 같은 패턴을 2주만 유지해도 성과의 재현성이 분명히 올라갑니다.`,
     }
   }
 
@@ -1050,11 +1060,23 @@ export async function generateAIPremiumReport(
   const sectionTokenBudget = maxTokensOverride
     ? Math.max(850, Math.min(2400, Math.floor(maxTokensOverride / 4)))
     : undefined
+  const sectionMinChars =
+    detailLevel === 'comprehensive'
+      ? lang === 'ko'
+        ? 850
+        : 650
+      : detailLevel === 'detailed'
+        ? lang === 'ko'
+          ? 600
+          : 450
+        : lang === 'ko'
+          ? 380
+          : 300
 
   const sectionAnchors = new Map(
     (graphRagEvidence.anchors || []).map((anchor) => [anchor.section, anchor])
   )
-  const sections: Record<string, unknown> = {}
+  let sections: Record<string, unknown> = {}
   let tokensUsed = 0
   const models = new Set<string>()
   let usedDeterministicFallback = false
@@ -1063,7 +1085,7 @@ export async function generateAIPremiumReport(
     for (const sectionKey of COMPREHENSIVE_SECTION_KEYS) {
       const anchor = sectionAnchors.get(sectionKey)
       const factPack = buildSectionFactPack(sectionKey, anchor, matrixReport, input)
-      const draftPrompt = buildSectionPrompt(sectionKey, factPack, lang)
+      const draftPrompt = buildSectionPrompt(sectionKey, factPack, lang, undefined, sectionMinChars)
 
       const draft = await callAIBackendGeneric<{ text: string }>(draftPrompt, lang, {
         userPlan: options.userPlan,
@@ -1074,7 +1096,13 @@ export async function generateAIPremiumReport(
       models.add(draft.model)
       const draftText = sanitizeSectionNarrative(draft.sections?.text || '')
 
-      const synthesisPrompt = buildSectionPrompt(sectionKey, factPack, lang, draftText)
+      const synthesisPrompt = buildSectionPrompt(
+        sectionKey,
+        factPack,
+        lang,
+        draftText,
+        sectionMinChars
+      )
       const synthesized = await callAIBackendGeneric<{ text: string }>(synthesisPrompt, lang, {
         userPlan: options.userPlan,
         maxTokensOverride: sectionTokenBudget,
@@ -1090,7 +1118,7 @@ export async function generateAIPremiumReport(
       const quality = evaluateSectionGate(sectionText, factPack, sectionKey)
       if (!quality.pass) {
         const repairPrompt = [
-          buildSectionPrompt(sectionKey, factPack, lang, sectionText),
+          buildSectionPrompt(sectionKey, factPack, lang, sectionText, sectionMinChars),
           lang === 'ko'
             ? `ë³´ê°• ê·œì¹™: ìƒˆ í¬ì¸íŠ¸ë¥¼ ìµœì†Œ ì„¸ ê°œ ë„£ê³ , êµ¬ì²´ ëª…ì‚¬ë¥¼ ìµœì†Œ ë‘ ê°œ ë„£ê³ , ì‚¬ì‹¤ ë¬¶ìŒ ë°˜ì˜ ë¬¸ìž¥ì„ ìµœì†Œ ë‘ ê°œ ë„£ì–´ ì£¼ì„¸ìš”. í‰ê·  ë¬¸ìž¥ ê¸¸ì´ëŠ” 40ìž ì´í•˜ë¡œ ë§žì¶”ê³  ê¸ˆì§€ í‘œí˜„ì€ ì œê±°í•´ ì£¼ì„¸ìš”. current novelty=${quality.novelty}, specificity=${quality.specificity}, evidence=${quality.evidenceDensity}, avgLen=${Math.round(quality.avgSentenceLength)}, advice=${quality.adviceCount}, banned=${quality.banned}`
             : `Repair rules: add at least 3 new points, include at least 2 concrete nouns, and reflect at least 2 fact-pack points. Keep average sentence length under 40 chars and remove banned phrases. current novelty=${quality.novelty}, specificity=${quality.specificity}, evidence=${quality.evidenceDensity}, avgLen=${Math.round(quality.avgSentenceLength)}, advice=${quality.adviceCount}, banned=${quality.banned}`,
@@ -1133,7 +1161,228 @@ export async function generateAIPremiumReport(
       lang,
     })
   }
+
+  const maxRepairPasses = getMaxRepairPassesByPlan(options.userPlan)
+  if (!usedDeterministicFallback && maxRepairPasses > 0) {
+    const sectionPaths = [...COMPREHENSIVE_SECTION_KEYS] as string[]
+    const crossPaths = sectionPaths.filter((path) => path !== 'conclusion')
+    const timingPaths = ['timingAdvice', 'actionPlan', 'careerPath', 'wealthPotential']
+    const minCharsPerSection =
+      detailLevel === 'comprehensive'
+        ? lang === 'ko'
+          ? 600
+          : 450
+        : detailLevel === 'detailed'
+          ? lang === 'ko'
+            ? 420
+            : 300
+          : lang === 'ko'
+            ? 280
+            : 220
+    const minTotalChars =
+      detailLevel === 'comprehensive'
+        ? lang === 'ko'
+          ? 9000
+          : 7000
+        : detailLevel === 'detailed'
+          ? lang === 'ko'
+            ? 6200
+            : 4600
+          : lang === 'ko'
+            ? 4200
+            : 3200
+    const minCrossCoverage = 0.75
+    const minActionCoverage = 0.7
+    const minEvidenceTripletCoverage = 0.68
+    const minTimingCoverage = 0.55
+
+    const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
+    const missingCross = getMissingCrossPaths(sections, crossPaths)
+    const crossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
+    const missingActionPaths = getMissingPathsByPredicate(sections, crossPaths, hasActionInText)
+    const actionCoverageRatio = getCoverageRatioByPredicate(sections, crossPaths, hasActionInText)
+    const missingEvidenceTripletPaths = getMissingPathsByPredicate(
+      sections,
+      crossPaths,
+      hasEvidenceTriplet
+    )
+    const evidenceTripletCoverageRatio = getCoverageRatioByPredicate(
+      sections,
+      crossPaths,
+      hasEvidenceTriplet
+    )
+    const missingTimingPaths = getMissingPathsByPredicate(sections, timingPaths, hasTimingInText)
+    const timingCoverageRatio = getCoverageRatioByPredicate(sections, timingPaths, hasTimingInText)
+    const listStylePaths = getListStylePaths(sections, sectionPaths)
+    const repetitivePaths = getRepetitivePaths(sections, sectionPaths)
+    const totalChars = countSectionChars(sections)
+    const needsRepair =
+      shortPaths.length > 0 ||
+      missingCross.length > 0 ||
+      totalChars < minTotalChars ||
+      crossCoverageRatio < minCrossCoverage ||
+      actionCoverageRatio < minActionCoverage ||
+      evidenceTripletCoverageRatio < minEvidenceTripletCoverage ||
+      timingCoverageRatio < minTimingCoverage ||
+      listStylePaths.length > 0 ||
+      repetitivePaths.length > 0
+
+    if (needsRepair) {
+      const rewritePrompt = buildNarrativeRewritePrompt(lang, sections, {
+        minCharsPerSection,
+        minTotalChars,
+        requiredTimingSections: timingPaths,
+      })
+      const repairPrompt = [
+        rewritePrompt,
+        buildDepthRepairInstruction(
+          lang,
+          sectionPaths,
+          shortPaths,
+          minCharsPerSection,
+          minTotalChars
+        ),
+        missingCross.length > 0 ? buildCrossRepairInstruction(lang, missingCross) : '',
+        crossCoverageRatio < minCrossCoverage
+          ? buildCrossCoverageRepairInstruction(lang, crossCoverageRatio, minCrossCoverage)
+          : '',
+        actionCoverageRatio < minActionCoverage
+          ? buildActionRepairInstruction(
+              lang,
+              actionCoverageRatio,
+              minActionCoverage,
+              missingActionPaths
+            )
+          : '',
+        evidenceTripletCoverageRatio < minEvidenceTripletCoverage
+          ? buildEvidenceRepairInstruction(
+              lang,
+              evidenceTripletCoverageRatio,
+              minEvidenceTripletCoverage,
+              missingEvidenceTripletPaths
+            )
+          : '',
+        timingCoverageRatio < minTimingCoverage
+          ? buildTimingRepairInstruction(
+              lang,
+              timingCoverageRatio,
+              minTimingCoverage,
+              missingTimingPaths
+            )
+          : '',
+        listStylePaths.length > 0 ? buildNarrativeStyleRepairInstruction(lang, listStylePaths) : '',
+        repetitivePaths.length > 0 ? buildAntiRepetitionInstruction(lang, repetitivePaths) : '',
+      ]
+        .filter(Boolean)
+        .join('\n')
+
+      try {
+        const repaired = await callAIBackendGeneric<AIPremiumReport['sections']>(
+          repairPrompt,
+          lang,
+          {
+            userPlan: options.userPlan,
+            maxTokensOverride,
+            modelOverride: 'gpt-4o',
+          }
+        )
+        sections = repaired.sections as unknown as Record<string, unknown>
+        tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
+        models.add(repaired.model)
+
+        const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
+        const secondCrossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
+        const secondActionCoverageRatio = getCoverageRatioByPredicate(
+          sections,
+          crossPaths,
+          hasActionInText
+        )
+        const secondEvidenceTripletCoverageRatio = getCoverageRatioByPredicate(
+          sections,
+          crossPaths,
+          hasEvidenceTriplet
+        )
+        const secondTimingCoverageRatio = getCoverageRatioByPredicate(
+          sections,
+          timingPaths,
+          hasTimingInText
+        )
+        const secondTotalChars = countSectionChars(sections)
+        if (
+          maxRepairPasses > 1 &&
+          (secondShortPaths.length > 0 ||
+            secondTotalChars < minTotalChars ||
+            secondCrossCoverageRatio < minCrossCoverage ||
+            secondActionCoverageRatio < minActionCoverage ||
+            secondEvidenceTripletCoverageRatio < minEvidenceTripletCoverage ||
+            secondTimingCoverageRatio < minTimingCoverage)
+        ) {
+          const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
+          try {
+            const second = await callAIBackendGeneric<AIPremiumReport['sections']>(
+              secondPrompt,
+              lang,
+              {
+                userPlan: options.userPlan,
+                maxTokensOverride,
+                modelOverride: 'gpt-4o',
+              }
+            )
+            sections = second.sections as unknown as Record<string, unknown>
+            tokensUsed = (tokensUsed || 0) + (second.tokensUsed || 0)
+            models.add(second.model)
+          } catch (error) {
+            logger.warn(
+              '[AI Report] Second global repair pass failed; keeping first repaired result',
+              {
+                error: error instanceof Error ? error.message : String(error),
+                plan: options.userPlan || 'free',
+              }
+            )
+          }
+        }
+      } catch (error) {
+        logger.warn('[AI Report] Global narrative repair failed; keeping section-wise result', {
+          error: error instanceof Error ? error.message : String(error),
+          plan: options.userPlan || 'free',
+        })
+      }
+    }
+  }
+
   const model = usedDeterministicFallback ? 'deterministic-fallback' : [...models].join(' -> ')
+  const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
+  const keyStrengths = (matrixReport.topInsights || [])
+    .filter((i) => i.category === 'strength')
+    .slice(0, 3)
+    .map((i) => i.title)
+  const keyChallenges = (matrixReport.topInsights || [])
+    .filter((i) => i.category === 'challenge' || i.category === 'caution')
+    .slice(0, 3)
+    .map((i) => i.title)
+  const domainFallback = [...(matrixReport.domainAnalysis || [])]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map((d) =>
+      lang === 'ko' ? `${d.domain} 강점(${d.score})` : `${d.domain} strength (${d.score})`
+    )
+  const anchorFallback = (graphRagEvidence.anchors || [])
+    .slice(0, 3)
+    .map((a) =>
+      lang === 'ko' ? `${a.section} 섹션 근거 정렬` : `${a.section} section evidence alignment`
+    )
+  const safeTopInsights = topInsights.length > 0 ? topInsights : anchorFallback
+  const safeKeyStrengths = keyStrengths.length > 0 ? keyStrengths : domainFallback
+  const safeKeyChallenges =
+    keyChallenges.length > 0
+      ? keyChallenges
+      : lang === 'ko'
+        ? ['주의 신호 검토 필요', '확정 전 재확인 필요', '커뮤니케이션 리스크 점검']
+        : [
+            'Caution signals require review',
+            'Recheck before final commitment',
+            'Communication risk check',
+          ]
 
   // 3. ??? ??
   const report: AIPremiumReport = {
@@ -1184,15 +1433,9 @@ export async function generateAIPremiumReport(
     matrixSummary: {
       overallScore: matrixReport.overallScore.total,
       grade: matrixReport.overallScore.grade,
-      topInsights: matrixReport.topInsights.slice(0, 3).map((i) => i.title),
-      keyStrengths: matrixReport.topInsights
-        .filter((i) => i.category === 'strength')
-        .slice(0, 3)
-        .map((i) => i.title),
-      keyChallenges: matrixReport.topInsights
-        .filter((i) => i.category === 'challenge' || i.category === 'caution')
-        .slice(0, 3)
-        .map((i) => i.title),
+      topInsights: safeTopInsights,
+      keyStrengths: safeKeyStrengths,
+      keyChallenges: safeKeyChallenges,
     },
 
     meta: {
