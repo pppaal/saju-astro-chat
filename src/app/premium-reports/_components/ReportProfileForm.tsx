@@ -20,6 +20,8 @@ interface ReportProfileFormProps {
   onSubmit: (profile: ReportProfileInput) => void
 }
 
+const REPORT_PROFILE_STORAGE_KEY = 'premiumReports:profileInput'
+
 export function ReportProfileForm({
   locale = 'ko',
   initialName = '',
@@ -51,6 +53,15 @@ export function ReportProfileForm({
     [locale]
   )
 
+  const persistProfile = (profile: ReportProfileInput) => {
+    if (typeof window === 'undefined') return
+    try {
+      sessionStorage.setItem(REPORT_PROFILE_STORAGE_KEY, JSON.stringify(profile))
+    } catch {
+      // ignore storage failures
+    }
+  }
+
   const toPayload = (birth: BirthInfo): ReportProfileInput => ({
     name: name.trim() || (locale === 'ko' ? '사용자' : 'User'),
     birthDate: birth.birthDate,
@@ -65,18 +76,21 @@ export function ReportProfileForm({
   const handleSubmit = (birth: BirthInfo) => {
     const payload = toPayload(birth)
     setLastSaved(payload)
+    persistProfile(payload)
     onSubmit(payload)
   }
 
   const handleProfileLoaded = (birth: BirthInfo) => {
     const payload = toPayload(birth)
     setLastSaved(payload)
+    persistProfile(payload)
     onSubmit(payload)
   }
 
   const handleChange = (birth: BirthInfo) => {
     const payload = toPayload(birth)
     setLastSaved(payload)
+    persistProfile(payload)
     onSubmit(payload)
   }
 

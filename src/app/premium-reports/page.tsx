@@ -44,6 +44,7 @@ const FALLBACK_CITY = 'Seoul, South Korea'
 const FALLBACK_LAT = 37.5665
 const FALLBACK_LON = 126.978
 const PREMIUM_API_TIMEOUT_MS = 60000
+const REPORT_PROFILE_STORAGE_KEY = 'premiumReports:profileInput'
 
 const PREMIUM_OPTIONS: PremiumOption[] = [
   {
@@ -160,13 +161,33 @@ export default function PremiumReportsPage() {
   const selectedOption =
     PREMIUM_OPTIONS.find((option) => option.key === selectedOptionKey) ?? PREMIUM_OPTIONS[0]
 
+  const getResolvedProfile = () => {
+    if (profileInput?.birthDate) {
+      return profileInput
+    }
+    if (typeof window === 'undefined') {
+      return null
+    }
+    try {
+      const raw = sessionStorage.getItem(REPORT_PROFILE_STORAGE_KEY)
+      if (!raw) return null
+      const parsed = JSON.parse(raw) as ReportProfileInput
+      if (!parsed?.birthDate) return null
+      setProfileInput(parsed)
+      return parsed
+    } catch {
+      return null
+    }
+  }
+
   const handleStartFree = () => {
-    if (!profileInput || !hasProfile) {
+    const resolvedProfile = getResolvedProfile()
+    if (!resolvedProfile) {
       setError('출생 정보를 입력한 뒤 분석하기를 눌러주세요.')
       return
     }
     setError(null)
-    const nextUrl = createDestinyMapUrl(profileInput)
+    const nextUrl = createDestinyMapUrl(resolvedProfile)
     try {
       router.push(nextUrl)
       // Fallback navigation if app-router transition is blocked
@@ -188,7 +209,8 @@ export default function PremiumReportsPage() {
       return
     }
 
-    if (!profileInput || !hasProfile) {
+    const resolvedProfile = getResolvedProfile()
+    if (!resolvedProfile) {
       setError('출생 정보를 입력한 뒤 분석하기를 눌러주세요.')
       return
     }
@@ -203,14 +225,18 @@ export default function PremiumReportsPage() {
         reportTier: 'premium',
         detailLevel: selectedOption.type === 'timing' ? 'detailed' : 'comprehensive',
         lang: 'ko',
-        name: profileInput.name || '사용자',
-        birthDate: profileInput.birthDate,
-        birthTime: profileInput.birthTime || '12:00',
-        birthCity: profileInput.birthCity || FALLBACK_CITY,
-        timezone: profileInput.timezone || 'Asia/Seoul',
-        gender: profileInput.gender,
-        latitude: Number.isFinite(profileInput.latitude) ? profileInput.latitude : FALLBACK_LAT,
-        longitude: Number.isFinite(profileInput.longitude) ? profileInput.longitude : FALLBACK_LON,
+        name: resolvedProfile.name || '사용자',
+        birthDate: resolvedProfile.birthDate,
+        birthTime: resolvedProfile.birthTime || '12:00',
+        birthCity: resolvedProfile.birthCity || FALLBACK_CITY,
+        timezone: resolvedProfile.timezone || 'Asia/Seoul',
+        gender: resolvedProfile.gender,
+        latitude: Number.isFinite(resolvedProfile.latitude)
+          ? resolvedProfile.latitude
+          : FALLBACK_LAT,
+        longitude: Number.isFinite(resolvedProfile.longitude)
+          ? resolvedProfile.longitude
+          : FALLBACK_LON,
       }
 
       if (selectedOption.type === 'theme' && selectedOption.theme) {
@@ -444,6 +470,7 @@ export default function PremiumReportsPage() {
                   출생 정보를 입력하면 바로 분석을 시작할 수 있습니다.
                 </p>
               )}
+              {error && <p className="mt-2 text-xs text-red-200">{error}</p>}
             </article>
 
             <article className="rounded-2xl border border-white/15 bg-slate-900/50 p-4 text-xs leading-6 text-slate-300 backdrop-blur-xl">
