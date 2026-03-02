@@ -1542,7 +1542,7 @@ export async function fetchAIDates(
         saju: sajuData,
         astro: astroData,
       },
-      { timeout: 20000 }
+      { timeout: 20000, retries: 2, retryDelay: 800 }
     )
 
     if (response.ok && response.data) {
@@ -1552,6 +1552,10 @@ export async function fetchAIDates(
         caution: (resData.caution_dates || []).map((date) => ({ date, is_auspicious: false })),
       }
     }
+    logger.warn('[Calendar] AI backend returned non-ok response', {
+      status: response.status,
+      error: response.error,
+    })
   } catch (error) {
     logger.warn('[Calendar] AI backend not available, using local calculation:', error)
   }

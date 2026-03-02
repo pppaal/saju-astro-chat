@@ -534,11 +534,16 @@ export const POST = withApiMiddleware(
             saju_context: includeSaju ? sajuContext : undefined,
             astro_context: includeAstrology ? astroContext : undefined,
           },
-          { timeout: 20000 }
+          { timeout: 20000, retries: 2, retryDelay: 800 }
         )
 
         if (response.ok) {
           interpretation = response.data
+        } else {
+          logger.warn('[Tarot interpret] backend response not ok', {
+            status: response.status,
+            error: response.error,
+          })
         }
       } catch (fetchError) {
         logger.warn('Backend connection failed, using fallback:', fetchError)

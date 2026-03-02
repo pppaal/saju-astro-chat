@@ -68,14 +68,19 @@ export interface ApiResponse<T = unknown> {
  * Handles: timeout, AbortController, auth headers, error handling
  */
 export class ApiClient {
-  private baseUrl: string
+  private explicitBaseUrl?: string
   private defaultTimeout: number
   private apiToken?: string
 
   constructor(baseUrl?: string, defaultTimeout = 60000) {
-    this.baseUrl = baseUrl || getBackendUrl()
+    this.explicitBaseUrl = baseUrl
     this.defaultTimeout = defaultTimeout
     this.apiToken = process.env.ADMIN_API_TOKEN
+  }
+
+  private resolveBaseUrl(): string {
+    // If caller injected a base URL, keep it. Otherwise always resolve from env.
+    return this.explicitBaseUrl || getBackendUrl()
   }
 
   /**
@@ -114,7 +119,7 @@ export class ApiClient {
     body: unknown,
     options: ApiClientOptions = {}
   ): Promise<ApiResponse<T>> {
-    const maxRetries = options.retries ?? 0
+    const maxRetries = options.retries ?? 1
     const baseDelay = options.retryDelay ?? 1000
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -123,7 +128,7 @@ export class ApiClient {
       const timeoutId = setTimeout(() => controller.abort(), timeout)
 
       try {
-        const response = await fetch(`${this.baseUrl}${path}`, {
+        const response = await fetch(`${this.resolveBaseUrl()}${path}`, {
           method: 'POST',
           headers: this.buildHeaders(options),
           body: JSON.stringify(body),
@@ -133,10 +138,11 @@ export class ApiClient {
         clearTimeout(timeoutId)
 
         if (!response.ok) {
+          const errorPreview = await response.text().catch(() => '')
           const result: ApiResponse<T> = {
             ok: false,
             status: response.status,
-            error: `HTTP ${response.status}`,
+            error: `HTTP ${response.status}${errorPreview ? `: ${errorPreview.slice(0, 240)}` : ''}`,
             headers: response.headers,
           }
 
@@ -165,7 +171,14 @@ export class ApiClient {
         const isTimeout = err instanceof Error && err.name === 'AbortError'
         const isNetworkError =
           err instanceof Error &&
-          (err.message.includes('fetch') || err.message.includes('ECONNREFUSED'))
+          (err.message.includes('fetch') ||
+            err.message.includes('ECONNREFUSED') ||
+            err.message.includes('ECONNRESET') ||
+            err.message.includes('EAI_AGAIN') ||
+            err.message.includes('ENOTFOUND') ||
+            err.message.includes('ETIMEDOUT') ||
+            err.message.includes('TLS') ||
+            err.message.includes('socket disconnected'))
 
         if (attempt < maxRetries && (isTimeout || isNetworkError)) {
           const delay = baseDelay * Math.pow(2, attempt)
@@ -204,7 +217,7 @@ export class ApiClient {
     const timeoutId = setTimeout(() => controller.abort(), timeout)
 
     try {
-      const response = await fetch(`${this.baseUrl}${path}`, {
+      const response = await fetch(`${this.resolveBaseUrl()}${path}`, {
         method: 'GET',
         headers: this.buildHeaders(options),
         signal: controller.signal,
@@ -257,7 +270,7 @@ export class ApiClient {
     const timeoutId = setTimeout(() => controller.abort(), timeout)
 
     try {
-      const response = await fetch(`${this.baseUrl}${path}`, {
+      const response = await fetch(`${this.resolveBaseUrl()}${path}`, {
         method: 'POST',
         headers: this.buildHeaders(options),
         body: JSON.stringify(body),

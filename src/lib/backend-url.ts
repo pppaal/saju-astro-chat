@@ -27,6 +27,11 @@ function warnOnce(key: keyof typeof warned, message: string): void {
 }
 
 export function getBackendUrl(): string {
+  const hasExplicitBackend =
+    Boolean(process.env.AI_BACKEND_URL) ||
+    Boolean(process.env.BACKEND_AI_URL) ||
+    Boolean(process.env.NEXT_PUBLIC_AI_BACKEND)
+
   const url =
     process.env.AI_BACKEND_URL ||
     process.env.BACKEND_AI_URL ||
@@ -40,6 +45,12 @@ export function getBackendUrl(): string {
     !isLocalBackendUrl(url)
   ) {
     warnOnce('nonHttps', '[Backend] Using non-HTTPS AI backend in production')
+  }
+
+  if (process.env.NODE_ENV === 'production' && !hasExplicitBackend) {
+    logger.error(
+      '[Backend] No backend URL env configured in production; defaulting to localhost (will fail).'
+    )
   }
 
   // NEXT_PUBLIC_* 환경 변수는 클라이언트에 노출되므로 보안 경고
