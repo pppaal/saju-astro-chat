@@ -166,7 +166,20 @@ export default function PremiumReportsPage() {
       return
     }
     setError(null)
-    router.push(createDestinyMapUrl(profileInput))
+    const nextUrl = createDestinyMapUrl(profileInput)
+    try {
+      router.push(nextUrl)
+      // Fallback navigation if app-router transition is blocked
+      setTimeout(() => {
+        if (typeof window !== 'undefined' && window.location.pathname === '/premium-reports') {
+          window.location.assign(nextUrl)
+        }
+      }, 350)
+    } catch {
+      if (typeof window !== 'undefined') {
+        window.location.assign(nextUrl)
+      }
+    }
   }
 
   const handleGeneratePremium = async () => {
@@ -260,7 +273,19 @@ export default function PremiumReportsPage() {
       })
 
       analytics.matrixGenerate('premium-reports')
-      router.push(`/premium-reports/result/${reportId}?type=${reportType}`)
+      const resultUrl = `/premium-reports/result/${reportId}?type=${reportType}`
+      try {
+        router.push(resultUrl)
+        setTimeout(() => {
+          if (typeof window !== 'undefined' && window.location.pathname === '/premium-reports') {
+            window.location.assign(resultUrl)
+          }
+        }, 350)
+      } catch {
+        if (typeof window !== 'undefined') {
+          window.location.assign(resultUrl)
+        }
+      }
     } catch (e) {
       if (e instanceof Error && e.name === 'AbortError') {
         setError('응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.')
@@ -312,6 +337,7 @@ export default function PremiumReportsPage() {
             <article className="rounded-3xl border border-white/15 bg-slate-900/60 p-5 backdrop-blur-xl">
               <div className="inline-flex rounded-xl border border-white/15 bg-slate-950/50 p-1">
                 <button
+                  type="button"
                   onClick={() => setMode('free')}
                   className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
                     mode === 'free'
@@ -322,6 +348,7 @@ export default function PremiumReportsPage() {
                   FREE
                 </button>
                 <button
+                  type="button"
                   onClick={() => setMode('premium')}
                   className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
                     mode === 'premium'
@@ -357,6 +384,7 @@ export default function PremiumReportsPage() {
 
                       return (
                         <button
+                          type="button"
                           key={option.key}
                           onClick={() => setSelectedOptionKey(option.key)}
                           className={`rounded-2xl border p-4 text-left transition ${
@@ -396,6 +424,7 @@ export default function PremiumReportsPage() {
               )}
 
               <button
+                type="button"
                 onClick={mode === 'free' ? handleStartFree : handleGeneratePremium}
                 disabled={!canRun}
                 className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white transition ${
