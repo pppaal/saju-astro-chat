@@ -2,10 +2,8 @@
 // Destiny Fusion Matrixâ„¢ - AI Premium Report Generator
 // ìœ ë£Œ ê¸°ëŠ¥: AI ê¸°ë°˜ ìƒì„¸ ë‚´ëŸ¬í‹°ë¸Œ ë¦¬í¬íŠ¸ ìƒì„±
 
-'use server'
-
 import type { FusionReport } from '../interpreter/types'
-import type { MatrixCalculationInput } from '../types'
+import type { MatrixCalculationInput, MatrixSummary } from '../types'
 import type {
   ReportPeriod,
   ReportTheme,
@@ -25,6 +23,15 @@ import { buildDeterministicCore } from './deterministicCore'
 import type { DeterministicProfile } from './deterministicCoreConfig'
 import { getThemedSectionKeys } from './themeSchema'
 import { buildLifeCyclePromptBlock, buildThemeSchemaPromptBlock } from '../interpretationSchema'
+import { generateNarrativeSectionsFromSynthesis } from './narrativeGenerator'
+import {
+  buildSynthesisFactsForSection,
+  synthesizeMatrixSignals,
+  type SignalSynthesisResult,
+  getDomainsForSection,
+} from './signalSynthesizer'
+import type { ReportEvidenceRef, SectionEvidenceRefs } from './evidenceRefs'
+import { buildPhaseStrategyEngine, type StrategyEngineResult } from './strategyEngine'
 
 // Extracted modules
 import type { AIPremiumReport, AIReportGenerationOptions, AIUserPlan } from './reportTypes'
@@ -39,24 +46,24 @@ import {
 } from './scoreCalculators'
 import type { GraphRAGEvidenceAnchor, GraphRAGCrossEvidenceSet } from './graphRagEvidence'
 
-const SAJU_REGEX = /ì‚¬ì£¼|ì˜¤í–‰|ì‹­ì‹ |ëŒ€ìš´|ì¼ê°„|ê²©êµ­|ìš©ì‹ |ì‹ ì‚´/i
+const SAJU_REGEX = /사주|오행|십신|대운|일간|격국|용신|신살|saju|five element|sibsin|daeun/i
 const ASTRO_REGEX =
-  /ì ì„±|í–‰ì„±|í•˜ìš°ìŠ¤|íŠ¸ëžœì‹¯|ë³„ìžë¦¬|ìƒìŠ¹ê¶|ì²œê¶ë„|astrology|planet|house|transit|zodiac/i
-const CROSS_REGEX = /êµì°¨|cross|ìœµí•©|í†µí•©|integrat|synthesize/i
+  /점성|행성|하우스|트랜짓|별자리|상승궁|천궁도|astrology|planet|house|transit|zodiac/i
+const CROSS_REGEX = /교차|융합|통합|cross|integrat|synthesize/i
 const ACTION_REGEX =
-  /í•´ì•¼|í•˜ì„¸ìš”|ì‹¤í–‰|ì ê²€|ì •ë¦¬|ê¸°ë¡|ì‹¤ì²œ|ê³„íš|ì˜¤ëŠ˜|ì´ë²ˆì£¼|ì´ë²ˆ ë‹¬|today|this week|this month|action|plan|step|execute|schedule/i
+  /해야|하세요|실행|점검|정리|기록|실천|계획|오늘|이번주|이번 달|today|this week|this month|action|plan|step|execute|schedule/i
 const TIMING_REGEX =
-  /ëŒ€ìš´|ì„¸ìš´|ì›”ìš´|ì¼ì§„|íƒ€ì´ë°|ì‹œê¸°|ì „í™˜ì |transit|timing|window|period|daeun|seun|wolun|iljin/i
+  /대운|세운|월운|일진|타이밍|시기|전환점|transit|timing|window|period|daeun|seun|wolun|iljin/i
 
 function buildDirectToneOverride(lang: 'ko' | 'en'): string {
   if (lang === 'ko') {
     return [
-      '## ë§íˆ¬ ê°•ì œ ê·œì¹™',
-      '- ì¹œêµ¬ì‹ ìœ„ë¡œì²´ ëŒ€ì‹  ì „ë¬¸ê°€ ì»¨ì„¤íŒ… í†¤ìœ¼ë¡œ ìž‘ì„±í•©ë‹ˆë‹¤.',
-      '- ê° ë‹¨ë½ ì²« ë¬¸ìž¥ì€ ê²°ë¡ í˜•ìœ¼ë¡œ ì‹œìž‘í•©ë‹ˆë‹¤.',
-      '- ë‘ë£¨ë­‰ìˆ í•œ í‘œí˜„ ëŒ€ì‹  ëª…í™•í•œ íŒë‹¨ ë¬¸ìž¥ì„ ì‚¬ìš©í•©ë‹ˆë‹¤.',
-      '- ê·¼ê±°(ì‚¬ì£¼/ì ì„±) -> í•´ì„ -> í–‰ë™ ìˆœì„œë¥¼ ìœ ì§€í•©ë‹ˆë‹¤.',
-      '- ë¶ˆë¦¿ì´ ì•„ë‹ˆë¼ ë¬¸ë‹¨í˜•ìœ¼ë¡œ ìž‘ì„±í•˜ë˜, ë¬¸ìž¥ì€ ì§§ê³  ë‹¨ì •í•˜ê²Œ ì”ë‹ˆë‹¤.',
+      '## 말투 강제 규칙',
+      '- 친구식 위로체 대신 전문가 컨설팅 톤으로 작성합니다.',
+      '- 각 단락 첫 문장은 결론형으로 시작합니다.',
+      '- 두루뭉술한 표현 대신 명확한 판단 문장을 사용합니다.',
+      '- 근거(사주/점성) -> 해석 -> 행동 순서를 유지합니다.',
+      '- 불릿이 아니라 문단형으로 작성하되, 문장은 짧고 단정하게 씁니다.',
     ].join('\n')
   }
   return [
@@ -197,6 +204,419 @@ function getPathText(sections: Record<string, unknown>, path: string): string {
   if (typeof cur === 'string') return cur
   if (Array.isArray(cur)) return cur.map((v) => String(v)).join(' ')
   return ''
+}
+
+function hasRequiredSectionPaths(payload: unknown, paths: string[]): boolean {
+  if (!payload || typeof payload !== 'object') return false
+  const record = payload as Record<string, unknown>
+  return paths.every((path) => {
+    if (path === 'recommendations') {
+      const rec = record.recommendations
+      return Array.isArray(rec) && rec.length > 0
+    }
+    return getPathText(record, path).trim().length > 0
+  })
+}
+
+function setPathText(sections: Record<string, unknown>, path: string, value: string): void {
+  const parts = path.split('.')
+  let cur: Record<string, unknown> = sections
+  for (let i = 0; i < parts.length - 1; i += 1) {
+    const part = parts[i]
+    const next = cur[part]
+    if (!next || typeof next !== 'object' || Array.isArray(next)) {
+      cur[part] = {}
+    }
+    cur = cur[part] as Record<string, unknown>
+  }
+  cur[parts[parts.length - 1]] = value
+}
+
+const EVIDENCE_TOKEN_STOP_WORDS = new Set([
+  '그리고',
+  '하지만',
+  '에서',
+  '으로',
+  '입니다',
+  '합니다',
+  '흐름',
+  '현재',
+  '기질',
+  '성향',
+  '기준',
+  'signal',
+  'signals',
+  'with',
+  'from',
+  'this',
+  'that',
+  'the',
+  'and',
+  'for',
+  'your',
+])
+
+const HIGH_RISK_WEEKDAY_TOKENS = [
+  '월요일',
+  '화요일',
+  '수요일',
+  '목요일',
+  '금요일',
+  '토요일',
+  '일요일',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
+]
+
+const HIGH_RISK_PLANET_TOKENS = [
+  '태양',
+  '달',
+  '수성',
+  '금성',
+  '화성',
+  '목성',
+  '토성',
+  '천왕성',
+  '해왕성',
+  '명왕성',
+  'sun',
+  'moon',
+  'mercury',
+  'venus',
+  'mars',
+  'jupiter',
+  'saturn',
+  'uranus',
+  'neptune',
+  'pluto',
+]
+
+const HIGH_RISK_ASPECT_TOKENS = [
+  '합',
+  '충',
+  '형',
+  'trine',
+  'square',
+  'opposition',
+  'conjunction',
+  'sextile',
+]
+
+const HIGH_RISK_TRANSIT_TOKENS = [
+  '역행',
+  'retrograde',
+  'solar return',
+  'lunar return',
+  'progression',
+  'progressions',
+  'eclipse',
+  'eclipses',
+  'draconic',
+  'harmonic',
+  'harmonics',
+]
+
+function compactToken(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, '')
+    .trim()
+}
+
+function tokenizeEvidenceText(value?: string): string[] {
+  if (!value) return []
+  return value
+    .split(/[^\p{L}\p{N}_:+-]+/u)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2)
+    .map((token) => compactToken(token))
+    .filter((token) => token.length >= 2 && !EVIDENCE_TOKEN_STOP_WORDS.has(token))
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function toEvidenceRef(
+  signal: NonNullable<SignalSynthesisResult>['selectedSignals'][number]
+): ReportEvidenceRef {
+  return {
+    id: signal.id,
+    domain: signal.domainHints[0],
+    layer: signal.layer,
+    rowKey: signal.rowKey,
+    colKey: signal.colKey,
+    keyword: signal.keyword,
+    sajuBasis: signal.sajuBasis,
+    astroBasis: signal.astroBasis,
+    score: signal.score,
+  }
+}
+
+function selectEvidenceRefsByDomains(
+  synthesis: SignalSynthesisResult | undefined,
+  domains: string[],
+  limit = 4
+): ReportEvidenceRef[] {
+  if (!synthesis) return []
+  const domainSet = new Set(domains)
+  const pickedSignalIds = synthesis.claims
+    .filter((claim) => domainSet.has(claim.domain))
+    .flatMap((claim) => claim.evidence)
+  const orderedSignals = [
+    ...pickedSignalIds.map((id) => synthesis.signalsById[id]).filter(Boolean),
+    ...synthesis.selectedSignals,
+  ]
+  const deduped: ReportEvidenceRef[] = []
+  const seen = new Set<string>()
+  for (const signal of orderedSignals) {
+    if (!signal || seen.has(signal.id)) continue
+    seen.add(signal.id)
+    deduped.push(toEvidenceRef(signal))
+    if (deduped.length >= limit) break
+  }
+  return deduped
+}
+
+function getTimingPathDomains(path: string): string[] {
+  if (path === 'domains.career') return ['career']
+  if (path === 'domains.love') return ['relationship']
+  if (path === 'domains.wealth') return ['wealth']
+  if (path === 'domains.health') return ['health']
+  if (path === 'luckyElements') return ['timing', 'personality']
+  return ['timing', 'career', 'relationship', 'wealth', 'health']
+}
+
+function getThemedPathDomains(theme: ReportTheme, path: string): string[] {
+  if (theme === 'love') {
+    if (path === 'timing') return ['timing', 'relationship']
+    return ['relationship', 'personality']
+  }
+  if (theme === 'career') {
+    if (path === 'timing') return ['timing', 'career']
+    return ['career', 'wealth']
+  }
+  if (theme === 'wealth') {
+    if (path === 'timing') return ['timing', 'wealth']
+    return ['wealth', 'career']
+  }
+  if (theme === 'health') {
+    if (path === 'timing' || path === 'riskWindows') return ['timing', 'health']
+    return ['health', 'personality']
+  }
+  if (path === 'timing') return ['timing', 'relationship']
+  return ['relationship', 'personality']
+}
+
+function buildComprehensiveEvidenceRefs(
+  synthesis: SignalSynthesisResult | undefined
+): SectionEvidenceRefs {
+  const refs: SectionEvidenceRefs = {}
+  for (const sectionKey of COMPREHENSIVE_SECTION_KEYS) {
+    refs[sectionKey] = selectEvidenceRefsByDomains(synthesis, getDomainsForSection(sectionKey), 4)
+  }
+  return refs
+}
+
+function buildTimingEvidenceRefs(
+  sectionPaths: string[],
+  synthesis: SignalSynthesisResult | undefined
+): SectionEvidenceRefs {
+  const refs: SectionEvidenceRefs = {}
+  for (const path of sectionPaths) {
+    refs[path] = selectEvidenceRefsByDomains(synthesis, getTimingPathDomains(path), 4)
+  }
+  return refs
+}
+
+function buildThemedEvidenceRefs(
+  theme: ReportTheme,
+  sectionPaths: string[],
+  synthesis: SignalSynthesisResult | undefined
+): SectionEvidenceRefs {
+  const refs: SectionEvidenceRefs = {}
+  for (const path of sectionPaths) {
+    refs[path] = selectEvidenceRefsByDomains(synthesis, getThemedPathDomains(theme, path), 4)
+  }
+  return refs
+}
+
+function hasEvidenceSupport(text: string, refs: ReportEvidenceRef[]): boolean {
+  if (!text || refs.length === 0) return true
+  const lowered = text.toLowerCase()
+  for (const ref of refs) {
+    const tokens = [
+      ...tokenizeEvidenceText(ref.keyword),
+      ...tokenizeEvidenceText(ref.rowKey),
+      ...tokenizeEvidenceText(ref.colKey),
+      ...tokenizeEvidenceText(ref.sajuBasis),
+      ...tokenizeEvidenceText(ref.astroBasis),
+    ].slice(0, 12)
+    for (const token of tokens) {
+      if (!token || token.length < 2) continue
+      if (lowered.includes(token)) return true
+    }
+  }
+  return false
+}
+
+function buildAllowedHighRiskTokenSet(evidenceRefs: SectionEvidenceRefs): Set<string> {
+  const allowed = new Set<string>()
+  for (const refs of Object.values(evidenceRefs)) {
+    for (const ref of refs || []) {
+      for (const token of [
+        ...tokenizeEvidenceText(ref.id),
+        ...tokenizeEvidenceText(ref.rowKey),
+        ...tokenizeEvidenceText(ref.colKey),
+        ...tokenizeEvidenceText(ref.keyword),
+        ...tokenizeEvidenceText(ref.sajuBasis),
+        ...tokenizeEvidenceText(ref.astroBasis),
+      ]) {
+        allowed.add(token)
+      }
+    }
+  }
+  return allowed
+}
+
+function findUnsupportedHighRiskTokens(text: string, allowed: Set<string>): string[] {
+  const found = new Set<string>()
+  const lowered = text.toLowerCase()
+  const allRiskTokens = [
+    ...HIGH_RISK_WEEKDAY_TOKENS,
+    ...HIGH_RISK_PLANET_TOKENS,
+    ...HIGH_RISK_ASPECT_TOKENS,
+    ...HIGH_RISK_TRANSIT_TOKENS,
+  ]
+  for (const token of allRiskTokens) {
+    const hasToken = /[a-z]/i.test(token)
+      ? lowered.includes(token.toLowerCase())
+      : text.includes(token)
+    if (!hasToken) continue
+    const compact = compactToken(token)
+    if (!compact) continue
+    if (!allowed.has(compact)) {
+      found.add(token)
+    }
+  }
+  return [...found]
+}
+
+interface EvidenceBindingViolation {
+  path: string
+  missingBinding: boolean
+  unsupportedTokens: string[]
+}
+
+function validateEvidenceBinding(
+  sections: Record<string, unknown>,
+  sectionPaths: string[],
+  evidenceRefs: SectionEvidenceRefs
+): { needsRepair: boolean; violations: EvidenceBindingViolation[] } {
+  const allowedHighRisk = buildAllowedHighRiskTokenSet(evidenceRefs)
+  const violations: EvidenceBindingViolation[] = []
+  for (const path of sectionPaths) {
+    const text = getPathText(sections, path)
+    if (!text) continue
+    const refs = evidenceRefs[path] || []
+    const missingBinding = refs.length > 0 && !hasEvidenceSupport(text, refs)
+    const unsupportedTokens = findUnsupportedHighRiskTokens(text, allowedHighRisk)
+    if (missingBinding || unsupportedTokens.length > 0) {
+      violations.push({ path, missingBinding, unsupportedTokens })
+    }
+  }
+  return { needsRepair: violations.length > 0, violations }
+}
+
+function buildEvidenceBindingRepairPrompt(
+  lang: 'ko' | 'en',
+  sections: Record<string, unknown>,
+  evidenceRefs: SectionEvidenceRefs,
+  violations: EvidenceBindingViolation[]
+): string {
+  const violationLines = violations.map((violation) => {
+    const refs = (evidenceRefs[violation.path] || []).map((ref) => ref.id).join(', ')
+    const unsupported = violation.unsupportedTokens.join(', ')
+    if (lang === 'ko') {
+      return `- ${violation.path}: missingBinding=${violation.missingBinding ? 'yes' : 'no'}, unsupported=[${unsupported || 'none'}], allowedEvidence=[${refs || 'none'}]`
+    }
+    return `- ${violation.path}: missingBinding=${violation.missingBinding ? 'yes' : 'no'}, unsupported=[${unsupported || 'none'}], allowedEvidence=[${refs || 'none'}]`
+  })
+
+  if (lang === 'ko') {
+    return [
+      '중요: 아래 sections JSON을 근거 고정 규칙에 맞게 리페어하세요.',
+      '규칙:',
+      '- violation에 표시된 path만 수정하고 나머지 path는 유지합니다.',
+      '- evidenceRefs에 없는 고위험 토큰(요일/행성/각/트랜짓)은 제거합니다.',
+      '- 각 수정 path에는 allowedEvidence 기준의 근거 키워드를 최소 1개 이상 반영합니다.',
+      '- JSON 구조와 키는 절대 변경하지 않습니다.',
+      '- JSON만 반환합니다.',
+      'violations:',
+      ...violationLines,
+      'evidenceRefs:',
+      JSON.stringify(evidenceRefs, null, 2),
+      'sections:',
+      JSON.stringify(sections, null, 2),
+    ].join('\n')
+  }
+  return [
+    'IMPORTANT: Repair the sections JSON below to satisfy evidence-binding rules.',
+    'Rules:',
+    '- Modify only violating paths and keep all other paths unchanged.',
+    '- Remove unsupported high-risk tokens (weekday/planet/aspect/transit) not in evidenceRefs.',
+    '- Each modified path must include at least one keyword grounded by allowedEvidence refs.',
+    '- Keep JSON structure and keys exactly intact.',
+    '- Return JSON only.',
+    'violations:',
+    ...violationLines,
+    'evidenceRefs:',
+    JSON.stringify(evidenceRefs, null, 2),
+    'sections:',
+    JSON.stringify(sections, null, 2),
+  ].join('\n')
+}
+
+function enforceEvidenceBindingFallback(
+  sections: Record<string, unknown>,
+  violations: EvidenceBindingViolation[],
+  evidenceRefs: SectionEvidenceRefs,
+  lang: 'ko' | 'en'
+): Record<string, unknown> {
+  const next = JSON.parse(JSON.stringify(sections)) as Record<string, unknown>
+  for (const violation of violations) {
+    const current = getPathText(next, violation.path)
+    if (!current) continue
+    let cleaned = current
+    for (const token of violation.unsupportedTokens) {
+      const pattern = new RegExp(escapeRegExp(token), /[a-z]/i.test(token) ? 'gi' : 'g')
+      cleaned = cleaned
+        .replace(pattern, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim()
+    }
+    if (violation.missingBinding) {
+      const refs = (evidenceRefs[violation.path] || []).slice(0, 2)
+      if (refs.length > 0) {
+        const labels = refs
+          .map((ref) => ref.keyword || ref.rowKey || ref.id)
+          .filter(Boolean)
+          .join(', ')
+        const groundingSentence =
+          lang === 'ko'
+            ? `근거 기준은 ${labels} 흐름입니다.`
+            : `Grounding evidence follows ${labels} signals.`
+        cleaned = `${cleaned} ${groundingSentence}`.trim()
+      }
+    }
+    setPathText(next, violation.path, cleaned)
+  }
+  return next
 }
 
 function getShortSectionPaths(
@@ -546,41 +966,40 @@ const COMPREHENSIVE_SECTION_KEYS: Array<keyof AIPremiumReport['sections']> = [
   'conclusion',
 ]
 
+function isComprehensiveSectionsPayload(value: unknown): value is Record<string, unknown> {
+  if (!value || typeof value !== 'object') return false
+  const record = value as Record<string, unknown>
+  return COMPREHENSIVE_SECTION_KEYS.every((key) => typeof record[key] === 'string')
+}
+
 const BOILERPLATE_PATTERNS = [
-  /ì´ êµ¬ê°„ì˜ í•µì‹¬ ì´ˆì ì€[^.\n!?]*[.\n!?]?/g,
+  /이 구간의 핵심 초점은[^.\n!?]*[.\n!?]?/g,
   /This section focuses on[^.\n!?]*[.\n!?]?/gi,
 ]
 const BANNED_PHRASES = [
-  'ê²©êµ­ì˜ ê²°',
-  'ê¸´ìž¥ ì‹ í˜¸',
-  'ìƒí˜¸ìž‘ìš©',
-  'ì‹œì‚¬',
-  'ê²°ì´',
-  'í”„ë ˆìž„',
-  'ê²€ì¦',
-  'ê·¼ê±° ì„¸íŠ¸',
+  '격국의 결',
+  '긴장 신호',
+  '상호작용',
+  '시사',
+  '결이',
+  '프레임',
+  '검증',
+  '근거 세트',
 ]
 const BANNED_PHRASE_PATTERNS = BANNED_PHRASES.map((phrase) => new RegExp(phrase, 'gi'))
-const ADVICE_SENTENCE_REGEX = /(ì¢‹ìŠµë‹ˆë‹¤|ìœ ì˜í•˜ì…”ì•¼ í•©ë‹ˆë‹¤)/
+const ADVICE_SENTENCE_REGEX = /(좋습니다|유의하셔야 합니다)/
 
 const SECTION_CONCRETE_NOUNS: Record<keyof AIPremiumReport['sections'], string[]> = {
-  introduction: ['ì¼ì •', 'ìš°ì„ ìˆœìœ„', 'ëŒ€í™”', 'ìˆ˜ë©´', 'í”¼ë¡œ', 'ë§ˆê°'],
-  personalityDeep: ['ë§íˆ¬', 'ì†ë„', 'ê±°ë¦¬ë‘ê¸°', 'ê²°ì •', 'ìˆ˜ë©´', 'ë‘í†µ'],
-  careerPath: ['ì¼ì •', 'ìš°ì„ ìˆœìœ„', 'í˜‘ì—…', 'ê²°ì • ì§€ì—°', 'ë§ˆê°', 'íšŒì˜'],
-  relationshipDynamics: [
-    'ë§ì´ ë¹¨ë¼ì§',
-    'ë‹¨í˜¸í•´ì§',
-    'ê±°ë¦¬ë‘ê¸°',
-    'í™•ì • ì„œë‘ë¦„',
-    'ëŒ€í™”',
-    'ì—°ë½',
-  ],
-  wealthPotential: ['ì§€ì¶œ', 'ì €ì¶•', 'ê³„ì•½', 'ì˜ˆì‚°', 'ë§ˆê°', 'ìš°ì„ ìˆœìœ„'],
-  healthGuidance: ['ì†Œí™”', 'ìˆ˜ë©´', 'ë‘í†µ', 'í—ˆë¦¬', 'ê´€ì ˆ', 'í”¼ë¡œ'],
-  lifeMission: ['ì¼ì •', 'ìŠµê´€', 'ê¸°ë¡', 'ëŒ€í™”', 'í˜‘ì—…', 'ìš°ì„ ìˆœìœ„'],
-  timingAdvice: ['ì˜¤ëŠ˜', 'ì´ë²ˆì£¼', 'ì´ë²ˆ ë‹¬', 'ë§ˆê°', 'ëŒ€í™”', 'ê²°ì •'],
-  actionPlan: ['ì¼ì •', 'ìš°ì„ ìˆœìœ„', 'í˜‘ì—…', 'ìˆ˜ë©´', 'ëŒ€í™”', 'ë§ˆê°'],
-  conclusion: ['ì¼ì •', 'ëŒ€í™”', 'ìˆ˜ë©´', 'ìš°ì„ ìˆœìœ„', 'í”¼ë¡œ', 'ê²°ì •'],
+  introduction: ['일정', '우선순위', '대화', '수면', '피로', '마감'],
+  personalityDeep: ['말투', '속도', '거리두기', '결정', '수면', '두통'],
+  careerPath: ['일정', '우선순위', '협업', '결정 지연', '마감', '회의'],
+  relationshipDynamics: ['말이 빨라짐', '단호해짐', '거리두기', '확정 서두름', '대화', '연락'],
+  wealthPotential: ['지출', '저축', '계약', '예산', '마감', '우선순위'],
+  healthGuidance: ['소화', '수면', '두통', '허리', '관절', '피로'],
+  lifeMission: ['일정', '습관', '기록', '대화', '협업', '우선순위'],
+  timingAdvice: ['오늘', '이번주', '이번 달', '마감', '대화', '결정'],
+  actionPlan: ['일정', '우선순위', '협업', '수면', '대화', '마감'],
+  conclusion: ['일정', '대화', '수면', '우선순위', '피로', '결정'],
 }
 
 function stripBannedPhrases(text: string): string {
@@ -595,7 +1014,7 @@ function containsBannedPhrase(text: string): boolean {
   return BANNED_PHRASE_PATTERNS.some((pattern) => pattern.test(text))
 }
 
-function sanitizeSectionNarrative(text: string): string {
+export function sanitizeSectionNarrative(text: string): string {
   if (!text || typeof text !== 'string') return ''
   let cleaned = text
   for (const pattern of BOILERPLATE_PATTERNS) {
@@ -654,44 +1073,44 @@ function postProcessSectionNarrative(
 function sanitizeTimingContradictions(text: string, input: MatrixCalculationInput): string {
   if (!text) return text
   let out = text
-  if (input.currentSaeunElement && /ì„¸ìš´\s*ë¯¸ìž…ë ¥/gi.test(out)) {
-    out = out.replace(/ì„¸ìš´\s*ë¯¸ìž…ë ¥/gi, 'ì„¸ìš´ íë¦„ ë°˜ì˜')
+  if (input.currentSaeunElement && /세운\s*미입력/gi.test(out)) {
+    out = out.replace(/세운\s*미입력/gi, '세운 흐름 반영')
   }
-  if (input.currentDaeunElement && /ëŒ€ìš´\s*ë¯¸ìž…ë ¥/gi.test(out)) {
-    out = out.replace(/ëŒ€ìš´\s*ë¯¸ìž…ë ¥/gi, 'ëŒ€ìš´ íë¦„ ë°˜ì˜')
+  if (input.currentDaeunElement && /대운\s*미입력/gi.test(out)) {
+    out = out.replace(/대운\s*미입력/gi, '대운 흐름 반영')
   }
   return out
 }
 
 function toKoreanDomainLabel(domain: string): string {
   const map: Record<string, string> = {
-    personality: 'ì„±í–¥',
-    career: 'ì»¤ë¦¬ì–´',
-    relationship: 'ê´€ê³„',
-    wealth: 'ìž¬ì •',
-    health: 'ê±´ê°•',
-    spirituality: 'ì‚¬ëª…',
-    timing: 'ì‹œê¸°',
+    personality: '성향',
+    career: '커리어',
+    relationship: '관계',
+    wealth: '재정',
+    health: '건강',
+    spirituality: '사명',
+    timing: '시기',
   }
-  return map[domain] || 'íë¦„'
+  return map[domain] || '흐름'
 }
 
 function humanizeCrossSetFact(set: GraphRAGCrossEvidenceSet): string {
   const pairMatch = set.astrologyEvidence.match(/^([A-Za-z]+)-([a-z]+)-([A-Za-z]+)/i)
-  const p1 = pairMatch?.[1] || 'í–‰ì„±'
+  const p1 = pairMatch?.[1] || '행성'
   const aspectRaw = (pairMatch?.[2] || '').toLowerCase()
-  const p2 = pairMatch?.[3] || 'í–‰ì„±'
+  const p2 = pairMatch?.[3] || '행성'
   const aspectKoMap: Record<string, string> = {
-    conjunction: 'í•©ìœ¼ë¡œ ë§Œë‚©ë‹ˆë‹¤',
-    opposition: 'ëŒ€ë¦½ìœ¼ë¡œ ì¶©ëŒ í¬ì¸íŠ¸ê°€ ìƒê¸°ê¸° ì‰½ìŠµë‹ˆë‹¤',
-    square: 'ê°ì„ ì„¸ìš°ë©° ì••ë°•ì„ ì¤ë‹ˆë‹¤',
-    trine: 'ìžì—°ìŠ¤ëŸ½ê²Œ ì¡°í™”ë¥¼ ì´ë£¹ë‹ˆë‹¤',
-    sextile: 'ë¶€ë“œëŸ½ê²Œ ê¸°íšŒë¥¼ ì—½ë‹ˆë‹¤',
-    quincunx: 'ì¡°ì •ì´ í•„ìš”í•œ êµ¬ê°„ì´ ìžì£¼ ìƒê¹ë‹ˆë‹¤',
+    conjunction: '합으로 만납니다',
+    opposition: '대립으로 충돌 포인트가 생기기 쉽습니다',
+    square: '각을 세우며 압박을 줍니다',
+    trine: '자연스럽게 조화를 이룹니다',
+    sextile: '부드럽게 기회를 엽니다',
+    quincunx: '조정이 필요한 구간이 자주 생깁니다',
   }
-  const aspectKo = aspectKoMap[aspectRaw] || 'ì˜í–¥ì„ ì¤ë‹ˆë‹¤'
+  const aspectKo = aspectKoMap[aspectRaw] || '영향을 줍니다'
   const domains = set.overlapDomains.map(toKoreanDomainLabel).join(', ')
-  return `${p1}ê³¼ ${p2} íë¦„ì€ ${aspectKo}. ${domains} ìª½ì€ ë°©í–¥ì´ ë˜ë ·í•´ì§€ê¸° ì‰½ìŠµë‹ˆë‹¤.`
+  return `${p1}과 ${p2} 흐름은 ${aspectKo}. ${domains} 쪽은 방향이 또렷해지기 쉽습니다.`
 }
 
 function extractTopMatrixFacts(matrixReport: FusionReport, sectionKey: string): string[] {
@@ -713,30 +1132,63 @@ function extractTopMatrixFacts(matrixReport: FusionReport, sectionKey: string): 
     .slice(0, 3)
     .map(
       (item) =>
-        `${item.title} íë¦„ì´ ì´ì–´ì§‘ë‹ˆë‹¤. ì§€ê¸ˆì€ ${toKoreanDomainLabel(item.domain)} ìª½ ì„ íƒì´ ë” ì¤‘ìš”í•©ë‹ˆë‹¤.`
+        `${item.title} 흐름이 이어집니다. 지금은 ${toKoreanDomainLabel(item.domain)} 쪽 선택이 더 중요합니다.`
     )
+}
+
+function buildStrategyFactsForSection(
+  strategyEngine: StrategyEngineResult | undefined,
+  sectionKey: keyof AIPremiumReport['sections'],
+  lang: 'ko' | 'en'
+): string[] {
+  if (!strategyEngine) return []
+  const domains = getDomainsForSection(sectionKey)
+  const candidates = strategyEngine.domainStrategies
+    .filter((strategy) => domains.includes(strategy.domain))
+    .slice(0, 2)
+  if (candidates.length === 0) return []
+  const lines: string[] = []
+  for (const strategy of candidates) {
+    if (lang === 'ko') {
+      lines.push(
+        `${toKoreanDomainLabel(strategy.domain)} 국면은 ${strategy.phaseLabel}이며 공격 ${strategy.attackPercent}% / 방어 ${strategy.defensePercent}% 운영이 적합합니다.`
+      )
+      lines.push(strategy.strategy)
+      if (strategy.riskControl) lines.push(strategy.riskControl)
+    } else {
+      lines.push(
+        `${strategy.domain} is in ${strategy.phaseLabel} with offense ${strategy.attackPercent}% / defense ${strategy.defensePercent}%.`
+      )
+      lines.push(strategy.strategy)
+      if (strategy.riskControl) lines.push(strategy.riskControl)
+    }
+  }
+  return lines
 }
 
 function buildSectionFactPack(
   sectionKey: keyof AIPremiumReport['sections'],
   anchor: GraphRAGEvidenceAnchor | undefined,
   matrixReport: FusionReport,
-  input: MatrixCalculationInput
+  input: MatrixCalculationInput,
+  signalSynthesis?: SignalSynthesisResult,
+  strategyEngine?: StrategyEngineResult,
+  lang: 'ko' | 'en' = 'ko'
 ): string[] {
   const bullets: string[] = []
   if (input.dayMasterElement) {
     bullets.push(
-      `íƒ€ê³ ë‚œ êµ¬ì¡°ìƒ ${input.dayMasterElement} ì¼ê°„ì€ ë°©í–¥ì„ ë¨¼ì € ìž¡ì„ ë•Œ í”ë“¤ë¦¼ì´ ì¤„ê¸° ì‰½ìŠµë‹ˆë‹¤.`
+      `타고난 구조상 ${input.dayMasterElement} 일간은 방향을 먼저 잡을 때 흔들림이 줄기 쉽습니다.`
     )
   }
   if (input.geokguk) {
     bullets.push(
-      `íƒ€ê³ ë‚œ êµ¬ì¡°ìƒ ${input.geokguk} ì„±í–¥ì€ ì—­í• ê³¼ ì±…ìž„ì„ ë¶„ëª…ížˆ í• ìˆ˜ë¡ ì„±ê³¼ê°€ ì˜¬ë¼ê°€ê¸° ì‰½ìŠµë‹ˆë‹¤.`
+      `타고난 구조상 ${input.geokguk} 성향은 역할과 책임을 분명히 할수록 성과가 올라가기 쉽습니다.`
     )
   }
   if (input.yongsin) {
     bullets.push(
-      `ìš©ì‹ ì´ ${input.yongsin} ìª½ì´ë©´ ìƒí™œ ë¦¬ë“¬ì„ ê·¸ìª½ìœ¼ë¡œ ë§žì¶œ ë•Œ ì²´ê°ì´ ë¹¨ë¼ì§€ê¸° ì‰½ìŠµë‹ˆë‹¤.`
+      `용신이 ${input.yongsin} 쪽이면 생활 리듬을 그쪽으로 맞출 때 체감이 빨라지기 쉽습니다.`
     )
   }
 
@@ -747,17 +1199,19 @@ function buildSectionFactPack(
     bullets.push(humanizeCrossSetFact(set))
   }
 
+  bullets.push(...buildSynthesisFactsForSection(signalSynthesis, sectionKey, lang))
+  bullets.push(...buildStrategyFactsForSection(strategyEngine, sectionKey, lang))
   bullets.push(...extractTopMatrixFacts(matrixReport, sectionKey))
 
   const activeTransits = (input.activeTransits || []).slice(0, 2)
   if (activeTransits.length > 0) {
     bullets.push(
-      `í˜„ìž¬ëŠ” ${activeTransits.join(', ')} ì˜í–¥ì´ ê²¹ì³ ê²°ì • ì†ë„ë¥¼ ì¡°ì ˆí•˜ëŠ” ìª½ì´ ë‚«ìŠµë‹ˆë‹¤.`
+      `현재는 ${activeTransits.join(', ')} 영향이 겹쳐 결정 속도를 조절하는 쪽이 낫습니다.`
     )
   }
   if (input.currentDaeunElement || input.currentSaeunElement) {
     bullets.push(
-      `ëŒ€ìš´ê³¼ ì„¸ìš´ì´ í•¨ê»˜ ì›€ì§ì´ëŠ” êµ¬ê°„ì´ë¼ ë‹¨ê¸° ê°ì •ë³´ë‹¤ ì¤‘ê¸° ê³„íšì„ ìš°ì„ í•˜ëŠ” ìª½ì´ ë‚«ìŠµë‹ˆë‹¤.`
+      `대운과 세운이 함께 움직이는 구간이라 단기 감정보다 중기 계획을 우선하는 쪽이 낫습니다.`
     )
   }
 
@@ -973,8 +1427,16 @@ function buildComprehensiveFallbackSections(
   input: MatrixCalculationInput,
   matrixReport: FusionReport,
   deterministicCore: ReturnType<typeof buildDeterministicCore>,
-  lang: 'ko' | 'en'
+  lang: 'ko' | 'en',
+  signalSynthesis?: SignalSynthesisResult
 ): AIPremiumReport['sections'] {
+  if (signalSynthesis && signalSynthesis.claims.length > 0) {
+    return generateNarrativeSectionsFromSynthesis({
+      lang,
+      matrixInput: input,
+      synthesis: signalSynthesis,
+    })
+  }
   const strengths = summarizeTopInsightsByCategory(
     matrixReport,
     ['strength', 'opportunity'],
@@ -1017,6 +1479,248 @@ function buildComprehensiveFallbackSections(
   }
 }
 
+function buildSynthesisPromptBlock(
+  synthesis: SignalSynthesisResult | undefined,
+  strategyEngine: StrategyEngineResult | undefined,
+  lang: 'ko' | 'en',
+  mode: 'timing' | 'themed',
+  theme?: ReportTheme
+): string {
+  if (!synthesis || synthesis.claims.length === 0) return ''
+  const themeDomainMap: Record<ReportTheme, string[]> = {
+    love: ['relationship', 'personality'],
+    career: ['career', 'wealth'],
+    wealth: ['wealth', 'career'],
+    health: ['health', 'timing'],
+    family: ['relationship', 'personality'],
+  }
+  const preferredDomains =
+    mode === 'timing'
+      ? ['timing', 'career', 'relationship', 'wealth', 'health']
+      : themeDomainMap[theme || 'career']
+  const pickedClaims = synthesis.claims
+    .filter((claim) => preferredDomains.includes(claim.domain))
+    .slice(0, 4)
+  const claims = pickedClaims.length > 0 ? pickedClaims : synthesis.claims.slice(0, 3)
+  const claimLines = claims.map((claim) => {
+    const evidence = claim.evidence
+      .slice(0, 2)
+      .map((id) => synthesis.signalsById[id])
+      .filter(Boolean)
+      .map((signal) => `${signal.id}:${signal.keyword || signal.rowKey}`)
+      .join(', ')
+    if (lang === 'ko') {
+      return `- ${claim.domain}: ${claim.thesis} | 근거: ${evidence || 'pending'} | 통제: ${claim.riskControl}`
+    }
+    return `- ${claim.domain}: ${claim.thesis} | evidence: ${evidence || 'pending'} | control: ${claim.riskControl}`
+  })
+  const strategyLines = (strategyEngine?.domainStrategies || [])
+    .filter((item) => preferredDomains.includes(item.domain))
+    .slice(0, 3)
+    .map((item) =>
+      lang === 'ko'
+        ? `- 전략 ${item.domain}: ${item.phaseLabel}, 공격 ${item.attackPercent}% / 방어 ${item.defensePercent}% | thesis=${item.thesis}`
+        : `- strategy ${item.domain}: ${item.phaseLabel}, offense ${item.attackPercent}% / defense ${item.defensePercent}% | thesis=${item.thesis}`
+    )
+  if (lang === 'ko') {
+    return [
+      '## Signal Synthesizer (고정 근거)',
+      '- 아래 클레임과 근거 ID를 벗어나는 사실 추가 금지',
+      '- 같은 도메인에서 상승/주의가 동시에 있으면 반드시 "상승 + 리스크관리"로 통합 서술',
+      strategyEngine
+        ? `- 전체 국면: ${strategyEngine.overallPhaseLabel}, 운영 비율 공격 ${strategyEngine.attackPercent}% / 방어 ${strategyEngine.defensePercent}%`
+        : '',
+      ...strategyLines,
+      ...claimLines,
+    ].join('\n')
+  }
+  return [
+    '## Signal Synthesizer (fixed evidence)',
+    '- Do not add facts beyond these claim/evidence IDs',
+    '- If strength and caution coexist in a domain, synthesize as "upside + risk-control"',
+    strategyEngine
+      ? `- Overall phase: ${strategyEngine.overallPhaseLabel}, offense ${strategyEngine.attackPercent}% / defense ${strategyEngine.defensePercent}%`
+      : '',
+    ...strategyLines,
+    ...claimLines,
+  ].join('\n')
+}
+
+function buildTimingFallbackSections(
+  input: MatrixCalculationInput,
+  synthesis: SignalSynthesisResult | undefined,
+  lang: 'ko' | 'en'
+): TimingReportSections {
+  const claims = synthesis?.claims || []
+  const pick = (domain: string) => claims.find((claim) => claim.domain === domain)
+  const timing = pick('timing')
+  const career = pick('career')
+  const relation = pick('relationship')
+  const wealth = pick('wealth')
+  const health = pick('health')
+
+  if (lang === 'ko') {
+    return {
+      overview:
+        timing?.thesis ||
+        '오늘 흐름은 확정 속도보다 검증 순서가 중요합니다. 결론과 실행 시점을 분리하면 손실 가능성을 줄일 수 있습니다.',
+      energy:
+        health?.thesis ||
+        '에너지는 단기 집중 후 회복 관리가 핵심입니다. 수면·수분·루틴을 먼저 고정한 뒤 업무 볼륨을 늘리세요.',
+      opportunities:
+        career?.thesis ||
+        '기회 구간에서는 핵심 과업 1~2개 완결 전략이 유리합니다. 확장 전에 역할과 책임을 먼저 정리하세요.',
+      cautions:
+        relation?.riskControl ||
+        '커뮤니케이션 오차가 누적되면 성과가 흔들릴 수 있습니다. 대화/문서 전달 전 한 줄 요약 재확인을 넣으세요.',
+      domains: {
+        career:
+          career?.riskControl ||
+          '커리어는 일정·우선순위·마감 정의를 먼저 고정하는 운영이 안전합니다.',
+        love:
+          relation?.riskControl ||
+          '관계는 감정 속도보다 해석 일치가 먼저입니다. 확인 질문으로 오차를 줄이세요.',
+        wealth:
+          wealth?.riskControl || '재정은 금액·기한·취소조건을 체크리스트로 검증한 뒤 확정하세요.',
+        health:
+          health?.riskControl ||
+          '건강은 과속보다 회복 리듬 유지가 우선입니다. 피로 누적 신호를 선제적으로 차단하세요.',
+      },
+      actionPlan:
+        '오늘은 1) 끝낼 결과물 1개 정의 2) 외부 전달 전 조건·기한·책임 재확인 3) 당일 확정이 아닌 항목은 24시간 재검토 슬롯으로 이동의 3단계로 운영하세요.',
+      luckyElements: '행운 요소는 속도보다 순서입니다. 먼저 검증하고 이후 확정하세요.',
+    }
+  }
+
+  return {
+    overview:
+      timing?.thesis ||
+      'Today favors verification order over commitment speed. Separate decision timing from execution timing.',
+    energy:
+      health?.thesis ||
+      'Your energy pattern needs recovery-first pacing. Lock sleep, hydration, and routine before scaling workload.',
+    opportunities:
+      career?.thesis ||
+      'High-yield windows reward narrow-and-finish execution. Lock scope and ownership before expansion.',
+    cautions:
+      relation?.riskControl ||
+      'Communication drift can amplify loss. Add one-line confirmation before sending messages or documents.',
+    domains: {
+      career:
+        career?.riskControl ||
+        'For career, stabilize schedule, priorities, and deadlines before hard commitment.',
+      love:
+        relation?.riskControl ||
+        'In relationships, alignment quality beats emotional speed. Use confirmation questions.',
+      wealth:
+        wealth?.riskControl ||
+        'For money decisions, validate amount, due date, and cancellation terms before commit.',
+      health:
+        health?.riskControl ||
+        'For health, preserve recovery rhythm and cut overdrive before fatigue compounds.',
+    },
+    actionPlan:
+      'Execution sequence: 1) define one must-finish output, 2) verify scope/deadline/ownership before external delivery, 3) move non-urgent commitments into a 24h recheck slot.',
+    luckyElements:
+      'Your practical lucky element is disciplined sequencing: verify first, then commit.',
+  }
+}
+
+function buildThemedFallbackSections(
+  theme: ReportTheme,
+  synthesis: SignalSynthesisResult | undefined,
+  lang: 'ko' | 'en'
+): ThemedReportSections {
+  const claims = synthesis?.claims || []
+  const pick = (domain: string) => claims.find((claim) => claim.domain === domain)
+  const career = pick('career')
+  const relation = pick('relationship')
+  const wealth = pick('wealth')
+  const health = pick('health')
+  const personality = pick('personality')
+  const timing = pick('timing')
+
+  const baseKo: ThemedReportSections = {
+    deepAnalysis:
+      personality?.thesis ||
+      '핵심 성향은 빠른 판단과 검증 필요가 함께 작동하는 구조입니다. 확정 전 재확인 단계를 고정하면 변동성이 줄어듭니다.',
+    patterns:
+      '반복 패턴은 상승 신호와 주의 신호가 동시에 나타나는 형태입니다. 따라서 "확장 + 리스크관리"를 하나의 전략으로 묶어 운영하는 것이 유리합니다.',
+    timing:
+      timing?.thesis ||
+      '타이밍 전략은 당일 확정보다 단계적 검증에 강점이 있습니다. 오늘 결론, 내일 확정의 이중 단계가 안정적입니다.',
+    recommendations: [
+      career?.riskControl || '핵심 과업 1~2개를 먼저 완결하세요.',
+      relation?.riskControl || '대화/문서 전달 전 한 줄 요약 재확인을 넣으세요.',
+      wealth?.riskControl || '금액·기한·취소조건을 체크리스트로 검증하세요.',
+    ],
+    actionPlan:
+      '실행 순서는 1) 목표 1개 고정 2) 조건 재확인 3) 확정 분할입니다. 이 순서를 2주 유지하면 결과 재현성이 올라갑니다.',
+  }
+
+  switch (theme) {
+    case 'love':
+      return {
+        ...baseKo,
+        compatibility:
+          relation?.thesis ||
+          '관계 궁합은 감정 강도보다 해석 일치 여부가 핵심입니다. 서로의 기대를 문장으로 맞추면 갈등 비용이 줄어듭니다.',
+        spouseProfile:
+          '관계형 파트너와의 조합에서 장점이 커집니다. 다만 확정 속도가 빠르면 오해가 누적되므로 확인 질문 루틴이 필요합니다.',
+        marriageTiming:
+          timing?.riskControl ||
+          '중요 확정은 당일보다 24시간 검증 창을 둔 뒤 진행하는 방식이 더 안전합니다.',
+      }
+    case 'career':
+      return {
+        ...baseKo,
+        strategy:
+          career?.thesis ||
+          '커리어 전략은 폭넓은 시도보다 핵심 과업 완결 중심이 유리합니다. 역할·마감·책임의 명확화가 성과를 지킵니다.',
+        roleFit:
+          '의사결정과 구조화가 필요한 포지션에서 강점이 큽니다. 단, 속도전보다 품질 검증 프로세스가 필수입니다.',
+        turningPoints:
+          timing?.thesis ||
+          '전환점은 상승 신호와 조정 신호가 동시에 들어오는 구간에서 나타납니다. 확장과 재정의를 병행하세요.',
+      }
+    case 'wealth':
+      return {
+        ...baseKo,
+        strategy:
+          wealth?.thesis ||
+          '재정 전략은 수익 기대보다 현금흐름 안정과 조건 검증에 우선순위를 둬야 합니다.',
+        incomeStreams:
+          '수입원 다각화는 가능하지만, 새 채널 확정은 소규모 검증 후 확대가 안전합니다.',
+        riskManagement: wealth?.riskControl || '지출 상한과 손절 규칙을 먼저 정하고 실행하세요.',
+      }
+    case 'health':
+      return {
+        ...baseKo,
+        prevention:
+          health?.thesis ||
+          '예방의 핵심은 과부하 누적을 차단하는 것입니다. 수면·수분·회복 루틴을 일정에 고정하세요.',
+        riskWindows:
+          timing?.thesis ||
+          '리스크 구간은 일정 밀집과 커뮤니케이션 과부하가 겹칠 때 커집니다. 일정 분할로 충격을 줄이세요.',
+        recoveryPlan:
+          health?.riskControl ||
+          '회복 계획은 강도보다 지속성이 중요합니다. 2주 단위로 재점검하세요.',
+      }
+    case 'family':
+      return {
+        ...baseKo,
+        dynamics:
+          relation?.thesis ||
+          '가족 역학은 표현 속도 차이에서 오해가 커지기 쉽습니다. 맥락 정리 후 전달하는 방식이 유리합니다.',
+        communication:
+          relation?.riskControl ||
+          '결론 전달 전 상대 해석을 다시 확인하면 갈등 비용을 줄일 수 있습니다.',
+        legacy:
+          '세대 과제는 단기 성과보다 일관된 운영 원칙을 남기는 것입니다. 기준 문서화를 습관화하세요.',
+      }
+  }
+}
+
 // ===========================
 // ë©”ì¸ ìƒì„± í•¨ìˆ˜
 // ===========================
@@ -1043,6 +1747,12 @@ export async function generateAIPremiumReport(
     lang,
     profile: options.deterministicProfile,
   })
+  const signalSynthesis = synthesizeMatrixSignals({
+    lang,
+    matrixReport,
+    matrixSummary: options.matrixSummary,
+  })
+  const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang)
 
   const requestedChars =
     typeof options.targetChars === 'number' && Number.isFinite(options.targetChars)
@@ -1084,7 +1794,15 @@ export async function generateAIPremiumReport(
   try {
     for (const sectionKey of COMPREHENSIVE_SECTION_KEYS) {
       const anchor = sectionAnchors.get(sectionKey)
-      const factPack = buildSectionFactPack(sectionKey, anchor, matrixReport, input)
+      const factPack = buildSectionFactPack(
+        sectionKey,
+        anchor,
+        matrixReport,
+        input,
+        signalSynthesis,
+        strategyEngine,
+        lang
+      )
       const draftPrompt = buildSectionPrompt(sectionKey, factPack, lang, undefined, sectionMinChars)
 
       const draft = await callAIBackendGeneric<{ text: string }>(draftPrompt, lang, {
@@ -1151,7 +1869,8 @@ export async function generateAIPremiumReport(
       input,
       matrixReport,
       deterministicCore,
-      lang
+      lang,
+      signalSynthesis
     )
     for (const sectionKey of COMPREHENSIVE_SECTION_KEYS) {
       sections[sectionKey] = fallbackSections[sectionKey]
@@ -1286,7 +2005,10 @@ export async function generateAIPremiumReport(
             modelOverride: 'gpt-4o',
           }
         )
-        sections = repaired.sections as unknown as Record<string, unknown>
+        const candidateSections = repaired.sections as unknown
+        if (isComprehensiveSectionsPayload(candidateSections)) {
+          sections = candidateSections
+        }
         tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
         models.add(repaired.model)
 
@@ -1328,7 +2050,10 @@ export async function generateAIPremiumReport(
                 modelOverride: 'gpt-4o',
               }
             )
-            sections = second.sections as unknown as Record<string, unknown>
+            const secondCandidate = second.sections as unknown
+            if (isComprehensiveSectionsPayload(secondCandidate)) {
+              sections = secondCandidate
+            }
             tokensUsed = (tokensUsed || 0) + (second.tokensUsed || 0)
             models.add(second.model)
           } catch (error) {
@@ -1347,6 +2072,60 @@ export async function generateAIPremiumReport(
           plan: options.userPlan || 'free',
         })
       }
+    }
+  }
+
+  const comprehensiveSectionPaths = [...COMPREHENSIVE_SECTION_KEYS] as string[]
+  const comprehensiveEvidenceRefs = buildComprehensiveEvidenceRefs(signalSynthesis)
+  if (!usedDeterministicFallback) {
+    const evidenceCheck = validateEvidenceBinding(
+      sections,
+      comprehensiveSectionPaths,
+      comprehensiveEvidenceRefs
+    )
+    if (evidenceCheck.needsRepair && maxRepairPasses > 0) {
+      try {
+        const repairPrompt = buildEvidenceBindingRepairPrompt(
+          lang,
+          sections,
+          comprehensiveEvidenceRefs,
+          evidenceCheck.violations
+        )
+        const repaired = await callAIBackendGeneric<AIPremiumReport['sections']>(
+          repairPrompt,
+          lang,
+          {
+            userPlan: options.userPlan,
+            maxTokensOverride,
+            modelOverride: 'gpt-4o',
+          }
+        )
+        const candidate = repaired.sections as unknown
+        if (isComprehensiveSectionsPayload(candidate)) {
+          sections = candidate
+        }
+        tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
+        models.add(repaired.model)
+      } catch (error) {
+        logger.warn('[AI Report] Evidence-binding repair failed; keeping current sections', {
+          error: error instanceof Error ? error.message : String(error),
+          plan: options.userPlan || 'free',
+        })
+      }
+    }
+
+    const finalEvidenceCheck = validateEvidenceBinding(
+      sections,
+      comprehensiveSectionPaths,
+      comprehensiveEvidenceRefs
+    )
+    if (finalEvidenceCheck.needsRepair) {
+      sections = enforceEvidenceBindingFallback(
+        sections,
+        finalEvidenceCheck.violations,
+        comprehensiveEvidenceRefs,
+        lang
+      )
     }
   }
 
@@ -1400,6 +2179,7 @@ export async function generateAIPremiumReport(
 
     sections: sections as AIPremiumReport['sections'],
     graphRagEvidence,
+    evidenceRefs: comprehensiveEvidenceRefs,
     deterministicCore,
     renderedMarkdown: renderSectionsAsMarkdown(
       sections as Record<string, unknown>,
@@ -1437,6 +2217,8 @@ export async function generateAIPremiumReport(
       keyStrengths: safeKeyStrengths,
       keyChallenges: safeKeyChallenges,
     },
+    signalSynthesis,
+    strategyEngine,
 
     meta: {
       modelUsed: model,
@@ -1466,6 +2248,7 @@ export async function generateTimingReport(
     userPlan?: AIUserPlan
     userQuestion?: string
     deterministicProfile?: DeterministicProfile
+    matrixSummary?: MatrixSummary
   } = {}
 ): Promise<TimingAIPremiumReport> {
   const startTime = Date.now()
@@ -1481,9 +2264,21 @@ export async function generateTimingReport(
     lang,
     profile: options.deterministicProfile,
   })
+  const signalSynthesis = synthesizeMatrixSignals({
+    lang,
+    matrixReport,
+    matrixSummary: options.matrixSummary,
+  })
+  const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang)
   const inferredAge = inferAgeFromBirthDate(options.birthDate)
   const lifecyclePrompt = inferredAge !== null ? buildLifeCyclePromptBlock(inferredAge, lang) : ''
   const themeSchemaPrompt = buildThemeSchemaPromptBlock('comprehensive', lang)
+  const synthesisPromptBlock = buildSynthesisPromptBlock(
+    signalSynthesis,
+    strategyEngine,
+    lang,
+    'timing'
+  )
 
   // 1. ë§¤íŠ¸ë¦­ìŠ¤ ìš”ì•½ ë¹Œë“œ
   const matrixSummary = buildMatrixSummary(matrixReport, lang)
@@ -1504,13 +2299,29 @@ export async function generateTimingReport(
     graphRagEvidencePrompt,
     options.userQuestion,
     deterministicCore.promptBlock
-  )}\n\n${themeSchemaPrompt}\n\n${lifecyclePrompt}\n\n${buildDirectToneOverride(lang)}`
+  )}\n\n${themeSchemaPrompt}\n\n${lifecyclePrompt}\n\n${buildDirectToneOverride(lang)}\n\n${synthesisPromptBlock}`
 
   // 3. AI ë°±ì—”ë“œ í˜¸ì¶œ + í’ˆì§ˆ ê²Œì´íŠ¸(ê¸¸ì´/êµì°¨ ê·¼ê±°)
   const base = await callAIBackendGeneric<TimingReportSections>(prompt, lang, {
     userPlan: options.userPlan,
   })
-  let sections = base.sections as unknown as Record<string, unknown>
+  const timingRequiredPaths = [
+    'overview',
+    'energy',
+    'opportunities',
+    'cautions',
+    'domains.career',
+    'domains.love',
+    'domains.wealth',
+    'domains.health',
+    'actionPlan',
+  ]
+  let sections = hasRequiredSectionPaths(base.sections as unknown, timingRequiredPaths)
+    ? (base.sections as unknown as Record<string, unknown>)
+    : (buildTimingFallbackSections(input, signalSynthesis, lang) as unknown as Record<
+        string,
+        unknown
+      >)
   let model = base.model
   let tokensUsed = base.tokensUsed
   const maxRepairPasses = getMaxRepairPassesByPlan(options.userPlan)
@@ -1608,7 +2419,10 @@ export async function generateTimingReport(
       const repaired = await callAIBackendGeneric<TimingReportSections>(repairPrompt, lang, {
         userPlan: options.userPlan,
       })
-      sections = repaired.sections as unknown as Record<string, unknown>
+      const repairedSections = repaired.sections as unknown
+      if (hasRequiredSectionPaths(repairedSections, timingRequiredPaths)) {
+        sections = repairedSections as Record<string, unknown>
+      }
       model = repaired.model
       tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
 
@@ -1640,7 +2454,10 @@ export async function generateTimingReport(
           const second = await callAIBackendGeneric<TimingReportSections>(secondPrompt, lang, {
             userPlan: options.userPlan,
           })
-          sections = second.sections as unknown as Record<string, unknown>
+          const secondSections = second.sections as unknown
+          if (hasRequiredSectionPaths(secondSections, timingRequiredPaths)) {
+            sections = secondSections as Record<string, unknown>
+          }
           model = second.model
           tokensUsed = (tokensUsed || 0) + (second.tokensUsed || 0)
         } catch (error) {
@@ -1656,6 +2473,47 @@ export async function generateTimingReport(
         plan: options.userPlan || 'free',
       })
     }
+  }
+
+  const timingEvidenceRefs = buildTimingEvidenceRefs(sectionPaths, signalSynthesis)
+  const timingEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, timingEvidenceRefs)
+  if (timingEvidenceCheck.needsRepair && maxRepairPasses > 0) {
+    try {
+      const repairPrompt = buildEvidenceBindingRepairPrompt(
+        lang,
+        sections,
+        timingEvidenceRefs,
+        timingEvidenceCheck.violations
+      )
+      const repaired = await callAIBackendGeneric<TimingReportSections>(repairPrompt, lang, {
+        userPlan: options.userPlan,
+      })
+      const repairedSections = repaired.sections as unknown
+      if (hasRequiredSectionPaths(repairedSections, timingRequiredPaths)) {
+        sections = repairedSections as Record<string, unknown>
+      }
+      model = repaired.model
+      tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
+    } catch (error) {
+      logger.warn('[Timing Report] Evidence-binding repair failed; using current response', {
+        error: error instanceof Error ? error.message : String(error),
+        plan: options.userPlan || 'free',
+      })
+    }
+  }
+
+  const finalTimingEvidenceCheck = validateEvidenceBinding(
+    sections,
+    sectionPaths,
+    timingEvidenceRefs
+  )
+  if (finalTimingEvidenceCheck.needsRepair) {
+    sections = enforceEvidenceBindingFallback(
+      sections,
+      finalTimingEvidenceCheck.violations,
+      timingEvidenceRefs,
+      lang
+    )
   }
 
   // 4. ê¸°ê°„ ë¼ë²¨ ìƒì„±
@@ -1684,7 +2542,9 @@ export async function generateTimingReport(
     timingData,
     sections: sections as unknown as TimingReportSections,
     graphRagEvidence,
+    evidenceRefs: timingEvidenceRefs,
     deterministicCore,
+    strategyEngine,
     renderedMarkdown: renderSectionsAsMarkdown(
       sections as Record<string, unknown>,
       [
@@ -1742,6 +2602,7 @@ export async function generateThemedReport(
     userPlan?: AIUserPlan
     userQuestion?: string
     deterministicProfile?: DeterministicProfile
+    matrixSummary?: MatrixSummary
   } = {}
 ): Promise<ThemedAIPremiumReport> {
   const startTime = Date.now()
@@ -1756,9 +2617,22 @@ export async function generateThemedReport(
     lang,
     profile: options.deterministicProfile,
   })
+  const signalSynthesis = synthesizeMatrixSignals({
+    lang,
+    matrixReport,
+    matrixSummary: options.matrixSummary,
+  })
+  const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang)
   const inferredAge = inferAgeFromBirthDate(options.birthDate)
   const lifecyclePrompt = inferredAge !== null ? buildLifeCyclePromptBlock(inferredAge, lang) : ''
   const themeSchemaPrompt = buildThemeSchemaPromptBlock(theme, lang)
+  const synthesisPromptBlock = buildSynthesisPromptBlock(
+    signalSynthesis,
+    strategyEngine,
+    lang,
+    'themed',
+    theme
+  )
 
   // 1. ë§¤íŠ¸ë¦­ìŠ¤ ìš”ì•½ ë¹Œë“œ
   const matrixSummary = buildMatrixSummary(matrixReport, lang)
@@ -1780,13 +2654,19 @@ export async function generateThemedReport(
     graphRagEvidencePrompt,
     options.userQuestion,
     deterministicCore.promptBlock
-  )}\n\n${themeSchemaPrompt}\n\n${lifecyclePrompt}\n\n${buildDirectToneOverride(lang)}`
+  )}\n\n${themeSchemaPrompt}\n\n${lifecyclePrompt}\n\n${buildDirectToneOverride(lang)}\n\n${synthesisPromptBlock}`
 
   // 3. AI ë°±ì—”ë“œ í˜¸ì¶œ + í’ˆì§ˆ ê²Œì´íŠ¸(ê¸¸ì´/êµì°¨ ê·¼ê±°)
   const base = await callAIBackendGeneric<ThemedReportSections>(prompt, lang, {
     userPlan: options.userPlan,
   })
-  let sections = base.sections as unknown as Record<string, unknown>
+  const themedRequiredPaths = [...getThemedSectionKeys(theme)]
+  let sections = hasRequiredSectionPaths(base.sections as unknown, themedRequiredPaths)
+    ? (base.sections as unknown as Record<string, unknown>)
+    : (buildThemedFallbackSections(theme, signalSynthesis, lang) as unknown as Record<
+        string,
+        unknown
+      >)
   let model = base.model
   let tokensUsed = base.tokensUsed
   const maxRepairPasses = getMaxRepairPassesByPlan(options.userPlan)
@@ -1862,7 +2742,10 @@ export async function generateThemedReport(
       const repaired = await callAIBackendGeneric<ThemedReportSections>(repairPrompt, lang, {
         userPlan: options.userPlan,
       })
-      sections = repaired.sections as unknown as Record<string, unknown>
+      const repairedSections = repaired.sections as unknown
+      if (hasRequiredSectionPaths(repairedSections, themedRequiredPaths)) {
+        sections = repairedSections as Record<string, unknown>
+      }
       model = repaired.model
       tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
 
@@ -1896,7 +2779,10 @@ export async function generateThemedReport(
           const second = await callAIBackendGeneric<ThemedReportSections>(secondPrompt, lang, {
             userPlan: options.userPlan,
           })
-          sections = second.sections as unknown as Record<string, unknown>
+          const secondSections = second.sections as unknown
+          if (hasRequiredSectionPaths(secondSections, themedRequiredPaths)) {
+            sections = secondSections as Record<string, unknown>
+          }
           model = second.model
           tokensUsed = (tokensUsed || 0) + (second.tokensUsed || 0)
         } catch (error) {
@@ -1912,6 +2798,47 @@ export async function generateThemedReport(
         plan: options.userPlan || 'free',
       })
     }
+  }
+
+  const themedEvidenceRefs = buildThemedEvidenceRefs(theme, sectionPaths, signalSynthesis)
+  const themedEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, themedEvidenceRefs)
+  if (themedEvidenceCheck.needsRepair && maxRepairPasses > 0) {
+    try {
+      const repairPrompt = buildEvidenceBindingRepairPrompt(
+        lang,
+        sections,
+        themedEvidenceRefs,
+        themedEvidenceCheck.violations
+      )
+      const repaired = await callAIBackendGeneric<ThemedReportSections>(repairPrompt, lang, {
+        userPlan: options.userPlan,
+      })
+      const repairedSections = repaired.sections as unknown
+      if (hasRequiredSectionPaths(repairedSections, themedRequiredPaths)) {
+        sections = repairedSections as Record<string, unknown>
+      }
+      model = repaired.model
+      tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
+    } catch (error) {
+      logger.warn('[Themed Report] Evidence-binding repair failed; using current response', {
+        error: error instanceof Error ? error.message : String(error),
+        plan: options.userPlan || 'free',
+      })
+    }
+  }
+
+  const finalThemedEvidenceCheck = validateEvidenceBinding(
+    sections,
+    sectionPaths,
+    themedEvidenceRefs
+  )
+  if (finalThemedEvidenceCheck.needsRepair) {
+    sections = enforceEvidenceBindingFallback(
+      sections,
+      finalThemedEvidenceCheck.violations,
+      themedEvidenceRefs,
+      lang
+    )
   }
 
   // 4. í…Œë§ˆ ë©”íƒ€ë°ì´í„°
@@ -1942,7 +2869,9 @@ export async function generateThemedReport(
 
     sections: sections as unknown as ThemedReportSections,
     graphRagEvidence,
+    evidenceRefs: themedEvidenceRefs,
     deterministicCore,
+    strategyEngine,
     renderedMarkdown: renderSectionsAsMarkdown(
       sections as Record<string, unknown>,
       sectionPaths,
