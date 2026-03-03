@@ -2,11 +2,15 @@
 // AI 리포트 타입 정의
 
 import type { InsightDomain } from '../interpreter/types'
+import type { MatrixSummary } from '../types'
 import type { GraphRAGEvidenceBundle } from './graphRagEvidence'
 import type { CrossConsistencyAudit } from './crossConsistencyAudit'
 import type { DeterministicCoreOutput } from './deterministicCore'
 import type { DeterministicProfile } from './deterministicCoreConfig'
 import type { TimingData } from './types'
+import type { SignalSynthesisResult } from './signalSynthesizer'
+import type { SectionEvidenceRefs } from './evidenceRefs'
+import type { StrategyEngineResult } from './strategyEngine'
 
 export type AIUserPlan = 'free' | 'starter' | 'pro' | 'premium'
 
@@ -40,6 +44,7 @@ export interface AIPremiumReport {
 
   // GraphRAG evidence anchors used to ground generated sections
   graphRagEvidence?: GraphRAGEvidenceBundle
+  evidenceRefs: SectionEvidenceRefs
 
   // Cross consistency audit metadata
   crossConsistencyAudit?: CrossConsistencyAudit
@@ -57,6 +62,8 @@ export interface AIPremiumReport {
     keyStrengths: string[]
     keyChallenges: string[]
   }
+  signalSynthesis?: SignalSynthesisResult
+  strategyEngine?: StrategyEngineResult
 
   // 메타데이터
   meta: {
@@ -83,4 +90,5 @@ export interface AIReportGenerationOptions {
   deterministicCorePrompt?: string
   deterministicProfile?: DeterministicProfile
   timingData?: TimingData
+  matrixSummary?: MatrixSummary
 }

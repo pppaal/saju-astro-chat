@@ -1173,6 +1173,10 @@ export const POST = withApiMiddleware(
             userPlan,
             userQuestion,
             deterministicProfile,
+            matrixSummary:
+              matrix && typeof matrix === 'object' && 'summary' in matrix
+                ? (matrix.summary as typeof matrix.summary)
+                : undefined,
           }
         )
         const qualityAudit = evaluateThemedReportQuality({
@@ -1233,6 +1237,10 @@ export const POST = withApiMiddleware(
           userPlan,
           userQuestion,
           deterministicProfile,
+          matrixSummary:
+            matrix && typeof matrix === 'object' && 'summary' in matrix
+              ? (matrix.summary as typeof matrix.summary)
+              : undefined,
         })
       } else {
         // 기존 종합 리포트
@@ -1249,6 +1257,10 @@ export const POST = withApiMiddleware(
           userPlan,
           userQuestion,
           deterministicProfile,
+          matrixSummary:
+            matrix && typeof matrix === 'object' && 'summary' in matrix
+              ? (matrix.summary as typeof matrix.summary)
+              : undefined,
         })
         aiReport = premiumReport
       }

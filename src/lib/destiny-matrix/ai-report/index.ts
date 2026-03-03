@@ -39,3 +39,21 @@ export {
 } from './types'
 
 export { buildTimingPrompt, buildThemedPrompt } from './prompts'
+export {
+  synthesizeMatrixSignals,
+  buildSynthesisFactsForSection,
+  getDomainsForSection,
+  type SignalPolarity,
+  type SignalDomain,
+  type NormalizedSignal,
+  type SynthesizedClaim,
+  type SignalSynthesisResult,
+} from './signalSynthesizer'
+export { generateNarrativeSectionsFromSynthesis } from './narrativeGenerator'
+export type { ReportEvidenceRef, SectionEvidenceRefs } from './evidenceRefs'
+export {
+  buildPhaseStrategyEngine,
+  type StrategyPhaseCode,
+  type StrategyEngineResult,
+  type DomainStrategy,
+} from './strategyEngine'

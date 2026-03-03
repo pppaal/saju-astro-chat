@@ -5,6 +5,8 @@ import type { InsightDomain } from '../interpreter/types'
 import type { GraphRAGEvidenceBundle } from './graphRagEvidence'
 import type { CrossConsistencyAudit } from './crossConsistencyAudit'
 import type { DeterministicCoreOutput } from './deterministicCore'
+import type { SectionEvidenceRefs } from './evidenceRefs'
+import type { StrategyEngineResult } from './strategyEngine'
 
 // ===========================
 // 기간별/테마별 옵션
@@ -165,6 +167,7 @@ export interface TimingAIPremiumReport {
 
   // GraphRAG evidence anchors used to ground generated sections
   graphRagEvidence?: GraphRAGEvidenceBundle
+  evidenceRefs: SectionEvidenceRefs
 
   // Cross consistency audit metadata
   crossConsistencyAudit?: CrossConsistencyAudit
@@ -173,6 +176,7 @@ export interface TimingAIPremiumReport {
   renderedMarkdown?: string
   renderedText?: string
   deterministicCore?: DeterministicCoreOutput
+  strategyEngine?: StrategyEngineResult
 
   // 점수
   periodScore: {
@@ -219,6 +223,7 @@ export interface ThemedAIPremiumReport {
 
   // GraphRAG evidence anchors used to ground generated sections
   graphRagEvidence?: GraphRAGEvidenceBundle
+  evidenceRefs: SectionEvidenceRefs
 
   // Cross consistency audit metadata
   crossConsistencyAudit?: CrossConsistencyAudit
@@ -227,6 +232,7 @@ export interface ThemedAIPremiumReport {
   renderedMarkdown?: string
   renderedText?: string
   deterministicCore?: DeterministicCoreOutput
+  strategyEngine?: StrategyEngineResult
 
   // 테마별 점수
   themeScore: {

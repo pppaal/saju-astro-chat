@@ -321,6 +321,41 @@ const HIGH_RISK_TRANSIT_TOKENS = [
   'harmonics',
 ]
 
+const REWRITE_STOP_WORDS = new Set([
+  '그리고',
+  '하지만',
+  '또한',
+  '또는',
+  '그러나',
+  '따라서',
+  '또',
+  '이때',
+  '현재',
+  '오늘',
+  '이번',
+  '구간',
+  '흐름',
+  '기준',
+  '에서',
+  '으로',
+  '입니다',
+  '합니다',
+  'the',
+  'and',
+  'with',
+  'for',
+  'this',
+  'that',
+  'from',
+  'into',
+  'your',
+  'today',
+  'phase',
+  'strategy',
+])
+
+const FORCE_REWRITE_ONLY_MODE = true
+
 function compactToken(value: string): string {
   return value
     .toLowerCase()
@@ -617,6 +652,182 @@ function enforceEvidenceBindingFallback(
     setPathText(next, violation.path, cleaned)
   }
   return next
+}
+
+function tokenizeRewrite(text: string): string[] {
+  if (!text) return []
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s:_+-]/gu, ' ')
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2 && !REWRITE_STOP_WORDS.has(token))
+}
+
+function buildAllowedRewriteTokenSet(
+  draftSections: Record<string, unknown>,
+  sectionPaths: string[],
+  evidenceRefs: SectionEvidenceRefs
+): Set<string> {
+  const allowed = buildAllowedHighRiskTokenSet(evidenceRefs)
+  for (const path of sectionPaths) {
+    const text = getPathText(draftSections, path)
+    for (const token of tokenizeRewrite(text)) {
+      allowed.add(token)
+    }
+    const refs = evidenceRefs[path] || []
+    for (const ref of refs) {
+      for (const token of [
+        ...tokenizeRewrite(ref.id || ''),
+        ...tokenizeRewrite(ref.rowKey || ''),
+        ...tokenizeRewrite(ref.colKey || ''),
+        ...tokenizeRewrite(ref.keyword || ''),
+        ...tokenizeRewrite(ref.sajuBasis || ''),
+        ...tokenizeRewrite(ref.astroBasis || ''),
+      ]) {
+        allowed.add(token)
+      }
+    }
+  }
+  return allowed
+}
+
+function validateRewriteOnlyOutput(
+  draftSections: Record<string, unknown>,
+  rewrittenSections: Record<string, unknown>,
+  sectionPaths: string[],
+  evidenceRefs: SectionEvidenceRefs
+): { pass: boolean; reasons: string[] } {
+  const reasons: string[] = []
+  const allowedTokens = buildAllowedRewriteTokenSet(draftSections, sectionPaths, evidenceRefs)
+  const evidenceCheck = validateEvidenceBinding(rewrittenSections, sectionPaths, evidenceRefs)
+  if (evidenceCheck.needsRepair) {
+    reasons.push(
+      ...evidenceCheck.violations.map(
+        (violation) =>
+          `evidence-mismatch:${violation.path}:missing=${violation.missingBinding}:unsupported=${violation.unsupportedTokens.join('|')}`
+      )
+    )
+  }
+
+  for (const path of sectionPaths) {
+    const draftText = getPathText(draftSections, path)
+    const rewrittenText = getPathText(rewrittenSections, path)
+    if (!draftText || !rewrittenText) continue
+    const rewrittenTokens = tokenizeRewrite(rewrittenText)
+    const newTokens = rewrittenTokens.filter((token) => !allowedTokens.has(token))
+    if (newTokens.length > 0) {
+      reasons.push(`new-token:${path}:${newTokens.slice(0, 12).join(',')}`)
+    }
+  }
+  return { pass: reasons.length === 0, reasons }
+}
+
+function buildRewriteOnlyPrompt(
+  lang: 'ko' | 'en',
+  draftSections: Record<string, unknown>,
+  evidenceRefs: SectionEvidenceRefs,
+  sectionPaths: string[],
+  minCharsPerSection: number
+): string {
+  const payload = JSON.stringify(draftSections, null, 2)
+  const refs = JSON.stringify(evidenceRefs, null, 2)
+  if (lang === 'ko') {
+    return [
+      '당신은 리라이팅 전용 에디터입니다.',
+      '아래 draft JSON을 한국어 문장만 자연스럽게 다듬으세요.',
+      '절대 규칙:',
+      '- 새 정보/새 해석/새 개념 추가 금지',
+      '- 고유명사(십신/신살/행성/하우스/요소)는 원문 그대로 유지',
+      '- evidenceRefs에 없는 엔티티/요일/트랜짓/행성/각 추가 금지',
+      '- 섹션 키 구조 유지',
+      '- 각 섹션 최소 길이 유지',
+      `- 최소 길이: ${minCharsPerSection}자`,
+      `- 대상 섹션: ${sectionPaths.join(', ')}`,
+      'evidenceRefs:',
+      refs,
+      'draft:',
+      payload,
+      'JSON만 반환',
+    ].join('\n')
+  }
+  return [
+    'You are a rewrite-only editor.',
+    'Polish the Korean draft JSON text naturally without changing meaning.',
+    'Hard rules:',
+    '- No new facts, no new interpretation, no new concepts',
+    '- Keep proper entities exactly as in draft',
+    '- Do not add entities/weekday/transit/planet/aspect beyond evidenceRefs',
+    '- Keep section keys and structure unchanged',
+    `- Keep minimum ${minCharsPerSection} chars per section`,
+    `- Target sections: ${sectionPaths.join(', ')}`,
+    'evidenceRefs:',
+    refs,
+    'draft:',
+    payload,
+    'Return JSON only',
+  ].join('\n')
+}
+
+async function rewriteSectionsWithFallback<T extends object>(args: {
+  lang: 'ko' | 'en'
+  userPlan?: AIUserPlan
+  draftSections: T
+  evidenceRefs: SectionEvidenceRefs
+  sectionPaths: string[]
+  requiredPaths: string[]
+  minCharsPerSection: number
+}): Promise<{ sections: T; modelUsed: string; tokensUsed: number }> {
+  const {
+    lang,
+    userPlan,
+    draftSections,
+    evidenceRefs,
+    sectionPaths,
+    requiredPaths,
+    minCharsPerSection,
+  } = args
+  const prompt = buildRewriteOnlyPrompt(
+    lang,
+    draftSections as unknown as Record<string, unknown>,
+    evidenceRefs,
+    sectionPaths,
+    minCharsPerSection
+  )
+  try {
+    const rewritten = await callAIBackendGeneric<T>(prompt, lang, {
+      userPlan,
+      modelOverride: 'gpt-4o-mini',
+    })
+    const candidate = rewritten.sections as unknown
+    if (!hasRequiredSectionPaths(candidate, requiredPaths)) {
+      return {
+        sections: draftSections,
+        modelUsed: 'rewrite-fallback-required-paths',
+        tokensUsed: 0,
+      }
+    }
+    const candidateSections = candidate as Record<string, unknown>
+    const check = validateRewriteOnlyOutput(
+      draftSections as unknown as Record<string, unknown>,
+      candidateSections,
+      sectionPaths,
+      evidenceRefs
+    )
+    if (!check.pass) {
+      return { sections: draftSections, modelUsed: 'rewrite-fallback-validator', tokensUsed: 0 }
+    }
+    return {
+      sections: candidate as T,
+      modelUsed: rewritten.model || 'gpt-4o-mini',
+      tokensUsed: rewritten.tokensUsed || 0,
+    }
+  } catch (error) {
+    logger.warn('[AI Report] Rewrite-only call failed; using deterministic draft', {
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return { sections: draftSections, modelUsed: 'rewrite-fallback-error', tokensUsed: 0 }
+  }
 }
 
 function getShortSectionPaths(
@@ -1754,6 +1965,104 @@ export async function generateAIPremiumReport(
   })
   const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang)
 
+  if (FORCE_REWRITE_ONLY_MODE) {
+    const draftSections = buildComprehensiveFallbackSections(
+      input,
+      matrixReport,
+      deterministicCore,
+      lang,
+      signalSynthesis
+    )
+    const evidenceRefs = buildComprehensiveEvidenceRefs(signalSynthesis)
+    const sectionPaths = [...COMPREHENSIVE_SECTION_KEYS] as string[]
+    const rewrite = await rewriteSectionsWithFallback<AIPremiumReport['sections']>({
+      lang,
+      userPlan: options.userPlan,
+      draftSections,
+      evidenceRefs,
+      sectionPaths,
+      requiredPaths: sectionPaths,
+      minCharsPerSection: lang === 'ko' ? 280 : 220,
+    })
+    let sections = rewrite.sections as unknown as Record<string, unknown>
+    const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
+    if (finalEvidenceCheck.needsRepair) {
+      sections = enforceEvidenceBindingFallback(
+        sections,
+        finalEvidenceCheck.violations,
+        evidenceRefs,
+        lang
+      )
+    }
+
+    const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
+    const keyStrengths = (matrixReport.topInsights || [])
+      .filter((i) => i.category === 'strength')
+      .slice(0, 3)
+      .map((i) => i.title)
+    const keyChallenges = (matrixReport.topInsights || [])
+      .filter((i) => i.category === 'challenge' || i.category === 'caution')
+      .slice(0, 3)
+      .map((i) => i.title)
+    const domainFallback = [...(matrixReport.domainAnalysis || [])]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map((d) =>
+        lang === 'ko' ? `${d.domain} 강점(${d.score})` : `${d.domain} strength (${d.score})`
+      )
+    const anchorFallback = (graphRagEvidence.anchors || [])
+      .slice(0, 3)
+      .map((a) =>
+        lang === 'ko' ? `${a.section} 섹션 근거 정렬` : `${a.section} section evidence alignment`
+      )
+    const safeTopInsights = topInsights.length > 0 ? topInsights : anchorFallback
+    const safeKeyStrengths = keyStrengths.length > 0 ? keyStrengths : domainFallback
+    const safeKeyChallenges =
+      keyChallenges.length > 0
+        ? keyChallenges
+        : lang === 'ko'
+          ? ['주의 신호 검토 필요', '확정 전 재확인 필요', '커뮤니케이션 리스크 점검']
+          : [
+              'Caution signals require review',
+              'Recheck before final commitment',
+              'Communication risk check',
+            ]
+
+    return {
+      id: `air_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      generatedAt: new Date().toISOString(),
+      lang,
+      profile: {
+        name: options.name,
+        birthDate: options.birthDate,
+        dayMaster: input.dayMasterElement,
+        dominantElement: input.dominantWesternElement || input.dayMasterElement,
+        geokguk: input.geokguk,
+      },
+      sections: sections as AIPremiumReport['sections'],
+      graphRagEvidence,
+      evidenceRefs,
+      deterministicCore,
+      renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
+      renderedText: renderSectionsAsText(sections, sectionPaths),
+      matrixSummary: {
+        overallScore: matrixReport.overallScore.total,
+        grade: matrixReport.overallScore.grade,
+        topInsights: safeTopInsights,
+        keyStrengths: safeKeyStrengths,
+        keyChallenges: safeKeyChallenges,
+      },
+      signalSynthesis,
+      strategyEngine,
+      meta: {
+        modelUsed: rewrite.modelUsed,
+        tokensUsed: rewrite.tokensUsed,
+        processingTime: Math.max(1, Date.now() - startTime),
+        reportVersion: '1.1.0-rewrite-only',
+      },
+    }
+  }
+
   const requestedChars =
     typeof options.targetChars === 'number' && Number.isFinite(options.targetChars)
       ? Math.max(3500, Math.min(32000, Math.floor(options.targetChars)))
@@ -2270,6 +2579,84 @@ export async function generateTimingReport(
     matrixSummary: options.matrixSummary,
   })
   const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang)
+
+  if (FORCE_REWRITE_ONLY_MODE) {
+    const sectionPaths = [
+      'overview',
+      'energy',
+      'opportunities',
+      'cautions',
+      'domains.career',
+      'domains.love',
+      'domains.wealth',
+      'domains.health',
+      'actionPlan',
+      'luckyElements',
+    ]
+    const requiredPaths = [
+      'overview',
+      'energy',
+      'opportunities',
+      'cautions',
+      'domains.career',
+      'domains.love',
+      'domains.wealth',
+      'domains.health',
+      'actionPlan',
+    ]
+    const draftSections = buildTimingFallbackSections(input, signalSynthesis, lang)
+    const evidenceRefs = buildTimingEvidenceRefs(sectionPaths, signalSynthesis)
+    const rewrite = await rewriteSectionsWithFallback<TimingReportSections>({
+      lang,
+      userPlan: options.userPlan,
+      draftSections,
+      evidenceRefs,
+      sectionPaths,
+      requiredPaths,
+      minCharsPerSection: lang === 'ko' ? 220 : 180,
+    })
+    let sections = rewrite.sections as unknown as Record<string, unknown>
+    const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
+    if (finalEvidenceCheck.needsRepair) {
+      sections = enforceEvidenceBindingFallback(
+        sections,
+        finalEvidenceCheck.violations,
+        evidenceRefs,
+        lang
+      )
+    }
+    const periodLabel = generatePeriodLabel(period, targetDate, lang)
+    const periodScore = calculatePeriodScore(timingData, input.dayMasterElement)
+    return {
+      id: `timing_${period}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      generatedAt: new Date().toISOString(),
+      lang,
+      profile: {
+        name: options.name,
+        birthDate: options.birthDate,
+        dayMaster: input.dayMasterElement,
+        dominantElement: input.dominantWesternElement || input.dayMasterElement,
+      },
+      period,
+      targetDate,
+      periodLabel,
+      timingData,
+      sections: sections as unknown as TimingReportSections,
+      graphRagEvidence,
+      evidenceRefs,
+      deterministicCore,
+      strategyEngine,
+      renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
+      renderedText: renderSectionsAsText(sections, sectionPaths),
+      periodScore,
+      meta: {
+        modelUsed: rewrite.modelUsed,
+        tokensUsed: rewrite.tokensUsed,
+        processingTime: Math.max(1, Date.now() - startTime),
+        reportVersion: '1.1.0-rewrite-only',
+      },
+    }
+  }
   const inferredAge = inferAgeFromBirthDate(options.birthDate)
   const lifecyclePrompt = inferredAge !== null ? buildLifeCyclePromptBlock(inferredAge, lang) : ''
   const themeSchemaPrompt = buildThemeSchemaPromptBlock('comprehensive', lang)
@@ -2623,6 +3010,64 @@ export async function generateThemedReport(
     matrixSummary: options.matrixSummary,
   })
   const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang)
+
+  if (FORCE_REWRITE_ONLY_MODE) {
+    const sectionPaths = [...getThemedSectionKeys(theme)]
+    const requiredPaths = [...sectionPaths]
+    const draftSections = buildThemedFallbackSections(theme, signalSynthesis, lang)
+    const evidenceRefs = buildThemedEvidenceRefs(theme, sectionPaths, signalSynthesis)
+    const rewrite = await rewriteSectionsWithFallback<ThemedReportSections>({
+      lang,
+      userPlan: options.userPlan,
+      draftSections,
+      evidenceRefs,
+      sectionPaths,
+      requiredPaths,
+      minCharsPerSection: lang === 'ko' ? 220 : 180,
+    })
+    let sections = rewrite.sections as unknown as Record<string, unknown>
+    const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
+    if (finalEvidenceCheck.needsRepair) {
+      sections = enforceEvidenceBindingFallback(
+        sections,
+        finalEvidenceCheck.violations,
+        evidenceRefs,
+        lang
+      )
+    }
+    const themeMeta = THEME_META[theme]
+    const themeScore = calculateThemeScore(theme, input.sibsinDistribution)
+    const keywords = extractKeywords(sections as unknown as ThemedReportSections, theme, lang)
+    return {
+      id: `themed_${theme}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      generatedAt: new Date().toISOString(),
+      lang,
+      profile: {
+        name: options.name,
+        birthDate: options.birthDate,
+        dayMaster: input.dayMasterElement,
+        dominantElement: input.dominantWesternElement || input.dayMasterElement,
+      },
+      theme,
+      themeLabel: themeMeta.label[lang],
+      themeEmoji: themeMeta.emoji,
+      sections: sections as unknown as ThemedReportSections,
+      graphRagEvidence,
+      evidenceRefs,
+      deterministicCore,
+      strategyEngine,
+      renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
+      renderedText: renderSectionsAsText(sections, sectionPaths),
+      themeScore,
+      keywords,
+      meta: {
+        modelUsed: rewrite.modelUsed,
+        tokensUsed: rewrite.tokensUsed,
+        processingTime: Math.max(1, Date.now() - startTime),
+        reportVersion: '1.1.0-rewrite-only',
+      },
+    }
+  }
   const inferredAge = inferAgeFromBirthDate(options.birthDate)
   const lifecyclePrompt = inferredAge !== null ? buildLifeCyclePromptBlock(inferredAge, lang) : ''
   const themeSchemaPrompt = buildThemeSchemaPromptBlock(theme, lang)
