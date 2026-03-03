@@ -128,6 +128,38 @@ function collectDestinyMapMissing(
   return missing
 }
 
+function ensureCrossHighlightsSummary(
+  report: {
+    summary?: string
+    crossHighlights?: { summary?: string; points?: string[] }
+  },
+  lang: 'ko' | 'en'
+): void {
+  const hasSummary =
+    typeof report.crossHighlights?.summary === 'string' &&
+    report.crossHighlights.summary.trim().length > 0
+  if (hasSummary) {
+    return
+  }
+
+  const fallbackSummary =
+    report.summary?.trim() ||
+    (lang === 'ko'
+      ? '핵심 흐름은 이미 계산된 사주·점성 근거를 바탕으로 안정적으로 유지됩니다.'
+      : 'Core flow remains stable based on the calculated Saju and astrology evidence.')
+  const fallbackPoint =
+    lang === 'ko'
+      ? '세부 근거는 리포트 본문과 구조화 데이터에서 함께 확인할 수 있습니다.'
+      : 'Detailed evidence is available in the report body and structured data.'
+
+  report.crossHighlights = {
+    summary: fallbackSummary,
+    points: report.crossHighlights?.points?.length
+      ? report.crossHighlights.points
+      : [fallbackPoint],
+  }
+}
+
 /**
  * POST /api/destiny-map
  * Generate a themed destiny-map report using astro + saju inputs.
@@ -266,6 +298,7 @@ export const POST = withApiMiddleware(
     if (report.crossHighlights?.summary) {
       report.crossHighlights.summary = sanitizeLocaleText(report.crossHighlights.summary, cleanLang)
     }
+    ensureCrossHighlightsSummary(report, cleanLang)
     const strictCompleteness = process.env.NODE_ENV !== 'test'
     if (strictCompleteness && report.meta?.modelUsed !== 'filtered') {
       const missing = collectDestinyMapMissing(

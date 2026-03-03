@@ -205,7 +205,20 @@ export default function PremiumReportsPage() {
 
   const handleGeneratePremium = async () => {
     if (status !== 'authenticated') {
-      router.push('/auth/signin?callbackUrl=/premium-reports')
+      const signinUrl = '/auth/signin?callbackUrl=/premium-reports'
+      try {
+        router.push(signinUrl)
+        // Fallback navigation if app-router transition is blocked
+        setTimeout(() => {
+          if (typeof window !== 'undefined' && window.location.pathname === '/premium-reports') {
+            window.location.assign(signinUrl)
+          }
+        }, 350)
+      } catch {
+        if (typeof window !== 'undefined') {
+          window.location.assign(signinUrl)
+        }
+      }
       return
     }
 

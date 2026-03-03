@@ -26,11 +26,29 @@ function warnOnce(key: keyof typeof warned, message: string): void {
   }
 }
 
+function normalizeBackendEnvUrl(value?: string | null): string {
+  if (typeof value !== 'string') return ''
+  let normalized = value.trim()
+  if (!normalized) return ''
+
+  // Remove accidental wrapping quotes/spaces from env values.
+  normalized = normalized.replace(/^['"`\s]+|['"`\s]+$/g, '')
+  normalized = normalized.replace(/["']/g, '')
+  normalized = normalized.replace(/\s+/g, '')
+
+  // Heal malformed protocol values such as "https:/host".
+  normalized = normalized.replace(/^https:\/(?!\/)/i, 'https://')
+  normalized = normalized.replace(/^http:\/(?!\/)/i, 'http://')
+
+  // Keep URL joins predictable.
+  normalized = normalized.replace(/\/+$/g, '')
+  return normalized
+}
+
 export function getBackendUrl(): string {
-  const normalize = (value?: string | null) => (typeof value === 'string' ? value.trim() : '')
-  const aiBackend = normalize(process.env.AI_BACKEND_URL)
-  const legacyBackend = normalize(process.env.BACKEND_AI_URL)
-  const publicBackend = normalize(process.env.NEXT_PUBLIC_AI_BACKEND)
+  const aiBackend = normalizeBackendEnvUrl(process.env.AI_BACKEND_URL)
+  const legacyBackend = normalizeBackendEnvUrl(process.env.BACKEND_AI_URL)
+  const publicBackend = normalizeBackendEnvUrl(process.env.NEXT_PUBLIC_AI_BACKEND)
 
   const hasExplicitBackend = Boolean(aiBackend) || Boolean(legacyBackend) || Boolean(publicBackend)
 
@@ -66,5 +84,5 @@ export function getBackendUrl(): string {
 }
 
 export function getPublicBackendUrl(): string {
-  return process.env.NEXT_PUBLIC_AI_BACKEND || 'http://localhost:5000'
+  return normalizeBackendEnvUrl(process.env.NEXT_PUBLIC_AI_BACKEND) || 'http://localhost:5000'
 }
