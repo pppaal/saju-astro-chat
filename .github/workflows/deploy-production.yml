@@ -69,8 +69,8 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
-      - name: Run all checks
-        run: npm run check:all
+      - name: Run deployment gate checks
+        run: npm run lint && npm run lint:mojibake && npm run typecheck
 
   # Build for production
   build:

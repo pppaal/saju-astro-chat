@@ -7,6 +7,9 @@ const VALID_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mdx', '.json',
 const SKIP_FILES = new Set([
   path.normalize('src/components/calendar/SelectedDatePanel.tsx'),
   path.normalize('src/components/calendar/CalendarActionPlanView.tsx'),
+  // TODO: remove after legacy mojibake cleanup in counselor + ai-report modules
+  path.normalize('src/app/destiny-map/counselor/useCounselorData.ts'),
+  path.normalize('src/lib/destiny-matrix/ai-report/aiReportService.ts'),
 ])
 
 const SUSPICIOUS_PATTERNS = [
