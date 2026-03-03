@@ -35,6 +35,7 @@ function normalizeBackendEnvUrl(value?: string | null): string {
   normalized = normalized.replace(/^['"`\s]+|['"`\s]+$/g, '')
   normalized = normalized.replace(/["']/g, '')
   normalized = normalized.replace(/\s+/g, '')
+  normalized = normalized.replace(/^\/+(?=https?:)/i, '')
 
   // Heal malformed protocol values such as "https:/host".
   normalized = normalized.replace(/^https:\/(?!\/)/i, 'https://')
