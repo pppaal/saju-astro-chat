@@ -1,6 +1,25 @@
-import type { SignalDomain, SignalSynthesisResult } from './signalSynthesizer'
+﻿import type { SignalDomain, SignalSynthesisResult } from './signalSynthesizer'
+import { STRATEGY_ENGINE_TUNING, type StrategyDomainWeightConfig } from './strategyEngineConfig'
 
-export type StrategyPhaseCode = 'expansion' | 'expansion_guarded' | 'stabilize' | 'defensive_reset'
+export type StrategyPhaseCode =
+  | 'expansion'
+  | 'high_tension_expansion'
+  | 'expansion_guarded'
+  | 'stabilize'
+  | 'defensive_reset'
+
+export interface StrategyTimingContext {
+  daeunActive?: boolean
+  seunActive?: boolean
+  activeTransitCount?: number
+}
+
+export interface StrategyDomainWeights {
+  strengthWeight: number
+  cautionWeight: number
+  balanceWeight: number
+  volatilityWeight: number
+}
 
 export interface DomainStrategy {
   domain: SignalDomain
@@ -16,8 +35,12 @@ export interface DomainStrategy {
     strengthScore: number
     cautionScore: number
     balanceScore: number
+    effectiveStrength: number
+    effectiveCaution: number
+    effectiveBalance: number
     volatility: number
     momentum: number
+    timeActivation: number
   }
 }
 
@@ -42,6 +65,7 @@ function phaseLabel(phase: StrategyPhaseCode, lang: 'ko' | 'en'): string {
   if (lang === 'ko') {
     const map: Record<StrategyPhaseCode, string> = {
       expansion: '확장 국면',
+      high_tension_expansion: '고긴장 확장 국면',
       expansion_guarded: '확장+리스크관리 국면',
       stabilize: '안정화 국면',
       defensive_reset: '방어/재정렬 국면',
@@ -50,6 +74,7 @@ function phaseLabel(phase: StrategyPhaseCode, lang: 'ko' | 'en'): string {
   }
   const map: Record<StrategyPhaseCode, string> = {
     expansion: 'Expansion Phase',
+    high_tension_expansion: 'High-Tension Expansion',
     expansion_guarded: 'Expansion with Guardrails',
     stabilize: 'Stabilization Phase',
     defensive_reset: 'Defensive Reset Phase',
@@ -74,31 +99,101 @@ function domainLabel(domain: SignalDomain, lang: 'ko' | 'en'): string {
   return domain
 }
 
+function toWeights(cfg: StrategyDomainWeightConfig): StrategyDomainWeights {
+  return {
+    strengthWeight: cfg.strengthWeight,
+    cautionWeight: cfg.cautionWeight,
+    balanceWeight: cfg.balanceWeight,
+    volatilityWeight: cfg.volatilityWeight,
+  }
+}
+
+function getDomainWeights(domain: SignalDomain): StrategyDomainWeights {
+  if (domain === 'career') return toWeights(STRATEGY_ENGINE_TUNING.domainWeights.career)
+  if (domain === 'relationship') return toWeights(STRATEGY_ENGINE_TUNING.domainWeights.relationship)
+  if (domain === 'health') return toWeights(STRATEGY_ENGINE_TUNING.domainWeights.health)
+  return toWeights(STRATEGY_ENGINE_TUNING.domainWeights.default)
+}
+
+function computeTimeActivation(context?: StrategyTimingContext): number {
+  const daeun = context?.daeunActive ? STRATEGY_ENGINE_TUNING.timeActivation.daeunMultiplier : 1
+  const seun = context?.seunActive ? STRATEGY_ENGINE_TUNING.timeActivation.seunMultiplier : 1
+  const transit =
+    (context?.activeTransitCount || 0) > 0
+      ? STRATEGY_ENGINE_TUNING.timeActivation.transitMultiplier
+      : 1
+  return daeun * seun * transit
+}
+
 function decidePhase(
   strengthScore: number,
   cautionScore: number,
-  balanceScore: number
+  balanceScore: number,
+  volatility: number
 ): StrategyPhaseCode {
-  if (strengthScore >= 8 && cautionScore <= 3) return 'expansion'
-  if (strengthScore >= 6 && cautionScore >= 5) return 'expansion_guarded'
-  if (cautionScore >= 7 && strengthScore <= 4) return 'defensive_reset'
+  const rules = STRATEGY_ENGINE_TUNING.phaseRules
+  if (
+    strengthScore >= rules.highTensionExpansion.minStrength &&
+    cautionScore >= rules.highTensionExpansion.minCaution
+  ) {
+    return 'high_tension_expansion'
+  }
+  if (strengthScore >= rules.expansion.minStrength && cautionScore <= rules.expansion.maxCaution) {
+    return 'expansion'
+  }
+  if (
+    strengthScore >= rules.expansionGuarded.minStrength &&
+    cautionScore >= rules.expansionGuarded.minCaution
+  ) {
+    return 'expansion_guarded'
+  }
+  if (
+    cautionScore >= rules.defensiveReset.minCaution &&
+    strengthScore <= rules.defensiveReset.maxStrength
+  ) {
+    return 'defensive_reset'
+  }
+  if (
+    strengthScore <= rules.lowMomentumReset.maxStrength &&
+    volatility >= rules.lowMomentumReset.minVolatility
+  ) {
+    return 'defensive_reset'
+  }
   if (cautionScore > strengthScore) return 'stabilize'
-  if (balanceScore >= 6 && cautionScore >= 5) return 'stabilize'
+  if (balanceScore >= rules.stabilize.minBalance && cautionScore >= rules.stabilize.minCaution) {
+    return 'stabilize'
+  }
   return 'expansion_guarded'
 }
 
 function computeAttackPercent(
   phase: StrategyPhaseCode,
-  strengthScore: number,
-  cautionScore: number,
-  balanceScore: number
+  momentum: number,
+  volatility: number,
+  balanceScore: number,
+  domain: SignalDomain
 ): number {
-  let attack = 50 + (strengthScore - cautionScore) * 6 + balanceScore * 1.8
-  if (phase === 'expansion') attack = Math.max(65, attack)
-  if (phase === 'expansion_guarded') attack = clamp(attack, 55, 72)
-  if (phase === 'stabilize') attack = clamp(attack, 45, 58)
-  if (phase === 'defensive_reset') attack = Math.min(40, attack)
-  return round(clamp(attack, 20, 80))
+  const weights = getDomainWeights(domain)
+  const formula = STRATEGY_ENGINE_TUNING.attackFormula
+  let attack =
+    formula.base +
+    momentum * formula.momentumCoeff -
+    (volatility - 1) * (formula.volatilityCoeff * weights.volatilityWeight) +
+    balanceScore * formula.balanceCoeff
+
+  if (phase === 'expansion') attack = Math.max(formula.expansionMin, attack)
+  if (phase === 'high_tension_expansion') {
+    attack = clamp(attack, formula.highTensionRange.min, formula.highTensionRange.max)
+  }
+  if (phase === 'expansion_guarded') {
+    attack = clamp(attack, formula.expansionGuardedRange.min, formula.expansionGuardedRange.max)
+  }
+  if (phase === 'stabilize') {
+    attack = clamp(attack, formula.stabilizeRange.min, formula.stabilizeRange.max)
+  }
+  if (phase === 'defensive_reset') attack = Math.min(formula.defensiveResetMax, attack)
+
+  return round(clamp(attack, formula.min, formula.max))
 }
 
 function buildDomainThesis(
@@ -109,20 +204,27 @@ function buildDomainThesis(
   const d = domainLabel(domain, lang)
   if (lang === 'ko') {
     if (phase === 'expansion') return `${d}은 확장 신호가 우세해 주도적으로 밀어도 됩니다.`
-    if (phase === 'expansion_guarded')
+    if (phase === 'high_tension_expansion') {
+      return `${d}은 가속 확장이 가능하지만 긴장도가 높아 확정 전 위험 항목 검증이 필수입니다.`
+    }
+    if (phase === 'expansion_guarded') {
       return `${d}은 기회와 리스크가 함께 있어 공격과 검증을 동시에 운영해야 합니다.`
+    }
     if (phase === 'stabilize') return `${d}은 속도보다 구조 정렬이 성과를 지키는 구간입니다.`
     return `${d}은 방어 우선으로 재정렬한 뒤 확장 타이밍을 다시 잡아야 합니다.`
   }
   if (phase === 'expansion') return `${d} has clear upside and supports proactive execution.`
-  if (phase === 'expansion_guarded')
+  if (phase === 'high_tension_expansion') {
+    return `${d} can expand fast, but high tension requires strict pre-commit verification.`
+  }
+  if (phase === 'expansion_guarded') {
     return `${d} shows upside and risk together, so run offense with verification.`
+  }
   if (phase === 'stabilize') return `${d} favors structural alignment over speed.`
   return `${d} requires defense-first reset before expansion.`
 }
 
 function buildDomainStrategy(
-  phase: StrategyPhaseCode,
   attackPercent: number,
   domain: SignalDomain,
   lang: 'ko' | 'en'
@@ -139,28 +241,43 @@ function buildOverallThesis(
   lang: 'ko' | 'en'
 ): string {
   if (lang === 'ko') {
-    if (phase === 'expansion')
+    if (phase === 'expansion') {
       return `지금은 확장 국면입니다. 공격 ${attackPercent}% / 방어 ${100 - attackPercent}%로 주도권을 잡되, 확정 전 검수는 유지하세요.`
-    if (phase === 'expansion_guarded')
+    }
+    if (phase === 'high_tension_expansion') {
+      return `지금은 고긴장 확장 국면입니다. 공격 ${attackPercent}% / 방어 ${100 - attackPercent}%로 가속은 가능하지만, 확정 전 항목별 검증을 고정해야 합니다.`
+    }
+    if (phase === 'expansion_guarded') {
       return `지금은 확장+리스크관리 국면입니다. 공격 ${attackPercent}% / 방어 ${100 - attackPercent}%로 운영하며 검증 단계를 생략하지 마세요.`
-    if (phase === 'stabilize')
+    }
+    if (phase === 'stabilize') {
       return `지금은 안정화 국면입니다. 공격 ${attackPercent}% / 방어 ${100 - attackPercent}%로 속도보다 구조를 먼저 맞추세요.`
+    }
     return `지금은 방어/재정렬 국면입니다. 공격 ${attackPercent}% / 방어 ${100 - attackPercent}%로 손실 방지와 재정비를 우선하세요.`
   }
-  if (phase === 'expansion')
+  if (phase === 'expansion') {
     return `Expansion phase. Operate at offense ${attackPercent}% / defense ${100 - attackPercent}% with verification before commitment.`
-  if (phase === 'expansion_guarded')
+  }
+  if (phase === 'high_tension_expansion') {
+    return `High-tension expansion. Run offense ${attackPercent}% / defense ${100 - attackPercent}% and force pre-commit checks.`
+  }
+  if (phase === 'expansion_guarded') {
     return `Expansion with guardrails. Run offense ${attackPercent}% / defense ${100 - attackPercent}% and keep verification gates.`
-  if (phase === 'stabilize')
+  }
+  if (phase === 'stabilize') {
     return `Stabilization phase. Use offense ${attackPercent}% / defense ${100 - attackPercent}% and align structure first.`
+  }
   return `Defensive reset phase. Run offense ${attackPercent}% / defense ${100 - attackPercent}% and prioritize risk containment.`
 }
 
 export function buildPhaseStrategyEngine(
   synthesis: SignalSynthesisResult | undefined,
-  lang: 'ko' | 'en'
+  lang: 'ko' | 'en',
+  timingContext?: StrategyTimingContext
 ): StrategyEngineResult | undefined {
   if (!synthesis || synthesis.selectedSignals.length === 0) return undefined
+
+  const timeActivation = computeTimeActivation(timingContext)
 
   const grouped = synthesis.selectedSignals.reduce<
     Record<string, typeof synthesis.selectedSignals>
@@ -172,23 +289,44 @@ export function buildPhaseStrategyEngine(
   }, {})
 
   const domainStrategies: DomainStrategy[] = Object.entries(grouped).map(([domain, signals]) => {
-    const strengthScore = signals
+    const baseStrengthScore = signals
       .filter((signal) => signal.polarity === 'strength')
       .reduce((sum, signal) => sum + signal.score, 0)
-    const cautionScore = signals
+    const baseCautionScore = signals
       .filter((signal) => signal.polarity === 'caution')
       .reduce((sum, signal) => sum + signal.score, 0)
-    const balanceScore = signals
+    const baseBalanceScore = signals
       .filter((signal) => signal.polarity === 'balance')
       .reduce((sum, signal) => sum + signal.score, 0)
-    const phase = decidePhase(strengthScore, cautionScore, balanceScore)
-    const attackPercent = computeAttackPercent(phase, strengthScore, cautionScore, balanceScore)
+
+    const weights = getDomainWeights(domain as SignalDomain)
+
+    const effectiveStrength = baseStrengthScore * timeActivation * weights.strengthWeight
+    const effectiveCaution = baseCautionScore * timeActivation * weights.cautionWeight
+    const effectiveBalance = baseBalanceScore * timeActivation * weights.balanceWeight
+
+    const strengthScore = round(effectiveStrength * 10) / 10
+    const cautionScore = round(effectiveCaution * 10) / 10
+    const balanceScore = round(effectiveBalance * 10) / 10
+
+    const momentum = round((effectiveStrength - effectiveCaution) * 10) / 10
+    const rawVolatility =
+      effectiveStrength > 0 ? effectiveCaution / effectiveStrength : effectiveCaution > 0 ? 2 : 0
+    const volatility = round(rawVolatility * weights.volatilityWeight * 100) / 100
+
+    const phase = decidePhase(strengthScore, cautionScore, balanceScore, volatility)
+    const attackPercent = computeAttackPercent(
+      phase,
+      momentum,
+      volatility,
+      balanceScore,
+      domain as SignalDomain
+    )
     const defensePercent = 100 - attackPercent
-    const total = Math.max(1, strengthScore + cautionScore + balanceScore)
-    const volatility = round((cautionScore / total) * 100)
-    const momentum = round(strengthScore - cautionScore)
+
     const evidenceIds = signals.slice(0, 3).map((signal) => signal.id)
     const claim = synthesis.claims.find((item) => item.domain === domain)
+
     return {
       domain: domain as SignalDomain,
       phase,
@@ -196,15 +334,19 @@ export function buildPhaseStrategyEngine(
       attackPercent,
       defensePercent,
       thesis: claim?.thesis || buildDomainThesis(phase, domain as SignalDomain, lang),
-      strategy: buildDomainStrategy(phase, attackPercent, domain as SignalDomain, lang),
+      strategy: buildDomainStrategy(attackPercent, domain as SignalDomain, lang),
       riskControl: claim?.riskControl || '',
       evidenceIds,
       metrics: {
         strengthScore,
         cautionScore,
         balanceScore,
+        effectiveStrength: round(effectiveStrength * 100) / 100,
+        effectiveCaution: round(effectiveCaution * 100) / 100,
+        effectiveBalance: round(effectiveBalance * 100) / 100,
         volatility,
         momentum,
+        timeActivation: round(timeActivation * 100) / 100,
       },
     }
   })

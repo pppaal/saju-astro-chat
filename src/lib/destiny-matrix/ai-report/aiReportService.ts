@@ -1963,7 +1963,11 @@ export async function generateAIPremiumReport(
     matrixReport,
     matrixSummary: options.matrixSummary,
   })
-  const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang)
+  const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang, {
+    daeunActive: Boolean(input.currentDaeunElement),
+    seunActive: Boolean(input.currentSaeunElement),
+    activeTransitCount: (input.activeTransits || []).length,
+  })
 
   if (FORCE_REWRITE_ONLY_MODE) {
     const draftSections = buildComprehensiveFallbackSections(
@@ -2578,7 +2582,11 @@ export async function generateTimingReport(
     matrixReport,
     matrixSummary: options.matrixSummary,
   })
-  const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang)
+  const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang, {
+    daeunActive: Boolean(input.currentDaeunElement),
+    seunActive: Boolean(input.currentSaeunElement),
+    activeTransitCount: (input.activeTransits || []).length,
+  })
 
   if (FORCE_REWRITE_ONLY_MODE) {
     const sectionPaths = [
@@ -3009,7 +3017,11 @@ export async function generateThemedReport(
     matrixReport,
     matrixSummary: options.matrixSummary,
   })
-  const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang)
+  const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang, {
+    daeunActive: Boolean(input.currentDaeunElement),
+    seunActive: Boolean(input.currentSaeunElement),
+    activeTransitCount: (input.activeTransits || []).length,
+  })
 
   if (FORCE_REWRITE_ONLY_MODE) {
     const sectionPaths = [...getThemedSectionKeys(theme)]

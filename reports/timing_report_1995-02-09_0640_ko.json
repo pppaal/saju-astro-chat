@@ -1,0 +1,979 @@
+{
+  "id": "timing_daily_1772523483613_p3e9pb",
+  "generatedAt": "2026-03-03T07:38:03.613Z",
+  "lang": "ko",
+  "profile": {
+    "name": "fixture-1995-02-09-0640",
+    "birthDate": "1995-02-09",
+    "dayMaster": "금",
+    "dominantElement": "air"
+  },
+  "period": "daily",
+  "targetDate": "2026-03-03",
+  "periodLabel": "2026년 3월 3일",
+  "timingData": {
+    "daeun": {
+      "heavenlyStem": "乙",
+      "earthlyBranch": "亥",
+      "element": "",
+      "startAge": 31,
+      "endAge": 40,
+      "isCurrent": true
+    },
+    "seun": {
+      "year": 2026,
+      "heavenlyStem": "",
+      "earthlyBranch": "",
+      "element": "화"
+    },
+    "wolun": {
+      "month": 3,
+      "heavenlyStem": "",
+      "earthlyBranch": "",
+      "element": "수"
+    },
+    "iljin": {
+      "date": "2026-03-03",
+      "heavenlyStem": "",
+      "earthlyBranch": "",
+      "element": ""
+    }
+  },
+  "sections": {
+    "overview": "오늘 흐름은 확정 속도보다 검증 순서가 중요니다. 결론과 실행 시점을 분리하면 손실 가능성을 줄일 수 있습니다. 근거 기준은 최상조화, 극심충돌 흐름입니다.",
+    "energy": "상승 신호가 큰 동시에 리스크 관리가 함께 필요니다. 근거 기준은 최상조화, 극심충돌 흐름입니다.",
+    "opportunities": "기회 구간에서는 핵심 과업 1~2개 완결 전략이 유리니다. 확장 전에 역할과 책임을 먼저 정리하세요. 근거 기준은 최상조화, 극심충돌 흐름입니다.",
+    "cautions": "감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요. 근거 기준은 최상조화, 극심충돌 흐름입니다.",
+    "domains": {
+      "career": "커리어는 일정·우선순위·마감 정의를 먼저 고정하는 운영이 안전니다. 근거 기준은 최상조화, 극강시너지 흐름입니다.",
+      "love": "감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요. 근거 기준은 극강시너지, 최상조화 흐름입니다.",
+      "wealth": "재정은 금액·기한·취소조건을 체크리스트로 검증한 뒤 확정하세요. 근거 기준은 최상조화, 극강시너지 흐름입니다.",
+      "health": "과속보다 수면·수분·회복 시간을 먼저 고정하여 실수 비용을 줄이세요. 근거 기준은 최상조화, 극심충돌 흐름입니다."
+    },
+    "actionPlan": "오늘은 1) 끝낼 결과물 1개 정의 2) 외부 전 전 조건·기한·책임 재확인 3) 당일 확정이 아닌 항목은 24시간 재검토 슬롯으로 이동의 3단계로 운영하세요. 근거 기준은 최상조화, 극심충돌 흐름입니다.",
+    "luckyElements": "행운 요소는 속도보다 순서입니다. 먼저 검증하고 이후 확정하세요. 근거 기준은 균형, 충돌 흐름입니다."
+  },
+  "graphRagEvidence": {
+    "mode": "timing",
+    "period": "daily",
+    "anchors": [
+      {
+        "id": "E1",
+        "section": "overview",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+        "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
+        "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"overview\" using X2, X3, X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+        "crossEvidenceSets": [
+          {
+            "id": "X2",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["career", "wealth", "timing"],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.83,
+            "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X3",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["relationship", "wealth", "timing"],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.92,
+            "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X9",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["career", "wealth", "personality"],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.47,
+            "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X6",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["career", "personality"],
+            "overlapScore": 0.94,
+            "orbFitScore": 0.62,
+            "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          }
+        ]
+      },
+      {
+        "id": "E2",
+        "section": "energy",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+        "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
+        "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"energy\" using X2, X3, X1, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+        "crossEvidenceSets": [
+          {
+            "id": "X2",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["career", "wealth", "timing"],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.83,
+            "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X3",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["relationship", "wealth", "timing"],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.92,
+            "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X1",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Mercury-square-True Node (pair=Mercury-True Node, angle=90deg, orb=0.3deg, allowed=timing<=3.6deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["timing"],
+            "overlapScore": 0.86,
+            "orbFitScore": 0.92,
+            "combinedConclusion": "Cross-domain overlap(timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X4",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Mars-quincunx-Neptune (pair=Mars-Neptune, angle=150deg, orb=0.2deg, allowed=timing<=1.8deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["timing"],
+            "overlapScore": 0.85,
+            "orbFitScore": 0.91,
+            "combinedConclusion": "Cross-domain overlap(timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          }
+        ]
+      },
+      {
+        "id": "E3",
+        "section": "opportunities",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+        "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
+        "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"opportunities\" using X2, X3, X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+        "crossEvidenceSets": [
+          {
+            "id": "X2",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["career", "wealth", "timing"],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.83,
+            "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X3",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["relationship", "wealth", "timing"],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.92,
+            "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X9",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["career", "wealth", "personality"],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.47,
+            "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X6",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["career", "personality"],
+            "overlapScore": 0.94,
+            "orbFitScore": 0.62,
+            "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          }
+        ]
+      },
+      {
+        "id": "E4",
+        "section": "cautions",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+        "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
+        "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"cautions\" using X2, X3, X1, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+        "crossEvidenceSets": [
+          {
+            "id": "X2",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["career", "wealth", "timing"],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.83,
+            "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X3",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["relationship", "wealth", "timing"],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.92,
+            "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X1",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Mercury-square-True Node (pair=Mercury-True Node, angle=90deg, orb=0.3deg, allowed=timing<=3.6deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["timing"],
+            "overlapScore": 0.86,
+            "orbFitScore": 0.92,
+            "combinedConclusion": "Cross-domain overlap(timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X4",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Mars-quincunx-Neptune (pair=Mars-Neptune, angle=150deg, orb=0.2deg, allowed=timing<=1.8deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["timing"],
+            "overlapScore": 0.85,
+            "orbFitScore": 0.91,
+            "combinedConclusion": "Cross-domain overlap(timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          }
+        ]
+      },
+      {
+        "id": "E5",
+        "section": "domains",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+        "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
+        "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"domains\" using X2, X3, X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+        "crossEvidenceSets": [
+          {
+            "id": "X2",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["career", "wealth", "timing"],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.83,
+            "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X3",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["relationship", "wealth", "timing"],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.92,
+            "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X9",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["career", "wealth", "personality"],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.47,
+            "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X6",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["career", "personality"],
+            "overlapScore": 0.94,
+            "orbFitScore": 0.62,
+            "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          }
+        ]
+      },
+      {
+        "id": "E6",
+        "section": "actionPlan",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+        "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
+        "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"actionPlan\" using X2, X3, X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+        "crossEvidenceSets": [
+          {
+            "id": "X2",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["career", "wealth", "timing"],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.83,
+            "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X3",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["relationship", "wealth", "timing"],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.92,
+            "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X9",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["career", "wealth", "personality"],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.47,
+            "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          },
+          {
+            "id": "X6",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-03T07:37:19.478Z",
+            "overlapDomains": ["career", "personality"],
+            "overlapScore": 0.94,
+            "orbFitScore": 0.62,
+            "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          }
+        ]
+      }
+    ]
+  },
+  "evidenceRefs": {
+    "overview": [
+      {
+        "id": "L5:samhap:trine",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "trine",
+        "keyword": "최상조화",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg",
+        "score": 10
+      },
+      {
+        "id": "L5:chung:opposition",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "chung",
+        "colKey": "opposition",
+        "keyword": "극심충돌",
+        "sajuBasis": "천간충 (乙-辛 충)",
+        "astroBasis": "Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg",
+        "score": 10
+      },
+      {
+        "id": "L2:상관:Saturn",
+        "domain": "health",
+        "layer": 2,
+        "rowKey": "상관",
+        "colKey": "Saturn",
+        "keyword": "좌절",
+        "sajuBasis": "십신 상관",
+        "astroBasis": "Saturn in H1",
+        "score": 2
+      },
+      {
+        "id": "L5:samhap:conjunction",
+        "domain": "relationship",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "conjunction",
+        "keyword": "극강시너지",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg",
+        "score": 10
+      }
+    ],
+    "energy": [
+      {
+        "id": "L5:samhap:trine",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "trine",
+        "keyword": "최상조화",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg",
+        "score": 10
+      },
+      {
+        "id": "L5:chung:opposition",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "chung",
+        "colKey": "opposition",
+        "keyword": "극심충돌",
+        "sajuBasis": "천간충 (乙-辛 충)",
+        "astroBasis": "Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg",
+        "score": 10
+      },
+      {
+        "id": "L2:상관:Saturn",
+        "domain": "health",
+        "layer": 2,
+        "rowKey": "상관",
+        "colKey": "Saturn",
+        "keyword": "좌절",
+        "sajuBasis": "십신 상관",
+        "astroBasis": "Saturn in H1",
+        "score": 2
+      },
+      {
+        "id": "L5:samhap:conjunction",
+        "domain": "relationship",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "conjunction",
+        "keyword": "극강시너지",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg",
+        "score": 10
+      }
+    ],
+    "opportunities": [
+      {
+        "id": "L5:samhap:trine",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "trine",
+        "keyword": "최상조화",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg",
+        "score": 10
+      },
+      {
+        "id": "L5:chung:opposition",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "chung",
+        "colKey": "opposition",
+        "keyword": "극심충돌",
+        "sajuBasis": "천간충 (乙-辛 충)",
+        "astroBasis": "Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg",
+        "score": 10
+      },
+      {
+        "id": "L2:상관:Saturn",
+        "domain": "health",
+        "layer": 2,
+        "rowKey": "상관",
+        "colKey": "Saturn",
+        "keyword": "좌절",
+        "sajuBasis": "십신 상관",
+        "astroBasis": "Saturn in H1",
+        "score": 2
+      },
+      {
+        "id": "L5:samhap:conjunction",
+        "domain": "relationship",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "conjunction",
+        "keyword": "극강시너지",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg",
+        "score": 10
+      }
+    ],
+    "cautions": [
+      {
+        "id": "L5:samhap:trine",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "trine",
+        "keyword": "최상조화",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg",
+        "score": 10
+      },
+      {
+        "id": "L5:chung:opposition",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "chung",
+        "colKey": "opposition",
+        "keyword": "극심충돌",
+        "sajuBasis": "천간충 (乙-辛 충)",
+        "astroBasis": "Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg",
+        "score": 10
+      },
+      {
+        "id": "L2:상관:Saturn",
+        "domain": "health",
+        "layer": 2,
+        "rowKey": "상관",
+        "colKey": "Saturn",
+        "keyword": "좌절",
+        "sajuBasis": "십신 상관",
+        "astroBasis": "Saturn in H1",
+        "score": 2
+      },
+      {
+        "id": "L5:samhap:conjunction",
+        "domain": "relationship",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "conjunction",
+        "keyword": "극강시너지",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg",
+        "score": 10
+      }
+    ],
+    "domains.career": [
+      {
+        "id": "L5:samhap:trine",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "trine",
+        "keyword": "최상조화",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg",
+        "score": 10
+      },
+      {
+        "id": "L5:samhap:conjunction",
+        "domain": "relationship",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "conjunction",
+        "keyword": "극강시너지",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg",
+        "score": 10
+      },
+      {
+        "id": "L5:chung:opposition",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "chung",
+        "colKey": "opposition",
+        "keyword": "극심충돌",
+        "sajuBasis": "천간충 (乙-辛 충)",
+        "astroBasis": "Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg",
+        "score": 10
+      },
+      {
+        "id": "L2:상관:Saturn",
+        "domain": "health",
+        "layer": 2,
+        "rowKey": "상관",
+        "colKey": "Saturn",
+        "keyword": "좌절",
+        "sajuBasis": "십신 상관",
+        "astroBasis": "Saturn in H1",
+        "score": 2
+      }
+    ],
+    "domains.love": [
+      {
+        "id": "L5:samhap:conjunction",
+        "domain": "relationship",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "conjunction",
+        "keyword": "극강시너지",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg",
+        "score": 10
+      },
+      {
+        "id": "L5:samhap:trine",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "trine",
+        "keyword": "최상조화",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg",
+        "score": 10
+      },
+      {
+        "id": "L5:chung:opposition",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "chung",
+        "colKey": "opposition",
+        "keyword": "극심충돌",
+        "sajuBasis": "천간충 (乙-辛 충)",
+        "astroBasis": "Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg",
+        "score": 10
+      },
+      {
+        "id": "L2:상관:Saturn",
+        "domain": "health",
+        "layer": 2,
+        "rowKey": "상관",
+        "colKey": "Saturn",
+        "keyword": "좌절",
+        "sajuBasis": "십신 상관",
+        "astroBasis": "Saturn in H1",
+        "score": 2
+      }
+    ],
+    "domains.wealth": [
+      {
+        "id": "L5:samhap:trine",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "trine",
+        "keyword": "최상조화",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg",
+        "score": 10
+      },
+      {
+        "id": "L5:samhap:conjunction",
+        "domain": "relationship",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "conjunction",
+        "keyword": "극강시너지",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg",
+        "score": 10
+      },
+      {
+        "id": "L5:chung:opposition",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "chung",
+        "colKey": "opposition",
+        "keyword": "극심충돌",
+        "sajuBasis": "천간충 (乙-辛 충)",
+        "astroBasis": "Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg",
+        "score": 10
+      },
+      {
+        "id": "L2:상관:Saturn",
+        "domain": "health",
+        "layer": 2,
+        "rowKey": "상관",
+        "colKey": "Saturn",
+        "keyword": "좌절",
+        "sajuBasis": "십신 상관",
+        "astroBasis": "Saturn in H1",
+        "score": 2
+      }
+    ],
+    "domains.health": [
+      {
+        "id": "L5:samhap:trine",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "trine",
+        "keyword": "최상조화",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg",
+        "score": 10
+      },
+      {
+        "id": "L5:chung:opposition",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "chung",
+        "colKey": "opposition",
+        "keyword": "극심충돌",
+        "sajuBasis": "천간충 (乙-辛 충)",
+        "astroBasis": "Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg",
+        "score": 10
+      },
+      {
+        "id": "L2:상관:Saturn",
+        "domain": "health",
+        "layer": 2,
+        "rowKey": "상관",
+        "colKey": "Saturn",
+        "keyword": "좌절",
+        "sajuBasis": "십신 상관",
+        "astroBasis": "Saturn in H1",
+        "score": 2
+      },
+      {
+        "id": "L5:samhap:conjunction",
+        "domain": "relationship",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "conjunction",
+        "keyword": "극강시너지",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg",
+        "score": 10
+      }
+    ],
+    "actionPlan": [
+      {
+        "id": "L5:samhap:trine",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "trine",
+        "keyword": "최상조화",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg",
+        "score": 10
+      },
+      {
+        "id": "L5:chung:opposition",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "chung",
+        "colKey": "opposition",
+        "keyword": "극심충돌",
+        "sajuBasis": "천간충 (乙-辛 충)",
+        "astroBasis": "Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg",
+        "score": 10
+      },
+      {
+        "id": "L2:상관:Saturn",
+        "domain": "health",
+        "layer": 2,
+        "rowKey": "상관",
+        "colKey": "Saturn",
+        "keyword": "좌절",
+        "sajuBasis": "십신 상관",
+        "astroBasis": "Saturn in H1",
+        "score": 2
+      },
+      {
+        "id": "L5:samhap:conjunction",
+        "domain": "relationship",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "conjunction",
+        "keyword": "극강시너지",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg",
+        "score": 10
+      }
+    ],
+    "luckyElements": [
+      {
+        "id": "L1:금:air",
+        "domain": "personality",
+        "layer": 1,
+        "rowKey": "금",
+        "colKey": "air",
+        "keyword": "균형",
+        "sajuBasis": "사주 금",
+        "astroBasis": "점성 air",
+        "score": 6
+      },
+      {
+        "id": "L1:목:air",
+        "domain": "personality",
+        "layer": 1,
+        "rowKey": "목",
+        "colKey": "air",
+        "keyword": "충돌",
+        "sajuBasis": "사주 목",
+        "astroBasis": "점성 air",
+        "score": 5
+      },
+      {
+        "id": "L5:samhap:trine",
+        "domain": "health",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "trine",
+        "keyword": "최상조화",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg",
+        "score": 10
+      },
+      {
+        "id": "L5:samhap:conjunction",
+        "domain": "relationship",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "conjunction",
+        "keyword": "극강시너지",
+        "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+        "astroBasis": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg",
+        "score": 10
+      }
+    ]
+  },
+  "deterministicCore": {
+    "profile": "balanced",
+    "coverage": {
+      "saju": {
+        "hasDayMaster": true,
+        "pillarElementCount": 4,
+        "sibsinKeys": 6,
+        "relationCount": 6,
+        "hasGeokguk": true,
+        "hasYongsin": true,
+        "hasDaeun": true,
+        "hasSaeun": true,
+        "shinsalCount": 13,
+        "snapshotKeys": 5
+      },
+      "astrology": {
+        "planetHouseCount": 11,
+        "planetSignCount": 11,
+        "aspectCount": 23,
+        "aspectsWithOrb": 23,
+        "aspectsWithAngle": 0,
+        "hasDominantElement": true,
+        "asteroidHouseCount": 0,
+        "extraPointCount": 0,
+        "activeTransitCount": 3,
+        "snapshotKeys": 5
+      },
+      "cross": {
+        "graphAnchorCount": 6,
+        "graphSetCount": 24,
+        "topInsightCount": 0,
+        "driverCount": 0,
+        "cautionCount": 0,
+        "domainScoreCount": 7,
+        "snapshotKeys": 2,
+        "hasCurrentDateIso": true,
+        "currentDateIso": "2026-03-03"
+      }
+    },
+    "decision": {
+      "enabled": false,
+      "verdict": "DELAY",
+      "score": 0,
+      "confidence": 0,
+      "reasons": [],
+      "blockers": []
+    },
+    "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: balanced\n- SAJU coverage: dayMaster=true, pillars=4, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=true, saeun=true, shinsal=13, sajuSnapshotKeys=5\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=23, orb=23, angle=0, dominantElement=true, asteroids=0, extraPoints=0, activeTransits=3, astroSnapshotKeys=5\n- CROSS coverage: anchors=6, sets=24, topInsights=0, drivers=0, cautions=0, domainScores=7, crossSnapshotKeys=2, hasCurrentDateIso=true, currentDate=2026-03-03\n- DECISION: n/a (비결정형 질문)\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함."
+  },
+  "strategyEngine": {
+    "overallPhase": "expansion_guarded",
+    "overallPhaseLabel": "확장+리스크관리 국면",
+    "attackPercent": 63,
+    "defensePercent": 37,
+    "thesis": "지금은 확장+리스크관리 국면입니다. 공격 63% / 방어 37%로 운영하며 검증 단계를 생략하지 마세요.",
+    "domainStrategies": [
+      {
+        "domain": "health",
+        "phase": "expansion_guarded",
+        "phaseLabel": "확장+리스크관리 국면",
+        "attackPercent": 72,
+        "defensePercent": 28,
+        "thesis": "상승 신호가 큰 동시에 리스크 관리가 함께 필요합니다.",
+        "strategy": "건강 전략은 공격 72% / 방어 28%로 운용하세요.",
+        "riskControl": "과속보다 수면·수분·회복 시간을 먼저 고정하여 실수 비용을 줄이세요.",
+        "evidenceIds": ["L5:samhap:trine", "L5:chung:opposition", "L2:상관:Saturn"],
+        "metrics": {
+          "strengthScore": 30.4,
+          "cautionScore": 3.6,
+          "balanceScore": 0,
+          "effectiveStrength": 30.36,
+          "effectiveCaution": 3.64,
+          "effectiveBalance": 0,
+          "volatility": 0.12,
+          "momentum": 26.7,
+          "timeActivation": 1.52
+        }
+      },
+      {
+        "domain": "personality",
+        "phase": "expansion_guarded",
+        "phaseLabel": "확장+리스크관리 국면",
+        "attackPercent": 72,
+        "defensePercent": 28,
+        "thesis": "규칙과 리듬을 지키면 안정 수익이 쌓일 구간입니다.",
+        "strategy": "성향 전략은 공격 72% / 방어 28%로 운용하세요.",
+        "riskControl": "판단 시점과 실행 시점을 분리하면 오판 및 누락 리스크가 줄어듭니다.",
+        "evidenceIds": ["L1:금:air", "L1:목:air"],
+        "metrics": {
+          "strengthScore": 0,
+          "cautionScore": 0,
+          "balanceScore": 16.7,
+          "effectiveStrength": 0,
+          "effectiveCaution": 0,
+          "effectiveBalance": 16.7,
+          "volatility": 0,
+          "momentum": 0,
+          "timeActivation": 1.52
+        }
+      },
+      {
+        "domain": "relationship",
+        "phase": "expansion",
+        "phaseLabel": "확장 국면",
+        "attackPercent": 80,
+        "defensePercent": 20,
+        "thesis": "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다.",
+        "strategy": "관계 전략은 공격 80% / 방어 20%로 운용하세요.",
+        "riskControl": "감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요.",
+        "evidenceIds": ["L5:samhap:conjunction"],
+        "metrics": {
+          "strengthScore": 15.2,
+          "cautionScore": 0,
+          "balanceScore": 0,
+          "effectiveStrength": 15.18,
+          "effectiveCaution": 0,
+          "effectiveBalance": 0,
+          "volatility": 0,
+          "momentum": 15.2,
+          "timeActivation": 1.52
+        }
+      },
+      {
+        "domain": "spirituality",
+        "phase": "defensive_reset",
+        "phaseLabel": "방어/재정렬 국면",
+        "attackPercent": 27,
+        "defensePercent": 73,
+        "thesis": "주의 신호가 먼저 드러나 확정 전 재확인이 성패를 가릅니다.",
+        "strategy": "사명 전략은 공격 27% / 방어 73%로 운용하세요.",
+        "riskControl": "큰 선언보다 주간 기록과 복기 루틴으로 장기 방향을 고정하세요.",
+        "evidenceIds": ["L5:chung:square"],
+        "metrics": {
+          "strengthScore": 0,
+          "cautionScore": 3,
+          "balanceScore": 0,
+          "effectiveStrength": 0,
+          "effectiveCaution": 3.04,
+          "effectiveBalance": 0,
+          "volatility": 2,
+          "momentum": -3,
+          "timeActivation": 1.52
+        }
+      }
+    ]
+  },
+  "renderedMarkdown": "## 섹션: overview\n\n오늘 흐름은 확정 속도보다 검증 순서가 중요니다. 결론과 실행 시점을 분리하면 손실 가능성을 줄일 수 있습니다. 근거 기준은 최상조화, 극심충돌 흐름입니다.\n\n## 섹션: energy\n\n상승 신호가 큰 동시에 리스크 관리가 함께 필요니다. 근거 기준은 최상조화, 극심충돌 흐름입니다.\n\n## 섹션: opportunities\n\n기회 구간에서는 핵심 과업 1~2개 완결 전략이 유리니다. 확장 전에 역할과 책임을 먼저 정리하세요. 근거 기준은 최상조화, 극심충돌 흐름입니다.\n\n## 섹션: cautions\n\n감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요. 근거 기준은 최상조화, 극심충돌 흐름입니다.\n\n## 섹션: domains.career\n\n커리어는 일정·우선순위·마감 정의를 먼저 고정하는 운영이 안전니다. 근거 기준은 최상조화, 극강시너지 흐름입니다.\n\n## 섹션: domains.love\n\n감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요. 근거 기준은 극강시너지, 최상조화 흐름입니다.\n\n## 섹션: domains.wealth\n\n재정은 금액·기한·취소조건을 체크리스트로 검증한 뒤 확정하세요. 근거 기준은 최상조화, 극강시너지 흐름입니다.\n\n## 섹션: domains.health\n\n과속보다 수면·수분·회복 시간을 먼저 고정하여 실수 비용을 줄이세요. 근거 기준은 최상조화, 극심충돌 흐름입니다.\n\n## 섹션: actionPlan\n\n오늘은 1) 끝낼 결과물 1개 정의 2) 외부 전 전 조건·기한·책임 재확인 3) 당일 확정이 아닌 항목은 24시간 재검토 슬롯으로 이동의 3단계로 운영하세요. 근거 기준은 최상조화, 극심충돌 흐름입니다.\n\n## 섹션: luckyElements\n\n행운 요소는 속도보다 순서입니다. 먼저 검증하고 이후 확정하세요. 근거 기준은 균형, 충돌 흐름입니다.",
+  "renderedText": "오늘 흐름은 확정 속도보다 검증 순서가 중요니다. 결론과 실행 시점을 분리하면 손실 가능성을 줄일 수 있습니다. 근거 기준은 최상조화, 극심충돌 흐름입니다.\n\n상승 신호가 큰 동시에 리스크 관리가 함께 필요니다. 근거 기준은 최상조화, 극심충돌 흐름입니다.\n\n기회 구간에서는 핵심 과업 1~2개 완결 전략이 유리니다. 확장 전에 역할과 책임을 먼저 정리하세요. 근거 기준은 최상조화, 극심충돌 흐름입니다.\n\n감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요. 근거 기준은 최상조화, 극심충돌 흐름입니다.\n\n커리어는 일정·우선순위·마감 정의를 먼저 고정하는 운영이 안전니다. 근거 기준은 최상조화, 극강시너지 흐름입니다.\n\n감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요. 근거 기준은 극강시너지, 최상조화 흐름입니다.\n\n재정은 금액·기한·취소조건을 체크리스트로 검증한 뒤 확정하세요. 근거 기준은 최상조화, 극강시너지 흐름입니다.\n\n과속보다 수면·수분·회복 시간을 먼저 고정하여 실수 비용을 줄이세요. 근거 기준은 최상조화, 극심충돌 흐름입니다.\n\n오늘은 1) 끝낼 결과물 1개 정의 2) 외부 전 전 조건·기한·책임 재확인 3) 당일 확정이 아닌 항목은 24시간 재검토 슬롯으로 이동의 3단계로 운영하세요. 근거 기준은 최상조화, 극심충돌 흐름입니다.\n\n행운 요소는 속도보다 순서입니다. 먼저 검증하고 이후 확정하세요. 근거 기준은 균형, 충돌 흐름입니다.",
+  "periodScore": {
+    "overall": 51,
+    "career": 55,
+    "love": 57,
+    "wealth": 58,
+    "health": 55
+  },
+  "meta": {
+    "modelUsed": "rewrite-fallback-validator",
+    "tokensUsed": 0,
+    "processingTime": 8060,
+    "reportVersion": "1.1.0-rewrite-only"
+  }
+}

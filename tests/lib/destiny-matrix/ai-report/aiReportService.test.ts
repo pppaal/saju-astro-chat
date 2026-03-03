@@ -115,6 +115,21 @@ function createMockReport(): FusionReport {
   }
 }
 
+function createRewriteSections(value: string): Record<string, string> {
+  return {
+    introduction: value,
+    personalityDeep: value,
+    careerPath: value,
+    relationshipDynamics: value,
+    wealthPotential: value,
+    healthGuidance: value,
+    lifeMission: value,
+    timingAdvice: value,
+    actionPlan: value,
+    conclusion: value,
+  }
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
   mockCallAIBackendGeneric.mockImplementation(async (_prompt, _lang, options) => ({
@@ -142,17 +157,23 @@ describe('generateAIPremiumReport', () => {
     expect(result.sections.timingAdvice).toBeTruthy()
     expect(result.sections.actionPlan).toBeTruthy()
     expect(result.sections.conclusion).toBeTruthy()
+    expect(result.evidenceRefs).toBeTruthy()
+    expect(result.evidenceRefs.introduction?.length || 0).toBeGreaterThan(0)
+    expect(result.strategyEngine).toBeTruthy()
+    expect(
+      (result.strategyEngine?.attackPercent || 0) + (result.strategyEngine?.defensePercent || 0)
+    ).toBe(100)
     expect(mockCallAIBackendGeneric).toHaveBeenCalled()
   })
 
-  it('uses 4o-mini and 4o models', async () => {
+  it('uses rewrite-only AI call path', async () => {
     await generateAIPremiumReport(createMockInput(), createMockReport(), {
       detailLevel: 'comprehensive',
     })
 
     const models = mockCallAIBackendGeneric.mock.calls.map((call) => call[2]?.modelOverride)
-    expect(models).toContain('gpt-4o-mini')
-    expect(models).toContain('gpt-4o')
+    expect(models.length).toBeGreaterThan(0)
+    expect(models.some((model) => model === 'gpt-4o-mini')).toBe(true)
   })
 
   it('removes boilerplate phrase from sections', async () => {
@@ -209,6 +230,41 @@ describe('generateAIPremiumReport', () => {
     for (const phrase of banned) {
       expect(allText).not.toContain(phrase)
     }
+  })
+
+  it('removes unsupported high-risk tokens and keeps evidence grounding', async () => {
+    mockCallAIBackendGeneric.mockResolvedValue({
+      sections: {
+        text: '\uC6D4\uC694\uC77C \uAE08\uC131-\uD654\uC131 square \uD750\uB984\uC774\uB77C \uBC1C\uD45C\uB97C \uD655\uC815\uD558\uC138\uC694. \uC624\uB298 \uC77C\uC815\uC744 \uC870\uC815\uD558\uC138\uC694.',
+      },
+      model: 'gpt-4o',
+      tokensUsed: 100,
+    })
+
+    const result = await generateAIPremiumReport(createMockInput(), createMockReport())
+    expect(result.sections.introduction).not.toContain('\uC6D4\uC694\uC77C')
+    expect(result.sections.introduction.toLowerCase()).not.toContain('square')
+    expect(result.evidenceRefs.introduction?.length || 0).toBeGreaterThan(0)
+  })
+
+  it('falls back to deterministic draft when rewrite output adds unsupported token', async () => {
+    mockCallAIBackendGeneric.mockResolvedValue({
+      sections: createRewriteSections('hallucinatedtermx 수요일에 즉시 확정하세요.'),
+      model: 'gpt-4o-mini',
+      tokensUsed: 88,
+    })
+
+    const result = await generateAIPremiumReport(createMockInput(), createMockReport())
+    expect(result.meta.modelUsed).toBe('rewrite-fallback-validator')
+    expect(result.sections.introduction).not.toContain('hallucinatedtermx')
+    expect(result.sections.introduction).not.toContain('수요일')
+  })
+
+  it('falls back to deterministic draft when rewrite backend fails', async () => {
+    mockCallAIBackendGeneric.mockRejectedValue(new Error('provider down'))
+    const result = await generateAIPremiumReport(createMockInput(), createMockReport())
+    expect(result.meta.modelUsed).toBe('rewrite-fallback-error')
+    expect(result.meta.tokensUsed).toBe(0)
   })
 })
 

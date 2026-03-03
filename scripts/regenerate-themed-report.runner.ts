@@ -15,7 +15,12 @@ import {
   calculateLunarReturn,
 } from '../src/lib/astrology'
 import { calculateDestinyMatrix, FusionReportGenerator } from '../src/lib/destiny-matrix'
-import { generateAIPremiumReport } from '../src/lib/destiny-matrix/ai-report'
+import {
+  generateAIPremiumReport,
+  generateThemedReport,
+  generateTimingReport,
+  synthesizeMatrixSignals,
+} from '../src/lib/destiny-matrix/ai-report'
 import { mapMajorTransitsToActiveTransits } from '../src/lib/destiny-matrix/ai-report/transitMapping'
 
 type WesternElement = 'fire' | 'earth' | 'air' | 'water'
@@ -33,6 +38,9 @@ const PROFILE = {
 
 const OUTPUT_JSON = path.resolve('reports/themed_report_1995-02-09_0640_ko.json')
 const OUTPUT_MD = path.resolve('reports/themed_report_1995-02-09_0640_ko.md')
+const OUTPUT_TIMING_JSON = path.resolve('reports/timing_report_1995-02-09_0640_ko.json')
+const OUTPUT_THEMED_JSON = path.resolve('reports/themed_career_report_1995-02-09_0640_ko.json')
+const OUTPUT_PREVIEW_JSON = path.resolve('reports/synthesis_preview_1995-02-09_0640_ko.json')
 
 const SIGN_ELEMENT_MAP: Record<string, WesternElement> = {
   aries: 'fire',
@@ -362,10 +370,89 @@ async function main() {
     detailLevel: 'comprehensive',
     timingData,
     userPlan: 'premium',
+    matrixSummary: matrix.summary,
   })
+
+  const synthesis = synthesizeMatrixSignals({
+    lang: 'ko',
+    matrixReport: baseReport,
+    matrixSummary: matrix.summary,
+  })
+
+  let timingReport: Awaited<ReturnType<typeof generateTimingReport>> | null = null
+  let themedCareerReport: Awaited<ReturnType<typeof generateThemedReport>> | null = null
+
+  try {
+    timingReport = await generateTimingReport(matrixInput, baseReport, 'daily', timingData, {
+      name: 'fixture-1995-02-09-0640',
+      birthDate: PROFILE.birthDate,
+      lang: 'ko',
+      userPlan: 'premium',
+      matrixSummary: matrix.summary,
+    })
+  } catch (error) {
+    console.warn('[regen:themed] timing report skipped (no AI provider):', String(error))
+  }
+
+  try {
+    themedCareerReport = await generateThemedReport(matrixInput, baseReport, 'career', timingData, {
+      name: 'fixture-1995-02-09-0640',
+      birthDate: PROFILE.birthDate,
+      lang: 'ko',
+      userPlan: 'premium',
+      matrixSummary: matrix.summary,
+    })
+  } catch (error) {
+    console.warn('[regen:themed] themed report skipped (no AI provider):', String(error))
+  }
 
   await mkdir(path.dirname(OUTPUT_JSON), { recursive: true })
   await writeFile(OUTPUT_JSON, JSON.stringify(report, null, 2), 'utf8')
+  if (timingReport)
+    await writeFile(OUTPUT_TIMING_JSON, JSON.stringify(timingReport, null, 2), 'utf8')
+  if (themedCareerReport)
+    await writeFile(OUTPUT_THEMED_JSON, JSON.stringify(themedCareerReport, null, 2), 'utf8')
+
+  const preview = {
+    synthesis: {
+      claimCount: synthesis.claims.length,
+      selectedSignals: synthesis.selectedSignals,
+      claims: synthesis.claims,
+    },
+    timing: timingReport
+      ? {
+          model: timingReport.meta?.modelUsed,
+          overview: timingReport.sections?.overview,
+          opportunities: timingReport.sections?.opportunities,
+          cautions: timingReport.sections?.cautions,
+          actionPlan: timingReport.sections?.actionPlan,
+        }
+      : {
+          model: 'not-generated (no AI provider)',
+          overview: '',
+          opportunities: '',
+          cautions: '',
+          actionPlan: '',
+        },
+    themedCareer: themedCareerReport
+      ? {
+          model: themedCareerReport.meta?.modelUsed,
+          deepAnalysis: themedCareerReport.sections?.deepAnalysis,
+          strategy: themedCareerReport.sections?.strategy,
+          turningPoints: themedCareerReport.sections?.turningPoints,
+          recommendations: themedCareerReport.sections?.recommendations,
+          actionPlan: themedCareerReport.sections?.actionPlan,
+        }
+      : {
+          model: 'not-generated (no AI provider)',
+          deepAnalysis: '',
+          strategy: '',
+          turningPoints: '',
+          recommendations: [],
+          actionPlan: '',
+        },
+  }
+  await writeFile(OUTPUT_PREVIEW_JSON, JSON.stringify(preview, null, 2), 'utf8')
 
   const markdown = buildMarkdown(report, {
     overallScore: report.matrixSummary?.overallScore,
@@ -395,6 +482,9 @@ async function main() {
 
   console.log('[regen:themed] JSON:', OUTPUT_JSON)
   console.log('[regen:themed] MD:', OUTPUT_MD)
+  console.log('[regen:themed] timing JSON:', timingReport ? OUTPUT_TIMING_JSON : 'skipped')
+  console.log('[regen:themed] themed JSON:', themedCareerReport ? OUTPUT_THEMED_JSON : 'skipped')
+  console.log('[regen:themed] synthesis preview JSON:', OUTPUT_PREVIEW_JSON)
   console.log(
     '[regen:themed] checks:',
     JSON.stringify(

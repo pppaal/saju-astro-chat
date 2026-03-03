@@ -1,11 +1,8 @@
-import type { FusionReport } from '../interpreter/types'
+import type { FusionInsight, FusionReport } from '../interpreter/types'
 import type { MatrixCalculationInput } from '../types'
 import type { GraphRAGEvidenceBundle } from './graphRagEvidence'
 import { detectQuestionIntent } from './questionIntent'
-import {
-  getDeterministicCoreWeights,
-  type DeterministicProfile,
-} from './deterministicCoreConfig'
+import { getDeterministicCoreWeights, type DeterministicProfile } from './deterministicCoreConfig'
 
 export type DeterministicVerdict = 'GO' | 'DELAY' | 'NO'
 
@@ -71,6 +68,15 @@ function round(value: number): number {
   return Math.round(value)
 }
 
+function countInsightsByCategory(
+  report: FusionReport,
+  categories: FusionInsight['category'][]
+): number {
+  return Array.isArray(report.topInsights)
+    ? report.topInsights.filter((insight) => categories.includes(insight.category)).length
+    : 0
+}
+
 function buildCoverage(
   input: MatrixCalculationInput,
   report: FusionReport,
@@ -109,12 +115,8 @@ function buildCoverage(
       graphAnchorCount: anchors.length,
       graphSetCount: setCount,
       topInsightCount: Array.isArray(report.topInsights) ? report.topInsights.length : 0,
-      driverCount: Array.isArray(report.topInsights)
-        ? report.topInsights.filter((i: any) => i?.category === 'strength').length
-        : 0,
-      cautionCount: Array.isArray(report.topInsights)
-        ? report.topInsights.filter((i: any) => i?.category === 'caution' || i?.category === 'challenge').length
-        : 0,
+      driverCount: countInsightsByCategory(report, ['strength']),
+      cautionCount: countInsightsByCategory(report, ['caution', 'challenge']),
       domainScoreCount: Object.keys(report.domainAnalysis || {}).length,
       snapshotKeys: Object.keys(input.crossSnapshot || {}).length,
       hasCurrentDateIso: !!input.currentDateIso,
@@ -165,7 +167,8 @@ function buildDecision(
   if (coverage.cross.graphAnchorCount >= w.graphAnchorTarget) score += w.graphAnchorBonus
   else blockers.push('교차 근거 앵커 부족')
 
-  if (coverage.cross.graphSetCount >= coverage.cross.graphAnchorCount) score += w.graphSetDensityBonus
+  if (coverage.cross.graphSetCount >= coverage.cross.graphAnchorCount)
+    score += w.graphSetDensityBonus
   else blockers.push('교차 근거 세트 밀도 부족')
 
   if (coverage.astrology.aspectCount >= w.aspectCountTarget) score += w.aspectCountBonus
@@ -174,9 +177,7 @@ function buildDecision(
   if (coverage.saju.relationCount >= w.relationCountTarget) score += w.relationCountBonus
   if (coverage.saju.shinsalCount >= w.shinsalCountTarget) score += w.shinsalCountBonus
 
-  const cautionCount = Array.isArray(report.topInsights)
-    ? report.topInsights.filter((i: any) => i?.category === 'caution' || i?.category === 'challenge').length
-    : 0
+  const cautionCount = countInsightsByCategory(report, ['caution', 'challenge'])
   if (cautionCount >= w.cautionPenaltyThreshold) {
     score -= w.cautionPenalty
     reasons.push(`주의 신호 ${cautionCount}개 감점`)

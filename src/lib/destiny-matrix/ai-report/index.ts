@@ -53,7 +53,14 @@ export { generateNarrativeSectionsFromSynthesis } from './narrativeGenerator'
 export type { ReportEvidenceRef, SectionEvidenceRefs } from './evidenceRefs'
 export {
   buildPhaseStrategyEngine,
+  type StrategyTimingContext,
+  type StrategyDomainWeights,
   type StrategyPhaseCode,
   type StrategyEngineResult,
   type DomainStrategy,
 } from './strategyEngine'
+export {
+  STRATEGY_ENGINE_TUNING,
+  type StrategyEngineTuning,
+  type StrategyDomainWeightConfig,
+} from './strategyEngineConfig'
