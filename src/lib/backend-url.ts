@@ -31,6 +31,15 @@ function normalizeBackendEnvUrl(value?: string | null): string {
   let normalized = value.trim()
   if (!normalized) return ''
 
+  // Remove escaped wrappers first (e.g. \" https://... \")
+  normalized = normalized.replace(/\\/g, '')
+
+  // If a full URL is embedded in noisy wrappers, keep only the URL part.
+  const fullUrlMatch = normalized.match(/https?:\/\/[^\s'"`]+/i)
+  if (fullUrlMatch?.[0]) {
+    normalized = fullUrlMatch[0]
+  }
+
   // Remove accidental wrapping quotes/spaces from env values.
   normalized = normalized.replace(/^['"`\s]+|['"`\s]+$/g, '')
   normalized = normalized.replace(/["']/g, '')
