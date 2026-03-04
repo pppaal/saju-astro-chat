@@ -96,18 +96,19 @@ function sortClaimsForSection(
 ): SynthesizedClaim[] {
   const domains = SECTION_DOMAINS[section]
   const direct = claims.filter((claim) => domains.includes(claim.domain))
-  const rest = claims.filter((claim) => !domains.includes(claim.domain))
-  return [...direct, ...rest]
+  if (direct.length === 0) return []
+  return direct
 }
 
 function pickSupportClaim(
   leadClaim: SynthesizedClaim,
-  orderedClaims: SynthesizedClaim[]
+  orderedClaims: SynthesizedClaim[],
+  preferredDomains: SignalDomain[]
 ): SynthesizedClaim | undefined {
   return orderedClaims.find(
     (claim) =>
       claim.claimId !== leadClaim.claimId &&
-      claim.domain !== leadClaim.domain &&
+      preferredDomains.includes(claim.domain) &&
       claim.thesis !== leadClaim.thesis
   )
 }
@@ -159,7 +160,7 @@ function formatActionSentence(claims: SynthesizedClaim[], lang: 'ko' | 'en'): st
     .flatMap((claim) => claim.actions || [])
     .filter(Boolean)
     .slice(0, 2)
-  const plan = [...controls, ...actions].slice(0, 2).join(' ')
+  const plan = [...new Set([...controls, ...actions])].slice(0, 2).join(' ')
 
   if (lang === 'ko') {
     return plan || '결정과 실행 시점을 분리하고 외부 확정 전에 재확인 단계를 고정하세요.'
@@ -208,13 +209,14 @@ function sectionSupportSentence(
 
 function renderSection(section: keyof AIPremiumReport['sections'], input: NarrativeInput): string {
   const orderedClaims = sortClaimsForSection(input.synthesis.claims, section)
+  const domains = SECTION_DOMAINS[section]
   const leadClaim = orderedClaims[0]
-  const supportClaim = leadClaim ? pickSupportClaim(leadClaim, orderedClaims) : undefined
+  const supportClaim = leadClaim ? pickSupportClaim(leadClaim, orderedClaims, domains) : undefined
   const title = fallbackTitle(section, input.lang)
 
   if (!leadClaim) {
     return input.lang === 'ko'
-      ? `${title}은 현재 데이터 밀도가 낮아 기본 운영 원칙 중심으로 제공합니다. 단기 확정보다 검증 단계를 먼저 두고, 일정·조건·책임을 문서로 고정하세요.`
+      ? `${title} 영역은 현재 데이터 밀도가 낮아 기본 운영 원칙 중심으로 제공합니다. 단기 확정보다 재확인 단계를 먼저 두고, 일정·조건·책임을 문서로 고정하세요.`
       : `${title} is generated in low-signal mode. Prioritize verification before commitment and lock scope, terms, and ownership in writing.`
   }
 

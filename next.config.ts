@@ -237,6 +237,16 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: '/ai-report',
+        destination: '/premium-reports',
+        permanent: false,
+      },
+      {
+        source: '/premium-reports/result',
+        destination: '/premium-reports',
+        permanent: false,
+      },
+      {
         source: '/blog/numerology-life-path-numbers-explained',
         destination: '/blog',
         permanent: true,
