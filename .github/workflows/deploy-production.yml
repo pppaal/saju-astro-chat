@@ -28,6 +28,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       should-deploy: ${{ steps.check.outputs.should-deploy }}
+      has-vercel-token: ${{ steps.check.outputs.has-vercel-token }}
 
     steps:
       - name: Checkout
@@ -56,6 +57,14 @@ jobs:
             echo "Skipping deployment due to [skip-deploy] in commit message"
           else
             echo "should-deploy=true" >> $GITHUB_OUTPUT
+          fi
+
+          # Skip Vercel deploy jobs when token is not configured
+          if [[ -n "${{ secrets.VERCEL_TOKEN }}" ]]; then
+            echo "has-vercel-token=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-vercel-token=false" >> $GITHUB_OUTPUT
+            echo "VERCEL_TOKEN is missing; deploy-vercel job will be skipped."
           fi
 
       - name: Setup Node
@@ -117,7 +126,7 @@ jobs:
     name: Deploy to Vercel
     runs-on: ubuntu-latest
     needs: [validate, build]
-    if: needs.validate.outputs.should-deploy == 'true'
+    if: needs.validate.outputs.should-deploy == 'true' && needs.validate.outputs.has-vercel-token == 'true'
     environment:
       name: ${{ github.event.inputs.environment || 'production' }}
       url: ${{ steps.deploy.outputs.url }}

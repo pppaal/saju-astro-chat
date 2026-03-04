@@ -534,7 +534,9 @@ function findUnsupportedHighRiskTokens(text: string, allowed: Set<string>): stri
       : text.includes(token)
     if (!hasToken) continue
     const compact = compactToken(token)
-    if (!compact) continue
+    // Single-syllable Korean tokens are too ambiguous for substring removal.
+    // Example bug: removing token "합" corrupts "필요합니다" -> "필요니다".
+    if (!compact || compact.length < 2) continue
     if (!allowed.has(compact)) {
       found.add(token)
     }
@@ -629,6 +631,8 @@ function enforceEvidenceBindingFallback(
     if (!current) continue
     let cleaned = current
     for (const token of violation.unsupportedTokens) {
+      const compact = compactToken(token)
+      if (!compact || compact.length < 2) continue
       const pattern = new RegExp(escapeRegExp(token), /[a-z]/i.test(token) ? 'gi' : 'g')
       cleaned = cleaned
         .replace(pattern, '')
