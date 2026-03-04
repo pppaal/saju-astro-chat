@@ -1,6 +1,6 @@
 ﻿// src/lib/destiny-matrix/ai-report/aiReportService.ts
-// Destiny Fusion Matrixâ„¢ - AI Premium Report Generator
-// ìœ ë£Œ ê¸°ëŠ¥: AI ê¸°ë°˜ ìƒì„¸ ë‚´ëŸ¬í‹°ë¸Œ ë¦¬í¬íŠ¸ ìƒì„±
+// Destiny Fusion Matrix(TM) - AI Premium Report Generator
+// 유료 기능: AI 기반 상세 내러티브 리포트 생성
 
 import type { FusionReport } from '../interpreter/types'
 import type { MatrixCalculationInput, MatrixSummary } from '../types'
@@ -143,7 +143,7 @@ function hasRepetitiveSentences(text: string): boolean {
   }
 
   const sentenceSplit = text
-    .split(/(?<=ë‹¤\.)\s+|(?<=[.!?])\s+/u)
+    .split(/(?<=다\.)\s+|(?<=[.!?])\s+/u)
     .map((s) => s.trim())
     .filter((s) => s.length >= 24)
   if (sentenceSplit.length < 3) return false
@@ -199,10 +199,10 @@ function buildCrossRepairInstruction(lang: 'ko' | 'en', missing: string[]): stri
   if (lang === 'ko') {
     return [
       '',
-      'ì¤‘ìš”: ì•„ëž˜ ì„¹ì…˜ì—ì„œ ì‚¬ì£¼/ì ì„± êµì°¨ ê·¼ê±°ê°€ ëˆ„ë½ë˜ì—ˆìŠµë‹ˆë‹¤.',
-      `ëˆ„ë½ ì„¹ì…˜: ${list}`,
-      'ê° ëˆ„ë½ ì„¹ì…˜ì— ë°˜ë“œì‹œ í¬í•¨: ì‚¬ì£¼ ê·¼ê±° 1ë¬¸ìž¥ + ì ì„± ê·¼ê±° 1ë¬¸ìž¥ + êµì°¨ ê²°ë¡  1ë¬¸ìž¥ + ì‹¤ìš© í–‰ë™ 2ë¬¸ìž¥.',
-      'ë¬¸ìž¥í˜• ì¡´ëŒ“ë§ë§Œ ì‚¬ìš©í•˜ê³  ë¦¬ìŠ¤íŠ¸/ì´ëª¨ì§€/ì œëª© í‘œê¸°ëŠ” ê¸ˆì§€í•©ë‹ˆë‹¤.',
+      '중요: 아래 섹션에서 사주/점성 교차 근거가 누락되었습니다.',
+      `누락 섹션: ${list}`,
+      '각 누락 섹션에 반드시 포함: 사주 근거 1문장 + 점성 근거 1문장 + 교차 결론 1문장 + 실용 행동 2문장.',
+      '문장형 존댓말만 사용하고 리스트/이모지/제목 표기는 금지합니다.',
     ].join('\n')
   }
   return [
@@ -341,6 +341,28 @@ const HIGH_RISK_TRANSIT_TOKENS = [
   'harmonics',
 ]
 
+const HIGH_RISK_TOKEN_ALIASES: Record<string, string[]> = {
+  sun: ['태양'],
+  moon: ['달'],
+  mercury: ['수성'],
+  venus: ['금성'],
+  mars: ['화성'],
+  jupiter: ['목성'],
+  saturn: ['토성'],
+  uranus: ['천왕성'],
+  neptune: ['해왕성'],
+  pluto: ['명왕성'],
+  conjunction: ['합'],
+  opposition: ['대립'],
+  square: ['사각'],
+  trine: ['삼분'],
+  sextile: ['육분'],
+  truenode: ['북노드'],
+  northnode: ['북노드'],
+  southnode: ['남노드'],
+  node: ['노드', '북노드', '남노드'],
+}
+
 const REWRITE_STOP_WORDS = new Set([
   '그리고',
   '하지만',
@@ -374,6 +396,31 @@ const REWRITE_STOP_WORDS = new Set([
   'strategy',
 ])
 
+const ALLOWED_LONG_REWRITE_TOKENS = new Set([
+  'relationship',
+  'relationships',
+  'communication',
+  'coordination',
+  'verification',
+  'commitment',
+  'execution',
+  'completion',
+  'consistency',
+  'stability',
+  'volatility',
+  'expansion',
+  'conjunction',
+  'opposition',
+  'square',
+  'trine',
+  'sextile',
+  'synthesis',
+  'evidence',
+  'grounding',
+  'strategy',
+  'recovery',
+])
+
 const FORCE_REWRITE_ONLY_MODE = true
 
 function compactToken(value: string): string {
@@ -386,7 +433,7 @@ function compactToken(value: string): string {
 function tokenizeEvidenceText(value?: string): string[] {
   if (!value) return []
   return value
-    .split(/[^\p{L}\p{N}_:+-]+/u)
+    .split(/[^\p{L}\p{N}_:]+/u)
     .map((token) => token.trim())
     .filter((token) => token.length >= 2)
     .map((token) => compactToken(token))
@@ -533,6 +580,12 @@ function buildAllowedHighRiskTokenSet(evidenceRefs: SectionEvidenceRefs): Set<st
         ...tokenizeEvidenceText(ref.astroBasis),
       ]) {
         allowed.add(token)
+        const aliases = HIGH_RISK_TOKEN_ALIASES[token]
+        if (aliases) {
+          for (const alias of aliases) {
+            allowed.add(compactToken(alias))
+          }
+        }
       }
     }
   }
@@ -592,7 +645,13 @@ function validateEvidenceBinding(
 
 function hasEvidenceIdReference(text: string, refs: ReportEvidenceRef[]): boolean {
   if (!text || refs.length === 0) return true
-  return refs.some((ref) => Boolean(ref.id) && text.includes(ref.id))
+  const lowered = text.toLowerCase()
+  return refs.some((ref) => {
+    const hints = [ref.keyword, ref.rowKey, ref.colKey]
+      .filter((v): v is string => Boolean(v))
+      .map((v) => v.toLowerCase())
+    return hints.some((hint) => lowered.includes(hint))
+  })
 }
 
 function enforceEvidenceRefFooters(
@@ -608,15 +667,14 @@ function enforceEvidenceRefFooters(
     if (refs.length === 0) continue
     if (hasEvidenceIdReference(text, refs)) continue
     const top = refs.slice(0, 2)
-    const ids = top.map((ref) => ref.id).join(', ')
     const hints = top
       .map((ref) => ref.keyword || ref.rowKey || ref.colKey)
       .filter(Boolean)
       .join(', ')
     const footer =
       lang === 'ko'
-        ? `근거 ID: ${ids}${hints ? ` (${hints})` : ''}.`
-        : `Evidence IDs: ${ids}${hints ? ` (${hints})` : ''}.`
+        ? `근거 흐름은 ${hints || '핵심 신호'}입니다.`
+        : `Grounding follows ${hints || 'core signals'}.`
     setPathText(sections, path, `${text} ${footer}`.replace(/\s{2,}/g, ' ').trim())
   }
   return sections
@@ -770,10 +828,27 @@ function validateRewriteOnlyOutput(
     const draftText = getPathText(draftSections, path)
     const rewrittenText = getPathText(rewrittenSections, path)
     if (!draftText || !rewrittenText) continue
-    const rewrittenTokens = tokenizeRewrite(rewrittenText)
+    const draftSet = new Set(tokenizeRewrite(draftText))
+    const rewrittenSet = new Set(tokenizeRewrite(rewrittenText))
+    const rewrittenTokens = [...rewrittenSet]
     const newTokens = rewrittenTokens.filter((token) => !allowedTokens.has(token))
-    if (newTokens.length > 0) {
-      reasons.push(`new-token:${path}:${newTokens.slice(0, 12).join(',')}`)
+
+    const suspiciousNovel = newTokens.filter(
+      (token) => /^[a-z][a-z0-9_-]{12,}$/i.test(token) && !ALLOWED_LONG_REWRITE_TOKENS.has(token)
+    )
+    if (suspiciousNovel.length > 0) {
+      reasons.push(`suspicious-token:${path}:${suspiciousNovel.slice(0, 8).join(',')}`)
+    }
+
+    const overlapCount = rewrittenTokens.filter(
+      (token) => draftSet.has(token) || allowedTokens.has(token)
+    ).length
+    const overlapRatio = overlapCount / Math.max(1, rewrittenTokens.length)
+    const noveltyRatio = newTokens.length / Math.max(1, rewrittenTokens.length)
+    if (rewrittenTokens.length >= 20 && overlapRatio < 0.18 && noveltyRatio > 0.55) {
+      reasons.push(
+        `rewrite-drift:${path}:overlap=${overlapRatio.toFixed(2)}:novelty=${noveltyRatio.toFixed(2)}`
+      )
     }
   }
   return { pass: reasons.length === 0, reasons }
@@ -871,6 +946,31 @@ async function rewriteSectionsWithFallback<T extends object>(args: {
       evidenceRefs
     )
     if (!check.pass) {
+      const evidenceCheck = validateEvidenceBinding(candidateSections, sectionPaths, evidenceRefs)
+      if (evidenceCheck.needsRepair) {
+        const repaired = enforceEvidenceBindingFallback(
+          candidateSections,
+          evidenceCheck.violations,
+          evidenceRefs,
+          lang
+        )
+        const repairedCheck = validateRewriteOnlyOutput(
+          draftSections as unknown as Record<string, unknown>,
+          repaired,
+          sectionPaths,
+          evidenceRefs
+        )
+        if (repairedCheck.pass) {
+          return {
+            sections: repaired as unknown as T,
+            modelUsed: `${rewritten.model || 'gpt-4o-mini'}-validator-repair`,
+            tokensUsed: rewritten.tokensUsed || 0,
+          }
+        }
+      }
+      logger.warn('[AI Report] Rewrite-only validator failed; fallback to draft', {
+        reasons: check.reasons.slice(0, 6),
+      })
       return { sections: draftSections, modelUsed: 'rewrite-fallback-validator', tokensUsed: 0 }
     }
     return {
@@ -953,12 +1053,10 @@ function buildNarrativeStyleRepairInstruction(lang: 'ko' | 'en', listStylePaths:
   if (lang === 'ko') {
     return [
       '',
-      'ì¤‘ìš”: í˜„ìž¬ ë¬¸ì²´ê°€ í•­ëª©í˜•/ë¶ˆë¦¿í˜•ìœ¼ë¡œ ê°ì§€ë˜ì—ˆìŠµë‹ˆë‹¤.',
-      listStylePaths.length > 0
-        ? `ì„œì‚¬í˜•ìœ¼ë¡œ ìž¬ìž‘ì„±í•  ì„¹ì…˜: ${listStylePaths.join(', ')}`
-        : '',
-      'ë°˜ë“œì‹œ ë¬¸ë‹¨í˜• ì„œì‚¬ë¡œ ìž¬ìž‘ì„±í•˜ì„¸ìš”. ë²ˆí˜¸, ë¶ˆë¦¿, ê¸°í˜¸(1., -, â€¢, âœ… ë“±)ë¥¼ ì‚¬ìš©í•˜ì§€ ë§ˆì„¸ìš”.',
-      'ê° ì„¹ì…˜ì€ 6ë¬¸ìž¥ ì´ìƒìœ¼ë¡œ ì—°ê²°ê° ìžˆê²Œ ìž‘ì„±í•˜ê³ , ì‹¤ì œ ìƒí™© ì˜ˆì‹œì™€ ì‹¤í–‰ ë§¥ë½ì„ í•¨ê»˜ ë„£ìœ¼ì„¸ìš”.',
+      '중요: 현재 문체가 항목형/불릿형으로 감지되었습니다.',
+      listStylePaths.length > 0 ? `서사형으로 재작성할 섹션: ${listStylePaths.join(', ')}` : '',
+      '반드시 문단형 서사로 재작성하세요. 번호/불릿/체크리스트(1., -, •, ✅ 등)는 금지합니다.',
+      '각 섹션은 최소 6문장으로 연결감 있게 작성하고, 실제 상황 예시와 실행 맥락을 함께 포함하세요.',
     ]
       .filter(Boolean)
       .join('\n')
@@ -980,12 +1078,10 @@ function buildAntiRepetitionInstruction(lang: 'ko' | 'en', repetitivePaths: stri
   if (lang === 'ko') {
     return [
       '',
-      'ì¤‘ìš”: ë°˜ë³µ ë¬¸ìž¥ì´ ê°ì§€ë˜ì—ˆìŠµë‹ˆë‹¤.',
-      repetitivePaths.length > 0
-        ? `ë°˜ë³µ ì œê±° í•„ìš” ì„¹ì…˜: ${repetitivePaths.join(', ')}`
-        : '',
-      'ê°™ì€ ë¬¸ìž¥ êµ¬ì¡°/í‘œí˜„ì„ ë°˜ë³µí•˜ì§€ ë§ê³ , ê° ë¬¸ë‹¨ë§ˆë‹¤ ìƒˆë¡œìš´ ê·¼ê±°ì™€ ë‹¤ë¥¸ ì‚¬ë¡€ë¥¼ ì‚¬ìš©í•˜ì„¸ìš”.',
-      'â€œì´ êµ¬ê°„ì€ â€¦â€ ê°™ì€ í…œí”Œë¦¿ ë¬¸ìž¥ ë°˜ë³µì„ ê¸ˆì§€í•˜ê³  ìžì—°ìŠ¤ëŸ¬ìš´ ì„œìˆ ë¡œ ë‹¤ì‹œ ìž‘ì„±í•˜ì„¸ìš”.',
+      '중요: 반복 문장이 감지되었습니다.',
+      repetitivePaths.length > 0 ? `반복 제거가 필요한 섹션: ${repetitivePaths.join(', ')}` : '',
+      '같은 문장 구조/표현을 반복하지 말고, 각 문단마다 새로운 근거와 다른 사례를 사용하세요.',
+      '“이 구간은 …” 같은 템플릿 문장 반복을 금지하고 자연스러운 서술로 다시 작성하세요.',
     ]
       .filter(Boolean)
       .join('\n')
@@ -1014,17 +1110,17 @@ function buildNarrativeRewritePrompt(
   const json = JSON.stringify(sections, null, 2)
   if (lang === 'ko') {
     return [
-      'ë‹¹ì‹ ì€ ìš´ì„¸ ë¦¬í¬íŠ¸ ì—ë””í„°ìž…ë‹ˆë‹¤.',
-      'ì•„ëž˜ JSON ì„¹ì…˜ì„ ì˜ë¯¸ëŠ” ìœ ì§€í•˜ê³  ë¬¸ì²´ë§Œ ì‚¬ëžŒ ì¹œí™”ì  ì„œìˆ í˜•ìœ¼ë¡œ ë¦¬ë¼ì´íŠ¸í•˜ì„¸ìš”.',
-      'ì¤‘ìš” ê·œì¹™:',
-      '- ì„¹ì…˜ í‚¤ëŠ” ì ˆëŒ€ ë³€ê²½í•˜ì§€ ë§ ê²ƒ.',
-      '- ë¶ˆë¦¿/ë²ˆí˜¸ ëª©ë¡ ê¸ˆì§€, ìžì—° ë¬¸ë‹¨í˜•ìœ¼ë¡œ ìž‘ì„±.',
-      '- ê°™ì€ ë¬¸ìž¥ í…œí”Œë¦¿ ë°˜ë³µ ê¸ˆì§€.',
-      `- ê° ì„¹ì…˜ ìµœì†Œ ${options.minCharsPerSection}ìž ìœ ì§€.`,
-      `- ì „ì²´ ìµœì†Œ ${options.minTotalChars}ìž ìœ ì§€.`,
-      `- ${options.requiredTimingSections.join(', ')} ì„¹ì…˜ì—ëŠ” ëŒ€ìš´Â·ì„¸ìš´Â·ì›”ìš´Â·ì¼ì§„Â·íŠ¸ëžœì§“ íƒ€ì´ë° ë¬¸ìž¥ì„ ìµœì†Œ 1íšŒ í¬í•¨.`,
-      '- ê³¼ìž¥/ë‹¨ì •/ê³µí¬ ì¡°ìž¥ í‘œí˜„ ê¸ˆì§€. í˜„ì‹¤ì ì´ê³  êµ¬ì²´ì ì¸ í–‰ë™ ë¬¸ìž¥ í¬í•¨.',
-      'ì•„ëž˜ JSONë§Œ ë°˜í™˜:',
+      '당신은 운세 리포트 에디터입니다.',
+      '아래 JSON 섹션의 의미는 유지하고 문체만 사람 친화적인 서술형으로 리라이트하세요.',
+      '중요 규칙:',
+      '- 섹션 키는 절대 변경하지 마세요.',
+      '- 불릿/번호 목록 금지, 자연 문단형으로 작성하세요.',
+      '- 같은 문장 템플릿 반복을 금지합니다.',
+      `- 각 섹션 최소 ${options.minCharsPerSection}자 유지.`,
+      `- 전체 최소 ${options.minTotalChars}자 유지.`,
+      `- ${options.requiredTimingSections.join(', ')} 섹션에는 대운/세운/월운/일진/트랜짓 타이밍 문장을 최소 1회 포함하세요.`,
+      '- 과장/단정/공포 조장 표현 금지. 현실적이고 구체적인 행동 문장을 포함하세요.',
+      '아래 JSON만 반환하세요:',
       '```json',
       json,
       '```',
@@ -1060,13 +1156,13 @@ function buildDepthRepairInstruction(
   if (lang === 'ko') {
     return [
       '',
-      'ì¤‘ìš”: ë¦¬í¬íŠ¸ê°€ ì§§ê±°ë‚˜ ì¼ë°˜ë¡ ì ìž…ë‹ˆë‹¤. ì•„ëž˜ ê¸°ì¤€ì„ ë§Œì¡±í•˜ë„ë¡ ì „ì²´ë¥¼ ë‹¤ì‹œ ìž‘ì„±í•´ ì£¼ì„¸ìš”.',
-      `í•„ìˆ˜ ì„¹ì…˜: ${allPaths}`,
-      `ê° ì„¹ì…˜ ìµœì†Œ ê¸¸ì´: ${minCharsPerSection}ìž, ì „ì²´ ìµœì†Œ ê¸¸ì´: ${minTotalChars}ìž`,
-      shortPaths.length > 0 ? `íŠ¹ížˆ ë³´ê°•ì´ í•„ìš”í•œ ì„¹ì…˜: ${shortList}` : '',
-      'ê° ì„¹ì…˜ì€ ë°˜ë“œì‹œ 1) í•µì‹¬ í•´ì„ 2) ê·¼ê±° 3) ìƒí™œ ì ìš© 4) ì£¼ì˜ í¬ì¸íŠ¸ë¥¼ ë¬¸ìž¥í˜•ìœ¼ë¡œ í¬í•¨í•´ ì£¼ì„¸ìš”.',
-      'ì–´ë ¤ìš´ ìš©ì–´ë¥¼ ì“°ë©´ ë°”ë¡œ ë’¤ì— ì‰¬ìš´ í•œêµ­ì–´ ì„¤ëª…ì„ ë¶™ì—¬ ì£¼ì„¸ìš”.',
-      'ë¦¬ìŠ¤íŠ¸ ëŒ€ì‹  ì„œìˆ í˜• ë¬¸ë‹¨ìœ¼ë¡œ ìž‘ì„±í•´ ì£¼ì„¸ìš”.',
+      '중요: 리포트가 짧거나 일반론적입니다. 아래 기준을 만족하도록 전체를 다시 작성해 주세요.',
+      `필수 섹션: ${allPaths}`,
+      `각 섹션 최소 길이: ${minCharsPerSection}자, 전체 최소 길이: ${minTotalChars}자`,
+      shortPaths.length > 0 ? `특히 보강이 필요한 섹션: ${shortList}` : '',
+      '각 섹션은 반드시 1) 핵심 해석 2) 근거 3) 생활 적용 4) 주의 포인트를 문장형으로 포함해 주세요.',
+      '어려운 용어를 쓰면 바로 뒤에 쉬운 한국어 설명을 붙여 주세요.',
+      '리스트 대신 서술형 문단으로 작성해 주세요.',
     ]
       .filter(Boolean)
       .join('\n')
@@ -1090,9 +1186,9 @@ function buildSecondPassInstruction(lang: 'ko' | 'en'): string {
   if (lang === 'ko') {
     return [
       '',
-      '2ì°¨ ë³´ê°• ì§€ì‹œ: ì—¬ì „ížˆ ë°€ë„ê°€ ë¶€ì¡±í•˜ë©´ ê° ì„¹ì…˜ì„ ìµœì†Œ 6ë¬¸ìž¥ìœ¼ë¡œ í™•ìž¥í•´ ì£¼ì„¸ìš”.',
-      'ê° ì„¹ì…˜ì— ë°˜ë“œì‹œ ì‹¤ì „ ì˜ˆì‹œ 1ê°œì™€ ì‹¤í–‰ ìˆœì„œ(ì˜¤ëŠ˜-ì´ë²ˆì£¼-ì´ë²ˆë‹¬)ë¥¼ í¬í•¨í•´ ì£¼ì„¸ìš”.',
-      'ì¶”ìƒì  ë¯¸ì‚¬ì—¬êµ¬ ëŒ€ì‹  í–‰ë™ ê°€ëŠ¥í•œ ë¬¸ìž¥ìœ¼ë¡œ ìž‘ì„±í•´ ì£¼ì„¸ìš”.',
+      '2차 보강 지시: 여전히 밀도가 부족하면 각 섹션을 최소 6문장으로 확장해 주세요.',
+      '각 섹션에 반드시 실전 예시 1개와 실행 순서(오늘-이번주-이번달)를 포함해 주세요.',
+      '추상적 미사여구 대신 행동 가능한 문장으로 작성해 주세요.',
     ].join('\n')
   }
   return [
@@ -1112,10 +1208,10 @@ function buildActionRepairInstruction(
   if (lang === 'ko') {
     return [
       '',
-      `ì¤‘ìš”: ì‹¤í–‰ ë¬¸ìž¥ ë¹„ìœ¨ì´ ë‚®ìŠµë‹ˆë‹¤. í˜„ìž¬=${Math.round(ratio * 100)}%, ëª©í‘œ=${Math.round(targetRatio * 100)}%`,
-      missingPaths.length > 0 ? `ë³´ê°• í•„ìš” ì„¹ì…˜: ${missingPaths.join(', ')}` : '',
-      'ê° í•µì‹¬ ì„¹ì…˜ë§ˆë‹¤ ë°˜ë“œì‹œ ì˜¤ëŠ˜-ì´ë²ˆì£¼-ì´ë²ˆë‹¬ ìˆœì„œì˜ ì‹¤í–‰ ë¬¸ìž¥(í–‰ë™ ì§€ì‹œ) ìµœì†Œ 2ê°œë¥¼ ë„£ìœ¼ì„¸ìš”.',
-      'ì¶”ìƒì  ìœ„ë¡œ ë¬¸ìž¥ ëŒ€ì‹  ì‹¤ì œ í–‰ë™ ê°€ëŠ¥í•œ ë¬¸ìž¥ì„ ì‚¬ìš©í•˜ì„¸ìš”.',
+      `중요: 실행 문장 비율이 낮습니다. 현재=${Math.round(ratio * 100)}%, 목표=${Math.round(targetRatio * 100)}%`,
+      missingPaths.length > 0 ? `보강이 필요한 섹션: ${missingPaths.join(', ')}` : '',
+      '각 핵심 섹션마다 반드시 오늘-이번주-이번달 순서의 실행 문장(행동 지시) 최소 2개를 넣어 주세요.',
+      '추상적 위로 문장 대신 실제 행동 가능한 문장을 사용해 주세요.',
     ]
       .filter(Boolean)
       .join('\n')
@@ -1140,9 +1236,9 @@ function buildEvidenceRepairInstruction(
   if (lang === 'ko') {
     return [
       '',
-      `ì¤‘ìš”: ê·¼ê±° íŠ¸ë¦¬í”Œ(ì‚¬ì£¼+ì ì„±+êµì°¨) ë¹„ìœ¨ì´ ë‚®ìŠµë‹ˆë‹¤. í˜„ìž¬=${Math.round(ratio * 100)}%, ëª©í‘œ=${Math.round(targetRatio * 100)}%`,
-      missingPaths.length > 0 ? `ë³´ê°• í•„ìš” ì„¹ì…˜: ${missingPaths.join(', ')}` : '',
-      'ê° í•µì‹¬ ì„¹ì…˜ì—ì„œ ë°˜ë“œì‹œ ì‚¬ì£¼ ê·¼ê±° 1ë¬¸ìž¥ + ì ì„± ê·¼ê±° 1ë¬¸ìž¥ + êµì°¨ ê²°ë¡  1ë¬¸ìž¥ì„ í¬í•¨í•˜ì„¸ìš”.',
+      `중요: 근거 트리플(사주+점성+교차) 비율이 낮습니다. 현재=${Math.round(ratio * 100)}%, 목표=${Math.round(targetRatio * 100)}%`,
+      missingPaths.length > 0 ? `보강이 필요한 섹션: ${missingPaths.join(', ')}` : '',
+      '각 핵심 섹션에서 반드시 사주 근거 1문장 + 점성 근거 1문장 + 교차 결론 1문장을 포함해 주세요.',
     ]
       .filter(Boolean)
       .join('\n')
@@ -1165,9 +1261,9 @@ function buildCrossCoverageRepairInstruction(
   if (lang === 'ko') {
     return [
       '',
-      `ì¤‘ìš”: ì‚¬ì£¼+ì ì„± êµì°¨ ì„œìˆ  ë¹„ìœ¨ì´ ë‚®ìŠµë‹ˆë‹¤. í˜„ìž¬=${Math.round(ratio * 100)}%, ëª©í‘œ=${Math.round(targetRatio * 100)}%`,
-      'ê° í•µì‹¬ ì„¹ì…˜ë§ˆë‹¤ ì‚¬ì£¼ ê·¼ê±° 1ë¬¸ìž¥ + ì ì„± ê·¼ê±° 1ë¬¸ìž¥ + êµì°¨ ê²°ë¡  1ë¬¸ìž¥ì„ ë°˜ë“œì‹œ í¬í•¨í•˜ì„¸ìš”.',
-      'ë‹¨ìˆœ ì¼ë°˜ë¡ ì„ ì¤„ì´ê³ , ê·¼ê±°ì–´(ì‚¬ì£¼/ì ì„±/í•˜ìš°ìŠ¤/ëŒ€ìš´/íŠ¸ëžœì‹¯)ë¥¼ ë¬¸ìž¥ì— ëª…ì‹œí•˜ì„¸ìš”.',
+      `중요: 사주+점성 교차 서술 비율이 낮습니다. 현재=${Math.round(ratio * 100)}%, 목표=${Math.round(targetRatio * 100)}%`,
+      '각 핵심 섹션마다 사주 근거 1문장 + 점성 근거 1문장 + 교차 결론 1문장을 반드시 포함해 주세요.',
+      '단순 일반론을 줄이고, 근거어(사주/점성/하우스/대운/트랜짓)를 문장에 명시해 주세요.',
     ].join('\n')
   }
   return [
@@ -1187,10 +1283,10 @@ function buildTimingRepairInstruction(
   if (lang === 'ko') {
     return [
       '',
-      `ì¤‘ìš”: íƒ€ì´ë° ê·¼ê±°(ëŒ€ìš´/ì„¸ìš´/ì›”ìš´/ì¼ì§„/íŠ¸ëžœì§“) ë°˜ì˜ ë¹„ìœ¨ì´ ë‚®ìŠµë‹ˆë‹¤. í˜„ìž¬=${Math.round(ratio * 100)}%, ëª©í‘œ=${Math.round(targetRatio * 100)}%`,
-      missingPaths.length > 0 ? `ë³´ê°• í•„ìš” ì„¹ì…˜: ${missingPaths.join(', ')}` : '',
-      'ê° ë³´ê°• ì„¹ì…˜ì—ì„œ ë°˜ë“œì‹œ ë‹¤ìŒì„ ëª…ì‹œí•˜ì„¸ìš”: í˜„ìž¬ ëŒ€ìš´ 1ë¬¸ìž¥, ì„¸ìš´/ì›”ìš´/ì¼ì§„ ì¤‘ 2ê°œ ì´ìƒ 1ë¬¸ìž¥, ì ì„± íŠ¸ëžœì§“/í–‰ì„± íƒ€ì´ë° 1ë¬¸ìž¥, ì‹¤ì œ ì‹¤í–‰ ì‹œì  1ë¬¸ìž¥.',
-      'íƒ€ì´ë°ì€ ë°˜ë“œì‹œ ì ˆëŒ€ í‘œí˜„ìœ¼ë¡œ ì“°ì„¸ìš”(ì˜¤ëŠ˜/ì´ë²ˆì£¼/ì´ë²ˆë‹¬ + êµ¬ì²´ ì‹œì ).',
+      `중요: 타이밍 근거(대운/세운/월운/일진/트랜짓) 반영 비율이 낮습니다. 현재=${Math.round(ratio * 100)}%, 목표=${Math.round(targetRatio * 100)}%`,
+      missingPaths.length > 0 ? `보강이 필요한 섹션: ${missingPaths.join(', ')}` : '',
+      '각 보강 섹션에서 반드시 다음을 명시해 주세요: 현재 대운 1문장, 세운/월운/일진 중 2개 이상 1문장, 점성 트랜짓/행성 타이밍 1문장, 실제 실행 시점 1문장.',
+      '타이밍은 반드시 절대 표현으로 써 주세요(오늘/이번주/이번달 + 구체 시점).',
     ]
       .filter(Boolean)
       .join('\n')
@@ -1585,7 +1681,7 @@ function buildSectionPrompt(
 
 function splitSentences(text: string): string[] {
   return text
-    .split(/(?<=ë‹¤\.)\s+|(?<=[.!?])\s+/u)
+    .split(/(?<=다\.)\s+|(?<=[.!?])\s+/u)
     .map((s) => s.trim())
     .filter(Boolean)
 }
@@ -1605,7 +1701,7 @@ function measureSectionNovelty(text: string): number {
 
 function measureSectionSpecificity(text: string): number {
   const concreteRegex =
-    /ì˜¤ëŠ˜|ì´ë²ˆì£¼|ì´ë²ˆ ë‹¬|ì´ë²ˆë‹¬|ì´ë²ˆ í•´|ì›”ê°„|ì£¼ê°„|ê³„ì•½|ì¼ì •|ë§ˆê°|íšŒì˜|ì—°ë½|ìˆ˜ë©´|ë‘í†µ|í—ˆë¦¬|ê´€ì ˆ|ì†Œí™”|í”¼ë¡œ/i
+    /오늘|이번주|이번 주|이번달|이번 달|이번해|이번 해|월간|주간|계약|일정|마감|회의|연락|수면|두통|허리|관절|소화|피로/i
   return splitSentences(text).filter((s) => concreteRegex.test(s)).length
 }
 
@@ -1638,17 +1734,17 @@ function countAdviceSentences(text: string): number {
 
 function normalizeFactKeywords(fact: string): string[] {
   const stopWords = new Set([
-    'ê·¸ë¦¬ê³ ',
-    'í•˜ì§€ë§Œ',
-    'ì—ì„œ',
-    'ìœ¼ë¡œ',
-    'ìž…ë‹ˆë‹¤',
-    'í•©ë‹ˆë‹¤',
-    'íë¦„',
-    'ì¶•',
-    'í˜„ìž¬',
-    'ê¸°ì§ˆ',
-    'ì„±í–¥',
+    '그리고',
+    '하지만',
+    '에서',
+    '으로',
+    '입니다',
+    '합니다',
+    '흐름',
+    '축',
+    '현재',
+    '기질',
+    '성향',
   ])
   return fact
     .replace(/[^\p{L}\p{N}\s]/gu, ' ')
@@ -2019,7 +2115,7 @@ function buildThemedFallbackSections(
 }
 
 // ===========================
-// ë©”ì¸ ìƒì„± í•¨ìˆ˜
+// Main generation function
 // ===========================
 
 export async function generateAIPremiumReport(
@@ -2031,7 +2127,7 @@ export async function generateAIPremiumReport(
   const lang = options.lang || 'ko'
   const detailLevel = options.detailLevel || 'detailed'
 
-  // 1. í”„ë¡¬í”„íŠ¸ ë¹Œë“œ
+  // 1. Build prompt
   const graphRagEvidence = buildGraphRAGEvidence(input, matrixReport, {
     mode: 'comprehensive',
     focusDomain: options.focusDomain,
@@ -2239,7 +2335,7 @@ export async function generateAIPremiumReport(
         const repairPrompt = [
           buildSectionPrompt(sectionKey, factPack, lang, sectionText, sectionMinChars),
           lang === 'ko'
-            ? `ë³´ê°• ê·œì¹™: ìƒˆ í¬ì¸íŠ¸ë¥¼ ìµœì†Œ ì„¸ ê°œ ë„£ê³ , êµ¬ì²´ ëª…ì‚¬ë¥¼ ìµœì†Œ ë‘ ê°œ ë„£ê³ , ì‚¬ì‹¤ ë¬¶ìŒ ë°˜ì˜ ë¬¸ìž¥ì„ ìµœì†Œ ë‘ ê°œ ë„£ì–´ ì£¼ì„¸ìš”. í‰ê·  ë¬¸ìž¥ ê¸¸ì´ëŠ” 40ìž ì´í•˜ë¡œ ë§žì¶”ê³  ê¸ˆì§€ í‘œí˜„ì€ ì œê±°í•´ ì£¼ì„¸ìš”. current novelty=${quality.novelty}, specificity=${quality.specificity}, evidence=${quality.evidenceDensity}, avgLen=${Math.round(quality.avgSentenceLength)}, advice=${quality.adviceCount}, banned=${quality.banned}`
+            ? `보강 규칙: 새 포인트를 최소 3개 넣고, 구체 명사를 최소 2개 넣고, 사실 묶음 반영 문장을 최소 2개 넣어 주세요. 평균 문장 길이는 40자 이하로 맞추고 금지 표현은 제거해 주세요. current novelty=${quality.novelty}, specificity=${quality.specificity}, evidence=${quality.evidenceDensity}, avgLen=${Math.round(quality.avgSentenceLength)}, advice=${quality.adviceCount}, banned=${quality.banned}`
             : `Repair rules: add at least 3 new points, include at least 2 concrete nouns, and reflect at least 2 fact-pack points. Keep average sentence length under 40 chars and remove banned phrases. current novelty=${quality.novelty}, specificity=${quality.specificity}, evidence=${quality.evidenceDensity}, avgLen=${Math.round(quality.avgSentenceLength)}, advice=${quality.adviceCount}, banned=${quality.banned}`,
         ].join('\n')
         try {
@@ -2639,7 +2735,7 @@ export async function generateAIPremiumReport(
 }
 
 // ===========================
-// íƒ€ì´ë° ë¦¬í¬íŠ¸ ìƒì„± í•¨ìˆ˜
+// Timing report generation function
 // ===========================
 
 export async function generateTimingReport(
@@ -2771,10 +2867,10 @@ export async function generateTimingReport(
     'timing'
   )
 
-  // 1. ë§¤íŠ¸ë¦­ìŠ¤ ìš”ì•½ ë¹Œë“œ
+  // 1. Build matrix summary
   const matrixSummary = buildMatrixSummary(matrixReport, lang)
 
-  // 2. í”„ë¡¬í”„íŠ¸ ë¹Œë“œ
+  // 2. Build prompt
   const prompt = `${buildTimingPrompt(
     period,
     lang,
@@ -2792,7 +2888,7 @@ export async function generateTimingReport(
     deterministicCore.promptBlock
   )}\n\n${themeSchemaPrompt}\n\n${lifecyclePrompt}\n\n${buildDirectToneOverride(lang)}\n\n${synthesisPromptBlock}`
 
-  // 3. AI ë°±ì—”ë“œ í˜¸ì¶œ + í’ˆì§ˆ ê²Œì´íŠ¸(ê¸¸ì´/êµì°¨ ê·¼ê±°)
+  // 3. Call AI backend + quality gate (length/cross evidence)
   const base = await callAIBackendGeneric<TimingReportSections>(prompt, lang, {
     userPlan: options.userPlan,
   })
@@ -3008,13 +3104,13 @@ export async function generateTimingReport(
   }
   sections = enforceEvidenceRefFooters(sections, sectionPaths, timingEvidenceRefs, lang)
 
-  // 4. ê¸°ê°„ ë¼ë²¨ ìƒì„±
+  // 4. Build period label
   const periodLabel = generatePeriodLabel(period, targetDate, lang)
 
-  // 5. ì ìˆ˜ ê³„ì‚°
+  // 5. Calculate score
   const periodScore = calculatePeriodScore(timingData, input.dayMasterElement)
 
-  // 6. ë¦¬í¬íŠ¸ ì¡°ë¦½
+  // 6. Assemble report
   const report: TimingAIPremiumReport = {
     id: `timing_${period}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     generatedAt: new Date().toISOString(),
@@ -3079,7 +3175,7 @@ export async function generateTimingReport(
 }
 
 // ===========================
-// í…Œë§ˆë³„ ë¦¬í¬íŠ¸ ìƒì„± í•¨ìˆ˜
+// Themed report generation function
 // ===========================
 
 export async function generateThemedReport(
@@ -3190,10 +3286,10 @@ export async function generateThemedReport(
     theme
   )
 
-  // 1. ë§¤íŠ¸ë¦­ìŠ¤ ìš”ì•½ ë¹Œë“œ
+  // 1. Build matrix summary
   const matrixSummary = buildMatrixSummary(matrixReport, lang)
 
-  // 2. í”„ë¡¬í”„íŠ¸ ë¹Œë“œ
+  // 2. Build prompt
   const prompt = `${buildThemedPrompt(
     theme,
     lang,
@@ -3212,7 +3308,7 @@ export async function generateThemedReport(
     deterministicCore.promptBlock
   )}\n\n${themeSchemaPrompt}\n\n${lifecyclePrompt}\n\n${buildDirectToneOverride(lang)}\n\n${synthesisPromptBlock}`
 
-  // 3. AI ë°±ì—”ë“œ í˜¸ì¶œ + í’ˆì§ˆ ê²Œì´íŠ¸(ê¸¸ì´/êµì°¨ ê·¼ê±°)
+  // 3. Call AI backend + quality gate (length/cross evidence)
   const base = await callAIBackendGeneric<ThemedReportSections>(prompt, lang, {
     userPlan: options.userPlan,
   })
@@ -3398,16 +3494,16 @@ export async function generateThemedReport(
   }
   sections = enforceEvidenceRefFooters(sections, sectionPaths, themedEvidenceRefs, lang)
 
-  // 4. í…Œë§ˆ ë©”íƒ€ë°ì´í„°
+  // 4. Theme metadata
   const themeMeta = THEME_META[theme]
 
-  // 5. ì ìˆ˜ ê³„ì‚°
+  // 5. Calculate score
   const themeScore = calculateThemeScore(theme, input.sibsinDistribution)
 
-  // 6. í‚¤ì›Œë“œ ì¶”ì¶œ
+  // 6. Extract keywords
   const keywords = extractKeywords(sections as unknown as ThemedReportSections, theme, lang)
 
-  // 7. ë¦¬í¬íŠ¸ ì¡°ë¦½
+  // 7. Assemble report
   const report: ThemedAIPremiumReport = {
     id: `themed_${theme}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     generatedAt: new Date().toISOString(),

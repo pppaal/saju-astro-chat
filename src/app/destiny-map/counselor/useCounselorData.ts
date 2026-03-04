@@ -70,21 +70,21 @@ export function useCounselorData(sp: SearchParams) {
   const themeOptions = useMemo<Array<{ key: string; icon: string; label: string }>>(
     () => [
       { key: 'life', icon: '🌌', label: lang === 'ko' ? '종합 상담' : 'General' },
-      { key: 'love', icon: 'ðŸ’ž', label: t('destinyMap.counselor.theme.love', 'ì—°ì• ') },
-      { key: 'career', icon: 'ðŸ’¼', label: t('destinyMap.counselor.theme.career', 'ì§ì—…') },
-      { key: 'wealth', icon: 'ðŸ’°', label: t('destinyMap.counselor.theme.wealth', 'ìž¬ë¬¼') },
-      { key: 'health', icon: 'ðŸ©º', label: t('destinyMap.counselor.theme.health', 'ê±´ê°•') },
-      { key: 'family', icon: 'ðŸ ', label: t('destinyMap.counselor.theme.family', 'ê°€ì¡±') },
+      { key: 'love', icon: '💞', label: t('destinyMap.counselor.theme.love', '연애') },
+      { key: 'career', icon: '💼', label: t('destinyMap.counselor.theme.career', '직업') },
+      { key: 'wealth', icon: '💰', label: t('destinyMap.counselor.theme.wealth', '재물') },
+      { key: 'health', icon: '🩺', label: t('destinyMap.counselor.theme.health', '건강') },
+      { key: 'family', icon: '🏠', label: t('destinyMap.counselor.theme.family', '가족') },
     ],
     [lang, t]
   )
 
   const loadingMessages = useMemo(
     () => [
-      t('destinyMap.counselor.loading1', 'ìƒë‹´ì‚¬ì™€ ì—°ê²° ì¤‘...'),
-      t('destinyMap.counselor.loading2', 'ì‚¬ì£¼/ì ì„± í”„ë¡œí•„ì„ ë¶„ì„ ì¤‘...'),
-      t('destinyMap.counselor.loading3', 'êµì°¨ ë°ì´í„°ì™€ ë¬¸ë§¥ì„ ì¤€ë¹„ ì¤‘...'),
-      t('destinyMap.counselor.loading4', 'ê³§ ìƒë‹´ì„ ì‹œìž‘í•  ìˆ˜ ìžˆì–´ìš”'),
+      t('destinyMap.counselor.loading1', '상담사와 연결 중...'),
+      t('destinyMap.counselor.loading2', '사주/점성 프로필을 분석 중...'),
+      t('destinyMap.counselor.loading3', '교차 데이터와 문맥을 준비 중...'),
+      t('destinyMap.counselor.loading4', '곧 상담을 시작할 수 있어요'),
     ],
     [t]
   )
@@ -203,37 +203,37 @@ export function useCounselorData(sp: SearchParams) {
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
-            // Solar Return (í˜„ìž¬ ì—°ë„)
+            // Solar Return (현재 연도)
             fetch(`/api/astrology/advanced/solar-return`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
-            // Lunar Return (í˜„ìž¬ ì›”)
+            // Lunar Return (현재 월)
             fetch(`/api/astrology/advanced/lunar-return`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
-            // Progressions (í˜„ìž¬ ë‚ ì§œ)
+            // Progressions (현재 날짜)
             fetch(`/api/astrology/advanced/progressions`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
-            // Fixed Stars (í•­ì„±)
+            // Fixed Stars (항성)
             fetch(`/api/astrology/advanced/fixed-stars`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
-            // Eclipses (ì´í´ë¦½ìŠ¤)
+            // Eclipses (이클립스)
             fetch(`/api/astrology/advanced/eclipses`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
             }).catch(() => null),
-            // Midpoints (ë¯¸ë“œí¬ì¸íŠ¸)
+            // Midpoints (미드포인트)
             fetch(`/api/astrology/advanced/midpoints`, {
               method: 'POST',
               headers: advancedHeaders,
@@ -281,7 +281,7 @@ export function useCounselorData(sp: SearchParams) {
             advanced.midpoints = await midpointsRes.json()
           }
 
-          logger.warn('[CounselorPage] âœ… Advanced astrology fetched:', Object.keys(advanced))
+          logger.warn('[CounselorPage] ✅ Advanced astrology fetched:', Object.keys(advanced))
 
           // Update chartData with advanced astrology
           setChartData((prev) => ({

@@ -92,7 +92,7 @@ function buildLowSignalFallbackSection(
       wealthPotential: `${title} 영역은 수익 확대보다 손실 억제 우선으로 운영하세요. 금액·기한·취소조건을 따로 분리해 확인하면 불필요한 지출을 줄일 수 있습니다. 큰 지출이나 계약은 당일 확정보다 하루 재확인 후 처리하는 편이 안정적입니다. 현금흐름 표를 짧게라도 업데이트하면 판단 품질이 올라갑니다.`,
       healthGuidance: `${title} 영역은 퍼포먼스보다 회복 리듬을 먼저 잡는 구간입니다. 수면·수분·휴식 블록을 일정에 먼저 고정하면 집중력 편차가 줄어듭니다. 무리한 확장보다 강도 조절이 결과적으로 생산성을 지켜줍니다. 오늘은 과속보다 누락 없는 마무리를 우선하세요.`,
       lifeMission: `${title} 영역은 단기 성과보다 장기 일관성에 초점을 맞춰야 합니다. 큰 선언보다 작은 실행을 반복해서 기록하는 방식이 방향성을 만듭니다. 기준이 흔들릴 때는 선택 폭을 줄이고 우선순위 한 가지만 지키세요. 이번 주는 완벽보다 지속 가능한 루틴을 만드는 데 의미가 있습니다.`,
-      timingAdvice: `${title} 영역은 타이밍 신호가 약해 결정보다 분리 운영이 안전합니다. ${daeun || '현재 흐름'}${seun ? `/${seun}` : ''} 기준으로 결론 시점과 실행 시점을 나눠 관리하세요. 중요한 확정은 최소 한 번의 재확인 단계를 넣어야 흔들림이 줄어듭니다. 오늘은 빠른 착수보다 정확한 순서가 더 높은 효율을 냅니다.`,
+      timingAdvice: `${title} 영역은 타이밍 신호가 약해 결정보다 분리 운영이 안전합니다. 대운 ${daeun || '미확인'}${seun ? ` / 세운 ${seun}` : ''} 기준으로 결론 시점과 실행 시점을 나눠 관리하세요. 중요한 확정은 최소 한 번의 재확인 단계를 넣어야 흔들림이 줄어듭니다. 오늘은 빠른 착수보다 정확한 순서가 더 높은 효율을 냅니다.`,
       actionPlan: `${title} 영역은 3단계 실행으로 정리하는 것이 가장 안정적입니다. 첫째, 오늘 반드시 끝낼 결과물 1개를 정합니다. 둘째, 외부 공유 전 조건·기한·책임을 한 줄로 확인합니다. 셋째, 당일 확정 항목과 보류 항목을 분리해 리스크를 통제하세요.`,
       conclusion: `${title} 영역의 결론은 속도보다 순서, 확정보다 재확인입니다. 직접 신호가 적은 날에는 과감한 확장보다 누락 방지가 성과를 지킵니다. 오늘은 완성도 높은 한 건을 만드는 데 집중하면 체감 결과가 분명해집니다. 같은 규칙을 며칠만 유지해도 변동성이 줄어듭니다.`,
     }
@@ -107,7 +107,7 @@ function buildLowSignalFallbackSection(
     wealthPotential: `${title} should be run with downside control first. Split and confirm amount, deadline, and cancellation terms before any commitment. For large spending or contracts, a 24-hour recheck is safer than same-day finalization. A short cashflow update improves judgment quality immediately.`,
     healthGuidance: `${title} should prioritize recovery rhythm before performance push. Fix sleep, hydration, and recovery blocks in your schedule first. Intensity control protects output quality better than overspeed in this phase. Choose error-free completion over aggressive volume today.`,
     lifeMission: `${title} should prioritize long-term consistency over short spikes. Repeat small executable actions and keep simple logs. When criteria feel unstable, narrow choice width and protect one top priority. This week, sustainable routine matters more than perfection.`,
-    timingAdvice: `${title} is in low-signal timing mode, so split decision timing from execution timing. With current cycle ${daeun || 'baseline'}${seun ? `/${seun}` : ''}, insert at least one recheck gate before commitment. Accuracy of order matters more than speed of start. Use staged execution windows.`,
+    timingAdvice: `${title} is in low-signal timing mode, so split decision timing from execution timing. With Daeun ${daeun || 'unknown'}${seun ? ` / Seun ${seun}` : ''}, insert at least one recheck gate before commitment. Accuracy of order matters more than speed of start. Use staged execution windows.`,
     actionPlan: `${title} is best managed as a 3-step loop. First, define one must-finish deliverable. Second, verify terms, deadline, and ownership in one line before sharing. Third, separate same-day commitment items from deferred items to control risk.`,
     conclusion: `${title} concludes with a simple rule: sequence over speed, recheck over impulse. On low-signal days, preventing omission protects outcomes better than aggressive expansion. Focus on one high-quality completion today. Repeat this rule for several days to reduce volatility.`,
   }
@@ -179,22 +179,49 @@ function pickLeadClaim(
     (claim) => !usedClaimIds.has(claim.claimId) && !usedTheses.has(normalizeTextKey(claim.thesis))
   )
   if (fresh) return fresh
-  return orderedClaims.find((claim) => !usedClaimIds.has(claim.claimId)) || orderedClaims[0]
+  return undefined
 }
 
 function sanitizeEvidenceBasis(value: string | undefined, lang: 'ko' | 'en'): string {
   if (!value) return lang === 'ko' ? '근거 보완 필요' : 'pending evidence'
   const cleaned = value
     .replace(/\b(?:pair|angle|orb|allowed|policy)\s*=\s*[^,\s)]+/gi, '')
-    .replace(/\s*[-/]\s*(?:conjunction|opposition|square|trine|sextile)\b/gi, '')
-    .replace(/\b(?:conjunction|opposition|square|trine|sextile)\b/gi, (m) => m.toLowerCase())
+    .replace(/\s*[\/\-–—]\s*(?:conjunction|opposition|square|trine|sextile)\b/gi, '')
     .replace(/\(\s*\)/g, '')
-    .replace(/^\s*-\s*/, '')
+    .replace(/^\s*[\/\-–—]\s*/, '')
+    .replace(/^[^\p{L}\p{N}]+/u, '')
     .replace(/\s{2,}/g, ' ')
     .trim()
 
+  if (/^(?:conjunction|opposition|square|trine|sextile)$/i.test(cleaned)) {
+    return lang === 'ko' ? '점성 신호' : 'astrology signal'
+  }
   if (!cleaned || cleaned === '-') {
     return lang === 'ko' ? '근거 보완 필요' : 'pending evidence'
+  }
+  if (lang === 'ko') {
+    return cleaned
+      .replace(/\bTrue Node\b/gi, '북노드')
+      .replace(/\bNorth Node\b/gi, '북노드')
+      .replace(/\bSouth Node\b/gi, '남노드')
+      .replace(/\bSun\b/gi, '태양')
+      .replace(/\bMoon\b/gi, '달')
+      .replace(/\bMercury\b/gi, '수성')
+      .replace(/\bVenus\b/gi, '금성')
+      .replace(/\bMars\b/gi, '화성')
+      .replace(/\bJupiter\b/gi, '목성')
+      .replace(/\bSaturn\b/gi, '토성')
+      .replace(/\bUranus\b/gi, '천왕성')
+      .replace(/\bNeptune\b/gi, '해왕성')
+      .replace(/\bPluto\b/gi, '명왕성')
+      .replace(/\bconjunction\b/gi, '합')
+      .replace(/\bopposition\b/gi, '대립')
+      .replace(/\bsquare\b/gi, '사각')
+      .replace(/\btrine\b/gi, '삼분')
+      .replace(/\bsextile\b/gi, '육분')
+      .replace(/\bin\s+H(\d{1,2})\b/gi, '$1하우스')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
   }
   return cleaned
 }
@@ -222,7 +249,7 @@ function formatEvidenceSentence(
         const key = signal.keyword || signal.rowKey || '핵심'
         const saju = sanitizeEvidenceBasis(signal.sajuBasis || '사주 근거 보완 필요', lang)
         const astro = sanitizeEvidenceBasis(signal.astroBasis || '점성 근거 보완 필요', lang)
-        return `${key} 신호는 ${saju}와 ${astro} 근거가 함께 확인됩니다.`
+        return `${key} 신호는 ${saju} 및 ${astro} 근거가 함께 확인됩니다.`
       })
       .join(' ')
   }

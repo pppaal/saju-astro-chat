@@ -7,12 +7,7 @@
         "layer": 5,
         "rowKey": "samhap",
         "colKey": "trine",
-        "domainHints": [
-          "health",
-          "personality",
-          "spirituality",
-          "relationship"
-        ],
+        "domainHints": ["health", "personality", "spirituality", "relationship"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -46,9 +41,7 @@
         "layer": 5,
         "rowKey": "samhap",
         "colKey": "conjunction",
-        "domainHints": [
-          "relationship"
-        ],
+        "domainHints": ["relationship"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -81,10 +74,7 @@
         "layer": 5,
         "rowKey": "chung",
         "colKey": "opposition",
-        "domainHints": [
-          "health",
-          "relationship"
-        ],
+        "domainHints": ["health", "relationship"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -114,10 +104,7 @@
         "layer": 2,
         "rowKey": "상관",
         "colKey": "Saturn",
-        "domainHints": [
-          "health",
-          "personality"
-        ],
+        "domainHints": ["health", "personality"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -125,24 +112,14 @@
         "sajuBasis": "십신 상관",
         "astroBasis": "Saturn in H1",
         "advice": "",
-        "tags": [
-          "상관",
-          "Saturn",
-          "좌절",
-          "십신",
-          "in",
-          "H1"
-        ]
+        "tags": ["상관", "Saturn", "좌절", "십신", "in", "H1"]
       },
       {
         "id": "L5:chung:square",
         "layer": 5,
         "rowKey": "chung",
         "colKey": "square",
-        "domainHints": [
-          "spirituality",
-          "relationship"
-        ],
+        "domainHints": ["spirituality", "relationship"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -173,9 +150,7 @@
         "layer": 1,
         "rowKey": "금",
         "colKey": "air",
-        "domainHints": [
-          "personality"
-        ],
+        "domainHints": ["personality"],
         "polarity": "balance",
         "score": 6,
         "rankScore": 6,
@@ -183,22 +158,14 @@
         "sajuBasis": "사주 금",
         "astroBasis": "점성 air",
         "advice": "",
-        "tags": [
-          "금",
-          "air",
-          "균형",
-          "사주",
-          "점성"
-        ]
+        "tags": ["금", "air", "균형", "사주", "점성"]
       },
       {
         "id": "L1:목:air",
         "layer": 1,
         "rowKey": "목",
         "colKey": "air",
-        "domainHints": [
-          "personality"
-        ],
+        "domainHints": ["personality"],
         "polarity": "balance",
         "score": 5,
         "rankScore": 5,
@@ -206,13 +173,7 @@
         "sajuBasis": "사주 목",
         "astroBasis": "점성 air",
         "advice": "",
-        "tags": [
-          "목",
-          "air",
-          "충돌",
-          "사주",
-          "점성"
-        ]
+        "tags": ["목", "air", "충돌", "사주", "점성"]
       }
     ],
     "claims": [
@@ -220,68 +181,49 @@
         "claimId": "health_growth_with_guardrails",
         "domain": "health",
         "thesis": "건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신호입니다.",
-        "evidence": [
-          "L5:samhap:trine",
-          "L5:chung:opposition",
-          "L2:상관:Saturn"
-        ],
+        "evidence": ["L5:samhap:trine", "L5:chung:opposition", "L2:상관:Saturn"],
         "riskControl": "과속보다 수면·수분·회복 시간을 먼저 고정하여 실수 비용을 줄이세요.",
-        "actions": [
-          "과속보다 수면·수분·회복 시간을 먼저 고정하여 실수 비용을 줄이세요."
-        ]
+        "actions": ["과속보다 수면·수분·회복 시간을 먼저 고정하여 실수 비용을 줄이세요."]
       },
       {
         "claimId": "personality_stability",
         "domain": "personality",
         "thesis": "규칙과 리듬을 지키면 안정 수익이 쌓일 구간입니다.",
-        "evidence": [
-          "L1:금:air",
-          "L1:목:air"
-        ],
+        "evidence": ["L1:금:air", "L1:목:air"],
         "riskControl": "판단 시점과 실행 시점을 분리하면 오판 및 누락 리스크가 줄어듭니다.",
-        "actions": [
-          "판단 시점과 실행 시점을 분리하면 오판 및 누락 리스크가 줄어듭니다."
-        ]
+        "actions": ["판단 시점과 실행 시점을 분리하면 오판 및 누락 리스크가 줄어듭니다."]
       },
       {
         "claimId": "relationship_expansion",
         "domain": "relationship",
         "thesis": "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다.",
-        "evidence": [
-          "L5:samhap:conjunction"
-        ],
+        "evidence": ["L5:samhap:conjunction"],
         "riskControl": "감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요.",
-        "actions": [
-          "감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요."
-        ]
+        "actions": ["감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요."]
       },
       {
         "claimId": "spirituality_risk_control",
         "domain": "spirituality",
         "thesis": "주의 신호가 먼저 드러나 확정 전 재확인이 성패를 가릅니다.",
-        "evidence": [
-          "L5:chung:square"
-        ],
+        "evidence": ["L5:chung:square"],
         "riskControl": "큰 선언보다 주간 기록과 복기 루틴으로 장기 방향을 고정하세요.",
-        "actions": [
-          "큰 선언보다 주간 기록과 복기 루틴으로 장기 방향을 고정하세요."
-        ]
+        "actions": ["큰 선언보다 주간 기록과 복기 루틴으로 장기 방향을 고정하세요."]
       }
     ]
   },
   "timing": {
-    "model": "rewrite-fallback-validator",
-    "overview": "오늘 흐름은 확정 속도보다 검증 순서가 중요합니다. 결론과 실행 시점을 분리하면 손실 가능성을 줄일 수 있습니다. 근거 기준은 최상조화, 극심충돌 흐름입니다. 근거 ID: L5:samhap:trine, L5:chung:opposition (최상조화, 극심충돌).",
-    "opportunities": "기회 구간에서는 핵심 과업 1~2개 완결 전략이 유리합니다. 확장 전에 역할과 책임을 먼저 정리하세요. 근거 기준은 최상조화, 극심충돌 흐름입니다. 근거 ID: L5:samhap:trine, L5:chung:opposition (최상조화, 극심충돌).",
-    "cautions": "감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요. 근거 기준은 최상조화, 극심충돌 흐름입니다. 근거 ID: L5:samhap:trine, L5:chung:opposition (최상조화, 극심충돌).",
-    "actionPlan": "오늘은 1) 끝낼 결과물 1개 정의 2) 외부 전달 전 조건·기한·책임 재확인 3) 당일 확정이 아닌 항목은 24시간 재검토 슬롯으로 이동의 3단계로 운영하세요. 근거 기준은 최상조화, 극심충돌 흐름입니다. 근거 ID: L5:samhap:trine, L5:chung:opposition (최상조화, 극심충돌)."
+    "model": "gpt-4o-mini-2024-07-18-validator-repair",
+    "overview": "오늘의 흐름에서는 확정 속도보다 검증의 순서가 더욱 중요합니다. 결론과 실행 시점을 분리하면 손실 가능성을 줄일 수 있습니다. 근거 기준은 최상조화, 극심충돌 흐름입니다.",
+    "opportunities": "기회 구간에서는 핵심 과업 1~2개를 완결하는 전략이 유리합니다. 확장을 시도하기 전에 역할과 책임을 먼저 정리하는 것이 필요합니다. 근거 기준은 최상조화, 극심충돌 흐름입니다.",
+    "cautions": "감정의 속도보다는 확인 질문을 먼저 두어 해석의 오차를 줄이는 것이 중요합니다. 근거 기준은 최상조화, 극심충돌 흐름입니다.",
+    "actionPlan": "오늘은 1) 끝낼 결과물 1개를 정의하고 2) 외부로 전달하기 전에 조건, 기한, 책임을 재확인하며 3) 당일 확정이 아닌 항목은 24시간 재검토 슬롯으로 이동하는 3단계로 운영하세요. 근거 기준은 최상조화, 극심충돌 흐름입니다."
   },
   "themedCareer": {
-    "model": "rewrite-fallback-validator",
-    "deepAnalysis": "규칙과 리듬을 지키면 안정 수익이 쌓일 구간입니다. 근거 기준은 최상조화, 극강시너지 흐름입니다. 근거 ID: L5:samhap:trine, L5:samhap:conjunction (최상조화, 극강시너지).",
-    "strategy": "커리어 전략은 폭넓은 시도보다 핵심 과업 완결 중심이 유리합니다. 역할·마감·책임의 명확화가 성과를 지킵니다. 근거 기준은 최상조화, 극강시너지 흐름입니다. 근거 ID: L5:samhap:trine, L5:samhap:conjunction (최상조화, 극강시너지).",
-    "turningPoints": "전환점은 상승 신호와 조정 신호가 동시에 들어오는 구간에서 나타납니다. 확장과 재정의를 병행하세요. 근거 기준은 최상조화, 극강시너지 흐름입니다. 근거 ID: L5:samhap:trine, L5:samhap:conjunction (최상조화, 극강시너지).",
-    "recommendations": "핵심 과업 1~2개를 먼저 완결하세요. 감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요. 금액·기한·취소조건을 체크리스트로 검증하세요. 근거 기준은 최상조화, 극강시너지 흐름입니다. 근거 ID: L5:samhap:trine, L5:samhap:conjunction (최상조화, 극강시너지).",
-    "actionPlan": "실행 순서는 1) 목표 1개 고정 2) 조건 재확인 3) 확정 분할입니다. 이 순서를 2주 유지하면 결과 재현성이 올라갑니다. 근거 기준은 최상조화, 극강시너지 흐름입니다. 근거 ID: L5:samhap:trine, L5:samhap:conjunction (최상조화, 극강시너지)."
+    "model": "gpt-4o-mini-2024-07-18-validator-repair",
+    "deepAnalysis": "규칙과 리듬을 지키면 안정적인 수익이 쌓일 수 있는 구간입니다. 근거 기준은 최상조화, 극강시너지 흐름입니다.",
+    "strategy": "커리어 전략은 폭넓은 시도보다 핵심 과업 완결 중심이 더욱 유리합니다. 역할, 마감, 책임의 명확화가 성과를 지키는 데 도움이 됩니다. 근거 기준은 최상조화, 극강시너지 흐름입니다.",
+    "turningPoints": "전환점은 상승 신호와 조정 신호가 동시에 들어오는 구간에서 나타납니다. 확장과 재정의를 병행해야 합니다. 근거 기준은 최상조화, 극강시너지 흐름입니다.",
+    "recommendations": "핵심 과업 1~2개를 먼저 완결하십시오. 감정의 속도보다 확인 질문을 먼저 놓고 해석의 오차를 줄이십시오. 금액, 기한, 취소 조건을 체크리스트로 검증하십시오. 근거 기준은 최상조화, 극강시너지 흐름입니다.",
+    "actionPlan": "실행 순서는 1) 목표 1개 고정 2) 조건 재확인 3) 확정 분할입니다. 이 순서를 2주 동안 유지하면 결과의 재현성이 높아집니다. 근거 기준은 최상조화, 극강시너지 흐름입니다."
   }
 }
