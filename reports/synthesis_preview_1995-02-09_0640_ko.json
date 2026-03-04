@@ -7,7 +7,12 @@
         "layer": 5,
         "rowKey": "samhap",
         "colKey": "trine",
-        "domainHints": ["health", "personality", "spirituality", "relationship"],
+        "domainHints": [
+          "health",
+          "personality",
+          "spirituality",
+          "relationship"
+        ],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -41,7 +46,9 @@
         "layer": 5,
         "rowKey": "samhap",
         "colKey": "conjunction",
-        "domainHints": ["relationship"],
+        "domainHints": [
+          "relationship"
+        ],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -74,7 +81,10 @@
         "layer": 5,
         "rowKey": "chung",
         "colKey": "opposition",
-        "domainHints": ["health", "relationship"],
+        "domainHints": [
+          "health",
+          "relationship"
+        ],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -104,7 +114,10 @@
         "layer": 2,
         "rowKey": "상관",
         "colKey": "Saturn",
-        "domainHints": ["health", "personality"],
+        "domainHints": [
+          "health",
+          "personality"
+        ],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -112,14 +125,24 @@
         "sajuBasis": "십신 상관",
         "astroBasis": "Saturn in H1",
         "advice": "",
-        "tags": ["상관", "Saturn", "좌절", "십신", "in", "H1"]
+        "tags": [
+          "상관",
+          "Saturn",
+          "좌절",
+          "십신",
+          "in",
+          "H1"
+        ]
       },
       {
         "id": "L5:chung:square",
         "layer": 5,
         "rowKey": "chung",
         "colKey": "square",
-        "domainHints": ["spirituality", "relationship"],
+        "domainHints": [
+          "spirituality",
+          "relationship"
+        ],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -150,7 +173,9 @@
         "layer": 1,
         "rowKey": "금",
         "colKey": "air",
-        "domainHints": ["personality"],
+        "domainHints": [
+          "personality"
+        ],
         "polarity": "balance",
         "score": 6,
         "rankScore": 6,
@@ -158,14 +183,22 @@
         "sajuBasis": "사주 금",
         "astroBasis": "점성 air",
         "advice": "",
-        "tags": ["금", "air", "균형", "사주", "점성"]
+        "tags": [
+          "금",
+          "air",
+          "균형",
+          "사주",
+          "점성"
+        ]
       },
       {
         "id": "L1:목:air",
         "layer": 1,
         "rowKey": "목",
         "colKey": "air",
-        "domainHints": ["personality"],
+        "domainHints": [
+          "personality"
+        ],
         "polarity": "balance",
         "score": 5,
         "rankScore": 5,
@@ -173,7 +206,13 @@
         "sajuBasis": "사주 목",
         "astroBasis": "점성 air",
         "advice": "",
-        "tags": ["목", "air", "충돌", "사주", "점성"]
+        "tags": [
+          "목",
+          "air",
+          "충돌",
+          "사주",
+          "점성"
+        ]
       }
     ],
     "claims": [
@@ -181,33 +220,52 @@
         "claimId": "health_growth_with_guardrails",
         "domain": "health",
         "thesis": "건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신호입니다.",
-        "evidence": ["L5:samhap:trine", "L5:chung:opposition", "L2:상관:Saturn"],
+        "evidence": [
+          "L5:samhap:trine",
+          "L5:chung:opposition",
+          "L2:상관:Saturn"
+        ],
         "riskControl": "과속보다 수면·수분·회복 시간을 먼저 고정하여 실수 비용을 줄이세요.",
-        "actions": ["과속보다 수면·수분·회복 시간을 먼저 고정하여 실수 비용을 줄이세요."]
+        "actions": [
+          "과속보다 수면·수분·회복 시간을 먼저 고정하여 실수 비용을 줄이세요."
+        ]
       },
       {
         "claimId": "personality_stability",
         "domain": "personality",
         "thesis": "규칙과 리듬을 지키면 안정 수익이 쌓일 구간입니다.",
-        "evidence": ["L1:금:air", "L1:목:air"],
+        "evidence": [
+          "L1:금:air",
+          "L1:목:air"
+        ],
         "riskControl": "판단 시점과 실행 시점을 분리하면 오판 및 누락 리스크가 줄어듭니다.",
-        "actions": ["판단 시점과 실행 시점을 분리하면 오판 및 누락 리스크가 줄어듭니다."]
+        "actions": [
+          "판단 시점과 실행 시점을 분리하면 오판 및 누락 리스크가 줄어듭니다."
+        ]
       },
       {
         "claimId": "relationship_expansion",
         "domain": "relationship",
         "thesis": "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다.",
-        "evidence": ["L5:samhap:conjunction"],
+        "evidence": [
+          "L5:samhap:conjunction"
+        ],
         "riskControl": "감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요.",
-        "actions": ["감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요."]
+        "actions": [
+          "감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요."
+        ]
       },
       {
         "claimId": "spirituality_risk_control",
         "domain": "spirituality",
         "thesis": "주의 신호가 먼저 드러나 확정 전 재확인이 성패를 가릅니다.",
-        "evidence": ["L5:chung:square"],
+        "evidence": [
+          "L5:chung:square"
+        ],
         "riskControl": "큰 선언보다 주간 기록과 복기 루틴으로 장기 방향을 고정하세요.",
-        "actions": ["큰 선언보다 주간 기록과 복기 루틴으로 장기 방향을 고정하세요."]
+        "actions": [
+          "큰 선언보다 주간 기록과 복기 루틴으로 장기 방향을 고정하세요."
+        ]
       }
     ]
   },
