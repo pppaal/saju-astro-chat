@@ -259,7 +259,7 @@ function riskControlByDomain(domain: SignalDomain, lang: 'ko' | 'en'): string {
     relationship:
       '\uAC10\uC815 \uC18D\uB3C4\uBCF4\uB2E4 \uD655\uC778 \uC9C8\uBB38\uC744 \uBA3C\uC800 \uB193\uACE0 \uD574\uC11D \uC624\uCC28\uB97C \uC904\uC774\uC138\uC694.',
     wealth:
-      '\uD655\uC815 \uC804\uC5D0 \uAE08\uC561\u00B7\uAE30\uD55C\u00B7\uCDE8\uC18C \uC870\uAC74\uC744 \uCCB4\uD06C\uB9AC\uC2A4\uD2B8\uB85C \uAC80\uC99D\uD558\uC138\uC694.',
+      '\uD655\uC815 \uC804\uC5D0 \uAE08\uC561\u00B7\uAE30\uD55C\u00B7\uCDE8\uC18C \uC870\uAC74\uC744 \uCCB4\uD06C\uB9AC\uC2A4\uD2B8\uB85C \uC7AC\uD655\uC778\uD558\uC138\uC694.',
     health:
       '\uACFC\uC18D\uBCF4\uB2E4 \uC218\uBA74\u00B7\uC218\uBD84\u00B7\uD68C\uBCF5 \uC2DC\uAC04\uC744 \uBA3C\uC800 \uACE0\uC815\uD558\uC5EC \uC2E4\uC218 \uBE44\uC6A9\uC744 \uC904\uC774\uC138\uC694.',
     move: '\uC774\uB3D9\u00B7\uBCC0\uD654\uB294 \uD55C \uBC88\uC5D0 \uD655\uC815\uD558\uC9C0 \uB9D0\uACE0 \uB2E8\uACC4 \uBCC4\uB85C \uC791\uAC8C \uAC80\uC99D\uD558\uC138\uC694.',
@@ -375,8 +375,9 @@ export function synthesizeMatrixSignals(input: SynthesisInput): SignalSynthesisR
       normalizeHighlight(point, 'balance', input.lang)
     ) || []),
   ]
+  const fromTopInsights = normalizeFromTopInsights(input.matrixReport)
   const normalizedSignals = dedupeSignals(
-    fromSummary.length > 0 ? fromSummary : normalizeFromTopInsights(input.matrixReport)
+    fromSummary.length > 0 ? [...fromSummary, ...fromTopInsights] : fromTopInsights
   )
   const selectedSignals = selectSevenSignals(normalizedSignals)
   const claims = buildClaims(selectedSignals, input.lang)

@@ -112,6 +112,10 @@ describe('buildPhaseStrategyEngine', () => {
     expect(result?.overallPhaseLabel).toBeTruthy()
     expect((result?.attackPercent || 0) + (result?.defensePercent || 0)).toBe(100)
     expect(result?.domainStrategies.length || 0).toBeGreaterThan(0)
+    expect(result?.vectorMode).toBe('v1-multi-domain')
+    expect(result?.vector.expansion || 0).toBeGreaterThanOrEqual(0)
+    expect(result?.vector.volatility || 0).toBeGreaterThanOrEqual(0)
+    expect(result?.vector.structure || 0).toBeGreaterThanOrEqual(0)
   })
 
   it('marks high momentum + high caution career as high_tension_expansion', () => {
@@ -143,5 +147,50 @@ describe('buildPhaseStrategyEngine', () => {
     expect(boostedCareer?.metrics.effectiveCaution || 0).toBeGreaterThan(
       baseCareer?.metrics.effectiveCaution || 0
     )
+  })
+
+  it('splits one signal across multiple hinted domains', () => {
+    const base = createSynthesisFixture()
+    base.selectedSignals.push({
+      id: 'L9:bridge:career-wealth',
+      layer: 9,
+      rowKey: 'bridge',
+      colKey: 'career-wealth',
+      domainHints: ['career', 'wealth'],
+      polarity: 'strength',
+      score: 6,
+      rankScore: 6,
+      keyword: 'bridge',
+      sajuBasis: 'bridge saju',
+      astroBasis: 'bridge astro',
+      advice: 'split rollout',
+      tags: ['bridge'],
+    })
+    base.normalizedSignals = base.selectedSignals
+    base.signalsById['L9:bridge:career-wealth'] =
+      base.selectedSignals[base.selectedSignals.length - 1]
+
+    const result = buildPhaseStrategyEngine(base, 'ko')
+    const career = result?.domainStrategies.find((item) => item.domain === 'career')
+    const wealth = result?.domainStrategies.find((item) => item.domain === 'wealth')
+
+    const careerBridge = career?.signalContributions.find(
+      (item) => item.id === 'L9:bridge:career-wealth'
+    )
+    const wealthBridge = wealth?.signalContributions.find(
+      (item) => item.id === 'L9:bridge:career-wealth'
+    )
+
+    expect(careerBridge).toBeTruthy()
+    expect(wealthBridge).toBeTruthy()
+    expect(careerBridge?.contribution).toBeCloseTo(0.5, 2)
+    expect(wealthBridge?.contribution).toBeCloseTo(0.5, 2)
+  })
+
+  it('uses vector phase to avoid over-expansion on moderate expansion vectors', () => {
+    const result = buildPhaseStrategyEngine(createSynthesisFixture(), 'ko')
+    expect(result).toBeTruthy()
+    expect(result?.vector.expansion || 0).toBeLessThan(62)
+    expect(result?.overallPhase).not.toBe('expansion')
   })
 })

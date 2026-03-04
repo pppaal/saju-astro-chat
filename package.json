@@ -60,6 +60,7 @@
     "test:ssr-placeholders": "node scripts/check-ssr-placeholders.mjs",
     "test:mojibake:smoke": "node scripts/smoke-mojibake-html.mjs",
     "test:e2e:wait": "node scripts/wait-for-server.mjs",
+    "test:e2e:api": "vitest run tests/e2e",
     "test:e2e:auth": "playwright test e2e/critical-flows/01-registration-auth.spec.ts",
     "test:e2e:tarot": "playwright test e2e/critical-flows/02-tarot-reading.spec.ts",
     "test:e2e:saju": "playwright test e2e/critical-flows/03-saju-analysis.spec.ts",

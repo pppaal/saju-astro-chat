@@ -365,14 +365,18 @@ jobs:
 
           echo "✅ Bundle size check passed"
 
-      - name: Start dev server
+      - name: Start API test server
         run: |
-          npm run dev -- --hostname 127.0.0.1 --port 3000 > /tmp/next-dev.log 2>&1 &
+          npm run start -- --hostname 127.0.0.1 --port 3000 > /tmp/next-server.log 2>&1 &
         env:
           NEXTAUTH_URL: http://localhost:3000
           NEXT_PUBLIC_BASE_URL: http://localhost:3000
           CRON_SECRET: ci-cron-secret
           PUBLIC_METRICS_TOKEN: ci-metrics-token
+
+      - name: Wait for API test server
+        run: npm run test:e2e:wait
+        timeout-minutes: 3
 
       - name: E2E API tests
         run: npm run test:e2e:api

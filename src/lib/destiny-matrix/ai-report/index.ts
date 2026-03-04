@@ -55,6 +55,8 @@ export {
   buildPhaseStrategyEngine,
   type StrategyTimingContext,
   type StrategyDomainWeights,
+  type Strategy3DVector,
+  type DomainSignalContribution,
   type StrategyPhaseCode,
   type StrategyEngineResult,
   type DomainStrategy,

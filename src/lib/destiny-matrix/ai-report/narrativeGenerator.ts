@@ -47,6 +47,32 @@ const SECTION_LEAD_KO: Record<keyof AIPremiumReport['sections'], string> = {
   conclusion: '최종 요약은',
 }
 
+const SECTION_SUPPORT_PREFIX_KO: Record<keyof AIPremiumReport['sections'], string> = {
+  introduction: '보완 관점에서는',
+  personalityDeep: '내면 축에서는',
+  careerPath: '실행 축에서는',
+  relationshipDynamics: '조율 축에서는',
+  wealthPotential: '리스크 축에서는',
+  healthGuidance: '회복 축에서는',
+  lifeMission: '장기 축에서는',
+  timingAdvice: '운영 축에서는',
+  actionPlan: '실무 축에서는',
+  conclusion: '정리 축에서는',
+}
+
+const SECTION_ACTION_HINT_KO: Record<keyof AIPremiumReport['sections'], string> = {
+  introduction: '오늘은 우선순위 1개만 확정하고 나머지는 재확인 슬롯으로 분리하세요.',
+  personalityDeep: '말투와 결정 속도를 한 단계 늦추면 불필요한 충돌 비용이 크게 줄어듭니다.',
+  careerPath: '성과는 범위를 줄여 완결률을 높일 때 더 빠르게 누적됩니다.',
+  relationshipDynamics: '중요 대화는 요약 한 줄을 먼저 확인받는 방식이 안정적입니다.',
+  wealthPotential: '금액·기한·취소 조건 3가지는 당일 확정 전에 반드시 재확인하세요.',
+  healthGuidance: '집중 작업 전후로 회복 루틴을 고정하면 퍼포먼스 편차를 줄일 수 있습니다.',
+  lifeMission: '주간 기록과 복기 루틴이 장기 방향을 현실 성과로 연결해 줍니다.',
+  timingAdvice: '결정과 실행 날짜를 분리하면 타이밍 리스크를 체계적으로 낮출 수 있습니다.',
+  actionPlan: '실행은 착수보다 마감 기준을 먼저 고정할 때 재현성이 올라갑니다.',
+  conclusion: '핵심은 속도보다 정확한 순서이며, 그 순서가 결과 변동을 줄입니다.',
+}
+
 function fallbackTitle(section: keyof AIPremiumReport['sections'], lang: 'ko' | 'en'): string {
   if (lang === 'ko') return SECTION_TITLE_KO[section]
   const en: Record<keyof AIPremiumReport['sections'], string> = {
@@ -72,6 +98,18 @@ function sortClaimsForSection(
   const direct = claims.filter((claim) => domains.includes(claim.domain))
   const rest = claims.filter((claim) => !domains.includes(claim.domain))
   return [...direct, ...rest]
+}
+
+function pickSupportClaim(
+  leadClaim: SynthesizedClaim,
+  orderedClaims: SynthesizedClaim[]
+): SynthesizedClaim | undefined {
+  return orderedClaims.find(
+    (claim) =>
+      claim.claimId !== leadClaim.claimId &&
+      claim.domain !== leadClaim.domain &&
+      claim.thesis !== leadClaim.thesis
+  )
 }
 
 function formatEvidenceSentence(
@@ -157,12 +195,13 @@ function sectionLeadSentence(
 
 function sectionSupportSentence(
   leadClaim: SynthesizedClaim,
+  section: keyof AIPremiumReport['sections'],
   supportClaim: SynthesizedClaim | undefined,
   lang: 'ko' | 'en'
 ): string {
   if (!supportClaim || supportClaim.thesis === leadClaim.thesis) return ''
   if (lang === 'ko') {
-    return `보완 축은 ${supportClaim.thesis}`
+    return `${SECTION_SUPPORT_PREFIX_KO[section]} ${supportClaim.thesis}`
   }
   return `Secondary track: ${supportClaim.thesis}`
 }
@@ -170,7 +209,7 @@ function sectionSupportSentence(
 function renderSection(section: keyof AIPremiumReport['sections'], input: NarrativeInput): string {
   const orderedClaims = sortClaimsForSection(input.synthesis.claims, section)
   const leadClaim = orderedClaims[0]
-  const supportClaim = orderedClaims[1]
+  const supportClaim = leadClaim ? pickSupportClaim(leadClaim, orderedClaims) : undefined
   const title = fallbackTitle(section, input.lang)
 
   if (!leadClaim) {
@@ -180,7 +219,7 @@ function renderSection(section: keyof AIPremiumReport['sections'], input: Narrat
   }
 
   const thesisLine = sectionLeadSentence(section, leadClaim, input.lang)
-  const supportLine = sectionSupportSentence(leadClaim, supportClaim, input.lang)
+  const supportLine = sectionSupportSentence(leadClaim, section, supportClaim, input.lang)
   const evidenceLine = formatEvidenceSentence(
     input.synthesis,
     [leadClaim, ...(supportClaim ? [supportClaim] : [])],
@@ -192,8 +231,9 @@ function renderSection(section: keyof AIPremiumReport['sections'], input: Narrat
   )
   const timingLine =
     section === 'timingAdvice' ? formatTimingGrounding(input.matrixInput, input.lang) : ''
+  const styleHintLine = input.lang === 'ko' ? SECTION_ACTION_HINT_KO[section] : ''
 
-  return [thesisLine, supportLine, evidenceLine, actionLine, timingLine]
+  return [thesisLine, supportLine, evidenceLine, actionLine, styleHintLine, timingLine]
     .filter(Boolean)
     .join(' ')
     .replace(/\s{2,}/g, ' ')
