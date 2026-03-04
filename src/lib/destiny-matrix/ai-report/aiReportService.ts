@@ -15,6 +15,7 @@ import type {
 } from './types'
 import { THEME_META } from './types'
 import { logger } from '@/lib/logger'
+import { recordCounter } from '@/lib/metrics'
 import { buildTimingPrompt } from './prompts/timingPrompts'
 import { buildThemedPrompt } from './prompts/themedPrompts'
 import { buildGraphRAGEvidence, formatGraphRAGEvidenceForPrompt } from './graphRagEvidence'
@@ -54,6 +55,25 @@ const ACTION_REGEX =
   /해야|하세요|실행|점검|정리|기록|실천|계획|오늘|이번주|이번 달|today|this week|this month|action|plan|step|execute|schedule/i
 const TIMING_REGEX =
   /대운|세운|월운|일진|타이밍|시기|전환점|transit|timing|window|period|daeun|seun|wolun|iljin/i
+
+function recordRewriteModeMetric(
+  reportType: 'comprehensive' | 'timing' | 'themed',
+  modelUsed: string,
+  tokensUsed: number | undefined
+) {
+  const fallback = modelUsed.includes('rewrite-fallback') ? 'true' : 'false'
+  recordCounter('destiny.ai_report.rewrite.mode', 1, {
+    report_type: reportType,
+    model_used: modelUsed,
+    fallback,
+  })
+  if (typeof tokensUsed === 'number') {
+    recordCounter('destiny.ai_report.rewrite.tokens', tokensUsed, {
+      report_type: reportType,
+      model_used: modelUsed,
+    })
+  }
+}
 
 function buildDirectToneOverride(lang: 'ko' | 'en'): string {
   if (lang === 'ko') {
@@ -568,6 +588,38 @@ function validateEvidenceBinding(
     }
   }
   return { needsRepair: violations.length > 0, violations }
+}
+
+function hasEvidenceIdReference(text: string, refs: ReportEvidenceRef[]): boolean {
+  if (!text || refs.length === 0) return true
+  return refs.some((ref) => Boolean(ref.id) && text.includes(ref.id))
+}
+
+function enforceEvidenceRefFooters(
+  sections: Record<string, unknown>,
+  sectionPaths: string[],
+  evidenceRefs: SectionEvidenceRefs,
+  lang: 'ko' | 'en'
+): Record<string, unknown> {
+  for (const path of sectionPaths) {
+    const text = getPathText(sections, path)
+    if (!text) continue
+    const refs = (evidenceRefs[path] || []).filter((ref) => Boolean(ref.id))
+    if (refs.length === 0) continue
+    if (hasEvidenceIdReference(text, refs)) continue
+    const top = refs.slice(0, 2)
+    const ids = top.map((ref) => ref.id).join(', ')
+    const hints = top
+      .map((ref) => ref.keyword || ref.rowKey || ref.colKey)
+      .filter(Boolean)
+      .join(', ')
+    const footer =
+      lang === 'ko'
+        ? `근거 ID: ${ids}${hints ? ` (${hints})` : ''}.`
+        : `Evidence IDs: ${ids}${hints ? ` (${hints})` : ''}.`
+    setPathText(sections, path, `${text} ${footer}`.replace(/\s{2,}/g, ' ').trim())
+  }
+  return sections
 }
 
 function buildEvidenceBindingRepairPrompt(
@@ -2002,6 +2054,7 @@ export async function generateAIPremiumReport(
         lang
       )
     }
+    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
 
     const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
     const keyStrengths = (matrixReport.topInsights || [])
@@ -2036,6 +2089,7 @@ export async function generateAIPremiumReport(
               'Communication risk check',
             ]
 
+    recordRewriteModeMetric('comprehensive', rewrite.modelUsed, rewrite.tokensUsed)
     return {
       id: `air_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       generatedAt: new Date().toISOString(),
@@ -2445,6 +2499,12 @@ export async function generateAIPremiumReport(
       )
     }
   }
+  sections = enforceEvidenceRefFooters(
+    sections,
+    comprehensiveSectionPaths,
+    comprehensiveEvidenceRefs,
+    lang
+  )
 
   const model = usedDeterministicFallback ? 'deterministic-fallback' : [...models].join(' -> ')
   const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
@@ -2637,8 +2697,10 @@ export async function generateTimingReport(
         lang
       )
     }
+    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
     const periodLabel = generatePeriodLabel(period, targetDate, lang)
     const periodScore = calculatePeriodScore(timingData, input.dayMasterElement)
+    recordRewriteModeMetric('timing', rewrite.modelUsed, rewrite.tokensUsed)
     return {
       id: `timing_${period}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       generatedAt: new Date().toISOString(),
@@ -2914,6 +2976,7 @@ export async function generateTimingReport(
       lang
     )
   }
+  sections = enforceEvidenceRefFooters(sections, sectionPaths, timingEvidenceRefs, lang)
 
   // 4. ê¸°ê°„ ë¼ë²¨ ìƒì„±
   const periodLabel = generatePeriodLabel(period, targetDate, lang)
@@ -3051,9 +3114,11 @@ export async function generateThemedReport(
         lang
       )
     }
+    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
     const themeMeta = THEME_META[theme]
     const themeScore = calculateThemeScore(theme, input.sibsinDistribution)
     const keywords = extractKeywords(sections as unknown as ThemedReportSections, theme, lang)
+    recordRewriteModeMetric('themed', rewrite.modelUsed, rewrite.tokensUsed)
     return {
       id: `themed_${theme}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       generatedAt: new Date().toISOString(),
@@ -3301,6 +3366,7 @@ export async function generateThemedReport(
       lang
     )
   }
+  sections = enforceEvidenceRefFooters(sections, sectionPaths, themedEvidenceRefs, lang)
 
   // 4. í…Œë§ˆ ë©”íƒ€ë°ì´í„°
   const themeMeta = THEME_META[theme]

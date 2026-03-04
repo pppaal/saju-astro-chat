@@ -181,24 +181,24 @@ export const STRATEGY_ENGINE_TUNING: StrategyEngineTuning = {
   },
   vectorPhaseRules: {
     highTension: {
-      minExpansion: 58,
-      minVolatility: 55,
+      minExpansion: 36,
+      minVolatility: 15,
     },
     defensiveReset: {
-      maxExpansion: 36,
-      minVolatility: 62,
+      maxExpansion: 34,
+      minVolatility: 15,
     },
     expansion: {
-      minExpansion: 62,
-      maxVolatility: 38,
+      minExpansion: 37,
+      maxVolatility: 12,
     },
     expansionGuarded: {
-      minExpansion: 45,
-      maxVolatility: 55,
+      minExpansion: 35,
+      maxVolatility: 14.5,
     },
     stabilize: {
-      minStructure: 48,
-      maxVolatility: 50,
+      minStructure: 26,
+      maxVolatility: 13.5,
     },
   },
 }

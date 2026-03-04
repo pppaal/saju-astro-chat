@@ -283,6 +283,48 @@ function riskControlByDomain(domain: SignalDomain, lang: 'ko' | 'en'): string {
   return lang === 'ko' ? ko[domain] : en[domain]
 }
 
+function conflictThesisByDomain(domain: SignalDomain, lang: 'ko' | 'en'): string {
+  if (lang === 'ko') {
+    const ko: Record<SignalDomain, string> = {
+      career:
+        '커리어는 확장 동력이 크지만 역할·범위 재정의를 함께 해야 손실 없이 성장합니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다.',
+      relationship:
+        '관계는 진전 신호와 긴장 신호가 동시에 작동합니다. 두 신호는 상충이 아니라 속도와 확인 단계를 분리하라는 조건 신호입니다.',
+      wealth:
+        '재정은 수익 기회와 변동 리스크가 동시에 열려 있습니다. 두 신호는 상충이 아니라 확정 전에 조건 검증을 요구하는 분기 신호입니다.',
+      health:
+        '건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신호입니다.',
+      move: '이동·변화는 기회와 불확실성이 동시에 큽니다. 두 신호는 상충이 아니라 단계별 검증을 요구하는 분기 신호입니다.',
+      personality:
+        '성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다.',
+      spirituality:
+        '장기 방향은 확장 욕구와 재정렬 요구가 동시에 있습니다. 두 신호는 상충이 아니라 우선순위를 재정의하라는 조건 신호입니다.',
+      timing:
+        '시기 축에서는 기회 창과 주의 창이 동시에 열립니다. 두 신호는 상충이 아니라 결정과 확정을 분리하라는 조건 신호입니다.',
+    }
+    return ko[domain]
+  }
+
+  const en: Record<SignalDomain, string> = {
+    career:
+      'Career has expansion momentum and reset pressure at the same time. These are conditional branch signals, not contradictions.',
+    relationship:
+      'Relationship shows progress and tension together. These are conditional branch signals that require pace-control and explicit confirmation.',
+    wealth:
+      'Wealth shows upside and volatility together. These are conditional branch signals that require term-check before commitment.',
+    health:
+      'Health shows performance upside with fatigue pressure. These are conditional branch signals that require recovery-first execution.',
+    move: 'Move/change has opportunity and uncertainty together. These are branch signals that require staged validation.',
+    personality:
+      'Personality axis shows drive and overspeed risk together. These are branch signals that require separating decision and execution timing.',
+    spirituality:
+      'Long-term direction has expansion pull and reset demand together. These are branch signals that require priority redefinition.',
+    timing:
+      'Timing has opportunity windows and caution windows together. These are branch signals, not contradictions.',
+  }
+  return en[domain]
+}
+
 function buildClaim(domain: SignalDomain, signals: NormalizedSignal[], lang: 'ko' | 'en') {
   const hasStrength = signals.some((s) => s.polarity === 'strength')
   const hasCaution = signals.some((s) => s.polarity === 'caution')
@@ -290,8 +332,7 @@ function buildClaim(domain: SignalDomain, signals: NormalizedSignal[], lang: 'ko
   let thesis = ''
   if (lang === 'ko') {
     if (hasStrength && hasCaution) {
-      thesis =
-        '\uC0C1\uC2B9 \uC2E0\uD638\uAC00 \uD070 \uB3D9\uC2DC\uC5D0 \uB9AC\uC2A4\uD06C \uAD00\uB9AC\uAC00 \uD568\uAED8 \uD544\uC694\uD569\uB2C8\uB2E4.'
+      thesis = conflictThesisByDomain(domain, lang)
     } else if (hasStrength) {
       thesis =
         '\uD655\uC7A5 \uC2E0\uD638\uAC00 \uC6B0\uC138\uD558\uC5EC \uC2E4\uD589\uB825\uC744 \uC62C\uB9AC\uAE30 \uC88B\uC740 \uAD6C\uAC04\uC785\uB2C8\uB2E4.'
@@ -306,7 +347,7 @@ function buildClaim(domain: SignalDomain, signals: NormalizedSignal[], lang: 'ko
         '\uD575\uC2EC \uC2E0\uD638\uAC00 \uC791\uC544 \uAE30\uBCF8\uAE30\uB97C \uC9C0\uD0A4\uB294 \uC6B4\uC601\uC774 \uC720\uB9AC\uD569\uB2C8\uB2E4.'
     }
   } else {
-    if (hasStrength && hasCaution) thesis = 'Upside and risk-management signals are both active.'
+    if (hasStrength && hasCaution) thesis = conflictThesisByDomain(domain, lang)
     else if (hasStrength) thesis = 'Expansion signals dominate and execution leverage is high.'
     else if (hasCaution) thesis = 'Caution signals dominate; verify before commitment.'
     else if (hasBalance) thesis = 'Stable routines are the best path in this window.'
