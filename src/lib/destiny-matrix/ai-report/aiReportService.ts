@@ -1416,17 +1416,47 @@ function buildStrategyFactsForSection(
   if (candidates.length === 0) return []
   const lines: string[] = []
   for (const strategy of candidates) {
+    const key = `${strategy.domain}:${strategy.phase}`
+    const koActionByKey: Record<string, string> = {
+      'career:expansion': '핵심 과제 1~2개를 먼저 완료하고 외부 확정은 체크리스트 후 진행하세요.',
+      'career:high_tension_expansion': '결론은 내되 서명·발송은 24시간 재확인 슬롯 뒤로 미루세요.',
+      'relationship:expansion_guarded': '대화는 늘리고 확정 발언은 늦춰 해석 오차 비용을 낮추세요.',
+      'wealth:expansion_guarded': '금액·기한·취소조건 3항을 먼저 고정하고 실행 규모를 분할하세요.',
+      'health:defensive_reset': '과속을 멈추고 수면·수분·회복 루틴부터 복구하세요.',
+      'timing:high_tension_expansion':
+        '결정 시점과 실행 시점을 분리해 커뮤니케이션 리스크를 줄이세요.',
+    }
+    const enActionByKey: Record<string, string> = {
+      'career:expansion':
+        'Finish 1-2 core tasks first, then commit externally after checklist pass.',
+      'career:high_tension_expansion':
+        'Decide now, but push signing/sending behind a 24h recheck slot.',
+      'relationship:expansion_guarded':
+        'Increase dialogue and delay final statements to reduce interpretation errors.',
+      'wealth:expansion_guarded':
+        'Lock amount/deadline/cancellation terms first and split position size.',
+      'health:defensive_reset': 'Stop overspeed and restore sleep-hydration-recovery blocks first.',
+      'timing:high_tension_expansion':
+        'Separate decision timing from execution timing to reduce communication risk.',
+    }
+    const phaseAction =
+      lang === 'ko'
+        ? koActionByKey[key] || '국면별 조건을 분리해 실행하고 확정 전 재확인을 유지하세요.'
+        : enActionByKey[key] || 'Run staged execution with recheck gates before commitment.'
+
     if (lang === 'ko') {
       lines.push(
         `${toKoreanDomainLabel(strategy.domain)} 국면은 ${strategy.phaseLabel}이며 공격 ${strategy.attackPercent}% / 방어 ${strategy.defensePercent}% 운영이 적합합니다.`
       )
       lines.push(strategy.strategy)
+      lines.push(phaseAction)
       if (strategy.riskControl) lines.push(strategy.riskControl)
     } else {
       lines.push(
         `${strategy.domain} is in ${strategy.phaseLabel} with offense ${strategy.attackPercent}% / defense ${strategy.defensePercent}%.`
       )
       lines.push(strategy.strategy)
+      lines.push(phaseAction)
       if (strategy.riskControl) lines.push(strategy.riskControl)
     }
   }
