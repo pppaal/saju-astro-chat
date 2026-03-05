@@ -73,6 +73,23 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Typecheck regression gate
+        run: npm run ops:typecheck:gate
+
+      - name: Generate typecheck snapshots
+        if: always()
+        run: |
+          npm run -s ops:typecheck:metrics
+          npm run -s ops:typecheck:hotspots
+
+      - name: Upload typecheck snapshots
+        if: always() && hashFiles('reports/typecheck/*.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: typecheck-snapshots
+          path: reports/typecheck/*.json
+          retention-days: 30
+
       - name: Critical smoke tests
         run: npm run test:destiny-map
 

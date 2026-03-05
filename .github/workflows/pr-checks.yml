@@ -175,6 +175,9 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
+      - name: Typecheck regression gate
+        run: npm run ops:typecheck:gate
+
       - name: Build
         run: npm run build
         env:
