@@ -113,4 +113,108 @@ describe('synthesizeMatrixSignals', () => {
     expect(careerClaim).toBeTruthy()
     expect(careerClaim?.evidence.length).toBeGreaterThanOrEqual(2)
   })
+
+  it('keeps career and wealth signal coverage when candidates exist', () => {
+    const report = mkReport()
+    report.topInsights = [
+      {
+        id: 'career_hint',
+        domain: 'career',
+        category: 'strength',
+        title: 'Career execution window',
+        titleEn: 'Career execution window',
+        description: 'career focus',
+        descriptionEn: 'career focus',
+        score: 84,
+        rawScore: 84,
+        weightedScore: 84,
+        confidence: 0.8,
+        priority: 'high',
+        actionItems: [],
+        icon: 'briefcase',
+        colorCode: 'blue',
+        sources: [],
+      } as any,
+      {
+        id: 'wealth_hint',
+        domain: 'wealth',
+        category: 'balance',
+        title: 'Wealth risk control',
+        titleEn: 'Wealth risk control',
+        description: 'wealth focus',
+        descriptionEn: 'wealth focus',
+        score: 79,
+        rawScore: 79,
+        weightedScore: 79,
+        confidence: 0.75,
+        priority: 'high',
+        actionItems: [],
+        icon: 'coin',
+        colorCode: 'amber',
+        sources: [],
+      } as any,
+    ]
+
+    const lowDomainSummary: MatrixSummary = {
+      totalScore: 65,
+      strengthPoints: [
+        mkHighlight(5, 'samhap', 'trine', 10, 'harmony'),
+        mkHighlight(5, 'samhap', 'conjunction', 9, 'synergy'),
+        mkHighlight(1, '금', 'air', 6, 'balance'),
+      ],
+      cautionPoints: [
+        mkHighlight(5, 'chung', 'square', 3, 'friction'),
+        mkHighlight(2, '상관', 'Saturn', 2, 'delay'),
+      ],
+      balancePoints: [
+        mkHighlight(1, '목', 'air', 5, 'mixed'),
+        mkHighlight(4, 'seun', 'trine', 5, 'timing'),
+      ],
+      topSynergies: [],
+    }
+
+    const result = synthesizeMatrixSignals({
+      lang: 'ko',
+      matrixReport: report,
+      matrixSummary: lowDomainSummary,
+    })
+
+    expect(result.selectedSignals.some((s) => s.domainHints.includes('career'))).toBe(true)
+    expect(result.selectedSignals.some((s) => s.domainHints.includes('wealth'))).toBe(true)
+  })
+
+  it('maps one signal into multiple claims when domain hints overlap', () => {
+    const summary: MatrixSummary = {
+      totalScore: 72,
+      strengthPoints: [
+        mkHighlight(6, '\uD3B8\uC7AC', 'H10', 10, 'dual domain leverage'),
+        mkHighlight(6, 'imgwan', 'Jupiter', 9, 'career lift'),
+        mkHighlight(3, 'siksin', 'H7', 8, 'relationship rhythm'),
+      ],
+      cautionPoints: [
+        mkHighlight(5, 'chung', 'square', 3, 'friction'),
+        mkHighlight(2, '\uC0C1\uAD00', 'Saturn', 2, 'delay'),
+      ],
+      balancePoints: [
+        mkHighlight(1, '\uBAA9', 'air', 6, 'balance'),
+        mkHighlight(4, 'seun', 'trine', 6, 'timing'),
+      ],
+      topSynergies: [],
+    }
+
+    const result = synthesizeMatrixSignals({
+      lang: 'ko',
+      matrixReport: mkReport(),
+      matrixSummary: summary,
+    })
+
+    const dualEvidenceId = 'L6:\uD3B8\uC7AC:H10'
+    const careerClaim = result.claims.find((claim) => claim.domain === 'career')
+    const wealthClaim = result.claims.find((claim) => claim.domain === 'wealth')
+
+    expect(careerClaim).toBeTruthy()
+    expect(wealthClaim).toBeTruthy()
+    expect(careerClaim?.evidence).toContain(dualEvidenceId)
+    expect(wealthClaim?.evidence).toContain(dualEvidenceId)
+  })
 })

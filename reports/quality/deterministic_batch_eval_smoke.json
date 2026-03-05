@@ -1,0 +1,413 @@
+{
+  "generatedAt": "2026-03-05T00:52:00.373Z",
+  "summary": {
+    "samples": 30,
+    "evaluated": 30,
+    "averages": {
+      "avgSectionChars": 361.6333,
+      "evidenceCoverageRatio": 1,
+      "minEvidenceSatisfiedRatio": 1,
+      "recheckGuidanceRatio": 0.7,
+      "contradictionCount": 0,
+      "overclaimCount": 0
+    },
+    "thresholds": {
+      "evidenceCoverageRatio": 0.8,
+      "minEvidenceSatisfiedRatio": 0.95,
+      "contradictionCountMax": 0,
+      "overclaimCountMax": 0
+    }
+  },
+  "rows": [
+    {
+      "seed": 0,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 358,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 1,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 362,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 2,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 358,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 3,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 362,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 4,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 358,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 5,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 363,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 6,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 358,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 7,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 363,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 8,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 358,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 9,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 363,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 10,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 360,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 11,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 364,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 12,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 360,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 13,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 364,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 14,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 360,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 15,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 365,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 16,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 360,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 17,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 365,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 18,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 360,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 19,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 365,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 20,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 360,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 21,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 364,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 22,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 360,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 23,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 364,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 24,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 360,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 25,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 365,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 26,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 360,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 27,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 365,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 28,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 360,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    },
+    {
+      "seed": 29,
+      "modelUsed": "deterministic-only",
+      "quality": {
+        "sectionCount": 10,
+        "avgSectionChars": 365,
+        "evidenceCoverageRatio": 1,
+        "minEvidenceSatisfiedRatio": 1,
+        "contradictionCount": 0,
+        "recheckGuidanceRatio": 0.7,
+        "overclaimCount": 0
+      }
+    }
+  ]
+}

@@ -15,10 +15,14 @@ import type {
 } from './types'
 import { THEME_META } from './types'
 import { logger } from '@/lib/logger'
-import { recordCounter } from '@/lib/metrics'
+import { recordCounter, recordGauge } from '@/lib/metrics'
 import { buildTimingPrompt } from './prompts/timingPrompts'
 import { buildThemedPrompt } from './prompts/themedPrompts'
-import { buildGraphRAGEvidence, formatGraphRAGEvidenceForPrompt } from './graphRagEvidence'
+import {
+  buildGraphRAGEvidence,
+  formatGraphRAGEvidenceForPrompt,
+  summarizeGraphRAGEvidence,
+} from './graphRagEvidence'
 import { renderSectionsAsMarkdown, renderSectionsAsText } from './reportRendering'
 import { buildDeterministicCore } from './deterministicCore'
 import type { DeterministicProfile } from './deterministicCoreConfig'
@@ -33,6 +37,7 @@ import {
 } from './signalSynthesizer'
 import type { ReportEvidenceRef, SectionEvidenceRefs } from './evidenceRefs'
 import { buildPhaseStrategyEngine, type StrategyEngineResult } from './strategyEngine'
+import { THEME_DOMAIN_ONTOLOGY } from './matrixOntology'
 
 // Extracted modules
 import type { AIPremiumReport, AIReportGenerationOptions, AIUserPlan } from './reportTypes'
@@ -55,6 +60,16 @@ const ACTION_REGEX =
   /해야|하세요|실행|점검|정리|기록|실천|계획|오늘|이번주|이번 달|today|this week|this month|action|plan|step|execute|schedule/i
 const TIMING_REGEX =
   /대운|세운|월운|일진|타이밍|시기|전환점|transit|timing|window|period|daeun|seun|wolun|iljin/i
+const RECHECK_REGEX = /재확인|점검|검토|verify|recheck|double-check|checklist|review/i
+const ABSOLUTE_RISK_REGEX = /무조건|절대|반드시|100%|always|never|guaranteed|certainly/i
+const IRREVERSIBLE_ACTION_REGEX =
+  /계약|서명|확정|예약|결혼식|청첩장|이직\s*확정|창업\s*확정|런칭|큰\s*결정|즉시\s*결정|sign|finalize|commit now|book|wedding|invitation|big decision|launch/i
+const CAUTION_INDICATOR_REGEX =
+  /주의|리스크|경계|재확인|확인|오류|갈등|충돌|caution|risk|warning|recheck|conflict/i
+const IMMEDIATE_FORCE_REGEX =
+  /즉시|바로|지금\s*확정|오늘\s*확정|today\s*finalize|sign now|commit now|immediately/i
+const MITIGATION_REGEX =
+  /전|재확인|점검|검토|보류|미루|분리|하지\s*말|avoid|before|recheck|verify|defer|hold/i
 
 function recordRewriteModeMetric(
   reportType: 'comprehensive' | 'timing' | 'themed',
@@ -214,6 +229,98 @@ function buildCrossRepairInstruction(lang: 'ko' | 'en', missing: string[]): stri
   ].join('\n')
 }
 
+interface ReportQualityMetrics {
+  sectionCount: number
+  avgSectionChars: number
+  evidenceCoverageRatio: number
+  minEvidenceSatisfiedRatio: number
+  contradictionCount: number
+  recheckGuidanceRatio: number
+  overclaimCount: number
+}
+
+function buildReportQualityMetrics(
+  sections: Record<string, unknown>,
+  sectionPaths: string[],
+  evidenceRefs: SectionEvidenceRefs
+): ReportQualityMetrics {
+  const texts = sectionPaths
+    .map((path) => ({ path, text: getPathText(sections, path) }))
+    .filter((item) => item.text.length > 0)
+  const sectionCount = texts.length
+  if (sectionCount === 0) {
+    return {
+      sectionCount: 0,
+      avgSectionChars: 0,
+      evidenceCoverageRatio: 0,
+      minEvidenceSatisfiedRatio: 0,
+      contradictionCount: 0,
+      recheckGuidanceRatio: 0,
+      overclaimCount: 0,
+    }
+  }
+
+  const totalChars = texts.reduce((acc, item) => acc + item.text.length, 0)
+  const evidenceCovered = texts.filter((item) => {
+    const refs = evidenceRefs[item.path] || []
+    return refs.length === 0 || hasEvidenceSupport(item.text, refs)
+  }).length
+  const minEvidenceSatisfied = texts.filter(
+    (item) => (evidenceRefs[item.path] || []).length >= MIN_EVIDENCE_REFS_PER_SECTION
+  ).length
+  const recheckGuidanceCount = texts.filter((item) => RECHECK_REGEX.test(item.text)).length
+  const overclaimCount = texts.filter((item) => ABSOLUTE_RISK_REGEX.test(item.text)).length
+  const contradictionCount = texts.filter((item) => {
+    const sentences = item.text
+      .split(/[.!?\n]+/)
+      .map((segment) => segment.trim())
+      .filter(Boolean)
+    return sentences.some((sentence) => {
+      const hasIrreversible = IRREVERSIBLE_ACTION_REGEX.test(sentence)
+      const hasCaution = CAUTION_INDICATOR_REGEX.test(sentence)
+      if (!(hasIrreversible && hasCaution)) return false
+      if (MITIGATION_REGEX.test(sentence)) return false
+      return IMMEDIATE_FORCE_REGEX.test(sentence)
+    })
+  }).length
+
+  return {
+    sectionCount,
+    avgSectionChars: Math.round(totalChars / Math.max(1, sectionCount)),
+    evidenceCoverageRatio: Number((evidenceCovered / sectionCount).toFixed(4)),
+    minEvidenceSatisfiedRatio: Number((minEvidenceSatisfied / sectionCount).toFixed(4)),
+    contradictionCount,
+    recheckGuidanceRatio: Number((recheckGuidanceCount / sectionCount).toFixed(4)),
+    overclaimCount,
+  }
+}
+
+function recordReportQualityMetrics(
+  reportType: 'comprehensive' | 'timing' | 'themed',
+  modelUsed: string,
+  quality: ReportQualityMetrics
+) {
+  const labels = { report_type: reportType, model_used: modelUsed }
+  recordGauge(
+    'destiny.ai_report.quality.evidence_coverage_ratio',
+    quality.evidenceCoverageRatio,
+    labels
+  )
+  recordGauge(
+    'destiny.ai_report.quality.min_evidence_satisfied_ratio',
+    quality.minEvidenceSatisfiedRatio,
+    labels
+  )
+  recordGauge(
+    'destiny.ai_report.quality.recheck_guidance_ratio',
+    quality.recheckGuidanceRatio,
+    labels
+  )
+  recordGauge('destiny.ai_report.quality.avg_section_chars', quality.avgSectionChars, labels)
+  recordGauge('destiny.ai_report.quality.contradiction_count', quality.contradictionCount, labels)
+  recordGauge('destiny.ai_report.quality.overclaim_count', quality.overclaimCount, labels)
+}
+
 function getPathText(sections: Record<string, unknown>, path: string): string {
   const parts = path.split('.')
   let cur: unknown = sections
@@ -224,6 +331,16 @@ function getPathText(sections: Record<string, unknown>, path: string): string {
   if (typeof cur === 'string') return cur
   if (Array.isArray(cur)) return cur.map((v) => String(v)).join(' ')
   return ''
+}
+
+function getPathValue(sections: Record<string, unknown>, path: string): unknown {
+  const parts = path.split('.')
+  let cur: unknown = sections
+  for (const part of parts) {
+    if (!cur || typeof cur !== 'object') return undefined
+    cur = (cur as Record<string, unknown>)[part]
+  }
+  return cur
 }
 
 function hasRequiredSectionPaths(payload: unknown, paths: string[]): boolean {
@@ -250,6 +367,33 @@ function setPathText(sections: Record<string, unknown>, path: string, value: str
     cur = cur[part] as Record<string, unknown>
   }
   cur[parts[parts.length - 1]] = value
+}
+
+function sanitizeSectionsByPaths(
+  sections: Record<string, unknown>,
+  paths: string[]
+): Record<string, unknown> {
+  const next = JSON.parse(JSON.stringify(sections)) as Record<string, unknown>
+  for (const path of paths) {
+    const value = getPathValue(next, path)
+    if (typeof value !== 'string') continue
+    const sanitized = sanitizeSectionNarrative(value)
+    setPathText(next, path, softenOverclaimPhrases(sanitized))
+  }
+  return next
+}
+
+function softenOverclaimPhrases(text: string): string {
+  if (!text) return text
+  return text
+    .replace(/무조건/gi, '가능하면')
+    .replace(/절대/gi, '가급적')
+    .replace(/반드시/gi, '우선적으로')
+    .replace(/100%/gi, '높은 확률로')
+    .replace(/\bguaranteed\b/gi, 'high-probability')
+    .replace(/\bcertainly\b/gi, 'likely')
+    .replace(/\balways\b/gi, 'in most cases')
+    .replace(/\bnever\b/gi, 'rarely')
 }
 
 const EVIDENCE_TOKEN_STOP_WORDS = new Set([
@@ -423,6 +567,14 @@ const ALLOWED_LONG_REWRITE_TOKENS = new Set([
 
 const FORCE_REWRITE_ONLY_MODE = true
 
+function shouldUseDeterministicOnly(flag?: boolean): boolean {
+  if (typeof flag === 'boolean') return flag
+  const env = String(process.env.DESTINY_REPORT_DETERMINISTIC_ONLY || '')
+    .trim()
+    .toLowerCase()
+  return env === '1' || env === 'true' || env === 'yes' || env === 'on'
+}
+
 function compactToken(value: string): string {
   return value
     .toLowerCase()
@@ -444,12 +596,53 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+const EVIDENCE_DOMAIN_PRIORITY = [
+  'career',
+  'wealth',
+  'relationship',
+  'health',
+  'timing',
+  'personality',
+  'spirituality',
+  'move',
+] as const
+const MIN_EVIDENCE_REFS_PER_SECTION = 2
+const GLOBAL_EVIDENCE_DOMAINS = [
+  'career',
+  'relationship',
+  'wealth',
+  'health',
+  'timing',
+  'personality',
+  'spirituality',
+  'move',
+]
+
+function resolveSignalDomain(
+  domainHints: string[] | undefined,
+  preferredDomains?: Set<string>
+): string {
+  const hints = (domainHints || []).filter(Boolean)
+  if (hints.length === 0) return 'personality'
+  if (preferredDomains) {
+    const direct = hints.find((domain) => preferredDomains.has(domain))
+    if (direct) return direct
+  }
+  const sorted = [...new Set(hints)].sort((a, b) => {
+    const ai = EVIDENCE_DOMAIN_PRIORITY.indexOf(a as (typeof EVIDENCE_DOMAIN_PRIORITY)[number])
+    const bi = EVIDENCE_DOMAIN_PRIORITY.indexOf(b as (typeof EVIDENCE_DOMAIN_PRIORITY)[number])
+    return (ai >= 0 ? ai : 99) - (bi >= 0 ? bi : 99)
+  })
+  return sorted[0] || 'personality'
+}
+
 function toEvidenceRef(
-  signal: NonNullable<SignalSynthesisResult>['selectedSignals'][number]
+  signal: NonNullable<SignalSynthesisResult>['selectedSignals'][number],
+  preferredDomains?: Set<string>
 ): ReportEvidenceRef {
   return {
     id: signal.id,
-    domain: signal.domainHints[0],
+    domain: resolveSignalDomain(signal.domainHints, preferredDomains),
     layer: signal.layer,
     rowKey: signal.rowKey,
     colKey: signal.colKey,
@@ -463,23 +656,79 @@ function toEvidenceRef(
 function selectEvidenceRefsByDomains(
   synthesis: SignalSynthesisResult | undefined,
   domains: string[],
-  limit = 4
+  limit = 4,
+  usedSignalIds?: Set<string>
 ): ReportEvidenceRef[] {
   if (!synthesis) return []
   const domainSet = new Set(domains)
-  const pickedSignalIds = synthesis.claims
-    .filter((claim) => domainSet.has(claim.domain))
-    .flatMap((claim) => claim.evidence)
-  const orderedSignals = [
-    ...pickedSignalIds.map((id) => synthesis.signalsById[id]).filter(Boolean),
-    ...synthesis.selectedSignals,
-  ]
+  const claimWeightBySignal = new Map<string, number>()
+  for (const claim of synthesis.claims) {
+    if (!domainSet.has(claim.domain)) continue
+    for (const signalId of claim.evidence) {
+      claimWeightBySignal.set(signalId, (claimWeightBySignal.get(signalId) || 0) + 1)
+    }
+  }
+
+  const candidateById = new Map<
+    string,
+    {
+      signal: NonNullable<SignalSynthesisResult>['selectedSignals'][number]
+      overlap: number
+      claimWeight: number
+      freshness: number
+      score: number
+    }
+  >()
+
+  const pushCandidate = (
+    signal: NonNullable<SignalSynthesisResult>['selectedSignals'][number] | undefined,
+    baseBoost = 0
+  ) => {
+    if (!signal) return
+    const overlap = (signal.domainHints || []).filter((domain) => domainSet.has(domain)).length
+    const claimWeight = claimWeightBySignal.get(signal.id) || 0
+    const freshness = usedSignalIds && !usedSignalIds.has(signal.id) ? 1 : 0
+    const relevance =
+      overlap * 100 + claimWeight * 24 + freshness * 12 + baseBoost + (signal.rankScore || 0)
+    const existing = candidateById.get(signal.id)
+    if (!existing || relevance > existing.score) {
+      candidateById.set(signal.id, {
+        signal,
+        overlap,
+        claimWeight,
+        freshness,
+        score: relevance,
+      })
+    }
+  }
+
+  for (const signalId of claimWeightBySignal.keys()) {
+    pushCandidate(synthesis.signalsById[signalId], 12)
+  }
+  for (const signal of synthesis.selectedSignals) {
+    pushCandidate(signal)
+  }
+  for (const signal of synthesis.normalizedSignals) {
+    if ((signal.domainHints || []).some((domain) => domainSet.has(domain))) {
+      pushCandidate(signal)
+    }
+  }
+
+  const orderedSignals = [...candidateById.values()]
+    .sort((a, b) => {
+      if (b.overlap !== a.overlap) return b.overlap - a.overlap
+      if (b.claimWeight !== a.claimWeight) return b.claimWeight - a.claimWeight
+      if (b.freshness !== a.freshness) return b.freshness - a.freshness
+      return b.score - a.score
+    })
+    .map((item) => item.signal)
   const deduped: ReportEvidenceRef[] = []
   const seen = new Set<string>()
   for (const signal of orderedSignals) {
     if (!signal || seen.has(signal.id)) continue
     seen.add(signal.id)
-    deduped.push(toEvidenceRef(signal))
+    deduped.push(toEvidenceRef(signal, domainSet))
+    if (usedSignalIds) usedSignalIds.add(signal.id)
     if (deduped.length >= limit) break
   }
   return deduped
@@ -495,34 +744,30 @@ function getTimingPathDomains(path: string): string[] {
 }
 
 function getThemedPathDomains(theme: ReportTheme, path: string): string[] {
-  if (theme === 'love') {
-    if (path === 'timing') return ['timing', 'relationship']
-    return ['relationship', 'personality']
-  }
-  if (theme === 'career') {
-    if (path === 'timing') return ['timing', 'career']
-    return ['career', 'wealth']
-  }
-  if (theme === 'wealth') {
-    if (path === 'timing') return ['timing', 'wealth']
-    return ['wealth', 'career']
-  }
-  if (theme === 'health') {
-    if (path === 'timing' || path === 'riskWindows') return ['timing', 'health']
-    return ['health', 'personality']
-  }
-  if (path === 'timing') return ['timing', 'relationship']
-  return ['relationship', 'personality']
+  const profile = THEME_DOMAIN_ONTOLOGY[theme] || THEME_DOMAIN_ONTOLOGY.family
+  if (path === 'timing' || path === 'riskWindows') return [...profile.timing]
+  return [...profile.primary, ...profile.support]
 }
 
 function buildComprehensiveEvidenceRefs(
   synthesis: SignalSynthesisResult | undefined
 ): SectionEvidenceRefs {
   const refs: SectionEvidenceRefs = {}
+  const usedSignalIds = new Set<string>()
   for (const sectionKey of COMPREHENSIVE_SECTION_KEYS) {
-    refs[sectionKey] = selectEvidenceRefsByDomains(synthesis, getDomainsForSection(sectionKey), 4)
+    refs[sectionKey] = selectEvidenceRefsByDomains(
+      synthesis,
+      getDomainsForSection(sectionKey),
+      4,
+      usedSignalIds
+    )
   }
-  return refs
+  return ensureMinimumEvidenceRefs(
+    refs,
+    COMPREHENSIVE_SECTION_KEYS as string[],
+    synthesis,
+    (path) => getDomainsForSection(path)
+  )
 }
 
 function buildTimingEvidenceRefs(
@@ -530,10 +775,16 @@ function buildTimingEvidenceRefs(
   synthesis: SignalSynthesisResult | undefined
 ): SectionEvidenceRefs {
   const refs: SectionEvidenceRefs = {}
+  const usedSignalIds = new Set<string>()
   for (const path of sectionPaths) {
-    refs[path] = selectEvidenceRefsByDomains(synthesis, getTimingPathDomains(path), 4)
+    refs[path] = selectEvidenceRefsByDomains(
+      synthesis,
+      getTimingPathDomains(path),
+      4,
+      usedSignalIds
+    )
   }
-  return refs
+  return ensureMinimumEvidenceRefs(refs, sectionPaths, synthesis, getTimingPathDomains)
 }
 
 function buildThemedEvidenceRefs(
@@ -542,10 +793,57 @@ function buildThemedEvidenceRefs(
   synthesis: SignalSynthesisResult | undefined
 ): SectionEvidenceRefs {
   const refs: SectionEvidenceRefs = {}
+  const usedSignalIds = new Set<string>()
   for (const path of sectionPaths) {
-    refs[path] = selectEvidenceRefsByDomains(synthesis, getThemedPathDomains(theme, path), 4)
+    refs[path] = selectEvidenceRefsByDomains(
+      synthesis,
+      getThemedPathDomains(theme, path),
+      4,
+      usedSignalIds
+    )
   }
-  return refs
+  return ensureMinimumEvidenceRefs(refs, sectionPaths, synthesis, (path) =>
+    getThemedPathDomains(theme, path)
+  )
+}
+
+function mergeEvidenceRefs(
+  base: ReportEvidenceRef[],
+  incoming: ReportEvidenceRef[],
+  limit = 4
+): ReportEvidenceRef[] {
+  const merged = [...base]
+  const seen = new Set(base.map((ref) => ref.id))
+  for (const ref of incoming) {
+    if (!ref?.id || seen.has(ref.id)) continue
+    seen.add(ref.id)
+    merged.push(ref)
+    if (merged.length >= limit) break
+  }
+  return merged
+}
+
+function ensureMinimumEvidenceRefs(
+  refs: SectionEvidenceRefs,
+  sectionPaths: string[],
+  synthesis: SignalSynthesisResult | undefined,
+  resolveDomains: (path: string) => string[]
+): SectionEvidenceRefs {
+  if (!synthesis) return refs
+  const next: SectionEvidenceRefs = { ...refs }
+  for (const path of sectionPaths) {
+    const existing = [...(next[path] || [])]
+    if (existing.length >= MIN_EVIDENCE_REFS_PER_SECTION) continue
+
+    const local = selectEvidenceRefsByDomains(synthesis, resolveDomains(path), 4)
+    let merged = mergeEvidenceRefs(existing, local, 4)
+    if (merged.length < MIN_EVIDENCE_REFS_PER_SECTION) {
+      const global = selectEvidenceRefsByDomains(synthesis, GLOBAL_EVIDENCE_DOMAINS, 4)
+      merged = mergeEvidenceRefs(merged, global, 4)
+    }
+    next[path] = merged
+  }
+  return next
 }
 
 function hasEvidenceSupport(text: string, refs: ReportEvidenceRef[]): boolean {
@@ -900,6 +1198,87 @@ function buildRewriteOnlyPrompt(
   ].join('\n')
 }
 
+function buildSectionLengthPad(path: string, lang: 'ko' | 'en'): string {
+  const key = path.toLowerCase()
+  if (lang === 'ko') {
+    if (key.includes('career') || key.includes('strategy')) {
+      return '핵심은 범위를 좁혀 완료율을 올리고, 역할·기한·책임을 먼저 맞춘 뒤 확정하는 운영입니다.'
+    }
+    if (key.includes('relationship') || key.includes('love') || key.includes('communication')) {
+      return '관계는 결론의 속도보다 해석의 일치가 중요하므로, 요약 확인을 먼저 하고 합의를 단계적으로 진행하세요.'
+    }
+    if (key.includes('wealth') || key.includes('money') || key.includes('risk')) {
+      return '재정은 수익 기대보다 손실 통제가 우선이며, 금액·기한·취소 조건을 분리 점검한 뒤 확정하는 편이 안전합니다.'
+    }
+    if (key.includes('health') || key.includes('energy') || key.includes('recovery')) {
+      return '건강 리듬은 과속보다 회복 루틴이 성과를 지키므로 수면·수분·휴식 블록을 먼저 고정해 피로 누적을 막으세요.'
+    }
+    if (key.includes('timing') || key.includes('overview') || key.includes('caution')) {
+      return '타이밍은 착수와 확정을 분리해 운영할수록 안정성이 높으며, 당일 확정보다 재확인 단계를 둬야 변동성이 줄어듭니다.'
+    }
+    if (key.includes('actionplan') || key.includes('action')) {
+      return '실행은 완료 1건·보류 1건·재확인 1건의 루프로 단순화하면 실제 행동 전환이 빨라지고 누락이 줄어듭니다.'
+    }
+    return '오늘은 속도보다 순서를 지키는 운영이 유리하며, 중요한 항목은 재확인 단계를 거쳐 확정해야 안정적입니다.'
+  }
+  if (key.includes('career') || key.includes('strategy')) {
+    return 'Narrow scope to raise completion rate, and lock role, deadline, and ownership before commitment.'
+  }
+  if (key.includes('relationship') || key.includes('love') || key.includes('communication')) {
+    return 'In relationships, alignment quality matters more than speed, so confirm interpretation before agreement.'
+  }
+  if (key.includes('wealth') || key.includes('money') || key.includes('risk')) {
+    return 'For finances, downside control comes first; separate amount, deadline, and cancellation checks before commitment.'
+  }
+  if (key.includes('health') || key.includes('energy') || key.includes('recovery')) {
+    return 'Recovery-first scheduling protects output quality better than overspeed in this phase.'
+  }
+  if (key.includes('timing') || key.includes('overview') || key.includes('caution')) {
+    return 'Stability improves when start and commit are separated and recheck gates are kept before final decisions.'
+  }
+  if (key.includes('actionplan') || key.includes('action')) {
+    return 'A simple loop of one completion, one defer, and one recheck reduces omission and improves execution.'
+  }
+  return 'Prioritize sequence over speed and keep a recheck step before final commitment.'
+}
+
+function enforceDraftLengthFloor(
+  candidateSections: Record<string, unknown>,
+  draftSections: Record<string, unknown>,
+  sectionPaths: string[],
+  minCharsPerSection: number,
+  lang: 'ko' | 'en'
+): Record<string, unknown> {
+  const next = JSON.parse(JSON.stringify(candidateSections)) as Record<string, unknown>
+  for (const path of sectionPaths) {
+    const candidateRaw = getPathValue(next, path)
+    const draftRaw = getPathValue(draftSections, path)
+    if (typeof candidateRaw !== 'string' || typeof draftRaw !== 'string') continue
+    const candidateText = candidateRaw
+    const draftText = draftRaw
+    if (!candidateText || !draftText) continue
+
+    const ratioFloor = Math.floor(draftText.length * 0.82)
+    const staticFloor = Math.max(140, Math.min(minCharsPerSection, draftText.length))
+    const floor = Math.max(ratioFloor, staticFloor)
+    if (draftText.length >= 180 && candidateText.length < floor) {
+      setPathText(next, path, draftText)
+      continue
+    }
+
+    const hardFloor = Math.max(180, Math.min(minCharsPerSection, 260))
+    if (candidateText.length < hardFloor) {
+      const pad = buildSectionLengthPad(path, lang)
+      let padded = `${candidateText} ${pad}`.replace(/\s{2,}/g, ' ').trim()
+      if (padded.length < hardFloor) {
+        padded = `${padded} ${pad}`.replace(/\s{2,}/g, ' ').trim()
+      }
+      setPathText(next, path, padded)
+    }
+  }
+  return next
+}
+
 async function rewriteSectionsWithFallback<T extends object>(args: {
   lang: 'ko' | 'en'
   userPlan?: AIUserPlan
@@ -961,8 +1340,15 @@ async function rewriteSectionsWithFallback<T extends object>(args: {
           evidenceRefs
         )
         if (repairedCheck.pass) {
+          const floored = enforceDraftLengthFloor(
+            repaired,
+            draftSections as unknown as Record<string, unknown>,
+            sectionPaths,
+            minCharsPerSection,
+            lang
+          )
           return {
-            sections: repaired as unknown as T,
+            sections: floored as unknown as T,
             modelUsed: `${rewritten.model || 'gpt-4o-mini'}-validator-repair`,
             tokensUsed: rewritten.tokensUsed || 0,
           }
@@ -973,8 +1359,15 @@ async function rewriteSectionsWithFallback<T extends object>(args: {
       })
       return { sections: draftSections, modelUsed: 'rewrite-fallback-validator', tokensUsed: 0 }
     }
+    const floored = enforceDraftLengthFloor(
+      candidateSections,
+      draftSections as unknown as Record<string, unknown>,
+      sectionPaths,
+      minCharsPerSection,
+      lang
+    )
     return {
-      sections: candidate as T,
+      sections: floored as unknown as T,
       modelUsed: rewritten.model || 'gpt-4o-mini',
       tokensUsed: rewritten.tokensUsed || 0,
     }
@@ -1339,17 +1732,17 @@ const BOILERPLATE_PATTERNS = [
   /이 구간의 핵심 초점은[^.\n!?]*[.\n!?]?/g,
   /This section focuses on[^.\n!?]*[.\n!?]?/gi,
 ]
-const BANNED_PHRASES = [
-  '격국의 결',
-  '긴장 신호',
-  '상호작용',
-  '시사',
-  '결이',
-  '프레임',
-  '검증',
-  '근거 세트',
+const BANNED_PHRASE_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/격국의 결/gi, '격국 흐름'],
+  [/긴장 신호/gi, '주의 신호'],
+  [/상호작용/gi, '연동'],
+  [/시사/gi, '보여줌'],
+  [/결이/gi, '흐름이'],
+  [/프레임/gi, '구조'],
+  [/검증/gi, '재확인'],
+  [/근거 세트/gi, '근거 묶음'],
 ]
-const BANNED_PHRASE_PATTERNS = BANNED_PHRASES.map((phrase) => new RegExp(phrase, 'gi'))
+const BANNED_PHRASE_PATTERNS = BANNED_PHRASE_REPLACEMENTS.map(([pattern]) => pattern)
 const ADVICE_SENTENCE_REGEX = /(좋습니다|유의하셔야 합니다)/
 
 const SECTION_CONCRETE_NOUNS: Record<keyof AIPremiumReport['sections'], string[]> = {
@@ -1367,8 +1760,8 @@ const SECTION_CONCRETE_NOUNS: Record<keyof AIPremiumReport['sections'], string[]
 
 function stripBannedPhrases(text: string): string {
   let result = text
-  for (const pattern of BANNED_PHRASE_PATTERNS) {
-    result = result.replace(pattern, '')
+  for (const [pattern, replacement] of BANNED_PHRASE_REPLACEMENTS) {
+    result = result.replace(pattern, replacement)
   }
   return result
 }
@@ -1456,6 +1849,148 @@ function toKoreanDomainLabel(domain: string): string {
     timing: '시기',
   }
   return map[domain] || '흐름'
+}
+
+interface GraphRagSummaryPayload {
+  topInsights: string[]
+  drivers: string[]
+  cautions: string[]
+  trust: {
+    avgOverlapScore: number
+    avgOrbFitScore: number
+    highTrustSetCount: number
+    lowTrustSetCount: number
+    totalSets: number
+  }
+  cautionSections: string[]
+}
+
+function uniqueStrings(values: Array<string | undefined | null>, limit = 6): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const value of values) {
+    const text = String(value || '').trim()
+    if (!text) continue
+    if (seen.has(text)) continue
+    seen.add(text)
+    out.push(text)
+    if (out.length >= limit) break
+  }
+  return out
+}
+
+function buildGraphRagSummaryPayload(
+  lang: 'ko' | 'en',
+  matrixReport: FusionReport,
+  graphRagEvidence: NonNullable<AIPremiumReport['graphRagEvidence']>,
+  signalSynthesis: SignalSynthesisResult | undefined,
+  strategyEngine: StrategyEngineResult | undefined
+): GraphRagSummaryPayload {
+  const graphSummary = summarizeGraphRAGEvidence(graphRagEvidence)
+  const topInsightTitles = uniqueStrings(
+    (matrixReport.topInsights || []).map((item) => item.title),
+    5
+  )
+  const claimFallback = uniqueStrings(
+    (signalSynthesis?.claims || []).map((claim) => claim.thesis),
+    5
+  )
+  const anchorFallback = uniqueStrings(
+    (graphRagEvidence.anchors || []).map((anchor) =>
+      lang === 'ko' ? `${anchor.section} 섹션 교차 근거` : `${anchor.section} cross evidence`
+    ),
+    5
+  )
+  const topInsights =
+    topInsightTitles.length > 0
+      ? topInsightTitles
+      : claimFallback.length > 0
+        ? claimFallback
+        : anchorFallback
+
+  const strengthSignals = (signalSynthesis?.selectedSignals || [])
+    .filter((signal) => signal.polarity === 'strength')
+    .slice(0, 3)
+    .map((signal) => {
+      const domain = resolveSignalDomain(signal.domainHints)
+      if (lang === 'ko') {
+        return `${toKoreanDomainLabel(domain)} 상승 근거: ${signal.keyword || signal.rowKey}`
+      }
+      return `${domain} upside signal: ${signal.keyword || signal.rowKey}`
+    })
+  const strategyDrivers = (strategyEngine?.domainStrategies || []).slice(0, 3).map((strategy) => {
+    if (lang === 'ko') {
+      return `${toKoreanDomainLabel(strategy.domain)} ${strategy.phaseLabel}, 공격 ${strategy.attackPercent}% / 방어 ${strategy.defensePercent}%`
+    }
+    return `${strategy.domain} ${strategy.phaseLabel}, offense ${strategy.attackPercent}% / defense ${strategy.defensePercent}%`
+  })
+  const drivers = uniqueStrings(
+    [
+      ...strengthSignals,
+      ...strategyDrivers,
+      ...(signalSynthesis?.claims || []).map((claim) =>
+        lang === 'ko'
+          ? `${toKoreanDomainLabel(claim.domain)}: ${claim.thesis}`
+          : `${claim.domain}: ${claim.thesis}`
+      ),
+    ],
+    6
+  )
+
+  const cautionSignals = (signalSynthesis?.selectedSignals || [])
+    .filter((signal) => signal.polarity === 'caution')
+    .slice(0, 4)
+    .map((signal) => {
+      const domain = resolveSignalDomain(signal.domainHints)
+      if (lang === 'ko') {
+        return `${toKoreanDomainLabel(domain)} 주의: ${signal.keyword || signal.rowKey} 신호는 확정 전 재확인이 필요합니다.`
+      }
+      return `${domain} caution: ${signal.keyword || signal.rowKey} requires recheck before commitment.`
+    })
+  const cautionSections = graphSummary?.cautionSections || []
+  const cautionFromSections = cautionSections.map((section) =>
+    lang === 'ko'
+      ? `${section} 섹션은 교차 근거 신뢰가 낮아 검증 중심으로 운영해야 합니다.`
+      : `${section} section has lower cross-evidence trust and should run verification-first.`
+  )
+  const trustCaution =
+    (graphSummary?.lowTrustSetCount || 0) > 0
+      ? [
+          lang === 'ko'
+            ? `저신뢰 교차 세트 ${graphSummary?.lowTrustSetCount || 0}건이 있어 서명/확정/즉시결정은 보수적으로 처리하세요.`
+            : `There are ${graphSummary?.lowTrustSetCount || 0} low-trust cross sets, so keep sign/finalize decisions conservative.`,
+        ]
+      : []
+
+  const cautions = uniqueStrings([...cautionSignals, ...cautionFromSections, ...trustCaution], 6)
+
+  return {
+    topInsights,
+    drivers:
+      drivers.length > 0
+        ? drivers
+        : [
+            lang === 'ko'
+              ? '핵심 근거는 상승 신호와 국면 전략을 함께 확인하며 실행해야 합니다.'
+              : 'Use both upside signals and phase strategy together for execution.',
+          ],
+    cautions:
+      cautions.length > 0
+        ? cautions
+        : [
+            lang === 'ko'
+              ? '근거 신뢰가 낮은 구간은 확정 전에 체크리스트 검증을 먼저 적용하세요.'
+              : 'When evidence trust is low, apply checklist verification before commitment.',
+          ],
+    trust: {
+      avgOverlapScore: graphSummary?.avgOverlapScore || 0,
+      avgOrbFitScore: graphSummary?.avgOrbFitScore || 0,
+      highTrustSetCount: graphSummary?.highTrustSetCount || 0,
+      lowTrustSetCount: graphSummary?.lowTrustSetCount || 0,
+      totalSets: graphSummary?.totalSets || 0,
+    },
+    cautionSections,
+  }
 }
 
 function humanizeCrossSetFact(set: GraphRAGCrossEvidenceSet): string {
@@ -1946,6 +2481,8 @@ function buildTimingFallbackSections(
 ): TimingReportSections {
   const claims = synthesis?.claims || []
   const pick = (domain: string) => claims.find((claim) => claim.domain === domain)
+  const merge = (lead: string | undefined, body: string) =>
+    lead && lead.trim().length > 0 ? `${lead} ${body}` : body
   const timing = pick('timing')
   const career = pick('career')
   const relation = pick('relationship')
@@ -1954,34 +2491,44 @@ function buildTimingFallbackSections(
 
   if (lang === 'ko') {
     return {
-      overview:
-        timing?.thesis ||
-        '오늘 흐름은 확정 속도보다 검증 순서가 중요합니다. 결론과 실행 시점을 분리하면 손실 가능성을 줄일 수 있습니다.',
-      energy:
-        health?.thesis ||
-        '에너지는 단기 집중 후 회복 관리가 핵심입니다. 수면·수분·루틴을 먼저 고정한 뒤 업무 볼륨을 늘리세요.',
-      opportunities:
-        career?.thesis ||
-        '기회 구간에서는 핵심 과업 1~2개 완결 전략이 유리합니다. 확장 전에 역할과 책임을 먼저 정리하세요.',
-      cautions:
-        relation?.riskControl ||
-        '커뮤니케이션 오차가 누적되면 성과가 흔들릴 수 있습니다. 대화/문서 전달 전 한 줄 요약 재확인을 넣으세요.',
+      overview: merge(
+        timing?.thesis,
+        '오늘 흐름은 확정 속도보다 검증 순서가 중요합니다. 결론과 실행 시점을 분리하면 손실 가능성을 줄일 수 있습니다. 오전에는 핵심 과제 1개를 끝내는 데 집중하고, 오후에는 외부 공유 전 조건/기한/책임을 문서로 다시 확인하세요. 당일 확정이 필요한 항목과 보류 항목을 분리하면 판단 피로가 줄고 실수 비용도 낮아집니다.'
+      ),
+      energy: merge(
+        health?.thesis,
+        '에너지는 단기 집중 후 회복 관리가 핵심입니다. 수면·수분·루틴을 먼저 고정한 뒤 업무 볼륨을 늘리세요. 과속을 막기 위해 60~90분 집중 블록 뒤에 10분 회복 블록을 고정하면 생산성 편차가 줄어듭니다. 피로 신호가 올라올수록 새 일을 늘리기보다 진행 중인 일을 깔끔히 마무리하는 편이 성과를 지켜줍니다.'
+      ),
+      opportunities: merge(
+        career?.thesis,
+        '기회 구간에서는 핵심 과업 1~2개 완결 전략이 유리합니다. 확장 전에 역할과 책임을 먼저 정리하세요. 제안/협업은 범위를 좁혀 파일럿 형태로 시작하면 실패 비용을 줄이면서도 학습 속도를 높일 수 있습니다. 오늘은 실행 속도보다 완료 품질을 기준으로 우선순위를 정하면 다음 단계 확장이 훨씬 수월해집니다.'
+      ),
+      cautions: merge(
+        relation?.riskControl,
+        '커뮤니케이션 오차가 누적되면 성과가 흔들릴 수 있습니다. 대화/문서 전달 전 한 줄 요약 재확인을 넣으세요. 특히 숫자/기한/범위가 포함된 메시지는 송신 전 체크리스트를 거쳐야 오해를 줄일 수 있습니다. 감정이 올라온 상태에서는 즉시 확정 답변보다 시간차 응답이 결과적으로 관계 비용을 낮춥니다.'
+      ),
       domains: {
-        career:
-          career?.riskControl ||
-          '커리어는 일정·우선순위·마감 정의를 먼저 고정하는 운영이 안전합니다.',
-        love:
-          relation?.riskControl ||
-          '관계는 감정 속도보다 해석 일치가 먼저입니다. 확인 질문으로 오차를 줄이세요.',
-        wealth:
-          wealth?.riskControl || '재정은 금액·기한·취소조건을 체크리스트로 검증한 뒤 확정하세요.',
-        health:
-          health?.riskControl ||
-          '건강은 과속보다 회복 리듬 유지가 우선입니다. 피로 누적 신호를 선제적으로 차단하세요.',
+        career: merge(
+          career?.riskControl,
+          '커리어는 일정·우선순위·마감 정의를 먼저 고정하는 운영이 안전합니다. 업무 요청이 많아질수록 “오늘 끝낼 일/이번 주 처리할 일/보류할 일”로 나눠 운영하면 완료율이 올라갑니다. 역할 경계를 문서로 남겨야 협업 충돌이 줄어듭니다.'
+        ),
+        love: merge(
+          relation?.riskControl,
+          '관계는 감정 속도보다 해석 일치가 먼저입니다. 확인 질문으로 오차를 줄이세요. 중요한 대화는 상대가 이해한 핵심을 한 문장으로 되짚게 하면 오해 누적을 막을 수 있습니다. 결론을 서두르기보다 맥락을 맞춘 뒤 합의점을 정하세요.'
+        ),
+        wealth: merge(
+          wealth?.riskControl,
+          '재정은 금액·기한·취소조건을 체크리스트로 검증한 뒤 확정하세요. 지출은 즉흥 결제보다 24시간 보류 규칙을 두면 후회 비용을 크게 줄일 수 있습니다. 현금흐름표를 짧게라도 업데이트하면 의사결정 정확도가 올라갑니다.'
+        ),
+        health: merge(
+          health?.riskControl,
+          '건강은 과속보다 회복 리듬 유지가 우선입니다. 피로 누적 신호를 선제적으로 차단하세요. 무리한 운동/수면 부족/카페인 과다 조합은 집중력 하락을 키울 수 있으니 피하는 것이 좋습니다. 회복 루틴을 일정에 먼저 배치하면 하루 품질이 안정됩니다.'
+        ),
       },
       actionPlan:
-        '오늘은 1) 끝낼 결과물 1개 정의 2) 외부 전달 전 조건·기한·책임 재확인 3) 당일 확정이 아닌 항목은 24시간 재검토 슬롯으로 이동의 3단계로 운영하세요.',
-      luckyElements: '행운 요소는 속도보다 순서입니다. 먼저 검증하고 이후 확정하세요.',
+        '오늘은 1) 끝낼 결과물 1개 정의 2) 외부 전달 전 조건·기한·책임 재확인 3) 당일 확정이 아닌 항목은 24시간 재검토 슬롯으로 이동의 3단계로 운영하세요. 이 루틴을 반복하면 실수율은 낮아지고, 같은 시간 대비 체감 성과는 높아집니다. 실행 기준은 “많이 하기”가 아니라 “완결도 높게 끝내기”로 잡는 것이 유리합니다.',
+      luckyElements:
+        '행운 요소는 속도보다 순서입니다. 먼저 검증하고 이후 확정하세요. 오늘은 작은 승리를 빠르게 쌓기보다 핵심 한 건의 완성도를 높이는 방식이 전체 흐름을 안정시키는 데 더 효과적입니다.',
     }
   }
 
@@ -2026,6 +2573,8 @@ function buildThemedFallbackSections(
 ): ThemedReportSections {
   const claims = synthesis?.claims || []
   const pick = (domain: string) => claims.find((claim) => claim.domain === domain)
+  const merge = (lead: string | undefined, body: string) =>
+    lead && lead.trim().length > 0 ? `${lead} ${body}` : body
   const career = pick('career')
   const relation = pick('relationship')
   const wealth = pick('wealth')
@@ -2034,82 +2583,106 @@ function buildThemedFallbackSections(
   const timing = pick('timing')
 
   const baseKo: ThemedReportSections = {
-    deepAnalysis:
-      personality?.thesis ||
-      '핵심 성향은 빠른 판단과 검증 필요가 함께 작동하는 구조입니다. 확정 전 재확인 단계를 고정하면 변동성이 줄어듭니다.',
+    deepAnalysis: merge(
+      personality?.thesis,
+      '핵심 성향은 빠른 판단과 검증 필요가 함께 작동하는 구조입니다. 확정 전 재확인 단계를 고정하면 변동성이 줄어듭니다. 강점은 판단 속도와 구조화 능력이며, 리스크는 과속 결론과 누락입니다. 따라서 결론을 내는 순간과 외부 확정을 하는 순간을 분리해 운영하면 성과의 재현성이 올라갑니다. 오늘은 감정 반응보다 실행 순서를 먼저 정해 리듬을 안정화하세요.'
+    ),
     patterns:
-      '반복 패턴은 상승 신호와 주의 신호가 동시에 나타나는 형태입니다. 따라서 "확장 + 리스크관리"를 하나의 전략으로 묶어 운영하는 것이 유리합니다.',
-    timing:
-      timing?.thesis ||
-      '타이밍 전략은 당일 확정보다 단계적 검증에 강점이 있습니다. 오늘 결론, 내일 확정의 이중 단계가 안정적입니다.',
+      '반복 패턴은 상승 신호와 주의 신호가 동시에 나타나는 형태입니다. 따라서 "확장 + 리스크관리"를 하나의 전략으로 묶어 운영하는 것이 유리합니다. 상승 구간에서는 과업을 좁혀 완결률을 높이고, 주의 구간에서는 체크리스트로 손실을 먼저 막아야 합니다. 이 두 단계를 분리하면 같은 노력 대비 결과 편차가 줄어듭니다. 패턴의 핵심은 속도보다 순서, 직감보다 검증입니다.',
+    timing: merge(
+      timing?.thesis,
+      '타이밍 전략은 당일 확정보다 단계적 검증에 강점이 있습니다. 오늘 결론, 내일 확정의 이중 단계가 안정적입니다. 대운/세운 흐름이 엇갈리는 구간에서는 착수는 가능하되 확정은 보수적으로 운영하는 편이 손실을 줄입니다. 중요한 문서/약속/결제는 최소 1회의 재확인 창을 둬야 오차를 줄일 수 있습니다. 타이밍은 빠른 시작보다 정확한 마감에서 차이가 납니다.'
+    ),
     recommendations: [
-      career?.riskControl || '핵심 과업 1~2개를 먼저 완결하세요.',
-      relation?.riskControl || '대화/문서 전달 전 한 줄 요약 재확인을 넣으세요.',
-      wealth?.riskControl || '금액·기한·취소조건을 체크리스트로 검증하세요.',
+      merge(
+        career?.riskControl,
+        '핵심 과업 1~2개를 먼저 완결하세요. 범위를 넓히기 전에 역할·기한·책임을 문서 한 줄로 고정하면 실행 오차를 크게 줄일 수 있습니다.'
+      ),
+      merge(
+        relation?.riskControl,
+        '대화/문서 전달 전 한 줄 요약 재확인을 넣으세요. 특히 감정이 개입되는 대화일수록 결론보다 해석 일치 확인을 먼저 해야 갈등 비용이 낮아집니다.'
+      ),
+      merge(
+        wealth?.riskControl,
+        '금액·기한·취소조건을 체크리스트로 검증하세요. 당일 확정 대신 24시간 보류 후 재검토하면 후회 비용과 누락 리스크를 동시에 줄일 수 있습니다.'
+      ),
     ],
     actionPlan:
-      '실행 순서는 1) 목표 1개 고정 2) 조건 재확인 3) 확정 분할입니다. 이 순서를 2주 유지하면 결과 재현성이 올라갑니다.',
+      '실행 순서는 1) 목표 1개 고정 2) 조건 재확인 3) 확정 분할입니다. 이 순서를 2주 유지하면 결과 재현성이 올라갑니다. 매일 종료 전에 “완료 1건 / 보류 1건 / 재확인 1건”을 기록하면 다음 날 의사결정 속도가 빨라집니다. 핵심은 많이 하는 것이 아니라, 중요한 것을 정확히 끝내는 것입니다.',
   }
 
   switch (theme) {
     case 'love':
       return {
         ...baseKo,
-        compatibility:
-          relation?.thesis ||
-          '관계 궁합은 감정 강도보다 해석 일치 여부가 핵심입니다. 서로의 기대를 문장으로 맞추면 갈등 비용이 줄어듭니다.',
+        compatibility: merge(
+          relation?.thesis,
+          '관계 궁합은 감정 강도보다 해석 일치 여부가 핵심입니다. 서로의 기대를 문장으로 맞추면 갈등 비용이 줄어듭니다. 서로 좋은 의도가 있어도 표현 속도가 다르면 오해가 생기기 쉬우므로, 중요한 대화는 요약 확인 단계를 넣는 편이 유리합니다. 강한 끌림과 안정성이 동시에 유지되려면 결론을 서두르지 말고 합의 기준을 먼저 맞춰야 합니다.'
+        ),
         spouseProfile:
-          '관계형 파트너와의 조합에서 장점이 커집니다. 다만 확정 속도가 빠르면 오해가 누적되므로 확인 질문 루틴이 필요합니다.',
-        marriageTiming:
-          timing?.riskControl ||
-          '중요 확정은 당일보다 24시간 검증 창을 둔 뒤 진행하는 방식이 더 안전합니다.',
+          '관계형 파트너와의 조합에서 장점이 커집니다. 다만 확정 속도가 빠르면 오해가 누적되므로 확인 질문 루틴이 필요합니다. 잘 맞는 상대일수록 작은 말실수도 크게 남을 수 있으니, 감정 표현과 사실 확인을 분리하는 대화 습관이 중요합니다. 장기적으로는 배려보다 구조가 관계를 지켜주는 순간이 많습니다.',
+        marriageTiming: merge(
+          timing?.riskControl,
+          '중요 확정은 당일보다 24시간 검증 창을 둔 뒤 진행하는 방식이 더 안전합니다. 일정·예산·역할 분담을 문서로 먼저 맞추면 감정 변수에 흔들릴 확률이 낮아집니다. 타이밍이 좋을수록 더 신중하게 기준을 맞추는 것이 실제 만족도를 높입니다.'
+        ),
       }
     case 'career':
       return {
         ...baseKo,
-        strategy:
-          career?.thesis ||
-          '커리어 전략은 폭넓은 시도보다 핵심 과업 완결 중심이 유리합니다. 역할·마감·책임의 명확화가 성과를 지킵니다.',
+        strategy: merge(
+          career?.thesis,
+          '커리어 전략은 폭넓은 시도보다 핵심 과업 완결 중심이 유리합니다. 역할·마감·책임의 명확화가 성과를 지킵니다. 상승 신호가 있어도 리스크 관리가 함께 필요하므로, 실행은 공격적으로 하되 확정은 단계적으로 진행하세요. 성과가 나는 사람의 공통점은 속도보다 누락 없는 마감 품질에 있습니다.'
+        ),
         roleFit:
-          '의사결정과 구조화가 필요한 포지션에서 강점이 큽니다. 단, 속도전보다 품질 검증 프로세스가 필수입니다.',
-        turningPoints:
-          timing?.thesis ||
-          '전환점은 상승 신호와 조정 신호가 동시에 들어오는 구간에서 나타납니다. 확장과 재정의를 병행하세요.',
+          '의사결정과 구조화가 필요한 포지션에서 강점이 큽니다. 단, 속도전보다 품질 검증 프로세스가 필수입니다. 리더/기획/운영처럼 기준을 정하고 조율하는 역할에서 특히 성과가 잘 납니다. 반대로 기준 없는 다중 업무는 에너지를 분산시키므로 업무 구조를 먼저 정리해야 합니다.',
+        turningPoints: merge(
+          timing?.thesis,
+          '전환점은 상승 신호와 조정 신호가 동시에 들어오는 구간에서 나타납니다. 확장과 재정의를 병행하세요. 새로운 기회를 잡을 때 기존 방식의 일부를 정리해야 다음 레벨로 올라갈 수 있습니다. 전환기의 핵심은 “더 많이”가 아니라 “더 정확히”입니다.'
+        ),
       }
     case 'wealth':
       return {
         ...baseKo,
-        strategy:
-          wealth?.thesis ||
-          '재정 전략은 수익 기대보다 현금흐름 안정과 조건 검증에 우선순위를 둬야 합니다.',
+        strategy: merge(
+          wealth?.thesis,
+          '재정 전략은 수익 기대보다 현금흐름 안정과 조건 검증에 우선순위를 둬야 합니다. 기회가 있어도 리스크를 통제하지 못하면 누적 성과가 흔들릴 수 있으므로, 먼저 손실 상한을 정하고 그 안에서 실행해야 합니다. 수익률보다 생존률을 높이는 운영이 장기적으로 더 큰 결과를 만듭니다.'
+        ),
         incomeStreams:
-          '수입원 다각화는 가능하지만, 새 채널 확정은 소규모 검증 후 확대가 안전합니다.',
-        riskManagement: wealth?.riskControl || '지출 상한과 손절 규칙을 먼저 정하고 실행하세요.',
+          '수입원 다각화는 가능하지만, 새 채널 확정은 소규모 검증 후 확대가 안전합니다. 파일럿 단계에서 고객 반응/비용 구조/회수 기간을 먼저 확인하면 실패 비용을 크게 줄일 수 있습니다. 작은 성공을 반복해 확장하는 방식이 현재 흐름과 잘 맞습니다.',
+        riskManagement: merge(
+          wealth?.riskControl,
+          '지출 상한과 손절 규칙을 먼저 정하고 실행하세요. 계약/투자/결제는 당일 확정보다 24시간 검토를 넣어 리스크를 통제하는 편이 안정적입니다.'
+        ),
       }
     case 'health':
       return {
         ...baseKo,
-        prevention:
-          health?.thesis ||
-          '예방의 핵심은 과부하 누적을 차단하는 것입니다. 수면·수분·회복 루틴을 일정에 고정하세요.',
-        riskWindows:
-          timing?.thesis ||
-          '리스크 구간은 일정 밀집과 커뮤니케이션 과부하가 겹칠 때 커집니다. 일정 분할로 충격을 줄이세요.',
-        recoveryPlan:
-          health?.riskControl ||
-          '회복 계획은 강도보다 지속성이 중요합니다. 2주 단위로 재점검하세요.',
+        prevention: merge(
+          health?.thesis,
+          '예방의 핵심은 과부하 누적을 차단하는 것입니다. 수면·수분·회복 루틴을 일정에 고정하세요. 컨디션이 좋을 때 무리해서 당기는 패턴이 반복되면 반동 피로가 커질 수 있으니 강도 조절이 필수입니다. 건강 전략은 의지보다 시스템이 오래 갑니다.'
+        ),
+        riskWindows: merge(
+          timing?.thesis,
+          '리스크 구간은 일정 밀집과 커뮤니케이션 과부하가 겹칠 때 커집니다. 일정 분할로 충격을 줄이세요. 특히 이동/야근/수면 부족이 동시에 겹치면 실수 확률이 급격히 올라갈 수 있습니다. 위험 구간은 미리 예고하고 일정 강도를 낮추는 것이 안전합니다.'
+        ),
+        recoveryPlan: merge(
+          health?.riskControl,
+          '회복 계획은 강도보다 지속성이 중요합니다. 2주 단위로 재점검하세요. 무리한 목표보다 매일 지킬 수 있는 기본 루틴을 정해두면 회복 효율이 높아집니다. 기준은 “완벽한 하루”가 아니라 “무너지지 않는 패턴”입니다.'
+        ),
       }
     case 'family':
       return {
         ...baseKo,
-        dynamics:
-          relation?.thesis ||
-          '가족 역학은 표현 속도 차이에서 오해가 커지기 쉽습니다. 맥락 정리 후 전달하는 방식이 유리합니다.',
-        communication:
-          relation?.riskControl ||
-          '결론 전달 전 상대 해석을 다시 확인하면 갈등 비용을 줄일 수 있습니다.',
+        dynamics: merge(
+          relation?.thesis,
+          '가족 역학은 표현 속도 차이에서 오해가 커지기 쉽습니다. 맥락 정리 후 전달하는 방식이 유리합니다. 가까운 관계일수록 말의 톤과 순서가 결과를 크게 좌우하므로, 결론보다 배경 설명을 먼저 맞추는 습관이 중요합니다. 작은 오해를 빠르게 정리하면 장기 갈등을 예방할 수 있습니다.'
+        ),
+        communication: merge(
+          relation?.riskControl,
+          '결론 전달 전 상대 해석을 다시 확인하면 갈등 비용을 줄일 수 있습니다. 민감한 주제는 즉시 해결하려 하기보다 합의 가능한 기준부터 정하는 편이 안정적입니다. 한 번의 완벽한 대화보다, 짧고 정확한 대화를 여러 번 쌓는 방식이 효과적입니다.'
+        ),
         legacy:
-          '세대 과제는 단기 성과보다 일관된 운영 원칙을 남기는 것입니다. 기준 문서화를 습관화하세요.',
+          '세대 과제는 단기 성과보다 일관된 운영 원칙을 남기는 것입니다. 기준 문서화를 습관화하세요. 가족 안에서도 역할/책임/기대치가 보이면 갈등이 줄고 협력이 쉬워집니다. 남기는 것은 말이 아니라 반복 가능한 운영 규칙입니다.',
       }
   }
 }
@@ -2150,8 +2723,16 @@ export async function generateAIPremiumReport(
     seunActive: Boolean(input.currentSaeunElement),
     activeTransitCount: (input.activeTransits || []).length,
   })
+  const graphRagSummary = buildGraphRagSummaryPayload(
+    lang,
+    matrixReport,
+    graphRagEvidence,
+    signalSynthesis,
+    strategyEngine
+  )
+  const deterministicOnly = shouldUseDeterministicOnly(options.deterministicOnly)
 
-  if (FORCE_REWRITE_ONLY_MODE) {
+  if (deterministicOnly) {
     const draftSections = buildComprehensiveFallbackSections(
       input,
       matrixReport,
@@ -2161,16 +2742,7 @@ export async function generateAIPremiumReport(
     )
     const evidenceRefs = buildComprehensiveEvidenceRefs(signalSynthesis)
     const sectionPaths = [...COMPREHENSIVE_SECTION_KEYS] as string[]
-    const rewrite = await rewriteSectionsWithFallback<AIPremiumReport['sections']>({
-      lang,
-      userPlan: options.userPlan,
-      draftSections,
-      evidenceRefs,
-      sectionPaths,
-      requiredPaths: sectionPaths,
-      minCharsPerSection: lang === 'ko' ? 280 : 220,
-    })
-    let sections = rewrite.sections as unknown as Record<string, unknown>
+    let sections = draftSections as unknown as Record<string, unknown>
     const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
     if (finalEvidenceCheck.needsRepair) {
       sections = enforceEvidenceBindingFallback(
@@ -2181,6 +2753,7 @@ export async function generateAIPremiumReport(
       )
     }
     sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
+    sections = sanitizeSectionsByPaths(sections, sectionPaths)
 
     const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
     const keyStrengths = (matrixReport.topInsights || [])
@@ -2214,6 +2787,112 @@ export async function generateAIPremiumReport(
               'Recheck before final commitment',
               'Communication risk check',
             ]
+    const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs)
+    recordReportQualityMetrics('comprehensive', 'deterministic-only', qualityMetrics)
+
+    return {
+      id: `air_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      generatedAt: new Date().toISOString(),
+      lang,
+      profile: {
+        name: options.name,
+        birthDate: options.birthDate,
+        dayMaster: input.dayMasterElement,
+        dominantElement: input.dominantWesternElement || input.dayMasterElement,
+        geokguk: input.geokguk,
+      },
+      sections: sections as AIPremiumReport['sections'],
+      graphRagEvidence,
+      graphRagSummary,
+      evidenceRefs,
+      deterministicCore,
+      renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
+      renderedText: renderSectionsAsText(sections, sectionPaths),
+      matrixSummary: {
+        overallScore: matrixReport.overallScore.total,
+        grade: matrixReport.overallScore.grade,
+        topInsights: safeTopInsights,
+        keyStrengths: safeKeyStrengths,
+        keyChallenges: safeKeyChallenges,
+      },
+      signalSynthesis,
+      strategyEngine,
+      meta: {
+        modelUsed: 'deterministic-only',
+        tokensUsed: 0,
+        processingTime: Math.max(1, Date.now() - startTime),
+        reportVersion: '1.2.0-deterministic-only',
+        qualityMetrics,
+      },
+    }
+  }
+
+  if (FORCE_REWRITE_ONLY_MODE) {
+    const draftSections = buildComprehensiveFallbackSections(
+      input,
+      matrixReport,
+      deterministicCore,
+      lang,
+      signalSynthesis
+    )
+    const evidenceRefs = buildComprehensiveEvidenceRefs(signalSynthesis)
+    const sectionPaths = [...COMPREHENSIVE_SECTION_KEYS] as string[]
+    const rewrite = await rewriteSectionsWithFallback<AIPremiumReport['sections']>({
+      lang,
+      userPlan: options.userPlan,
+      draftSections,
+      evidenceRefs,
+      sectionPaths,
+      requiredPaths: sectionPaths,
+      minCharsPerSection: lang === 'ko' ? 380 : 280,
+    })
+    let sections = rewrite.sections as unknown as Record<string, unknown>
+    const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
+    if (finalEvidenceCheck.needsRepair) {
+      sections = enforceEvidenceBindingFallback(
+        sections,
+        finalEvidenceCheck.violations,
+        evidenceRefs,
+        lang
+      )
+    }
+    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
+    sections = sanitizeSectionsByPaths(sections, sectionPaths)
+
+    const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
+    const keyStrengths = (matrixReport.topInsights || [])
+      .filter((i) => i.category === 'strength')
+      .slice(0, 3)
+      .map((i) => i.title)
+    const keyChallenges = (matrixReport.topInsights || [])
+      .filter((i) => i.category === 'challenge' || i.category === 'caution')
+      .slice(0, 3)
+      .map((i) => i.title)
+    const domainFallback = [...(matrixReport.domainAnalysis || [])]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map((d) =>
+        lang === 'ko' ? `${d.domain} 강점(${d.score})` : `${d.domain} strength (${d.score})`
+      )
+    const anchorFallback = (graphRagEvidence.anchors || [])
+      .slice(0, 3)
+      .map((a) =>
+        lang === 'ko' ? `${a.section} 섹션 근거 정렬` : `${a.section} section evidence alignment`
+      )
+    const safeTopInsights = topInsights.length > 0 ? topInsights : anchorFallback
+    const safeKeyStrengths = keyStrengths.length > 0 ? keyStrengths : domainFallback
+    const safeKeyChallenges =
+      keyChallenges.length > 0
+        ? keyChallenges
+        : lang === 'ko'
+          ? ['주의 신호 검토 필요', '확정 전 재확인 필요', '커뮤니케이션 리스크 점검']
+          : [
+              'Caution signals require review',
+              'Recheck before final commitment',
+              'Communication risk check',
+            ]
+    const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs)
+    recordReportQualityMetrics('comprehensive', rewrite.modelUsed, qualityMetrics)
 
     recordRewriteModeMetric('comprehensive', rewrite.modelUsed, rewrite.tokensUsed)
     return {
@@ -2229,6 +2908,7 @@ export async function generateAIPremiumReport(
       },
       sections: sections as AIPremiumReport['sections'],
       graphRagEvidence,
+      graphRagSummary,
       evidenceRefs,
       deterministicCore,
       renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
@@ -2247,6 +2927,7 @@ export async function generateAIPremiumReport(
         tokensUsed: rewrite.tokensUsed,
         processingTime: Math.max(1, Date.now() - startTime),
         reportVersion: '1.1.0-rewrite-only',
+        qualityMetrics,
       },
     }
   }
@@ -2631,6 +3312,7 @@ export async function generateAIPremiumReport(
     comprehensiveEvidenceRefs,
     lang
   )
+  sections = sanitizeSectionsByPaths(sections, comprehensiveSectionPaths)
 
   const model = usedDeterministicFallback ? 'deterministic-fallback' : [...models].join(' -> ')
   const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
@@ -2665,6 +3347,12 @@ export async function generateAIPremiumReport(
             'Recheck before final commitment',
             'Communication risk check',
           ]
+  const qualityMetrics = buildReportQualityMetrics(
+    sections as Record<string, unknown>,
+    comprehensiveSectionPaths,
+    comprehensiveEvidenceRefs
+  )
+  recordReportQualityMetrics('comprehensive', model, qualityMetrics)
 
   // 3. ??? ??
   const report: AIPremiumReport = {
@@ -2682,6 +3370,7 @@ export async function generateAIPremiumReport(
 
     sections: sections as AIPremiumReport['sections'],
     graphRagEvidence,
+    graphRagSummary,
     evidenceRefs: comprehensiveEvidenceRefs,
     deterministicCore,
     renderedMarkdown: renderSectionsAsMarkdown(
@@ -2728,6 +3417,7 @@ export async function generateAIPremiumReport(
       tokensUsed,
       processingTime: Math.max(1, Date.now() - startTime),
       reportVersion: '1.0.0',
+      qualityMetrics,
     },
   }
 
@@ -2749,6 +3439,7 @@ export async function generateTimingReport(
     targetDate?: string
     lang?: 'ko' | 'en'
     userPlan?: AIUserPlan
+    deterministicOnly?: boolean
     userQuestion?: string
     deterministicProfile?: DeterministicProfile
     matrixSummary?: MatrixSummary
@@ -2777,6 +3468,78 @@ export async function generateTimingReport(
     seunActive: Boolean(input.currentSaeunElement),
     activeTransitCount: (input.activeTransits || []).length,
   })
+  const graphRagSummary = buildGraphRagSummaryPayload(
+    lang,
+    matrixReport,
+    graphRagEvidence,
+    signalSynthesis,
+    strategyEngine
+  )
+  const deterministicOnly = shouldUseDeterministicOnly(options.deterministicOnly)
+
+  if (deterministicOnly) {
+    const sectionPaths = [
+      'overview',
+      'energy',
+      'opportunities',
+      'cautions',
+      'domains.career',
+      'domains.love',
+      'domains.wealth',
+      'domains.health',
+      'actionPlan',
+      'luckyElements',
+    ]
+    const draftSections = buildTimingFallbackSections(input, signalSynthesis, lang)
+    const evidenceRefs = buildTimingEvidenceRefs(sectionPaths, signalSynthesis)
+    let sections = draftSections as unknown as Record<string, unknown>
+    const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
+    if (finalEvidenceCheck.needsRepair) {
+      sections = enforceEvidenceBindingFallback(
+        sections,
+        finalEvidenceCheck.violations,
+        evidenceRefs,
+        lang
+      )
+    }
+    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
+    sections = sanitizeSectionsByPaths(sections, sectionPaths)
+    const periodLabel = generatePeriodLabel(period, targetDate, lang)
+    const periodScore = calculatePeriodScore(timingData, input.dayMasterElement)
+    const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs)
+    recordReportQualityMetrics('timing', 'deterministic-only', qualityMetrics)
+    return {
+      id: `timing_${period}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      generatedAt: new Date().toISOString(),
+      lang,
+      profile: {
+        name: options.name,
+        birthDate: options.birthDate,
+        dayMaster: input.dayMasterElement,
+        dominantElement: input.dominantWesternElement || input.dayMasterElement,
+      },
+      period,
+      targetDate,
+      periodLabel,
+      timingData,
+      sections: sections as unknown as TimingReportSections,
+      graphRagEvidence,
+      graphRagSummary,
+      evidenceRefs,
+      deterministicCore,
+      strategyEngine,
+      renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
+      renderedText: renderSectionsAsText(sections, sectionPaths),
+      periodScore,
+      meta: {
+        modelUsed: 'deterministic-only',
+        tokensUsed: 0,
+        processingTime: Math.max(1, Date.now() - startTime),
+        reportVersion: '1.2.0-deterministic-only',
+        qualityMetrics,
+      },
+    }
+  }
 
   if (FORCE_REWRITE_ONLY_MODE) {
     const sectionPaths = [
@@ -2811,7 +3574,7 @@ export async function generateTimingReport(
       evidenceRefs,
       sectionPaths,
       requiredPaths,
-      minCharsPerSection: lang === 'ko' ? 220 : 180,
+      minCharsPerSection: lang === 'ko' ? 320 : 240,
     })
     let sections = rewrite.sections as unknown as Record<string, unknown>
     const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
@@ -2824,8 +3587,11 @@ export async function generateTimingReport(
       )
     }
     sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
+    sections = sanitizeSectionsByPaths(sections, sectionPaths)
     const periodLabel = generatePeriodLabel(period, targetDate, lang)
     const periodScore = calculatePeriodScore(timingData, input.dayMasterElement)
+    const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs)
+    recordReportQualityMetrics('timing', rewrite.modelUsed, qualityMetrics)
     recordRewriteModeMetric('timing', rewrite.modelUsed, rewrite.tokensUsed)
     return {
       id: `timing_${period}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -2843,6 +3609,7 @@ export async function generateTimingReport(
       timingData,
       sections: sections as unknown as TimingReportSections,
       graphRagEvidence,
+      graphRagSummary,
       evidenceRefs,
       deterministicCore,
       strategyEngine,
@@ -2854,6 +3621,7 @@ export async function generateTimingReport(
         tokensUsed: rewrite.tokensUsed,
         processingTime: Math.max(1, Date.now() - startTime),
         reportVersion: '1.1.0-rewrite-only',
+        qualityMetrics,
       },
     }
   }
@@ -3103,6 +3871,7 @@ export async function generateTimingReport(
     )
   }
   sections = enforceEvidenceRefFooters(sections, sectionPaths, timingEvidenceRefs, lang)
+  sections = sanitizeSectionsByPaths(sections, sectionPaths)
 
   // 4. Build period label
   const periodLabel = generatePeriodLabel(period, targetDate, lang)
@@ -3130,6 +3899,7 @@ export async function generateTimingReport(
     timingData,
     sections: sections as unknown as TimingReportSections,
     graphRagEvidence,
+    graphRagSummary,
     evidenceRefs: timingEvidenceRefs,
     deterministicCore,
     strategyEngine,
@@ -3168,8 +3938,15 @@ export async function generateTimingReport(
       tokensUsed,
       processingTime: Math.max(1, Date.now() - startTime),
       reportVersion: '1.0.0',
+      qualityMetrics: buildReportQualityMetrics(
+        sections as Record<string, unknown>,
+        sectionPaths,
+        timingEvidenceRefs
+      ),
     },
   }
+
+  recordReportQualityMetrics('timing', model, report.meta.qualityMetrics!)
 
   return report
 }
@@ -3188,6 +3965,7 @@ export async function generateThemedReport(
     birthDate?: string
     lang?: 'ko' | 'en'
     userPlan?: AIUserPlan
+    deterministicOnly?: boolean
     userQuestion?: string
     deterministicProfile?: DeterministicProfile
     matrixSummary?: MatrixSummary
@@ -3215,6 +3993,68 @@ export async function generateThemedReport(
     seunActive: Boolean(input.currentSaeunElement),
     activeTransitCount: (input.activeTransits || []).length,
   })
+  const graphRagSummary = buildGraphRagSummaryPayload(
+    lang,
+    matrixReport,
+    graphRagEvidence,
+    signalSynthesis,
+    strategyEngine
+  )
+  const deterministicOnly = shouldUseDeterministicOnly(options.deterministicOnly)
+
+  if (deterministicOnly) {
+    const sectionPaths = [...getThemedSectionKeys(theme)]
+    const draftSections = buildThemedFallbackSections(theme, signalSynthesis, lang)
+    const evidenceRefs = buildThemedEvidenceRefs(theme, sectionPaths, signalSynthesis)
+    let sections = draftSections as unknown as Record<string, unknown>
+    const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
+    if (finalEvidenceCheck.needsRepair) {
+      sections = enforceEvidenceBindingFallback(
+        sections,
+        finalEvidenceCheck.violations,
+        evidenceRefs,
+        lang
+      )
+    }
+    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
+    sections = sanitizeSectionsByPaths(sections, sectionPaths)
+    const themeMeta = THEME_META[theme]
+    const themeScore = calculateThemeScore(theme, input.sibsinDistribution)
+    const keywords = extractKeywords(sections as unknown as ThemedReportSections, theme, lang)
+    const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs)
+    recordReportQualityMetrics('themed', 'deterministic-only', qualityMetrics)
+    return {
+      id: `themed_${theme}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      generatedAt: new Date().toISOString(),
+      lang,
+      profile: {
+        name: options.name,
+        birthDate: options.birthDate,
+        dayMaster: input.dayMasterElement,
+        dominantElement: input.dominantWesternElement || input.dayMasterElement,
+      },
+      theme,
+      themeLabel: themeMeta.label[lang],
+      themeEmoji: themeMeta.emoji,
+      sections: sections as unknown as ThemedReportSections,
+      graphRagEvidence,
+      graphRagSummary,
+      evidenceRefs,
+      deterministicCore,
+      strategyEngine,
+      renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
+      renderedText: renderSectionsAsText(sections, sectionPaths),
+      themeScore,
+      keywords,
+      meta: {
+        modelUsed: 'deterministic-only',
+        tokensUsed: 0,
+        processingTime: Math.max(1, Date.now() - startTime),
+        reportVersion: '1.2.0-deterministic-only',
+        qualityMetrics,
+      },
+    }
+  }
 
   if (FORCE_REWRITE_ONLY_MODE) {
     const sectionPaths = [...getThemedSectionKeys(theme)]
@@ -3228,7 +4068,7 @@ export async function generateThemedReport(
       evidenceRefs,
       sectionPaths,
       requiredPaths,
-      minCharsPerSection: lang === 'ko' ? 220 : 180,
+      minCharsPerSection: lang === 'ko' ? 340 : 260,
     })
     let sections = rewrite.sections as unknown as Record<string, unknown>
     const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
@@ -3241,9 +4081,12 @@ export async function generateThemedReport(
       )
     }
     sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
+    sections = sanitizeSectionsByPaths(sections, sectionPaths)
     const themeMeta = THEME_META[theme]
     const themeScore = calculateThemeScore(theme, input.sibsinDistribution)
     const keywords = extractKeywords(sections as unknown as ThemedReportSections, theme, lang)
+    const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs)
+    recordReportQualityMetrics('themed', rewrite.modelUsed, qualityMetrics)
     recordRewriteModeMetric('themed', rewrite.modelUsed, rewrite.tokensUsed)
     return {
       id: `themed_${theme}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -3260,6 +4103,7 @@ export async function generateThemedReport(
       themeEmoji: themeMeta.emoji,
       sections: sections as unknown as ThemedReportSections,
       graphRagEvidence,
+      graphRagSummary,
       evidenceRefs,
       deterministicCore,
       strategyEngine,
@@ -3272,6 +4116,7 @@ export async function generateThemedReport(
         tokensUsed: rewrite.tokensUsed,
         processingTime: Math.max(1, Date.now() - startTime),
         reportVersion: '1.1.0-rewrite-only',
+        qualityMetrics,
       },
     }
   }
@@ -3493,6 +4338,7 @@ export async function generateThemedReport(
     )
   }
   sections = enforceEvidenceRefFooters(sections, sectionPaths, themedEvidenceRefs, lang)
+  sections = sanitizeSectionsByPaths(sections, sectionPaths)
 
   // 4. Theme metadata
   const themeMeta = THEME_META[theme]
@@ -3522,6 +4368,7 @@ export async function generateThemedReport(
 
     sections: sections as unknown as ThemedReportSections,
     graphRagEvidence,
+    graphRagSummary,
     evidenceRefs: themedEvidenceRefs,
     deterministicCore,
     strategyEngine,
@@ -3539,8 +4386,15 @@ export async function generateThemedReport(
       tokensUsed,
       processingTime: Math.max(1, Date.now() - startTime),
       reportVersion: '1.0.0',
+      qualityMetrics: buildReportQualityMetrics(
+        sections as Record<string, unknown>,
+        sectionPaths,
+        themedEvidenceRefs
+      ),
     },
   }
+
+  recordReportQualityMetrics('themed', model, report.meta.qualityMetrics!)
 
   return report
 }

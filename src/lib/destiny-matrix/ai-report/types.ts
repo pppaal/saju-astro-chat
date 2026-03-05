@@ -167,6 +167,19 @@ export interface TimingAIPremiumReport {
 
   // GraphRAG evidence anchors used to ground generated sections
   graphRagEvidence?: GraphRAGEvidenceBundle
+  graphRagSummary?: {
+    topInsights: string[]
+    drivers: string[]
+    cautions: string[]
+    trust: {
+      avgOverlapScore: number
+      avgOrbFitScore: number
+      highTrustSetCount: number
+      lowTrustSetCount: number
+      totalSets: number
+    }
+    cautionSections: string[]
+  }
   evidenceRefs: SectionEvidenceRefs
 
   // Cross consistency audit metadata
@@ -193,6 +206,15 @@ export interface TimingAIPremiumReport {
     tokensUsed?: number
     processingTime?: number
     reportVersion: string
+    qualityMetrics?: {
+      sectionCount: number
+      avgSectionChars: number
+      evidenceCoverageRatio: number
+      minEvidenceSatisfiedRatio: number
+      contradictionCount: number
+      recheckGuidanceRatio: number
+      overclaimCount: number
+    }
   }
 }
 
@@ -223,6 +245,19 @@ export interface ThemedAIPremiumReport {
 
   // GraphRAG evidence anchors used to ground generated sections
   graphRagEvidence?: GraphRAGEvidenceBundle
+  graphRagSummary?: {
+    topInsights: string[]
+    drivers: string[]
+    cautions: string[]
+    trust: {
+      avgOverlapScore: number
+      avgOrbFitScore: number
+      highTrustSetCount: number
+      lowTrustSetCount: number
+      totalSets: number
+    }
+    cautionSections: string[]
+  }
   evidenceRefs: SectionEvidenceRefs
 
   // Cross consistency audit metadata
@@ -251,6 +286,15 @@ export interface ThemedAIPremiumReport {
     tokensUsed?: number
     processingTime?: number
     reportVersion: string
+    qualityMetrics?: {
+      sectionCount: number
+      avgSectionChars: number
+      evidenceCoverageRatio: number
+      minEvidenceSatisfiedRatio: number
+      contradictionCount: number
+      recheckGuidanceRatio: number
+      overclaimCount: number
+    }
   }
 }
 

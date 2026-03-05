@@ -44,6 +44,19 @@ export interface AIPremiumReport {
 
   // GraphRAG evidence anchors used to ground generated sections
   graphRagEvidence?: GraphRAGEvidenceBundle
+  graphRagSummary?: {
+    topInsights: string[]
+    drivers: string[]
+    cautions: string[]
+    trust: {
+      avgOverlapScore: number
+      avgOrbFitScore: number
+      highTrustSetCount: number
+      lowTrustSetCount: number
+      totalSets: number
+    }
+    cautionSections: string[]
+  }
   evidenceRefs: SectionEvidenceRefs
 
   // Cross consistency audit metadata
@@ -71,6 +84,15 @@ export interface AIPremiumReport {
     tokensUsed?: number
     processingTime?: number
     reportVersion: string
+    qualityMetrics?: {
+      sectionCount: number
+      avgSectionChars: number
+      evidenceCoverageRatio: number
+      minEvidenceSatisfiedRatio: number
+      contradictionCount: number
+      recheckGuidanceRatio: number
+      overclaimCount: number
+    }
   }
 }
 
@@ -79,6 +101,7 @@ export interface AIReportGenerationOptions {
   birthDate?: string
   lang?: 'ko' | 'en'
   userPlan?: AIUserPlan
+  deterministicOnly?: boolean
   focusDomain?: InsightDomain
   detailLevel?: 'standard' | 'detailed' | 'comprehensive'
   bilingual?: boolean

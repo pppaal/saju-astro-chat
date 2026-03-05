@@ -1,5 +1,6 @@
 import type { FusionReport, InsightDomain } from '../interpreter/types'
 import type { MatrixHighlight, MatrixSummary } from '../types'
+import { getDomainSemantic, getLayerMeaning } from './matrixOntology'
 
 export type SignalPolarity = 'strength' | 'balance' | 'caution'
 
@@ -19,6 +20,14 @@ export interface NormalizedSignal {
   astroBasis?: string
   advice?: string
   tags: string[]
+  semantic?: {
+    layerMeaningKo: string
+    layerMeaningEn: string
+    focusKo: string
+    focusEn: string
+    riskKo: string
+    riskEn: string
+  }
 }
 
 export interface SynthesizedClaim {
@@ -41,6 +50,18 @@ interface SynthesisInput {
   lang: 'ko' | 'en'
   matrixReport: FusionReport
   matrixSummary?: MatrixSummary
+}
+
+const REQUIRED_CORE_DOMAINS: SignalDomain[] = ['career', 'wealth']
+const CLAIM_DOMAIN_PRIORITY: Record<SignalDomain, number> = {
+  career: 1,
+  wealth: 2,
+  relationship: 3,
+  health: 4,
+  timing: 5,
+  personality: 6,
+  spirituality: 7,
+  move: 8,
 }
 
 const K_WORD_PYEONJAE = '\uD3B8\uC7AC'
@@ -146,6 +167,8 @@ function normalizeHighlight(
     ),
     ...fallbackDomainsByLayer(point.layer),
   ])
+  const semanticDomain = (domainHints[0] || 'personality') as SignalDomain
+  const semantic = getDomainSemantic(point.layer, semanticDomain)
   const score = Number(point.cell.interaction.score || 0)
   const rankScore = polarity === 'caution' ? 11 - score : score
   return {
@@ -162,6 +185,14 @@ function normalizeHighlight(
     astroBasis: point.cell.astroBasis,
     advice: sanitizeFearWords(point.cell.advice || '', lang),
     tags,
+    semantic: {
+      layerMeaningKo: getLayerMeaning(point.layer, 'ko'),
+      layerMeaningEn: getLayerMeaning(point.layer, 'en'),
+      focusKo: semantic.focusKo,
+      focusEn: semantic.focusEn,
+      riskKo: semantic.riskKo,
+      riskEn: semantic.riskEn,
+    },
   }
 }
 
@@ -176,12 +207,14 @@ function normalizeFromTopInsights(report: FusionReport): NormalizedSignal[] {
     const polarity = toPolarityFromCategory(insight.category)
     const score = Number(insight.score || insight.weightedScore || 0)
     const rankScore = polarity === 'caution' ? 101 - score : score
+    const domain = (insight.domain as SignalDomain) || 'personality'
+    const semantic = getDomainSemantic(0, domain)
     return {
       id: `I${index}:${insight.id || insight.title}`,
       layer: 0,
       rowKey: insight.domain || 'personality',
       colKey: insight.category,
-      domainHints: [insight.domain as SignalDomain],
+      domainHints: [domain],
       polarity,
       score,
       rankScore,
@@ -190,6 +223,14 @@ function normalizeFromTopInsights(report: FusionReport): NormalizedSignal[] {
       astroBasis: insight.sources?.[0]?.astroFactor,
       advice: insight.actionItems?.[0]?.text,
       tags: uniq(splitTags(`${insight.title} ${insight.description || ''}`)),
+      semantic: {
+        layerMeaningKo: getLayerMeaning(0, 'ko'),
+        layerMeaningEn: getLayerMeaning(0, 'en'),
+        focusKo: semantic.focusKo,
+        focusEn: semantic.focusEn,
+        riskKo: semantic.riskKo,
+        riskEn: semantic.riskEn,
+      },
     }
   })
 }
@@ -204,6 +245,28 @@ function dedupeSignals(list: NormalizedSignal[]): NormalizedSignal[] {
     out.push(signal)
   }
   return out
+}
+
+function primaryDomain(signal: NormalizedSignal): SignalDomain {
+  return (signal.domainHints[0] || 'personality') as SignalDomain
+}
+
+function hasDomain(signal: NormalizedSignal, domain: SignalDomain): boolean {
+  return (signal.domainHints || []).includes(domain)
+}
+
+function claimDomains(signal: NormalizedSignal): SignalDomain[] {
+  const hints = uniq((signal.domainHints || []).filter(Boolean)) as SignalDomain[]
+  if (hints.length === 0) return ['personality']
+
+  const sorted = [...hints].sort(
+    (a, b) => (CLAIM_DOMAIN_PRIORITY[a] || 99) - (CLAIM_DOMAIN_PRIORITY[b] || 99)
+  )
+  const core = sorted.filter(
+    (domain) => CLAIM_DOMAIN_PRIORITY[domain] <= CLAIM_DOMAIN_PRIORITY.timing
+  )
+  if (core.length > 0) return core.slice(0, 2)
+  return sorted.slice(0, 1)
 }
 
 function pickByQuota(
@@ -222,19 +285,20 @@ function pickByQuota(
 function ensureDomainDiversity(
   selected: NormalizedSignal[],
   bench: NormalizedSignal[],
-  minDomains = 3
+  minDomains = 3,
+  protectedDomains: SignalDomain[] = []
 ): NormalizedSignal[] {
   const result = [...selected]
-  const distinct = () => new Set(result.map((s) => s.domainHints[0])).size
+  const distinct = () => new Set(result.map((s) => primaryDomain(s))).size
   while (distinct() < minDomains) {
     const candidate = bench.find(
       (item) =>
         !result.some((s) => s.id === item.id) &&
-        !result.some((s) => s.domainHints[0] === item.domainHints[0])
+        !result.some((s) => primaryDomain(s) === primaryDomain(item))
     )
     if (!candidate) break
     const domainCounts = result.reduce<Record<string, number>>((acc, cur) => {
-      const key = cur.domainHints[0] || 'personality'
+      const key = primaryDomain(cur)
       acc[key] = (acc[key] || 0) + 1
       return acc
     }, {})
@@ -242,12 +306,45 @@ function ensureDomainDiversity(
       .filter(
         (signal) =>
           signal.polarity === candidate.polarity &&
-          (domainCounts[signal.domainHints[0] || 'personality'] || 0) > 1
+          (domainCounts[primaryDomain(signal)] || 0) > 1 &&
+          !protectedDomains.some((domain) => hasDomain(signal, domain))
       )
       .sort((a, b) => a.rankScore - b.rankScore)[0]
     if (!removable) break
     const idx = result.findIndex((s) => s.id === removable.id)
     result[idx] = candidate
+  }
+  return result
+}
+
+function ensureRequiredDomainCoverage(
+  selected: NormalizedSignal[],
+  bench: NormalizedSignal[],
+  requiredDomains: SignalDomain[]
+): NormalizedSignal[] {
+  const result = [...selected]
+  for (const domain of requiredDomains) {
+    if (result.some((signal) => hasDomain(signal, domain))) continue
+    const candidate = bench.find(
+      (signal) => !result.some((picked) => picked.id === signal.id) && hasDomain(signal, domain)
+    )
+    if (!candidate) continue
+
+    const removable =
+      result
+        .filter(
+          (signal) =>
+            signal.polarity === candidate.polarity &&
+            !requiredDomains.some((required) => hasDomain(signal, required))
+        )
+        .sort((a, b) => a.rankScore - b.rankScore)[0] ||
+      result
+        .filter((signal) => !requiredDomains.some((required) => hasDomain(signal, required)))
+        .sort((a, b) => a.rankScore - b.rankScore)[0]
+
+    if (!removable) continue
+    const idx = result.findIndex((signal) => signal.id === removable.id)
+    if (idx >= 0) result[idx] = candidate
   }
   return result
 }
@@ -326,6 +423,7 @@ function conflictThesisByDomain(domain: SignalDomain, lang: 'ko' | 'en'): string
 }
 
 function buildClaim(domain: SignalDomain, signals: NormalizedSignal[], lang: 'ko' | 'en') {
+  const orderedSignals = [...signals].sort((a, b) => b.rankScore - a.rankScore)
   const hasStrength = signals.some((s) => s.polarity === 'strength')
   const hasCaution = signals.some((s) => s.polarity === 'caution')
   const hasBalance = signals.some((s) => s.polarity === 'balance')
@@ -353,16 +451,34 @@ function buildClaim(domain: SignalDomain, signals: NormalizedSignal[], lang: 'ko
     else if (hasBalance) thesis = 'Stable routines are the best path in this window.'
     else thesis = 'Signal density is low; keep baseline discipline.'
   }
+  const anchor = orderedSignals[0]
+  const semanticAddon =
+    lang === 'ko'
+      ? [
+          anchor?.semantic?.layerMeaningKo,
+          hasCaution ? anchor?.semantic?.riskKo : anchor?.semantic?.focusKo,
+        ]
+          .filter(Boolean)
+          .slice(0, 2)
+          .join(' ')
+      : [
+          anchor?.semantic?.layerMeaningEn,
+          hasCaution ? anchor?.semantic?.riskEn : anchor?.semantic?.focusEn,
+        ]
+          .filter(Boolean)
+          .slice(0, 2)
+          .join(' ')
+  const thesisWithSemantic = semanticAddon ? `${thesis} ${semanticAddon}`.trim() : thesis
   const claimId = `${domain}_${hasStrength && hasCaution ? 'growth_with_guardrails' : hasStrength ? 'expansion' : hasCaution ? 'risk_control' : 'stability'}`
-  const actions = signals
+  const actions = orderedSignals
     .map((s) => s.advice)
     .filter(Boolean)
     .slice(0, 2) as string[]
   return {
     claimId,
     domain,
-    thesis: sanitizeFearWords(thesis, lang),
-    evidence: signals.map((s) => s.id),
+    thesis: sanitizeFearWords(thesisWithSemantic, lang),
+    evidence: orderedSignals.map((s) => s.id),
     riskControl: riskControlByDomain(domain, lang),
     actions: actions.length > 0 ? actions : [riskControlByDomain(domain, lang)],
   } satisfies SynthesizedClaim
@@ -370,14 +486,18 @@ function buildClaim(domain: SignalDomain, signals: NormalizedSignal[], lang: 'ko
 
 function buildClaims(selectedSignals: NormalizedSignal[], lang: 'ko' | 'en'): SynthesizedClaim[] {
   const grouped = selectedSignals.reduce<Record<string, NormalizedSignal[]>>((acc, signal) => {
-    const domain = signal.domainHints[0] || 'personality'
-    if (!acc[domain]) acc[domain] = []
-    acc[domain].push(signal)
+    for (const domain of claimDomains(signal)) {
+      if (!acc[domain]) acc[domain] = []
+      acc[domain].push(signal)
+    }
     return acc
   }, {})
   return Object.entries(grouped)
     .map(([domain, signals]) => buildClaim(domain as SignalDomain, signals, lang))
-    .sort((a, b) => b.evidence.length - a.evidence.length)
+    .sort((a, b) => {
+      if (b.evidence.length !== a.evidence.length) return b.evidence.length - a.evidence.length
+      return (CLAIM_DOMAIN_PRIORITY[a.domain] || 99) - (CLAIM_DOMAIN_PRIORITY[b.domain] || 99)
+    })
 }
 
 function toSignalsById(signals: NormalizedSignal[]): Record<string, NormalizedSignal> {
@@ -396,7 +516,13 @@ function selectSevenSignals(signals: NormalizedSignal[]): NormalizedSignal[] {
   pickByQuota(cautions, 2, selected)
   pickByQuota(balances, 2, selected)
   const bench = [...strengths, ...cautions, ...balances].sort((a, b) => b.rankScore - a.rankScore)
-  return ensureDomainDiversity(selected, bench, 3)
+  const withDiversity = ensureDomainDiversity(selected, bench, 3, REQUIRED_CORE_DOMAINS)
+  const withRequiredDomains = ensureRequiredDomainCoverage(
+    withDiversity,
+    bench,
+    REQUIRED_CORE_DOMAINS
+  )
+  return ensureDomainDiversity(withRequiredDomains, bench, 3, REQUIRED_CORE_DOMAINS)
 }
 
 export function getDomainsForSection(sectionKey: string): SignalDomain[] {

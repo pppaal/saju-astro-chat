@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
+import type { MatrixHighlight, MatrixSummary } from '@/lib/destiny-matrix/types'
 import type { FiveElement } from '@/lib/Saju/types'
 
 vi.mock('@/lib/destiny-matrix/ai-report/aiBackend', () => ({
@@ -10,6 +11,8 @@ vi.mock('@/lib/destiny-matrix/ai-report/aiBackend', () => ({
 
 import {
   generateAIPremiumReport,
+  generateThemedReport,
+  generateTimingReport,
   sanitizeSectionNarrative,
 } from '@/lib/destiny-matrix/ai-report/aiReportService'
 import { callAIBackendGeneric } from '@/lib/destiny-matrix/ai-report/aiBackend'
@@ -130,6 +133,84 @@ function createRewriteSections(value: string): Record<string, string> {
   }
 }
 
+function mkHighlight(
+  layer: number,
+  rowKey: string,
+  colKey: string,
+  score: number,
+  keyword: string
+): MatrixHighlight {
+  return {
+    layer,
+    rowKey,
+    colKey,
+    cell: {
+      interaction: {
+        level: 'amplify',
+        score,
+        icon: 'x',
+        colorCode: 'green',
+        keyword,
+        keywordEn: keyword,
+      },
+      sajuBasis: `${rowKey} saju`,
+      astroBasis: `${colKey} astro`,
+      advice: `${keyword} advice`,
+    },
+  }
+}
+
+function createRichMatrixSummary(): MatrixSummary {
+  return {
+    totalScore: 76,
+    strengthPoints: [
+      mkHighlight(6, 'imgwan', 'H10', 10, 'career peak'),
+      mkHighlight(3, 'siksin', 'H7', 9, 'relationship drive'),
+      mkHighlight(2, '\uD3B8\uC7AC', 'Jupiter', 8, 'wealth window'),
+    ],
+    cautionPoints: [
+      mkHighlight(5, 'chung', 'square', 3, 'friction'),
+      mkHighlight(2, '\uC0C1\uAD00', 'Saturn', 2, 'delay'),
+    ],
+    balancePoints: [
+      mkHighlight(3, 'jeongin', 'H6', 6, 'health routine'),
+      mkHighlight(4, 'daeun', 'transit', 6, 'timing gate'),
+    ],
+    topSynergies: [],
+  }
+}
+
+function createTimingData() {
+  return {
+    daeun: {
+      heavenlyStem: '乙',
+      earthlyBranch: '亥',
+      element: '목',
+      startAge: 31,
+      endAge: 40,
+      isCurrent: true,
+    },
+    seun: {
+      year: 2026,
+      heavenlyStem: '丙',
+      earthlyBranch: '午',
+      element: '화',
+    },
+    wolun: {
+      month: 2,
+      heavenlyStem: '甲',
+      earthlyBranch: '寅',
+      element: '목',
+    },
+    iljin: {
+      date: '2026-02-25',
+      heavenlyStem: '辛',
+      earthlyBranch: '卯',
+      element: '금',
+    },
+  } as any
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
   mockCallAIBackendGeneric.mockImplementation(async (_prompt, _lang, options) => ({
@@ -160,6 +241,10 @@ describe('generateAIPremiumReport', () => {
     expect(result.evidenceRefs).toBeTruthy()
     expect(result.evidenceRefs.introduction?.length || 0).toBeGreaterThan(0)
     expect(result.strategyEngine).toBeTruthy()
+    expect(result.graphRagSummary).toBeTruthy()
+    expect((result.graphRagSummary?.topInsights || []).length).toBeGreaterThan(0)
+    expect((result.graphRagSummary?.drivers || []).length).toBeGreaterThan(0)
+    expect((result.graphRagSummary?.cautions || []).length).toBeGreaterThan(0)
     expect(
       (result.strategyEngine?.attackPercent || 0) + (result.strategyEngine?.defensePercent || 0)
     ).toBe(100)
@@ -265,6 +350,76 @@ describe('generateAIPremiumReport', () => {
     const result = await generateAIPremiumReport(createMockInput(), createMockReport())
     expect(result.meta.modelUsed).toBe('rewrite-fallback-error')
     expect(result.meta.tokensUsed).toBe(0)
+  })
+
+  it('supports deterministic-only mode without AI calls', async () => {
+    const result = await generateAIPremiumReport(createMockInput(), createMockReport(), {
+      deterministicOnly: true,
+      matrixSummary: createRichMatrixSummary(),
+    })
+    expect(mockCallAIBackendGeneric).not.toHaveBeenCalled()
+    expect(result.meta.modelUsed).toBe('deterministic-only')
+    expect(result.meta.tokensUsed).toBe(0)
+    expect(result.meta.qualityMetrics).toBeTruthy()
+    expect(result.meta.qualityMetrics?.evidenceCoverageRatio || 0).toBeGreaterThan(0.7)
+    expect(result.meta.qualityMetrics?.contradictionCount || 0).toBe(0)
+    expect(result.sections.careerPath.length).toBeGreaterThan(120)
+    expect(result.strategyEngine).toBeTruthy()
+    for (const refs of Object.values(result.evidenceRefs)) {
+      expect((refs || []).length).toBeGreaterThanOrEqual(2)
+    }
+  })
+
+  it('enforces minimum evidence refs for timing/themed deterministic reports', async () => {
+    const timing = await generateTimingReport(
+      createMockInput(),
+      createMockReport(),
+      'daily',
+      createTimingData(),
+      {
+        deterministicOnly: true,
+        matrixSummary: createRichMatrixSummary(),
+      }
+    )
+    for (const refs of Object.values(timing.evidenceRefs)) {
+      expect((refs || []).length).toBeGreaterThanOrEqual(2)
+    }
+    expect(timing.meta.qualityMetrics).toBeTruthy()
+    expect(timing.meta.qualityMetrics?.minEvidenceSatisfiedRatio || 0).toBeGreaterThanOrEqual(0.9)
+
+    const themed = await generateThemedReport(
+      createMockInput(),
+      createMockReport(),
+      'career',
+      createTimingData(),
+      {
+        deterministicOnly: true,
+        matrixSummary: createRichMatrixSummary(),
+      }
+    )
+    for (const refs of Object.values(themed.evidenceRefs)) {
+      expect((refs || []).length).toBeGreaterThanOrEqual(2)
+    }
+    expect(themed.meta.qualityMetrics).toBeTruthy()
+    expect(themed.meta.qualityMetrics?.evidenceCoverageRatio || 0).toBeGreaterThan(0.7)
+  })
+
+  it('prioritizes section-domain evidence references with mixed-domain synthesis', async () => {
+    const result = await generateAIPremiumReport(createMockInput(), createMockReport(), {
+      matrixSummary: createRichMatrixSummary(),
+    })
+
+    const careerDomains = new Set((result.evidenceRefs.careerPath || []).map((ref) => ref.domain))
+    const relationDomains = new Set(
+      (result.evidenceRefs.relationshipDynamics || []).map((ref) => ref.domain)
+    )
+    const wealthDomains = new Set(
+      (result.evidenceRefs.wealthPotential || []).map((ref) => ref.domain)
+    )
+
+    expect(careerDomains.has('career') || careerDomains.has('wealth')).toBe(true)
+    expect(relationDomains.has('relationship')).toBe(true)
+    expect(wealthDomains.has('wealth') || wealthDomains.has('career')).toBe(true)
   })
 })
 
