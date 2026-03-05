@@ -157,7 +157,9 @@ export default function PremiumReportsPage() {
   }, [session])
 
   const hasProfile = Boolean(profileInput?.birthDate)
-  const canRun = !isGenerating
+  const canRun =
+    !isGenerating &&
+    (mode === 'free' ? hasProfile : status === 'authenticated' ? hasProfile : status !== 'loading')
   const selectedOption =
     PREMIUM_OPTIONS.find((option) => option.key === selectedOptionKey) ?? PREMIUM_OPTIONS[0]
 
@@ -474,7 +476,13 @@ export default function PremiumReportsPage() {
                     : 'cursor-not-allowed bg-slate-700'
                 }`}
               >
-                {mode === 'free' ? 'Free 분석하기' : 'Premium 분석하기'}
+                {mode === 'free'
+                  ? hasProfile
+                    ? 'Free 분석하기'
+                    : '출생정보 입력 후 Free 분석하기'
+                  : status === 'authenticated' && !hasProfile
+                    ? '출생정보 입력 후 Premium 분석하기'
+                    : 'Premium 분석하기'}
                 <ArrowRight className="h-4 w-4" />
               </button>
 
