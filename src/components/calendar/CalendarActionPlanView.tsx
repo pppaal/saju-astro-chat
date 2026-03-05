@@ -34,7 +34,19 @@ type AiTimelineSlot = {
   minute?: number
   note: string
   tone?: 'neutral' | 'best' | 'caution'
+  slotTypes?: Array<
+    'deepWork' | 'decision' | 'communication' | 'money' | 'relationship' | 'recovery'
+  >
+  why?: {
+    signalIds?: string[]
+    anchorIds?: string[]
+    patterns?: string[]
+    summary?: string
+  }
+  guardrail?: string
   evidenceSummary?: string[]
+  confidence?: number
+  confidenceReason?: string[]
 }
 
 type TimelineSlotView = {
@@ -44,10 +56,38 @@ type TimelineSlotView = {
   note: string
   tone: 'neutral' | 'best' | 'caution'
   badge: string | null
+  slotTypes?: string[]
+  whySummary?: string | null
+  whySignalIds?: string[]
+  whyAnchorIds?: string[]
+  whyPatterns?: string[]
+  guardrail?: string | null
   evidenceSummary?: string[]
+  confidence?: number | null
+  confidenceReason?: string[]
 }
 
 type ActionPlanPrecisionMode = 'ai-graphrag' | 'rule-fallback' | null
+
+type ActionPlanInsights = {
+  ifThenRules: string[]
+  situationTriggers: string[]
+  actionFramework: {
+    do: string[]
+    dont: string[]
+    alternative: string[]
+  }
+  riskTriggers: string[]
+  successKpi: string[]
+  deltaToday: string
+}
+
+type ActionPlanCacheEntry = {
+  timeline: AiTimelineSlot[]
+  summary: string | null
+  precisionMode: ActionPlanPrecisionMode
+  insights: ActionPlanInsights | null
+}
 
 const DEFAULT_TODAY_KO = [
   '우선순위 3개 정리하기',
@@ -187,9 +227,10 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const [profileReady, setProfileReady] = useState(false)
   const [aiTimeline, setAiTimeline] = useState<AiTimelineSlot[] | null>(null)
   const [aiSummary, setAiSummary] = useState<string | null>(null)
+  const [aiInsights, setAiInsights] = useState<ActionPlanInsights | null>(null)
   const [aiStatus, setAiStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const [aiPrecisionMode, setAiPrecisionMode] = useState<ActionPlanPrecisionMode>(null)
-  const aiCacheRef = useRef<Record<string, AiTimelineSlot[]>>({})
+  const aiCacheRef = useRef<Record<string, ActionPlanCacheEntry>>({})
   const aiAbortRef = useRef<AbortController | null>(null)
   const timelineSlotRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const [activeRhythmHour, setActiveRhythmHour] = useState<number | null>(null)
@@ -448,7 +489,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const isUnreadableText = useCallback((value: string) => {
     if (!value) return true
     if (value.includes('\uFFFD')) return true
-    const suspiciousMatches = value.match(/[ÃÂâìëêíð]/g) || []
+    const suspiciousMatches = value.match(/[\u00C0-\u00FF]/g) || []
     if (suspiciousMatches.length >= 3) return true
     const mojibakeRatio = suspiciousMatches.length / Math.max(1, value.length)
     return mojibakeRatio > 0.15
@@ -478,6 +519,11 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       isUnreadableText,
       stripMatrixDomainText,
     ]
+  )
+
+  const clampConfidence = useCallback(
+    (value: number) => Math.max(0, Math.min(100, Math.round(value))),
+    []
   )
 
   const extractBestHours = useCallback((value: string) => {
@@ -585,9 +631,143 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
               .filter(Boolean)
               .slice(0, 3)
           : undefined
-        cleaned.push({ hour, minute, note, tone, evidenceSummary })
+        const slotTypesRaw = (item as { slotTypes?: unknown }).slotTypes
+        const slotTypes = Array.isArray(slotTypesRaw)
+          ? slotTypesRaw
+              .map((type) => (typeof type === 'string' ? cleanText(type, '') : ''))
+              .filter(Boolean)
+              .slice(0, 2)
+          : undefined
+        const whyRaw = (item as { why?: unknown }).why
+        const whySummary =
+          whyRaw && typeof whyRaw === 'object'
+            ? cleanText((whyRaw as { summary?: unknown }).summary as string | undefined, '')
+            : ''
+        const whySignalIds =
+          whyRaw && typeof whyRaw === 'object' && Array.isArray((whyRaw as { signalIds?: unknown }).signalIds)
+            ? ((whyRaw as { signalIds?: unknown }).signalIds as unknown[])
+                .map((line) => (typeof line === 'string' ? cleanText(line, '') : ''))
+                .filter(Boolean)
+                .slice(0, 4)
+            : undefined
+        const whyAnchorIds =
+          whyRaw && typeof whyRaw === 'object' && Array.isArray((whyRaw as { anchorIds?: unknown }).anchorIds)
+            ? ((whyRaw as { anchorIds?: unknown }).anchorIds as unknown[])
+                .map((line) => (typeof line === 'string' ? cleanText(line, '') : ''))
+                .filter(Boolean)
+                .slice(0, 3)
+            : undefined
+        const whyPatterns =
+          whyRaw && typeof whyRaw === 'object' && Array.isArray((whyRaw as { patterns?: unknown }).patterns)
+            ? ((whyRaw as { patterns?: unknown }).patterns as unknown[])
+                .map((line) => (typeof line === 'string' ? cleanText(line, '') : ''))
+                .filter(Boolean)
+                .slice(0, 3)
+            : undefined
+        const guardrailRaw = (item as { guardrail?: unknown }).guardrail
+        const guardrail = typeof guardrailRaw === 'string' ? cleanText(guardrailRaw, '') : ''
+        const confidenceRaw = (item as { confidence?: unknown }).confidence
+        const confidence =
+          typeof confidenceRaw === 'number' && Number.isFinite(confidenceRaw)
+            ? clampConfidence(confidenceRaw)
+            : undefined
+        const confidenceReasonRaw = (item as { confidenceReason?: unknown }).confidenceReason
+        const confidenceReason = Array.isArray(confidenceReasonRaw)
+          ? confidenceReasonRaw
+              .map((line) => (typeof line === 'string' ? cleanText(line, '') : ''))
+              .filter(Boolean)
+              .slice(0, 3)
+          : undefined
+        cleaned.push({
+          hour,
+          minute,
+          note,
+          tone,
+          slotTypes:
+            slotTypes && slotTypes.length > 0
+              ? (slotTypes as Array<
+                  'deepWork' | 'decision' | 'communication' | 'money' | 'relationship' | 'recovery'
+                >)
+              : undefined,
+          why:
+            whySummary || (whySignalIds && whySignalIds.length > 0)
+              ? {
+                  summary: whySummary || undefined,
+                  signalIds: whySignalIds,
+                  anchorIds: whyAnchorIds,
+                  patterns: whyPatterns,
+                }
+              : undefined,
+          guardrail: guardrail || undefined,
+          evidenceSummary,
+          confidence,
+          confidenceReason,
+        })
       })
       return cleaned
+    },
+    [clampConfidence, cleanText]
+  )
+
+  const sanitizeAiInsights = useCallback(
+    (raw: unknown): ActionPlanInsights | null => {
+      if (!raw || typeof raw !== 'object') return null
+      const insights = raw as {
+        ifThenRules?: unknown
+        actionFramework?: {
+          do?: unknown
+          dont?: unknown
+          alternative?: unknown
+        }
+        riskTriggers?: unknown
+        successKpi?: unknown
+      }
+      const toLines = (value: unknown, max: number) =>
+        Array.isArray(value)
+          ? value
+              .map((line) => (typeof line === 'string' ? cleanText(line, '') : ''))
+              .filter(Boolean)
+              .slice(0, max)
+          : []
+
+      const ifThenRules = toLines(insights.ifThenRules, 4)
+      const situationTriggers = toLines((insights as { situationTriggers?: unknown }).situationTriggers, 5)
+      const doLines = toLines(insights.actionFramework?.do, 5)
+      const dontLines = toLines(insights.actionFramework?.dont, 5)
+      const alternativeLines = toLines(insights.actionFramework?.alternative, 5)
+      const riskTriggers = toLines(insights.riskTriggers, 5)
+      const successKpi = toLines(insights.successKpi, 5)
+      const deltaTodayRaw = (insights as { deltaToday?: unknown }).deltaToday
+      const deltaToday =
+        typeof deltaTodayRaw === 'string'
+          ? cleanText(deltaTodayRaw, '')
+          : ''
+
+      if (
+        ifThenRules.length === 0 &&
+        situationTriggers.length === 0 &&
+        doLines.length === 0 &&
+        dontLines.length === 0 &&
+        alternativeLines.length === 0 &&
+        riskTriggers.length === 0 &&
+        successKpi.length === 0 &&
+        !deltaToday
+      ) {
+        return null
+      }
+
+      return {
+        ifThenRules,
+        situationTriggers,
+        actionFramework: {
+          do: doLines,
+          dont: dontLines,
+          alternative: alternativeLines,
+        },
+        riskTriggers,
+        successKpi,
+        deltaToday,
+      }
     },
     [cleanText]
   )
@@ -713,10 +893,12 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       if (!profileReady || !baseInfo) return
 
       if (!options?.force && aiCacheRef.current[aiCacheKey]) {
-        setAiTimeline(aiCacheRef.current[aiCacheKey])
-        setAiSummary(null)
+        const cached = aiCacheRef.current[aiCacheKey]
+        setAiTimeline(cached.timeline)
+        setAiSummary(cached.summary)
+        setAiInsights(cached.insights)
+        setAiPrecisionMode(cached.precisionMode)
         setAiStatus('ready')
-        setAiPrecisionMode(null)
         return
       }
 
@@ -728,6 +910,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
       setAiStatus('loading')
       setAiPrecisionMode(null)
+      setAiInsights(null)
 
       try {
         const payload = buildAiPayload()
@@ -751,16 +934,23 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         if (timeline.length === 0) {
           throw new Error('Invalid AI timeline')
         }
-
-        aiCacheRef.current[aiCacheKey] = timeline
-        setAiTimeline(timeline)
-        setAiSummary(cleanText(json?.data?.summary, ''))
-        setAiPrecisionMode(
-          json?.data?.precisionMode === 'ai-graphrag' ||
-            json?.data?.precisionMode === 'rule-fallback'
+        const summary = cleanText(json?.data?.summary, '')
+        const insights = sanitizeAiInsights(json?.data?.insights)
+        const precisionMode: ActionPlanPrecisionMode =
+          json?.data?.precisionMode === 'ai-graphrag' || json?.data?.precisionMode === 'rule-fallback'
             ? json.data.precisionMode
             : null
-        )
+
+        aiCacheRef.current[aiCacheKey] = {
+          timeline,
+          summary,
+          precisionMode,
+          insights,
+        }
+        setAiTimeline(timeline)
+        setAiSummary(summary)
+        setAiInsights(insights)
+        setAiPrecisionMode(precisionMode)
         setAiStatus('ready')
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
@@ -770,11 +960,20 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           error: error instanceof Error ? error.message : String(error),
         })
         setAiSummary(null)
+        setAiInsights(null)
         setAiPrecisionMode(null)
         setAiStatus('error')
       }
     },
-    [aiCacheKey, baseInfo, buildAiPayload, cleanText, profileReady, sanitizeAiTimeline]
+    [
+      aiCacheKey,
+      baseInfo,
+      buildAiPayload,
+      cleanText,
+      profileReady,
+      sanitizeAiInsights,
+      sanitizeAiTimeline,
+    ]
   )
 
   useEffect(() => {
@@ -782,6 +981,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     if (!baseInfo) {
       setAiTimeline(null)
       setAiSummary(null)
+      setAiInsights(null)
       setAiStatus('idle')
       setAiPrecisionMode(null)
       return
@@ -906,6 +1106,10 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       if (!primary) return baseSignal
       return `${baseSignal}: ${primary}`
     }
+    const baselineConfidence =
+      typeof baseInfo?.evidence?.confidence === 'number'
+        ? clampConfidence(baseInfo.evidence.confidence)
+        : null
 
     const slotsPerHour = intervalMinutes === 30 ? 2 : 1
     const totalSlots = 24 * slotsPerHour
@@ -925,6 +1129,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         tone: 'neutral' as 'neutral' | 'best' | 'caution',
         badge: null as string | null,
         evidenceSummary: [cleanText(defaultEvidenceByHour(hour), baseSignal)],
+        confidence: baselineConfidence,
       }
     })
 
@@ -1009,6 +1214,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     return slots
   }, [
     baseInfo,
+    clampConfidence,
     baseTexts,
     cleanText,
     formatHourLabel,
@@ -1036,6 +1242,33 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         }
         if (item.evidenceSummary?.length) {
           slot.evidenceSummary = item.evidenceSummary
+            .map((line) => cleanText(line, ''))
+            .filter(Boolean)
+            .slice(0, 3)
+        }
+        if (item.slotTypes?.length) {
+          slot.slotTypes = item.slotTypes.map((type) => cleanText(type, '')).filter(Boolean).slice(0, 2)
+        }
+        if (item.why?.summary) {
+          slot.whySummary = cleanText(item.why.summary, '')
+        }
+        if (item.why?.signalIds?.length) {
+          slot.whySignalIds = item.why.signalIds.map((line) => cleanText(line, '')).filter(Boolean).slice(0, 4)
+        }
+        if (item.why?.anchorIds?.length) {
+          slot.whyAnchorIds = item.why.anchorIds.map((line) => cleanText(line, '')).filter(Boolean).slice(0, 3)
+        }
+        if (item.why?.patterns?.length) {
+          slot.whyPatterns = item.why.patterns.map((line) => cleanText(line, '')).filter(Boolean).slice(0, 3)
+        }
+        if (item.guardrail) {
+          slot.guardrail = cleanText(item.guardrail, '')
+        }
+        if (typeof item.confidence === 'number') {
+          slot.confidence = clampConfidence(item.confidence)
+        }
+        if (item.confidenceReason?.length) {
+          slot.confidenceReason = item.confidenceReason
             .map((line) => cleanText(line, ''))
             .filter(Boolean)
             .slice(0, 3)
@@ -1100,6 +1333,56 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
             : 'Baseline signal from Saju daily pillar + astrology transit',
         ]
       }
+      if (!slot.slotTypes?.length) {
+        if (slot.hour < 7 || slot.hour >= 22) {
+          slot.slotTypes = ['recovery']
+        } else if (slot.hour < 12) {
+          slot.slotTypes = ['deepWork']
+        } else if (slot.hour < 18) {
+          slot.slotTypes = ['decision']
+        } else {
+          slot.slotTypes = ['communication']
+        }
+      }
+      if (!slot.guardrail) {
+        slot.guardrail =
+          slot.tone === 'caution'
+            ? isKo
+              ? '결정은 하되, 반대 근거 1개 확인 전 확정 금지'
+              : 'Do not finalize before one counter-evidence check.'
+            : isKo
+              ? '실행 전 성공 조건 1줄 먼저 작성'
+              : 'Write one success condition before execution.'
+      }
+      if (!slot.whySummary) {
+        slot.whySummary = isKo ? 'signal_balance 패턴 기준 운영' : 'Operate on signal_balance pattern.'
+      }
+      if (!slot.whyPatterns?.length) {
+        slot.whyPatterns = ['signal_balance']
+      }
+      if (!slot.whySignalIds?.length) {
+        slot.whySignalIds = [
+          `SIG_TONE_${slot.tone.toUpperCase()}`,
+          `SIG_SLOT_${slot.slotTypes?.[0]?.toUpperCase() || 'DEEPWORK'}`,
+        ]
+      }
+      if (!slot.whyAnchorIds?.length) {
+        slot.whyAnchorIds = ['ANCHOR_RULE_BASELINE']
+      }
+      if (typeof slot.confidence !== 'number') {
+        const baseline =
+          typeof baseInfo?.evidence?.confidence === 'number' ? baseInfo.evidence.confidence : 62
+        const toneBonus = slot.tone === 'best' ? 12 : slot.tone === 'caution' ? -14 : 0
+        slot.confidence = clampConfidence(baseline + toneBonus)
+      } else {
+        slot.confidence = clampConfidence(slot.confidence)
+      }
+      if (!slot.confidenceReason?.length) {
+        slot.confidenceReason =
+          slot.tone === 'caution'
+            ? [isKo ? '리스크 구간' : 'Risk window']
+            : [isKo ? '신호 정렬 양호' : 'Signals aligned']
+      }
     })
 
     return slots
@@ -1109,7 +1392,9 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     baseTimelineSlots,
     bestHours,
     cautionHours,
+    clampConfidence,
     cleanText,
+    baseInfo?.evidence?.confidence,
     intervalMinutes,
     isKo,
   ])
@@ -1337,6 +1622,97 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       ? `좋은 날 ${bestCount}회 · 주의 날 ${cautionCount}회 · ${focusLabel} 중심 배치`
       : `${bestCount} good-day slots · ${cautionCount} caution-day slots · ${focusLabel} focus`
   }, [bestDays.length, cautionDays.length, topCategory, categoryLabel, isKo])
+
+  const actionPlanInsights = useMemo<ActionPlanInsights>(() => {
+    if (aiInsights) {
+      return aiInsights
+    }
+    const bestSlot = timelineSlots.find((slot) => slot.tone === 'best')
+    const cautionSlot = timelineSlots.find((slot) => slot.tone === 'caution')
+    const cautionCount = timelineSlots.filter((slot) => slot.tone === 'caution').length
+    const avgConfidence =
+      timelineSlots.length > 0
+        ? clampConfidence(
+            timelineSlots.reduce((sum, slot) => sum + (slot.confidence ?? 60), 0) / timelineSlots.length
+          )
+        : 60
+    const formatSlot = (slot?: TimelineSlotView) =>
+      slot ? `${String(slot.hour).padStart(2, '0')}:${String(slot.minute).padStart(2, '0')}` : '-'
+
+    return {
+      ifThenRules: [
+        bestSlot
+          ? isKo
+            ? `IF ${formatSlot(bestSlot)} 시작 THEN 25분 내 초안 1개 저장`
+            : `IF start at ${formatSlot(bestSlot)} THEN save one draft within 25 minutes.`
+          : isKo
+            ? 'IF 시작 지연 THEN 우선순위 1개만 먼저 실행'
+            : 'IF start is delayed THEN execute one top priority first.',
+        cautionSlot
+          ? isKo
+            ? `IF ${formatSlot(cautionSlot)} 결정 요청 THEN 10분 유예 + 체크리스트 3항목 확인`
+            : `IF decision requested at ${formatSlot(cautionSlot)} THEN delay 10m + validate 3 checklist items.`
+          : isKo
+            ? 'IF 피로 누적 THEN 큰 결정 보류'
+            : 'IF fatigue accumulates THEN hold major decisions.',
+      ],
+      situationTriggers: [
+        isKo
+          ? '피로 7/10 이상: 신규 결정 중단, 20분 회복'
+          : 'Fatigue >= 7/10: pause new decisions and recover for 20m',
+        isKo
+          ? '10분 내 요청 3건 이상: 즉답 금지, 우선순위 재정렬'
+          : '3+ requests within 10m: no instant replies, reprioritize first',
+        isKo
+          ? '지출 유혹 발생: 총액·한도·대안 확인 전 집행 금지'
+          : 'Spending urge: do not execute before amount-limit-alternative check',
+      ],
+      actionFramework: {
+        do: todayItems.slice(0, 3),
+        dont: [
+          ...(baseInfo?.warnings?.slice(0, 2) || []),
+          isKo
+            ? '근거 없는 즉흥 결정 금지'
+            : 'No impulsive decision without evidence',
+        ].slice(0, 3),
+        alternative: [
+          isKo
+            ? '주의 슬롯: 결정보다 초안/검증 작업'
+            : 'Caution slot: draft/validation instead of decisions',
+          isKo
+            ? '집중 슬롯: 핵심 1건 완료 후 로그'
+            : 'Best slot: finish one key task and log outcome',
+        ],
+      },
+      riskTriggers: [
+        cautionCount > 0
+          ? isKo
+            ? `주의 슬롯 ${cautionCount}개: 확정 결정보다 검증 우선`
+            : `${cautionCount} caution slots: validate before finalizing`
+          : isKo
+            ? '주의 슬롯이 적어도 피로 신호 우선 점검'
+            : 'Even with fewer caution slots, check fatigue signal first',
+        isKo
+          ? '응답 지연 + 기준 불명확 + 멀티태스킹 동시 발생: 즉시 속도 조절'
+          : 'Delay + unclear criteria + multitasking together: reduce pace immediately',
+      ],
+      successKpi: [
+        isKo
+          ? `평균 슬롯 신뢰도 ${avgConfidence}% 이상`
+          : `Average slot confidence >= ${avgConfidence}%`,
+        isKo ? '핵심 액션 2건 이상 완료' : 'Complete at least 2 core actions',
+        isKo ? '주의 슬롯 확정 결정 0건' : 'Zero final decisions in caution slots',
+      ],
+      deltaToday:
+        cautionCount > 1
+          ? isKo
+            ? '오늘은 신규 확정보다 리스크 제거가 우선입니다.'
+            : 'Today prioritizes risk removal over new commitments.'
+          : isKo
+            ? '오늘은 속도는 좋고, 검증 규칙을 붙이면 성과가 커집니다.'
+            : 'Momentum is good today; stricter validation improves outcomes.',
+    }
+  }, [aiInsights, baseInfo?.warnings, clampConfidence, isKo, timelineSlots, todayItems])
 
   const bestDayChips = bestDays.map((entry) => ({
     label: formatDateLabel(entry.date),
@@ -1752,7 +2128,51 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
                     <span className={styles.actionPlanTimelineBadge}>{slot.badge}</span>
                   )}
                 </div>
+                {typeof slot.confidence === 'number' && (
+                  <div className={styles.actionPlanTimelineConfidence}>
+                    {isKo ? '신뢰도' : 'Confidence'} {slot.confidence}%
+                  </div>
+                )}
+                {slot.slotTypes && slot.slotTypes.length > 0 && (
+                  <div className={styles.actionPlanTimelineSlotTypes}>
+                    {slot.slotTypes.map((slotType) => (
+                      <span key={`${slot.label}-${slotType}`} className={styles.actionPlanTimelineSlotTypeChip}>
+                        {slotType}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <div className={styles.actionPlanTimelineNote}>{slot.note}</div>
+                {slot.whySummary && (
+                  <div className={styles.actionPlanTimelineWhy}>
+                    {isKo ? 'Why' : 'Why'}: {slot.whySummary}
+                  </div>
+                )}
+                {slot.whyPatterns && slot.whyPatterns.length > 0 && (
+                  <div className={styles.actionPlanTimelineWhyMeta}>
+                    pattern: {slot.whyPatterns.join(' · ')}
+                  </div>
+                )}
+                {slot.whySignalIds && slot.whySignalIds.length > 0 && (
+                  <div className={styles.actionPlanTimelineWhyMeta}>
+                    signalIds: {slot.whySignalIds.join(', ')}
+                  </div>
+                )}
+                {slot.whyAnchorIds && slot.whyAnchorIds.length > 0 && (
+                  <div className={styles.actionPlanTimelineWhyMeta}>
+                    anchorIds: {slot.whyAnchorIds.join(', ')}
+                  </div>
+                )}
+                {slot.guardrail && (
+                  <div className={styles.actionPlanTimelineGuardrail}>
+                    {isKo ? 'Guardrail' : 'Guardrail'}: {slot.guardrail}
+                  </div>
+                )}
+                {slot.confidenceReason && slot.confidenceReason.length > 0 && (
+                  <div className={styles.actionPlanTimelineConfidenceReason}>
+                    {slot.confidenceReason.join(' · ')}
+                  </div>
+                )}
                 {slot.evidenceSummary && slot.evidenceSummary.length > 0 && (
                   <ul className={styles.actionPlanTimelineEvidenceList}>
                     {slot.evidenceSummary.map((line) => (
@@ -1826,6 +2246,117 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
               {categoryLabel(topCategory)}
             </div>
           )}
+        </div>
+
+        <div className={`${styles.actionPlanCard} ${styles.actionPlanInsightsCard}`}>
+          <div className={styles.actionPlanCardHeader}>
+            <span className={styles.actionPlanCardTitle}>
+              {isKo ? '전략 인사이트' : 'Strategic Insights'}
+            </span>
+            <span className={styles.actionPlanCardFocus}>
+              {isKo
+                ? 'If-Then 규칙과 리스크 대비 플로우'
+                : 'If-Then rules and risk-response flow'}
+            </span>
+          </div>
+
+          <div className={styles.actionPlanInsightSection}>
+            <p className={styles.actionPlanInsightSectionTitle}>
+              {isKo ? 'ΔToday (평소 대비)' : 'ΔToday (vs usual)'}
+            </p>
+            <p className={styles.actionPlanInsightLine}>{actionPlanInsights.deltaToday}</p>
+          </div>
+
+          <div className={styles.actionPlanInsightSection}>
+            <p className={styles.actionPlanInsightSectionTitle}>{isKo ? 'If-Then 규칙' : 'If-Then Rules'}</p>
+            <ul className={styles.actionPlanList}>
+              {actionPlanInsights.ifThenRules.map((item) => (
+                <li key={`if-then-${item}`} className={styles.actionPlanItem}>
+                  <span className={styles.actionPlanItemCheck}>→</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className={styles.actionPlanInsightSection}>
+            <p className={styles.actionPlanInsightSectionTitle}>
+              {isKo ? '상황 트리거 If-Then' : 'Situation Triggers'}
+            </p>
+            <ul className={styles.actionPlanList}>
+              {actionPlanInsights.situationTriggers.map((item) => (
+                <li key={`trigger-${item}`} className={styles.actionPlanItem}>
+                  <span className={styles.actionPlanItemCheck}>⚡</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className={styles.actionPlanInsightTriple}>
+            <div className={styles.actionPlanInsightSection}>
+              <p className={styles.actionPlanInsightSectionTitle}>{isKo ? 'DO' : 'DO'}</p>
+              <ul className={styles.actionPlanList}>
+                {actionPlanInsights.actionFramework.do.map((item) => (
+                  <li key={`do-${item}`} className={styles.actionPlanItem}>
+                    <span className={styles.actionPlanItemCheck}>✓</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className={styles.actionPlanInsightSection}>
+              <p className={styles.actionPlanInsightSectionTitle}>{isKo ? "DON'T" : "DON'T"}</p>
+              <ul className={styles.actionPlanList}>
+                {actionPlanInsights.actionFramework.dont.map((item) => (
+                  <li key={`dont-${item}`} className={styles.actionPlanItem}>
+                    <span className={styles.actionPlanItemCheck}>!</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className={styles.actionPlanInsightSection}>
+              <p className={styles.actionPlanInsightSectionTitle}>
+                {isKo ? '대안 플랜' : 'Alternative'}
+              </p>
+              <ul className={styles.actionPlanList}>
+                {actionPlanInsights.actionFramework.alternative.map((item) => (
+                  <li key={`alt-${item}`} className={styles.actionPlanItem}>
+                    <span className={styles.actionPlanItemCheck}>↺</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className={styles.actionPlanInsightTriple}>
+            <div className={styles.actionPlanInsightSection}>
+              <p className={styles.actionPlanInsightSectionTitle}>
+                {isKo ? '리스크 트리거' : 'Risk Triggers'}
+              </p>
+              <ul className={styles.actionPlanList}>
+                {actionPlanInsights.riskTriggers.map((item) => (
+                  <li key={`risk-${item}`} className={styles.actionPlanItem}>
+                    <span className={styles.actionPlanItemCheck}>⚠</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className={styles.actionPlanInsightSection}>
+              <p className={styles.actionPlanInsightSectionTitle}>{isKo ? '성공 KPI' : 'Success KPI'}</p>
+              <ul className={styles.actionPlanList}>
+                {actionPlanInsights.successKpi.map((item) => (
+                  <li key={`kpi-${item}`} className={styles.actionPlanItem}>
+                    <span className={styles.actionPlanItemCheck}>📍</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>

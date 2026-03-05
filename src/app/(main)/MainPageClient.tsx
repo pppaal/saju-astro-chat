@@ -129,7 +129,7 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
     [hydrated, serverTranslate, t]
   )
 
-  const metricsToken = process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN
+  const metricsToken = process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN?.trim()
 
   // Custom hooks
   useScrollAnimation(`.${styles.featureSection}`, styles)

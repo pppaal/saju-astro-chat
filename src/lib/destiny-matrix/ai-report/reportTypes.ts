@@ -7,7 +7,18 @@ import type { GraphRAGEvidenceBundle } from './graphRagEvidence'
 import type { CrossConsistencyAudit } from './crossConsistencyAudit'
 import type { DeterministicCoreOutput } from './deterministicCore'
 import type { DeterministicProfile } from './deterministicCoreConfig'
-import type { TimingData } from './types'
+import type {
+  TimingData,
+  UnifiedAnchor,
+  UnifiedClaim,
+  UnifiedParaEvidenceRef,
+  UnifiedReportMeta,
+  UnifiedScores,
+  UnifiedScenarioBundle,
+  UnifiedSelectedSignal,
+  UnifiedTimelineEvent,
+  UnifiedTimeWindow,
+} from './types'
 import type { SignalSynthesisResult } from './signalSynthesizer'
 import type { SectionEvidenceRefs } from './evidenceRefs'
 import type { StrategyEngineResult } from './strategyEngine'
@@ -18,6 +29,14 @@ export interface AIPremiumReport {
   id: string
   generatedAt: string
   lang: 'ko' | 'en'
+  reportMeta: UnifiedReportMeta
+  timeWindow: UnifiedTimeWindow
+  scores: UnifiedScores
+  claims: UnifiedClaim[]
+  selectedSignals: UnifiedSelectedSignal[]
+  anchors: UnifiedAnchor[]
+  timelineEvents: UnifiedTimelineEvent[]
+  scenarioBundles?: UnifiedScenarioBundle[]
 
   // 기본 정보
   profile: {
@@ -58,6 +77,7 @@ export interface AIPremiumReport {
     cautionSections: string[]
   }
   evidenceRefs: SectionEvidenceRefs
+  evidenceRefsByPara?: Record<string, UnifiedParaEvidenceRef>
 
   // Cross consistency audit metadata
   crossConsistencyAudit?: CrossConsistencyAudit
@@ -92,6 +112,14 @@ export interface AIPremiumReport {
       contradictionCount: number
       recheckGuidanceRatio: number
       overclaimCount: number
+      sectionCompletenessRate?: number
+      avgEvidencePerParagraph?: number
+      anchorCoverageRate?: number
+      scenarioBundleCoverage?: number
+      eventCountByDomain?: Record<string, number>
+      tokenIntegrityPass?: boolean
+      structurePass?: boolean
+      forbiddenAdditionsPass?: boolean
     }
   }
 }

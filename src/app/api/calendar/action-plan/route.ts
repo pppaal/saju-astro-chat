@@ -19,6 +19,14 @@ import { checkPremiumFromDatabase } from '@/lib/stripe/premiumCache'
 import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
 
 type TimelineTone = 'best' | 'caution' | 'neutral'
+type SlotType = 'deepWork' | 'decision' | 'communication' | 'money' | 'relationship' | 'recovery'
+
+type SlotWhy = {
+  signalIds: string[]
+  anchorIds: string[]
+  patterns: string[]
+  summary: string
+}
 
 type TimelineSlot = {
   hour: number
@@ -26,7 +34,12 @@ type TimelineSlot = {
   label?: string
   note: string
   tone?: TimelineTone
+  slotTypes?: SlotType[]
+  why?: SlotWhy
+  guardrail?: string
   evidenceSummary?: string[]
+  confidence?: number
+  confidenceReason?: string[]
   source?: 'rule' | 'rag' | 'hybrid'
 }
 
@@ -78,6 +91,32 @@ type CalendarEvidence = {
   }
   confidence?: number
   source?: 'rule' | 'rag' | 'hybrid'
+}
+
+type ActionPlanCalendarContext = {
+  grade?: number
+  score?: number
+  categories?: string[]
+  bestTimes?: string[]
+  warnings?: string[]
+  recommendations?: string[]
+  sajuFactors?: string[]
+  astroFactors?: string[]
+  summary?: string
+  evidence?: CalendarEvidence
+} | null
+
+type ActionPlanInsights = {
+  ifThenRules: string[]
+  situationTriggers: string[]
+  actionFramework: {
+    do: string[]
+    dont: string[]
+    alternative: string[]
+  }
+  riskTriggers: string[]
+  successKpi: string[]
+  deltaToday: string
 }
 
 type RagContextResponse = {
@@ -215,6 +254,8 @@ const trimList = <T>(items: T[] | undefined, max: number): T[] | undefined => {
   if (!items || items.length === 0) return undefined
   return items.slice(0, max)
 }
+
+const clampPercent = (value: number) => Math.max(0, Math.min(100, Math.round(value)))
 
 const extractHoursFromText = (value: string) => {
   if (!value || /년|월/.test(value)) return [] as number[]
@@ -465,13 +506,13 @@ type ActionPlanPersonaProfile =
 
 function getHourlyWindowLabel(hour: number, locale: 'ko' | 'en'): string {
   if (locale === 'ko') {
-    if (hour < 6) return '심야 저소음 구간: 정리·휴식 중심으로 운용하세요'
-    if (hour < 9) return '아침 시동 구간: 워밍업 후 핵심 업무를 시작하세요'
-    if (hour < 12) return '오전 집중 구간: 복잡한 판단/실행을 우선 배치하세요'
-    if (hour < 15) return '점심 이후 조정 구간: 협업·정리에 유리합니다'
-    if (hour < 18) return '오후 실행 구간: 결과물 마감 속도를 올리세요'
-    if (hour < 21) return '저녁 관계 구간: 소통·관계 관리의 효율이 높습니다'
-    return '야간 회복 구간: 과부하를 줄이고 다음 날을 준비하세요'
+    if (hour < 6) return '심야 정리 구간: 결정보다 정리/휴식 우선'
+    if (hour < 9) return '아침 시동 구간: 핵심 1건 먼저 착수'
+    if (hour < 12) return '오전 집중 구간: 복잡한 판단/실행 우선'
+    if (hour < 15) return '점심 이후 조정 구간: 협업/정리 작업 적합'
+    if (hour < 18) return '오후 실행 구간: 결과물 마감 속도 올리기'
+    if (hour < 21) return '저녁 소통 구간: 대화/관계 조율 효율 상승'
+    return '야간 회복 구간: 과부하 줄이고 다음 날 준비'
   }
 
   if (hour < 6) return 'Late-night low-noise window: favor cleanup and recovery'
@@ -575,9 +616,7 @@ function buildPersonalSummaryTag(input: {
   if (icp?.primaryStyle)
     tokens.push(locale === 'ko' ? `ICP ${icp.primaryStyle}` : `ICP ${icp.primaryStyle}`)
   if (persona?.personaName) {
-    tokens.push(
-      locale === 'ko' ? `페르소나 ${persona.personaName}` : `Persona ${persona.personaName}`
-    )
+    tokens.push(locale === 'ko' ? `페르소나 ${persona.personaName}` : `Persona ${persona.personaName}`)
   } else if (persona?.typeCode) {
     tokens.push(locale === 'ko' ? `페르소나 ${persona.typeCode}` : `Persona ${persona.typeCode}`)
   }
@@ -586,23 +625,364 @@ function buildPersonalSummaryTag(input: {
   return locale === 'ko' ? `개인화: ${tokens.join(', ')}` : `Personalization: ${tokens.join(', ')}`
 }
 
+const containsAny = (value: string | undefined, keywords: string[]) => {
+  const text = (value || '').toLowerCase()
+  return keywords.some((keyword) => text.includes(keyword))
+}
+
+const normalizeId = (raw: string) =>
+  raw
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 48)
+
+function inferSlotTypes(input: {
+  hour: number
+  tone: TimelineTone
+  category?: string
+  note: string
+}): SlotType[] {
+  const { hour, tone, category, note } = input
+  const normalizedCategory = normalizeActionCategory(category)
+  const types = new Set<SlotType>()
+  if (hour < 6 || hour >= 22) types.add('recovery')
+  if (hour >= 8 && hour < 12) types.add('deepWork')
+  if (hour >= 12 && hour < 18) types.add('decision')
+  if (hour >= 18 && hour < 22) types.add('communication')
+
+  if (normalizedCategory === 'wealth' || containsAny(note, ['money', 'budget', 'spend', '지출', '예산'])) {
+    types.add('money')
+  }
+  if (
+    normalizedCategory === 'love' ||
+    containsAny(note, ['relationship', 'message', 'talk', '관계', '대화', '소통'])
+  ) {
+    types.add('relationship')
+  }
+  if (tone === 'caution' && !types.has('recovery')) {
+    types.add('decision')
+  }
+
+  const resolved = Array.from(types)
+  if (resolved.length === 0) return ['deepWork']
+  return resolved.slice(0, 2)
+}
+
+function buildSlotWhy(input: {
+  locale: 'ko' | 'en'
+  slot: TimelineSlot
+  slotTypes: SlotType[]
+  category?: string
+  calendar?: ActionPlanCalendarContext
+  icp?: ActionPlanIcpProfile
+  persona?: ActionPlanPersonaProfile
+}): SlotWhy {
+  const { locale, slot, slotTypes, category, calendar, icp, persona } = input
+  const signalIds = new Set<string>()
+  const anchorIds = new Set<string>()
+  const patterns = new Set<string>()
+
+  const matrixDomain = calendar?.evidence?.matrix?.domain || normalizeActionCategory(category) || 'general'
+  signalIds.add(`SIG_TONE_${normalizeId(slot.tone || 'neutral')}`)
+  signalIds.add(`SIG_TYPE_${normalizeId(slotTypes[0] || 'deepWork')}`)
+  signalIds.add(`SIG_DOMAIN_${normalizeId(matrixDomain)}`)
+  signalIds.add(`SIG_TIME_${slot.hour < 12 ? 'AM' : slot.hour < 18 ? 'PM' : 'EVENING'}`)
+
+  if (slot.tone === 'best' && (icp?.dominanceScore || 0) >= 65) patterns.add('speed_up_validation_down')
+  if (slot.tone === 'caution') patterns.add('risk_exposure_up')
+  if (slotTypes.includes('relationship')) patterns.add('relationship_sensitivity_up')
+  if (slotTypes.includes('money')) patterns.add('spending_impulse_up')
+  if (slotTypes.includes('recovery')) patterns.add('recovery_need_up')
+
+  if (calendar?.sajuFactors?.[0]) anchorIds.add('ANCHOR_SAJU_FACTOR_1')
+  if (calendar?.astroFactors?.[0]) anchorIds.add('ANCHOR_ASTRO_FACTOR_1')
+  if (calendar?.evidence?.cross?.bridges?.[0]) anchorIds.add('ANCHOR_CROSS_BRIDGE_1')
+  if (typeof persona?.axes?.decision?.score === 'number') anchorIds.add('ANCHOR_PERSONA_DECISION_AXIS')
+  if (anchorIds.size === 0) anchorIds.add('ANCHOR_RULE_BASELINE')
+
+  const patternList = Array.from(patterns)
+  const summary =
+    locale === 'ko'
+      ? `${patternList[0] || 'signal_balance'} 패턴 우세, ${matrixDomain} 영역 앵커 기준 적용`
+      : `${patternList[0] || 'signal_balance'} pattern dominant, anchored on ${matrixDomain}`
+
+  return {
+    signalIds: Array.from(signalIds).slice(0, 4),
+    anchorIds: Array.from(anchorIds).slice(0, 2),
+    patterns: patternList.length ? patternList.slice(0, 3) : ['signal_balance'],
+    summary: cleanGuidanceText(summary, 120),
+  }
+}
+
+function buildSlotGuardrail(input: {
+  locale: 'ko' | 'en'
+  slotTypes: SlotType[]
+  tone: TimelineTone
+}): string {
+  const { locale, slotTypes, tone } = input
+  if (tone === 'caution') {
+    return locale === 'ko'
+      ? '최종 결정 금지: 반대 근거 1개와 영향 범위 1줄 확인 후 확정'
+      : 'No final decision until one counter-evidence and one impact line are verified.'
+  }
+  if (slotTypes.includes('money')) {
+    return locale === 'ko'
+      ? '집행 금지: 총액·한도·최악손실 3개 숫자 확인 전 결제/투자 금지'
+      : 'No spend/invest before checking total, limit, and worst-case loss.'
+  }
+  if (slotTypes.includes('relationship')) {
+    return locale === 'ko'
+      ? '전송 금지: 의도·요청·기한 3요소가 한 줄로 명확하지 않으면 보내지 않기'
+      : 'Do not send if intent, request, and deadline are not clear in one line.'
+  }
+  return locale === 'ko'
+    ? '시작 전 기록: 성공 조건 1줄 + 실패 기준 1줄'
+    : 'Before start, write one success condition and one failure threshold.'
+}
+
+function analyzeConfidenceMeta(input: {
+  locale: 'ko' | 'en'
+  slot: TimelineSlot
+  calendar?: ActionPlanCalendarContext
+  baselineConfidence?: number
+  why: SlotWhy
+}): { score: number; reasons: string[] } {
+  const { locale, slot, calendar, baselineConfidence, why } = input
+  const isKo = locale === 'ko'
+  const base = typeof baselineConfidence === 'number' ? baselineConfidence : 62
+  const toneDelta = slot.tone === 'best' ? 14 : slot.tone === 'caution' ? -18 : 0
+  const sourceDelta = slot.source === 'hybrid' ? 8 : slot.source === 'rag' ? 4 : 0
+  const evidenceDelta = Math.min(8, (slot.evidenceSummary?.length || 0) * 3)
+  const bestHit = (calendar?.bestTimes || []).some((time) => extractHoursFromText(time).includes(slot.hour))
+  const warningHit = (calendar?.warnings || []).some((line) => extractHoursFromText(line).includes(slot.hour))
+  const bestBonus = bestHit ? 4 : 0
+  const cautionPenalty = warningHit ? -6 : 0
+
+  const reasons: string[] = []
+  if (bestHit && warningHit) reasons.push(isKo ? '근거 충돌' : 'Evidence conflict')
+  if (why.anchorIds.length < 1) reasons.push(isKo ? 'anchor 부족' : 'Anchor shortage')
+  if (why.signalIds.length < 3) reasons.push(isKo ? 'signal 밀도 낮음' : 'Low signal density')
+  if (slot.tone === 'caution') reasons.push(isKo ? '리스크 구간' : 'Risk window')
+  if (base < 55) reasons.push(isKo ? '기본 신뢰도 낮음' : 'Low baseline confidence')
+  if (reasons.length === 0) reasons.push(isKo ? '신호 정렬 양호' : 'Signals aligned')
+
+  return {
+    score: clampPercent(base + toneDelta + sourceDelta + evidenceDelta + bestBonus + cautionPenalty),
+    reasons: reasons.slice(0, 3),
+  }
+}
+
+function buildDeltaToday(input: {
+  locale: 'ko' | 'en'
+  timeline: TimelineSlot[]
+}): string {
+  const { locale, timeline } = input
+  const bestCount = timeline.filter((slot) => slot.tone === 'best').length
+  const cautionCount = timeline.filter((slot) => slot.tone === 'caution').length
+  const avgConfidence =
+    timeline.length > 0
+      ? Math.round(
+          timeline.reduce((sum, slot) => sum + (typeof slot.confidence === 'number' ? slot.confidence : 60), 0) /
+            timeline.length
+        )
+      : 60
+
+  if (locale === 'ko') {
+    if (bestCount >= cautionCount + 2 && avgConfidence < 72) {
+      return '오늘은 속도는 빠르지만 검증 누락 위험이 큽니다. 결정 1건당 검증 1회를 강제하세요.'
+    }
+    if (cautionCount > bestCount) {
+      return '오늘은 외부 변수 대응일입니다. 신규 확정보다 리스크 제거와 재정렬을 우선하세요.'
+    }
+    return '오늘은 성과 구간과 주의 구간이 섞여 있습니다. 큰 일은 좋은 슬롯에, 조정은 주의 슬롯에 배치하세요.'
+  }
+
+  if (bestCount >= cautionCount + 2 && avgConfidence < 72) {
+    return 'Today is fast but under-validated. Force one validation pass per major decision.'
+  }
+  if (cautionCount > bestCount) {
+    return 'Today is variable-heavy. Prioritize risk removal and re-alignment over new commitments.'
+  }
+  return 'Today mixes strong and caution windows. Place big tasks in strong slots and adjustments in caution slots.'
+}
+
+function buildActionPlanInsights(input: {
+  locale: 'ko' | 'en'
+  timeline: TimelineSlot[]
+  calendar?: ActionPlanCalendarContext
+  icp?: ActionPlanIcpProfile
+  persona?: ActionPlanPersonaProfile
+  isPremiumUser: boolean
+}): ActionPlanInsights {
+  const { locale, timeline, calendar, icp, persona, isPremiumUser } = input
+  const isKo = locale === 'ko'
+  const bestSlot = timeline.find((slot) => slot.tone === 'best')
+  const cautionSlot = timeline.find((slot) => slot.tone === 'caution')
+  const topCategory = normalizeActionCategory(calendar?.categories?.[0])
+
+  const formatSlotLabel = (slot?: TimelineSlot) =>
+    slot ? `${String(slot.hour).padStart(2, '0')}:${String(slot.minute ?? 0).padStart(2, '0')}` : '-'
+  const unique = (lines: Array<string | null | undefined>, max = 4) =>
+    Array.from(new Set(lines.map((line) => cleanGuidanceText(line || '', 140)).filter(Boolean))).slice(0, max)
+
+  const ifThenRules = unique([
+    bestSlot
+      ? isKo
+        ? `IF ${formatSlotLabel(bestSlot)} 시작 THEN 25분 내 초안/산출물 1개 저장`
+        : `If you start at ${formatSlotLabel(bestSlot)}, lock the first output within 25 minutes.`
+      : null,
+    cautionSlot
+      ? isKo
+        ? `IF ${formatSlotLabel(cautionSlot)} 결정 요청 THEN 10분 유예 + 체크리스트(목표/비용/리스크) 3항목 확인`
+        : `If a decision is needed at ${formatSlotLabel(cautionSlot)}, delay 10 minutes and validate 3 checklist points.`
+      : null,
+    topCategory === 'wealth'
+      ? isKo
+        ? 'IF 지출/투자 집행 THEN 총액·한도·최악손실 숫자 3개 확인 후 진행'
+        : 'If spending/investing, confirm total-limit-worst loss before execution.'
+      : topCategory === 'love'
+        ? isKo
+          ? 'IF 민감 대화 시작 THEN 사실 1줄 먼저, 감정 표현은 그다음'
+          : 'If starting a sensitive talk, state one fact first, then emotion.'
+        : isKo
+          ? 'IF 작업 착수 THEN 종료 조건 1줄 기록 후 시작'
+          : 'If starting work, write one done-condition before execution.',
+  ])
+
+  const situationTriggers = unique(
+    [
+      isKo
+        ? '피로 7/10 이상: 신규 결정 중단, 20분 회복 후 재평가'
+        : 'If fatigue >= 7/10: pause new decisions and run the validation checklist first',
+      isKo
+        ? '10분 내 요청 3건 이상 유입: 즉답 금지, 우선순위 재정렬'
+        : 'If 3+ incoming requests cluster: re-prioritize before replying fast',
+      isKo
+        ? '예상 외 지출 유혹 발생: 24시간 보류 후 재승인'
+        : 'If spending/investment urge appears: validate amount-limit-alternative before action',
+      isKo
+        ? '요구사항이 1시간 내 2회 이상 변경: 확정 전 문서화'
+        : 'If requirements change twice within an hour: document before commitment',
+      typeof icp?.dominanceScore === 'number' && icp.dominanceScore >= 70
+        ? isKo
+          ? '속도 욕구 급상승: 반대 근거 1개 수집 전 결론 금지'
+          : 'If drive spikes: force-collect one counter-evidence'
+        : null,
+      persona?.challenges?.[0]
+        ? isKo
+          ? `반복 약점(${persona.challenges[0]}) 신호 감지: 고난도 작업 중단 후 저리스크 대체안 실행`
+          : `If recurring weakness (${persona.challenges[0]}) appears: switch to low-risk fallback immediately`
+        : null,
+    ],
+    5
+  )
+
+  const cautionSlots = timeline
+    .filter((slot) => slot.tone === 'caution')
+    .slice(0, 3)
+    .map((slot) => formatSlotLabel(slot))
+  const riskTriggers = unique(
+    [
+      cautionSlots.length
+        ? isKo
+          ? `주의 시간대 집중: ${cautionSlots.join(', ')}`
+          : `Caution windows concentrated: ${cautionSlots.join(', ')}`
+        : null,
+      (calendar?.warnings || [])[0]
+        ? isKo
+          ? `반복 리스크: ${(calendar?.warnings || [])[0]}`
+          : `Repeated risk: ${(calendar?.warnings || [])[0]}`
+        : null,
+      isKo
+        ? '근거 충돌(좋은 시간+주의 신호 동시): 최종 확정 지연'
+        : 'If evidence conflict occurs (best-time + warning overlap), delay finalization',
+      isKo
+        ? 'signalIds<3 또는 anchorIds<1 슬롯: 확정 의사결정 금지'
+        : 'No final decision when signalIds<3 or anchorIds<1',
+    ],
+    4
+  )
+
+  const avgConfidence =
+    timeline.length > 0
+      ? Math.round(
+          timeline.reduce((acc, slot) => acc + (typeof slot.confidence === 'number' ? slot.confidence : 60), 0) /
+            timeline.length
+        )
+      : 60
+  const bestCount = timeline.filter((slot) => slot.tone === 'best').length
+
+  const actionFramework = {
+    do: unique(
+      [
+        (calendar?.recommendations || [])[0],
+        isKo ? `${topCategory} 영역 핵심 액션 1건 완료` : `Complete one key ${topCategory} action`,
+        isKo ? '시작 전 완료 기준 1줄 작성' : 'Write one done-condition before start',
+        isKo ? '작업 종료 직후 결과 로그 1줄 기록' : 'Log one result line immediately after completion',
+      ],
+      4
+    ),
+    dont: unique(
+      [
+        (calendar?.warnings || [])[0],
+        isKo ? '근거 없는 즉흥 결정 금지' : 'No impulsive decision without evidence',
+        isKo ? '주의 슬롯에서 확정 결론 금지' : 'No final decisions in caution slots',
+        isKo ? '멀티태스킹 3개 이상 동시 진행 금지' : 'No 3+ parallel tasks at the same time',
+      ],
+      4
+    ),
+    alternative: unique(
+      [
+        cautionSlot
+          ? isKo
+            ? `${formatSlotLabel(cautionSlot)}에는 결정보다 초안 작성/검증 작업으로 대체`
+            : `At ${formatSlotLabel(cautionSlot)}, switch from decision to draft/validation work`
+          : null,
+        bestSlot
+          ? isKo
+            ? `${formatSlotLabel(bestSlot)}에는 핵심 1건만 완수하고 로그 기록`
+            : `At ${formatSlotLabel(bestSlot)}, complete one key action and log it`
+          : null,
+        isPremiumUser
+          ? isKo
+            ? '리스크 감지 시 3단계 복구(중단-정렬-재개) 적용'
+            : 'Use 3-step recovery (pause-align-resume) when risk is detected'
+          : null,
+      ],
+      4
+    ),
+  }
+
+  const successKpi = unique(
+    [
+      isKo ? `평균 슬롯 신뢰도 ${avgConfidence}% 이상` : `Average slot confidence >= ${avgConfidence}%`,
+      isKo
+        ? `핵심 액션 완료 ${Math.max(1, Math.min(3, bestCount))}건`
+        : `Complete ${Math.max(1, Math.min(3, bestCount))} core actions`,
+      isKo ? '주의 슬롯에서 확정 의사결정 0건' : 'Zero final decisions in caution slots',
+      isKo ? '체크리스트 실행률 100%' : 'Checklist execution rate 100%',
+    ],
+    4
+  )
+
+  return {
+    ifThenRules,
+    situationTriggers,
+    actionFramework,
+    riskTriggers,
+    successKpi,
+    deltaToday: buildDeltaToday({ locale, timeline }),
+  }
+}
+
 const buildRuleBasedTimeline = (input: {
   date: string
   locale: 'ko' | 'en'
   intervalMinutes: 30 | 60
   icp?: ActionPlanIcpProfile
   persona?: ActionPlanPersonaProfile
-  calendar?: {
-    grade?: number
-    categories?: string[]
-    bestTimes?: string[]
-    recommendations?: string[]
-    warnings?: string[]
-    summary?: string
-    sajuFactors?: string[]
-    astroFactors?: string[]
-    evidence?: CalendarEvidence
-  } | null
+  calendar?: ActionPlanCalendarContext
 }): TimelineSlot[] => {
   const { date, locale, intervalMinutes, calendar, icp, persona } = input
   const [year, month, day] = date.split('-').map(Number)
@@ -759,6 +1139,11 @@ const sanitizeTimelineForInterval = (raw: unknown, intervalMinutes: 30 | 60): Ti
           .filter(Boolean)
           .slice(0, 3)
       : undefined
+    const confidenceRaw = (item as { confidence?: unknown }).confidence
+    const confidence =
+      typeof confidenceRaw === 'number' && Number.isFinite(confidenceRaw)
+        ? clampPercent(confidenceRaw)
+        : undefined
 
     if (!Number.isInteger(hour) || hour < 0 || hour > 23) continue
     if (!Number.isInteger(minute) || (minute !== 0 && minute !== 30)) continue
@@ -768,7 +1153,15 @@ const sanitizeTimelineForInterval = (raw: unknown, intervalMinutes: 30 | 60): Ti
     if (dedupe.has(key)) continue
     dedupe.add(key)
 
-    cleaned.push({ hour, minute: normalizedMinute, note, tone, evidenceSummary, source: 'rag' })
+    cleaned.push({
+      hour,
+      minute: normalizedMinute,
+      note,
+      tone,
+      evidenceSummary,
+      confidence,
+      source: 'rag',
+    })
   }
   return cleaned
 }
@@ -822,18 +1215,7 @@ async function generatePrecisionTimelineWithRag(input: {
   locale: 'ko' | 'en'
   intervalMinutes: 30 | 60
   baseTimeline: TimelineSlot[]
-  calendar?: {
-    grade?: number
-    score?: number
-    categories?: string[]
-    bestTimes?: string[]
-    warnings?: string[]
-    recommendations?: string[]
-    sajuFactors?: string[]
-    astroFactors?: string[]
-    summary?: string
-    evidence?: CalendarEvidence
-  } | null
+  calendar?: ActionPlanCalendarContext
 }): Promise<{
   timeline: TimelineSlot[] | null
   summary?: string
@@ -893,13 +1275,13 @@ async function generatePrecisionTimelineWithRag(input: {
 
   const systemPrompt =
     input.locale === 'ko'
-      ? `너는 일정 최적화 코치다. 주어진 베이스 타임라인을 유지하면서 더 정밀하게 보정하라.
+      ? `너는 일정 최적화 코치다. 베이스 타임라인의 구조를 유지하면서 실무형 문장으로 보정하라.
 출력은 반드시 JSON:
 {"timeline":[{"hour":0-23,"minute":0|30,"note":"짧은 문장","tone":"best|caution|neutral"}],"summary":"짧은 한줄"}
 규칙:
 1) note는 140자 이하.
-2) 과장 금지, 실행 가능한 행동 1개 + 짧은 근거 1개를 포함.
-3) 위험 시간은 tone=caution, 집중 시간은 tone=best.
+2) 과장 금지. 구체 행동 1개 + 이유 1개 포함.
+3) 위험 구간은 tone=caution, 집중 구간은 tone=best.
 4) intervalMinutes=60이면 minute=0만 사용.`
       : `You are a schedule optimization coach. Refine the base timeline with higher precision.
 Output must be valid JSON:
@@ -1020,6 +1402,7 @@ Rules:
           patch.evidenceSummary && patch.evidenceSummary.length > 0
             ? patch.evidenceSummary.slice(0, 2)
             : slot.evidenceSummary,
+        confidence: typeof patch.confidence === 'number' ? patch.confidence : slot.confidence,
         source: 'hybrid' as const,
       }
     })
@@ -1143,6 +1526,8 @@ export const POST = withApiMiddleware(
       canUseAiPrecision && aiRefined && aiRefined.timeline && aiRefined.timeline.length > 0
     )
     const sourceTimeline = usingAiRefinement ? aiRefined!.timeline : baseTimeline
+    const baselineConfidence =
+      typeof calendar?.evidence?.confidence === 'number' ? calendar.evidence.confidence : undefined
 
     const timeline = sourceTimeline.map((slot) => {
       const baseEvidence = (slot.evidenceSummary || []).filter(Boolean)
@@ -1160,15 +1545,44 @@ export const POST = withApiMiddleware(
               180
             )
           : slot.note
+      const category = pickCategoryByHour(calendar?.categories, slot.hour)
+      const slotTypes = inferSlotTypes({ hour: slot.hour, tone, category, note })
+      const why = buildSlotWhy({
+        locale: lang,
+        slot: { ...slot, tone, note },
+        slotTypes,
+        category,
+        calendar,
+        icp,
+        persona,
+      })
+      const guardrail = buildSlotGuardrail({ locale: lang, slotTypes, tone })
+      const confidenceMeta = analyzeConfidenceMeta({
+        locale: lang,
+        slot: { ...slot, tone, note, slotTypes, why, guardrail },
+        calendar,
+        baselineConfidence,
+        why,
+      })
+
+      const common = {
+        ...slot,
+        note,
+        tone,
+        slotTypes,
+        why,
+        guardrail,
+        confidence: confidenceMeta.score,
+        confidenceReason: confidenceMeta.reasons,
+      }
 
       if (isPremiumUser) {
         const alternativeLine =
           lang === 'ko'
-            ? `대안 행동: ${slot.tone === 'caution' ? '결정 보류 후 체크리스트 점검' : '핵심 행동 1개 완료 후 결과 기록'}`
-            : `Alternative: ${slot.tone === 'caution' ? 'pause decision and run checklist' : 'complete one key action and log result'}`
+            ? `대안 행동: ${tone === 'caution' ? '결정 보류 후 체크리스트 점검' : '핵심 행동 1개 완료 후 결과 기록'}`
+            : `Alternative: ${tone === 'caution' ? 'pause decision and run checklist' : 'complete one key action and log result'}`
         return {
-          ...slot,
-          note,
+          ...common,
           evidenceSummary: [
             ...baseEvidence.slice(0, 2),
             ...(personalLine ? [personalLine] : []),
@@ -1177,13 +1591,21 @@ export const POST = withApiMiddleware(
         }
       }
       return {
-        ...slot,
-        note,
+        ...common,
         evidenceSummary: [
           ...baseEvidence.slice(0, 2),
           ...(personalLine ? [personalLine] : []),
         ].slice(0, 3),
       }
+    })
+
+    const insights = buildActionPlanInsights({
+      locale: lang,
+      timeline,
+      calendar,
+      icp,
+      persona,
+      isPremiumUser,
     })
 
     const summaryParts: string[] = []
@@ -1211,13 +1633,13 @@ export const POST = withApiMiddleware(
     if (!canUseAiPrecision) {
       summaryParts.push(
         lang === 'ko'
-          ? '정밀 AI 비활성화: 사주+점성 규칙 타임라인으로 제공'
+          ? '정밀 AI 비활성: 사주+점성 규칙 타임라인으로 제공'
           : 'AI precision disabled: serving rule-based Saju+Astrology timeline'
       )
     } else if (!hasOpenAiKey) {
       summaryParts.push(
         lang === 'ko'
-          ? '정밀 생성 비활성화: OPENAI_API_KEY 누락으로 규칙 타임라인으로 제공'
+          ? '정밀 생성 비활성: OPENAI_API_KEY 누락으로 규칙 타임라인 제공'
           : 'AI precision disabled: missing OPENAI_API_KEY, serving rule-based timeline'
       )
     } else if (!usingAiRefinement) {
@@ -1248,6 +1670,7 @@ export const POST = withApiMiddleware(
       normalizeMojibakePayload({
         timeline,
         summary: repairMojibakeText(summaryParts.join(' · ')) || undefined,
+        insights,
         intervalMinutes: safeInterval,
         precisionMode: usingAiRefinement ? 'ai-graphrag' : 'rule-fallback',
         aiAccess: {
@@ -1268,3 +1691,4 @@ export const POST = withApiMiddleware(
     windowSeconds: 60,
   })
 )
+

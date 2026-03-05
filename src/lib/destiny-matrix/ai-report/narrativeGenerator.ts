@@ -1,6 +1,11 @@
 import type { MatrixCalculationInput } from '../types'
 import type { AIPremiumReport } from './reportTypes'
-import type { SignalDomain, SignalSynthesisResult, SynthesizedClaim } from './signalSynthesizer'
+import type {
+  NormalizedSignal,
+  SignalDomain,
+  SignalSynthesisResult,
+  SynthesizedClaim,
+} from './signalSynthesizer'
 
 interface NarrativeInput {
   lang: 'ko' | 'en'
@@ -377,11 +382,89 @@ function formatEvidenceSentence(
   claims: SynthesizedClaim[],
   lang: 'ko' | 'en'
 ): string {
+  const withTopicParticle = (value: string): string => {
+    const text = (value || '').trim()
+    if (!text) return '핵심 신호는'
+    const last = text[text.length - 1]
+    const code = last.charCodeAt(0)
+    const isHangul = code >= 0xac00 && code <= 0xd7a3
+    if (!isHangul) return `${text}는`
+    const hasBatchim = (code - 0xac00) % 28 !== 0
+    return `${text}${hasBatchim ? '은' : '는'}`
+  }
+  const joinWithWaGwa = (left: string, right: string): string => {
+    const l = (left || '').trim()
+    const r = (right || '').trim()
+    if (!l) return r
+    if (!r) return l
+    let hangulCode = 0
+    for (let idx = l.length - 1; idx >= 0; idx -= 1) {
+      const code = l.charCodeAt(idx)
+      if (code >= 0xac00 && code <= 0xd7a3) {
+        hangulCode = code
+        break
+      }
+    }
+    if (!hangulCode) return `${l}와 ${r}`
+    const hasBatchim = (hangulCode - 0xac00) % 28 !== 0
+    return `${l}${hasBatchim ? '과' : '와'} ${r}`
+  }
+
+  const isDomainKeywordMismatch = (signal: NormalizedSignal, domain: SignalDomain): boolean => {
+    const raw =
+      `${signal.keyword || ''} ${signal.rowKey || ''} ${signal.colKey || ''} ${signal.sajuBasis || ''} ${signal.astroBasis || ''}`.toLowerCase()
+    if (
+      domain === 'relationship' &&
+      /(커리어|직업|업무|career|work|job|h10|mc|promotion)/.test(raw)
+    ) {
+      return true
+    }
+    if (domain === 'career' && /(연애|관계|partner|romance|relationship|h7|venus)/.test(raw)) {
+      return true
+    }
+    if (domain === 'wealth' && /(연애|관계|romance|relationship)/.test(raw)) {
+      return true
+    }
+    return false
+  }
+
+  const inferEffectivePolarity = (
+    signal: NormalizedSignal
+  ): 'strength' | 'balance' | 'caution' => {
+    const raw = `${signal.keyword || ''} ${signal.rowKey || ''} ${signal.colKey || ''}`.toLowerCase()
+    if (
+      /충돌|긴장|리스크|주의|좌절|파괴|분열|불안|risk|caution|conflict|tension|volatile/.test(raw)
+    ) {
+      return 'caution'
+    }
+    if (/균형|안정|조율|유지|balance|stable|stability/.test(raw)) {
+      return 'balance'
+    }
+    if (/정점|상승|기회|확장|성장|peak|growth|expansion|opportunity/.test(raw)) {
+      return 'strength'
+    }
+    return signal.polarity
+  }
+
   const evidenceSignals = claims
-    .flatMap((claim) => claim.evidence)
-    .map((id) => synthesis.signalsById[id])
-    .filter(Boolean)
-    .slice(0, 2)
+    .flatMap((claim) => {
+      const rawSignals = claim.evidence
+        .map((id) => synthesis.signalsById[id])
+        .filter(Boolean)
+      const scopedSignals = rawSignals.filter((signal) =>
+        (signal.domainHints || []).includes(claim.domain)
+      )
+      const domainPreferred = scopedSignals.length > 0 ? scopedSignals : rawSignals
+      const withoutMismatch = domainPreferred.filter(
+        (signal) => !isDomainKeywordMismatch(signal, claim.domain)
+      )
+      const pickedSignals = (withoutMismatch.length > 0 ? withoutMismatch : domainPreferred).slice(
+        0,
+        3
+      )
+      return pickedSignals.map((signal) => ({ signal, domain: claim.domain }))
+    })
+    .slice(0, 4)
 
   if (evidenceSignals.length === 0) {
     return lang === 'ko'
@@ -390,36 +473,494 @@ function formatEvidenceSentence(
   }
 
   if (lang === 'ko') {
+    const effectByDomain: Record<SignalDomain, Record<'strength' | 'balance' | 'caution', string>> = {
+      career: {
+        strength: '성과를 확장할 여지가 큽니다',
+        balance: '업무 흐름을 안정적으로 유지하기 좋습니다',
+        caution: '역할·책임 경계가 흐려지면 비용이 커집니다',
+      },
+      relationship: {
+        strength: '관계 회복과 연결 강화에 유리합니다',
+        balance: '대화 리듬을 안정적으로 맞추기 좋습니다',
+        caution: '말의 속도가 앞서면 오해가 커질 수 있습니다',
+      },
+      wealth: {
+        strength: '수익 기회를 포착하기 유리합니다',
+        balance: '현금 흐름을 안정적으로 관리하기 좋습니다',
+        caution: '조건 누락 시 손실 리스크가 커집니다',
+      },
+      health: {
+        strength: '컨디션 회복과 체력 관리가 빠르게 붙습니다',
+        balance: '루틴을 유지하면 피로 편차를 줄일 수 있습니다',
+        caution: '과속하면 회복이 늦어질 수 있습니다',
+      },
+      timing: {
+        strength: '착수 속도를 높이기 좋습니다',
+        balance: '순서를 지키면 시행착오를 줄이기 좋습니다',
+        caution: '당일 확정은 재확인 절차가 필요합니다',
+      },
+      personality: {
+        strength: '결정력이 올라가 실행 전환이 빠릅니다',
+        balance: '판단의 일관성을 유지하기 좋습니다',
+        caution: '즉흥 반응이 누적되면 오판 가능성이 커집니다',
+      },
+      spirituality: {
+        strength: '장기 방향을 선명하게 잡기 좋습니다',
+        balance: '기준을 유지하면 방향성이 흔들리지 않습니다',
+        caution: '우선순위가 분산되면 집중력이 떨어질 수 있습니다',
+      },
+      move: {
+        strength: '변화 시도를 시작하기 좋습니다',
+        balance: '단계별 조정이 잘 먹히는 구간입니다',
+        caution: '한 번에 크게 움직이면 변동성이 커집니다',
+      },
+    }
+
     return evidenceSignals
-      .map((signal) => {
+      .map(({ signal, domain }) => {
         const key = signal.keyword || signal.rowKey || '핵심'
         const saju = sanitizeEvidenceBasis(signal.sajuBasis || '사주 근거 보완 필요', lang)
         const astro = sanitizeEvidenceBasis(signal.astroBasis || '점성 근거 보완 필요', lang)
-        return `${key} 신호는 ${saju} 및 ${astro} 근거가 함께 확인됩니다.`
+        const effectivePolarity = inferEffectivePolarity(signal)
+        const effect =
+          effectByDomain[domain]?.[effectivePolarity] ||
+          effectByDomain.personality[effectivePolarity] ||
+          '운영 방식 조정이 필요합니다'
+        return `${withTopicParticle(key)} ${joinWithWaGwa(saju, astro)}가 겹쳐 ${effect}`
       })
-      .join(' ')
+      .join('. ')
+      .concat('.')
   }
 
   return evidenceSignals
-    .map((signal) => {
+    .map(({ signal, domain }) => {
+      const effectByDomain: Record<
+        SignalDomain,
+        Record<'strength' | 'balance' | 'caution', string>
+      > = {
+        career: {
+          strength: 'execution leverage is high',
+          balance: 'stability can be maintained with routine discipline',
+          caution: 'unclear ownership can increase friction cost',
+        },
+        relationship: {
+          strength: 'connection momentum is available',
+          balance: 'communication rhythm can stay stable',
+          caution: 'pace mismatch can create misunderstandings',
+        },
+        wealth: {
+          strength: 'upside opportunities can be captured',
+          balance: 'cashflow can stay stable',
+          caution: 'term omissions can raise downside risk',
+        },
+        health: {
+          strength: 'recovery momentum is available',
+          balance: 'routine can reduce fatigue variance',
+          caution: 'overspeed can delay recovery',
+        },
+        timing: {
+          strength: 'start momentum is available',
+          balance: 'sequence discipline reduces errors',
+          caution: 'same-day finalization needs a verify gate',
+        },
+        personality: {
+          strength: 'decision throughput increases',
+          balance: 'judgment consistency is easier to maintain',
+          caution: 'impulse reactions can increase noise',
+        },
+        spirituality: {
+          strength: 'long-term direction gets clearer',
+          balance: 'priority stability improves',
+          caution: 'priority diffusion can reduce focus',
+        },
+        move: {
+          strength: 'change momentum is available',
+          balance: 'staged execution works well',
+          caution: 'one-shot moves increase volatility',
+        },
+      }
       const key = signal.keyword || signal.rowKey || 'core'
       const saju = sanitizeEvidenceBasis(signal.sajuBasis || 'pending saju basis', lang)
       const astro = sanitizeEvidenceBasis(signal.astroBasis || 'pending astrology basis', lang)
-      return `${key} signal is grounded by ${saju} and ${astro}.`
+      const effectivePolarity = inferEffectivePolarity(signal)
+      const effect =
+        effectByDomain[domain]?.[effectivePolarity] ||
+        effectByDomain.personality[effectivePolarity] ||
+        'operating adjustment is needed'
+      return `${key} is grounded by ${saju} and ${astro}, so ${effect}`
     })
-    .join(' ')
+    .join('. ')
+    .concat('.')
+}
+
+function gatherClaimSignals(
+  synthesis: SignalSynthesisResult,
+  claims: SynthesizedClaim[]
+): NormalizedSignal[] {
+  return claims
+    .flatMap((claim) => claim.evidence.map((id) => synthesis.signalsById[id]).filter(Boolean))
+    .filter((signal, index, arr) => arr.findIndex((item) => item.id === signal.id) === index)
+}
+
+function buildSectionInsightSentence(
+  section: keyof AIPremiumReport['sections'],
+  signals: NormalizedSignal[],
+  lang: 'ko' | 'en'
+): string {
+  const hasStrength = signals.some((signal) => signal.polarity === 'strength')
+  const hasCaution = signals.some((signal) => signal.polarity === 'caution')
+  const hasBalance = signals.some((signal) => signal.polarity === 'balance')
+
+  if (lang === 'ko') {
+    if (hasStrength && hasCaution) {
+      return section === 'careerPath'
+        ? '상승 동력과 변동 신호가 동시에 보이므로, 확장 자체보다 범위·책임·기한을 먼저 고정할 때 성과가 남습니다.'
+        : '상승 신호와 주의 신호가 함께 보이므로, 착수와 확정을 분리해야 성과를 지키면서 리스크를 낮출 수 있습니다.'
+    }
+    if (hasStrength) {
+      return '상승 신호가 우세하므로 실행 전환 속도를 높이되, 결과물 완결 기준을 먼저 정하면 누적 성과가 커집니다.'
+    }
+    if (hasCaution) {
+      return '주의 신호가 선행하므로 큰 결정보다 재확인 루틴을 먼저 두는 편이 손실을 줄이는 데 유리합니다.'
+    }
+    if (hasBalance) {
+      return '균형 신호가 중심이라 새 시도보다 루틴 유지와 마감 품질 개선에 집중할수록 체감이 좋아집니다.'
+    }
+    return '직접 신호가 약한 구간이므로, 우선순위를 좁히고 확인 절차를 고정하는 보수 운영이 적합합니다.'
+  }
+
+  if (hasStrength && hasCaution) {
+    return 'Growth and caution are both active, so separate start from commitment to keep upside while controlling downside.'
+  }
+  if (hasStrength) {
+    return 'Expansion signals dominate, so accelerate execution but lock completion criteria first.'
+  }
+  if (hasCaution) {
+    return 'Caution signals lead this section, so verification routines should precede major decisions.'
+  }
+  if (hasBalance) {
+    return 'Balance signals are central, so steady routines outperform aggressive changes.'
+  }
+  return 'Direct signals are thin, so conservative sequencing and verification are the safer default.'
+}
+
+function buildSectionExecutionSentence(
+  section: keyof AIPremiumReport['sections'],
+  lang: 'ko' | 'en'
+): string {
+  if (lang === 'ko') {
+    const lines: Record<keyof AIPremiumReport['sections'], string> = {
+      introduction:
+        '실행은 오늘 끝낼 1건을 먼저 고정하고, 대외 확정이 필요한 안건은 최소 한 번의 재검토 슬롯을 거친 뒤 처리하세요.',
+      personalityDeep:
+        '의사결정은 즉답보다 요약 기록을 먼저 남기고, 감정이 올라오는 대화는 템포를 한 단계 늦추는 것이 손실을 줄입니다.',
+      careerPath:
+        '업무에서는 새 착수보다 진행 중 과제의 완결률을 올리고, 협업 건은 역할·마감·책임 3항목이 합의된 뒤 확정하세요.',
+      relationshipDynamics:
+        '관계에서는 결론을 먼저 말하기보다 상대의 이해를 한 줄로 확인한 뒤 요청을 제시하면 충돌 비용이 크게 줄어듭니다.',
+      wealthPotential:
+        '재정은 금액·기한·취소 조건을 분리 점검하고, 당일 확정 대신 24시간 재확인 창을 두는 방식이 안정적입니다.',
+      healthGuidance:
+        '건강은 강도보다 회복 블록을 먼저 배치하세요. 수면·수분·휴식 시간을 고정하면 피로 편차를 줄일 수 있습니다.',
+      lifeMission:
+        '장기 방향은 큰 선언보다 주간 기록과 복기 루틴으로 고정할 때 더 오래 유지되고 실제 성과로 연결됩니다.',
+      timingAdvice:
+        '타이밍은 착수-검토-확정을 분리해 운영하세요. 특히 문서·계약 성격의 일은 검토 단계를 생략하지 않는 것이 핵심입니다.',
+      actionPlan:
+        '2주 계획은 완료 1건, 재확인 1건, 보류 1건의 구조로 단순화하면 실행 전환율이 높고 누락이 줄어듭니다.',
+      conclusion:
+        '결론적으로 속도보다 순서를 지키는 운영이 유리합니다. 같은 규칙을 며칠 유지하면 변동성이 빠르게 줄어듭니다.',
+    }
+    return lines[section]
+  }
+
+  const linesEn: Record<keyof AIPremiumReport['sections'], string> = {
+    introduction:
+      'Lock one must-finish item first, and route externally committing items through at least one recheck slot.',
+    personalityDeep:
+      'Use summary-first logging before fast replies, and slow conversation tempo when emotional intensity rises.',
+    careerPath:
+      'Prioritize completion rate over new intake, and commit collaboration only after role-deadline-ownership are explicit.',
+    relationshipDynamics:
+      'In relationships, confirm understanding in one sentence before proposing requests to reduce friction.',
+    wealthPotential:
+      'For money matters, review amount/deadline/cancellation separately and use a 24-hour verify window before commitment.',
+    healthGuidance:
+      'For health, schedule recovery blocks before intensity; fixed sleep-hydration-rest reduces fatigue variance.',
+    lifeMission:
+      'Long-term direction is sustained through weekly logs and review loops rather than one-time declarations.',
+    timingAdvice:
+      'Split start-review-commit stages, and do not skip the review gate for contract-like decisions.',
+    actionPlan:
+      'A two-week plan works best with one completion, one recheck, and one deferred item per cycle.',
+    conclusion:
+      'In summary, sequence discipline beats speed, and repeated operating rules reduce volatility.',
+  }
+  return linesEn[section]
+}
+
+function getSectionMinChars(
+  section: keyof AIPremiumReport['sections'],
+  lang: 'ko' | 'en'
+): number {
+  if (lang === 'ko') {
+    const map: Record<keyof AIPremiumReport['sections'], number> = {
+      introduction: 900,
+      personalityDeep: 760,
+      careerPath: 980,
+      relationshipDynamics: 900,
+      wealthPotential: 860,
+      healthGuidance: 840,
+      lifeMission: 980,
+      timingAdvice: 860,
+      actionPlan: 780,
+      conclusion: 760,
+    }
+    return map[section]
+  }
+  const mapEn: Record<keyof AIPremiumReport['sections'], number> = {
+    introduction: 680,
+    personalityDeep: 680,
+    careerPath: 760,
+    relationshipDynamics: 720,
+    wealthPotential: 700,
+    healthGuidance: 680,
+    lifeMission: 680,
+    timingAdvice: 700,
+    actionPlan: 660,
+    conclusion: 540,
+  }
+  return mapEn[section]
+}
+
+function expandToMinChars(base: string, minChars: number, fillers: string[]): string {
+  let out = base.replace(/\s{2,}/g, ' ').trim()
+  const cleanFillers = [...new Set(fillers.map((f) => f.trim()).filter(Boolean))]
+  if (cleanFillers.length === 0) return out
+  for (const filler of cleanFillers) {
+    if (out.length >= minChars) break
+    if (out.includes(filler)) continue
+    out = `${out} ${filler}`.replace(/\s{2,}/g, ' ').trim()
+  }
+  if (out.length < minChars) {
+    const bridge =
+      /[가-힣]/.test(out) && /[가-힣]/.test(cleanFillers[0])
+        ? '핵심은 속도가 아니라 기준의 일관성입니다.'
+        : 'The key is consistency of standards over raw speed.'
+    if (!out.includes(bridge)) {
+      out = `${out} ${bridge}`.replace(/\s{2,}/g, ' ').trim()
+    }
+  }
+  return out
+}
+
+function inferAgeFromInput(input: MatrixCalculationInput): number | null {
+  const birthDate = input.profileContext?.birthDate
+  if (!birthDate) return null
+  const birth = new Date(birthDate)
+  if (Number.isNaN(birth.getTime())) return null
+  const base = input.currentDateIso ? new Date(input.currentDateIso) : new Date()
+  if (Number.isNaN(base.getTime())) return null
+  let age = base.getUTCFullYear() - birth.getUTCFullYear()
+  const monthDiff = base.getUTCMonth() - birth.getUTCMonth()
+  const dayDiff = base.getUTCDate() - birth.getUTCDate()
+  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) age -= 1
+  return Math.max(0, age)
+}
+
+function clipSentence(value: string, max = 58): string {
+  const text = String(value || '').replace(/\s+/g, ' ').trim()
+  if (!text) return ''
+  return text.length > max ? `${text.slice(0, max)}...` : text
+}
+
+function buildLifeJourneyNarrative(
+  input: NarrativeInput,
+  section: keyof AIPremiumReport['sections']
+): string {
+  if (!['introduction', 'lifeMission', 'conclusion'].includes(section)) return ''
+  const topDomainSignals = (domain: SignalDomain, limit = 2): string[] => {
+    const rows = (input.synthesis.normalizedSignals || [])
+      .filter((signal) => (signal.domainHints || []).includes(domain))
+      .sort((a, b) => b.rankScore - a.rankScore)
+      .slice(0, limit)
+      .map((signal) => signal.keyword || signal.rowKey)
+      .filter(Boolean)
+    return [...new Set(rows)]
+  }
+  const personality = topDomainSignals('personality').join('·')
+  const career = topDomainSignals('career').join('·')
+  const wealth = topDomainSignals('wealth').join('·')
+  const relation = topDomainSignals('relationship').join('·')
+  const age = inferAgeFromInput(input.matrixInput)
+  const daeun = input.matrixInput.currentDaeunElement || '미확인'
+  const saeun = input.matrixInput.currentSaeunElement || '미확인'
+
+  if (input.lang === 'ko') {
+    const ageLine =
+      age === null
+        ? '현재 나이 정보가 없어 일반 생애 구간 기준으로 정리합니다.'
+        : `현재 나이 ${age}세 기준으로 생애 구간을 재배치해 해석합니다.`
+    const early = personality
+      ? `초년기(0~19세): ${personality} 키워드가 성향의 기본 프레임을 만들고, 자기 기준을 세우는 방식이 이후 선택 습관을 결정합니다.`
+      : '초년기(0~19세): 성향의 뿌리를 만드는 시기라 리듬과 기준을 먼저 배우는 것이 중요합니다.'
+    const young = career
+      ? `청년기(20~34세): ${career} 신호가 커리어 축을 밀어 올리며, 빠른 착수보다 완결률 중심 운영이 성과 격차를 만듭니다.`
+      : '청년기(20~34세): 진입과 전환이 빠른 시기라 완결률 중심의 선택이 성과를 좌우합니다.'
+    const mid =
+      wealth || relation
+        ? `장년기(35~49세): ${wealth || relation} 축이 돈·관계·책임의 구조를 재정렬하므로, 수익 확대와 리스크 통제를 동시에 설계해야 안정적으로 성장합니다.`
+        : '장년기(35~49세): 돈과 관계의 구조를 다시 짜는 구간이라 분배·협업 규칙이 중요합니다.'
+    const later = `후반기(50세+): 축적된 기준을 영향력으로 바꾸는 시기이며, 대운(${daeun})·세운(${saeun}) 흐름에 맞춘 선택 분할이 변동성을 줄이고 누적 신뢰를 키웁니다.`
+
+    if (section === 'conclusion') {
+      return `${ageLine} 생애 전체의 결론은 동일합니다. 초년의 성향 프레임, 청년의 확장 실험, 장년의 구조화, 후반의 영향력 전환을 하나의 운영 원칙으로 연결할 때 인생총운이 가장 안정적으로 올라갑니다.`
+    }
+    return `${ageLine} ${early} ${young} ${mid} ${later}`
+  }
+
+  const ageLineEn =
+    age === null
+      ? 'Age context is missing, so this follows standard life-stage framing.'
+      : `Age ${age} context is applied for life-stage framing.`
+  const earlyEn = personality
+    ? `Early stage (0-19): ${personality} builds the personality baseline and decision habit.`
+    : 'Early stage (0-19): baseline rhythm and standards are built first.'
+  const youngEn = career
+    ? `Young stage (20-34): ${career} drives career expansion, while completion-rate discipline separates outcomes.`
+    : 'Young stage (20-34): completion-rate decisions matter more than expansion speed.'
+  const midEn =
+    wealth || relation
+      ? `Mid stage (35-49): ${wealth || relation} restructures money, relationships, and responsibility together.`
+      : 'Mid stage (35-49): money/relationship structure redesign becomes central.'
+  const laterEn = `Later stage (50+): accumulated standards convert into leverage, and staged decisions aligned to Daeun(${daeun})/Seun(${saeun}) reduce volatility.`
+  if (section === 'conclusion') {
+    return `${ageLineEn} The life-course conclusion is consistent: connect early identity framing, young-stage expansion, mid-stage structural redesign, and later-stage leverage into one operating rule.`
+  }
+  return `${ageLineEn} ${earlyEn} ${youngEn} ${midEn} ${laterEn}`
+}
+
+function signalLabel(signal: NormalizedSignal, lang: 'ko' | 'en'): string {
+  if (lang === 'ko') return signal.keyword || signal.rowKey || '핵심 신호'
+  return signal.keyword || signal.rowKey || 'core signal'
+}
+
+function buildSectionDeepDiveSentence(
+  section: keyof AIPremiumReport['sections'],
+  signals: NormalizedSignal[],
+  lang: 'ko' | 'en'
+): string {
+  const strengths = signals.filter((signal) => signal.polarity === 'strength').slice(0, 2)
+  const cautions = signals.filter((signal) => signal.polarity === 'caution').slice(0, 2)
+  const balances = signals.filter((signal) => signal.polarity === 'balance').slice(0, 1)
+
+  const sText = strengths.map((signal) => signalLabel(signal, lang)).join(', ')
+  const cText = cautions.map((signal) => signalLabel(signal, lang)).join(', ')
+  const bText = balances.map((signal) => signalLabel(signal, lang)).join(', ')
+
+  if (lang === 'ko') {
+    const domainName: Record<keyof AIPremiumReport['sections'], string> = {
+      introduction: '전체 흐름',
+      personalityDeep: '성향',
+      careerPath: '커리어',
+      relationshipDynamics: '관계',
+      wealthPotential: '재정',
+      healthGuidance: '건강',
+      lifeMission: '장기 방향',
+      timingAdvice: '타이밍',
+      actionPlan: '실행 계획',
+      conclusion: '최종 운영',
+    }
+    const title = domainName[section]
+    const strengthLine = sText
+      ? `${title}에서는 ${sText} 신호가 추진력을 담당하고,`
+      : `${title}에서는 뚜렷한 추진 신호보다 운영 규칙의 일관성이 더 중요하고,`
+    const cautionLine = cText
+      ? `${cText} 신호가 비용이 커지는 지점을 알려 줍니다.`
+      : '리스크는 주로 확인 절차 누락에서 발생하기 쉽습니다.'
+    const balanceLine = bText
+      ? `${bText} 신호가 완충 역할을 하므로, 속도와 검증의 균형을 맞추면 체감 결과가 빠르게 안정됩니다.`
+      : '완충 신호가 작더라도 착수와 확정을 분리하면 변동 폭을 줄일 수 있습니다.'
+    return `${strengthLine} ${cautionLine} ${balanceLine}`
+  }
+
+  const strengthLine = sText
+    ? `${sText} drive momentum,`
+    : 'Momentum is less about aggressive expansion,'
+  const cautionLine = cText
+    ? `while ${cText} mark cost-amplification points.`
+    : 'while verification gaps remain the main risk source.'
+  const balanceLine = bText
+    ? `${bText} provide damping, so balancing speed with verification stabilizes outcomes.`
+    : 'Even with weak damping signals, separating start from commitment reduces volatility.'
+  return `${strengthLine} ${cautionLine} ${balanceLine}`
+}
+
+function buildSectionProtocolSentence(
+  section: keyof AIPremiumReport['sections'],
+  lang: 'ko' | 'en'
+): string {
+  if (lang === 'ko') {
+    const lines: Record<keyof AIPremiumReport['sections'], string> = {
+      introduction:
+        '실무 프로토콜은 단순해야 작동합니다. 오늘 바로 끝낼 핵심 1건을 먼저 정하고, 외부 확정이 필요한 일은 반드시 검토 슬롯을 거쳐 내보내세요.',
+      personalityDeep:
+        '의사결정 프로토콜은 기록 선행입니다. 중요한 대화 뒤에는 상대와 합의한 핵심 조건을 한 줄로 남기고, 다음 결정에서 그대로 재사용하세요.',
+      careerPath:
+        '커리어 프로토콜은 완결률 중심입니다. 신규 착수는 제한하고, 진행 중 과제의 완료 기준을 명시한 뒤 닫아야 다음 기회의 협상력이 올라갑니다.',
+      relationshipDynamics:
+        '관계 프로토콜은 해석 일치입니다. 결론을 제시하기 전에 상대가 이해한 내용과 본인이 의도한 내용을 한 번 맞추면 충돌 비용이 급격히 줄어듭니다.',
+      wealthPotential:
+        '재정 프로토콜은 조건 분리 검토입니다. 금액, 기한, 취소 조항을 분리해 점검하고 당일 확정을 줄이면 손실 회피율이 높아집니다.',
+      healthGuidance:
+        '건강 프로토콜은 회복 선배치입니다. 업무량을 늘리기 전에 수면과 회복 시간을 먼저 고정하면 체력 편차가 줄고 집중 지속 시간이 늘어납니다.',
+      lifeMission:
+        '장기 프로토콜은 주간 복기입니다. 한 주의 선택을 짧게 기록하고 원인-결과를 연결해 보면, 다음 선택의 정밀도가 확실히 높아집니다.',
+      timingAdvice:
+        '타이밍 프로토콜은 단계 분리입니다. 착수, 검토, 확정을 같은 날에 몰지 말고 분리하면 작은 오차가 큰 손실로 번지는 것을 막을 수 있습니다.',
+      actionPlan:
+        '2주 실행 프로토콜은 완료 1건, 검토 1건, 보류 1건의 반복입니다. 이 구조를 유지하면 실행 피로를 줄이면서도 누적 성과를 안정적으로 올릴 수 있습니다.',
+      conclusion:
+        '마지막 프로토콜은 동일합니다. 빠른 결론보다 검증된 결론을 선택하고, 같은 운영 규칙을 반복해 결과의 재현성을 높이세요.',
+    }
+    return lines[section]
+  }
+
+  const linesEn: Record<keyof AIPremiumReport['sections'], string> = {
+    introduction:
+      'Keep the protocol simple: lock one must-finish item first, then route externally committing items through a review slot.',
+    personalityDeep:
+      'Use a record-first protocol: after key conversations, store one-line agreement terms and reuse them in the next decision.',
+    careerPath:
+      'Use completion-first protocol: limit new intake, define done-criteria, then close in-flight work before expansion.',
+    relationshipDynamics:
+      'Use alignment-first protocol: synchronize interpretation before conclusions to cut conflict costs.',
+    wealthPotential:
+      'Use term-split protocol: validate amount, deadline, and cancellation separately before commitment.',
+    healthGuidance:
+      'Use recovery-first protocol: lock sleep and recovery blocks before scaling workload.',
+    lifeMission:
+      'Use weekly review protocol: map choice-cause-result to improve precision of next steps.',
+    timingAdvice:
+      'Use stage-separation protocol: avoid collapsing start, review, and commitment into one window.',
+    actionPlan:
+      'Use a two-week loop of one completion, one review, and one defer item to keep execution sustainable.',
+    conclusion:
+      'Final protocol is unchanged: verified commitments outperform fast commitments over time.',
+  }
+  return linesEn[section]
 }
 
 function formatActionSentence(claims: SynthesizedClaim[], lang: 'ko' | 'en'): string {
   const controls = claims
     .map((claim) => claim.riskControl)
     .filter(Boolean)
-    .slice(0, 2)
+    .slice(0, 3)
   const actions = claims
     .flatMap((claim) => claim.actions || [])
     .filter(Boolean)
-    .slice(0, 2)
-  const plan = [...new Set([...controls, ...actions])].slice(0, 2).join(' ')
+    .slice(0, 3)
+  const plan = [...new Set([...controls, ...actions])].slice(0, 3).join(' ')
 
   if (lang === 'ko') {
     return plan || '결정과 실행 시점을 분리하고 외부 확정 전에 재확인 단계를 고정하세요.'
@@ -449,7 +990,7 @@ function sectionLeadSentence(
 ): string {
   if (lang === 'ko') {
     const dedupedThesis = leadClaim.thesis.replace(
-      /^(성향|커리어|관계|재정|건강|장기 방향|타이밍|실행 설계|최종 요약)은\s*/u,
+      /^(성향|커리어|관계|재정|건강|장기 방향|타이밍|실행 설계|최종 요약|관계 영역|커리어 영역|재정 영역|현재 구간의 핵심)\s*(에서는|은|는)\s*/u,
       ''
     )
     return `${SECTION_LEAD_KO[section]} ${dedupedThesis}`.trim()
@@ -483,9 +1024,19 @@ function renderSection(
     ? pickSupportClaim(leadClaim, orderedClaims, domains, usedClaimIds, usedTheses)
     : undefined
   const title = fallbackTitle(section, input.lang)
+  const lifeJourneyLine = buildLifeJourneyNarrative(input, section)
 
   if (!leadClaim) {
-    return buildLowSignalFallbackSection(section, title, input.matrixInput, input.lang)
+    const lowSignal = buildLowSignalFallbackSection(section, title, input.matrixInput, input.lang)
+    const minChars = getSectionMinChars(section, input.lang)
+    if (lowSignal.length >= minChars) return lowSignal
+    const pad = input.lang === 'ko' ? SECTION_MIN_FILL_KO[section] : SECTION_MIN_FILL_EN[section]
+    return expandToMinChars(lowSignal, minChars, [
+      lifeJourneyLine,
+      pad,
+      buildSectionExecutionSentence(section, input.lang),
+      buildSectionProtocolSentence(section, input.lang),
+    ])
   }
 
   usedClaimIds.add(leadClaim.claimId)
@@ -502,26 +1053,31 @@ function renderSection(
     [leadClaim, ...(supportClaim ? [supportClaim] : [])],
     input.lang
   )
+  const claimSignals = gatherClaimSignals(input.synthesis, [
+    leadClaim,
+    ...(supportClaim ? [supportClaim] : []),
+  ])
+  const insightLine = buildSectionInsightSentence(section, claimSignals, input.lang)
+  const deepDiveLine = buildSectionDeepDiveSentence(section, claimSignals, input.lang)
   const actionLine = formatActionSentence(
     [leadClaim, ...(supportClaim ? [supportClaim] : [])],
     input.lang
   )
-  const depthLine =
-    input.lang === 'ko' ? SECTION_DEPTH_KO[section] || '' : SECTION_DEPTH_EN[section] || ''
-  const executionLine =
-    input.lang === 'ko' ? SECTION_EXECUTION_KO[section] || '' : SECTION_EXECUTION_EN[section] || ''
+  const protocolLine = buildSectionProtocolSentence(section, input.lang)
+  const executionLine = buildSectionExecutionSentence(section, input.lang)
   const timingLine =
     section === 'timingAdvice' ? formatTimingGrounding(input.matrixInput, input.lang) : ''
-  const styleHintLine = input.lang === 'ko' ? SECTION_ACTION_HINT_KO[section] : ''
 
   const merged = [
     thesisLine,
     supportLine,
     evidenceLine,
+    insightLine,
+    deepDiveLine,
+    lifeJourneyLine,
     actionLine,
-    depthLine,
+    protocolLine,
     executionLine,
-    styleHintLine,
     timingLine,
   ]
     .filter(Boolean)
@@ -529,13 +1085,16 @@ function renderSection(
     .replace(/\s{2,}/g, ' ')
     .trim()
 
-  if (input.lang === 'ko' && merged.length < 260) {
-    return `${merged} ${SECTION_MIN_FILL_KO[section]}`.replace(/\s{2,}/g, ' ').trim()
-  }
-  if (input.lang === 'en' && merged.length < 220) {
-    return `${merged} ${SECTION_MIN_FILL_EN[section]}`.replace(/\s{2,}/g, ' ').trim()
-  }
-  return merged
+  const minChars = getSectionMinChars(section, input.lang)
+  if (merged.length >= minChars) return merged
+  const pad = input.lang === 'ko' ? SECTION_MIN_FILL_KO[section] : SECTION_MIN_FILL_EN[section]
+  return expandToMinChars(merged, minChars, [
+    pad,
+    deepDiveLine,
+    lifeJourneyLine,
+    protocolLine,
+    executionLine,
+  ])
 }
 
 export function generateNarrativeSectionsFromSynthesis(

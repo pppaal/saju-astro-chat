@@ -4911,6 +4911,61 @@
   font-weight: 700;
 }
 
+.actionPlanTimelineConfidence {
+  font-size: 12px;
+  color: #c7d2fe;
+  background: rgba(30, 41, 59, 0.62);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+  padding: 4px 8px;
+  width: fit-content;
+}
+
+.actionPlanTimelineSlotTypes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.actionPlanTimelineSlotTypeChip {
+  font-size: 11px;
+  color: #bae6fd;
+  background: rgba(2, 132, 199, 0.25);
+  border: 1px solid rgba(125, 211, 252, 0.35);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-weight: 700;
+  text-transform: lowercase;
+}
+
+.actionPlanTimelineWhy {
+  font-size: 13px;
+  color: #bfdbfe;
+  line-height: 1.5;
+}
+
+.actionPlanTimelineWhyMeta {
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.45;
+  word-break: break-all;
+}
+
+.actionPlanTimelineGuardrail {
+  font-size: 13px;
+  color: #fef3c7;
+  background: rgba(217, 119, 6, 0.16);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-radius: 10px;
+  padding: 6px 8px;
+  line-height: 1.5;
+}
+
+.actionPlanTimelineConfidenceReason {
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
 .actionPlanTimelineNote {
   font-size: 19px;
   color: var(--cal-text-primary);
@@ -4963,6 +5018,29 @@
   border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 10px;
   padding: 8px 10px;
+}
+
+.actionPlanInsightsCard {
+  grid-column: 1 / -1;
+}
+
+.actionPlanInsightSection {
+  margin-top: 10px;
+}
+
+.actionPlanInsightSectionTitle {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #93c5fd;
+  letter-spacing: 0.2px;
+}
+
+.actionPlanInsightTriple {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
 }
 
 .actionPlanList {

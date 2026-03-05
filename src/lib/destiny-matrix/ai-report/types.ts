@@ -58,6 +58,97 @@ export interface ExtendedReportOptions {
   detailLevel?: 'standard' | 'detailed' | 'comprehensive'
 }
 
+export type UnifiedReportScope = 'LIFE' | 'YEAR' | 'MONTH' | 'DAY' | 'NEXT_YEAR'
+
+export interface UnifiedReportMeta {
+  schemaVersion: string
+  generatedAt: string
+  engineVersion: string
+}
+
+export interface UnifiedTimeWindow {
+  scope: UnifiedReportScope
+  start: string | null
+  end: string | null
+  year?: number
+  month?: number
+  date?: string
+}
+
+export interface UnifiedScoreItem {
+  score: number
+  confidence: number // 0..1
+}
+
+export interface UnifiedScores {
+  overall: UnifiedScoreItem
+  domains: Record<string, UnifiedScoreItem>
+}
+
+export interface UnifiedClaim {
+  id: string
+  text: string
+  selectedSignalIds: string[]
+  anchorIds: string[]
+  domain?: string
+}
+
+export interface UnifiedSelectedSignal {
+  id: string
+  layer: string
+  domain: string
+  polarity: 'strength' | 'balance' | 'caution' | 'unknown'
+  summary: string
+  score: number
+}
+
+export interface UnifiedAnchor {
+  id: string
+  claimId?: string
+  section: string
+  crossEvidenceSummary: string
+  setCount: number
+  avgOverlapScore: number
+  avgOrbFitScore: number
+}
+
+export interface UnifiedTimelineEvent {
+  id: string
+  type: 'job' | 'marriage' | 'relocation' | 'relationship' | 'money' | 'health' | 'timing' | 'life'
+  timeHint: {
+    year?: number
+    month?: number
+    date?: string
+    ageRange?: string
+    confidence?: number
+  }
+  thesis: string
+  evidenceRefs: string[]
+}
+
+export interface UnifiedParaEvidenceRef {
+  claimIds: string[]
+  signalIds: string[]
+  anchorIds: string[]
+}
+
+export interface UnifiedScenarioOption {
+  eventIds: string[]
+  summaryTokens: string[]
+}
+
+export interface UnifiedScenarioBundle {
+  id: string
+  domain: 'career' | 'relationship' | 'wealth' | 'health' | 'move' | 'timing' | 'personality'
+  main: UnifiedScenarioOption
+  alt: UnifiedScenarioOption[]
+  selectionWhy: {
+    claimIds: string[]
+    signalIds: string[]
+    anchorIds: string[]
+  }
+}
+
 // ===========================
 // 타이밍 리포트 섹션
 // ===========================
@@ -145,6 +236,14 @@ export interface TimingAIPremiumReport {
   id: string
   generatedAt: string
   lang: 'ko' | 'en'
+  reportMeta: UnifiedReportMeta
+  timeWindow: UnifiedTimeWindow
+  scores: UnifiedScores
+  claims: UnifiedClaim[]
+  selectedSignals: UnifiedSelectedSignal[]
+  anchors: UnifiedAnchor[]
+  timelineEvents: UnifiedTimelineEvent[]
+  scenarioBundles?: UnifiedScenarioBundle[]
 
   // 기본 정보
   profile: {
@@ -181,6 +280,7 @@ export interface TimingAIPremiumReport {
     cautionSections: string[]
   }
   evidenceRefs: SectionEvidenceRefs
+  evidenceRefsByPara?: Record<string, UnifiedParaEvidenceRef>
 
   // Cross consistency audit metadata
   crossConsistencyAudit?: CrossConsistencyAudit
@@ -214,6 +314,14 @@ export interface TimingAIPremiumReport {
       contradictionCount: number
       recheckGuidanceRatio: number
       overclaimCount: number
+      sectionCompletenessRate?: number
+      avgEvidencePerParagraph?: number
+      anchorCoverageRate?: number
+      scenarioBundleCoverage?: number
+      eventCountByDomain?: Record<string, number>
+      tokenIntegrityPass?: boolean
+      structurePass?: boolean
+      forbiddenAdditionsPass?: boolean
     }
   }
 }
@@ -226,6 +334,14 @@ export interface ThemedAIPremiumReport {
   id: string
   generatedAt: string
   lang: 'ko' | 'en'
+  reportMeta: UnifiedReportMeta
+  timeWindow: UnifiedTimeWindow
+  scores: UnifiedScores
+  claims: UnifiedClaim[]
+  selectedSignals: UnifiedSelectedSignal[]
+  anchors: UnifiedAnchor[]
+  timelineEvents: UnifiedTimelineEvent[]
+  scenarioBundles?: UnifiedScenarioBundle[]
 
   // 기본 정보
   profile: {
@@ -259,6 +375,7 @@ export interface ThemedAIPremiumReport {
     cautionSections: string[]
   }
   evidenceRefs: SectionEvidenceRefs
+  evidenceRefsByPara?: Record<string, UnifiedParaEvidenceRef>
 
   // Cross consistency audit metadata
   crossConsistencyAudit?: CrossConsistencyAudit
@@ -294,6 +411,14 @@ export interface ThemedAIPremiumReport {
       contradictionCount: number
       recheckGuidanceRatio: number
       overclaimCount: number
+      sectionCompletenessRate?: number
+      avgEvidencePerParagraph?: number
+      anchorCoverageRate?: number
+      scenarioBundleCoverage?: number
+      eventCountByDomain?: Record<string, number>
+      tokenIntegrityPass?: boolean
+      structurePass?: boolean
+      forbiddenAdditionsPass?: boolean
     }
   }
 }

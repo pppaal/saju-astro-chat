@@ -356,6 +356,7 @@ describe('generateAIPremiumReport', () => {
     const result = await generateAIPremiumReport(createMockInput(), createMockReport(), {
       deterministicOnly: true,
       matrixSummary: createRichMatrixSummary(),
+      timingData: createTimingData(),
     })
     expect(mockCallAIBackendGeneric).not.toHaveBeenCalled()
     expect(result.meta.modelUsed).toBe('deterministic-only')
@@ -368,6 +369,36 @@ describe('generateAIPremiumReport', () => {
     for (const refs of Object.values(result.evidenceRefs)) {
       expect((refs || []).length).toBeGreaterThanOrEqual(2)
     }
+    expect(result.reportMeta.schemaVersion).toBe('1.1')
+    expect(result.timeWindow.scope).toBe('LIFE')
+    expect(result.scores.overall.score).toBeGreaterThan(0)
+    expect(result.scores.overall.confidence).toBeGreaterThanOrEqual(0)
+    expect(result.claims.length).toBeGreaterThan(0)
+    expect(result.selectedSignals.length).toBeGreaterThan(0)
+    expect(result.anchors.length).toBeGreaterThan(0)
+    expect(result.timelineEvents.length).toBeGreaterThan(0)
+    expect(result.timelineEvents.some((event) => Boolean(event.timeHint?.ageRange))).toBe(true)
+    expect((result.scenarioBundles || []).length).toBeGreaterThan(0)
+    expect(result.scenarioBundles?.some((bundle) => bundle.domain === 'career')).toBe(true)
+    expect((result.scenarioBundles || []).every((bundle) => (bundle.alt || []).length >= 2)).toBe(
+      true
+    )
+    expect(result.evidenceRefsByPara).toBeTruthy()
+    expect(Object.keys(result.evidenceRefsByPara || {}).some((key) => key.endsWith('.p1'))).toBe(true)
+    expect(result.meta.qualityMetrics?.sectionCompletenessRate).toBe(1)
+    expect(result.meta.qualityMetrics?.scenarioBundleCoverage).toBeGreaterThan(0.5)
+    expect(result.meta.qualityMetrics?.tokenIntegrityPass).toBe(true)
+    expect(result.meta.qualityMetrics?.structurePass).toBe(true)
+    expect(result.meta.qualityMetrics?.forbiddenAdditionsPass).toBe(true)
+    expect(
+      result.timelineEvents.some((event) =>
+        ['job', 'marriage', 'relocation', 'money', 'timing', 'life'].includes(event.type)
+      )
+    ).toBe(true)
+    expect(result.timelineEvents.every((event) => (event.thesis || '').length >= 30)).toBe(true)
+    expect(result.timelineEvents.every((event) => !(event.thesis || '').includes('구간 활성'))).toBe(
+      true
+    )
   })
 
   it('enforces minimum evidence refs for timing/themed deterministic reports', async () => {
@@ -386,6 +417,16 @@ describe('generateAIPremiumReport', () => {
     }
     expect(timing.meta.qualityMetrics).toBeTruthy()
     expect(timing.meta.qualityMetrics?.minEvidenceSatisfiedRatio || 0).toBeGreaterThanOrEqual(0.9)
+    expect(timing.meta.qualityMetrics?.sectionCompletenessRate).toBe(1)
+    expect(timing.meta.qualityMetrics?.tokenIntegrityPass).toBe(true)
+    expect((timing.scenarioBundles || []).length).toBeGreaterThan(0)
+    expect((timing.scenarioBundles || []).every((bundle) => (bundle.alt || []).length >= 2)).toBe(
+      true
+    )
+    expect(timing.evidenceRefsByPara).toBeTruthy()
+    expect(timing.timeWindow.scope).toBe('DAY')
+    expect(timing.reportMeta.schemaVersion).toBe('1.1')
+    expect(timing.timelineEvents.some((event) => event.type === 'timing')).toBe(true)
 
     const themed = await generateThemedReport(
       createMockInput(),
@@ -402,6 +443,16 @@ describe('generateAIPremiumReport', () => {
     }
     expect(themed.meta.qualityMetrics).toBeTruthy()
     expect(themed.meta.qualityMetrics?.evidenceCoverageRatio || 0).toBeGreaterThan(0.7)
+    expect(themed.meta.qualityMetrics?.sectionCompletenessRate).toBe(1)
+    expect(themed.meta.qualityMetrics?.tokenIntegrityPass).toBe(true)
+    expect((themed.scenarioBundles || []).length).toBeGreaterThan(0)
+    expect((themed.scenarioBundles || []).every((bundle) => (bundle.alt || []).length >= 2)).toBe(
+      true
+    )
+    expect(themed.evidenceRefsByPara).toBeTruthy()
+    expect(themed.timeWindow.scope).toBe('LIFE')
+    expect(themed.reportMeta.schemaVersion).toBe('1.1')
+    expect(themed.timelineEvents.length).toBeGreaterThan(0)
   })
 
   it('prioritizes section-domain evidence references with mixed-domain synthesis', async () => {
