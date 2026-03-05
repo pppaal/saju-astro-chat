@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function DestinyMapPage() {
   return (
-    <main className="mx-auto min-h-[70vh] max-w-5xl px-4 py-16 text-slate-100">
+    <section className="mx-auto min-h-[70vh] max-w-5xl px-4 py-16 text-slate-100">
       <div className="rounded-3xl border border-cyan-300/30 bg-slate-900/60 p-7 backdrop-blur-xl">
         <p className="text-xs font-semibold tracking-wide text-cyan-200">DESTINY MAP</p>
         <h1 className="mt-2 text-3xl font-black tracking-tight md:text-5xl">
@@ -28,6 +28,6 @@ export default function DestinyMapPage() {
           </Link>
         </div>
       </div>
-    </main>
+    </section>
   )
 }

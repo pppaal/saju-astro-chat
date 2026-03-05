@@ -363,7 +363,10 @@ export default function PremiumReportsPage() {
           </div>
         </header>
 
-        <main className="mx-auto grid max-w-6xl gap-6 px-4 pb-20 lg:grid-cols-[1.05fr_1fr]">
+        <section
+          className="mx-auto grid max-w-6xl gap-6 px-4 pb-20 lg:grid-cols-[1.05fr_1fr]"
+          aria-label="AI report mode and profile setup"
+        >
           <section className="space-y-4">
             <ReportProfileForm locale="ko" initialName={initialName} onSubmit={setProfileInput} />
 
@@ -505,7 +508,7 @@ export default function PremiumReportsPage() {
               </Link>
             </article>
           </section>
-        </main>
+        </section>
       </PremiumPageScaffold>
     </>
   )

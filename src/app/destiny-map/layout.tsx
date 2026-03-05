@@ -1,33 +1,41 @@
-import type { ReactNode } from "react";
-import { JsonLd } from "@/components/seo/JsonLd";
-import { generateJsonLd, generateMetadata, generateServiceSchema, SERVICE_FAQS } from "@/components/seo/SEO";
+import type { ReactNode } from 'react'
+import { JsonLd } from '@/components/seo/JsonLd'
+import {
+  generateJsonLd,
+  generateMetadata,
+  generateServiceSchema,
+  SERVICE_FAQS,
+} from '@/components/seo/SEO'
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://destinypal.com";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
 export const metadata = generateMetadata({
-  title: "Destiny Counselor",
-  description: "Get practical AI counseling by combining Saju and Western astrology signals.",
+  title: 'Destiny Map',
+  description:
+    'Get integrated destiny insights by combining Saju and Western astrology for profile, timing, and decision guidance.',
   keywords: [
-    "destiny map",
-    "saju",
-    "four pillars",
-    "astrology chart",
-    "life guidance",
-    "korean fortune telling",
+    'destiny map',
+    'destiny counselor',
+    'saju',
+    'four pillars',
+    'astrology chart',
+    'life guidance',
+    'korean fortune telling',
   ],
   canonicalUrl: `${baseUrl}/destiny-map`,
-  ogImage: "/og-image.png",
-});
+  ogImage: '/og-image.png',
+})
 
 export default function DestinyMapLayout({ children }: { children: ReactNode }) {
   const pageJsonLd = generateJsonLd({
-    type: "WebPage",
-    name: "Destiny Counselor",
-    description: "Get practical AI counseling by combining Saju and Western astrology signals.",
+    type: 'WebPage',
+    name: 'Destiny Map',
+    description:
+      'Get integrated destiny insights by combining Saju and Western astrology for profile, timing, and decision guidance.',
     url: `${baseUrl}/destiny-map`,
-  });
-  const serviceJsonLd = generateServiceSchema("destiny-map");
-  const faqJsonLd = generateJsonLd({ type: "FAQPage", faqs: SERVICE_FAQS.destinyMap });
+  })
+  const serviceJsonLd = generateServiceSchema('destiny-map')
+  const faqJsonLd = generateJsonLd({ type: 'FAQPage', faqs: SERVICE_FAQS.destinyMap })
 
   return (
     <>
@@ -36,5 +44,5 @@ export default function DestinyMapLayout({ children }: { children: ReactNode }) 
       <JsonLd data={faqJsonLd} />
       {children}
     </>
-  );
+  )
 }

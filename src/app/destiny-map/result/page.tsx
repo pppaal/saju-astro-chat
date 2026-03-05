@@ -236,7 +236,7 @@ export default function DestinyResultPage({
 
   if (error) {
     return (
-      <main className={styles.page}>
+      <section className={styles.page}>
         <BackButton />
         <section className={styles.card}>
           <div className={styles.errorBox}>⚠️ {error}</div>
@@ -248,13 +248,13 @@ export default function DestinyResultPage({
             {t('destinyMap.result.retry', 'Retry')}
           </button>
         </section>
-      </main>
+      </section>
     )
   }
 
   if (!result) {
     return (
-      <main className={styles.page}>
+      <section className={styles.page}>
         <BackButton />
         <section className={styles.card}>
           <div className={styles.errorBox}>
@@ -268,7 +268,7 @@ export default function DestinyResultPage({
             {t('destinyMap.result.retry', 'Retry')}
           </button>
         </section>
-      </main>
+      </section>
     )
   }
 
@@ -293,7 +293,10 @@ export default function DestinyResultPage({
   )
 
   return (
-    <main className={styles.page}>
+    <section className={styles.page}>
+      <h1 className="sr-only">
+        {lang === 'ko' ? '운명 지도 분석 결과' : 'Destiny Map Analysis Result'}
+      </h1>
       <BackButton />
       <div className={styles.creditBadgeWrapper}>
         <ShareButton variant="compact" />
@@ -531,6 +534,6 @@ export default function DestinyResultPage({
           </div>
         )}
       </section>
-    </main>
+    </section>
   )
 }
