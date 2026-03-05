@@ -56,62 +56,36 @@
     {
       "id": "relationship_growth_with_guardrails",
       "text": "관계는 진전 신호와 긴장 신호가 동시에 작동합니다. 두 신호는 상충이 아니라 속도와 확인 단계를 분리하라는 조건 신호입니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다.",
-      "selectedSignalIds": [
-        "L6:임관:H10",
-        "L5:chung:opposition",
-        "L5:chung:square"
-      ],
-      "anchorIds": [
-        "E4"
-      ],
+      "selectedSignalIds": ["L6:임관:H10", "L5:chung:opposition", "L5:chung:square"],
+      "anchorIds": ["E4"],
       "domain": "relationship"
     },
     {
       "id": "career_expansion",
       "text": "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 상승 구간에서도 범위·책임·기한을 고정하면 성장 효율이 높습니다.",
-      "selectedSignalIds": [
-        "L6:임관:H10",
-        "L2:편재:Jupiter"
-      ],
-      "anchorIds": [
-        "E3"
-      ],
+      "selectedSignalIds": ["L6:임관:H10", "L2:편재:Jupiter"],
+      "anchorIds": ["E3"],
       "domain": "career"
     },
     {
       "id": "health_growth_with_guardrails",
       "text": "건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신호입니다. 충돌 패턴 레이어: 긴장 구간의 트리거와 완충 전략을 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요.",
-      "selectedSignalIds": [
-        "L5:chung:opposition",
-        "L2:상관:Saturn"
-      ],
-      "anchorIds": [
-        "E6"
-      ],
+      "selectedSignalIds": ["L5:chung:opposition", "L2:상관:Saturn"],
+      "anchorIds": ["E6"],
       "domain": "health"
     },
     {
       "id": "personality_stability",
       "text": "규칙과 리듬을 지키면 안정 수익이 쌓일 구간입니다. 기질 기반 레이어: 오행 균형과 기본 반응 속도를 해석합니다. 판단 기준을 명확히 두면 일관성이 빠르게 올라갑니다.",
-      "selectedSignalIds": [
-        "L1:금:air",
-        "L1:목:air"
-      ],
-      "anchorIds": [
-        "E1",
-        "E2"
-      ],
+      "selectedSignalIds": ["L1:금:air", "L1:목:air"],
+      "anchorIds": ["E1", "E2"],
       "domain": "personality"
     },
     {
       "id": "wealth_expansion",
       "text": "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다. 역할·책임·마감 기준을 고정하면 성과 재현성이 올라갑니다.",
-      "selectedSignalIds": [
-        "L2:편재:Jupiter"
-      ],
-      "anchorIds": [
-        "E5"
-      ],
+      "selectedSignalIds": ["L2:편재:Jupiter"],
+      "anchorIds": ["E5"],
       "domain": "wealth"
     }
   ],
@@ -265,11 +239,7 @@
         "confidence": 0.31
       },
       "thesis": "2026년 7월에는 관계와 결혼 관련 판단을 서두르기보다, 기대치와 합의 문장을 먼저 맞추는 접근이 안정적입니다. 근거 신호는 “관계는 진전 신호와 긴장 신호가 동시에 작동합니다. 두 신호는 상충이 아니라 속도와 확인 단계를 분리하라는 조건 신호입니다. 국면 전환 레이어: 확장 신호와 리…”로 요약됩니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "L6:임관:H10",
-        "L5:chung:opposition"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "L6:임관:H10", "L5:chung:opposition"]
     },
     {
       "id": "EVT_CLAIM_JOB_career_expansion",
@@ -280,11 +250,7 @@
         "confidence": 0.31
       },
       "thesis": "2026년 7월에는 커리어 결정을 단계적으로 밀어붙이되, 역할·기한·책임을 문서로 고정하는 방식이 유리합니다. 근거 신호는 “확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 상승 구간에서도 범위·책임·기한을 고정…”로 요약됩니다.",
-      "evidenceRefs": [
-        "career_expansion",
-        "L6:임관:H10",
-        "L2:편재:Jupiter"
-      ]
+      "evidenceRefs": ["career_expansion", "L6:임관:H10", "L2:편재:Jupiter"]
     },
     {
       "id": "EVT_CLAIM_HEALTH_health_growth_with_guardrails",
@@ -295,11 +261,7 @@
         "confidence": 0.31
       },
       "thesis": "2026년 7월에는 성과보다 회복 루틴을 먼저 고정하면 컨디션 변동을 줄이고 실행력을 유지하기 좋습니다. 근거 신호는 “건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신호입니다. 충돌 패턴 레이어: 긴장 구간의 트…”로 요약됩니다.",
-      "evidenceRefs": [
-        "health_growth_with_guardrails",
-        "L5:chung:opposition",
-        "L2:상관:Saturn"
-      ]
+      "evidenceRefs": ["health_growth_with_guardrails", "L5:chung:opposition", "L2:상관:Saturn"]
     },
     {
       "id": "EVT_CLAIM_LIFE_personality_stability",
@@ -310,11 +272,7 @@
         "confidence": 0.31
       },
       "thesis": "2026년 7월에는 장기 방향을 한 번 더 점검하고 우선순위를 재정렬하면 시행착오를 줄일 수 있습니다. 근거 신호는 “규칙과 리듬을 지키면 안정 수익이 쌓일 구간입니다. 기질 기반 레이어: 오행 균형과 기본 반응 속도를 해석합니다. 판단 기준을 명확히 두면 일관성이 빠르게 올라…”로 요약됩니다.",
-      "evidenceRefs": [
-        "personality_stability",
-        "L1:금:air",
-        "L1:목:air"
-      ]
+      "evidenceRefs": ["personality_stability", "L1:금:air", "L1:목:air"]
     },
     {
       "id": "EVT_MONEY_BAND_202607",
@@ -325,10 +283,7 @@
         "confidence": 0.52
       },
       "thesis": "수입 밴드는 안정-성장-확장 3구간으로 나눠 관리하는 편이 유리하며, 확장 구간은 재확인 게이트 통과 후에만 적용하는 방식이 안전합니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "career_expansion"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "career_expansion"]
     },
     {
       "id": "EVT_MOVE_WINDOW_202604",
@@ -339,10 +294,7 @@
         "confidence": 0.46
       },
       "thesis": "이동·거주지 변경은 한 번에 확정하기보다 비용/일정/대안 경로를 분리 검증하는 창으로 운영하는 것이 변동 비용을 줄입니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "career_expansion"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "career_expansion"]
     },
     {
       "id": "EVT_TIMING_202607",
@@ -353,10 +305,7 @@
         "confidence": 0.31
       },
       "thesis": "2026년 7월은 안정 운영과 보완 작업에 유리한 흐름입니다. 큰 확정보다는 정리와 정밀 점검에 비중을 두는 편이 좋습니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "career_expansion"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "career_expansion"]
     },
     {
       "id": "EVT_TIMING_202604",
@@ -367,10 +316,7 @@
         "confidence": 0.31
       },
       "thesis": "2026년 4월은 안정 운영과 보완 작업에 유리한 흐름입니다. 큰 확정보다는 정리와 정밀 점검에 비중을 두는 편이 좋습니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "career_expansion"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "career_expansion"]
     },
     {
       "id": "EVT_TIMING_202609",
@@ -381,10 +327,7 @@
         "confidence": 0.3
       },
       "thesis": "2026년 9월은 안정 운영과 보완 작업에 유리한 흐름입니다. 큰 확정보다는 정리와 정밀 점검에 비중을 두는 편이 좋습니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "career_expansion"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "career_expansion"]
     },
     {
       "id": "EVT_TIMING_202605",
@@ -395,10 +338,7 @@
         "confidence": 0.25
       },
       "thesis": "2026년 5월은 안정 운영과 보완 작업에 유리한 흐름입니다. 큰 확정보다는 정리와 정밀 점검에 비중을 두는 편이 좋습니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "career_expansion"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "career_expansion"]
     },
     {
       "id": "EVT_TIMING_202608",
@@ -409,10 +349,7 @@
         "confidence": 0.22
       },
       "thesis": "2026년 8월은 안정 운영과 보완 작업에 유리한 흐름입니다. 큰 확정보다는 정리와 정밀 점검에 비중을 두는 편이 좋습니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "career_expansion"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "career_expansion"]
     },
     {
       "id": "EVT_TIMING_202612",
@@ -423,10 +360,7 @@
         "confidence": 0.21
       },
       "thesis": "2026년 12월은 안정 운영과 보완 작업에 유리한 흐름입니다. 큰 확정보다는 정리와 정밀 점검에 비중을 두는 편이 좋습니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "career_expansion"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "career_expansion"]
     },
     {
       "id": "EVT_TIMING_202606",
@@ -437,10 +371,7 @@
         "confidence": 0.2
       },
       "thesis": "2026년 6월은 안정 운영과 보완 작업에 유리한 흐름입니다. 큰 확정보다는 정리와 정밀 점검에 비중을 두는 편이 좋습니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "career_expansion"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "career_expansion"]
     },
     {
       "id": "EVT_DAEUN_31_40",
@@ -449,10 +380,7 @@
         "confidence": 0.65
       },
       "thesis": "대운 31-40세 흐름은 장기 전략을 재정렬하고 핵심 축을 강화하기 좋은 구간입니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "career_expansion"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "career_expansion"]
     },
     {
       "id": "EVT_SEUN_2026",
@@ -462,10 +390,7 @@
         "confidence": 0.58
       },
       "thesis": "2026년 세운은 기존 계획의 속도와 우선순위를 조정하기 좋은 분기점으로 해석됩니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "career_expansion"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "career_expansion"]
     },
     {
       "id": "EVT_STAGE_0_19",
@@ -476,10 +401,7 @@
         "confidence": 0.6
       },
       "thesis": "초년기(0-19세)는 방향 전환보다 기반 역량을 누적하는 운영이 유리합니다. 핵심 근거는 “관계는 진전 신호와 긴장 신호가 동시에 작동합니다. 두 신호는 상충이 아니라 속도와 확인 단계를 분리하라는 조건 신호입니다. 국…”입니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "career_expansion"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "career_expansion"]
     },
     {
       "id": "EVT_STAGE_20_34",
@@ -490,10 +412,7 @@
         "confidence": 0.6
       },
       "thesis": "청년기(20-34세)는 방향 전환보다 기반 역량을 누적하는 운영이 유리합니다. 핵심 근거는 “확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 상승…”입니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "career_expansion"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "career_expansion"]
     },
     {
       "id": "EVT_STAGE_35_49",
@@ -504,10 +423,7 @@
         "confidence": 0.6
       },
       "thesis": "중년기(35-49세)는 방향 전환보다 기반 역량을 누적하는 운영이 유리합니다. 핵심 근거는 “건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신호입니다. 충…”입니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "career_expansion"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "career_expansion"]
     },
     {
       "id": "EVT_STAGE_50_64",
@@ -518,10 +434,7 @@
         "confidence": 0.6
       },
       "thesis": "장년기(50-64세)는 방향 전환보다 기반 역량을 누적하는 운영이 유리합니다. 핵심 근거는 “규칙과 리듬을 지키면 안정 수익이 쌓일 구간입니다. 기질 기반 레이어: 오행 균형과 기본 반응 속도를 해석합니다. 판단 기준을…”입니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "career_expansion"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "career_expansion"]
     },
     {
       "id": "EVT_STAGE_65_84",
@@ -532,10 +445,7 @@
         "confidence": 0.6
       },
       "thesis": "노년기(65-84세)는 방향 전환보다 기반 역량을 누적하는 운영이 유리합니다. 핵심 근거는 “확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다. 역할…”입니다.",
-      "evidenceRefs": [
-        "relationship_growth_with_guardrails",
-        "career_expansion"
-      ]
+      "evidenceRefs": ["relationship_growth_with_guardrails", "career_expansion"]
     }
   ],
   "scenarioBundles": [
@@ -543,193 +453,86 @@
       "id": "SCB_CAREER_01",
       "domain": "career",
       "main": {
-        "eventIds": [
-          "EVT_CLAIM_JOB_career_expansion"
-        ],
-        "summaryTokens": [
-          "job",
-          "2026",
-          "07",
-          "0.31"
-        ]
+        "eventIds": ["EVT_CLAIM_JOB_career_expansion"],
+        "summaryTokens": ["job", "2026", "07", "0.31"]
       },
       "alt": [
         {
-          "eventIds": [
-            "EVT_TIMING_202607"
-          ],
-          "summaryTokens": [
-            "timing",
-            "2026",
-            "07",
-            "0.31"
-          ]
+          "eventIds": ["EVT_TIMING_202607"],
+          "summaryTokens": ["timing", "2026", "07", "0.31"]
         },
         {
-          "eventIds": [
-            "EVT_TIMING_202604"
-          ],
-          "summaryTokens": [
-            "timing",
-            "2026",
-            "04",
-            "0.31"
-          ]
+          "eventIds": ["EVT_TIMING_202604"],
+          "summaryTokens": ["timing", "2026", "04", "0.31"]
         }
       ],
       "selectionWhy": {
-        "claimIds": [
-          "career_expansion"
-        ],
-        "signalIds": [
-          "L6:임관:H10",
-          "L2:편재:Jupiter"
-        ],
-        "anchorIds": [
-          "E3"
-        ]
+        "claimIds": ["career_expansion"],
+        "signalIds": ["L6:임관:H10", "L2:편재:Jupiter"],
+        "anchorIds": ["E3"]
       }
     },
     {
       "id": "SCB_RELATIONSHIP_02",
       "domain": "relationship",
       "main": {
-        "eventIds": [
-          "EVT_CLAIM_MARRIAGE_relationship_growth_with_guardrails"
-        ],
-        "summaryTokens": [
-          "marriage",
-          "2026",
-          "07",
-          "0.31"
-        ]
+        "eventIds": ["EVT_CLAIM_MARRIAGE_relationship_growth_with_guardrails"],
+        "summaryTokens": ["marriage", "2026", "07", "0.31"]
       },
       "alt": [
         {
-          "eventIds": [
-            "EVT_TIMING_202607"
-          ],
-          "summaryTokens": [
-            "timing",
-            "2026",
-            "07",
-            "0.31"
-          ]
+          "eventIds": ["EVT_TIMING_202607"],
+          "summaryTokens": ["timing", "2026", "07", "0.31"]
         },
         {
-          "eventIds": [
-            "EVT_TIMING_202604"
-          ],
-          "summaryTokens": [
-            "timing",
-            "2026",
-            "04",
-            "0.31"
-          ]
+          "eventIds": ["EVT_TIMING_202604"],
+          "summaryTokens": ["timing", "2026", "04", "0.31"]
         }
       ],
       "selectionWhy": {
-        "claimIds": [
-          "relationship_growth_with_guardrails"
-        ],
-        "signalIds": [
-          "L6:임관:H10",
-          "L5:chung:opposition",
-          "L5:chung:square"
-        ],
-        "anchorIds": [
-          "E4"
-        ]
+        "claimIds": ["relationship_growth_with_guardrails"],
+        "signalIds": ["L6:임관:H10", "L5:chung:opposition", "L5:chung:square"],
+        "anchorIds": ["E4"]
       }
     },
     {
       "id": "SCB_WEALTH_03",
       "domain": "wealth",
       "main": {
-        "eventIds": [
-          "EVT_MONEY_BAND_202607",
-          "EVT_TIMING_202607"
-        ],
-        "summaryTokens": [
-          "money",
-          "2026",
-          "07",
-          "0.52"
-        ]
+        "eventIds": ["EVT_MONEY_BAND_202607", "EVT_TIMING_202607"],
+        "summaryTokens": ["money", "2026", "07", "0.52"]
       },
       "alt": [
         {
-          "eventIds": [
-            "EVT_TIMING_202604"
-          ],
-          "summaryTokens": [
-            "timing",
-            "2026",
-            "04",
-            "0.31"
-          ]
+          "eventIds": ["EVT_TIMING_202604"],
+          "summaryTokens": ["timing", "2026", "04", "0.31"]
         },
         {
-          "eventIds": [
-            "EVT_TIMING_202609"
-          ],
-          "summaryTokens": [
-            "timing",
-            "2026",
-            "09",
-            "0.30"
-          ]
+          "eventIds": ["EVT_TIMING_202609"],
+          "summaryTokens": ["timing", "2026", "09", "0.30"]
         }
       ],
       "selectionWhy": {
-        "claimIds": [
-          "wealth_expansion"
-        ],
-        "signalIds": [
-          "L2:편재:Jupiter"
-        ],
-        "anchorIds": [
-          "E5"
-        ]
+        "claimIds": ["wealth_expansion"],
+        "signalIds": ["L2:편재:Jupiter"],
+        "anchorIds": ["E5"]
       }
     },
     {
       "id": "SCB_MOVE_04",
       "domain": "move",
       "main": {
-        "eventIds": [
-          "EVT_MOVE_WINDOW_202604",
-          "EVT_TIMING_202607"
-        ],
-        "summaryTokens": [
-          "relocation",
-          "2026",
-          "04",
-          "0.46"
-        ]
+        "eventIds": ["EVT_MOVE_WINDOW_202604", "EVT_TIMING_202607"],
+        "summaryTokens": ["relocation", "2026", "04", "0.46"]
       },
       "alt": [
         {
-          "eventIds": [
-            "EVT_TIMING_202604"
-          ],
-          "summaryTokens": [
-            "timing",
-            "2026",
-            "04",
-            "0.31"
-          ]
+          "eventIds": ["EVT_TIMING_202604"],
+          "summaryTokens": ["timing", "2026", "04", "0.31"]
         },
         {
-          "eventIds": [
-            "EVT_TIMING_202609"
-          ],
-          "summaryTokens": [
-            "timing",
-            "2026",
-            "09",
-            "0.30"
-          ]
+          "eventIds": ["EVT_TIMING_202609"],
+          "summaryTokens": ["timing", "2026", "09", "0.30"]
         }
       ],
       "selectionWhy": {
@@ -773,11 +576,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "career",
-              "wealth",
-              "personality"
-            ],
+            "overlapDomains": ["career", "wealth", "personality"],
             "overlapScore": 0.99,
             "orbFitScore": 0.47,
             "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -787,10 +586,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "career",
-              "personality"
-            ],
+            "overlapDomains": ["career", "personality"],
             "overlapScore": 0.94,
             "orbFitScore": 0.62,
             "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -809,11 +605,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "career",
-              "wealth",
-              "personality"
-            ],
+            "overlapDomains": ["career", "wealth", "personality"],
             "overlapScore": 0.99,
             "orbFitScore": 0.47,
             "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -823,10 +615,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "career",
-              "personality"
-            ],
+            "overlapDomains": ["career", "personality"],
             "overlapScore": 0.94,
             "orbFitScore": 0.62,
             "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -845,11 +634,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "career",
-              "wealth",
-              "timing"
-            ],
+            "overlapDomains": ["career", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
             "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -859,11 +644,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "relationship",
-              "wealth",
-              "timing"
-            ],
+            "overlapDomains": ["relationship", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
             "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -882,11 +663,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "relationship",
-              "wealth",
-              "timing"
-            ],
+            "overlapDomains": ["relationship", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
             "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -896,11 +673,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Venus-sextile-True Node (pair=True Node-Venus, angle=60deg, orb=4.8deg, allowed=relationship<=5deg, wealth<=4.3deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "relationship",
-              "wealth",
-              "personality"
-            ],
+            "overlapDomains": ["relationship", "wealth", "personality"],
             "overlapScore": 0.88,
             "orbFitScore": 0.06,
             "combinedConclusion": "Cross-domain overlap(relationship, wealth, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -919,11 +692,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "career",
-              "wealth",
-              "timing"
-            ],
+            "overlapDomains": ["career", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
             "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -933,11 +702,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "relationship",
-              "wealth",
-              "timing"
-            ],
+            "overlapDomains": ["relationship", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
             "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -956,11 +721,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "career",
-              "wealth",
-              "timing"
-            ],
+            "overlapDomains": ["career", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
             "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -970,11 +731,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "relationship",
-              "wealth",
-              "timing"
-            ],
+            "overlapDomains": ["relationship", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
             "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -993,11 +750,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "career",
-              "wealth",
-              "personality"
-            ],
+            "overlapDomains": ["career", "wealth", "personality"],
             "overlapScore": 0.99,
             "orbFitScore": 0.47,
             "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -1007,10 +760,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "career",
-              "personality"
-            ],
+            "overlapDomains": ["career", "personality"],
             "overlapScore": 0.94,
             "orbFitScore": 0.62,
             "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -1029,11 +779,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "career",
-              "wealth",
-              "timing"
-            ],
+            "overlapDomains": ["career", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
             "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -1043,11 +789,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "relationship",
-              "wealth",
-              "timing"
-            ],
+            "overlapDomains": ["relationship", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
             "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -1066,11 +808,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "career",
-              "wealth",
-              "timing"
-            ],
+            "overlapDomains": ["career", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
             "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -1080,11 +818,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "relationship",
-              "wealth",
-              "timing"
-            ],
+            "overlapDomains": ["relationship", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
             "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -1103,11 +837,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "career",
-              "wealth",
-              "personality"
-            ],
+            "overlapDomains": ["career", "wealth", "personality"],
             "overlapScore": 0.99,
             "orbFitScore": 0.47,
             "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -1117,10 +847,7 @@
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
             "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-05T13:25:19.155Z",
-            "overlapDomains": [
-              "career",
-              "personality"
-            ],
+            "overlapDomains": ["career", "personality"],
             "overlapScore": 0.94,
             "orbFitScore": 0.62,
             "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -1637,51 +1364,18 @@
         "career_expansion",
         "personality_stability"
       ],
-      "signalIds": [
-        "L1:금:air",
-        "L1:목:air",
-        "L6:임관:H10",
-        "L5:samhap:trine"
-      ],
-      "anchorIds": [
-        "E4",
-        "E3",
-        "E1",
-        "E2"
-      ]
+      "signalIds": ["L1:금:air", "L1:목:air", "L6:임관:H10", "L5:samhap:trine"],
+      "anchorIds": ["E4", "E3", "E1", "E2"]
     },
     "personalityDeep.p1": {
-      "claimIds": [
-        "personality_stability"
-      ],
-      "signalIds": [
-        "L1:금:air",
-        "L1:목:air",
-        "L8:천을귀인:Sun",
-        "L8:천을귀인:Jupiter"
-      ],
-      "anchorIds": [
-        "E1",
-        "E2"
-      ]
+      "claimIds": ["personality_stability"],
+      "signalIds": ["L1:금:air", "L1:목:air", "L8:천을귀인:Sun", "L8:천을귀인:Jupiter"],
+      "anchorIds": ["E1", "E2"]
     },
     "careerPath.p1": {
-      "claimIds": [
-        "relationship_growth_with_guardrails",
-        "career_expansion",
-        "wealth_expansion"
-      ],
-      "signalIds": [
-        "L2:편재:Jupiter",
-        "L3:상관:H7",
-        "L6:임관:H10",
-        "L8:괴강:Pluto"
-      ],
-      "anchorIds": [
-        "E4",
-        "E3",
-        "E5"
-      ]
+      "claimIds": ["relationship_growth_with_guardrails", "career_expansion", "wealth_expansion"],
+      "signalIds": ["L2:편재:Jupiter", "L3:상관:H7", "L6:임관:H10", "L8:괴강:Pluto"],
+      "anchorIds": ["E4", "E3", "E5"]
     },
     "relationshipDynamics.p1": {
       "claimIds": [
@@ -1695,61 +1389,22 @@
         "L6:임관:H10",
         "L5:samhap:conjunction"
       ],
-      "anchorIds": [
-        "E4",
-        "E3",
-        "E6"
-      ]
+      "anchorIds": ["E4", "E3", "E6"]
     },
     "wealthPotential.p1": {
-      "claimIds": [
-        "relationship_growth_with_guardrails",
-        "career_expansion",
-        "wealth_expansion"
-      ],
-      "signalIds": [
-        "L2:편재:Jupiter",
-        "L3:상관:H7",
-        "L6:임관:H10",
-        "L2:정인:Jupiter"
-      ],
-      "anchorIds": [
-        "E4",
-        "E3",
-        "E5"
-      ]
+      "claimIds": ["relationship_growth_with_guardrails", "career_expansion", "wealth_expansion"],
+      "signalIds": ["L2:편재:Jupiter", "L3:상관:H7", "L6:임관:H10", "L2:정인:Jupiter"],
+      "anchorIds": ["E4", "E3", "E5"]
     },
     "healthGuidance.p1": {
-      "claimIds": [
-        "relationship_growth_with_guardrails",
-        "health_growth_with_guardrails"
-      ],
-      "signalIds": [
-        "L2:상관:Saturn",
-        "L5:chung:opposition",
-        "L2:정인:Moon",
-        "L2:편재:Saturn"
-      ],
-      "anchorIds": [
-        "E4",
-        "E6"
-      ]
+      "claimIds": ["relationship_growth_with_guardrails", "health_growth_with_guardrails"],
+      "signalIds": ["L2:상관:Saturn", "L5:chung:opposition", "L2:정인:Moon", "L2:편재:Saturn"],
+      "anchorIds": ["E4", "E6"]
     },
     "lifeMission.p1": {
-      "claimIds": [
-        "personality_stability"
-      ],
-      "signalIds": [
-        "L5:samhap:trine",
-        "L1:금:air",
-        "L1:목:air",
-        "L6:사:H1"
-      ],
-      "anchorIds": [
-        "E1",
-        "E2",
-        "E7"
-      ]
+      "claimIds": ["personality_stability"],
+      "signalIds": ["L5:samhap:trine", "L1:금:air", "L1:목:air", "L6:사:H1"],
+      "anchorIds": ["E1", "E2", "E7"]
     },
     "timingAdvice.p1": {
       "claimIds": [
@@ -1757,18 +1412,8 @@
         "career_expansion",
         "health_growth_with_guardrails"
       ],
-      "signalIds": [
-        "L6:임관:H10",
-        "L5:chung:opposition",
-        "L2:편재:Jupiter",
-        "L2:상관:Saturn"
-      ],
-      "anchorIds": [
-        "E4",
-        "E3",
-        "E6",
-        "E8"
-      ]
+      "signalIds": ["L6:임관:H10", "L5:chung:opposition", "L2:편재:Jupiter", "L2:상관:Saturn"],
+      "anchorIds": ["E4", "E3", "E6", "E8"]
     },
     "actionPlan.p1": {
       "claimIds": [
@@ -1776,34 +1421,13 @@
         "career_expansion",
         "health_growth_with_guardrails"
       ],
-      "signalIds": [
-        "L3:상관:H7",
-        "L6:임관:H10",
-        "L5:chung:opposition",
-        "L2:편재:Jupiter"
-      ],
-      "anchorIds": [
-        "E4",
-        "E3",
-        "E6",
-        "E9"
-      ]
+      "signalIds": ["L3:상관:H7", "L6:임관:H10", "L5:chung:opposition", "L2:편재:Jupiter"],
+      "anchorIds": ["E4", "E3", "E6", "E9"]
     },
     "conclusion.p1": {
-      "claimIds": [
-        "personality_stability"
-      ],
-      "signalIds": [
-        "L1:금:air",
-        "L1:목:air",
-        "L6:사:H11",
-        "L6:사:H10"
-      ],
-      "anchorIds": [
-        "E1",
-        "E2",
-        "E10"
-      ]
+      "claimIds": ["personality_stability"],
+      "signalIds": ["L1:금:air", "L1:목:air", "L6:사:H11", "L6:사:H10"],
+      "anchorIds": ["E1", "E2", "E10"]
     }
   },
   "deterministicCore": {
@@ -1865,16 +1489,8 @@
       "personalityDeep 섹션 근거 정렬",
       "careerPath 섹션 근거 정렬"
     ],
-    "keyStrengths": [
-      "personality 강점(50)",
-      "career 강점(50)",
-      "relationship 강점(50)"
-    ],
-    "keyChallenges": [
-      "주의 신호 검토 필요",
-      "확정 전 재확인 필요",
-      "커뮤니케이션 리스크 점검"
-    ]
+    "keyStrengths": ["personality 강점(50)", "career 강점(50)", "relationship 강점(50)"],
+    "keyChallenges": ["주의 신호 검토 필요", "확정 전 재확인 필요", "커뮤니케이션 리스크 점검"]
   },
   "signalSynthesis": {
     "normalizedSignals": [
@@ -1883,12 +1499,7 @@
         "layer": 5,
         "rowKey": "samhap",
         "colKey": "trine",
-        "domainHints": [
-          "health",
-          "personality",
-          "spirituality",
-          "relationship"
-        ],
+        "domainHints": ["health", "personality", "spirituality", "relationship"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -1930,9 +1541,7 @@
         "layer": 5,
         "rowKey": "samhap",
         "colKey": "conjunction",
-        "domainHints": [
-          "relationship"
-        ],
+        "domainHints": ["relationship"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -1973,10 +1582,7 @@
         "layer": 5,
         "rowKey": "chung",
         "colKey": "opposition",
-        "domainHints": [
-          "health",
-          "relationship"
-        ],
+        "domainHints": ["health", "relationship"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -2014,11 +1620,7 @@
         "layer": 6,
         "rowKey": "임관",
         "colKey": "H10",
-        "domainHints": [
-          "career",
-          "personality",
-          "relationship"
-        ],
+        "domainHints": ["career", "personality", "relationship"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -2026,14 +1628,7 @@
         "sajuBasis": "십이운성 임관",
         "astroBasis": "Jupiter in H10",
         "advice": "",
-        "tags": [
-          "임관",
-          "H10",
-          "커리어정점",
-          "십이운성",
-          "Jupiter",
-          "in"
-        ],
+        "tags": ["임관", "H10", "커리어정점", "십이운성", "Jupiter", "in"],
         "semantic": {
           "layerMeaningKo": "국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다.",
           "layerMeaningEn": "Phase transition layer: interprets coexistence of expansion and reset signals.",
@@ -2048,9 +1643,7 @@
         "layer": 8,
         "rowKey": "천을귀인",
         "colKey": "Sun",
-        "domainHints": [
-          "personality"
-        ],
+        "domainHints": ["personality"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -2058,14 +1651,7 @@
         "sajuBasis": "신살 천을귀인",
         "astroBasis": "Sun in H1",
         "advice": "",
-        "tags": [
-          "천을귀인",
-          "Sun",
-          "귀인조력",
-          "신살",
-          "in",
-          "H1"
-        ],
+        "tags": ["천을귀인", "Sun", "귀인조력", "신살", "in", "H1"],
         "semantic": {
           "layerMeaningKo": "확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다.",
           "layerMeaningEn": "Expansion resource layer: interprets leverage of external opportunity/support.",
@@ -2080,10 +1666,7 @@
         "layer": 8,
         "rowKey": "천을귀인",
         "colKey": "Jupiter",
-        "domainHints": [
-          "career",
-          "personality"
-        ],
+        "domainHints": ["career", "personality"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -2091,14 +1674,7 @@
         "sajuBasis": "신살 천을귀인",
         "astroBasis": "Jupiter in H10",
         "advice": "",
-        "tags": [
-          "천을귀인",
-          "Jupiter",
-          "대길귀인",
-          "신살",
-          "in",
-          "H10"
-        ],
+        "tags": ["천을귀인", "Jupiter", "대길귀인", "신살", "in", "H10"],
         "semantic": {
           "layerMeaningKo": "확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다.",
           "layerMeaningEn": "Expansion resource layer: interprets leverage of external opportunity/support.",
@@ -2113,10 +1689,7 @@
         "layer": 8,
         "rowKey": "괴강",
         "colKey": "Pluto",
-        "domainHints": [
-          "career",
-          "personality"
-        ],
+        "domainHints": ["career", "personality"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -2124,14 +1697,7 @@
         "sajuBasis": "신살 괴강",
         "astroBasis": "Pluto in H10",
         "advice": "",
-        "tags": [
-          "괴강",
-          "Pluto",
-          "권력극단",
-          "신살",
-          "in",
-          "H10"
-        ],
+        "tags": ["괴강", "Pluto", "권력극단", "신살", "in", "H10"],
         "semantic": {
           "layerMeaningKo": "확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다.",
           "layerMeaningEn": "Expansion resource layer: interprets leverage of external opportunity/support.",
@@ -2146,11 +1712,7 @@
         "layer": 2,
         "rowKey": "편재",
         "colKey": "Jupiter",
-        "domainHints": [
-          "career",
-          "wealth",
-          "personality"
-        ],
+        "domainHints": ["career", "wealth", "personality"],
         "polarity": "strength",
         "score": 9,
         "rankScore": 9,
@@ -2158,14 +1720,7 @@
         "sajuBasis": "십신 편재",
         "astroBasis": "Jupiter in H10",
         "advice": "",
-        "tags": [
-          "편재",
-          "Jupiter",
-          "횡재",
-          "십신",
-          "in",
-          "H10"
-        ],
+        "tags": ["편재", "Jupiter", "횡재", "십신", "in", "H10"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -2180,11 +1735,7 @@
         "layer": 2,
         "rowKey": "정인",
         "colKey": "Moon",
-        "domainHints": [
-          "health",
-          "move",
-          "personality"
-        ],
+        "domainHints": ["health", "move", "personality"],
         "polarity": "strength",
         "score": 9,
         "rankScore": 9,
@@ -2192,14 +1743,7 @@
         "sajuBasis": "십신 정인",
         "astroBasis": "Moon in H4",
         "advice": "",
-        "tags": [
-          "정인",
-          "Moon",
-          "양육",
-          "십신",
-          "in",
-          "H4"
-        ],
+        "tags": ["정인", "Moon", "양육", "십신", "in", "H4"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -2214,10 +1758,7 @@
         "layer": 2,
         "rowKey": "정인",
         "colKey": "Jupiter",
-        "domainHints": [
-          "career",
-          "personality"
-        ],
+        "domainHints": ["career", "personality"],
         "polarity": "strength",
         "score": 9,
         "rankScore": 9,
@@ -2225,14 +1766,7 @@
         "sajuBasis": "십신 정인",
         "astroBasis": "Jupiter in H10",
         "advice": "",
-        "tags": [
-          "정인",
-          "Jupiter",
-          "학위",
-          "십신",
-          "in",
-          "H10"
-        ],
+        "tags": ["정인", "Jupiter", "학위", "십신", "in", "H10"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -2247,10 +1781,7 @@
         "layer": 2,
         "rowKey": "상관",
         "colKey": "Saturn",
-        "domainHints": [
-          "health",
-          "personality"
-        ],
+        "domainHints": ["health", "personality"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -2258,14 +1789,7 @@
         "sajuBasis": "십신 상관",
         "astroBasis": "Saturn in H1",
         "advice": "",
-        "tags": [
-          "상관",
-          "Saturn",
-          "좌절",
-          "십신",
-          "in",
-          "H1"
-        ],
+        "tags": ["상관", "Saturn", "좌절", "십신", "in", "H1"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -2280,10 +1804,7 @@
         "layer": 5,
         "rowKey": "chung",
         "colKey": "square",
-        "domainHints": [
-          "spirituality",
-          "relationship"
-        ],
+        "domainHints": ["spirituality", "relationship"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -2322,11 +1843,7 @@
         "layer": 6,
         "rowKey": "사",
         "colKey": "H1",
-        "domainHints": [
-          "personality",
-          "career",
-          "relationship"
-        ],
+        "domainHints": ["personality", "career", "relationship"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -2334,14 +1851,7 @@
         "sajuBasis": "십이운성 사",
         "astroBasis": "Sun in H1",
         "advice": "",
-        "tags": [
-          "사",
-          "H1",
-          "자아종결",
-          "십이운성",
-          "Sun",
-          "in"
-        ],
+        "tags": ["사", "H1", "자아종결", "십이운성", "Sun", "in"],
         "semantic": {
           "layerMeaningKo": "국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다.",
           "layerMeaningEn": "Phase transition layer: interprets coexistence of expansion and reset signals.",
@@ -2356,11 +1866,7 @@
         "layer": 6,
         "rowKey": "사",
         "colKey": "H11",
-        "domainHints": [
-          "relationship",
-          "personality",
-          "career"
-        ],
+        "domainHints": ["relationship", "personality", "career"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -2368,14 +1874,7 @@
         "sajuBasis": "십이운성 사",
         "astroBasis": "Venus in H11",
         "advice": "",
-        "tags": [
-          "사",
-          "H11",
-          "희망종결",
-          "십이운성",
-          "Venus",
-          "in"
-        ],
+        "tags": ["사", "H11", "희망종결", "십이운성", "Venus", "in"],
         "semantic": {
           "layerMeaningKo": "국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다.",
           "layerMeaningEn": "Phase transition layer: interprets coexistence of expansion and reset signals.",
@@ -2390,10 +1889,7 @@
         "layer": 6,
         "rowKey": "사",
         "colKey": "H7",
-        "domainHints": [
-          "relationship",
-          "career"
-        ],
+        "domainHints": ["relationship", "career"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -2401,14 +1897,7 @@
         "sajuBasis": "십이운성 사",
         "astroBasis": "Mars in H7",
         "advice": "",
-        "tags": [
-          "사",
-          "H7",
-          "관계종결",
-          "십이운성",
-          "Mars",
-          "in"
-        ],
+        "tags": ["사", "H7", "관계종결", "십이운성", "Mars", "in"],
         "semantic": {
           "layerMeaningKo": "국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다.",
           "layerMeaningEn": "Phase transition layer: interprets coexistence of expansion and reset signals.",
@@ -2423,11 +1912,7 @@
         "layer": 6,
         "rowKey": "사",
         "colKey": "H10",
-        "domainHints": [
-          "career",
-          "personality",
-          "relationship"
-        ],
+        "domainHints": ["career", "personality", "relationship"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -2435,14 +1920,7 @@
         "sajuBasis": "십이운성 사",
         "astroBasis": "Jupiter in H10",
         "advice": "",
-        "tags": [
-          "사",
-          "H10",
-          "커리어종결",
-          "십이운성",
-          "Jupiter",
-          "in"
-        ],
+        "tags": ["사", "H10", "커리어종결", "십이운성", "Jupiter", "in"],
         "semantic": {
           "layerMeaningKo": "국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다.",
           "layerMeaningEn": "Phase transition layer: interprets coexistence of expansion and reset signals.",
@@ -2457,10 +1935,7 @@
         "layer": 8,
         "rowKey": "겁살",
         "colKey": "Mars",
-        "domainHints": [
-          "relationship",
-          "personality"
-        ],
+        "domainHints": ["relationship", "personality"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -2468,14 +1943,7 @@
         "sajuBasis": "신살 겁살",
         "astroBasis": "Mars in H7",
         "advice": "",
-        "tags": [
-          "겁살",
-          "Mars",
-          "겁살극강",
-          "신살",
-          "in",
-          "H7"
-        ],
+        "tags": ["겁살", "Mars", "겁살극강", "신살", "in", "H7"],
         "semantic": {
           "layerMeaningKo": "확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다.",
           "layerMeaningEn": "Expansion resource layer: interprets leverage of external opportunity/support.",
@@ -2490,10 +1958,7 @@
         "layer": 8,
         "rowKey": "천라지망",
         "colKey": "Mars",
-        "domainHints": [
-          "relationship",
-          "personality"
-        ],
+        "domainHints": ["relationship", "personality"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -2501,14 +1966,7 @@
         "sajuBasis": "신살 천라지망",
         "astroBasis": "Mars in H7",
         "advice": "",
-        "tags": [
-          "천라지망",
-          "Mars",
-          "행동속박",
-          "신살",
-          "in",
-          "H7"
-        ],
+        "tags": ["천라지망", "Mars", "행동속박", "신살", "in", "H7"],
         "semantic": {
           "layerMeaningKo": "확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다.",
           "layerMeaningEn": "Expansion resource layer: interprets leverage of external opportunity/support.",
@@ -2523,10 +1981,7 @@
         "layer": 2,
         "rowKey": "상관",
         "colKey": "Pluto",
-        "domainHints": [
-          "career",
-          "personality"
-        ],
+        "domainHints": ["career", "personality"],
         "polarity": "caution",
         "score": 3,
         "rankScore": 8,
@@ -2534,14 +1989,7 @@
         "sajuBasis": "십신 상관",
         "astroBasis": "Pluto in H10",
         "advice": "",
-        "tags": [
-          "상관",
-          "Pluto",
-          "극단",
-          "십신",
-          "in",
-          "H10"
-        ],
+        "tags": ["상관", "Pluto", "극단", "십신", "in", "H10"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -2556,11 +2004,7 @@
         "layer": 3,
         "rowKey": "상관",
         "colKey": "H7",
-        "domainHints": [
-          "relationship",
-          "career",
-          "wealth"
-        ],
+        "domainHints": ["relationship", "career", "wealth"],
         "polarity": "caution",
         "score": 3,
         "rankScore": 8,
@@ -2568,14 +2012,7 @@
         "sajuBasis": "십신 상관",
         "astroBasis": "Mars in H7",
         "advice": "",
-        "tags": [
-          "상관",
-          "H7",
-          "관계파괴",
-          "십신",
-          "Mars",
-          "in"
-        ],
+        "tags": ["상관", "H7", "관계파괴", "십신", "Mars", "in"],
         "semantic": {
           "layerMeaningKo": "상호작용 레이어: 관계/협업에서 나타나는 마찰과 시너지를 해석합니다.",
           "layerMeaningEn": "Interaction layer: interprets friction and synergy in relationships/collaboration.",
@@ -2590,9 +2027,7 @@
         "layer": 1,
         "rowKey": "금",
         "colKey": "air",
-        "domainHints": [
-          "personality"
-        ],
+        "domainHints": ["personality"],
         "polarity": "balance",
         "score": 6,
         "rankScore": 6,
@@ -2600,13 +2035,7 @@
         "sajuBasis": "사주 금",
         "astroBasis": "점성 air",
         "advice": "",
-        "tags": [
-          "금",
-          "air",
-          "균형",
-          "사주",
-          "점성"
-        ],
+        "tags": ["금", "air", "균형", "사주", "점성"],
         "semantic": {
           "layerMeaningKo": "기질 기반 레이어: 오행 균형과 기본 반응 속도를 해석합니다.",
           "layerMeaningEn": "Temperament layer: interprets element balance and baseline reaction speed.",
@@ -2621,9 +2050,7 @@
         "layer": 1,
         "rowKey": "목",
         "colKey": "air",
-        "domainHints": [
-          "personality"
-        ],
+        "domainHints": ["personality"],
         "polarity": "balance",
         "score": 5,
         "rankScore": 5,
@@ -2631,13 +2058,7 @@
         "sajuBasis": "사주 목",
         "astroBasis": "점성 air",
         "advice": "",
-        "tags": [
-          "목",
-          "air",
-          "충돌",
-          "사주",
-          "점성"
-        ],
+        "tags": ["목", "air", "충돌", "사주", "점성"],
         "semantic": {
           "layerMeaningKo": "기질 기반 레이어: 오행 균형과 기본 반응 속도를 해석합니다.",
           "layerMeaningEn": "Temperament layer: interprets element balance and baseline reaction speed.",
@@ -2652,11 +2073,7 @@
         "layer": 2,
         "rowKey": "편재",
         "colKey": "Saturn",
-        "domainHints": [
-          "health",
-          "wealth",
-          "personality"
-        ],
+        "domainHints": ["health", "wealth", "personality"],
         "polarity": "balance",
         "score": 5,
         "rankScore": 5,
@@ -2664,14 +2081,7 @@
         "sajuBasis": "십신 편재",
         "astroBasis": "Saturn in H1",
         "advice": "",
-        "tags": [
-          "편재",
-          "Saturn",
-          "손실",
-          "십신",
-          "in",
-          "H1"
-        ],
+        "tags": ["편재", "Saturn", "손실", "십신", "in", "H1"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -2686,9 +2096,7 @@
         "layer": 2,
         "rowKey": "상관",
         "colKey": "Mercury",
-        "domainHints": [
-          "personality"
-        ],
+        "domainHints": ["personality"],
         "polarity": "balance",
         "score": 5,
         "rankScore": 5,
@@ -2696,14 +2104,7 @@
         "sajuBasis": "십신 상관",
         "astroBasis": "Mercury in H1",
         "advice": "",
-        "tags": [
-          "상관",
-          "Mercury",
-          "날카",
-          "십신",
-          "in",
-          "H1"
-        ],
+        "tags": ["상관", "Mercury", "날카", "십신", "in", "H1"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -2718,10 +2119,7 @@
         "layer": 2,
         "rowKey": "정인",
         "colKey": "Uranus",
-        "domainHints": [
-          "move",
-          "personality"
-        ],
+        "domainHints": ["move", "personality"],
         "polarity": "balance",
         "score": 5,
         "rankScore": 5,
@@ -2729,14 +2127,7 @@
         "sajuBasis": "십신 정인",
         "astroBasis": "Uranus in H12",
         "advice": "",
-        "tags": [
-          "정인",
-          "Uranus",
-          "혁신",
-          "십신",
-          "in",
-          "H12"
-        ],
+        "tags": ["정인", "Uranus", "혁신", "십신", "in", "H12"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -2753,11 +2144,7 @@
         "layer": 6,
         "rowKey": "임관",
         "colKey": "H10",
-        "domainHints": [
-          "career",
-          "personality",
-          "relationship"
-        ],
+        "domainHints": ["career", "personality", "relationship"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -2765,14 +2152,7 @@
         "sajuBasis": "십이운성 임관",
         "astroBasis": "Jupiter in H10",
         "advice": "",
-        "tags": [
-          "임관",
-          "H10",
-          "커리어정점",
-          "십이운성",
-          "Jupiter",
-          "in"
-        ],
+        "tags": ["임관", "H10", "커리어정점", "십이운성", "Jupiter", "in"],
         "semantic": {
           "layerMeaningKo": "국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다.",
           "layerMeaningEn": "Phase transition layer: interprets coexistence of expansion and reset signals.",
@@ -2787,11 +2167,7 @@
         "layer": 2,
         "rowKey": "편재",
         "colKey": "Jupiter",
-        "domainHints": [
-          "career",
-          "wealth",
-          "personality"
-        ],
+        "domainHints": ["career", "wealth", "personality"],
         "polarity": "strength",
         "score": 9,
         "rankScore": 9,
@@ -2799,14 +2175,7 @@
         "sajuBasis": "십신 편재",
         "astroBasis": "Jupiter in H10",
         "advice": "",
-        "tags": [
-          "편재",
-          "Jupiter",
-          "횡재",
-          "십신",
-          "in",
-          "H10"
-        ],
+        "tags": ["편재", "Jupiter", "횡재", "십신", "in", "H10"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -2821,10 +2190,7 @@
         "layer": 5,
         "rowKey": "chung",
         "colKey": "opposition",
-        "domainHints": [
-          "health",
-          "relationship"
-        ],
+        "domainHints": ["health", "relationship"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -2862,10 +2228,7 @@
         "layer": 2,
         "rowKey": "상관",
         "colKey": "Saturn",
-        "domainHints": [
-          "health",
-          "personality"
-        ],
+        "domainHints": ["health", "personality"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -2873,14 +2236,7 @@
         "sajuBasis": "십신 상관",
         "astroBasis": "Saturn in H1",
         "advice": "",
-        "tags": [
-          "상관",
-          "Saturn",
-          "좌절",
-          "십신",
-          "in",
-          "H1"
-        ],
+        "tags": ["상관", "Saturn", "좌절", "십신", "in", "H1"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -2895,10 +2251,7 @@
         "layer": 5,
         "rowKey": "chung",
         "colKey": "square",
-        "domainHints": [
-          "spirituality",
-          "relationship"
-        ],
+        "domainHints": ["spirituality", "relationship"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -2937,9 +2290,7 @@
         "layer": 1,
         "rowKey": "금",
         "colKey": "air",
-        "domainHints": [
-          "personality"
-        ],
+        "domainHints": ["personality"],
         "polarity": "balance",
         "score": 6,
         "rankScore": 6,
@@ -2947,13 +2298,7 @@
         "sajuBasis": "사주 금",
         "astroBasis": "점성 air",
         "advice": "",
-        "tags": [
-          "금",
-          "air",
-          "균형",
-          "사주",
-          "점성"
-        ],
+        "tags": ["금", "air", "균형", "사주", "점성"],
         "semantic": {
           "layerMeaningKo": "기질 기반 레이어: 오행 균형과 기본 반응 속도를 해석합니다.",
           "layerMeaningEn": "Temperament layer: interprets element balance and baseline reaction speed.",
@@ -2968,9 +2313,7 @@
         "layer": 1,
         "rowKey": "목",
         "colKey": "air",
-        "domainHints": [
-          "personality"
-        ],
+        "domainHints": ["personality"],
         "polarity": "balance",
         "score": 5,
         "rankScore": 5,
@@ -2978,13 +2321,7 @@
         "sajuBasis": "사주 목",
         "astroBasis": "점성 air",
         "advice": "",
-        "tags": [
-          "목",
-          "air",
-          "충돌",
-          "사주",
-          "점성"
-        ],
+        "tags": ["목", "air", "충돌", "사주", "점성"],
         "semantic": {
           "layerMeaningKo": "기질 기반 레이어: 오행 균형과 기본 반응 속도를 해석합니다.",
           "layerMeaningEn": "Temperament layer: interprets element balance and baseline reaction speed.",
@@ -3000,66 +2337,41 @@
         "claimId": "relationship_growth_with_guardrails",
         "domain": "relationship",
         "thesis": "관계는 진전 신호와 긴장 신호가 동시에 작동합니다. 두 신호는 상충이 아니라 속도와 확인 단계를 분리하라는 조건 신호입니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다.",
-        "evidence": [
-          "L6:임관:H10",
-          "L5:chung:opposition",
-          "L5:chung:square"
-        ],
+        "evidence": ["L6:임관:H10", "L5:chung:opposition", "L5:chung:square"],
         "riskControl": "감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요.",
-        "actions": [
-          "감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요."
-        ]
+        "actions": ["감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요."]
       },
       {
         "claimId": "career_expansion",
         "domain": "career",
         "thesis": "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 상승 구간에서도 범위·책임·기한을 고정하면 성장 효율이 높습니다.",
-        "evidence": [
-          "L6:임관:H10",
-          "L2:편재:Jupiter"
-        ],
+        "evidence": ["L6:임관:H10", "L2:편재:Jupiter"],
         "riskControl": "결정은 분할하고 역할·기한·책임을 문서로 고정하세요.",
-        "actions": [
-          "결정은 분할하고 역할·기한·책임을 문서로 고정하세요."
-        ]
+        "actions": ["결정은 분할하고 역할·기한·책임을 문서로 고정하세요."]
       },
       {
         "claimId": "health_growth_with_guardrails",
         "domain": "health",
         "thesis": "건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신호입니다. 충돌 패턴 레이어: 긴장 구간의 트리거와 완충 전략을 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요.",
-        "evidence": [
-          "L5:chung:opposition",
-          "L2:상관:Saturn"
-        ],
+        "evidence": ["L5:chung:opposition", "L2:상관:Saturn"],
         "riskControl": "과속보다 수면·수분·회복 시간을 먼저 고정하여 실수 비용을 줄이세요.",
-        "actions": [
-          "과속보다 수면·수분·회복 시간을 먼저 고정하여 실수 비용을 줄이세요."
-        ]
+        "actions": ["과속보다 수면·수분·회복 시간을 먼저 고정하여 실수 비용을 줄이세요."]
       },
       {
         "claimId": "personality_stability",
         "domain": "personality",
         "thesis": "규칙과 리듬을 지키면 안정 수익이 쌓일 구간입니다. 기질 기반 레이어: 오행 균형과 기본 반응 속도를 해석합니다. 판단 기준을 명확히 두면 일관성이 빠르게 올라갑니다.",
-        "evidence": [
-          "L1:금:air",
-          "L1:목:air"
-        ],
+        "evidence": ["L1:금:air", "L1:목:air"],
         "riskControl": "판단 시점과 실행 시점을 분리하면 오판 및 누락 리스크가 줄어듭니다.",
-        "actions": [
-          "판단 시점과 실행 시점을 분리하면 오판 및 누락 리스크가 줄어듭니다."
-        ]
+        "actions": ["판단 시점과 실행 시점을 분리하면 오판 및 누락 리스크가 줄어듭니다."]
       },
       {
         "claimId": "wealth_expansion",
         "domain": "wealth",
         "thesis": "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다. 역할·책임·마감 기준을 고정하면 성과 재현성이 올라갑니다.",
-        "evidence": [
-          "L2:편재:Jupiter"
-        ],
+        "evidence": ["L2:편재:Jupiter"],
         "riskControl": "확정 전에 금액·기한·취소 조건을 체크리스트로 재확인하세요.",
-        "actions": [
-          "확정 전에 금액·기한·취소 조건을 체크리스트로 재확인하세요."
-        ]
+        "actions": ["확정 전에 금액·기한·취소 조건을 체크리스트로 재확인하세요."]
       }
     ],
     "signalsById": {
@@ -3068,12 +2380,7 @@
         "layer": 5,
         "rowKey": "samhap",
         "colKey": "trine",
-        "domainHints": [
-          "health",
-          "personality",
-          "spirituality",
-          "relationship"
-        ],
+        "domainHints": ["health", "personality", "spirituality", "relationship"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -3115,9 +2422,7 @@
         "layer": 5,
         "rowKey": "samhap",
         "colKey": "conjunction",
-        "domainHints": [
-          "relationship"
-        ],
+        "domainHints": ["relationship"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -3158,10 +2463,7 @@
         "layer": 5,
         "rowKey": "chung",
         "colKey": "opposition",
-        "domainHints": [
-          "health",
-          "relationship"
-        ],
+        "domainHints": ["health", "relationship"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -3199,11 +2501,7 @@
         "layer": 6,
         "rowKey": "임관",
         "colKey": "H10",
-        "domainHints": [
-          "career",
-          "personality",
-          "relationship"
-        ],
+        "domainHints": ["career", "personality", "relationship"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -3211,14 +2509,7 @@
         "sajuBasis": "십이운성 임관",
         "astroBasis": "Jupiter in H10",
         "advice": "",
-        "tags": [
-          "임관",
-          "H10",
-          "커리어정점",
-          "십이운성",
-          "Jupiter",
-          "in"
-        ],
+        "tags": ["임관", "H10", "커리어정점", "십이운성", "Jupiter", "in"],
         "semantic": {
           "layerMeaningKo": "국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다.",
           "layerMeaningEn": "Phase transition layer: interprets coexistence of expansion and reset signals.",
@@ -3233,9 +2524,7 @@
         "layer": 8,
         "rowKey": "천을귀인",
         "colKey": "Sun",
-        "domainHints": [
-          "personality"
-        ],
+        "domainHints": ["personality"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -3243,14 +2532,7 @@
         "sajuBasis": "신살 천을귀인",
         "astroBasis": "Sun in H1",
         "advice": "",
-        "tags": [
-          "천을귀인",
-          "Sun",
-          "귀인조력",
-          "신살",
-          "in",
-          "H1"
-        ],
+        "tags": ["천을귀인", "Sun", "귀인조력", "신살", "in", "H1"],
         "semantic": {
           "layerMeaningKo": "확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다.",
           "layerMeaningEn": "Expansion resource layer: interprets leverage of external opportunity/support.",
@@ -3265,10 +2547,7 @@
         "layer": 8,
         "rowKey": "천을귀인",
         "colKey": "Jupiter",
-        "domainHints": [
-          "career",
-          "personality"
-        ],
+        "domainHints": ["career", "personality"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -3276,14 +2555,7 @@
         "sajuBasis": "신살 천을귀인",
         "astroBasis": "Jupiter in H10",
         "advice": "",
-        "tags": [
-          "천을귀인",
-          "Jupiter",
-          "대길귀인",
-          "신살",
-          "in",
-          "H10"
-        ],
+        "tags": ["천을귀인", "Jupiter", "대길귀인", "신살", "in", "H10"],
         "semantic": {
           "layerMeaningKo": "확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다.",
           "layerMeaningEn": "Expansion resource layer: interprets leverage of external opportunity/support.",
@@ -3298,10 +2570,7 @@
         "layer": 8,
         "rowKey": "괴강",
         "colKey": "Pluto",
-        "domainHints": [
-          "career",
-          "personality"
-        ],
+        "domainHints": ["career", "personality"],
         "polarity": "strength",
         "score": 10,
         "rankScore": 10,
@@ -3309,14 +2578,7 @@
         "sajuBasis": "신살 괴강",
         "astroBasis": "Pluto in H10",
         "advice": "",
-        "tags": [
-          "괴강",
-          "Pluto",
-          "권력극단",
-          "신살",
-          "in",
-          "H10"
-        ],
+        "tags": ["괴강", "Pluto", "권력극단", "신살", "in", "H10"],
         "semantic": {
           "layerMeaningKo": "확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다.",
           "layerMeaningEn": "Expansion resource layer: interprets leverage of external opportunity/support.",
@@ -3331,11 +2593,7 @@
         "layer": 2,
         "rowKey": "편재",
         "colKey": "Jupiter",
-        "domainHints": [
-          "career",
-          "wealth",
-          "personality"
-        ],
+        "domainHints": ["career", "wealth", "personality"],
         "polarity": "strength",
         "score": 9,
         "rankScore": 9,
@@ -3343,14 +2601,7 @@
         "sajuBasis": "십신 편재",
         "astroBasis": "Jupiter in H10",
         "advice": "",
-        "tags": [
-          "편재",
-          "Jupiter",
-          "횡재",
-          "십신",
-          "in",
-          "H10"
-        ],
+        "tags": ["편재", "Jupiter", "횡재", "십신", "in", "H10"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -3365,11 +2616,7 @@
         "layer": 2,
         "rowKey": "정인",
         "colKey": "Moon",
-        "domainHints": [
-          "health",
-          "move",
-          "personality"
-        ],
+        "domainHints": ["health", "move", "personality"],
         "polarity": "strength",
         "score": 9,
         "rankScore": 9,
@@ -3377,14 +2624,7 @@
         "sajuBasis": "십신 정인",
         "astroBasis": "Moon in H4",
         "advice": "",
-        "tags": [
-          "정인",
-          "Moon",
-          "양육",
-          "십신",
-          "in",
-          "H4"
-        ],
+        "tags": ["정인", "Moon", "양육", "십신", "in", "H4"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -3399,10 +2639,7 @@
         "layer": 2,
         "rowKey": "정인",
         "colKey": "Jupiter",
-        "domainHints": [
-          "career",
-          "personality"
-        ],
+        "domainHints": ["career", "personality"],
         "polarity": "strength",
         "score": 9,
         "rankScore": 9,
@@ -3410,14 +2647,7 @@
         "sajuBasis": "십신 정인",
         "astroBasis": "Jupiter in H10",
         "advice": "",
-        "tags": [
-          "정인",
-          "Jupiter",
-          "학위",
-          "십신",
-          "in",
-          "H10"
-        ],
+        "tags": ["정인", "Jupiter", "학위", "십신", "in", "H10"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -3432,10 +2662,7 @@
         "layer": 2,
         "rowKey": "상관",
         "colKey": "Saturn",
-        "domainHints": [
-          "health",
-          "personality"
-        ],
+        "domainHints": ["health", "personality"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -3443,14 +2670,7 @@
         "sajuBasis": "십신 상관",
         "astroBasis": "Saturn in H1",
         "advice": "",
-        "tags": [
-          "상관",
-          "Saturn",
-          "좌절",
-          "십신",
-          "in",
-          "H1"
-        ],
+        "tags": ["상관", "Saturn", "좌절", "십신", "in", "H1"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -3465,10 +2685,7 @@
         "layer": 5,
         "rowKey": "chung",
         "colKey": "square",
-        "domainHints": [
-          "spirituality",
-          "relationship"
-        ],
+        "domainHints": ["spirituality", "relationship"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -3507,11 +2724,7 @@
         "layer": 6,
         "rowKey": "사",
         "colKey": "H1",
-        "domainHints": [
-          "personality",
-          "career",
-          "relationship"
-        ],
+        "domainHints": ["personality", "career", "relationship"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -3519,14 +2732,7 @@
         "sajuBasis": "십이운성 사",
         "astroBasis": "Sun in H1",
         "advice": "",
-        "tags": [
-          "사",
-          "H1",
-          "자아종결",
-          "십이운성",
-          "Sun",
-          "in"
-        ],
+        "tags": ["사", "H1", "자아종결", "십이운성", "Sun", "in"],
         "semantic": {
           "layerMeaningKo": "국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다.",
           "layerMeaningEn": "Phase transition layer: interprets coexistence of expansion and reset signals.",
@@ -3541,11 +2747,7 @@
         "layer": 6,
         "rowKey": "사",
         "colKey": "H11",
-        "domainHints": [
-          "relationship",
-          "personality",
-          "career"
-        ],
+        "domainHints": ["relationship", "personality", "career"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -3553,14 +2755,7 @@
         "sajuBasis": "십이운성 사",
         "astroBasis": "Venus in H11",
         "advice": "",
-        "tags": [
-          "사",
-          "H11",
-          "희망종결",
-          "십이운성",
-          "Venus",
-          "in"
-        ],
+        "tags": ["사", "H11", "희망종결", "십이운성", "Venus", "in"],
         "semantic": {
           "layerMeaningKo": "국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다.",
           "layerMeaningEn": "Phase transition layer: interprets coexistence of expansion and reset signals.",
@@ -3575,10 +2770,7 @@
         "layer": 6,
         "rowKey": "사",
         "colKey": "H7",
-        "domainHints": [
-          "relationship",
-          "career"
-        ],
+        "domainHints": ["relationship", "career"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -3586,14 +2778,7 @@
         "sajuBasis": "십이운성 사",
         "astroBasis": "Mars in H7",
         "advice": "",
-        "tags": [
-          "사",
-          "H7",
-          "관계종결",
-          "십이운성",
-          "Mars",
-          "in"
-        ],
+        "tags": ["사", "H7", "관계종결", "십이운성", "Mars", "in"],
         "semantic": {
           "layerMeaningKo": "국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다.",
           "layerMeaningEn": "Phase transition layer: interprets coexistence of expansion and reset signals.",
@@ -3608,11 +2793,7 @@
         "layer": 6,
         "rowKey": "사",
         "colKey": "H10",
-        "domainHints": [
-          "career",
-          "personality",
-          "relationship"
-        ],
+        "domainHints": ["career", "personality", "relationship"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -3620,14 +2801,7 @@
         "sajuBasis": "십이운성 사",
         "astroBasis": "Jupiter in H10",
         "advice": "",
-        "tags": [
-          "사",
-          "H10",
-          "커리어종결",
-          "십이운성",
-          "Jupiter",
-          "in"
-        ],
+        "tags": ["사", "H10", "커리어종결", "십이운성", "Jupiter", "in"],
         "semantic": {
           "layerMeaningKo": "국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다.",
           "layerMeaningEn": "Phase transition layer: interprets coexistence of expansion and reset signals.",
@@ -3642,10 +2816,7 @@
         "layer": 8,
         "rowKey": "겁살",
         "colKey": "Mars",
-        "domainHints": [
-          "relationship",
-          "personality"
-        ],
+        "domainHints": ["relationship", "personality"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -3653,14 +2824,7 @@
         "sajuBasis": "신살 겁살",
         "astroBasis": "Mars in H7",
         "advice": "",
-        "tags": [
-          "겁살",
-          "Mars",
-          "겁살극강",
-          "신살",
-          "in",
-          "H7"
-        ],
+        "tags": ["겁살", "Mars", "겁살극강", "신살", "in", "H7"],
         "semantic": {
           "layerMeaningKo": "확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다.",
           "layerMeaningEn": "Expansion resource layer: interprets leverage of external opportunity/support.",
@@ -3675,10 +2839,7 @@
         "layer": 8,
         "rowKey": "천라지망",
         "colKey": "Mars",
-        "domainHints": [
-          "relationship",
-          "personality"
-        ],
+        "domainHints": ["relationship", "personality"],
         "polarity": "caution",
         "score": 2,
         "rankScore": 9,
@@ -3686,14 +2847,7 @@
         "sajuBasis": "신살 천라지망",
         "astroBasis": "Mars in H7",
         "advice": "",
-        "tags": [
-          "천라지망",
-          "Mars",
-          "행동속박",
-          "신살",
-          "in",
-          "H7"
-        ],
+        "tags": ["천라지망", "Mars", "행동속박", "신살", "in", "H7"],
         "semantic": {
           "layerMeaningKo": "확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다.",
           "layerMeaningEn": "Expansion resource layer: interprets leverage of external opportunity/support.",
@@ -3708,10 +2862,7 @@
         "layer": 2,
         "rowKey": "상관",
         "colKey": "Pluto",
-        "domainHints": [
-          "career",
-          "personality"
-        ],
+        "domainHints": ["career", "personality"],
         "polarity": "caution",
         "score": 3,
         "rankScore": 8,
@@ -3719,14 +2870,7 @@
         "sajuBasis": "십신 상관",
         "astroBasis": "Pluto in H10",
         "advice": "",
-        "tags": [
-          "상관",
-          "Pluto",
-          "극단",
-          "십신",
-          "in",
-          "H10"
-        ],
+        "tags": ["상관", "Pluto", "극단", "십신", "in", "H10"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -3741,11 +2885,7 @@
         "layer": 3,
         "rowKey": "상관",
         "colKey": "H7",
-        "domainHints": [
-          "relationship",
-          "career",
-          "wealth"
-        ],
+        "domainHints": ["relationship", "career", "wealth"],
         "polarity": "caution",
         "score": 3,
         "rankScore": 8,
@@ -3753,14 +2893,7 @@
         "sajuBasis": "십신 상관",
         "astroBasis": "Mars in H7",
         "advice": "",
-        "tags": [
-          "상관",
-          "H7",
-          "관계파괴",
-          "십신",
-          "Mars",
-          "in"
-        ],
+        "tags": ["상관", "H7", "관계파괴", "십신", "Mars", "in"],
         "semantic": {
           "layerMeaningKo": "상호작용 레이어: 관계/협업에서 나타나는 마찰과 시너지를 해석합니다.",
           "layerMeaningEn": "Interaction layer: interprets friction and synergy in relationships/collaboration.",
@@ -3775,9 +2908,7 @@
         "layer": 1,
         "rowKey": "금",
         "colKey": "air",
-        "domainHints": [
-          "personality"
-        ],
+        "domainHints": ["personality"],
         "polarity": "balance",
         "score": 6,
         "rankScore": 6,
@@ -3785,13 +2916,7 @@
         "sajuBasis": "사주 금",
         "astroBasis": "점성 air",
         "advice": "",
-        "tags": [
-          "금",
-          "air",
-          "균형",
-          "사주",
-          "점성"
-        ],
+        "tags": ["금", "air", "균형", "사주", "점성"],
         "semantic": {
           "layerMeaningKo": "기질 기반 레이어: 오행 균형과 기본 반응 속도를 해석합니다.",
           "layerMeaningEn": "Temperament layer: interprets element balance and baseline reaction speed.",
@@ -3806,9 +2931,7 @@
         "layer": 1,
         "rowKey": "목",
         "colKey": "air",
-        "domainHints": [
-          "personality"
-        ],
+        "domainHints": ["personality"],
         "polarity": "balance",
         "score": 5,
         "rankScore": 5,
@@ -3816,13 +2939,7 @@
         "sajuBasis": "사주 목",
         "astroBasis": "점성 air",
         "advice": "",
-        "tags": [
-          "목",
-          "air",
-          "충돌",
-          "사주",
-          "점성"
-        ],
+        "tags": ["목", "air", "충돌", "사주", "점성"],
         "semantic": {
           "layerMeaningKo": "기질 기반 레이어: 오행 균형과 기본 반응 속도를 해석합니다.",
           "layerMeaningEn": "Temperament layer: interprets element balance and baseline reaction speed.",
@@ -3837,11 +2954,7 @@
         "layer": 2,
         "rowKey": "편재",
         "colKey": "Saturn",
-        "domainHints": [
-          "health",
-          "wealth",
-          "personality"
-        ],
+        "domainHints": ["health", "wealth", "personality"],
         "polarity": "balance",
         "score": 5,
         "rankScore": 5,
@@ -3849,14 +2962,7 @@
         "sajuBasis": "십신 편재",
         "astroBasis": "Saturn in H1",
         "advice": "",
-        "tags": [
-          "편재",
-          "Saturn",
-          "손실",
-          "십신",
-          "in",
-          "H1"
-        ],
+        "tags": ["편재", "Saturn", "손실", "십신", "in", "H1"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -3871,9 +2977,7 @@
         "layer": 2,
         "rowKey": "상관",
         "colKey": "Mercury",
-        "domainHints": [
-          "personality"
-        ],
+        "domainHints": ["personality"],
         "polarity": "balance",
         "score": 5,
         "rankScore": 5,
@@ -3881,14 +2985,7 @@
         "sajuBasis": "십신 상관",
         "astroBasis": "Mercury in H1",
         "advice": "",
-        "tags": [
-          "상관",
-          "Mercury",
-          "날카",
-          "십신",
-          "in",
-          "H1"
-        ],
+        "tags": ["상관", "Mercury", "날카", "십신", "in", "H1"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -3903,10 +3000,7 @@
         "layer": 2,
         "rowKey": "정인",
         "colKey": "Uranus",
-        "domainHints": [
-          "move",
-          "personality"
-        ],
+        "domainHints": ["move", "personality"],
         "polarity": "balance",
         "score": 5,
         "rankScore": 5,
@@ -3914,14 +3008,7 @@
         "sajuBasis": "십신 정인",
         "astroBasis": "Uranus in H12",
         "advice": "",
-        "tags": [
-          "정인",
-          "Uranus",
-          "혁신",
-          "십신",
-          "in",
-          "H12"
-        ],
+        "tags": ["정인", "Uranus", "혁신", "십신", "in", "H12"],
         "semantic": {
           "layerMeaningKo": "십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다.",
           "layerMeaningEn": "Ten-star role layer: interprets motivation structure and action priorities.",
@@ -3955,11 +3042,7 @@
         "thesis": "규칙과 리듬을 지키면 안정 수익이 쌓일 구간입니다. 기질 기반 레이어: 오행 균형과 기본 반응 속도를 해석합니다. 판단 기준을 명확히 두면 일관성이 빠르게 올라갑니다.",
         "strategy": "성향 전략은 공격 58% / 방어 42%로 운용하세요. Execute in staged steps with explicit recheck gates.",
         "riskControl": "판단 시점과 실행 시점을 분리하면 오판 및 누락 리스크가 줄어듭니다.",
-        "evidenceIds": [
-          "L1:금:air",
-          "L1:목:air",
-          "L6:임관:H10"
-        ],
+        "evidenceIds": ["L1:금:air", "L1:목:air", "L6:임관:H10"],
         "vector": {
           "expansion": 30.9,
           "volatility": 9.5,
@@ -4028,11 +3111,7 @@
         "thesis": "관계는 진전 신호와 긴장 신호가 동시에 작동합니다. 두 신호는 상충이 아니라 속도와 확인 단계를 분리하라는 조건 신호입니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다.",
         "strategy": "관계 전략은 공격 72% / 방어 28%로 운용하세요. Increase dialogue volume, delay final statements, and confirm intent in one line.",
         "riskControl": "감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요.",
-        "evidenceIds": [
-          "L5:chung:opposition",
-          "L6:임관:H10",
-          "L5:chung:square"
-        ],
+        "evidenceIds": ["L5:chung:opposition", "L6:임관:H10", "L5:chung:square"],
         "vector": {
           "expansion": 36,
           "volatility": 14.3,
@@ -4085,10 +3164,7 @@
         "thesis": "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 상승 구간에서도 범위·책임·기한을 고정하면 성장 효율이 높습니다.",
         "strategy": "커리어 전략은 공격 80% / 방어 20%로 운용하세요. Prioritize 1-2 core tasks, then commit externally after checklist pass.",
         "riskControl": "결정은 분할하고 역할·기한·책임을 문서로 고정하세요.",
-        "evidenceIds": [
-          "L6:임관:H10",
-          "L2:편재:Jupiter"
-        ],
+        "evidenceIds": ["L6:임관:H10", "L2:편재:Jupiter"],
         "vector": {
           "expansion": 39,
           "volatility": 12,
@@ -4133,10 +3209,7 @@
         "thesis": "건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신호입니다. 충돌 패턴 레이어: 긴장 구간의 트리거와 완충 전략을 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요.",
         "strategy": "건강 전략은 공격 40% / 방어 60%로 운용하세요. Reduce load immediately and restore sleep-hydration-recovery blocks first.",
         "riskControl": "과속보다 수면·수분·회복 시간을 먼저 고정하여 실수 비용을 줄이세요.",
-        "evidenceIds": [
-          "L5:chung:opposition",
-          "L2:상관:Saturn"
-        ],
+        "evidenceIds": ["L5:chung:opposition", "L2:상관:Saturn"],
         "vector": {
           "expansion": 33.6,
           "volatility": 16.1,
@@ -4181,9 +3254,7 @@
         "thesis": "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다. 역할·책임·마감 기준을 고정하면 성과 재현성이 올라갑니다.",
         "strategy": "재정 전략은 공격 80% / 방어 20%로 운용하세요. Execute in staged steps with explicit recheck gates.",
         "riskControl": "확정 전에 금액·기한·취소 조건을 체크리스트로 재확인하세요.",
-        "evidenceIds": [
-          "L2:편재:Jupiter"
-        ],
+        "evidenceIds": ["L2:편재:Jupiter"],
         "vector": {
           "expansion": 39,
           "volatility": 12,
@@ -4220,9 +3291,7 @@
         "thesis": "사명은 방어 우선으로 재정렬한 뒤 확장 타이밍을 다시 잡아야 합니다.",
         "strategy": "사명 전략은 공격 35% / 방어 65%로 운용하세요. Execute in staged steps with explicit recheck gates.",
         "riskControl": "",
-        "evidenceIds": [
-          "L5:chung:square"
-        ],
+        "evidenceIds": ["L5:chung:square"],
         "vector": {
           "expansion": 11,
           "volatility": 49,

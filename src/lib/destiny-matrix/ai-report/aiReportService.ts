@@ -1,4 +1,4 @@
-﻿// src/lib/destiny-matrix/ai-report/aiReportService.ts
+// src/lib/destiny-matrix/ai-report/aiReportService.ts
 // Destiny Fusion Matrix(TM) - AI Premium Report Generator
 // 유료 기능: AI 기반 상세 내러티브 리포트 생성
 
@@ -19,7 +19,7 @@ import type {
 } from './types'
 import { THEME_META } from './types'
 import { logger } from '@/lib/logger'
-import { recordCounter, recordGauge } from '@/lib/metrics'
+import { recordCounter } from '@/lib/metrics'
 import { buildTimingPrompt } from './prompts/timingPrompts'
 import { buildThemedPrompt } from './prompts/themedPrompts'
 import {
@@ -34,6 +34,12 @@ import { getThemedSectionKeys } from './themeSchema'
 import { buildLifeCyclePromptBlock, buildThemeSchemaPromptBlock } from '../interpretationSchema'
 import { generateNarrativeSectionsFromSynthesis } from './narrativeGenerator'
 import { buildUnifiedEnvelope, inferAgeFromBirthDate } from './unifiedReport'
+import {
+  buildReportQualityMetrics as buildReportQualityMetricsCore,
+  recordReportQualityMetrics as recordReportQualityMetricsCore,
+  type ReportQualityContext,
+  type ReportQualityMetrics,
+} from './reportQuality'
 import {
   buildSynthesisFactsForSection,
   synthesizeMatrixSignals,
@@ -225,206 +231,36 @@ function buildCrossRepairInstruction(lang: 'ko' | 'en', missing: string[]): stri
   ].join('\n')
 }
 
-interface ReportQualityMetrics {
-  sectionCount: number
-  avgSectionChars: number
-  evidenceCoverageRatio: number
-  minEvidenceSatisfiedRatio: number
-  contradictionCount: number
-  recheckGuidanceRatio: number
-  overclaimCount: number
-  sectionCompletenessRate?: number
-  avgEvidencePerParagraph?: number
-  anchorCoverageRate?: number
-  scenarioBundleCoverage?: number
-  eventCountByDomain?: Record<string, number>
-  tokenIntegrityPass?: boolean
-  structurePass?: boolean
-  forbiddenAdditionsPass?: boolean
-}
-
-interface ReportQualityContext {
-  requiredPaths?: string[]
-  requiredHeadingsByPath?: Record<string, string[]>
-  claims?: UnifiedClaim[]
-  anchors?: UnifiedAnchor[]
-  scenarioBundles?: UnifiedScenarioBundle[]
-  timelineEvents?: UnifiedTimelineEvent[]
-}
-
-function looksLikeEncodingIssue(text: string): boolean {
-  if (!text) return false
-  if (text.includes('\uFFFD')) return true
-  if (/\?\?\?+/.test(text)) return true
-  return /(?:Ã.|Â.|ì.|í.|ë.|ê.){2,}/.test(text)
-}
-
-function hasRequiredHeadings(
-  sections: Record<string, unknown>,
-  requiredHeadingsByPath: Record<string, string[]>
-): boolean {
-  for (const [path, headings] of Object.entries(requiredHeadingsByPath)) {
-    const text = getPathText(sections, path)
-    if (!text) return false
-    for (const heading of headings) {
-      if (!text.includes(heading)) return false
-    }
-  }
-  return true
-}
-
-function countTimelineEventsByDomain(
-  events: UnifiedTimelineEvent[] | undefined
-): Record<string, number> {
-  const out: Record<string, number> = {
-    career: 0,
-    love: 0,
-    money: 0,
-    health: 0,
-    move: 0,
-    timing: 0,
-    life: 0,
-  }
-  for (const event of events || []) {
-    if (event.type === 'job') out.career += 1
-    else if (event.type === 'marriage' || event.type === 'relationship') out.love += 1
-    else if (event.type === 'money') out.money += 1
-    else if (event.type === 'health') out.health += 1
-    else if (event.type === 'relocation') out.move += 1
-    else if (event.type === 'timing') out.timing += 1
-    else out.life += 1
-  }
-  return out
-}
-
 function buildReportQualityMetrics(
   sections: Record<string, unknown>,
   sectionPaths: string[],
   evidenceRefs: SectionEvidenceRefs,
   context: ReportQualityContext = {}
 ): ReportQualityMetrics {
-  const texts = sectionPaths
-    .map((path) => ({ path, text: getPathText(sections, path) }))
-    .filter((item) => item.text.length > 0)
-  const sectionCount = texts.length
-  if (sectionCount === 0) {
-    return {
-      sectionCount: 0,
-      avgSectionChars: 0,
-      evidenceCoverageRatio: 0,
-      minEvidenceSatisfiedRatio: 0,
-      contradictionCount: 0,
-      recheckGuidanceRatio: 0,
-      overclaimCount: 0,
-      sectionCompletenessRate: 0,
-      avgEvidencePerParagraph: 0,
-      anchorCoverageRate: 0,
-      scenarioBundleCoverage: 0,
-      eventCountByDomain: countTimelineEventsByDomain(context.timelineEvents),
-      tokenIntegrityPass: false,
-      structurePass: false,
-      forbiddenAdditionsPass: false,
-    }
-  }
+  const forbiddenAdditionsPass = !validateEvidenceBinding(
+    sections,
+    sectionPaths,
+    evidenceRefs
+  ).violations.some((violation) => violation.unsupportedTokens.length > 0)
 
-  const totalChars = texts.reduce((acc, item) => acc + item.text.length, 0)
-  const evidenceCovered = texts.filter((item) => {
-    const refs = evidenceRefs[item.path] || []
-    return refs.length === 0 || hasEvidenceSupport(item.text, refs)
-  }).length
-  const minEvidenceSatisfied = texts.filter(
-    (item) => (evidenceRefs[item.path] || []).length >= MIN_EVIDENCE_REFS_PER_SECTION
-  ).length
-  const recheckGuidanceCount = texts.filter((item) => RECHECK_REGEX.test(item.text)).length
-  const overclaimCount = texts.filter((item) => ABSOLUTE_RISK_REGEX.test(item.text)).length
-  const contradictionCount = texts.filter((item) => {
-    const sentences = item.text
-      .split(/[.!?\n]+/)
-      .map((segment) => segment.trim())
-      .filter(Boolean)
-    return sentences.some((sentence) => {
-      const hasIrreversible = IRREVERSIBLE_ACTION_REGEX.test(sentence)
-      const hasCaution = CAUTION_INDICATOR_REGEX.test(sentence)
-      if (!(hasIrreversible && hasCaution)) return false
-      const hasRecommendationTone = RECOMMENDATION_TONE_REGEX.test(sentence)
-      if (!hasRecommendationTone) return false
-      if (MITIGATION_REGEX.test(sentence)) return false
-      return IMMEDIATE_FORCE_REGEX.test(sentence)
-    })
-  }).length
-
-  const requiredPaths =
-    context.requiredPaths && context.requiredPaths.length > 0 ? context.requiredPaths : sectionPaths
-  const requiredPresent = requiredPaths.filter((path) => getPathText(sections, path).trim().length > 0)
-    .length
-  const evidenceCounts = requiredPaths.map((path) => (evidenceRefs[path] || []).length)
-  const avgEvidencePerParagraph =
-    evidenceCounts.length > 0
-      ? Number(
-          (
-            evidenceCounts.reduce((sum, count) => sum + count, 0) /
-            Math.max(1, evidenceCounts.length)
-          ).toFixed(2)
-        )
-      : 0
-
-  const claimsBySignalId = new Map<string, UnifiedClaim[]>()
-  for (const claim of context.claims || []) {
-    for (const signalId of claim.selectedSignalIds || []) {
-      const list = claimsBySignalId.get(signalId) || []
-      list.push(claim)
-      claimsBySignalId.set(signalId, list)
-    }
-  }
-  const anchorCoverageHit = requiredPaths.filter((path) => {
-    const refs = evidenceRefs[path] || []
-    const hasClaimAnchor = refs.some((ref) =>
-      (claimsBySignalId.get(ref.id) || []).some((claim) => (claim.anchorIds || []).length > 0)
-    )
-    if (hasClaimAnchor) return true
-    const lowerPath = path.toLowerCase()
-    return (context.anchors || []).some((anchor) => {
-      const section = String(anchor.section || '').toLowerCase()
-      return section.includes(lowerPath) || lowerPath.includes(section)
-    })
-  }).length
-
-  const expectedScenarioDomains: UnifiedScenarioBundle['domain'][] = [
-    'career',
-    'relationship',
-    'wealth',
-    'move',
-  ]
-  const presentScenarioDomains = new Set((context.scenarioBundles || []).map((bundle) => bundle.domain))
-  const tokenIntegrityPass = texts.every((item) => !looksLikeEncodingIssue(item.text))
-  const headingPass = context.requiredHeadingsByPath
-    ? hasRequiredHeadings(sections, context.requiredHeadingsByPath)
-    : true
-  const structurePass = requiredPresent === requiredPaths.length && headingPass
-  const forbiddenAdditionsPass =
-    !validateEvidenceBinding(sections, sectionPaths, evidenceRefs).violations.some(
-      (violation) => violation.unsupportedTokens.length > 0
-    )
-
-  return {
-    sectionCount,
-    avgSectionChars: Math.round(totalChars / Math.max(1, sectionCount)),
-    evidenceCoverageRatio: Number((evidenceCovered / sectionCount).toFixed(4)),
-    minEvidenceSatisfiedRatio: Number((minEvidenceSatisfied / sectionCount).toFixed(4)),
-    contradictionCount,
-    recheckGuidanceRatio: Number((recheckGuidanceCount / sectionCount).toFixed(4)),
-    overclaimCount,
-    sectionCompletenessRate: Number((requiredPresent / Math.max(1, requiredPaths.length)).toFixed(4)),
-    avgEvidencePerParagraph,
-    anchorCoverageRate: Number((anchorCoverageHit / Math.max(1, requiredPaths.length)).toFixed(4)),
-    scenarioBundleCoverage: Number(
-      (presentScenarioDomains.size / Math.max(1, expectedScenarioDomains.length)).toFixed(4)
-    ),
-    eventCountByDomain: countTimelineEventsByDomain(context.timelineEvents),
-    tokenIntegrityPass,
-    structurePass,
+  return buildReportQualityMetricsCore({
+    sections,
+    sectionPaths,
+    evidenceRefs,
+    context,
+    minEvidenceRefsPerSection: MIN_EVIDENCE_REFS_PER_SECTION,
+    regex: {
+      recheck: RECHECK_REGEX,
+      absoluteRisk: ABSOLUTE_RISK_REGEX,
+      irreversibleAction: IRREVERSIBLE_ACTION_REGEX,
+      cautionIndicator: CAUTION_INDICATOR_REGEX,
+      immediateForce: IMMEDIATE_FORCE_REGEX,
+      mitigation: MITIGATION_REGEX,
+      recommendationTone: RECOMMENDATION_TONE_REGEX,
+    },
+    hasEvidenceSupport,
     forbiddenAdditionsPass,
-  }
+  })
 }
 
 function recordReportQualityMetrics(
@@ -432,78 +268,7 @@ function recordReportQualityMetrics(
   modelUsed: string,
   quality: ReportQualityMetrics
 ) {
-  const labels = { report_type: reportType, model_used: modelUsed }
-  recordGauge(
-    'destiny.ai_report.quality.evidence_coverage_ratio',
-    quality.evidenceCoverageRatio,
-    labels
-  )
-  recordGauge(
-    'destiny.ai_report.quality.min_evidence_satisfied_ratio',
-    quality.minEvidenceSatisfiedRatio,
-    labels
-  )
-  recordGauge(
-    'destiny.ai_report.quality.recheck_guidance_ratio',
-    quality.recheckGuidanceRatio,
-    labels
-  )
-  recordGauge('destiny.ai_report.quality.avg_section_chars', quality.avgSectionChars, labels)
-  recordGauge('destiny.ai_report.quality.contradiction_count', quality.contradictionCount, labels)
-  recordGauge('destiny.ai_report.quality.overclaim_count', quality.overclaimCount, labels)
-  if (typeof quality.sectionCompletenessRate === 'number') {
-    recordGauge(
-      'destiny.ai_report.quality.section_completeness_rate',
-      quality.sectionCompletenessRate,
-      labels
-    )
-  }
-  if (typeof quality.avgEvidencePerParagraph === 'number') {
-    recordGauge(
-      'destiny.ai_report.quality.avg_evidence_per_paragraph',
-      quality.avgEvidencePerParagraph,
-      labels
-    )
-  }
-  if (typeof quality.anchorCoverageRate === 'number') {
-    recordGauge(
-      'destiny.ai_report.quality.anchor_coverage_rate',
-      quality.anchorCoverageRate,
-      labels
-    )
-  }
-  if (typeof quality.scenarioBundleCoverage === 'number') {
-    recordGauge(
-      'destiny.ai_report.quality.scenario_bundle_coverage',
-      quality.scenarioBundleCoverage,
-      labels
-    )
-  }
-  if (quality.eventCountByDomain) {
-    for (const [domain, count] of Object.entries(quality.eventCountByDomain)) {
-      recordGauge('destiny.ai_report.quality.event_count_by_domain', count, {
-        ...labels,
-        domain,
-      })
-    }
-  }
-  if (typeof quality.tokenIntegrityPass === 'boolean') {
-    recordGauge(
-      'destiny.ai_report.quality.token_integrity_pass',
-      quality.tokenIntegrityPass ? 1 : 0,
-      labels
-    )
-  }
-  if (typeof quality.structurePass === 'boolean') {
-    recordGauge('destiny.ai_report.quality.structure_pass', quality.structurePass ? 1 : 0, labels)
-  }
-  if (typeof quality.forbiddenAdditionsPass === 'boolean') {
-    recordGauge(
-      'destiny.ai_report.quality.forbidden_additions_pass',
-      quality.forbiddenAdditionsPass ? 1 : 0,
-      labels
-    )
-  }
+  recordReportQualityMetricsCore(reportType, modelUsed, quality)
 }
 
 function getPathText(sections: Record<string, unknown>, path: string): string {
