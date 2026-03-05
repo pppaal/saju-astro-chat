@@ -1,0 +1,53 @@
+name: Weekly SLO Report
+
+on:
+  schedule:
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+
+jobs:
+  generate-slo-report:
+    name: Generate SLO Report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
+
+      - name: Refresh typecheck snapshots
+        run: |
+          npm run -s ops:typecheck:metrics
+          npm run -s ops:typecheck:hotspots
+
+      - name: Generate weekly SLO report
+        run: npm run -s ops:slo:report
+        env:
+          SLO_AVAILABILITY_PERCENT: ${{ secrets.SLO_AVAILABILITY_PERCENT }}
+          SLO_P95_LATENCY_MS: ${{ secrets.SLO_P95_LATENCY_MS }}
+          SLO_ERROR_RATE_PERCENT: ${{ secrets.SLO_ERROR_RATE_PERCENT }}
+
+      - name: Upload SLO artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: slo-report-${{ github.run_id }}
+          path: |
+            data/ops/slo-report.json
+            reports/ops/slo-report.md
+            data/ops/typecheck-metrics.json
+            data/ops/typecheck-hotspots.json
+            reports/typecheck/baseline.json
+            reports/typecheck/hotspots.json
+          retention-days: 30
+

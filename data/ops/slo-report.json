@@ -1,0 +1,53 @@
+{
+  "generatedAt": "2026-03-05T00:52:16.156Z",
+  "periodLabel": "2026-02-27..2026-03-05",
+  "overallStatus": "unknown",
+  "summary": {
+    "total": 3,
+    "pass": 0,
+    "warning": 0,
+    "fail": 0,
+    "noData": 3
+  },
+  "thresholds": {
+    "availabilityPercent": 99.5,
+    "p95LatencyMs": 700,
+    "errorRatePercent": 0.5
+  },
+  "metrics": [
+    {
+      "key": "availability",
+      "current": null,
+      "threshold": 99.5,
+      "unit": "%",
+      "status": "no_data",
+      "message": "Availability data is missing."
+    },
+    {
+      "key": "p95_latency",
+      "current": null,
+      "threshold": 700,
+      "unit": "ms",
+      "status": "no_data",
+      "message": "p95_latency data is missing."
+    },
+    {
+      "key": "error_rate",
+      "current": null,
+      "threshold": 0.5,
+      "unit": "%",
+      "status": "no_data",
+      "message": "error_rate data is missing."
+    }
+  ],
+  "sources": {
+    "inputPath": "data/ops/slo-input.json",
+    "thresholdsPath": null,
+    "typecheckBaselinePath": "reports/typecheck/baseline.json|data/ops/typecheck-metrics.json"
+  },
+  "typecheck": {
+    "totalErrors": 0,
+    "generatedAt": "2026-03-05T00:50:57.209Z",
+    "errorCodes": {}
+  }
+}

@@ -8,6 +8,7 @@ function readArg(flag) {
 }
 
 const outPath = readArg('--out') ?? 'reports/typecheck/baseline.json'
+const mirrorOutPath = readArg('--mirror-out') ?? 'data/ops/typecheck-metrics.json'
 const project = readArg('--project') ?? 'tsconfig.json'
 const failOnErrors = process.argv.includes('--fail-on-errors')
 
@@ -24,8 +25,14 @@ const payload = {
 }
 
 writeJson(outPath, payload)
+if (mirrorOutPath && mirrorOutPath !== outPath) {
+  writeJson(mirrorOutPath, payload)
+}
 
 console.log(`[typecheck-metrics] wrote ${path.normalize(outPath)}`)
+if (mirrorOutPath && mirrorOutPath !== outPath) {
+  console.log(`[typecheck-metrics] wrote ${path.normalize(mirrorOutPath)}`)
+}
 console.log(`[typecheck-metrics] totalErrors=${payload.totalErrors}`)
 
 for (const [code, count] of Object.entries(payload.errorCodes)) {
@@ -39,4 +46,3 @@ if (payload.totalErrors === 0) {
 if (failOnErrors && payload.totalErrors > 0) {
   process.exit(1)
 }
-

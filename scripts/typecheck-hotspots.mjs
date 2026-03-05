@@ -8,6 +8,7 @@ function readArg(flag) {
 }
 
 const outPath = readArg('--out') ?? 'reports/typecheck/hotspots.json'
+const mirrorOutPath = readArg('--mirror-out') ?? 'data/ops/typecheck-hotspots.json'
 const project = readArg('--project') ?? 'tsconfig.json'
 const top = Number(readArg('--top') ?? '20')
 
@@ -25,8 +26,14 @@ const payload = {
 }
 
 writeJson(outPath, payload)
+if (mirrorOutPath && mirrorOutPath !== outPath) {
+  writeJson(mirrorOutPath, payload)
+}
 
 console.log(`[typecheck-hotspots] wrote ${path.normalize(outPath)}`)
+if (mirrorOutPath && mirrorOutPath !== outPath) {
+  console.log(`[typecheck-hotspots] wrote ${path.normalize(mirrorOutPath)}`)
+}
 console.log(`[typecheck-hotspots] totalErrors=${payload.totalErrors}`)
 
 if (payload.topFiles.length === 0) {
@@ -37,4 +44,3 @@ if (payload.topFiles.length === 0) {
     console.log(`- ${hotspot.file}: ${hotspot.count}`)
   }
 }
-
