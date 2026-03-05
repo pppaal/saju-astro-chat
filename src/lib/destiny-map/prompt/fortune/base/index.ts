@@ -18,13 +18,11 @@
  * and maintainability.
  */
 
- 
-
-import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
-import type { PlanetData } from "@/lib/astrology";
-import { logger } from "@/lib/logger";
-import type { AnnualItem, MonthlyItem, PillarSet } from './prompt-types';
-import type { UnseDataForFormat } from './formatter-utils';
+import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
+import type { PlanetData } from '@/lib/astrology'
+import { logger } from '@/lib/logger'
+import type { AnnualItem, MonthlyItem, PillarSet } from './prompt-types'
+import type { UnseDataForFormat } from './formatter-utils'
 
 // Import all modules
 import {
@@ -33,7 +31,7 @@ import {
   extractAdvancedAstrology,
   getCurrentTimeInfo,
   calculateAgeInfo,
-} from './data-extractors';
+} from './data-extractors'
 
 import {
   formatPlanetLines,
@@ -49,10 +47,10 @@ import {
   formatSinsalLists,
   formatAdvancedSajuAnalysis,
   formatSignificantTransits,
-} from './formatter-utils';
+} from './formatter-utils'
 
-import { buildThemeSection, type ThemeSectionInput } from './theme-sections';
-import { assemblePromptTemplate, type PromptData } from './prompt-template';
+import { buildThemeSection, type ThemeSectionInput } from './theme-sections'
+import { assemblePromptTemplate, type PromptData } from './prompt-template'
 
 /**
  * Build a comprehensive data snapshot for fortune prompts (Refactored)
@@ -83,227 +81,374 @@ import { assemblePromptTemplate, type PromptData } from './prompt-template';
 export function buildAllDataPrompt(lang: string, theme: string, data: CombinedResult): string {
   try {
     // Step 1: Extract data from CombinedResult
-    const planetary = extractPlanetaryData(data);
-    const saju = extractSajuData(data);
-    const advancedAstro = extractAdvancedAstrology(data);
-    const timeInfo = getCurrentTimeInfo();
-    const ageInfo = calculateAgeInfo(saju.facts, saju.pillars as PillarSet);
-    const toHouseLabel = (value?: number | string) => (value == null ? "-" : String(value));
+    const planetary = extractPlanetaryData(data)
+    const saju = extractSajuData(data)
+    const advancedAstro = extractAdvancedAstrology(data)
+    const timeInfo = getCurrentTimeInfo()
+    const ageInfo = calculateAgeInfo(saju.facts, saju.pillars as PillarSet)
+    const toHouseLabel = (value?: number | string) => (value == null ? '-' : String(value))
 
     // Debug logging
-    logger.debug("[buildAllDataPrompt] saju keys:", saju ? Object.keys(saju) : "null");
-    logger.debug("[buildAllDataPrompt] unse:", saju.unse ? JSON.stringify(saju.unse).slice(0, 500) : "null");
-    logger.debug("[buildAllDataPrompt] daeun count:", saju.unse?.daeun?.length ?? 0);
-    logger.debug("[buildAllDataPrompt] first daeun:", saju.unse?.daeun?.[0] ? JSON.stringify(saju.unse.daeun[0]) : "null");
+    logger.debug('[buildAllDataPrompt] saju keys:', saju ? Object.keys(saju) : 'null')
+    logger.debug(
+      '[buildAllDataPrompt] unse:',
+      saju.unse ? JSON.stringify(saju.unse).slice(0, 500) : 'null'
+    )
+    logger.debug('[buildAllDataPrompt] daeun count:', saju.unse?.daeun?.length ?? 0)
+    logger.debug(
+      '[buildAllDataPrompt] first daeun:',
+      saju.unse?.daeun?.[0] ? JSON.stringify(saju.unse.daeun[0]) : 'null'
+    )
 
     // Step 2: Format basic planetary/saju data
-    const planetLines = formatPlanetLines(planetary.planets);
-    const houseLines = formatHouseLines(planetary.houses);
-    const aspectLines = formatAspectLines(planetary.aspects);
-    const elements = formatElements(planetary.facts?.elementRatios as Record<string, number> | undefined);
-    const pillarText = formatPillarText(saju.pillars);
-    const dayMaster = extractDayMaster(saju.pillars, saju.dayMaster);
+    const planetLines = formatPlanetLines(planetary.planets)
+    const houseLines = formatHouseLines(planetary.houses)
+    const aspectLines = formatAspectLines(planetary.aspects)
+    const elements = formatElements(
+      planetary.facts?.elementRatios as Record<string, number> | undefined
+    )
+    const pillarText = formatPillarText(saju.pillars)
+    const dayMaster = extractDayMaster(saju.pillars, saju.dayMaster)
 
     // Step 3: Format luck cycles (daeun, annual, monthly)
     // Cast unse to UnseDataForFormat since arrays may contain unknown items
-    const unseForFormat = saju.unse as UnseDataForFormat | undefined;
-    const daeunText = formatDaeunText(unseForFormat, ageInfo.currentAge);
-    const allDaeunText = formatAllDaeunText(unseForFormat, ageInfo.currentAge);
-    const futureAnnualList = formatFutureAnnualList(unseForFormat, timeInfo.currentYear);
-    const futureMonthlyList = formatFutureMonthlyList(unseForFormat, timeInfo.currentYear, timeInfo.currentMonth);
+    const unseForFormat = saju.unse as UnseDataForFormat | undefined
+    const daeunText = formatDaeunText(unseForFormat, ageInfo.currentAge)
+    const allDaeunText = formatAllDaeunText(unseForFormat, ageInfo.currentAge)
+    const futureAnnualList = formatFutureAnnualList(unseForFormat, timeInfo.currentYear)
+    const futureMonthlyList = formatFutureMonthlyList(
+      unseForFormat,
+      timeInfo.currentYear,
+      timeInfo.currentMonth
+    )
 
     // Step 4: Format sinsal and advanced saju analysis
-    const { lucky, unlucky } = formatSinsalLists(saju.sinsal);
-    const advancedAnalysis = formatAdvancedSajuAnalysis(saju.advancedAnalysis);
+    const { lucky, unlucky } = formatSinsalLists(saju.sinsal)
+    const advancedAnalysis = formatAdvancedSajuAnalysis(saju.advancedAnalysis)
 
     // Step 5: Find current annual and monthly
-    const currentAnnual = (saju.unse?.annual ?? []).find((a) => (a as AnnualItem).year === timeInfo.currentYear) as AnnualItem | undefined;
+    const currentAnnual = (saju.unse?.annual ?? []).find(
+      (a) => (a as AnnualItem).year === timeInfo.currentYear
+    ) as AnnualItem | undefined
     const currentMonthly = (saju.unse?.monthly ?? []).find((m) => {
-      const item = m as MonthlyItem;
-      return item.year === timeInfo.currentYear && item.month === timeInfo.currentMonth;
-    }) as MonthlyItem | undefined;
+      const item = m as MonthlyItem
+      return item.year === timeInfo.currentYear && item.month === timeInfo.currentMonth
+    }) as MonthlyItem | undefined
 
     // Step 6: Format extra points (Chiron, Lilith, Vertex, Part of Fortune)
-    const extraPointsText = [
-      advancedAstro.extraPoints.chiron ? `Chiron(상처/치유): ${advancedAstro.extraPoints.chiron.sign} (H${advancedAstro.extraPoints.chiron.house})` : null,
-      advancedAstro.extraPoints.lilith ? `Lilith(그림자): ${advancedAstro.extraPoints.lilith.sign} (H${advancedAstro.extraPoints.lilith.house})` : null,
-      advancedAstro.extraPoints.vertex ? `Vertex(운명): ${advancedAstro.extraPoints.vertex.sign} (H${advancedAstro.extraPoints.vertex.house})` : null,
-      advancedAstro.extraPoints.partOfFortune ? `Part of Fortune(행운): ${advancedAstro.extraPoints.partOfFortune.sign} (H${advancedAstro.extraPoints.partOfFortune.house})` : null,
-    ].filter(Boolean).join("; ") || "-";
+    const extraPointsText =
+      [
+        advancedAstro.extraPoints.chiron
+          ? `Chiron(상처/치유): ${advancedAstro.extraPoints.chiron.sign} (H${advancedAstro.extraPoints.chiron.house})`
+          : null,
+        advancedAstro.extraPoints.lilith
+          ? `Lilith(그림자): ${advancedAstro.extraPoints.lilith.sign} (H${advancedAstro.extraPoints.lilith.house})`
+          : null,
+        advancedAstro.extraPoints.vertex
+          ? `Vertex(운명): ${advancedAstro.extraPoints.vertex.sign} (H${advancedAstro.extraPoints.vertex.house})`
+          : null,
+        advancedAstro.extraPoints.partOfFortune
+          ? `Part of Fortune(행운): ${advancedAstro.extraPoints.partOfFortune.sign} (H${advancedAstro.extraPoints.partOfFortune.house})`
+          : null,
+      ]
+        .filter(Boolean)
+        .join('; ') || '-'
 
     // Step 7: Format asteroids
-    const asteroidsText = [
-      advancedAstro.asteroids.ceres ? `Ceres(양육): ${advancedAstro.asteroids.ceres.sign} (H${advancedAstro.asteroids.ceres.house})` : null,
-      advancedAstro.asteroids.pallas ? `Pallas(지혜): ${advancedAstro.asteroids.pallas.sign} (H${advancedAstro.asteroids.pallas.house})` : null,
-      advancedAstro.asteroids.juno ? `Juno(결혼): ${advancedAstro.asteroids.juno.sign} (H${advancedAstro.asteroids.juno.house})` : null,
-      advancedAstro.asteroids.vesta ? `Vesta(헌신): ${advancedAstro.asteroids.vesta.sign} (H${advancedAstro.asteroids.vesta.house})` : null,
-    ].filter(Boolean).join("; ") || "-";
+    const asteroidsText =
+      [
+        advancedAstro.asteroids.ceres
+          ? `Ceres(양육): ${advancedAstro.asteroids.ceres.sign} (H${advancedAstro.asteroids.ceres.house})`
+          : null,
+        advancedAstro.asteroids.pallas
+          ? `Pallas(지혜): ${advancedAstro.asteroids.pallas.sign} (H${advancedAstro.asteroids.pallas.house})`
+          : null,
+        advancedAstro.asteroids.juno
+          ? `Juno(결혼): ${advancedAstro.asteroids.juno.sign} (H${advancedAstro.asteroids.juno.house})`
+          : null,
+        advancedAstro.asteroids.vesta
+          ? `Vesta(헌신): ${advancedAstro.asteroids.vesta.sign} (H${advancedAstro.asteroids.vesta.house})`
+          : null,
+      ]
+        .filter(Boolean)
+        .join('; ') || '-'
 
     // Asteroid aspects
-    type AsteroidAspect = { asteroid?: string; from?: string; type?: string; aspect?: string; planet?: string; to?: string; planet2?: { name?: string } };
-    const asteroidAspectsText = advancedAstro.asteroids.aspects ? (() => {
-      if (Array.isArray(advancedAstro.asteroids.aspects)) {
-        return advancedAstro.asteroids.aspects.slice(0, 4).map((a: AsteroidAspect) =>
-          `${a.asteroid ?? a.from}-${a.type ?? a.aspect}-${a.planet ?? a.to}`
-        ).join("; ");
-      }
-      if (typeof advancedAstro.asteroids.aspects === 'object') {
-        const allAsp: string[] = [];
-        for (const [name, hits] of Object.entries(advancedAstro.asteroids.aspects)) {
-          if (Array.isArray(hits)) {
-            for (const h of (hits as AsteroidAspect[]).slice(0, 2)) {
-              allAsp.push(`${name}-${h.type ?? h.aspect}-${h.planet2?.name ?? h.to ?? h.planet}`);
-            }
+    type AsteroidAspect = {
+      asteroid?: string
+      from?: string
+      type?: string
+      aspect?: string
+      planet?: string
+      to?: string
+      planet2?: { name?: string }
+    }
+    const asteroidAspectsText = advancedAstro.asteroids.aspects
+      ? (() => {
+          if (Array.isArray(advancedAstro.asteroids.aspects)) {
+            return advancedAstro.asteroids.aspects
+              .slice(0, 4)
+              .map(
+                (a: AsteroidAspect) =>
+                  `${a.asteroid ?? a.from}-${a.type ?? a.aspect}-${a.planet ?? a.to}`
+              )
+              .join('; ')
           }
-        }
-        return allAsp.slice(0, 4).join("; ");
-      }
-      return "-";
-    })() : "-";
+          if (typeof advancedAstro.asteroids.aspects === 'object') {
+            const allAsp: string[] = []
+            for (const [name, hits] of Object.entries(advancedAstro.asteroids.aspects)) {
+              if (Array.isArray(hits)) {
+                for (const h of (hits as AsteroidAspect[]).slice(0, 2)) {
+                  allAsp.push(
+                    `${name}-${h.type ?? h.aspect}-${h.planet2?.name ?? h.to ?? h.planet}`
+                  )
+                }
+              }
+            }
+            return allAsp.slice(0, 4).join('; ')
+          }
+          return '-'
+        })()
+      : '-'
 
     // Step 8: Format advanced astrology data
     const solarSummary = advancedAstro.solarReturn?.summary as {
-      ascSign?: string;
-      ascendant?: string;
-      sunHouse?: number;
-      moonSign?: string;
-      moonHouse?: number;
-      theme?: string;
-      yearTheme?: string;
-    };
+      ascSign?: string
+      ascendant?: string
+      sunHouse?: number
+      moonSign?: string
+      moonHouse?: number
+      theme?: string
+      yearTheme?: string
+    }
     const lunarSummary = advancedAstro.lunarReturn?.summary as {
-      ascSign?: string;
-      ascendant?: string;
-      moonHouse?: number;
-      theme?: string;
-      monthTheme?: string;
-    };
+      ascSign?: string
+      ascendant?: string
+      moonHouse?: number
+      theme?: string
+      monthTheme?: string
+    }
     const progressionSecondarySummary = advancedAstro.progressions?.secondary?.summary as {
-      keySigns?: { sun?: string; moon?: string };
-      progressedSun?: string;
-      progressedMoon?: string;
-    };
+      keySigns?: { sun?: string; moon?: string }
+      progressedSun?: string
+      progressedMoon?: string
+    }
     const progressionSolarArcSummary = advancedAstro.progressions?.solarArc?.summary as {
-      keySigns?: { sun?: string };
-      progressedSun?: string;
-    };
+      keySigns?: { sun?: string }
+      progressedSun?: string
+    }
     const progressionMoonPhase = advancedAstro.progressions?.secondary?.moonPhase as
       | { phase?: string; name?: string }
       | string
-      | undefined;
+      | undefined
     const progressionMoonPhaseLabel =
-      typeof progressionMoonPhase === "string"
+      typeof progressionMoonPhase === 'string'
         ? progressionMoonPhase
-        : progressionMoonPhase?.phase ?? progressionMoonPhase?.name ?? "-";
+        : (progressionMoonPhase?.phase ?? progressionMoonPhase?.name ?? '-')
     const harmonicProfile = advancedAstro.harmonics?.profile as {
-      dominant?: number;
-      creative?: number;
-      intuitive?: number;
-      spiritual?: number;
-      strongestHarmonics?: { harmonic: number; strength?: number }[];
-    };
-    const dominantHarmonic = harmonicProfile?.dominant ?? harmonicProfile?.strongestHarmonics?.[0]?.harmonic;
-    const draconicAlignments = advancedAstro.draconic?.comparison?.alignments ?? [];
+      dominant?: number
+      creative?: number
+      intuitive?: number
+      spiritual?: number
+      strongestHarmonics?: { harmonic: number; strength?: number }[]
+    }
+    const dominantHarmonic =
+      harmonicProfile?.dominant ?? harmonicProfile?.strongestHarmonics?.[0]?.harmonic
+    const draconicAlignments = advancedAstro.draconic?.comparison?.alignments ?? []
     const draconicAlignmentText = draconicAlignments.length
       ? `Alignments: ${draconicAlignments
           .slice(0, 2)
-          .map((a) => (a as { description?: string; meaning?: string }).description ?? (a as { meaning?: string }).meaning)
+          .map(
+            (a) =>
+              (a as { description?: string; meaning?: string }).description ??
+              (a as { meaning?: string }).meaning
+          )
           .filter(Boolean)
-          .join("; ")}`
-      : null;
-    const solarReturnText = advancedAstro.solarReturn ? [
-      `SR ASC: ${solarSummary?.ascSign ?? solarSummary?.ascendant ?? "-"}`,
-      `SR Sun House: ${solarSummary?.sunHouse ?? "-"}`,
-      `SR Moon: ${solarSummary?.moonSign ?? "-"} (H${solarSummary?.moonHouse ?? "-"})`,
-      `Year Theme: ${solarSummary?.theme ?? solarSummary?.yearTheme ?? "-"}`,
-    ].join("; ") : "-";
-    const lunarReturnText = advancedAstro.lunarReturn ? [
-      `LR ASC: ${lunarSummary?.ascSign ?? lunarSummary?.ascendant ?? "-"}`,
-      `LR Moon House: ${lunarSummary?.moonHouse ?? "-"}`,
-      `Month Theme: ${lunarSummary?.theme ?? lunarSummary?.monthTheme ?? "-"}`,
-    ].join("; ") : "-";
-    const progressionsText = advancedAstro.progressions ? [
-      `Progressed Sun: ${progressionSecondarySummary?.keySigns?.sun ?? progressionSecondarySummary?.progressedSun ?? "-"}`,
-      `Progressed Moon: ${progressionSecondarySummary?.keySigns?.moon ?? progressionSecondarySummary?.progressedMoon ?? "-"}`,
-      `Moon Phase: ${progressionMoonPhaseLabel}`,
-      advancedAstro.progressions.solarArc ? `Solar Arc Sun: ${progressionSolarArcSummary?.keySigns?.sun ?? progressionSolarArcSummary?.progressedSun ?? "-"}` : null,
-    ].filter(Boolean).join("; ") : "-";
+          .join('; ')}`
+      : null
+    const solarReturnText = advancedAstro.solarReturn
+      ? [
+          `SR ASC: ${solarSummary?.ascSign ?? solarSummary?.ascendant ?? '-'}`,
+          `SR Sun House: ${solarSummary?.sunHouse ?? '-'}`,
+          `SR Moon: ${solarSummary?.moonSign ?? '-'} (H${solarSummary?.moonHouse ?? '-'})`,
+          `Year Theme: ${solarSummary?.theme ?? solarSummary?.yearTheme ?? '-'}`,
+        ].join('; ')
+      : '-'
+    const lunarReturnText = advancedAstro.lunarReturn
+      ? [
+          `LR ASC: ${lunarSummary?.ascSign ?? lunarSummary?.ascendant ?? '-'}`,
+          `LR Moon House: ${lunarSummary?.moonHouse ?? '-'}`,
+          `Month Theme: ${lunarSummary?.theme ?? lunarSummary?.monthTheme ?? '-'}`,
+        ].join('; ')
+      : '-'
+    const progressionsText = advancedAstro.progressions
+      ? [
+          `Progressed Sun: ${progressionSecondarySummary?.keySigns?.sun ?? progressionSecondarySummary?.progressedSun ?? '-'}`,
+          `Progressed Moon: ${progressionSecondarySummary?.keySigns?.moon ?? progressionSecondarySummary?.progressedMoon ?? '-'}`,
+          `Moon Phase: ${progressionMoonPhaseLabel}`,
+          advancedAstro.progressions.solarArc
+            ? `Solar Arc Sun: ${progressionSolarArcSummary?.keySigns?.sun ?? progressionSolarArcSummary?.progressedSun ?? '-'}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join('; ')
+      : '-'
 
-    const draconicText = advancedAstro.draconic ? [
-      `Draconic Sun: ${advancedAstro.draconic.chart?.planets?.find((p: PlanetData) => p.name === "Sun")?.sign ?? "-"}`,
-      `Draconic Moon: ${advancedAstro.draconic.chart?.planets?.find((p: PlanetData) => p.name === "Moon")?.sign ?? "-"}`,
-      `Draconic ASC: ${advancedAstro.draconic.chart?.ascendant?.sign ?? "-"}`,
-      draconicAlignmentText,
-    ].filter(Boolean).join("; ") : "-";
-    const harmonicsText = harmonicProfile ? [
-      dominantHarmonic ? `Dominant: H${dominantHarmonic}` : null,
-      harmonicProfile.creative ? `Creative(H5): ${harmonicProfile.creative?.toFixed?.(0) ?? harmonicProfile.creative}%` : null,
-      harmonicProfile.intuitive ? `Intuitive(H7): ${harmonicProfile.intuitive?.toFixed?.(0) ?? harmonicProfile.intuitive}%` : null,
-      harmonicProfile.spiritual ? `Spiritual(H9): ${harmonicProfile.spiritual?.toFixed?.(0) ?? harmonicProfile.spiritual}%` : null,
-    ].filter(Boolean).join("; ") : "-";
+    const draconicText = advancedAstro.draconic
+      ? [
+          `Draconic Sun: ${advancedAstro.draconic.chart?.planets?.find((p: PlanetData) => p.name === 'Sun')?.sign ?? '-'}`,
+          `Draconic Moon: ${advancedAstro.draconic.chart?.planets?.find((p: PlanetData) => p.name === 'Moon')?.sign ?? '-'}`,
+          `Draconic ASC: ${advancedAstro.draconic.chart?.ascendant?.sign ?? '-'}`,
+          draconicAlignmentText,
+        ]
+          .filter(Boolean)
+          .join('; ')
+      : '-'
+    const harmonicsText = harmonicProfile
+      ? [
+          dominantHarmonic ? `Dominant: H${dominantHarmonic}` : null,
+          harmonicProfile.creative
+            ? `Creative(H5): ${harmonicProfile.creative?.toFixed?.(0) ?? harmonicProfile.creative}%`
+            : null,
+          harmonicProfile.intuitive
+            ? `Intuitive(H7): ${harmonicProfile.intuitive?.toFixed?.(0) ?? harmonicProfile.intuitive}%`
+            : null,
+          harmonicProfile.spiritual
+            ? `Spiritual(H9): ${harmonicProfile.spiritual?.toFixed?.(0) ?? harmonicProfile.spiritual}%`
+            : null,
+        ]
+          .filter(Boolean)
+          .join('; ')
+      : '-'
 
-    const h5Sun = advancedAstro.harmonics?.h5?.planets?.find((p: PlanetData) => p.name === "Sun");
-    const h7Sun = advancedAstro.harmonics?.h7?.planets?.find((p: PlanetData) => p.name === "Sun");
-    const h9Sun = advancedAstro.harmonics?.h9?.planets?.find((p: PlanetData) => p.name === "Sun");
-    const harmonicChartsText = [
-      h5Sun ? `H5 Sun: ${h5Sun.sign}` : null,
-      h7Sun ? `H7 Sun: ${h7Sun.sign}` : null,
-      h9Sun ? `H9 Sun: ${h9Sun.sign}` : null,
-    ].filter(Boolean).join("; ") || "-";
+    const h5Sun = advancedAstro.harmonics?.h5?.planets?.find((p: PlanetData) => p.name === 'Sun')
+    const h7Sun = advancedAstro.harmonics?.h7?.planets?.find((p: PlanetData) => p.name === 'Sun')
+    const h9Sun = advancedAstro.harmonics?.h9?.planets?.find((p: PlanetData) => p.name === 'Sun')
+    const harmonicChartsText =
+      [
+        h5Sun ? `H5 Sun: ${h5Sun.sign}` : null,
+        h7Sun ? `H7 Sun: ${h7Sun.sign}` : null,
+        h9Sun ? `H9 Sun: ${h9Sun.sign}` : null,
+      ]
+        .filter(Boolean)
+        .join('; ') || '-'
 
-    type FixedStarItem = { star?: unknown; starName?: string; planet?: unknown; planetName?: string; meaning?: string; description?: string };
+    type FixedStarItem = {
+      star?: unknown
+      starName?: string
+      planet?: unknown
+      planetName?: string
+      meaning?: string
+      description?: string
+    }
     const fixedStarsText = advancedAstro.fixedStars?.length
-      ? (advancedAstro.fixedStars as FixedStarItem[]).slice(0, 4).map((fs) => {
-          const starObj = typeof fs.star === "object" ? (fs.star as { name?: string; name_ko?: string }) : undefined;
-          const starName = starObj?.name ?? starObj?.name_ko ?? (typeof fs.star === "string" ? fs.star : fs.starName);
-          const planetObj = typeof fs.planet === "object" ? (fs.planet as { name?: string }) : undefined;
-          const planetName = planetObj?.name ?? (typeof fs.planet === "string" ? fs.planet : fs.planetName);
-          const meaning = fs.meaning ?? fs.description ?? "";
-          return `${starName ?? "-"}-${planetName ?? "-"}(${meaning})`;
-        }).join("; ")
-      : "-";
+      ? (advancedAstro.fixedStars as FixedStarItem[])
+          .slice(0, 4)
+          .map((fs) => {
+            const starObj =
+              typeof fs.star === 'object'
+                ? (fs.star as { name?: string; name_ko?: string })
+                : undefined
+            const starName =
+              starObj?.name ??
+              starObj?.name_ko ??
+              (typeof fs.star === 'string' ? fs.star : fs.starName)
+            const planetObj =
+              typeof fs.planet === 'object' ? (fs.planet as { name?: string }) : undefined
+            const planetName =
+              planetObj?.name ?? (typeof fs.planet === 'string' ? fs.planet : fs.planetName)
+            const meaning = fs.meaning ?? fs.description ?? ''
+            return `${starName ?? '-'}-${planetName ?? '-'}(${meaning})`
+          })
+          .join('; ')
+      : '-'
 
-    const eclipseImpact = advancedAstro.eclipses?.impact;
-    const eclipsesText = advancedAstro.eclipses ? [
-      eclipseImpact ? `Impact: ${eclipseImpact.eclipse?.type ?? "-"} on ${eclipseImpact.affectedPoint ?? "-"}` : null,
-      advancedAstro.eclipses.upcoming?.length ? `Next: ${advancedAstro.eclipses.upcoming[0]?.date ?? "-"} (${advancedAstro.eclipses.upcoming[0]?.type ?? "-"})` : null,
-    ].filter(Boolean).join("; ") : "-";
+    const eclipseImpact = advancedAstro.eclipses?.impact
+    const eclipsesText = advancedAstro.eclipses
+      ? [
+          eclipseImpact
+            ? `Impact: ${eclipseImpact.eclipse?.type ?? '-'} on ${eclipseImpact.affectedPoint ?? '-'}`
+            : null,
+          advancedAstro.eclipses.upcoming?.length
+            ? `Next: ${advancedAstro.eclipses.upcoming[0]?.date ?? '-'} (${advancedAstro.eclipses.upcoming[0]?.type ?? '-'})`
+            : null,
+        ]
+          .filter(Boolean)
+          .join('; ')
+      : '-'
 
-    const electMoonPhase = advancedAstro.electional?.moonPhase as { phase?: string; name?: string } | string | undefined;
-    const electAnalysis = advancedAstro.electional?.analysis as { score?: { total?: number }; recommendations?: string[] } | undefined;
-    const electionalText = advancedAstro.electional ? [
-      `Moon Phase: ${typeof electMoonPhase === 'string' ? electMoonPhase : (electMoonPhase?.phase ?? electMoonPhase?.name ?? "-")}`,
-      advancedAstro.electional.voidOfCourse ? `VOC: ${advancedAstro.electional.voidOfCourse.isVoid ? "YES - ??? ?? ???" : "No"}` : null,
-      `Planetary Hour: ${advancedAstro.electional.planetaryHour?.planet ?? "-"}`,
-      advancedAstro.electional.retrograde?.length ? `Retrograde: ${advancedAstro.electional.retrograde.join(", ")}` : null,
-      typeof electAnalysis?.score?.total === 'number' ? `Score: ${electAnalysis.score.total}/100` : null,
-      electAnalysis?.recommendations?.length ? `Tip: ${electAnalysis.recommendations[0]}` : null,
-    ].filter(Boolean).join("; ") : "-";
+    const electMoonPhase = advancedAstro.electional?.moonPhase as
+      | { phase?: string; name?: string }
+      | string
+      | undefined
+    const electAnalysis = advancedAstro.electional?.analysis as
+      | { score?: { total?: number }; recommendations?: string[] }
+      | undefined
+    const electionalText = advancedAstro.electional
+      ? [
+          `Moon Phase: ${typeof electMoonPhase === 'string' ? electMoonPhase : (electMoonPhase?.phase ?? electMoonPhase?.name ?? '-')}`,
+          advancedAstro.electional.voidOfCourse
+            ? `VOC: ${advancedAstro.electional.voidOfCourse.isVoid ? 'YES - Void of Course active' : 'No'}`
+            : null,
+          `Planetary Hour: ${advancedAstro.electional.planetaryHour?.planet ?? '-'}`,
+          advancedAstro.electional.retrograde?.length
+            ? `Retrograde: ${advancedAstro.electional.retrograde.join(', ')}`
+            : null,
+          typeof electAnalysis?.score?.total === 'number'
+            ? `Score: ${electAnalysis.score.total}/100`
+            : null,
+          electAnalysis?.recommendations?.length
+            ? `Tip: ${electAnalysis.recommendations[0]}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join('; ')
+      : '-'
 
-    const midpointsText = advancedAstro.midpoints ? [
-      advancedAstro.midpoints.sunMoon ? `Sun/Moon(??): ${advancedAstro.midpoints.sunMoon.sign} ${advancedAstro.midpoints.sunMoon.degree?.toFixed?.(0) ?? advancedAstro.midpoints.sunMoon.degree ?? 0}?` : null,
-      advancedAstro.midpoints.ascMc ? `ASC/MC(??): ${advancedAstro.midpoints.ascMc.sign} ${advancedAstro.midpoints.ascMc.degree?.toFixed?.(0) ?? advancedAstro.midpoints.ascMc.degree ?? 0}?` : null,
-      advancedAstro.midpoints.activations?.length
-        ? `Activated: ${advancedAstro.midpoints.activations
-            .slice(0, 3)
-            .map((a: { description?: string; midpoint?: { id?: string; name_ko?: string }; activator?: string }) =>
-              a.description ?? `${a.midpoint?.id ?? a.midpoint?.name_ko ?? "-"}-${a.activator ?? "-"}`
-            )
-            .join("; ")}`
-        : null,
-    ].filter(Boolean).join("; ") : "-";
+    const midpointsText = advancedAstro.midpoints
+      ? [
+          advancedAstro.midpoints.sunMoon
+            ? `Sun/Moon Midpoint: ${advancedAstro.midpoints.sunMoon.sign} ${advancedAstro.midpoints.sunMoon.degree?.toFixed?.(0) ?? advancedAstro.midpoints.sunMoon.degree ?? 0}°`
+            : null,
+          advancedAstro.midpoints.ascMc
+            ? `ASC/MC Midpoint: ${advancedAstro.midpoints.ascMc.sign} ${advancedAstro.midpoints.ascMc.degree?.toFixed?.(0) ?? advancedAstro.midpoints.ascMc.degree ?? 0}°`
+            : null,
+          advancedAstro.midpoints.activations?.length
+            ? `Activated: ${advancedAstro.midpoints.activations
+                .slice(0, 3)
+                .map(
+                  (a: {
+                    description?: string
+                    midpoint?: { id?: string; name_ko?: string }
+                    activator?: string
+                  }) =>
+                    a.description ??
+                    `${a.midpoint?.id ?? a.midpoint?.name_ko ?? '-'}-${a.activator ?? '-'}`
+                )
+                .join('; ')}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join('; ')
+      : '-'
 
-    type MidpointItem = { planet1?: string; planet2?: string; sign?: string; degree?: number };
+    type MidpointItem = { planet1?: string; planet2?: string; sign?: string; degree?: number }
     const allMidpointsText = advancedAstro.midpoints?.all?.length
-      ? advancedAstro.midpoints.all.slice(0, 5).map((mp: MidpointItem) => `${mp.planet1}-${mp.planet2}: ${mp.sign} ${mp.degree?.toFixed?.(0) ?? 0}°`).join("; ")
-      : "-";
+      ? advancedAstro.midpoints.all
+          .slice(0, 5)
+          .map(
+            (mp: MidpointItem) =>
+              `${mp.planet1}-${mp.planet2}: ${mp.sign} ${mp.degree?.toFixed?.(0) ?? 0}°`
+          )
+          .join('; ')
+      : '-'
 
-    const significantTransits = formatSignificantTransits(planetary.transits);
+    const significantTransits = formatSignificantTransits(planetary.transits)
 
     // Debug: log generated daeun text
-    logger.debug("[buildAllDataPrompt] currentAge:", ageInfo.currentAge);
-    logger.debug("[buildAllDataPrompt] daeunText:", daeunText);
-    logger.debug("[buildAllDataPrompt] allDaeunText preview:", allDaeunText.slice(0, 200));
+    logger.debug('[buildAllDataPrompt] currentAge:', ageInfo.currentAge)
+    logger.debug('[buildAllDataPrompt] daeunText:', daeunText)
+    logger.debug('[buildAllDataPrompt] allDaeunText preview:', allDaeunText.slice(0, 200))
 
     // Step 9: Build theme-specific section
     // Use type assertions for flexible data structures
@@ -325,7 +470,7 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       },
       ageInfo,
       timeInfo,
-    } as ThemeSectionInput);
+    } as ThemeSectionInput)
 
     // Step 10: Assemble final prompt using template
     const promptData: PromptData = {
@@ -341,9 +486,9 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       pillarText,
       ...advancedAnalysis,
       daeunText,
-      currentAnnualElement: currentAnnual?.element ?? "-",
-      currentAnnualGanji: currentAnnual?.ganji ?? "",
-      currentMonthlyElement: currentMonthly?.element ?? "-",
+      currentAnnualElement: currentAnnual?.element ?? '-',
+      currentAnnualGanji: currentAnnual?.ganji ?? '',
+      currentMonthlyElement: currentMonthly?.element ?? '-',
       lucky,
       unlucky,
       allDaeunText,
@@ -351,29 +496,29 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
       futureMonthlyList,
 
       // Western astrology
-      ascendantSign: planetary.ascendant?.sign ?? "-",
-      mcSign: planetary.mc?.sign ?? "-",
-      sunSign: planetary.sun?.sign ?? "-",
+      ascendantSign: planetary.ascendant?.sign ?? '-',
+      mcSign: planetary.mc?.sign ?? '-',
+      sunSign: planetary.sun?.sign ?? '-',
       sunHouse: toHouseLabel(planetary.sun?.house),
-      moonSign: planetary.moon?.sign ?? "-",
+      moonSign: planetary.moon?.sign ?? '-',
       moonHouse: toHouseLabel(planetary.moon?.house),
-      mercurySign: planetary.mercury?.sign ?? "-",
+      mercurySign: planetary.mercury?.sign ?? '-',
       mercuryHouse: toHouseLabel(planetary.mercury?.house),
-      venusSign: planetary.venus?.sign ?? "-",
+      venusSign: planetary.venus?.sign ?? '-',
       venusHouse: toHouseLabel(planetary.venus?.house),
-      marsSign: planetary.mars?.sign ?? "-",
+      marsSign: planetary.mars?.sign ?? '-',
       marsHouse: toHouseLabel(planetary.mars?.house),
-      jupiterSign: planetary.jupiter?.sign ?? "-",
+      jupiterSign: planetary.jupiter?.sign ?? '-',
       jupiterHouse: toHouseLabel(planetary.jupiter?.house),
-      saturnSign: planetary.saturn?.sign ?? "-",
+      saturnSign: planetary.saturn?.sign ?? '-',
       saturnHouse: toHouseLabel(planetary.saturn?.house),
-      uranusSign: planetary.uranus?.sign ?? "-",
+      uranusSign: planetary.uranus?.sign ?? '-',
       uranusHouse: toHouseLabel(planetary.uranus?.house),
-      neptuneSign: planetary.neptune?.sign ?? "-",
+      neptuneSign: planetary.neptune?.sign ?? '-',
       neptuneHouse: toHouseLabel(planetary.neptune?.house),
-      plutoSign: planetary.pluto?.sign ?? "-",
+      plutoSign: planetary.pluto?.sign ?? '-',
       plutoHouse: toHouseLabel(planetary.pluto?.house),
-      northNodeSign: planetary.northNode?.sign ?? "-",
+      northNodeSign: planetary.northNode?.sign ?? '-',
       northNodeHouse: toHouseLabel(planetary.northNode?.house),
       elements,
       planetLines,
@@ -401,16 +546,16 @@ export function buildAllDataPrompt(lang: string, theme: string, data: CombinedRe
 
       // Theme section
       themeSection,
-    };
+    }
 
-    return assemblePromptTemplate(promptData);
+    return assemblePromptTemplate(promptData)
   } catch (err) {
-    logger.error("[buildAllDataPrompt] Error building prompt", err);
-    throw err;
+    logger.error('[buildAllDataPrompt] Error building prompt', err)
+    throw err
   }
 }
 
 /**
  * Export backward compatibility alias
  */
-export const buildBasePrompt = buildAllDataPrompt;
+export const buildBasePrompt = buildAllDataPrompt

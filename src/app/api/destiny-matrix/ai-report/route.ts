@@ -1160,7 +1160,7 @@ export const POST = withApiMiddleware(
       let premiumReport: AIPremiumReport | null = null
 
       if (theme) {
-        // ??? ???
+        // 테마 리포트
         const themedReport = await generateThemedReport(
           matrixInput,
           baseReport,
