@@ -1,6 +1,6 @@
 # FULL CROSS DUMP (사주 + 점성 + 교차 전체)
 
-- Generated: 2026-02-24T23:45:22.351Z
+- Generated: 2026-03-06T03:27:41.952Z
 - Source profile: 1995-02-09 06:40 Seoul
 
 ## 1) 사주 원본
@@ -377,16 +377,6 @@
     "monthly": [
       {
         "year": 2026,
-        "month": 2,
-        "ganji": "辛卯",
-        "element": "금",
-        "sibsin": {
-          "cheon": "비견",
-          "ji": "편재"
-        }
-      },
-      {
-        "year": 2026,
         "month": 3,
         "ganji": "壬辰",
         "element": "수",
@@ -493,6 +483,16 @@
         "sibsin": {
           "cheon": "상관",
           "ji": "정재"
+        }
+      },
+      {
+        "year": 2027,
+        "month": 2,
+        "ganji": "癸卯",
+        "element": "수",
+        "sibsin": {
+          "cheon": "식신",
+          "ji": "편재"
         }
       }
     ]
@@ -1076,246 +1076,246 @@
     "planets": [
       {
         "name": "Sun",
-        "longitude": 334.3518269257949,
+        "longitude": 345.1866399664213,
         "sign": "Pisces",
-        "degree": 4,
-        "minute": 21,
-        "formatted": "Pisces 4deg 21'",
-        "norm": 334.35182692579497,
-        "house": 12,
-        "speed": 1.006985934301299,
+        "degree": 15,
+        "minute": 11,
+        "formatted": "Pisces 15deg 11'",
+        "norm": 345.18663996642135,
+        "house": 2,
+        "speed": 1.0012534142385745,
         "retrograde": false
       },
       {
         "name": "Moon",
-        "longitude": 44.06030151237104,
-        "sign": "Taurus",
-        "degree": 14,
-        "minute": 3,
-        "formatted": "Taurus 14deg 03'",
-        "norm": 44.06030151237104,
-        "house": 2,
-        "speed": 14.129118291865742,
+        "longitude": 192.54371994474414,
+        "sign": "Libra",
+        "degree": 12,
+        "minute": 32,
+        "formatted": "Libra 12deg 32'",
+        "norm": 192.5437199447441,
+        "house": 9,
+        "speed": 12.661243224412491,
         "retrograde": false
       },
       {
         "name": "Mercury",
-        "longitude": 351.67254408083,
+        "longitude": 348.5365929930683,
         "sign": "Pisces",
-        "degree": 21,
-        "minute": 40,
-        "formatted": "Pisces 21deg 40'",
-        "norm": 351.67254408083,
-        "house": 12,
-        "speed": 0.5349839235102705,
-        "retrograde": false
+        "degree": 18,
+        "minute": 32,
+        "formatted": "Pisces 18deg 32'",
+        "norm": 348.5365929930683,
+        "house": 2,
+        "speed": -0.9424823392418571,
+        "retrograde": true
       },
       {
         "name": "Venus",
-        "longitude": 345.699772624787,
+        "longitude": 359.1545262435887,
         "sign": "Pisces",
-        "degree": 15,
-        "minute": 41,
-        "formatted": "Pisces 15deg 41'",
-        "norm": 345.699772624787,
-        "house": 12,
-        "speed": 1.2490983605071093,
+        "degree": 29,
+        "minute": 9,
+        "formatted": "Pisces 29deg 09'",
+        "norm": 359.15452624358863,
+        "house": 3,
+        "speed": 1.244551284100229,
         "retrograde": false
       },
       {
         "name": "Mars",
-        "longitude": 323.998835109063,
-        "sign": "Aquarius",
-        "degree": 23,
-        "minute": 59,
-        "formatted": "Aquarius 23deg 59'",
-        "norm": 323.99883510906307,
-        "house": 12,
-        "speed": 0.7878316186762163,
+        "longitude": 332.5013173257,
+        "sign": "Pisces",
+        "degree": 2,
+        "minute": 30,
+        "formatted": "Pisces 2deg 30'",
+        "norm": 332.50131732570003,
+        "house": 2,
+        "speed": 0.7878623433437114,
         "retrograde": false
       },
       {
         "name": "Jupiter",
-        "longitude": 105.51302945159408,
+        "longitude": 105.13460870295565,
         "sign": "Cancer",
         "degree": 15,
-        "minute": 30,
-        "formatted": "Cancer 15deg 30'",
-        "norm": 105.5130294515941,
-        "house": 4,
-        "speed": -0.05240500158149221,
+        "minute": 8,
+        "formatted": "Cancer 15deg 08'",
+        "norm": 105.13460870295563,
+        "house": 7,
+        "speed": -0.017605573229509563,
         "retrograde": true
       },
       {
         "name": "Saturn",
-        "longitude": 1.015238302388764,
+        "longitude": 2.2972539362938322,
         "sign": "Aries",
-        "degree": 1,
-        "minute": 0,
-        "formatted": "Aries 1deg 00'",
-        "norm": 1.0152383023887523,
-        "house": 12,
-        "speed": 0.11607529426434822,
+        "degree": 2,
+        "minute": 17,
+        "formatted": "Aries 2deg 17'",
+        "norm": 2.297253936293828,
+        "house": 3,
+        "speed": 0.12113458440220039,
         "retrograde": false
       },
       {
         "name": "Uranus",
-        "longitude": 57.617099245522404,
+        "longitude": 57.844374139979514,
         "sign": "Taurus",
         "degree": 27,
-        "minute": 37,
-        "formatted": "Taurus 27deg 37'",
-        "norm": 57.61709924552241,
-        "house": 2,
-        "speed": 0.016580800074951448,
+        "minute": 50,
+        "formatted": "Taurus 27deg 50'",
+        "norm": 57.84437413997949,
+        "house": 5,
+        "speed": 0.025388458989828916,
         "retrograde": false
       },
       {
         "name": "Neptune",
-        "longitude": 0.8310895176600045,
+        "longitude": 1.2171926972900333,
         "sign": "Aries",
-        "degree": 0,
-        "minute": 49,
-        "formatted": "Aries 0deg 49'",
-        "norm": 0.8310895176600184,
-        "house": 12,
-        "speed": 0.034688588599483934,
+        "degree": 1,
+        "minute": 13,
+        "formatted": "Aries 1deg 13'",
+        "norm": 1.217192697290045,
+        "house": 3,
+        "speed": 0.03667543158164733,
         "retrograde": false
       },
       {
         "name": "Pluto",
-        "longitude": 304.3658847865269,
+        "longitude": 304.65917878712963,
         "sign": "Aquarius",
         "degree": 4,
-        "minute": 21,
-        "formatted": "Aquarius 4deg 21'",
-        "norm": 304.365884786527,
-        "house": 11,
-        "speed": 0.028528011570233245,
+        "minute": 39,
+        "formatted": "Aquarius 4deg 39'",
+        "norm": 304.6591787871296,
+        "house": 1,
+        "speed": 0.025678796091007036,
         "retrograde": false
       },
       {
         "name": "True Node",
-        "longitude": 338.97818311540027,
+        "longitude": 338.9694604808958,
         "sign": "Pisces",
         "degree": 8,
         "minute": 58,
         "formatted": "Pisces 8deg 58'",
-        "norm": 338.97818311540027,
-        "house": 12,
-        "speed": 0.005392708154774904,
-        "retrograde": false
+        "norm": 338.9694604808958,
+        "house": 2,
+        "speed": -0.012510862994294073,
+        "retrograde": true
       }
     ],
     "ascendant": {
       "name": "Ascendant",
-      "longitude": 3.194188991005332,
-      "sign": "Aries",
-      "degree": 3,
-      "minute": 11,
-      "formatted": "Aries 3deg 11'",
-      "norm": 3.194188991005319,
+      "longitude": 277.39567238584635,
+      "sign": "Capricorn",
+      "degree": 7,
+      "minute": 23,
+      "formatted": "Capricorn 7deg 23'",
+      "norm": 277.3956723858464,
       "house": 1
     },
     "mc": {
       "name": "MC",
-      "longitude": 271.7929524144457,
-      "sign": "Capricorn",
-      "degree": 1,
-      "minute": 47,
-      "formatted": "Capricorn 1deg 47'",
-      "norm": 271.7929524144457,
+      "longitude": 209.39355494698452,
+      "sign": "Libra",
+      "degree": 29,
+      "minute": 23,
+      "formatted": "Libra 29deg 23'",
+      "norm": 209.39355494698452,
       "house": 10
     },
     "houses": [
       {
         "index": 1,
-        "cusp": 3.194188991005332,
-        "sign": "Aries",
-        "formatted": "Aries 3deg 11'",
+        "cusp": 277.39567238584635,
+        "sign": "Capricorn",
+        "formatted": "Capricorn 7deg 23'",
         "graphId": "H1"
       },
       {
         "index": 2,
-        "cusp": 42.696367349160916,
-        "sign": "Taurus",
-        "formatted": "Taurus 12deg 41'",
+        "cusp": 316.4323533208196,
+        "sign": "Aquarius",
+        "formatted": "Aquarius 16deg 25'",
         "graphId": "H2"
       },
       {
         "index": 3,
-        "cusp": 69.61894692003767,
-        "sign": "Gemini",
-        "formatted": "Gemini 9deg 37'",
+        "cusp": 356.72892044055055,
+        "sign": "Pisces",
+        "formatted": "Pisces 26deg 43'",
         "graphId": "H3"
       },
       {
         "index": 4,
-        "cusp": 91.79295241444572,
-        "sign": "Cancer",
-        "formatted": "Cancer 1deg 47'",
+        "cusp": 29.393554946984523,
+        "sign": "Aries",
+        "formatted": "Aries 29deg 23'",
         "graphId": "H4"
       },
       {
         "index": 5,
-        "cusp": 114.2482467810014,
-        "sign": "Cancer",
-        "formatted": "Cancer 24deg 14'",
+        "cusp": 54.59737284241993,
+        "sign": "Taurus",
+        "formatted": "Taurus 24deg 35'",
         "graphId": "H5"
       },
       {
         "index": 6,
-        "cusp": 142.15018861149105,
-        "sign": "Leo",
-        "formatted": "Leo 22deg 09'",
+        "cusp": 76.01799531955976,
+        "sign": "Gemini",
+        "formatted": "Gemini 16deg 01'",
         "graphId": "H6"
       },
       {
         "index": 7,
-        "cusp": 183.19418899100532,
-        "sign": "Libra",
-        "formatted": "Libra 3deg 11'",
+        "cusp": 97.39567238584635,
+        "sign": "Cancer",
+        "formatted": "Cancer 7deg 23'",
         "graphId": "H7"
       },
       {
         "index": 8,
-        "cusp": 222.6963673491609,
-        "sign": "Scorpio",
-        "formatted": "Scorpio 12deg 41'",
+        "cusp": 136.43235332081957,
+        "sign": "Leo",
+        "formatted": "Leo 16deg 25'",
         "graphId": "H8"
       },
       {
         "index": 9,
-        "cusp": 249.61894692003767,
-        "sign": "Sagittarius",
-        "formatted": "Sagittarius 9deg 37'",
+        "cusp": 176.7289204405506,
+        "sign": "Virgo",
+        "formatted": "Virgo 26deg 43'",
         "graphId": "H9"
       },
       {
         "index": 10,
-        "cusp": 271.7929524144457,
-        "sign": "Capricorn",
-        "formatted": "Capricorn 1deg 47'",
+        "cusp": 209.39355494698452,
+        "sign": "Libra",
+        "formatted": "Libra 29deg 23'",
         "graphId": "H10"
       },
       {
         "index": 11,
-        "cusp": 294.2482467810014,
-        "sign": "Capricorn",
-        "formatted": "Capricorn 24deg 14'",
+        "cusp": 234.59737284241993,
+        "sign": "Scorpio",
+        "formatted": "Scorpio 24deg 35'",
         "graphId": "H11"
       },
       {
         "index": 12,
-        "cusp": 322.15018861149105,
-        "sign": "Aquarius",
-        "formatted": "Aquarius 22deg 09'",
+        "cusp": 256.01799531955976,
+        "sign": "Sagittarius",
+        "formatted": "Sagittarius 16deg 01'",
         "graphId": "H12"
       }
     ],
     "meta": {
-      "jdUT": 2461094.4780439814,
-      "isoUTC": "2026-02-23T08:28:23.409Z",
+      "jdUT": 2461105.2689930554,
+      "isoUTC": "2026-03-06T03:27:21.185Z",
       "timeZone": "Asia/Seoul",
       "latitude": 37.5665,
       "longitude": 126.978,
@@ -1325,89 +1325,45 @@
   "majorTransits": [
     {
       "from": {
-        "name": "Saturn",
+        "name": "Jupiter",
         "kind": "transit",
-        "house": 1,
-        "sign": "Pisces",
-        "longitude": 341.9717864716233
+        "house": 10,
+        "sign": "Sagittarius",
+        "longitude": 251.5066523290807
       },
       "to": {
         "name": "Moon",
         "kind": "natal",
-        "house": 2,
-        "sign": "Taurus",
-        "longitude": 44.06030151237104
+        "house": 9,
+        "sign": "Libra",
+        "longitude": 192.54371994474414
       },
       "type": "trine",
-      "orb": 2.0885150407477795,
-      "score": 0.6519141598753702,
-      "transitPlanet": "Saturn",
+      "orb": 1.0370676156634318,
+      "score": 0.8114422516975579,
+      "transitPlanet": "Jupiter",
       "natalPoint": "Moon",
-      "isApplying": true
+      "isApplying": false
     },
     {
       "from": {
-        "name": "Neptune",
+        "name": "Uranus",
         "kind": "transit",
         "house": 12,
         "sign": "Capricorn",
-        "longitude": 294.01578820080937
-      },
-      "to": {
-        "name": "Mercury",
-        "kind": "natal",
-        "house": 12,
-        "sign": "Pisces",
-        "longitude": 351.67254408083
-      },
-      "type": "trine",
-      "orb": 2.3432441199793743,
-      "score": 0.6395009046185578,
-      "transitPlanet": "Neptune",
-      "natalPoint": "Mercury",
-      "isApplying": true
-    },
-    {
-      "from": {
-        "name": "Pluto",
-        "kind": "transit",
-        "house": 10,
-        "sign": "Sagittarius",
-        "longitude": 240.44551487953368
-      },
-      "to": {
-        "name": "Ascendant",
-        "kind": "natal",
-        "house": 1,
-        "sign": "Aries",
-        "longitude": 3.194188991005332
-      },
-      "type": "sextile",
-      "orb": 2.7486741114717006,
-      "score": 0.5091653372371963,
-      "transitPlanet": "Pluto",
-      "natalPoint": "Ascendant",
-      "isApplying": true
-    },
-    {
-      "from": {
-        "name": "Saturn",
-        "kind": "transit",
-        "house": 1,
-        "sign": "Pisces",
-        "longitude": 341.9717864716233
+        "longitude": 297.73848781308584
       },
       "to": {
         "name": "Venus",
         "kind": "natal",
-        "house": 12,
+        "house": 3,
         "sign": "Pisces",
-        "longitude": 345.699772624787
+        "longitude": 359.1545262435887
       },
-      "type": "opposition",
-      "orb": 3.7279861531636698,
-      "score": 0.48222414539393466,
-      "transitPlanet": "Saturn",
+      "type": "trine",
+      "orb": 1.4160384305028515,
+      "score": 0.7821479337687921,
+      "transitPlanet": "Uranus",
       "natalPoint": "Venus",
       "isApplying": true
     },
@@ -1420,16 +1376,82 @@
         "longitude": 240.44551487953368
       },
       "to": {
-        "name": "Sun",
+        "name": "Venus",
         "kind": "natal",
-        "house": 12,
+        "house": 3,
         "sign": "Pisces",
-        "longitude": 334.3518269257949
+        "longitude": 359.1545262435887
+      },
+      "type": "sextile",
+      "orb": 1.2909886359449843,
+      "score": 0.7694663150098242,
+      "transitPlanet": "Pluto",
+      "natalPoint": "Venus",
+      "isApplying": true
+    },
+    {
+      "from": {
+        "name": "Uranus",
+        "kind": "transit",
+        "house": 12,
+        "sign": "Capricorn",
+        "longitude": 297.73848781308584
+      },
+      "to": {
+        "name": "MC",
+        "kind": "natal",
+        "house": 10,
+        "sign": "Libra",
+        "longitude": 209.39355494698452
       },
       "type": "square",
-      "orb": 3.9063120462612346,
-      "score": 0.4419554219626808,
+      "orb": 1.655067133898683,
+      "score": 0.7453742870925103,
+      "transitPlanet": "Uranus",
+      "natalPoint": "MC",
+      "isApplying": false
+    },
+    {
+      "from": {
+        "name": "Pluto",
+        "kind": "transit",
+        "house": 10,
+        "sign": "Sagittarius",
+        "longitude": 240.44551487953368
+      },
+      "to": {
+        "name": "Mars",
+        "kind": "natal",
+        "house": 2,
+        "sign": "Pisces",
+        "longitude": 332.5013173257
+      },
+      "type": "square",
+      "orb": 2.0558024461662967,
+      "score": 0.7063139362619576,
       "transitPlanet": "Pluto",
+      "natalPoint": "Mars",
+      "isApplying": true
+    },
+    {
+      "from": {
+        "name": "Saturn",
+        "kind": "transit",
+        "house": 1,
+        "sign": "Pisces",
+        "longitude": 341.9717864716233
+      },
+      "to": {
+        "name": "Sun",
+        "kind": "natal",
+        "house": 2,
+        "sign": "Pisces",
+        "longitude": 345.1866399664213
+      },
+      "type": "opposition",
+      "orb": 3.214853494798035,
+      "score": 0.5534925701669395,
+      "transitPlanet": "Saturn",
       "natalPoint": "Sun",
       "isApplying": true
     },
@@ -1442,82 +1464,126 @@
         "longitude": 251.5066523290807
       },
       "to": {
-        "name": "Venus",
+        "name": "Sun",
         "kind": "natal",
-        "house": 12,
+        "house": 2,
         "sign": "Pisces",
-        "longitude": 345.699772624787
+        "longitude": 345.1866399664213
       },
       "type": "square",
-      "orb": 4.193120295706308,
-      "score": 0.23761449168976223,
+      "orb": 3.6799876373405596,
+      "score": 0.3309113386653528,
       "transitPlanet": "Jupiter",
-      "natalPoint": "Venus",
+      "natalPoint": "Sun",
       "isApplying": true
     },
     {
       "from": {
-        "name": "Uranus",
+        "name": "Saturn",
         "kind": "transit",
-        "house": 12,
-        "sign": "Capricorn",
-        "longitude": 297.73848781308584
+        "house": 1,
+        "sign": "Pisces",
+        "longitude": 341.9717864716233
       },
       "to": {
         "name": "Ascendant",
         "kind": "natal",
         "house": 1,
-        "sign": "Aries",
-        "longitude": 3.194188991005332
+        "sign": "Capricorn",
+        "longitude": 277.39567238584635
       },
       "type": "trine",
-      "orb": 5.455701177919536,
-      "score": 0.16066135724314823,
-      "transitPlanet": "Uranus",
+      "orb": 4.576114085776908,
+      "score": 0.23731431903718203,
+      "transitPlanet": "Saturn",
       "natalPoint": "Ascendant",
-      "isApplying": true
+      "isApplying": false
     },
     {
       "from": {
-        "name": "Pluto",
-        "kind": "transit",
-        "house": 10,
-        "sign": "Sagittarius",
-        "longitude": 240.44551487953368
-      },
-      "to": {
-        "name": "Mars",
-        "kind": "natal",
-        "house": 12,
-        "sign": "Aquarius",
-        "longitude": 323.998835109063
-      },
-      "type": "square",
-      "orb": 6.446679770470666,
-      "score": 0.07904574707561907,
-      "transitPlanet": "Pluto",
-      "natalPoint": "Mars",
-      "isApplying": true
-    },
-    {
-      "from": {
-        "name": "Uranus",
+        "name": "Neptune",
         "kind": "transit",
         "house": 12,
         "sign": "Capricorn",
-        "longitude": 297.73848781308584
+        "longitude": 294.01578820080937
+      },
+      "to": {
+        "name": "Venus",
+        "kind": "natal",
+        "house": 3,
+        "sign": "Pisces",
+        "longitude": 359.1545262435887
+      },
+      "type": "trine",
+      "orb": 5.138738042779323,
+      "score": 0.20942491649548878,
+      "transitPlanet": "Neptune",
+      "natalPoint": "Venus",
+      "isApplying": true
+    },
+    {
+      "from": {
+        "name": "Neptune",
+        "kind": "transit",
+        "house": 12,
+        "sign": "Capricorn",
+        "longitude": 294.01578820080937
+      },
+      "to": {
+        "name": "MC",
+        "kind": "natal",
+        "house": 10,
+        "sign": "Libra",
+        "longitude": 209.39355494698452
+      },
+      "type": "square",
+      "orb": 5.377766746175212,
+      "score": 0.1726512698191982,
+      "transitPlanet": "Neptune",
+      "natalPoint": "MC",
+      "isApplying": false
+    },
+    {
+      "from": {
+        "name": "Neptune",
+        "kind": "transit",
+        "house": 12,
+        "sign": "Capricorn",
+        "longitude": 294.01578820080937
       },
       "to": {
         "name": "Mercury",
         "kind": "natal",
-        "house": 12,
+        "house": 2,
         "sign": "Pisces",
-        "longitude": 351.67254408083
+        "longitude": 348.5365929930683
       },
       "type": "trine",
-      "orb": 6.065943732255846,
-      "score": 0.06677788734525447,
-      "transitPlanet": "Uranus",
+      "orb": 5.479195207741043,
+      "score": 0.15704689111676262,
+      "transitPlanet": "Neptune",
+      "natalPoint": "Mercury",
+      "isApplying": true
+    },
+    {
+      "from": {
+        "name": "Saturn",
+        "kind": "transit",
+        "house": 1,
+        "sign": "Pisces",
+        "longitude": 341.9717864716233
+      },
+      "to": {
+        "name": "Mercury",
+        "kind": "natal",
+        "house": 2,
+        "sign": "Pisces",
+        "longitude": 348.5365929930683
+      },
+      "type": "opposition",
+      "orb": 6.564806521445007,
+      "score": 0.0882213164659712,
+      "transitPlanet": "Saturn",
       "natalPoint": "Mercury",
       "isApplying": true
     }
@@ -1614,377 +1680,377 @@
     "planets": [
       {
         "name": "Sun",
-        "longitude": 350.88771036017295,
+        "longitude": 350.9244272928812,
         "sign": "Pisces",
         "degree": 20,
-        "minute": 53,
-        "formatted": "Pisces 20deg 53'",
-        "norm": 350.88771036017295,
+        "minute": 55,
+        "formatted": "Pisces 20deg 55'",
+        "norm": 350.9244272928812,
         "house": 12,
-        "speed": 0.9982321273330549,
+        "speed": 0.9982097001307321,
         "retrograde": false
       },
       {
         "name": "Moon",
-        "longitude": 108.64523924322033,
+        "longitude": 109.09829916504411,
         "sign": "Cancer",
-        "degree": 18,
-        "minute": 38,
-        "formatted": "Cancer 18deg 38'",
-        "norm": 108.64523924322032,
+        "degree": 19,
+        "minute": 5,
+        "formatted": "Cancer 19deg 05'",
+        "norm": 109.09829916504412,
         "house": 4,
-        "speed": 12.312174159043447,
+        "speed": 12.322414305142711,
         "retrograde": false
       },
       {
         "name": "Mercury",
-        "longitude": 325.89402034206535,
+        "longitude": 325.9437285597265,
         "sign": "Aquarius",
         "degree": 25,
-        "minute": 53,
-        "formatted": "Aquarius 25deg 53'",
-        "norm": 325.89402034206535,
-        "house": 12,
-        "speed": 1.350945309576127,
+        "minute": 56,
+        "formatted": "Aquarius 25deg 56'",
+        "norm": 325.9437285597264,
+        "house": 11,
+        "speed": 1.351886243421868,
         "retrograde": false
       },
       {
         "name": "Venus",
-        "longitude": 310.6263071031653,
+        "longitude": 310.66983061245776,
         "sign": "Aquarius",
         "degree": 10,
-        "minute": 37,
-        "formatted": "Aquarius 10deg 37'",
-        "norm": 310.62630710316535,
-        "house": 11,
-        "speed": 1.1832542752422501,
+        "minute": 40,
+        "formatted": "Aquarius 10deg 40'",
+        "norm": 310.66983061245776,
+        "house": 10,
+        "speed": 1.1832898119584887,
         "retrograde": false
       },
       {
         "name": "Mars",
-        "longitude": 134.19880056196732,
+        "longitude": 134.1927832515669,
         "sign": "Leo",
         "degree": 14,
         "minute": 11,
         "formatted": "Leo 14deg 11'",
-        "norm": 134.19880056196735,
+        "norm": 134.19278325156688,
         "house": 5,
-        "speed": -0.16383340946156694,
+        "speed": -0.16335049440823812,
         "retrograde": true
       },
       {
         "name": "Jupiter",
-        "longitude": 254.72893143009216,
+        "longitude": 254.7312350967255,
         "sign": "Sagittarius",
         "degree": 14,
         "minute": 43,
         "formatted": "Sagittarius 14deg 43'",
-        "norm": 254.7289314300922,
-        "house": 9,
-        "speed": 0.0626828844470257,
+        "norm": 254.73123509672553,
+        "house": 8,
+        "speed": 0.06257652464325697,
         "retrograde": false
       },
       {
         "name": "Saturn",
-        "longitude": 345.7325963490557,
+        "longitude": 345.7371029914857,
         "sign": "Pisces",
         "degree": 15,
-        "minute": 43,
-        "formatted": "Pisces 15deg 43'",
-        "norm": 345.7325963490557,
+        "minute": 44,
+        "formatted": "Pisces 15deg 44'",
+        "norm": 345.7371029914857,
         "house": 12,
-        "speed": 0.12252426468604767,
+        "speed": 0.1225197765655718,
         "retrograde": false
       },
       {
         "name": "Uranus",
-        "longitude": 299.2805136883647,
+        "longitude": 299.28205102037106,
         "sign": "Capricorn",
         "degree": 29,
         "minute": 16,
         "formatted": "Capricorn 29deg 16'",
-        "norm": 299.28051368836464,
-        "house": 11,
-        "speed": 0.04180667405205572,
+        "norm": 299.282051020371,
+        "house": 10,
+        "speed": 0.04178403881267448,
         "retrograde": false
       },
       {
         "name": "Neptune",
-        "longitude": 294.95553600712964,
+        "longitude": 294.95643503510365,
         "sign": "Capricorn",
         "degree": 24,
         "minute": 57,
         "formatted": "Capricorn 24deg 57'",
-        "norm": 294.9555360071297,
+        "norm": 294.9564350351036,
         "house": 10,
-        "speed": 0.02444993855493376,
+        "speed": 0.024433526779220928,
         "retrograde": false
       },
       {
         "name": "Pluto",
-        "longitude": 240.58736174313037,
+        "longitude": 240.58719596758124,
         "sign": "Sagittarius",
         "degree": 0,
         "minute": 35,
         "formatted": "Sagittarius 0deg 35'",
-        "norm": 240.58736174313037,
-        "house": 8,
-        "speed": -0.004495527059001685,
+        "norm": 240.58719596758124,
+        "house": 7,
+        "speed": -0.004516546200197327,
         "retrograde": true
       },
       {
         "name": "True Node",
-        "longitude": 216.6802442906675,
+        "longitude": 216.6774091372174,
         "sign": "Scorpio",
         "degree": 6,
         "minute": 40,
         "formatted": "Scorpio 6deg 40'",
-        "norm": 216.68024429066747,
+        "norm": 216.6774091372174,
         "house": 7,
-        "speed": -0.07651389386153735,
+        "speed": -0.07764304053565832,
         "retrograde": true
       }
     ],
     "ascendant": {
       "name": "Ascendant",
-      "longitude": 7.642482788314591,
+      "longitude": 28.547416273819596,
       "sign": "Aries",
-      "degree": 7,
-      "minute": 38,
-      "formatted": "Aries 7deg 38'",
-      "norm": 7.642482788314567,
+      "degree": 28,
+      "minute": 32,
+      "formatted": "Aries 28deg 32'",
+      "norm": 28.54741627381958,
       "house": 1
     },
     "mc": {
       "name": "MC",
-      "longitude": 274.2984139591003,
+      "longitude": 286.56376399718636,
       "sign": "Capricorn",
-      "degree": 4,
-      "minute": 17,
-      "formatted": "Capricorn 4deg 17'",
-      "norm": 274.29841395910034,
+      "degree": 16,
+      "minute": 33,
+      "formatted": "Capricorn 16deg 33'",
+      "norm": 286.56376399718636,
       "house": 10
     },
     "houses": [
       {
         "index": 1,
-        "cusp": 7.642482788314591,
+        "cusp": 28.547416273819596,
         "sign": "Aries",
-        "formatted": "Aries 7deg 38'",
+        "formatted": "Aries 28deg 32'",
         "graphId": "H1"
       },
       {
         "index": 2,
-        "cusp": 46.001875328582244,
-        "sign": "Taurus",
-        "formatted": "Taurus 16deg 00'",
+        "cusp": 61.16914676584332,
+        "sign": "Gemini",
+        "formatted": "Gemini 1deg 10'",
         "graphId": "H2"
       },
       {
         "index": 3,
-        "cusp": 72.28280921178383,
+        "cusp": 84.87982311943473,
         "sign": "Gemini",
-        "formatted": "Gemini 12deg 16'",
+        "formatted": "Gemini 24deg 52'",
         "graphId": "H3"
       },
       {
         "index": 4,
-        "cusp": 94.29841395910029,
+        "cusp": 106.56376399718636,
         "sign": "Cancer",
-        "formatted": "Cancer 4deg 17'",
+        "formatted": "Cancer 16deg 33'",
         "graphId": "H4"
       },
       {
         "index": 5,
-        "cusp": 116.9880905888594,
-        "sign": "Cancer",
-        "formatted": "Cancer 26deg 59'",
+        "cusp": 130.82474874020602,
+        "sign": "Leo",
+        "formatted": "Leo 10deg 49'",
         "graphId": "H5"
       },
       {
         "index": 6,
-        "cusp": 145.61214021387678,
-        "sign": "Leo",
-        "formatted": "Leo 25deg 36'",
+        "cusp": 163.2542410402816,
+        "sign": "Virgo",
+        "formatted": "Virgo 13deg 15'",
         "graphId": "H6"
       },
       {
         "index": 7,
-        "cusp": 187.6424827883146,
+        "cusp": 208.5474162738196,
         "sign": "Libra",
-        "formatted": "Libra 7deg 38'",
+        "formatted": "Libra 28deg 32'",
         "graphId": "H7"
       },
       {
         "index": 8,
-        "cusp": 226.00187532858223,
-        "sign": "Scorpio",
-        "formatted": "Scorpio 16deg 00'",
+        "cusp": 241.16914676584332,
+        "sign": "Sagittarius",
+        "formatted": "Sagittarius 1deg 10'",
         "graphId": "H8"
       },
       {
         "index": 9,
-        "cusp": 252.28280921178384,
+        "cusp": 264.8798231194347,
         "sign": "Sagittarius",
-        "formatted": "Sagittarius 12deg 16'",
+        "formatted": "Sagittarius 24deg 52'",
         "graphId": "H9"
       },
       {
         "index": 10,
-        "cusp": 274.2984139591003,
+        "cusp": 286.56376399718636,
         "sign": "Capricorn",
-        "formatted": "Capricorn 4deg 17'",
+        "formatted": "Capricorn 16deg 33'",
         "graphId": "H10"
       },
       {
         "index": 11,
-        "cusp": 296.9880905888594,
-        "sign": "Capricorn",
-        "formatted": "Capricorn 26deg 59'",
+        "cusp": 310.824748740206,
+        "sign": "Aquarius",
+        "formatted": "Aquarius 10deg 49'",
         "graphId": "H11"
       },
       {
         "index": 12,
-        "cusp": 325.6121402138768,
-        "sign": "Aquarius",
-        "formatted": "Aquarius 25deg 36'",
+        "cusp": 343.25424104028156,
+        "sign": "Pisces",
+        "formatted": "Pisces 13deg 15'",
         "graphId": "H12"
       }
     ],
     "progressionType": "secondary",
-    "yearsProgressed": 31.04,
+    "yearsProgressed": 31.07,
     "progressedDate": "1995-03-12"
   },
   "solarArcDirections": {
     "planets": [
       {
         "name": "Sun",
-        "longitude": 350.88771036017295,
+        "longitude": 350.9244272928812,
         "sign": "Pisces",
         "degree": 20,
-        "minute": 53,
-        "formatted": "Pisces 20deg 53'",
-        "norm": 350.88771036017295,
+        "minute": 55,
+        "formatted": "Pisces 20deg 55'",
+        "norm": 350.9244272928812,
         "house": 2,
         "speed": 1.0125452038963718,
         "retrograde": false
       },
       {
         "name": "Moon",
-        "longitude": 95.61750685828065,
+        "longitude": 95.65422379098891,
         "sign": "Cancer",
         "degree": 5,
-        "minute": 37,
-        "formatted": "Cancer 5deg 37'",
-        "norm": 95.61750685828065,
+        "minute": 39,
+        "formatted": "Cancer 5deg 39'",
+        "norm": 95.65422379098891,
         "house": 5,
         "speed": 11.800764547295014,
         "retrograde": false
       },
       {
         "name": "Mercury",
-        "longitude": 340.27156095665964,
+        "longitude": 340.3082778893679,
         "sign": "Pisces",
         "degree": 10,
-        "minute": 16,
-        "formatted": "Pisces 10deg 16'",
-        "norm": 340.27156095665964,
+        "minute": 18,
+        "formatted": "Pisces 10deg 18'",
+        "norm": 340.3082778893679,
         "house": 1,
         "speed": -0.9378894903473167,
         "retrograde": true
       },
       {
         "name": "Venus",
-        "longitude": 305.7944878312751,
+        "longitude": 305.83120476398335,
         "sign": "Aquarius",
         "degree": 5,
-        "minute": 47,
-        "formatted": "Aquarius 5deg 47'",
-        "norm": 305.7944878312751,
+        "minute": 49,
+        "formatted": "Aquarius 5deg 49'",
+        "norm": 305.83120476398335,
         "house": 1,
         "speed": 1.1310411576018333,
         "retrograde": false
       },
       {
         "name": "Mars",
-        "longitude": 175.40390931692548,
+        "longitude": 175.44062624963374,
         "sign": "Virgo",
         "degree": 25,
-        "minute": 24,
-        "formatted": "Virgo 25deg 24'",
-        "norm": 175.40390931692548,
+        "minute": 26,
+        "formatted": "Virgo 25deg 26'",
+        "norm": 175.44062624963374,
         "house": 8,
         "speed": -0.3961911858966349,
         "retrograde": true
       },
       {
         "name": "Jupiter",
-        "longitude": 282.7301146163429,
+        "longitude": 282.7668315490512,
         "sign": "Capricorn",
         "degree": 12,
-        "minute": 43,
-        "formatted": "Capricorn 12deg 43'",
-        "norm": 282.7301146163429,
+        "minute": 46,
+        "formatted": "Capricorn 12deg 46'",
+        "norm": 282.7668315490512,
         "house": 12,
         "speed": 0.14064173238483296,
         "retrograde": false
       },
       {
         "name": "Saturn",
-        "longitude": 13.195248758885498,
+        "longitude": 13.231965691593757,
         "sign": "Aries",
         "degree": 13,
-        "minute": 11,
-        "formatted": "Aries 13deg 11'",
-        "norm": 13.195248758885498,
+        "minute": 13,
+        "formatted": "Aries 13deg 13'",
+        "norm": 13.231965691593757,
         "house": 2,
         "speed": 0.11674366796837224,
         "retrograde": false
       },
       {
         "name": "Uranus",
-        "longitude": 328.9619501003481,
+        "longitude": 328.99866703305634,
         "sign": "Aquarius",
         "degree": 28,
-        "minute": 57,
-        "formatted": "Aquarius 28deg 57'",
-        "norm": 328.9619501003481,
+        "minute": 59,
+        "formatted": "Aquarius 28deg 59'",
+        "norm": 328.99866703305634,
         "house": 1,
         "speed": 0.05585693449865477,
         "retrograde": false
       },
       {
         "name": "Neptune",
-        "longitude": 325.23925048807155,
+        "longitude": 325.2759674207798,
         "sign": "Aquarius",
         "degree": 25,
-        "minute": 14,
-        "formatted": "Aquarius 25deg 14'",
-        "norm": 325.23925048807155,
+        "minute": 16,
+        "formatted": "Aquarius 25deg 16'",
+        "norm": 325.2759674207798,
         "house": 1,
         "speed": 0.03499341058857923,
         "retrograde": false
       },
       {
         "name": "Pluto",
-        "longitude": 271.6689771667959,
+        "longitude": 271.70569409950417,
         "sign": "Capricorn",
         "degree": 1,
-        "minute": 40,
-        "formatted": "Capricorn 1deg 40'",
-        "norm": 271.6689771667959,
+        "minute": 42,
+        "formatted": "Capricorn 1deg 42'",
+        "norm": 271.70569409950417,
         "house": 11,
         "speed": 0.01365402849247233,
         "retrograde": false
       },
       {
         "name": "True Node",
-        "longitude": 250.56477800268408,
+        "longitude": 250.60149493539234,
         "sign": "Sagittarius",
         "degree": 10,
-        "minute": 33,
-        "formatted": "Sagittarius 10deg 33'",
-        "norm": 250.56477800268408,
+        "minute": 36,
+        "formatted": "Sagittarius 10deg 36'",
+        "norm": 250.60149493539234,
         "house": 10,
         "speed": -0.027270228452846098,
         "retrograde": true
@@ -1992,22 +2058,22 @@
     ],
     "ascendant": {
       "name": "Ascendant",
-      "longitude": 333.52041111069343,
+      "longitude": 333.5571280434017,
       "sign": "Pisces",
       "degree": 3,
-      "minute": 31,
-      "formatted": "Pisces 3deg 31'",
-      "norm": 333.52041111069343,
+      "minute": 33,
+      "formatted": "Pisces 3deg 33'",
+      "norm": 333.5571280434017,
       "house": 1
     },
     "mc": {
       "name": "MC",
-      "longitude": 264.12500584889904,
+      "longitude": 264.1617227816073,
       "sign": "Sagittarius",
       "degree": 24,
-      "minute": 7,
-      "formatted": "Sagittarius 24deg 07'",
-      "norm": 264.12500584889904,
+      "minute": 9,
+      "formatted": "Sagittarius 24deg 09'",
+      "norm": 264.1617227816073,
       "house": 10
     },
     "houses": [
@@ -2097,8 +2163,8 @@
       }
     ],
     "progressionType": "solarArc",
-    "yearsProgressed": 31.04,
-    "progressedDate": "2026-02-23"
+    "yearsProgressed": 31.07,
+    "progressedDate": "2026-03-06"
   },
   "solarReturn": {
     "planets": [
@@ -2349,247 +2415,247 @@
     "planets": [
       {
         "name": "Sun",
-        "longitude": 335.7961546990065,
-        "sign": "Pisces",
-        "degree": 5,
-        "minute": 47,
-        "formatted": "Pisces 5deg 47'",
-        "norm": 335.7961546990065,
-        "house": 6,
-        "speed": 1.0062281117615053,
+        "longitude": 3.014248928502126,
+        "sign": "Aries",
+        "degree": 3,
+        "minute": 0,
+        "formatted": "Aries 3deg 00'",
+        "norm": 3.014248928502127,
+        "house": 4,
+        "speed": 0.9921767470521473,
         "retrograde": false
       },
       {
         "name": "Moon",
-        "longitude": 64.39403205274573,
+        "longitude": 64.39408632825001,
         "sign": "Gemini",
         "degree": 4,
         "minute": 23,
         "formatted": "Gemini 4deg 23'",
-        "norm": 64.39403205274573,
-        "house": 9,
-        "speed": 14.200988149174396,
+        "norm": 64.39408632825001,
+        "house": 6,
+        "speed": 14.433071628035698,
         "retrograde": false
       },
       {
         "name": "Mercury",
-        "longitude": 352.2777872779753,
+        "longitude": 338.8734220765984,
         "sign": "Pisces",
-        "degree": 22,
-        "minute": 16,
-        "formatted": "Pisces 22deg 16'",
-        "norm": 352.2777872779752,
-        "house": 7,
-        "speed": 0.30686827976439707,
+        "degree": 8,
+        "minute": 52,
+        "formatted": "Pisces 8deg 52'",
+        "norm": 338.87342207659844,
+        "house": 3,
+        "speed": 0.2642583441405846,
         "retrograde": false
       },
       {
         "name": "Venus",
-        "longitude": 347.49164122886293,
-        "sign": "Pisces",
-        "degree": 17,
-        "minute": 29,
-        "formatted": "Pisces 17deg 29'",
-        "norm": 347.49164122886293,
-        "house": 7,
-        "speed": 1.248549044067713,
+        "longitude": 21.339801863430036,
+        "sign": "Aries",
+        "degree": 21,
+        "minute": 20,
+        "formatted": "Aries 21deg 20'",
+        "norm": 21.33980186343001,
+        "house": 4,
+        "speed": 1.2363385100543092,
         "retrograde": false
       },
       {
         "name": "Mars",
-        "longitude": 325.1293145834597,
-        "sign": "Aquarius",
-        "degree": 25,
-        "minute": 7,
-        "formatted": "Aquarius 25deg 07'",
-        "norm": 325.12931458345975,
-        "house": 6,
-        "speed": 0.787916278461411,
+        "longitude": 346.5736582396798,
+        "sign": "Pisces",
+        "degree": 16,
+        "minute": 34,
+        "formatted": "Pisces 16deg 34'",
+        "norm": 346.57365823967984,
+        "house": 3,
+        "speed": 0.7852111782788987,
         "retrograde": false
       },
       {
         "name": "Jupiter",
-        "longitude": 105.44112106913096,
+        "longitude": 105.33985057675449,
         "sign": "Cancer",
         "degree": 15,
-        "minute": 26,
-        "formatted": "Cancer 15deg 26'",
-        "norm": 105.44112106913099,
-        "house": 11,
-        "speed": -0.047821304699800955,
-        "retrograde": true
+        "minute": 20,
+        "formatted": "Cancer 15deg 20'",
+        "norm": 105.33985057675449,
+        "house": 7,
+        "speed": 0.040146440544953046,
+        "retrograde": false
       },
       {
         "name": "Saturn",
-        "longitude": 1.1823910122677759,
+        "longitude": 4.506132454895111,
         "sign": "Aries",
-        "degree": 1,
-        "minute": 10,
-        "formatted": "Aries 1deg 10'",
-        "norm": 1.1823910122677717,
-        "house": 7,
-        "speed": 0.11690627761817314,
+        "degree": 4,
+        "minute": 30,
+        "formatted": "Aries 4deg 30'",
+        "norm": 4.506132454895123,
+        "house": 4,
+        "speed": 0.12487388695918625,
         "retrograde": false
       },
       {
         "name": "Uranus",
-        "longitude": 57.64178227064576,
+        "longitude": 58.4185410895763,
         "sign": "Taurus",
-        "degree": 27,
-        "minute": 38,
-        "formatted": "Taurus 27deg 38'",
-        "norm": 57.64178227064576,
-        "house": 9,
-        "speed": 0.017821223371739282,
+        "degree": 28,
+        "minute": 25,
+        "formatted": "Taurus 28deg 25'",
+        "norm": 58.41854108957631,
+        "house": 6,
+        "speed": 0.03842492194406034,
         "retrograde": false
       },
       {
         "name": "Neptune",
-        "longitude": 0.8811162177244735,
+        "longitude": 1.888572489827801,
         "sign": "Aries",
-        "degree": 0,
-        "minute": 52,
-        "formatted": "Aries 0deg 52'",
-        "norm": 0.8811162177244682,
-        "house": 7,
-        "speed": 0.03503769508986201,
+        "degree": 1,
+        "minute": 53,
+        "formatted": "Aries 1deg 53'",
+        "norm": 1.8885724898278227,
+        "house": 3,
+        "speed": 0.037953429361823686,
         "retrograde": false
       },
       {
         "name": "Pluto",
-        "longitude": 304.40659920682003,
+        "longitude": 305.0666764365798,
         "sign": "Aquarius",
-        "degree": 4,
-        "minute": 24,
-        "formatted": "Aquarius 4deg 24'",
-        "norm": 304.40659920682003,
-        "house": 5,
-        "speed": 0.02821849737502056,
+        "degree": 5,
+        "minute": 4,
+        "formatted": "Aquarius 5deg 04'",
+        "norm": 305.0666764365799,
+        "house": 2,
+        "speed": 0.019605790526902686,
         "retrograde": false
       },
       {
         "name": "True Node",
-        "longitude": 338.9820526830674,
+        "longitude": 338.7577200470064,
         "sign": "Pisces",
         "degree": 8,
-        "minute": 58,
-        "formatted": "Pisces 8deg 58'",
-        "norm": 338.9820526830674,
-        "house": 6,
-        "speed": 0.00034609386514321397,
-        "retrograde": false
+        "minute": 45,
+        "formatted": "Pisces 8deg 45'",
+        "norm": 338.7577200470064,
+        "house": 3,
+        "speed": -0.040027818398328495,
+        "retrograde": true
       }
     ],
     "ascendant": {
       "name": "Ascendant",
-      "longitude": 163.60846601893917,
-      "sign": "Virgo",
-      "degree": 13,
-      "minute": 36,
-      "formatted": "Virgo 13deg 36'",
-      "norm": 163.60846601893923,
+      "longitude": 254.89589577904655,
+      "sign": "Sagittarius",
+      "degree": 14,
+      "minute": 53,
+      "formatted": "Sagittarius 14deg 53'",
+      "norm": 254.89589577904655,
       "house": 1
     },
     "mc": {
       "name": "MC",
-      "longitude": 71.45161239148808,
-      "sign": "Gemini",
-      "degree": 11,
-      "minute": 27,
-      "formatted": "Gemini 11deg 27'",
-      "norm": 71.45161239148808,
+      "longitude": 182.46849706644238,
+      "sign": "Libra",
+      "degree": 2,
+      "minute": 28,
+      "formatted": "Libra 2deg 28'",
+      "norm": 182.4684970664424,
       "house": 10
     },
     "houses": [
       {
         "index": 1,
-        "cusp": 163.60846601893917,
-        "sign": "Virgo",
-        "formatted": "Virgo 13deg 36'",
+        "cusp": 254.89589577904655,
+        "sign": "Sagittarius",
+        "formatted": "Sagittarius 14deg 53'",
         "graphId": "H1"
       },
       {
         "index": 2,
-        "cusp": 188.83229693063544,
-        "sign": "Libra",
-        "formatted": "Libra 8deg 49'",
+        "cusp": 288.55844874782986,
+        "sign": "Capricorn",
+        "formatted": "Capricorn 18deg 33'",
         "graphId": "H2"
       },
       {
         "index": 3,
-        "cusp": 218.51026913668568,
-        "sign": "Scorpio",
-        "formatted": "Scorpio 8deg 30'",
+        "cusp": 326.7432335961779,
+        "sign": "Aquarius",
+        "formatted": "Aquarius 26deg 44'",
         "graphId": "H3"
       },
       {
         "index": 4,
-        "cusp": 251.45161239148808,
-        "sign": "Sagittarius",
-        "formatted": "Sagittarius 11deg 27'",
+        "cusp": 2.46849706644241,
+        "sign": "Aries",
+        "formatted": "Aries 2deg 28'",
         "graphId": "H4"
       },
       {
         "index": 5,
-        "cusp": 284.86920732196586,
-        "sign": "Capricorn",
-        "formatted": "Capricorn 14deg 52'",
+        "cusp": 31.29431701299029,
+        "sign": "Taurus",
+        "formatted": "Taurus 1deg 17'",
         "graphId": "H5"
       },
       {
         "index": 6,
-        "cusp": 315.9746423895051,
-        "sign": "Aquarius",
-        "formatted": "Aquarius 15deg 58'",
+        "cusp": 54.45912872929512,
+        "sign": "Taurus",
+        "formatted": "Taurus 24deg 27'",
         "graphId": "H6"
       },
       {
         "index": 7,
-        "cusp": 343.60846601893917,
-        "sign": "Pisces",
-        "formatted": "Pisces 13deg 36'",
+        "cusp": 74.89589577904655,
+        "sign": "Gemini",
+        "formatted": "Gemini 14deg 53'",
         "graphId": "H7"
       },
       {
         "index": 8,
-        "cusp": 8.832296930635437,
-        "sign": "Aries",
-        "formatted": "Aries 8deg 49'",
+        "cusp": 108.55844874782986,
+        "sign": "Cancer",
+        "formatted": "Cancer 18deg 33'",
         "graphId": "H8"
       },
       {
         "index": 9,
-        "cusp": 38.51026913668568,
-        "sign": "Taurus",
-        "formatted": "Taurus 8deg 30'",
+        "cusp": 146.7432335961779,
+        "sign": "Leo",
+        "formatted": "Leo 26deg 44'",
         "graphId": "H9"
       },
       {
         "index": 10,
-        "cusp": 71.45161239148808,
-        "sign": "Gemini",
-        "formatted": "Gemini 11deg 27'",
+        "cusp": 182.46849706644238,
+        "sign": "Libra",
+        "formatted": "Libra 2deg 28'",
         "graphId": "H10"
       },
       {
         "index": 11,
-        "cusp": 104.86920732196587,
-        "sign": "Cancer",
-        "formatted": "Cancer 14deg 52'",
+        "cusp": 211.2943170129903,
+        "sign": "Scorpio",
+        "formatted": "Scorpio 1deg 17'",
         "graphId": "H11"
       },
       {
         "index": 12,
-        "cusp": 135.97464238950514,
-        "sign": "Leo",
-        "formatted": "Leo 15deg 58'",
+        "cusp": 234.45912872929512,
+        "sign": "Scorpio",
+        "formatted": "Scorpio 24deg 27'",
         "graphId": "H12"
       }
     ],
     "returnType": "lunar",
     "returnYear": 2026,
-    "returnMonth": 2,
-    "exactReturnTime": "2026-02-24T09:54:33Z"
+    "returnMonth": 3,
+    "exactReturnTime": "2026-03-23T15:36:35Z"
   },
   "draconic": {
     "draconicChart": {
@@ -3739,8 +3805,8 @@
 ```json
 {
   "totalScore": 6.2,
-  "sajuComponentScore": 0.509,
-  "astroComponentScore": 0.546,
+  "sajuComponentScore": 0.508,
+  "astroComponentScore": 0.545,
   "alignmentScore": 0.963,
   "overlapStrength": 0.15,
   "timeOverlapWeight": 1.045,
@@ -3754,11 +3820,11 @@
       "domain": "career",
       "baseFinalScore": 10,
       "finalScoreAdjusted": 10,
-      "sajuComponentScore": 0.509,
-      "astroComponentScore": 0.546,
+      "sajuComponentScore": 0.508,
+      "astroComponentScore": 0.545,
       "alignmentScore": 0.963,
-      "overlapStrength": 0.171,
-      "timeOverlapWeight": 1.051,
+      "overlapStrength": 0.233,
+      "timeOverlapWeight": 1.07,
       "confidenceScore": 0.913,
       "drivers": ["High cross-system agreement"],
       "cautions": []
@@ -3767,11 +3833,11 @@
       "domain": "love",
       "baseFinalScore": 10,
       "finalScoreAdjusted": 10,
-      "sajuComponentScore": 0.509,
-      "astroComponentScore": 0.546,
+      "sajuComponentScore": 0.508,
+      "astroComponentScore": 0.545,
       "alignmentScore": 0.963,
-      "overlapStrength": 0.171,
-      "timeOverlapWeight": 1.051,
+      "overlapStrength": 0.233,
+      "timeOverlapWeight": 1.07,
       "confidenceScore": 0.913,
       "drivers": ["High cross-system agreement"],
       "cautions": []
@@ -3780,11 +3846,11 @@
       "domain": "money",
       "baseFinalScore": 9.6,
       "finalScoreAdjusted": 10,
-      "sajuComponentScore": 0.501,
-      "astroComponentScore": 0.537,
-      "alignmentScore": 0.963,
-      "overlapStrength": 0.171,
-      "timeOverlapWeight": 1.051,
+      "sajuComponentScore": 0.5,
+      "astroComponentScore": 0.536,
+      "alignmentScore": 0.964,
+      "overlapStrength": 0.233,
+      "timeOverlapWeight": 1.07,
       "confidenceScore": 0.913,
       "drivers": ["High cross-system agreement"],
       "cautions": []
@@ -3792,12 +3858,12 @@
     "health": {
       "domain": "health",
       "baseFinalScore": 8.6,
-      "finalScoreAdjusted": 8.9,
+      "finalScoreAdjusted": 9.1,
       "sajuComponentScore": 0.48,
       "astroComponentScore": 0.515,
       "alignmentScore": 0.965,
-      "overlapStrength": 0.154,
-      "timeOverlapWeight": 1.046,
+      "overlapStrength": 0.209,
+      "timeOverlapWeight": 1.063,
       "confidenceScore": 0.913,
       "drivers": ["High cross-system agreement"],
       "cautions": []
@@ -3806,11 +3872,11 @@
       "domain": "move",
       "baseFinalScore": 10,
       "finalScoreAdjusted": 10,
-      "sajuComponentScore": 0.509,
-      "astroComponentScore": 0.546,
+      "sajuComponentScore": 0.508,
+      "astroComponentScore": 0.545,
       "alignmentScore": 0.963,
-      "overlapStrength": 0.171,
-      "timeOverlapWeight": 1.051,
+      "overlapStrength": 0.233,
+      "timeOverlapWeight": 1.07,
       "confidenceScore": 0.913,
       "drivers": ["High cross-system agreement"],
       "cautions": []
@@ -3818,446 +3884,446 @@
   },
   "overlapTimeline": [
     {
-      "month": "2026-02",
-      "overlapStrength": 0.206,
-      "timeOverlapWeight": 1.062,
-      "peakLevel": "normal"
-    },
-    {
       "month": "2026-03",
-      "overlapStrength": 0.217,
-      "timeOverlapWeight": 1.065,
+      "overlapStrength": 0.053,
+      "timeOverlapWeight": 1.016,
       "peakLevel": "normal"
     },
     {
       "month": "2026-04",
-      "overlapStrength": 0.189,
-      "timeOverlapWeight": 1.057,
+      "overlapStrength": 0.283,
+      "timeOverlapWeight": 1.085,
       "peakLevel": "normal"
     },
     {
       "month": "2026-05",
-      "overlapStrength": 0.235,
-      "timeOverlapWeight": 1.071,
+      "overlapStrength": 0.301,
+      "timeOverlapWeight": 1.09,
       "peakLevel": "normal"
     },
     {
       "month": "2026-06",
-      "overlapStrength": 0.256,
-      "timeOverlapWeight": 1.077,
+      "overlapStrength": 0.284,
+      "timeOverlapWeight": 1.085,
       "peakLevel": "normal"
     },
     {
       "month": "2026-07",
-      "overlapStrength": 0.109,
-      "timeOverlapWeight": 1.033,
+      "overlapStrength": 0.214,
+      "timeOverlapWeight": 1.064,
       "peakLevel": "normal"
     },
     {
       "month": "2026-08",
-      "overlapStrength": 0.206,
-      "timeOverlapWeight": 1.062,
+      "overlapStrength": 0.169,
+      "timeOverlapWeight": 1.051,
       "peakLevel": "normal"
     },
     {
       "month": "2026-09",
-      "overlapStrength": 0.09,
-      "timeOverlapWeight": 1.027,
+      "overlapStrength": 0.207,
+      "timeOverlapWeight": 1.062,
       "peakLevel": "normal"
     },
     {
       "month": "2026-10",
-      "overlapStrength": 0.016,
-      "timeOverlapWeight": 1.005,
+      "overlapStrength": 0.097,
+      "timeOverlapWeight": 1.029,
       "peakLevel": "normal"
     },
     {
       "month": "2026-11",
-      "overlapStrength": 0.009,
-      "timeOverlapWeight": 1.003,
+      "overlapStrength": 0.143,
+      "timeOverlapWeight": 1.043,
       "peakLevel": "normal"
     },
     {
       "month": "2026-12",
-      "overlapStrength": 0,
-      "timeOverlapWeight": 1,
+      "overlapStrength": 0.144,
+      "timeOverlapWeight": 1.043,
       "peakLevel": "normal"
     },
     {
       "month": "2027-01",
-      "overlapStrength": 0.044,
-      "timeOverlapWeight": 1.013,
+      "overlapStrength": 0.091,
+      "timeOverlapWeight": 1.027,
+      "peakLevel": "normal"
+    },
+    {
+      "month": "2027-02",
+      "overlapStrength": 0.165,
+      "timeOverlapWeight": 1.05,
       "peakLevel": "normal"
     }
   ],
   "overlapTimelineByDomain": {
     "career": [
       {
-        "month": "2026-02",
-        "overlapStrength": 0.268,
-        "timeOverlapWeight": 1.08,
-        "peakLevel": "normal"
-      },
-      {
         "month": "2026-03",
-        "overlapStrength": 0.282,
-        "timeOverlapWeight": 1.085,
+        "overlapStrength": 0.069,
+        "timeOverlapWeight": 1.021,
         "peakLevel": "normal"
       },
       {
         "month": "2026-04",
-        "overlapStrength": 0.246,
-        "timeOverlapWeight": 1.074,
+        "overlapStrength": 0.368,
+        "timeOverlapWeight": 1.11,
         "peakLevel": "normal"
       },
       {
         "month": "2026-05",
-        "overlapStrength": 0.305,
-        "timeOverlapWeight": 1.092,
+        "overlapStrength": 0.391,
+        "timeOverlapWeight": 1.117,
         "peakLevel": "normal"
       },
       {
         "month": "2026-06",
-        "overlapStrength": 0.333,
-        "timeOverlapWeight": 1.1,
+        "overlapStrength": 0.369,
+        "timeOverlapWeight": 1.111,
         "peakLevel": "normal"
       },
       {
         "month": "2026-07",
-        "overlapStrength": 0.142,
-        "timeOverlapWeight": 1.043,
+        "overlapStrength": 0.278,
+        "timeOverlapWeight": 1.083,
         "peakLevel": "normal"
       },
       {
         "month": "2026-08",
-        "overlapStrength": 0.268,
-        "timeOverlapWeight": 1.08,
+        "overlapStrength": 0.22,
+        "timeOverlapWeight": 1.066,
         "peakLevel": "normal"
       },
       {
         "month": "2026-09",
-        "overlapStrength": 0.117,
-        "timeOverlapWeight": 1.035,
+        "overlapStrength": 0.269,
+        "timeOverlapWeight": 1.081,
         "peakLevel": "normal"
       },
       {
         "month": "2026-10",
-        "overlapStrength": 0.021,
-        "timeOverlapWeight": 1.006,
+        "overlapStrength": 0.126,
+        "timeOverlapWeight": 1.038,
         "peakLevel": "normal"
       },
       {
         "month": "2026-11",
-        "overlapStrength": 0.012,
-        "timeOverlapWeight": 1.004,
+        "overlapStrength": 0.186,
+        "timeOverlapWeight": 1.056,
         "peakLevel": "normal"
       },
       {
         "month": "2026-12",
-        "overlapStrength": 0,
-        "timeOverlapWeight": 1,
+        "overlapStrength": 0.187,
+        "timeOverlapWeight": 1.056,
         "peakLevel": "normal"
       },
       {
         "month": "2027-01",
-        "overlapStrength": 0.057,
-        "timeOverlapWeight": 1.017,
+        "overlapStrength": 0.118,
+        "timeOverlapWeight": 1.035,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2027-02",
+        "overlapStrength": 0.214,
+        "timeOverlapWeight": 1.064,
         "peakLevel": "normal"
       }
     ],
     "love": [
       {
-        "month": "2026-02",
-        "overlapStrength": 0.268,
-        "timeOverlapWeight": 1.08,
-        "peakLevel": "normal"
-      },
-      {
         "month": "2026-03",
-        "overlapStrength": 0.282,
-        "timeOverlapWeight": 1.085,
+        "overlapStrength": 0.069,
+        "timeOverlapWeight": 1.021,
         "peakLevel": "normal"
       },
       {
         "month": "2026-04",
-        "overlapStrength": 0.246,
-        "timeOverlapWeight": 1.074,
+        "overlapStrength": 0.368,
+        "timeOverlapWeight": 1.11,
         "peakLevel": "normal"
       },
       {
         "month": "2026-05",
-        "overlapStrength": 0.305,
-        "timeOverlapWeight": 1.092,
+        "overlapStrength": 0.391,
+        "timeOverlapWeight": 1.117,
         "peakLevel": "normal"
       },
       {
         "month": "2026-06",
-        "overlapStrength": 0.333,
-        "timeOverlapWeight": 1.1,
+        "overlapStrength": 0.369,
+        "timeOverlapWeight": 1.111,
         "peakLevel": "normal"
       },
       {
         "month": "2026-07",
-        "overlapStrength": 0.142,
-        "timeOverlapWeight": 1.043,
+        "overlapStrength": 0.278,
+        "timeOverlapWeight": 1.083,
         "peakLevel": "normal"
       },
       {
         "month": "2026-08",
-        "overlapStrength": 0.268,
-        "timeOverlapWeight": 1.08,
+        "overlapStrength": 0.22,
+        "timeOverlapWeight": 1.066,
         "peakLevel": "normal"
       },
       {
         "month": "2026-09",
-        "overlapStrength": 0.117,
-        "timeOverlapWeight": 1.035,
+        "overlapStrength": 0.269,
+        "timeOverlapWeight": 1.081,
         "peakLevel": "normal"
       },
       {
         "month": "2026-10",
-        "overlapStrength": 0.021,
-        "timeOverlapWeight": 1.006,
+        "overlapStrength": 0.126,
+        "timeOverlapWeight": 1.038,
         "peakLevel": "normal"
       },
       {
         "month": "2026-11",
-        "overlapStrength": 0.012,
-        "timeOverlapWeight": 1.004,
+        "overlapStrength": 0.186,
+        "timeOverlapWeight": 1.056,
         "peakLevel": "normal"
       },
       {
         "month": "2026-12",
-        "overlapStrength": 0,
-        "timeOverlapWeight": 1,
+        "overlapStrength": 0.187,
+        "timeOverlapWeight": 1.056,
         "peakLevel": "normal"
       },
       {
         "month": "2027-01",
-        "overlapStrength": 0.057,
-        "timeOverlapWeight": 1.017,
+        "overlapStrength": 0.118,
+        "timeOverlapWeight": 1.035,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2027-02",
+        "overlapStrength": 0.214,
+        "timeOverlapWeight": 1.064,
         "peakLevel": "normal"
       }
     ],
     "money": [
       {
-        "month": "2026-02",
-        "overlapStrength": 0.268,
-        "timeOverlapWeight": 1.08,
-        "peakLevel": "normal"
-      },
-      {
         "month": "2026-03",
-        "overlapStrength": 0.282,
-        "timeOverlapWeight": 1.085,
+        "overlapStrength": 0.069,
+        "timeOverlapWeight": 1.021,
         "peakLevel": "normal"
       },
       {
         "month": "2026-04",
-        "overlapStrength": 0.246,
-        "timeOverlapWeight": 1.074,
+        "overlapStrength": 0.368,
+        "timeOverlapWeight": 1.11,
         "peakLevel": "normal"
       },
       {
         "month": "2026-05",
-        "overlapStrength": 0.305,
-        "timeOverlapWeight": 1.092,
+        "overlapStrength": 0.391,
+        "timeOverlapWeight": 1.117,
         "peakLevel": "normal"
       },
       {
         "month": "2026-06",
-        "overlapStrength": 0.333,
-        "timeOverlapWeight": 1.1,
+        "overlapStrength": 0.369,
+        "timeOverlapWeight": 1.111,
         "peakLevel": "normal"
       },
       {
         "month": "2026-07",
-        "overlapStrength": 0.142,
-        "timeOverlapWeight": 1.043,
+        "overlapStrength": 0.278,
+        "timeOverlapWeight": 1.083,
         "peakLevel": "normal"
       },
       {
         "month": "2026-08",
-        "overlapStrength": 0.268,
-        "timeOverlapWeight": 1.08,
+        "overlapStrength": 0.22,
+        "timeOverlapWeight": 1.066,
         "peakLevel": "normal"
       },
       {
         "month": "2026-09",
-        "overlapStrength": 0.117,
-        "timeOverlapWeight": 1.035,
+        "overlapStrength": 0.269,
+        "timeOverlapWeight": 1.081,
         "peakLevel": "normal"
       },
       {
         "month": "2026-10",
-        "overlapStrength": 0.021,
-        "timeOverlapWeight": 1.006,
+        "overlapStrength": 0.126,
+        "timeOverlapWeight": 1.038,
         "peakLevel": "normal"
       },
       {
         "month": "2026-11",
-        "overlapStrength": 0.012,
-        "timeOverlapWeight": 1.004,
+        "overlapStrength": 0.186,
+        "timeOverlapWeight": 1.056,
         "peakLevel": "normal"
       },
       {
         "month": "2026-12",
-        "overlapStrength": 0,
-        "timeOverlapWeight": 1,
+        "overlapStrength": 0.187,
+        "timeOverlapWeight": 1.056,
         "peakLevel": "normal"
       },
       {
         "month": "2027-01",
-        "overlapStrength": 0.057,
-        "timeOverlapWeight": 1.017,
+        "overlapStrength": 0.118,
+        "timeOverlapWeight": 1.035,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2027-02",
+        "overlapStrength": 0.214,
+        "timeOverlapWeight": 1.064,
         "peakLevel": "normal"
       }
     ],
     "health": [
       {
-        "month": "2026-02",
-        "overlapStrength": 0.241,
-        "timeOverlapWeight": 1.072,
-        "peakLevel": "normal"
-      },
-      {
         "month": "2026-03",
-        "overlapStrength": 0.253,
-        "timeOverlapWeight": 1.076,
+        "overlapStrength": 0.062,
+        "timeOverlapWeight": 1.019,
         "peakLevel": "normal"
       },
       {
         "month": "2026-04",
-        "overlapStrength": 0.221,
-        "timeOverlapWeight": 1.066,
+        "overlapStrength": 0.331,
+        "timeOverlapWeight": 1.099,
         "peakLevel": "normal"
       },
       {
         "month": "2026-05",
-        "overlapStrength": 0.274,
-        "timeOverlapWeight": 1.082,
+        "overlapStrength": 0.352,
+        "timeOverlapWeight": 1.105,
         "peakLevel": "normal"
       },
       {
         "month": "2026-06",
-        "overlapStrength": 0.299,
-        "timeOverlapWeight": 1.09,
-        "peakLevel": "normal"
-      },
-      {
-        "month": "2026-07",
-        "overlapStrength": 0.127,
-        "timeOverlapWeight": 1.038,
-        "peakLevel": "normal"
-      },
-      {
-        "month": "2026-08",
-        "overlapStrength": 0.241,
-        "timeOverlapWeight": 1.072,
-        "peakLevel": "normal"
-      },
-      {
-        "month": "2026-09",
-        "overlapStrength": 0.105,
-        "timeOverlapWeight": 1.032,
-        "peakLevel": "normal"
-      },
-      {
-        "month": "2026-10",
-        "overlapStrength": 0.019,
-        "timeOverlapWeight": 1.006,
-        "peakLevel": "normal"
-      },
-      {
-        "month": "2026-11",
-        "overlapStrength": 0.011,
-        "timeOverlapWeight": 1.003,
-        "peakLevel": "normal"
-      },
-      {
-        "month": "2026-12",
-        "overlapStrength": 0,
-        "timeOverlapWeight": 1,
-        "peakLevel": "normal"
-      },
-      {
-        "month": "2027-01",
-        "overlapStrength": 0.051,
-        "timeOverlapWeight": 1.015,
-        "peakLevel": "normal"
-      }
-    ],
-    "move": [
-      {
-        "month": "2026-02",
-        "overlapStrength": 0.268,
-        "timeOverlapWeight": 1.08,
-        "peakLevel": "normal"
-      },
-      {
-        "month": "2026-03",
-        "overlapStrength": 0.282,
-        "timeOverlapWeight": 1.085,
-        "peakLevel": "normal"
-      },
-      {
-        "month": "2026-04",
-        "overlapStrength": 0.246,
-        "timeOverlapWeight": 1.074,
-        "peakLevel": "normal"
-      },
-      {
-        "month": "2026-05",
-        "overlapStrength": 0.305,
-        "timeOverlapWeight": 1.092,
-        "peakLevel": "normal"
-      },
-      {
-        "month": "2026-06",
-        "overlapStrength": 0.333,
+        "overlapStrength": 0.332,
         "timeOverlapWeight": 1.1,
         "peakLevel": "normal"
       },
       {
         "month": "2026-07",
-        "overlapStrength": 0.142,
-        "timeOverlapWeight": 1.043,
+        "overlapStrength": 0.25,
+        "timeOverlapWeight": 1.075,
         "peakLevel": "normal"
       },
       {
         "month": "2026-08",
-        "overlapStrength": 0.268,
-        "timeOverlapWeight": 1.08,
+        "overlapStrength": 0.197,
+        "timeOverlapWeight": 1.059,
         "peakLevel": "normal"
       },
       {
         "month": "2026-09",
-        "overlapStrength": 0.117,
-        "timeOverlapWeight": 1.035,
+        "overlapStrength": 0.242,
+        "timeOverlapWeight": 1.073,
         "peakLevel": "normal"
       },
       {
         "month": "2026-10",
-        "overlapStrength": 0.021,
-        "timeOverlapWeight": 1.006,
+        "overlapStrength": 0.113,
+        "timeOverlapWeight": 1.034,
         "peakLevel": "normal"
       },
       {
         "month": "2026-11",
-        "overlapStrength": 0.012,
-        "timeOverlapWeight": 1.004,
+        "overlapStrength": 0.167,
+        "timeOverlapWeight": 1.05,
         "peakLevel": "normal"
       },
       {
         "month": "2026-12",
-        "overlapStrength": 0,
-        "timeOverlapWeight": 1,
+        "overlapStrength": 0.168,
+        "timeOverlapWeight": 1.05,
         "peakLevel": "normal"
       },
       {
         "month": "2027-01",
-        "overlapStrength": 0.057,
-        "timeOverlapWeight": 1.017,
+        "overlapStrength": 0.106,
+        "timeOverlapWeight": 1.032,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2027-02",
+        "overlapStrength": 0.193,
+        "timeOverlapWeight": 1.058,
+        "peakLevel": "normal"
+      }
+    ],
+    "move": [
+      {
+        "month": "2026-03",
+        "overlapStrength": 0.069,
+        "timeOverlapWeight": 1.021,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-04",
+        "overlapStrength": 0.368,
+        "timeOverlapWeight": 1.11,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-05",
+        "overlapStrength": 0.391,
+        "timeOverlapWeight": 1.117,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-06",
+        "overlapStrength": 0.369,
+        "timeOverlapWeight": 1.111,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-07",
+        "overlapStrength": 0.278,
+        "timeOverlapWeight": 1.083,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-08",
+        "overlapStrength": 0.22,
+        "timeOverlapWeight": 1.066,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-09",
+        "overlapStrength": 0.269,
+        "timeOverlapWeight": 1.081,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-10",
+        "overlapStrength": 0.126,
+        "timeOverlapWeight": 1.038,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-11",
+        "overlapStrength": 0.186,
+        "timeOverlapWeight": 1.056,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-12",
+        "overlapStrength": 0.187,
+        "timeOverlapWeight": 1.056,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2027-01",
+        "overlapStrength": 0.118,
+        "timeOverlapWeight": 1.035,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2027-02",
+        "overlapStrength": 0.214,
+        "timeOverlapWeight": 1.064,
         "peakLevel": "normal"
       }
     ]
@@ -4721,8 +4787,8 @@
   "topSynergies": [
     {
       "layers": [2, 2, 2],
-      "description": "57개의 극강 시너지 발견",
-      "score": 8.964912280701755
+      "description": "56개의 극강 시너지 발견",
+      "score": 8.964285714285714
     }
   ]
 }
@@ -5647,19 +5713,6 @@
       "sajuBasis": "십신 편재",
       "astroBasis": "Uranus in H12"
     },
-    "편재_H9": {
-      "interaction": {
-        "level": "amplify",
-        "score": 7,
-        "icon": "🌍",
-        "colorCode": "green",
-        "keyword": "해외재물",
-        "keywordEn": "Overseas wealth",
-        "advice": "해외 투자나 무역을 통해 재물을 얻을 수 있는 유리한 시기입니다. 국제적 기회를 적극 탐색하고 새로운 시장을 개척하세요. 환율 변동과 문화 차이는 주의 깊게 고려하세요."
-      },
-      "sajuBasis": "십신 편재",
-      "astroBasis": "True Node in H9"
-    },
     "상관_H1": {
       "interaction": {
         "level": "clash",
@@ -5737,19 +5790,6 @@
       },
       "sajuBasis": "십신 상관",
       "astroBasis": "Uranus in H12"
-    },
-    "상관_H9": {
-      "interaction": {
-        "level": "clash",
-        "score": 5,
-        "icon": "⚡",
-        "colorCode": "yellow",
-        "keyword": "권위반항",
-        "keywordEn": "Authority rebel",
-        "advice": "전통이나 권위에 맞서는 태도가 강해지는 시기입니다. 기존 틀에 의문을 제기하고 새로운 관점을 제시하세요. 단, 반항이 파괴적이지 않고 건설적인 변화로 이어지도록 대안을 준비하고 전략적으로 행동하는 것이 핵심입니다."
-      },
-      "sajuBasis": "십신 상관",
-      "astroBasis": "True Node in H9"
     },
     "정인_H1": {
       "interaction": {
@@ -5829,19 +5869,6 @@
       "sajuBasis": "십신 정인",
       "astroBasis": "Uranus in H12"
     },
-    "정인_H9": {
-      "interaction": {
-        "level": "extreme",
-        "score": 9,
-        "icon": "🎓",
-        "colorCode": "purple",
-        "keyword": "학위성취",
-        "keywordEn": "Degree achieve",
-        "advice": "학문적 성취가 정점에 이르는 시기입니다. 고등 교육을 완성하고, 전문가로서의 지위를 확립할 수 있습니다. 끊임없는 탐구가 보상받습니다."
-      },
-      "sajuBasis": "십신 정인",
-      "astroBasis": "True Node in H9"
-    },
     "정재_H1": {
       "interaction": {
         "level": "amplify",
@@ -5919,19 +5946,6 @@
       },
       "sajuBasis": "십신 정재",
       "astroBasis": "Uranus in H12"
-    },
-    "정재_H9": {
-      "interaction": {
-        "level": "balance",
-        "score": 5,
-        "icon": "⚖️",
-        "colorCode": "blue",
-        "keyword": "해외투자",
-        "keywordEn": "Overseas invest",
-        "advice": "해외 투자나 국제 거래에서 신중한 접근이 필요한 시기입니다. 철저한 리서치와 현지 전문가의 조언을 구하며 문화적 차이를 이해하세요. 단, 환율 변동과 법적 리스크를 면밀히 검토하고 무리한 투자는 삼가는 것이 중요합니다."
-      },
-      "sajuBasis": "십신 정재",
-      "astroBasis": "True Node in H9"
     },
     "비견_H1": {
       "interaction": {
@@ -6011,19 +6025,6 @@
       "sajuBasis": "십신 비견",
       "astroBasis": "Uranus in H12"
     },
-    "비견_H9": {
-      "interaction": {
-        "level": "amplify",
-        "score": 8,
-        "icon": "🚀",
-        "colorCode": "green",
-        "keyword": "탐험동반",
-        "keywordEn": "Explore together",
-        "advice": "해외 여행이나 새로운 학문을 동료와 함께 탐험하기 좋은 시기입니다. 서로를 격려하며 지평을 넓히세요. 공동 목표가 성장을 가속화합니다."
-      },
-      "sajuBasis": "십신 비견",
-      "astroBasis": "True Node in H9"
-    },
     "편인_H1": {
       "interaction": {
         "level": "amplify",
@@ -6101,19 +6102,6 @@
       },
       "sajuBasis": "십신 편인",
       "astroBasis": "Uranus in H12"
-    },
-    "편인_H9": {
-      "interaction": {
-        "level": "amplify",
-        "score": 8,
-        "icon": "📖",
-        "colorCode": "green",
-        "keyword": "철학탐구",
-        "keywordEn": "Philosophy explore",
-        "advice": "철학과 신비주의를 깊이 탐구하기에 매우 좋은 시기입니다. 동양 철학이나 밀교적 지혜를 연구하고 해외 여행을 통해 영적 성장을 추구하세요. 단, 이론에만 머물지 말고 삶에 적용하는 실천력도 키우세요."
-      },
-      "sajuBasis": "십신 편인",
-      "astroBasis": "True Node in H9"
     }
   },
   "layer4": {},
@@ -8651,17 +8639,17 @@
       "section": "introduction",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Use overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100) as deterministic anchor, then synthesize Saju+Astrology specifically for \"introduction\" using evidence sets: X7, X4, X8, X3, X6, M2.",
+      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"introduction\" using X7, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X7",
-          "matrixEvidence": "L3:십신 정재 + Mars in H7 (contribution=100%)",
+          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
           "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "personality"],
           "overlapScore": 0.99,
           "orbFitScore": 0.47,
-          "combinedConclusion": "This pair overlaps in career, wealth, personality and should ground \"💍 결혼재물\"."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"🌀 영적탐구\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X4",
@@ -8671,47 +8659,7 @@
           "overlapDomains": ["career", "personality"],
           "overlapScore": 0.94,
           "orbFitScore": 0.62,
-          "combinedConclusion": "This pair overlaps in career, personality and should ground \"🤱 가정양육\"."
-        },
-        {
-          "id": "X8",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
-          "astrologyEvidence": "Moon-trine-Mercury (pair=Mercury-Moon, angle=120deg, orb=4.7deg, allowed=relationship<=7.7deg, personality<=8.1deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["relationship", "personality"],
-          "overlapScore": 0.83,
-          "orbFitScore": 0.41,
-          "combinedConclusion": "This pair overlaps in relationship, personality and should ground \"🌀 영적탐구\"."
-        },
-        {
-          "id": "X3",
-          "matrixEvidence": "L5:천간충 (乙-辛 충) + Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg (contribution=100%)",
-          "astrologyEvidence": "Uranus-conjunction-Neptune (pair=Neptune-Uranus, angle=0deg, orb=3.7deg, allowed=personality<=8.4deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["personality"],
-          "overlapScore": 0.66,
-          "orbFitScore": 0.56,
-          "combinedConclusion": "This pair overlaps in personality and should ground \"💥 극심충돌\"."
-        },
-        {
-          "id": "X6",
-          "matrixEvidence": "L3:십신 정재 + Moon in H4 (contribution=100%)",
-          "astrologyEvidence": "Uranus-sextile-Pluto (pair=Pluto-Uranus, angle=60deg, orb=2.7deg, allowed=personality<=5.5deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["personality"],
-          "overlapScore": 0.63,
-          "orbFitScore": 0.5,
-          "combinedConclusion": "This pair overlaps in personality and should ground \"🏠 부동산\"."
-        },
-        {
-          "id": "M2",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg (contribution=100%)",
-          "astrologyEvidence": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg",
-          "sajuEvidence": "지지삼합 (亥·卯·未 삼합(목))",
-          "overlapDomains": ["personality"],
-          "overlapScore": 0.6,
-          "orbFitScore": 0.5,
-          "combinedConclusion": "Matrix insight \"💥 극강시너지\" must stay consistent with section narrative."
+          "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"🤱 가정양육\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -8720,17 +8668,17 @@
       "section": "personalityDeep",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Use overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100) as deterministic anchor, then synthesize Saju+Astrology specifically for \"personalityDeep\" using evidence sets: X7, X4, X8, X3, X6, M2.",
+      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"personalityDeep\" using X7, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X7",
-          "matrixEvidence": "L3:십신 정재 + Mars in H7 (contribution=100%)",
+          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
           "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "personality"],
           "overlapScore": 0.99,
           "orbFitScore": 0.47,
-          "combinedConclusion": "This pair overlaps in career, wealth, personality and should ground \"💍 결혼재물\"."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"🌀 영적탐구\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X4",
@@ -8740,47 +8688,7 @@
           "overlapDomains": ["career", "personality"],
           "overlapScore": 0.94,
           "orbFitScore": 0.62,
-          "combinedConclusion": "This pair overlaps in career, personality and should ground \"🤱 가정양육\"."
-        },
-        {
-          "id": "X8",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
-          "astrologyEvidence": "Moon-trine-Mercury (pair=Mercury-Moon, angle=120deg, orb=4.7deg, allowed=relationship<=7.7deg, personality<=8.1deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["relationship", "personality"],
-          "overlapScore": 0.83,
-          "orbFitScore": 0.41,
-          "combinedConclusion": "This pair overlaps in relationship, personality and should ground \"🌀 영적탐구\"."
-        },
-        {
-          "id": "X3",
-          "matrixEvidence": "L5:천간충 (乙-辛 충) + Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg (contribution=100%)",
-          "astrologyEvidence": "Uranus-conjunction-Neptune (pair=Neptune-Uranus, angle=0deg, orb=3.7deg, allowed=personality<=8.4deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["personality"],
-          "overlapScore": 0.66,
-          "orbFitScore": 0.56,
-          "combinedConclusion": "This pair overlaps in personality and should ground \"💥 극심충돌\"."
-        },
-        {
-          "id": "X6",
-          "matrixEvidence": "L3:십신 정재 + Moon in H4 (contribution=100%)",
-          "astrologyEvidence": "Uranus-sextile-Pluto (pair=Pluto-Uranus, angle=60deg, orb=2.7deg, allowed=personality<=5.5deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["personality"],
-          "overlapScore": 0.63,
-          "orbFitScore": 0.5,
-          "combinedConclusion": "This pair overlaps in personality and should ground \"🏠 부동산\"."
-        },
-        {
-          "id": "M2",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg (contribution=100%)",
-          "astrologyEvidence": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg",
-          "sajuEvidence": "지지삼합 (亥·卯·未 삼합(목))",
-          "overlapDomains": ["personality"],
-          "overlapScore": 0.6,
-          "orbFitScore": 0.5,
-          "combinedConclusion": "Matrix insight \"💥 극강시너지\" must stay consistent with section narrative."
+          "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"🤱 가정양육\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -8789,7 +8697,7 @@
       "section": "careerPath",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Use overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100) as deterministic anchor, then synthesize Saju+Astrology specifically for \"careerPath\" using evidence sets: X2, X7, X4, M1, X1, X8.",
+      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"careerPath\" using X2, X7. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X2",
@@ -8799,57 +8707,17 @@
           "overlapDomains": ["career", "wealth", "timing"],
           "overlapScore": 0.99,
           "orbFitScore": 0.83,
-          "combinedConclusion": "This pair overlaps in career, wealth, timing and should ground \"💥 극강시너지\"."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"💥 극강시너지\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X7",
-          "matrixEvidence": "L3:십신 정재 + Mars in H7 (contribution=100%)",
+          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
           "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "personality"],
           "overlapScore": 0.99,
           "orbFitScore": 0.47,
-          "combinedConclusion": "This pair overlaps in career, wealth, personality and should ground \"💍 결혼재물\"."
-        },
-        {
-          "id": "X4",
-          "matrixEvidence": "L3:십신 정인 + Moon in H4 (contribution=100%)",
-          "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["career", "personality"],
-          "overlapScore": 0.94,
-          "orbFitScore": 0.62,
-          "combinedConclusion": "This pair overlaps in career, personality and should ground \"🤱 가정양육\"."
-        },
-        {
-          "id": "M1",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg (contribution=100%)",
-          "astrologyEvidence": "Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg",
-          "sajuEvidence": "지지삼합 (亥·卯·未 삼합(목))",
-          "overlapDomains": ["career"],
-          "overlapScore": 0.6,
-          "orbFitScore": 0.5,
-          "combinedConclusion": "Matrix insight \"🌟 최상조화\" must stay consistent with section narrative."
-        },
-        {
-          "id": "X1",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg (contribution=100%)",
-          "astrologyEvidence": "Mercury-square-True Node (pair=Mercury-True Node, angle=90deg, orb=0.3deg, allowed=timing<=3.6deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["timing"],
-          "overlapScore": 0.86,
-          "orbFitScore": 0.92,
-          "combinedConclusion": "This pair overlaps in timing and should ground \"🌟 최상조화\"."
-        },
-        {
-          "id": "X8",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
-          "astrologyEvidence": "Moon-trine-Mercury (pair=Mercury-Moon, angle=120deg, orb=4.7deg, allowed=relationship<=7.7deg, personality<=8.1deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["relationship", "personality"],
-          "overlapScore": 0.83,
-          "orbFitScore": 0.41,
-          "combinedConclusion": "This pair overlaps in relationship, personality and should ground \"🌀 영적탐구\"."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"🌀 영적탐구\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -8858,67 +8726,27 @@
       "section": "relationshipDynamics",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Use overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100) as deterministic anchor, then synthesize Saju+Astrology specifically for \"relationshipDynamics\" using evidence sets: X8, X5, M4, M6, X2, X7.",
+      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"relationshipDynamics\" using X8, X5. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X8",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
+          "matrixEvidence": "L2:십신 편재 + Jupiter in H10 (contribution=100%)",
           "astrologyEvidence": "Moon-trine-Mercury (pair=Mercury-Moon, angle=120deg, orb=4.7deg, allowed=relationship<=7.7deg, personality<=8.1deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["relationship", "personality"],
           "overlapScore": 0.83,
           "orbFitScore": 0.41,
-          "combinedConclusion": "This pair overlaps in relationship, personality and should ground \"🌀 영적탐구\"."
+          "combinedConclusion": "Cross-domain overlap(relationship, personality) is high for \"🎰 횡재\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X5",
-          "matrixEvidence": "L3:십신 정인 + True Node in H9 (contribution=100%)",
+          "matrixEvidence": "L3:십신 정재 + Moon in H4 (contribution=100%)",
           "astrologyEvidence": "Moon-opposition-Pluto (pair=Moon-Pluto, angle=180deg, orb=4deg, allowed=relationship<=8deg, timing<=4.8deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["relationship", "timing"],
           "overlapScore": 0.79,
           "orbFitScore": 0.34,
-          "combinedConclusion": "This pair overlaps in relationship, timing and should ground \"🎓 학위성취\"."
-        },
-        {
-          "id": "M4",
-          "matrixEvidence": "L3:십신 정인 + Moon in H4 (contribution=100%)",
-          "astrologyEvidence": "Moon in H4",
-          "sajuEvidence": "십신 정인",
-          "overlapDomains": ["relationship"],
-          "overlapScore": 0.6,
-          "orbFitScore": 0.5,
-          "combinedConclusion": "Matrix insight \"🤱 가정양육\" must stay consistent with section narrative."
-        },
-        {
-          "id": "M6",
-          "matrixEvidence": "L3:십신 정재 + Moon in H4 (contribution=100%)",
-          "astrologyEvidence": "Moon in H4",
-          "sajuEvidence": "십신 정재",
-          "overlapDomains": ["relationship"],
-          "overlapScore": 0.6,
-          "orbFitScore": 0.5,
-          "combinedConclusion": "Matrix insight \"🏠 부동산\" must stay consistent with section narrative."
-        },
-        {
-          "id": "X2",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg (contribution=100%)",
-          "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["career", "wealth", "timing"],
-          "overlapScore": 0.99,
-          "orbFitScore": 0.83,
-          "combinedConclusion": "This pair overlaps in career, wealth, timing and should ground \"💥 극강시너지\"."
-        },
-        {
-          "id": "X7",
-          "matrixEvidence": "L3:십신 정재 + Mars in H7 (contribution=100%)",
-          "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["career", "wealth", "personality"],
-          "overlapScore": 0.99,
-          "orbFitScore": 0.47,
-          "combinedConclusion": "This pair overlaps in career, wealth, personality and should ground \"💍 결혼재물\"."
+          "combinedConclusion": "Cross-domain overlap(relationship, timing) is high for \"🏠 부동산\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -8927,7 +8755,7 @@
       "section": "wealthPotential",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Use overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100) as deterministic anchor, then synthesize Saju+Astrology specifically for \"wealthPotential\" using evidence sets: X2, X7, X4, M1, X1, X8.",
+      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"wealthPotential\" using X2, X7. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X2",
@@ -8937,57 +8765,17 @@
           "overlapDomains": ["career", "wealth", "timing"],
           "overlapScore": 0.99,
           "orbFitScore": 0.83,
-          "combinedConclusion": "This pair overlaps in career, wealth, timing and should ground \"💥 극강시너지\"."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"💥 극강시너지\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X7",
-          "matrixEvidence": "L3:십신 정재 + Mars in H7 (contribution=100%)",
+          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
           "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "personality"],
           "overlapScore": 0.99,
           "orbFitScore": 0.47,
-          "combinedConclusion": "This pair overlaps in career, wealth, personality and should ground \"💍 결혼재물\"."
-        },
-        {
-          "id": "X4",
-          "matrixEvidence": "L3:십신 정인 + Moon in H4 (contribution=100%)",
-          "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["career", "personality"],
-          "overlapScore": 0.94,
-          "orbFitScore": 0.62,
-          "combinedConclusion": "This pair overlaps in career, personality and should ground \"🤱 가정양육\"."
-        },
-        {
-          "id": "M1",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg (contribution=100%)",
-          "astrologyEvidence": "Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg",
-          "sajuEvidence": "지지삼합 (亥·卯·未 삼합(목))",
-          "overlapDomains": ["career"],
-          "overlapScore": 0.6,
-          "orbFitScore": 0.5,
-          "combinedConclusion": "Matrix insight \"🌟 최상조화\" must stay consistent with section narrative."
-        },
-        {
-          "id": "X1",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg (contribution=100%)",
-          "astrologyEvidence": "Mercury-square-True Node (pair=Mercury-True Node, angle=90deg, orb=0.3deg, allowed=timing<=3.6deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["timing"],
-          "overlapScore": 0.86,
-          "orbFitScore": 0.92,
-          "combinedConclusion": "This pair overlaps in timing and should ground \"🌟 최상조화\"."
-        },
-        {
-          "id": "X8",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
-          "astrologyEvidence": "Moon-trine-Mercury (pair=Mercury-Moon, angle=120deg, orb=4.7deg, allowed=relationship<=7.7deg, personality<=8.1deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["relationship", "personality"],
-          "overlapScore": 0.83,
-          "orbFitScore": 0.41,
-          "combinedConclusion": "This pair overlaps in relationship, personality and should ground \"🌀 영적탐구\"."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"🌀 영적탐구\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -8996,7 +8784,7 @@
       "section": "healthGuidance",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Use overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100) as deterministic anchor, then synthesize Saju+Astrology specifically for \"healthGuidance\" using evidence sets: X2, X7, X4, X1, X8, X5.",
+      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"healthGuidance\" using X2, X7. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X2",
@@ -9006,57 +8794,17 @@
           "overlapDomains": ["career", "wealth", "timing"],
           "overlapScore": 0.99,
           "orbFitScore": 0.83,
-          "combinedConclusion": "This pair overlaps in career, wealth, timing and should ground \"💥 극강시너지\"."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"💥 극강시너지\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X7",
-          "matrixEvidence": "L3:십신 정재 + Mars in H7 (contribution=100%)",
+          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
           "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "personality"],
           "overlapScore": 0.99,
           "orbFitScore": 0.47,
-          "combinedConclusion": "This pair overlaps in career, wealth, personality and should ground \"💍 결혼재물\"."
-        },
-        {
-          "id": "X4",
-          "matrixEvidence": "L3:십신 정인 + Moon in H4 (contribution=100%)",
-          "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["career", "personality"],
-          "overlapScore": 0.94,
-          "orbFitScore": 0.62,
-          "combinedConclusion": "This pair overlaps in career, personality and should ground \"🤱 가정양육\"."
-        },
-        {
-          "id": "X1",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg (contribution=100%)",
-          "astrologyEvidence": "Mercury-square-True Node (pair=Mercury-True Node, angle=90deg, orb=0.3deg, allowed=timing<=3.6deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["timing"],
-          "overlapScore": 0.86,
-          "orbFitScore": 0.92,
-          "combinedConclusion": "This pair overlaps in timing and should ground \"🌟 최상조화\"."
-        },
-        {
-          "id": "X8",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
-          "astrologyEvidence": "Moon-trine-Mercury (pair=Mercury-Moon, angle=120deg, orb=4.7deg, allowed=relationship<=7.7deg, personality<=8.1deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["relationship", "personality"],
-          "overlapScore": 0.83,
-          "orbFitScore": 0.41,
-          "combinedConclusion": "This pair overlaps in relationship, personality and should ground \"🌀 영적탐구\"."
-        },
-        {
-          "id": "X5",
-          "matrixEvidence": "L3:십신 정인 + True Node in H9 (contribution=100%)",
-          "astrologyEvidence": "Moon-opposition-Pluto (pair=Moon-Pluto, angle=180deg, orb=4deg, allowed=relationship<=8deg, timing<=4.8deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["relationship", "timing"],
-          "overlapScore": 0.79,
-          "orbFitScore": 0.34,
-          "combinedConclusion": "This pair overlaps in relationship, timing and should ground \"🎓 학위성취\"."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"🌀 영적탐구\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -9065,17 +8813,17 @@
       "section": "lifeMission",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Use overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100) as deterministic anchor, then synthesize Saju+Astrology specifically for \"lifeMission\" using evidence sets: X7, X4, X8, X3, X6, M2.",
+      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"lifeMission\" using X7, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X7",
-          "matrixEvidence": "L3:십신 정재 + Mars in H7 (contribution=100%)",
+          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
           "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "personality"],
           "overlapScore": 0.99,
           "orbFitScore": 0.47,
-          "combinedConclusion": "This pair overlaps in career, wealth, personality and should ground \"💍 결혼재물\"."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"🌀 영적탐구\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X4",
@@ -9085,47 +8833,7 @@
           "overlapDomains": ["career", "personality"],
           "overlapScore": 0.94,
           "orbFitScore": 0.62,
-          "combinedConclusion": "This pair overlaps in career, personality and should ground \"🤱 가정양육\"."
-        },
-        {
-          "id": "X8",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
-          "astrologyEvidence": "Moon-trine-Mercury (pair=Mercury-Moon, angle=120deg, orb=4.7deg, allowed=relationship<=7.7deg, personality<=8.1deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["relationship", "personality"],
-          "overlapScore": 0.83,
-          "orbFitScore": 0.41,
-          "combinedConclusion": "This pair overlaps in relationship, personality and should ground \"🌀 영적탐구\"."
-        },
-        {
-          "id": "X3",
-          "matrixEvidence": "L5:천간충 (乙-辛 충) + Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg (contribution=100%)",
-          "astrologyEvidence": "Uranus-conjunction-Neptune (pair=Neptune-Uranus, angle=0deg, orb=3.7deg, allowed=personality<=8.4deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["personality"],
-          "overlapScore": 0.66,
-          "orbFitScore": 0.56,
-          "combinedConclusion": "This pair overlaps in personality and should ground \"💥 극심충돌\"."
-        },
-        {
-          "id": "X6",
-          "matrixEvidence": "L3:십신 정재 + Moon in H4 (contribution=100%)",
-          "astrologyEvidence": "Uranus-sextile-Pluto (pair=Pluto-Uranus, angle=60deg, orb=2.7deg, allowed=personality<=5.5deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["personality"],
-          "overlapScore": 0.63,
-          "orbFitScore": 0.5,
-          "combinedConclusion": "This pair overlaps in personality and should ground \"🏠 부동산\"."
-        },
-        {
-          "id": "M2",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg (contribution=100%)",
-          "astrologyEvidence": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg",
-          "sajuEvidence": "지지삼합 (亥·卯·未 삼합(목))",
-          "overlapDomains": ["personality"],
-          "overlapScore": 0.6,
-          "orbFitScore": 0.5,
-          "combinedConclusion": "Matrix insight \"💥 극강시너지\" must stay consistent with section narrative."
+          "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"🤱 가정양육\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -9134,7 +8842,7 @@
       "section": "timingAdvice",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Use overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100) as deterministic anchor, then synthesize Saju+Astrology specifically for \"timingAdvice\" using evidence sets: X2, X1, X5, X7, X4, X8.",
+      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"timingAdvice\" using X2, X1. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X2",
@@ -9144,7 +8852,7 @@
           "overlapDomains": ["career", "wealth", "timing"],
           "overlapScore": 0.99,
           "orbFitScore": 0.83,
-          "combinedConclusion": "This pair overlaps in career, wealth, timing and should ground \"💥 극강시너지\"."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"💥 극강시너지\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X1",
@@ -9154,47 +8862,7 @@
           "overlapDomains": ["timing"],
           "overlapScore": 0.86,
           "orbFitScore": 0.92,
-          "combinedConclusion": "This pair overlaps in timing and should ground \"🌟 최상조화\"."
-        },
-        {
-          "id": "X5",
-          "matrixEvidence": "L3:십신 정인 + True Node in H9 (contribution=100%)",
-          "astrologyEvidence": "Moon-opposition-Pluto (pair=Moon-Pluto, angle=180deg, orb=4deg, allowed=relationship<=8deg, timing<=4.8deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["relationship", "timing"],
-          "overlapScore": 0.79,
-          "orbFitScore": 0.34,
-          "combinedConclusion": "This pair overlaps in relationship, timing and should ground \"🎓 학위성취\"."
-        },
-        {
-          "id": "X7",
-          "matrixEvidence": "L3:십신 정재 + Mars in H7 (contribution=100%)",
-          "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["career", "wealth", "personality"],
-          "overlapScore": 0.99,
-          "orbFitScore": 0.47,
-          "combinedConclusion": "This pair overlaps in career, wealth, personality and should ground \"💍 결혼재물\"."
-        },
-        {
-          "id": "X4",
-          "matrixEvidence": "L3:십신 정인 + Moon in H4 (contribution=100%)",
-          "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["career", "personality"],
-          "overlapScore": 0.94,
-          "orbFitScore": 0.62,
-          "combinedConclusion": "This pair overlaps in career, personality and should ground \"🤱 가정양육\"."
-        },
-        {
-          "id": "X8",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
-          "astrologyEvidence": "Moon-trine-Mercury (pair=Mercury-Moon, angle=120deg, orb=4.7deg, allowed=relationship<=7.7deg, personality<=8.1deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["relationship", "personality"],
-          "overlapScore": 0.83,
-          "orbFitScore": 0.41,
-          "combinedConclusion": "This pair overlaps in relationship, personality and should ground \"🌀 영적탐구\"."
+          "combinedConclusion": "Cross-domain overlap(timing) is high for \"🌟 최상조화\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -9203,7 +8871,7 @@
       "section": "actionPlan",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Use overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100) as deterministic anchor, then synthesize Saju+Astrology specifically for \"actionPlan\" using evidence sets: X2, X7, X5, X4, X1, X8.",
+      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"actionPlan\" using X2, X7. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X2",
@@ -9213,57 +8881,17 @@
           "overlapDomains": ["career", "wealth", "timing"],
           "overlapScore": 0.99,
           "orbFitScore": 0.83,
-          "combinedConclusion": "This pair overlaps in career, wealth, timing and should ground \"💥 극강시너지\"."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"💥 극강시너지\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X7",
-          "matrixEvidence": "L3:십신 정재 + Mars in H7 (contribution=100%)",
+          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
           "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "personality"],
           "overlapScore": 0.99,
           "orbFitScore": 0.47,
-          "combinedConclusion": "This pair overlaps in career, wealth, personality and should ground \"💍 결혼재물\"."
-        },
-        {
-          "id": "X5",
-          "matrixEvidence": "L3:십신 정인 + True Node in H9 (contribution=100%)",
-          "astrologyEvidence": "Moon-opposition-Pluto (pair=Moon-Pluto, angle=180deg, orb=4deg, allowed=relationship<=8deg, timing<=4.8deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["relationship", "timing"],
-          "overlapScore": 0.79,
-          "orbFitScore": 0.34,
-          "combinedConclusion": "This pair overlaps in relationship, timing and should ground \"🎓 학위성취\"."
-        },
-        {
-          "id": "X4",
-          "matrixEvidence": "L3:십신 정인 + Moon in H4 (contribution=100%)",
-          "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["career", "personality"],
-          "overlapScore": 0.94,
-          "orbFitScore": 0.62,
-          "combinedConclusion": "This pair overlaps in career, personality and should ground \"🤱 가정양육\"."
-        },
-        {
-          "id": "X1",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg (contribution=100%)",
-          "astrologyEvidence": "Mercury-square-True Node (pair=Mercury-True Node, angle=90deg, orb=0.3deg, allowed=timing<=3.6deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["timing"],
-          "overlapScore": 0.86,
-          "orbFitScore": 0.92,
-          "combinedConclusion": "This pair overlaps in timing and should ground \"🌟 최상조화\"."
-        },
-        {
-          "id": "X8",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
-          "astrologyEvidence": "Moon-trine-Mercury (pair=Mercury-Moon, angle=120deg, orb=4.7deg, allowed=relationship<=7.7deg, personality<=8.1deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["relationship", "personality"],
-          "overlapScore": 0.83,
-          "orbFitScore": 0.41,
-          "combinedConclusion": "This pair overlaps in relationship, personality and should ground \"🌀 영적탐구\"."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"🌀 영적탐구\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -9272,17 +8900,17 @@
       "section": "conclusion",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Use overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100) as deterministic anchor, then synthesize Saju+Astrology specifically for \"conclusion\" using evidence sets: X7, X4, X8, X3, X6, M2.",
+      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"conclusion\" using X7, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X7",
-          "matrixEvidence": "L3:십신 정재 + Mars in H7 (contribution=100%)",
+          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
           "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "personality"],
           "overlapScore": 0.99,
           "orbFitScore": 0.47,
-          "combinedConclusion": "This pair overlaps in career, wealth, personality and should ground \"💍 결혼재물\"."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"🌀 영적탐구\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X4",
@@ -9292,47 +8920,7 @@
           "overlapDomains": ["career", "personality"],
           "overlapScore": 0.94,
           "orbFitScore": 0.62,
-          "combinedConclusion": "This pair overlaps in career, personality and should ground \"🤱 가정양육\"."
-        },
-        {
-          "id": "X8",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
-          "astrologyEvidence": "Moon-trine-Mercury (pair=Mercury-Moon, angle=120deg, orb=4.7deg, allowed=relationship<=7.7deg, personality<=8.1deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["relationship", "personality"],
-          "overlapScore": 0.83,
-          "orbFitScore": 0.41,
-          "combinedConclusion": "This pair overlaps in relationship, personality and should ground \"🌀 영적탐구\"."
-        },
-        {
-          "id": "X3",
-          "matrixEvidence": "L5:천간충 (乙-辛 충) + Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg (contribution=100%)",
-          "astrologyEvidence": "Uranus-conjunction-Neptune (pair=Neptune-Uranus, angle=0deg, orb=3.7deg, allowed=personality<=8.4deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["personality"],
-          "overlapScore": 0.66,
-          "orbFitScore": 0.56,
-          "combinedConclusion": "This pair overlaps in personality and should ground \"💥 극심충돌\"."
-        },
-        {
-          "id": "X6",
-          "matrixEvidence": "L3:십신 정재 + Moon in H4 (contribution=100%)",
-          "astrologyEvidence": "Uranus-sextile-Pluto (pair=Pluto-Uranus, angle=60deg, orb=2.7deg, allowed=personality<=5.5deg)",
-          "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
-          "overlapDomains": ["personality"],
-          "overlapScore": 0.63,
-          "orbFitScore": 0.5,
-          "combinedConclusion": "This pair overlaps in personality and should ground \"🏠 부동산\"."
-        },
-        {
-          "id": "M2",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg (contribution=100%)",
-          "astrologyEvidence": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg",
-          "sajuEvidence": "지지삼합 (亥·卯·未 삼합(목))",
-          "overlapDomains": ["personality"],
-          "overlapScore": 0.6,
-          "orbFitScore": 0.5,
-          "combinedConclusion": "Matrix insight \"💥 극강시너지\" must stay consistent with section narrative."
+          "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"🤱 가정양육\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     }

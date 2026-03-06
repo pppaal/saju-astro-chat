@@ -1,10 +1,10 @@
 {
-  "id": "air_1772766742811_sedd21",
-  "generatedAt": "2026-03-06T03:12:22.781Z",
+  "id": "air_1772767679149_cfcxzw",
+  "generatedAt": "2026-03-06T03:27:59.102Z",
   "lang": "ko",
   "reportMeta": {
     "schemaVersion": "1.1",
-    "generatedAt": "2026-03-06T03:12:22.781Z",
+    "generatedAt": "2026-03-06T03:27:59.102Z",
     "engineVersion": "destiny-matrix-ai-report-v2"
   },
   "timeWindow": {
@@ -139,7 +139,7 @@
     {
       "id": "E1",
       "section": "introduction",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"introduction\" using X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"introduction\" using X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "setCount": 2,
       "avgOverlapScore": 0.97,
       "avgOrbFitScore": 0.54
@@ -147,7 +147,7 @@
     {
       "id": "E2",
       "section": "personalityDeep",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"personalityDeep\" using X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"personalityDeep\" using X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "setCount": 2,
       "avgOverlapScore": 0.97,
       "avgOrbFitScore": 0.54
@@ -155,7 +155,7 @@
     {
       "id": "E3",
       "section": "careerPath",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"careerPath\" using X2, X3. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"careerPath\" using X2, X3. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "setCount": 2,
       "avgOverlapScore": 0.99,
       "avgOrbFitScore": 0.88
@@ -163,7 +163,7 @@
     {
       "id": "E4",
       "section": "relationshipDynamics",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"relationshipDynamics\" using X3, X11. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"relationshipDynamics\" using X3, X11. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "setCount": 2,
       "avgOverlapScore": 0.94,
       "avgOrbFitScore": 0.49
@@ -171,7 +171,7 @@
     {
       "id": "E5",
       "section": "wealthPotential",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"wealthPotential\" using X2, X3. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"wealthPotential\" using X2, X3. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "setCount": 2,
       "avgOverlapScore": 0.99,
       "avgOrbFitScore": 0.88
@@ -179,7 +179,7 @@
     {
       "id": "E6",
       "section": "healthGuidance",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"healthGuidance\" using X2, X3. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"healthGuidance\" using X2, X3. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "setCount": 2,
       "avgOverlapScore": 0.99,
       "avgOrbFitScore": 0.88
@@ -187,7 +187,7 @@
     {
       "id": "E7",
       "section": "lifeMission",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"lifeMission\" using X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"lifeMission\" using X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "setCount": 2,
       "avgOverlapScore": 0.97,
       "avgOrbFitScore": 0.54
@@ -195,7 +195,7 @@
     {
       "id": "E8",
       "section": "timingAdvice",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"timingAdvice\" using X2, X3. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"timingAdvice\" using X2, X3. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "setCount": 2,
       "avgOverlapScore": 0.99,
       "avgOrbFitScore": 0.88
@@ -203,7 +203,7 @@
     {
       "id": "E9",
       "section": "actionPlan",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"actionPlan\" using X2, X3. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"actionPlan\" using X2, X3. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "setCount": 2,
       "avgOverlapScore": 0.99,
       "avgOrbFitScore": 0.88
@@ -211,7 +211,7 @@
     {
       "id": "E10",
       "section": "conclusion",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"conclusion\" using X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"conclusion\" using X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "setCount": 2,
       "avgOverlapScore": 0.97,
       "avgOrbFitScore": 0.54
@@ -1639,7 +1639,7 @@
       {
         "id": "E1",
         "section": "introduction",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
         "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"introduction\" using X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
         "crossEvidenceSets": [
@@ -1647,7 +1647,7 @@
             "id": "X9",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["career", "wealth", "personality"],
             "overlapScore": 0.99,
             "orbFitScore": 0.47,
@@ -1657,7 +1657,7 @@
             "id": "X6",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["career", "personality"],
             "overlapScore": 0.94,
             "orbFitScore": 0.62,
@@ -1668,7 +1668,7 @@
       {
         "id": "E2",
         "section": "personalityDeep",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
         "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"personalityDeep\" using X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
         "crossEvidenceSets": [
@@ -1676,7 +1676,7 @@
             "id": "X9",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["career", "wealth", "personality"],
             "overlapScore": 0.99,
             "orbFitScore": 0.47,
@@ -1686,7 +1686,7 @@
             "id": "X6",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["career", "personality"],
             "overlapScore": 0.94,
             "orbFitScore": 0.62,
@@ -1697,7 +1697,7 @@
       {
         "id": "E3",
         "section": "careerPath",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
         "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"careerPath\" using X2, X3. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
         "crossEvidenceSets": [
@@ -1705,7 +1705,7 @@
             "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["career", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
@@ -1715,7 +1715,7 @@
             "id": "X3",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["relationship", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
@@ -1726,7 +1726,7 @@
       {
         "id": "E4",
         "section": "relationshipDynamics",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
         "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"relationshipDynamics\" using X3, X11. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
         "crossEvidenceSets": [
@@ -1734,7 +1734,7 @@
             "id": "X3",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["relationship", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
@@ -1744,7 +1744,7 @@
             "id": "X11",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Venus-sextile-True Node (pair=True Node-Venus, angle=60deg, orb=4.8deg, allowed=relationship<=5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["relationship", "wealth", "personality"],
             "overlapScore": 0.88,
             "orbFitScore": 0.06,
@@ -1755,7 +1755,7 @@
       {
         "id": "E5",
         "section": "wealthPotential",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
         "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"wealthPotential\" using X2, X3. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
         "crossEvidenceSets": [
@@ -1763,7 +1763,7 @@
             "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["career", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
@@ -1773,7 +1773,7 @@
             "id": "X3",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["relationship", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
@@ -1784,7 +1784,7 @@
       {
         "id": "E6",
         "section": "healthGuidance",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
         "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"healthGuidance\" using X2, X3. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
         "crossEvidenceSets": [
@@ -1792,7 +1792,7 @@
             "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["career", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
@@ -1802,7 +1802,7 @@
             "id": "X3",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["relationship", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
@@ -1813,7 +1813,7 @@
       {
         "id": "E7",
         "section": "lifeMission",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
         "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"lifeMission\" using X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
         "crossEvidenceSets": [
@@ -1821,7 +1821,7 @@
             "id": "X9",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["career", "wealth", "personality"],
             "overlapScore": 0.99,
             "orbFitScore": 0.47,
@@ -1831,7 +1831,7 @@
             "id": "X6",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["career", "personality"],
             "overlapScore": 0.94,
             "orbFitScore": 0.62,
@@ -1842,7 +1842,7 @@
       {
         "id": "E8",
         "section": "timingAdvice",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
         "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"timingAdvice\" using X2, X3. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
         "crossEvidenceSets": [
@@ -1850,7 +1850,7 @@
             "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["career", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
@@ -1860,7 +1860,7 @@
             "id": "X3",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["relationship", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
@@ -1871,7 +1871,7 @@
       {
         "id": "E9",
         "section": "actionPlan",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
         "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"actionPlan\" using X2, X3. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
         "crossEvidenceSets": [
@@ -1879,7 +1879,7 @@
             "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["career", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
@@ -1889,7 +1889,7 @@
             "id": "X3",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["relationship", "wealth", "timing"],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
@@ -1900,7 +1900,7 @@
       {
         "id": "E10",
         "section": "conclusion",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
         "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"conclusion\" using X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
         "crossEvidenceSets": [
@@ -1908,7 +1908,7 @@
             "id": "X9",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["career", "wealth", "personality"],
             "overlapScore": 0.99,
             "orbFitScore": 0.47,
@@ -1918,7 +1918,7 @@
             "id": "X6",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:12:22.743Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-06T03:27:59.048Z",
             "overlapDomains": ["career", "personality"],
             "overlapScore": 0.94,
             "orbFitScore": 0.62,
@@ -5276,7 +5276,7 @@
   "meta": {
     "modelUsed": "rewrite-fallback-error",
     "tokensUsed": 0,
-    "processingTime": 48,
+    "processingTime": 69,
     "reportVersion": "1.1.0-rewrite-only",
     "qualityMetrics": {
       "sectionCount": 10,

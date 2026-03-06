@@ -1,6 +1,6 @@
 # Full Saju + Astrology Calculation Report
 
-- Generated At: 2026-02-23T08:28:23.409Z
+- Generated At: 2026-03-06T03:27:21.185Z
 - Profile: 1995-02-09 06:40 Seoul
 - Birth DateTime: 1995-02-09 06:40
 - City/Coordinates: Seoul (37.5665, 126.978)
@@ -160,10 +160,10 @@
 
 ## 9) Progressions / Returns / Draconic / Harmonics
 
-- Secondary Progressed Date: 1995-03-12 (Years progressed: 31.04)
-- Solar Arc Date: 2026-02-23 (Years progressed: 31.04)
+- Secondary Progressed Date: 1995-03-12 (Years progressed: 31.07)
+- Solar Arc Date: 2026-03-06 (Years progressed: 31.07)
 - Solar Return 2026 Exact Time: 2026-02-08T10:30:50Z
-- Lunar Return 2026-02 Exact Time: 2026-02-24T09:54:33Z
+- Lunar Return 2026-03 Exact Time: 2026-03-23T15:36:35Z
 
 - Draconic Alignment Score: 0
 - Draconic Soul Identity: 양육자 영혼 - 어머니, 치유자로서의 전생 경험
@@ -210,20 +210,23 @@
 
 현재 나이 하모닉 (H31): 활성화된 해입니다.
 
-## 10) Current Major Transits (Reference Time: 2026-02-23T08:28:23.409Z)
+## 10) Current Major Transits (Reference Time: 2026-03-06T03:27:21.185Z)
 
-- Total Major Transit Events: 9
+- Total Major Transit Events: 12
   | Transit Planet | Aspect | Natal Point | Orb | Meaning |
   | --- | --- | --- | --- | --- |
-  | Saturn | trine | Moon | 2.09 | - |
-  | Neptune | trine | Mercury | 2.34 | - |
-  | Pluto | sextile | Ascendant | 2.75 | - |
-  | Saturn | opposition | Venus | 3.73 | - |
-  | Pluto | square | Sun | 3.91 | - |
-  | Jupiter | square | Venus | 4.19 | - |
-  | Uranus | trine | Ascendant | 5.46 | - |
-  | Pluto | square | Mars | 6.45 | - |
-  | Uranus | trine | Mercury | 6.07 | - |
+  | Jupiter | trine | Moon | 1.04 | - |
+  | Uranus | trine | Venus | 1.42 | - |
+  | Pluto | sextile | Venus | 1.29 | - |
+  | Uranus | square | MC | 1.66 | - |
+  | Pluto | square | Mars | 2.06 | - |
+  | Saturn | opposition | Sun | 3.21 | - |
+  | Jupiter | square | Sun | 3.68 | - |
+  | Saturn | trine | Ascendant | 4.58 | - |
+  | Neptune | trine | Venus | 5.14 | - |
+  | Neptune | square | MC | 5.38 | - |
+  | Neptune | trine | Mercury | 5.48 | - |
+  | Saturn | opposition | Mercury | 6.56 | - |
 
 ## 11) Raw JSON Appendices
 
@@ -305,6 +308,6 @@
     "houseSystem": "Placidus"
   },
   "aspectCount": 9,
-  "transitCount": 9
+  "transitCount": 12
 }
 ```
