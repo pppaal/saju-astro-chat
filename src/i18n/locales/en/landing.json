@@ -35,6 +35,7 @@
     "tarotPresent": "Present",
     "tarotFuture": "Future",
     "tarotAdvice": "Advice",
+    "tarotInteractionHint": "Tip: draw from the deck, then click each card to flip and reveal its meaning.",
     "ctaTitle": "Make better decisions",
     "ctaSubtitle": "AI helps you reflect and choose with confidence.",
     "ctaButton": "Get started ->",

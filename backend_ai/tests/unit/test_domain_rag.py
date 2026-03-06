@@ -93,6 +93,22 @@ class TestDomainRAGLoadDomain:
         assert result is False
         assert "nonexistent" not in rag._domain_cache
 
+    @patch("backend_ai.app.domain_rag.logger")
+    @patch("os.path.exists")
+    def test_load_domain_file_not_found_logs_once_per_domain(self, mock_exists, mock_logger):
+        """Missing cache warning should be emitted once per domain to avoid log spam."""
+        mock_exists.return_value = False
+
+        from backend_ai.app.domain_rag import DomainRAG
+
+        rag = DomainRAG()
+        assert rag._load_domain("tarot") is False
+        assert rag._load_domain("tarot") is False
+        assert rag._load_domain("dream") is False
+
+        # tarot once + dream once
+        assert mock_logger.warning.call_count == 2
+
     @patch("os.path.exists")
     @patch("torch.load")
     def test_load_domain_success(self, mock_torch_load, mock_exists):
@@ -213,6 +229,121 @@ class TestDomainRAGSearch:
             results = rag.search("nonexistent", "query")
 
         assert results == []
+
+    def test_search_legacy_tarot_uses_draws_in_keyword_fallback(self):
+        """When tarot cache is missing, legacy path should pass draws to keyword fallback."""
+        from backend_ai.app.domain_rag import DomainRAG
+
+        rag = DomainRAG()
+        draws = [{"card_id": "major_0", "orientation": "upright", "domain": "love"}]
+        expected = [{"text": "forced", "score": 1.0, "domain": "tarot"}]
+
+        with patch.object(rag, "_load_domain", return_value=False), patch.object(
+            rag, "_search_tarot_keyword_fallback", return_value=expected
+        ) as mock_fallback:
+            results = rag._search_legacy("tarot", "query", draws=draws)
+
+        assert results == expected
+        assert mock_fallback.call_args.kwargs["draws"] == draws
+
+    def test_search_tarot_keyword_fallback_merges_forced_first(self):
+        """Forced facet rows should be prioritized ahead of keyword-only matches."""
+        from backend_ai.app.domain_rag import DomainRAG
+
+        rag = DomainRAG()
+        rows = [
+            {
+                "doc_id": "forced-1",
+                "card_id": "major_0",
+                "orientation": "upright",
+                "domain": "love",
+                "position": "present",
+                "text": "FORCED ROW",
+                "tags": ["love"],
+                "card_name": "The Fool",
+            },
+            {
+                "doc_id": "kw-1",
+                "card_id": "major_1",
+                "orientation": "upright",
+                "domain": "love",
+                "position": "future",
+                "text": "keyword match only",
+                "tags": ["relationship"],
+                "card_name": "Magician",
+            },
+        ]
+        facet_index = {("major_0", "upright", "love"): [rows[0]]}
+
+        draws = [{"card_id": "major_0", "orientation": "upright", "domain": "love", "position": "present"}]
+
+        with patch.object(rag, "_load_tarot_corpus_rows", return_value=rows), patch.object(
+            rag, "_build_tarot_facet_index", return_value=facet_index
+        ):
+            results = rag._search_tarot_keyword_fallback("tarot", "love relationship", top_k=2, draws=draws)
+
+        assert len(results) == 2
+        assert results[0]["context_bucket"] == "forced_facet"
+        assert "FORCED ROW" in results[0]["text"]
+
+    def test_search_tarot_keyword_fallback_draws_only_returns_forced(self):
+        """When query has no useful tokens, draws-only requests should still return forced rows."""
+        from backend_ai.app.domain_rag import DomainRAG
+
+        rag = DomainRAG()
+        rows = [
+            {
+                "doc_id": "forced-1",
+                "card_id": "major_0",
+                "orientation": "upright",
+                "domain": "love",
+                "position": "present",
+                "text": "FORCED ROW",
+                "tags": ["love"],
+                "card_name": "The Fool",
+            }
+        ]
+        facet_index = {("major_0", "upright", "love"): [rows[0]]}
+        draws = [{"card_id": "major_0", "orientation": "upright", "domain": "love", "position": "present"}]
+
+        with patch.object(rag, "_load_tarot_corpus_rows", return_value=rows), patch.object(
+            rag, "_build_tarot_facet_index", return_value=facet_index
+        ):
+            results = rag._search_tarot_keyword_fallback("tarot", "?", top_k=3, draws=draws)
+
+        assert len(results) == 1
+        assert results[0]["context_bucket"] == "forced_facet"
+        assert "FORCED ROW" in results[0]["text"]
+
+    def test_tokenize_query_filters_stopwords_and_duplicates(self):
+        """Tokenizer should remove boilerplate words and duplicate tokens."""
+        from backend_ai.app.domain_rag import DomainRAG
+
+        tokens = DomainRAG._tokenize_query(
+            "지금 타로 질문 좀 알려줘 love love today please relationship relationship"
+        )
+
+        assert "지금" not in tokens
+        assert "타로" not in tokens
+        assert "today" not in tokens
+        assert tokens.count("love") == 1
+        assert tokens.count("relationship") == 1
+
+    def test_clean_fallback_text_normalizes_card_label_and_duplicate_core(self):
+        """Fallback text cleanup should normalize dict-like card names and repeated Core lines."""
+        from backend_ai.app.domain_rag import DomainRAG
+
+        raw_text = (
+            "Card: {'en': 'King of Wands', 'ko': '완드 킹'} (wands_king) | "
+            "Core: 실행을 시작하세요. Core: 실행을 시작하세요."
+        )
+        cleaned = DomainRAG._clean_fallback_text(
+            raw_text,
+            "{'en': 'King of Wands', 'ko': '완드 킹'}",
+        )
+
+        assert "Card: 완드 킹 / King of Wands" in cleaned
+        assert cleaned.count("Core: 실행을 시작하세요.") == 1
 
     @patch("backend_ai.app.domain_rag.util.cos_sim")
     def test_search_returns_results(self, mock_cos_sim):

@@ -325,6 +325,59 @@ function normalizeResultPayload(raw: unknown): Partial<TarotInterpretResult> {
   return raw as Partial<TarotInterpretResult>
 }
 
+function diversifyDuplicateInsights(input: {
+  insights: TarotInsight[]
+  cards: CardInput[]
+  language: string
+  userQuestion?: string
+}): TarotInsight[] {
+  const { insights, cards, language, userQuestion } = input
+  const seen = new Map<string, number>()
+
+  return insights.map((insight, index) => {
+    const duplicateKey = insight.interpretation
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}]+/gu, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+    const count = seen.get(duplicateKey) || 0
+    seen.set(duplicateKey, count + 1)
+
+    if (count === 0) return insight
+
+    const card = cards[index]
+    if (!card) return insight
+
+    const cardName = language === 'ko' ? card.nameKo || card.name : card.name
+    const position = language === 'ko' ? card.positionKo || card.position : card.position
+    const orientation = card.isReversed
+      ? language === 'ko'
+        ? '역방향'
+        : 'reversed'
+      : language === 'ko'
+        ? '정방향'
+        : 'upright'
+
+    const koVariations = [
+      `핵심은 ${position}의 ${cardName}(${orientation}) 메시지를 오늘 바로 실천하는 것입니다. 지금 당장 할 수 있는 행동 1가지를 정하고, 하루가 끝나기 전에 변화 여부를 확인하세요.`,
+      `${position}의 ${cardName}(${orientation})는 미루지 말고 작은 실행으로 확인하는 카드입니다. 오늘 한 번 시도하고, 결과를 한 줄로 남겨 다음 선택 기준으로 삼으세요.`,
+      `이번에는 ${position}의 ${cardName}(${orientation})를 계획보다 실행에 연결해 보세요. 10분 안에 가능한 행동부터 시작하고, 끝난 뒤 체감 변화를 점검하세요.`,
+    ]
+    const enVariations = [
+      `The key is to apply ${cardName} (${orientation}) in the ${position} position today. Choose one immediate action and check before the day ends whether anything shifted.`,
+      `${cardName} (${orientation}) in the ${position} position asks for a quick real-world test. Try one small step today and write one line about the result for your next decision.`,
+      `Use ${cardName} (${orientation}) in the ${position} position as an execution cue, not just a plan. Start with a 10-minute action and review what changed right after.`,
+    ]
+    const variationPool = language === 'ko' ? koVariations : enVariations
+    const variation = variationPool[count % variationPool.length]
+
+    return {
+      ...insight,
+      interpretation: ensureCardAnchoring(language, card, variation, userQuestion),
+    }
+  })
+}
+
 function enforceInterpretationQuality(input: {
   rawResult: unknown
   cards: CardInput[]
@@ -372,6 +425,13 @@ function enforceInterpretationQuality(input: {
     }
   })
 
+  const diversifiedInsights = diversifyDuplicateInsights({
+    insights: normalizedInsights,
+    cards: input.cards,
+    language: input.language,
+    userQuestion: input.userQuestion,
+  })
+
   const initialOverall =
     typeof payload.overall_message === 'string' ? payload.overall_message.trim() : ''
   const initialGuidance = typeof payload.guidance === 'string' ? payload.guidance.trim() : ''
@@ -386,7 +446,7 @@ function enforceInterpretationQuality(input: {
     cards: input.cards.map((card) => ({ name: card.name, position: card.position })),
     result: {
       overall_message: overall,
-      card_insights: normalizedInsights,
+      card_insights: diversifiedInsights,
       guidance,
       fallback: Boolean(payload.fallback),
     },
@@ -404,7 +464,7 @@ function enforceInterpretationQuality(input: {
 
   return {
     overall_message: overall,
-    card_insights: normalizedInsights,
+    card_insights: diversifiedInsights,
     guidance,
     affirmation:
       typeof payload.affirmation === 'string' && payload.affirmation.trim()
@@ -990,26 +1050,58 @@ function generateSimpleFallback(
   cards: CardInput[],
   spreadTitle: string,
   language: string,
-  _userQuestion?: string
+  userQuestion?: string
 ) {
   const isKorean = language === 'ko'
+  const question = (userQuestion || '').trim()
+  const questionLine = question
+    ? isKorean
+      ? `질문 "${question}"을 기준으로 보면, `
+      : `For your question "${question}", `
+    : ''
+
+  const overallMessage = isKorean
+    ? `${questionLine}${cards.map((c) => c.nameKo || c.name).join(', ')} 카드 조합은 지금 흐름을 억지로 밀어붙이기보다, 우선순위를 정리한 뒤 작은 실행으로 판을 바꾸라는 신호예요.`
+    : `${questionLine}the spread of ${cards.map((c) => c.name).join(', ')} suggests that steady prioritization and small decisive actions will shift the current momentum more effectively than forcing outcomes.`
+
+  const guidanceMessage = isKorean
+    ? [
+        '1) 오늘: 지금 가장 큰 변수 1개만 정해 20분 실행하세요.',
+        '2) 3일: 결과를 기록하고(무엇을 했는지/반응/수정점) 같은 패턴을 한 번 더 검증하세요.',
+        '3) 7일: 효과 있었던 방식만 남기고 나머지는 과감히 정리하세요.',
+      ].join('\n')
+    : [
+        '1) Today: choose one controllable variable and run a focused 20-minute action block.',
+        '2) In 3 days: log outcome signals (what you did / response / adjustment) and repeat once.',
+        '3) In 7 days: keep only what worked and prune low-signal actions.',
+      ].join('\n')
 
   return {
-    overall_message: isKorean
-      ? `${cards.map((c) => c.nameKo || c.name).join(', ')} 카드가 나왔습니다.`
-      : `You drew: ${cards.map((c) => c.name).join(', ')}.`,
-    card_insights: cards.map((card) => ({
-      position: card.position,
-      card_name: card.name,
-      is_reversed: card.isReversed,
-      interpretation: isKorean && card.meaningKo ? card.meaningKo : card.meaning || '',
-      spirit_animal: null,
-      chakra: null,
-      element: null,
-      shadow: null,
-    })),
-    guidance: isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.',
-    affirmation: isKorean ? '오늘도 화이팅!' : 'You got this!',
+    overall_message: overallMessage,
+    card_insights: cards.map((card) => {
+      const baseInterpretation = buildMinimumInsight(language, card)
+      const anchoredInterpretation = ensureCardAnchoring(
+        language,
+        card,
+        baseInterpretation,
+        userQuestion
+      )
+
+      return {
+        position: card.position,
+        card_name: card.name,
+        is_reversed: card.isReversed,
+        interpretation: anchoredInterpretation,
+        spirit_animal: null,
+        chakra: null,
+        element: null,
+        shadow: null,
+      }
+    }),
+    guidance: guidanceMessage,
+    affirmation: isKorean
+      ? '감정이 아니라 실행 데이터가 당신의 다음 길을 열어줍니다.'
+      : 'Let evidence from your actions lead your next move.',
     combinations: buildLocalCombinationHints(cards, language),
     followup_questions: [],
     fallback: true,

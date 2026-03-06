@@ -265,16 +265,21 @@ def warmup_parallel():
 
     # Execute all loaders in parallel
     with ThreadPoolExecutor(max_workers=6, thread_name_prefix="warmup") as executor:
-        # Submit all tasks - model must be first as others depend on it
-        futures = {
-            executor.submit(load_model): "model",
-            executor.submit(load_cross_analysis): "cross_analysis",
-            executor.submit(load_redis): "redis",
+        pending = {
+            executor.submit(load_model),
+            executor.submit(load_cross_analysis),
+            executor.submit(load_redis),
         }
 
-        # Wait for model to complete first
-        for future in as_completed(futures):
-            name, success, info = future.result()
+        while pending:
+            done_future = next(as_completed(pending))
+            pending.remove(done_future)
+            try:
+                name, success, info = done_future.result()
+            except Exception as exc:
+                logger.warning(f"  ⚠️ warmup task failed: {exc}")
+                continue
+
             results[name] = success
             if success:
                 if info:
@@ -286,9 +291,9 @@ def warmup_parallel():
 
             # After model is loaded, submit RAG loaders
             if name == "model" and success:
-                futures[executor.submit(load_graph_rag)] = "graph_rag"
-                futures[executor.submit(load_corpus_rag)] = "corpus_rag"
-                futures[executor.submit(load_persona_rag)] = "persona_rag"
+                pending.add(executor.submit(load_graph_rag))
+                pending.add(executor.submit(load_corpus_rag))
+                pending.add(executor.submit(load_persona_rag))
 
     elapsed = time.time() - start
     logger.info(f"🔥 Parallel warmup completed in {elapsed:.2f}s")

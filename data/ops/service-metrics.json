@@ -1,0 +1,5 @@
+{
+  "totalRequests": 10000,
+  "failedRequests": 42,
+  "p95LatencyMs": 512
+}
