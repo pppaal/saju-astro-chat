@@ -8,6 +8,7 @@ import {
   buildGraphRAGEvidence,
   summarizeGraphRAGEvidence,
 } from '@/lib/destiny-matrix'
+import { mapMajorTransitsToActiveTransits } from '@/lib/destiny-matrix/ai-report/transitMapping'
 
 const INPUT_JSON = path.join(process.cwd(), 'reports', '1995-02-09_0640_seoul_gpt_input.json')
 const OUT_MD = path.join(process.cwd(), 'reports', '1995-02-09_0640_seoul_FULL_CROSS_DUMP.md')
@@ -217,11 +218,29 @@ function buildMatrixInput(d: any): any {
     return (Object.entries(counts).sort((a, b) => b[1] - a[1])[0] || [undefined])[0]
   })()
 
+  const twelveStages = (() => {
+    const source = saju?.twelveByPillar
+    if (!source || typeof source !== 'object') return {}
+    const counts: Record<string, number> = {}
+    for (const value of Object.values(source as Record<string, unknown>)) {
+      if (typeof value !== 'string') continue
+      const stage = value.trim()
+      if (!stage) continue
+      counts[stage] = (counts[stage] || 0) + 1
+    }
+    return counts
+  })()
+
+  const activeTransits = mapMajorTransitsToActiveTransits(
+    Array.isArray(astro?.majorTransits) ? astro.majorTransits : [],
+    8
+  )
+
   return {
     dayMasterElement: saju?.dayMaster?.element || '금',
     pillarElements,
     sibsinDistribution,
-    twelveStages: {},
+    twelveStages,
     relations,
     geokguk: GEOKGUK_ALIASES[saju?.advanced?.geokguk?.type] || undefined,
     yongsin: saju?.advanced?.yongsin?.primary || undefined,
@@ -236,7 +255,7 @@ function buildMatrixInput(d: any): any {
     planetHouses,
     planetSigns,
     aspects,
-    activeTransits: [],
+    activeTransits,
     asteroidHouses,
     extraPointSigns,
 

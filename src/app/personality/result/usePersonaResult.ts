@@ -10,6 +10,7 @@ import { fetchWithRetry, FetchWithRetryError } from '@/lib/http'
 import { useConfetti } from '@/hooks/useConfetti'
 import { sanitizePersonaPayload, sanitizePersonaText } from '@/lib/persona/sanitize'
 import { generateShareCard } from './generateShareCard'
+import { hasCompleteIcpV2Answers } from '@/lib/icpTest/answerValidation'
 
 export function usePersonaResult() {
   const { t, locale } = useI18n()
@@ -40,7 +41,7 @@ export function usePersonaResult() {
       const icpRaw = localStorage.getItem('icpQuizAnswers')
       if (icpRaw) {
         const parsedIcp = JSON.parse(icpRaw) as Record<string, unknown>
-        setHasIcpResult(Object.keys(parsedIcp).length > 0)
+        setHasIcpResult(hasCompleteIcpV2Answers(parsedIcp))
       }
       // Read gender from initial selection (personaGender or auraGender is 'male' or 'female')
       const selectedGender =

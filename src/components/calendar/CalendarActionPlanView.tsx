@@ -89,6 +89,60 @@ type ActionPlanCacheEntry = {
   insights: ActionPlanInsights | null
 }
 
+const SLOT_TYPE_LABELS_KO: Record<string, string> = {
+  deepWork: '집중',
+  decision: '결정',
+  communication: '소통',
+  money: '재정',
+  relationship: '관계',
+  recovery: '회복',
+}
+
+const SLOT_TYPE_LABELS_EN: Record<string, string> = {
+  deepWork: 'Deep Work',
+  decision: 'Decision',
+  communication: 'Communication',
+  money: 'Money',
+  relationship: 'Relationship',
+  recovery: 'Recovery',
+}
+
+const WHY_PATTERN_LABELS_KO: Record<string, string> = {
+  speed_up_validation_down: '속도↑ 검증↓',
+  risk_exposure_up: '리스크 노출↑',
+  relationship_sensitivity_up: '관계 민감도↑',
+  spending_impulse_up: '지출 충동↑',
+  recovery_need_up: '회복 필요↑',
+  signal_balance: '신호 균형',
+}
+
+const WHY_PATTERN_LABELS_EN: Record<string, string> = {
+  speed_up_validation_down: 'speed up, validation down',
+  risk_exposure_up: 'risk exposure up',
+  relationship_sensitivity_up: 'relationship sensitivity up',
+  spending_impulse_up: 'spending impulse up',
+  recovery_need_up: 'recovery need up',
+  signal_balance: 'signal balance',
+}
+
+const CONFIDENCE_REASON_LABELS_KO: Record<string, string> = {
+  'Evidence conflict': '근거 충돌',
+  'Anchor shortage': '앵커 부족',
+  'Low signal density': '신호 밀도 낮음',
+  'Risk window': '주의 구간',
+  'Low baseline confidence': '기본 신뢰도 낮음',
+  'Signals aligned': '신호 정렬 양호',
+}
+
+const CONFIDENCE_REASON_LABELS_EN: Record<string, string> = {
+  'Evidence conflict': 'Evidence conflict',
+  'Anchor shortage': 'Anchor shortage',
+  'Low signal density': 'Low signal density',
+  'Risk window': 'Risk window',
+  'Low baseline confidence': 'Low baseline confidence',
+  'Signals aligned': 'Signals aligned',
+}
+
 const DEFAULT_TODAY_KO = [
   '우선순위 3개 정리하기',
   '집중할 일 1개 25분 진행',
@@ -521,6 +575,36 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     ]
   )
 
+  const formatSlotTypeLabel = useCallback(
+    (slotType: string) => {
+      if (!slotType) return ''
+      return isKo
+        ? SLOT_TYPE_LABELS_KO[slotType] || slotType
+        : SLOT_TYPE_LABELS_EN[slotType] || slotType
+    },
+    [isKo]
+  )
+
+  const formatWhyPatternLabel = useCallback(
+    (pattern: string) => {
+      if (!pattern) return ''
+      return isKo
+        ? WHY_PATTERN_LABELS_KO[pattern] || pattern.replaceAll('_', ' ')
+        : WHY_PATTERN_LABELS_EN[pattern] || pattern.replaceAll('_', ' ')
+    },
+    [isKo]
+  )
+
+  const formatConfidenceReasonLabel = useCallback(
+    (reason: string) => {
+      if (!reason) return ''
+      return isKo
+        ? CONFIDENCE_REASON_LABELS_KO[reason] || reason
+        : CONFIDENCE_REASON_LABELS_EN[reason] || reason
+    },
+    [isKo]
+  )
+
   const clampConfidence = useCallback(
     (value: number) => Math.max(0, Math.min(100, Math.round(value))),
     []
@@ -644,21 +728,27 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
             ? cleanText((whyRaw as { summary?: unknown }).summary as string | undefined, '')
             : ''
         const whySignalIds =
-          whyRaw && typeof whyRaw === 'object' && Array.isArray((whyRaw as { signalIds?: unknown }).signalIds)
+          whyRaw &&
+          typeof whyRaw === 'object' &&
+          Array.isArray((whyRaw as { signalIds?: unknown }).signalIds)
             ? ((whyRaw as { signalIds?: unknown }).signalIds as unknown[])
                 .map((line) => (typeof line === 'string' ? cleanText(line, '') : ''))
                 .filter(Boolean)
                 .slice(0, 4)
             : undefined
         const whyAnchorIds =
-          whyRaw && typeof whyRaw === 'object' && Array.isArray((whyRaw as { anchorIds?: unknown }).anchorIds)
+          whyRaw &&
+          typeof whyRaw === 'object' &&
+          Array.isArray((whyRaw as { anchorIds?: unknown }).anchorIds)
             ? ((whyRaw as { anchorIds?: unknown }).anchorIds as unknown[])
                 .map((line) => (typeof line === 'string' ? cleanText(line, '') : ''))
                 .filter(Boolean)
                 .slice(0, 3)
             : undefined
         const whyPatterns =
-          whyRaw && typeof whyRaw === 'object' && Array.isArray((whyRaw as { patterns?: unknown }).patterns)
+          whyRaw &&
+          typeof whyRaw === 'object' &&
+          Array.isArray((whyRaw as { patterns?: unknown }).patterns)
             ? ((whyRaw as { patterns?: unknown }).patterns as unknown[])
                 .map((line) => (typeof line === 'string' ? cleanText(line, '') : ''))
                 .filter(Boolean)
@@ -731,17 +821,17 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           : []
 
       const ifThenRules = toLines(insights.ifThenRules, 4)
-      const situationTriggers = toLines((insights as { situationTriggers?: unknown }).situationTriggers, 5)
+      const situationTriggers = toLines(
+        (insights as { situationTriggers?: unknown }).situationTriggers,
+        5
+      )
       const doLines = toLines(insights.actionFramework?.do, 5)
       const dontLines = toLines(insights.actionFramework?.dont, 5)
       const alternativeLines = toLines(insights.actionFramework?.alternative, 5)
       const riskTriggers = toLines(insights.riskTriggers, 5)
       const successKpi = toLines(insights.successKpi, 5)
       const deltaTodayRaw = (insights as { deltaToday?: unknown }).deltaToday
-      const deltaToday =
-        typeof deltaTodayRaw === 'string'
-          ? cleanText(deltaTodayRaw, '')
-          : ''
+      const deltaToday = typeof deltaTodayRaw === 'string' ? cleanText(deltaTodayRaw, '') : ''
 
       if (
         ifThenRules.length === 0 &&
@@ -937,7 +1027,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         const summary = cleanText(json?.data?.summary, '')
         const insights = sanitizeAiInsights(json?.data?.insights)
         const precisionMode: ActionPlanPrecisionMode =
-          json?.data?.precisionMode === 'ai-graphrag' || json?.data?.precisionMode === 'rule-fallback'
+          json?.data?.precisionMode === 'ai-graphrag' ||
+          json?.data?.precisionMode === 'rule-fallback'
             ? json.data.precisionMode
             : null
 
@@ -1247,19 +1338,31 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
             .slice(0, 3)
         }
         if (item.slotTypes?.length) {
-          slot.slotTypes = item.slotTypes.map((type) => cleanText(type, '')).filter(Boolean).slice(0, 2)
+          slot.slotTypes = item.slotTypes
+            .map((type) => cleanText(type, ''))
+            .filter(Boolean)
+            .slice(0, 2)
         }
         if (item.why?.summary) {
           slot.whySummary = cleanText(item.why.summary, '')
         }
         if (item.why?.signalIds?.length) {
-          slot.whySignalIds = item.why.signalIds.map((line) => cleanText(line, '')).filter(Boolean).slice(0, 4)
+          slot.whySignalIds = item.why.signalIds
+            .map((line) => cleanText(line, ''))
+            .filter(Boolean)
+            .slice(0, 4)
         }
         if (item.why?.anchorIds?.length) {
-          slot.whyAnchorIds = item.why.anchorIds.map((line) => cleanText(line, '')).filter(Boolean).slice(0, 3)
+          slot.whyAnchorIds = item.why.anchorIds
+            .map((line) => cleanText(line, ''))
+            .filter(Boolean)
+            .slice(0, 3)
         }
         if (item.why?.patterns?.length) {
-          slot.whyPatterns = item.why.patterns.map((line) => cleanText(line, '')).filter(Boolean).slice(0, 3)
+          slot.whyPatterns = item.why.patterns
+            .map((line) => cleanText(line, ''))
+            .filter(Boolean)
+            .slice(0, 3)
         }
         if (item.guardrail) {
           slot.guardrail = cleanText(item.guardrail, '')
@@ -1355,19 +1458,12 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
               : 'Write one success condition before execution.'
       }
       if (!slot.whySummary) {
-        slot.whySummary = isKo ? 'signal_balance 패턴 기준 운영' : 'Operate on signal_balance pattern.'
+        slot.whySummary = isKo
+          ? '오늘 신호 균형을 기준으로 슬롯별 강약을 나눠 운영합니다.'
+          : 'Operate each slot based on today signal balance.'
       }
       if (!slot.whyPatterns?.length) {
         slot.whyPatterns = ['signal_balance']
-      }
-      if (!slot.whySignalIds?.length) {
-        slot.whySignalIds = [
-          `SIG_TONE_${slot.tone.toUpperCase()}`,
-          `SIG_SLOT_${slot.slotTypes?.[0]?.toUpperCase() || 'DEEPWORK'}`,
-        ]
-      }
-      if (!slot.whyAnchorIds?.length) {
-        slot.whyAnchorIds = ['ANCHOR_RULE_BASELINE']
       }
       if (typeof slot.confidence !== 'number') {
         const baseline =
@@ -1633,7 +1729,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     const avgConfidence =
       timelineSlots.length > 0
         ? clampConfidence(
-            timelineSlots.reduce((sum, slot) => sum + (slot.confidence ?? 60), 0) / timelineSlots.length
+            timelineSlots.reduce((sum, slot) => sum + (slot.confidence ?? 60), 0) /
+              timelineSlots.length
           )
         : 60
     const formatSlot = (slot?: TimelineSlotView) =>
@@ -1671,9 +1768,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         do: todayItems.slice(0, 3),
         dont: [
           ...(baseInfo?.warnings?.slice(0, 2) || []),
-          isKo
-            ? '근거 없는 즉흥 결정 금지'
-            : 'No impulsive decision without evidence',
+          isKo ? '근거 없는 즉흥 결정 금지' : 'No impulsive decision without evidence',
         ].slice(0, 3),
         alternative: [
           isKo
@@ -2136,8 +2231,11 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
                 {slot.slotTypes && slot.slotTypes.length > 0 && (
                   <div className={styles.actionPlanTimelineSlotTypes}>
                     {slot.slotTypes.map((slotType) => (
-                      <span key={`${slot.label}-${slotType}`} className={styles.actionPlanTimelineSlotTypeChip}>
-                        {slotType}
+                      <span
+                        key={`${slot.label}-${slotType}`}
+                        className={styles.actionPlanTimelineSlotTypeChip}
+                      >
+                        {formatSlotTypeLabel(slotType)}
                       </span>
                     ))}
                   </div>
@@ -2145,32 +2243,23 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
                 <div className={styles.actionPlanTimelineNote}>{slot.note}</div>
                 {slot.whySummary && (
                   <div className={styles.actionPlanTimelineWhy}>
-                    {isKo ? 'Why' : 'Why'}: {slot.whySummary}
+                    {isKo ? '근거 해석' : 'Why'}: {slot.whySummary}
                   </div>
                 )}
                 {slot.whyPatterns && slot.whyPatterns.length > 0 && (
                   <div className={styles.actionPlanTimelineWhyMeta}>
-                    pattern: {slot.whyPatterns.join(' · ')}
-                  </div>
-                )}
-                {slot.whySignalIds && slot.whySignalIds.length > 0 && (
-                  <div className={styles.actionPlanTimelineWhyMeta}>
-                    signalIds: {slot.whySignalIds.join(', ')}
-                  </div>
-                )}
-                {slot.whyAnchorIds && slot.whyAnchorIds.length > 0 && (
-                  <div className={styles.actionPlanTimelineWhyMeta}>
-                    anchorIds: {slot.whyAnchorIds.join(', ')}
+                    {isKo ? '흐름' : 'Pattern'}:{' '}
+                    {slot.whyPatterns.map(formatWhyPatternLabel).join(' · ')}
                   </div>
                 )}
                 {slot.guardrail && (
                   <div className={styles.actionPlanTimelineGuardrail}>
-                    {isKo ? 'Guardrail' : 'Guardrail'}: {slot.guardrail}
+                    {isKo ? '안전장치' : 'Guardrail'}: {slot.guardrail}
                   </div>
                 )}
                 {slot.confidenceReason && slot.confidenceReason.length > 0 && (
                   <div className={styles.actionPlanTimelineConfidenceReason}>
-                    {slot.confidenceReason.join(' · ')}
+                    {slot.confidenceReason.map(formatConfidenceReasonLabel).join(' · ')}
                   </div>
                 )}
                 {slot.evidenceSummary && slot.evidenceSummary.length > 0 && (
@@ -2254,9 +2343,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
               {isKo ? '전략 인사이트' : 'Strategic Insights'}
             </span>
             <span className={styles.actionPlanCardFocus}>
-              {isKo
-                ? 'If-Then 규칙과 리스크 대비 플로우'
-                : 'If-Then rules and risk-response flow'}
+              {isKo ? 'If-Then 규칙과 리스크 대비 플로우' : 'If-Then rules and risk-response flow'}
             </span>
           </div>
 
@@ -2268,7 +2355,9 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           </div>
 
           <div className={styles.actionPlanInsightSection}>
-            <p className={styles.actionPlanInsightSectionTitle}>{isKo ? 'If-Then 규칙' : 'If-Then Rules'}</p>
+            <p className={styles.actionPlanInsightSectionTitle}>
+              {isKo ? 'If-Then 규칙' : 'If-Then Rules'}
+            </p>
             <ul className={styles.actionPlanList}>
               {actionPlanInsights.ifThenRules.map((item) => (
                 <li key={`if-then-${item}`} className={styles.actionPlanItem}>
@@ -2346,7 +2435,9 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
               </ul>
             </div>
             <div className={styles.actionPlanInsightSection}>
-              <p className={styles.actionPlanInsightSectionTitle}>{isKo ? '성공 KPI' : 'Success KPI'}</p>
+              <p className={styles.actionPlanInsightSectionTitle}>
+                {isKo ? '성공 KPI' : 'Success KPI'}
+              </p>
               <ul className={styles.actionPlanList}>
                 {actionPlanInsights.successKpi.map((item) => (
                   <li key={`kpi-${item}`} className={styles.actionPlanItem}>

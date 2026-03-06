@@ -5156,6 +5156,50 @@
   line-height: 1.6;
 }
 
+.largeTextMode .actionPlanTitle {
+  font-size: 24px;
+}
+
+.largeTextMode .actionPlanSubtitle,
+.largeTextMode .actionPlanMetaItem,
+.largeTextMode .actionPlanRangeBtn,
+.largeTextMode .actionPlanDateInput,
+.largeTextMode .actionPlanTodayBtn,
+.largeTextMode .actionPlanShareBtn,
+.largeTextMode .actionPlanPrintBtn,
+.largeTextMode .actionPlanTimelineAiBtn,
+.largeTextMode .actionPlanTimelineLegendItem,
+.largeTextMode .actionPlanTimelineTime,
+.largeTextMode .actionPlanTimelineTone,
+.largeTextMode .actionPlanTimelineBadge,
+.largeTextMode .actionPlanTimelineWhy,
+.largeTextMode .actionPlanTimelineGuardrail,
+.largeTextMode .actionPlanCardTitle,
+.largeTextMode .actionPlanCardFocus,
+.largeTextMode .actionPlanInsightLine,
+.largeTextMode .actionPlanInsightSectionTitle,
+.largeTextMode .actionPlanEvidenceList,
+.largeTextMode .actionPlanTiming,
+.largeTextMode .actionPlanCaution {
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.largeTextMode .actionPlanStatus,
+.largeTextMode .actionPlanChipLabel,
+.largeTextMode .actionPlanChip,
+.largeTextMode .actionPlanRhythmSector,
+.largeTextMode .actionPlanRhythmNote,
+.largeTextMode .actionPlanTimelineStatus,
+.largeTextMode .actionPlanTimelineConfidence,
+.largeTextMode .actionPlanTimelineSlotTypeChip,
+.largeTextMode .actionPlanTimelineWhyMeta,
+.largeTextMode .actionPlanTimelineConfidenceReason,
+.largeTextMode .actionPlanEvidenceBadge {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
 .largeTextMode .actionPlanTimelineEvidenceList {
   font-size: 16px;
   line-height: 1.65;

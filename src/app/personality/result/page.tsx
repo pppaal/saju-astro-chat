@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useRef } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Sparkles } from 'lucide-react'
 import { ConfettiAnimation } from '@/components/shared'
 import BackButton from '@/components/ui/BackButton'
@@ -24,9 +24,7 @@ import {
 } from './components'
 
 export default function ResultPage() {
-  const router = useRouter()
   const searchParams = useSearchParams()
-  const combinedRedirectedRef = useRef(false)
   const {
     t,
     locale,
@@ -35,6 +33,9 @@ export default function ResultPage() {
     analysis,
     saveStatus,
     isSavedToDb,
+    avatarSrc,
+    avatarError,
+    setAvatarError,
     showConfetti,
     confettiParticles,
     handleSaveResult,
@@ -42,7 +43,6 @@ export default function ResultPage() {
     handleShare,
     hasIcpResult,
   } = usePersonaResult()
-  const singleView = searchParams.get('view') === 'single'
   const sampleMode = (searchParams.get('sample') ?? '').toUpperCase() === 'RSLA'
   const sampleAnalysis = useMemo(
     () => (sampleMode ? buildPersonaRenderSample('RSLA', locale === 'ko' ? 'ko' : 'en') : null),
@@ -55,16 +55,6 @@ export default function ResultPage() {
       renderAnalysis ? buildPersonaNarrative(renderAnalysis, locale === 'ko' ? 'ko' : 'en') : null,
     [locale, renderAnalysis]
   )
-
-  useEffect(() => {
-    if (mounted && analysis && hasIcpResult && !singleView && !combinedRedirectedRef.current) {
-      combinedRedirectedRef.current = true
-      router.replace('/personality/combined')
-    }
-    if (!mounted || !analysis || !hasIcpResult || singleView) {
-      combinedRedirectedRef.current = false
-    }
-  }, [analysis, hasIcpResult, mounted, router, singleView])
 
   if (!mounted) {
     return (
@@ -115,7 +105,14 @@ export default function ResultPage() {
           </div>
         )}
 
-        <Hero hero={narrative.hero} styles={styles} />
+        <Hero
+          hero={narrative.hero}
+          styles={styles}
+          avatarSrc={avatarSrc}
+          avatarError={avatarError}
+          setAvatarError={setAvatarError}
+          avatarAlt={renderAnalysis.personaName}
+        />
         <ConfidenceBadge confidence={narrative.confidence} styles={styles} />
         <SnapshotGrid snapshot={narrative.snapshot} styles={styles} />
 

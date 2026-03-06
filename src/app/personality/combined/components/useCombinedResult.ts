@@ -2,14 +2,15 @@
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
-import type { ICPAnalysis } from '@/lib/icp/types'
+import type { ICPAnalysis, ICPQuizAnswers } from '@/lib/icp/types'
 import type { PersonaAnalysis } from '@/lib/persona/types'
 import { analyzeICP } from '@/lib/icp/analysis'
 import { analyzePersona } from '@/lib/persona/analysis'
 import { buildHybridNarrative, type HybridNarrative } from '@/lib/persona/hybridNarrative'
 import { scoreIcpTest } from '@/lib/icpTest/scoring'
 import { resolveHybridArchetype } from '@/lib/icpTest/hybrid'
-import type { IcpHybridResult, IcpResult } from '@/lib/icpTest/types'
+import type { IcpAnswers, IcpHybridResult, IcpResult } from '@/lib/icpTest/types'
+import { hasCompleteIcpV2Answers } from '@/lib/icpTest/answerValidation'
 import {
   computeIcpDimensions,
   computeIntegratedProfileId,
@@ -53,13 +54,24 @@ export function useCombinedResult(): CombinedResult {
     const icpAnswers = localStorage.getItem('icpQuizAnswers')
     if (icpAnswers) {
       try {
-        const parsed = JSON.parse(icpAnswers)
-        const analysis = analyzeICP(parsed, locale)
-        const v2Result = scoreIcpTest(parsed)
-        setIcpResult(analysis)
-        setIcpV2Result(v2Result)
-        setIcpRawAnswers(parsed)
-        setHasIcp(true)
+        const parsed = JSON.parse(icpAnswers) as Record<string, unknown>
+        if (hasCompleteIcpV2Answers(parsed)) {
+          const legacyAnswers = Object.fromEntries(
+            Object.entries(parsed).map(([key, value]) => [key, String(value)])
+          ) as ICPQuizAnswers
+          const v2Answers = parsed as IcpAnswers
+          const analysis = analyzeICP(legacyAnswers, locale)
+          const v2Result = scoreIcpTest(v2Answers)
+          setIcpResult(analysis)
+          setIcpV2Result(v2Result)
+          setIcpRawAnswers(v2Answers)
+          setHasIcp(true)
+        } else {
+          setHasIcp(false)
+          setIcpResult(null)
+          setIcpV2Result(null)
+          setIcpRawAnswers(null)
+        }
       } catch {
         setHasIcp(false)
         setIcpV2Result(null)

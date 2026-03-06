@@ -1,6 +1,6 @@
 # FULL CROSS DUMP (사주 + 점성 + 교차 전체)
 
-- Generated: 2026-03-06T03:27:41.952Z
+- Generated: 2026-03-06T04:56:36.687Z
 - Source profile: 1995-02-09 06:40 Seoul
 
 ## 1) 사주 원본
@@ -3629,7 +3629,12 @@
     "비견": 2,
     "편인": 1
   },
-  "twelveStages": {},
+  "twelveStages": {
+    "양": 1,
+    "관대": 1,
+    "사": 1,
+    "임관": 1
+  },
   "relations": [
     {
       "kind": "공망",
@@ -3773,7 +3778,7 @@
       "angle": 60
     }
   ],
-  "activeTransits": [],
+  "activeTransits": ["plutoTransit", "uranusSquare", "neptuneSquare"],
   "asteroidHouses": {
     "Ceres": 7,
     "Pallas": 3,
@@ -3805,13 +3810,13 @@
 ```json
 {
   "totalScore": 6.2,
-  "sajuComponentScore": 0.508,
-  "astroComponentScore": 0.545,
-  "alignmentScore": 0.963,
-  "overlapStrength": 0.15,
-  "timeOverlapWeight": 1.045,
-  "finalScoreAdjusted": 6.4,
-  "confidenceScore": 0.913,
+  "sajuComponentScore": 0.664,
+  "astroComponentScore": 0.672,
+  "alignmentScore": 0.992,
+  "overlapStrength": 0.283,
+  "timeOverlapWeight": 1.085,
+  "finalScoreAdjusted": 6.7,
+  "confidenceScore": 0.998,
   "drivers": ["High cross-system agreement"],
   "cautions": [],
   "calendarSignals": [],
@@ -3820,12 +3825,12 @@
       "domain": "career",
       "baseFinalScore": 10,
       "finalScoreAdjusted": 10,
-      "sajuComponentScore": 0.508,
-      "astroComponentScore": 0.545,
-      "alignmentScore": 0.963,
-      "overlapStrength": 0.233,
-      "timeOverlapWeight": 1.07,
-      "confidenceScore": 0.913,
+      "sajuComponentScore": 0.664,
+      "astroComponentScore": 0.672,
+      "alignmentScore": 0.992,
+      "overlapStrength": 0.364,
+      "timeOverlapWeight": 1.109,
+      "confidenceScore": 0.998,
       "drivers": ["High cross-system agreement"],
       "cautions": []
     },
@@ -3833,38 +3838,38 @@
       "domain": "love",
       "baseFinalScore": 10,
       "finalScoreAdjusted": 10,
-      "sajuComponentScore": 0.508,
-      "astroComponentScore": 0.545,
-      "alignmentScore": 0.963,
-      "overlapStrength": 0.233,
-      "timeOverlapWeight": 1.07,
-      "confidenceScore": 0.913,
+      "sajuComponentScore": 0.664,
+      "astroComponentScore": 0.672,
+      "alignmentScore": 0.992,
+      "overlapStrength": 0.364,
+      "timeOverlapWeight": 1.109,
+      "confidenceScore": 0.998,
       "drivers": ["High cross-system agreement"],
       "cautions": []
     },
     "money": {
       "domain": "money",
-      "baseFinalScore": 9.6,
+      "baseFinalScore": 10,
       "finalScoreAdjusted": 10,
-      "sajuComponentScore": 0.5,
-      "astroComponentScore": 0.536,
-      "alignmentScore": 0.964,
-      "overlapStrength": 0.233,
-      "timeOverlapWeight": 1.07,
-      "confidenceScore": 0.913,
+      "sajuComponentScore": 0.664,
+      "astroComponentScore": 0.672,
+      "alignmentScore": 0.992,
+      "overlapStrength": 0.364,
+      "timeOverlapWeight": 1.109,
+      "confidenceScore": 0.998,
       "drivers": ["High cross-system agreement"],
       "cautions": []
     },
     "health": {
       "domain": "health",
-      "baseFinalScore": 8.6,
-      "finalScoreAdjusted": 9.1,
-      "sajuComponentScore": 0.48,
-      "astroComponentScore": 0.515,
-      "alignmentScore": 0.965,
-      "overlapStrength": 0.209,
-      "timeOverlapWeight": 1.063,
-      "confidenceScore": 0.913,
+      "baseFinalScore": 10,
+      "finalScoreAdjusted": 10,
+      "sajuComponentScore": 0.664,
+      "astroComponentScore": 0.672,
+      "alignmentScore": 0.992,
+      "overlapStrength": 0.364,
+      "timeOverlapWeight": 1.109,
+      "confidenceScore": 0.998,
       "drivers": ["High cross-system agreement"],
       "cautions": []
     },
@@ -3872,12 +3877,12 @@
       "domain": "move",
       "baseFinalScore": 10,
       "finalScoreAdjusted": 10,
-      "sajuComponentScore": 0.508,
-      "astroComponentScore": 0.545,
-      "alignmentScore": 0.963,
-      "overlapStrength": 0.233,
-      "timeOverlapWeight": 1.07,
-      "confidenceScore": 0.913,
+      "sajuComponentScore": 0.664,
+      "astroComponentScore": 0.672,
+      "alignmentScore": 0.992,
+      "overlapStrength": 0.364,
+      "timeOverlapWeight": 1.109,
+      "confidenceScore": 0.998,
       "drivers": ["High cross-system agreement"],
       "cautions": []
     }
@@ -3885,74 +3890,74 @@
   "overlapTimeline": [
     {
       "month": "2026-03",
-      "overlapStrength": 0.053,
-      "timeOverlapWeight": 1.016,
+      "overlapStrength": 0.331,
+      "timeOverlapWeight": 1.099,
       "peakLevel": "normal"
     },
     {
       "month": "2026-04",
-      "overlapStrength": 0.283,
-      "timeOverlapWeight": 1.085,
+      "overlapStrength": 0.41,
+      "timeOverlapWeight": 1.123,
       "peakLevel": "normal"
     },
     {
       "month": "2026-05",
-      "overlapStrength": 0.301,
-      "timeOverlapWeight": 1.09,
+      "overlapStrength": 0.354,
+      "timeOverlapWeight": 1.106,
       "peakLevel": "normal"
     },
     {
       "month": "2026-06",
-      "overlapStrength": 0.284,
-      "timeOverlapWeight": 1.085,
+      "overlapStrength": 0.393,
+      "timeOverlapWeight": 1.118,
       "peakLevel": "normal"
     },
     {
       "month": "2026-07",
-      "overlapStrength": 0.214,
-      "timeOverlapWeight": 1.064,
+      "overlapStrength": 0.299,
+      "timeOverlapWeight": 1.09,
       "peakLevel": "normal"
     },
     {
       "month": "2026-08",
-      "overlapStrength": 0.169,
-      "timeOverlapWeight": 1.051,
+      "overlapStrength": 0.394,
+      "timeOverlapWeight": 1.118,
       "peakLevel": "normal"
     },
     {
       "month": "2026-09",
-      "overlapStrength": 0.207,
-      "timeOverlapWeight": 1.062,
+      "overlapStrength": 0.23,
+      "timeOverlapWeight": 1.069,
       "peakLevel": "normal"
     },
     {
       "month": "2026-10",
-      "overlapStrength": 0.097,
-      "timeOverlapWeight": 1.029,
+      "overlapStrength": 0.188,
+      "timeOverlapWeight": 1.056,
       "peakLevel": "normal"
     },
     {
       "month": "2026-11",
-      "overlapStrength": 0.143,
-      "timeOverlapWeight": 1.043,
+      "overlapStrength": 0.168,
+      "timeOverlapWeight": 1.05,
       "peakLevel": "normal"
     },
     {
       "month": "2026-12",
-      "overlapStrength": 0.144,
-      "timeOverlapWeight": 1.043,
+      "overlapStrength": 0.146,
+      "timeOverlapWeight": 1.044,
       "peakLevel": "normal"
     },
     {
       "month": "2027-01",
-      "overlapStrength": 0.091,
-      "timeOverlapWeight": 1.027,
+      "overlapStrength": 0.23,
+      "timeOverlapWeight": 1.069,
       "peakLevel": "normal"
     },
     {
       "month": "2027-02",
-      "overlapStrength": 0.165,
-      "timeOverlapWeight": 1.05,
+      "overlapStrength": 0.218,
+      "timeOverlapWeight": 1.066,
       "peakLevel": "normal"
     }
   ],
@@ -3960,375 +3965,393 @@
     "career": [
       {
         "month": "2026-03",
-        "overlapStrength": 0.069,
-        "timeOverlapWeight": 1.021,
+        "overlapStrength": 0.43,
+        "timeOverlapWeight": 1.129,
         "peakLevel": "normal"
       },
       {
         "month": "2026-04",
-        "overlapStrength": 0.368,
-        "timeOverlapWeight": 1.11,
+        "overlapStrength": 0.533,
+        "timeOverlapWeight": 1.16,
         "peakLevel": "normal"
       },
       {
         "month": "2026-05",
-        "overlapStrength": 0.391,
-        "timeOverlapWeight": 1.117,
+        "overlapStrength": 0.46,
+        "timeOverlapWeight": 1.138,
         "peakLevel": "normal"
       },
       {
         "month": "2026-06",
-        "overlapStrength": 0.369,
-        "timeOverlapWeight": 1.111,
+        "overlapStrength": 0.511,
+        "timeOverlapWeight": 1.153,
         "peakLevel": "normal"
       },
       {
         "month": "2026-07",
-        "overlapStrength": 0.278,
-        "timeOverlapWeight": 1.083,
+        "overlapStrength": 0.389,
+        "timeOverlapWeight": 1.117,
         "peakLevel": "normal"
       },
       {
         "month": "2026-08",
-        "overlapStrength": 0.22,
-        "timeOverlapWeight": 1.066,
+        "overlapStrength": 0.512,
+        "timeOverlapWeight": 1.154,
         "peakLevel": "normal"
       },
       {
         "month": "2026-09",
-        "overlapStrength": 0.269,
-        "timeOverlapWeight": 1.081,
+        "overlapStrength": 0.299,
+        "timeOverlapWeight": 1.09,
         "peakLevel": "normal"
       },
       {
         "month": "2026-10",
-        "overlapStrength": 0.126,
-        "timeOverlapWeight": 1.038,
+        "overlapStrength": 0.244,
+        "timeOverlapWeight": 1.073,
         "peakLevel": "normal"
       },
       {
         "month": "2026-11",
-        "overlapStrength": 0.186,
-        "timeOverlapWeight": 1.056,
+        "overlapStrength": 0.218,
+        "timeOverlapWeight": 1.066,
         "peakLevel": "normal"
       },
       {
         "month": "2026-12",
-        "overlapStrength": 0.187,
-        "timeOverlapWeight": 1.056,
+        "overlapStrength": 0.19,
+        "timeOverlapWeight": 1.057,
         "peakLevel": "normal"
       },
       {
         "month": "2027-01",
-        "overlapStrength": 0.118,
-        "timeOverlapWeight": 1.035,
+        "overlapStrength": 0.299,
+        "timeOverlapWeight": 1.09,
         "peakLevel": "normal"
       },
       {
         "month": "2027-02",
-        "overlapStrength": 0.214,
-        "timeOverlapWeight": 1.064,
+        "overlapStrength": 0.283,
+        "timeOverlapWeight": 1.085,
         "peakLevel": "normal"
       }
     ],
     "love": [
       {
         "month": "2026-03",
-        "overlapStrength": 0.069,
-        "timeOverlapWeight": 1.021,
+        "overlapStrength": 0.43,
+        "timeOverlapWeight": 1.129,
         "peakLevel": "normal"
       },
       {
         "month": "2026-04",
-        "overlapStrength": 0.368,
-        "timeOverlapWeight": 1.11,
+        "overlapStrength": 0.533,
+        "timeOverlapWeight": 1.16,
         "peakLevel": "normal"
       },
       {
         "month": "2026-05",
-        "overlapStrength": 0.391,
-        "timeOverlapWeight": 1.117,
+        "overlapStrength": 0.46,
+        "timeOverlapWeight": 1.138,
         "peakLevel": "normal"
       },
       {
         "month": "2026-06",
-        "overlapStrength": 0.369,
-        "timeOverlapWeight": 1.111,
+        "overlapStrength": 0.511,
+        "timeOverlapWeight": 1.153,
         "peakLevel": "normal"
       },
       {
         "month": "2026-07",
-        "overlapStrength": 0.278,
-        "timeOverlapWeight": 1.083,
+        "overlapStrength": 0.389,
+        "timeOverlapWeight": 1.117,
         "peakLevel": "normal"
       },
       {
         "month": "2026-08",
-        "overlapStrength": 0.22,
-        "timeOverlapWeight": 1.066,
+        "overlapStrength": 0.512,
+        "timeOverlapWeight": 1.154,
         "peakLevel": "normal"
       },
       {
         "month": "2026-09",
-        "overlapStrength": 0.269,
-        "timeOverlapWeight": 1.081,
+        "overlapStrength": 0.299,
+        "timeOverlapWeight": 1.09,
         "peakLevel": "normal"
       },
       {
         "month": "2026-10",
-        "overlapStrength": 0.126,
-        "timeOverlapWeight": 1.038,
+        "overlapStrength": 0.244,
+        "timeOverlapWeight": 1.073,
         "peakLevel": "normal"
       },
       {
         "month": "2026-11",
-        "overlapStrength": 0.186,
-        "timeOverlapWeight": 1.056,
+        "overlapStrength": 0.218,
+        "timeOverlapWeight": 1.066,
         "peakLevel": "normal"
       },
       {
         "month": "2026-12",
-        "overlapStrength": 0.187,
-        "timeOverlapWeight": 1.056,
+        "overlapStrength": 0.19,
+        "timeOverlapWeight": 1.057,
         "peakLevel": "normal"
       },
       {
         "month": "2027-01",
-        "overlapStrength": 0.118,
-        "timeOverlapWeight": 1.035,
+        "overlapStrength": 0.299,
+        "timeOverlapWeight": 1.09,
         "peakLevel": "normal"
       },
       {
         "month": "2027-02",
-        "overlapStrength": 0.214,
-        "timeOverlapWeight": 1.064,
+        "overlapStrength": 0.283,
+        "timeOverlapWeight": 1.085,
         "peakLevel": "normal"
       }
     ],
     "money": [
       {
         "month": "2026-03",
-        "overlapStrength": 0.069,
-        "timeOverlapWeight": 1.021,
+        "overlapStrength": 0.43,
+        "timeOverlapWeight": 1.129,
         "peakLevel": "normal"
       },
       {
         "month": "2026-04",
-        "overlapStrength": 0.368,
-        "timeOverlapWeight": 1.11,
+        "overlapStrength": 0.533,
+        "timeOverlapWeight": 1.16,
         "peakLevel": "normal"
       },
       {
         "month": "2026-05",
-        "overlapStrength": 0.391,
-        "timeOverlapWeight": 1.117,
+        "overlapStrength": 0.46,
+        "timeOverlapWeight": 1.138,
         "peakLevel": "normal"
       },
       {
         "month": "2026-06",
-        "overlapStrength": 0.369,
-        "timeOverlapWeight": 1.111,
+        "overlapStrength": 0.511,
+        "timeOverlapWeight": 1.153,
         "peakLevel": "normal"
       },
       {
         "month": "2026-07",
-        "overlapStrength": 0.278,
-        "timeOverlapWeight": 1.083,
+        "overlapStrength": 0.389,
+        "timeOverlapWeight": 1.117,
         "peakLevel": "normal"
       },
       {
         "month": "2026-08",
-        "overlapStrength": 0.22,
-        "timeOverlapWeight": 1.066,
+        "overlapStrength": 0.512,
+        "timeOverlapWeight": 1.154,
         "peakLevel": "normal"
       },
       {
         "month": "2026-09",
-        "overlapStrength": 0.269,
-        "timeOverlapWeight": 1.081,
+        "overlapStrength": 0.299,
+        "timeOverlapWeight": 1.09,
         "peakLevel": "normal"
       },
       {
         "month": "2026-10",
-        "overlapStrength": 0.126,
-        "timeOverlapWeight": 1.038,
+        "overlapStrength": 0.244,
+        "timeOverlapWeight": 1.073,
         "peakLevel": "normal"
       },
       {
         "month": "2026-11",
-        "overlapStrength": 0.186,
-        "timeOverlapWeight": 1.056,
+        "overlapStrength": 0.218,
+        "timeOverlapWeight": 1.066,
         "peakLevel": "normal"
       },
       {
         "month": "2026-12",
-        "overlapStrength": 0.187,
-        "timeOverlapWeight": 1.056,
+        "overlapStrength": 0.19,
+        "timeOverlapWeight": 1.057,
         "peakLevel": "normal"
       },
       {
         "month": "2027-01",
-        "overlapStrength": 0.118,
-        "timeOverlapWeight": 1.035,
+        "overlapStrength": 0.299,
+        "timeOverlapWeight": 1.09,
         "peakLevel": "normal"
       },
       {
         "month": "2027-02",
-        "overlapStrength": 0.214,
-        "timeOverlapWeight": 1.064,
+        "overlapStrength": 0.283,
+        "timeOverlapWeight": 1.085,
         "peakLevel": "normal"
       }
     ],
     "health": [
       {
         "month": "2026-03",
-        "overlapStrength": 0.062,
-        "timeOverlapWeight": 1.019,
+        "overlapStrength": 0.43,
+        "timeOverlapWeight": 1.129,
         "peakLevel": "normal"
       },
       {
         "month": "2026-04",
-        "overlapStrength": 0.331,
-        "timeOverlapWeight": 1.099,
+        "overlapStrength": 0.533,
+        "timeOverlapWeight": 1.16,
         "peakLevel": "normal"
       },
       {
         "month": "2026-05",
-        "overlapStrength": 0.352,
-        "timeOverlapWeight": 1.105,
+        "overlapStrength": 0.46,
+        "timeOverlapWeight": 1.138,
         "peakLevel": "normal"
       },
       {
         "month": "2026-06",
-        "overlapStrength": 0.332,
-        "timeOverlapWeight": 1.1,
+        "overlapStrength": 0.511,
+        "timeOverlapWeight": 1.153,
         "peakLevel": "normal"
       },
       {
         "month": "2026-07",
-        "overlapStrength": 0.25,
-        "timeOverlapWeight": 1.075,
+        "overlapStrength": 0.389,
+        "timeOverlapWeight": 1.117,
         "peakLevel": "normal"
       },
       {
         "month": "2026-08",
-        "overlapStrength": 0.197,
-        "timeOverlapWeight": 1.059,
+        "overlapStrength": 0.512,
+        "timeOverlapWeight": 1.154,
         "peakLevel": "normal"
       },
       {
         "month": "2026-09",
-        "overlapStrength": 0.242,
-        "timeOverlapWeight": 1.073,
+        "overlapStrength": 0.299,
+        "timeOverlapWeight": 1.09,
         "peakLevel": "normal"
       },
       {
         "month": "2026-10",
-        "overlapStrength": 0.113,
-        "timeOverlapWeight": 1.034,
+        "overlapStrength": 0.244,
+        "timeOverlapWeight": 1.073,
         "peakLevel": "normal"
       },
       {
         "month": "2026-11",
-        "overlapStrength": 0.167,
-        "timeOverlapWeight": 1.05,
+        "overlapStrength": 0.218,
+        "timeOverlapWeight": 1.066,
         "peakLevel": "normal"
       },
       {
         "month": "2026-12",
-        "overlapStrength": 0.168,
-        "timeOverlapWeight": 1.05,
+        "overlapStrength": 0.19,
+        "timeOverlapWeight": 1.057,
         "peakLevel": "normal"
       },
       {
         "month": "2027-01",
-        "overlapStrength": 0.106,
-        "timeOverlapWeight": 1.032,
+        "overlapStrength": 0.299,
+        "timeOverlapWeight": 1.09,
         "peakLevel": "normal"
       },
       {
         "month": "2027-02",
-        "overlapStrength": 0.193,
-        "timeOverlapWeight": 1.058,
+        "overlapStrength": 0.283,
+        "timeOverlapWeight": 1.085,
         "peakLevel": "normal"
       }
     ],
     "move": [
       {
         "month": "2026-03",
-        "overlapStrength": 0.069,
-        "timeOverlapWeight": 1.021,
+        "overlapStrength": 0.43,
+        "timeOverlapWeight": 1.129,
         "peakLevel": "normal"
       },
       {
         "month": "2026-04",
-        "overlapStrength": 0.368,
-        "timeOverlapWeight": 1.11,
+        "overlapStrength": 0.533,
+        "timeOverlapWeight": 1.16,
         "peakLevel": "normal"
       },
       {
         "month": "2026-05",
-        "overlapStrength": 0.391,
-        "timeOverlapWeight": 1.117,
+        "overlapStrength": 0.46,
+        "timeOverlapWeight": 1.138,
         "peakLevel": "normal"
       },
       {
         "month": "2026-06",
-        "overlapStrength": 0.369,
-        "timeOverlapWeight": 1.111,
+        "overlapStrength": 0.511,
+        "timeOverlapWeight": 1.153,
         "peakLevel": "normal"
       },
       {
         "month": "2026-07",
-        "overlapStrength": 0.278,
-        "timeOverlapWeight": 1.083,
+        "overlapStrength": 0.389,
+        "timeOverlapWeight": 1.117,
         "peakLevel": "normal"
       },
       {
         "month": "2026-08",
-        "overlapStrength": 0.22,
-        "timeOverlapWeight": 1.066,
+        "overlapStrength": 0.512,
+        "timeOverlapWeight": 1.154,
         "peakLevel": "normal"
       },
       {
         "month": "2026-09",
-        "overlapStrength": 0.269,
-        "timeOverlapWeight": 1.081,
+        "overlapStrength": 0.299,
+        "timeOverlapWeight": 1.09,
         "peakLevel": "normal"
       },
       {
         "month": "2026-10",
-        "overlapStrength": 0.126,
-        "timeOverlapWeight": 1.038,
+        "overlapStrength": 0.244,
+        "timeOverlapWeight": 1.073,
         "peakLevel": "normal"
       },
       {
         "month": "2026-11",
-        "overlapStrength": 0.186,
-        "timeOverlapWeight": 1.056,
+        "overlapStrength": 0.218,
+        "timeOverlapWeight": 1.066,
         "peakLevel": "normal"
       },
       {
         "month": "2026-12",
-        "overlapStrength": 0.187,
-        "timeOverlapWeight": 1.056,
+        "overlapStrength": 0.19,
+        "timeOverlapWeight": 1.057,
         "peakLevel": "normal"
       },
       {
         "month": "2027-01",
-        "overlapStrength": 0.118,
-        "timeOverlapWeight": 1.035,
+        "overlapStrength": 0.299,
+        "timeOverlapWeight": 1.09,
         "peakLevel": "normal"
       },
       {
         "month": "2027-02",
-        "overlapStrength": 0.214,
-        "timeOverlapWeight": 1.064,
+        "overlapStrength": 0.283,
+        "timeOverlapWeight": 1.085,
         "peakLevel": "normal"
       }
     ]
   },
   "strengthPoints": [
+    {
+      "layer": 4,
+      "rowKey": "화",
+      "colKey": "plutoTransit",
+      "cell": {
+        "interaction": {
+          "level": "extreme",
+          "score": 10,
+          "icon": "🔥",
+          "colorCode": "purple",
+          "keyword": "완전변혁",
+          "keywordEn": "Total transform",
+          "advice": "화 기운과 명왕성 트랜짓이 만나 삶의 완전한 변혁이 일어납니다. 불처럼 태우고 새로 시작하는 재탄생의 시기입니다. 오래된 것을 과감히 내려놓으세요. 깊은 변화를 두려워하지 말고 새 자아로 거듭나세요. 파괴에만 집중하거나 권력 투쟁은 피하세요."
+        },
+        "sajuBasis": "운 화",
+        "astroBasis": "트랜짓 plutoTransit"
+      }
+    },
     {
       "layer": 5,
       "rowKey": "samhap",
@@ -4381,6 +4404,24 @@
         },
         "sajuBasis": "천간충 (乙-辛 충)",
         "astroBasis": "Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg"
+      }
+    },
+    {
+      "layer": 6,
+      "rowKey": "임관",
+      "colKey": "H10",
+      "cell": {
+        "interaction": {
+          "level": "extreme",
+          "score": 10,
+          "icon": "🏆",
+          "colorCode": "purple",
+          "keyword": "커리어정점",
+          "keywordEn": "Career peak",
+          "advice": "임관의 성취 에너지가 10하우스 커리어 영역에서 정점에 달합니다. 직업적 성공과 사회적 지위 확립의 시기입니다. 리더십을 발휘하고 성과를 거두세요. 단, 정상에서의 겸손과 후진 양성에도 힘쓰세요."
+        },
+        "sajuBasis": "십이운성 임관",
+        "astroBasis": "Jupiter in H10"
       }
     },
     {
@@ -4471,42 +4512,6 @@
         },
         "sajuBasis": "십신 편재",
         "astroBasis": "PartOfFortune in 천칭자리"
-      }
-    },
-    {
-      "layer": 10,
-      "rowKey": "PartOfFortune",
-      "colKey": "정재",
-      "cell": {
-        "interaction": {
-          "level": "extreme",
-          "score": 10,
-          "icon": "🏦",
-          "colorCode": "purple",
-          "keyword": "저축행운",
-          "keywordEn": "Savings fortune",
-          "advice": "행운점이 정재와 만나 최고 수준의 저축 행운이 발휘됩니다. 안정적인 재테크와 장기 투자에서 큰 성공이 예상됩니다. 꾸준히 모으고 관리하면 부를 축적합니다. 단, 지나친 절약이 삶의 질을 떨어뜨릴 수 있습니다."
-        },
-        "sajuBasis": "십신 정재",
-        "astroBasis": "PartOfFortune in 천칭자리"
-      }
-    },
-    {
-      "layer": 2,
-      "rowKey": "편재",
-      "colKey": "Jupiter",
-      "cell": {
-        "interaction": {
-          "level": "extreme",
-          "score": 9,
-          "icon": "🎰",
-          "colorCode": "purple",
-          "keyword": "횡재",
-          "keywordEn": "Windfall",
-          "advice": "예상치 못한 재물 운이 있습니다. 기회를 놓치지 말되, 탐욕은 경계하세요."
-        },
-        "sajuBasis": "십신 편재",
-        "astroBasis": "Jupiter in H10"
       }
     }
   ],
@@ -4676,6 +4681,78 @@
       }
     },
     {
+      "layer": 6,
+      "rowKey": "사",
+      "colKey": "H1",
+      "cell": {
+        "interaction": {
+          "level": "conflict",
+          "score": 2,
+          "icon": "☠️",
+          "colorCode": "red",
+          "keyword": "자아종결",
+          "keywordEn": "Self end",
+          "advice": "사의 종결 에너지가 1하우스 자아 영역에서 극심하게 작용합니다. 기존 자아가 끝나고 완전한 재탄생이 필요한 시기입니다. 과거의 자신을 놓아주고 새로운 정체성을 준비하세요. 단, 극단적인 행동은 피하고 내면의 변화에 집중하세요."
+        },
+        "sajuBasis": "십이운성 사",
+        "astroBasis": "Sun in H1"
+      }
+    },
+    {
+      "layer": 6,
+      "rowKey": "사",
+      "colKey": "H11",
+      "cell": {
+        "interaction": {
+          "level": "conflict",
+          "score": 2,
+          "icon": "💀",
+          "colorCode": "red",
+          "keyword": "희망종결",
+          "keywordEn": "Hope end",
+          "advice": "사의 종결 에너지가 11하우스 희망 영역에서 암흑을 드리웁니다. 희망이 사라지고 친구 관계가 끊어질 수 있는 시기입니다. 혼자만의 시간을 갖고 새로운 꿈을 찾으세요. 단, 절대 포기하지 말고 전문가의 도움을 받으세요."
+        },
+        "sajuBasis": "십이운성 사",
+        "astroBasis": "Venus in H11"
+      }
+    },
+    {
+      "layer": 6,
+      "rowKey": "사",
+      "colKey": "H7",
+      "cell": {
+        "interaction": {
+          "level": "conflict",
+          "score": 2,
+          "icon": "💀",
+          "colorCode": "red",
+          "keyword": "관계종결",
+          "keywordEn": "Relation end",
+          "advice": "사의 종결 에너지가 7하우스 관계 영역에서 이별을 암시합니다. 관계가 종결되거나 파트너십이 해체될 수 있습니다. 집착을 놓고 건강한 이별을 준비하세요. 단, 폭력적이거나 극단적인 행동은 절대 피하세요."
+        },
+        "sajuBasis": "십이운성 사",
+        "astroBasis": "Mars in H7"
+      }
+    },
+    {
+      "layer": 6,
+      "rowKey": "사",
+      "colKey": "H10",
+      "cell": {
+        "interaction": {
+          "level": "conflict",
+          "score": 2,
+          "icon": "📉",
+          "colorCode": "red",
+          "keyword": "커리어종결",
+          "keywordEn": "Career end",
+          "advice": "사의 종결 에너지가 10하우스 커리어 영역에서 극심한 도전을 줍니다. 직업을 잃거나 사회적 지위가 무너질 수 있는 시기입니다. 새로운 방향을 모색하고 재기를 준비하세요. 단, 명예에 연연하지 말고 본질적인 가치에 집중하세요."
+        },
+        "sajuBasis": "십이운성 사",
+        "astroBasis": "Jupiter in H10"
+      }
+    },
+    {
       "layer": 8,
       "rowKey": "겁살",
       "colKey": "Mars",
@@ -4710,85 +4787,13 @@
         "sajuBasis": "신살 천라지망",
         "astroBasis": "Mars in H7"
       }
-    },
-    {
-      "layer": 2,
-      "rowKey": "상관",
-      "colKey": "Pluto",
-      "cell": {
-        "interaction": {
-          "level": "conflict",
-          "score": 3,
-          "icon": "☠️",
-          "colorCode": "red",
-          "keyword": "극단",
-          "keywordEn": "Extreme",
-          "advice": "극단적 사고나 행동을 조심하세요. 균형을 찾고, 중도를 지향하세요."
-        },
-        "sajuBasis": "십신 상관",
-        "astroBasis": "Pluto in H10"
-      }
-    },
-    {
-      "layer": 3,
-      "rowKey": "상관",
-      "colKey": "H7",
-      "cell": {
-        "interaction": {
-          "level": "conflict",
-          "score": 3,
-          "icon": "💔",
-          "colorCode": "red",
-          "keyword": "관계파괴",
-          "keywordEn": "Relation destroy",
-          "advice": "파트너 관계가 심각하게 손상될 수 있는 위험한 시기입니다. 비판적이고 공격적인 언행을 절대 삼가고 중요한 대화는 피하며 냉각기를 가지세요. 단, 이미 관계가 회복 불가능하다면 법적 절차를 밟고 전문가의 도움을 받아 정리하는 것이 현명합니다."
-        },
-        "sajuBasis": "십신 상관",
-        "astroBasis": "Mars in H7"
-      }
-    },
-    {
-      "layer": 5,
-      "rowKey": "pa",
-      "colKey": "square",
-      "cell": {
-        "interaction": {
-          "level": "conflict",
-          "score": 3,
-          "icon": "❌",
-          "colorCode": "red",
-          "keyword": "파손가중",
-          "keywordEn": "Break intensify",
-          "advice": "파의 파괴와 사각의 긴장이 만나 심각한 손상이 가중됩니다. 모든 것이 무너지고 깨지는 극심한 위험이 있는 시기입니다. 반드시 중요한 것을 보호하고 더 이상의 손실을 막으세요. 무리한 시도는 절대 피하고 현재 가진 것을 지키는 데 집중하세요. 필요하다면 일시적으로 후퇴하며 재정비하세요."
-        },
-        "sajuBasis": "지지파 (亥-寅 파)",
-        "astroBasis": "Mercury-True Node square angle=90deg orb=0.29deg allowed=6deg"
-      }
-    },
-    {
-      "layer": 8,
-      "rowKey": "지살",
-      "colKey": "Venus",
-      "cell": {
-        "interaction": {
-          "level": "conflict",
-          "score": 3,
-          "icon": "💸",
-          "colorCode": "red",
-          "keyword": "부동산손실",
-          "keywordEn": "Property loss",
-          "advice": "심각한 주의가 필요합니다. 부동산 관련 재정적 손실이 예상됩니다. 부동산 투자나 거래를 매우 조심하세요. 이 시기에 큰 거래를 미루면 위험을 피할 수 있습니다."
-        },
-        "sajuBasis": "신살 지살",
-        "astroBasis": "Venus in H11"
-      }
     }
   ],
   "topSynergies": [
     {
       "layers": [2, 2, 2],
-      "description": "56개의 극강 시너지 발견",
-      "score": 8.964285714285714
+      "description": "63개의 극강 시너지 발견",
+      "score": 9
     }
   ]
 }
@@ -6104,7 +6109,47 @@
       "astroBasis": "Uranus in H12"
     }
   },
-  "layer4": {},
+  "layer4": {
+    "화_plutoTransit": {
+      "interaction": {
+        "level": "extreme",
+        "score": 10,
+        "icon": "🔥",
+        "colorCode": "purple",
+        "keyword": "완전변혁",
+        "keywordEn": "Total transform",
+        "advice": "화 기운과 명왕성 트랜짓이 만나 삶의 완전한 변혁이 일어납니다. 불처럼 태우고 새로 시작하는 재탄생의 시기입니다. 오래된 것을 과감히 내려놓으세요. 깊은 변화를 두려워하지 말고 새 자아로 거듭나세요. 파괴에만 집중하거나 권력 투쟁은 피하세요."
+      },
+      "sajuBasis": "운 화",
+      "astroBasis": "트랜짓 plutoTransit"
+    },
+    "화_uranusSquare": {
+      "interaction": {
+        "level": "extreme",
+        "score": 9,
+        "icon": "⚡",
+        "colorCode": "purple",
+        "keyword": "폭발적변화",
+        "keywordEn": "Explosive change",
+        "advice": "화 기운에 천왕성 스퀘어가 더해져 폭발적인 변화가 일어납니다. 억눌렸던 에너지가 한꺼번에 분출되는 혁명적 시기입니다. 변화의 에너지를 창조적으로 활용하세요. 새로운 도전에 두려움 없이 뛰어드세요. 파괴적 충동이나 무분별한 행동은 자제하세요."
+      },
+      "sajuBasis": "운 화",
+      "astroBasis": "트랜짓 uranusSquare"
+    },
+    "화_neptuneSquare": {
+      "interaction": {
+        "level": "clash",
+        "score": 5,
+        "icon": "💥",
+        "colorCode": "yellow",
+        "keyword": "환상파괴",
+        "keywordEn": "Fantasy break",
+        "advice": "화 기운에 해왕성 스퀘어가 겹치면 환상과 현실의 충돌이 발생합니다. 열정의 대상이 환상이었음을 깨닫는 신중한 시기입니다. 현실을 직시하고 목표를 재설정하세요. 감정에 휘둘리지 말고 냉정함을 유지하세요. 환멸감에 빠지거나 자포자기하지 마세요."
+      },
+      "sajuBasis": "운 화",
+      "astroBasis": "트랜짓 neptuneSquare"
+    }
+  },
   "layer5": {
     "hae_square": {
       "interaction": {
@@ -6432,7 +6477,372 @@
       "astroBasis": "Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg"
     }
   },
-  "layer6": {},
+  "layer6": {
+    "양_H1": {
+      "interaction": {
+        "level": "balance",
+        "score": 6,
+        "icon": "👶",
+        "colorCode": "blue",
+        "keyword": "자아양육",
+        "keywordEn": "Self nurture",
+        "advice": "양의 양육 에너지가 1하우스 자아 영역에서 성장을 돕습니다. 새로운 자아가 자라고 정체성이 발달하는 시기입니다. 자신을 돌보고 성장에 필요한 환경을 조성하세요. 단, 조급하게 성과를 기대하지 말고 점진적인 발전을 믿으세요."
+      },
+      "sajuBasis": "십이운성 양",
+      "astroBasis": "Sun in H1"
+    },
+    "양_H4": {
+      "interaction": {
+        "level": "amplify",
+        "score": 7,
+        "icon": "🤱",
+        "colorCode": "green",
+        "keyword": "가정양육",
+        "keywordEn": "Home nurture",
+        "advice": "양의 양육 에너지가 4하우스 가정 영역에서 강하게 발휘됩니다. 가정이 성장하고 유대가 깊어지는 시기입니다. 가족을 돌보고 가정 환경을 개선하세요. 단, 과보호보다는 적절한 지지와 자율성의 균형을 맞추세요."
+      },
+      "sajuBasis": "십이운성 양",
+      "astroBasis": "Moon in H4"
+    },
+    "양_H11": {
+      "interaction": {
+        "level": "balance",
+        "score": 6,
+        "icon": "🌱",
+        "colorCode": "blue",
+        "keyword": "희망양육",
+        "keywordEn": "Hope nurture",
+        "advice": "양의 양육 에너지가 11하우스 희망 영역에서 성장을 돕습니다. 희망이 자라고 이상이 발전하는 시기입니다. 꿈을 키우고 동료들과 함께 성장하세요. 단, 현실적인 계획과 함께 이상을 발전시키세요."
+      },
+      "sajuBasis": "십이운성 양",
+      "astroBasis": "Venus in H11"
+    },
+    "양_H7": {
+      "interaction": {
+        "level": "balance",
+        "score": 6,
+        "icon": "💕",
+        "colorCode": "blue",
+        "keyword": "관계양육",
+        "keywordEn": "Relation nurture",
+        "advice": "양의 양육 에너지가 7하우스 관계 영역에서 발전을 돕습니다. 관계가 조금씩 깊어지고 신뢰가 쌓이는 시기입니다. 관계에 시간과 정성을 투자하세요. 단, 조급하게 진전을 기대하지 말고 자연스러운 성장을 기다리세요."
+      },
+      "sajuBasis": "십이운성 양",
+      "astroBasis": "Mars in H7"
+    },
+    "양_H10": {
+      "interaction": {
+        "level": "clash",
+        "score": 5,
+        "icon": "📈",
+        "colorCode": "yellow",
+        "keyword": "커리어양육",
+        "keywordEn": "Career nurture",
+        "advice": "양의 양육 에너지가 10하우스 커리어 영역에서 조심스러운 성장을 돕습니다. 커리어가 조금씩 발전하는 시기입니다. 실력을 쌓고 기회를 준비하세요. 단, 아직 성장 중이니 큰 도전보다는 내실을 다지세요."
+      },
+      "sajuBasis": "십이운성 양",
+      "astroBasis": "Jupiter in H10"
+    },
+    "양_H12": {
+      "interaction": {
+        "level": "clash",
+        "score": 5,
+        "icon": "🧒",
+        "colorCode": "yellow",
+        "keyword": "영적양육",
+        "keywordEn": "Spiritual nurture",
+        "advice": "양의 양육 에너지가 12하우스 영적 영역에서 조심스럽게 작용합니다. 영적 성장이 조금씩 진행되는 시기입니다. 명상과 자기 성찰을 꾸준히 하세요. 단, 균형을 잃지 않도록 현실과의 연결도 유지하세요."
+      },
+      "sajuBasis": "십이운성 양",
+      "astroBasis": "Uranus in H12"
+    },
+    "양_H9": {
+      "interaction": {
+        "level": "balance",
+        "score": 6,
+        "icon": "📖",
+        "colorCode": "blue",
+        "keyword": "학업양육",
+        "keywordEn": "Study nurture",
+        "advice": "양의 양육 에너지가 9하우스 탐구 영역에서 발달을 돕습니다. 지식이 조금씩 쌓이고 시야가 넓어지는 시기입니다. 꾸준히 배우고 새로운 것을 탐구하세요. 단, 기초를 탄탄히 하고 서두르지 마세요."
+      },
+      "sajuBasis": "십이운성 양",
+      "astroBasis": "True Node in H9"
+    },
+    "관대_H1": {
+      "interaction": {
+        "level": "amplify",
+        "score": 8,
+        "icon": "👔",
+        "colorCode": "green",
+        "keyword": "자아성장",
+        "keywordEn": "Self growth",
+        "advice": "관대의 성장 에너지가 1하우스 자아 영역에서 발현됩니다. 자아가 성숙하고 사회적 역할이 확립되는 시기입니다. 자기 계발에 투자하고 이미지를 가꾸세요. 단, 외적 치장보다 내적 성숙에 더 집중하세요."
+      },
+      "sajuBasis": "십이운성 관대",
+      "astroBasis": "Sun in H1"
+    },
+    "관대_H4": {
+      "interaction": {
+        "level": "amplify",
+        "score": 7,
+        "icon": "🏠",
+        "colorCode": "green",
+        "keyword": "가정성장",
+        "keywordEn": "Home growth",
+        "advice": "관대의 성장 에너지가 4하우스 가정 영역에서 발휘됩니다. 가정이 성장하고 기반이 확립되는 시기입니다. 가족 관계를 돈독히 하고 주거 환경을 개선하세요. 단, 물질적 성장과 정서적 유대의 균형을 맞추세요."
+      },
+      "sajuBasis": "십이운성 관대",
+      "astroBasis": "Moon in H4"
+    },
+    "관대_H11": {
+      "interaction": {
+        "level": "amplify",
+        "score": 8,
+        "icon": "🌟",
+        "colorCode": "green",
+        "keyword": "이상실현",
+        "keywordEn": "Ideal realize",
+        "advice": "관대의 성장 에너지가 11하우스 희망 영역에서 빛납니다. 이상이 구체화되고 사회적 영향력이 커지는 시기입니다. 비전을 추구하고 동료와 협력하세요. 단, 이상과 현실의 균형을 맞추세요."
+      },
+      "sajuBasis": "십이운성 관대",
+      "astroBasis": "Venus in H11"
+    },
+    "관대_H7": {
+      "interaction": {
+        "level": "amplify",
+        "score": 8,
+        "icon": "💍",
+        "colorCode": "green",
+        "keyword": "관계성숙",
+        "keywordEn": "Relation mature",
+        "advice": "관대의 성장 에너지가 7하우스 관계 영역에서 발현됩니다. 관계가 성숙하고 파트너십이 발전하는 시기입니다. 관계에 책임감을 갖고 헌신하세요. 단, 상대방의 성장도 함께 지지하세요."
+      },
+      "sajuBasis": "십이운성 관대",
+      "astroBasis": "Mars in H7"
+    },
+    "관대_H10": {
+      "interaction": {
+        "level": "extreme",
+        "score": 9,
+        "icon": "🎖️",
+        "colorCode": "purple",
+        "keyword": "커리어성장",
+        "keywordEn": "Career growth",
+        "advice": "관대의 성장 에너지가 10하우스 커리어 영역에서 극대화됩니다. 직업적 성장과 사회적 인정의 시기입니다. 승진과 성과를 향해 전진하세요. 단, 명예에 집착하기보다 실력을 쌓으세요."
+      },
+      "sajuBasis": "십이운성 관대",
+      "astroBasis": "Jupiter in H10"
+    },
+    "관대_H12": {
+      "interaction": {
+        "level": "balance",
+        "score": 6,
+        "icon": "🧘",
+        "colorCode": "blue",
+        "keyword": "영적성장",
+        "keywordEn": "Spiritual growth",
+        "advice": "관대의 성장 에너지가 12하우스 영적 영역에서 내면화됩니다. 영적 성숙과 내면의 성장이 이루어지는 시기입니다. 명상과 자기 성찰을 심화하세요. 단, 현실적 삶과의 조화를 잃지 마세요."
+      },
+      "sajuBasis": "십이운성 관대",
+      "astroBasis": "Uranus in H12"
+    },
+    "관대_H9": {
+      "interaction": {
+        "level": "amplify",
+        "score": 8,
+        "icon": "🎓",
+        "colorCode": "green",
+        "keyword": "학업성장",
+        "keywordEn": "Study growth",
+        "advice": "관대의 성장 에너지가 9하우스 탐구 영역에서 확장됩니다. 학문적 성장과 시야 확대의 시기입니다. 고등 교육이나 전문 분야를 추구하세요. 단, 지식의 깊이와 넓이의 균형을 유지하세요."
+      },
+      "sajuBasis": "십이운성 관대",
+      "astroBasis": "True Node in H9"
+    },
+    "사_H1": {
+      "interaction": {
+        "level": "conflict",
+        "score": 2,
+        "icon": "☠️",
+        "colorCode": "red",
+        "keyword": "자아종결",
+        "keywordEn": "Self end",
+        "advice": "사의 종결 에너지가 1하우스 자아 영역에서 극심하게 작용합니다. 기존 자아가 끝나고 완전한 재탄생이 필요한 시기입니다. 과거의 자신을 놓아주고 새로운 정체성을 준비하세요. 단, 극단적인 행동은 피하고 내면의 변화에 집중하세요."
+      },
+      "sajuBasis": "십이운성 사",
+      "astroBasis": "Sun in H1"
+    },
+    "사_H4": {
+      "interaction": {
+        "level": "conflict",
+        "score": 3,
+        "icon": "🪦",
+        "colorCode": "red",
+        "keyword": "가정종결",
+        "keywordEn": "Home end",
+        "advice": "사의 종결 에너지가 4하우스 가정 영역에서 변화를 강제합니다. 가정에 큰 변화나 이별이 있을 수 있는 시기입니다. 가족과의 관계를 정리하고 새로운 시작을 준비하세요. 단, 감정에 휩쓸리지 말고 현명하게 대처하세요."
+      },
+      "sajuBasis": "십이운성 사",
+      "astroBasis": "Moon in H4"
+    },
+    "사_H11": {
+      "interaction": {
+        "level": "conflict",
+        "score": 2,
+        "icon": "💀",
+        "colorCode": "red",
+        "keyword": "희망종결",
+        "keywordEn": "Hope end",
+        "advice": "사의 종결 에너지가 11하우스 희망 영역에서 암흑을 드리웁니다. 희망이 사라지고 친구 관계가 끊어질 수 있는 시기입니다. 혼자만의 시간을 갖고 새로운 꿈을 찾으세요. 단, 절대 포기하지 말고 전문가의 도움을 받으세요."
+      },
+      "sajuBasis": "십이운성 사",
+      "astroBasis": "Venus in H11"
+    },
+    "사_H7": {
+      "interaction": {
+        "level": "conflict",
+        "score": 2,
+        "icon": "💀",
+        "colorCode": "red",
+        "keyword": "관계종결",
+        "keywordEn": "Relation end",
+        "advice": "사의 종결 에너지가 7하우스 관계 영역에서 이별을 암시합니다. 관계가 종결되거나 파트너십이 해체될 수 있습니다. 집착을 놓고 건강한 이별을 준비하세요. 단, 폭력적이거나 극단적인 행동은 절대 피하세요."
+      },
+      "sajuBasis": "십이운성 사",
+      "astroBasis": "Mars in H7"
+    },
+    "사_H10": {
+      "interaction": {
+        "level": "conflict",
+        "score": 2,
+        "icon": "📉",
+        "colorCode": "red",
+        "keyword": "커리어종결",
+        "keywordEn": "Career end",
+        "advice": "사의 종결 에너지가 10하우스 커리어 영역에서 극심한 도전을 줍니다. 직업을 잃거나 사회적 지위가 무너질 수 있는 시기입니다. 새로운 방향을 모색하고 재기를 준비하세요. 단, 명예에 연연하지 말고 본질적인 가치에 집중하세요."
+      },
+      "sajuBasis": "십이운성 사",
+      "astroBasis": "Jupiter in H10"
+    },
+    "사_H12": {
+      "interaction": {
+        "level": "balance",
+        "score": 6,
+        "icon": "🔮",
+        "colorCode": "blue",
+        "keyword": "영적완성",
+        "keywordEn": "Spiritual complete",
+        "advice": "사의 종결 에너지가 12하우스 영적 영역에서 역설적으로 완성을 이룹니다. 세속적 자아가 죽고 영적 자아가 탄생하는 시기입니다. 깊은 명상과 영적 수련에 임하세요. 단, 현실 세계와의 연결을 완전히 끊지는 마세요."
+      },
+      "sajuBasis": "십이운성 사",
+      "astroBasis": "Uranus in H12"
+    },
+    "사_H9": {
+      "interaction": {
+        "level": "conflict",
+        "score": 3,
+        "icon": "🪦",
+        "colorCode": "red",
+        "keyword": "학업종결",
+        "keywordEn": "Study end",
+        "advice": "사의 종결 에너지가 9하우스 탐구 영역에서 막다른 길을 보여줍니다. 기존 신념이 무너지거나 학업이 중단될 수 있습니다. 과거의 믿음을 내려놓고 새로운 진리를 찾을 준비를 하세요. 단, 허무주의에 빠지지 말고 근본적인 질문을 던지세요."
+      },
+      "sajuBasis": "십이운성 사",
+      "astroBasis": "True Node in H9"
+    },
+    "임관_H1": {
+      "interaction": {
+        "level": "extreme",
+        "score": 9,
+        "icon": "🏆",
+        "colorCode": "purple",
+        "keyword": "자아성취",
+        "keywordEn": "Self achieve",
+        "advice": "임관의 성취 에너지가 1하우스 자아 영역에서 극대화됩니다. 자아 실현과 사회적 인정의 시기입니다. 리더십을 발휘하고 책임을 다하세요. 단, 권위주의에 빠지지 말고 겸손한 자세를 유지하세요."
+      },
+      "sajuBasis": "십이운성 임관",
+      "astroBasis": "Sun in H1"
+    },
+    "임관_H4": {
+      "interaction": {
+        "level": "amplify",
+        "score": 8,
+        "icon": "🏛️",
+        "colorCode": "green",
+        "keyword": "가정안정",
+        "keywordEn": "Home stable",
+        "advice": "임관의 안정 에너지가 4하우스 가정 영역에서 확립됩니다. 가정의 안정과 기반 강화의 시기입니다. 가족에 대한 책임을 다하고 유산을 남기세요. 단, 가장으로서의 부담을 혼자 지려 하지 마세요."
+      },
+      "sajuBasis": "십이운성 임관",
+      "astroBasis": "Moon in H4"
+    },
+    "임관_H11": {
+      "interaction": {
+        "level": "amplify",
+        "score": 8,
+        "icon": "🏛️",
+        "colorCode": "green",
+        "keyword": "사회공헌",
+        "keywordEn": "Social contribute",
+        "advice": "임관의 성취 에너지가 11하우스 희망 영역에서 사회로 확산됩니다. 사회적 영향력과 공헌의 시기입니다. 더 큰 목표를 위해 역량을 발휘하세요. 단, 개인의 희생이 지나치지 않도록 균형을 맞추세요."
+      },
+      "sajuBasis": "십이운성 임관",
+      "astroBasis": "Venus in H11"
+    },
+    "임관_H7": {
+      "interaction": {
+        "level": "extreme",
+        "score": 9,
+        "icon": "💍",
+        "colorCode": "purple",
+        "keyword": "관계성공",
+        "keywordEn": "Relation success",
+        "advice": "임관의 성공 에너지가 7하우스 관계 영역에서 결실을 맺습니다. 파트너십의 성공과 공식적 관계 확립의 시기입니다. 결혼이나 공식적 파트너십을 진행하세요. 단, 관계에서 동등한 입장을 유지하세요."
+      },
+      "sajuBasis": "십이운성 임관",
+      "astroBasis": "Mars in H7"
+    },
+    "임관_H10": {
+      "interaction": {
+        "level": "extreme",
+        "score": 10,
+        "icon": "🏆",
+        "colorCode": "purple",
+        "keyword": "커리어정점",
+        "keywordEn": "Career peak",
+        "advice": "임관의 성취 에너지가 10하우스 커리어 영역에서 정점에 달합니다. 직업적 성공과 사회적 지위 확립의 시기입니다. 리더십을 발휘하고 성과를 거두세요. 단, 정상에서의 겸손과 후진 양성에도 힘쓰세요."
+      },
+      "sajuBasis": "십이운성 임관",
+      "astroBasis": "Jupiter in H10"
+    },
+    "임관_H12": {
+      "interaction": {
+        "level": "amplify",
+        "score": 7,
+        "icon": "🙏",
+        "colorCode": "green",
+        "keyword": "영적성취",
+        "keywordEn": "Spiritual achieve",
+        "advice": "임관의 성취 에너지가 12하우스 영적 영역에서 내면화됩니다. 영적 성취와 내면의 완성을 이루는 시기입니다. 명상과 봉사로 영적 성장을 완성하세요. 단, 세속적 성취와 영적 가치의 균형을 유지하세요."
+      },
+      "sajuBasis": "십이운성 임관",
+      "astroBasis": "Uranus in H12"
+    },
+    "임관_H9": {
+      "interaction": {
+        "level": "extreme",
+        "score": 9,
+        "icon": "🏛️",
+        "colorCode": "purple",
+        "keyword": "학업성공",
+        "keywordEn": "Study success",
+        "advice": "임관의 성공 에너지가 9하우스 탐구 영역에서 빛납니다. 학문적 성취와 사회적 인정의 시기입니다. 학위 취득이나 전문성 인정의 기회를 잡으세요. 단, 지식의 실천적 활용에도 관심을 기울이세요."
+      },
+      "sajuBasis": "십이운성 임관",
+      "astroBasis": "True Node in H9"
+    }
+  },
   "layer7": {
     "jeongjae_secondary": {
       "interaction": {
@@ -8639,27 +9049,27 @@
       "section": "introduction",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"introduction\" using X7, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossConclusion": "Anchor with overall=53 grade=C top=🔥 완전변혁(100), ⚡ 폭발적변화(90), then synthesize Saju+Astrology for \"introduction\" using X7, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X7",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
+          "matrixEvidence": "L5:지지육합 (亥-寅 육합) + Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg (contribution=100%)",
           "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "personality"],
           "overlapScore": 0.99,
           "orbFitScore": 0.47,
-          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"🌀 영적탐구\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"💎 안정조화\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X4",
-          "matrixEvidence": "L3:십신 정인 + Moon in H4 (contribution=100%)",
+          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg (contribution=100%)",
           "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "personality"],
           "overlapScore": 0.94,
           "orbFitScore": 0.62,
-          "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"🤱 가정양육\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"💥 극강시너지\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -8668,27 +9078,27 @@
       "section": "personalityDeep",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"personalityDeep\" using X7, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossConclusion": "Anchor with overall=53 grade=C top=🔥 완전변혁(100), ⚡ 폭발적변화(90), then synthesize Saju+Astrology for \"personalityDeep\" using X7, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X7",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
+          "matrixEvidence": "L5:지지육합 (亥-寅 육합) + Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg (contribution=100%)",
           "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "personality"],
           "overlapScore": 0.99,
           "orbFitScore": 0.47,
-          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"🌀 영적탐구\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"💎 안정조화\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X4",
-          "matrixEvidence": "L3:십신 정인 + Moon in H4 (contribution=100%)",
+          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg (contribution=100%)",
           "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "personality"],
           "overlapScore": 0.94,
           "orbFitScore": 0.62,
-          "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"🤱 가정양육\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"💥 극강시너지\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -8697,27 +9107,27 @@
       "section": "careerPath",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"careerPath\" using X2, X7. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossConclusion": "Anchor with overall=53 grade=C top=🔥 완전변혁(100), ⚡ 폭발적변화(90), then synthesize Saju+Astrology for \"careerPath\" using X2, X7. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X2",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg (contribution=100%)",
+          "matrixEvidence": "L4:운 화 + 트랜짓 uranusSquare (contribution=100%)",
           "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "timing"],
           "overlapScore": 0.99,
           "orbFitScore": 0.83,
-          "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"💥 극강시너지\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"⚡ 폭발적변화\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X7",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
+          "matrixEvidence": "L5:지지육합 (亥-寅 육합) + Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg (contribution=100%)",
           "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "personality"],
           "overlapScore": 0.99,
           "orbFitScore": 0.47,
-          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"🌀 영적탐구\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"💎 안정조화\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -8726,27 +9136,27 @@
       "section": "relationshipDynamics",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"relationshipDynamics\" using X8, X5. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossConclusion": "Anchor with overall=53 grade=C top=🔥 완전변혁(100), ⚡ 폭발적변화(90), then synthesize Saju+Astrology for \"relationshipDynamics\" using X8, X5. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X8",
-          "matrixEvidence": "L2:십신 편재 + Jupiter in H10 (contribution=100%)",
+          "matrixEvidence": "L5:지지육합 (亥-寅 육합) + Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg (contribution=100%)",
           "astrologyEvidence": "Moon-trine-Mercury (pair=Mercury-Moon, angle=120deg, orb=4.7deg, allowed=relationship<=7.7deg, personality<=8.1deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["relationship", "personality"],
           "overlapScore": 0.83,
           "orbFitScore": 0.41,
-          "combinedConclusion": "Cross-domain overlap(relationship, personality) is high for \"🎰 횡재\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(relationship, personality) is high for \"🤝 조화결합\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X5",
-          "matrixEvidence": "L3:십신 정재 + Moon in H4 (contribution=100%)",
+          "matrixEvidence": "L5:천간충 (乙-辛 충) + Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg (contribution=100%)",
           "astrologyEvidence": "Moon-opposition-Pluto (pair=Moon-Pluto, angle=180deg, orb=4deg, allowed=relationship<=8deg, timing<=4.8deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["relationship", "timing"],
           "overlapScore": 0.79,
           "orbFitScore": 0.34,
-          "combinedConclusion": "Cross-domain overlap(relationship, timing) is high for \"🏠 부동산\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(relationship, timing) is high for \"💥 극심충돌\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -8755,27 +9165,27 @@
       "section": "wealthPotential",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"wealthPotential\" using X2, X7. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossConclusion": "Anchor with overall=53 grade=C top=🔥 완전변혁(100), ⚡ 폭발적변화(90), then synthesize Saju+Astrology for \"wealthPotential\" using X2, X7. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X2",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg (contribution=100%)",
+          "matrixEvidence": "L4:운 화 + 트랜짓 uranusSquare (contribution=100%)",
           "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "timing"],
           "overlapScore": 0.99,
           "orbFitScore": 0.83,
-          "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"💥 극강시너지\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"⚡ 폭발적변화\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X7",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
+          "matrixEvidence": "L5:지지육합 (亥-寅 육합) + Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg (contribution=100%)",
           "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "personality"],
           "overlapScore": 0.99,
           "orbFitScore": 0.47,
-          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"🌀 영적탐구\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"💎 안정조화\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -8784,27 +9194,27 @@
       "section": "healthGuidance",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"healthGuidance\" using X2, X7. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossConclusion": "Anchor with overall=53 grade=C top=🔥 완전변혁(100), ⚡ 폭발적변화(90), then synthesize Saju+Astrology for \"healthGuidance\" using X2, X7. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X2",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg (contribution=100%)",
+          "matrixEvidence": "L4:운 화 + 트랜짓 uranusSquare (contribution=100%)",
           "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "timing"],
           "overlapScore": 0.99,
           "orbFitScore": 0.83,
-          "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"💥 극강시너지\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"⚡ 폭발적변화\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X7",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
+          "matrixEvidence": "L5:지지육합 (亥-寅 육합) + Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg (contribution=100%)",
           "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "personality"],
           "overlapScore": 0.99,
           "orbFitScore": 0.47,
-          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"🌀 영적탐구\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"💎 안정조화\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -8813,27 +9223,27 @@
       "section": "lifeMission",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"lifeMission\" using X7, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossConclusion": "Anchor with overall=53 grade=C top=🔥 완전변혁(100), ⚡ 폭발적변화(90), then synthesize Saju+Astrology for \"lifeMission\" using X7, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X7",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
+          "matrixEvidence": "L5:지지육합 (亥-寅 육합) + Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg (contribution=100%)",
           "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "personality"],
           "overlapScore": 0.99,
           "orbFitScore": 0.47,
-          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"🌀 영적탐구\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"💎 안정조화\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X4",
-          "matrixEvidence": "L3:십신 정인 + Moon in H4 (contribution=100%)",
+          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg (contribution=100%)",
           "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "personality"],
           "overlapScore": 0.94,
           "orbFitScore": 0.62,
-          "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"🤱 가정양육\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"💥 극강시너지\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -8842,27 +9252,27 @@
       "section": "timingAdvice",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"timingAdvice\" using X2, X1. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossConclusion": "Anchor with overall=53 grade=C top=🔥 완전변혁(100), ⚡ 폭발적변화(90), then synthesize Saju+Astrology for \"timingAdvice\" using X2, X1. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X2",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg (contribution=100%)",
+          "matrixEvidence": "L4:운 화 + 트랜짓 uranusSquare (contribution=100%)",
           "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "timing"],
           "overlapScore": 0.99,
           "orbFitScore": 0.83,
-          "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"💥 극강시너지\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"⚡ 폭발적변화\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X1",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg (contribution=100%)",
+          "matrixEvidence": "L4:운 화 + 트랜짓 plutoTransit (contribution=100%)",
           "astrologyEvidence": "Mercury-square-True Node (pair=Mercury-True Node, angle=90deg, orb=0.3deg, allowed=timing<=3.6deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["timing"],
           "overlapScore": 0.86,
           "orbFitScore": 0.92,
-          "combinedConclusion": "Cross-domain overlap(timing) is high for \"🌟 최상조화\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(timing) is high for \"🔥 완전변혁\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -8871,27 +9281,27 @@
       "section": "actionPlan",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"actionPlan\" using X2, X7. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossConclusion": "Anchor with overall=53 grade=C top=🔥 완전변혁(100), ⚡ 폭발적변화(90), then synthesize Saju+Astrology for \"actionPlan\" using X2, X7. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X2",
-          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg (contribution=100%)",
+          "matrixEvidence": "L4:운 화 + 트랜짓 uranusSquare (contribution=100%)",
           "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "timing"],
           "overlapScore": 0.99,
           "orbFitScore": 0.83,
-          "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"💥 극강시너지\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"⚡ 폭발적변화\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X7",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
+          "matrixEvidence": "L5:지지육합 (亥-寅 육합) + Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg (contribution=100%)",
           "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "personality"],
           "overlapScore": 0.99,
           "orbFitScore": 0.47,
-          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"🌀 영적탐구\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"💎 안정조화\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     },
@@ -8900,27 +9310,27 @@
       "section": "conclusion",
       "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=N/A, currentSaeun=화, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
       "astrologyEvidence": "dominant=fire | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Saturn-trine-True Node 120deg orb=2.6deg",
-      "crossConclusion": "Anchor with overall=65 grade=B top=🌟 최상조화(100), 💥 극강시너지(100), then synthesize Saju+Astrology for \"conclusion\" using X7, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossConclusion": "Anchor with overall=53 grade=C top=🔥 완전변혁(100), ⚡ 폭발적변화(90), then synthesize Saju+Astrology for \"conclusion\" using X7, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "crossEvidenceSets": [
         {
           "id": "X7",
-          "matrixEvidence": "L3:십신 편인 + Uranus in H12 (contribution=100%)",
+          "matrixEvidence": "L5:지지육합 (亥-寅 육합) + Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg (contribution=100%)",
           "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "wealth", "personality"],
           "overlapScore": 0.99,
           "orbFitScore": 0.47,
-          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"🌀 영적탐구\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"💎 안정조화\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         },
         {
           "id": "X4",
-          "matrixEvidence": "L3:십신 정인 + Moon in H4 (contribution=100%)",
+          "matrixEvidence": "L5:지지삼합 (亥·卯·未 삼합(목)) + Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg (contribution=100%)",
           "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
           "sajuEvidence": "dayMaster=금, geokguk=jeongjae, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780",
           "overlapDomains": ["career", "personality"],
           "overlapScore": 0.94,
           "orbFitScore": 0.62,
-          "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"🤱 가정양육\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
+          "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"💥 극강시너지\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
         }
       ]
     }

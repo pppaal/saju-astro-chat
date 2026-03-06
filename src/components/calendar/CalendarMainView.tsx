@@ -255,7 +255,9 @@ const CalendarMainView = memo(function CalendarMainView({
   }
 
   return (
-    <div className={`${styles.container} ${!isDarkTheme ? styles.lightTheme : ''}`}>
+    <div
+      className={`${styles.container} ${styles.largeTextMode} ${!isDarkTheme ? styles.lightTheme : ''}`}
+    >
       {/* Header */}
       <div className={styles.calendarHeader}>
         <div className={styles.headerTop}>

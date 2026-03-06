@@ -1657,6 +1657,7 @@ export async function generateAIPremiumReport(
     lang,
     matrixReport,
     matrixSummary: options.matrixSummary,
+    matrixInput: input,
   })
   const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang, {
     daeunActive: Boolean(input.currentDaeunElement),
@@ -2479,6 +2480,7 @@ export async function generateTimingReport(
     lang,
     matrixReport,
     matrixSummary: options.matrixSummary,
+    matrixInput: input,
   })
   const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang, {
     daeunActive: Boolean(input.currentDaeunElement),
@@ -3092,6 +3094,7 @@ export async function generateThemedReport(
     lang,
     matrixReport,
     matrixSummary: options.matrixSummary,
+    matrixInput: input,
   })
   const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang, {
     daeunActive: Boolean(input.currentDaeunElement),

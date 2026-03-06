@@ -1,5 +1,6 @@
 import type { FusionReport, InsightDomain } from '../interpreter/types'
 import type { MatrixHighlight, MatrixSummary } from '../types'
+import type { MatrixCalculationInput } from '../types'
 import { getDomainSemantic, getLayerMeaning } from './matrixOntology'
 
 export type SignalPolarity = 'strength' | 'balance' | 'caution'
@@ -50,6 +51,7 @@ interface SynthesisInput {
   lang: 'ko' | 'en'
   matrixReport: FusionReport
   matrixSummary?: MatrixSummary
+  matrixInput?: MatrixCalculationInput
 }
 
 const REQUIRED_CORE_DOMAINS: SignalDomain[] = ['career', 'wealth']
@@ -93,12 +95,123 @@ const SECTION_DOMAIN_MAP: Record<string, SignalDomain[]> = {
   conclusion: ['personality', 'timing'],
 }
 
+const POSITIVE_SHINSAL_KEYS = [
+  '귀인',
+  '문창',
+  '학당',
+  '암록',
+  '금여록',
+  '건록',
+  '제왕',
+  '화개',
+  '장성',
+  '반안',
+]
+const NEGATIVE_SHINSAL_KEYS = [
+  '살',
+  '백호',
+  '망신',
+  '고신',
+  '괴강',
+  '현침',
+  '귀문관',
+  '병부',
+  '공망',
+  '원진',
+]
+
 function toLower(value: string): string {
   return String(value || '').toLowerCase()
 }
 
 function uniq<T>(items: T[]): T[] {
   return [...new Set(items)]
+}
+
+const SHINSAL_POSITIVE_RE =
+  /\uADC0\uC778|\uBB38\uCC3D|\uD559\uB2F9|\uC554\uB85D|\uAE08\uC5EC\uB85D|\uAC74\uB85D|\uC81C\uC655|\uD654\uAC1C|\uC7A5\uC131|\uBC18\uC548/
+const SHINSAL_NEGATIVE_RE =
+  /\uC0B4|\uBC31\uD638|\uB9DD\uC2E0|\uACE0\uC2E0|\uAD34\uAC15|\uD604\uCE68|\uADC0\uBB38\uAD00|\uBCD1\uBD80|\uACF5\uB9DD|\uC6D0\uC9C4/
+const RELATION_STRENGTH_RE = /\uD569/
+const RELATION_CAUTION_RE = /\uCDA9|\uD615|\uD30C|\uD574|\uC6D0\uC9C4|\uACF5\uB9DD/
+const STAGE_STRENGTH_RE = /\uC784\uAD00|\uC655\uC9C0|\uC7A5\uC0DD|\uAC74\uB85D|\uC81C\uC655/
+const STAGE_CAUTION_RE = /\uC1E0|\uBCD1|\uC0AC|\uBB18|\uC808/
+const TRANSIT_STRENGTH_SET = new Set<NonNullable<MatrixCalculationInput['activeTransits']>[number]>(
+  ['jupiterReturn', 'nodeReturn']
+)
+const TRANSIT_CAUTION_SET = new Set<NonNullable<MatrixCalculationInput['activeTransits']>[number]>([
+  'saturnReturn',
+  'uranusSquare',
+  'neptuneSquare',
+  'plutoTransit',
+  'eclipse',
+  'mercuryRetrograde',
+  'venusRetrograde',
+  'marsRetrograde',
+  'jupiterRetrograde',
+  'saturnRetrograde',
+])
+const ASPECT_STRENGTH_SET = new Set(['trine', 'sextile', 'conjunction'])
+const ASPECT_CAUTION_SET = new Set(['square', 'opposition'])
+
+function clampScore(value: number): number {
+  if (!Number.isFinite(value)) return 5
+  return Math.max(1, Math.min(10, Math.round(value)))
+}
+
+function domainsByHouse(house: number): SignalDomain[] {
+  if (house === 1) return ['personality']
+  if (house === 2) return ['wealth']
+  if (house === 3) return ['career', 'personality']
+  if (house === 4) return ['relationship', 'move']
+  if (house === 5) return ['relationship', 'personality']
+  if (house === 6) return ['health', 'career']
+  if (house === 7) return ['relationship']
+  if (house === 8) return ['wealth', 'relationship']
+  if (house === 9) return ['move', 'spirituality']
+  if (house === 10) return ['career']
+  if (house === 11) return ['relationship', 'personality']
+  if (house === 12) return ['spirituality', 'health', 'move']
+  return ['personality']
+}
+
+function inferPolarityFromShinsal(shinsal: string): SignalPolarity {
+  if (SHINSAL_NEGATIVE_RE.test(shinsal)) return 'caution'
+  if (SHINSAL_POSITIVE_RE.test(shinsal)) return 'strength'
+  return 'balance'
+}
+
+function inferPolarityFromRelation(kind: string): SignalPolarity {
+  if (RELATION_CAUTION_RE.test(kind)) return 'caution'
+  if (RELATION_STRENGTH_RE.test(kind)) return 'strength'
+  return 'balance'
+}
+
+function inferPolarityFromStage(stage: string): SignalPolarity {
+  if (STAGE_CAUTION_RE.test(stage)) return 'caution'
+  if (STAGE_STRENGTH_RE.test(stage)) return 'strength'
+  return 'balance'
+}
+
+function inferPolarityFromAspect(type: string): SignalPolarity {
+  const normalized = toLower(type)
+  if (ASPECT_CAUTION_SET.has(normalized)) return 'caution'
+  if (ASPECT_STRENGTH_SET.has(normalized)) return 'strength'
+  return 'balance'
+}
+
+function inferPolarityFromTransit(
+  transit: NonNullable<MatrixCalculationInput['activeTransits']>[number]
+): SignalPolarity {
+  if (TRANSIT_CAUTION_SET.has(transit)) return 'caution'
+  if (TRANSIT_STRENGTH_SET.has(transit)) return 'strength'
+  return 'balance'
+}
+
+function scoreFromPolarity(polarity: SignalPolarity, base = 6): number {
+  if (polarity === 'strength') return clampScore(base + 1)
+  if (polarity === 'caution') return clampScore(base)
+  return clampScore(base - 1)
 }
 
 function splitTags(source: string): string[] {
@@ -233,6 +346,454 @@ function normalizeFromTopInsights(report: FusionReport): NormalizedSignal[] {
       },
     }
   })
+}
+
+function buildSyntheticSignal(input: {
+  id: string
+  layer: number
+  rowKey: string
+  colKey: string
+  polarity: SignalPolarity
+  score: number
+  keyword: string
+  sajuBasis?: string
+  astroBasis?: string
+  advice?: string
+  tags?: string[]
+  domainHints?: SignalDomain[]
+  lang: 'ko' | 'en'
+}): NormalizedSignal {
+  const domainHints = uniq(
+    input.domainHints && input.domainHints.length > 0
+      ? input.domainHints
+      : fallbackDomainsByLayer(input.layer)
+  )
+  const semanticDomain = (domainHints[0] || 'personality') as SignalDomain
+  const semantic = getDomainSemantic(input.layer, semanticDomain)
+  const score = clampScore(input.score)
+  const rankScore = input.polarity === 'caution' ? 11 - score : score
+  return {
+    id: input.id,
+    layer: input.layer,
+    rowKey: input.rowKey,
+    colKey: input.colKey,
+    domainHints,
+    polarity: input.polarity,
+    score,
+    rankScore,
+    keyword: input.keyword,
+    sajuBasis: input.sajuBasis,
+    astroBasis: input.astroBasis,
+    advice: sanitizeFearWords(input.advice || '', input.lang),
+    tags: uniq(input.tags || []),
+    semantic: {
+      layerMeaningKo: getLayerMeaning(input.layer, 'ko'),
+      layerMeaningEn: getLayerMeaning(input.layer, 'en'),
+      focusKo: semantic.focusKo,
+      focusEn: semantic.focusEn,
+      riskKo: semantic.riskKo,
+      riskEn: semantic.riskEn,
+    },
+  }
+}
+
+function normalizeFromMatrixInput(
+  matrixInput: MatrixCalculationInput | undefined,
+  lang: 'ko' | 'en'
+): NormalizedSignal[] {
+  if (!matrixInput) return []
+
+  const out: NormalizedSignal[] = []
+
+  if (matrixInput.geokguk) {
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L7:geokguk:${matrixInput.geokguk}`,
+        layer: 7,
+        rowKey: `geokguk_${matrixInput.geokguk}`,
+        colKey: 'profile',
+        polarity: 'strength',
+        score: 7,
+        keyword: `Geokguk ${matrixInput.geokguk}`,
+        sajuBasis: `geokguk=${matrixInput.geokguk}`,
+        astroBasis: 'advanced profile alignment',
+        advice:
+          lang === 'ko'
+            ? '격국 신호를 실행 기준으로 고정하고, 역할/우선순위 충돌을 먼저 정리하세요.'
+            : 'Use geokguk as a stable execution lens and resolve role-priority conflicts first.',
+        tags: ['coverage', 'geokguk', String(matrixInput.geokguk)],
+        domainHints: ['career', 'personality'],
+        lang,
+      })
+    )
+  }
+
+  if (matrixInput.yongsin) {
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L7:yongsin:${matrixInput.yongsin}`,
+        layer: 7,
+        rowKey: `yongsin_${matrixInput.yongsin}`,
+        colKey: 'core',
+        polarity: 'balance',
+        score: 6,
+        keyword: `Yongsin ${matrixInput.yongsin}`,
+        sajuBasis: `yongsin=${matrixInput.yongsin}`,
+        astroBasis: 'core element balancing',
+        advice:
+          lang === 'ko'
+            ? '용신 기준으로 과열 영역을 줄이고 보완 루틴을 먼저 배치하세요.'
+            : 'Use yongsin as your balancing axis and schedule compensating routines first.',
+        tags: ['coverage', 'yongsin', String(matrixInput.yongsin)],
+        domainHints: ['personality', 'health', 'wealth'],
+        lang,
+      })
+    )
+  }
+
+  if (matrixInput.currentDaeunElement) {
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L4:daeun:${matrixInput.currentDaeunElement}`,
+        layer: 4,
+        rowKey: `daeun_${matrixInput.currentDaeunElement}`,
+        colKey: 'active',
+        polarity: 'balance',
+        score: 6,
+        keyword: `Daeun ${matrixInput.currentDaeunElement}`,
+        sajuBasis: `daeun=${matrixInput.currentDaeunElement}`,
+        astroBasis: 'timing cycle active',
+        advice:
+          lang === 'ko'
+            ? '대운 흐름이 작동 중인 영역은 단기 성과보다 중기 누적을 기준으로 운영하세요.'
+            : 'With active daeun flow, optimize for medium-term accumulation over short spikes.',
+        tags: ['coverage', 'daeun', String(matrixInput.currentDaeunElement)],
+        domainHints: ['timing', 'career', 'wealth'],
+        lang,
+      })
+    )
+  }
+
+  if (matrixInput.currentSaeunElement) {
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L4:saeun:${matrixInput.currentSaeunElement}`,
+        layer: 4,
+        rowKey: `saeun_${matrixInput.currentSaeunElement}`,
+        colKey: 'active',
+        polarity: 'balance',
+        score: 6,
+        keyword: `Saeun ${matrixInput.currentSaeunElement}`,
+        sajuBasis: `saeun=${matrixInput.currentSaeunElement}`,
+        astroBasis: 'annual cycle active',
+        advice:
+          lang === 'ko'
+            ? '세운 신호가 바뀌는 구간은 확정 전 검증 슬롯을 고정하세요.'
+            : 'In annual cycle shifts, lock verification windows before final commitment.',
+        tags: ['coverage', 'saeun', String(matrixInput.currentSaeunElement)],
+        domainHints: ['timing', 'career', 'relationship'],
+        lang,
+      })
+    )
+  }
+
+  if (
+    matrixInput.currentDaeunElement &&
+    matrixInput.currentSaeunElement &&
+    matrixInput.currentDaeunElement === matrixInput.currentSaeunElement
+  ) {
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L4:daeun-saeun-sync:${matrixInput.currentDaeunElement}`,
+        layer: 4,
+        rowKey: 'daeun_saeun_sync',
+        colKey: String(matrixInput.currentDaeunElement),
+        polarity: 'strength',
+        score: 8,
+        keyword: 'Daeun/Saeun sync',
+        sajuBasis: `daeun=${matrixInput.currentDaeunElement}, saeun=${matrixInput.currentSaeunElement}`,
+        astroBasis: 'timing resonance',
+        advice:
+          lang === 'ko'
+            ? '장기·연간 흐름이 같은 방향이면 핵심 과제 1~2개에 집중도를 높이세요.'
+            : 'When long/annual timing aligns, increase focus on 1-2 core priorities.',
+        tags: ['coverage', 'timing-sync'],
+        domainHints: ['timing', 'career', 'wealth'],
+        lang,
+      })
+    )
+  }
+
+  for (const transit of matrixInput.activeTransits || []) {
+    const polarity = inferPolarityFromTransit(transit)
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L4:transit:${transit}`,
+        layer: 4,
+        rowKey: 'transit',
+        colKey: transit,
+        polarity,
+        score: scoreFromPolarity(polarity, 6),
+        keyword: `Transit ${transit}`,
+        sajuBasis: 'timing overlay',
+        astroBasis: `activeTransit=${transit}`,
+        advice:
+          polarity === 'caution'
+            ? lang === 'ko'
+              ? '변동 트랜짓 구간은 당일 확정보다 24시간 재확인으로 오차를 줄이세요.'
+              : 'During volatile transits, prefer a 24h recheck before final commitment.'
+            : lang === 'ko'
+              ? '트랜짓 상승 구간은 실행 블록을 먼저 확보해 흐름을 선점하세요.'
+              : 'In supportive transit windows, lock execution blocks early.',
+        tags: ['coverage', 'transit', transit],
+        domainHints: ['timing', ...inferDomainsFromText(transit)],
+        lang,
+      })
+    )
+  }
+
+  for (const [stage, count] of Object.entries(matrixInput.twelveStages || {})) {
+    const numeric = Number(count || 0)
+    if (!Number.isFinite(numeric) || numeric <= 0) continue
+    const polarity = inferPolarityFromStage(stage)
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L6:stage:${stage}`,
+        layer: 6,
+        rowKey: stage,
+        colKey: `active_${numeric}`,
+        polarity,
+        score: scoreFromPolarity(polarity, Math.min(8, 5 + numeric)),
+        keyword: `Stage ${stage}`,
+        sajuBasis: `twelveStage=${stage}(${numeric})`,
+        astroBasis: 'life-force stage overlay',
+        advice:
+          lang === 'ko'
+            ? '운성 신호는 속도보다 리듬 관리에 반영해 손실 구간을 줄이세요.'
+            : 'Use stage signals to manage rhythm, not just speed, and reduce loss windows.',
+        tags: ['coverage', 'twelve-stage', stage],
+        domainHints: ['career', 'relationship', 'timing'],
+        lang,
+      })
+    )
+  }
+
+  for (const relation of matrixInput.relations || []) {
+    const kind = String(relation.kind || '')
+    const polarity = inferPolarityFromRelation(kind)
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L5:relation:${kind}:${(relation.pillars || []).join('-') || 'na'}`,
+        layer: 5,
+        rowKey: kind || 'relation',
+        colKey: (relation.pillars || []).join('-') || 'active',
+        polarity,
+        score: scoreFromPolarity(polarity, 6),
+        keyword: `Relation ${kind || 'active'}`,
+        sajuBasis: `relation=${kind || 'active'}`,
+        astroBasis: relation.detail || relation.note || 'relation-aspect bridge',
+        advice:
+          polarity === 'caution'
+            ? lang === 'ko'
+              ? '관계 긴장 신호가 있으면 결론보다 조건 확인 문장을 먼저 고정하세요.'
+              : 'With relational tension, lock condition-confirmation statements before conclusions.'
+            : lang === 'ko'
+              ? '관계 시너지는 역할·책임 경계를 먼저 합의할 때 성과로 연결됩니다.'
+              : 'Relational synergy converts better when role and ownership boundaries are explicit.',
+        tags: ['coverage', 'relation', kind || 'active'],
+        domainHints: ['relationship', 'timing'],
+        lang,
+      })
+    )
+  }
+
+  for (const shinsal of matrixInput.shinsalList || []) {
+    const shinsalKey = String(shinsal)
+    const polarity = inferPolarityFromShinsal(shinsalKey)
+    const moveHint = /\uC5ED\uB9C8/.test(shinsalKey)
+    const relationshipHint = /\uB3C4\uD654|\uD64D\uC5FC/.test(shinsalKey)
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L8:shinsal:${shinsalKey}`,
+        layer: 8,
+        rowKey: shinsalKey,
+        colKey: 'active',
+        polarity,
+        score: scoreFromPolarity(polarity, 6),
+        keyword: `Shinsal ${shinsalKey}`,
+        sajuBasis: `shinsal=${shinsalKey}`,
+        astroBasis: 'special pattern overlay',
+        advice:
+          lang === 'ko'
+            ? '신살 신호는 단일 해석보다 교차 근거와 함께 사용해야 정확도가 올라갑니다.'
+            : 'Use shinsal as a cross-evidence signal rather than a standalone verdict.',
+        tags: ['coverage', 'shinsal', shinsalKey],
+        domainHints: moveHint
+          ? ['move', 'timing']
+          : relationshipHint
+            ? ['relationship', 'personality']
+            : ['personality', 'spirituality'],
+        lang,
+      })
+    )
+  }
+
+  if (matrixInput.dominantWesternElement) {
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L1:west-element:${matrixInput.dominantWesternElement}`,
+        layer: 1,
+        rowKey: `west_${matrixInput.dominantWesternElement}`,
+        colKey: 'dominant',
+        polarity: 'balance',
+        score: 6,
+        keyword: `Dominant element ${matrixInput.dominantWesternElement}`,
+        sajuBasis: `dayMaster=${matrixInput.dayMasterElement}`,
+        astroBasis: `dominantWesternElement=${matrixInput.dominantWesternElement}`,
+        advice:
+          lang === 'ko'
+            ? '사주 일간과 서양 원소의 공통 패턴을 운영 원칙으로 고정하세요.'
+            : 'Use the shared pattern between day master and dominant western element as operating rules.',
+        tags: ['coverage', 'element-core', String(matrixInput.dominantWesternElement)],
+        domainHints: ['personality', 'spirituality'],
+        lang,
+      })
+    )
+  }
+
+  for (const [planet, house] of Object.entries(matrixInput.planetHouses || {})) {
+    const houseNo = Number(house)
+    if (!Number.isFinite(houseNo) || houseNo < 1 || houseNo > 12) continue
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L3:planet-house:${planet}:H${houseNo}`,
+        layer: 3,
+        rowKey: planet,
+        colKey: `H${houseNo}`,
+        polarity: 'balance',
+        score: 5,
+        keyword: `${planet} in H${houseNo}`,
+        sajuBasis: 'domain allocation by house',
+        astroBasis: `${planet}=H${houseNo}`,
+        advice:
+          lang === 'ko'
+            ? '하우스 배치는 에너지 분배 지도이므로 우선순위 캘린더와 함께 적용하세요.'
+            : 'Treat house placement as an energy allocation map and apply it with priority calendars.',
+        tags: ['coverage', 'planet-house', planet, `H${houseNo}`],
+        domainHints: domainsByHouse(houseNo),
+        lang,
+      })
+    )
+  }
+
+  for (const aspect of matrixInput.aspects || []) {
+    const type = String(aspect.type || '')
+    const polarity = inferPolarityFromAspect(type)
+    const pair = `${aspect.planet1 || 'P1'}-${aspect.planet2 || 'P2'}`
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L5:aspect:${pair}:${type}`,
+        layer: 5,
+        rowKey: pair,
+        colKey: type || 'aspect',
+        polarity,
+        score: scoreFromPolarity(polarity, 6),
+        keyword: `${pair} ${type}`,
+        sajuBasis: 'relation bridge',
+        astroBasis: `aspect=${pair}:${type}`,
+        advice:
+          polarity === 'caution'
+            ? lang === 'ko'
+              ? '긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요.'
+              : 'For tense aspects, pair execution with pace-control and verification routines.'
+            : lang === 'ko'
+              ? '우호 애스펙트는 협업·실행을 묶을 때 효율이 올라갑니다.'
+              : 'Supportive aspects perform best when collaboration and execution are coupled.',
+        tags: ['coverage', 'aspect', pair, type || 'aspect'],
+        domainHints: inferDomainsFromText(`${pair} ${type}`),
+        lang,
+      })
+    )
+  }
+
+  for (const [asteroid, house] of Object.entries(matrixInput.asteroidHouses || {})) {
+    const houseNo = Number(house)
+    if (!Number.isFinite(houseNo) || houseNo < 1 || houseNo > 12) continue
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L9:asteroid-house:${asteroid}:H${houseNo}`,
+        layer: 9,
+        rowKey: asteroid,
+        colKey: `H${houseNo}`,
+        polarity: 'balance',
+        score: 5,
+        keyword: `${asteroid} in H${houseNo}`,
+        sajuBasis: 'micro strategy point',
+        astroBasis: `${asteroid}=H${houseNo}`,
+        advice:
+          lang === 'ko'
+            ? '소행성 신호는 서브전략 조정에만 쓰고, 최종 확정은 코어 신호로 판단하세요.'
+            : 'Use asteroid signals for sub-strategy tuning, while final commits follow core signals.',
+        tags: ['coverage', 'asteroid', asteroid, `H${houseNo}`],
+        domainHints: domainsByHouse(houseNo),
+        lang,
+      })
+    )
+  }
+
+  for (const [point, sign] of Object.entries(matrixInput.extraPointSigns || {})) {
+    const pointKey = String(point)
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L10:extra-point:${pointKey}:${String(sign)}`,
+        layer: 10,
+        rowKey: pointKey,
+        colKey: String(sign),
+        polarity: 'balance',
+        score: 5,
+        keyword: `${pointKey} in ${String(sign)}`,
+        sajuBasis: 'deep-point overlay',
+        astroBasis: `${pointKey} sign=${String(sign)}`,
+        advice:
+          lang === 'ko'
+            ? '엑스트라 포인트는 장기 방향과 의미 해석 보정에 사용하세요.'
+            : 'Use extra points to calibrate long-term direction and meaning interpretation.',
+        tags: ['coverage', 'extra-point', pointKey, String(sign)],
+        domainHints: inferDomainsFromText(pointKey),
+        lang,
+      })
+    )
+  }
+
+  const advancedSignals = (matrixInput.advancedAstroSignals || {}) as Record<string, unknown>
+  for (const [key, value] of Object.entries(advancedSignals)) {
+    if (value !== true) continue
+    const lowerKey = toLower(key)
+    const isCaution = lowerKey.includes('eclipse')
+    const polarity: SignalPolarity = isCaution ? 'caution' : 'balance'
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L10:advanced:${lowerKey}`,
+        layer: 10,
+        rowKey: 'advanced_astro',
+        colKey: lowerKey,
+        polarity,
+        score: scoreFromPolarity(polarity, 5),
+        keyword: `Advanced ${lowerKey}`,
+        sajuBasis: 'advanced cross-check enabled',
+        astroBasis: `${lowerKey}=true`,
+        advice:
+          lang === 'ko'
+            ? '고급 점성 모듈은 단일 단정이 아니라 교차 검증 신호로 사용하세요.'
+            : 'Use advanced astrology modules as cross-verification signals, not standalone verdicts.',
+        tags: ['coverage', 'advanced-astro', lowerKey],
+        domainHints: inferDomainsFromText(lowerKey),
+        lang,
+      })
+    )
+  }
+
+  return out
 }
 
 function dedupeSignals(list: NormalizedSignal[]): NormalizedSignal[] {
@@ -543,8 +1104,11 @@ export function synthesizeMatrixSignals(input: SynthesisInput): SignalSynthesisR
     ) || []),
   ]
   const fromTopInsights = normalizeFromTopInsights(input.matrixReport)
+  const fromMatrixInput = normalizeFromMatrixInput(input.matrixInput, input.lang)
   const normalizedSignals = dedupeSignals(
-    fromSummary.length > 0 ? [...fromSummary, ...fromTopInsights] : fromTopInsights
+    fromSummary.length > 0
+      ? [...fromSummary, ...fromTopInsights, ...fromMatrixInput]
+      : [...fromTopInsights, ...fromMatrixInput]
   )
   const selectedSignals = selectSevenSignals(normalizedSignals)
   const claims = buildClaims(selectedSignals, input.lang)

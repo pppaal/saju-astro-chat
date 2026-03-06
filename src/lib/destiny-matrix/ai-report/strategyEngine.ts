@@ -32,6 +32,7 @@ export interface DomainSignalContribution {
   keyword?: string
   polarity: 'strength' | 'caution' | 'balance'
   score: number
+  sourceWeight: number
   contribution: number
   weightedScore: number
 }
@@ -72,10 +73,11 @@ export interface StrategyEngineResult {
   domainStrategies: DomainStrategy[]
 }
 
-type SelectedSignal = SignalSynthesisResult['selectedSignals'][number]
+type SynthSignal = SignalSynthesisResult['normalizedSignals'][number]
 
 interface SignalContributionRaw {
-  signal: SelectedSignal
+  signal: SynthSignal
+  sourceWeight: number
   contribution: number
 }
 
@@ -89,6 +91,8 @@ const DOMAIN_ORDER: SignalDomain[] = [
   'spirituality',
   'move',
 ]
+const NON_SELECTED_SIGNAL_WEIGHT = 0.35
+const DOMAIN_SIGNAL_NORMALIZATION_TARGET = 3
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
@@ -179,18 +183,31 @@ function normalizeSignalDomains(hints?: SignalDomain[]): SignalDomain[] {
 }
 
 function buildDomainSignalMap(
-  signals: SelectedSignal[]
+  signals: SynthSignal[],
+  signalWeights: Record<string, number>
 ): Record<SignalDomain, SignalContributionRaw[]> {
   const grouped = {} as Record<SignalDomain, SignalContributionRaw[]>
   for (const signal of signals) {
     const domains = normalizeSignalDomains(signal.domainHints)
-    const contribution = 1 / domains.length
+    const sourceWeight = signalWeights[signal.id] ?? NON_SELECTED_SIGNAL_WEIGHT
+    const contribution = sourceWeight / domains.length
     for (const domain of domains) {
       if (!grouped[domain]) grouped[domain] = []
-      grouped[domain].push({ signal, contribution })
+      grouped[domain].push({ signal, sourceWeight, contribution })
     }
   }
   return grouped
+}
+
+function buildSignalWeightMap(synthesis: SignalSynthesisResult): Record<string, number> {
+  const map: Record<string, number> = {}
+  for (const signal of synthesis.normalizedSignals || []) {
+    map[signal.id] = NON_SELECTED_SIGNAL_WEIGHT
+  }
+  for (const selected of synthesis.selectedSignals || []) {
+    map[selected.id] = 1
+  }
+  return map
 }
 
 function decidePhase(
@@ -462,22 +479,30 @@ export function buildPhaseStrategyEngine(
   lang: 'ko' | 'en',
   timingContext?: StrategyTimingContext
 ): StrategyEngineResult | undefined {
-  if (!synthesis || synthesis.selectedSignals.length === 0) return undefined
+  if (!synthesis || synthesis.normalizedSignals.length === 0) return undefined
 
   const timeActivation = computeTimeActivation(timingContext)
-  const grouped = buildDomainSignalMap(synthesis.selectedSignals)
+  const signalWeights = buildSignalWeightMap(synthesis)
+  const grouped = buildDomainSignalMap(synthesis.normalizedSignals, signalWeights)
 
   const domainStrategies: DomainStrategy[] = Object.entries(grouped).map(([domain, rows]) => {
     const contributions = rows as SignalContributionRaw[]
-    const baseStrengthScore = contributions
-      .filter((row) => row.signal.polarity === 'strength')
-      .reduce((sum, row) => sum + row.signal.score * row.contribution, 0)
-    const baseCautionScore = contributions
-      .filter((row) => row.signal.polarity === 'caution')
-      .reduce((sum, row) => sum + row.signal.score * row.contribution, 0)
-    const baseBalanceScore = contributions
-      .filter((row) => row.signal.polarity === 'balance')
-      .reduce((sum, row) => sum + row.signal.score * row.contribution, 0)
+    const normalizationFactor = Math.max(
+      1,
+      contributions.length / DOMAIN_SIGNAL_NORMALIZATION_TARGET
+    )
+    const baseStrengthScore =
+      contributions
+        .filter((row) => row.signal.polarity === 'strength')
+        .reduce((sum, row) => sum + row.signal.score * row.contribution, 0) / normalizationFactor
+    const baseCautionScore =
+      contributions
+        .filter((row) => row.signal.polarity === 'caution')
+        .reduce((sum, row) => sum + row.signal.score * row.contribution, 0) / normalizationFactor
+    const baseBalanceScore =
+      contributions
+        .filter((row) => row.signal.polarity === 'balance')
+        .reduce((sum, row) => sum + row.signal.score * row.contribution, 0) / normalizationFactor
 
     const weights = getDomainWeights(domain as SignalDomain)
 
@@ -537,6 +562,7 @@ export function buildPhaseStrategyEngine(
         keyword: row.signal.keyword,
         polarity: row.signal.polarity,
         score: row.signal.score,
+        sourceWeight: round2(row.sourceWeight),
         contribution: round2(row.contribution),
         weightedScore: round2(row.signal.score * row.contribution),
       }))

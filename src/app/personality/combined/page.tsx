@@ -1,9 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import BackButton from '@/components/ui/BackButton'
+import { ConfettiAnimation } from '@/components/shared'
+import { useConfetti } from '@/hooks/useConfetti'
 import { TestStatusCard, useCombinedResult } from './components'
 import { buildHybridNarrativeSample } from '@/lib/persona/hybridNarrative'
 import type { IcpDimensionKey } from '@/lib/assessment/integratedProfile'
@@ -12,6 +14,7 @@ import styles from './combined.module.css'
 export default function CombinedResultPage() {
   const searchParams = useSearchParams()
   const sampleMode = (searchParams.get('sample') ?? '').toLowerCase() === 'bc-rsla'
+  const { showConfetti, confettiParticles, createConfetti } = useConfetti()
   const {
     hasIcp,
     hasPersona,
@@ -61,6 +64,25 @@ export default function CombinedResultPage() {
       ? integratedProfile.communicationPlaybookKo
       : integratedProfile.communicationPlaybookEn
     : null
+
+  useEffect(() => {
+    if (loading || !narrative) {
+      return
+    }
+
+    const confettiKey = `combined_confetti_shown_${integratedProfileId ?? narrative.hero.hybridCode}`
+    const alreadyShown = sessionStorage.getItem(confettiKey)
+    if (alreadyShown) {
+      return
+    }
+
+    const timer = setTimeout(() => {
+      createConfetti()
+      sessionStorage.setItem(confettiKey, 'true')
+    }, 350)
+
+    return () => clearTimeout(timer)
+  }, [createConfetti, integratedProfileId, loading, narrative])
 
   const dimensionLabels: Record<
     IcpDimensionKey,
@@ -119,6 +141,7 @@ export default function CombinedResultPage() {
 
   return (
     <main className={styles.page}>
+      {showConfetti && <ConfettiAnimation particles={confettiParticles} styles={styles} />}
       <div className={styles.backButton}>
         <BackButton />
       </div>
@@ -145,12 +168,12 @@ export default function CombinedResultPage() {
           integratedPlaybook && (
             <section className={styles.section} aria-labelledby="integrated-result-title">
               <h2 id="integrated-result-title" className={styles.sectionTitle}>
-                {isKo ? 'Integrated Result' : 'Integrated Result'}
+                {isKo ? '통합 결과' : 'Integrated Result'}
               </h2>
 
               <div className={styles.snapshotGrid}>
                 <article className={styles.card}>
-                  <h3>{isKo ? 'Personality Summary' : 'Personality Summary'}</h3>
+                  <h3>{isKo ? '성격 요약' : 'Personality Summary'}</h3>
                   <p>
                     {personaResult.personaName} ({personaResult.typeCode})
                   </p>
@@ -158,7 +181,7 @@ export default function CombinedResultPage() {
                 </article>
 
                 <article className={styles.card}>
-                  <h3>{isKo ? 'ICP Summary (5 Dimensions)' : 'ICP Summary (5 Dimensions)'}</h3>
+                  <h3>{isKo ? 'ICP 요약 (5차원)' : 'ICP Summary (5 Dimensions)'}</h3>
                   <ul>
                     {icpDimensions.ranked.map((dimension) => {
                       const labelMeta = dimensionLabels[dimension.key]
@@ -225,7 +248,7 @@ export default function CombinedResultPage() {
                     </ul>
                   </div>
                   <div>
-                    <h3>{isKo ? 'Communication Playbook' : 'Communication Playbook'}</h3>
+                    <h3>{isKo ? '커뮤니케이션 플레이북' : 'Communication Playbook'}</h3>
                     <ul>
                       <li>{integratedPlaybook.conflictOpener}</li>
                       <li>{integratedPlaybook.boundarySetting}</li>

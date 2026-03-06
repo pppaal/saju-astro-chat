@@ -71,7 +71,7 @@ function looksLikeEncodingIssue(text: string): boolean {
   if (!text) return false
   if (text.includes('\uFFFD')) return true
   if (/\?\?\?+/.test(text)) return true
-  return /(?:Ã.|Â.|ì.|í.|ë.|ê.){2,}/.test(text)
+  return /(?:\u00c3.|\u00c2.|\u00ec.|\u00ed.|\u00eb.|\u00ea.){2,}/u.test(text)
 }
 
 function hasRequiredHeadings(

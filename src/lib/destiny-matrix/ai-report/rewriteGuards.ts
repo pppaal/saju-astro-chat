@@ -7,13 +7,13 @@ import type { DeterministicSectionBlock } from './deterministicCore'
 type ReportLang = 'ko' | 'en'
 
 const HIGH_RISK_WEEKDAY_TOKENS = [
-  'ì›”ìš”ì¼',
-  'í™”ìš”ì¼',
-  'ìˆ˜ìš”ì¼',
-  'ëª©ìš”ì¼',
-  'ê¸ˆìš”ì¼',
-  'í† ìš”ì¼',
-  'ì¼ìš”ì¼',
+  '월요일',
+  '화요일',
+  '수요일',
+  '목요일',
+  '금요일',
+  '토요일',
+  '일요일',
   'monday',
   'tuesday',
   'wednesday',
@@ -24,16 +24,16 @@ const HIGH_RISK_WEEKDAY_TOKENS = [
 ]
 
 const HIGH_RISK_PLANET_TOKENS = [
-  'íƒœì–‘',
-  'ë‹¬',
-  'ìˆ˜ì„±',
-  'ê¸ˆì„±',
-  'í™”ì„±',
-  'ëª©ì„±',
-  'í† ì„±',
-  'ì²œì™•ì„±',
-  'í•´ì™•ì„±',
-  'ëª…ì™•ì„±',
+  '태양',
+  '달',
+  '수성',
+  '금성',
+  '화성',
+  '목성',
+  '토성',
+  '천왕성',
+  '해왕성',
+  '명왕성',
   'sun',
   'moon',
   'mercury',
@@ -47,11 +47,11 @@ const HIGH_RISK_PLANET_TOKENS = [
 ]
 
 const HIGH_RISK_ASPECT_TOKENS = [
-  'í•©',
-  'ì¶©',
-  'í˜•',
-  'íŒŒ',
-  'í•´',
+  '합',
+  '충',
+  '형',
+  '파',
+  '해',
   'conjunction',
   'opposition',
   'square',
@@ -60,10 +60,10 @@ const HIGH_RISK_ASPECT_TOKENS = [
 ]
 
 const HIGH_RISK_TRANSIT_TOKENS = [
-  'íŠ¸ëžœì§“',
-  'ì§„í–‰',
-  'ì—­í–‰',
-  'íšŒê·€',
+  '트랜짓',
+  '진행',
+  '역행',
+  '회귀',
   'transit',
   'retrograde',
   'return',
@@ -71,21 +71,21 @@ const HIGH_RISK_TRANSIT_TOKENS = [
 ]
 
 const HIGH_RISK_TOKEN_ALIASES: Record<string, string[]> = {
-  mercury: ['ìˆ˜ì„±'],
-  venus: ['ê¸ˆì„±'],
-  mars: ['í™”ì„±'],
-  jupiter: ['ëª©ì„±'],
-  saturn: ['í† ì„±'],
-  uranus: ['ì²œì™•ì„±'],
-  neptune: ['í•´ì™•ì„±'],
-  pluto: ['ëª…ì™•ì„±'],
-  conjunction: ['í•©'],
-  opposition: ['ì¶©'],
-  square: ['í˜•'],
-  trine: ['ì‚¼í•©'],
-  sextile: ['ìœ¡í•©'],
-  transit: ['íŠ¸ëžœì§“'],
-  retrograde: ['ì—­í–‰'],
+  mercury: ['수성'],
+  venus: ['금성'],
+  mars: ['화성'],
+  jupiter: ['목성'],
+  saturn: ['토성'],
+  uranus: ['천왕성'],
+  neptune: ['해왕성'],
+  pluto: ['명왕성'],
+  conjunction: ['합'],
+  opposition: ['충'],
+  square: ['형'],
+  trine: ['삼합'],
+  sextile: ['육합'],
+  transit: ['트랜짓'],
+  retrograde: ['역행'],
 }
 
 const REWRITE_STOP_WORDS = new Set([
@@ -109,25 +109,25 @@ const REWRITE_STOP_WORDS = new Set([
   'or',
   'an',
   'a',
-  'ë°',
-  'ê·¸ë¦¬ê³ ',
-  'í•˜ì§€ë§Œ',
-  'ë˜í•œ',
-  'ì—ì„œ',
-  'ìœ¼ë¡œ',
-  'ë¥¼',
-  'ì„',
-  'ì´',
-  'ê°€',
-  'ì€',
-  'ëŠ”',
-  'ì—',
-  'ì˜',
-  'ê³¼',
-  'ì™€',
-  'ë„',
-  'ë¡œ',
-  'ìœ¼ë¡œ',
+  '및',
+  '그리고',
+  '하지만',
+  '또한',
+  '에서',
+  '으로',
+  '를',
+  '을',
+  '이',
+  '가',
+  '은',
+  '는',
+  '에',
+  '의',
+  '과',
+  '와',
+  '도',
+  '로',
+  '으로',
 ])
 
 const ALLOWED_LONG_REWRITE_TOKENS = new Set([
@@ -323,13 +323,13 @@ export function buildEvidenceBindingRepairPrompt(
 
   if (lang === 'ko') {
     return [
-      'ì¤‘ìš”: ì•„ëž˜ sections JSONì„ ê·¼ê±° ê³ ì • ê·œì¹™ì— ë§žê²Œ ë¦¬íŽ˜ì–´í•˜ì„¸ìš”.',
-      'ê·œì¹™:',
-      '- violationì— í‘œì‹œëœ pathë§Œ ìˆ˜ì •í•˜ê³  ë‚˜ë¨¸ì§€ pathëŠ” ìœ ì§€í•©ë‹ˆë‹¤.',
-      '- evidenceRefsì— ì—†ëŠ” ê³ ìœ„í—˜ í† í°(ìš”ì¼/í–‰ì„±/ê°/íŠ¸ëžœì§“)ì€ ì œê±°í•©ë‹ˆë‹¤.',
-      '- ê° ìˆ˜ì • pathì—ëŠ” allowedEvidence ê¸°ì¤€ì˜ ê·¼ê±° í‚¤ì›Œë“œë¥¼ ìµœì†Œ 1ê°œ ì´ìƒ ë°˜ì˜í•©ë‹ˆë‹¤.',
-      '- JSON êµ¬ì¡°ì™€ í‚¤ëŠ” ì ˆëŒ€ ë³€ê²½í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.',
-      '- JSONë§Œ ë°˜í™˜í•©ë‹ˆë‹¤.',
+      '중요: 아래 sections JSON을 근거 고정 규칙에 맞게 리페어하세요.',
+      '규칙:',
+      '- violation에 표시된 path만 수정하고 나머지 path는 유지합니다.',
+      '- evidenceRefs에 없는 고위험 토큰(요일/행성/각/트랜짓)은 제거합니다.',
+      '- 각 수정 path에는 allowedEvidence 기준의 근거 키워드를 최소 1개 이상 반영합니다.',
+      '- JSON 구조와 키는 절대 변경하지 않습니다.',
+      '- JSON만 반환합니다.',
       'violations:',
       ...violationLines,
       'evidenceRefs:',
@@ -570,24 +570,24 @@ function buildSectionLengthPad(path: string, lang: ReportLang): string {
   const key = path.toLowerCase()
   if (lang === 'ko') {
     if (key.includes('career') || key.includes('strategy')) {
-      return 'í•µì‹¬ì€ ë²”ìœ„ë¥¼ ì¢í˜€ ì™„ë£Œìœ¨ì„ ì˜¬ë¦¬ê³ , ì—­í• Â·ê¸°í•œÂ·ì±…ìž„ì„ ë¨¼ì € ë§žì¶˜ ë’¤ í™•ì •í•˜ëŠ” ìš´ì˜ìž…ë‹ˆë‹¤.'
+      return '핵심은 범위를 좁혀 완료율을 올리고, 역할·기한·책임을 먼저 맞춘 뒤 확정하는 운영입니다.'
     }
     if (key.includes('relationship') || key.includes('love') || key.includes('communication')) {
-      return 'ê´€ê³„ëŠ” ê²°ë¡ ì˜ ì†ë„ë³´ë‹¤ í•´ì„ì˜ ì¼ì¹˜ê°€ ì¤‘ìš”í•˜ë¯€ë¡œ, ìš”ì•½ í™•ì¸ì„ ë¨¼ì € í•˜ê³  í•©ì˜ë¥¼ ë‹¨ê³„ì ìœ¼ë¡œ ì§„í–‰í•˜ì„¸ìš”.'
+      return '관계는 결론의 속도보다 해석의 일치가 중요하므로, 요약 확인을 먼저 하고 합의를 단계적으로 진행하세요.'
     }
     if (key.includes('wealth') || key.includes('money') || key.includes('risk')) {
-      return 'ìž¬ì •ì€ ìˆ˜ìµ ê¸°ëŒ€ë³´ë‹¤ ì†ì‹¤ í†µì œê°€ ìš°ì„ ì´ë©°, ê¸ˆì•¡Â·ê¸°í•œÂ·ì·¨ì†Œ ì¡°ê±´ì„ ë¶„ë¦¬ ì ê²€í•œ ë’¤ í™•ì •í•˜ëŠ” íŽ¸ì´ ì•ˆì „í•©ë‹ˆë‹¤.'
+      return '재정은 수익 기대보다 손실 통제가 우선이며, 금액·기한·취소 조건을 분리 점검한 뒤 확정하는 편이 안전합니다.'
     }
     if (key.includes('health') || key.includes('energy') || key.includes('recovery')) {
-      return 'ê±´ê°• ë¦¬ë“¬ì€ ê³¼ì†ë³´ë‹¤ íšŒë³µ ë£¨í‹´ì´ ì„±ê³¼ë¥¼ ì§€í‚¤ë¯€ë¡œ ìˆ˜ë©´Â·ìˆ˜ë¶„Â·íœ´ì‹ ë¸”ë¡ì„ ë¨¼ì € ê³ ì •í•´ í”¼ë¡œ ëˆ„ì ì„ ë§‰ìœ¼ì„¸ìš”.'
+      return '건강 리듬은 과속보다 회복 루틴이 성과를 지키므로 수면·수분·휴식 블록을 먼저 고정해 피로 누적을 막으세요.'
     }
     if (key.includes('timing') || key.includes('overview') || key.includes('caution')) {
-      return 'íƒ€ì´ë°ì€ ì°©ìˆ˜ì™€ í™•ì •ì„ ë¶„ë¦¬í•´ ìš´ì˜í• ìˆ˜ë¡ ì•ˆì •ì„±ì´ ë†’ìœ¼ë©°, ë‹¹ì¼ í™•ì •ë³´ë‹¤ ìž¬í™•ì¸ ë‹¨ê³„ë¥¼ ë‘¬ì•¼ ë³€ë™ì„±ì´ ì¤„ì–´ë“­ë‹ˆë‹¤.'
+      return '타이밍은 착수와 확정을 분리해 운영할수록 안정성이 높으며, 당일 확정보다 재확인 단계를 둬야 변동성이 줄어듭니다.'
     }
     if (key.includes('actionplan') || key.includes('action')) {
-      return 'ì‹¤í–‰ì€ ì™„ë£Œ 1ê±´Â·ë³´ë¥˜ 1ê±´Â·ìž¬í™•ì¸ 1ê±´ì˜ ë£¨í”„ë¡œ ë‹¨ìˆœí™”í•˜ë©´ ì‹¤ì œ í–‰ë™ ì „í™˜ì´ ë¹¨ë¼ì§€ê³  ëˆ„ë½ì´ ì¤„ì–´ë“­ë‹ˆë‹¤.'
+      return '실행은 완료 1건·보류 1건·재확인 1건의 루프로 단순화하면 실제 행동 전환이 빨라지고 누락이 줄어듭니다.'
     }
-    return 'ì˜¤ëŠ˜ì€ ì†ë„ë³´ë‹¤ ìˆœì„œë¥¼ ì§€í‚¤ëŠ” ìš´ì˜ì´ ìœ ë¦¬í•˜ë©°, ì¤‘ìš”í•œ í•­ëª©ì€ ìž¬í™•ì¸ ë‹¨ê³„ë¥¼ ê±°ì³ í™•ì •í•´ì•¼ ì•ˆì •ì ìž…ë‹ˆë‹¤.'
+    return '오늘은 속도보다 순서를 지키는 운영이 유리하며, 중요한 항목은 재확인 단계를 거쳐 확정해야 안정적입니다.'
   }
   if (key.includes('career') || key.includes('strategy')) {
     return 'Narrow scope to raise completion rate, and lock role, deadline, and ownership before commitment.'

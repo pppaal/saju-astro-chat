@@ -13,6 +13,7 @@ const CSRF_SKIP_ROUTES = new Set([
   '/api/csp-report', // CSP violation reports from browser
   '/api/auth', // NextAuth handles its own CSRF
   '/api/cron', // Cron jobs authenticated via API key
+  '/api/metrics/track', // Anonymous metrics endpoint (no sensitive mutation)
 ])
 
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
@@ -32,13 +33,50 @@ function getAllowedOrigins(): Set<string> {
       /* invalid base URL */
     }
   }
+  const vercelUrl = process.env.VERCEL_URL
+  if (vercelUrl) {
+    try {
+      origins.add(new URL(`https://${vercelUrl}`).origin)
+    } catch {
+      /* invalid VERCEL_URL */
+    }
+  }
   const additional = process.env.ALLOWED_ORIGINS?.split(',') || []
   for (const o of additional) {
     const trimmed = o.trim()
-    if (trimmed) origins.add(trimmed)
+    if (!trimmed) continue
+    try {
+      origins.add(new URL(trimmed).origin)
+    } catch {
+      // Keep backwards compatibility when ALLOWED_ORIGINS already stores origin strings
+      origins.add(trimmed)
+    }
   }
   _cachedAllowedOrigins = origins
   return origins
+}
+
+function getRequestHosts(request: NextRequest): Set<string> {
+  const hosts = new Set<string>()
+  const host = request.headers.get('host')
+  if (host) hosts.add(host.toLowerCase())
+  const forwardedHost = request.headers.get('x-forwarded-host')
+  if (forwardedHost) {
+    for (const value of forwardedHost.split(',')) {
+      const normalized = value.trim().toLowerCase()
+      if (normalized) hosts.add(normalized)
+    }
+  }
+  return hosts
+}
+
+function isSameHostUrl(urlValue: string, requestHosts: Set<string>): boolean {
+  try {
+    const parsed = new URL(urlValue)
+    return requestHosts.has(parsed.host.toLowerCase())
+  } catch {
+    return false
+  }
 }
 
 // Cached CSP static parts (only nonce changes per request)
@@ -131,6 +169,7 @@ function shouldSkipCsrf(pathname: string): boolean {
 function validateOrigin(request: NextRequest): boolean {
   const origin = request.headers.get('origin')
   const referer = request.headers.get('referer')
+  const requestHosts = getRequestHosts(request)
 
   // SECURITY: Require origin/referer even in development for better security hygiene
   // Only allow localhost bypass for specific safe ports to prevent DNS rebinding attacks
@@ -147,6 +186,14 @@ function validateOrigin(request: NextRequest): boolean {
   }
 
   const allowedOrigins = getAllowedOrigins()
+
+  // Same-host requests are always allowed (supports Vercel preview + custom domains)
+  if (origin && isSameHostUrl(origin, requestHosts)) {
+    return true
+  }
+  if (referer && isSameHostUrl(referer, requestHosts)) {
+    return true
+  }
 
   // Check origin header
   if (origin && allowedOrigins.has(origin)) {
