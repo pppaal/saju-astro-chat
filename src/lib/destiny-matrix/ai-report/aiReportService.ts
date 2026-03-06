@@ -226,6 +226,14 @@ function attachDeterministicArtifacts(
         mainTokens: bundle.main.summaryTokens || [],
         altTokens: (bundle.alt || []).map((alt) => alt.summaryTokens || []),
       })),
+      evidenceLinks: (unified.evidenceLinks || []).map((link) => ({
+        id: link.id,
+        signalId: link.signalId,
+        claimIds: link.claimIds || [],
+        anchorId: link.anchorId,
+        setIds: link.setIds || [],
+        score: link.linkScore,
+      })),
       timelinePriority: unified.timelinePriority,
     },
   }
@@ -298,8 +306,10 @@ const EVIDENCE_TOKEN_STOP_WORDS = new Set([
 ])
 
 const FORCE_REWRITE_ONLY_MODE = true
+const FORCE_STRICT_COMPUTE_ONLY_MODE = true
 
 function shouldUseDeterministicOnly(flag?: boolean): boolean {
+  if (FORCE_STRICT_COMPUTE_ONLY_MODE) return true
   if (typeof flag === 'boolean') return flag
   const env = String(process.env.DESTINY_REPORT_DETERMINISTIC_ONLY || '')
     .trim()

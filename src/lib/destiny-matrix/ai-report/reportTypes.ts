@@ -11,6 +11,7 @@ import type {
   TimingData,
   UnifiedAnchor,
   UnifiedClaim,
+  UnifiedEvidenceLink,
   UnifiedParaEvidenceRef,
   UnifiedReportMeta,
   UnifiedScores,
@@ -35,6 +36,7 @@ export interface AIPremiumReport {
   claims: UnifiedClaim[]
   selectedSignals: UnifiedSelectedSignal[]
   anchors: UnifiedAnchor[]
+  evidenceLinks: UnifiedEvidenceLink[]
   timelineEvents: UnifiedTimelineEvent[]
   scenarioBundles?: UnifiedScenarioBundle[]
 

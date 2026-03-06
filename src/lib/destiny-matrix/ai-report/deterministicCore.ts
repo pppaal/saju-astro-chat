@@ -77,6 +77,14 @@ export interface DeterministicCoreArtifacts {
     mainTokens: string[]
     altTokens: string[][]
   }>
+  evidenceLinks?: Array<{
+    id: string
+    signalId: string
+    claimIds: string[]
+    anchorId?: string
+    setIds: string[]
+    score: number
+  }>
   timelinePriority?: 'life_first' | 'default'
 }
 

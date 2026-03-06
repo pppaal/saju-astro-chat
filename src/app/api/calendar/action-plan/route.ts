@@ -616,7 +616,9 @@ function buildPersonalSummaryTag(input: {
   if (icp?.primaryStyle)
     tokens.push(locale === 'ko' ? `ICP ${icp.primaryStyle}` : `ICP ${icp.primaryStyle}`)
   if (persona?.personaName) {
-    tokens.push(locale === 'ko' ? `페르소나 ${persona.personaName}` : `Persona ${persona.personaName}`)
+    tokens.push(
+      locale === 'ko' ? `페르소나 ${persona.personaName}` : `Persona ${persona.personaName}`
+    )
   } else if (persona?.typeCode) {
     tokens.push(locale === 'ko' ? `페르소나 ${persona.typeCode}` : `Persona ${persona.typeCode}`)
   }
@@ -651,7 +653,10 @@ function inferSlotTypes(input: {
   if (hour >= 12 && hour < 18) types.add('decision')
   if (hour >= 18 && hour < 22) types.add('communication')
 
-  if (normalizedCategory === 'wealth' || containsAny(note, ['money', 'budget', 'spend', '지출', '예산'])) {
+  if (
+    normalizedCategory === 'wealth' ||
+    containsAny(note, ['money', 'budget', 'spend', '지출', '예산'])
+  ) {
     types.add('money')
   }
   if (
@@ -683,13 +688,15 @@ function buildSlotWhy(input: {
   const anchorIds = new Set<string>()
   const patterns = new Set<string>()
 
-  const matrixDomain = calendar?.evidence?.matrix?.domain || normalizeActionCategory(category) || 'general'
+  const matrixDomain =
+    calendar?.evidence?.matrix?.domain || normalizeActionCategory(category) || 'general'
   signalIds.add(`SIG_TONE_${normalizeId(slot.tone || 'neutral')}`)
   signalIds.add(`SIG_TYPE_${normalizeId(slotTypes[0] || 'deepWork')}`)
   signalIds.add(`SIG_DOMAIN_${normalizeId(matrixDomain)}`)
   signalIds.add(`SIG_TIME_${slot.hour < 12 ? 'AM' : slot.hour < 18 ? 'PM' : 'EVENING'}`)
 
-  if (slot.tone === 'best' && (icp?.dominanceScore || 0) >= 65) patterns.add('speed_up_validation_down')
+  if (slot.tone === 'best' && (icp?.dominanceScore || 0) >= 65)
+    patterns.add('speed_up_validation_down')
   if (slot.tone === 'caution') patterns.add('risk_exposure_up')
   if (slotTypes.includes('relationship')) patterns.add('relationship_sensitivity_up')
   if (slotTypes.includes('money')) patterns.add('spending_impulse_up')
@@ -698,14 +705,16 @@ function buildSlotWhy(input: {
   if (calendar?.sajuFactors?.[0]) anchorIds.add('ANCHOR_SAJU_FACTOR_1')
   if (calendar?.astroFactors?.[0]) anchorIds.add('ANCHOR_ASTRO_FACTOR_1')
   if (calendar?.evidence?.cross?.bridges?.[0]) anchorIds.add('ANCHOR_CROSS_BRIDGE_1')
-  if (typeof persona?.axes?.decision?.score === 'number') anchorIds.add('ANCHOR_PERSONA_DECISION_AXIS')
+  if (typeof persona?.axes?.decision?.score === 'number')
+    anchorIds.add('ANCHOR_PERSONA_DECISION_AXIS')
   if (anchorIds.size === 0) anchorIds.add('ANCHOR_RULE_BASELINE')
 
   const patternList = Array.from(patterns)
+  const patternHint = (patternList[0] || 'signal_balance').replace(/_/g, ' ')
   const summary =
     locale === 'ko'
-      ? `${patternList[0] || 'signal_balance'} 패턴 우세, ${matrixDomain} 영역 앵커 기준 적용`
-      : `${patternList[0] || 'signal_balance'} pattern dominant, anchored on ${matrixDomain}`
+      ? `${patternHint} 흐름이 강합니다. ${matrixDomain} 영역은 근거를 확인한 뒤 실행하세요.`
+      : `${patternHint} is dominant. In ${matrixDomain}, validate evidence before final execution.`
 
   return {
     signalIds: Array.from(signalIds).slice(0, 4),
@@ -754,8 +763,12 @@ function analyzeConfidenceMeta(input: {
   const toneDelta = slot.tone === 'best' ? 14 : slot.tone === 'caution' ? -18 : 0
   const sourceDelta = slot.source === 'hybrid' ? 8 : slot.source === 'rag' ? 4 : 0
   const evidenceDelta = Math.min(8, (slot.evidenceSummary?.length || 0) * 3)
-  const bestHit = (calendar?.bestTimes || []).some((time) => extractHoursFromText(time).includes(slot.hour))
-  const warningHit = (calendar?.warnings || []).some((line) => extractHoursFromText(line).includes(slot.hour))
+  const bestHit = (calendar?.bestTimes || []).some((time) =>
+    extractHoursFromText(time).includes(slot.hour)
+  )
+  const warningHit = (calendar?.warnings || []).some((line) =>
+    extractHoursFromText(line).includes(slot.hour)
+  )
   const bestBonus = bestHit ? 4 : 0
   const cautionPenalty = warningHit ? -6 : 0
 
@@ -768,23 +781,24 @@ function analyzeConfidenceMeta(input: {
   if (reasons.length === 0) reasons.push(isKo ? '신호 정렬 양호' : 'Signals aligned')
 
   return {
-    score: clampPercent(base + toneDelta + sourceDelta + evidenceDelta + bestBonus + cautionPenalty),
+    score: clampPercent(
+      base + toneDelta + sourceDelta + evidenceDelta + bestBonus + cautionPenalty
+    ),
     reasons: reasons.slice(0, 3),
   }
 }
 
-function buildDeltaToday(input: {
-  locale: 'ko' | 'en'
-  timeline: TimelineSlot[]
-}): string {
+function buildDeltaToday(input: { locale: 'ko' | 'en'; timeline: TimelineSlot[] }): string {
   const { locale, timeline } = input
   const bestCount = timeline.filter((slot) => slot.tone === 'best').length
   const cautionCount = timeline.filter((slot) => slot.tone === 'caution').length
   const avgConfidence =
     timeline.length > 0
       ? Math.round(
-          timeline.reduce((sum, slot) => sum + (typeof slot.confidence === 'number' ? slot.confidence : 60), 0) /
-            timeline.length
+          timeline.reduce(
+            (sum, slot) => sum + (typeof slot.confidence === 'number' ? slot.confidence : 60),
+            0
+          ) / timeline.length
         )
       : 60
 
@@ -822,9 +836,13 @@ function buildActionPlanInsights(input: {
   const topCategory = normalizeActionCategory(calendar?.categories?.[0])
 
   const formatSlotLabel = (slot?: TimelineSlot) =>
-    slot ? `${String(slot.hour).padStart(2, '0')}:${String(slot.minute ?? 0).padStart(2, '0')}` : '-'
+    slot
+      ? `${String(slot.hour).padStart(2, '0')}:${String(slot.minute ?? 0).padStart(2, '0')}`
+      : '-'
   const unique = (lines: Array<string | null | undefined>, max = 4) =>
-    Array.from(new Set(lines.map((line) => cleanGuidanceText(line || '', 140)).filter(Boolean))).slice(0, max)
+    Array.from(
+      new Set(lines.map((line) => cleanGuidanceText(line || '', 140)).filter(Boolean))
+    ).slice(0, max)
 
   const ifThenRules = unique([
     bestSlot
@@ -898,8 +916,8 @@ function buildActionPlanInsights(input: {
         ? '근거 충돌(좋은 시간+주의 신호 동시): 최종 확정 지연'
         : 'If evidence conflict occurs (best-time + warning overlap), delay finalization',
       isKo
-        ? 'signalIds<3 또는 anchorIds<1 슬롯: 확정 의사결정 금지'
-        : 'No final decision when signalIds<3 or anchorIds<1',
+        ? '근거 신호가 약한 슬롯은 확정보다 초안/검증 작업으로 전환'
+        : 'When evidence is weak, switch from final decisions to draft/validation tasks',
     ],
     4
   )
@@ -907,8 +925,10 @@ function buildActionPlanInsights(input: {
   const avgConfidence =
     timeline.length > 0
       ? Math.round(
-          timeline.reduce((acc, slot) => acc + (typeof slot.confidence === 'number' ? slot.confidence : 60), 0) /
-            timeline.length
+          timeline.reduce(
+            (acc, slot) => acc + (typeof slot.confidence === 'number' ? slot.confidence : 60),
+            0
+          ) / timeline.length
         )
       : 60
   const bestCount = timeline.filter((slot) => slot.tone === 'best').length
@@ -919,7 +939,9 @@ function buildActionPlanInsights(input: {
         (calendar?.recommendations || [])[0],
         isKo ? `${topCategory} 영역 핵심 액션 1건 완료` : `Complete one key ${topCategory} action`,
         isKo ? '시작 전 완료 기준 1줄 작성' : 'Write one done-condition before start',
-        isKo ? '작업 종료 직후 결과 로그 1줄 기록' : 'Log one result line immediately after completion',
+        isKo
+          ? '작업 종료 직후 결과 로그 1줄 기록'
+          : 'Log one result line immediately after completion',
       ],
       4
     ),
@@ -956,7 +978,9 @@ function buildActionPlanInsights(input: {
 
   const successKpi = unique(
     [
-      isKo ? `평균 슬롯 신뢰도 ${avgConfidence}% 이상` : `Average slot confidence >= ${avgConfidence}%`,
+      isKo
+        ? `평균 슬롯 신뢰도 ${avgConfidence}% 이상`
+        : `Average slot confidence >= ${avgConfidence}%`,
       isKo
         ? `핵심 액션 완료 ${Math.max(1, Math.min(3, bestCount))}건`
         : `Complete ${Math.max(1, Math.min(3, bestCount))} core actions`,
@@ -1691,4 +1715,3 @@ export const POST = withApiMiddleware(
     windowSeconds: 60,
   })
 )
-

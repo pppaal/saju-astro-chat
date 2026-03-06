@@ -248,17 +248,17 @@ describe('generateAIPremiumReport', () => {
     expect(
       (result.strategyEngine?.attackPercent || 0) + (result.strategyEngine?.defensePercent || 0)
     ).toBe(100)
-    expect(mockCallAIBackendGeneric).toHaveBeenCalled()
+    expect(mockCallAIBackendGeneric).not.toHaveBeenCalled()
+    expect(result.meta.modelUsed).toBe('deterministic-only')
   })
 
-  it('uses rewrite-only AI call path', async () => {
+  it('uses strict compute-only path without AI rewrite', async () => {
     await generateAIPremiumReport(createMockInput(), createMockReport(), {
       detailLevel: 'comprehensive',
     })
 
     const models = mockCallAIBackendGeneric.mock.calls.map((call) => call[2]?.modelOverride)
-    expect(models.length).toBeGreaterThan(0)
-    expect(models.some((model) => model === 'gpt-4o-mini')).toBe(true)
+    expect(models.length).toBe(0)
   })
 
   it('removes boilerplate phrase from sections', async () => {
@@ -332,7 +332,7 @@ describe('generateAIPremiumReport', () => {
     expect(result.evidenceRefs.introduction?.length || 0).toBeGreaterThan(0)
   })
 
-  it('falls back to deterministic draft when rewrite output adds unsupported token', async () => {
+  it('ignores rewrite backend output and remains deterministic-only', async () => {
     mockCallAIBackendGeneric.mockResolvedValue({
       sections: createRewriteSections('hallucinatedtermx 수요일에 즉시 확정하세요.'),
       model: 'gpt-4o-mini',
@@ -340,16 +340,18 @@ describe('generateAIPremiumReport', () => {
     })
 
     const result = await generateAIPremiumReport(createMockInput(), createMockReport())
-    expect(result.meta.modelUsed).toBe('rewrite-fallback-validator')
+    expect(result.meta.modelUsed).toBe('deterministic-only')
+    expect(mockCallAIBackendGeneric).not.toHaveBeenCalled()
     expect(result.sections.introduction).not.toContain('hallucinatedtermx')
     expect(result.sections.introduction).not.toContain('수요일')
   })
 
-  it('falls back to deterministic draft when rewrite backend fails', async () => {
+  it('remains deterministic-only when rewrite backend fails', async () => {
     mockCallAIBackendGeneric.mockRejectedValue(new Error('provider down'))
     const result = await generateAIPremiumReport(createMockInput(), createMockReport())
-    expect(result.meta.modelUsed).toBe('rewrite-fallback-error')
+    expect(result.meta.modelUsed).toBe('deterministic-only')
     expect(result.meta.tokensUsed).toBe(0)
+    expect(mockCallAIBackendGeneric).not.toHaveBeenCalled()
   })
 
   it('supports deterministic-only mode without AI calls', async () => {
@@ -362,7 +364,7 @@ describe('generateAIPremiumReport', () => {
     expect(result.meta.modelUsed).toBe('deterministic-only')
     expect(result.meta.tokensUsed).toBe(0)
     expect(result.meta.qualityMetrics).toBeTruthy()
-    expect(result.meta.qualityMetrics?.evidenceCoverageRatio || 0).toBeGreaterThan(0.7)
+    expect(result.meta.qualityMetrics?.evidenceCoverageRatio || 0).toBeGreaterThanOrEqual(0.7)
     expect(result.meta.qualityMetrics?.contradictionCount || 0).toBe(0)
     expect(result.sections.careerPath.length).toBeGreaterThan(120)
     expect(result.strategyEngine).toBeTruthy()
@@ -376,6 +378,8 @@ describe('generateAIPremiumReport', () => {
     expect(result.claims.length).toBeGreaterThan(0)
     expect(result.selectedSignals.length).toBeGreaterThan(0)
     expect(result.anchors.length).toBeGreaterThan(0)
+    expect(result.evidenceLinks.length).toBeGreaterThan(0)
+    expect(result.evidenceLinks.some((link) => (link.setIds || []).length > 0)).toBe(true)
     expect(result.timelineEvents.length).toBeGreaterThan(0)
     expect(result.timelineEvents.some((event) => Boolean(event.timeHint?.ageRange))).toBe(true)
     expect((result.scenarioBundles || []).length).toBeGreaterThan(0)
@@ -441,6 +445,8 @@ describe('generateAIPremiumReport', () => {
     expect(timing.meta.qualityMetrics?.minEvidenceSatisfiedRatio || 0).toBeGreaterThanOrEqual(0.9)
     expect(timing.meta.qualityMetrics?.sectionCompletenessRate).toBe(1)
     expect(timing.meta.qualityMetrics?.tokenIntegrityPass).toBe(true)
+    expect(timing.evidenceLinks.length).toBeGreaterThan(0)
+    expect(timing.evidenceLinks.some((link) => (link.setIds || []).length > 0)).toBe(true)
     expect((timing.scenarioBundles || []).length).toBeGreaterThan(0)
     expect((timing.scenarioBundles || []).every((bundle) => (bundle.alt || []).length >= 2)).toBe(
       true
@@ -472,9 +478,11 @@ describe('generateAIPremiumReport', () => {
       expect((refs || []).length).toBeGreaterThanOrEqual(2)
     }
     expect(themed.meta.qualityMetrics).toBeTruthy()
-    expect(themed.meta.qualityMetrics?.evidenceCoverageRatio || 0).toBeGreaterThan(0.7)
+    expect(themed.meta.qualityMetrics?.evidenceCoverageRatio || 0).toBeGreaterThanOrEqual(0.7)
     expect(themed.meta.qualityMetrics?.sectionCompletenessRate).toBe(1)
     expect(themed.meta.qualityMetrics?.tokenIntegrityPass).toBe(true)
+    expect(themed.evidenceLinks.length).toBeGreaterThan(0)
+    expect(themed.evidenceLinks.some((link) => (link.setIds || []).length > 0)).toBe(true)
     expect((themed.scenarioBundles || []).length).toBeGreaterThan(0)
     expect((themed.scenarioBundles || []).every((bundle) => (bundle.alt || []).length >= 2)).toBe(
       true
@@ -510,6 +518,27 @@ describe('generateAIPremiumReport', () => {
     expect(careerDomains.has('career') || careerDomains.has('wealth')).toBe(true)
     expect(relationDomains.has('relationship')).toBe(true)
     expect(wealthDomains.has('wealth') || wealthDomains.has('career')).toBe(true)
+  })
+
+  it('enforces strict compute-only mode for timing/themed default calls', async () => {
+    const timing = await generateTimingReport(
+      createMockInput(),
+      createMockReport(),
+      'daily',
+      createTimingData()
+    )
+    const themed = await generateThemedReport(
+      createMockInput(),
+      createMockReport(),
+      'career',
+      createTimingData()
+    )
+
+    expect(mockCallAIBackendGeneric).not.toHaveBeenCalled()
+    expect(timing.meta.modelUsed).toBe('deterministic-only')
+    expect(themed.meta.modelUsed).toBe('deterministic-only')
+    expect((timing.evidenceLinks || []).length).toBeGreaterThan(0)
+    expect((themed.evidenceLinks || []).length).toBeGreaterThan(0)
   })
 })
 

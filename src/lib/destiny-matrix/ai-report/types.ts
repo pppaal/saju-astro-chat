@@ -112,6 +112,20 @@ export interface UnifiedAnchor {
   avgOrbFitScore: number
 }
 
+export interface UnifiedEvidenceLink {
+  id: string
+  signalId: string
+  claimIds: string[]
+  anchorId: string
+  section: string
+  setIds: string[]
+  domain: string
+  linkScore: number // 0..1
+  overlapScore: number // 0..1
+  orbFitScore: number // 0..1
+  reason: string
+}
+
 export interface UnifiedTimelineEvent {
   id: string
   type: 'job' | 'marriage' | 'relocation' | 'relationship' | 'money' | 'health' | 'timing' | 'life'
@@ -242,6 +256,7 @@ export interface TimingAIPremiumReport {
   claims: UnifiedClaim[]
   selectedSignals: UnifiedSelectedSignal[]
   anchors: UnifiedAnchor[]
+  evidenceLinks: UnifiedEvidenceLink[]
   timelineEvents: UnifiedTimelineEvent[]
   scenarioBundles?: UnifiedScenarioBundle[]
 
@@ -340,6 +355,7 @@ export interface ThemedAIPremiumReport {
   claims: UnifiedClaim[]
   selectedSignals: UnifiedSelectedSignal[]
   anchors: UnifiedAnchor[]
+  evidenceLinks: UnifiedEvidenceLink[]
   timelineEvents: UnifiedTimelineEvent[]
   scenarioBundles?: UnifiedScenarioBundle[]
 

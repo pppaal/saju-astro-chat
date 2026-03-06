@@ -193,6 +193,13 @@ describe('buildUnifiedEnvelope', () => {
     expect(result.timelinePriority).toBe('life_first')
     expect(result.mappingRulebook.countryFit.length).toBe(3)
     expect(result.mappingRulebook.incomeBands.length).toBeGreaterThan(0)
+    expect(result.evidenceLinks.length).toBeGreaterThan(0)
+    expect(result.evidenceLinks.some((link) => (link.setIds || []).length > 0)).toBe(true)
+    expect(
+      result.evidenceLinks.some(
+        (link) => link.signalId === 'L6:imgwan:H10' && (link.claimIds || []).includes('career_main')
+      )
+    ).toBe(true)
     expect(result.timelineEvents.some((event) => event.id.startsWith('EVT_TURN_'))).toBe(true)
     expect(
       result.timelineEvents.some(
