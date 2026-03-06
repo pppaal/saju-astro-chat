@@ -19,6 +19,9 @@ Usage:
 
 import os
 import logging
+import ast
+import json
+import re
 from typing import List, Dict, Optional, Any, Tuple
 from functools import lru_cache
 from statistics import mean
@@ -42,12 +45,25 @@ _USE_CHROMADB = os.environ.get("USE_CHROMADB", "0") == "1"
 # Paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EMBEDDINGS_DIR = os.path.join(BASE_DIR, "data", "embeddings")
+TAROT_CORPUS_PATH = os.path.join(BASE_DIR, "data", "tarot_corpus", "tarot_corpus_v1_1.jsonl")
 
 # Shared domain configuration (single source of truth).
 DOMAINS = DOMAIN_RAG_DOMAINS
 
 # Tarot min-score presets (switchable via env: TAROT_MIN_SCORE).
 MIN_SCORE_PRESETS = (TAROT_MIN_SCORE_LOW, DEFAULT_TAROT_MIN_SCORE, TAROT_MIN_SCORE_HIGH)
+
+KEYWORD_FALLBACK_STOPWORDS = {
+    "ko": {
+        "지금", "요즘", "이번", "오늘", "내일", "상황", "질문", "알려줘", "있을까", "어떻게", "뭐", "좀",
+        "운세", "타로", "카드", "해석", "그리고", "그냥", "진짜",
+    },
+    "en": {
+        "the", "and", "for", "with", "this", "that", "from", "into", "about", "please", "help", "tell",
+        "tarot", "card", "reading", "question", "now", "today",
+    },
+}
+MAX_FALLBACK_QUERY_TOKENS = 24
 
 
 class DomainRAG:
@@ -67,6 +83,7 @@ class DomainRAG:
         """
         self._model = None
         self._domain_cache: Dict[str, Dict] = {}
+        self._missing_domain_warnings: set[str] = set()
 
         # Preload specified domains (none by default - lazy load for memory efficiency)
         preload = preload_domains or []
@@ -94,7 +111,9 @@ class DomainRAG:
 
         cache_file = os.path.join(EMBEDDINGS_DIR, f"{domain}_embeds.pt")
         if not os.path.exists(cache_file):
-            logger.warning(f"[DomainRAG] Cache not found: {cache_file}")
+            if domain not in self._missing_domain_warnings:
+                logger.warning(f"[DomainRAG] Cache not found: {cache_file}")
+                self._missing_domain_warnings.add(domain)
             return False
 
         try:
@@ -204,7 +223,7 @@ class DomainRAG:
                 draws=draws,
             )
 
-        return self._search_legacy(domain, query, top_k, resolved_min_score)
+        return self._search_legacy(domain, query, top_k, resolved_min_score, draws=draws)
 
     def _search_chromadb(
         self,
@@ -221,7 +240,7 @@ class DomainRAG:
             vs = get_domain_vector_store(domain)
             if not vs.has_data():
                 logger.info("[DomainRAG] ChromaDB domain_%s 비어있음, legacy fallback", domain)
-                return self._search_legacy(domain, query, top_k, min_score)
+                return self._search_legacy(domain, query, top_k, min_score, draws=draws)
 
             query_emb = self._embed_query(query)
             if query_emb is None:
@@ -263,10 +282,10 @@ class DomainRAG:
             ]
 
         except ImportError:
-            return self._search_legacy(domain, query, top_k, min_score)
+            return self._search_legacy(domain, query, top_k, min_score, draws=draws)
         except Exception as e:
             logger.warning("[DomainRAG] ChromaDB 검색 실패: %s, legacy fallback", e)
-            return self._search_legacy(domain, query, top_k, min_score)
+            return self._search_legacy(domain, query, top_k, min_score, draws=draws)
 
     @staticmethod
     def _normalize_draw(draw: Dict[str, Any], fallback_domain: str) -> Optional[Tuple[str, str, str, str]]:
@@ -387,10 +406,13 @@ class DomainRAG:
         query: str,
         top_k: int = 5,
         min_score: float = DEFAULT_TAROT_MIN_SCORE,
+        draws: Optional[List[Dict[str, Any]]] = None,
     ) -> List[Dict]:
         """기존 PyTorch cosine sim 도메인 검색."""
         # Load domain if not already loaded
         if not self._load_domain(domain):
+            if domain == "tarot":
+                return self._search_tarot_keyword_fallback(domain, query, top_k, draws=draws)
             return []
 
         cache = self._domain_cache[domain]
@@ -419,6 +441,251 @@ class DomainRAG:
                 })
 
         return results
+
+    @staticmethod
+    @lru_cache(maxsize=1)
+    def _load_tarot_corpus_rows() -> List[Dict[str, Any]]:
+        rows: List[Dict[str, Any]] = []
+        if not os.path.exists(TAROT_CORPUS_PATH):
+            logger.warning("[DomainRAG] Tarot corpus not found for keyword fallback: %s", TAROT_CORPUS_PATH)
+            return rows
+
+        try:
+            with open(TAROT_CORPUS_PATH, "r", encoding="utf-8-sig") as file:
+                for line in file:
+                    stripped = line.strip()
+                    if not stripped:
+                        continue
+                    try:
+                        row = json.loads(stripped)
+                    except json.JSONDecodeError:
+                        continue
+                    if isinstance(row, dict):
+                        rows.append(row)
+        except Exception as exc:
+            logger.warning("[DomainRAG] Tarot corpus keyword fallback load failed: %s", exc)
+
+        logger.info("[DomainRAG] Tarot keyword fallback rows loaded: %d", len(rows))
+        return rows
+
+    @staticmethod
+    @lru_cache(maxsize=1)
+    def _build_tarot_facet_index() -> Dict[Tuple[str, str, str], List[Dict[str, Any]]]:
+        index: Dict[Tuple[str, str, str], List[Dict[str, Any]]] = {}
+        for row in DomainRAG._load_tarot_corpus_rows():
+            card_id = str(row.get("card_id") or "").strip().lower()
+            orientation = str(row.get("orientation") or "upright").strip().lower()
+            domain = str(row.get("domain") or "").strip().lower()
+            if not card_id:
+                continue
+            key = (card_id, orientation or "upright", domain)
+            index.setdefault(key, []).append(row)
+        return index
+
+    @staticmethod
+    def _tokenize_query(text: str) -> List[str]:
+        tokens = re.findall(r"[\w가-힣]+", (text or "").lower())
+        stopwords = KEYWORD_FALLBACK_STOPWORDS["ko"] | KEYWORD_FALLBACK_STOPWORDS["en"]
+        filtered: List[str] = []
+        seen = set()
+        for token in tokens:
+            if len(token) < 2 or token in stopwords or token in seen:
+                continue
+            seen.add(token)
+            filtered.append(token)
+            if len(filtered) >= MAX_FALLBACK_QUERY_TOKENS:
+                break
+        return filtered
+
+    @staticmethod
+    def _coerce_card_name_tokens(value: Any) -> List[str]:
+        if not value:
+            return []
+
+        names: List[str] = []
+        if isinstance(value, dict):
+            names.extend(str(v) for v in value.values() if v)
+        elif isinstance(value, str):
+            parsed = None
+            text = value.strip()
+            if text.startswith("{") and text.endswith("}"):
+                try:
+                    parsed = json.loads(text)
+                except json.JSONDecodeError:
+                    try:
+                        parsed = ast.literal_eval(text)
+                    except Exception:
+                        parsed = None
+            if isinstance(parsed, dict):
+                names.extend(str(v) for v in parsed.values() if v)
+            else:
+                names.append(text)
+        else:
+            names.append(str(value))
+
+        tokenized: List[str] = []
+        for name in names:
+            tokenized.extend(DomainRAG._tokenize_query(name))
+        return tokenized
+
+    @staticmethod
+    def _coerce_card_name_label(value: Any) -> str:
+        """Normalize card_name to a readable label for fallback text output."""
+        if isinstance(value, dict):
+            ko = str(value.get("ko") or "").strip()
+            en = str(value.get("en") or "").strip()
+            if ko and en:
+                return f"{ko} / {en}"
+            return ko or en
+
+        if isinstance(value, str):
+            text = value.strip()
+            if text.startswith("{") and text.endswith("}"):
+                parsed = None
+                try:
+                    parsed = json.loads(text)
+                except json.JSONDecodeError:
+                    try:
+                        parsed = ast.literal_eval(text)
+                    except Exception:
+                        parsed = None
+                if isinstance(parsed, dict):
+                    return DomainRAG._coerce_card_name_label(parsed)
+            return text
+
+        return str(value or "").strip()
+
+    @staticmethod
+    def _clean_fallback_text(text: str, card_name_value: Any) -> str:
+        """Light cleanup for auto-generated corpus artifacts (repeated Core, dict-like card names)."""
+        cleaned = str(text or "")
+        if not cleaned:
+            return ""
+
+        normalized_card_name = DomainRAG._coerce_card_name_label(card_name_value)
+        if normalized_card_name:
+            cleaned = re.sub(r"Card:\s*\{[^\n|]+\}", f"Card: {normalized_card_name}", cleaned)
+
+        # Collapse immediate duplicate "Core:" clauses that frequently appear in auto-generated rows.
+        core_pattern = re.compile(r"(Core:\s*[^.]+\.)\s*\1")
+        for _ in range(3):
+            updated = core_pattern.sub(r"\1", cleaned)
+            if updated == cleaned:
+                break
+            cleaned = updated
+
+        cleaned = re.sub(r"\s{2,}", " ", cleaned).strip()
+        return cleaned
+
+    def _search_tarot_keyword_fallback(
+        self,
+        domain: str,
+        query: str,
+        top_k: int,
+        draws: Optional[List[Dict[str, Any]]] = None,
+    ) -> List[Dict]:
+        rows = self._load_tarot_corpus_rows()
+        if not rows:
+            return []
+
+        normalized_draws = [
+            normalized
+            for normalized in (
+                self._normalize_draw(draw, fallback_domain=domain)
+                for draw in (draws or [])
+            )
+            if normalized
+        ]
+
+        query_tokens = self._tokenize_query(query)
+        if not query_tokens and not normalized_draws:
+            return []
+
+        forced_results: List[Dict[str, Any]] = []
+        seen_forced = set()
+        facet_index = self._build_tarot_facet_index()
+        for card_id, orientation, draw_domain, position in normalized_draws:
+            for row in facet_index.get((card_id.lower(), orientation, draw_domain), []):
+                row_position = str(row.get("position") or "").strip().lower()
+                if position and row_position and row_position != position.lower():
+                    continue
+
+                key = str(row.get("doc_id") or row.get("text") or "")
+                if key in seen_forced:
+                    continue
+                seen_forced.add(key)
+                forced_results.append(
+                    {
+                        "text": self._clean_fallback_text(
+                            str(row.get("text") or ""),
+                            row.get("card_name"),
+                        ),
+                        "score": 1.0,
+                        "domain": domain,
+                        "context_bucket": "forced_facet",
+                    }
+                )
+                break
+
+        if not query_tokens:
+            return forced_results[: max(1, top_k)]
+
+        scored: List[Tuple[float, Dict[str, Any]]] = []
+        for row in rows:
+            text = str(row.get("text") or "")
+            if not text:
+                continue
+            lower_text = text.lower()
+            row_tags = row.get("tags") or []
+            tag_values = row_tags if isinstance(row_tags, list) else []
+            tag_text = " ".join(str(tag) for tag in tag_values).lower()
+            card_name_tokens = self._coerce_card_name_tokens(row.get("card_name"))
+            card_name_text = " ".join(card_name_tokens).lower()
+
+            hit = 0.0
+            for token in query_tokens:
+                if token in lower_text:
+                    hit += 1.0
+                if token and token in tag_text:
+                    hit += 0.6
+                if token and token in card_name_text:
+                    hit += 0.8
+
+            if normalized_draws:
+                normalized_domain = str(row.get("domain") or "").strip().lower()
+                normalized_card_id = str(row.get("card_id") or "").strip().lower()
+                normalized_orientation = str(row.get("orientation") or "upright").strip().lower()
+                for card_id, orientation, draw_domain, _position in normalized_draws:
+                    if normalized_card_id == card_id.lower():
+                        hit += 1.2
+                        if normalized_orientation == orientation:
+                            hit += 0.4
+                        if normalized_domain == draw_domain:
+                            hit += 0.3
+
+            if hit <= 0:
+                continue
+
+            normalized = min(0.99, hit / max(len(query_tokens), 1))
+            scored.append((normalized, row))
+
+        scored.sort(key=lambda item: item[0], reverse=True)
+        picked = scored[: max(1, top_k)]
+
+        similarity_results = [
+            {
+                "text": self._clean_fallback_text(
+                    str(row.get("text") or ""),
+                    row.get("card_name"),
+                ),
+                "score": round(float(score), 4),
+                "domain": domain,
+                "context_bucket": "keyword_fallback",
+            }
+            for score, row in picked
+        ]
+
+        return self._merge_results_with_priority(forced_results, similarity_results, top_k)
 
     def search_multiple(
         self,

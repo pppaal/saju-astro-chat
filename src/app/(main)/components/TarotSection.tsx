@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useCallback, useReducer, memo } from 'react'
+import { useCallback, useId, useReducer, memo } from 'react'
 import Image from 'next/image'
 import styles from '../main-page.module.css'
 import { TAROT_DECK, TAROT_CARD_BACK, type TarotCard } from '@/data/home'
@@ -67,6 +67,7 @@ function fisherYatesShuffle<T>(array: T[]): T[] {
 function TarotSection({ translate, locale }: TarotSectionProps) {
   const [tarotState, dispatchTarot] = useReducer(tarotReducer, initialTarotState)
   const { flippedCards, selectedCards, isDeckSpread } = tarotState
+  const tarotInstructionId = useId()
 
   const handleCardClick = useCallback(
     (index: number) => {
@@ -94,14 +95,21 @@ function TarotSection({ translate, locale }: TarotSectionProps) {
       <h2 className={styles.featureSectionTitle}>
         {translate('landing.tarotSectionTitle', "Today's Tarot Reading")}
       </h2>
-      <p className={styles.featureSectionSubtitle}>
+      <p className={styles.featureSectionSubtitle} id={tarotInstructionId}>
         {translate('landing.tarotSectionSubtitle', 'Hear the message in the cards.')}
       </p>
 
       <div className={styles.tarotDeckContainer}>
-        <div
+        <button
+          type="button"
           className={`${styles.tarotDeck} ${isDeckSpread ? styles.deckSpread : ''}`}
           onClick={handleDeckClick}
+          aria-describedby={tarotInstructionId}
+          aria-label={
+            isDeckSpread
+              ? translate('landing.tarotDeckReset', 'Draw again')
+              : translate('landing.tarotDeckLabel', 'Draw a card')
+          }
         >
           {[...Array(13)].map((_, i) => {
             const totalCards = 13
@@ -134,7 +142,7 @@ function TarotSection({ translate, locale }: TarotSectionProps) {
               </div>
             )
           })}
-        </div>
+        </button>
         <p className={styles.deckLabel} suppressHydrationWarning>
           {isDeckSpread
             ? translate('landing.tarotDeckReset', 'Draw again')
@@ -146,10 +154,17 @@ function TarotSection({ translate, locale }: TarotSectionProps) {
         <>
           <div className={styles.tarotCards}>
             {[0, 1, 2, 3].map((index) => (
-              <div
+              <button
                 key={index}
+                type="button"
                 className={`${styles.tarotCard} ${flippedCards[index] ? styles.flipped : ''}`}
                 onClick={() => handleCardClick(index)}
+                aria-pressed={flippedCards[index]}
+                aria-label={
+                  locale === 'ko'
+                    ? `${selectedCards[index]?.nameKo || selectedCards[index]?.name || '카드'} 뒤집기`
+                    : `Flip ${selectedCards[index]?.name || 'card'}`
+                }
               >
                 <div className={styles.cardInner}>
                   <div className={styles.cardBack}>
@@ -176,9 +191,15 @@ function TarotSection({ translate, locale }: TarotSectionProps) {
                     </div>
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
+          <p className={styles.tarotAssistiveHint}>
+            {translate(
+              'landing.tarotInteractionHint',
+              'Tip: draw from the deck, then click each card to flip and reveal its meaning.'
+            )}
+          </p>
           <div className={styles.tarotLabels}>
             <span>{translate('landing.tarotPast', 'Past')}</span>
             <span>{translate('landing.tarotPresent', 'Present')}</span>

@@ -101,7 +101,10 @@
     "docs:stats": "node scripts/repo-stats.mjs",
     "docs:generate": "npx tsx scripts/generate-openapi.ts",
     "docs:check-links": "node scripts/check_docs_links.js",
-    "prepare": "husky"
+    "prepare": "husky",
+    "ops:slo:report": "node scripts/ops/slo-report.mjs",
+    "ops:typecheck:metrics": "node scripts/ops/typecheck-metrics.mjs",
+    "ops:typecheck:hotspots": "node scripts/ops/typecheck-hotspots.mjs"
   },
   "overrides": {
     "node-gyp": "^10.0.1",
