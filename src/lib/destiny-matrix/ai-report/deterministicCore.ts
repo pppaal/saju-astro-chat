@@ -53,11 +53,39 @@ export interface DeterministicDecision {
   blockers: string[]
 }
 
+export interface DeterministicBlockEvidenceRef {
+  claimIds: string[]
+  signalIds: string[]
+  anchorIds: string[]
+}
+
+export interface DeterministicSectionBlock {
+  blockId: string
+  paraId: string
+  heading: string
+  bullets: string[]
+  mustKeepTokens: string[]
+  evidence: DeterministicBlockEvidenceRef
+}
+
+export interface DeterministicCoreArtifacts {
+  mappingRulebook?: Record<string, unknown>
+  blocksBySection?: Record<string, DeterministicSectionBlock[]>
+  scenarioBundles?: Array<{
+    id: string
+    domain: string
+    mainTokens: string[]
+    altTokens: string[][]
+  }>
+  timelinePriority?: 'life_first' | 'default'
+}
+
 export interface DeterministicCoreOutput {
   profile: DeterministicProfile
   coverage: DeterministicCoverage
   decision: DeterministicDecision
   promptBlock: string
+  artifacts?: DeterministicCoreArtifacts
 }
 
 function clamp(value: number, min: number, max: number): number {

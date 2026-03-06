@@ -384,7 +384,29 @@ describe('generateAIPremiumReport', () => {
       true
     )
     expect(result.evidenceRefsByPara).toBeTruthy()
-    expect(Object.keys(result.evidenceRefsByPara || {}).some((key) => key.endsWith('.p1'))).toBe(true)
+    expect(Object.keys(result.evidenceRefsByPara || {}).some((key) => key.endsWith('.p1'))).toBe(
+      true
+    )
+    expect(Object.keys(result.evidenceRefsByPara || {}).some((key) => key.endsWith('.p2'))).toBe(
+      true
+    )
+    expect(Object.keys(result.evidenceRefsByPara || {}).some((key) => key.endsWith('.p3'))).toBe(
+      true
+    )
+    expect((result as any).timelinePriority).toBe('life_first')
+    expect(result.deterministicCore?.artifacts).toBeTruthy()
+    expect((result.deterministicCore?.artifacts as any)?.mappingRulebook).toBeTruthy()
+    expect((result.deterministicCore?.artifacts as any)?.blocksBySection).toBeTruthy()
+    expect(
+      ((result.deterministicCore?.artifacts as any)?.blocksBySection?.relationshipDynamics?.[0]
+        ?.heading || '') as string
+    ).toContain('배우자 아키타입')
+    const allBlocks = Object.values(
+      ((result.deterministicCore?.artifacts as any)?.blocksBySection || {}) as Record<string, any[]>
+    ).flat()
+    expect(allBlocks.length).toBeGreaterThan(0)
+    expect(allBlocks.some((block) => (block.mustKeepTokens || []).length > 0)).toBe(true)
+    expect((result.deterministicCore?.artifacts as any)?.timelinePriority).toBe('life_first')
     expect(result.meta.qualityMetrics?.sectionCompletenessRate).toBe(1)
     expect(result.meta.qualityMetrics?.scenarioBundleCoverage).toBeGreaterThan(0.5)
     expect(result.meta.qualityMetrics?.tokenIntegrityPass).toBe(true)
@@ -396,9 +418,9 @@ describe('generateAIPremiumReport', () => {
       )
     ).toBe(true)
     expect(result.timelineEvents.every((event) => (event.thesis || '').length >= 30)).toBe(true)
-    expect(result.timelineEvents.every((event) => !(event.thesis || '').includes('구간 활성'))).toBe(
-      true
-    )
+    expect(
+      result.timelineEvents.every((event) => !(event.thesis || '').includes('구간 활성'))
+    ).toBe(true)
   })
 
   it('enforces minimum evidence refs for timing/themed deterministic reports', async () => {
@@ -424,7 +446,15 @@ describe('generateAIPremiumReport', () => {
       true
     )
     expect(timing.evidenceRefsByPara).toBeTruthy()
+    expect(Object.keys(timing.evidenceRefsByPara || {}).some((key) => key.endsWith('.p2'))).toBe(
+      true
+    )
+    expect(Object.keys(timing.evidenceRefsByPara || {}).some((key) => key.endsWith('.p3'))).toBe(
+      true
+    )
     expect(timing.timeWindow.scope).toBe('DAY')
+    expect((timing as any).timelinePriority).toBe('default')
+    expect((timing.deterministicCore?.artifacts as any)?.blocksBySection).toBeTruthy()
     expect(timing.reportMeta.schemaVersion).toBe('1.1')
     expect(timing.timelineEvents.some((event) => event.type === 'timing')).toBe(true)
 
@@ -450,7 +480,16 @@ describe('generateAIPremiumReport', () => {
       true
     )
     expect(themed.evidenceRefsByPara).toBeTruthy()
+    expect(Object.keys(themed.evidenceRefsByPara || {}).some((key) => key.endsWith('.p2'))).toBe(
+      true
+    )
+    expect(Object.keys(themed.evidenceRefsByPara || {}).some((key) => key.endsWith('.p3'))).toBe(
+      true
+    )
     expect(themed.timeWindow.scope).toBe('LIFE')
+    expect((themed as any).timelinePriority).toBe('life_first')
+    expect((themed.deterministicCore?.artifacts as any)?.mappingRulebook).toBeTruthy()
+    expect((themed.deterministicCore?.artifacts as any)?.blocksBySection).toBeTruthy()
     expect(themed.reportMeta.schemaVersion).toBe('1.1')
     expect(themed.timelineEvents.length).toBeGreaterThan(0)
   })

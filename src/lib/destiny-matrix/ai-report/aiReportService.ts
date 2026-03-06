@@ -1,4 +1,4 @@
-// src/lib/destiny-matrix/ai-report/aiReportService.ts
+﻿// src/lib/destiny-matrix/ai-report/aiReportService.ts
 // Destiny Fusion Matrix(TM) - AI Premium Report Generator
 // 유료 기능: AI 기반 상세 내러티브 리포트 생성
 
@@ -28,11 +28,10 @@ import {
   summarizeGraphRAGEvidence,
 } from './graphRagEvidence'
 import { renderSectionsAsMarkdown, renderSectionsAsText } from './reportRendering'
-import { buildDeterministicCore } from './deterministicCore'
+import { buildDeterministicCore, type DeterministicSectionBlock } from './deterministicCore'
 import type { DeterministicProfile } from './deterministicCoreConfig'
 import { getThemedSectionKeys } from './themeSchema'
 import { buildLifeCyclePromptBlock, buildThemeSchemaPromptBlock } from '../interpretationSchema'
-import { generateNarrativeSectionsFromSynthesis } from './narrativeGenerator'
 import { buildUnifiedEnvelope, inferAgeFromBirthDate } from './unifiedReport'
 import {
   buildReportQualityMetrics as buildReportQualityMetricsCore,
@@ -40,6 +39,45 @@ import {
   type ReportQualityContext,
   type ReportQualityMetrics,
 } from './reportQuality'
+import {
+  buildEvidenceBindingRepairPrompt,
+  enforceEvidenceBindingFallback,
+  getPathText,
+  getPathValue,
+  hasRequiredSectionPaths,
+  rewriteSectionsWithFallback,
+  setPathText,
+  validateEvidenceBinding,
+} from './rewriteGuards'
+import {
+  buildActionRepairInstruction,
+  buildAntiRepetitionInstruction,
+  buildCrossRepairInstruction,
+  buildCrossCoverageRepairInstruction,
+  buildDepthRepairInstruction,
+  buildEvidenceRepairInstruction,
+  buildNarrativeRewritePrompt,
+  buildNarrativeStyleRepairInstruction,
+  buildSecondPassInstruction,
+  buildTimingRepairInstruction,
+  getMaxRepairPassesByPlan,
+} from './repairPrompts'
+import {
+  getCoverageRatioByPredicate,
+  getCrossCoverageRatio,
+  getListStylePaths,
+  getMissingCrossPaths,
+  getMissingPathsByPredicate,
+  getRepetitivePaths,
+  getShortSectionPaths,
+  hasActionInText,
+  hasCrossInText,
+  hasEvidenceTriplet,
+  hasListLikeStyle,
+  hasRepetitiveSentences,
+  hasTimingInText,
+} from './sectionAudit'
+import { evaluateSectionGate, splitSentences } from './sectionQualityGate'
 import {
   buildSynthesisFactsForSection,
   synthesizeMatrixSignals,
@@ -63,14 +101,6 @@ import {
 } from './scoreCalculators'
 import type { GraphRAGEvidenceAnchor, GraphRAGCrossEvidenceSet } from './graphRagEvidence'
 
-const SAJU_REGEX = /사주|오행|십신|대운|일간|격국|용신|신살|saju|five element|sibsin|daeun/i
-const ASTRO_REGEX =
-  /점성|행성|하우스|트랜짓|별자리|상승궁|천궁도|astrology|planet|house|transit|zodiac/i
-const CROSS_REGEX = /교차|융합|통합|cross|integrat|synthesize/i
-const ACTION_REGEX =
-  /해야|하세요|실행|점검|정리|기록|실천|계획|오늘|이번주|이번 달|today|this week|this month|action|plan|step|execute|schedule/i
-const TIMING_REGEX =
-  /대운|세운|월운|일진|타이밍|시기|전환점|transit|timing|window|period|daeun|seun|wolun|iljin/i
 const RECHECK_REGEX = /재확인|점검|검토|verify|recheck|double-check|checklist|review/i
 const ABSOLUTE_RISK_REGEX = /무조건|절대|반드시|100%|always|never|guaranteed|certainly/i
 const IRREVERSIBLE_ACTION_REGEX =
@@ -124,66 +154,6 @@ function buildDirectToneOverride(lang: 'ko' | 'en'): string {
   ].join('\n')
 }
 
-function hasCrossInText(text: string): boolean {
-  if (!text || typeof text !== 'string') return false
-  return SAJU_REGEX.test(text) && ASTRO_REGEX.test(text)
-}
-
-function hasActionInText(text: string): boolean {
-  if (!text || typeof text !== 'string') return false
-  return ACTION_REGEX.test(text)
-}
-
-function hasEvidenceTriplet(text: string): boolean {
-  if (!text || typeof text !== 'string') return false
-  return SAJU_REGEX.test(text) && ASTRO_REGEX.test(text) && CROSS_REGEX.test(text)
-}
-
-function hasTimingInText(text: string): boolean {
-  if (!text || typeof text !== 'string') return false
-  return TIMING_REGEX.test(text)
-}
-
-function hasRepetitiveSentences(text: string): boolean {
-  if (!text || typeof text !== 'string') return false
-  const lines = text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-  if (lines.length >= 2) {
-    const lineCounts = new Map<string, number>()
-    for (const line of lines) {
-      const key = line.replace(/\s+/g, ' ')
-      lineCounts.set(key, (lineCounts.get(key) || 0) + 1)
-    }
-    if ([...lineCounts.values()].some((count) => count >= 2)) return true
-  }
-
-  const sentenceSplit = text
-    .split(/(?<=다\.)\s+|(?<=[.!?])\s+/u)
-    .map((s) => s.trim())
-    .filter((s) => s.length >= 24)
-  if (sentenceSplit.length < 3) return false
-  const sentenceCounts = new Map<string, number>()
-  for (const sentence of sentenceSplit) {
-    const key = sentence.replace(/\s+/g, '').replace(/[^\p{L}\p{N}]/gu, '')
-    if (!key) continue
-    sentenceCounts.set(key, (sentenceCounts.get(key) || 0) + 1)
-  }
-  return [...sentenceCounts.values()].some((count) => count >= 2)
-}
-
-const LIST_LINE_REGEX = /^\s*(?:[-*•]|\d+[.)]|[A-Za-z][.)]|[가-힣][.)])\s+/m
-
-function hasListLikeStyle(text: string): boolean {
-  if (!text || typeof text !== 'string') return false
-  const lines = text.split(/\r?\n/).map((line) => line.trim())
-  const nonEmpty = lines.filter(Boolean)
-  if (nonEmpty.length === 0) return false
-  const listLike = nonEmpty.filter((line) => LIST_LINE_REGEX.test(line)).length
-  return listLike / nonEmpty.length >= 0.25 || listLike >= 3
-}
-
 function countSectionChars(sections: Record<string, unknown>): number {
   const values = Object.values(sections || {}) as unknown[]
   return values.reduce<number>((acc, value) => {
@@ -198,37 +168,6 @@ function countSectionChars(sections: Record<string, unknown>): number {
     }
     return acc
   }, 0)
-}
-
-function getMissingCrossKeys(sections: Record<string, unknown>, keys: string[]): string[] {
-  const missing: string[] = []
-  for (const key of keys) {
-    const value = sections[key]
-    if (typeof value === 'string') {
-      if (!hasCrossInText(value)) missing.push(key)
-    }
-  }
-  return missing
-}
-
-function buildCrossRepairInstruction(lang: 'ko' | 'en', missing: string[]): string {
-  const list = missing.join(', ')
-  if (lang === 'ko') {
-    return [
-      '',
-      '중요: 아래 섹션에서 사주/점성 교차 근거가 누락되었습니다.',
-      `누락 섹션: ${list}`,
-      '각 누락 섹션에 반드시 포함: 사주 근거 1문장 + 점성 근거 1문장 + 교차 결론 1문장 + 실용 행동 2문장.',
-      '문장형 존댓말만 사용하고 리스트/이모지/제목 표기는 금지합니다.',
-    ].join('\n')
-  }
-  return [
-    '',
-    'IMPORTANT: Cross-basis is missing in the following sections.',
-    `Missing sections: ${list}`,
-    'Each missing section must include: 1 Saju basis sentence + 1 Astrology basis sentence + 1 cross conclusion sentence + 2 practical action sentences.',
-    'Use sentence-form only. No lists, emojis, or headings.',
-  ].join('\n')
 }
 
 function buildReportQualityMetrics(
@@ -271,52 +210,25 @@ function recordReportQualityMetrics(
   recordReportQualityMetricsCore(reportType, modelUsed, quality)
 }
 
-function getPathText(sections: Record<string, unknown>, path: string): string {
-  const parts = path.split('.')
-  let cur: unknown = sections
-  for (const part of parts) {
-    if (!cur || typeof cur !== 'object') return ''
-    cur = (cur as Record<string, unknown>)[part]
+function attachDeterministicArtifacts(
+  deterministicCore: ReturnType<typeof buildDeterministicCore>,
+  unified: ReturnType<typeof buildUnifiedEnvelope>
+): ReturnType<typeof buildDeterministicCore> {
+  return {
+    ...deterministicCore,
+    artifacts: {
+      ...(deterministicCore.artifacts || {}),
+      mappingRulebook: unified.mappingRulebook as unknown as Record<string, unknown>,
+      blocksBySection: unified.blocksBySection,
+      scenarioBundles: (unified.scenarioBundles || []).map((bundle) => ({
+        id: bundle.id,
+        domain: bundle.domain,
+        mainTokens: bundle.main.summaryTokens || [],
+        altTokens: (bundle.alt || []).map((alt) => alt.summaryTokens || []),
+      })),
+      timelinePriority: unified.timelinePriority,
+    },
   }
-  if (typeof cur === 'string') return cur
-  if (Array.isArray(cur)) return cur.map((v) => String(v)).join(' ')
-  return ''
-}
-
-function getPathValue(sections: Record<string, unknown>, path: string): unknown {
-  const parts = path.split('.')
-  let cur: unknown = sections
-  for (const part of parts) {
-    if (!cur || typeof cur !== 'object') return undefined
-    cur = (cur as Record<string, unknown>)[part]
-  }
-  return cur
-}
-
-function hasRequiredSectionPaths(payload: unknown, paths: string[]): boolean {
-  if (!payload || typeof payload !== 'object') return false
-  const record = payload as Record<string, unknown>
-  return paths.every((path) => {
-    if (path === 'recommendations') {
-      const rec = record.recommendations
-      return Array.isArray(rec) && rec.length > 0
-    }
-    return getPathText(record, path).trim().length > 0
-  })
-}
-
-function setPathText(sections: Record<string, unknown>, path: string, value: string): void {
-  const parts = path.split('.')
-  let cur: Record<string, unknown> = sections
-  for (let i = 0; i < parts.length - 1; i += 1) {
-    const part = parts[i]
-    const next = cur[part]
-    if (!next || typeof next !== 'object' || Array.isArray(next)) {
-      cur[part] = {}
-    }
-    cur = cur[part] as Record<string, unknown>
-  }
-  cur[parts[parts.length - 1]] = value
 }
 
 function sanitizeSectionsByPaths(
@@ -324,10 +236,25 @@ function sanitizeSectionsByPaths(
   paths: string[]
 ): Record<string, unknown> {
   const next = JSON.parse(JSON.stringify(sections)) as Record<string, unknown>
+  const sectionKeySet = new Set<keyof AIPremiumReport['sections']>([
+    'introduction',
+    'personalityDeep',
+    'careerPath',
+    'relationshipDynamics',
+    'wealthPotential',
+    'healthGuidance',
+    'lifeMission',
+    'timingAdvice',
+    'actionPlan',
+    'conclusion',
+  ])
   for (const path of paths) {
     const value = getPathValue(next, path)
     if (typeof value !== 'string') continue
-    const sanitized = sanitizeSectionNarrative(value)
+    const sectionCandidate = path.split('.').pop() as keyof AIPremiumReport['sections']
+    const sectionKey = sectionKeySet.has(sectionCandidate) ? sectionCandidate : 'introduction'
+    const lang: 'ko' | 'en' = /[가-힣]/.test(value) ? 'ko' : 'en'
+    const sanitized = postProcessSectionNarrative(value, sectionKey, lang)
     setPathText(next, path, softenOverclaimPhrases(sanitized))
   }
   return next
@@ -370,151 +297,6 @@ const EVIDENCE_TOKEN_STOP_WORDS = new Set([
   'your',
 ])
 
-const HIGH_RISK_WEEKDAY_TOKENS = [
-  '월요일',
-  '화요일',
-  '수요일',
-  '목요일',
-  '금요일',
-  '토요일',
-  '일요일',
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday',
-  'saturday',
-  'sunday',
-]
-
-const HIGH_RISK_PLANET_TOKENS = [
-  '태양',
-  '달',
-  '수성',
-  '금성',
-  '화성',
-  '목성',
-  '토성',
-  '천왕성',
-  '해왕성',
-  '명왕성',
-  'sun',
-  'moon',
-  'mercury',
-  'venus',
-  'mars',
-  'jupiter',
-  'saturn',
-  'uranus',
-  'neptune',
-  'pluto',
-]
-
-const HIGH_RISK_ASPECT_TOKENS = [
-  '합',
-  '충',
-  '형',
-  'trine',
-  'square',
-  'opposition',
-  'conjunction',
-  'sextile',
-]
-
-const HIGH_RISK_TRANSIT_TOKENS = [
-  '역행',
-  'retrograde',
-  'solar return',
-  'lunar return',
-  'progression',
-  'progressions',
-  'eclipse',
-  'eclipses',
-  'draconic',
-  'harmonic',
-  'harmonics',
-]
-
-const HIGH_RISK_TOKEN_ALIASES: Record<string, string[]> = {
-  sun: ['태양'],
-  moon: ['달'],
-  mercury: ['수성'],
-  venus: ['금성'],
-  mars: ['화성'],
-  jupiter: ['목성'],
-  saturn: ['토성'],
-  uranus: ['천왕성'],
-  neptune: ['해왕성'],
-  pluto: ['명왕성'],
-  conjunction: ['합'],
-  opposition: ['대립'],
-  square: ['사각'],
-  trine: ['삼분'],
-  sextile: ['육분'],
-  truenode: ['북노드'],
-  northnode: ['북노드'],
-  southnode: ['남노드'],
-  node: ['노드', '북노드', '남노드'],
-}
-
-const REWRITE_STOP_WORDS = new Set([
-  '그리고',
-  '하지만',
-  '또한',
-  '또는',
-  '그러나',
-  '따라서',
-  '또',
-  '이때',
-  '현재',
-  '오늘',
-  '이번',
-  '구간',
-  '흐름',
-  '기준',
-  '에서',
-  '으로',
-  '입니다',
-  '합니다',
-  'the',
-  'and',
-  'with',
-  'for',
-  'this',
-  'that',
-  'from',
-  'into',
-  'your',
-  'today',
-  'phase',
-  'strategy',
-])
-
-const ALLOWED_LONG_REWRITE_TOKENS = new Set([
-  'relationship',
-  'relationships',
-  'communication',
-  'coordination',
-  'verification',
-  'commitment',
-  'execution',
-  'completion',
-  'consistency',
-  'stability',
-  'volatility',
-  'expansion',
-  'conjunction',
-  'opposition',
-  'square',
-  'trine',
-  'sextile',
-  'synthesis',
-  'evidence',
-  'grounding',
-  'strategy',
-  'recovery',
-])
-
 const FORCE_REWRITE_ONLY_MODE = true
 
 function shouldUseDeterministicOnly(flag?: boolean): boolean {
@@ -540,10 +322,6 @@ function tokenizeEvidenceText(value?: string): string[] {
     .filter((token) => token.length >= 2)
     .map((token) => compactToken(token))
     .filter((token) => token.length >= 2 && !EVIDENCE_TOKEN_STOP_WORDS.has(token))
-}
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
 const EVIDENCE_DOMAIN_PRIORITY = [
@@ -815,82 +593,6 @@ function hasEvidenceSupport(text: string, refs: ReportEvidenceRef[]): boolean {
   return false
 }
 
-function buildAllowedHighRiskTokenSet(evidenceRefs: SectionEvidenceRefs): Set<string> {
-  const allowed = new Set<string>()
-  for (const refs of Object.values(evidenceRefs)) {
-    for (const ref of refs || []) {
-      for (const token of [
-        ...tokenizeEvidenceText(ref.id),
-        ...tokenizeEvidenceText(ref.rowKey),
-        ...tokenizeEvidenceText(ref.colKey),
-        ...tokenizeEvidenceText(ref.keyword),
-        ...tokenizeEvidenceText(ref.sajuBasis),
-        ...tokenizeEvidenceText(ref.astroBasis),
-      ]) {
-        allowed.add(token)
-        const aliases = HIGH_RISK_TOKEN_ALIASES[token]
-        if (aliases) {
-          for (const alias of aliases) {
-            allowed.add(compactToken(alias))
-          }
-        }
-      }
-    }
-  }
-  return allowed
-}
-
-function findUnsupportedHighRiskTokens(text: string, allowed: Set<string>): string[] {
-  const found = new Set<string>()
-  const lowered = text.toLowerCase()
-  const allRiskTokens = [
-    ...HIGH_RISK_WEEKDAY_TOKENS,
-    ...HIGH_RISK_PLANET_TOKENS,
-    ...HIGH_RISK_ASPECT_TOKENS,
-    ...HIGH_RISK_TRANSIT_TOKENS,
-  ]
-  for (const token of allRiskTokens) {
-    const hasToken = /[a-z]/i.test(token)
-      ? lowered.includes(token.toLowerCase())
-      : text.includes(token)
-    if (!hasToken) continue
-    const compact = compactToken(token)
-    // Single-syllable Korean tokens are too ambiguous for substring removal.
-    // Example bug: removing token "합" corrupts "필요합니다" -> "필요니다".
-    if (!compact || compact.length < 2) continue
-    if (!allowed.has(compact)) {
-      found.add(token)
-    }
-  }
-  return [...found]
-}
-
-interface EvidenceBindingViolation {
-  path: string
-  missingBinding: boolean
-  unsupportedTokens: string[]
-}
-
-function validateEvidenceBinding(
-  sections: Record<string, unknown>,
-  sectionPaths: string[],
-  evidenceRefs: SectionEvidenceRefs
-): { needsRepair: boolean; violations: EvidenceBindingViolation[] } {
-  const allowedHighRisk = buildAllowedHighRiskTokenSet(evidenceRefs)
-  const violations: EvidenceBindingViolation[] = []
-  for (const path of sectionPaths) {
-    const text = getPathText(sections, path)
-    if (!text) continue
-    const refs = evidenceRefs[path] || []
-    const missingBinding = refs.length > 0 && !hasEvidenceSupport(text, refs)
-    const unsupportedTokens = findUnsupportedHighRiskTokens(text, allowedHighRisk)
-    if (missingBinding || unsupportedTokens.length > 0) {
-      violations.push({ path, missingBinding, unsupportedTokens })
-    }
-  }
-  return { needsRepair: violations.length > 0, violations }
-}
-
 function hasEvidenceIdReference(text: string, refs: ReportEvidenceRef[]): boolean {
   if (!text || refs.length === 0) return true
   const lowered = text.toLowerCase()
@@ -928,737 +630,6 @@ function enforceEvidenceRefFooters(
   return sections
 }
 
-function buildEvidenceBindingRepairPrompt(
-  lang: 'ko' | 'en',
-  sections: Record<string, unknown>,
-  evidenceRefs: SectionEvidenceRefs,
-  violations: EvidenceBindingViolation[]
-): string {
-  const violationLines = violations.map((violation) => {
-    const refs = (evidenceRefs[violation.path] || []).map((ref) => ref.id).join(', ')
-    const unsupported = violation.unsupportedTokens.join(', ')
-    if (lang === 'ko') {
-      return `- ${violation.path}: missingBinding=${violation.missingBinding ? 'yes' : 'no'}, unsupported=[${unsupported || 'none'}], allowedEvidence=[${refs || 'none'}]`
-    }
-    return `- ${violation.path}: missingBinding=${violation.missingBinding ? 'yes' : 'no'}, unsupported=[${unsupported || 'none'}], allowedEvidence=[${refs || 'none'}]`
-  })
-
-  if (lang === 'ko') {
-    return [
-      '중요: 아래 sections JSON을 근거 고정 규칙에 맞게 리페어하세요.',
-      '규칙:',
-      '- violation에 표시된 path만 수정하고 나머지 path는 유지합니다.',
-      '- evidenceRefs에 없는 고위험 토큰(요일/행성/각/트랜짓)은 제거합니다.',
-      '- 각 수정 path에는 allowedEvidence 기준의 근거 키워드를 최소 1개 이상 반영합니다.',
-      '- JSON 구조와 키는 절대 변경하지 않습니다.',
-      '- JSON만 반환합니다.',
-      'violations:',
-      ...violationLines,
-      'evidenceRefs:',
-      JSON.stringify(evidenceRefs, null, 2),
-      'sections:',
-      JSON.stringify(sections, null, 2),
-    ].join('\n')
-  }
-  return [
-    'IMPORTANT: Repair the sections JSON below to satisfy evidence-binding rules.',
-    'Rules:',
-    '- Modify only violating paths and keep all other paths unchanged.',
-    '- Remove unsupported high-risk tokens (weekday/planet/aspect/transit) not in evidenceRefs.',
-    '- Each modified path must include at least one keyword grounded by allowedEvidence refs.',
-    '- Keep JSON structure and keys exactly intact.',
-    '- Return JSON only.',
-    'violations:',
-    ...violationLines,
-    'evidenceRefs:',
-    JSON.stringify(evidenceRefs, null, 2),
-    'sections:',
-    JSON.stringify(sections, null, 2),
-  ].join('\n')
-}
-
-function enforceEvidenceBindingFallback(
-  sections: Record<string, unknown>,
-  violations: EvidenceBindingViolation[],
-  evidenceRefs: SectionEvidenceRefs,
-  lang: 'ko' | 'en'
-): Record<string, unknown> {
-  const next = JSON.parse(JSON.stringify(sections)) as Record<string, unknown>
-  for (const violation of violations) {
-    const current = getPathText(next, violation.path)
-    if (!current) continue
-    let cleaned = current
-    for (const token of violation.unsupportedTokens) {
-      const compact = compactToken(token)
-      if (!compact || compact.length < 2) continue
-      const pattern = new RegExp(escapeRegExp(token), /[a-z]/i.test(token) ? 'gi' : 'g')
-      cleaned = cleaned
-        .replace(pattern, '')
-        .replace(/\s{2,}/g, ' ')
-        .trim()
-    }
-    if (violation.missingBinding) {
-      const refs = (evidenceRefs[violation.path] || []).slice(0, 2)
-      if (refs.length > 0) {
-        const labels = refs
-          .map((ref) => ref.keyword || ref.rowKey || ref.id)
-          .filter(Boolean)
-          .join(', ')
-        const groundingSentence =
-          lang === 'ko'
-            ? `근거 기준은 ${labels} 흐름입니다.`
-            : `Grounding evidence follows ${labels} signals.`
-        cleaned = `${cleaned} ${groundingSentence}`.trim()
-      }
-    }
-    setPathText(next, violation.path, cleaned)
-  }
-  return next
-}
-
-function tokenizeRewrite(text: string): string[] {
-  if (!text) return []
-  return text
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s:_+-]/gu, ' ')
-    .split(/\s+/)
-    .map((token) => token.trim())
-    .filter((token) => token.length >= 2 && !REWRITE_STOP_WORDS.has(token))
-}
-
-function buildAllowedRewriteTokenSet(
-  draftSections: Record<string, unknown>,
-  sectionPaths: string[],
-  evidenceRefs: SectionEvidenceRefs
-): Set<string> {
-  const allowed = buildAllowedHighRiskTokenSet(evidenceRefs)
-  for (const path of sectionPaths) {
-    const text = getPathText(draftSections, path)
-    for (const token of tokenizeRewrite(text)) {
-      allowed.add(token)
-    }
-    const refs = evidenceRefs[path] || []
-    for (const ref of refs) {
-      for (const token of [
-        ...tokenizeRewrite(ref.id || ''),
-        ...tokenizeRewrite(ref.rowKey || ''),
-        ...tokenizeRewrite(ref.colKey || ''),
-        ...tokenizeRewrite(ref.keyword || ''),
-        ...tokenizeRewrite(ref.sajuBasis || ''),
-        ...tokenizeRewrite(ref.astroBasis || ''),
-      ]) {
-        allowed.add(token)
-      }
-    }
-  }
-  return allowed
-}
-
-function validateRewriteOnlyOutput(
-  draftSections: Record<string, unknown>,
-  rewrittenSections: Record<string, unknown>,
-  sectionPaths: string[],
-  evidenceRefs: SectionEvidenceRefs
-): { pass: boolean; reasons: string[] } {
-  const reasons: string[] = []
-  const allowedTokens = buildAllowedRewriteTokenSet(draftSections, sectionPaths, evidenceRefs)
-  const evidenceCheck = validateEvidenceBinding(rewrittenSections, sectionPaths, evidenceRefs)
-  if (evidenceCheck.needsRepair) {
-    reasons.push(
-      ...evidenceCheck.violations.map(
-        (violation) =>
-          `evidence-mismatch:${violation.path}:missing=${violation.missingBinding}:unsupported=${violation.unsupportedTokens.join('|')}`
-      )
-    )
-  }
-
-  for (const path of sectionPaths) {
-    const draftText = getPathText(draftSections, path)
-    const rewrittenText = getPathText(rewrittenSections, path)
-    if (!draftText || !rewrittenText) continue
-    const draftSet = new Set(tokenizeRewrite(draftText))
-    const rewrittenSet = new Set(tokenizeRewrite(rewrittenText))
-    const rewrittenTokens = [...rewrittenSet]
-    const newTokens = rewrittenTokens.filter((token) => !allowedTokens.has(token))
-
-    const suspiciousNovel = newTokens.filter(
-      (token) => /^[a-z][a-z0-9_-]{12,}$/i.test(token) && !ALLOWED_LONG_REWRITE_TOKENS.has(token)
-    )
-    if (suspiciousNovel.length > 0) {
-      reasons.push(`suspicious-token:${path}:${suspiciousNovel.slice(0, 8).join(',')}`)
-    }
-
-    const overlapCount = rewrittenTokens.filter(
-      (token) => draftSet.has(token) || allowedTokens.has(token)
-    ).length
-    const overlapRatio = overlapCount / Math.max(1, rewrittenTokens.length)
-    const noveltyRatio = newTokens.length / Math.max(1, rewrittenTokens.length)
-    if (rewrittenTokens.length >= 20 && overlapRatio < 0.18 && noveltyRatio > 0.55) {
-      reasons.push(
-        `rewrite-drift:${path}:overlap=${overlapRatio.toFixed(2)}:novelty=${noveltyRatio.toFixed(2)}`
-      )
-    }
-  }
-  return { pass: reasons.length === 0, reasons }
-}
-
-function buildRewriteOnlyPrompt(
-  lang: 'ko' | 'en',
-  draftSections: Record<string, unknown>,
-  evidenceRefs: SectionEvidenceRefs,
-  sectionPaths: string[],
-  minCharsPerSection: number
-): string {
-  const payload = JSON.stringify(draftSections, null, 2)
-  const refs = JSON.stringify(evidenceRefs, null, 2)
-  if (lang === 'ko') {
-    return [
-      '당신은 리라이팅 전용 에디터입니다.',
-      '아래 draft JSON을 한국어 문장만 자연스럽게 다듬으세요.',
-      '절대 규칙:',
-      '- 새 정보/새 해석/새 개념 추가 금지',
-      '- 고유명사(십신/신살/행성/하우스/요소)는 원문 그대로 유지',
-      '- evidenceRefs에 없는 엔티티/요일/트랜짓/행성/각 추가 금지',
-      '- 섹션 키 구조 유지',
-      '- 각 섹션 최소 길이 유지',
-      `- 최소 길이: ${minCharsPerSection}자`,
-      `- 대상 섹션: ${sectionPaths.join(', ')}`,
-      'evidenceRefs:',
-      refs,
-      'draft:',
-      payload,
-      'JSON만 반환',
-    ].join('\n')
-  }
-  return [
-    'You are a rewrite-only editor.',
-    'Polish the Korean draft JSON text naturally without changing meaning.',
-    'Hard rules:',
-    '- No new facts, no new interpretation, no new concepts',
-    '- Keep proper entities exactly as in draft',
-    '- Do not add entities/weekday/transit/planet/aspect beyond evidenceRefs',
-    '- Keep section keys and structure unchanged',
-    `- Keep minimum ${minCharsPerSection} chars per section`,
-    `- Target sections: ${sectionPaths.join(', ')}`,
-    'evidenceRefs:',
-    refs,
-    'draft:',
-    payload,
-    'Return JSON only',
-  ].join('\n')
-}
-
-function buildSectionLengthPad(path: string, lang: 'ko' | 'en'): string {
-  const key = path.toLowerCase()
-  if (lang === 'ko') {
-    if (key.includes('career') || key.includes('strategy')) {
-      return '핵심은 범위를 좁혀 완료율을 올리고, 역할·기한·책임을 먼저 맞춘 뒤 확정하는 운영입니다.'
-    }
-    if (key.includes('relationship') || key.includes('love') || key.includes('communication')) {
-      return '관계는 결론의 속도보다 해석의 일치가 중요하므로, 요약 확인을 먼저 하고 합의를 단계적으로 진행하세요.'
-    }
-    if (key.includes('wealth') || key.includes('money') || key.includes('risk')) {
-      return '재정은 수익 기대보다 손실 통제가 우선이며, 금액·기한·취소 조건을 분리 점검한 뒤 확정하는 편이 안전합니다.'
-    }
-    if (key.includes('health') || key.includes('energy') || key.includes('recovery')) {
-      return '건강 리듬은 과속보다 회복 루틴이 성과를 지키므로 수면·수분·휴식 블록을 먼저 고정해 피로 누적을 막으세요.'
-    }
-    if (key.includes('timing') || key.includes('overview') || key.includes('caution')) {
-      return '타이밍은 착수와 확정을 분리해 운영할수록 안정성이 높으며, 당일 확정보다 재확인 단계를 둬야 변동성이 줄어듭니다.'
-    }
-    if (key.includes('actionplan') || key.includes('action')) {
-      return '실행은 완료 1건·보류 1건·재확인 1건의 루프로 단순화하면 실제 행동 전환이 빨라지고 누락이 줄어듭니다.'
-    }
-    return '오늘은 속도보다 순서를 지키는 운영이 유리하며, 중요한 항목은 재확인 단계를 거쳐 확정해야 안정적입니다.'
-  }
-  if (key.includes('career') || key.includes('strategy')) {
-    return 'Narrow scope to raise completion rate, and lock role, deadline, and ownership before commitment.'
-  }
-  if (key.includes('relationship') || key.includes('love') || key.includes('communication')) {
-    return 'In relationships, alignment quality matters more than speed, so confirm interpretation before agreement.'
-  }
-  if (key.includes('wealth') || key.includes('money') || key.includes('risk')) {
-    return 'For finances, downside control comes first; separate amount, deadline, and cancellation checks before commitment.'
-  }
-  if (key.includes('health') || key.includes('energy') || key.includes('recovery')) {
-    return 'Recovery-first scheduling protects output quality better than overspeed in this phase.'
-  }
-  if (key.includes('timing') || key.includes('overview') || key.includes('caution')) {
-    return 'Stability improves when start and commit are separated and recheck gates are kept before final decisions.'
-  }
-  if (key.includes('actionplan') || key.includes('action')) {
-    return 'A simple loop of one completion, one defer, and one recheck reduces omission and improves execution.'
-  }
-  return 'Prioritize sequence over speed and keep a recheck step before final commitment.'
-}
-
-function enforceDraftLengthFloor(
-  candidateSections: Record<string, unknown>,
-  draftSections: Record<string, unknown>,
-  sectionPaths: string[],
-  minCharsPerSection: number,
-  lang: 'ko' | 'en'
-): Record<string, unknown> {
-  const next = JSON.parse(JSON.stringify(candidateSections)) as Record<string, unknown>
-  for (const path of sectionPaths) {
-    const candidateRaw = getPathValue(next, path)
-    const draftRaw = getPathValue(draftSections, path)
-    if (typeof candidateRaw !== 'string' || typeof draftRaw !== 'string') continue
-    const candidateText = candidateRaw
-    const draftText = draftRaw
-    if (!candidateText || !draftText) continue
-
-    const ratioFloor = Math.floor(draftText.length * 0.82)
-    const staticFloor = Math.max(140, Math.min(minCharsPerSection, draftText.length))
-    const floor = Math.max(ratioFloor, staticFloor)
-    if (draftText.length >= 180 && candidateText.length < floor) {
-      setPathText(next, path, draftText)
-      continue
-    }
-
-    const hardFloor = Math.max(180, Math.min(minCharsPerSection, 260))
-    if (candidateText.length < hardFloor) {
-      const pad = buildSectionLengthPad(path, lang)
-      let padded = `${candidateText} ${pad}`.replace(/\s{2,}/g, ' ').trim()
-      if (padded.length < hardFloor) {
-        padded = `${padded} ${pad}`.replace(/\s{2,}/g, ' ').trim()
-      }
-      setPathText(next, path, padded)
-    }
-  }
-  return next
-}
-
-async function rewriteSectionsWithFallback<T extends object>(args: {
-  lang: 'ko' | 'en'
-  userPlan?: AIUserPlan
-  draftSections: T
-  evidenceRefs: SectionEvidenceRefs
-  sectionPaths: string[]
-  requiredPaths: string[]
-  minCharsPerSection: number
-}): Promise<{ sections: T; modelUsed: string; tokensUsed: number }> {
-  const {
-    lang,
-    userPlan,
-    draftSections,
-    evidenceRefs,
-    sectionPaths,
-    requiredPaths,
-    minCharsPerSection,
-  } = args
-  const prompt = buildRewriteOnlyPrompt(
-    lang,
-    draftSections as unknown as Record<string, unknown>,
-    evidenceRefs,
-    sectionPaths,
-    minCharsPerSection
-  )
-  try {
-    const rewritten = await callAIBackendGeneric<T>(prompt, lang, {
-      userPlan,
-      modelOverride: 'gpt-4o-mini',
-    })
-    const candidate = rewritten.sections as unknown
-    if (!hasRequiredSectionPaths(candidate, requiredPaths)) {
-      return {
-        sections: draftSections,
-        modelUsed: 'rewrite-fallback-required-paths',
-        tokensUsed: 0,
-      }
-    }
-    const candidateSections = candidate as Record<string, unknown>
-    const check = validateRewriteOnlyOutput(
-      draftSections as unknown as Record<string, unknown>,
-      candidateSections,
-      sectionPaths,
-      evidenceRefs
-    )
-    if (!check.pass) {
-      const evidenceCheck = validateEvidenceBinding(candidateSections, sectionPaths, evidenceRefs)
-      if (evidenceCheck.needsRepair) {
-        const repaired = enforceEvidenceBindingFallback(
-          candidateSections,
-          evidenceCheck.violations,
-          evidenceRefs,
-          lang
-        )
-        const repairedCheck = validateRewriteOnlyOutput(
-          draftSections as unknown as Record<string, unknown>,
-          repaired,
-          sectionPaths,
-          evidenceRefs
-        )
-        if (repairedCheck.pass) {
-          const floored = enforceDraftLengthFloor(
-            repaired,
-            draftSections as unknown as Record<string, unknown>,
-            sectionPaths,
-            minCharsPerSection,
-            lang
-          )
-          return {
-            sections: floored as unknown as T,
-            modelUsed: `${rewritten.model || 'gpt-4o-mini'}-validator-repair`,
-            tokensUsed: rewritten.tokensUsed || 0,
-          }
-        }
-      }
-      logger.warn('[AI Report] Rewrite-only validator failed; fallback to draft', {
-        reasons: check.reasons.slice(0, 6),
-      })
-      return { sections: draftSections, modelUsed: 'rewrite-fallback-validator', tokensUsed: 0 }
-    }
-    const floored = enforceDraftLengthFloor(
-      candidateSections,
-      draftSections as unknown as Record<string, unknown>,
-      sectionPaths,
-      minCharsPerSection,
-      lang
-    )
-    return {
-      sections: floored as unknown as T,
-      modelUsed: rewritten.model || 'gpt-4o-mini',
-      tokensUsed: rewritten.tokensUsed || 0,
-    }
-  } catch (error) {
-    logger.warn('[AI Report] Rewrite-only call failed; using deterministic draft', {
-      error: error instanceof Error ? error.message : String(error),
-    })
-    return { sections: draftSections, modelUsed: 'rewrite-fallback-error', tokensUsed: 0 }
-  }
-}
-
-function getShortSectionPaths(
-  sections: Record<string, unknown>,
-  paths: string[],
-  minCharsPerSection: number
-): string[] {
-  const short: string[] = []
-  for (const path of paths) {
-    const text = getPathText(sections, path)
-    if (text && text.length < minCharsPerSection) short.push(path)
-  }
-  return short
-}
-
-function getMissingCrossPaths(sections: Record<string, unknown>, crossPaths: string[]): string[] {
-  return crossPaths.filter((path) => {
-    const text = getPathText(sections, path)
-    return !!text && !hasCrossInText(text)
-  })
-}
-
-function getCrossCoverageRatio(sections: Record<string, unknown>, crossPaths: string[]): number {
-  const texts = crossPaths.map((path) => getPathText(sections, path)).filter((t) => t.length > 0)
-  if (texts.length === 0) return 0
-  const hit = texts.filter((t) => hasCrossInText(t)).length
-  return hit / texts.length
-}
-
-function getCoverageRatioByPredicate(
-  sections: Record<string, unknown>,
-  paths: string[],
-  predicate: (text: string) => boolean
-): number {
-  const texts = paths.map((path) => getPathText(sections, path)).filter((t) => t.length > 0)
-  if (texts.length === 0) return 0
-  const hit = texts.filter((t) => predicate(t)).length
-  return hit / texts.length
-}
-
-function getMissingPathsByPredicate(
-  sections: Record<string, unknown>,
-  paths: string[],
-  predicate: (text: string) => boolean
-): string[] {
-  return paths.filter((path) => {
-    const text = getPathText(sections, path)
-    return !!text && !predicate(text)
-  })
-}
-
-function getListStylePaths(sections: Record<string, unknown>, paths: string[]): string[] {
-  return paths.filter((path) => {
-    const text = getPathText(sections, path)
-    return !!text && hasListLikeStyle(text)
-  })
-}
-
-function getRepetitivePaths(sections: Record<string, unknown>, paths: string[]): string[] {
-  return paths.filter((path) => {
-    const text = getPathText(sections, path)
-    return !!text && hasRepetitiveSentences(text)
-  })
-}
-
-function buildNarrativeStyleRepairInstruction(lang: 'ko' | 'en', listStylePaths: string[]): string {
-  if (lang === 'ko') {
-    return [
-      '',
-      '중요: 현재 문체가 항목형/불릿형으로 감지되었습니다.',
-      listStylePaths.length > 0 ? `서사형으로 재작성할 섹션: ${listStylePaths.join(', ')}` : '',
-      '반드시 문단형 서사로 재작성하세요. 번호/불릿/체크리스트(1., -, •, ✅ 등)는 금지합니다.',
-      '각 섹션은 최소 6문장으로 연결감 있게 작성하고, 실제 상황 예시와 실행 맥락을 함께 포함하세요.',
-    ]
-      .filter(Boolean)
-      .join('\n')
-  }
-  return [
-    '',
-    'IMPORTANT: List-like style detected.',
-    listStylePaths.length > 0
-      ? `Rewrite these sections in narrative prose: ${listStylePaths.join(', ')}`
-      : '',
-    'Rewrite using paragraph narrative only. Do not use bullets, numbering, or checklist style.',
-    'Each section should be at least 6 connected sentences with realistic context and actionable framing.',
-  ]
-    .filter(Boolean)
-    .join('\n')
-}
-
-function buildAntiRepetitionInstruction(lang: 'ko' | 'en', repetitivePaths: string[]): string {
-  if (lang === 'ko') {
-    return [
-      '',
-      '중요: 반복 문장이 감지되었습니다.',
-      repetitivePaths.length > 0 ? `반복 제거가 필요한 섹션: ${repetitivePaths.join(', ')}` : '',
-      '같은 문장 구조/표현을 반복하지 말고, 각 문단마다 새로운 근거와 다른 사례를 사용하세요.',
-      '“이 구간은 …” 같은 템플릿 문장 반복을 금지하고 자연스러운 서술로 다시 작성하세요.',
-    ]
-      .filter(Boolean)
-      .join('\n')
-  }
-  return [
-    '',
-    'IMPORTANT: Repetitive sentences detected.',
-    repetitivePaths.length > 0
-      ? `Sections needing dedup rewrite: ${repetitivePaths.join(', ')}`
-      : '',
-    'Do not repeat sentence templates. Rewrite in natural narrative with new evidence and varied phrasing.',
-  ]
-    .filter(Boolean)
-    .join('\n')
-}
-
-function buildNarrativeRewritePrompt(
-  lang: 'ko' | 'en',
-  sections: Record<string, unknown>,
-  options: {
-    minCharsPerSection: number
-    minTotalChars: number
-    requiredTimingSections: string[]
-  }
-): string {
-  const json = JSON.stringify(sections, null, 2)
-  if (lang === 'ko') {
-    return [
-      '당신은 운세 리포트 에디터입니다.',
-      '아래 JSON 섹션의 의미는 유지하고 문체만 사람 친화적인 서술형으로 리라이트하세요.',
-      '중요 규칙:',
-      '- 섹션 키는 절대 변경하지 마세요.',
-      '- 불릿/번호 목록 금지, 자연 문단형으로 작성하세요.',
-      '- 같은 문장 템플릿 반복을 금지합니다.',
-      `- 각 섹션 최소 ${options.minCharsPerSection}자 유지.`,
-      `- 전체 최소 ${options.minTotalChars}자 유지.`,
-      `- ${options.requiredTimingSections.join(', ')} 섹션에는 대운/세운/월운/일진/트랜짓 타이밍 문장을 최소 1회 포함하세요.`,
-      '- 과장/단정/공포 조장 표현 금지. 현실적이고 구체적인 행동 문장을 포함하세요.',
-      '아래 JSON만 반환하세요:',
-      '```json',
-      json,
-      '```',
-    ].join('\n')
-  }
-  return [
-    'You are a narrative editor for astrology reports.',
-    'Rewrite the JSON sections below with human-friendly prose while preserving meaning.',
-    'Rules:',
-    '- Do not change section keys.',
-    '- No bullets/numbering; paragraph narrative only.',
-    '- Avoid repeated sentence templates.',
-    `- Keep at least ${options.minCharsPerSection} chars per section.`,
-    `- Keep at least ${options.minTotalChars} chars total.`,
-    `- In ${options.requiredTimingSections.join(', ')}, include timing grounding with Daeun/Seun/Wolun/Iljin/transit at least once.`,
-    '- Avoid hype and absolute claims; include practical actions.',
-    'Return JSON only:',
-    '```json',
-    json,
-    '```',
-  ].join('\n')
-}
-
-function buildDepthRepairInstruction(
-  lang: 'ko' | 'en',
-  sectionPaths: string[],
-  shortPaths: string[],
-  minCharsPerSection: number,
-  minTotalChars: number
-): string {
-  const allPaths = sectionPaths.join(', ')
-  const shortList = shortPaths.join(', ')
-  if (lang === 'ko') {
-    return [
-      '',
-      '중요: 리포트가 짧거나 일반론적입니다. 아래 기준을 만족하도록 전체를 다시 작성해 주세요.',
-      `필수 섹션: ${allPaths}`,
-      `각 섹션 최소 길이: ${minCharsPerSection}자, 전체 최소 길이: ${minTotalChars}자`,
-      shortPaths.length > 0 ? `특히 보강이 필요한 섹션: ${shortList}` : '',
-      '각 섹션은 반드시 1) 핵심 해석 2) 근거 3) 생활 적용 4) 주의 포인트를 문장형으로 포함해 주세요.',
-      '어려운 용어를 쓰면 바로 뒤에 쉬운 한국어 설명을 붙여 주세요.',
-      '리스트 대신 서술형 문단으로 작성해 주세요.',
-    ]
-      .filter(Boolean)
-      .join('\n')
-  }
-
-  return [
-    '',
-    'IMPORTANT: The report is too short or generic. Rewrite all sections with stronger depth.',
-    `Required sections: ${allPaths}`,
-    `Minimum length: ${minCharsPerSection} chars per section, ${minTotalChars} chars total`,
-    shortPaths.length > 0 ? `Sections needing expansion: ${shortList}` : '',
-    'Each section must include: key interpretation, evidence, practical application, and caution point.',
-    'If technical terms are used, add plain-language explanations right after them.',
-    'Use paragraph-style narrative, not bullet points.',
-  ]
-    .filter(Boolean)
-    .join('\n')
-}
-
-function buildSecondPassInstruction(lang: 'ko' | 'en'): string {
-  if (lang === 'ko') {
-    return [
-      '',
-      '2차 보강 지시: 여전히 밀도가 부족하면 각 섹션을 최소 6문장으로 확장해 주세요.',
-      '각 섹션에 반드시 실전 예시 1개와 실행 순서(오늘-이번주-이번달)를 포함해 주세요.',
-      '추상적 미사여구 대신 행동 가능한 문장으로 작성해 주세요.',
-    ].join('\n')
-  }
-  return [
-    '',
-    'Second-pass rewrite: if depth is still weak, expand each section to at least 6 sentences.',
-    'Include one practical example and execution sequence (today-this week-this month) in each section.',
-    'Prefer concrete action-oriented language over abstract filler.',
-  ].join('\n')
-}
-
-function buildActionRepairInstruction(
-  lang: 'ko' | 'en',
-  ratio: number,
-  targetRatio: number,
-  missingPaths: string[]
-): string {
-  if (lang === 'ko') {
-    return [
-      '',
-      `중요: 실행 문장 비율이 낮습니다. 현재=${Math.round(ratio * 100)}%, 목표=${Math.round(targetRatio * 100)}%`,
-      missingPaths.length > 0 ? `보강이 필요한 섹션: ${missingPaths.join(', ')}` : '',
-      '각 핵심 섹션마다 반드시 오늘-이번주-이번달 순서의 실행 문장(행동 지시) 최소 2개를 넣어 주세요.',
-      '추상적 위로 문장 대신 실제 행동 가능한 문장을 사용해 주세요.',
-    ]
-      .filter(Boolean)
-      .join('\n')
-  }
-  return [
-    '',
-    `IMPORTANT: Actionable sentence coverage is low. current=${Math.round(ratio * 100)}%, target=${Math.round(targetRatio * 100)}%`,
-    missingPaths.length > 0 ? `Sections needing action steps: ${missingPaths.join(', ')}` : '',
-    'Each core section must include at least 2 concrete action sentences using a today-this week-this month sequence.',
-    'Replace abstract comfort with executable guidance.',
-  ]
-    .filter(Boolean)
-    .join('\n')
-}
-
-function buildEvidenceRepairInstruction(
-  lang: 'ko' | 'en',
-  ratio: number,
-  targetRatio: number,
-  missingPaths: string[]
-): string {
-  if (lang === 'ko') {
-    return [
-      '',
-      `중요: 근거 트리플(사주+점성+교차) 비율이 낮습니다. 현재=${Math.round(ratio * 100)}%, 목표=${Math.round(targetRatio * 100)}%`,
-      missingPaths.length > 0 ? `보강이 필요한 섹션: ${missingPaths.join(', ')}` : '',
-      '각 핵심 섹션에서 반드시 사주 근거 1문장 + 점성 근거 1문장 + 교차 결론 1문장을 포함해 주세요.',
-    ]
-      .filter(Boolean)
-      .join('\n')
-  }
-  return [
-    '',
-    `IMPORTANT: Evidence triplet coverage (Saju+Astrology+Cross) is low. current=${Math.round(ratio * 100)}%, target=${Math.round(targetRatio * 100)}%`,
-    missingPaths.length > 0 ? `Sections needing evidence triplet: ${missingPaths.join(', ')}` : '',
-    'For each core section include 1 Saju basis sentence + 1 Astrology basis sentence + 1 cross conclusion sentence.',
-  ]
-    .filter(Boolean)
-    .join('\n')
-}
-
-function buildCrossCoverageRepairInstruction(
-  lang: 'ko' | 'en',
-  ratio: number,
-  targetRatio: number
-): string {
-  if (lang === 'ko') {
-    return [
-      '',
-      `중요: 사주+점성 교차 서술 비율이 낮습니다. 현재=${Math.round(ratio * 100)}%, 목표=${Math.round(targetRatio * 100)}%`,
-      '각 핵심 섹션마다 사주 근거 1문장 + 점성 근거 1문장 + 교차 결론 1문장을 반드시 포함해 주세요.',
-      '단순 일반론을 줄이고, 근거어(사주/점성/하우스/대운/트랜짓)를 문장에 명시해 주세요.',
-    ].join('\n')
-  }
-  return [
-    '',
-    `IMPORTANT: Cross-basis narrative coverage is low. current=${Math.round(ratio * 100)}%, target=${Math.round(targetRatio * 100)}%`,
-    'For each core section include: 1 Saju basis sentence + 1 Astrology basis sentence + 1 cross conclusion sentence.',
-    'Avoid generic filler and explicitly mention grounding terms (saju/astrology/house/daeun/transit).',
-  ].join('\n')
-}
-
-function buildTimingRepairInstruction(
-  lang: 'ko' | 'en',
-  ratio: number,
-  targetRatio: number,
-  missingPaths: string[]
-): string {
-  if (lang === 'ko') {
-    return [
-      '',
-      `중요: 타이밍 근거(대운/세운/월운/일진/트랜짓) 반영 비율이 낮습니다. 현재=${Math.round(ratio * 100)}%, 목표=${Math.round(targetRatio * 100)}%`,
-      missingPaths.length > 0 ? `보강이 필요한 섹션: ${missingPaths.join(', ')}` : '',
-      '각 보강 섹션에서 반드시 다음을 명시해 주세요: 현재 대운 1문장, 세운/월운/일진 중 2개 이상 1문장, 점성 트랜짓/행성 타이밍 1문장, 실제 실행 시점 1문장.',
-      '타이밍은 반드시 절대 표현으로 써 주세요(오늘/이번주/이번달 + 구체 시점).',
-    ]
-      .filter(Boolean)
-      .join('\n')
-  }
-  return [
-    '',
-    `IMPORTANT: Timing grounding coverage is low. current=${Math.round(ratio * 100)}%, target=${Math.round(targetRatio * 100)}%`,
-    missingPaths.length > 0 ? `Sections needing timing grounding: ${missingPaths.join(', ')}` : '',
-    'For each missing section include: 1 current Daeun sentence, 1 sentence using at least two of Seun/Wolun/Iljin, 1 transit timing sentence, and 1 execution timing sentence.',
-    'Use explicit timing language (today/this week/this month + concrete windows).',
-  ]
-    .filter(Boolean)
-    .join('\n')
-}
-
-function getMaxRepairPassesByPlan(plan?: AIUserPlan): number {
-  switch (plan) {
-    case 'premium':
-      return 3
-    case 'pro':
-      return 3
-    case 'starter':
-      return 2
-    case 'free':
-    default:
-      return 2
-  }
-}
-
 const COMPREHENSIVE_SECTION_KEYS: Array<keyof AIPremiumReport['sections']> = [
   'introduction',
   'personalityDeep',
@@ -1693,8 +664,6 @@ const BANNED_PHRASE_REPLACEMENTS: Array<[RegExp, string]> = [
   [/근거 세트/gi, '근거 묶음'],
 ]
 const BANNED_PHRASE_PATTERNS = BANNED_PHRASE_REPLACEMENTS.map(([pattern]) => pattern)
-const ADVICE_SENTENCE_REGEX = /(좋습니다|유의하셔야 합니다)/
-
 const SECTION_CONCRETE_NOUNS: Record<keyof AIPremiumReport['sections'], string[]> = {
   introduction: ['일정', '우선순위', '대화', '수면', '피로', '마감'],
   personalityDeep: ['말투', '속도', '거리두기', '결정', '수면', '두통'],
@@ -2164,125 +1133,6 @@ function buildSectionPrompt(
     .join('\n')
 }
 
-function splitSentences(text: string): string[] {
-  return text
-    .split(/(?<=다\.)\s+|(?<=[.!?])\s+/u)
-    .map((s) => s.trim())
-    .filter(Boolean)
-}
-
-function measureSectionNovelty(text: string): number {
-  const sentences = splitSentences(text).filter((s) => s.length >= 16)
-  const unique = new Set(
-    sentences.map((s) =>
-      s
-        .replace(/\s+/g, ' ')
-        .replace(/[^\p{L}\p{N}\s]/gu, '')
-        .trim()
-    )
-  )
-  return unique.size
-}
-
-function measureSectionSpecificity(text: string): number {
-  const concreteRegex =
-    /오늘|이번주|이번 주|이번달|이번 달|이번해|이번 해|월간|주간|계약|일정|마감|회의|연락|수면|두통|허리|관절|소화|피로/i
-  return splitSentences(text).filter((s) => concreteRegex.test(s)).length
-}
-
-function countConcreteNounsBySection(
-  text: string,
-  sectionKey: keyof AIPremiumReport['sections']
-): number {
-  const nouns = SECTION_CONCRETE_NOUNS[sectionKey] || []
-  const lowered = text.toLowerCase()
-  const matched = new Set<string>()
-  for (const noun of nouns) {
-    if (lowered.includes(noun.toLowerCase())) {
-      matched.add(noun)
-    }
-  }
-  return matched.size
-}
-
-function measureAverageSentenceLength(text: string): number {
-  const sentences = splitSentences(text)
-  if (sentences.length === 0) return 0
-  const total = sentences.reduce((sum, sentence) => sum + sentence.length, 0)
-  return total / sentences.length
-}
-
-function countAdviceSentences(text: string): number {
-  const sentences = splitSentences(text)
-  return sentences.filter((sentence) => ADVICE_SENTENCE_REGEX.test(sentence)).length
-}
-
-function normalizeFactKeywords(fact: string): string[] {
-  const stopWords = new Set([
-    '그리고',
-    '하지만',
-    '에서',
-    '으로',
-    '입니다',
-    '합니다',
-    '흐름',
-    '축',
-    '현재',
-    '기질',
-    '성향',
-  ])
-  return fact
-    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
-    .split(/\s+/)
-    .map((t) => t.trim())
-    .filter((t) => t.length >= 2 && !stopWords.has(t))
-    .slice(0, 4)
-}
-
-function measureEvidenceDensity(text: string, factPack: string[]): number {
-  const lowered = text.toLowerCase()
-  let reflected = 0
-  for (const fact of factPack) {
-    const keywords = normalizeFactKeywords(fact)
-    if (keywords.some((kw) => lowered.includes(kw.toLowerCase()))) {
-      reflected += 1
-    }
-  }
-  return reflected
-}
-
-function evaluateSectionGate(
-  text: string,
-  factPack: string[],
-  sectionKey: keyof AIPremiumReport['sections']
-) {
-  const novelty = measureSectionNovelty(text)
-  const specificity = countConcreteNounsBySection(text, sectionKey)
-  const genericSpecificity = measureSectionSpecificity(text)
-  const evidenceDensity = measureEvidenceDensity(text, factPack)
-  const avgSentenceLength = measureAverageSentenceLength(text)
-  const banned = containsBannedPhrase(text)
-  const adviceCount = countAdviceSentences(text)
-  return {
-    novelty,
-    specificity,
-    genericSpecificity,
-    evidenceDensity,
-    avgSentenceLength,
-    banned,
-    adviceCount,
-    repetitive: hasRepetitiveSentences(text),
-    pass:
-      novelty >= 3 &&
-      specificity >= 2 &&
-      evidenceDensity >= 2 &&
-      avgSentenceLength <= 40 &&
-      !banned &&
-      adviceCount <= 2 &&
-      !hasRepetitiveSentences(text),
-  }
-}
-
 function summarizeTopInsightsByCategory(
   report: FusionReport,
   categories: Array<'strength' | 'opportunity' | 'balance' | 'caution' | 'challenge'>,
@@ -2301,6 +1151,56 @@ function summarizeTopInsightsByCategory(
       : 'Core signals in review'
 }
 
+function ensureLongSectionNarrative(base: string, minChars: number, extras: string[]): string {
+  let out = String(base || '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+  const uniqExtras = [...new Set(extras.map((v) => String(v || '').trim()).filter(Boolean))]
+  for (const extra of uniqExtras) {
+    if (out.length >= minChars) break
+    if (out.includes(extra)) continue
+    out = `${out} ${extra}`.replace(/\s{2,}/g, ' ').trim()
+  }
+  return out
+}
+
+function renderDeterministicBlocksToSectionText(
+  blocks: DeterministicSectionBlock[] | undefined
+): string {
+  if (!blocks || blocks.length === 0) return ''
+  const parts = blocks
+    .map((block) => {
+      const heading = String(block.heading || '').trim()
+      const prose = (block.bullets || [])
+        .map((line) => String(line || '').trim())
+        .filter(Boolean)
+        .join(' ')
+        .replace(/\s{2,}/g, ' ')
+        .trim()
+      if (!heading && !prose) return ''
+      if (!heading) return prose
+      if (!prose) return heading
+      return `${heading}\n${prose}`
+    })
+    .filter(Boolean)
+  return parts.join('\n\n').trim()
+}
+
+function mergeComprehensiveDraftWithBlocks(
+  fallback: AIPremiumReport['sections'],
+  blocksBySection: Record<string, DeterministicSectionBlock[]> | undefined
+): AIPremiumReport['sections'] {
+  if (!blocksBySection) return fallback
+  const merged: AIPremiumReport['sections'] = { ...fallback }
+  for (const key of COMPREHENSIVE_SECTION_KEYS) {
+    const rendered = renderDeterministicBlocksToSectionText(blocksBySection[key])
+    if (rendered.length >= 160) {
+      merged[key] = ensureLongSectionNarrative(rendered, 520, [fallback[key]])
+    }
+  }
+  return merged
+}
+
 function buildComprehensiveFallbackSections(
   input: MatrixCalculationInput,
   matrixReport: FusionReport,
@@ -2308,13 +1208,9 @@ function buildComprehensiveFallbackSections(
   lang: 'ko' | 'en',
   signalSynthesis?: SignalSynthesisResult
 ): AIPremiumReport['sections'] {
-  if (signalSynthesis && signalSynthesis.claims.length > 0) {
-    return generateNarrativeSectionsFromSynthesis({
-      lang,
-      matrixInput: input,
-      synthesis: signalSynthesis,
-    })
-  }
+  // Narrative synthesizer can introduce style noise and mojibake-like artifacts when source text is degraded.
+  // Keep deterministic fallback as the stable base draft, then let rewrite-only LLM polish tone safely.
+  void signalSynthesis
   const strengths = summarizeTopInsightsByCategory(
     matrixReport,
     ['strength', 'opportunity'],
@@ -2329,17 +1225,111 @@ function buildComprehensiveFallbackSections(
     .join(', ')
 
   if (lang === 'ko') {
+    const koSections: AIPremiumReport['sections'] = {
+      introduction: `오늘 흐름은 “좋은 카드가 손에 들어왔지만, 내는 순서를 잘 잡아야 이기는 판”에 가깝습니다. 사주 일간 ${input.dayMasterElement}와 점성 핵심 신호를 겹쳐 보면, 밀어도 되는 축은 ${strengths}, 브레이크를 걸어야 하는 축은 ${cautions}로 정리됩니다. 한 줄 결론은 단순합니다. 속도로 이기려 하지 말고, 정확한 순서로 이기는 날입니다.`,
+      personalityDeep: `당신의 기본 엔진은 빠른 판단력과 구조화 능력입니다. 그래서 시작은 누구보다 빠른데, 가끔은 확인 단계가 짧아져서 “좋은 선택을 아쉽게 마무리”하는 순간이 생깁니다. 오늘은 감으로 먼저 뛰기보다, 결론 1줄과 근거 1줄을 먼저 적고 움직이면 실수 비용이 크게 줄어듭니다.`,
+      careerPath: `커리어 상위 지표는 ${topDomains || 'career(평가 중)'}이고, 지금은 “넓게 벌리기”보다 “깊게 닫기”가 이득인 타이밍입니다. 회의가 길어지는 날일수록 새 일 3개보다 완료 1개가 커리어 체급을 올립니다. 특히 협업 건은 역할·마감·책임을 먼저 고정할수록, 다음 기회에서 당신의 협상력이 선명하게 올라갑니다.`,
+      relationshipDynamics: `관계에서는 말의 양보다 해석의 정확도가 승부를 냅니다. 같은 문장도 타이밍이 어긋나면 압박으로 들릴 수 있으니, 결론을 던지기 전에 “내가 이해한 게 맞는지” 한 줄로 맞춰보세요. 가까운 관계일수록 이 작은 확인이 감정 소모를 줄이고 신뢰를 빠르게 회복시킵니다.`,
+      wealthPotential: `돈 흐름은 기회와 경계가 동시에 켜져 있습니다. 즉, 벌 수 있는 문은 열려 있지만, 조건을 대충 보면 새는 구멍도 함께 커지는 국면입니다. 지출·계약·투자 모두 금액, 기한, 취소 조건만 따로 떼어 확인해도 손실 확률이 눈에 띄게 내려갑니다.`,
+      healthGuidance: `에너지는 단거리 스퍼트에 강한 편이라, 몰입 후 회복이 늦어질 때 컨디션 낙폭이 커질 수 있습니다. 오늘은 강한 루틴 하나보다 “짧은 회복 루틴 3번”이 더 효율적입니다. 수면, 수분, 호흡처럼 작지만 반복 가능한 기준을 지키면 집중력의 바닥이 올라갑니다.`,
+      lifeMission: `장기적으로 당신의 힘은 한 번의 대박보다 “신뢰가 쌓이는 반복”에서 나옵니다. 기준을 설명할 수 있는 사람은 결국 큰 선택도 맡게 됩니다. 오늘의 작은 일관성이 1년 뒤의 큰 기회로 연결된다는 관점으로 움직이면 방향이 흔들리지 않습니다.`,
+      timingAdvice: `결정 코어는 ${deterministicCore.decision.enabled ? `${deterministicCore.decision.verdict}(${deterministicCore.decision.score}점)` : '일반 모드'}입니다. 강점 신호(${strengths})가 뜨는 구간은 실행 속도를 높이고, 주의 신호(${cautions})가 걸린 구간은 확정 전 이중 확인을 넣으세요. 특히 문서·합의·대외 전달은 “초안-검토-확정” 3단계로 쪼개면 결과가 훨씬 안정됩니다.`,
+      actionPlan: `오늘 플랜은 세 줄이면 충분합니다. 1) 반드시 닫을 결과물 1개, 2) 외부 전달 전 재확인 1개, 3) 오늘 확정하지 않을 보류 1개. 이 구조만 지켜도 하루가 끝났을 때 “많이 한 느낌”이 아니라 “남는 결과”가 생깁니다.`,
+      conclusion: `이번 흐름의 승부 포인트는 재능이 아니라 운영입니다. 밀어야 할 때는 분명히 밀고, 확인해야 할 때는 반드시 멈추는 리듬만 지켜도 체감 성과가 달라집니다. 같은 패턴을 2주만 유지하면 운의 변동이 줄고 결과의 재현성이 올라갑니다.`,
+    }
+
+    const extraBySection: Record<keyof AIPremiumReport['sections'], string[]> = {
+      introduction: [
+        '실전에서는 “무엇을 더 할지”보다 “무엇을 오늘 안 할지”를 먼저 정하면 집중력이 살아납니다.',
+        '오전에는 생산, 오후에는 검토처럼 역할을 분리하면 체감 피로 대비 성과가 좋아집니다.',
+        '작은 실수 하나가 일정 전체를 흔들 수 있는 날이므로, 체크리스트 한 장이 생각보다 큰 차이를 만듭니다.',
+      ],
+      personalityDeep: [
+        '스스로의 리듬을 관리하는 가장 쉬운 방법은 하루 종료 전에 결정 로그를 3줄 남기는 것입니다.',
+        '이 패턴이 쌓이면 감정이 요동치는 날에도 선택의 품질이 무너지지 않습니다.',
+        '당신의 강점은 빠른 출발보다, 빠른 출발 뒤에도 방향을 바로잡는 복원력에 있습니다.',
+      ],
+      careerPath: [
+        '특히 일정이 복잡한 주에는 “새 착수 1개, 기존 마감 2개”처럼 닫힘 비율을 높이는 운영이 유리합니다.',
+        '상대가 많은 프로젝트일수록 책임 경계를 선명하게 그어야 갈등 비용을 줄일 수 있습니다.',
+        '성과는 종종 아이디어 수가 아니라 완료된 결과물의 밀도에서 평가된다는 점을 기억하면 좋습니다.',
+      ],
+      relationshipDynamics: [
+        '대화가 길어질수록 핵심은 흐려지기 쉽기 때문에, 중요한 말은 짧게 요약해 합의 지점을 먼저 맞추세요.',
+        '감정이 높은 순간에 결론을 내리기보다 템포를 늦추는 선택이 오히려 관계를 빠르게 안정시킵니다.',
+        '오늘은 “내가 맞다”보다 “우리가 같은 이해를 갖고 있나”를 묻는 쪽이 훨씬 강한 선택입니다.',
+      ],
+      wealthPotential: [
+        '수익 기회가 보일수록 조건 검토를 더 엄격하게 하는 습관이 장기 성과를 지켜줍니다.',
+        '같은 금액이라도 기한과 취소 조항이 다르면 리스크가 완전히 달라질 수 있습니다.',
+        '이번 사이클은 공격보다 방어를 먼저 두는 설계가 결과적으로 더 큰 여유를 만듭니다.',
+      ],
+      healthGuidance: [
+        '컨디션이 떨어지기 전에 짧은 회복 루틴을 먼저 넣으면 하루 전체의 집중도가 유지됩니다.',
+        '강도 높은 하루 뒤에는 반드시 회복 시간을 일정에 고정해 누적 피로를 끊어내세요.',
+        '건강 관리는 의지의 문제가 아니라 배치의 문제라는 관점이 이번 흐름에서 특히 중요합니다.',
+      ],
+      lifeMission: [
+        '큰 목표를 세우는 것보다 매주 지킬 수 있는 원칙 2~3개를 유지하는 쪽이 실제 변화로 이어집니다.',
+        '장기 운은 단기 성과의 합계가 아니라, 흔들릴 때 복귀하는 습관의 품질에서 갈립니다.',
+        '결국 당신의 방향성은 화려한 선언보다 반복 가능한 선택 기준으로 증명됩니다.',
+      ],
+      timingAdvice: [
+        '오늘-이번 주-이번 달의 시간축을 분리해서 보면, 급한 일과 중요한 일을 동시에 살릴 수 있습니다.',
+        '특히 오늘은 실행은 빠르게, 확정은 한 템포 늦게 두는 전략이 가장 안전합니다.',
+        '타이밍 운용의 포인트는 완벽한 예측이 아니라 오류 비용을 줄이는 구조를 먼저 세우는 데 있습니다.',
+      ],
+      actionPlan: [
+        '실행 순서를 단순화하면 판단 피로가 줄어들고 실제 행동 전환률이 올라갑니다.',
+        '하루 마지막 10분에 “완료/보류/재확인”만 정리해도 다음 날의 시작 속도가 달라집니다.',
+        '중요한 건 계획을 많이 세우는 게 아니라, 계획을 끝까지 지킬 수 있게 설계하는 것입니다.',
+      ],
+      conclusion: [
+        '이번 국면은 재능보다 루틴이 승패를 가르는 시기입니다.',
+        '작은 기준을 반복해 운용하면 결과가 안정되고, 안정된 결과가 다시 자신감을 만듭니다.',
+        '그래서 지금 필요한 건 새로운 비법이 아니라, 이미 잡은 원칙을 끝까지 밀어붙이는 힘입니다.',
+      ],
+    }
+
     return {
-      introduction: `현재 리포트는 규칙 기반 안전 모드로 생성되었습니다. 사주 일간 ${input.dayMasterElement}과 점성 핵심 배치의 공통 분모를 우선 정리해, 오늘 실행 가능한 결론만 남겼습니다. 강점 신호는 ${strengths}, 주의 신호는 ${cautions}로 요약됩니다.`,
-      personalityDeep: `기본 성향은 일간 ${input.dayMasterElement}의 의사결정 리듬과 점성의 사고·감정 축이 함께 작동하는 구조입니다. 강점은 빠른 판단과 구조화 능력이고, 약점은 과속 결론과 확인 누락입니다. 중요한 선택일수록 판단 시점과 실행 시점을 분리하면 안정성이 올라갑니다.`,
-      careerPath: `커리어 관점의 상위 지표는 ${topDomains || 'career(평가 중)'}입니다. 실행 방식은 한 번에 넓히기보다 핵심 과업 1~2개를 완결하고 다음 단계로 확장하는 전개가 유리합니다. 외부 협업은 역할과 마감 정의를 먼저 고정해야 성과 변동을 줄일 수 있습니다.`,
-      relationshipDynamics: `관계 영역에서는 의도 전달보다 해석 오차 관리가 핵심입니다. 표현을 짧게 하고 확인 질문을 추가하면 불필요한 감정 소모를 줄일 수 있습니다. 가까운 관계일수록 결론을 서두르기보다 맥락을 먼저 맞추는 대화 구조가 안정적입니다.`,
-      wealthPotential: `재정에서는 기회 신호와 보수 신호가 동시에 존재하므로 수익 기대만으로 확정하지 않는 원칙이 필요합니다. 이번 사이클은 지출 통제·현금흐름 가시화·조건 검증의 3축이 우선입니다. 큰 의사결정은 당일 확정보다 24시간 재검토가 손실 방지에 유리합니다.`,
-      healthGuidance: `에너지 패턴은 단기 집중 후 회복이 늦어지는 형태가 반복될 수 있습니다. 무리한 확장보다 수면·수분·리듬 고정이 결과를 지켜줍니다. 일정이 밀리는 날일수록 강도 높은 작업보다 오류 비용이 큰 작업의 검수 우선순위를 올리는 것이 좋습니다.`,
-      lifeMission: `장기 방향성은 단기 성과보다 누적 신뢰를 만드는 구조에 맞춰져 있습니다. 본인의 기준을 명확히 설명하고 실행 기록을 남기는 습관이 영향력을 키웁니다. 즉흥적 승부보다 일관된 품질이 운의 변동폭을 줄이는 핵심 레버리지입니다.`,
-      timingAdvice: `결정 코어 판정은 ${deterministicCore.decision.enabled ? `${deterministicCore.decision.verdict}(${deterministicCore.decision.score}점)` : '일반 모드'}입니다. 실행 창을 열 때는 강점 신호(${strengths})를 우선 사용하고, 주의 신호(${cautions})가 걸리는 영역은 확정 전에 이중 확인을 넣어야 합니다. 특히 문서·합의·대외 커뮤니케이션은 체크리스트 기반으로 진행하세요.`,
-      actionPlan: `오늘 실행안은 세 단계로 고정하세요. 첫째, 반드시 끝낼 결과물 1개를 정의합니다. 둘째, 외부 전달 전 조건·기한·책임을 한 줄로 재확인합니다. 셋째, 당일 확정이 필요한 안건만 처리하고 나머지는 재검토 슬롯으로 넘겨 리스크를 분리합니다.`,
-      conclusion: `이 리포트는 데이터 해석의 일관성을 우선한 안전 모드 결과입니다. 핵심은 강점 구간에서 속도를 내고, 주의 구간에서는 확인 단계를 생략하지 않는 것입니다. 같은 패턴을 2주만 유지해도 성과의 재현성이 분명히 올라갑니다.`,
+      introduction: ensureLongSectionNarrative(
+        koSections.introduction,
+        520,
+        extraBySection.introduction
+      ),
+      personalityDeep: ensureLongSectionNarrative(
+        koSections.personalityDeep,
+        520,
+        extraBySection.personalityDeep
+      ),
+      careerPath: ensureLongSectionNarrative(koSections.careerPath, 520, extraBySection.careerPath),
+      relationshipDynamics: ensureLongSectionNarrative(
+        koSections.relationshipDynamics,
+        520,
+        extraBySection.relationshipDynamics
+      ),
+      wealthPotential: ensureLongSectionNarrative(
+        koSections.wealthPotential,
+        520,
+        extraBySection.wealthPotential
+      ),
+      healthGuidance: ensureLongSectionNarrative(
+        koSections.healthGuidance,
+        520,
+        extraBySection.healthGuidance
+      ),
+      lifeMission: ensureLongSectionNarrative(
+        koSections.lifeMission,
+        520,
+        extraBySection.lifeMission
+      ),
+      timingAdvice: ensureLongSectionNarrative(
+        koSections.timingAdvice,
+        520,
+        extraBySection.timingAdvice
+      ),
+      actionPlan: ensureLongSectionNarrative(koSections.actionPlan, 520, extraBySection.actionPlan),
+      conclusion: ensureLongSectionNarrative(koSections.conclusion, 520, extraBySection.conclusion),
     }
   }
 
@@ -2683,15 +1673,34 @@ export async function generateAIPremiumReport(
   const deterministicOnly = shouldUseDeterministicOnly(options.deterministicOnly)
 
   if (deterministicOnly) {
-    const draftSections = buildComprehensiveFallbackSections(
+    const evidenceRefs = buildComprehensiveEvidenceRefs(signalSynthesis)
+    const sectionPaths = [...COMPREHENSIVE_SECTION_KEYS] as string[]
+    const fallbackSections = buildComprehensiveFallbackSections(
       input,
       matrixReport,
       deterministicCore,
       lang,
       signalSynthesis
     )
-    const evidenceRefs = buildComprehensiveEvidenceRefs(signalSynthesis)
-    const sectionPaths = [...COMPREHENSIVE_SECTION_KEYS] as string[]
+    const generatedAt = new Date().toISOString()
+    const unified = buildUnifiedEnvelope({
+      mode: 'comprehensive',
+      lang,
+      generatedAt,
+      matrixInput: input,
+      matrixReport,
+      matrixSummary: options.matrixSummary,
+      signalSynthesis,
+      graphRagEvidence,
+      birthDate: options.birthDate,
+      timingData: options.timingData,
+      sectionPaths,
+      evidenceRefs,
+    })
+    const draftSections = mergeComprehensiveDraftWithBlocks(
+      fallbackSections,
+      unified.blocksBySection
+    )
     let sections = draftSections as unknown as Record<string, unknown>
     const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
     if (finalEvidenceCheck.needsRepair) {
@@ -2702,7 +1711,6 @@ export async function generateAIPremiumReport(
         lang
       )
     }
-    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
     sections = sanitizeSectionsByPaths(sections, sectionPaths)
 
     const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
@@ -2737,20 +1745,6 @@ export async function generateAIPremiumReport(
               'Recheck before final commitment',
               'Communication risk check',
             ]
-    const generatedAt = new Date().toISOString()
-    const unified = buildUnifiedEnvelope({
-      mode: 'comprehensive',
-      lang,
-      generatedAt,
-      matrixReport,
-      matrixSummary: options.matrixSummary,
-      signalSynthesis,
-      graphRagEvidence,
-      birthDate: options.birthDate,
-      timingData: options.timingData,
-      sectionPaths,
-      evidenceRefs,
-    })
     const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
       requiredPaths: sectionPaths,
       claims: unified.claims,
@@ -2777,7 +1771,7 @@ export async function generateAIPremiumReport(
       graphRagSummary,
       evidenceRefs,
       evidenceRefsByPara: unified.evidenceRefsByPara,
-      deterministicCore,
+      deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
       renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
       renderedText: renderSectionsAsText(sections, sectionPaths),
       matrixSummary: {
@@ -2800,20 +1794,40 @@ export async function generateAIPremiumReport(
   }
 
   if (FORCE_REWRITE_ONLY_MODE) {
-    const draftSections = buildComprehensiveFallbackSections(
+    const evidenceRefs = buildComprehensiveEvidenceRefs(signalSynthesis)
+    const sectionPaths = [...COMPREHENSIVE_SECTION_KEYS] as string[]
+    const fallbackSections = buildComprehensiveFallbackSections(
       input,
       matrixReport,
       deterministicCore,
       lang,
       signalSynthesis
     )
-    const evidenceRefs = buildComprehensiveEvidenceRefs(signalSynthesis)
-    const sectionPaths = [...COMPREHENSIVE_SECTION_KEYS] as string[]
+    const generatedAt = new Date().toISOString()
+    const unified = buildUnifiedEnvelope({
+      mode: 'comprehensive',
+      lang,
+      generatedAt,
+      matrixInput: input,
+      matrixReport,
+      matrixSummary: options.matrixSummary,
+      signalSynthesis,
+      graphRagEvidence,
+      birthDate: options.birthDate,
+      timingData: options.timingData,
+      sectionPaths,
+      evidenceRefs,
+    })
+    const draftSections = mergeComprehensiveDraftWithBlocks(
+      fallbackSections,
+      unified.blocksBySection
+    )
     const rewrite = await rewriteSectionsWithFallback<AIPremiumReport['sections']>({
       lang,
       userPlan: options.userPlan,
       draftSections,
       evidenceRefs,
+      blocksBySection: unified.blocksBySection,
       sectionPaths,
       requiredPaths: sectionPaths,
       minCharsPerSection: lang === 'ko' ? 380 : 280,
@@ -2828,7 +1842,6 @@ export async function generateAIPremiumReport(
         lang
       )
     }
-    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
     sections = sanitizeSectionsByPaths(sections, sectionPaths)
 
     const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
@@ -2863,20 +1876,6 @@ export async function generateAIPremiumReport(
               'Recheck before final commitment',
               'Communication risk check',
             ]
-    const generatedAt = new Date().toISOString()
-    const unified = buildUnifiedEnvelope({
-      mode: 'comprehensive',
-      lang,
-      generatedAt,
-      matrixReport,
-      matrixSummary: options.matrixSummary,
-      signalSynthesis,
-      graphRagEvidence,
-      birthDate: options.birthDate,
-      timingData: options.timingData,
-      sectionPaths,
-      evidenceRefs,
-    })
     const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
       requiredPaths: sectionPaths,
       claims: unified.claims,
@@ -2904,7 +1903,7 @@ export async function generateAIPremiumReport(
       graphRagSummary,
       evidenceRefs,
       evidenceRefsByPara: unified.evidenceRefsByPara,
-      deterministicCore,
+      deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
       renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
       renderedText: renderSectionsAsText(sections, sectionPaths),
       matrixSummary: {
@@ -3005,7 +2004,7 @@ export async function generateAIPremiumReport(
         input
       )
 
-      const quality = evaluateSectionGate(sectionText, factPack, sectionKey)
+      const quality = evaluateSectionGate(sectionText, factPack, sectionKey, containsBannedPhrase)
       if (!quality.pass) {
         const repairPrompt = [
           buildSectionPrompt(sectionKey, factPack, lang, sectionText, sectionMinChars),
@@ -3346,6 +2345,7 @@ export async function generateAIPremiumReport(
     mode: 'comprehensive',
     lang,
     generatedAt,
+    matrixInput: input,
     matrixReport,
     matrixSummary: options.matrixSummary,
     signalSynthesis,
@@ -3389,7 +2389,7 @@ export async function generateAIPremiumReport(
     graphRagSummary,
     evidenceRefs: comprehensiveEvidenceRefs,
     evidenceRefsByPara: unified.evidenceRefsByPara,
-    deterministicCore,
+    deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
     renderedMarkdown: renderSectionsAsMarkdown(
       sections as Record<string, unknown>,
       [
@@ -3528,6 +2528,7 @@ export async function generateTimingReport(
       mode: 'timing',
       lang,
       generatedAt,
+      matrixInput: input,
       matrixReport,
       matrixSummary: options.matrixSummary,
       signalSynthesis,
@@ -3577,7 +2578,7 @@ export async function generateTimingReport(
       graphRagSummary,
       evidenceRefs,
       evidenceRefsByPara: unified.evidenceRefsByPara,
-      deterministicCore,
+      deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
       strategyEngine,
       renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
       renderedText: renderSectionsAsText(sections, sectionPaths),
@@ -3618,11 +2619,29 @@ export async function generateTimingReport(
     ]
     const draftSections = buildTimingFallbackSections(input, signalSynthesis, lang)
     const evidenceRefs = buildTimingEvidenceRefs(sectionPaths, signalSynthesis)
+    const generatedAt = new Date().toISOString()
+    const unified = buildUnifiedEnvelope({
+      mode: 'timing',
+      lang,
+      generatedAt,
+      matrixInput: input,
+      matrixReport,
+      matrixSummary: options.matrixSummary,
+      signalSynthesis,
+      graphRagEvidence,
+      period,
+      targetDate,
+      timingData,
+      birthDate: options.birthDate,
+      sectionPaths,
+      evidenceRefs,
+    })
     const rewrite = await rewriteSectionsWithFallback<TimingReportSections>({
       lang,
       userPlan: options.userPlan,
       draftSections,
       evidenceRefs,
+      blocksBySection: unified.blocksBySection,
       sectionPaths,
       requiredPaths,
       minCharsPerSection: lang === 'ko' ? 320 : 240,
@@ -3641,22 +2660,6 @@ export async function generateTimingReport(
     sections = sanitizeSectionsByPaths(sections, sectionPaths)
     const periodLabel = generatePeriodLabel(period, targetDate, lang)
     const periodScore = calculatePeriodScore(timingData, input.dayMasterElement)
-    const generatedAt = new Date().toISOString()
-    const unified = buildUnifiedEnvelope({
-      mode: 'timing',
-      lang,
-      generatedAt,
-      matrixReport,
-      matrixSummary: options.matrixSummary,
-      signalSynthesis,
-      graphRagEvidence,
-      period,
-      targetDate,
-      timingData,
-      birthDate: options.birthDate,
-      sectionPaths,
-      evidenceRefs,
-    })
     const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
       requiredPaths,
       claims: unified.claims,
@@ -3686,7 +2689,7 @@ export async function generateTimingReport(
       graphRagSummary,
       evidenceRefs,
       evidenceRefsByPara: unified.evidenceRefsByPara,
-      deterministicCore,
+      deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
       strategyEngine,
       renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
       renderedText: renderSectionsAsText(sections, sectionPaths),
@@ -3958,6 +2961,7 @@ export async function generateTimingReport(
     mode: 'timing',
     lang,
     generatedAt,
+    matrixInput: input,
     matrixReport,
     matrixSummary: options.matrixSummary,
     signalSynthesis,
@@ -4006,7 +3010,7 @@ export async function generateTimingReport(
     graphRagSummary,
     evidenceRefs: timingEvidenceRefs,
     evidenceRefsByPara: unified.evidenceRefsByPara,
-    deterministicCore,
+    deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
     strategyEngine,
     renderedMarkdown: renderSectionsAsMarkdown(
       sections as Record<string, unknown>,
@@ -4127,6 +3131,7 @@ export async function generateThemedReport(
       mode: 'themed',
       lang,
       generatedAt,
+      matrixInput: input,
       matrixReport,
       matrixSummary: options.matrixSummary,
       signalSynthesis,
@@ -4163,7 +3168,7 @@ export async function generateThemedReport(
       graphRagSummary,
       evidenceRefs,
       evidenceRefsByPara: unified.evidenceRefsByPara,
-      deterministicCore,
+      deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
       strategyEngine,
       renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
       renderedText: renderSectionsAsText(sections, sectionPaths),
@@ -4184,11 +3189,27 @@ export async function generateThemedReport(
     const requiredPaths = [...sectionPaths]
     const draftSections = buildThemedFallbackSections(theme, signalSynthesis, lang)
     const evidenceRefs = buildThemedEvidenceRefs(theme, sectionPaths, signalSynthesis)
+    const generatedAt = new Date().toISOString()
+    const unified = buildUnifiedEnvelope({
+      mode: 'themed',
+      lang,
+      generatedAt,
+      matrixInput: input,
+      matrixReport,
+      matrixSummary: options.matrixSummary,
+      signalSynthesis,
+      graphRagEvidence,
+      timingData,
+      birthDate: options.birthDate,
+      sectionPaths,
+      evidenceRefs,
+    })
     const rewrite = await rewriteSectionsWithFallback<ThemedReportSections>({
       lang,
       userPlan: options.userPlan,
       draftSections,
       evidenceRefs,
+      blocksBySection: unified.blocksBySection,
       sectionPaths,
       requiredPaths,
       minCharsPerSection: lang === 'ko' ? 340 : 260,
@@ -4208,20 +3229,6 @@ export async function generateThemedReport(
     const themeMeta = THEME_META[theme]
     const themeScore = calculateThemeScore(theme, input.sibsinDistribution)
     const keywords = extractKeywords(sections as unknown as ThemedReportSections, theme, lang)
-    const generatedAt = new Date().toISOString()
-    const unified = buildUnifiedEnvelope({
-      mode: 'themed',
-      lang,
-      generatedAt,
-      matrixReport,
-      matrixSummary: options.matrixSummary,
-      signalSynthesis,
-      graphRagEvidence,
-      timingData,
-      birthDate: options.birthDate,
-      sectionPaths,
-      evidenceRefs,
-    })
     const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
       requiredPaths,
       claims: unified.claims,
@@ -4250,7 +3257,7 @@ export async function generateThemedReport(
       graphRagSummary,
       evidenceRefs,
       evidenceRefsByPara: unified.evidenceRefsByPara,
-      deterministicCore,
+      deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
       strategyEngine,
       renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
       renderedText: renderSectionsAsText(sections, sectionPaths),
@@ -4498,6 +3505,7 @@ export async function generateThemedReport(
     mode: 'themed',
     lang,
     generatedAt,
+    matrixInput: input,
     matrixReport,
     matrixSummary: options.matrixSummary,
     signalSynthesis,
@@ -4543,7 +3551,7 @@ export async function generateThemedReport(
     graphRagSummary,
     evidenceRefs: themedEvidenceRefs,
     evidenceRefsByPara: unified.evidenceRefsByPara,
-    deterministicCore,
+    deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
     strategyEngine,
     renderedMarkdown: renderSectionsAsMarkdown(
       sections as Record<string, unknown>,
