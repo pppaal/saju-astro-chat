@@ -50,9 +50,18 @@ import {
   findNatalAspects,
   calculateTransitChart,
   findMajorTransits,
+  calculateExtraPoints,
+  calculateAllAsteroids,
   calculateSecondaryProgressions,
   calculateSolarReturn,
   calculateLunarReturn,
+  compareDraconicToNatal,
+  generateHarmonicProfile,
+  findFixedStarConjunctions,
+  findEclipseImpact,
+  getUpcomingEclipses,
+  calculateMidpoints,
+  findMidpointActivations,
 } from '@/lib/astrology'
 import type { FiveElement } from '@/lib/Saju/types'
 
@@ -128,6 +137,30 @@ const toOptionalNumber = (value: unknown): number | undefined => {
 const toOptionalRecord = (value: unknown): Record<string, unknown> | undefined => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
   return value as Record<string, unknown>
+}
+
+const hasObjectKeys = (value: unknown): boolean => {
+  const obj = toOptionalRecord(value)
+  return !!obj && Object.keys(obj).length > 0
+}
+
+const REQUIRED_ADVANCED_ASTRO_SIGNAL_KEYS = [
+  'solarReturn',
+  'lunarReturn',
+  'progressions',
+  'draconic',
+  'harmonics',
+  'fixedStars',
+  'eclipses',
+  'midpoints',
+  'asteroids',
+  'extraPoints',
+] as const
+
+function hasFullAdvancedAstroSignals(value: unknown): boolean {
+  const signals = toOptionalRecord(value)
+  if (!signals) return false
+  return REQUIRED_ADVANCED_ASTRO_SIGNAL_KEYS.every((key) => signals[key] === true)
 }
 
 const HEAVENLY_STEMS = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계']
@@ -543,7 +576,11 @@ async function enrichRequestWithDerivedAstrology(
     !!requestBody.astrologySnapshot &&
     typeof requestBody.astrologySnapshot === 'object' &&
     !Array.isArray(requestBody.astrologySnapshot)
-  if (hasAstroSnapshot) {
+  const hasAdvancedCoverage =
+    hasObjectKeys(requestBody.asteroidHouses) &&
+    hasObjectKeys(requestBody.extraPointSigns) &&
+    hasFullAdvancedAstroSignals(requestBody.advancedAstroSignals)
+  if (hasAstroSnapshot && hasAdvancedCoverage) {
     return requestBody
   }
 
@@ -607,6 +644,78 @@ async function enrichRequestWithDerivedAstrology(
       }
     }
 
+    const houseCusps = Array.isArray(natal.houses) ? natal.houses.map((h) => h.cusp) : []
+    const asteroidHouses: Record<string, number> = {}
+    if (natal.meta?.jdUT && houseCusps.length > 0) {
+      try {
+        const asteroids = calculateAllAsteroids(natal.meta.jdUT, houseCusps)
+        for (const key of ['Ceres', 'Pallas', 'Juno', 'Vesta'] as const) {
+          const house = asteroids[key]?.house
+          if (typeof house === 'number' && house >= 1 && house <= 12) {
+            asteroidHouses[key] = house
+          }
+        }
+      } catch (error) {
+        logger.warn('[destiny-matrix/ai-report] Failed to derive asteroid houses', {
+          error: error instanceof Error ? error.message : String(error),
+        })
+      }
+    }
+
+    const extraPointSigns: Record<string, string> = {}
+    if (natal.meta?.jdUT && houseCusps.length > 0) {
+      const sun = natal.planets.find((p) => p.name === 'Sun')
+      const moon = natal.planets.find((p) => p.name === 'Moon')
+      if (sun && moon && natal.ascendant) {
+        try {
+          const extras = await calculateExtraPoints(
+            natal.meta.jdUT,
+            latitude,
+            longitude,
+            natal.ascendant.longitude,
+            sun.longitude,
+            moon.longitude,
+            sun.house,
+            houseCusps
+          )
+          extraPointSigns.Chiron = extras.chiron.sign
+          extraPointSigns.Lilith = extras.lilith.sign
+          extraPointSigns.PartOfFortune = extras.partOfFortune.sign
+          extraPointSigns.Vertex = extras.vertex.sign
+        } catch (error) {
+          logger.warn('[destiny-matrix/ai-report] Failed to derive extra-point signs', {
+            error: error instanceof Error ? error.message : String(error),
+          })
+        }
+      }
+    }
+
+    const birthYear = Number(birthDate.slice(0, 4))
+    const currentYear = new Date().getFullYear()
+    const currentAge = Number.isFinite(birthYear) ? Math.max(0, currentYear - birthYear) : undefined
+    const draconic = compareDraconicToNatal(natalChart)
+    const harmonics = generateHarmonicProfile(natalChart, currentAge)
+    const fixedStars = findFixedStarConjunctions(natalChart, currentYear, 1.0).slice(0, 20)
+    const eclipseImpact = findEclipseImpact(natalChart).slice(0, 20)
+    const upcomingEclipses = getUpcomingEclipses(new Date(nowIso), 6)
+    const midpoints = calculateMidpoints(natalChart)
+    const midpointActivations = findMidpointActivations(natalChart, 1.5).slice(0, 30)
+
+    const existingAdvancedSignals = toOptionalRecord(requestBody.advancedAstroSignals) || {}
+    const advancedAstroSignals = {
+      ...existingAdvancedSignals,
+      solarReturn: true,
+      lunarReturn: true,
+      progressions: true,
+      draconic: true,
+      harmonics: true,
+      fixedStars: fixedStars.length > 0,
+      eclipses: eclipseImpact.length > 0 || upcomingEclipses.length > 0,
+      midpoints: midpoints.length > 0,
+      asteroids: Object.keys(asteroidHouses).length > 0,
+      extraPoints: Object.keys(extraPointSigns).length > 0,
+    }
+
     requestBody.astrologySnapshot = {
       natalChart: natal,
       natalAspects,
@@ -618,6 +727,19 @@ async function enrichRequestWithDerivedAstrology(
       returns: {
         solarReturn,
         lunarReturn,
+      },
+      advanced: {
+        draconic,
+        harmonics,
+        fixedStars,
+        eclipses: {
+          impact: eclipseImpact,
+          upcoming: upcomingEclipses,
+        },
+        midpoints: {
+          all: midpoints,
+          activations: midpointActivations,
+        },
       },
     }
     if (!requestBody.planetSigns || typeof requestBody.planetSigns !== 'object') {
@@ -642,6 +764,18 @@ async function enrichRequestWithDerivedAstrology(
         orb: a.orb,
       }))
     }
+    if (!hasObjectKeys(requestBody.asteroidHouses) && Object.keys(asteroidHouses).length > 0) {
+      requestBody.asteroidHouses = asteroidHouses
+    }
+    if (!hasObjectKeys(requestBody.extraPointSigns) && Object.keys(extraPointSigns).length > 0) {
+      requestBody.extraPointSigns = extraPointSigns
+    }
+    requestBody.advancedAstroSignals = advancedAstroSignals
+    logger.debug('[destiny-matrix/ai-report] Derived advanced astrology coverage', {
+      asteroidCount: Object.keys(asteroidHouses).length,
+      extraPointCount: Object.keys(extraPointSigns).length,
+      advancedSignals: advancedAstroSignals,
+    })
   } catch (error) {
     logger.warn('[destiny-matrix/ai-report] Failed to derive astrology from birth profile', {
       error: error instanceof Error ? error.message : String(error),
@@ -755,6 +889,23 @@ function listAiReportMissing(
   if (!timingData.wolun) missing.push('timingData.wolun')
   if (!timingData.iljin) missing.push('timingData.iljin')
   if (!timingData.daeun) missing.push('timingData.daeun')
+
+  const hasBirthProfile =
+    !!matrixInput.profileContext?.birthDate && !!matrixInput.profileContext?.birthTime
+  if (hasBirthProfile) {
+    if (!matrixInput.asteroidHouses || Object.keys(matrixInput.asteroidHouses).length === 0) {
+      missing.push('asteroidHouses')
+    }
+    if (!matrixInput.extraPointSigns || Object.keys(matrixInput.extraPointSigns).length === 0) {
+      missing.push('extraPointSigns')
+    }
+    const signals = (matrixInput.advancedAstroSignals || {}) as Record<string, unknown>
+    for (const key of REQUIRED_ADVANCED_ASTRO_SIGNAL_KEYS) {
+      if (signals[key] !== true) {
+        missing.push(`advancedAstroSignals.${key}`)
+      }
+    }
+  }
   return missing
 }
 

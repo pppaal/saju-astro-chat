@@ -381,6 +381,20 @@ export const MatrixCalculationInputSchema = z.object({
     .refine((signs) => Object.keys(signs).every((key) => VALID_EXTRA_POINT_NAMES.has(key)), {
       message: 'Invalid extra point name in signs',
     }),
+  advancedAstroSignals: z
+    .object({
+      solarReturn: z.boolean().optional(),
+      lunarReturn: z.boolean().optional(),
+      progressions: z.boolean().optional(),
+      draconic: z.boolean().optional(),
+      harmonics: z.boolean().optional(),
+      fixedStars: z.boolean().optional(),
+      eclipses: z.boolean().optional(),
+      midpoints: z.boolean().optional(),
+      asteroids: z.boolean().optional(),
+      extraPoints: z.boolean().optional(),
+    })
+    .optional(),
 
   // Full snapshots (optional) for downstream deterministic grounding
   sajuSnapshot: z.record(z.string(), z.unknown()).optional(),
