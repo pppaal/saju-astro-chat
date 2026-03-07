@@ -14,6 +14,8 @@ import {
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { calculateYearlyImportantDates } from '@/lib/destiny-map/destinyCalendar'
 import { calculateSajuData } from '@/lib/Saju/saju'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
+import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/Saju/shinsal'
 import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { toChart } from '@/lib/astrology/foundation/astrologyService'
@@ -22,6 +24,7 @@ import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
 import type { FiveElement } from '@/lib/Saju/types'
 import type { MatrixCalculationInput, PlanetName } from '@/lib/destiny-matrix/types'
 import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
+import { getRetrogradePlanetsForDate } from '@/lib/destiny-map/calendar/astrology/retrograde'
 import {
   buildNormalizedMatrixInput,
   runDestinyCore,
@@ -91,6 +94,194 @@ const MAJOR_PLANETS: readonly PlanetName[] = [
 ]
 
 const MAJOR_PLANET_SET = new Set<string>(MAJOR_PLANETS)
+
+const MATRIX_SHINSAL_KIND_SET = new Set<NonNullable<MatrixCalculationInput['shinsalList']>[number]>(
+  [
+    '천을귀인',
+    '태극귀인',
+    '천덕귀인',
+    '월덕귀인',
+    '문창귀인',
+    '학당귀인',
+    '금여록',
+    '천주귀인',
+    '암록',
+    '건록',
+    '제왕',
+    '도화',
+    '홍염살',
+    '양인',
+    '백호',
+    '겁살',
+    '재살',
+    '천살',
+    '지살',
+    '년살',
+    '월살',
+    '망신',
+    '고신',
+    '괴강',
+    '현침',
+    '귀문관',
+    '병부',
+    '효신살',
+    '상문살',
+    '역마',
+    '화개',
+    '장성',
+    '반안',
+    '천라지망',
+    '공망',
+    '삼재',
+    '원진',
+  ]
+)
+
+const SHINSAL_KIND_ALIASES: Record<
+  string,
+  NonNullable<MatrixCalculationInput['shinsalList']>[number]
+> = {
+  문창: '문창귀인',
+  학당귀인: '학당귀인',
+  금여성: '금여록',
+  금여록: '금여록',
+  공망살: '공망',
+  홍염: '홍염살',
+}
+
+const TRANSIT_CYCLE_SET = new Set<NonNullable<MatrixCalculationInput['activeTransits']>[number]>([
+  'saturnReturn',
+  'jupiterReturn',
+  'uranusSquare',
+  'neptuneSquare',
+  'plutoTransit',
+  'nodeReturn',
+  'eclipse',
+  'mercuryRetrograde',
+  'venusRetrograde',
+  'marsRetrograde',
+  'jupiterRetrograde',
+  'saturnRetrograde',
+])
+
+function normalizeShinsalKind(
+  raw: unknown
+): NonNullable<MatrixCalculationInput['shinsalList']>[number] | null {
+  if (typeof raw !== 'string') return null
+  const trimmed = raw.trim()
+  const aliased = SHINSAL_KIND_ALIASES[trimmed] || trimmed
+  if (
+    !MATRIX_SHINSAL_KIND_SET.has(
+      aliased as NonNullable<MatrixCalculationInput['shinsalList']>[number]
+    )
+  ) {
+    return null
+  }
+  return aliased as NonNullable<MatrixCalculationInput['shinsalList']>[number]
+}
+
+function toDatePartsInTimeZone(
+  date: Date,
+  timeZone: string
+): { year: number; month: number; day: number } {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date)
+
+  const getPart = (type: 'year' | 'month' | 'day') =>
+    Number(parts.find((part) => part.type === type)?.value ?? '0')
+
+  return {
+    year: getPart('year'),
+    month: getPart('month'),
+    day: getPart('day'),
+  }
+}
+
+function calculateAgeAtDate(birthDate: string, targetDate: Date, timeZone: string): number {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(birthDate.trim())
+  if (!match) return 0
+  const birthYear = Number(match[1])
+  const birthMonth = Number(match[2])
+  const birthDay = Number(match[3])
+  const { year, month, day } = toDatePartsInTimeZone(targetDate, timeZone)
+
+  let age = year - birthYear
+  if (month < birthMonth || (month === birthMonth && day < birthDay)) age -= 1
+  return Math.max(0, age)
+}
+
+function inferLifecycleTransitCyclesForCalendar(
+  age: number
+): NonNullable<MatrixCalculationInput['activeTransits']> {
+  const out = new Set<NonNullable<MatrixCalculationInput['activeTransits']>[number]>()
+  const withinOneYear = (value: number, target: number) => Math.abs(value - target) <= 1
+
+  for (let trigger = 12; trigger <= 96; trigger += 12) {
+    if (withinOneYear(age, trigger)) {
+      out.add('jupiterReturn')
+      break
+    }
+  }
+  for (const trigger of [29, 58, 87]) {
+    if (withinOneYear(age, trigger)) {
+      out.add('saturnReturn')
+      break
+    }
+  }
+  for (const trigger of [21, 42, 63]) {
+    if (withinOneYear(age, trigger)) {
+      out.add('uranusSquare')
+      break
+    }
+  }
+  for (const trigger of [41, 82]) {
+    if (withinOneYear(age, trigger)) {
+      out.add('neptuneSquare')
+      break
+    }
+  }
+  for (const trigger of [18, 37, 56, 74]) {
+    if (withinOneYear(age, trigger)) {
+      out.add('nodeReturn')
+      break
+    }
+  }
+  if (age >= 36 && age <= 44) out.add('plutoTransit')
+  return [...out]
+}
+
+function inferRetrogradeTransitCyclesForCalendar(
+  targetDate: Date
+): NonNullable<MatrixCalculationInput['activeTransits']> {
+  const retrogrades = getRetrogradePlanetsForDate(targetDate)
+  const map: Record<string, NonNullable<MatrixCalculationInput['activeTransits']>[number]> = {
+    mercury: 'mercuryRetrograde',
+    venus: 'venusRetrograde',
+    mars: 'marsRetrograde',
+    jupiter: 'jupiterRetrograde',
+    saturn: 'saturnRetrograde',
+  }
+
+  const out = new Set<NonNullable<MatrixCalculationInput['activeTransits']>[number]>()
+  for (const planet of retrogrades) {
+    const cycle = map[planet]
+    if (cycle && TRANSIT_CYCLE_SET.has(cycle)) out.add(cycle)
+  }
+  return [...out]
+}
+
+function toTwelveStageCounts(
+  stageMap: ReturnType<typeof getTwelveStagesForPillars>
+): MatrixCalculationInput['twelveStages'] {
+  return Object.values(stageMap).reduce<Record<string, number>>((acc, stage) => {
+    acc[stage] = (acc[stage] || 0) + 1
+    return acc
+  }, {})
+}
 
 const ASPECT_ANGLE_MAP: Record<
   | 'conjunction'
@@ -445,18 +636,81 @@ export const GET = withApiMiddleware(
         STEM_TO_ELEMENT[sajuResult.daeWoon?.current?.heavenlyStem || '']
       )
       const currentSaeunElement = toKoElement(sajuResult.unse?.annual?.[0]?.element)
+      const now = new Date()
+      const age = calculateAgeAtDate(birthDateParam, now, timezone)
+      const activeTransits = Array.from(
+        new Set<NonNullable<MatrixCalculationInput['activeTransits']>[number]>([
+          ...inferLifecycleTransitCyclesForCalendar(age),
+          ...inferRetrogradeTransitCyclesForCalendar(now),
+        ])
+      )
+
+      let relations: MatrixCalculationInput['relations'] = []
+      let twelveStages: MatrixCalculationInput['twelveStages'] = {}
+      let shinsalList: NonNullable<MatrixCalculationInput['shinsalList']> = []
+      try {
+        const hasCompletePillars =
+          Boolean(sajuResult?.yearPillar?.heavenlyStem?.name) &&
+          Boolean(sajuResult?.monthPillar?.heavenlyStem?.name) &&
+          Boolean(sajuResult?.dayPillar?.heavenlyStem?.name) &&
+          Boolean(sajuResult?.timePillar?.heavenlyStem?.name) &&
+          Boolean(sajuResult?.yearPillar?.earthlyBranch?.name) &&
+          Boolean(sajuResult?.monthPillar?.earthlyBranch?.name) &&
+          Boolean(sajuResult?.dayPillar?.earthlyBranch?.name) &&
+          Boolean(sajuResult?.timePillar?.earthlyBranch?.name)
+
+        if (hasCompletePillars) {
+          const relationInput = toAnalyzeInputFromSaju(
+            {
+              year: sajuResult.yearPillar,
+              month: sajuResult.monthPillar,
+              day: sajuResult.dayPillar,
+              time: sajuResult.timePillar,
+            },
+            sajuResult.dayPillar.heavenlyStem.name
+          )
+          relations = analyzeRelations(relationInput)
+
+          const pillarsLike = toSajuPillarsLike({
+            yearPillar: sajuResult.yearPillar,
+            monthPillar: sajuResult.monthPillar,
+            dayPillar: sajuResult.dayPillar,
+            timePillar: sajuResult.timePillar,
+          })
+          twelveStages = toTwelveStageCounts(getTwelveStagesForPillars(pillarsLike))
+
+          const shinsalHits = getShinsalHits(pillarsLike, {
+            includeTwelveAll: true,
+            includeGeneralShinsal: true,
+            includeLuckyDetails: true,
+            ruleSet: 'standard',
+          })
+          shinsalList = Array.from(
+            new Set(
+              shinsalHits
+                .map((hit) => normalizeShinsalKind(hit.kind))
+                .filter(
+                  (kind): kind is NonNullable<MatrixCalculationInput['shinsalList']>[number] =>
+                    Boolean(kind)
+                )
+            )
+          )
+        }
+      } catch (sajuSignalError) {
+        logger.warn('[Calendar] Failed to derive saju signals for matrix input', sajuSignalError)
+      }
 
       const matrixInput: MatrixCalculationInput = {
         dayMasterElement: dayMasterElementKo,
         pillarElements,
         sibsinDistribution,
-        twelveStages: {},
-        relations: [],
+        twelveStages,
+        relations,
         geokguk: advanced.geokguk.type as MatrixCalculationInput['geokguk'],
         yongsin: advanced.yongsin.primary,
         currentDaeunElement,
         currentSaeunElement,
-        shinsalList: [],
+        shinsalList,
         dominantWesternElement:
           astroProfile.sunElement === 'air' ||
           astroProfile.sunElement === 'fire' ||
@@ -467,7 +721,7 @@ export const GET = withApiMiddleware(
         planetHouses,
         planetSigns,
         aspects,
-        activeTransits: [],
+        activeTransits,
         sajuSnapshot: toOptionalRecord(sajuResult),
         astrologySnapshot: natalChartData
           ? ({
@@ -538,6 +792,13 @@ export const GET = withApiMiddleware(
         saju: {
           pillarElementCount: pillarElements.length,
           sibsinKeyCount: Object.keys(sibsinDistribution).length,
+          twelveStageCount: Object.keys(normalizedMatrixInput.twelveStages || {}).length,
+          relationCount: Array.isArray(normalizedMatrixInput.relations)
+            ? normalizedMatrixInput.relations.length
+            : 0,
+          shinsalCount: Array.isArray(normalizedMatrixInput.shinsalList)
+            ? normalizedMatrixInput.shinsalList.length
+            : 0,
           geokguk: normalizedMatrixInput.geokguk || null,
           yongsin: normalizedMatrixInput.yongsin || null,
           hasCurrentDaeun: !!normalizedMatrixInput.currentDaeunElement,
@@ -549,6 +810,9 @@ export const GET = withApiMiddleware(
           planetSignCount: Object.keys(normalizedMatrixInput.planetSigns || {}).length,
           aspectCount: Array.isArray(normalizedMatrixInput.aspects)
             ? normalizedMatrixInput.aspects.length
+            : 0,
+          activeTransitCount: Array.isArray(normalizedMatrixInput.activeTransits)
+            ? normalizedMatrixInput.activeTransits.length
             : 0,
           dominantWesternElement: normalizedMatrixInput.dominantWesternElement || null,
           snapshotKeys: Object.keys(normalizedMatrixInput.astrologySnapshot || {}).length,

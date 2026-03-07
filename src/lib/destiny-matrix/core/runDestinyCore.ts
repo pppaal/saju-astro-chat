@@ -76,7 +76,19 @@ function normalizeAdvancedAstroSignals(value: MatrixCalculationInput['advancedAs
   state: AvailabilityState
 } {
   if (!value) return { value: {}, state: 'missing-upstream' }
-  const enabledCount = Object.values(value).filter((flag) => flag === true).length
+  const enabledCount = Object.values(value).filter((flag) => {
+    if (flag === true) return true
+    if (typeof flag === 'number') return Number.isFinite(flag) && flag !== 0
+    if (typeof flag === 'string') {
+      const normalized = flag.trim().toLowerCase()
+      return (
+        Boolean(normalized) && !['false', '0', 'none', 'null', 'undefined'].includes(normalized)
+      )
+    }
+    if (Array.isArray(flag)) return flag.length > 0
+    if (flag && typeof flag === 'object') return Object.keys(flag).length > 0
+    return false
+  }).length
   if (enabledCount === 0) return { value, state: 'empty-computed' }
   return { value, state: 'present' }
 }

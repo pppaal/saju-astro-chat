@@ -684,7 +684,8 @@ export function buildPatternEngine(
   strategyEngine: StrategyEngineResult
 ): PatternResult[] {
   const signals =
-    synthesis.selectedSignals.length > 0 ? synthesis.selectedSignals : synthesis.normalizedSignals
+    synthesis.normalizedSignals.length > 0 ? synthesis.normalizedSignals : synthesis.selectedSignals
+  const selectedIdSet = new Set((synthesis.selectedSignals || []).map((signal) => signal.id))
   const basePatterns = PATTERN_DEFINITIONS.map((definition) => {
     const matchedSignals = signals.filter((signal) =>
       definition.matchers.some((matcher) => matchesSignal(signal, matcher))
@@ -702,10 +703,16 @@ export function buildPatternEngine(
       definition.preferredPhases.includes(leadStrategy.phase)
         ? 10
         : 0
+    const selectedHitCount = matchedSignals.filter((signal) => selectedIdSet.has(signal.id)).length
+    const selectedHitBonus = Math.min(10, selectedHitCount * 3)
     const attackBonus = (leadStrategy?.attackPercent || strategyEngine.attackPercent) * 0.15
     const score = clamp(
       Math.round(
-        (averageSignalScore / 10) * 55 + matchedSignalIds.length * 10 + attackBonus + phaseBonus
+        (averageSignalScore / 10) * 55 +
+          matchedSignalIds.length * 8 +
+          selectedHitBonus +
+          attackBonus +
+          phaseBonus
       ),
       1,
       100

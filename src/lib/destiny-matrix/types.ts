@@ -428,18 +428,21 @@ export interface MatrixCalculationInput {
   sajuSnapshot?: Record<string, unknown>
   astrologySnapshot?: Record<string, unknown>
   crossSnapshot?: Record<string, unknown>
-  advancedAstroSignals?: {
-    solarReturn?: boolean
-    lunarReturn?: boolean
-    progressions?: boolean
-    draconic?: boolean
-    harmonics?: boolean
-    fixedStars?: boolean
-    eclipses?: boolean
-    midpoints?: boolean
-    asteroids?: boolean
-    extraPoints?: boolean
-  }
+  advancedAstroSignals?: Partial<
+    Record<
+      | 'solarReturn'
+      | 'lunarReturn'
+      | 'progressions'
+      | 'draconic'
+      | 'harmonics'
+      | 'fixedStars'
+      | 'eclipses'
+      | 'midpoints'
+      | 'asteroids'
+      | 'extraPoints',
+      boolean | string | number | Record<string, unknown> | unknown[]
+    >
+  >
   currentDateIso?: string
 
   // Options

@@ -240,6 +240,41 @@ function inferDomainsFromText(raw: string): SignalDomain[] {
   return [...domains]
 }
 
+function isNonEmptyRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+function hasMeaningfulSignalValue(value: unknown): boolean {
+  if (value === true) return true
+  if (typeof value === 'number') return Number.isFinite(value) && value !== 0
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase()
+    if (!normalized) return false
+    if (['false', '0', 'none', 'null', 'undefined', 'off', 'no'].includes(normalized)) return false
+    return true
+  }
+  if (Array.isArray(value)) return value.length > 0
+  if (isNonEmptyRecord(value)) return Object.keys(value).length > 0
+  return false
+}
+
+function summarizeSignalValue(value: unknown): string {
+  if (value === true) return 'true'
+  if (typeof value === 'number') return String(value)
+  if (typeof value === 'string') return value.trim().slice(0, 48)
+  if (Array.isArray(value)) return `array(${value.length})`
+  if (isNonEmptyRecord(value)) return `object(${Object.keys(value).slice(0, 6).join(',')})`
+  return String(value)
+}
+
+function scoreBoostFromSignalValue(value: unknown): number {
+  if (Array.isArray(value)) return Math.min(2, Math.floor(value.length / 2))
+  if (isNonEmptyRecord(value)) return Math.min(2, Math.floor(Object.keys(value).length / 3))
+  if (typeof value === 'number') return Math.min(2, Math.max(0, Math.floor(Math.abs(value) / 20)))
+  if (typeof value === 'string') return value.length > 24 ? 1 : 0
+  return 0
+}
+
 function fallbackDomainsByLayer(layer: number): SignalDomain[] {
   if (layer === 4) return ['timing']
   if (layer === 6) return ['career', 'relationship']
@@ -395,6 +430,102 @@ function buildSyntheticSignal(input: {
       riskEn: semantic.riskEn,
     },
   }
+}
+
+function normalizeSnapshotSignals(
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): NormalizedSignal[] {
+  const out: NormalizedSignal[] = []
+  const snapshotConfigs: Array<{
+    key: 'sajuSnapshot' | 'astrologySnapshot' | 'crossSnapshot'
+    layer: number
+    rowKey: string
+    baseDomainHints: SignalDomain[]
+  }> = [
+    {
+      key: 'sajuSnapshot',
+      layer: 7,
+      rowKey: 'snapshot_saju',
+      baseDomainHints: ['personality', 'timing'],
+    },
+    {
+      key: 'astrologySnapshot',
+      layer: 10,
+      rowKey: 'snapshot_astro',
+      baseDomainHints: ['timing', 'career'],
+    },
+    {
+      key: 'crossSnapshot',
+      layer: 10,
+      rowKey: 'snapshot_cross',
+      baseDomainHints: ['timing', 'relationship'],
+    },
+  ]
+  const preferredKeys: Record<'sajuSnapshot' | 'astrologySnapshot' | 'crossSnapshot', string[]> = {
+    sajuSnapshot: ['unse', 'sinsal', 'advancedAnalysis', 'facts', 'pillars'],
+    astrologySnapshot: ['natalChart', 'natalAspects', 'advancedAstroSignals', 'transits'],
+    crossSnapshot: ['crossEvidence', 'crossAgreement', 'source', 'category'],
+  }
+
+  for (const config of snapshotConfigs) {
+    const snapshot = matrixInput[config.key]
+    if (!isNonEmptyRecord(snapshot) || Object.keys(snapshot).length === 0) continue
+
+    const snapshotKeys = Object.keys(snapshot)
+    const keyCandidates = [
+      ...preferredKeys[config.key].filter((key) => snapshotKeys.includes(key)),
+      ...snapshotKeys.filter((key) => !preferredKeys[config.key].includes(key)),
+    ].slice(0, 4)
+
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L${config.layer}:${config.rowKey}:present`,
+        layer: config.layer,
+        rowKey: config.rowKey,
+        colKey: 'present',
+        polarity: 'balance',
+        score: clampScore(5 + Math.min(2, Math.floor(snapshotKeys.length / 4))),
+        keyword: `${config.rowKey} snapshot`,
+        sajuBasis: `${config.key}.keys=${snapshotKeys.slice(0, 8).join(',')}`,
+        astroBasis: `${config.key} available`,
+        advice:
+          lang === 'ko'
+            ? '스냅샷 근거는 단일 문장보다 교차 근거 묶음으로 읽을 때 정확도가 올라갑니다.'
+            : 'Snapshot evidence is most reliable when interpreted as a cross-evidence bundle.',
+        tags: ['coverage', 'snapshot', config.key],
+        domainHints: config.baseDomainHints,
+        lang,
+      })
+    )
+
+    for (const key of keyCandidates) {
+      const value = snapshot[key]
+      if (!hasMeaningfulSignalValue(value)) continue
+      out.push(
+        buildSyntheticSignal({
+          id: `COV:L${config.layer}:${config.rowKey}:${key}`,
+          layer: config.layer,
+          rowKey: config.rowKey,
+          colKey: key,
+          polarity: 'balance',
+          score: clampScore(5 + scoreBoostFromSignalValue(value)),
+          keyword: `${config.rowKey} ${key}`,
+          sajuBasis: `${config.key}.${key}=${summarizeSignalValue(value)}`,
+          astroBasis: `${config.key}.${key} active`,
+          advice:
+            lang === 'ko'
+              ? '해당 스냅샷 키는 코어 신호를 보강하는 보조 증거로 사용하세요.'
+              : 'Use this snapshot key as supporting evidence for core signals.',
+          tags: ['coverage', 'snapshot', config.key, key],
+          domainHints: uniq([...config.baseDomainHints, ...inferDomainsFromText(key)]),
+          lang,
+        })
+      )
+    }
+  }
+
+  return out
 }
 
 function normalizeFromMatrixInput(
@@ -767,10 +898,12 @@ function normalizeFromMatrixInput(
 
   const advancedSignals = (matrixInput.advancedAstroSignals || {}) as Record<string, unknown>
   for (const [key, value] of Object.entries(advancedSignals)) {
-    if (value !== true) continue
+    if (!hasMeaningfulSignalValue(value)) continue
     const lowerKey = toLower(key)
     const isCaution = lowerKey.includes('eclipse')
     const polarity: SignalPolarity = isCaution ? 'caution' : 'balance'
+    const valueSummary = summarizeSignalValue(value)
+    const score = clampScore(scoreFromPolarity(polarity, 5) + scoreBoostFromSignalValue(value))
     out.push(
       buildSyntheticSignal({
         id: `COV:L10:advanced:${lowerKey}`,
@@ -778,20 +911,25 @@ function normalizeFromMatrixInput(
         rowKey: 'advanced_astro',
         colKey: lowerKey,
         polarity,
-        score: scoreFromPolarity(polarity, 5),
+        score,
         keyword: `Advanced ${lowerKey}`,
         sajuBasis: 'advanced cross-check enabled',
-        astroBasis: `${lowerKey}=true`,
+        astroBasis: `${lowerKey}=${valueSummary}`,
         advice:
           lang === 'ko'
             ? '고급 점성 모듈은 단일 단정이 아니라 교차 검증 신호로 사용하세요.'
             : 'Use advanced astrology modules as cross-verification signals, not standalone verdicts.',
-        tags: ['coverage', 'advanced-astro', lowerKey],
-        domainHints: inferDomainsFromText(lowerKey),
+        tags: ['coverage', 'advanced-astro', lowerKey, valueSummary],
+        domainHints: uniq([
+          ...inferDomainsFromText(lowerKey),
+          ...inferDomainsFromText(valueSummary),
+        ]),
         lang,
       })
     )
   }
+
+  out.push(...normalizeSnapshotSignals(matrixInput, lang))
 
   return out
 }

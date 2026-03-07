@@ -256,6 +256,11 @@ export function buildScenarioEngine(
   strategyEngine: StrategyEngineResult,
   normalizedInput: MatrixCalculationInputNormalized
 ): ScenarioResult[] {
+  const maxPatternCount = (() => {
+    const raw = Number(process.env.DESTINY_SCENARIO_PATTERN_LIMIT || 24)
+    if (!Number.isFinite(raw) || raw <= 0) return 24
+    return Math.max(12, Math.min(120, Math.floor(raw)))
+  })()
   const timingWeight =
     1 +
     (normalizedInput.currentDaeunElement ? 0.08 : 0) +
@@ -263,7 +268,8 @@ export function buildScenarioEngine(
     (normalizedInput.activeTransits.length > 0 ? 0.06 : 0)
 
   return patterns
-    .slice(0, 12)
+    .filter((pattern) => pattern.score >= 42)
+    .slice(0, maxPatternCount)
     .flatMap((pattern) => {
       const definitions = SCENARIO_DEFINITIONS.filter((item) => item.patternId === pattern.id)
       const resolvedDefinitions =
