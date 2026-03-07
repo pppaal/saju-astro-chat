@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import { blogPosts } from '@/data/blog-posts'
 import { isBlockedBlogPost } from '@/data/blog/publicFilters'
+import { ENABLED_SERVICES, REMOVED_PUBLIC_SERVICE_PREFIXES } from '@/config/enabledServices'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
@@ -45,17 +46,39 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.9,
     },
+    {
+      url: `${BASE_URL}/premium-reports`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${BASE_URL}/destiny-counselor`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/about/features`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${BASE_URL}/about/matrix`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
   ]
 
-  // Service pages
-  const servicePages: MetadataRoute.Sitemap = [
-    'destiny-map',
-    'report',
-    'tarot',
-    'calendar',
-    'compatibility',
-  ].map((service) => ({
-    url: `${BASE_URL}/${service}`,
+  const servicePaths = [
+    ...ENABLED_SERVICES.map((service) => service.href),
+    ...REMOVED_PUBLIC_SERVICE_PREFIXES,
+  ]
+
+  const servicePages: MetadataRoute.Sitemap = Array.from(new Set(servicePaths)).map((path) => ({
+    url: `${BASE_URL}${path}`,
     lastModified: currentDate,
     changeFrequency: 'weekly' as const,
     priority: 0.8,

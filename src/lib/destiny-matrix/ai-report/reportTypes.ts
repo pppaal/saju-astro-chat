@@ -19,10 +19,13 @@ import type {
   UnifiedSelectedSignal,
   UnifiedTimelineEvent,
   UnifiedTimeWindow,
+  TopMatchedPattern,
 } from './types'
 import type { SignalSynthesisResult } from './signalSynthesizer'
 import type { SectionEvidenceRefs } from './evidenceRefs'
 import type { StrategyEngineResult } from './strategyEngine'
+import type { PatternResult } from '@/lib/destiny-matrix/core/patternEngine'
+import type { ScenarioResult } from '@/lib/destiny-matrix/core/scenarioEngine'
 
 export type AIUserPlan = 'free' | 'starter' | 'pro' | 'premium'
 
@@ -37,6 +40,10 @@ export interface AIPremiumReport {
   selectedSignals: UnifiedSelectedSignal[]
   anchors: UnifiedAnchor[]
   evidenceLinks: UnifiedEvidenceLink[]
+  coreHash?: string
+  patterns?: PatternResult[]
+  topMatchedPatterns?: TopMatchedPattern[]
+  scenarios?: ScenarioResult[]
   timelineEvents: UnifiedTimelineEvent[]
   scenarioBundles?: UnifiedScenarioBundle[]
 

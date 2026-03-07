@@ -76,12 +76,13 @@ export const metadata: Metadata = {
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://destinypal.com')
   ),
   title: {
-    default: 'DestinyPal | AI Spiritual Mental Care Platform',
+    default: 'DestinyPal | AI Saju, Tarot, Astrology, Compatibility',
     template: '%s | DestinyPal',
   },
   description:
-    'Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform integrating Eastern & Western wisdom frameworks.',
+    'DestinyPal is an AI fortune platform for Saju, Tarot, Astrology, Compatibility, and Destiny Map insights. Explore Korean fortune reading, timing guidance, and practical self-understanding.',
   keywords: [
+    'DestinyPal',
     'destiny',
     'fortune reading',
     'destiny map',
@@ -135,9 +136,9 @@ export const metadata: Metadata = {
     alternateLocale: ['en_US'],
     url: '/',
     siteName: 'DestinyPal',
-    title: 'DestinyPal | AI Spiritual Mental Care Platform',
+    title: 'DestinyPal | AI Saju, Tarot, Astrology, Compatibility',
     description:
-      'Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform.',
+      'AI fortune platform for Saju, Tarot, Astrology, Compatibility, and Destiny Map guidance.',
     images: [
       {
         url: '/og-image.png',
@@ -149,9 +150,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'DestinyPal | AI Spiritual Mental Care Platform',
+    title: 'DestinyPal | AI Saju, Tarot, Astrology, Compatibility',
     description:
-      'Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform.',
+      'AI fortune platform for Saju, Tarot, Astrology, Compatibility, and Destiny Map guidance.',
     images: ['/og-image.png'],
     creator: '@destinypal',
     site: '@destinypal',
@@ -190,7 +191,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     type: 'WebSite',
     name: 'DestinyPal',
     description:
-      'Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform.',
+      'AI fortune platform for Saju, Tarot, Astrology, Compatibility, and Destiny Map guidance.',
   })
 
   const organizationJsonLd = generateJsonLd({

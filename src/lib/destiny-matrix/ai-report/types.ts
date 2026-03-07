@@ -7,6 +7,8 @@ import type { CrossConsistencyAudit } from './crossConsistencyAudit'
 import type { DeterministicCoreOutput } from './deterministicCore'
 import type { SectionEvidenceRefs } from './evidenceRefs'
 import type { StrategyEngineResult } from './strategyEngine'
+import type { PatternResult } from '@/lib/destiny-matrix/core/patternEngine'
+import type { ScenarioResult } from '@/lib/destiny-matrix/core/scenarioEngine'
 
 // ===========================
 // 기간별/테마별 옵션
@@ -163,6 +165,17 @@ export interface UnifiedScenarioBundle {
   }
 }
 
+export interface TopMatchedPattern {
+  id: string
+  label: string
+  score: number
+  confidence: number
+  domains: string[]
+  activationReason: string
+  matchedSignalIds: string[]
+  matchedKeywords: string[]
+}
+
 // ===========================
 // 타이밍 리포트 섹션
 // ===========================
@@ -257,6 +270,10 @@ export interface TimingAIPremiumReport {
   selectedSignals: UnifiedSelectedSignal[]
   anchors: UnifiedAnchor[]
   evidenceLinks: UnifiedEvidenceLink[]
+  coreHash?: string
+  patterns?: PatternResult[]
+  topMatchedPatterns?: TopMatchedPattern[]
+  scenarios?: ScenarioResult[]
   timelineEvents: UnifiedTimelineEvent[]
   scenarioBundles?: UnifiedScenarioBundle[]
 
@@ -356,6 +373,10 @@ export interface ThemedAIPremiumReport {
   selectedSignals: UnifiedSelectedSignal[]
   anchors: UnifiedAnchor[]
   evidenceLinks: UnifiedEvidenceLink[]
+  coreHash?: string
+  patterns?: PatternResult[]
+  topMatchedPatterns?: TopMatchedPattern[]
+  scenarios?: ScenarioResult[]
   timelineEvents: UnifiedTimelineEvent[]
   scenarioBundles?: UnifiedScenarioBundle[]
 

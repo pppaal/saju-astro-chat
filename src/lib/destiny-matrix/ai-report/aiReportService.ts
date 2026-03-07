@@ -16,6 +16,7 @@ import type {
   UnifiedClaim,
   UnifiedScenarioBundle,
   UnifiedTimelineEvent,
+  TopMatchedPattern,
 } from './types'
 import { THEME_META } from './types'
 import { logger } from '@/lib/logger'
@@ -80,12 +81,11 @@ import {
 import { evaluateSectionGate, splitSentences } from './sectionQualityGate'
 import {
   buildSynthesisFactsForSection,
-  synthesizeMatrixSignals,
   type SignalSynthesisResult,
   getDomainsForSection,
 } from './signalSynthesizer'
 import type { ReportEvidenceRef, SectionEvidenceRefs } from './evidenceRefs'
-import { buildPhaseStrategyEngine, type StrategyEngineResult } from './strategyEngine'
+import type { StrategyEngineResult } from './strategyEngine'
 import { THEME_DOMAIN_ONTOLOGY } from './matrixOntology'
 
 // Extracted modules
@@ -100,6 +100,11 @@ import {
   extractKeywords,
 } from './scoreCalculators'
 import type { GraphRAGEvidenceAnchor, GraphRAGCrossEvidenceSet } from './graphRagEvidence'
+import {
+  buildNormalizedMatrixInput,
+  runDestinyCore,
+} from '@/lib/destiny-matrix/core/runDestinyCore'
+import type { PatternResult } from '@/lib/destiny-matrix/core/patternEngine'
 
 const RECHECK_REGEX = /재확인|점검|검토|verify|recheck|double-check|checklist|review/i
 const ABSOLUTE_RISK_REGEX = /무조건|절대|반드시|100%|always|never|guaranteed|certainly/i
@@ -168,6 +173,23 @@ function countSectionChars(sections: Record<string, unknown>): number {
     }
     return acc
   }, 0)
+}
+
+function buildTopMatchedPatterns(
+  patterns: PatternResult[] | undefined,
+  limit = 10
+): TopMatchedPattern[] {
+  if (!Array.isArray(patterns) || patterns.length === 0) return []
+  return patterns.slice(0, limit).map((pattern) => ({
+    id: pattern.id,
+    label: pattern.label,
+    score: pattern.score,
+    confidence: pattern.confidence,
+    domains: [...(pattern.domains || [])],
+    activationReason: pattern.activationReason,
+    matchedSignalIds: [...(pattern.matchedSignalIds || [])].slice(0, 8),
+    matchedKeywords: [...(pattern.matchedKeywords || [])].slice(0, 8),
+  }))
 }
 
 function buildReportQualityMetrics(
@@ -1649,31 +1671,31 @@ export async function generateAIPremiumReport(
   const startTime = Date.now()
   const lang = options.lang || 'ko'
   const detailLevel = options.detailLevel || 'detailed'
+  const normalizedInput = buildNormalizedMatrixInput(input)
 
   // 1. Build prompt
-  const graphRagEvidence = buildGraphRAGEvidence(input, matrixReport, {
+  const graphRagEvidence = buildGraphRAGEvidence(normalizedInput, matrixReport, {
     mode: 'comprehensive',
     focusDomain: options.focusDomain,
   })
   const deterministicCore = buildDeterministicCore({
-    matrixInput: input,
+    matrixInput: normalizedInput,
     matrixReport,
     graphEvidence: graphRagEvidence,
     userQuestion: options.userQuestion,
     lang,
     profile: options.deterministicProfile,
   })
-  const signalSynthesis = synthesizeMatrixSignals({
+  const coreSeed = runDestinyCore({
+    mode: 'comprehensive',
     lang,
+    matrixInput: normalizedInput,
     matrixReport,
     matrixSummary: options.matrixSummary,
-    matrixInput: input,
   })
-  const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang, {
-    daeunActive: Boolean(input.currentDaeunElement),
-    seunActive: Boolean(input.currentSaeunElement),
-    activeTransitCount: (input.activeTransits || []).length,
-  })
+  const signalSynthesis = coreSeed.signalSynthesis
+  const strategyEngine = coreSeed.strategyEngine
+  const topMatchedPatterns = buildTopMatchedPatterns(coreSeed.patterns)
   const graphRagSummary = buildGraphRagSummaryPayload(
     lang,
     matrixReport,
@@ -1687,7 +1709,7 @@ export async function generateAIPremiumReport(
     const evidenceRefs = buildComprehensiveEvidenceRefs(signalSynthesis)
     const sectionPaths = [...COMPREHENSIVE_SECTION_KEYS] as string[]
     const fallbackSections = buildComprehensiveFallbackSections(
-      input,
+      normalizedInput,
       matrixReport,
       deterministicCore,
       lang,
@@ -1698,7 +1720,7 @@ export async function generateAIPremiumReport(
       mode: 'comprehensive',
       lang,
       generatedAt,
-      matrixInput: input,
+      matrixInput: normalizedInput,
       matrixReport,
       matrixSummary: options.matrixSummary,
       signalSynthesis,
@@ -1770,6 +1792,10 @@ export async function generateAIPremiumReport(
       generatedAt,
       lang,
       ...unified,
+      coreHash: coreSeed.coreHash,
+      patterns: coreSeed.patterns,
+      topMatchedPatterns,
+      scenarios: coreSeed.scenarios,
       profile: {
         name: options.name,
         birthDate: options.birthDate,
@@ -1819,7 +1845,7 @@ export async function generateAIPremiumReport(
       mode: 'comprehensive',
       lang,
       generatedAt,
-      matrixInput: input,
+      matrixInput: normalizedInput,
       matrixReport,
       matrixSummary: options.matrixSummary,
       signalSynthesis,
@@ -1902,6 +1928,10 @@ export async function generateAIPremiumReport(
       generatedAt,
       lang,
       ...unified,
+      coreHash: coreSeed.coreHash,
+      patterns: coreSeed.patterns,
+      topMatchedPatterns,
+      scenarios: coreSeed.scenarios,
       profile: {
         name: options.name,
         birthDate: options.birthDate,
@@ -2356,7 +2386,7 @@ export async function generateAIPremiumReport(
     mode: 'comprehensive',
     lang,
     generatedAt,
-    matrixInput: input,
+    matrixInput: normalizedInput,
     matrixReport,
     matrixSummary: options.matrixSummary,
     signalSynthesis,
@@ -2386,6 +2416,10 @@ export async function generateAIPremiumReport(
     generatedAt,
     lang,
     ...unified,
+    coreHash: coreSeed.coreHash,
+    patterns: coreSeed.patterns,
+    topMatchedPatterns,
+    scenarios: coreSeed.scenarios,
 
     profile: {
       name: options.name,
@@ -2476,27 +2510,30 @@ export async function generateTimingReport(
   const startTime = Date.now()
   const lang = options.lang || 'ko'
   const targetDate = options.targetDate || new Date().toISOString().split('T')[0]
-  const graphRagEvidence = buildGraphRAGEvidence(input, matrixReport, { mode: 'timing', period })
+  const normalizedInput = buildNormalizedMatrixInput(input)
+  const graphRagEvidence = buildGraphRAGEvidence(normalizedInput, matrixReport, {
+    mode: 'timing',
+    period,
+  })
   const graphRagEvidencePrompt = formatGraphRAGEvidenceForPrompt(graphRagEvidence, lang)
   const deterministicCore = buildDeterministicCore({
-    matrixInput: input,
+    matrixInput: normalizedInput,
     matrixReport,
     graphEvidence: graphRagEvidence,
     userQuestion: options.userQuestion,
     lang,
     profile: options.deterministicProfile,
   })
-  const signalSynthesis = synthesizeMatrixSignals({
+  const coreSeed = runDestinyCore({
+    mode: 'timing',
     lang,
+    matrixInput: normalizedInput,
     matrixReport,
     matrixSummary: options.matrixSummary,
-    matrixInput: input,
   })
-  const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang, {
-    daeunActive: Boolean(input.currentDaeunElement),
-    seunActive: Boolean(input.currentSaeunElement),
-    activeTransitCount: (input.activeTransits || []).length,
-  })
+  const signalSynthesis = coreSeed.signalSynthesis
+  const strategyEngine = coreSeed.strategyEngine
+  const topMatchedPatterns = buildTopMatchedPatterns(coreSeed.patterns)
   const graphRagSummary = buildGraphRagSummaryPayload(
     lang,
     matrixReport,
@@ -2519,7 +2556,7 @@ export async function generateTimingReport(
       'actionPlan',
       'luckyElements',
     ]
-    const draftSections = buildTimingFallbackSections(input, signalSynthesis, lang)
+    const draftSections = buildTimingFallbackSections(normalizedInput, signalSynthesis, lang)
     const evidenceRefs = buildTimingEvidenceRefs(sectionPaths, signalSynthesis)
     let sections = draftSections as unknown as Record<string, unknown>
     const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
@@ -2540,7 +2577,7 @@ export async function generateTimingReport(
       mode: 'timing',
       lang,
       generatedAt,
-      matrixInput: input,
+      matrixInput: normalizedInput,
       matrixReport,
       matrixSummary: options.matrixSummary,
       signalSynthesis,
@@ -2575,6 +2612,10 @@ export async function generateTimingReport(
       generatedAt,
       lang,
       ...unified,
+      coreHash: coreSeed.coreHash,
+      patterns: coreSeed.patterns,
+      topMatchedPatterns,
+      scenarios: coreSeed.scenarios,
       profile: {
         name: options.name,
         birthDate: options.birthDate,
@@ -2629,14 +2670,14 @@ export async function generateTimingReport(
       'domains.health',
       'actionPlan',
     ]
-    const draftSections = buildTimingFallbackSections(input, signalSynthesis, lang)
+    const draftSections = buildTimingFallbackSections(normalizedInput, signalSynthesis, lang)
     const evidenceRefs = buildTimingEvidenceRefs(sectionPaths, signalSynthesis)
     const generatedAt = new Date().toISOString()
     const unified = buildUnifiedEnvelope({
       mode: 'timing',
       lang,
       generatedAt,
-      matrixInput: input,
+      matrixInput: normalizedInput,
       matrixReport,
       matrixSummary: options.matrixSummary,
       signalSynthesis,
@@ -2686,6 +2727,10 @@ export async function generateTimingReport(
       generatedAt,
       lang,
       ...unified,
+      coreHash: coreSeed.coreHash,
+      patterns: coreSeed.patterns,
+      topMatchedPatterns,
+      scenarios: coreSeed.scenarios,
       profile: {
         name: options.name,
         birthDate: options.birthDate,
@@ -2763,7 +2808,7 @@ export async function generateTimingReport(
   ]
   let sections = hasRequiredSectionPaths(base.sections as unknown, timingRequiredPaths)
     ? (base.sections as unknown as Record<string, unknown>)
-    : (buildTimingFallbackSections(input, signalSynthesis, lang) as unknown as Record<
+    : (buildTimingFallbackSections(normalizedInput, signalSynthesis, lang) as unknown as Record<
         string,
         unknown
       >)
@@ -2973,7 +3018,7 @@ export async function generateTimingReport(
     mode: 'timing',
     lang,
     generatedAt,
-    matrixInput: input,
+    matrixInput: normalizedInput,
     matrixReport,
     matrixSummary: options.matrixSummary,
     signalSynthesis,
@@ -3004,6 +3049,10 @@ export async function generateTimingReport(
     generatedAt,
     lang,
     ...unified,
+    coreHash: coreSeed.coreHash,
+    patterns: coreSeed.patterns,
+    topMatchedPatterns,
+    scenarios: coreSeed.scenarios,
 
     profile: {
       name: options.name,
@@ -3090,27 +3139,30 @@ export async function generateThemedReport(
 ): Promise<ThemedAIPremiumReport> {
   const startTime = Date.now()
   const lang = options.lang || 'ko'
-  const graphRagEvidence = buildGraphRAGEvidence(input, matrixReport, { mode: 'themed', theme })
+  const normalizedInput = buildNormalizedMatrixInput(input)
+  const graphRagEvidence = buildGraphRAGEvidence(normalizedInput, matrixReport, {
+    mode: 'themed',
+    theme,
+  })
   const graphRagEvidencePrompt = formatGraphRAGEvidenceForPrompt(graphRagEvidence, lang)
   const deterministicCore = buildDeterministicCore({
-    matrixInput: input,
+    matrixInput: normalizedInput,
     matrixReport,
     graphEvidence: graphRagEvidence,
     userQuestion: options.userQuestion,
     lang,
     profile: options.deterministicProfile,
   })
-  const signalSynthesis = synthesizeMatrixSignals({
+  const coreSeed = runDestinyCore({
+    mode: 'themed',
     lang,
+    matrixInput: normalizedInput,
     matrixReport,
     matrixSummary: options.matrixSummary,
-    matrixInput: input,
   })
-  const strategyEngine = buildPhaseStrategyEngine(signalSynthesis, lang, {
-    daeunActive: Boolean(input.currentDaeunElement),
-    seunActive: Boolean(input.currentSaeunElement),
-    activeTransitCount: (input.activeTransits || []).length,
-  })
+  const signalSynthesis = coreSeed.signalSynthesis
+  const strategyEngine = coreSeed.strategyEngine
+  const topMatchedPatterns = buildTopMatchedPatterns(coreSeed.patterns)
   const graphRagSummary = buildGraphRagSummaryPayload(
     lang,
     matrixReport,
@@ -3137,14 +3189,14 @@ export async function generateThemedReport(
     sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
     sections = sanitizeSectionsByPaths(sections, sectionPaths)
     const themeMeta = THEME_META[theme]
-    const themeScore = calculateThemeScore(theme, input.sibsinDistribution)
+    const themeScore = calculateThemeScore(theme, normalizedInput.sibsinDistribution)
     const keywords = extractKeywords(sections as unknown as ThemedReportSections, theme, lang)
     const generatedAt = new Date().toISOString()
     const unified = buildUnifiedEnvelope({
       mode: 'themed',
       lang,
       generatedAt,
-      matrixInput: input,
+      matrixInput: normalizedInput,
       matrixReport,
       matrixSummary: options.matrixSummary,
       signalSynthesis,
@@ -3167,6 +3219,10 @@ export async function generateThemedReport(
       generatedAt,
       lang,
       ...unified,
+      coreHash: coreSeed.coreHash,
+      patterns: coreSeed.patterns,
+      topMatchedPatterns,
+      scenarios: coreSeed.scenarios,
       profile: {
         name: options.name,
         birthDate: options.birthDate,
@@ -3207,7 +3263,7 @@ export async function generateThemedReport(
       mode: 'themed',
       lang,
       generatedAt,
-      matrixInput: input,
+      matrixInput: normalizedInput,
       matrixReport,
       matrixSummary: options.matrixSummary,
       signalSynthesis,
@@ -3240,7 +3296,7 @@ export async function generateThemedReport(
     sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
     sections = sanitizeSectionsByPaths(sections, sectionPaths)
     const themeMeta = THEME_META[theme]
-    const themeScore = calculateThemeScore(theme, input.sibsinDistribution)
+    const themeScore = calculateThemeScore(theme, normalizedInput.sibsinDistribution)
     const keywords = extractKeywords(sections as unknown as ThemedReportSections, theme, lang)
     const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
       requiredPaths,
@@ -3256,6 +3312,10 @@ export async function generateThemedReport(
       generatedAt,
       lang,
       ...unified,
+      coreHash: coreSeed.coreHash,
+      patterns: coreSeed.patterns,
+      topMatchedPatterns,
+      scenarios: coreSeed.scenarios,
       profile: {
         name: options.name,
         birthDate: options.birthDate,
@@ -3509,7 +3569,7 @@ export async function generateThemedReport(
   const themeMeta = THEME_META[theme]
 
   // 5. Calculate score
-  const themeScore = calculateThemeScore(theme, input.sibsinDistribution)
+  const themeScore = calculateThemeScore(theme, normalizedInput.sibsinDistribution)
 
   // 6. Extract keywords
   const keywords = extractKeywords(sections as unknown as ThemedReportSections, theme, lang)
@@ -3518,7 +3578,7 @@ export async function generateThemedReport(
     mode: 'themed',
     lang,
     generatedAt,
-    matrixInput: input,
+    matrixInput: normalizedInput,
     matrixReport,
     matrixSummary: options.matrixSummary,
     signalSynthesis,
@@ -3547,6 +3607,10 @@ export async function generateThemedReport(
     generatedAt,
     lang,
     ...unified,
+    coreHash: coreSeed.coreHash,
+    patterns: coreSeed.patterns,
+    topMatchedPatterns,
+    scenarios: coreSeed.scenarios,
 
     profile: {
       name: options.name,

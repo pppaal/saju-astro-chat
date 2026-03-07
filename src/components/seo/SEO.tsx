@@ -29,6 +29,7 @@ export function generateMetadata({
   const pageTitle = title.trim()
   const socialTitle = pageTitle.includes(siteName) ? pageTitle : `${pageTitle} | ${siteName}`
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
+  const twitterHandle = process.env.NEXT_PUBLIC_TWITTER_HANDLE?.trim()
   const canonical = canonicalUrl || baseUrl
   const fullOgImage = ogImage.startsWith('http') ? ogImage : `${baseUrl}${ogImage}`
 
@@ -68,8 +69,7 @@ export function generateMetadata({
       title: socialTitle,
       description,
       images: [fullOgImage],
-      creator: '@destinypal',
-      site: '@destinypal',
+      ...(twitterHandle ? { creator: twitterHandle, site: twitterHandle } : {}),
     },
 
     // Additional
@@ -129,6 +129,13 @@ export function generateJsonLd(data: {
   [key: string]: unknown
 }) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
+  const socialLinks = [
+    process.env.NEXT_PUBLIC_X_URL,
+    process.env.NEXT_PUBLIC_INSTAGRAM_URL,
+    process.env.NEXT_PUBLIC_FACEBOOK_URL,
+    process.env.NEXT_PUBLIC_YOUTUBE_URL,
+  ].filter((value): value is string => Boolean(value?.trim()))
+  const searchUrlTemplate = process.env.NEXT_PUBLIC_SITE_SEARCH_URL_TEMPLATE?.trim()
 
   const baseSchema = {
     '@context': 'https://schema.org',
@@ -140,16 +147,23 @@ export function generateJsonLd(data: {
       return {
         ...baseSchema,
         name: data.name || 'DestinyPal',
+        alternateName: ['Destiny Pal', 'DestinyPal AI'],
         url: baseUrl,
-        description: data.description || 'Chart the cosmos, navigate your destiny.',
-        potentialAction: {
-          '@type': 'SearchAction',
-          target: {
-            '@type': 'EntryPoint',
-            urlTemplate: `${baseUrl}/community?search={search_term_string}`,
-          },
-          'query-input': 'required name=search_term_string',
-        },
+        description:
+          data.description || 'AI fortune guidance for Saju, Tarot, Astrology, and Compatibility.',
+        inLanguage: ['ko-KR', 'en-US'],
+        ...(searchUrlTemplate
+          ? {
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: {
+                  '@type': 'EntryPoint',
+                  urlTemplate: searchUrlTemplate,
+                },
+                'query-input': 'required name=search_term_string',
+              },
+            }
+          : {}),
       }
 
     case 'WebPage':
@@ -195,12 +209,9 @@ export function generateJsonLd(data: {
         name: 'DestinyPal',
         url: baseUrl,
         logo: `${baseUrl}/logo.png`,
-        description: 'Chart the cosmos, navigate your destiny through Saju, Astrology, and Tarot.',
-        sameAs: [
-          'https://twitter.com/destinypal',
-          'https://facebook.com/destinypal',
-          'https://instagram.com/destinypal',
-        ],
+        description:
+          'DestinyPal is an AI fortune platform for Saju, Tarot, Astrology, Compatibility, and practical timing guidance.',
+        ...(socialLinks.length > 0 ? { sameAs: socialLinks } : {}),
       }
 
     case 'BreadcrumbList':

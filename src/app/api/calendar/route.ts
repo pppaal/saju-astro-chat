@@ -22,6 +22,11 @@ import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
 import type { FiveElement } from '@/lib/Saju/types'
 import type { MatrixCalculationInput, PlanetName } from '@/lib/destiny-matrix/types'
 import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
+import {
+  buildNormalizedMatrixInput,
+  runDestinyCore,
+} from '@/lib/destiny-matrix/core/runDestinyCore'
+import { reportGenerator } from '@/lib/destiny-matrix/interpreter'
 import koTranslations from '@/i18n/locales/ko'
 import enTranslations from '@/i18n/locales/en'
 import type { TranslationData } from '@/types/calendar-api'
@@ -343,6 +348,14 @@ export const GET = withApiMiddleware(
 
     let matrixCalendarContext: MatrixCalendarContext = null
     let matrixInputCoverage: Record<string, unknown> | null = null
+    let topMatchedPatterns: Array<{
+      id: string
+      label: string
+      score: number
+      confidence: number
+      domains: string[]
+      activationReason: string
+    }> = []
     try {
       const stemElements = [
         pillars.year.stem,
@@ -479,9 +492,10 @@ export const GET = withApiMiddleware(
         lang: locale === 'en' ? 'en' : 'ko',
         startYearMonth: `${year}-01`,
       }
+      const normalizedMatrixInput = buildNormalizedMatrixInput(matrixInput)
 
       if (CALENDAR_STRICT_MATRIX) {
-        const missing = collectCalendarMatrixMissing(matrixInput)
+        const missing = collectCalendarMatrixMissing(normalizedMatrixInput)
         if (missing.length > 0) {
           return createErrorResponse({
             code: ErrorCodes.SERVICE_UNAVAILABLE,
@@ -492,27 +506,63 @@ export const GET = withApiMiddleware(
         }
       }
 
-      const matrix = calculateDestinyMatrix(matrixInput)
+      const matrix = calculateDestinyMatrix(normalizedMatrixInput)
+      const matrixReport = reportGenerator.generateReport(normalizedMatrixInput, {
+        layer1_elementCore: matrix.layer1_elementCore,
+        layer2_sibsinPlanet: matrix.layer2_sibsinPlanet,
+        layer3_sibsinHouse: matrix.layer3_sibsinHouse,
+        layer4_timing: matrix.layer4_timing,
+        layer5_relationAspect: matrix.layer5_relationAspect,
+        layer6_stageHouse: matrix.layer6_stageHouse,
+        layer7_advanced: matrix.layer7_advanced,
+        layer8_shinsalPlanet: matrix.layer8_shinsalPlanet,
+        layer9_asteroidHouse: matrix.layer9_asteroidHouse,
+        layer10_extraPointElement: matrix.layer10_extraPointElement,
+      })
+      const coreSeed = runDestinyCore({
+        mode: 'calendar',
+        lang: locale === 'en' ? 'en' : 'ko',
+        matrixInput: normalizedMatrixInput,
+        matrixReport,
+        matrixSummary: matrix.summary,
+      })
+      topMatchedPatterns = coreSeed.patterns.slice(0, 10).map((pattern) => ({
+        id: pattern.id,
+        label: pattern.label,
+        score: pattern.score,
+        confidence: pattern.confidence,
+        domains: [...(pattern.domains || [])],
+        activationReason: pattern.activationReason,
+      }))
       matrixInputCoverage = {
         saju: {
           pillarElementCount: pillarElements.length,
           sibsinKeyCount: Object.keys(sibsinDistribution).length,
-          geokguk: matrixInput.geokguk || null,
-          yongsin: matrixInput.yongsin || null,
-          hasCurrentDaeun: !!matrixInput.currentDaeunElement,
-          hasCurrentSaeun: !!matrixInput.currentSaeunElement,
-          snapshotKeys: Object.keys(matrixInput.sajuSnapshot || {}).length,
+          geokguk: normalizedMatrixInput.geokguk || null,
+          yongsin: normalizedMatrixInput.yongsin || null,
+          hasCurrentDaeun: !!normalizedMatrixInput.currentDaeunElement,
+          hasCurrentSaeun: !!normalizedMatrixInput.currentSaeunElement,
+          snapshotKeys: Object.keys(normalizedMatrixInput.sajuSnapshot || {}).length,
         },
         astrology: {
-          planetHouseCount: Object.keys(matrixInput.planetHouses || {}).length,
-          planetSignCount: Object.keys(matrixInput.planetSigns || {}).length,
-          aspectCount: Array.isArray(matrixInput.aspects) ? matrixInput.aspects.length : 0,
-          dominantWesternElement: matrixInput.dominantWesternElement || null,
-          snapshotKeys: Object.keys(matrixInput.astrologySnapshot || {}).length,
+          planetHouseCount: Object.keys(normalizedMatrixInput.planetHouses || {}).length,
+          planetSignCount: Object.keys(normalizedMatrixInput.planetSigns || {}).length,
+          aspectCount: Array.isArray(normalizedMatrixInput.aspects)
+            ? normalizedMatrixInput.aspects.length
+            : 0,
+          dominantWesternElement: normalizedMatrixInput.dominantWesternElement || null,
+          snapshotKeys: Object.keys(normalizedMatrixInput.astrologySnapshot || {}).length,
         },
         cross: {
-          snapshotKeys: Object.keys(matrixInput.crossSnapshot || {}).length,
-          currentDateIso: matrixInput.currentDateIso || null,
+          snapshotKeys: Object.keys(normalizedMatrixInput.crossSnapshot || {}).length,
+          currentDateIso: normalizedMatrixInput.currentDateIso || null,
+          availability: normalizedMatrixInput.availability,
+        },
+        core: {
+          coreHash: coreSeed.coreHash,
+          patternCount: coreSeed.patterns.length,
+          scenarioCount: coreSeed.scenarios.length,
+          topPatternIds: topMatchedPatterns.map((pattern) => pattern.id),
         },
       }
 
@@ -667,6 +717,7 @@ export const GET = withApiMiddleware(
       worstDates: grade4.slice(0, 5).map((d) => formatCalendarDate(d)),
       allDates: filteredDates.map((d) => formatCalendarDate(d)),
       matrixInputCoverage,
+      topMatchedPatterns,
       ...(aiDates && {
         aiInsights: {
           auspicious: aiDates.auspicious,

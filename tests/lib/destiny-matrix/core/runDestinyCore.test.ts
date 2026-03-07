@@ -1,0 +1,183 @@
+import { describe, expect, it } from 'vitest'
+import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
+import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
+import type { FiveElement } from '@/lib/Saju/types'
+import {
+  buildNormalizedMatrixInput,
+  runDestinyCore,
+} from '@/lib/destiny-matrix/core/runDestinyCore'
+import { PATTERN_DEFINITIONS } from '@/lib/destiny-matrix/core/patternEngine'
+
+function createInput(overrides: Partial<MatrixCalculationInput> = {}): MatrixCalculationInput {
+  return {
+    dayMasterElement: '\uBAA9' as FiveElement,
+    pillarElements: ['\uBAA9', '\uD654', '\uD1A0', '\uAE08'] as FiveElement[],
+    sibsinDistribution: { any: 2 } as any,
+    twelveStages: {} as any,
+    relations: [
+      { kind: 'relation', pillars: ['year', 'month'], detail: 'tension', note: 'n' },
+    ] as any,
+    geokguk: 'jeonggwan' as any,
+    yongsin: '\uD654' as FiveElement,
+    currentDaeunElement: '\uC218' as FiveElement,
+    currentSaeunElement: '\uD654' as FiveElement,
+    dominantWesternElement: 'air',
+    planetHouses: { Sun: 1, Moon: 7, Jupiter: 10, Saturn: 6 } as any,
+    planetSigns: { Sun: 'Aquarius', Moon: 'Gemini' } as any,
+    aspects: [
+      { planet1: 'Sun', planet2: 'Jupiter', type: 'trine', angle: 120, orb: 1.2 },
+      { planet1: 'Moon', planet2: 'Saturn', type: 'square', angle: 90, orb: 2.1 },
+    ],
+    lang: 'ko',
+    ...overrides,
+  }
+}
+
+function createReport(): FusionReport {
+  return {
+    id: 'core-test',
+    generatedAt: new Date('2026-03-06T00:00:00.000Z'),
+    version: '2.0.0',
+    lang: 'ko',
+    profile: {
+      dayMasterElement: '\uBAA9' as FiveElement,
+      dayMasterDescription: 'wood',
+      dominantSibsin: [] as any,
+      keyShinsals: [] as any,
+    },
+    overallScore: {
+      total: 82,
+      grade: 'A',
+      gradeDescription: 'good',
+      gradeDescriptionEn: 'good',
+      categoryScores: { strength: 84, opportunity: 80, balance: 76, caution: 63, challenge: 58 },
+    },
+    topInsights: [
+      {
+        id: 'ti1',
+        domain: 'career',
+        category: 'strength',
+        title: 'career expansion',
+        description: 'career expansion signal',
+        score: 86,
+        weightedScore: 86,
+        actionItems: [],
+        sources: [],
+      },
+      {
+        id: 'ti2',
+        domain: 'relationship',
+        category: 'caution',
+        title: 'relationship caution',
+        description: 'relationship caution signal',
+        score: 70,
+        weightedScore: 70,
+        actionItems: [],
+        sources: [],
+      },
+    ] as any,
+    domainAnalysis: [
+      { domain: 'career', score: 81 },
+      { domain: 'relationship', score: 69 },
+      { domain: 'wealth', score: 73 },
+    ] as any,
+    timingAnalysis: {
+      currentPeriod: {
+        name: 'now',
+        nameEn: 'now',
+        score: 75,
+        description: 'flow',
+        descriptionEn: 'flow',
+      },
+      activeTransits: [],
+      upcomingPeriods: [],
+      retrogradeAlerts: [],
+    },
+    visualizations: {
+      radarChart: { labels: [], labelsEn: [], values: [], maxValue: 100 },
+      heatmap: { rows: [], cols: [], values: [], colorScale: [] },
+      synergyNetwork: { nodes: [], edges: [] },
+      timeline: { events: [] },
+    },
+  } as any
+}
+
+describe('buildNormalizedMatrixInput', () => {
+  it('normalizes optional advanced fields to explicit empty values', () => {
+    const normalized = buildNormalizedMatrixInput(
+      createInput({
+        shinsalList: undefined,
+        activeTransits: undefined,
+        advancedAstroSignals: undefined,
+      })
+    )
+
+    expect(Array.isArray(normalized.shinsalList)).toBe(true)
+    expect(Array.isArray(normalized.activeTransits)).toBe(true)
+    expect(normalized.advancedAstroSignals).toEqual({})
+    expect(normalized.availability.shinsal).toBe('missing-upstream')
+    expect(normalized.availability.activeTransits).toBe('missing-upstream')
+    expect(normalized.availability.advancedAstroSignals).toBe('missing-upstream')
+  })
+
+  it('marks computed-empty arrays correctly', () => {
+    const normalized = buildNormalizedMatrixInput(
+      createInput({
+        shinsalList: [],
+        activeTransits: [],
+        advancedAstroSignals: {},
+      })
+    )
+
+    expect(normalized.availability.shinsal).toBe('empty-computed')
+    expect(normalized.availability.activeTransits).toBe('empty-computed')
+    expect(normalized.availability.advancedAstroSignals).toBe('empty-computed')
+  })
+})
+
+describe('runDestinyCore', () => {
+  it('has expanded deterministic pattern catalog', () => {
+    expect(PATTERN_DEFINITIONS.length).toBeGreaterThanOrEqual(40)
+  })
+
+  it('produces deterministic strategy and stable core hash for same input', () => {
+    const params = {
+      mode: 'comprehensive' as const,
+      lang: 'ko' as const,
+      matrixInput: createInput({ activeTransits: ['saturnReturn'] as any }),
+      matrixReport: createReport(),
+    }
+
+    const first = runDestinyCore(params)
+    const second = runDestinyCore(params)
+
+    expect(first.coreHash).toBe(second.coreHash)
+    expect(first.signalSynthesis.claims.length).toBeGreaterThan(0)
+    expect(first.patterns.length).toBeGreaterThan(0)
+    expect(first.patterns.some((pattern) => pattern.id.startsWith('composite_'))).toBe(true)
+    expect(first.scenarios.length).toBeGreaterThan(0)
+    expect(first.strategyEngine.attackPercent + first.strategyEngine.defensePercent).toBe(100)
+    expect(first.availability.activeTransits).toBe('present')
+  })
+
+  it('derives named patterns and scenario branches from shared signals', () => {
+    const result = runDestinyCore({
+      mode: 'comprehensive',
+      lang: 'ko',
+      matrixInput: createInput({
+        activeTransits: ['jupiterReturn', 'saturnReturn'] as any,
+      }),
+      matrixReport: createReport(),
+    })
+
+    const patternIds = result.patterns.map((pattern) => pattern.id)
+    const scenarioIds = result.scenarios.map((scenario) => scenario.id)
+
+    expect(patternIds).toContain('career_expansion')
+    expect(
+      scenarioIds.includes('promotion_window') ||
+        scenarioIds.includes('job_change_window') ||
+        scenarioIds.includes('launch_project_window')
+    ).toBe(true)
+  })
+})

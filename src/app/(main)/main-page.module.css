@@ -63,6 +63,20 @@
   animation: fadeInUp 1s ease-out;
 }
 
+.heroEyebrow {
+  margin: 0 0 0.9rem 0;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid rgba(99, 210, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(7, 18, 37, 0.58);
+  color: rgba(210, 241, 255, 0.92);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
 .heroContent .heroTitle {
   font-size: clamp(1.8rem, 5vw, 4rem);
   font-weight: 900;
@@ -4746,15 +4760,19 @@
    Visually hidden but accessible to crawlers
    ==================================== */
 .seoContentSection {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  width: min(1180px, 100%);
+  margin: 5rem auto 0;
+  padding: 3.5rem 2.5rem;
+  position: relative;
+  z-index: 1;
+  border-radius: 40px;
+  border: 1px solid rgba(99, 210, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(99, 210, 255, 0.06), rgba(124, 242, 156, 0.03)),
+    rgba(7, 16, 34, 0.62);
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .seoContentSection::before {
@@ -4822,6 +4840,7 @@
 }
 
 .seoFeatureCard {
+  display: block;
   background: linear-gradient(145deg, rgba(20, 25, 50, 0.6), rgba(15, 18, 40, 0.7));
   border: 1px solid rgba(139, 92, 246, 0.2);
   border-radius: 20px;
@@ -4830,6 +4849,7 @@
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(10px);
+  text-decoration: none;
 }
 
 .seoFeatureCard::before {
@@ -4902,6 +4922,52 @@
   margin: 0;
 }
 
+.seoFeatureLink {
+  display: inline-flex;
+  margin-top: 1rem;
+  color: rgba(170, 221, 255, 0.92);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.seoFaqSection {
+  margin-top: 3rem;
+}
+
+.seoFaqTitle {
+  margin: 0 0 1.5rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.seoFaqList {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.seoFaqItem {
+  padding: 1.4rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.seoFaqQuestion {
+  margin: 0 0 0.6rem;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.seoFaqAnswer {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.75;
+  font-size: 0.95rem;
+}
+
 .seoSubheading {
   font-size: 1.5rem;
   font-weight: 600;
@@ -4969,8 +5035,8 @@
 
 @media (max-width: 768px) {
   .seoContentSection {
-    margin: 3rem 1rem;
-    padding: 2.5rem 1.5rem;
+    margin: 3rem auto 0;
+    padding: 2.5rem 1.25rem;
   }
 
   .seoHeader {
@@ -5016,6 +5082,10 @@
 
   .seoKeywordsList {
     font-size: 0.9rem;
+  }
+
+  .seoFaqList {
+    grid-template-columns: 1fr;
   }
 }
 

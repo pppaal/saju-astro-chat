@@ -21,6 +21,7 @@ import {
   StatsSection,
   ParticleCanvas,
   TarotSection,
+  SEOContent,
 } from './components'
 import PrefetchLinks from '@/components/PrefetchLinks'
 
@@ -152,13 +153,19 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
       {/* Fullscreen Hero Section */}
       <section className={styles.fullscreenHero}>
         <div className={styles.heroContent}>
+          <p className={styles.heroEyebrow}>
+            {translate('landing.heroEyebrow', 'DestinyPal AI Fortune Platform')}
+          </p>
           <h1 className={styles.heroTitle}>
-            {translate('landing.heroTitle', 'Know yourself. Shape tomorrow.')}
+            {translate(
+              'landing.heroTitle',
+              'DestinyPal helps you know yourself and shape tomorrow.'
+            )}
           </h1>
           <p className={styles.heroSub}>
             {translate(
               'landing.heroSub',
-              "A single report that connects Saju, astrology, and personality into today's action plan"
+              "DestinyPal connects Saju, astrology, tarot, and personality into a practical action plan for today's decisions."
             )}
           </p>
 
@@ -204,6 +211,8 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
       </DeferredSection>
 
       <TarotSection translate={translate} locale={locale} />
+
+      <SEOContent translate={translate} styles={styles} />
 
       <DeferredSection skeletonClassName={styles.featureSectionSkeleton} minHeight={240}>
         <CTASection translate={translate} styles={styles} />
