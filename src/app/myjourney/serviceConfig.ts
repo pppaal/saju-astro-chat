@@ -22,7 +22,6 @@ export const SERVICE_ICONS: Record<string, string> = {
   dream: '\uD83D\uDCAD',
   iching: '\u262F\uFE0F',
   numerology: '\uD83D\uDD22',
-  aura: '\uD83C\uDF08',
   personality: '\uD83E\uDDE0',
   compatibility: '\uD83D\uDC95',
   icp: '\uD83C\uDFAD',
@@ -52,7 +51,6 @@ export const SERVICE_NAME_KEYS: Record<string, string> = {
   dream: 'myjourney.services.dream',
   iching: 'myjourney.services.iching',
   numerology: 'myjourney.services.numerology',
-  aura: 'myjourney.services.aura',
   personality: 'myjourney.services.personality',
   compatibility: 'myjourney.services.compatibility',
   icp: 'myjourney.services.icp',
@@ -84,6 +82,5 @@ export const _SERVICE_URLS: Record<string, string> = {
   numerology: '/numerology',
   personality: '/personality',
   compatibility: '/compatibility',
-  aura: '/aura',
   icp: '/icp',
 }

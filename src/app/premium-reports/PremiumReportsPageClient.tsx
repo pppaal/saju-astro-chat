@@ -355,11 +355,22 @@ export default function PremiumReportsPage() {
               AI REPORT
             </div>
             <h1 className="mt-4 text-3xl font-black tracking-tight text-white md:text-5xl">
-              공통 입력 후 Free / Premium 선택
+              한 번 입력하면, Free 인사이트부터 테마별 Premium 리포트까지
             </h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300 md:text-base">
-              캘린더처럼 공통 폼 한 번 입력하고, Free 또는 Premium을 선택해 바로 분석합니다.
+              사주와 점성 기반 공통 프로필을 한 번 입력한 뒤, 무료 흐름 확인 또는
+              인생총운·신년운·연애·커리어·재물·건강·가족 테마 리포트로 바로 이어집니다.
             </p>
+            <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-200">
+              {PREMIUM_OPTIONS.map((option) => (
+                <span
+                  key={option.key}
+                  className="rounded-full border border-white/15 bg-white/5 px-3 py-1"
+                >
+                  {option.label}
+                </span>
+              ))}
+            </div>
           </div>
         </header>
 
@@ -408,10 +419,10 @@ export default function PremiumReportsPage() {
                 <div className="mt-4 rounded-2xl border border-emerald-300/35 bg-gradient-to-br from-emerald-500/15 to-teal-500/10 p-5">
                   <p className="text-xs font-semibold text-emerald-200">FREE INSIGHTS</p>
                   <h2 className="mt-1 text-xl font-extrabold text-white">
-                    Destiny-Map Free Insights
+                    Destiny Map 기본 인사이트
                   </h2>
                   <p className="mt-2 text-sm leading-6 text-slate-100">
-                    무료 인사이트로 이동해 기본 성향, 흐름, 핵심 포인트를 확인합니다.
+                    성향, 현재 흐름, 주의 포인트, 지금 바로 써먹을 한 줄 가이드를 먼저 확인합니다.
                   </p>
                 </div>
               ) : (

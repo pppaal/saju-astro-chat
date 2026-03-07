@@ -421,6 +421,10 @@ describe('generateAIPremiumReport', () => {
     expect(result.meta.qualityMetrics?.tokenIntegrityPass).toBe(true)
     expect(result.meta.qualityMetrics?.structurePass).toBe(true)
     expect(result.meta.qualityMetrics?.forbiddenAdditionsPass).toBe(true)
+    expect(result.meta.qualityMetrics?.coreQualityScore || 0).toBeGreaterThan(0)
+    expect(result.meta.qualityMetrics?.coreQualityGrade).toMatch(/[ABCD]/)
+    expect(typeof result.meta.qualityMetrics?.coreQualityWarningCount).toBe('number')
+    expect(typeof result.meta.qualityMetrics?.coreQualityPass).toBe('boolean')
     expect(
       result.timelineEvents.some((event) =>
         ['job', 'marriage', 'relocation', 'money', 'timing', 'life'].includes(event.type)
@@ -450,6 +454,8 @@ describe('generateAIPremiumReport', () => {
     expect(timing.meta.qualityMetrics?.minEvidenceSatisfiedRatio || 0).toBeGreaterThanOrEqual(0.9)
     expect(timing.meta.qualityMetrics?.sectionCompletenessRate).toBe(1)
     expect(timing.meta.qualityMetrics?.tokenIntegrityPass).toBe(true)
+    expect(timing.meta.qualityMetrics?.coreQualityScore || 0).toBeGreaterThan(0)
+    expect(timing.meta.qualityMetrics?.coreQualityGrade).toMatch(/[ABCD]/)
     expect((timing.coreHash || '').length).toBeGreaterThan(0)
     expect((timing.patterns || []).length).toBeGreaterThan(0)
     expect((timing.topMatchedPatterns || []).length).toBeGreaterThan(0)
@@ -491,6 +497,8 @@ describe('generateAIPremiumReport', () => {
     expect(themed.meta.qualityMetrics?.evidenceCoverageRatio || 0).toBeGreaterThanOrEqual(0.7)
     expect(themed.meta.qualityMetrics?.sectionCompletenessRate).toBe(1)
     expect(themed.meta.qualityMetrics?.tokenIntegrityPass).toBe(true)
+    expect(themed.meta.qualityMetrics?.coreQualityScore || 0).toBeGreaterThan(0)
+    expect(themed.meta.qualityMetrics?.coreQualityGrade).toMatch(/[ABCD]/)
     expect((themed.coreHash || '').length).toBeGreaterThan(0)
     expect((themed.patterns || []).length).toBeGreaterThan(0)
     expect((themed.topMatchedPatterns || []).length).toBeGreaterThan(0)

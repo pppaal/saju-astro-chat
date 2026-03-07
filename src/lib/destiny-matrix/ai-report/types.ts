@@ -346,6 +346,10 @@ export interface TimingAIPremiumReport {
       contradictionCount: number
       recheckGuidanceRatio: number
       overclaimCount: number
+      coreQualityScore?: number
+      coreQualityGrade?: 'A' | 'B' | 'C' | 'D'
+      coreQualityWarningCount?: number
+      coreQualityPass?: boolean
       sectionCompletenessRate?: number
       avgEvidencePerParagraph?: number
       anchorCoverageRate?: number
@@ -448,6 +452,10 @@ export interface ThemedAIPremiumReport {
       contradictionCount: number
       recheckGuidanceRatio: number
       overclaimCount: number
+      coreQualityScore?: number
+      coreQualityGrade?: 'A' | 'B' | 'C' | 'D'
+      coreQualityWarningCount?: number
+      coreQualityPass?: boolean
       sectionCompletenessRate?: number
       avgEvidencePerParagraph?: number
       anchorCoverageRate?: number

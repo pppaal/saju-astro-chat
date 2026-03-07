@@ -173,12 +173,6 @@ function MainHeader({ translate, locale }: MainHeaderProps) {
         <Link href="/myjourney" className={styles.navLink}>
           {translate('app.myJourney', 'My Journey')}
         </Link>
-        <span className={`${styles.navLink} ${styles.navLinkDisabled}`}>
-          {translate('app.community', 'Community')}
-          <span className={styles.comingSoonBadgeSmall}>
-            {translate('common.comingSoon', 'Coming Soon')}
-          </span>
-        </span>
       </nav>
       <div className={styles.headerLinks}>
         <NotificationBell />

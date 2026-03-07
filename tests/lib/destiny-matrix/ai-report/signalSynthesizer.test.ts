@@ -217,4 +217,38 @@ describe('synthesizeMatrixSignals', () => {
     expect(careerClaim?.evidence).toContain(dualEvidenceId)
     expect(wealthClaim?.evidence).toContain(dualEvidenceId)
   })
+
+  it('converts rich advancedAstroSignals and snapshots into normalized coverage signals', () => {
+    const result = synthesizeMatrixSignals({
+      lang: 'ko',
+      matrixReport: mkReport(),
+      matrixSummary: mkSummary(),
+      matrixInput: {
+        dayMasterElement: '목' as any,
+        pillarElements: ['목', '화', '토', '금'] as any,
+        sibsinDistribution: { 편재: 2 } as any,
+        twelveStages: {} as any,
+        relations: [] as any,
+        planetHouses: { Sun: 1, Jupiter: 10 } as any,
+        planetSigns: { Sun: 'Aquarius' } as any,
+        aspects: [] as any,
+        advancedAstroSignals: {
+          solarReturn: { score: 77 },
+          lunarReturn: ['Moon'],
+          fixedStars: 'active',
+          eclipses: { impact: ['Sun'] },
+        } as any,
+        sajuSnapshot: { unse: { daeun: [{ age: 31 }] }, facts: { dayMaster: '경' } } as any,
+        astrologySnapshot: { natalChart: { planets: [{ name: 'Sun' }] } } as any,
+        crossSnapshot: { source: 'test', crossAgreement: 0.58 } as any,
+      },
+    })
+
+    const ids = result.normalizedSignals.map((signal) => signal.id)
+    expect(ids.some((id) => id.startsWith('COV:L10:advanced:solarreturn'))).toBe(true)
+    expect(ids.some((id) => id.startsWith('COV:L10:advanced:eclipses'))).toBe(true)
+    expect(ids.some((id) => id.startsWith('COV:L7:snapshot_saju:present'))).toBe(true)
+    expect(ids.some((id) => id.startsWith('COV:L10:snapshot_astro:present'))).toBe(true)
+    expect(ids.some((id) => id.startsWith('COV:L10:snapshot_cross:present'))).toBe(true)
+  })
 })

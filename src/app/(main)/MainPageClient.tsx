@@ -159,13 +159,13 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
           <h1 className={styles.heroTitle}>
             {translate(
               'landing.heroTitle',
-              'DestinyPal helps you know yourself and shape tomorrow.'
+              'Saju + astrology guidance for timing, personality, and better decisions.'
             )}
           </h1>
           <p className={styles.heroSub}>
             {translate(
               'landing.heroSub',
-              "DestinyPal connects Saju, astrology, tarot, and personality into a practical action plan for today's decisions."
+              "DestinyPal connects Saju, astrology, tarot, compatibility, and reports into one practical reading flow for today's decisions."
             )}
           </p>
 

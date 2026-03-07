@@ -58,8 +58,30 @@ export interface DestinyCoreResult {
   patterns: PatternResult[]
   scenarios: ScenarioResult[]
   strategyEngine: StrategyEngineResult
+  quality: DestinyCoreQuality
   unified?: UnifiedEnvelope
   coreHash: string
+}
+
+export interface DestinyCoreQuality {
+  score: number
+  grade: 'A' | 'B' | 'C' | 'D'
+  warnings: string[]
+  metrics: {
+    normalizedSignalCount: number
+    selectedSignalCount: number
+    selectedDomainCount: number
+    patternCount: number
+    compositePatternCount: number
+    scenarioCount: number
+    scenarioDomainCount: number
+    advancedSignalCount: number
+    snapshotSignalCount: number
+    shinsalSignalCount: number
+    relationSignalCount: number
+    timingSignalCount: number
+    strategySumValid: boolean
+  }
 }
 
 function normalizeArrayAvailability<T>(value: T[] | undefined): {
@@ -127,6 +149,102 @@ function buildSafeStrategyFallback(lang: 'ko' | 'en'): StrategyEngineResult {
   }
 }
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value))
+}
+
+function scoreByThreshold(value: number, target: number, maxPoints: number): number {
+  if (target <= 0) return maxPoints
+  return clamp(Math.round((value / target) * maxPoints), 0, maxPoints)
+}
+
+function buildDestinyCoreQuality(input: {
+  normalizedInput: MatrixCalculationInputNormalized
+  signalSynthesis: SignalSynthesisResult
+  patterns: PatternResult[]
+  scenarios: ScenarioResult[]
+  strategyEngine: StrategyEngineResult
+}): DestinyCoreQuality {
+  const selectedDomains = new Set(
+    (input.signalSynthesis.selectedSignals || []).flatMap((signal) => signal.domainHints || [])
+  )
+  const scenarioDomains = new Set((input.scenarios || []).map((scenario) => scenario.domain))
+  const tags = (input.signalSynthesis.normalizedSignals || []).flatMap(
+    (signal) => signal.tags || []
+  )
+  const countByTag = (tag: string) => tags.filter((item) => item === tag).length
+  const timingSignalCount = (input.signalSynthesis.normalizedSignals || []).filter((signal) =>
+    signal.domainHints.includes('timing')
+  ).length
+  const strategySumValid =
+    input.strategyEngine.attackPercent + input.strategyEngine.defensePercent === 100
+
+  let score = 0
+  score += scoreByThreshold(input.signalSynthesis.selectedSignals.length, 7, 14)
+  score += scoreByThreshold(selectedDomains.size, 4, 10)
+  score += scoreByThreshold(input.signalSynthesis.normalizedSignals.length, 24, 15)
+  score += scoreByThreshold(input.patterns.length, 10, 13)
+  score += scoreByThreshold(
+    input.patterns.filter((pattern) => pattern.id.startsWith('composite_')).length,
+    2,
+    10
+  )
+  score += scoreByThreshold(input.scenarios.length, 18, 14)
+  score += scoreByThreshold(scenarioDomains.size, 4, 8)
+  score += scoreByThreshold(countByTag('advanced-astro'), 6, 6)
+  score += scoreByThreshold(countByTag('snapshot'), 4, 4)
+  score += scoreByThreshold(countByTag('shinsal'), 2, 3)
+  score += scoreByThreshold(countByTag('relation'), 2, 3)
+  score += scoreByThreshold(timingSignalCount, 6, 3)
+  score += strategySumValid ? 7 : 0
+
+  const warnings: string[] = []
+  if (input.signalSynthesis.selectedSignals.length < 7) warnings.push('selected_signals_under_7')
+  if (selectedDomains.size < 3) warnings.push('low_selected_domain_diversity')
+  if (input.patterns.length < 8) warnings.push('pattern_count_low')
+  if (input.scenarios.length < 12) warnings.push('scenario_count_low')
+  if (scenarioDomains.size < 3) warnings.push('scenario_domain_coverage_low')
+  if (!strategySumValid) warnings.push('strategy_percent_sum_invalid')
+  if (
+    input.normalizedInput.availability.advancedAstroSignals === 'present' &&
+    countByTag('advanced-astro') < 2
+  ) {
+    warnings.push('advanced_astro_signal_coverage_low')
+  }
+  if (input.normalizedInput.availability.shinsal === 'present' && countByTag('shinsal') < 1) {
+    warnings.push('shinsal_signal_coverage_low')
+  }
+  if (input.normalizedInput.availability.activeTransits === 'present' && timingSignalCount < 2) {
+    warnings.push('timing_signal_coverage_low')
+  }
+
+  const normalizedScore = clamp(score, 0, 100)
+  const grade: DestinyCoreQuality['grade'] =
+    normalizedScore >= 90 ? 'A' : normalizedScore >= 80 ? 'B' : normalizedScore >= 70 ? 'C' : 'D'
+
+  return {
+    score: normalizedScore,
+    grade,
+    warnings,
+    metrics: {
+      normalizedSignalCount: input.signalSynthesis.normalizedSignals.length,
+      selectedSignalCount: input.signalSynthesis.selectedSignals.length,
+      selectedDomainCount: selectedDomains.size,
+      patternCount: input.patterns.length,
+      compositePatternCount: input.patterns.filter((pattern) => pattern.id.startsWith('composite_'))
+        .length,
+      scenarioCount: input.scenarios.length,
+      scenarioDomainCount: scenarioDomains.size,
+      advancedSignalCount: countByTag('advanced-astro'),
+      snapshotSignalCount: countByTag('snapshot'),
+      shinsalSignalCount: countByTag('shinsal'),
+      relationSignalCount: countByTag('relation'),
+      timingSignalCount,
+      strategySumValid,
+    },
+  }
+}
+
 export function computeDestinyCoreHash(input: {
   signalSynthesis: SignalSynthesisResult
   patterns: PatternResult[]
@@ -180,6 +298,13 @@ export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult 
     }) || buildSafeStrategyFallback(params.lang)
   const patterns = buildPatternEngine(signalSynthesis, strategyEngine)
   const scenarios = buildScenarioEngine(patterns, strategyEngine, normalizedInput)
+  const quality = buildDestinyCoreQuality({
+    normalizedInput,
+    signalSynthesis,
+    patterns,
+    scenarios,
+    strategyEngine,
+  })
 
   let unified: UnifiedEnvelope | undefined
   if (params.sectionPaths && params.evidenceRefs && params.graphRagEvidence) {
@@ -206,6 +331,7 @@ export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult 
     patterns,
     scenarios,
     strategyEngine,
+    quality,
     unified,
     coreHash: computeDestinyCoreHash({
       signalSynthesis,

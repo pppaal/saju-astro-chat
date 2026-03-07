@@ -384,15 +384,7 @@ export const SERVICE_FAQS = {
 
 // Generate service schema for specific pages
 export function generateServiceSchema(
-  serviceType:
-    | 'destiny-map'
-    | 'tarot'
-    | 'dream'
-    | 'saju'
-    | 'astrology'
-    | 'numerology'
-    | 'iching'
-    | 'aura'
+  serviceType: 'destiny-map' | 'tarot' | 'dream' | 'saju' | 'astrology' | 'numerology' | 'iching'
 ) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
   const services = {
@@ -437,12 +429,6 @@ export function generateServiceSchema(
       description:
         'Traditional Chinese divination using the 64 hexagrams of the I Ching (Book of Changes).',
       category: 'Divination',
-    },
-    aura: {
-      name: 'Aura Reading',
-      description:
-        'Discover your personal aura color and energy profile through our interactive quiz.',
-      category: 'Energy Reading',
     },
   }
 

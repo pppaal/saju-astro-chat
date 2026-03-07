@@ -15,6 +15,10 @@ export interface ReportQualityMetrics {
   contradictionCount: number
   recheckGuidanceRatio: number
   overclaimCount: number
+  coreQualityScore?: number
+  coreQualityGrade?: 'A' | 'B' | 'C' | 'D'
+  coreQualityWarningCount?: number
+  coreQualityPass?: boolean
   sectionCompletenessRate?: number
   avgEvidencePerParagraph?: number
   anchorCoverageRate?: number
@@ -32,6 +36,11 @@ export interface ReportQualityContext {
   anchors?: UnifiedAnchor[]
   scenarioBundles?: UnifiedScenarioBundle[]
   timelineEvents?: UnifiedTimelineEvent[]
+  coreQuality?: {
+    score: number
+    grade: 'A' | 'B' | 'C' | 'D'
+    warnings: string[]
+  }
 }
 
 type BuildQualityRegexRules = {
@@ -225,6 +234,16 @@ export function buildReportQualityMetrics(params: BuildQualityParams): ReportQua
     ? hasRequiredHeadings(sections, context.requiredHeadingsByPath)
     : true
   const structurePass = requiredPresent === requiredPaths.length && headingPass
+  const coreQualityScore =
+    typeof context.coreQuality?.score === 'number' ? context.coreQuality.score : undefined
+  const coreQualityGrade = context.coreQuality?.grade
+  const coreQualityWarningCount = Array.isArray(context.coreQuality?.warnings)
+    ? context.coreQuality.warnings.length
+    : undefined
+  const coreQualityPass =
+    typeof coreQualityScore === 'number' && typeof coreQualityWarningCount === 'number'
+      ? coreQualityScore >= 90 && coreQualityWarningCount === 0
+      : undefined
 
   return {
     sectionCount,
@@ -234,6 +253,10 @@ export function buildReportQualityMetrics(params: BuildQualityParams): ReportQua
     contradictionCount,
     recheckGuidanceRatio: Number((recheckGuidanceCount / sectionCount).toFixed(4)),
     overclaimCount,
+    coreQualityScore,
+    coreQualityGrade,
+    coreQualityWarningCount,
+    coreQualityPass,
     sectionCompletenessRate: Number(
       (requiredPresent / Math.max(1, requiredPaths.length)).toFixed(4)
     ),
@@ -323,6 +346,31 @@ export function recordReportQualityMetrics(
     recordGauge(
       'destiny.ai_report.quality.forbidden_additions_pass',
       quality.forbiddenAdditionsPass ? 1 : 0,
+      labels
+    )
+  }
+  if (typeof quality.coreQualityScore === 'number') {
+    recordGauge('destiny.ai_report.quality.core_quality_score', quality.coreQualityScore, labels)
+  }
+  if (typeof quality.coreQualityWarningCount === 'number') {
+    recordGauge(
+      'destiny.ai_report.quality.core_quality_warning_count',
+      quality.coreQualityWarningCount,
+      labels
+    )
+  }
+  if (typeof quality.coreQualityPass === 'boolean') {
+    recordGauge(
+      'destiny.ai_report.quality.core_quality_pass',
+      quality.coreQualityPass ? 1 : 0,
+      labels
+    )
+  }
+  if (quality.coreQualityGrade) {
+    const gradeScoreMap: Record<'A' | 'B' | 'C' | 'D', number> = { A: 4, B: 3, C: 2, D: 1 }
+    recordGauge(
+      'destiny.ai_report.quality.core_quality_grade_score',
+      gradeScoreMap[quality.coreQualityGrade],
       labels
     )
   }

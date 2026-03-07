@@ -826,6 +826,9 @@ export const GET = withApiMiddleware(
           coreHash: coreSeed.coreHash,
           patternCount: coreSeed.patterns.length,
           scenarioCount: coreSeed.scenarios.length,
+          qualityScore: coreSeed.quality.score,
+          qualityGrade: coreSeed.quality.grade,
+          qualityWarnings: coreSeed.quality.warnings,
           topPatternIds: topMatchedPatterns.map((pattern) => pattern.id),
         },
       }

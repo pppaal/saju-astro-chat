@@ -1784,6 +1784,7 @@ export async function generateAIPremiumReport(
       anchors: unified.anchors,
       scenarioBundles: unified.scenarioBundles,
       timelineEvents: unified.timelineEvents,
+      coreQuality: coreSeed.quality,
     })
     recordReportQualityMetrics('comprehensive', 'deterministic-only', qualityMetrics)
 
@@ -1919,6 +1920,7 @@ export async function generateAIPremiumReport(
       anchors: unified.anchors,
       scenarioBundles: unified.scenarioBundles,
       timelineEvents: unified.timelineEvents,
+      coreQuality: coreSeed.quality,
     })
     recordReportQualityMetrics('comprehensive', rewrite.modelUsed, qualityMetrics)
 
@@ -2406,6 +2408,7 @@ export async function generateAIPremiumReport(
       anchors: unified.anchors,
       scenarioBundles: unified.scenarioBundles,
       timelineEvents: unified.timelineEvents,
+      coreQuality: coreSeed.quality,
     }
   )
   recordReportQualityMetrics('comprehensive', model, qualityMetrics)
@@ -2605,6 +2608,7 @@ export async function generateTimingReport(
       anchors: unified.anchors,
       scenarioBundles: unified.scenarioBundles,
       timelineEvents: unified.timelineEvents,
+      coreQuality: coreSeed.quality,
     })
     recordReportQualityMetrics('timing', 'deterministic-only', qualityMetrics)
     return {
@@ -2719,6 +2723,7 @@ export async function generateTimingReport(
       anchors: unified.anchors,
       scenarioBundles: unified.scenarioBundles,
       timelineEvents: unified.timelineEvents,
+      coreQuality: coreSeed.quality,
     })
     recordReportQualityMetrics('timing', rewrite.modelUsed, qualityMetrics)
     recordRewriteModeMetric('timing', rewrite.modelUsed, rewrite.tokensUsed)
@@ -3040,6 +3045,7 @@ export async function generateTimingReport(
       anchors: unified.anchors,
       scenarioBundles: unified.scenarioBundles,
       timelineEvents: unified.timelineEvents,
+      coreQuality: coreSeed.quality,
     }
   )
 
@@ -3212,6 +3218,7 @@ export async function generateThemedReport(
       anchors: unified.anchors,
       scenarioBundles: unified.scenarioBundles,
       timelineEvents: unified.timelineEvents,
+      coreQuality: coreSeed.quality,
     })
     recordReportQualityMetrics('themed', 'deterministic-only', qualityMetrics)
     return {
@@ -3304,6 +3311,7 @@ export async function generateThemedReport(
       anchors: unified.anchors,
       scenarioBundles: unified.scenarioBundles,
       timelineEvents: unified.timelineEvents,
+      coreQuality: coreSeed.quality,
     })
     recordReportQualityMetrics('themed', rewrite.modelUsed, qualityMetrics)
     recordRewriteModeMetric('themed', rewrite.modelUsed, rewrite.tokensUsed)
@@ -3598,6 +3606,7 @@ export async function generateThemedReport(
       anchors: unified.anchors,
       scenarioBundles: unified.scenarioBundles,
       timelineEvents: unified.timelineEvents,
+      coreQuality: coreSeed.quality,
     }
   )
 

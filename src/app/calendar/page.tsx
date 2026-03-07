@@ -4,11 +4,13 @@ import DestinyCalendar from '@/components/calendar/DestinyCalendar'
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
 export const metadata: Metadata = {
-  title: 'Fortune Calendar',
-  description: 'Plan important dates with AI-powered timing insights from Saju and Astrology.',
+  title: 'Destiny Calendar',
+  description:
+    'Plan important dates with AI-powered timing insights from Saju and Astrology, including strong windows, caution windows, and daily action guidance.',
   openGraph: {
-    title: 'Fortune Calendar | DestinyPal',
-    description: 'Plan important dates with AI-powered timing insights from Saju and Astrology.',
+    title: 'Destiny Calendar | DestinyPal',
+    description:
+      'Plan important dates with AI-powered timing insights from Saju and Astrology, including strong windows, caution windows, and daily action guidance.',
     type: 'website',
     locale: 'ko_KR',
     alternateLocale: ['en_US'],
@@ -19,14 +21,15 @@ export const metadata: Metadata = {
         url: `${baseUrl}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: 'Fortune Calendar | DestinyPal',
+        alt: 'Destiny Calendar | DestinyPal',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Fortune Calendar | DestinyPal',
-    description: 'Plan important dates with AI-powered timing insights from Saju and Astrology.',
+    title: 'Destiny Calendar | DestinyPal',
+    description:
+      'Plan important dates with AI-powered timing insights from Saju and Astrology, including strong windows, caution windows, and daily action guidance.',
     images: [`${baseUrl}/og-image.png`],
   },
   alternates: {
