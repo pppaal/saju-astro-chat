@@ -977,13 +977,15 @@ export const GET = withApiMiddleware(
     if (!aiDates && !CALENDAR_STRICT_AI_ENRICHMENT) {
       logger.warn('[Calendar] AI date enrichment unavailable (fallback to local rules)')
     }
+    const aiEnrichmentFailed = !aiDates
     const formatCalendarDate = (d: (typeof filteredDates)[number]) =>
       formatDateForResponse(
         d,
         locale,
         koTranslations as unknown as TranslationData,
         enTranslations as unknown as TranslationData,
-        matrixCalendarContext
+        matrixCalendarContext,
+        aiEnrichmentFailed
       )
 
     // 5등급별 그룹화 (single-pass instead of repeated filter calls)

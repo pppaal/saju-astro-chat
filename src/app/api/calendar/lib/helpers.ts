@@ -88,6 +88,29 @@ const VERIFICATION_TONE_PATTERNS = [
   /\uCD5C\uC6B0\uC120/g,
 ]
 
+const RISKY_ACTION_RECOMMENDATION_PATTERNS = [
+  /(\uC0AC\uC5C5\s*\uC2DC\uC791|\uC0AC\uC5C5\s*\uD655\uC7A5|\uD504\uB85C\uC81D\uD2B8|\uD30C\uD2B8\uB108\uC2ED|\uACE0\uBC31|\uD504\uB85C\uD3EC\uC988|\uBA74\uC811|\uC2B9\uC9C4|\uD22C\uC790|\uB9E4\uC218|\uC774\uC9C1|\uC774\uC0AC|\uC2DC\uC791|\uCD5C\uC801|\uD655\uC7A5|\uC2DC\uB108\uC9C0|\uD589\uC6B4)/i,
+  /\b(start|launch|expand|proposal|promotion|interview|invest|buy|commit|book|wedding)\b/i,
+]
+
+const WARNING_TEXT_FALLBACK: Record<'ko' | 'en', Record<string, string>> = {
+  ko: {
+    surgery: '\uC2DC\uC220/\uC218\uC220 \uAD00\uB828 \uC77C\uC815\uC740 \uC7AC\uD655\uC778\uD558\uACE0 \uC2E0\uC911\uD788 \uC9C4\uD589\uD558\uC138\uC694.',
+    dispute: '\uBD84\uC7C1 \uC18C\uC9C0\uAC00 \uC788\uC73C\uB2C8 \uD575\uC2EC \uC870\uAC74\uC740 \uBB38\uC11C\uB85C \uD655\uC778\uD558\uC138\uC694.',
+    legalIssue: '\uBC95\uB960/\uC57D\uAD00 \uAD00\uB828 \uC0AC\uC548\uC740 \uC804\uBB38\uAC00 \uAC80\uD1A0 \uD6C4 \uD655\uC815\uD558\uC138\uC694.',
+  },
+  en: {
+    surgery: 'Recheck procedures and medical timing before confirming.',
+    dispute: 'Potential dispute risk. Confirm core terms in writing.',
+    legalIssue: 'Legal/terms risk. Validate with expert review before committing.',
+  },
+}
+
+const RECOMMENDATION_TEXT_FALLBACK: Record<'ko' | 'en', string> = {
+  ko: '\uC624\uB298\uC740 \uD655\uC815\uBCF4\uB2E4 \uAC80\uD1A0\u00B7\uC7AC\uD655\uC778 \uC6B0\uC120\uC73C\uB85C \uC9C4\uD589\uD558\uC138\uC694.',
+  en: 'Prioritize review and verification over final commitment today.',
+}
+
 type RecommendationGateInput = {
   recommendations: string[]
   recommendationKeys?: string[]
@@ -180,6 +203,48 @@ function isIrreversibleRecommendationText(value: string): boolean {
   return IRREVERSIBLE_RECOMMENDATION_PATTERNS.some((pattern) => pattern.test(value))
 }
 
+function isVerificationTone(value: string): boolean {
+  return /\uAC80\uD1A0|\uC7AC\uD655\uC778|24\uC2DC\uAC04|review|verify|recheck|draft|24 hours/i.test(
+    value
+  )
+}
+
+function isRiskyActionRecommendationText(value: string): boolean {
+  return RISKY_ACTION_RECOMMENDATION_PATTERNS.some((pattern) => pattern.test(value))
+}
+
+function isConservativeRecommendationTone(value: string): boolean {
+  return /(\uAC80\uD1A0|\uC7AC\uD655\uC778|\uBCF4\uB958|\uC2E0\uC911|\uC815\uB9AC|\uC694\uC57D|\uCD08\uC548|24\uC2DC\uAC04|\uD734\uC2DD|\uBC84\uD37C|review|verify|recheck|draft|wait|pause|hold|rest|buffer)/i.test(
+    value
+  )
+}
+
+function resolveWarningTranslation(
+  warningKey: string,
+  translations: TranslationData,
+  lang: 'ko' | 'en'
+): string {
+  const path = `calendar.warnings.${warningKey}`
+  const translated = getTranslation(path, translations)
+  if (translated === path || translated.startsWith('calendar.')) {
+    return WARNING_TEXT_FALLBACK[lang][warningKey] || WARNING_TEXT_FALLBACK[lang].dispute
+  }
+  return translated
+}
+
+function resolveRecommendationTranslation(
+  recommendationKey: string,
+  translations: TranslationData,
+  lang: 'ko' | 'en'
+): string {
+  const path = `calendar.recommendations.${recommendationKey}`
+  const translated = getTranslation(path, translations)
+  if (translated === path || translated.startsWith('calendar.')) {
+    return RECOMMENDATION_TEXT_FALLBACK[lang]
+  }
+  return translated
+}
+
 export function gateRecommendations(input: RecommendationGateInput): string[] {
   const shouldGate = shouldGateRecommendationSet(input)
   const candidateLines =
@@ -190,9 +255,16 @@ export function gateRecommendations(input: RecommendationGateInput): string[] {
   }
 
   const filtered = candidateLines
-    .filter((line) => !isIrreversibleRecommendationText(line))
+    .filter(
+      (line) =>
+        !isIrreversibleRecommendationText(line) &&
+        !(isRiskyActionRecommendationText(line) && !isVerificationTone(line))
+    )
     .map((line) => softenRecommendationTone(line, input.lang))
     .filter(Boolean)
+  const conservativeFiltered = filtered.filter(
+    (line) => isConservativeRecommendationTone(line) || isVerificationTone(line)
+  )
 
   const fallback =
     input.lang === 'ko'
@@ -207,12 +279,8 @@ export function gateRecommendations(input: RecommendationGateInput): string[] {
           'Draft now and revisit final confirmation after 24 hours.',
         ]
 
-  const merged = filtered.length > 0 ? filtered : fallback
-  const hasVerificationCue = merged.some((line) =>
-    /\uAC80\uD1A0|\uC7AC\uD655\uC778|24\uC2DC\uAC04|review|verify|recheck|draft|24 hours/i.test(
-      line
-    )
-  )
+  const merged = conservativeFiltered.length > 0 ? conservativeFiltered : fallback
+  const hasVerificationCue = merged.some((line) => isVerificationTone(line))
 
   if (!hasVerificationCue) {
     merged.push(
@@ -753,7 +821,7 @@ function buildEnhancedRecommendations(
     : date.recommendationKeys
 
   const translated = gatedRecommendationKeys.map((key) =>
-    getTranslation(`calendar.recommendations.${key}`, translations)
+    resolveRecommendationTranslation(key, translations, lang)
   )
   const seed = `${date.date}|${date.score}|${date.grade}|${categories[0] || 'general'}`
   const categoryAction = buildCategoryAction(categories[0] || 'general', date.grade, lang, seed)
@@ -810,7 +878,7 @@ function buildEnhancedWarnings(
       : date.warningKeys
 
   const translated = warningKeysForGrade.map((key) =>
-    getTranslation(`calendar.warnings.${key}`, translations)
+    resolveWarningTranslation(key, translations, lang)
   )
   const factors = [...date.sajuFactorKeys, ...date.astroFactorKeys]
   let contextual = buildContextWarnings(date.grade, factors, lang)
@@ -1149,6 +1217,8 @@ function buildMatrixOverlay(
   matrixContext: MatrixCalendarContext,
   categories: EventCategory[],
   lang: 'ko' | 'en',
+  dateGrade: ImportanceGrade,
+  dateConfidence: number | undefined,
   crossAgreementPercent: number | undefined,
   cross: {
     sajuEvidence?: string
@@ -1232,18 +1302,19 @@ function buildMatrixOverlay(
   const score = weightedDomain
     ? (matrixContext.domainScores?.[weightedDomain]?.finalScoreAdjusted ?? 5)
     : 5
+  const riskDay = dateGrade >= 3 || isLowCoherenceSignal(dateConfidence, crossAgreementPercent)
 
   const summaryParts: string[] = []
   const recommendations: string[] = []
   const warnings: string[] = []
 
-  if (monthPoint?.peakLevel === 'peak') {
+  if (!riskDay && monthPoint?.peakLevel === 'peak') {
     summaryParts.push(
       lang === 'ko'
         ? `destiny-matrix 피크월(${monthKey}) 영향으로 타이밍 적중도가 높습니다.`
         : `Destiny-matrix peak month (${monthKey}) boosts timing precision.`
     )
-  } else if (monthPoint?.peakLevel === 'high') {
+  } else if (!riskDay && monthPoint?.peakLevel === 'high') {
     summaryParts.push(
       lang === 'ko'
         ? `destiny-matrix 고집중월(${monthKey}) 구간으로 실행력이 올라갑니다.`
@@ -1251,7 +1322,7 @@ function buildMatrixOverlay(
     )
   }
 
-  if (topDomain) {
+  if (!riskDay && topDomain) {
     if (lang === 'ko') {
       recommendations.push(
         `${koDomainLabel[topDomain]} 도메인 피크 흐름입니다. 해당 영역 우선순위를 가장 앞에 두세요.`
@@ -1261,7 +1332,7 @@ function buildMatrixOverlay(
     }
   }
 
-  if (weightedDomain && domainWeight >= 0.55) {
+  if (!riskDay && weightedDomain && domainWeight >= 0.55) {
     const domainLabel =
       lang === 'ko' ? koDomainLabel[weightedDomain] : enDomainLabel[weightedDomain]
     if (lang === 'ko') {
@@ -1281,6 +1352,16 @@ function buildMatrixOverlay(
       )
       summaryParts.push(`${domainLabel} has elevated destiny-matrix weighting today.`)
     }
+  }
+
+  if (riskDay && weightedDomain) {
+    const domainLabel =
+      lang === 'ko' ? koDomainLabel[weightedDomain] : enDomainLabel[weightedDomain]
+    summaryParts.push(
+      lang === 'ko'
+        ? `${domainLabel} 테마는 변동성이 있어 확정보다 검증 중심 운영이 유리합니다.`
+        : `${domainLabel} is volatile today; review-first execution is safer than hard commitment.`
+    )
   }
 
   if (cautionSignals.length > 0) {
@@ -1352,7 +1433,8 @@ export function formatDateForResponse(
   locale: string,
   koTranslations: TranslationData,
   enTranslations: TranslationData,
-  matrixContext?: MatrixCalendarContext
+  matrixContext?: MatrixCalendarContext,
+  aiEnrichmentFailed = false
 ): FormattedDate {
   const translations = locale === 'ko' ? koTranslations : enTranslations
   const lang = locale === 'ko' ? 'ko' : 'en'
@@ -1432,6 +1514,8 @@ export function formatDateForResponse(
     matrixContext || null,
     uniqueCategories,
     lang,
+    date.grade,
+    date.confidence,
     date.crossAgreementPercent,
     crossEvidence
   )
@@ -1496,7 +1580,7 @@ export function formatDateForResponse(
       ? '신호가 엇갈립니다. 큰 결정은 재확인 후 진행하세요.'
       : 'Signals are mixed. Re-check major decisions before committing.'
     : getTranslation(date.descKey, translations)
-  const summarized = forceConservativeMode
+  const summarizedBase = forceConservativeMode
     ? dedupeTexts([
         finalSummary,
         lang === 'ko'
@@ -1504,6 +1588,29 @@ export function formatDateForResponse(
           : 'Core conclusion: low confidence/cross-alignment, so operate in review-first mode.',
       ]).join(' ')
     : finalSummary
+  const deterministicReason =
+    aiEnrichmentFailed && !forceConservativeMode && date.grade <= 2 && !lowCoherence
+      ? lang === 'ko'
+        ? (() => {
+            const f1 = orderedSajuFactors[0]
+            const f2 = orderedAstroFactors[0]
+            if (f1 && f2) {
+              return `핵심 근거: ${f1} · ${f2}. 오늘은 실행과 검증을 함께 두는 전략이 유리합니다.`
+            }
+            return '핵심 근거 기반으로 일정·문서·커뮤니케이션을 분할 실행하세요.'
+          })()
+        : (() => {
+            const f1 = orderedSajuFactors[0]
+            const f2 = orderedAstroFactors[0]
+            if (f1 && f2) {
+              return `Core basis: ${f1} · ${f2}. Pair execution with verification gates today.`
+            }
+            return 'Use evidence-first sequencing for schedule, documents, and communication.'
+          })()
+      : ''
+  const summarized = deterministicReason
+    ? dedupeTexts([summarizedBase, deterministicReason]).join(' ')
+    : summarizedBase
 
   return normalizeMojibakePayload({
     date: date.date,

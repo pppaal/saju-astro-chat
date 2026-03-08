@@ -1,0 +1,1340 @@
+{"level":"info","message":"Destiny Matrix using house system:","timestamp":"2026-03-08T15:32:13.107Z","context":{"default":"placidus","fallback":"whole-sign","threshold":"66°"}}
+{"level":"debug","message":"Matrix calculation completed","timestamp":"2026-03-08T15:32:13.874Z","context":{"calculationTimeMs":22}}
+{
+  "step1_input": {
+    "birthDate": "1995-02-09",
+    "birthTime": "06:40",
+    "birthCity": "Seoul",
+    "timezone": "Asia/Seoul",
+    "latitude": 37.5665,
+    "longitude": 126.978,
+    "gender": "male",
+    "targetDate": "2026-02-25",
+    "theme": "life",
+    "mode": "comprehensive",
+    "lang": "ko"
+  },
+  "step2_cosmic_engine_output": {
+    "saju": {
+      "functionPath": "src/lib/Saju/saju.ts -> calculateSajuData + src/lib/Saju/astrologyengine.ts -> analyzeAdvancedSaju",
+      "dayMaster": {
+        "name": "辛",
+        "element": "금",
+        "yin_yang": "음",
+        "graphId": "GAN_신",
+        "elementGraphId": "EL_금"
+      },
+      "geokguk": {
+        "type": "정재격",
+        "basis": "월지 寅 정기 甲 기준"
+      },
+      "yongsin": {
+        "primary": "화",
+        "basis": "중화 상태이므로 부족한 오행 보충",
+        "favorable": [
+          "화"
+        ],
+        "unfavorable": []
+      },
+      "daeun": {
+        "age": 31,
+        "heavenlyStem": "乙",
+        "earthlyBranch": "亥",
+        "sibsin": {
+          "cheon": "편재",
+          "ji": "상관"
+        }
+      },
+      "seun": {
+        "year": 2026,
+        "ganji": "丙午",
+        "element": "화",
+        "sibsin": {
+          "cheon": "정관",
+          "ji": "편관"
+        }
+      },
+      "shinsalSummary": {
+        "hitCount": 14,
+        "top": [
+          {
+            "kind": "문곡",
+            "count": 2
+          },
+          {
+            "kind": "지살",
+            "count": 1
+          },
+          {
+            "kind": "월살",
+            "count": 1
+          },
+          {
+            "kind": "겁살",
+            "count": 1
+          },
+          {
+            "kind": "공망",
+            "count": 1
+          },
+          {
+            "kind": "천라지망",
+            "count": 1
+          },
+          {
+            "kind": "천을귀인",
+            "count": 1
+          },
+          {
+            "kind": "암록",
+            "count": 1
+          },
+          {
+            "kind": "괴강",
+            "count": 1
+          },
+          {
+            "kind": "태극귀인",
+            "count": 1
+          }
+        ]
+      }
+    },
+    "astrology": {
+      "functionPath": "src/lib/destiny-map/astrology/engine-core.ts -> computeDestinyMapRefactored",
+      "asc": "Aquarius",
+      "planets": [
+        {
+          "planet": "Sun",
+          "sign": "Aquarius",
+          "house": 1,
+          "longitude": 319.66
+        },
+        {
+          "planet": "Moon",
+          "sign": "Gemini",
+          "house": 4,
+          "longitude": 64.39
+        },
+        {
+          "planet": "Mercury",
+          "sign": "Aquarius",
+          "house": 1,
+          "longitude": 309.05
+        },
+        {
+          "planet": "Venus",
+          "sign": "Capricorn",
+          "house": 11,
+          "longitude": 274.57
+        },
+        {
+          "planet": "Mars",
+          "sign": "Leo",
+          "house": 7,
+          "longitude": 144.18
+        }
+      ],
+      "majorAspects": [
+        {
+          "from": "Jupiter",
+          "to": "Saturn",
+          "type": "square",
+          "orb": 0.47
+        },
+        {
+          "from": "Mercury",
+          "to": "Jupiter",
+          "type": "sextile",
+          "orb": 2.46
+        },
+        {
+          "from": "Uranus",
+          "to": "Pluto",
+          "type": "sextile",
+          "orb": 2.71
+        },
+        {
+          "from": "Uranus",
+          "to": "Neptune",
+          "type": "conjunction",
+          "orb": 3.72
+        },
+        {
+          "from": "Moon",
+          "to": "Pluto",
+          "type": "opposition",
+          "orb": 3.95
+        },
+        {
+          "from": "Sun",
+          "to": "Mars",
+          "type": "opposition",
+          "orb": 4.52
+        },
+        {
+          "from": "Moon",
+          "to": "Mercury",
+          "type": "trine",
+          "orb": 4.65
+        }
+      ],
+      "activeTransits": [
+        "saturnRetrograde",
+        "eclipse"
+      ]
+    }
+  },
+  "step3_destiny_matrix_output": {
+    "functionPath": "src/lib/destiny-matrix/engine.ts -> calculateDestinyMatrix",
+    "topImpactCells": [
+      {
+        "id": "L5:samhap:conjunction",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "conjunction",
+        "score": 10,
+        "domain": "relationship",
+        "polarity": "strength",
+        "evidence": {
+          "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+          "astroBasis": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg"
+        }
+      },
+      {
+        "id": "L5:samhap:trine",
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "trine",
+        "score": 10,
+        "domain": "health",
+        "polarity": "strength",
+        "evidence": {
+          "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+          "astroBasis": "Moon-Mercury trine angle=120deg orb=4.65deg allowed=6deg"
+        }
+      },
+      {
+        "id": "L5:chung:opposition",
+        "layer": 5,
+        "rowKey": "chung",
+        "colKey": "opposition",
+        "score": 10,
+        "domain": "health",
+        "polarity": "strength",
+        "evidence": {
+          "sajuBasis": "천간충 (乙-辛 충)",
+          "astroBasis": "Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg"
+        }
+      },
+      {
+        "id": "L6:임관:H10",
+        "layer": 6,
+        "rowKey": "임관",
+        "colKey": "H10",
+        "score": 10,
+        "domain": "career",
+        "polarity": "strength",
+        "evidence": {
+          "sajuBasis": "십이운성 임관",
+          "astroBasis": "Jupiter in H10"
+        }
+      },
+      {
+        "id": "L8:천을귀인:Sun",
+        "layer": 8,
+        "rowKey": "천을귀인",
+        "colKey": "Sun",
+        "score": 10,
+        "domain": "personality",
+        "polarity": "strength",
+        "evidence": {
+          "sajuBasis": "신살 천을귀인",
+          "astroBasis": "Sun in H1"
+        }
+      },
+      {
+        "id": "L8:천을귀인:Jupiter",
+        "layer": 8,
+        "rowKey": "천을귀인",
+        "colKey": "Jupiter",
+        "score": 10,
+        "domain": "career",
+        "polarity": "strength",
+        "evidence": {
+          "sajuBasis": "신살 천을귀인",
+          "astroBasis": "Jupiter in H10"
+        }
+      },
+      {
+        "id": "L8:괴강:Pluto",
+        "layer": 8,
+        "rowKey": "괴강",
+        "colKey": "Pluto",
+        "score": 10,
+        "domain": "career",
+        "polarity": "strength",
+        "evidence": {
+          "sajuBasis": "신살 괴강",
+          "astroBasis": "Pluto in H10"
+        }
+      },
+      {
+        "id": "L9:Pallas:금",
+        "layer": 9,
+        "rowKey": "Pallas",
+        "colKey": "금",
+        "score": 10,
+        "domain": "personality",
+        "polarity": "strength",
+        "evidence": {
+          "sajuBasis": "일간 금",
+          "astroBasis": "소행성 Pallas"
+        }
+      },
+      {
+        "id": "L10:PartOfFortune:편재",
+        "layer": 10,
+        "rowKey": "PartOfFortune",
+        "colKey": "편재",
+        "score": 10,
+        "domain": "wealth",
+        "polarity": "strength",
+        "evidence": {
+          "sajuBasis": "십신 편재",
+          "astroBasis": "PartOfFortune in Libra"
+        }
+      },
+      {
+        "id": "L10:PartOfFortune:정재",
+        "layer": 10,
+        "rowKey": "PartOfFortune",
+        "colKey": "정재",
+        "score": 10,
+        "domain": "wealth",
+        "polarity": "strength",
+        "evidence": {
+          "sajuBasis": "십신 정재",
+          "astroBasis": "PartOfFortune in Libra"
+        }
+      }
+    ]
+  },
+  "step4_signal_synthesis": {
+    "functionPath": "src/lib/destiny-matrix/ai-report/signalSynthesizer.ts -> synthesizeMatrixSignals",
+    "strength": [
+      {
+        "signalId": "I0:insight_111_1772983933883",
+        "domain": "personality",
+        "score": 100,
+        "polarity": "strength",
+        "evidenceRefs": [
+          "I0:insight_111_1772983933883",
+          "personality",
+          "strength"
+        ],
+        "whySelected": "top-rank in polarity quota (7-pick rule)"
+      },
+      {
+        "signalId": "I4:insight_109_1772983933883",
+        "domain": "career",
+        "score": 90,
+        "polarity": "strength",
+        "evidenceRefs": [
+          "I4:insight_109_1772983933883",
+          "career",
+          "strength"
+        ],
+        "whySelected": "top-rank in polarity quota (7-pick rule)"
+      },
+      {
+        "signalId": "L10:PartOfFortune:편재",
+        "domain": "wealth",
+        "score": 10,
+        "polarity": "strength",
+        "evidenceRefs": [
+          "L10:PartOfFortune:편재",
+          "PartOfFortune",
+          "편재"
+        ],
+        "whySelected": "top-rank in polarity quota (7-pick rule)"
+      }
+    ],
+    "balance": [],
+    "caution": [
+      {
+        "signalId": "L2:상관:Saturn",
+        "domain": "health",
+        "score": 2,
+        "polarity": "caution",
+        "evidenceRefs": [
+          "L2:상관:Saturn",
+          "상관",
+          "Saturn"
+        ],
+        "whySelected": "domain diversity / required-domain coverage"
+      },
+      {
+        "signalId": "L5:chung:square",
+        "domain": "career",
+        "score": 2,
+        "polarity": "caution",
+        "evidenceRefs": [
+          "L5:chung:square",
+          "chung",
+          "square"
+        ],
+        "whySelected": "domain diversity / required-domain coverage"
+      }
+    ]
+  },
+  "step5_pattern_engine": {
+    "functionPath": "src/lib/destiny-matrix/core/patternEngine.ts -> buildPatternEngine",
+    "activatedPatterns": [
+      {
+        "patternId": "career_expansion",
+        "patternName": "Career Expansion Pattern",
+        "supportingSignals": [
+          "L6:임관:H10",
+          "L8:천을귀인:Jupiter",
+          "L8:괴강:Pluto",
+          "I4:insight_109_1772983933883",
+          "COV:L7:geokguk:jeongjae",
+          "COV:L6:stage:임관"
+        ],
+        "conflictRulesApplied": true,
+        "patternThesis": "Career upside is active and external advancement paths are opening."
+      },
+      {
+        "patternId": "wealth_accumulation",
+        "patternName": "Wealth Accumulation Pattern",
+        "supportingSignals": [
+          "L6:임관:H10",
+          "L8:천을귀인:Jupiter",
+          "L10:PartOfFortune:편재",
+          "L10:PartOfFortune:정재",
+          "I4:insight_109_1772983933883",
+          "COV:L3:planet-house:Jupiter:H10"
+        ],
+        "conflictRulesApplied": false,
+        "patternThesis": "Steady accumulation is available when execution is disciplined."
+      },
+      {
+        "patternId": "burnout_risk",
+        "patternName": "Burnout Risk Pattern",
+        "supportingSignals": [
+          "L5:samhap:trine",
+          "L5:chung:opposition",
+          "L2:편재:Saturn",
+          "COV:L4:transit:saturnRetrograde",
+          "COV:L3:planet-house:Moon:H4",
+          "COV:L3:planet-house:Saturn:H1"
+        ],
+        "conflictRulesApplied": true,
+        "patternThesis": "Output is possible, but recovery debt is building in the background."
+      },
+      {
+        "patternId": "hidden_support",
+        "patternName": "Hidden Support Pattern",
+        "supportingSignals": [
+          "L5:samhap:conjunction",
+          "L5:samhap:trine",
+          "L6:임관:H10",
+          "L8:천을귀인:Jupiter",
+          "I4:insight_109_1772983933883",
+          "COV:L3:planet-house:Jupiter:H10"
+        ],
+        "conflictRulesApplied": true,
+        "patternThesis": "Indirect support exists and becomes visible when you ask clearly."
+      },
+      {
+        "patternId": "reputation_risk_window",
+        "patternName": "Reputation Risk Window",
+        "supportingSignals": [
+          "L5:samhap:trine",
+          "L6:임관:H10",
+          "L8:천을귀인:Jupiter",
+          "L8:괴강:Pluto",
+          "L2:상관:Mercury",
+          "I4:insight_109_1772983933883"
+        ],
+        "conflictRulesApplied": true,
+        "patternThesis": "Public perception matters more than usual, so precision must lead communication."
+      },
+      {
+        "patternId": "deep_partnership_activation",
+        "patternName": "Deep Partnership Activation",
+        "supportingSignals": [
+          "L5:samhap:conjunction",
+          "L5:samhap:trine",
+          "L5:chung:opposition",
+          "L6:임관:H10",
+          "L10:PartOfFortune:편재",
+          "L10:PartOfFortune:정재"
+        ],
+        "conflictRulesApplied": false,
+        "patternThesis": "Trust-based partnership can unlock value if roles are explicit."
+      },
+      {
+        "patternId": "network_leverage",
+        "patternName": "Network Leverage Pattern",
+        "supportingSignals": [
+          "L5:samhap:conjunction",
+          "L5:samhap:trine",
+          "L5:chung:opposition",
+          "L6:임관:H10",
+          "L8:천을귀인:Jupiter",
+          "L8:괴강:Pluto"
+        ],
+        "conflictRulesApplied": true,
+        "patternThesis": "Results improve when you use connections, context, and introductions deliberately."
+      },
+      {
+        "patternId": "career_upside_cluster",
+        "patternName": "Career Upside Cluster",
+        "supportingSignals": [
+          "L6:임관:H10",
+          "L8:천을귀인:Jupiter",
+          "L8:괴강:Pluto",
+          "I4:insight_109_1772983933883",
+          "COV:L7:geokguk:jeongjae",
+          "COV:L6:stage:임관"
+        ],
+        "conflictRulesApplied": true,
+        "patternThesis": "Career signals are clustering on the upside, so deliberate execution can compound."
+      }
+    ],
+    "fallbackPattern": null
+  },
+  "step6_scenario_engine": {
+    "functionPath": "src/lib/destiny-matrix/core/scenarioEngine.ts -> buildScenarioEngine",
+    "scenarios": [
+      {
+        "scenarioId": "promotion_window",
+        "scenarioType": "promotion",
+        "relatedPatternIds": [
+          "career_expansion"
+        ],
+        "timingRelevance": "now",
+        "confidence": 0.93,
+        "reversible": true
+      },
+      {
+        "scenarioId": "job_change_window",
+        "scenarioType": "job_change",
+        "relatedPatternIds": [
+          "career_expansion"
+        ],
+        "timingRelevance": "now",
+        "confidence": 0.93,
+        "reversible": true
+      },
+      {
+        "scenarioId": "launch_project_window",
+        "scenarioType": "project_launch",
+        "relatedPatternIds": [
+          "career_expansion"
+        ],
+        "timingRelevance": "now",
+        "confidence": 0.93,
+        "reversible": false
+      },
+      {
+        "scenarioId": "income_growth_window",
+        "scenarioType": "income_growth",
+        "relatedPatternIds": [
+          "wealth_accumulation"
+        ],
+        "timingRelevance": "now",
+        "confidence": 0.93,
+        "reversible": true
+      },
+      {
+        "scenarioId": "asset_build_window",
+        "scenarioType": "asset_build",
+        "relatedPatternIds": [
+          "wealth_accumulation"
+        ],
+        "timingRelevance": "now",
+        "confidence": 0.93,
+        "reversible": true
+      },
+      {
+        "scenarioId": "side_income_window",
+        "scenarioType": "side_income",
+        "relatedPatternIds": [
+          "wealth_accumulation"
+        ],
+        "timingRelevance": "now",
+        "confidence": 0.93,
+        "reversible": true
+      },
+      {
+        "scenarioId": "burnout_risk_main_window",
+        "scenarioType": "main",
+        "relatedPatternIds": [
+          "burnout_risk"
+        ],
+        "timingRelevance": "now",
+        "confidence": 0.93,
+        "reversible": true
+      },
+      {
+        "scenarioId": "burnout_risk_alt_window",
+        "scenarioType": "alt",
+        "relatedPatternIds": [
+          "burnout_risk"
+        ],
+        "timingRelevance": "now",
+        "confidence": 0.93,
+        "reversible": false
+      }
+    ]
+  },
+  "step7_strategy_engine": {
+    "functionPath": "src/lib/destiny-matrix/ai-report/strategyEngine.ts -> buildPhaseStrategyEngine",
+    "overallPhase": "expansion_guarded",
+    "overallPhaseLabel": "확장+리스크관리 국면",
+    "attack": 55,
+    "defense": 45,
+    "riskControl": "결정은 분할하고 역할·기한·책임을 문서로 고정하세요.",
+    "domainStrategies": [
+      {
+        "domain": "career",
+        "phase": "expansion_guarded",
+        "attack": 72,
+        "defense": 28,
+        "vector": {
+          "expansion": 37.2,
+          "volatility": 12.1,
+          "structure": 24.8
+        },
+        "evidenceIds": [
+          "I4:insight_109_1772983933883",
+          "COV:L5:aspect:Mercury-Jupiter:sextile",
+          "L8:천을귀인:Jupiter"
+        ]
+      },
+      {
+        "domain": "personality",
+        "phase": "expansion_guarded",
+        "attack": 72,
+        "defense": 28,
+        "vector": {
+          "expansion": 35.2,
+          "volatility": 12,
+          "structure": 26.9
+        },
+        "evidenceIds": [
+          "I0:insight_111_1772983933883",
+          "I3:insight_102_1772983933882",
+          "L8:천을귀인:Sun"
+        ]
+      },
+      {
+        "domain": "health",
+        "phase": "defensive_reset",
+        "attack": 40,
+        "defense": 60,
+        "vector": {
+          "expansion": 25.5,
+          "volatility": 19.9,
+          "structure": 27.5
+        },
+        "evidenceIds": [
+          "COV:L5:aspect:Moon-Mercury:trine",
+          "COV:L5:aspect:Moon-Pluto:opposition",
+          "L5:samhap:trine"
+        ]
+      },
+      {
+        "domain": "timing",
+        "phase": "defensive_reset",
+        "attack": 40,
+        "defense": 60,
+        "vector": {
+          "expansion": 25.1,
+          "volatility": 34.7,
+          "structure": 36.3
+        },
+        "evidenceIds": [
+          "COV:L7:snapshot_saju:advancedAnalysis",
+          "COV:L7:snapshot_saju:facts",
+          "COV:L4:transit:eclipse"
+        ]
+      },
+      {
+        "domain": "wealth",
+        "phase": "stabilize",
+        "attack": 58,
+        "defense": 42,
+        "vector": {
+          "expansion": 34.4,
+          "volatility": 11.3,
+          "structure": 28.7
+        },
+        "evidenceIds": [
+          "L10:PartOfFortune:편재",
+          "L10:PartOfFortune:정재",
+          "COV:L7:yongsin:화"
+        ]
+      },
+      {
+        "domain": "relationship",
+        "phase": "defensive_reset",
+        "attack": 40,
+        "defense": 60,
+        "vector": {
+          "expansion": 28.4,
+          "volatility": 15,
+          "structure": 30.3
+        },
+        "evidenceIds": [
+          "L5:samhap:conjunction",
+          "COV:L5:aspect:Uranus-Pluto:sextile",
+          "COV:L5:aspect:Uranus-Neptune:conjunction"
+        ]
+      }
+    ],
+    "whyChosen": "지금은 확장+리스크관리 국면입니다. 공격 55% / 방어 45%로 운영하며 재확인 단계를 생략하지 마세요. (E:32.7/V:14.6/S:28.6)",
+    "scoreBreakdown": {
+      "strength": 4.96,
+      "caution": 0.95,
+      "balance": 2.24
+    }
+  },
+  "step8_core_envelope": {
+    "functionPath": "src/lib/destiny-matrix/core/runDestinyCore.ts -> runDestinyCore + src/lib/destiny-matrix/ai-report/unifiedReport.ts -> buildUnifiedEnvelope",
+    "coreHash": "46c7c9fd80b1619e9fa7",
+    "claimIds": [
+      "career_growth_with_guardrails",
+      "timing_stability",
+      "wealth_expansion",
+      "relationship_risk_control",
+      "health_risk_control",
+      "personality_expansion"
+    ],
+    "evidenceRefs": {
+      "introduction.p1": {
+        "claimIds": [
+          "wealth_expansion",
+          "personality_expansion"
+        ],
+        "signalIds": [
+          "I0:insight_111_1772983933883",
+          "L10:PartOfFortune:편재"
+        ],
+        "anchorIds": [
+          "E5",
+          "E3",
+          "E8"
+        ]
+      },
+      "introduction.p2": {
+        "claimIds": [
+          "career_growth_with_guardrails",
+          "relationship_risk_control",
+          "health_risk_control"
+        ],
+        "signalIds": [
+          "L2:상관:Saturn",
+          "L5:chung:square"
+        ],
+        "anchorIds": [
+          "E3",
+          "E9",
+          "E8"
+        ]
+      },
+      "introduction.p3": {
+        "claimIds": [
+          "wealth_expansion",
+          "personality_expansion"
+        ],
+        "signalIds": [
+          "I0:insight_111_1772983933883",
+          "L10:PartOfFortune:편재"
+        ],
+        "anchorIds": [
+          "E5",
+          "E3",
+          "E8"
+        ]
+      },
+      "personalityDeep.p1": {
+        "claimIds": [
+          "wealth_expansion",
+          "personality_expansion"
+        ],
+        "signalIds": [
+          "I0:insight_111_1772983933883",
+          "L10:PartOfFortune:편재"
+        ],
+        "anchorIds": [
+          "E5",
+          "E3",
+          "E8"
+        ]
+      },
+      "personalityDeep.p2": {
+        "claimIds": [
+          "career_growth_with_guardrails",
+          "relationship_risk_control",
+          "health_risk_control"
+        ],
+        "signalIds": [
+          "L2:상관:Saturn",
+          "L5:chung:square"
+        ],
+        "anchorIds": [
+          "E3",
+          "E9",
+          "E8"
+        ]
+      },
+      "personalityDeep.p3": {
+        "claimIds": [
+          "wealth_expansion",
+          "personality_expansion"
+        ],
+        "signalIds": [
+          "I0:insight_111_1772983933883",
+          "L10:PartOfFortune:편재"
+        ],
+        "anchorIds": [
+          "E5",
+          "E3",
+          "E8"
+        ]
+      },
+      "careerPath.p1": {
+        "claimIds": [
+          "wealth_expansion"
+        ],
+        "signalIds": [
+          "L10:PartOfFortune:편재"
+        ],
+        "anchorIds": [
+          "E5",
+          "E3",
+          "E8"
+        ]
+      },
+      "careerPath.p2": {
+        "claimIds": [
+          "career_growth_with_guardrails"
+        ],
+        "signalIds": [
+          "I4:insight_109_1772983933883"
+        ],
+        "anchorIds": [
+          "E3",
+          "E9",
+          "E8"
+        ]
+      },
+      "careerPath.p3": {
+        "claimIds": [
+          "career_growth_with_guardrails",
+          "relationship_risk_control"
+        ],
+        "signalIds": [
+          "L5:chung:square"
+        ],
+        "anchorIds": [
+          "E3",
+          "E9",
+          "E8"
+        ]
+      },
+      "relationshipDynamics.p1": {
+        "claimIds": [
+          "career_growth_with_guardrails",
+          "relationship_risk_control"
+        ],
+        "signalIds": [
+          "L5:chung:square"
+        ],
+        "anchorIds": [
+          "E3",
+          "E9",
+          "E8"
+        ]
+      },
+      "relationshipDynamics.p2": {
+        "claimIds": [
+          "career_growth_with_guardrails",
+          "relationship_risk_control"
+        ],
+        "signalIds": [
+          "L5:chung:square"
+        ],
+        "anchorIds": [
+          "E3",
+          "E9",
+          "E8"
+        ]
+      },
+      "relationshipDynamics.p3": {
+        "claimIds": [
+          "career_growth_with_guardrails",
+          "relationship_risk_control"
+        ],
+        "signalIds": [
+          "L5:chung:square"
+        ],
+        "anchorIds": [
+          "E3",
+          "E9",
+          "E8"
+        ]
+      },
+      "wealthPotential.p1": {
+        "claimIds": [
+          "wealth_expansion"
+        ],
+        "signalIds": [
+          "L10:PartOfFortune:편재"
+        ],
+        "anchorIds": [
+          "E5",
+          "E3",
+          "E8"
+        ]
+      },
+      "wealthPotential.p2": {
+        "claimIds": [
+          "career_growth_with_guardrails"
+        ],
+        "signalIds": [
+          "I4:insight_109_1772983933883"
+        ],
+        "anchorIds": [
+          "E3",
+          "E9",
+          "E8"
+        ]
+      },
+      "wealthPotential.p3": {
+        "claimIds": [
+          "career_growth_with_guardrails",
+          "relationship_risk_control"
+        ],
+        "signalIds": [
+          "L5:chung:square"
+        ],
+        "anchorIds": [
+          "E3",
+          "E9",
+          "E8"
+        ]
+      },
+      "healthGuidance.p1": {
+        "claimIds": [
+          "health_risk_control"
+        ],
+        "signalIds": [
+          "L2:상관:Saturn"
+        ],
+        "anchorIds": [
+          "E6",
+          "E8",
+          "E9"
+        ]
+      },
+      "healthGuidance.p2": {
+        "claimIds": [
+          "career_growth_with_guardrails",
+          "relationship_risk_control"
+        ],
+        "signalIds": [
+          "L5:chung:square"
+        ],
+        "anchorIds": [
+          "E3",
+          "E9",
+          "E8"
+        ]
+      },
+      "healthGuidance.p3": {
+        "claimIds": [
+          "health_risk_control"
+        ],
+        "signalIds": [
+          "L2:상관:Saturn"
+        ],
+        "anchorIds": [
+          "E6",
+          "E8",
+          "E9"
+        ]
+      },
+      "lifeMission.p1": {
+        "claimIds": [
+          "wealth_expansion",
+          "personality_expansion"
+        ],
+        "signalIds": [
+          "I0:insight_111_1772983933883",
+          "L10:PartOfFortune:편재"
+        ],
+        "anchorIds": [
+          "E5",
+          "E3",
+          "E8"
+        ]
+      },
+      "lifeMission.p2": {
+        "claimIds": [
+          "career_growth_with_guardrails",
+          "relationship_risk_control",
+          "health_risk_control"
+        ],
+        "signalIds": [
+          "L2:상관:Saturn",
+          "L5:chung:square"
+        ],
+        "anchorIds": [
+          "E3",
+          "E9",
+          "E8"
+        ]
+      },
+      "lifeMission.p3": {
+        "claimIds": [
+          "wealth_expansion",
+          "personality_expansion"
+        ],
+        "signalIds": [
+          "I0:insight_111_1772983933883",
+          "L10:PartOfFortune:편재"
+        ],
+        "anchorIds": [
+          "E5",
+          "E3",
+          "E8"
+        ]
+      },
+      "timingAdvice.p1": {
+        "claimIds": [
+          "timing_stability"
+        ],
+        "signalIds": [
+          "COV:L7:snapshot_saju:advancedAnalysis"
+        ],
+        "anchorIds": [
+          "E8",
+          "E9"
+        ]
+      },
+      "timingAdvice.p2": {
+        "claimIds": [
+          "timing_stability"
+        ],
+        "signalIds": [
+          "COV:L7:snapshot_saju:facts"
+        ],
+        "anchorIds": [
+          "E8",
+          "E9"
+        ]
+      },
+      "timingAdvice.p3": {
+        "claimIds": [
+          "timing_stability"
+        ],
+        "signalIds": [
+          "COV:L7:snapshot_saju:advancedAnalysis"
+        ],
+        "anchorIds": [
+          "E8",
+          "E9"
+        ]
+      },
+      "actionPlan.p1": {
+        "claimIds": [
+          "career_growth_with_guardrails",
+          "wealth_expansion"
+        ],
+        "signalIds": [
+          "L10:PartOfFortune:편재",
+          "I4:insight_109_1772983933883"
+        ],
+        "anchorIds": [
+          "E3",
+          "E9",
+          "E8"
+        ]
+      },
+      "actionPlan.p2": {
+        "claimIds": [
+          "career_growth_with_guardrails",
+          "relationship_risk_control",
+          "health_risk_control"
+        ],
+        "signalIds": [
+          "L2:상관:Saturn",
+          "L5:chung:square"
+        ],
+        "anchorIds": [
+          "E3",
+          "E9",
+          "E8"
+        ]
+      },
+      "actionPlan.p3": {
+        "claimIds": [
+          "career_growth_with_guardrails",
+          "wealth_expansion"
+        ],
+        "signalIds": [
+          "L10:PartOfFortune:편재",
+          "I4:insight_109_1772983933883"
+        ],
+        "anchorIds": [
+          "E3",
+          "E9",
+          "E8"
+        ]
+      },
+      "conclusion.p1": {
+        "claimIds": [
+          "wealth_expansion",
+          "personality_expansion"
+        ],
+        "signalIds": [
+          "I0:insight_111_1772983933883",
+          "L10:PartOfFortune:편재"
+        ],
+        "anchorIds": [
+          "E5",
+          "E3",
+          "E8"
+        ]
+      },
+      "conclusion.p2": {
+        "claimIds": [
+          "career_growth_with_guardrails",
+          "relationship_risk_control",
+          "health_risk_control"
+        ],
+        "signalIds": [
+          "L2:상관:Saturn",
+          "L5:chung:square"
+        ],
+        "anchorIds": [
+          "E3",
+          "E9",
+          "E8"
+        ]
+      },
+      "conclusion.p3": {
+        "claimIds": [
+          "wealth_expansion",
+          "personality_expansion"
+        ],
+        "signalIds": [
+          "I0:insight_111_1772983933883",
+          "L10:PartOfFortune:편재"
+        ],
+        "anchorIds": [
+          "E5",
+          "E3",
+          "E8"
+        ]
+      }
+    },
+    "phase": "expansion_guarded",
+    "attackDefense": {
+      "attack": 55,
+      "defense": 45
+    },
+    "cautions": [
+      "L2:상관:Saturn",
+      "L5:chung:square"
+    ],
+    "confidence": 0.996,
+    "crossAgreement": {
+      "avgOverlapScore": 0.93,
+      "avgOrbFitScore": 0.53,
+      "totalSets": 20
+    }
+  },
+  "step9_output_adapter_check": {
+    "calendar": {
+      "coreHash": "46c7c9fd80b1619e9fa7",
+      "claimIds": [
+        "career_growth_with_guardrails",
+        "timing_stability",
+        "wealth_expansion",
+        "relationship_risk_control",
+        "health_risk_control",
+        "personality_expansion"
+      ],
+      "phase": "expansion_guarded",
+      "caution": [
+        "L2:상관:Saturn",
+        "L5:chung:square"
+      ],
+      "riskControl": "결정은 분할하고 역할·기한·책임을 문서로 고정하세요.",
+      "topPatternIds": [
+        "career_expansion",
+        "wealth_accumulation",
+        "burnout_risk",
+        "hidden_support",
+        "reputation_risk_window"
+      ]
+    },
+    "report": {
+      "coreHash": "46c7c9fd80b1619e9fa7",
+      "claimIds": [
+        "career_growth_with_guardrails",
+        "timing_stability",
+        "wealth_expansion",
+        "relationship_risk_control",
+        "health_risk_control",
+        "personality_expansion"
+      ],
+      "phase": "expansion_guarded",
+      "caution": [
+        "L2:상관:Saturn",
+        "L5:chung:square"
+      ],
+      "riskControl": "결정은 분할하고 역할·기한·책임을 문서로 고정하세요.",
+      "sectionCount": 10
+    },
+    "counselor": {
+      "coreHash": "46c7c9fd80b1619e9fa7",
+      "claimIds": [
+        "career_growth_with_guardrails",
+        "timing_stability",
+        "wealth_expansion",
+        "relationship_risk_control",
+        "health_risk_control",
+        "personality_expansion"
+      ],
+      "phase": "expansion_guarded",
+      "caution": [
+        "L2:상관:Saturn",
+        "L5:chung:square"
+      ],
+      "riskControl": "결정은 분할하고 역할·기한·책임을 문서로 고정하세요.",
+      "focusDomain": "personality"
+    },
+    "consistency": {
+      "coreHash": {
+        "calendar": "46c7c9fd80b1619e9fa7",
+        "report": "46c7c9fd80b1619e9fa7",
+        "counselor": "46c7c9fd80b1619e9fa7",
+        "match": true
+      },
+      "claimIds": {
+        "calendar": [
+          "career_growth_with_guardrails",
+          "timing_stability",
+          "wealth_expansion",
+          "relationship_risk_control",
+          "health_risk_control",
+          "personality_expansion"
+        ],
+        "report": [
+          "career_growth_with_guardrails",
+          "timing_stability",
+          "wealth_expansion",
+          "relationship_risk_control",
+          "health_risk_control",
+          "personality_expansion"
+        ],
+        "counselor": [
+          "career_growth_with_guardrails",
+          "timing_stability",
+          "wealth_expansion",
+          "relationship_risk_control",
+          "health_risk_control",
+          "personality_expansion"
+        ],
+        "match": true
+      },
+      "phase": {
+        "calendar": "expansion_guarded",
+        "report": "expansion_guarded",
+        "counselor": "expansion_guarded",
+        "match": true
+      },
+      "caution": {
+        "calendar": [
+          "L2:상관:Saturn",
+          "L5:chung:square"
+        ],
+        "report": [
+          "L2:상관:Saturn",
+          "L5:chung:square"
+        ],
+        "counselor": [
+          "L2:상관:Saturn",
+          "L5:chung:square"
+        ],
+        "match": true
+      },
+      "riskControl": {
+        "calendar": "결정은 분할하고 역할·기한·책임을 문서로 고정하세요.",
+        "report": "결정은 분할하고 역할·기한·책임을 문서로 고정하세요.",
+        "counselor": "결정은 분할하고 역할·기한·책임을 문서로 고정하세요.",
+        "match": true
+      }
+    }
+  },
+  "step10_final_qa": {
+    "unsupportedDetail": false,
+    "contradiction": false,
+    "mojibake": false,
+    "missingAdvancedFields": {
+      "shinsalList": false,
+      "activeTransits": false,
+      "advancedAstroSignals": false
+    },
+    "evidenceBindingViolations": [],
+    "stageIssues": []
+  },
+  "meta": {
+    "generatedAt": "2026-03-08T15:32:14.105Z",
+    "modeRunComparison": {
+      "calendar": {
+        "coreHash": "46c7c9fd80b1619e9fa7",
+        "phase": "expansion_guarded",
+        "claimIds": [
+          "career_growth_with_guardrails",
+          "timing_stability",
+          "wealth_expansion",
+          "relationship_risk_control",
+          "health_risk_control",
+          "personality_expansion"
+        ]
+      },
+      "comprehensive": {
+        "coreHash": "46c7c9fd80b1619e9fa7",
+        "phase": "expansion_guarded",
+        "claimIds": [
+          "career_growth_with_guardrails",
+          "timing_stability",
+          "wealth_expansion",
+          "relationship_risk_control",
+          "health_risk_control",
+          "personality_expansion"
+        ]
+      },
+      "themed": {
+        "coreHash": "46c7c9fd80b1619e9fa7",
+        "phase": "expansion_guarded",
+        "claimIds": [
+          "career_growth_with_guardrails",
+          "timing_stability",
+          "wealth_expansion",
+          "relationship_risk_control",
+          "health_risk_control",
+          "personality_expansion"
+        ]
+      }
+    }
+  }
+}
