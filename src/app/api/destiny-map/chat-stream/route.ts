@@ -1210,21 +1210,37 @@ export async function POST(req: NextRequest) {
     const themeDepthGuide = buildThemeDepthGuide(theme, lang)
     const evidenceGuide = buildEvidenceGroundingGuide(lang)
 
+    const responseDensityContract =
+      lang === 'ko'
+        ? [
+            '[Response Density Contract]',
+            '- 최소 4문단 이상으로 답변하고, 문단마다 새로운 정보를 추가하세요.',
+            '- 각 문단은 최소 1개 이상의 근거를 포함하고, 같은 문장 재진술을 피하세요.',
+            '- 결론은 core phase / top claims / caution과 반드시 일치해야 합니다.',
+          ].join('\n')
+        : [
+            '[Response Density Contract]',
+            '- Write at least 4 paragraphs with new information per paragraph.',
+            '- Include at least one evidence item per paragraph and avoid sentence repetition.',
+            '- Final verdict must align with core phase / top claims / cautions.',
+          ].join('\n')
+
     // Build prompt - FULL analysis with all advanced engines
     const chatPrompt = [
       counselorSystemPrompt(lang),
       fortuneGuide,
       themeDepthGuide,
       evidenceGuide,
+      responseDensityContract,
       `Name: ${name || 'User'}`,
       themeContext,
       fortuneIcpSection,
       '',
+      matrixProfileSection ? `\n${matrixProfileSection}` : '',
       // 기본 사주/점성 데이터
       contextSections.v3Snapshot
-        ? `[사주/점성 기본 데이터]\n${contextSections.v3Snapshot.slice(0, 5000)}`
+        ? `[사주/점성 기본 데이터]\n${contextSections.v3Snapshot.slice(0, 3200)}`
         : '',
-      matrixProfileSection ? `\n${matrixProfileSection}` : '',
       // 🔮 고급 분석 섹션들 (모듈화된 빌더 사용)
       contextSections.timingScoreSection ? `\n${contextSections.timingScoreSection}` : '',
       contextSections.enhancedAnalysisSection ? `\n${contextSections.enhancedAnalysisSection}` : '',

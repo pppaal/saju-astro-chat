@@ -15,7 +15,16 @@ import type {
 } from '@/lib/destiny-matrix/ai-report/types'
 import { buildUnifiedEnvelope } from '@/lib/destiny-matrix/ai-report/unifiedReport'
 
-const COUNSELOR_SECTION_PATHS = ['overview', 'patterns', 'timing', 'recommendations', 'actionPlan']
+const COUNSELOR_SECTION_PATHS = [
+  'overview',
+  'patterns',
+  'timing',
+  'recommendations',
+  'actionPlan',
+  'careerPath',
+  'relationshipDynamics',
+  'wealthPotential',
+]
 
 type CounselorTheme =
   | 'love'
@@ -155,12 +164,14 @@ function toEvidenceRefs(
   signalSynthesis: SignalSynthesisResult
 ): ReportEvidenceRef[] {
   const domainHints = domainHintsForSection(sectionPath, focusDomain)
-  const selected = signalSynthesis.selectedSignals || []
+  const selected = (signalSynthesis.selectedSignals || [])
+    .slice()
+    .sort((a, b) => b.rankScore - a.rankScore)
   const prioritized = selected.filter((signal) =>
     signal.domainHints.some((domain) => domainHints.includes(domain))
   )
-  const fallback = selected.slice(0, 4)
-  const source = (prioritized.length > 0 ? prioritized : fallback).slice(0, 4)
+  const fallback = selected.slice(0, 8)
+  const source = (prioritized.length > 0 ? prioritized : fallback).slice(0, 8)
 
   return source.map((signal) => ({
     id: signal.id,
@@ -234,34 +245,38 @@ export function buildCounselorEvidencePacket(params: {
   return {
     focusDomain,
     graphRagEvidenceSummary,
-    topAnchors: (unified.anchors || []).slice(0, 4).map((anchor) => ({
+    topAnchors: (unified.anchors || []).slice(0, 8).map((anchor) => ({
       id: anchor.id,
       section: anchor.section,
       summary: summarizeAnchor(anchor),
       setCount: anchor.setCount,
     })),
-    topClaims: (unified.claims || []).slice(0, 8).map((claim) => ({
+    topClaims: (unified.claims || []).slice(0, 10).map((claim) => ({
       id: claim.id,
       text: summarizeClaim(claim),
       domain: claim.domain,
-      signalIds: claim.selectedSignalIds.slice(0, 5),
-      anchorIds: claim.anchorIds.slice(0, 4),
+      signalIds: claim.selectedSignalIds.slice(0, 8),
+      anchorIds: claim.anchorIds.slice(0, 6),
     })),
     scenarioBriefs: (unified.scenarioBundles || [])
-      .slice(0, 4)
+      .slice(0, 6)
       .map((bundle: UnifiedScenarioBundle) => ({
         id: bundle.id,
         domain: bundle.domain,
-        mainTokens: (bundle.main.summaryTokens || []).slice(0, 5),
-        altTokens: (bundle.alt || []).flatMap((alt) => alt.summaryTokens || []).slice(0, 5),
+        mainTokens: (bundle.main.summaryTokens || []).slice(0, 8),
+        altTokens: (bundle.alt || []).flatMap((alt) => alt.summaryTokens || []).slice(0, 8),
       })),
-    selectedSignals: (params.signalSynthesis.selectedSignals || []).slice(0, 6).map((signal) => ({
-      id: signal.id,
-      domain: signal.domainHints[0] || 'personality',
-      polarity: signal.polarity,
-      summary: `${signal.keyword}: ${(signal.sajuBasis || signal.astroBasis || signal.advice || '').slice(0, 120)}`,
-      score: signal.score,
-    })),
+    selectedSignals: (params.signalSynthesis.selectedSignals || [])
+      .slice()
+      .sort((a, b) => b.rankScore - a.rankScore)
+      .slice(0, 10)
+      .map((signal) => ({
+        id: signal.id,
+        domain: signal.domainHints[0] || 'personality',
+        polarity: signal.polarity,
+        summary: `${signal.keyword}: ${(signal.sajuBasis || signal.astroBasis || signal.advice || '').slice(0, 180)}`,
+        score: signal.score,
+      })),
     strategyBrief: {
       overallPhase: params.strategyEngine.overallPhase,
       overallPhaseLabel: params.strategyEngine.overallPhaseLabel,
@@ -277,53 +292,81 @@ export function formatCounselorEvidencePacket(
 ): string {
   if (!packet || !packet.focusDomain || !packet.graphRagEvidenceSummary) return ''
 
-  const anchorText =
-    (packet.topAnchors || [])
-      .map((anchor) => `${anchor.section}:${anchor.summary} [sets=${anchor.setCount}]`)
-      .join(' | ') || 'none'
-  const claimText =
-    (packet.topClaims || [])
-      .map((claim) => `${claim.domain || 'general'}:${claim.text}`)
-      .join(' | ') || 'none'
-  const scenarioText =
-    (packet.scenarioBriefs || [])
-      .map((scenario) => `${scenario.domain}:${(scenario.mainTokens || []).join(', ') || 'none'}`)
-      .join(' | ') || 'none'
-  const signalText =
-    (packet.selectedSignals || [])
-      .map((signal) => `${signal.domain}/${signal.polarity}:${signal.summary}`)
-      .join(' | ') || 'none'
+  const anchorLines = (packet.topAnchors || [])
+    .slice(0, 6)
+    .map((anchor) => `- ${anchor.section}: ${anchor.summary} (sets=${anchor.setCount})`)
+  const claimLines = (packet.topClaims || [])
+    .slice(0, 6)
+    .map(
+      (claim) =>
+        `- [${claim.domain || 'general'}] ${claim.text} | signals=${(claim.signalIds || []).slice(0, 4).join(',') || 'none'}`
+    )
+  const scenarioLines = (packet.scenarioBriefs || []).slice(0, 4).map((scenario) => {
+    const main = (scenario.mainTokens || []).slice(0, 4).join(', ') || 'none'
+    const alt = (scenario.altTokens || []).slice(0, 4).join(', ') || 'none'
+    return `- ${scenario.domain}: main=${main} | alt=${alt}`
+  })
+  const signalLines = (packet.selectedSignals || [])
+    .slice(0, 8)
+    .map(
+      (signal) =>
+        `- ${signal.domain}/${signal.polarity}/score=${signal.score}: ${signal.summary || 'none'}`
+    )
   const strategyLabel = packet.strategyBrief?.overallPhaseLabel || 'none'
   const attackPercent = packet.strategyBrief?.attackPercent ?? '-'
   const defensePercent = packet.strategyBrief?.defensePercent ?? '-'
 
   if (lang === 'ko') {
     return [
-      '[Counselor Evidence Packet]',
+      '[Counselor Evidence Packet v2]',
       `focus_domain=${packet.focusDomain}`,
       `graph_anchors=${packet.graphRagEvidenceSummary.totalAnchors}`,
       `graph_sets=${packet.graphRagEvidenceSummary.totalSets}`,
       `strategy=${strategyLabel}(${attackPercent}/${defensePercent})`,
-      `anchor_briefs=${anchorText}`,
-      `claim_briefs=${claimText}`,
-      `scenario_briefs=${scenarioText}`,
-      `selected_signals=${signalText}`,
-      '?? ??? ? claim/anchor/scenario? ?? ??? ?, ??/?? ??? ?????.',
-      '?? -> ?? -> ?? ??? ????, claim? ???? ??? ?? ???.',
+      '',
+      '[Core Claims]',
+      ...(claimLines.length > 0 ? claimLines : ['- none']),
+      '',
+      '[Scenarios]',
+      ...(scenarioLines.length > 0 ? scenarioLines : ['- none']),
+      '',
+      '[Signal Evidence]',
+      ...(signalLines.length > 0 ? signalLines : ['- none']),
+      '',
+      '[Anchor Evidence]',
+      ...(anchorLines.length > 0 ? anchorLines : ['- none']),
+      '',
+      '[Response Contract]',
+      '- 답변은 4문단 이상으로 작성: 현재국면 -> 근거해석 -> 실행전략 -> 재확인체크리스트.',
+      '- 각 문단에 근거를 최소 1개씩 연결하고, 추천/주의가 서로 충돌하지 않게 유지.',
+      '- irreversible 행동(서명, 확정, 발송, 결제)은 caution 신호가 있으면 즉시 권하지 말 것.',
+      '- 핵심 결론은 strategy와 top claim에 반드시 일치시킬 것.',
     ].join('\n')
   }
 
   return [
-    '[Counselor Evidence Packet]',
+    '[Counselor Evidence Packet v2]',
     `focus_domain=${packet.focusDomain}`,
     `graph_anchors=${packet.graphRagEvidenceSummary.totalAnchors}`,
     `graph_sets=${packet.graphRagEvidenceSummary.totalSets}`,
     `strategy=${strategyLabel}(${attackPercent}/${defensePercent})`,
-    `anchor_briefs=${anchorText}`,
-    `claim_briefs=${claimText}`,
-    `scenario_briefs=${scenarioText}`,
-    `selected_signals=${signalText}`,
-    'Align the response to the claims, anchors, and scenarios first, then expand with saju/astrology interpretation.',
-    'Keep evidence -> interpretation -> action order and never contradict the claims.',
+    '',
+    '[Core Claims]',
+    ...(claimLines.length > 0 ? claimLines : ['- none']),
+    '',
+    '[Scenarios]',
+    ...(scenarioLines.length > 0 ? scenarioLines : ['- none']),
+    '',
+    '[Signal Evidence]',
+    ...(signalLines.length > 0 ? signalLines : ['- none']),
+    '',
+    '[Anchor Evidence]',
+    ...(anchorLines.length > 0 ? anchorLines : ['- none']),
+    '',
+    '[Response Contract]',
+    '- Write at least 4 paragraphs: current phase -> grounded interpretation -> strategy -> recheck checklist.',
+    '- Each paragraph must include at least one evidence item and keep recommendation/caution non-contradictory.',
+    '- If caution signals exist, do not push irreversible actions (sign/finalize/send/pay) immediately.',
+    '- Keep final verdict strictly aligned with strategy and top claims.',
   ].join('\n')
 }
