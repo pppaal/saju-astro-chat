@@ -73,6 +73,19 @@ export function ResultsStage(props: ResultsStageProps) {
   } = props
 
   const insight = interpretation
+  const hasOverallMessage = Boolean(insight?.overall_message?.trim())
+  const hasGuidance = Boolean(
+    Array.isArray(insight?.guidance)
+      ? insight?.guidance.length
+      : typeof insight?.guidance === 'string' && insight.guidance.trim().length > 0
+  )
+  const hasCardInterpretations = Boolean(
+    insight?.card_insights?.some(
+      (entry) => typeof entry?.interpretation === 'string' && entry.interpretation.trim().length > 0
+    )
+  )
+  const showInterpretationLoading =
+    Boolean(insight?.fallback) && !hasOverallMessage && !hasGuidance && !hasCardInterpretations
 
   return (
     <div className={styles.resultsContainer}>
@@ -121,7 +134,7 @@ export function ResultsStage(props: ResultsStageProps) {
       {/* AI Overall Message */}
       <OverallMessageChat
         message={insight?.overall_message}
-        isLoading={insight?.fallback}
+        isLoading={showInterpretationLoading}
         language={language}
       />
 
@@ -139,7 +152,7 @@ export function ResultsStage(props: ResultsStageProps) {
       )}
 
       {/* Guidance */}
-      {insight?.guidance && !insight.fallback && (
+      {hasGuidance && insight?.guidance && (
         <GuidanceSection guidance={insight.guidance} language={language} />
       )}
 

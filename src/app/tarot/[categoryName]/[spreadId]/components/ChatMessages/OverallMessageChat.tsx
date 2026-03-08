@@ -14,7 +14,9 @@ interface OverallMessageChatProps {
  * Overall reading message from the tarot counselor
  */
 export function OverallMessageChat({ message, isLoading, language }: OverallMessageChatProps) {
-  if (!isLoading && !message) {
+  const normalizedMessage = message?.trim() || ''
+
+  if (!isLoading && !normalizedMessage) {
     return null
   }
 
@@ -22,9 +24,9 @@ export function OverallMessageChat({ message, isLoading, language }: OverallMess
     <ChatMessage
       avatar="🔮"
       name={language === 'ko' ? '타로 상담사' : 'Tarot Counselor'}
-      isLoading={isLoading}
+      isLoading={Boolean(isLoading && !normalizedMessage)}
     >
-      <p className={styles.chatText}>{message}</p>
+      <p className={styles.chatText}>{normalizedMessage}</p>
     </ChatMessage>
   )
 }

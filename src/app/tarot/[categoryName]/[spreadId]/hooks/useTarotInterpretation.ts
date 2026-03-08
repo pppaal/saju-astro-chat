@@ -145,7 +145,7 @@ export function useTarotInterpretation({
   personalizationOptions,
 }: UseTarotInterpretationParams): UseTarotInterpretationReturn {
   const { data: session } = useSession()
-  const { translate, language } = useI18n()
+  const { language } = useI18n()
   const [isSaved, setIsSaved] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string>('')
 
@@ -352,24 +352,38 @@ export function useTarotInterpretation({
         )
       }
 
-      // 3) 최종 폴백
+      // 3) Final fallback with renderable local copy
+      const fallbackCardNames = result.drawnCards
+        .map((dc) => (isKorean ? dc.card.nameKo || dc.card.name : dc.card.name))
+        .slice(0, 3)
+        .join(', ')
+
       return {
-        overall_message: translate(
-          'tarot.results.defaultMessage',
-          'The cards have revealed their wisdom to you.'
-        ),
+        overall_message: isKorean
+          ? `${fallbackCardNames} 카드 흐름을 보면 지금은 성급한 결정보다 핵심 변수 정리와 작은 실행이 더 중요한 시기입니다. 오늘 바로 해볼 수 있는 한 가지 행동부터 시작하세요.`
+          : `The flow of ${fallbackCardNames} suggests that clarifying the key variable and taking one small concrete action matters more than forcing a fast decision right now.`,
         card_insights: result.drawnCards.map((dc, idx) => ({
           position: result.spread.positions[idx]?.title || `Card ${idx + 1}`,
           card_name: dc.card.name,
           is_reversed: dc.isReversed,
-          interpretation: '',
+          interpretation: isKorean
+            ? dc.isReversed
+              ? `${dc.card.nameKo || dc.card.name} 역방향은 지금 이 자리에서 흐름이 바로 풀리기보다 점검과 조정이 먼저 필요하다는 뜻입니다. 조급하게 밀어붙이지 말고 오늘 확인할 변수 하나만 정리해보세요.`
+              : `${dc.card.nameKo || dc.card.name} 카드는 이 자리에서 핵심 포인트를 분명히 보라는 신호입니다. 지금 가장 중요한 선택 기준 하나를 정하고 작은 실행으로 바로 연결해보세요.`
+            : dc.isReversed
+              ? `${dc.card.name} reversed suggests this position needs review and recalibration before you push ahead. Identify one variable to verify today.`
+              : `${dc.card.name} in this position highlights the key point you should act on next. Pick one clear criterion and move it into action today.`,
         })),
-        guidance: translate('tarot.results.defaultGuidance', 'Trust your intuition.'),
-        affirmation: '카드의 지혜를 믿으세요.',
+        guidance: isKorean
+          ? '오늘은 한 번에 결론 내리기보다, 가장 중요한 변수 1개를 정하고 20분 안에 실행 가능한 행동으로 옮겨보세요.'
+          : 'Instead of forcing a conclusion, choose the single most important variable and turn it into one action you can take within 20 minutes today.',
+        affirmation: isKorean
+          ? '작은 실행이 오늘의 흐름을 바꿉니다.'
+          : "One small action can change today's momentum.",
         fallback: true,
       }
     },
-    [categoryName, spreadId, language, session, translate, userTopic, personalizationOptions]
+    [categoryName, spreadId, language, session, userTopic, personalizationOptions]
   )
 
   const handleSaveReading = useCallback(

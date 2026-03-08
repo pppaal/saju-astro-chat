@@ -21,12 +21,7 @@ export function CardInterpretationChat({
   language,
   revealedCards,
 }: CardInterpretationChatProps) {
-  // Only show when all cards revealed and interpretation is ready
-  if (
-    revealedCards.length !== readingResult.drawnCards.length ||
-    !interpretation ||
-    interpretation.fallback
-  ) {
+  if (revealedCards.length !== readingResult.drawnCards.length || !interpretation) {
     return null
   }
 
@@ -42,16 +37,14 @@ export function CardInterpretationChat({
           language === 'ko' ? drawnCard.card.nameKo || drawnCard.card.name : drawnCard.card.name
         const meaning = drawnCard.isReversed ? drawnCard.card.reversed : drawnCard.card.upright
 
-        const interp = cardInsight?.interpretation || ''
+        const interp = cardInsight?.interpretation?.trim() || ''
         const isPlaceholder =
           interp.includes('카드의 메시지에 귀 기울여') ||
           interp.includes('Listen to the card') ||
           (interp.includes('자리의') && interp.length < 100)
 
-        // Skip if no interpretation or it's a duplicate/placeholder
         if (
           !interp ||
-          interp.length === 0 ||
           interp === meaning.meaning ||
           interp === meaning.meaningKo ||
           isPlaceholder
@@ -73,7 +66,7 @@ export function CardInterpretationChat({
               </>
             }
           >
-            <p className={styles.chatText}>{cardInsight.interpretation}</p>
+            <p className={styles.chatText}>{interp}</p>
           </ChatMessage>
         )
       })}
