@@ -240,7 +240,7 @@ export function buildCounselorEvidencePacket(params: {
       summary: summarizeAnchor(anchor),
       setCount: anchor.setCount,
     })),
-    topClaims: (unified.claims || []).slice(0, 5).map((claim) => ({
+    topClaims: (unified.claims || []).slice(0, 8).map((claim) => ({
       id: claim.id,
       text: summarizeClaim(claim),
       domain: claim.domain,

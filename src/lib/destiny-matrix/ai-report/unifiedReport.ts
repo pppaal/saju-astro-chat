@@ -660,7 +660,7 @@ function buildMappingRulebook(params: {
                 : 'Moves upward when negotiation power and high-value role focus are secured.',
             risksLower:
               params.lang === 'ko'
-                ? '확정 속도가 과하면 조건 누락으로 하단 회귀합니다.'
+                ? '확정 속도가 과하면 조건 누락으로 하단 되돌림이 발생합니다.'
                 : 'Over-speed finalization can pull results back to the lower band.',
             confidence: round2(clamp(overallConf + 0.05, 0.35, 0.95)),
           },

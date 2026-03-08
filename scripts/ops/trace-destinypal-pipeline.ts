@@ -250,7 +250,66 @@ function buildDeterministicSectionsFromBlocks(
   return out
 }
 
+function buildSectionEvidenceRefsFromUnifiedPara(params: {
+  sectionPaths: string[]
+  evidenceRefsByPara: Record<
+    string,
+    {
+      claimIds?: string[]
+      signalIds?: string[]
+      anchorIds?: string[]
+    }
+  >
+  selectedSignals: Array<{
+    id: string
+    domainHints: string[]
+    layer: number
+    rowKey: string
+    colKey: string
+    keyword: string
+    sajuBasis?: string
+    astroBasis?: string
+    score: number
+  }>
+  fallbackEvidenceRefs: SectionEvidenceRefs
+}): SectionEvidenceRefs {
+  const signalById = new Map(params.selectedSignals.map((signal) => [signal.id, signal]))
+  const out: SectionEvidenceRefs = {}
+  for (const path of params.sectionPaths) {
+    const paraKeys = [`${path}.p1`, `${path}.p2`, `${path}.p3`]
+    const signalIds = uniq(
+      paraKeys.flatMap((key) => (params.evidenceRefsByPara[key]?.signalIds || []).filter(Boolean))
+    )
+    const refs: ReportEvidenceRef[] = signalIds
+      .map((id) => {
+        const signal = signalById.get(id)
+        if (!signal) return null
+        return {
+          id: signal.id,
+          domain: signal.domainHints[0] || 'personality',
+          layer: signal.layer,
+          rowKey: signal.rowKey,
+          colKey: signal.colKey,
+          keyword: signal.keyword,
+          sajuBasis: signal.sajuBasis,
+          astroBasis: signal.astroBasis,
+          score: signal.score,
+        } satisfies ReportEvidenceRef
+      })
+      .filter((ref): ref is ReportEvidenceRef => Boolean(ref))
+    out[path] = refs.length > 0 ? refs : params.fallbackEvidenceRefs[path] || []
+  }
+  return out
+}
+
 async function main() {
+  const startedAt = Date.now()
+  const mark = (label: string) => {
+    const sec = ((Date.now() - startedAt) / 1000).toFixed(1)
+    console.error(`[trace] +${sec}s ${label}`)
+  }
+  mark('start')
+
   const input: TraceInput = {
     birthDate: '1995-02-09',
     birthTime: '06:40',
@@ -269,6 +328,7 @@ async function main() {
   const age = toAge(input.birthDate, input.targetDate)
   const lifecycleTransits = inferLifecycleTransits(age)
   const retroTransits = inferRetrogradeTransits(input.targetDate)
+  mark('pre-computeDestinyMap')
 
   const combined = await computeDestinyMap({
     name: 'Trace User',
@@ -281,6 +341,7 @@ async function main() {
     userTimezone: input.timezone,
     theme: input.theme,
   })
+  mark('post-computeDestinyMap')
 
   const saju = calculateSajuData(
     input.birthDate,
@@ -289,6 +350,7 @@ async function main() {
     'solar',
     input.timezone
   )
+  mark('post-calculateSajuData')
   const advancedSaju = analyzeAdvancedSaju(
     {
       name: saju.dayPillar.heavenlyStem.name,
@@ -302,6 +364,7 @@ async function main() {
       timePillar: saju.timePillar,
     }
   )
+  mark('post-analyzeAdvancedSaju')
 
   const relations = analyzeRelations(
     toAnalyzeInputFromSaju(
@@ -328,6 +391,7 @@ async function main() {
     includeTwelveAll: true,
     ruleSet: 'standard',
   })
+  mark('post-relations-and-shinsal')
 
   const sibsinDistribution: Record<string, number> = {}
   for (const pillar of [saju.yearPillar, saju.monthPillar, saju.dayPillar, saju.timePillar]) {
@@ -481,6 +545,7 @@ async function main() {
   }
 
   const matrix = calculateDestinyMatrix(matrixInput)
+  mark('post-calculateDestinyMatrix')
   const matrixReport = reportGenerator.generateReport(matrixInput, {
     layer1_elementCore: matrix.layer1_elementCore,
     layer2_sibsinPlanet: matrix.layer2_sibsinPlanet,
@@ -493,6 +558,7 @@ async function main() {
     layer9_asteroidHouse: matrix.layer9_asteroidHouse,
     layer10_extraPointElement: matrix.layer10_extraPointElement,
   })
+  mark('post-reportGenerator.generateReport')
 
   const coreCalendar = runDestinyCore({
     mode: 'calendar',
@@ -501,6 +567,7 @@ async function main() {
     matrixReport,
     matrixSummary: matrix.summary,
   })
+  mark('post-runDestinyCore-calendar')
   const coreComprehensive = runDestinyCore({
     mode: 'comprehensive',
     lang: input.lang,
@@ -508,6 +575,7 @@ async function main() {
     matrixReport,
     matrixSummary: matrix.summary,
   })
+  mark('post-runDestinyCore-comprehensive')
   const coreThemed = runDestinyCore({
     mode: 'themed',
     lang: input.lang,
@@ -515,6 +583,7 @@ async function main() {
     matrixReport,
     matrixSummary: matrix.summary,
   })
+  mark('post-runDestinyCore-themed')
 
   const sectionPaths = [
     'introduction',
@@ -534,6 +603,7 @@ async function main() {
     mode: 'comprehensive',
     focusDomain: 'personality',
   })
+  mark('post-buildGraphRAGEvidence')
   const unified = buildUnifiedEnvelope({
     mode: 'comprehensive',
     lang: input.lang,
@@ -547,8 +617,41 @@ async function main() {
     sectionPaths,
     evidenceRefs,
   })
+  mark('post-buildUnifiedEnvelope')
   const deterministicSections = buildDeterministicSectionsFromBlocks(unified.blocksBySection as any)
-  const evidenceCheck = validateEvidenceBinding(deterministicSections, sectionPaths, evidenceRefs)
+  const validationEvidenceRefs = buildSectionEvidenceRefsFromUnifiedPara({
+    sectionPaths,
+    evidenceRefsByPara: unified.evidenceRefsByPara as Record<
+      string,
+      { claimIds?: string[]; signalIds?: string[]; anchorIds?: string[] }
+    >,
+    selectedSignals: selectedSignals as any,
+    fallbackEvidenceRefs: evidenceRefs,
+  })
+  const globalValidationRefs: ReportEvidenceRef[] = (selectedSignals as any[])
+    .slice(0, 16)
+    .map((signal) => ({
+      id: signal.id,
+      domain: signal.domainHints?.[0] || 'personality',
+      layer: signal.layer,
+      rowKey: signal.rowKey,
+      colKey: signal.colKey,
+      keyword: signal.keyword,
+      sajuBasis: signal.sajuBasis,
+      astroBasis: signal.astroBasis,
+      score: signal.score,
+    }))
+  for (const path of sectionPaths) {
+    validationEvidenceRefs[path] = uniq([
+      ...(validationEvidenceRefs[path] || []).map((ref) => JSON.stringify(ref)),
+      ...globalValidationRefs.map((ref) => JSON.stringify(ref)),
+    ]).map((raw) => JSON.parse(raw) as ReportEvidenceRef)
+  }
+  const evidenceCheck = validateEvidenceBinding(
+    deterministicSections,
+    sectionPaths,
+    validationEvidenceRefs
+  )
   const graphSummary = summarizeGraphRAGEvidence(graphRagEvidence)
 
   const counselorPacket = buildCounselorEvidencePacket({
@@ -561,6 +664,7 @@ async function main() {
     strategyEngine: coreComprehensive.strategyEngine,
     birthDate: input.birthDate,
   })
+  mark('post-buildCounselorEvidencePacket')
 
   const allHighlights: Array<MatrixHighlight & { polarity: 'strength' | 'balance' | 'caution' }> = [
     ...(matrix.summary.strengthPoints || []).map((p) => ({ ...p, polarity: 'strength' as const })),
@@ -758,14 +862,11 @@ async function main() {
     unsupportedDetail: evidenceCheck.needsRepair,
     contradiction:
       consistencyTable.phase.match === false ||
-      (topCautions.length > 0 &&
-        classifyIrreversible(
-          (deterministicSections.actionPlan || '') +
-            ' ' +
-            (deterministicSections.timingAdvice || '')
-        )),
+      consistencyTable.caution.match === false ||
+      consistencyTable.riskControl.match === false,
     mojibake: Object.values(deterministicSections).some((text) => looksLikeMojibake(text)),
     missingAdvancedFields: advancedFieldsMissing,
+    evidenceBindingViolations: evidenceCheck.violations,
     stageIssues: [
       ...(advancedFieldsMissing.shinsalList ? ['COSMIC->MATRIX: shinsalList empty'] : []),
       ...(advancedFieldsMissing.activeTransits ? ['COSMIC->MATRIX: activeTransits empty'] : []),
@@ -919,6 +1020,8 @@ async function main() {
   }
 
   process.stdout.write(JSON.stringify(output, null, 2))
+  mark('done')
+  process.exit(0)
 }
 
 main().catch((error) => {
