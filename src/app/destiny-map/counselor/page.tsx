@@ -8,7 +8,6 @@ import dynamic from 'next/dynamic'
 import { useI18n } from '@/i18n/I18nProvider'
 import { ErrorBoundary, ChatErrorFallback } from '@/components/ErrorBoundary'
 import CreditBadge from '@/components/ui/CreditBadge'
-import AuthGate from '@/components/auth/AuthGate'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import styles from './counselor.module.css'
 import { logger } from '@/lib/logger'
@@ -58,7 +57,6 @@ export default function CounselorPage() {
   const router = useRouter()
   const { status: authStatus } = useSession()
   const isAuthed = authStatus === 'authenticated'
-  const isCheckingAuth = authStatus === 'loading'
 
   const {
     chartData,
@@ -96,52 +94,7 @@ export default function CounselorPage() {
   const handleBack = useCallback(() => router.back(), [router])
   const handleChatReset = useCallback(() => window.location.reload(), [])
 
-  if (isCheckingAuth) {
-    return (
-      <main className={styles.page}>
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingText}>
-            <h2 className={styles.counselorTitle}>
-              {t('destinyMap.counselor.title', 'Destiny Counselor')}
-            </h2>
-            <p className={styles.loadingMessage}>
-              {t('destinyMap.counselor.authChecking', 'Checking login status...')}
-            </p>
-          </div>
-        </div>
-      </main>
-    )
-  }
-
-  const loginFallback = (
-    <main className={styles.page}>
-      <div className={styles.authGate}>
-        <div className={styles.authCard}>
-          <div className={styles.authIcon}>{'\uD83D\uDD12'}</div>
-          <h1 className={styles.authTitle}>
-            {t('destinyMap.counselor.loginRequiredTitle', 'Counselor chat requires login.')}
-          </h1>
-          <p className={styles.authDesc}>
-            {t(
-              'destinyMap.counselor.loginRequiredDesc',
-              'Sign in to load your personalized context and chat history.'
-            )}
-          </p>
-          <button type="button" className={styles.loginButton} onClick={handleLogin}>
-            {t('destinyMap.counselor.loginCta', 'Sign in and continue')}
-          </button>
-          <p className={styles.loginHint}>
-            {t(
-              'destinyMap.counselor.loginHint',
-              'If you do not have an account yet, you can create one from the sign-in flow.'
-            )}
-          </p>
-        </div>
-      </div>
-    </main>
-  )
-
-  if (isLoading && isAuthed) {
+  if (isLoading) {
     return (
       <CounselorLoadingScreen
         title={t('destinyMap.counselor.title', 'Destiny Counselor')}
@@ -152,103 +105,107 @@ export default function CounselorPage() {
   }
 
   return (
-    <AuthGate
-      statusOverride={authStatus}
-      callbackUrl={
-        typeof window !== 'undefined'
-          ? `/destiny-counselor/chat${window.location.search}`
-          : '/destiny-counselor/chat'
-      }
-      fallback={loginFallback}
-    >
-      <main className={`${styles.page} ${showChat ? styles.fadeIn : ''}`}>
-        <header className={styles.header}>
-          <button
-            type="button"
-            className={styles.backButton}
-            onClick={handleBack}
-            aria-label={t('common.back', 'Back')}
-          >
-            <span className={styles.backIcon}>{'\u2190'}</span>
-          </button>
+    <main className={`${styles.page} ${showChat ? styles.fadeIn : ''}`}>
+      <header className={styles.header}>
+        <button
+          type="button"
+          className={styles.backButton}
+          onClick={handleBack}
+          aria-label={t('common.back', 'Back')}
+        >
+          <span className={styles.backIcon}>{'\u2190'}</span>
+        </button>
 
-          <div className={styles.headerInfo}>
-            <div className={styles.counselorBadge}>
-              <span className={styles.counselorAvatar}>{'\uD83D\uDD2E'}</span>
-              <div>
-                <h1 className={styles.headerTitle}>
-                  {t('destinyMap.counselor.title', 'Destiny Counselor')}
-                </h1>
-                <span className={styles.onlineStatus}>
-                  <span className={styles.onlineDot} />
-                  {t('destinyMap.counselor.online', 'Online')}
-                </span>
-              </div>
+        <div className={styles.headerInfo}>
+          <div className={styles.counselorBadge}>
+            <span className={styles.counselorAvatar}>{'\uD83D\uDD2E'}</span>
+            <div>
+              <h1 className={styles.headerTitle}>
+                {t('destinyMap.counselor.title', 'Destiny Counselor')}
+              </h1>
+              <span className={styles.onlineStatus}>
+                <span className={styles.onlineDot} />
+                {t('destinyMap.counselor.online', 'Online')}
+              </span>
             </div>
           </div>
-
-          <div className={styles.headerActions}>
-            <CreditBadge variant="compact" />
-            <Link href="/" className={styles.homeButton} aria-label="Home">
-              <span className={styles.homeIcon}>{'\uD83C\uDFE0'}</span>
-              <span className={styles.homeLabel}>{t('common.home', 'Home')}</span>
-            </Link>
-          </div>
-        </header>
-
-        <div className={styles.themeBar}>
-          <div className={styles.themeScroll}>
-            {themeOptions.map((opt) => (
-              <button
-                key={opt.key}
-                type="button"
-                className={`${styles.themeChip} ${selectedTheme === opt.key ? styles.themeChipActive : ''}`}
-                onClick={() => setSelectedTheme(opt.key)}
-              >
-                <span className={styles.themeIcon}>{opt.icon}</span>
-                <span className={styles.themeLabel}>{opt.label}</span>
-              </button>
-            ))}
-          </div>
         </div>
 
-        <div className={styles.chatWrapper}>
-          <ErrorBoundary
-            fallback={<ChatErrorFallback error={new Error('Chat error')} reset={handleChatReset} />}
-            onError={(error) => {
-              logger.error('[Counselor] Chat error', { error: error.message, stack: error.stack })
+        <div className={styles.headerActions}>
+          <CreditBadge variant="compact" />
+          <Link href="/" className={styles.homeButton} aria-label="Home">
+            <span className={styles.homeIcon}>{'\uD83C\uDFE0'}</span>
+            <span className={styles.homeLabel}>{t('common.home', 'Home')}</span>
+          </Link>
+        </div>
+      </header>
+
+      {!isAuthed && authStatus !== 'loading' && (
+        <div className={styles.guestBanner}>
+          <p className={styles.guestBannerText}>
+            {t(
+              'destinyMap.counselor.guestBanner',
+              '게스트 모드로 바로 상담할 수 있어요. 로그인하면 대화 기록 저장과 연속 상담이 활성화됩니다.'
+            )}
+          </p>
+          <button type="button" className={styles.guestLoginButton} onClick={handleLogin}>
+            {t('destinyMap.counselor.loginCta', 'Sign in and continue')}
+          </button>
+        </div>
+      )}
+
+      <div className={styles.themeBar}>
+        <div className={styles.themeScroll}>
+          {themeOptions.map((opt) => (
+            <button
+              key={opt.key}
+              type="button"
+              className={`${styles.themeChip} ${selectedTheme === opt.key ? styles.themeChipActive : ''}`}
+              onClick={() => setSelectedTheme(opt.key)}
+            >
+              <span className={styles.themeIcon}>{opt.icon}</span>
+              <span className={styles.themeLabel}>{opt.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className={styles.chatWrapper}>
+        <ErrorBoundary
+          fallback={<ChatErrorFallback error={new Error('Chat error')} reset={handleChatReset} />}
+          onError={(error) => {
+            logger.error('[Counselor] Chat error', { error: error.message, stack: error.stack })
+          }}
+        >
+          <Chat
+            profile={{
+              name,
+              birthDate,
+              birthTime,
+              city,
+              gender,
+              latitude,
+              longitude,
             }}
-          >
-            <Chat
-              profile={{
-                name,
-                birthDate,
-                birthTime,
-                city,
-                gender,
-                latitude,
-                longitude,
-              }}
-              lang={lang}
-              theme={selectedTheme}
-              initialContext={initialQuestion ? `User's initial question: ${initialQuestion}` : ''}
-              seedEvent="counselor:seed"
-              saju={chartData?.saju}
-              astro={chartData?.astro}
-              advancedAstro={chartData?.advancedAstro}
-              userContext={userContext}
-              chatSessionId={chatSessionId}
-              onSaveMessage={handleSaveMessage}
-              autoScroll={false}
-              ragSessionId={sessionId || undefined}
-              autoSendSeed
-            />
-          </ErrorBoundary>
-        </div>
+            lang={lang}
+            theme={selectedTheme}
+            initialContext={initialQuestion ? `User's initial question: ${initialQuestion}` : ''}
+            seedEvent="counselor:seed"
+            saju={chartData?.saju}
+            astro={chartData?.astro}
+            advancedAstro={chartData?.advancedAstro}
+            userContext={userContext}
+            chatSessionId={chatSessionId}
+            onSaveMessage={handleSaveMessage}
+            autoScroll={false}
+            ragSessionId={sessionId || undefined}
+            autoSendSeed
+          />
+        </ErrorBoundary>
+      </div>
 
-        {initialQuestion && <InitialQuestionSender question={initialQuestion} />}
-      </main>
-    </AuthGate>
+      {initialQuestion && <InitialQuestionSender question={initialQuestion} />}
+    </main>
   )
 }
 

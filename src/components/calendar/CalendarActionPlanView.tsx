@@ -605,6 +605,40 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     [isKo]
   )
 
+  const formatWhyMetaLabel = useCallback(
+    (slot: TimelineSlotView) => {
+      const parts: string[] = []
+      if (slot.whyPatterns?.length) {
+        parts.push(
+          isKo
+            ? `두드러진 흐름 ${slot.whyPatterns.map(formatWhyPatternLabel).join(' · ')}`
+            : `Dominant pattern ${slot.whyPatterns.map(formatWhyPatternLabel).join(' · ')}`
+        )
+      }
+      if (slot.whySignalIds?.length) {
+        parts.push(
+          isKo ? `근거 신호 ${slot.whySignalIds.length}개` : `${slot.whySignalIds.length} signals`
+        )
+      }
+      if (slot.whyAnchorIds?.length) {
+        parts.push(
+          isKo ? `앵커 ${slot.whyAnchorIds.length}개` : `${slot.whyAnchorIds.length} anchors`
+        )
+      }
+      return parts.join(' · ')
+    },
+    [formatWhyPatternLabel, isKo]
+  )
+
+  const formatConfidenceNote = useCallback(
+    (reasons: string[]) => {
+      const joined = reasons.map(formatConfidenceReasonLabel).join(' · ')
+      if (!joined) return ''
+      return isKo ? `신뢰도 메모: ${joined}` : `Confidence note: ${joined}`
+    },
+    [formatConfidenceReasonLabel, isKo]
+  )
+
   const clampConfidence = useCallback(
     (value: number) => Math.max(0, Math.min(100, Math.round(value))),
     []
@@ -874,6 +908,85 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         .filter((item): item is string => Boolean(item))
       return compact.length ? compact.slice(0, max) : undefined
     }
+    const packetKeyCandidates = [
+      baseInfo?.evidence?.matrix?.domain === 'money'
+        ? 'wealth'
+        : baseInfo?.evidence?.matrix?.domain,
+      ...(baseInfo?.categories || []),
+      'today',
+      'general',
+    ]
+      .map((value) => (value || '').toLowerCase())
+      .filter(Boolean)
+      .map((value) => {
+        if (value === 'money') return 'wealth'
+        if (value === 'move' || value === 'travel' || value === 'general') return 'today'
+        if (value === 'study') return 'career'
+        return value
+      })
+    const selectedMatrixPacket = packetKeyCandidates
+      .map((key) => data?.matrixEvidencePackets?.[key])
+      .find(Boolean)
+    const compactMatrixPacket = selectedMatrixPacket
+      ? {
+          focusDomain: trimText(selectedMatrixPacket.focusDomain, 24),
+          graphRagEvidenceSummary: selectedMatrixPacket.graphRagEvidenceSummary
+            ? {
+                totalAnchors: selectedMatrixPacket.graphRagEvidenceSummary.totalAnchors,
+                totalSets: selectedMatrixPacket.graphRagEvidenceSummary.totalSets,
+              }
+            : undefined,
+          topAnchors: selectedMatrixPacket.topAnchors
+            ?.map((anchor) => ({
+              id: trimText(anchor.id, 48),
+              section: trimText(anchor.section, 32),
+              summary: trimText(anchor.summary, 180),
+              setCount: anchor.setCount,
+            }))
+            .filter((anchor) => anchor.id && anchor.summary)
+            .slice(0, 3),
+          topClaims: selectedMatrixPacket.topClaims
+            ?.map((claim) => ({
+              id: trimText(claim.id, 48),
+              text: trimText(claim.text, 180),
+              domain: trimText(claim.domain, 24),
+              signalIds: trimList(claim.signalIds, 4, 32),
+              anchorIds: trimList(claim.anchorIds, 3, 32),
+            }))
+            .filter((claim) => claim.id && claim.text)
+            .slice(0, 4),
+          scenarioBriefs: selectedMatrixPacket.scenarioBriefs
+            ?.map((scenario) => ({
+              id: trimText(scenario.id, 48),
+              domain: trimText(scenario.domain, 24),
+              mainTokens: trimList(scenario.mainTokens, 4, 32),
+              altTokens: trimList(scenario.altTokens, 4, 32),
+            }))
+            .filter((scenario) => scenario.id)
+            .slice(0, 3),
+          selectedSignals: selectedMatrixPacket.selectedSignals
+            ?.map((signal) => ({
+              id: trimText(signal.id, 48),
+              domain: trimText(signal.domain, 24),
+              polarity: trimText(signal.polarity, 16),
+              summary: trimText(signal.summary, 160),
+              score: signal.score,
+            }))
+            .filter((signal) => signal.id && signal.summary)
+            .slice(0, 5),
+          strategyBrief: selectedMatrixPacket.strategyBrief
+            ? {
+                overallPhase: trimText(selectedMatrixPacket.strategyBrief.overallPhase, 24),
+                overallPhaseLabel: trimText(
+                  selectedMatrixPacket.strategyBrief.overallPhaseLabel,
+                  48
+                ),
+                attackPercent: selectedMatrixPacket.strategyBrief.attackPercent,
+                defensePercent: selectedMatrixPacket.strategyBrief.defensePercent,
+              }
+            : undefined,
+        }
+      : undefined
     const compactEvidence = baseInfo?.evidence
       ? {
           matrix: baseInfo.evidence.matrix
@@ -910,6 +1023,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
             baseInfo.evidence.source === 'hybrid'
               ? baseInfo.evidence.source
               : undefined,
+          matrixPacket: compactMatrixPacket,
         }
       : undefined
 
@@ -971,6 +1085,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     analysisLocale,
     baseInfo,
     cleanText,
+    data?.matrixEvidencePackets,
     dateKey,
     icpResult,
     intervalMinutes,
@@ -2243,14 +2358,11 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
                 <div className={styles.actionPlanTimelineNote}>{slot.note}</div>
                 {slot.whySummary && (
                   <div className={styles.actionPlanTimelineWhy}>
-                    {isKo ? '근거 해석' : 'Why'}: {slot.whySummary}
+                    {isKo ? '왜 이 시간대인가' : 'Why this slot'}: {slot.whySummary}
                   </div>
                 )}
-                {slot.whyPatterns && slot.whyPatterns.length > 0 && (
-                  <div className={styles.actionPlanTimelineWhyMeta}>
-                    {isKo ? '흐름' : 'Pattern'}:{' '}
-                    {slot.whyPatterns.map(formatWhyPatternLabel).join(' · ')}
-                  </div>
+                {formatWhyMetaLabel(slot) && (
+                  <div className={styles.actionPlanTimelineWhyMeta}>{formatWhyMetaLabel(slot)}</div>
                 )}
                 {slot.guardrail && (
                   <div className={styles.actionPlanTimelineGuardrail}>
@@ -2259,7 +2371,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
                 )}
                 {slot.confidenceReason && slot.confidenceReason.length > 0 && (
                   <div className={styles.actionPlanTimelineConfidenceReason}>
-                    {slot.confidenceReason.map(formatConfidenceReasonLabel).join(' · ')}
+                    {formatConfidenceNote(slot.confidenceReason)}
                   </div>
                 )}
                 {slot.evidenceSummary && slot.evidenceSummary.length > 0 && (

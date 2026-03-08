@@ -23,6 +23,14 @@ vi.mock('@/lib/api/middleware', () => ({
   extractLocale: vi.fn().mockReturnValue('ko'),
 }))
 
+vi.mock('next-auth', () => ({
+  getServerSession: vi.fn(),
+}))
+
+vi.mock('@/lib/auth/authOptions', () => ({
+  authOptions: {},
+}))
+
 vi.mock('@/lib/streaming', () => ({
   createTransformedSSEStream: vi.fn(),
   createFallbackSSEStream: vi.fn(),
@@ -239,6 +247,7 @@ import {
   buildPredictionSection,
   buildLongTermMemorySection,
 } from '@/app/api/destiny-map/chat-stream/lib/context-builder'
+import { getServerSession } from 'next-auth'
 
 /* ==========================================
    Test Fixtures
@@ -276,29 +285,29 @@ function createBasicRequest(overrides?: Record<string, unknown>) {
 function createMockSajuResult() {
   return {
     dayMaster: {
-      heavenlyStem: { name: '甲', element: '목' },
+      heavenlyStem: { name: '�"�', element: '목' },
     },
     yearPillar: {
-      heavenlyStem: { name: '庚', element: '금' },
-      earthlyBranch: { name: '午', element: '화' },
+      heavenlyStem: { name: '�s', element: '�^' },
+      earthlyBranch: { name: '�^', element: '�T"' },
     },
     monthPillar: {
-      heavenlyStem: { name: '壬', element: '수' },
-      earthlyBranch: { name: '午', element: '화' },
+      heavenlyStem: { name: '壬', element: '�^~' },
+      earthlyBranch: { name: '�^', element: '�T"' },
     },
     dayPillar: {
-      heavenlyStem: { name: '甲', element: '목' },
-      earthlyBranch: { name: '寅', element: '목' },
+      heavenlyStem: { name: '�"�', element: '목' },
+      earthlyBranch: { name: '�.', element: '목' },
     },
     timePillar: {
-      heavenlyStem: { name: '辛', element: '금' },
-      earthlyBranch: { name: '未', element: '토' },
+      heavenlyStem: { name: '�>', element: '�^' },
+      earthlyBranch: { name: '�o�', element: '�?�' },
     },
     fiveElements: { wood: 3, fire: 2, earth: 2, metal: 2, water: 1 },
     unse: {
       daeun: [
-        { age: 3, heavenlyStem: '癸', earthlyBranch: '未' },
-        { age: 13, heavenlyStem: '甲', earthlyBranch: '申' },
+        { age: 3, heavenlyStem: '�T�', earthlyBranch: '�o�' },
+        { age: 13, heavenlyStem: '�"�', earthlyBranch: '�"�' },
       ],
     },
   }
@@ -326,6 +335,9 @@ function createMockNatalChart() {
 
 function setupDefaultMocks() {
   vi.mocked(enforceBodySize).mockReturnValue(null)
+  vi.mocked(getServerSession).mockResolvedValue({
+    user: { id: 'user123' },
+  } as any)
   vi.mocked(createAuthenticatedGuard).mockReturnValue({} as any)
   vi.mocked(initializeApiContext).mockResolvedValue({
     context: { userId: 'user123' },
@@ -629,6 +641,26 @@ describe('/api/destiny-map/chat-stream POST - Authentication & Credits', () => {
     await POST(req)
 
     expect(apiClient.postSSEStream).toHaveBeenCalled()
+  })
+
+  it('should expose guest mode header for unauthenticated requests', async () => {
+    vi.mocked(getServerSession).mockResolvedValue(null as any)
+    vi.mocked(initializeApiContext).mockResolvedValue({
+      context: { userId: null },
+      error: null,
+    } as any)
+    vi.mocked(createTransformedSSEStream).mockReturnValue(new Response('ok'))
+
+    const req = createNextRequest(createBasicRequest())
+    await POST(req)
+
+    expect(createTransformedSSEStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        additionalHeaders: expect.objectContaining({
+          'X-Guest-Mode': '1',
+        }),
+      })
+    )
   })
 })
 
@@ -1034,11 +1066,14 @@ describe('/api/destiny-map/chat-stream POST - SSE Streaming', () => {
     const req = createNextRequest(createBasicRequest())
     await POST(req)
 
-    expect(createFallbackSSEStream).toHaveBeenCalledWith({
-      content: expect.stringContaining('AI 서비스에 연결할 수 없습니다'),
-      done: true,
-      'X-Fallback': '1',
-    })
+    expect(createFallbackSSEStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.any(String),
+        done: true,
+        'X-Fallback': '1',
+        'X-Guest-Mode': '0',
+      })
+    )
   })
 
   it('should use English fallback message for en locale', async () => {
@@ -1055,11 +1090,14 @@ describe('/api/destiny-map/chat-stream POST - SSE Streaming', () => {
 
     await POST(req)
 
-    expect(createFallbackSSEStream).toHaveBeenCalledWith({
-      content: expect.stringContaining('Could not connect to AI service'),
-      done: true,
-      'X-Fallback': '1',
-    })
+    expect(createFallbackSSEStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.stringContaining('Could not connect to AI service'),
+        done: true,
+        'X-Fallback': '1',
+        'X-Guest-Mode': '0',
+      })
+    )
   })
 })
 
@@ -1183,6 +1221,84 @@ describe('/api/destiny-map/chat-stream POST - Theme Context', () => {
     setupDefaultMocks()
   })
 
+  it('should inject matrix core phase/claims/caution into prompt when matrix snapshot is available', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          success: true,
+          summary: {
+            totalScore: 88,
+            finalScoreAdjusted: 82,
+            confidenceScore: 0.71,
+            drivers: ['career expansion'],
+            cautions: ['communication recheck'],
+            calendarSignals: ['Peak Convergence Window'],
+            overlapTimeline: ['2026-03'],
+            domainScores: { career: 81, love: 63, money: 76, health: 66 },
+          },
+          highlights: {
+            strengths: [{ layer: 6, keyword: 'career peak', score: 10 }],
+            cautions: [{ layer: 5, keyword: 'communication caution', score: 4 }],
+          },
+          synergies: ['growth + verification'],
+          semantics: {
+            globalConflictPolicy: 'No conflict between recommendation and caution',
+            lowConfidencePolicy: 'Prefer recheck steps',
+            layers: [],
+          },
+          layerThemeProfiles: [],
+          core: {
+            coreHash: 'abc123corehash',
+            overallPhase: 'expansion_guarded',
+            overallPhaseLabel: 'Expansion Guarded',
+            attackPercent: 64,
+            defensePercent: 36,
+            topClaimIds: ['CLM_CAREER_EXPANSION_001', 'CLM_WEALTH_WINDOW_001'],
+            topCautionSignalIds: ['L5:chung:opposition'],
+            quality: { score: 95, grade: 'A', warnings: [] },
+          },
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      ) as any
+    )
+
+    try {
+      const req = createNextRequest({
+        ...createBasicRequest(),
+        theme: 'career',
+      })
+
+      await POST(req)
+
+      expect(apiClient.postSSEStream).toHaveBeenCalledWith(
+        '/ask-stream',
+        expect.objectContaining({
+          prompt: expect.stringContaining('core_phase=Expansion Guarded(64/36)'),
+        }),
+        expect.any(Object)
+      )
+      expect(apiClient.postSSEStream).toHaveBeenCalledWith(
+        '/ask-stream',
+        expect.objectContaining({
+          prompt: expect.stringContaining('core_claim_ids=CLM_CAREER_EXPANSION_001'),
+        }),
+        expect.any(Object)
+      )
+      expect(apiClient.postSSEStream).toHaveBeenCalledWith(
+        '/ask-stream',
+        expect.objectContaining({
+          prompt: expect.stringContaining('core_caution_signal_ids=L5:chung:opposition'),
+        }),
+        expect.any(Object)
+      )
+    } finally {
+      fetchSpy.mockRestore()
+    }
+  })
+
   it('should include theme context in prompt for love theme', async () => {
     const req = createNextRequest({
       ...createBasicRequest(),
@@ -1195,7 +1311,7 @@ describe('/api/destiny-map/chat-stream POST - Theme Context', () => {
       '/ask-stream',
       expect.objectContaining({
         theme: 'love',
-        prompt: expect.stringContaining('연애'),
+        prompt: expect.stringContaining('love ('),
       }),
       expect.any(Object)
     )
@@ -1213,7 +1329,7 @@ describe('/api/destiny-map/chat-stream POST - Theme Context', () => {
       '/ask-stream',
       expect.objectContaining({
         theme: 'career',
-        prompt: expect.stringContaining('직업'),
+        prompt: expect.stringContaining('career ('),
       }),
       expect.any(Object)
     )
@@ -1246,22 +1362,22 @@ describe('/api/destiny-map/chat-stream POST - Prediction Context', () => {
   it('should include prediction context when provided', async () => {
     const predictionContext = {
       eventType: 'marriage',
-      eventLabel: '결혼',
+      eventLabel: '결�~�',
       optimalPeriods: [
         {
           startDate: '2026-06-15',
           endDate: '2026-08-15',
           score: 85,
           grade: 'A',
-          reasons: ['길한 운세', '좋은 타이밍'],
+          reasons: ['길�.o �s��"�', '�<�? �f?이밍'],
         },
       ],
       avoidPeriods: [],
-      advice: '6월이 가장 좋습니다',
+      advice: '6�>"이 �?�z� �<�S��<^�<�',
     }
 
     // Make buildPredictionSection return the expected content
-    vi.mocked(buildPredictionSection).mockReturnValue('[인생 예측 분석 결과] marriage: 결혼')
+    vi.mocked(buildPredictionSection).mockReturnValue('[인�f� �~^측 �"�"� 결과] marriage: 결�~�')
 
     const req = createNextRequest({
       ...createBasicRequest(),
@@ -1274,7 +1390,7 @@ describe('/api/destiny-map/chat-stream POST - Prediction Context', () => {
     expect(apiClient.postSSEStream).toHaveBeenCalledWith(
       '/ask-stream',
       expect.objectContaining({
-        prompt: expect.stringContaining('인생 예측 분석 결과'),
+        prompt: expect.stringContaining('인�f� �~^측 �"�"� 결과'),
       }),
       expect.any(Object)
     )

@@ -101,7 +101,9 @@
     "prepare": "husky",
     "ops:slo:report": "node scripts/ops/slo-report.mjs",
     "ops:typecheck:metrics": "node scripts/ops/typecheck-metrics.mjs",
-    "ops:typecheck:hotspots": "node scripts/ops/typecheck-hotspots.mjs"
+    "ops:typecheck:hotspots": "node scripts/ops/typecheck-hotspots.mjs",
+    "ops:destiny:gate:quick": "node scripts/ops/destiny-quality-gate.mjs --quick",
+    "ops:destiny:gate": "node scripts/ops/destiny-quality-gate.mjs --full"
   },
   "overrides": {
     "node-gyp": "^10.0.1",

@@ -9,6 +9,9 @@ import type { MatrixCalculationInput } from '@/lib/destiny-matrix'
 import { buildMatrixSemanticContract } from '@/lib/destiny-matrix/layerSemantics'
 import { buildLayerThemeProfiles } from '@/lib/destiny-matrix/layerThemeProfiles'
 import { buildPremiumActionChecklist } from '@/lib/destiny-matrix/actionChecklist'
+import { buildCounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
+import { reportGenerator } from '@/lib/destiny-matrix/interpreter'
+import { runDestinyCore } from '@/lib/destiny-matrix/core/runDestinyCore'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import type { FiveElement, RelationHit } from '@/lib/Saju/types'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
@@ -967,6 +970,74 @@ export const POST = withApiMiddleware(
 
       // Calculate matrix (server-side only)
       const matrix = calculateDestinyMatrix(input)
+      let coreSnapshot:
+        | {
+            coreHash: string
+            overallPhase: string
+            overallPhaseLabel: string
+            attackPercent: number
+            defensePercent: number
+            topClaimIds: string[]
+            topCautionSignalIds: string[]
+            quality: {
+              score: number
+              grade: 'A' | 'B' | 'C' | 'D'
+              warnings: string[]
+            }
+            counselorEvidence?: ReturnType<typeof buildCounselorEvidencePacket>
+          }
+        | undefined
+      try {
+        const matrixReport = reportGenerator.generateReport(input, {
+          layer1_elementCore: matrix.layer1_elementCore,
+          layer2_sibsinPlanet: matrix.layer2_sibsinPlanet,
+          layer3_sibsinHouse: matrix.layer3_sibsinHouse,
+          layer4_timing: matrix.layer4_timing,
+          layer5_relationAspect: matrix.layer5_relationAspect,
+          layer6_stageHouse: matrix.layer6_stageHouse,
+          layer7_advanced: matrix.layer7_advanced,
+          layer8_shinsalPlanet: matrix.layer8_shinsalPlanet,
+          layer9_asteroidHouse: matrix.layer9_asteroidHouse,
+          layer10_extraPointElement: matrix.layer10_extraPointElement,
+        })
+        const core = runDestinyCore({
+          mode: 'comprehensive',
+          lang,
+          matrixInput: input,
+          matrixReport,
+          matrixSummary: matrix.summary,
+        })
+        const counselorEvidence = buildCounselorEvidencePacket({
+          theme: 'chat',
+          lang,
+          matrixInput: input,
+          matrixReport,
+          matrixSummary: matrix.summary,
+          signalSynthesis: core.signalSynthesis,
+          strategyEngine: core.strategyEngine,
+          birthDate: birthDate || undefined,
+        })
+        coreSnapshot = {
+          coreHash: core.coreHash,
+          overallPhase: core.strategyEngine.overallPhase,
+          overallPhaseLabel: core.strategyEngine.overallPhaseLabel,
+          attackPercent: core.strategyEngine.attackPercent,
+          defensePercent: core.strategyEngine.defensePercent,
+          topClaimIds: core.signalSynthesis.claims.slice(0, 8).map((claim) => claim.claimId),
+          topCautionSignalIds: core.signalSynthesis.selectedSignals
+            .filter((signal) => signal.polarity === 'caution')
+            .slice(0, 8)
+            .map((signal) => signal.id),
+          quality: {
+            score: core.quality.score,
+            grade: core.quality.grade,
+            warnings: core.quality.warnings.slice(0, 8),
+          },
+          counselorEvidence,
+        }
+      } catch (coreError) {
+        logger.warn('Destiny Matrix core snapshot build failed (non-fatal):', coreError)
+      }
       const semanticContract = buildMatrixSemanticContract(matrix)
       const layerThemeProfiles = buildLayerThemeProfiles(matrix, input)
       const now = new Date()
@@ -1052,6 +1123,7 @@ export const POST = withApiMiddleware(
           })),
         },
         synergies: matrix.summary.topSynergies?.slice(0, 3),
+        core: coreSnapshot,
         semantics: semanticContract,
         layerThemeProfiles,
         // Copyright notice

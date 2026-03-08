@@ -42,6 +42,7 @@ interface UseChatApiReturn {
   retryCount: number
   connectionStatus: ConnectionStatus
   usedFallback: boolean
+  guestMode: boolean
   followUpQuestions: string[]
   setFollowUpQuestions: React.Dispatch<React.SetStateAction<string[]>>
   handleSend: (directText?: string) => Promise<void>
@@ -75,6 +76,36 @@ function buildLocalCounselingBrief(whatUserWants: string, lang: LangKey) {
   }
 }
 
+function decodeCounselorEvidenceHeader(value: string | null): Message['evidence'] | undefined {
+  if (!value) return undefined
+  try {
+    const normalized = value.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = normalized + '='.repeat((4 - (normalized.length % 4 || 4)) % 4)
+    const decoded = atob(padded)
+    const json = JSON.parse(decoded) as {
+      title?: unknown
+      summary?: unknown
+      bullets?: unknown
+    }
+    const title = typeof json.title === 'string' ? json.title.trim().slice(0, 80) : ''
+    const summary = typeof json.summary === 'string' ? json.summary.trim().slice(0, 220) : ''
+    const bullets = Array.isArray(json.bullets)
+      ? json.bullets
+          .map((item) => (typeof item === 'string' ? item.trim().slice(0, 180) : ''))
+          .filter(Boolean)
+          .slice(0, 3)
+      : []
+    if (!title && !summary && bullets.length === 0) return undefined
+    return {
+      title: title || undefined,
+      summary: summary || undefined,
+      bullets: bullets.length ? bullets : undefined,
+    }
+  } catch {
+    return undefined
+  }
+}
+
 export function useChatApi({
   sessionIdRef,
   messages,
@@ -102,6 +133,7 @@ export function useChatApi({
   const [retryCount, setRetryCount] = React.useState(0)
   const [connectionStatus, setConnectionStatus] = React.useState<ConnectionStatus>('online')
   const [usedFallback, setUsedFallback] = React.useState(false)
+  const [guestMode, setGuestMode] = React.useState(false)
   const [followUpQuestions, setFollowUpQuestions] = React.useState<string[]>([])
   const [showCrisisModal, setShowCrisisModal] = React.useState(false)
   const MAX_CHAT_MESSAGE_CHARS = 2000
@@ -180,6 +212,7 @@ export function useChatApi({
         logger.debug(`[Chat] Response received: ${responseTime.toFixed(0)}ms`)
 
         setConnectionStatus(getConnectionStatus(responseTime))
+        setGuestMode(res.headers.get('x-guest-mode') === '1')
 
         if (!res.ok) {
           let detail = ''
@@ -368,9 +401,20 @@ export function useChatApi({
           setUsedFallback(true)
           setNotice(tr.fallbackNote)
         }
+        const counselorEvidence = decodeCounselorEvidenceHeader(
+          res.headers.get('x-counselor-evidence')
+        )
 
         const assistantMsgId = generateMessageId('assistant')
-        setMessages((prev) => [...prev, { role: 'assistant', content: '', id: assistantMsgId }])
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: '',
+            id: assistantMsgId,
+            evidence: counselorEvidence,
+          },
+        ])
         setLoading(false)
 
         await processStream(res, assistantMsgId, text)
@@ -424,6 +468,7 @@ export function useChatApi({
     retryCount,
     connectionStatus,
     usedFallback,
+    guestMode,
     followUpQuestions,
     setFollowUpQuestions,
     handleSend,

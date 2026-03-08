@@ -90,6 +90,7 @@ const Chat = memo(function Chat({
     retryCount,
     connectionStatus,
     usedFallback,
+    guestMode,
     followUpQuestions,
     setFollowUpQuestions,
     handleSend: apiHandleSend,
@@ -401,6 +402,14 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
         <div className={`${styles.connectionStatus} ${styles[connectionStatus]}`}>
           {connectionStatus === 'slow' && '\uD83D\uDC0C Slow connection detected'}
           {connectionStatus === 'offline' && '\uD83D\uDCE1 Connection lost - Check your internet'}
+        </div>
+      )}
+
+      {guestMode && (
+        <div className={styles.guestModeBar}>
+          {effectiveLang === 'ko'
+            ? '게스트 모드: 대화는 바로 이용 가능하며, 로그인 시 기록 저장/연속 상담이 활성화됩니다.'
+            : 'Guest mode: You can chat now. Sign in to save history and continue sessions.'}
         </div>
       )}
 

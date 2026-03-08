@@ -848,6 +848,61 @@
   border-color: rgba(167, 139, 250, 0.5);
 }
 
+.messageEvidencePanel {
+  margin-top: 10px;
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  background: rgba(10, 16, 32, 0.42);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.messageEvidenceSummary {
+  cursor: pointer;
+  list-style: none;
+  padding: 12px 14px;
+  font-size: 0.93rem;
+  font-weight: 700;
+  color: rgba(196, 181, 253, 0.96);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.messageEvidenceSummary::-webkit-details-marker {
+  display: none;
+}
+
+.messageEvidenceSummary::after {
+  content: '+';
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.messageEvidencePanel[open] .messageEvidenceSummary::after {
+  content: '-';
+}
+
+.messageEvidenceLead {
+  margin: 0;
+  padding: 0 14px 10px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.messageEvidenceList {
+  margin: 0;
+  padding: 0 14px 14px 30px;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.89rem;
+  line-height: 1.6;
+}
+
+.messageEvidenceList li + li {
+  margin-top: 6px;
+}
+
 /* ========== Suggested Questions ========== */
 .suggestionsContainer {
   display: flex;
@@ -1369,6 +1424,17 @@
   background: rgba(239, 68, 68, 0.95);
   color: white;
   border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.guestModeBar {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(250, 204, 21, 0.35);
+  background: rgba(250, 204, 21, 0.1);
+  color: #fde68a;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 @keyframes slideInRight {

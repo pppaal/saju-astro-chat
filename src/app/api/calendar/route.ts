@@ -30,6 +30,10 @@ import {
   runDestinyCore,
 } from '@/lib/destiny-matrix/core/runDestinyCore'
 import { reportGenerator } from '@/lib/destiny-matrix/interpreter'
+import {
+  buildCounselorEvidencePacket,
+  type CounselorEvidencePacket,
+} from '@/lib/destiny-matrix/counselorEvidence'
 import koTranslations from '@/i18n/locales/ko'
 import enTranslations from '@/i18n/locales/en'
 import type { TranslationData } from '@/types/calendar-api'
@@ -163,6 +167,55 @@ const TRANSIT_CYCLE_SET = new Set<NonNullable<MatrixCalculationInput['activeTran
   'jupiterRetrograde',
   'saturnRetrograde',
 ])
+
+const CALENDAR_PACKET_THEME_BY_KEY: Record<
+  string,
+  'career' | 'love' | 'wealth' | 'health' | 'today'
+> = {
+  career: 'career',
+  study: 'career',
+  love: 'love',
+  relationship: 'love',
+  wealth: 'wealth',
+  money: 'wealth',
+  health: 'health',
+  travel: 'today',
+  move: 'today',
+  general: 'today',
+  today: 'today',
+}
+
+function buildCalendarEvidencePacketMap(input: {
+  lang: 'ko' | 'en'
+  matrixInput: MatrixCalculationInput
+  matrixReport: ReturnType<typeof reportGenerator.generateReport>
+  matrixSummary: ReturnType<typeof calculateDestinyMatrix>['summary']
+  coreSeed: ReturnType<typeof runDestinyCore>
+  birthDate?: string
+}): Record<string, CounselorEvidencePacket> {
+  const cache = new Map<string, CounselorEvidencePacket>()
+  const out: Record<string, CounselorEvidencePacket> = {}
+
+  for (const [key, theme] of Object.entries(CALENDAR_PACKET_THEME_BY_KEY)) {
+    let packet = cache.get(theme)
+    if (!packet) {
+      packet = buildCounselorEvidencePacket({
+        theme,
+        lang: input.lang,
+        matrixInput: input.matrixInput,
+        matrixReport: input.matrixReport,
+        matrixSummary: input.matrixSummary,
+        signalSynthesis: input.coreSeed.signalSynthesis,
+        strategyEngine: input.coreSeed.strategyEngine,
+        birthDate: input.birthDate,
+      })
+      cache.set(theme, packet)
+    }
+    out[key] = packet
+  }
+
+  return out
+}
 
 function normalizeShinsalKind(
   raw: unknown
@@ -539,6 +592,7 @@ export const GET = withApiMiddleware(
 
     let matrixCalendarContext: MatrixCalendarContext = null
     let matrixInputCoverage: Record<string, unknown> | null = null
+    let matrixEvidencePackets: Record<string, CounselorEvidencePacket> | null = null
     let topMatchedPatterns: Array<{
       id: string
       label: string
@@ -832,6 +886,14 @@ export const GET = withApiMiddleware(
           topPatternIds: topMatchedPatterns.map((pattern) => pattern.id),
         },
       }
+      matrixEvidencePackets = buildCalendarEvidencePacketMap({
+        lang: locale === 'en' ? 'en' : 'ko',
+        matrixInput: normalizedMatrixInput,
+        matrixReport,
+        matrixSummary: matrix.summary,
+        coreSeed,
+        birthDate: birthDateParam,
+      })
 
       matrixCalendarContext = {
         calendarSignals: matrix.summary.calendarSignals || [],
@@ -984,6 +1046,7 @@ export const GET = withApiMiddleware(
       worstDates: grade4.slice(0, 5).map((d) => formatCalendarDate(d)),
       allDates: filteredDates.map((d) => formatCalendarDate(d)),
       matrixInputCoverage,
+      matrixEvidencePackets,
       topMatchedPatterns,
       ...(aiDates && {
         aiInsights: {

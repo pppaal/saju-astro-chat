@@ -1,5 +1,10 @@
 import { NextRequest } from 'next/server'
-import { initializeApiContext, createAuthenticatedGuard, extractLocale } from '@/lib/api/middleware'
+import {
+  initializeApiContext,
+  createAuthenticatedGuard,
+  extractLocale,
+  type MiddlewareOptions,
+} from '@/lib/api/middleware'
 import { createTransformedSSEStream, createFallbackSSEStream } from '@/lib/streaming'
 import { apiClient } from '@/lib/api/ApiClient'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
@@ -28,6 +33,9 @@ import {
   computeDestinyMap,
   type CombinedResult as DestinyMapCombinedResult,
 } from '@/lib/destiny-map/astrology'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/authOptions'
+import { formatCounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
 
 // Local modules
 import { clampMessages, counselorSystemPrompt, loadPersonaMemory } from './lib'
@@ -45,6 +53,11 @@ import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 120
+
+const GUEST_CHAT_RATE_LIMIT = {
+  limit: 12,
+  windowSeconds: 60,
+} as const
 
 type MatrixHighlight = { layer?: number; keyword?: string; score?: number }
 type MatrixSynergy = { description?: string; score?: number; layers?: number[] }
@@ -105,8 +118,118 @@ interface MatrixSnapshot {
   finalScoreAdjusted?: number
   semanticHints: string[]
   layerThemeBriefs: string[]
+  core?: {
+    coreHash: string
+    overallPhase: string
+    overallPhaseLabel: string
+    attackPercent: number
+    defensePercent: number
+    topClaimIds: string[]
+    topCautionSignalIds: string[]
+    counselorEvidence?: {
+      focusDomain?: string
+      graphRagEvidenceSummary?: {
+        totalAnchors?: number
+        totalSets?: number
+      }
+      topAnchors?: Array<{
+        id?: string
+        section?: string
+        summary?: string
+        setCount?: number
+      }>
+      topClaims?: Array<{
+        id?: string
+        text?: string
+        domain?: string
+        signalIds?: string[]
+        anchorIds?: string[]
+      }>
+      scenarioBriefs?: Array<{
+        id?: string
+        domain?: string
+        mainTokens?: string[]
+        altTokens?: string[]
+      }>
+      selectedSignals?: Array<{
+        id?: string
+        domain?: string
+        polarity?: string
+        summary?: string
+        score?: number
+      }>
+      strategyBrief?: {
+        overallPhase?: string
+        overallPhaseLabel?: string
+        attackPercent?: number
+        defensePercent?: number
+      }
+    }
+    quality?: {
+      score: number
+      grade: string
+      warnings: string[]
+    }
+  }
   globalConflictPolicy?: string
   lowConfidencePolicy?: string
+}
+
+type MatrixCoreSnapshot = NonNullable<MatrixSnapshot['core']>
+
+type CounselorUiEvidencePayload = {
+  title: string
+  summary: string
+  bullets: string[]
+}
+
+function encodeCounselorUiEvidence(
+  snapshot: MatrixSnapshot | null,
+  lang: 'ko' | 'en'
+): string | null {
+  const core = snapshot?.core
+  const packet = core?.counselorEvidence
+  if (!core || !packet) return null
+
+  const topClaim = (packet.topClaims?.[0]?.text || '').replace(/\s+/g, ' ').trim().slice(0, 140)
+  const topAnchor = (packet.topAnchors?.[0]?.summary || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120)
+  const cautionSignal = (packet.selectedSignals || [])
+    .find((signal) => signal.polarity === 'caution')
+    ?.summary?.replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120)
+  const phase =
+    core.overallPhaseLabel?.trim() || packet.strategyBrief?.overallPhaseLabel?.trim() || ''
+  const focus = packet.focusDomain?.trim() || ''
+  const payload: CounselorUiEvidencePayload =
+    lang === 'ko'
+      ? {
+          title: '왜 이런 답변이 나왔는지',
+          summary:
+            topClaim ||
+            `${phase || '현재 흐름'} 기준으로 ${focus || '핵심 주제'} 해석을 우선 정렬한 답변입니다.`,
+          bullets: [
+            phase ? `현재 국면: ${phase}` : '',
+            topAnchor ? `핵심 근거: ${topAnchor}` : '',
+            cautionSignal ? `주의 신호: ${cautionSignal}` : '',
+          ].filter(Boolean),
+        }
+      : {
+          title: 'Why this answer',
+          summary:
+            topClaim ||
+            `This response is aligned to the current ${phase || 'matrix'} phase and the ${focus || 'core'} domain first.`,
+          bullets: [
+            phase ? `Current phase: ${phase}` : '',
+            topAnchor ? `Primary anchor: ${topAnchor}` : '',
+            cautionSignal ? `Caution signal: ${cautionSignal}` : '',
+          ].filter(Boolean),
+        }
+
+  return Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url')
 }
 
 function normalizeStringList(value: unknown, limit = 6): string[] {
@@ -462,8 +585,20 @@ function buildMatrixProfileSection(
       .join(', ') || 'none'
   const semanticText = snapshot.semanticHints.slice(0, 6).join(' | ') || 'none'
   const themeLayerText = snapshot.layerThemeBriefs.slice(0, 4).join(' | ') || 'none'
+  const corePhaseText = snapshot.core
+    ? `${snapshot.core.overallPhaseLabel}(${snapshot.core.attackPercent}/${snapshot.core.defensePercent})`
+    : 'none'
+  const coreClaimText = snapshot.core?.topClaimIds?.slice(0, 6).join(' | ') || 'none'
+  const coreCautionText = snapshot.core?.topCautionSignalIds?.slice(0, 6).join(' | ') || 'none'
+  const coreQualityText = snapshot.core?.quality
+    ? `${snapshot.core.quality.grade}:${snapshot.core.quality.score} (${(snapshot.core.quality.warnings || []).join('|') || '-'})`
+    : 'none'
   const focus = pickMatrixThemeFocus(theme, snapshot.domainScores)
   const hasCommRisk = /communication|mercury|수성|소통|오해|문서|계약/i.test(cautionText)
+  const counselorEvidenceText = formatCounselorEvidencePacket(
+    snapshot.core?.counselorEvidence,
+    lang === 'ko' ? 'ko' : 'en'
+  )
 
   if (lang === 'ko') {
     return [
@@ -479,13 +614,20 @@ function buildMatrixProfileSection(
       `calendar_signals=${signalText}`,
       `overlap_timeline=${timelineText}`,
       `domain_scores=${domainScoreText}`,
+      `core_phase=${corePhaseText}`,
+      `core_claim_ids=${coreClaimText}`,
+      `core_caution_signal_ids=${coreCautionText}`,
+      `core_quality=${coreQualityText}`,
+      `core_hash=${snapshot.core?.coreHash || '-'}`,
       `layer_semantics=${semanticText}`,
       `layer_theme_briefs=${themeLayerText}`,
       `theme_focus=${focus.domain}${typeof focus.score === 'number' ? `(${focus.score.toFixed(1)})` : ''}`,
       `global_conflict_policy=${snapshot.globalConflictPolicy || '-'}`,
       `low_confidence_policy=${snapshot.lowConfidencePolicy || '-'}`,
+      counselorEvidenceText,
       '응답 초반에 "Matrix snapshot:" 소제목으로 2-3문장으로 요약하고, 이후 기존 사주/점성/교차 해석을 이어가세요.',
       '테마 해석에서는 theme_focus와 domain_scores를 최우선으로 반영하세요.',
+      'core_phase/core_claim_ids/core_caution_signal_ids와 결론이 반드시 일치해야 합니다(모순 금지).',
       hasCommRisk
         ? '중요: 커뮤니케이션/문서 리스크가 보이면 서명/확정/발송을 즉시 권하지 말고 재확인-검토 행동으로 제시하세요.'
         : '중요: 추천과 주의가 서로 충돌하지 않게 작성하세요.',
@@ -505,13 +647,20 @@ function buildMatrixProfileSection(
     `calendar_signals=${signalText}`,
     `overlap_timeline=${timelineText}`,
     `domain_scores=${domainScoreText}`,
+    `core_phase=${corePhaseText}`,
+    `core_claim_ids=${coreClaimText}`,
+    `core_caution_signal_ids=${coreCautionText}`,
+    `core_quality=${coreQualityText}`,
+    `core_hash=${snapshot.core?.coreHash || '-'}`,
     `layer_semantics=${semanticText}`,
     `layer_theme_briefs=${themeLayerText}`,
     `theme_focus=${focus.domain}${typeof focus.score === 'number' ? `(${focus.score.toFixed(1)})` : ''}`,
     `global_conflict_policy=${snapshot.globalConflictPolicy || '-'}`,
     `low_confidence_policy=${snapshot.lowConfidencePolicy || '-'}`,
+    counselorEvidenceText,
     'Start with a short "Matrix snapshot:" section (2-3 sentences), then continue with the existing saju/astro/cross narrative.',
     'Prioritize theme_focus and domain_scores in actionable advice.',
+    'Keep final verdict strictly aligned with core_phase/core_claim_ids/core_caution_signal_ids (no contradictions).',
     'Follow layer_semantics axes and keep evidence -> interpretation -> action flow.',
     hasCommRisk
       ? 'If communication/document risk is present, do not recommend immediate signing/finalizing; prefer verification actions.'
@@ -611,6 +760,21 @@ async function fetchMatrixSnapshot(
           summaryEn?: string
         }>
       }>
+      core?: {
+        coreHash?: string
+        overallPhase?: string
+        overallPhaseLabel?: string
+        attackPercent?: number
+        defensePercent?: number
+        topClaimIds?: string[]
+        topCautionSignalIds?: string[]
+        counselorEvidence?: MatrixCoreSnapshot['counselorEvidence']
+        quality?: {
+          score?: number
+          grade?: string
+          warnings?: string[]
+        }
+      }
     }
     if (!data?.success) {
       return null
@@ -694,6 +858,33 @@ async function fetchMatrixSnapshot(
           : undefined,
       semanticHints,
       layerThemeBriefs,
+      core:
+        data.core &&
+        typeof data.core === 'object' &&
+        typeof data.core.coreHash === 'string' &&
+        typeof data.core.overallPhase === 'string' &&
+        typeof data.core.overallPhaseLabel === 'string'
+          ? {
+              coreHash: data.core.coreHash,
+              overallPhase: data.core.overallPhase,
+              overallPhaseLabel: data.core.overallPhaseLabel,
+              attackPercent:
+                typeof data.core.attackPercent === 'number' ? data.core.attackPercent : 50,
+              defensePercent:
+                typeof data.core.defensePercent === 'number' ? data.core.defensePercent : 50,
+              topClaimIds: normalizeStringList(data.core.topClaimIds, 8),
+              topCautionSignalIds: normalizeStringList(data.core.topCautionSignalIds, 8),
+              counselorEvidence:
+                data.core.counselorEvidence && typeof data.core.counselorEvidence === 'object'
+                  ? data.core.counselorEvidence
+                  : undefined,
+              quality: {
+                score: typeof data.core.quality?.score === 'number' ? data.core.quality.score : 0,
+                grade: typeof data.core.quality?.grade === 'string' ? data.core.quality.grade : 'D',
+                warnings: normalizeStringList(data.core.quality?.warnings, 8),
+              },
+            }
+          : undefined,
       globalConflictPolicy: data.semantics?.globalConflictPolicy,
       lowConfidencePolicy: data.semantics?.lowConfidencePolicy,
     }
@@ -708,6 +899,7 @@ async function fetchMatrixSnapshot(
 export async function POST(req: NextRequest) {
   // Declare context at function scope so it's accessible in catch block for credit refund
   let context: Awaited<ReturnType<typeof initializeApiContext>>['context'] | null = null
+  let isGuestMode = true
 
   try {
     const oversized = enforceBodySize(req, 256 * 1024) // 256KB for large chart data
@@ -715,8 +907,9 @@ export async function POST(req: NextRequest) {
       return oversized
     }
 
-    // Apply middleware: authentication + rate limiting + credit consumption
-    const guardOptions = createAuthenticatedGuard({
+    // Build both guard presets up front.
+    // Logged-in users keep the existing auth + credit policy.
+    const authedGuardOptions = createAuthenticatedGuard({
       route: 'destiny-map-chat-stream',
       limit: 60,
       windowSeconds: 60,
@@ -725,11 +918,38 @@ export async function POST(req: NextRequest) {
       creditAmount: 1,
     })
 
-    const { context: ctx, error } = await initializeApiContext(req, guardOptions)
+    const guestGuardOptions: MiddlewareOptions = {
+      route: 'destiny-map-chat-stream-guest',
+      rateLimit: {
+        limit: GUEST_CHAT_RATE_LIMIT.limit,
+        windowSeconds: GUEST_CHAT_RATE_LIMIT.windowSeconds,
+      },
+    }
+
+    let prefersAuthedGuard = false
+    try {
+      const session = await getServerSession(authOptions)
+      prefersAuthedGuard = Boolean(session?.user)
+    } catch {
+      prefersAuthedGuard = false
+    }
+
+    let initialized = await initializeApiContext(
+      req,
+      prefersAuthedGuard ? authedGuardOptions : guestGuardOptions
+    )
+
+    // If auth precheck was stale, fall back to guest mode instead of hard-blocking.
+    if (prefersAuthedGuard && initialized.error && initialized.error.status === 401) {
+      initialized = await initializeApiContext(req, guestGuardOptions)
+    }
+
+    const { context: ctx, error } = initialized
     context = ctx
     if (error) {
       return error
     }
+    isGuestMode = !context.userId
 
     const userId = context.userId
 
@@ -923,6 +1143,7 @@ export async function POST(req: NextRequest) {
             'Content-Type': 'text/event-stream',
             'Cache-Control': 'no-cache',
             Connection: 'keep-alive',
+            'X-Guest-Mode': isGuestMode ? '1' : '0',
           },
         }
       )
@@ -963,6 +1184,7 @@ export async function POST(req: NextRequest) {
       theme,
     })
     const matrixProfileSection = buildMatrixProfileSection(matrixSnapshot, lang, theme)
+    const counselorUiEvidence = encodeCounselorUiEvidence(matrixSnapshot, lang)
 
     // Theme descriptions for context
     const themeDescriptions: Record<string, { ko: string; en: string }> = {
@@ -1080,6 +1302,8 @@ export async function POST(req: NextRequest) {
         content: fallback,
         done: true,
         'X-Fallback': '1',
+        ...(counselorUiEvidence ? { 'X-Counselor-Evidence': counselorUiEvidence } : {}),
+        'X-Guest-Mode': isGuestMode ? '1' : '0',
       })
     }
 
@@ -1093,6 +1317,8 @@ export async function POST(req: NextRequest) {
       route: 'DestinyMapChatStream',
       additionalHeaders: {
         'X-Fallback': streamResult.response.headers.get('x-fallback') || '0',
+        ...(counselorUiEvidence ? { 'X-Counselor-Evidence': counselorUiEvidence } : {}),
+        'X-Guest-Mode': isGuestMode ? '1' : '0',
       },
     })
   } catch (err: unknown) {

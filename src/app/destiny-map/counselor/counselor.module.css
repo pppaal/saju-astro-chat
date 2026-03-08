@@ -305,6 +305,43 @@
   gap: 0.75rem;
 }
 
+.guestBanner {
+  margin: 0.75rem 1.5rem 0.25rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.guestBannerText {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #fde68a;
+  line-height: 1.35;
+}
+
+.guestLoginButton {
+  flex-shrink: 0;
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  background: rgba(99, 102, 241, 0.35);
+  color: #f5f3ff;
+  padding: 0.45rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.guestLoginButton:hover {
+  background: rgba(99, 102, 241, 0.5);
+  border-color: rgba(167, 139, 250, 0.65);
+}
+
 .homeButton {
   display: flex;
   flex-direction: column;
@@ -502,6 +539,17 @@
 @media (max-width: 640px) {
   .header {
     padding: 0.75rem 1rem;
+  }
+
+  .guestBanner {
+    margin: 0.6rem 1rem 0.2rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .guestLoginButton {
+    width: 100%;
+    text-align: center;
   }
 
   .themeBar {

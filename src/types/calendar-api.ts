@@ -8,6 +8,7 @@ import type {
   ImportanceGrade,
   ImportantDate,
 } from '@/lib/destiny-map/destinyCalendar'
+import type { CounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
 
 // ============ Request Types ============
 
@@ -134,6 +135,8 @@ export interface CalendarEvidence {
   crossAgreementPercent?: number
   source: CalendarEvidenceSource
 }
+
+export type MatrixEvidencePacketMap = Record<string, CounselorEvidencePacket>
 
 // Cached calculation result
 export interface CachedCalendarResult {

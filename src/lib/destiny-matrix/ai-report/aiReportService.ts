@@ -1462,10 +1462,10 @@ function buildTimingFallbackSections(
   const health = pick('health')
 
   if (lang === 'ko') {
-    return {
+    const koSections: TimingReportSections = {
       overview: merge(
         timing?.thesis,
-        '오늘 흐름은 확정 속도보다 검증 순서가 중요합니다. 결론과 실행 시점을 분리하면 손실 가능성을 줄일 수 있습니다. 오전에는 핵심 과제 1개를 끝내는 데 집중하고, 오후에는 외부 공유 전 조건/기한/책임을 문서로 다시 확인하세요. 당일 확정이 필요한 항목과 보류 항목을 분리하면 판단 피로가 줄고 실수 비용도 낮아집니다.'
+        '오늘 흐름은 확정 속도보다 재확인 순서가 중요합니다. 결론과 실행 시점을 분리하면 손실 가능성을 줄일 수 있습니다. 오전에는 핵심 과제 1개를 끝내는 데 집중하고, 오후에는 외부 공유 전 조건/기한/책임을 문서로 다시 확인하세요. 당일 확정이 필요한 항목과 보류 항목을 분리하면 판단 피로가 줄고 실수 비용도 낮아집니다.'
       ),
       energy: merge(
         health?.thesis,
@@ -1500,7 +1500,69 @@ function buildTimingFallbackSections(
       actionPlan:
         '오늘은 1) 끝낼 결과물 1개 정의 2) 외부 전달 전 조건·기한·책임 재확인 3) 당일 확정이 아닌 항목은 24시간 재검토 슬롯으로 이동의 3단계로 운영하세요. 이 루틴을 반복하면 실수율은 낮아지고, 같은 시간 대비 체감 성과는 높아집니다. 실행 기준은 “많이 하기”가 아니라 “완결도 높게 끝내기”로 잡는 것이 유리합니다.',
       luckyElements:
-        '행운 요소는 속도보다 순서입니다. 먼저 검증하고 이후 확정하세요. 오늘은 작은 승리를 빠르게 쌓기보다 핵심 한 건의 완성도를 높이는 방식이 전체 흐름을 안정시키는 데 더 효과적입니다.',
+        '행운 요소는 속도보다 순서입니다. 먼저 재확인하고 이후 확정하세요. 오늘은 작은 승리를 빠르게 쌓기보다 핵심 한 건의 완성도를 높이는 방식이 전체 흐름을 안정시키는 데 더 효과적입니다. 계획을 좁히고 마감을 명확히 두면 체감 운의 흔들림이 줄어듭니다.',
+    }
+
+    const extra: Record<string, string[]> = {
+      overview: [
+        '핵심은 많이 처리하는 날이 아니라, 중요한 것을 정확히 닫는 날이라는 점입니다.',
+        '오전은 생산 블록, 오후는 조정 블록으로 역할을 분리하면 하루의 밀도가 확실히 올라갑니다.',
+      ],
+      energy: [
+        '에너지 관리가 무너지면 판단 품질이 먼저 떨어지므로, 회복 시간을 일정 안에 먼저 배치하는 운영이 필요합니다.',
+        '집중 시간이 길어질수록 짧은 회복 간격을 의도적으로 넣어야 후반부 결정력이 유지됩니다.',
+      ],
+      opportunities: [
+        '오늘 기회는 새 시작보다 기존 과업의 완결에서 더 크게 발생합니다.',
+        '작게 검증하고 빠르게 보완하는 루프를 돌리면 확장 비용을 크게 낮출 수 있습니다.',
+      ],
+      cautions: [
+        '특히 메시지/문서/합의처럼 기록이 남는 커뮤니케이션은 한 번 더 확인하는 습관이 필수입니다.',
+        '감정이 올라온 순간의 즉시 확정은 피하고, 시간차 응답으로 판단 오차를 줄이세요.',
+      ],
+      career: [
+        '커리어 신뢰는 화려한 시작보다 누락 없는 마감에서 쌓입니다.',
+        '오늘은 새로운 약속을 늘리기보다 기존 책임을 선명하게 정리하는 쪽이 유리합니다.',
+      ],
+      love: [
+        '관계에서는 이기려는 대화보다 정확히 이해하는 대화가 장기적으로 훨씬 강합니다.',
+        '짧은 확인 질문 하나가 길어진 갈등을 미리 끊어낼 수 있습니다.',
+      ],
+      wealth: [
+        '재정은 기대수익보다 조건 통제가 먼저입니다.',
+        '작은 지출이라도 기준을 통일하면 월말 변동성이 눈에 띄게 줄어듭니다.',
+      ],
+      health: [
+        '건강은 컨디션이 나빠졌을 때 고치는 것보다, 나빠지기 전에 리듬을 유지하는 것이 훨씬 효율적입니다.',
+        '오늘은 강한 루틴 하나보다 약한 루틴 여러 번이 실제 회복에 더 유리합니다.',
+      ],
+      actionPlan: [
+        '실행 항목을 줄이면 집중이 살아나고, 집중이 살아나면 결과 품질이 올라갑니다.',
+        '하루 종료 전 10분 리뷰만 고정해도 다음 날 출발 속도가 달라집니다.',
+      ],
+      luckyElements: [
+        '오늘의 운은 감각보다 운영에서 갈립니다.',
+        '결정과 확정을 분리하는 습관이 장기 성과를 보호해 줍니다.',
+      ],
+    }
+
+    return {
+      overview: ensureLongSectionNarrative(koSections.overview, 560, extra.overview),
+      energy: ensureLongSectionNarrative(koSections.energy, 520, extra.energy),
+      opportunities: ensureLongSectionNarrative(koSections.opportunities, 520, extra.opportunities),
+      cautions: ensureLongSectionNarrative(koSections.cautions, 500, extra.cautions),
+      domains: {
+        career: ensureLongSectionNarrative(koSections.domains.career, 420, extra.career),
+        love: ensureLongSectionNarrative(koSections.domains.love, 420, extra.love),
+        wealth: ensureLongSectionNarrative(koSections.domains.wealth, 420, extra.wealth),
+        health: ensureLongSectionNarrative(koSections.domains.health, 420, extra.health),
+      },
+      actionPlan: ensureLongSectionNarrative(koSections.actionPlan, 520, extra.actionPlan),
+      luckyElements: ensureLongSectionNarrative(
+        koSections.luckyElements || '',
+        360,
+        extra.luckyElements
+      ),
     }
   }
 
@@ -1536,6 +1598,165 @@ function buildTimingFallbackSections(
     luckyElements:
       'Your practical lucky element is disciplined sequencing: verify first, then commit.',
   }
+}
+
+function enforceThemedDepth(
+  sections: ThemedReportSections,
+  theme: ReportTheme
+): ThemedReportSections {
+  const extraByField: Record<string, string[]> = {
+    deepAnalysis: [
+      '핵심은 기질 자체보다 기질을 운용하는 순서를 정하는 데 있습니다.',
+      '같은 재능도 실행 구조에 따라 결과 밀도가 크게 달라집니다.',
+    ],
+    patterns: [
+      '상승 신호와 주의 신호가 동시에 있을 때는 공격과 방어를 분리하는 설계가 필수입니다.',
+      '패턴을 읽는 목적은 예언이 아니라 손실을 줄이면서 기회를 확장하는 데 있습니다.',
+    ],
+    timing: [
+      '오늘-이번 주-이번 달의 시간축을 분리하면 의사결정 품질이 크게 올라갑니다.',
+      '시기를 맞춘다는 것은 기다리는 것이 아니라 순서를 설계하는 일에 가깝습니다.',
+    ],
+    strategy: [
+      '전략은 화려한 선택보다 재현 가능한 반복으로 완성됩니다.',
+      '실행 전에 기준을 문장으로 고정하면 돌발 변수 대응력이 높아집니다.',
+    ],
+    roleFit: [
+      '역할 적합은 좋아 보이는 직함보다 실제 에너지 사용 방식과 맞아야 오래 갑니다.',
+      '잘 맞는 포지션일수록 성과뿐 아니라 피로 회복 속도도 함께 좋아집니다.',
+    ],
+    turningPoints: [
+      '전환점은 보통 기회 신호와 조정 신호가 동시에 나타나는 지점에서 발생합니다.',
+      '변화를 크게 만들수록 기준을 더 단순하게 유지해야 흔들림이 줄어듭니다.',
+    ],
+    compatibility: [
+      '궁합의 본질은 감정 크기보다 해석 정확도와 회복 속도에 있습니다.',
+      '강한 끌림이 오래 가려면 소통 규칙이 먼저 합의되어야 합니다.',
+    ],
+    spouseProfile: [
+      '잘 맞는 상대는 완벽한 사람이 아니라 기준을 공유할 수 있는 사람입니다.',
+      '관계 안정성은 취향보다 갈등 처리 방식에서 갈리는 경우가 많습니다.',
+    ],
+    marriageTiming: [
+      '관계 확정 시점은 감정 고조보다 생활 조건 정렬이 되었는지가 더 중요합니다.',
+      '시간차 재확인은 확신을 약화시키는 것이 아니라 관계 리스크를 줄이는 절차입니다.',
+    ],
+    incomeStreams: [
+      '수입 다각화는 채널 수보다 채널별 리스크 통제 수준이 성패를 가릅니다.',
+      '작은 검증 루프를 반복하면 실패 비용은 낮추고 학습 속도는 높일 수 있습니다.',
+    ],
+    riskManagement: [
+      '리스크 관리는 기회를 포기하는 것이 아니라 손실 상한을 정해 기회를 오래 유지하는 방법입니다.',
+      '규칙 없는 공격은 성과를 흔들고, 규칙 있는 공격은 성과를 누적시킵니다.',
+    ],
+    prevention: [
+      '예방은 문제가 생긴 뒤의 큰 조치보다, 평소의 작은 조정에서 더 높은 효율이 납니다.',
+      '몸 상태는 의지보다 일정 배치의 영향을 크게 받습니다.',
+    ],
+    riskWindows: [
+      '위험 구간은 대체로 일정 밀집과 커뮤니케이션 과부하가 동시에 나타날 때 커집니다.',
+      '위험 구간의 핵심 대응은 강행이 아니라 강도 조절과 우선순위 재배치입니다.',
+    ],
+    recoveryPlan: [
+      '회복 계획은 강도보다 지속성이 중요하며, 지킬 수 있는 기준이 오래 갑니다.',
+      '루틴이 단순할수록 실제 유지율이 올라갑니다.',
+    ],
+    dynamics: [
+      '가족 역학은 정답 찾기보다 서로의 해석 차이를 줄이는 과정에서 안정됩니다.',
+      '짧고 정확한 대화를 반복하는 방식이 장기적으로 갈등 비용을 크게 줄입니다.',
+    ],
+    communication: [
+      '소통의 질은 말의 양이 아니라 맥락과 결론을 분리하는 구조에서 올라갑니다.',
+      '중요한 대화일수록 전달 전 요약 확인이 필요합니다.',
+    ],
+    legacy: [
+      '유산은 자산만이 아니라 문제를 다루는 원칙이 다음 세대로 전달되는 방식입니다.',
+      '기준 문서화를 습관화하면 관계 운영 품질이 안정됩니다.',
+    ],
+    actionPlan: [
+      '실행 계획은 복잡한 프레임보다 실제 행동으로 전환되는 단순한 단계가 효과적입니다.',
+      '핵심은 계획을 많이 세우는 것이 아니라 계획을 끝까지 지키는 구조입니다.',
+    ],
+  }
+
+  const out: ThemedReportSections = { ...sections }
+  out.deepAnalysis = ensureLongSectionNarrative(out.deepAnalysis, 560, extraByField.deepAnalysis)
+  out.patterns = ensureLongSectionNarrative(out.patterns, 520, extraByField.patterns)
+  out.timing = ensureLongSectionNarrative(out.timing, 520, extraByField.timing)
+  out.actionPlan = ensureLongSectionNarrative(out.actionPlan, 520, extraByField.actionPlan)
+  out.recommendations = (out.recommendations || []).map((line, idx) =>
+    ensureLongSectionNarrative(line, 280, [
+      `실행 전 체크포인트를 ${idx + 1}개라도 명확히 두면 결과 편차를 줄일 수 있습니다.`,
+    ])
+  )
+
+  if (out.strategy)
+    out.strategy = ensureLongSectionNarrative(out.strategy, 500, extraByField.strategy)
+  if (out.roleFit) out.roleFit = ensureLongSectionNarrative(out.roleFit, 460, extraByField.roleFit)
+  if (out.turningPoints) {
+    out.turningPoints = ensureLongSectionNarrative(
+      out.turningPoints,
+      460,
+      extraByField.turningPoints
+    )
+  }
+  if (out.compatibility) {
+    out.compatibility = ensureLongSectionNarrative(
+      out.compatibility,
+      500,
+      extraByField.compatibility
+    )
+  }
+  if (out.spouseProfile) {
+    out.spouseProfile = ensureLongSectionNarrative(
+      out.spouseProfile,
+      460,
+      extraByField.spouseProfile
+    )
+  }
+  if (out.marriageTiming) {
+    out.marriageTiming = ensureLongSectionNarrative(
+      out.marriageTiming,
+      420,
+      extraByField.marriageTiming
+    )
+  }
+  if (out.incomeStreams) {
+    out.incomeStreams = ensureLongSectionNarrative(
+      out.incomeStreams,
+      440,
+      extraByField.incomeStreams
+    )
+  }
+  if (out.riskManagement) {
+    out.riskManagement = ensureLongSectionNarrative(
+      out.riskManagement,
+      420,
+      extraByField.riskManagement
+    )
+  }
+  if (out.prevention) {
+    out.prevention = ensureLongSectionNarrative(out.prevention, 440, extraByField.prevention)
+  }
+  if (out.riskWindows) {
+    out.riskWindows = ensureLongSectionNarrative(out.riskWindows, 420, extraByField.riskWindows)
+  }
+  if (out.recoveryPlan) {
+    out.recoveryPlan = ensureLongSectionNarrative(out.recoveryPlan, 420, extraByField.recoveryPlan)
+  }
+  if (out.dynamics)
+    out.dynamics = ensureLongSectionNarrative(out.dynamics, 460, extraByField.dynamics)
+  if (out.communication) {
+    out.communication = ensureLongSectionNarrative(
+      out.communication,
+      420,
+      extraByField.communication
+    )
+  }
+  if (out.legacy) out.legacy = ensureLongSectionNarrative(out.legacy, 420, extraByField.legacy)
+
+  void theme
+  return out
 }
 
 function buildThemedFallbackSections(
@@ -1585,77 +1806,92 @@ function buildThemedFallbackSections(
 
   switch (theme) {
     case 'love':
-      return {
-        ...baseKo,
-        compatibility: merge(
-          relation?.thesis,
-          '관계 궁합은 감정 강도보다 해석 일치 여부가 핵심입니다. 서로의 기대를 문장으로 맞추면 갈등 비용이 줄어듭니다. 서로 좋은 의도가 있어도 표현 속도가 다르면 오해가 생기기 쉬우므로, 중요한 대화는 요약 확인 단계를 넣는 편이 유리합니다. 강한 끌림과 안정성이 동시에 유지되려면 결론을 서두르지 말고 합의 기준을 먼저 맞춰야 합니다.'
-        ),
-        spouseProfile:
-          '관계형 파트너와의 조합에서 장점이 커집니다. 다만 확정 속도가 빠르면 오해가 누적되므로 확인 질문 루틴이 필요합니다. 잘 맞는 상대일수록 작은 말실수도 크게 남을 수 있으니, 감정 표현과 사실 확인을 분리하는 대화 습관이 중요합니다. 장기적으로는 배려보다 구조가 관계를 지켜주는 순간이 많습니다.',
-        marriageTiming: merge(
-          timing?.riskControl,
-          '중요 확정은 당일보다 24시간 검증 창을 둔 뒤 진행하는 방식이 더 안전합니다. 일정·예산·역할 분담을 문서로 먼저 맞추면 감정 변수에 흔들릴 확률이 낮아집니다. 타이밍이 좋을수록 더 신중하게 기준을 맞추는 것이 실제 만족도를 높입니다.'
-        ),
-      }
+      return enforceThemedDepth(
+        {
+          ...baseKo,
+          compatibility: merge(
+            relation?.thesis,
+            '관계 궁합은 감정 강도보다 해석 일치 여부가 핵심입니다. 서로의 기대를 문장으로 맞추면 갈등 비용이 줄어듭니다. 서로 좋은 의도가 있어도 표현 속도가 다르면 오해가 생기기 쉬우므로, 중요한 대화는 요약 확인 단계를 넣는 편이 유리합니다. 강한 끌림과 안정성이 동시에 유지되려면 결론을 서두르지 말고 합의 기준을 먼저 맞춰야 합니다.'
+          ),
+          spouseProfile:
+            '관계형 파트너와의 조합에서 장점이 커집니다. 다만 확정 속도가 빠르면 오해가 누적되므로 확인 질문 루틴이 필요합니다. 잘 맞는 상대일수록 작은 말실수도 크게 남을 수 있으니, 감정 표현과 사실 확인을 분리하는 대화 습관이 중요합니다. 장기적으로는 배려보다 구조가 관계를 지켜주는 순간이 많습니다.',
+          marriageTiming: merge(
+            timing?.riskControl,
+            '중요 확정은 당일보다 24시간 검증 창을 둔 뒤 진행하는 방식이 더 안전합니다. 일정·예산·역할 분담을 문서로 먼저 맞추면 감정 변수에 흔들릴 확률이 낮아집니다. 타이밍이 좋을수록 더 신중하게 기준을 맞추는 것이 실제 만족도를 높입니다.'
+          ),
+        },
+        theme
+      )
     case 'career':
-      return {
-        ...baseKo,
-        strategy: merge(
-          career?.thesis,
-          '커리어 전략은 폭넓은 시도보다 핵심 과업 완결 중심이 유리합니다. 역할·마감·책임의 명확화가 성과를 지킵니다. 상승 신호가 있어도 리스크 관리가 함께 필요하므로, 실행은 공격적으로 하되 확정은 단계적으로 진행하세요. 성과가 나는 사람의 공통점은 속도보다 누락 없는 마감 품질에 있습니다.'
-        ),
-        roleFit:
-          '의사결정과 구조화가 필요한 포지션에서 강점이 큽니다. 단, 속도전보다 품질 검증 프로세스가 필수입니다. 리더/기획/운영처럼 기준을 정하고 조율하는 역할에서 특히 성과가 잘 납니다. 반대로 기준 없는 다중 업무는 에너지를 분산시키므로 업무 구조를 먼저 정리해야 합니다.',
-        turningPoints: merge(
-          timing?.thesis,
-          '전환점은 상승 신호와 조정 신호가 동시에 들어오는 구간에서 나타납니다. 확장과 재정의를 병행하세요. 새로운 기회를 잡을 때 기존 방식의 일부를 정리해야 다음 레벨로 올라갈 수 있습니다. 전환기의 핵심은 “더 많이”가 아니라 “더 정확히”입니다.'
-        ),
-      }
+      return enforceThemedDepth(
+        {
+          ...baseKo,
+          strategy: merge(
+            career?.thesis,
+            '커리어 전략은 폭넓은 시도보다 핵심 과업 완결 중심이 유리합니다. 역할·마감·책임의 명확화가 성과를 지킵니다. 상승 신호가 있어도 리스크 관리가 함께 필요하므로, 실행은 공격적으로 하되 확정은 단계적으로 진행하세요. 성과가 나는 사람의 공통점은 속도보다 누락 없는 마감 품질에 있습니다.'
+          ),
+          roleFit:
+            '의사결정과 구조화가 필요한 포지션에서 강점이 큽니다. 단, 속도전보다 품질 검증 프로세스가 필수입니다. 리더/기획/운영처럼 기준을 정하고 조율하는 역할에서 특히 성과가 잘 납니다. 반대로 기준 없는 다중 업무는 에너지를 분산시키므로 업무 구조를 먼저 정리해야 합니다.',
+          turningPoints: merge(
+            timing?.thesis,
+            '전환점은 상승 신호와 조정 신호가 동시에 들어오는 구간에서 나타납니다. 확장과 재정의를 병행하세요. 새로운 기회를 잡을 때 기존 방식의 일부를 정리해야 다음 레벨로 올라갈 수 있습니다. 전환기의 핵심은 “더 많이”가 아니라 “더 정확히”입니다.'
+          ),
+        },
+        theme
+      )
     case 'wealth':
-      return {
-        ...baseKo,
-        strategy: merge(
-          wealth?.thesis,
-          '재정 전략은 수익 기대보다 현금흐름 안정과 조건 검증에 우선순위를 둬야 합니다. 기회가 있어도 리스크를 통제하지 못하면 누적 성과가 흔들릴 수 있으므로, 먼저 손실 상한을 정하고 그 안에서 실행해야 합니다. 수익률보다 생존률을 높이는 운영이 장기적으로 더 큰 결과를 만듭니다.'
-        ),
-        incomeStreams:
-          '수입원 다각화는 가능하지만, 새 채널 확정은 소규모 검증 후 확대가 안전합니다. 파일럿 단계에서 고객 반응/비용 구조/회수 기간을 먼저 확인하면 실패 비용을 크게 줄일 수 있습니다. 작은 성공을 반복해 확장하는 방식이 현재 흐름과 잘 맞습니다.',
-        riskManagement: merge(
-          wealth?.riskControl,
-          '지출 상한과 손절 규칙을 먼저 정하고 실행하세요. 계약/투자/결제는 당일 확정보다 24시간 검토를 넣어 리스크를 통제하는 편이 안정적입니다.'
-        ),
-      }
+      return enforceThemedDepth(
+        {
+          ...baseKo,
+          strategy: merge(
+            wealth?.thesis,
+            '재정 전략은 수익 기대보다 현금흐름 안정과 조건 검증에 우선순위를 둬야 합니다. 기회가 있어도 리스크를 통제하지 못하면 누적 성과가 흔들릴 수 있으므로, 먼저 손실 상한을 정하고 그 안에서 실행해야 합니다. 수익률보다 생존률을 높이는 운영이 장기적으로 더 큰 결과를 만듭니다.'
+          ),
+          incomeStreams:
+            '수입원 다각화는 가능하지만, 새 채널 확정은 소규모 검증 후 확대가 안전합니다. 파일럿 단계에서 고객 반응/비용 구조/회수 기간을 먼저 확인하면 실패 비용을 크게 줄일 수 있습니다. 작은 성공을 반복해 확장하는 방식이 현재 흐름과 잘 맞습니다.',
+          riskManagement: merge(
+            wealth?.riskControl,
+            '지출 상한과 손절 규칙을 먼저 정하고 실행하세요. 계약/투자/결제는 당일 확정보다 24시간 검토를 넣어 리스크를 통제하는 편이 안정적입니다.'
+          ),
+        },
+        theme
+      )
     case 'health':
-      return {
-        ...baseKo,
-        prevention: merge(
-          health?.thesis,
-          '예방의 핵심은 과부하 누적을 차단하는 것입니다. 수면·수분·회복 루틴을 일정에 고정하세요. 컨디션이 좋을 때 무리해서 당기는 패턴이 반복되면 반동 피로가 커질 수 있으니 강도 조절이 필수입니다. 건강 전략은 의지보다 시스템이 오래 갑니다.'
-        ),
-        riskWindows: merge(
-          timing?.thesis,
-          '리스크 구간은 일정 밀집과 커뮤니케이션 과부하가 겹칠 때 커집니다. 일정 분할로 충격을 줄이세요. 특히 이동/야근/수면 부족이 동시에 겹치면 실수 확률이 급격히 올라갈 수 있습니다. 위험 구간은 미리 예고하고 일정 강도를 낮추는 것이 안전합니다.'
-        ),
-        recoveryPlan: merge(
-          health?.riskControl,
-          '회복 계획은 강도보다 지속성이 중요합니다. 2주 단위로 재점검하세요. 무리한 목표보다 매일 지킬 수 있는 기본 루틴을 정해두면 회복 효율이 높아집니다. 기준은 “완벽한 하루”가 아니라 “무너지지 않는 패턴”입니다.'
-        ),
-      }
+      return enforceThemedDepth(
+        {
+          ...baseKo,
+          prevention: merge(
+            health?.thesis,
+            '예방의 핵심은 과부하 누적을 차단하는 것입니다. 수면·수분·회복 루틴을 일정에 고정하세요. 컨디션이 좋을 때 무리해서 당기는 패턴이 반복되면 반동 피로가 커질 수 있으니 강도 조절이 필수입니다. 건강 전략은 의지보다 시스템이 오래 갑니다.'
+          ),
+          riskWindows: merge(
+            timing?.thesis,
+            '리스크 구간은 일정 밀집과 커뮤니케이션 과부하가 겹칠 때 커집니다. 일정 분할로 충격을 줄이세요. 특히 이동/야근/수면 부족이 동시에 겹치면 실수 확률이 급격히 올라갈 수 있습니다. 위험 구간은 미리 예고하고 일정 강도를 낮추는 것이 안전합니다.'
+          ),
+          recoveryPlan: merge(
+            health?.riskControl,
+            '회복 계획은 강도보다 지속성이 중요합니다. 2주 단위로 재점검하세요. 무리한 목표보다 매일 지킬 수 있는 기본 루틴을 정해두면 회복 효율이 높아집니다. 기준은 “완벽한 하루”가 아니라 “무너지지 않는 패턴”입니다.'
+          ),
+        },
+        theme
+      )
     case 'family':
-      return {
-        ...baseKo,
-        dynamics: merge(
-          relation?.thesis,
-          '가족 역학은 표현 속도 차이에서 오해가 커지기 쉽습니다. 맥락 정리 후 전달하는 방식이 유리합니다. 가까운 관계일수록 말의 톤과 순서가 결과를 크게 좌우하므로, 결론보다 배경 설명을 먼저 맞추는 습관이 중요합니다. 작은 오해를 빠르게 정리하면 장기 갈등을 예방할 수 있습니다.'
-        ),
-        communication: merge(
-          relation?.riskControl,
-          '결론 전달 전 상대 해석을 다시 확인하면 갈등 비용을 줄일 수 있습니다. 민감한 주제는 즉시 해결하려 하기보다 합의 가능한 기준부터 정하는 편이 안정적입니다. 한 번의 완벽한 대화보다, 짧고 정확한 대화를 여러 번 쌓는 방식이 효과적입니다.'
-        ),
-        legacy:
-          '세대 과제는 단기 성과보다 일관된 운영 원칙을 남기는 것입니다. 기준 문서화를 습관화하세요. 가족 안에서도 역할/책임/기대치가 보이면 갈등이 줄고 협력이 쉬워집니다. 남기는 것은 말이 아니라 반복 가능한 운영 규칙입니다.',
-      }
+      return enforceThemedDepth(
+        {
+          ...baseKo,
+          dynamics: merge(
+            relation?.thesis,
+            '가족 역학은 표현 속도 차이에서 오해가 커지기 쉽습니다. 맥락 정리 후 전달하는 방식이 유리합니다. 가까운 관계일수록 말의 톤과 순서가 결과를 크게 좌우하므로, 결론보다 배경 설명을 먼저 맞추는 습관이 중요합니다. 작은 오해를 빠르게 정리하면 장기 갈등을 예방할 수 있습니다.'
+          ),
+          communication: merge(
+            relation?.riskControl,
+            '결론 전달 전 상대 해석을 다시 확인하면 갈등 비용을 줄일 수 있습니다. 민감한 주제는 즉시 해결하려 하기보다 합의 가능한 기준부터 정하는 편이 안정적입니다. 한 번의 완벽한 대화보다, 짧고 정확한 대화를 여러 번 쌓는 방식이 효과적입니다.'
+          ),
+          legacy:
+            '세대 과제는 단기 성과보다 일관된 운영 원칙을 남기는 것입니다. 기준 문서화를 습관화하세요. 가족 안에서도 역할/책임/기대치가 보이면 갈등이 줄고 협력이 쉬워집니다. 남기는 것은 말이 아니라 반복 가능한 운영 규칙입니다.',
+        },
+        theme
+      )
   }
 }
 

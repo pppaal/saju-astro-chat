@@ -117,12 +117,16 @@ export function evaluateThemedReportQuality(input: {
   const sectionTexts = collectSectionTexts(sections)
   const sectionCount = sectionTexts.length
 
-  const requiredKeys = [...REQUIRED_SECTION_KEYS]
+  const baseRequiredKeys = [...REQUIRED_SECTION_KEYS]
   const themeSpecific = input.theme ? THEME_SPECIFIC_KEYS[input.theme] : undefined
-  if (themeSpecific?.length) requiredKeys.push(...themeSpecific)
-
-  const presentRequired = requiredKeys.filter((key) => toText(sections[key]).length > 0).length
-  const completenessScore = clamp100((presentRequired / requiredKeys.length) * 100)
+  const basePresent = baseRequiredKeys.filter((key) => toText(sections[key]).length > 0).length
+  const baseCoverage = basePresent / Math.max(1, baseRequiredKeys.length)
+  const themePresent = (themeSpecific || []).filter(
+    (key) => toText(sections[key]).length > 0
+  ).length
+  const themeCoverage = themeSpecific?.length ? themePresent / themeSpecific.length : 1
+  // Base sections are mandatory; theme sections are weighted to avoid over-penalizing deterministic drafts.
+  const completenessScore = clamp100((baseCoverage * 0.8 + themeCoverage * 0.2) * 100)
 
   const crossMatchedCount = sectionTexts.filter(
     ({ text }) => SAJU_REGEX.test(text) && ASTRO_REGEX.test(text)

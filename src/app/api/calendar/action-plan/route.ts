@@ -91,6 +91,45 @@ type CalendarEvidence = {
   }
   confidence?: number
   source?: 'rule' | 'rag' | 'hybrid'
+  matrixPacket?: {
+    focusDomain?: string
+    graphRagEvidenceSummary?: {
+      totalAnchors?: number
+      totalSets?: number
+    }
+    topAnchors?: Array<{
+      id?: string
+      section?: string
+      summary?: string
+      setCount?: number
+    }>
+    topClaims?: Array<{
+      id?: string
+      text?: string
+      domain?: string
+      signalIds?: string[]
+      anchorIds?: string[]
+    }>
+    scenarioBriefs?: Array<{
+      id?: string
+      domain?: string
+      mainTokens?: string[]
+      altTokens?: string[]
+    }>
+    selectedSignals?: Array<{
+      id?: string
+      domain?: string
+      polarity?: string
+      summary?: string
+      score?: number
+    }>
+    strategyBrief?: {
+      overallPhase?: string
+      overallPhaseLabel?: string
+      attackPercent?: number
+      defensePercent?: number
+    }
+  }
 }
 
 type ActionPlanCalendarContext = {
@@ -130,6 +169,72 @@ type RagContextResponse = {
 
 const CALENDAR_AI_PREMIUM_ONLY = false
 const CALENDAR_AI_CREDIT_COST = 0
+
+const matrixEvidencePacketSchema = z
+  .object({
+    focusDomain: z.string().max(32).optional(),
+    graphRagEvidenceSummary: z
+      .object({
+        totalAnchors: z.number().min(0).max(1000).optional(),
+        totalSets: z.number().min(0).max(1000).optional(),
+      })
+      .optional(),
+    topAnchors: z
+      .array(
+        z.object({
+          id: z.string().max(64).optional(),
+          section: z.string().max(40).optional(),
+          summary: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+          setCount: z.number().min(0).max(1000).optional(),
+        })
+      )
+      .max(6)
+      .optional(),
+    topClaims: z
+      .array(
+        z.object({
+          id: z.string().max(64).optional(),
+          text: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+          domain: z.string().max(32).optional(),
+          signalIds: z.array(z.string().max(64)).max(6).optional(),
+          anchorIds: z.array(z.string().max(64)).max(6).optional(),
+        })
+      )
+      .max(6)
+      .optional(),
+    scenarioBriefs: z
+      .array(
+        z.object({
+          id: z.string().max(64).optional(),
+          domain: z.string().max(32).optional(),
+          mainTokens: z.array(z.string().max(TEXT_LIMITS.MAX_KEYWORD)).max(6).optional(),
+          altTokens: z.array(z.string().max(TEXT_LIMITS.MAX_KEYWORD)).max(6).optional(),
+        })
+      )
+      .max(6)
+      .optional(),
+    selectedSignals: z
+      .array(
+        z.object({
+          id: z.string().max(64).optional(),
+          domain: z.string().max(32).optional(),
+          polarity: z.string().max(20).optional(),
+          summary: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+          score: z.number().min(-100).max(100).optional(),
+        })
+      )
+      .max(8)
+      .optional(),
+    strategyBrief: z
+      .object({
+        overallPhase: z.string().max(32).optional(),
+        overallPhaseLabel: z.string().max(60).optional(),
+        attackPercent: z.number().min(0).max(100).optional(),
+        defensePercent: z.number().min(0).max(100).optional(),
+      })
+      .optional(),
+  })
+  .optional()
 
 const actionPlanTimelineRequestSchema = z.object({
   date: dateSchema,
@@ -199,6 +304,7 @@ const actionPlanTimelineRequestSchema = z.object({
             .optional(),
           confidence: z.number().min(0).max(100).optional(),
           source: z.enum(['rule', 'rag', 'hybrid']).optional(),
+          matrixPacket: matrixEvidencePacketSchema,
         })
         .optional(),
     })
@@ -639,6 +745,154 @@ const normalizeId = (raw: string) =>
     .replace(/^_+|_+$/g, '')
     .slice(0, 48)
 
+type MatrixEvidencePacket = NonNullable<CalendarEvidence['matrixPacket']>
+
+const SLOT_TYPE_DOMAIN_HINTS: Record<SlotType, string[]> = {
+  deepWork: ['career', 'personality'],
+  decision: ['career', 'timing'],
+  communication: ['relationship', 'timing'],
+  money: ['wealth'],
+  relationship: ['relationship'],
+  recovery: ['health', 'timing'],
+}
+
+function getMatrixPacket(calendar?: ActionPlanCalendarContext): MatrixEvidencePacket | undefined {
+  return calendar?.evidence?.matrixPacket
+}
+
+function normalizePacketDomain(domain?: string): string {
+  const normalized = normalizeActionCategory(domain)
+  if (normalized === 'love') return 'relationship'
+  if (normalized === 'travel') return 'timing'
+  return normalized
+}
+
+function buildSlotDomainHints(
+  slotTypes: SlotType[],
+  category?: string,
+  packet?: MatrixEvidencePacket
+): Set<string> {
+  const hints = new Set<string>()
+  slotTypes.forEach((slotType) => {
+    SLOT_TYPE_DOMAIN_HINTS[slotType].forEach((domain) => hints.add(domain))
+  })
+  const categoryHint = normalizePacketDomain(category)
+  if (categoryHint) hints.add(categoryHint)
+  const packetHint = normalizePacketDomain(packet?.focusDomain)
+  if (packetHint) hints.add(packetHint)
+  if (hints.size === 0) hints.add('personality')
+  return hints
+}
+
+function domainMatchesHints(domain: string | undefined, hints: Set<string>): boolean {
+  const normalized = normalizePacketDomain(domain)
+  if (!normalized) return false
+  if (hints.has(normalized)) return true
+  if (normalized === 'personality' && hints.has('career')) return true
+  if (normalized === 'timing' && (hints.has('career') || hints.has('relationship'))) return true
+  return false
+}
+
+function getRelevantPacketEvidence(input: {
+  packet?: MatrixEvidencePacket
+  slotTypes: SlotType[]
+  category?: string
+  tone: TimelineTone
+}) {
+  const { packet, slotTypes, category, tone } = input
+  const hints = buildSlotDomainHints(slotTypes, category, packet)
+  const claims = (packet?.topClaims || []).filter((claim) =>
+    domainMatchesHints(claim.domain, hints)
+  )
+  const anchors = (packet?.topAnchors || []).filter((anchor) => {
+    const section = (anchor.section || '').toLowerCase()
+    if (tone === 'caution') return section.includes('timing') || section.includes('recommend')
+    if (slotTypes.includes('relationship'))
+      return section.includes('pattern') || section.includes('overview')
+    return true
+  })
+  const scenarios = (packet?.scenarioBriefs || []).filter((scenario) =>
+    domainMatchesHints(scenario.domain, hints)
+  )
+  const signals = (packet?.selectedSignals || []).filter((signal) =>
+    domainMatchesHints(signal.domain, hints)
+  )
+
+  return {
+    claims: (claims.length ? claims : packet?.topClaims || []).slice(0, 2),
+    anchors: (anchors.length ? anchors : packet?.topAnchors || []).slice(0, 2),
+    scenarios: (scenarios.length ? scenarios : packet?.scenarioBriefs || []).slice(0, 1),
+    signals: (signals.length ? signals : packet?.selectedSignals || []).slice(0, 3),
+  }
+}
+
+function derivePacketPatterns(input: {
+  packet?: MatrixEvidencePacket
+  slotTypes: SlotType[]
+  category?: string
+  tone: TimelineTone
+  claims: Array<{ domain?: string; text?: string }>
+  scenarios: Array<{ domain?: string; mainTokens?: string[]; altTokens?: string[] }>
+}): string[] {
+  const hints = buildSlotDomainHints(input.slotTypes, input.category, input.packet)
+  const patterns = new Set<string>()
+  const joinedText = [
+    ...input.claims.map((claim) => claim.text || ''),
+    ...input.scenarios.flatMap((scenario) => [
+      ...(scenario.mainTokens || []),
+      ...(scenario.altTokens || []),
+    ]),
+    input.packet?.strategyBrief?.overallPhaseLabel || '',
+  ]
+    .join(' ')
+    .toLowerCase()
+
+  if (input.tone === 'caution') patterns.add('risk_exposure_up')
+  if (hints.has('relationship')) patterns.add('relationship_sensitivity_up')
+  if (hints.has('wealth')) patterns.add('spending_impulse_up')
+  if (
+    input.slotTypes.includes('recovery') ||
+    /recover|rest|reset|sleep|회복|휴식|정리/.test(joinedText)
+  ) {
+    patterns.add('recovery_need_up')
+  }
+  if (/speed|momentum|push|attack|fast|속도|추진|가속/.test(joinedText)) {
+    patterns.add('speed_up_validation_down')
+  }
+  if (/risk|friction|delay|counter|caution|주의|충돌|마찰|검증/.test(joinedText)) {
+    patterns.add('risk_exposure_up')
+  }
+  if (patterns.size === 0) patterns.add('signal_balance')
+  return Array.from(patterns).slice(0, 3)
+}
+
+function summarizeMatrixPacketForPrompt(
+  packet: MatrixEvidencePacket | undefined,
+  locale: 'ko' | 'en'
+): string {
+  if (!packet) return ''
+  const topClaim = cleanGuidanceText(packet.topClaims?.[0]?.text || '', 140)
+  const topAnchor = cleanGuidanceText(packet.topAnchors?.[0]?.summary || '', 120)
+  const phase = cleanGuidanceText(packet.strategyBrief?.overallPhaseLabel || '', 48)
+  const scenario = cleanGuidanceText(
+    [
+      ...(packet.scenarioBriefs?.[0]?.mainTokens || []),
+      ...(packet.scenarioBriefs?.[0]?.altTokens || []),
+    ].join(', '),
+    96
+  )
+  const parts = [
+    phase ? `phase=${phase}` : null,
+    topClaim ? `claim=${topClaim}` : null,
+    topAnchor ? `anchor=${topAnchor}` : null,
+    scenario ? `scenario=${scenario}` : null,
+  ].filter(Boolean)
+  if (parts.length === 0) return ''
+  return locale === 'ko'
+    ? `matrix_packet: ${parts.join(' | ')}`
+    : `matrix_packet: ${parts.join(' | ')}`
+}
+
 function inferSlotTypes(input: {
   hour: number
   tone: TimelineTone
@@ -687,6 +941,13 @@ function buildSlotWhy(input: {
   const signalIds = new Set<string>()
   const anchorIds = new Set<string>()
   const patterns = new Set<string>()
+  const packet = getMatrixPacket(calendar)
+  const packetEvidence = getRelevantPacketEvidence({
+    packet,
+    slotTypes,
+    category,
+    tone: slot.tone || 'neutral',
+  })
 
   const matrixDomain =
     calendar?.evidence?.matrix?.domain || normalizeActionCategory(category) || 'general'
@@ -695,12 +956,31 @@ function buildSlotWhy(input: {
   signalIds.add(`SIG_DOMAIN_${normalizeId(matrixDomain)}`)
   signalIds.add(`SIG_TIME_${slot.hour < 12 ? 'AM' : slot.hour < 18 ? 'PM' : 'EVENING'}`)
 
+  packetEvidence.claims.forEach((claim) => {
+    ;(claim.signalIds || []).slice(0, 3).forEach((signalId) => signalIds.add(signalId))
+    ;(claim.anchorIds || []).slice(0, 2).forEach((anchorId) => anchorIds.add(anchorId))
+  })
+  packetEvidence.signals.forEach((signal) => {
+    if (signal.id) signalIds.add(signal.id)
+  })
+  packetEvidence.anchors.forEach((anchor) => {
+    if (anchor.id) anchorIds.add(anchor.id)
+  })
+
   if (slot.tone === 'best' && (icp?.dominanceScore || 0) >= 65)
     patterns.add('speed_up_validation_down')
   if (slot.tone === 'caution') patterns.add('risk_exposure_up')
   if (slotTypes.includes('relationship')) patterns.add('relationship_sensitivity_up')
   if (slotTypes.includes('money')) patterns.add('spending_impulse_up')
   if (slotTypes.includes('recovery')) patterns.add('recovery_need_up')
+  derivePacketPatterns({
+    packet,
+    slotTypes,
+    category,
+    tone: slot.tone || 'neutral',
+    claims: packetEvidence.claims,
+    scenarios: packetEvidence.scenarios,
+  }).forEach((pattern) => patterns.add(pattern))
 
   if (calendar?.sajuFactors?.[0]) anchorIds.add('ANCHOR_SAJU_FACTOR_1')
   if (calendar?.astroFactors?.[0]) anchorIds.add('ANCHOR_ASTRO_FACTOR_1')
@@ -759,10 +1039,15 @@ function analyzeConfidenceMeta(input: {
 }): { score: number; reasons: string[] } {
   const { locale, slot, calendar, baselineConfidence, why } = input
   const isKo = locale === 'ko'
+  const packet = getMatrixPacket(calendar)
   const base = typeof baselineConfidence === 'number' ? baselineConfidence : 62
   const toneDelta = slot.tone === 'best' ? 14 : slot.tone === 'caution' ? -18 : 0
   const sourceDelta = slot.source === 'hybrid' ? 8 : slot.source === 'rag' ? 4 : 0
   const evidenceDelta = Math.min(8, (slot.evidenceSummary?.length || 0) * 3)
+  const packetAnchorCount = packet?.graphRagEvidenceSummary?.totalAnchors ?? 0
+  const packetSetCount = packet?.graphRagEvidenceSummary?.totalSets ?? 0
+  const packetSignalCount = packet?.selectedSignals?.length ?? 0
+  const packetClaimCount = packet?.topClaims?.length ?? 0
   const bestHit = (calendar?.bestTimes || []).some((time) =>
     extractHoursFromText(time).includes(slot.hour)
   )
@@ -771,25 +1056,33 @@ function analyzeConfidenceMeta(input: {
   )
   const bestBonus = bestHit ? 4 : 0
   const cautionPenalty = warningHit ? -6 : 0
+  const packetBonus = Math.min(10, packetSetCount + Math.min(4, packetClaimCount))
 
   const reasons: string[] = []
   if (bestHit && warningHit) reasons.push(isKo ? '근거 충돌' : 'Evidence conflict')
-  if (why.anchorIds.length < 1) reasons.push(isKo ? 'anchor 부족' : 'Anchor shortage')
-  if (why.signalIds.length < 3) reasons.push(isKo ? 'signal 밀도 낮음' : 'Low signal density')
+  if (why.anchorIds.length < 1 || packetAnchorCount < 1)
+    reasons.push(isKo ? 'anchor 부족' : 'Anchor shortage')
+  if (why.signalIds.length < 3 || packetSignalCount < 3)
+    reasons.push(isKo ? 'signal 밀도 낮음' : 'Low signal density')
   if (slot.tone === 'caution') reasons.push(isKo ? '리스크 구간' : 'Risk window')
   if (base < 55) reasons.push(isKo ? '기본 신뢰도 낮음' : 'Low baseline confidence')
   if (reasons.length === 0) reasons.push(isKo ? '신호 정렬 양호' : 'Signals aligned')
 
   return {
     score: clampPercent(
-      base + toneDelta + sourceDelta + evidenceDelta + bestBonus + cautionPenalty
+      base + toneDelta + sourceDelta + evidenceDelta + bestBonus + cautionPenalty + packetBonus
     ),
     reasons: reasons.slice(0, 3),
   }
 }
 
-function buildDeltaToday(input: { locale: 'ko' | 'en'; timeline: TimelineSlot[] }): string {
-  const { locale, timeline } = input
+function buildDeltaToday(input: {
+  locale: 'ko' | 'en'
+  timeline: TimelineSlot[]
+  calendar?: ActionPlanCalendarContext
+}): string {
+  const { locale, timeline, calendar } = input
+  const packet = getMatrixPacket(calendar)
   const bestCount = timeline.filter((slot) => slot.tone === 'best').length
   const cautionCount = timeline.filter((slot) => slot.tone === 'caution').length
   const avgConfidence =
@@ -802,23 +1095,45 @@ function buildDeltaToday(input: { locale: 'ko' | 'en'; timeline: TimelineSlot[] 
         )
       : 60
 
+  const topClaim = cleanGuidanceText(packet?.topClaims?.[0]?.text || '', 88)
+  const attack = packet?.strategyBrief?.attackPercent ?? 0
+  const defense = packet?.strategyBrief?.defensePercent ?? 0
+
   if (locale === 'ko') {
+    if (attack >= defense + 15 && avgConfidence < 72) {
+      return cleanGuidanceText(
+        `오늘은 추진은 강한데 검증이 약해지기 쉽습니다. ${topClaim || '큰 결정은 초안-검증-확정 3단계로 나누세요.'}`,
+        140
+      )
+    }
     if (bestCount >= cautionCount + 2 && avgConfidence < 72) {
       return '오늘은 속도는 빠르지만 검증 누락 위험이 큽니다. 결정 1건당 검증 1회를 강제하세요.'
     }
-    if (cautionCount > bestCount) {
+    if (defense > attack + 10 || cautionCount > bestCount) {
       return '오늘은 외부 변수 대응일입니다. 신규 확정보다 리스크 제거와 재정렬을 우선하세요.'
     }
-    return '오늘은 성과 구간과 주의 구간이 섞여 있습니다. 큰 일은 좋은 슬롯에, 조정은 주의 슬롯에 배치하세요.'
+    return cleanGuidanceText(
+      `오늘은 성과 구간과 조정 구간이 섞여 있습니다. ${topClaim || '큰 일은 좋은 슬롯에, 조정은 주의 슬롯에 배치하세요.'}`,
+      140
+    )
   }
 
+  if (attack >= defense + 15 && avgConfidence < 72) {
+    return cleanGuidanceText(
+      `Today pushes speed faster than validation. ${topClaim || 'Split major moves into draft, validation, and commit.'}`,
+      140
+    )
+  }
   if (bestCount >= cautionCount + 2 && avgConfidence < 72) {
     return 'Today is fast but under-validated. Force one validation pass per major decision.'
   }
-  if (cautionCount > bestCount) {
+  if (defense > attack + 10 || cautionCount > bestCount) {
     return 'Today is variable-heavy. Prioritize risk removal and re-alignment over new commitments.'
   }
-  return 'Today mixes strong and caution windows. Place big tasks in strong slots and adjustments in caution slots.'
+  return cleanGuidanceText(
+    `Today mixes strong and caution windows. ${topClaim || 'Place big tasks in strong slots and adjustments in caution slots.'}`,
+    140
+  )
 }
 
 function buildActionPlanInsights(input: {
@@ -831,9 +1146,13 @@ function buildActionPlanInsights(input: {
 }): ActionPlanInsights {
   const { locale, timeline, calendar, icp, persona, isPremiumUser } = input
   const isKo = locale === 'ko'
+  const packet = getMatrixPacket(calendar)
   const bestSlot = timeline.find((slot) => slot.tone === 'best')
   const cautionSlot = timeline.find((slot) => slot.tone === 'caution')
   const topCategory = normalizeActionCategory(calendar?.categories?.[0])
+  const topClaim = cleanGuidanceText(packet?.topClaims?.[0]?.text || '', 110)
+  const topAnchor = cleanGuidanceText(packet?.topAnchors?.[0]?.summary || '', 96)
+  const phaseLabel = cleanGuidanceText(packet?.strategyBrief?.overallPhaseLabel || '', 48)
 
   const formatSlotLabel = (slot?: TimelineSlot) =>
     slot
@@ -845,6 +1164,11 @@ function buildActionPlanInsights(input: {
     ).slice(0, max)
 
   const ifThenRules = unique([
+    topClaim
+      ? isKo
+        ? `IF 핵심 신호 체감 THEN ${topClaim} 기준으로 초안→검증→확정 순서를 유지`
+        : `If the core signal spikes, keep draft -> validate -> commit around: ${topClaim}`
+      : null,
     bestSlot
       ? isKo
         ? `IF ${formatSlotLabel(bestSlot)} 시작 THEN 25분 내 초안/산출물 1개 저장`
@@ -870,6 +1194,11 @@ function buildActionPlanInsights(input: {
 
   const situationTriggers = unique(
     [
+      phaseLabel
+        ? isKo
+          ? `현재 국면(${phaseLabel}) 체감: 정렬이 흐트러지면 즉시 속도 조절`
+          : `If the current phase (${phaseLabel}) slips out of alignment, slow down before expanding`
+        : null,
       isKo
         ? '피로 7/10 이상: 신규 결정 중단, 20분 회복 후 재평가'
         : 'If fatigue >= 7/10: pause new decisions and run the validation checklist first',
@@ -902,6 +1231,11 @@ function buildActionPlanInsights(input: {
     .map((slot) => formatSlotLabel(slot))
   const riskTriggers = unique(
     [
+      topAnchor
+        ? isKo
+          ? `핵심 앵커 이탈: ${topAnchor}`
+          : `Anchor drift detected: ${topAnchor}`
+        : null,
       cautionSlots.length
         ? isKo
           ? `주의 시간대 집중: ${cautionSlots.join(', ')}`
@@ -996,7 +1330,7 @@ function buildActionPlanInsights(input: {
     actionFramework,
     riskTriggers,
     successKpi,
-    deltaToday: buildDeltaToday({ locale, timeline }),
+    deltaToday: buildDeltaToday({ locale, timeline, calendar }),
   }
 }
 
@@ -1061,10 +1395,12 @@ const buildRuleBasedTimeline = (input: {
       const focusHint = getCategoryFocusHint(category, hour, locale)
       const recHint = cleanGuidanceText(pickByHour(calendar?.recommendations, hour) || '', 78)
       const warningHint = cleanGuidanceText(pickByHour(calendar?.warnings, hour) || '', 78)
+      const matrixPacketSummary = summarizeMatrixPacketForPrompt(getMatrixPacket(calendar), locale)
       const matrixSummary =
-        typeof calendar?.evidence?.confidence === 'number'
+        matrixPacketSummary ||
+        (typeof calendar?.evidence?.confidence === 'number'
           ? `Signals: confidence ${calendar.evidence.confidence}%`
-          : null
+          : null)
       const primaryAstroLine =
         pickCrossLineByTone(calendar?.evidence?.cross?.astroDetails, tone) ||
         cleanGuidanceText(calendar?.evidence?.cross?.astroEvidence || '', 112)
@@ -1296,6 +1632,10 @@ async function generatePrecisionTimelineWithRag(input: {
     sajuFactors: input.calendar?.sajuFactors,
     astroFactors: input.calendar?.astroFactors,
   })
+  const matrixPacketSummary = summarizeMatrixPacketForPrompt(
+    getMatrixPacket(input.calendar),
+    input.locale
+  )
 
   const systemPrompt =
     input.locale === 'ko'
@@ -1314,7 +1654,8 @@ Rules:
 1) note <= 140 chars.
 2) No hype, include one concrete action plus a short reason.
 3) caution for risk windows, best for focus windows.
-4) If intervalMinutes=60, use minute=0 only.`
+4) If intervalMinutes=60, use minute=0 only.
+5) If matrix_packet exists, align note wording to that claim/anchor/phase before adding general advice.`
 
   const userPrompt = JSON.stringify({
     date: input.date,
@@ -1330,6 +1671,7 @@ Rules:
       recommendations: input.calendar?.recommendations?.slice(0, 2),
       summary: input.calendar?.summary,
       evidence: input.calendar?.evidence,
+      matrixPacketSummary,
     },
     ragContext,
     baseTimeline: input.baseTimeline

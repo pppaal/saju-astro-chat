@@ -76,6 +76,9 @@ jobs:
       - name: Typecheck regression gate
         run: npm run ops:typecheck:gate
 
+      - name: Destiny quality gate (quick)
+        run: npm run ops:destiny:gate:quick
+
       - name: Generate typecheck snapshots
         if: always()
         run: |

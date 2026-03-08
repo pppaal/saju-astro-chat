@@ -30,6 +30,9 @@ const MessageRow = React.memo(function MessageRow({
   const rowClass = `${s.messageRow} ${isAssistant ? s.assistantRow : s.userRow}`
   const messageClass = isAssistant ? s.assistantMessage : s.userMessage
   const hasFeedback = isAssistant && message.content && message.id
+  const hasEvidence =
+    isAssistant &&
+    (message.evidence?.title || message.evidence?.summary || message.evidence?.bullets?.length)
 
   return (
     <div
@@ -42,6 +45,27 @@ const MessageRow = React.memo(function MessageRow({
         <div className={messageClass}>
           {isAssistant ? <MarkdownMessage content={normalizedContent} /> : normalizedContent}
         </div>
+
+        {hasEvidence && (
+          <details className={s.messageEvidencePanel}>
+            <summary className={s.messageEvidenceSummary}>
+              {message.evidence?.title ||
+                (lang === 'ko' ? '왜 이런 답변이 나왔는지' : 'Why this answer')}
+            </summary>
+            {message.evidence?.summary && (
+              <p className={s.messageEvidenceLead}>
+                {repairMojibakeText(message.evidence.summary)}
+              </p>
+            )}
+            {message.evidence?.bullets && message.evidence.bullets.length > 0 && (
+              <ul className={s.messageEvidenceList}>
+                {message.evidence.bullets.map((bullet) => (
+                  <li key={bullet}>{repairMojibakeText(bullet)}</li>
+                ))}
+              </ul>
+            )}
+          </details>
+        )}
 
         {hasFeedback && (
           <div className={s.feedbackButtons}>

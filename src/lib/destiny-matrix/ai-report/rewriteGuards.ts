@@ -66,7 +66,14 @@ const HIGH_RISK_TRANSIT_TOKENS = [
   '회귀',
   'transit',
   'retrograde',
-  'return',
+  'saturnreturn',
+  'jupiterreturn',
+  'solarreturn',
+  'lunarreturn',
+  'saturn return',
+  'jupiter return',
+  'solar return',
+  'lunar return',
   'progression',
 ]
 
@@ -254,9 +261,7 @@ function findUnsupportedHighRiskTokens(text: string, allowed: Set<string>): stri
     ...HIGH_RISK_TRANSIT_TOKENS,
   ]
   for (const token of allRiskTokens) {
-    const hasToken = /[a-z]/i.test(token)
-      ? lowered.includes(token.toLowerCase())
-      : text.includes(token)
+    const hasToken = containsRiskToken(text, lowered, token)
     if (!hasToken) continue
     const compact = compactToken(token)
     if (!compact || compact.length < 2) continue
@@ -276,10 +281,20 @@ function hasAnyHighRiskToken(text: string): boolean {
     ...HIGH_RISK_ASPECT_TOKENS,
     ...HIGH_RISK_TRANSIT_TOKENS,
   ]
-  return allRiskTokens.some((token) => {
-    if (/[a-z]/i.test(token)) return lowered.includes(token.toLowerCase())
-    return text.includes(token)
-  })
+  return allRiskTokens.some((token) => containsRiskToken(text, lowered, token))
+}
+
+function containsRiskToken(text: string, lowered: string, token: string): boolean {
+  if (!token) return false
+  if (/[a-z]/i.test(token)) {
+    const escaped = escapeRegExp(token.toLowerCase())
+    if (/\s/.test(token)) {
+      return lowered.includes(token.toLowerCase())
+    }
+    const boundaryRegex = new RegExp(`(?:^|[^a-z0-9])${escaped}(?:$|[^a-z0-9])`, 'i')
+    return boundaryRegex.test(lowered)
+  }
+  return text.includes(token)
 }
 
 export interface EvidenceBindingViolation {

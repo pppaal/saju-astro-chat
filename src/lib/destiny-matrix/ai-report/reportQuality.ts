@@ -229,6 +229,9 @@ export function buildReportQualityMetrics(params: BuildQualityParams): ReportQua
   const presentScenarioDomains = new Set(
     (context.scenarioBundles || []).map((bundle) => bundle.domain)
   )
+  const coveredExpectedScenarioDomains = expectedScenarioDomains.filter((domain) =>
+    presentScenarioDomains.has(domain)
+  ).length
   const tokenIntegrityPass = texts.every((item) => !looksLikeEncodingIssue(item.text))
   const headingPass = context.requiredHeadingsByPath
     ? hasRequiredHeadings(sections, context.requiredHeadingsByPath)
@@ -263,7 +266,7 @@ export function buildReportQualityMetrics(params: BuildQualityParams): ReportQua
     avgEvidencePerParagraph,
     anchorCoverageRate: Number((anchorCoverageHit / Math.max(1, requiredPaths.length)).toFixed(4)),
     scenarioBundleCoverage: Number(
-      (presentScenarioDomains.size / Math.max(1, expectedScenarioDomains.length)).toFixed(4)
+      (coveredExpectedScenarioDomains / Math.max(1, expectedScenarioDomains.length)).toFixed(4)
     ),
     eventCountByDomain: countTimelineEventsByDomain(context.timelineEvents),
     tokenIntegrityPass,

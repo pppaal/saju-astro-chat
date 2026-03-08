@@ -3,6 +3,8 @@
  * Extracted from DestinyCalendar.tsx for modularity
  */
 
+import type { CounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
+
 export type EventCategory = 'wealth' | 'career' | 'love' | 'health' | 'travel' | 'study' | 'general'
 export type ImportanceGrade = 0 | 1 | 2 | 3 | 4
 export type CityHit = { name: string; country: string; lat: number; lon: number; timezone?: string }
@@ -27,6 +29,8 @@ export interface CalendarEvidence {
   crossAgreementPercent?: number
   source: CalendarEvidenceSource
 }
+
+export type MatrixEvidencePacketMap = Record<string, CounselorEvidencePacket>
 
 export interface ImportantDate {
   date: string
@@ -66,6 +70,7 @@ export interface CalendarData {
   goodDates?: ImportantDate[]
   cautionDates?: ImportantDate[]
   allDates?: ImportantDate[]
+  matrixEvidencePackets?: MatrixEvidencePacketMap
   error?: string
 }
 
