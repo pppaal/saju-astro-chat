@@ -979,6 +979,14 @@ export const POST = withApiMiddleware(
             defensePercent: number
             topClaimIds: string[]
             topCautionSignalIds: string[]
+            topDecisionOptions: Array<{
+              id: string
+              domain: string
+              action: string
+              score: number
+              confidence: number
+              reversible: boolean
+            }>
             quality: {
               score: number
               grade: 'A' | 'B' | 'C' | 'D'
@@ -1028,6 +1036,14 @@ export const POST = withApiMiddleware(
             .filter((signal) => signal.polarity === 'caution')
             .slice(0, 8)
             .map((signal) => signal.id),
+          topDecisionOptions: core.decisionEngine.options.slice(0, 6).map((option) => ({
+            id: option.id,
+            domain: option.domain,
+            action: option.action,
+            score: option.scores.total,
+            confidence: option.confidence,
+            reversible: option.reversible,
+          })),
           quality: {
             score: core.quality.score,
             grade: core.quality.grade,

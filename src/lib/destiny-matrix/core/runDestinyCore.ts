@@ -20,6 +20,10 @@ import type {
 } from '@/lib/destiny-matrix/ai-report/types'
 import { buildPatternEngine, type PatternResult } from '@/lib/destiny-matrix/core/patternEngine'
 import { buildScenarioEngine, type ScenarioResult } from '@/lib/destiny-matrix/core/scenarioEngine'
+import {
+  buildDecisionEngine,
+  type DecisionEngineResult,
+} from '@/lib/destiny-matrix/core/decisionEngine'
 
 export type AvailabilityState = 'present' | 'empty-computed' | 'missing-upstream'
 
@@ -57,6 +61,7 @@ export interface DestinyCoreResult {
   signalSynthesis: SignalSynthesisResult
   patterns: PatternResult[]
   scenarios: ScenarioResult[]
+  decisionEngine: DecisionEngineResult
   strategyEngine: StrategyEngineResult
   quality: DestinyCoreQuality
   unified?: UnifiedEnvelope
@@ -81,6 +86,8 @@ export interface DestinyCoreQuality {
     relationSignalCount: number
     timingSignalCount: number
     strategySumValid: boolean
+    decisionOptionCount: number
+    decisionDomainCount: number
   }
 }
 
@@ -163,6 +170,7 @@ function buildDestinyCoreQuality(input: {
   signalSynthesis: SignalSynthesisResult
   patterns: PatternResult[]
   scenarios: ScenarioResult[]
+  decisionEngine: DecisionEngineResult
   strategyEngine: StrategyEngineResult
 }): DestinyCoreQuality {
   const selectedDomains = new Set(
@@ -197,6 +205,8 @@ function buildDestinyCoreQuality(input: {
   score += scoreByThreshold(countByTag('relation'), 2, 3)
   score += scoreByThreshold(timingSignalCount, 6, 3)
   score += strategySumValid ? 7 : 0
+  score += scoreByThreshold(input.decisionEngine.options.length, 9, 4)
+  score += scoreByThreshold(input.decisionEngine.domains.length, 3, 3)
 
   const warnings: string[] = []
   if (input.signalSynthesis.selectedSignals.length < 7) warnings.push('selected_signals_under_7')
@@ -205,6 +215,8 @@ function buildDestinyCoreQuality(input: {
   if (input.scenarios.length < 12) warnings.push('scenario_count_low')
   if (scenarioDomains.size < 3) warnings.push('scenario_domain_coverage_low')
   if (!strategySumValid) warnings.push('strategy_percent_sum_invalid')
+  if (input.decisionEngine.options.length < 6) warnings.push('decision_option_count_low')
+  if (input.decisionEngine.domains.length < 2) warnings.push('decision_domain_coverage_low')
   if (
     input.normalizedInput.availability.advancedAstroSignals === 'present' &&
     countByTag('advanced-astro') < 2
@@ -241,6 +253,8 @@ function buildDestinyCoreQuality(input: {
       relationSignalCount: countByTag('relation'),
       timingSignalCount,
       strategySumValid,
+      decisionOptionCount: input.decisionEngine.options.length,
+      decisionDomainCount: input.decisionEngine.domains.length,
     },
   }
 }
@@ -249,6 +263,7 @@ export function computeDestinyCoreHash(input: {
   signalSynthesis: SignalSynthesisResult
   patterns: PatternResult[]
   scenarios: ScenarioResult[]
+  decisionEngine: DecisionEngineResult
   strategyEngine: StrategyEngineResult
   unified?: UnifiedEnvelope
 }): string {
@@ -267,6 +282,10 @@ export function computeDestinyCoreHash(input: {
     .slice(0, 12)
     .map((scenario) => `${scenario.id}:${scenario.probability}:${scenario.window}`)
     .sort()
+  const decisionKeys = input.decisionEngine.options
+    .slice(0, 8)
+    .map((option) => `${option.id}:${option.scores.total}:${option.confidence}`)
+    .sort()
 
   const payload = JSON.stringify({
     claims,
@@ -274,6 +293,7 @@ export function computeDestinyCoreHash(input: {
     anchors,
     patternKeys,
     scenarioKeys,
+    decisionKeys,
     overallPhase: input.strategyEngine.overallPhase,
     attackPercent: input.strategyEngine.attackPercent,
     defensePercent: input.strategyEngine.defensePercent,
@@ -298,11 +318,18 @@ export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult 
     }) || buildSafeStrategyFallback(params.lang)
   const patterns = buildPatternEngine(signalSynthesis, strategyEngine)
   const scenarios = buildScenarioEngine(patterns, strategyEngine, normalizedInput)
+  const decisionEngine = buildDecisionEngine({
+    lang: params.lang,
+    patterns,
+    scenarios,
+    strategyEngine,
+  })
   const quality = buildDestinyCoreQuality({
     normalizedInput,
     signalSynthesis,
     patterns,
     scenarios,
+    decisionEngine,
     strategyEngine,
   })
 
@@ -330,6 +357,7 @@ export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult 
     signalSynthesis,
     patterns,
     scenarios,
+    decisionEngine,
     strategyEngine,
     quality,
     unified,
@@ -337,6 +365,7 @@ export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult 
       signalSynthesis,
       patterns,
       scenarios,
+      decisionEngine,
       strategyEngine,
       unified,
     }),

@@ -766,6 +766,16 @@ async function main() {
       vector: d.vector,
       evidenceIds: d.evidenceIds,
     }))
+  const decisionTop = coreComprehensive.decisionEngine.options.slice(0, 6).map((option) => ({
+    optionId: option.id,
+    domain: option.domain,
+    action: option.action,
+    reversible: option.reversible,
+    score: option.scores.total,
+    confidence: option.confidence,
+    supportingPatternIds: option.supportingPatternIds,
+    supportingScenarioIds: option.supportingScenarioIds,
+  }))
 
   const topCautions = coreComprehensive.signalSynthesis.selectedSignals
     .filter((s) => s.polarity === 'caution')
@@ -969,7 +979,15 @@ async function main() {
         balance: balanceScore,
       },
     },
-    step8_core_envelope: {
+    step8_decision_engine: {
+      functionPath: 'src/lib/destiny-matrix/core/decisionEngine.ts -> buildDecisionEngine',
+      mode: coreComprehensive.decisionEngine.mode,
+      topOptionId: coreComprehensive.decisionEngine.topOptionId,
+      topOptionScore: coreComprehensive.decisionEngine.topOptionScore,
+      options: decisionTop,
+      byDomain: coreComprehensive.decisionEngine.domains,
+    },
+    step9_core_envelope: {
       functionPath:
         'src/lib/destiny-matrix/core/runDestinyCore.ts -> runDestinyCore + src/lib/destiny-matrix/ai-report/unifiedReport.ts -> buildUnifiedEnvelope',
       coreHash: coreComprehensive.coreHash,
@@ -982,6 +1000,8 @@ async function main() {
       },
       cautions: topCautions,
       confidence: matrix.summary.confidenceScore ?? null,
+      decisionTopOptionId: coreComprehensive.decisionEngine.topOptionId,
+      decisionTopOptionScore: coreComprehensive.decisionEngine.topOptionScore,
       crossAgreement: graphSummary
         ? {
             avgOverlapScore: graphSummary.avgOverlapScore,
@@ -990,13 +1010,13 @@ async function main() {
           }
         : null,
     },
-    step9_output_adapter_check: {
+    step10_output_adapter_check: {
       calendar: adapterCalendar,
       report: adapterReport,
       counselor: adapterCounselor,
       consistency: consistencyTable,
     },
-    step10_final_qa: qa,
+    step11_final_qa: qa,
     meta: {
       generatedAt: new Date().toISOString(),
       modeRunComparison: {

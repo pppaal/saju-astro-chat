@@ -156,9 +156,12 @@ describe('runDestinyCore', () => {
     expect(first.patterns.length).toBeGreaterThan(0)
     expect(first.patterns.some((pattern) => pattern.id.startsWith('composite_'))).toBe(true)
     expect(first.scenarios.length).toBeGreaterThan(0)
+    expect(first.decisionEngine.options.length).toBeGreaterThanOrEqual(6)
+    expect(first.decisionEngine.topOptionId).toBeTruthy()
     expect(first.quality.score).toBeGreaterThanOrEqual(70)
     expect(first.quality.metrics.selectedSignalCount).toBeGreaterThanOrEqual(7)
     expect(first.quality.metrics.scenarioDomainCount).toBeGreaterThanOrEqual(3)
+    expect(first.quality.metrics.decisionOptionCount).toBeGreaterThanOrEqual(6)
     expect(first.strategyEngine.attackPercent + first.strategyEngine.defensePercent).toBe(100)
     expect(first.availability.activeTransits).toBe('present')
   })
@@ -186,6 +189,7 @@ describe('runDestinyCore', () => {
       result.quality.grade === 'A' || result.quality.grade === 'B' || result.quality.grade === 'C'
     ).toBe(true)
     expect(result.quality.warnings.includes('selected_signals_under_7')).toBe(false)
+    expect(result.decisionEngine.options.some((option) => option.domain === 'career')).toBe(true)
   })
 
   it('tracks advanced signal availability quality from rich input values', () => {
