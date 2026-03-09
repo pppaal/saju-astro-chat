@@ -367,8 +367,12 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     [selectedDate, baseDate, getDateInfo]
   )
   const resolvedPeakLevel = useMemo(
-    () => resolvePeakLevel(baseInfo?.evidence?.matrix?.peakLevel, baseInfo?.score),
-    [baseInfo?.evidence?.matrix?.peakLevel, baseInfo?.score]
+    () =>
+      resolvePeakLevel(
+        baseInfo?.evidence?.matrix?.peakLevel,
+        baseInfo?.displayScore ?? baseInfo?.score
+      ),
+    [baseInfo?.evidence?.matrix?.peakLevel, baseInfo?.displayScore, baseInfo?.score]
   )
 
   const formatDateLabel = useCallback(
@@ -703,7 +707,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     baseInfo?.recommendations?.slice(0, 2).forEach((rec) => pushItem(cleanText(rec)))
 
     if (items.length < 3) {
-      const grade = baseInfo?.grade ?? 2
+      const grade = baseInfo?.displayGrade ?? baseInfo?.grade ?? 2
       if (grade <= 1) {
         pushItem(isKo ? '중요 결정/미팅 추진' : 'Push a key decision or meeting')
       } else if (grade === 2) {
@@ -1023,14 +1027,28 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
             baseInfo.evidence.source === 'hybrid'
               ? baseInfo.evidence.source
               : undefined,
+          matrixVerdict: baseInfo.evidence.matrixVerdict
+            ? {
+                focusDomain: trimText(baseInfo.evidence.matrixVerdict.focusDomain, 24),
+                verdict: trimText(baseInfo.evidence.matrixVerdict.verdict, 180),
+                guardrail: trimText(baseInfo.evidence.matrixVerdict.guardrail, 180),
+                topClaim: trimText(baseInfo.evidence.matrixVerdict.topClaim, 180),
+                topAnchorSummary: trimText(baseInfo.evidence.matrixVerdict.topAnchorSummary, 160),
+                phase: trimText(baseInfo.evidence.matrixVerdict.phase, 48),
+                attackPercent: baseInfo.evidence.matrixVerdict.attackPercent,
+                defensePercent: baseInfo.evidence.matrixVerdict.defensePercent,
+              }
+            : undefined,
           matrixPacket: compactMatrixPacket,
         }
       : undefined
 
     const compactCalendar = baseInfo
       ? {
-          grade: baseInfo.grade,
-          score: baseInfo.score,
+          grade: baseInfo.displayGrade ?? baseInfo.grade,
+          displayGrade: baseInfo.displayGrade,
+          score: baseInfo.displayScore ?? baseInfo.score,
+          displayScore: baseInfo.displayScore,
           categories: trimList(baseInfo.categories, 4, 32),
           bestTimes: trimList(baseInfo.bestTimes, 4, 120),
           warnings: trimList(baseInfo.warnings, 3, 220),
@@ -1285,7 +1303,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
   const cautionHours = useMemo(() => {
     const hours = new Set<number>()
-    if (baseInfo?.warnings?.length || (baseInfo?.grade ?? 2) >= 3) {
+    if (baseInfo?.warnings?.length || (baseInfo?.displayGrade ?? baseInfo?.grade ?? 2) >= 3) {
       hours.add(13)
       hours.add(21)
     }

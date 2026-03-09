@@ -8,18 +8,14 @@
  */
 
 // Re-export types
-export type {
-  SajuPillarAccessor,
-  FormattedDate,
-  LocationCoord,
-} from './types';
+export type { SajuPillarAccessor, FormattedDate, LocationCoord } from './types'
 
 // Re-export translations
 export {
   SAJU_FACTOR_TRANSLATIONS,
   ASTRO_FACTOR_TRANSLATIONS,
   getFactorTranslation,
-} from './translations';
+} from './translations'
 
 // Re-export helpers
 export {
@@ -30,7 +26,8 @@ export {
   parseBirthDate,
   generateSummary,
   generateBestTimes,
+  applyMatrixPreformatRegrade,
   formatDateForResponse,
   fetchAIDates,
   LOCATION_COORDS,
-} from './helpers';
+} from './helpers'

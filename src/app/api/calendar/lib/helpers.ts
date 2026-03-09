@@ -1651,6 +1651,67 @@ function getEffectiveGradeFromDisplayScore(score: number): ImportanceGrade {
   return 4
 }
 
+export function applyMatrixPreformatRegrade(
+  date: ImportantDate,
+  matrixContext?: MatrixCalendarContext,
+  matrixEvidencePackets?: MatrixEvidencePacketMap
+): ImportantDate {
+  if (!matrixContext) return date
+  const uniqueCategories = [...new Set(date.categories)]
+  const matrixOverlay = buildMatrixOverlay(
+    date.date,
+    matrixContext || null,
+    uniqueCategories,
+    'en',
+    date.grade,
+    date.confidence,
+    date.crossAgreementPercent,
+    {}
+  )
+  const matrixPacket = selectMatrixPacketForDate({
+    categories: uniqueCategories,
+    evidenceDomain: matrixOverlay.evidence.matrix.domain,
+    packets: matrixEvidencePackets,
+  })
+  const evidenceWithVerdict = attachMatrixVerdict(matrixOverlay.evidence, matrixPacket)
+  const baseDisplayScore = date.displayScore ?? date.adjustedScore ?? date.score
+  const displayScore = applyMatrixDisplayScoreBias({
+    baseScore: baseDisplayScore,
+    evidence: evidenceWithVerdict,
+  })
+  const confidence = evidenceWithVerdict.confidence ?? 0
+  const peakLevel = evidenceWithVerdict.matrix?.peakLevel ?? 'normal'
+  const overlapStrength = evidenceWithVerdict.matrix?.overlapStrength ?? 0
+  const shouldRegrade =
+    confidence >= EVIDENCE_CONFIDENCE_THRESHOLDS.medium ||
+    peakLevel === 'peak' ||
+    (peakLevel === 'high' && overlapStrength >= 0.6)
+  if (!shouldRegrade) return date
+
+  let effectiveGrade = getEffectiveGradeFromDisplayScore(displayScore)
+  if (effectiveGrade === 0 && date.grade > 0) {
+    const strongBestSignal = confidence >= 85 && (peakLevel === 'peak' || overlapStrength >= 0.75)
+    if (!strongBestSignal) {
+      effectiveGrade = 1
+    }
+  }
+  if (effectiveGrade < date.grade - 1) {
+    effectiveGrade = (date.grade - 1) as ImportanceGrade
+  } else if (effectiveGrade > date.grade + 1) {
+    effectiveGrade = (date.grade + 1) as ImportanceGrade
+  }
+
+  return {
+    ...date,
+    categories: uniqueCategories,
+    rawScore: date.rawScore ?? date.score,
+    adjustedScore: displayScore,
+    displayScore,
+    score: displayScore,
+    grade: effectiveGrade,
+  }
+}
+
 export function formatDateForResponse(
   date: ImportantDate,
   locale: string,
@@ -1658,7 +1719,7 @@ export function formatDateForResponse(
   enTranslations: TranslationData,
   matrixContext?: MatrixCalendarContext,
   matrixEvidencePackets?: MatrixEvidencePacketMap,
-  aiEnrichmentFailed = false
+  _aiEnrichmentFailed = false
 ): FormattedDate {
   const translations = locale === 'ko' ? koTranslations : enTranslations
   const lang = locale === 'ko' ? 'ko' : 'en'
@@ -1751,11 +1812,17 @@ export function formatDateForResponse(
   const evidenceWithVerdict = attachMatrixVerdict(matrixOverlay.evidence, matrixPacket)
   const matrixVerdict = evidenceWithVerdict.matrixVerdict
   const baseDisplayScore = date.displayScore ?? date.adjustedScore ?? date.score
-  const displayScore = applyMatrixDisplayScoreBias({
-    baseScore: baseDisplayScore,
-    evidence: evidenceWithVerdict,
-  })
-  const effectiveGrade = getEffectiveGradeFromDisplayScore(displayScore)
+  const hasPregradedDisplay =
+    typeof date.displayScore === 'number' && typeof date.grade === 'number'
+  const displayScore = hasPregradedDisplay
+    ? clampDisplayScore(date.displayScore ?? date.score)
+    : applyMatrixDisplayScoreBias({
+        baseScore: baseDisplayScore,
+        evidence: evidenceWithVerdict,
+      })
+  const effectiveGrade = hasPregradedDisplay
+    ? (date.grade as ImportanceGrade)
+    : getEffectiveGradeFromDisplayScore(displayScore)
   const rawScore = date.rawScore ?? date.score
   const adjustedScore = displayScore
   const baseSummary = generateSummary(
@@ -1777,8 +1844,7 @@ export function formatDateForResponse(
       : baseSummary,
   })
   const coherenceConfidence = date.confidence ?? evidenceWithVerdict.confidence
-  const coherenceAgreement =
-    date.crossAgreementPercent ?? evidenceWithVerdict.crossAgreementPercent
+  const coherenceAgreement = date.crossAgreementPercent ?? evidenceWithVerdict.crossAgreementPercent
   const lowCoherence = isLowCoherenceSignal(coherenceConfidence, coherenceAgreement)
   const forceConservativeMode = date.grade <= 1 && lowCoherence
 
@@ -1800,10 +1866,10 @@ export function formatDateForResponse(
   const recommendationsForResponse = gateRecommendations({
     recommendations: buildMatrixFirstRecommendations({
       matrixTopClaim: matrixVerdict?.topClaim,
-      baseRecommendations: dedupeTexts([...recommendations, ...matrixOverlay.recommendations]).slice(
-        0,
-        6
-      ),
+      baseRecommendations: dedupeTexts([
+        ...recommendations,
+        ...matrixOverlay.recommendations,
+      ]).slice(0, 6),
     }),
     recommendationKeys: date.recommendationKeys,
     warningKeys: date.warningKeys,
@@ -1942,4 +2008,3 @@ export const LOCATION_COORDS: Record<string, LocationCoord> = {
   Shanghai: { lat: 31.2304, lng: 121.4737, tz: 'Asia/Shanghai' },
   'Shanghai, CN': { lat: 31.2304, lng: 121.4737, tz: 'Asia/Shanghai' },
 }
-

@@ -91,6 +91,16 @@ type CalendarEvidence = {
   }
   confidence?: number
   source?: 'rule' | 'rag' | 'hybrid'
+  matrixVerdict?: {
+    focusDomain?: string
+    verdict?: string
+    guardrail?: string
+    topClaim?: string
+    topAnchorSummary?: string
+    phase?: string
+    attackPercent?: number
+    defensePercent?: number
+  }
   matrixPacket?: {
     focusDomain?: string
     graphRagEvidenceSummary?: {
@@ -134,7 +144,9 @@ type CalendarEvidence = {
 
 type ActionPlanCalendarContext = {
   grade?: number
+  displayGrade?: number
   score?: number
+  displayScore?: number
   categories?: string[]
   bestTimes?: string[]
   warnings?: string[]
@@ -244,7 +256,9 @@ const actionPlanTimelineRequestSchema = z.object({
   calendar: z
     .object({
       grade: z.number().min(0).max(4).optional(),
+      displayGrade: z.number().min(0).max(4).optional(),
       score: z.number().min(0).max(100).optional(),
+      displayScore: z.number().min(0).max(100).optional(),
       categories: z
         .array(z.string().max(TEXT_LIMITS.MAX_TITLE))
         .max(LIST_LIMITS.MAX_LIST_ITEMS)
@@ -304,6 +318,18 @@ const actionPlanTimelineRequestSchema = z.object({
             .optional(),
           confidence: z.number().min(0).max(100).optional(),
           source: z.enum(['rule', 'rag', 'hybrid']).optional(),
+          matrixVerdict: z
+            .object({
+              focusDomain: z.string().max(32).optional(),
+              verdict: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+              guardrail: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+              topClaim: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+              topAnchorSummary: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+              phase: z.string().max(TEXT_LIMITS.MAX_TITLE).optional(),
+              attackPercent: z.number().min(0).max(100).optional(),
+              defensePercent: z.number().min(0).max(100).optional(),
+            })
+            .optional(),
           matrixPacket: matrixEvidencePacketSchema,
         })
         .optional(),
@@ -760,6 +786,18 @@ function getMatrixPacket(calendar?: ActionPlanCalendarContext): MatrixEvidencePa
   return calendar?.evidence?.matrixPacket
 }
 
+function getMatrixVerdict(calendar?: ActionPlanCalendarContext) {
+  return calendar?.evidence?.matrixVerdict
+}
+
+function getEffectiveCalendarGrade(calendar?: ActionPlanCalendarContext): number {
+  return calendar?.displayGrade ?? calendar?.grade ?? 2
+}
+
+function getEffectiveCalendarScore(calendar?: ActionPlanCalendarContext): number | undefined {
+  return calendar?.displayScore ?? calendar?.score
+}
+
 function normalizePacketDomain(domain?: string): string {
   const normalized = normalizeActionCategory(domain)
   if (normalized === 'love') return 'relationship'
@@ -893,6 +931,24 @@ function summarizeMatrixPacketForPrompt(
     : `matrix_packet: ${parts.join(' | ')}`
 }
 
+function summarizeMatrixVerdictForPrompt(
+  calendar: ActionPlanCalendarContext | undefined,
+  locale: 'ko' | 'en'
+): string {
+  const verdict = getMatrixVerdict(calendar)
+  if (!verdict) return ''
+  const parts = [
+    cleanGuidanceText(verdict.phase || '', 48),
+    cleanGuidanceText(verdict.verdict || '', 140),
+    cleanGuidanceText(verdict.topClaim || '', 120),
+    cleanGuidanceText(verdict.guardrail || '', 120),
+  ].filter(Boolean)
+  if (parts.length === 0) return ''
+  return locale === 'ko'
+    ? `matrix_verdict: ${parts.join(' | ')}`
+    : `matrix_verdict: ${parts.join(' | ')}`
+}
+
 function inferSlotTypes(input: {
   hour: number
   tone: TimelineTone
@@ -1008,8 +1064,11 @@ function buildSlotGuardrail(input: {
   locale: 'ko' | 'en'
   slotTypes: SlotType[]
   tone: TimelineTone
+  calendar?: ActionPlanCalendarContext
 }): string {
-  const { locale, slotTypes, tone } = input
+  const { locale, slotTypes, tone, calendar } = input
+  const matrixGuardrail = cleanGuidanceText(getMatrixVerdict(calendar)?.guardrail || '', 120)
+  if (matrixGuardrail) return matrixGuardrail
   if (tone === 'caution') {
     return locale === 'ko'
       ? '최종 결정 금지: 반대 근거 1개와 영향 범위 1줄 확인 후 확정'
@@ -1096,13 +1155,15 @@ function buildDeltaToday(input: {
       : 60
 
   const topClaim = cleanGuidanceText(packet?.topClaims?.[0]?.text || '', 88)
-  const attack = packet?.strategyBrief?.attackPercent ?? 0
-  const defense = packet?.strategyBrief?.defensePercent ?? 0
+  const verdict = getMatrixVerdict(calendar)
+  const primaryLine = topClaim || cleanGuidanceText(verdict?.verdict || '', 88)
+  const attack = verdict?.attackPercent ?? packet?.strategyBrief?.attackPercent ?? 0
+  const defense = verdict?.defensePercent ?? packet?.strategyBrief?.defensePercent ?? 0
 
   if (locale === 'ko') {
     if (attack >= defense + 15 && avgConfidence < 72) {
       return cleanGuidanceText(
-        `오늘은 추진은 강한데 검증이 약해지기 쉽습니다. ${topClaim || '큰 결정은 초안-검증-확정 3단계로 나누세요.'}`,
+        `오늘은 추진은 강한데 검증이 약해지기 쉽습니다. ${primaryLine || '큰 결정은 초안-검증-확정 3단계로 나누세요.'}`,
         140
       )
     }
@@ -1113,14 +1174,14 @@ function buildDeltaToday(input: {
       return '오늘은 외부 변수 대응일입니다. 신규 확정보다 리스크 제거와 재정렬을 우선하세요.'
     }
     return cleanGuidanceText(
-      `오늘은 성과 구간과 조정 구간이 섞여 있습니다. ${topClaim || '큰 일은 좋은 슬롯에, 조정은 주의 슬롯에 배치하세요.'}`,
+      `오늘은 성과 구간과 조정 구간이 섞여 있습니다. ${primaryLine || '큰 일은 좋은 슬롯에, 조정은 주의 슬롯에 배치하세요.'}`,
       140
     )
   }
 
   if (attack >= defense + 15 && avgConfidence < 72) {
     return cleanGuidanceText(
-      `Today pushes speed faster than validation. ${topClaim || 'Split major moves into draft, validation, and commit.'}`,
+      `Today pushes speed faster than validation. ${primaryLine || 'Split major moves into draft, validation, and commit.'}`,
       140
     )
   }
@@ -1131,7 +1192,7 @@ function buildDeltaToday(input: {
     return 'Today is variable-heavy. Prioritize risk removal and re-alignment over new commitments.'
   }
   return cleanGuidanceText(
-    `Today mixes strong and caution windows. ${topClaim || 'Place big tasks in strong slots and adjustments in caution slots.'}`,
+    `Today mixes strong and caution windows. ${primaryLine || 'Place big tasks in strong slots and adjustments in caution slots.'}`,
     140
   )
 }
@@ -1147,12 +1208,19 @@ function buildActionPlanInsights(input: {
   const { locale, timeline, calendar, icp, persona, isPremiumUser } = input
   const isKo = locale === 'ko'
   const packet = getMatrixPacket(calendar)
+  const verdict = getMatrixVerdict(calendar)
   const bestSlot = timeline.find((slot) => slot.tone === 'best')
   const cautionSlot = timeline.find((slot) => slot.tone === 'caution')
   const topCategory = normalizeActionCategory(calendar?.categories?.[0])
-  const topClaim = cleanGuidanceText(packet?.topClaims?.[0]?.text || '', 110)
-  const topAnchor = cleanGuidanceText(packet?.topAnchors?.[0]?.summary || '', 96)
-  const phaseLabel = cleanGuidanceText(packet?.strategyBrief?.overallPhaseLabel || '', 48)
+  const topClaim = cleanGuidanceText(verdict?.topClaim || packet?.topClaims?.[0]?.text || '', 110)
+  const topAnchor = cleanGuidanceText(
+    verdict?.topAnchorSummary || packet?.topAnchors?.[0]?.summary || '',
+    96
+  )
+  const phaseLabel = cleanGuidanceText(
+    verdict?.phase || packet?.strategyBrief?.overallPhaseLabel || '',
+    48
+  )
 
   const formatSlotLabel = (slot?: TimelineSlot) =>
     slot
@@ -1359,7 +1427,7 @@ const buildRuleBasedTimeline = (input: {
   calendar?.warnings?.forEach((warning) => {
     extractHoursFromText(warning).forEach((hour) => cautionHours.add(hour))
   })
-  if ((calendar?.grade ?? 2) >= 3) {
+  if (getEffectiveCalendarGrade(calendar) >= 3) {
     cautionHours.add(13)
     cautionHours.add(21)
   }
@@ -1396,7 +1464,9 @@ const buildRuleBasedTimeline = (input: {
       const recHint = cleanGuidanceText(pickByHour(calendar?.recommendations, hour) || '', 78)
       const warningHint = cleanGuidanceText(pickByHour(calendar?.warnings, hour) || '', 78)
       const matrixPacketSummary = summarizeMatrixPacketForPrompt(getMatrixPacket(calendar), locale)
+      const matrixVerdictSummary = summarizeMatrixVerdictForPrompt(calendar, locale)
       const matrixSummary =
+        matrixVerdictSummary ||
         matrixPacketSummary ||
         (typeof calendar?.evidence?.confidence === 'number'
           ? `Signals: confidence ${calendar.evidence.confidence}%`
@@ -1593,7 +1663,7 @@ async function generatePrecisionTimelineWithRag(input: {
   input.calendar?.warnings?.forEach((warning) => {
     extractHoursFromText(warning).forEach((hour) => cautionHours.add(hour))
   })
-  if ((input.calendar?.grade ?? 2) >= 3) {
+  if (getEffectiveCalendarGrade(input.calendar) >= 3) {
     cautionHours.add(13)
     cautionHours.add(21)
   }
@@ -1636,6 +1706,7 @@ async function generatePrecisionTimelineWithRag(input: {
     getMatrixPacket(input.calendar),
     input.locale
   )
+  const matrixVerdictSummary = summarizeMatrixVerdictForPrompt(input.calendar, input.locale)
 
   const systemPrompt =
     input.locale === 'ko'
@@ -1663,8 +1734,8 @@ Rules:
     intervalMinutes: input.intervalMinutes,
     coreSlots,
     calendar: {
-      grade: input.calendar?.grade,
-      score: input.calendar?.score,
+      grade: getEffectiveCalendarGrade(input.calendar),
+      score: getEffectiveCalendarScore(input.calendar),
       categories: input.calendar?.categories?.slice(0, 2),
       bestTimes: input.calendar?.bestTimes?.slice(0, 2),
       warnings: input.calendar?.warnings?.slice(0, 2),
@@ -1672,6 +1743,7 @@ Rules:
       summary: input.calendar?.summary,
       evidence: input.calendar?.evidence,
       matrixPacketSummary,
+      matrixVerdictSummary,
     },
     ragContext,
     baseTimeline: input.baseTimeline
@@ -1843,7 +1915,10 @@ export const POST = withApiMiddleware(
         : null,
       calendar: calendar
         ? {
-            grade: calendar.grade,
+            grade: getEffectiveCalendarGrade(calendar),
+            displayGrade: calendar.displayGrade,
+            score: getEffectiveCalendarScore(calendar),
+            displayScore: calendar.displayScore,
             categories: trimList(calendar.categories, 3),
             bestTimes: trimList(calendar.bestTimes, 4),
             recommendations: trimList(calendar.recommendations, 3),
@@ -1864,8 +1939,10 @@ export const POST = withApiMiddleware(
           baseTimeline,
           calendar: calendar
             ? {
-                grade: calendar.grade,
-                score: calendar.score,
+                grade: getEffectiveCalendarGrade(calendar),
+                displayGrade: calendar.displayGrade,
+                score: getEffectiveCalendarScore(calendar),
+                displayScore: calendar.displayScore,
                 categories: trimList(calendar.categories, 3),
                 bestTimes: trimList(calendar.bestTimes, 3),
                 warnings: trimList(calendar.warnings, 3),
@@ -1922,7 +1999,7 @@ export const POST = withApiMiddleware(
         icp,
         persona,
       })
-      const guardrail = buildSlotGuardrail({ locale: lang, slotTypes, tone })
+      const guardrail = buildSlotGuardrail({ locale: lang, slotTypes, tone, calendar })
       const confidenceMeta = analyzeConfidenceMeta({
         locale: lang,
         slot: { ...slot, tone, note, slotTypes, why, guardrail },

@@ -47,6 +47,7 @@ import {
   getPillarStemName,
   getPillarBranchName,
   parseBirthDate,
+  applyMatrixPreformatRegrade,
   formatDateForResponse,
   fetchAIDates,
   LOCATION_COORDS,
@@ -939,6 +940,18 @@ export const GET = withApiMiddleware(
     if (category) {
       filteredDates = localDates.filter((d) => d.categories.includes(category))
     }
+    const matrixRegradedDates = filteredDates
+      .map((date) =>
+        applyMatrixPreformatRegrade(
+          date,
+          matrixCalendarContext || undefined,
+          matrixEvidencePackets || undefined
+        )
+      )
+      .sort((a, b) => {
+        if (a.grade !== b.grade) return a.grade - b.grade
+        return (b.displayScore ?? b.score) - (a.displayScore ?? a.score)
+      })
 
     // AI 백엔드에서 추가 정보 시도
     const sajuData = {
@@ -978,7 +991,7 @@ export const GET = withApiMiddleware(
       logger.warn('[Calendar] AI date enrichment unavailable (fallback to local rules)')
     }
     const aiEnrichmentFailed = !aiDates
-    const formatCalendarDate = (d: (typeof filteredDates)[number]) =>
+    const formatCalendarDate = (d: (typeof matrixRegradedDates)[number]) =>
       formatDateForResponse(
         d,
         locale,
@@ -989,9 +1002,11 @@ export const GET = withApiMiddleware(
         aiEnrichmentFailed
       )
 
-    const formattedDates = filteredDates.map((d) => formatCalendarDate(d))
-    const sortByDisplayScoreDesc = (a: (typeof formattedDates)[number], b: (typeof formattedDates)[number]) =>
-      (b.displayScore ?? b.score) - (a.displayScore ?? a.score)
+    const formattedDates = matrixRegradedDates.map((d) => formatCalendarDate(d))
+    const sortByDisplayScoreDesc = (
+      a: (typeof formattedDates)[number],
+      b: (typeof formattedDates)[number]
+    ) => (b.displayScore ?? b.score) - (a.displayScore ?? a.score)
 
     // 5등급별 그룹화 (single-pass instead of repeated filter calls)
     const gradeGroups: Record<number, typeof formattedDates> = {
@@ -1041,9 +1056,7 @@ export const GET = withApiMiddleware(
         // grade0 + grade1 + grade2가 부족하면 grade3 중 높은 점수 날짜도 포함
         const topCandidates = [...grade0, ...grade1, ...grade2]
         if (topCandidates.length < 5) {
-          const topGrade3 = grade3
-            .sort(sortByDisplayScoreDesc)
-            .slice(0, 5 - topCandidates.length)
+          const topGrade3 = grade3.sort(sortByDisplayScoreDesc).slice(0, 5 - topCandidates.length)
           topCandidates.push(...topGrade3)
         }
         return topCandidates.sort(sortByDisplayScoreDesc).slice(0, 10)

@@ -200,6 +200,7 @@ const CalendarMainView = memo(function CalendarMainView({
         date.getFullYear() === selectedDay.getFullYear()
 
       const dateInfo = getDateInfo(date)
+      const effectiveGrade = dateInfo?.displayGrade ?? dateInfo?.grade
 
       let className = styles.day
       if (isToday) {
@@ -208,8 +209,8 @@ const CalendarMainView = memo(function CalendarMainView({
       if (isSelected) {
         className += ` ${styles.selected}`
       }
-      if (dateInfo) {
-        className += ` ${styles[`dayGrade${dateInfo.grade}`]}`
+      if (typeof effectiveGrade === 'number') {
+        className += ` ${styles[`dayGrade${effectiveGrade}`]}`
       }
       if (date.getDay() === 0) {
         className += ` ${styles.sunday}`
@@ -466,6 +467,7 @@ const CalendarMainView = memo(function CalendarMainView({
             >
               {days.map((date, idx) => {
                 const dateInfo = date ? getDateInfo(date) : undefined
+                const effectiveGrade = dateInfo?.displayGrade ?? dateInfo?.grade
                 const isToday =
                   date &&
                   date.getDate() === today.getDate() &&
@@ -487,7 +489,7 @@ const CalendarMainView = memo(function CalendarMainView({
                     tabIndex={date ? 0 : -1}
                     aria-label={
                       date
-                        ? `${date.getDate()}${locale === 'ko' ? '일' : ''}, ${dateInfo ? getGradeLabel(dateInfo.grade) : locale === 'ko' ? '정보 없음' : 'No info'}${isToday ? (locale === 'ko' ? ', 오늘' : ', Today') : ''}`
+                        ? `${date.getDate()}${locale === 'ko' ? '일' : ''}, ${typeof effectiveGrade === 'number' ? getGradeLabel(effectiveGrade) : locale === 'ko' ? '정보 없음' : 'No info'}${isToday ? (locale === 'ko' ? ', 오늘' : ', Today') : ''}`
                         : undefined
                     }
                     aria-selected={
@@ -507,7 +509,7 @@ const CalendarMainView = memo(function CalendarMainView({
                         {dateInfo && (
                           <div className={styles.dayIndicators} aria-hidden="true">
                             <span
-                              className={`${styles.gradeIndicator} ${styles[`gradeIndicator${dateInfo.grade}`]}`}
+                              className={`${styles.gradeIndicator} ${styles[`gradeIndicator${effectiveGrade}`]}`}
                             />
                           </div>
                         )}
