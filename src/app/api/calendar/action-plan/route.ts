@@ -2137,6 +2137,7 @@ export const POST = withApiMiddleware(
         category,
         calendar,
         fallbackNote: slot.note,
+        source: slot.source,
       })
       const confidenceMeta = analyzeConfidenceMeta({
         locale: lang,
