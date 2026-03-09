@@ -458,6 +458,86 @@ describe('POST /api/tarot/interpret', () => {
     expect(callArgs[1].language).toBe('ko')
   })
 
+  it('should pass parsed JSON contexts as objects to backend', async () => {
+    const { apiClient } = await import('@/lib/api/ApiClient')
+
+    vi.mocked(apiClient.post).mockResolvedValue({
+      ok: true,
+      data: {
+        overall_message: 'Context-aware interpretation',
+        card_insights: [],
+        guidance: 'Guidance',
+      },
+    })
+
+    const req = new NextRequest('http://localhost/api/tarot/interpret', {
+      method: 'POST',
+      body: JSON.stringify({
+        categoryId: 'love',
+        spreadId: 'three-card',
+        spreadTitle: 'Love Spread',
+        cards: [
+          {
+            name: 'The Fool',
+            isReversed: false,
+            position: 'Past',
+          },
+        ],
+        includeSaju: true,
+        includeAstrology: true,
+        sajuContext: JSON.stringify({ day_master: { element: 'metal', stem: '辛' } }),
+        astroContext: JSON.stringify({ sun_sign: 'Aquarius', moon_sign: 'Gemini' }),
+      }),
+    })
+
+    const response = await POST(req)
+    expect(response.status).toBe(200)
+
+    const callArgs = vi.mocked(apiClient.post).mock.calls[0]
+    expect(callArgs?.[1]?.saju_context).toEqual({ day_master: { element: 'metal', stem: '辛' } })
+    expect(callArgs?.[1]?.astro_context).toEqual({ sun_sign: 'Aquarius', moon_sign: 'Gemini' })
+  })
+
+  it('should drop invalid string contexts for backend payload to avoid backend parsing errors', async () => {
+    const { apiClient } = await import('@/lib/api/ApiClient')
+
+    vi.mocked(apiClient.post).mockResolvedValue({
+      ok: true,
+      data: {
+        overall_message: 'Interpretation',
+        card_insights: [],
+        guidance: 'Guidance',
+      },
+    })
+
+    const req = new NextRequest('http://localhost/api/tarot/interpret', {
+      method: 'POST',
+      body: JSON.stringify({
+        categoryId: 'general',
+        spreadId: 'three-card',
+        spreadTitle: 'General Spread',
+        cards: [
+          {
+            name: 'The Magician',
+            isReversed: false,
+            position: 'Present',
+          },
+        ],
+        includeSaju: true,
+        includeAstrology: true,
+        sajuContext: 'plain text context, not json',
+        astroContext: '{not-valid-json}',
+      }),
+    })
+
+    const response = await POST(req)
+    expect(response.status).toBe(200)
+
+    const callArgs = vi.mocked(apiClient.post).mock.calls[0]
+    expect(callArgs?.[1]?.saju_context).toBeUndefined()
+    expect(callArgs?.[1]?.astro_context).toBeUndefined()
+  })
+
   it('should reject strings exceeding max length via Zod validation', async () => {
     const longTitle = 'x'.repeat(200) // Exceeds max(120)
 

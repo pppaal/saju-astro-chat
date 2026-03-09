@@ -57,6 +57,49 @@ const MAX_CARD_MEANING_LENGTH = 500
 const OPENAI_TIMEOUT_MS = 40000
 const OPENAI_MAX_RETRIES = 1
 
+function parseStructuredContextFromString(
+  raw: string | undefined,
+  label: 'saju_context' | 'astro_context'
+): Record<string, unknown> | undefined {
+  if (!raw) return undefined
+  const trimmed = raw.trim()
+  if (!trimmed) return undefined
+  if (!(trimmed.startsWith('{') || trimmed.startsWith('['))) {
+    return undefined
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed) as unknown
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>
+    }
+    logger.warn('[Tarot interpret] context payload is not an object; dropping for backend', {
+      label,
+      parsedType: Array.isArray(parsed) ? 'array' : typeof parsed,
+    })
+    return undefined
+  } catch (error) {
+    logger.warn('[Tarot interpret] failed to parse context JSON; dropping for backend', {
+      label,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return undefined
+  }
+}
+
+function contextForPrompt(
+  raw: string | undefined,
+  parsed: Record<string, unknown> | undefined
+): string | undefined {
+  if (raw && raw.trim().length > 0) return raw
+  if (!parsed) return undefined
+  try {
+    return JSON.stringify(parsed)
+  } catch {
+    return undefined
+  }
+}
+
 function truncateToMax(value: unknown, maxLength: number): string | unknown {
   if (typeof value !== 'string') return value
   if (value.length <= maxLength) return value
@@ -568,6 +611,21 @@ export const POST = withApiMiddleware(
       fallbackLanguage = language
       fallbackQuestion = userQuestion
 
+      const parsedSajuContext =
+        includeSaju && sajuContext
+          ? parseStructuredContextFromString(sajuContext, 'saju_context')
+          : undefined
+      const parsedAstroContext =
+        includeAstrology && astroContext
+          ? parseStructuredContextFromString(astroContext, 'astro_context')
+          : undefined
+      const promptSajuContext = includeSaju
+        ? contextForPrompt(sajuContext, parsedSajuContext)
+        : undefined
+      const promptAstroContext = includeAstrology
+        ? contextForPrompt(astroContext, parsedAstroContext)
+        : undefined
+
       const creditResult = await checkAndConsumeCredits('reading', 1)
       if (!creditResult.allowed) {
         return creditErrorResponse(creditResult)
@@ -591,8 +649,8 @@ export const POST = withApiMiddleware(
             language,
             birthdate: includeAstrology ? birthdate : undefined,
             moon_phase: moonPhase,
-            saju_context: includeSaju ? sajuContext : undefined,
-            astro_context: includeAstrology ? astroContext : undefined,
+            saju_context: parsedSajuContext,
+            astro_context: parsedAstroContext,
           },
           { timeout: 60000, retries: 2, retryDelay: 1200 }
         )
@@ -621,8 +679,8 @@ export const POST = withApiMiddleware(
             spreadTitle,
             language,
             userQuestion,
-            includeSaju ? sajuContext : undefined,
-            includeAstrology ? astroContext : undefined
+            promptSajuContext,
+            promptAstroContext
           )
         } catch (gptErr) {
           logger.error('GPT interpretation failed:', gptErr)
