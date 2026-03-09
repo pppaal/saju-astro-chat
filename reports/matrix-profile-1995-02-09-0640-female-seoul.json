@@ -1,0 +1,1206 @@
+{
+  "profile": {
+    "birthDate": "1995-02-09",
+    "birthTime": "06:40",
+    "birthPlace": "Seoul",
+    "timezone": "Asia/Seoul",
+    "latitude": 37.5665,
+    "longitude": 126.978,
+    "gender": "female"
+  },
+  "inputSummary": {
+    "dayMasterElement": "금",
+    "geokguk": "정재격",
+    "yongsin": "화",
+    "dominantWesternElement": "air",
+    "aspectCount": 23,
+    "shinsalCount": 13,
+    "relationCount": 6,
+    "twelveStageKinds": ["양", "관대", "사", "임관"],
+    "hasCurrentDaeun": true,
+    "hasCurrentSaeun": true
+  },
+  "layerStats": {
+    "layer1": {
+      "totalCells": 0,
+      "nonZeroCells": 0,
+      "topCells": []
+    },
+    "layer2": {
+      "totalCells": 0,
+      "nonZeroCells": 0,
+      "topCells": []
+    },
+    "layer3": {
+      "totalCells": 0,
+      "nonZeroCells": 0,
+      "topCells": []
+    },
+    "layer4": {
+      "totalCells": 0,
+      "nonZeroCells": 0,
+      "topCells": []
+    },
+    "layer5": {
+      "totalCells": 0,
+      "nonZeroCells": 0,
+      "topCells": []
+    },
+    "layer6": {
+      "totalCells": 0,
+      "nonZeroCells": 0,
+      "topCells": []
+    },
+    "layer7": {
+      "totalCells": 0,
+      "nonZeroCells": 0,
+      "topCells": []
+    },
+    "layer8": {
+      "totalCells": 0,
+      "nonZeroCells": 0,
+      "topCells": []
+    },
+    "layer9": {
+      "totalCells": 0,
+      "nonZeroCells": 0,
+      "topCells": []
+    },
+    "layer10": {
+      "totalCells": 0,
+      "nonZeroCells": 0,
+      "topCells": []
+    }
+  },
+  "layerEvidenceFromSummary": {
+    "layer5": {
+      "count": 4,
+      "samples": [
+        {
+          "rowKey": "samhap",
+          "colKey": "trine",
+          "score": 10
+        },
+        {
+          "rowKey": "samhap",
+          "colKey": "conjunction",
+          "score": 10
+        },
+        {
+          "rowKey": "chung",
+          "colKey": "opposition",
+          "score": 10
+        },
+        {
+          "rowKey": "chung",
+          "colKey": "square",
+          "score": 2
+        }
+      ]
+    },
+    "layer6": {
+      "count": 5,
+      "samples": [
+        {
+          "rowKey": "임관",
+          "colKey": "H10",
+          "score": 10
+        },
+        {
+          "rowKey": "사",
+          "colKey": "H1",
+          "score": 2
+        },
+        {
+          "rowKey": "사",
+          "colKey": "H11",
+          "score": 2
+        },
+        {
+          "rowKey": "사",
+          "colKey": "H7",
+          "score": 2
+        },
+        {
+          "rowKey": "사",
+          "colKey": "H10",
+          "score": 2
+        }
+      ]
+    },
+    "layer8": {
+      "count": 5,
+      "samples": [
+        {
+          "rowKey": "천을귀인",
+          "colKey": "Sun",
+          "score": 10
+        },
+        {
+          "rowKey": "천을귀인",
+          "colKey": "Jupiter",
+          "score": 10
+        },
+        {
+          "rowKey": "괴강",
+          "colKey": "Pluto",
+          "score": 10
+        },
+        {
+          "rowKey": "겁살",
+          "colKey": "Mars",
+          "score": 2
+        },
+        {
+          "rowKey": "천라지망",
+          "colKey": "Mars",
+          "score": 2
+        }
+      ]
+    },
+    "layer2": {
+      "count": 8,
+      "samples": [
+        {
+          "rowKey": "편재",
+          "colKey": "Jupiter",
+          "score": 9
+        },
+        {
+          "rowKey": "정인",
+          "colKey": "Moon",
+          "score": 9
+        },
+        {
+          "rowKey": "정인",
+          "colKey": "Jupiter",
+          "score": 9
+        },
+        {
+          "rowKey": "편재",
+          "colKey": "Saturn",
+          "score": 5
+        },
+        {
+          "rowKey": "상관",
+          "colKey": "Mercury",
+          "score": 5
+        }
+      ]
+    },
+    "layer1": {
+      "count": 2,
+      "samples": [
+        {
+          "rowKey": "금",
+          "colKey": "air",
+          "score": 6
+        },
+        {
+          "rowKey": "목",
+          "colKey": "air",
+          "score": 5
+        }
+      ]
+    },
+    "layer3": {
+      "count": 1,
+      "samples": [
+        {
+          "rowKey": "상관",
+          "colKey": "H7",
+          "score": 3
+        }
+      ]
+    }
+  },
+  "summary": {
+    "totalScore": 5.9,
+    "sajuComponentScore": 0.421,
+    "astroComponentScore": 0.46,
+    "alignmentScore": 0.961,
+    "overlapStrength": 0.075,
+    "timeOverlapWeight": 1.023,
+    "finalScoreAdjusted": 6,
+    "confidenceScore": 0.872,
+    "drivers": ["High cross-system agreement"],
+    "cautions": [],
+    "calendarSignals": [],
+    "domainScores": {
+      "career": {
+        "domain": "career",
+        "baseFinalScore": 9.5,
+        "finalScoreAdjusted": 9.7,
+        "sajuComponentScore": 0.413,
+        "astroComponentScore": 0.451,
+        "alignmentScore": 0.962,
+        "overlapStrength": 0.083,
+        "timeOverlapWeight": 1.025,
+        "confidenceScore": 0.872,
+        "drivers": ["High cross-system agreement"],
+        "cautions": []
+      },
+      "love": {
+        "domain": "love",
+        "baseFinalScore": 9.5,
+        "finalScoreAdjusted": 9.7,
+        "sajuComponentScore": 0.413,
+        "astroComponentScore": 0.451,
+        "alignmentScore": 0.962,
+        "overlapStrength": 0.083,
+        "timeOverlapWeight": 1.025,
+        "confidenceScore": 0.872,
+        "drivers": ["High cross-system agreement"],
+        "cautions": []
+      },
+      "money": {
+        "domain": "money",
+        "baseFinalScore": 8.7,
+        "finalScoreAdjusted": 8.8,
+        "sajuComponentScore": 0.399,
+        "astroComponentScore": 0.436,
+        "alignmentScore": 0.963,
+        "overlapStrength": 0.076,
+        "timeOverlapWeight": 1.023,
+        "confidenceScore": 0.872,
+        "drivers": ["High cross-system agreement"],
+        "cautions": []
+      },
+      "health": {
+        "domain": "health",
+        "baseFinalScore": 7.8,
+        "finalScoreAdjusted": 7.9,
+        "sajuComponentScore": 0.384,
+        "astroComponentScore": 0.42,
+        "alignmentScore": 0.964,
+        "overlapStrength": 0.069,
+        "timeOverlapWeight": 1.021,
+        "confidenceScore": 0.872,
+        "drivers": ["High cross-system agreement"],
+        "cautions": []
+      },
+      "move": {
+        "domain": "move",
+        "baseFinalScore": 8.4,
+        "finalScoreAdjusted": 8.5,
+        "sajuComponentScore": 0.394,
+        "astroComponentScore": 0.43,
+        "alignmentScore": 0.964,
+        "overlapStrength": 0.073,
+        "timeOverlapWeight": 1.022,
+        "confidenceScore": 0.872,
+        "drivers": ["High cross-system agreement"],
+        "cautions": []
+      }
+    },
+    "overlapTimeline": [
+      {
+        "month": "2026-03",
+        "overlapStrength": 0,
+        "timeOverlapWeight": 1,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-04",
+        "overlapStrength": 0.051,
+        "timeOverlapWeight": 1.015,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-05",
+        "overlapStrength": 0.102,
+        "timeOverlapWeight": 1.031,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-06",
+        "overlapStrength": 0.098,
+        "timeOverlapWeight": 1.029,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-07",
+        "overlapStrength": 0.164,
+        "timeOverlapWeight": 1.049,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-08",
+        "overlapStrength": 0.21,
+        "timeOverlapWeight": 1.063,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-09",
+        "overlapStrength": 0,
+        "timeOverlapWeight": 1,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-10",
+        "overlapStrength": 0,
+        "timeOverlapWeight": 1,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-11",
+        "overlapStrength": 0.076,
+        "timeOverlapWeight": 1.023,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2026-12",
+        "overlapStrength": 0,
+        "timeOverlapWeight": 1,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2027-01",
+        "overlapStrength": 0.061,
+        "timeOverlapWeight": 1.018,
+        "peakLevel": "normal"
+      },
+      {
+        "month": "2027-02",
+        "overlapStrength": 0.022,
+        "timeOverlapWeight": 1.006,
+        "peakLevel": "normal"
+      }
+    ],
+    "overlapTimelineByDomain": {
+      "career": [
+        {
+          "month": "2026-03",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-04",
+          "overlapStrength": 0.064,
+          "timeOverlapWeight": 1.019,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-05",
+          "overlapStrength": 0.129,
+          "timeOverlapWeight": 1.039,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-06",
+          "overlapStrength": 0.124,
+          "timeOverlapWeight": 1.037,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-07",
+          "overlapStrength": 0.207,
+          "timeOverlapWeight": 1.062,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-08",
+          "overlapStrength": 0.265,
+          "timeOverlapWeight": 1.08,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-09",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-10",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-11",
+          "overlapStrength": 0.096,
+          "timeOverlapWeight": 1.029,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-12",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-01",
+          "overlapStrength": 0.077,
+          "timeOverlapWeight": 1.023,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-02",
+          "overlapStrength": 0.028,
+          "timeOverlapWeight": 1.008,
+          "peakLevel": "normal"
+        }
+      ],
+      "love": [
+        {
+          "month": "2026-03",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-04",
+          "overlapStrength": 0.064,
+          "timeOverlapWeight": 1.019,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-05",
+          "overlapStrength": 0.129,
+          "timeOverlapWeight": 1.039,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-06",
+          "overlapStrength": 0.124,
+          "timeOverlapWeight": 1.037,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-07",
+          "overlapStrength": 0.207,
+          "timeOverlapWeight": 1.062,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-08",
+          "overlapStrength": 0.265,
+          "timeOverlapWeight": 1.08,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-09",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-10",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-11",
+          "overlapStrength": 0.096,
+          "timeOverlapWeight": 1.029,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-12",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-01",
+          "overlapStrength": 0.077,
+          "timeOverlapWeight": 1.023,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-02",
+          "overlapStrength": 0.028,
+          "timeOverlapWeight": 1.008,
+          "peakLevel": "normal"
+        }
+      ],
+      "money": [
+        {
+          "month": "2026-03",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-04",
+          "overlapStrength": 0.059,
+          "timeOverlapWeight": 1.018,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-05",
+          "overlapStrength": 0.118,
+          "timeOverlapWeight": 1.035,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-06",
+          "overlapStrength": 0.113,
+          "timeOverlapWeight": 1.034,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-07",
+          "overlapStrength": 0.19,
+          "timeOverlapWeight": 1.057,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-08",
+          "overlapStrength": 0.243,
+          "timeOverlapWeight": 1.073,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-09",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-10",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-11",
+          "overlapStrength": 0.088,
+          "timeOverlapWeight": 1.026,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-12",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-01",
+          "overlapStrength": 0.071,
+          "timeOverlapWeight": 1.021,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-02",
+          "overlapStrength": 0.025,
+          "timeOverlapWeight": 1.008,
+          "peakLevel": "normal"
+        }
+      ],
+      "health": [
+        {
+          "month": "2026-03",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-04",
+          "overlapStrength": 0.054,
+          "timeOverlapWeight": 1.016,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-05",
+          "overlapStrength": 0.108,
+          "timeOverlapWeight": 1.032,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-06",
+          "overlapStrength": 0.104,
+          "timeOverlapWeight": 1.031,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-07",
+          "overlapStrength": 0.174,
+          "timeOverlapWeight": 1.052,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-08",
+          "overlapStrength": 0.223,
+          "timeOverlapWeight": 1.067,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-09",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-10",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-11",
+          "overlapStrength": 0.081,
+          "timeOverlapWeight": 1.024,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-12",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-01",
+          "overlapStrength": 0.065,
+          "timeOverlapWeight": 1.019,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-02",
+          "overlapStrength": 0.023,
+          "timeOverlapWeight": 1.007,
+          "peakLevel": "normal"
+        }
+      ],
+      "move": [
+        {
+          "month": "2026-03",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-04",
+          "overlapStrength": 0.057,
+          "timeOverlapWeight": 1.017,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-05",
+          "overlapStrength": 0.114,
+          "timeOverlapWeight": 1.034,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-06",
+          "overlapStrength": 0.11,
+          "timeOverlapWeight": 1.033,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-07",
+          "overlapStrength": 0.184,
+          "timeOverlapWeight": 1.055,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-08",
+          "overlapStrength": 0.235,
+          "timeOverlapWeight": 1.071,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-09",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-10",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-11",
+          "overlapStrength": 0.085,
+          "timeOverlapWeight": 1.026,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2026-12",
+          "overlapStrength": 0,
+          "timeOverlapWeight": 1,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-01",
+          "overlapStrength": 0.068,
+          "timeOverlapWeight": 1.02,
+          "peakLevel": "normal"
+        },
+        {
+          "month": "2027-02",
+          "overlapStrength": 0.025,
+          "timeOverlapWeight": 1.007,
+          "peakLevel": "normal"
+        }
+      ]
+    },
+    "strengthPoints": [
+      {
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "trine",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "🌟",
+            "colorCode": "purple",
+            "keyword": "최상조화",
+            "keywordEn": "Best harmony",
+            "advice": "삼합의 조화와 삼각의 자연스러운 흐름이 결합되어 최상의 조화를 이룹니다. 모든 일이 자연스럽게 풀리고 행운이 따르는 시기입니다. 이 흐름에 몸을 맡기되, 안주하지 말고 지속적으로 발전을 추구하세요."
+          },
+          "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+          "astroBasis": "Saturn-True Node trine angle=120deg orb=2.63deg allowed=6deg"
+        }
+      },
+      {
+        "layer": 5,
+        "rowKey": "samhap",
+        "colKey": "conjunction",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "💥",
+            "colorCode": "purple",
+            "keyword": "극강시너지",
+            "keywordEn": "Extreme synergy",
+            "advice": "삼합의 조화로운 에너지가 합의 강화력과 만나 최고조의 시너지를 이룹니다. 이 시기에는 중요한 결정이나 새로운 시작이 극강의 성공 가능성을 보입니다. 다만 너무 강한 에너지는 주변과의 균형을 깨뜨릴 수 있으니 겸손함을 잃지 마세요."
+          },
+          "sajuBasis": "지지삼합 (亥·卯·未 삼합(목))",
+          "astroBasis": "Uranus-Neptune conjunction angle=0deg orb=3.72deg allowed=8deg"
+        }
+      },
+      {
+        "layer": 5,
+        "rowKey": "chung",
+        "colKey": "opposition",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "💥",
+            "colorCode": "purple",
+            "keyword": "극심충돌",
+            "keywordEn": "Extreme clash",
+            "advice": "충과 충이 만나 최고조의 대립과 긴장이 발생합니다. 극단적 변화나 큰 충돌이 예상되는 시기입니다. 감정을 절제하고 신중하게 행동하되, 필요하다면 과감한 결단도 고려하세요."
+          },
+          "sajuBasis": "천간충 (乙-辛 충)",
+          "astroBasis": "Moon-Pluto opposition angle=180deg orb=3.95deg allowed=8deg"
+        }
+      },
+      {
+        "layer": 6,
+        "rowKey": "임관",
+        "colKey": "H10",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "🏆",
+            "colorCode": "purple",
+            "keyword": "커리어정점",
+            "keywordEn": "Career peak",
+            "advice": "임관의 성취 에너지가 10하우스 커리어 영역에서 정점에 달합니다. 직업적 성공과 사회적 지위 확립의 시기입니다. 리더십을 발휘하고 성과를 거두세요. 단, 정상에서의 겸손과 후진 양성에도 힘쓰세요."
+          },
+          "sajuBasis": "십이운성 임관",
+          "astroBasis": "Jupiter in H10"
+        }
+      },
+      {
+        "layer": 8,
+        "rowKey": "천을귀인",
+        "colKey": "Sun",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "👑",
+            "colorCode": "purple",
+            "keyword": "귀인조력",
+            "keywordEn": "Noble aid",
+            "advice": "귀인의 도움이 최고조입니다. 중요한 사람을 만나거나 중대한 결정을 내리기에 최적의 시기입니다. 감사하는 마음으로 관계를 돈독히 하세요."
+          },
+          "sajuBasis": "신살 천을귀인",
+          "astroBasis": "Sun in H1"
+        }
+      },
+      {
+        "layer": 8,
+        "rowKey": "천을귀인",
+        "colKey": "Jupiter",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "🎯",
+            "colorCode": "purple",
+            "keyword": "대길귀인",
+            "keywordEn": "Great fortune noble",
+            "advice": "대길의 운이 함께합니다. 중요한 프로젝트나 투자를 시작하기 좋은 시기이며, 긍정적 태도로 기회를 잡으세요."
+          },
+          "sajuBasis": "신살 천을귀인",
+          "astroBasis": "Jupiter in H10"
+        }
+      },
+      {
+        "layer": 8,
+        "rowKey": "괴강",
+        "colKey": "Pluto",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 10,
+            "icon": "🔱",
+            "colorCode": "purple",
+            "keyword": "권력극단",
+            "keywordEn": "Power extreme",
+            "advice": "권력과 힘이 최고조로 극단에 달합니다. 세상을 바꿀 수 있는 엄청난 에너지가 있으나, 파멸로 이어질 수도 있습니다. 지혜롭게 다스리세요."
+          },
+          "sajuBasis": "신살 괴강",
+          "astroBasis": "Pluto in H10"
+        }
+      },
+      {
+        "layer": 2,
+        "rowKey": "편재",
+        "colKey": "Jupiter",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 9,
+            "icon": "🎰",
+            "colorCode": "purple",
+            "keyword": "횡재",
+            "keywordEn": "Windfall",
+            "advice": "예상치 못한 재물 운이 있습니다. 기회를 놓치지 말되, 탐욕은 경계하세요."
+          },
+          "sajuBasis": "십신 편재",
+          "astroBasis": "Jupiter in H10"
+        }
+      },
+      {
+        "layer": 2,
+        "rowKey": "정인",
+        "colKey": "Moon",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 9,
+            "icon": "🤱",
+            "colorCode": "purple",
+            "keyword": "양육",
+            "keywordEn": "Nurture",
+            "advice": "양육과 보살핌의 시기입니다. 타인을 돌보고, 자신도 돌봄 받으세요."
+          },
+          "sajuBasis": "십신 정인",
+          "astroBasis": "Moon in H4"
+        }
+      },
+      {
+        "layer": 2,
+        "rowKey": "정인",
+        "colKey": "Jupiter",
+        "cell": {
+          "interaction": {
+            "level": "extreme",
+            "score": 9,
+            "icon": "🏫",
+            "colorCode": "purple",
+            "keyword": "학위",
+            "keywordEn": "Degree",
+            "advice": "학위나 자격증 취득에 최적기입니다. 공부에 전념하면 큰 성과를 얻습니다."
+          },
+          "sajuBasis": "십신 정인",
+          "astroBasis": "Jupiter in H10"
+        }
+      }
+    ],
+    "balancePoints": [
+      {
+        "layer": 1,
+        "rowKey": "금",
+        "colKey": "air",
+        "cell": {
+          "interaction": {
+            "level": "balance",
+            "score": 6,
+            "icon": "⚖️",
+            "colorCode": "blue",
+            "keyword": "균형",
+            "keywordEn": "Balance",
+            "advice": "논리와 결단이 균형을 이룹니다. 합리적 판단으로 문제를 해결하되, 융통성도 유지하세요."
+          },
+          "sajuBasis": "사주 금",
+          "astroBasis": "점성 air"
+        }
+      },
+      {
+        "layer": 1,
+        "rowKey": "목",
+        "colKey": "air",
+        "cell": {
+          "interaction": {
+            "level": "balance",
+            "score": 5,
+            "icon": "🌀",
+            "colorCode": "blue",
+            "keyword": "충돌",
+            "keywordEn": "Clash",
+            "advice": "아이디어와 행동 사이에 간극이 있을 수 있습니다. 생각을 구체화하고, 실행 가능한 계획을 세우세요."
+          },
+          "sajuBasis": "사주 목",
+          "astroBasis": "점성 air"
+        }
+      },
+      {
+        "layer": 2,
+        "rowKey": "편재",
+        "colKey": "Saturn",
+        "cell": {
+          "interaction": {
+            "level": "balance",
+            "score": 5,
+            "icon": "⚖️",
+            "colorCode": "blue",
+            "keyword": "손실",
+            "keywordEn": "Loss",
+            "advice": "재정적 제약이 있을 수 있습니다. 절약하고 장기적 계획을 세우세요."
+          },
+          "sajuBasis": "십신 편재",
+          "astroBasis": "Saturn in H1"
+        }
+      },
+      {
+        "layer": 2,
+        "rowKey": "상관",
+        "colKey": "Mercury",
+        "cell": {
+          "interaction": {
+            "level": "balance",
+            "score": 5,
+            "icon": "⚡",
+            "colorCode": "blue",
+            "keyword": "날카",
+            "keywordEn": "Sharp",
+            "advice": "날카로운 통찰력이 생깁니다. 비판적 사고를 건설적으로 활용하고, 공격적 언어는 자제하세요."
+          },
+          "sajuBasis": "십신 상관",
+          "astroBasis": "Mercury in H1"
+        }
+      },
+      {
+        "layer": 2,
+        "rowKey": "정인",
+        "colKey": "Uranus",
+        "cell": {
+          "interaction": {
+            "level": "balance",
+            "score": 5,
+            "icon": "⚖️",
+            "colorCode": "blue",
+            "keyword": "혁신",
+            "keywordEn": "Innovate",
+            "advice": "전통과 혁신의 균형을 찾으세요. 새로운 방법을 시도하되, 기본은 지키세요."
+          },
+          "sajuBasis": "십신 정인",
+          "astroBasis": "Uranus in H12"
+        }
+      }
+    ],
+    "cautionPoints": [
+      {
+        "layer": 2,
+        "rowKey": "상관",
+        "colKey": "Saturn",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "❌",
+            "colorCode": "red",
+            "keyword": "좌절",
+            "keywordEn": "Frustrate",
+            "advice": "좌절감이 클 수 있습니다. 제약을 성장의 기회로 삼고, 인내심을 가지세요."
+          },
+          "sajuBasis": "십신 상관",
+          "astroBasis": "Saturn in H1"
+        }
+      },
+      {
+        "layer": 5,
+        "rowKey": "chung",
+        "colKey": "square",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "☠️",
+            "colorCode": "red",
+            "keyword": "파괴위험",
+            "keywordEn": "Destruction risk",
+            "advice": "충의 충돌과 사각의 긴장이 만나 극심한 파괴 위험이 있습니다. 중요한 결정이나 대립 상황은 반드시 피해야 하는 시기입니다. 최대한 방어적 자세를 취하고, 무리한 도전을 삼가세요."
+          },
+          "sajuBasis": "천간충 (乙-辛 충)",
+          "astroBasis": "Mercury-True Node square angle=90deg orb=0.29deg allowed=6deg"
+        }
+      },
+      {
+        "layer": 6,
+        "rowKey": "사",
+        "colKey": "H1",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "☠️",
+            "colorCode": "red",
+            "keyword": "자아종결",
+            "keywordEn": "Self end",
+            "advice": "사의 종결 에너지가 1하우스 자아 영역에서 극심하게 작용합니다. 기존 자아가 끝나고 완전한 재탄생이 필요한 시기입니다. 과거의 자신을 놓아주고 새로운 정체성을 준비하세요. 단, 극단적인 행동은 피하고 내면의 변화에 집중하세요."
+          },
+          "sajuBasis": "십이운성 사",
+          "astroBasis": "Sun in H1"
+        }
+      },
+      {
+        "layer": 6,
+        "rowKey": "사",
+        "colKey": "H11",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "💀",
+            "colorCode": "red",
+            "keyword": "희망종결",
+            "keywordEn": "Hope end",
+            "advice": "사의 종결 에너지가 11하우스 희망 영역에서 암흑을 드리웁니다. 희망이 사라지고 친구 관계가 끊어질 수 있는 시기입니다. 혼자만의 시간을 갖고 새로운 꿈을 찾으세요. 단, 절대 포기하지 말고 전문가의 도움을 받으세요."
+          },
+          "sajuBasis": "십이운성 사",
+          "astroBasis": "Venus in H11"
+        }
+      },
+      {
+        "layer": 6,
+        "rowKey": "사",
+        "colKey": "H7",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "💀",
+            "colorCode": "red",
+            "keyword": "관계종결",
+            "keywordEn": "Relation end",
+            "advice": "사의 종결 에너지가 7하우스 관계 영역에서 이별을 암시합니다. 관계가 종결되거나 파트너십이 해체될 수 있습니다. 집착을 놓고 건강한 이별을 준비하세요. 단, 폭력적이거나 극단적인 행동은 절대 피하세요."
+          },
+          "sajuBasis": "십이운성 사",
+          "astroBasis": "Mars in H7"
+        }
+      },
+      {
+        "layer": 6,
+        "rowKey": "사",
+        "colKey": "H10",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "📉",
+            "colorCode": "red",
+            "keyword": "커리어종결",
+            "keywordEn": "Career end",
+            "advice": "사의 종결 에너지가 10하우스 커리어 영역에서 극심한 도전을 줍니다. 직업을 잃거나 사회적 지위가 무너질 수 있는 시기입니다. 새로운 방향을 모색하고 재기를 준비하세요. 단, 명예에 연연하지 말고 본질적인 가치에 집중하세요."
+          },
+          "sajuBasis": "십이운성 사",
+          "astroBasis": "Jupiter in H10"
+        }
+      },
+      {
+        "layer": 8,
+        "rowKey": "겁살",
+        "colKey": "Mars",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "⚔️",
+            "colorCode": "red",
+            "keyword": "겁살극강",
+            "keywordEn": "Rob kill peak",
+            "advice": "극심한 주의가 필요합니다. 재물과 건강 모두 심각한 손실 위험이 있습니다. 위험한 활동과 투자를 반드시 피하고, 안전을 최우선으로 하세요. 이 시기를 조용히 지나면 무사할 수 있습니다."
+          },
+          "sajuBasis": "신살 겁살",
+          "astroBasis": "Mars in H7"
+        }
+      },
+      {
+        "layer": 8,
+        "rowKey": "천라지망",
+        "colKey": "Mars",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 2,
+            "icon": "⛓️",
+            "colorCode": "red",
+            "keyword": "행동속박",
+            "keywordEn": "Action bound",
+            "advice": "극심한 주의가 필요합니다. 행동이 극도로 제한받고 움직일 수 없는 시기입니다. 무리한 행동을 반드시 피하고, 조용히 기다리세요. 인내하면 매우 위험한 상황을 넘기고 자유를 되찾을 수 있습니다."
+          },
+          "sajuBasis": "신살 천라지망",
+          "astroBasis": "Mars in H7"
+        }
+      },
+      {
+        "layer": 2,
+        "rowKey": "상관",
+        "colKey": "Pluto",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 3,
+            "icon": "☠️",
+            "colorCode": "red",
+            "keyword": "극단",
+            "keywordEn": "Extreme",
+            "advice": "극단적 사고나 행동을 조심하세요. 균형을 찾고, 중도를 지향하세요."
+          },
+          "sajuBasis": "십신 상관",
+          "astroBasis": "Pluto in H10"
+        }
+      },
+      {
+        "layer": 3,
+        "rowKey": "상관",
+        "colKey": "H7",
+        "cell": {
+          "interaction": {
+            "level": "conflict",
+            "score": 3,
+            "icon": "💔",
+            "colorCode": "red",
+            "keyword": "관계파괴",
+            "keywordEn": "Relation destroy",
+            "advice": "파트너 관계가 심각하게 손상될 수 있는 위험한 시기입니다. 비판적이고 공격적인 언행을 절대 삼가고 중요한 대화는 피하며 냉각기를 가지세요. 단, 이미 관계가 회복 불가능하다면 법적 절차를 밟고 전문가의 도움을 받아 정리하는 것이 현명합니다."
+          },
+          "sajuBasis": "십신 상관",
+          "astroBasis": "Mars in H7"
+        }
+      }
+    ],
+    "topSynergies": [
+      {
+        "layers": [2, 2, 2],
+        "description": "47개의 극강 시너지 발견",
+        "score": 8.936170212765957
+      }
+    ]
+  }
+}

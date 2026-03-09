@@ -2319,88 +2319,116 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           </div>
           <p className={styles.actionPlanInsightLine}>{timelineInsight}</p>
           <div className={styles.actionPlanTimelineGrid} role="list">
-            {timelineSlots.map((slot) => (
-              <div
-                key={`${slot.hour}-${slot.minute ?? 0}`}
-                role="listitem"
-                ref={(node) => {
-                  timelineSlotRefs.current[`${slot.hour}-${slot.minute ?? 0}`] = node
-                }}
-                className={`${styles.actionPlanTimelineSlot} ${
-                  slot.tone === 'best'
-                    ? styles.actionPlanTimelineSlotBest
-                    : slot.tone === 'caution'
-                      ? styles.actionPlanTimelineSlotCaution
-                      : ''
-                } ${activeRhythmHour === slot.hour ? styles.actionPlanTimelineSlotLinked : ''}`}
-                onClick={() => setActiveRhythmHour(slot.hour)}
-              >
-                <div className={styles.actionPlanTimelineTime}>
-                  <div className={styles.actionPlanTimelineTimeMain}>
-                    <span className={styles.actionPlanTimelineClock}>{slot.label}</span>
-                    <span className={styles.actionPlanTimelineTone}>
-                      {slot.tone === 'best'
-                        ? isKo
-                          ? '집중'
-                          : 'Focus'
+            {timelineSlots.map((slot) =>
+              (() => {
+                const whyMetaLabel = formatWhyMetaLabel(slot)
+                const hasDetailPanel = Boolean(
+                  whyMetaLabel ||
+                  (slot.confidenceReason && slot.confidenceReason.length > 0) ||
+                  (slot.evidenceSummary && slot.evidenceSummary.length > 0)
+                )
+
+                return (
+                  <div
+                    key={`${slot.hour}-${slot.minute ?? 0}`}
+                    role="listitem"
+                    ref={(node) => {
+                      timelineSlotRefs.current[`${slot.hour}-${slot.minute ?? 0}`] = node
+                    }}
+                    className={`${styles.actionPlanTimelineSlot} ${
+                      slot.tone === 'best'
+                        ? styles.actionPlanTimelineSlotBest
                         : slot.tone === 'caution'
-                          ? isKo
-                            ? '주의'
-                            : 'Caution'
-                          : isKo
-                            ? '기본'
-                            : 'Base'}
-                    </span>
+                          ? styles.actionPlanTimelineSlotCaution
+                          : ''
+                    } ${activeRhythmHour === slot.hour ? styles.actionPlanTimelineSlotLinked : ''}`}
+                    onClick={() => setActiveRhythmHour(slot.hour)}
+                  >
+                    <div className={styles.actionPlanTimelineTime}>
+                      <div className={styles.actionPlanTimelineTimeMain}>
+                        <span className={styles.actionPlanTimelineClock}>{slot.label}</span>
+                        <span className={styles.actionPlanTimelineTone}>
+                          {slot.tone === 'best'
+                            ? isKo
+                              ? '집중'
+                              : 'Focus'
+                            : slot.tone === 'caution'
+                              ? isKo
+                                ? '주의'
+                                : 'Caution'
+                              : isKo
+                                ? '기본'
+                                : 'Base'}
+                        </span>
+                      </div>
+                      {slot.badge && (
+                        <span className={styles.actionPlanTimelineBadge}>{slot.badge}</span>
+                      )}
+                    </div>
+                    <div className={styles.actionPlanTimelineMetaRow}>
+                      {typeof slot.confidence === 'number' && (
+                        <div className={styles.actionPlanTimelineConfidence}>
+                          {isKo ? '신뢰도' : 'Confidence'} {slot.confidence}%
+                        </div>
+                      )}
+                      {slot.slotTypes && slot.slotTypes.length > 0 && (
+                        <div className={styles.actionPlanTimelineSlotTypes}>
+                          {slot.slotTypes.map((slotType) => (
+                            <span
+                              key={`${slot.label}-${slotType}`}
+                              className={styles.actionPlanTimelineSlotTypeChip}
+                            >
+                              {formatSlotTypeLabel(slotType)}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className={styles.actionPlanTimelineNote}>{slot.note}</div>
+                    {slot.whySummary && (
+                      <div className={styles.actionPlanTimelineWhy}>
+                        <span className={styles.actionPlanTimelineWhyLabel}>
+                          {isKo ? '왜 이 시간대인가' : 'Why this slot'}
+                        </span>
+                        <span>{slot.whySummary}</span>
+                      </div>
+                    )}
+                    {slot.guardrail && (
+                      <div className={styles.actionPlanTimelineGuardrail}>
+                        <span className={styles.actionPlanTimelineGuardrailLabel}>
+                          {isKo ? '안전장치' : 'Guardrail'}
+                        </span>
+                        <span>{slot.guardrail}</span>
+                      </div>
+                    )}
+                    {hasDetailPanel && (
+                      <details className={styles.actionPlanTimelineDetails}>
+                        <summary className={styles.actionPlanTimelineDetailsSummary}>
+                          {isKo ? '근거 보기' : 'Why this works'}
+                        </summary>
+                        <div className={styles.actionPlanTimelineDetailsBody}>
+                          {whyMetaLabel && (
+                            <div className={styles.actionPlanTimelineWhyMeta}>{whyMetaLabel}</div>
+                          )}
+                          {slot.confidenceReason && slot.confidenceReason.length > 0 && (
+                            <div className={styles.actionPlanTimelineConfidenceReason}>
+                              {formatConfidenceNote(slot.confidenceReason)}
+                            </div>
+                          )}
+                          {slot.evidenceSummary && slot.evidenceSummary.length > 0 && (
+                            <ul className={styles.actionPlanTimelineEvidenceList}>
+                              {slot.evidenceSummary.map((line) => (
+                                <li key={`${slot.hour}-${slot.minute}-${line}`}>{line}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </details>
+                    )}
                   </div>
-                  {slot.badge && (
-                    <span className={styles.actionPlanTimelineBadge}>{slot.badge}</span>
-                  )}
-                </div>
-                {typeof slot.confidence === 'number' && (
-                  <div className={styles.actionPlanTimelineConfidence}>
-                    {isKo ? '신뢰도' : 'Confidence'} {slot.confidence}%
-                  </div>
-                )}
-                {slot.slotTypes && slot.slotTypes.length > 0 && (
-                  <div className={styles.actionPlanTimelineSlotTypes}>
-                    {slot.slotTypes.map((slotType) => (
-                      <span
-                        key={`${slot.label}-${slotType}`}
-                        className={styles.actionPlanTimelineSlotTypeChip}
-                      >
-                        {formatSlotTypeLabel(slotType)}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <div className={styles.actionPlanTimelineNote}>{slot.note}</div>
-                {slot.whySummary && (
-                  <div className={styles.actionPlanTimelineWhy}>
-                    {isKo ? '왜 이 시간대인가' : 'Why this slot'}: {slot.whySummary}
-                  </div>
-                )}
-                {formatWhyMetaLabel(slot) && (
-                  <div className={styles.actionPlanTimelineWhyMeta}>{formatWhyMetaLabel(slot)}</div>
-                )}
-                {slot.guardrail && (
-                  <div className={styles.actionPlanTimelineGuardrail}>
-                    {isKo ? '안전장치' : 'Guardrail'}: {slot.guardrail}
-                  </div>
-                )}
-                {slot.confidenceReason && slot.confidenceReason.length > 0 && (
-                  <div className={styles.actionPlanTimelineConfidenceReason}>
-                    {formatConfidenceNote(slot.confidenceReason)}
-                  </div>
-                )}
-                {slot.evidenceSummary && slot.evidenceSummary.length > 0 && (
-                  <ul className={styles.actionPlanTimelineEvidenceList}>
-                    {slot.evidenceSummary.map((line) => (
-                      <li key={`${slot.hour}-${slot.minute}-${line}`}>{line}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
+                )
+              })()
+            )}
           </div>
         </div>
         <div className={styles.actionPlanCard}>

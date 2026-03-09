@@ -1,6 +1,6 @@
 # Full Saju + Astrology Calculation Report
 
-- Generated At: 2026-03-06T03:27:21.185Z
+- Generated At: 2026-03-09T13:27:33.269Z
 - Profile: 1995-02-09 06:40 Seoul
 - Birth DateTime: 1995-02-09 06:40
 - City/Coordinates: Seoul (37.5665, 126.978)
@@ -160,8 +160,8 @@
 
 ## 9) Progressions / Returns / Draconic / Harmonics
 
-- Secondary Progressed Date: 1995-03-12 (Years progressed: 31.07)
-- Solar Arc Date: 2026-03-06 (Years progressed: 31.07)
+- Secondary Progressed Date: 1995-03-12 (Years progressed: 31.08)
+- Solar Arc Date: 2026-03-09 (Years progressed: 31.08)
 - Solar Return 2026 Exact Time: 2026-02-08T10:30:50Z
 - Lunar Return 2026-03 Exact Time: 2026-03-23T15:36:35Z
 
@@ -210,23 +210,25 @@
 
 현재 나이 하모닉 (H31): 활성화된 해입니다.
 
-## 10) Current Major Transits (Reference Time: 2026-03-06T03:27:21.185Z)
+## 10) Current Major Transits (Reference Time: 2026-03-09T13:27:33.269Z)
 
-- Total Major Transit Events: 12
+- Total Major Transit Events: 14
   | Transit Planet | Aspect | Natal Point | Orb | Meaning |
   | --- | --- | --- | --- | --- |
-  | Jupiter | trine | Moon | 1.04 | - |
-  | Uranus | trine | Venus | 1.42 | - |
-  | Pluto | sextile | Venus | 1.29 | - |
-  | Uranus | square | MC | 1.66 | - |
-  | Pluto | square | Mars | 2.06 | - |
-  | Saturn | opposition | Sun | 3.21 | - |
-  | Jupiter | square | Sun | 3.68 | - |
-  | Saturn | trine | Ascendant | 4.58 | - |
-  | Neptune | trine | Venus | 5.14 | - |
-  | Neptune | square | MC | 5.38 | - |
-  | Neptune | trine | Mercury | 5.48 | - |
-  | Saturn | opposition | Mercury | 6.56 | - |
+  | Pluto | sextile | MC | 0.37 | - |
+  | Neptune | trine | Moon | 0.44 | - |
+  | Saturn | opposition | Mercury | 3.16 | - |
+  | Uranus | trine | MC | 3.08 | - |
+  | Uranus | trine | Moon | 3.28 | - |
+  | Pluto | sextile | Venus | 2.96 | - |
+  | Jupiter | square | Mercury | 3.63 | - |
+  | Pluto | square | Mars | 4.75 | - |
+  | Pluto | opposition | Moon | 5.99 | - |
+  | Neptune | conjunction | Ascendant | 6.38 | - |
+  | Neptune | trine | Sun | 5.41 | - |
+  | Uranus | trine | Venus | 5.67 | - |
+  | Saturn | opposition | Sun | 6.63 | - |
+  | Saturn | opposition | Mars | 6.78 | - |
 
 ## 11) Raw JSON Appendices
 
@@ -308,6 +310,6 @@
     "houseSystem": "Placidus"
   },
   "aspectCount": 9,
-  "transitCount": 12
+  "transitCount": 14
 }
 ```

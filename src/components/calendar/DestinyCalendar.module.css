@@ -4806,8 +4806,8 @@
 
 .actionPlanTimelineGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 14px;
   position: relative;
   z-index: 1;
 }
@@ -4816,15 +4816,15 @@
   background: linear-gradient(160deg, rgba(27, 36, 74, 0.85), rgba(17, 22, 48, 0.9));
   border: 1px solid rgba(148, 163, 184, 0.24);
   border-radius: 16px;
-  padding: 15px 15px 16px;
-  min-height: 168px;
+  padding: 14px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
   transition:
     box-shadow var(--cal-transition-fast),
     border-color var(--cal-transition-fast);
-  box-shadow: 0 6px 20px rgba(2, 6, 23, 0.28);
+  box-shadow: 0 5px 16px rgba(2, 6, 23, 0.24);
   backdrop-filter: blur(3px);
 }
 
@@ -4902,8 +4902,8 @@
 }
 
 .actionPlanTimelineBadge {
-  font-size: 13px;
-  padding: 4px 10px;
+  font-size: 12px;
+  padding: 3px 8px;
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.7);
   border: 1px solid rgba(148, 163, 184, 0.45);
@@ -4911,13 +4911,21 @@
   font-weight: 700;
 }
 
+.actionPlanTimelineMetaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .actionPlanTimelineConfidence {
   font-size: 12px;
-  color: #c7d2fe;
-  background: rgba(30, 41, 59, 0.62);
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #cbd5f5;
+  background: rgba(30, 41, 59, 0.44);
+  border: 1px solid rgba(148, 163, 184, 0.26);
   border-radius: 999px;
-  padding: 4px 8px;
+  padding: 3px 8px;
   width: fit-content;
 }
 
@@ -4939,9 +4947,19 @@
 }
 
 .actionPlanTimelineWhy {
-  font-size: 13px;
-  color: #bfdbfe;
-  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+  color: #cfe3ff;
+  line-height: 1.55;
+}
+
+.actionPlanTimelineWhyLabel {
+  font-size: 11px;
+  font-weight: 800;
+  color: #93c5fd;
+  letter-spacing: 0.15px;
 }
 
 .actionPlanTimelineWhyMeta {
@@ -4952,7 +4970,10 @@
 }
 
 .actionPlanTimelineGuardrail {
-  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
   color: #fef3c7;
   background: rgba(217, 119, 6, 0.16);
   border: 1px solid rgba(251, 191, 36, 0.35);
@@ -4961,18 +4982,50 @@
   line-height: 1.5;
 }
 
+.actionPlanTimelineGuardrailLabel {
+  font-size: 11px;
+  font-weight: 800;
+  color: #fcd34d;
+  letter-spacing: 0.15px;
+}
+
 .actionPlanTimelineConfidenceReason {
   font-size: 12px;
   color: #cbd5e1;
 }
 
 .actionPlanTimelineNote {
-  font-size: 19px;
+  font-size: 18px;
   color: var(--cal-text-primary);
-  line-height: 1.65;
+  line-height: 1.58;
   font-weight: 800;
   letter-spacing: 0.1px;
   text-wrap: pretty;
+}
+
+.actionPlanTimelineDetails {
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+  margin-top: 2px;
+  padding-top: 8px;
+}
+
+.actionPlanTimelineDetailsSummary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: #93c5fd;
+}
+
+.actionPlanTimelineDetailsSummary::-webkit-details-marker {
+  display: none;
+}
+
+.actionPlanTimelineDetailsBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .actionPlanTimelineEvidenceList {
@@ -4980,10 +5033,10 @@
   padding-left: 18px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  font-size: 14px;
-  line-height: 1.55;
-  color: #dbeafe;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #cfe3ff;
 }
 
 .actionPlanTimelineEvidenceList li::marker {
@@ -5195,6 +5248,7 @@
 .largeTextMode .actionPlanTimelineSlotTypeChip,
 .largeTextMode .actionPlanTimelineWhyMeta,
 .largeTextMode .actionPlanTimelineConfidenceReason,
+.largeTextMode .actionPlanTimelineDetailsSummary,
 .largeTextMode .actionPlanEvidenceBadge {
   font-size: 15px;
   line-height: 1.5;
@@ -5457,6 +5511,10 @@
 
   .actionPlanTimelineNote {
     font-size: 17px;
+  }
+
+  .actionPlanTimelineMetaRow {
+    align-items: flex-start;
   }
 
   .actionPlanTimelineEvidenceList {

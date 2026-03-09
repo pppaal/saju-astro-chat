@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-06T03:27:21.185Z",
+  "generatedAt": "2026-03-09T13:27:33.269Z",
   "profile": {
     "name": "1995-02-09 06:40 Seoul",
     "birthDate": "1995-02-09",
@@ -11,7 +11,7 @@
     "gender": "male"
   },
   "basis": {
-    "todayIso": "2026-03-06",
+    "todayIso": "2026-03-09",
     "assumption": {
       "genderAffectsDaeunDirection": true
     }
@@ -1081,246 +1081,246 @@
       "planets": [
         {
           "name": "Sun",
-          "longitude": 345.1866399664213,
+          "longitude": 348.60506340815255,
           "sign": "Pisces",
-          "degree": 15,
-          "minute": 11,
-          "formatted": "Pisces 15deg 11'",
-          "norm": 345.18663996642135,
-          "house": 2,
-          "speed": 1.0012534142385745,
+          "degree": 18,
+          "minute": 36,
+          "formatted": "Pisces 18deg 36'",
+          "norm": 348.60506340815255,
+          "house": 9,
+          "speed": 0.9997060880845642,
           "retrograde": false
         },
         {
           "name": "Moon",
-          "longitude": 192.54371994474414,
-          "sign": "Libra",
-          "degree": 12,
-          "minute": 32,
-          "formatted": "Libra 12deg 32'",
-          "norm": 192.5437199447441,
-          "house": 9,
-          "speed": 12.661243224412491,
+          "longitude": 234.4540725255325,
+          "sign": "Scorpio",
+          "degree": 24,
+          "minute": 27,
+          "formatted": "Scorpio 24deg 27'",
+          "norm": 234.45407252553252,
+          "house": 5,
+          "speed": 11.962146119974491,
           "retrograde": false
         },
         {
           "name": "Mercury",
-          "longitude": 348.5365929930683,
+          "longitude": 345.13224443048034,
           "sign": "Pisces",
-          "degree": 18,
-          "minute": 32,
-          "formatted": "Pisces 18deg 32'",
-          "norm": 348.5365929930683,
-          "house": 2,
-          "speed": -0.9424823392418571,
+          "degree": 15,
+          "minute": 7,
+          "formatted": "Pisces 15deg 07'",
+          "norm": 345.13224443048034,
+          "house": 9,
+          "speed": -1.0042344874964977,
           "retrograde": true
         },
         {
           "name": "Venus",
-          "longitude": 359.1545262435887,
-          "sign": "Pisces",
-          "degree": 29,
-          "minute": 9,
-          "formatted": "Pisces 29deg 09'",
-          "norm": 359.15452624358863,
-          "house": 3,
-          "speed": 1.244551284100229,
+          "longitude": 3.404555403835565,
+          "sign": "Aries",
+          "degree": 3,
+          "minute": 24,
+          "formatted": "Aries 3deg 24'",
+          "norm": 3.404555403835559,
+          "house": 10,
+          "speed": 1.2431738688416847,
           "retrograde": false
         },
         {
           "name": "Mars",
-          "longitude": 332.5013173257,
+          "longitude": 335.1931361419844,
           "sign": "Pisces",
-          "degree": 2,
-          "minute": 30,
-          "formatted": "Pisces 2deg 30'",
-          "norm": 332.50131732570003,
-          "house": 2,
-          "speed": 0.7878623433437114,
+          "degree": 5,
+          "minute": 11,
+          "formatted": "Pisces 5deg 11'",
+          "norm": 335.1931361419844,
+          "house": 9,
+          "speed": 0.7877561677033876,
           "retrograde": false
         },
         {
           "name": "Jupiter",
-          "longitude": 105.13460870295565,
+          "longitude": 105.09356539796347,
           "sign": "Cancer",
           "degree": 15,
-          "minute": 8,
-          "formatted": "Cancer 15deg 08'",
-          "norm": 105.13460870295563,
-          "house": 7,
-          "speed": -0.017605573229509563,
+          "minute": 5,
+          "formatted": "Cancer 15deg 05'",
+          "norm": 105.09356539796346,
+          "house": 12,
+          "speed": -0.006414078778653292,
           "retrograde": true
         },
         {
           "name": "Saturn",
-          "longitude": 2.2972539362938322,
+          "longitude": 2.71327849338222,
           "sign": "Aries",
           "degree": 2,
-          "minute": 17,
-          "formatted": "Aries 2deg 17'",
-          "norm": 2.297253936293828,
-          "house": 3,
-          "speed": 0.12113458440220039,
+          "minute": 42,
+          "formatted": "Aries 2deg 42'",
+          "norm": 2.7132784933822336,
+          "house": 10,
+          "speed": 0.12234898746570753,
           "retrograde": false
         },
         {
           "name": "Uranus",
-          "longitude": 57.844374139979514,
+          "longitude": 57.93573983014633,
           "sign": "Taurus",
           "degree": 27,
-          "minute": 50,
-          "formatted": "Taurus 27deg 50'",
-          "norm": 57.84437413997949,
-          "house": 5,
-          "speed": 0.025388458989828916,
+          "minute": 56,
+          "formatted": "Taurus 27deg 56'",
+          "norm": 57.935739830146304,
+          "house": 11,
+          "speed": 0.028082284263452342,
           "retrograde": false
         },
         {
           "name": "Neptune",
-          "longitude": 1.2171926972900333,
+          "longitude": 1.3433549994164347,
           "sign": "Aries",
           "degree": 1,
-          "minute": 13,
-          "formatted": "Aries 1deg 13'",
-          "norm": 1.217192697290045,
-          "house": 3,
-          "speed": 0.03667543158164733,
+          "minute": 20,
+          "formatted": "Aries 1deg 20'",
+          "norm": 1.3433549994164196,
+          "house": 10,
+          "speed": 0.03715866729554641,
           "retrograde": false
         },
         {
           "name": "Pluto",
-          "longitude": 304.65917878712963,
+          "longitude": 304.74523552127687,
           "sign": "Aquarius",
           "degree": 4,
-          "minute": 39,
-          "formatted": "Aquarius 4deg 39'",
-          "norm": 304.6591787871296,
-          "house": 1,
-          "speed": 0.025678796091007036,
+          "minute": 44,
+          "formatted": "Aquarius 4deg 44'",
+          "norm": 304.74523552127687,
+          "house": 7,
+          "speed": 0.024683868372647782,
           "retrograde": false
         },
         {
           "name": "True Node",
-          "longitude": 338.9694604808958,
+          "longitude": 338.91010745221956,
           "sign": "Pisces",
           "degree": 8,
-          "minute": 58,
-          "formatted": "Pisces 8deg 58'",
-          "norm": 338.9694604808958,
-          "house": 2,
-          "speed": -0.012510862994294073,
+          "minute": 54,
+          "formatted": "Pisces 8deg 54'",
+          "norm": 338.91010745221956,
+          "house": 9,
+          "speed": -0.016638454703216107,
           "retrograde": true
         }
       ],
       "ascendant": {
         "name": "Ascendant",
-        "longitude": 277.39567238584635,
-        "sign": "Capricorn",
-        "degree": 7,
-        "minute": 23,
-        "formatted": "Capricorn 7deg 23'",
-        "norm": 277.3956723858464,
+        "longitude": 107.63947507592111,
+        "sign": "Cancer",
+        "degree": 17,
+        "minute": 38,
+        "formatted": "Cancer 17deg 38'",
+        "norm": 107.6394750759211,
         "house": 1
       },
       "mc": {
         "name": "MC",
-        "longitude": 209.39355494698452,
-        "sign": "Libra",
-        "degree": 29,
-        "minute": 23,
-        "formatted": "Libra 29deg 23'",
-        "norm": 209.39355494698452,
+        "longitude": 0.8169231427137128,
+        "sign": "Aries",
+        "degree": 0,
+        "minute": 49,
+        "formatted": "Aries 0deg 49'",
+        "norm": 0.8169231427137333,
         "house": 10
       },
       "houses": [
         {
           "index": 1,
-          "cusp": 277.39567238584635,
-          "sign": "Capricorn",
-          "formatted": "Capricorn 7deg 23'",
+          "cusp": 107.63947507592111,
+          "sign": "Cancer",
+          "formatted": "Cancer 17deg 38'",
           "graphId": "H1"
         },
         {
           "index": 2,
-          "cusp": 316.4323533208196,
-          "sign": "Aquarius",
-          "formatted": "Aquarius 16deg 25'",
+          "cusp": 128.11848549494255,
+          "sign": "Leo",
+          "formatted": "Leo 8deg 07'",
           "graphId": "H2"
         },
         {
           "index": 3,
-          "cusp": 356.72892044055055,
-          "sign": "Pisces",
-          "formatted": "Pisces 26deg 43'",
+          "cusp": 151.5766427337089,
+          "sign": "Virgo",
+          "formatted": "Virgo 1deg 34'",
           "graphId": "H3"
         },
         {
           "index": 4,
-          "cusp": 29.393554946984523,
-          "sign": "Aries",
-          "formatted": "Aries 29deg 23'",
+          "cusp": 180.8169231427137,
+          "sign": "Libra",
+          "formatted": "Libra 0deg 49'",
           "graphId": "H4"
         },
         {
           "index": 5,
-          "cusp": 54.59737284241993,
-          "sign": "Taurus",
-          "formatted": "Taurus 24deg 35'",
+          "cusp": 216.69879960183687,
+          "sign": "Scorpio",
+          "formatted": "Scorpio 6deg 41'",
           "graphId": "H5"
         },
         {
           "index": 6,
-          "cusp": 76.01799531955976,
-          "sign": "Gemini",
-          "formatted": "Gemini 16deg 01'",
+          "cusp": 254.4774837598154,
+          "sign": "Sagittarius",
+          "formatted": "Sagittarius 14deg 28'",
           "graphId": "H6"
         },
         {
           "index": 7,
-          "cusp": 97.39567238584635,
-          "sign": "Cancer",
-          "formatted": "Cancer 7deg 23'",
+          "cusp": 287.6394750759211,
+          "sign": "Capricorn",
+          "formatted": "Capricorn 17deg 38'",
           "graphId": "H7"
         },
         {
           "index": 8,
-          "cusp": 136.43235332081957,
-          "sign": "Leo",
-          "formatted": "Leo 16deg 25'",
+          "cusp": 308.11848549494255,
+          "sign": "Aquarius",
+          "formatted": "Aquarius 8deg 07'",
           "graphId": "H8"
         },
         {
           "index": 9,
-          "cusp": 176.7289204405506,
-          "sign": "Virgo",
-          "formatted": "Virgo 26deg 43'",
+          "cusp": 331.5766427337089,
+          "sign": "Pisces",
+          "formatted": "Pisces 1deg 34'",
           "graphId": "H9"
         },
         {
           "index": 10,
-          "cusp": 209.39355494698452,
-          "sign": "Libra",
-          "formatted": "Libra 29deg 23'",
+          "cusp": 0.8169231427137128,
+          "sign": "Aries",
+          "formatted": "Aries 0deg 49'",
           "graphId": "H10"
         },
         {
           "index": 11,
-          "cusp": 234.59737284241993,
-          "sign": "Scorpio",
-          "formatted": "Scorpio 24deg 35'",
+          "cusp": 36.69879960183685,
+          "sign": "Taurus",
+          "formatted": "Taurus 6deg 41'",
           "graphId": "H11"
         },
         {
           "index": 12,
-          "cusp": 256.01799531955976,
-          "sign": "Sagittarius",
-          "formatted": "Sagittarius 16deg 01'",
+          "cusp": 74.4774837598154,
+          "sign": "Gemini",
+          "formatted": "Gemini 14deg 28'",
           "graphId": "H12"
         }
       ],
       "meta": {
-        "jdUT": 2461105.2689930554,
-        "isoUTC": "2026-03-06T03:27:21.185Z",
+        "jdUT": 2461108.685798611,
+        "isoUTC": "2026-03-09T13:27:33.269Z",
         "timeZone": "Asia/Seoul",
         "latitude": 37.5665,
         "longitude": 126.978,
@@ -1330,50 +1330,6 @@
     "majorTransits": [
       {
         "from": {
-          "name": "Jupiter",
-          "kind": "transit",
-          "house": 10,
-          "sign": "Sagittarius",
-          "longitude": 251.5066523290807
-        },
-        "to": {
-          "name": "Moon",
-          "kind": "natal",
-          "house": 9,
-          "sign": "Libra",
-          "longitude": 192.54371994474414
-        },
-        "type": "trine",
-        "orb": 1.0370676156634318,
-        "score": 0.8114422516975579,
-        "transitPlanet": "Jupiter",
-        "natalPoint": "Moon",
-        "isApplying": false
-      },
-      {
-        "from": {
-          "name": "Uranus",
-          "kind": "transit",
-          "house": 12,
-          "sign": "Capricorn",
-          "longitude": 297.73848781308584
-        },
-        "to": {
-          "name": "Venus",
-          "kind": "natal",
-          "house": 3,
-          "sign": "Pisces",
-          "longitude": 359.1545262435887
-        },
-        "type": "trine",
-        "orb": 1.4160384305028515,
-        "score": 0.7821479337687921,
-        "transitPlanet": "Uranus",
-        "natalPoint": "Venus",
-        "isApplying": true
-      },
-      {
-        "from": {
           "name": "Pluto",
           "kind": "transit",
           "house": 10,
@@ -1381,17 +1337,61 @@
           "longitude": 240.44551487953368
         },
         "to": {
-          "name": "Venus",
+          "name": "MC",
           "kind": "natal",
-          "house": 3,
-          "sign": "Pisces",
-          "longitude": 359.1545262435887
+          "house": 10,
+          "sign": "Aries",
+          "longitude": 0.8169231427137128
         },
         "type": "sextile",
-        "orb": 1.2909886359449843,
-        "score": 0.7694663150098242,
+        "orb": 0.3714082631800011,
+        "score": 0.9336770958607141,
         "transitPlanet": "Pluto",
-        "natalPoint": "Venus",
+        "natalPoint": "MC",
+        "isApplying": true
+      },
+      {
+        "from": {
+          "name": "Neptune",
+          "kind": "transit",
+          "house": 12,
+          "sign": "Capricorn",
+          "longitude": 294.01578820080937
+        },
+        "to": {
+          "name": "Moon",
+          "kind": "natal",
+          "house": 5,
+          "sign": "Scorpio",
+          "longitude": 234.4540725255325
+        },
+        "type": "trine",
+        "orb": 0.4382843247230994,
+        "score": 0.9325716423502924,
+        "transitPlanet": "Neptune",
+        "natalPoint": "Moon",
+        "isApplying": false
+      },
+      {
+        "from": {
+          "name": "Saturn",
+          "kind": "transit",
+          "house": 1,
+          "sign": "Pisces",
+          "longitude": 341.9717864716233
+        },
+        "to": {
+          "name": "Mercury",
+          "kind": "natal",
+          "house": 9,
+          "sign": "Pisces",
+          "longitude": 345.13224443048034
+        },
+        "type": "opposition",
+        "orb": 3.160457958857023,
+        "score": 0.5610475057143023,
+        "transitPlanet": "Saturn",
+        "natalPoint": "Mercury",
         "isApplying": true
       },
       {
@@ -1406,15 +1406,81 @@
           "name": "MC",
           "kind": "natal",
           "house": 10,
-          "sign": "Libra",
-          "longitude": 209.39355494698452
+          "sign": "Aries",
+          "longitude": 0.8169231427137128
         },
-        "type": "square",
-        "orb": 1.655067133898683,
-        "score": 0.7453742870925103,
+        "type": "trine",
+        "orb": 3.078435329627837,
+        "score": 0.5263945646726405,
         "transitPlanet": "Uranus",
         "natalPoint": "MC",
+        "isApplying": true
+      },
+      {
+        "from": {
+          "name": "Uranus",
+          "kind": "transit",
+          "house": 12,
+          "sign": "Capricorn",
+          "longitude": 297.73848781308584
+        },
+        "to": {
+          "name": "Moon",
+          "kind": "natal",
+          "house": 5,
+          "sign": "Scorpio",
+          "longitude": 234.4540725255325
+        },
+        "type": "trine",
+        "orb": 3.2844152875533155,
+        "score": 0.494705340376413,
+        "transitPlanet": "Uranus",
+        "natalPoint": "Moon",
         "isApplying": false
+      },
+      {
+        "from": {
+          "name": "Pluto",
+          "kind": "transit",
+          "house": 10,
+          "sign": "Sagittarius",
+          "longitude": 240.44551487953368
+        },
+        "to": {
+          "name": "Venus",
+          "kind": "natal",
+          "house": 10,
+          "sign": "Aries",
+          "longitude": 3.404555403835565
+        },
+        "type": "sextile",
+        "orb": 2.9590405243018267,
+        "score": 0.47159990637467375,
+        "transitPlanet": "Pluto",
+        "natalPoint": "Venus",
+        "isApplying": true
+      },
+      {
+        "from": {
+          "name": "Jupiter",
+          "kind": "transit",
+          "house": 10,
+          "sign": "Sagittarius",
+          "longitude": 251.5066523290807
+        },
+        "to": {
+          "name": "Mercury",
+          "kind": "natal",
+          "house": 9,
+          "sign": "Pisces",
+          "longitude": 345.13224443048034
+        },
+        "type": "square",
+        "orb": 3.6255921013996613,
+        "score": 0.3408014361091525,
+        "transitPlanet": "Jupiter",
+        "natalPoint": "Mercury",
+        "isApplying": true
       },
       {
         "from": {
@@ -1427,103 +1493,59 @@
         "to": {
           "name": "Mars",
           "kind": "natal",
-          "house": 2,
+          "house": 9,
           "sign": "Pisces",
-          "longitude": 332.5013173257
+          "longitude": 335.1931361419844
         },
         "type": "square",
-        "orb": 2.0558024461662967,
-        "score": 0.7063139362619576,
+        "orb": 4.747621262450707,
+        "score": 0.32176839107847044,
         "transitPlanet": "Pluto",
         "natalPoint": "Mars",
         "isApplying": true
       },
       {
         "from": {
-          "name": "Saturn",
-          "kind": "transit",
-          "house": 1,
-          "sign": "Pisces",
-          "longitude": 341.9717864716233
-        },
-        "to": {
-          "name": "Sun",
-          "kind": "natal",
-          "house": 2,
-          "sign": "Pisces",
-          "longitude": 345.1866399664213
-        },
-        "type": "opposition",
-        "orb": 3.214853494798035,
-        "score": 0.5534925701669395,
-        "transitPlanet": "Saturn",
-        "natalPoint": "Sun",
-        "isApplying": true
-      },
-      {
-        "from": {
-          "name": "Jupiter",
+          "name": "Pluto",
           "kind": "transit",
           "house": 10,
           "sign": "Sagittarius",
-          "longitude": 251.5066523290807
+          "longitude": 240.44551487953368
         },
         "to": {
-          "name": "Sun",
+          "name": "Moon",
           "kind": "natal",
-          "house": 2,
-          "sign": "Pisces",
-          "longitude": 345.1866399664213
+          "house": 5,
+          "sign": "Scorpio",
+          "longitude": 234.4540725255325
         },
-        "type": "square",
-        "orb": 3.6799876373405596,
-        "score": 0.3309113386653528,
-        "transitPlanet": "Jupiter",
-        "natalPoint": "Sun",
-        "isApplying": true
+        "type": "opposition",
+        "orb": 5.991442354001151,
+        "score": 0.2867330530951009,
+        "transitPlanet": "Pluto",
+        "natalPoint": "Moon",
+        "isApplying": false
       },
       {
         "from": {
-          "name": "Saturn",
+          "name": "Neptune",
           "kind": "transit",
-          "house": 1,
-          "sign": "Pisces",
-          "longitude": 341.9717864716233
+          "house": 12,
+          "sign": "Capricorn",
+          "longitude": 294.01578820080937
         },
         "to": {
           "name": "Ascendant",
           "kind": "natal",
           "house": 1,
-          "sign": "Capricorn",
-          "longitude": 277.39567238584635
+          "sign": "Cancer",
+          "longitude": 107.63947507592111
         },
-        "type": "trine",
-        "orb": 4.576114085776908,
-        "score": 0.23731431903718203,
-        "transitPlanet": "Saturn",
-        "natalPoint": "Ascendant",
-        "isApplying": false
-      },
-      {
-        "from": {
-          "name": "Neptune",
-          "kind": "transit",
-          "house": 12,
-          "sign": "Capricorn",
-          "longitude": 294.01578820080937
-        },
-        "to": {
-          "name": "Venus",
-          "kind": "natal",
-          "house": 3,
-          "sign": "Pisces",
-          "longitude": 359.1545262435887
-        },
-        "type": "trine",
-        "orb": 5.138738042779323,
-        "score": 0.20942491649548878,
+        "type": "conjunction",
+        "orb": 6.37631312488827,
+        "score": 0.18252395834765778,
         "transitPlanet": "Neptune",
-        "natalPoint": "Venus",
+        "natalPoint": "Ascendant",
         "isApplying": true
       },
       {
@@ -1535,39 +1557,39 @@
           "longitude": 294.01578820080937
         },
         "to": {
-          "name": "MC",
+          "name": "Sun",
           "kind": "natal",
-          "house": 10,
-          "sign": "Libra",
-          "longitude": 209.39355494698452
+          "house": 9,
+          "sign": "Pisces",
+          "longitude": 348.60506340815255
         },
-        "type": "square",
-        "orb": 5.377766746175212,
-        "score": 0.1726512698191982,
+        "type": "trine",
+        "orb": 5.410724792656822,
+        "score": 0.16758080112971974,
         "transitPlanet": "Neptune",
-        "natalPoint": "MC",
-        "isApplying": false
+        "natalPoint": "Sun",
+        "isApplying": true
       },
       {
         "from": {
-          "name": "Neptune",
+          "name": "Uranus",
           "kind": "transit",
           "house": 12,
           "sign": "Capricorn",
-          "longitude": 294.01578820080937
+          "longitude": 297.73848781308584
         },
         "to": {
-          "name": "Mercury",
+          "name": "Venus",
           "kind": "natal",
-          "house": 2,
-          "sign": "Pisces",
-          "longitude": 348.5365929930683
+          "house": 10,
+          "sign": "Aries",
+          "longitude": 3.404555403835565
         },
         "type": "trine",
-        "orb": 5.479195207741043,
-        "score": 0.15704689111676262,
-        "transitPlanet": "Neptune",
-        "natalPoint": "Mercury",
+        "orb": 5.6660675907496625,
+        "score": 0.1282972937308211,
+        "transitPlanet": "Uranus",
+        "natalPoint": "Venus",
         "isApplying": true
       },
       {
@@ -1579,18 +1601,40 @@
           "longitude": 341.9717864716233
         },
         "to": {
-          "name": "Mercury",
+          "name": "Sun",
           "kind": "natal",
-          "house": 2,
+          "house": 9,
           "sign": "Pisces",
-          "longitude": 348.5365929930683
+          "longitude": 348.60506340815255
         },
         "type": "opposition",
-        "orb": 6.564806521445007,
-        "score": 0.0882213164659712,
+        "orb": 6.633276936529228,
+        "score": 0.07871153659316266,
         "transitPlanet": "Saturn",
-        "natalPoint": "Mercury",
+        "natalPoint": "Sun",
         "isApplying": true
+      },
+      {
+        "from": {
+          "name": "Saturn",
+          "kind": "transit",
+          "house": 1,
+          "sign": "Pisces",
+          "longitude": 341.9717864716233
+        },
+        "to": {
+          "name": "Mars",
+          "kind": "natal",
+          "house": 9,
+          "sign": "Pisces",
+          "longitude": 335.1931361419844
+        },
+        "type": "opposition",
+        "orb": 6.7786503296389355,
+        "score": 0.05852078755014778,
+        "transitPlanet": "Saturn",
+        "natalPoint": "Mars",
+        "isApplying": false
       }
     ],
     "extraPoints": {
@@ -1685,377 +1729,377 @@
       "planets": [
         {
           "name": "Sun",
-          "longitude": 350.9244272928812,
+          "longitude": 350.93332788013726,
           "sign": "Pisces",
           "degree": 20,
           "minute": 55,
           "formatted": "Pisces 20deg 55'",
-          "norm": 350.9244272928812,
+          "norm": 350.9333278801373,
           "house": 12,
-          "speed": 0.9982097001307321,
+          "speed": 0.9982042632844823,
           "retrograde": false
         },
         {
           "name": "Moon",
-          "longitude": 109.09829916504411,
+          "longitude": 109.20818423699353,
           "sign": "Cancer",
           "degree": 19,
-          "minute": 5,
-          "formatted": "Cancer 19deg 05'",
-          "norm": 109.09829916504412,
-          "house": 4,
-          "speed": 12.322414305142711,
+          "minute": 12,
+          "formatted": "Cancer 19deg 12'",
+          "norm": 109.20818423699353,
+          "house": 3,
+          "speed": 12.324909076256803,
           "retrograde": false
         },
         {
           "name": "Mercury",
-          "longitude": 325.9437285597265,
+          "longitude": 325.95578375537934,
           "sign": "Aquarius",
           "degree": 25,
-          "minute": 56,
-          "formatted": "Aquarius 25deg 56'",
-          "norm": 325.9437285597264,
+          "minute": 57,
+          "formatted": "Aquarius 25deg 57'",
+          "norm": 325.95578375537934,
           "house": 11,
-          "speed": 1.351886243421868,
+          "speed": 1.3521141632130167,
           "retrograde": false
         },
         {
           "name": "Venus",
-          "longitude": 310.66983061245776,
+          "longitude": 310.6803815325381,
           "sign": "Aquarius",
           "degree": 10,
           "minute": 40,
           "formatted": "Aquarius 10deg 40'",
-          "norm": 310.66983061245776,
+          "norm": 310.68038153253815,
           "house": 10,
-          "speed": 1.1832898119584887,
+          "speed": 1.1832984022639288,
           "retrograde": false
         },
         {
           "name": "Mars",
-          "longitude": 134.1927832515669,
+          "longitude": 134.1913272441901,
           "sign": "Leo",
           "degree": 14,
           "minute": 11,
           "formatted": "Leo 14deg 11'",
-          "norm": 134.19278325156688,
-          "house": 5,
-          "speed": -0.16335049440823812,
+          "norm": 134.19132724419012,
+          "house": 4,
+          "speed": -0.16323344098496362,
           "retrograde": true
         },
         {
           "name": "Jupiter",
-          "longitude": 254.7312350967255,
+          "longitude": 254.7317929494296,
           "sign": "Sagittarius",
           "degree": 14,
           "minute": 43,
           "formatted": "Sagittarius 14deg 43'",
-          "norm": 254.73123509672553,
+          "norm": 254.73179294942963,
           "house": 8,
-          "speed": 0.06257652464325697,
+          "speed": 0.06255072794879726,
           "retrograde": false
         },
         {
           "name": "Saturn",
-          "longitude": 345.7371029914857,
+          "longitude": 345.73819544139445,
           "sign": "Pisces",
           "degree": 15,
           "minute": 44,
           "formatted": "Pisces 15deg 44'",
-          "norm": 345.7371029914857,
-          "house": 12,
-          "speed": 0.1225197765655718,
+          "norm": 345.7381954413945,
+          "house": 11,
+          "speed": 0.12251868128982965,
           "retrograde": false
         },
         {
           "name": "Uranus",
-          "longitude": 299.28205102037106,
+          "longitude": 299.2824235663628,
           "sign": "Capricorn",
           "degree": 29,
           "minute": 16,
           "formatted": "Capricorn 29deg 16'",
-          "norm": 299.282051020371,
+          "norm": 299.2824235663628,
           "house": 10,
-          "speed": 0.04178403881267448,
+          "speed": 0.04177854219637365,
           "retrograde": false
         },
         {
           "name": "Neptune",
-          "longitude": 294.95643503510365,
+          "longitude": 294.9566528814409,
           "sign": "Capricorn",
           "degree": 24,
           "minute": 57,
           "formatted": "Capricorn 24deg 57'",
-          "norm": 294.9564350351036,
+          "norm": 294.95665288144096,
           "house": 10,
-          "speed": 0.024433526779220928,
+          "speed": 0.02442954026383138,
           "retrograde": false
         },
         {
           "name": "Pluto",
-          "longitude": 240.58719596758124,
+          "longitude": 240.58715566467885,
           "sign": "Sagittarius",
           "degree": 0,
           "minute": 35,
           "formatted": "Sagittarius 0deg 35'",
-          "norm": 240.58719596758124,
+          "norm": 240.5871556646789,
           "house": 7,
-          "speed": -0.004516546200197327,
+          "speed": -0.004521643002933719,
           "retrograde": true
         },
         {
           "name": "True Node",
-          "longitude": 216.6774091372174,
+          "longitude": 216.67671561020862,
           "sign": "Scorpio",
           "degree": 6,
           "minute": 40,
           "formatted": "Scorpio 6deg 40'",
-          "norm": 216.6774091372174,
+          "norm": 216.6767156102086,
           "house": 7,
-          "speed": -0.07764304053565832,
+          "speed": -0.07791573522626805,
           "retrograde": true
         }
       ],
       "ascendant": {
         "name": "Ascendant",
-        "longitude": 28.547416273819596,
-        "sign": "Aries",
-        "degree": 28,
-        "minute": 32,
-        "formatted": "Aries 28deg 32'",
-        "norm": 28.54741627381958,
+        "longitude": 33.32171029324718,
+        "sign": "Taurus",
+        "degree": 3,
+        "minute": 19,
+        "formatted": "Taurus 3deg 19'",
+        "norm": 33.32171029324718,
         "house": 1
       },
       "mc": {
         "name": "MC",
-        "longitude": 286.56376399718636,
+        "longitude": 289.5704198046211,
         "sign": "Capricorn",
-        "degree": 16,
-        "minute": 33,
-        "formatted": "Capricorn 16deg 33'",
-        "norm": 286.56376399718636,
+        "degree": 19,
+        "minute": 34,
+        "formatted": "Capricorn 19deg 34'",
+        "norm": 289.5704198046211,
         "house": 10
       },
       "houses": [
         {
           "index": 1,
-          "cusp": 28.547416273819596,
-          "sign": "Aries",
-          "formatted": "Aries 28deg 32'",
+          "cusp": 33.32171029324718,
+          "sign": "Taurus",
+          "formatted": "Taurus 3deg 19'",
           "graphId": "H1"
         },
         {
           "index": 2,
-          "cusp": 61.16914676584332,
+          "cusp": 64.62911208419416,
           "sign": "Gemini",
-          "formatted": "Gemini 1deg 10'",
+          "formatted": "Gemini 4deg 37'",
           "graphId": "H2"
         },
         {
           "index": 3,
-          "cusp": 84.87982311943473,
+          "cusp": 87.8595705003776,
           "sign": "Gemini",
-          "formatted": "Gemini 24deg 52'",
+          "formatted": "Gemini 27deg 51'",
           "graphId": "H3"
         },
         {
           "index": 4,
-          "cusp": 106.56376399718636,
+          "cusp": 109.57041980462111,
           "sign": "Cancer",
-          "formatted": "Cancer 16deg 33'",
+          "formatted": "Cancer 19deg 34'",
           "graphId": "H4"
         },
         {
           "index": 5,
-          "cusp": 130.82474874020602,
+          "cusp": 134.31421531188982,
           "sign": "Leo",
-          "formatted": "Leo 10deg 49'",
+          "formatted": "Leo 14deg 18'",
           "graphId": "H5"
         },
         {
           "index": 6,
-          "cusp": 163.2542410402816,
+          "cusp": 167.6890901103626,
           "sign": "Virgo",
-          "formatted": "Virgo 13deg 15'",
+          "formatted": "Virgo 17deg 41'",
           "graphId": "H6"
         },
         {
           "index": 7,
-          "cusp": 208.5474162738196,
-          "sign": "Libra",
-          "formatted": "Libra 28deg 32'",
+          "cusp": 213.32171029324718,
+          "sign": "Scorpio",
+          "formatted": "Scorpio 3deg 19'",
           "graphId": "H7"
         },
         {
           "index": 8,
-          "cusp": 241.16914676584332,
+          "cusp": 244.62911208419416,
           "sign": "Sagittarius",
-          "formatted": "Sagittarius 1deg 10'",
+          "formatted": "Sagittarius 4deg 37'",
           "graphId": "H8"
         },
         {
           "index": 9,
-          "cusp": 264.8798231194347,
+          "cusp": 267.8595705003776,
           "sign": "Sagittarius",
-          "formatted": "Sagittarius 24deg 52'",
+          "formatted": "Sagittarius 27deg 51'",
           "graphId": "H9"
         },
         {
           "index": 10,
-          "cusp": 286.56376399718636,
+          "cusp": 289.5704198046211,
           "sign": "Capricorn",
-          "formatted": "Capricorn 16deg 33'",
+          "formatted": "Capricorn 19deg 34'",
           "graphId": "H10"
         },
         {
           "index": 11,
-          "cusp": 310.824748740206,
+          "cusp": 314.3142153118898,
           "sign": "Aquarius",
-          "formatted": "Aquarius 10deg 49'",
+          "formatted": "Aquarius 14deg 18'",
           "graphId": "H11"
         },
         {
           "index": 12,
-          "cusp": 343.25424104028156,
+          "cusp": 347.6890901103626,
           "sign": "Pisces",
-          "formatted": "Pisces 13deg 15'",
+          "formatted": "Pisces 17deg 41'",
           "graphId": "H12"
         }
       ],
       "progressionType": "secondary",
-      "yearsProgressed": 31.07,
+      "yearsProgressed": 31.08,
       "progressedDate": "1995-03-12"
     },
     "solarArcDirections": {
       "planets": [
         {
           "name": "Sun",
-          "longitude": 350.9244272928812,
+          "longitude": 350.9333278801373,
           "sign": "Pisces",
           "degree": 20,
           "minute": 55,
           "formatted": "Pisces 20deg 55'",
-          "norm": 350.9244272928812,
+          "norm": 350.9333278801373,
           "house": 2,
           "speed": 1.0125452038963718,
           "retrograde": false
         },
         {
           "name": "Moon",
-          "longitude": 95.65422379098891,
+          "longitude": 95.66312437824496,
           "sign": "Cancer",
           "degree": 5,
           "minute": 39,
           "formatted": "Cancer 5deg 39'",
-          "norm": 95.65422379098891,
+          "norm": 95.66312437824496,
           "house": 5,
           "speed": 11.800764547295014,
           "retrograde": false
         },
         {
           "name": "Mercury",
-          "longitude": 340.3082778893679,
+          "longitude": 340.3171784766239,
           "sign": "Pisces",
           "degree": 10,
-          "minute": 18,
-          "formatted": "Pisces 10deg 18'",
-          "norm": 340.3082778893679,
+          "minute": 19,
+          "formatted": "Pisces 10deg 19'",
+          "norm": 340.3171784766239,
           "house": 1,
           "speed": -0.9378894903473167,
           "retrograde": true
         },
         {
           "name": "Venus",
-          "longitude": 305.83120476398335,
+          "longitude": 305.84010535123934,
           "sign": "Aquarius",
           "degree": 5,
-          "minute": 49,
-          "formatted": "Aquarius 5deg 49'",
-          "norm": 305.83120476398335,
+          "minute": 50,
+          "formatted": "Aquarius 5deg 50'",
+          "norm": 305.84010535123934,
           "house": 1,
           "speed": 1.1310411576018333,
           "retrograde": false
         },
         {
           "name": "Mars",
-          "longitude": 175.44062624963374,
+          "longitude": 175.44952683688985,
           "sign": "Virgo",
           "degree": 25,
           "minute": 26,
           "formatted": "Virgo 25deg 26'",
-          "norm": 175.44062624963374,
+          "norm": 175.44952683688985,
           "house": 8,
           "speed": -0.3961911858966349,
           "retrograde": true
         },
         {
           "name": "Jupiter",
-          "longitude": 282.7668315490512,
+          "longitude": 282.77573213630717,
           "sign": "Capricorn",
           "degree": 12,
           "minute": 46,
           "formatted": "Capricorn 12deg 46'",
-          "norm": 282.7668315490512,
+          "norm": 282.77573213630717,
           "house": 12,
           "speed": 0.14064173238483296,
           "retrograde": false
         },
         {
           "name": "Saturn",
-          "longitude": 13.231965691593757,
+          "longitude": 13.240866278849808,
           "sign": "Aries",
           "degree": 13,
-          "minute": 13,
-          "formatted": "Aries 13deg 13'",
-          "norm": 13.231965691593757,
+          "minute": 14,
+          "formatted": "Aries 13deg 14'",
+          "norm": 13.240866278849808,
           "house": 2,
           "speed": 0.11674366796837224,
           "retrograde": false
         },
         {
           "name": "Uranus",
-          "longitude": 328.99866703305634,
+          "longitude": 329.00756762031233,
           "sign": "Aquarius",
-          "degree": 28,
-          "minute": 59,
-          "formatted": "Aquarius 28deg 59'",
-          "norm": 328.99866703305634,
+          "degree": 29,
+          "minute": 0,
+          "formatted": "Aquarius 29deg 00'",
+          "norm": 329.00756762031233,
           "house": 1,
           "speed": 0.05585693449865477,
           "retrograde": false
         },
         {
           "name": "Neptune",
-          "longitude": 325.2759674207798,
+          "longitude": 325.2848680080358,
           "sign": "Aquarius",
           "degree": 25,
-          "minute": 16,
-          "formatted": "Aquarius 25deg 16'",
-          "norm": 325.2759674207798,
+          "minute": 17,
+          "formatted": "Aquarius 25deg 17'",
+          "norm": 325.2848680080358,
           "house": 1,
           "speed": 0.03499341058857923,
           "retrograde": false
         },
         {
           "name": "Pluto",
-          "longitude": 271.70569409950417,
+          "longitude": 271.71459468676017,
           "sign": "Capricorn",
           "degree": 1,
           "minute": 42,
           "formatted": "Capricorn 1deg 42'",
-          "norm": 271.70569409950417,
+          "norm": 271.71459468676017,
           "house": 11,
           "speed": 0.01365402849247233,
           "retrograde": false
         },
         {
           "name": "True Node",
-          "longitude": 250.60149493539234,
+          "longitude": 250.61039552264845,
           "sign": "Sagittarius",
           "degree": 10,
           "minute": 36,
           "formatted": "Sagittarius 10deg 36'",
-          "norm": 250.60149493539234,
+          "norm": 250.61039552264845,
           "house": 10,
           "speed": -0.027270228452846098,
           "retrograde": true
@@ -2063,22 +2107,22 @@
       ],
       "ascendant": {
         "name": "Ascendant",
-        "longitude": 333.5571280434017,
+        "longitude": 333.5660286306578,
         "sign": "Pisces",
         "degree": 3,
         "minute": 33,
         "formatted": "Pisces 3deg 33'",
-        "norm": 333.5571280434017,
+        "norm": 333.5660286306578,
         "house": 1
       },
       "mc": {
         "name": "MC",
-        "longitude": 264.1617227816073,
+        "longitude": 264.1706233688634,
         "sign": "Sagittarius",
         "degree": 24,
-        "minute": 9,
-        "formatted": "Sagittarius 24deg 09'",
-        "norm": 264.1617227816073,
+        "minute": 10,
+        "formatted": "Sagittarius 24deg 10'",
+        "norm": 264.1706233688634,
         "house": 10
       },
       "houses": [
@@ -2168,8 +2212,8 @@
         }
       ],
       "progressionType": "solarArc",
-      "yearsProgressed": 31.07,
-      "progressedDate": "2026-03-06"
+      "yearsProgressed": 31.08,
+      "progressedDate": "2026-03-09"
     },
     "solarReturn": {
       "planets": [
