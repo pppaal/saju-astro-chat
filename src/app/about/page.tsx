@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { useMemo } from 'react'
@@ -14,16 +14,16 @@ type ServiceCard = {
   href: string
   nameKo: string
   nameEn: string
-  descriptionKo: string
-  descriptionEn: string
+  summaryKo: string
+  summaryEn: string
 }
 
-type StoryScene = {
-  step: string
+type ProcessStep = {
+  id: string
   titleKo: string
   titleEn: string
-  bodyKo: string
-  bodyEn: string
+  descKo: string
+  descEn: string
 }
 
 const SERVICE_DETAILS: Partial<
@@ -33,8 +33,8 @@ const SERVICE_DETAILS: Partial<
       href: string
       nameKo: string
       nameEn: string
-      descriptionKo: string
-      descriptionEn: string
+      summaryKo: string
+      summaryEn: string
     }
   >
 > = {
@@ -42,72 +42,64 @@ const SERVICE_DETAILS: Partial<
     href: '/destiny-counselor',
     nameKo: '운명 상담사',
     nameEn: 'Destiny Counselor',
-    descriptionKo: '질문을 입력하면 바로 상담형 해석을 시작합니다.',
-    descriptionEn: 'Start immediate chat-based counseling with your question.',
+    summaryKo: '질문을 입력하면 계산 근거 기반 상담 답변을 제공합니다.',
+    summaryEn: 'Provides evidence-backed counseling answers from your input.',
   },
   tarot: {
     href: '/tarot',
     nameKo: '타로',
     nameEn: 'Tarot',
-    descriptionKo: '스프레드 기반으로 현재 상황과 선택지를 읽습니다.',
-    descriptionEn: 'Read current context and options through spread-based tarot.',
+    summaryKo: '스프레드 기준으로 현재 상황과 선택지를 정리합니다.',
+    summaryEn: 'Organizes your current context and options by spread.',
   },
   report: {
     href: '/premium-reports',
     nameKo: '리포트',
     nameEn: 'Report',
-    descriptionKo: '무료 요약과 프리미엄 테마 리포트를 제공합니다.',
-    descriptionEn: 'Provides free digest and premium themed reports.',
+    summaryKo: '무료 요약과 프리미엄 리포트로 깊이 있는 해석을 제공합니다.',
+    summaryEn: 'Offers free digest and premium reports for deeper interpretation.',
   },
   calendar: {
     href: '/calendar',
     nameKo: '캘린더',
     nameEn: 'Calendar',
-    descriptionKo: '날짜별 타이밍과 행동 플랜을 확인할 수 있습니다.',
-    descriptionEn: 'Check date-level timing and practical action plans.',
+    summaryKo: '날짜별 기회/주의 구간과 행동 플랜을 확인할 수 있습니다.',
+    summaryEn: 'Shows date-level windows and practical action plans.',
   },
 }
 
-const STORY_SCENES: readonly StoryScene[] = [
+const PROCESS_STEPS: readonly ProcessStep[] = [
   {
-    step: 'SCENE 01',
-    titleKo: '질문을 수집하고 계산 가능한 형태로 정규화',
-    titleEn: 'Normalize user questions into computable inputs',
-    bodyKo:
-      '생년월일·시간·도시·성별 같은 프로필 입력과 현재 질문을 함께 받아, 계산 엔진이 일관되게 처리할 수 있는 입력으로 변환합니다.',
-    bodyEn:
-      'We combine profile inputs and live questions, then normalize them into stable inputs for deterministic computation.',
+    id: '01',
+    titleKo: '입력 정규화',
+    titleEn: 'Input normalization',
+    descKo: '생년월일, 시간, 도시, 성별, 질문을 표준 입력으로 정리해 계산 오차를 줄입니다.',
+    descEn:
+      'Birth/profile/question fields are normalized into a standard input to reduce variance.',
   },
   {
-    step: 'SCENE 02',
-    titleKo: '사주·점성 계산을 Destiny Matrix로 교차',
-    titleEn: 'Cross Saju and astrology in Destiny Matrix',
-    bodyKo:
-      '단일 체계 해석이 아니라, 다층 신호를 매트릭스에서 교차해 강점·주의·균형 신호를 뽑고 패턴/시나리오/전략으로 연결합니다.',
-    bodyEn:
-      'Instead of one-system interpretation, we cross multi-layer signals in matrix and derive strength/caution/balance into pattern/scenario/strategy.',
+    id: '02',
+    titleKo: '사주·점성 계산',
+    titleEn: 'Saju & astrology computation',
+    descKo: '기본 정보와 고급 정보를 함께 계산해 다층 신호를 생성합니다.',
+    descEn: 'Core and advanced calculations produce multi-layer signals.',
   },
   {
-    step: 'SCENE 03',
-    titleKo: '서비스별 출력으로 변환',
-    titleEn: 'Adapt outputs per service',
-    bodyKo:
-      '같은 코어 판단을 채팅·캘린더·리포트 화면에 맞게 재표현합니다. 핵심 claim과 리스크 가드는 서비스별로 일관되게 유지됩니다.',
-    bodyEn:
-      'The same core judgment is adapted for chat, calendar, and report surfaces while preserving claim and risk-control consistency.',
+    id: '03',
+    titleKo: 'Matrix 교차 해석',
+    titleEn: 'Matrix cross-interpretation',
+    descKo: '신호를 강점·주의·균형으로 분류하고 패턴/시나리오/전략으로 연결합니다.',
+    descEn:
+      'Signals are classified into strength/caution/balance and linked to pattern/scenario/strategy.',
+  },
+  {
+    id: '04',
+    titleKo: '서비스별 출력',
+    titleEn: 'Service adaptation',
+    descKo: '동일한 코어 판단을 상담/캘린더/리포트 화면에 맞게 출력합니다.',
+    descEn: 'The same core judgment is adapted to counselor/calendar/report outputs.',
   },
 ]
-
-const ENGINE_FLOW = [
-  'Birth Input',
-  'Cosmic Engine',
-  'Destiny Matrix',
-  'Signal Synthesizer',
-  'Pattern Engine',
-  'Scenario Engine',
-  'Strategy Engine',
-  'Calendar / Report / Counselor',
-] as const
 
 export default function AboutPage() {
   const { translate, locale } = useI18n()
@@ -122,8 +114,8 @@ export default function AboutPage() {
         href: detail?.href || service.path,
         nameKo: detail?.nameKo || '서비스',
         nameEn: detail?.nameEn || 'Service',
-        descriptionKo: detail?.descriptionKo || '핵심 운명 기능을 제공합니다.',
-        descriptionEn: detail?.descriptionEn || 'Provides a core destiny feature.',
+        summaryKo: detail?.summaryKo || '핵심 운명 서비스를 제공합니다.',
+        summaryEn: detail?.summaryEn || 'Provides a core destiny service.',
       }
     })
   }, [])
@@ -136,99 +128,44 @@ export default function AboutPage() {
 
       <main className={styles.main}>
         <section className={styles.hero}>
-          <p className={styles.badge}>About DestinyPal</p>
-          <h1 className={styles.title}>
-            {translate(
-              'about.heroTitle',
-              isKo
-                ? '운명을 추측하지 않습니다. 계산합니다.'
-                : 'We do not guess destiny. We compute it.'
-            )}
-          </h1>
+          <p className={styles.eyebrow}>ABOUT</p>
+          <h1 className={styles.title}>{isKo ? 'DestinyPal 소개' : 'About DestinyPal'}</h1>
           <p className={styles.subtitle}>
-            {translate(
-              'about.heroSubtitle',
-              isKo
-                ? 'DestinyPal은 사주·점성 계산과 매트릭스 해석을 결합해, 상담·캘린더·리포트로 바로 연결되는 실행형 운명 서비스를 만듭니다.'
-                : 'DestinyPal combines Saju and astrology computation with matrix interpretation, then turns it into actionable counseling, calendar, and reports.'
-            )}
+            {isKo
+              ? 'DestinyPal은 사주·점성 계산 결과를 상담, 캘린더, 리포트로 전달하는 운명 서비스입니다. 과장된 문장보다 계산 근거와 일관성을 우선합니다.'
+              : 'DestinyPal delivers Saju/Astrology computation into counselor, calendar, and report products. We prioritize evidence and consistency over hype.'}
           </p>
           <div className={styles.heroActions}>
             <Link href="/destiny-counselor" className={styles.primaryBtn}>
-              {translate('about.ctaPrimary', isKo ? '상담 시작' : 'Start Counseling')}
+              {isKo ? '상담 시작' : 'Start counselor'}
             </Link>
-            <Link href="/premium-reports" className={styles.ghostBtn}>
-              {translate('about.ctaSecondary', isKo ? '리포트 보기' : 'View Reports')}
+            <Link href="/premium-reports" className={styles.secondaryBtn}>
+              {isKo ? '리포트 보기' : 'View reports'}
             </Link>
           </div>
         </section>
 
-        <section className={styles.metricsGrid} aria-label="platform stats">
-          <article className={styles.metricCard}>
-            <p className={styles.metricLabel}>{isKo ? '코어 계산 구조' : 'Core Computation'}</p>
-            <p className={styles.metricValue}>10 Layers</p>
-          </article>
-          <article className={styles.metricCard}>
-            <p className={styles.metricLabel}>{isKo ? '서비스 출력' : 'Service Outputs'}</p>
-            <p className={styles.metricValue}>4 Products</p>
-          </article>
-          <article className={styles.metricCard}>
-            <p className={styles.metricLabel}>{isKo ? '판단 원칙' : 'Judgment Rule'}</p>
-            <p className={styles.metricValue}>
-              {isKo ? 'Deterministic Core' : 'Deterministic Core'}
-            </p>
-          </article>
-        </section>
-
         <section className={styles.section}>
-          <header className={styles.sectionHead}>
-            <p className={styles.sectionEyebrow}>Origin & Method</p>
-            <h2 className={styles.sectionTitle}>
-              {translate(
-                'about.storyTitle',
-                isKo ? '질문이 리포트가 되는 과정' : 'How a question becomes a report'
-              )}
-            </h2>
+          <header className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>{isKo ? '핵심 서비스' : 'Core services'}</h2>
             <p className={styles.sectionDesc}>
-              {translate(
-                'about.storyDesc',
-                isKo
-                  ? '입력부터 계산, 전략, 출력까지 단계별 파이프라인을 고정해 서비스별 품질 편차를 줄였습니다.'
-                  : 'From input to computation, strategy, and output, we keep a fixed pipeline to reduce quality drift across products.'
-              )}
+              {isKo
+                ? '현재 메인에서 바로 사용할 수 있는 4개 서비스입니다.'
+                : 'These are the four services available immediately from the main page.'}
             </p>
           </header>
-          <div className={styles.storyGrid}>
-            {STORY_SCENES.map((scene) => (
-              <article key={scene.step} className={styles.storyCard}>
-                <p className={styles.storyStep}>{scene.step}</p>
-                <h3 className={styles.storyHeading}>{isKo ? scene.titleKo : scene.titleEn}</h3>
-                <p className={styles.storyText}>{isKo ? scene.bodyKo : scene.bodyEn}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className={styles.section}>
-          <header className={styles.sectionHead}>
-            <p className={styles.sectionEyebrow}>Products</p>
-            <h2 className={styles.sectionTitle}>
-              {translate(
-                'about.servicesTitle',
-                isKo ? '바로 사용할 수 있는 핵심 서비스' : 'Core services you can use immediately'
-              )}
-            </h2>
-          </header>
-          <div className={styles.servicesGrid}>
+          <div className={styles.serviceGrid}>
             {services.map((service) => (
               <article key={service.id} className={styles.serviceCard}>
-                <div className={styles.serviceIcon}>{service.icon}</div>
-                <h3 className={styles.serviceName}>{isKo ? service.nameKo : service.nameEn}</h3>
-                <p className={styles.serviceText}>
-                  {isKo ? service.descriptionKo : service.descriptionEn}
+                <div className={styles.serviceHead}>
+                  <span className={styles.serviceIcon}>{service.icon}</span>
+                  <h3 className={styles.serviceName}>{isKo ? service.nameKo : service.nameEn}</h3>
+                </div>
+                <p className={styles.serviceSummary}>
+                  {isKo ? service.summaryKo : service.summaryEn}
                 </p>
                 <Link href={service.href} className={styles.serviceLink}>
-                  {isKo ? '서비스 열기' : 'Open service'}
+                  {isKo ? '열기' : 'Open'}
                 </Link>
               </article>
             ))}
@@ -236,146 +173,66 @@ export default function AboutPage() {
         </section>
 
         <section className={styles.section}>
-          <header className={styles.sectionHead}>
-            <p className={styles.sectionEyebrow}>Engine Architecture</p>
-            <h2 className={styles.sectionTitle}>
-              {translate(
-                'about.engineTitle',
-                isKo
-                  ? '질문 하나가 통과하는 계산 체인'
-                  : 'Computation chain behind a single question'
-              )}
-            </h2>
+          <header className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>{isKo ? '작동 방식' : 'How it works'}</h2>
+            <p className={styles.sectionDesc}>
+              {isKo
+                ? '입력부터 결과까지 같은 파이프라인을 사용해 서비스 간 결론 차이를 줄입니다.'
+                : 'A single pipeline is used from input to output to reduce cross-service drift.'}
+            </p>
           </header>
-          <div className={styles.engineFlow}>
-            {ENGINE_FLOW.map((step, idx) => (
-              <div key={step} className={styles.flowStep}>
-                <span>{step}</span>
-                {idx < ENGINE_FLOW.length - 1 ? <span className={styles.flowArrow}>→</span> : null}
-              </div>
+          <div className={styles.processGrid}>
+            {PROCESS_STEPS.map((step) => (
+              <article key={step.id} className={styles.processCard}>
+                <p className={styles.processId}>{step.id}</p>
+                <h3 className={styles.processTitle}>{isKo ? step.titleKo : step.titleEn}</h3>
+                <p className={styles.processDesc}>{isKo ? step.descKo : step.descEn}</p>
+              </article>
             ))}
           </div>
         </section>
 
         <section className={styles.section}>
-          <header className={styles.sectionHead}>
-            <p className={styles.sectionEyebrow}>Quality Standard</p>
-            <h2 className={styles.sectionTitle}>
-              {translate(
-                'about.qualityTitle',
-                isKo
-                  ? '왜 계산 기반 접근을 고집하는가'
-                  : 'Why we insist on a computation-first approach'
-              )}
-            </h2>
+          <header className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>{isKo ? '품질 기준' : 'Quality standard'}</h2>
           </header>
-          <div className={styles.compareGrid}>
-            <article className={styles.compareCard}>
-              <h3 className={styles.compareTitle}>
-                {isKo ? '일반 생성형 운세의 한계' : 'Limits of generic AI fortune text'}
-              </h3>
-              <ul className={styles.compareList}>
-                <li className={styles.compareItem}>
-                  {isKo
-                    ? '입력이 달라도 비슷한 문장 반복'
-                    : 'Similar sentences repeated across different users'}
-                </li>
-                <li className={styles.compareItem}>
-                  {isKo
-                    ? '근거 추적이 어려운 단정 표현'
-                    : 'Hard-to-trace assertions without evidence links'}
-                </li>
-                <li className={styles.compareItem}>
-                  {isKo
-                    ? '서비스 간 결론 불일치'
-                    : 'Inconsistent conclusions across service surfaces'}
-                </li>
-              </ul>
-            </article>
-            <article className={styles.compareCard}>
-              <h3 className={styles.compareTitle}>
-                {isKo ? 'DestinyPal 기준' : 'DestinyPal standard'}
-              </h3>
-              <ul className={styles.compareList}>
-                <li className={styles.compareItem}>
-                  {isKo
-                    ? '같은 입력은 같은 코어 판단으로 고정'
-                    : 'Same input yields same core judgment'}
-                </li>
-                <li className={styles.compareItem}>
-                  {isKo
-                    ? '신호·패턴·전략 근거를 단계별로 유지'
-                    : 'Signal, pattern, and strategy evidence kept end-to-end'}
-                </li>
-                <li className={styles.compareItem}>
-                  {isKo
-                    ? '상담/캘린더/리포트 일관성 검증'
-                    : 'Consistency checks across counselor/calendar/report'}
-                </li>
-              </ul>
-            </article>
-          </div>
-        </section>
-
-        <section className={styles.section}>
-          <header className={styles.sectionHead}>
-            <p className={styles.sectionEyebrow}>Principles</p>
-            <h2 className={styles.sectionTitle}>
-              {translate('about.philosophyTitle', isKo ? '운영 원칙' : 'Operating principles')}
-            </h2>
-          </header>
-          <div className={styles.principlesGrid}>
-            <article className={styles.principleCard}>
-              <div className={styles.principleIcon}>🎯</div>
-              <h3 className={styles.principleTitle}>
-                {translate('about.philosophy.accurate.title', 'Accurate Calculation')}
-              </h3>
-              <p className={styles.principleText}>
-                {translate(
-                  'about.philosophy.accurate.desc',
-                  'Reliable calculations reflecting time zones, seasons, and DST'
-                )}
-              </p>
-            </article>
-            <article className={styles.principleCard}>
-              <div className={styles.principleIcon}>🤝</div>
-              <h3 className={styles.principleTitle}>
-                {translate('about.philosophy.ethical.title', 'Ethical Guidance')}
-              </h3>
-              <p className={styles.principleText}>
-                {translate(
-                  'about.philosophy.ethical.desc',
-                  'Practical hints to help choices, not absolute predictions'
-                )}
-              </p>
-            </article>
-            <article className={styles.principleCard}>
-              <div className={styles.principleIcon}>🔬</div>
-              <h3 className={styles.principleTitle}>
-                {isKo ? '근거 추적 가능성' : 'Evidence Traceability'}
-              </h3>
-              <p className={styles.principleText}>
-                {isKo
-                  ? '리포트 문장을 코어 신호와 연결해 디버깅 가능한 구조를 유지합니다.'
-                  : 'Report sentences remain linked to core signals for debugging and QA.'}
-              </p>
-            </article>
+          <div className={styles.qualityBox}>
+            <p>
+              {isKo
+                ? '1. 같은 입력은 같은 코어 판단으로 처리합니다.'
+                : '1. Same input goes through the same core judgment.'}
+            </p>
+            <p>
+              {isKo
+                ? '2. 신호·패턴·전략 근거를 끊지 않고 유지합니다.'
+                : '2. Signal, pattern, and strategy evidence remain connected.'}
+            </p>
+            <p>
+              {isKo
+                ? '3. 상담/캘린더/리포트의 결론 일관성을 검사합니다.'
+                : '3. Cross-service consistency is checked for counselor/calendar/report.'}
+            </p>
+            <p>
+              {isKo
+                ? '4. 근거 없는 단정 문장은 차단합니다.'
+                : '4. Unsupported assertions are blocked.'}
+            </p>
           </div>
         </section>
 
         <section className={styles.cta}>
-          <h2 className={styles.ctaTitle}>{isKo ? '지금 바로 시작해보세요' : 'Start now'}</h2>
+          <h2 className={styles.ctaTitle}>{isKo ? '바로 사용해보세요' : 'Use it now'}</h2>
           <p className={styles.ctaText}>
             {isKo
-              ? '질문 하나로 상담을 시작하고, 필요하면 캘린더와 리포트로 깊게 들어가세요.'
-              : 'Start with one question, then go deeper with calendar and reports.'}
+              ? '질문을 입력해 상담을 시작하고, 필요할 때 캘린더와 리포트로 확장하세요.'
+              : 'Start from a question, then expand with calendar and reports.'}
           </p>
-          <div className={styles.ctaActions}>
+          <div className={styles.heroActions}>
             <Link href="/destiny-counselor" className={styles.primaryBtn}>
-              {isKo ? '운명 상담 시작' : 'Start counselor'}
+              {isKo ? '운명 상담 시작' : 'Start counseling'}
             </Link>
-            <Link href="/premium-reports" className={styles.ghostBtn}>
-              {isKo ? '프리미엄 리포트' : 'Premium reports'}
+            <Link href="/calendar" className={styles.secondaryBtn}>
+              {isKo ? '캘린더 열기' : 'Open calendar'}
             </Link>
           </div>
         </section>

@@ -1034,11 +1034,26 @@ export const GET = withApiMiddleware(
       // AI 날짜를 기존 날짜에 병합 가능
     }
 
+    const todayPacket = matrixEvidencePackets?.today || matrixEvidencePackets?.general
+    const coreCoverage = (matrixInputCoverage as { core?: { coreHash?: string } } | undefined)?.core
+    const calendarMatrixContract =
+      coreCoverage || todayPacket
+        ? {
+            coreHash: coreCoverage?.coreHash,
+            overallPhase: todayPacket?.strategyBrief?.overallPhase,
+            overallPhaseLabel: todayPacket?.strategyBrief?.overallPhaseLabel,
+            topClaimId: todayPacket?.topClaims?.[0]?.id,
+            topClaim: todayPacket?.topClaims?.[0]?.text,
+            focusDomain: todayPacket?.focusDomain,
+          }
+        : undefined
+
     const responsePayload = normalizeMojibakePayload({
       success: true,
       type: 'yearly',
       year,
       aiEnhanced,
+      matrixContract: calendarMatrixContract,
       birthInfo: {
         date: birthDateParam,
         time: birthTimeParam,

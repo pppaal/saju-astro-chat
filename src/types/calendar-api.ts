@@ -154,3 +154,12 @@ export interface CachedCalendarResult {
   calculatedAt: number
   expiresAt: number
 }
+
+export interface CalendarMatrixContract {
+  coreHash?: string
+  overallPhase?: string
+  overallPhaseLabel?: string
+  topClaimId?: string
+  topClaim?: string
+  focusDomain?: string
+}

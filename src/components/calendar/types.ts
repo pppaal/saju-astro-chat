@@ -70,6 +70,14 @@ export interface ImportantDate {
 export interface CalendarData {
   success: boolean
   year: number
+  matrixContract?: {
+    coreHash?: string
+    overallPhase?: string
+    overallPhaseLabel?: string
+    topClaimId?: string
+    topClaim?: string
+    focusDomain?: string
+  }
   summary?: {
     total: number
     grade0: number // 최고의 날 (~5%)

@@ -1518,6 +1518,13 @@ export const POST = withApiMiddleware(
         creditsUsed: creditCost,
         remainingCredits: balance.remainingCredits - creditCost,
         reportType,
+        matrixContract: {
+          coreHash: aiReport.coreHash,
+          overallPhase: aiReport.strategyEngine?.overallPhase,
+          overallPhaseLabel: aiReport.strategyEngine?.overallPhaseLabel,
+          topClaimId: aiReport.claims?.[0]?.id,
+          topClaim: aiReport.claims?.[0]?.text,
+        },
         report: {
           ...aiReport,
           id: savedReport.id, // DB에 저장된 ID로 덮어쓰기
