@@ -14,6 +14,7 @@ import {
   gateRecommendations,
   formatDateForResponse,
   fetchAIDates,
+  __resetAIDatesCircuitStateForTests,
   LOCATION_COORDS,
 } from '@/app/api/calendar/lib/helpers'
 import { apiClient } from '@/lib/api/ApiClient'
@@ -80,6 +81,15 @@ vi.mock('@/constants/scoring', () => ({
 describe('Calendar Helpers', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(apiClient).post.mockReset()
+    __resetAIDatesCircuitStateForTests()
+    delete process.env.CALENDAR_AI_ENRICHMENT_DISABLED
+    delete process.env.CALENDAR_AI_ENRICHMENT_CIRCUIT_ENABLED
+    delete process.env.CALENDAR_AI_ENRICHMENT_TIMEOUT_MS
+    delete process.env.CALENDAR_AI_ENRICHMENT_RETRIES
+    delete process.env.CALENDAR_AI_ENRICHMENT_RETRY_DELAY_MS
+    delete process.env.CALENDAR_AI_ENRICHMENT_FAILURE_THRESHOLD
+    delete process.env.CALENDAR_AI_ENRICHMENT_COOLDOWN_MS
   })
 
   describe('getTranslation', () => {
@@ -449,6 +459,51 @@ describe('Calendar Helpers', () => {
       expect(result).toBeDefined()
       expect(result!.auspicious).toHaveLength(0)
       expect(result!.caution).toHaveLength(0)
+    })
+
+    it('should skip API call when enrichment is disabled by env', async () => {
+      process.env.CALENDAR_AI_ENRICHMENT_DISABLED = 'true'
+      vi.mocked(apiClient).post.mockResolvedValueOnce({
+        ok: true,
+        data: { auspicious_dates: ['2025-03-01'], caution_dates: [] },
+      } as any)
+
+      const result = await fetchAIDates({}, {})
+
+      expect(result).toBeNull()
+      expect(vi.mocked(apiClient).post).not.toHaveBeenCalled()
+    })
+
+    it('should open circuit after repeated failures and skip subsequent calls during cooldown', async () => {
+      process.env.CALENDAR_AI_ENRICHMENT_CIRCUIT_ENABLED = 'true'
+      process.env.CALENDAR_AI_ENRICHMENT_FAILURE_THRESHOLD = '2'
+      process.env.CALENDAR_AI_ENRICHMENT_COOLDOWN_MS = '60000'
+      const nowSpy = vi.spyOn(Date, 'now')
+      nowSpy.mockReturnValue(1000)
+
+      vi.mocked(apiClient)
+        .post.mockRejectedValueOnce(new Error('Network error 1'))
+        .mockRejectedValueOnce(new Error('Network error 2'))
+        .mockResolvedValueOnce({
+          ok: true,
+          data: { auspicious_dates: ['2025-03-01'], caution_dates: [] },
+        } as any)
+
+      const first = await fetchAIDates({}, {})
+      const second = await fetchAIDates({}, {})
+      const third = await fetchAIDates({}, {})
+
+      expect(first).toBeNull()
+      expect(second).toBeNull()
+      expect(third).toBeNull()
+      expect(vi.mocked(apiClient).post).toHaveBeenCalledTimes(2)
+
+      nowSpy.mockReturnValue(62001)
+      const afterCooldown = await fetchAIDates({}, {})
+      expect(afterCooldown).not.toBeNull()
+      expect(vi.mocked(apiClient).post).toHaveBeenCalledTimes(3)
+
+      nowSpy.mockRestore()
     })
   })
 
