@@ -23,10 +23,10 @@ export type EnabledService = {
   }
 }
 
-export const ENABLED_SERVICES: readonly EnabledService[] = [
+const ALL_SERVICES: readonly EnabledService[] = [
   {
     id: 'destinyMap',
-    href: '/destiny-map',
+    href: '/destiny-counselor',
     icon: '🗺️',
     menuKey: 'menu.destinyMap',
     descriptionKey: 'services.destinyMap.desc',
@@ -88,6 +88,19 @@ export const ENABLED_SERVICES: readonly EnabledService[] = [
     description: { en: 'Interpersonal Circumplex Profile', ko: '대인관계 스타일 테스트' },
   },
 ] as const
+
+export const ACTIVE_PUBLIC_SERVICE_IDS: readonly EnabledServiceId[] = [
+  'destinyMap',
+  'tarot',
+  'report',
+  'calendar',
+] as const
+
+const ACTIVE_SERVICE_SET = new Set<EnabledServiceId>(ACTIVE_PUBLIC_SERVICE_IDS)
+
+export const ENABLED_SERVICES: readonly EnabledService[] = ALL_SERVICES.filter((service) =>
+  ACTIVE_SERVICE_SET.has(service.id)
+)
 
 export const REMOVED_PUBLIC_SERVICE_PREFIXES: readonly string[] = [
   '/astrology',

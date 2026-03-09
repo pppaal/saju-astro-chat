@@ -1,6 +1,6 @@
-import { ENABLED_SERVICES } from '@/config/enabledServices'
+import { ENABLED_SERVICES, type EnabledServiceId } from '@/config/enabledServices'
 
-export type ServiceKey = (typeof ENABLED_SERVICES)[number]['id']
+export type ServiceKey = EnabledServiceId
 
 export type ServiceOption = {
   key: ServiceKey

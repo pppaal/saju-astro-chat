@@ -1,8 +1,8 @@
 ﻿'use client'
 
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import dynamic from 'next/dynamic'
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import Link from 'next/link'
+import { useCallback } from 'react'
 import styles from './main-page.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import {
@@ -11,43 +11,9 @@ import {
   toSafeFallbackText,
   type I18nMessages,
 } from '@/i18n/utils'
-import { useVisitorMetrics } from '@/hooks/useVisitorMetrics'
-import { useScrollVisibility, useScrollAnimation } from '@/hooks/useMainPageHooks'
-
-// Critical components - loaded immediately
-import {
-  MainHeader,
-  ServiceSearchBox,
-  StatsSection,
-  ParticleCanvas,
-  TarotSection,
-  SEOContent,
-} from './components'
+import { HOME_CORE_SERVICE_OPTIONS } from '@/lib/coreServices'
+import { MainHeader, ServiceSearchBox, ParticleCanvas } from './components'
 import PrefetchLinks from '@/components/PrefetchLinks'
-
-// Non-critical component - lazy loaded with suspense
-const WeeklyFortuneCard = dynamic(() => import('@/components/WeeklyFortuneCard'), {
-  loading: () => <div className={styles.weeklyCardSkeleton} />,
-  ssr: false,
-})
-
-const ChatDemoSection = dynamic(
-  () => import('@/components/home/ChatDemoSection').then((module) => module.ChatDemoSection),
-  {
-    loading: () => <div className={styles.featureSectionSkeleton} />,
-    ssr: false,
-  }
-)
-
-const DestinyMapFeature = dynamic(() => import('./components/DestinyMapFeature'), {
-  loading: () => <div className={styles.featureSectionSkeleton} />,
-  ssr: false,
-})
-
-const CTASection = dynamic(() => import('./components/CTASection'), {
-  loading: () => <div className={styles.featureSectionSkeleton} />,
-  ssr: false,
-})
 
 type Locale = 'en' | 'ko'
 
@@ -56,54 +22,10 @@ interface MainPageClientProps {
   initialMessages: I18nMessages
 }
 
-function DeferredSection({
-  children,
-  className,
-  skeletonClassName,
-  minHeight = 320,
-  rootMargin = '360px 0px',
-}: {
-  children: ReactNode
-  className?: string
-  skeletonClassName: string
-  minHeight?: number
-  rootMargin?: string
-}) {
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const [shouldRender, setShouldRender] = useState(false)
-
-  useEffect(() => {
-    if (!containerRef.current || shouldRender) {
-      return
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setShouldRender(true)
-            observer.disconnect()
-            break
-          }
-        }
-      },
-      { rootMargin, threshold: 0.01 }
-    )
-
-    observer.observe(containerRef.current)
-    return () => observer.disconnect()
-  }, [rootMargin, shouldRender])
-
-  return (
-    <div ref={containerRef} className={className}>
-      {shouldRender ? children : <div className={skeletonClassName} style={{ minHeight }} />}
-    </div>
-  )
-}
-
 export default function MainPageClient({ initialLocale, initialMessages }: MainPageClientProps) {
   const { locale: activeLocale, hydrated, t } = useI18n()
   const locale = activeLocale || initialLocale
+
   const serverTranslate = useCallback(
     (key: string, fallback?: string) => {
       const value = getPathValue(initialMessages, key)
@@ -130,109 +52,49 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
     [hydrated, serverTranslate, t]
   )
 
-  const metricsToken = process.env.NEXT_PUBLIC_PUBLIC_METRICS_TOKEN?.trim()
-
-  // Custom hooks
-  useScrollAnimation(`.${styles.featureSection}`, styles)
-  const showScrollTop = useScrollVisibility(500)
-
-  // Visitor stats
-  const { todayVisitors, totalVisitors, totalMembers, visitorError } =
-    useVisitorMetrics(metricsToken)
-
-  // Scroll to top handler
-  const scrollToTop = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [])
-
   return (
     <main className={styles.container}>
       <ParticleCanvas />
       <MainHeader translate={translate} locale={locale as Locale} />
 
-      {/* Fullscreen Hero Section */}
       <section className={styles.fullscreenHero}>
         <div className={styles.heroContent}>
           <p className={styles.heroEyebrow}>
             {translate('landing.heroEyebrow', 'DestinyPal AI Fortune Platform')}
           </p>
           <h1 className={styles.heroTitle}>
-            {translate(
-              'landing.heroTitle',
-              'Saju + astrology guidance for timing, personality, and better decisions.'
-            )}
+            {translate('landing.heroTitle', 'AI와 운명을 논하세요')}
           </h1>
           <p className={styles.heroSub}>
             {translate(
               'landing.heroSub',
-              "DestinyPal connects Saju, astrology, tarot, compatibility, and reports into one practical reading flow for today's decisions."
+              '타로, 운명 상담, 리포트, 캘린더를 바로 이용할 수 있도록 핵심 서비스만 배치했습니다.'
             )}
           </p>
 
-          {/* Google-style Question Search Box */}
           <ServiceSearchBox translate={translate} styles={styles} />
-        </div>
 
-        {/* Scroll Indicator */}
-        <div className={styles.scrollIndicator}>
-          <span className={styles.scrollText}>
-            {translate('landing.scrollDown', 'Scroll to see more')}
-          </span>
-          <div className={styles.scrollArrow}>
-            <span>▼</span>
+          <div className={styles.quickServiceLinks}>
+            {HOME_CORE_SERVICE_OPTIONS.map((service) => (
+              <Link key={service.key} href={service.path} className={styles.quickServiceLink}>
+                <span aria-hidden>{service.icon}</span>
+                <span>{translate(service.labelKey, service.labelFallback)}</span>
+              </Link>
+            ))}
+          </div>
+
+          <div className={styles.aboutShortcutWrap}>
+            <Link href="/about" className={styles.aboutShortcutLink}>
+              {translate(
+                'landing.aboutShortcut',
+                '스크롤형 상세 소개는 About 페이지에서 확인할 수 있습니다.'
+              )}
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Stats Section - Below Hero */}
-      <StatsSection
-        translate={translate}
-        todayVisitors={todayVisitors}
-        totalVisitors={totalVisitors}
-        totalMembers={totalMembers}
-        visitorError={visitorError}
-        styles={styles}
-      />
-
-      <DeferredSection
-        className={styles.weeklyFortuneSection}
-        skeletonClassName={styles.weeklyCardSkeleton}
-        minHeight={220}
-      >
-        <WeeklyFortuneCard />
-      </DeferredSection>
-
-      <DeferredSection skeletonClassName={styles.featureSectionSkeleton}>
-        <ChatDemoSection translate={translate} />
-      </DeferredSection>
-
-      <DeferredSection skeletonClassName={styles.featureSectionSkeleton}>
-        <DestinyMapFeature translate={translate} styles={styles} />
-      </DeferredSection>
-
-      <TarotSection translate={translate} locale={locale} />
-
-      <SEOContent translate={translate} styles={styles} />
-
-      <DeferredSection skeletonClassName={styles.featureSectionSkeleton} minHeight={240}>
-        <CTASection translate={translate} styles={styles} />
-      </DeferredSection>
-
-      {/* Scroll to Top Button */}
-      <button
-        className={`${styles.scrollToTop} ${showScrollTop ? styles.visible : ''}`}
-        onClick={scrollToTop}
-        aria-label={translate('landing.scrollToTop', 'Back to Top')}
-      >
-        <span className={styles.scrollToTopIcon}>^</span>
-        <span className={styles.scrollToTopText}>
-          {translate('landing.scrollToTop', 'Back to Top')}
-        </span>
-      </button>
-
-      {/* Prefetch critical routes in the background */}
       <PrefetchLinks />
-
       <SpeedInsights />
     </main>
   )

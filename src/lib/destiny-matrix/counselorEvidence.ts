@@ -41,6 +41,9 @@ type CounselorTheme =
 
 export interface CounselorEvidencePacket {
   focusDomain: string
+  verdict: string
+  guardrail: string
+  topAnchorSummary: string
   graphRagEvidenceSummary: GraphRAGEvidenceSummary
   topAnchors: Array<{
     id: string
@@ -78,6 +81,9 @@ export interface CounselorEvidencePacket {
 
 type CounselorEvidencePacketLike = {
   focusDomain?: string
+  verdict?: string
+  guardrail?: string
+  topAnchorSummary?: string
   graphRagEvidenceSummary?: {
     totalAnchors?: number
     totalSets?: number
@@ -194,6 +200,29 @@ function summarizeClaim(claim: UnifiedClaim): string {
   return claim.text.replace(/\s+/g, ' ').trim().slice(0, 180)
 }
 
+function buildPacketGuardrail(
+  phase: StrategyEngineResult['overallPhase'],
+  lang: 'ko' | 'en'
+): string {
+  if (lang === 'ko') {
+    if (phase === 'expansion') return '실행은 하되, 확정 전 반대 근거 1개를 반드시 확인하세요.'
+    if (phase === 'high_tension_expansion')
+      return '속도는 내되 문서, 금액, 약속은 이중 확인 후 확정하세요.'
+    if (phase === 'expansion_guarded')
+      return '기회는 잡되 체크리스트를 먼저 끝낸 뒤 확장하세요.'
+    if (phase === 'stabilize') return '새 확장보다 구조 정렬과 우선순위 재정리를 먼저 하세요.'
+    return '새로운 확장보다 손실, 오해, 과속을 먼저 막으세요.'
+  }
+
+  if (phase === 'expansion') return 'Move forward, but force one counter-check before committing.'
+  if (phase === 'high_tension_expansion')
+    return 'Keep momentum, but double-check documents, money, and commitments first.'
+  if (phase === 'expansion_guarded')
+    return 'Take the opportunity only after your checklist is complete.'
+  if (phase === 'stabilize') return 'Prioritize structural alignment before new expansion.'
+  return 'Contain loss, confusion, and overspeed before starting something new.'
+}
+
 export function buildCounselorEvidencePacket(params: {
   theme: CounselorTheme
   lang: 'ko' | 'en'
@@ -242,8 +271,18 @@ export function buildCounselorEvidencePacket(params: {
     anchors: [],
   }
 
+  const topClaim = (unified.claims || [])[0]
+  const topAnchor = (unified.anchors || [])[0]
+  const topClaimText = topClaim ? summarizeClaim(topClaim) : ''
+  const topAnchorSummary = topAnchor ? summarizeAnchor(topAnchor) : ''
+  const guardrail = buildPacketGuardrail(params.strategyEngine.overallPhase, params.lang)
+  const verdict = [params.strategyEngine.thesis, topClaimText].filter(Boolean).join(' ').trim()
+
   return {
     focusDomain,
+    verdict,
+    guardrail,
+    topAnchorSummary,
     graphRagEvidenceSummary,
     topAnchors: (unified.anchors || []).slice(0, 8).map((anchor) => ({
       id: anchor.id,

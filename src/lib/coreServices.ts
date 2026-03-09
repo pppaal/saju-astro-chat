@@ -28,14 +28,6 @@ export const HOME_CORE_SERVICE_OPTIONS: readonly HomeCoreServiceOption[] = [
     coreKey: 'destiny-map',
   },
   {
-    key: 'calendar',
-    labelKey: 'menu.calendar',
-    labelFallback: 'Destiny Calendar',
-    icon: '\u{1F4C5}',
-    path: '/calendar',
-    coreKey: 'calendar',
-  },
-  {
     key: 'tarot',
     labelKey: 'menu.tarot',
     labelFallback: 'Tarot',
@@ -44,28 +36,20 @@ export const HOME_CORE_SERVICE_OPTIONS: readonly HomeCoreServiceOption[] = [
     coreKey: 'tarot',
   },
   {
-    key: 'destinyMatrix',
-    labelKey: 'history.services.destinyMatrix.title',
-    labelFallback: 'Destiny Matrix',
-    icon: '\u2728',
-    path: '/destiny-map/matrix',
-    coreKey: 'destiny-matrix',
-  },
-  {
-    key: 'compatibility',
-    labelKey: 'menu.compatibility',
-    labelFallback: 'Compatibility',
-    icon: '\u{1F495}',
-    path: '/compatibility',
-    coreKey: 'compatibility',
-  },
-  {
     key: 'report',
     labelKey: 'menu.report',
     labelFallback: 'Report',
     icon: '\u{1F4DC}',
     path: '/report',
     coreKey: 'report',
+  },
+  {
+    key: 'calendar',
+    labelKey: 'menu.calendar',
+    labelFallback: 'Destiny Calendar',
+    icon: '\u{1F4C5}',
+    path: '/calendar',
+    coreKey: 'calendar',
   },
 ] as const
 

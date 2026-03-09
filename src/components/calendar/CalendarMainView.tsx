@@ -506,14 +506,9 @@ const CalendarMainView = memo(function CalendarMainView({
                         <span className={styles.dayNumber}>{date.getDate()}</span>
                         {dateInfo && (
                           <div className={styles.dayIndicators} aria-hidden="true">
-                            {dateInfo.categories.slice(0, 2).map((cat, i) => (
-                              <span key={i} className={styles.dayEmoji}>
-                                {CATEGORY_EMOJI[cat]}
-                              </span>
-                            ))}
-                            <span className={styles.gradeIndicator}>
-                              {getGradeEmoji(dateInfo.grade)}
-                            </span>
+                            <span
+                              className={`${styles.gradeIndicator} ${styles[`gradeIndicator${dateInfo.grade}`]}`}
+                            />
                           </div>
                         )}
                       </>

@@ -18,6 +18,8 @@ export interface SajuPillarAccessor {
 export interface FormattedDate {
   date: string
   grade: ImportanceGrade
+  originalGrade?: ImportanceGrade
+  displayGrade?: ImportanceGrade
   score: number
   rawScore?: number
   adjustedScore?: number

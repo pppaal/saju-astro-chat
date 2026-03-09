@@ -985,18 +985,23 @@ export const GET = withApiMiddleware(
         koTranslations as unknown as TranslationData,
         enTranslations as unknown as TranslationData,
         matrixCalendarContext,
+        matrixEvidencePackets || undefined,
         aiEnrichmentFailed
       )
 
+    const formattedDates = filteredDates.map((d) => formatCalendarDate(d))
+    const sortByDisplayScoreDesc = (a: (typeof formattedDates)[number], b: (typeof formattedDates)[number]) =>
+      (b.displayScore ?? b.score) - (a.displayScore ?? a.score)
+
     // 5등급별 그룹화 (single-pass instead of repeated filter calls)
-    const gradeGroups: Record<number, typeof filteredDates> = {
+    const gradeGroups: Record<number, typeof formattedDates> = {
       0: [],
       1: [],
       2: [],
       3: [],
       4: [],
     }
-    for (const d of filteredDates) {
+    for (const d of formattedDates) {
       if (d.grade >= 0 && d.grade <= 4) {
         gradeGroups[d.grade].push(d)
       }
@@ -1025,7 +1030,7 @@ export const GET = withApiMiddleware(
         place: birthPlace,
       },
       summary: {
-        total: filteredDates.length,
+        total: formattedDates.length,
         grade0: grade0.length, // 천운의 날
         grade1: grade1.length, // 아주 좋은 날
         grade2: grade2.length, // 좋은 날
@@ -1037,16 +1042,16 @@ export const GET = withApiMiddleware(
         const topCandidates = [...grade0, ...grade1, ...grade2]
         if (topCandidates.length < 5) {
           const topGrade3 = grade3
-            .sort((a, b) => b.score - a.score)
+            .sort(sortByDisplayScoreDesc)
             .slice(0, 5 - topCandidates.length)
           topCandidates.push(...topGrade3)
         }
-        return topCandidates.slice(0, 10).map((d) => formatCalendarDate(d))
+        return topCandidates.sort(sortByDisplayScoreDesc).slice(0, 10)
       })(),
-      goodDates: [...grade1, ...grade2].slice(0, 20).map((d) => formatCalendarDate(d)),
-      badDates: [...grade4, ...grade3].slice(0, 10).map((d) => formatCalendarDate(d)),
-      worstDates: grade4.slice(0, 5).map((d) => formatCalendarDate(d)),
-      allDates: filteredDates.map((d) => formatCalendarDate(d)),
+      goodDates: [...grade1, ...grade2].sort(sortByDisplayScoreDesc).slice(0, 20),
+      badDates: [...grade4, ...grade3].sort(sortByDisplayScoreDesc).slice(0, 10),
+      worstDates: [...grade4].sort(sortByDisplayScoreDesc).slice(0, 5),
+      allDates: formattedDates,
       matrixInputCoverage,
       matrixEvidencePackets,
       topMatchedPatterns,

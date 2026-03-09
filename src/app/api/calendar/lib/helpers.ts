@@ -13,10 +13,12 @@ import type {
 import type { CalendarEvidence, TranslationData } from '@/types/calendar-api'
 import type { PillarData } from '@/lib/Saju/types'
 import type { DomainKey, DomainScore, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
+import type { CounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
 import type { SajuPillarAccessor, FormattedDate, LocationCoord } from './types'
 import { getFactorTranslation } from './translations'
 import { KO_MESSAGES, EN_MESSAGES } from './constants'
 import {
+  GRADE_THRESHOLDS,
   DISPLAY_SCORE_LABEL_THRESHOLDS,
   EVIDENCE_CONFIDENCE_THRESHOLDS,
 } from '@/lib/destiny-map/calendar/scoring-config'
@@ -27,6 +29,8 @@ type MatrixSignal = {
   trigger: string
   score: number
 }
+
+type MatrixEvidencePacketMap = Record<string, CounselorEvidencePacket>
 
 const IRREVERSIBLE_RECOMMENDATION_KEYS = new Set([
   'majorDecision',
@@ -49,6 +53,25 @@ const COMMUNICATION_WARNING_TOKENS = [
 ]
 
 const CROSS_AGREEMENT_ALIGNMENT_THRESHOLD = 60
+
+const CATEGORY_PACKET_KEY: Record<string, string> = {
+  career: 'career',
+  study: 'career',
+  love: 'love',
+  wealth: 'wealth',
+  health: 'health',
+  travel: 'today',
+  general: 'today',
+}
+
+const DOMAIN_PACKET_KEY: Record<NonNullable<CalendarEvidence['matrix']['domain']>, string> = {
+  career: 'career',
+  love: 'love',
+  money: 'wealth',
+  health: 'health',
+  move: 'today',
+  general: 'today',
+}
 
 const CONFLICT_LABEL_TOKENS = [
   'conflict',
@@ -1522,12 +1545,119 @@ function buildMatrixOverlay(
   }
 }
 
+function selectMatrixPacketForDate(input: {
+  categories: string[]
+  evidenceDomain: CalendarEvidence['matrix']['domain']
+  packets?: MatrixEvidencePacketMap
+}): CounselorEvidencePacket | null {
+  const packets = input.packets
+  if (!packets) return null
+
+  const byDomain = packets[DOMAIN_PACKET_KEY[input.evidenceDomain]]
+  if (byDomain) return byDomain
+
+  for (const category of input.categories) {
+    const packetKey = CATEGORY_PACKET_KEY[category]
+    if (packetKey && packets[packetKey]) return packets[packetKey]
+  }
+
+  return packets.today || packets.general || null
+}
+
+function attachMatrixVerdict(
+  evidence: CalendarEvidence,
+  packet: CounselorEvidencePacket | null
+): CalendarEvidence {
+  if (!packet) return evidence
+
+  return {
+    ...evidence,
+    matrixVerdict: {
+      focusDomain: packet.focusDomain,
+      verdict: packet.verdict,
+      guardrail: packet.guardrail,
+      topClaim: packet.topClaims[0]?.text || '',
+      topAnchorSummary: packet.topAnchorSummary,
+      phase: packet.strategyBrief?.overallPhaseLabel,
+      attackPercent: packet.strategyBrief?.attackPercent,
+      defensePercent: packet.strategyBrief?.defensePercent,
+    },
+  }
+}
+
+function buildMatrixFirstSummary(input: {
+  verdict?: string
+  topClaim?: string
+  fallbackSummary: string
+}): string {
+  return dedupeTexts([input.verdict || '', input.topClaim || '', input.fallbackSummary]).join(' ')
+}
+
+function buildMatrixFirstRecommendations(input: {
+  matrixTopClaim?: string
+  baseRecommendations: string[]
+}): string[] {
+  return dedupeTexts([input.matrixTopClaim || '', ...input.baseRecommendations]).slice(0, 6)
+}
+
+function buildMatrixFirstWarnings(input: {
+  matrixGuardrail?: string
+  baseWarnings: string[]
+  conservativeWarning?: string
+}): string[] {
+  return dedupeTexts([
+    input.matrixGuardrail || '',
+    ...(input.baseWarnings || []),
+    input.conservativeWarning || '',
+  ]).slice(0, 6)
+}
+
+function clampDisplayScore(score: number): number {
+  return Math.max(0, Math.min(100, Math.round(score)))
+}
+
+function applyMatrixDisplayScoreBias(input: {
+  baseScore: number
+  evidence: CalendarEvidence
+}): number {
+  const matrixScore = input.evidence.matrix?.finalScoreAdjusted ?? 5
+  const overlapStrength = input.evidence.matrix?.overlapStrength ?? 0
+  const peakLevel = input.evidence.matrix?.peakLevel ?? 'normal'
+  const confidence = input.evidence.confidence ?? 0
+  const attack = input.evidence.matrixVerdict?.attackPercent ?? 50
+  const defense = input.evidence.matrixVerdict?.defensePercent ?? 50
+
+  const matrixBias = (matrixScore - 5) * 3.2
+  const overlapBias = (overlapStrength - 0.5) * 10
+  const peakBias = peakLevel === 'peak' ? 6 : peakLevel === 'high' ? 3 : 0
+  const stanceBias = ((attack - defense) / 100) * 6
+  const confidenceWeight =
+    confidence >= EVIDENCE_CONFIDENCE_THRESHOLDS.medium
+      ? 1
+      : confidence >= EVIDENCE_CONFIDENCE_THRESHOLDS.low
+        ? 0.7
+        : 0.4
+
+  return clampDisplayScore(
+    input.baseScore + (matrixBias + overlapBias + peakBias + stanceBias) * confidenceWeight
+  )
+}
+
+function getEffectiveGradeFromDisplayScore(score: number): ImportanceGrade {
+  if (score >= GRADE_THRESHOLDS.grade0) return 0
+  if (score >= GRADE_THRESHOLDS.grade1) return 1
+  if (score >= GRADE_THRESHOLDS.grade2) return 2
+  if (score >= GRADE_THRESHOLDS.grade3) return 3
+  return 4
+}
+
 export function formatDateForResponse(
   date: ImportantDate,
   locale: string,
   koTranslations: TranslationData,
   enTranslations: TranslationData,
   matrixContext?: MatrixCalendarContext,
+  matrixEvidencePackets?: MatrixEvidencePacketMap,
   aiEnrichmentFailed = false
 ): FormattedDate {
   const translations = locale === 'ko' ? koTranslations : enTranslations
@@ -1613,9 +1743,21 @@ export function formatDateForResponse(
     date.crossAgreementPercent,
     crossEvidence
   )
-  const displayScore = date.displayScore ?? date.adjustedScore ?? date.score
+  const matrixPacket = selectMatrixPacketForDate({
+    categories: uniqueCategories,
+    evidenceDomain: matrixOverlay.evidence.matrix.domain,
+    packets: matrixEvidencePackets,
+  })
+  const evidenceWithVerdict = attachMatrixVerdict(matrixOverlay.evidence, matrixPacket)
+  const matrixVerdict = evidenceWithVerdict.matrixVerdict
+  const baseDisplayScore = date.displayScore ?? date.adjustedScore ?? date.score
+  const displayScore = applyMatrixDisplayScoreBias({
+    baseScore: baseDisplayScore,
+    evidence: evidenceWithVerdict,
+  })
+  const effectiveGrade = getEffectiveGradeFromDisplayScore(displayScore)
   const rawScore = date.rawScore ?? date.score
-  const adjustedScore = date.adjustedScore ?? displayScore
+  const adjustedScore = displayScore
   const baseSummary = generateSummary(
     date.grade,
     uniqueCategories,
@@ -1627,12 +1769,16 @@ export function formatDateForResponse(
     date.date,
     date.crossAgreementPercent
   )
-  const finalSummary = matrixOverlay.summary
-    ? dedupeTexts([matrixOverlay.summary, baseSummary]).join(' ')
-    : baseSummary
-  const coherenceConfidence = date.confidence ?? matrixOverlay.evidence.confidence
+  const finalSummary = buildMatrixFirstSummary({
+    verdict: matrixVerdict?.verdict,
+    topClaim: matrixVerdict?.topClaim,
+    fallbackSummary: matrixOverlay.summary
+      ? dedupeTexts([matrixOverlay.summary, baseSummary]).join(' ')
+      : baseSummary,
+  })
+  const coherenceConfidence = date.confidence ?? evidenceWithVerdict.confidence
   const coherenceAgreement =
-    date.crossAgreementPercent ?? matrixOverlay.evidence.crossAgreementPercent
+    date.crossAgreementPercent ?? evidenceWithVerdict.crossAgreementPercent
   const lowCoherence = isLowCoherenceSignal(coherenceConfidence, coherenceAgreement)
   const forceConservativeMode = date.grade <= 1 && lowCoherence
 
@@ -1642,24 +1788,27 @@ export function formatDateForResponse(
       ? '해석 갈림'
       : 'Mixed signals'
     : defaultTitle
-  const warningsForResponseBase = dedupeTexts([...warnings, ...matrixOverlay.warnings]).slice(0, 6)
-  const warningsForResponse = forceConservativeMode
-    ? dedupeTexts([
-        ...warningsForResponseBase,
-        lang === 'ko'
-          ? '커뮤니케이션 오류 가능성이 있어 재확인이 필요합니다.'
-          : 'Communication errors are more likely today. Re-check before committing.',
-      ]).slice(0, 6)
-    : warningsForResponseBase
+  const warningsForResponse = buildMatrixFirstWarnings({
+    matrixGuardrail: matrixVerdict?.guardrail,
+    baseWarnings: dedupeTexts([...warnings, ...matrixOverlay.warnings]).slice(0, 6),
+    conservativeWarning: forceConservativeMode
+      ? lang === 'ko'
+        ? '커뮤니케션 오류 가능성이 있어 재확인이 필요합니다.'
+        : 'Communication errors are more likely today. Re-check before committing.'
+      : '',
+  })
   const recommendationsForResponse = gateRecommendations({
-    recommendations: dedupeTexts([...recommendations, ...matrixOverlay.recommendations]).slice(
-      0,
-      6
-    ),
+    recommendations: buildMatrixFirstRecommendations({
+      matrixTopClaim: matrixVerdict?.topClaim,
+      baseRecommendations: dedupeTexts([...recommendations, ...matrixOverlay.recommendations]).slice(
+        0,
+        6
+      ),
+    }),
     recommendationKeys: date.recommendationKeys,
     warningKeys: date.warningKeys,
     warnings: warningsForResponse,
-    confidence: matrixOverlay.evidence.confidence ?? date.confidence,
+    confidence: evidenceWithVerdict.confidence ?? date.confidence,
     grade: date.grade,
     title,
     summary: finalSummary,
@@ -1682,37 +1831,17 @@ export function formatDateForResponse(
           : 'Core conclusion: low confidence/cross-alignment, so operate in review-first mode.',
       ]).join(' ')
     : finalSummary
-  const deterministicReason =
-    aiEnrichmentFailed && !forceConservativeMode && date.grade <= 2 && !lowCoherence
-      ? lang === 'ko'
-        ? (() => {
-            const f1 = orderedSajuFactors[0]
-            const f2 = orderedAstroFactors[0]
-            if (f1 && f2) {
-              return `핵심 근거: ${f1} · ${f2}. 오늘은 실행과 검증을 함께 두는 전략이 유리합니다.`
-            }
-            return '핵심 근거 기반으로 일정·문서·커뮤니케이션을 분할 실행하세요.'
-          })()
-        : (() => {
-            const f1 = orderedSajuFactors[0]
-            const f2 = orderedAstroFactors[0]
-            if (f1 && f2) {
-              return `Core basis: ${f1} · ${f2}. Pair execution with verification gates today.`
-            }
-            return 'Use evidence-first sequencing for schedule, documents, and communication.'
-          })()
-      : ''
-  const summarized = deterministicReason
-    ? dedupeTexts([summarizedBase, deterministicReason]).join(' ')
-    : summarizedBase
+  const summarized = summarizedBase
 
   return normalizeMojibakePayload({
     date: date.date,
-    grade: date.grade,
+    grade: effectiveGrade,
+    originalGrade: date.grade,
     score: displayScore,
     rawScore,
     adjustedScore,
     displayScore,
+    displayGrade: effectiveGrade,
     categories: uniqueCategories,
     title,
     description: finalDescription,
@@ -1722,7 +1851,7 @@ export function formatDateForResponse(
     astroFactors: orderedAstroFactors,
     recommendations: recommendationsForResponse,
     warnings: warningsForResponse,
-    evidence: matrixOverlay.evidence,
+    evidence: evidenceWithVerdict,
   })
 }
 
@@ -1813,3 +1942,4 @@ export const LOCATION_COORDS: Record<string, LocationCoord> = {
   Shanghai: { lat: 31.2304, lng: 121.4737, tz: 'Asia/Shanghai' },
   'Shanghai, CN': { lat: 31.2304, lng: 121.4737, tz: 'Asia/Shanghai' },
 }
+

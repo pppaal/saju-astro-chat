@@ -134,6 +134,16 @@ export interface CalendarEvidence {
   confidence: number
   crossAgreementPercent?: number
   source: CalendarEvidenceSource
+  matrixVerdict?: {
+    focusDomain: string
+    verdict: string
+    guardrail: string
+    topClaim?: string
+    topAnchorSummary?: string
+    phase?: string
+    attackPercent?: number
+    defensePercent?: number
+  }
 }
 
 export type MatrixEvidencePacketMap = Record<string, CounselorEvidencePacket>

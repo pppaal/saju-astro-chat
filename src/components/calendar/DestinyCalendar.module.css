@@ -5629,3 +5629,599 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ========== Minimal Calendar Cleanup Overrides ========== */
+.container {
+  --cal-accent-primary: #7c5cff;
+  --cal-accent-secondary: #7c5cff;
+  --cal-accent-blue: #7c5cff;
+  --cal-accent-purple: #7c5cff;
+  --cal-accent-teal: #7c5cff;
+  --cal-accent-pink: #7c5cff;
+  --cal-accent-red: #ff6b6b;
+  --cal-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.18);
+  --cal-shadow-md: 0 8px 22px rgba(0, 0, 0, 0.22);
+  --cal-shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.24);
+  --cal-shadow-card: 0 10px 28px rgba(0, 0, 0, 0.24);
+  --cal-shadow-glow: 0 0 0 rgba(0, 0, 0, 0);
+  --cal-transition-fast: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  --cal-transition-medium: 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  --cal-transition-slow: 320ms cubic-bezier(0.4, 0, 0.2, 1);
+  --cal-spring: 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.calendarHeader {
+  background: #14182a;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  box-shadow: none;
+}
+
+.backBtn,
+.calendarIconWrapper,
+.summaryBadge,
+.viewTabs,
+.viewTab,
+.monthNav,
+.filterBtn,
+.calendarWrapper,
+.fortuneGraph,
+.selectedDayInfo,
+.highlightCard,
+.quickScanCard,
+.analysisSection,
+.recommendationCard,
+.warningsSection,
+.calendarSyncBtn,
+.saveBtnLarge {
+  box-shadow: none;
+}
+
+.backBtn {
+  background: rgba(124, 92, 255, 0.08);
+  border-color: rgba(124, 92, 255, 0.2);
+}
+
+.backBtn:hover {
+  background: rgba(124, 92, 255, 0.14);
+  border-color: rgba(124, 92, 255, 0.3);
+  transform: none;
+}
+
+.calendarIconWrapper {
+  width: 38px;
+  height: 38px;
+  background: rgba(124, 92, 255, 0.1);
+  border: 1px solid rgba(124, 92, 255, 0.22);
+  border-radius: 10px;
+}
+
+.calendarIcon {
+  filter: none;
+  font-size: 20px;
+}
+
+.calendarTitle,
+.highlightsTitle {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--cal-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.calendarSubtitle {
+  color: #9aa6bf;
+}
+
+.summaryBadges {
+  gap: 10px;
+}
+
+.summaryBadge {
+  min-width: 116px;
+  min-height: 36px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(148, 163, 184, 0.14);
+  border-radius: 999px;
+}
+
+.summaryBadge:hover {
+  transform: none;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+.badgeCount {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--cal-text-primary);
+}
+
+.cautionBadge,
+.worstBadge {
+  background: rgba(255, 107, 107, 0.08);
+  border-color: rgba(255, 107, 107, 0.18);
+}
+
+.cautionBadge .badgeCount,
+.worstBadge .badgeCount {
+  color: #ffb4b4;
+}
+
+.viewTabs {
+  gap: 6px;
+  max-width: 680px;
+  margin: 14px auto 0;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 14px;
+}
+
+.viewTab {
+  min-height: 42px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--cal-text-secondary);
+}
+
+.viewTab:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.viewTabActive {
+  background: rgba(124, 92, 255, 0.14);
+  color: var(--cal-text-primary);
+}
+
+.monthNav {
+  gap: 10px;
+  padding: 12px 16px;
+  background: transparent;
+  border-bottom: 0;
+}
+
+.navBtn,
+.todayBtn,
+.yearBtn,
+.yearDisplay {
+  border-radius: 10px;
+}
+
+.navBtn,
+.yearBtn {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--cal-text-primary);
+  border-color: rgba(148, 163, 184, 0.14);
+}
+
+.navBtn:hover,
+.yearBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(124, 92, 255, 0.22);
+}
+
+.monthName {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.todayBtn {
+  background: rgba(124, 92, 255, 0.14);
+  color: #f5f3ff;
+  border: 1px solid rgba(124, 92, 255, 0.2);
+}
+
+.todayBtn:hover {
+  background: rgba(124, 92, 255, 0.18);
+  transform: none;
+}
+
+.filtersSection {
+  gap: 10px;
+  max-width: 760px;
+}
+
+.filtersLabel {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--cal-text-tertiary);
+}
+
+.filterBtn {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(148, 163, 184, 0.14);
+  color: var(--cal-text-secondary);
+}
+
+.filterBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(124, 92, 255, 0.22);
+}
+
+.filterBtn.active {
+  background: rgba(124, 92, 255, 0.14);
+  border-color: rgba(124, 92, 255, 0.22);
+  color: #f5f3ff;
+}
+
+.calendarWrapper {
+  padding: 16px;
+  margin: 14px auto;
+  background: #12182a;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 18px;
+}
+
+.weekdaysHeader {
+  padding: 10px 4px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.weekdayCell {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+}
+
+.weekdayCell.sunday,
+.day.sunday .dayNumber {
+  color: #ff9c9c;
+}
+
+.weekdayCell.saturday,
+.day.saturday .dayNumber {
+  color: #b7befe;
+}
+
+.daysGrid {
+  gap: 6px;
+  padding: 10px 2px 2px;
+  animation: none;
+}
+
+.slideLeft,
+.slideRight {
+  animation: none;
+}
+
+.emptyDay,
+.day {
+  min-height: 84px;
+}
+
+.day {
+  gap: 4px;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.day:hover {
+  transform: none;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(148, 163, 184, 0.16);
+}
+
+.dayNumber {
+  font-size: 21px;
+  font-weight: 600;
+  color: #edf2ff;
+  text-shadow: none;
+}
+
+.day.today {
+  border-color: rgba(255, 107, 107, 0.72) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 107, 107, 0.28);
+}
+
+.day.selected {
+  border-color: rgba(124, 92, 255, 0.88) !important;
+  background: rgba(124, 92, 255, 0.12) !important;
+  box-shadow: inset 0 0 0 1px rgba(124, 92, 255, 0.22);
+}
+
+.day.today.selected {
+  border-color: rgba(124, 92, 255, 0.88) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(124, 92, 255, 0.22),
+    0 0 0 1px rgba(255, 107, 107, 0.42);
+}
+
+.dayIndicators {
+  margin-top: 0;
+  min-height: 10px;
+}
+
+.dayEmoji {
+  display: none;
+}
+
+.gradeIndicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #6b7280;
+}
+
+.gradeIndicator0 {
+  background: #22c55e;
+}
+
+.gradeIndicator1 {
+  background: #4ade80;
+}
+
+.gradeIndicator2 {
+  background: #94a3b8;
+}
+
+.gradeIndicator3,
+.gradeIndicator4,
+.gradeIndicator5 {
+  background: #ff6b6b;
+}
+
+.day.dayGrade0,
+.day.dayGrade1,
+.day.dayGrade2,
+.day.dayGrade3,
+.day.dayGrade4,
+.day.dayGrade5 {
+  box-shadow: none !important;
+}
+
+.day.dayGrade0 {
+  background: rgba(34, 197, 94, 0.12) !important;
+  border-color: rgba(34, 197, 94, 0.22) !important;
+}
+
+.day.dayGrade1 {
+  background: rgba(74, 222, 128, 0.09) !important;
+  border-color: rgba(74, 222, 128, 0.18) !important;
+}
+
+.day.dayGrade2 {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(148, 163, 184, 0.1) !important;
+}
+
+.day.dayGrade3,
+.day.dayGrade4,
+.day.dayGrade5 {
+  background: rgba(255, 107, 107, 0.08) !important;
+  border-color: rgba(255, 107, 107, 0.18) !important;
+}
+
+.day.dayGrade0 .dayNumber,
+.day.dayGrade1 .dayNumber,
+.day.dayGrade2 .dayNumber,
+.day.dayGrade3 .dayNumber,
+.day.dayGrade4 .dayNumber,
+.day.dayGrade5 .dayNumber {
+  color: #edf2ff !important;
+  font-weight: 600;
+  text-shadow: none;
+}
+
+.day.selected.dayGrade0,
+.day.selected.dayGrade1,
+.day.selected.dayGrade2,
+.day.selected.dayGrade3,
+.day.selected.dayGrade4,
+.day.selected.dayGrade5 {
+  box-shadow: inset 0 0 0 1px rgba(124, 92, 255, 0.22) !important;
+}
+
+.legend {
+  gap: 12px;
+  padding: 12px 8px 4px;
+}
+
+.legendItem {
+  font-size: 12px;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.legendPattern {
+  display: none;
+}
+
+.grade0Dot {
+  background: #22c55e;
+}
+
+.grade1Dot {
+  background: #4ade80;
+}
+
+.grade2Dot {
+  background: #94a3b8;
+}
+
+.grade3Dot,
+.grade4Dot {
+  background: #ff6b6b;
+}
+
+.fortuneGraph {
+  background: #12182a;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 16px;
+}
+
+.graphTitle {
+  font-size: 12px;
+  color: var(--cal-text-secondary);
+}
+
+.sparkBar.active {
+  outline: 1px solid rgba(124, 92, 255, 0.7);
+}
+
+.sparkBar.grade0 {
+  background: #22c55e;
+}
+
+.sparkBar.grade1 {
+  background: #4ade80;
+}
+
+.sparkBar.grade2 {
+  background: #94a3b8;
+  opacity: 0.7;
+}
+
+.sparkBar.grade3,
+.sparkBar.grade4,
+.sparkBar.grade5 {
+  background: #ff6b6b;
+}
+
+.selectedDayInfo {
+  margin: 18px auto 22px;
+  background: #12182a;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 18px;
+  animation: none;
+}
+
+.selectedDayHeader {
+  padding: 18px 18px 14px;
+}
+
+.selectedDayDate {
+  font-size: 18px;
+}
+
+.selectedTitle {
+  font-size: 22px;
+  line-height: 1.35;
+}
+
+.quickScanCard,
+.analysisSection,
+.recommendationCard,
+.warningsSection,
+.calendarEvidenceDetails,
+.urgentWarningBox,
+.ganzhiBox {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(148, 163, 184, 0.12);
+}
+
+.quickScanThesis {
+  font-size: 18px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.quickMetaChip,
+.quickWindowChip,
+.peakLevelChip {
+  color: #e7e5ff;
+  background: rgba(124, 92, 255, 0.1);
+  border-color: rgba(124, 92, 255, 0.18);
+}
+
+.quickActionBlock {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(148, 163, 184, 0.12);
+}
+
+.calendarEvidenceSummary {
+  color: var(--cal-text-primary);
+}
+
+.selectedDesc,
+.analysisItem,
+.recommendationText,
+.warningItem,
+.calendarEvidenceList {
+  color: #c7d2e4;
+}
+
+.categoryTag {
+  background: rgba(255, 255, 255, 0.04);
+  color: #d8e1f0;
+}
+
+.recommendationsGrid {
+  grid-template-columns: 1fr;
+}
+
+.recommendationCard {
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.recommendationNumber {
+  background: rgba(124, 92, 255, 0.16);
+  color: #efeaff;
+}
+
+.warningItem {
+  background: rgba(255, 107, 107, 0.08);
+}
+
+.saveBtnLarge,
+.calendarSyncBtn {
+  min-height: 48px;
+  border-radius: 12px;
+}
+
+.saveBtnLarge {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(148, 163, 184, 0.12);
+}
+
+.calendarSyncBtn {
+  background: rgba(124, 92, 255, 0.14);
+  border-color: rgba(124, 92, 255, 0.18);
+  color: #f5f3ff;
+}
+
+.calendarSyncBtn:hover,
+.saveBtnLarge:hover:not(:disabled) {
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .summaryBadge {
+    min-width: 98px;
+    padding: 7px 10px;
+  }
+
+  .monthName {
+    font-size: 24px;
+  }
+
+  .calendarWrapper,
+  .selectedDayInfo,
+  .fortuneGraph {
+    border-radius: 16px;
+  }
+
+  .day,
+  .emptyDay {
+    min-height: 68px;
+  }
+
+  .dayNumber {
+    font-size: 18px;
+  }
+
+  .quickActionGrid {
+    grid-template-columns: 1fr;
+  }
+}

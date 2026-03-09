@@ -18,6 +18,8 @@ type ImportanceGrade = 0 | 1 | 2 | 3 | 4
 interface ImportantDate {
   date: string
   grade: ImportanceGrade
+  originalGrade?: ImportanceGrade
+  displayGrade?: ImportanceGrade
   score: number
   rawScore?: number
   adjustedScore?: number
@@ -49,6 +51,16 @@ interface ImportantDate {
     confidence: number
     crossAgreementPercent?: number
     source: 'rule' | 'rag' | 'hybrid'
+    matrixVerdict?: {
+      focusDomain: string
+      verdict: string
+      guardrail: string
+      topClaim?: string
+      topAnchorSummary?: string
+      phase?: string
+      attackPercent?: number
+      defensePercent?: number
+    }
   }
   ganzhi?: string
   transitSunSign?: string
@@ -316,7 +328,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         : 'Day Pillar (today core energy)',
   }
   const displayScore = selectedDate?.displayScore ?? selectedDate?.score ?? 0
-  const displayGrade = getDisplayGradeFromScore(displayScore)
+  const displayGrade = selectedDate?.displayGrade ?? getDisplayGradeFromScore(displayScore)
 
   const handleAddToCalendar = useCallback(async () => {
     if (!selectedDate || !selectedDay) return
@@ -455,9 +467,13 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   const resolvedPeakLevel = selectedDate
     ? resolvePeakLevel(selectedDate.evidence?.matrix?.peakLevel, displayScore)
     : null
+  const matrixVerdict = selectedDate?.evidence?.matrixVerdict
 
   const mergedTimingNarrative = (() => {
     if (!selectedDate) return ''
+    if (matrixVerdict?.topAnchorSummary) {
+      return matrixVerdict.topAnchorSummary
+    }
 
     const peakLevel = resolvedPeakLevel
     const bestWindow = normalizedBestTimes[0]
@@ -471,7 +487,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         ? `특히 ${bestWindow} 전후로 중요한 결정을 배치하시면 흐름을 타기 쉽습니다.`
         : '시간대를 고를 수 있다면 오전-오후 중 가장 집중이 잘 되는 구간에 핵심 일을 배치해 보세요.'
 
-      if (selectedDate.grade >= 3) {
+      if (displayGrade >= 3) {
         return `${peakLabel}이지만 ${domainLabel} 영역에서는 주의 신호가 함께 보여 무리한 확장보다 손실 방어가 우선입니다. ${timeLine}`
       }
       return `${peakLabel}에서 ${domainLabel} 영역의 효율이 올라오는 날입니다. 속도를 올리되, 핵심 1~2개 과제에 집중할수록 체감 성과가 커집니다. ${timeLine}`
@@ -487,7 +503,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       ? `Prioritize key decisions around ${bestWindow}.`
       : 'If possible, place key tasks in your highest-focus block.'
 
-    if (selectedDate.grade >= 3) {
+    if (displayGrade >= 3) {
       return `This is a ${peakLabel}, but caution signals are active, so risk control should come before expansion. ${timeLine}`
     }
     return `This is a ${peakLabel} with stronger execution flow. Focus on one or two high-impact tasks for better outcomes. ${timeLine}`
@@ -539,8 +555,8 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
   const evidenceSummaryPrimary = selectedDate?.evidence
     ? locale === 'ko'
-      ? `오늘 등급 ${unifiedDayLabel} · 점수 ${displayScore}/100 · 핵심 분야 ${domainLabel}`
-      : `Today rating ${unifiedDayLabel} · Score ${displayScore}/100 · Focus ${domainLabel}`
+      ? `오늘 등급 ${unifiedDayLabel} · 점수 ${displayScore}/100 · 핵심 분야 ${domainLabel}${matrixVerdict?.phase ? ` · 국면 ${matrixVerdict.phase}` : ''}`
+      : `Today rating ${unifiedDayLabel} · Score ${displayScore}/100 · Focus ${domainLabel}${matrixVerdict?.phase ? ` · Phase ${matrixVerdict.phase}` : ''}`
     : ''
 
   const sajuCrossLine =
@@ -578,6 +594,9 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
   const quickThesis = (() => {
     if (!selectedDate) return ''
+    if (matrixVerdict?.verdict) {
+      return softenDecisionTone(matrixVerdict.verdict, locale)
+    }
     if (locale === 'ko') {
       return `${domainLabel} 흐름은 ${unifiedDayLabel}이고, 말·약속은 한 번 더 확인하는 편이 좋습니다.`
     }
@@ -592,8 +611,8 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         : ['Start one outreach or coordination task.', 'Close one important document or task.']
 
   const quickDonts =
-    safeWarnings.slice(0, 2).length > 0
-      ? safeWarnings.slice(0, 2)
+    [matrixVerdict?.guardrail, ...safeWarnings].filter(Boolean).slice(0, 2).length > 0
+      ? ([matrixVerdict?.guardrail, ...safeWarnings].filter(Boolean).slice(0, 2) as string[])
       : locale === 'ko'
         ? ['계약이나 큰 결정은 재확인 후 진행하세요.']
         : ['Recheck contracts or major decisions before finalizing.']
@@ -605,7 +624,13 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         ? ['집중 가능한 시간대 1개를 먼저 확보하세요.']
         : ['Secure one focused time block first.']
 
-  const detailInsight = [safeSummary, safeNarrative, safeDescription].find(Boolean) || ''
+  const detailInsight =
+    [
+      matrixVerdict?.topClaim ? softenDecisionTone(matrixVerdict.topClaim, locale) : '',
+      safeSummary,
+      safeNarrative,
+      safeDescription,
+    ].find(Boolean) || ''
 
   return (
     <div className={`${styles.selectedDayInfo} ${styles.largeTextMode}`}>
@@ -664,20 +689,20 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         <div className={styles.selectedDayContent}>
           <h3 className={styles.selectedTitle}>{safeTitle}</h3>
 
-          {selectedDate.grade >= 3 && safeWarnings.length > 0 && (
+          {displayGrade >= 3 && safeWarnings.length > 0 && (
             <div
-              className={`${styles.urgentWarningBox} ${selectedDate.grade === 4 ? styles.worstDay : ''}`}
+              className={`${styles.urgentWarningBox} ${displayGrade === 4 ? styles.worstDay : ''}`}
             >
               <div className={styles.urgentWarningHeader}>
                 <span className={styles.urgentWarningIcon}>
-                  {selectedDate.grade === 4 ? '\u{1F6A8}' : '\u26A0\uFE0F'}
+                  {displayGrade === 4 ? '\u{1F6A8}' : '\u26A0\uFE0F'}
                 </span>
                 <span className={styles.urgentWarningTitle}>
                   {locale === 'ko'
-                    ? selectedDate.grade === 4
+                    ? displayGrade === 4
                       ? '오늘 주의해야 할 점!'
                       : '오늘의 주의사항'
-                    : selectedDate.grade === 4
+                    : displayGrade === 4
                       ? 'Critical Warnings!'
                       : "Today's Cautions"}
                 </span>
@@ -693,7 +718,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             </div>
           )}
 
-          {selectedDate.crossVerified && selectedDate.grade <= 1 && (
+          {selectedDate.crossVerified && displayGrade <= 1 && (
             <div className={styles.crossVerifiedBadge}>
               <span className={styles.crossVerifiedIcon}>{'\u{1F52E}'}</span>
               <span className={styles.crossVerifiedText}>
@@ -712,6 +737,11 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               <span className={styles.quickMetaChip}>
                 {locale === 'ko' ? '핵심 분야' : 'Focus'}: {domainLabel}
               </span>
+              {matrixVerdict?.phase && (
+                <span className={styles.quickMetaChip}>
+                  {locale === 'ko' ? '국면' : 'Phase'}: {matrixVerdict.phase}
+                </span>
+              )}
               <span className={styles.quickMetaChip}>
                 {locale === 'ko' ? '신뢰' : 'Reliability'}: {reliabilityLabel}
               </span>
@@ -760,6 +790,11 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 {selectedDate.evidence && (
                   <ul className={styles.calendarEvidenceList}>
                     {evidenceSummaryPrimary && <li>{evidenceSummaryPrimary}</li>}
+                    {matrixVerdict?.guardrail && (
+                      <li>
+                        {locale === 'ko' ? '안전장치:' : 'Guardrail:'} {matrixVerdict.guardrail}
+                      </li>
+                    )}
                     {evidenceSummaryCross && <li>{evidenceSummaryCross}</li>}
                     {evidenceBridgeSummary && <li>{evidenceBridgeSummary}</li>}
                     {evidenceScoreLine && <li>{evidenceScoreLine}</li>}
@@ -854,7 +889,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             </div>
           )}
 
-          {safeWarnings.length > 0 && selectedDate.grade < 3 && (
+          {safeWarnings.length > 0 && displayGrade < 3 && (
             <div className={styles.warningsSection}>
               <h4 className={styles.warningsTitle}>
                 <span className={styles.warningsIcon}>{'\u26A1'}</span>

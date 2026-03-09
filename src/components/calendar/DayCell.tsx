@@ -1,6 +1,5 @@
 "use client";
 
-// src/components/calendar/DayCell.tsx
 import React from 'react';
 
 import { useI18n } from '@/i18n/I18nProvider';
@@ -12,6 +11,8 @@ type ImportanceGrade = 0 | 1 | 2 | 3 | 4;
 interface ImportantDate {
   date: string;
   grade: ImportanceGrade;
+  originalGrade?: ImportanceGrade;
+  displayGrade?: ImportanceGrade;
   score: number;
   categories: EventCategory[];
   title: string;
@@ -27,27 +28,6 @@ interface DayCellProps {
   className: string;
 }
 
-const CATEGORY_EMOJI: Record<EventCategory, string> = {
-  wealth: "💰",
-  career: "💼",
-  love: "💕",
-  health: "💪",
-  travel: "✈️",
-  study: "📚",
-  general: "⭐",
-};
-
-function getGradeEmoji(grade: number): string {
-  switch (grade) {
-    case 0: return "🌟"; // 최고의 날
-    case 1: return "✨"; // 좋은 날
-    case 2: return "⭐"; // 보통 날
-    case 3: return "⚠️"; // 안좋은 날
-    case 4: return "☠️"; // 최악의 날
-    default: return "⭐";
-  }
-}
-
 const DayCell = React.memo(function DayCell({
   date,
   dateInfo,
@@ -60,7 +40,18 @@ const DayCell = React.memo(function DayCell({
 
   const getGradeLabel = (grade: number) => {
     const key = `calendar.grades.${grade}`;
-    return t(key, grade === 0 ? "Best Day" : grade === 1 ? "Good Day" : grade === 2 ? "Normal Day" : grade === 3 ? "Bad Day" : "Worst Day");
+    return t(
+      key,
+      grade === 0
+        ? "Best Day"
+        : grade === 1
+          ? "Good Day"
+          : grade === 2
+            ? "Normal Day"
+            : grade === 3
+              ? "Bad Day"
+              : "Worst Day"
+    );
   };
 
   const ariaLabel = date
@@ -68,11 +59,6 @@ const DayCell = React.memo(function DayCell({
         dateInfo ? getGradeLabel(dateInfo.grade) : locale === "ko" ? "정보 없음" : "No info"
       }${isToday ? (locale === "ko" ? ", 오늘" : ", Today") : ""}`
     : undefined;
-
-  // 디버깅: dateInfo 확인
-  if (date && !dateInfo) {
-    // logger.info(`No dateInfo for ${date.toISOString().split('T')[0]}`);
-  }
 
   return (
     <div
@@ -95,12 +81,9 @@ const DayCell = React.memo(function DayCell({
           <span className={styles.dayNumber}>{date.getDate()}</span>
           {dateInfo && (
             <div className={styles.dayIndicators} aria-hidden="true">
-              {dateInfo.categories && dateInfo.categories.length > 0 && dateInfo.categories.slice(0, 2).map((cat, i) => (
-                <span key={i} className={styles.dayEmoji}>{CATEGORY_EMOJI[cat]}</span>
-              ))}
-              <span className={styles.gradeIndicator}>
-                {getGradeEmoji(dateInfo.grade)}
-              </span>
+              <span
+                className={`${styles.gradeIndicator} ${styles[`gradeIndicator${dateInfo.grade}`]}`}
+              />
             </div>
           )}
         </>

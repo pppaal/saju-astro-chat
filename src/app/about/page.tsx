@@ -19,10 +19,10 @@ type Service = {
 
 const SERVICE_DETAILS: Record<ServiceKey, Omit<Service, 'id' | 'icon'>> = {
   destinyMap: {
-    href: '/destiny-map',
+    href: '/destiny-counselor',
     gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    descriptionKo: 'AI가 사주와 점성술을 융합하여 당신만의 운명 지도를 그립니다',
-    descriptionEn: 'AI-powered fusion of Saju and Astrology to map your destiny',
+    descriptionKo: '채팅형 운명 상담으로 질문을 바로 시작할 수 있습니다',
+    descriptionEn: 'Start immediate chat-based destiny counseling',
   },
   calendar: {
     href: '/calendar',

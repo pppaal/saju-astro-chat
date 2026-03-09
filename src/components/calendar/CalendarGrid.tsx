@@ -12,6 +12,8 @@ type ImportanceGrade = 0 | 1 | 2 | 3 | 4
 interface ImportantDate {
   date: string
   grade: ImportanceGrade
+  originalGrade?: ImportanceGrade
+  displayGrade?: ImportanceGrade
   score: number
   categories: EventCategory[]
   title: string
