@@ -206,6 +206,7 @@ class SajuCounselorService:
             _chunk_text,
             _to_sse_event,
             _sse_error_response,
+            _run_counselor_quality_gate,
         )
 
         # Normalize dayMaster structure
@@ -322,6 +323,28 @@ class SajuCounselorService:
                 )
                 if addendum:
                     full_text = _insert_addendum(full_text, addendum)
+
+                full_text, quality_gate = _run_counselor_quality_gate(
+                    openai_client=openai_client,
+                    model_name=model_name,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    locale=locale,
+                    counselor_type="saju",
+                    system_prompt=system_prompt,
+                    user_prompt=prompt,
+                    response_text=full_text,
+                    saju_data=saju_data,
+                    astro_data={},
+                )
+                if quality_gate.get("needs_repair"):
+                    logger.warning(
+                        "[SAJU-ASK-STREAM] quality gate unresolved issues=%s removed_terms=%s",
+                        quality_gate.get("issues"),
+                        quality_gate.get("removed_terms"),
+                    )
+                elif quality_gate.get("repaired"):
+                    logger.info("[SAJU-ASK-STREAM] quality gate repaired response")
 
                 full_text = _format_korean_spacing(full_text)
                 if locale == "ko" and not full_text.rstrip().endswith("?"):

@@ -457,6 +457,91 @@ class TestBuildMissingPayloadMessage:
         assert "astrology" in msg.lower()
 
 
+class TestCounselorQualityGate:
+    """Tests for counselor quality gate helpers."""
+
+    @staticmethod
+    def _sample_saju():
+        return {
+            "dayMaster": {"heavenlyStem": {"name": "甲", "element": "목"}, "element": "목"},
+            "pillars": {
+                "month": {
+                    "heavenlyStem": {"name": "丙"},
+                    "earthlyBranch": {"name": "寅"},
+                }
+            },
+            "fiveElements": {"wood": 35, "fire": 25, "earth": 15, "metal": 10, "water": 15},
+            "currentDaeun": "丙寅",
+        }
+
+    @staticmethod
+    def _sample_astro():
+        return {
+            "sun": {"sign": "Taurus", "house": 10},
+            "moon": {"sign": "Cancer", "house": 7},
+            "ascendant": {"sign": "Leo", "house": 1},
+            "aspects": [
+                {
+                    "from": {"name": "Sun"},
+                    "to": {"name": "Jupiter"},
+                    "type": "trine",
+                }
+            ],
+        }
+
+    def test_strip_forbidden_sentences_for_saju(self):
+        """Saju responses should drop astrology-only sentences."""
+        from backend_ai.utils.text_utils import _strip_forbidden_system_sentences
+
+        text = (
+            "일간 甲 목 기운이 현재 중심입니다. "
+            "태양 Taurus 와 10하우스 트랜짓도 같이 봐야 합니다. "
+            "오행 균형을 먼저 조정하세요."
+        )
+        result = _strip_forbidden_system_sentences(text, "saju")
+
+        assert "Taurus" not in result["text"]
+        assert "오행 균형" in result["text"]
+        assert result["removed_terms"]
+
+    def test_assess_quality_detects_missing_cross_evidence(self):
+        """Fusion responses should require both saju and astrology anchors."""
+        from backend_ai.utils.text_utils import _assess_counselor_response_quality
+
+        text = "일간 甲 목이 중심이고 오행 균형을 먼저 조정하는 편이 좋습니다."
+        result = _assess_counselor_response_quality(
+            text,
+            "fusion",
+            self._sample_saju(),
+            self._sample_astro(),
+        )
+
+        assert result["needs_repair"] is True
+        assert "missing_astrology_evidence" in result["issues"]
+
+    def test_assess_quality_accepts_grounded_fusion_answer(self):
+        """Fusion answers with saju and astrology anchors should pass."""
+        from backend_ai.utils.text_utils import _assess_counselor_response_quality
+
+        text = (
+            "일간 甲 목과 현재 대운 丙寅 흐름을 보면 먼저 방향을 좁히는 편이 좋습니다. "
+            "동시에 태양 Taurus 가 10하우스에 놓여 있고 Moon Cancer 정서 반응이 커서, "
+            "이번 주에는 Sun-Jupiter trine 이 주는 확장성을 활용하되 무리한 확정은 늦추세요. "
+            "특히 오행 균형이 아직 완전히 안정된 국면은 아니라서, 결정 전에 한 번 더 문서와 일정 여유를 확인하는 편이 안전합니다. "
+            "지금은 빠른 결론보다 작은 검증 단계를 먼저 거치고 반응을 보는 흐름이 더 잘 맞습니다."
+        )
+        result = _assess_counselor_response_quality(
+            text,
+            "fusion",
+            self._sample_saju(),
+            self._sample_astro(),
+        )
+
+        assert result["needs_repair"] is False
+        assert len(result["saju_hits"]) >= 1
+        assert len(result["astro_hits"]) >= 2
+
+
 class TestModuleExports:
     """Tests for module imports."""
 

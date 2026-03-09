@@ -103,6 +103,7 @@ class StreamingService:
                 _to_sse_event,
                 _chunk_text,
                 _get_stream_chunk_size,
+                _run_counselor_quality_gate,
                 _select_model_and_temperature,
                 _clamp_temperature,
                 _coerce_float,
@@ -562,9 +563,7 @@ class StreamingService:
                     for chunk in stream:
                         if not chunk.choices or not chunk.choices[0].delta.content:
                             continue
-                        token = chunk.choices[0].delta.content
-                        full_text += token
-                        yield _to_sse_event(token)
+                        full_text += chunk.choices[0].delta.content
 
                     # Post-processing: send as final events
                     full_text = _ensure_ko_prefix(full_text, locale)
@@ -582,7 +581,35 @@ class StreamingService:
                         today_date,
                     )
                     if addendum:
-                        yield _to_sse_event(f"\n\n{addendum}")
+                        full_text = _insert_addendum(full_text, addendum)
+
+                    full_text, quality_gate = _run_counselor_quality_gate(
+                        openai_client=client,
+                        model_name=model_name,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        locale=locale,
+                        counselor_type="fusion",
+                        system_prompt=messages[0]["content"],
+                        user_prompt=sanitized_prompt,
+                        response_text=full_text,
+                        saju_data=saju_data,
+                        astro_data=astro_data,
+                    )
+                    if quality_gate.get("needs_repair"):
+                        logger.warning(
+                            "[StreamingService] quality gate unresolved issues=%s removed_terms=%s",
+                            quality_gate.get("issues"),
+                            quality_gate.get("removed_terms"),
+                        )
+                    elif quality_gate.get("repaired"):
+                        logger.info("[StreamingService] quality gate repaired response")
+
+                    full_text = _format_korean_spacing(full_text)
+
+                    chunk_size = _get_stream_chunk_size()
+                    for piece in _chunk_text(full_text, chunk_size):
+                        yield _to_sse_event(piece)
 
                     # Add RAG debug info
                     if debug_rag:

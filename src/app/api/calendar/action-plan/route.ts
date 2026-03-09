@@ -1068,25 +1068,161 @@ function buildSlotGuardrail(input: {
 }): string {
   const { locale, slotTypes, tone, calendar } = input
   const matrixGuardrail = cleanGuidanceText(getMatrixVerdict(calendar)?.guardrail || '', 120)
-  if (matrixGuardrail) return matrixGuardrail
-  if (tone === 'caution') {
-    return locale === 'ko'
-      ? '최종 결정 금지: 반대 근거 1개와 영향 범위 1줄 확인 후 확정'
-      : 'No final decision until one counter-evidence and one impact line are verified.'
-  }
-  if (slotTypes.includes('money')) {
-    return locale === 'ko'
-      ? '집행 금지: 총액·한도·최악손실 3개 숫자 확인 전 결제/투자 금지'
-      : 'No spend/invest before checking total, limit, and worst-case loss.'
-  }
-  if (slotTypes.includes('relationship')) {
-    return locale === 'ko'
-      ? '전송 금지: 의도·요청·기한 3요소가 한 줄로 명확하지 않으면 보내지 않기'
-      : 'Do not send if intent, request, and deadline are not clear in one line.'
-  }
+  const slotSpecific =
+    tone === 'caution'
+      ? locale === 'ko'
+        ? '최종 확정 금지: 반대 근거 1개와 영향 범위 1줄 확인 후 확정'
+        : 'No final decision until one counter-evidence and one impact line are verified.'
+      : slotTypes.includes('money')
+        ? locale === 'ko'
+          ? '집행 전 총액·한도·최악손실 3개 숫자를 먼저 확인'
+          : 'Check total, limit, and worst-case loss before spending or investing.'
+        : slotTypes.includes('relationship')
+          ? locale === 'ko'
+            ? '전송 전 의도·요청·기한 3요소를 한 줄로 먼저 정리'
+            : 'Before sending, make intent, request, and deadline clear in one line.'
+          : slotTypes.includes('recovery')
+            ? locale === 'ko'
+              ? '새 약속 추가보다 회복과 정리를 우선'
+              : 'Prioritize recovery and reset before adding new commitments.'
+            : slotTypes.includes('decision')
+              ? locale === 'ko'
+                ? '결론 전에 판단 기준 2개를 먼저 적기'
+                : 'Write two decision criteria before committing.'
+              : locale === 'ko'
+                ? '시작 전 성공 조건 1줄과 중단 기준 1줄을 기록'
+                : 'Write one success condition and one stop condition before starting.'
+
+  if (!matrixGuardrail) return slotSpecific
+  if (matrixGuardrail.includes(slotSpecific)) return matrixGuardrail
   return locale === 'ko'
-    ? '시작 전 기록: 성공 조건 1줄 + 실패 기준 1줄'
-    : 'Before start, write one success condition and one failure threshold.'
+    ? `${slotSpecific} / ${matrixGuardrail}`
+    : `${slotSpecific} / ${matrixGuardrail}`
+}
+
+function getPrimarySlotType(slotTypes: SlotType[]): SlotType {
+  return slotTypes[0] || 'deepWork'
+}
+
+function buildSlotActionCue(input: {
+  locale: 'ko' | 'en'
+  tone: TimelineTone
+  slotTypes: SlotType[]
+  category?: string
+}): string {
+  const { locale, tone, slotTypes, category } = input
+  const primary = getPrimarySlotType(slotTypes)
+  const normalizedCategory = normalizeActionCategory(category)
+  const isKo = locale === 'ko'
+
+  if (tone === 'caution') {
+    if (primary === 'money' || normalizedCategory === 'wealth') {
+      return isKo
+        ? '숫자 검증만 하고 집행은 미루는 편이 낫습니다.'
+        : 'Validate the numbers now and delay execution.'
+    }
+    if (primary === 'relationship') {
+      return isKo
+        ? '해석보다 확인 질문 1개가 우선입니다.'
+        : 'One clarifying question beats interpretation right now.'
+    }
+    if (primary === 'decision') {
+      return isKo
+        ? '결론보다 검증과 재정렬에 쓰는 편이 낫습니다.'
+        : 'Use this slot for validation and re-alignment, not commitment.'
+    }
+    return isKo
+      ? '확정보다 리스크 제거에 쓰는 편이 낫습니다.'
+      : 'Use this slot to remove risk, not to finalize.'
+  }
+
+  switch (primary) {
+    case 'money':
+      return isKo
+        ? '예산·조건을 맞춘 뒤 실행하기 좋습니다.'
+        : 'Good for execution after budget and terms are locked.'
+    case 'relationship':
+      return isKo
+        ? '핵심 메시지를 짧고 명확하게 전하기 좋습니다.'
+        : 'Good for a short, clear message or check-in.'
+    case 'recovery':
+      return isKo ? '회복과 정리 루틴을 넣기 좋습니다.' : 'Good for recovery, reset, and cleanup.'
+    case 'decision':
+      return isKo
+        ? '판단 기준을 세우고 한 건 결정하기 좋습니다.'
+        : 'Good for setting criteria and making one decision.'
+    case 'communication':
+      return isKo
+        ? '설명, 조율, 피드백 전달에 유리합니다.'
+        : 'Good for explanation, alignment, and feedback.'
+    default:
+      return isKo ? '핵심 한 건을 집중해서 밀기 좋습니다.' : 'Good for pushing one focused task.'
+  }
+}
+
+function buildSlotNarrative(input: {
+  locale: 'ko' | 'en'
+  hour: number
+  tone: TimelineTone
+  slotTypes: SlotType[]
+  category?: string
+  calendar?: ActionPlanCalendarContext
+  fallbackNote?: string
+  source?: 'rule' | 'rag' | 'hybrid'
+}): string {
+  const { locale, hour, tone, slotTypes, category, calendar, fallbackNote, source } = input
+  const packet = getMatrixPacket(calendar)
+  const verdict = getMatrixVerdict(calendar)
+  const packetEvidence = getRelevantPacketEvidence({
+    packet,
+    slotTypes,
+    category,
+    tone,
+  })
+  const focusHint = cleanGuidanceText(getCategoryFocusHint(category, hour, locale), 42)
+  const phase = cleanGuidanceText(
+    verdict?.phase || packet?.strategyBrief?.overallPhaseLabel || '',
+    36
+  )
+  const claim = cleanGuidanceText(
+    packetEvidence.claims[0]?.text || verdict?.topClaim || verdict?.verdict || '',
+    100
+  )
+  const anchor = cleanGuidanceText(
+    packetEvidence.anchors[0]?.summary || verdict?.topAnchorSummary || '',
+    84
+  )
+  const scenario = cleanGuidanceText(
+    [
+      ...(packetEvidence.scenarios[0]?.mainTokens || []).slice(0, 2),
+      ...(packetEvidence.scenarios[0]?.altTokens || []).slice(0, 1),
+    ].join(', '),
+    48
+  )
+  const actionCue = buildSlotActionCue({ locale, tone, slotTypes, category })
+  const preferOriginalNote = source === 'rag' || source === 'hybrid'
+
+  if (locale === 'ko') {
+    const parts = [
+      preferOriginalNote ? fallbackNote || undefined : undefined,
+      focusHint || undefined,
+      phase ? `국면 ${phase}` : undefined,
+      actionCue,
+      claim || undefined,
+      anchor ? `근거: ${anchor}` : scenario ? `시나리오: ${scenario}` : undefined,
+    ].filter(Boolean)
+    return cleanGuidanceText(parts.join(' · ') || fallbackNote || '기본 운영 슬롯입니다.', 180)
+  }
+
+  const parts = [
+    preferOriginalNote ? fallbackNote || undefined : undefined,
+    focusHint || undefined,
+    phase ? `Phase ${phase}` : undefined,
+    actionCue,
+    claim || undefined,
+    anchor ? `Basis: ${anchor}` : scenario ? `Scenario: ${scenario}` : undefined,
+  ].filter(Boolean)
+  return cleanGuidanceText(parts.join(' · ') || fallbackNote || 'Baseline operating slot.', 180)
 }
 
 function analyzeConfidenceMeta(input: {
@@ -1981,18 +2117,11 @@ export const POST = withApiMiddleware(
           ? `개인화 포인트: ${personalHint}`
           : `Personalization point: ${personalHint}`
         : null
-      const note =
-        personalHint && !slot.note.includes(personalHint)
-          ? cleanGuidanceText(
-              `${slot.note} · ${lang === 'ko' ? `개인화: ${personalHint}` : `Personalized: ${personalHint}`}`,
-              180
-            )
-          : slot.note
       const category = pickCategoryByHour(calendar?.categories, slot.hour)
-      const slotTypes = inferSlotTypes({ hour: slot.hour, tone, category, note })
+      const slotTypes = inferSlotTypes({ hour: slot.hour, tone, category, note: slot.note })
       const why = buildSlotWhy({
         locale: lang,
-        slot: { ...slot, tone, note },
+        slot: { ...slot, tone, note: slot.note },
         slotTypes,
         category,
         calendar,
@@ -2000,6 +2129,15 @@ export const POST = withApiMiddleware(
         persona,
       })
       const guardrail = buildSlotGuardrail({ locale: lang, slotTypes, tone, calendar })
+      const note = buildSlotNarrative({
+        locale: lang,
+        hour: slot.hour,
+        tone,
+        slotTypes,
+        category,
+        calendar,
+        fallbackNote: slot.note,
+      })
       const confidenceMeta = analyzeConfidenceMeta({
         locale: lang,
         slot: { ...slot, tone, note, slotTypes, why, guardrail },

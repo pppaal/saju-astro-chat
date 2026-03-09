@@ -39,6 +39,9 @@ from backend_ai.utils.text_utils import (
     _has_astro_payload,
     _build_birth_format_message,
     _build_missing_payload_message,
+    _strip_forbidden_system_sentences,
+    _assess_counselor_response_quality,
+    _run_counselor_quality_gate,
 )
 
 from backend_ai.utils.evidence_builders import (
@@ -97,6 +100,9 @@ __all__ = [
     "_has_astro_payload",
     "_build_birth_format_message",
     "_build_missing_payload_message",
+    "_strip_forbidden_system_sentences",
+    "_assess_counselor_response_quality",
+    "_run_counselor_quality_gate",
     # Evidence builders
     "_summarize_five_elements",
     "_summarize_five_elements_en",
