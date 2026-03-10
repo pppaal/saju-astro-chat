@@ -343,6 +343,9 @@ export const MatrixCalculationInputSchema = z.object({
   yongsin: FiveElementSchema.optional(),
   currentDaeunElement: FiveElementSchema.optional(),
   currentSaeunElement: FiveElementSchema.optional(),
+  currentWolunElement: FiveElementSchema.optional(),
+  currentIljinElement: FiveElementSchema.optional(),
+  currentIljinDate: z.string().optional(),
 
   // 신살 데이터
   shinsalList: z.array(ShinsalKindSchema).optional().default([]),

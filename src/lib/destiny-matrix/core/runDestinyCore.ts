@@ -288,6 +288,8 @@ export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult 
     buildPhaseStrategyEngine(signalSynthesis, params.lang, {
       daeunActive: Boolean(normalizedInput.currentDaeunElement),
       seunActive: Boolean(normalizedInput.currentSaeunElement),
+      wolunActive: Boolean(normalizedInput.currentWolunElement),
+      iljinActive: Boolean(normalizedInput.currentIljinElement || normalizedInput.currentIljinDate),
       activeTransitCount: normalizedInput.activeTransits.length,
     }) || buildSafeStrategyFallback(params.lang)
   const patterns = buildPatternEngine(signalSynthesis, strategyEngine)

@@ -162,13 +162,6 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
             lang === 'ko'
               ? selectedSpread.positions[idx]?.titleKo || selectedSpread.positions[idx]?.title
               : selectedSpread.positions[idx]?.title,
-          meaning: dc.isReversed
-            ? lang === 'ko'
-              ? dc.card.reversed.meaningKo || dc.card.reversed.meaning
-              : dc.card.reversed.meaning
-            : lang === 'ko'
-              ? dc.card.upright.meaningKo || dc.card.upright.meaning
-              : dc.card.upright.meaning,
           keywords: dc.isReversed
             ? lang === 'ko'
               ? dc.card.reversed.keywordsKo || dc.card.reversed.keywords

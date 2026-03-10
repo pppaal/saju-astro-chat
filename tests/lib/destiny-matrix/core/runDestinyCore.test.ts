@@ -214,4 +214,20 @@ describe('runDestinyCore', () => {
     expect(result.quality.metrics.advancedSignalCount).toBeGreaterThanOrEqual(3)
     expect(result.quality.metrics.snapshotSignalCount).toBeGreaterThanOrEqual(3)
   })
+
+  it('promotes iljin-aware inputs into now-window scenarios', () => {
+    const result = runDestinyCore({
+      mode: 'comprehensive',
+      lang: 'ko',
+      matrixInput: createInput({
+        currentWolunElement: '수' as FiveElement,
+        currentIljinElement: '화' as FiveElement,
+        currentIljinDate: '2026-03-10',
+        activeTransits: [] as any,
+      }),
+      matrixReport: createReport(),
+    })
+
+    expect(result.scenarios.some((scenario) => scenario.window === 'now')).toBe(true)
+  })
 })

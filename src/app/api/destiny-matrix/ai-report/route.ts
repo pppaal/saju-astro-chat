@@ -397,6 +397,9 @@ function buildDerivedCrossSnapshot(requestBody: Record<string, unknown>): Record
       yongsin: toOptionalString(requestBody.yongsin),
       currentDaeunElement: toOptionalString(requestBody.currentDaeunElement),
       currentSaeunElement: toOptionalString(requestBody.currentSaeunElement),
+      currentWolunElement: toOptionalString(requestBody.currentWolunElement),
+      currentIljinElement: toOptionalString(requestBody.currentIljinElement),
+      currentIljinDate: toOptionalString(requestBody.currentIljinDate),
     },
     coverage: {
       relationCount,
@@ -542,7 +545,16 @@ function enrichRequestWithDerivedSaju(
       }
     }
 
-    const annualElement = toOptionalString(sajuData.unse?.annual?.[0]?.element)
+    const targetDateIsoForAnnual =
+      toOptionalString(requestBody.targetDate) ||
+      toOptionalString(requestBody.currentDateIso) ||
+      new Date().toISOString().slice(0, 10)
+    const targetForAnnual = new Date(targetDateIsoForAnnual)
+    const annualCurrent = (sajuData.unse?.annual || []).find(
+      (row) => row.year === targetForAnnual.getFullYear()
+    )
+    const annualFallback = (sajuData.unse?.annual || [])[0]
+    const annualElement = toOptionalString((annualCurrent || annualFallback)?.element)
     if (!requestBody.currentSaeunElement && annualElement && ELEMENT_MAP[annualElement]) {
       requestBody.currentSaeunElement = ELEMENT_MAP[annualElement]
     }
@@ -554,6 +566,31 @@ function enrichRequestWithDerivedSaju(
       STEM_ELEMENT_BY_NAME[currentDaeunStem]
     ) {
       requestBody.currentDaeunElement = STEM_ELEMENT_BY_NAME[currentDaeunStem]
+    }
+
+    const targetDateIso =
+      toOptionalString(requestBody.targetDate) ||
+      toOptionalString(requestBody.currentDateIso) ||
+      new Date().toISOString().slice(0, 10)
+    const target = new Date(targetDateIso)
+    const targetYear = target.getFullYear()
+    const targetMonth = target.getMonth() + 1
+    const monthlyCurrent = (sajuData.unse?.monthly || []).find(
+      (row) => row.year === targetYear && row.month === targetMonth
+    )
+    const monthlyFallback = (sajuData.unse?.monthly || [])[0]
+    const monthlyElement = toOptionalString((monthlyCurrent || monthlyFallback)?.element)
+    if (!requestBody.currentWolunElement && monthlyElement && ELEMENT_MAP[monthlyElement]) {
+      requestBody.currentWolunElement = ELEMENT_MAP[monthlyElement]
+    }
+
+    const autoShortTermTiming = buildTimingData(targetDateIso)
+    const iljinElement = toOptionalString(autoShortTermTiming.iljin?.element)
+    if (!requestBody.currentIljinElement && iljinElement && ELEMENT_MAP[iljinElement]) {
+      requestBody.currentIljinElement = ELEMENT_MAP[iljinElement]
+    }
+    if (!requestBody.currentIljinDate && autoShortTermTiming.iljin?.date) {
+      requestBody.currentIljinDate = autoShortTermTiming.iljin.date
     }
 
     if (!toOptionalRecord(requestBody.sajuSnapshot)) {
@@ -820,6 +857,7 @@ function buildTimingDataFromDerivedSaju(
   if (!derivedSaju) return {}
 
   const target = targetDate ? new Date(targetDate) : new Date()
+  const baseTiming = buildTimingData(targetDate)
   const targetYear = target.getFullYear()
   const targetMonth = target.getMonth() + 1
 
@@ -868,7 +906,7 @@ function buildTimingDataFromDerivedSaju(
         }
       : undefined
 
-  return { daeun, seun, wolun }
+  return { daeun, seun, wolun, iljin: baseTiming.iljin }
 }
 
 function listAiReportMissing(

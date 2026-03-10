@@ -42,10 +42,9 @@ export async function fetchInterpretation(
             isReversed: dc.isReversed,
             position: result.spread.positions[idx]?.title || `Card ${idx + 1}`,
             positionKo: result.spread.positions[idx]?.titleKo,
-            meaning: meaning.meaning,
-            meaningKo: meaning.meaningKo,
-            keywords: meaning.keywords,
-            keywordsKo: meaning.keywordsKo,
+            // Keep payload compact for large spreads; server derives interpretation from card identity + keywords.
+            keywords: (meaning.keywords || []).slice(0, 8),
+            keywordsKo: (meaning.keywordsKo || []).slice(0, 8),
           };
         }),
         userQuestion,

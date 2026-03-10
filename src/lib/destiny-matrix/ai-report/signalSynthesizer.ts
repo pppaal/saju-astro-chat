@@ -628,6 +628,58 @@ function normalizeFromMatrixInput(
     )
   }
 
+  if (matrixInput.currentWolunElement) {
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L4:wolun:${matrixInput.currentWolunElement}`,
+        layer: 4,
+        rowKey: `wolun_${matrixInput.currentWolunElement}`,
+        colKey: 'active',
+        polarity: 'balance',
+        score: 5,
+        keyword: `Wolun ${matrixInput.currentWolunElement}`,
+        sajuBasis: `wolun=${matrixInput.currentWolunElement}`,
+        astroBasis: 'monthly timing cycle active',
+        advice:
+          lang === 'ko'
+            ? '월운 신호는 이번 달의 실행 순서를 다듬는 데 쓰고, 과도한 확정보다 우선순위 재배치에 활용하세요.'
+            : 'Use wolun signals to refine this month\'s execution order before making hard commitments.',
+        tags: ['coverage', 'wolun', String(matrixInput.currentWolunElement)],
+        domainHints: ['timing', 'career', 'move'],
+        lang,
+      })
+    )
+  }
+
+  if (matrixInput.currentIljinElement || matrixInput.currentIljinDate) {
+    const iljinKey = matrixInput.currentIljinElement || 'active'
+    out.push(
+      buildSyntheticSignal({
+        id: `COV:L4:iljin:${iljinKey}`,
+        layer: 4,
+        rowKey: `iljin_${iljinKey}`,
+        colKey: matrixInput.currentIljinDate || 'today',
+        polarity: 'balance',
+        score: 4,
+        keyword: `Iljin ${iljinKey}`,
+        sajuBasis: `iljin=${matrixInput.currentIljinDate || 'today'}${matrixInput.currentIljinElement ? `/${matrixInput.currentIljinElement}` : ''}`,
+        astroBasis: 'daily timing cycle active',
+        advice:
+          lang === 'ko'
+            ? '일진 신호는 당일 확정 여부보다 순서와 검증 게이트를 조정하는 용도로 사용하세요.'
+            : 'Use iljin signals to tune same-day sequencing and verification gates rather than overcommitting.',
+        tags: [
+          'coverage',
+          'iljin',
+          String(iljinKey),
+          ...(matrixInput.currentIljinDate ? [matrixInput.currentIljinDate] : []),
+        ],
+        domainHints: ['timing', 'relationship', 'move'],
+        lang,
+      })
+    )
+  }
+
   if (
     matrixInput.currentDaeunElement &&
     matrixInput.currentSaeunElement &&

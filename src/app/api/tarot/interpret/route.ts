@@ -56,6 +56,7 @@ type TarotInterpretResult = {
 const MAX_CARD_MEANING_LENGTH = 500
 const OPENAI_TIMEOUT_MS = 40000
 const OPENAI_MAX_RETRIES = 1
+const LARGE_SPREAD_THRESHOLD = 8
 
 function parseStructuredContextFromString(
   raw: string | undefined,
@@ -653,6 +654,18 @@ export const POST = withApiMiddleware(
 
       // Call Python backend for Hybrid RAG interpretation (with fallback on connection failure)
       let interpretation = null
+      const isLargeSpread = validatedCards.length >= LARGE_SPREAD_THRESHOLD
+      const backendRequestOptions = isLargeSpread
+        ? { timeout: 35000, retries: 0, retryDelay: 800 }
+        : { timeout: 60000, retries: 2, retryDelay: 1200 }
+      if (isLargeSpread) {
+        logger.info('[Tarot interpret] large spread detected; using fast backend fallback policy', {
+          spreadId,
+          cardCount: validatedCards.length,
+          timeout: backendRequestOptions.timeout,
+          retries: backendRequestOptions.retries,
+        })
+      }
       try {
         const response = await apiClient.post(
           '/api/tarot/interpret',
@@ -672,7 +685,7 @@ export const POST = withApiMiddleware(
             saju_context: parsedSajuContext,
             astro_context: parsedAstroContext,
           },
-          { timeout: 60000, retries: 2, retryDelay: 1200 }
+          backendRequestOptions
         )
 
         if (response.ok) {
@@ -765,7 +778,11 @@ export const POST = withApiMiddleware(
 )
 
 // GPT-4o-mini API 호출 헬퍼 (속도 최적화)
-async function callGPT(prompt: string, maxTokens = 400): Promise<string> {
+async function callGPT(
+  prompt: string,
+  maxTokens = 400,
+  timeoutMs = OPENAI_TIMEOUT_MS
+): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
     throw new Error('OPENAI_API_KEY is not set')
@@ -798,7 +815,7 @@ async function callGPT(prompt: string, maxTokens = 400): Promise<string> {
       maxRetries: OPENAI_MAX_RETRIES,
       initialDelayMs: 700,
       maxDelayMs: 4000,
-      timeoutMs: OPENAI_TIMEOUT_MS,
+      timeoutMs,
       retryStatusCodes: [408, 409, 425, 429, 500, 502, 503, 504],
       onRetry: (attempt, error, delayMs) => {
         logger.warn('[Tarot interpret] OpenAI retry scheduled', {
@@ -836,22 +853,25 @@ type PromptBudget = {
   perCardGuide: string
   adviceGuide: string
   maxTokens: number
+  timeoutMs: number
 }
 
 function getPromptBudget(cardCount: number, isKorean: boolean): PromptBudget {
-  if (cardCount >= 8) {
+  if (cardCount >= LARGE_SPREAD_THRESHOLD) {
     return isKorean
       ? {
           overallGuide: '220-380자',
           perCardGuide: '120-220자',
           adviceGuide: '120-180자',
           maxTokens: 2400,
+          timeoutMs: 65000,
         }
       : {
           overallGuide: '140-220 words',
           perCardGuide: '60-100 words',
           adviceGuide: '70-110 words',
           maxTokens: 2400,
+          timeoutMs: 65000,
         }
   }
 
@@ -862,12 +882,14 @@ function getPromptBudget(cardCount: number, isKorean: boolean): PromptBudget {
           perCardGuide: '180-320자',
           adviceGuide: '140-220자',
           maxTokens: 2600,
+          timeoutMs: 55000,
         }
       : {
           overallGuide: '180-300 words',
           perCardGuide: '90-150 words',
           adviceGuide: '90-130 words',
           maxTokens: 2600,
+          timeoutMs: 55000,
         }
   }
 
@@ -877,12 +899,14 @@ function getPromptBudget(cardCount: number, isKorean: boolean): PromptBudget {
         perCardGuide: '260-480자',
         adviceGuide: '160-260자',
         maxTokens: 3000,
+        timeoutMs: OPENAI_TIMEOUT_MS,
       }
     : {
         overallGuide: '260-420 words',
         perCardGuide: '120-220 words',
         adviceGuide: '100-150 words',
         maxTokens: 3000,
+        timeoutMs: OPENAI_TIMEOUT_MS,
       }
 }
 
@@ -1007,7 +1031,7 @@ ${cardExamples}
 - Include at least one time anchor in each card insight (today/this week/within 7 days).`
 
   try {
-    const result = await callGPT(unifiedPrompt, budget.maxTokens)
+    const result = await callGPT(unifiedPrompt, budget.maxTokens, budget.timeoutMs)
 
     const parsed = tryParseJsonCandidate(result)
     if (parsed) {

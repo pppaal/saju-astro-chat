@@ -251,4 +251,29 @@ describe('synthesizeMatrixSignals', () => {
     expect(ids.some((id) => id.startsWith('COV:L10:snapshot_astro:present'))).toBe(true)
     expect(ids.some((id) => id.startsWith('COV:L10:snapshot_cross:present'))).toBe(true)
   })
+
+  it('emits wolun and iljin timing coverage signals when short-term timing is present', () => {
+    const result = synthesizeMatrixSignals({
+      lang: 'ko',
+      matrixReport: mkReport(),
+      matrixSummary: mkSummary(),
+      matrixInput: {
+        dayMasterElement: '목' as any,
+        pillarElements: ['목', '화', '토', '금'] as any,
+        sibsinDistribution: {} as any,
+        twelveStages: {} as any,
+        relations: [] as any,
+        planetHouses: {} as any,
+        planetSigns: {} as any,
+        aspects: [] as any,
+        currentWolunElement: '수' as any,
+        currentIljinElement: '화' as any,
+        currentIljinDate: '2026-03-10',
+      },
+    })
+
+    const ids = result.normalizedSignals.map((signal) => signal.id)
+    expect(ids).toContain('COV:L4:wolun:수')
+    expect(ids).toContain('COV:L4:iljin:화')
+  })
 })

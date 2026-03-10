@@ -9,6 +9,8 @@ export interface StrategyEngineTuning {
   timeActivation: {
     daeunMultiplier: number
     seunMultiplier: number
+    wolunMultiplier: number
+    iljinMultiplier: number
     transitMultiplier: number
   }
   domainWeights: {
@@ -98,6 +100,8 @@ export const STRATEGY_ENGINE_TUNING: StrategyEngineTuning = {
   timeActivation: {
     daeunMultiplier: 1.2,
     seunMultiplier: 1.1,
+    wolunMultiplier: 1.06,
+    iljinMultiplier: 1.04,
     transitMultiplier: 1.15,
   },
   domainWeights: {

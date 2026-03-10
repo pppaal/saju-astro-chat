@@ -245,7 +245,14 @@ function resolveWindow(
   input: MatrixCalculationInputNormalized,
   pattern: PatternResult
 ): ScenarioWindow {
-  if (input.activeTransits.length > 0 && input.currentSaeunElement) return 'now'
+  if (
+    input.currentIljinElement ||
+    input.currentIljinDate ||
+    (input.activeTransits.length > 0 && input.currentSaeunElement)
+  ) {
+    return 'now'
+  }
+  if (pattern.score >= 75 && input.currentWolunElement) return '1-3m'
   if (pattern.score >= 75 && input.currentDaeunElement) return '1-3m'
   if (pattern.score >= 60) return '3-6m'
   return '6-12m'
@@ -265,6 +272,8 @@ export function buildScenarioEngine(
     1 +
     (normalizedInput.currentDaeunElement ? 0.08 : 0) +
     (normalizedInput.currentSaeunElement ? 0.05 : 0) +
+    (normalizedInput.currentWolunElement ? 0.04 : 0) +
+    (normalizedInput.currentIljinElement || normalizedInput.currentIljinDate ? 0.03 : 0) +
     (normalizedInput.activeTransits.length > 0 ? 0.06 : 0)
 
   return patterns

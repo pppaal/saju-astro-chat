@@ -400,6 +400,9 @@ export interface MatrixCalculationInput {
   yongsin?: FiveElement
   currentDaeunElement?: FiveElement
   currentSaeunElement?: FiveElement
+  currentWolunElement?: FiveElement
+  currentIljinElement?: FiveElement
+  currentIljinDate?: string
 
   // Shinsal data (Layer 8)
   shinsalList?: ShinsalKind[]

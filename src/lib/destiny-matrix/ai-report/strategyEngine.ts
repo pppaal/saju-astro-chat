@@ -11,6 +11,8 @@ export type StrategyPhaseCode =
 export interface StrategyTimingContext {
   daeunActive?: boolean
   seunActive?: boolean
+  wolunActive?: boolean
+  iljinActive?: boolean
   activeTransitCount?: number
 }
 
@@ -167,11 +169,13 @@ function getDomainWeights(domain: SignalDomain): StrategyDomainWeights {
 function computeTimeActivation(context?: StrategyTimingContext): number {
   const daeun = context?.daeunActive ? STRATEGY_ENGINE_TUNING.timeActivation.daeunMultiplier : 1
   const seun = context?.seunActive ? STRATEGY_ENGINE_TUNING.timeActivation.seunMultiplier : 1
+  const wolun = context?.wolunActive ? STRATEGY_ENGINE_TUNING.timeActivation.wolunMultiplier : 1
+  const iljin = context?.iljinActive ? STRATEGY_ENGINE_TUNING.timeActivation.iljinMultiplier : 1
   const transit =
     (context?.activeTransitCount || 0) > 0
       ? STRATEGY_ENGINE_TUNING.timeActivation.transitMultiplier
       : 1
-  return daeun * seun * transit
+  return daeun * seun * wolun * iljin * transit
 }
 
 function normalizeSignalDomains(hints?: SignalDomain[]): SignalDomain[] {

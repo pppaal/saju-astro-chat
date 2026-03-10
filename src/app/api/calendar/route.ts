@@ -268,6 +268,34 @@ function calculateAgeAtDate(birthDate: string, targetDate: Date, timeZone: strin
   return Math.max(0, age)
 }
 
+function buildApproximateIljinTiming(
+  targetDate: Date,
+  timeZone: string
+): { element?: MatrixCalculationInput['currentIljinElement']; date: string } {
+  const { year, month, day } = toDatePartsInTimeZone(targetDate, timeZone)
+  const baseDate = new Date(1900, 0, 1)
+  const target = new Date(year, month - 1, day)
+  const dayDiff = Math.floor((target.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24))
+  const stemElements: MatrixCalculationInput['pillarElements'] = [
+    '목',
+    '목',
+    '화',
+    '화',
+    '토',
+    '토',
+    '금',
+    '금',
+    '수',
+    '수',
+  ]
+  const stemIdx = ((dayDiff + 10) % 10 + 10) % 10
+
+  return {
+    element: stemElements[stemIdx],
+    date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+  }
+}
+
 function inferLifecycleTransitCyclesForCalendar(
   age: number
 ): NonNullable<MatrixCalculationInput['activeTransits']> {
@@ -690,8 +718,22 @@ export const GET = withApiMiddleware(
       const currentDaeunElement = toKoElement(
         STEM_TO_ELEMENT[sajuResult.daeWoon?.current?.heavenlyStem || '']
       )
-      const currentSaeunElement = toKoElement(sajuResult.unse?.annual?.[0]?.element)
       const now = new Date()
+      const currentDateParts = toDatePartsInTimeZone(now, timezone)
+      const currentSaeunElement = toKoElement(
+        (
+          (sajuResult.unse?.annual || []).find((row) => row.year === currentDateParts.year) ||
+          sajuResult.unse?.annual?.[0]
+        )?.element
+      )
+      const currentWolunElement = toKoElement(
+        (
+          (sajuResult.unse?.monthly || []).find(
+            (row) => row.year === currentDateParts.year && row.month === currentDateParts.month
+          ) || sajuResult.unse?.monthly?.[0]
+        )?.element
+      )
+      const currentIljin = buildApproximateIljinTiming(now, timezone)
       const age = calculateAgeAtDate(birthDateParam, now, timezone)
       const activeTransits = Array.from(
         new Set<NonNullable<MatrixCalculationInput['activeTransits']>[number]>([
@@ -765,6 +807,9 @@ export const GET = withApiMiddleware(
         yongsin: advanced.yongsin.primary,
         currentDaeunElement,
         currentSaeunElement,
+        currentWolunElement,
+        currentIljinElement: currentIljin.element,
+        currentIljinDate: currentIljin.date,
         shinsalList,
         dominantWesternElement:
           astroProfile.sunElement === 'air' ||

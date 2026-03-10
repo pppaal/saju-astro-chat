@@ -299,6 +299,63 @@ describe('POST /api/tarot/interpret', () => {
     expect(data.overall_message).toBeDefined()
   })
 
+  it('should use fast backend fallback policy for large spreads', async () => {
+    const { apiClient } = await import('@/lib/api/ApiClient')
+    vi.mocked(apiClient.post).mockResolvedValue({
+      ok: false,
+      status: 408,
+      error: 'Request timeout',
+    })
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      text: async () =>
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  overall: 'Large spread GPT interpretation',
+                  cards: Array.from({ length: 10 }, (_, idx) => ({
+                    position: `Position ${idx + 1}`,
+                    interpretation: `Interpretation for card ${idx + 1}`,
+                  })),
+                  advice: 'Practical advice',
+                }),
+              },
+            },
+          ],
+        }),
+    })
+
+    const cards = Array.from({ length: 10 }, (_, i) => ({
+      name: `Card ${i + 1}`,
+      isReversed: false,
+      position: `Position ${i + 1}`,
+      meaning: 'A'.repeat(900),
+      meaningKo: '가'.repeat(900),
+    }))
+
+    const req = new NextRequest('http://localhost/api/tarot/interpret', {
+      method: 'POST',
+      body: JSON.stringify({
+        categoryId: 'general',
+        spreadId: 'celtic-cross',
+        spreadTitle: 'Celtic Cross',
+        cards,
+        language: 'ko',
+      }),
+    })
+
+    const response = await POST(req)
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(data.overall_message).toBeDefined()
+    const callArgs = vi.mocked(apiClient.post).mock.calls[0]
+    expect(callArgs?.[2]).toMatchObject({ timeout: 35000, retries: 0, retryDelay: 800 })
+  })
+
   it('should recover from loose GPT JSON (code fence + trailing comma)', async () => {
     const { apiClient } = await import('@/lib/api/ApiClient')
     vi.mocked(apiClient.post).mockRejectedValue(new Error('Backend down'))

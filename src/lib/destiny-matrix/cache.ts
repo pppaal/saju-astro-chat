@@ -109,6 +109,9 @@ export function hashMatrixInput(input: MatrixCalculationInput): string {
       // Single values
       ...(input.currentDaeunElement && { currentDaeunElement: input.currentDaeunElement }),
       ...(input.currentSaeunElement && { currentSaeunElement: input.currentSaeunElement }),
+      ...(input.currentWolunElement && { currentWolunElement: input.currentWolunElement }),
+      ...(input.currentIljinElement && { currentIljinElement: input.currentIljinElement }),
+      ...(input.currentIljinDate && { currentIljinDate: input.currentIljinDate }),
       ...(input.geokguk && { geokguk: input.geokguk }),
       ...(input.yongsin && { yongsin: input.yongsin }),
 

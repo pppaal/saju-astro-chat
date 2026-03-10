@@ -69,7 +69,12 @@ export function calculateTimeOverlapWeight(
   layer7: Record<string, MatrixCell>
 ): TimeOverlapResult {
   const activeTransits = input.activeTransits || []
-  const sajuTiming = toWesternElements([input.currentDaeunElement, input.currentSaeunElement])
+  const sajuTiming = toWesternElements([
+    input.currentDaeunElement,
+    input.currentSaeunElement,
+    input.currentWolunElement,
+    input.currentIljinElement,
+  ])
   const transitDominant = dominantTransitElements(activeTransits)
 
   let elementOverlap = 0

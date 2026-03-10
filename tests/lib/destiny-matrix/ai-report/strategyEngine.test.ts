@@ -130,11 +130,15 @@ describe('buildPhaseStrategyEngine', () => {
     const base = buildPhaseStrategyEngine(createSynthesisFixture(), 'ko', {
       daeunActive: false,
       seunActive: false,
+      wolunActive: false,
+      iljinActive: false,
       activeTransitCount: 0,
     })
     const boosted = buildPhaseStrategyEngine(createSynthesisFixture(), 'ko', {
       daeunActive: true,
       seunActive: true,
+      wolunActive: true,
+      iljinActive: true,
       activeTransitCount: 2,
     })
     const baseCareer = base?.domainStrategies.find((item) => item.domain === 'career')

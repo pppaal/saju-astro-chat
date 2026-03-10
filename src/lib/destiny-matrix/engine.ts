@@ -304,7 +304,11 @@ function calculateLayer4(input: MatrixCalculationInput): Record<string, MatrixCe
 
   // Determine timing row based on current luck cycle element
   let timingRow: TimingCycleRow = 'shortTerm'
-  if (input.currentDaeunElement) {
+  if (input.currentIljinElement) {
+    timingRow = 'ilun'
+  } else if (input.currentWolunElement) {
+    timingRow = 'wolun'
+  } else if (input.currentDaeunElement) {
     timingRow = input.currentDaeunElement
   } else if (input.currentSaeunElement) {
     timingRow = input.currentSaeunElement
