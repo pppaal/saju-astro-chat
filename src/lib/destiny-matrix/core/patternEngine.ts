@@ -3,12 +3,8 @@ import type {
   SignalDomain,
   SignalPolarity,
   SignalSynthesisResult,
-} from '@/lib/destiny-matrix/ai-report/signalSynthesizer'
-import type {
-  DomainStrategy,
-  StrategyEngineResult,
-  StrategyPhaseCode,
-} from '@/lib/destiny-matrix/ai-report/strategyEngine'
+} from './signalSynthesizer'
+import type { DomainStrategy, StrategyEngineResult, StrategyPhaseCode } from './strategyEngine'
 
 export interface PatternMatcher {
   domains?: SignalDomain[]

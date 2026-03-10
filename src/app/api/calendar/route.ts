@@ -879,6 +879,10 @@ export const GET = withApiMiddleware(
         },
         core: {
           coreHash: coreSeed.coreHash,
+          canonicalClaimCount: coreSeed.canonical.claimIds.length,
+          canonicalCautionCount: coreSeed.canonical.cautions.length,
+          canonicalConfidence: coreSeed.canonical.confidence,
+          canonicalPhase: coreSeed.canonical.phase,
           patternCount: coreSeed.patterns.length,
           scenarioCount: coreSeed.scenarios.length,
           qualityScore: coreSeed.quality.score,

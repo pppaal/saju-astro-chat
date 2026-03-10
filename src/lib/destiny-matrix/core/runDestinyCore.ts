@@ -1,29 +1,22 @@
 import { createHash } from 'node:crypto'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
 import type { MatrixCalculationInput, MatrixSummary } from '@/lib/destiny-matrix/types'
-import type { TimingData } from '@/lib/destiny-matrix/ai-report/types'
-import type { GraphRAGEvidenceBundle } from '@/lib/destiny-matrix/ai-report/graphRagEvidence'
-import type { SectionEvidenceRefs } from '@/lib/destiny-matrix/ai-report/evidenceRefs'
-import { buildUnifiedEnvelope } from '@/lib/destiny-matrix/ai-report/unifiedReport'
 import {
   synthesizeMatrixSignals,
   type SignalSynthesisResult,
-} from '@/lib/destiny-matrix/ai-report/signalSynthesizer'
+} from '@/lib/destiny-matrix/core/signalSynthesizer'
 import {
   buildPhaseStrategyEngine,
   type StrategyEngineResult,
-} from '@/lib/destiny-matrix/ai-report/strategyEngine'
-import type {
-  UnifiedAnchor,
-  UnifiedClaim,
-  UnifiedScenarioBundle,
-} from '@/lib/destiny-matrix/ai-report/types'
+} from '@/lib/destiny-matrix/core/strategyEngine'
 import { buildPatternEngine, type PatternResult } from '@/lib/destiny-matrix/core/patternEngine'
 import { buildScenarioEngine, type ScenarioResult } from '@/lib/destiny-matrix/core/scenarioEngine'
 import {
   buildDecisionEngine,
   type DecisionEngineResult,
 } from '@/lib/destiny-matrix/core/decisionEngine'
+import { buildCoreCanonicalOutput } from '@/lib/destiny-matrix/core/canonical'
+import type { DestinyCoreCanonicalOutput } from '@/lib/destiny-matrix/core/types'
 
 export type AvailabilityState = 'present' | 'empty-computed' | 'missing-upstream'
 
@@ -46,14 +39,7 @@ export interface RunDestinyCoreParams {
   matrixInput: MatrixCalculationInput
   matrixReport: FusionReport
   matrixSummary?: MatrixSummary
-  sectionPaths?: string[]
-  evidenceRefs?: SectionEvidenceRefs
-  graphRagEvidence?: GraphRAGEvidenceBundle
-  birthDate?: string
-  timingData?: TimingData
 }
-
-export type UnifiedEnvelope = ReturnType<typeof buildUnifiedEnvelope>
 
 export interface DestinyCoreResult {
   normalizedInput: MatrixCalculationInputNormalized
@@ -63,8 +49,8 @@ export interface DestinyCoreResult {
   scenarios: ScenarioResult[]
   decisionEngine: DecisionEngineResult
   strategyEngine: StrategyEngineResult
+  canonical: DestinyCoreCanonicalOutput
   quality: DestinyCoreQuality
-  unified?: UnifiedEnvelope
   coreHash: string
 }
 
@@ -260,23 +246,11 @@ function buildDestinyCoreQuality(input: {
 }
 
 export function computeDestinyCoreHash(input: {
-  signalSynthesis: SignalSynthesisResult
+  canonical: DestinyCoreCanonicalOutput
   patterns: PatternResult[]
   scenarios: ScenarioResult[]
   decisionEngine: DecisionEngineResult
-  strategyEngine: StrategyEngineResult
-  unified?: UnifiedEnvelope
 }): string {
-  const claims =
-    input.unified?.claims.map((claim: UnifiedClaim) => claim.id).sort() ||
-    input.signalSynthesis.claims.map((claim) => claim.claimId).sort()
-  const scenarios = (input.unified?.scenarioBundles || [])
-    .map((bundle: UnifiedScenarioBundle) => bundle.id)
-    .sort()
-  const anchors = (input.unified?.anchors || []).map((anchor: UnifiedAnchor) => anchor.id).sort()
-  const domainStrategyKeys = input.strategyEngine.domainStrategies
-    .map((strategy) => `${strategy.domain}:${strategy.phase}:${strategy.attackPercent}`)
-    .sort()
   const patternKeys = input.patterns.map((pattern) => `${pattern.id}:${pattern.score}`).sort()
   const scenarioKeys = input.scenarios
     .slice(0, 12)
@@ -288,16 +262,16 @@ export function computeDestinyCoreHash(input: {
     .sort()
 
   const payload = JSON.stringify({
-    claims,
-    scenarios,
-    anchors,
+    claimIds: [...input.canonical.claimIds].sort(),
+    evidenceRefKeys: Object.keys(input.canonical.evidenceRefs).sort(),
+    cautions: [...input.canonical.cautions].sort(),
+    phase: input.canonical.phase,
+    attackPercent: input.canonical.attackPercent,
+    defensePercent: input.canonical.defensePercent,
+    confidence: input.canonical.confidence,
     patternKeys,
     scenarioKeys,
     decisionKeys,
-    overallPhase: input.strategyEngine.overallPhase,
-    attackPercent: input.strategyEngine.attackPercent,
-    defensePercent: input.strategyEngine.defensePercent,
-    domainStrategyKeys,
   })
   return createHash('sha256').update(payload).digest('hex').slice(0, 20)
 }
@@ -332,24 +306,17 @@ export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult 
     decisionEngine,
     strategyEngine,
   })
-
-  let unified: UnifiedEnvelope | undefined
-  if (params.sectionPaths && params.evidenceRefs && params.graphRagEvidence) {
-    unified = buildUnifiedEnvelope({
-      mode: params.mode === 'calendar' ? 'timing' : params.mode,
-      lang: params.lang,
-      generatedAt: new Date().toISOString(),
-      matrixInput: normalizedInput,
-      matrixReport: params.matrixReport,
-      matrixSummary: params.matrixSummary,
-      signalSynthesis,
-      graphRagEvidence: params.graphRagEvidence,
-      birthDate: params.birthDate,
-      timingData: params.timingData,
-      sectionPaths: params.sectionPaths,
-      evidenceRefs: params.evidenceRefs,
-    })
-  }
+  const canonical = buildCoreCanonicalOutput({
+    signalSynthesis,
+    scenarios,
+    matrixSummary: params.matrixSummary,
+    strategy: {
+      phase: strategyEngine.overallPhase,
+      attackPercent: strategyEngine.attackPercent,
+      defensePercent: strategyEngine.defensePercent,
+    },
+    crossAgreement: normalizedInput.crossSnapshot?.crossAgreement,
+  })
 
   return {
     normalizedInput,
@@ -359,15 +326,13 @@ export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult 
     scenarios,
     decisionEngine,
     strategyEngine,
+    canonical,
     quality,
-    unified,
     coreHash: computeDestinyCoreHash({
-      signalSynthesis,
+      canonical,
       patterns,
       scenarios,
       decisionEngine,
-      strategyEngine,
-      unified,
     }),
   }
 }

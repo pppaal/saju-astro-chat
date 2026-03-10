@@ -1129,7 +1129,7 @@ function buildAnchoredCardInsights(
   cards: CardInput[],
   language: string,
   userQuestion?: string
-): CardInsight[] {
+): TarotInsight[] {
   return cards.map((card) => ({
     position: card.position,
     card_name: card.name,

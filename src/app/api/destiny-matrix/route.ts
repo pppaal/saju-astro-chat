@@ -979,6 +979,7 @@ export const POST = withApiMiddleware(
             defensePercent: number
             topClaimIds: string[]
             topCautionSignalIds: string[]
+            canonicalConfidence: number
             topDecisionOptions: Array<{
               id: string
               domain: string
@@ -1031,11 +1032,9 @@ export const POST = withApiMiddleware(
           overallPhaseLabel: core.strategyEngine.overallPhaseLabel,
           attackPercent: core.strategyEngine.attackPercent,
           defensePercent: core.strategyEngine.defensePercent,
-          topClaimIds: core.signalSynthesis.claims.slice(0, 8).map((claim) => claim.claimId),
-          topCautionSignalIds: core.signalSynthesis.selectedSignals
-            .filter((signal) => signal.polarity === 'caution')
-            .slice(0, 8)
-            .map((signal) => signal.id),
+          topClaimIds: core.canonical.claimIds.slice(0, 8),
+          topCautionSignalIds: core.canonical.cautions.slice(0, 8),
+          canonicalConfidence: core.canonical.confidence,
           topDecisionOptions: core.decisionEngine.options.slice(0, 6).map((option) => ({
             id: option.id,
             domain: option.domain,

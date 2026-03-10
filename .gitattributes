@@ -1,10 +1,12 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+.gitattributes text eol=lf
 
 # Source code - always LF
 *.ts text eol=lf
 *.tsx text eol=lf
 *.js text eol=lf
+*.mjs text eol=lf
 *.jsx text eol=lf
 *.json text eol=lf
 *.css text eol=lf
@@ -14,6 +16,7 @@
 *.yaml text eol=lf
 *.yml text eol=lf
 *.env text eol=lf
+.husky/* text eol=lf
 
 # Binary files
 *.se1 binary

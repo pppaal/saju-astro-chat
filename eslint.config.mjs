@@ -108,6 +108,26 @@ const config = [
     },
   },
   {
+    // Core engine contract: prevent role drift into ai-report layer
+    files: [
+      'src/lib/destiny-matrix/core/runDestinyCore.ts',
+      'src/lib/destiny-matrix/core/patternEngine.ts',
+      'src/lib/destiny-matrix/core/scenarioEngine.ts',
+      'src/lib/destiny-matrix/core/decisionEngine.ts',
+      'src/lib/destiny-matrix/core/canonical.ts',
+      'src/lib/destiny-matrix/core/types.ts',
+      'src/lib/destiny-matrix/core/index.ts',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: ['@/lib/destiny-matrix/ai-report/*'],
+        },
+      ],
+    },
+  },
+  {
     // Performance utilities with advanced React patterns
     files: ['src/lib/performance/**/*.{ts,tsx}'],
     rules: {
@@ -154,8 +174,8 @@ const config = [
       '@typescript-eslint': tseslint,
     },
     rules: {
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
       'no-console': 'off', // Scripts often use console output
     },
   },

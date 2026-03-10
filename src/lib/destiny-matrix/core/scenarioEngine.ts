@@ -1,5 +1,5 @@
-import type { SignalDomain } from '@/lib/destiny-matrix/ai-report/signalSynthesizer'
-import type { StrategyEngineResult } from '@/lib/destiny-matrix/ai-report/strategyEngine'
+import type { SignalDomain } from './signalSynthesizer'
+import type { StrategyEngineResult } from './strategyEngine'
 import type { MatrixCalculationInputNormalized } from './runDestinyCore'
 import type { PatternResult } from './patternEngine'
 
