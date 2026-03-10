@@ -23,7 +23,7 @@ export function OverallMessageChat({ message, isLoading, language }: OverallMess
   return (
     <ChatMessage
       avatar="🔮"
-      name={language === 'ko' ? '타로 상담사' : 'Tarot Counselor'}
+      name={language === 'ko' ? '질문 기반 종합 해석' : 'Question-based Summary'}
       isLoading={Boolean(isLoading && !normalizedMessage)}
     >
       <p className={styles.chatText}>{normalizedMessage}</p>

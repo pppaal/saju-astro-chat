@@ -586,6 +586,23 @@
   line-height: 1.5;
 }
 
+.resultSectionTag {
+  width: 100%;
+  max-width: 1080px;
+  margin: 1.4rem auto 0.9rem;
+  padding: 0.58rem 0.95rem;
+  border-radius: 12px;
+  border: 1px solid rgba(99, 210, 255, 0.28);
+  background: linear-gradient(140deg, rgba(22, 33, 57, 0.82), rgba(16, 25, 44, 0.8));
+  color: rgba(222, 242, 255, 0.95);
+  font-family: 'Noto Sans KR', 'Inter', system-ui, sans-serif;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  box-shadow: 0 8px 26px rgba(4, 10, 22, 0.28);
+}
+
 .resultsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 550px));
@@ -819,8 +836,8 @@
 }
 
 .meaning {
-  font-size: 1.02rem;
-  line-height: 1.85;
+  font-size: 1.08rem;
+  line-height: 1.9;
   color: rgba(255, 255, 255, 0.92);
   text-align: left;
   margin: 0;
@@ -835,8 +852,8 @@
   width: 100%;
   margin: 0.35rem 0 0;
   padding: 0 1rem;
-  font-size: 0.93rem;
-  line-height: 1.7;
+  font-size: 1rem;
+  line-height: 1.8;
   color: rgba(173, 230, 255, 0.92);
   text-align: left;
   font-family: 'Noto Sans KR', 'Inter', system-ui, sans-serif;
@@ -1356,8 +1373,8 @@
 }
 
 .insightText {
-  font-size: 1rem;
-  line-height: 1.85;
+  font-size: 1.04rem;
+  line-height: 1.9;
   color: rgba(248, 252, 255, 0.96);
   margin: 0;
   font-family: 'Noto Sans KR', 'Inter', system-ui, sans-serif;
@@ -1365,7 +1382,7 @@
 }
 
 .insightParagraph {
-  margin: 0.45rem 0;
+  margin: 0.55rem 0;
   text-align: left;
   word-break: keep-all;
 }
@@ -3727,7 +3744,7 @@
 /* ===== Counselor Chat Flow UI ===== */
 .counselorChat {
   width: 100%;
-  max-width: 920px;
+  max-width: 1080px;
   margin-bottom: 1.5rem;
   z-index: 10;
   position: relative;
@@ -3736,10 +3753,10 @@
 
 .cardInterpretationsChat {
   width: 100%;
-  max-width: 920px;
+  max-width: 1080px;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.2rem;
   margin: 2rem 0;
   z-index: 10;
 }
@@ -3758,7 +3775,7 @@
 .chatMessage {
   display: flex;
   align-items: flex-start;
-  gap: 0.875rem;
+  gap: 1rem;
 }
 
 .chatAvatar {
@@ -3782,11 +3799,11 @@
 
 .chatName {
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.8rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: rgba(99, 210, 255, 0.85);
-  margin-bottom: 0.5rem;
-  letter-spacing: 0.3px;
+  margin-bottom: 0.6rem;
+  letter-spacing: 0.2px;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -3809,11 +3826,11 @@
 .chatBubble {
   background: linear-gradient(140deg, rgba(23, 33, 58, 0.9), rgba(18, 25, 46, 0.88));
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(99, 210, 255, 0.35);
-  border-radius: 10px 18px 18px 18px;
-  padding: 1.2rem 1.45rem;
+  border: 1px solid rgba(99, 210, 255, 0.4);
+  border-radius: 12px 20px 20px 20px;
+  padding: 1.35rem 1.6rem;
   position: relative;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.26);
 }
 
 .chatBubble::before {
@@ -3830,12 +3847,13 @@
 
 .chatText {
   font-family: 'Noto Sans KR', 'Inter', system-ui, sans-serif;
-  font-size: 1.02rem;
-  line-height: 1.88;
+  font-size: 1.08rem;
+  line-height: 1.95;
   color: rgba(255, 255, 255, 0.93);
   margin: 0;
-  letter-spacing: 0.12px;
+  letter-spacing: 0.08px;
   word-break: keep-all;
+  white-space: pre-line;
 }
 
 /* Card Interpretation Bubble */
@@ -3874,13 +3892,14 @@
 
 .adviceText {
   font-family: 'Inter', 'Noto Sans KR', system-ui, sans-serif;
-  font-size: 1.1rem;
-  line-height: 1.8;
+  font-size: 1.08rem;
+  line-height: 1.88;
   color: rgba(255, 255, 255, 0.97);
   margin: 0;
   padding-left: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.2px;
+  white-space: pre-line;
 }
 
 /* New Advice Card Style */
@@ -3933,8 +3952,8 @@
 
 .adviceCardDetail {
   font-family: 'Inter', 'Noto Sans KR', system-ui, sans-serif;
-  font-size: 0.98rem;
-  line-height: 1.75;
+  font-size: 1.02rem;
+  line-height: 1.82;
   color: rgba(255, 255, 255, 0.9);
   margin: 0;
   padding-left: 36px;
@@ -3942,6 +3961,12 @@
 
 /* Mobile adjustments for chat UI */
 @media (max-width: 640px) {
+  .resultSectionTag {
+    margin: 1rem auto 0.75rem;
+    font-size: 0.78rem;
+    padding: 0.52rem 0.72rem;
+  }
+
   .counselorChat {
     margin-bottom: 1.25rem;
   }
@@ -3962,8 +3987,8 @@
   }
 
   .chatText {
-    font-size: 0.94rem;
-    line-height: 1.78;
+    font-size: 0.99rem;
+    line-height: 1.82;
   }
 
   .adviceText {
@@ -3971,7 +3996,7 @@
   }
 
   .chatName {
-    font-size: 0.75rem;
+    font-size: 0.82rem;
   }
 
   .cardPosition {

@@ -142,7 +142,11 @@ export function DetailedCardItem({
               cardInsight.interpretation !== meaning.meaningKo && (
                 <InsightCard
                   icon="🔮"
-                  title={translate('tarot.insights.aiInterpretation', 'Deep Insight')}
+                  title={
+                    language === 'ko'
+                      ? translate('tarot.insights.aiInterpretation', '질문 맞춤 AI 해석')
+                      : translate('tarot.insights.aiInterpretation', 'Question-tailored insight')
+                  }
                 >
                   <div className={styles.insightText}>
                     {emphasizeKeyPoints(cardInsight.interpretation)}

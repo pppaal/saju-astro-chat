@@ -57,6 +57,9 @@ const MAX_CARD_MEANING_LENGTH = 500
 const OPENAI_TIMEOUT_MS = 40000
 const OPENAI_MAX_RETRIES = 1
 const LARGE_SPREAD_THRESHOLD = 8
+const LARGE_SPREAD_BACKEND_TIMEOUT_MS = 12000
+const LARGE_SPREAD_GPT_TIMEOUT_MS = 16000
+const LARGE_SPREAD_GPT_MAX_TOKENS = 1600
 
 function parseStructuredContextFromString(
   raw: string | undefined,
@@ -314,6 +317,23 @@ function buildMinimumOverall(
   return `${qLine}the combination of ${cardNames} suggests that stabilizing priorities and execution rhythm matters more than reacting fast. Start with one small concrete action, observe the outcome, and iterate from evidence. Conclusion: begin with one action you can complete today.`
 }
 
+function getCardKeywordSummary(card: CardInput, language: string): string {
+  const list =
+    (language === 'ko' ? card.keywordsKo || card.keywords : card.keywords || card.keywordsKo) || []
+  const compact = list
+    .map((item) => item?.trim())
+    .filter((item): item is string => Boolean(item))
+    .slice(0, 3)
+
+  if (compact.length === 0) {
+    return ''
+  }
+
+  return language === 'ko'
+    ? `핵심 키워드는 ${compact.join(', ')} 입니다. `
+    : `Key cues are ${compact.join(', ')}. `
+}
+
 function buildMinimumInsight(language: string, card: CardInput): string {
   const cardName = language === 'ko' ? card.nameKo || card.name : card.name
   const orientation = card.isReversed
@@ -328,12 +348,13 @@ function buildMinimumInsight(language: string, card: CardInput): string {
     (language === 'ko'
       ? '현재 상황의 핵심 변수를 확인하고 단계별 실행으로 전환하세요.'
       : 'Check the key variable in your current situation and move with staged execution.')
+  const keywordSummary = getCardKeywordSummary(card, language)
 
   if (language === 'ko') {
-    return `${cardName}(${orientation}) 카드는 지금 국면에서 감정 반응보다 구조화된 선택이 중요하다고 말해요. ${baseMeaning} 오늘은 이 카드가 가리키는 변수 1개만 정리하고, 이번 주에는 결과 기록으로 판단 정확도를 높이세요.`
+    return `${cardName}(${orientation}) 카드는 지금 국면에서 감정 반응보다 구조화된 선택이 중요하다고 말해요. ${keywordSummary}${baseMeaning} 오늘은 이 카드가 가리키는 변수 1개만 정리하고, 이번 주에는 결과 기록으로 판단 정확도를 높이세요.`
   }
 
-  return `${cardName} (${orientation}) signals that structured choices beat emotional reaction in this phase. ${baseMeaning} Today, isolate one variable this card points to, and this week, use outcome logging to improve decision accuracy.`
+  return `${cardName} (${orientation}) signals that structured choices beat emotional reaction in this phase. ${keywordSummary}${baseMeaning} Today, isolate one variable this card points to, and this week, use outcome logging to improve decision accuracy.`
 }
 
 function ensureCardAnchoring(
@@ -568,6 +589,8 @@ export const POST = withApiMiddleware(
     let fallbackCards: CardInput[] = []
     let fallbackLanguage = 'ko'
     let fallbackQuestion: string | undefined
+    const startedAt = Date.now()
+    let interpretationSource: 'backend' | 'gpt' | 'fallback' = 'backend'
 
     try {
       const oversized = enforceBodySize(req, 256 * 1024)
@@ -656,7 +679,7 @@ export const POST = withApiMiddleware(
       let interpretation = null
       const isLargeSpread = validatedCards.length >= LARGE_SPREAD_THRESHOLD
       const backendRequestOptions = isLargeSpread
-        ? { timeout: 35000, retries: 0, retryDelay: 800 }
+        ? { timeout: LARGE_SPREAD_BACKEND_TIMEOUT_MS, retries: 0, retryDelay: 500 }
         : { timeout: 60000, retries: 2, retryDelay: 1200 }
       if (isLargeSpread) {
         logger.info('[Tarot interpret] large spread detected; using fast backend fallback policy', {
@@ -704,6 +727,7 @@ export const POST = withApiMiddleware(
       let result
       if (interpretation && !(interpretation as Record<string, unknown>).error) {
         result = interpretation
+        interpretationSource = 'backend'
       } else {
         logger.warn('Backend unavailable, using GPT interpretation')
         try {
@@ -715,9 +739,11 @@ export const POST = withApiMiddleware(
             promptSajuContext,
             promptAstroContext
           )
+          interpretationSource = 'gpt'
         } catch (gptErr) {
           logger.error('GPT interpretation failed:', gptErr)
           result = buildEmergencyFallbackResult(validatedCards, language, userQuestion)
+          interpretationSource = 'fallback'
         }
       }
 
@@ -726,6 +752,13 @@ export const POST = withApiMiddleware(
         cards: validatedCards,
         language,
         userQuestion,
+      })
+
+      logger.info('[Tarot interpret] response finalized', {
+        source: interpretationSource,
+        cardCount: validatedCards.length,
+        elapsedMs: Date.now() - startedAt,
+        fallback: Boolean(result.fallback),
       })
 
       // ======== 기록 저장 (로그인 사용자만) ========
@@ -767,6 +800,10 @@ export const POST = withApiMiddleware(
         fallbackLanguage,
         fallbackQuestion
       )
+      logger.warn('[Tarot interpret] emergency fallback returned', {
+        cardCount: fallbackCards.length,
+        elapsedMs: Date.now() - startedAt,
+      })
       return NextResponse.json(fallback, { status: HTTP_STATUS.OK })
     }
   },
@@ -860,18 +897,18 @@ function getPromptBudget(cardCount: number, isKorean: boolean): PromptBudget {
   if (cardCount >= LARGE_SPREAD_THRESHOLD) {
     return isKorean
       ? {
-          overallGuide: '220-380자',
-          perCardGuide: '120-220자',
+          overallGuide: '180-300자',
+          perCardGuide: '90-160자',
           adviceGuide: '120-180자',
-          maxTokens: 2400,
-          timeoutMs: 65000,
+          maxTokens: LARGE_SPREAD_GPT_MAX_TOKENS,
+          timeoutMs: LARGE_SPREAD_GPT_TIMEOUT_MS,
         }
       : {
-          overallGuide: '140-220 words',
-          perCardGuide: '60-100 words',
-          adviceGuide: '70-110 words',
-          maxTokens: 2400,
-          timeoutMs: 65000,
+          overallGuide: '100-170 words',
+          perCardGuide: '40-70 words',
+          adviceGuide: '60-100 words',
+          maxTokens: LARGE_SPREAD_GPT_MAX_TOKENS,
+          timeoutMs: LARGE_SPREAD_GPT_TIMEOUT_MS,
         }
   }
 
@@ -927,6 +964,7 @@ async function generateGPTInterpretation(
   astroContext?: string
 ) {
   const isKorean = language === 'ko'
+  const isLargeSpread = cards.length >= LARGE_SPREAD_THRESHOLD
   const budget = getPromptBudget(cards.length, isKorean)
 
   // 위치별 카드 정보
@@ -985,6 +1023,7 @@ ${cardListText}
 ## 중요
 - 반드시 모든 ${cards.length}개 카드 해석 포함
 - 장황한 설명 금지, 질문에 직접 답
+- ${isLargeSpread ? '카드 수가 많으므로 카드별 해석은 1-2문장으로 간결하게 작성' : '카드별 해석은 핵심-근거-실행이 이어지도록 작성'}
 - 출력은 오직 JSON
 
 ## 출력 형식 (JSON)
@@ -1012,6 +1051,7 @@ ${cardListText}
 ## IMPORTANT
 - Include all ${cards.length} card interpretations
 - No verbose filler
+- ${isLargeSpread ? 'Keep each card insight concise in 1-2 tight sentences.' : 'Keep each card insight concise but complete (meaning -> context -> action).'}
 - Output JSON only
 
 ## Output Format (JSON)

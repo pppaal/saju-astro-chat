@@ -37,7 +37,7 @@ export function DetailedCardsSection({
   return (
     <div className={styles.detailedCardsSection} ref={detailedSectionRef}>
       <h2 className={styles.detailedSectionTitle}>
-        {translate('tarot.results.detailedReadings', '상세 해석')}
+        {translate('tarot.results.detailedReadings', '카드 기본 해석')}
       </h2>
       <div className={styles.resultsGrid}>
         {readingResult.drawnCards.map((drawnCard, index) => {

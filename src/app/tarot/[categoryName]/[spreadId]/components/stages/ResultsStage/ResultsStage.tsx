@@ -119,6 +119,9 @@ export function ResultsStage(props: ResultsStageProps) {
 
       {/* Detailed Section - Card meanings without AI */}
       {/* Shown first so users see basic card data before AI interpretation */}
+      <div className={styles.resultSectionTag}>
+        {language === 'ko' ? '카드 원문 해석 (기본 해석)' : 'Card Meanings (Base Reading)'}
+      </div>
       <DetailedCardsSection
         readingResult={readingResult}
         interpretation={interpretation}
@@ -146,18 +149,21 @@ export function ResultsStage(props: ResultsStageProps) {
           </div>
           <p>
             {language === 'ko'
-              ? '현재 결과는 안정 모드 해석입니다. 잠시 후 다시 읽으면 더 풍부한 AI 분석이 제공될 수 있어요.'
+              ? '현재 결과는 안정 모드 해석입니다. 잠시 후 다시 시도하면 질문 맞춤 AI 해석으로 확장됩니다.'
               : 'You are seeing a safe fallback interpretation. Retry shortly for a richer AI reading.'}
           </p>
         </div>
       ) : (
         <div className={styles.interpretationSuccessNotice}>
           {language === 'ko'
-            ? '✅ AI 해석이 정상 생성되었습니다.'
+            ? '✅ 질문 맞춤 AI 해석이 정상 생성되었습니다.'
             : '✅ AI interpretation generated successfully.'}
         </div>
       )}
 
+      <div className={styles.resultSectionTag}>
+        {language === 'ko' ? '질문 맞춤 AI 해석' : 'Question-tailored AI Reading'}
+      </div>
       <OverallMessageChat
         message={insight?.overall_message}
         isLoading={showInterpretationLoading}

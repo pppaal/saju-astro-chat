@@ -353,7 +353,7 @@ describe('POST /api/tarot/interpret', () => {
     expect(response.status).toBe(200)
     expect(data.overall_message).toBeDefined()
     const callArgs = vi.mocked(apiClient.post).mock.calls[0]
-    expect(callArgs?.[2]).toMatchObject({ timeout: 35000, retries: 0, retryDelay: 800 })
+    expect(callArgs?.[2]).toMatchObject({ timeout: 12000, retries: 0, retryDelay: 500 })
   })
 
   it('should recover from loose GPT JSON (code fence + trailing comma)', async () => {
