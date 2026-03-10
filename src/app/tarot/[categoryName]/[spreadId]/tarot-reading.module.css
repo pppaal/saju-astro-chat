@@ -831,6 +831,19 @@
   word-break: keep-all;
 }
 
+.practicalMeaning {
+  width: 100%;
+  margin: 0.35rem 0 0;
+  padding: 0 1rem;
+  font-size: 0.93rem;
+  line-height: 1.7;
+  color: rgba(173, 230, 255, 0.92);
+  text-align: left;
+  font-family: 'Noto Sans KR', 'Inter', system-ui, sans-serif;
+  letter-spacing: 0.2px;
+  word-break: keep-all;
+}
+
 .resetButton {
   padding: 0.95rem 2.2rem;
   background: linear-gradient(135deg, rgba(124, 242, 156, 0.2), rgba(99, 210, 255, 0.14));
@@ -1343,13 +1356,23 @@
 }
 
 .insightText {
-  font-size: 1.05rem;
-  line-height: 2;
-  color: rgba(255, 255, 255, 0.92);
+  font-size: 1rem;
+  line-height: 1.85;
+  color: rgba(248, 252, 255, 0.96);
   margin: 0;
-  white-space: pre-wrap;
-  font-family: 'Georgia', 'Times New Roman', serif;
-  letter-spacing: 0.3px;
+  font-family: 'Noto Sans KR', 'Inter', system-ui, sans-serif;
+  letter-spacing: 0.2px;
+}
+
+.insightParagraph {
+  margin: 0.45rem 0;
+  text-align: left;
+  word-break: keep-all;
+}
+
+.insightKeyPoint {
+  color: #7cf29c;
+  font-weight: 700;
 }
 
 /* Spirit Animal */
@@ -2998,6 +3021,13 @@
   z-index: 10;
 }
 
+.saveHint {
+  margin: 0.75rem 0 0;
+  text-align: center;
+  font-size: 0.82rem;
+  color: rgba(224, 224, 255, 0.72);
+}
+
 .chatButton {
   display: flex;
   align-items: center;
@@ -3065,6 +3095,60 @@
   text-align: center;
   margin: 0 0 0.75rem;
   animation: fadeInOut 3s ease-in-out;
+}
+
+.interpretationFallbackNotice {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(120, 53, 15, 0.22);
+  color: rgba(254, 243, 199, 0.96);
+}
+
+.interpretationFallbackNotice strong {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.interpretationFallbackNotice p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.interpretationNoticeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.interpretationRetryButton {
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: rgba(30, 58, 138, 0.25);
+  color: rgba(254, 243, 199, 0.96);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+}
+
+.interpretationRetryButton:hover {
+  background: rgba(30, 58, 138, 0.45);
+}
+
+.interpretationSuccessNotice {
+  margin: 0 0 1rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  background: rgba(22, 101, 52, 0.22);
+  color: rgba(220, 252, 231, 0.96);
+  font-size: 0.82rem;
 }
 
 @keyframes fadeInOut {

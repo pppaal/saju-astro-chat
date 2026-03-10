@@ -127,7 +127,7 @@
 /* ========== Header ========== */
 .header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 48px;
   animation: fadeInDown 0.6s ease-out 0.2s both;
 }
 
@@ -173,7 +173,7 @@
 
 .title {
   font-family: var(--font-cinzel), ui-serif, Georgia, 'Times New Roman', serif;
-  font-size: 2.2rem;
+  font-size: 2.6rem;
   font-weight: 800;
   color: white;
   margin: 0 0 12px;
@@ -186,18 +186,25 @@
 }
 
 .subtitle {
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   color: rgba(255, 255, 255, 0.9);
   line-height: 1.6;
   margin: 0;
   letter-spacing: 0.3px;
 }
 
+.supportTags {
+  margin: 14px 0 0;
+  font-size: 0.82rem;
+  color: rgba(186, 230, 253, 0.78);
+  letter-spacing: 0.4px;
+}
+
 /* ========== Form ========== */
 .form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 26px;
   animation: fadeInUp 0.6s ease-out 0.4s both;
 }
 
@@ -408,12 +415,13 @@
 
 .input {
   width: 100%;
-  padding: 14px 16px;
+  padding: 17px 18px;
   background: rgba(7, 14, 34, 0.75);
   border: 1px solid rgba(56, 189, 248, 0.35);
   border-radius: 12px;
   color: rgba(255, 255, 255, 0.98);
   font-size: 16px;
+  min-height: 56px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
@@ -791,12 +799,12 @@ select.input option {
 /* ========== Submit Button ========== */
 .submitButton {
   margin-top: 12px;
-  padding: 16px 32px;
+  padding: 20px 32px;
   background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 45%, #22d3ee 100%);
   border: none;
   border-radius: 12px;
   color: white;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -860,38 +868,21 @@ select.input option {
 /* ========== Features ========== */
 .features {
   display: flex;
-  justify-content: space-around;
-  margin-top: 32px;
-  padding-top: 32px;
+  justify-content: center;
+  margin-top: 20px;
+  padding-top: 18px;
   border-top: 1px solid rgba(56, 189, 248, 0.2);
   animation: fadeInUp 0.6s ease-out 0.6s both;
   content-visibility: auto;
-  contain-intrinsic-size: 80px;
-}
-
-.feature {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  transition: transform 0.3s ease;
-}
-
-.feature:hover {
-  transform: translateY(-4px);
-}
-
-.featureIcon {
-  font-size: 24px;
-  opacity: 0.8;
-  filter: drop-shadow(0 0 12px rgba(14, 165, 233, 0.4));
+  contain-intrinsic-size: 44px;
 }
 
 .featureText {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 500;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 400;
   letter-spacing: 0.3px;
+  text-align: center;
 }
 
 /* ========== Matrix Link Section ========== */
@@ -996,7 +987,7 @@ select.input option {
   }
 
   .title {
-    font-size: 1.75rem;
+    font-size: 2rem;
   }
 
   .subtitle {
@@ -1004,8 +995,8 @@ select.input option {
   }
 
   .features {
-    flex-direction: column;
-    gap: 16px;
+    margin-top: 14px;
+    padding-top: 14px;
   }
 
   .backButton {
@@ -1039,7 +1030,7 @@ select.input option {
   }
 
   .title {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
   }
 
   .main {
@@ -1077,7 +1068,7 @@ select.input option {
   }
 
   .title {
-    font-size: 1.85rem;
+    font-size: 2.1rem;
   }
 
   .subtitle {

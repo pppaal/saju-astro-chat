@@ -28,6 +28,7 @@ export default function TarotHomePage() {
   // State
   const [question, setQuestion] = useState('')
   const [isFocused, setIsFocused] = useState(false)
+  const [showAllThemes, setShowAllThemes] = useState(false)
 
   // Custom hooks
   const canvasRef = useCanvasAnimation()
@@ -75,6 +76,11 @@ export default function TarotHomePage() {
     [isKo, router, addRecentQuestion]
   )
 
+  const visibleThemeExamples = useMemo(
+    () => (showAllThemes ? tarotThemeExamples : tarotThemeExamples.slice(0, 2)),
+    [showAllThemes]
+  )
+
   const handleDeleteRecent = useCallback(
     (q: string, e: React.MouseEvent) => {
       e.stopPropagation()
@@ -114,6 +120,9 @@ export default function TarotHomePage() {
                 {isKo
                   ? '무엇이든 물어보세요, 카드가 답합니다'
                   : 'Ask anything, the cards will answer'}
+              </p>
+              <p className={styles.supportTags}>
+                {isKo ? '사주 · 타로 · 점성술' : 'Saju · Tarot · Astrology'}
               </p>
             </header>
 
@@ -202,6 +211,14 @@ export default function TarotHomePage() {
                 <div className={styles.fallbackNotice} role="status" aria-live="polite">
                   <p>{fallbackNotice}</p>
                   <span className={styles.fallbackReasonCode}>{fallbackReason}</span>
+                  <button
+                    type="button"
+                    className={styles.fallbackRetryButton}
+                    onClick={handleStartReading}
+                    disabled={!question.trim() || isAnalyzing}
+                  >
+                    {isKo ? '다시 분석하기' : 'Retry analysis'}
+                  </button>
                 </div>
               )}
             </div>
@@ -219,7 +236,7 @@ export default function TarotHomePage() {
                 </p>
               </div>
               <div className={styles.themeGrid}>
-                {tarotThemeExamples.map((group) => {
+                {visibleThemeExamples.map((group) => {
                   const theme = themeLookup.get(group.themeId)
                   if (!theme) return null
                   return (
@@ -255,6 +272,22 @@ export default function TarotHomePage() {
                   )
                 })}
               </div>
+              {tarotThemeExamples.length > 2 && (
+                <button
+                  type="button"
+                  className={styles.moreThemesButton}
+                  onClick={() => setShowAllThemes((prev) => !prev)}
+                  onTouchStart={handleTouchStart}
+                >
+                  {showAllThemes
+                    ? isKo
+                      ? '테마 접기'
+                      : 'Show less themes'
+                    : isKo
+                      ? '테마 더보기'
+                      : 'Show more themes'}
+                </button>
+              )}
             </section>
             {/* Recent Questions */}
             {recentQuestions.length > 0 && (

@@ -71,8 +71,8 @@ export default function DeckSelector({
             </h1>
             <p className={styles.deckSelectSubtitle}>
               {isKo
-                ? '\uB9C8\uC74C\uC5D0 \uB4DC\uB294 \uCE74\uB4DC \uB4B7\uBA74\uC744 \uC120\uD0DD\uD558\uC138\uC694'
-                : 'Select the card back that resonates with you'}
+                ? `카드 스타일을 고른 뒤, 직관대로 ${effectiveCardCount}장을 선택합니다`
+                : `Pick your deck style, then choose ${effectiveCardCount} cards by intuition.`}
             </p>
           </div>
 

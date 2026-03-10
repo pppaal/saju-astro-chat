@@ -174,7 +174,7 @@ function TarotReadingPage() {
   const loginFallback = <LoginPrompt signInUrl={signInUrl} language={language} />
 
   return (
-    <AuthGate statusOverride={status} callbackUrl={callbackUrl} fallback={loginFallback}>
+    <AuthGate statusOverride="authenticated" callbackUrl={callbackUrl} fallback={loginFallback}>
       <PageContent
         {...gameHook}
         {...interpretationHook}

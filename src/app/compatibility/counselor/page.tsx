@@ -2,11 +2,9 @@
 
 import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
 import ServicePageLayout from '@/components/ui/ServicePageLayout'
 import { useI18n } from '@/i18n/I18nProvider'
 import CreditBadge from '@/components/ui/CreditBadge'
-import AuthGate from '@/components/auth/AuthGate'
 import styles from '../chat/Chat.module.css'
 import { logger } from '@/lib/logger'
 
@@ -49,8 +47,6 @@ function CompatibilityCounselorContent() {
   const { locale } = useI18n()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { status: authStatus } = useSession()
-  const isAuthed = authStatus === 'authenticated'
 
   const [persons, setPersons] = useState<PersonData[]>([])
   const [person1Saju, setPerson1Saju] = useState<Record<string, unknown> | null>(null)
@@ -286,23 +282,6 @@ function CompatibilityCounselorContent() {
 
   const personNames = persons.map((p) => p.name || 'Person').join(' & ')
   const _currentTheme = themeInfo[theme]
-
-  // Require auth for counselor
-  if (!isAuthed && authStatus !== 'loading') {
-    return (
-      <ServicePageLayout
-        icon="🔮"
-        title={isKo ? '프리미엄 궁합 상담사' : 'Premium Compatibility Counselor'}
-        subtitle={isKo ? '로그인이 필요합니다' : 'Login required'}
-        onBack={() => router.back()}
-        backLabel={isKo ? '뒤로' : 'Back'}
-      >
-        <AuthGate>
-          <div />
-        </AuthGate>
-      </ServicePageLayout>
-    )
-  }
 
   if (isInitializing) {
     return <CounselorLoading />

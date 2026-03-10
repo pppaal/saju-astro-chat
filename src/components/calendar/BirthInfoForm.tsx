@@ -60,8 +60,8 @@ const BirthInfoForm = memo(function BirthInfoForm({
           </h1>
           <p className={styles.pageSubtitle}>
             {locale === 'ko'
-              ? '동서양 운세를 교차 분석하여 당신만의 중요한 날짜를 찾아드립니다'
-              : 'Cross-analyze Eastern and Western fortune to find your important dates'}
+              ? '생년월일 기반으로 월별 좋은 날/주의할 날을 정리해 드립니다'
+              : 'Find your monthly best days and caution days from your birth data.'}
           </p>
         </div>
 
@@ -89,10 +89,10 @@ const BirthInfoForm = memo(function BirthInfoForm({
           <p className={styles.tabHelperText}>
             {isQuickMode
               ? locale === 'ko'
-                ? '퀵 모드: 생년월일만 입력하면 바로 분석합니다.'
+                ? '퀵 모드: 생년월일만 입력해도 결과를 바로 확인할 수 있어요.'
                 : 'Quick mode: analysis with birth date only.'
               : locale === 'ko'
-                ? '상세 모드: 시간/도시/성별까지 입력해 정밀 분석합니다.'
+                ? '상세 모드: 태어난 시간/도시/성별까지 입력하면 정확도가 올라가요.'
                 : 'Detailed mode: add time, city, and gender for precision.'}
           </p>
 
@@ -122,7 +122,7 @@ const BirthInfoForm = memo(function BirthInfoForm({
             headerTitle={locale === 'ko' ? '생년월일을 입력해주세요' : 'Enter Your Birth Info'}
             headerSubtitle={
               locale === 'ko'
-                ? '정확한 분석을 위해 필요한 정보입니다'
+                ? '생년월일만으로 시작 가능, 상세 입력 시 정확도 향상'
                 : 'Required for accurate analysis'
             }
           />
@@ -143,18 +143,22 @@ const BirthInfoForm = memo(function BirthInfoForm({
 
         {/* Quick Tips */}
         <div className={styles.quickTips}>
-          <h4>{locale === 'ko' ? '💡 이런 분들께 추천해요' : '💡 Recommended for'}</h4>
+          <h4>{locale === 'ko' ? '💡 결과 해석 가이드' : '💡 How to read the result'}</h4>
           <ul>
-            <li>{locale === 'ko' ? '중요한 일정을 잡아야 할 때' : 'Planning important events'}</li>
             <li>
               {locale === 'ko'
-                ? '좋은 날과 조심할 날을 알고 싶을 때'
-                : 'Know your best and caution days'}
+                ? '초록/파랑 계열 날짜: 실행·미팅·발표 일정 추천'
+                : 'Blue/green days: better for execution, meetings, launches'}
             </li>
             <li>
               {locale === 'ko'
-                ? '사주와 점성술을 함께 참고하고 싶을 때'
-                : 'Want both Saju and Astrology insights'}
+                ? '주황/빨강 계열 날짜: 과로·충돌 가능성 점검 후 일정 조정'
+                : 'Orange/red days: check risk and reduce overload or conflict'}
+            </li>
+            <li>
+              {locale === 'ko'
+                ? '선택한 날짜를 클릭하면 상세 설명·추천 행동을 바로 확인'
+                : 'Click a date to view detailed reasons and action guidance'}
             </li>
           </ul>
         </div>

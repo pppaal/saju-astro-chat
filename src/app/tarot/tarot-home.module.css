@@ -32,7 +32,7 @@
 
 .card {
   width: 100%;
-  max-width: 720px;
+  max-width: 760px;
   background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(30px);
   border: 1px solid rgba(167, 139, 250, 0.25);
@@ -50,6 +50,7 @@
 
 .header {
   text-align: center;
+  margin-bottom: 6px;
 }
 
 .iconWrapper {
@@ -83,7 +84,7 @@
 
 .mainTitle {
   font-family: var(--font-cinzel), ui-serif, Georgia, serif;
-  font-size: 2.1rem;
+  font-size: 2.5rem;
   font-weight: 700;
   margin: 0 0 10px;
   background: linear-gradient(135deg, #ffffff, #a78bfa, #8b5cf6);
@@ -95,9 +96,16 @@
 
 .subtitle {
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.08rem;
   color: rgba(226, 216, 255, 0.75);
   line-height: 1.6;
+}
+
+.supportTags {
+  margin: 12px 0 0;
+  font-size: 0.8rem;
+  color: rgba(196, 181, 253, 0.62);
+  letter-spacing: 0.3px;
 }
 
 .searchContainer {
@@ -127,8 +135,8 @@
 
 .searchInput {
   width: 100%;
-  padding: 18px 110px 18px 62px;
-  font-size: 1.05rem;
+  padding: 22px 118px 22px 64px;
+  font-size: 1.12rem;
   font-weight: 500;
   border: 2px solid rgba(139, 92, 246, 0.3);
   border-radius: 60px;
@@ -161,8 +169,8 @@
   right: 68px;
   top: 50%;
   transform: translateY(-50%);
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   border: none;
   background: rgba(255, 255, 255, 0.1);
@@ -181,11 +189,11 @@
 
 .submitButton {
   position: absolute;
-  right: 10px;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  width: 46px;
-  height: 46px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
   border: none;
   background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 60%, #7c3aed 100%);
@@ -256,7 +264,7 @@
 }
 
 .previewText {
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
 }
@@ -307,10 +315,32 @@
   color: rgba(254, 240, 138, 0.75);
 }
 
+.fallbackRetryButton {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(252, 211, 77, 0.45);
+  background: rgba(120, 53, 15, 0.38);
+  color: rgba(254, 240, 138, 0.95);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fallbackRetryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.fallbackRetryButton:hover:not(:disabled) {
+  background: rgba(146, 64, 14, 0.52);
+}
+
 .themeSection {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .sectionHeader {
@@ -330,8 +360,24 @@
 
 .sectionSubtitle {
   margin: 0;
-  font-size: 0.85rem;
-  color: rgba(196, 181, 253, 0.7);
+  font-size: 0.8rem;
+  color: rgba(196, 181, 253, 0.58);
+}
+
+.moreThemesButton {
+  align-self: center;
+  margin-top: 2px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  background: rgba(167, 139, 250, 0.08);
+  color: rgba(226, 216, 255, 0.82);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.moreThemesButton:hover {
+  background: rgba(167, 139, 250, 0.16);
 }
 
 .themeGrid {
@@ -513,7 +559,7 @@
   }
 
   .searchInput {
-    padding: 16px 100px 16px 56px;
+    padding: 18px 104px 18px 56px;
     font-size: 1rem;
   }
 }
@@ -533,7 +579,7 @@
   }
 
   .mainTitle {
-    font-size: 1.8rem;
+    font-size: 2rem;
   }
 
   .searchInput {
@@ -547,8 +593,8 @@
   }
 
   .submitButton {
-    width: 42px;
-    height: 42px;
+    width: 46px;
+    height: 46px;
   }
 
   .themeGrid {
@@ -562,11 +608,11 @@
   }
 
   .mainTitle {
-    font-size: 1.6rem;
+    font-size: 1.8rem;
   }
 
   .searchInput {
-    padding: 14px 96px 14px 52px;
+    padding: 16px 96px 16px 52px;
   }
 }
 

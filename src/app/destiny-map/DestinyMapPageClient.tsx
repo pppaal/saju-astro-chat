@@ -355,6 +355,9 @@ function DestinyMapContent({
                   : 'Start your counselor session with Saju + Astrology analysis.'
               )}
             </p>
+            <p className={styles.supportTags}>
+              {isKo ? '사주 · 점성술 · 타로 · I Ching' : 'Saju · Astrology · Tarot · I Ching'}
+            </p>
           </div>
 
           <form onSubmit={onSubmit} className={styles.form}>
@@ -572,18 +575,11 @@ function DestinyMapContent({
           </form>
 
           <div className={styles.features}>
-            <div className={styles.feature}>
-              <span className={styles.featureIcon}>☯️</span>
-              <span className={styles.featureText}>{isKo ? '사주' : 'Saju'}</span>
-            </div>
-            <div className={styles.feature}>
-              <span className={styles.featureIcon}>✨</span>
-              <span className={styles.featureText}>{isKo ? '점성술' : 'Astrology'}</span>
-            </div>
-            <div className={styles.feature}>
-              <span className={styles.featureIcon}>🃏</span>
-              <span className={styles.featureText}>{isKo ? '타로' : 'Tarot'}</span>
-            </div>
+            <span className={styles.featureText}>
+              {isKo
+                ? '핵심 프로필만 입력하면 빠르게 상담을 시작할 수 있어요.'
+                : 'Enter your core profile and start counseling instantly.'}
+            </span>
           </div>
         </div>
       </main>

@@ -132,6 +132,32 @@ export function ResultsStage(props: ResultsStageProps) {
       />
 
       {/* AI Overall Message */}
+      {insight?.fallback ? (
+        <div className={styles.interpretationFallbackNotice} role="status" aria-live="polite">
+          <div className={styles.interpretationNoticeHeader}>
+            <strong>{language === 'ko' ? '임시 해석 모드' : 'Fallback interpretation mode'}</strong>
+            <button
+              type="button"
+              className={styles.interpretationRetryButton}
+              onClick={() => window.location.reload()}
+            >
+              {language === 'ko' ? 'AI 해석 다시 시도' : 'Retry AI interpretation'}
+            </button>
+          </div>
+          <p>
+            {language === 'ko'
+              ? '현재 결과는 안정 모드 해석입니다. 잠시 후 다시 읽으면 더 풍부한 AI 분석이 제공될 수 있어요.'
+              : 'You are seeing a safe fallback interpretation. Retry shortly for a richer AI reading.'}
+          </p>
+        </div>
+      ) : (
+        <div className={styles.interpretationSuccessNotice}>
+          {language === 'ko'
+            ? '✅ AI 해석이 정상 생성되었습니다.'
+            : '✅ AI interpretation generated successfully.'}
+        </div>
+      )}
+
       <OverallMessageChat
         message={insight?.overall_message}
         isLoading={showInterpretationLoading}

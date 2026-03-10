@@ -137,6 +137,108 @@ function parseStreamedInterpretation(
   }
 }
 
+function detectFocusKeyword(question: string, isKorean: boolean): string {
+  const q = question.toLowerCase()
+
+  if (isKorean) {
+    if (/(연애|사랑|결혼|썸|관계)/.test(q)) return '관계'
+    if (/(이직|취업|승진|커리어|직장|면접)/.test(q)) return '커리어'
+    if (/(돈|재정|투자|매출|수입|지출)/.test(q)) return '재정'
+    if (/(건강|몸|컨디션|휴식|스트레스)/.test(q)) return '건강'
+    return '핵심 이슈'
+  }
+
+  if (/(love|relationship|marriage|dating)/.test(q)) return 'relationships'
+  if (/(career|job|promotion|interview|work)/.test(q)) return 'career'
+  if (/(money|finance|income|budget|invest)/.test(q)) return 'finance'
+  if (/(health|wellness|stress|rest|energy)/.test(q)) return 'health'
+  return 'core issue'
+}
+
+function buildPersonalizedFallback(
+  result: ReadingResponse,
+  userTopic: string,
+  isKorean: boolean,
+  personalizationOptions: TarotPersonalizationOptions
+): InterpretationResult {
+  const fallbackCardNames = result.drawnCards
+    .map((dc) => (isKorean ? dc.card.nameKo || dc.card.name : dc.card.name))
+    .slice(0, 3)
+    .join(', ')
+  const focus = detectFocusKeyword(userTopic, isKorean)
+  const perspectiveHints = [
+    personalizationOptions.includeSaju ? (isKorean ? '사주 관점 포함' : 'Saju lens included') : '',
+    personalizationOptions.includeAstrology
+      ? isKorean
+        ? '점성술 관점 포함'
+        : 'Astrology lens included'
+      : '',
+  ].filter(Boolean)
+
+  return {
+    overall_message: isKorean
+      ? `질문 주제(${focus}) 기준으로 ${fallbackCardNames} 카드가 공통적으로 말하는 방향은 '속도보다 기준 정렬'입니다. 지금은 결론을 서두르기보다 핵심 조건 1개를 정해 실행 가능한 단위로 쪼개는 것이 유리합니다.`
+      : `For your ${focus} question, the shared direction from ${fallbackCardNames} is to prioritize clear criteria over speed. Instead of forcing a fast answer, define one key condition and break it into executable steps.`,
+    card_insights: result.drawnCards.map((dc, idx) => {
+      const positionTitle = result.spread.positions[idx]?.title || `Card ${idx + 1}`
+      const cardName = isKorean ? dc.card.nameKo || dc.card.name : dc.card.name
+
+      return {
+        position: positionTitle,
+        card_name: dc.card.name,
+        is_reversed: dc.isReversed,
+        interpretation: isKorean
+          ? dc.isReversed
+            ? `${positionTitle}의 ${cardName}(역방향)은 '${focus}'에서 누락된 조건을 먼저 점검하라는 신호입니다. 지금 당장 결정하기보다 체크리스트 3개를 만든 뒤 재판단하세요.`
+            : `${positionTitle}의 ${cardName}는 '${focus}'에서 우선순위를 분명히 하라는 신호입니다. 오늘 바로 실행할 1단계 행동을 확정하면 흐름이 좋아집니다.`
+          : dc.isReversed
+            ? `${cardName} reversed at ${positionTitle} suggests reviewing missing conditions in your ${focus} before committing. Build a 3-item checklist, then decide.`
+            : `${cardName} at ${positionTitle} highlights priority clarity for your ${focus}. Lock one immediate next step today to improve momentum.`,
+      }
+    }),
+    guidance: isKorean
+      ? [
+          {
+            title: '오늘 20분 액션',
+            detail: `'${focus}' 관련 핵심 조건 1개를 정하고, 20분 내 실행 가능한 행동 1개로 전환하세요.`,
+          },
+          {
+            title: '리스크 차단',
+            detail: '결정 전에 실패 시나리오 1개와 대응책 1개를 미리 적어두세요.',
+          },
+          {
+            title: '재확인 포인트',
+            detail:
+              perspectiveHints.length > 0
+                ? `${perspectiveHints.join(', ')} 기준으로 48시간 내 한 번 더 리딩을 비교해보세요.`
+                : '48시간 내 같은 질문으로 다시 리딩해 변화 흐름을 비교해보세요.',
+          },
+        ]
+      : [
+          {
+            title: '20-minute action',
+            detail: `Choose one key condition for your ${focus} and convert it into one task you can execute within 20 minutes.`,
+          },
+          {
+            title: 'Risk guardrail',
+            detail:
+              'Write one failure scenario and one response plan before finalizing your decision.',
+          },
+          {
+            title: 'Re-check point',
+            detail:
+              perspectiveHints.length > 0
+                ? `Re-run and compare within 48 hours with ${perspectiveHints.join(', ')}.`
+                : 'Re-run the same question within 48 hours and compare pattern changes.',
+          },
+        ],
+    affirmation: isKorean
+      ? '깊은 해석은 작은 실행에서 시작됩니다.'
+      : 'Deep clarity starts from one concrete step.',
+    fallback: true,
+  }
+}
+
 export function useTarotInterpretation({
   categoryName,
   spreadId,
@@ -296,25 +398,31 @@ export function useTarotInterpretation({
 
             const normalizedInsights = result.drawnCards.map((drawnCard, i) => {
               const ci = sourceInsights[i] || {}
+              const fallbackInterpretation = drawnCard.isReversed
+                ? language === 'ko'
+                  ? drawnCard.card.reversed.meaningKo || drawnCard.card.reversed.meaning
+                  : drawnCard.card.reversed.meaning
+                : language === 'ko'
+                  ? drawnCard.card.upright.meaningKo || drawnCard.card.upright.meaning
+                  : drawnCard.card.upright.meaning
+
               return {
                 position:
                   (ci.position as string) || result.spread.positions[i]?.title || `Card ${i + 1}`,
                 card_name: drawnCard.card.name,
                 is_reversed: drawnCard.isReversed,
-                interpretation: (ci.interpretation as string) || '',
+                interpretation:
+                  ((ci.interpretation as string) || '').trim() ||
+                  fallbackInterpretation ||
+                  (language === 'ko'
+                    ? '카드 메시지를 읽고 현재 상황과 연결해보세요.'
+                    : 'Connect this card message to your current situation.'),
                 spirit_animal: null,
                 chakra: null,
                 element: null,
                 shadow: null,
               }
             })
-
-            const hasMissingInsight = normalizedInsights.some(
-              (insight) => insight.interpretation.trim().length === 0
-            )
-            if (hasMissingInsight) {
-              throw new Error('Incomplete JSON stream payload')
-            }
 
             return {
               overall_message: data.overall_message || data.overall || '',
@@ -352,36 +460,8 @@ export function useTarotInterpretation({
         )
       }
 
-      // 3) Final fallback with renderable local copy
-      const fallbackCardNames = result.drawnCards
-        .map((dc) => (isKorean ? dc.card.nameKo || dc.card.name : dc.card.name))
-        .slice(0, 3)
-        .join(', ')
-
-      return {
-        overall_message: isKorean
-          ? `${fallbackCardNames} 카드 흐름을 보면 지금은 성급한 결정보다 핵심 변수 정리와 작은 실행이 더 중요한 시기입니다. 오늘 바로 해볼 수 있는 한 가지 행동부터 시작하세요.`
-          : `The flow of ${fallbackCardNames} suggests that clarifying the key variable and taking one small concrete action matters more than forcing a fast decision right now.`,
-        card_insights: result.drawnCards.map((dc, idx) => ({
-          position: result.spread.positions[idx]?.title || `Card ${idx + 1}`,
-          card_name: dc.card.name,
-          is_reversed: dc.isReversed,
-          interpretation: isKorean
-            ? dc.isReversed
-              ? `${dc.card.nameKo || dc.card.name} 역방향은 지금 이 자리에서 흐름이 바로 풀리기보다 점검과 조정이 먼저 필요하다는 뜻입니다. 조급하게 밀어붙이지 말고 오늘 확인할 변수 하나만 정리해보세요.`
-              : `${dc.card.nameKo || dc.card.name} 카드는 이 자리에서 핵심 포인트를 분명히 보라는 신호입니다. 지금 가장 중요한 선택 기준 하나를 정하고 작은 실행으로 바로 연결해보세요.`
-            : dc.isReversed
-              ? `${dc.card.name} reversed suggests this position needs review and recalibration before you push ahead. Identify one variable to verify today.`
-              : `${dc.card.name} in this position highlights the key point you should act on next. Pick one clear criterion and move it into action today.`,
-        })),
-        guidance: isKorean
-          ? '오늘은 한 번에 결론 내리기보다, 가장 중요한 변수 1개를 정하고 20분 안에 실행 가능한 행동으로 옮겨보세요.'
-          : 'Instead of forcing a conclusion, choose the single most important variable and turn it into one action you can take within 20 minutes today.',
-        affirmation: isKorean
-          ? '작은 실행이 오늘의 흐름을 바꿉니다.'
-          : "One small action can change today's momentum.",
-        fallback: true,
-      }
+      // 3) Final fallback with personalized renderable copy
+      return buildPersonalizedFallback(result, userTopic, isKorean, personalizationOptions)
     },
     [categoryName, spreadId, language, session, userTopic, personalizationOptions]
   )

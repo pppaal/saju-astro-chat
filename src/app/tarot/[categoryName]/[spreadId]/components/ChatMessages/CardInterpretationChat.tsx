@@ -38,16 +38,14 @@ export function CardInterpretationChat({
         const meaning = drawnCard.isReversed ? drawnCard.card.reversed : drawnCard.card.upright
 
         const interp = cardInsight?.interpretation?.trim() || ''
-        const isPlaceholder =
-          interp.includes('카드의 메시지에 귀 기울여') ||
-          interp.includes('Listen to the card') ||
-          (interp.includes('자리의') && interp.length < 100)
+        const isDefaultGenericMessage =
+          interp.includes('카드의 메시지에 귀 기울여') || interp.includes('Listen to the cards')
 
         if (
           !interp ||
           interp === meaning.meaning ||
           interp === meaning.meaningKo ||
-          isPlaceholder
+          isDefaultGenericMessage
         ) {
           return null
         }

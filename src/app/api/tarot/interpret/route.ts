@@ -363,6 +363,28 @@ function ensureCardAnchoring(
   return `${questionLine}${cardName} in the ${position} position indicates: ${normalized}`
 }
 
+function ensureActionAndTimeAnchor(language: string, interpretation: string): string {
+  const normalized = interpretation.trim()
+  const hasTimeAnchor =
+    /(?:today|this week|within 7 days|next week|오늘|이번\s*주|다음\s*7일|이번\s*달)/i.test(
+      normalized
+    )
+  const hasActionVerb =
+    /(?:write|plan|track|review|start|focus|set|talk|record|apply|정리|기록|실행|집중|설정|점검|대화|시작|적어|해보)/i.test(
+      normalized
+    )
+
+  if (hasTimeAnchor && hasActionVerb) {
+    return normalized
+  }
+
+  if (language === 'ko') {
+    return `${normalized} 오늘 20분 실행 1개를 정하고, 이번 주 안에 결과를 3줄로 기록해 다음 선택 기준으로 삼으세요.`
+  }
+
+  return `${normalized} Pick one 20-minute action for today, then log outcomes in 3 lines within this week to guide your next move.`
+}
+
 function normalizeResultPayload(raw: unknown): Partial<TarotInterpretResult> {
   if (!raw || typeof raw !== 'object') return {}
   return raw as Partial<TarotInterpretResult>
@@ -442,11 +464,9 @@ function enforceInterpretationQuality(input: {
       typeof rawInsight.interpretation === 'string' && rawInsight.interpretation.trim().length >= 80
         ? rawInsight.interpretation.trim()
         : buildMinimumInsight(input.language, card)
-    const interpretation = ensureCardAnchoring(
+    const interpretation = ensureActionAndTimeAnchor(
       input.language,
-      card,
-      baseInterpretation,
-      input.userQuestion
+      ensureCardAnchoring(input.language, card, baseInterpretation, input.userQuestion)
     )
 
     return {
@@ -495,7 +515,7 @@ function enforceInterpretationQuality(input: {
     },
   })
 
-  if (quality.overallScore < 60) {
+  if (quality.overallScore < 72) {
     overall = buildMinimumOverall(input.language, input.cards, input.userQuestion, '')
     guidance = buildActionableGuidance(input.language, input.userQuestion)
     logger.warn('[Tarot interpret] low-quality interpretation auto-repaired', {
@@ -983,7 +1003,8 @@ ${cardExamples}
 ## Rules
 - Each card interpretation must include: position meaning + current situation link + one concrete action.
 - For reversed cards, explain blockage/delay/internalization explicitly.
-- Avoid generic platitudes; keep it actionable.`
+- Avoid generic platitudes; keep it actionable.
+- Include at least one time anchor in each card insight (today/this week/within 7 days).`
 
   try {
     const result = await callGPT(unifiedPrompt, budget.maxTokens)
@@ -992,22 +1013,32 @@ ${cardExamples}
     if (parsed) {
       const parsedCards = Array.isArray(parsed.cards) ? parsed.cards : []
 
-      // 카드별 해석이 비어있거나 너무 짧으면 기본 meaning 사용
+      // 카드별 해석이 비어있거나 너무 짧으면 최소 품질 문장으로 보강
       const card_insights = cards.map((card, i) => {
         const cardData = asRecord(parsedCards[i])
         let interpretation =
           typeof cardData.interpretation === 'string' ? cardData.interpretation : ''
 
-        // 해석이 너무 짧거나 없으면 카드의 기본 meaning 사용
-        if (!interpretation || interpretation.length < 50) {
-          interpretation = isKorean && card.meaningKo ? card.meaningKo : card.meaning || ''
+        // 해석이 너무 짧거나 없으면, 카드명/포지션/질문 앵커가 있는 최소 품질 문장으로 보강
+        if (!interpretation || interpretation.length < 80) {
+          interpretation = ensureCardAnchoring(
+            language,
+            card,
+            buildMinimumInsight(language, card),
+            userQuestion
+          )
         }
+
+        const anchoredInterpretation = ensureActionAndTimeAnchor(
+          language,
+          ensureCardAnchoring(language, card, interpretation, userQuestion)
+        )
 
         return {
           position: card.position,
           card_name: card.name,
           is_reversed: card.isReversed,
-          interpretation,
+          interpretation: anchoredInterpretation,
           spirit_animal: null,
           chakra: null,
           element: null,
@@ -1038,16 +1069,7 @@ ${cardExamples}
     // JSON 파싱 실패 시 전체 텍스트를 overall로 사용
     return {
       overall_message: result,
-      card_insights: cards.map((card) => ({
-        position: card.position,
-        card_name: card.name,
-        is_reversed: card.isReversed,
-        interpretation: '',
-        spirit_animal: null,
-        chakra: null,
-        element: null,
-        shadow: null,
-      })),
+      card_insights: buildAnchoredCardInsights(cards, language, userQuestion),
       guidance: isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.',
       affirmation: isKorean ? '오늘도 화이팅!' : 'You got this!',
       combinations: buildLocalCombinationHints(cards, language),
@@ -1103,6 +1125,26 @@ function buildLocalCombinationHints(cards: CardInput[], language: string, limit 
   return hints
 }
 
+function buildAnchoredCardInsights(
+  cards: CardInput[],
+  language: string,
+  userQuestion?: string
+): CardInsight[] {
+  return cards.map((card) => ({
+    position: card.position,
+    card_name: card.name,
+    is_reversed: card.isReversed,
+    interpretation: ensureActionAndTimeAnchor(
+      language,
+      ensureCardAnchoring(language, card, buildMinimumInsight(language, card), userQuestion)
+    ),
+    spirit_animal: null,
+    chakra: null,
+    element: null,
+    shadow: null,
+  }))
+}
+
 // 간단한 fallback (GPT도 실패한 경우)
 function generateSimpleFallback(
   cards: CardInput[],
@@ -1149,7 +1191,7 @@ function generateSimpleFallback(
         position: card.position,
         card_name: card.name,
         is_reversed: card.isReversed,
-        interpretation: anchoredInterpretation,
+        interpretation: ensureActionAndTimeAnchor(language, anchoredInterpretation),
         spirit_animal: null,
         chakra: null,
         element: null,

@@ -73,6 +73,7 @@
     "test:e2e:profile": "playwright test e2e/critical-flows/06-profile-management.spec.ts",
     "test:e2e:premium": "playwright test e2e/critical-flows/07-premium-subscription.spec.ts",
     "test:e2e:destiny": "playwright test e2e/critical-flows/08-destiny-features.spec.ts",
+    "qa:counselor-calendar:report": "tsx scripts/qa-counselor-calendar-report.ts",
     "test:unit": "cross-env TS_NODE_COMPILER_OPTIONS={\"module\":\"commonjs\",\"jsx\":\"react-jsx\"} node -r ts-node/register --test tests/*.test.ts",
     "test:backend": "python -m pytest backend_ai/tests",
     "test:lang-purity": "node scripts/check-language-purity.mjs",

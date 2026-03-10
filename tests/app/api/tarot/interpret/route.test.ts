@@ -385,6 +385,54 @@ describe('POST /api/tarot/interpret', () => {
     expect(response.status).toBe(200)
     expect(data.fallback).toBe(true)
     expect(data.overall_message).toContain('바보')
+    expect(data.card_insights[0].interpretation.length).toBeGreaterThanOrEqual(80)
+    expect(data.card_insights[0].interpretation).toMatch(/오늘|이번 주|7일/i)
+  })
+
+  it('should build anchored per-card insights when GPT returns non-JSON text', async () => {
+    const { apiClient } = await import('@/lib/api/ApiClient')
+    vi.mocked(apiClient.post).mockRejectedValue(new Error('Backend down'))
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      text: async () =>
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: 'Short plain-text guidance without JSON structure.',
+              },
+            },
+          ],
+        }),
+    })
+
+    const req = new NextRequest('http://localhost/api/tarot/interpret', {
+      method: 'POST',
+      body: JSON.stringify({
+        categoryId: 'career',
+        spreadId: 'three-card',
+        spreadTitle: 'Career Spread',
+        userQuestion: 'What should I focus on at work this week?',
+        language: 'en',
+        cards: [
+          {
+            name: 'The Magician',
+            isReversed: false,
+            position: 'Present',
+            meaning: 'Skillful action and resourcefulness',
+          },
+        ],
+      }),
+    })
+
+    const response = await POST(req)
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(data.fallback).toBe(false)
+    expect(data.card_insights[0].interpretation.length).toBeGreaterThanOrEqual(80)
+    expect(data.card_insights[0].interpretation).toMatch(/today|this week|within 7 days/i)
   })
 
   it('should respect language parameter', async () => {
@@ -653,5 +701,6 @@ describe('POST /api/tarot/interpret', () => {
     expect(data.guidance).toContain('Within 7 days')
     expect(Array.isArray(data.card_insights)).toBe(true)
     expect(data.card_insights[0].interpretation.length).toBeGreaterThanOrEqual(80)
+    expect(data.card_insights[0].interpretation).toMatch(/today|this week|within 7 days/i)
   })
 })

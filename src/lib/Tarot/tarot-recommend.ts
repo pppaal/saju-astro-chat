@@ -435,8 +435,15 @@ function findDirectMatch(question: string): SpreadRecommendation | null {
   const normalizedQuestion = question.toLowerCase()
 
   // Strong pre-rule: explicit timing intent should route to timing-window first.
+  // But if domain-specific keywords exist (career/love/money/etc.), let domain rules win.
   const timingIntentPattern = /언제|시기|타이밍|때가|when|timing|best time|right time/i
-  if (timingIntentPattern.test(normalizedQuestion)) {
+  const timingDomainPattern =
+    /이직|취업|직장|승진|career|job|work|연애|사랑|결혼|재회|relationship|love|돈|재정|투자|money|finance|건강|힐링|health|오늘|하루|today|이번\s*주|week/i
+
+  if (
+    timingIntentPattern.test(normalizedQuestion) &&
+    !timingDomainPattern.test(normalizedQuestion)
+  ) {
     const theme = tarotThemes.find((t) => t.id === 'decisions-crossroads')
     const spread = theme?.spreads.find((s) => s.id === 'timing-window')
     if (theme && spread) {

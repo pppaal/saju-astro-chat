@@ -20,6 +20,45 @@ interface DetailedCardItemProps {
   translate: (key: string, fallback: string) => string
 }
 
+function emphasizeKeyPoints(text: string) {
+  const blocks = text
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+
+  const keyPointRegex =
+    /^(결론|요약|핵심|메시지|오늘|이번\s*주|다음\s*7일|action|summary|key|today|this week|within 7 days)\s*[:：-]/i
+
+  return blocks.map((line, lineIndex) => {
+    const keyPointMatch = line.match(keyPointRegex)
+    if (keyPointMatch) {
+      const marker = keyPointMatch[0]
+      const content = line.slice(marker.length).trim()
+      return (
+        <p key={`kp-${lineIndex}`} className={styles.insightParagraph}>
+          <strong className={styles.insightKeyPoint}>{marker.trim()}</strong>
+          {content ? ` ${content}` : ''}
+        </p>
+      )
+    }
+
+    const bulletMatch = line.match(/^[-•]\s*(.+)$/)
+    if (bulletMatch) {
+      return (
+        <p key={`bl-${lineIndex}`} className={styles.insightParagraph}>
+          • {bulletMatch[1]}
+        </p>
+      )
+    }
+
+    return (
+      <p key={`p-${lineIndex}`} className={styles.insightParagraph}>
+        {line}
+      </p>
+    )
+  })
+}
+
 export function DetailedCardItem({
   drawnCard,
   index,
@@ -32,6 +71,11 @@ export function DetailedCardItem({
   translate,
 }: DetailedCardItemProps) {
   const meaning = drawnCard.isReversed ? drawnCard.card.reversed : drawnCard.card.upright
+  const baseMeaning = language === 'ko' ? meaning.meaningKo || meaning.meaning : meaning.meaning
+  const practicalMeaning =
+    language === 'ko'
+      ? `${positionTitle} 자리에서는 '${baseMeaning}' 메시지를 오늘 실행 1개로 바꾸는 게 핵심입니다. 지금 바로 20분 안에 끝낼 수 있는 행동 하나를 정하고, 이번 주에 결과를 기록해 다음 선택 기준으로 삼으세요.`
+      : `In the ${positionTitle} position, the key message is "${baseMeaning}". Convert it into one action you can complete within 20 minutes today, then log outcomes this week to refine your next choice.`
 
   return (
     <div
@@ -85,9 +129,8 @@ export function DetailedCardItem({
           )}
         </div>
 
-        <p className={styles.meaning}>
-          {language === 'ko' ? meaning.meaningKo || meaning.meaning : meaning.meaning}
-        </p>
+        <p className={styles.meaning}>{baseMeaning}</p>
+        <p className={styles.practicalMeaning}>{practicalMeaning}</p>
 
         {/* Premium Insights */}
         {cardInsight && (
@@ -101,7 +144,9 @@ export function DetailedCardItem({
                   icon="🔮"
                   title={translate('tarot.insights.aiInterpretation', 'Deep Insight')}
                 >
-                  <p className={styles.insightText}>{cardInsight.interpretation}</p>
+                  <div className={styles.insightText}>
+                    {emphasizeKeyPoints(cardInsight.interpretation)}
+                  </div>
                 </InsightCard>
               )}
 

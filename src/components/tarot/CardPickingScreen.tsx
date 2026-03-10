@@ -67,8 +67,8 @@ export function CardPickingScreen({
             <p className={styles.guidanceText}>
               ✨{' '}
               {isKo
-                ? '마음이 이끄는 대로 카드를 선택하세요'
-                : 'Let your intuition guide you to the cards'}
+                ? `질문을 떠올리며 ${cardCount}장을 순서대로 선택하세요 (첫 느낌 우선)`
+                : `Focus on your question and choose ${cardCount} cards in order (trust your first instinct).`}
             </p>
           )}
           {gameState === 'revealing' && (
@@ -77,8 +77,8 @@ export function CardPickingScreen({
               <p className={styles.revealingText}>
                 ✨{' '}
                 {isKo
-                  ? '선택 완료! 운명을 공개하는 중...'
-                  : 'Selection Complete! Revealing your destiny...'}
+                  ? '선택 완료! 해석을 준비하고 있어요 (보통 5~10초)'
+                  : 'Selection complete! Preparing your reading (usually 5–10 seconds).'}
               </p>
             </>
           )}

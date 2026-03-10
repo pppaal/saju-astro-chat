@@ -45,6 +45,63 @@ import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
 // Utils
 import { getCacheKey, getCachedData, setCachedData } from './cache-utils'
 
+function buildFallbackCalendarData(year: number, locale: string): CalendarData {
+  const allDates: ImportantDate[] = []
+
+  for (let month = 0; month < 12; month++) {
+    const daysInMonth = new Date(year, month + 1, 0).getDate()
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      const seed = (month + 1) * 31 + day
+      const score = 45 + (seed % 45)
+      const grade = score >= 80 ? 1 : score >= 65 ? 2 : score >= 50 ? 3 : 4
+      const isKo = locale === 'ko'
+
+      allDates.push({
+        date,
+        grade: grade as ImportantDate['grade'],
+        score,
+        categories: ['general'],
+        title: isKo ? '기본 운세 안내' : 'Fallback guidance',
+        description: isKo
+          ? '서버 연결이 불안정해 기본 패턴으로 표시 중입니다. 잠시 후 다시 시도해주세요.'
+          : 'Showing a fallback pattern because server data is temporarily unavailable.',
+        summary: isKo
+          ? '정식 계산 결과가 아니며 참고용입니다.'
+          : 'Reference-only fallback, not full computed result.',
+        bestTimes: isKo ? ['오전 10:00~12:00'] : ['10:00 AM-12:00 PM'],
+        sajuFactors: [isKo ? '기본 데이터 모드' : 'Fallback mode'],
+        astroFactors: [isKo ? '서버 재시도 권장' : 'Retry full analysis later'],
+        recommendations: [
+          isKo ? '중요 결정은 재분석 후 진행하세요.' : 'Re-run analysis before major decisions.',
+        ],
+        warnings: [
+          isKo ? '현재 결과는 임시값입니다.' : 'Current result is temporary fallback data.',
+        ],
+      })
+    }
+  }
+
+  const summary = {
+    total: allDates.length,
+    grade0: allDates.filter((d) => d.grade === 0).length,
+    grade1: allDates.filter((d) => d.grade === 1).length,
+    grade2: allDates.filter((d) => d.grade === 2).length,
+    grade3: allDates.filter((d) => d.grade === 3).length,
+    grade4: allDates.filter((d) => d.grade === 4).length,
+  }
+
+  return {
+    success: true,
+    year,
+    summary,
+    allDates,
+    topDates: allDates.slice(0, 10),
+    goodDates: allDates.filter((d) => d.grade <= 2).slice(0, 30),
+    cautionDates: allDates.filter((d) => d.grade >= 3).slice(0, 30),
+  }
+}
+
 export default function DestinyCalendar() {
   return <DestinyCalendarContent />
 }
@@ -195,18 +252,39 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
             'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '',
           },
         })
-        const json = await res.json()
 
-        if (!res.ok) {
-          setError(json.error || json.message || 'Failed to load calendar')
-        } else {
-          setData(json)
-          setHasBirthInfo(true)
-          setCachedData(cacheKey, birthData, year, activeCategory, json)
-          logger.debug('[Calendar] Data cached successfully', { year, category: activeCategory })
+        let json: CalendarData | { error?: string; message?: string } | null = null
+        try {
+          json = await res.json()
+        } catch {
+          json = null
         }
+
+        if (!res.ok || !json) {
+          logger.warn('[Calendar] API unavailable, using fallback calendar data', {
+            year,
+            category: activeCategory,
+            status: res.status,
+          })
+
+          const fallbackData = buildFallbackCalendarData(year, locale)
+          setData(fallbackData)
+          setHasBirthInfo(true)
+          setError(null)
+          setCachedData(cacheKey, birthData, year, activeCategory, fallbackData)
+          return
+        }
+
+        setData(json as CalendarData)
+        setHasBirthInfo(true)
+        setCachedData(cacheKey, birthData, year, activeCategory, json as CalendarData)
+        logger.debug('[Calendar] Data cached successfully', { year, category: activeCategory })
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Error loading calendar')
+        logger.error('[Calendar] Error loading API response, using fallback data', err)
+        const fallbackData = buildFallbackCalendarData(year, locale)
+        setData(fallbackData)
+        setHasBirthInfo(true)
+        setError(null)
       } finally {
         setLoading(false)
       }
