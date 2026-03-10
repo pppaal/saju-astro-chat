@@ -48,7 +48,7 @@ type TarotInterpretResult = {
   card_insights: TarotInsight[]
   guidance: string
   affirmation: string
-  combinations: Array<{ title: string; summary: string }> | unknown[]
+  combinations: Array<{ cards: string[]; meaning: string }> | unknown[]
   followup_questions: unknown[]
   fallback: boolean
 }
@@ -557,10 +557,7 @@ function enforceInterpretationQuality(input: {
         : isKorean
           ? '오늘의 선택을 작은 실행으로 증명해보세요.'
           : 'Prove today’s choice with one small execution.',
-    combinations:
-      Array.isArray(payload.combinations) && payload.combinations.length > 0
-        ? payload.combinations
-        : buildLocalCombinationHints(input.cards, input.language),
+    combinations: normalizeCombinations(payload.combinations, input.cards, input.language),
     followup_questions: Array.isArray(payload.followup_questions) ? payload.followup_questions : [],
     fallback: Boolean(payload.fallback),
   }
@@ -582,6 +579,49 @@ function buildEmergencyFallbackResult(
     language,
     userQuestion,
   })
+}
+
+function normalizeCombinations(
+  raw: unknown,
+  cards: CardInput[],
+  language: string
+): Array<{ cards: string[]; meaning: string }> {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return buildLocalCombinationHints(cards, language)
+  }
+
+  const normalized = raw
+    .map((item) => {
+      const record = asRecord(item)
+      const cardsField = Array.isArray(record.cards)
+        ? record.cards
+            .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
+            .filter((entry): entry is string => entry.length > 0)
+        : []
+      const meaningField =
+        typeof record.meaning === 'string'
+          ? record.meaning.trim()
+          : typeof record.summary === 'string'
+            ? record.summary.trim()
+            : ''
+      const titleField =
+        typeof record.title === 'string'
+          ? record.title
+              .split('+')
+              .map((entry) => entry.trim())
+              .filter((entry) => entry.length > 0)
+          : []
+
+      const mergedCards = cardsField.length > 0 ? cardsField : titleField
+      if (mergedCards.length === 0 || !meaningField) {
+        return null
+      }
+
+      return { cards: mergedCards, meaning: meaningField }
+    })
+    .filter((entry): entry is { cards: string[]; meaning: string } => Boolean(entry))
+
+  return normalized.length > 0 ? normalized : buildLocalCombinationHints(cards, language)
 }
 
 export const POST = withApiMiddleware(
@@ -1142,10 +1182,7 @@ ${outputSchemaEn}
           (typeof parsed.advice === 'string' && parsed.advice) ||
           buildActionableGuidance(language, userQuestion),
         affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
-        combinations:
-          Array.isArray(parsed.combinations) && parsed.combinations.length > 0
-            ? parsed.combinations
-            : buildLocalCombinationHints(cards, language),
+        combinations: normalizeCombinations(parsed.combinations, cards, language),
         followup_questions: [],
         fallback: false,
       }
@@ -1161,7 +1198,7 @@ ${outputSchemaEn}
       card_insights: buildAnchoredCardInsights(cards, language, userQuestion),
       guidance: isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.',
       affirmation: isKorean ? '오늘도 화이팅!' : 'You got this!',
-      combinations: buildLocalCombinationHints(cards, language),
+      combinations: normalizeCombinations(undefined, cards, language),
       followup_questions: [],
       fallback: false,
     }
@@ -1171,9 +1208,13 @@ ${outputSchemaEn}
   }
 }
 
-function buildLocalCombinationHints(cards: CardInput[], language: string, limit = 6) {
+function buildLocalCombinationHints(
+  cards: CardInput[],
+  language: string,
+  limit = 6
+): Array<{ cards: string[]; meaning: string }> {
   const isKorean = language === 'ko'
-  const hints: Array<{ title: string; summary: string }> = []
+  const hints: Array<{ cards: string[]; meaning: string }> = []
 
   for (let i = 0; i < cards.length; i += 1) {
     for (let j = i + 1; j < cards.length; j += 1) {
@@ -1201,8 +1242,8 @@ function buildLocalCombinationHints(cards: CardInput[], language: string, limit 
         : `${nameA} (${orientationA}) with ${nameB} (${orientationB}) creates either reinforcement or tension in the same theme.`
 
       hints.push({
-        title: `${nameA} + ${nameB}`,
-        summary,
+        cards: [nameA, nameB],
+        meaning: summary,
       })
 
       if (hints.length >= limit) {

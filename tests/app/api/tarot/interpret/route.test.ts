@@ -416,6 +416,73 @@ describe('POST /api/tarot/interpret', () => {
     expect(userPrompt).not.toContain('"cards": [')
   })
 
+  it('should normalize combinations to cards/meaning shape for UI safety', async () => {
+    const { apiClient } = await import('@/lib/api/ApiClient')
+    vi.mocked(apiClient.post).mockResolvedValue({
+      ok: true,
+      data: {
+        overall_message: 'Combination test',
+        card_insights: [
+          {
+            position: 'Past',
+            card_name: 'The Fool',
+            is_reversed: false,
+            interpretation:
+              'The Fool in the Past position asks you to focus on one concrete step today and track the result this week.',
+          },
+          {
+            position: 'Present',
+            card_name: 'The Magician',
+            is_reversed: false,
+            interpretation:
+              'The Magician in the Present position asks for deliberate execution today and one measurable checkpoint this week.',
+          },
+        ],
+        guidance: '1) Today: run one action.',
+        combinations: [
+          {
+            title: 'The Fool + The Magician',
+            summary: 'Together they suggest practical momentum.',
+          },
+        ],
+      },
+    })
+
+    const req = new NextRequest('http://localhost/api/tarot/interpret', {
+      method: 'POST',
+      body: JSON.stringify({
+        categoryId: 'general',
+        spreadId: 'two-card',
+        spreadTitle: 'Two Card',
+        cards: [
+          {
+            name: 'The Fool',
+            isReversed: false,
+            position: 'Past',
+            keywords: ['new', 'step'],
+          },
+          {
+            name: 'The Magician',
+            isReversed: false,
+            position: 'Present',
+            keywords: ['skill', 'focus'],
+          },
+        ],
+        language: 'en',
+      }),
+    })
+
+    const response = await POST(req)
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(Array.isArray(data.combinations)).toBe(true)
+    expect(data.combinations[0]).toHaveProperty('cards')
+    expect(Array.isArray(data.combinations[0].cards)).toBe(true)
+    expect(data.combinations[0]).toHaveProperty('meaning')
+    expect(typeof data.combinations[0].meaning).toBe('string')
+  })
+
   it('should recover from loose GPT JSON (code fence + trailing comma)', async () => {
     const { apiClient } = await import('@/lib/api/ApiClient')
     vi.mocked(apiClient.post).mockRejectedValue(new Error('Backend down'))
