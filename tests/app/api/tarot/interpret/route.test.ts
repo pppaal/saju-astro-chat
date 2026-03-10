@@ -356,6 +356,66 @@ describe('POST /api/tarot/interpret', () => {
     expect(callArgs?.[2]).toMatchObject({ timeout: 12000, retries: 0, retryDelay: 500 })
   })
 
+  it('should use summary-only GPT mode for large spreads and still build per-card insights', async () => {
+    const { apiClient } = await import('@/lib/api/ApiClient')
+    vi.mocked(apiClient.post).mockRejectedValue(new Error('Backend down'))
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      text: async () =>
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  overall: '대형 스프레드 질문 맞춤 요약입니다.',
+                  advice: '1) 오늘: 우선순위 1개를 선택하세요. 2) 이번 주: 결과를 기록하세요.',
+                }),
+              },
+            },
+          ],
+        }),
+    })
+
+    const cards = Array.from({ length: 10 }, (_, i) => ({
+      name: `Card ${i + 1}`,
+      isReversed: i % 2 === 0,
+      position: `Position ${i + 1}`,
+      keywords: ['focus', 'timing', 'action'],
+    }))
+
+    const req = new NextRequest('http://localhost/api/tarot/interpret', {
+      method: 'POST',
+      body: JSON.stringify({
+        categoryId: 'general',
+        spreadId: 'celtic-cross',
+        spreadTitle: 'Celtic Cross',
+        cards,
+        language: 'ko',
+        userQuestion: '이번 달 직업운 핵심은?',
+      }),
+    })
+
+    const response = await POST(req)
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(Array.isArray(data.card_insights)).toBe(true)
+    expect(data.card_insights).toHaveLength(cards.length)
+    expect(data.card_insights[0].interpretation.length).toBeGreaterThanOrEqual(80)
+    expect(data.card_insights[0].interpretation).toMatch(/오늘|이번 주|7일/i)
+
+    const openAiCall = vi
+      .mocked(global.fetch)
+      .mock.calls.find((call) => String(call[0]).includes('api.openai.com'))
+    expect(openAiCall).toBeDefined()
+
+    const openAiPayload = JSON.parse(String(openAiCall?.[1]?.body))
+    const userPrompt = String(openAiPayload?.messages?.[1]?.content || '')
+    expect(userPrompt).toContain('"overall"')
+    expect(userPrompt).not.toContain('"cards": [')
+  })
+
   it('should recover from loose GPT JSON (code fence + trailing comma)', async () => {
     const { apiClient } = await import('@/lib/api/ApiClient')
     vi.mocked(apiClient.post).mockRejectedValue(new Error('Backend down'))

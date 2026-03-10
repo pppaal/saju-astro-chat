@@ -985,30 +985,57 @@ async function generateGPTInterpretation(
     q = `${q}\n${contextBlock}`
   }
 
-  // 카드 개수에 맞춘 JSON 예시 생성
-  const cardExamples = cards
-    .map((c, i) => {
-      const pos = isKorean && c.positionKo ? c.positionKo : c.position
-      const ordinal = isKorean
-        ? `${i + 1}번째`
-        : i === 0
-          ? 'First'
-          : i === 1
-            ? 'Second'
-            : i === 2
-              ? 'Third'
-              : `${i + 1}th`
-      return isKorean
-        ? `    {
+  const cardExamples = isLargeSpread
+    ? ''
+    : cards
+        .map((c, i) => {
+          const pos = isKorean && c.positionKo ? c.positionKo : c.position
+          const ordinal = isKorean
+            ? `${i + 1}번째`
+            : i === 0
+              ? 'First'
+              : i === 1
+                ? 'Second'
+                : i === 2
+                  ? 'Third'
+                  : `${i + 1}th`
+          return isKorean
+            ? `    {
       "position": "${pos}",
       "interpretation": "${ordinal} 카드 해석 (${budget.perCardGuide})"
     }`
-        : `    {
+            : `    {
       "position": "${pos}",
       "interpretation": "${ordinal} card interpretation (${budget.perCardGuide})"
     }`
-    })
-    .join(',\n')
+        })
+        .join(',\n')
+
+  const outputSchemaKo = isLargeSpread
+    ? `{
+  "overall": "전체 메시지 (${budget.overallGuide})",
+  "advice": "실행 지침 (150-230자)"
+}`
+    : `{
+  "overall": "전체 메시지 (${budget.overallGuide})",
+  "cards": [
+${cardExamples}
+  ],
+  "advice": "실행 지침 (${budget.adviceGuide})"
+}`
+
+  const outputSchemaEn = isLargeSpread
+    ? `{
+  "overall": "Overall message (${budget.overallGuide})",
+  "advice": "Practical action steps (80-130 words)"
+}`
+    : `{
+  "overall": "Overall message (${budget.overallGuide})",
+  "cards": [
+${cardExamples}
+  ],
+  "advice": "Practical action steps (${budget.adviceGuide})"
+}`
 
   // 통합 프롬프트 (전체 해석 + 카드별 해석 + 조언)
   const unifiedPrompt = isKorean
@@ -1021,23 +1048,20 @@ async function generateGPTInterpretation(
 ${cardListText}
 
 ## 중요
-- 반드시 모든 ${cards.length}개 카드 해석 포함
-- 장황한 설명 금지, 질문에 직접 답
-- ${isLargeSpread ? '카드 수가 많으므로 카드별 해석은 1-2문장으로 간결하게 작성' : '카드별 해석은 핵심-근거-실행이 이어지도록 작성'}
-- 출력은 오직 JSON
+- 질문에 직접 답하고, 장황한 설명은 금지합니다.
+- 출력은 오직 JSON입니다.
+- ${
+        isLargeSpread
+          ? '대형 스프레드이므로 cards 필드는 출력하지 말고, 전체 메시지와 실행 지침만 정확히 작성하세요.'
+          : `반드시 모든 ${cards.length}개 카드 해석을 포함하세요.`
+      }
 
 ## 출력 형식 (JSON)
 다음 형식으로 정확히 JSON 응답:
-{
-  "overall": "전체 메시지 (${budget.overallGuide})",
-  "cards": [
-${cardExamples}
-  ],
-  "advice": "실행 지침 (${budget.adviceGuide})"
-}
+${outputSchemaKo}
 
 ## 작성 규칙
-- 각 카드 해석은 위치 의미 + 현재 상황 연결 + 오늘 실행 포인트를 포함
+- ${isLargeSpread ? '전체 메시지는 질문 중심으로 작성하고, 실행 지침은 3단계로 구체화' : '각 카드 해석은 위치 의미 + 현재 상황 연결 + 오늘 실행 포인트를 포함'}
 - 역방향 카드는 막힘/지연/내면화 관점으로 구체화
 - 추상적 문장 금지, 바로 실행 가능한 문장 사용`
     : `You are a practical tarot reader. Be precise, warm, and concise.
@@ -1049,23 +1073,24 @@ ${cardExamples}
 ${cardListText}
 
 ## IMPORTANT
-- Include all ${cards.length} card interpretations
-- No verbose filler
-- ${isLargeSpread ? 'Keep each card insight concise in 1-2 tight sentences.' : 'Keep each card insight concise but complete (meaning -> context -> action).'}
-- Output JSON only
+- Answer the user question directly with concise, practical language.
+- Output JSON only.
+- ${
+        isLargeSpread
+          ? 'For large spreads, do not output cards array. Return only overall + advice.'
+          : `Include all ${cards.length} card interpretations.`
+      }
 
 ## Output Format (JSON)
 Respond in this exact JSON format:
-{
-  "overall": "Overall message (${budget.overallGuide})",
-  "cards": [
-${cardExamples}
-  ],
-  "advice": "Practical action steps (${budget.adviceGuide})"
-}
+${outputSchemaEn}
 
 ## Rules
-- Each card interpretation must include: position meaning + current situation link + one concrete action.
+- ${
+        isLargeSpread
+          ? 'Advice must be concrete and step-based.'
+          : 'Each card interpretation must include: position meaning + current situation link + one concrete action.'
+      }
 - For reversed cards, explain blockage/delay/internalization explicitly.
 - Avoid generic platitudes; keep it actionable.
 - Include at least one time anchor in each card insight (today/this week/within 7 days).`
@@ -1075,47 +1100,47 @@ ${cardExamples}
 
     const parsed = tryParseJsonCandidate(result)
     if (parsed) {
-      const parsedCards = Array.isArray(parsed.cards) ? parsed.cards : []
+      const card_insights = isLargeSpread
+        ? buildAnchoredCardInsights(cards, language, userQuestion)
+        : cards.map((card, i) => {
+            const parsedCards = Array.isArray(parsed.cards) ? parsed.cards : []
+            const cardData = asRecord(parsedCards[i])
+            let interpretation =
+              typeof cardData.interpretation === 'string' ? cardData.interpretation : ''
 
-      // 카드별 해석이 비어있거나 너무 짧으면 최소 품질 문장으로 보강
-      const card_insights = cards.map((card, i) => {
-        const cardData = asRecord(parsedCards[i])
-        let interpretation =
-          typeof cardData.interpretation === 'string' ? cardData.interpretation : ''
+            // 해석이 너무 짧거나 없으면, 카드명/포지션/질문 앵커가 있는 최소 품질 문장으로 보강
+            if (!interpretation || interpretation.length < 80) {
+              interpretation = ensureCardAnchoring(
+                language,
+                card,
+                buildMinimumInsight(language, card),
+                userQuestion
+              )
+            }
 
-        // 해석이 너무 짧거나 없으면, 카드명/포지션/질문 앵커가 있는 최소 품질 문장으로 보강
-        if (!interpretation || interpretation.length < 80) {
-          interpretation = ensureCardAnchoring(
-            language,
-            card,
-            buildMinimumInsight(language, card),
-            userQuestion
-          )
-        }
+            const anchoredInterpretation = ensureActionAndTimeAnchor(
+              language,
+              ensureCardAnchoring(language, card, interpretation, userQuestion)
+            )
 
-        const anchoredInterpretation = ensureActionAndTimeAnchor(
-          language,
-          ensureCardAnchoring(language, card, interpretation, userQuestion)
-        )
-
-        return {
-          position: card.position,
-          card_name: card.name,
-          is_reversed: card.isReversed,
-          interpretation: anchoredInterpretation,
-          spirit_animal: null,
-          chakra: null,
-          element: null,
-          shadow: null,
-        }
-      })
+            return {
+              position: card.position,
+              card_name: card.name,
+              is_reversed: card.isReversed,
+              interpretation: anchoredInterpretation,
+              spirit_animal: null,
+              chakra: null,
+              element: null,
+              shadow: null,
+            }
+          })
 
       return {
         overall_message: typeof parsed.overall === 'string' ? parsed.overall : '',
         card_insights,
         guidance:
           (typeof parsed.advice === 'string' && parsed.advice) ||
-          (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
+          buildActionableGuidance(language, userQuestion),
         affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
         combinations:
           Array.isArray(parsed.combinations) && parsed.combinations.length > 0
