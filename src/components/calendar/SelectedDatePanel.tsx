@@ -627,8 +627,8 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   const detailInsight =
     [
       matrixVerdict?.topClaim ? softenDecisionTone(matrixVerdict.topClaim, locale) : '',
-      safeSummary,
       safeNarrative,
+      safeSummary,
       safeDescription,
     ].find(Boolean) || ''
 

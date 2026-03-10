@@ -589,4 +589,15 @@ describe('sanitizeSectionNarrative', () => {
     expect(cleaned).not.toContain('\uAC80\uC99D')
     expect(cleaned).not.toContain('\uADFC\uAC70 \uC138\uD2B8')
   })
+
+  it('removes non-saju/astrology systems from narrative', () => {
+    const cleaned = sanitizeSectionNarrative(
+      '타로 카드, numerology, MBTI, human design 기반 분석입니다.'
+    )
+    expect(cleaned.toLowerCase()).not.toContain('tarot')
+    expect(cleaned.toLowerCase()).not.toContain('numerology')
+    expect(cleaned.toLowerCase()).not.toContain('mbti')
+    expect(cleaned.toLowerCase()).not.toContain('human design')
+    expect(cleaned).not.toContain('타로')
+  })
 })

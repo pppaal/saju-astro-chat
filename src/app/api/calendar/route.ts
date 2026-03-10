@@ -21,6 +21,7 @@ import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { toChart } from '@/lib/astrology/foundation/astrologyService'
 import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT, BRANCH_TO_ELEMENT_EN } from '@/lib/Saju/constants'
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
+import { buildAstroTimingIndex } from '@/lib/destiny-matrix/astroTimingIndex'
 import type { FiveElement } from '@/lib/Saju/types'
 import type { MatrixCalculationInput, PlanetName } from '@/lib/destiny-matrix/types'
 import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
@@ -288,7 +289,7 @@ function buildApproximateIljinTiming(
     '수',
     '수',
   ]
-  const stemIdx = ((dayDiff + 10) % 10 + 10) % 10
+  const stemIdx = (((dayDiff + 10) % 10) + 10) % 10
 
   return {
     element: stemElements[stemIdx],
@@ -741,6 +742,9 @@ export const GET = withApiMiddleware(
           ...inferRetrogradeTransitCyclesForCalendar(now),
         ])
       )
+      const astroTimingIndex = buildAstroTimingIndex({
+        activeTransits,
+      })
 
       let relations: MatrixCalculationInput['relations'] = []
       let twelveStages: MatrixCalculationInput['twelveStages'] = {}
@@ -822,6 +826,7 @@ export const GET = withApiMiddleware(
         planetSigns,
         aspects,
         activeTransits,
+        astroTimingIndex,
         sajuSnapshot: toOptionalRecord(sajuResult),
         astrologySnapshot: natalChartData
           ? ({
@@ -832,6 +837,7 @@ export const GET = withApiMiddleware(
         crossSnapshot: {
           source: 'calendar-route',
           category: category || null,
+          astroTimingIndex,
         },
         currentDateIso: new Date().toISOString().slice(0, 10),
         profileContext: {

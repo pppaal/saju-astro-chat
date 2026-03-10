@@ -385,6 +385,15 @@ export interface MatrixSynergy {
   score: number
 }
 
+export interface AstroTimingIndex {
+  decade: number
+  annual: number
+  monthly: number
+  daily: number
+  confidence: number
+  evidenceCount: number
+}
+
 // ===========================
 // Input Types for Calculation
 // ===========================
@@ -420,6 +429,7 @@ export interface MatrixCalculationInput {
     orb?: number
   }>
   activeTransits?: TransitCycle[]
+  astroTimingIndex?: AstroTimingIndex
 
   // Asteroid data (Layer 9)
   asteroidHouses?: Partial<Record<AsteroidName, HouseNumber>>

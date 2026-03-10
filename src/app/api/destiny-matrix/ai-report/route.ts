@@ -33,12 +33,14 @@ import {
 import {
   evaluateThemedReportQuality,
   buildCalculationDetails,
+  auditMatrixInputReadiness,
 } from '@/lib/destiny-matrix/ai-report/qualityAudit'
 import { auditCrossConsistency } from '@/lib/destiny-matrix/ai-report/crossConsistencyAudit'
 import { canUseFeature, consumeCredits, getCreditBalance } from '@/lib/credits/creditService'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { mapMajorTransitsToActiveTransits } from '@/lib/destiny-matrix/ai-report/transitMapping'
+import { buildAstroTimingIndex } from '@/lib/destiny-matrix/astroTimingIndex'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
@@ -387,6 +389,14 @@ function buildDerivedCrossSnapshot(requestBody: Record<string, unknown>): Record
     toOptionalString(requestBody.currentDateIso) ||
     toOptionalString(requestBody.targetDate) ||
     new Date().toISOString().slice(0, 10)
+  const astroTimingIndex = buildAstroTimingIndex({
+    activeTransits: Array.isArray(requestBody.activeTransits)
+      ? (requestBody.activeTransits as MatrixCalculationInput['activeTransits'])
+      : undefined,
+    advancedAstroSignals: toOptionalRecord(
+      requestBody.advancedAstroSignals
+    ) as MatrixCalculationInput['advancedAstroSignals'],
+  })
 
   return {
     source: 'auto-derived-from-input',
@@ -408,6 +418,7 @@ function buildDerivedCrossSnapshot(requestBody: Record<string, unknown>): Record
       hasAstrologySnapshot: !!toOptionalRecord(requestBody.astrologySnapshot),
       hasSajuSnapshot: !!toOptionalRecord(requestBody.sajuSnapshot),
     },
+    astroTimingIndex,
     derivedAt: new Date().toISOString(),
   }
 }
@@ -1236,14 +1247,26 @@ export const POST = withApiMiddleware(
               MatrixCalculationInput['activeTransits']
             >)
           : []
+      const resolvedActiveTransits =
+        normalizedActiveTransits.length > 0 ? normalizedActiveTransits : derivedActiveTransits
+      const resolvedAstroTimingIndex =
+        (rest as MatrixCalculationInput).astroTimingIndex ||
+        buildAstroTimingIndex({
+          activeTransits: resolvedActiveTransits,
+          advancedAstroSignals: (rest as MatrixCalculationInput).advancedAstroSignals,
+        })
+      const mergedCrossSnapshot = {
+        ...(crossSnapshot || {}),
+        astroTimingIndex: resolvedAstroTimingIndex,
+      }
       const matrixInput = {
         ...(rest as MatrixCalculationInput),
-        activeTransits:
-          normalizedActiveTransits.length > 0 ? normalizedActiveTransits : derivedActiveTransits,
+        activeTransits: resolvedActiveTransits,
+        astroTimingIndex: resolvedAstroTimingIndex,
         profileContext,
         sajuSnapshot,
         astrologySnapshot,
-        crossSnapshot,
+        crossSnapshot: mergedCrossSnapshot,
         currentDateIso,
       } as MatrixCalculationInput
 
@@ -1281,6 +1304,28 @@ export const POST = withApiMiddleware(
       }
 
       // 8. 기본 리포트 생성
+      const inputReadinessAudit = auditMatrixInputReadiness(matrixInput)
+      if (!inputReadinessAudit.ready) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'INPUT_QUALITY_BLOCKED',
+              message: '입력 데이터 무결성 점검에서 치명 오류가 감지되어 생성을 중단했습니다.',
+              blockers: inputReadinessAudit.blockers,
+              inputReadinessAudit,
+            },
+          },
+          { status: HTTP_STATUS.UNPROCESSABLE_ENTITY }
+        )
+      }
+      if (inputReadinessAudit.score < 75 || inputReadinessAudit.warnings.length > 0) {
+        logger.warn('[destiny-matrix/ai-report] Input readiness below ideal', {
+          score: inputReadinessAudit.score,
+          warnings: inputReadinessAudit.warnings,
+        })
+      }
+
       const generator = new FusionReportGenerator({
         lang: matrixInput.lang || 'ko',
         maxTopInsights: resolvedMaxInsights,
@@ -1470,9 +1515,10 @@ export const POST = withApiMiddleware(
         })
       }
 
-      aiReport = {
+      const aiReportWithAudits = {
         ...aiReport,
         crossConsistencyAudit,
+        inputReadinessAudit,
       }
 
       // 11. 크레딧 차감 (성공한 경우에만)
@@ -1493,8 +1539,8 @@ export const POST = withApiMiddleware(
       // 12. DB에 리포트 저장
       const reportType = theme ? 'themed' : period ? 'timing' : 'comprehensive'
       const reportTitle = generateReportTitle(reportType, period, theme, targetDate)
-      const reportSummary = extractReportSummary(aiReport)
-      const overallScore = extractOverallScore(aiReport)
+      const reportSummary = extractReportSummary(aiReportWithAudits)
+      const overallScore = extractOverallScore(aiReportWithAudits)
       const destinyMatrixEvidenceSummary = summarizeDestinyMatrixEvidence(baseReport)
 
       const savedReport = await prisma.destinyMatrixReport.create({
@@ -1503,7 +1549,7 @@ export const POST = withApiMiddleware(
           reportType,
           period: period || null,
           theme: theme || null,
-          reportData: aiReport as object,
+          reportData: aiReportWithAudits as object,
           title: reportTitle,
           summary: reportSummary,
           overallScore,
@@ -1531,7 +1577,7 @@ export const POST = withApiMiddleware(
         const pdfBytes = premiumReport
           ? await generatePremiumPDF(premiumReport)
           : await generateFivePagePDF(
-              aiReport as AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
+              aiReportWithAudits as AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
             )
 
         // PDF 생성 상태 업데이트
@@ -1557,18 +1603,18 @@ export const POST = withApiMiddleware(
         remainingCredits: balance.remainingCredits - creditCost,
         reportType,
         matrixContract: {
-          coreHash: aiReport.coreHash,
-          overallPhase: aiReport.strategyEngine?.overallPhase,
-          overallPhaseLabel: aiReport.strategyEngine?.overallPhaseLabel,
-          topClaimId: aiReport.claims?.[0]?.id,
-          topClaim: aiReport.claims?.[0]?.text,
+          coreHash: aiReportWithAudits.coreHash,
+          overallPhase: aiReportWithAudits.strategyEngine?.overallPhase,
+          overallPhaseLabel: aiReportWithAudits.strategyEngine?.overallPhaseLabel,
+          topClaimId: aiReportWithAudits.claims?.[0]?.id,
+          topClaim: aiReportWithAudits.claims?.[0]?.text,
         },
         report: {
-          ...aiReport,
+          ...aiReportWithAudits,
           id: savedReport.id, // DB에 저장된 ID로 덮어쓰기
           destinyMatrixEvidenceSummary,
           graphRagEvidenceSummary: summarizeGraphRAGEvidence(
-            (aiReport as AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport)
+            (aiReportWithAudits as AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport)
               .graphRagEvidence
           ),
         },

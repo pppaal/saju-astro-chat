@@ -107,8 +107,12 @@ export function auditCrossConsistency(input: {
   add(
     'C06',
     'Timing element exists',
-    !!matrixInput.currentDaeunElement || !!matrixInput.currentSaeunElement,
-    `daeun=${matrixInput.currentDaeunElement || 'N/A'}, saeun=${matrixInput.currentSaeunElement || 'N/A'}`
+    !!matrixInput.currentDaeunElement ||
+      !!matrixInput.currentSaeunElement ||
+      !!matrixInput.currentWolunElement ||
+      !!matrixInput.currentIljinElement ||
+      !!matrixInput.currentIljinDate,
+    `daeun=${matrixInput.currentDaeunElement || 'N/A'}, saeun=${matrixInput.currentSaeunElement || 'N/A'}, wolun=${matrixInput.currentWolunElement || 'N/A'}, iljin=${matrixInput.currentIljinElement || 'N/A'}, iljinDate=${matrixInput.currentIljinDate || 'N/A'}`
   )
   add(
     'C07',

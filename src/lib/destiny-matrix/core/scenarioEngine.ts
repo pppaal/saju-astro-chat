@@ -28,6 +28,15 @@ export interface ScenarioResult {
   actions: string[]
 }
 
+interface ResolvedAstroTimingIndex {
+  decade: number
+  annual: number
+  monthly: number
+  daily: number
+  confidence: number
+  evidenceCount: number
+}
+
 const DOMAIN_SENSITIVITY: Record<SignalDomain, number> = {
   career: 1.08,
   relationship: 1.04,
@@ -241,9 +250,49 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
 }
 
+function clamp01(value: number): number {
+  return clamp(value, 0, 1)
+}
+
+function normalizeAstroTimingIndex(raw: unknown): ResolvedAstroTimingIndex | undefined {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined
+  const record = raw as Record<string, unknown>
+  const decade = Number(record.decade)
+  const annual = Number(record.annual)
+  const monthly = Number(record.monthly)
+  const daily = Number(record.daily)
+  const confidence = Number(record.confidence)
+  const evidenceCount = Number(record.evidenceCount)
+  if (
+    ![decade, annual, monthly, daily, confidence, evidenceCount].every((value) =>
+      Number.isFinite(value)
+    )
+  ) {
+    return undefined
+  }
+  return {
+    decade: clamp01(decade),
+    annual: clamp01(annual),
+    monthly: clamp01(monthly),
+    daily: clamp01(daily),
+    confidence: clamp01(confidence),
+    evidenceCount: Math.max(0, Math.floor(evidenceCount)),
+  }
+}
+
+function resolveAstroTimingIndex(
+  input: MatrixCalculationInputNormalized
+): ResolvedAstroTimingIndex | undefined {
+  const direct = normalizeAstroTimingIndex(input.astroTimingIndex)
+  if (direct) return direct
+  const candidate = input.crossSnapshot?.astroTimingIndex
+  return normalizeAstroTimingIndex(candidate)
+}
+
 function resolveWindow(
   input: MatrixCalculationInputNormalized,
-  pattern: PatternResult
+  pattern: PatternResult,
+  astroTimingIndex: ResolvedAstroTimingIndex | undefined
 ): ScenarioWindow {
   if (
     input.currentIljinElement ||
@@ -252,8 +301,11 @@ function resolveWindow(
   ) {
     return 'now'
   }
+  if (astroTimingIndex && astroTimingIndex.daily >= 0.55) return 'now'
   if (pattern.score >= 75 && input.currentWolunElement) return '1-3m'
+  if (astroTimingIndex && astroTimingIndex.monthly >= 0.6 && pattern.score >= 60) return '1-3m'
   if (pattern.score >= 75 && input.currentDaeunElement) return '1-3m'
+  if (astroTimingIndex && astroTimingIndex.annual >= 0.55 && pattern.score >= 55) return '3-6m'
   if (pattern.score >= 60) return '3-6m'
   return '6-12m'
 }
@@ -263,6 +315,14 @@ export function buildScenarioEngine(
   strategyEngine: StrategyEngineResult,
   normalizedInput: MatrixCalculationInputNormalized
 ): ScenarioResult[] {
+  const astroTimingIndex = resolveAstroTimingIndex(normalizedInput)
+  const astroTimingWeight = astroTimingIndex
+    ? (astroTimingIndex.decade * 0.05 +
+        astroTimingIndex.annual * 0.04 +
+        astroTimingIndex.monthly * 0.03 +
+        astroTimingIndex.daily * 0.02) *
+      (0.7 + astroTimingIndex.confidence * 0.3)
+    : 0
   const maxPatternCount = (() => {
     const raw = Number(process.env.DESTINY_SCENARIO_PATTERN_LIMIT || 24)
     if (!Number.isFinite(raw) || raw <= 0) return 24
@@ -274,7 +334,8 @@ export function buildScenarioEngine(
     (normalizedInput.currentSaeunElement ? 0.05 : 0) +
     (normalizedInput.currentWolunElement ? 0.04 : 0) +
     (normalizedInput.currentIljinElement || normalizedInput.currentIljinDate ? 0.03 : 0) +
-    (normalizedInput.activeTransits.length > 0 ? 0.06 : 0)
+    (normalizedInput.activeTransits.length > 0 ? 0.06 : 0) +
+    astroTimingWeight
 
   return patterns
     .filter((pattern) => pattern.score >= 42)
@@ -309,7 +370,7 @@ export function buildScenarioEngine(
           title: definition.title,
           probability,
           confidence,
-          window: resolveWindow(normalizedInput, pattern),
+          window: resolveWindow(normalizedInput, pattern, astroTimingIndex),
           risk: definition.risk,
           actions: definition.actions,
         } satisfies ScenarioResult

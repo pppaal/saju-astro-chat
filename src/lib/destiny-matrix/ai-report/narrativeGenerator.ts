@@ -225,6 +225,11 @@ function buildLowSignalFallbackSection(
   const dayMaster = input.dayMasterElement || 'core'
   const daeun = input.currentDaeunElement || ''
   const seun = input.currentSaeunElement || ''
+  const wolun = input.currentWolunElement || ''
+  const iljin = input.currentIljinElement || ''
+  const iljinDate = input.currentIljinDate || ''
+  const koTimingTag = `대운 ${daeun || '미확인'}${seun ? ` / 세운 ${seun}` : ''}${wolun ? ` / 월운 ${wolun}` : ''}${iljin ? ` / 일진 ${iljin}` : ''}${iljinDate ? `(${iljinDate})` : ''}`
+  const enTimingTag = `Daeun ${daeun || 'unknown'}${seun ? ` / Seun ${seun}` : ''}${wolun ? ` / Wolun ${wolun}` : ''}${iljin ? ` / Iljin ${iljin}` : ''}${iljinDate ? ` (${iljinDate})` : ''}`
 
   if (lang === 'ko') {
     const bySection: Record<keyof AIPremiumReport['sections'], string> = {
@@ -235,7 +240,7 @@ function buildLowSignalFallbackSection(
       wealthPotential: `${title} 영역은 수익 확대보다 손실 억제 우선으로 운영하세요. 금액·기한·취소조건을 따로 분리해 확인하면 불필요한 지출을 줄일 수 있습니다. 큰 지출이나 계약은 당일 확정보다 하루 재확인 후 처리하는 편이 안정적입니다. 현금흐름 표를 짧게라도 업데이트하면 판단 품질이 올라갑니다.`,
       healthGuidance: `${title} 영역은 퍼포먼스보다 회복 리듬을 먼저 잡는 구간입니다. 수면·수분·휴식 블록을 일정에 먼저 고정하면 집중력 편차가 줄어듭니다. 무리한 확장보다 강도 조절이 결과적으로 생산성을 지켜줍니다. 오늘은 과속보다 누락 없는 마무리를 우선하세요.`,
       lifeMission: `${title} 영역은 단기 성과보다 장기 일관성에 초점을 맞춰야 합니다. 큰 선언보다 작은 실행을 반복해서 기록하는 방식이 방향성을 만듭니다. 기준이 흔들릴 때는 선택 폭을 줄이고 우선순위 한 가지만 지키세요. 이번 주는 완벽보다 지속 가능한 루틴을 만드는 데 의미가 있습니다.`,
-      timingAdvice: `${title} 영역은 타이밍 신호가 약해 결정보다 분리 운영이 안전합니다. 대운 ${daeun || '미확인'}${seun ? ` / 세운 ${seun}` : ''} 기준으로 결론 시점과 실행 시점을 나눠 관리하세요. 중요한 확정은 최소 한 번의 재확인 단계를 넣어야 흔들림이 줄어듭니다. 오늘은 빠른 착수보다 정확한 순서가 더 높은 효율을 냅니다.`,
+      timingAdvice: `${title} 영역은 타이밍 신호가 약해 결정보다 분리 운영이 안전합니다. ${koTimingTag} 기준으로 결론 시점과 실행 시점을 나눠 관리하세요. 중요한 확정은 최소 한 번의 재확인 단계를 넣어야 흔들림이 줄어듭니다. 오늘은 빠른 착수보다 정확한 순서가 더 높은 효율을 냅니다.`,
       actionPlan: `${title} 영역은 3단계 실행으로 정리하는 것이 가장 안정적입니다. 첫째, 오늘 반드시 끝낼 결과물 1개를 정합니다. 둘째, 외부 공유 전 조건·기한·책임을 한 줄로 확인합니다. 셋째, 당일 확정 항목과 보류 항목을 분리해 리스크를 통제하세요.`,
       conclusion: `${title} 영역의 결론은 속도보다 순서, 확정보다 재확인입니다. 직접 신호가 적은 날에는 과감한 확장보다 누락 방지가 성과를 지킵니다. 오늘은 완성도 높은 한 건을 만드는 데 집중하면 체감 결과가 분명해집니다. 같은 규칙을 며칠만 유지해도 변동성이 줄어듭니다.`,
     }
@@ -254,7 +259,7 @@ function buildLowSignalFallbackSection(
     wealthPotential: `${title} should be run with downside control first. Split and confirm amount, deadline, and cancellation terms before any commitment. For large spending or contracts, a 24-hour recheck is safer than same-day finalization. A short cashflow update improves judgment quality immediately.`,
     healthGuidance: `${title} should prioritize recovery rhythm before performance push. Fix sleep, hydration, and recovery blocks in your schedule first. Intensity control protects output quality better than overspeed in this phase. Choose error-free completion over aggressive volume today.`,
     lifeMission: `${title} should prioritize long-term consistency over short spikes. Repeat small executable actions and keep simple logs. When criteria feel unstable, narrow choice width and protect one top priority. This week, sustainable routine matters more than perfection.`,
-    timingAdvice: `${title} is in low-signal timing mode, so split decision timing from execution timing. With Daeun ${daeun || 'unknown'}${seun ? ` / Seun ${seun}` : ''}, insert at least one recheck gate before commitment. Accuracy of order matters more than speed of start. Use staged execution windows.`,
+    timingAdvice: `${title} is in low-signal timing mode, so split decision timing from execution timing. With ${enTimingTag}, insert at least one recheck gate before commitment. Accuracy of order matters more than speed of start. Use staged execution windows.`,
     actionPlan: `${title} is best managed as a 3-step loop. First, define one must-finish deliverable. Second, verify terms, deadline, and ownership in one line before sharing. Third, separate same-day commitment items from deferred items to control risk.`,
     conclusion: `${title} concludes with a simple rule: sequence over speed, recheck over impulse. On low-signal days, preventing omission protects outcomes better than aggressive expansion. Focus on one high-quality completion today. Repeat this rule for several days to reduce volatility.`,
   }
@@ -849,6 +854,9 @@ function buildLifeJourneyNarrative(
   const age = inferAgeFromInput(input.matrixInput)
   const daeun = input.matrixInput.currentDaeunElement || '미확인'
   const saeun = input.matrixInput.currentSaeunElement || '미확인'
+  const wolun = input.matrixInput.currentWolunElement || '미확인'
+  const iljin = input.matrixInput.currentIljinElement || '미확인'
+  const iljinDate = input.matrixInput.currentIljinDate || '미확인'
 
   if (input.lang === 'ko') {
     const ageLine =
@@ -865,7 +873,7 @@ function buildLifeJourneyNarrative(
       wealth || relation
         ? `장년기(35~49세): ${wealth || relation} 축이 돈·관계·책임의 구조를 재정렬하므로, 수익 확대와 리스크 통제를 동시에 설계해야 안정적으로 성장합니다.`
         : '장년기(35~49세): 돈과 관계의 구조를 다시 짜는 구간이라 분배·협업 규칙이 중요합니다.'
-    const later = `후반기(50세+): 축적된 기준을 영향력으로 바꾸는 시기이며, 대운(${daeun})·세운(${saeun}) 흐름에 맞춘 선택 분할이 변동성을 줄이고 누적 신뢰를 키웁니다.`
+    const later = `후반기(50세+): 축적된 기준을 영향력으로 바꾸는 시기이며, 대운(${daeun})·세운(${saeun})·월운(${wolun})·일진(${iljin}/${iljinDate}) 흐름에 맞춘 선택 분할이 변동성을 줄이고 누적 신뢰를 키웁니다.`
 
     if (section === 'conclusion') {
       return `${ageLine} 생애 전체의 결론은 동일합니다. 초년의 성향 프레임, 청년의 확장 실험, 장년의 구조화, 후반의 영향력 전환을 하나의 운영 원칙으로 연결할 때 인생총운이 가장 안정적으로 올라갑니다.`
@@ -887,7 +895,7 @@ function buildLifeJourneyNarrative(
     wealth || relation
       ? `Mid stage (35-49): ${wealth || relation} restructures money, relationships, and responsibility together.`
       : 'Mid stage (35-49): money/relationship structure redesign becomes central.'
-  const laterEn = `Later stage (50+): accumulated standards convert into leverage, and staged decisions aligned to Daeun(${daeun})/Seun(${saeun}) reduce volatility.`
+  const laterEn = `Later stage (50+): accumulated standards convert into leverage, and staged decisions aligned to Daeun(${daeun})/Seun(${saeun})/Wolun(${wolun})/Iljin(${iljin}@${iljinDate}) reduce volatility.`
   if (section === 'conclusion') {
     return `${ageLineEn} The life-course conclusion is consistent: connect early identity framing, young-stage expansion, mid-stage structural redesign, and later-stage leverage into one operating rule.`
   }
@@ -1025,16 +1033,19 @@ function formatActionSentence(claims: SynthesizedClaim[], lang: 'ko' | 'en'): st
 function formatTimingGrounding(input: MatrixCalculationInput, lang: 'ko' | 'en'): string {
   const daeun = input.currentDaeunElement
   const saeun = input.currentSaeunElement
+  const wolun = input.currentWolunElement
+  const iljin = input.currentIljinElement
+  const iljinDate = input.currentIljinDate
   if (lang === 'ko') {
-    if (daeun || saeun) {
-      return `현재 대운 ${daeun || '미확인'}과 세운 ${saeun || '미확인'} 기준으로, 결론과 실행 시점을 분리해 운영하는 방식이 안정적입니다.`
+    if (daeun || saeun || wolun || iljin || iljinDate) {
+      return `현재 대운 ${daeun || '미확인'}, 세운 ${saeun || '미확인'}, 월운 ${wolun || '미확인'}, 일진 ${iljin || '미확인'}${iljinDate ? `(${iljinDate})` : ''} 기준으로, 결론과 실행 시점을 분리해 운영하는 방식이 안정적입니다.`
     }
-    return '대운·세운 정보가 제한적이므로 당일 확정보다 24시간 재확인 창을 두는 보수 운영이 유리합니다.'
+    return '대운·세운·월운·일진 정보가 제한적이므로 당일 확정보다 24시간 재확인 창을 두는 보수 운영이 유리합니다.'
   }
-  if (daeun || saeun) {
-    return `With Daeun ${daeun || 'unknown'} and Seun ${saeun || 'unknown'}, separate decision timing from execution timing.`
+  if (daeun || saeun || wolun || iljin || iljinDate) {
+    return `With Daeun ${daeun || 'unknown'}, Seun ${saeun || 'unknown'}, Wolun ${wolun || 'unknown'}, and Iljin ${iljin || 'unknown'}${iljinDate ? ` (${iljinDate})` : ''}, separate decision timing from execution timing.`
   }
-  return 'With limited Daeun/Seun coverage, use a conservative 24-hour recheck before commitment.'
+  return 'With limited Daeun/Seun/Wolun/Iljin coverage, use a conservative 24-hour recheck before commitment.'
 }
 
 function sectionLeadSentence(

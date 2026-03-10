@@ -441,6 +441,38 @@ describe('POST /api/destiny-matrix/ai-report', () => {
       expect(data.error.code).toBe('DFM_1000')
       expect(data.error.details).toBeDefined()
     })
+
+    it('should return 422 when input readiness audit finds fatal blockers', async () => {
+      vi.mocked(getServerSession).mockResolvedValue(MOCK_SESSION as any)
+      vi.mocked(rateLimit).mockResolvedValue({ allowed: true, headers: new Headers() } as any)
+      vi.mocked(getCreditBalance).mockResolvedValue(MOCK_BALANCE as any)
+      vi.mocked(validateReportRequest).mockReturnValue({
+        success: true,
+        data: {
+          ...MOCK_VALIDATED_DATA,
+          currentIljinDate: '2026-99-40',
+          astroTimingIndex: {
+            decade: 0.4,
+            annual: 0.3,
+            monthly: 0.2,
+            daily: 0.1,
+            confidence: 1.3,
+            evidenceCount: 3,
+          },
+        },
+      } as any)
+      vi.mocked(calculateDestinyMatrix).mockReturnValue(MOCK_MATRIX_RESULT as any)
+
+      const req = createPostRequest(MOCK_VALID_INPUT)
+      const response = await POST(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(422)
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INPUT_QUALITY_BLOCKED')
+      expect(Array.isArray(data.error.blockers)).toBe(true)
+      expect(generateAIPremiumReport).not.toHaveBeenCalled()
+    })
   })
 
   // ---- Credit Checks ----

@@ -1557,7 +1557,10 @@ function selectMatrixPacketForDate(input: {
   if (byDomain) return byDomain
 
   for (const category of input.categories) {
-    const packetKey = CATEGORY_PACKET_KEY[category]
+    const normalizedCategory = String(category || '')
+      .trim()
+      .toLowerCase()
+    const packetKey = CATEGORY_PACKET_KEY[normalizedCategory]
     if (packetKey && packets[packetKey]) return packets[packetKey]
   }
 
@@ -1588,9 +1591,32 @@ function attachMatrixVerdict(
 function buildMatrixFirstSummary(input: {
   verdict?: string
   topClaim?: string
+  topAnchorSummary?: string
   fallbackSummary: string
 }): string {
-  return dedupeTexts([input.verdict || '', input.topClaim || '', input.fallbackSummary]).join(' ')
+  return dedupeTexts([
+    input.verdict || '',
+    input.topClaim || '',
+    input.topAnchorSummary || '',
+    input.fallbackSummary,
+  ]).join(' ')
+}
+
+function buildMatrixFirstDescription(input: {
+  topAnchorSummary?: string
+  verdict?: string
+  topClaim?: string
+  overlaySummary?: string
+  fallbackDescription: string
+}): string {
+  const matrixPreferred = dedupeTexts([
+    input.topAnchorSummary || '',
+    input.verdict || '',
+    input.topClaim || '',
+    input.overlaySummary || '',
+  ]).join(' ')
+
+  return matrixPreferred || input.fallbackDescription
 }
 
 function buildMatrixFirstRecommendations(input: {
@@ -1839,9 +1865,8 @@ export function formatDateForResponse(
   const finalSummary = buildMatrixFirstSummary({
     verdict: matrixVerdict?.verdict,
     topClaim: matrixVerdict?.topClaim,
-    fallbackSummary: matrixOverlay.summary
-      ? dedupeTexts([matrixOverlay.summary, baseSummary]).join(' ')
-      : baseSummary,
+    topAnchorSummary: matrixVerdict?.topAnchorSummary,
+    fallbackSummary: matrixOverlay.summary || baseSummary,
   })
   const coherenceConfidence = date.confidence ?? evidenceWithVerdict.confidence
   const coherenceAgreement = date.crossAgreementPercent ?? evidenceWithVerdict.crossAgreementPercent
@@ -1888,7 +1913,13 @@ export function formatDateForResponse(
     ? lang === 'ko'
       ? '신호가 엇갈립니다. 큰 결정은 재확인 후 진행하세요.'
       : 'Signals are mixed. Re-check major decisions before committing.'
-    : getTranslation(date.descKey, translations)
+    : buildMatrixFirstDescription({
+        topAnchorSummary: matrixVerdict?.topAnchorSummary,
+        verdict: matrixVerdict?.verdict,
+        topClaim: matrixVerdict?.topClaim,
+        overlaySummary: matrixOverlay.summary,
+        fallbackDescription: getTranslation(date.descKey, translations),
+      })
   const summarizedBase = forceConservativeMode
     ? dedupeTexts([
         finalSummary,

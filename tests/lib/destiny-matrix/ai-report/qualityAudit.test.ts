@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   evaluateThemedReportQuality,
+  auditMatrixInputReadiness,
   toQualityMarkdown,
 } from '@/lib/destiny-matrix/ai-report/qualityAudit'
 
@@ -63,6 +64,8 @@ describe('qualityAudit', () => {
         actionabilityScore: 80,
         clarityScore: 85,
         antiOverclaimScore: 100,
+        foreignSystemIssueCount: 0,
+        foreignSystemFindings: [],
         overclaimIssueCount: 0,
         overclaimFindings: [],
         shouldBlock: false,
@@ -118,5 +121,49 @@ describe('qualityAudit', () => {
     expect(result.antiOverclaimScore).toBe(100)
     expect(result.shouldBlock).toBe(false)
     expect(result.overclaimFindings).toHaveLength(0)
+  })
+
+  it('blocks when non-saju/non-astrology systems are mentioned', () => {
+    const result = evaluateThemedReportQuality({
+      sections: {
+        deepAnalysis: '타로 카드와 수비학으로 이번 달 흐름을 봅니다.',
+        patterns: 'human design과 mbti로 성향을 결론냅니다.',
+        timing: '사주와 점성도 참고합니다.',
+        recommendations: ['사주와 점성 근거만 남기세요.'],
+        actionPlan: '외부 체계 언급을 제거하세요.',
+      },
+      theme: 'career',
+      lang: 'ko',
+    })
+
+    expect(result.foreignSystemIssueCount).toBeGreaterThan(0)
+    expect(result.foreignSystemFindings.length).toBeGreaterThan(0)
+    expect(result.shouldBlock).toBe(true)
+  })
+
+  it('flags invalid matrix input dates as blockers', () => {
+    const audit = auditMatrixInputReadiness({
+      dayMasterElement: '목' as any,
+      pillarElements: ['목', '화', '토', '금'] as any,
+      sibsinDistribution: {} as any,
+      twelveStages: {} as any,
+      relations: [] as any,
+      planetHouses: { Sun: 1 } as any,
+      planetSigns: {} as any,
+      aspects: [] as any,
+      currentIljinDate: '2026-99-40',
+      astroTimingIndex: {
+        decade: 1.2,
+        annual: 0.4,
+        monthly: 0.3,
+        daily: 0.2,
+        confidence: 0.8,
+        evidenceCount: 2,
+      } as any,
+    })
+
+    expect(audit.ready).toBe(false)
+    expect(audit.blockers).toContain('currentIljinDate_invalid_iso')
+    expect(audit.blockers).toContain('astroTimingIndex_out_of_range')
   })
 })

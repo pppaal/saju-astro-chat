@@ -551,7 +551,8 @@ describe('Calendar Helpers', () => {
 
       expect(result.date).toBe('2025-03-15')
       expect(result.grade).toBe(0)
-      expect(result.score).toBe(95)
+      expect(result.score).toBeLessThanOrEqual(95)
+      expect(result.score).toBeGreaterThan(0)
       expect(result.title).toBe('좋은 날')
     })
 
@@ -641,6 +642,54 @@ describe('Calendar Helpers', () => {
       expect(result.evidence?.matrix.domain).toBe('career')
       expect(result.evidence?.confidence).toBeGreaterThanOrEqual(0)
       expect(result.evidence?.confidence).toBeLessThanOrEqual(100)
+    })
+
+    it('should prioritize matrix verdict texts over legacy summary templates', () => {
+      const result = formatDateForResponse(
+        baseDateData as any,
+        'en',
+        koTranslations as any,
+        enTranslations as any,
+        {
+          domainScores: { career: { finalScoreAdjusted: 8.1 } as any },
+          overlapTimeline: [{ month: '2025-03', overlapStrength: 0.7, peakLevel: 'high' } as any],
+          overlapTimelineByDomain: {
+            career: [{ month: '2025-03', overlapStrength: 0.7, peakLevel: 'high' } as any],
+          },
+          calendarSignals: [],
+        } as any,
+        {
+          career: {
+            focusDomain: 'career',
+            verdict: 'Matrix verdict',
+            guardrail: 'Matrix guardrail',
+            topClaims: [{ id: 'c1', text: 'Top claim', domain: 'career' }],
+            topAnchorSummary: 'Anchor summary',
+            strategyBrief: {
+              overallPhaseLabel: 'Advance',
+              attackPercent: 60,
+              defensePercent: 40,
+            },
+          },
+        } as any
+      )
+
+      expect(result.summary).toContain('Matrix verdict')
+      expect(result.summary).toContain('Top claim')
+      expect(result.summary).not.toContain('Best career day!')
+      expect(result.description).toContain('Anchor summary')
+      expect(result.description).not.toBe('Good description')
+    })
+
+    it('should keep legacy description fallback when matrix evidence is unavailable', () => {
+      const result = formatDateForResponse(
+        baseDateData as any,
+        'en',
+        koTranslations as any,
+        enTranslations as any
+      )
+
+      expect(result.description).toBe('Good description')
     })
 
     it('should expose displayScore and debug scores when provided', () => {

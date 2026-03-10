@@ -536,6 +536,33 @@ function normalizeFromMatrixInput(
 
   const out: NormalizedSignal[] = []
 
+  const resolveAstroTimingIndex = (): MatrixCalculationInput['astroTimingIndex'] | undefined => {
+    if (matrixInput.astroTimingIndex) return matrixInput.astroTimingIndex
+    const candidate = matrixInput.crossSnapshot?.astroTimingIndex
+    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) return undefined
+    const record = candidate as Record<string, unknown>
+    const decade = Number(record.decade)
+    const annual = Number(record.annual)
+    const monthly = Number(record.monthly)
+    const daily = Number(record.daily)
+    const confidence = Number(record.confidence)
+    const evidenceCount = Number(record.evidenceCount)
+    if (
+      [decade, annual, monthly, daily, confidence, evidenceCount].every((v) => Number.isFinite(v))
+    ) {
+      return {
+        decade,
+        annual,
+        monthly,
+        daily,
+        confidence,
+        evidenceCount: Math.max(0, Math.floor(evidenceCount)),
+      }
+    }
+    return undefined
+  }
+  const astroTimingIndex = resolveAstroTimingIndex()
+
   if (matrixInput.geokguk) {
     out.push(
       buildSyntheticSignal({
@@ -643,7 +670,7 @@ function normalizeFromMatrixInput(
         advice:
           lang === 'ko'
             ? '월운 신호는 이번 달의 실행 순서를 다듬는 데 쓰고, 과도한 확정보다 우선순위 재배치에 활용하세요.'
-            : 'Use wolun signals to refine this month\'s execution order before making hard commitments.',
+            : "Use wolun signals to refine this month's execution order before making hard commitments.",
         tags: ['coverage', 'wolun', String(matrixInput.currentWolunElement)],
         domainHints: ['timing', 'career', 'move'],
         lang,
@@ -705,6 +732,147 @@ function normalizeFromMatrixInput(
         lang,
       })
     )
+  }
+
+  if (astroTimingIndex) {
+    const horizons: Array<{
+      key: 'decade' | 'annual' | 'monthly' | 'daily'
+      label: string
+      value: number
+      domains: SignalDomain[]
+    }> = [
+      {
+        key: 'decade',
+        label: '10Y',
+        value: astroTimingIndex.decade,
+        domains: ['timing', 'career'],
+      },
+      { key: 'annual', label: '1Y', value: astroTimingIndex.annual, domains: ['timing', 'wealth'] },
+      {
+        key: 'monthly',
+        label: '1M',
+        value: astroTimingIndex.monthly,
+        domains: ['timing', 'relationship'],
+      },
+      { key: 'daily', label: '1D', value: astroTimingIndex.daily, domains: ['timing', 'move'] },
+    ]
+    for (const horizon of horizons) {
+      if (horizon.value <= 0) continue
+      const activation = Math.max(0, Math.min(1, horizon.value))
+      out.push(
+        buildSyntheticSignal({
+          id: `COV:L4:astro-timing:${horizon.key}`,
+          layer: 4,
+          rowKey: `astro_timing_${horizon.key}`,
+          colKey: `active_${horizon.label}`,
+          polarity: activation >= 0.65 ? 'strength' : activation >= 0.45 ? 'balance' : 'caution',
+          score: clampScore(3 + Math.round(activation * 7)),
+          keyword: `Astro timing ${horizon.label}`,
+          sajuBasis: 'normalized-time-scale',
+          astroBasis: `astroTimingIndex.${horizon.key}=${activation.toFixed(2)} (confidence=${astroTimingIndex.confidence.toFixed(2)}, evidence=${astroTimingIndex.evidenceCount})`,
+          advice:
+            lang === 'ko'
+              ? '점성 원형 신호를 시간축으로 정규화한 보조 인덱스입니다. 사주 타이밍과 함께 교차 확인하세요.'
+              : 'Normalized astrology timing index. Cross-check with Saju timing before commitment.',
+          tags: ['coverage', 'astro-timing', horizon.key],
+          domainHints: horizon.domains,
+          lang,
+        })
+      )
+    }
+
+    if (matrixInput.currentDaeunElement && astroTimingIndex.decade >= 0.45) {
+      out.push(
+        buildSyntheticSignal({
+          id: 'COV:L4:cross-timing:decade',
+          layer: 4,
+          rowKey: 'cross_timing_decade',
+          colKey: String(matrixInput.currentDaeunElement),
+          polarity: 'strength',
+          score: 8,
+          keyword: 'Decade cross timing sync',
+          sajuBasis: `daeun=${matrixInput.currentDaeunElement}`,
+          astroBasis: `astroTimingIndex.decade=${astroTimingIndex.decade.toFixed(2)}`,
+          advice:
+            lang === 'ko'
+              ? '장기 방향성은 확장보다 기준 고정에 유리합니다.'
+              : 'Long-cycle alignment favors thesis locking before expansion.',
+          tags: ['coverage', 'cross-timing', 'decade'],
+          domainHints: ['timing', 'career'],
+          lang,
+        })
+      )
+    }
+    if (matrixInput.currentSaeunElement && astroTimingIndex.annual >= 0.45) {
+      out.push(
+        buildSyntheticSignal({
+          id: 'COV:L4:cross-timing:annual',
+          layer: 4,
+          rowKey: 'cross_timing_annual',
+          colKey: String(matrixInput.currentSaeunElement),
+          polarity: 'strength',
+          score: 7,
+          keyword: 'Annual cross timing sync',
+          sajuBasis: `saeun=${matrixInput.currentSaeunElement}`,
+          astroBasis: `astroTimingIndex.annual=${astroTimingIndex.annual.toFixed(2)}`,
+          advice:
+            lang === 'ko'
+              ? '연간 결정은 검증-확정 분리를 유지하세요.'
+              : 'For annual decisions, keep verify/commit separation.',
+          tags: ['coverage', 'cross-timing', 'annual'],
+          domainHints: ['timing', 'wealth'],
+          lang,
+        })
+      )
+    }
+    if (matrixInput.currentWolunElement && astroTimingIndex.monthly >= 0.45) {
+      out.push(
+        buildSyntheticSignal({
+          id: 'COV:L4:cross-timing:monthly',
+          layer: 4,
+          rowKey: 'cross_timing_monthly',
+          colKey: String(matrixInput.currentWolunElement),
+          polarity: 'balance',
+          score: 6,
+          keyword: 'Monthly cross timing sync',
+          sajuBasis: `wolun=${matrixInput.currentWolunElement}`,
+          astroBasis: `astroTimingIndex.monthly=${astroTimingIndex.monthly.toFixed(2)}`,
+          advice:
+            lang === 'ko'
+              ? '월간 운영은 과업 수를 줄여 완결률을 올리세요.'
+              : 'For monthly pacing, reduce active task count and maximize closure.',
+          tags: ['coverage', 'cross-timing', 'monthly'],
+          domainHints: ['timing', 'relationship'],
+          lang,
+        })
+      )
+    }
+    if (
+      (matrixInput.currentIljinElement || matrixInput.currentIljinDate) &&
+      astroTimingIndex.daily >= 0.45
+    ) {
+      out.push(
+        buildSyntheticSignal({
+          id: 'COV:L4:cross-timing:daily',
+          layer: 4,
+          rowKey: 'cross_timing_daily',
+          colKey:
+            matrixInput.currentIljinDate || String(matrixInput.currentIljinElement || 'today'),
+          polarity: 'balance',
+          score: 5,
+          keyword: 'Daily cross timing sync',
+          sajuBasis: `iljin=${matrixInput.currentIljinDate || 'today'}${matrixInput.currentIljinElement ? `/${matrixInput.currentIljinElement}` : ''}`,
+          astroBasis: `astroTimingIndex.daily=${astroTimingIndex.daily.toFixed(2)}`,
+          advice:
+            lang === 'ko'
+              ? '당일 의사결정은 실행과 확정을 분리해 리스크를 낮추세요.'
+              : 'For same-day decisions, split execution and commitment to reduce risk.',
+          tags: ['coverage', 'cross-timing', 'daily'],
+          domainHints: ['timing', 'move'],
+          lang,
+        })
+      )
+    }
   }
 
   for (const transit of matrixInput.activeTransits || []) {

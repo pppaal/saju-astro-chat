@@ -16,6 +16,8 @@ export interface DeterministicCoverage {
     hasYongsin: boolean
     hasDaeun: boolean
     hasSaeun: boolean
+    hasWolun: boolean
+    hasIljin: boolean
     shinsalCount: number
     snapshotKeys: number
   }
@@ -132,6 +134,8 @@ function buildCoverage(
       hasYongsin: !!input.yongsin,
       hasDaeun: !!input.currentDaeunElement,
       hasSaeun: !!input.currentSaeunElement,
+      hasWolun: !!input.currentWolunElement,
+      hasIljin: !!input.currentIljinElement || !!input.currentIljinDate,
       shinsalCount: Array.isArray(input.shinsalList) ? input.shinsalList.length : 0,
       snapshotKeys: Object.keys(input.sajuSnapshot || {}).length,
     },
@@ -193,11 +197,37 @@ function buildDecision(
     reasons.push(`세운(${input.currentSaeunElement})과 용신(${input.yongsin}) 불일치`)
   }
 
+  if (input.yongsin && input.currentWolunElement && input.yongsin === input.currentWolunElement) {
+    score += Math.round(w.yongsinMatchBonus * 0.5)
+    reasons.push(`월운(${input.currentWolunElement})이 용신(${input.yongsin})과 일치`)
+  } else if (input.yongsin && input.currentWolunElement) {
+    score -= Math.round(w.yongsinMismatchPenalty * 0.5)
+    reasons.push(`월운(${input.currentWolunElement})과 용신(${input.yongsin}) 불일치`)
+  }
+
+  if (input.yongsin && input.currentIljinElement && input.yongsin === input.currentIljinElement) {
+    score += Math.round(w.yongsinMatchBonus * 0.3)
+    reasons.push(`일진(${input.currentIljinElement})이 용신(${input.yongsin})과 일치`)
+  } else if (input.yongsin && input.currentIljinElement) {
+    score -= Math.round(w.yongsinMismatchPenalty * 0.3)
+    reasons.push(`일진(${input.currentIljinElement})과 용신(${input.yongsin}) 불일치`)
+  }
+
   if (input.currentDaeunElement) {
     score += w.daeunPresentBonus
     reasons.push(`대운 오행(${input.currentDaeunElement}) 데이터 반영`)
   } else {
     reasons.push('대운 데이터 누락으로 신뢰도 보수 적용')
+  }
+  if (input.currentWolunElement) {
+    score += Math.max(1, Math.round(w.daeunPresentBonus * 0.5))
+    reasons.push(`월운 오행(${input.currentWolunElement}) 데이터 반영`)
+  }
+  if (input.currentIljinElement || input.currentIljinDate) {
+    score += 1
+    reasons.push(
+      `일진 데이터(${input.currentIljinElement || 'element:N/A'}${input.currentIljinDate ? ` @${input.currentIljinDate}` : ''}) 반영`
+    )
   }
 
   if (coverage.cross.graphAnchorCount >= w.graphAnchorTarget) score += w.graphAnchorBonus

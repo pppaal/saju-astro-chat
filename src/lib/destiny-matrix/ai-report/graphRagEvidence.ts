@@ -324,9 +324,28 @@ function inferSajuDomains(input: MatrixCalculationInput): InsightDomain[] {
     if (key.includes('식') || key.includes('상')) domains.add('personality')
   }
 
-  if (input.currentDaeunElement || input.currentSaeunElement) domains.add('timing')
+  if (
+    input.currentDaeunElement ||
+    input.currentSaeunElement ||
+    input.currentWolunElement ||
+    input.currentIljinElement ||
+    input.currentIljinDate
+  ) {
+    domains.add('timing')
+  }
   if (domains.size === 0) domains.add('personality')
   return [...domains]
+}
+
+function buildTimingCycleSummary(input: MatrixCalculationInput): string {
+  const parts = [
+    input.currentDaeunElement || 'N/A',
+    input.currentSaeunElement || 'N/A',
+    input.currentWolunElement || 'N/A',
+    input.currentIljinElement || 'N/A',
+  ]
+  const base = parts.join('/')
+  return input.currentIljinDate ? `${base}@${input.currentIljinDate}` : base
 }
 
 function formatAspectEvidence(aspect: AspectInput, domains: InsightDomain[]): string {
@@ -352,6 +371,7 @@ function buildCrossEvidenceSets(
     `yongsin=${input.yongsin || 'N/A'}`,
     `topSibsin=${topSibsin(input)}`,
     profileContext ? `profile=${profileContext}` : '',
+    `timingCycle=${buildTimingCycleSummary(input)}`,
   ]
     .filter(Boolean)
     .join(', ')
@@ -410,13 +430,13 @@ function buildCrossEvidenceSets(
       const scopedOverlap = overlapDomains.length > 0 ? overlapDomains : transitDomains
       return {
         id: `T${idx + 1}`,
-        matrixEvidence: `timingLayer=${input.currentDaeunElement || 'N/A'}/${input.currentSaeunElement || 'N/A'}`,
+        matrixEvidence: `timingLayer=${buildTimingCycleSummary(input)}`,
         astrologyEvidence: `transit=${transit}${input.profileContext?.analysisAt ? ` @${input.profileContext.analysisAt}` : ''}`,
         sajuEvidence,
         overlapDomains: scopedOverlap,
         overlapScore: Number((0.45 + scopedOverlap.length * 0.12).toFixed(2)),
         orbFitScore: 0.5,
-        combinedConclusion: `Transit ${transit} must be interpreted with the current Saju timing cycle (${input.currentDaeunElement || 'N/A'}/${input.currentSaeunElement || 'N/A'}). If signals diverge, prioritize verification and delay irreversible commitments.`,
+        combinedConclusion: `Transit ${transit} must be interpreted with the current Saju timing cycle (${buildTimingCycleSummary(input)}). If signals diverge, prioritize verification and delay irreversible commitments.`,
       }
     })
 
@@ -528,6 +548,14 @@ export function buildGraphRAGEvidence(
   const saeun = input.currentSaeunElement
     ? `currentSaeun=${input.currentSaeunElement}`
     : 'currentSaeun=N/A'
+  const wolun = input.currentWolunElement
+    ? `currentWolun=${input.currentWolunElement}`
+    : 'currentWolun=N/A'
+  const iljin = input.currentIljinElement
+    ? `currentIljin=${input.currentIljinElement}${input.currentIljinDate ? `@${input.currentIljinDate}` : ''}`
+    : input.currentIljinDate
+      ? `currentIljin=N/A@${input.currentIljinDate}`
+      : 'currentIljin=N/A'
   const profileContext = buildProfileContextSnippet(input)
   const crossEvidenceSets = buildCrossEvidenceSets(input, report)
 
@@ -537,7 +565,7 @@ export function buildGraphRAGEvidence(
     return {
       id,
       section,
-      sajuEvidence: `dayMaster=${dayMaster}, geokguk=${geokguk}, yongsin=${yongsin}, sibsin=${sibsin}, ${daeun}, ${saeun}${profileContext ? `, profile=${profileContext}` : ''}`,
+      sajuEvidence: `dayMaster=${dayMaster}, geokguk=${geokguk}, yongsin=${yongsin}, sibsin=${sibsin}, ${daeun}, ${saeun}, ${wolun}, ${iljin}${profileContext ? `, profile=${profileContext}` : ''}`,
       astrologyEvidence: astro,
       crossConclusion: `Anchor with ${matrix}, then synthesize Saju+Astrology for "${section}" using ${selectedSets.map((s) => s.id).join(', ')}. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.`,
       crossEvidenceSets: selectedSets,

@@ -230,4 +230,28 @@ describe('runDestinyCore', () => {
 
     expect(result.scenarios.some((scenario) => scenario.window === 'now')).toBe(true)
   })
+
+  it('uses astro timing index daily activation to produce now-window scenarios', () => {
+    const result = runDestinyCore({
+      mode: 'comprehensive',
+      lang: 'ko',
+      matrixInput: createInput({
+        currentWolunElement: undefined,
+        currentIljinElement: undefined,
+        currentIljinDate: undefined,
+        activeTransits: [] as any,
+        astroTimingIndex: {
+          decade: 0.22,
+          annual: 0.31,
+          monthly: 0.44,
+          daily: 0.73,
+          confidence: 0.86,
+          evidenceCount: 4,
+        },
+      }),
+      matrixReport: createReport(),
+    })
+
+    expect(result.scenarios.some((scenario) => scenario.window === 'now')).toBe(true)
+  })
 })

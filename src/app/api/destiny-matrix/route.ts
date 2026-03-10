@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createPublicStreamGuard } from '@/lib/api/middleware'
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix'
+import { buildAstroTimingIndex } from '@/lib/destiny-matrix/astroTimingIndex'
 import { buildMatrixSemanticContract } from '@/lib/destiny-matrix/layerSemantics'
 import { buildLayerThemeProfiles } from '@/lib/destiny-matrix/layerThemeProfiles'
 import { buildPremiumActionChecklist } from '@/lib/destiny-matrix/actionChecklist'
@@ -226,6 +227,34 @@ function calculateAgeAtDate(birthDate: string, targetDate: Date, timeZone: strin
     age -= 1
   }
   return Math.max(0, age)
+}
+
+function buildApproximateIljinTiming(
+  targetDate: Date,
+  timeZone: string
+): { element?: MatrixCalculationInput['currentIljinElement']; date: string } {
+  const { year, month, day } = toDatePartsInTimeZone(targetDate, timeZone)
+  const baseDate = new Date(1900, 0, 1)
+  const target = new Date(year, month - 1, day)
+  const dayDiff = Math.floor((target.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24))
+  const stemElements: MatrixCalculationInput['pillarElements'] = [
+    '목',
+    '목',
+    '화',
+    '화',
+    '토',
+    '토',
+    '금',
+    '금',
+    '수',
+    '수',
+  ]
+  const stemIdx = (((dayDiff + 10) % 10) + 10) % 10
+
+  return {
+    element: stemElements[stemIdx],
+    date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+  }
 }
 
 function inferLifecycleTransitCycles(age: number): TransitCycle[] {
@@ -698,6 +727,10 @@ export const POST = withApiMiddleware(
         yongsin,
         currentDaeunElement,
         currentSaeunElement,
+        currentWolunElement,
+        currentIljinElement,
+        currentIljinDate,
+        astroTimingIndex,
         shinsalList = [],
         dominantWesternElement,
         planetHouses = {},
@@ -716,6 +749,11 @@ export const POST = withApiMiddleware(
       let calculatedPillarElements = pillarElements
       let normalizedCurrentDaeunElement = currentDaeunElement
       let normalizedCurrentSaeunElement = currentSaeunElement
+      let normalizedCurrentWolunElement = currentWolunElement
+      let normalizedCurrentIljinElement = currentIljinElement
+      let normalizedCurrentIljinDate = currentIljinDate
+      let normalizedActiveTransits = normalizeActiveTransitsInput(activeTransits)
+      let normalizedAstroTimingIndex = astroTimingIndex
       let normalizedTwelveStages = normalizeTwelveStagesInput(twelveStages)
       let normalizedRelations = normalizeRelationsInput(relations)
       let normalizedShinsals = normalizeShinsalListInput(shinsalList)
@@ -724,7 +762,6 @@ export const POST = withApiMiddleware(
       const normalizedPlanetHouses = normalizePlanetHousesInput(planetHouses)
       const normalizedPlanetSigns = normalizePlanetSignsInput(planetSigns)
       const normalizedAspects = normalizeAspectsInput(aspects)
-      let normalizedActiveTransits = normalizeActiveTransitsInput(activeTransits)
       const normalizedAsteroidHouses = normalizeAsteroidHousesInput(asteroidHouses)
       const normalizedExtraPointSigns = normalizeExtraPointSignsInput(extraPointSigns)
       let autoSajuData: ReturnType<typeof calculateSajuData> | null = null
@@ -871,9 +908,25 @@ export const POST = withApiMiddleware(
               )
             }
             if (!normalizedCurrentSaeunElement) {
-              const currentAnnualElement = sajuData.unse?.annual?.[0]?.element
+              const { year: currentYear } = toDatePartsInTimeZone(new Date(), timezone)
+              const currentAnnualElement =
+                sajuData.unse?.annual?.find((item) => item.year === currentYear)?.element ||
+                sajuData.unse?.annual?.[0]?.element
               if (currentAnnualElement && FIVE_ELEMENT_SET.has(currentAnnualElement)) {
                 normalizedCurrentSaeunElement = currentAnnualElement
+              }
+            }
+            if (!normalizedCurrentWolunElement) {
+              const { year: currentYear, month: currentMonth } = toDatePartsInTimeZone(
+                new Date(),
+                timezone
+              )
+              const currentMonthlyElement =
+                sajuData.unse?.monthly?.find(
+                  (item) => item.year === currentYear && item.month === currentMonth
+                )?.element || sajuData.unse?.monthly?.[0]?.element
+              if (currentMonthlyElement && FIVE_ELEMENT_SET.has(currentMonthlyElement)) {
+                normalizedCurrentWolunElement = currentMonthlyElement
               }
             }
           } catch (enrichmentError) {
@@ -910,6 +963,13 @@ export const POST = withApiMiddleware(
         }
       }
 
+      if (!normalizedAstroTimingIndex) {
+        normalizedAstroTimingIndex = buildAstroTimingIndex({
+          activeTransits: normalizedActiveTransits,
+          advancedAstroSignals,
+        })
+      }
+
       // Keep geokguk/yongsin mapping robust in manual-input mode too.
       if (typeof normalizedGeokguk === 'string') {
         normalizedGeokguk = GEOKGUK_ALIASES[normalizedGeokguk] || normalizedGeokguk
@@ -934,6 +994,16 @@ export const POST = withApiMiddleware(
         }
       }
 
+      if (!normalizedCurrentIljinElement || !normalizedCurrentIljinDate) {
+        const iljin = buildApproximateIljinTiming(new Date(), timezone)
+        if (!normalizedCurrentIljinElement && iljin.element) {
+          normalizedCurrentIljinElement = iljin.element
+        }
+        if (!normalizedCurrentIljinDate) {
+          normalizedCurrentIljinDate = iljin.date
+        }
+      }
+
       // Note: Zod schema already validates that either birthDate or dayMasterElement is provided
 
       // Ensure dayMasterElement is defined
@@ -955,12 +1025,16 @@ export const POST = withApiMiddleware(
         yongsin: normalizedYongsin?.[0] as FiveElement | undefined,
         currentDaeunElement: normalizedCurrentDaeunElement,
         currentSaeunElement: normalizedCurrentSaeunElement,
+        currentWolunElement: normalizedCurrentWolunElement,
+        currentIljinElement: normalizedCurrentIljinElement,
+        currentIljinDate: normalizedCurrentIljinDate,
         shinsalList: normalizedShinsals,
         dominantWesternElement: dominantWesternElement as WesternElement | undefined,
         planetHouses: normalizedPlanetHouses,
         planetSigns: normalizedPlanetSigns,
         aspects: normalizedAspects,
         activeTransits: normalizedActiveTransits,
+        astroTimingIndex: normalizedAstroTimingIndex,
         asteroidHouses: normalizedAsteroidHouses,
         extraPointSigns: normalizedExtraPointSigns,
         advancedAstroSignals,
@@ -1115,6 +1189,10 @@ export const POST = withApiMiddleware(
                 appliedTransits: autoTimingSync.appliedTransits,
                 currentDaeunElement: normalizedCurrentDaeunElement || null,
                 currentSaeunElement: normalizedCurrentSaeunElement || null,
+                currentWolunElement: normalizedCurrentWolunElement || null,
+                currentIljinElement: normalizedCurrentIljinElement || null,
+                currentIljinDate: normalizedCurrentIljinDate || null,
+                astroTimingIndex: normalizedAstroTimingIndex || null,
               }
             : undefined,
           layersProcessed: Object.keys(cellCounts).filter(

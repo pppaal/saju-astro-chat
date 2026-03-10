@@ -694,6 +694,11 @@ const BANNED_PHRASE_REPLACEMENTS: Array<[RegExp, string]> = [
   [/프레임/gi, '구조'],
   [/검증/gi, '재확인'],
   [/근거 세트/gi, '근거 묶음'],
+  [
+    /\b(?:tarot|numerology|human\s*design|chakra|reiki|mbti|enneagram|blood\s*type|feng\s*shui)\b/gi,
+    'saju-astrology',
+  ],
+  [/(?:타로|수비학|휴먼\s*디자인|차크라|레이키|에니어그램|혈액형|풍수)/gi, '사주·점성'],
 ]
 const BANNED_PHRASE_PATTERNS = BANNED_PHRASE_REPLACEMENTS.map(([pattern]) => pattern)
 const SECTION_CONCRETE_NOUNS: Record<keyof AIPremiumReport['sections'], string[]> = {
@@ -785,6 +790,12 @@ function sanitizeTimingContradictions(text: string, input: MatrixCalculationInpu
   }
   if (input.currentDaeunElement && /대운\s*미입력/gi.test(out)) {
     out = out.replace(/대운\s*미입력/gi, '대운 흐름 반영')
+  }
+  if (input.currentWolunElement && /월운\s*미입력/gi.test(out)) {
+    out = out.replace(/월운\s*미입력/gi, '월운 흐름 반영')
+  }
+  if ((input.currentIljinElement || input.currentIljinDate) && /일진\s*미입력/gi.test(out)) {
+    out = out.replace(/일진\s*미입력/gi, '일진 흐름 반영')
   }
   return out
 }
@@ -1088,9 +1099,15 @@ function buildSectionFactPack(
       `현재는 ${activeTransits.join(', ')} 영향이 겹쳐 결정 속도를 조절하는 쪽이 낫습니다.`
     )
   }
-  if (input.currentDaeunElement || input.currentSaeunElement) {
+  if (
+    input.currentDaeunElement ||
+    input.currentSaeunElement ||
+    input.currentWolunElement ||
+    input.currentIljinElement ||
+    input.currentIljinDate
+  ) {
     bullets.push(
-      `대운과 세운이 함께 움직이는 구간이라 단기 감정보다 중기 계획을 우선하는 쪽이 낫습니다.`
+      `대운/세운/월운/일진 신호가 함께 움직이는 구간이라 단기 감정보다 단계별 계획을 우선하는 쪽이 낫습니다.`
     )
   }
 

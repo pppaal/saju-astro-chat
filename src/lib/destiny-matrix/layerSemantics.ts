@@ -109,7 +109,14 @@ export const LAYER_SEMANTICS: LayerSemanticDefinition[] = [
     meaningEn: 'Immediate execution risk/acceleration signals',
     answersKo: ['지금 실행해도 되는가?', '오늘/이번주 리스크는?'],
     answersEn: ['Is this executable now?', 'What is the immediate risk this week?'],
-    evidenceSources: ['activeTransits', 'currentDaeunElement', 'currentSaeunElement'],
+    evidenceSources: [
+      'activeTransits',
+      'currentDaeunElement',
+      'currentSaeunElement',
+      'currentWolunElement',
+      'currentIljinElement',
+      'currentIljinDate',
+    ],
     confidenceRule: 'Need current transit cycles plus at least one luck-cycle signal',
     conflictRule: 'Timing risk has precedence over opportunity layers for irreversible actions',
     actionPolicy: {

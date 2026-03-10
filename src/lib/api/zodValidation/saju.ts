@@ -330,12 +330,28 @@ export const destinyMatrixCalculationSchema = z
     yongsin: z.array(fiveElementSchema).optional(),
     currentDaeunElement: fiveElementSchema.optional(),
     currentSaeunElement: fiveElementSchema.optional(),
+    currentWolunElement: fiveElementSchema.optional(),
+    currentIljinElement: fiveElementSchema.optional(),
+    currentIljinDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
     shinsalList: z.array(z.string().max(50)).optional(),
     dominantWesternElement: z.enum(['fire', 'earth', 'air', 'water']).optional(),
     planetHouses: planetHousesSchema.optional(),
     planetSigns: planetSignsSchema.optional(),
     aspects: z.array(destinyMatrixAspectSchema).optional(),
     activeTransits: z.array(destinyMatrixTransitCycleSchema).optional(),
+    astroTimingIndex: z
+      .object({
+        decade: z.number().min(0).max(1),
+        annual: z.number().min(0).max(1),
+        monthly: z.number().min(0).max(1),
+        daily: z.number().min(0).max(1),
+        confidence: z.number().min(0).max(1),
+        evidenceCount: z.number().int().min(0),
+      })
+      .optional(),
     asteroidHouses: planetHousesSchema.optional(),
     extraPointSigns: planetSignsSchema.optional(),
     advancedAstroSignals: z

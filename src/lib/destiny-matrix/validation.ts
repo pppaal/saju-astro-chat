@@ -241,6 +241,15 @@ export const ProfileContextSchema = z.object({
   analysisAt: z.string().optional(),
 })
 
+export const AstroTimingIndexSchema = z.object({
+  decade: z.number().min(0).max(1),
+  annual: z.number().min(0).max(1),
+  monthly: z.number().min(0).max(1),
+  daily: z.number().min(0).max(1),
+  confidence: z.number().min(0).max(1),
+  evidenceCount: z.number().int().min(0),
+})
+
 // ===========================
 // 메인 입력 스키마
 // ===========================
@@ -368,6 +377,7 @@ export const MatrixCalculationInputSchema = z.object({
     }),
   aspects: z.array(AspectSchema).optional().default([]),
   activeTransits: z.array(TransitCycleSchema).optional().default([]),
+  astroTimingIndex: AstroTimingIndexSchema.optional(),
 
   // 소행성/엑스트라포인트
   asteroidHouses: z

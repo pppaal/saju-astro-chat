@@ -105,6 +105,9 @@ export function buildProfileInfo(
     }
 - 신살: ${input.shinsalList?.join(', ') || '없음'}
 - 현재 대운 오행: ${input.currentDaeunElement || '미입력'}
+- 현재 세운 오행: ${input.currentSaeunElement || '미입력'}
+- 현재 월운 오행: ${input.currentWolunElement || '미입력'}
+- 현재 일진 오행: ${input.currentIljinElement || '미입력'}${input.currentIljinDate ? ` (${input.currentIljinDate})` : ''}
 ${timingKo}`
   }
 
@@ -121,6 +124,9 @@ ${timingKo}`
   }
 - Shinsal: ${input.shinsalList?.join(', ') || 'None'}
 - Current Daeun Element: ${input.currentDaeunElement || 'Not provided'}
+- Current Seun Element: ${input.currentSaeunElement || 'Not provided'}
+- Current Wolun Element: ${input.currentWolunElement || 'Not provided'}
+- Current Iljin Element: ${input.currentIljinElement || 'Not provided'}${input.currentIljinDate ? ` (${input.currentIljinDate})` : ''}
 ${timingEn}`
 }
 
@@ -385,6 +391,7 @@ ${matrixSummary}
 
 ${graphRagEvidencePrompt ? `## GraphRAG Evidence Anchors\n${graphRagEvidencePrompt}\n` : ''}
 
+Write each of the following sections.
 Write each section in a direct consultant tone: conclusion-first, evidence-based, and action-oriented.
 
 ${sectionInstructions}`
