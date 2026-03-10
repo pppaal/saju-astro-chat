@@ -48,8 +48,9 @@
 /* ===== Card Selection Screen ===== */
 .readingContainer {
   width: 100vw;
-  height: 100vh;
-  max-height: 100vh;
+  min-height: 100svh;
+  height: 100svh;
+  max-height: 100svh;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -62,6 +63,14 @@
   right: 0;
   bottom: 0;
   overflow: hidden;
+}
+
+@supports (height: 100dvh) {
+  .readingContainer {
+    min-height: 100dvh;
+    height: 100dvh;
+    max-height: 100dvh;
+  }
 }
 
 .readingContainer::before {
@@ -2115,7 +2124,7 @@
 /* ===== Responsive Design ===== */
 @media (max-width: 768px) {
   .cardSpreadContainer {
-    padding-bottom: 6.5rem;
+    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
   }
 
   .instructions {
@@ -2142,18 +2151,18 @@
     width: 58px;
     height: 92px;
     margin-left: -29px;
-    bottom: 54px;
+    bottom: 60px;
     transform-origin: center bottom;
-    --angle: calc((var(--i) - 38.5) * 1.45deg);
-    transform: rotate(var(--angle)) translateY(-240px);
+    --angle: calc((var(--i) - 38.5) * 1.3deg);
+    transform: rotate(var(--angle)) translateY(-228px);
   }
 
   .cardWrapper:hover {
-    transform: rotate(var(--angle)) translateY(-282px) scale(1.05);
+    transform: rotate(var(--angle)) translateY(-252px) scale(1.05);
   }
 
   .cardWrapper.selected {
-    transform: rotate(0deg) translateY(-220px) scale(1.14);
+    transform: rotate(0deg) translateY(-208px) scale(1.12);
     transition: all 0.5s cubic-bezier(0.34, 1.05, 0.64, 1);
   }
 
@@ -2190,7 +2199,7 @@
 
 @media (max-width: 480px) {
   .cardSpreadContainer {
-    padding-bottom: 8.5rem;
+    padding-bottom: calc(7.5rem + env(safe-area-inset-bottom));
   }
 
   .instructions {
@@ -2211,18 +2220,18 @@
     width: 54px;
     height: 86px;
     margin-left: -27px;
-    bottom: 78px;
+    bottom: 72px;
     transform-origin: center bottom;
-    --angle: calc((var(--i) - 38.5) * 1.2deg);
-    transform: rotate(var(--angle)) translateY(-190px);
+    --angle: calc((var(--i) - 38.5) * 1.06deg);
+    transform: rotate(var(--angle)) translateY(-182px);
   }
 
   .cardWrapper:hover {
-    transform: rotate(var(--angle)) translateY(-198px) scale(1.04);
+    transform: rotate(var(--angle)) translateY(-194px) scale(1.04);
   }
 
   .cardWrapper.selected {
-    transform: rotate(0deg) translateY(-164px) scale(1.1);
+    transform: rotate(0deg) translateY(-160px) scale(1.08);
     transition: all 0.5s cubic-bezier(0.34, 1.05, 0.64, 1);
   }
 
@@ -2274,6 +2283,79 @@
   .resetButton {
     font-size: 1rem;
     padding: 0.8rem 1.75rem;
+  }
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+  .instructionTitle {
+    font-size: 1.6rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .instructions .guidanceText {
+    font-size: 0.88rem;
+    line-height: 1.25;
+  }
+
+  .cardWrapper {
+    width: 62px;
+    height: 98px;
+    margin-left: -31px;
+    bottom: clamp(58px, 9vh, 88px);
+    --angle: calc((var(--i) - 38.5) * 0.98deg);
+    transform: rotate(var(--angle)) translateY(-198px);
+  }
+
+  .cardWrapper:hover {
+    transform: rotate(var(--angle)) translateY(-214px) scale(1.04);
+  }
+
+  .cardWrapper.selected {
+    transform: rotate(0deg) translateY(-170px) scale(1.1);
+  }
+}
+
+@media (max-width: 480px) and (orientation: portrait) {
+  .instructions {
+    top: max(0.25rem, env(safe-area-inset-top));
+  }
+
+  .instructionTitle {
+    font-size: 1.35rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .instructions .guidanceText {
+    display: none;
+  }
+
+  .topRightControls {
+    top: 3.2rem;
+  }
+
+  .redrawButtonBottomRight {
+    right: 0.55rem;
+  }
+
+  .cardSpreadContainer {
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+  }
+
+  .cardWrapper {
+    width: 60px;
+    height: 94px;
+    margin-left: -30px;
+    bottom: 76px;
+    --angle: calc((var(--i) - 38.5) * 0.9deg);
+    transform: rotate(var(--angle)) translateY(-176px);
+  }
+
+  .cardWrapper:hover {
+    transform: rotate(var(--angle)) translateY(-184px) scale(1.03);
+  }
+
+  .cardWrapper.selected {
+    transform: rotate(0deg) translateY(-150px) scale(1.08);
   }
 }
 
