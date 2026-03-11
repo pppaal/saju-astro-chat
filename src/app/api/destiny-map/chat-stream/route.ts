@@ -35,7 +35,25 @@ import {
 } from '@/lib/destiny-map/astrology'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
-import { formatCounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
+import {
+  buildCounselorEvidencePacket,
+  formatCounselorEvidencePacket,
+} from '@/lib/destiny-matrix/counselorEvidence'
+import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
+import { reportGenerator } from '@/lib/destiny-matrix/interpreter'
+import {
+  buildNormalizedMatrixInput,
+  runDestinyCore,
+} from '@/lib/destiny-matrix/core/runDestinyCore'
+import { buildMatrixSemanticContract } from '@/lib/destiny-matrix/layerSemantics'
+import { buildLayerThemeProfiles } from '@/lib/destiny-matrix/layerThemeProfiles'
+import type { MatrixCalculationInput, TransitCycle } from '@/lib/destiny-matrix/types'
+import { calculateSajuData } from '@/lib/Saju/saju'
+import type { FiveElement, PillarData } from '@/lib/Saju/types'
+import { STEMS } from '@/lib/Saju/constants'
+import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
+import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/Saju/shinsal'
+import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
 
 // Local modules
 import { clampMessages, counselorSystemPrompt, loadPersonaMemory } from './lib'
@@ -72,7 +90,6 @@ function isCounselorStrictMatrixEnabled(): boolean {
 }
 
 type MatrixHighlight = { layer?: number; keyword?: string; score?: number }
-type MatrixSynergy = { description?: string; score?: number; layers?: number[] }
 type MatrixAspectType =
   | 'conjunction'
   | 'sextile'
@@ -114,6 +131,52 @@ const ASPECT_ANGLE_MAP: Record<MatrixAspectType, number> = {
   quincunx: 150,
   quintile: 72,
   biquintile: 144,
+}
+
+const ELEMENT_MAP: Record<string, FiveElement> = {
+  목: '목',
+  화: '화',
+  토: '토',
+  금: '금',
+  수: '수',
+  wood: '목',
+  fire: '화',
+  earth: '토',
+  metal: '금',
+  water: '수',
+}
+
+const TRANSIT_CYCLE_SET = new Set<TransitCycle>([
+  'saturnReturn',
+  'jupiterReturn',
+  'uranusSquare',
+  'neptuneSquare',
+  'plutoTransit',
+  'nodeReturn',
+  'eclipse',
+  'mercuryRetrograde',
+  'venusRetrograde',
+  'marsRetrograde',
+  'jupiterRetrograde',
+  'saturnRetrograde',
+])
+
+const GEOKGUK_ALIASES: Partial<Record<string, MatrixCalculationInput['geokguk']>> = {
+  정관격: 'jeonggwan',
+  편관격: 'pyeongwan',
+  정인격: 'jeongin',
+  편인격: 'pyeongin',
+  식신격: 'siksin',
+  상관격: 'sanggwan',
+  정재격: 'jeongjae',
+  편재격: 'pyeonjae',
+  건록격: 'geonrok',
+  양인격: 'yangin',
+  종아격: 'jonga',
+  종재격: 'jongjae',
+  종살격: 'jongsal',
+  종강격: 'jonggang',
+  종왕격: 'jonggang',
 }
 
 interface MatrixSnapshot {
@@ -186,8 +249,6 @@ interface MatrixSnapshot {
   globalConflictPolicy?: string
   lowConfidencePolicy?: string
 }
-
-type MatrixCoreSnapshot = NonNullable<MatrixSnapshot['core']>
 
 type CounselorUiEvidencePayload = {
   title: string
@@ -551,6 +612,150 @@ async function deriveMatrixAstroInputs(natalChartData?: NatalChartData): Promise
   }
 }
 
+function normalizeElementToFiveElement(value: unknown): FiveElement | undefined {
+  if (typeof value !== 'string') return undefined
+  return ELEMENT_MAP[value.trim().toLowerCase()] || ELEMENT_MAP[value.trim()]
+}
+
+function inferElementFromStemName(stemName: string | undefined): FiveElement | undefined {
+  if (!stemName) return undefined
+  const stem = STEMS.find((item) => item.name === stemName)
+  return normalizeElementToFiveElement(stem?.element)
+}
+
+function normalizeTransitCycles(value: unknown): MatrixCalculationInput['activeTransits'] {
+  if (!Array.isArray(value)) return []
+
+  const out: TransitCycle[] = []
+  for (const item of value) {
+    if (typeof item === 'string') {
+      if (TRANSIT_CYCLE_SET.has(item as TransitCycle)) {
+        out.push(item as TransitCycle)
+      }
+      continue
+    }
+    if (!item || typeof item !== 'object') {
+      continue
+    }
+    const record = item as Record<string, unknown>
+    const cycleCandidate =
+      typeof record.cycle === 'string'
+        ? record.cycle
+        : typeof record.type === 'string'
+          ? record.type
+          : typeof record.id === 'string'
+            ? record.id
+            : undefined
+    if (cycleCandidate && TRANSIT_CYCLE_SET.has(cycleCandidate as TransitCycle)) {
+      out.push(cycleCandidate as TransitCycle)
+    }
+  }
+
+  return Array.from(new Set(out))
+}
+
+function pickSajuPillars(raw: Record<string, unknown>): {
+  yearPillar?: PillarData
+  monthPillar?: PillarData
+  dayPillar?: PillarData
+  timePillar?: PillarData
+} {
+  const nested = raw.pillars as Record<string, unknown> | undefined
+  const yearPillar = (raw.yearPillar || nested?.year) as PillarData | undefined
+  const monthPillar = (raw.monthPillar || nested?.month) as PillarData | undefined
+  const dayPillar = (raw.dayPillar || nested?.day) as PillarData | undefined
+  const timePillar = (raw.timePillar || nested?.time) as PillarData | undefined
+  return { yearPillar, monthPillar, dayPillar, timePillar }
+}
+
+function buildSibsinDistributionFromPillars(input: {
+  yearPillar?: PillarData
+  monthPillar?: PillarData
+  dayPillar?: PillarData
+  timePillar?: PillarData
+}): MatrixCalculationInput['sibsinDistribution'] {
+  const out: Record<string, number> = {}
+  const pillars = [input.yearPillar, input.monthPillar, input.dayPillar, input.timePillar]
+  for (const pillar of pillars) {
+    const cheon = pillar?.heavenlyStem?.sibsin
+    const ji = pillar?.earthlyBranch?.sibsin
+    if (typeof cheon === 'string' && cheon.trim().length > 0) {
+      out[cheon] = (out[cheon] || 0) + 1
+    }
+    if (typeof ji === 'string' && ji.trim().length > 0) {
+      out[ji] = (out[ji] || 0) + 1
+    }
+  }
+  return out as MatrixCalculationInput['sibsinDistribution']
+}
+
+function normalizeCalendarSignalLines(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  const out = value
+    .map((item) => {
+      if (typeof item === 'string') return item.trim()
+      if (!item || typeof item !== 'object') return ''
+      const signal = item as { level?: string; trigger?: string; score?: number }
+      const trigger = signal.trigger || ''
+      if (!trigger) return ''
+      const scoreText =
+        typeof signal.score === 'number' && Number.isFinite(signal.score)
+          ? `(${signal.score.toFixed(1)})`
+          : ''
+      const levelText = signal.level ? `[${signal.level}] ` : ''
+      return `${levelText}${trigger}${scoreText}`.trim()
+    })
+    .filter(Boolean)
+  return Array.from(new Set(out)).slice(0, 6)
+}
+
+function normalizeOverlapTimelineLines(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  const out = value
+    .map((item) => {
+      if (typeof item === 'string') return item.trim()
+      if (!item || typeof item !== 'object') return ''
+      const point = item as {
+        month?: string
+        overlapStrength?: number
+        peakLevel?: 'peak' | 'high' | 'normal'
+      }
+      const month = point.month || ''
+      if (!month) return ''
+      const overlapText =
+        typeof point.overlapStrength === 'number' && Number.isFinite(point.overlapStrength)
+          ? point.overlapStrength.toFixed(2)
+          : '-'
+      return `${month}:${point.peakLevel || 'normal'}:${overlapText}`
+    })
+    .filter(Boolean)
+  return Array.from(new Set(out)).slice(0, 6)
+}
+
+function normalizeDomainScoreMap(value: unknown): Record<string, number> {
+  if (!value || typeof value !== 'object') return {}
+  const out: Record<string, number> = {}
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof raw === 'number' && Number.isFinite(raw)) {
+      out[key] = raw
+      continue
+    }
+    if (!raw || typeof raw !== 'object') continue
+    const candidate = raw as { finalScoreAdjusted?: number; baseFinalScore?: number }
+    if (
+      typeof candidate.finalScoreAdjusted === 'number' &&
+      Number.isFinite(candidate.finalScoreAdjusted)
+    ) {
+      out[key] = candidate.finalScoreAdjusted
+      continue
+    }
+    if (typeof candidate.baseFinalScore === 'number' && Number.isFinite(candidate.baseFinalScore)) {
+      out[key] = candidate.baseFinalScore
+    }
+  }
+  return out
+}
+
 function buildTopLayers(highlights: MatrixHighlight[]): Array<{ layer: number; score: number }> {
   const grouped = new Map<number, number[]>()
   for (const item of highlights) {
@@ -760,20 +965,18 @@ function buildMatrixProfileSection(
   ].join('\n')
 }
 
-async function fetchMatrixSnapshot(
-  req: NextRequest,
-  input: {
-    birthDate: string
-    birthTime: string
-    gender: 'male' | 'female'
-    lang: string
-    astro: AstroDataStructure | undefined
-    natalChartData?: NatalChartData
-    advancedAstro?: Partial<CombinedResult>
-    currentTransits?: unknown[]
-    theme: string
-  }
-): Promise<MatrixSnapshot | null> {
+async function fetchMatrixSnapshot(input: {
+  birthDate: string
+  birthTime: string
+  gender: 'male' | 'female'
+  lang: string
+  saju?: SajuDataStructure
+  astro: AstroDataStructure | undefined
+  natalChartData?: NatalChartData
+  advancedAstro?: Partial<CombinedResult>
+  currentTransits?: unknown[]
+  theme: string
+}): Promise<MatrixSnapshot | null> {
   try {
     const { planetSigns, planetHouses } = collectPlanetData(input.astro)
     const derived = await deriveMatrixAstroInputs(input.natalChartData)
@@ -786,120 +989,246 @@ async function fetchMatrixSnapshot(
           | string
           | undefined)
     )
+    const matrixLang: 'ko' | 'en' = input.lang === 'ko' ? 'ko' : 'en'
 
-    const response = await fetch(new URL('/api/destiny-matrix', req.nextUrl.origin), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        origin: req.nextUrl.origin,
-        referer: req.nextUrl.origin,
-      },
-      cache: 'no-store',
-      signal: AbortSignal.timeout(4000),
-      body: JSON.stringify({
-        birthDate: input.birthDate,
-        birthTime: input.birthTime,
-        gender: input.gender,
-        lang: input.lang === 'ko' ? 'ko' : 'en',
-        dominantWesternElement,
-        planetSigns,
-        planetHouses,
-        aspects: derived.aspects,
-        asteroidHouses: derived.asteroidHouses,
-        extraPointSigns: derived.extraPointSigns,
-        advancedAstroSignals,
-        activeTransits: Array.isArray(input.currentTransits) ? input.currentTransits : [],
-      }),
+    const hasInlineSaju = input.saju && typeof input.saju === 'object'
+    let rawSaju = hasInlineSaju ? (input.saju as Record<string, unknown>) : null
+    if (!rawSaju || typeof rawSaju !== 'object') {
+      rawSaju = calculateSajuData(
+        input.birthDate,
+        input.birthTime,
+        input.gender,
+        'solar',
+        'Asia/Seoul'
+      ) as unknown as Record<string, unknown>
+    }
+    const { yearPillar, monthPillar, dayPillar, timePillar } = pickSajuPillars(rawSaju)
+
+    const dayMasterElement =
+      normalizeElementToFiveElement(dayPillar?.heavenlyStem?.element) ||
+      normalizeElementToFiveElement(
+        ((rawSaju.dayMaster as Record<string, unknown> | undefined)?.element as
+          | string
+          | undefined) ||
+          ((rawSaju.dayMaster as Record<string, unknown> | undefined)?.heavenlyStem as
+            | string
+            | undefined)
+      )
+    if (!dayMasterElement) {
+      return null
+    }
+
+    const pillarElements = [
+      normalizeElementToFiveElement(yearPillar?.heavenlyStem?.element),
+      normalizeElementToFiveElement(yearPillar?.earthlyBranch?.element),
+      normalizeElementToFiveElement(monthPillar?.heavenlyStem?.element),
+      normalizeElementToFiveElement(monthPillar?.earthlyBranch?.element),
+      normalizeElementToFiveElement(dayPillar?.heavenlyStem?.element),
+      normalizeElementToFiveElement(dayPillar?.earthlyBranch?.element),
+      normalizeElementToFiveElement(timePillar?.heavenlyStem?.element),
+      normalizeElementToFiveElement(timePillar?.earthlyBranch?.element),
+    ].filter((value): value is FiveElement => Boolean(value))
+
+    const sibsinDistribution = buildSibsinDistributionFromPillars({
+      yearPillar,
+      monthPillar,
+      dayPillar,
+      timePillar,
     })
 
-    if (!response.ok) {
-      return null
-    }
-    const data = (await response.json()) as {
-      success?: boolean
-      summary?: {
-        totalScore?: number
-        finalScoreAdjusted?: number
-        confidenceScore?: number
-        drivers?: unknown[]
-        cautions?: unknown[]
-        calendarSignals?: unknown[]
-        overlapTimeline?: unknown[]
-        domainScores?: Record<string, number>
-      }
-      highlights?: { strengths?: MatrixHighlight[]; cautions?: MatrixHighlight[] }
-      synergies?: MatrixSynergy[]
-      semantics?: {
-        globalConflictPolicy?: string
-        lowConfidencePolicy?: string
-        layers?: Array<{
-          id?: string
-          nameKo?: string
-          nameEn?: string
-          meaningKo?: string
-          meaningEn?: string
-          active?: boolean
-          signalStrength?: string
-          matchedCells?: number
-        }>
-      }
-      layerThemeProfiles?: Array<{
-        layerId?: string
-        layerNameKo?: string
-        themeInsights?: Array<{
-          domain?: string
-          summaryKo?: string
-          summaryEn?: string
-        }>
-      }>
-      core?: {
-        coreHash?: string
-        overallPhase?: string
-        overallPhaseLabel?: string
-        attackPercent?: number
-        defensePercent?: number
-        topClaimIds?: string[]
-        topCautionSignalIds?: string[]
-        counselorEvidence?: MatrixCoreSnapshot['counselorEvidence']
-        quality?: {
-          score?: number
-          grade?: string
-          warnings?: string[]
+    const dayMasterStemName = dayPillar?.heavenlyStem?.name
+    let twelveStages: MatrixCalculationInput['twelveStages'] = {}
+    let relations: MatrixCalculationInput['relations'] = []
+    let shinsalList: MatrixCalculationInput['shinsalList']
+    let geokguk: MatrixCalculationInput['geokguk']
+    let yongsin: MatrixCalculationInput['yongsin']
+
+    if (yearPillar && monthPillar && dayPillar && timePillar && dayMasterStemName) {
+      try {
+        const sajuLike = toSajuPillarsLike({ yearPillar, monthPillar, dayPillar, timePillar })
+        const byPillar = getTwelveStagesForPillars(sajuLike, 'day')
+        const stageCounts: Record<string, number> = {}
+        for (const stage of Object.values(byPillar)) {
+          stageCounts[stage] = (stageCounts[stage] || 0) + 1
         }
+        twelveStages = stageCounts as MatrixCalculationInput['twelveStages']
+
+        const relationInput = toAnalyzeInputFromSaju(
+          {
+            year: yearPillar,
+            month: monthPillar,
+            day: dayPillar,
+            time: timePillar,
+          },
+          dayMasterStemName
+        )
+        relations = analyzeRelations(relationInput)
+
+        const shinsalHits = getShinsalHits(sajuLike, {
+          includeLuckyDetails: true,
+          includeGeneralShinsal: true,
+          includeTwelveAll: true,
+          useMonthCompletion: true,
+        })
+        const normalizedShinsal = shinsalHits
+          .map((hit) => {
+            if (hit.kind === '금여성') return '금여록'
+            if (hit.kind === '문창') return '문창귀인'
+            return hit.kind
+          })
+          .filter((kind) => typeof kind === 'string' && kind.trim().length > 0)
+        shinsalList = Array.from(
+          new Set(normalizedShinsal)
+        ) as MatrixCalculationInput['shinsalList']
+      } catch (error) {
+        logger.warn('[chat-stream] Failed to derive relation/stage/shinsal snapshot', {
+          error: error instanceof Error ? error.message : String(error),
+        })
       }
-    }
-    if (!data?.success) {
-      return null
+
+      try {
+        const advanced = analyzeAdvancedSaju(
+          {
+            name: dayPillar.heavenlyStem.name,
+            element: dayPillar.heavenlyStem.element,
+            yin_yang: dayPillar.heavenlyStem.yin_yang || '양',
+          },
+          { yearPillar, monthPillar, dayPillar, timePillar }
+        )
+        const mappedGeokguk = GEOKGUK_ALIASES[advanced.geokguk.type]
+        if (mappedGeokguk) {
+          geokguk = mappedGeokguk
+        }
+        yongsin = normalizeElementToFiveElement(advanced.yongsin.primary)
+      } catch (error) {
+        logger.warn('[chat-stream] Failed to derive advanced saju snapshot', {
+          error: error instanceof Error ? error.message : String(error),
+        })
+      }
     }
 
-    const strengths = Array.isArray(data.highlights?.strengths)
-      ? (data.highlights?.strengths ?? [])
-      : []
-    const cautions = Array.isArray(data.highlights?.cautions)
-      ? (data.highlights?.cautions ?? [])
-      : []
+    const currentYear = new Date().getFullYear()
+    const currentMonth = new Date().getMonth() + 1
+    const unse = rawSaju.unse as
+      | {
+          annual?: Array<{ year?: number; element?: FiveElement }>
+          monthly?: Array<{ year?: number; month?: number; element?: FiveElement }>
+        }
+      | undefined
+    const daeWoon = rawSaju.daeWoon as { current?: { heavenlyStem?: string } } | undefined
+    const currentAnnual =
+      unse?.annual?.find((item) => item?.year === currentYear) || unse?.annual?.[0]
+    const currentMonthly =
+      unse?.monthly?.find((item) => item?.year === currentYear && item?.month === currentMonth) ||
+      unse?.monthly?.[0]
+
+    const currentDaeunElement = inferElementFromStemName(daeWoon?.current?.heavenlyStem)
+    const currentSaeunElement = normalizeElementToFiveElement(currentAnnual?.element)
+    const currentWolunElement = normalizeElementToFiveElement(currentMonthly?.element)
+
+    const matrixInput: MatrixCalculationInput = {
+      dayMasterElement,
+      pillarElements,
+      sibsinDistribution,
+      twelveStages,
+      relations,
+      geokguk,
+      yongsin,
+      currentDaeunElement,
+      currentSaeunElement,
+      currentWolunElement,
+      shinsalList,
+      dominantWesternElement,
+      planetHouses: planetHouses as MatrixCalculationInput['planetHouses'],
+      planetSigns: planetSigns as MatrixCalculationInput['planetSigns'],
+      aspects: derived.aspects as MatrixCalculationInput['aspects'],
+      activeTransits: normalizeTransitCycles(input.currentTransits),
+      asteroidHouses: derived.asteroidHouses as MatrixCalculationInput['asteroidHouses'],
+      extraPointSigns: derived.extraPointSigns as MatrixCalculationInput['extraPointSigns'],
+      advancedAstroSignals,
+      sajuSnapshot: rawSaju,
+      astrologySnapshot: input.natalChartData
+        ? ({ natalChart: input.natalChartData } as Record<string, unknown>)
+        : undefined,
+      crossSnapshot: {
+        source: 'chat-stream',
+        theme: input.theme,
+      },
+      currentDateIso: new Date().toISOString().slice(0, 10),
+      profileContext: {
+        birthDate: input.birthDate,
+        birthTime: input.birthTime,
+        analysisAt: new Date().toISOString(),
+      },
+      lang: matrixLang,
+      startYearMonth: `${new Date().getFullYear()}-01`,
+    }
+    const normalizedMatrixInput = buildNormalizedMatrixInput(matrixInput)
+
+    const matrix = calculateDestinyMatrix(normalizedMatrixInput)
+    const matrixReport = reportGenerator.generateReport(normalizedMatrixInput, {
+      layer1_elementCore: matrix.layer1_elementCore,
+      layer2_sibsinPlanet: matrix.layer2_sibsinPlanet,
+      layer3_sibsinHouse: matrix.layer3_sibsinHouse,
+      layer4_timing: matrix.layer4_timing,
+      layer5_relationAspect: matrix.layer5_relationAspect,
+      layer6_stageHouse: matrix.layer6_stageHouse,
+      layer7_advanced: matrix.layer7_advanced,
+      layer8_shinsalPlanet: matrix.layer8_shinsalPlanet,
+      layer9_asteroidHouse: matrix.layer9_asteroidHouse,
+      layer10_extraPointElement: matrix.layer10_extraPointElement,
+    })
+    const core = runDestinyCore({
+      mode: 'comprehensive',
+      lang: matrixLang,
+      matrixInput: normalizedMatrixInput,
+      matrixReport,
+      matrixSummary: matrix.summary,
+    })
+    const counselorEvidence = buildCounselorEvidencePacket({
+      theme: 'chat',
+      lang: matrixLang,
+      matrixInput: normalizedMatrixInput,
+      matrixReport,
+      matrixSummary: matrix.summary,
+      signalSynthesis: core.signalSynthesis,
+      strategyEngine: core.strategyEngine,
+      birthDate: input.birthDate,
+    })
+    const semantics = buildMatrixSemanticContract(matrix)
+    const layerThemeProfiles = buildLayerThemeProfiles(matrix, normalizedMatrixInput)
+
+    const strengths: MatrixHighlight[] = (matrix.summary.strengthPoints || []).map((point) => ({
+      layer: point.layer,
+      keyword: point.cell?.interaction?.keyword || '',
+      score: point.cell?.interaction?.score || 0,
+    }))
+    const cautions: MatrixHighlight[] = (matrix.summary.cautionPoints || []).map((point) => ({
+      layer: point.layer,
+      keyword: point.cell?.interaction?.keyword || '',
+      score: point.cell?.interaction?.score || 0,
+    }))
     const merged = [...strengths, ...cautions]
     const topLayers = buildTopLayers(merged)
     const highlights = merged
-      .map((h) => `${h.keyword || 'n/a'}(${Number(h.score || 0).toFixed(1)})`)
+      .map((item) => `${item.keyword || 'n/a'}(${Number(item.score || 0).toFixed(1)})`)
       .slice(0, 5)
-    const synergies = (Array.isArray(data.synergies) ? data.synergies : [])
+    const synergies = (matrix.summary.topSynergies || [])
       .map(
-        (s) => `${s.description || 'synergy'}${s.score ? `(${Number(s.score).toFixed(1)})` : ''}`
+        (item) =>
+          `${item.description || 'synergy'}${
+            typeof item.score === 'number' ? `(${Number(item.score).toFixed(1)})` : ''
+          }`
       )
       .slice(0, 3)
-    const semanticHints = Array.isArray(data.semantics?.layers)
-      ? data.semantics.layers
-          .filter((layer) => layer?.active)
-          .slice(0, 6)
-          .map((layer) => {
-            const name = layer.nameKo || layer.nameEn || layer.id || 'layer'
-            const meaning = layer.meaningKo || layer.meaningEn || ''
-            const cells = typeof layer.matchedCells === 'number' ? layer.matchedCells : 0
-            const signal = layer.signalStrength || 'low'
-            return `${name}[${signal}/${cells}] ${meaning}`.trim()
-          })
-      : []
+    const semanticHints = (semantics.layers || [])
+      .filter((layer) => layer.active)
+      .slice(0, 6)
+      .map((layer) => {
+        const name = matrixLang === 'ko' ? layer.nameKo : layer.nameEn
+        const meaning = matrixLang === 'ko' ? layer.meaningKo : layer.meaningEn
+        return `${name || layer.id}[${layer.signalStrength}/${layer.matchedCells}] ${meaning || ''}`.trim()
+      })
     const themeDomainMap: Record<string, string> = {
       love: 'love',
       family: 'love',
@@ -913,75 +1242,56 @@ async function fetchMatrixSnapshot(
       chat: 'career',
     }
     const themeDomain = themeDomainMap[input.theme] || 'career'
-    const layerThemeBriefs = Array.isArray(data.layerThemeProfiles)
-      ? data.layerThemeProfiles
-          .slice(0, 6)
-          .map((layer) => {
-            const insight = Array.isArray(layer.themeInsights)
-              ? layer.themeInsights.find((v) => v.domain === themeDomain)
-              : undefined
-            const summary = insight?.summaryKo || insight?.summaryEn || ''
-            if (!summary) return ''
-            return `${layer.layerNameKo || layer.layerId || 'layer'}: ${summary}`
-          })
-          .filter(Boolean)
-      : []
+    const layerThemeBriefs = (layerThemeProfiles || [])
+      .slice(0, 6)
+      .map((layer) => {
+        const insight = (layer.themeInsights || []).find((item) => item.domain === themeDomain)
+        const summary = matrixLang === 'ko' ? insight?.summaryKo : insight?.summaryEn
+        if (!summary) return ''
+        return `${layer.layerNameKo || layer.layerId || 'layer'}: ${summary}`
+      })
+      .filter(Boolean)
 
     return {
-      totalScore: Number(data.summary?.totalScore || 0),
+      totalScore: Number(matrix.summary.totalScore || 0),
       topLayers,
       highlights,
       synergies,
-      drivers: normalizeStringList(data.summary?.drivers, 6),
-      cautions: normalizeStringList(data.summary?.cautions, 6),
-      calendarSignals: normalizeStringList(data.summary?.calendarSignals, 5),
-      overlapTimeline: normalizeStringList(data.summary?.overlapTimeline, 5),
-      domainScores:
-        data.summary?.domainScores && typeof data.summary.domainScores === 'object'
-          ? data.summary.domainScores
-          : {},
+      drivers: normalizeStringList(matrix.summary.drivers, 6),
+      cautions: normalizeStringList(matrix.summary.cautions, 6),
+      calendarSignals: normalizeCalendarSignalLines(matrix.summary.calendarSignals),
+      overlapTimeline: normalizeOverlapTimelineLines(matrix.summary.overlapTimeline),
+      domainScores: normalizeDomainScoreMap(matrix.summary.domainScores),
       confidenceScore:
-        typeof data.summary?.confidenceScore === 'number'
-          ? data.summary.confidenceScore
+        typeof matrix.summary.confidenceScore === 'number'
+          ? matrix.summary.confidenceScore
           : undefined,
       finalScoreAdjusted:
-        typeof data.summary?.finalScoreAdjusted === 'number'
-          ? data.summary.finalScoreAdjusted
+        typeof matrix.summary.finalScoreAdjusted === 'number'
+          ? matrix.summary.finalScoreAdjusted
           : undefined,
       semanticHints,
       layerThemeBriefs,
-      core:
-        data.core &&
-        typeof data.core === 'object' &&
-        typeof data.core.coreHash === 'string' &&
-        typeof data.core.overallPhase === 'string' &&
-        typeof data.core.overallPhaseLabel === 'string'
-          ? {
-              coreHash: data.core.coreHash,
-              overallPhase: data.core.overallPhase,
-              overallPhaseLabel: data.core.overallPhaseLabel,
-              attackPercent:
-                typeof data.core.attackPercent === 'number' ? data.core.attackPercent : 50,
-              defensePercent:
-                typeof data.core.defensePercent === 'number' ? data.core.defensePercent : 50,
-              topClaimIds: normalizeStringList(data.core.topClaimIds, 8),
-              topCautionSignalIds: normalizeStringList(data.core.topCautionSignalIds, 8),
-              counselorEvidence:
-                data.core.counselorEvidence && typeof data.core.counselorEvidence === 'object'
-                  ? data.core.counselorEvidence
-                  : undefined,
-              quality: {
-                score: typeof data.core.quality?.score === 'number' ? data.core.quality.score : 0,
-                grade: typeof data.core.quality?.grade === 'string' ? data.core.quality.grade : 'D',
-                warnings: normalizeStringList(data.core.quality?.warnings, 8),
-              },
-            }
-          : undefined,
-      globalConflictPolicy: data.semantics?.globalConflictPolicy,
-      lowConfidencePolicy: data.semantics?.lowConfidencePolicy,
+      core: {
+        coreHash: core.coreHash,
+        overallPhase: core.strategyEngine.overallPhase,
+        overallPhaseLabel: core.strategyEngine.overallPhaseLabel,
+        attackPercent: core.strategyEngine.attackPercent,
+        defensePercent: core.strategyEngine.defensePercent,
+        topClaimIds: core.canonical.claimIds.slice(0, 8),
+        topCautionSignalIds: core.canonical.cautions.slice(0, 8),
+        counselorEvidence,
+        quality: {
+          score: core.quality.score,
+          grade: core.quality.grade,
+          warnings: core.quality.warnings.slice(0, 8),
+        },
+      },
+      globalConflictPolicy: semantics.globalConflictPolicy,
+      lowConfidencePolicy: semantics.lowConfidencePolicy,
     }
   } catch (error) {
-    logger.warn('[chat-stream] Matrix snapshot fetch failed', {
+    logger.warn('[chat-stream] Matrix snapshot build failed', {
       error: error instanceof Error ? error.message : String(error),
     })
     return null
@@ -1264,11 +1574,12 @@ export async function POST(req: NextRequest) {
       recentSessionSummaries,
       lang
     )
-    const matrixSnapshot = await fetchMatrixSnapshot(req, {
+    const matrixSnapshot = await fetchMatrixSnapshot({
       birthDate: effectiveBirthDate,
       birthTime: effectiveBirthTime,
       gender: effectiveGender,
       lang,
+      saju: finalSaju,
       astro: finalAstro,
       natalChartData,
       advancedAstro: enrichedAdvancedAstro,

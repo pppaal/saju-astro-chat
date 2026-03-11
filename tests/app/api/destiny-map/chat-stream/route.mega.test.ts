@@ -143,6 +143,7 @@ vi.mock('@/lib/validation', () => ({
 vi.mock('@/lib/logger', () => ({
   logger: {
     debug: vi.fn(),
+    info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
   },
@@ -242,6 +243,7 @@ import { loadPersonaMemory } from '@/app/api/destiny-map/chat-stream/lib'
 import { loadUserProfile } from '@/app/api/destiny-map/chat-stream/lib/profileLoader'
 import { validateDestinyMapRequest } from '@/app/api/destiny-map/chat-stream/lib/validation'
 import { calculateChartData } from '@/app/api/destiny-map/chat-stream/lib/chart-calculator'
+import * as destinyMatrixModule from '@/lib/destiny-matrix'
 import {
   buildContextSections,
   buildPredictionSection,
@@ -1222,81 +1224,34 @@ describe('/api/destiny-map/chat-stream POST - Theme Context', () => {
   })
 
   it('should inject matrix core phase/claims/caution into prompt when matrix snapshot is available', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response(
-        JSON.stringify({
-          success: true,
-          summary: {
-            totalScore: 88,
-            finalScoreAdjusted: 82,
-            confidenceScore: 0.71,
-            drivers: ['career expansion'],
-            cautions: ['communication recheck'],
-            calendarSignals: ['Peak Convergence Window'],
-            overlapTimeline: ['2026-03'],
-            domainScores: { career: 81, love: 63, money: 76, health: 66 },
-          },
-          highlights: {
-            strengths: [{ layer: 6, keyword: 'career peak', score: 10 }],
-            cautions: [{ layer: 5, keyword: 'communication caution', score: 4 }],
-          },
-          synergies: ['growth + verification'],
-          semantics: {
-            globalConflictPolicy: 'No conflict between recommendation and caution',
-            lowConfidencePolicy: 'Prefer recheck steps',
-            layers: [],
-          },
-          layerThemeProfiles: [],
-          core: {
-            coreHash: 'abc123corehash',
-            overallPhase: 'expansion_guarded',
-            overallPhaseLabel: 'Expansion Guarded',
-            attackPercent: 64,
-            defensePercent: 36,
-            topClaimIds: ['CLM_CAREER_EXPANSION_001', 'CLM_WEALTH_WINDOW_001'],
-            topCautionSignalIds: ['L5:chung:opposition'],
-            quality: { score: 95, grade: 'A', warnings: [] },
-          },
-        }),
-        {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        }
-      ) as any
+    const req = createNextRequest({
+      ...createBasicRequest(),
+      theme: 'career',
+    })
+
+    await POST(req)
+
+    expect(apiClient.postSSEStream).toHaveBeenCalledWith(
+      '/ask-stream',
+      expect.objectContaining({
+        prompt: expect.stringContaining('core_phase='),
+      }),
+      expect.any(Object)
     )
-
-    try {
-      const req = createNextRequest({
-        ...createBasicRequest(),
-        theme: 'career',
-      })
-
-      await POST(req)
-
-      expect(apiClient.postSSEStream).toHaveBeenCalledWith(
-        '/ask-stream',
-        expect.objectContaining({
-          prompt: expect.stringContaining('core_phase=Expansion Guarded(64/36)'),
-        }),
-        expect.any(Object)
-      )
-      expect(apiClient.postSSEStream).toHaveBeenCalledWith(
-        '/ask-stream',
-        expect.objectContaining({
-          prompt: expect.stringContaining('core_claim_ids=CLM_CAREER_EXPANSION_001'),
-        }),
-        expect.any(Object)
-      )
-      expect(apiClient.postSSEStream).toHaveBeenCalledWith(
-        '/ask-stream',
-        expect.objectContaining({
-          prompt: expect.stringContaining('core_caution_signal_ids=L5:chung:opposition'),
-        }),
-        expect.any(Object)
-      )
-    } finally {
-      fetchSpy.mockRestore()
-    }
+    expect(apiClient.postSSEStream).toHaveBeenCalledWith(
+      '/ask-stream',
+      expect.objectContaining({
+        prompt: expect.stringContaining('core_claim_ids='),
+      }),
+      expect.any(Object)
+    )
+    expect(apiClient.postSSEStream).toHaveBeenCalledWith(
+      '/ask-stream',
+      expect.objectContaining({
+        prompt: expect.stringContaining('core_caution_signal_ids='),
+      }),
+      expect.any(Object)
+    )
   })
 
   it('should include theme context in prompt for love theme', async () => {
@@ -1398,9 +1353,11 @@ describe('/api/destiny-map/chat-stream POST - Matrix Strict Mode', () => {
       context: { userId: 'user123', refundCreditsOnError },
       error: null,
     } as any)
-    const fetchSpy = vi
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce(new Response('unavailable', { status: 503 }) as any)
+    const matrixSpy = vi
+      .spyOn(destinyMatrixModule, 'calculateDestinyMatrix')
+      .mockImplementationOnce(() => {
+        throw new Error('matrix unavailable')
+      })
 
     try {
       const req = createNextRequest(createBasicRequest())
@@ -1413,14 +1370,18 @@ describe('/api/destiny-map/chat-stream POST - Matrix Strict Mode', () => {
       expect(apiClient.postSSEStream).not.toHaveBeenCalled()
       expect(refundCreditsOnError).toHaveBeenCalledTimes(1)
     } finally {
-      fetchSpy.mockRestore()
+      matrixSpy.mockRestore()
       delete process.env.COUNSELOR_STRICT_MATRIX
     }
   })
 
   it('should keep best-effort mode when strict mode is disabled', async () => {
     process.env.COUNSELOR_STRICT_MATRIX = 'false'
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('matrix down'))
+    const matrixSpy = vi
+      .spyOn(destinyMatrixModule, 'calculateDestinyMatrix')
+      .mockImplementationOnce(() => {
+        throw new Error('matrix unavailable')
+      })
 
     try {
       const req = createNextRequest(createBasicRequest())
@@ -1428,7 +1389,7 @@ describe('/api/destiny-map/chat-stream POST - Matrix Strict Mode', () => {
 
       expect(apiClient.postSSEStream).toHaveBeenCalledTimes(1)
     } finally {
-      fetchSpy.mockRestore()
+      matrixSpy.mockRestore()
       delete process.env.COUNSELOR_STRICT_MATRIX
     }
   })
