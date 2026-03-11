@@ -89,6 +89,8 @@ type ActionPlanCacheEntry = {
   insights: ActionPlanInsights | null
 }
 
+type SanitizedSlotType = NonNullable<AiTimelineSlot['slotTypes']>[number]
+
 const SLOT_TYPE_LABELS_KO: Record<string, string> = {
   deepWork: '집중',
   decision: '결정',
@@ -106,6 +108,20 @@ const SLOT_TYPE_LABELS_EN: Record<string, string> = {
   relationship: 'Relationship',
   recovery: 'Recovery',
 }
+
+const SLOT_TYPE_VALUES = [
+  'deepWork',
+  'decision',
+  'communication',
+  'money',
+  'relationship',
+  'recovery',
+] as const satisfies ReadonlyArray<SanitizedSlotType>
+
+const SLOT_TYPE_KEYS = new Set<SanitizedSlotType>(SLOT_TYPE_VALUES)
+
+const isSanitizedSlotType = (value: string): value is SanitizedSlotType =>
+  SLOT_TYPE_KEYS.has(value as SanitizedSlotType)
 
 const WHY_PATTERN_LABELS_KO: Record<string, string> = {
   speed_up_validation_down: '속도↑ 검증↓',
@@ -544,6 +560,18 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     }
   }, [])
 
+  const stripControlChars = useCallback((value: string) => {
+    if (!value) return ''
+    return value.replace(/[\u0000-\u001F\u007F]/g, ' ')
+  }, [])
+
+  const shouldDecodeLatin1 = useCallback((value: string) => {
+    if (!value) return false
+    if (/[가-힣\u3040-\u30ff\u3400-\u9fff]/.test(value)) return false
+    const latinExtendedCount = (value.match(/[\u00C0-\u00FF]/g) || []).length
+    return latinExtendedCount >= 2
+  }, [])
+
   const isUnreadableText = useCallback((value: string) => {
     if (!value) return true
     if (value.includes('\uFFFD')) return true
@@ -558,12 +586,14 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       if (!value) return fallback
       let current = value
       for (let pass = 0; pass < 3; pass++) {
-        const repaired = repairMojibakeText(current)
+        const repaired = stripControlChars(repairMojibakeText(current))
         const decodedUnicode = decodeUnicodeEscapes(repaired)
         const decodedTokens = decodeBareUnicodeTokens(decodedUnicode)
-        const stripped = stripMatrixDomainText(decodedTokens)
-        const latinDecoded = decodeUtf8FromLatin1(stripped)
-        current = stripMatrixDomainText(latinDecoded).replace(/\s+/g, ' ').trim()
+        const stripped = stripMatrixDomainText(stripControlChars(decodedTokens))
+        const latinDecoded = shouldDecodeLatin1(stripped)
+          ? decodeUtf8FromLatin1(stripped)
+          : stripped
+        current = stripMatrixDomainText(stripControlChars(latinDecoded)).replace(/\s+/g, ' ').trim()
         if (!isUnreadableText(current)) {
           return current
         }
@@ -575,6 +605,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       decodeUnicodeEscapes,
       decodeUtf8FromLatin1,
       isUnreadableText,
+      shouldDecodeLatin1,
+      stripControlChars,
       stripMatrixDomainText,
     ]
   )
@@ -757,7 +789,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         const slotTypes = Array.isArray(slotTypesRaw)
           ? slotTypesRaw
               .map((type) => (typeof type === 'string' ? cleanText(type, '') : ''))
-              .filter(Boolean)
+              .filter(isSanitizedSlotType)
               .slice(0, 2)
           : undefined
         const whyRaw = (item as { why?: unknown }).why
@@ -811,12 +843,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           minute,
           note,
           tone,
-          slotTypes:
-            slotTypes && slotTypes.length > 0
-              ? (slotTypes as Array<
-                  'deepWork' | 'decision' | 'communication' | 'money' | 'relationship' | 'recovery'
-                >)
-              : undefined,
+          slotTypes: slotTypes && slotTypes.length > 0 ? slotTypes : undefined,
           why:
             whySummary || (whySignalIds && whySignalIds.length > 0)
               ? {
@@ -1183,10 +1210,15 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         logger.warn('[ActionPlan] AI timeline failed', {
           error: error instanceof Error ? error.message : String(error),
         })
-        setAiSummary(null)
+        setAiTimeline(null)
+        setAiSummary(
+          isKo
+            ? '정밀 생성이 일시 실패해 규칙 기반 플랜으로 표시합니다.'
+            : 'Precision generation failed temporarily. Showing rule-based plan.'
+        )
         setAiInsights(null)
-        setAiPrecisionMode(null)
-        setAiStatus('error')
+        setAiPrecisionMode('rule-fallback')
+        setAiStatus('ready')
       }
     },
     [
@@ -1194,6 +1226,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       baseInfo,
       buildAiPayload,
       cleanText,
+      isKo,
       profileReady,
       sanitizeAiInsights,
       sanitizeAiTimeline,
@@ -1315,20 +1348,10 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     const defaultActions = isKo
       ? CATEGORY_ACTIONS[defaultCategory].day.ko
       : CATEGORY_ACTIONS[defaultCategory].day.en
-    const baseSignal = isKo
-      ? '사주 일진 + 점성 트랜짓 공통 신호'
-      : 'Saju daily-pillar + astrology transit overlap'
-    const sajuPrimary = cleanText(baseInfo?.sajuFactors?.[0], '')
-    const astroPrimary = cleanText(baseInfo?.astroFactors?.[0], '')
     const defaultActionByHour = (hour: number) => {
       if (hour < 12) return defaultActions[0]
       if (hour < 18) return defaultActions[1] ?? defaultActions[0]
       return defaultActions[2] ?? defaultActions[0]
-    }
-    const defaultEvidenceByHour = (hour: number) => {
-      const primary = hour < 12 ? sajuPrimary : astroPrimary || sajuPrimary
-      if (!primary) return baseSignal
-      return `${baseSignal}: ${primary}`
     }
     const baselineConfidence =
       typeof baseInfo?.evidence?.confidence === 'number'
@@ -1352,7 +1375,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         note: defaultNote,
         tone: 'neutral' as 'neutral' | 'best' | 'caution',
         badge: null as string | null,
-        evidenceSummary: [cleanText(defaultEvidenceByHour(hour), baseSignal)],
+        evidenceSummary: undefined,
         confidence: baselineConfidence,
       }
     })
@@ -1546,8 +1569,6 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     slots.forEach((slot) => {
       if (slot.tone === 'best') {
         slot.badge = isKo ? '최적' : 'Best'
-      } else if (slot.tone === 'caution') {
-        slot.badge = isKo ? '주의' : 'Caution'
       } else {
         slot.badge = null
       }
@@ -1562,7 +1583,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         .map((line) => cleanText(line, ''))
         .filter(Boolean)
         .slice(0, 2)
-      if (!slot.evidenceSummary.length) {
+      if (!slot.evidenceSummary.length && slot.tone !== 'neutral') {
         slot.evidenceSummary = [
           isKo
             ? '사주 일진 + 점성 트랜짓 기본 신호'
@@ -1580,7 +1601,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           slot.slotTypes = ['communication']
         }
       }
-      if (!slot.guardrail) {
+      if (!slot.guardrail && slot.tone !== 'neutral') {
         slot.guardrail =
           slot.tone === 'caution'
             ? isKo
@@ -1590,12 +1611,12 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
               ? '실행 전 성공 조건 1줄 먼저 작성'
               : 'Write one success condition before execution.'
       }
-      if (!slot.whySummary) {
+      if (!slot.whySummary && slot.tone !== 'neutral') {
         slot.whySummary = isKo
           ? '오늘 신호 균형을 기준으로 슬롯별 강약을 나눠 운영합니다.'
           : 'Operate each slot based on today signal balance.'
       }
-      if (!slot.whyPatterns?.length) {
+      if (!slot.whyPatterns?.length && slot.tone !== 'neutral') {
         slot.whyPatterns = ['signal_balance']
       }
       if (typeof slot.confidence !== 'number') {
@@ -1606,7 +1627,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       } else {
         slot.confidence = clampConfidence(slot.confidence)
       }
-      if (!slot.confidenceReason?.length) {
+      if (!slot.confidenceReason?.length && slot.tone !== 'neutral') {
         slot.confidenceReason =
           slot.tone === 'caution'
             ? [isKo ? '리스크 구간' : 'Risk window']
