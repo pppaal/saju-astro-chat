@@ -119,6 +119,8 @@ const MITIGATION_REGEX =
   /전|재확인|점검|검토|보류|미루|분리|하지\s*말|avoid|before|recheck|verify|defer|hold/i
 const RECOMMENDATION_TONE_REGEX =
   /하세요|하십시오|권장|추천|진행|실행|하라|해야|권합니다|recommended|recommend|should|must|do this|proceed/i
+const USER_FACING_NOISE_REGEX =
+  /(snapshot_|astrologysnapshot|sajusnapshot|crosssnapshot|스냅샷\s*키|해당\s*스냅샷|array\(|object\(|COV:|I\d+:|L\d+:|crossEvidenceSets|graphRAG|graphrag|matrix_)/i
 
 function recordRewriteModeMetric(
   reportType: 'comprehensive' | 'timing' | 'themed',
@@ -1211,7 +1213,99 @@ function ensureLongSectionNarrative(base: string, minChars: number, extras: stri
     if (out.includes(extra)) continue
     out = `${out} ${extra}`.replace(/\s{2,}/g, ' ').trim()
   }
-  return out
+  return dedupeNarrativeSentences(out)
+}
+
+function sentenceKey(text: string): string {
+  return text
+    .replace(/\s+/g, '')
+    .replace(/[^\p{L}\p{N}]/gu, '')
+    .slice(0, 72)
+    .toLowerCase()
+}
+
+function dedupeNarrativeSentences(text: string): string {
+  if (!text) return ''
+  const raw = text
+    .replace(/\s{2,}/g, ' ')
+    .split(/(?<=[.!?]|다\.)\s+/u)
+    .map((line) => line.trim())
+    .filter(Boolean)
+  if (raw.length <= 1) return text
+  const seen = new Set<string>()
+  const kept: string[] = []
+  for (const sentence of raw) {
+    const key = sentenceKey(sentence)
+    if (!key) continue
+    if (seen.has(key)) continue
+    seen.add(key)
+    kept.push(sentence)
+  }
+  return kept
+    .join(' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+}
+
+function sanitizeUserFacingNarrative(text: string): string {
+  const normalized = String(text || '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+  if (!normalized) return normalized
+  const sentences = splitSentences(normalized)
+    .map((s) => String(s || '').trim())
+    .filter(Boolean)
+  if (sentences.length === 0) return normalized
+  const filtered = sentences.filter((sentence) => !USER_FACING_NOISE_REGEX.test(sentence))
+  const base = filtered.length >= Math.min(3, sentences.length) ? filtered : sentences
+  const cleaned = base
+    .map((sentence) =>
+      sentence
+        .replace(USER_FACING_NOISE_REGEX, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim()
+    )
+    .filter(Boolean)
+    .join(' ')
+    .replace(/(2주 실행 3단계:)\s*\1/g, '$1')
+    .replace(/(Main:)\s*(Main:)/g, '$1')
+    .replace(/(Alt:)\s*(Alt:)/g, '$1')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+  return dedupeNarrativeSentences(cleaned)
+}
+
+function formatNarrativeParagraphs(text: string, lang: 'ko' | 'en'): string {
+  const normalized = String(text || '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+  if (!normalized) return normalized
+  const sentences = splitSentences(normalized)
+    .map((s) => String(s || '').trim())
+    .filter(Boolean)
+  if (sentences.length <= 4) return normalized
+  const groupSize = lang === 'ko' ? 3 : 2
+  const chunks: string[] = []
+  for (let i = 0; i < sentences.length; i += groupSize) {
+    chunks.push(sentences.slice(i, i + groupSize).join(' '))
+  }
+  return chunks
+    .join('\n\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
+function sanitizeComprehensiveSectionsForUser(
+  sections: Record<string, unknown>
+): Record<string, unknown> {
+  const next = { ...sections }
+  for (const key of COMPREHENSIVE_SECTION_KEYS) {
+    const current = String(next[key] || '').trim()
+    if (!current) continue
+    const cleaned = sanitizeUserFacingNarrative(current)
+    next[key] = formatNarrativeParagraphs(cleaned, 'ko')
+  }
+  return next
 }
 
 function normalizeDeterministicLine(line: string): string {
@@ -1227,12 +1321,16 @@ function collectNarrativeSupplementsFromBlocks(
   lang: 'ko' | 'en'
 ): string[] {
   if (!blocks || blocks.length === 0) return []
+  const NOISY_FRAGMENT_REGEX =
+    /(snapshot_|astrologysnapshot|sajusnapshot|crosssnapshot|스냅샷|=object\(|array\(|COV:|I\d+:|L\d+:|EVT_|matrix_|graphrag|crossEvidenceSets|insight_\d+|근거\s*id|claimid|signalid|anchorid|레이어:|코어\s*신호|보조\s*증거)/i
   const chunks: string[] = []
   for (const block of blocks) {
     const heading = normalizeDeterministicLine(String(block.heading || ''))
     const lines = (block.bullets || [])
       .map((line) => normalizeDeterministicLine(String(line || '')))
       .filter((line) => line.length >= 14)
+      .filter((line) => !NOISY_FRAGMENT_REGEX.test(line))
+      .slice(0, 3)
     if (lines.length === 0) continue
     const composed = lines
       .join(' ')
@@ -1277,8 +1375,13 @@ function mergeComprehensiveDraftWithBlocks(
 ): AIPremiumReport['sections'] {
   const merged: AIPremiumReport['sections'] = { ...fallback }
   if (!blocksBySection) return merged
-  const minCharsPerSection = lang === 'ko' ? 1400 : 950
+  const minCharsPerSection = lang === 'ko' ? 1250 : 950
   for (const key of COMPREHENSIVE_SECTION_KEYS) {
+    const baseText = String(fallback[key] || '').trim()
+    if (lang === 'ko' && baseText.length >= 1150) {
+      merged[key] = baseText
+      continue
+    }
     const supplements = collectNarrativeSupplementsFromBlocks(blocksBySection[key], lang)
     if (supplements.length === 0) continue
     merged[key] = ensureLongSectionNarrative(fallback[key], minCharsPerSection, supplements)
@@ -1404,48 +1507,32 @@ function buildComprehensiveFallbackSections(
       ],
     }
 
-    const base = synthesisNarrative || koSections
+    const base = koSections
     return {
       introduction: ensureLongSectionNarrative(base.introduction, 900, [
-        koSections.introduction,
         ...extraBySection.introduction,
       ]),
       personalityDeep: ensureLongSectionNarrative(base.personalityDeep, 900, [
-        koSections.personalityDeep,
         ...extraBySection.personalityDeep,
       ]),
-      careerPath: ensureLongSectionNarrative(base.careerPath, 900, [
-        koSections.careerPath,
-        ...extraBySection.careerPath,
-      ]),
+      careerPath: ensureLongSectionNarrative(base.careerPath, 900, [...extraBySection.careerPath]),
       relationshipDynamics: ensureLongSectionNarrative(base.relationshipDynamics, 900, [
-        koSections.relationshipDynamics,
         ...extraBySection.relationshipDynamics,
       ]),
       wealthPotential: ensureLongSectionNarrative(base.wealthPotential, 900, [
-        koSections.wealthPotential,
         ...extraBySection.wealthPotential,
       ]),
       healthGuidance: ensureLongSectionNarrative(base.healthGuidance, 900, [
-        koSections.healthGuidance,
         ...extraBySection.healthGuidance,
       ]),
       lifeMission: ensureLongSectionNarrative(base.lifeMission, 900, [
-        koSections.lifeMission,
         ...extraBySection.lifeMission,
       ]),
       timingAdvice: ensureLongSectionNarrative(base.timingAdvice, 900, [
-        koSections.timingAdvice,
         ...extraBySection.timingAdvice,
       ]),
-      actionPlan: ensureLongSectionNarrative(base.actionPlan, 900, [
-        koSections.actionPlan,
-        ...extraBySection.actionPlan,
-      ]),
-      conclusion: ensureLongSectionNarrative(base.conclusion, 900, [
-        koSections.conclusion,
-        ...extraBySection.conclusion,
-      ]),
+      actionPlan: ensureLongSectionNarrative(base.actionPlan, 900, [...extraBySection.actionPlan]),
+      conclusion: ensureLongSectionNarrative(base.conclusion, 900, [...extraBySection.conclusion]),
     }
   }
 
@@ -2066,6 +2153,7 @@ export async function generateAIPremiumReport(
       )
     }
     sections = sanitizeSectionsByPaths(sections, sectionPaths)
+    sections = sanitizeComprehensiveSectionsForUser(sections)
 
     const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
     const keyStrengths = (matrixReport.topInsights || [])
@@ -2203,6 +2291,7 @@ export async function generateAIPremiumReport(
       )
     }
     sections = sanitizeSectionsByPaths(sections, sectionPaths)
+    sections = sanitizeComprehensiveSectionsForUser(sections)
 
     const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
     const keyStrengths = (matrixReport.topInsights || [])
