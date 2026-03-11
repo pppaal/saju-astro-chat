@@ -70,6 +70,7 @@ export interface ImportantDate {
 export interface CalendarData {
   success: boolean
   year: number
+  matrixStrictMode?: boolean
   matrixContract?: {
     coreHash?: string
     overallPhase?: string

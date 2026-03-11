@@ -16,6 +16,7 @@ import type { ChatProps, ChatPayload } from '../chat-types'
 import { scoreIcpTest } from '@/lib/icpTest/scoring'
 import { analyzePersona } from '@/lib/persona/analysis'
 import { buildCounselingBrief } from '@/lib/prompts/fortuneWithIcp'
+import { normalizeCounselorResponse } from '@/lib/counselor/responseContract'
 
 interface UseChatApiOptions {
   sessionIdRef: React.MutableRefObject<string>
@@ -303,7 +304,11 @@ export function useChatApi({
       if (!result.content) {
         flushFinalMessage(tr.noResponse)
       } else {
-        flushFinalMessage(result.content)
+        const normalizedContent = normalizeCounselorResponse(
+          result.content,
+          lang === 'ko' ? 'ko' : 'en'
+        )
+        flushFinalMessage(normalizedContent)
 
         // Set follow-up questions
         if (result.followUps.length >= CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT) {
@@ -315,7 +320,7 @@ export function useChatApi({
         }
 
         if (onSaveMessage) {
-          onSaveMessage(userText, result.content)
+          onSaveMessage(userText, normalizedContent)
         }
       }
     },

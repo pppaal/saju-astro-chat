@@ -224,12 +224,46 @@ function getReliabilityLabel(confidence: number | undefined, locale: 'ko' | 'en'
   return 'Low'
 }
 
-function softenDecisionTone(value: string, locale: 'ko' | 'en'): string {
+function normalizeSemanticKey(value: string): string {
+  if (!value) return ''
+  return value
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function dedupeDisplayLines(values: string[]): string[] {
+  const out: string[] = []
+  const keys: string[] = []
+
+  for (const value of values) {
+    const line = safeDisplayText(value, '')
+    if (!line) continue
+    const key = normalizeSemanticKey(line)
+    if (!key) continue
+
+    const hasDuplicate = keys.some((existing) => {
+      if (existing === key) return true
+      const canCompareInclusion = existing.length >= 16 && key.length >= 16
+      return canCompareInclusion && (existing.includes(key) || key.includes(existing))
+    })
+    if (hasDuplicate) continue
+
+    keys.push(key)
+    out.push(line)
+  }
+
+  return out
+}
+
+function softenDecisionTone(value: string, locale: 'ko' | 'en', lowReliability = false): string {
   const line = safeDisplayText(value)
   if (!line) return ''
 
   if (locale === 'ko') {
-    return line
+    let softened = line
       .replace(/1년에 몇 번 없는/gi, '드문 편인')
       .replace(/최고의 날/gi, '유리한 흐름')
       .replace(/완벽한 타이밍/gi, '검토 후 진행하기 좋은 타이밍')
@@ -237,12 +271,29 @@ function softenDecisionTone(value: string, locale: 'ko' | 'en'): string {
       .replace(/프로포즈/gi, '중요한 감정 표현')
       .replace(/오늘로 잡으세요/gi, '우선 검토해 보세요')
       .replace(/지금 결정/gi, '재확인 후 결정')
+
+    if (lowReliability) {
+      softened = softened
+        .replace(/최적/gi, '검토에 무난')
+        .replace(/유리/gi, '무난')
+        .replace(/적합/gi, '보수적 검토에 무난')
+        .replace(/최고조/gi, '높은 편')
+    }
+    return softened
   }
 
-  return line
+  let softened = line
     .replace(/best day/gi, 'favorable timing')
     .replace(/perfect timing/gi, 'a good time to review and act')
     .replace(/decide now/gi, 'confirm once more before deciding')
+
+  if (lowReliability) {
+    softened = softened
+      .replace(/\boptimal\b/gi, 'reasonable for cautious review')
+      .replace(/\bfavorable\b/gi, 'workable with cautious review')
+      .replace(/\bideal\b/gi, 'reasonable')
+  }
+  return softened
 }
 
 function toUserFacingEvidenceLine(
@@ -295,11 +346,6 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   const { status } = useSession()
   const WEEKDAYS = locale === 'ko' ? WEEKDAYS_KO : WEEKDAYS_EN
 
-  const normalizedBestTimes = useMemo(
-    () => (selectedDate?.bestTimes || []).map((time) => safeDisplayText(time)).filter(Boolean),
-    [selectedDate?.bestTimes]
-  )
-
   const categoryLabels = useMemo<Record<EventCategory, { ko: string; en: string }>>(
     () => ({
       wealth: { ko: '\uC7AC\uBB3C\uC6B4', en: 'Wealth' },
@@ -329,6 +375,18 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   }
   const displayScore = selectedDate?.displayScore ?? selectedDate?.score ?? 0
   const displayGrade = selectedDate?.displayGrade ?? getDisplayGradeFromScore(displayScore)
+  const reliabilityBand = getReliabilityBand(selectedDate?.evidence?.confidence)
+  const isLowReliability = reliabilityBand === 'low'
+
+  const normalizedBestTimes = useMemo(
+    () =>
+      dedupeDisplayLines(
+        (selectedDate?.bestTimes || []).map((time) =>
+          softenDecisionTone(time, locale, isLowReliability)
+        )
+      ),
+    [selectedDate?.bestTimes, locale, isLowReliability]
+  )
 
   const handleAddToCalendar = useCallback(async () => {
     if (!selectedDate || !selectedDay) return
@@ -517,26 +575,37 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     selectedDate?.title,
     locale === 'ko' ? '오늘 흐름 요약' : 'Daily flow summary'
   )
-  const safeSummary = softenDecisionTone(safeDisplayText(selectedDate?.summary, ''), locale)
+  const safeSummary = softenDecisionTone(
+    safeDisplayText(selectedDate?.summary, ''),
+    locale,
+    isLowReliability
+  )
   const safeDescription = softenDecisionTone(
     safeDisplayText(
       selectedDate?.description,
       locale === 'ko' ? '세부 설명을 불러오는 중입니다.' : 'Detailed explanation is loading.'
     ),
-    locale
+    locale,
+    isLowReliability
   )
-  const safeNarrative = softenDecisionTone(safeDisplayText(mergedTimingNarrative, ''), locale)
-  const safeWarnings = (selectedDate?.warnings || [])
-    .map((line) => softenDecisionTone(line, locale))
-    .filter(Boolean)
-  const safeRecommendations = (selectedDate?.recommendations || [])
-    .map((line) => softenDecisionTone(line, locale))
-    .filter(Boolean)
+  const safeNarrative = softenDecisionTone(
+    safeDisplayText(mergedTimingNarrative, ''),
+    locale,
+    isLowReliability
+  )
+  const safeWarnings = dedupeDisplayLines(
+    (selectedDate?.warnings || []).map((line) => softenDecisionTone(line, locale, isLowReliability))
+  )
+  const safeRecommendations = dedupeDisplayLines(
+    (selectedDate?.recommendations || []).map((line) =>
+      softenDecisionTone(line, locale, isLowReliability)
+    )
+  )
   const safeSajuFactors = (selectedDate?.sajuFactors || [])
-    .map((line) => softenDecisionTone(line, locale))
+    .map((line) => softenDecisionTone(line, locale, isLowReliability))
     .filter(Boolean)
   const safeAstroFactors = (selectedDate?.astroFactors || [])
-    .map((line) => softenDecisionTone(line, locale))
+    .map((line) => softenDecisionTone(line, locale, isLowReliability))
     .filter(Boolean)
 
   const evidenceBridges = (selectedDate?.evidence?.cross?.bridges || [])
@@ -595,7 +664,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   const quickThesis = (() => {
     if (!selectedDate) return ''
     if (matrixVerdict?.verdict) {
-      return softenDecisionTone(matrixVerdict.verdict, locale)
+      return softenDecisionTone(matrixVerdict.verdict, locale, isLowReliability)
     }
     if (locale === 'ko') {
       return `${domainLabel} 흐름은 ${unifiedDayLabel}이고, 말·약속은 한 번 더 확인하는 편이 좋습니다.`
@@ -610,9 +679,14 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         ? ['연락이나 협의를 먼저 시작해 보세요.', '중요 문서나 할 일을 1건 정리해 보세요.']
         : ['Start one outreach or coordination task.', 'Close one important document or task.']
 
+  const quickDontCandidates = dedupeDisplayLines([
+    softenDecisionTone(matrixVerdict?.guardrail || '', locale, isLowReliability),
+    ...safeWarnings,
+  ])
+
   const quickDonts =
-    [matrixVerdict?.guardrail, ...safeWarnings].filter(Boolean).slice(0, 2).length > 0
-      ? ([matrixVerdict?.guardrail, ...safeWarnings].filter(Boolean).slice(0, 2) as string[])
+    quickDontCandidates.slice(0, 2).length > 0
+      ? quickDontCandidates.slice(0, 2)
       : locale === 'ko'
         ? ['계약이나 큰 결정은 재확인 후 진행하세요.']
         : ['Recheck contracts or major decisions before finalizing.']
@@ -624,13 +698,29 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         ? ['집중 가능한 시간대 1개를 먼저 확보하세요.']
         : ['Secure one focused time block first.']
 
-  const detailInsight =
-    [
-      matrixVerdict?.topClaim ? softenDecisionTone(matrixVerdict.topClaim, locale) : '',
+  const detailInsight = (() => {
+    const candidates = dedupeDisplayLines([
+      matrixVerdict?.topClaim
+        ? softenDecisionTone(matrixVerdict.topClaim, locale, isLowReliability)
+        : '',
       safeNarrative,
-      safeSummary,
+      softenDecisionTone(safeSummary, locale, isLowReliability),
       safeDescription,
-    ].find(Boolean) || ''
+    ])
+    if (candidates.length === 0) return ''
+    const thesisKey = normalizeSemanticKey(quickThesis)
+    if (!thesisKey) return candidates[0]
+
+    const distinct = candidates.find((line) => {
+      const key = normalizeSemanticKey(line)
+      if (!key) return false
+      const canCompareInclusion = key.length >= 16 && thesisKey.length >= 16
+      if (key === thesisKey) return false
+      if (canCompareInclusion && (key.includes(thesisKey) || thesisKey.includes(key))) return false
+      return true
+    })
+    return distinct || ''
+  })()
 
   return (
     <div className={`${styles.selectedDayInfo} ${styles.largeTextMode}`}>

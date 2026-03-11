@@ -25,6 +25,17 @@ function saveRecentQuestion(question: string) {
   }
 }
 
+function removeStoredRecentQuestion(question: string) {
+  if (typeof window === 'undefined' || !question.trim()) return
+  try {
+    const recent = getRecentQuestions()
+    const updated = recent.filter((q) => q !== question)
+    localStorage.setItem(RECENT_QUESTIONS_KEY, JSON.stringify(updated))
+  } catch {
+    // ignore
+  }
+}
+
 /**
  * Hook to manage recent tarot questions in localStorage
  */
@@ -40,5 +51,10 @@ export function useRecentQuestions() {
     setRecentQuestions(getRecentQuestions())
   }
 
-  return { recentQuestions, addRecentQuestion }
+  const removeRecentQuestion = (question: string) => {
+    removeStoredRecentQuestion(question)
+    setRecentQuestions(getRecentQuestions())
+  }
+
+  return { recentQuestions, addRecentQuestion, removeRecentQuestion }
 }

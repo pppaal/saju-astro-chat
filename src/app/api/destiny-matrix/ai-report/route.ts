@@ -81,6 +81,120 @@ function calculateCreditCost(period?: ReportPeriod, theme?: ReportTheme): number
   return REPORT_CREDIT_COSTS.comprehensive
 }
 
+type StrictPatternThresholds = {
+  crossConsistencyMin: number
+  coreQualityMin: number
+  graphAnchorMin: number
+  patternCountMin: number
+}
+
+type PatternQualityGateResult = {
+  passed: boolean
+  blockers: string[]
+  metrics: {
+    crossConsistencyScore: number
+    coreQualityScore: number | null
+    graphAnchorCount: number
+    patternCount: number
+    inputReadinessScore: number
+  }
+  thresholds: StrictPatternThresholds
+}
+
+function clampNumber(value: number, min: number, max: number): number {
+  if (!Number.isFinite(value)) return min
+  return Math.max(min, Math.min(max, value))
+}
+
+function parseThreshold(
+  raw: string | undefined,
+  fallback: number,
+  min: number,
+  max: number
+): number {
+  if (!raw) return fallback
+  const parsed = Number(raw)
+  if (!Number.isFinite(parsed)) return fallback
+  return clampNumber(parsed, min, max)
+}
+
+function isEnvFlagEnabled(name: string): boolean {
+  const raw = process.env[name]?.trim().toLowerCase()
+  return raw === 'true' || raw === '1' || raw === 'yes'
+}
+
+function isHardBlockModeEnabled(): boolean {
+  // Keep strict hard-blocks active in tests, and opt-in in non-test envs.
+  if (process.env.NODE_ENV === 'test') return true
+  return isEnvFlagEnabled('AI_REPORT_ALLOW_HARD_BLOCKS')
+}
+
+function isStrictGateEnabled(name: string): boolean {
+  return isHardBlockModeEnabled() && isEnvFlagEnabled(name)
+}
+
+function isStrictPatternGuardEnabled(): boolean {
+  // Default OFF in non-test environments to avoid false-negative hard blocks.
+  return isStrictGateEnabled('AI_REPORT_STRICT_PATTERN_GUARD')
+}
+
+function getStrictPatternThresholds(): StrictPatternThresholds {
+  return {
+    crossConsistencyMin: parseThreshold(process.env.AI_REPORT_PATTERN_CROSS_MIN, 74, 0, 100),
+    coreQualityMin: parseThreshold(process.env.AI_REPORT_PATTERN_CORE_QUALITY_MIN, 68, 0, 100),
+    graphAnchorMin: parseThreshold(process.env.AI_REPORT_PATTERN_GRAPH_ANCHOR_MIN, 1, 0, 200),
+    patternCountMin: parseThreshold(process.env.AI_REPORT_PATTERN_COUNT_MIN, 1, 0, 200),
+  }
+}
+
+function evaluatePatternQualityGate(input: {
+  report: AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
+  crossConsistencyScore: number
+  inputReadinessScore: number
+  thresholds: StrictPatternThresholds
+}): PatternQualityGateResult {
+  const crossConsistencyScore = clampNumber(input.crossConsistencyScore, 0, 100)
+  const inputReadinessScore = clampNumber(input.inputReadinessScore, 0, 100)
+  const coreQualityRaw = input.report?.meta?.qualityMetrics?.coreQualityScore
+  const coreQualityScore =
+    typeof coreQualityRaw === 'number' && Number.isFinite(coreQualityRaw)
+      ? clampNumber(coreQualityRaw, 0, 100)
+      : null
+  const graphAnchorCount = Array.isArray(input.report?.graphRagEvidence?.anchors)
+    ? input.report.graphRagEvidence.anchors.length
+    : 0
+  const patternCount = Array.isArray(input.report?.patterns) ? input.report.patterns.length : 0
+  const blockers: string[] = []
+
+  if (crossConsistencyScore < input.thresholds.crossConsistencyMin) {
+    blockers.push(
+      `crossConsistency ${crossConsistencyScore.toFixed(1)} < ${input.thresholds.crossConsistencyMin}`
+    )
+  }
+  if (graphAnchorCount < input.thresholds.graphAnchorMin) {
+    blockers.push(`graphAnchors ${graphAnchorCount} < ${input.thresholds.graphAnchorMin}`)
+  }
+  if (patternCount < input.thresholds.patternCountMin) {
+    blockers.push(`patterns ${patternCount} < ${input.thresholds.patternCountMin}`)
+  }
+  if (coreQualityScore !== null && coreQualityScore < input.thresholds.coreQualityMin) {
+    blockers.push(`coreQuality ${coreQualityScore.toFixed(1)} < ${input.thresholds.coreQualityMin}`)
+  }
+
+  return {
+    passed: blockers.length === 0,
+    blockers,
+    metrics: {
+      crossConsistencyScore,
+      coreQualityScore,
+      graphAnchorCount,
+      patternCount,
+      inputReadinessScore,
+    },
+    thresholds: input.thresholds,
+  }
+}
+
 const ELEMENT_MAP: Record<string, FiveElement> = {
   목: '목',
   화: '화',
@@ -1287,7 +1401,7 @@ export const POST = withApiMiddleware(
         mergedAutoTiming,
         toOptionalRecord(requestBody.timingData)
       )
-      const strictCompleteness = process.env.NODE_ENV !== 'test'
+      const strictCompleteness = isStrictGateEnabled('AI_REPORT_STRICT_COMPLETENESS')
       const missingKeys = listAiReportMissing(matrixInput, timingData)
       if (strictCompleteness && missingKeys.length > 0) {
         return NextResponse.json(
@@ -1302,10 +1416,19 @@ export const POST = withApiMiddleware(
           { status: HTTP_STATUS.UNPROCESSABLE_ENTITY }
         )
       }
+      if (!strictCompleteness && missingKeys.length > 0) {
+        logger.warn(
+          '[destiny-matrix/ai-report] Incomplete context detected; continuing in soft mode',
+          {
+            missing: missingKeys,
+          }
+        )
+      }
 
       // 8. 기본 리포트 생성
       const inputReadinessAudit = auditMatrixInputReadiness(matrixInput)
-      if (!inputReadinessAudit.ready) {
+      const strictInputReadiness = isStrictGateEnabled('AI_REPORT_STRICT_INPUT_READINESS')
+      if (strictInputReadiness && !inputReadinessAudit.ready) {
         return NextResponse.json(
           {
             success: false,
@@ -1317,6 +1440,15 @@ export const POST = withApiMiddleware(
             },
           },
           { status: HTTP_STATUS.UNPROCESSABLE_ENTITY }
+        )
+      }
+      if (!strictInputReadiness && !inputReadinessAudit.ready) {
+        logger.warn(
+          '[destiny-matrix/ai-report] Input readiness not ideal; continuing in soft mode',
+          {
+            blockers: inputReadinessAudit.blockers,
+            score: inputReadinessAudit.score,
+          }
         )
       }
       if (inputReadinessAudit.score < 75 || inputReadinessAudit.warnings.length > 0) {
@@ -1392,6 +1524,11 @@ export const POST = withApiMiddleware(
       // 10. 리포트 타입별 분기 처리
       let aiReport: AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
       let premiumReport: AIPremiumReport | null = null
+      const reportLang = matrixInput.lang || 'ko'
+      const matrixSummaryForGeneration =
+        matrix && typeof matrix === 'object' && 'summary' in matrix
+          ? (matrix.summary as typeof matrix.summary)
+          : undefined
 
       if (theme) {
         // 테마 리포트
@@ -1403,14 +1540,11 @@ export const POST = withApiMiddleware(
           {
             name,
             birthDate,
-            lang: matrixInput.lang || 'ko',
+            lang: reportLang,
             userPlan,
             userQuestion,
             deterministicProfile,
-            matrixSummary:
-              matrix && typeof matrix === 'object' && 'summary' in matrix
-                ? (matrix.summary as typeof matrix.summary)
-                : undefined,
+            matrixSummary: matrixSummaryForGeneration,
           }
         )
         const qualityAudit = evaluateThemedReportQuality({
@@ -1420,10 +1554,11 @@ export const POST = withApiMiddleware(
               : {},
           keywords: Array.isArray(themedReport.keywords) ? themedReport.keywords : [],
           theme,
-          lang: matrixInput.lang || 'ko',
+          lang: reportLang,
         })
 
-        if (qualityAudit.shouldBlock) {
+        const strictThemeQuality = isStrictGateEnabled('AI_REPORT_STRICT_THEME_QUALITY')
+        if (strictThemeQuality && qualityAudit.shouldBlock) {
           const blockedSections = Array.from(
             new Set(qualityAudit.overclaimFindings.map((item) => item.section))
           )
@@ -1442,15 +1577,21 @@ export const POST = withApiMiddleware(
             { status: HTTP_STATUS.UNPROCESSABLE_ENTITY }
           )
         }
+        if (!strictThemeQuality && qualityAudit.shouldBlock) {
+          logger.warn(
+            '[destiny-matrix/ai-report] Theme quality gate flagged overclaim; continuing in soft mode',
+            {
+              theme,
+              findings: qualityAudit.overclaimFindings.slice(0, 5),
+            }
+          )
+        }
 
         const calculationDetails = buildCalculationDetails({
           matrixInput,
           profileContext,
           timingData,
-          matrixSummary:
-            matrix && typeof matrix === 'object' && 'summary' in matrix
-              ? (matrix.summary as typeof matrix.summary)
-              : undefined,
+          matrixSummary: matrixSummaryForGeneration,
           layerResults,
           topInsights: Array.isArray(baseReport.topInsights)
             ? (baseReport.topInsights as unknown as Array<Record<string, unknown>>)
@@ -1467,21 +1608,18 @@ export const POST = withApiMiddleware(
           name,
           birthDate,
           targetDate,
-          lang: matrixInput.lang || 'ko',
+          lang: reportLang,
           userPlan,
           userQuestion,
           deterministicProfile,
-          matrixSummary:
-            matrix && typeof matrix === 'object' && 'summary' in matrix
-              ? (matrix.summary as typeof matrix.summary)
-              : undefined,
+          matrixSummary: matrixSummaryForGeneration,
         })
       } else {
         // 기존 종합 리포트
         premiumReport = await generateAIPremiumReport(matrixInput, baseReport, {
           name,
           birthDate,
-          lang: matrixInput.lang || 'ko',
+          lang: reportLang,
           focusDomain: queryDomain as InsightDomain | undefined,
           detailLevel: detailLevel || 'detailed',
           bilingual,
@@ -1491,16 +1629,118 @@ export const POST = withApiMiddleware(
           userPlan,
           userQuestion,
           deterministicProfile,
-          matrixSummary:
-            matrix && typeof matrix === 'object' && 'summary' in matrix
-              ? (matrix.summary as typeof matrix.summary)
-              : undefined,
+          matrixSummary: matrixSummaryForGeneration,
         })
         aiReport = premiumReport
       }
 
-      const crossConsistencyAudit = auditCrossConsistency({
-        mode: theme ? 'themed' : period && period !== 'comprehensive' ? 'timing' : 'comprehensive',
+      const regenerateStrictReport = async (): Promise<{
+        aiReport: AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
+        premiumReport: AIPremiumReport | null
+      }> => {
+        if (theme) {
+          const retryThemedReport = await generateThemedReport(
+            matrixInput,
+            baseReport,
+            theme,
+            timingData,
+            {
+              name,
+              birthDate,
+              lang: reportLang,
+              userPlan,
+              userQuestion,
+              deterministicProfile,
+              deterministicOnly: true,
+              matrixSummary: matrixSummaryForGeneration,
+            }
+          )
+          const retryQualityAudit = evaluateThemedReportQuality({
+            sections:
+              retryThemedReport.sections && typeof retryThemedReport.sections === 'object'
+                ? (retryThemedReport.sections as unknown as Record<string, unknown>)
+                : {},
+            keywords: Array.isArray(retryThemedReport.keywords) ? retryThemedReport.keywords : [],
+            theme,
+            lang: reportLang,
+          })
+          if (retryQualityAudit.shouldBlock) {
+            throw new Error('QUALITY_BLOCKED_ON_STRICT_RETRY')
+          }
+          const retryCalculationDetails = buildCalculationDetails({
+            matrixInput,
+            profileContext,
+            timingData,
+            matrixSummary: matrixSummaryForGeneration,
+            layerResults,
+            topInsights: Array.isArray(baseReport.topInsights)
+              ? (baseReport.topInsights as unknown as Array<Record<string, unknown>>)
+              : [],
+          })
+          return {
+            aiReport: {
+              ...retryThemedReport,
+              qualityAudit: retryQualityAudit,
+              calculationDetails: retryCalculationDetails,
+            } as ThemedAIPremiumReport,
+            premiumReport: null,
+          }
+        }
+
+        if (period && period !== 'comprehensive') {
+          const retryTimingReport = await generateTimingReport(
+            matrixInput,
+            baseReport,
+            period,
+            timingData,
+            {
+              name,
+              birthDate,
+              targetDate,
+              lang: reportLang,
+              userPlan,
+              userQuestion,
+              deterministicProfile,
+              deterministicOnly: true,
+              matrixSummary: matrixSummaryForGeneration,
+            }
+          )
+          return {
+            aiReport: retryTimingReport,
+            premiumReport: null,
+          }
+        }
+
+        const retryPremiumReport = await generateAIPremiumReport(matrixInput, baseReport, {
+          name,
+          birthDate,
+          lang: reportLang,
+          focusDomain: queryDomain as InsightDomain | undefined,
+          detailLevel: detailLevel || 'detailed',
+          bilingual,
+          targetChars: targetChars ? Math.floor(targetChars) : undefined,
+          tone,
+          timingData,
+          userPlan,
+          userQuestion,
+          deterministicProfile,
+          deterministicOnly: true,
+          matrixSummary: matrixSummaryForGeneration,
+        })
+
+        return {
+          aiReport: retryPremiumReport,
+          premiumReport: retryPremiumReport,
+        }
+      }
+
+      const reportMode = theme
+        ? 'themed'
+        : period && period !== 'comprehensive'
+          ? 'timing'
+          : 'comprehensive'
+      let crossConsistencyAudit = auditCrossConsistency({
+        mode: reportMode,
         matrixInput,
         report: aiReport,
         graphEvidence:
@@ -1515,10 +1755,101 @@ export const POST = withApiMiddleware(
         })
       }
 
+      const strictThresholds = getStrictPatternThresholds()
+      let strictRetryAttempted = false
+      let patternQualityGate = evaluatePatternQualityGate({
+        report: aiReport,
+        crossConsistencyScore: crossConsistencyAudit.score,
+        inputReadinessScore: inputReadinessAudit.score,
+        thresholds: strictThresholds,
+      })
+
+      if (isStrictPatternGuardEnabled() && !patternQualityGate.passed) {
+        strictRetryAttempted = true
+        logger.warn('[destiny-matrix/ai-report] Pattern quality gate failed; retrying once', {
+          blockers: patternQualityGate.blockers,
+          metrics: patternQualityGate.metrics,
+          thresholds: strictThresholds,
+          reportMode,
+        })
+
+        try {
+          const retried = await regenerateStrictReport()
+          aiReport = retried.aiReport
+          premiumReport = retried.premiumReport
+        } catch (retryError) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: {
+                code: 'PATTERN_QUALITY_BLOCKED',
+                message: '패턴 품질 게이트 재생성 단계에서 기준 미달로 차단되었습니다.',
+                retryError: retryError instanceof Error ? retryError.message : String(retryError),
+                patternQualityGate: {
+                  ...patternQualityGate,
+                  strictRetryAttempted,
+                },
+                crossConsistencyAudit,
+              },
+            },
+            { status: HTTP_STATUS.UNPROCESSABLE_ENTITY }
+          )
+        }
+
+        crossConsistencyAudit = auditCrossConsistency({
+          mode: reportMode,
+          matrixInput,
+          report: aiReport,
+          graphEvidence:
+            (aiReport as AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport)
+              .graphRagEvidence || null,
+        })
+
+        patternQualityGate = evaluatePatternQualityGate({
+          report: aiReport,
+          crossConsistencyScore: crossConsistencyAudit.score,
+          inputReadinessScore: inputReadinessAudit.score,
+          thresholds: strictThresholds,
+        })
+
+        if (!patternQualityGate.passed) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: {
+                code: 'PATTERN_QUALITY_BLOCKED',
+                message:
+                  '패턴 품질 게이트 기준(교차 정합/Graph anchor/패턴 수)을 충족하지 못해 리포트 생성을 차단했습니다.',
+                patternQualityGate: {
+                  ...patternQualityGate,
+                  strictRetryAttempted,
+                },
+                crossConsistencyAudit,
+              },
+            },
+            { status: HTTP_STATUS.UNPROCESSABLE_ENTITY }
+          )
+        }
+      }
+      if (!isStrictPatternGuardEnabled() && !patternQualityGate.passed) {
+        logger.warn(
+          '[destiny-matrix/ai-report] Pattern quality gate failed; strict guard disabled, continuing',
+          {
+            blockers: patternQualityGate.blockers,
+            metrics: patternQualityGate.metrics,
+            thresholds: strictThresholds,
+          }
+        )
+      }
+
       const aiReportWithAudits = {
         ...aiReport,
         crossConsistencyAudit,
         inputReadinessAudit,
+        patternQualityGate: {
+          ...patternQualityGate,
+          strictRetryAttempted,
+        },
       }
 
       // 11. 크레딧 차감 (성공한 경우에만)

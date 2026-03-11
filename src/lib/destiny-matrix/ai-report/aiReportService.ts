@@ -87,6 +87,7 @@ import {
 import type { ReportEvidenceRef, SectionEvidenceRefs } from './evidenceRefs'
 import type { StrategyEngineResult } from './strategyEngine'
 import { THEME_DOMAIN_ONTOLOGY } from './matrixOntology'
+import { generateNarrativeSectionsFromSynthesis } from './narrativeGenerator'
 
 // Extracted modules
 import type { AIPremiumReport, AIReportGenerationOptions, AIUserPlan } from './reportTypes'
@@ -1213,6 +1214,40 @@ function ensureLongSectionNarrative(base: string, minChars: number, extras: stri
   return out
 }
 
+function normalizeDeterministicLine(line: string): string {
+  return String(line || '')
+    .replace(/^#{1,6}\s*/g, '')
+    .replace(/^[•\-*]\s*/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+}
+
+function collectNarrativeSupplementsFromBlocks(
+  blocks: DeterministicSectionBlock[] | undefined,
+  lang: 'ko' | 'en'
+): string[] {
+  if (!blocks || blocks.length === 0) return []
+  const chunks: string[] = []
+  for (const block of blocks) {
+    const heading = normalizeDeterministicLine(String(block.heading || ''))
+    const lines = (block.bullets || [])
+      .map((line) => normalizeDeterministicLine(String(line || '')))
+      .filter((line) => line.length >= 14)
+    if (lines.length === 0) continue
+    const composed = lines
+      .join(' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+    if (!composed) continue
+    if (heading) {
+      chunks.push(lang === 'ko' ? `${heading}: ${composed}` : `${heading}: ${composed}`)
+      continue
+    }
+    chunks.push(composed)
+  }
+  return [...new Set(chunks)]
+}
+
 function renderDeterministicBlocksToSectionText(
   blocks: DeterministicSectionBlock[] | undefined
 ): string {
@@ -1237,15 +1272,16 @@ function renderDeterministicBlocksToSectionText(
 
 function mergeComprehensiveDraftWithBlocks(
   fallback: AIPremiumReport['sections'],
-  blocksBySection: Record<string, DeterministicSectionBlock[]> | undefined
+  blocksBySection: Record<string, DeterministicSectionBlock[]> | undefined,
+  lang: 'ko' | 'en'
 ): AIPremiumReport['sections'] {
-  if (!blocksBySection) return fallback
   const merged: AIPremiumReport['sections'] = { ...fallback }
+  if (!blocksBySection) return merged
+  const minCharsPerSection = lang === 'ko' ? 1400 : 950
   for (const key of COMPREHENSIVE_SECTION_KEYS) {
-    const rendered = renderDeterministicBlocksToSectionText(blocksBySection[key])
-    if (rendered.length >= 160) {
-      merged[key] = ensureLongSectionNarrative(rendered, 520, [fallback[key]])
-    }
+    const supplements = collectNarrativeSupplementsFromBlocks(blocksBySection[key], lang)
+    if (supplements.length === 0) continue
+    merged[key] = ensureLongSectionNarrative(fallback[key], minCharsPerSection, supplements)
   }
   return merged
 }
@@ -1257,9 +1293,14 @@ function buildComprehensiveFallbackSections(
   lang: 'ko' | 'en',
   signalSynthesis?: SignalSynthesisResult
 ): AIPremiumReport['sections'] {
-  // Narrative synthesizer can introduce style noise and mojibake-like artifacts when source text is degraded.
-  // Keep deterministic fallback as the stable base draft, then let rewrite-only LLM polish tone safely.
-  void signalSynthesis
+  const synthesisNarrative =
+    signalSynthesis && signalSynthesis.claims.length > 0
+      ? generateNarrativeSectionsFromSynthesis({
+          lang,
+          matrixInput: input,
+          synthesis: signalSynthesis,
+        })
+      : null
   const strengths = summarizeTopInsightsByCategory(
     matrixReport,
     ['strength', 'opportunity'],
@@ -1272,6 +1313,25 @@ function buildComprehensiveFallbackSections(
     .slice(0, 2)
     .map((d) => `${d.domain}(${d.score})`)
     .join(', ')
+  const profileCtx = input.profileContext || {}
+  const profileLine =
+    lang === 'ko'
+      ? [profileCtx.birthDate, profileCtx.birthTime, profileCtx.birthCity]
+          .filter(Boolean)
+          .join(' / ')
+      : [profileCtx.birthDate, profileCtx.birthTime, profileCtx.birthCity]
+          .filter(Boolean)
+          .join(' / ')
+  const geokgukLine = input.geokguk
+    ? lang === 'ko'
+      ? `격국은 ${input.geokguk}으로 해석되며`
+      : `The frame is interpreted as ${input.geokguk},`
+    : ''
+  const yongsinLine = input.yongsin
+    ? lang === 'ko'
+      ? `용신은 ${input.yongsin} 축에 가깝습니다.`
+      : `and the useful element aligns with ${input.yongsin}.`
+    : ''
 
   if (lang === 'ko') {
     const koSections: AIPremiumReport['sections'] = {
@@ -1289,6 +1349,10 @@ function buildComprehensiveFallbackSections(
 
     const extraBySection: Record<keyof AIPremiumReport['sections'], string[]> = {
       introduction: [
+        profileLine
+          ? `기준 프로필은 ${profileLine}이며, 같은 입력에서는 같은 핵심 클레임과 같은 전략 국면이 유지됩니다.`
+          : '기준 프로필 입력이 완전할수록 섹션별 근거 밀도와 실행 정확도가 함께 올라갑니다.',
+        [geokgukLine, yongsinLine].filter(Boolean).join(' '),
         '실전에서는 “무엇을 더 할지”보다 “무엇을 오늘 안 할지”를 먼저 정하면 집중력이 살아납니다.',
         '오전에는 생산, 오후에는 검토처럼 역할을 분리하면 체감 피로 대비 성과가 좋아집니다.',
         '작은 실수 하나가 일정 전체를 흔들 수 있는 날이므로, 체크리스트 한 장이 생각보다 큰 차이를 만듭니다.',
@@ -1340,45 +1404,48 @@ function buildComprehensiveFallbackSections(
       ],
     }
 
+    const base = synthesisNarrative || koSections
     return {
-      introduction: ensureLongSectionNarrative(
+      introduction: ensureLongSectionNarrative(base.introduction, 900, [
         koSections.introduction,
-        520,
-        extraBySection.introduction
-      ),
-      personalityDeep: ensureLongSectionNarrative(
+        ...extraBySection.introduction,
+      ]),
+      personalityDeep: ensureLongSectionNarrative(base.personalityDeep, 900, [
         koSections.personalityDeep,
-        520,
-        extraBySection.personalityDeep
-      ),
-      careerPath: ensureLongSectionNarrative(koSections.careerPath, 520, extraBySection.careerPath),
-      relationshipDynamics: ensureLongSectionNarrative(
+        ...extraBySection.personalityDeep,
+      ]),
+      careerPath: ensureLongSectionNarrative(base.careerPath, 900, [
+        koSections.careerPath,
+        ...extraBySection.careerPath,
+      ]),
+      relationshipDynamics: ensureLongSectionNarrative(base.relationshipDynamics, 900, [
         koSections.relationshipDynamics,
-        520,
-        extraBySection.relationshipDynamics
-      ),
-      wealthPotential: ensureLongSectionNarrative(
+        ...extraBySection.relationshipDynamics,
+      ]),
+      wealthPotential: ensureLongSectionNarrative(base.wealthPotential, 900, [
         koSections.wealthPotential,
-        520,
-        extraBySection.wealthPotential
-      ),
-      healthGuidance: ensureLongSectionNarrative(
+        ...extraBySection.wealthPotential,
+      ]),
+      healthGuidance: ensureLongSectionNarrative(base.healthGuidance, 900, [
         koSections.healthGuidance,
-        520,
-        extraBySection.healthGuidance
-      ),
-      lifeMission: ensureLongSectionNarrative(
+        ...extraBySection.healthGuidance,
+      ]),
+      lifeMission: ensureLongSectionNarrative(base.lifeMission, 900, [
         koSections.lifeMission,
-        520,
-        extraBySection.lifeMission
-      ),
-      timingAdvice: ensureLongSectionNarrative(
+        ...extraBySection.lifeMission,
+      ]),
+      timingAdvice: ensureLongSectionNarrative(base.timingAdvice, 900, [
         koSections.timingAdvice,
-        520,
-        extraBySection.timingAdvice
-      ),
-      actionPlan: ensureLongSectionNarrative(koSections.actionPlan, 520, extraBySection.actionPlan),
-      conclusion: ensureLongSectionNarrative(koSections.conclusion, 520, extraBySection.conclusion),
+        ...extraBySection.timingAdvice,
+      ]),
+      actionPlan: ensureLongSectionNarrative(base.actionPlan, 900, [
+        koSections.actionPlan,
+        ...extraBySection.actionPlan,
+      ]),
+      conclusion: ensureLongSectionNarrative(base.conclusion, 900, [
+        koSections.conclusion,
+        ...extraBySection.conclusion,
+      ]),
     }
   }
 
@@ -1985,7 +2052,8 @@ export async function generateAIPremiumReport(
     })
     const draftSections = mergeComprehensiveDraftWithBlocks(
       fallbackSections,
-      unified.blocksBySection
+      unified.blocksBySection,
+      lang
     )
     let sections = draftSections as unknown as Record<string, unknown>
     const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
@@ -2111,7 +2179,8 @@ export async function generateAIPremiumReport(
     })
     const draftSections = mergeComprehensiveDraftWithBlocks(
       fallbackSections,
-      unified.blocksBySection
+      unified.blocksBySection,
+      lang
     )
     const rewrite = await rewriteSectionsWithFallback<AIPremiumReport['sections']>({
       lang,

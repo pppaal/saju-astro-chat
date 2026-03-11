@@ -337,6 +337,46 @@
   background: rgba(146, 64, 14, 0.52);
 }
 
+.quickStartCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.14), rgba(76, 29, 149, 0.16));
+}
+
+.quickStartHint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(226, 216, 255, 0.82);
+  line-height: 1.4;
+}
+
+.quickStartButton {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(167, 139, 250, 0.5);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quickStartButton:hover:not(:disabled) {
+  background: rgba(167, 139, 250, 0.22);
+}
+
+.quickStartButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .themeSection {
   display: flex;
   flex-direction: column;
@@ -541,6 +581,7 @@
 
 .submitButton:focus-visible,
 .clearButton:focus-visible,
+.quickStartButton:focus-visible,
 .themeQuestion:focus-visible,
 .recentItemButton:focus-visible,
 .recentDelete:focus-visible {
@@ -599,6 +640,11 @@
 
   .themeGrid {
     grid-template-columns: 1fr;
+  }
+
+  .quickStartCard {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 

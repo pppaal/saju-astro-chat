@@ -47,6 +47,11 @@ import {
   buildPredictionSection,
   buildLongTermMemorySection,
 } from './lib/context-builder'
+import {
+  assembleFinalPrompt,
+  SECTION_PRIORITIES,
+  type PromptSection,
+} from './builders/promptAssembly'
 import type { SajuDataStructure, AstroDataStructure } from './lib/types'
 import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
 
@@ -58,6 +63,13 @@ const GUEST_CHAT_RATE_LIMIT = {
   limit: 12,
   windowSeconds: 60,
 } as const
+
+function isCounselorStrictMatrixEnabled(): boolean {
+  const raw = process.env.COUNSELOR_STRICT_MATRIX?.trim().toLowerCase()
+  if (raw === 'true') return true
+  if (raw === 'false') return false
+  return process.env.NODE_ENV !== 'test'
+}
 
 type MatrixHighlight = { layer?: number; keyword?: string; score?: number }
 type MatrixSynergy = { description?: string; score?: number; layers?: number[] }
@@ -210,7 +222,7 @@ function encodeCounselorUiEvidence(
           title: '왜 이런 답변이 나왔는지',
           summary:
             topClaim ||
-            `${phase || '현재 흐름'} 기준으로 ${focus || '핵심 주제'} 해석을 우선 정렬한 답변입니다.`,
+            `${phase || '현재 흐름'} 기준으로 ${focus || '핵심 주제'}를 우선 해석한 답변입니다.`,
           bullets: [
             phase ? `현재 국면: ${phase}` : '',
             topAnchor ? `핵심 근거: ${topAnchor}` : '',
@@ -562,6 +574,84 @@ function buildTopLayers(highlights: MatrixHighlight[]): Array<{ layer: number; s
     .slice(0, 3)
 }
 
+function trimPromptBlock(content: string, maxChars: number): string {
+  if (!content) return ''
+  const cleaned = content.trim()
+  if (!cleaned) return ''
+  return cleaned.length > maxChars ? `${cleaned.slice(0, maxChars).trim()}\n...` : cleaned
+}
+
+function createPromptBlock(
+  name: string,
+  content: string,
+  priority: number,
+  maxChars: number
+): PromptSection | null {
+  const trimmed = trimPromptBlock(content, maxChars)
+  if (!trimmed) return null
+  return { name, content: trimmed, priority }
+}
+
+function firstNonEmptyBlock(...blocks: string[]): string {
+  return blocks.find((block) => block && block.trim().length > 0) || ''
+}
+
+function buildCompactPromptSections(params: {
+  contextSections: ReturnType<typeof buildContextSections>
+  longTermMemorySection: string
+  predictionSection: string
+  theme: string
+}): PromptSection[] {
+  const { contextSections, longTermMemorySection, predictionSection, theme } = params
+  const sections: Array<PromptSection | null> = []
+
+  sections.push(
+    createPromptBlock(
+      'base',
+      contextSections.v3Snapshot ? `[Saju/Astro Base]\n${contextSections.v3Snapshot}` : '',
+      SECTION_PRIORITIES.BASE_DATA,
+      1800
+    )
+  )
+
+  const timingBlock = firstNonEmptyBlock(
+    contextSections.timingScoreSection,
+    contextSections.daeunTransitSection,
+    contextSections.enhancedAnalysisSection
+  )
+  sections.push(createPromptBlock('timing', timingBlock, SECTION_PRIORITIES.TIMING, 900))
+
+  const advancedBlock = firstNonEmptyBlock(
+    contextSections.advancedAstroSection,
+    contextSections.tier4AdvancedSection
+  )
+  sections.push(createPromptBlock('advanced', advancedBlock, SECTION_PRIORITIES.TIER3_ASTRO, 900))
+
+  sections.push(
+    createPromptBlock('memory', longTermMemorySection, SECTION_PRIORITIES.PAST_ANALYSIS, 700)
+  )
+
+  sections.push(
+    createPromptBlock('prediction', predictionSection, SECTION_PRIORITIES.DATE_RECOMMENDATION, 500)
+  )
+
+  if (theme === 'life' || theme === 'year' || theme === 'month') {
+    sections.push(
+      createPromptBlock(
+        'life-trend',
+        firstNonEmptyBlock(
+          contextSections.lifePredictionSection,
+          contextSections.pastAnalysisSection
+        ),
+        SECTION_PRIORITIES.LIFE_PREDICTION,
+        700
+      )
+    )
+  }
+
+  return sections.filter((section): section is PromptSection => Boolean(section))
+}
+
 function buildMatrixProfileSection(
   snapshot: MatrixSnapshot | null,
   lang: string,
@@ -625,12 +715,13 @@ function buildMatrixProfileSection(
       `global_conflict_policy=${snapshot.globalConflictPolicy || '-'}`,
       `low_confidence_policy=${snapshot.lowConfidencePolicy || '-'}`,
       counselorEvidenceText,
-      '응답 초반에 "Matrix snapshot:" 소제목으로 2-3문장으로 요약하고, 이후 기존 사주/점성/교차 해석을 이어가세요.',
-      '테마 해석에서는 theme_focus와 domain_scores를 최우선으로 반영하세요.',
-      'core_phase/core_claim_ids/core_caution_signal_ids와 결론이 반드시 일치해야 합니다(모순 금지).',
+      'Answer the user question directly in the first 1-2 sentences.',
+      'Use matrix data as supporting evidence, not as the opening block.',
+      'Prioritize theme_focus and domain_scores in actionable guidance.',
+      'Final verdict must align with core_phase, core_claim_ids, and core_caution_signal_ids.',
       hasCommRisk
-        ? '중요: 커뮤니케이션/문서 리스크가 보이면 서명/확정/발송을 즉시 권하지 말고 재확인-검토 행동으로 제시하세요.'
-        : '중요: 추천과 주의가 서로 충돌하지 않게 작성하세요.',
+        ? 'If communication or document risk exists, avoid immediate irreversible actions.'
+        : 'Recommendations must not conflict with cautions.',
     ].join('\n')
   }
 
@@ -658,7 +749,8 @@ function buildMatrixProfileSection(
     `global_conflict_policy=${snapshot.globalConflictPolicy || '-'}`,
     `low_confidence_policy=${snapshot.lowConfidencePolicy || '-'}`,
     counselorEvidenceText,
-    'Start with a short "Matrix snapshot:" section (2-3 sentences), then continue with the existing saju/astro/cross narrative.',
+    'Answer the user question directly in the first 1-2 sentences.',
+    'Use matrix snapshot as supporting evidence, not as the opening block.',
     'Prioritize theme_focus and domain_scores in actionable advice.',
     'Keep final verdict strictly aligned with core_phase/core_claim_ids/core_caution_signal_ids (no contradictions).',
     'Follow layer_semantics axes and keep evidence -> interpretation -> action flow.',
@@ -996,7 +1088,7 @@ export async function POST(req: NextRequest) {
     } = validated
 
     // ========================================
-    // 🔄 AUTO-LOAD: Try to load birth info from user profile if missing
+    // AUTO-LOAD: Try to load birth info from user profile if missing
     // ========================================
     let effectiveBirthDate = birthDate || ''
     let effectiveBirthTime = birthTime || ''
@@ -1083,7 +1175,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ========================================
-    // 🧠 LONG-TERM MEMORY: Load PersonaMemory and recent session summaries
+    // LONG-TERM MEMORY: Load PersonaMemory and recent session summaries
     // ========================================
     let personaMemoryContext = ''
     let recentSessionSummaries = ''
@@ -1095,7 +1187,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ========================================
-    // 📊 COMPUTE CHART DATA: Saju, Astro, Transits (with caching)
+    // COMPUTE CHART DATA: Saju, Astro, Transits (with caching)
     // ========================================
     const chartResult = await calculateChartData(
       {
@@ -1150,7 +1242,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ========================================
-    // 📝 BUILD CONTEXT SECTIONS: Using modular context builder
+    // BUILD CONTEXT SECTIONS: Using modular context builder
     // ========================================
     const contextSections = buildContextSections({
       saju: finalSaju,
@@ -1183,27 +1275,53 @@ export async function POST(req: NextRequest) {
       currentTransits,
       theme,
     })
+    if (isCounselorStrictMatrixEnabled() && !matrixSnapshot) {
+      logger.error('[chat-stream] Matrix snapshot unavailable (strict mode)', {
+        userId: userId || 'guest',
+        theme,
+        lang,
+      })
+      if (context?.refundCreditsOnError) {
+        await context.refundCreditsOnError('Matrix snapshot unavailable in strict mode', {
+          route: 'destiny-map-chat-stream',
+          stage: 'matrix-snapshot',
+          strictMode: true,
+        })
+      }
+      return createErrorResponse({
+        code: ErrorCodes.INTERNAL_ERROR,
+        message:
+          lang === 'ko'
+            ? '공통 메트릭스 스냅샷을 불러오지 못해 상담을 중단했습니다. 잠시 후 다시 시도해 주세요.'
+            : 'Counseling stopped because the shared matrix snapshot is unavailable. Please try again.',
+        locale: extractLocale(req),
+        route: 'destiny-map/chat-stream',
+        headers: {
+          'X-Matrix-Strict': '1',
+          'X-Matrix-Snapshot': 'missing',
+        },
+      })
+    }
     const matrixProfileSection = buildMatrixProfileSection(matrixSnapshot, lang, theme)
     const counselorUiEvidence = encodeCounselorUiEvidence(matrixSnapshot, lang)
 
-    // Theme descriptions for context
     const themeDescriptions: Record<string, { ko: string; en: string }> = {
-      love: { ko: '연애/결혼/배우자 관련 질문', en: 'Love, marriage, partner questions' },
-      career: { ko: '직업/취업/이직/사업 관련 질문', en: 'Career, job, business questions' },
-      wealth: { ko: '재물/투자/재정 관련 질문', en: 'Money, investment, finance questions' },
-      health: { ko: '건강/체력/웰빙 관련 질문', en: 'Health, wellness questions' },
-      family: { ko: '가족/인간관계 관련 질문', en: 'Family, relationships questions' },
-      today: { ko: '오늘의 운세/조언', en: "Today's fortune and advice" },
-      month: { ko: '이번 달 운세/조언', en: "This month's fortune" },
-      year: { ko: '올해 운세/연간 예측', en: "This year's fortune" },
-      life: { ko: '인생 전반/종합 상담', en: 'Life overview, general counseling' },
+      love: { ko: '연애/배우자/관계 상담', en: 'Love, marriage, partner questions' },
+      career: { ko: '커리어/직업/이직 상담', en: 'Career, job, business questions' },
+      wealth: { ko: '재정/투자/돈 관리 상담', en: 'Money, investment, finance questions' },
+      health: { ko: '건강/회복/루틴 상담', en: 'Health, wellness questions' },
+      family: { ko: '가족/인간관계 상담', en: 'Family, relationships questions' },
+      today: { ko: '오늘 운세 상담', en: "Today's fortune and advice" },
+      month: { ko: '이번 달 운세 상담', en: "This month's fortune" },
+      year: { ko: '올해 운세 상담', en: "This year's fortune" },
+      life: { ko: '인생 총운/종합 상담', en: 'Life overview, general counseling' },
       chat: { ko: '자유 주제 상담', en: 'Free topic counseling' },
     }
     const themeDesc = themeDescriptions[theme] || themeDescriptions.chat
     const themeContext =
       lang === 'ko'
-        ? `현재 상담 테마: ${theme} (${themeDesc.ko})\n이 테마에 맞춰 답변해주세요.`
-        : `Current theme: ${theme} (${themeDesc.en})\nFocus your answer on this theme.`
+        ? `현재 상담 테마: ${theme} (${themeDesc.ko})\n질문에 먼저 답하고, 테마와 직접 관련된 근거만 사용하세요.`
+        : `Current theme: ${theme} (${themeDesc.en})\nAnswer the question first and use only theme-relevant evidence.`
 
     const fortuneIcpSection = buildFortuneWithIcpSection(counselingBrief, lang)
     const fortuneGuide = buildFortuneWithIcpOutputGuide(lang)
@@ -1213,21 +1331,30 @@ export async function POST(req: NextRequest) {
     const responseDensityContract =
       lang === 'ko'
         ? [
-            '[Response Density Contract]',
-            '- 최소 4문단 이상으로 답변하고, 문단마다 새로운 정보를 추가하세요.',
-            '- 각 문단은 최소 1개 이상의 근거를 포함하고, 같은 문장 재진술을 피하세요.',
-            '- 결론은 core phase / top claims / caution과 반드시 일치해야 합니다.',
+            '[Response Contract: Question-first]',
+            '- 첫 1~2문장에서 질문에 직접 답합니다.',
+            '- 헤더 순서를 지킵니다: "## 한 줄 결론", "## 근거", "## 실행 계획", "## 주의/재확인".',
+            '- 섹션 간 문장 반복을 금지합니다.',
+            '- 최종 결론은 core phase / claim / caution과 모순 없이 일치해야 합니다.',
+            '- 전체 길이는 650~1100자 내외를 유지합니다.',
           ].join('\n')
         : [
-            '[Response Density Contract]',
-            '- Write at least 4 paragraphs with new information per paragraph.',
-            '- Include at least one evidence item per paragraph and avoid sentence repetition.',
+            '[Response Contract: Question-first]',
+            '- Answer the user question directly within the first two sentences.',
+            '- Use headings in this exact order: "## Direct Answer", "## Evidence", "## Action Plan", "## Avoid / Recheck".',
+            '- Do not repeat sentences across sections.',
             '- Final verdict must align with core phase / top claims / cautions.',
+            '- Keep total length around 120-180 words.',
           ].join('\n')
 
-    // Build prompt - FULL analysis with all advanced engines
-    const chatPrompt = [
-      counselorSystemPrompt(lang),
+    const compactSections = buildCompactPromptSections({
+      contextSections,
+      longTermMemorySection,
+      predictionSection,
+      theme,
+    })
+
+    const baseContext = [
       fortuneGuide,
       themeDepthGuide,
       evidenceGuide,
@@ -1235,31 +1362,19 @@ export async function POST(req: NextRequest) {
       `Name: ${name || 'User'}`,
       themeContext,
       fortuneIcpSection,
-      '',
-      matrixProfileSection ? `\n${matrixProfileSection}` : '',
-      // 기본 사주/점성 데이터
-      contextSections.v3Snapshot
-        ? `[사주/점성 기본 데이터]\n${contextSections.v3Snapshot.slice(0, 3200)}`
-        : '',
-      // 🔮 고급 분석 섹션들 (모듈화된 빌더 사용)
-      contextSections.timingScoreSection ? `\n${contextSections.timingScoreSection}` : '',
-      contextSections.enhancedAnalysisSection ? `\n${contextSections.enhancedAnalysisSection}` : '',
-      contextSections.daeunTransitSection ? `\n${contextSections.daeunTransitSection}` : '',
-      contextSections.advancedAstroSection ? `\n${contextSections.advancedAstroSection}` : '',
-      contextSections.tier4AdvancedSection ? `\n${contextSections.tier4AdvancedSection}` : '',
-      contextSections.pastAnalysisSection ? `\n${contextSections.pastAnalysisSection}` : '',
-      contextSections.lifePredictionSection ? `\n${contextSections.lifePredictionSection}` : '',
-      // 🧠 장기 기억 - 이전 상담 컨텍스트
-      longTermMemorySection ? `\n${longTermMemorySection}` : '',
-      // 📊 인생 예측 컨텍스트 (프론트엔드에서 전달된 경우)
-      predictionSection ? `\n${predictionSection}` : '',
-      // 📜 대화 히스토리
-      contextSections.historyText ? `\n대화:\n${contextSections.historyText}` : '',
-      `\n질문: ${contextSections.userQuestion}`,
+      matrixProfileSection,
     ]
       .filter(Boolean)
-      .join('\n')
+      .join('\n\n')
 
+    const chatPrompt = assembleFinalPrompt({
+      systemPrompt: counselorSystemPrompt(lang),
+      baseContext,
+      memoryContext: '',
+      sections: compactSections,
+      messages: trimmedHistory.filter((m) => m.role !== 'system'),
+      userQuestion: contextSections.userQuestion,
+    })
     // Get session_id from header for RAG cache
     const sessionId = req.headers.get('x-session-id') || undefined
 

@@ -1335,6 +1335,37 @@ describe('/api/destiny-map/chat-stream POST - Theme Context', () => {
     )
   })
 
+  it('should compact prompt sections to avoid context overload in chat theme', async () => {
+    vi.mocked(buildContextSections).mockReturnValueOnce({
+      v3Snapshot: 'BASE_SNAPSHOT_BLOCK',
+      timingScoreSection: 'TIMING_BLOCK',
+      enhancedAnalysisSection: 'ENHANCED_BLOCK',
+      daeunTransitSection: 'DAEUN_BLOCK',
+      advancedAstroSection: 'ADVANCED_BLOCK',
+      tier4AdvancedSection: 'TIER4_BLOCK',
+      pastAnalysisSection: 'PAST_BLOCK_SHOULD_NOT_BE_INCLUDED',
+      lifePredictionSection: 'LIFE_BLOCK_SHOULD_NOT_BE_INCLUDED',
+      historyText: 'history',
+      userQuestion: '질문 테스트',
+    })
+
+    const req = createNextRequest({
+      ...createBasicRequest(),
+      theme: 'chat',
+    })
+
+    await POST(req)
+
+    const call = vi.mocked(apiClient.postSSEStream).mock.calls[0]
+    const payload = call[1] as { prompt: string }
+
+    expect(payload.prompt).toContain('BASE_SNAPSHOT_BLOCK')
+    expect(payload.prompt).toContain('TIMING_BLOCK')
+    expect(payload.prompt).toContain('ADVANCED_BLOCK')
+    expect(payload.prompt).not.toContain('PAST_BLOCK_SHOULD_NOT_BE_INCLUDED')
+    expect(payload.prompt).not.toContain('LIFE_BLOCK_SHOULD_NOT_BE_INCLUDED')
+  })
+
   it('should default to chat theme if invalid', async () => {
     const req = createNextRequest({
       ...createBasicRequest(),
@@ -1350,6 +1381,56 @@ describe('/api/destiny-map/chat-stream POST - Theme Context', () => {
       }),
       expect.any(Object)
     )
+  })
+})
+
+describe('/api/destiny-map/chat-stream POST - Matrix Strict Mode', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    setupDefaultMocks()
+    delete process.env.COUNSELOR_STRICT_MATRIX
+  })
+
+  it('should block when matrix snapshot is unavailable in strict mode', async () => {
+    process.env.COUNSELOR_STRICT_MATRIX = 'true'
+    const refundCreditsOnError = vi.fn().mockResolvedValue(undefined)
+    vi.mocked(initializeApiContext).mockResolvedValue({
+      context: { userId: 'user123', refundCreditsOnError },
+      error: null,
+    } as any)
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response('unavailable', { status: 503 }) as any)
+
+    try {
+      const req = createNextRequest(createBasicRequest())
+      const response = await POST(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(500)
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('INTERNAL_ERROR')
+      expect(apiClient.postSSEStream).not.toHaveBeenCalled()
+      expect(refundCreditsOnError).toHaveBeenCalledTimes(1)
+    } finally {
+      fetchSpy.mockRestore()
+      delete process.env.COUNSELOR_STRICT_MATRIX
+    }
+  })
+
+  it('should keep best-effort mode when strict mode is disabled', async () => {
+    process.env.COUNSELOR_STRICT_MATRIX = 'false'
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('matrix down'))
+
+    try {
+      const req = createNextRequest(createBasicRequest())
+      await POST(req)
+
+      expect(apiClient.postSSEStream).toHaveBeenCalledTimes(1)
+    } finally {
+      fetchSpy.mockRestore()
+      delete process.env.COUNSELOR_STRICT_MATRIX
+    }
   })
 })
 

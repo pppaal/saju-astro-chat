@@ -21,8 +21,8 @@ export type HomeCoreServiceOption = {
 export const HOME_CORE_SERVICE_OPTIONS: readonly HomeCoreServiceOption[] = [
   {
     key: 'destinyMap',
-    labelKey: 'menu.destinyMap',
-    labelFallback: 'Destiny Counselor',
+    labelKey: 'landing.homeServiceDestinyCounselor',
+    labelFallback: 'AI 상담사',
     icon: '\u{1F5FA}\uFE0F',
     path: '/destiny-counselor',
     coreKey: 'destiny-map',

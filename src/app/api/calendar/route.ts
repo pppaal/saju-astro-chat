@@ -1108,6 +1108,7 @@ export const GET = withApiMiddleware(
       type: 'yearly',
       year,
       aiEnhanced,
+      matrixStrictMode: true,
       matrixContract: calendarMatrixContract,
       birthInfo: {
         date: birthDateParam,

@@ -12,6 +12,7 @@ import {
   generateSummary,
   generateBestTimes,
   gateRecommendations,
+  applyMatrixPreformatRegrade,
   formatDateForResponse,
   fetchAIDates,
   __resetAIDatesCircuitStateForTests,
@@ -351,6 +352,12 @@ describe('Calendar Helpers', () => {
       const result = generateBestTimes(0, ['study'], 'en')
       expect(result[0]).toContain('Peak focus')
     })
+
+    it('should soften assertive best-time wording when confidence is low', () => {
+      const result = generateBestTimes(0, ['wealth'], 'en', 20)
+      expect(result[1]).toContain('Conservative investment review')
+      expect(result[1]).not.toContain('Investment decisions')
+    })
   })
 
   describe('gateRecommendations', () => {
@@ -381,6 +388,22 @@ describe('Calendar Helpers', () => {
 
       expect(result.some((line) => /계약|서명|확정/.test(line))).toBe(false)
       expect(result.some((line) => /검토|재확인|확인|요약|24시간/.test(line))).toBe(true)
+    })
+
+    it('does not force conservative fallback on generic caution with high confidence', () => {
+      const result = gateRecommendations({
+        recommendations: ['Proceed contract after checklist', 'Take rest'],
+        recommendationKeys: ['contract', 'rest'],
+        warningKeys: ['caution'],
+        confidence: 90,
+        grade: 0 as any,
+        lang: 'en',
+      })
+
+      expect(result.some((line) => /Proceed contract/i.test(line))).toBe(true)
+      expect(result.some((line) => /Review and reconfirm before committing/i.test(line))).toBe(
+        false
+      )
     })
   })
 
@@ -579,7 +602,7 @@ describe('Calendar Helpers', () => {
       expect(result.astroFactors).toContain('수성 역행')
     })
 
-    it('should translate recommendations and warnings', () => {
+    it('should use matrix-first recommendations and warnings', () => {
       const result = formatDateForResponse(
         baseDateData as any,
         'ko',
@@ -587,7 +610,8 @@ describe('Calendar Helpers', () => {
         enTranslations as any
       )
 
-      expect(result.recommendations).toContain('휴식하세요')
+      expect(result.recommendations.length).toBeGreaterThan(0)
+      expect(result.recommendations).not.toContain('휴식하세요')
       expect(result.warnings).not.toContain('주의하세요')
     })
 
@@ -681,7 +705,44 @@ describe('Calendar Helpers', () => {
       expect(result.description).not.toBe('Good description')
     })
 
-    it('should keep legacy description fallback when matrix evidence is unavailable', () => {
+    it('should sanitize matrix technical payload from summary/description', () => {
+      const result = formatDateForResponse(
+        baseDateData as any,
+        'en',
+        koTranslations as any,
+        enTranslations as any,
+        {
+          domainScores: { career: { finalScoreAdjusted: 8.1 } as any },
+          overlapTimeline: [{ month: '2025-03', overlapStrength: 0.7, peakLevel: 'high' } as any],
+          overlapTimelineByDomain: {
+            career: [{ month: '2025-03', overlapStrength: 0.7, peakLevel: 'high' } as any],
+          },
+          calendarSignals: [],
+        } as any,
+        {
+          career: {
+            focusDomain: 'career',
+            verdict: 'Matrix verdict dayMaster=금 geokguk=정재격',
+            guardrail: 'Matrix guardrail',
+            topClaims: [{ id: 'c1', text: 'Top claim yongsin=화', domain: 'career' }],
+            topAnchorSummary: 'Anchor summary profile=birthDate=1995-02-09',
+            strategyBrief: {
+              overallPhaseLabel: 'Advance',
+              attackPercent: 60,
+              defensePercent: 40,
+            },
+          },
+        } as any
+      )
+
+      expect(result.summary.length).toBeGreaterThan(0)
+      expect(result.summary).not.toContain('dayMaster=')
+      expect(result.summary).not.toContain('yongsin=')
+      expect(result.description.length).toBeGreaterThan(0)
+      expect(result.description).not.toContain('profile=')
+    })
+
+    it('should keep matrix description fallback when matrix verdict is unavailable', () => {
       const result = formatDateForResponse(
         baseDateData as any,
         'en',
@@ -689,7 +750,8 @@ describe('Calendar Helpers', () => {
         enTranslations as any
       )
 
-      expect(result.description).toBe('Good description')
+      expect(result.description).not.toBe('Good description')
+      expect(result.description).toContain('shared matrix')
     })
 
     it('should expose displayScore and debug scores when provided', () => {
@@ -771,6 +833,47 @@ describe('Calendar Helpers', () => {
       )
 
       expect(result.evidence?.crossAgreementPercent).toBe(78)
+    })
+  })
+
+  describe('applyMatrixPreformatRegrade', () => {
+    it('downgrades top-grade display when defensive phase conflicts with high grade', () => {
+      const result = applyMatrixPreformatRegrade(
+        {
+          date: '2026-03-11',
+          grade: 0,
+          score: 90,
+          displayScore: 90,
+          categories: ['career'],
+          confidence: 30,
+          crossAgreementPercent: 70,
+        } as any,
+        {
+          domainScores: { career: { finalScoreAdjusted: 5 } as any },
+          overlapTimeline: [{ month: '2026-03', overlapStrength: 0.6, peakLevel: 'high' } as any],
+          overlapTimelineByDomain: {
+            career: [{ month: '2026-03', overlapStrength: 0.6, peakLevel: 'high' } as any],
+          },
+          calendarSignals: [],
+        } as any,
+        {
+          career: {
+            focusDomain: 'career',
+            verdict: 'defensive verdict',
+            guardrail: 'guardrail',
+            topClaims: [{ id: 'c1', text: 'claim', domain: 'career' }],
+            topAnchorSummary: 'summary',
+            strategyBrief: {
+              overallPhaseLabel: '방어/재정렬 국면',
+              attackPercent: 52,
+              defensePercent: 48,
+            },
+          },
+        } as any
+      )
+
+      expect(result.grade).toBe(1)
+      expect(result.displayScore).toBe(67)
     })
   })
 })

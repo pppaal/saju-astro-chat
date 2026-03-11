@@ -32,7 +32,7 @@ export default function TarotHomePage() {
 
   // Custom hooks
   const canvasRef = useCanvasAnimation()
-  const { recentQuestions, addRecentQuestion } = useRecentQuestions()
+  const { recentQuestions, addRecentQuestion, removeRecentQuestion } = useRecentQuestions()
   const {
     previewInfo,
     dangerWarning,
@@ -56,6 +56,17 @@ export default function TarotHomePage() {
     startReading()
   }, [question, addRecentQuestion, startReading])
 
+  const handleQuickStart = useCallback(() => {
+    triggerHaptic('light')
+    const defaultQuestion = isKo
+      ? '오늘 나에게 필요한 조언은?'
+      : 'What guidance do I need right now?'
+    const seedQuestion = question.trim() || defaultQuestion
+    addRecentQuestion(seedQuestion)
+    const quick = getQuickRecommendation(seedQuestion, isKo)
+    router.push(quick.path)
+  }, [question, isKo, addRecentQuestion, router, triggerHaptic])
+
   const handleThemeQuestion = useCallback(
     (questionText: string) => {
       triggerHaptic('light')
@@ -77,21 +88,16 @@ export default function TarotHomePage() {
   )
 
   const visibleThemeExamples = useMemo(
-    () => (showAllThemes ? tarotThemeExamples : tarotThemeExamples.slice(0, 2)),
+    () => (showAllThemes ? tarotThemeExamples : tarotThemeExamples.slice(0, 1)),
     [showAllThemes]
   )
 
   const handleDeleteRecent = useCallback(
     (q: string, e: React.MouseEvent) => {
       e.stopPropagation()
-      const updated = recentQuestions.filter((item) => item !== q)
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('tarot_recent_questions', JSON.stringify(updated))
-      }
-      // Trigger re-fetch
-      window.location.reload()
+      removeRecentQuestion(q)
     },
-    [recentQuestions]
+    [removeRecentQuestion]
   )
 
   return (
@@ -166,7 +172,7 @@ export default function TarotHomePage() {
                     handleStartReading()
                   }}
                   onTouchStart={handleTouchStart}
-                  disabled={!question.trim() || isAnalyzing || !!dangerWarning || isLoadingPreview}
+                  disabled={!question.trim() || isAnalyzing || !!dangerWarning}
                   type="button"
                   aria-label={isKo ? '타로 보기' : 'Read tarot'}
                 >
@@ -210,7 +216,9 @@ export default function TarotHomePage() {
               {fallbackReason && fallbackNotice && !dangerWarning && (
                 <div className={styles.fallbackNotice} role="status" aria-live="polite">
                   <p>{fallbackNotice}</p>
-                  <span className={styles.fallbackReasonCode}>{fallbackReason}</span>
+                  {process.env.NODE_ENV !== 'production' && (
+                    <span className={styles.fallbackReasonCode}>{fallbackReason}</span>
+                  )}
                   <button
                     type="button"
                     className={styles.fallbackRetryButton}
@@ -222,6 +230,23 @@ export default function TarotHomePage() {
                 </div>
               )}
             </div>
+
+            <section className={styles.quickStartCard}>
+              <p className={styles.quickStartHint}>
+                {isKo
+                  ? '질문이 아직 없어도 바로 시작할 수 있어요.'
+                  : 'Start immediately even if you do not have a question yet.'}
+              </p>
+              <button
+                type="button"
+                className={styles.quickStartButton}
+                onClick={handleQuickStart}
+                onTouchStart={handleTouchStart}
+                disabled={isAnalyzing || !!dangerWarning}
+              >
+                {isKo ? '빠르게 시작하기' : 'Quick Start'}
+              </button>
+            </section>
 
             {/* Theme Examples */}
             <section className={styles.themeSection}>

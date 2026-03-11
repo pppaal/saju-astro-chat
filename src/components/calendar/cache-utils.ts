@@ -6,11 +6,43 @@
 import { logger } from '@/lib/logger'
 import type { BirthInfo, CalendarData, CachedCalendarData } from './types'
 
-const CACHE_VERSION = 'v3' // v7.2: matrix-first interpretation payload rollout
-const CACHE_EXPIRY_DAYS = 30 // 30일 후 만료
+const CACHE_VERSION = 'v4' // v8.0: matrix + graphrag payload refresh
+const CACHE_EXPIRY_DAYS = 30 // expires after 30 days
+
+function isCalendarCacheCompatible(data: CalendarData): boolean {
+  if (!data || typeof data !== 'object') return false
+  if (!Array.isArray(data.allDates)) return false
+
+  // For non-empty yearly payloads, require at least one matrix-linked signal.
+  // This invalidates stale cache entries created before matrix/graphrag rollout.
+  if (data.allDates.length > 0) {
+    const hasDateLevelMatrixEvidence = data.allDates.some(
+      (d) =>
+        !!d?.evidence?.matrix ||
+        !!d?.evidence?.matrixVerdict ||
+        typeof d?.displayScore === 'number' ||
+        typeof d?.displayGrade === 'number'
+    )
+
+    const hasPacketLevelGraphEvidence = !!data.matrixEvidencePackets
+      ? Object.values(data.matrixEvidencePackets).some((packet) => {
+          const totalAnchors = packet?.graphRagEvidenceSummary?.totalAnchors
+          const totalSets = packet?.graphRagEvidenceSummary?.totalSets
+          return typeof totalAnchors === 'number' || typeof totalSets === 'number'
+        })
+      : false
+
+    const hasMatrixContract = !!data.matrixContract?.coreHash
+
+    if (!hasDateLevelMatrixEvidence && !hasPacketLevelGraphEvidence && !hasMatrixContract) {
+      return false
+    }
+  }
+
+  return true
+}
 
 export function getCacheKey(birthInfo: BirthInfo, year: number, category: string): string {
-  // 생년월일+시간+장소+연도+카테고리로 고유 키 생성
   return `calendar_${birthInfo.birthDate}_${birthInfo.birthTime}_${birthInfo.birthPlace}_${year}_${category}`
 }
 
@@ -27,13 +59,16 @@ export function getCachedData(cacheKey: string): CalendarData | null {
 
     const parsed: CachedCalendarData = JSON.parse(cached)
 
-    // 버전 체크
     if (parsed.version !== CACHE_VERSION) {
       localStorage.removeItem(cacheKey)
       return null
     }
 
-    // 만료 체크 (30일)
+    if (!isCalendarCacheCompatible(parsed.data)) {
+      localStorage.removeItem(cacheKey)
+      return null
+    }
+
     const now = Date.now()
     const expiryMs = CACHE_EXPIRY_DAYS * 24 * 60 * 60 * 1000
     if (now - parsed.timestamp > expiryMs) {
@@ -72,7 +107,6 @@ export function setCachedData(
     localStorage.setItem(cacheKey, JSON.stringify(cacheData))
   } catch (err) {
     logger.error('[Cache] Failed to set cached data:', err)
-    // localStorage quota exceeded - 오래된 캐시 삭제
     try {
       clearOldCache()
       localStorage.setItem(
@@ -102,7 +136,6 @@ export function clearOldCache(): void {
     const keys = Object.keys(localStorage)
     const calendarKeys = keys.filter((k) => k.startsWith('calendar_'))
 
-    // 만료된 캐시 삭제
     calendarKeys.forEach((key) => {
       try {
         const cached = localStorage.getItem(key)
@@ -116,7 +149,6 @@ export function clearOldCache(): void {
           localStorage.removeItem(key)
         }
       } catch {
-        // 파싱 실패한 캐시는 삭제
         localStorage.removeItem(key)
       }
     })
@@ -126,7 +158,7 @@ export function clearOldCache(): void {
 }
 
 /**
- * 모든 캘린더 캐시 강제 삭제 (생년월일 변경 시 사용)
+ * Clears all calendar cache entries (use when birth profile changes).
  */
 export function clearAllCalendarCache(): void {
   if (typeof window === 'undefined') {

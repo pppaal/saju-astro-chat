@@ -913,6 +913,7 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(data).toHaveProperty('type')
       expect(data).toHaveProperty('year')
       expect(data).toHaveProperty('aiEnhanced')
+      expect(data).toHaveProperty('matrixStrictMode')
       expect(data).toHaveProperty('birthInfo')
       expect(data).toHaveProperty('summary')
       expect(data).toHaveProperty('topDates')
@@ -920,6 +921,16 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(data).toHaveProperty('badDates')
       expect(data).toHaveProperty('worstDates')
       expect(data).toHaveProperty('allDates')
+    })
+
+    it('should set matrixStrictMode to true', async () => {
+      const request = createRequest({ birthDate: '1990-01-15' })
+
+      const response = await GET(request)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.matrixStrictMode).toBe(true)
     })
 
     it('should include birthInfo with date, time, and place', async () => {

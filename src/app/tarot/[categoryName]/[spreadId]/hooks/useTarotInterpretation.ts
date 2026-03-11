@@ -11,7 +11,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { Spread, DrawnCard, DeckStyle, getCardImagePath } from '@/lib/Tarot/tarot.types'
 import { getStoredBirthDate, fetchAndSyncUserProfile } from '@/lib/userProfile'
 import { saveReading, formatReadingForSave } from '@/lib/Tarot/tarot-storage'
-import { apiFetch } from '@/lib/api'
+import { apiFetch, type ApiFetchOptions } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
 import type { InterpretationResult, ReadingResponse } from '../types'
 import type { TarotPersonalizationOptions } from './useTarotGame'
@@ -33,6 +33,68 @@ interface UseTarotInterpretationReturn {
     spreadInfo: Spread | null,
     interpretation: InterpretationResult | null
   ) => Promise<void>
+}
+
+const PRIMARY_INTERPRET_TIMEOUT_MS = 9000
+const STREAM_INTERPRET_TIMEOUT_MS = 10000
+
+class RequestTimeoutError extends Error {
+  constructor(timeoutMs: number) {
+    super(`Request timed out after ${timeoutMs}ms`)
+    this.name = 'RequestTimeoutError'
+  }
+}
+
+async function apiFetchWithTimeout(
+  url: string,
+  init: ApiFetchOptions,
+  timeoutMs: number
+): Promise<Response> {
+  const controller = new AbortController()
+  let timedOut = false
+  let timeoutId: ReturnType<typeof setTimeout> | null = null
+  const externalSignal = init.signal
+
+  const onExternalAbort = () => {
+    if (!controller.signal.aborted) {
+      controller.abort()
+    }
+  }
+
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort()
+    } else {
+      externalSignal.addEventListener('abort', onExternalAbort, { once: true })
+    }
+  }
+
+  timeoutId = setTimeout(() => {
+    timedOut = true
+    if (!controller.signal.aborted) {
+      controller.abort()
+    }
+  }, timeoutMs)
+
+  try {
+    return await apiFetch(url, {
+      ...init,
+      signal: controller.signal,
+    })
+  } catch (error) {
+    if (timedOut) {
+      throw new RequestTimeoutError(timeoutMs)
+    }
+    throw error
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+      timeoutId = null
+    }
+    if (externalSignal) {
+      externalSignal.removeEventListener('abort', onExternalAbort)
+    }
+  }
 }
 
 /**
@@ -333,12 +395,18 @@ export function useTarotInterpretation({
         sajuContext,
       }
 
-      const requestNonStreamInterpretation = async (): Promise<InterpretationResult | null> => {
-        const response = await apiFetch('/api/tarot/interpret', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody),
-        })
+      const requestNonStreamInterpretation = async (
+        timeoutMs: number
+      ): Promise<InterpretationResult | null> => {
+        const response = await apiFetchWithTimeout(
+          '/api/tarot/interpret',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody),
+          },
+          timeoutMs
+        )
 
         if (!response.ok) {
           return null
@@ -352,7 +420,7 @@ export function useTarotInterpretation({
       const shouldPreferBackendRag = true
       if (shouldPreferBackendRag) {
         try {
-          const ragResult = await requestNonStreamInterpretation()
+          const ragResult = await requestNonStreamInterpretation(PRIMARY_INTERPRET_TIMEOUT_MS)
           if (ragResult) {
             return ragResult
           }
@@ -366,11 +434,15 @@ export function useTarotInterpretation({
 
       // 1) 스트리밍 엔드포인트 시도
       try {
-        const response = await apiFetch('/api/tarot/interpret-stream', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody),
-        })
+        const response = await apiFetchWithTimeout(
+          '/api/tarot/interpret-stream',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody),
+          },
+          STREAM_INTERPRET_TIMEOUT_MS
+        )
 
         if (response.ok) {
           const contentType = response.headers.get('content-type') || ''
@@ -441,25 +513,12 @@ export function useTarotInterpretation({
         throw new Error('Stream interpretation failed')
       } catch (streamError) {
         tarotLogger.error(
-          'Streaming interpretation failed, trying non-stream fallback',
+          'Streaming interpretation failed, using local fallback',
           streamError instanceof Error ? streamError : undefined
         )
       }
 
-      // 2) 비스트리밍 폴백
-      try {
-        const fallbackResult = await requestNonStreamInterpretation()
-        if (fallbackResult) {
-          return fallbackResult
-        }
-      } catch (fallbackError) {
-        tarotLogger.error(
-          'Non-stream fallback also failed',
-          fallbackError instanceof Error ? fallbackError : undefined
-        )
-      }
-
-      // 3) Final fallback with personalized renderable copy
+      // 2) Final fallback with personalized renderable copy
       return buildPersonalizedFallback(result, userTopic, isKorean, personalizationOptions)
     },
     [categoryName, spreadId, language, session, userTopic, personalizationOptions]

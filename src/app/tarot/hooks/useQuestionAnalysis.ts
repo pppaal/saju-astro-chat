@@ -45,6 +45,56 @@ interface UseQuestionAnalysisProps {
   }
 }
 
+const PREVIEW_ANALYZE_TIMEOUT_MS = 3500
+const START_ANALYZE_TIMEOUT_MS = 5000
+const BACKGROUND_ANALYZE_TIMEOUT_MS = 4500
+
+function createTimeoutController(timeoutMs: number, externalSignal?: AbortSignal) {
+  const controller = new AbortController()
+  let timedOut = false
+  let isCleaned = false
+  let timeoutId: ReturnType<typeof setTimeout> | null = null
+
+  const onExternalAbort = () => {
+    if (!controller.signal.aborted) {
+      controller.abort()
+    }
+  }
+
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort()
+    } else {
+      externalSignal.addEventListener('abort', onExternalAbort, { once: true })
+    }
+  }
+
+  timeoutId = setTimeout(() => {
+    timedOut = true
+    if (!controller.signal.aborted) {
+      controller.abort()
+    }
+  }, timeoutMs)
+
+  const cleanup = () => {
+    if (isCleaned) return
+    isCleaned = true
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+      timeoutId = null
+    }
+    if (externalSignal) {
+      externalSignal.removeEventListener('abort', onExternalAbort)
+    }
+  }
+
+  return {
+    signal: controller.signal,
+    cleanup,
+    didTimeout: () => timedOut,
+  }
+}
+
 /**
  * Hook to handle question analysis with debounced preview and AI analysis
  */
@@ -64,7 +114,17 @@ export function useQuestionAnalysis({
   const gptDebounceRef = useRef<NodeJS.Timeout | null>(null)
   const previewRequestIdRef = useRef(0)
   const previewAbortRef = useRef<AbortController | null>(null)
+  const startAnalyzeAbortRef = useRef<AbortController | null>(null)
   const fallbackNotice = fallbackReason ? getAnalyzeFallbackNotice(fallbackReason, isKo) : null
+
+  useEffect(() => {
+    return () => {
+      if (startAnalyzeAbortRef.current) {
+        startAnalyzeAbortRef.current.abort()
+        startAnalyzeAbortRef.current = null
+      }
+    }
+  }, [])
 
   // Debounced preview logic
   useEffect(() => {
@@ -115,6 +175,10 @@ export function useQuestionAnalysis({
       const requestId = ++previewRequestIdRef.current
       gptDebounceRef.current = setTimeout(async () => {
         const abortController = new AbortController()
+        const timeoutControl = createTimeoutController(
+          PREVIEW_ANALYZE_TIMEOUT_MS,
+          abortController.signal
+        )
         previewAbortRef.current = abortController
 
         try {
@@ -122,7 +186,7 @@ export function useQuestionAnalysis({
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ question: trimmed, language }),
-            signal: abortController.signal,
+            signal: timeoutControl.signal,
           })
 
           if (requestId !== previewRequestIdRef.current) {
@@ -199,7 +263,9 @@ export function useQuestionAnalysis({
             }
           }
         } catch (error) {
-          if (error instanceof Error && error.name === 'AbortError') {
+          const isAbortError = error instanceof Error && error.name === 'AbortError'
+          const isTimeout = timeoutControl.didTimeout()
+          if (isAbortError && !isTimeout) {
             return
           }
           if (requestId !== previewRequestIdRef.current) {
@@ -209,7 +275,7 @@ export function useQuestionAnalysis({
             'GPT analysis failed:',
             error instanceof Error ? error : new Error(String(error))
           )
-          setFallbackReason('network_error')
+          setFallbackReason(isTimeout ? 'server_error' : 'network_error')
           // Failure - use keyword fallback only if quick preview wasn't already shown
           if (!fallbackResult.isKeywordMatch) {
             setPreviewInfo({
@@ -223,6 +289,7 @@ export function useQuestionAnalysis({
           if (requestId === previewRequestIdRef.current && shouldShowLoading) {
             setIsLoadingPreview(false)
           }
+          timeoutControl.cleanup()
           if (previewAbortRef.current === abortController) {
             previewAbortRef.current = null
           }
@@ -251,17 +318,23 @@ export function useQuestionAnalysis({
   // AI analysis for start reading
   const analyzeWithAI = useCallback(
     async (
-      q: string
+      q: string,
+      options?: { timeoutMs?: number; signal?: AbortSignal }
     ): Promise<{
       result: AIAnalysisResult | null
       fallbackReason: AnalyzeFallbackReason | null
       status?: number
     }> => {
+      const timeoutControl = createTimeoutController(
+        options?.timeoutMs ?? START_ANALYZE_TIMEOUT_MS,
+        options?.signal
+      )
       try {
         const response = await apiFetch('/api/tarot/analyze-question', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question: q, language }),
+          signal: timeoutControl.signal,
         })
 
         if (!response.ok) {
@@ -291,11 +364,18 @@ export function useQuestionAnalysis({
           return { result: null, fallbackReason: reason, status: response.status }
         }
       } catch (error) {
+        const isAbortError = error instanceof Error && error.name === 'AbortError'
+        const isTimeout = timeoutControl.didTimeout()
+        if (isAbortError && !isTimeout) {
+          return { result: null, fallbackReason: null }
+        }
         tarotLogger.error(
           'AI analysis failed:',
           error instanceof Error ? error : new Error(String(error))
         )
-        return { result: null, fallbackReason: 'network_error' }
+        return { result: null, fallbackReason: isTimeout ? 'server_error' : 'network_error' }
+      } finally {
+        timeoutControl.cleanup()
       }
     },
     [language]
@@ -306,6 +386,21 @@ export function useQuestionAnalysis({
     const trimmedQuestion = question.trim()
     if (!trimmedQuestion || dangerWarning) return
 
+    if (isLoadingPreview) {
+      const quickResult = getQuickRecommendation(trimmedQuestion, isKo)
+      router.push(quickResult.path)
+
+      void analyzeWithAI(trimmedQuestion, { timeoutMs: BACKGROUND_ANALYZE_TIMEOUT_MS }).then(
+        (analysisResult) => {
+          const aiPath = analysisResult.result?.path
+          if (aiPath && aiPath !== quickResult.path) {
+            router.prefetch(aiPath)
+          }
+        }
+      )
+      return
+    }
+
     // AI-verified preview can be used directly.
     if (previewInfo?.path && previewInfo.source === 'ai') {
       setFallbackReason(null)
@@ -315,23 +410,31 @@ export function useQuestionAnalysis({
 
     // Otherwise, run AI analysis
     setIsAnalyzing(true)
+    if (startAnalyzeAbortRef.current) {
+      startAnalyzeAbortRef.current.abort()
+    }
+    const startAbortController = new AbortController()
+    startAnalyzeAbortRef.current = startAbortController
 
     try {
-      const analysisResult = await analyzeWithAI(trimmedQuestion)
+      const analysisResult = await analyzeWithAI(trimmedQuestion, {
+        timeoutMs: START_ANALYZE_TIMEOUT_MS,
+        signal: startAbortController.signal,
+      })
+      if (startAnalyzeAbortRef.current !== startAbortController) {
+        return
+      }
       const aiResult = analysisResult.result
 
       if (aiResult?.isDangerous) {
         setDangerWarning(aiResult.message || '')
-        setIsAnalyzing(false)
         return
       }
 
       if (aiResult) {
         setFallbackReason(analysisResult.fallbackReason)
         setAiExplanation(aiResult.userFriendlyExplanation)
-        setTimeout(() => {
-          router.push(aiResult.path)
-        }, 500)
+        router.push(aiResult.path)
       } else {
         if (analysisResult.fallbackReason) {
           setFallbackReason(analysisResult.fallbackReason)
@@ -346,9 +449,21 @@ export function useQuestionAnalysis({
       const result = getQuickRecommendation(trimmedQuestion, isKo)
       router.push(result.path)
     } finally {
+      if (startAnalyzeAbortRef.current === startAbortController) {
+        startAnalyzeAbortRef.current = null
+      }
       setIsAnalyzing(false)
     }
-  }, [question, dangerWarning, previewInfo, router, analyzeWithAI, getQuickRecommendation, isKo])
+  }, [
+    question,
+    dangerWarning,
+    isLoadingPreview,
+    previewInfo,
+    router,
+    analyzeWithAI,
+    getQuickRecommendation,
+    isKo,
+  ])
 
   return {
     previewInfo,

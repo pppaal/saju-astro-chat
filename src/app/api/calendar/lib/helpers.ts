@@ -53,6 +53,7 @@ const COMMUNICATION_WARNING_TOKENS = [
 ]
 
 const CROSS_AGREEMENT_ALIGNMENT_THRESHOLD = 60
+const CALENDAR_MATRIX_STRICT_MODE = true
 
 const CATEGORY_PACKET_KEY: Record<string, string> = {
   career: 'career',
@@ -91,6 +92,21 @@ const CAUTION_WARNING_TOKENS = [
   '\uC7AC\uD655\uC778',
   '\uC624\uB958',
 ]
+
+const HARD_GATE_WARNING_TOKENS = [
+  ...COMMUNICATION_WARNING_TOKENS,
+  'extremecaution',
+  'danger',
+  'accident',
+  'injury',
+  'surgery',
+  'legal',
+  'dispute',
+  'eclipse',
+]
+
+const MATRIX_TECHNICAL_PAYLOAD_PATTERN =
+  /(pair=|angle=|orb=|allowed=|dayMaster=|geokguk=|yongsin=|sibsin=|daeun=|saeun=|wolun=|iljin=|currentDaeun=|currentSaeun=|currentWolun=|currentIljin=|profile=|matrix=|overlap=|orbFit=|set\s*\d+)/i
 
 const IRREVERSIBLE_RECOMMENDATION_PATTERNS = [
   /\b(sign(?:\s+now)?|finalize|confirm|book(?:ing)?|wedding|invitation|big decision|resign|launch|commit now)\b/i,
@@ -176,6 +192,35 @@ function isLowCoherenceSignal(
   return lowConfidence || lowAgreement
 }
 
+function isDefensivePhaseLabel(value: string | undefined): boolean {
+  if (!value) return false
+  return /(defensive\s*reset|stabilization|방어\/재정렬|안정화)/i.test(value)
+}
+
+function sanitizeMatrixNarrativeLine(value: string | undefined): string {
+  const original = String(value || '').trim()
+  if (!original) return ''
+
+  const cleaned = original
+    .replace(
+      /\bsibsin\s*=\s*.*?(?=,\s*(?:currentDaeun|currentSaeun|currentWolun|currentIljin|dayMaster|geokguk|yongsin|daeun|saeun|wolun|iljin|profile|matrix|overlap|pair|angle|orb|allowed|orbFit)\s*=|\||$)/gi,
+      ' '
+    )
+    .replace(
+      /\b(?:pair|angle|orb|allowed|dayMaster|geokguk|yongsin|daeun|saeun|wolun|iljin|currentDaeun|currentSaeun|currentWolun|currentIljin|profile|matrix|overlap|orbFit)\s*=\s*[^,|)\]]+/gi,
+      ' '
+    )
+    .replace(/\b[가-힣A-Za-z]+\(\d+\)\b/g, ' ')
+    .replace(/\b(?:birthDate|birthTime)\b\s*[:=]?\s*/gi, ' ')
+    .replace(/[|]+/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^[\s,;:/\-|]+|[\s,;:/\-|]+$/g, '')
+
+  if (!cleaned) return ''
+  if (MATRIX_TECHNICAL_PAYLOAD_PATTERN.test(original) && cleaned.length < 18) return ''
+  return cleaned
+}
+
 function shouldGateRecommendationSet(input: RecommendationGateInput): boolean {
   if (input.forceGate) {
     return true
@@ -197,7 +242,13 @@ function shouldGateRecommendationSet(input: RecommendationGateInput): boolean {
 
   const hasCautionFlag =
     (typeof input.grade === 'number' && input.grade >= 3) ||
-    includesToken(warningKeyBlob, CAUTION_WARNING_TOKENS)
+    includesToken(warningKeyBlob, HARD_GATE_WARNING_TOKENS)
+  const lowConfidenceOnly =
+    lowConfidence && !hasCommunicationWarning && !hasConflictLabel && !hasCautionFlag
+
+  if (lowConfidenceOnly && (input.grade ?? 4) <= 1 && !input.irreversibleKeyPresent) {
+    return false
+  }
 
   return lowConfidence || hasCommunicationWarning || hasConflictLabel || hasCautionFlag
 }
@@ -648,15 +699,32 @@ function pickBySeed<T>(seed: string, items: T[]): T {
   return items[seedNumber(seed) % items.length]
 }
 
+function normalizeTextForDedupe(value: string): string {
+  return value
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 function dedupeTexts(values: string[]): string[] {
-  const seen = new Set<string>()
   const out: string[] = []
+  const keys: string[] = []
   for (const value of values) {
     const trimmed = value.trim()
-    if (!trimmed || seen.has(trimmed)) {
+    if (!trimmed) {
       continue
     }
-    seen.add(trimmed)
+    const key = normalizeTextForDedupe(trimmed)
+    if (!key) continue
+    const hasDuplicate = keys.some((existing) => {
+      if (existing === key) return true
+      const canCompareInclusion = existing.length >= 16 && key.length >= 16
+      return canCompareInclusion && (existing.includes(key) || key.includes(existing))
+    })
+    if (hasDuplicate) continue
+    keys.push(key)
     out.push(trimmed)
   }
   return out
@@ -759,7 +827,8 @@ function getBadDayReason(
 export function generateBestTimes(
   grade: ImportanceGrade,
   categories: EventCategory[],
-  lang: 'ko' | 'en'
+  lang: 'ko' | 'en',
+  confidence?: number
 ): string[] {
   // Grade 3(안좋음), Grade 4(최악)은 시간 추천 없음
   if (grade >= 3) {
@@ -778,7 +847,8 @@ export function generateBestTimes(
       travel: ['✈️ 오전 8-10시: 출발 추천', '🚗 오후 2-4시: 이동 안전'],
       general: ['🌅 오전 10-12시: 중요한 일 처리', '🌆 오후 3-5시: 미팅/약속'],
     }
-    return times[cat] || times.general
+    const selected = times[cat] || times.general
+    return maybeSoftenBestTimes(selected, lang, confidence)
   } else {
     const times: Record<string, string[]> = {
       career: ['🌅 10am-12pm: Best for meetings', '🌆 2-4pm: Good for documents'],
@@ -789,8 +859,30 @@ export function generateBestTimes(
       travel: ['✈️ 8-10am: Best departure', '🚗 2-4pm: Safe travel'],
       general: ['🌅 10am-12pm: Important tasks', '🌆 3-5pm: Meetings'],
     }
-    return times[cat] || times.general
+    const selected = times[cat] || times.general
+    return maybeSoftenBestTimes(selected, lang, confidence)
   }
+}
+
+function maybeSoftenBestTimes(times: string[], lang: 'ko' | 'en', confidence?: number): string[] {
+  const lowConfidence = (confidence ?? 100) < EVIDENCE_CONFIDENCE_THRESHOLDS.low
+  if (!lowConfidence) return times
+
+  if (lang === 'ko') {
+    return times.map((line) =>
+      line
+        .replace(/최적/g, '검토에 무난')
+        .replace(/유리/g, '무난')
+        .replace(/적합/g, '보수적 검토에 무난')
+    )
+  }
+
+  return times.map((line) =>
+    line
+      .replace(/\bBest\b/g, 'Reasonable')
+      .replace(/\bGood\b/g, 'Workable')
+      .replace(/\bInvestment decisions\b/g, 'Conservative investment review')
+  )
 }
 
 function buildCategoryAction(
@@ -1577,10 +1669,10 @@ function attachMatrixVerdict(
     ...evidence,
     matrixVerdict: {
       focusDomain: packet.focusDomain,
-      verdict: packet.verdict,
-      guardrail: packet.guardrail,
-      topClaim: packet.topClaims[0]?.text || '',
-      topAnchorSummary: packet.topAnchorSummary,
+      verdict: sanitizeMatrixNarrativeLine(packet.verdict),
+      guardrail: sanitizeMatrixNarrativeLine(packet.guardrail),
+      topClaim: sanitizeMatrixNarrativeLine(packet.topClaims[0]?.text || ''),
+      topAnchorSummary: sanitizeMatrixNarrativeLine(packet.topAnchorSummary),
       phase: packet.strategyBrief?.overallPhaseLabel,
       attackPercent: packet.strategyBrief?.attackPercent,
       defensePercent: packet.strategyBrief?.defensePercent,
@@ -1595,10 +1687,10 @@ function buildMatrixFirstSummary(input: {
   fallbackSummary: string
 }): string {
   return dedupeTexts([
-    input.verdict || '',
-    input.topClaim || '',
-    input.topAnchorSummary || '',
-    input.fallbackSummary,
+    sanitizeMatrixNarrativeLine(input.verdict),
+    sanitizeMatrixNarrativeLine(input.topClaim),
+    sanitizeMatrixNarrativeLine(input.topAnchorSummary),
+    sanitizeMatrixNarrativeLine(input.fallbackSummary),
   ]).join(' ')
 }
 
@@ -1610,13 +1702,141 @@ function buildMatrixFirstDescription(input: {
   fallbackDescription: string
 }): string {
   const matrixPreferred = dedupeTexts([
-    input.topAnchorSummary || '',
-    input.verdict || '',
-    input.topClaim || '',
-    input.overlaySummary || '',
+    sanitizeMatrixNarrativeLine(input.topAnchorSummary),
+    sanitizeMatrixNarrativeLine(input.verdict),
+    sanitizeMatrixNarrativeLine(input.topClaim),
+    sanitizeMatrixNarrativeLine(input.overlaySummary),
   ]).join(' ')
 
-  return matrixPreferred || input.fallbackDescription
+  return matrixPreferred || sanitizeMatrixNarrativeLine(input.fallbackDescription)
+}
+
+function getMatrixDomainLabel(
+  domain: CalendarEvidence['matrix']['domain'],
+  lang: 'ko' | 'en'
+): string {
+  if (lang === 'ko') {
+    if (domain === 'career') return '커리어'
+    if (domain === 'love') return '연애'
+    if (domain === 'money') return '재정'
+    if (domain === 'health') return '건강'
+    if (domain === 'move') return '이동'
+    return '전반'
+  }
+
+  if (domain === 'career') return 'career'
+  if (domain === 'love') return 'relationship'
+  if (domain === 'money') return 'finance'
+  if (domain === 'health') return 'health'
+  if (domain === 'move') return 'mobility'
+  return 'overall'
+}
+
+function buildMatrixStrictSummaryFallback(input: {
+  lang: 'ko' | 'en'
+  evidence: CalendarEvidence
+}): string {
+  const domainLabel = getMatrixDomainLabel(input.evidence.matrix?.domain, input.lang)
+  const confidence = Math.max(0, Math.min(100, input.evidence.confidence ?? 0))
+  const peak = input.evidence.matrix?.peakLevel || 'normal'
+  const agreement = input.evidence.crossAgreementPercent
+
+  if (input.lang === 'ko') {
+    const peakText = peak === 'peak' ? '피크 구간' : peak === 'high' ? '상승 구간' : '안정 구간'
+    const confidenceText =
+      confidence >= 70
+        ? '근거 신뢰도가 높습니다.'
+        : confidence >= 40
+          ? '근거 신뢰도는 중간 수준입니다.'
+          : '근거 신뢰도가 낮아 검토 중심 운영이 안전합니다.'
+    const agreementText =
+      typeof agreement === 'number' && Number.isFinite(agreement)
+        ? `교차 정합도 ${agreement}% 기준으로 판단합니다.`
+        : ''
+    return dedupeTexts([
+      `${domainLabel} 도메인은 ${peakText}입니다.`,
+      confidenceText,
+      agreementText,
+    ]).join(' ')
+  }
+
+  const peakText =
+    peak === 'peak' ? 'peak window' : peak === 'high' ? 'rising window' : 'steady window'
+  const confidenceText =
+    confidence >= 70
+      ? 'Evidence confidence is high.'
+      : confidence >= 40
+        ? 'Evidence confidence is moderate.'
+        : 'Evidence confidence is low, so review-first execution is safer.'
+  const agreementText =
+    typeof agreement === 'number' && Number.isFinite(agreement)
+      ? `Cross-agreement reference is ${agreement}%.`
+      : ''
+  return dedupeTexts([`${domainLabel} is in a ${peakText}.`, confidenceText, agreementText]).join(
+    ' '
+  )
+}
+
+function buildMatrixStrictDescriptionFallback(input: {
+  lang: 'ko' | 'en'
+  evidence: CalendarEvidence
+  summary: string
+  guardrail?: string
+}): string {
+  const domainLabel = getMatrixDomainLabel(input.evidence.matrix?.domain, input.lang)
+  const confidence = Math.max(0, Math.min(100, input.evidence.confidence ?? 0))
+  const baseDetail =
+    input.lang === 'ko'
+      ? `${domainLabel} 영역은 공통 메트릭스 기준으로 점검-실행-재확인 순서를 유지하세요.`
+      : `In ${domainLabel}, follow a verify-execute-recheck sequence based on the shared matrix.`
+  const confidenceDetail =
+    input.lang === 'ko'
+      ? confidence < 40
+        ? '신뢰도가 낮아 확정/서명/결제는 한 번 더 검토하는 편이 안전합니다.'
+        : '신뢰도가 확보되어 우선순위 실행에 집중할 수 있습니다.'
+      : confidence < 40
+        ? 'Confidence is low, so recheck before any irreversible commitment.'
+        : 'Confidence is sufficient to focus on prioritized execution.'
+
+  return dedupeTexts([input.summary, baseDetail, confidenceDetail, input.guardrail || '']).join(' ')
+}
+
+function buildMatrixStrictRecommendations(input: {
+  lang: 'ko' | 'en'
+  evidence: CalendarEvidence
+  topClaim?: string
+  matrixRecommendations: string[]
+}): string[] {
+  const out = dedupeTexts([input.topClaim || '', ...(input.matrixRecommendations || [])]).slice(
+    0,
+    6
+  )
+  if (out.length > 0) return out
+
+  const domainLabel = getMatrixDomainLabel(input.evidence.matrix?.domain, input.lang)
+  return input.lang === 'ko'
+    ? [
+        `${domainLabel} 관련 핵심 과제 1개를 먼저 실행하세요.`,
+        '결정 전 체크리스트를 문서로 남기세요.',
+      ]
+    : [
+        `Execute one high-impact ${domainLabel} task first.`,
+        'Document a short checklist before committing.',
+      ]
+}
+
+function buildMatrixStrictWarnings(input: {
+  lang: 'ko' | 'en'
+  evidence: CalendarEvidence
+  guardrail?: string
+  matrixWarnings: string[]
+}): string[] {
+  const out = dedupeTexts([input.guardrail || '', ...(input.matrixWarnings || [])]).slice(0, 6)
+  if (out.length > 0) return out
+
+  return input.lang === 'ko'
+    ? ['공통 메트릭스 신뢰도가 낮으면 확정 행동 전 재검증이 필요합니다.']
+    : ['When shared-matrix confidence is low, re-validate before irreversible actions.']
 }
 
 function buildMatrixFirstRecommendations(input: {
@@ -1714,6 +1934,8 @@ export function applyMatrixPreformatRegrade(
     (peakLevel === 'high' && overlapStrength >= 0.6)
   if (!shouldRegrade) return date
 
+  const phaseLabel = evidenceWithVerdict.matrixVerdict?.phase || ''
+  const attackPercent = evidenceWithVerdict.matrixVerdict?.attackPercent ?? 50
   let effectiveGrade = getEffectiveGradeFromDisplayScore(displayScore)
   if (effectiveGrade === 0 && date.grade > 0) {
     const strongBestSignal = confidence >= 85 && (peakLevel === 'peak' || overlapStrength >= 0.75)
@@ -1727,13 +1949,27 @@ export function applyMatrixPreformatRegrade(
     effectiveGrade = (date.grade + 1) as ImportanceGrade
   }
 
+  const highGradePhaseConflict =
+    effectiveGrade <= 1 &&
+    isDefensivePhaseLabel(phaseLabel) &&
+    attackPercent <= 58 &&
+    confidence < EVIDENCE_CONFIDENCE_THRESHOLDS.medium
+
+  if (highGradePhaseConflict) {
+    effectiveGrade = 1
+  }
+
+  const scoreAfterPhaseAlignment = highGradePhaseConflict
+    ? Math.min(displayScore, GRADE_THRESHOLDS.grade0 - 1)
+    : displayScore
+
   return {
     ...date,
     categories: uniqueCategories,
     rawScore: date.rawScore ?? date.score,
-    adjustedScore: displayScore,
-    displayScore,
-    score: displayScore,
+    adjustedScore: scoreAfterPhaseAlignment,
+    displayScore: scoreAfterPhaseAlignment,
+    score: scoreAfterPhaseAlignment,
     grade: effectiveGrade,
   }
 }
@@ -1804,7 +2040,7 @@ export function formatDateForResponse(
     })
   }
 
-  const bestTimes = generateBestTimes(date.grade, uniqueCategories, lang)
+  const bestTimes = generateBestTimes(date.grade, uniqueCategories, lang, date.confidence)
   const recommendations = buildEnhancedRecommendations(
     date,
     uniqueCategories,
@@ -1850,7 +2086,6 @@ export function formatDateForResponse(
     ? (date.grade as ImportanceGrade)
     : getEffectiveGradeFromDisplayScore(displayScore)
   const rawScore = date.rawScore ?? date.score
-  const adjustedScore = displayScore
   const baseSummary = generateSummary(
     date.grade,
     uniqueCategories,
@@ -1862,45 +2097,77 @@ export function formatDateForResponse(
     date.date,
     date.crossAgreementPercent
   )
+  const matrixFallbackSummary = CALENDAR_MATRIX_STRICT_MODE
+    ? buildMatrixStrictSummaryFallback({
+        lang,
+        evidence: evidenceWithVerdict,
+      })
+    : baseSummary
   const finalSummary = buildMatrixFirstSummary({
     verdict: matrixVerdict?.verdict,
     topClaim: matrixVerdict?.topClaim,
     topAnchorSummary: matrixVerdict?.topAnchorSummary,
-    fallbackSummary: matrixOverlay.summary || baseSummary,
+    fallbackSummary: matrixOverlay.summary || matrixFallbackSummary,
   })
   const coherenceConfidence = date.confidence ?? evidenceWithVerdict.confidence
   const coherenceAgreement = date.crossAgreementPercent ?? evidenceWithVerdict.crossAgreementPercent
   const lowCoherence = isLowCoherenceSignal(coherenceConfidence, coherenceAgreement)
-  const forceConservativeMode = date.grade <= 1 && lowCoherence
+  const forceConservativeMode = effectiveGrade <= 1 && lowCoherence
+  const highGradePhaseConflict =
+    effectiveGrade <= 1 &&
+    isDefensivePhaseLabel(matrixVerdict?.phase) &&
+    (matrixVerdict?.attackPercent ?? 50) <= 58
 
   const defaultTitle = getTranslation(date.titleKey, translations)
   const title = forceConservativeMode
     ? lang === 'ko'
       ? '해석 갈림'
       : 'Mixed signals'
-    : defaultTitle
+    : highGradePhaseConflict
+      ? lang === 'ko'
+        ? '검토 우선의 날'
+        : 'Review-first day'
+      : defaultTitle
+  const alignedDisplayScore = highGradePhaseConflict
+    ? Math.min(displayScore, GRADE_THRESHOLDS.grade0 - 1)
+    : displayScore
+  const alignedEffectiveGrade =
+    highGradePhaseConflict && effectiveGrade === 0 ? (1 as ImportanceGrade) : effectiveGrade
+  const strictWarnings = CALENDAR_MATRIX_STRICT_MODE
+    ? buildMatrixStrictWarnings({
+        lang,
+        evidence: evidenceWithVerdict,
+        guardrail: matrixVerdict?.guardrail,
+        matrixWarnings: matrixOverlay.warnings,
+      })
+    : dedupeTexts([...warnings, ...matrixOverlay.warnings]).slice(0, 6)
   const warningsForResponse = buildMatrixFirstWarnings({
     matrixGuardrail: matrixVerdict?.guardrail,
-    baseWarnings: dedupeTexts([...warnings, ...matrixOverlay.warnings]).slice(0, 6),
+    baseWarnings: strictWarnings,
     conservativeWarning: forceConservativeMode
       ? lang === 'ko'
-        ? '커뮤니케션 오류 가능성이 있어 재확인이 필요합니다.'
+        ? '커뮤니케이션 오류 가능성이 있어 재확인이 필요합니다.'
         : 'Communication errors are more likely today. Re-check before committing.'
       : '',
   })
+  const strictRecommendations = CALENDAR_MATRIX_STRICT_MODE
+    ? buildMatrixStrictRecommendations({
+        lang,
+        evidence: evidenceWithVerdict,
+        topClaim: matrixVerdict?.topClaim,
+        matrixRecommendations: matrixOverlay.recommendations,
+      })
+    : dedupeTexts([...recommendations, ...matrixOverlay.recommendations]).slice(0, 6)
   const recommendationsForResponse = gateRecommendations({
     recommendations: buildMatrixFirstRecommendations({
       matrixTopClaim: matrixVerdict?.topClaim,
-      baseRecommendations: dedupeTexts([
-        ...recommendations,
-        ...matrixOverlay.recommendations,
-      ]).slice(0, 6),
+      baseRecommendations: strictRecommendations,
     }),
     recommendationKeys: date.recommendationKeys,
     warningKeys: date.warningKeys,
     warnings: warningsForResponse,
     confidence: evidenceWithVerdict.confidence ?? date.confidence,
-    grade: date.grade,
+    grade: alignedEffectiveGrade,
     title,
     summary: finalSummary,
     lang,
@@ -1918,7 +2185,14 @@ export function formatDateForResponse(
         verdict: matrixVerdict?.verdict,
         topClaim: matrixVerdict?.topClaim,
         overlaySummary: matrixOverlay.summary,
-        fallbackDescription: getTranslation(date.descKey, translations),
+        fallbackDescription: CALENDAR_MATRIX_STRICT_MODE
+          ? buildMatrixStrictDescriptionFallback({
+              lang,
+              evidence: evidenceWithVerdict,
+              summary: finalSummary,
+              guardrail: matrixVerdict?.guardrail,
+            })
+          : getTranslation(date.descKey, translations),
       })
   const summarizedBase = forceConservativeMode
     ? dedupeTexts([
@@ -1932,13 +2206,13 @@ export function formatDateForResponse(
 
   return normalizeMojibakePayload({
     date: date.date,
-    grade: effectiveGrade,
+    grade: alignedEffectiveGrade,
     originalGrade: date.grade,
-    score: displayScore,
+    score: alignedDisplayScore,
     rawScore,
-    adjustedScore,
-    displayScore,
-    displayGrade: effectiveGrade,
+    adjustedScore: alignedDisplayScore,
+    displayScore: alignedDisplayScore,
+    displayGrade: alignedEffectiveGrade,
     categories: uniqueCategories,
     title,
     description: finalDescription,

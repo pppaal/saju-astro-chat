@@ -246,6 +246,28 @@ const MOCK_AI_REPORT = {
   meta: { modelUsed: 'gpt-4', reportVersion: '1.0.0' },
 }
 
+const MOCK_STRICT_FAIL_REPORT = {
+  ...MOCK_AI_REPORT,
+  patterns: [],
+  graphRagEvidence: { anchors: [] },
+  meta: {
+    ...MOCK_AI_REPORT.meta,
+    qualityMetrics: { coreQualityScore: 92 },
+  },
+}
+
+const MOCK_STRICT_PASS_REPORT = {
+  ...MOCK_AI_REPORT,
+  patterns: [{ id: 'pattern-1' }],
+  graphRagEvidence: {
+    anchors: [{ section: 'overview', crossEvidenceSets: [{}] }],
+  },
+  meta: {
+    ...MOCK_AI_REPORT.meta,
+    qualityMetrics: { coreQualityScore: 92 },
+  },
+}
+
 const MOCK_TIMING_REPORT = {
   id: 'timing-report-001',
   generatedAt: '2026-01-15T10:00:00Z',
@@ -329,6 +351,14 @@ function setupSuccessfulFlow() {
 describe('POST /api/destiny-matrix/ai-report', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    delete process.env.AI_REPORT_STRICT_PATTERN_GUARD
+    delete process.env.AI_REPORT_STRICT_COMPLETENESS
+    delete process.env.AI_REPORT_STRICT_INPUT_READINESS
+    delete process.env.AI_REPORT_STRICT_THEME_QUALITY
+    delete process.env.AI_REPORT_PATTERN_CROSS_MIN
+    delete process.env.AI_REPORT_PATTERN_CORE_QUALITY_MIN
+    delete process.env.AI_REPORT_PATTERN_GRAPH_ANCHOR_MIN
+    delete process.env.AI_REPORT_PATTERN_COUNT_MIN
   })
 
   // ---- Authentication ----
@@ -443,6 +473,7 @@ describe('POST /api/destiny-matrix/ai-report', () => {
     })
 
     it('should return 422 when input readiness audit finds fatal blockers', async () => {
+      process.env.AI_REPORT_STRICT_INPUT_READINESS = 'true'
       vi.mocked(getServerSession).mockResolvedValue(MOCK_SESSION as any)
       vi.mocked(rateLimit).mockResolvedValue({ allowed: true, headers: new Headers() } as any)
       vi.mocked(getCreditBalance).mockResolvedValue(MOCK_BALANCE as any)
@@ -472,6 +503,7 @@ describe('POST /api/destiny-matrix/ai-report', () => {
       expect(data.error.code).toBe('INPUT_QUALITY_BLOCKED')
       expect(Array.isArray(data.error.blockers)).toBe(true)
       expect(generateAIPremiumReport).not.toHaveBeenCalled()
+      delete process.env.AI_REPORT_STRICT_INPUT_READINESS
     })
   })
 
@@ -747,6 +779,52 @@ describe('POST /api/destiny-matrix/ai-report', () => {
     })
   })
 
+  describe('Pattern Quality Strict Gate', () => {
+    beforeEach(() => {
+      setupSuccessfulFlow()
+      process.env.AI_REPORT_STRICT_PATTERN_GUARD = 'true'
+      process.env.AI_REPORT_PATTERN_CROSS_MIN = '0'
+      process.env.AI_REPORT_PATTERN_CORE_QUALITY_MIN = '0'
+      process.env.AI_REPORT_PATTERN_GRAPH_ANCHOR_MIN = '1'
+      process.env.AI_REPORT_PATTERN_COUNT_MIN = '1'
+    })
+
+    it('should retry once with deterministic mode when strict gate fails first pass', async () => {
+      vi.mocked(generateAIPremiumReport)
+        .mockResolvedValueOnce(MOCK_STRICT_FAIL_REPORT as any)
+        .mockResolvedValueOnce(MOCK_STRICT_PASS_REPORT as any)
+
+      const req = createPostRequest(MOCK_VALID_INPUT)
+      const response = await POST(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.success).toBe(true)
+      expect(generateAIPremiumReport).toHaveBeenCalledTimes(2)
+      expect(data.report.patternQualityGate).toBeDefined()
+      expect(data.report.patternQualityGate.strictRetryAttempted).toBe(true)
+      expect(data.report.patternQualityGate.passed).toBe(true)
+    })
+
+    it('should block report when strict gate still fails after retry', async () => {
+      vi.mocked(generateAIPremiumReport)
+        .mockResolvedValueOnce(MOCK_STRICT_FAIL_REPORT as any)
+        .mockResolvedValueOnce(MOCK_STRICT_FAIL_REPORT as any)
+
+      const req = createPostRequest(MOCK_VALID_INPUT)
+      const response = await POST(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(422)
+      expect(data.success).toBe(false)
+      expect(data.error.code).toBe('PATTERN_QUALITY_BLOCKED')
+      expect(data.error.patternQualityGate.strictRetryAttempted).toBe(true)
+      expect(generateAIPremiumReport).toHaveBeenCalledTimes(2)
+      expect(consumeCredits).not.toHaveBeenCalled()
+      expect(prisma.destinyMatrixReport.create).not.toHaveBeenCalled()
+    })
+  })
+
   // ---- Timing Reports ----
 
   describe('Timing Reports', () => {
@@ -922,6 +1000,7 @@ describe('POST /api/destiny-matrix/ai-report', () => {
     })
 
     it('should block themed report when overclaim guard is triggered', async () => {
+      process.env.AI_REPORT_STRICT_THEME_QUALITY = 'true'
       vi.mocked(generateThemedReport).mockResolvedValue({
         ...MOCK_THEMED_REPORT,
         theme: 'career',
@@ -949,6 +1028,7 @@ describe('POST /api/destiny-matrix/ai-report', () => {
       expect(data.error.qualityAudit.shouldBlock).toBe(true)
       expect(consumeCredits).not.toHaveBeenCalled()
       expect(prisma.destinyMatrixReport.create).not.toHaveBeenCalled()
+      delete process.env.AI_REPORT_STRICT_THEME_QUALITY
     })
   })
 
