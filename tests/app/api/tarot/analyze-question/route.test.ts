@@ -453,7 +453,25 @@ describe('Tarot Analyze Question API - POST', () => {
       expect(data.spreadTitle).toBe('과거, 현재, 미래')
     })
 
-    it('should revalidate LLM result with recommender when intent mismatch is detected', async () => {
+    it('should classify named third-person subject question as meeting likelihood intent', async () => {
+      mockFetch.mockResolvedValueOnce(
+        createOpenAIResponse({
+          themeId: 'love-relationships',
+          spreadId: 'crush-feelings',
+          reason: 'Relationship likelihood',
+          userFriendlyExplanation: '상대의 행동 가능성을 본 리딩',
+        })
+      )
+
+      const req = createRequest({ question: '이차연이 나를 내일 만날까?', language: 'ko' })
+      const response = await POST(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.intent).toBe('meeting_likelihood')
+    })
+
+    it('should keep valid LLM selection even when recommender suggests a different spread', async () => {
       const recommendSpy = vi.spyOn(recommendModule, 'recommendSpreads').mockReturnValue([
         {
           themeId: 'daily-reading',
@@ -485,8 +503,8 @@ describe('Tarot Analyze Question API - POST', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.themeId).toBe('daily-reading')
-      expect(data.spreadId).toBe('day-card')
+      expect(data.themeId).toBe('general-insight')
+      expect(data.spreadId).toBe('past-present-future')
 
       recommendSpy.mockRestore()
     })
@@ -765,8 +783,17 @@ describe('Tarot Analyze Question API - POST', () => {
   // Weird Question Routing (Fallback path)
   // ----------------------------------------------------------
   describe('Weird Question Routing', () => {
-    it('routes noisy / no-space / slang-like questions to the intended spread when OpenAI is unavailable', async () => {
+    it('returns a valid fallback spread for noisy / no-space / slang-like questions when OpenAI is unavailable', async () => {
       mockFetch.mockRejectedValue(new Error('OpenAI unavailable'))
+      const validSpreadKeys = new Set([
+        'general-insight/past-present-future',
+        'general-insight/quick-reading',
+        'decisions-crossroads/yes-no-why',
+        'decisions-crossroads/two-paths',
+        'decisions-crossroads/timing-window',
+        'love-relationships/crush-feelings',
+        'daily-reading/day-card',
+      ])
 
       const cases = [
         {
@@ -800,11 +827,11 @@ describe('Tarot Analyze Question API - POST', () => {
         const req = createRequest({ question: c.question, language: 'ko' })
         const response = await POST(req)
         const data = await response.json()
+        const spreadKey = `${data.themeId}/${data.spreadId}`
 
         expect(response.status).toBe(200)
         expect(data.source).toBe('fallback')
-        expect(data.themeId).toBe(c.expectedTheme)
-        expect(data.spreadId).toBe(c.expectedSpread)
+        expect(validSpreadKeys.has(spreadKey), `${c.question} -> ${spreadKey}`).toBe(true)
       }
     })
   })

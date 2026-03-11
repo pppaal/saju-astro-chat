@@ -46,6 +46,16 @@ type AnalyzeFallbackReason =
   | 'no_candidate'
   | 'invalid_spread'
 
+type TarotQuestionIntent =
+  | 'self_decision'
+  | 'other_person_response'
+  | 'meeting_likelihood'
+  | 'near_term_outcome'
+  | 'timing'
+  | 'reconciliation'
+  | 'inner_feelings'
+  | 'unknown'
+
 // ============================================================
 // OpenAI API 호출 헬퍼
 // ============================================================
@@ -139,147 +149,157 @@ function checkDangerous(question: string): boolean {
   return dangerousKeywords.some((kw) => normalized.includes(kw.toLowerCase()))
 }
 
+function hasPattern(text: string, patterns: RegExp[]): boolean {
+  return patterns.some((pattern) => pattern.test(text))
+}
+
+function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
+  const joined = questionVariants
+    .map((variant) => variant.toLowerCase().replace(/\s+/g, ' ').trim())
+    .join(' || ')
+
+  const reconciliationPatterns = [
+    /재회/,
+    /다시 만나/,
+    /돌아오/,
+    /복합/,
+    /헤어졌/,
+    /get back together/,
+    /reconcil/,
+    /come back/,
+    /ex\b/,
+  ]
+  if (hasPattern(joined, reconciliationPatterns)) {
+    return 'reconciliation'
+  }
+
+  const innerFeelingPatterns = [
+    /속마음/,
+    /그 사람 마음/,
+    /상대(방)? 마음/,
+    /어떻게 생각/,
+    /좋아하/,
+    /관심 있/,
+    /feelings?/,
+    /feel about me/,
+    /think of me/,
+    /into me/,
+  ]
+  if (hasPattern(joined, innerFeelingPatterns)) {
+    return 'inner_feelings'
+  }
+
+  const timingPatterns = [
+    /언제/,
+    /시기/,
+    /타이밍/,
+    /몇 월/,
+    /\bwhen\b/,
+    /\btiming\b/,
+    /what time/,
+    /right moment/,
+    /best time/,
+  ]
+  if (hasPattern(joined, timingPatterns)) {
+    return 'timing'
+  }
+
+  const otherSubjectPatterns = [
+    /그 사람|그사람|상대(방)?|그분|그녀|그가|걔|얘|전남친|전여친/,
+    /\bthey\b|\bhe\b|\bshe\b|\bpartner\b|\bex\b/,
+  ]
+  const namedOtherSubjectPatterns = [
+    /[가-힣]{2,4}(이|가)\s*(나|내|저|제)를/,
+    /[가-힣]{2,4}(이|가)\s*(내일|오늘|이번|곧)/,
+    /[가-힣]{2,4}(이|가)\s*(연락|답장|만나|올|답할)/,
+  ]
+  const hasOtherSubject =
+    hasPattern(joined, otherSubjectPatterns) || hasPattern(joined, namedOtherSubjectPatterns)
+
+  const meetingLikelihoodPatterns = [
+    /만날까|만날 수|만날 가능/,
+    /성사될까|가능성/,
+    /연락 올까|답장 올까/,
+    /\bmeet\b|\bmeeting\b|\bshow up\b/,
+    /\breply\b|\brespond\b/,
+  ]
+  if (hasOtherSubject && hasPattern(joined, meetingLikelihoodPatterns)) {
+    return 'meeting_likelihood'
+  }
+
+  const otherResponsePatterns = [
+    /해줄까|올까|볼까|답할까|받아줄까|반응/,
+    /will (they|he|she)/,
+    /would (they|he|she)/,
+    /do (they|he|she)/,
+  ]
+  if (hasOtherSubject && hasPattern(joined, otherResponsePatterns)) {
+    return 'other_person_response'
+  }
+
+  const selfDecisionPatterns = [
+    /할까|해야 할까|해도 될까|할지 말지|가도 될까|보내도 될까/,
+    /\bshould i\b|\bshall i\b|\bcan i\b|\bmay i\b/,
+    /thinking about/,
+    /not sure if i should/,
+  ]
+  if (hasPattern(joined, selfDecisionPatterns)) {
+    return 'self_decision'
+  }
+
+  const nearTermOutcomePatterns = [
+    /결과|성공|실패|붙을까|합격|될까/,
+    /가능성|확률|전망/,
+    /\boutcome\b|\bchance\b|\blikely\b|\bprobability\b/,
+    /\bwill it\b/,
+  ]
+  if (hasPattern(joined, nearTermOutcomePatterns)) {
+    return 'near_term_outcome'
+  }
+
+  return 'unknown'
+}
+
 // ============================================================
 // GPT System Prompt
 // ============================================================
 function buildSystemPrompt(spreadListForPrompt: string): string {
-  return `You are an expert tarot reader with 10 years of experience. Analyze user questions precisely and recommend the most suitable tarot spread.
+  return `You are an expert tarot question router. Your task is to select the single best spread for the user's question.
 
-## 🎯 Core Principles
-Understand the **intent** behind questions regardless of how they're phrased:
+## Core behavior
+- Focus on user intent, not surface form.
+- Handle Korean/English typos, no-spacing text, slang, and indirect wording.
+- Choose the spread autonomously from the full list below.
+- Do NOT force one spread based on one keyword.
+- Prefer semantic fit over rigid keyword mapping.
 
-### Korean Questions:
-- ✅ No spacing: "오늘운동갈까" = "오늘 운동 갈까?"
-- ✅ Spelling errors: "해도되요" = "해도 돼요"
-- ✅ Chosung only: "ㅇㄷㅇㄷㄱㄹㄲ" = "오늘 운동 갈까"
-- ✅ Slang/casual: "개한테뽀뽀할까" = yes/no question
-- ✅ Ignore punctuation: "할까???" = "할까"
+## Intent distinctions (important)
+- Self decision: "내가 할까/말까"
+- Other person's response/action: "상대가 할까/올까/답할까"
+- Meeting likelihood / near-term outcome
+- Timing / when
+- Reconciliation
+- Inner feelings
+- General insight
 
-### English Questions:
-- ✅ Spelling errors: "shoud I go" = "should I go"
-- ✅ Casual abbreviations: "gonna", "wanna", "dunno"
-- ✅ Slang and informal language: "r u into me" = "are you into me"
-- ✅ Text speak: "luv", "ur", "2day"
-- ✅ Complex nuances: "I'm torn between..." = comparison question
-- ✅ Implicit questions: "thinking about quitting my job" = job change question
+## Critical disambiguation
+- Questions like "이차연이 나를 내일 만날까?" are about the OTHER person's near-term action, not self decision.
+- If two options are explicitly compared (A vs B), prefer a comparison spread.
+- If the question is mainly about "when", prefer timing-oriented spread.
+- If uncertain, choose a broadly valid general spread.
 
-**CRITICAL**: Focus on **MEANING**, not form. Understand complex emotional nuances, indirect expressions, and cultural context.
-
-## ⭐⭐⭐ Priority 1: Yes/No Decision Questions ⭐⭐⭐
-
-If the question contains **ANY** of these patterns, it's **ALWAYS** decisions-crossroads/yes-no-why:
-
-### Korean patterns:
-- "~할까", "~갈까", "~볼까", "~살까", "~먹을까", "~마실까", "~만날까", "~시작할까", "~보낼까", "~보여줄까"
-- "~해야 할까", "~하면 될까", "~해도 될까", "~해볼까", "~가볼까"
-- "~할지", "~갈지", "~할까요", "~갈까요", "~할까여"
-- "~하는 게 좋을까", "~해야 하나", "~할까 말까", "~하면 안 될까"
-
-### English patterns:
-- "Should I...", "Shall I...", "Can I...", "May I..."
-- "Is it good to...", "Is it okay to...", "Would it be wise to..."
-- "Should I go...", "Should I buy...", "Should I text...", "Should I try..."
-- "Thinking about [verb+ing]..." (implies decision)
-- "Wondering if I should..."
-- "Debating whether to..."
-- "Not sure if I should..."
-
-### Examples (ALWAYS yes-no-why):
-- Korean: "오늘 운동갈까?", "이옷살까?", "술마실까?", "그사람한테 연락할까?", "개한테 뽀뽀할까?", "라면먹을까?", "오늘 머리염색할까?"
-- English: "Should I go to the gym today?", "Should I buy this dress?", "Should I text them?", "Thinking about quitting my job", "Not sure if I should reach out"
-
-## Priority 2: A vs B Comparison (decisions-crossroads/two-paths)
-- Korean: "A vs B", "A냐 B냐", "A 아니면 B", "A할까 B할까", "A랑 B중에"
-- English: "A or B", "A vs B", "Should I choose A or B", "between A and B", "torn between", "can't decide between"
-- ⚠️ Note: Even with "할까/should I", if TWO clear options exist → two-paths!
-
-## Priority 3: Timing Questions (decisions-crossroads/timing-window)
-- Korean: "언제", "몇 월에", "시기가", "타이밍"
-- English: "when", "timing", "what time", "when should", "best time to", "right moment for"
-- ⚠️ Note: "언제 할까?" / "When should I?" = timing-window (NOT yes-no-why)
-
-## Priority 4: Crush Feelings (love-relationships/crush-feelings)
-- Korean: "그 사람 마음", "날 어떻게 생각", "좋아해", "관심 있", "호감", "나 좋아하나"
-- English: "do they like me", "what do they think of me", "are they into me", "do they have feelings for", "interested in me", "attracted to me"
-- ⚠️ Note: "좋아할까?"/"will they like me?" = yes-no-why, "좋아해?"/"do they like me?" = crush-feelings
-
-## Priority 5: Reconciliation (love-relationships/reconciliation)
-- Korean: "다시 만날 수 있을까", "재회", "돌아올까", "연락 올까", "헤어진", "복합"
-- English: "get back together", "reconcile", "come back", "will they return", "after breakup", "ex relationship", "win them back"
-
-## Priority 6: Finding Partner (love-relationships/finding-a-partner)
-- Korean: "인연 언제", "좋은 사람 만날까", "소개팅", "짝", "배필"
-- English: "when will I find love", "meet someone", "find a partner", "soulmate", "dating prospects", "love life"
-
-## Priority 7: Job Change (career-work/job-change)
-- Korean: "이직", "퇴사", "회사 옮", "직장 바꿀"
-- English: "job change", "career transition", "switching jobs", "leaving my job", "new position", "quitting", "resign"
-- ⚠️ Note: "이직할까?"/"should I change jobs?" = yes-no-why (if simple decision)
-
-## Priority 8: Interview/Exam (career-work/interview-result, career-work/exam-pass)
-- Interview (Korean): "면접 결과", "면접 붙을까", "면접 합격"
-- Interview (English): "interview outcome", "will I pass the interview", "job interview result", "interview success"
-- Exam (Korean): "시험 붙을까", "합격할까", "자격증 딸까"
-- Exam (English): "exam result", "will I pass", "test outcome", "certification exam"
-
-## Priority 9: Today's Fortune (daily-reading/day-card)
-- Korean: "오늘 운세", "오늘 어때", "오늘 하루", "오늘의 운"
-- English: "today's fortune", "how's my day", "what's today like", "daily reading", "card for today"
-- ⚠️ Note: "오늘 ~할까?"/"should I do X today?" = yes-no-why!
-
-## Priority 10: General Flow (general-insight/past-present-future)
-- Korean: 구체적인 결정이 없는 상황 파악, 전반적인 흐름, 앞으로의 방향
-- English: Overall situation assessment, general flow, future direction, "what's ahead", "what to expect", "where am I heading"
-
-## 스프레드 목록
+## Available spreads
 ${spreadListForPrompt}
 
-## 응답 형식 (JSON만)
+## Output format (JSON only)
 {
-  "themeId": "테마 ID",
-  "spreadId": "스프레드 ID",
-  "reason": "선택 이유",
-  "userFriendlyExplanation": "사용자에게 보여줄 설명"
+  "themeId": "exact theme ID from list",
+  "spreadId": "exact spread ID from list",
+  "reason": "why this spread fits",
+  "userFriendlyExplanation": "short user-facing explanation"
 }
 
-## ⚠️ Final Checklist (MANDATORY!)
-
-1. **Korean Questions**: Check for "할까/갈까/볼까/살까/먹을까/마실까" patterns
-   → YES = decisions-crossroads/yes-no-why!
-   → EXCEPT: "A할까 B할까?" (two clear options) = two-paths
-   → EXCEPT: "언제 할까?" (timing) = timing-window
-
-2. **English Questions**: Check for "should I/shall I/can I/may I/thinking about [verb+ing]"
-   → YES = decisions-crossroads/yes-no-why!
-   → EXCEPT: "should I choose A or B" (two options) = two-paths
-   → EXCEPT: "when should I" (timing) = timing-window
-
-3. **Nuanced/Complex Questions**:
-   - Analyze emotional undertones (worried, hopeful, desperate, curious)
-   - Detect implicit questions: "I'm thinking about X" = "Should I do X?"
-   - Understand cultural context and metaphors
-   - Handle indirect expressions: "torn between..." = comparison question
-
-4. **Errors & Casual Language**:
-   - Ignore spelling errors, slang, text speak
-   - Korean examples: "개한테뽀뽀할까" = "개한테 뽀뽀할까?" = yes-no-why
-   - English examples: "shud i txt them" = "should I text them" = yes-no-why
-
-5. **Multi-layered Questions**:
-   - Primary intent takes priority
-   - Example: "I miss my ex and thinking about texting" = yes-no-why (decision), NOT reconciliation (secondary theme)
-
-## 🧠 Nuance Detection Examples
-
-**Complex Korean:**
-- "요즘 직장이 힘든데 그만둘 생각이 들어" → job-change (implicit decision, emotional context)
-- "걔 나한테 관심 있는 것 같긴 한데 확신이 안 서" → crush-feelings (uncertainty about feelings)
-
-**Complex English:**
-- "My job has been draining lately and I'm considering leaving" → job-change (implicit decision with emotional context)
-- "They've been texting me more but idk if it means something" → crush-feelings (uncertainty, text speak)
-- "Torn between staying in my comfort zone and taking a risk" → two-paths (implicit A vs B)
-- "Feel like the universe is pushing me to make a move but scared" → yes-no-why (implicit decision with emotional layer)`
+Return JSON only.`
 }
 
 // ============================================================
@@ -316,24 +336,6 @@ function findPatternMatch(questionVariants: string[], language: string): Pattern
   return null
 }
 
-function applyPatternCorrections(
-  questionVariants: string[],
-  parsed: ParsedResult,
-  language: string
-): ParsedResult {
-  const match = findPatternMatch(questionVariants, language)
-  if (!match) {
-    return parsed
-  }
-  if (parsed.spreadId === match.parsed.spreadId && parsed.themeId === match.parsed.themeId) {
-    return parsed
-  }
-  logger.info(
-    `[analyze-question] Correcting: "${questionVariants[0]}" → ${match.parsed.spreadId} (was: ${parsed.spreadId})`
-  )
-  return match.parsed
-}
-
 function buildQuestionVariants(question: string): string[] {
   const variants = prepareForMatching(question)
   const trimmed = variants.map((entry) => entry.trim()).filter(Boolean)
@@ -359,22 +361,19 @@ function revalidateWithRecommendations(
     (s) => s.themeId === parsed.themeId && s.id === parsed.spreadId
   )
 
+  // Keep AI autonomy: if AI picked a valid spread, don't override it with recommender heuristics.
+  if (selectedExists) {
+    return parsed
+  }
+
   const recommended = recommendSpreads(question, 3)
   if (!recommended.length) {
     return parsed
   }
 
-  const parsedInTop = recommended.some(
-    (r) => r.themeId === parsed.themeId && r.spreadId === parsed.spreadId
-  )
-
-  if (selectedExists && parsedInTop) {
-    return parsed
-  }
-
   const top = recommended[0]
   logger.info(
-    `[analyze-question] Revalidated by recommender: "${question}" -> ${top.themeId}/${top.spreadId} (was: ${parsed.themeId}/${parsed.spreadId})`
+    `[analyze-question] Invalid AI spread replaced by recommender: "${question}" -> ${top.themeId}/${top.spreadId} (was: ${parsed.themeId}/${parsed.spreadId})`
   )
 
   return {
@@ -496,11 +495,10 @@ export const POST = withApiMiddleware(
 
       // 스프레드 옵션 목록
       const spreadOptions = getSpreadOptions()
+      const detectedIntent = detectQuestionIntent(questionVariants)
       const spreadListForPrompt = spreadOptions
         .map((s) => `- ${s.themeId}/${s.id}: ${s.titleKo} (${s.cardCount}장) - ${s.description}`)
         .join('\n')
-
-      const patternMatch = findPatternMatch(questionVariants, language)
 
       let parsed: ParsedResult = resolveDeterministicFallback(
         trimmedQuestion,
@@ -511,69 +509,70 @@ export const POST = withApiMiddleware(
       let source: AnalyzeSource = 'fallback'
       let fallbackReason: AnalyzeFallbackReason | null = null
       let hasStructuredLLMResult = false
-      if (patternMatch) {
-        parsed = patternMatch.parsed
-        source = 'pattern'
-        fallbackReason = null
-      } else {
-        // GPT-4o-mini로 분석
-        const systemPrompt = buildSystemPrompt(spreadListForPrompt)
+      // GPT-4o-mini로 분석
+      const systemPrompt = buildSystemPrompt(spreadListForPrompt)
 
-        let responseText = ''
-        let openAiFailed = false
-        try {
-          responseText = await callOpenAI([
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: formatQuestionForPrompt(questionVariants) },
-          ])
-        } catch (error) {
-          openAiFailed = true
-          fallbackReason =
-            error instanceof Error && /OPENAI_API_KEY_MISSING/.test(error.message)
-              ? 'auth_failed'
-              : 'server_error'
-          logger.warn('[analyze-question] OpenAI unavailable, using fallback routing', error)
-        }
+      let responseText = ''
+      let openAiFailed = false
+      try {
+        responseText = await callOpenAI([
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: formatQuestionForPrompt(questionVariants) },
+        ])
+      } catch (error) {
+        openAiFailed = true
+        fallbackReason =
+          error instanceof Error && /OPENAI_API_KEY_MISSING/.test(error.message)
+            ? 'auth_failed'
+            : 'server_error'
+        logger.warn('[analyze-question] OpenAI unavailable, using fallback routing', error)
+      }
 
-        try {
-          if (responseText) {
-            const maybeParsed = JSON.parse(responseText) as Partial<ParsedResult>
-            hasStructuredLLMResult = Boolean(
-              maybeParsed &&
-              typeof maybeParsed.themeId === 'string' &&
-              typeof maybeParsed.spreadId === 'string'
-            )
+      try {
+        if (responseText) {
+          const maybeParsed = JSON.parse(responseText) as Partial<ParsedResult>
+          hasStructuredLLMResult = Boolean(
+            maybeParsed &&
+            typeof maybeParsed.themeId === 'string' &&
+            typeof maybeParsed.spreadId === 'string'
+          )
 
-            if (hasStructuredLLMResult) {
-              parsed = {
-                themeId: maybeParsed.themeId as string,
-                spreadId: maybeParsed.spreadId as string,
-                reason:
-                  typeof maybeParsed.reason === 'string'
-                    ? maybeParsed.reason
-                    : language === 'ko'
-                      ? '질문 의도 기반 추천'
-                      : 'Intent-based recommendation',
-                userFriendlyExplanation:
-                  typeof maybeParsed.userFriendlyExplanation === 'string'
-                    ? maybeParsed.userFriendlyExplanation
-                    : language === 'ko'
-                      ? '질문 의도와 가까운 스프레드를 선택했어요'
-                      : 'Selected the spread closest to your intent.',
-              }
-              source = 'llm'
-              fallbackReason = null
-            } else {
-              fallbackReason = 'parse_failed'
+          if (hasStructuredLLMResult) {
+            parsed = {
+              themeId: maybeParsed.themeId as string,
+              spreadId: maybeParsed.spreadId as string,
+              reason:
+                typeof maybeParsed.reason === 'string'
+                  ? maybeParsed.reason
+                  : language === 'ko'
+                    ? '질문 의도 기반 추천'
+                    : 'Intent-based recommendation',
+              userFriendlyExplanation:
+                typeof maybeParsed.userFriendlyExplanation === 'string'
+                  ? maybeParsed.userFriendlyExplanation
+                  : language === 'ko'
+                    ? '질문 의도와 가까운 스프레드를 선택했어요'
+                    : 'Selected the spread closest to your intent.',
             }
-          } else if (!openAiFailed) {
-            fallbackReason = 'no_candidate'
+            source = 'llm'
+            fallbackReason = null
+          } else {
+            fallbackReason = 'parse_failed'
           }
-        } catch {
-          fallbackReason = 'parse_failed'
+        } else if (!openAiFailed) {
+          fallbackReason = 'no_candidate'
         }
+      } catch {
+        fallbackReason = 'parse_failed'
+      }
 
-        if (!hasStructuredLLMResult) {
+      if (!hasStructuredLLMResult) {
+        const patternMatch = findPatternMatch(questionVariants, language)
+        if (patternMatch) {
+          parsed = patternMatch.parsed
+          source = 'pattern'
+          fallbackReason = null
+        } else {
           parsed = resolveDeterministicFallback(
             trimmedQuestion,
             language,
@@ -582,22 +581,8 @@ export const POST = withApiMiddleware(
           )
           source = 'fallback'
         }
-      }
-
-      // GPT 결과를 패턴 매칭으로 보정
-      parsed = applyPatternCorrections(questionVariants, parsed, language)
-      const correctedPattern = findPatternMatch(questionVariants, language)
-      if (
-        correctedPattern &&
-        correctedPattern.parsed.themeId === parsed.themeId &&
-        correctedPattern.parsed.spreadId === parsed.spreadId
-      ) {
-        source = 'pattern'
-        fallbackReason = null
-      }
-
-      // 3rd-stage revalidation: LLM 결과를 추천 엔진으로 다시 검증/보정
-      if (!patternMatch && hasStructuredLLMResult) {
+      } else {
+        // Keep AI-picked spread when valid; only repair invalid IDs.
         parsed = revalidateWithRecommendations(parsed, trimmedQuestion, language, spreadOptions)
       }
 
@@ -628,6 +613,7 @@ export const POST = withApiMiddleware(
             userFriendlyExplanation: fallbackParsed.userFriendlyExplanation,
             source: 'fallback' as AnalyzeSource,
             fallback_reason: 'invalid_spread' as AnalyzeFallbackReason,
+            intent: detectedIntent,
             path: `/tarot/${fallbackParsed.themeId}/${fallbackParsed.spreadId}?question=${encodeURIComponent(trimmedQuestion)}`,
           })
         }
@@ -643,6 +629,7 @@ export const POST = withApiMiddleware(
             language === 'ko' ? '기본 흐름 스프레드를 사용했어요' : 'Using general flow spread.',
           source: 'fallback' as AnalyzeSource,
           fallback_reason: 'invalid_spread' as AnalyzeFallbackReason,
+          intent: detectedIntent,
           path: `/tarot/general-insight/past-present-future?question=${encodeURIComponent(trimmedQuestion)}`,
         })
       }
@@ -657,6 +644,7 @@ export const POST = withApiMiddleware(
         userFriendlyExplanation: parsed.userFriendlyExplanation,
         source,
         fallback_reason: source === 'fallback' ? fallbackReason || 'no_candidate' : null,
+        intent: detectedIntent,
         path: `/tarot/${parsed.themeId}/${parsed.spreadId}?question=${encodeURIComponent(trimmedQuestion)}`,
       })
       return res

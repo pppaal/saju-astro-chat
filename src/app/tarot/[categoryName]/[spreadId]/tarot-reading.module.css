@@ -3863,6 +3863,174 @@
   gap: 0.78rem;
 }
 
+.quickAnswerPanel {
+  width: 100%;
+  max-width: 1080px;
+  border: 1px solid rgba(124, 242, 156, 0.45);
+  background: linear-gradient(140deg, rgba(20, 38, 40, 0.9), rgba(17, 26, 45, 0.92));
+  border-radius: 16px;
+  padding: 1.1rem 1.3rem;
+  margin: 0.8rem 0 1.4rem;
+}
+
+.quickAnswerTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.quickAnswerHeader {
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(124, 242, 156, 0.95);
+  margin-bottom: 0;
+}
+
+.likelihoodBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.likelihoodHigh {
+  background: rgba(124, 242, 156, 0.2);
+  color: rgba(124, 242, 156, 0.95);
+  border: 1px solid rgba(124, 242, 156, 0.45);
+}
+
+.likelihoodMedium {
+  background: rgba(99, 210, 255, 0.18);
+  color: rgba(192, 234, 255, 0.95);
+  border: 1px solid rgba(99, 210, 255, 0.45);
+}
+
+.likelihoodLow {
+  background: rgba(255, 155, 155, 0.17);
+  color: rgba(255, 205, 205, 0.96);
+  border: 1px solid rgba(255, 155, 155, 0.4);
+}
+
+.quickAnswerConclusion,
+.quickAnswerReason,
+.quickAnswerAction {
+  margin: 0;
+  color: rgba(241, 247, 255, 0.94);
+  line-height: 1.65;
+  font-size: 0.95rem;
+}
+
+.quickAnswerReasons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  margin: 0.45rem 0;
+}
+
+.quickAnswerAction {
+  margin-top: 0.3rem;
+}
+
+.quickReasonPanel {
+  width: 100%;
+  max-width: 1080px;
+  border: 1px solid rgba(99, 210, 255, 0.36);
+  background: linear-gradient(140deg, rgba(13, 23, 44, 0.85), rgba(14, 27, 49, 0.9));
+  border-radius: 14px;
+  padding: 1rem 1.2rem;
+  margin: 0 0 1.2rem;
+}
+
+.quickReasonTitle {
+  margin: 0 0 0.58rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: rgba(198, 234, 255, 0.95);
+}
+
+.actionGuidePanel {
+  width: 100%;
+  max-width: 1080px;
+  border: 1px solid rgba(124, 242, 156, 0.42);
+  background: linear-gradient(140deg, rgba(24, 40, 36, 0.88), rgba(14, 27, 44, 0.92));
+  border-radius: 16px;
+  padding: 1rem 1.2rem;
+  margin: 0.8rem 0 1.5rem;
+}
+
+.actionGuideTitle {
+  margin: 0 0 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: rgba(124, 242, 156, 0.97);
+}
+
+.actionGuideItem {
+  margin: 0.28rem 0;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: rgba(242, 248, 255, 0.94);
+}
+
+.layer2Details {
+  width: 100%;
+  max-width: 1080px;
+}
+
+.layer2Summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  color: rgba(99, 210, 255, 0.92);
+  font-weight: 700;
+  margin: 0.5rem 0 0.9rem;
+}
+
+.layer2Summary::-webkit-details-marker {
+  display: none;
+}
+
+.layer2InlineDetails {
+  border: 1px solid rgba(99, 210, 255, 0.32);
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+  background: rgba(10, 20, 36, 0.5);
+}
+
+.layer2InlineSummary {
+  cursor: pointer;
+  user-select: none;
+  color: rgba(99, 210, 255, 0.9);
+  font-size: 0.86rem;
+  font-weight: 600;
+  margin-bottom: 0.45rem;
+}
+
+.cardLayerDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.cardLayerBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.32rem;
+}
+
+.cardLayerLabel {
+  font-size: 0.8rem;
+  color: rgba(124, 242, 156, 0.92);
+  letter-spacing: 0.02em;
+}
+
 .chatParagraph {
   margin: 0;
   white-space: pre-line;
@@ -3871,6 +4039,11 @@
 .chatLead {
   font-weight: 640;
   color: rgba(250, 254, 255, 0.98);
+}
+
+.cardQuickLine {
+  font-size: 1rem;
+  line-height: 1.72;
 }
 
 /* Card Interpretation Bubble */
@@ -4006,6 +4179,27 @@
   .chatText {
     font-size: 1.05rem;
     line-height: 1.86;
+  }
+
+  .quickAnswerPanel,
+  .quickReasonPanel,
+  .actionGuidePanel {
+    padding: 0.9rem 0.95rem;
+  }
+
+  .quickAnswerTopRow {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .actionGuideItem,
+  .quickAnswerConclusion,
+  .quickAnswerReason,
+  .quickAnswerAction,
+  .cardQuickLine {
+    font-size: 0.92rem;
+    line-height: 1.62;
   }
 
   .adviceText {

@@ -197,10 +197,13 @@ export default function TarotHomePage() {
                 <div className={styles.previewBox}>
                   <div className={styles.previewContent}>
                     <div className={styles.previewBadge}>
-                      {previewInfo.cardCount}
-                      {isKo ? '장' : ' cards'}
+                      {isKo ? '질문 분석 완료' : 'Question analyzed'}
                     </div>
-                    <span className={styles.previewText}>{previewInfo.spreadTitle}</span>
+                    <span className={styles.previewText}>
+                      {isKo
+                        ? '질문 의도에 맞는 리딩 경로를 준비했어요.'
+                        : 'Prepared the best reading path for your question.'}
+                    </span>
                     {aiExplanation && <p className={styles.aiExplanation}>{aiExplanation}</p>}
                   </div>
                 </div>
