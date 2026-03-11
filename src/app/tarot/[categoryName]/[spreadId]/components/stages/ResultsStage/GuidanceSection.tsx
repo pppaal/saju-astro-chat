@@ -1,4 +1,5 @@
 import React from 'react'
+import { splitReadableText } from '../../ChatMessages/splitReadableText'
 import styles from '../../../tarot-reading.module.css'
 import type { AdviceItem } from '../../../types'
 
@@ -44,6 +45,8 @@ function normalizeGuidanceItems(guidance: string | AdviceItem[], language: strin
 export function GuidanceSection({ guidance, language }: GuidanceSectionProps) {
   const guidanceItems = normalizeGuidanceItems(guidance, language)
   const renderAsCards = guidanceItems.length > 0
+  const guidanceSections =
+    typeof guidance === 'string' && guidance.trim() ? splitReadableText(guidance) : []
 
   return (
     <div className={styles.counselorChat}>
@@ -70,7 +73,16 @@ export function GuidanceSection({ guidance, language }: GuidanceSectionProps) {
             typeof guidance === 'string' &&
             guidance.trim() && (
               <div className={`${styles.chatBubble} ${styles.adviceBubble}`}>
-                <p className={styles.adviceText}>{guidance}</p>
+                <div className={styles.chatTextGroup}>
+                  {guidanceSections.map((section, idx) => (
+                    <p
+                      key={`${idx}-${section.slice(0, 24)}`}
+                      className={`${styles.adviceText} ${styles.chatParagraph} ${idx === 0 ? styles.chatLead : ''}`}
+                    >
+                      {section}
+                    </p>
+                  ))}
+                </div>
               </div>
             )
           )}

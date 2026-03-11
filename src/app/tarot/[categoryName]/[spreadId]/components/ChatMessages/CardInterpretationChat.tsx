@@ -3,6 +3,7 @@
 import React from 'react'
 import type { ReadingResult, InterpretationResult } from '../../types'
 import { ChatMessage } from './ChatMessage'
+import { splitReadableText } from './splitReadableText'
 import styles from '../../tarot-reading.module.css'
 
 interface CardInterpretationChatProps {
@@ -38,6 +39,7 @@ export function CardInterpretationChat({
         const meaning = drawnCard.isReversed ? drawnCard.card.reversed : drawnCard.card.upright
 
         const interp = cardInsight?.interpretation?.trim() || ''
+        const sections = splitReadableText(interp)
         const isDefaultGenericMessage =
           interp.includes('카드의 메시지에 귀 기울여') || interp.includes('Listen to the cards')
 
@@ -64,7 +66,16 @@ export function CardInterpretationChat({
               </>
             }
           >
-            <p className={styles.chatText}>{interp}</p>
+            <div className={styles.chatTextGroup}>
+              {sections.map((section, sectionIdx) => (
+                <p
+                  key={`${index}-${sectionIdx}-${section.slice(0, 24)}`}
+                  className={`${styles.chatText} ${styles.chatParagraph} ${sectionIdx === 0 ? styles.chatLead : ''}`}
+                >
+                  {section}
+                </p>
+              ))}
+            </div>
           </ChatMessage>
         )
       })}
