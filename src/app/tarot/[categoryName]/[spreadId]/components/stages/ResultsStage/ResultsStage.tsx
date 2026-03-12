@@ -337,6 +337,19 @@ export function ResultsStage(props: ResultsStageProps) {
         </section>
       )}
 
+      <div className={styles.resultSectionTag}>
+        {language === 'ko' ? '카드별 짧은 해석' : 'Card-by-Card Short Reading'}
+      </div>
+      <CardInterpretationChat
+        readingResult={readingResult}
+        interpretation={interpretation}
+        language={language}
+        revealedCards={revealedCards}
+      />
+
+      <div className={styles.resultSectionTag}>
+        {language === 'ko' ? 'AI 해석' : 'AI Interpretation'}
+      </div>
       {insight?.fallback ? (
         <div className={styles.interpretationFallbackNotice} role="status" aria-live="polite">
           <div className={styles.interpretationNoticeHeader}>
@@ -362,15 +375,11 @@ export function ResultsStage(props: ResultsStageProps) {
             : '✅ AI interpretation generated successfully.'}
         </div>
       )}
-
-      <div className={styles.resultSectionTag}>
-        {language === 'ko' ? '카드별 짧은 해석' : 'Card-by-Card Short Reading'}
-      </div>
-      <CardInterpretationChat
-        readingResult={readingResult}
-        interpretation={interpretation}
+      <OverallMessageChat
+        message={insight?.overall_message}
+        isLoading={showInterpretationLoading}
         language={language}
-        revealedCards={revealedCards}
+        mode="compact"
       />
 
       {quickSummary && (
@@ -405,15 +414,6 @@ export function ResultsStage(props: ResultsStageProps) {
             ? '원문 해석 펼치기 (카드/정역방향/상세)'
             : 'Expand Raw Interpretation (Cards / Upright-Reversed / Details)'}
         </summary>
-        <div className={styles.resultSectionTag}>
-          {language === 'ko' ? '원문 종합 해석' : 'Raw Overall Interpretation'}
-        </div>
-        <OverallMessageChat
-          message={insight?.overall_message}
-          isLoading={showInterpretationLoading}
-          language={language}
-          mode="full"
-        />
         <div className={styles.resultSectionTag}>
           {language === 'ko' ? '카드 원문 해석 (기본/상세)' : 'Raw Card Meanings (Base / Detailed)'}
         </div>

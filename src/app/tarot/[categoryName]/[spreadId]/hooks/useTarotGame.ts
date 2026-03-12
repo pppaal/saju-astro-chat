@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
 import { Spread, DeckStyle } from '@/lib/Tarot/tarot.types'
 import { apiFetch } from '@/lib/api'
@@ -54,6 +54,7 @@ interface UseTarotGameReturn {
 }
 
 export function useTarotGame(): UseTarotGameReturn {
+  const router = useRouter()
   const params = useParams()
   const searchParams = useSearchParams()
   const categoryName = params?.categoryName as string | undefined
@@ -74,6 +75,7 @@ export function useTarotGame(): UseTarotGameReturn {
   const [drawError, setDrawError] = useState<TarotDrawError | null>(null)
   const [revealedCards, setRevealedCards] = useState<number[]>([])
   const [isSpreading, setIsSpreading] = useState(false)
+  const [isAnalyzingIntent, setIsAnalyzingIntent] = useState(false)
   const [personalizationOptions, setPersonalizationOptions] = useState<TarotPersonalizationOptions>(
     () => {
       if (typeof window === 'undefined') {
@@ -96,6 +98,7 @@ export function useTarotGame(): UseTarotGameReturn {
     }
   )
   const fetchTriggeredRef = useRef(false)
+  const autoRouteCheckedRef = useRef(false)
 
   // Initialize spread info
   useEffect(() => {
@@ -143,7 +146,82 @@ export function useTarotGame(): UseTarotGameReturn {
     setSelectedDeckStyle(color.id as DeckStyle)
   }, [])
 
-  const handleStartReading = useCallback(() => {
+  const analyzeAndRouteByQuestion = useCallback(async (): Promise<boolean> => {
+    const normalizedQuestion = userTopic.trim()
+    if (!normalizedQuestion) {
+      return false
+    }
+
+    setIsAnalyzingIntent(true)
+    try {
+      const locale =
+        typeof document !== 'undefined' &&
+        document.documentElement.lang.toLowerCase().startsWith('en')
+          ? 'en'
+          : 'ko'
+      const response = await apiFetch('/api/tarot/analyze-question', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: normalizedQuestion,
+          language: locale,
+        }),
+      })
+
+      if (!response.ok) {
+        return false
+      }
+
+      const data = (await response.json()) as { path?: string }
+      const path = data.path || ''
+      const match = path.match(/^\/tarot\/([^/]+)\/([^/?]+)/)
+      const nextCategory = match?.[1]
+      const nextSpread = match?.[2]
+      if (
+        nextCategory &&
+        nextSpread &&
+        (nextCategory !== categoryName || nextSpread !== spreadId)
+      ) {
+        router.push(path)
+        return true
+      }
+
+      return false
+    } catch {
+      return false
+    } finally {
+      setIsAnalyzingIntent(false)
+    }
+  }, [userTopic, categoryName, spreadId, router])
+
+  useEffect(() => {
+    if (!categoryName || !spreadId) {
+      autoRouteCheckedRef.current = false
+      return
+    }
+    if (gameState !== 'color-select') {
+      return
+    }
+    if (autoRouteCheckedRef.current) {
+      return
+    }
+    autoRouteCheckedRef.current = true
+    if (!userTopic.trim()) {
+      return
+    }
+    void analyzeAndRouteByQuestion()
+  }, [categoryName, spreadId, gameState, userTopic, analyzeAndRouteByQuestion])
+
+  const handleStartReading = useCallback(async () => {
+    if (isAnalyzingIntent) {
+      return
+    }
+
+    const redirected = await analyzeAndRouteByQuestion()
+    if (redirected) {
+      return
+    }
+
     setGameState('picking')
     setDrawError(null)
     setIsSpreading(true)
@@ -153,7 +231,7 @@ export function useTarotGame(): UseTarotGameReturn {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ categoryId: categoryName, spreadId }),
     }).catch(() => {})
-  }, [categoryName, spreadId])
+  }, [categoryName, spreadId, isAnalyzingIntent, analyzeAndRouteByQuestion])
 
   const handleCardClick = useCallback(
     (index: number) => {

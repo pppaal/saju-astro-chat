@@ -24,8 +24,7 @@ function sentenceList(text: string): string[] {
 }
 
 function firstSentence(text: string): string {
-  const sentences = sentenceList(text)
-  return sentences[0] || ''
+  return sentenceList(text)[0] || ''
 }
 
 export function CardInterpretationChat({
@@ -34,13 +33,13 @@ export function CardInterpretationChat({
   language,
   revealedCards,
 }: CardInterpretationChatProps) {
-  if (revealedCards.length !== readingResult.drawnCards.length || !interpretation) {
-    return null
-  }
-
   return (
     <div className={styles.cardInterpretationsChat}>
       {readingResult.drawnCards.map((drawnCard, index) => {
+        if (!revealedCards.includes(index)) {
+          return null
+        }
+
         const cardInsight = interpretation?.card_insights?.[index]
         const position = readingResult.spread.positions[index]
         const positionTitle =
@@ -49,36 +48,17 @@ export function CardInterpretationChat({
         const cardName =
           language === 'ko' ? drawnCard.card.nameKo || drawnCard.card.name : drawnCard.card.name
         const meaning = drawnCard.isReversed ? drawnCard.card.reversed : drawnCard.card.upright
-
-        const interpretationText = cardInsight?.interpretation?.trim() || ''
         const defaultMeaning =
           language === 'ko' ? meaning.meaningKo || meaning.meaning : meaning.meaning
-        const insights = sentenceList(interpretationText)
-        const questionMeaning =
-          insights.length > 0
-            ? insights.slice(0, 2).join(' ')
-            : language === 'ko'
-              ? '이 카드의 흐름은 현재 질문에서 핵심 변수 점검이 필요하다는 뜻으로 읽힙니다.'
-              : 'This card suggests checking key variables in your current question.'
-        const cautionLine =
-          insights.length > 1
-            ? insights[insights.length - 1]
-            : language === 'ko'
-              ? '과한 기대나 단정은 피하고 반응을 확인하세요.'
-              : 'Avoid forcing certainty and observe real responses first.'
+        const coreLine = firstSentence(defaultMeaning)
 
-        const isDefaultGenericMessage =
-          interpretationText.includes('카드의 메시지에 귀 기울여') ||
-          interpretationText.includes('Listen to the cards')
-
-        if (
-          !interpretationText ||
-          interpretationText === meaning.meaning ||
-          interpretationText === meaning.meaningKo ||
-          isDefaultGenericMessage
-        ) {
-          return null
-        }
+        const aiExplanation = firstSentence(cardInsight?.interpretation?.trim() || '')
+        const explanationLine =
+          aiExplanation && aiExplanation !== coreLine
+            ? aiExplanation
+            : language === 'ko'
+              ? '이 질문에서는 이 카드가 보여주는 핵심 변수부터 확인하는 흐름입니다.'
+              : 'In this question, this card asks you to verify the key variable first.'
 
         return (
           <ChatMessage
@@ -88,7 +68,7 @@ export function CardInterpretationChat({
               <>
                 <span className={styles.cardPosition}>{positionTitle}</span>
                 <span className={styles.cardNameLabel}>
-                  {language === 'ko' ? `핵심 신호 — ${cardName}` : `Signal — ${cardName}`}
+                  {language === 'ko' ? `카드 - ${cardName}` : `Card - ${cardName}`}
                   {drawnCard.isReversed ? (language === 'ko' ? ' (역방향)' : ' (Reversed)') : ''}
                 </span>
               </>
@@ -96,18 +76,10 @@ export function CardInterpretationChat({
           >
             <div className={styles.chatTextGroup}>
               <p className={`${styles.chatText} ${styles.chatParagraph} ${styles.cardQuickLine}`}>
-                <strong>{language === 'ko' ? '핵심:' : 'Core:'}</strong>{' '}
-                {firstSentence(defaultMeaning)}
+                <strong>{language === 'ko' ? '핵심:' : 'Core:'}</strong> {coreLine}
               </p>
               <p className={`${styles.chatText} ${styles.chatParagraph} ${styles.cardQuickLine}`}>
-                <strong>
-                  {language === 'ko' ? '이 질문에서의 뜻:' : 'Meaning for this question:'}
-                </strong>{' '}
-                {questionMeaning}
-              </p>
-              <p className={`${styles.chatText} ${styles.chatParagraph} ${styles.cardQuickLine}`}>
-                <strong>{language === 'ko' ? '주의/행동:' : 'Caution / action:'}</strong>{' '}
-                {cautionLine}
+                <strong>{language === 'ko' ? '설명:' : 'Explanation:'}</strong> {explanationLine}
               </p>
             </div>
           </ChatMessage>

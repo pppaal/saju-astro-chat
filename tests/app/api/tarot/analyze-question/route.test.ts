@@ -471,6 +471,24 @@ describe('Tarot Analyze Question API - POST', () => {
       expect(data.intent).toBe('meeting_likelihood')
     })
 
+    it('should classify named third-person speech question as other-person response intent', async () => {
+      mockFetch.mockResolvedValueOnce(
+        createOpenAIResponse({
+          themeId: 'love-relationships',
+          spreadId: 'crush-feelings',
+          reason: 'Other person response',
+          userFriendlyExplanation: '상대 반응 중심 리딩',
+        })
+      )
+
+      const req = createRequest({ question: '이차연이 나에게 무슨 말을 할까?', language: 'ko' })
+      const response = await POST(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.intent).toBe('other_person_response')
+    })
+
     it('should keep valid LLM selection even when recommender suggests a different spread', async () => {
       const recommendSpy = vi.spyOn(recommendModule, 'recommendSpreads').mockReturnValue([
         {

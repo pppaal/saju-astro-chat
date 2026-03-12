@@ -210,8 +210,10 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
   ]
   const namedOtherSubjectPatterns = [
     /[가-힣]{2,4}(이|가)\s*(나|내|저|제)를/,
+    /[가-힣]{2,4}(이|가)\s*(나|내|저|제)에게/,
+    /[가-힣]{2,4}(이|가)\s*(나|내|저|제)한테/,
     /[가-힣]{2,4}(이|가)\s*(내일|오늘|이번|곧)/,
-    /[가-힣]{2,4}(이|가)\s*(연락|답장|만나|올|답할)/,
+    /[가-힣]{2,4}(이|가)\s*(연락|답장|만나|올|답할|말할|뭐라|무슨 말)/,
   ]
   const hasOtherSubject =
     hasPattern(joined, otherSubjectPatterns) || hasPattern(joined, namedOtherSubjectPatterns)
@@ -228,10 +230,11 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
   }
 
   const otherResponsePatterns = [
-    /해줄까|올까|볼까|답할까|받아줄까|반응/,
+    /해줄까|올까|볼까|답할까|받아줄까|반응|말할까|무슨 말|뭐라(고)? 할까|어떻게 말할까/,
     /will (they|he|she)/,
     /would (they|he|she)/,
     /do (they|he|she)/,
+    /what will (they|he|she) say/,
   ]
   if (hasOtherSubject && hasPattern(joined, otherResponsePatterns)) {
     return 'other_person_response'
@@ -284,6 +287,8 @@ function buildSystemPrompt(spreadListForPrompt: string): string {
 
 ## Critical disambiguation
 - Questions like "이차연이 나를 내일 만날까?" are about the OTHER person's near-term action, not self decision.
+- Questions like "이차연이 나에게 무슨 말을 할까?" are also OTHER-person response, not self decision.
+- If the subject is someone else (name + 이/가, 그사람이, 상대가), do not route to self-decision even if "할까" appears.
 - If two options are explicitly compared (A vs B), prefer a comparison spread.
 - If the question is mainly about "when", prefer timing-oriented spread.
 - If uncertain, choose a broadly valid general spread.
@@ -343,12 +348,19 @@ function buildQuestionVariants(question: string): string[] {
   return unique.slice(0, 6)
 }
 
-function formatQuestionForPrompt(questionVariants: string[]): string {
+function formatQuestionForPrompt(
+  questionVariants: string[],
+  detectedIntent: TarotQuestionIntent
+): string {
   const [raw, ...rest] = questionVariants
+  const hintLine =
+    detectedIntent !== 'unknown'
+      ? `Intent hint (heuristic, non-binding): ${detectedIntent}`
+      : 'Intent hint (heuristic, non-binding): unknown'
   if (rest.length === 0) {
-    return `사용자 질문: "${raw}"`
+    return `${hintLine}\n사용자 질문: "${raw}"`
   }
-  return `사용자 질문(원문): "${raw}"\n정규화/보정 버전: ${rest.map((q) => `"${q}"`).join(', ')}`
+  return `${hintLine}\n사용자 질문(원문): "${raw}"\n정규화/보정 버전: ${rest.map((q) => `"${q}"`).join(', ')}`
 }
 
 function revalidateWithRecommendations(
@@ -517,7 +529,7 @@ export const POST = withApiMiddleware(
       try {
         responseText = await callOpenAI([
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: formatQuestionForPrompt(questionVariants) },
+          { role: 'user', content: formatQuestionForPrompt(questionVariants, detectedIntent) },
         ])
       } catch (error) {
         openAiFailed = true
