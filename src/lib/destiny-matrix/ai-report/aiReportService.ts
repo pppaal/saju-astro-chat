@@ -1199,7 +1199,7 @@ function summarizeTopInsightsByCategory(
   return rows.length > 0
     ? rows.join(', ')
     : lang === 'ko'
-      ? '핵심 신호 정리 중'
+      ? '성과 확장·완결률 강화'
       : 'Core signals in review'
 }
 
@@ -1374,14 +1374,11 @@ function mergeComprehensiveDraftWithBlocks(
   lang: 'ko' | 'en'
 ): AIPremiumReport['sections'] {
   const merged: AIPremiumReport['sections'] = { ...fallback }
+  // Korean premium narrative prioritizes natural prose over block appendix expansion.
+  if (lang === 'ko') return merged
   if (!blocksBySection) return merged
-  const minCharsPerSection = lang === 'ko' ? 1250 : 950
+  const minCharsPerSection = 950
   for (const key of COMPREHENSIVE_SECTION_KEYS) {
-    const baseText = String(fallback[key] || '').trim()
-    if (lang === 'ko' && baseText.length >= 1150) {
-      merged[key] = baseText
-      continue
-    }
     const supplements = collectNarrativeSupplementsFromBlocks(blocksBySection[key], lang)
     if (supplements.length === 0) continue
     merged[key] = ensureLongSectionNarrative(fallback[key], minCharsPerSection, supplements)
@@ -1411,6 +1408,14 @@ function buildComprehensiveFallbackSections(
     3
   )
   const cautions = summarizeTopInsightsByCategory(matrixReport, ['caution', 'challenge'], lang, 3)
+  const strengthsLabel =
+    lang === 'ko' && strengths === '성과 확장·완결률 강화'
+      ? '성과 확장·완결률 강화'
+      : strengths
+  const cautionsLabel =
+    lang === 'ko' && cautions === '성과 확장·완결률 강화'
+      ? '조건 확인·커뮤니케이션 재검토'
+      : cautions
   const topDomains = [...(matrixReport.domainAnalysis || [])]
     .sort((a, b) => b.score - a.score)
     .slice(0, 2)
@@ -1438,14 +1443,14 @@ function buildComprehensiveFallbackSections(
 
   if (lang === 'ko') {
     const koSections: AIPremiumReport['sections'] = {
-      introduction: `오늘 흐름은 “좋은 카드가 손에 들어왔지만, 내는 순서를 잘 잡아야 이기는 판”에 가깝습니다. 사주 일간 ${input.dayMasterElement}와 점성 핵심 신호를 겹쳐 보면, 밀어도 되는 축은 ${strengths}, 브레이크를 걸어야 하는 축은 ${cautions}로 정리됩니다. 한 줄 결론은 단순합니다. 속도로 이기려 하지 말고, 정확한 순서로 이기는 날입니다.`,
+      introduction: `오늘 흐름은 “좋은 카드가 손에 들어왔지만, 내는 순서를 잘 잡아야 이기는 판”에 가깝습니다. 사주 일간 ${input.dayMasterElement} 기운과 점성 핵심 신호를 겹쳐 보면, 밀어도 되는 축은 ${strengthsLabel}, 브레이크를 걸어야 하는 축은 ${cautionsLabel}로 정리됩니다. 한 줄 결론은 단순합니다. 속도로 이기려 하지 말고, 정확한 순서로 이기는 날입니다.`,
       personalityDeep: `당신의 기본 엔진은 빠른 판단력과 구조화 능력입니다. 그래서 시작은 누구보다 빠른데, 가끔은 확인 단계가 짧아져서 “좋은 선택을 아쉽게 마무리”하는 순간이 생깁니다. 오늘은 감으로 먼저 뛰기보다, 결론 1줄과 근거 1줄을 먼저 적고 움직이면 실수 비용이 크게 줄어듭니다.`,
       careerPath: `커리어 상위 지표는 ${topDomains || 'career(평가 중)'}이고, 지금은 “넓게 벌리기”보다 “깊게 닫기”가 이득인 타이밍입니다. 회의가 길어지는 날일수록 새 일 3개보다 완료 1개가 커리어 체급을 올립니다. 특히 협업 건은 역할·마감·책임을 먼저 고정할수록, 다음 기회에서 당신의 협상력이 선명하게 올라갑니다.`,
       relationshipDynamics: `관계에서는 말의 양보다 해석의 정확도가 승부를 냅니다. 같은 문장도 타이밍이 어긋나면 압박으로 들릴 수 있으니, 결론을 던지기 전에 “내가 이해한 게 맞는지” 한 줄로 맞춰보세요. 가까운 관계일수록 이 작은 확인이 감정 소모를 줄이고 신뢰를 빠르게 회복시킵니다.`,
       wealthPotential: `돈 흐름은 기회와 경계가 동시에 켜져 있습니다. 즉, 벌 수 있는 문은 열려 있지만, 조건을 대충 보면 새는 구멍도 함께 커지는 국면입니다. 지출·계약·투자 모두 금액, 기한, 취소 조건만 따로 떼어 확인해도 손실 확률이 눈에 띄게 내려갑니다.`,
       healthGuidance: `에너지는 단거리 스퍼트에 강한 편이라, 몰입 후 회복이 늦어질 때 컨디션 낙폭이 커질 수 있습니다. 오늘은 강한 루틴 하나보다 “짧은 회복 루틴 3번”이 더 효율적입니다. 수면, 수분, 호흡처럼 작지만 반복 가능한 기준을 지키면 집중력의 바닥이 올라갑니다.`,
       lifeMission: `장기적으로 당신의 힘은 한 번의 대박보다 “신뢰가 쌓이는 반복”에서 나옵니다. 기준을 설명할 수 있는 사람은 결국 큰 선택도 맡게 됩니다. 오늘의 작은 일관성이 1년 뒤의 큰 기회로 연결된다는 관점으로 움직이면 방향이 흔들리지 않습니다.`,
-      timingAdvice: `결정 코어는 ${deterministicCore.decision.enabled ? `${deterministicCore.decision.verdict}(${deterministicCore.decision.score}점)` : '일반 모드'}입니다. 강점 신호(${strengths})가 뜨는 구간은 실행 속도를 높이고, 주의 신호(${cautions})가 걸린 구간은 확정 전 이중 확인을 넣으세요. 특히 문서·합의·대외 전달은 “초안-검토-확정” 3단계로 쪼개면 결과가 훨씬 안정됩니다.`,
+      timingAdvice: `결정 코어는 ${deterministicCore.decision.enabled ? `${deterministicCore.decision.verdict}(${deterministicCore.decision.score}점)` : '일반 모드'}입니다. 강점 신호(${strengthsLabel})가 뜨는 구간은 실행 속도를 높이고, 주의 신호(${cautionsLabel})가 걸린 구간은 확정 전 이중 확인을 넣으세요. 특히 문서·합의·대외 전달은 “초안-검토-확정” 3단계로 쪼개면 결과가 훨씬 안정됩니다.`,
       actionPlan: `오늘 플랜은 세 줄이면 충분합니다. 1) 반드시 닫을 결과물 1개, 2) 외부 전달 전 재확인 1개, 3) 오늘 확정하지 않을 보류 1개. 이 구조만 지켜도 하루가 끝났을 때 “많이 한 느낌”이 아니라 “남는 결과”가 생깁니다.`,
       conclusion: `이번 흐름의 승부 포인트는 재능이 아니라 운영입니다. 밀어야 할 때는 분명히 밀고, 확인해야 할 때는 반드시 멈추는 리듬만 지켜도 체감 성과가 달라집니다. 같은 패턴을 2주만 유지하면 운의 변동이 줄고 결과의 재현성이 올라갑니다.`,
     }

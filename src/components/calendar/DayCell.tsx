@@ -17,6 +17,8 @@ interface ImportantDate {
   categories: EventCategory[]
   title: string
   description: string
+  warnings?: string[]
+  timingSignals?: string[]
 }
 
 interface DayCellProps {
@@ -37,7 +39,50 @@ const DayCell = React.memo(function DayCell({
   className,
 }: DayCellProps) {
   const { locale, t } = useI18n()
-  const effectiveGrade = dateInfo?.displayGrade ?? dateInfo?.grade
+  const effectiveGrade = dateInfo?.displayGrade ?? dateInfo?.grade ?? 2
+
+  const labels = React.useMemo(
+    () => ({
+      caution: locale === 'ko' ? '\u26A0 \uC8FC\uC758' : '\u26A0 Caution',
+      timing: locale === 'ko' ? '\u23F1 \uD0C0\uC774\uBC0D' : '\u23F1 Timing',
+      categories: {
+        wealth: locale === 'ko' ? '\u{1F4B0} \uB3C8' : '\u{1F4B0} Money',
+        career: locale === 'ko' ? '\u{1F4BC} \uC77C' : '\u{1F4BC} Work',
+        love: locale === 'ko' ? '\u{1F495} \uC5F0\uC560' : '\u{1F495} Love',
+        travel: locale === 'ko' ? '\u{1F9ED} \uC774\uB3D9' : '\u{1F9ED} Move',
+        health: locale === 'ko' ? '\u{1F4AA} \uAC74\uAC15' : '\u{1F4AA} Health',
+        study: locale === 'ko' ? '\u{1F4D8} \uD559\uC5C5' : '\u{1F4D8} Study',
+      } as const satisfies Record<Exclude<EventCategory, 'general'>, string>,
+      daySuffix: locale === 'ko' ? '\uC77C' : '',
+      noInfo: locale === 'ko' ? '\uC815\uBCF4 \uC5C6\uC74C' : 'No info',
+      today: locale === 'ko' ? '\uC624\uB298' : 'Today',
+    }),
+    [locale]
+  )
+
+  const miniTags = React.useMemo(() => {
+    if (!dateInfo) return []
+
+    const tags: Array<{ label: string; warning?: boolean }> = []
+    const isCaution = effectiveGrade >= 3 || (dateInfo.warnings?.length || 0) > 0
+    if (isCaution) {
+      tags.push({ label: labels.caution, warning: true })
+    }
+
+    for (const category of dateInfo.categories || []) {
+      if (category === 'general') continue
+      const tag = labels.categories[category]
+      if (!tag) continue
+      tags.push({ label: tag })
+      if (tags.length >= 2) break
+    }
+
+    if (tags.length < 2 && (dateInfo.timingSignals?.length || 0) > 0) {
+      tags.push({ label: labels.timing })
+    }
+
+    return tags.slice(0, 2)
+  }, [dateInfo, effectiveGrade, labels])
 
   const getGradeLabel = (grade: number) => {
     const key = `calendar.grades.${grade}`
@@ -56,13 +101,9 @@ const DayCell = React.memo(function DayCell({
   }
 
   const ariaLabel = date
-    ? `${date.getDate()}${locale === 'ko' ? '일' : ''}, ${
-        typeof effectiveGrade === 'number'
-          ? getGradeLabel(effectiveGrade)
-          : locale === 'ko'
-            ? '정보 없음'
-            : 'No info'
-      }${isToday ? (locale === 'ko' ? ', 오늘' : ', Today') : ''}`
+    ? `${date.getDate()}${labels.daySuffix}, ${
+        typeof effectiveGrade === 'number' ? getGradeLabel(effectiveGrade) : labels.noInfo
+      }${isToday ? `, ${labels.today}` : ''}`
     : undefined
 
   return (
@@ -89,6 +130,18 @@ const DayCell = React.memo(function DayCell({
               <span
                 className={`${styles.gradeIndicator} ${styles[`gradeIndicator${effectiveGrade}`]}`}
               />
+            </div>
+          )}
+          {miniTags.length > 0 && (
+            <div className={styles.dayMiniTags} aria-hidden="true">
+              {miniTags.map((tag) => (
+                <span
+                  key={tag.label}
+                  className={`${styles.dayMiniTag} ${tag.warning ? styles.dayMiniTagWarning : ''}`}
+                >
+                  {tag.label}
+                </span>
+              ))}
             </div>
           )}
         </>

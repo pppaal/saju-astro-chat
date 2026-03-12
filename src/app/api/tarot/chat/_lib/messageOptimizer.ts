@@ -15,9 +15,37 @@ function truncateWithHeadTail(text: string, maxLength: number, head = 0.7): stri
 
 function splitSentences(text: string): string[] {
   return text
-    .split(/(?<=[.!?。！？\n])\s+/)
+    .split(/(?<=[.!?\n])\s+/)
     .map((s) => s.trim())
     .filter(Boolean)
+}
+
+function dedupeInOrder(items: string[]): string[] {
+  const out: string[] = []
+  const seen = new Set<string>()
+  for (const item of items) {
+    const key = item.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(item)
+  }
+  return out
+}
+
+function pickMiddleWindow(sentences: string[], count = 2): string[] {
+  if (sentences.length <= 4) return []
+  const safeCount = Math.max(1, count)
+  const mid = Math.floor(sentences.length / 2)
+  const start = Math.max(0, mid - Math.floor(safeCount / 2))
+  return sentences.slice(start, Math.min(sentences.length, start + safeCount))
+}
+
+function pickPrioritySentences(sentences: string[], limit = 2): string[] {
+  const signalPattern =
+    /(\?|should|when|whether|priority|decide|risk|important|핵심|우선|결정|시기|타이밍|어떻게|해야|할까)/i
+
+  const prioritized = sentences.filter((sentence) => signalPattern.test(sentence))
+  return prioritized.slice(0, Math.max(1, limit))
 }
 
 export function summarizeLongUserQuestion(
@@ -34,13 +62,23 @@ export function summarizeLongUserQuestion(
     return truncateWithHeadTail(content, maxLength, 0.72)
   }
 
-  const firstPart = sentences.slice(0, 3)
-  const lastPart = sentences.slice(-3)
-  const merged = [...firstPart, ...lastPart].join(' ')
+  const firstPart = sentences.slice(0, 2)
+  const priorityPart = pickPrioritySentences(sentences, 2)
+  const middlePart = pickMiddleWindow(sentences, 2)
+  const lastPart = sentences.slice(-2)
+  const tailSnippet = content.slice(-140).trim()
+  const merged = dedupeInOrder([
+    ...firstPart,
+    ...priorityPart,
+    ...middlePart,
+    ...lastPart,
+    tailSnippet,
+  ]).join(' ')
+
   const prefix =
     language === 'ko'
-      ? '긴 질문 요약(핵심 앞/뒤 문장 유지): '
-      : 'Long question summary (key start/end points): '
+      ? '긴 질문 요약(앞/핵심의도/뒤 문장 유지): '
+      : 'Long question summary (start/key-intent/end points): '
 
   return truncateWithHeadTail(`${prefix}${merged}`, maxLength, 0.8)
 }

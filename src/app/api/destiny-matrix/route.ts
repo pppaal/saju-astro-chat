@@ -7,6 +7,11 @@ import { withApiMiddleware, createPublicStreamGuard } from '@/lib/api/middleware
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix'
 import { buildAstroTimingIndex } from '@/lib/destiny-matrix/astroTimingIndex'
+import {
+  buildServiceInputCrossAudit,
+  ensureMatrixInputCrossCompleteness,
+  listMissingCrossKeysForService,
+} from '@/lib/destiny-matrix/inputCross'
 import { buildMatrixSemanticContract } from '@/lib/destiny-matrix/layerSemantics'
 import { buildLayerThemeProfiles } from '@/lib/destiny-matrix/layerThemeProfiles'
 import { buildPremiumActionChecklist } from '@/lib/destiny-matrix/actionChecklist'
@@ -1041,9 +1046,12 @@ export const POST = withApiMiddleware(
         lang,
         startYearMonth,
       }
+      const crossCompleteInput = ensureMatrixInputCrossCompleteness(input)
+      const matrixInputCrossAudit = buildServiceInputCrossAudit(crossCompleteInput, 'matrix')
+      const matrixInputCrossMissing = listMissingCrossKeysForService(matrixInputCrossAudit, 'matrix')
 
       // Calculate matrix (server-side only)
-      const matrix = calculateDestinyMatrix(input)
+      const matrix = calculateDestinyMatrix(crossCompleteInput)
       let coreSnapshot:
         | {
             coreHash: string
@@ -1071,7 +1079,7 @@ export const POST = withApiMiddleware(
           }
         | undefined
       try {
-        const matrixReport = reportGenerator.generateReport(input, {
+        const matrixReport = reportGenerator.generateReport(crossCompleteInput, {
           layer1_elementCore: matrix.layer1_elementCore,
           layer2_sibsinPlanet: matrix.layer2_sibsinPlanet,
           layer3_sibsinHouse: matrix.layer3_sibsinHouse,
@@ -1086,7 +1094,7 @@ export const POST = withApiMiddleware(
         const core = runDestinyCore({
           mode: 'comprehensive',
           lang,
-          matrixInput: input,
+          matrixInput: crossCompleteInput,
           matrixReport,
           matrixSummary: matrix.summary,
         })
@@ -1128,7 +1136,7 @@ export const POST = withApiMiddleware(
         logger.warn('Destiny Matrix core snapshot build failed (non-fatal):', coreError)
       }
       const semanticContract = buildMatrixSemanticContract(matrix)
-      const layerThemeProfiles = buildLayerThemeProfiles(matrix, input)
+        const layerThemeProfiles = buildLayerThemeProfiles(matrix, crossCompleteInput)
       const now = new Date()
       const tomorrowDate = new Date(now)
       tomorrowDate.setDate(tomorrowDate.getDate() + 1)
@@ -1195,6 +1203,7 @@ export const POST = withApiMiddleware(
                 astroTimingIndex: normalizedAstroTimingIndex || null,
               }
             : undefined,
+          matrixInputCrossMissing,
           layersProcessed: Object.keys(cellCounts).filter(
             (k) => cellCounts[k as keyof typeof cellCounts] > 0
           ).length,
@@ -1219,6 +1228,7 @@ export const POST = withApiMiddleware(
         core: coreSnapshot,
         semantics: semanticContract,
         layerThemeProfiles,
+        matrixInputCrossAudit,
         // Copyright notice
         copyright: '© 2024 Destiny Fusion Matrix™. All Rights Reserved.',
       })

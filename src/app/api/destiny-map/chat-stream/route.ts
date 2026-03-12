@@ -40,13 +40,15 @@ import {
   formatCounselorEvidencePacket,
 } from '@/lib/destiny-matrix/counselorEvidence'
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
-import { reportGenerator } from '@/lib/destiny-matrix/interpreter'
-import {
-  buildNormalizedMatrixInput,
-  runDestinyCore,
-} from '@/lib/destiny-matrix/core/runDestinyCore'
+import { buildAstroTimingIndex } from '@/lib/destiny-matrix/astroTimingIndex'
+import { buildCoreEnvelope } from '@/lib/destiny-matrix/core'
 import { buildMatrixSemanticContract } from '@/lib/destiny-matrix/layerSemantics'
 import { buildLayerThemeProfiles } from '@/lib/destiny-matrix/layerThemeProfiles'
+import {
+  buildServiceInputCrossAudit,
+  ensureMatrixInputCrossCompleteness,
+  listMissingCrossKeysForService,
+} from '@/lib/destiny-matrix/inputCross'
 import type { MatrixCalculationInput, TransitCycle } from '@/lib/destiny-matrix/types'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import type { FiveElement, PillarData } from '@/lib/Saju/types'
@@ -248,6 +250,7 @@ interface MatrixSnapshot {
   }
   globalConflictPolicy?: string
   lowConfidencePolicy?: string
+  inputCrossMissing?: string[]
 }
 
 type CounselorUiEvidencePayload = {
@@ -1125,6 +1128,12 @@ async function fetchMatrixSnapshot(input: {
     const currentDaeunElement = inferElementFromStemName(daeWoon?.current?.heavenlyStem)
     const currentSaeunElement = normalizeElementToFiveElement(currentAnnual?.element)
     const currentWolunElement = normalizeElementToFiveElement(currentMonthly?.element)
+    const currentIljinDate = new Date().toISOString().slice(0, 10)
+    const fallbackIljinElement = currentWolunElement || currentSaeunElement || currentDaeunElement
+    const astroTimingIndex = buildAstroTimingIndex({
+      activeTransits: normalizeTransitCycles(input.currentTransits),
+      advancedAstroSignals,
+    })
 
     const matrixInput: MatrixCalculationInput = {
       dayMasterElement,
@@ -1137,12 +1146,15 @@ async function fetchMatrixSnapshot(input: {
       currentDaeunElement,
       currentSaeunElement,
       currentWolunElement,
+      currentIljinElement: fallbackIljinElement,
+      currentIljinDate,
       shinsalList,
       dominantWesternElement,
       planetHouses: planetHouses as MatrixCalculationInput['planetHouses'],
       planetSigns: planetSigns as MatrixCalculationInput['planetSigns'],
       aspects: derived.aspects as MatrixCalculationInput['aspects'],
       activeTransits: normalizeTransitCycles(input.currentTransits),
+      astroTimingIndex,
       asteroidHouses: derived.asteroidHouses as MatrixCalculationInput['asteroidHouses'],
       extraPointSigns: derived.extraPointSigns as MatrixCalculationInput['extraPointSigns'],
       advancedAstroSignals,
@@ -1163,28 +1175,19 @@ async function fetchMatrixSnapshot(input: {
       lang: matrixLang,
       startYearMonth: `${new Date().getFullYear()}-01`,
     }
-    const normalizedMatrixInput = buildNormalizedMatrixInput(matrixInput)
-
-    const matrix = calculateDestinyMatrix(normalizedMatrixInput)
-    const matrixReport = reportGenerator.generateReport(normalizedMatrixInput, {
-      layer1_elementCore: matrix.layer1_elementCore,
-      layer2_sibsinPlanet: matrix.layer2_sibsinPlanet,
-      layer3_sibsinHouse: matrix.layer3_sibsinHouse,
-      layer4_timing: matrix.layer4_timing,
-      layer5_relationAspect: matrix.layer5_relationAspect,
-      layer6_stageHouse: matrix.layer6_stageHouse,
-      layer7_advanced: matrix.layer7_advanced,
-      layer8_shinsalPlanet: matrix.layer8_shinsalPlanet,
-      layer9_asteroidHouse: matrix.layer9_asteroidHouse,
-      layer10_extraPointElement: matrix.layer10_extraPointElement,
-    })
-    const core = runDestinyCore({
+    const crossCompleteInput = ensureMatrixInputCrossCompleteness(matrixInput)
+    const crossAudit = buildServiceInputCrossAudit(crossCompleteInput, 'counselor')
+    const crossMissingKeys = listMissingCrossKeysForService(crossAudit, 'counselor')
+    const coreEnvelope = buildCoreEnvelope({
       mode: 'comprehensive',
       lang: matrixLang,
-      matrixInput: normalizedMatrixInput,
-      matrixReport,
-      matrixSummary: matrix.summary,
+      matrixInput: crossCompleteInput,
+      matrixCalculator: calculateDestinyMatrix,
     })
+    const normalizedMatrixInput = coreEnvelope.normalizedInput
+    const matrix = coreEnvelope.matrix
+    const matrixReport = coreEnvelope.matrixReport
+    const core = coreEnvelope.coreSeed
     const counselorEvidence = buildCounselorEvidencePacket({
       theme: 'chat',
       lang: matrixLang,
@@ -1289,6 +1292,7 @@ async function fetchMatrixSnapshot(input: {
       },
       globalConflictPolicy: semantics.globalConflictPolicy,
       lowConfidencePolicy: semantics.lowConfidencePolicy,
+      inputCrossMissing: crossMissingKeys,
     }
   } catch (error) {
     logger.warn('[chat-stream] Matrix snapshot build failed', {

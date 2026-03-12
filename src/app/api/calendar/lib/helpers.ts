@@ -828,11 +828,17 @@ export function generateBestTimes(
   grade: ImportanceGrade,
   categories: EventCategory[],
   lang: 'ko' | 'en',
-  confidence?: number
+  confidence?: number,
+  date?: Pick<ImportantDate, 'bestHours'>
 ): string[] {
   // Grade 3(안좋음), Grade 4(최악)은 시간 추천 없음
   if (grade >= 3) {
     return []
+  }
+
+  const signalTimes = date ? buildBestTimesFromBestHours(date, lang) : []
+  if (signalTimes.length > 0) {
+    return maybeSoftenBestTimes(signalTimes, lang, confidence)
   }
 
   const cat = categories[0] || 'general'
@@ -864,6 +870,49 @@ export function generateBestTimes(
   }
 }
 
+function padHour(hour: number): string {
+  const normalized = ((hour % 24) + 24) % 24
+  return String(normalized).padStart(2, '0')
+}
+
+function formatHourRange(hour: number): string {
+  return `${padHour(hour)}:00-${padHour(hour + 2)}:00`
+}
+
+function buildBestTimesFromBestHours(
+  date: Pick<ImportantDate, 'bestHours'>,
+  lang: 'ko' | 'en'
+): string[] {
+  const bestHours = Array.isArray(date.bestHours) ? date.bestHours : []
+  if (bestHours.length === 0) return []
+
+  const qualityWeight: Record<'excellent' | 'good' | 'neutral' | 'caution', number> = {
+    excellent: 4,
+    good: 3,
+    neutral: 2,
+    caution: 1,
+  }
+
+  const selected = [...bestHours]
+    .filter((slot) => slot && slot.quality !== 'caution')
+    .sort((a, b) => (qualityWeight[b.quality] || 0) - (qualityWeight[a.quality] || 0))
+    .slice(0, 2)
+
+  if (selected.length === 0) return []
+
+  return selected.map((slot) => {
+    const window = formatHourRange(slot.hour)
+    if (lang === 'ko') {
+      if (slot.quality === 'excellent') return `🌟 ${window}: 핵심 실행/결정 구간`
+      if (slot.quality === 'good') return `✅ ${window}: 진행·협의에 유리`
+      return `🕒 ${window}: 안정적으로 처리하기 좋은 시간`
+    }
+    if (slot.quality === 'excellent') return `🌟 ${window}: best for decisive execution`
+    if (slot.quality === 'good') return `✅ ${window}: favorable for progress and coordination`
+    return `🕒 ${window}: stable block for focused work`
+  })
+}
+
 function maybeSoftenBestTimes(times: string[], lang: 'ko' | 'en', confidence?: number): string[] {
   const lowConfidence = (confidence ?? 100) < EVIDENCE_CONFIDENCE_THRESHOLDS.low
   if (!lowConfidence) return times
@@ -883,6 +932,78 @@ function maybeSoftenBestTimes(times: string[], lang: 'ko' | 'en', confidence?: n
       .replace(/\bGood\b/g, 'Workable')
       .replace(/\bInvestment decisions\b/g, 'Conservative investment review')
   )
+}
+
+function buildTimingSignals(input: {
+  date: ImportantDate
+  lang: 'ko' | 'en'
+  matrixVerdict?: CalendarEvidence['matrixVerdict']
+  peakLevel?: CalendarEvidence['matrix']['peakLevel']
+}): string[] {
+  const { date, lang, matrixVerdict, peakLevel } = input
+  const keys = [...(date.sajuFactorKeys || []), ...(date.astroFactorKeys || [])]
+    .map((value) => String(value || '').toLowerCase())
+    .filter(Boolean)
+
+  const signals: string[] = []
+  const add = (ko: string, en: string) => {
+    const text = lang === 'ko' ? ko : en
+    if (!signals.includes(text)) signals.push(text)
+  }
+
+  if (keys.some((key) => key.includes('daeun'))) add('대운 활성', 'Daeun active')
+  if (keys.some((key) => key.includes('seun') || key.includes('saeun'))) {
+    add('세운 반영', 'Annual cycle active')
+  }
+  if (keys.some((key) => key.includes('wolun'))) add('월운 반영', 'Monthly cycle active')
+  if (keys.some((key) => key.includes('iljin') || key.includes('day'))) {
+    add('일진 반영', 'Daily cycle active')
+  }
+  if (
+    keys.some(
+      (key) =>
+        key.includes('transit') ||
+        key.includes('retrograde') ||
+        key.includes('progression') ||
+        key.includes('solarreturn') ||
+        key.includes('lunarreturn')
+    )
+  ) {
+    add('트랜짓 신호', 'Transit signal')
+  }
+  if (date.transitSync?.isMajorTransitYear) add('강한 트랜짓 해', 'Major transit year')
+  if (matrixVerdict?.phase) add(`국면: ${matrixVerdict.phase}`, `Phase: ${matrixVerdict.phase}`)
+
+  if (peakLevel === 'peak') {
+    add('월간 피크 구간', 'Monthly peak window')
+  } else if (peakLevel === 'high') {
+    add('월간 상승 구간', 'Monthly rising window')
+  }
+
+  return signals.slice(0, 4)
+}
+
+function buildActionSummary(input: {
+  lang: 'ko' | 'en'
+  recommendations: string[]
+  warnings: string[]
+  bestTimes: string[]
+  timingSignals: string[]
+}): string {
+  const { lang, recommendations, warnings, bestTimes, timingSignals } = input
+  const doLine = recommendations[0] || ''
+  const cautionLine = warnings[0] || ''
+  const timeLine = bestTimes[0] || timingSignals[0] || ''
+
+  if (lang === 'ko') {
+    return [doLine ? `실행: ${doLine}` : '', cautionLine ? `주의: ${cautionLine}` : '', timeLine ? `타이밍: ${timeLine}` : '']
+      .filter(Boolean)
+      .join(' / ')
+  }
+
+  return [doLine ? `Do: ${doLine}` : '', cautionLine ? `Caution: ${cautionLine}` : '', timeLine ? `Timing: ${timeLine}` : '']
+    .filter(Boolean)
+    .join(' / ')
 }
 
 function buildCategoryAction(
@@ -2040,7 +2161,7 @@ export function formatDateForResponse(
     })
   }
 
-  const bestTimes = generateBestTimes(date.grade, uniqueCategories, lang, date.confidence)
+  const bestTimes = generateBestTimes(date.grade, uniqueCategories, lang, date.confidence, date)
   const recommendations = buildEnhancedRecommendations(
     date,
     uniqueCategories,
@@ -2073,6 +2194,12 @@ export function formatDateForResponse(
   })
   const evidenceWithVerdict = attachMatrixVerdict(matrixOverlay.evidence, matrixPacket)
   const matrixVerdict = evidenceWithVerdict.matrixVerdict
+  const timingSignals = buildTimingSignals({
+    date,
+    lang,
+    matrixVerdict,
+    peakLevel: evidenceWithVerdict.matrix?.peakLevel,
+  })
   const baseDisplayScore = date.displayScore ?? date.adjustedScore ?? date.score
   const hasPregradedDisplay =
     typeof date.displayScore === 'number' && typeof date.grade === 'number'
@@ -2203,6 +2330,13 @@ export function formatDateForResponse(
       ]).join(' ')
     : finalSummary
   const summarized = summarizedBase
+  const actionSummary = buildActionSummary({
+    lang,
+    recommendations: recommendationsForResponse,
+    warnings: warningsForResponse,
+    bestTimes,
+    timingSignals,
+  })
 
   return normalizeMojibakePayload({
     date: date.date,
@@ -2217,6 +2351,8 @@ export function formatDateForResponse(
     title,
     description: finalDescription,
     summary: summarized,
+    actionSummary,
+    timingSignals,
     bestTimes,
     sajuFactors: orderedSajuFactors,
     astroFactors: orderedAstroFactors,

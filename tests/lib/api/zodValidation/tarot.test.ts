@@ -416,6 +416,18 @@ describe('Tarot Request Schemas', () => {
         language: 'ko',
       }).success).toBe(true)
     })
+
+    it('should reject empty cards', () => {
+      expect(
+        tarotChatRequestSchema.safeParse({
+          ...validRequest,
+          context: {
+            ...validRequest.context,
+            cards: [],
+          },
+        }).success
+      ).toBe(false)
+    })
   })
 
   describe('tarotChatStreamRequestSchema', () => {

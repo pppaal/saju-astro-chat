@@ -14,6 +14,7 @@ import {
   wrapError,
 } from '@/lib/destiny-matrix'
 import type { MatrixCalculationInput, InsightDomain, MatrixCell } from '@/lib/destiny-matrix'
+import { buildCoreEnvelope } from '@/lib/destiny-matrix/core'
 import {
   generateAIPremiumReport,
   generateTimingReport,
@@ -1384,9 +1385,7 @@ export const POST = withApiMiddleware(
         currentDateIso,
       } as MatrixCalculationInput
 
-      // 7. 기본 매트릭스 계산
-      const matrix = calculateDestinyMatrix(matrixInput)
-      const layerResults = extractAllLayerCells(matrix as MatrixLayers)
+      // 7. 기본 입력/타이밍 준비
       const detailBasedMaxInsights =
         detailLevel === 'comprehensive' ? 20 : detailLevel === 'detailed' ? 10 : 5
       const resolvedMaxInsights = Math.min(20, Math.max(1, maxInsights ?? detailBasedMaxInsights))
@@ -1482,11 +1481,18 @@ export const POST = withApiMiddleware(
         narrativeStyle: 'friendly',
       })
 
-      const baseReport = generator.generateReport(
+      const coreEnvelope = buildCoreEnvelope({
+        mode: theme ? 'themed' : period && period !== 'comprehensive' ? 'timing' : 'comprehensive',
+        lang: ((matrixInput.lang || 'ko') as 'ko' | 'en') || 'ko',
         matrixInput,
-        layerResults,
-        queryDomain as InsightDomain | undefined
-      )
+        queryDomain: queryDomain as InsightDomain | undefined,
+        reportGeneratorInstance: generator,
+        matrixCalculator: calculateDestinyMatrix,
+      })
+      const matrix = coreEnvelope.matrix
+      const layerResults = coreEnvelope.layerResults
+      const baseReport = coreEnvelope.matrixReport
+      const normalizedMatrixInput = coreEnvelope.normalizedInput
 
       if (isFreeTier) {
         const freeReport = buildFreeDigestReport({
@@ -1507,7 +1513,7 @@ export const POST = withApiMiddleware(
             summary: domain.summary,
             hasData: domain.hasData,
           })),
-          lang: matrixInput.lang || 'ko',
+          lang: normalizedMatrixInput.lang || 'ko',
         })
 
         return NextResponse.json({
@@ -1524,7 +1530,7 @@ export const POST = withApiMiddleware(
       // 10. 리포트 타입별 분기 처리
       let aiReport: AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
       let premiumReport: AIPremiumReport | null = null
-      const reportLang = matrixInput.lang || 'ko'
+      const reportLang = normalizedMatrixInput.lang || 'ko'
       const matrixSummaryForGeneration =
         matrix && typeof matrix === 'object' && 'summary' in matrix
           ? (matrix.summary as typeof matrix.summary)
@@ -1885,7 +1891,7 @@ export const POST = withApiMiddleware(
           summary: reportSummary,
           overallScore,
           grade: scoreToGrade(overallScore),
-          locale: matrixInput.lang || 'ko',
+          locale: normalizedMatrixInput.lang || 'ko',
         },
       })
 

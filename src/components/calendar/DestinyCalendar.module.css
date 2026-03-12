@@ -1839,6 +1839,33 @@
   margin-top: 1px;
 }
 
+.dayMiniTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 4px;
+  justify-content: center;
+}
+
+.dayMiniTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 5px;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #e2e8f0;
+  background: rgba(15, 23, 42, 0.62);
+  border: 1px solid rgba(148, 163, 184, 0.32);
+}
+
+.dayMiniTagWarning {
+  color: #fecaca;
+  border-color: rgba(239, 68, 68, 0.48);
+  background: rgba(127, 29, 29, 0.56);
+}
+
 .dayEmoji {
   font-size: 8px;
   line-height: 1;
@@ -2231,6 +2258,30 @@
   margin-bottom: 14px;
 }
 
+.quickSummaryBlock {
+  margin-bottom: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.12);
+  padding: 9px 10px;
+}
+
+.quickSummaryLabel {
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 700;
+  color: #a7f3d0;
+  margin-bottom: 4px;
+}
+
+.quickSummaryText {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  color: #ecfeff;
+  font-weight: 600;
+}
+
 .quickScanThesis {
   margin: 0;
   font-size: 20px;
@@ -2244,6 +2295,26 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 10px;
+}
+
+.quickTimingSignalList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.quickTimingSignalChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 700;
+  color: #fef3c7;
+  background: rgba(146, 64, 14, 0.28);
+  border: 1px solid rgba(251, 191, 36, 0.38);
 }
 
 .quickMetaChip {
@@ -2346,6 +2417,42 @@
 .calendarEvidenceInner {
   border-top: 1px solid rgba(74, 222, 128, 0.2);
   padding: 10px 14px 14px;
+}
+
+.extendedDetails {
+  margin: 0 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  background: rgba(15, 23, 42, 0.26);
+  overflow: hidden;
+}
+
+.extendedDetailsSummary {
+  cursor: pointer;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #e2e8f0;
+  list-style: none;
+}
+
+.extendedDetailsSummary::-webkit-details-marker {
+  display: none;
+}
+
+.extendedDetailsSummary::after {
+  content: '\25BE';
+  float: right;
+  transition: transform 0.2s ease;
+}
+
+.extendedDetails[open] .extendedDetailsSummary::after {
+  transform: rotate(180deg);
+}
+
+.extendedDetailsBody {
+  padding: 0 12px 8px;
+  border-top: 1px solid rgba(148, 163, 184, 0.24);
 }
 
 /* AI Badge */

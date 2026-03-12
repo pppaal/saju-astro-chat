@@ -559,6 +559,16 @@ describe('POST /api/tarot/interpret/stream', () => {
       )
     })
 
+    it('should build richer card meaning context for backend', async () => {
+      const req = createPostRequest(VALID_REQUEST_BODY)
+      await POST(req)
+
+      const callArgs = mockPostSSEStream.mock.calls[0]
+      const firstMeaning = callArgs[1].context.cards[0].meaning as string
+      expect(firstMeaning).toContain('The Fool')
+      expect(firstMeaning).toContain('Past')
+    })
+
     it('should include category in context', async () => {
       const req = createPostRequest(VALID_REQUEST_BODY)
       await POST(req)
@@ -652,13 +662,17 @@ describe('POST /api/tarot/interpret/stream', () => {
       )
     })
 
-    it('should set timeout to 20000ms', async () => {
+    it('should set timeout to 60000ms', async () => {
       const req = createPostRequest(VALID_REQUEST_BODY)
       await POST(req)
 
-      expect(mockPostSSEStream).toHaveBeenCalledWith(expect.any(String), expect.any(Object), {
-        timeout: 20000,
-      })
+      expect(mockPostSSEStream).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(Object),
+        expect.objectContaining({
+          timeout: 60000,
+        })
+      )
     })
 
     it('should include counselorId when provided', async () => {

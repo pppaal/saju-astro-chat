@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Calendar API types
  * Extracted from route.ts for modularity
  */
@@ -27,8 +27,10 @@ export interface FormattedDate {
   categories: EventCategory[]
   title: string
   description: string
-  summary: string // 한줄 요약
-  bestTimes: string[] // 추천 시간대
+  summary: string
+  actionSummary?: string
+  timingSignals?: string[]
+  bestTimes: string[]
   sajuFactors: string[]
   astroFactors: string[]
   recommendations: string[]

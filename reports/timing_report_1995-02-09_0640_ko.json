@@ -1,10 +1,10 @@
 {
-  "id": "timing_daily_1773205902570_jzfsl2",
-  "generatedAt": "2026-03-11T05:11:42.565Z",
+  "id": "timing_daily_1773206402194_74a22m",
+  "generatedAt": "2026-03-11T05:20:02.188Z",
   "lang": "ko",
   "reportMeta": {
     "schemaVersion": "1.1",
-    "generatedAt": "2026-03-11T05:11:42.565Z",
+    "generatedAt": "2026-03-11T05:20:02.188Z",
     "engineVersion": "destiny-matrix-ai-report-v2"
   },
   "timeWindow": {
@@ -50,21 +50,34 @@
         "COV:L10:snapshot_astro:natalAspects",
         "COV:L10:snapshot_astro:progressions"
       ],
-      "anchorIds": ["E6"],
+      "anchorIds": [
+        "E6"
+      ],
       "domain": "career"
     },
     {
       "id": "relationship_growth_with_guardrails",
       "text": "관계는 진전 신호와 긴장 신호가 동시에 작동합니다. 두 신호는 상충이 아니라 속도와 확인 단계를 분리하라는 조건 신호입니다. 충돌 패턴 레이어: 긴장 구간의 트리거와 완충 전략을 해석합니다. 감정 피크에서 즉시 확정하면 오해가 고착될 수 있습니다.",
-      "selectedSignalIds": ["L5:samhap:conjunction", "L5:chung:opposition", "L5:chung:square"],
-      "anchorIds": ["E6"],
+      "selectedSignalIds": [
+        "L5:samhap:conjunction",
+        "L5:chung:opposition",
+        "L5:chung:square"
+      ],
+      "anchorIds": [
+        "E6"
+      ],
       "domain": "relationship"
     },
     {
       "id": "health_growth_with_guardrails",
       "text": "건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신호입니다. 충돌 패턴 레이어: 긴장 구간의 트리거와 완충 전략을 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요.",
-      "selectedSignalIds": ["L5:chung:opposition", "L2:상관:Saturn"],
-      "anchorIds": ["E6"],
+      "selectedSignalIds": [
+        "L5:chung:opposition",
+        "L2:상관:Saturn"
+      ],
+      "anchorIds": [
+        "E6"
+      ],
       "domain": "health"
     },
     {
@@ -74,13 +87,17 @@
         "COV:L10:snapshot_astro:natalAspects",
         "COV:L10:snapshot_astro:progressions"
       ],
-      "anchorIds": ["E6"],
+      "anchorIds": [
+        "E6"
+      ],
       "domain": "timing"
     },
     {
       "id": "wealth_expansion",
       "text": "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다. 역할·책임·마감 기준을 고정하면 성과 재현성이 올라갑니다.",
-      "selectedSignalIds": ["L2:편재:Jupiter"],
+      "selectedSignalIds": [
+        "L2:편재:Jupiter"
+      ],
       "anchorIds": [],
       "domain": "wealth"
     }
@@ -147,7 +164,7 @@
     {
       "id": "E1",
       "section": "overview",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"overview\" using X2, X3, X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"overview\" using X2, X3, X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "setCount": 4,
       "avgOverlapScore": 0.98,
       "avgOrbFitScore": 0.71
@@ -155,7 +172,7 @@
     {
       "id": "E2",
       "section": "energy",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"energy\" using X2, X3, X1, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"energy\" using X2, X3, X1, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "setCount": 4,
       "avgOverlapScore": 0.92,
       "avgOrbFitScore": 0.9
@@ -163,7 +180,7 @@
     {
       "id": "E3",
       "section": "opportunities",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"opportunities\" using X2, X3, X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"opportunities\" using X2, X3, X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "setCount": 4,
       "avgOverlapScore": 0.98,
       "avgOrbFitScore": 0.71
@@ -171,7 +188,7 @@
     {
       "id": "E4",
       "section": "cautions",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"cautions\" using X2, X3, X1, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"cautions\" using X2, X3, X1, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "setCount": 4,
       "avgOverlapScore": 0.92,
       "avgOrbFitScore": 0.9
@@ -179,7 +196,7 @@
     {
       "id": "E5",
       "section": "domains",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"domains\" using X2, X3, X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"domains\" using X2, X3, X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "setCount": 4,
       "avgOverlapScore": 0.98,
       "avgOrbFitScore": 0.71
@@ -187,7 +204,7 @@
     {
       "id": "E6",
       "section": "actionPlan",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"actionPlan\" using X2, X3, X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"actionPlan\" using X2, X3, X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
       "setCount": 4,
       "avgOverlapScore": 0.98,
       "avgOrbFitScore": 0.71
@@ -197,10 +214,15 @@
     {
       "id": "LINK_1",
       "signalId": "L5:samhap:conjunction",
-      "claimIds": ["relationship_growth_with_guardrails"],
+      "claimIds": [
+        "relationship_growth_with_guardrails"
+      ],
       "anchorId": "E6",
       "section": "actionPlan",
-      "setIds": ["X3", "X2"],
+      "setIds": [
+        "X3",
+        "X2"
+      ],
       "domain": "relationship",
       "linkScore": 0.91,
       "overlapScore": 0.99,
@@ -210,10 +232,16 @@
     {
       "id": "LINK_2",
       "signalId": "COV:L10:snapshot_astro:natalAspects",
-      "claimIds": ["career_expansion", "timing_stability"],
+      "claimIds": [
+        "career_expansion",
+        "timing_stability"
+      ],
       "anchorId": "E6",
       "section": "actionPlan",
-      "setIds": ["X2", "X3"],
+      "setIds": [
+        "X2",
+        "X3"
+      ],
       "domain": "career",
       "linkScore": 0.81,
       "overlapScore": 0.99,
@@ -223,10 +251,16 @@
     {
       "id": "LINK_3",
       "signalId": "COV:L10:snapshot_astro:progressions",
-      "claimIds": ["career_expansion", "timing_stability"],
+      "claimIds": [
+        "career_expansion",
+        "timing_stability"
+      ],
       "anchorId": "E6",
       "section": "actionPlan",
-      "setIds": ["X2", "X3"],
+      "setIds": [
+        "X2",
+        "X3"
+      ],
       "domain": "career",
       "linkScore": 0.81,
       "overlapScore": 0.99,
@@ -236,10 +270,15 @@
     {
       "id": "LINK_4",
       "signalId": "L2:편재:Jupiter",
-      "claimIds": ["career_expansion"],
+      "claimIds": [
+        "career_expansion"
+      ],
       "anchorId": "E6",
       "section": "actionPlan",
-      "setIds": ["X9", "X2"],
+      "setIds": [
+        "X9",
+        "X2"
+      ],
       "domain": "career",
       "linkScore": 0.78,
       "overlapScore": 0.99,
@@ -249,10 +288,16 @@
     {
       "id": "LINK_5",
       "signalId": "L5:chung:opposition",
-      "claimIds": ["relationship_growth_with_guardrails", "health_growth_with_guardrails"],
+      "claimIds": [
+        "relationship_growth_with_guardrails",
+        "health_growth_with_guardrails"
+      ],
       "anchorId": "E6",
       "section": "actionPlan",
-      "setIds": ["X3", "X2"],
+      "setIds": [
+        "X3",
+        "X2"
+      ],
       "domain": "relationship",
       "linkScore": 0.71,
       "overlapScore": 0.99,
@@ -262,10 +307,15 @@
     {
       "id": "LINK_6",
       "signalId": "L5:chung:square",
-      "claimIds": ["relationship_growth_with_guardrails"],
+      "claimIds": [
+        "relationship_growth_with_guardrails"
+      ],
       "anchorId": "E6",
       "section": "actionPlan",
-      "setIds": ["X3", "X2"],
+      "setIds": [
+        "X3",
+        "X2"
+      ],
       "domain": "relationship",
       "linkScore": 0.71,
       "overlapScore": 0.99,
@@ -275,10 +325,15 @@
     {
       "id": "LINK_7",
       "signalId": "L2:편재:Jupiter",
-      "claimIds": ["wealth_expansion"],
+      "claimIds": [
+        "wealth_expansion"
+      ],
       "anchorId": "E1",
       "section": "overview",
-      "setIds": ["X9", "X2"],
+      "setIds": [
+        "X9",
+        "X2"
+      ],
       "domain": "wealth",
       "linkScore": 0.68,
       "overlapScore": 0.99,
@@ -288,10 +343,15 @@
     {
       "id": "LINK_8",
       "signalId": "L2:상관:Saturn",
-      "claimIds": ["health_growth_with_guardrails"],
+      "claimIds": [
+        "health_growth_with_guardrails"
+      ],
       "anchorId": "E6",
       "section": "actionPlan",
-      "setIds": ["X6", "X9"],
+      "setIds": [
+        "X6",
+        "X9"
+      ],
       "domain": "health",
       "linkScore": 0.62,
       "overlapScore": 0.94,
@@ -325,7 +385,12 @@
         "confidence": 0.62
       },
       "thesis": "관계는 진전 신호와 긴장 신호가 동시에 작동합니다. 두 신호는 상충이 아니라 속도와 확인 단계를 분리하라는 조건 신호입니다. 충돌 패턴 레이어: 긴장 구간의 트리거와 완충 전략을 해석합니다. 감정 피크에서 즉시 확정하면 오해가 고착될 수 있습니다. 해당 구간은 착수와 확정을 분리하고 재확인 단계를 포함할수록 결과 안정성이 올라갑니다.",
-      "evidenceRefs": ["L5:samhap:conjunction", "L5:chung:opposition", "L5:chung:square", "E6"]
+      "evidenceRefs": [
+        "L5:samhap:conjunction",
+        "L5:chung:opposition",
+        "L5:chung:square",
+        "E6"
+      ]
     },
     {
       "id": "EVT_3",
@@ -336,7 +401,11 @@
         "confidence": 0.62
       },
       "thesis": "건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신호입니다. 충돌 패턴 레이어: 긴장 구간의 트리거와 완충 전략을 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요. 해당 구간은 착수와 확정을 분리하고 재확인 단계를 포함할수록 결과 안정성이 올라갑니다.",
-      "evidenceRefs": ["L5:chung:opposition", "L2:상관:Saturn", "E6"]
+      "evidenceRefs": [
+        "L5:chung:opposition",
+        "L2:상관:Saturn",
+        "E6"
+      ]
     },
     {
       "id": "EVT_4",
@@ -362,7 +431,9 @@
         "confidence": 0.62
       },
       "thesis": "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다. 역할·책임·마감 기준을 고정하면 성과 재현성이 올라갑니다. 해당 구간은 착수와 확정을 분리하고 재확인 단계를 포함할수록 결과 안정성이 올라갑니다.",
-      "evidenceRefs": ["L2:편재:Jupiter"]
+      "evidenceRefs": [
+        "L2:편재:Jupiter"
+      ]
     },
     {
       "id": "EVT_ANCHOR_6",
@@ -373,7 +444,9 @@
         "confidence": 0.58
       },
       "thesis": "overview 근거 묶음에서 사주-점성 교차 신호가 확인되어, 해당 의사결정은 검증 단계를 먼저 거치면 리스크를 줄일 수 있습니다.",
-      "evidenceRefs": ["E1"]
+      "evidenceRefs": [
+        "E1"
+      ]
     },
     {
       "id": "EVT_ANCHOR_7",
@@ -384,7 +457,9 @@
         "confidence": 0.58
       },
       "thesis": "energy 근거 묶음에서 사주-점성 교차 신호가 확인되어, 해당 의사결정은 검증 단계를 먼저 거치면 리스크를 줄일 수 있습니다.",
-      "evidenceRefs": ["E2"]
+      "evidenceRefs": [
+        "E2"
+      ]
     },
     {
       "id": "EVT_ANCHOR_8",
@@ -395,7 +470,9 @@
         "confidence": 0.58
       },
       "thesis": "opportunities 근거 묶음에서 사주-점성 교차 신호가 확인되어, 해당 의사결정은 검증 단계를 먼저 거치면 리스크를 줄일 수 있습니다.",
-      "evidenceRefs": ["E3"]
+      "evidenceRefs": [
+        "E3"
+      ]
     },
     {
       "id": "EVT_ANCHOR_9",
@@ -406,7 +483,9 @@
         "confidence": 0.58
       },
       "thesis": "cautions 근거 묶음에서 사주-점성 교차 신호가 확인되어, 해당 의사결정은 검증 단계를 먼저 거치면 리스크를 줄일 수 있습니다.",
-      "evidenceRefs": ["E4"]
+      "evidenceRefs": [
+        "E4"
+      ]
     },
     {
       "id": "EVT_ANCHOR_10",
@@ -417,7 +496,9 @@
         "confidence": 0.58
       },
       "thesis": "domains 근거 묶음에서 사주-점성 교차 신호가 확인되어, 해당 의사결정은 검증 단계를 먼저 거치면 리스크를 줄일 수 있습니다.",
-      "evidenceRefs": ["E5"]
+      "evidenceRefs": [
+        "E5"
+      ]
     }
   ],
   "scenarioBundles": [
@@ -425,148 +506,208 @@
       "id": "SCB_CAREER_01",
       "domain": "career",
       "main": {
-        "eventIds": ["EVT_1"],
+        "eventIds": [
+          "EVT_1"
+        ],
         "summaryTokens": [
           "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석"
         ]
       },
       "alt": [
         {
-          "eventIds": ["EVT_2"],
+          "eventIds": [
+            "EVT_2"
+          ],
           "summaryTokens": [
             "관계는 진전 신호와 긴장 신호가 동시에 작동합니다. 두 신호는 상충이 아니라 속도와 확인 단계를 분리하라는 조건 신"
           ]
         },
         {
-          "eventIds": ["EVT_3"],
+          "eventIds": [
+            "EVT_3"
+          ],
           "summaryTokens": [
             "건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신"
           ]
         }
       ],
       "selectionWhy": {
-        "claimIds": ["career_expansion"],
+        "claimIds": [
+          "career_expansion"
+        ],
         "signalIds": [
           "L2:편재:Jupiter",
           "COV:L10:snapshot_astro:natalAspects",
           "COV:L10:snapshot_astro:progressions"
         ],
-        "anchorIds": ["E6"]
+        "anchorIds": [
+          "E6"
+        ]
       }
     },
     {
       "id": "SCB_RELATIONSHIP_01",
       "domain": "relationship",
       "main": {
-        "eventIds": ["EVT_2"],
+        "eventIds": [
+          "EVT_2"
+        ],
         "summaryTokens": [
           "관계는 진전 신호와 긴장 신호가 동시에 작동합니다. 두 신호는 상충이 아니라 속도와 확인 단계를 분리하라는 조건 신"
         ]
       },
       "alt": [
         {
-          "eventIds": ["EVT_1"],
+          "eventIds": [
+            "EVT_1"
+          ],
           "summaryTokens": [
             "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석"
           ]
         },
         {
-          "eventIds": ["EVT_3"],
+          "eventIds": [
+            "EVT_3"
+          ],
           "summaryTokens": [
             "건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신"
           ]
         }
       ],
       "selectionWhy": {
-        "claimIds": ["relationship_growth_with_guardrails"],
-        "signalIds": ["L5:samhap:conjunction", "L5:chung:opposition", "L5:chung:square"],
-        "anchorIds": ["E6"]
+        "claimIds": [
+          "relationship_growth_with_guardrails"
+        ],
+        "signalIds": [
+          "L5:samhap:conjunction",
+          "L5:chung:opposition",
+          "L5:chung:square"
+        ],
+        "anchorIds": [
+          "E6"
+        ]
       }
     },
     {
       "id": "SCB_HEALTH_01",
       "domain": "health",
       "main": {
-        "eventIds": ["EVT_3"],
+        "eventIds": [
+          "EVT_3"
+        ],
         "summaryTokens": [
           "건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신"
         ]
       },
       "alt": [
         {
-          "eventIds": ["EVT_1"],
+          "eventIds": [
+            "EVT_1"
+          ],
           "summaryTokens": [
             "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석"
           ]
         },
         {
-          "eventIds": ["EVT_2"],
+          "eventIds": [
+            "EVT_2"
+          ],
           "summaryTokens": [
             "관계는 진전 신호와 긴장 신호가 동시에 작동합니다. 두 신호는 상충이 아니라 속도와 확인 단계를 분리하라는 조건 신"
           ]
         }
       ],
       "selectionWhy": {
-        "claimIds": ["health_growth_with_guardrails"],
-        "signalIds": ["L5:chung:opposition", "L2:상관:Saturn"],
-        "anchorIds": ["E6"]
+        "claimIds": [
+          "health_growth_with_guardrails"
+        ],
+        "signalIds": [
+          "L5:chung:opposition",
+          "L2:상관:Saturn"
+        ],
+        "anchorIds": [
+          "E6"
+        ]
       }
     },
     {
       "id": "SCB_TIMING_01",
       "domain": "timing",
       "main": {
-        "eventIds": ["EVT_4"],
+        "eventIds": [
+          "EVT_4"
+        ],
         "summaryTokens": [
           "규칙과 리듬을 지키면 안정 수익이 쌓일 구간입니다. 통합 레이어: 전체 패턴을 실행 가능한 전략으로 압축합니다. 공"
         ]
       },
       "alt": [
         {
-          "eventIds": ["EVT_ANCHOR_6"],
+          "eventIds": [
+            "EVT_ANCHOR_6"
+          ],
           "summaryTokens": [
             "overview 근거 묶음에서 사주-점성 교차 신호가 확인되어, 해당 의사결정은 검증 단계를 먼저 거치면 리스크를 "
           ]
         },
         {
-          "eventIds": ["EVT_ANCHOR_7"],
+          "eventIds": [
+            "EVT_ANCHOR_7"
+          ],
           "summaryTokens": [
             "energy 근거 묶음에서 사주-점성 교차 신호가 확인되어, 해당 의사결정은 검증 단계를 먼저 거치면 리스크를 줄일"
           ]
         }
       ],
       "selectionWhy": {
-        "claimIds": ["timing_stability"],
-        "signalIds": ["COV:L10:snapshot_astro:natalAspects", "COV:L10:snapshot_astro:progressions"],
-        "anchorIds": ["E6"]
+        "claimIds": [
+          "timing_stability"
+        ],
+        "signalIds": [
+          "COV:L10:snapshot_astro:natalAspects",
+          "COV:L10:snapshot_astro:progressions"
+        ],
+        "anchorIds": [
+          "E6"
+        ]
       }
     },
     {
       "id": "SCB_WEALTH_01",
       "domain": "wealth",
       "main": {
-        "eventIds": ["EVT_5"],
+        "eventIds": [
+          "EVT_5"
+        ],
         "summaryTokens": [
           "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석"
         ]
       },
       "alt": [
         {
-          "eventIds": ["EVT_1"],
+          "eventIds": [
+            "EVT_1"
+          ],
           "summaryTokens": [
             "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석"
           ]
         },
         {
-          "eventIds": ["EVT_2"],
+          "eventIds": [
+            "EVT_2"
+          ],
           "summaryTokens": [
             "관계는 진전 신호와 긴장 신호가 동시에 작동합니다. 두 신호는 상충이 아니라 속도와 확인 단계를 분리하라는 조건 신"
           ]
         }
       ],
       "selectionWhy": {
-        "claimIds": ["wealth_expansion"],
-        "signalIds": ["L2:편재:Jupiter"],
+        "claimIds": [
+          "wealth_expansion"
+        ],
+        "signalIds": [
+          "L2:편재:Jupiter"
+        ],
         "anchorIds": []
       }
     }
@@ -574,166 +715,338 @@
   "evidenceRefsByPara": {
     "overview.p1": {
       "claimIds": [],
-      "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+      "signalIds": [
+        "L3:상관:H7",
+        "COV:L6:stage:임관"
+      ],
       "anchorIds": []
     },
     "overview.p2": {
       "claimIds": [],
-      "signalIds": ["COV:L4:daeun:금", "COV:L4:saeun:화"],
+      "signalIds": [
+        "COV:L4:daeun:금",
+        "COV:L4:saeun:화"
+      ],
       "anchorIds": []
     },
     "overview.p3": {
       "claimIds": [],
-      "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+      "signalIds": [
+        "L3:상관:H7",
+        "COV:L6:stage:임관"
+      ],
       "anchorIds": []
     },
     "energy.p1": {
       "claimIds": [],
-      "signalIds": ["COV:L6:stage:양", "COV:L6:stage:관대"],
+      "signalIds": [
+        "COV:L6:stage:양",
+        "COV:L6:stage:관대"
+      ],
       "anchorIds": []
     },
     "energy.p2": {
       "claimIds": [],
-      "signalIds": ["COV:L6:stage:사", "L3:상관:H7"],
+      "signalIds": [
+        "COV:L6:stage:사",
+        "L3:상관:H7"
+      ],
       "anchorIds": []
     },
     "energy.p3": {
       "claimIds": [],
-      "signalIds": ["COV:L6:stage:양", "COV:L6:stage:관대"],
+      "signalIds": [
+        "COV:L6:stage:양",
+        "COV:L6:stage:관대"
+      ],
       "anchorIds": []
     },
     "opportunities.p1": {
       "claimIds": [],
-      "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+      "signalIds": [
+        "L3:상관:H7",
+        "COV:L6:stage:임관"
+      ],
       "anchorIds": []
     },
     "opportunities.p2": {
       "claimIds": [],
-      "signalIds": ["COV:L4:daeun:금", "COV:L4:saeun:화"],
+      "signalIds": [
+        "COV:L4:daeun:금",
+        "COV:L4:saeun:화"
+      ],
       "anchorIds": []
     },
     "opportunities.p3": {
       "claimIds": [],
-      "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+      "signalIds": [
+        "L3:상관:H7",
+        "COV:L6:stage:임관"
+      ],
       "anchorIds": []
     },
     "cautions.p1": {
       "claimIds": [],
-      "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+      "signalIds": [
+        "L3:상관:H7",
+        "COV:L6:stage:임관"
+      ],
       "anchorIds": []
     },
     "cautions.p2": {
       "claimIds": [],
-      "signalIds": ["COV:L4:daeun:금", "COV:L4:saeun:화"],
+      "signalIds": [
+        "COV:L4:daeun:금",
+        "COV:L4:saeun:화"
+      ],
       "anchorIds": []
     },
     "cautions.p3": {
       "claimIds": [],
-      "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+      "signalIds": [
+        "L3:상관:H7",
+        "COV:L6:stage:임관"
+      ],
       "anchorIds": []
     },
     "domains.career.p1": {
-      "claimIds": ["career_expansion", "timing_stability", "wealth_expansion"],
-      "signalIds": ["L2:편재:Jupiter", "COV:L10:snapshot_astro:natalAspects"],
-      "anchorIds": ["E6", "E6"]
+      "claimIds": [
+        "career_expansion",
+        "timing_stability",
+        "wealth_expansion"
+      ],
+      "signalIds": [
+        "L2:편재:Jupiter",
+        "COV:L10:snapshot_astro:natalAspects"
+      ],
+      "anchorIds": [
+        "E6",
+        "E6"
+      ]
     },
     "domains.career.p2": {
-      "claimIds": ["career_expansion", "timing_stability"],
-      "signalIds": ["COV:L10:snapshot_astro:progressions", "L6:임관:H10"],
-      "anchorIds": ["E6", "E6"]
+      "claimIds": [
+        "career_expansion",
+        "timing_stability"
+      ],
+      "signalIds": [
+        "COV:L10:snapshot_astro:progressions",
+        "L6:임관:H10"
+      ],
+      "anchorIds": [
+        "E6",
+        "E6"
+      ]
     },
     "domains.career.p3": {
-      "claimIds": ["career_expansion", "timing_stability", "wealth_expansion"],
-      "signalIds": ["L2:편재:Jupiter", "COV:L10:snapshot_astro:natalAspects"],
-      "anchorIds": ["E6", "E6"]
+      "claimIds": [
+        "career_expansion",
+        "timing_stability",
+        "wealth_expansion"
+      ],
+      "signalIds": [
+        "L2:편재:Jupiter",
+        "COV:L10:snapshot_astro:natalAspects"
+      ],
+      "anchorIds": [
+        "E6",
+        "E6"
+      ]
     },
     "domains.love.p1": {
-      "claimIds": ["relationship_growth_with_guardrails", "health_growth_with_guardrails"],
-      "signalIds": ["L5:samhap:conjunction", "L5:chung:opposition"],
-      "anchorIds": ["E6", "E6"]
+      "claimIds": [
+        "relationship_growth_with_guardrails",
+        "health_growth_with_guardrails"
+      ],
+      "signalIds": [
+        "L5:samhap:conjunction",
+        "L5:chung:opposition"
+      ],
+      "anchorIds": [
+        "E6",
+        "E6"
+      ]
     },
     "domains.love.p2": {
-      "claimIds": ["relationship_growth_with_guardrails"],
-      "signalIds": ["L5:chung:square", "L5:samhap:trine"],
-      "anchorIds": ["E6"]
+      "claimIds": [
+        "relationship_growth_with_guardrails"
+      ],
+      "signalIds": [
+        "L5:chung:square",
+        "L5:samhap:trine"
+      ],
+      "anchorIds": [
+        "E6"
+      ]
     },
     "domains.love.p3": {
-      "claimIds": ["relationship_growth_with_guardrails", "health_growth_with_guardrails"],
-      "signalIds": ["L5:samhap:conjunction", "L5:chung:opposition"],
-      "anchorIds": ["E6", "E6"]
+      "claimIds": [
+        "relationship_growth_with_guardrails",
+        "health_growth_with_guardrails"
+      ],
+      "signalIds": [
+        "L5:samhap:conjunction",
+        "L5:chung:opposition"
+      ],
+      "anchorIds": [
+        "E6",
+        "E6"
+      ]
     },
     "domains.wealth.p1": {
-      "claimIds": ["career_expansion", "wealth_expansion"],
-      "signalIds": ["L2:편재:Jupiter", "COV:L7:yongsin:화"],
-      "anchorIds": ["E6"]
+      "claimIds": [
+        "career_expansion",
+        "wealth_expansion"
+      ],
+      "signalIds": [
+        "L2:편재:Jupiter",
+        "COV:L7:yongsin:화"
+      ],
+      "anchorIds": [
+        "E6"
+      ]
     },
     "domains.wealth.p2": {
       "claimIds": [],
-      "signalIds": ["L2:편재:Saturn", "L3:상관:H7"],
+      "signalIds": [
+        "L2:편재:Saturn",
+        "L3:상관:H7"
+      ],
       "anchorIds": []
     },
     "domains.wealth.p3": {
-      "claimIds": ["career_expansion", "wealth_expansion"],
-      "signalIds": ["L2:편재:Jupiter", "COV:L7:yongsin:화"],
-      "anchorIds": ["E6"]
+      "claimIds": [
+        "career_expansion",
+        "wealth_expansion"
+      ],
+      "signalIds": [
+        "L2:편재:Jupiter",
+        "COV:L7:yongsin:화"
+      ],
+      "anchorIds": [
+        "E6"
+      ]
     },
     "domains.health.p1": {
-      "claimIds": ["relationship_growth_with_guardrails", "health_growth_with_guardrails"],
-      "signalIds": ["L2:상관:Saturn", "L5:chung:opposition"],
-      "anchorIds": ["E6", "E6"]
+      "claimIds": [
+        "relationship_growth_with_guardrails",
+        "health_growth_with_guardrails"
+      ],
+      "signalIds": [
+        "L2:상관:Saturn",
+        "L5:chung:opposition"
+      ],
+      "anchorIds": [
+        "E6",
+        "E6"
+      ]
     },
     "domains.health.p2": {
       "claimIds": [],
-      "signalIds": ["L2:정인:Moon", "COV:L5:aspect:Saturn-True Node:trine"],
+      "signalIds": [
+        "L2:정인:Moon",
+        "COV:L5:aspect:Saturn-True Node:trine"
+      ],
       "anchorIds": []
     },
     "domains.health.p3": {
-      "claimIds": ["relationship_growth_with_guardrails", "health_growth_with_guardrails"],
-      "signalIds": ["L2:상관:Saturn", "L5:chung:opposition"],
-      "anchorIds": ["E6", "E6"]
+      "claimIds": [
+        "relationship_growth_with_guardrails",
+        "health_growth_with_guardrails"
+      ],
+      "signalIds": [
+        "L2:상관:Saturn",
+        "L5:chung:opposition"
+      ],
+      "anchorIds": [
+        "E6",
+        "E6"
+      ]
     },
     "actionPlan.p1": {
       "claimIds": [],
-      "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+      "signalIds": [
+        "L3:상관:H7",
+        "COV:L6:stage:임관"
+      ],
       "anchorIds": []
     },
     "actionPlan.p2": {
       "claimIds": [],
-      "signalIds": ["COV:L4:daeun:금", "COV:L4:saeun:화"],
+      "signalIds": [
+        "COV:L4:daeun:금",
+        "COV:L4:saeun:화"
+      ],
       "anchorIds": []
     },
     "actionPlan.p3": {
       "claimIds": [],
-      "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+      "signalIds": [
+        "L3:상관:H7",
+        "COV:L6:stage:임관"
+      ],
       "anchorIds": []
     },
     "luckyElements.p1": {
       "claimIds": [],
-      "signalIds": ["COV:L7:snapshot_saju:present", "COV:L7:snapshot_saju:unse"],
+      "signalIds": [
+        "COV:L7:snapshot_saju:present",
+        "COV:L7:snapshot_saju:unse"
+      ],
       "anchorIds": []
     },
     "luckyElements.p2": {
       "claimIds": [],
-      "signalIds": ["COV:L7:snapshot_saju:pillars", "COV:L7:snapshot_saju:dayMaster"],
+      "signalIds": [
+        "COV:L7:snapshot_saju:pillars",
+        "COV:L7:snapshot_saju:dayMaster"
+      ],
       "anchorIds": []
     },
     "luckyElements.p3": {
       "claimIds": [],
-      "signalIds": ["COV:L7:snapshot_saju:present", "COV:L7:snapshot_saju:unse"],
+      "signalIds": [
+        "COV:L7:snapshot_saju:present",
+        "COV:L7:snapshot_saju:unse"
+      ],
       "anchorIds": []
     }
   },
   "mappingRulebook": {
     "partnerArchetype": {
-      "primaryTraits": ["극강시너지"],
-      "supportTraits": ["감정 정리", "경계 존중", "현실 조율"],
-      "vibe": ["차분한 집중감", "실무형 안정감", "약속을 지키는 분위기"],
-      "style": ["단정한 기본형", "기능성 우선", "과장 없는 취향"],
-      "meetChannels": ["프로젝트 협업", "지인 소개", "커리어 관련 커뮤니티"],
-      "recognitionClues": ["약속 시간을 엄수함", "대화 후 요약을 남김", "결정 전에 조건을 확인함"]
+      "primaryTraits": [
+        "극강시너지"
+      ],
+      "supportTraits": [
+        "감정 정리",
+        "경계 존중",
+        "현실 조율"
+      ],
+      "vibe": [
+        "차분한 집중감",
+        "실무형 안정감",
+        "약속을 지키는 분위기"
+      ],
+      "style": [
+        "단정한 기본형",
+        "기능성 우선",
+        "과장 없는 취향"
+      ],
+      "meetChannels": [
+        "프로젝트 협업",
+        "지인 소개",
+        "커리어 관련 커뮤니티"
+      ],
+      "recognitionClues": [
+        "약속 시간을 엄수함",
+        "대화 후 요약을 남김",
+        "결정 전에 조건을 확인함"
+      ]
     },
     "careerClusters": {
-      "roleArchetypes": ["횡재"],
+      "roleArchetypes": [
+        "횡재"
+      ],
       "industryClusters": [
         "횡재",
         "데이터/분석",
@@ -780,7 +1093,9 @@
         "blockId": "overview.B1",
         "paraId": "overview.p1",
         "heading": "# 기간 총평",
-        "bullets": ["핵심 신호를 기준으로 우선순위를 고정하세요."],
+        "bullets": [
+          "핵심 신호를 기준으로 우선순위를 고정하세요."
+        ],
         "mustKeepTokens": [
           "핵심",
           "신호를",
@@ -795,7 +1110,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+          "signalIds": [
+            "L3:상관:H7",
+            "COV:L6:stage:임관"
+          ],
           "anchorIds": []
         }
       },
@@ -803,7 +1121,9 @@
         "blockId": "overview.B2",
         "paraId": "overview.p2",
         "heading": "## 근거 요약",
-        "bullets": ["근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."],
+        "bullets": [
+          "근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."
+        ],
         "mustKeepTokens": [
           "근거",
           "신호",
@@ -816,7 +1136,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["COV:L4:daeun:금", "COV:L4:saeun:화"],
+          "signalIds": [
+            "COV:L4:daeun:금",
+            "COV:L4:saeun:화"
+          ],
           "anchorIds": []
         }
       },
@@ -824,7 +1147,9 @@
         "blockId": "overview.B3",
         "paraId": "overview.p3",
         "heading": "## 실행 전략",
-        "bullets": ["실행은 착수-재확인-확정의 3단계로 나누어 변동성을 줄입니다."],
+        "bullets": [
+          "실행은 착수-재확인-확정의 3단계로 나누어 변동성을 줄입니다."
+        ],
         "mustKeepTokens": [
           "실행은",
           "착수",
@@ -839,7 +1164,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+          "signalIds": [
+            "L3:상관:H7",
+            "COV:L6:stage:임관"
+          ],
           "anchorIds": []
         }
       }
@@ -849,7 +1177,9 @@
         "blockId": "energy.B1",
         "paraId": "energy.p1",
         "heading": "# 에너지 흐름",
-        "bullets": ["핵심 신호를 기준으로 우선순위를 고정하세요."],
+        "bullets": [
+          "핵심 신호를 기준으로 우선순위를 고정하세요."
+        ],
         "mustKeepTokens": [
           "핵심",
           "신호를",
@@ -864,7 +1194,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["COV:L6:stage:양", "COV:L6:stage:관대"],
+          "signalIds": [
+            "COV:L6:stage:양",
+            "COV:L6:stage:관대"
+          ],
           "anchorIds": []
         }
       },
@@ -872,7 +1205,9 @@
         "blockId": "energy.B2",
         "paraId": "energy.p2",
         "heading": "## 근거 요약",
-        "bullets": ["근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."],
+        "bullets": [
+          "근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."
+        ],
         "mustKeepTokens": [
           "근거",
           "신호",
@@ -885,7 +1220,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["COV:L6:stage:사", "L3:상관:H7"],
+          "signalIds": [
+            "COV:L6:stage:사",
+            "L3:상관:H7"
+          ],
           "anchorIds": []
         }
       },
@@ -893,7 +1231,9 @@
         "blockId": "energy.B3",
         "paraId": "energy.p3",
         "heading": "## 실행 전략",
-        "bullets": ["실행은 착수-재확인-확정의 3단계로 나누어 변동성을 줄입니다."],
+        "bullets": [
+          "실행은 착수-재확인-확정의 3단계로 나누어 변동성을 줄입니다."
+        ],
         "mustKeepTokens": [
           "실행은",
           "착수",
@@ -908,7 +1248,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["COV:L6:stage:양", "COV:L6:stage:관대"],
+          "signalIds": [
+            "COV:L6:stage:양",
+            "COV:L6:stage:관대"
+          ],
           "anchorIds": []
         }
       }
@@ -935,7 +1278,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+          "signalIds": [
+            "L3:상관:H7",
+            "COV:L6:stage:임관"
+          ],
           "anchorIds": []
         }
       },
@@ -943,7 +1289,9 @@
         "blockId": "opportunities.B2",
         "paraId": "opportunities.p2",
         "heading": "## 근거 요약",
-        "bullets": ["근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."],
+        "bullets": [
+          "근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."
+        ],
         "mustKeepTokens": [
           "근거",
           "신호",
@@ -958,7 +1306,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["COV:L4:daeun:금", "COV:L4:saeun:화"],
+          "signalIds": [
+            "COV:L4:daeun:금",
+            "COV:L4:saeun:화"
+          ],
           "anchorIds": []
         }
       },
@@ -985,7 +1336,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+          "signalIds": [
+            "L3:상관:H7",
+            "COV:L6:stage:임관"
+          ],
           "anchorIds": []
         }
       }
@@ -1012,7 +1366,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+          "signalIds": [
+            "L3:상관:H7",
+            "COV:L6:stage:임관"
+          ],
           "anchorIds": []
         }
       },
@@ -1020,7 +1377,9 @@
         "blockId": "cautions.B2",
         "paraId": "cautions.p2",
         "heading": "## 근거 요약",
-        "bullets": ["근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."],
+        "bullets": [
+          "근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."
+        ],
         "mustKeepTokens": [
           "근거",
           "신호",
@@ -1035,7 +1394,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["COV:L4:daeun:금", "COV:L4:saeun:화"],
+          "signalIds": [
+            "COV:L4:daeun:금",
+            "COV:L4:saeun:화"
+          ],
           "anchorIds": []
         }
       },
@@ -1062,7 +1424,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+          "signalIds": [
+            "L3:상관:H7",
+            "COV:L6:stage:임관"
+          ],
           "anchorIds": []
         }
       }
@@ -1088,9 +1453,19 @@
           "레이어"
         ],
         "evidence": {
-          "claimIds": ["career_expansion", "timing_stability", "wealth_expansion"],
-          "signalIds": ["L2:편재:Jupiter", "COV:L10:snapshot_astro:natalAspects"],
-          "anchorIds": ["E6", "E6"]
+          "claimIds": [
+            "career_expansion",
+            "timing_stability",
+            "wealth_expansion"
+          ],
+          "signalIds": [
+            "L2:편재:Jupiter",
+            "COV:L10:snapshot_astro:natalAspects"
+          ],
+          "anchorIds": [
+            "E6",
+            "E6"
+          ]
         }
       },
       {
@@ -1115,9 +1490,18 @@
           "조절합니다"
         ],
         "evidence": {
-          "claimIds": ["career_expansion", "timing_stability"],
-          "signalIds": ["COV:L10:snapshot_astro:progressions", "L6:임관:H10"],
-          "anchorIds": ["E6", "E6"]
+          "claimIds": [
+            "career_expansion",
+            "timing_stability"
+          ],
+          "signalIds": [
+            "COV:L10:snapshot_astro:progressions",
+            "L6:임관:H10"
+          ],
+          "anchorIds": [
+            "E6",
+            "E6"
+          ]
         }
       },
       {
@@ -1142,9 +1526,19 @@
           "레이어"
         ],
         "evidence": {
-          "claimIds": ["career_expansion", "timing_stability", "wealth_expansion"],
-          "signalIds": ["L2:편재:Jupiter", "COV:L10:snapshot_astro:natalAspects"],
-          "anchorIds": ["E6", "E6"]
+          "claimIds": [
+            "career_expansion",
+            "timing_stability",
+            "wealth_expansion"
+          ],
+          "signalIds": [
+            "L2:편재:Jupiter",
+            "COV:L10:snapshot_astro:natalAspects"
+          ],
+          "anchorIds": [
+            "E6",
+            "E6"
+          ]
         }
       }
     ],
@@ -1169,9 +1563,18 @@
           "아니라"
         ],
         "evidence": {
-          "claimIds": ["relationship_growth_with_guardrails", "health_growth_with_guardrails"],
-          "signalIds": ["L5:samhap:conjunction", "L5:chung:opposition"],
-          "anchorIds": ["E6", "E6"]
+          "claimIds": [
+            "relationship_growth_with_guardrails",
+            "health_growth_with_guardrails"
+          ],
+          "signalIds": [
+            "L5:samhap:conjunction",
+            "L5:chung:opposition"
+          ],
+          "anchorIds": [
+            "E6",
+            "E6"
+          ]
         }
       },
       {
@@ -1196,9 +1599,16 @@
           "진전"
         ],
         "evidence": {
-          "claimIds": ["relationship_growth_with_guardrails"],
-          "signalIds": ["L5:chung:square", "L5:samhap:trine"],
-          "anchorIds": ["E6"]
+          "claimIds": [
+            "relationship_growth_with_guardrails"
+          ],
+          "signalIds": [
+            "L5:chung:square",
+            "L5:samhap:trine"
+          ],
+          "anchorIds": [
+            "E6"
+          ]
         }
       },
       {
@@ -1223,9 +1633,18 @@
           "아니라"
         ],
         "evidence": {
-          "claimIds": ["relationship_growth_with_guardrails", "health_growth_with_guardrails"],
-          "signalIds": ["L5:samhap:conjunction", "L5:chung:opposition"],
-          "anchorIds": ["E6", "E6"]
+          "claimIds": [
+            "relationship_growth_with_guardrails",
+            "health_growth_with_guardrails"
+          ],
+          "signalIds": [
+            "L5:samhap:conjunction",
+            "L5:chung:opposition"
+          ],
+          "anchorIds": [
+            "E6",
+            "E6"
+          ]
         }
       }
     ],
@@ -1250,16 +1669,26 @@
           "레이어"
         ],
         "evidence": {
-          "claimIds": ["career_expansion", "wealth_expansion"],
-          "signalIds": ["L2:편재:Jupiter", "COV:L7:yongsin:화"],
-          "anchorIds": ["E6"]
+          "claimIds": [
+            "career_expansion",
+            "wealth_expansion"
+          ],
+          "signalIds": [
+            "L2:편재:Jupiter",
+            "COV:L7:yongsin:화"
+          ],
+          "anchorIds": [
+            "E6"
+          ]
         }
       },
       {
         "blockId": "domains.wealth.B2",
         "paraId": "domains.wealth.p2",
         "heading": "## domains_wealth 근거 요약",
-        "bullets": ["횡재 신호를 근거로 판단 강도를 조절합니다."],
+        "bullets": [
+          "횡재 신호를 근거로 판단 강도를 조절합니다."
+        ],
         "mustKeepTokens": [
           "횡재",
           "신호를",
@@ -1274,7 +1703,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["L2:편재:Saturn", "L3:상관:H7"],
+          "signalIds": [
+            "L2:편재:Saturn",
+            "L3:상관:H7"
+          ],
           "anchorIds": []
         }
       },
@@ -1300,9 +1732,17 @@
           "레이어"
         ],
         "evidence": {
-          "claimIds": ["career_expansion", "wealth_expansion"],
-          "signalIds": ["L2:편재:Jupiter", "COV:L7:yongsin:화"],
-          "anchorIds": ["E6"]
+          "claimIds": [
+            "career_expansion",
+            "wealth_expansion"
+          ],
+          "signalIds": [
+            "L2:편재:Jupiter",
+            "COV:L7:yongsin:화"
+          ],
+          "anchorIds": [
+            "E6"
+          ]
         }
       }
     ],
@@ -1327,9 +1767,18 @@
           "상충이"
         ],
         "evidence": {
-          "claimIds": ["relationship_growth_with_guardrails", "health_growth_with_guardrails"],
-          "signalIds": ["L2:상관:Saturn", "L5:chung:opposition"],
-          "anchorIds": ["E6", "E6"]
+          "claimIds": [
+            "relationship_growth_with_guardrails",
+            "health_growth_with_guardrails"
+          ],
+          "signalIds": [
+            "L2:상관:Saturn",
+            "L5:chung:opposition"
+          ],
+          "anchorIds": [
+            "E6",
+            "E6"
+          ]
         }
       },
       {
@@ -1354,7 +1803,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["L2:정인:Moon", "COV:L5:aspect:Saturn-True Node:trine"],
+          "signalIds": [
+            "L2:정인:Moon",
+            "COV:L5:aspect:Saturn-True Node:trine"
+          ],
           "anchorIds": []
         }
       },
@@ -1380,9 +1832,18 @@
           "상충이"
         ],
         "evidence": {
-          "claimIds": ["relationship_growth_with_guardrails", "health_growth_with_guardrails"],
-          "signalIds": ["L2:상관:Saturn", "L5:chung:opposition"],
-          "anchorIds": ["E6", "E6"]
+          "claimIds": [
+            "relationship_growth_with_guardrails",
+            "health_growth_with_guardrails"
+          ],
+          "signalIds": [
+            "L2:상관:Saturn",
+            "L5:chung:opposition"
+          ],
+          "anchorIds": [
+            "E6",
+            "E6"
+          ]
         }
       }
     ],
@@ -1391,7 +1852,9 @@
         "blockId": "actionPlan.B1",
         "paraId": "actionPlan.p1",
         "heading": "# 2주 실행 3단계",
-        "bullets": ["2주 실행 3단계: 완료 1건 고정 -> 재확인 1건 -> 보류/확정 분리."],
+        "bullets": [
+          "2주 실행 3단계: 완료 1건 고정 -> 재확인 1건 -> 보류/확정 분리."
+        ],
         "mustKeepTokens": [
           "2주",
           "실행",
@@ -1406,7 +1869,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+          "signalIds": [
+            "L3:상관:H7",
+            "COV:L6:stage:임관"
+          ],
           "anchorIds": []
         }
       },
@@ -1417,10 +1883,21 @@
         "bullets": [
           "실행 우선순위: career 100점(92%) / relationship 100점(92%) / wealth 100점(92%)"
         ],
-        "mustKeepTokens": ["실행", "우선순위", "career", "100점", "92", "relationship", "wealth"],
+        "mustKeepTokens": [
+          "실행",
+          "우선순위",
+          "career",
+          "100점",
+          "92",
+          "relationship",
+          "wealth"
+        ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["COV:L4:daeun:금", "COV:L4:saeun:화"],
+          "signalIds": [
+            "COV:L4:daeun:금",
+            "COV:L4:saeun:화"
+          ],
           "anchorIds": []
         }
       },
@@ -1446,7 +1923,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+          "signalIds": [
+            "L3:상관:H7",
+            "COV:L6:stage:임관"
+          ],
           "anchorIds": []
         }
       }
@@ -1456,7 +1936,9 @@
         "blockId": "luckyElements.B1",
         "paraId": "luckyElements.p1",
         "heading": "## luckyElements 핵심 결론",
-        "bullets": ["핵심 신호를 기준으로 우선순위를 고정하세요."],
+        "bullets": [
+          "핵심 신호를 기준으로 우선순위를 고정하세요."
+        ],
         "mustKeepTokens": [
           "핵심",
           "신호를",
@@ -1471,7 +1953,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["COV:L7:snapshot_saju:present", "COV:L7:snapshot_saju:unse"],
+          "signalIds": [
+            "COV:L7:snapshot_saju:present",
+            "COV:L7:snapshot_saju:unse"
+          ],
           "anchorIds": []
         }
       },
@@ -1479,7 +1964,9 @@
         "blockId": "luckyElements.B2",
         "paraId": "luckyElements.p2",
         "heading": "## luckyElements 근거 요약",
-        "bullets": ["근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."],
+        "bullets": [
+          "근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."
+        ],
         "mustKeepTokens": [
           "근거",
           "신호",
@@ -1492,7 +1979,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["COV:L7:snapshot_saju:pillars", "COV:L7:snapshot_saju:dayMaster"],
+          "signalIds": [
+            "COV:L7:snapshot_saju:pillars",
+            "COV:L7:snapshot_saju:dayMaster"
+          ],
           "anchorIds": []
         }
       },
@@ -1500,7 +1990,9 @@
         "blockId": "luckyElements.B3",
         "paraId": "luckyElements.p3",
         "heading": "## luckyElements 실행 전략",
-        "bullets": ["실행은 착수-재확인-확정의 3단계로 나누어 변동성을 줄입니다."],
+        "bullets": [
+          "실행은 착수-재확인-확정의 3단계로 나누어 변동성을 줄입니다."
+        ],
         "mustKeepTokens": [
           "실행은",
           "착수",
@@ -1515,7 +2007,10 @@
         ],
         "evidence": {
           "claimIds": [],
-          "signalIds": ["COV:L7:snapshot_saju:present", "COV:L7:snapshot_saju:unse"],
+          "signalIds": [
+            "COV:L7:snapshot_saju:present",
+            "COV:L7:snapshot_saju:unse"
+          ],
           "anchorIds": []
         }
       }
@@ -1527,7 +2022,9 @@
     {
       "id": "wealth_accumulation",
       "label": "Wealth Accumulation Pattern",
-      "domains": ["wealth"],
+      "domains": [
+        "wealth"
+      ],
       "score": 100,
       "confidence": 0.92,
       "matchedSignalIds": [
@@ -1554,12 +2051,20 @@
       "thesis": "Steady accumulation is available when execution is disciplined.",
       "risk": "Overconfidence can dilute compounding gains.",
       "activationReason": "wealth strength and structure alignment | stabilize",
-      "scenarioIds": ["income_growth_window", "asset_build_window", "side_income_window"]
+      "scenarioIds": [
+        "income_growth_window",
+        "asset_build_window",
+        "side_income_window"
+      ]
     },
     {
       "id": "hidden_support",
       "label": "Hidden Support Pattern",
-      "domains": ["career", "relationship", "wealth"],
+      "domains": [
+        "career",
+        "relationship",
+        "wealth"
+      ],
       "score": 100,
       "confidence": 0.92,
       "matchedSignalIds": [
@@ -1577,16 +2082,33 @@
         "COV:L5:aspect:Sun-Jupiter:quintile",
         "COV:L5:aspect:Venus-True Node:sextile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Indirect support exists and becomes visible when you ask clearly.",
       "risk": "Support stays latent if assumptions replace direct communication.",
       "activationReason": "positive support signals | bridge alignment | stabilize",
-      "scenarioIds": ["mentor_support_window", "referral_window", "quiet_alliance_window"]
+      "scenarioIds": [
+        "mentor_support_window",
+        "referral_window",
+        "quiet_alliance_window"
+      ]
     },
     {
       "id": "learning_acceleration",
       "label": "Learning Acceleration Pattern",
-      "domains": ["career", "personality", "spirituality"],
+      "domains": [
+        "career",
+        "personality",
+        "spirituality"
+      ],
       "score": 100,
       "confidence": 0.92,
       "matchedSignalIds": [
@@ -1615,16 +2137,32 @@
         "COV:L5:aspect:Venus-True Node:sextile",
         "COV:L5:aspect:Mercury-Venus:semisextile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Study, credentialing, and structured skill gain compound quickly now.",
       "risk": "Consuming too broadly can reduce retention and execution.",
       "activationReason": "learning signals | mercury or house 3/9 support | stabilize",
-      "scenarioIds": ["credential_window", "deep_study_window", "teaching_window"]
+      "scenarioIds": [
+        "credential_window",
+        "deep_study_window",
+        "teaching_window"
+      ]
     },
     {
       "id": "deep_partnership_activation",
       "label": "Deep Partnership Activation",
-      "domains": ["relationship", "wealth"],
+      "domains": [
+        "relationship",
+        "wealth"
+      ],
       "score": 100,
       "confidence": 0.91,
       "matchedSignalIds": [
@@ -1667,16 +2205,32 @@
         "COV:L10:snapshot_cross:source",
         "COV:L10:snapshot_cross:currentDateIso"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Trust-based partnership can unlock value if roles are explicit.",
       "risk": "Blurred expectations can turn alignment into tension.",
       "activationReason": "h7/h8 relationship and value overlap | stabilize",
-      "scenarioIds": ["partnership_window", "joint_commitment_window", "shared_resource_window"]
+      "scenarioIds": [
+        "partnership_window",
+        "joint_commitment_window",
+        "shared_resource_window"
+      ]
     },
     {
       "id": "healing_routine_stabilization",
       "label": "Healing and Routine Stabilization",
-      "domains": ["health", "personality"],
+      "domains": [
+        "health",
+        "personality"
+      ],
       "score": 100,
       "confidence": 0.91,
       "matchedSignalIds": [
@@ -1698,16 +2252,33 @@
         "COV:L5:aspect:Moon-True Node:quincunx",
         "COV:L5:aspect:Venus-Saturn:quintile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Routine, recovery, and consistency will outperform intensity right now.",
       "risk": "Skipping maintenance will reduce strategic capacity later.",
       "activationReason": "balance signals in health | h6 or saturn stabilization | defensive_reset",
-      "scenarioIds": ["routine_lock_window", "recovery_window", "habit_rebuild_window"]
+      "scenarioIds": [
+        "routine_lock_window",
+        "recovery_window",
+        "habit_rebuild_window"
+      ]
     },
     {
       "id": "mission_alignment",
       "label": "Mission Alignment Pattern",
-      "domains": ["spirituality", "personality", "career"],
+      "domains": [
+        "spirituality",
+        "personality",
+        "career"
+      ],
       "score": 100,
       "confidence": 0.91,
       "matchedSignalIds": [
@@ -1763,16 +2334,31 @@
         "COV:L7:snapshot_saju:dayMaster",
         "COV:L7:snapshot_saju:fiveElements"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Long-term purpose and present execution are moving closer together.",
       "risk": "Idealism without operating constraints can diffuse the gain.",
       "activationReason": "purpose signals | node/chiron/spiritual emphasis | stabilize",
-      "scenarioIds": ["purpose_lock_window", "meaningful_project_window", "mentor_track_window"]
+      "scenarioIds": [
+        "purpose_lock_window",
+        "meaningful_project_window",
+        "mentor_track_window"
+      ]
     },
     {
       "id": "health_risk_cluster",
       "label": "Health Risk Cluster",
-      "domains": ["health"],
+      "domains": [
+        "health"
+      ],
       "score": 100,
       "confidence": 0.91,
       "matchedSignalIds": [
@@ -1795,16 +2381,31 @@
         "COV:L5:aspect:Moon-True Node:quincunx",
         "COV:L5:aspect:Venus-Saturn:quintile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Health caution signals are concentrated, so sequencing and validation must lead.",
       "risk": "Ignoring early friction in health can increase downstream correction cost.",
       "activationReason": "health caution concentration | guardrail-first execution | defensive_reset",
-      "scenarioIds": ["health_risk_main", "health_risk_alt", "health_risk_guarded"]
+      "scenarioIds": [
+        "health_risk_main",
+        "health_risk_alt",
+        "health_risk_guarded"
+      ]
     },
     {
       "id": "timing_risk_cluster",
       "label": "Timing Risk Cluster",
-      "domains": ["timing"],
+      "domains": [
+        "timing"
+      ],
       "score": 100,
       "confidence": 0.91,
       "matchedSignalIds": [
@@ -1846,12 +2447,18 @@
       "thesis": "Timing caution signals are concentrated, so sequencing and validation must lead.",
       "risk": "Ignoring early friction in timing can increase downstream correction cost.",
       "activationReason": "timing caution concentration | guardrail-first execution | defensive_reset",
-      "scenarioIds": ["timing_risk_main", "timing_risk_alt", "timing_risk_guarded"]
+      "scenarioIds": [
+        "timing_risk_main",
+        "timing_risk_alt",
+        "timing_risk_guarded"
+      ]
     },
     {
       "id": "spirituality_risk_cluster",
       "label": "Spirituality Risk Cluster",
-      "domains": ["spirituality"],
+      "domains": [
+        "spirituality"
+      ],
       "score": 100,
       "confidence": 0.91,
       "matchedSignalIds": [
@@ -1877,7 +2484,16 @@
         "COV:L5:aspect:Moon-True Node:quincunx",
         "COV:L5:aspect:Venus-True Node:sextile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Spirituality caution signals are concentrated, so sequencing and validation must lead.",
       "risk": "Ignoring early friction in spirituality can increase downstream correction cost.",
       "activationReason": "spirituality caution concentration | guardrail-first execution | defensive_reset",
@@ -1890,7 +2506,11 @@
     {
       "id": "structure_over_speed",
       "label": "Structure Over Speed",
-      "domains": ["career", "wealth", "timing"],
+      "domains": [
+        "career",
+        "wealth",
+        "timing"
+      ],
       "score": 100,
       "confidence": 0.9,
       "matchedSignalIds": [
@@ -1927,16 +2547,31 @@
         "COV:L10:snapshot_cross:source",
         "COV:L10:snapshot_cross:currentDateIso"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "This is a structure-first period where sequencing beats force.",
       "risk": "Rushing the close will cost more than delaying it.",
       "activationReason": "timing caution | saturn or delay signals | stabilize",
-      "scenarioIds": ["checklist_first_window", "draft_then_commit_window", "terms_review_window"]
+      "scenarioIds": [
+        "checklist_first_window",
+        "draft_then_commit_window",
+        "terms_review_window"
+      ]
     },
     {
       "id": "phase_defensive_reset",
       "label": "Defensive Reset Window",
-      "domains": ["timing"],
+      "domains": [
+        "timing"
+      ],
       "score": 100,
       "confidence": 0.9,
       "matchedSignalIds": [
@@ -1991,7 +2626,9 @@
     {
       "id": "career_expansion",
       "label": "Career Expansion Pattern",
-      "domains": ["career"],
+      "domains": [
+        "career"
+      ],
       "score": 100,
       "confidence": 0.84,
       "matchedSignalIds": [
@@ -2020,12 +2657,18 @@
       "thesis": "Career upside is active and external advancement paths are opening.",
       "risk": "Expansion without role clarity can create delivery strain.",
       "activationReason": "career strength signals | public house emphasis | stabilize",
-      "scenarioIds": ["promotion_window", "job_change_window", "launch_project_window"]
+      "scenarioIds": [
+        "promotion_window",
+        "job_change_window",
+        "launch_project_window"
+      ]
     },
     {
       "id": "relationship_activation",
       "label": "Relationship Activation Pattern",
-      "domains": ["relationship"],
+      "domains": [
+        "relationship"
+      ],
       "score": 100,
       "confidence": 0.84,
       "matchedSignalIds": [
@@ -2048,16 +2691,31 @@
         "COV:L5:aspect:Venus-Saturn:quintile",
         "COV:L5:aspect:Mercury-Venus:semisextile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Relationship momentum is rising and direct engagement matters more than passivity.",
       "risk": "Intensity without pacing can create mixed signals.",
       "activationReason": "relationship strength signals | venus or h7 support | stabilize",
-      "scenarioIds": ["new_connection_window", "bond_deepening_window", "reconciliation_window"]
+      "scenarioIds": [
+        "new_connection_window",
+        "bond_deepening_window",
+        "reconciliation_window"
+      ]
     },
     {
       "id": "wealth_volatility",
       "label": "Wealth Volatility Pattern",
-      "domains": ["wealth"],
+      "domains": [
+        "wealth"
+      ],
       "score": 100,
       "confidence": 0.84,
       "matchedSignalIds": [
@@ -2079,16 +2737,32 @@
         "COV:L5:aspect:Sun-Jupiter:quintile",
         "COV:L5:aspect:Venus-Saturn:quintile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Money movement is active, but volatility control matters as much as upside.",
       "risk": "A strong opportunity signal can hide timing and cashflow risk.",
       "activationReason": "wealth caution plus opportunity signals | stabilize",
-      "scenarioIds": ["cashflow_swing_window", "high_risk_offer_window", "expense_control_window"]
+      "scenarioIds": [
+        "cashflow_swing_window",
+        "high_risk_offer_window",
+        "expense_control_window"
+      ]
     },
     {
       "id": "leadership_emergence",
       "label": "Leadership Emergence Pattern",
-      "domains": ["career", "personality"],
+      "domains": [
+        "career",
+        "personality"
+      ],
       "score": 100,
       "confidence": 0.84,
       "matchedSignalIds": [
@@ -2124,16 +2798,33 @@
         "COV:L5:aspect:Sun-Jupiter:quintile",
         "COV:L5:aspect:Venus-Saturn:quintile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Personal authority is surfacing and people will look for direction.",
       "risk": "Visibility without operating rules can trigger pushback.",
       "activationReason": "career strength | h1 or h10 emphasis | stabilize",
-      "scenarioIds": ["lead_role_window", "public_responsibility_window", "team_anchor_window"]
+      "scenarioIds": [
+        "lead_role_window",
+        "public_responsibility_window",
+        "team_anchor_window"
+      ]
     },
     {
       "id": "transformation_through_conflict",
       "label": "Transformation Through Conflict",
-      "domains": ["career", "relationship", "personality"],
+      "domains": [
+        "career",
+        "relationship",
+        "personality"
+      ],
       "score": 100,
       "confidence": 0.84,
       "matchedSignalIds": [
@@ -2166,16 +2857,32 @@
         "COV:L5:aspect:Moon-Mercury:trine",
         "COV:L5:aspect:Venus-True Node:sextile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Pressure is forcing a redefinition that can become a long-term upgrade.",
       "risk": "Reacting to friction too quickly can turn a transition into damage.",
       "activationReason": "high tension | conflict plus growth | stabilize",
-      "scenarioIds": ["conflict_reframe_window", "role_upgrade_window", "boundary_upgrade_window"]
+      "scenarioIds": [
+        "conflict_reframe_window",
+        "role_upgrade_window",
+        "boundary_upgrade_window"
+      ]
     },
     {
       "id": "reputation_risk_window",
       "label": "Reputation Risk Window",
-      "domains": ["career", "relationship"],
+      "domains": [
+        "career",
+        "relationship"
+      ],
       "score": 100,
       "confidence": 0.84,
       "matchedSignalIds": [
@@ -2225,7 +2932,10 @@
     {
       "id": "public_visibility_window",
       "label": "Public Visibility Window",
-      "domains": ["career", "personality"],
+      "domains": [
+        "career",
+        "personality"
+      ],
       "score": 100,
       "confidence": 0.84,
       "matchedSignalIds": [
@@ -2254,16 +2964,32 @@
         "COV:L10:snapshot_astro:natalChart",
         "COV:L10:snapshot_astro:progressions"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Public-facing work can scale faster than back-channel execution right now.",
       "risk": "Visibility without readiness can expose weak edges.",
       "activationReason": "public signals | mc or h10 | stabilize",
-      "scenarioIds": ["presentation_window", "brand_window", "exposure_window"]
+      "scenarioIds": [
+        "presentation_window",
+        "brand_window",
+        "exposure_window"
+      ]
     },
     {
       "id": "network_leverage",
       "label": "Network Leverage Pattern",
-      "domains": ["career", "relationship"],
+      "domains": [
+        "career",
+        "relationship"
+      ],
       "score": 100,
       "confidence": 0.84,
       "matchedSignalIds": [
@@ -2284,16 +3010,31 @@
         "COV:L5:aspect:Uranus-Neptune:conjunction",
         "COV:L5:aspect:Venus-True Node:sextile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Results improve when you use connections, context, and introductions deliberately.",
       "risk": "Passive expectation will hide accessible leverage.",
       "activationReason": "relationship support tied to career | stabilize",
-      "scenarioIds": ["referral_chain_window", "collab_window", "network_unlock_window"]
+      "scenarioIds": [
+        "referral_chain_window",
+        "collab_window",
+        "network_unlock_window"
+      ]
     },
     {
       "id": "career_upside_cluster",
       "label": "Career Upside Cluster",
-      "domains": ["career"],
+      "domains": [
+        "career"
+      ],
       "score": 100,
       "confidence": 0.84,
       "matchedSignalIds": [
@@ -2324,12 +3065,18 @@
       "thesis": "Career signals are clustering on the upside, so deliberate execution can compound.",
       "risk": "If career decisions are rushed, upside can degrade into preventable rework.",
       "activationReason": "career strength concentration | signal cluster | stabilize",
-      "scenarioIds": ["career_upside_main", "career_upside_alt", "career_upside_guarded"]
+      "scenarioIds": [
+        "career_upside_main",
+        "career_upside_alt",
+        "career_upside_guarded"
+      ]
     },
     {
       "id": "career_risk_cluster",
       "label": "Career Risk Cluster",
-      "domains": ["career"],
+      "domains": [
+        "career"
+      ],
       "score": 100,
       "confidence": 0.84,
       "matchedSignalIds": [
@@ -2367,12 +3114,18 @@
       "thesis": "Career caution signals are concentrated, so sequencing and validation must lead.",
       "risk": "Ignoring early friction in career can increase downstream correction cost.",
       "activationReason": "career caution concentration | guardrail-first execution | stabilize",
-      "scenarioIds": ["career_risk_main", "career_risk_alt", "career_risk_guarded"]
+      "scenarioIds": [
+        "career_risk_main",
+        "career_risk_alt",
+        "career_risk_guarded"
+      ]
     },
     {
       "id": "relationship_upside_cluster",
       "label": "Relationship Upside Cluster",
-      "domains": ["relationship"],
+      "domains": [
+        "relationship"
+      ],
       "score": 100,
       "confidence": 0.84,
       "matchedSignalIds": [
@@ -2396,7 +3149,16 @@
         "COV:L5:aspect:Venus-Saturn:quintile",
         "COV:L5:aspect:Mercury-Venus:semisextile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Relationship signals are clustering on the upside, so deliberate execution can compound.",
       "risk": "If relationship decisions are rushed, upside can degrade into preventable rework.",
       "activationReason": "relationship strength concentration | signal cluster | stabilize",
@@ -2409,7 +3171,9 @@
     {
       "id": "wealth_upside_cluster",
       "label": "Wealth Upside Cluster",
-      "domains": ["wealth"],
+      "domains": [
+        "wealth"
+      ],
       "score": 100,
       "confidence": 0.84,
       "matchedSignalIds": [
@@ -2429,16 +3193,31 @@
         "COV:L5:aspect:Sun-Jupiter:quintile",
         "COV:L5:aspect:Venus-Saturn:quintile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Wealth signals are clustering on the upside, so deliberate execution can compound.",
       "risk": "If wealth decisions are rushed, upside can degrade into preventable rework.",
       "activationReason": "wealth strength concentration | signal cluster | stabilize",
-      "scenarioIds": ["wealth_upside_main", "wealth_upside_alt", "wealth_upside_guarded"]
+      "scenarioIds": [
+        "wealth_upside_main",
+        "wealth_upside_alt",
+        "wealth_upside_guarded"
+      ]
     },
     {
       "id": "wealth_risk_cluster",
       "label": "Wealth Risk Cluster",
-      "domains": ["wealth"],
+      "domains": [
+        "wealth"
+      ],
       "score": 100,
       "confidence": 0.84,
       "matchedSignalIds": [
@@ -2465,16 +3244,31 @@
         "COV:L5:aspect:Sun-Jupiter:quintile",
         "COV:L5:aspect:Venus-Saturn:quintile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Wealth caution signals are concentrated, so sequencing and validation must lead.",
       "risk": "Ignoring early friction in wealth can increase downstream correction cost.",
       "activationReason": "wealth caution concentration | guardrail-first execution | stabilize",
-      "scenarioIds": ["wealth_risk_main", "wealth_risk_alt", "wealth_risk_guarded"]
+      "scenarioIds": [
+        "wealth_risk_main",
+        "wealth_risk_alt",
+        "wealth_risk_guarded"
+      ]
     },
     {
       "id": "personality_upside_cluster",
       "label": "Personality Upside Cluster",
-      "domains": ["personality"],
+      "domains": [
+        "personality"
+      ],
       "score": 100,
       "confidence": 0.84,
       "matchedSignalIds": [
@@ -2508,7 +3302,16 @@
         "COV:L5:aspect:Sun-Neptune:semisextile",
         "COV:L5:aspect:Venus-Saturn:quintile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Personality signals are clustering on the upside, so deliberate execution can compound.",
       "risk": "If personality decisions are rushed, upside can degrade into preventable rework.",
       "activationReason": "personality strength concentration | signal cluster | stabilize",
@@ -2521,7 +3324,9 @@
     {
       "id": "career_reset_rebuild",
       "label": "Career Reset Pattern",
-      "domains": ["career"],
+      "domains": [
+        "career"
+      ],
       "score": 100,
       "confidence": 0.83,
       "matchedSignalIds": [
@@ -2539,7 +3344,16 @@
         "COV:L5:aspect:Mercury-Saturn:semisextile",
         "COV:L5:aspect:Venus-Saturn:quintile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Career direction is shifting and old role structures need redesign.",
       "risk": "Impatience can turn a strategic reset into unnecessary churn.",
       "activationReason": "career caution signals | timing compression | stabilize",
@@ -2552,7 +3366,10 @@
     {
       "id": "burnout_risk",
       "label": "Burnout Risk Pattern",
-      "domains": ["health", "career"],
+      "domains": [
+        "health",
+        "career"
+      ],
       "score": 100,
       "confidence": 0.83,
       "matchedSignalIds": [
@@ -2571,16 +3388,33 @@
         "COV:L5:aspect:Moon-True Node:quincunx",
         "COV:L5:aspect:Venus-Saturn:quintile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Output is possible, but recovery debt is building in the background.",
       "risk": "Pushing through fatigue can degrade judgment quality.",
       "activationReason": "health caution | saturn/moon strain | stabilize",
-      "scenarioIds": ["schedule_reduction_window", "recovery_reset_window", "load_rebalance_window"]
+      "scenarioIds": [
+        "schedule_reduction_window",
+        "recovery_reset_window",
+        "load_rebalance_window"
+      ]
     },
     {
       "id": "reinvention_cycle",
       "label": "Reinvention Cycle",
-      "domains": ["personality", "career", "move"],
+      "domains": [
+        "personality",
+        "career",
+        "move"
+      ],
       "score": 100,
       "confidence": 0.83,
       "matchedSignalIds": [
@@ -2652,16 +3486,31 @@
         "COV:L10:snapshot_astro:currentTransits",
         "COV:L10:snapshot_astro:progressions"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Identity and direction are reformatting at the same time.",
       "risk": "Changing too many variables at once can blur the signal.",
       "activationReason": "identity shift | move or career reset | stabilize",
-      "scenarioIds": ["identity_shift_window", "portfolio_rebuild_window", "context_change_window"]
+      "scenarioIds": [
+        "identity_shift_window",
+        "portfolio_rebuild_window",
+        "context_change_window"
+      ]
     },
     {
       "id": "health_upside_cluster",
       "label": "Health Upside Cluster",
-      "domains": ["health"],
+      "domains": [
+        "health"
+      ],
       "score": 100,
       "confidence": 0.83,
       "matchedSignalIds": [
@@ -2680,16 +3529,31 @@
         "COV:L5:aspect:Moon-True Node:quincunx",
         "COV:L5:aspect:Venus-Saturn:quintile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Health signals are clustering on the upside, so deliberate execution can compound.",
       "risk": "If health decisions are rushed, upside can degrade into preventable rework.",
       "activationReason": "health strength concentration | signal cluster | defensive_reset",
-      "scenarioIds": ["health_upside_main", "health_upside_alt", "health_upside_guarded"]
+      "scenarioIds": [
+        "health_upside_main",
+        "health_upside_alt",
+        "health_upside_guarded"
+      ]
     },
     {
       "id": "timing_upside_cluster",
       "label": "Timing Upside Cluster",
-      "domains": ["timing"],
+      "domains": [
+        "timing"
+      ],
       "score": 100,
       "confidence": 0.83,
       "matchedSignalIds": [
@@ -2719,12 +3583,18 @@
       "thesis": "Timing signals are clustering on the upside, so deliberate execution can compound.",
       "risk": "If timing decisions are rushed, upside can degrade into preventable rework.",
       "activationReason": "timing strength concentration | signal cluster | defensive_reset",
-      "scenarioIds": ["timing_upside_main", "timing_upside_alt", "timing_upside_guarded"]
+      "scenarioIds": [
+        "timing_upside_main",
+        "timing_upside_alt",
+        "timing_upside_guarded"
+      ]
     },
     {
       "id": "personality_risk_cluster",
       "label": "Personality Risk Cluster",
-      "domains": ["personality"],
+      "domains": [
+        "personality"
+      ],
       "score": 100,
       "confidence": 0.83,
       "matchedSignalIds": [
@@ -2772,16 +3642,31 @@
         "COV:L7:snapshot_saju:dayMaster",
         "COV:L7:snapshot_saju:fiveElements"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Personality caution signals are concentrated, so sequencing and validation must lead.",
       "risk": "Ignoring early friction in personality can increase downstream correction cost.",
       "activationReason": "personality caution concentration | guardrail-first execution | stabilize",
-      "scenarioIds": ["personality_risk_main", "personality_risk_alt", "personality_risk_guarded"]
+      "scenarioIds": [
+        "personality_risk_main",
+        "personality_risk_alt",
+        "personality_risk_guarded"
+      ]
     },
     {
       "id": "spirituality_upside_cluster",
       "label": "Spirituality Upside Cluster",
-      "domains": ["spirituality"],
+      "domains": [
+        "spirituality"
+      ],
       "score": 100,
       "confidence": 0.83,
       "matchedSignalIds": [
@@ -2798,7 +3683,16 @@
         "COV:L5:aspect:Moon-True Node:quincunx",
         "COV:L5:aspect:Venus-True Node:sextile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Spirituality signals are clustering on the upside, so deliberate execution can compound.",
       "risk": "If spirituality decisions are rushed, upside can degrade into preventable rework.",
       "activationReason": "spirituality strength concentration | signal cluster | defensive_reset",
@@ -2811,7 +3705,9 @@
     {
       "id": "relationship_tension",
       "label": "Relationship Tension Pattern",
-      "domains": ["relationship"],
+      "domains": [
+        "relationship"
+      ],
       "score": 100,
       "confidence": 0.82,
       "matchedSignalIds": [
@@ -2853,7 +3749,11 @@
     {
       "id": "timing_compression",
       "label": "Timing Compression Pattern",
-      "domains": ["timing", "career", "relationship"],
+      "domains": [
+        "timing",
+        "career",
+        "relationship"
+      ],
       "score": 100,
       "confidence": 0.82,
       "matchedSignalIds": [
@@ -2908,7 +3808,9 @@
     {
       "id": "move_risk_cluster",
       "label": "Move Risk Cluster",
-      "domains": ["move"],
+      "domains": [
+        "move"
+      ],
       "score": 100,
       "confidence": 0.82,
       "matchedSignalIds": [
@@ -2936,12 +3838,18 @@
       "thesis": "Move caution signals are concentrated, so sequencing and validation must lead.",
       "risk": "Ignoring early friction in move can increase downstream correction cost.",
       "activationReason": "move caution concentration | guardrail-first execution | stabilize",
-      "scenarioIds": ["move_risk_main", "move_risk_alt", "move_risk_guarded"]
+      "scenarioIds": [
+        "move_risk_main",
+        "move_risk_alt",
+        "move_risk_guarded"
+      ]
     },
     {
       "id": "phase_expansion",
       "label": "Expansion Bias Window",
-      "domains": ["timing"],
+      "domains": [
+        "timing"
+      ],
       "score": 100,
       "confidence": 0.82,
       "matchedSignalIds": [
@@ -2987,12 +3895,18 @@
       "thesis": "The strategic phase favors growth moves with clear ownership and measurable milestones.",
       "risk": "Speed can still hide execution debt if governance is weak.",
       "activationReason": "strategy phase alignment | expansion | defensive_reset",
-      "scenarioIds": ["phase_expansion_main", "phase_expansion_alt", "phase_expansion_defensive"]
+      "scenarioIds": [
+        "phase_expansion_main",
+        "phase_expansion_alt",
+        "phase_expansion_defensive"
+      ]
     },
     {
       "id": "phase_high_tension_expansion",
       "label": "High-Tension Expansion Window",
-      "domains": ["timing"],
+      "domains": [
+        "timing"
+      ],
       "score": 100,
       "confidence": 0.82,
       "matchedSignalIds": [
@@ -3047,7 +3961,9 @@
     {
       "id": "phase_expansion_guarded",
       "label": "Guarded Expansion Window",
-      "domains": ["timing"],
+      "domains": [
+        "timing"
+      ],
       "score": 100,
       "confidence": 0.82,
       "matchedSignalIds": [
@@ -3102,7 +4018,9 @@
     {
       "id": "phase_stabilize",
       "label": "Stabilization Window",
-      "domains": ["timing"],
+      "domains": [
+        "timing"
+      ],
       "score": 100,
       "confidence": 0.82,
       "matchedSignalIds": [
@@ -3148,12 +4066,18 @@
       "thesis": "Consolidation and process quality now produce better outcomes than aggressive scaling.",
       "risk": "Under-communicated priorities can create hidden drift.",
       "activationReason": "strategy phase alignment | stabilize | defensive_reset",
-      "scenarioIds": ["phase_stabilize_main", "phase_stabilize_alt", "phase_stabilize_defensive"]
+      "scenarioIds": [
+        "phase_stabilize_main",
+        "phase_stabilize_alt",
+        "phase_stabilize_defensive"
+      ]
     },
     {
       "id": "relationship_risk_cluster",
       "label": "Relationship Risk Cluster",
-      "domains": ["relationship"],
+      "domains": [
+        "relationship"
+      ],
       "score": 100,
       "confidence": 0.81,
       "matchedSignalIds": [
@@ -3202,7 +4126,10 @@
     {
       "id": "composite_career_expansion__wealth_accumulation",
       "label": "Career Expansion Pattern + Wealth Accumulation Pattern",
-      "domains": ["career", "wealth"],
+      "domains": [
+        "career",
+        "wealth"
+      ],
       "score": 99,
       "confidence": 0.92,
       "matchedSignalIds": [
@@ -3244,7 +4171,9 @@
     {
       "id": "composite_career_expansion__career_reset_rebuild",
       "label": "Career Expansion Pattern + Career Reset Pattern",
-      "domains": ["career"],
+      "domains": [
+        "career"
+      ],
       "score": 99,
       "confidence": 0.88,
       "matchedSignalIds": [
@@ -3288,7 +4217,10 @@
     {
       "id": "composite_career_expansion__relationship_activation",
       "label": "Career Expansion Pattern + Relationship Activation Pattern",
-      "domains": ["career", "relationship"],
+      "domains": [
+        "career",
+        "relationship"
+      ],
       "score": 99,
       "confidence": 0.88,
       "matchedSignalIds": [
@@ -3332,7 +4264,10 @@
     {
       "id": "composite_career_expansion__wealth_volatility",
       "label": "Career Expansion Pattern + Wealth Volatility Pattern",
-      "domains": ["career", "wealth"],
+      "domains": [
+        "career",
+        "wealth"
+      ],
       "score": 99,
       "confidence": 0.88,
       "matchedSignalIds": [
@@ -3376,7 +4311,10 @@
     {
       "id": "composite_career_expansion__leadership_emergence",
       "label": "Career Expansion Pattern + Leadership Emergence Pattern",
-      "domains": ["career", "personality"],
+      "domains": [
+        "career",
+        "personality"
+      ],
       "score": 99,
       "confidence": 0.88,
       "matchedSignalIds": [
@@ -3420,7 +4358,10 @@
     {
       "id": "composite_burnout_risk__career_expansion",
       "label": "Career Expansion Pattern + Burnout Risk Pattern",
-      "domains": ["career", "health"],
+      "domains": [
+        "career",
+        "health"
+      ],
       "score": 99,
       "confidence": 0.88,
       "matchedSignalIds": [
@@ -3464,7 +4405,10 @@
     {
       "id": "composite_career_reset_rebuild__relationship_activation",
       "label": "Career Reset Pattern + Relationship Activation Pattern",
-      "domains": ["career", "relationship"],
+      "domains": [
+        "career",
+        "relationship"
+      ],
       "score": 99,
       "confidence": 0.88,
       "matchedSignalIds": [
@@ -3481,7 +4425,16 @@
         "COV:L5:aspect:Moon-Pluto:opposition",
         "COV:L5:aspect:Mercury-Saturn:semisextile"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"],
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ],
       "thesis": "Upside and caution are both active; progress should be paired with explicit guardrails.",
       "risk": "If sequence control is weak, cross-domain coupling can amplify error cost.",
       "activationReason": "career caution signals | timing compression | stabilize | relationship strength signals | venus or h7 support | stabilize | mixed-polarity | defensive_reset",
@@ -3497,7 +4450,10 @@
     {
       "id": "composite_career_expansion__relationship_tension",
       "label": "Career Expansion Pattern + Relationship Tension Pattern",
-      "domains": ["career", "relationship"],
+      "domains": [
+        "career",
+        "relationship"
+      ],
       "score": 99,
       "confidence": 0.87,
       "matchedSignalIds": [
@@ -3541,7 +4497,9 @@
     {
       "id": "travel_relocation_activation",
       "label": "Travel or Relocation Activation",
-      "domains": ["move"],
+      "domains": [
+        "move"
+      ],
       "score": 88,
       "confidence": 0.81,
       "matchedSignalIds": [
@@ -3552,16 +4510,31 @@
         "COV:L3:planet-house:Neptune:H12",
         "COV:L3:planet-house:True Node:H9"
       ],
-      "matchedKeywords": ["양육", "정인", "Moon", "십신", "in", "H4", "혁신", "Uranus"],
+      "matchedKeywords": [
+        "양육",
+        "정인",
+        "Moon",
+        "십신",
+        "in",
+        "H4",
+        "혁신",
+        "Uranus"
+      ],
       "thesis": "Movement, relocation, or cross-border transitions are becoming more viable.",
       "risk": "Logistics and timing mismatches can absorb gains.",
       "activationReason": "move signals | h9 or h12 activation | stabilize",
-      "scenarioIds": ["travel_window", "relocation_window", "foreign_link_window"]
+      "scenarioIds": [
+        "travel_window",
+        "relocation_window",
+        "foreign_link_window"
+      ]
     },
     {
       "id": "move_upside_cluster",
       "label": "Move Upside Cluster",
-      "domains": ["move"],
+      "domains": [
+        "move"
+      ],
       "score": 81,
       "confidence": 0.81,
       "matchedSignalIds": [
@@ -3571,11 +4544,24 @@
         "COV:L3:planet-house:Neptune:H12",
         "COV:L3:planet-house:True Node:H9"
       ],
-      "matchedKeywords": ["양육", "정인", "Moon", "십신", "in", "H4", "혁신", "Uranus"],
+      "matchedKeywords": [
+        "양육",
+        "정인",
+        "Moon",
+        "십신",
+        "in",
+        "H4",
+        "혁신",
+        "Uranus"
+      ],
       "thesis": "Move signals are clustering on the upside, so deliberate execution can compound.",
       "risk": "If move decisions are rushed, upside can degrade into preventable rework.",
       "activationReason": "move strength concentration | signal cluster | stabilize",
-      "scenarioIds": ["move_upside_main", "move_upside_alt", "move_upside_guarded"]
+      "scenarioIds": [
+        "move_upside_main",
+        "move_upside_alt",
+        "move_upside_guarded"
+      ]
     }
   ],
   "topMatchedPatterns": [
@@ -3584,7 +4570,9 @@
       "label": "Wealth Accumulation Pattern",
       "score": 100,
       "confidence": 0.92,
-      "domains": ["wealth"],
+      "domains": [
+        "wealth"
+      ],
       "activationReason": "wealth strength and structure alignment | stabilize",
       "matchedSignalIds": [
         "L6:임관:H10",
@@ -3612,7 +4600,11 @@
       "label": "Hidden Support Pattern",
       "score": 100,
       "confidence": 0.92,
-      "domains": ["career", "relationship", "wealth"],
+      "domains": [
+        "career",
+        "relationship",
+        "wealth"
+      ],
       "activationReason": "positive support signals | bridge alignment | stabilize",
       "matchedSignalIds": [
         "L5:samhap:trine",
@@ -3624,14 +4616,27 @@
         "COV:L3:planet-house:Jupiter:H10",
         "COV:L5:aspect:Jupiter-Saturn:square"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"]
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ]
     },
     {
       "id": "learning_acceleration",
       "label": "Learning Acceleration Pattern",
       "score": 100,
       "confidence": 0.92,
-      "domains": ["career", "personality", "spirituality"],
+      "domains": [
+        "career",
+        "personality",
+        "spirituality"
+      ],
       "activationReason": "learning signals | mercury or house 3/9 support | stabilize",
       "matchedSignalIds": [
         "L5:samhap:trine",
@@ -3643,14 +4648,26 @@
         "L2:정인:Moon",
         "L2:정인:Jupiter"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"]
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ]
     },
     {
       "id": "deep_partnership_activation",
       "label": "Deep Partnership Activation",
       "score": 100,
       "confidence": 0.91,
-      "domains": ["relationship", "wealth"],
+      "domains": [
+        "relationship",
+        "wealth"
+      ],
       "activationReason": "h7/h8 relationship and value overlap | stabilize",
       "matchedSignalIds": [
         "L5:samhap:trine",
@@ -3662,14 +4679,26 @@
         "COV:L7:yongsin:화",
         "COV:L4:daeun:금"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"]
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ]
     },
     {
       "id": "healing_routine_stabilization",
       "label": "Healing and Routine Stabilization",
       "score": 100,
       "confidence": 0.91,
-      "domains": ["health", "personality"],
+      "domains": [
+        "health",
+        "personality"
+      ],
       "activationReason": "balance signals in health | h6 or saturn stabilization | defensive_reset",
       "matchedSignalIds": [
         "L5:samhap:trine",
@@ -3681,14 +4710,27 @@
         "COV:L3:planet-house:Saturn:H1",
         "COV:L3:planet-house:Uranus:H12"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"]
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ]
     },
     {
       "id": "mission_alignment",
       "label": "Mission Alignment Pattern",
       "score": 100,
       "confidence": 0.91,
-      "domains": ["spirituality", "personality", "career"],
+      "domains": [
+        "spirituality",
+        "personality",
+        "career"
+      ],
       "activationReason": "purpose signals | node/chiron/spiritual emphasis | stabilize",
       "matchedSignalIds": [
         "L5:samhap:trine",
@@ -3700,14 +4742,25 @@
         "L2:정인:Moon",
         "L2:정인:Jupiter"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"]
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ]
     },
     {
       "id": "health_risk_cluster",
       "label": "Health Risk Cluster",
       "score": 100,
       "confidence": 0.91,
-      "domains": ["health"],
+      "domains": [
+        "health"
+      ],
       "activationReason": "health caution concentration | guardrail-first execution | defensive_reset",
       "matchedSignalIds": [
         "L5:samhap:trine",
@@ -3719,14 +4772,25 @@
         "COV:L4:transit:neptuneSquare",
         "COV:L3:planet-house:Moon:H4"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"]
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ]
     },
     {
       "id": "timing_risk_cluster",
       "label": "Timing Risk Cluster",
       "score": 100,
       "confidence": 0.91,
-      "domains": ["timing"],
+      "domains": [
+        "timing"
+      ],
       "activationReason": "timing caution concentration | guardrail-first execution | defensive_reset",
       "matchedSignalIds": [
         "L5:chung:opposition",
@@ -3754,7 +4818,9 @@
       "label": "Spirituality Risk Cluster",
       "score": 100,
       "confidence": 0.91,
-      "domains": ["spirituality"],
+      "domains": [
+        "spirituality"
+      ],
       "activationReason": "spirituality caution concentration | guardrail-first execution | defensive_reset",
       "matchedSignalIds": [
         "L5:samhap:trine",
@@ -3766,14 +4832,27 @@
         "COV:L8:shinsal:겁살",
         "COV:L8:shinsal:공망"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"]
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ]
     },
     {
       "id": "structure_over_speed",
       "label": "Structure Over Speed",
       "score": 100,
       "confidence": 0.9,
-      "domains": ["career", "wealth", "timing"],
+      "domains": [
+        "career",
+        "wealth",
+        "timing"
+      ],
       "activationReason": "timing caution | saturn or delay signals | stabilize",
       "matchedSignalIds": [
         "L5:samhap:trine",
@@ -3785,7 +4864,16 @@
         "COV:L4:transit:neptuneSquare",
         "COV:L6:stage:양"
       ],
-      "matchedKeywords": ["최상조화", "samhap", "trine", "지지삼합", "亥", "卯", "未", "삼합"]
+      "matchedKeywords": [
+        "최상조화",
+        "samhap",
+        "trine",
+        "지지삼합",
+        "亥",
+        "卯",
+        "未",
+        "삼합"
+      ]
     }
   ],
   "scenarios": [
@@ -3799,7 +4887,11 @@
       "confidence": 0.93,
       "window": "now",
       "risk": "Too many channels can dilute quality.",
-      "actions": ["Pick one revenue lane", "Tighten margin", "Track conversion"]
+      "actions": [
+        "Pick one revenue lane",
+        "Tighten margin",
+        "Track conversion"
+      ]
     },
     {
       "id": "asset_build_window",
@@ -3811,7 +4903,11 @@
       "confidence": 0.93,
       "window": "now",
       "risk": "Compounding fails when rules are loose.",
-      "actions": ["Set contribution rule", "Automate a transfer", "Review monthly"]
+      "actions": [
+        "Set contribution rule",
+        "Automate a transfer",
+        "Review monthly"
+      ]
     },
     {
       "id": "side_income_window",
@@ -3823,7 +4919,11 @@
       "confidence": 0.93,
       "window": "now",
       "risk": "New income without process can drain energy.",
-      "actions": ["Pilot one offer", "Limit weekly hours", "Measure retention"]
+      "actions": [
+        "Pilot one offer",
+        "Limit weekly hours",
+        "Measure retention"
+      ]
     },
     {
       "id": "hidden_support_main_window",
@@ -3835,7 +4935,11 @@
       "confidence": 0.93,
       "window": "now",
       "risk": "Support stays latent if assumptions replace direct communication.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "hidden_support_alt_window",
@@ -3847,7 +4951,11 @@
       "confidence": 0.93,
       "window": "now",
       "risk": "Alternate path: Support stays latent if assumptions replace direct communication.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "hidden_support_defensive_window",
@@ -3859,7 +4967,11 @@
       "confidence": 0.93,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "learning_acceleration_main_window",
@@ -3871,7 +4983,11 @@
       "confidence": 0.93,
       "window": "now",
       "risk": "Consuming too broadly can reduce retention and execution.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "learning_acceleration_alt_window",
@@ -3883,7 +4999,11 @@
       "confidence": 0.93,
       "window": "now",
       "risk": "Alternate path: Consuming too broadly can reduce retention and execution.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "learning_acceleration_defensive_window",
@@ -3895,7 +5015,11 @@
       "confidence": 0.93,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "deep_partnership_activation_main_window",
@@ -3907,7 +5031,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Blurred expectations can turn alignment into tension.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "deep_partnership_activation_alt_window",
@@ -3919,7 +5047,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Alternate path: Blurred expectations can turn alignment into tension.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "deep_partnership_activation_defensive_window",
@@ -3931,7 +5063,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "healing_routine_stabilization_main_window",
@@ -3943,7 +5079,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Skipping maintenance will reduce strategic capacity later.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "healing_routine_stabilization_alt_window",
@@ -3955,7 +5095,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Alternate path: Skipping maintenance will reduce strategic capacity later.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "healing_routine_stabilization_defensive_window",
@@ -3967,7 +5111,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "health_risk_cluster_main_window",
@@ -3979,7 +5127,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Ignoring early friction in health can increase downstream correction cost.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "health_risk_cluster_alt_window",
@@ -3991,7 +5143,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Alternate path: Ignoring early friction in health can increase downstream correction cost.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "health_risk_cluster_defensive_window",
@@ -4003,7 +5159,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "structure_over_speed_main_window",
@@ -4015,7 +5175,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Rushing the close will cost more than delaying it.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "structure_over_speed_alt_window",
@@ -4027,7 +5191,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Alternate path: Rushing the close will cost more than delaying it.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "structure_over_speed_defensive_window",
@@ -4039,7 +5207,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "promotion_window",
@@ -4051,7 +5223,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Role scope must be defined before yes.",
-      "actions": ["Clarify role scope", "Lock deliverables", "Verify reporting lines"]
+      "actions": [
+        "Clarify role scope",
+        "Lock deliverables",
+        "Verify reporting lines"
+      ]
     },
     {
       "id": "job_change_window",
@@ -4063,7 +5239,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Fast exit without runway can cut leverage.",
-      "actions": ["Map offer quality", "Check runway", "Stage the handoff"]
+      "actions": [
+        "Map offer quality",
+        "Check runway",
+        "Stage the handoff"
+      ]
     },
     {
       "id": "launch_project_window",
@@ -4075,7 +5255,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Launching without owner clarity increases rework.",
-      "actions": ["Fix owner map", "Set scope", "Publish first milestone"]
+      "actions": [
+        "Fix owner map",
+        "Set scope",
+        "Publish first milestone"
+      ]
     },
     {
       "id": "new_connection_window",
@@ -4087,7 +5271,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Pacing matters more than intensity.",
-      "actions": ["Open one new channel", "Respond clearly", "Do not overcommit"]
+      "actions": [
+        "Open one new channel",
+        "Respond clearly",
+        "Do not overcommit"
+      ]
     },
     {
       "id": "bond_deepening_window",
@@ -4099,7 +5287,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Assumed alignment can create drift.",
-      "actions": ["Name expectations", "Define next step", "Repeat key understanding"]
+      "actions": [
+        "Name expectations",
+        "Define next step",
+        "Repeat key understanding"
+      ]
     },
     {
       "id": "reconciliation_window",
@@ -4111,7 +5303,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Repair fails if the old trigger is unnamed.",
-      "actions": ["Name the trigger", "Set one boundary", "Choose one repair action"]
+      "actions": [
+        "Name the trigger",
+        "Set one boundary",
+        "Choose one repair action"
+      ]
     },
     {
       "id": "cashflow_swing_window",
@@ -4123,7 +5319,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Short-term optimism can hide downside.",
-      "actions": ["Update cashflow", "Cap downside", "Delay nonessential spend"]
+      "actions": [
+        "Update cashflow",
+        "Cap downside",
+        "Delay nonessential spend"
+      ]
     },
     {
       "id": "high_risk_offer_window",
@@ -4135,7 +5335,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Promise-heavy offers need hard verification.",
-      "actions": ["Verify counterparty", "Check terms", "Use a waiting window"]
+      "actions": [
+        "Verify counterparty",
+        "Check terms",
+        "Use a waiting window"
+      ]
     },
     {
       "id": "expense_control_window",
@@ -4147,7 +5351,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Leakage compounds fast under volatility.",
-      "actions": ["Freeze one category", "Review subscriptions", "Set a hard cap"]
+      "actions": [
+        "Freeze one category",
+        "Review subscriptions",
+        "Set a hard cap"
+      ]
     },
     {
       "id": "leadership_emergence_main_window",
@@ -4159,7 +5367,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Visibility without operating rules can trigger pushback.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "leadership_emergence_alt_window",
@@ -4171,7 +5383,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Alternate path: Visibility without operating rules can trigger pushback.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "leadership_emergence_defensive_window",
@@ -4183,7 +5399,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "transformation_through_conflict_main_window",
@@ -4195,7 +5415,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Reacting to friction too quickly can turn a transition into damage.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "transformation_through_conflict_alt_window",
@@ -4207,7 +5431,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Alternate path: Reacting to friction too quickly can turn a transition into damage.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "transformation_through_conflict_defensive_window",
@@ -4219,7 +5447,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "reputation_risk_window_main_window",
@@ -4231,7 +5463,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "A small wording error can create outsized downstream cost.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "reputation_risk_window_alt_window",
@@ -4243,7 +5479,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Alternate path: A small wording error can create outsized downstream cost.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "reputation_risk_window_defensive_window",
@@ -4255,7 +5495,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "public_visibility_window_main_window",
@@ -4267,7 +5511,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Visibility without readiness can expose weak edges.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "public_visibility_window_alt_window",
@@ -4279,7 +5527,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Alternate path: Visibility without readiness can expose weak edges.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "public_visibility_window_defensive_window",
@@ -4291,7 +5543,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "network_leverage_main_window",
@@ -4303,7 +5559,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Passive expectation will hide accessible leverage.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "network_leverage_alt_window",
@@ -4315,7 +5575,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Alternate path: Passive expectation will hide accessible leverage.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "network_leverage_defensive_window",
@@ -4327,7 +5591,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "career_upside_cluster_main_window",
@@ -4339,7 +5607,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "If career decisions are rushed, upside can degrade into preventable rework.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "career_upside_cluster_alt_window",
@@ -4351,7 +5623,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Alternate path: If career decisions are rushed, upside can degrade into preventable rework.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "career_upside_cluster_defensive_window",
@@ -4363,7 +5639,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "career_risk_cluster_main_window",
@@ -4375,7 +5655,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Ignoring early friction in career can increase downstream correction cost.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "career_risk_cluster_alt_window",
@@ -4387,7 +5671,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Alternate path: Ignoring early friction in career can increase downstream correction cost.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "career_risk_cluster_defensive_window",
@@ -4399,7 +5687,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "relationship_upside_cluster_main_window",
@@ -4411,7 +5703,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "If relationship decisions are rushed, upside can degrade into preventable rework.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "relationship_upside_cluster_alt_window",
@@ -4423,7 +5719,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Alternate path: If relationship decisions are rushed, upside can degrade into preventable rework.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "relationship_upside_cluster_defensive_window",
@@ -4435,7 +5735,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "wealth_upside_cluster_main_window",
@@ -4447,7 +5751,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "If wealth decisions are rushed, upside can degrade into preventable rework.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "wealth_upside_cluster_alt_window",
@@ -4459,7 +5767,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Alternate path: If wealth decisions are rushed, upside can degrade into preventable rework.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "wealth_upside_cluster_defensive_window",
@@ -4471,7 +5783,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "wealth_risk_cluster_main_window",
@@ -4483,7 +5799,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Ignoring early friction in wealth can increase downstream correction cost.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "wealth_risk_cluster_alt_window",
@@ -4495,7 +5815,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Alternate path: Ignoring early friction in wealth can increase downstream correction cost.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "wealth_risk_cluster_defensive_window",
@@ -4507,7 +5831,11 @@
       "confidence": 0.87,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "mission_alignment_main_window",
@@ -4519,7 +5847,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Idealism without operating constraints can diffuse the gain.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "mission_alignment_alt_window",
@@ -4531,7 +5863,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Alternate path: Idealism without operating constraints can diffuse the gain.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "mission_alignment_defensive_window",
@@ -4543,7 +5879,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "spirituality_risk_cluster_main_window",
@@ -4555,7 +5895,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Ignoring early friction in spirituality can increase downstream correction cost.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "spirituality_risk_cluster_alt_window",
@@ -4567,7 +5911,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Alternate path: Ignoring early friction in spirituality can increase downstream correction cost.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "spirituality_risk_cluster_defensive_window",
@@ -4579,7 +5927,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "timing_risk_cluster_main_window",
@@ -4591,7 +5943,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Ignoring early friction in timing can increase downstream correction cost.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "timing_risk_cluster_alt_window",
@@ -4603,7 +5959,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Alternate path: Ignoring early friction in timing can increase downstream correction cost.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "timing_risk_cluster_defensive_window",
@@ -4615,7 +5975,11 @@
       "confidence": 0.92,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     },
     {
       "id": "phase_defensive_reset_main_window",
@@ -4627,7 +5991,11 @@
       "confidence": 0.91,
       "window": "now",
       "risk": "Emotional over-correction can damage optionality.",
-      "actions": ["Pick one focus", "Write one verification rule", "Review after one cycle"]
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ]
     },
     {
       "id": "phase_defensive_reset_alt_window",
@@ -4639,7 +6007,11 @@
       "confidence": 0.91,
       "window": "now",
       "risk": "Alternate path: Emotional over-correction can damage optionality.",
-      "actions": ["Reduce scope", "Keep optionality", "Collect one more signal"]
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ]
     },
     {
       "id": "phase_defensive_reset_defensive_window",
@@ -4651,7 +6023,11 @@
       "confidence": 0.91,
       "window": "now",
       "risk": "Use a slower sequence if evidence weakens.",
-      "actions": ["Pause final commitment", "Draft before commit", "Re-check constraints"]
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ]
     }
   ],
   "profile": {
@@ -4712,7 +6088,7 @@
       {
         "id": "E1",
         "section": "overview",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
         "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"overview\" using X2, X3, X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
         "crossEvidenceSets": [
@@ -4720,8 +6096,12 @@
             "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["career", "wealth", "timing"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "career",
+              "wealth",
+              "timing"
+            ],
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
             "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4730,8 +6110,12 @@
             "id": "X3",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["relationship", "wealth", "timing"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "relationship",
+              "wealth",
+              "timing"
+            ],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
             "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4740,8 +6124,12 @@
             "id": "X9",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["career", "wealth", "personality"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "career",
+              "wealth",
+              "personality"
+            ],
             "overlapScore": 0.99,
             "orbFitScore": 0.47,
             "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4750,8 +6138,11 @@
             "id": "X6",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["career", "personality"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "career",
+              "personality"
+            ],
             "overlapScore": 0.94,
             "orbFitScore": 0.62,
             "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4761,7 +6152,7 @@
       {
         "id": "E2",
         "section": "energy",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
         "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"energy\" using X2, X3, X1, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
         "crossEvidenceSets": [
@@ -4769,8 +6160,12 @@
             "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["career", "wealth", "timing"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "career",
+              "wealth",
+              "timing"
+            ],
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
             "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4779,8 +6174,12 @@
             "id": "X3",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["relationship", "wealth", "timing"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "relationship",
+              "wealth",
+              "timing"
+            ],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
             "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4789,8 +6188,10 @@
             "id": "X1",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-square-True Node (pair=Mercury-True Node, angle=90deg, orb=0.3deg, allowed=timing<=3.6deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["timing"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "timing"
+            ],
             "overlapScore": 0.86,
             "orbFitScore": 0.92,
             "combinedConclusion": "Cross-domain overlap(timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4799,8 +6200,10 @@
             "id": "X4",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mars-quincunx-Neptune (pair=Mars-Neptune, angle=150deg, orb=0.2deg, allowed=timing<=1.8deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["timing"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "timing"
+            ],
             "overlapScore": 0.85,
             "orbFitScore": 0.91,
             "combinedConclusion": "Cross-domain overlap(timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4810,7 +6213,7 @@
       {
         "id": "E3",
         "section": "opportunities",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
         "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"opportunities\" using X2, X3, X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
         "crossEvidenceSets": [
@@ -4818,8 +6221,12 @@
             "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["career", "wealth", "timing"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "career",
+              "wealth",
+              "timing"
+            ],
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
             "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4828,8 +6235,12 @@
             "id": "X3",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["relationship", "wealth", "timing"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "relationship",
+              "wealth",
+              "timing"
+            ],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
             "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4838,8 +6249,12 @@
             "id": "X9",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["career", "wealth", "personality"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "career",
+              "wealth",
+              "personality"
+            ],
             "overlapScore": 0.99,
             "orbFitScore": 0.47,
             "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4848,8 +6263,11 @@
             "id": "X6",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["career", "personality"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "career",
+              "personality"
+            ],
             "overlapScore": 0.94,
             "orbFitScore": 0.62,
             "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4859,7 +6277,7 @@
       {
         "id": "E4",
         "section": "cautions",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
         "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"cautions\" using X2, X3, X1, X4. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
         "crossEvidenceSets": [
@@ -4867,8 +6285,12 @@
             "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["career", "wealth", "timing"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "career",
+              "wealth",
+              "timing"
+            ],
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
             "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4877,8 +6299,12 @@
             "id": "X3",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["relationship", "wealth", "timing"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "relationship",
+              "wealth",
+              "timing"
+            ],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
             "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4887,8 +6313,10 @@
             "id": "X1",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-square-True Node (pair=Mercury-True Node, angle=90deg, orb=0.3deg, allowed=timing<=3.6deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["timing"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "timing"
+            ],
             "overlapScore": 0.86,
             "orbFitScore": 0.92,
             "combinedConclusion": "Cross-domain overlap(timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4897,8 +6325,10 @@
             "id": "X4",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mars-quincunx-Neptune (pair=Mars-Neptune, angle=150deg, orb=0.2deg, allowed=timing<=1.8deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["timing"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "timing"
+            ],
             "overlapScore": 0.85,
             "orbFitScore": 0.91,
             "combinedConclusion": "Cross-domain overlap(timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4908,7 +6338,7 @@
       {
         "id": "E5",
         "section": "domains",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
         "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"domains\" using X2, X3, X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
         "crossEvidenceSets": [
@@ -4916,8 +6346,12 @@
             "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["career", "wealth", "timing"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "career",
+              "wealth",
+              "timing"
+            ],
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
             "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4926,8 +6360,12 @@
             "id": "X3",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["relationship", "wealth", "timing"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "relationship",
+              "wealth",
+              "timing"
+            ],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
             "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4936,8 +6374,12 @@
             "id": "X9",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["career", "wealth", "personality"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "career",
+              "wealth",
+              "personality"
+            ],
             "overlapScore": 0.99,
             "orbFitScore": 0.47,
             "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4946,8 +6388,11 @@
             "id": "X6",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["career", "personality"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "career",
+              "personality"
+            ],
             "overlapScore": 0.94,
             "orbFitScore": 0.62,
             "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4957,7 +6402,7 @@
       {
         "id": "E6",
         "section": "actionPlan",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
         "crossConclusion": "Anchor with overall=50 grade=C, then synthesize Saju+Astrology for \"actionPlan\" using X2, X3, X9, X6. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.",
         "crossEvidenceSets": [
@@ -4965,8 +6410,12 @@
             "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["career", "wealth", "timing"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "career",
+              "wealth",
+              "timing"
+            ],
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
             "combinedConclusion": "Cross-domain overlap(career, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4975,8 +6424,12 @@
             "id": "X3",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["relationship", "wealth", "timing"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "relationship",
+              "wealth",
+              "timing"
+            ],
             "overlapScore": 0.99,
             "orbFitScore": 0.92,
             "combinedConclusion": "Cross-domain overlap(relationship, wealth, timing) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4985,8 +6438,12 @@
             "id": "X9",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["career", "wealth", "personality"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "career",
+              "wealth",
+              "personality"
+            ],
             "overlapScore": 0.99,
             "orbFitScore": 0.47,
             "combinedConclusion": "Cross-domain overlap(career, wealth, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -4995,8 +6452,11 @@
             "id": "X6",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:11:42.473Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": ["career", "personality"],
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-11T05:20:02.088Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "career",
+              "personality"
+            ],
             "overlapScore": 0.94,
             "orbFitScore": 0.62,
             "combinedConclusion": "Cross-domain overlap(career, personality) is high for \"core trend\". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section."
@@ -5035,7 +6495,12 @@
       "lowTrustSetCount": 4,
       "totalSets": 24
     },
-    "cautionSections": ["overview", "opportunities", "domains", "actionPlan"]
+    "cautionSections": [
+      "overview",
+      "opportunities",
+      "domains",
+      "actionPlan"
+    ]
   },
   "evidenceRefs": {
     "overview": [
@@ -5552,11 +7017,29 @@
     "artifacts": {
       "mappingRulebook": {
         "partnerArchetype": {
-          "primaryTraits": ["극강시너지"],
-          "supportTraits": ["감정 정리", "경계 존중", "현실 조율"],
-          "vibe": ["차분한 집중감", "실무형 안정감", "약속을 지키는 분위기"],
-          "style": ["단정한 기본형", "기능성 우선", "과장 없는 취향"],
-          "meetChannels": ["프로젝트 협업", "지인 소개", "커리어 관련 커뮤니티"],
+          "primaryTraits": [
+            "극강시너지"
+          ],
+          "supportTraits": [
+            "감정 정리",
+            "경계 존중",
+            "현실 조율"
+          ],
+          "vibe": [
+            "차분한 집중감",
+            "실무형 안정감",
+            "약속을 지키는 분위기"
+          ],
+          "style": [
+            "단정한 기본형",
+            "기능성 우선",
+            "과장 없는 취향"
+          ],
+          "meetChannels": [
+            "프로젝트 협업",
+            "지인 소개",
+            "커리어 관련 커뮤니티"
+          ],
           "recognitionClues": [
             "약속 시간을 엄수함",
             "대화 후 요약을 남김",
@@ -5564,7 +7047,9 @@
           ]
         },
         "careerClusters": {
-          "roleArchetypes": ["횡재"],
+          "roleArchetypes": [
+            "횡재"
+          ],
           "industryClusters": [
             "횡재",
             "데이터/분석",
@@ -5611,7 +7096,9 @@
             "blockId": "overview.B1",
             "paraId": "overview.p1",
             "heading": "# 기간 총평",
-            "bullets": ["핵심 신호를 기준으로 우선순위를 고정하세요."],
+            "bullets": [
+              "핵심 신호를 기준으로 우선순위를 고정하세요."
+            ],
             "mustKeepTokens": [
               "핵심",
               "신호를",
@@ -5626,7 +7113,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+              "signalIds": [
+                "L3:상관:H7",
+                "COV:L6:stage:임관"
+              ],
               "anchorIds": []
             }
           },
@@ -5634,7 +7124,9 @@
             "blockId": "overview.B2",
             "paraId": "overview.p2",
             "heading": "## 근거 요약",
-            "bullets": ["근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."],
+            "bullets": [
+              "근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."
+            ],
             "mustKeepTokens": [
               "근거",
               "신호",
@@ -5647,7 +7139,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["COV:L4:daeun:금", "COV:L4:saeun:화"],
+              "signalIds": [
+                "COV:L4:daeun:금",
+                "COV:L4:saeun:화"
+              ],
               "anchorIds": []
             }
           },
@@ -5655,7 +7150,9 @@
             "blockId": "overview.B3",
             "paraId": "overview.p3",
             "heading": "## 실행 전략",
-            "bullets": ["실행은 착수-재확인-확정의 3단계로 나누어 변동성을 줄입니다."],
+            "bullets": [
+              "실행은 착수-재확인-확정의 3단계로 나누어 변동성을 줄입니다."
+            ],
             "mustKeepTokens": [
               "실행은",
               "착수",
@@ -5670,7 +7167,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+              "signalIds": [
+                "L3:상관:H7",
+                "COV:L6:stage:임관"
+              ],
               "anchorIds": []
             }
           }
@@ -5680,7 +7180,9 @@
             "blockId": "energy.B1",
             "paraId": "energy.p1",
             "heading": "# 에너지 흐름",
-            "bullets": ["핵심 신호를 기준으로 우선순위를 고정하세요."],
+            "bullets": [
+              "핵심 신호를 기준으로 우선순위를 고정하세요."
+            ],
             "mustKeepTokens": [
               "핵심",
               "신호를",
@@ -5695,7 +7197,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["COV:L6:stage:양", "COV:L6:stage:관대"],
+              "signalIds": [
+                "COV:L6:stage:양",
+                "COV:L6:stage:관대"
+              ],
               "anchorIds": []
             }
           },
@@ -5703,7 +7208,9 @@
             "blockId": "energy.B2",
             "paraId": "energy.p2",
             "heading": "## 근거 요약",
-            "bullets": ["근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."],
+            "bullets": [
+              "근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."
+            ],
             "mustKeepTokens": [
               "근거",
               "신호",
@@ -5716,7 +7223,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["COV:L6:stage:사", "L3:상관:H7"],
+              "signalIds": [
+                "COV:L6:stage:사",
+                "L3:상관:H7"
+              ],
               "anchorIds": []
             }
           },
@@ -5724,7 +7234,9 @@
             "blockId": "energy.B3",
             "paraId": "energy.p3",
             "heading": "## 실행 전략",
-            "bullets": ["실행은 착수-재확인-확정의 3단계로 나누어 변동성을 줄입니다."],
+            "bullets": [
+              "실행은 착수-재확인-확정의 3단계로 나누어 변동성을 줄입니다."
+            ],
             "mustKeepTokens": [
               "실행은",
               "착수",
@@ -5739,7 +7251,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["COV:L6:stage:양", "COV:L6:stage:관대"],
+              "signalIds": [
+                "COV:L6:stage:양",
+                "COV:L6:stage:관대"
+              ],
               "anchorIds": []
             }
           }
@@ -5766,7 +7281,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+              "signalIds": [
+                "L3:상관:H7",
+                "COV:L6:stage:임관"
+              ],
               "anchorIds": []
             }
           },
@@ -5774,7 +7292,9 @@
             "blockId": "opportunities.B2",
             "paraId": "opportunities.p2",
             "heading": "## 근거 요약",
-            "bullets": ["근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."],
+            "bullets": [
+              "근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."
+            ],
             "mustKeepTokens": [
               "근거",
               "신호",
@@ -5789,7 +7309,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["COV:L4:daeun:금", "COV:L4:saeun:화"],
+              "signalIds": [
+                "COV:L4:daeun:금",
+                "COV:L4:saeun:화"
+              ],
               "anchorIds": []
             }
           },
@@ -5816,7 +7339,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+              "signalIds": [
+                "L3:상관:H7",
+                "COV:L6:stage:임관"
+              ],
               "anchorIds": []
             }
           }
@@ -5843,7 +7369,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+              "signalIds": [
+                "L3:상관:H7",
+                "COV:L6:stage:임관"
+              ],
               "anchorIds": []
             }
           },
@@ -5851,7 +7380,9 @@
             "blockId": "cautions.B2",
             "paraId": "cautions.p2",
             "heading": "## 근거 요약",
-            "bullets": ["근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."],
+            "bullets": [
+              "근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."
+            ],
             "mustKeepTokens": [
               "근거",
               "신호",
@@ -5866,7 +7397,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["COV:L4:daeun:금", "COV:L4:saeun:화"],
+              "signalIds": [
+                "COV:L4:daeun:금",
+                "COV:L4:saeun:화"
+              ],
               "anchorIds": []
             }
           },
@@ -5893,7 +7427,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+              "signalIds": [
+                "L3:상관:H7",
+                "COV:L6:stage:임관"
+              ],
               "anchorIds": []
             }
           }
@@ -5919,9 +7456,19 @@
               "레이어"
             ],
             "evidence": {
-              "claimIds": ["career_expansion", "timing_stability", "wealth_expansion"],
-              "signalIds": ["L2:편재:Jupiter", "COV:L10:snapshot_astro:natalAspects"],
-              "anchorIds": ["E6", "E6"]
+              "claimIds": [
+                "career_expansion",
+                "timing_stability",
+                "wealth_expansion"
+              ],
+              "signalIds": [
+                "L2:편재:Jupiter",
+                "COV:L10:snapshot_astro:natalAspects"
+              ],
+              "anchorIds": [
+                "E6",
+                "E6"
+              ]
             }
           },
           {
@@ -5946,9 +7493,18 @@
               "조절합니다"
             ],
             "evidence": {
-              "claimIds": ["career_expansion", "timing_stability"],
-              "signalIds": ["COV:L10:snapshot_astro:progressions", "L6:임관:H10"],
-              "anchorIds": ["E6", "E6"]
+              "claimIds": [
+                "career_expansion",
+                "timing_stability"
+              ],
+              "signalIds": [
+                "COV:L10:snapshot_astro:progressions",
+                "L6:임관:H10"
+              ],
+              "anchorIds": [
+                "E6",
+                "E6"
+              ]
             }
           },
           {
@@ -5973,9 +7529,19 @@
               "레이어"
             ],
             "evidence": {
-              "claimIds": ["career_expansion", "timing_stability", "wealth_expansion"],
-              "signalIds": ["L2:편재:Jupiter", "COV:L10:snapshot_astro:natalAspects"],
-              "anchorIds": ["E6", "E6"]
+              "claimIds": [
+                "career_expansion",
+                "timing_stability",
+                "wealth_expansion"
+              ],
+              "signalIds": [
+                "L2:편재:Jupiter",
+                "COV:L10:snapshot_astro:natalAspects"
+              ],
+              "anchorIds": [
+                "E6",
+                "E6"
+              ]
             }
           }
         ],
@@ -6000,9 +7566,18 @@
               "아니라"
             ],
             "evidence": {
-              "claimIds": ["relationship_growth_with_guardrails", "health_growth_with_guardrails"],
-              "signalIds": ["L5:samhap:conjunction", "L5:chung:opposition"],
-              "anchorIds": ["E6", "E6"]
+              "claimIds": [
+                "relationship_growth_with_guardrails",
+                "health_growth_with_guardrails"
+              ],
+              "signalIds": [
+                "L5:samhap:conjunction",
+                "L5:chung:opposition"
+              ],
+              "anchorIds": [
+                "E6",
+                "E6"
+              ]
             }
           },
           {
@@ -6027,9 +7602,16 @@
               "진전"
             ],
             "evidence": {
-              "claimIds": ["relationship_growth_with_guardrails"],
-              "signalIds": ["L5:chung:square", "L5:samhap:trine"],
-              "anchorIds": ["E6"]
+              "claimIds": [
+                "relationship_growth_with_guardrails"
+              ],
+              "signalIds": [
+                "L5:chung:square",
+                "L5:samhap:trine"
+              ],
+              "anchorIds": [
+                "E6"
+              ]
             }
           },
           {
@@ -6054,9 +7636,18 @@
               "아니라"
             ],
             "evidence": {
-              "claimIds": ["relationship_growth_with_guardrails", "health_growth_with_guardrails"],
-              "signalIds": ["L5:samhap:conjunction", "L5:chung:opposition"],
-              "anchorIds": ["E6", "E6"]
+              "claimIds": [
+                "relationship_growth_with_guardrails",
+                "health_growth_with_guardrails"
+              ],
+              "signalIds": [
+                "L5:samhap:conjunction",
+                "L5:chung:opposition"
+              ],
+              "anchorIds": [
+                "E6",
+                "E6"
+              ]
             }
           }
         ],
@@ -6081,16 +7672,26 @@
               "레이어"
             ],
             "evidence": {
-              "claimIds": ["career_expansion", "wealth_expansion"],
-              "signalIds": ["L2:편재:Jupiter", "COV:L7:yongsin:화"],
-              "anchorIds": ["E6"]
+              "claimIds": [
+                "career_expansion",
+                "wealth_expansion"
+              ],
+              "signalIds": [
+                "L2:편재:Jupiter",
+                "COV:L7:yongsin:화"
+              ],
+              "anchorIds": [
+                "E6"
+              ]
             }
           },
           {
             "blockId": "domains.wealth.B2",
             "paraId": "domains.wealth.p2",
             "heading": "## domains_wealth 근거 요약",
-            "bullets": ["횡재 신호를 근거로 판단 강도를 조절합니다."],
+            "bullets": [
+              "횡재 신호를 근거로 판단 강도를 조절합니다."
+            ],
             "mustKeepTokens": [
               "횡재",
               "신호를",
@@ -6105,7 +7706,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["L2:편재:Saturn", "L3:상관:H7"],
+              "signalIds": [
+                "L2:편재:Saturn",
+                "L3:상관:H7"
+              ],
               "anchorIds": []
             }
           },
@@ -6131,9 +7735,17 @@
               "레이어"
             ],
             "evidence": {
-              "claimIds": ["career_expansion", "wealth_expansion"],
-              "signalIds": ["L2:편재:Jupiter", "COV:L7:yongsin:화"],
-              "anchorIds": ["E6"]
+              "claimIds": [
+                "career_expansion",
+                "wealth_expansion"
+              ],
+              "signalIds": [
+                "L2:편재:Jupiter",
+                "COV:L7:yongsin:화"
+              ],
+              "anchorIds": [
+                "E6"
+              ]
             }
           }
         ],
@@ -6158,9 +7770,18 @@
               "상충이"
             ],
             "evidence": {
-              "claimIds": ["relationship_growth_with_guardrails", "health_growth_with_guardrails"],
-              "signalIds": ["L2:상관:Saturn", "L5:chung:opposition"],
-              "anchorIds": ["E6", "E6"]
+              "claimIds": [
+                "relationship_growth_with_guardrails",
+                "health_growth_with_guardrails"
+              ],
+              "signalIds": [
+                "L2:상관:Saturn",
+                "L5:chung:opposition"
+              ],
+              "anchorIds": [
+                "E6",
+                "E6"
+              ]
             }
           },
           {
@@ -6185,7 +7806,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["L2:정인:Moon", "COV:L5:aspect:Saturn-True Node:trine"],
+              "signalIds": [
+                "L2:정인:Moon",
+                "COV:L5:aspect:Saturn-True Node:trine"
+              ],
               "anchorIds": []
             }
           },
@@ -6211,9 +7835,18 @@
               "상충이"
             ],
             "evidence": {
-              "claimIds": ["relationship_growth_with_guardrails", "health_growth_with_guardrails"],
-              "signalIds": ["L2:상관:Saturn", "L5:chung:opposition"],
-              "anchorIds": ["E6", "E6"]
+              "claimIds": [
+                "relationship_growth_with_guardrails",
+                "health_growth_with_guardrails"
+              ],
+              "signalIds": [
+                "L2:상관:Saturn",
+                "L5:chung:opposition"
+              ],
+              "anchorIds": [
+                "E6",
+                "E6"
+              ]
             }
           }
         ],
@@ -6222,7 +7855,9 @@
             "blockId": "actionPlan.B1",
             "paraId": "actionPlan.p1",
             "heading": "# 2주 실행 3단계",
-            "bullets": ["2주 실행 3단계: 완료 1건 고정 -> 재확인 1건 -> 보류/확정 분리."],
+            "bullets": [
+              "2주 실행 3단계: 완료 1건 고정 -> 재확인 1건 -> 보류/확정 분리."
+            ],
             "mustKeepTokens": [
               "2주",
               "실행",
@@ -6237,7 +7872,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+              "signalIds": [
+                "L3:상관:H7",
+                "COV:L6:stage:임관"
+              ],
               "anchorIds": []
             }
           },
@@ -6259,7 +7897,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["COV:L4:daeun:금", "COV:L4:saeun:화"],
+              "signalIds": [
+                "COV:L4:daeun:금",
+                "COV:L4:saeun:화"
+              ],
               "anchorIds": []
             }
           },
@@ -6285,7 +7926,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["L3:상관:H7", "COV:L6:stage:임관"],
+              "signalIds": [
+                "L3:상관:H7",
+                "COV:L6:stage:임관"
+              ],
               "anchorIds": []
             }
           }
@@ -6295,7 +7939,9 @@
             "blockId": "luckyElements.B1",
             "paraId": "luckyElements.p1",
             "heading": "## luckyElements 핵심 결론",
-            "bullets": ["핵심 신호를 기준으로 우선순위를 고정하세요."],
+            "bullets": [
+              "핵심 신호를 기준으로 우선순위를 고정하세요."
+            ],
             "mustKeepTokens": [
               "핵심",
               "신호를",
@@ -6310,7 +7956,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["COV:L7:snapshot_saju:present", "COV:L7:snapshot_saju:unse"],
+              "signalIds": [
+                "COV:L7:snapshot_saju:present",
+                "COV:L7:snapshot_saju:unse"
+              ],
               "anchorIds": []
             }
           },
@@ -6318,7 +7967,9 @@
             "blockId": "luckyElements.B2",
             "paraId": "luckyElements.p2",
             "heading": "## luckyElements 근거 요약",
-            "bullets": ["근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."],
+            "bullets": [
+              "근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요."
+            ],
             "mustKeepTokens": [
               "근거",
               "신호",
@@ -6331,7 +7982,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["COV:L7:snapshot_saju:pillars", "COV:L7:snapshot_saju:dayMaster"],
+              "signalIds": [
+                "COV:L7:snapshot_saju:pillars",
+                "COV:L7:snapshot_saju:dayMaster"
+              ],
               "anchorIds": []
             }
           },
@@ -6339,7 +7993,9 @@
             "blockId": "luckyElements.B3",
             "paraId": "luckyElements.p3",
             "heading": "## luckyElements 실행 전략",
-            "bullets": ["실행은 착수-재확인-확정의 3단계로 나누어 변동성을 줄입니다."],
+            "bullets": [
+              "실행은 착수-재확인-확정의 3단계로 나누어 변동성을 줄입니다."
+            ],
             "mustKeepTokens": [
               "실행은",
               "착수",
@@ -6354,7 +8010,10 @@
             ],
             "evidence": {
               "claimIds": [],
-              "signalIds": ["COV:L7:snapshot_saju:present", "COV:L7:snapshot_saju:unse"],
+              "signalIds": [
+                "COV:L7:snapshot_saju:present",
+                "COV:L7:snapshot_saju:unse"
+              ],
               "anchorIds": []
             }
           }
@@ -6441,65 +8100,108 @@
         {
           "id": "LINK_1",
           "signalId": "L5:samhap:conjunction",
-          "claimIds": ["relationship_growth_with_guardrails"],
+          "claimIds": [
+            "relationship_growth_with_guardrails"
+          ],
           "anchorId": "E6",
-          "setIds": ["X3", "X2"],
+          "setIds": [
+            "X3",
+            "X2"
+          ],
           "score": 0.91
         },
         {
           "id": "LINK_2",
           "signalId": "COV:L10:snapshot_astro:natalAspects",
-          "claimIds": ["career_expansion", "timing_stability"],
+          "claimIds": [
+            "career_expansion",
+            "timing_stability"
+          ],
           "anchorId": "E6",
-          "setIds": ["X2", "X3"],
+          "setIds": [
+            "X2",
+            "X3"
+          ],
           "score": 0.81
         },
         {
           "id": "LINK_3",
           "signalId": "COV:L10:snapshot_astro:progressions",
-          "claimIds": ["career_expansion", "timing_stability"],
+          "claimIds": [
+            "career_expansion",
+            "timing_stability"
+          ],
           "anchorId": "E6",
-          "setIds": ["X2", "X3"],
+          "setIds": [
+            "X2",
+            "X3"
+          ],
           "score": 0.81
         },
         {
           "id": "LINK_4",
           "signalId": "L2:편재:Jupiter",
-          "claimIds": ["career_expansion"],
+          "claimIds": [
+            "career_expansion"
+          ],
           "anchorId": "E6",
-          "setIds": ["X9", "X2"],
+          "setIds": [
+            "X9",
+            "X2"
+          ],
           "score": 0.78
         },
         {
           "id": "LINK_5",
           "signalId": "L5:chung:opposition",
-          "claimIds": ["relationship_growth_with_guardrails", "health_growth_with_guardrails"],
+          "claimIds": [
+            "relationship_growth_with_guardrails",
+            "health_growth_with_guardrails"
+          ],
           "anchorId": "E6",
-          "setIds": ["X3", "X2"],
+          "setIds": [
+            "X3",
+            "X2"
+          ],
           "score": 0.71
         },
         {
           "id": "LINK_6",
           "signalId": "L5:chung:square",
-          "claimIds": ["relationship_growth_with_guardrails"],
+          "claimIds": [
+            "relationship_growth_with_guardrails"
+          ],
           "anchorId": "E6",
-          "setIds": ["X3", "X2"],
+          "setIds": [
+            "X3",
+            "X2"
+          ],
           "score": 0.71
         },
         {
           "id": "LINK_7",
           "signalId": "L2:편재:Jupiter",
-          "claimIds": ["wealth_expansion"],
+          "claimIds": [
+            "wealth_expansion"
+          ],
           "anchorId": "E1",
-          "setIds": ["X9", "X2"],
+          "setIds": [
+            "X9",
+            "X2"
+          ],
           "score": 0.68
         },
         {
           "id": "LINK_8",
           "signalId": "L2:상관:Saturn",
-          "claimIds": ["health_growth_with_guardrails"],
+          "claimIds": [
+            "health_growth_with_guardrails"
+          ],
           "anchorId": "E6",
-          "setIds": ["X6", "X9"],
+          "setIds": [
+            "X6",
+            "X9"
+          ],
           "score": 0.62
         }
       ],
@@ -6948,7 +8650,11 @@
         "thesis": "성향은 속도보다 구조 정렬이 성과를 지키는 구간입니다.",
         "strategy": "성향 전략은 공격 58% / 방어 42%로 운용하세요. Execute in staged steps with explicit recheck gates.",
         "riskControl": "",
-        "evidenceIds": ["L8:천을귀인:Sun", "L2:편재:Jupiter", "L1:금:air"],
+        "evidenceIds": [
+          "L8:천을귀인:Sun",
+          "L2:편재:Jupiter",
+          "L1:금:air"
+        ],
         "vector": {
           "expansion": 29,
           "volatility": 13,
@@ -7049,7 +8755,11 @@
         "thesis": "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 십성 역할 레이어: 동기 구조와 행동 패턴의 우선순위를 해석합니다. 역할·책임·마감 기준을 고정하면 성과 재현성이 올라갑니다.",
         "strategy": "재정 전략은 공격 58% / 방어 42%로 운용하세요. Execute in staged steps with explicit recheck gates.",
         "riskControl": "확정 전에 금액·기한·취소 조건을 체크리스트로 재확인하세요.",
-        "evidenceIds": ["L2:편재:Jupiter", "COV:L7:yongsin:화", "COV:L4:daeun:금"],
+        "evidenceIds": [
+          "L2:편재:Jupiter",
+          "COV:L7:yongsin:화",
+          "COV:L4:daeun:금"
+        ],
         "vector": {
           "expansion": 33.1,
           "volatility": 11.1,
@@ -7228,7 +8938,11 @@
         "thesis": "이동/변화은 속도보다 구조 정렬이 성과를 지키는 구간입니다.",
         "strategy": "이동/변화 전략은 공격 58% / 방어 42%로 운용하세요. Execute in staged steps with explicit recheck gates.",
         "riskControl": "",
-        "evidenceIds": ["L2:정인:Moon", "L2:정인:Uranus", "COV:L3:planet-house:Moon:H4"],
+        "evidenceIds": [
+          "L2:정인:Moon",
+          "L2:정인:Uranus",
+          "COV:L3:planet-house:Moon:H4"
+        ],
         "vector": {
           "expansion": 30.4,
           "volatility": 7.3,
@@ -7316,7 +9030,7 @@
   "meta": {
     "modelUsed": "deterministic-only",
     "tokensUsed": 0,
-    "processingTime": 20,
+    "processingTime": 18,
     "reportVersion": "1.2.0-deterministic-only",
     "qualityMetrics": {
       "sectionCount": 10,

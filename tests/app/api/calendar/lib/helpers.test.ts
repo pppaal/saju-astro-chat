@@ -834,6 +834,30 @@ describe('Calendar Helpers', () => {
 
       expect(result.evidence?.crossAgreementPercent).toBe(78)
     })
+
+    it('should include timing signals and action summary from timing evidence', () => {
+      const result = formatDateForResponse(
+        {
+          ...baseDateData,
+          sajuFactorKeys: ['daeun_flow', 'seun_flow', 'iljin_signal'],
+          astroFactorKeys: ['transit_mercury'],
+          bestHours: [
+            { hour: 9, quality: 'excellent' },
+            { hour: 14, quality: 'good' },
+          ],
+        } as any,
+        'en',
+        koTranslations as any,
+        enTranslations as any
+      )
+
+      expect(result.bestTimes.length).toBeGreaterThan(0)
+      expect(result.bestTimes[0]).toContain('09:00-11:00')
+      expect((result.timingSignals || []).length).toBeGreaterThan(0)
+      expect((result.timingSignals || []).join(' ')).toContain('Daeun active')
+      expect(result.actionSummary).toContain('Do:')
+      expect(result.actionSummary).toContain('Timing:')
+    })
   })
 
   describe('applyMatrixPreformatRegrade', () => {

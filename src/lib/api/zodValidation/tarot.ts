@@ -160,6 +160,7 @@ export const tarotChatRequestSchema = z.object({
           keywords: z.array(z.string().max(100)).max(20).optional(),
         })
       )
+      .min(1)
       .max(15),
     overall_message: z.string().max(10000),
     guidance: z.string().max(5000),

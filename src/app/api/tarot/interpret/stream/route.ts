@@ -15,6 +15,38 @@ import { TarotInterpretSchema } from '@/lib/api/validator'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { createValidationErrorResponse } from '@/lib/api/zodValidation'
 
+function buildCardContextMeaning(input: {
+  name: string
+  position?: string
+  isReversed?: boolean
+  language: 'ko' | 'en'
+  keywords?: string[]
+}): string {
+  const { name, position, isReversed, language, keywords } = input
+  const trimmedKeywords = Array.isArray(keywords)
+    ? keywords.map((item) => item.trim()).filter(Boolean).slice(0, 3)
+    : []
+  const orientation = isReversed
+    ? language === 'ko'
+      ? '역방향'
+      : 'reversed'
+    : language === 'ko'
+      ? '정방향'
+      : 'upright'
+  const pos = position?.trim() || (language === 'ko' ? '현재 포지션' : 'current position')
+  const keywordText =
+    trimmedKeywords.length > 0
+      ? language === 'ko'
+        ? `키워드: ${trimmedKeywords.join(', ')}. `
+        : `Keywords: ${trimmedKeywords.join(', ')}. `
+      : ''
+
+  if (language === 'ko') {
+    return `${pos}의 ${name}(${orientation}) 카드 맥락입니다. ${keywordText}질문에 직접 연결해 해석하세요.`
+  }
+  return `${name} (${orientation}) in ${pos}. ${keywordText}Interpret it directly for the user's question.`
+}
+
 export const POST = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
     const body = await req.json().catch(() => null)
@@ -44,6 +76,10 @@ export const POST = withApiMiddleware(
     // Call backend chat-stream endpoint (tarot interpret-stream is not exposed)
     const latestQuestion = userQuestion || 'general reading'
 
+    const contextLanguage: 'ko' | 'en' = language === 'en' ? 'en' : 'ko'
+    const rawCards = Array.isArray((body as { cards?: unknown[] }).cards)
+      ? ((body as { cards?: unknown[] }).cards as Array<Record<string, unknown>>)
+      : []
     const streamResult = await apiClient.postSSEStream(
       '/api/tarot/chat-stream',
       {
@@ -51,12 +87,27 @@ export const POST = withApiMiddleware(
         context: {
           category,
           spread_title: spreadTitle || `${category} spread`,
-          cards: cards.map((c) => ({
-            name: c.name,
-            is_reversed: c.isReversed,
-            position: c.position || '',
-            meaning: `Key message from ${c.name}`,
-          })),
+          cards: cards.map((c, index) => {
+            const rawKeywords = Array.isArray(rawCards[index]?.keywords)
+              ? (rawCards[index]?.keywords as unknown[])
+                  .filter((item) => typeof item === 'string')
+                  .map((item) => String(item))
+              : []
+            return {
+              // Keywords are optional in schema; hydrate from raw body if provided.
+              keywords: rawKeywords,
+              name: c.name,
+              is_reversed: c.isReversed,
+              position: c.position || '',
+              meaning: buildCardContextMeaning({
+                name: c.name,
+                position: c.position,
+                isReversed: c.isReversed,
+                language: contextLanguage,
+                keywords: rawKeywords,
+              }),
+            }
+          }),
           overall_message: '',
           guidance: '',
         },

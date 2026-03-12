@@ -19,6 +19,7 @@ describe('messageOptimizer', () => {
 
     expect(summarized.length).toBeLessThanOrEqual(600)
     expect(summarized).toContain('Long question summary')
+    expect(summarized).toContain('prioritize relocation this quarter')
     expect(summarized).toContain('end priority question')
   })
 
