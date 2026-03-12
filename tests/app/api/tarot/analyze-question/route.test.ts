@@ -795,6 +795,58 @@ describe('Tarot Analyze Question API - POST', () => {
         expect(validSpreadKeys.has(spreadKey), `${question} -> ${spreadKey}`).toBe(true)
       }
     })
+
+    it('should pass fixed 20-question regression suite when OpenAI is unavailable', async () => {
+      mockFetch.mockRejectedValue(new Error('OpenAI unavailable'))
+
+      const validSpreadKeys = new Set([
+        'general-insight/past-present-future',
+        'general-insight/quick-reading',
+        'decisions-crossroads/yes-no-why',
+        'decisions-crossroads/two-paths',
+        'decisions-crossroads/timing-window',
+        'love-relationships/crush-feelings',
+        'daily-reading/day-card',
+      ])
+
+      const fixedQuestions = [
+        '이차연이 나에게 무슨 말을 할까?',
+        '그 사람이 내일 나를 만날까?',
+        '내가 먼저 연락할까?',
+        '우리 재회 가능할까?',
+        '언제 연락이 올까?',
+        '오늘 운세 어때?',
+        '이번 주 흐름은?',
+        'A안이 나을까 B안이 나을까?',
+        '이직할까 말까?',
+        '면접 합격할까?',
+        '시험 결과 괜찮을까?',
+        '지금 투자 들어가도 될까?',
+        '이 관계의 속마음은 뭐야?',
+        '지금은 기다리는 게 맞아?',
+        '언제 움직이는 게 베스트야?',
+        'Should I text them first?',
+        'Will they respond this week?',
+        'When is the right timing?',
+        'Is reconciliation possible?',
+        'General reading for this month',
+      ]
+
+      for (const question of fixedQuestions) {
+        const req = createRequest({
+          question,
+          language: /[A-Za-z]/.test(question) ? 'en' : 'ko',
+        })
+        const response = await POST(req)
+        const data = await response.json()
+        const spreadKey = `${data.themeId}/${data.spreadId}`
+
+        expect(response.status).toBe(200)
+        expect(data.isDangerous).toBe(false)
+        expect(data.source).toBe('fallback')
+        expect(validSpreadKeys.has(spreadKey), `${question} -> ${spreadKey}`).toBe(true)
+      }
+    }, 120000)
   })
 
   // ----------------------------------------------------------

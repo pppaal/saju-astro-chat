@@ -3169,6 +3169,28 @@
   font-size: 0.82rem;
 }
 
+.interpretationSourceNotice {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.interpretationSourcePrimary {
+  border: 1px solid rgba(74, 222, 128, 0.32);
+  background: rgba(15, 118, 110, 0.18);
+  color: rgba(220, 252, 231, 0.95);
+}
+
+.interpretationSourceFallback {
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(120, 53, 15, 0.18);
+  color: rgba(255, 237, 213, 0.95);
+}
+
 @keyframes fadeInOut {
   0% {
     opacity: 0;

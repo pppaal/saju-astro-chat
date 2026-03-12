@@ -9,7 +9,6 @@ interface CardInterpretationChatProps {
   readingResult: ReadingResult
   interpretation: InterpretationResult | null
   language: string
-  revealedCards: number[]
 }
 
 function sentenceList(text: string): string[] {
@@ -31,15 +30,10 @@ export function CardInterpretationChat({
   readingResult,
   interpretation,
   language,
-  revealedCards,
 }: CardInterpretationChatProps) {
   return (
     <div className={styles.cardInterpretationsChat}>
       {readingResult.drawnCards.map((drawnCard, index) => {
-        if (!revealedCards.includes(index)) {
-          return null
-        }
-
         const cardInsight = interpretation?.card_insights?.[index]
         const position = readingResult.spread.positions[index]
         const positionTitle =

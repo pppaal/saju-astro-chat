@@ -12,6 +12,7 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { tarotInterpretRequestSchema } from '@/lib/api/zodValidation'
 import { evaluateTarotInterpretationQuality } from '@/lib/Tarot/interpretationQuality'
+import { recordCounter, recordTiming } from '@/lib/metrics'
 
 interface CardInput {
   name: string
@@ -630,11 +631,14 @@ export const POST = withApiMiddleware(
     let fallbackLanguage = 'ko'
     let fallbackQuestion: string | undefined
     const startedAt = Date.now()
-    let interpretationSource: 'backend' | 'gpt' | 'fallback' = 'backend'
+    let interpretationSource: 'backend_rag' | 'gpt_fallback' | 'emergency_fallback' = 'backend_rag'
 
     try {
+      recordCounter('tarot.interpret.request_total', 1, { stage: 'received' })
+
       const oversized = enforceBodySize(req, 256 * 1024)
       if (oversized) {
+        recordCounter('tarot.interpret.request_total', 1, { stage: 'rejected_oversized' })
         return oversized
       }
 
@@ -645,6 +649,7 @@ export const POST = withApiMiddleware(
         logger.warn('[Tarot interpret] invalid JSON request body', {
           error: parseErr instanceof Error ? parseErr.message : String(parseErr),
         })
+        recordCounter('tarot.interpret.request_total', 1, { stage: 'invalid_json' })
         return NextResponse.json(
           { error: 'invalid_json_body' },
           { status: HTTP_STATUS.BAD_REQUEST }
@@ -664,6 +669,7 @@ export const POST = withApiMiddleware(
         logger.warn('[Tarot interpret] validation failed', {
           errors: validationResult.error.issues,
         })
+        recordCounter('tarot.interpret.request_total', 1, { stage: 'validation_failed' })
         return NextResponse.json(
           {
             error: 'validation_failed',
@@ -712,6 +718,7 @@ export const POST = withApiMiddleware(
 
       const creditResult = await checkAndConsumeCredits('reading', 1)
       if (!creditResult.allowed) {
+        recordCounter('tarot.interpret.request_total', 1, { stage: 'credit_denied' })
         return creditErrorResponse(creditResult)
       }
 
@@ -767,9 +774,10 @@ export const POST = withApiMiddleware(
       let result
       if (interpretation && !(interpretation as Record<string, unknown>).error) {
         result = interpretation
-        interpretationSource = 'backend'
+        interpretationSource = 'backend_rag'
       } else {
         logger.warn('Backend unavailable, using GPT interpretation')
+        recordCounter('tarot.interpret.fallback_total', 1, { from: 'backend_rag', to: 'gpt' })
         try {
           result = await generateGPTInterpretation(
             validatedCards,
@@ -779,11 +787,12 @@ export const POST = withApiMiddleware(
             promptSajuContext,
             promptAstroContext
           )
-          interpretationSource = 'gpt'
+          interpretationSource = 'gpt_fallback'
         } catch (gptErr) {
           logger.error('GPT interpretation failed:', gptErr)
           result = buildEmergencyFallbackResult(validatedCards, language, userQuestion)
-          interpretationSource = 'fallback'
+          interpretationSource = 'emergency_fallback'
+          recordCounter('tarot.interpret.fallback_total', 1, { from: 'gpt', to: 'emergency' })
         }
       }
 
@@ -794,11 +803,32 @@ export const POST = withApiMiddleware(
         userQuestion,
       })
 
+      if (
+        interpretationSource === 'gpt_fallback' &&
+        Boolean((result as { fallback?: boolean }).fallback)
+      ) {
+        interpretationSource = 'emergency_fallback'
+      }
+
+      const finalizedResult = {
+        ...result,
+        interpretation_source: interpretationSource,
+      }
+
+      const elapsedMs = Date.now() - startedAt
+      recordCounter('tarot.interpret.source_total', 1, {
+        source: interpretationSource,
+        fallback: String(Boolean(finalizedResult.fallback)),
+      })
+      recordTiming('tarot.interpret.duration_ms', elapsedMs, {
+        source: interpretationSource,
+      })
+
       logger.info('[Tarot interpret] response finalized', {
         source: interpretationSource,
         cardCount: validatedCards.length,
-        elapsedMs: Date.now() - startedAt,
-        fallback: Boolean(result.fallback),
+        elapsedMs,
+        fallback: Boolean(finalizedResult.fallback),
       })
 
       // ======== 기록 저장 (로그인 사용자만) ========
@@ -829,7 +859,7 @@ export const POST = withApiMiddleware(
         }
       }
 
-      return NextResponse.json(result)
+      return NextResponse.json(finalizedResult)
     } catch (err: unknown) {
       captureServerError(err as Error, { route: '/api/tarot/interpret' })
 
@@ -840,11 +870,23 @@ export const POST = withApiMiddleware(
         fallbackLanguage,
         fallbackQuestion
       )
+      const elapsedMs = Date.now() - startedAt
+      const fallbackWithSource = {
+        ...fallback,
+        interpretation_source: 'emergency_fallback' as const,
+      }
+      recordCounter('tarot.interpret.source_total', 1, {
+        source: 'emergency_fallback',
+        fallback: 'true',
+      })
+      recordTiming('tarot.interpret.duration_ms', elapsedMs, {
+        source: 'emergency_fallback',
+      })
       logger.warn('[Tarot interpret] emergency fallback returned', {
         cardCount: fallbackCards.length,
-        elapsedMs: Date.now() - startedAt,
+        elapsedMs,
       })
-      return NextResponse.json(fallback, { status: HTTP_STATUS.OK })
+      return NextResponse.json(fallbackWithSource, { status: HTTP_STATUS.OK })
     }
   },
   createPublicStreamGuard({

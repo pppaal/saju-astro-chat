@@ -44,6 +44,7 @@ export interface ResultsStageProps {
 }
 
 type LikelihoodLevel = 'high' | 'medium' | 'low'
+type InterpretationSource = NonNullable<InterpretationResult['interpretation_source']> | 'unknown'
 
 function firstSentence(text: string): string {
   const cleaned = (text || '').replace(/\s+/g, ' ').trim()
@@ -162,6 +163,62 @@ function fallbackAttitudeLine(level: LikelihoodLevel, language: string): string 
   return 'Stay neutral and validate small signals first.'
 }
 
+function getInterpretationSourceInfo(
+  source: InterpretationSource,
+  language: string
+): { label: string; detail: string; isPrimary: boolean } {
+  if (source === 'backend_rag') {
+    return {
+      label: language === 'ko' ? '해석 소스: Graph RAG' : 'Source: Graph RAG',
+      detail:
+        language === 'ko'
+          ? '질문 의도 + 카드 맥락 기반 1차 해석 경로입니다.'
+          : 'Primary path using question intent + card context.',
+      isPrimary: true,
+    }
+  }
+
+  if (source === 'gpt_fallback') {
+    return {
+      label: language === 'ko' ? '해석 소스: GPT Fallback' : 'Source: GPT Fallback',
+      detail:
+        language === 'ko'
+          ? 'Graph RAG 실패 후 GPT 보조 경로로 생성되었습니다.'
+          : 'Generated via GPT fallback after Graph RAG failure.',
+      isPrimary: false,
+    }
+  }
+
+  if (source === 'stream_sse_fallback' || source === 'stream_json_fallback') {
+    return {
+      label: language === 'ko' ? '해석 소스: Stream Fallback' : 'Source: Stream Fallback',
+      detail:
+        language === 'ko'
+          ? '실시간 스트림 보조 경로에서 복구된 결과입니다.'
+          : 'Recovered through stream fallback path.',
+      isPrimary: false,
+    }
+  }
+
+  if (source === 'local_personalized_fallback' || source === 'emergency_fallback') {
+    return {
+      label: language === 'ko' ? '해석 소스: Local Fallback' : 'Source: Local Fallback',
+      detail:
+        language === 'ko'
+          ? '서버 장애 대비 로컬 안전 해석 모드입니다.'
+          : 'Local safe fallback mode for server failures.',
+      isPrimary: false,
+    }
+  }
+
+  return {
+    label: language === 'ko' ? '해석 소스: 확인 중' : 'Source: Checking',
+    detail:
+      language === 'ko' ? '응답 경로를 확인하는 중입니다.' : 'Response path is being resolved.',
+    isPrimary: false,
+  }
+}
+
 export function ResultsStage(props: ResultsStageProps) {
   const {
     readingResult,
@@ -196,6 +253,8 @@ export function ResultsStage(props: ResultsStageProps) {
   const showInterpretationLoading =
     Boolean(insight?.fallback) && !hasOverallMessage && !hasCardInterpretations
   const [showLayer2Cards, setShowLayer2Cards] = useState(false)
+  const interpretationSource: InterpretationSource = insight?.interpretation_source || 'unknown'
+  const sourceInfo = getInterpretationSourceInfo(interpretationSource, language)
 
   const quickSummary = useMemo(() => {
     if (!insight) return null
@@ -290,6 +349,10 @@ export function ResultsStage(props: ResultsStageProps) {
         </button>
       )}
 
+      <div className={styles.resultSectionTag}>
+        {language === 'ko' ? '전체 결과' : 'Overall Result'}
+      </div>
+
       {quickSummary && (
         <section className={styles.quickAnswerPanel}>
           <div className={styles.quickAnswerTopRow}>
@@ -338,18 +401,25 @@ export function ResultsStage(props: ResultsStageProps) {
       )}
 
       <div className={styles.resultSectionTag}>
-        {language === 'ko' ? '카드별 짧은 해석' : 'Card-by-Card Short Reading'}
+        {language === 'ko' ? '카드별 해석' : 'Card-by-Card Reading'}
       </div>
+      <DetailedCardsSection
+        readingResult={readingResult}
+        interpretation={interpretation}
+        language={language}
+        selectedDeckStyle={selectedDeckStyle}
+        revealedCards={revealedCards}
+        expandedCard={expandedCard}
+        onToggleExpand={toggleCardExpand}
+        translate={translate}
+        mode="summary"
+      />
       <CardInterpretationChat
         readingResult={readingResult}
         interpretation={interpretation}
         language={language}
-        revealedCards={revealedCards}
       />
 
-      <div className={styles.resultSectionTag}>
-        {language === 'ko' ? 'AI 해석' : 'AI Interpretation'}
-      </div>
       {insight?.fallback ? (
         <div className={styles.interpretationFallbackNotice} role="status" aria-live="polite">
           <div className={styles.interpretationNoticeHeader}>
@@ -381,7 +451,19 @@ export function ResultsStage(props: ResultsStageProps) {
         language={language}
         mode="compact"
       />
+      <div
+        className={`${styles.interpretationSourceNotice} ${
+          sourceInfo.isPrimary
+            ? styles.interpretationSourcePrimary
+            : styles.interpretationSourceFallback
+        }`}
+      >
+        <strong>{sourceInfo.label}</strong> {sourceInfo.detail}
+      </div>
 
+      <div className={styles.resultSectionTag}>
+        {language === 'ko' ? '마지막 조언' : 'Final Advice'}
+      </div>
       {quickSummary && (
         <section className={styles.actionGuidePanel}>
           <h3 className={styles.actionGuideTitle}>

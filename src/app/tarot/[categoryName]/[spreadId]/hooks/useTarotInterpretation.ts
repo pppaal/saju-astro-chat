@@ -196,6 +196,7 @@ function parseStreamedInterpretation(
     combinations: [],
     followup_questions: [],
     fallback: false,
+    interpretation_source: 'stream_sse_fallback',
   }
 }
 
@@ -298,6 +299,7 @@ function buildPersonalizedFallback(
       ? '깊은 해석은 작은 실행에서 시작됩니다.'
       : 'Deep clarity starts from one concrete step.',
     fallback: true,
+    interpretation_source: 'local_personalized_fallback',
   }
 }
 
@@ -422,7 +424,10 @@ export function useTarotInterpretation({
         try {
           const ragResult = await requestNonStreamInterpretation(PRIMARY_INTERPRET_TIMEOUT_MS)
           if (ragResult) {
-            return ragResult
+            return {
+              ...ragResult,
+              interpretation_source: ragResult.interpretation_source || 'backend_rag',
+            }
           }
         } catch (ragError) {
           tarotLogger.error(
@@ -506,6 +511,7 @@ export function useTarotInterpretation({
               combinations: [],
               followup_questions: [],
               fallback: false,
+              interpretation_source: 'stream_json_fallback',
             }
           }
         }

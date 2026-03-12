@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { POST } from '@/app/api/tarot/interpret/route'
 import { NextRequest } from 'next/server'
+import { recordCounter, recordTiming } from '@/lib/metrics'
 
 // Mock dependencies
 vi.mock('@/lib/rateLimit', () => ({
@@ -33,7 +34,13 @@ vi.mock('@/lib/logger', () => ({
     warn: vi.fn(),
     error: vi.fn(),
     info: vi.fn(),
+    debug: vi.fn(),
   },
+}))
+
+vi.mock('@/lib/metrics', () => ({
+  recordCounter: vi.fn(),
+  recordTiming: vi.fn(),
 }))
 
 vi.mock('next-auth', () => ({
@@ -248,10 +255,22 @@ describe('POST /api/tarot/interpret', () => {
     })
 
     const response = await POST(req)
+    const data = await response.json()
 
     expect(response.status).toBe(200)
+    expect(data.interpretation_source).toBe('backend_rag')
     const callArgs = vi.mocked(apiClient.post).mock.calls[0]
     expect(callArgs).toBeDefined()
+    expect(vi.mocked(recordCounter)).toHaveBeenCalledWith(
+      'tarot.interpret.source_total',
+      1,
+      expect.objectContaining({ source: 'backend_rag' })
+    )
+    expect(vi.mocked(recordTiming)).toHaveBeenCalledWith(
+      'tarot.interpret.duration_ms',
+      expect.any(Number),
+      expect.objectContaining({ source: 'backend_rag' })
+    )
   })
 
   it('should use GPT fallback when backend fails', async () => {
@@ -297,6 +316,7 @@ describe('POST /api/tarot/interpret', () => {
 
     expect(response.status).toBe(200)
     expect(data.overall_message).toBeDefined()
+    expect(data.interpretation_source).toBe('gpt_fallback')
   })
 
   it('should use fast backend fallback policy for large spreads', async () => {
@@ -568,6 +588,7 @@ describe('POST /api/tarot/interpret', () => {
 
     expect(response.status).toBe(200)
     expect(data.fallback).toBe(true)
+    expect(data.interpretation_source).toBe('emergency_fallback')
     expect(data.overall_message).toContain('바보')
     expect(data.card_insights[0].interpretation.length).toBeGreaterThanOrEqual(80)
     expect(data.card_insights[0].interpretation).toMatch(/오늘|이번 주|7일/i)

@@ -30,6 +30,13 @@ export interface InterpretationResult {
   moon_phase_advice?: string
   followup_questions?: string[]
   fallback?: boolean
+  interpretation_source?:
+    | 'backend_rag'
+    | 'gpt_fallback'
+    | 'emergency_fallback'
+    | 'stream_sse_fallback'
+    | 'stream_json_fallback'
+    | 'local_personalized_fallback'
 }
 
 export interface ReadingResponse {
