@@ -19,9 +19,29 @@ import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/
 import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { toChart } from '@/lib/astrology/foundation/astrologyService'
+import {
+  calculateAllAsteroids,
+  calculateExtraPoints,
+  calculateSecondaryProgressions,
+  calculateSolarReturn,
+  calculateLunarReturn,
+  compareDraconicToNatal,
+  generateHarmonicProfile,
+  findFixedStarConjunctions,
+  findEclipseImpact,
+  getUpcomingEclipses,
+  calculateMidpoints,
+  findMidpointActivations,
+} from '@/lib/astrology'
 import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT, BRANCH_TO_ELEMENT_EN } from '@/lib/Saju/constants'
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
 import { buildAstroTimingIndex } from '@/lib/destiny-matrix/astroTimingIndex'
+import {
+  buildCompleteAdvancedAstroSignals,
+  buildServiceInputCrossAudit,
+  ensureMatrixInputCrossCompleteness,
+  listMissingCrossKeysForService,
+} from '@/lib/destiny-matrix/inputCross'
 import type { FiveElement } from '@/lib/Saju/types'
 import type { MatrixCalculationInput, PlanetName } from '@/lib/destiny-matrix/types'
 import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
@@ -30,6 +50,7 @@ import {
   buildNormalizedMatrixInput,
   runDestinyCore,
 } from '@/lib/destiny-matrix/core/runDestinyCore'
+import { buildCoreEnvelope } from '@/lib/destiny-matrix/core'
 import { reportGenerator } from '@/lib/destiny-matrix/interpreter'
 import {
   buildCounselorEvidencePacket,
@@ -52,6 +73,7 @@ import {
   formatDateForResponse,
   fetchAIDates,
   LOCATION_COORDS,
+  buildCalendarPresentationView,
 } from './lib'
 
 export const dynamic = 'force-dynamic'
@@ -716,6 +738,132 @@ export const GET = withApiMiddleware(
           angle: ASPECT_ANGLE_MAP[a.type],
         }))
 
+      const asteroidHouses: Record<string, number> = {}
+      const extraPointSigns: Record<string, string> = {}
+      let derivedAdvancedSignals = buildCompleteAdvancedAstroSignals(undefined)
+
+      if (natalChartData?.meta?.jdUT) {
+        const houseCusps = Array.isArray(natalChartData.houses)
+          ? natalChartData.houses.map((h) => h.cusp)
+          : []
+
+        if (houseCusps.length > 0) {
+          try {
+            const asteroids = calculateAllAsteroids(natalChartData.meta.jdUT, houseCusps)
+            for (const key of ['Ceres', 'Pallas', 'Juno', 'Vesta'] as const) {
+              const house = asteroids[key]?.house
+              if (typeof house === 'number' && house >= 1 && house <= 12) {
+                asteroidHouses[key] = house
+              }
+            }
+          } catch (error) {
+            logger.warn('[Calendar] Failed to derive asteroid houses', {
+              error: error instanceof Error ? error.message : String(error),
+            })
+          }
+
+          const sun = natalChartData.planets.find((p) => p.name === 'Sun')
+          const moon = natalChartData.planets.find((p) => p.name === 'Moon')
+          if (sun && moon && natalChartData.ascendant) {
+            try {
+              const extras = await calculateExtraPoints(
+                natalChartData.meta.jdUT,
+                coords.lat,
+                coords.lng,
+                natalChartData.ascendant.longitude,
+                sun.longitude,
+                moon.longitude,
+                sun.house,
+                houseCusps
+              )
+              extraPointSigns.Chiron = extras.chiron.sign
+              extraPointSigns.Lilith = extras.lilith.sign
+              extraPointSigns.PartOfFortune = extras.partOfFortune.sign
+              extraPointSigns.Vertex = extras.vertex.sign
+            } catch (error) {
+              logger.warn('[Calendar] Failed to derive extra-point signs', {
+                error: error instanceof Error ? error.message : String(error),
+              })
+            }
+          }
+        }
+      }
+
+      let hasProgressions = false
+      let hasSolarReturn = false
+      let hasLunarReturn = false
+      let hasDraconic = false
+      let hasHarmonics = false
+      let hasFixedStars = false
+      let hasEclipses = false
+      let hasMidpoints = false
+
+      if (natalChartData) {
+        const nowIso = new Date().toISOString()
+        const currentYear = new Date().getFullYear()
+        const currentMonth = new Date().getMonth() + 1
+        const natalInput = {
+          year: birthDate.getFullYear(),
+          month: birthDate.getMonth() + 1,
+          date: birthDate.getDate(),
+          hour: birthHour || 12,
+          minute: birthMinute || 0,
+          latitude: coords.lat,
+          longitude: coords.lng,
+          timeZone: timezone,
+        }
+        try {
+          const progressions = await calculateSecondaryProgressions({
+            natal: natalInput,
+            targetDate: nowIso.slice(0, 10),
+          })
+          hasProgressions = Boolean(progressions)
+        } catch {}
+        try {
+          const solarReturn = await calculateSolarReturn({
+            natal: natalInput,
+            year: currentYear,
+          })
+          hasSolarReturn = Boolean(solarReturn)
+        } catch {}
+        try {
+          const lunarReturn = await calculateLunarReturn({
+            natal: natalInput,
+            year: currentYear,
+            month: currentMonth,
+          })
+          hasLunarReturn = Boolean(lunarReturn)
+        } catch {}
+
+        try {
+          const natalChart = toChart(natalChartData)
+          hasDraconic = Boolean(compareDraconicToNatal(natalChart))
+          const birthYear = Number(birthDateParam.slice(0, 4))
+          const age = Number.isFinite(birthYear) ? Math.max(0, currentYear - birthYear) : undefined
+          hasHarmonics = Boolean(generateHarmonicProfile(natalChart, age))
+          hasFixedStars = findFixedStarConjunctions(natalChart, currentYear, 1.0).length > 0
+          const eclipseImpactCount = findEclipseImpact(natalChart).length
+          const upcomingEclipsesCount = getUpcomingEclipses(new Date(nowIso), 6).length
+          hasEclipses = eclipseImpactCount > 0 || upcomingEclipsesCount > 0
+          const midpoints = calculateMidpoints(natalChart)
+          const midpointActivations = findMidpointActivations(natalChart, 1.5)
+          hasMidpoints = midpoints.length > 0 || midpointActivations.length > 0
+        } catch {}
+      }
+
+      derivedAdvancedSignals = buildCompleteAdvancedAstroSignals({
+        solarReturn: hasSolarReturn,
+        lunarReturn: hasLunarReturn,
+        progressions: hasProgressions,
+        draconic: hasDraconic,
+        harmonics: hasHarmonics,
+        fixedStars: hasFixedStars,
+        eclipses: hasEclipses,
+        midpoints: hasMidpoints,
+        asteroids: Object.keys(asteroidHouses).length > 0,
+        extraPoints: Object.keys(extraPointSigns).length > 0,
+      })
+
       const currentDaeunElement = toKoElement(
         STEM_TO_ELEMENT[sajuResult.daeWoon?.current?.heavenlyStem || '']
       )
@@ -744,6 +892,7 @@ export const GET = withApiMiddleware(
       )
       const astroTimingIndex = buildAstroTimingIndex({
         activeTransits,
+        advancedAstroSignals: derivedAdvancedSignals,
       })
 
       let relations: MatrixCalculationInput['relations'] = []
@@ -827,11 +976,15 @@ export const GET = withApiMiddleware(
         aspects,
         activeTransits,
         astroTimingIndex,
+        asteroidHouses,
+        extraPointSigns,
+        advancedAstroSignals: derivedAdvancedSignals,
         sajuSnapshot: toOptionalRecord(sajuResult),
         astrologySnapshot: natalChartData
           ? ({
               natalChart: natalChartData,
               natalAspects: natalAspectData,
+              advancedCoverage: derivedAdvancedSignals,
             } as Record<string, unknown>)
           : undefined,
         crossSnapshot: {
@@ -852,10 +1005,16 @@ export const GET = withApiMiddleware(
         lang: locale === 'en' ? 'en' : 'ko',
         startYearMonth: `${year}-01`,
       }
-      const normalizedMatrixInput = buildNormalizedMatrixInput(matrixInput)
+      const crossCompleteMatrixInput = ensureMatrixInputCrossCompleteness(matrixInput)
+      const crossAudit = buildServiceInputCrossAudit(crossCompleteMatrixInput, 'calendar')
+      const crossMissingKeys = listMissingCrossKeysForService(crossAudit, 'calendar')
+      const normalizedMatrixInput = buildNormalizedMatrixInput(crossCompleteMatrixInput)
 
       if (CALENDAR_STRICT_MATRIX) {
-        const missing = collectCalendarMatrixMissing(normalizedMatrixInput)
+        const missing = [
+          ...collectCalendarMatrixMissing(normalizedMatrixInput),
+          ...crossMissingKeys,
+        ]
         if (missing.length > 0) {
           return createErrorResponse({
             code: ErrorCodes.SERVICE_UNAVAILABLE,
@@ -866,26 +1025,14 @@ export const GET = withApiMiddleware(
         }
       }
 
-      const matrix = calculateDestinyMatrix(normalizedMatrixInput)
-      const matrixReport = reportGenerator.generateReport(normalizedMatrixInput, {
-        layer1_elementCore: matrix.layer1_elementCore,
-        layer2_sibsinPlanet: matrix.layer2_sibsinPlanet,
-        layer3_sibsinHouse: matrix.layer3_sibsinHouse,
-        layer4_timing: matrix.layer4_timing,
-        layer5_relationAspect: matrix.layer5_relationAspect,
-        layer6_stageHouse: matrix.layer6_stageHouse,
-        layer7_advanced: matrix.layer7_advanced,
-        layer8_shinsalPlanet: matrix.layer8_shinsalPlanet,
-        layer9_asteroidHouse: matrix.layer9_asteroidHouse,
-        layer10_extraPointElement: matrix.layer10_extraPointElement,
-      })
-      const coreSeed = runDestinyCore({
+      const coreEnvelope = buildCoreEnvelope({
         mode: 'calendar',
         lang: locale === 'en' ? 'en' : 'ko',
         matrixInput: normalizedMatrixInput,
-        matrixReport,
-        matrixSummary: matrix.summary,
       })
+      const matrix = coreEnvelope.matrix
+      const matrixReport = coreEnvelope.matrixReport
+      const coreSeed = coreEnvelope.coreSeed
       topMatchedPatterns = coreSeed.patterns.slice(0, 10).map((pattern) => ({
         id: pattern.id,
         label: pattern.label,
@@ -927,6 +1074,8 @@ export const GET = withApiMiddleware(
           snapshotKeys: Object.keys(normalizedMatrixInput.crossSnapshot || {}).length,
           currentDateIso: normalizedMatrixInput.currentDateIso || null,
           availability: normalizedMatrixInput.availability,
+          inputCrossAudit: crossAudit,
+          inputCrossMissing: crossMissingKeys,
         },
         core: {
           coreHash: coreSeed.coreHash,
@@ -1103,6 +1252,14 @@ export const GET = withApiMiddleware(
           }
         : undefined
 
+    const presentationView = buildCalendarPresentationView({
+      allDates: formattedDates,
+      locale: locale === 'en' ? 'en' : 'ko',
+      timeZone: timezone,
+      matrixContract: calendarMatrixContract,
+      domainScores: matrixCalendarContext?.domainScores,
+    })
+
     const responsePayload = normalizeMojibakePayload({
       success: true,
       type: 'yearly',
@@ -1136,6 +1293,15 @@ export const GET = withApiMiddleware(
       badDates: [...grade4, ...grade3].sort(sortByDisplayScoreDesc).slice(0, 10),
       worstDates: [...grade4].sort(sortByDisplayScoreDesc).slice(0, 5),
       allDates: formattedDates,
+      daySummary: presentationView.daySummary,
+      weekSummary: presentationView.weekSummary,
+      monthSummary: presentationView.monthSummary,
+      topDomains: presentationView.topDomains,
+      timingSignals: presentationView.timingSignals,
+      cautions: presentationView.cautions,
+      recommendedActions: presentationView.recommendedActions,
+      relationshipWeather: presentationView.relationshipWeather,
+      workMoneyWeather: presentationView.workMoneyWeather,
       matrixInputCoverage,
       matrixEvidencePackets,
       topMatchedPatterns,

@@ -604,6 +604,21 @@ const CalendarMainView = memo(function CalendarMainView({
           <SelectedDatePanel
             selectedDay={selectedDay}
             selectedDate={selectedDate}
+            presentation={
+              data
+                ? {
+                    daySummary: data.daySummary,
+                    weekSummary: data.weekSummary,
+                    monthSummary: data.monthSummary,
+                    topDomains: data.topDomains,
+                    timingSignals: data.timingSignals,
+                    cautions: data.cautions,
+                    recommendedActions: data.recommendedActions,
+                    relationshipWeather: data.relationshipWeather,
+                    workMoneyWeather: data.workMoneyWeather,
+                  }
+                : undefined
+            }
             savedDates={savedDates}
             saving={saving}
             saveMsg={saveMsg}

@@ -31,3 +31,5 @@ export {
   fetchAIDates,
   LOCATION_COORDS,
 } from './helpers'
+
+export { buildCalendarPresentationView, type CalendarPresentationView } from './presentationAdapter'

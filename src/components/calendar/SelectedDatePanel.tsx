@@ -28,6 +28,8 @@ interface ImportantDate {
   title: string
   description: string
   summary?: string
+  actionSummary?: string
+  timingSignals?: string[]
   bestTimes?: string[]
   sajuFactors: string[]
   astroFactors: string[]
@@ -70,6 +72,39 @@ interface ImportantDate {
 interface SelectedDatePanelProps {
   selectedDay: Date | null
   selectedDate: ImportantDate | null
+  presentation?: {
+    daySummary?: {
+      date: string
+      summary: string
+      focusDomain: string
+      reliability: string
+    }
+    weekSummary?: {
+      rangeStart: string
+      rangeEnd: string
+      summary: string
+    }
+    monthSummary?: {
+      month: string
+      summary: string
+    }
+    topDomains?: Array<{
+      domain: 'career' | 'love' | 'money' | 'health' | 'move' | 'general'
+      label: string
+      score: number
+    }>
+    timingSignals?: string[]
+    cautions?: string[]
+    recommendedActions?: string[]
+    relationshipWeather?: {
+      grade: 'strong' | 'good' | 'neutral' | 'caution'
+      summary: string
+    }
+    workMoneyWeather?: {
+      grade: 'strong' | 'good' | 'neutral' | 'caution'
+      summary: string
+    }
+  }
   savedDates: Set<string>
   saving: boolean
   saveMsg: string | null
@@ -334,6 +369,7 @@ function toUserFacingEvidenceLine(
 const SelectedDatePanel = memo(function SelectedDatePanel({
   selectedDay,
   selectedDate,
+  presentation,
   savedDates,
   saving,
   saveMsg,
@@ -613,14 +649,18 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     .filter(Boolean)
 
   const unifiedDayLabel = selectedDate ? getDisplayLabelFromScore(displayScore, locale) : ''
+  const presentationReliability = safeDisplayText(presentation?.daySummary?.reliability || '', '')
   const reliabilityLabel = selectedDate
     ? getReliabilityLabel(selectedDate.evidence?.confidence, locale)
     : ''
+  const reliabilityHeadline = presentationReliability || reliabilityLabel
   const domainLabel = selectedDate
     ? getDomainLabel(selectedDate.evidence?.matrix.domain, locale)
     : locale === 'ko'
       ? '전반'
       : 'overall'
+  const focusDomainHeadline =
+    safeDisplayText(presentation?.daySummary?.focusDomain || '', '') || domainLabel
 
   const evidenceSummaryPrimary = selectedDate?.evidence
     ? locale === 'ko'
@@ -663,6 +703,9 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
   const quickThesis = (() => {
     if (!selectedDate) return ''
+    if (presentation?.daySummary?.summary) {
+      return softenDecisionTone(presentation.daySummary.summary, locale, isLowReliability)
+    }
     if (matrixVerdict?.verdict) {
       return softenDecisionTone(matrixVerdict.verdict, locale, isLowReliability)
     }
@@ -672,16 +715,43 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     return `Flow is ${unifiedDayLabel.toLowerCase()} for ${domainLabel}; verify communication and commitments once more.`
   })()
 
+  const safeTimingSignals = dedupeDisplayLines(
+    (selectedDate?.timingSignals || []).map((line) =>
+      softenDecisionTone(line, locale, isLowReliability)
+    )
+  ).slice(0, 4)
+
+  const topTimingSignals = dedupeDisplayLines([
+    ...((presentation?.timingSignals || []).map((line) =>
+      softenDecisionTone(line, locale, isLowReliability)
+    ) || []),
+    ...safeTimingSignals,
+  ]).slice(0, 4)
+
+  const topCautions = dedupeDisplayLines([
+    ...((presentation?.cautions || []).map((line) =>
+      softenDecisionTone(line, locale, isLowReliability)
+    ) || []),
+    ...safeWarnings,
+  ]).slice(0, 3)
+
+  const topRecommendedActions = dedupeDisplayLines([
+    ...((presentation?.recommendedActions || []).map((line) =>
+      softenDecisionTone(line, locale, isLowReliability)
+    ) || []),
+    ...safeRecommendations,
+  ]).slice(0, 3)
+
   const quickDos =
-    safeRecommendations.slice(0, 3).length > 0
-      ? safeRecommendations.slice(0, 3)
+    topRecommendedActions.slice(0, 3).length > 0
+      ? topRecommendedActions.slice(0, 3)
       : locale === 'ko'
         ? ['연락이나 협의를 먼저 시작해 보세요.', '중요 문서나 할 일을 1건 정리해 보세요.']
         : ['Start one outreach or coordination task.', 'Close one important document or task.']
 
   const quickDontCandidates = dedupeDisplayLines([
     softenDecisionTone(matrixVerdict?.guardrail || '', locale, isLowReliability),
-    ...safeWarnings,
+    ...topCautions,
   ])
 
   const quickDonts =
@@ -697,6 +767,13 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       : locale === 'ko'
         ? ['집중 가능한 시간대 1개를 먼저 확보하세요.']
         : ['Secure one focused time block first.']
+
+  const safeActionSummary = safeDisplayText(
+    softenDecisionTone(selectedDate?.actionSummary || '', locale, isLowReliability),
+    ''
+  )
+
+  const hasExtendedDetails = safeSajuFactors.length > 0 || safeAstroFactors.length > 0
 
   const detailInsight = (() => {
     const candidates = dedupeDisplayLines([
@@ -818,6 +895,15 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           )}
 
           <div className={styles.quickScanCard}>
+            {safeActionSummary && (
+              <div className={styles.quickSummaryBlock}>
+                <span className={styles.quickSummaryLabel}>
+                  {locale === 'ko' ? '오늘 행동 요약' : 'Action summary'}
+                </span>
+                <p className={styles.quickSummaryText}>{safeActionSummary}</p>
+              </div>
+            )}
+
             <p className={styles.quickScanThesis}>{quickThesis}</p>
 
             <div className={styles.quickScanMeta}>
@@ -825,7 +911,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 {locale === 'ko' ? '오늘 등급' : 'Today'}: {unifiedDayLabel}
               </span>
               <span className={styles.quickMetaChip}>
-                {locale === 'ko' ? '핵심 분야' : 'Focus'}: {domainLabel}
+                {locale === 'ko' ? '핵심 분야' : 'Focus'}: {focusDomainHeadline}
               </span>
               {matrixVerdict?.phase && (
                 <span className={styles.quickMetaChip}>
@@ -833,9 +919,64 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 </span>
               )}
               <span className={styles.quickMetaChip}>
-                {locale === 'ko' ? '신뢰' : 'Reliability'}: {reliabilityLabel}
+                {locale === 'ko' ? '신뢰' : 'Reliability'}: {reliabilityHeadline}
               </span>
             </div>
+
+            {topTimingSignals.length > 0 && (
+              <div className={styles.quickTimingSignalList}>
+                {topTimingSignals.map((signal, index) => (
+                  <span key={`timing-signal-${index}`} className={styles.quickTimingSignalChip}>
+                    {signal}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {(presentation?.weekSummary?.summary ||
+              presentation?.monthSummary?.summary ||
+              (presentation?.topDomains || []).length > 0 ||
+              presentation?.relationshipWeather?.summary ||
+              presentation?.workMoneyWeather?.summary) && (
+              <div className={styles.quickSummaryBlock}>
+                <span className={styles.quickSummaryLabel}>
+                  {locale === 'ko' ? '주간/월간 흐름' : 'Week/Month flow'}
+                </span>
+                {presentation?.weekSummary?.summary && (
+                  <p className={styles.quickSummaryText}>
+                    {locale === 'ko' ? '주간: ' : 'Week: '}
+                    {presentation.weekSummary.summary}
+                  </p>
+                )}
+                {presentation?.monthSummary?.summary && (
+                  <p className={styles.quickSummaryText}>
+                    {locale === 'ko' ? '월간: ' : 'Month: '}
+                    {presentation.monthSummary.summary}
+                  </p>
+                )}
+                {(presentation?.topDomains || []).length > 0 && (
+                  <div className={styles.quickScanMeta}>
+                    {(presentation?.topDomains || []).slice(0, 3).map((item, index) => (
+                      <span key={`top-domain-${index}`} className={styles.quickMetaChip}>
+                        {item.label} {Math.round(item.score * 100)}%
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {presentation?.relationshipWeather?.summary && (
+                  <p className={styles.quickSummaryText}>
+                    {locale === 'ko' ? '관계: ' : 'Relationship: '}
+                    {presentation.relationshipWeather.summary}
+                  </p>
+                )}
+                {presentation?.workMoneyWeather?.summary && (
+                  <p className={styles.quickSummaryText}>
+                    {locale === 'ko' ? '일/돈: ' : 'Work/Money: '}
+                    {presentation.workMoneyWeather.summary}
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className={styles.quickActionGrid}>
               <div className={styles.quickActionBlock}>
@@ -873,7 +1014,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           {(detailInsight || selectedDate.evidence) && (
             <details className={styles.calendarEvidenceDetails}>
               <summary className={styles.calendarEvidenceSummary}>
-                {locale === 'ko' ? '근거/상세 보기' : 'View details & evidence'}
+                {locale === 'ko' ? '교차 결론 근거 보기' : 'Cross-evidence for conclusion'}
               </summary>
               <div className={styles.calendarEvidenceInner}>
                 {detailInsight && <p className={styles.selectedDesc}>{detailInsight}</p>}
@@ -928,72 +1069,47 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             </span>
           </div>
 
-          {safeSajuFactors.length > 0 && (
-            <div className={styles.analysisSection}>
-              <h4 className={styles.analysisTitle}>
-                <span className={styles.analysisBadge}>{'\u263F\uFE0F'}</span>
-                {termHelp.sajuTitle}
-              </h4>
-              <ul className={styles.analysisList}>
-                {safeSajuFactors.slice(0, 4).map((factor, i) => (
-                  <li key={i} className={styles.analysisItem}>
-                    <span className={styles.analysisDotSaju}></span>
-                    {factor}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {safeAstroFactors.length > 0 && (
-            <div className={styles.analysisSection}>
-              <h4 className={styles.analysisTitle}>
-                <span className={styles.analysisBadge}>{'\u{1F31F}'}</span>
-                {termHelp.astroTitle}
-              </h4>
-              <ul className={styles.analysisList}>
-                {safeAstroFactors.slice(0, 4).map((factor, i) => (
-                  <li key={i} className={styles.analysisItem}>
-                    <span className={styles.analysisDotAstro}></span>
-                    {factor}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {safeRecommendations.length > 0 && (
-            <div className={styles.recommendationsSection}>
-              <h4 className={styles.recommendationsTitle}>
-                <span className={styles.recommendationsIcon}>{'\u2728'}</span>
-                {locale === 'ko' ? '오늘의 행운 키' : 'Lucky Keys'}
-              </h4>
-              <div className={styles.recommendationsGrid}>
-                {safeRecommendations.slice(0, 4).map((r, i) => (
-                  <div key={i} className={styles.recommendationCard}>
-                    <span className={styles.recommendationNumber}>{i + 1}</span>
-                    <span className={styles.recommendationText}>{r}</span>
+          {hasExtendedDetails && (
+            <details className={styles.extendedDetails}>
+              <summary className={styles.extendedDetailsSummary}>
+                {locale === 'ko' ? '사주/점성 세부 근거' : 'Detailed Saju/Astrology evidence'}
+              </summary>
+              <div className={styles.extendedDetailsBody}>
+                {safeSajuFactors.length > 0 && (
+                  <div className={styles.analysisSection}>
+                    <h4 className={styles.analysisTitle}>
+                      <span className={styles.analysisBadge}>{'\u263F\uFE0F'}</span>
+                      {termHelp.sajuTitle}
+                    </h4>
+                    <ul className={styles.analysisList}>
+                      {safeSajuFactors.slice(0, 4).map((factor, i) => (
+                        <li key={i} className={styles.analysisItem}>
+                          <span className={styles.analysisDotSaju}></span>
+                          {factor}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
+                )}
 
-          {safeWarnings.length > 0 && displayGrade < 3 && (
-            <div className={styles.warningsSection}>
-              <h4 className={styles.warningsTitle}>
-                <span className={styles.warningsIcon}>{'\u26A1'}</span>
-                {locale === 'ko' ? '\uC624\uB298\uC758 \uC8FC\uC758\uBCF4' : "Today's Alert"}
-              </h4>
-              <ul className={styles.warningsList}>
-                {safeWarnings.slice(0, 3).map((w, i) => (
-                  <li key={i} className={styles.warningItem}>
-                    <span className={styles.warningDot}></span>
-                    {w}
-                  </li>
-                ))}
-              </ul>
-            </div>
+                {safeAstroFactors.length > 0 && (
+                  <div className={styles.analysisSection}>
+                    <h4 className={styles.analysisTitle}>
+                      <span className={styles.analysisBadge}>{'\u{1F31F}'}</span>
+                      {termHelp.astroTitle}
+                    </h4>
+                    <ul className={styles.analysisList}>
+                      {safeAstroFactors.slice(0, 4).map((factor, i) => (
+                        <li key={i} className={styles.analysisItem}>
+                          <span className={styles.analysisDotAstro}></span>
+                          {factor}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </details>
           )}
 
           {status === 'authenticated' && (

@@ -921,6 +921,15 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(data).toHaveProperty('badDates')
       expect(data).toHaveProperty('worstDates')
       expect(data).toHaveProperty('allDates')
+      expect(data).toHaveProperty('daySummary')
+      expect(data).toHaveProperty('weekSummary')
+      expect(data).toHaveProperty('monthSummary')
+      expect(data).toHaveProperty('topDomains')
+      expect(data).toHaveProperty('timingSignals')
+      expect(data).toHaveProperty('cautions')
+      expect(data).toHaveProperty('recommendedActions')
+      expect(data).toHaveProperty('relationshipWeather')
+      expect(data).toHaveProperty('workMoneyWeather')
     })
 
     it('should set matrixStrictMode to true', async () => {

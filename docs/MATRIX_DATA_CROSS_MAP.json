@@ -1,0 +1,287 @@
+{
+  "generatedAt": "2026-03-12",
+  "matrixRole": {
+    "coreOnly": true,
+    "description": "Matrix is calculation-only. Interpretation and narrative are handled by core/adapters outside engine.ts."
+  },
+  "sourceFiles": {
+    "inputSchema": "src/lib/destiny-matrix/types.ts",
+    "engine": "src/lib/destiny-matrix/engine.ts",
+    "crossRules": "src/lib/destiny-matrix/inputCross.ts",
+    "coreEnvelope": "src/lib/destiny-matrix/core/buildCoreEnvelope.ts",
+    "serviceRoutes": [
+      "src/app/api/destiny-matrix/route.ts",
+      "src/app/api/calendar/route.ts",
+      "src/app/api/destiny-map/chat-stream/route.ts",
+      "src/app/api/destiny-matrix/ai-report/route.ts"
+    ],
+    "rawDataSources": {
+      "sajuEntry": "src/lib/saju/saju.ts",
+      "sajuShinsalStages": "src/lib/saju/shinsal.ts",
+      "sajuAdvancedAnalyzer": "src/lib/saju/astrologyengine.ts",
+      "astrologyEntry": "src/lib/astrology/index.ts",
+      "astrologyFoundation": "src/lib/astrology/foundation/*"
+    }
+  },
+  "inputKeys": {
+    "saju": [
+      "dayMasterElement",
+      "pillarElements",
+      "sibsinDistribution",
+      "twelveStages",
+      "relations",
+      "geokguk",
+      "yongsin",
+      "currentDaeunElement",
+      "currentSaeunElement",
+      "currentWolunElement",
+      "currentIljinElement",
+      "currentIljinDate",
+      "shinsalList"
+    ],
+    "astrology": [
+      "dominantWesternElement",
+      "planetHouses",
+      "planetSigns",
+      "aspects",
+      "activeTransits",
+      "astroTimingIndex",
+      "asteroidHouses",
+      "extraPointSigns",
+      "advancedAstroSignals.solarReturn",
+      "advancedAstroSignals.lunarReturn",
+      "advancedAstroSignals.progressions",
+      "advancedAstroSignals.draconic",
+      "advancedAstroSignals.harmonics",
+      "advancedAstroSignals.fixedStars",
+      "advancedAstroSignals.eclipses",
+      "advancedAstroSignals.midpoints",
+      "advancedAstroSignals.asteroids",
+      "advancedAstroSignals.extraPoints"
+    ],
+    "snapshots": ["sajuSnapshot", "astrologySnapshot", "crossSnapshot"]
+  },
+  "crossMap": [
+    {
+      "key": "dayMasterElement",
+      "used_in_layers": [1, 9, 10],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "pillarElements",
+      "used_in_layers": [1],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "sibsinDistribution",
+      "used_in_layers": [2, 3, 10],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "twelveStages",
+      "used_in_layers": [6],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "relations",
+      "used_in_layers": [5],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "geokguk",
+      "used_in_layers": [7],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "yongsin",
+      "used_in_layers": [7],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "currentDaeunElement",
+      "used_in_layers": [4],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "currentSaeunElement",
+      "used_in_layers": [4],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "currentWolunElement",
+      "used_in_layers": [4],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "currentIljinElement",
+      "used_in_layers": [4],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "currentIljinDate",
+      "used_in_layers": [4],
+      "used_in_signals_only": true,
+      "used_in_direct_scoring": false
+    },
+    {
+      "key": "shinsalList",
+      "used_in_layers": [8],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "dominantWesternElement",
+      "used_in_layers": [1],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "planetHouses",
+      "used_in_layers": [2, 3, 6, 8],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "planetSigns",
+      "used_in_layers": [],
+      "used_in_signals_only": true,
+      "used_in_direct_scoring": false
+    },
+    {
+      "key": "aspects",
+      "used_in_layers": [5],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "activeTransits",
+      "used_in_layers": [4],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "astroTimingIndex",
+      "used_in_layers": [],
+      "used_in_signals_only": true,
+      "used_in_direct_scoring": false
+    },
+    {
+      "key": "asteroidHouses",
+      "used_in_layers": [9],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "extraPointSigns",
+      "used_in_layers": [10],
+      "used_in_signals_only": false,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "advancedAstroSignals",
+      "used_in_layers": [7],
+      "used_in_signals_only": true,
+      "used_in_direct_scoring": true
+    },
+    {
+      "key": "sajuSnapshot",
+      "used_in_layers": [],
+      "used_in_signals_only": true,
+      "used_in_direct_scoring": false
+    },
+    {
+      "key": "astrologySnapshot",
+      "used_in_layers": [],
+      "used_in_signals_only": true,
+      "used_in_direct_scoring": false
+    },
+    {
+      "key": "crossSnapshot",
+      "used_in_layers": [],
+      "used_in_signals_only": true,
+      "used_in_direct_scoring": false
+    }
+  ],
+  "layers": [
+    {
+      "id": 1,
+      "calculator": "calculateLayer1",
+      "cross": "dayMaster/pillars x dominantWesternElement"
+    },
+    {
+      "id": 2,
+      "calculator": "calculateLayer2",
+      "cross": "sibsinDistribution x planetHouses(planets)"
+    },
+    {
+      "id": 3,
+      "calculator": "calculateLayer3",
+      "cross": "sibsinDistribution x planetHouses(houses)"
+    },
+    {
+      "id": 4,
+      "calculator": "calculateLayer4",
+      "cross": "daeun/saeun/wolun/ilun x activeTransits"
+    },
+    {
+      "id": 5,
+      "calculator": "calculateLayer5",
+      "cross": "relations x aspects (orb/angle adjusted)"
+    },
+    {
+      "id": 6,
+      "calculator": "calculateLayer6",
+      "cross": "twelveStages x planetHouses"
+    },
+    {
+      "id": 7,
+      "calculator": "calculateLayer7",
+      "cross": "geokguk/yongsin x progressionTypes (filtered by advancedAstroSignals)"
+    },
+    {
+      "id": 8,
+      "calculator": "calculateLayer8",
+      "cross": "shinsalList x planetHouses"
+    },
+    {
+      "id": 9,
+      "calculator": "calculateLayer9",
+      "cross": "asteroidHouses x house + asteroid x dayMasterElement"
+    },
+    {
+      "id": 10,
+      "calculator": "calculateLayer10",
+      "cross": "extraPointSigns x dayMasterElement + extraPoint x sibsinDistribution"
+    }
+  ],
+  "completenessEnforcement": {
+    "function": "ensureMatrixInputCrossCompleteness",
+    "file": "src/lib/destiny-matrix/inputCross.ts",
+    "rules": [
+      "shinsalList and activeTransits are always arrays",
+      "asteroidHouses and extraPointSigns are always objects",
+      "advancedAstroSignals is always full 10-key boolean map"
+    ],
+    "auditFunction": "buildServiceInputCrossAudit",
+    "missingListFunction": "listMissingCrossKeysForService"
+  },
+  "runtimeInspectionPaths": {
+    "matrixApi": ["matrixInputCrossAudit", "summary.matrixInputCrossMissing"],
+    "calendarApi": [
+      "matrixInputCoverage.cross.inputCrossAudit",
+      "matrixInputCoverage.cross.inputCrossMissing"
+    ],
+    "counselorSnapshot": ["inputCrossMissing"]
+  }
+}

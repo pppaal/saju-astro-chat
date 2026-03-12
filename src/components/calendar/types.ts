@@ -55,6 +55,8 @@ export interface ImportantDate {
   title: string
   description: string
   summary?: string
+  actionSummary?: string
+  timingSignals?: string[]
   bestTimes?: string[]
   sajuFactors: string[]
   astroFactors: string[]
@@ -91,6 +93,37 @@ export interface CalendarData {
   goodDates?: ImportantDate[]
   cautionDates?: ImportantDate[]
   allDates?: ImportantDate[]
+  daySummary?: {
+    date: string
+    summary: string
+    focusDomain: string
+    reliability: string
+  }
+  weekSummary?: {
+    rangeStart: string
+    rangeEnd: string
+    summary: string
+  }
+  monthSummary?: {
+    month: string
+    summary: string
+  }
+  topDomains?: Array<{
+    domain: 'career' | 'love' | 'money' | 'health' | 'move' | 'general'
+    label: string
+    score: number
+  }>
+  timingSignals?: string[]
+  cautions?: string[]
+  recommendedActions?: string[]
+  relationshipWeather?: {
+    grade: 'strong' | 'good' | 'neutral' | 'caution'
+    summary: string
+  }
+  workMoneyWeather?: {
+    grade: 'strong' | 'good' | 'neutral' | 'caution'
+    summary: string
+  }
   matrixEvidencePackets?: MatrixEvidencePacketMap
   error?: string
 }
