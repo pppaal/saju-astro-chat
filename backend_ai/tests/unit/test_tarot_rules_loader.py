@@ -204,6 +204,28 @@ class TestGetTimingHint:
         assert '1-7 days' in result
 
 
+    def test_timing_hint_details_include_rule_id(self):
+        """Timing details should expose deterministic rule ids."""
+        from backend_ai.app.tarot.rules_loader import AdvancedRulesLoader
+
+        loader = AdvancedRulesLoader()
+        loader.timing_rules = {
+            'card_timing_meanings': {
+                'immediate': {
+                    'cards': ['The Sun'],
+                    'korean': '즉시',
+                    'timeframe': '1-7 days'
+                }
+            }
+        }
+
+        result = loader.get_timing_hint_details('The Sun')
+
+        assert result is not None
+        assert result['rule_id'].startswith('tarot_timing::immediate::')
+        assert result['message'] == '즉시: 1-7 days'
+
+
 class TestAnalyzeElementalBalance:
     """Tests for analyze_elemental_balance method."""
 
@@ -288,6 +310,32 @@ class TestGetFollowupQuestions:
         assert 'opportunities' in result[0]
 
 
+class TestCrisisRuleIds:
+    """Tests for crisis rule ids."""
+
+    def test_detect_crisis_includes_rule_id(self):
+        """Crisis detection should expose rule ids for matched safety paths."""
+        from backend_ai.app.tarot.rules_loader import AdvancedRulesLoader
+
+        loader = AdvancedRulesLoader(rules_dir="__missing__")
+        loader.crisis_support = {
+            "safety_guidelines": {"warning_phrases": ["죽고 싶다"]},
+            "crisis_types": {
+                "breakup": {
+                    "name": "이별/관계 종료",
+                    "severity": "moderate",
+                    "professional_help_trigger": False,
+                    "supportive_cards": {"Three of Swords": {"validation": "x"}},
+                }
+            },
+        }
+
+        result = loader.detect_crisis_situation(cards=[], question="죽고 싶다")
+
+        assert result is not None
+        assert result["rule_id"].startswith("tarot_crisis::safety::question_warning_phrase::")
+
+
 class TestPairInterpretationCoverage:
     """Tests for pair interpretation lookup/ranking/summaries."""
 
@@ -302,6 +350,7 @@ class TestPairInterpretationCoverage:
         assert result.get('card1_id') == 'MAJOR_0'
         assert result.get('card2_id') == 'MAJOR_1'
         assert result.get('pair_key')
+        assert result.get('rule_id', '').startswith('tarot_pair::')
 
     def test_rank_pair_interpretations_prefers_theme_field(self):
         """Ranking should prioritize rows with theme-specific content."""
@@ -352,6 +401,65 @@ class TestPairInterpretationCoverage:
         assert 'type' in first
         assert 'cards' in first
         assert 'focus' in first
+        assert 'rule_id' in first
+
+    def test_combination_summary_special_has_rule_id(self):
+        """Special combinations should carry a deterministic rule id."""
+        from backend_ai.app.tarot.rules_loader import AdvancedRulesLoader
+
+        loader = AdvancedRulesLoader()
+        loader.combinations = {
+            'powerful_pairs': {
+                'love': [
+                    {
+                        'cards': ['The Lovers', 'Two of Cups'],
+                        'meaning': 'Perfect match',
+                        'korean': '완벽한 궁합',
+                        'advice': '진심으로 표현하세요',
+                    }
+                ]
+            }
+        }
+
+        summaries = loader.build_combination_summaries(
+            ['The Lovers', 'Two of Cups', 'The Star'],
+            theme='love',
+            limit=3,
+        )
+
+        assert summaries
+        assert summaries[0]['type'] == 'special'
+        assert summaries[0]['rule_id'].startswith('tarot_special::love::')
+
+
+    def test_multi_card_rule_matches_include_rule_id(self):
+        """Multi-card rule matches should return deterministic rule ids."""
+        from backend_ai.app.tarot.rules_loader import AdvancedRulesLoader
+
+        loader = AdvancedRulesLoader(rules_dir="__missing__")
+        loader.multi_card_rules = {
+            "suit_dominance": {
+                "messages": {"Cups": "감정이 읽기를 주도합니다."},
+                "balanced_message": "",
+                "missing_messages": {},
+            },
+            "theme_focus": {
+                "love": {"focus": "관계 흐름을 먼저 보세요."},
+                "general": {"focus": "전체 흐름을 점검하세요."},
+            },
+        }
+        loader.pattern_interpretations = {}
+
+        matches = loader.get_multi_card_rule_matches(
+            {"suit_analysis": {"dominant": {"suit": "Cups"}, "missing": []}},
+            theme='love',
+            spread={"spread_name": "Three Card Spread", "card_count": 3},
+        )
+
+        assert [row["rule_id"] for row in matches] == [
+            "tarot_multi::theme_focus::love",
+            "tarot_multi::suit_dominance::cups",
+        ]
 
 
 class TestSingletonPattern:

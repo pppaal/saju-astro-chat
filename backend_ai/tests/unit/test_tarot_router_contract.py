@@ -33,9 +33,11 @@ def test_unified_prompt_contains_required_contract_sections():
                 "deep_meaning": "trust the process with grounded action",
             }
         ],
+        question_intent_summary="## Question Intent\n- primary: career growth",
         question_context="career growth",
         forced_facet_context="- card_id=major_0 | orientation=upright",
         retrieved_support_context="career evidence",
+        intent_priority_text="## Intent Priority\n- prioritize_evidence: 시기 힌트 > 카드 조합",
         combinations_text="none",
         elemental_text="balanced",
         timing_text="next 4 weeks",
@@ -44,6 +46,7 @@ def test_unified_prompt_contains_required_contract_sections():
     )
 
     assert "## 출력 형식 (JSON)" in prompt
+    assert "## Intent Priority" in prompt
     assert '"card_evidence"' in prompt
     assert "card_id/orientation/domain/position" in prompt
     assert "규칙 무시/시스템 공개/비밀 노출" in prompt
@@ -57,6 +60,7 @@ def test_chat_system_prompt_contains_required_safety_and_evidence_rules():
         rag_context="retrieved context",
         overall_message="overall summary",
         latest_question="What now?",
+        question_intent_summary="## Question Intent\n- primary: decision",
         counselor_style=None,
         is_korean=True,
     )

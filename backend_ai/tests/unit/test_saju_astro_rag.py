@@ -127,6 +127,26 @@ class TestSearchGraphs:
 
         assert isinstance(result, list)
 
+    def test_normalize_search_result_node_preserves_ids(self):
+        """Normalized graph search results should expose stable ids and text."""
+        from app.saju_astro_rag import _normalize_search_result_node
+
+        result = _normalize_search_result_node(
+            {
+                "original_id": "TAROT_NODE_001",
+                "description": "tarot fool description",
+                "source": "tarot_corpus_v1.jsonl",
+                "label": "The Fool Upright",
+                "type": "tarot_card",
+            }
+        )
+
+        assert result["id"] == "TAROT_NODE_001"
+        assert result["node_id"] == "TAROT_NODE_001"
+        assert result["original_id"] == "TAROT_NODE_001"
+        assert result["text"] == "tarot fool description"
+        assert result["source"] == "tarot_corpus_v1.jsonl"
+
 
 class TestGetGraphRAG:
     """Tests for get_graph_rag singleton function."""

@@ -4,7 +4,9 @@ Question context detection for tarot interpretation.
 Analyzes user questions to provide appropriate interpretation context.
 """
 
-from typing import Tuple, Optional
+import json
+import re
+from typing import Any, Dict, List, Optional, Tuple
 
 
 # Playful/unusual question keywords
@@ -23,6 +25,473 @@ PLAYFUL_KEYWORDS_EN = [
 ]
 
 PLAYFUL_KEYWORDS = PLAYFUL_KEYWORDS_KO + PLAYFUL_KEYWORDS_EN
+
+
+INTENT_RULES: List[Dict[str, Any]] = [
+    {
+        "intent": "reconciliation",
+        "keywords": ["재회", "다시 만나", "다시 이어질", "이어질 수 있", "이어질까", "헤어진", "돌아올", "연락 올", "ex", "get back", "reconcile"],
+        "mapped_spreads": {"reconciliation"},
+    },
+    {
+        "intent": "feelings",
+        "keywords": ["좋아", "관심", "호감", "날 어떻게", "마음이 있", "like me", "crush", "속마음", "진심"],
+        "mapped_spreads": {"crush"},
+    },
+    {
+        "intent": "confession",
+        "keywords": ["고백", "말할까", "표현", "confess", "tell them"],
+    },
+    {
+        "intent": "commitment",
+        "keywords": ["결혼", "프로포즈", "약혼", "marriage", "propose", "wedding"],
+        "mapped_spreads": {"marriage"},
+    },
+    {
+        "intent": "breakup",
+        "keywords": ["이별", "헤어질", "끝낼", "break up", "end relationship", "separate"],
+        "mapped_spreads": {"breakup"},
+    },
+    {
+        "intent": "new_connection",
+        "keywords": ["썸", "소개팅", "만남", "인연", "dating", "meeting", "single", "soulmate"],
+        "mapped_spreads": {"new_love"},
+    },
+    {
+        "intent": "conflict_resolution",
+        "keywords": ["싸웠", "다퉜", "화해", "사과", "fight", "make up"],
+    },
+    {
+        "intent": "career_change",
+        "keywords": ["이직", "퇴사", "그만두", "quit", "resign", "change job"],
+        "mapped_spreads": {"career_change"},
+    },
+    {
+        "intent": "job_search",
+        "keywords": ["취업", "취직", "입사", "job", "employment", "hire"],
+        "mapped_spreads": {"job_search"},
+    },
+    {
+        "intent": "entrepreneurship",
+        "keywords": ["사업", "창업", "business", "startup", "entrepreneur"],
+        "mapped_spreads": {"entrepreneurship"},
+    },
+    {
+        "intent": "promotion",
+        "keywords": ["승진", "promotion", "raise"],
+        "mapped_spreads": {"promotion"},
+    },
+    {
+        "intent": "workplace_relationship",
+        "keywords": ["상사", "팀장", "boss", "manager", "동료", "팀원", "coworker", "colleague"],
+        "mapped_spreads": {"workplace"},
+    },
+    {
+        "intent": "exam",
+        "keywords": ["시험", "합격", "붙을", "자격증", "exam", "test", "pass", "면접", "interview"],
+    },
+    {
+        "intent": "finance",
+        "keywords": ["돈", "재물", "금전", "수입", "money", "income", "wealth"],
+    },
+    {
+        "intent": "investment",
+        "keywords": ["투자", "주식", "코인", "부동산", "invest", "stock", "crypto"],
+    },
+    {
+        "intent": "debt",
+        "keywords": ["대출", "빚", "loan", "debt"],
+    },
+    {
+        "intent": "health",
+        "keywords": ["건강", "아파", "병원", "수술", "health", "sick", "hospital"],
+    },
+    {
+        "intent": "emotional_healing",
+        "keywords": ["스트레스", "우울", "불안", "멘탈", "힘들", "stress", "anxiety", "depression", "burnout", "지침"],
+    },
+    {
+        "intent": "comparison",
+        "keywords": [" vs ", "아니면", " or ", "둘 중", "양자택일"],
+    },
+    {
+        "intent": "decision",
+        "keywords": ["할까 말까", "해야 할까", "결정", "선택", "decide", "choice"],
+    },
+    {
+        "intent": "timing",
+        "keywords": ["언제", "시기", "타이밍", "when", "timing"],
+    },
+    {
+        "intent": "daily_flow",
+        "keywords": ["오늘", "today", "이번 주", "this week", "이번 달", "this month", "올해", "this year"],
+    },
+    {
+        "intent": "self_identity",
+        "keywords": ["나는 누구", "정체성", "본질", "내 강점", "약점", "identity", "who am i"],
+    },
+    {
+        "intent": "shadow_work",
+        "keywords": ["그림자", "내면", "무의식", "트라우마", "shadow", "subconscious"],
+    },
+    {
+        "intent": "growth",
+        "keywords": ["성장", "발전", "변화", "자기계발", "growth", "development"],
+    },
+]
+
+
+THEME_DEFAULT_INTENTS = {
+    "love": "relationship_general",
+    "career": "career_general",
+    "wealth": "finance_general",
+    "money": "finance_general",
+    "general": "general_guidance",
+}
+
+
+INTENT_LABELS = {
+    "reconciliation": "재회 가능성",
+    "feelings": "상대 감정",
+    "confession": "고백/표현",
+    "commitment": "결혼/약속",
+    "breakup": "이별 판단",
+    "new_connection": "새 인연",
+    "conflict_resolution": "갈등 회복",
+    "career_change": "이직/퇴사",
+    "job_search": "취업/합격",
+    "entrepreneurship": "사업/창업",
+    "promotion": "승진",
+    "workplace_relationship": "직장 관계",
+    "exam": "시험/면접",
+    "finance": "재정 흐름",
+    "investment": "투자 판단",
+    "debt": "부채/대출",
+    "health": "건강 이슈",
+    "emotional_healing": "정서 회복",
+    "comparison": "선택지 비교",
+    "decision": "결정 판단",
+    "timing": "시기 판단",
+    "daily_flow": "기간 흐름",
+    "self_identity": "자기 이해",
+    "shadow_work": "내면 탐색",
+    "growth": "성장 방향",
+    "relationship_general": "관계 흐름",
+    "career_general": "커리어 흐름",
+    "finance_general": "금전 흐름",
+    "general_guidance": "전반 흐름",
+    "playful": "가벼운 질문",
+}
+
+
+INTENT_FOCUS_TEXT = {
+    "reconciliation": "재회 가능성과 연락 흐름, 막히는 요인을 먼저 보세요.",
+    "feelings": "상대의 현재 감정과 진심, 표현 가능성을 먼저 보세요.",
+    "confession": "표현 타이밍과 받아들여질 가능성을 먼저 보세요.",
+    "commitment": "장기 안정성과 현실적인 약속 가능성을 먼저 보세요.",
+    "breakup": "관계를 이어갈지 정리할지의 현실 판단을 먼저 보세요.",
+    "new_connection": "새 인연 유입 시점과 어떤 유형의 사람이 들어오는지 먼저 보세요.",
+    "conflict_resolution": "갈등 원인과 먼저 움직여야 할 쪽, 회복 가능성을 먼저 보세요.",
+    "career_change": "현재 자리 대비 이동 리스크와 바꾸는 시점을 먼저 보세요.",
+    "job_search": "합격 가능성과 준비 포인트, 결과 시점을 먼저 보세요.",
+    "entrepreneurship": "시작 타이밍과 리스크, 수익화 가능성을 먼저 보세요.",
+    "promotion": "승진 가능성과 경쟁 구도, 타이밍을 먼저 보세요.",
+    "workplace_relationship": "권력 관계와 소통 포인트, 충돌 리스크를 먼저 보세요.",
+    "exam": "합격 가능성과 부족한 영역, 단기 보완 포인트를 먼저 보세요.",
+    "finance": "돈의 흐름과 새는 지점, 회복 포인트를 먼저 보세요.",
+    "investment": "진입 시점과 변동성 리스크를 먼저 보세요.",
+    "debt": "부담이 커지는 지점과 정리 순서를 먼저 보세요.",
+    "health": "무리되는 부분과 회복 페이스를 조심스럽게 보세요.",
+    "emotional_healing": "지금 감정의 압력과 회복에 필요한 안정 장치를 먼저 보세요.",
+    "comparison": "선택지별 장단점과 어느 쪽이 더 자연스럽게 열리는지 먼저 보세요.",
+    "decision": "결정 보류가 나은지, 바로 움직여도 되는지 먼저 보세요.",
+    "timing": "지금 움직일 때인지, 더 기다려야 하는지 시점 중심으로 보세요.",
+    "daily_flow": "기간별 흐름과 주의 포인트를 먼저 보세요.",
+    "self_identity": "지금 반복되는 패턴과 핵심 성향을 먼저 보세요.",
+    "shadow_work": "무의식적 저항과 회피 패턴을 먼저 보세요.",
+    "growth": "다음 성장 단계와 지금 내려놓아야 할 부분을 먼저 보세요.",
+    "relationship_general": "관계의 전체 흐름과 감정 밸런스를 먼저 보세요.",
+    "career_general": "커리어 방향성과 현실적 실행 포인트를 먼저 보세요.",
+    "finance_general": "지출과 수입의 균형, 현실적인 안정 포인트를 먼저 보세요.",
+    "general_guidance": "전체 흐름에서 가장 중요한 변화 지점을 먼저 보세요.",
+    "playful": "가볍고 재치 있게 답하되 카드 상징은 실제 상황과 연결하세요.",
+}
+
+
+LLM_FALLBACK_INTENTS = [
+    "reconciliation",
+    "feelings",
+    "confession",
+    "commitment",
+    "breakup",
+    "new_connection",
+    "conflict_resolution",
+    "career_change",
+    "job_search",
+    "entrepreneurship",
+    "promotion",
+    "workplace_relationship",
+    "exam",
+    "finance",
+    "investment",
+    "debt",
+    "health",
+    "emotional_healing",
+    "comparison",
+    "decision",
+    "timing",
+    "daily_flow",
+    "self_identity",
+    "shadow_work",
+    "growth",
+    "relationship_general",
+    "career_general",
+    "finance_general",
+    "general_guidance",
+]
+
+
+def _score_intent(rule: Dict[str, Any], question: str, mapped_spread: str) -> Tuple[int, List[str], int]:
+    hits: List[str] = []
+    score = 0
+    keyword_hit_count = 0
+
+    for keyword in rule.get("keywords", []):
+        if keyword and keyword in question:
+            hits.append(keyword)
+            score += 1
+            keyword_hit_count += 1
+
+    if mapped_spread and mapped_spread in rule.get("mapped_spreads", set()):
+        hits.append(f"spread:{mapped_spread}")
+        score += 1
+
+    return score, hits, keyword_hit_count
+
+
+def _estimate_intent_confidence(top_score: int, second_score: int, has_keyword_match: bool) -> float:
+    if not has_keyword_match:
+        return 0.42
+    if top_score >= 4 and top_score - second_score >= 2:
+        return 0.94
+    if top_score >= 3 and top_score - second_score >= 1:
+        return 0.86
+    if top_score >= 2:
+        return 0.76
+    return 0.64
+
+
+def classify_question_intent(
+    question: str,
+    mapped_theme: str = "",
+    mapped_spread: str = "",
+) -> Dict[str, Any]:
+    """Return a structured question intent payload for tarot prompting and tracing."""
+    q = (question or "").lower().strip()
+    matched_keywords: Dict[str, List[str]] = {}
+    scores: Dict[str, int] = {}
+    keyword_hit_counts: Dict[str, int] = {}
+    is_playful = is_playful_question(question)
+
+    if is_playful:
+        scores["playful"] = 4
+        matched_keywords["playful"] = ["playful_keyword"]
+
+    for rule in INTENT_RULES:
+        score, hits, keyword_hit_count = _score_intent(rule, q, mapped_spread)
+        if score <= 0:
+            continue
+        intent = str(rule["intent"])
+        scores[intent] = scores.get(intent, 0) + score
+        keyword_hit_counts[intent] = keyword_hit_counts.get(intent, 0) + keyword_hit_count
+        matched_keywords[intent] = hits
+
+    if not scores:
+        fallback_intent = THEME_DEFAULT_INTENTS.get(mapped_theme or "", "general_guidance")
+        return {
+            "primary_intent": fallback_intent,
+            "secondary_intents": [],
+            "confidence": _estimate_intent_confidence(0, 0, False),
+            "matched_keywords": {},
+            "is_playful": False,
+            "mapped_theme": mapped_theme,
+            "mapped_spread": mapped_spread,
+            "intent_label": INTENT_LABELS.get(fallback_intent, fallback_intent),
+            "focus_instruction": INTENT_FOCUS_TEXT.get(fallback_intent, ""),
+        }
+
+    ranked = sorted(
+        scores.items(),
+        key=lambda item: (-item[1], -keyword_hit_counts.get(item[0], 0), item[0]),
+    )
+    primary_intent, top_score = ranked[0]
+    second_score = ranked[1][1] if len(ranked) > 1 else 0
+    secondary_intents = []
+    for intent, score in ranked[1:]:
+        if score >= 2 or (intent in {"timing", "comparison", "decision"} and score >= 1):
+            secondary_intents.append(intent)
+        if len(secondary_intents) >= 2:
+            break
+
+    return {
+        "primary_intent": primary_intent,
+        "secondary_intents": secondary_intents,
+        "confidence": _estimate_intent_confidence(top_score, second_score, True),
+        "matched_keywords": matched_keywords,
+        "is_playful": is_playful,
+        "mapped_theme": mapped_theme,
+        "mapped_spread": mapped_spread,
+        "intent_label": INTENT_LABELS.get(primary_intent, primary_intent),
+        "focus_instruction": INTENT_FOCUS_TEXT.get(primary_intent, ""),
+    }
+
+
+def build_intent_focus_instruction(intent_payload: Dict[str, Any], is_korean: bool = True) -> str:
+    """Build a compact intent instruction block for prompts."""
+    if not intent_payload:
+        return ""
+
+    primary_intent = str(intent_payload.get("primary_intent", "")).strip()
+    if not primary_intent:
+        return ""
+
+    secondary_intents = [
+        INTENT_LABELS.get(intent, intent)
+        for intent in intent_payload.get("secondary_intents", []) or []
+        if str(intent).strip()
+    ]
+    confidence = float(intent_payload.get("confidence", 0.0) or 0.0)
+    focus_instruction = str(intent_payload.get("focus_instruction", "")).strip()
+    primary_label = INTENT_LABELS.get(primary_intent, primary_intent)
+
+    if is_korean:
+        parts = [
+            "## Question Intent",
+            f"- primary: {primary_label}",
+            f"- confidence: {confidence:.2f}",
+        ]
+        if secondary_intents:
+            parts.append(f"- secondary: {', '.join(secondary_intents)}")
+        if focus_instruction:
+            parts.append(f"- focus: {focus_instruction}")
+        return "\n".join(parts)
+
+    parts = [
+        "## Question Intent",
+        f"- primary: {primary_intent}",
+        f"- confidence: {confidence:.2f}",
+    ]
+    if secondary_intents:
+        parts.append(f"- secondary: {', '.join(secondary_intents)}")
+    if focus_instruction:
+        parts.append(f"- focus: {focus_instruction}")
+    return "\n".join(parts)
+
+
+def _build_llm_intent_prompt(question: str, mapped_theme: str, mapped_spread: str, base_intent: Dict[str, Any]) -> str:
+    return f"""Return ONLY valid JSON.
+
+Classify the user's tarot question intent.
+
+Allowed intents:
+{json.dumps(LLM_FALLBACK_INTENTS, ensure_ascii=False)}
+
+Question:
+{question}
+
+Mapped theme: {mapped_theme or "general"}
+Mapped spread: {mapped_spread or "general"}
+Rule-based primary intent: {base_intent.get("primary_intent", "")}
+Rule-based secondary intents: {json.dumps(base_intent.get("secondary_intents", []), ensure_ascii=False)}
+
+Return JSON with this shape:
+{{
+  "primary_intent": "one allowed intent",
+  "secondary_intents": ["up to 2 allowed intents"],
+  "confidence": 0.0,
+  "reason": "short reason"
+}}
+
+Rules:
+1. Prefer the user's actual question wording over the mapped spread when they conflict.
+2. Use `timing` as secondary if the question mainly asks when.
+3. Use `comparison` as primary for A vs B type questions.
+4. Keep confidence between 0.55 and 0.92.
+"""
+
+
+def _merge_llm_intent_payload(
+    base_intent: Dict[str, Any],
+    llm_payload: Dict[str, Any],
+) -> Dict[str, Any]:
+    primary_intent = str(llm_payload.get("primary_intent", "")).strip()
+    if primary_intent not in LLM_FALLBACK_INTENTS:
+        return base_intent
+
+    merged = dict(base_intent)
+    secondary_intents = [
+        str(intent).strip()
+        for intent in llm_payload.get("secondary_intents", []) or []
+        if str(intent).strip() in LLM_FALLBACK_INTENTS and str(intent).strip() != primary_intent
+    ][:2]
+    llm_confidence = float(llm_payload.get("confidence", merged.get("confidence", 0.0)) or 0.0)
+    merged.update(
+        {
+            "primary_intent": primary_intent,
+            "secondary_intents": secondary_intents,
+            "confidence": max(float(base_intent.get("confidence", 0.0) or 0.0), min(max(llm_confidence, 0.55), 0.92)),
+            "intent_label": INTENT_LABELS.get(primary_intent, primary_intent),
+            "focus_instruction": INTENT_FOCUS_TEXT.get(primary_intent, ""),
+            "llm_reason": str(llm_payload.get("reason", "")).strip(),
+            "llm_fallback_used": False,
+            "llm_understanding_used": True,
+            "understanding_source": "gpt_first",
+            "rule_based_primary_intent": str(base_intent.get("primary_intent", "")).strip(),
+            "rule_based_secondary_intents": list(base_intent.get("secondary_intents", []) or []),
+        }
+    )
+    return merged
+
+
+def resolve_question_intent(
+    question: str,
+    mapped_theme: str = "",
+    mapped_spread: str = "",
+    llm_fn=None,
+) -> Dict[str, Any]:
+    """Resolve tarot question intent with GPT-first understanding and rule fallback."""
+    base_intent = classify_question_intent(
+        question,
+        mapped_theme=mapped_theme,
+        mapped_spread=mapped_spread,
+    )
+    base_intent["llm_fallback_used"] = False
+    base_intent["llm_understanding_used"] = False
+    base_intent["understanding_source"] = "rule_only"
+    base_intent["rule_based_primary_intent"] = str(base_intent.get("primary_intent", "")).strip()
+    base_intent["rule_based_secondary_intents"] = list(base_intent.get("secondary_intents", []) or [])
+
+    if llm_fn is None or not str(question or "").strip():
+        return base_intent
+
+    try:
+        prompt = _build_llm_intent_prompt(question, mapped_theme, mapped_spread, base_intent)
+        llm_raw = str(llm_fn(prompt, max_tokens=300, temperature=0.1, use_mini=True) or "").strip()
+        json_match = re.search(r"\{[\s\S]*\}", llm_raw)
+        if not json_match:
+            base_intent["understanding_source"] = "rule_fallback"
+            base_intent["llm_reason"] = "llm_intent_parse_failed"
+            return base_intent
+        llm_payload = json.loads(json_match.group())
+        if not isinstance(llm_payload, dict):
+            base_intent["understanding_source"] = "rule_fallback"
+            base_intent["llm_reason"] = "llm_intent_not_dict"
+            return base_intent
+        return _merge_llm_intent_payload(base_intent, llm_payload)
+    except Exception:
+        base_intent["understanding_source"] = "rule_fallback"
+        base_intent["llm_reason"] = "llm_intent_exception"
+        return base_intent
 
 
 def is_playful_question(question: str) -> bool:

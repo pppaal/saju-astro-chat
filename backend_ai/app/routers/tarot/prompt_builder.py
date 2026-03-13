@@ -222,9 +222,11 @@ def build_unified_prompt(
     spread_title: str,
     question: str,
     card_details: List[Dict],
+    question_intent_summary: str,
     question_context: str,
     forced_facet_context: str,
     retrieved_support_context: str,
+    intent_priority_text: str,
     combinations_text: str,
     elemental_text: str,
     timing_text: str,
@@ -233,6 +235,7 @@ def build_unified_prompt(
 ) -> str:
     """Build unified prompt for overall + all card interpretations."""
     date_str, season = get_date_and_season("ko" if is_korean else "en")
+    intent_priority_section = intent_priority_text if intent_priority_text else "## Intent Priority\n(priority 없음)"
 
     card_list_text = "\n\n".join([
         f"""### {cd['index']+1}. [{cd['position']}] {cd['name']}{cd['reversed_text']}
@@ -255,6 +258,8 @@ domain: {cd['domain']}
 ## 뽑힌 카드
 {card_list_text}
 
+{question_intent_summary}
+
 {question_context}
 
 ## Forced Facet (뽑힌 카드 근거)
@@ -262,6 +267,8 @@ domain: {cd['domain']}
 
 ## Retrieved Support (보강 근거)
 {retrieved_support_context[:900] if retrieved_support_context else '(retrieved support 없음)'}
+
+{intent_priority_section}
 
 ## 카드 조합 시너지
 {combinations_text if combinations_text else '(조합 정보 없음)'}
@@ -323,6 +330,7 @@ def build_chat_system_prompt(
     rag_context: str,
     overall_message: str,
     latest_question: str,
+    question_intent_summary: str = "",
     counselor_style: Optional[str] = None,
     is_korean: bool = True
 ) -> str:
@@ -360,6 +368,8 @@ def build_chat_system_prompt(
 ## 이전 해석
 {overall_message[:500] if overall_message else '(없음)'}
 
+{question_intent_summary}
+
 ## 말투: 친구처럼 편하게, "~해요/~죠/~거든요" 사용{playful_instruction}"""
     else:
         playful_en = ""
@@ -392,6 +402,9 @@ Example:
 
 ## Previous Interpretation
 {overall_message[:500] if overall_message else '(none)'}{playful_en}"""
+
+        if question_intent_summary:
+            system_prompt += f"\n\n{question_intent_summary}"
 
     if counselor_style:
         system_prompt += f"\n\n## 상담사 스타일: {counselor_style}"

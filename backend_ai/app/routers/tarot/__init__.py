@@ -39,10 +39,13 @@ from .dependencies import (
 
 # Re-export context detector utilities
 from .context_detector import (
+    classify_question_intent,
+    build_intent_focus_instruction,
     detect_question_context,
     is_playful_question,
     is_yes_no_question,
     get_conclusion_instruction,
+    resolve_question_intent,
 )
 
 
@@ -82,6 +85,9 @@ __all__ = [
     "is_suspicious_input",
     "sanitize_messages",
     # Context Detector
+    "classify_question_intent",
+    "build_intent_focus_instruction",
+    "resolve_question_intent",
     "detect_question_context",
     "is_playful_question",
     "is_yes_no_question",

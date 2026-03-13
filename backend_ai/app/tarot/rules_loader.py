@@ -8,6 +8,7 @@ Extracted from tarot_hybrid_rag.py for better modularity.
 
 import os
 import json
+import re
 from typing import Dict, List, Optional, Any, Tuple
 
 
@@ -115,6 +116,30 @@ class AdvancedRulesLoader:
     def _pair_key(self, id1: str, id2: str) -> str:
         """Stable key for unordered card pairs."""
         return "||".join(sorted([id1, id2]))
+
+    @staticmethod
+    def _slugify_rule_part(value: str) -> str:
+        """Normalize free text into a stable rule id token."""
+        normalized = re.sub(r"[^0-9a-zA-Z가-힣]+", "_", str(value or "").strip().lower())
+        normalized = re.sub(r"_+", "_", normalized).strip("_")
+        return normalized or "unknown"
+
+    def _build_pair_rule_id(self, pair_key: str, source: str) -> str:
+        """Build a deterministic rule id for pair-based interpretations."""
+        return f"tarot_pair::{self._slugify_rule_part(source)}::{self._slugify_rule_part(pair_key)}"
+
+    def _build_special_rule_id(self, category: str, cards: List[str]) -> str:
+        """Build a deterministic rule id for special combination matches."""
+        cards_key = "__".join(
+            sorted([self._slugify_rule_part(card) for card in cards if str(card).strip()])
+        )
+        return f"tarot_special::{self._slugify_rule_part(category)}::{cards_key or 'unknown'}"
+
+    def _build_named_rule_id(self, namespace: str, *parts: str) -> str:
+        """Build a deterministic rule id for non-combination tarot rules."""
+        normalized_parts = [self._slugify_rule_part(part) for part in parts if str(part).strip()]
+        suffix = "::".join(normalized_parts) if normalized_parts else "general"
+        return f"{namespace}::{suffix}"
 
     def _load_card_pair_combinations(self):
         """Load tarot_combinations.csv for card pair interpretations"""
@@ -280,12 +305,42 @@ class AdvancedRulesLoader:
         spread: Optional[Dict] = None
     ) -> List[str]:
         """Apply stored multi-card rules to a pattern analysis result."""
+        matches = self.get_multi_card_rule_matches(pattern, theme=theme, spread=spread)
+        return [str(match.get("message", "")).strip() for match in matches if str(match.get("message", "")).strip()]
+
+    def get_multi_card_rule_matches(
+        self,
+        pattern: Dict,
+        theme: Optional[str] = None,
+        spread: Optional[Dict] = None
+    ) -> List[Dict[str, str]]:
+        """Return normalized multi-card rule matches with rule ids."""
         priority_hints: List[str] = []
         general_hints: List[str] = []
+        priority_matches: List[Dict[str, str]] = []
+        general_matches: List[Dict[str, str]] = []
         rules = self.multi_card_rules or {}
         pattern_rules = self.pattern_interpretations or {}
         if not rules or not pattern:
             return []
+
+        def _append_match(
+            target_messages: List[str],
+            target_matches: List[Dict[str, str]],
+            message: Optional[str],
+            namespace: str,
+            *parts: str,
+        ) -> None:
+            text = str(message or "").strip()
+            if not text:
+                return
+            target_messages.append(text)
+            target_matches.append(
+                {
+                    "rule_id": self._build_named_rule_id(namespace, *parts),
+                    "message": text,
+                }
+            )
 
         # Suit dominance + missing
         suit_rules = rules.get("suit_dominance", {})
@@ -295,31 +350,28 @@ class AdvancedRulesLoader:
             suit = dominant.get("suit")
             if suit:
                 msg = suit_rules.get("messages", {}).get(suit)
-                if msg:
-                    general_hints.append(msg)
+                _append_match(general_hints, general_matches, msg, "tarot_multi", "suit_dominance", suit)
 
         if suit_analysis.get("balance") == "balanced":
             balanced_msg = suit_rules.get("balanced_message")
-            if balanced_msg:
-                general_hints.append(balanced_msg)
+            _append_match(general_hints, general_matches, balanced_msg, "tarot_multi", "suit_balance", "balanced")
 
         for miss in suit_analysis.get("missing", []) or []:
             suit = miss.get("suit")
             if suit:
                 msg = suit_rules.get("missing_messages", {}).get(suit)
-                if msg:
-                    general_hints.append(msg)
+                _append_match(general_hints, general_matches, msg, "tarot_multi", "suit_missing", suit)
 
         # Major ratio rules
         arcana = pattern.get("arcana_analysis", {})
         major_ratio_percent = arcana.get("major_ratio")
         if isinstance(major_ratio_percent, (int, float)):
             major_ratio = major_ratio_percent / 100.0
-            for rule in rules.get("major_ratio_rules", []):
+            for idx, rule in enumerate(rules.get("major_ratio_rules", [])):
                 if major_ratio >= rule.get("min", 1.1):
                     msg = rule.get("message")
-                    if msg:
-                        general_hints.append(msg)
+                    rule_key = f"min_{rule.get('min', 'na')}_{idx}"
+                    _append_match(general_hints, general_matches, msg, "tarot_multi", "major_ratio", rule_key)
                     break
 
         # Reversal ratio rules
@@ -328,24 +380,31 @@ class AdvancedRulesLoader:
         if isinstance(reversal_ratio_percent, (int, float)):
             reversal_ratio = reversal_ratio_percent / 100.0
             applied = False
-            for rule in rules.get("reversal_ratio_rules", []):
+            for idx, rule in enumerate(rules.get("reversal_ratio_rules", [])):
                 if "exact" in rule and reversal_ratio == rule.get("exact"):
                     msg = rule.get("message")
-                    if msg:
-                        general_hints.append(msg)
+                    rule_key = f"exact_{rule.get('exact', 'na')}_{idx}"
+                    _append_match(general_hints, general_matches, msg, "tarot_multi", "reversal_ratio", rule_key)
                     applied = True
                     break
                 if reversal_ratio >= rule.get("min", 1.1):
                     msg = rule.get("message")
-                    if msg:
-                        general_hints.append(msg)
+                    rule_key = f"min_{rule.get('min', 'na')}_{idx}"
+                    _append_match(general_hints, general_matches, msg, "tarot_multi", "reversal_ratio", rule_key)
                     applied = True
                     break
             if not applied and reversal_ratio == 0:
-                msg = next((r.get("message") for r in rules.get("reversal_ratio_rules", [])
-                            if r.get("exact") == 0), None)
-                if msg:
-                    general_hints.append(msg)
+                for idx, rule in enumerate(rules.get("reversal_ratio_rules", [])):
+                    if rule.get("exact") == 0:
+                        _append_match(
+                            general_hints,
+                            general_matches,
+                            rule.get("message"),
+                            "tarot_multi",
+                            "reversal_ratio",
+                            f"exact_0_{idx}",
+                        )
+                        break
 
         # Court focus
         court = pattern.get("court_analysis", {})
@@ -355,16 +414,14 @@ class AdvancedRulesLoader:
             min_ratio = court_rules.get("min_ratio", 0.4)
             if court.get("count", 0) >= min_count or (court.get("ratio", 0) / 100.0) >= min_ratio:
                 msg = court_rules.get("message")
-                if msg:
-                    general_hints.append(msg)
+                _append_match(general_hints, general_matches, msg, "tarot_multi", "court_focus", "threshold")
 
         # Element energy
         element = pattern.get("element_interaction", {})
         element_energy = element.get("overall_energy")
         if element_energy:
             msg = rules.get("element_energy", {}).get(element_energy)
-            if msg:
-                general_hints.append(msg)
+            _append_match(general_hints, general_matches, msg, "tarot_multi", "element_energy", element_energy)
 
         # Energy flow
         energy_flow = pattern.get("energy_flow", {})
@@ -372,9 +429,9 @@ class AdvancedRulesLoader:
         pattern_state = energy_flow.get("pattern")
         flow_rules = rules.get("energy_flow", {})
         if trend and flow_rules.get(trend):
-            general_hints.append(flow_rules.get(trend))
+            _append_match(general_hints, general_matches, flow_rules.get(trend), "tarot_multi", "energy_flow", trend)
         elif pattern_state and flow_rules.get(pattern_state):
-            general_hints.append(flow_rules.get(pattern_state))
+            _append_match(general_hints, general_matches, flow_rules.get(pattern_state), "tarot_multi", "energy_flow", pattern_state)
 
         # Number repeats
         num_rules = rules.get("number_repeats", {})
@@ -384,8 +441,7 @@ class AdvancedRulesLoader:
             if num is None:
                 continue
             msg = num_rules.get(str(num))
-            if msg:
-                general_hints.append(msg)
+            _append_match(general_hints, general_matches, msg, "tarot_multi", "number_repeat", str(num))
 
         # Sequences
         seq_rule = rules.get("sequence_rule", {})
@@ -394,9 +450,8 @@ class AdvancedRulesLoader:
             nums = seq.get("numbers", [])
             if isinstance(nums, list) and len(nums) >= min_len:
                 msg = seq_rule.get("message")
-                if msg:
-                    general_hints.append(msg)
-                    break
+                _append_match(general_hints, general_matches, msg, "tarot_multi", "sequence_rule", f"min_len_{min_len}")
+                break
 
         # === Enrich with pattern_interpretations.json ===
         # Reversed reading tips
@@ -405,9 +460,9 @@ class AdvancedRulesLoader:
             tips = reversed_guide.get("reading_tips", [])
             if isinstance(tips, list) and tips:
                 if reversal_ratio_percent and reversal_ratio_percent >= 50:
-                    general_hints.append(tips[0])
+                    _append_match(general_hints, general_matches, tips[0], "tarot_multi", "reversal_guide", "high")
                 elif reversal_ratio_percent and reversal_ratio_percent >= 30 and len(tips) > 1:
-                    general_hints.append(tips[1])
+                    _append_match(general_hints, general_matches, tips[1], "tarot_multi", "reversal_guide", "medium")
 
         # Number interpretations (richer wording)
         num_interp = pattern_rules.get("number_interpretations", {})
@@ -422,7 +477,7 @@ class AdvancedRulesLoader:
                 rich = num_interp[key]
                 extra = rich.get("korean") or rich.get("core_meaning")
                 if extra:
-                    general_hints.append(extra)
+                    _append_match(general_hints, general_matches, extra, "tarot_multi", "number_interpretation", key)
                     break
 
         # Court card interpretation (if court focus)
@@ -441,14 +496,14 @@ class AdvancedRulesLoader:
                     if key and key in court_interp:
                         extra = court_interp[key].get("korean") or court_interp[key].get("core_meaning")
                         if extra:
-                            general_hints.append(extra)
+                            _append_match(general_hints, general_matches, extra, "tarot_multi", "court_interpretation", key)
                             break
 
         # General interpretation principle tip
         tips = pattern_rules.get("reading_enhancement_tips", {}).get("interpretation_principles", [])
         if isinstance(tips, list) and tips:
             if len(general_hints) < 6:
-                general_hints.append(tips[0])
+                _append_match(general_hints, general_matches, tips[0], "tarot_multi", "interpretation_principle", "primary")
 
         # === Theme + spread focused hints ===
         theme_key = (theme or "").strip().lower()
@@ -465,16 +520,14 @@ class AdvancedRulesLoader:
         theme_data = theme_rules.get(theme_key) or theme_rules.get("general") or {}
 
         focus_msg = theme_data.get("focus")
-        if focus_msg:
-            priority_hints.append(focus_msg)
+        _append_match(priority_hints, priority_matches, focus_msg, "tarot_multi", "theme_focus", theme_key or "general")
 
         dominant_suit = None
         if isinstance(dominant, dict):
             dominant_suit = dominant.get("suit")
         if dominant_suit:
             dom_note = (theme_data.get("dominant_suit_notes") or {}).get(dominant_suit)
-            if dom_note:
-                priority_hints.append(dom_note)
+            _append_match(priority_hints, priority_matches, dom_note, "tarot_multi", "theme_dominant_suit", theme_key or "general", dominant_suit)
 
         missing_list = suit_analysis.get("missing", []) or []
         if missing_list:
@@ -482,18 +535,24 @@ class AdvancedRulesLoader:
             for miss in missing_list:
                 miss_suit = miss.get("suit")
                 if miss_suit and miss_note_map.get(miss_suit):
-                    priority_hints.append(miss_note_map.get(miss_suit))
+                    _append_match(
+                        priority_hints,
+                        priority_matches,
+                        miss_note_map.get(miss_suit),
+                        "tarot_multi",
+                        "theme_missing_suit",
+                        theme_key or "general",
+                        miss_suit,
+                    )
                     break
 
         if isinstance(major_ratio_percent, (int, float)) and major_ratio_percent >= 50:
             major_note = theme_data.get("major_ratio_note")
-            if major_note:
-                priority_hints.append(major_note)
+            _append_match(priority_hints, priority_matches, major_note, "tarot_multi", "theme_major_ratio", theme_key or "general")
 
         if isinstance(reversal_ratio_percent, (int, float)) and reversal_ratio_percent >= 50:
             reversal_note = theme_data.get("reversal_note")
-            if reversal_note:
-                priority_hints.append(reversal_note)
+            _append_match(priority_hints, priority_matches, reversal_note, "tarot_multi", "theme_reversal_ratio", theme_key or "general")
 
         spread_key = None
         if isinstance(spread, dict):
@@ -511,20 +570,21 @@ class AdvancedRulesLoader:
             guide = guides.get(spread_key)
             if guide:
                 guide_msg = guide.get("message")
-                if guide_msg:
-                    priority_hints.append(guide_msg)
+                _append_match(priority_hints, priority_matches, guide_msg, "tarot_multi", "spread_guide", spread_key)
                 trend = energy_flow.get("trend")
                 flow_msg = (guide.get("energy_flow") or {}).get(trend)
-                if flow_msg:
-                    priority_hints.append(flow_msg)
+                _append_match(priority_hints, priority_matches, flow_msg, "tarot_multi", "spread_energy_flow", spread_key, trend or "none")
 
         # Merge (priority first), remove duplicates while preserving order
-        merged: List[str] = []
-        for msg in priority_hints + general_hints:
-            if msg and msg not in merged:
-                merged.append(msg)
+        merged_messages: List[str] = []
+        merged_matches: List[Dict[str, str]] = []
+        for match in priority_matches + general_matches:
+            msg = str(match.get("message", "")).strip()
+            if msg and msg not in merged_messages:
+                merged_messages.append(msg)
+                merged_matches.append(match)
 
-        return merged
+        return merged_matches
 
     def find_card_pair_interpretation(self, card1_name: str, card2_name: str) -> Optional[Dict]:
         """Find interpretation for a specific card pair from CSV data"""
@@ -556,12 +616,18 @@ class AdvancedRulesLoader:
                 return base.get(alt or field)
             return None
 
+        source = 'pair_override' if override else 'pair_csv'
+        pair_key = self._pair_key(card1_id, card2_id)
         return {
             'card1': card1_name,
             'card2': card2_name,
             'card1_id': card1_id,
             'card2_id': card2_id,
-            'pair_key': self._pair_key(card1_id, card2_id),
+            'pair_key': pair_key,
+            'source': source,
+            'rule_id': self._build_pair_rule_id(pair_key, source),
+            'has_override': bool(override),
+            'has_base_rule': bool(base),
             'element_relation': _pick('element_relation'),
             'love': _pick('love', 'love_interpretation'),
             'career': _pick('career', 'career_interpretation'),
@@ -582,6 +648,7 @@ class AdvancedRulesLoader:
                     return {
                         'category': category,
                         'cards': pair.get('cards'),
+                        'rule_id': self._build_special_rule_id(category, pair.get('cards', [])),
                         'meaning': pair.get('meaning', ''),
                         'korean': pair.get('korean', ''),
                         'advice': pair.get('advice', '')
@@ -591,12 +658,13 @@ class AdvancedRulesLoader:
         for combo_name, combo_data in triple_combos.items():
             combo_cards = set(combo_data.get('cards', []))
             if combo_cards.issubset(set(card_names)):
-                return {
-                    'category': combo_name,
-                    'cards': combo_data.get('cards'),
-                    'meaning': combo_data.get('meaning', ''),
-                    'korean': combo_data.get('korean', '')
-                }
+                    return {
+                        'category': combo_name,
+                        'cards': combo_data.get('cards'),
+                        'rule_id': self._build_special_rule_id(combo_name, combo_data.get('cards', [])),
+                        'meaning': combo_data.get('meaning', ''),
+                        'korean': combo_data.get('korean', '')
+                    }
 
         return None
 
@@ -616,15 +684,29 @@ class AdvancedRulesLoader:
 
         return None
 
-    def get_timing_hint(self, card_name: str) -> Optional[str]:
-        """Get timing hint for a card"""
+    def get_timing_hint_details(self, card_name: str) -> Optional[Dict[str, str]]:
+        """Get timing hint details with a deterministic rule id."""
         if not self.timing_rules:
             return None
 
         card_timing = self.timing_rules.get('card_timing_meanings', {})
         for timing_category, data in card_timing.items():
             if card_name in data.get('cards', []):
-                return f"{data.get('korean', '')}: {data.get('timeframe', '')}"
+                message = f"{data.get('korean', '')}: {data.get('timeframe', '')}"
+                return {
+                    "rule_id": self._build_named_rule_id("tarot_timing", timing_category, card_name),
+                    "category": timing_category,
+                    "card_name": card_name,
+                    "message": message,
+                }
+
+        return None
+
+    def get_timing_hint(self, card_name: str) -> Optional[str]:
+        """Get timing hint for a card"""
+        details = self.get_timing_hint_details(card_name)
+        if details:
+            return details.get("message")
 
         return None
 
@@ -841,6 +923,9 @@ class AdvancedRulesLoader:
                     "type": "pair",
                     "cards": [pair.get("card1", ""), pair.get("card2", "")],
                     "pair_key": pair.get("pair_key", ""),
+                    "source": pair.get("source", "pair_csv"),
+                    "rule_id": pair.get("rule_id", ""),
+                    "theme_field": preferred_field,
                     "focus": focus_text[:260],
                     "advice": str(pair.get("advice", "")).strip()[:220],
                     "element_relation": str(pair.get("element_relation", "")).strip(),
@@ -857,6 +942,9 @@ class AdvancedRulesLoader:
                     "type": "special",
                     "category": special.get("category", ""),
                     "cards": special.get("cards", []),
+                    "source": "special_combo",
+                    "rule_id": special.get("rule_id", ""),
+                    "theme_field": "",
                     "focus": str(special.get("korean") or special.get("meaning") or "").strip()[:300],
                     "advice": str(special.get("advice", "")).strip()[:220],
                 },
@@ -918,6 +1006,7 @@ class AdvancedRulesLoader:
                     "severity": "high",
                     "professional_help_needed": True,
                     "matched_phrase": phrase,
+                    "rule_id": self._build_named_rule_id("tarot_crisis", "safety", "question_warning_phrase", phrase),
                     "trigger": "question_warning_phrase",
                 }
 
@@ -940,6 +1029,7 @@ class AdvancedRulesLoader:
                     "crisis_name": cfg.get("name", crisis_type),
                     "severity": cfg.get("severity", "moderate"),
                     "professional_help_needed": bool(cfg.get("professional_help_trigger")),
+                    "rule_id": self._build_named_rule_id("tarot_crisis", crisis_type, "question_keyword"),
                     "trigger": "question_keyword",
                 }
 
@@ -970,6 +1060,7 @@ class AdvancedRulesLoader:
                     "crisis_name": cfg.get("name", crisis_type),
                     "severity": cfg.get("severity", "moderate"),
                     "professional_help_needed": bool(cfg.get("professional_help_trigger")),
+                    "rule_id": self._build_named_rule_id("tarot_crisis", crisis_type, "card_indicator", normalized_card),
                     "trigger": "card_indicator",
                 }
         return None

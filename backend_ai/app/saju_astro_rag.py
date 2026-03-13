@@ -2025,6 +2025,52 @@ def _handle_embed_mismatch(texts: List[str], nodes: List[Dict], embeds) -> tuple
     return texts[:min_len], nodes[:min_len], embeds[:min_len]
 
 
+def _fallback_search_node_id(node: Dict) -> str:
+    """Build a deterministic fallback id for loose corpus nodes."""
+    base = "|".join(
+        [
+            str(node.get("source", "")).strip(),
+            str(node.get("label", "")).strip(),
+            str(node.get("description", "")).strip()[:160],
+        ]
+    )
+    digest = hashlib.sha1(base.encode("utf-8", errors="ignore")).hexdigest()[:16]
+    return f"graph_{digest}"
+
+
+def _normalize_search_result_node(node: Dict) -> Dict:
+    """Normalize graph search results to a stable output schema."""
+    result = dict(node or {})
+    node_id = (
+        result.get("node_id")
+        or result.get("original_id")
+        or result.get("id")
+        or result.get("label")
+        or result.get("name")
+    )
+    if not node_id:
+        node_id = _fallback_search_node_id(result)
+
+    text = str(
+        result.get("text")
+        or result.get("description")
+        or result.get("content")
+        or result.get("label")
+        or ""
+    ).strip()
+
+    result["id"] = str(node_id)
+    result["node_id"] = str(node_id)
+    result["original_id"] = str(result.get("original_id") or node_id)
+    result["text"] = text
+    result["description"] = text
+    result["content"] = text
+    result["source"] = str(result.get("source", "")).strip()
+    result["label"] = str(result.get("label", result.get("name", "")) or "").strip()
+    result["type"] = str(result.get("type", "")).strip()
+    return result
+
+
 def search_graphs(query: str, top_k: int = 6, graph_root: Optional[str] = None) -> List[Dict]:
     """
     Simple embedding-based search in graph data.
@@ -2073,13 +2119,19 @@ def _search_graphs_chromadb(query: str, top_k: int = 6) -> List[Dict]:
 
         output = []
         for r in results:
-            node = {
-                "description": r["text"],
-                "score": r["score"],
-                "source": r["metadata"].get("source", ""),
-                "type": r["metadata"].get("type", ""),
-                "label": r["metadata"].get("label", ""),
-            }
+            node = _normalize_search_result_node(
+                {
+                    "id": r.get("metadata", {}).get("original_id", r.get("id", "")),
+                    "original_id": r.get("metadata", {}).get("original_id", r.get("id", "")),
+                    "text": r["text"],
+                    "description": r["text"],
+                    "score": r["score"],
+                    "source": r["metadata"].get("source", ""),
+                    "type": r["metadata"].get("type", ""),
+                    "label": r["metadata"].get("label", ""),
+                }
+            )
+            node["score"] = r["score"]
             output.append(node)
 
         return output
@@ -2145,7 +2197,7 @@ def _search_graphs_legacy(query: str, top_k: int = 6, graph_root: Optional[str] 
 
     results = []
     for idx, score in zip(best_indices.indices, best_indices.values):
-        node = dict(nodes[int(idx)])
+        node = _normalize_search_result_node(dict(nodes[int(idx)]))
         node["score"] = round(float(score), 4)
         results.append(node)
 

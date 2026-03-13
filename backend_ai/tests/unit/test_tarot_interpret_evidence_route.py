@@ -15,6 +15,30 @@ class _DummyRules:
     def get_followup_questions(self, *_args, **_kwargs):
         return []
 
+    def build_combination_summaries(self, *_args, **_kwargs):
+        return [
+            {
+                "type": "pair",
+                "cards": ["The Fool", "The Magician"],
+                "pair_key": "MAJOR_0||MAJOR_1",
+                "rule_id": "tarot_pair::pair_csv::major_0_major_1",
+                "source": "pair_csv",
+                "theme_field": "love",
+                "focus": "새로운 시작과 실행력이 함께 움직입니다.",
+                "advice": "서두르지 말고 흐름을 확인하세요.",
+                "element_relation": "supportive",
+            }
+        ]
+
+    def get_timing_hint_details(self, *_args, **_kwargs):
+        return None
+
+    def detect_crisis_situation(self, *_args, **_kwargs):
+        return None
+
+    def get_multi_card_rule_matches(self, *_args, **_kwargs):
+        return []
+
 
 class _DummyHybridRag:
     advanced_rules = _DummyRules()
@@ -52,6 +76,49 @@ class _DummyHybridRag:
     def get_card_connections(self, _drawn_cards):
         return []
 
+    def get_pattern_analysis(self, _drawn_cards):
+        return {}
+
+    def get_spread_info(self, _theme, _sub_topic):
+        return {"spread_name": "Three Card Spread", "card_count": 3}
+
+
+class _DummyRulesWithExtendedIds(_DummyRules):
+    def get_timing_hint_details(self, card_name, *_args, **_kwargs):
+        return {
+            "rule_id": f"tarot_timing::immediate::{card_name.lower().replace(' ', '_')}",
+            "category": "immediate",
+            "card_name": card_name,
+            "message": "즉시: 1-7 days",
+        }
+
+    def detect_crisis_situation(self, *_args, **_kwargs):
+        return {
+            "detected": True,
+            "crisis_type": "breakup",
+            "crisis_name": "이별/관계 종료",
+            "severity": "moderate",
+            "professional_help_needed": False,
+            "rule_id": "tarot_crisis::breakup::question_keyword",
+            "trigger": "question_keyword",
+        }
+
+    def get_multi_card_rule_matches(self, *_args, **_kwargs):
+        return [
+            {
+                "rule_id": "tarot_multi::theme_focus::love",
+                "message": "관계 흐름을 먼저 보세요.",
+            },
+            {
+                "rule_id": "tarot_multi::suit_dominance::cups",
+                "message": "감정이 읽기를 주도합니다.",
+            },
+        ]
+
+
+class _DummyHybridRagWithExtendedIds(_DummyHybridRag):
+    advanced_rules = _DummyRulesWithExtendedIds()
+
 
 def _make_app():
     app = Flask(__name__)
@@ -69,6 +136,15 @@ def test_interpret_includes_card_evidence_with_retry():
     app = _make_app()
     client = app.test_client()
 
+    intent_response = json.dumps(
+        {
+            "primary_intent": "feelings",
+            "secondary_intents": ["timing"],
+            "confidence": 0.84,
+            "reason": "상대의 연락과 감정 흐름을 함께 묻는 질문",
+        },
+        ensure_ascii=False,
+    )
     no_evidence = json.dumps(
         {
             "overall": "overall text",
@@ -110,7 +186,7 @@ def test_interpret_includes_card_evidence_with_retry():
         patch("backend_ai.app.routers.tarot.interpret.get_cache", return_value=None), \
         patch("backend_ai.app.routers.tarot.interpret.HAS_GRAPH_RAG", False), \
         patch("backend_ai.app.routers.tarot.interpret.generate_dynamic_followup_questions", return_value=[]), \
-        patch("backend_ai.app.routers.tarot.interpret.generate_with_gpt4", side_effect=[no_evidence, with_evidence]):
+        patch("backend_ai.app.routers.tarot.interpret.generate_with_gpt4", side_effect=[intent_response, no_evidence, with_evidence]):
         resp = client.post("/api/tarot/interpret", data=json.dumps(payload), content_type="application/json")
 
     assert resp.status_code == 200
@@ -119,6 +195,10 @@ def test_interpret_includes_card_evidence_with_retry():
     assert len(data["card_evidence"]) == 1
     assert data["card_evidence"][0]["card_id"] == "major_0"
     assert "Card Evidence" in data["overall_message"]
+    assert data["used_rule_ids"] == ["tarot_pair::pair_csv::major_0_major_1"]
+    assert data["trace"]["used_rule_ids"] == ["tarot_pair::pair_csv::major_0_major_1"]
+    assert data["trace"]["combination_sources"][0]["rule_id"] == "tarot_pair::pair_csv::major_0_major_1"
+    assert data["trace"]["intent"]["understanding_source"] == "gpt_first"
 
 
 def test_interpret_returns_400_on_invalid_draws():
@@ -147,6 +227,241 @@ def test_interpret_returns_400_on_invalid_draws():
     assert "orientation" in fields
     assert "domain" in fields
     assert "position" in fields
+
+
+def test_interpret_trace_includes_graph_node_ids_and_sources():
+    app = _make_app()
+    client = app.test_client()
+
+    intent_response = json.dumps(
+        {
+            "primary_intent": "relationship_general",
+            "secondary_intents": [],
+            "confidence": 0.79,
+            "reason": "연애 흐름 전반을 묻는 질문",
+        },
+        ensure_ascii=False,
+    )
+    llm_response = json.dumps(
+        {
+            "overall": "전체 해석입니다.",
+            "cards": [{"position": "present", "interpretation": "카드 해석"}],
+            "card_evidence": [
+                {
+                    "card_id": "MAJOR_0",
+                    "orientation": "upright",
+                    "domain": "love",
+                    "position": "present",
+                    "evidence": "근거 문장 하나. 근거 문장 둘.",
+                }
+            ],
+            "advice": [{"title": "action", "detail": "실행 조언"}],
+        },
+        ensure_ascii=False,
+    )
+
+    payload = {
+        "category": "love",
+        "spread_id": "single_card",
+        "spread_title": "Single",
+        "cards": [{"name": "The Fool", "is_reversed": False, "position": "present"}],
+        "user_question": "연애 흐름이 궁금해요",
+        "language": "ko",
+    }
+
+    graph_results = [
+        {
+            "node_id": "TAROT_NODE_001",
+            "original_id": "TAROT_NODE_001",
+            "text": "타로 The Fool upright meaning and new beginning guidance",
+            "source": "tarot_corpus_v1.jsonl",
+            "label": "The Fool Upright",
+            "type": "tarot_card",
+            "score": 0.91,
+        },
+        {
+            "node_id": "OTHER_NODE_002",
+            "original_id": "OTHER_NODE_002",
+            "text": "unrelated finance memo for quarterly planning",
+            "source": "other.json",
+            "label": "Other",
+            "type": "misc",
+            "score": 0.22,
+        },
+    ]
+
+    with patch("backend_ai.app.routers.tarot.interpret.has_tarot", return_value=True), \
+        patch("backend_ai.app.routers.tarot.interpret.get_tarot_hybrid_rag", return_value=_DummyHybridRag()), \
+        patch("backend_ai.app.routers.tarot.interpret.get_cache", return_value=None), \
+        patch("backend_ai.app.routers.tarot.interpret.HAS_GRAPH_RAG", True), \
+        patch("backend_ai.app.routers.tarot.interpret.search_graphs", return_value=graph_results), \
+        patch("backend_ai.app.routers.tarot.interpret.generate_dynamic_followup_questions", return_value=[]), \
+        patch("backend_ai.app.routers.tarot.interpret.generate_with_gpt4", side_effect=[intent_response, llm_response]):
+        resp = client.post("/api/tarot/interpret", data=json.dumps(payload), content_type="application/json")
+
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["trace"]["used_graph_node_ids"] == ["TAROT_NODE_001"]
+    assert data["trace"]["graph_rag"]["node_ids"] == ["TAROT_NODE_001"]
+    assert data["trace"]["graph_rag"]["sources"] == ["tarot_corpus_v1.jsonl"]
+    assert data["trace"]["graph_rag"]["snippets"][0]["node_id"] == "TAROT_NODE_001"
+    assert data["trace"]["graph_rag"]["snippets"][0]["source"] == "tarot_corpus_v1.jsonl"
+    assert data["trace"]["intent"]["understanding_source"] == "gpt_first"
+    assert "love" in data["trace"]["retrieval"]["query"]
+
+
+def test_interpret_uses_gpt_first_intent_for_ambiguous_question():
+    app = _make_app()
+    client = app.test_client()
+
+    intent_response = json.dumps(
+        {
+            "primary_intent": "decision",
+            "secondary_intents": ["timing"],
+            "confidence": 0.82,
+            "reason": "짧고 애매한 문장이라 결정을 묻는 질문으로 판단",
+        },
+        ensure_ascii=False,
+    )
+    llm_response = json.dumps(
+        {
+            "overall": "전체 해석입니다.",
+            "cards": [{"position": "present", "interpretation": "카드 해석"}],
+            "card_evidence": [
+                {
+                    "card_id": "MAJOR_0",
+                    "orientation": "upright",
+                    "domain": "general",
+                    "position": "present",
+                    "evidence": "근거 문장 하나. 근거 문장 둘.",
+                }
+            ],
+            "advice": [{"title": "action", "detail": "실행 조언"}],
+        },
+        ensure_ascii=False,
+    )
+
+    payload = {
+        "category": "general",
+        "spread_id": "single_card",
+        "spread_title": "Single",
+        "cards": [{"name": "The Fool", "is_reversed": False, "position": "present"}],
+        "user_question": "어떨까?",
+        "language": "ko",
+    }
+
+    with patch("backend_ai.app.routers.tarot.interpret.has_tarot", return_value=True), \
+        patch("backend_ai.app.routers.tarot.interpret.get_tarot_hybrid_rag", return_value=_DummyHybridRag()), \
+        patch("backend_ai.app.routers.tarot.interpret.get_cache", return_value=None), \
+        patch("backend_ai.app.routers.tarot.interpret.HAS_GRAPH_RAG", False), \
+        patch("backend_ai.app.routers.tarot.interpret.generate_dynamic_followup_questions", return_value=[]), \
+        patch("backend_ai.app.routers.tarot.interpret.generate_with_gpt4", side_effect=[intent_response, llm_response]):
+        resp = client.post("/api/tarot/interpret", data=json.dumps(payload), content_type="application/json")
+
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["trace"]["intent"]["primary_intent"] == "decision"
+    assert data["trace"]["intent"]["secondary_intents"] == ["timing"]
+    assert data["trace"]["intent"]["llm_understanding_used"] is True
+    assert data["trace"]["intent"]["understanding_source"] == "gpt_first"
+    assert "decision" in data["trace"]["retrieval"]["query"]
+    assert "시기" in data["trace"]["retrieval"]["query"]
+    assert data["trace"]["intent"]["llm_reason"] == "짧고 애매한 문장이라 결정을 묻는 질문으로 판단"
+    assert data["trace"]["intent_priority"]["priority_order"][:3] == ["multi_card", "combination", "timing"]
+
+
+def test_interpret_used_rule_ids_include_timing_crisis_and_multi_card():
+    app = _make_app()
+    client = app.test_client()
+
+    intent_response = json.dumps(
+        {
+            "primary_intent": "reconciliation",
+            "secondary_intents": ["breakup"],
+            "confidence": 0.9,
+            "reason": "이별 이후 재회 가능성을 먼저 묻는 질문",
+        },
+        ensure_ascii=False,
+    )
+    llm_response = json.dumps(
+        {
+            "overall": "전체 해석입니다.",
+            "cards": [
+                {"position": "past", "interpretation": "과거 카드 해석"},
+                {"position": "present", "interpretation": "현재 카드 해석"},
+                {"position": "future", "interpretation": "미래 카드 해석"},
+            ],
+            "card_evidence": [
+                {
+                    "card_id": "MAJOR_0",
+                    "orientation": "upright",
+                    "domain": "love",
+                    "position": "past",
+                    "evidence": "근거 문장 하나. 근거 문장 둘.",
+                },
+                {
+                    "card_id": "MAJOR_1",
+                    "orientation": "upright",
+                    "domain": "love",
+                    "position": "present",
+                    "evidence": "근거 문장 하나. 근거 문장 둘.",
+                },
+                {
+                    "card_id": "MAJOR_2",
+                    "orientation": "upright",
+                    "domain": "love",
+                    "position": "future",
+                    "evidence": "근거 문장 하나. 근거 문장 둘.",
+                },
+            ],
+            "advice": [{"title": "action", "detail": "실행 조언"}],
+        },
+        ensure_ascii=False,
+    )
+
+    payload = {
+        "category": "love",
+        "spread_id": "three_card",
+        "spread_title": "Three Card",
+        "cards": [
+            {"name": "The Fool", "is_reversed": False, "position": "past"},
+            {"name": "The Magician", "is_reversed": False, "position": "present"},
+            {"name": "The High Priestess", "is_reversed": False, "position": "future"},
+        ],
+        "user_question": "이별 이후 다시 이어질 수 있을까요?",
+        "language": "ko",
+    }
+
+    with patch("backend_ai.app.routers.tarot.interpret.has_tarot", return_value=True), \
+        patch("backend_ai.app.routers.tarot.interpret.get_tarot_hybrid_rag", return_value=_DummyHybridRagWithExtendedIds()), \
+        patch("backend_ai.app.routers.tarot.interpret.get_cache", return_value=None), \
+        patch("backend_ai.app.routers.tarot.interpret.HAS_GRAPH_RAG", False), \
+        patch("backend_ai.app.routers.tarot.interpret.generate_dynamic_followup_questions", return_value=[]), \
+        patch("backend_ai.app.routers.tarot.interpret.generate_with_gpt4", side_effect=[intent_response, llm_response]):
+        resp = client.post("/api/tarot/interpret", data=json.dumps(payload), content_type="application/json")
+
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["used_rule_ids"] == [
+        "tarot_pair::pair_csv::major_0_major_1",
+        "tarot_timing::immediate::the_fool",
+        "tarot_crisis::breakup::question_keyword",
+        "tarot_multi::theme_focus::love",
+        "tarot_multi::suit_dominance::cups",
+    ]
+    assert data["trace"]["timing_rule"]["rule_id"] == "tarot_timing::immediate::the_fool"
+    assert [row["rule_id"] for row in data["trace"]["timing_rules"]] == ["tarot_timing::immediate::the_fool"]
+    assert data["trace"]["crisis_rule"]["rule_id"] == "tarot_crisis::breakup::question_keyword"
+    assert [row["rule_id"] for row in data["trace"]["multi_card_rules"]] == [
+        "tarot_multi::theme_focus::love",
+        "tarot_multi::suit_dominance::cups",
+    ]
+    assert data["trace"]["intent"]["primary_intent"] == "reconciliation"
+    assert "breakup" in data["trace"]["intent"]["secondary_intents"]
+    assert data["trace"]["intent"]["confidence"] >= 0.76
+    assert data["trace"]["intent"]["understanding_source"] == "gpt_first"
+    assert "reconciliation" in data["trace"]["retrieval"]["query"]
+    assert data["trace"]["intent_priority"]["priority_order"][:4] == ["combination", "multi_card", "timing", "graph"]
 
 
 @pytest.mark.parametrize(
@@ -217,3 +532,4 @@ def test_interpret_smoke_20_has_card_evidence_section(category, user_question):
     data = resp.get_json()
     assert "Card Evidence" in data["overall_message"]
     assert len(data["card_evidence"]) == 1
+    assert data["used_rule_ids"] == ["tarot_pair::pair_csv::major_0_major_1"]

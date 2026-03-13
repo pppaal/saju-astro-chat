@@ -18,7 +18,8 @@ from .dependencies import (
     sanitize_messages,
     generate_with_gpt4,
 )
-from .context_detector import is_playful_question
+from .context_detector import build_intent_focus_instruction, is_playful_question, resolve_question_intent
+from .interpret import _build_intent_aware_retrieval_query
 from .prompt_builder import build_chat_system_prompt
 
 logger = logging.getLogger(__name__)
@@ -60,12 +61,20 @@ def register_chat_routes(bp: Blueprint):
             # Get the latest user question
             user_messages = [m for m in messages if m.get("role") == "user"]
             latest_question = user_messages[-1].get("content", "") if user_messages else ""
+            mapped_theme, mapped_spread = map_tarot_theme(category, spread_title, latest_question)
+            intent_payload = resolve_question_intent(
+                latest_question,
+                mapped_theme=mapped_theme,
+                mapped_spread=mapped_spread,
+                llm_fn=generate_with_gpt4,
+            )
+            question_intent_summary = build_intent_focus_instruction(intent_payload, is_korean=language == "ko")
 
             # Build card context string
             cards_context = _build_cards_context(cards)
 
             # Build RAG context if available
-            rag_context = _build_rag_context(cards, category, spread_title, latest_question)
+            rag_context = _build_rag_context(cards, category, spread_title, latest_question, intent_payload)
 
             # Build system prompt
             is_korean = language == "ko"
@@ -76,6 +85,7 @@ def register_chat_routes(bp: Blueprint):
                 rag_context=rag_context,
                 overall_message=overall_message,
                 latest_question=latest_question,
+                question_intent_summary=question_intent_summary,
                 counselor_style=counselor_style,
                 is_korean=is_korean
             )
@@ -214,7 +224,8 @@ def _build_rag_context(
     cards: List[Dict],
     category: str,
     spread_title: str,
-    latest_question: str
+    latest_question: str,
+    intent_payload: Dict | None = None,
 ) -> str:
     """Build RAG context for chat."""
     rag_context = ""
@@ -225,12 +236,20 @@ def _build_rag_context(
                 {"name": c.get("name", ""), "isReversed": c.get("is_reversed", False)}
                 for c in cards
             ]
+            card_names = [str(c.get("name", "")).strip() for c in cards if str(c.get("name", "")).strip()]
             mapped_theme, mapped_spread = map_tarot_theme(category, spread_title, latest_question)
+            retrieval_query = _build_intent_aware_retrieval_query(
+                question=latest_question,
+                card_names=card_names,
+                intent_payload=intent_payload,
+                mapped_theme=mapped_theme,
+                mapped_spread=mapped_spread,
+            )
             rag_context = hybrid_rag.build_reading_context(
                 theme=mapped_theme,
                 sub_topic=mapped_spread,
                 drawn_cards=drawn_cards,
-                question=latest_question
+                question=retrieval_query
             )
     except Exception as rag_err:
         logger.warning(f"[TAROT-CHAT] RAG context failed: {rag_err}")

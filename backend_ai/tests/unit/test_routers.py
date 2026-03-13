@@ -268,6 +268,48 @@ class TestTarotRoutes:
         assert theme == 'career'
         assert spread == 'job_search'
 
+    def test_classify_question_intent_detects_primary_and_secondary(self):
+        """classify_question_intent should expose structured intent metadata."""
+        from app.routers.tarot import classify_question_intent
+
+        result = classify_question_intent(
+            "재회는 가능할까? 언제 다시 연락이 올까?",
+            mapped_theme="love",
+            mapped_spread="reconciliation",
+        )
+
+        assert result["primary_intent"] == "reconciliation"
+        assert "timing" in result["secondary_intents"]
+        assert result["confidence"] >= 0.76
+        assert result["intent_label"] == "재회 가능성"
+
+    def test_resolve_question_intent_uses_gpt_first_for_ambiguous_short_query(self):
+        """resolve_question_intent should use GPT-first understanding on ambiguous short queries."""
+        from app.routers.tarot import resolve_question_intent
+
+        def _fake_llm(*_args, **_kwargs):
+            return """
+            {
+              "primary_intent": "decision",
+              "secondary_intents": ["timing"],
+              "confidence": 0.81,
+              "reason": "짧지만 결정과 시기를 함께 묻는 질문"
+            }
+            """
+
+        result = resolve_question_intent(
+            "어떨까?",
+            mapped_theme="general",
+            mapped_spread="single_card",
+            llm_fn=_fake_llm,
+        )
+
+        assert result["primary_intent"] == "decision"
+        assert result["secondary_intents"] == ["timing"]
+        assert result["llm_understanding_used"] is True
+        assert result["understanding_source"] == "gpt_first"
+        assert result["llm_reason"] == "짧지만 결정과 시기를 함께 묻는 질문"
+
     def test_clean_ai_phrases(self):
         """_clean_ai_phrases should remove AI-sounding text."""
         from app.routers.tarot_routes import _clean_ai_phrases
