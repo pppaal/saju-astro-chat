@@ -1,6 +1,6 @@
-﻿'use client'
+'use client'
 
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTypingAnimation } from '@/hooks/useTypingAnimation'
 import { HOME_CORE_SERVICE_OPTIONS } from '@/lib/coreServices'
@@ -12,184 +12,180 @@ interface ServiceSearchBoxProps {
   styles: CSSModule
 }
 
-const SERVICE_PAGE_SIZE = 7
+type ServiceCopy = {
+  description: string
+  placeholder: string
+}
 
 export default function ServiceSearchBox({ translate, styles }: ServiceSearchBoxProps) {
   const router = useRouter()
+  const defaultService = HOME_CORE_SERVICE_OPTIONS[0]
 
   const [lifeQuestion, setLifeQuestion] = useState('')
-  const [showServiceSelector, setShowServiceSelector] = useState(false)
-  const [selectedService, setSelectedService] = useState<string | null>(null)
-  const [servicePage, setServicePage] = useState(0)
-  const searchContainerRef = useRef<HTMLDivElement>(null)
+  const [selectedService, setSelectedService] = useState<string | null>(defaultService?.key ?? null)
 
-  const servicePageCount = Math.max(
-    1,
-    Math.ceil(HOME_CORE_SERVICE_OPTIONS.length / SERVICE_PAGE_SIZE)
-  )
-  const maxServicePage = servicePageCount - 1
+  const selectedServiceOption =
+    HOME_CORE_SERVICE_OPTIONS.find((service) => service.key === selectedService) || defaultService
 
-  const placeholders = React.useMemo(
-    () => [
-      translate('landing.hint1', 'How is my fortune today?'),
-      translate('landing.hint2', 'How is my love luck?'),
-      translate('landing.hint3', 'Should I change jobs?'),
-      translate('landing.searchPlaceholder', 'What would you like to know today?'),
-    ],
+  const serviceCopy = useMemo<Record<string, ServiceCopy>>(
+    () => ({
+      destinyMap: {
+        description: translate(
+          'landing.serviceDestinyCounselorDesc',
+          'Ask a question and get a direct guided reading.'
+        ),
+        placeholder: translate(
+          'landing.serviceDestinyCounselorPlaceholder',
+          'Ask about a decision, relationship, or worry you want clarity on.'
+        ),
+      },
+      tarot: {
+        description: translate(
+          'landing.serviceTarotDesc',
+          'Check the current flow and your options quickly.'
+        ),
+        placeholder: translate(
+          'landing.serviceTarotPlaceholder',
+          'Ask what the cards say about this situation right now.'
+        ),
+      },
+      calendar: {
+        description: translate(
+          'landing.serviceCalendarDesc',
+          'See better timing, caution windows, and date-based flow.'
+        ),
+        placeholder: translate(
+          'landing.serviceCalendarPlaceholder',
+          'Ask when to act, schedule, launch, or have an important talk.'
+        ),
+      },
+      report: {
+        description: translate(
+          'landing.serviceReportDesc',
+          'Generate a deeper summary you can review in detail.'
+        ),
+        placeholder: translate(
+          'landing.serviceReportPlaceholder',
+          'Ask what topic you want a more detailed report on.'
+        ),
+      },
+    }),
     [translate]
+  )
+
+  const selectedServiceCopy = serviceCopy[selectedServiceOption.key] || {
+    description: translate(
+      'landing.aiRoutingText',
+      'Choose a reading first, then ask one clear question.'
+    ),
+    placeholder: translate('landing.searchPlaceholder', 'Ask the one thing you need clarity on.'),
+  }
+
+  const placeholders = useMemo(
+    () => [
+      translate('landing.hint1', "Today's flow"),
+      translate('landing.hint2', 'Love timing'),
+      translate('landing.hint3', 'Career move'),
+      selectedServiceCopy.placeholder,
+    ],
+    [selectedServiceCopy.placeholder, translate]
   )
 
   const typingPlaceholder = useTypingAnimation(placeholders, 1000)
 
-  const closeServiceSelector = useCallback(() => {
-    setShowServiceSelector(false)
-    setServicePage(0)
-  }, [])
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
-        closeServiceSelector()
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [closeServiceSelector])
-
-  useEffect(() => {
-    if (!showServiceSelector) {
-      return
-    }
-
-    const handleScroll = () => {
-      closeServiceSelector()
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-    }
-  }, [showServiceSelector, closeServiceSelector])
-
-  useEffect(() => {
-    if (showServiceSelector) {
-      const originalStyle = window.getComputedStyle(document.body).overflow
-      document.body.style.overflow = 'hidden'
-      return () => {
-        document.body.style.overflow = originalStyle
-      }
-    }
-  }, [showServiceSelector])
-
-  useEffect(() => {
-    if (servicePage > maxServicePage) {
-      setServicePage(maxServicePage)
-    }
-  }, [servicePage, maxServicePage])
-
   const handleQuestionSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault()
-      const service =
-        HOME_CORE_SERVICE_OPTIONS.find((s) => s.key === selectedService) ||
-        HOME_CORE_SERVICE_OPTIONS[0]
 
       if (lifeQuestion.trim()) {
-        router.push(`${service.path}?q=${encodeURIComponent(lifeQuestion.trim())}`)
+        router.push(`${selectedServiceOption.path}?q=${encodeURIComponent(lifeQuestion.trim())}`)
       } else {
-        router.push(service.path)
+        router.push(selectedServiceOption.path)
       }
-      setShowServiceSelector(false)
     },
-    [lifeQuestion, router, selectedService]
+    [lifeQuestion, router, selectedServiceOption.path]
   )
-
-  const handleServiceSelect = useCallback((serviceKey: string) => {
-    setSelectedService(serviceKey)
-    setShowServiceSelector(false)
-  }, [])
 
   const handleHintClick = useCallback(
     (hint: string) => {
       setLifeQuestion(hint)
-      const service =
-        HOME_CORE_SERVICE_OPTIONS.find((s) => s.key === selectedService) ||
-        HOME_CORE_SERVICE_OPTIONS[0]
-      router.push(`${service.path}?q=${encodeURIComponent(hint)}`)
+      router.push(`${selectedServiceOption.path}?q=${encodeURIComponent(hint)}`)
     },
-    [router, selectedService]
+    [router, selectedServiceOption.path]
   )
 
   return (
-    <div className={styles.questionSearchContainer} ref={searchContainerRef}>
+    <div className={styles.questionSearchContainer}>
       <form onSubmit={handleQuestionSubmit} className={styles.questionSearchForm}>
-        <div className={styles.questionSearchWrapper}>
-          <button
-            type="button"
-            className={styles.serviceSelectBtn}
-            onClick={() => setShowServiceSelector(!showServiceSelector)}
-            title={translate('landing.selectService', 'Select service')}
-          >
-            <span className={styles.serviceSelectIcon}>
-              {HOME_CORE_SERVICE_OPTIONS.find((s) => s.key === selectedService)?.icon || '✨'}
-            </span>
-            <span className={styles.serviceSelectArrow}>▼</span>
-          </button>
+        <div className={styles.searchPanelHeader}>
+          <div className={styles.serviceChoiceIntro}>
+            <p className={styles.serviceSelectCaption}>
+              {translate('landing.selectService', 'Select service')}
+            </p>
+            <h2 className={styles.serviceSelectTitle}>
+              {translate(
+                'landing.serviceSelectTitle',
+                'Choose the reading you want, then type your question.'
+              )}
+            </h2>
+          </div>
 
-          {showServiceSelector && (
-            <div className={styles.serviceDropdown}>
-              <div className={styles.serviceDropdownGrid}>
-                {HOME_CORE_SERVICE_OPTIONS.slice(
-                  servicePage * SERVICE_PAGE_SIZE,
-                  (servicePage + 1) * SERVICE_PAGE_SIZE
-                ).map((service) => (
-                  <button
-                    key={service.key}
-                    type="button"
-                    className={`${styles.serviceDropdownItem} ${selectedService === service.key ? styles.selected : ''}`}
-                    onClick={() => handleServiceSelect(service.key)}
-                  >
-                    <span className={styles.serviceDropdownIcon}>{service.icon}</span>
-                    <span className={styles.serviceDropdownLabel}>
+          <p className={styles.aiRoutingText}>
+            <span className={styles.aiRoutingIcon}>✦</span>
+            {selectedServiceCopy.description}
+          </p>
+        </div>
+
+        <div className={styles.serviceChoiceGrid}>
+          {HOME_CORE_SERVICE_OPTIONS.map((service) => {
+            const copy = serviceCopy[service.key]
+            const isActive = selectedService === service.key
+
+            return (
+              <button
+                key={service.key}
+                type="button"
+                className={`${styles.serviceChoiceCard} ${isActive ? styles.serviceChoiceCardActive : ''}`}
+                onClick={() => setSelectedService(service.key)}
+                aria-pressed={isActive}
+              >
+                <span className={styles.serviceChoiceHead}>
+                  <span className={styles.serviceChoiceIcon}>{service.icon}</span>
+                  <span className={styles.serviceChoiceMeta}>
+                    <span className={styles.serviceChoiceName}>
                       {translate(service.labelKey, service.labelFallback)}
                     </span>
-                  </button>
-                ))}
-              </div>
+                    <span className={styles.serviceChoiceDesc}>
+                      {copy?.description || selectedServiceCopy.description}
+                    </span>
+                  </span>
+                </span>
+                {isActive ? (
+                  <span className={styles.serviceChoiceStatus}>
+                    {translate('landing.serviceSelected', 'Selected')}
+                  </span>
+                ) : null}
+              </button>
+            )
+          })}
+        </div>
 
-              {servicePageCount > 1 && (
-                <div className={styles.serviceDropdownNav}>
-                  <button
-                    type="button"
-                    className={`${styles.serviceDropdownNavBtn} ${servicePage === 0 ? styles.disabled : ''}`}
-                    onClick={() => setServicePage((prev) => Math.max(0, prev - 1))}
-                    disabled={servicePage === 0}
-                    aria-label="Previous page"
-                  >
-                    &#8249;
-                  </button>
-                  <div className={styles.serviceDropdownDots}>
-                    {Array.from({ length: servicePageCount }).map((_, idx) => (
-                      <span
-                        key={`service-dot-${idx}`}
-                        className={`${styles.serviceDropdownDot} ${servicePage === idx ? styles.active : ''}`}
-                      />
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    className={`${styles.serviceDropdownNavBtn} ${servicePage === maxServicePage ? styles.disabled : ''}`}
-                    onClick={() => setServicePage((prev) => Math.min(maxServicePage, prev + 1))}
-                    disabled={servicePage === maxServicePage}
-                    aria-label="Next page"
-                  >
-                    &#8250;
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+        <div className={styles.selectedServiceRow}>
+          <span className={styles.selectedServiceBadge}>
+            <span className={styles.selectedServiceBadgeIcon}>{selectedServiceOption.icon}</span>
+            <span>
+              {translate(selectedServiceOption.labelKey, selectedServiceOption.labelFallback)}
+            </span>
+          </span>
+          <span className={styles.selectedServiceNote}>
+            {translate(
+              'landing.selectedServiceNote',
+              'Your question will go straight into this reading.'
+            )}
+          </span>
+        </div>
 
+        <div className={styles.questionSearchWrapper}>
           <label htmlFor="destiny-question" className={styles.srOnly}>
             {translate('landing.searchPlaceholder', 'What would you like to know today?')}
           </label>
@@ -197,13 +193,9 @@ export default function ServiceSearchBox({ translate, styles }: ServiceSearchBox
             id="destiny-question"
             type="text"
             className={styles.questionSearchInput}
-            placeholder={
-              typingPlaceholder ||
-              translate('landing.searchPlaceholder', 'What would you like to know today?')
-            }
+            placeholder={typingPlaceholder || selectedServiceCopy.placeholder}
             value={lifeQuestion}
             onChange={(e) => setLifeQuestion(e.target.value)}
-            onFocus={() => setShowServiceSelector(false)}
             autoComplete="off"
           />
           <button type="submit" className={styles.questionSearchBtn} aria-label="Search">
@@ -215,46 +207,26 @@ export default function ServiceSearchBox({ translate, styles }: ServiceSearchBox
           <button
             type="button"
             className={styles.questionHint}
-            onClick={() => handleHintClick(translate('landing.hint1', 'How is my fortune today?'))}
+            onClick={() => handleHintClick(translate('landing.hint1', "Today's flow"))}
           >
-            {translate('landing.hint1', 'How is my fortune today?')}
+            {translate('landing.hint1', "Today's flow")}
           </button>
           <button
             type="button"
             className={styles.questionHint}
-            onClick={() => handleHintClick(translate('landing.hint2', 'How is my love luck?'))}
+            onClick={() => handleHintClick(translate('landing.hint2', 'Love timing'))}
           >
-            {translate('landing.hint2', 'How is my love luck?')}
+            {translate('landing.hint2', 'Love timing')}
           </button>
           <button
             type="button"
             className={styles.questionHint}
-            onClick={() => handleHintClick(translate('landing.hint3', 'Should I change jobs?'))}
+            onClick={() => handleHintClick(translate('landing.hint3', 'Career move'))}
           >
-            {translate('landing.hint3', 'Should I change jobs?')}
+            {translate('landing.hint3', 'Career move')}
           </button>
         </div>
       </form>
-
-      <div className={styles.aiRoutingGuide}>
-        <p className={styles.aiRoutingText}>
-          <span className={styles.aiRoutingIcon}>ⓘ</span>
-          {translate('landing.aiRoutingText', 'Select a service and ask your question')}
-        </p>
-        <div className={styles.serviceIconsRow}>
-          {HOME_CORE_SERVICE_OPTIONS.map((service) => (
-            <button
-              key={service.key}
-              type="button"
-              className={`${styles.serviceIcon} ${selectedService === service.key ? styles.serviceIconActive : ''}`}
-              title={translate(service.labelKey, service.labelFallback)}
-              onClick={() => handleServiceSelect(service.key)}
-            >
-              {service.icon}
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }

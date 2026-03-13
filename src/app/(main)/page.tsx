@@ -9,7 +9,7 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 export const metadata: Metadata = generateMetadata({
   title: 'DestinyPal AI Fortune Platform',
   description:
-    'DestinyPal is an AI fortune platform focused on Destiny Counselor, Tarot, Calendar, and Reports. Explore Korean fortune reading, timing insight, and practical self-understanding.',
+    'DestinyPal connects Saju, astrology, tarot, and timing tools into one guided reading flow for clearer decisions.',
   keywords: [
     'DestinyPal',
     'destinypal',
@@ -31,7 +31,7 @@ export default async function MainPage() {
     type: 'WebPage',
     name: 'DestinyPal AI Fortune Platform',
     description:
-      'DestinyPal is an AI fortune platform for Destiny Counselor, Tarot, Calendar, and AI Reports.',
+      'DestinyPal connects Saju, astrology, tarot, and timing tools into one guided reading flow.',
     url: baseUrl,
   })
   const faqJsonLd = generateJsonLd({
@@ -40,7 +40,7 @@ export default async function MainPage() {
       {
         question: 'What is DestinyPal?',
         answer:
-          'DestinyPal is an AI fortune platform focused on Destiny Counselor, tarot, calendar timing, and AI reports.',
+          'DestinyPal is an AI-guided reading platform that connects Saju, astrology, tarot, and timing tools.',
       },
       {
         question: 'What can I do on DestinyPal?',

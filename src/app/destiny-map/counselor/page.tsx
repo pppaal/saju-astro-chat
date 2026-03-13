@@ -107,32 +107,36 @@ export default function CounselorPage() {
   return (
     <main className={`${styles.page} ${showChat ? styles.fadeIn : ''}`}>
       <header className={styles.header}>
-        <button
-          type="button"
-          className={styles.backButton}
-          onClick={handleBack}
-          aria-label={t('common.back', 'Back')}
-        >
-          <span className={styles.backIcon}>{'\u2190'}</span>
-        </button>
+        <div className={styles.headerLeft}>
+          <button
+            type="button"
+            className={styles.backButton}
+            onClick={handleBack}
+            aria-label={t('common.back', 'Back')}
+          >
+            <span className={styles.backIcon}>{'\u2190'}</span>
+          </button>
 
-        <div className={styles.headerInfo}>
-          <div className={styles.counselorBadge}>
-            <span className={styles.counselorAvatar}>{'\uD83D\uDD2E'}</span>
-            <div>
-              <h1 className={styles.headerTitle}>
-                {t('destinyMap.counselor.title', 'Destiny Counselor')}
-              </h1>
-              <span className={styles.onlineStatus}>
-                <span className={styles.onlineDot} />
-                {t('destinyMap.counselor.online', 'Online')}
-              </span>
+          <div className={styles.headerInfo}>
+            <div className={styles.counselorBadge}>
+              <span className={styles.counselorAvatar}>{'\uD83D\uDD2E'}</span>
+              <div>
+                <h1 className={styles.headerTitle}>
+                  {t('destinyMap.counselor.title', 'Destiny Counselor')}
+                </h1>
+                <span className={styles.onlineStatus}>
+                  <span className={styles.onlineDot} />
+                  {t('destinyMap.counselor.online', 'Online')}
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
         <div className={styles.headerActions}>
-          <CreditBadge variant="compact" />
+          <div className={styles.creditBadgeWrap}>
+            <CreditBadge variant="compact" />
+          </div>
           <Link href="/" className={styles.homeButton} aria-label="Home">
             <span className={styles.homeIcon}>{'\uD83C\uDFE0'}</span>
             <span className={styles.homeLabel}>{t('common.home', 'Home')}</span>

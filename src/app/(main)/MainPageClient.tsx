@@ -60,15 +60,15 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
       <section className={styles.fullscreenHero}>
         <div className={styles.heroContent}>
           <p className={styles.heroEyebrow}>
-            {translate('landing.heroEyebrow', 'DestinyPal AI Fortune Platform')}
+            {translate('landing.heroEyebrow', 'AI-guided destiny reading')}
           </p>
           <h1 className={styles.heroTitle}>
-            {translate('landing.heroTitle', 'AI와 운명을 논하세요')}
+            {translate('landing.heroTitle', '타이밍, 관계, 다음 결정을 더 선명하게 봅니다.')}
           </h1>
           <p className={styles.heroSub}>
             {translate(
               'landing.heroSub',
-              '타로, 운명 상담, 리포트, 캘린더를 바로 이용할 수 있도록 핵심 서비스만 배치했습니다.'
+              '질문 하나로 사주, 점성, 타로, 캘린더 해석까지 자연스럽게 이어집니다.'
             )}
           </p>
 

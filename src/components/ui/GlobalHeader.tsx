@@ -40,6 +40,15 @@ function GlobalHeaderContent() {
 
   const isMainPage = !pathname || pathname === '/' || pathname === ''
   const isTarotReadingPage = Boolean(pathname && /^\/tarot\/[^/]+\/[^/]+/.test(pathname))
+  const hasCustomPageHeader = Boolean(
+    pathname &&
+    [
+      '/destiny-counselor',
+      '/destiny-counselor/chat',
+      '/destiny-map/counselor',
+      '/astrology/counselor',
+    ].includes(pathname)
+  )
   const signInUrl = useMemo(() => buildSignInUrl(pathname || '/'), [pathname])
 
   const {
@@ -62,8 +71,8 @@ function GlobalHeaderContent() {
 
   const headerAriaLabel = t('nav.header') || 'Site header'
 
-  // Hide on main page
-  if (isMainPage) {
+  // Hide on pages with their own top navigation/header
+  if (isMainPage || hasCustomPageHeader) {
     return null
   }
 
