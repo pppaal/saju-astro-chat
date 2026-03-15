@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
   withApiMiddleware,
-  createPublicStreamGuard,
+  createSimpleGuard,
   extractLocale,
   type ApiContext,
 } from '@/lib/api/middleware'
@@ -50,7 +50,7 @@ import {
   buildNormalizedMatrixInput,
   runDestinyCore,
 } from '@/lib/destiny-matrix/core/runDestinyCore'
-import { buildCoreEnvelope } from '@/lib/destiny-matrix/core'
+import { adaptCoreToCalendar, buildCoreEnvelope } from '@/lib/destiny-matrix/core'
 import { reportGenerator } from '@/lib/destiny-matrix/interpreter'
 import {
   buildCounselorEvidencePacket,
@@ -645,6 +645,7 @@ export const GET = withApiMiddleware(
     let matrixCalendarContext: MatrixCalendarContext = null
     let matrixInputCoverage: Record<string, unknown> | null = null
     let matrixEvidencePackets: Record<string, CounselorEvidencePacket> | null = null
+    let calendarCoreCanonical: ReturnType<typeof adaptCoreToCalendar> | null = null
     let topMatchedPatterns: Array<{
       id: string
       label: string
@@ -1033,6 +1034,7 @@ export const GET = withApiMiddleware(
       const matrix = coreEnvelope.matrix
       const matrixReport = coreEnvelope.matrixReport
       const coreSeed = coreEnvelope.coreSeed
+      calendarCoreCanonical = adaptCoreToCalendar(coreSeed)
       topMatchedPatterns = coreSeed.patterns.slice(0, 10).map((pattern) => ({
         id: pattern.id,
         label: pattern.label,
@@ -1083,6 +1085,10 @@ export const GET = withApiMiddleware(
           canonicalCautionCount: coreSeed.canonical.cautions.length,
           canonicalConfidence: coreSeed.canonical.confidence,
           canonicalPhase: coreSeed.canonical.phase,
+          canonicalPhaseLabel: coreSeed.canonical.phaseLabel,
+          canonicalFocusDomain: coreSeed.canonical.focusDomain,
+          canonicalRiskControl: coreSeed.canonical.riskControl,
+          canonicalTopDecisionId: coreSeed.canonical.topDecision?.id || null,
           patternCount: coreSeed.patterns.length,
           scenarioCount: coreSeed.scenarios.length,
           qualityScore: coreSeed.quality.score,
@@ -1127,7 +1133,8 @@ export const GET = withApiMiddleware(
       birthTimeParam,
       gender,
       year,
-      category || undefined
+      category || undefined,
+      birthPlace
     )
     const localDates = await cacheOrCalculate(
       cacheKey,
@@ -1161,11 +1168,13 @@ export const GET = withApiMiddleware(
     const sajuData = {
       birth_date: birthDateParam,
       birth_time: birthTimeParam,
-      gender: 'unknown',
+      gender,
       day_master: pillars.day.stem,
       pillars,
       elements: sajuProfile,
     }
+
+    const moonPlanet = natalChartData?.planets.find((p) => p.name === 'Moon')
 
     const astroData = {
       birth_date: birthDateParam,
@@ -1175,8 +1184,11 @@ export const GET = withApiMiddleware(
       timezone: coords.tz,
       sun_sign: astroProfile.sunSign,
       planets: {
-        sun: { sign: astroProfile.sunSign, degree: 15 },
-        moon: { sign: astroProfile.sunSign, degree: 15 },
+        sun: { sign: astroProfile.sunSign, degree: astroProfile.sunLongitude || 15 },
+        moon: {
+          sign: moonPlanet?.sign || astroProfile.sunSign,
+          degree: moonPlanet?.longitude || 15,
+        },
       },
     }
 
@@ -1244,11 +1256,12 @@ export const GET = withApiMiddleware(
       coreCoverage || todayPacket
         ? {
             coreHash: coreCoverage?.coreHash,
-            overallPhase: todayPacket?.strategyBrief?.overallPhase,
-            overallPhaseLabel: todayPacket?.strategyBrief?.overallPhaseLabel,
+            overallPhase: calendarCoreCanonical?.phase || todayPacket?.strategyBrief?.overallPhase,
+            overallPhaseLabel:
+              calendarCoreCanonical?.phaseLabel || todayPacket?.strategyBrief?.overallPhaseLabel,
             topClaimId: todayPacket?.topClaims?.[0]?.id,
-            topClaim: todayPacket?.topClaims?.[0]?.text,
-            focusDomain: todayPacket?.focusDomain,
+            topClaim: calendarCoreCanonical?.thesis || todayPacket?.topClaims?.[0]?.text,
+            focusDomain: calendarCoreCanonical?.focusDomain || todayPacket?.focusDomain,
           }
         : undefined
 
@@ -1256,6 +1269,7 @@ export const GET = withApiMiddleware(
       allDates: formattedDates,
       locale: locale === 'en' ? 'en' : 'ko',
       timeZone: timezone,
+      canonicalCore: calendarCoreCanonical || undefined,
       matrixContract: calendarMatrixContract,
       domainScores: matrixCalendarContext?.domainScores,
     })
@@ -1267,6 +1281,7 @@ export const GET = withApiMiddleware(
       aiEnhanced,
       matrixStrictMode: true,
       matrixContract: calendarMatrixContract,
+      canonicalCore: calendarCoreCanonical,
       birthInfo: {
         date: birthDateParam,
         time: birthTimeParam,
@@ -1318,7 +1333,7 @@ export const GET = withApiMiddleware(
     res.headers.set('Cache-Control', 'private, max-age=3600, stale-while-revalidate=1800')
     return res
   },
-  createPublicStreamGuard({
+  createSimpleGuard({
     route: 'calendar',
     limit: 30,
     windowSeconds: 60,

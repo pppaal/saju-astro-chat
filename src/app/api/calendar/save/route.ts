@@ -43,6 +43,43 @@ const toStringArray = (value: unknown): string[] => {
   return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
 }
 
+const normalizeBirthField = (value?: string | null): string => value?.trim() || ''
+
+const hasProfileConflict = (
+  existing: {
+    birthDate: string | null
+    birthTime: string | null
+    birthPlace: string | null
+  },
+  incoming: {
+    birthDate?: string
+    birthTime?: string
+    birthPlace?: string
+  }
+): boolean => {
+  const existingBirthDate = normalizeBirthField(existing.birthDate)
+  const existingBirthTime = normalizeBirthField(existing.birthTime)
+  const existingBirthPlace = normalizeBirthField(existing.birthPlace)
+  const incomingBirthDate = normalizeBirthField(incoming.birthDate)
+  const incomingBirthTime = normalizeBirthField(incoming.birthTime)
+  const incomingBirthPlace = normalizeBirthField(incoming.birthPlace)
+
+  const birthDateConflict =
+    existingBirthDate.length > 0 &&
+    incomingBirthDate.length > 0 &&
+    existingBirthDate !== incomingBirthDate
+  const birthTimeConflict =
+    existingBirthTime.length > 0 &&
+    incomingBirthTime.length > 0 &&
+    existingBirthTime !== incomingBirthTime
+  const birthPlaceConflict =
+    existingBirthPlace.length > 0 &&
+    incomingBirthPlace.length > 0 &&
+    existingBirthPlace !== incomingBirthPlace
+
+  return birthDateConflict || birthTimeConflict || birthPlaceConflict
+}
+
 // POST - 날짜 저장
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
@@ -83,6 +120,37 @@ export const POST = withApiMiddleware(
       const normalizedAstroFactors = toJsonObjectOrArray(astroFactors, [])
       const normalizedRecommendations = toStringArray(recommendations)
       const normalizedWarnings = toStringArray(warnings)
+      const normalizedBirthDate = normalizeBirthField(birthDate)
+      const normalizedBirthTime = normalizeBirthField(birthTime)
+      const normalizedBirthPlace = normalizeBirthField(birthPlace)
+
+      const existingDate = await prisma.savedCalendarDate.findUnique({
+        where: {
+          userId_date: {
+            userId: context.userId!,
+            date,
+          },
+        },
+        select: {
+          birthDate: true,
+          birthTime: true,
+          birthPlace: true,
+        },
+      })
+
+      if (
+        existingDate &&
+        hasProfileConflict(existingDate, {
+          birthDate: normalizedBirthDate,
+          birthTime: normalizedBirthTime,
+          birthPlace: normalizedBirthPlace,
+        })
+      ) {
+        return apiError(
+          ErrorCodes.VALIDATION_ERROR,
+          'A different birth profile is already saved for this date'
+        )
+      }
 
       const savedDate = await prisma.savedCalendarDate.upsert({
         where: {
@@ -104,9 +172,9 @@ export const POST = withApiMiddleware(
           astroFactors: normalizedAstroFactors,
           recommendations: normalizedRecommendations,
           warnings: normalizedWarnings,
-          birthDate: birthDate || '',
-          birthTime: birthTime || '',
-          birthPlace: birthPlace || '',
+          birthDate: normalizedBirthDate,
+          birthTime: normalizedBirthTime,
+          birthPlace: normalizedBirthPlace,
           locale,
         },
         create: {
@@ -124,9 +192,9 @@ export const POST = withApiMiddleware(
           astroFactors: normalizedAstroFactors,
           recommendations: normalizedRecommendations,
           warnings: normalizedWarnings,
-          birthDate: birthDate || '',
-          birthTime: birthTime || '',
-          birthPlace: birthPlace || '',
+          birthDate: normalizedBirthDate,
+          birthTime: normalizedBirthTime,
+          birthPlace: normalizedBirthPlace,
           locale,
         },
       })

@@ -101,10 +101,17 @@ describe('Redis Cache Utilities (Mocked)', () => {
       const { CacheKeys } = await import('@/lib/cache/redis-cache')
 
       const key = CacheKeys.yearlyCalendar('1990-01-01', '12:00', 'M', 2024)
-      expect(key).toBe('yearly:v2:1990-01-01:12:00:M:2024:all')
+      expect(key).toBe('yearly:v3:1990-01-01:12:00:M:2024:all:U2VvdWw=')
 
-      const keyWithCategory = CacheKeys.yearlyCalendar('1990-01-01', '12:00', 'M', 2024, 'health')
-      expect(keyWithCategory).toBe('yearly:v2:1990-01-01:12:00:M:2024:health')
+      const keyWithCategory = CacheKeys.yearlyCalendar(
+        '1990-01-01',
+        '12:00',
+        'M',
+        2024,
+        'health',
+        'Busan'
+      )
+      expect(keyWithCategory).toBe('yearly:v3:1990-01-01:12:00:M:2024:health:QnVzYW4=')
     })
 
     it('should generate compatibility cache key', async () => {

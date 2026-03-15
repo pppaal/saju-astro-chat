@@ -44,7 +44,7 @@ export function getRecommendedDates(
       yearScores[year] = { totalScore: 0, count: 0, bestGrade: 0, dates: [] }
 
       // 각 년도의 모든 월을 체크
-      for (let month = 0; month < 12; month++) {
+      for (let month = 1; month <= 12; month++) {
         const monthData = calculateMonthlyImportantDates(year, month, sajuProfile, astroProfile)
 
         // 모든 날짜 수집 (좋은 날과 나쁜 날 모두)

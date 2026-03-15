@@ -25,6 +25,7 @@ vi.mock('@/lib/auth/authOptions', () => ({
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     savedCalendarDate: {
+      findUnique: vi.fn(),
       upsert: vi.fn(),
       delete: vi.fn(),
       findMany: vi.fn(),
@@ -76,8 +77,15 @@ vi.mock('@/lib/api/zodValidation', () => ({
       }
 
       // Optional field length validation
-      if (data.description && typeof data.description === 'string' && data.description.length > 2000) {
-        errors.push({ path: ['description'], message: 'Description must be at most 2000 characters' })
+      if (
+        data.description &&
+        typeof data.description === 'string' &&
+        data.description.length > 2000
+      ) {
+        errors.push({
+          path: ['description'],
+          message: 'Description must be at most 2000 characters',
+        })
       }
       if (data.summary && typeof data.summary === 'string' && data.summary.length > 1000) {
         errors.push({ path: ['summary'], message: 'Summary must be at most 1000 characters' })
@@ -179,7 +187,9 @@ vi.mock('@/lib/api/zodValidation', () => ({
       if (!date || typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
         return {
           success: false,
-          error: { issues: [{ path: ['date'], message: 'Invalid date format. Expected YYYY-MM-DD' }] },
+          error: {
+            issues: [{ path: ['date'], message: 'Invalid date format. Expected YYYY-MM-DD' }],
+          },
         }
       }
       return { success: true, data: date }
@@ -189,81 +199,97 @@ vi.mock('@/lib/api/zodValidation', () => ({
 
 // Mock middleware with passthrough pattern
 vi.mock('@/lib/api/middleware', () => ({
-  withApiMiddleware: vi.fn((handler: (req: NextRequest, context: Record<string, unknown>) => Promise<unknown>, _options: unknown) => {
-    return async (req: NextRequest, ...args: unknown[]) => {
-      const { getServerSession } = await import('next-auth')
-      const { authOptions } = await import('@/lib/auth/authOptions')
+  withApiMiddleware: vi.fn(
+    (
+      handler: (req: NextRequest, context: Record<string, unknown>) => Promise<unknown>,
+      _options: unknown
+    ) => {
+      return async (req: NextRequest, ...args: unknown[]) => {
+        const { getServerSession } = await import('next-auth')
+        const { authOptions } = await import('@/lib/auth/authOptions')
 
-      let session: { user?: { id: string; name?: string; email?: string } } | null = null
-      try {
-        session = await (getServerSession as (opts: unknown) => Promise<{ user?: { id: string; name?: string; email?: string } } | null>)(authOptions)
-      } catch {
-        return NextResponse.json(
-          {
-            success: false,
-            error: { code: 'INTERNAL_ERROR', message: 'Internal Server Error', status: 500 },
-          },
-          { status: 500 }
-        )
-      }
-
-      if (!session?.user?.id) {
-        return NextResponse.json(
-          { success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized', status: 401 } },
-          { status: 401 }
-        )
-      }
-
-      const context = {
-        userId: session.user.id,
-        session,
-        ip: '127.0.0.1',
-        locale: 'ko',
-        isAuthenticated: true,
-        isPremium: false,
-      }
-
-      try {
-        const result = await handler(req, context, ...args) as { data?: unknown; error?: { code: string; message?: string }; status?: number } | Response
-        if (result instanceof Response) return result
-        if (result?.error) {
-          const statusMap: Record<string, number> = {
-            BAD_REQUEST: 400,
-            VALIDATION_ERROR: 422,
-            INTERNAL_ERROR: 500,
-            NOT_FOUND: 404,
-            DATABASE_ERROR: 500,
-          }
+        let session: { user?: { id: string; name?: string; email?: string } } | null = null
+        try {
+          session = await (
+            getServerSession as (
+              opts: unknown
+            ) => Promise<{ user?: { id: string; name?: string; email?: string } } | null>
+          )(authOptions)
+        } catch {
           return NextResponse.json(
-            { success: false, error: { code: result.error.code, message: result.error.message } },
-            { status: statusMap[result.error.code] || 500 }
+            {
+              success: false,
+              error: { code: 'INTERNAL_ERROR', message: 'Internal Server Error', status: 500 },
+            },
+            { status: 500 }
           )
         }
-        return NextResponse.json(
-          { success: true, data: result?.data },
-          { status: result?.status || 200 }
-        )
-      } catch (err: unknown) {
-        const error = err as Error
-        return NextResponse.json(
-          {
-            success: false,
-            error: { code: 'INTERNAL_ERROR', message: error.message || 'Internal Server Error' },
-          },
-          { status: 500 }
-        )
+
+        if (!session?.user?.id) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: { code: 'UNAUTHORIZED', message: 'Unauthorized', status: 401 },
+            },
+            { status: 401 }
+          )
+        }
+
+        const context = {
+          userId: session.user.id,
+          session,
+          ip: '127.0.0.1',
+          locale: 'ko',
+          isAuthenticated: true,
+          isPremium: false,
+        }
+
+        try {
+          const result = (await handler(req, context, ...args)) as
+            | { data?: unknown; error?: { code: string; message?: string }; status?: number }
+            | Response
+          if (result instanceof Response) return result
+          if (result?.error) {
+            const statusMap: Record<string, number> = {
+              BAD_REQUEST: 400,
+              VALIDATION_ERROR: 422,
+              INTERNAL_ERROR: 500,
+              NOT_FOUND: 404,
+              DATABASE_ERROR: 500,
+            }
+            return NextResponse.json(
+              { success: false, error: { code: result.error.code, message: result.error.message } },
+              { status: statusMap[result.error.code] || 500 }
+            )
+          }
+          return NextResponse.json(
+            { success: true, data: result?.data },
+            { status: result?.status || 200 }
+          )
+        } catch (err: unknown) {
+          const error = err as Error
+          return NextResponse.json(
+            {
+              success: false,
+              error: { code: 'INTERNAL_ERROR', message: error.message || 'Internal Server Error' },
+            },
+            { status: 500 }
+          )
+        }
       }
     }
-  }),
+  ),
   createAuthenticatedGuard: vi.fn((opts: Record<string, unknown>) => ({
     ...opts,
     requireAuth: true,
   })),
-  apiSuccess: vi.fn((data: unknown, options?: { status?: number; meta?: Record<string, unknown> }) => ({
-    data,
-    status: options?.status,
-    meta: options?.meta,
-  })),
+  apiSuccess: vi.fn(
+    (data: unknown, options?: { status?: number; meta?: Record<string, unknown> }) => ({
+      data,
+      status: options?.status,
+      meta: options?.meta,
+    })
+  ),
   apiError: vi.fn((code: string, message?: string, details?: unknown) => ({
     error: { code, message, details },
   })),
@@ -304,6 +330,7 @@ describe('/api/calendar/save', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    ;(prisma.savedCalendarDate.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null)
     ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue({
       user: { name: 'Test User', email: 'test@example.com', id: mockUserId },
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
@@ -478,6 +505,27 @@ describe('/api/calendar/save', () => {
       })
     })
 
+    it('should reject silent overwrite when a different birth profile already exists for the same date', async () => {
+      ;(prisma.savedCalendarDate.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        birthDate: '1988-01-01',
+        birthTime: '09:00',
+        birthPlace: 'Busan',
+      })
+
+      const req = new NextRequest('http://localhost:3000/api/calendar/save', {
+        method: 'POST',
+        body: JSON.stringify(validCalendarData),
+      })
+
+      const { POST } = await import('@/app/api/calendar/save/route')
+      const response = await POST(req)
+      const result = await response.json()
+
+      expect(response.status).toBe(422)
+      expect(result.error.code).toBe('VALIDATION_ERROR')
+      expect(prisma.savedCalendarDate.upsert).not.toHaveBeenCalled()
+    })
+
     describe('Validation - Field Length Limits', () => {
       it('should reject title longer than 200 characters', async () => {
         const data = { ...validCalendarData, title: 'a'.repeat(201) }
@@ -619,7 +667,9 @@ describe('/api/calendar/save', () => {
           ...validCalendarData,
         }
 
-        ;(prisma.savedCalendarDate.upsert as ReturnType<typeof vi.fn>).mockResolvedValue(mockSavedDate)
+        ;(prisma.savedCalendarDate.upsert as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockSavedDate
+        )
 
         const req = new NextRequest('http://localhost:3000/api/calendar/save', {
           method: 'POST',
@@ -833,7 +883,9 @@ describe('/api/calendar/save', () => {
 
     describe('Basic Retrieval', () => {
       it('should retrieve saved dates with default parameters', async () => {
-        ;(prisma.savedCalendarDate.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(mockSavedDates)
+        ;(prisma.savedCalendarDate.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockSavedDates
+        )
 
         const req = new NextRequest('http://localhost:3000/api/calendar/save')
         const { GET } = await import('@/app/api/calendar/save/route')
@@ -851,7 +903,9 @@ describe('/api/calendar/save', () => {
       })
 
       it('should filter by specific date', async () => {
-        ;(prisma.savedCalendarDate.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([mockSavedDates[0]])
+        ;(prisma.savedCalendarDate.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+          mockSavedDates[0],
+        ])
 
         const req = new NextRequest('http://localhost:3000/api/calendar/save?date=2024-06-15')
         const { GET } = await import('@/app/api/calendar/save/route')
@@ -865,7 +919,9 @@ describe('/api/calendar/save', () => {
       })
 
       it('should filter by year', async () => {
-        ;(prisma.savedCalendarDate.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(mockSavedDates)
+        ;(prisma.savedCalendarDate.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockSavedDates
+        )
 
         const req = new NextRequest('http://localhost:3000/api/calendar/save?year=2024')
         const { GET } = await import('@/app/api/calendar/save/route')

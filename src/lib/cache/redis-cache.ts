@@ -208,8 +208,12 @@ export const CacheKeys = {
     birthTime: string,
     gender: string,
     year: number,
-    category?: string
-  ) => `yearly:v2:${birthDate}:${birthTime}:${gender}:${year}:${category || 'all'}`,
+    category?: string,
+    birthPlace?: string
+  ) =>
+    `yearly:v3:${birthDate}:${birthTime}:${gender}:${year}:${category || 'all'}:${safeBase64Encode(
+      birthPlace || 'Seoul'
+    )}`,
 
   compatibility: (person1: string, person2: string) => `compat:v1:${person1}:${person2}`,
 

@@ -26,6 +26,7 @@ vi.mock('@/lib/api/middleware', () => ({
     }
   }),
   createPublicStreamGuard: vi.fn(() => ({})),
+  createSimpleGuard: vi.fn(() => ({})),
   extractLocale: vi.fn((req: any) => {
     const acceptLang = req.headers?.get?.('accept-language') || ''
     if (acceptLang.includes('ko')) return 'ko'
@@ -808,6 +809,7 @@ describe('Calendar API Route - /api/calendar', () => {
       const request = createRequest({
         birthDate: '1990-01-15',
         birthTime: '14:30',
+        birthPlace: 'Busan',
         gender: 'female',
         year: '2025',
         category: 'career',
@@ -820,7 +822,8 @@ describe('Calendar API Route - /api/calendar', () => {
         '14:30',
         'female',
         2025,
-        'career'
+        'career',
+        'Busan'
       )
     })
 
@@ -853,6 +856,50 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(response.status).toBe(200)
       expect(data.aiEnhanced).toBe(true)
       expect(data.aiInsights).toBeDefined()
+    })
+
+    it('should send location-aware moon and user gender to AI enrichment', async () => {
+      vi.mocked(apiClient).post.mockResolvedValueOnce({
+        ok: true,
+        data: {
+          auspicious_dates: [],
+          caution_dates: [],
+        },
+      } as any)
+      vi.mocked(calculateNatalChart).mockResolvedValueOnce({
+        planets: [
+          { name: 'Sun', sign: 'Gemini', longitude: 80.5 },
+          { name: 'Moon', sign: 'Cancer', longitude: 121.2 },
+        ],
+      } as any)
+
+      const request = createRequest({
+        birthDate: '1990-01-15',
+        gender: 'female',
+        birthPlace: 'Busan',
+      })
+
+      await GET(request)
+
+      expect(vi.mocked(apiClient).post).toHaveBeenCalledWith(
+        '/api/theme/important-dates',
+        expect.objectContaining({
+          saju: expect.objectContaining({
+            gender: 'female',
+          }),
+          astro: expect.objectContaining({
+            latitude: 35.1796,
+            longitude: 129.0756,
+            planets: expect.objectContaining({
+              moon: expect.objectContaining({
+                sign: 'Cancer',
+                degree: 121.2,
+              }),
+            }),
+          }),
+        }),
+        expect.any(Object)
+      )
     })
 
     it('should set aiEnhanced to false when AI fails', async () => {
@@ -930,6 +977,7 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(data).toHaveProperty('recommendedActions')
       expect(data).toHaveProperty('relationshipWeather')
       expect(data).toHaveProperty('workMoneyWeather')
+      expect(data).toHaveProperty('canonicalCore')
     })
 
     it('should set matrixStrictMode to true', async () => {

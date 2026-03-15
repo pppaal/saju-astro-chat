@@ -22,61 +22,52 @@ import {
   type EventCategory,
   type UserSajuProfile,
   type UserAstroProfile,
-} from './date-analysis-orchestrator';
+} from './date-analysis-orchestrator'
 
-import type { DaeunCycle } from './types';
+import type { DaeunCycle } from './types'
 
-import {
-  getYearGanzhi,
-  getGanzhiForDate,
-} from './temporal-scoring';
+import { getYearGanzhi, getGanzhiForDate } from './temporal-scoring'
 
 import {
   calculateAreaScores,
   generateAlerts,
   getLuckyColorFromElement,
   getLuckyNumber,
-} from './daily-fortune-helpers';
+} from './daily-fortune-helpers'
 
-import {
-  STEMS,
-  BRANCHES,
-  STEM_TO_ELEMENT,
-  BRANCH_TO_ELEMENT,
-  ZODIAC_TO_ELEMENT,
-} from './constants';
+import { STEMS, BRANCHES, STEM_TO_ELEMENT, BRANCH_TO_ELEMENT, ZODIAC_TO_ELEMENT } from './constants'
 
-import { normalizeElement } from './utils';
-import { getPlanetPosition } from './transit-analysis';
+import { normalizeElement } from './utils'
+import { getPlanetPosition } from './transit-analysis'
 
 /**
  * 월별 캘린더 데이터
  */
 export interface CalendarMonth {
-  year: number;
-  month: number;
-  dates: ImportantDate[];
+  year: number
+  month: number
+  dates: ImportantDate[]
 }
 
 /**
  * 일일 운세 결과
  */
 export interface DailyFortuneResult {
-  overall: number;
-  love: number;
-  career: number;
-  wealth: number;
-  health: number;
-  luckyColor: string;
-  luckyNumber: number;
-  grade: ImportanceGrade;
-  ganzhi: string;
-  alerts: { type: "warning" | "positive" | "info"; msg: string; icon?: string }[];
-  recommendations: string[];
-  warnings: string[];
-  crossVerified: boolean;
-  sajuFactors: string[];
-  astroFactors: string[];
+  overall: number
+  love: number
+  career: number
+  wealth: number
+  health: number
+  luckyColor: string
+  luckyNumber: number
+  grade: ImportanceGrade
+  ganzhi: string
+  alerts: { type: 'warning' | 'positive' | 'info'; msg: string; icon?: string }[]
+  recommendations: string[]
+  warnings: string[]
+  crossVerified: boolean
+  sajuFactors: string[]
+  astroFactors: string[]
 }
 
 /**
@@ -99,33 +90,39 @@ export function calculateYearlyImportantDates(
   astroProfile: UserAstroProfile,
   options?: { category?: EventCategory; limit?: number; minGrade?: ImportanceGrade }
 ): ImportantDate[] {
-  const dates: ImportantDate[] = [];
+  const dates: ImportantDate[] = []
 
-  const startDate = new Date(year, 0, 1);
-  const endDate = new Date(year, 11, 31);
+  const startDate = new Date(year, 0, 1)
+  const endDate = new Date(year, 11, 31)
 
   for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-    const analysis = analyzeDate(new Date(d), sajuProfile, astroProfile);
+    const analysis = analyzeDate(new Date(d), sajuProfile, astroProfile)
     if (analysis) {
       // 카테고리 필터 (복수 카테고리에서 하나라도 매치하면 OK)
-      if (options?.category && !analysis.categories.includes(options.category)) {continue;}
+      if (options?.category && !analysis.categories.includes(options.category)) {
+        continue
+      }
       // 등급 필터
-      if (options?.minGrade && analysis.grade > options.minGrade) {continue;}
-      dates.push(analysis);
+      if (options?.minGrade && analysis.grade > options.minGrade) {
+        continue
+      }
+      dates.push(analysis)
     }
   }
 
   // 점수순 정렬
   dates.sort((a, b) => {
-    if (a.grade !== b.grade) {return a.grade - b.grade;}
-    return b.score - a.score;
-  });
+    if (a.grade !== b.grade) {
+      return a.grade - b.grade
+    }
+    return b.score - a.score
+  })
 
   if (options?.limit) {
-    return dates.slice(0, options.limit);
+    return dates.slice(0, options.limit)
   }
 
-  return dates;
+  return dates
 }
 
 /**
@@ -153,7 +150,7 @@ export function findBestDatesForCategory(
     category,
     limit,
     minGrade: 2,
-  });
+  })
 }
 
 /**
@@ -175,19 +172,20 @@ export function calculateMonthlyImportantDates(
   sajuProfile: UserSajuProfile,
   astroProfile: UserAstroProfile
 ): CalendarMonth {
-  const dates: ImportantDate[] = [];
+  const dates: ImportantDate[] = []
+  const normalizedMonth = Math.min(12, Math.max(1, month))
 
-  const startDate = new Date(year, month, 1);
-  const endDate = new Date(year, month + 1, 0);
+  const startDate = new Date(year, normalizedMonth - 1, 1)
+  const endDate = new Date(year, normalizedMonth, 0)
 
   for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-    const analysis = analyzeDate(new Date(d), sajuProfile, astroProfile);
+    const analysis = analyzeDate(new Date(d), sajuProfile, astroProfile)
     if (analysis) {
-      dates.push(analysis);
+      dates.push(analysis)
     }
   }
 
-  return { year, month, dates };
+  return { year, month: normalizedMonth, dates }
 }
 
 /**
@@ -201,92 +199,129 @@ export function calculateMonthlyImportantDates(
  * @returns 운명 캘린더용 사주 프로필
  */
 export function extractSajuProfile(saju: unknown): UserSajuProfile {
-  const sajuData = saju as Record<string, unknown> | null | undefined;
-  const dayMasterRaw = sajuData?.dayMaster as string | { name?: string; heavenlyStem?: string } | undefined;
-  const dayMaster = typeof dayMasterRaw === "string"
-    ? dayMasterRaw
-    : (dayMasterRaw?.name || dayMasterRaw?.heavenlyStem || "甲");
+  const sajuData = saju as Record<string, unknown> | null | undefined
+  const dayMasterRaw = sajuData?.dayMaster as
+    | string
+    | { name?: string; heavenlyStem?: string }
+    | undefined
+  const dayMaster =
+    typeof dayMasterRaw === 'string'
+      ? dayMasterRaw
+      : dayMasterRaw?.name || dayMasterRaw?.heavenlyStem || '甲'
 
-  const stem = typeof dayMaster === "string" && dayMaster.length > 0
-    ? dayMaster.charAt(0)
-    : "甲";
+  const stem = typeof dayMaster === 'string' && dayMaster.length > 0 ? dayMaster.charAt(0) : '甲'
 
-  const pillars = (sajuData?.pillars || {}) as Record<string, Record<string, unknown>>;
-  const dayPillar = pillars.day || {};
-  const dayBranchObj = dayPillar.earthlyBranch as { name?: string } | string | undefined;
-  const dayBranch = typeof dayBranchObj === 'object' ? dayBranchObj?.name : (dayBranchObj || dayPillar.branch as string || "");
+  const pillars = (sajuData?.pillars || {}) as Record<string, Record<string, unknown>>
+  const dayPillar = pillars.day || {}
+  const dayBranchObj = dayPillar.earthlyBranch as { name?: string } | string | undefined
+  const dayBranch =
+    typeof dayBranchObj === 'object'
+      ? dayBranchObj?.name
+      : dayBranchObj || (dayPillar.branch as string) || ''
 
   // 연지(年支) 추출 - 삼재/역마/도화 계산에 필요
-  const yearPillar = pillars.year || {};
-  const yearBranchObj = yearPillar.earthlyBranch as { name?: string } | string | undefined;
-  const yearBranch = typeof yearBranchObj === 'object' ? yearBranchObj?.name : (yearBranchObj || yearPillar.branch as string || "");
+  const yearPillar = pillars.year || {}
+  const yearBranchObj = yearPillar.earthlyBranch as { name?: string } | string | undefined
+  const yearBranch =
+    typeof yearBranchObj === 'object'
+      ? yearBranchObj?.name
+      : yearBranchObj || (yearPillar.branch as string) || ''
 
   // 대운 데이터 추출
-  type UnseData = { daeun?: unknown[]; daeunsu?: number };
-  const unse = (sajuData?.unse || {}) as UnseData;
-  type DaeunRawItem = { age?: number; heavenlyStem?: string; earthlyBranch?: string; sibsin?: string | { cheon: string; ji: string } };
-  const daeunRaw = (unse.daeun || []) as DaeunRawItem[];
-  const daeunCycles: DaeunCycle[] = daeunRaw.map((d) => ({
-    age: d.age || 0,
-    heavenlyStem: d.heavenlyStem || "",
-    earthlyBranch: d.earthlyBranch || "",
-    sibsin: typeof d.sibsin === 'object' ? d.sibsin : undefined,
-  })).filter((d) => d.heavenlyStem && d.earthlyBranch);
+  type UnseData = { daeun?: unknown[]; daeunsu?: number }
+  const unse = (sajuData?.unse || {}) as UnseData
+  type DaeunRawItem = {
+    age?: number
+    heavenlyStem?: string
+    earthlyBranch?: string
+    sibsin?: string | { cheon: string; ji: string }
+  }
+  const daeunRaw = (unse.daeun || []) as DaeunRawItem[]
+  const daeunCycles: DaeunCycle[] = daeunRaw
+    .map((d) => ({
+      age: d.age || 0,
+      heavenlyStem: d.heavenlyStem || '',
+      earthlyBranch: d.earthlyBranch || '',
+      sibsin: typeof d.sibsin === 'object' ? d.sibsin : undefined,
+    }))
+    .filter((d) => d.heavenlyStem && d.earthlyBranch)
 
   // 생년 추출
-  type FactsData = { birthDate?: string };
-  const birthDateStr = (sajuData?.facts as FactsData)?.birthDate || (sajuData?.birthDate as string) || "";
-  let birthYear: number | undefined;
+  type FactsData = { birthDate?: string }
+  const birthDateStr =
+    (sajuData?.facts as FactsData)?.birthDate || (sajuData?.birthDate as string) || ''
+  let birthYear: number | undefined
   if (birthDateStr) {
-    const parsed = new Date(birthDateStr);
+    const parsed = new Date(birthDateStr)
     if (!isNaN(parsed.getTime())) {
-      birthYear = parsed.getFullYear();
+      birthYear = parsed.getFullYear()
     }
   }
 
   // yongsin과 geokguk 추출
-  type YongsinData = { primary?: string; secondary?: string; type?: string; kibsin?: string };
-  type GeokgukData = { type?: string; strength?: string };
-  const yongsinRaw = sajuData?.yongsin as YongsinData | undefined;
-  const geokgukRaw = sajuData?.geokguk as GeokgukData | undefined;
+  type YongsinData = { primary?: string; secondary?: string; type?: string; kibsin?: string }
+  type GeokgukData = { type?: string; strength?: string }
+  const yongsinRaw = sajuData?.yongsin as YongsinData | undefined
+  const geokgukRaw = sajuData?.geokguk as GeokgukData | undefined
 
   // pillars 변환 헬퍼
-  type PillarWithStem = { heavenlyStem?: unknown; stem?: unknown; earthlyBranch?: { name?: string } | string; branch?: unknown };
-  const extractPillarInfo = (p: Record<string, unknown> | undefined): { stem: string; branch: string } | undefined => {
-    if (!p) {return undefined;}
-    const pillar = p as PillarWithStem;
-    const stemVal = (pillar.heavenlyStem || pillar.stem) as string | undefined;
-    const branchObj = pillar.earthlyBranch;
-    const branchVal = (typeof branchObj === 'object' && branchObj ? branchObj.name : branchObj) || pillar.branch;
-    if (!stemVal || !branchVal) {return undefined;}
-    return { stem: stemVal as string, branch: branchVal as string };
-  };
+  type PillarWithStem = {
+    heavenlyStem?: unknown
+    stem?: unknown
+    earthlyBranch?: { name?: string } | string
+    branch?: unknown
+  }
+  const extractPillarInfo = (
+    p: Record<string, unknown> | undefined
+  ): { stem: string; branch: string } | undefined => {
+    if (!p) {
+      return undefined
+    }
+    const pillar = p as PillarWithStem
+    const stemVal = (pillar.heavenlyStem || pillar.stem) as string | undefined
+    const branchObj = pillar.earthlyBranch
+    const branchVal =
+      (typeof branchObj === 'object' && branchObj ? branchObj.name : branchObj) || pillar.branch
+    if (!stemVal || !branchVal) {
+      return undefined
+    }
+    return { stem: stemVal as string, branch: branchVal as string }
+  }
 
   return {
     dayMaster: stem,
-    dayMasterElement: STEM_TO_ELEMENT[stem] || "wood",
+    dayMasterElement: STEM_TO_ELEMENT[stem] || 'wood',
     dayBranch,
     yearBranch: yearBranch || undefined,
     birthYear,
     daeunCycles: daeunCycles.length > 0 ? daeunCycles : undefined,
     daeunsu: unse.daeunsu,
-    yongsin: yongsinRaw?.primary && yongsinRaw?.type ? {
-      primary: yongsinRaw.primary,
-      secondary: yongsinRaw.secondary,
-      type: yongsinRaw.type,
-      kibsin: yongsinRaw.kibsin,
-    } : undefined,
-    geokguk: geokgukRaw?.type && geokgukRaw?.strength ? {
-      type: geokgukRaw.type,
-      strength: geokgukRaw.strength,
-    } : undefined,
-    pillars: pillars.year || pillars.month || pillars.day || pillars.time ? {
-      year: extractPillarInfo(pillars.year),
-      month: extractPillarInfo(pillars.month),
-      day: extractPillarInfo(pillars.day),
-      time: extractPillarInfo(pillars.time),
-    } : undefined,
-  };
+    yongsin:
+      yongsinRaw?.primary && yongsinRaw?.type
+        ? {
+            primary: yongsinRaw.primary,
+            secondary: yongsinRaw.secondary,
+            type: yongsinRaw.type,
+            kibsin: yongsinRaw.kibsin,
+          }
+        : undefined,
+    geokguk:
+      geokgukRaw?.type && geokgukRaw?.strength
+        ? {
+            type: geokgukRaw.type,
+            strength: geokgukRaw.strength,
+          }
+        : undefined,
+    pillars:
+      pillars.year || pillars.month || pillars.day || pillars.time
+        ? {
+            year: extractPillarInfo(pillars.year),
+            month: extractPillarInfo(pillars.month),
+            day: extractPillarInfo(pillars.day),
+            time: extractPillarInfo(pillars.time),
+          }
+        : undefined,
+  }
 }
 
 /**
@@ -300,18 +335,22 @@ export function extractSajuProfile(saju: unknown): UserSajuProfile {
  * @returns 운명 캘린더용 점성술 프로필
  */
 export function extractAstroProfile(astrology: unknown): UserAstroProfile {
-  const astroData = astrology as Record<string, unknown> | null | undefined;
-  const planets = (astroData?.planets || []) as Array<{ name?: string; sign?: string; longitude?: number }>;
-  const sun = planets.find((p) => p.name === "Sun");
-  const sunSign = sun?.sign || "Aries";
+  const astroData = astrology as Record<string, unknown> | null | undefined
+  const planets = (astroData?.planets || []) as Array<{
+    name?: string
+    sign?: string
+    longitude?: number
+  }>
+  const sun = planets.find((p) => p.name === 'Sun')
+  const sunSign = sun?.sign || 'Aries'
 
   return {
     sunSign,
-    sunElement: normalizeElement(ZODIAC_TO_ELEMENT[sunSign] || "fire"),
+    sunElement: normalizeElement(ZODIAC_TO_ELEMENT[sunSign] || 'fire'),
     sunLongitude: sun?.longitude,
     birthMonth: astroData?.birthMonth as number | undefined,
     birthDay: astroData?.birthDay as number | undefined,
-  };
+  }
 }
 
 /**
@@ -327,21 +366,21 @@ export function extractAstroProfile(astrology: unknown): UserAstroProfile {
 export function calculateSajuProfileFromBirthDate(birthDate: Date): UserSajuProfile {
   // 기준일: 1900년 1월 31일은 甲子일
   // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
-  const baseUtc = Date.UTC(1900, 0, 31);
-  const dateUtc = Date.UTC(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate());
-  const diffDays = Math.floor((dateUtc - baseUtc) / (1000 * 60 * 60 * 24));
+  const baseUtc = Date.UTC(1900, 0, 31)
+  const dateUtc = Date.UTC(birthDate.getFullYear(), birthDate.getMonth(), birthDate.getDate())
+  const diffDays = Math.floor((dateUtc - baseUtc) / (1000 * 60 * 60 * 24))
 
-  const stemIndex = ((diffDays % 10) + 10) % 10;
-  const branchIndex = ((diffDays % 12) + 12) % 12;
+  const stemIndex = ((diffDays % 10) + 10) % 10
+  const branchIndex = ((diffDays % 12) + 12) % 12
 
-  const stem = STEMS[stemIndex];
-  const branch = BRANCHES[branchIndex];
+  const stem = STEMS[stemIndex]
+  const branch = BRANCHES[branchIndex]
 
   return {
     dayMaster: stem,
-    dayMasterElement: STEM_TO_ELEMENT[stem] || "wood",
+    dayMasterElement: STEM_TO_ELEMENT[stem] || 'wood',
     dayBranch: branch,
-  };
+  }
 }
 
 /**
@@ -355,33 +394,46 @@ export function calculateSajuProfileFromBirthDate(birthDate: Date): UserSajuProf
  * @returns 기본 점성술 프로필
  */
 export function calculateAstroProfileFromBirthDate(birthDate: Date): UserAstroProfile {
-  const month = birthDate.getMonth();
-  const day = birthDate.getDate();
+  const month = birthDate.getMonth()
+  const day = birthDate.getDate()
 
-  let sunSign: string;
-  if ((month === 2 && day >= 21) || (month === 3 && day <= 19)) {sunSign = "Aries";}
-  else if ((month === 3 && day >= 20) || (month === 4 && day <= 20)) {sunSign = "Taurus";}
-  else if ((month === 4 && day >= 21) || (month === 5 && day <= 20)) {sunSign = "Gemini";}
-  else if ((month === 5 && day >= 21) || (month === 6 && day <= 22)) {sunSign = "Cancer";}
-  else if ((month === 6 && day >= 23) || (month === 7 && day <= 22)) {sunSign = "Leo";}
-  else if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) {sunSign = "Virgo";}
-  else if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) {sunSign = "Libra";}
-  else if ((month === 9 && day >= 23) || (month === 10 && day <= 21)) {sunSign = "Scorpio";}
-  else if ((month === 10 && day >= 22) || (month === 11 && day <= 21)) {sunSign = "Sagittarius";}
-  else if ((month === 11 && day >= 22) || (month === 0 && day <= 19)) {sunSign = "Capricorn";}
-  else if ((month === 0 && day >= 20) || (month === 1 && day <= 18)) {sunSign = "Aquarius";}
-  else {sunSign = "Pisces";}
+  let sunSign: string
+  if ((month === 2 && day >= 21) || (month === 3 && day <= 19)) {
+    sunSign = 'Aries'
+  } else if ((month === 3 && day >= 20) || (month === 4 && day <= 20)) {
+    sunSign = 'Taurus'
+  } else if ((month === 4 && day >= 21) || (month === 5 && day <= 20)) {
+    sunSign = 'Gemini'
+  } else if ((month === 5 && day >= 21) || (month === 6 && day <= 22)) {
+    sunSign = 'Cancer'
+  } else if ((month === 6 && day >= 23) || (month === 7 && day <= 22)) {
+    sunSign = 'Leo'
+  } else if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) {
+    sunSign = 'Virgo'
+  } else if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) {
+    sunSign = 'Libra'
+  } else if ((month === 9 && day >= 23) || (month === 10 && day <= 21)) {
+    sunSign = 'Scorpio'
+  } else if ((month === 10 && day >= 22) || (month === 11 && day <= 21)) {
+    sunSign = 'Sagittarius'
+  } else if ((month === 11 && day >= 22) || (month === 0 && day <= 19)) {
+    sunSign = 'Capricorn'
+  } else if ((month === 0 && day >= 20) || (month === 1 && day <= 18)) {
+    sunSign = 'Aquarius'
+  } else {
+    sunSign = 'Pisces'
+  }
 
   // 출생 태양 경도 계산 (어스펙트 분석용)
-  const sunPosition = getPlanetPosition(birthDate, "sun");
+  const sunPosition = getPlanetPosition(birthDate, 'sun')
 
   return {
     sunSign,
-    sunElement: normalizeElement(ZODIAC_TO_ELEMENT[sunSign] || "fire"),
+    sunElement: normalizeElement(ZODIAC_TO_ELEMENT[sunSign] || 'fire'),
     sunLongitude: sunPosition.longitude,
     birthMonth: birthDate.getMonth() + 1,
     birthDay: birthDate.getDate(),
-  };
+  }
 }
 
 /**
@@ -403,44 +455,44 @@ export function getDailyFortuneScore(
   targetDate?: Date
 ): DailyFortuneResult {
   // 날짜 파싱
-  const birth = typeof birthDate === "string" ? new Date(birthDate) : birthDate;
-  const today = targetDate || new Date();
+  const birth = typeof birthDate === 'string' ? new Date(birthDate) : birthDate
+  const today = targetDate || new Date()
 
   // 사주 프로필 계산
-  const sajuProfile = calculateSajuProfileFromBirthDate(birth);
+  const sajuProfile = calculateSajuProfileFromBirthDate(birth)
 
   // 연지(年支) 추가 - 삼재/역마/도화 계산용
-  const birthYearGanzhi = getYearGanzhi(birth.getFullYear());
-  sajuProfile.yearBranch = birthYearGanzhi.branch;
-  sajuProfile.birthYear = birth.getFullYear();
+  const birthYearGanzhi = getYearGanzhi(birth.getFullYear())
+  sajuProfile.yearBranch = birthYearGanzhi.branch
+  sajuProfile.birthYear = birth.getFullYear()
 
   // 점성술 프로필 계산
-  const astroProfile = calculateAstroProfileFromBirthDate(birth);
-  astroProfile.birthMonth = birth.getMonth() + 1;
-  astroProfile.birthDay = birth.getDate();
+  const astroProfile = calculateAstroProfileFromBirthDate(birth)
+  astroProfile.birthMonth = birth.getMonth() + 1
+  astroProfile.birthDay = birth.getDate()
 
   // 핵심: analyzeDate 함수로 종합 분석
-  const analysis = analyzeDate(today, sajuProfile, astroProfile);
+  const analysis = analyzeDate(today, sajuProfile, astroProfile)
 
   // 분석 결과가 없으면 기본값 반환
   if (!analysis) {
-    const defaultScore = 50;
-    return createDefaultFortuneResult(defaultScore, today, birth);
+    const defaultScore = 50
+    return createDefaultFortuneResult(defaultScore, today, birth)
   }
 
   // 전체 점수 (0-100)
-  const overallScore = analysis.score;
+  const overallScore = analysis.score
 
   // 영역별 점수 계산 (전체 점수 기반으로 변동)
-  const areaScores = calculateAreaScores(overallScore, analysis, today);
+  const areaScores = calculateAreaScores(overallScore, analysis, today)
 
   // 행운의 색상/숫자 계산
-  const ganzhi = getGanzhiForDate(today);
-  const luckyColor = getLuckyColorFromElement(ganzhi.stemElement);
-  const luckyNumber = getLuckyNumber(today, birth);
+  const ganzhi = getGanzhiForDate(today)
+  const luckyColor = getLuckyColorFromElement(ganzhi.stemElement)
+  const luckyNumber = getLuckyNumber(today, birth)
 
   // 알림 생성
-  const alerts = generateAlerts(analysis);
+  const alerts = generateAlerts(analysis)
 
   return {
     overall: overallScore,
@@ -458,7 +510,7 @@ export function getDailyFortuneScore(
     crossVerified: analysis.crossVerified,
     sajuFactors: analysis.sajuFactorKeys,
     astroFactors: analysis.astroFactorKeys,
-  };
+  }
 }
 
 /**
@@ -478,7 +530,7 @@ function createDefaultFortuneResult(
   targetDate: Date,
   birthDate: Date
 ): DailyFortuneResult {
-  const ganzhi = getGanzhiForDate(targetDate);
+  const ganzhi = getGanzhiForDate(targetDate)
 
   return {
     overall: score,
@@ -496,7 +548,7 @@ function createDefaultFortuneResult(
     crossVerified: false,
     sajuFactors: [],
     astroFactors: [],
-  };
+  }
 }
 
 /**
@@ -507,4 +559,4 @@ function createDefaultFortuneResult(
  * @param date - 계산할 날짜
  * @returns 천간지지 정보
  */
-export { getGanzhiForDate };
+export { getGanzhiForDate }
