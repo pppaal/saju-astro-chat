@@ -365,6 +365,7 @@ def test_interpret_uses_gpt_first_intent_for_ambiguous_question():
     assert data["trace"]["intent"]["llm_understanding_used"] is True
     assert data["trace"]["intent"]["understanding_source"] == "gpt_first"
     assert "decision" in data["trace"]["retrieval"]["query"]
+    assert data["trace"]["retrieval"]["embedded_semantic_context"] is False
     assert "시기" in data["trace"]["retrieval"]["query"]
     assert data["trace"]["intent"]["llm_reason"] == "짧고 애매한 문장이라 결정을 묻는 질문으로 판단"
     assert data["trace"]["intent_priority"]["priority_order"][:3] == ["multi_card", "combination", "timing"]
@@ -532,4 +533,110 @@ def test_interpret_smoke_20_has_card_evidence_section(category, user_question):
     data = resp.get_json()
     assert "Card Evidence" in data["overall_message"]
     assert len(data["card_evidence"]) == 1
+
+
+def test_interpret_returns_spread_strategy_trace():
+    app = _make_app()
+    client = app.test_client()
+
+    intent_response = json.dumps(
+        {
+            "primary_intent": "decision",
+            "secondary_intents": [],
+            "confidence": 0.81,
+            "reason": "선택과 방향을 묻는 질문",
+        },
+        ensure_ascii=False,
+    )
+    unified_response = json.dumps(
+        {
+            "overall": "전체 해석입니다.",
+            "cards": [{"position": "현재", "interpretation": "카드 해석"}],
+            "card_evidence": [
+                {
+                    "card_id": "major_0",
+                    "orientation": "upright",
+                    "domain": "general",
+                    "position": "현재",
+                    "evidence": "근거 문장 하나. 근거 문장 둘.",
+                }
+            ],
+            "advice": [{"title": "action", "detail": "실행 조언"}],
+        },
+        ensure_ascii=False,
+    )
+
+    payload = {
+        "category": "general",
+        "spread_id": "single_card",
+        "spread_title": "Single",
+        "cards": [{"name": "The Fool", "is_reversed": False, "position": "현재"}],
+        "draws": [{"card_id": "major_0", "orientation": "upright", "domain": "general", "position": "현재"}],
+        "user_question": "지금 결정해도 될까요?",
+    }
+
+    with patch("backend_ai.app.routers.tarot.interpret.get_tarot_hybrid_rag", return_value=_DummyHybridRag()), \
+        patch("backend_ai.app.routers.tarot.interpret.generate_with_gpt4", side_effect=[intent_response, unified_response]), \
+        patch("backend_ai.app.routers.tarot.interpret.generate_dynamic_followup_questions", return_value=[]), \
+        patch("backend_ai.app.routers.tarot.interpret.search_graphs", return_value=[]):
+        response = client.post("/api/tarot/interpret", json=payload)
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["spread_strategy"]["mode"] == "single_card_focus"
+    assert data["trace"]["spread_strategy"]["mode"] == "single_card_focus"
     assert data["used_rule_ids"] == ["tarot_pair::pair_csv::major_0_major_1"]
+
+
+def test_interpret_skips_cache_initialization_when_request_is_not_cacheable():
+    app = _make_app()
+    client = app.test_client()
+
+    intent_response = json.dumps(
+        {
+            "primary_intent": "relationship_general",
+            "secondary_intents": [],
+            "confidence": 0.78,
+            "reason": "연애 흐름 전반을 묻는 질문",
+        },
+        ensure_ascii=False,
+    )
+    llm_response = json.dumps(
+        {
+            "overall": "전체 해석입니다.",
+            "cards": [{"position": "present", "interpretation": "카드 해석"}],
+            "card_evidence": [
+                {
+                    "card_id": "MAJOR_0",
+                    "orientation": "upright",
+                    "domain": "love",
+                    "position": "present",
+                    "evidence": "근거 문장 하나. 근거 문장 둘.",
+                }
+            ],
+            "advice": [{"title": "action", "detail": "실행 조언"}],
+        },
+        ensure_ascii=False,
+    )
+
+    payload = {
+        "category": "love",
+        "spread_id": "single_card",
+        "spread_title": "Single",
+        "cards": [{"name": "The Fool", "is_reversed": False, "position": "present"}],
+        "user_question": "연애 흐름이 궁금해요",
+        "language": "ko",
+    }
+
+    def _fail_if_cache_used():
+        raise AssertionError("get_cache should not be called for question-based requests")
+
+    with patch("backend_ai.app.routers.tarot.interpret.has_tarot", return_value=True), \
+        patch("backend_ai.app.routers.tarot.interpret.get_tarot_hybrid_rag", return_value=_DummyHybridRag()), \
+        patch("backend_ai.app.routers.tarot.interpret.get_cache", side_effect=_fail_if_cache_used), \
+        patch("backend_ai.app.routers.tarot.interpret.HAS_GRAPH_RAG", False), \
+        patch("backend_ai.app.routers.tarot.interpret.generate_dynamic_followup_questions", return_value=[]), \
+        patch("backend_ai.app.routers.tarot.interpret.generate_with_gpt4", side_effect=[intent_response, llm_response]):
+        resp = client.post("/api/tarot/interpret", data=json.dumps(payload), content_type="application/json")
+
+    assert resp.status_code == 200

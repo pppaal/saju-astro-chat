@@ -89,6 +89,19 @@ class TarotHybridRAG:
             premium_engine=self.premium_engine
         )
 
+    def _ensure_loaded(self):
+        """Warm core tarot components for prefetch and cold-start stability."""
+        if not getattr(self, "reading_context_builder", None) or not getattr(self, "premium_context_builder", None):
+            self._init_context_builders()
+
+        # Touch a few lightweight accessors so loader-backed data is ready.
+        if getattr(self, "spread_loader", None):
+            self.spread_loader.get_available_themes()
+        if getattr(self, "advanced_rules", None):
+            self.advanced_rules.get_followup_questions("general", "neutral")
+
+        return True
+
     @property
     def client(self):
         """Backwards compatibility: return OpenAI client"""
@@ -273,11 +286,16 @@ class TarotHybridRAG:
         theme: str,
         sub_topic: str,
         drawn_cards: List[Dict],
-        question: str = ""
+        question: str = "",
+        include_semantic_context: bool = True,
     ) -> str:
         """Build RAG context string for LLM prompt"""
         return self.reading_context_builder.build_reading_context(
-            theme, sub_topic, drawn_cards, question
+            theme,
+            sub_topic,
+            drawn_cards,
+            question,
+            include_semantic_context=include_semantic_context,
         )
 
     def get_reading_context(self, theme: str, sub_topic: str, drawn_cards: List[Dict]) -> Dict:
@@ -421,7 +439,8 @@ class TarotHybridRAG:
         drawn_cards: List[Dict],
         question: str = None,
         birthdate: str = None,
-        moon_phase: str = None
+        moon_phase: str = None,
+        include_semantic_context: bool = True,
     ) -> str:
         """Build enhanced reading context with premium features"""
         return self.premium_context_builder.build_premium_reading_context(
@@ -430,7 +449,8 @@ class TarotHybridRAG:
             drawn_cards=drawn_cards,
             question=question,
             birthdate=birthdate,
-            moon_phase=moon_phase
+            moon_phase=moon_phase,
+            include_semantic_context=include_semantic_context,
         )
 
 

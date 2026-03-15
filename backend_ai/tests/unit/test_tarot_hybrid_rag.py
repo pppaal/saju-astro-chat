@@ -157,3 +157,26 @@ class TestConstantsFromTarotPackage:
         from app.tarot import POLARITY_PAIRS
         assert POLARITY_PAIRS is not None
         assert isinstance(POLARITY_PAIRS, list)
+
+
+class TestHybridWarmup:
+    """Tests for hybrid RAG warmup compatibility."""
+
+    def test_ensure_loaded_reinitializes_missing_builders(self):
+        from app.tarot_hybrid_rag import TarotHybridRAG
+
+        hybrid = TarotHybridRAG.__new__(TarotHybridRAG)
+        hybrid.reading_context_builder = None
+        hybrid.premium_context_builder = None
+        hybrid.spread_loader = MagicMock()
+        hybrid.advanced_rules = MagicMock()
+        hybrid._init_context_builders = MagicMock(
+            side_effect=lambda: setattr(hybrid, "reading_context_builder", object()) or setattr(hybrid, "premium_context_builder", object())
+        )
+
+        result = TarotHybridRAG._ensure_loaded(hybrid)
+
+        assert result is True
+        hybrid._init_context_builders.assert_called_once()
+        hybrid.spread_loader.get_available_themes.assert_called_once()
+        hybrid.advanced_rules.get_followup_questions.assert_called_once_with("general", "neutral")

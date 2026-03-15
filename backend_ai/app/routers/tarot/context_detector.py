@@ -30,7 +30,7 @@ PLAYFUL_KEYWORDS = PLAYFUL_KEYWORDS_KO + PLAYFUL_KEYWORDS_EN
 INTENT_RULES: List[Dict[str, Any]] = [
     {
         "intent": "reconciliation",
-        "keywords": ["재회", "다시 만나", "다시 이어질", "이어질 수 있", "이어질까", "헤어진", "돌아올", "연락 올", "ex", "get back", "reconcile"],
+        "keywords": ["재회", "다시 만나", "다시 이어질", "이어질 수 있", "이어질까", "헤어진", "돌아올", "연락 올", "ex", "get back", "reconcile with", "reconciliation"],
         "mapped_spreads": {"reconciliation"},
     },
     {
@@ -60,6 +60,10 @@ INTENT_RULES: List[Dict[str, Any]] = [
     {
         "intent": "conflict_resolution",
         "keywords": ["싸웠", "다퉜", "화해", "사과", "fight", "make up"],
+    },
+    {
+        "intent": "relationship_general",
+        "keywords": ["relationship", "partner", "communication", "communicate", "without conflict"],
     },
     {
         "intent": "career_change",
@@ -112,19 +116,19 @@ INTENT_RULES: List[Dict[str, Any]] = [
     },
     {
         "intent": "comparison",
-        "keywords": [" vs ", "아니면", " or ", "둘 중", "양자택일"],
+        "keywords": [" vs ", "아니면", " or ", "둘 중", "양자택일", "another says", "conflicting", "contradict", "reconcile this"],
     },
     {
         "intent": "decision",
-        "keywords": ["할까 말까", "해야 할까", "결정", "선택", "decide", "choice"],
+        "keywords": ["할까 말까", "해야 할까", "결정", "선택", "decide", "decision", "decisions", "choice", "choose", "should i", "best move"],
     },
     {
         "intent": "timing",
-        "keywords": ["언제", "시기", "타이밍", "when", "timing"],
+        "keywords": ["언제", "시기", "타이밍", "when", "timing", "weekly"],
     },
     {
         "intent": "daily_flow",
-        "keywords": ["오늘", "today", "이번 주", "this week", "이번 달", "this month", "올해", "this year"],
+        "keywords": ["오늘", "today", "이번 주", "this week", "이번 달", "this month", "올해", "this year", "weekly"],
     },
     {
         "intent": "self_identity",
@@ -136,7 +140,7 @@ INTENT_RULES: List[Dict[str, Any]] = [
     },
     {
         "intent": "growth",
-        "keywords": ["성장", "발전", "변화", "자기계발", "growth", "development"],
+        "keywords": ["성장", "발전", "변화", "자기계발", "growth", "development", "personal growth", "release", "let go", "stop doing"],
     },
 ]
 
@@ -147,6 +151,21 @@ THEME_DEFAULT_INTENTS = {
     "wealth": "finance_general",
     "money": "finance_general",
     "general": "general_guidance",
+}
+
+
+SPREAD_INTENT_HINTS = {
+    "reconciliation": "reconciliation",
+    "career_change": "career_change",
+    "job_search": "job_search",
+    "entrepreneurship": "entrepreneurship",
+    "promotion": "promotion",
+    "workplace": "workplace_relationship",
+    "decision": "decision",
+    "timing": "timing",
+    "weekly": "daily_flow",
+    "shadow_work": "shadow_work",
+    "yes_no": "decision",
 }
 
 
@@ -251,6 +270,114 @@ LLM_FALLBACK_INTENTS = [
 ]
 
 
+INTENT_COUNSELING_FRAMES: Dict[str, str] = {
+    "reconciliation": "relationship_repair",
+    "feelings": "relationship_clarity",
+    "confession": "relationship_action",
+    "commitment": "relationship_commitment",
+    "breakup": "relationship_reality_check",
+    "new_connection": "relationship_opening",
+    "conflict_resolution": "relationship_repair",
+    "career_change": "decision_planning",
+    "job_search": "outcome_readiness",
+    "entrepreneurship": "decision_planning",
+    "promotion": "outcome_readiness",
+    "workplace_relationship": "relationship_clarity",
+    "exam": "outcome_readiness",
+    "finance": "resource_stability",
+    "investment": "risk_timing",
+    "debt": "resource_stability",
+    "health": "healing_care",
+    "emotional_healing": "healing_care",
+    "comparison": "decision_planning",
+    "decision": "decision_planning",
+    "timing": "timing_window",
+    "daily_flow": "timing_window",
+    "self_identity": "self_reflection",
+    "shadow_work": "self_reflection",
+    "growth": "growth_path",
+    "relationship_general": "relationship_clarity",
+    "career_general": "decision_planning",
+    "finance_general": "resource_stability",
+    "general_guidance": "open_reading",
+    "playful": "playful_reading",
+}
+
+
+COUNSELING_FRAME_LABELS = {
+    "relationship_repair": "관계 회복 프레임",
+    "relationship_clarity": "관계 해석 프레임",
+    "relationship_action": "관계 행동 프레임",
+    "relationship_commitment": "관계 안정성 프레임",
+    "relationship_reality_check": "관계 현실 점검 프레임",
+    "relationship_opening": "새 관계 오픈 프레임",
+    "decision_planning": "결정/계획 프레임",
+    "outcome_readiness": "결과 대비 프레임",
+    "resource_stability": "안정성 점검 프레임",
+    "risk_timing": "리스크/타이밍 프레임",
+    "timing_window": "시기 판단 프레임",
+    "healing_care": "회복/케어 프레임",
+    "self_reflection": "자기 탐색 프레임",
+    "growth_path": "성장 경로 프레임",
+    "open_reading": "오픈 리딩 프레임",
+    "playful_reading": "가벼운 리딩 프레임",
+}
+
+
+COUNSELING_FRAME_FOCUS = {
+    "relationship_repair": "막힌 지점, 다시 이어질 가능성, 먼저 풀어야 할 감정 매듭 순서로 읽으세요.",
+    "relationship_clarity": "상대 마음, 현재 거리감, 관계 흐름을 먼저 정리하고 단정은 조심하세요.",
+    "relationship_action": "표현해도 되는지, 언제 움직일지, 어떤 방식이 덜 무리인지 행동 중심으로 읽으세요.",
+    "relationship_commitment": "장기 안정성, 현실 조건, 약속 가능성을 분리해서 읽으세요.",
+    "relationship_reality_check": "붙잡아야 하는지 정리해야 하는지, 감정과 현실을 분리해서 읽으세요.",
+    "relationship_opening": "새 연결의 유입 가능성과 어떤 태도가 문을 여는지 먼저 읽으세요.",
+    "decision_planning": "선택지별 이득과 리스크, 지금 미뤄야 하는지 움직여야 하는지 순서로 읽으세요.",
+    "outcome_readiness": "결과를 맞히는 톤보다 부족한 점, 준비 포인트, 현실적 가능성을 먼저 읽으세요.",
+    "resource_stability": "새는 지점, 버텨야 하는 구간, 안정 회복 포인트를 먼저 읽으세요.",
+    "risk_timing": "언제 들어가거나 멈춰야 하는지, 변동성 경고를 우선해서 읽으세요.",
+    "timing_window": "지금 열리는 시기인지, 더 기다려야 하는지, 기준 시점을 분명히 읽으세요.",
+    "healing_care": "무리되는 부분, 감정 압력, 회복 속도와 케어 포인트를 조심스럽게 읽으세요.",
+    "self_reflection": "반복 패턴, 내면 동기, 지금 놓치고 있는 자기 신호를 먼저 읽으세요.",
+    "growth_path": "다음 성장 단계와 버려야 할 습관, 밀어야 할 방향을 먼저 읽으세요.",
+    "open_reading": "질문을 억지로 특정 유형에 끼워 넣지 말고, 카드가 공통으로 가리키는 핵심 주제를 2-3개로 묶어 읽으세요.",
+    "playful_reading": "가볍고 재치 있게 답하되 카드 상징과 실제 상황 연결은 유지하세요.",
+}
+
+
+def _derive_counseling_frame(intent_payload: Dict[str, Any]) -> Dict[str, Any]:
+    primary_intent = str(intent_payload.get("primary_intent", "")).strip()
+    confidence = float(intent_payload.get("confidence", 0.0) or 0.0)
+    secondary_intents = [
+        str(intent).strip()
+        for intent in intent_payload.get("secondary_intents", []) or []
+        if str(intent).strip()
+    ]
+    matched_keywords = intent_payload.get("matched_keywords", {}) or {}
+
+    frame = INTENT_COUNSELING_FRAMES.get(primary_intent, "open_reading")
+    open_intent_used = False
+    novel_question = False
+
+    no_keyword_support = not bool(matched_keywords)
+    very_short_question = len(str(intent_payload.get("source_question", "")).strip()) <= 8
+    mixed_intent_overload = len(secondary_intents) >= 2 and confidence < 0.72
+
+    if frame == "open_reading":
+        open_intent_used = True
+    elif confidence < 0.68 and (no_keyword_support or very_short_question or mixed_intent_overload):
+        frame = "open_reading"
+        open_intent_used = True
+        novel_question = True
+
+    return {
+        "counseling_frame": frame,
+        "counseling_frame_label": COUNSELING_FRAME_LABELS.get(frame, frame),
+        "counseling_focus": COUNSELING_FRAME_FOCUS.get(frame, ""),
+        "open_intent_used": open_intent_used,
+        "novel_question": novel_question,
+    }
+
+
 def _score_intent(rule: Dict[str, Any], question: str, mapped_spread: str) -> Tuple[int, List[str], int]:
     hits: List[str] = []
     score = 0
@@ -297,6 +424,12 @@ def classify_question_intent(
         scores["playful"] = 4
         matched_keywords["playful"] = ["playful_keyword"]
 
+    hinted_intent = SPREAD_INTENT_HINTS.get(mapped_spread or "")
+    if hinted_intent:
+        scores[hinted_intent] = scores.get(hinted_intent, 0) + 2
+        matched_keywords.setdefault(hinted_intent, []).append(f"spread_hint:{mapped_spread}")
+        keyword_hit_counts[hinted_intent] = keyword_hit_counts.get(hinted_intent, 0)
+
     for rule in INTENT_RULES:
         score, hits, keyword_hit_count = _score_intent(rule, q, mapped_spread)
         if score <= 0:
@@ -308,7 +441,7 @@ def classify_question_intent(
 
     if not scores:
         fallback_intent = THEME_DEFAULT_INTENTS.get(mapped_theme or "", "general_guidance")
-        return {
+        payload = {
             "primary_intent": fallback_intent,
             "secondary_intents": [],
             "confidence": _estimate_intent_confidence(0, 0, False),
@@ -318,7 +451,10 @@ def classify_question_intent(
             "mapped_spread": mapped_spread,
             "intent_label": INTENT_LABELS.get(fallback_intent, fallback_intent),
             "focus_instruction": INTENT_FOCUS_TEXT.get(fallback_intent, ""),
+            "source_question": question,
         }
+        payload.update(_derive_counseling_frame(payload))
+        return payload
 
     ranked = sorted(
         scores.items(),
@@ -333,7 +469,7 @@ def classify_question_intent(
         if len(secondary_intents) >= 2:
             break
 
-    return {
+    payload = {
         "primary_intent": primary_intent,
         "secondary_intents": secondary_intents,
         "confidence": _estimate_intent_confidence(top_score, second_score, True),
@@ -343,7 +479,10 @@ def classify_question_intent(
         "mapped_spread": mapped_spread,
         "intent_label": INTENT_LABELS.get(primary_intent, primary_intent),
         "focus_instruction": INTENT_FOCUS_TEXT.get(primary_intent, ""),
+        "source_question": question,
     }
+    payload.update(_derive_counseling_frame(payload))
+    return payload
 
 
 def build_intent_focus_instruction(intent_payload: Dict[str, Any], is_korean: bool = True) -> str:
@@ -363,6 +502,9 @@ def build_intent_focus_instruction(intent_payload: Dict[str, Any], is_korean: bo
     confidence = float(intent_payload.get("confidence", 0.0) or 0.0)
     focus_instruction = str(intent_payload.get("focus_instruction", "")).strip()
     primary_label = INTENT_LABELS.get(primary_intent, primary_intent)
+    counseling_frame = str(intent_payload.get("counseling_frame_label", "")).strip()
+    counseling_focus = str(intent_payload.get("counseling_focus", "")).strip()
+    open_intent_used = bool(intent_payload.get("open_intent_used"))
 
     if is_korean:
         parts = [
@@ -372,8 +514,14 @@ def build_intent_focus_instruction(intent_payload: Dict[str, Any], is_korean: bo
         ]
         if secondary_intents:
             parts.append(f"- secondary: {', '.join(secondary_intents)}")
+        if counseling_frame:
+            parts.append(f"- counseling_frame: {counseling_frame}")
         if focus_instruction:
             parts.append(f"- focus: {focus_instruction}")
+        if counseling_focus:
+            parts.append(f"- response_focus: {counseling_focus}")
+        if open_intent_used:
+            parts.append("- open_reading: use an open reading approach instead of forcing a narrow label")
         return "\n".join(parts)
 
     parts = [
@@ -383,8 +531,14 @@ def build_intent_focus_instruction(intent_payload: Dict[str, Any], is_korean: bo
     ]
     if secondary_intents:
         parts.append(f"- secondary: {', '.join(secondary_intents)}")
+    if counseling_frame:
+        parts.append(f"- counseling_frame: {counseling_frame}")
     if focus_instruction:
         parts.append(f"- focus: {focus_instruction}")
+    if counseling_focus:
+        parts.append(f"- response_focus: {counseling_focus}")
+    if open_intent_used:
+        parts.append("- open_reading: use an open reading approach instead of forcing a narrow label")
     return "\n".join(parts)
 
 
@@ -450,6 +604,7 @@ def _merge_llm_intent_payload(
             "rule_based_secondary_intents": list(base_intent.get("secondary_intents", []) or []),
         }
     )
+    merged.update(_derive_counseling_frame(merged))
     return merged
 
 

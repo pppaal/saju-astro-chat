@@ -1072,12 +1072,33 @@ class AdvancedRulesLoader:
         support = self.crisis_support.get('support', {})
         return support.get(crisis_type, support.get('general'))
 
-    def get_detailed_reverse_interpretation(self, card_name: str) -> Optional[Dict]:
-        """Get detailed reverse interpretation for a card"""
+    def get_detailed_reverse_interpretation(self, card_name: str, theme: Optional[str] = None) -> Optional[Dict]:
+        """Get detailed reverse interpretation for a card.
+
+        Accepts an optional theme for backward compatibility with older callers
+        that expect a flattened `theme_interpretation` field.
+        """
         if not self.reverse_interpretations:
             return None
         cards_data = self.reverse_interpretations.get('cards', {})
-        return cards_data.get(card_name)
+        detail = cards_data.get(card_name)
+        if not isinstance(detail, dict):
+            return None
+
+        reverse_meaning = detail.get("reverse_meaning", {}) or {}
+        interpretations = detail.get("interpretations", {}) or {}
+        normalized = dict(detail)
+
+        if reverse_meaning and not normalized.get("core"):
+            normalized["core"] = str(reverse_meaning.get("core", "")).strip()
+            normalized["blocked_energy"] = str(reverse_meaning.get("blocked_energy", "")).strip()
+            normalized["shadow_aspect"] = str(reverse_meaning.get("shadow_aspect", "")).strip()
+            normalized["lesson"] = str(reverse_meaning.get("lesson", "")).strip()
+
+        if theme:
+            normalized["theme_interpretation"] = str(interpretations.get(theme, "")).strip()
+
+        return normalized
 
     def get_followup_questions(self, category: str, sentiment: str = 'neutral') -> List[str]:
         """Get followup questions for a theme category"""

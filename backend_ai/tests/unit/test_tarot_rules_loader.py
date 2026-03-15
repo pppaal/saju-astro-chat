@@ -226,6 +226,37 @@ class TestGetTimingHint:
         assert result['message'] == '즉시: 1-7 days'
 
 
+class TestReverseInterpretationCompatibility:
+    """Tests for reverse interpretation compatibility normalization."""
+
+    def test_reverse_interpretation_accepts_optional_theme_and_flattens_fields(self):
+        from backend_ai.app.tarot.rules_loader import AdvancedRulesLoader
+
+        loader = AdvancedRulesLoader()
+        loader.reverse_interpretations = {
+            "cards": {
+                "MAJOR_0": {
+                    "reverse_meaning": {
+                        "core": "잠깐 멈춰야 해요",
+                        "blocked_energy": "충동성",
+                        "shadow_aspect": "회피",
+                        "lesson": "신중함",
+                    },
+                    "interpretations": {
+                        "love": "연애에서는 서두르지 않는 편이 좋아요.",
+                    },
+                }
+            }
+        }
+
+        result = loader.get_detailed_reverse_interpretation("MAJOR_0", "love")
+
+        assert result is not None
+        assert result["core"] == "잠깐 멈춰야 해요"
+        assert result["blocked_energy"] == "충동성"
+        assert result["theme_interpretation"] == "연애에서는 서두르지 않는 편이 좋아요."
+
+
 class TestAnalyzeElementalBalance:
     """Tests for analyze_elemental_balance method."""
 

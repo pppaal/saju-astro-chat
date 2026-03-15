@@ -34,7 +34,8 @@ class PremiumContextBuilder:
         drawn_cards: List[Dict],
         question: str = None,
         birthdate: str = None,
-        moon_phase: str = None
+        moon_phase: str = None,
+        include_semantic_context: bool = True,
     ) -> str:
         """
         Build enhanced reading context with premium features for LLM prompt.
@@ -46,6 +47,7 @@ class PremiumContextBuilder:
             question: User's question
             birthdate: User's birthdate for personalization
             moon_phase: Current moon phase
+            include_semantic_context: Whether to run semantic retrieval in base context
 
         Returns:
             Rich context string for LLM interpretation
@@ -54,7 +56,11 @@ class PremiumContextBuilder:
 
         # Start with base context
         base_context = self.base_builder.build_reading_context(
-            theme, sub_topic, drawn_cards, question or ""
+            theme,
+            sub_topic,
+            drawn_cards,
+            question or "",
+            include_semantic_context=include_semantic_context,
         )
         context_parts.append(base_context)
 

@@ -40,7 +40,8 @@ class ReadingContextBuilder:
         theme: str,
         sub_topic: str,
         drawn_cards: List[Dict],
-        question: str = ""
+        question: str = "",
+        include_semantic_context: bool = True,
     ) -> str:
         """
         Build RAG context string for LLM prompt
@@ -50,6 +51,7 @@ class ReadingContextBuilder:
             sub_topic: Sub-topic (crush, job_search, etc.)
             drawn_cards: List of {name, isReversed} dicts
             question: Optional user question
+            include_semantic_context: Whether to run semantic retrieval here
 
         Returns:
             Formatted string with all relevant card meanings, rules, and insights
@@ -113,7 +115,7 @@ class ReadingContextBuilder:
         )
 
         # Semantic search for additional context
-        if question:
+        if question and include_semantic_context:
             context_parts.extend(
                 self._build_semantic_context(question)
             )

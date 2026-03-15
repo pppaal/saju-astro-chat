@@ -6,6 +6,7 @@ Streaming and non-streaming chat endpoints for tarot conversations.
 
 import json
 import logging
+import re
 from typing import Dict, List
 
 from flask import Blueprint, request, jsonify, Response, stream_with_context, g
@@ -19,10 +20,33 @@ from .dependencies import (
     generate_with_gpt4,
 )
 from .context_detector import build_intent_focus_instruction, is_playful_question, resolve_question_intent
-from .interpret import _build_intent_aware_retrieval_query
+from .interpret_retrieval import _build_intent_aware_retrieval_query
 from .prompt_builder import build_chat_system_prompt
 
 logger = logging.getLogger(__name__)
+
+
+def _resolve_context_spread(context: Dict) -> str:
+    """Prefer the real spread key over the display title for downstream routing."""
+    return (
+        str(
+            context.get("spread_id")
+            or context.get("mapped_spread")
+            or context.get("sub_topic")
+            or context.get("spread_title")
+            or "Tarot Reading"
+        ).strip()
+    )
+
+
+def _strip_evidence_from_overall_message(overall_message: str) -> str:
+    """Keep user-facing narrative only when feeding prior reading back into chat."""
+    text = str(overall_message or "").strip()
+    if not text:
+        return ""
+    text = re.split(r"\n\s*##\s*Card Evidence\b", text, maxsplit=1)[0]
+    text = re.split(r"\n\s*Card Evidence\b", text, maxsplit=1)[0]
+    return text.strip()
 
 
 def register_chat_routes(bp: Blueprint):
@@ -55,13 +79,14 @@ def register_chat_routes(bp: Blueprint):
             # Extract card info from context
             cards = context.get("cards", [])
             spread_title = context.get("spread_title", "Tarot Reading")
+            spread_key = _resolve_context_spread(context)
             category = context.get("category", "general")
-            overall_message = context.get("overall_message", "")
+            overall_message = _strip_evidence_from_overall_message(context.get("overall_message", ""))
 
             # Get the latest user question
             user_messages = [m for m in messages if m.get("role") == "user"]
             latest_question = user_messages[-1].get("content", "") if user_messages else ""
-            mapped_theme, mapped_spread = map_tarot_theme(category, spread_title, latest_question)
+            mapped_theme, mapped_spread = map_tarot_theme(category, spread_key, latest_question)
             intent_payload = resolve_question_intent(
                 latest_question,
                 mapped_theme=mapped_theme,
@@ -74,7 +99,7 @@ def register_chat_routes(bp: Blueprint):
             cards_context = _build_cards_context(cards)
 
             # Build RAG context if available
-            rag_context = _build_rag_context(cards, category, spread_title, latest_question, intent_payload)
+            rag_context = _build_rag_context(cards, category, spread_key, latest_question, intent_payload)
 
             # Build system prompt
             is_korean = language == "ko"
@@ -164,7 +189,7 @@ def register_chat_routes(bp: Blueprint):
             # Extract info
             cards = context.get("cards", [])
             spread_title = context.get("spread_title", "Tarot Reading")
-            overall_message = context.get("overall_message", "")
+            overall_message = _strip_evidence_from_overall_message(context.get("overall_message", ""))
 
             user_messages = [m for m in messages if m.get("role") == "user"]
             latest_question = user_messages[-1].get("content", "") if user_messages else ""
@@ -223,7 +248,7 @@ def _build_cards_context(cards: List[Dict]) -> str:
 def _build_rag_context(
     cards: List[Dict],
     category: str,
-    spread_title: str,
+    spread_key: str,
     latest_question: str,
     intent_payload: Dict | None = None,
 ) -> str:
@@ -237,7 +262,7 @@ def _build_rag_context(
                 for c in cards
             ]
             card_names = [str(c.get("name", "")).strip() for c in cards if str(c.get("name", "")).strip()]
-            mapped_theme, mapped_spread = map_tarot_theme(category, spread_title, latest_question)
+            mapped_theme, mapped_spread = map_tarot_theme(category, spread_key, latest_question)
             retrieval_query = _build_intent_aware_retrieval_query(
                 question=latest_question,
                 card_names=card_names,

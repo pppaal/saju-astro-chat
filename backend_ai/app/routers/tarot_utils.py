@@ -21,10 +21,49 @@ def map_tarot_theme(category: str, spread_id: str, user_question: str = "") -> T
 
     # Fall back to theme-only mapping
     mapped_theme = TAROT_THEME_MAPPING.get(category, category)
+    q = user_question.lower() if user_question else ""
+    explicit_spread_ids = {
+        "decision",
+        "timing",
+        "weekly",
+        "shadow_work",
+        "reconciliation",
+        "yes_no",
+        "celtic_cross",
+        "three_card",
+    }
+
+    if q and mapped_theme in {"general", ""}:
+        if any(kw in q for kw in ["love", "relationship", "partner", "dating", "crush", "reconciliation", "breakup", "marriage"]):
+            mapped_theme = "love"
+        elif any(kw in q for kw in ["career", "job", "work", "promotion", "interview", "employment", "business", "startup", "coworker", "boss"]):
+            mapped_theme = "career"
+        elif any(kw in q for kw in ["money", "finance", "financial", "budget", "investment", "stock", "crypto", "debt", "loan", "income"]):
+            mapped_theme = "wealth"
+
+    if q:
+        if any(kw in q for kw in ["three-card spread", "three card spread", "past, present, and future"]):
+            spread_id = "three_card"
+        elif any(kw in q for kw in ["celtic cross", "cross spread"]):
+            spread_id = "celtic_cross"
+        elif any(kw in q for kw in ["yes/no spread", "yes or no spread", "yes-no spread"]):
+            spread_id = "yes_no"
+        elif any(kw in q for kw in ["weekly spread", "challenge, support, and action"]):
+            spread_id = "weekly"
+        elif any(kw in q for kw in ["timing spread", "when to launch", "when to "]):
+            spread_id = "timing"
+        elif any(kw in q for kw in ["decision spread", "stay at my job or switch"]):
+            spread_id = "decision"
+        elif any(kw in q for kw in ["shadow-work spread", "shadow work spread", "trigger, root cause, and healing step"]):
+            spread_id = "shadow_work"
+        elif any(kw in q for kw in ["reconciliation spread"]):
+            spread_id = "reconciliation"
+
+    if spread_id in explicit_spread_ids:
+        return (mapped_theme, spread_id)
 
     # Dynamic sub_topic selection based on user question keywords
     if user_question and mapped_theme == "career":
-        q = user_question.lower()
         if any(kw in q for kw in ["사업", "창업", "자영업", "business", "startup", "entrepreneur"]):
             return (mapped_theme, "entrepreneurship")
         elif any(kw in q for kw in ["취업", "취직", "입사", "job", "employment", "hire"]):
@@ -37,7 +76,6 @@ def map_tarot_theme(category: str, spread_id: str, user_question: str = "") -> T
             return (mapped_theme, "workplace")
 
     elif user_question and mapped_theme == "love":
-        q = user_question.lower()
         if any(kw in q for kw in ["짝사랑", "고백", "crush", "confess"]):
             return (mapped_theme, "crush")
         elif any(kw in q for kw in ["헤어", "이별", "breakup", "separate"]):
@@ -50,7 +88,6 @@ def map_tarot_theme(category: str, spread_id: str, user_question: str = "") -> T
             return (mapped_theme, "new_love")
 
     elif user_question and mapped_theme == "wealth":
-        q = user_question.lower()
         if any(kw in q for kw in ["투자", "주식", "코인", "invest", "stock", "crypto"]):
             return (mapped_theme, "investment")
         elif any(kw in q for kw in ["빚", "대출", "부채", "debt", "loan"]):
