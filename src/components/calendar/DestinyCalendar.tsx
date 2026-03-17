@@ -45,6 +45,8 @@ import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
 // Utils
 import { getCacheKey, getCachedData, setCachedData } from './cache-utils'
 
+const ALLOW_CALENDAR_SOFT_FALLBACK = process.env.NEXT_PUBLIC_CALENDAR_SOFT_FALLBACK === '1'
+
 function buildFallbackCalendarData(year: number, locale: string): CalendarData {
   const allDates: ImportantDate[] = []
 
@@ -261,17 +263,34 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
         }
 
         if (!res.ok || !json) {
-          logger.warn('[Calendar] API unavailable, using fallback calendar data', {
+          logger.warn('[Calendar] API unavailable', {
             year,
             category: activeCategory,
             status: res.status,
           })
 
-          const fallbackData = buildFallbackCalendarData(year, locale)
-          setData(fallbackData)
+          if (ALLOW_CALENDAR_SOFT_FALLBACK) {
+            const fallbackData = buildFallbackCalendarData(year, locale)
+            setData(fallbackData)
+            setHasBirthInfo(true)
+            setError(null)
+            setCachedData(cacheKey, birthData, year, activeCategory, fallbackData)
+            return
+          }
+
+          const serverMessage =
+            json && typeof json === 'object'
+              ? ((json as { error?: { message?: string }; message?: string }).error?.message ||
+                  (json as { message?: string }).message ||
+                  '')
+              : ''
+          setData(null)
           setHasBirthInfo(true)
-          setError(null)
-          setCachedData(cacheKey, birthData, year, activeCategory, fallbackData)
+          setError(
+            locale === 'ko'
+              ? `캘린더 계산에 실패했습니다. 잠시 후 다시 시도해 주세요.${serverMessage ? ` (${serverMessage})` : ''}`
+              : `Failed to compute calendar data. Please retry shortly.${serverMessage ? ` (${serverMessage})` : ''}`
+          )
           return
         }
 
@@ -280,11 +299,21 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
         setCachedData(cacheKey, birthData, year, activeCategory, json as CalendarData)
         logger.debug('[Calendar] Data cached successfully', { year, category: activeCategory })
       } catch (err: unknown) {
-        logger.error('[Calendar] Error loading API response, using fallback data', err)
-        const fallbackData = buildFallbackCalendarData(year, locale)
-        setData(fallbackData)
+        logger.error('[Calendar] Error loading API response', err)
+        if (ALLOW_CALENDAR_SOFT_FALLBACK) {
+          const fallbackData = buildFallbackCalendarData(year, locale)
+          setData(fallbackData)
+          setHasBirthInfo(true)
+          setError(null)
+          return
+        }
+        setData(null)
         setHasBirthInfo(true)
-        setError(null)
+        setError(
+          locale === 'ko'
+            ? '캘린더 계산 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'
+            : 'An error occurred while computing calendar data. Please retry.'
+        )
       } finally {
         setLoading(false)
       }

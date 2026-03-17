@@ -63,6 +63,7 @@ vi.mock('@/lib/api/zodValidation', () => ({
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { tarotSaveRequestSchema, tarotQuerySchema } from '@/lib/api/zodValidation'
+import { buildStoredCardsPayload } from '@/lib/Tarot/savedReadingPayload'
 
 describe('/api/tarot/save', () => {
   const mockUserId = 'test-user-id'
@@ -460,7 +461,7 @@ describe('/api/tarot/save', () => {
             theme: 'career',
             spreadId: 'three-card',
             spreadTitle: 'Three Card Spread',
-            cards: [validCard],
+            cards: buildStoredCardsPayload([validCard]),
             overallMessage: 'Your career path shows exciting opportunities.',
             cardInsights: [validCardInsight],
             guidance: 'Follow your intuition and embrace change.',
@@ -511,7 +512,7 @@ describe('/api/tarot/save', () => {
             theme: undefined,
             spreadId: 'single-card',
             spreadTitle: 'Single Card Draw',
-            cards: [validCard],
+            cards: buildStoredCardsPayload([validCard]),
             overallMessage: undefined,
             cardInsights: undefined,
             guidance: undefined,
@@ -520,6 +521,48 @@ describe('/api/tarot/save', () => {
             counselorSessionId: undefined,
             locale: 'ko',
           },
+        })
+      })
+
+      it('should store question context inside cards payload when provided', async () => {
+        const dataWithQuestionContext = {
+          ...validTarotData,
+          questionContext: {
+            question_summary: 'Expected reply from the other person',
+            direct_answer: 'A short but clear reply is more likely.',
+            intent: 'prediction',
+          },
+        }
+
+        const mockSchema = tarotSaveRequestSchema as { safeParse: ReturnType<typeof vi.fn> }
+        mockSchema.safeParse.mockReturnValue({
+          success: true,
+          data: dataWithQuestionContext,
+        })
+
+        const mockPrisma = prisma.tarotReading as {
+          create: ReturnType<typeof vi.fn>
+          findMany: ReturnType<typeof vi.fn>
+          count: ReturnType<typeof vi.fn>
+        }
+        mockPrisma.create.mockResolvedValue({ id: 'reading-question-context' })
+
+        const req = new NextRequest('http://localhost:3000/api/tarot/save', {
+          method: 'POST',
+          body: JSON.stringify(dataWithQuestionContext),
+        })
+
+        const { POST } = await import('@/app/api/tarot/save/route')
+        const response = await POST(req)
+
+        expect(response.status).toBe(200)
+        expect(prisma.tarotReading.create).toHaveBeenCalledWith({
+          data: expect.objectContaining({
+            cards: {
+              items: [validCard],
+              questionContext: dataWithQuestionContext.questionContext,
+            },
+          }),
         })
       })
 
@@ -691,7 +734,7 @@ describe('/api/tarot/save', () => {
         expect(response.status).toBe(200)
         expect(prisma.tarotReading.create).toHaveBeenCalledWith({
           data: expect.objectContaining({
-            cards: multipleCards,
+            cards: buildStoredCardsPayload(multipleCards),
           }),
         })
       })
@@ -945,12 +988,61 @@ describe('/api/tarot/save', () => {
             createdAt: true,
             question: true,
             theme: true,
+            spreadId: true,
             spreadTitle: true,
             cards: true,
             overallMessage: true,
+            guidance: true,
+            cardInsights: true,
             source: true,
           },
         })
+      })
+
+      it('should unpack question context from stored cards payload', async () => {
+        const mockQuerySchema = tarotQuerySchema as { safeParse: ReturnType<typeof vi.fn> }
+        mockQuerySchema.safeParse.mockReturnValue({
+          success: true,
+          data: { limit: 10, offset: 0 },
+        })
+
+        const storedQuestionContext = {
+          question_summary: 'Current flow reading',
+          direct_answer: 'Move slowly and keep expectations measured.',
+          intent: 'flow',
+        }
+
+        const mockPrisma = prisma.tarotReading as {
+          create: ReturnType<typeof vi.fn>
+          findMany: ReturnType<typeof vi.fn>
+          count: ReturnType<typeof vi.fn>
+        }
+        mockPrisma.findMany.mockResolvedValue([
+          {
+            id: 'reading-with-context',
+            createdAt: new Date('2024-01-15T10:00:00Z'),
+            question: 'How is the overall flow?',
+            theme: 'general',
+            spreadTitle: 'Past Present Future',
+            cards: {
+              items: [validCard],
+              questionContext: storedQuestionContext,
+            },
+            overallMessage: 'Watch the pace.',
+            source: 'standalone',
+          },
+        ])
+        mockPrisma.count.mockResolvedValue(1)
+
+        const req = new NextRequest('http://localhost:3000/api/tarot/save')
+
+        const { GET } = await import('@/app/api/tarot/save/route')
+        const response = await GET(req)
+        const data = await response.json()
+
+        expect(response.status).toBe(200)
+        expect(data.readings[0].cards).toEqual([validCard])
+        expect(data.readings[0].questionContext).toEqual(storedQuestionContext)
       })
 
       it('should return readings with custom pagination', async () => {
@@ -1173,9 +1265,12 @@ describe('/api/tarot/save', () => {
               createdAt: true,
               question: true,
               theme: true,
+              spreadId: true,
               spreadTitle: true,
               cards: true,
               overallMessage: true,
+              guidance: true,
+              cardInsights: true,
               source: true,
             },
           })
@@ -1322,7 +1417,7 @@ describe('/api/tarot/save', () => {
       expect(response.status).toBe(200)
       expect(prisma.tarotReading.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          cards: [complexCard],
+          cards: buildStoredCardsPayload([complexCard]),
         }),
       })
     })

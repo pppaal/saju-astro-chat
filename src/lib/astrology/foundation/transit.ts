@@ -3,7 +3,13 @@ import { Chart, TransitInput, HouseSystem } from './types'
 import { formatLongitude } from './utils'
 import { calcHouses, inferHouseOf, mapHouseCupsFormatted } from './houses'
 import { getSwisseph } from './ephe'
-import { getPlanetList, isoToJD, throwIfSwissEphError, extractLongitudeSpeed } from './shared'
+import {
+  getPlanetList,
+  isoToJD,
+  throwIfSwissEphError,
+  extractLongitudeSpeed,
+  extractSwissLongitude,
+} from './shared'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 
 export async function calculateTransitChart(
@@ -25,11 +31,12 @@ export async function calculateTransitChart(
     if ('error' in res) {
       throw new Error(`swe_calc_ut(${name}): ${res.error}`)
     }
-    const info = formatLongitude(res.longitude)
-    const house = inferHouseOf(res.longitude, housesRes.house)
+    const longitude = extractSwissLongitude(res as unknown as Record<string, unknown>)
+    const info = formatLongitude(longitude)
+    const house = inferHouseOf(longitude, housesRes.house)
     const speed = extractLongitudeSpeed(res as unknown as Record<string, unknown>)
     const retrograde = typeof speed === 'number' ? speed < 0 : undefined
-    return { name, longitude: res.longitude, ...info, house, speed, retrograde }
+    return { name, longitude, ...info, house, speed, retrograde }
   })
 
   return {

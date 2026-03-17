@@ -27,6 +27,7 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     tarotReading: {
       findFirst: vi.fn(),
+      delete: vi.fn(),
     },
   },
 }))
@@ -606,6 +607,37 @@ describe('/api/tarot/save/[id]', () => {
         expect(response.status).toBe(200)
         expect(result.data.reading.source).toBe('counselor')
       })
+
+      it('should unpack question context from stored cards payload', async () => {
+        const readingWithQuestionContext = {
+          ...mockTarotReading,
+          cards: {
+            items: mockTarotReading.cards,
+            questionContext: {
+              question_summary: 'Current relationship flow',
+              direct_answer: 'The other person may keep things brief for now.',
+              intent: 'prediction',
+            },
+          },
+        }
+
+        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          readingWithQuestionContext
+        )
+
+        const req = new Request(`http://localhost:3000/api/tarot/save/${mockReadingId}`)
+        const routeContext = createRouteContext(mockReadingId)
+
+        const { GET } = await import('@/app/api/tarot/save/[id]/route')
+        const response = await GET(req, routeContext)
+        const result = await response.json()
+
+        expect(response.status).toBe(200)
+        expect(result.data.reading.cards).toEqual(mockTarotReading.cards)
+        expect(result.data.reading.questionContext).toEqual(
+          readingWithQuestionContext.cards.questionContext
+        )
+      })
     })
 
     describe('Error Handling', () => {
@@ -915,8 +947,59 @@ describe('/api/tarot/save/[id]', () => {
 
   describe('Route Configuration', () => {
     it('should export GET as a function', async () => {
-      const { GET } = await import('@/app/api/tarot/save/[id]/route')
+      const { GET, DELETE } = await import('@/app/api/tarot/save/[id]/route')
       expect(typeof GET).toBe('function')
+      expect(typeof DELETE).toBe('function')
+    })
+  })
+
+  describe('DELETE /api/tarot/save/[id]', () => {
+    it('should delete a reading belonging to the authenticated user', async () => {
+      ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: mockReadingId,
+      })
+      ;(prisma.tarotReading.delete as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: mockReadingId,
+      })
+
+      const req = new Request(`http://localhost:3000/api/tarot/save/${mockReadingId}`, {
+        method: 'DELETE',
+      })
+      const routeContext = createRouteContext(mockReadingId)
+
+      const { DELETE } = await import('@/app/api/tarot/save/[id]/route')
+      const response = await DELETE(req, routeContext)
+      const result = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(result.data.deletedId).toBe(mockReadingId)
+      expect(prisma.tarotReading.findFirst).toHaveBeenCalledWith({
+        where: {
+          id: mockReadingId,
+          userId: mockUserId,
+        },
+        select: { id: true },
+      })
+      expect(prisma.tarotReading.delete).toHaveBeenCalledWith({
+        where: { id: mockReadingId },
+      })
+    })
+
+    it('should return 404 when deleting a missing reading', async () => {
+      ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+
+      const req = new Request('http://localhost:3000/api/tarot/save/missing-id', {
+        method: 'DELETE',
+      })
+      const routeContext = createRouteContext('missing-id')
+
+      const { DELETE } = await import('@/app/api/tarot/save/[id]/route')
+      const response = await DELETE(req, routeContext)
+      const result = await response.json()
+
+      expect(response.status).toBe(404)
+      expect(result.error.code).toBe('NOT_FOUND')
+      expect(prisma.tarotReading.delete).not.toHaveBeenCalled()
     })
   })
 })

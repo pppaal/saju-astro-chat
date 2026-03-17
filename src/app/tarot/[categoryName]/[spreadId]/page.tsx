@@ -55,6 +55,7 @@ function TarotReadingPage() {
     categoryName,
     spreadId,
     userTopic: gameHook.userTopic,
+    questionAnalysis: gameHook.questionAnalysis,
     selectedDeckStyle: gameHook.selectedDeckStyle,
     personalizationOptions: gameHook.personalizationOptions,
   })

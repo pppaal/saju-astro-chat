@@ -1,0 +1,490 @@
+{
+  "lang": "en",
+  "results": [
+    {
+      "id": "relationship_push",
+      "theme": "love",
+      "lang": "en",
+      "question": "Things feel ambiguous in this relationship. Should I push it forward now?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "core-calendar focus sync",
+          "status": "PASS",
+          "detail": "core=relationship calendar=relationship"
+        },
+        {
+          "name": "core-counselor decision sync",
+          "status": "PASS",
+          "detail": "calendar=relationship: Boundary first counselor=relationship: Boundary first"
+        },
+        {
+          "name": "riskControl parity",
+          "status": "PASS",
+          "detail": "calendar=Prioritize confirmation questions before emotional conclusions. | counselor=Prioritize confirmation questions before emotional conclusions. | report=Prioritize confirmation questions before emotional conclusions."
+        },
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=relationship/timing actual=relationship"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=boundary/distance/expectation/review | pool=relationship: Boundary first Stay in preparation and information-gathering mode. Stay in preparation and information-gathering mode. The strongest move here is to slow the conclus..."
+        },
+        {
+          "name": "counselor directness",
+          "status": "PASS",
+          "detail": "The priority now is relationship: Boundary first. relationship is running in a mixed phase where upside and risk activa..."
+        },
+        {
+          "name": "report action plan grounded",
+          "status": "PASS",
+          "detail": "The strongest move here is to slow the conclusion and strengthen the understanding. relationship: Boundary first Around age 31, 31-40 (乙亥(목)) is best managed by separating start, review, and commitment. renewal after re..."
+        }
+      ],
+      "core": {
+        "focusDomain": "relationship",
+        "topDecisionId": "relationship__boundary_first",
+        "topDecisionLabel": "relationship: Boundary first",
+        "phase": "defensive_reset",
+        "phaseLabel": "Defensive Reset Phase",
+        "riskControl": "Prioritize confirmation questions before emotional conclusions.",
+        "topScenarioIds": [
+          "distance_tuning_window",
+          "boundary_reset_window",
+          "clarify_expectations_window",
+          "deep_partnership_activation_defensive_window",
+          "deep_partnership_activation_alt_window"
+        ]
+      },
+      "calendar": {
+        "focusDomain": "relationship",
+        "topDecisionLabel": "relationship: Boundary first",
+        "riskControl": "Prioritize confirmation questions before emotional conclusions.",
+        "allowedActions": [
+          "Stay in preparation and information-gathering mode."
+        ],
+        "blockedActions": [
+          "Avoid instant commitment; run a final verification step.",
+          "Break the move into stages and insert a checkpoint.",
+          "Define review criteria and hold conditions before committing.",
+          "Negotiate scope, terms, and timing before you lock it in.",
+          "Set boundaries and ownership before you proceed.",
+          "Run a pilot first and expand after the first proof loop."
+        ]
+      },
+      "counselor": {
+        "focusDomain": "relationship",
+        "verdict": "The priority now is relationship: Boundary first. relationship is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+        "guardrail": "For tense aspects, pair execution with pace-control and verification routines.",
+        "topAnchorSummary": "dayMaster=metal, geokguk=jeonggwan, yongsin=fire, sibsin=pyeonjae(2), bigeon(2), sanggwan(1), currentDaeun=water, currentSaeun=wood, currentWolun=N/A, currentIljin=N/A, profile=bir",
+        "topDecisionLabel": "relationship: Boundary first",
+        "allowedActions": [
+          "Stay in preparation and information-gathering mode."
+        ],
+        "blockedActions": [
+          "Avoid instant commitment; run a final verification step.",
+          "Break the move into stages and insert a checkpoint.",
+          "Define review criteria and hold conditions before committing."
+        ]
+      },
+      "report": {
+        "mode": "themed",
+        "focusDomain": "relationship",
+        "topDecisionLabel": "relationship: Boundary first",
+        "actionPlanSnippet": "The strongest move here is to slow the conclusion and strengthen the understanding. relationship: Boundary first Around age 31, 31-40 (乙亥(목)) is best managed by separating start, review, and commitme...",
+        "conclusionSnippet": ""
+      }
+    },
+    {
+      "id": "job_offer",
+      "theme": "career",
+      "lang": "en",
+      "question": "I got a job offer. Is it okay to accept it right away?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "core-calendar focus sync",
+          "status": "PASS",
+          "detail": "core=career calendar=career"
+        },
+        {
+          "name": "core-counselor decision sync",
+          "status": "PASS",
+          "detail": "calendar=career: Review first counselor=career: Review first"
+        },
+        {
+          "name": "riskControl parity",
+          "status": "PASS",
+          "detail": "calendar=Split decisions and lock scope, deadline, and ownership in writing. | counselor=Split decisions and lock scope, deadline, and ownership in writing. | report=Split decisions and lock scope, deadline, and ownership in writing."
+        },
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=career/timing actual=career"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=review/terms/negotiate/staged | pool=career: Review first Stay in preparation and information-gathering mode. Stay in preparation and information-gathering mode. Execution improves when role, scope, and deadline are ..."
+        },
+        {
+          "name": "counselor directness",
+          "status": "PASS",
+          "detail": "The priority now is career: Review first. career is running in a mixed phase where upside and risk activate together, s..."
+        },
+        {
+          "name": "report action plan grounded",
+          "status": "PASS",
+          "detail": "Execution improves when role, scope, and deadline are locked before momentum builds. career: Review first Around age 31, 31-40 (乙亥(목)) is best managed by separating start, review, and commitment. public role expansion F..."
+        }
+      ],
+      "core": {
+        "focusDomain": "career",
+        "topDecisionId": "career__review_first",
+        "topDecisionLabel": "career: Review first",
+        "phase": "defensive_reset",
+        "phaseLabel": "Defensive Reset Phase",
+        "riskControl": "Split decisions and lock scope, deadline, and ownership in writing.",
+        "topScenarioIds": [
+          "promotion_review_window",
+          "contract_negotiation_window",
+          "manager_track_window",
+          "specialist_track_window",
+          "leadership_emergence_defensive_window"
+        ]
+      },
+      "calendar": {
+        "focusDomain": "career",
+        "topDecisionLabel": "career: Review first",
+        "riskControl": "Split decisions and lock scope, deadline, and ownership in writing.",
+        "allowedActions": [
+          "Stay in preparation and information-gathering mode."
+        ],
+        "blockedActions": [
+          "Avoid instant commitment; run a final verification step.",
+          "Break the move into stages and insert a checkpoint.",
+          "Define review criteria and hold conditions before committing.",
+          "Negotiate scope, terms, and timing before you lock it in.",
+          "Set boundaries and ownership before you proceed.",
+          "Run a pilot first and expand after the first proof loop."
+        ]
+      },
+      "counselor": {
+        "focusDomain": "career",
+        "verdict": "The priority now is career: Review first. career is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+        "guardrail": "For tense aspects, pair execution with pace-control and verification routines.",
+        "topAnchorSummary": "dayMaster=metal, geokguk=jeonggwan, yongsin=fire, sibsin=pyeonjae(2), bigeon(2), sanggwan(1), currentDaeun=metal, currentSaeun=earth, currentWolun=N/A, currentIljin=N/A, profile=bi",
+        "topDecisionLabel": "career: Review first",
+        "allowedActions": [
+          "Stay in preparation and information-gathering mode."
+        ],
+        "blockedActions": [
+          "Avoid instant commitment; run a final verification step.",
+          "Break the move into stages and insert a checkpoint.",
+          "Define review criteria and hold conditions before committing."
+        ]
+      },
+      "report": {
+        "mode": "themed",
+        "focusDomain": "career",
+        "topDecisionLabel": "career: Review first",
+        "actionPlanSnippet": "Execution improves when role, scope, and deadline are locked before momentum builds. career: Review first Around age 31, 31-40 (乙亥(목)) is best managed by separating start, review, and commitment. pub...",
+        "conclusionSnippet": ""
+      }
+    },
+    {
+      "id": "money_leak",
+      "theme": "wealth",
+      "lang": "en",
+      "question": "Money feels leaky right now. What should I stop first?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "core-calendar focus sync",
+          "status": "PASS",
+          "detail": "core=wealth calendar=wealth"
+        },
+        {
+          "name": "core-counselor decision sync",
+          "status": "PASS",
+          "detail": "calendar=wealth: Review first counselor=wealth: Review first"
+        },
+        {
+          "name": "riskControl parity",
+          "status": "PASS",
+          "detail": "calendar=Validate amount, due date, and cancellation clauses before commitment. | counselor=Validate amount, due date, and cancellation clauses before commitment. | report=Validate amount, due date, and cancellation clauses before commitment."
+        },
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=wealth/timing actual=wealth"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=spending/protect/review/terms | pool=wealth: Review first Stay in preparation and information-gathering mode. Stay in preparation and information-gathering mode. Protect the downside first, then decide how much upsid..."
+        },
+        {
+          "name": "counselor directness",
+          "status": "PASS",
+          "detail": "The priority now is wealth: Review first. wealth is running in a mixed phase where upside and risk activate together, s..."
+        },
+        {
+          "name": "report action plan grounded",
+          "status": "PASS",
+          "detail": "Protect the downside first, then decide how much upside is worth chasing. wealth: Review first Around age 31, 31-40 (乙亥(목)) is best managed by separating start, review, and commitment. money expansion action relationshi..."
+        }
+      ],
+      "core": {
+        "focusDomain": "wealth",
+        "topDecisionId": "wealth__review_first",
+        "topDecisionLabel": "wealth: Review first",
+        "phase": "defensive_reset",
+        "phaseLabel": "Defensive Reset Phase",
+        "riskControl": "Validate amount, due date, and cancellation clauses before commitment.",
+        "topScenarioIds": [
+          "debt_restructure_window",
+          "liquidity_defense_window",
+          "expense_spike_window",
+          "cashflow_swing_window",
+          "expense_control_window"
+        ]
+      },
+      "calendar": {
+        "focusDomain": "wealth",
+        "topDecisionLabel": "wealth: Review first",
+        "riskControl": "Validate amount, due date, and cancellation clauses before commitment.",
+        "allowedActions": [
+          "Stay in preparation and information-gathering mode."
+        ],
+        "blockedActions": [
+          "Avoid instant commitment; run a final verification step.",
+          "Break the move into stages and insert a checkpoint.",
+          "Define review criteria and hold conditions before committing.",
+          "Negotiate scope, terms, and timing before you lock it in.",
+          "Set boundaries and ownership before you proceed.",
+          "Run a pilot first and expand after the first proof loop."
+        ]
+      },
+      "counselor": {
+        "focusDomain": "wealth",
+        "verdict": "The priority now is wealth: Review first. wealth is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+        "guardrail": "relationship caution",
+        "topAnchorSummary": "dayMaster=metal, geokguk=jeongjae, yongsin=fire, sibsin=pyeonjae(2), bigeon(2), sanggwan(1), currentDaeun=metal, currentSaeun=fire, currentWolun=N/A, currentIljin=N/A, profile=birt",
+        "topDecisionLabel": "wealth: Review first",
+        "allowedActions": [
+          "Stay in preparation and information-gathering mode."
+        ],
+        "blockedActions": [
+          "Avoid instant commitment; run a final verification step.",
+          "Break the move into stages and insert a checkpoint.",
+          "Define review criteria and hold conditions before committing."
+        ]
+      },
+      "report": {
+        "mode": "themed",
+        "focusDomain": "wealth",
+        "topDecisionLabel": "wealth: Review first",
+        "actionPlanSnippet": "Protect the downside first, then decide how much upside is worth chasing. wealth: Review first Around age 31, 31-40 (乙亥(목)) is best managed by separating start, review, and commitment. money expansio...",
+        "conclusionSnippet": ""
+      }
+    },
+    {
+      "id": "burnout",
+      "theme": "health",
+      "lang": "en",
+      "question": "I am exhausted lately. Should I keep pushing or pull back and recover?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "core-calendar focus sync",
+          "status": "PASS",
+          "detail": "core=health calendar=health"
+        },
+        {
+          "name": "core-counselor decision sync",
+          "status": "PASS",
+          "detail": "calendar=health: Boundary first counselor=health: Boundary first"
+        },
+        {
+          "name": "riskControl parity",
+          "status": "PASS",
+          "detail": "calendar=Stabilize sleep, hydration, and recovery blocks before pushing volume. | counselor=Stabilize sleep, hydration, and recovery blocks before pushing volume. | report=Stabilize sleep, hydration, and recovery blocks before pushing volume."
+        },
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=health/timing actual=health"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=recovery/routine/load/boundary | pool=health: Boundary first Stay in preparation and information-gathering mode. Stay in preparation and information-gathering mode. Short, repeatable recovery choices will outperform o..."
+        },
+        {
+          "name": "counselor directness",
+          "status": "PASS",
+          "detail": "The priority now is health: Boundary first. health is more likely to manifest as restructuring before commitment. The v..."
+        },
+        {
+          "name": "report action plan grounded",
+          "status": "PASS",
+          "detail": "Short, repeatable recovery choices will outperform one heroic correction. health: Boundary first Around age 31, 31-40 (乙亥(목)) is best managed by separating start, review, and commitment. renewal after recalibration reco..."
+        }
+      ],
+      "core": {
+        "focusDomain": "health",
+        "topDecisionId": "health__boundary_first",
+        "topDecisionLabel": "health: Boundary first",
+        "phase": "defensive_reset",
+        "phaseLabel": "Defensive Reset Phase",
+        "riskControl": "Stabilize sleep, hydration, and recovery blocks before pushing volume.",
+        "topScenarioIds": [
+          "recovery_reset_window",
+          "sleep_disruption_window",
+          "burnout_trigger_window",
+          "schedule_reduction_window",
+          "load_rebalance_window"
+        ]
+      },
+      "calendar": {
+        "focusDomain": "health",
+        "topDecisionLabel": "health: Boundary first",
+        "riskControl": "Stabilize sleep, hydration, and recovery blocks before pushing volume.",
+        "allowedActions": [
+          "Stay in preparation and information-gathering mode."
+        ],
+        "blockedActions": [
+          "Avoid instant commitment; run a final verification step.",
+          "Break the move into stages and insert a checkpoint.",
+          "Define review criteria and hold conditions before committing.",
+          "Negotiate scope, terms, and timing before you lock it in.",
+          "Set boundaries and ownership before you proceed.",
+          "Run a pilot first and expand after the first proof loop."
+        ]
+      },
+      "counselor": {
+        "focusDomain": "health",
+        "verdict": "The priority now is health: Boundary first. health is more likely to manifest as restructuring before commitment. The visible pace may slow, but internal conditions are being reset",
+        "guardrail": "recovery priority",
+        "topAnchorSummary": "dayMaster=metal, geokguk=jeongin, yongsin=fire, sibsin=pyeonjae(2), bigeon(2), sanggwan(1), currentDaeun=water, currentSaeun=earth, currentWolun=N/A, currentIljin=N/A, profile=birt",
+        "topDecisionLabel": "health: Boundary first",
+        "allowedActions": [
+          "Stay in preparation and information-gathering mode."
+        ],
+        "blockedActions": [
+          "Avoid instant commitment; run a final verification step.",
+          "Break the move into stages and insert a checkpoint.",
+          "Define review criteria and hold conditions before committing."
+        ]
+      },
+      "report": {
+        "mode": "themed",
+        "focusDomain": "health",
+        "topDecisionLabel": "health: Boundary first",
+        "actionPlanSnippet": "Short, repeatable recovery choices will outperform one heroic correction. health: Boundary first Around age 31, 31-40 (乙亥(목)) is best managed by separating start, review, and commitment. renewal afte...",
+        "conclusionSnippet": ""
+      }
+    },
+    {
+      "id": "relocation",
+      "theme": "life",
+      "lang": "en",
+      "question": "Is this the right time to relocate or reset my living base?",
+      "status": "WARN",
+      "checks": [
+        {
+          "name": "core-calendar focus sync",
+          "status": "PASS",
+          "detail": "core=move calendar=move"
+        },
+        {
+          "name": "core-counselor decision sync",
+          "status": "PASS",
+          "detail": "calendar=move: Stay in preparation and information-gathering mode. counselor=move: Stay in preparation and information-gathering mode."
+        },
+        {
+          "name": "riskControl parity",
+          "status": "PASS",
+          "detail": "calendar=Handle change in staged checkpoints instead of one-shot commitment. | counselor=Handle change in staged checkpoints instead of one-shot commitment. | report=Handle change in staged checkpoints instead of one-shot commitment."
+        },
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=move/timing/relationship actual=move"
+        },
+        {
+          "name": "action language fit",
+          "status": "WARN",
+          "detail": "hints=route/base/recheck/staged | pool=move: Stay in preparation and information-gathering mode. Stay in preparation and information-gathering mode. Stay in preparation and information-gathering mode. Around age 31, 31..."
+        },
+        {
+          "name": "counselor directness",
+          "status": "PASS",
+          "detail": "The priority now is move: Stay in preparation and information-gathering mode. move is running in a mixed phase where up..."
+        },
+        {
+          "name": "report action plan grounded",
+          "status": "PASS",
+          "detail": "Around age 31, 31-40 (乙亥(목)) is best managed by separating start, review, and commitment. The current priority action is move: Stay in preparation and information-gathering mode. The first step is Lean into renewal afte..."
+        }
+      ],
+      "core": {
+        "focusDomain": "move",
+        "topDecisionId": "wealth__negotiate_first",
+        "topDecisionLabel": "move: Stay in preparation and information-gathering mode.",
+        "phase": "expansion_guarded",
+        "phaseLabel": "Expansion with Guardrails",
+        "riskControl": "Handle change in staged checkpoints instead of one-shot commitment.",
+        "topScenarioIds": [
+          "distance_tuning_window",
+          "boundary_reset_window",
+          "clarify_expectations_window",
+          "timing_risk_cluster_defensive_window",
+          "timing_risk_cluster_alt_window"
+        ]
+      },
+      "calendar": {
+        "focusDomain": "move",
+        "topDecisionLabel": "move: Stay in preparation and information-gathering mode.",
+        "riskControl": "Handle change in staged checkpoints instead of one-shot commitment.",
+        "allowedActions": [
+          "Stay in preparation and information-gathering mode."
+        ],
+        "blockedActions": [
+          "Avoid instant commitment; run a final verification step.",
+          "Break the move into stages and insert a checkpoint.",
+          "Define review criteria and hold conditions before committing.",
+          "Negotiate scope, terms, and timing before you lock it in.",
+          "Set boundaries and ownership before you proceed.",
+          "Run a pilot first and expand after the first proof loop."
+        ]
+      },
+      "counselor": {
+        "focusDomain": "move",
+        "verdict": "The priority now is move: Stay in preparation and information-gathering mode. move is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+        "guardrail": "For tense aspects, pair execution with pace-control and verification routines.",
+        "topAnchorSummary": "dayMaster=metal, geokguk=jeongjae, yongsin=fire, sibsin=pyeonjae(2), bigeon(2), sanggwan(1), currentDaeun=wood, currentSaeun=water, currentWolun=N/A, currentIljin=N/A, profile=birt",
+        "topDecisionLabel": "move: Stay in preparation and information-gathering mode.",
+        "allowedActions": [
+          "Stay in preparation and information-gathering mode."
+        ],
+        "blockedActions": [
+          "Avoid instant commitment; run a final verification step.",
+          "Break the move into stages and insert a checkpoint.",
+          "Define review criteria and hold conditions before committing."
+        ]
+      },
+      "report": {
+        "mode": "comprehensive",
+        "focusDomain": "move",
+        "topDecisionLabel": "move: Stay in preparation and information-gathering mode.",
+        "actionPlanSnippet": "Around age 31, 31-40 (乙亥(목)) is best managed by separating start, review, and commitment. The current priority action is move: Stay in preparation and information-gathering mode. The first step is Le...",
+        "conclusionSnippet": "The conclusion of this cycle is simple: results improve when speed and verification stop fighting each other. At the natal level the base axis is day master 금, 격국 jeongjae, 용신 화, with 바람 as the domin..."
+      }
+    }
+  ]
+}

@@ -4,6 +4,7 @@ import ErrorState from './ErrorState'
 import { DeckSelectStage, PickingStage, ResultsStage } from './stages'
 import type { GameState, ReadingResponse, InterpretationResult } from '../types'
 import type { Spread, DeckStyle } from '@/lib/Tarot/tarot.types'
+import type { TarotQuestionAnalysisSnapshot } from '@/lib/Tarot/questionFlow'
 import type { CardColor } from '../constants'
 import type { TarotPersonalizationOptions } from '../hooks/useTarotGame'
 import type { TarotDrawError } from '../../../utils/errorHandling'
@@ -22,6 +23,7 @@ export interface PageContentProps {
   revealedCards: number[]
   isSpreading: boolean
   userTopic: string
+  questionAnalysis: TarotQuestionAnalysisSnapshot | null
   personalizationOptions: TarotPersonalizationOptions
 
   // Results state
@@ -148,6 +150,7 @@ export function PageContent(props: PageContentProps) {
         language={language}
         translate={translate}
         userTopic={props.userTopic}
+        questionAnalysis={props.questionAnalysis}
         handleCardReveal={props.handleCardReveal}
         canRevealCard={props.canRevealCard}
         isCardRevealed={props.isCardRevealed}

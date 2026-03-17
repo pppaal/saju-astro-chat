@@ -1,7 +1,5 @@
-'use client'
+﻿'use client'
 
-// src/components/calendar/BirthInfoForm.tsx
-// Consolidated BirthInfoForm component with optional canvas support
 import React, { memo, RefObject, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -13,7 +11,6 @@ import { ICONS } from './constants'
 import type { BirthInfo } from './types'
 
 interface BirthInfoFormProps {
-  /** Optional canvas ref for particle animation */
   canvasRef?: RefObject<HTMLCanvasElement | null>
   birthInfo: BirthInfo
   onSubmit: (birthInfo: BirthInfo) => void | Promise<void>
@@ -30,7 +27,6 @@ const BirthInfoForm = memo(function BirthInfoForm({
   const [isQuickMode, setIsQuickMode] = useState(true)
 
   const handleFormSubmit = async (formData: UnifiedBirthInfo) => {
-    // Convert form data to parent's expected format
     const genderValue = formData.gender || 'M'
     const normalizedBirthInfo: BirthInfo = {
       birthDate: formData.birthDate,
@@ -55,13 +51,11 @@ const BirthInfoForm = memo(function BirthInfoForm({
           <div className={styles.iconWrapper}>
             <span className={styles.icon}>{ICONS.calendar}</span>
           </div>
-          <h1 className={styles.pageTitle}>
-            {locale === 'ko' ? '운명 캘린더' : 'Destiny Calendar'}
-          </h1>
+          <h1 className={styles.pageTitle}>{locale === 'ko' ? '운명 캘린더' : 'Destiny Calendar'}</h1>
           <p className={styles.pageSubtitle}>
             {locale === 'ko'
-              ? '생년월일 기반으로 월별 좋은 날/주의할 날을 정리해 드립니다'
-              : 'Find your monthly best days and caution days from your birth data.'}
+              ? '생년월일 기준으로 월별 실행·검토 포인트를 정리해 드립니다'
+              : 'Find your monthly execution and review windows from your birth data.'}
           </p>
         </div>
 
@@ -89,10 +83,10 @@ const BirthInfoForm = memo(function BirthInfoForm({
           <p className={styles.tabHelperText}>
             {isQuickMode
               ? locale === 'ko'
-                ? '퀵 모드: 생년월일만 입력해도 결과를 바로 확인할 수 있어요.'
+                ? '퀵 모드: 생년월일만으로 기본 흐름을 바로 확인할 수 있습니다.'
                 : 'Quick mode: analysis with birth date only.'
               : locale === 'ko'
-                ? '상세 모드: 태어난 시간/도시/성별까지 입력하면 정확도가 올라가요.'
+                ? '상세 모드: 태어난 시간·도시·성별까지 넣으면 타이밍 정확도가 올라갑니다.'
                 : 'Detailed mode: add time, city, and gender for precision.'}
           </p>
 
@@ -114,15 +108,15 @@ const BirthInfoForm = memo(function BirthInfoForm({
             includeGender={!isQuickMode}
             allowTimeUnknown={true}
             genderFormat="long"
-            submitButtonText={locale === 'ko' ? '운명의 날 찾기' : 'Find Your Destiny Days'}
+            submitButtonText={locale === 'ko' ? '월간 흐름 보기' : 'View Monthly Flow'}
             submitButtonIcon="✨"
             loadingButtonText={locale === 'ko' ? '분석 중...' : 'Analyzing...'}
             showHeader={true}
             headerIcon="🎂"
-            headerTitle={locale === 'ko' ? '생년월일을 입력해주세요' : 'Enter Your Birth Info'}
+            headerTitle={locale === 'ko' ? '생년월일을 입력해 주세요' : 'Enter Your Birth Info'}
             headerSubtitle={
               locale === 'ko'
-                ? '생년월일만으로 시작 가능, 상세 입력 시 정확도 향상'
+                ? '생년월일만으로 시작 가능하며, 상세 입력 시 타이밍 해석이 더 정교해집니다'
                 : 'Required for accurate analysis'
             }
           />
@@ -131,7 +125,7 @@ const BirthInfoForm = memo(function BirthInfoForm({
             <div className={styles.loginHint}>
               <p>
                 {locale === 'ko'
-                  ? '로그인하면 정보가 저장되어 더 편리하게 이용할 수 있어요'
+                  ? '로그인하면 입력 정보가 저장되어 다음 분석을 더 빠르게 이어갈 수 있습니다'
                   : 'Log in to save your info for a better experience'}
               </p>
               <a href={signInUrl} className={styles.loginLink}>
@@ -141,23 +135,22 @@ const BirthInfoForm = memo(function BirthInfoForm({
           )}
         </div>
 
-        {/* Quick Tips */}
         <div className={styles.quickTips}>
           <h4>{locale === 'ko' ? '💡 결과 해석 가이드' : '💡 How to read the result'}</h4>
           <ul>
             <li>
               {locale === 'ko'
-                ? '초록/파랑 계열 날짜: 실행·미팅·발표 일정 추천'
+                ? '초록·파랑 계열 날짜: 실행과 집중을 앞세우기 좋은 구간입니다'
                 : 'Blue/green days: better for execution, meetings, launches'}
             </li>
             <li>
               {locale === 'ko'
-                ? '주황/빨강 계열 날짜: 과로·충돌 가능성 점검 후 일정 조정'
+                ? '주황·빨강 계열 날짜: 과로·충돌 가능성을 먼저 점검하고 일정을 조정하세요'
                 : 'Orange/red days: check risk and reduce overload or conflict'}
             </li>
             <li>
               {locale === 'ko'
-                ? '선택한 날짜를 클릭하면 상세 설명·추천 행동을 바로 확인'
+                ? '날짜를 클릭하면 근거 요약과 추천 행동을 바로 확인할 수 있습니다'
                 : 'Click a date to view detailed reasons and action guidance'}
             </li>
           </ul>
@@ -168,6 +161,4 @@ const BirthInfoForm = memo(function BirthInfoForm({
 })
 
 export default BirthInfoForm
-
-// Backward compatibility alias
 export { BirthInfoForm as BirthInfoFormInline }

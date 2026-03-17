@@ -171,6 +171,23 @@ describe('Tarot Request Schemas', () => {
       }).success).toBe(true)
     })
 
+    it('should accept question context metadata', () => {
+      expect(tarotSaveRequestSchema.safeParse({
+        ...validRequest,
+        questionContext: {
+          question_summary: 'Relationship response outlook',
+          direct_answer: 'A short reply is more likely than a long conversation.',
+          question_profile: {
+            type: { code: 'other_response', label: '상대 반응' },
+            subject: { code: 'other_person', label: '상대방' },
+            focus: { code: 'reply', label: '답변' },
+            timeframe: { code: 'short_term', label: '단기' },
+            tone: { code: 'prediction', label: '예측' },
+          },
+        },
+      }).success).toBe(true)
+    })
+
     it('should reject empty cards', () => {
       expect(tarotSaveRequestSchema.safeParse({
         ...validRequest,
@@ -312,6 +329,17 @@ describe('Tarot Request Schemas', () => {
       expect(tarotDrawSchema.safeParse({
         categoryId: 'love',
         spreadId: 'three-card',
+      }).success).toBe(true)
+    })
+
+    it('should accept optional question context', () => {
+      expect(tarotDrawSchema.safeParse({
+        categoryId: 'general-insight',
+        spreadId: 'quick-reading',
+        questionContext: {
+          question_summary: 'Current flow reading',
+          intent: 'flow',
+        },
       }).success).toBe(true)
     })
 

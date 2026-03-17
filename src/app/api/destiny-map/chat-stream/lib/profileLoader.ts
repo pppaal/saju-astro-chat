@@ -21,6 +21,14 @@ export interface MemoryLoadResult {
   recentSessionSummaries: string
 }
 
+function buildSessionThemeWhere(theme: string): { theme?: string } | undefined {
+  const normalizedTheme = (theme || '').trim().toLowerCase()
+  if (!normalizedTheme || normalizedTheme === 'chat') {
+    return undefined
+  }
+  return { theme: theme || undefined }
+}
+
 /**
  * Load user birth profile from database if not provided
  */
@@ -193,10 +201,11 @@ export async function loadPersonaMemory(
     }
 
     // 2. 최근 세션 요약 로드 (이전 대화 컨텍스트)
+    const sessionThemeWhere = buildSessionThemeWhere(theme)
     const recentSessions = await prisma.counselorChatSession.findMany({
       where: {
         userId,
-        theme: theme || undefined,
+        ...sessionThemeWhere,
       },
       orderBy: { updatedAt: 'desc' },
       take: 3,
@@ -236,4 +245,8 @@ export async function loadPersonaMemory(
   }
 
   return { personaMemoryContext, recentSessionSummaries }
+}
+
+export const __testUtils = {
+  buildSessionThemeWhere,
 }

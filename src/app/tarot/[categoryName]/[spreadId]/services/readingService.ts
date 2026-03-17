@@ -6,10 +6,14 @@
 
 import { apiFetch } from '@/lib/api';
 import { saveReading, formatReadingForSave } from '@/lib/Tarot/tarot-storage';
-import { getCardImagePath } from '@/lib/Tarot/tarot.types';
+import {
+  buildTarotSaveRequest,
+  flattenTarotGuidance,
+} from '@/lib/Tarot/tarot-save-request';
+import type { TarotQuestionAnalysisSnapshot } from '@/lib/Tarot/questionFlow';
 import { tarotLogger } from '@/lib/logger';
 import type { ReadingResponse, InterpretationResult } from '../constants/types';
-import type { Spread, DeckStyle } from '@/lib/Tarot/tarot.types';
+import { getCardImagePath, type Spread, type DeckStyle } from '@/lib/Tarot/tarot.types';
 import type { Session } from 'next-auth';
 
 export interface FetchReadingInput {
@@ -65,6 +69,7 @@ export interface SaveReadingInput {
   selectedDeckStyle: DeckStyle;
   language: string;
   session: Session | null;
+  questionAnalysis?: TarotQuestionAnalysisSnapshot | null;
 }
 
 /**
@@ -81,13 +86,11 @@ export async function saveReadingToStorage(input: SaveReadingInput): Promise<voi
     selectedDeckStyle,
     language,
     session,
+    questionAnalysis,
   } = input;
 
   // Guidance 텍스트 변환
-  const guidance = interpretation?.guidance;
-  const guidanceText = Array.isArray(guidance)
-    ? guidance.map(item => `${item.title}: ${item.detail}`).join('\n')
-    : guidance;
+  const guidanceText = flattenTarotGuidance(interpretation?.guidance);
 
   const saveInterpretation = interpretation
     ? {
@@ -97,6 +100,27 @@ export async function saveReadingToStorage(input: SaveReadingInput): Promise<voi
       }
     : null;
 
+  if (session?.user) {
+    const savePayload = buildTarotSaveRequest({
+      question: userTopic,
+      spreadInfo,
+      readingResult,
+      interpretation,
+      categoryName,
+      spreadId,
+      selectedDeckStyle,
+      language,
+      questionAnalysis: questionAnalysis || readingResult.questionContext || null,
+    });
+
+    await apiFetch('/api/tarot/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(savePayload),
+    });
+    return;
+  }
+
   // 로컬 스토리지 저장
   const formattedReading = formatReadingForSave(
     userTopic,
@@ -105,7 +129,8 @@ export async function saveReadingToStorage(input: SaveReadingInput): Promise<voi
     saveInterpretation,
     categoryName,
     spreadId,
-    selectedDeckStyle
+    selectedDeckStyle,
+    questionAnalysis || readingResult.questionContext || null
   );
   saveReading(formattedReading);
 
@@ -143,6 +168,7 @@ export async function saveReadingToStorage(input: SaveReadingInput): Promise<voi
         affirmation: interpretation?.affirmation || '',
         source: 'standalone',
         locale: language,
+        questionContext: questionAnalysis || readingResult.questionContext || undefined,
       }),
     });
   }

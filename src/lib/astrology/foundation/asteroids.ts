@@ -5,7 +5,7 @@ import { ZodiacKo, PlanetBase, Chart, AspectHit, AspectType } from './types'
 import { formatLongitude, normalize360, shortestAngle } from './utils'
 import { inferHouseOf } from './houses'
 import { getSwisseph } from './ephe'
-import { extractLongitudeSpeed } from './shared'
+import { extractLongitudeSpeed, extractSwissLongitude } from './shared'
 
 export type AsteroidName = 'Ceres' | 'Pallas' | 'Juno' | 'Vesta'
 
@@ -443,7 +443,7 @@ export function calculateAsteroid(
     throw new Error(`Swiss Ephemeris Error for ${asteroidName}: ${result.error}`)
   }
 
-  const longitude = result.longitude
+  const longitude = extractSwissLongitude(result as unknown as Record<string, unknown>)
   const info = formatLongitude(longitude)
   const house = inferHouseOf(longitude, cusps)
   const speed = extractLongitudeSpeed(result as unknown as Record<string, unknown>)

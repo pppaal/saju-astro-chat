@@ -85,9 +85,9 @@ export function DetailedCardItem({
       onClick={() => onToggle(index)}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
           onToggle(index)
         }
       }}
@@ -104,8 +104,8 @@ export function DetailedCardItem({
           width={180}
           height={315}
           className={styles.resultCardImage}
-          onError={(e) => {
-            e.currentTarget.style.opacity = '0.3'
+          onError={(event) => {
+            event.currentTarget.style.opacity = '0.3'
           }}
         />
         {drawnCard.isReversed && (
@@ -121,34 +121,44 @@ export function DetailedCardItem({
         </h3>
 
         <div className={styles.keywords}>
-          {shownKeywords.map((keyword, i) => (
-            <span key={i} className={styles.keywordTag}>
+          {shownKeywords.map((keyword, keywordIndex) => (
+            <span key={keywordIndex} className={styles.keywordTag}>
               {keyword}
             </span>
           ))}
         </div>
 
-        <p className={styles.meaning}>{isSummaryMode ? shortMeaning : baseMeaning}</p>
-        <p className={styles.practicalMeaning}>{practicalMeaning}</p>
+        <div className={styles.interpretationBlock}>
+          <div className={styles.interpretationBlockHeader}>
+            {language === 'ko' ? '기본 카드 해석' : 'Card Meaning'}
+          </div>
+          <p className={styles.meaning}>{isSummaryMode ? shortMeaning : baseMeaning}</p>
+          <p className={styles.practicalMeaning}>{practicalMeaning}</p>
+        </div>
 
         {hasAiInterpretation && (
           <div className={styles.premiumInsights}>
-            <InsightCard
-              icon="🔮"
-              title={
-                language === 'ko'
-                  ? translate('tarot.insights.aiInterpretation', '질문 맞춤 AI 해석')
-                  : translate('tarot.insights.aiInterpretation', 'Question-tailored insight')
-              }
-            >
-              <div className={styles.insightText}>
-                {isSummaryMode ? (
-                  <p className={styles.insightParagraph}>{aiSummary || aiInterpretation}</p>
-                ) : (
-                  emphasizeKeyPoints(aiInterpretation)
-                )}
+            <div className={styles.interpretationBlock}>
+              <div className={styles.interpretationBlockHeader}>
+                {language === 'ko' ? '질문 기준 AI 해석' : 'AI Reading for Your Question'}
               </div>
-            </InsightCard>
+              <InsightCard
+                icon="🔮"
+                title={
+                  language === 'ko'
+                    ? translate('tarot.insights.aiInterpretation', '질문 맞춤 AI 해석')
+                    : translate('tarot.insights.aiInterpretation', 'Question-tailored insight')
+                }
+              >
+                <div className={styles.insightText}>
+                  {isSummaryMode ? (
+                    <p className={styles.insightParagraph}>{aiSummary || aiInterpretation}</p>
+                  ) : (
+                    emphasizeKeyPoints(aiInterpretation)
+                  )}
+                </div>
+              </InsightCard>
+            </div>
 
             {!isSummaryMode && cardInsight?.spirit_animal && (
               <InsightCard
@@ -197,6 +207,19 @@ export function DetailedCardItem({
                 {cardInsight.element}
               </div>
             )}
+          </div>
+        )}
+
+        {!hasAiInterpretation && (
+          <div className={styles.aiPendingBlock}>
+            <div className={styles.interpretationBlockHeader}>
+              {language === 'ko' ? '질문 기준 AI 해석' : 'AI Reading for Your Question'}
+            </div>
+            <p className={styles.aiPendingText}>
+              {language === 'ko'
+                ? 'AI 해석이 아직 없으면 기본 카드 해석을 먼저 읽고 전체 결과에서 다시 확인하세요.'
+                : 'If AI interpretation is not ready yet, use the base card meaning first and check the overall result again.'}
+            </p>
           </div>
         )}
 

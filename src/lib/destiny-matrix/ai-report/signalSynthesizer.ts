@@ -1,6 +1,9 @@
 import type { FusionReport, InsightDomain } from '../interpreter/types'
 import type { MatrixHighlight, MatrixSummary } from '../types'
 import type { MatrixCalculationInput } from '../types'
+import type { ActivationEngineResult } from '../core/activationEngine'
+import type { RuleEngineResult } from '../core/ruleEngine'
+import type { StateEngineResult } from '../core/stateEngine'
 import { getDomainSemantic, getLayerMeaning } from './matrixOntology'
 
 export type SignalPolarity = 'strength' | 'balance' | 'caution'
@@ -12,6 +15,7 @@ export interface NormalizedSignal {
   layer: number
   rowKey: string
   colKey: string
+  family: string
   domainHints: SignalDomain[]
   polarity: SignalPolarity
   score: number
@@ -45,6 +49,9 @@ export interface SignalSynthesisResult {
   selectedSignals: NormalizedSignal[]
   claims: SynthesizedClaim[]
   signalsById: Record<string, NormalizedSignal>
+  leadSignalIds?: string[]
+  supportSignalIds?: string[]
+  suppressedSignalIds?: string[]
 }
 
 interface SynthesisInput {
@@ -52,6 +59,11 @@ interface SynthesisInput {
   matrixReport: FusionReport
   matrixSummary?: MatrixSummary
   matrixInput?: MatrixCalculationInput
+  resolvedContext?: {
+    activation: ActivationEngineResult
+    rules: RuleEngineResult
+    states: StateEngineResult
+  }
 }
 
 const REQUIRED_CORE_DOMAINS: SignalDomain[] = ['career', 'wealth']
@@ -159,6 +171,12 @@ function clampScore(value: number): number {
   return Math.max(1, Math.min(10, Math.round(value)))
 }
 
+function computeRankScore(score: number, polarity: SignalPolarity): number {
+  if (polarity === 'caution') return score + 0.25
+  if (polarity === 'strength') return score + 0.15
+  return score
+}
+
 function domainsByHouse(house: number): SignalDomain[] {
   if (house === 1) return ['personality']
   if (house === 2) return ['wealth']
@@ -240,6 +258,69 @@ function inferDomainsFromText(raw: string): SignalDomain[] {
   return [...domains]
 }
 
+function inferSignalFamily(
+  input: {
+    layer: number
+    rowKey: string
+    colKey: string
+    keyword?: string
+    sajuBasis?: string
+    astroBasis?: string
+    domainHints: SignalDomain[]
+    polarity: SignalPolarity
+    tags?: string[]
+  }
+): string {
+  const text = [
+    input.rowKey,
+    input.colKey,
+    input.keyword || '',
+    input.sajuBasis || '',
+    input.astroBasis || '',
+    ...(input.tags || []),
+  ]
+    .join(' ')
+    .toLowerCase()
+
+  if (/h10|mc|career|promotion|public|visibility|lead|jupiter/.test(text)) {
+    return input.polarity === 'caution' ? 'career_guardrail' : 'career_growth'
+  }
+  if (/h7|relationship|partner|love|venus|mars|reconciliation|boundary/.test(text)) {
+    return input.polarity === 'caution' ? 'relationship_guardrail' : 'relationship_growth'
+  }
+  if (new RegExp(`${K_WORD_PYEONJAE}|${K_WORD_JEONGJAE}|${K_WORD_MONEY}`).test(text) || /wealth|money|finance|budget|asset|cash/.test(text)) {
+    return input.polarity === 'caution' ? 'wealth_guardrail' : 'wealth_growth'
+  }
+  if (/health|stress|fatigue|routine|recovery|h6|moon|saturn/.test(text)) {
+    return input.polarity === 'caution' ? 'health_guardrail' : 'health_recovery'
+  }
+  if (/move|travel|foreign|relocat|h9|h12/.test(text)) {
+    return input.polarity === 'caution' ? 'movement_guardrail' : 'movement_window'
+  }
+  if (/node|chiron|purpose|mission|spiritual/.test(text)) {
+    return input.polarity === 'caution' ? 'mission_reframing' : 'mission_alignment'
+  }
+  if (/timing|transit|daeun|seun|wolun|iljin|retrograde|return/.test(text) || input.layer === 4) {
+    return input.polarity === 'caution' ? 'timing_guardrail' : 'timing_window'
+  }
+  if (/support|helper|mentor|network|samhap|sextile/.test(text)) {
+    return 'support_bridge'
+  }
+  if (/conflict|square|opposition|chung|reset/.test(text)) {
+    return 'transformation_guardrail'
+  }
+
+  const leadDomain = input.domainHints[0] || 'personality'
+  if (leadDomain === 'career') return input.polarity === 'caution' ? 'career_guardrail' : 'career_growth'
+  if (leadDomain === 'relationship') return input.polarity === 'caution' ? 'relationship_guardrail' : 'relationship_growth'
+  if (leadDomain === 'wealth') return input.polarity === 'caution' ? 'wealth_guardrail' : 'wealth_growth'
+  if (leadDomain === 'health') return input.polarity === 'caution' ? 'health_guardrail' : 'health_recovery'
+  if (leadDomain === 'move') return input.polarity === 'caution' ? 'movement_guardrail' : 'movement_window'
+  if (leadDomain === 'timing') return input.polarity === 'caution' ? 'timing_guardrail' : 'timing_window'
+  if (leadDomain === 'spirituality') return input.polarity === 'caution' ? 'mission_reframing' : 'mission_alignment'
+  return input.polarity === 'caution' ? 'identity_guardrail' : 'identity_drive'
+}
+
 function isNonEmptyRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
@@ -318,12 +399,23 @@ function normalizeHighlight(
   const semanticDomain = (domainHints[0] || 'personality') as SignalDomain
   const semantic = getDomainSemantic(point.layer, semanticDomain)
   const score = Number(point.cell.interaction.score || 0)
-  const rankScore = polarity === 'caution' ? 11 - score : score
+  const rankScore = computeRankScore(score, polarity)
   return {
     id: `L${point.layer}:${point.rowKey}:${point.colKey}`,
     layer: point.layer,
     rowKey: point.rowKey,
     colKey: point.colKey,
+    family: inferSignalFamily({
+      layer: point.layer,
+      rowKey: point.rowKey,
+      colKey: point.colKey,
+      keyword,
+      sajuBasis: point.cell.sajuBasis,
+      astroBasis: point.cell.astroBasis,
+      domainHints,
+      polarity,
+      tags,
+    }),
     domainHints,
     polarity,
     score,
@@ -354,7 +446,7 @@ function normalizeFromTopInsights(report: FusionReport): NormalizedSignal[] {
   return (report.topInsights || []).map((insight, index) => {
     const polarity = toPolarityFromCategory(insight.category)
     const score = Number(insight.score || insight.weightedScore || 0)
-    const rankScore = polarity === 'caution' ? 101 - score : score
+    const rankScore = computeRankScore(score, polarity)
     const domain = (insight.domain as SignalDomain) || 'personality'
     const semantic = getDomainSemantic(0, domain)
     return {
@@ -362,6 +454,17 @@ function normalizeFromTopInsights(report: FusionReport): NormalizedSignal[] {
       layer: 0,
       rowKey: insight.domain || 'personality',
       colKey: insight.category,
+      family: inferSignalFamily({
+        layer: 0,
+        rowKey: insight.domain || 'personality',
+        colKey: insight.category,
+        keyword: insight.title || insight.description || '',
+        sajuBasis: insight.sources?.[0]?.sajuFactor,
+        astroBasis: insight.sources?.[0]?.astroFactor,
+        domainHints: [domain],
+        polarity,
+        tags: uniq(splitTags(`${insight.title} ${insight.description || ''}`)),
+      }),
       domainHints: [domain],
       polarity,
       score,
@@ -406,12 +509,23 @@ function buildSyntheticSignal(input: {
   const semanticDomain = (domainHints[0] || 'personality') as SignalDomain
   const semantic = getDomainSemantic(input.layer, semanticDomain)
   const score = clampScore(input.score)
-  const rankScore = input.polarity === 'caution' ? 11 - score : score
+  const rankScore = computeRankScore(score, input.polarity)
   return {
     id: input.id,
     layer: input.layer,
     rowKey: input.rowKey,
     colKey: input.colKey,
+    family: inferSignalFamily({
+      layer: input.layer,
+      rowKey: input.rowKey,
+      colKey: input.colKey,
+      keyword: input.keyword,
+      sajuBasis: input.sajuBasis,
+      astroBasis: input.astroBasis,
+      domainHints,
+      polarity: input.polarity,
+      tags: input.tags,
+    }),
     domainHints,
     polarity: input.polarity,
     score,
@@ -1188,6 +1302,10 @@ function claimDomains(signal: NormalizedSignal): SignalDomain[] {
   return sorted.slice(0, 1)
 }
 
+function isSignalInDomain(signal: NormalizedSignal, domain: SignalDomain): boolean {
+  return (signal.domainHints || []).includes(domain)
+}
+
 function pickByQuota(
   candidates: NormalizedSignal[],
   quota: number,
@@ -1403,7 +1521,31 @@ function buildClaim(domain: SignalDomain, signals: NormalizedSignal[], lang: 'ko
   } satisfies SynthesizedClaim
 }
 
-function buildClaims(selectedSignals: NormalizedSignal[], lang: 'ko' | 'en'): SynthesizedClaim[] {
+function buildClaimSourceSignals(
+  domain: SignalDomain,
+  selectedSignals: NormalizedSignal[],
+  normalizedSignals: NormalizedSignal[]
+): NormalizedSignal[] {
+  const selectedDomainSignals = selectedSignals.filter((signal) => isSignalInDomain(signal, domain))
+  const supplementalSignals = normalizedSignals
+    .filter(
+      (signal) =>
+        isSignalInDomain(signal, domain) &&
+        !selectedDomainSignals.some((selected) => selected.id === signal.id)
+    )
+    .sort((a, b) => b.rankScore - a.rankScore)
+    .slice(0, 3)
+
+  return [...selectedDomainSignals, ...supplementalSignals]
+    .filter((signal, index, array) => array.findIndex((item) => item.id === signal.id) === index)
+    .sort((a, b) => b.rankScore - a.rankScore)
+}
+
+function buildClaims(
+  selectedSignals: NormalizedSignal[],
+  normalizedSignals: NormalizedSignal[],
+  lang: 'ko' | 'en'
+): SynthesizedClaim[] {
   const grouped = selectedSignals.reduce<Record<string, NormalizedSignal[]>>((acc, signal) => {
     for (const domain of claimDomains(signal)) {
       if (!acc[domain]) acc[domain] = []
@@ -1412,7 +1554,13 @@ function buildClaims(selectedSignals: NormalizedSignal[], lang: 'ko' | 'en'): Sy
     return acc
   }, {})
   return Object.entries(grouped)
-    .map(([domain, signals]) => buildClaim(domain as SignalDomain, signals, lang))
+    .map(([domain]) =>
+      buildClaim(
+        domain as SignalDomain,
+        buildClaimSourceSignals(domain as SignalDomain, selectedSignals, normalizedSignals),
+        lang
+      )
+    )
     .sort((a, b) => {
       if (b.evidence.length !== a.evidence.length) return b.evidence.length - a.evidence.length
       return (CLAIM_DOMAIN_PRIORITY[a.domain] || 99) - (CLAIM_DOMAIN_PRIORITY[b.domain] || 99)
@@ -1441,7 +1589,127 @@ function selectSevenSignals(signals: NormalizedSignal[]): NormalizedSignal[] {
     bench,
     REQUIRED_CORE_DOMAINS
   )
-  return ensureDomainDiversity(withRequiredDomains, bench, 3, REQUIRED_CORE_DOMAINS)
+  return ensureFamilyDiversity(
+    ensureDomainDiversity(withRequiredDomains, bench, 3, REQUIRED_CORE_DOMAINS),
+    bench
+  )
+}
+
+function ensureFamilyDiversity(
+  selected: NormalizedSignal[],
+  bench: NormalizedSignal[],
+  minFamilies = 4
+): NormalizedSignal[] {
+  const result = [...selected]
+  const familyCount = () => new Set(result.map((s) => s.family)).size
+
+  while (familyCount() < minFamilies) {
+    const candidate = bench.find(
+      (item) =>
+        !result.some((s) => s.id === item.id) &&
+        !result.some((s) => s.family === item.family)
+    )
+    if (!candidate) break
+
+    const removable = [...result]
+      .filter((signal) => signal.polarity === candidate.polarity)
+      .sort((a, b) => {
+        const familyDupA = result.filter((item) => item.family === a.family).length
+        const familyDupB = result.filter((item) => item.family === b.family).length
+        if (familyDupB !== familyDupA) return familyDupB - familyDupA
+        return a.rankScore - b.rankScore
+      })[0]
+
+    if (!removable) break
+    const idx = result.findIndex((signal) => signal.id === removable.id)
+    if (idx >= 0) result[idx] = candidate
+  }
+
+  return result
+}
+
+function buildLeadSignalIds(selectedSignals: NormalizedSignal[]): string[] {
+  return [...selectedSignals]
+    .sort((a, b) => b.rankScore - a.rankScore)
+    .slice(0, 3)
+    .map((signal) => signal.id)
+}
+
+function buildSupportSignalIds(selectedSignals: NormalizedSignal[]): string[] {
+  return [...selectedSignals]
+    .sort((a, b) => b.rankScore - a.rankScore)
+    .slice(3, 7)
+    .map((signal) => signal.id)
+}
+
+function buildSuppressedSignalIds(
+  normalizedSignals: NormalizedSignal[],
+  selectedSignals: NormalizedSignal[]
+): string[] {
+  const selectedIds = new Set(selectedSignals.map((signal) => signal.id))
+  return normalizedSignals
+    .filter((signal) => !selectedIds.has(signal.id))
+    .sort((a, b) => b.rankScore - a.rankScore)
+    .slice(0, 6)
+    .map((signal) => signal.id)
+}
+
+function applyResolvedContextBoosts(
+  signals: NormalizedSignal[],
+  resolvedContext: SynthesisInput['resolvedContext']
+): NormalizedSignal[] {
+  if (!resolvedContext) return signals
+
+  return signals.map((signal) => {
+    const relevantDomains = signal.domainHints
+    const activationHits = resolvedContext.activation.domains.filter((domain) =>
+      relevantDomains.includes(domain.domain)
+    )
+    const ruleHits = resolvedContext.rules.domains.filter((domain) =>
+      relevantDomains.includes(domain.domain)
+    )
+    const stateHits = resolvedContext.states.domains.filter((domain) =>
+      relevantDomains.includes(domain.domain)
+    )
+
+    const activationBoost =
+      activationHits.reduce((sum, domain) => sum + Math.min(domain.activationScore, 4) * 0.08, 0) /
+      Math.max(1, activationHits.length)
+    const priorityBoost =
+      ruleHits.reduce((sum, domain) => sum + domain.priorityScore * 0.06, 0) /
+      Math.max(1, ruleHits.length)
+    const contradictionPenalty =
+      ruleHits.reduce((sum, domain) => sum + domain.contradictionPenalty * 0.18, 0) /
+      Math.max(1, ruleHits.length)
+    const gatingPenalty =
+      signal.polarity === 'strength' && ruleHits.some((domain) => domain.gate.includes('commit_now'))
+        ? 0.18
+        : 0
+    const recoveryPenalty =
+      stateHits.some((domain) => domain.state === 'consolidation' || domain.state === 'residue') &&
+      signal.polarity === 'strength'
+        ? 0.12
+        : 0
+    const stateBoost =
+      stateHits.some((domain) => domain.state === 'peak')
+        ? 0.16
+        : stateHits.some((domain) => domain.state === 'active')
+          ? 0.1
+          : stateHits.some((domain) => domain.state === 'opening')
+            ? 0.05
+            : 0
+
+    return {
+      ...signal,
+      rankScore: Math.round((signal.rankScore + activationBoost + priorityBoost + stateBoost - contradictionPenalty - gatingPenalty - recoveryPenalty) * 100) / 100,
+      tags: uniq([
+        ...signal.tags,
+        ...activationHits.map((domain) => `activation:${domain.domain}`),
+        ...ruleHits.map((domain) => `rule:${domain.resolvedMode}`),
+        ...stateHits.map((domain) => `state:${domain.state}`),
+      ]),
+    }
+  })
 }
 
 export function getDomainsForSection(sectionKey: string): SignalDomain[] {
@@ -1463,18 +1731,24 @@ export function synthesizeMatrixSignals(input: SynthesisInput): SignalSynthesisR
   ]
   const fromTopInsights = normalizeFromTopInsights(input.matrixReport)
   const fromMatrixInput = normalizeFromMatrixInput(input.matrixInput, input.lang)
-  const normalizedSignals = dedupeSignals(
-    fromSummary.length > 0
-      ? [...fromSummary, ...fromTopInsights, ...fromMatrixInput]
-      : [...fromTopInsights, ...fromMatrixInput]
+  const normalizedSignals = applyResolvedContextBoosts(
+    dedupeSignals(
+      fromSummary.length > 0
+        ? [...fromSummary, ...fromTopInsights, ...fromMatrixInput]
+        : [...fromTopInsights, ...fromMatrixInput]
+    ),
+    input.resolvedContext
   )
   const selectedSignals = selectSevenSignals(normalizedSignals)
-  const claims = buildClaims(selectedSignals, input.lang)
+  const claims = buildClaims(selectedSignals, normalizedSignals, input.lang)
   return {
     normalizedSignals,
     selectedSignals,
     claims,
     signalsById: toSignalsById(normalizedSignals),
+    leadSignalIds: buildLeadSignalIds(selectedSignals),
+    supportSignalIds: buildSupportSignalIds(selectedSignals),
+    suppressedSignalIds: buildSuppressedSignalIds(normalizedSignals, selectedSignals),
   }
 }
 

@@ -8,7 +8,9 @@
 import { useCallback, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
+import type { TarotQuestionAnalysisSnapshot } from '@/lib/Tarot/questionFlow'
 import { Spread, DrawnCard, DeckStyle, getCardImagePath } from '@/lib/Tarot/tarot.types'
+import { buildTarotSaveRequest, flattenTarotGuidance } from '@/lib/Tarot/tarot-save-request'
 import { getStoredBirthDate, fetchAndSyncUserProfile } from '@/lib/userProfile'
 import { saveReading, formatReadingForSave } from '@/lib/Tarot/tarot-storage'
 import { apiFetch, type ApiFetchOptions } from '@/lib/api'
@@ -20,6 +22,7 @@ interface UseTarotInterpretationParams {
   categoryName: string | undefined
   spreadId: string | undefined
   userTopic: string
+  questionAnalysis: TarotQuestionAnalysisSnapshot | null
   selectedDeckStyle: DeckStyle
   personalizationOptions: TarotPersonalizationOptions
 }
@@ -35,8 +38,8 @@ interface UseTarotInterpretationReturn {
   ) => Promise<void>
 }
 
-const PRIMARY_INTERPRET_TIMEOUT_MS = 9000
-const STREAM_INTERPRET_TIMEOUT_MS = 10000
+const PRIMARY_INTERPRET_TIMEOUT_MS = 22000
+const STREAM_INTERPRET_TIMEOUT_MS = 22000
 
 class RequestTimeoutError extends Error {
   constructor(timeoutMs: number) {
@@ -162,28 +165,37 @@ function parseStreamedInterpretation(
   const jsonMatch = jsonText.match(/\{[\s\S]*\}/)
   if (!jsonMatch) throw new Error('No JSON found')
 
-  const parsed = JSON.parse(jsonMatch[0])
-  const parsedCards = Array.isArray(parsed.cards) ? parsed.cards : []
-  const hasEnoughCards = parsedCards.length >= cards.length
-  const hasInterpretationsForAllCards = cards.every((_, i) => {
-    const interpretation = (parsedCards[i] as { interpretation?: unknown } | undefined)
-      ?.interpretation
-    return typeof interpretation === 'string' && interpretation.trim().length > 0
-  })
-
-  if (!hasEnoughCards || !hasInterpretationsForAllCards) {
-    throw new Error('Incomplete streamed tarot payload')
+  const parsed = JSON.parse(jsonMatch[0]) as {
+    overall?: string
+    overall_message?: string
+    advice?: string
+    guidance?: string
+    cards?: Array<{ interpretation?: string; meaning?: string }>
+    card_insights?: Array<{ interpretation?: string; meaning?: string }>
   }
+  const parsedCards = Array.isArray(parsed.cards)
+    ? parsed.cards
+    : Array.isArray(parsed.card_insights)
+      ? parsed.card_insights
+      : []
 
   return {
-    overall_message: parsed.overall || '',
+    overall_message: parsed.overall_message || parsed.overall || '',
     card_insights: cards.map((dc, i) => {
-      const cardData = parsedCards[i] as { interpretation?: string } | undefined
+      const cardData = parsedCards[i] as { interpretation?: string; meaning?: string } | undefined
+      const fallbackMeaning = dc.isReversed
+        ? isKorean
+          ? dc.card.reversed.meaningKo || dc.card.reversed.meaning
+          : dc.card.reversed.meaning
+        : isKorean
+          ? dc.card.upright.meaningKo || dc.card.upright.meaning
+          : dc.card.upright.meaning
       return {
         position: positions[i]?.title || `Card ${i + 1}`,
         card_name: dc.card.name,
         is_reversed: dc.isReversed,
-        interpretation: cardData?.interpretation || '',
+        interpretation:
+          (cardData?.interpretation || cardData?.meaning || '').trim() || fallbackMeaning || '',
         spirit_animal: null,
         chakra: null,
         element: null,
@@ -191,6 +203,7 @@ function parseStreamedInterpretation(
       }
     }),
     guidance:
+      parsed.guidance ||
       parsed.advice || (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
     affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
     combinations: [],
@@ -204,6 +217,7 @@ function detectFocusKeyword(question: string, isKorean: boolean): string {
   const q = question.toLowerCase()
 
   if (isKorean) {
+    if (/(흐름|전반|전체|방향|큰 ?그림)/.test(q)) return '\uD604\uC7AC \uD750\uB984'
     if (/(연애|사랑|결혼|썸|관계)/.test(q)) return '관계'
     if (/(이직|취업|승진|커리어|직장|면접)/.test(q)) return '커리어'
     if (/(돈|재정|투자|매출|수입|지출)/.test(q)) return '재정'
@@ -211,11 +225,12 @@ function detectFocusKeyword(question: string, isKorean: boolean): string {
     return '핵심 이슈'
   }
 
+  if (/(overall|general).*(flow|direction)|big picture|current flow/.test(q)) return 'overall flow'
   if (/(love|relationship|marriage|dating)/.test(q)) return 'relationships'
   if (/(career|job|promotion|interview|work)/.test(q)) return 'career'
   if (/(money|finance|income|budget|invest)/.test(q)) return 'finance'
   if (/(health|wellness|stress|rest|energy)/.test(q)) return 'health'
-  return 'core issue'
+  return 'current flow'
 }
 
 function buildPersonalizedFallback(
@@ -307,6 +322,7 @@ export function useTarotInterpretation({
   categoryName,
   spreadId,
   userTopic,
+  questionAnalysis,
   selectedDeckStyle,
   personalizationOptions,
 }: UseTarotInterpretationParams): UseTarotInterpretationReturn {
@@ -395,6 +411,7 @@ export function useTarotInterpretation({
         includeAstrology,
         includeSaju,
         sajuContext,
+        questionContext: questionAnalysis || undefined,
       }
 
       const requestNonStreamInterpretation = async (
@@ -527,18 +544,21 @@ export function useTarotInterpretation({
       // 2) Final fallback with personalized renderable copy
       return buildPersonalizedFallback(result, userTopic, isKorean, personalizationOptions)
     },
-    [categoryName, spreadId, language, session, userTopic, personalizationOptions]
+    [categoryName, spreadId, language, session, userTopic, questionAnalysis, personalizationOptions]
   )
 
   const handleSaveReading = useCallback(
     async (
-      readingResult: ReadingResponse | null,
-      spreadInfo: Spread | null,
+      _readingResult: ReadingResponse | null,
+      _spreadInfo: Spread | null,
       interpretation: InterpretationResult | null
     ) => {
-      if (!readingResult || !spreadInfo || isSaved) {
+      if (!_readingResult || !_spreadInfo || isSaved) {
         return
       }
+
+      const readingResult = _readingResult
+      const spreadInfo = _spreadInfo
 
       try {
         const normalizedQuestion =
@@ -552,10 +572,7 @@ export function useTarotInterpretation({
           throw new Error('Missing spreadId for tarot save request')
         }
 
-        const guidance = interpretation?.guidance
-        const guidanceText = Array.isArray(guidance)
-          ? guidance.map((item) => `${item.title}: ${item.detail}`).join('\n')
-          : guidance
+        const guidanceText = flattenTarotGuidance(interpretation?.guidance)
         const saveInterpretation = interpretation
           ? {
               overall_message: interpretation.overall_message,
@@ -564,20 +581,42 @@ export function useTarotInterpretation({
             }
           : null
 
-        // Local storage save
-        const formattedReading = formatReadingForSave(
-          userTopic,
-          spreadInfo,
-          readingResult.drawnCards,
-          saveInterpretation,
-          categoryName || '',
-          spreadId || '',
-          selectedDeckStyle
-        )
-        saveReading(formattedReading)
-
-        // Server API save
         if (session?.user) {
+          const savePayload = buildTarotSaveRequest({
+            question: userTopic,
+            spreadInfo,
+            readingResult,
+            interpretation,
+            categoryName: categoryName || undefined,
+            spreadId: resolvedSpreadId,
+            selectedDeckStyle,
+            language: language || 'ko',
+            questionAnalysis,
+          })
+
+          const preferredSaveResponse = await apiFetch('/api/tarot/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(savePayload),
+          })
+
+          if (!preferredSaveResponse.ok) {
+            const errorPayload = (await preferredSaveResponse.json().catch(() => null)) as {
+              error?: { message?: string }
+              message?: string
+            } | null
+            const errorMessage =
+              errorPayload?.error?.message ||
+              errorPayload?.message ||
+              `Save failed (${preferredSaveResponse.status})`
+            throw new Error(errorMessage)
+          }
+
+          setIsSaved(true)
+          setSaveMessage(language === 'ko' ? '저장되었습니다!' : 'Saved!')
+          setTimeout(() => setSaveMessage(''), 3000)
+          return
+
           const saveResponse = await apiFetch('/api/tarot/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -611,6 +650,7 @@ export function useTarotInterpretation({
               affirmation: interpretation?.affirmation || '',
               source: 'standalone',
               locale: language,
+              questionContext: questionAnalysis || readingResult.questionContext || undefined,
             }),
           })
 
@@ -625,6 +665,18 @@ export function useTarotInterpretation({
               `Save failed (${saveResponse.status})`
             throw new Error(errorMessage)
           }
+        } else {
+          const formattedReading = formatReadingForSave(
+            userTopic,
+            spreadInfo,
+            readingResult.drawnCards,
+            saveInterpretation,
+            categoryName || '',
+            resolvedSpreadId,
+            selectedDeckStyle,
+            questionAnalysis
+          )
+          saveReading(formattedReading)
         }
 
         setIsSaved(true)
@@ -636,7 +688,7 @@ export function useTarotInterpretation({
         setTimeout(() => setSaveMessage(''), 3000)
       }
     },
-    [categoryName, spreadId, selectedDeckStyle, language, isSaved, session, userTopic]
+    [categoryName, spreadId, selectedDeckStyle, language, isSaved, session, userTopic, questionAnalysis]
   )
 
   return {

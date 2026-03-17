@@ -39,6 +39,13 @@ function generateSessionId(): string {
   return `chat_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
 }
 
+function buildThemeQuery(theme: string): string {
+  if (!theme || theme === 'chat') {
+    return ''
+  }
+  return `theme=${encodeURIComponent(theme)}&`
+}
+
 /**
  * Hook for managing chat session state and persistence
  */
@@ -139,7 +146,7 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
   const loadSessionHistory = React.useCallback(async () => {
     setHistoryLoading(true)
     try {
-      const res = await fetch(`/api/counselor/session/list?theme=${theme || 'chat'}&limit=20`)
+      const res = await fetch(`/api/counselor/session/list?${buildThemeQuery(theme)}limit=20`)
       if (res.ok) {
         const data = await res.json()
         setSessionHistory(data.sessions || [])
@@ -156,7 +163,7 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
     async (sessionId: string) => {
       try {
         const res = await fetch(
-          `/api/counselor/session/load?theme=${theme || 'chat'}&sessionId=${sessionId}`
+          `/api/counselor/session/load?${buildThemeQuery(theme)}sessionId=${sessionId}`
         )
         if (res.ok) {
           const data = await res.json()

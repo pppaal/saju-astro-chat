@@ -7,6 +7,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
 import type { DrawnCard, Spread, CardInsight } from '@/lib/Tarot/tarot.types'
+import type { TarotQuestionAnalysisSnapshot } from '@/lib/Tarot/questionFlow'
 
 export type Step = 'concern' | 'spread-select' | 'card-draw' | 'interpreting' | 'result'
 
@@ -35,6 +36,8 @@ export interface TarotState {
   // AI state
   isAnalyzing: boolean
   aiReason: string
+  questionAnalysis: TarotQuestionAnalysisSnapshot | null
+  suggestedSpreads: Spread[]
 }
 
 const initialState: TarotState = {
@@ -53,6 +56,8 @@ const initialState: TarotState = {
   isSaving: false,
   isAnalyzing: false,
   aiReason: '',
+  questionAnalysis: null,
+  suggestedSpreads: [],
 }
 
 // Theme mapping: destiny-map theme -> tarot category
@@ -83,7 +88,7 @@ export function useInlineTarotState({ isOpen, initialConcern, theme }: UseInline
   }))
 
   // Get recommended spreads based on theme
-  const recommendedSpreads = useMemo(() => {
+  const defaultRecommendedSpreads = useMemo(() => {
     const categoryId = themeToCategory[theme] || 'general-insight'
     const category = tarotThemes.find((t) => t.id === categoryId)
     if (!category) {
@@ -91,6 +96,13 @@ export function useInlineTarotState({ isOpen, initialConcern, theme }: UseInline
     }
     return [...category.spreads].sort((a, b) => a.cardCount - b.cardCount)
   }, [theme])
+
+  const recommendedSpreads = useMemo(() => {
+    if (state.suggestedSpreads.length > 0) {
+      return state.suggestedSpreads
+    }
+    return defaultRecommendedSpreads
+  }, [state.suggestedSpreads, defaultRecommendedSpreads])
 
   // Update category when theme changes
   useEffect(() => {
@@ -146,6 +158,10 @@ export function useInlineTarotState({ isOpen, initialConcern, theme }: UseInline
       setIsSaving: (isSaving: boolean) => setState((prev) => ({ ...prev, isSaving })),
       setIsAnalyzing: (isAnalyzing: boolean) => setState((prev) => ({ ...prev, isAnalyzing })),
       setAiReason: (reason: string) => setState((prev) => ({ ...prev, aiReason: reason })),
+      setQuestionAnalysis: (questionAnalysis: TarotQuestionAnalysisSnapshot | null) =>
+        setState((prev) => ({ ...prev, questionAnalysis })),
+      setSuggestedSpreads: (suggestedSpreads: Spread[]) =>
+        setState((prev) => ({ ...prev, suggestedSpreads })),
 
       // Composite actions
       resetForDrawAgain: () =>

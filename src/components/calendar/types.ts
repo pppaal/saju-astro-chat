@@ -4,6 +4,7 @@
  */
 
 import type { CounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
+import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 
 export type EventCategory = 'wealth' | 'career' | 'love' | 'health' | 'travel' | 'study' | 'general'
 export type ImportanceGrade = 0 | 1 | 2 | 3 | 4
@@ -73,6 +74,7 @@ export interface CalendarData {
   success: boolean
   year: number
   matrixStrictMode?: boolean
+  canonicalCore?: CalendarCoreAdapterResult
   matrixContract?: {
     coreHash?: string
     overallPhase?: string

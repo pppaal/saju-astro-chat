@@ -26,6 +26,7 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     destinyMatrixReport: {
       findFirst: vi.fn(),
+      findUnique: vi.fn(),
       deleteMany: vi.fn(),
     },
   },
@@ -236,6 +237,7 @@ describe('/api/reports/[id]', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    ;(prisma.destinyMatrixReport.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null)
     ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue({
       user: { name: 'Test User', email: 'test@example.com', id: mockUserId },
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),

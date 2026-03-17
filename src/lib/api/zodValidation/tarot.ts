@@ -46,6 +46,27 @@ export const tarotCardDetailedSchema = z.object({
   keywordsKo: z.array(z.string().max(50)).max(8).optional(),
 })
 
+const tarotQuestionProfileFieldSchema = z.object({
+  code: z.string().max(200),
+  label: z.string().max(300),
+})
+
+const tarotQuestionContextSchema = z.object({
+  question_summary: z.string().max(1000).optional(),
+  question_profile: z
+    .object({
+      type: tarotQuestionProfileFieldSchema,
+      subject: tarotQuestionProfileFieldSchema,
+      focus: tarotQuestionProfileFieldSchema,
+      timeframe: tarotQuestionProfileFieldSchema,
+      tone: tarotQuestionProfileFieldSchema,
+    })
+    .optional(),
+  direct_answer: z.string().max(1000).optional(),
+  intent: z.string().max(200).optional(),
+  intent_label: z.string().max(300).optional(),
+})
+
 // ============ Tarot Request Schemas ============
 
 export const tarotSaveRequestSchema = z.object({
@@ -61,6 +82,7 @@ export const tarotSaveRequestSchema = z.object({
   source: z.enum(['standalone', 'counselor']).optional(),
   counselorSessionId: z.string().max(100).optional(),
   locale: localeSchema.optional(),
+  questionContext: tarotQuestionContextSchema.optional(),
 })
 
 export type TarotSaveRequestValidated = z.infer<typeof tarotSaveRequestSchema>
@@ -86,6 +108,7 @@ export const tarotInterpretRequestSchema = z.object({
   includeSaju: z.boolean().optional(),
   sajuContext: z.string().max(1000).optional(),
   astroContext: z.string().max(1000).optional(),
+  questionContext: tarotQuestionContextSchema.optional(),
 })
 
 export type TarotInterpretRequest = z.infer<typeof tarotInterpretRequestSchema>
@@ -108,6 +131,7 @@ export type TarotInterpretEnhancedRequestValidated = z.infer<
 export const tarotDrawSchema = z.object({
   categoryId: z.string().min(1).max(200).trim(),
   spreadId: z.string().min(1).max(200).trim(),
+  questionContext: tarotQuestionContextSchema.optional(),
 })
 
 export type TarotDrawValidated = z.infer<typeof tarotDrawSchema>
@@ -137,6 +161,7 @@ export const tarotInterpretStreamSchema = z.object({
   includeSaju: z.boolean().optional(),
   sajuContext: z.string().max(1000).optional(),
   astroContext: z.string().max(1000).optional(),
+  questionContext: tarotQuestionContextSchema.optional(),
   zodiacSign: z.string().max(50).optional(),
   previousReadings: z.array(z.string().max(200)).max(3).optional(),
   questionMood: z.enum(['worried', 'curious', 'hopeful', 'urgent', 'neutral']).optional(),

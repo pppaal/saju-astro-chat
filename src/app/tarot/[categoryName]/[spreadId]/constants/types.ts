@@ -3,6 +3,7 @@
  */
 
 import type { Spread, DrawnCard } from '@/lib/Tarot/tarot.types'
+import type { TarotQuestionAnalysisSnapshot } from '@/lib/Tarot/questionFlow'
 
 export type GameState =
   | 'loading'
@@ -52,4 +53,5 @@ export interface ReadingResponse {
   category: string
   spread: Spread
   drawnCards: DrawnCard[]
+  questionContext?: TarotQuestionAnalysisSnapshot | null
 }

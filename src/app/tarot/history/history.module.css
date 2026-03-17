@@ -243,6 +243,55 @@
   overflow: hidden;
 }
 
+.readingSummary {
+  margin: -0.1rem 0 0.75rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.directAnswerPreview {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  background: rgba(99, 210, 255, 0.08);
+  border: 1px solid rgba(99, 210, 255, 0.12);
+  border-radius: 12px;
+}
+
+.previewLabel {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #63d2ff;
+}
+
+.directAnswerPreview p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.profileChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+}
+
+.profileChip {
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.74rem;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.74);
+}
+
 .readingMeta {
   display: flex;
   gap: 1rem;
@@ -412,6 +461,88 @@
   line-height: 1.5;
 }
 
+.modalAnalysis {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+}
+
+.modalSectionTitle {
+  margin: 0 0 0.8rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #63d2ff;
+}
+
+.modalSummary {
+  margin-bottom: 0.9rem;
+}
+
+.modalSummary strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.modalSummary p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.modalProfileGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 0.9rem;
+}
+
+.modalProfileItem {
+  padding: 0.75rem 0.8rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.modalProfileItem span {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.56);
+}
+
+.modalProfileItem strong {
+  display: block;
+  font-size: 0.86rem;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.modalDirectAnswer {
+  padding: 0.9rem 1rem;
+  background: rgba(99, 210, 255, 0.07);
+  border: 1px solid rgba(99, 210, 255, 0.12);
+  border-radius: 12px;
+}
+
+.modalDirectAnswer strong {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.8rem;
+  color: #63d2ff;
+}
+
+.modalDirectAnswer p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.9);
+}
+
 .modalCards {
   margin-bottom: 1.25rem;
 }
@@ -480,6 +611,34 @@
 
 .modalGuidance strong {
   color: #63d2ff;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.resumeButton {
+  min-width: 180px;
+  padding: 0.85rem 1.15rem;
+  border: 1px solid rgba(99, 210, 255, 0.28);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.18), rgba(150, 130, 255, 0.18));
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.resumeButton:hover {
+  transform: translateY(-1px);
+  border-color: rgba(99, 210, 255, 0.42);
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.26), rgba(150, 130, 255, 0.24));
 }
 
 /* Mobile Responsive */
@@ -587,6 +746,31 @@
     margin-bottom: 0.625rem;
   }
 
+  .readingSummary {
+    font-size: 0.82rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .directAnswerPreview {
+    padding: 0.7rem 0.75rem;
+    margin-bottom: 0.625rem;
+    border-radius: 10px;
+  }
+
+  .directAnswerPreview p {
+    font-size: 0.82rem;
+  }
+
+  .profileChips {
+    gap: 0.35rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .profileChip {
+    font-size: 0.68rem;
+    padding: 0.3rem 0.5rem;
+  }
+
   .readingMeta {
     gap: 0.75rem;
     margin-bottom: 0.625rem;
@@ -626,6 +810,33 @@
     max-height: 90vh;
     padding: 1.25rem;
     border-radius: 16px;
+  }
+
+  .modalAnalysis {
+    padding: 0.9rem;
+    border-radius: 12px;
+  }
+
+  .modalSectionTitle {
+    font-size: 0.9rem;
+  }
+
+  .modalProfileGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .modalProfileItem {
+    padding: 0.7rem 0.75rem;
+  }
+
+  .modalActions {
+    margin-top: 0.875rem;
+  }
+
+  .resumeButton {
+    width: 100%;
+    min-width: 0;
+    font-size: 0.86rem;
   }
 
   .modalClose {

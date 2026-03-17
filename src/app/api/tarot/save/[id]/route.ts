@@ -10,6 +10,7 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { idParamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
+import { extractStoredCards, extractStoredQuestionContext } from '@/lib/Tarot/savedReadingPayload'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,7 +50,8 @@ export async function GET(request: Request, routeContext: RouteContext) {
             theme: reading.theme,
             spreadId: reading.spreadId,
             spreadTitle: reading.spreadTitle,
-            cards: reading.cards,
+            cards: extractStoredCards(reading.cards),
+            questionContext: extractStoredQuestionContext(reading.cards),
             overallMessage: reading.overallMessage,
             cardInsights: reading.cardInsights,
             guidance: reading.guidance,
@@ -61,6 +63,56 @@ export async function GET(request: Request, routeContext: RouteContext) {
         })
       } catch (error) {
         logger.error('[Tarot Get Error]:', error)
+        return apiError(ErrorCodes.DATABASE_ERROR, 'internal_server_error')
+      }
+    },
+    createAuthenticatedGuard({
+      route: '/api/tarot/save/[id]',
+      limit: 30,
+      windowSeconds: 60,
+    })
+  )
+
+  return handler(request as unknown as NextRequest)
+}
+
+export async function DELETE(request: Request, routeContext: RouteContext) {
+  const rawParams = await routeContext.params
+  const paramValidation = idParamSchema.safeParse(rawParams)
+  if (!paramValidation.success) {
+    return createValidationErrorResponse(paramValidation.error, {
+      route: 'tarot/save/[id]',
+    })
+  }
+  const { id } = paramValidation.data
+
+  const handler = withApiMiddleware(
+    async (_req: NextRequest, context: ApiContext) => {
+      try {
+        const reading = await prisma.tarotReading.findFirst({
+          where: {
+            id,
+            userId: context.userId!,
+          },
+          select: { id: true },
+        })
+
+        if (!reading) {
+          return apiError(ErrorCodes.NOT_FOUND, 'reading_not_found')
+        }
+
+        await prisma.tarotReading.delete({
+          where: {
+            id: reading.id,
+          },
+        })
+
+        return apiSuccess({
+          success: true,
+          deletedId: reading.id,
+        })
+      } catch (error) {
+        logger.error('[Tarot Delete Error]:', error)
         return apiError(ErrorCodes.DATABASE_ERROR, 'internal_server_error')
       }
     },

@@ -224,7 +224,7 @@ describe('StreamProcessor', () => {
       ]);
 
       const result = await processor.process(response);
-      expect(result.content).toBe('HelloWorld');
+      expect(result.content).toBe('Hello\nWorld');
     });
   });
 

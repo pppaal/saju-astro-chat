@@ -45,10 +45,10 @@ export function useCounselorData(sp: SearchParams) {
   const birthTime = (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime) ?? ''
   const city = (Array.isArray(sp.city) ? sp.city[0] : sp.city) ?? ''
   const rawGender = (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? ''
-  const theme = (Array.isArray(sp.theme) ? sp.theme[0] : sp.theme) ?? 'life'
   const langParam = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? 'ko'
   const lang: Lang = langParam === 'en' ? 'en' : 'ko'
   const initialQuestion = (Array.isArray(sp.q) ? sp.q[0] : sp.q) ?? ''
+  const counselorTheme = 'chat'
 
   const latStr =
     (Array.isArray(sp.lat) ? sp.lat[0] : sp.lat) ??
@@ -64,7 +64,7 @@ export function useCounselorData(sp: SearchParams) {
   const normalizedGender = String(rawGender).toLowerCase() === 'female' ? 'female' : 'male'
 
   // Theme selection state (can be changed by user)
-  const [selectedTheme, setSelectedTheme] = useState(theme)
+  const [selectedTheme, setSelectedTheme] = useState(counselorTheme)
 
   // Available themes with labels
   const themeOptions = useMemo<Array<{ key: string; icon: string; label: string }>>(

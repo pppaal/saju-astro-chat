@@ -310,4 +310,58 @@ describe('destiny shared contract smoke', () => {
     expect(calendarPacket.guardrail.length).toBeGreaterThan(0)
     expect(counselorPacket.guardrail.length).toBeGreaterThan(0)
   })
+
+  it('lets counselor focus override drive advisory selection and evidence emphasis', () => {
+    const input = createInput()
+    const matrixSummary = createSummary()
+    const matrixReport = createReport()
+
+    const core = runDestinyCore({
+      mode: 'calendar',
+      lang: 'ko',
+      matrixInput: input,
+      matrixReport,
+      matrixSummary,
+    })
+
+    const defaultPacket = buildCounselorEvidencePacket({
+      theme: 'chat',
+      lang: 'ko',
+      matrixInput: input,
+      matrixReport,
+      matrixSummary,
+      signalSynthesis: core.signalSynthesis,
+      strategyEngine: core.strategyEngine,
+      core,
+      birthDate: '1995-02-09',
+    })
+
+    const relationshipPacket = buildCounselorEvidencePacket({
+      theme: 'chat',
+      lang: 'ko',
+      focusDomainOverride: 'relationship',
+      matrixInput: input,
+      matrixReport,
+      matrixSummary,
+      signalSynthesis: core.signalSynthesis,
+      strategyEngine: core.strategyEngine,
+      core,
+      birthDate: '1995-02-09',
+    })
+
+    const defaultRelationshipSignals = defaultPacket.selectedSignals.filter(
+      (signal) => signal.domain === 'relationship'
+    ).length
+    const focusedRelationshipSignals = relationshipPacket.selectedSignals.filter(
+      (signal) => signal.domain === 'relationship'
+    ).length
+
+    expect(relationshipPacket.focusDomain).toBe('relationship')
+    expect(relationshipPacket.topDomainAdvisory?.domain).toBe('relationship')
+    expect(relationshipPacket.topTimingWindow?.domain).toBe('relationship')
+    expect(relationshipPacket.topManifestation?.domain).toBe('relationship')
+    expect(focusedRelationshipSignals).toBeGreaterThanOrEqual(defaultRelationshipSignals)
+    expect(relationshipPacket.graphRagEvidenceSummary.totalAnchors).toBeGreaterThan(0)
+    expect(relationshipPacket.topClaims.length).toBeGreaterThan(0)
+  })
 })

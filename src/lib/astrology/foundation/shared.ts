@@ -293,6 +293,14 @@ export function extractLongitudeSpeed(result: Record<string, unknown>): number |
   return undefined
 }
 
+export function extractSwissLongitude(result: Record<string, unknown>): number {
+  const longitude = result.longitude
+  if (typeof longitude === 'number' && Number.isFinite(longitude)) {
+    return longitude
+  }
+  throw new Error('Unexpected coordinate system: longitude is not available')
+}
+
 // ============================================================
 // Swiss Ephemeris Flags
 // ============================================================

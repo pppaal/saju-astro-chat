@@ -5,6 +5,7 @@ import { ExtraPoint, ExtendedChart, Chart, NatalInput } from "./types";
 import { formatLongitude, normalize360 } from "./utils";
 import { inferHouseOf } from "./houses";
 import { getSwisseph } from "./ephe";
+import { extractSwissLongitude } from "./shared";
 
 // Swiss Ephemeris 추가 천체 ID
 const getExtraBodies = (() => {
@@ -33,7 +34,7 @@ export function calculateChiron(ut_jd: number, houseCusps: number[]): ExtraPoint
   const res = swisseph.swe_calc_ut(ut_jd, EXTRA_BODIES.Chiron, SW_FLAGS);
   if ("error" in res) {throw new Error(`Chiron calculation error: ${res.error}`);}
 
-  const longitude = res.longitude;
+  const longitude = extractSwissLongitude(res as unknown as Record<string, unknown>);
   const info = formatLongitude(longitude);
   const house = inferHouseOf(longitude, houseCusps);
 
@@ -61,7 +62,7 @@ export function calculateLilith(ut_jd: number, houseCusps: number[]): ExtraPoint
   const res = swisseph.swe_calc_ut(ut_jd, EXTRA_BODIES.Lilith, SW_FLAGS);
   if ("error" in res) {throw new Error(`Lilith calculation error: ${res.error}`);}
 
-  const longitude = res.longitude;
+  const longitude = extractSwissLongitude(res as unknown as Record<string, unknown>);
   const info = formatLongitude(longitude);
   const house = inferHouseOf(longitude, houseCusps);
 

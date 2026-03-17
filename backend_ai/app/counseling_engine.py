@@ -17,6 +17,7 @@ import json
 import re
 import random
 import hashlib
+import logging
 from typing import List, Dict, Optional, Tuple, Any
 from datetime import datetime
 
@@ -27,6 +28,11 @@ try:
     load_dotenv(os.path.join(_backend_root, ".env"), override=True)
 except ImportError:
     pass
+
+try:
+    from backend_ai.app.redis_cache import get_cache as _get_shared_cache
+except Exception:
+    _get_shared_cache = None
 
 try:
     from openai import OpenAI
@@ -71,6 +77,8 @@ from backend_ai.app.counseling import (
     get_jungian_rag,
 )
 
+logger = logging.getLogger(__name__)
+
 
 # ===============================================================
 # CONSTANTS
@@ -83,6 +91,9 @@ _THEME_KEYWORDS = {
     "health": ["건강", "몸", "병", "아프", "스트레스", "불안", "우울"],
     "spiritual": ["영혼", "영적", "종교", "명상", "꿈", "직관"],
 }
+
+_SESSION_CACHE_PREFIX = "counseling:session:"
+_SESSION_CACHE_TTL_SECONDS = int(os.getenv("COUNSELING_SESSION_TTL_SECONDS", "86400"))
 
 
 # ===============================================================
@@ -275,6 +286,30 @@ class CounselingSession:
             "crisis_detected": self.crisis_detected
         }
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize session state for shared cache continuity."""
+        return {
+            "session_id": self.session_id,
+            "current_phase": self.current_phase,
+            "history": self.history,
+            "insights": self.insights,
+            "crisis_detected": self.crisis_detected,
+            "user_themes": self.user_themes,
+            "archetype_mentions": self.archetype_mentions,
+        }
+
+    @classmethod
+    def from_dict(cls, payload: Dict[str, Any]) -> "CounselingSession":
+        """Restore a session from cached state."""
+        session = cls(session_id=payload.get("session_id"))
+        session.current_phase = payload.get("current_phase", "opening")
+        session.history = payload.get("history", [])
+        session.insights = payload.get("insights", [])
+        session.crisis_detected = bool(payload.get("crisis_detected", False))
+        session.user_themes = payload.get("user_themes", [])
+        session.archetype_mentions = payload.get("archetype_mentions", [])
+        return session
+
 
 # ===============================================================
 # JUNGIAN COUNSELING ENGINE (통합 상담 엔진)
@@ -366,6 +401,63 @@ class JungianCounselingEngine:
         """세션 조회"""
         return self.sessions.get(session_id)
 
+    def _get_cache(self):
+        """Get shared cache if available."""
+        if _get_shared_cache is None:
+            return None
+        try:
+            return _get_shared_cache()
+        except Exception as exc:
+            logger.warning("[CounselingEngine] Shared cache unavailable: %s", exc)
+            return None
+
+    def _get_session_cache_key(self, session_id: str) -> str:
+        return f"{_SESSION_CACHE_PREFIX}{session_id}"
+
+    def _persist_session(self, session: CounselingSession) -> None:
+        """Persist session to memory and shared cache."""
+        self.sessions[session.session_id] = session
+        cache = self._get_cache()
+        if cache is None:
+            return
+        try:
+            cache.set(
+                self._get_session_cache_key(session.session_id),
+                session.to_dict(),
+                ttl=_SESSION_CACHE_TTL_SECONDS,
+            )
+        except Exception as exc:
+            logger.warning("[CounselingEngine] Failed to persist session %s: %s", session.session_id, exc)
+
+    def create_session(self, session_id: str = None) -> CounselingSession:
+        """Create a new counseling session."""
+        session = CounselingSession(session_id=session_id)
+        self._persist_session(session)
+        return session
+
+    def get_session(self, session_id: str) -> Optional[CounselingSession]:
+        """Look up a counseling session."""
+        cached_session = self.sessions.get(session_id)
+        if cached_session is not None:
+            return cached_session
+
+        cache = self._get_cache()
+        if cache is None:
+            return None
+
+        try:
+            payload = cache.get(self._get_session_cache_key(session_id))
+        except Exception as exc:
+            logger.warning("[CounselingEngine] Failed to load session %s: %s", session_id, exc)
+            return None
+
+        if not payload:
+            return None
+
+        session = CounselingSession.from_dict(payload)
+        self.sessions[session.session_id] = session
+        return session
+
     def process_message(self,
                         user_message: str,
                         session: CounselingSession = None,
@@ -404,6 +496,7 @@ class JungianCounselingEngine:
                     response_text += f"\n\n{crisis_response['closing']}"
 
                 session.add_message("assistant", response_text, {"crisis_response": True})
+                self._persist_session(session)
 
                 return {
                     "response": response_text,
@@ -424,6 +517,7 @@ class JungianCounselingEngine:
             response_text = self._generate_fallback_response(user_message, session)
 
         session.add_message("assistant", response_text)
+        self._persist_session(session)
 
         return {
             "response": response_text,
@@ -650,6 +744,7 @@ class JungianCounselingEngine:
             response_text = self._generate_fallback_response(user_message, session)
 
         session.add_message("assistant", response_text)
+        self._persist_session(session)
 
         return {
             "response": response_text,
@@ -726,6 +821,138 @@ class JungianCounselingEngine:
         except Exception as e:
             return "응답 생성 중 오류가 발생했어요. 잠시 후 다시 시도해주세요."
 
+    def _generate_response(self, session: CounselingSession, divination_context: Dict = None) -> str:
+        """Generate a GPT-backed counseling response."""
+        messages = [{"role": "system", "content": self.SYSTEM_PROMPT}]
+
+        for msg in session.history[-10:]:
+            messages.append({
+                "role": msg["role"],
+                "content": msg["content"]
+            })
+
+        if divination_context:
+            context_msg = self._format_divination_context(divination_context)
+            messages.append({
+                "role": "system",
+                "content": f"[Divination Context]\n{context_msg}"
+            })
+
+        phase_info = session.get_phase_info()
+        messages.append({
+            "role": "system",
+            "content": f"[Current Phase: {phase_info.get('name', '')}]\nGoals: {', '.join(phase_info.get('goals', []))}"
+        })
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                temperature=0.8,
+                max_tokens=3000,
+            )
+            return response.choices[0].message.content
+        except Exception as exc:
+            logger.exception("[CounselingEngine] OpenAI response generation failed: %s", exc)
+            return "Response generation failed. Please try again shortly."
+
+    def _format_divination_context(self, context: Dict) -> str:
+        """Format divination context into readable evidence lines."""
+        parts = []
+
+        def render_value(value: Any, depth: int = 0) -> str:
+            if depth > 2:
+                return ""
+            if isinstance(value, dict):
+                lines = []
+                for key, item in list(value.items())[:12]:
+                    rendered = render_value(item, depth + 1)
+                    if not rendered:
+                        continue
+                    if "\n" in rendered:
+                        indented = "\n".join(f"  {line}" for line in rendered.splitlines())
+                        lines.append(f"- {key}:\n{indented}")
+                    else:
+                        lines.append(f"- {key}: {rendered}")
+                return "\n".join(lines)
+            if isinstance(value, list):
+                items = [render_value(item, depth + 1) for item in value[:8]]
+                items = [item for item in items if item]
+                return "\n".join(f"- {item}" for item in items)
+            if value is None:
+                return ""
+            return str(value)
+
+        if context.get("saju"):
+            parts.append(f"[Saju Analysis]\n{render_value(context['saju'])}")
+        if context.get("astrology"):
+            parts.append(f"[Astrology Analysis]\n{render_value(context['astrology'])}")
+        if context.get("tarot"):
+            parts.append(f"[Tarot Reading]\n{render_value(context['tarot'])}")
+
+        return "\n\n".join(part for part in parts if part)
+
+    def _generate_jung_enhanced_response(self,
+                                          session: CounselingSession,
+                                          divination_context: Dict,
+                                          jung_context: Dict) -> str:
+        """Generate a GPT-backed response with Jungian context."""
+        enhanced_prompt = self.SYSTEM_PROMPT
+
+        if jung_context:
+            jung_additions = []
+
+            if jung_context.get("psychological_type"):
+                ptype = jung_context["psychological_type"]
+                jung_additions.append(f"[Psychological Type] {ptype.get('name_ko', ptype.get('name', ''))}: {ptype.get('description', '')}")
+
+            if jung_context.get("alchemy_stage"):
+                stage = jung_context["alchemy_stage"]
+                jung_additions.append(f"[Alchemy Stage] {stage.get('name_ko', stage.get('name', ''))}: {stage.get('therapeutic_focus', '')}")
+
+            if jung_context.get("scenario_guidance"):
+                scenario = jung_context["scenario_guidance"]
+                jung_additions.append(f"[Counseling Scenario] {scenario.get('approach', '')}")
+
+            if jung_context.get("rag_questions"):
+                jung_additions.append("[Suggested Questions]\n- " + "\n- ".join(jung_context["rag_questions"][:2]))
+
+            if jung_context.get("rag_insights"):
+                jung_additions.append("[Therapeutic Insights]\n- " + "\n- ".join(jung_context["rag_insights"][:2]))
+
+            if jung_context.get("rule_matches"):
+                jung_additions.append("[Rule Matches]\n- " + "\n- ".join(jung_context["rule_matches"][:2]))
+
+            if jung_additions:
+                enhanced_prompt += "\n\n## Jungian Context\n" + "\n".join(jung_additions)
+
+        messages = [{"role": "system", "content": enhanced_prompt}]
+
+        for msg in session.history[-10:]:
+            messages.append({"role": msg["role"], "content": msg["content"]})
+
+        if divination_context:
+            context_msg = self._format_divination_context(divination_context)
+            messages.append({"role": "system", "content": f"[Divination Context]\n{context_msg}"})
+
+        phase_info = session.get_phase_info()
+        messages.append({
+            "role": "system",
+            "content": f"[Current Phase: {phase_info.get('name', '')}]\nGoals: {', '.join(phase_info.get('goals', []))}"
+        })
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                temperature=0.8,
+                max_tokens=3000,
+            )
+            return response.choices[0].message.content
+        except Exception as exc:
+            logger.exception("[CounselingEngine] Jung-enhanced response generation failed: %s", exc)
+            return "Response generation failed. Please try again shortly."
+
     def health_check(self) -> Tuple[bool, str]:
         """시스템 상태 확인"""
         status_parts = []
@@ -759,7 +986,17 @@ class JungianCounselingEngine:
         else:
             status_parts.append("RAG: Not initialized")
 
-        is_healthy = self.client is not None and jung_data_loaded >= 3
+        fallback_ready = all([
+            self.crisis_detector is not None,
+            self.question_generator is not None,
+            self.message_generator is not None,
+        ])
+        if self.client is not None:
+            status_parts.append("Mode: AI-enhanced")
+        elif fallback_ready:
+            status_parts.append("Mode: Fallback-only")
+
+        is_healthy = jung_data_loaded >= 3 and (self.client is not None or fallback_ready)
         return is_healthy, " | ".join(status_parts)
 
 

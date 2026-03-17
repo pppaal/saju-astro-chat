@@ -862,6 +862,48 @@
   word-break: keep-all;
 }
 
+.interpretationBlock {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}
+
+.interpretationBlockHeader {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  margin-left: 1rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(99, 210, 255, 0.24);
+  background: rgba(99, 210, 255, 0.1);
+  color: rgba(214, 244, 255, 0.94);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.aiPendingBlock {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px dashed rgba(99, 210, 255, 0.22);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.aiPendingText {
+  margin: 0;
+  color: rgba(210, 220, 255, 0.78);
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+
 .resetButton {
   padding: 0.95rem 2.2rem;
   background: linear-gradient(135deg, rgba(124, 242, 156, 0.2), rgba(99, 210, 255, 0.14));
@@ -3116,6 +3158,7 @@
 }
 
 .interpretationFallbackNotice {
+  display: none;
   margin: 0 0 1rem;
   padding: 0.85rem 1rem;
   border-radius: 12px;
@@ -3160,6 +3203,7 @@
 }
 
 .interpretationSuccessNotice {
+  display: none;
   margin: 0 0 1rem;
   padding: 0.7rem 0.9rem;
   border-radius: 12px;
@@ -3170,6 +3214,7 @@
 }
 
 .interpretationSourceNotice {
+  display: none;
   width: 100%;
   max-width: 1080px;
   margin: 0 0 1rem;
@@ -3591,6 +3636,12 @@
   padding: 0.2rem 0.5rem;
   border-radius: 8px;
   border: 1px solid rgba(99, 210, 255, 0.25);
+}
+
+.detailHintCompact {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: rgba(173, 230, 255, 0.84);
 }
 
 /* Scroll to Details Button */

@@ -263,6 +263,10 @@ export interface TimingAIPremiumReport {
   id: string
   generatedAt: string
   lang: 'ko' | 'en'
+  focusDomain?: string
+  topDecisionId?: string | null
+  topDecisionLabel?: string | null
+  riskControl?: string
   reportMeta: UnifiedReportMeta
   timeWindow: UnifiedTimeWindow
   scores: UnifiedScores
@@ -370,6 +374,10 @@ export interface ThemedAIPremiumReport {
   id: string
   generatedAt: string
   lang: 'ko' | 'en'
+  focusDomain?: string
+  topDecisionId?: string | null
+  topDecisionLabel?: string | null
+  riskControl?: string
   reportMeta: UnifiedReportMeta
   timeWindow: UnifiedTimeWindow
   scores: UnifiedScores

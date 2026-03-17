@@ -244,4 +244,51 @@ describe('buildUnifiedEnvelope', () => {
     expect(result.timeWindow.scope).toBe('DAY')
     expect(result.timelinePriority).toBe('default')
   })
+
+  it('softens inflated domain scores against the overall score for display', () => {
+    const result = buildUnifiedEnvelope({
+      mode: 'comprehensive',
+      lang: 'ko',
+      generatedAt: '2026-03-05T00:00:00.000Z',
+      matrixInput: {
+        dayMasterElement: 'ìˆ˜',
+        dominantWesternElement: 'Fire',
+      } as any,
+      matrixReport: {
+        overallScore: { total: 63, grade: 'C' },
+        topInsights: [],
+        domainAnalysis: [
+          { domain: 'career', score: 82 },
+          { domain: 'relationship', score: 78 },
+          { domain: 'wealth', score: 80 },
+          { domain: 'health', score: 74 },
+          { domain: 'move', score: 76 },
+        ],
+      } as any,
+      matrixSummary: {
+        finalScoreAdjusted: 63,
+        confidenceScore: 0.92,
+        domainScores: {
+          career: { finalScoreAdjusted: 100, confidenceScore: 0.92 },
+          love: { finalScoreAdjusted: 100, confidenceScore: 0.92 },
+          money: { finalScoreAdjusted: 100, confidenceScore: 0.92 },
+          health: { finalScoreAdjusted: 91, confidenceScore: 0.92 },
+          move: { finalScoreAdjusted: 98, confidenceScore: 0.92 },
+        },
+      } as any,
+      signalSynthesis: createMockSynthesis(),
+      graphRagEvidence: { anchors: [] } as any,
+      birthDate: '1995-02-09',
+      sectionPaths: ['introduction', 'careerPath', 'timingAdvice', 'actionPlan'],
+      evidenceRefs: createEvidenceRefs(),
+    })
+
+    expect(result.scores.overall.score).toBe(63)
+    expect(result.scores.domains.career.score).toBeLessThan(100)
+    expect(result.scores.domains.relationship.score).toBeLessThan(100)
+    expect(result.scores.domains.wealth.score).toBeLessThan(100)
+    expect(result.scores.domains.career.score).toBeGreaterThan(70)
+    expect(result.scores.domains.health.score).toBeGreaterThanOrEqual(70)
+    expect(result.scores.domains.career.confidence).toBeLessThan(0.92)
+  })
 })

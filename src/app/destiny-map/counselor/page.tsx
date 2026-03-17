@@ -53,6 +53,13 @@ export default function CounselorPage() {
     })
     return result
   }, [rawSearchParams])
+  const counselorSearchParams = useMemo<SearchParams>(
+    () => ({
+      ...sp,
+      theme: 'chat',
+    }),
+    [sp]
+  )
 
   const router = useRouter()
   const { status: authStatus } = useSession()
@@ -69,7 +76,7 @@ export default function CounselorPage() {
     loadingStep,
     loadingMessages,
     parsedParams,
-  } = useCounselorData(sp)
+  } = useCounselorData(counselorSearchParams)
 
   const {
     name,
@@ -82,8 +89,6 @@ export default function CounselorPage() {
     latitude,
     longitude,
     selectedTheme,
-    setSelectedTheme,
-    themeOptions,
   } = parsedParams
 
   const handleLogin = useCallback(() => {
@@ -157,22 +162,6 @@ export default function CounselorPage() {
           </button>
         </div>
       )}
-
-      <div className={styles.themeBar}>
-        <div className={styles.themeScroll}>
-          {themeOptions.map((opt) => (
-            <button
-              key={opt.key}
-              type="button"
-              className={`${styles.themeChip} ${selectedTheme === opt.key ? styles.themeChipActive : ''}`}
-              onClick={() => setSelectedTheme(opt.key)}
-            >
-              <span className={styles.themeIcon}>{opt.icon}</span>
-              <span className={styles.themeLabel}>{opt.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
 
       <div className={styles.chatWrapper}>
         <ErrorBoundary

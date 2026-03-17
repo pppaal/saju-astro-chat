@@ -10,6 +10,10 @@ import { logger } from '@/lib/logger'
 import { recordExternalCall } from '@/lib/metrics/index'
 import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import {
+  buildQuestionContextPrompt,
+  type TarotQuestionAnalysisSnapshot,
+} from '@/lib/Tarot/questionFlow'
 
 interface CardInput {
   name: string
@@ -25,6 +29,15 @@ const BACKEND_TIMEOUT_MS = 20000
 const OPENAI_TIMEOUT_MS = 30000
 
 // Use centralized sanitizeString from @/lib/api/sanitizers
+
+function normalizeQuestionContext(
+  value: unknown
+): TarotQuestionAnalysisSnapshot | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return undefined
+  }
+  return value as TarotQuestionAnalysisSnapshot
+}
 
 function buildFallbackPayload(
   cards: CardInput[],
@@ -371,6 +384,8 @@ export async function POST(req: NextRequest) {
             : 'ko'
     const rawCards = body.cards
     const userQuestion = body.userQuestion || ''
+    const questionContext = normalizeQuestionContext(body.questionContext)
+    const effectiveUserQuestion = buildQuestionContextPrompt(userQuestion, questionContext, language)
     const includeAstrology = body.includeAstrology !== false
     const includeSaju = body.includeSaju !== false
     const birthdate = includeAstrology ? body.birthdate || '' : ''
@@ -383,7 +398,7 @@ export async function POST(req: NextRequest) {
       spreadId,
       language,
       cards: rawCards.length,
-      hasQuestion: Boolean(userQuestion),
+      hasQuestion: Boolean(effectiveUserQuestion),
       hasBirthdate: Boolean(birthdate),
       includeAstrology,
       includeSaju,
@@ -400,7 +415,7 @@ export async function POST(req: NextRequest) {
       spreadId,
       spreadTitle,
       cards: rawCards,
-      userQuestion: userQuestion,
+      userQuestion: effectiveUserQuestion,
       language,
       birthdate,
       includeAstrology,
@@ -426,7 +441,7 @@ export async function POST(req: NextRequest) {
       })
       .join('\n')
 
-    const q = userQuestion || (isKorean ? '일반 운세' : 'general reading')
+    const q = effectiveUserQuestion || (isKorean ? '일반 운세' : 'general reading')
 
     // 개인화 정보 구성
     const zodiac = birthdate ? getZodiacSign(birthdate) : null
@@ -580,7 +595,7 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
         spreadId,
         spreadTitle,
         cards: rawCards,
-        userQuestion: userQuestion,
+        userQuestion: effectiveUserQuestion,
         language,
         birthdate,
         includeAstrology,
@@ -604,7 +619,7 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
         spreadId,
         spreadTitle,
         cards: rawCards,
-        userQuestion: userQuestion,
+        userQuestion: effectiveUserQuestion,
         language,
         birthdate,
         includeAstrology,
@@ -633,7 +648,7 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
             spreadId,
             spreadTitle,
             cards: rawCards,
-            userQuestion: userQuestion,
+            userQuestion: effectiveUserQuestion,
             language,
             birthdate,
             includeAstrology,

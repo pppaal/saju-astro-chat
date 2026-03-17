@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import { checkDangerousQuestion } from '@/lib/Tarot/tarot-recommend'
+import type { TarotQuestionAnalysisResult } from '@/lib/Tarot/questionFlow'
 import { tarotLogger } from '@/lib/logger'
 import { apiFetch } from '@/lib/api'
 import {
@@ -10,25 +10,7 @@ import {
   isAnalyzeFallbackReason,
 } from '../utils/errorHandling'
 
-export interface AIAnalysisResult {
-  isDangerous?: boolean
-  message?: string
-  themeId: string
-  spreadId: string
-  spreadTitle: string
-  cardCount: number
-  userFriendlyExplanation: string
-  path: string
-  source?: 'pattern' | 'llm' | 'fallback'
-  fallback_reason?: AnalyzeFallbackReason | null
-}
-
-interface PreviewInfo {
-  cardCount: number
-  spreadTitle: string
-  path?: string
-  source: 'quick' | 'ai'
-}
+export type AIAnalysisResult = TarotQuestionAnalysisResult
 
 interface UseQuestionAnalysisProps {
   question: string
@@ -47,7 +29,7 @@ interface UseQuestionAnalysisProps {
 
 const PREVIEW_ANALYZE_TIMEOUT_MS = 3500
 const START_ANALYZE_TIMEOUT_MS = 5000
-const BACKGROUND_ANALYZE_TIMEOUT_MS = 4500
+const QUESTION_ENGINE_ENDPOINT = '/api/tarot/question-engine-v2'
 
 function createTimeoutController(timeoutMs: number, externalSignal?: AbortSignal) {
   const controller = new AbortController()
@@ -95,20 +77,15 @@ function createTimeoutController(timeoutMs: number, externalSignal?: AbortSignal
   }
 }
 
-/**
- * Hook to handle question analysis with debounced preview and AI analysis
- */
 export function useQuestionAnalysis({
   question,
   language,
   isKo,
   getQuickRecommendation,
 }: UseQuestionAnalysisProps) {
-  const router = useRouter()
-  const [previewInfo, setPreviewInfo] = useState<PreviewInfo | null>(null)
+  const [analysisResult, setAnalysisResult] = useState<AIAnalysisResult | null>(null)
   const [dangerWarning, setDangerWarning] = useState<string | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [aiExplanation, setAiExplanation] = useState<string | null>(null)
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
   const [fallbackReason, setFallbackReason] = useState<AnalyzeFallbackReason | null>(null)
   const gptDebounceRef = useRef<NodeJS.Timeout | null>(null)
@@ -126,196 +103,88 @@ export function useQuestionAnalysis({
     }
   }, [])
 
-  // Debounced preview logic
-  useEffect(() => {
-    if (gptDebounceRef.current) {
-      clearTimeout(gptDebounceRef.current)
+  const buildQuestionPath = useCallback((path: string, q: string) => {
+    const url = new URL(path, 'https://tarot.local')
+    url.searchParams.set('question', q)
+    return `${url.pathname}${url.search}`
+  }, [])
+
+  const parseQuickPath = useCallback((path: string) => {
+    const [pathname] = path.split('?')
+    const segments = pathname.split('/').filter(Boolean)
+    return {
+      themeId: segments[1] || 'general-insight',
+      spreadId: segments[2] || 'quick-reading',
     }
-    if (previewAbortRef.current) {
-      previewAbortRef.current.abort()
-      previewAbortRef.current = null
-    }
+  }, [])
 
-    const trimmed = question.trim()
+  const buildLocalFallbackAnalysis = useCallback(
+    (trimmedQuestion: string, reason: AnalyzeFallbackReason | null = null): AIAnalysisResult => {
+      const quickResult = getQuickRecommendation(trimmedQuestion, isKo)
+      const { themeId, spreadId } = parseQuickPath(quickResult.path)
+      const resolvedPath = buildQuestionPath(quickResult.path, trimmedQuestion)
+      const themeTitle = isKo ? '종합 리딩' : 'General reading'
 
-    if (trimmed.length > 3) {
-      // Check for dangerous questions first
-      const dangerCheck = checkDangerousQuestion(trimmed)
-      if (dangerCheck.isDangerous) {
-        setDangerWarning(dangerCheck.message || '')
-        setPreviewInfo(null)
-        setIsLoadingPreview(false)
-        setFallbackReason(null)
-        return
+      return {
+        themeId,
+        spreadId,
+        spreadTitle: quickResult.spreadTitle,
+        cardCount: quickResult.cardCount,
+        userFriendlyExplanation: isKo
+          ? '질문의 핵심을 먼저 읽고, 그다음에 맞는 스프레드를 고르는 흐름이 더 안정적입니다.'
+          : 'It is more stable to read the core of the question first and choose the spread after that.',
+        question_summary: isKo
+          ? '분석이 불안정해서 가장 가까운 기본 스프레드를 먼저 제안합니다.'
+          : 'Analysis was unstable, so a nearby default spread is suggested first.',
+        question_profile: {
+          type: {
+            code: 'unknown',
+            label: isKo ? '전체 흐름을 살피는 질문' : 'A question about the overall flow',
+          },
+          subject: {
+            code: 'overall_flow',
+            label: isKo ? '전체 흐름을 보는 질문' : 'The subject is the overall flow',
+          },
+          focus: {
+            code: 'unknown',
+            label: isKo ? '현재 국면과 전체 흐름' : 'Current phase and overall flow',
+          },
+          timeframe: {
+            code: 'open',
+            label: isKo ? '시간축이 열려 있음' : 'Open-ended timeframe',
+          },
+          tone: {
+            code: 'flow',
+            label: isKo ? '흐름 해석 중심' : 'Flow-focused',
+          },
+        },
+        direct_answer: isKo
+          ? '지금은 세부 예측보다 질문의 큰 흐름을 먼저 읽는 편이 더 안정적입니다.'
+          : 'Right now it is more stable to read the overall flow of the question before going into specifics.',
+        intent_label: isKo ? '기본 질문 해석' : 'Default question analysis',
+        recommended_spreads: [
+          {
+            themeId,
+            themeTitle,
+            spreadId,
+            spreadTitle: quickResult.spreadTitle,
+            cardCount: quickResult.cardCount,
+            reason: isKo
+              ? '우선 질문의 큰 흐름을 확인하는 쪽이 안전합니다.'
+              : 'It is safer to confirm the broader flow of the question first.',
+            matchScore: null,
+            path: resolvedPath,
+            recommended: true,
+          },
+        ],
+        path: resolvedPath,
+        source: 'fallback',
+        fallback_reason: reason,
       }
+    },
+    [buildQuestionPath, getQuickRecommendation, isKo, parseQuickPath]
+  )
 
-      setDangerWarning(null)
-      setAiExplanation(null)
-      setFallbackReason(null)
-
-      // Quick keyword-based recommendation as fallback
-      const fallbackResult = getQuickRecommendation(trimmed, isKo)
-      const shouldShowLoading = !fallbackResult.isKeywordMatch
-
-      // If keyword match succeeded, show immediately
-      if (fallbackResult.isKeywordMatch) {
-        setPreviewInfo({
-          cardCount: fallbackResult.cardCount,
-          spreadTitle: fallbackResult.spreadTitle,
-          path: fallbackResult.path,
-          source: 'quick',
-        })
-        setIsLoadingPreview(false)
-      } else {
-        setPreviewInfo(null)
-        setIsLoadingPreview(true)
-      }
-
-      // GPT analysis with debounce
-      const requestId = ++previewRequestIdRef.current
-      gptDebounceRef.current = setTimeout(async () => {
-        const abortController = new AbortController()
-        const timeoutControl = createTimeoutController(
-          PREVIEW_ANALYZE_TIMEOUT_MS,
-          abortController.signal
-        )
-        previewAbortRef.current = abortController
-
-        try {
-          const response = await apiFetch('/api/tarot/analyze-question', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question: trimmed, language }),
-            signal: timeoutControl.signal,
-          })
-
-          if (requestId !== previewRequestIdRef.current) {
-            return
-          }
-
-          if (response.ok) {
-            let data: AIAnalysisResult
-            try {
-              data = await response.json()
-            } catch (parseError) {
-              const reason: AnalyzeFallbackReason = 'parse_failed'
-              setFallbackReason(reason)
-              tarotLogger.warn(
-                '[tarot/analyze-question] Preview parse failed, using quick fallback',
-                {
-                  reason,
-                  question: trimmed,
-                  parseError: parseError instanceof Error ? parseError.message : String(parseError),
-                }
-              )
-              if (!fallbackResult.isKeywordMatch) {
-                setPreviewInfo({
-                  cardCount: fallbackResult.cardCount,
-                  spreadTitle: fallbackResult.spreadTitle,
-                  path: fallbackResult.path,
-                  source: 'quick',
-                })
-              }
-              return
-            }
-            const responseFallbackReason =
-              data.source === 'fallback' && isAnalyzeFallbackReason(data.fallback_reason)
-                ? data.fallback_reason
-                : null
-            setFallbackReason(responseFallbackReason)
-            if (responseFallbackReason) {
-              tarotLogger.warn(
-                '[tarot/analyze-question] Preview returned fallback result from server',
-                {
-                  reason: responseFallbackReason,
-                  question: trimmed,
-                }
-              )
-            }
-            if (data.isDangerous) {
-              setDangerWarning(data.message || '')
-              setPreviewInfo(null)
-            } else {
-              setPreviewInfo({
-                cardCount: data.cardCount,
-                spreadTitle: data.spreadTitle,
-                path: data.path,
-                source: 'ai',
-              })
-              setAiExplanation(data.userFriendlyExplanation)
-            }
-          } else {
-            const reason = classifyAnalyzeFallbackReason(response.status)
-            setFallbackReason(reason)
-            tarotLogger.warn('[tarot/analyze-question] Preview failed, using quick fallback', {
-              reason,
-              status: response.status,
-              question: trimmed,
-            })
-            // API failure - use keyword fallback
-            if (!fallbackResult.isKeywordMatch) {
-              setPreviewInfo({
-                cardCount: fallbackResult.cardCount,
-                spreadTitle: fallbackResult.spreadTitle,
-                path: fallbackResult.path,
-                source: 'quick',
-              })
-            }
-          }
-        } catch (error) {
-          const isAbortError = error instanceof Error && error.name === 'AbortError'
-          const isTimeout = timeoutControl.didTimeout()
-          if (isAbortError && !isTimeout) {
-            return
-          }
-          if (requestId !== previewRequestIdRef.current) {
-            return
-          }
-          tarotLogger.error(
-            'GPT analysis failed:',
-            error instanceof Error ? error : new Error(String(error))
-          )
-          setFallbackReason(isTimeout ? 'server_error' : 'network_error')
-          // Failure - use keyword fallback only if quick preview wasn't already shown
-          if (!fallbackResult.isKeywordMatch) {
-            setPreviewInfo({
-              cardCount: fallbackResult.cardCount,
-              spreadTitle: fallbackResult.spreadTitle,
-              path: fallbackResult.path,
-              source: 'quick',
-            })
-          }
-        } finally {
-          if (requestId === previewRequestIdRef.current && shouldShowLoading) {
-            setIsLoadingPreview(false)
-          }
-          timeoutControl.cleanup()
-          if (previewAbortRef.current === abortController) {
-            previewAbortRef.current = null
-          }
-        }
-      }, 400) // 400ms debounce
-    } else {
-      previewRequestIdRef.current += 1
-      setPreviewInfo(null)
-      setDangerWarning(null)
-      setAiExplanation(null)
-      setIsLoadingPreview(false)
-      setFallbackReason(null)
-    }
-
-    return () => {
-      if (gptDebounceRef.current) {
-        clearTimeout(gptDebounceRef.current)
-      }
-      if (previewAbortRef.current) {
-        previewAbortRef.current.abort()
-        previewAbortRef.current = null
-      }
-    }
-  }, [question, isKo, language, getQuickRecommendation])
-
-  // AI analysis for start reading
   const analyzeWithAI = useCallback(
     async (
       q: string,
@@ -329,8 +198,9 @@ export function useQuestionAnalysis({
         options?.timeoutMs ?? START_ANALYZE_TIMEOUT_MS,
         options?.signal
       )
+
       try {
-        const response = await apiFetch('/api/tarot/analyze-question', {
+        const response = await apiFetch(QUESTION_ENGINE_ENDPOINT, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question: q, language }),
@@ -339,7 +209,7 @@ export function useQuestionAnalysis({
 
         if (!response.ok) {
           const reason = classifyAnalyzeFallbackReason(response.status)
-          tarotLogger.warn('[tarot/analyze-question] Start reading failed, using quick fallback', {
+          tarotLogger.warn('[tarot/question-engine-v2] Analysis failed, using fallback', {
             reason,
             status: response.status,
             question: q,
@@ -353,10 +223,11 @@ export function useQuestionAnalysis({
             parsed.source === 'fallback' && isAnalyzeFallbackReason(parsed.fallback_reason)
               ? parsed.fallback_reason
               : null
+
           return { result: parsed, fallbackReason: responseFallbackReason, status: response.status }
         } catch (parseError) {
           const reason: AnalyzeFallbackReason = 'parse_failed'
-          tarotLogger.warn('[tarot/analyze-question] Start reading parse failed', {
+          tarotLogger.warn('[tarot/question-engine-v2] Analysis parse failed', {
             reason,
             question: q,
             parseError: parseError instanceof Error ? parseError.message : String(parseError),
@@ -369,10 +240,12 @@ export function useQuestionAnalysis({
         if (isAbortError && !isTimeout) {
           return { result: null, fallbackReason: null }
         }
+
         tarotLogger.error(
-          'AI analysis failed:',
+          '[tarot/question-engine-v2] Analysis request failed',
           error instanceof Error ? error : new Error(String(error))
         )
+
         return { result: null, fallbackReason: isTimeout ? 'server_error' : 'network_error' }
       } finally {
         timeoutControl.cleanup()
@@ -381,73 +254,160 @@ export function useQuestionAnalysis({
     [language]
   )
 
-  // Start reading handler
+  useEffect(() => {
+    if (gptDebounceRef.current) {
+      clearTimeout(gptDebounceRef.current)
+    }
+    if (previewAbortRef.current) {
+      previewAbortRef.current.abort()
+      previewAbortRef.current = null
+    }
+
+    const trimmed = question.trim()
+
+    if (trimmed.length <= 3) {
+      previewRequestIdRef.current += 1
+      setAnalysisResult(null)
+      setDangerWarning(null)
+      setIsLoadingPreview(false)
+      setFallbackReason(null)
+      return
+    }
+
+    const dangerCheck = checkDangerousQuestion(trimmed)
+    if (dangerCheck.isDangerous) {
+      setDangerWarning(dangerCheck.message || '')
+      setAnalysisResult(null)
+      setIsLoadingPreview(false)
+      setFallbackReason(null)
+      return
+    }
+
+    setDangerWarning(null)
+    setAnalysisResult(null)
+    setFallbackReason(null)
+    setIsLoadingPreview(true)
+
+    const requestId = ++previewRequestIdRef.current
+
+    gptDebounceRef.current = setTimeout(async () => {
+      const abortController = new AbortController()
+      const timeoutControl = createTimeoutController(PREVIEW_ANALYZE_TIMEOUT_MS, abortController.signal)
+      previewAbortRef.current = abortController
+
+      try {
+        const response = await analyzeWithAI(trimmed, {
+          timeoutMs: PREVIEW_ANALYZE_TIMEOUT_MS,
+          signal: abortController.signal,
+        })
+
+        if (requestId !== previewRequestIdRef.current) {
+          return
+        }
+
+        if (response.result?.isDangerous) {
+          setDangerWarning(response.result.message || '')
+          setAnalysisResult(null)
+          return
+        }
+
+        if (response.result) {
+          setFallbackReason(response.fallbackReason)
+          setAnalysisResult(response.result)
+          return
+        }
+
+        if (response.fallbackReason) {
+          setFallbackReason(response.fallbackReason)
+        }
+        setAnalysisResult(buildLocalFallbackAnalysis(trimmed, response.fallbackReason))
+      } catch (error) {
+        if (requestId !== previewRequestIdRef.current) {
+          return
+        }
+
+        tarotLogger.error(
+          '[tarot/question-engine-v2] Preview request failed',
+          error instanceof Error ? error : new Error(String(error))
+        )
+        const reason: AnalyzeFallbackReason = 'network_error'
+        setFallbackReason(reason)
+        setAnalysisResult(buildLocalFallbackAnalysis(trimmed, reason))
+      } finally {
+        timeoutControl.cleanup()
+        if (requestId === previewRequestIdRef.current) {
+          setIsLoadingPreview(false)
+        }
+        if (previewAbortRef.current === abortController) {
+          previewAbortRef.current = null
+        }
+      }
+    }, 400)
+
+    return () => {
+      if (gptDebounceRef.current) {
+        clearTimeout(gptDebounceRef.current)
+      }
+      if (previewAbortRef.current) {
+        previewAbortRef.current.abort()
+        previewAbortRef.current = null
+      }
+    }
+  }, [question, analyzeWithAI, buildLocalFallbackAnalysis])
+
   const handleStartReading = useCallback(async () => {
     const trimmedQuestion = question.trim()
-    if (!trimmedQuestion || dangerWarning) return
-
-    if (isLoadingPreview) {
-      const quickResult = getQuickRecommendation(trimmedQuestion, isKo)
-      router.push(quickResult.path)
-
-      void analyzeWithAI(trimmedQuestion, { timeoutMs: BACKGROUND_ANALYZE_TIMEOUT_MS }).then(
-        (analysisResult) => {
-          const aiPath = analysisResult.result?.path
-          if (aiPath && aiPath !== quickResult.path) {
-            router.prefetch(aiPath)
-          }
-        }
-      )
+    if (!trimmedQuestion || dangerWarning) {
       return
     }
 
-    // AI-verified preview can be used directly.
-    if (previewInfo?.path && previewInfo.source === 'ai') {
-      setFallbackReason(null)
-      router.push(previewInfo.path)
+    if (
+      analysisResult &&
+      !isLoadingPreview &&
+      analysisResult.path.includes(encodeURIComponent(trimmedQuestion)) &&
+      !fallbackReason
+    ) {
       return
     }
 
-    // Otherwise, run AI analysis
     setIsAnalyzing(true)
     if (startAnalyzeAbortRef.current) {
       startAnalyzeAbortRef.current.abort()
     }
+
     const startAbortController = new AbortController()
     startAnalyzeAbortRef.current = startAbortController
 
     try {
-      const analysisResult = await analyzeWithAI(trimmedQuestion, {
+      const response = await analyzeWithAI(trimmedQuestion, {
         timeoutMs: START_ANALYZE_TIMEOUT_MS,
         signal: startAbortController.signal,
       })
+
       if (startAnalyzeAbortRef.current !== startAbortController) {
         return
       }
-      const aiResult = analysisResult.result
 
-      if (aiResult?.isDangerous) {
-        setDangerWarning(aiResult.message || '')
+      if (response.result?.isDangerous) {
+        setDangerWarning(response.result.message || '')
+        setAnalysisResult(null)
         return
       }
 
-      if (aiResult) {
-        setFallbackReason(analysisResult.fallbackReason)
-        setAiExplanation(aiResult.userFriendlyExplanation)
-        router.push(aiResult.path)
-      } else {
-        if (analysisResult.fallbackReason) {
-          setFallbackReason(analysisResult.fallbackReason)
-        }
-        // AI failed - use keyword fallback
-        const result = getQuickRecommendation(trimmedQuestion, isKo)
-        router.push(result.path)
+      if (response.result) {
+        setFallbackReason(response.fallbackReason)
+        setAnalysisResult(response.result)
+        return
       }
+
+      if (response.fallbackReason) {
+        setFallbackReason(response.fallbackReason)
+      }
+      setAnalysisResult(buildLocalFallbackAnalysis(trimmedQuestion, response.fallbackReason))
     } catch {
-      setFallbackReason('network_error')
-      // Error - use keyword fallback
-      const result = getQuickRecommendation(trimmedQuestion, isKo)
-      router.push(result.path)
+      const reason: AnalyzeFallbackReason = 'network_error'
+      setFallbackReason(reason)
+      setAnalysisResult(buildLocalFallbackAnalysis(trimmedQuestion, reason))
     } finally {
       if (startAnalyzeAbortRef.current === startAbortController) {
         startAnalyzeAbortRef.current = null
@@ -457,19 +417,17 @@ export function useQuestionAnalysis({
   }, [
     question,
     dangerWarning,
+    analysisResult,
     isLoadingPreview,
-    previewInfo,
-    router,
+    fallbackReason,
     analyzeWithAI,
-    getQuickRecommendation,
-    isKo,
+    buildLocalFallbackAnalysis,
   ])
 
   return {
-    previewInfo,
+    analysisResult,
     dangerWarning,
     isAnalyzing,
-    aiExplanation,
     isLoadingPreview,
     fallbackReason,
     fallbackNotice,

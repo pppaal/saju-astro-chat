@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+﻿import { describe, expect, it } from 'vitest'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
 import type { MatrixHighlight, MatrixSummary } from '@/lib/destiny-matrix/types'
 import type { FiveElement } from '@/lib/Saju/types'
@@ -112,6 +112,9 @@ describe('synthesizeMatrixSignals', () => {
     const careerClaim = result.claims.find((c) => c.domain === 'career')
     expect(careerClaim).toBeTruthy()
     expect(careerClaim?.evidence.length).toBeGreaterThanOrEqual(2)
+    expect(result.leadSignalIds?.length || 0).toBeGreaterThan(0)
+    expect(result.supportSignalIds?.length || 0).toBeGreaterThan(0)
+    expect(new Set(result.selectedSignals.map((s) => s.family)).size).toBeGreaterThanOrEqual(4)
   })
 
   it('keeps career and wealth signal coverage when candidates exist', () => {
@@ -160,14 +163,14 @@ describe('synthesizeMatrixSignals', () => {
       strengthPoints: [
         mkHighlight(5, 'samhap', 'trine', 10, 'harmony'),
         mkHighlight(5, 'samhap', 'conjunction', 9, 'synergy'),
-        mkHighlight(1, '금', 'air', 6, 'balance'),
+        mkHighlight(1, 'ê¸ˆ', 'air', 6, 'balance'),
       ],
       cautionPoints: [
         mkHighlight(5, 'chung', 'square', 3, 'friction'),
-        mkHighlight(2, '상관', 'Saturn', 2, 'delay'),
+        mkHighlight(2, 'ìƒê´€', 'Saturn', 2, 'delay'),
       ],
       balancePoints: [
-        mkHighlight(1, '목', 'air', 5, 'mixed'),
+        mkHighlight(1, 'ëª©', 'air', 5, 'mixed'),
         mkHighlight(4, 'seun', 'trine', 5, 'timing'),
       ],
       topSynergies: [],
@@ -218,15 +221,77 @@ describe('synthesizeMatrixSignals', () => {
     expect(wealthClaim?.evidence).toContain(dualEvidenceId)
   })
 
+  it('prioritizes stronger caution signals instead of weaker caution noise', () => {
+    const summary: MatrixSummary = {
+      totalScore: 71,
+      strengthPoints: [
+        mkHighlight(6, 'imgwan', 'H10', 10, 'career-peak'),
+        mkHighlight(2, 'pyeonjae', 'Jupiter', 9, 'money-gate'),
+        mkHighlight(3, 'siksin', 'H7', 8, 'relationship-drive'),
+      ],
+      cautionPoints: [
+        mkHighlight(5, 'major_conflict', 'square', 9, 'major-conflict'),
+        mkHighlight(5, 'minor_noise', 'square', 2, 'minor-noise'),
+      ],
+      balancePoints: [
+        mkHighlight(3, 'jeongin', 'H6', 6, 'health-routine'),
+        mkHighlight(4, 'seun', 'trine', 6, 'timing-window'),
+      ],
+      topSynergies: [],
+    }
+
+    const result = synthesizeMatrixSignals({
+      lang: 'ko',
+      matrixReport: mkReport(),
+      matrixSummary: summary,
+    })
+
+    const cautionIds = result.selectedSignals
+      .filter((signal) => signal.polarity === 'caution')
+      .map((signal) => signal.id)
+    expect(cautionIds).toContain('L5:major_conflict:square')
+  })
+
+  it('extends claim evidence with high-rank same-domain signals outside selected seven', () => {
+    const summary: MatrixSummary = {
+      totalScore: 74,
+      strengthPoints: [
+        mkHighlight(6, 'imgwan', 'H10', 10, 'career-peak'),
+        mkHighlight(8, 'cheon-eul', 'Jupiter', 9, 'mentor-luck'),
+        mkHighlight(3, 'siksin', 'H7', 8, 'relationship-drive'),
+        mkHighlight(6, 'public-visibility', 'MC', 8, 'career-visibility'),
+      ],
+      cautionPoints: [
+        mkHighlight(5, 'chung', 'square', 7, 'career-friction'),
+        mkHighlight(2, 'sanggwan', 'Saturn', 6, 'career-delay'),
+      ],
+      balancePoints: [
+        mkHighlight(3, 'jeongin', 'H6', 6, 'health-routine'),
+        mkHighlight(4, 'shortTerm', 'h9_move', 6, 'move-window'),
+      ],
+      topSynergies: [],
+    }
+
+    const result = synthesizeMatrixSignals({
+      lang: 'ko',
+      matrixReport: mkReport(),
+      matrixSummary: summary,
+    })
+
+    const careerClaim = result.claims.find((claim) => claim.domain === 'career')
+    expect(careerClaim).toBeTruthy()
+    expect(careerClaim?.evidence).toContain('L6:public-visibility:MC')
+  })
+
   it('converts rich advancedAstroSignals and snapshots into normalized coverage signals', () => {
     const result = synthesizeMatrixSignals({
       lang: 'ko',
       matrixReport: mkReport(),
       matrixSummary: mkSummary(),
       matrixInput: {
-        dayMasterElement: '목' as any,
-        pillarElements: ['목', '화', '토', '금'] as any,
-        sibsinDistribution: { 편재: 2 } as any,
+        dayMasterElement: 'ëª©' as any,
+        pillarElements: ['ëª©', 'í™”', 'í† ', 'ê¸ˆ'] as any,
+        sibsinDistribution: { pyeonjae: 2 } as any,
         twelveStages: {} as any,
         relations: [] as any,
         planetHouses: { Sun: 1, Jupiter: 10 } as any,
@@ -238,7 +303,7 @@ describe('synthesizeMatrixSignals', () => {
           fixedStars: 'active',
           eclipses: { impact: ['Sun'] },
         } as any,
-        sajuSnapshot: { unse: { daeun: [{ age: 31 }] }, facts: { dayMaster: '경' } } as any,
+        sajuSnapshot: { unse: { daeun: [{ age: 31 }] }, facts: { dayMaster: 'ê²½' } } as any,
         astrologySnapshot: { natalChart: { planets: [{ name: 'Sun' }] } } as any,
         crossSnapshot: { source: 'test', crossAgreement: 0.58 } as any,
       },
@@ -258,22 +323,38 @@ describe('synthesizeMatrixSignals', () => {
       matrixReport: mkReport(),
       matrixSummary: mkSummary(),
       matrixInput: {
-        dayMasterElement: '목' as any,
-        pillarElements: ['목', '화', '토', '금'] as any,
+        dayMasterElement: 'ëª©' as any,
+        pillarElements: ['ëª©', 'í™”', 'í† ', 'ê¸ˆ'] as any,
         sibsinDistribution: {} as any,
         twelveStages: {} as any,
         relations: [] as any,
         planetHouses: {} as any,
         planetSigns: {} as any,
         aspects: [] as any,
-        currentWolunElement: '수' as any,
-        currentIljinElement: '화' as any,
+        currentWolunElement: 'ìˆ˜' as any,
+        currentIljinElement: 'í™”' as any,
         currentIljinDate: '2026-03-10',
       },
     })
 
     const ids = result.normalizedSignals.map((signal) => signal.id)
-    expect(ids).toContain('COV:L4:wolun:수')
-    expect(ids).toContain('COV:L4:iljin:화')
+    expect(ids).toContain('COV:L4:wolun:ìˆ˜')
+    expect(ids).toContain('COV:L4:iljin:í™”')
+  })
+
+  it('assigns deterministic signal family labels to selected signals', () => {
+    const result = synthesizeMatrixSignals({
+      lang: 'ko',
+      matrixReport: mkReport(),
+      matrixSummary: mkSummary(),
+    })
+
+    expect(
+      result.selectedSignals.every(
+        (signal) => typeof signal.family === 'string' && signal.family.length > 0
+      )
+    ).toBe(true)
+    expect(result.selectedSignals.some((signal) => signal.family === 'career_growth')).toBe(true)
   })
 })
+

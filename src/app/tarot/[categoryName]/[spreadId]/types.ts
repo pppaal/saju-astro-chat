@@ -3,6 +3,7 @@
  */
 
 import type { Spread, DrawnCard } from '@/lib/Tarot/tarot.types'
+import type { TarotQuestionAnalysisSnapshot } from '@/lib/Tarot/questionFlow'
 
 export interface CardInsight {
   position: string
@@ -43,6 +44,7 @@ export interface ReadingResponse {
   category: string
   spread: Spread
   drawnCards: DrawnCard[]
+  questionContext?: TarotQuestionAnalysisSnapshot | null
 }
 
 // Alias for component compatibility

@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+﻿import { NextRequest } from 'next/server'
 import {
   initializeApiContext,
   createAuthenticatedGuard,
@@ -968,6 +968,113 @@ function buildMatrixProfileSection(
   ].join('\n')
 }
 
+function mapFocusDomainToPromptTheme(focusDomain: string | null | undefined, fallback: string): string {
+  switch (focusDomain) {
+    case 'relationship':
+      return 'love'
+    case 'career':
+      return 'career'
+    case 'wealth':
+      return 'wealth'
+    case 'health':
+      return 'health'
+    case 'move':
+      return 'life'
+    case 'timing':
+    case 'personality':
+    case 'spirituality':
+      return 'life'
+    default:
+      return fallback
+  }
+}
+
+function buildFocusDomainDepthGuide(
+  focusDomain: string | null | undefined,
+  lang: string
+): string {
+  const domain = focusDomain || 'personality'
+  if (lang === 'ko') {
+    switch (domain) {
+      case 'relationship':
+        return [
+          '[Core Focus Guide]',
+          '- 관계 질문은 감정 해석보다 거리, 경계, 기대치 조정 순서로 답합니다.',
+          '- 실행 답변은 commitment 강행보다 clarify / boundary / preparation을 우선 검토합니다.',
+        ].join('\n')
+      case 'career':
+        return [
+          '[Core Focus Guide]',
+          '- 커리어 질문은 기회 자체보다 역할, 조건, 검토 순서를 먼저 답합니다.',
+          '- 실행 답변은 commit보다 review / negotiate / staged execution을 우선 검토합니다.',
+        ].join('\n')
+      case 'wealth':
+        return [
+          '[Core Focus Guide]',
+          '- 재정 질문은 수익 기대보다 구조, 누수, 조건 검증을 먼저 답합니다.',
+          '- 실행 답변은 allocation / review / staged commitment를 우선 검토합니다.',
+        ].join('\n')
+      case 'health':
+        return [
+          '[Core Focus Guide]',
+          '- 건강 질문은 의지보다 회복, 과부하, 루틴 준수 기준으로 답합니다.',
+          '- 실행 답변은 push보다 recovery / boundary / reduce-load를 우선 검토합니다.',
+        ].join('\n')
+      case 'move':
+        return [
+          '[Core Focus Guide]',
+          '- 이동 질문은 결론보다 경로, 거점, 검증 순서로 답합니다.',
+          '- 실행 답변은 relocate 강행보다 route recheck / commute restructure / staged move를 우선 검토합니다.',
+        ].join('\n')
+      default:
+        return [
+          '[Core Focus Guide]',
+          '- 종합 질문도 하나의 우선 축으로 압축해 답합니다.',
+          '- 설명보다 지금 먼저 해야 할 검토 또는 행동 하나를 분명히 제시합니다.',
+        ].join('\n')
+    }
+  }
+
+  switch (domain) {
+    case 'relationship':
+      return [
+        '[Core Focus Guide]',
+        '- Answer relationship questions through distance, boundaries, and expectation alignment.',
+        '- Prefer clarify / boundary / preparation over forcing commitment.',
+      ].join('\n')
+    case 'career':
+      return [
+        '[Core Focus Guide]',
+        '- Answer career questions through role, terms, and review order before expansion.',
+        '- Prefer review / negotiate / staged execution over impulsive commitment.',
+      ].join('\n')
+    case 'wealth':
+      return [
+        '[Core Focus Guide]',
+        '- Answer money questions through structure, leakage, and term validation before upside.',
+        '- Prefer allocation / review / staged commitment over one-shot bets.',
+      ].join('\n')
+    case 'health':
+      return [
+        '[Core Focus Guide]',
+        '- Answer health questions through recovery, overload, and routine compliance.',
+        '- Prefer recovery / boundary / load reduction over willpower-heavy pushes.',
+      ].join('\n')
+    case 'move':
+      return [
+        '[Core Focus Guide]',
+        '- Answer movement questions through route, base, and verification order.',
+        '- Prefer route recheck / commute restructure / staged move over hard relocation pushes.',
+      ].join('\n')
+    default:
+      return [
+        '[Core Focus Guide]',
+        '- Even broad questions must collapse into one operational priority.',
+        '- Give one clear next move before expanding the explanation.',
+      ].join('\n')
+  }
+}
+
 async function fetchMatrixSnapshot(input: {
   birthDate: string
   birthTime: string
@@ -1617,7 +1724,14 @@ export async function POST(req: NextRequest) {
         },
       })
     }
-    const matrixProfileSection = buildMatrixProfileSection(matrixSnapshot, lang, theme)
+    const coreCounselorPacket = matrixSnapshot?.core?.counselorEvidence || null
+    const coreFocusDomain = coreCounselorPacket?.focusDomain || null
+    const promptTheme = mapFocusDomainToPromptTheme(coreFocusDomain, theme)
+    const canonicalCounselorSection = formatCounselorEvidencePacket(
+      coreCounselorPacket,
+      lang === 'ko' ? 'ko' : 'en'
+    )
+    const matrixProfileSection = buildMatrixProfileSection(matrixSnapshot, lang, promptTheme)
     const counselorUiEvidence = encodeCounselorUiEvidence(matrixSnapshot, lang)
 
     const themeDescriptions: Record<string, { ko: string; en: string }> = {
@@ -1632,15 +1746,30 @@ export async function POST(req: NextRequest) {
       life: { ko: '인생 총운/종합 상담', en: 'Life overview, general counseling' },
       chat: { ko: '자유 주제 상담', en: 'Free topic counseling' },
     }
-    const themeDesc = themeDescriptions[theme] || themeDescriptions.chat
+    const themeDesc = themeDescriptions[promptTheme] || themeDescriptions.chat
     const themeContext =
       lang === 'ko'
-        ? `현재 상담 테마: ${theme} (${themeDesc.ko})\n질문에 먼저 답하고, 테마와 직접 관련된 근거만 사용하세요.`
-        : `Current theme: ${theme} (${themeDesc.en})\nAnswer the question first and use only theme-relevant evidence.`
+        ? [
+            `현재 상담 요청 테마: ${theme}`,
+            coreFocusDomain ? `현재 코어 초점 도메인: ${coreFocusDomain}` : '',
+            `우선 답변 축: ${promptTheme} (${themeDesc.ko})`,
+            '질문에 먼저 답하고, 코어 초점과 직접 관련된 근거를 우선 사용하세요.',
+          ]
+            .filter(Boolean)
+            .join('\n')
+        : [
+            `Requested theme: ${theme}`,
+            coreFocusDomain ? `Current core focus domain: ${coreFocusDomain}` : '',
+            `Primary answer track: ${promptTheme} (${themeDesc.en})`,
+            'Answer the question first and prioritize evidence aligned with the core focus.',
+          ]
+            .filter(Boolean)
+            .join('\n')
 
     const fortuneIcpSection = buildFortuneWithIcpSection(counselingBrief, lang)
     const fortuneGuide = buildFortuneWithIcpOutputGuide(lang)
-    const themeDepthGuide = buildThemeDepthGuide(theme, lang)
+    const themeDepthGuide = buildThemeDepthGuide(promptTheme, lang)
+    const focusDepthGuide = buildFocusDomainDepthGuide(coreFocusDomain, lang)
     const evidenceGuide = buildEvidenceGroundingGuide(lang)
 
     const responseDensityContract =
@@ -1666,17 +1795,19 @@ export async function POST(req: NextRequest) {
       contextSections,
       longTermMemorySection,
       predictionSection,
-      theme,
+      theme: promptTheme,
     })
 
     const baseContext = [
       fortuneGuide,
-      themeDepthGuide,
       evidenceGuide,
       responseDensityContract,
       `Name: ${name || 'User'}`,
+      canonicalCounselorSection,
       themeContext,
+      focusDepthGuide,
       fortuneIcpSection,
+      themeDepthGuide,
       matrixProfileSection,
     ]
       .filter(Boolean)

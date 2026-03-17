@@ -2,6 +2,9 @@ import type { SignalDomain } from './signalSynthesizer'
 import type { StrategyEngineResult } from './strategyEngine'
 import type { MatrixCalculationInputNormalized } from './runDestinyCore'
 import type { PatternResult } from './patternEngine'
+import type { ActivationEngineResult } from './activationEngine'
+import type { RuleEngineResult } from './ruleEngine'
+import type { StateEngineResult } from './stateEngine'
 
 export type ScenarioWindow = 'now' | '1-3m' | '3-6m' | '6-12m'
 
@@ -12,6 +15,7 @@ export interface ScenarioDefinition {
   branch: string
   title: string
   risk: string
+  reversible: boolean
   actions: string[]
 }
 
@@ -21,11 +25,21 @@ export interface ScenarioResult {
   domain: SignalDomain
   branch: string
   title: string
+  rawScore?: number
   probability: number
   confidence: number
   window: ScenarioWindow
+  timingRelevance: number
   risk: string
+  reversible: boolean
   actions: string[]
+  whyNow: string
+  whyNotYet: string
+  entryConditions: string[]
+  abortConditions: string[]
+  manifestationHints: string[]
+  supportingSignalIds: string[]
+  evidenceIds: string[]
 }
 
 interface ResolvedAstroTimingIndex {
@@ -35,6 +49,253 @@ interface ResolvedAstroTimingIndex {
   daily: number
   confidence: number
   evidenceCount: number
+}
+
+interface ScenarioResolvedContext {
+  activation?: ActivationEngineResult
+  rules?: RuleEngineResult
+  states?: StateEngineResult
+}
+
+function round1(value: number): number {
+  return Math.round(value * 10) / 10
+}
+
+function hasRuleSignal(values: string[] | undefined, pattern: RegExp): boolean {
+  return (values || []).some((value) => pattern.test(value))
+}
+
+function resolveBranchSpecificWeight(input: {
+  branch: string
+  domain: SignalDomain
+  pattern: PatternResult
+  activationAxes: string[]
+  rule?: RuleEngineResult['domains'][number]
+  state?: StateEngineResult['domains'][number]
+}): number {
+  const branch = input.branch.toLowerCase()
+  const amplify = input.rule?.amplify || []
+  const gate = input.rule?.gate || []
+  const delay = input.rule?.delay || []
+  const suppress = input.rule?.suppress || []
+  const convert = input.rule?.convert || []
+  const axes = input.activationAxes || []
+  const keywords = input.pattern.matchedKeywords || []
+  const mode = input.rule?.resolvedMode || input.pattern.resolvedMode
+  const state = input.state?.state || input.pattern.domainState
+  const hasAxis = (axis: string) => axes.includes(axis)
+  const hasKeyword = (pattern: RegExp) => keywords.some((keyword) => pattern.test(keyword))
+
+  let weight = 1
+
+  if (branch === 'alt') weight -= 0.08
+  if (branch === 'defensive') weight -= mode === 'prepare' ? 0.04 : 0.06
+  if (branch === 'main' && /_cluster$/i.test(input.pattern.id)) weight -= 0.03
+  if (/_cluster$/i.test(input.pattern.id)) {
+    if (branch === 'alt') weight -= 0.035
+    if (branch === 'defensive') weight -= 0.025
+    if (input.domain === 'personality' || input.domain === 'spirituality') weight -= 0.015
+  }
+
+  if (input.domain === 'career') {
+    if (branch === 'entry') {
+      if (mode === 'execute' && (state === 'opening' || state === 'active')) weight += 0.04
+      if (hasAxis('expansion')) weight += 0.02
+      if (gate.length > 0 || delay.length > 0) weight -= 0.03
+    }
+    if (branch === 'promotion_review') {
+      if (mode === 'verify' || mode === 'prepare') weight += 0.05
+      if (hasRuleSignal(gate, /commit_now|blind_spot_commitment|authority_conflict/i)) weight += 0.03
+      if (hasRuleSignal(delay, /finalize_terms|signature|certainty/i)) weight += 0.02
+      if (state === 'peak') weight -= 0.01
+    }
+    if (branch === 'contract_negotiation') {
+      if (mode === 'verify') weight += 0.05
+      if (hasRuleSignal(gate, /blind_spot_commitment|commit_now/i)) weight += 0.035
+      if (hasRuleSignal(delay, /finalize_terms|certainty|signature/i)) weight += 0.03
+      if (hasAxis('verification')) weight += 0.02
+    }
+    if (branch === 'manager_track') {
+      if (state === 'active' || state === 'peak') weight += 0.03
+      if (hasKeyword(/leadership|authority|visibility|manager/i)) weight += 0.035
+      if (hasRuleSignal(amplify, /strategy_planning|expansion/i)) weight += 0.015
+      if (mode === 'verify') weight -= 0.01
+      if (hasRuleSignal(suppress, /overextension/i)) weight -= 0.02
+    }
+    if (branch === 'specialist_track') {
+      if (hasAxis('deep_work')) weight += 0.035
+      if (hasRuleSignal(amplify, /research_planning|study_specialization|craft_refinement|service_specialization/i)) {
+        weight += 0.045
+      }
+      if (mode === 'verify') weight += 0.012
+      if (hasKeyword(/research|craft|specialist|expert/i)) weight += 0.02
+      if (hasRuleSignal(convert, /selective_distance/i)) weight += 0.01
+    }
+  }
+
+  if (input.domain === 'relationship') {
+    if (branch === 'commitment_preparation') {
+      if (mode === 'verify' || mode === 'prepare') weight += 0.05
+      if (hasRuleSignal(gate, /instant_commitment|forced_closeness|projection_bias/i)) weight += 0.035
+      if (hasRuleSignal(delay, /premature_definition|confirmation_before_labeling/i)) weight += 0.03
+      if (hasKeyword(/commitment|prepare|daily|fit|expectation/i)) weight += 0.02
+      if (state === 'opening' || state === 'consolidation') weight += 0.015
+    }
+    if (branch === 'commitment_execution') {
+      if (mode === 'execute' && (state === 'active' || state === 'peak')) weight += 0.03
+      if (hasRuleSignal(gate, /instant_commitment|forced_closeness|boundary_breach/i)) weight -= 0.05
+      if (hasRuleSignal(delay, /premature_definition|emotionally_loaded_decision/i)) weight -= 0.03
+    }
+    if (branch === 'cohabitation') {
+      if (hasRuleSignal(gate, /forced_closeness|boundary_breach/i)) weight -= 0.05
+      if (hasRuleSignal(delay, /premature_definition/i)) weight -= 0.03
+      if (hasKeyword(/daily|shared|home|cohabit/i)) weight += 0.02
+    }
+    if (branch === 'family_acceptance') {
+      if (mode === 'verify') weight += 0.05
+      if (hasRuleSignal(gate, /projection_bias|forced_closeness/i)) weight += 0.02
+      if (hasKeyword(/family|acceptance|approval/i)) weight += 0.025
+    }
+    if (branch === 'clarify_expectations') {
+      if (mode === 'verify' || mode === 'prepare') weight += 0.045
+      if (hasRuleSignal(delay, /confirmation_before_labeling|premature_definition|emotionally_loaded_decision/i)) {
+        weight += 0.04
+      }
+      if (hasRuleSignal(gate, /projection_bias|forced_closeness/i)) weight += 0.02
+      if (hasKeyword(/clarify|expectation|define|question|summary/i)) weight += 0.03
+      if (state === 'opening' || state === 'consolidation') weight += 0.015
+    }
+    if (branch === 'boundary_reset') {
+      if (hasRuleSignal(gate, /boundary_breach|shadow_reactivity|projection_bias/i)) weight += 0.05
+      if (hasRuleSignal(convert, /selective_distance/i)) weight += 0.03
+      if (mode === 'verify' || mode === 'prepare') weight += 0.02
+      if (state === 'consolidation' || state === 'residue' || state === 'opening') weight += 0.02
+      if (hasKeyword(/boundary|reset|limit|agreement|space/i)) weight += 0.03
+    }
+    if (branch === 'distance_tuning') {
+      if (hasRuleSignal(gate, /boundary_breach|shadow_reactivity|projection_bias/i)) weight += 0.035
+      if (hasRuleSignal(convert, /selective_distance/i)) weight += 0.045
+      if (hasRuleSignal(delay, /slow_trust_build|emotionally_loaded_decision/i)) weight += 0.02
+      if (mode === 'verify' || mode === 'prepare') weight += 0.02
+      if (state === 'consolidation' || state === 'opening' || state === 'residue') weight += 0.02
+      if (hasKeyword(/distance|space|tuning|pause|cool/i)) weight += 0.03
+    }
+    if (branch === 'separation') {
+      if (hasRuleSignal(gate, /shadow_reactivity|forced_closeness|projection_bias/i)) weight += 0.04
+      if (hasRuleSignal(delay, /emotionally_loaded_decision/i)) weight -= 0.03
+    }
+  }
+
+  if (input.domain === 'wealth') {
+    if (branch === 'income_growth') {
+      if (hasAxis('expansion')) weight += 0.03
+      if (mode === 'execute' || mode === 'verify') weight += 0.02
+    }
+    if (branch === 'capital_allocation') {
+      if (mode === 'verify') weight += 0.05
+      if (hasRuleSignal(delay, /finalize_terms|certainty/i)) weight += 0.03
+      if (hasRuleSignal(gate, /blind_spot_spending|commit_now/i)) weight += 0.03
+    }
+    if (branch === 'asset_exit') {
+      if (mode === 'verify' || mode === 'prepare') weight += 0.04
+      if (hasRuleSignal(delay, /finalize_terms|certainty/i)) weight += 0.02
+      if (hasRuleSignal(gate, /blind_spot_spending/i)) weight += 0.02
+    }
+    if (branch === 'debt_restructure') {
+      if (mode === 'prepare' || mode === 'verify') weight += 0.05
+      if (hasRuleSignal(gate, /blind_spot_spending/i)) weight += 0.03
+      if (hasKeyword(/debt|restructure|liquidity/i)) weight += 0.025
+    }
+    if (branch === 'expense_spike' || branch === 'liquidity_defense') {
+      if (mode === 'prepare') weight += 0.04
+      if (hasRuleSignal(gate, /blind_spot_spending/i)) weight += 0.03
+    }
+  }
+
+  if (input.domain === 'move') {
+    if (branch === 'route_recheck') {
+      if (mode === 'verify' || mode === 'prepare') weight += 0.05
+      if (hasRuleSignal(delay, /housing_commitment|finalize_terms/i)) weight += 0.03
+      if (hasRuleSignal(gate, /route_assumption|impulsive_move|commit_now/i)) weight += 0.03
+      if (hasKeyword(/route|recheck|review|commute/i)) weight += 0.025
+      if (state === 'opening' || state === 'consolidation') weight += 0.015
+    }
+    if (branch === 'commute_restructure') {
+      if (mode === 'verify' || mode === 'prepare') weight += 0.045
+      if (hasRuleSignal(delay, /housing_commitment|announcement_timing/i)) weight += 0.025
+      if (hasKeyword(/commute|route|daily|travel/i)) weight += 0.02
+      if (hasAxis('mobility') || hasAxis('transition')) weight += 0.02
+      if (state === 'opening' || state === 'consolidation') weight += 0.015
+    }
+    if (branch === 'basecamp_reset') {
+      if (mode === 'prepare') weight += 0.05
+      if (state === 'consolidation' || state === 'residue' || state === 'opening') weight += 0.02
+      if (hasRuleSignal(convert, /staged_move/i)) weight += 0.03
+      if (hasKeyword(/basecamp|home|reset|stability/i)) weight += 0.025
+    }
+    if (branch === 'relocation' || branch === 'cross_border_move' || branch === 'lease_decision') {
+      if (hasRuleSignal(gate, /route_assumption|impulsive_move|commit_now/i)) weight -= 0.04
+      if (hasRuleSignal(delay, /housing_commitment|finalize_terms|announcement_timing/i)) weight -= 0.03
+    }
+  }
+
+  return clamp(weight, 0.88, 1.14)
+}
+
+function resolveTimingPressureWeight(input: {
+  domain: SignalDomain
+  branch: string
+  rule?: RuleEngineResult['domains'][number]
+  state?: StateEngineResult['domains'][number]
+}): number {
+  const branch = input.branch.toLowerCase()
+  const amplify = input.rule?.amplify || []
+  const gate = input.rule?.gate || []
+  const delay = input.rule?.delay || []
+  const state = input.state?.state
+  const has = (values: string[], pattern: RegExp) => values.some((value) => pattern.test(value))
+
+  const timingHot = has(amplify, /transition_window|phase_window|transit_trigger_window|fated_crossroad_window/i)
+  const timingSlow = has(delay, /announcement_timing|finalize_terms|emotionally_loaded_decision|slow_trust_build/i)
+  const timingGate = has(gate, /commit_now|route_assumption|premature_statement|projection_bias/i)
+
+  let weight = 1
+
+  if (timingHot && (state === 'opening' || state === 'active')) weight += 0.03
+  if (timingSlow) weight -= 0.02
+  if (timingGate && branch !== 'boundary_reset' && branch !== 'distance_tuning') weight -= 0.02
+
+  if (input.domain === 'career') {
+    if ((branch === 'promotion_review' || branch === 'contract_negotiation') && timingSlow) weight += 0.03
+    if ((branch === 'entry' || branch === 'promotion' || branch === 'project_launch') && timingGate) weight -= 0.03
+    if ((branch === 'manager_track' || branch === 'specialist_track') && timingHot) weight += 0.02
+  }
+
+  if (input.domain === 'relationship') {
+    if ((branch === 'commitment_execution' || branch === 'cohabitation') && (timingSlow || timingGate)) weight -= 0.04
+    if (branch === 'commitment_preparation' && timingSlow) weight += 0.035
+    if (branch === 'clarify_expectations' && (timingSlow || timingGate)) weight += 0.04
+    if (branch === 'boundary_reset' && timingGate) weight += 0.04
+    if (branch === 'distance_tuning' && (timingGate || timingSlow)) weight += 0.045
+  }
+
+  if (input.domain === 'wealth') {
+    if ((branch === 'capital_allocation' || branch === 'asset_exit') && (timingSlow || timingGate)) weight += 0.03
+    if ((branch === 'income_growth' || branch === 'side_income') && timingHot) weight += 0.02
+  }
+
+  if (input.domain === 'health') {
+    if ((branch === 'recovery' || branch === 'recovery_reset' || branch === 'recovery_compliance') && timingSlow) weight += 0.03
+    if ((branch === 'burnout_trigger' || branch === 'sleep_disruption') && timingGate) weight += 0.02
+  }
+
+  if (input.domain === 'move') {
+    if ((branch === 'lease_decision' || branch === 'relocation' || branch === 'cross_border_move') && (timingSlow || timingGate)) weight -= 0.03
+    if ((branch === 'housing_search' || branch === 'route_recheck') && timingSlow) weight += 0.03
+    if (branch === 'travel' && timingHot) weight += 0.02
+  }
+
+  return clamp(weight, 0.9, 1.1)
 }
 
 const DOMAIN_SENSITIVITY: Record<SignalDomain, number> = {
@@ -56,6 +317,7 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'promotion',
     title: 'Promotion branch',
     risk: 'Role scope must be defined before yes.',
+    reversible: false,
     actions: ['Clarify role scope', 'Lock deliverables', 'Verify reporting lines'],
   },
   {
@@ -65,6 +327,7 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'job_change',
     title: 'Job-change branch',
     risk: 'Fast exit without runway can cut leverage.',
+    reversible: false,
     actions: ['Map offer quality', 'Check runway', 'Stage the handoff'],
   },
   {
@@ -74,7 +337,68 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'project_launch',
     title: 'Project-launch branch',
     risk: 'Launching without owner clarity increases rework.',
+    reversible: false,
     actions: ['Fix owner map', 'Set scope', 'Publish first milestone'],
+  },
+  {
+    id: 'entry_window',
+    patternId: 'career_expansion',
+    domain: 'career',
+    branch: 'entry',
+    title: 'Entry branch',
+    risk: 'Entering too fast without role fit can turn momentum into mismatch.',
+    reversible: true,
+    actions: ['Check role fit', 'Confirm learning curve', 'Secure first 90-day goals'],
+  },
+  {
+    id: 'authority_gain_window',
+    patternId: 'career_expansion',
+    domain: 'career',
+    branch: 'authority_gain',
+    title: 'Authority-gain branch',
+    risk: 'Authority without boundary or reporting clarity creates backlash.',
+    reversible: false,
+    actions: ['Define authority boundary', 'Clarify escalation line', 'Protect one decision right'],
+  },
+  {
+    id: 'promotion_review_window',
+    patternId: 'career_expansion',
+    domain: 'career',
+    branch: 'promotion_review',
+    title: 'Promotion-review branch',
+    risk: 'If promotion review criteria are vague, energy goes into impression management instead of proof.',
+    reversible: true,
+    actions: ['List promotion criteria', 'Turn output into evidence', 'Ask what still blocks the review'],
+  },
+  {
+    id: 'contract_negotiation_window',
+    patternId: 'career_expansion',
+    domain: 'career',
+    branch: 'contract_negotiation',
+    title: 'Contract-negotiation branch',
+    risk: 'Negotiating without leverage mapping weakens long-term positioning.',
+    reversible: true,
+    actions: ['List leverage points', 'Negotiate role and compensation together', 'Delay signature until scope is fixed'],
+  },
+  {
+    id: 'manager_track_window',
+    patternId: 'career_expansion',
+    domain: 'career',
+    branch: 'manager_track',
+    title: 'Manager-track branch',
+    risk: 'Stepping into management without delegation structure turns authority into overload.',
+    reversible: true,
+    actions: ['Define delegation map', 'Clarify decision rights', 'Protect one management rhythm'],
+  },
+  {
+    id: 'specialist_track_window',
+    patternId: 'career_expansion',
+    domain: 'career',
+    branch: 'specialist_track',
+    title: 'Specialist-track branch',
+    risk: 'Expert positioning without proof of depth looks narrower than it is.',
+    reversible: true,
+    actions: ['Name your narrow edge', 'Show deep proof', 'Tie expertise to business value'],
   },
   {
     id: 'role_redefinition_window',
@@ -83,6 +407,7 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'role_reset',
     title: 'Role-reset branch',
     risk: 'Reset without thesis becomes drift.',
+    reversible: true,
     actions: ['Write role thesis', 'List non-negotiables', 'Remove one legacy load'],
   },
   {
@@ -92,7 +417,28 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'internal_reset',
     title: 'Internal reset branch',
     risk: 'Silent frustration can harden into disengagement.',
+    reversible: true,
     actions: ['Escalate with facts', 'Redraw scope', 'Request milestone review'],
+  },
+  {
+    id: 'authority_conflict_window',
+    patternId: 'career_reset_rebuild',
+    domain: 'career',
+    branch: 'authority_conflict',
+    title: 'Authority-conflict branch',
+    risk: 'Power struggle without scope clarity escalates faster than the actual issue.',
+    reversible: true,
+    actions: ['Separate title from scope', 'Document one conflict point', 'Resolve through boundary not force'],
+  },
+  {
+    id: 'role_shift_window',
+    patternId: 'career_reset_rebuild',
+    domain: 'career',
+    branch: 'role_shift',
+    title: 'Role-shift branch',
+    risk: 'Shifting lanes without identity thesis can scatter effort.',
+    reversible: true,
+    actions: ['Name the new lane', 'Drop one old obligation', 'Stage the transition in writing'],
   },
   {
     id: 'exit_preparation_window',
@@ -101,7 +447,18 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'exit_preparation',
     title: 'Exit-prep branch',
     risk: 'Leaving too early can weaken timing quality.',
+    reversible: true,
     actions: ['Build runway', 'Audit options', 'Prepare portfolio evidence'],
+  },
+  {
+    id: 'restart_window',
+    patternId: 'career_reset_rebuild',
+    domain: 'career',
+    branch: 'restart',
+    title: 'Restart branch',
+    risk: 'Restarting from fatigue instead of clarity repeats the same structure.',
+    reversible: true,
+    actions: ['Define restart thesis', 'Choose one rebuild asset', 'Set a 4-week reset horizon'],
   },
   {
     id: 'new_connection_window',
@@ -110,6 +467,7 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'new_connection',
     title: 'New-connection branch',
     risk: 'Pacing matters more than intensity.',
+    reversible: true,
     actions: ['Open one new channel', 'Respond clearly', 'Do not overcommit'],
   },
   {
@@ -119,7 +477,48 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'bond_deepening',
     title: 'Bond-deepening branch',
     risk: 'Assumed alignment can create drift.',
+    reversible: true,
     actions: ['Name expectations', 'Define next step', 'Repeat key understanding'],
+  },
+  {
+    id: 'commitment_preparation_window',
+    patternId: 'relationship_activation',
+    domain: 'relationship',
+    branch: 'commitment_preparation',
+    title: 'Commitment-preparation branch',
+    risk: 'Naming commitment too early without daily fit creates future friction.',
+    reversible: true,
+    actions: ['Check daily rhythm fit', 'Discuss expectation gap', 'Define what commitment means first'],
+  },
+  {
+    id: 'commitment_execution_window',
+    patternId: 'relationship_activation',
+    domain: 'relationship',
+    branch: 'commitment_execution',
+    title: 'Commitment-execution branch',
+    risk: 'Formal commitment without timing and support mapping increases pressure later.',
+    reversible: false,
+    actions: ['Confirm timeline', 'Align family/social expectations', 'Document practical next steps'],
+  },
+  {
+    id: 'cohabitation_window',
+    patternId: 'relationship_activation',
+    domain: 'relationship',
+    branch: 'cohabitation',
+    title: 'Cohabitation branch',
+    risk: 'Living together before rhythm and responsibility are named turns affection into friction.',
+    reversible: true,
+    actions: ['Discuss daily rhythm', 'Assign shared responsibilities', 'Test practical fit before full move-in'],
+  },
+  {
+    id: 'family_acceptance_window',
+    patternId: 'relationship_activation',
+    domain: 'relationship',
+    branch: 'family_acceptance',
+    title: 'Family-acceptance branch',
+    risk: 'If external approval is rushed, the relationship starts reacting to pressure instead of building structure.',
+    reversible: true,
+    actions: ['Align internal stance first', 'Prepare one introduction boundary', 'Clarify who needs to know and when'],
   },
   {
     id: 'reconciliation_window',
@@ -128,6 +527,7 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'reconciliation',
     title: 'Reconciliation branch',
     risk: 'Repair fails if the old trigger is unnamed.',
+    reversible: true,
     actions: ['Name the trigger', 'Set one boundary', 'Choose one repair action'],
   },
   {
@@ -137,6 +537,7 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'boundary_reset',
     title: 'Boundary-reset branch',
     risk: 'Blurred boundaries will recycle the same problem.',
+    reversible: true,
     actions: ['State limits', 'Shorten response loop', 'Keep record of agreements'],
   },
   {
@@ -146,6 +547,7 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'clarify_expectations',
     title: 'Expectation-clarity branch',
     risk: 'Mixed messages increase cost later.',
+    reversible: true,
     actions: ['Ask one explicit question', 'Summarize in writing', 'Delay final commitment'],
   },
   {
@@ -155,7 +557,18 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'distance_tuning',
     title: 'Distance-tuning branch',
     risk: 'Overexposure can intensify conflict.',
+    reversible: true,
     actions: ['Reduce contact frequency', 'Move to calmer channel', 'Review after 24h'],
+  },
+  {
+    id: 'separation_window',
+    patternId: 'relationship_tension',
+    domain: 'relationship',
+    branch: 'separation',
+    title: 'Separation branch',
+    risk: 'Ending in peak emotion can leave avoidable residue and ambiguity.',
+    reversible: false,
+    actions: ['Separate facts from emotion', 'Define closure terms clearly', 'Avoid same-day reversal'],
   },
   {
     id: 'cashflow_swing_window',
@@ -164,6 +577,7 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'cashflow_swing',
     title: 'Cashflow-swing branch',
     risk: 'Short-term optimism can hide downside.',
+    reversible: true,
     actions: ['Update cashflow', 'Cap downside', 'Delay nonessential spend'],
   },
   {
@@ -173,6 +587,7 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'high_risk_offer',
     title: 'High-risk-offer branch',
     risk: 'Promise-heavy offers need hard verification.',
+    reversible: false,
     actions: ['Verify counterparty', 'Check terms', 'Use a waiting window'],
   },
   {
@@ -182,7 +597,58 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'expense_control',
     title: 'Expense-control branch',
     risk: 'Leakage compounds fast under volatility.',
+    reversible: true,
     actions: ['Freeze one category', 'Review subscriptions', 'Set a hard cap'],
+  },
+  {
+    id: 'liquidity_defense_window',
+    patternId: 'wealth_volatility',
+    domain: 'wealth',
+    branch: 'liquidity_defense',
+    title: 'Liquidity-defense branch',
+    risk: 'If liquidity is not protected first, later upside loses practical value.',
+    reversible: true,
+    actions: ['Increase cash buffer', 'Delay large commitments', 'Rank expenses by survivability'],
+  },
+  {
+    id: 'debt_pressure_window',
+    patternId: 'wealth_volatility',
+    domain: 'wealth',
+    branch: 'debt_pressure',
+    title: 'Debt-pressure branch',
+    risk: 'Debt stress hides inside small repeated leakage before it becomes visible.',
+    reversible: true,
+    actions: ['List due dates', 'Refinance if terms improve', 'Stop one compounding leak now'],
+  },
+  {
+    id: 'income_drop_window',
+    patternId: 'wealth_volatility',
+    domain: 'wealth',
+    branch: 'income_drop',
+    title: 'Income-drop branch',
+    risk: 'If decline is minimized emotionally, adjustment happens later and costs more.',
+    reversible: true,
+    actions: ['Rebuild bottom-line estimate', 'Cut one weak revenue dependency', 'Protect baseline liquidity first'],
+  },
+  {
+    id: 'expense_spike_window',
+    patternId: 'wealth_volatility',
+    domain: 'wealth',
+    branch: 'expense_spike',
+    title: 'Expense-spike branch',
+    risk: 'Sudden expense pressure often breaks systems before it breaks numbers.',
+    reversible: true,
+    actions: ['Separate one-off from recurring costs', 'Delay noncritical payments', 'Create a 30-day buffer rule'],
+  },
+  {
+    id: 'debt_restructure_window',
+    patternId: 'wealth_volatility',
+    domain: 'wealth',
+    branch: 'debt_restructure',
+    title: 'Debt-restructure branch',
+    risk: 'Restructuring without full term visibility can improve cashflow short-term but worsen total burden.',
+    reversible: true,
+    actions: ['Map full debt stack', 'Compare total cost not just monthly payment', 'Restructure only after downside check'],
   },
   {
     id: 'income_growth_window',
@@ -191,6 +657,7 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'income_growth',
     title: 'Income-growth branch',
     risk: 'Too many channels can dilute quality.',
+    reversible: true,
     actions: ['Pick one revenue lane', 'Tighten margin', 'Track conversion'],
   },
   {
@@ -200,6 +667,7 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'asset_build',
     title: 'Asset-build branch',
     risk: 'Compounding fails when rules are loose.',
+    reversible: true,
     actions: ['Set contribution rule', 'Automate a transfer', 'Review monthly'],
   },
   {
@@ -209,7 +677,238 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     branch: 'side_income',
     title: 'Side-income branch',
     risk: 'New income without process can drain energy.',
+    reversible: true,
     actions: ['Pilot one offer', 'Limit weekly hours', 'Measure retention'],
+  },
+  {
+    id: 'pricing_power_window',
+    patternId: 'wealth_accumulation',
+    domain: 'wealth',
+    branch: 'pricing_power',
+    title: 'Pricing-power branch',
+    risk: 'Raising value without delivery proof weakens trust.',
+    reversible: true,
+    actions: ['Gather proof first', 'Test one pricing tier', 'Tie price to scope and outcome'],
+  },
+  {
+    id: 'capital_allocation_window',
+    patternId: 'wealth_accumulation',
+    domain: 'wealth',
+    branch: 'capital_allocation',
+    title: 'Capital-allocation branch',
+    risk: 'Allocation without rule structure turns compounding into drift.',
+    reversible: true,
+    actions: ['Set allocation bands', 'Separate long-term and tactical money', 'Review by rule not mood'],
+  },
+  {
+    id: 'asset_exit_window',
+    patternId: 'wealth_accumulation',
+    domain: 'wealth',
+    branch: 'asset_exit',
+    title: 'Asset-exit branch',
+    risk: 'Exiting a position without rule clarity turns strategy into reaction.',
+    reversible: true,
+    actions: ['Define exit thesis first', 'Set one trigger and one invalidation', 'Separate liquidity need from fear response'],
+  },
+  {
+    id: 'schedule_reduction_window',
+    patternId: 'burnout_risk',
+    domain: 'health',
+    branch: 'schedule_reduction',
+    title: 'Schedule-reduction branch',
+    risk: 'If load is not cut early, judgment quality usually falls before output does.',
+    reversible: true,
+    actions: ['Cut one draining block', 'Protect sleep window', 'Reduce stacked obligations'],
+  },
+  {
+    id: 'recovery_reset_window',
+    patternId: 'burnout_risk',
+    domain: 'health',
+    branch: 'recovery_reset',
+    title: 'Recovery-reset branch',
+    risk: 'Ignoring early warning signs can turn temporary strain into a longer reset.',
+    reversible: true,
+    actions: ['Reset sleep and meals', 'Restore hydration baseline', 'Pause nonessential intensity'],
+  },
+  {
+    id: 'load_rebalance_window',
+    patternId: 'burnout_risk',
+    domain: 'health',
+    branch: 'load_rebalance',
+    title: 'Load-rebalance branch',
+    risk: 'Carrying the same load in a weaker phase increases hidden recovery debt.',
+    reversible: true,
+    actions: ['Re-sequence the week', 'Move one hard task later', 'Insert a fixed recovery block'],
+  },
+  {
+    id: 'routine_lock_window',
+    patternId: 'healing_routine_stabilization',
+    domain: 'health',
+    branch: 'routine_lock',
+    title: 'Routine-lock branch',
+    risk: 'Small inconsistency can break momentum more than lack of motivation.',
+    reversible: true,
+    actions: ['Lock wake/sleep time', 'Repeat one stable routine', 'Track adherence for 7 days'],
+  },
+  {
+    id: 'recovery_window',
+    patternId: 'healing_routine_stabilization',
+    domain: 'health',
+    branch: 'recovery',
+    title: 'Recovery branch',
+    risk: 'Trying to recover through intensity often backfires in a low-structure phase.',
+    reversible: true,
+    actions: ['Choose low-intensity recovery', 'Keep meals regular', 'Protect one quiet block daily'],
+  },
+  {
+    id: 'habit_rebuild_window',
+    patternId: 'healing_routine_stabilization',
+    domain: 'health',
+    branch: 'habit_rebuild',
+    title: 'Habit-rebuild branch',
+    risk: 'Too many simultaneous fixes reduce compliance.',
+    reversible: true,
+    actions: ['Rebuild one habit only', 'Use visible cues', 'Review at the end of the week'],
+  },
+  {
+    id: 'early_warning_window',
+    patternId: 'healing_routine_stabilization',
+    domain: 'health',
+    branch: 'early_warning',
+    title: 'Early-warning branch',
+    risk: 'Missing early signs turns a manageable dip into a longer correction.',
+    reversible: true,
+    actions: ['Track one warning sign', 'Reduce one stimulant', 'Protect a quiet recovery hour'],
+  },
+  {
+    id: 'burnout_trigger_window',
+    patternId: 'burnout_risk',
+    domain: 'health',
+    branch: 'burnout_trigger',
+    title: 'Burnout-trigger branch',
+    risk: 'Ignoring the first pattern of depletion usually converts pressure into longer recovery debt.',
+    reversible: true,
+    actions: ['Name the trigger source', 'Cut one hidden drain', 'Move one deadline if possible'],
+  },
+  {
+    id: 'sleep_disruption_window',
+    patternId: 'burnout_risk',
+    domain: 'health',
+    branch: 'sleep_disruption',
+    title: 'Sleep-disruption branch',
+    risk: 'When sleep rhythm breaks first, judgment quality drops before motivation does.',
+    reversible: true,
+    actions: ['Stabilize sleep window first', 'Reduce late stimulation', 'Protect a non-negotiable wind-down hour'],
+  },
+  {
+    id: 'inflammation_window',
+    patternId: 'burnout_risk',
+    domain: 'health',
+    branch: 'inflammation',
+    title: 'Inflammation branch',
+    risk: 'Pushing through irritation or heat signals often turns a short warning into a longer slowdown.',
+    reversible: true,
+    actions: ['Lower intensity immediately', 'Track heat or irritation signs', 'Simplify food and routine for 72 hours'],
+  },
+  {
+    id: 'recovery_compliance_window',
+    patternId: 'healing_routine_stabilization',
+    domain: 'health',
+    branch: 'recovery_compliance',
+    title: 'Recovery-compliance branch',
+    risk: 'Knowing the right recovery plan matters less than actually repeating it long enough.',
+    reversible: true,
+    actions: ['Pick one recovery metric', 'Repeat one protocol daily', 'Review compliance at the end of the week'],
+  },
+  {
+    id: 'travel_window',
+    patternId: 'travel_relocation_activation',
+    domain: 'move',
+    branch: 'travel',
+    title: 'Travel branch',
+    risk: 'Unstructured movement increases fatigue and detail errors.',
+    reversible: true,
+    actions: ['Plan route and buffer', 'Travel light', 'Separate movement from key decisions'],
+  },
+  {
+    id: 'relocation_window',
+    patternId: 'travel_relocation_activation',
+    domain: 'move',
+    branch: 'relocation',
+    title: 'Relocation branch',
+    risk: 'Relocation without cost and support mapping creates avoidable drag.',
+    reversible: false,
+    actions: ['Map costs first', 'Check support system', 'Stage the move in phases'],
+  },
+  {
+    id: 'foreign_link_window',
+    patternId: 'travel_relocation_activation',
+    domain: 'move',
+    branch: 'foreign_link',
+    title: 'Foreign-link branch',
+    risk: 'Cross-border upside can be real, but verification gaps grow quickly.',
+    reversible: true,
+    actions: ['Verify external channel', 'Document requirements', 'Run a small test before expansion'],
+  },
+  {
+    id: 'route_recheck_window',
+    patternId: 'travel_relocation_activation',
+    domain: 'move',
+    branch: 'route_recheck',
+    title: 'Route-recheck branch',
+    risk: 'Moving too fast can produce the wrong move, not just a costly one.',
+    reversible: true,
+    actions: ['Re-check destination fit', 'Delay final booking', 'Compare one alternative route'],
+  },
+  {
+    id: 'housing_search_window',
+    patternId: 'travel_relocation_activation',
+    domain: 'move',
+    branch: 'housing_search',
+    title: 'Housing-search branch',
+    risk: 'Picking convenience over fit can create long-term drag.',
+    reversible: true,
+    actions: ['Rank fit factors first', 'Visit twice if possible', 'Compare living cost against recovery time'],
+  },
+  {
+    id: 'lease_decision_window',
+    patternId: 'travel_relocation_activation',
+    domain: 'move',
+    branch: 'lease_decision',
+    title: 'Lease-decision branch',
+    risk: 'A lease chosen under urgency can lock in the wrong base, not just the wrong price.',
+    reversible: false,
+    actions: ['Check contract exits first', 'Compare commute and recovery cost together', 'Decide only after one overnight review'],
+  },
+  {
+    id: 'cross_border_move_window',
+    patternId: 'travel_relocation_activation',
+    domain: 'move',
+    branch: 'cross_border_move',
+    title: 'Cross-border-move branch',
+    risk: 'Cross-border moves fail more often from paperwork and support gaps than from desire alone.',
+    reversible: false,
+    actions: ['Map visa or legal requirements', 'Verify support system on arrival', 'Stage the move in two steps if possible'],
+  },
+  {
+    id: 'commute_restructure_window',
+    patternId: 'movement_guardrail_window',
+    domain: 'move',
+    branch: 'commute_restructure',
+    title: 'Commute-restructure branch',
+    risk: 'A bad commute quietly taxes health and work quality before the cost feels obvious.',
+    reversible: true,
+    actions: ['Measure weekly commute load', 'Reduce one unnecessary trip', 'Compare time cost against rent or role benefit'],
+  },
+  {
+    id: 'basecamp_reset_window',
+    patternId: 'movement_guardrail_window',
+    domain: 'move',
+    branch: 'basecamp_reset',
+    title: 'Basecamp-reset branch',
+    risk: 'If your base is misaligned, every other expansion becomes more expensive than it should be.',
+    reversible: true,
+    actions: ['Define what the base must support', 'Drop one location mismatch', 'Reset around recovery, not just convenience'],
   },
 ]
 
@@ -223,6 +922,7 @@ function buildFallbackDefinitions(pattern: PatternResult): ScenarioDefinition[] 
       branch: 'main',
       title: `${pattern.label} main branch`,
       risk: pattern.risk,
+      reversible: false,
       actions: ['Pick one focus', 'Write one verification rule', 'Review after one cycle'],
     },
     {
@@ -232,6 +932,7 @@ function buildFallbackDefinitions(pattern: PatternResult): ScenarioDefinition[] 
       branch: 'alt',
       title: `${pattern.label} alternate branch`,
       risk: `Alternate path: ${pattern.risk}`,
+      reversible: true,
       actions: ['Reduce scope', 'Keep optionality', 'Collect one more signal'],
     },
     {
@@ -241,6 +942,7 @@ function buildFallbackDefinitions(pattern: PatternResult): ScenarioDefinition[] 
       branch: 'defensive',
       title: `${pattern.label} defensive branch`,
       risk: 'Use a slower sequence if evidence weakens.',
+      reversible: true,
       actions: ['Pause final commitment', 'Draft before commit', 'Re-check constraints'],
     },
   ]
@@ -248,6 +950,12 @@ function buildFallbackDefinitions(pattern: PatternResult): ScenarioDefinition[] 
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
+}
+
+function compressScenarioProbability(raw: number): number {
+  if (raw <= 82) return raw
+  if (raw <= 90) return 82 + (raw - 82) * 0.72
+  return 87.76 + (raw - 90) * 0.16
 }
 
 function clamp01(value: number): number {
@@ -310,11 +1018,171 @@ function resolveWindow(
   return '6-12m'
 }
 
+function resolveTimingRelevance(
+  input: MatrixCalculationInputNormalized,
+  window: ScenarioWindow,
+  astroTimingIndex: ResolvedAstroTimingIndex | undefined
+): number {
+  const windowBase: Record<ScenarioWindow, number> = {
+    now: 0.9,
+    '1-3m': 0.76,
+    '3-6m': 0.62,
+    '6-12m': 0.48,
+  }
+
+  const activeTimingBoost =
+    (input.currentDaeunElement ? 0.05 : 0) +
+    (input.currentSaeunElement ? 0.04 : 0) +
+    (input.currentWolunElement ? 0.03 : 0) +
+    (input.currentIljinElement || input.currentIljinDate ? 0.03 : 0) +
+    (input.activeTransits.length > 0 ? 0.05 : 0)
+
+  const astroBoost = astroTimingIndex
+    ? astroTimingIndex.decade * 0.03 +
+      astroTimingIndex.annual * 0.04 +
+      astroTimingIndex.monthly * 0.05 +
+      astroTimingIndex.daily * 0.04
+    : 0
+
+  return Number(clamp(windowBase[window] + activeTimingBoost + astroBoost, 0.2, 0.99).toFixed(2))
+}
+
+function windowLabel(window: ScenarioWindow, lang: 'ko' | 'en'): string {
+  if (lang === 'ko') {
+    if (window === 'now') return '지금'
+    if (window === '1-3m') return '1~3개월'
+    if (window === '3-6m') return '3~6개월'
+    return '6~12개월'
+  }
+  return window
+}
+
+function buildWhyNow(input: {
+  lang: 'ko' | 'en'
+  pattern: PatternResult
+  window: ScenarioWindow
+  timingRelevance: number
+  astroTimingIndex: ResolvedAstroTimingIndex | undefined
+  normalizedInput: MatrixCalculationInputNormalized
+}): string {
+  const timingDrivers: string[] = []
+  if (input.normalizedInput.currentDaeunElement) timingDrivers.push(input.lang === 'ko' ? '대운' : 'daeun')
+  if (input.normalizedInput.currentSaeunElement) timingDrivers.push(input.lang === 'ko' ? '세운' : 'seun')
+  if (input.normalizedInput.currentWolunElement) timingDrivers.push(input.lang === 'ko' ? '월운' : 'wolun')
+  if (input.normalizedInput.currentIljinElement || input.normalizedInput.currentIljinDate) {
+    timingDrivers.push(input.lang === 'ko' ? '일운' : 'daily timing')
+  }
+  if (input.normalizedInput.activeTransits.length > 0) {
+    timingDrivers.push(input.lang === 'ko' ? '트랜짓' : 'active transits')
+  }
+  if (input.astroTimingIndex && input.astroTimingIndex.confidence >= 0.55) {
+    timingDrivers.push(input.lang === 'ko' ? '점성 타이밍 지수' : 'astro timing index')
+  }
+
+  if (input.lang === 'ko') {
+    const driverText = timingDrivers.length > 0 ? timingDrivers.join(', ') : '핵심 교차 신호'
+    return `${windowLabel(input.window, 'ko')} 구간에 ${driverText}가 겹치며 ${input.pattern.label} 패턴이 활성화됩니다. 타이밍 적합도는 ${Math.round(input.timingRelevance * 100)}% 수준입니다.`
+  }
+
+  const driverText = timingDrivers.length > 0 ? timingDrivers.join(', ') : 'core cross-signals'
+  return `${windowLabel(input.window, 'en')} is favored because ${driverText} align around the ${input.pattern.label} pattern. Timing relevance is ${Math.round(input.timingRelevance * 100)}%.`
+}
+
+function buildWhyNotYet(input: {
+  lang: 'ko' | 'en'
+  pattern: PatternResult
+  timingRelevance: number
+}): string {
+  const blockers = (input.pattern.blockedBy || []).slice(0, 3)
+  if (input.lang === 'ko') {
+    const blockerText = blockers.length > 0 ? blockers.join(', ') : '검증 조건'
+    return `${blockerText}이 아직 풀리지 않았고, 현재 ${input.pattern.resolvedMode || 'verify'} 모드라 바로 확정보다 단계적 접근이 맞습니다. 타이밍 적합도는 ${Math.round(input.timingRelevance * 100)}% 수준입니다.`
+  }
+  const blockerText = blockers.length > 0 ? blockers.join(', ') : 'verification conditions'
+  return `${blockerText} are still active, and the domain is currently in ${input.pattern.resolvedMode || 'verify'} mode. Stage the move before committing; timing relevance is ${Math.round(input.timingRelevance * 100)}%.`
+}
+
+function buildManifestationHints(input: {
+  lang: 'ko' | 'en'
+  pattern: PatternResult
+  definition: ScenarioDefinition
+}): string[] {
+  const hints: string[] = []
+  if (input.pattern.domainState === 'opening') {
+    hints.push(input.lang === 'ko' ? '기회는 열리지만 아직 조건 정리가 먼저입니다.' : 'The window is opening, but conditions still need shaping.')
+  }
+  if (input.pattern.domainState === 'consolidation' || input.pattern.domainState === 'residue') {
+    hints.push(input.lang === 'ko' ? '확장보다 정리와 보존 쪽으로 체감될 수 있습니다.' : 'This may feel more like consolidation than expansion.')
+  }
+  if ((input.pattern.blockedBy || []).includes('commit_now')) {
+    hints.push(input.lang === 'ko' ? '즉시 확정보다 초안·탐색·검증이 더 맞습니다.' : 'Drafting and verification fit better than immediate commitment.')
+  }
+  if (input.definition.reversible) {
+    hints.push(input.lang === 'ko' ? '되돌릴 수 있는 작은 실행부터 시작하는 편이 유리합니다.' : 'Start with a reversible step first.')
+  }
+  if (hints.length === 0) {
+    hints.push(
+      input.lang === 'ko'
+        ? '핵심 조건을 먼저 정리하면 실제 체감이 더 분명하게 나타납니다.'
+        : 'The signal becomes clearer once the main conditions are structured first.'
+    )
+  }
+  return hints.slice(0, 3)
+}
+
+function buildEntryConditions(input: {
+  lang: 'ko' | 'en'
+  pattern: PatternResult
+  definition: ScenarioDefinition
+  probability: number
+  confidence: number
+  timingRelevance: number
+}): string[] {
+  if (input.lang === 'ko') {
+    return [
+      `${input.pattern.label} 패턴 근거가 유지될 것`,
+      `시나리오 확률 ${input.probability}%와 신뢰도 ${Math.round(input.confidence * 100)}%가 유지될 것`,
+      `타이밍 적합도 ${Math.round(input.timingRelevance * 100)}% 이상에서 ${input.definition.actions[0]}를 바로 실행할 수 있을 것`,
+    ]
+  }
+
+  return [
+    `${input.pattern.label} evidence must stay active`,
+    `Scenario probability ${input.probability}% and confidence ${Math.round(input.confidence * 100)}% should hold`,
+    `Timing relevance ${Math.round(input.timingRelevance * 100)}% should support immediate execution of the first action`,
+  ]
+}
+
+function buildAbortConditions(input: {
+  lang: 'ko' | 'en'
+  definition: ScenarioDefinition
+  pattern: PatternResult
+  probability: number
+  timingRelevance: number
+}): string[] {
+  if (input.lang === 'ko') {
+    return [
+      `핵심 조건이나 역할 범위가 문서로 정리되지 않으면 중단`,
+      `시나리오 확률이 ${Math.max(35, input.probability - 22)}% 아래로 떨어지면 중단`,
+      `${input.pattern.risk}`,
+    ]
+  }
+
+  return [
+    'Abort if scope, terms, or owner map cannot be written down clearly',
+    `Abort if scenario probability drops below ${Math.max(35, input.probability - 22)}%`,
+    input.pattern.risk,
+  ]
+}
+
 export function buildScenarioEngine(
   patterns: PatternResult[],
   strategyEngine: StrategyEngineResult,
-  normalizedInput: MatrixCalculationInputNormalized
+  normalizedInput: MatrixCalculationInputNormalized,
+  lang: 'ko' | 'en',
+  resolvedContext?: ScenarioResolvedContext
 ): ScenarioResult[] {
+  const focusDomain = strategyEngine.domainStrategies[0]?.domain || null
   const astroTimingIndex = resolveAstroTimingIndex(normalizedInput)
   const astroTimingWeight = astroTimingIndex
     ? (astroTimingIndex.decade * 0.05 +
@@ -352,29 +1220,171 @@ export function buildScenarioEngine(
         ((domainStrategy?.attackPercent || strategyEngine.attackPercent) / 100) * 0.35 + 0.65
       const sensitivity = DOMAIN_SENSITIVITY[leadDomain] || 1
       return resolvedDefinitions.map((definition) => {
-        const probability = clamp(
-          Math.round(pattern.score * timingWeight * executionWeight * sensitivity),
-          1,
-          95
+        const activationDomain = resolvedContext?.activation?.domains.find(
+          (item) => item.domain === definition.domain
         )
+        const ruleDomain = resolvedContext?.rules?.domains.find((item) => item.domain === definition.domain)
+        const stateDomain = resolvedContext?.states?.domains.find((item) => item.domain === definition.domain)
+        const resolvedMode = ruleDomain?.resolvedMode || pattern.resolvedMode
+        const resolvedState = stateDomain?.state || pattern.domainState
+        const activationWeight =
+          !activationDomain
+            ? 1
+            : activationDomain.activationScore < 0.8
+              ? 0.88
+              : activationDomain.activationScore < 1.6
+                ? 0.94
+                : activationDomain.activationScore < 2.4
+                  ? 1
+                  : activationDomain.activationScore < 3.4
+                    ? 1.03
+                    : activationDomain.activationScore < 4.6
+                      ? 1.06
+                      : 1.08
+        const contradictionWeight = ruleDomain?.contradictionPenalty
+          ? clamp(1 - Math.min(0.14, ruleDomain.contradictionPenalty * 0.35), 0.84, 1)
+          : 1
+        const modulationWeight =
+          (ruleDomain?.amplify.length ? 1.02 : 1) *
+          (ruleDomain?.suppress.length ? 0.98 : 1) *
+          (ruleDomain?.delay.length ? 0.98 : 1) *
+          (ruleDomain?.gate.length && !definition.reversible ? 0.94 : 1) *
+          contradictionWeight
+        const branchWeight = resolveBranchSpecificWeight({
+          branch: definition.branch,
+          domain: definition.domain,
+          pattern,
+          activationAxes: activationDomain?.dominantAxes || [],
+          rule: ruleDomain,
+          state: stateDomain,
+        })
+        const timingPressureWeight = resolveTimingPressureWeight({
+          domain: definition.domain,
+          branch: definition.branch,
+          rule: ruleDomain,
+          state: stateDomain,
+        })
+        const modePenalty =
+          resolvedMode === 'prepare'
+            ? 0.9
+            : resolvedMode === 'verify'
+              ? 0.96
+              : 1
+        const stateWeight =
+          resolvedState === 'peak'
+            ? 1.06
+            : resolvedState === 'active'
+              ? 1.03
+              : resolvedState === 'opening'
+                ? 1
+                : resolvedState === 'consolidation'
+                  ? 0.94
+                  : resolvedState === 'residue'
+                    ? 0.88
+                    : 0.92
+        const agreementWeight =
+          typeof pattern.crossAgreement === 'number'
+            ? pattern.crossAgreement >= 0.65
+              ? 1.04
+              : pattern.crossAgreement < 0.35
+                ? 0.92
+                : 1
+            : 1
+        const reversibilityWeight = definition.reversible ? 1.03 : 0.97
+        const focusDomainWeight =
+          definition.domain === focusDomain
+            ? definition.domain === 'move'
+              ? 1.16
+              : 1.08
+            : 1
+        const rawProbability =
+          pattern.score *
+          timingWeight *
+          executionWeight *
+          sensitivity *
+          activationWeight *
+          modePenalty *
+          stateWeight *
+          agreementWeight *
+          modulationWeight *
+          branchWeight *
+          timingPressureWeight *
+          reversibilityWeight *
+          focusDomainWeight
+        const probability = clamp(round1(compressScenarioProbability(rawProbability)), 1, 95)
+        const branchConfidenceBonus = clamp((branchWeight - 1) * 0.45, -0.05, 0.05)
         const confidence = clamp(
-          Number((pattern.confidence * 0.7 + (probability / 100) * 0.3).toFixed(2)),
+          Number(
+            (
+              pattern.confidence * 0.68 +
+              (probability / 100) * 0.28 +
+              branchConfidenceBonus
+            ).toFixed(2)
+          ),
           0.1,
           0.98
         )
+        const window = resolveWindow(normalizedInput, pattern, astroTimingIndex)
+        const timingRelevance = resolveTimingRelevance(normalizedInput, window, astroTimingIndex)
+        const evidenceIds = [...new Set([pattern.id, ...pattern.matchedSignalIds.slice(0, 6)])]
         return {
           id: definition.id,
           patternId: pattern.id,
           domain: definition.domain,
           branch: definition.branch,
           title: definition.title,
+          rawScore: Number(rawProbability.toFixed(4)),
           probability,
           confidence,
-          window: resolveWindow(normalizedInput, pattern, astroTimingIndex),
+          window,
+          timingRelevance,
           risk: definition.risk,
+          reversible: definition.reversible,
           actions: definition.actions,
+          whyNow: buildWhyNow({
+            lang,
+            pattern,
+            window,
+            timingRelevance,
+            astroTimingIndex,
+            normalizedInput,
+          }),
+          whyNotYet: buildWhyNotYet({
+            lang,
+            pattern,
+            timingRelevance,
+          }),
+          entryConditions: buildEntryConditions({
+            lang,
+            pattern,
+            definition,
+            probability,
+            confidence,
+            timingRelevance,
+          }),
+          abortConditions: buildAbortConditions({
+            lang,
+            definition,
+            pattern,
+            probability,
+            timingRelevance,
+          }),
+          manifestationHints: buildManifestationHints({
+            lang,
+            pattern,
+            definition,
+          }),
+          supportingSignalIds: pattern.matchedSignalIds.slice(0, 6),
+          evidenceIds,
         } satisfies ScenarioResult
       })
     })
-    .sort((a, b) => b.probability - a.probability || b.confidence - a.confidence)
+    .sort(
+      (a, b) =>
+        (b.domain === focusDomain ? 1 : 0) - (a.domain === focusDomain ? 1 : 0) ||
+        (b.rawScore || 0) - (a.rawScore || 0) ||
+        b.probability - a.probability ||
+        b.timingRelevance - a.timingRelevance ||
+        b.confidence - a.confidence
+    )
 }

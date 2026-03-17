@@ -5,6 +5,7 @@ import type { AIUserPlan } from './reportTypes'
 import type { DeterministicSectionBlock } from './deterministicCore'
 
 type ReportLang = 'ko' | 'en'
+type RewriteValidationMode = 'default' | 'selective_polish'
 
 const HIGH_RISK_WEEKDAY_TOKENS = [
   '월요일',
@@ -390,10 +391,20 @@ export function enforceEvidenceBindingFallback(
         .replace(/\s{2,}/g, ' ')
         .trim()
     }
-    // Avoid injecting synthetic grounding sentences that degrade tone.
-    // Missing-binding is handled by rewrite prompt constraints and deterministic draft content.
-    void evidenceRefs
-    void lang
+    if (violation.missingBinding) {
+      const refs = (evidenceRefs[violation.path] || []).slice(0, 2)
+      const hint = refs
+        .map((ref) => ref.keyword || ref.rowKey || ref.colKey)
+        .filter((value): value is string => Boolean(value))
+        .join(', ')
+      if (hint) {
+        const groundingLine =
+          lang === 'ko'
+            ? `핵심 근거는 ${hint}입니다.`
+            : `Key grounding comes from ${hint}.`
+        cleaned = `${cleaned} ${groundingLine}`.replace(/\s{2,}/g, ' ').trim()
+      }
+    }
     setPathText(next, violation.path, cleaned)
   }
   return next
@@ -466,7 +477,8 @@ function validateRewriteOnlyOutput(
   rewrittenSections: Record<string, unknown>,
   sectionPaths: string[],
   evidenceRefs: SectionEvidenceRefs,
-  mustKeepTokensByPath: Map<string, string[]>
+  mustKeepTokensByPath: Map<string, string[]>,
+  mode: RewriteValidationMode = 'default'
 ): { pass: boolean; reasons: string[] } {
   const reasons: string[] = []
   const allowedTokens = buildAllowedRewriteTokenSet(draftSections, sectionPaths, evidenceRefs)
@@ -501,7 +513,9 @@ function validateRewriteOnlyOutput(
     ).length
     const overlapRatio = overlapCount / Math.max(1, rewrittenTokens.length)
     const noveltyRatio = newTokens.length / Math.max(1, rewrittenTokens.length)
-    if (rewrittenTokens.length >= 20 && overlapRatio < 0.18 && noveltyRatio > 0.55) {
+    const minOverlapRatio = mode === 'selective_polish' ? 0.1 : 0.18
+    const maxNoveltyRatio = mode === 'selective_polish' ? 0.72 : 0.55
+    if (rewrittenTokens.length >= 20 && overlapRatio < minOverlapRatio && noveltyRatio > maxNoveltyRatio) {
       reasons.push(
         `rewrite-drift:${path}:overlap=${overlapRatio.toFixed(2)}:novelty=${noveltyRatio.toFixed(2)}`
       )
@@ -513,7 +527,14 @@ function validateRewriteOnlyOutput(
       const missing = mustKeepTokens.filter(
         (token) => !loweredRewritten.includes(token.toLowerCase())
       )
-      if (missing.length > 0) {
+      if (mode === 'selective_polish') {
+        const retainedCount = mustKeepTokens.length - missing.length
+        const retainedRatio = retainedCount / Math.max(1, mustKeepTokens.length)
+        const minRetainedCount = Math.min(2, mustKeepTokens.length)
+        if (retainedCount < minRetainedCount && retainedRatio < 0.4) {
+          reasons.push(`must-keep-missing:${path}:${missing.slice(0, 6).join(',')}`)
+        }
+      } else if (missing.length > 0) {
         reasons.push(`must-keep-missing:${path}:${missing.slice(0, 6).join(',')}`)
       }
     }
@@ -667,6 +688,7 @@ export async function rewriteSectionsWithFallback<T extends object>(args: {
   sectionPaths: string[]
   requiredPaths: string[]
   minCharsPerSection: number
+  validationMode?: RewriteValidationMode
 }): Promise<{ sections: T; modelUsed: string; tokensUsed: number }> {
   const {
     lang,
@@ -677,6 +699,7 @@ export async function rewriteSectionsWithFallback<T extends object>(args: {
     sectionPaths,
     requiredPaths,
     minCharsPerSection,
+    validationMode = 'default',
   } = args
   const mustKeepTokensByPath = buildMustKeepTokensByPath({
     draftSections: draftSections as unknown as Record<string, unknown>,
@@ -709,7 +732,8 @@ export async function rewriteSectionsWithFallback<T extends object>(args: {
       candidateSections,
       sectionPaths,
       evidenceRefs,
-      mustKeepTokensByPath
+      mustKeepTokensByPath,
+      validationMode
     )
     if (!check.pass) {
       const evidenceCheck = validateEvidenceBinding(candidateSections, sectionPaths, evidenceRefs)
@@ -725,7 +749,8 @@ export async function rewriteSectionsWithFallback<T extends object>(args: {
           repaired,
           sectionPaths,
           evidenceRefs,
-          mustKeepTokensByPath
+          mustKeepTokensByPath,
+          validationMode
         )
         if (repairedCheck.pass) {
           const floored = enforceDraftLengthFloor(

@@ -17,6 +17,7 @@ import {
   throwIfSwissEphError,
   getSwissEphFlags,
   extractLongitudeSpeed,
+  extractSwissLongitude,
 } from './shared'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 
@@ -89,7 +90,7 @@ export async function calculateSecondaryProgressions(
       throw new Error(`Progression calc error for ${name}: ${res.error}`)
     }
 
-    const longitude = res.longitude
+    const longitude = extractSwissLongitude(res as unknown as Record<string, unknown>)
     const info = formatLongitude(longitude)
     const house = inferHouseOf(longitude, housesRes.house)
     const speed = extractLongitudeSpeed(res as unknown as Record<string, unknown>)
@@ -209,7 +210,10 @@ export async function calculateSolarArcDirections(
   }
 
   // Solar Arc = 진행된 태양 - 출생 태양
-  const solarArc = normalize360(progressedSunRes.longitude - natalSunRes.longitude)
+  const solarArc = normalize360(
+    extractSwissLongitude(progressedSunRes as unknown as Record<string, unknown>) -
+      extractSwissLongitude(natalSunRes as unknown as Record<string, unknown>)
+  )
 
   // 출생 하우스 (출생지 기준)
   const housesRes = calcHouses(
@@ -227,7 +231,9 @@ export async function calculateSolarArcDirections(
     }
 
     // Solar Arc Direction: 출생 위치 + Solar Arc
-    const directedLon = normalize360(natalRes.longitude + solarArc)
+    const directedLon = normalize360(
+      extractSwissLongitude(natalRes as unknown as Record<string, unknown>) + solarArc
+    )
     const info = formatLongitude(directedLon)
     const house = inferHouseOf(directedLon, housesRes.house)
     const speed = extractLongitudeSpeed(natalRes as unknown as Record<string, unknown>)

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Calendar API helper functions
  * Extracted from route.ts for modularity
  */
@@ -22,7 +22,7 @@ import {
   DISPLAY_SCORE_LABEL_THRESHOLDS,
   EVIDENCE_CONFIDENCE_THRESHOLDS,
 } from '@/lib/destiny-map/calendar/scoring-config'
-import { normalizeMojibakePayload } from '@/lib/text/mojibake'
+import { normalizeMojibakePayload, repairMojibakeText } from '@/lib/text/mojibake'
 
 type MatrixSignal = {
   level: 'high' | 'medium' | 'caution'
@@ -194,7 +194,7 @@ function isLowCoherenceSignal(
 
 function isDefensivePhaseLabel(value: string | undefined): boolean {
   if (!value) return false
-  return /(defensive\s*reset|stabilization|방어\/재정렬|안정화)/i.test(value)
+  return /(defensive\s*reset|stabilization|ë°©ì–´\/ìž¬ì •ë ¬|ì•ˆì •í™”)/i.test(value)
 }
 
 function sanitizeMatrixNarrativeLine(value: string | undefined): string {
@@ -219,6 +219,49 @@ function sanitizeMatrixNarrativeLine(value: string | undefined): string {
   if (!cleaned) return ''
   if (MATRIX_TECHNICAL_PAYLOAD_PATTERN.test(original) && cleaned.length < 18) return ''
   return cleaned
+}
+
+function sanitizeCalendarCopy(value: string | undefined, lang: 'ko' | 'en'): string {
+  const repaired = repairMojibakeText(String(value || '')).trim()
+  if (!repaired) return ''
+
+  if (lang === 'ko') {
+    return repaired
+      .replace(/최고의 날|대길일/g, '강한 실행 구간')
+      .replace(/좋은 날/g, '활용 흐름이 좋은 구간')
+      .replace(/보통 날/g, '운영 중심 구간')
+      .replace(/안좋은 날|나쁜 날/g, '검토 우선 구간')
+      .replace(/최악의 날/g, '방어 우선 구간')
+      .replace(/완벽한 타이밍/g, '검토 후 진행하기 좋은 타이밍')
+      .replace(/딱 좋아요/g, '잘 맞습니다')
+      .replace(/오늘 해도 괜찮아요/g, '오늘은 검토 후 진행할 수 있습니다')
+      .replace(/오늘 시작하면 일이 잘 풀려요/g, '오늘 시작한 일은 흐름을 타기 쉽습니다')
+      .replace(/연애운 UP!/g, '관계 에너지가 올라옵니다.')
+      .replace(/복권/g, '부수 수입 탐색')
+      .replace(/프로포즈/g, '중요한 관계 결정')
+      .replace(/계약서 사인/g, '계약 검토')
+      .replace(/사인,/g, '검토,')
+      .replace(
+        /데이트, 쇼핑, 예술 활동에 완벽해요/g,
+        '데이트, 쇼핑, 예술 활동은 무리 없이 즐기기 좋습니다'
+      )
+      .replace(/오랫동안 미뤄왔던 일을 오늘 하세요/g, '미뤄온 일은 우선순위를 정해 진행해 보세요')
+  }
+
+  return repaired
+    .replace(/\bthe best day\b/gi, 'a strong execution window')
+    .replace(/\bbest day\b/gi, 'strong execution window')
+    .replace(/\bgood day\b/gi, 'favorable window')
+    .replace(/\bnormal day\b/gi, 'operate-first window')
+    .replace(/\bbad day\b/gi, 'review-first window')
+    .replace(/\bworst day\b/gi, 'protect-first window')
+    .replace(/\bperfect timing\b/gi, 'a good time to review and proceed')
+    .replace(/\bperfect for\b/gi, 'well suited for')
+    .replace(/\bthings started today go well\b/gi, 'things started today can gain traction')
+    .replace(/\bromance luck up!?/gi, 'relationship energy rises')
+    .replace(/\blottery\b/gi, 'side-income exploration')
+    .replace(/\bproposal\b/gi, 'important relationship decision')
+    .replace(/\bsigning contracts\b/gi, 'reviewing contracts before commitment')
 }
 
 function shouldGateRecommendationSet(input: RecommendationGateInput): boolean {
@@ -561,7 +604,7 @@ export function parseBirthDate(birthDateParam: string): Date | null {
   return date
 }
 
-// 한줄 요약 생성
+// í•œì¤„ ìš”ì•½ ìƒì„±
 export function generateSummary(
   grade: ImportanceGrade,
   categories: EventCategory[],
@@ -602,36 +645,36 @@ export function generateSummary(
       base = KO_MESSAGES.GRADE_2_LOW
     } else if (grade === 3) {
       const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang)
-      base = reason ? `⚠️ ${reason}` : KO_MESSAGES.GRADE_3[cat] || KO_MESSAGES.GRADE_3.general
+      base = reason ? `âš ï¸ ${reason}` : KO_MESSAGES.GRADE_3[cat] || KO_MESSAGES.GRADE_3.general
     } else {
       const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang)
-      base = reason ? `🚨 ${reason}` : KO_MESSAGES.GRADE_4[cat] || KO_MESSAGES.GRADE_4.general
+      base = reason ? `ðŸš¨ ${reason}` : KO_MESSAGES.GRADE_4[cat] || KO_MESSAGES.GRADE_4.general
     }
 
     const tails: string[] = []
     if (crossVerified && isAlignedAcrossSystems(crossAgreementPercent)) {
-      tails.push('사주·점성 시그널이 같은 방향으로 맞물립니다.')
+      tails.push('ì‚¬ì£¼Â·ì ì„± ì‹œê·¸ë„ì´ ê°™ì€ ë°©í–¥ìœ¼ë¡œ ë§žë¬¼ë¦½ë‹ˆë‹¤.')
     } else if (crossVerified) {
-      tails.push('신호가 엇갈립니다. 확정 전 재확인이 유리합니다.')
+      tails.push('ì‹ í˜¸ê°€ ì—‡ê°ˆë¦½ë‹ˆë‹¤. í™•ì • ì „ ìž¬í™•ì¸ì´ ìœ ë¦¬í•©ë‹ˆë‹¤.')
     }
     if (grade <= 2 && hasPositiveSignal) {
-      tails.push('좋은 흐름이 겹치니 핵심 1~2개 목표에 집중하세요.')
+      tails.push('ì¢‹ì€ íë¦„ì´ ê²¹ì¹˜ë‹ˆ í•µì‹¬ 1~2ê°œ ëª©í‘œì— ì§‘ì¤‘í•˜ì„¸ìš”.')
     }
     if (grade >= 3 && hasCautionSignal) {
-      tails.push('속도보다 검토를 우선하고, 큰 결정보다 리스크 관리가 유리합니다.')
+      tails.push('ì†ë„ë³´ë‹¤ ê²€í† ë¥¼ ìš°ì„ í•˜ê³ , í° ê²°ì •ë³´ë‹¤ ë¦¬ìŠ¤í¬ ê´€ë¦¬ê°€ ìœ ë¦¬í•©ë‹ˆë‹¤.')
     }
     if (score >= DISPLAY_SCORE_LABEL_THRESHOLDS.good) {
       tails.push(
         pickBySeed(seed, [
-          '오전부터 중요한 일을 먼저 끝내면 성과가 커집니다.',
-          '오늘은 선제적으로 움직일수록 체감 성과가 커집니다.',
+          'ì˜¤ì „ë¶€í„° ì¤‘ìš”í•œ ì¼ì„ ë¨¼ì € ëë‚´ë©´ ì„±ê³¼ê°€ ì»¤ì§‘ë‹ˆë‹¤.',
+          'ì˜¤ëŠ˜ì€ ì„ ì œì ìœ¼ë¡œ ì›€ì§ì¼ìˆ˜ë¡ ì²´ê° ì„±ê³¼ê°€ ì»¤ì§‘ë‹ˆë‹¤.',
         ])
       )
     } else if (score <= 35) {
       tails.push(
         pickBySeed(seed, [
-          '무리한 확장 대신 일정 축소가 더 좋은 결과를 만듭니다.',
-          '중요한 약속은 확인을 한 번 더 하세요.',
+          'ë¬´ë¦¬í•œ í™•ìž¥ ëŒ€ì‹  ì¼ì • ì¶•ì†Œê°€ ë” ì¢‹ì€ ê²°ê³¼ë¥¼ ë§Œë“­ë‹ˆë‹¤.',
+          'ì¤‘ìš”í•œ ì•½ì†ì€ í™•ì¸ì„ í•œ ë²ˆ ë” í•˜ì„¸ìš”.',
         ])
       )
     }
@@ -643,15 +686,15 @@ export function generateSummary(
   } else if (grade === 1) {
     base = EN_MESSAGES.GRADE_1[cat] || EN_MESSAGES.GRADE_1.general
   } else if (grade === 2 && score >= DISPLAY_SCORE_LABEL_THRESHOLDS.neutral) {
-    base = EN_MESSAGES.GRADE_2_HIGH
+    base = EN_MESSAGES.GRADE_2_HIGH[cat] || EN_MESSAGES.GRADE_2_HIGH.general
   } else if (grade === 2) {
     base = EN_MESSAGES.GRADE_2_LOW
   } else if (grade === 3) {
     const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang)
-    base = reason ? `⚠️ ${reason}` : EN_MESSAGES.GRADE_3
+    base = reason ? `âš ï¸ ${reason}` : EN_MESSAGES.GRADE_3[cat] || EN_MESSAGES.GRADE_3.general
   } else {
     const reason = getBadDayReason(sajuFactorKeys, astroFactorKeys, lang)
-    base = reason ? `🚨 ${reason}` : EN_MESSAGES.GRADE_4
+    base = reason ? `ðŸš¨ ${reason}` : EN_MESSAGES.GRADE_4[cat] || EN_MESSAGES.GRADE_4.general
   }
 
   const tails: string[] = []
@@ -745,85 +788,85 @@ function getBadDayReason(
   const saju = sajuFactorKeys || []
   const astro = astroFactorKeys || []
 
-  // 충(沖) - 가장 강력한 부정 요소
+  // ì¶©(æ²–) - ê°€ìž¥ ê°•ë ¥í•œ ë¶€ì • ìš”ì†Œ
   if (saju.some((k) => k.toLowerCase().includes('chung'))) {
     return lang === 'ko'
-      ? '일진 충(沖)! 갈등과 급변에 주의하세요.'
-      : 'Day Clash (æ²–)! Watch for conflicts.'
+      ? 'ì¼ì§„ ì¶©(æ²–)! ê°ˆë“±ê³¼ ê¸‰ë³€ì— ì£¼ì˜í•˜ì„¸ìš”.'
+      : 'Day Clash (Ã¦Â²â€“)! Watch for conflicts.'
   }
 
-  // 형(刑)
+  // í˜•(åˆ‘)
   if (saju.some((k) => k.toLowerCase().includes('xing'))) {
     return lang === 'ko'
-      ? '형(刑)살! 서류 실수, 법적 문제에 주의하세요.'
-      : 'Punishment (åˆ‘)! Watch for legal issues.'
+      ? 'í˜•(åˆ‘)ì‚´! ì„œë¥˜ ì‹¤ìˆ˜, ë²•ì  ë¬¸ì œì— ì£¼ì˜í•˜ì„¸ìš”.'
+      : 'Punishment (Ã¥Ë†â€˜)! Watch for legal issues.'
   }
 
-  // 공망
+  // ê³µë§
   if (saju.includes('shinsal_gongmang')) {
     return lang === 'ko'
-      ? '공망(空亡)! 계획이 무산되기 쉬운 날입니다.'
+      ? 'ê³µë§(ç©ºäº¡)! ê³„íšì´ ë¬´ì‚°ë˜ê¸° ì‰¬ìš´ ë‚ ìž…ë‹ˆë‹¤.'
       : 'Void Day! Plans may fall through.'
   }
 
-  // 백호
+  // ë°±í˜¸
   if (saju.includes('shinsal_backho')) {
     return lang === 'ko'
-      ? '백호살! 사고, 수술에 특히 주의하세요.'
+      ? 'ë°±í˜¸ì‚´! ì‚¬ê³ , ìˆ˜ìˆ ì— íŠ¹ížˆ ì£¼ì˜í•˜ì„¸ìš”.'
       : 'White Tiger! Be careful of accidents.'
   }
 
-  // 귀문관
+  // ê·€ë¬¸ê´€
   if (saju.includes('shinsal_guimungwan')) {
     return lang === 'ko'
-      ? '귀문관! 정신적 혼란, 불안감에 주의하세요.'
+      ? 'ê·€ë¬¸ê´€! ì •ì‹ ì  í˜¼ëž€, ë¶ˆì•ˆê°ì— ì£¼ì˜í•˜ì„¸ìš”.'
       : 'Ghost Gate! Watch for mental confusion.'
   }
 
-  // 관살
+  // ê´€ì‚´
   if (saju.includes('stemGwansal')) {
     return lang === 'ko'
-      ? '관살 기운! 외부 압박과 스트레스가 강합니다.'
+      ? 'ê´€ì‚´ ê¸°ìš´! ì™¸ë¶€ ì••ë°•ê³¼ ìŠ¤íŠ¸ë ˆìŠ¤ê°€ ê°•í•©ë‹ˆë‹¤.'
       : 'Authority pressure! High stress expected.'
   }
 
-  // 수성 역행
+  // ìˆ˜ì„± ì—­í–‰
   if (astro.includes('retrogradeMercury')) {
     return lang === 'ko'
-      ? '수성 역행 중! 계약/소통에 오류가 생기기 쉬워요.'
+      ? 'ìˆ˜ì„± ì—­í–‰ ì¤‘! ê³„ì•½/ì†Œí†µì— ì˜¤ë¥˜ê°€ ìƒê¸°ê¸° ì‰¬ì›Œìš”.'
       : 'Mercury retrograde! Communication errors likely.'
   }
 
-  // 금성 역행
+  // ê¸ˆì„± ì—­í–‰
   if (astro.includes('retrogradeVenus')) {
     return lang === 'ko'
-      ? '금성 역행 중! 연애/재정 결정은 미루세요.'
+      ? 'ê¸ˆì„± ì—­í–‰ ì¤‘! ì—°ì• /ìž¬ì • ê²°ì •ì€ ë¯¸ë£¨ì„¸ìš”.'
       : 'Venus retrograde! Delay love/money decisions.'
   }
 
-  // 보이드 오브 코스
+  // ë³´ì´ë“œ ì˜¤ë¸Œ ì½”ìŠ¤
   if (astro.includes('voidOfCourse')) {
     return lang === 'ko'
-      ? '달이 공허한 상태! 새 시작은 피하세요.'
+      ? 'ë‹¬ì´ ê³µí—ˆí•œ ìƒíƒœ! ìƒˆ ì‹œìž‘ì€ í”¼í•˜ì„¸ìš”.'
       : 'Void of Course Moon! Avoid new starts.'
   }
 
-  // 교차 부정
+  // êµì°¨ ë¶€ì •
   if (astro.includes('crossNegative')) {
     return lang === 'ko'
-      ? '사주+점성술 모두 부정! 매우 조심하세요.'
+      ? 'ì‚¬ì£¼+ì ì„±ìˆ  ëª¨ë‘ ë¶€ì •! ë§¤ìš° ì¡°ì‹¬í•˜ì„¸ìš”.'
       : 'Both Saju & Astro negative! Extra caution!'
   }
 
-  // 충돌 원소
+  // ì¶©ëŒ ì›ì†Œ
   if (astro.includes('conflictElement')) {
-    return lang === 'ko' ? '오행 충돌! 에너지가 분산됩니다.' : 'Element clash! Energy scattered.'
+    return lang === 'ko' ? 'ì˜¤í–‰ ì¶©ëŒ! ì—ë„ˆì§€ê°€ ë¶„ì‚°ë©ë‹ˆë‹¤.' : 'Element clash! Energy scattered.'
   }
 
   return null
 }
 
-// 추천 시간대 생성
+// ì¶”ì²œ ì‹œê°„ëŒ€ ìƒì„±
 export function generateBestTimes(
   grade: ImportanceGrade,
   categories: EventCategory[],
@@ -831,7 +874,7 @@ export function generateBestTimes(
   confidence?: number,
   date?: Pick<ImportantDate, 'bestHours'>
 ): string[] {
-  // Grade 3(안좋음), Grade 4(최악)은 시간 추천 없음
+  // Grade 3(ì•ˆì¢‹ìŒ), Grade 4(ìµœì•…)ì€ ì‹œê°„ ì¶”ì²œ ì—†ìŒ
   if (grade >= 3) {
     return []
   }
@@ -845,25 +888,25 @@ export function generateBestTimes(
 
   if (lang === 'ko') {
     const times: Record<string, string[]> = {
-      career: ['🌅 오전 10-12시: 미팅/협상 최적', '🌆 오후 2-4시: 서류/계약 유리'],
-      wealth: ['💰 오전 9-11시: 금융 거래 유리', '📈 오후 1-3시: 투자 결정 적합'],
-      love: ['☕ 오후 3-5시: 데이트 최적', '🌙 저녁 7-9시: 로맨틱한 시간'],
-      health: ['🌄 오전 6-8시: 운동 효과 UP', '🧘 저녁 6-8시: 휴식/명상 추천'],
-      study: ['📚 오전 9-12시: 집중력 최고', '🌙 저녁 8-10시: 암기력 UP'],
-      travel: ['✈️ 오전 8-10시: 출발 추천', '🚗 오후 2-4시: 이동 안전'],
-      general: ['🌅 오전 10-12시: 중요한 일 처리', '🌆 오후 3-5시: 미팅/약속'],
+      career: ['ðŸŒ… ì˜¤ì „ 10-12ì‹œ: ë¯¸íŒ…/í˜‘ìƒ ìµœì ', 'ðŸŒ† ì˜¤í›„ 2-4ì‹œ: ì„œë¥˜/ê³„ì•½ ìœ ë¦¬'],
+      wealth: ['ðŸ’° ì˜¤ì „ 9-11ì‹œ: ê¸ˆìœµ ê±°ëž˜ ìœ ë¦¬', 'ðŸ“ˆ ì˜¤í›„ 1-3ì‹œ: íˆ¬ìž ê²°ì • ì í•©'],
+      love: ['â˜• ì˜¤í›„ 3-5ì‹œ: ë°ì´íŠ¸ ìµœì ', 'ðŸŒ™ ì €ë… 7-9ì‹œ: ë¡œë§¨í‹±í•œ ì‹œê°„'],
+      health: ['ðŸŒ„ ì˜¤ì „ 6-8ì‹œ: ìš´ë™ íš¨ê³¼ UP', 'ðŸ§˜ ì €ë… 6-8ì‹œ: íœ´ì‹/ëª…ìƒ ì¶”ì²œ'],
+      study: ['ðŸ“š ì˜¤ì „ 9-12ì‹œ: ì§‘ì¤‘ë ¥ ìµœê³ ', 'ðŸŒ™ ì €ë… 8-10ì‹œ: ì•”ê¸°ë ¥ UP'],
+      travel: ['âœˆï¸ ì˜¤ì „ 8-10ì‹œ: ì¶œë°œ ì¶”ì²œ', 'ðŸš— ì˜¤í›„ 2-4ì‹œ: ì´ë™ ì•ˆì „'],
+      general: ['ðŸŒ… ì˜¤ì „ 10-12ì‹œ: ì¤‘ìš”í•œ ì¼ ì²˜ë¦¬', 'ðŸŒ† ì˜¤í›„ 3-5ì‹œ: ë¯¸íŒ…/ì•½ì†'],
     }
     const selected = times[cat] || times.general
     return maybeSoftenBestTimes(selected, lang, confidence)
   } else {
     const times: Record<string, string[]> = {
-      career: ['🌅 10am-12pm: Best for meetings', '🌆 2-4pm: Good for documents'],
-      wealth: ['💰 9-11am: Financial deals', '📈 1-3pm: Investment decisions'],
-      love: ['☕ 3-5pm: Perfect for dates', '🌙 7-9pm: Romantic time'],
-      health: ['🌄 6-8am: Exercise boost', '🧘 6-8pm: Rest & meditation'],
-      study: ['📚 9am-12pm: Peak focus', '🌙 8-10pm: Memory boost'],
-      travel: ['✈️ 8-10am: Best departure', '🚗 2-4pm: Safe travel'],
-      general: ['🌅 10am-12pm: Important tasks', '🌆 3-5pm: Meetings'],
+      career: ['ðŸŒ… 10am-12pm: Best for meetings', 'ðŸŒ† 2-4pm: Good for documents'],
+      wealth: ['ðŸ’° 9-11am: Financial deals', 'ðŸ“ˆ 1-3pm: Investment decisions'],
+      love: ['â˜• 3-5pm: Perfect for dates', 'ðŸŒ™ 7-9pm: Romantic time'],
+      health: ['ðŸŒ„ 6-8am: Exercise boost', 'ðŸ§˜ 6-8pm: Rest & meditation'],
+      study: ['ðŸ“š 9am-12pm: Peak focus', 'ðŸŒ™ 8-10pm: Memory boost'],
+      travel: ['âœˆï¸ 8-10am: Best departure', 'ðŸš— 2-4pm: Safe travel'],
+      general: ['ðŸŒ… 10am-12pm: Important tasks', 'ðŸŒ† 3-5pm: Meetings'],
     }
     const selected = times[cat] || times.general
     return maybeSoftenBestTimes(selected, lang, confidence)
@@ -903,13 +946,13 @@ function buildBestTimesFromBestHours(
   return selected.map((slot) => {
     const window = formatHourRange(slot.hour)
     if (lang === 'ko') {
-      if (slot.quality === 'excellent') return `🌟 ${window}: 핵심 실행/결정 구간`
-      if (slot.quality === 'good') return `✅ ${window}: 진행·협의에 유리`
-      return `🕒 ${window}: 안정적으로 처리하기 좋은 시간`
+      if (slot.quality === 'excellent') return `ðŸŒŸ ${window}: í•µì‹¬ ì‹¤í–‰/ê²°ì • êµ¬ê°„`
+      if (slot.quality === 'good') return `âœ… ${window}: ì§„í–‰Â·í˜‘ì˜ì— ìœ ë¦¬`
+      return `ðŸ•’ ${window}: ì•ˆì •ì ìœ¼ë¡œ ì²˜ë¦¬í•˜ê¸° ì¢‹ì€ ì‹œê°„`
     }
-    if (slot.quality === 'excellent') return `🌟 ${window}: best for decisive execution`
-    if (slot.quality === 'good') return `✅ ${window}: favorable for progress and coordination`
-    return `🕒 ${window}: stable block for focused work`
+    if (slot.quality === 'excellent') return `ðŸŒŸ ${window}: best for decisive execution`
+    if (slot.quality === 'good') return `âœ… ${window}: favorable for progress and coordination`
+    return `ðŸ•’ ${window}: stable block for focused work`
   })
 }
 
@@ -920,9 +963,9 @@ function maybeSoftenBestTimes(times: string[], lang: 'ko' | 'en', confidence?: n
   if (lang === 'ko') {
     return times.map((line) =>
       line
-        .replace(/최적/g, '검토에 무난')
-        .replace(/유리/g, '무난')
-        .replace(/적합/g, '보수적 검토에 무난')
+        .replace(/ìµœì /g, 'ê²€í† ì— ë¬´ë‚œ')
+        .replace(/ìœ ë¦¬/g, 'ë¬´ë‚œ')
+        .replace(/ì í•©/g, 'ë³´ìˆ˜ì  ê²€í† ì— ë¬´ë‚œ')
     )
   }
 
@@ -951,13 +994,13 @@ function buildTimingSignals(input: {
     if (!signals.includes(text)) signals.push(text)
   }
 
-  if (keys.some((key) => key.includes('daeun'))) add('대운 활성', 'Daeun active')
+  if (keys.some((key) => key.includes('daeun'))) add('ëŒ€ìš´ í™œì„±', 'Daeun active')
   if (keys.some((key) => key.includes('seun') || key.includes('saeun'))) {
-    add('세운 반영', 'Annual cycle active')
+    add('ì„¸ìš´ ë°˜ì˜', 'Annual cycle active')
   }
-  if (keys.some((key) => key.includes('wolun'))) add('월운 반영', 'Monthly cycle active')
+  if (keys.some((key) => key.includes('wolun'))) add('ì›”ìš´ ë°˜ì˜', 'Monthly cycle active')
   if (keys.some((key) => key.includes('iljin') || key.includes('day'))) {
-    add('일진 반영', 'Daily cycle active')
+    add('ì¼ì§„ ë°˜ì˜', 'Daily cycle active')
   }
   if (
     keys.some(
@@ -969,15 +1012,15 @@ function buildTimingSignals(input: {
         key.includes('lunarreturn')
     )
   ) {
-    add('트랜짓 신호', 'Transit signal')
+    add('íŠ¸ëžœì§“ ì‹ í˜¸', 'Transit signal')
   }
-  if (date.transitSync?.isMajorTransitYear) add('강한 트랜짓 해', 'Major transit year')
-  if (matrixVerdict?.phase) add(`국면: ${matrixVerdict.phase}`, `Phase: ${matrixVerdict.phase}`)
+  if (date.transitSync?.isMajorTransitYear) add('ê°•í•œ íŠ¸ëžœì§“ í•´', 'Major transit year')
+  if (matrixVerdict?.phase) add(`êµ­ë©´: ${matrixVerdict.phase}`, `Phase: ${matrixVerdict.phase}`)
 
   if (peakLevel === 'peak') {
-    add('월간 피크 구간', 'Monthly peak window')
+    add('ì›”ê°„ í”¼í¬ êµ¬ê°„', 'Monthly peak window')
   } else if (peakLevel === 'high') {
-    add('월간 상승 구간', 'Monthly rising window')
+    add('ì›”ê°„ ìƒìŠ¹ êµ¬ê°„', 'Monthly rising window')
   }
 
   return signals.slice(0, 4)
@@ -996,7 +1039,7 @@ function buildActionSummary(input: {
   const timeLine = bestTimes[0] || timingSignals[0] || ''
 
   if (lang === 'ko') {
-    return [doLine ? `실행: ${doLine}` : '', cautionLine ? `주의: ${cautionLine}` : '', timeLine ? `타이밍: ${timeLine}` : '']
+    return [doLine ? `ì‹¤í–‰: ${doLine}` : '', cautionLine ? `ì£¼ì˜: ${cautionLine}` : '', timeLine ? `íƒ€ì´ë°: ${timeLine}` : '']
       .filter(Boolean)
       .join(' / ')
   }
@@ -1013,27 +1056,27 @@ function buildCategoryAction(
   seed: string
 ): string {
   const ko: Record<EventCategory, string[]> = {
-    career: ['핵심 업무 1건을 오전에 선처리하세요.', '협업/보고는 짧고 명확하게 진행하세요.'],
+    career: ['í•µì‹¬ ì—…ë¬´ 1ê±´ì„ ì˜¤ì „ì— ì„ ì²˜ë¦¬í•˜ì„¸ìš”.', 'í˜‘ì—…/ë³´ê³ ëŠ” ì§§ê³  ëª…í™•í•˜ê²Œ ì§„í–‰í•˜ì„¸ìš”.'],
     wealth: [
-      '지출·투자 기준선을 먼저 정하고 움직이세요.',
-      '작은 수익보다 리스크 통제를 우선하세요.',
+      'ì§€ì¶œÂ·íˆ¬ìž ê¸°ì¤€ì„ ì„ ë¨¼ì € ì •í•˜ê³  ì›€ì§ì´ì„¸ìš”.',
+      'ìž‘ì€ ìˆ˜ìµë³´ë‹¤ ë¦¬ìŠ¤í¬ í†µì œë¥¼ ìš°ì„ í•˜ì„¸ìš”.',
     ],
     love: [
-      '감정보다 의도를 분명히 말하면 오해를 줄일 수 있어요.',
-      '관계 대화는 저녁 시간에 짧게 정리하세요.',
+      'ê°ì •ë³´ë‹¤ ì˜ë„ë¥¼ ë¶„ëª…ížˆ ë§í•˜ë©´ ì˜¤í•´ë¥¼ ì¤„ì¼ ìˆ˜ ìžˆì–´ìš”.',
+      'ê´€ê³„ ëŒ€í™”ëŠ” ì €ë… ì‹œê°„ì— ì§§ê²Œ ì •ë¦¬í•˜ì„¸ìš”.',
     ],
     health: [
-      '수면·식사 리듬을 먼저 맞추면 컨디션이 회복됩니다.',
-      '무리한 강도보다 가벼운 루틴이 유리합니다.',
+      'ìˆ˜ë©´Â·ì‹ì‚¬ ë¦¬ë“¬ì„ ë¨¼ì € ë§žì¶”ë©´ ì»¨ë””ì…˜ì´ íšŒë³µë©ë‹ˆë‹¤.',
+      'ë¬´ë¦¬í•œ ê°•ë„ë³´ë‹¤ ê°€ë²¼ìš´ ë£¨í‹´ì´ ìœ ë¦¬í•©ë‹ˆë‹¤.',
     ],
     travel: [
-      '이동 전 일정과 동선을 한 번 더 점검하세요.',
-      '출발 시간 버퍼를 넉넉히 두는 게 좋습니다.',
+      'ì´ë™ ì „ ì¼ì •ê³¼ ë™ì„ ì„ í•œ ë²ˆ ë” ì ê²€í•˜ì„¸ìš”.',
+      'ì¶œë°œ ì‹œê°„ ë²„í¼ë¥¼ ë„‰ë„‰ížˆ ë‘ëŠ” ê²Œ ì¢‹ìŠµë‹ˆë‹¤.',
     ],
-    study: ['집중 블록 40~60분 단위로 학습하세요.', '복습 우선 순위를 3개로 제한하세요.'],
+    study: ['ì§‘ì¤‘ ë¸”ë¡ 40~60ë¶„ ë‹¨ìœ„ë¡œ í•™ìŠµí•˜ì„¸ìš”.', 'ë³µìŠµ ìš°ì„  ìˆœìœ„ë¥¼ 3ê°œë¡œ ì œí•œí•˜ì„¸ìš”.'],
     general: [
-      '오늘 목표를 2개 이하로 줄이면 성과가 올라갑니다.',
-      '중요하지 않은 요청은 과감히 미루세요.',
+      'ì˜¤ëŠ˜ ëª©í‘œë¥¼ 2ê°œ ì´í•˜ë¡œ ì¤„ì´ë©´ ì„±ê³¼ê°€ ì˜¬ë¼ê°‘ë‹ˆë‹¤.',
+      'ì¤‘ìš”í•˜ì§€ ì•Šì€ ìš”ì²­ì€ ê³¼ê°ížˆ ë¯¸ë£¨ì„¸ìš”.',
     ],
   }
   const en: Record<EventCategory, string[]> = {
@@ -1046,13 +1089,13 @@ function buildCategoryAction(
     health: ['Stabilize sleep and meal rhythm first.', 'Choose consistency over intensity.'],
     travel: ['Re-check route and schedule before moving.', 'Add a safe time buffer to departures.'],
     study: ['Work in 40-60 minute focus blocks.', 'Limit review priorities to three topics.'],
-    general: ['Cut today’s priorities down to two.', 'Delay low-impact requests without guilt.'],
+    general: ['Cut todayâ€™s priorities down to two.', 'Delay low-impact requests without guilt.'],
   }
   const source = lang === 'ko' ? ko : en
   const base = pickBySeed(seed, source[category])
   if (grade >= 3) {
     return lang === 'ko'
-      ? `${base} 큰 결정은 하루 미뤄도 괜찮습니다.`
+      ? `${base} í° ê²°ì •ì€ í•˜ë£¨ ë¯¸ë¤„ë„ ê´œì°®ìŠµë‹ˆë‹¤.`
       : `${base} Defer major decisions for a day.`
   }
   return base
@@ -1063,8 +1106,8 @@ function buildFactorAction(factors: string[], lang: 'ko' | 'en', seed: string): 
   if (lower.some((f) => f.includes('retrograde'))) {
     return lang === 'ko'
       ? pickBySeed(seed, [
-          '계약·결제는 재확인 후 진행하세요.',
-          '메시지/문서는 오탈자 점검 후 발송하세요.',
+          'ê³„ì•½Â·ê²°ì œëŠ” ìž¬í™•ì¸ í›„ ì§„í–‰í•˜ì„¸ìš”.',
+          'ë©”ì‹œì§€/ë¬¸ì„œëŠ” ì˜¤íƒˆìž ì ê²€ í›„ ë°œì†¡í•˜ì„¸ìš”.',
         ])
       : pickBySeed(seed, [
           'Double-check contracts and payments.',
@@ -1074,8 +1117,8 @@ function buildFactorAction(factors: string[], lang: 'ko' | 'en', seed: string): 
   if (lower.some((f) => f.includes('chung') || f.includes('xing') || f.includes('conflict'))) {
     return lang === 'ko'
       ? pickBySeed(seed, [
-          '정면충돌보다 우회안을 준비하세요.',
-          '예민한 대화는 결론보다 사실 확인부터 하세요.',
+          'ì •ë©´ì¶©ëŒë³´ë‹¤ ìš°íšŒì•ˆì„ ì¤€ë¹„í•˜ì„¸ìš”.',
+          'ì˜ˆë¯¼í•œ ëŒ€í™”ëŠ” ê²°ë¡ ë³´ë‹¤ ì‚¬ì‹¤ í™•ì¸ë¶€í„° í•˜ì„¸ìš”.',
         ])
       : pickBySeed(seed, [
           'Prepare a fallback path instead of direct confrontation.',
@@ -1085,8 +1128,8 @@ function buildFactorAction(factors: string[], lang: 'ko' | 'en', seed: string): 
   if (lower.some((f) => f.includes('samhap') || f.includes('yukhap') || f.includes('cheoneul'))) {
     return lang === 'ko'
       ? pickBySeed(seed, [
-          '협업 제안·네트워킹에 유리한 흐름입니다.',
-          '도움을 요청하면 응답을 얻기 쉽습니다.',
+          'í˜‘ì—… ì œì•ˆÂ·ë„¤íŠ¸ì›Œí‚¹ì— ìœ ë¦¬í•œ íë¦„ìž…ë‹ˆë‹¤.',
+          'ë„ì›€ì„ ìš”ì²­í•˜ë©´ ì‘ë‹µì„ ì–»ê¸° ì‰½ìŠµë‹ˆë‹¤.',
         ])
       : pickBySeed(seed, [
           'Good timing for collaboration and networking.',
@@ -1106,28 +1149,28 @@ function buildContextWarnings(
   if (grade >= 3) {
     warnings.push(
       lang === 'ko'
-        ? '일정 지연 가능성을 고려해 버퍼를 확보하세요.'
+        ? 'ì¼ì • ì§€ì—° ê°€ëŠ¥ì„±ì„ ê³ ë ¤í•´ ë²„í¼ë¥¼ í™•ë³´í•˜ì„¸ìš”.'
         : 'Add schedule buffer to absorb delays.'
     )
   }
   if (lower.some((f) => f.includes('retrograde'))) {
     warnings.push(
       lang === 'ko'
-        ? '커뮤니케이션 오류 가능성이 있어 재확인이 필요합니다.'
+        ? 'ì»¤ë®¤ë‹ˆì¼€ì´ì…˜ ì˜¤ë¥˜ ê°€ëŠ¥ì„±ì´ ìžˆì–´ ìž¬í™•ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤.'
         : 'Communication errors are more likely today.'
     )
   }
   if (lower.some((f) => f.includes('gongmang') || f.includes('void'))) {
     warnings.push(
       lang === 'ko'
-        ? '새 프로젝트의 즉시 확정은 신중히 검토하세요.'
+        ? 'ìƒˆ í”„ë¡œì íŠ¸ì˜ ì¦‰ì‹œ í™•ì •ì€ ì‹ ì¤‘ížˆ ê²€í† í•˜ì„¸ìš”.'
         : 'Avoid locking in new projects impulsively.'
     )
   }
   if (lower.some((f) => f.includes('accident') || f.includes('backho'))) {
     warnings.push(
       lang === 'ko'
-        ? '이동·운동 시 안전수칙을 강화하세요.'
+        ? 'ì´ë™Â·ìš´ë™ ì‹œ ì•ˆì „ìˆ˜ì¹™ì„ ê°•í™”í•˜ì„¸ìš”.'
         : 'Use extra safety precautions for movement and exercise.'
     )
   }
@@ -1162,7 +1205,7 @@ function buildEnhancedRecommendations(
   )
   const timeHint = bestTimes[0]
     ? lang === 'ko'
-      ? `추천 시간 우선: ${bestTimes[0]}`
+      ? `ì¶”ì²œ ì‹œê°„ ìš°ì„ : ${bestTimes[0]}`
       : `Prioritize this time window: ${bestTimes[0]}`
     : null
 
@@ -1221,7 +1264,7 @@ function buildEnhancedWarnings(
     if (lower.some((f) => f.includes('accident') || f.includes('backho'))) {
       contextual.push(
         lang === 'ko'
-          ? '이동·운동 시 안전수칙을 강화하세요.'
+          ? 'ì´ë™Â·ìš´ë™ ì‹œ ì•ˆì „ìˆ˜ì¹™ì„ ê°•í™”í•˜ì„¸ìš”.'
           : 'Use extra safety precautions for movement and exercise.'
       )
     }
@@ -1230,7 +1273,7 @@ function buildEnhancedWarnings(
     if (lower.some((f) => f.includes('retrograde')) && (lowConfidence || !crossAligned)) {
       contextual.push(
         lang === 'ko'
-          ? '커뮤니케이션 오류 가능성이 있어 재확인이 필요합니다.'
+          ? 'ì»¤ë®¤ë‹ˆì¼€ì´ì…˜ ì˜¤ë¥˜ ê°€ëŠ¥ì„±ì´ ìžˆì–´ ìž¬í™•ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤.'
           : 'Communication errors are more likely today.'
       )
     }
@@ -1307,11 +1350,11 @@ type AspectEvidenceLite = {
 }
 
 const ASPECT_SYMBOL: Record<AspectEvidenceLite['aspect'], string> = {
-  conjunction: '☌',
-  sextile: '✶',
-  square: '□',
-  trine: '△',
-  opposition: '☍',
+  conjunction: 'â˜Œ',
+  sextile: 'âœ¶',
+  square: 'â–¡',
+  trine: 'â–³',
+  opposition: 'â˜',
 }
 
 const ASPECT_WORD_EN: Record<AspectEvidenceLite['aspect'], string> = {
@@ -1323,24 +1366,24 @@ const ASPECT_WORD_EN: Record<AspectEvidenceLite['aspect'], string> = {
 }
 
 const PLANET_KO: Record<string, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
-  'Natal Sun': '본명 태양',
+  Sun: 'íƒœì–‘',
+  Moon: 'ë‹¬',
+  Mercury: 'ìˆ˜ì„±',
+  Venus: 'ê¸ˆì„±',
+  Mars: 'í™”ì„±',
+  Jupiter: 'ëª©ì„±',
+  Saturn: 'í† ì„±',
+  'Natal Sun': 'ë³¸ëª… íƒœì–‘',
 }
 
 function compactText(value: string, maxLength: number): string {
   const normalized = value.replace(/\s+/g, ' ').trim()
   if (!normalized) return ''
-  const sentenceCut = normalized.split(/[.!?。]/)[0]?.trim() || normalized
+  const sentenceCut = normalized.split(/[.!?ã€‚]/)[0]?.trim() || normalized
   if (sentenceCut.length <= maxLength) {
     return sentenceCut
   }
-  return `${sentenceCut.slice(0, Math.max(8, maxLength - 1)).trimEnd()}…`
+  return `${sentenceCut.slice(0, Math.max(8, maxLength - 1)).trimEnd()}â€¦`
 }
 
 function formatOrb(orb: number): string {
@@ -1351,7 +1394,7 @@ function formatOrb(orb: number): string {
     degree += 1
     minute = 0
   }
-  return `${degree}°${String(minute).padStart(2, '0')}'`
+  return `${degree}Â°${String(minute).padStart(2, '0')}'`
 }
 
 function isNegativeFactorKey(key: string): boolean {
@@ -1393,17 +1436,17 @@ function getAspectMeaning(
 ): string {
   if (lang === 'ko') {
     if (tone === 'negative') {
-      if (aspect === 'square') return '긴장·힘겨루기 구도'
-      if (aspect === 'opposition') return '충돌·관계 재조정 신호'
-      return '압박·검증 필요 신호'
+      if (aspect === 'square') return 'ê¸´ìž¥Â·íž˜ê²¨ë£¨ê¸° êµ¬ë„'
+      if (aspect === 'opposition') return 'ì¶©ëŒÂ·ê´€ê³„ ìž¬ì¡°ì • ì‹ í˜¸'
+      return 'ì••ë°•Â·ê²€ì¦ í•„ìš” ì‹ í˜¸'
     }
     if (tone === 'positive') {
-      if (aspect === 'trine') return '흐름·지원이 강한 구도'
-      if (aspect === 'sextile') return '기회·협력 창구 확대'
-      return '추진력·집중력 상승'
+      if (aspect === 'trine') return 'íë¦„Â·ì§€ì›ì´ ê°•í•œ êµ¬ë„'
+      if (aspect === 'sextile') return 'ê¸°íšŒÂ·í˜‘ë ¥ ì°½êµ¬ í™•ëŒ€'
+      return 'ì¶”ì§„ë ¥Â·ì§‘ì¤‘ë ¥ ìƒìŠ¹'
     }
-    if (aspect === 'conjunction') return '에너지 증폭 구간'
-    return '중립 신호'
+    if (aspect === 'conjunction') return 'ì—ë„ˆì§€ ì¦í­ êµ¬ê°„'
+    return 'ì¤‘ë¦½ ì‹ í˜¸'
   }
 
   if (tone === 'negative') {
@@ -1426,7 +1469,7 @@ function formatAstroEvidenceLine(
   lang: 'ko' | 'en'
 ): string {
   const id = `A${index + 1}`
-  const icon = detail.tone === 'negative' ? '⚠️' : detail.tone === 'positive' ? '✅' : 'ℹ️'
+  const icon = detail.tone === 'negative' ? 'âš ï¸' : detail.tone === 'positive' ? 'âœ…' : 'â„¹ï¸'
   const symbol = ASPECT_SYMBOL[detail.aspect]
   const orbText = formatOrb(detail.orb)
   const meaning = getAspectMeaning(detail.aspect, detail.tone, lang)
@@ -1496,15 +1539,15 @@ function buildCrossEvidenceBundle(
     bridges.push(
       lang === 'ko'
         ? detail.tone === 'negative'
-          ? `A${index + 1} ↔ S${index + 1}: 점성 긴장 신호와 사주 경계 신호가 겹칩니다. 계약·의사결정은 재확인이 유리합니다.`
+          ? `A${index + 1} â†” S${index + 1}: ì ì„± ê¸´ìž¥ ì‹ í˜¸ì™€ ì‚¬ì£¼ ê²½ê³„ ì‹ í˜¸ê°€ ê²¹ì¹©ë‹ˆë‹¤. ê³„ì•½Â·ì˜ì‚¬ê²°ì •ì€ ìž¬í™•ì¸ì´ ìœ ë¦¬í•©ë‹ˆë‹¤.`
           : isAligned
-            ? `A${index + 1} ↔ S${index + 1}: 점성 호조와 사주 지원 신호가 겹칩니다. 핵심 과제 1~2개를 밀어붙이기 좋습니다.`
-            : `A${index + 1} ↔ S${index + 1}: 지지 신호가 부분적으로 보이지만 교차 정합도가 낮아 확정 전 재확인이 필요합니다.`
+            ? `A${index + 1} â†” S${index + 1}: ì ì„± í˜¸ì¡°ì™€ ì‚¬ì£¼ ì§€ì› ì‹ í˜¸ê°€ ê²¹ì¹©ë‹ˆë‹¤. í•µì‹¬ ê³¼ì œ 1~2ê°œë¥¼ ë°€ì–´ë¶™ì´ê¸° ì¢‹ìŠµë‹ˆë‹¤.`
+            : `A${index + 1} â†” S${index + 1}: ì§€ì§€ ì‹ í˜¸ê°€ ë¶€ë¶„ì ìœ¼ë¡œ ë³´ì´ì§€ë§Œ êµì°¨ ì •í•©ë„ê°€ ë‚®ì•„ í™•ì • ì „ ìž¬í™•ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤.`
         : detail.tone === 'negative'
-          ? `A${index + 1} ↔ S${index + 1}: Astro friction and Saju caution align. Re-check contracts and key decisions.`
+          ? `A${index + 1} â†” S${index + 1}: Astro friction and Saju caution align. Re-check contracts and key decisions.`
           : isAligned
-            ? `A${index + 1} ↔ S${index + 1}: Astro support and Saju support align. Push one or two core priorities.`
-            : `A${index + 1} ↔ S${index + 1}: Support signals exist, but cross-agreement is low. Re-check before final commitments.`
+            ? `A${index + 1} â†” S${index + 1}: Astro support and Saju support align. Push one or two core priorities.`
+            : `A${index + 1} â†” S${index + 1}: Support signals exist, but cross-agreement is low. Re-check before final commitments.`
     )
   })
 
@@ -1525,11 +1568,11 @@ function buildCrossEvidenceBundle(
         ? [
             lang === 'ko'
               ? isAligned
-                ? 'A1 ↔ S1: 점성과 사주 근거가 같은 방향을 지지합니다.'
-                : 'A1 ↔ S1: 신호가 엇갈립니다. 확정 전 재확인이 유리합니다.'
+                ? 'A1 â†” S1: ì ì„±ê³¼ ì‚¬ì£¼ ê·¼ê±°ê°€ ê°™ì€ ë°©í–¥ì„ ì§€ì§€í•©ë‹ˆë‹¤.'
+                : 'A1 â†” S1: ì‹ í˜¸ê°€ ì—‡ê°ˆë¦½ë‹ˆë‹¤. í™•ì • ì „ ìž¬í™•ì¸ì´ ìœ ë¦¬í•©ë‹ˆë‹¤.'
               : isAligned
-                ? 'A1 ↔ S1: Astrology and Saju evidence point in the same direction.'
-                : 'A1 ↔ S1: Signals are mixed. Re-check before final commitments.',
+                ? 'A1 â†” S1: Astrology and Saju evidence point in the same direction.'
+                : 'A1 â†” S1: Signals are mixed. Re-check before final commitments.',
           ]
         : []
 
@@ -1608,11 +1651,11 @@ function buildMatrixOverlay(
   const preferredDomain = getPreferredDomainByCategory(categories, matrixContext)
 
   const koDomainLabel: Record<DomainKey, string> = {
-    career: '커리어',
-    love: '연애',
-    money: '재물',
-    health: '건강',
-    move: '이동',
+    career: 'ì»¤ë¦¬ì–´',
+    love: 'ì—°ì• ',
+    money: 'ìž¬ë¬¼',
+    health: 'ê±´ê°•',
+    move: 'ì´ë™',
   }
   const enDomainLabel: Record<DomainKey, string> = {
     career: 'career',
@@ -1641,13 +1684,13 @@ function buildMatrixOverlay(
   if (!riskDay && monthPoint?.peakLevel === 'peak') {
     summaryParts.push(
       lang === 'ko'
-        ? `destiny-matrix 피크월(${monthKey}) 영향으로 타이밍 적중도가 높습니다.`
+        ? `destiny-matrix í”¼í¬ì›”(${monthKey}) ì˜í–¥ìœ¼ë¡œ íƒ€ì´ë° ì ì¤‘ë„ê°€ ë†’ìŠµë‹ˆë‹¤.`
         : `Destiny-matrix peak month (${monthKey}) boosts timing precision.`
     )
   } else if (!riskDay && monthPoint?.peakLevel === 'high') {
     summaryParts.push(
       lang === 'ko'
-        ? `destiny-matrix 고집중월(${monthKey}) 구간으로 실행력이 올라갑니다.`
+        ? `destiny-matrix ê³ ì§‘ì¤‘ì›”(${monthKey}) êµ¬ê°„ìœ¼ë¡œ ì‹¤í–‰ë ¥ì´ ì˜¬ë¼ê°‘ë‹ˆë‹¤.`
         : `Destiny-matrix high-focus month (${monthKey}) supports execution.`
     )
   }
@@ -1655,7 +1698,7 @@ function buildMatrixOverlay(
   if (!riskDay && topDomain) {
     if (lang === 'ko') {
       recommendations.push(
-        `${koDomainLabel[topDomain]} 도메인 피크 흐름입니다. 해당 영역 우선순위를 가장 앞에 두세요.`
+        `${koDomainLabel[topDomain]} ë„ë©”ì¸ í”¼í¬ íë¦„ìž…ë‹ˆë‹¤. í•´ë‹¹ ì˜ì—­ ìš°ì„ ìˆœìœ„ë¥¼ ê°€ìž¥ ì•žì— ë‘ì„¸ìš”.`
       )
     } else {
       recommendations.push(`${topDomain} domain is peaking. Put it at the top of your priorities.`)
@@ -1668,11 +1711,11 @@ function buildMatrixOverlay(
     if (lang === 'ko') {
       recommendations.push(
         domainWeight >= 0.75
-          ? `${domainLabel} 테마를 오늘의 최우선 실행과제로 두세요.`
-          : `${domainLabel} 테마 관련 일정은 오전 시간대에 먼저 배치하세요.`
+          ? `${domainLabel} í…Œë§ˆë¥¼ ì˜¤ëŠ˜ì˜ ìµœìš°ì„  ì‹¤í–‰ê³¼ì œë¡œ ë‘ì„¸ìš”.`
+          : `${domainLabel} í…Œë§ˆ ê´€ë ¨ ì¼ì •ì€ ì˜¤ì „ ì‹œê°„ëŒ€ì— ë¨¼ì € ë°°ì¹˜í•˜ì„¸ìš”.`
       )
       summaryParts.push(
-        `${domainLabel} 테마의 destiny-matrix 가중치가 높아 실행 적중도가 좋은 날입니다.`
+        `${domainLabel} í…Œë§ˆì˜ destiny-matrix ê°€ì¤‘ì¹˜ê°€ ë†’ì•„ ì‹¤í–‰ ì ì¤‘ë„ê°€ ì¢‹ì€ ë‚ ìž…ë‹ˆë‹¤.`
       )
     } else {
       recommendations.push(
@@ -1689,7 +1732,7 @@ function buildMatrixOverlay(
       lang === 'ko' ? koDomainLabel[weightedDomain] : enDomainLabel[weightedDomain]
     summaryParts.push(
       lang === 'ko'
-        ? `${domainLabel} 테마는 변동성이 있어 확정보다 검증 중심 운영이 유리합니다.`
+        ? `${domainLabel} í…Œë§ˆëŠ” ë³€ë™ì„±ì´ ìžˆì–´ í™•ì •ë³´ë‹¤ ê²€ì¦ ì¤‘ì‹¬ ìš´ì˜ì´ ìœ ë¦¬í•©ë‹ˆë‹¤.`
         : `${domainLabel} is volatile today; review-first execution is safer than hard commitment.`
     )
   }
@@ -1697,7 +1740,7 @@ function buildMatrixOverlay(
   if (cautionSignals.length > 0) {
     warnings.push(
       lang === 'ko'
-        ? 'matrix 주의 시그널이 감지되어 검토 단계를 한 번 더 거치세요.'
+        ? 'matrix ì£¼ì˜ ì‹œê·¸ë„ì´ ê°ì§€ë˜ì–´ ê²€í†  ë‹¨ê³„ë¥¼ í•œ ë²ˆ ë” ê±°ì¹˜ì„¸ìš”.'
         : 'Matrix caution signals detected. Add an extra verification step.'
     )
   }
@@ -1705,7 +1748,7 @@ function buildMatrixOverlay(
   if (hasMonthCautionSignal) {
     warnings.push(
       lang === 'ko'
-        ? `이번 달(${monthKey})은 의사결정 속도보다 리스크 점검이 유리합니다.`
+        ? `ì´ë²ˆ ë‹¬(${monthKey})ì€ ì˜ì‚¬ê²°ì • ì†ë„ë³´ë‹¤ ë¦¬ìŠ¤í¬ ì ê²€ì´ ìœ ë¦¬í•©ë‹ˆë‹¤.`
         : `In ${monthKey}, risk checks are safer than speed in decisions.`
     )
   }
@@ -1719,7 +1762,7 @@ function buildMatrixOverlay(
       lang === 'ko' ? koDomainLabel[weightedDomain] : enDomainLabel[weightedDomain]
     warnings.push(
       lang === 'ko'
-        ? `${domainLabel} 테마는 확장 전에 검증 체크리스트를 거치는 것이 안전합니다.`
+        ? `${domainLabel} í…Œë§ˆëŠ” í™•ìž¥ ì „ì— ê²€ì¦ ì²´í¬ë¦¬ìŠ¤íŠ¸ë¥¼ ê±°ì¹˜ëŠ” ê²ƒì´ ì•ˆì „í•©ë‹ˆë‹¤.`
         : `For ${domainLabel}, run a verification checklist before expansion.`
     )
   }
@@ -1837,12 +1880,12 @@ function getMatrixDomainLabel(
   lang: 'ko' | 'en'
 ): string {
   if (lang === 'ko') {
-    if (domain === 'career') return '커리어'
-    if (domain === 'love') return '연애'
-    if (domain === 'money') return '재정'
-    if (domain === 'health') return '건강'
-    if (domain === 'move') return '이동'
-    return '전반'
+    if (domain === 'career') return 'ì»¤ë¦¬ì–´'
+    if (domain === 'love') return 'ì—°ì• '
+    if (domain === 'money') return 'ìž¬ì •'
+    if (domain === 'health') return 'ê±´ê°•'
+    if (domain === 'move') return 'ì´ë™'
+    return 'ì „ë°˜'
   }
 
   if (domain === 'career') return 'career'
@@ -1863,19 +1906,19 @@ function buildMatrixStrictSummaryFallback(input: {
   const agreement = input.evidence.crossAgreementPercent
 
   if (input.lang === 'ko') {
-    const peakText = peak === 'peak' ? '피크 구간' : peak === 'high' ? '상승 구간' : '안정 구간'
+    const peakText = peak === 'peak' ? 'í”¼í¬ êµ¬ê°„' : peak === 'high' ? 'ìƒìŠ¹ êµ¬ê°„' : 'ì•ˆì • êµ¬ê°„'
     const confidenceText =
       confidence >= 70
-        ? '근거 신뢰도가 높습니다.'
+        ? 'ê·¼ê±° ì‹ ë¢°ë„ê°€ ë†’ìŠµë‹ˆë‹¤.'
         : confidence >= 40
-          ? '근거 신뢰도는 중간 수준입니다.'
-          : '근거 신뢰도가 낮아 검토 중심 운영이 안전합니다.'
+          ? 'ê·¼ê±° ì‹ ë¢°ë„ëŠ” ì¤‘ê°„ ìˆ˜ì¤€ìž…ë‹ˆë‹¤.'
+          : 'ê·¼ê±° ì‹ ë¢°ë„ê°€ ë‚®ì•„ ê²€í†  ì¤‘ì‹¬ ìš´ì˜ì´ ì•ˆì „í•©ë‹ˆë‹¤.'
     const agreementText =
       typeof agreement === 'number' && Number.isFinite(agreement)
-        ? `교차 정합도 ${agreement}% 기준으로 판단합니다.`
+        ? `êµì°¨ ì •í•©ë„ ${agreement}% ê¸°ì¤€ìœ¼ë¡œ íŒë‹¨í•©ë‹ˆë‹¤.`
         : ''
     return dedupeTexts([
-      `${domainLabel} 도메인은 ${peakText}입니다.`,
+      `${domainLabel} ë„ë©”ì¸ì€ ${peakText}ìž…ë‹ˆë‹¤.`,
       confidenceText,
       agreementText,
     ]).join(' ')
@@ -1908,13 +1951,13 @@ function buildMatrixStrictDescriptionFallback(input: {
   const confidence = Math.max(0, Math.min(100, input.evidence.confidence ?? 0))
   const baseDetail =
     input.lang === 'ko'
-      ? `${domainLabel} 영역은 공통 메트릭스 기준으로 점검-실행-재확인 순서를 유지하세요.`
+      ? `${domainLabel} ì˜ì—­ì€ ê³µí†µ ë©”íŠ¸ë¦­ìŠ¤ ê¸°ì¤€ìœ¼ë¡œ ì ê²€-ì‹¤í–‰-ìž¬í™•ì¸ ìˆœì„œë¥¼ ìœ ì§€í•˜ì„¸ìš”.`
       : `In ${domainLabel}, follow a verify-execute-recheck sequence based on the shared matrix.`
   const confidenceDetail =
     input.lang === 'ko'
       ? confidence < 40
-        ? '신뢰도가 낮아 확정/서명/결제는 한 번 더 검토하는 편이 안전합니다.'
-        : '신뢰도가 확보되어 우선순위 실행에 집중할 수 있습니다.'
+        ? 'ì‹ ë¢°ë„ê°€ ë‚®ì•„ í™•ì •/ì„œëª…/ê²°ì œëŠ” í•œ ë²ˆ ë” ê²€í† í•˜ëŠ” íŽ¸ì´ ì•ˆì „í•©ë‹ˆë‹¤.'
+        : 'ì‹ ë¢°ë„ê°€ í™•ë³´ë˜ì–´ ìš°ì„ ìˆœìœ„ ì‹¤í–‰ì— ì§‘ì¤‘í•  ìˆ˜ ìžˆìŠµë‹ˆë‹¤.'
       : confidence < 40
         ? 'Confidence is low, so recheck before any irreversible commitment.'
         : 'Confidence is sufficient to focus on prioritized execution.'
@@ -1937,8 +1980,8 @@ function buildMatrixStrictRecommendations(input: {
   const domainLabel = getMatrixDomainLabel(input.evidence.matrix?.domain, input.lang)
   return input.lang === 'ko'
     ? [
-        `${domainLabel} 관련 핵심 과제 1개를 먼저 실행하세요.`,
-        '결정 전 체크리스트를 문서로 남기세요.',
+        `${domainLabel} ê´€ë ¨ í•µì‹¬ ê³¼ì œ 1ê°œë¥¼ ë¨¼ì € ì‹¤í–‰í•˜ì„¸ìš”.`,
+        'ê²°ì • ì „ ì²´í¬ë¦¬ìŠ¤íŠ¸ë¥¼ ë¬¸ì„œë¡œ ë‚¨ê¸°ì„¸ìš”.',
       ]
     : [
         `Execute one high-impact ${domainLabel} task first.`,
@@ -1956,7 +1999,7 @@ function buildMatrixStrictWarnings(input: {
   if (out.length > 0) return out
 
   return input.lang === 'ko'
-    ? ['공통 메트릭스 신뢰도가 낮으면 확정 행동 전 재검증이 필요합니다.']
+    ? ['ê³µí†µ ë©”íŠ¸ë¦­ìŠ¤ ì‹ ë¢°ë„ê°€ ë‚®ìœ¼ë©´ í™•ì • í–‰ë™ ì „ ìž¬ê²€ì¦ì´ í•„ìš”í•©ë‹ˆë‹¤.']
     : ['When shared-matrix confidence is low, re-validate before irreversible actions.']
 }
 
@@ -2107,31 +2150,33 @@ export function formatDateForResponse(
   const translations = locale === 'ko' ? koTranslations : enTranslations
   const lang = locale === 'ko' ? 'ko' : 'en'
 
-  // 중복 카테고리 제거
+  // ì¤‘ë³µ ì¹´í…Œê³ ë¦¬ ì œê±°
   const uniqueCategories = [...new Set(date.categories)]
 
-  // 번역된 요소만 포함 (번역 없으면 제외)
+  // ë²ˆì—­ëœ ìš”ì†Œë§Œ í¬í•¨ (ë²ˆì—­ ì—†ìœ¼ë©´ ì œì™¸)
   const translatedSajuFactors = date.sajuFactorKeys
     .map((key) => getFactorTranslation(key, lang))
     .filter((t): t is string => t !== null)
+    .map((text) => sanitizeCalendarCopy(text, lang))
 
   const translatedAstroFactors = date.astroFactorKeys
     .map((key) => getFactorTranslation(key, lang))
     .filter((t): t is string => t !== null)
+    .map((text) => sanitizeCalendarCopy(text, lang))
 
-  // Grade 3 이상(안좋음)에서는 부정적 요소를 먼저 표시
+  // Grade 3 ì´ìƒ(ì•ˆì¢‹ìŒ)ì—ì„œëŠ” ë¶€ì •ì  ìš”ì†Œë¥¼ ë¨¼ì € í‘œì‹œ
   let orderedSajuFactors = translatedSajuFactors
   let orderedAstroFactors = translatedAstroFactors
 
   if (date.grade >= 3) {
-    // 부정적 키워드가 포함된 요소를 앞으로
+    // ë¶€ì •ì  í‚¤ì›Œë“œê°€ í¬í•¨ëœ ìš”ì†Œë¥¼ ì•žìœ¼ë¡œ
     const negativeKeywords = [
-      '충',
-      '형',
-      '해',
-      '공망',
-      '역행',
-      '주의',
+      'ì¶©',
+      'í˜•',
+      'í•´',
+      'ê³µë§',
+      'ì—­í–‰',
+      'ì£¼ì˜',
       'clash',
       'conflict',
       'retrograde',
@@ -2245,14 +2290,14 @@ export function formatDateForResponse(
     isDefensivePhaseLabel(matrixVerdict?.phase) &&
     (matrixVerdict?.attackPercent ?? 50) <= 58
 
-  const defaultTitle = getTranslation(date.titleKey, translations)
+  const defaultTitle = sanitizeCalendarCopy(getTranslation(date.titleKey, translations), lang)
   const title = forceConservativeMode
     ? lang === 'ko'
-      ? '해석 갈림'
+      ? 'í•´ì„ ê°ˆë¦¼'
       : 'Mixed signals'
     : highGradePhaseConflict
       ? lang === 'ko'
-        ? '검토 우선의 날'
+        ? 'ê²€í†  ìš°ì„ ì˜ ë‚ '
         : 'Review-first day'
       : defaultTitle
   const alignedDisplayScore = highGradePhaseConflict
@@ -2273,7 +2318,7 @@ export function formatDateForResponse(
     baseWarnings: strictWarnings,
     conservativeWarning: forceConservativeMode
       ? lang === 'ko'
-        ? '커뮤니케이션 오류 가능성이 있어 재확인이 필요합니다.'
+        ? 'ì»¤ë®¤ë‹ˆì¼€ì´ì…˜ ì˜¤ë¥˜ ê°€ëŠ¥ì„±ì´ ìžˆì–´ ìž¬í™•ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤.'
         : 'Communication errors are more likely today. Re-check before committing.'
       : '',
   })
@@ -2303,9 +2348,10 @@ export function formatDateForResponse(
       IRREVERSIBLE_RECOMMENDATION_KEYS.has(key)
     ),
   })
-  const finalDescription = forceConservativeMode
+  const finalDescription = sanitizeCalendarCopy(
+    forceConservativeMode
     ? lang === 'ko'
-      ? '신호가 엇갈립니다. 큰 결정은 재확인 후 진행하세요.'
+      ? 'ì‹ í˜¸ê°€ ì—‡ê°ˆë¦½ë‹ˆë‹¤. í° ê²°ì •ì€ ìž¬í™•ì¸ í›„ ì§„í–‰í•˜ì„¸ìš”.'
       : 'Signals are mixed. Re-check major decisions before committing.'
     : buildMatrixFirstDescription({
         topAnchorSummary: matrixVerdict?.topAnchorSummary,
@@ -2320,22 +2366,27 @@ export function formatDateForResponse(
               guardrail: matrixVerdict?.guardrail,
             })
           : getTranslation(date.descKey, translations),
-      })
-  const summarizedBase = forceConservativeMode
+      }),
+    lang
+  )
+  const summarizedBase = sanitizeCalendarCopy(
+    forceConservativeMode
     ? dedupeTexts([
         finalSummary,
         lang === 'ko'
-          ? '핵심 결론: 신뢰도/교차 정합이 낮아 검토 중심으로 운영하는 편이 안전합니다.'
+          ? 'í•µì‹¬ ê²°ë¡ : ì‹ ë¢°ë„/êµì°¨ ì •í•©ì´ ë‚®ì•„ ê²€í†  ì¤‘ì‹¬ìœ¼ë¡œ ìš´ì˜í•˜ëŠ” íŽ¸ì´ ì•ˆì „í•©ë‹ˆë‹¤.'
           : 'Core conclusion: low confidence/cross-alignment, so operate in review-first mode.',
       ]).join(' ')
-    : finalSummary
+    : finalSummary,
+    lang
+  )
   const summarized = summarizedBase
   const actionSummary = buildActionSummary({
     lang,
-    recommendations: recommendationsForResponse,
-    warnings: warningsForResponse,
-    bestTimes,
-    timingSignals,
+    recommendations: recommendationsForResponse.map((text) => sanitizeCalendarCopy(text, lang)),
+    warnings: warningsForResponse.map((text) => sanitizeCalendarCopy(text, lang)),
+    bestTimes: bestTimes.map((text) => sanitizeCalendarCopy(text, lang)),
+    timingSignals: timingSignals.map((text) => sanitizeCalendarCopy(text, lang)),
   })
 
   return normalizeMojibakePayload({
@@ -2348,21 +2399,21 @@ export function formatDateForResponse(
     displayScore: alignedDisplayScore,
     displayGrade: alignedEffectiveGrade,
     categories: uniqueCategories,
-    title,
+    title: sanitizeCalendarCopy(title, lang),
     description: finalDescription,
     summary: summarized,
     actionSummary,
-    timingSignals,
-    bestTimes,
+    timingSignals: timingSignals.map((text) => sanitizeCalendarCopy(text, lang)),
+    bestTimes: bestTimes.map((text) => sanitizeCalendarCopy(text, lang)),
     sajuFactors: orderedSajuFactors,
     astroFactors: orderedAstroFactors,
-    recommendations: recommendationsForResponse,
-    warnings: warningsForResponse,
+    recommendations: recommendationsForResponse.map((text) => sanitizeCalendarCopy(text, lang)),
+    warnings: warningsForResponse.map((text) => sanitizeCalendarCopy(text, lang)),
     evidence: evidenceWithVerdict,
   })
 }
 
-// AI 백엔드에서 추가 날짜 정보 가져오기
+// AI ë°±ì—”ë“œì—ì„œ ì¶”ê°€ ë‚ ì§œ ì •ë³´ ê°€ì ¸ì˜¤ê¸°
 export async function fetchAIDates(
   sajuData: Record<string, unknown>,
   astroData: Record<string, unknown>,
@@ -2428,7 +2479,7 @@ export async function fetchAIDates(
   return null
 }
 
-// 위치 좌표
+// ìœ„ì¹˜ ì¢Œí‘œ
 export const LOCATION_COORDS: Record<string, LocationCoord> = {
   Seoul: { lat: 37.5665, lng: 126.978, tz: 'Asia/Seoul' },
   'Seoul, KR': { lat: 37.5665, lng: 126.978, tz: 'Asia/Seoul' },
@@ -2449,3 +2500,4 @@ export const LOCATION_COORDS: Record<string, LocationCoord> = {
   Shanghai: { lat: 31.2304, lng: 121.4737, tz: 'Asia/Shanghai' },
   'Shanghai, CN': { lat: 31.2304, lng: 121.4737, tz: 'Asia/Shanghai' },
 }
+

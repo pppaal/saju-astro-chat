@@ -14,6 +14,7 @@ import { prisma } from '@/lib/db/prisma'
 import { summarizeConversation } from '@/lib/ai/summarize'
 import { logger } from '@/lib/logger'
 import { personaMemoryUpdateSchema } from '@/lib/api/zodValidation'
+import { deriveCounselorStorageSignals } from '@/app/api/destiny-map/chat-stream/lib/focusDomain'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,7 +48,23 @@ export const POST = withApiMiddleware(
       const filteredMessages = messages.filter(
         (m): m is ChatMessageForSummary => m.role === 'user' || m.role === 'assistant'
       )
-      const summary = await summarizeConversation(filteredMessages, theme, locale)
+      const lastUserMessage =
+        [...filteredMessages].reverse().find((message) => message.role === 'user')?.content || null
+      const baseSignals = deriveCounselorStorageSignals({
+        lastUserMessage,
+        theme,
+      })
+      const storedTheme = theme === 'chat' ? baseSignals.inferredTheme : theme
+      const summary = await summarizeConversation(filteredMessages, storedTheme, locale)
+      const storageSignals = deriveCounselorStorageSignals({
+        lastUserMessage,
+        theme,
+        keyTopics: summary?.keyTopics || [],
+      })
+      const memoryTopics =
+        theme === 'chat'
+          ? storageSignals.memoryTopics
+          : mergeAndLimit([theme, ...(summary?.keyTopics || [])], 6)
 
       const existingMemory = await prisma.personaMemory.findUnique({
         where: { userId },
@@ -59,7 +76,6 @@ export const POST = withApiMiddleware(
       const existingGrowth = (existingMemory?.growthAreas as string[]) || []
       const existingLastTopics = (existingMemory?.lastTopics as string[]) || []
 
-      const _mergedTopics = mergeAndLimit([...existingTopics, ...(summary?.keyTopics || [])], 10)
       const mergedInsights = mergeAndLimit(
         [...existingInsights, ...(summary?.keyInsights || [])],
         10
@@ -70,12 +86,12 @@ export const POST = withApiMiddleware(
       )
       const mergedGrowth = mergeAndLimit([...existingGrowth, ...(summary?.growthAreas || [])], 5)
 
-      const updatedLastTopics = [
-        theme,
-        ...existingLastTopics.filter((t: string) => t !== theme),
-      ].slice(0, 5)
+      const updatedLastTopics = mergeAndLimit(
+        [...memoryTopics, ...existingLastTopics],
+        5
+      )
 
-      const topicCounts = countOccurrences([...existingTopics, ...(summary?.keyTopics || [])])
+      const topicCounts = countOccurrences([...existingTopics, ...memoryTopics])
       const dominantThemes = Object.entries(topicCounts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5)
@@ -112,8 +128,9 @@ export const POST = withApiMiddleware(
         await prisma.counselorChatSession.updateMany({
           where: { id: sessionId, userId },
           data: {
+            theme: storedTheme,
             summary: summary.summary,
-            keyTopics: summary.keyTopics,
+            keyTopics: mergeAndLimit(memoryTopics, 10),
           },
         })
       }

@@ -19,6 +19,7 @@ import {
   WEEKDAYS_EN,
   WEEKDAYS_KO,
 } from './constants'
+import { formatDecisionActionLabels, formatPolicyCheckLabels } from '@/lib/destiny-matrix/core/actionCopy'
 import type { CalendarData, ImportantDate, EventCategory } from './types'
 import { getPeakLabel, resolvePeakLevel } from './peakUtils'
 
@@ -474,6 +475,26 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     const candidate = sorted[0]
     return candidate && candidate[1] > 0 ? (candidate[0] as EventCategory) : null
   }, [weekEntries])
+
+  const selectedMatrixPacket = useMemo(() => {
+    const packetKeyCandidates = [
+      baseInfo?.evidence?.matrix?.domain === 'money'
+        ? 'wealth'
+        : baseInfo?.evidence?.matrix?.domain,
+      ...(baseInfo?.categories || []),
+      'today',
+      'general',
+    ]
+      .map((value) => (value || '').toLowerCase())
+      .filter(Boolean)
+      .map((value) => {
+        if (value === 'money') return 'wealth'
+        if (value === 'move' || value === 'travel' || value === 'general') return 'today'
+        if (value === 'study') return 'career'
+        return value
+      })
+    return packetKeyCandidates.map((key) => data?.matrixEvidencePackets?.[key]).find(Boolean)
+  }, [baseInfo?.categories, baseInfo?.evidence?.matrix?.domain, data?.matrixEvidencePackets])
 
   const categoryLabel = useCallback(
     (cat: EventCategory) => (isKo ? CATEGORY_LABELS_KO[cat] : CATEGORY_LABELS_EN[cat]),
@@ -939,28 +960,17 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         .filter((item): item is string => Boolean(item))
       return compact.length ? compact.slice(0, max) : undefined
     }
-    const packetKeyCandidates = [
-      baseInfo?.evidence?.matrix?.domain === 'money'
-        ? 'wealth'
-        : baseInfo?.evidence?.matrix?.domain,
-      ...(baseInfo?.categories || []),
-      'today',
-      'general',
-    ]
-      .map((value) => (value || '').toLowerCase())
-      .filter(Boolean)
-      .map((value) => {
-        if (value === 'money') return 'wealth'
-        if (value === 'move' || value === 'travel' || value === 'general') return 'today'
-        if (value === 'study') return 'career'
-        return value
-      })
-    const selectedMatrixPacket = packetKeyCandidates
-      .map((key) => data?.matrixEvidencePackets?.[key])
-      .find(Boolean)
     const compactMatrixPacket = selectedMatrixPacket
       ? {
           focusDomain: trimText(selectedMatrixPacket.focusDomain, 24),
+          graphFocusSummary: trimText(
+            selectedMatrixPacket.focusDomain && selectedMatrixPacket.topAnchors?.[0]?.summary
+              ? `${isKo ? '핵심 교차 근거' : 'Core cross evidence'}: ${
+                  selectedMatrixPacket.focusDomain
+                } · ${selectedMatrixPacket.topAnchors[0].summary}`
+              : selectedMatrixPacket.topAnchors?.[0]?.summary,
+            220
+          ),
           graphRagEvidenceSummary: selectedMatrixPacket.graphRagEvidenceSummary
             ? {
                 totalAnchors: selectedMatrixPacket.graphRagEvidenceSummary.totalAnchors,
@@ -1130,12 +1140,12 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     analysisLocale,
     baseInfo,
     cleanText,
-    data?.matrixEvidencePackets,
     dateKey,
     icpResult,
     intervalMinutes,
     isKo,
     personaResult,
+    selectedMatrixPacket,
   ])
 
   const fetchAiTimeline = useCallback(
@@ -1733,8 +1743,10 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
     if (cautionDays.length > 0) {
       const labels = cautionDays.map((entry) => formatDateLabel(entry.date)).join(', ')
-      pushItem(isKo ? `주의할 날: ${labels}` : `Caution days: ${labels}`)
-      pushItem(isKo ? '위험한 일은 좋은 날로 이동' : 'Move risky tasks to better days')
+      pushItem(isKo ? `검토/방어일: ${labels}` : `Review/protect days: ${labels}`)
+      pushItem(
+        isKo ? '위험한 일은 실행 우선일로 이동' : 'Move risky tasks to execute-first days'
+      )
     }
 
     while (items.length < 4) {
@@ -1770,6 +1782,80 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   )
   const evidenceLines = useMemo(() => {
     const lines: string[] = []
+    const topDecisionLine = cleanText(
+      data?.canonicalCore?.topDecisionLabel
+        ? `${isKo ? '우선 행동' : 'Priority action'}: ${data.canonicalCore.topDecisionLabel}`
+        : '',
+      ''
+    )
+    const allowedActionLine = cleanText(
+      (data?.canonicalCore?.judgmentPolicy?.allowedActionLabels?.length ||
+        data?.canonicalCore?.judgmentPolicy?.allowedActions?.length)
+        ? `${
+            isKo ? '허용 행동' : 'Allowed moves'
+          }: ${(
+            data?.canonicalCore?.judgmentPolicy?.allowedActionLabels ||
+            formatDecisionActionLabels(
+              data?.canonicalCore?.judgmentPolicy?.allowedActions || [],
+              isKo ? 'ko' : 'en'
+            )
+          )
+            .slice(0, 2)
+            .join(' · ')}`
+        : '',
+      ''
+    )
+    const blockedActionLine = cleanText(
+      (data?.canonicalCore?.judgmentPolicy?.blockedActionLabels?.length ||
+        data?.canonicalCore?.judgmentPolicy?.blockedActions?.length)
+        ? `${
+            isKo ? '차단 행동' : 'Blocked moves'
+          }: ${(
+            data?.canonicalCore?.judgmentPolicy?.blockedActionLabels ||
+            formatDecisionActionLabels(
+              data?.canonicalCore?.judgmentPolicy?.blockedActions || [],
+              isKo ? 'ko' : 'en',
+              true
+            )
+          )
+            .slice(0, 2)
+            .join(' · ')}`
+        : '',
+      ''
+    )
+    const checkLine = cleanText(
+      data?.canonicalCore?.judgmentPolicy
+        ? `${
+            isKo ? '점검 포인트' : 'Checkpoints'
+          }: ${formatPolicyCheckLabels([
+            ...((data.canonicalCore.judgmentPolicy.softCheckLabels ||
+              data.canonicalCore.judgmentPolicy.softChecks ||
+              []) as string[]),
+            ...((data.canonicalCore.judgmentPolicy.hardStopLabels ||
+              data.canonicalCore.judgmentPolicy.hardStops ||
+              []) as string[]),
+          ]).slice(0, 2).join(' · ')}`
+        : '',
+      ''
+    )
+    const graphFocusSummary = cleanText(
+      selectedMatrixPacket?.focusDomain && selectedMatrixPacket.topAnchors?.[0]?.summary
+        ? `${
+            isKo ? '핵심 교차 근거' : 'Core cross evidence'
+          }: ${categoryLabel(
+            normalizeCategory(
+              selectedMatrixPacket.focusDomain === 'wealth'
+                ? 'wealth'
+                : selectedMatrixPacket.focusDomain === 'relationship'
+                  ? 'love'
+                  : selectedMatrixPacket.focusDomain === 'move'
+                    ? 'travel'
+                    : (selectedMatrixPacket.focusDomain as EventCategory | 'today')
+            ) || 'general'
+          )} · ${selectedMatrixPacket.topAnchors[0].summary}`
+        : '',
+      ''
+    )
     if (baseInfo?.evidence?.matrix) {
       const matrixDomain = baseInfo.evidence.matrix.domain || 'general'
       const matrixScore = baseInfo.evidence.matrix.finalScoreAdjusted
@@ -1779,6 +1865,21 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           ? `종합 신호: ${matrixDomain} 영역 · 점수 ${matrixScore ?? '-'} · 신뢰도 ${confidence ?? '-'}%`
           : `Combined signal: ${matrixDomain} domain · score ${matrixScore ?? '-'} · confidence ${confidence ?? '-'}%`
       )
+    }
+    if (topDecisionLine) {
+      lines.unshift(topDecisionLine)
+    }
+    if (allowedActionLine) {
+      lines.push(allowedActionLine)
+    }
+    if (blockedActionLine) {
+      lines.push(blockedActionLine)
+    }
+    if (checkLine) {
+      lines.push(checkLine)
+    }
+    if (graphFocusSummary) {
+      lines.push(graphFocusSummary)
     }
     const sajuEvidence = cleanText(baseInfo?.evidence?.cross?.sajuEvidence, '')
     const astroEvidence = cleanText(baseInfo?.evidence?.cross?.astroEvidence, '')
@@ -1818,7 +1919,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       )
     }
     return lines.slice(0, 6).map((line) => cleanText(line))
-  }, [baseInfo?.evidence, cleanText, isKo, todayCaution])
+  }, [baseInfo?.evidence, categoryLabel, cleanText, isKo, selectedMatrixPacket, todayCaution])
 
   const timelineInsight = useMemo(() => {
     if (!baseInfo) {
@@ -1869,8 +1970,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     const cautionCount = cautionDays.length
     const focusLabel = topCategory ? categoryLabel(topCategory) : isKo ? '전체' : 'general'
     return isKo
-      ? `좋은 날 ${bestCount}회 · 주의 날 ${cautionCount}회 · ${focusLabel} 중심 배치`
-      : `${bestCount} good-day slots · ${cautionCount} caution-day slots · ${focusLabel} focus`
+      ? `실행/활용일 ${bestCount}회 · 검토/방어일 ${cautionCount}회 · ${focusLabel} 중심 배치`
+      : `${bestCount} execute/leverage slots · ${cautionCount} review/protect slots · ${focusLabel} focus`
   }, [bestDays.length, cautionDays.length, topCategory, categoryLabel, isKo])
 
   const actionPlanInsights = useMemo<ActionPlanInsights>(() => {
@@ -1980,12 +2081,12 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     )
     if (bestDayChips.length > 0) {
       lines.push(
-        `${isKo ? '좋은 날' : 'Good days'}: ${bestDayChips.map((chip) => chip.label).join(', ')}`
+        `${isKo ? '실행/활용일' : 'Execute/Leverage days'}: ${bestDayChips.map((chip) => chip.label).join(', ')}`
       )
     }
     if (cautionDayChips.length > 0) {
       lines.push(
-        `${isKo ? '주의 날' : 'Caution days'}: ${cautionDayChips.map((chip) => chip.label).join(', ')}`
+        `${isKo ? '검토/방어일' : 'Review/Protect days'}: ${cautionDayChips.map((chip) => chip.label).join(', ')}`
       )
     }
     lines.push(isKo ? '오늘 체크리스트' : 'Today Checklist')
@@ -2183,7 +2284,9 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       <div className={styles.actionPlanChips}>
         {bestDayChips.length > 0 && (
           <div className={styles.actionPlanChipGroup}>
-            <span className={styles.actionPlanChipLabel}>{isKo ? '좋은 날' : 'Good days'}</span>
+            <span className={styles.actionPlanChipLabel}>
+              {isKo ? '실행/활용일' : 'Execute/Leverage days'}
+            </span>
             {bestDayChips.map((chip) => (
               <span
                 key={chip.label}
@@ -2196,7 +2299,9 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         )}
         {cautionDayChips.length > 0 && (
           <div className={styles.actionPlanChipGroup}>
-            <span className={styles.actionPlanChipLabel}>{isKo ? '주의 날' : 'Caution days'}</span>
+            <span className={styles.actionPlanChipLabel}>
+              {isKo ? '검토/방어일' : 'Review/Protect days'}
+            </span>
             {cautionDayChips.map((chip) => (
               <span
                 key={chip.label}

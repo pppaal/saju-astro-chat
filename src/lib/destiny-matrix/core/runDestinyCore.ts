@@ -5,6 +5,10 @@ import {
   synthesizeMatrixSignals,
   type SignalSynthesisResult,
 } from '@/lib/destiny-matrix/core/signalSynthesizer'
+import { compileFeatureTokens } from '@/lib/destiny-matrix/core/tokenCompiler'
+import { buildActivationEngine } from '@/lib/destiny-matrix/core/activationEngine'
+import { buildRuleEngine } from '@/lib/destiny-matrix/core/ruleEngine'
+import { buildStateEngine } from '@/lib/destiny-matrix/core/stateEngine'
 import {
   buildPhaseStrategyEngine,
   type StrategyEngineResult,
@@ -74,6 +78,9 @@ export interface DestinyCoreQuality {
     strategySumValid: boolean
     decisionOptionCount: number
     decisionDomainCount: number
+    gatedDecisionCount: number
+    domainConflictCount: number
+    verificationBias: boolean
   }
 }
 
@@ -158,6 +165,7 @@ function buildDestinyCoreQuality(input: {
   scenarios: ScenarioResult[]
   decisionEngine: DecisionEngineResult
   strategyEngine: StrategyEngineResult
+  canonical: DestinyCoreCanonicalOutput
 }): DestinyCoreQuality {
   const selectedDomains = new Set(
     (input.signalSynthesis.selectedSignals || []).flatMap((signal) => signal.domainHints || [])
@@ -172,6 +180,7 @@ function buildDestinyCoreQuality(input: {
   ).length
   const strategySumValid =
     input.strategyEngine.attackPercent + input.strategyEngine.defensePercent === 100
+  const gatedDecisionCount = input.decisionEngine.options.filter((option) => option.gated).length
 
   let score = 0
   score += scoreByThreshold(input.signalSynthesis.selectedSignals.length, 7, 14)
@@ -193,6 +202,7 @@ function buildDestinyCoreQuality(input: {
   score += strategySumValid ? 7 : 0
   score += scoreByThreshold(input.decisionEngine.options.length, 9, 4)
   score += scoreByThreshold(input.decisionEngine.domains.length, 3, 3)
+  score += gatedDecisionCount <= Math.ceil(Math.max(1, input.decisionEngine.options.length) * 0.5) ? 2 : 0
 
   const warnings: string[] = []
   if (input.signalSynthesis.selectedSignals.length < 7) warnings.push('selected_signals_under_7')
@@ -203,6 +213,27 @@ function buildDestinyCoreQuality(input: {
   if (!strategySumValid) warnings.push('strategy_percent_sum_invalid')
   if (input.decisionEngine.options.length < 6) warnings.push('decision_option_count_low')
   if (input.decisionEngine.domains.length < 2) warnings.push('decision_domain_coverage_low')
+  if (input.canonical.coherenceAudit.domainConflictCount > 2) {
+    warnings.push('domain_conflict_count_high')
+  }
+  if (input.canonical.coherenceAudit.gatedDecision && gatedDecisionCount >= 3) {
+    warnings.push('gated_decision_pressure_high')
+  }
+  const specificVerificationAction = new Set([
+    'review_first',
+    'negotiate_first',
+    'boundary_first',
+    'pilot_first',
+    'route_recheck_first',
+    'lease_review_first',
+    'basecamp_reset_first',
+  ])
+  if (
+    input.canonical.coherenceAudit.verificationBias &&
+    !specificVerificationAction.has(input.canonical.topDecision?.action || '')
+  ) {
+    warnings.push('verification_bias_active')
+  }
   if (
     input.normalizedInput.availability.advancedAstroSignals === 'present' &&
     countByTag('advanced-astro') < 2
@@ -241,6 +272,9 @@ function buildDestinyCoreQuality(input: {
       strategySumValid,
       decisionOptionCount: input.decisionEngine.options.length,
       decisionDomainCount: input.decisionEngine.domains.length,
+      gatedDecisionCount,
+      domainConflictCount: input.canonical.coherenceAudit.domainConflictCount,
+      verificationBias: input.canonical.coherenceAudit.verificationBias,
     },
   }
 }
@@ -251,10 +285,15 @@ export function computeDestinyCoreHash(input: {
   scenarios: ScenarioResult[]
   decisionEngine: DecisionEngineResult
 }): string {
-  const patternKeys = input.patterns.map((pattern) => `${pattern.id}:${pattern.score}`).sort()
+  const patternKeys = input.patterns
+    .map((pattern) => `${pattern.id}:${pattern.family}:${pattern.profile}:${pattern.score}`)
+    .sort()
   const scenarioKeys = input.scenarios
     .slice(0, 12)
-    .map((scenario) => `${scenario.id}:${scenario.probability}:${scenario.window}`)
+    .map(
+      (scenario) =>
+        `${scenario.id}:${scenario.probability}:${scenario.window}:${scenario.timingRelevance}:${scenario.reversible ? 1 : 0}`
+    )
     .sort()
   const decisionKeys = input.decisionEngine.options
     .slice(0, 8)
@@ -265,10 +304,56 @@ export function computeDestinyCoreHash(input: {
     claimIds: [...input.canonical.claimIds].sort(),
     evidenceRefKeys: Object.keys(input.canonical.evidenceRefs).sort(),
     cautions: [...input.canonical.cautions].sort(),
+    gradeLabel: input.canonical.gradeLabel,
+    focusDomain: input.canonical.focusDomain,
     phase: input.canonical.phase,
+    primaryAction: input.canonical.primaryAction,
+    primaryCaution: input.canonical.primaryCaution,
+    coherenceAudit: input.canonical.coherenceAudit,
+    judgmentPolicy: input.canonical.judgmentPolicy,
+    domainVerdicts: input.canonical.domainVerdicts.map((verdict) => ({
+      domain: verdict.domain,
+      mode: verdict.mode,
+      confidence: verdict.confidence,
+      leadPatternFamily: verdict.leadPatternFamily,
+      leadScenarioId: verdict.leadScenarioId,
+      allowedActions: verdict.allowedActions,
+      blockedActions: verdict.blockedActions,
+    })),
+    advisories: input.canonical.advisories.map((advisory) => ({
+      domain: advisory.domain,
+      phase: advisory.phase,
+      leadSignalIds: advisory.leadSignalIds,
+      leadPatternIds: advisory.leadPatternIds,
+      leadScenarioIds: advisory.leadScenarioIds,
+    })),
+    domainTimingWindows: input.canonical.domainTimingWindows.map((window) => ({
+      domain: window.domain,
+      window: window.window,
+      confidence: window.confidence,
+      timingRelevance: window.timingRelevance,
+    })),
+    manifestations: input.canonical.manifestations.map((item) => ({
+      domain: item.domain,
+      timingWindow: item.timingWindow,
+      sourceCount: item.activationSources.length,
+      likelyExpressions: item.likelyExpressions.slice(0, 3),
+      riskExpressions: item.riskExpressions.slice(0, 3),
+    })),
     attackPercent: input.canonical.attackPercent,
     defensePercent: input.canonical.defensePercent,
     confidence: input.canonical.confidence,
+    leadPatternId: input.canonical.leadPatternId,
+    leadScenarioId: input.canonical.leadScenarioId,
+    topPatternFamilies: input.canonical.topPatterns.map(
+      (pattern) => `${pattern.id}:${pattern.family}:${pattern.profile}`
+    ),
+    topPatternIds: input.canonical.topPatterns.map((pattern) => pattern.id),
+    topScenarioIds: input.canonical.topScenarios.map((scenario) => scenario.id),
+    topScenarioTiming: input.canonical.topScenarios.map(
+      (scenario) => `${scenario.id}:${scenario.window}:${scenario.timingRelevance}`
+    ),
+    topDecisionId: input.canonical.topDecision?.id || null,
     patternKeys,
     scenarioKeys,
     decisionKeys,
@@ -278,11 +363,30 @@ export function computeDestinyCoreHash(input: {
 
 export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult {
   const normalizedInput = buildNormalizedMatrixInput(params.matrixInput)
+  const featureTokens = compileFeatureTokens(normalizedInput)
+  const preActivation = buildActivationEngine({
+    matrixInput: normalizedInput,
+    tokens: featureTokens.tokens,
+  })
+  const preRules = buildRuleEngine({
+    activation: preActivation,
+    tokens: featureTokens.tokens,
+  })
+  const preStates = buildStateEngine({
+    lang: params.lang,
+    activation: preActivation,
+    rules: preRules,
+  })
   const signalSynthesis = synthesizeMatrixSignals({
     lang: params.lang,
     matrixReport: params.matrixReport,
     matrixSummary: params.matrixSummary,
     matrixInput: normalizedInput,
+    resolvedContext: {
+      activation: preActivation,
+      rules: preRules,
+      states: preStates,
+    },
   })
   const strategyEngine =
     buildPhaseStrategyEngine(signalSynthesis, params.lang, {
@@ -292,13 +396,57 @@ export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult 
       iljinActive: Boolean(normalizedInput.currentIljinElement || normalizedInput.currentIljinDate),
       activeTransitCount: normalizedInput.activeTransits.length,
     }) || buildSafeStrategyFallback(params.lang)
-  const patterns = buildPatternEngine(signalSynthesis, strategyEngine)
-  const scenarios = buildScenarioEngine(patterns, strategyEngine, normalizedInput)
+  const patterns = buildPatternEngine(signalSynthesis, strategyEngine, {
+    activation: preActivation,
+    rules: preRules,
+    states: preStates,
+    crossAgreement:
+      typeof normalizedInput.crossSnapshot?.crossAgreement === 'number'
+        ? normalizedInput.crossSnapshot.crossAgreement
+        : null,
+  })
+  const scenarios = buildScenarioEngine(patterns, strategyEngine, normalizedInput, params.lang, {
+    activation: preActivation,
+    rules: preRules,
+    states: preStates,
+  })
   const decisionEngine = buildDecisionEngine({
     lang: params.lang,
     patterns,
     scenarios,
     strategyEngine,
+  })
+  const canonical = buildCoreCanonicalOutput({
+    lang: params.lang,
+    matrixInput: normalizedInput,
+    signalSynthesis,
+    patterns,
+    scenarios,
+    decisionEngine,
+    matrixSummary: params.matrixSummary,
+    strategy: {
+      phase: strategyEngine.overallPhase,
+      phaseLabel: strategyEngine.overallPhaseLabel,
+      attackPercent: strategyEngine.attackPercent,
+      defensePercent: strategyEngine.defensePercent,
+      thesis: strategyEngine.thesis,
+      riskControl:
+        strategyEngine.domainStrategies[0]?.riskControl ||
+        strategyEngine.domainStrategies.find((item) => item.riskControl)?.riskControl ||
+        '',
+      focusDomain: strategyEngine.domainStrategies[0]?.domain,
+      domainStrategies: strategyEngine.domainStrategies.map((item) => ({
+        domain: item.domain,
+        phase: item.phase,
+        evidenceIds: item.evidenceIds,
+        metrics: {
+          strengthScore: item.metrics.strengthScore,
+          cautionScore: item.metrics.cautionScore,
+          balanceScore: item.metrics.balanceScore,
+        },
+      })),
+    },
+    crossAgreement: normalizedInput.crossSnapshot?.crossAgreement,
   })
   const quality = buildDestinyCoreQuality({
     normalizedInput,
@@ -307,17 +455,7 @@ export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult 
     scenarios,
     decisionEngine,
     strategyEngine,
-  })
-  const canonical = buildCoreCanonicalOutput({
-    signalSynthesis,
-    scenarios,
-    matrixSummary: params.matrixSummary,
-    strategy: {
-      phase: strategyEngine.overallPhase,
-      attackPercent: strategyEngine.attackPercent,
-      defensePercent: strategyEngine.defensePercent,
-    },
-    crossAgreement: normalizedInput.crossSnapshot?.crossAgreement,
+    canonical,
   })
 
   return {
@@ -338,3 +476,4 @@ export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult 
     }),
   }
 }
+

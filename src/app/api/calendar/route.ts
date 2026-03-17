@@ -1034,7 +1034,7 @@ export const GET = withApiMiddleware(
       const matrix = coreEnvelope.matrix
       const matrixReport = coreEnvelope.matrixReport
       const coreSeed = coreEnvelope.coreSeed
-      calendarCoreCanonical = adaptCoreToCalendar(coreSeed)
+      calendarCoreCanonical = adaptCoreToCalendar(coreSeed, locale === 'en' ? 'en' : 'ko')
       topMatchedPatterns = coreSeed.patterns.slice(0, 10).map((pattern) => ({
         id: pattern.id,
         label: pattern.label,

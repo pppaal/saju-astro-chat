@@ -34,12 +34,12 @@ const THEME_INFO: Record<
   }
 > = {
   love: {
-    label: '연애/결혼 심화',
-    description: '관계 패턴, 궁합 흐름, 감정 리듬까지 깊게 분석합니다.',
+    label: '연애 흐름 & 관계 확정',
+    description: '썸, 재접근, 관계 확정, 결혼 조건까지 속도와 감정선을 함께 분석합니다.',
     credits: 3,
     color: 'from-pink-500 to-rose-500',
     icon: Heart,
-    sections: ['연애 성향', '궁합 포인트', '시기 분석', '실행 전략'],
+    sections: ['연애 속도/감정선', '재접근 가능성', '관계 확정·결혼 조건', '실행 전략'],
   },
   career: {
     label: '커리어 전략',
@@ -66,12 +66,12 @@ const THEME_INFO: Record<
     sections: ['체력 리듬', '취약 구간', '회복 전략', '생활 습관'],
   },
   family: {
-    label: '가족/관계 심화',
-    description: '관계 역학, 갈등 포인트, 대화 전략을 정리해드립니다.',
+    label: '가족 구조 & 돌봄 전략',
+    description: '부모·형제·자녀 역학, 경계선, 돌봄/경제 부담까지 함께 분석합니다.',
     credits: 3,
     color: 'from-violet-500 to-purple-500',
     icon: Users,
-    sections: ['관계 구조', '갈등 패턴', '회복 포인트', '대화 전략'],
+    sections: ['가족 역할 구조', '경계선/갈등', '돌봄·경제 분담', '세대 패턴'],
   },
 }
 

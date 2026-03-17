@@ -1258,6 +1258,8 @@ describe('/api/destiny-map/chat-stream POST - Theme Context', () => {
     const req = createNextRequest({
       ...createBasicRequest(),
       theme: 'love',
+      lang: 'en',
+      messages: [{ role: 'user', content: 'Can you read my love life right now?' }],
     })
 
     await POST(req)
@@ -1266,7 +1268,7 @@ describe('/api/destiny-map/chat-stream POST - Theme Context', () => {
       '/ask-stream',
       expect.objectContaining({
         theme: 'love',
-        prompt: expect.stringContaining('love ('),
+        prompt: expect.stringContaining('relationships / love'),
       }),
       expect.any(Object)
     )
@@ -1276,6 +1278,8 @@ describe('/api/destiny-map/chat-stream POST - Theme Context', () => {
     const req = createNextRequest({
       ...createBasicRequest(),
       theme: 'career',
+      lang: 'en',
+      messages: [{ role: 'user', content: 'Should I change jobs this year?' }],
     })
 
     await POST(req)
@@ -1284,7 +1288,7 @@ describe('/api/destiny-map/chat-stream POST - Theme Context', () => {
       '/ask-stream',
       expect.objectContaining({
         theme: 'career',
-        prompt: expect.stringContaining('career ('),
+        prompt: expect.stringContaining('career / work'),
       }),
       expect.any(Object)
     )
@@ -1332,7 +1336,7 @@ describe('/api/destiny-map/chat-stream POST - Theme Context', () => {
     expect(apiClient.postSSEStream).toHaveBeenCalledWith(
       '/ask-stream',
       expect.objectContaining({
-        theme: 'invalid_theme',
+        theme: 'chat',
       }),
       expect.any(Object)
     )

@@ -5,6 +5,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   loadUserProfile,
+  loadPersonaMemory,
+  __testUtils,
   type ProfileLoadResult,
   type MemoryLoadResult,
 } from '@/app/api/destiny-map/chat-stream/lib/profileLoader'
@@ -16,7 +18,10 @@ vi.mock('@/lib/db/prisma', () => ({
     user: {
       findUnique: vi.fn(),
     },
-    consultationSession: {
+    personaMemory: {
+      findUnique: vi.fn(),
+    },
+    counselorChatSession: {
       findMany: vi.fn(),
     },
   },
@@ -37,6 +42,8 @@ describe('ProfileLoader', () => {
     vi.clearAllMocks()
     // Reset default mock to return null
     vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
+    vi.mocked(prisma.personaMemory.findUnique).mockResolvedValue(null)
+    vi.mocked(prisma.counselorChatSession.findMany).mockResolvedValue([])
   })
 
   describe('loadUserProfile', () => {
@@ -253,6 +260,51 @@ describe('ProfileLoader', () => {
       expect(result).toBeDefined()
       expect(typeof result.personaMemoryContext).toBe('string')
       expect(typeof result.recentSessionSummaries).toBe('string')
+    })
+  })
+
+  describe('loadPersonaMemory', () => {
+    it('omits theme filtering for unified chat counselor memory', async () => {
+      vi.mocked(prisma.counselorChatSession.findMany).mockResolvedValue([])
+
+      await loadPersonaMemory('user123', 'chat', 'ko')
+
+      expect(prisma.counselorChatSession.findMany).toHaveBeenCalledWith({
+        where: {
+          userId: 'user123',
+        },
+        orderBy: { updatedAt: 'desc' },
+        take: 3,
+        select: {
+          summary: true,
+          keyTopics: true,
+          updatedAt: true,
+        },
+      })
+    })
+
+    it('keeps explicit theme filtering for legacy themed sessions', async () => {
+      await loadPersonaMemory('user123', 'love', 'en')
+
+      expect(prisma.counselorChatSession.findMany).toHaveBeenCalledWith({
+        where: {
+          userId: 'user123',
+          theme: 'love',
+        },
+        orderBy: { updatedAt: 'desc' },
+        take: 3,
+        select: {
+          summary: true,
+          keyTopics: true,
+          updatedAt: true,
+        },
+      })
+    })
+
+    it('buildSessionThemeWhere returns undefined for chat and empty themes', () => {
+      expect(__testUtils.buildSessionThemeWhere('chat')).toBeUndefined()
+      expect(__testUtils.buildSessionThemeWhere('')).toBeUndefined()
+      expect(__testUtils.buildSessionThemeWhere('career')).toEqual({ theme: 'career' })
     })
   })
 

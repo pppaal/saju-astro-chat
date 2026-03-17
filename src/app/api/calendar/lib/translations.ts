@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file Calendar API translations
  * Saju and Astrology factor translations - extracted from route.ts
  */

@@ -83,6 +83,17 @@ def normalize_day_master(saju_data: dict) -> dict:
     return saju_data
 
 
+def _clean_divination_context(value):
+    """Normalize nested reading context into JSON-serializable primitives."""
+    if isinstance(value, dict):
+        return {str(key): _clean_divination_context(val) for key, val in value.items()}
+    if isinstance(value, list):
+        return [_clean_divination_context(item) for item in value[:12]]
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    return str(value)
+
+
 # ===============================================================
 # Jung data loader
 # ===============================================================
@@ -354,11 +365,11 @@ def counseling_integrated():
         # Build divination context
         divination_context = {}
         if saju_data:
-            divination_context["saju"] = str(saju_data)
+            divination_context["saju"] = _clean_divination_context(saju_data)
         if astro_data:
-            divination_context["astrology"] = str(astro_data)
+            divination_context["astrology"] = _clean_divination_context(astro_data)
         if tarot_data:
-            divination_context["tarot"] = str(tarot_data)
+            divination_context["tarot"] = _clean_divination_context(tarot_data)
 
         # Process message
         result = engine.process_message(

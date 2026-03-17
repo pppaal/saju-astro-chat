@@ -10,6 +10,7 @@
   gap: 20px;
   animation: fadeIn 0.6s ease-out;
   flex: 1;
+  position: relative;
 }
 
 /* ========== Notice Bar ========== */
@@ -1401,10 +1402,10 @@
 
 /* ========== Connection Status Indicator ========== */
 .connectionStatus {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 30;
   padding: 12px 20px;
   border-radius: 12px;
   font-size: 14px;

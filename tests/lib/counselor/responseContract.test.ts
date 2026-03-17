@@ -4,27 +4,33 @@ import { normalizeCounselorResponse } from '@/lib/counselor/responseContract'
 describe('normalizeCounselorResponse', () => {
   it('keeps content when all required ko headings exist', () => {
     const input = [
-      '## í•œ ì¤„ ê²°ë¡ ',
-      'ì§€ê¸ˆì€ ê²€í†  í›„ í™•ì •í•˜ëŠ” íë¦„ì´ ì¢‹ìŠµë‹ˆë‹¤.',
-      '## ê·¼ê±°',
-      '- ê·¼ê±° A',
-      '## ì‹¤í–‰ ê³„íš',
-      '- ì‹¤í–‰ A',
-      '## ì£¼ì˜/ìž¬í™•ì¸',
-      '- ì£¼ì˜ A',
+      '## 한 줄 결론',
+      '지금은 검토 후 확정하는 흐름이 좋습니다.',
+      '## 근거',
+      '- 근거 A',
+      '## 실행 계획',
+      '- 실행 A',
+      '## 주의/재확인',
+      '- 주의 A',
     ].join('\n')
 
     expect(normalizeCounselorResponse(input, 'ko')).toBe(input)
   })
 
-  it('converts plain ko text into required heading format', () => {
-    const input = 'ì˜¤ëŠ˜ì€ ì¤‘ìš”í•œ ê²°ì •ì„ ì„œë‘ë¥´ì§€ ë§ê³  ê²€í† ë¥¼ ë¨¼ì € í•˜ì„¸ìš”.'
-    const output = normalizeCounselorResponse(input, 'ko')
+  it('normalizes compact ko headings without space/newline', () => {
+    const input = [
+      '##한줄결론지금은 검토 후 확정하는 흐름이 좋습니다.',
+      '##근거- 근거 A',
+      '##실행계획- 실행 A',
+      '##주의/재확인- 주의 A',
+    ].join('\n')
 
-    expect(output).toContain('## í•œ ì¤„ ê²°ë¡ ')
-    expect(output).toContain('## ê·¼ê±°')
-    expect(output).toContain('## ì‹¤í–‰ ê³„íš')
-    expect(output).toContain('## ì£¼ì˜/ìž¬í™•ì¸')
+    const output = normalizeCounselorResponse(input, 'ko')
+    expect(output).toContain('## 한 줄 결론')
+    expect(output).toContain('## 근거')
+    expect(output).toContain('## 실행 계획')
+    expect(output).toContain('## 주의/재확인')
+    expect(output).toContain('지금은 검토 후 확정하는 흐름이 좋습니다.')
   })
 
   it('converts plain en text into required heading format', () => {

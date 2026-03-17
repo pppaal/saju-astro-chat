@@ -773,9 +773,63 @@ describe('POST /api/destiny-matrix/ai-report', () => {
       expect(data.reportType).toBe('free')
       expect(data.creditsUsed).toBe(0)
       expect(data.report?.tier).toBe('free')
+      expect(data.report?.id).toBe('saved-report-db-001')
       expect(data.report?.topInsights?.length).toBeGreaterThan(0)
+      expect(data.report?.sections?.length).toBeGreaterThan(0)
       expect(consumeCredits).not.toHaveBeenCalled()
-      expect(prisma.destinyMatrixReport.create).not.toHaveBeenCalled()
+      expect(prisma.destinyMatrixReport.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          userId: 'user-abc-123',
+          reportType: 'free',
+          period: null,
+          theme: null,
+          summary: expect.any(String),
+          overallScore: expect.any(Number),
+          grade: expect.any(String),
+        }),
+      })
+    })
+
+    it('should adapt free digest copy for themed requests', async () => {
+      const req = createPostRequest({ ...MOCK_VALID_INPUT, reportTier: 'free', theme: 'career' })
+      const response = await POST(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.reportType).toBe('free')
+      expect(data.report?.headline).toContain('\uCEE4\uB9AC\uC5B4')
+      expect(data.report?.summary).toContain('\uCEE4\uB9AC\uC5B4')
+      expect(data.report?.nextSteps?.[0]).toContain('\uC5ED\uD560')
+      expect(data.report?.sections?.[1]?.content).toContain('\uD14C\uC2A4\uD2B8 \uC778\uC0AC\uC774\uD2B8')
+      expect(data.report?.sections?.[2]?.content).toContain('\uCEE4\uB9AC\uC5B4(')
+      expect(data.report?.sections?.[3]?.content).toContain(data.report?.nextSteps?.[0])
+    })
+
+    it('should adapt free digest copy for timing requests', async () => {
+      const req = createPostRequest({ ...MOCK_VALID_INPUT, reportTier: 'free', period: 'daily' })
+      const response = await POST(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.reportType).toBe('free')
+      expect(data.report?.headline).toContain('\uC624\uB298')
+      expect(data.report?.summary).toContain('\uC21C\uC11C')
+      expect(data.report?.nextSteps?.[0]).toContain('\uC624\uB298')
+      expect(data.report?.sections?.[1]?.content).toContain(data.report?.nextSteps?.[0])
+      expect(data.report?.sections?.[2]?.content).toContain('\uCEE4\uB9AC\uC5B4(')
+      expect(data.report?.sections?.[3]?.content).toContain('\uD14C\uC2A4\uD2B8 \uC778\uC0AC\uC774\uD2B8')
+    })
+
+    it('should persist comprehensive period as comprehensive report type', async () => {
+      const req = createPostRequest({ ...MOCK_VALID_INPUT, period: 'comprehensive' })
+      await POST(req)
+
+      expect(prisma.destinyMatrixReport.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          reportType: 'comprehensive',
+          period: 'comprehensive',
+        }),
+      })
     })
   })
 

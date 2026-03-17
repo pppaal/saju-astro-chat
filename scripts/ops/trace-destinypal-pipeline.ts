@@ -14,6 +14,7 @@ import type {
 } from '../../src/lib/destiny-matrix/types'
 import { reportGenerator } from '../../src/lib/destiny-matrix/interpreter'
 import { runDestinyCore } from '../../src/lib/destiny-matrix/core/runDestinyCore'
+import { buildNextGenCorePipeline } from '../../src/lib/destiny-matrix/core/nextGenPipeline'
 import {
   buildGraphRAGEvidence,
   summarizeGraphRAGEvidence,
@@ -584,6 +585,11 @@ async function main() {
     matrixSummary: matrix.summary,
   })
   mark('post-runDestinyCore-themed')
+  const nextGen = buildNextGenCorePipeline({
+    matrixInput,
+    core: coreComprehensive,
+  })
+  mark('post-buildNextGenCorePipeline')
 
   const sectionPaths = [
     'introduction',
@@ -1009,6 +1015,23 @@ async function main() {
             totalSets: graphSummary.totalSets,
           }
         : null,
+    },
+    step9b_input_verdict_audit: {
+      functionPath:
+        'src/lib/destiny-matrix/core/nextGenPipeline.ts -> buildNextGenCorePipeline + src/lib/destiny-matrix/core/inputVerdictAudit.ts -> buildInputVerdictAudit',
+      summary: nextGen.inputAudit.summary,
+      evaluationSummary: {
+        confidenceBand: nextGen.evaluation.calibration.confidenceBand,
+        crossAgreementBand: nextGen.evaluation.calibration.crossAgreementBand,
+        timingSharpness: nextGen.evaluation.calibration.timingSharpness,
+        topScenarioGap: nextGen.evaluation.calibration.topScenarioGap,
+        topDecisionGap: nextGen.evaluation.calibration.topDecisionGap,
+        scenarioClusterCompression: nextGen.evaluation.calibration.scenarioClusterCompression,
+        overcommitRisk: nextGen.evaluation.calibration.overcommitRisk,
+        irreversibilityPressure: nextGen.evaluation.calibration.irreversibilityPressure,
+      },
+      entries: nextGen.inputAudit.entries,
+      evaluation: nextGen.evaluation,
     },
     step10_output_adapter_check: {
       calendar: adapterCalendar,

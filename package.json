@@ -40,6 +40,7 @@
     "test:tarot": "vitest run tests/lib/Tarot",
     "test:tarot:fallback-quality": "vitest run tests/lib/Tarot/fallbackQualityGoldenSet.test.ts",
     "test:tarot:interpret-quality": "vitest run tests/lib/Tarot/interpretationQualityBenchmark.test.ts",
+    "eval:tarot:export": "tsx scripts/export-tarot-user-eval.ts --limit 500 --days 120 --out reports/quality/tarot_user_eval_seed.jsonl",
     "test:destiny-map": "vitest run tests/destiny-map-api-smoke.test.ts tests/destiny-map-sanitize.test.ts tests/destinyCalendar.test.ts tests/lib/destiny-map/destinyCalendar.test.ts",
     "test:performance": "vitest run tests/performance/api-endpoints.test.ts --reporter=verbose",
     "test:performance:watch": "vitest watch tests/performance/api-endpoints.test.ts",

@@ -1,6 +1,6 @@
 # Documentation Hub
 
-Last audited: 2026-02-15 (Asia/Seoul)
+Last audited: 2026-03-16 (Asia/Hong_Kong)
 
 This is the canonical documentation index for the active codebase.
 
@@ -26,6 +26,7 @@ This is the canonical documentation index for the active codebase.
 - `DOCS_INDEX.md`: high-level documentation map by audience
 - `DOCS_AUDIT_REPORT_2026-02-15.md`: doc re-audit report and command outcomes
 - `API_AUDIT_REPORT.md`: generated API route audit (`npm run audit:api`)
+- `PROJECT_QUALITY_REVIEW_2026-03-16.md`: current product quality review across tarot, counselor, calendar, and report
 
 ## Canonical vs Historical
 

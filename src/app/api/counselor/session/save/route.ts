@@ -15,6 +15,7 @@ import {
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
+import { deriveCounselorStorageSignals } from '@/app/api/destiny-map/chat-stream/lib/focusDomain'
 
 export const dynamic = 'force-dynamic'
 
@@ -71,7 +72,14 @@ export const POST = withApiMiddleware(
     }
 
     const { sessionId, theme = 'chat', messages, locale = 'ko' } = validationResult.data
-    const normalizedTheme = normalizeReportTheme(theme) || theme
+    const lastUserMessage =
+      [...messages].reverse().find((message) => message.role === 'user')?.content || null
+    const storageSignals = deriveCounselorStorageSignals({
+      lastUserMessage,
+      theme,
+    })
+    const explicitTheme = theme === 'chat' ? null : normalizeReportTheme(theme) || theme
+    const normalizedTheme = explicitTheme || storageSignals.inferredTheme
 
     if (!sessionId || !messages.length) {
       return createErrorResponse({
@@ -102,6 +110,7 @@ export const POST = withApiMiddleware(
       chatSession = await prisma.counselorChatSession.update({
         where: { id: sessionId },
         data: {
+          theme: normalizedTheme,
           messages: messages as never,
           messageCount: messages.length,
           lastMessageAt: new Date(),
@@ -156,6 +165,7 @@ export const POST = withApiMiddleware(
             messages: messages as never,
             messageCount: messages.length,
             lastMessageAt: new Date(),
+            theme: normalizedTheme,
           },
         })
         saveMode = 'create-race-recovery'

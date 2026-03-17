@@ -39,7 +39,7 @@ const Chat = memo(function Chat({
   profile,
   initialContext = '',
   lang = 'ko',
-  theme = 'focus_career',
+  theme = 'chat',
   seedEvent = 'chat:seed',
   saju,
   astro,

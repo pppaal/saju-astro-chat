@@ -1,6 +1,10 @@
 import React, { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
+import {
+  getQuestionIntent,
+  type TarotQuestionAnalysisSnapshot,
+} from '@/lib/Tarot/questionFlow'
 import styles from '../../../tarot-reading.module.css'
 import type { ReadingResponse, InterpretationResult } from '../../../types'
 import type { DeckStyle } from '@/lib/Tarot/tarot.types'
@@ -8,8 +12,6 @@ import type { CardColor } from '../../../constants'
 import {
   HorizontalCardsGrid,
   DetailedCardsSection,
-  OverallMessageChat,
-  CardInterpretationChat,
   ActionButtons,
 } from '../../index'
 import { ResultsHeader } from './ResultsHeader'
@@ -31,6 +33,7 @@ export interface ResultsStageProps {
   language: string
   translate: (key: string, fallback: string) => string
   userTopic: string
+  questionAnalysis: TarotQuestionAnalysisSnapshot | null
   handleCardReveal: (index: number) => void
   canRevealCard: (index: number) => boolean
   isCardRevealed: (index: number) => boolean
@@ -44,7 +47,7 @@ export interface ResultsStageProps {
 }
 
 type LikelihoodLevel = 'high' | 'medium' | 'low'
-type InterpretationSource = NonNullable<InterpretationResult['interpretation_source']> | 'unknown'
+type QuestionIntent = 'yesNo' | 'flow' | 'open'
 
 function firstSentence(text: string): string {
   const cleaned = (text || '').replace(/\s+/g, ' ').trim()
@@ -76,8 +79,7 @@ function normalizeGuidanceLines(guidance: InterpretationResult['guidance'] | und
 
   if (Array.isArray(guidance)) {
     return guidance
-      .flatMap((item) => [item?.title || '', item?.detail || ''])
-      .map((line) => line.trim())
+      .map((item) => (item?.detail || item?.title || '').trim())
       .filter(Boolean)
   }
 
@@ -164,7 +166,7 @@ function fallbackAttitudeLine(level: LikelihoodLevel, language: string): string 
 }
 
 function getInterpretationSourceInfo(
-  source: InterpretationSource,
+  source: string,
   language: string
 ): { label: string; detail: string; isPrimary: boolean } {
   if (source === 'backend_rag') {
@@ -231,6 +233,7 @@ export function ResultsStage(props: ResultsStageProps) {
     language,
     translate,
     userTopic,
+    questionAnalysis,
     handleCardReveal,
     canRevealCard,
     isCardRevealed,
@@ -244,17 +247,11 @@ export function ResultsStage(props: ResultsStageProps) {
   } = props
 
   const insight = interpretation
-  const hasOverallMessage = Boolean(insight?.overall_message?.trim())
-  const hasCardInterpretations = Boolean(
-    insight?.card_insights?.some(
-      (entry) => typeof entry?.interpretation === 'string' && entry.interpretation.trim().length > 0
-    )
-  )
-  const showInterpretationLoading =
-    Boolean(insight?.fallback) && !hasOverallMessage && !hasCardInterpretations
   const [showLayer2Cards, setShowLayer2Cards] = useState(false)
-  const interpretationSource: InterpretationSource = insight?.interpretation_source || 'unknown'
-  const sourceInfo = getInterpretationSourceInfo(interpretationSource, language)
+  const questionIntent = useMemo<QuestionIntent>(
+    () => getQuestionIntent(userTopic, questionAnalysis),
+    [userTopic, questionAnalysis]
+  )
 
   const quickSummary = useMemo(() => {
     if (!insight) return null
@@ -285,11 +282,25 @@ export function ResultsStage(props: ResultsStageProps) {
     if (!conclusion && reasons.length === 0 && !actionLine) return null
 
     return {
+      answerHeader:
+        questionIntent === 'flow'
+          ? language === 'ko'
+            ? '흐름 요약'
+            : 'Flow Summary'
+          : questionIntent === 'yesNo'
+            ? language === 'ko'
+              ? '질문 직접답'
+              : 'Direct Answer'
+            : language === 'ko'
+              ? '핵심 요약'
+              : 'Key Summary',
       directAnswer:
         conclusion ||
+        firstSentence(questionAnalysis?.direct_answer || '') ||
         (language === 'ko'
           ? '카드 흐름상 지금은 서두르기보다 조건을 점검하는 단계입니다.'
           : 'Card flow suggests validating conditions before moving quickly.'),
+      showLikelihood: questionIntent === 'yesNo',
       likelihoodLevel,
       likelihoodBadge: getLikelihoodBadge(likelihoodLevel, language),
       reasonOneLine,
@@ -314,7 +325,15 @@ export function ResultsStage(props: ResultsStageProps) {
       avoidLine,
       attitudeLine,
     }
-  }, [insight, language])
+  }, [insight, language, questionIntent, questionAnalysis?.direct_answer])
+
+  const handleCardSelect = (index: number) => {
+    setShowLayer2Cards(true)
+    if (expandedCard !== index) {
+      toggleCardExpand(index)
+    }
+    scrollToDetails()
+  }
 
   return (
     <div className={styles.resultsContainer}>
@@ -334,6 +353,7 @@ export function ResultsStage(props: ResultsStageProps) {
         onCardReveal={handleCardReveal}
         canRevealCard={canRevealCard}
         isCardRevealed={isCardRevealed}
+        onCardSelect={handleCardSelect}
         translate={translate}
       />
 
@@ -357,8 +377,9 @@ export function ResultsStage(props: ResultsStageProps) {
         <section className={styles.quickAnswerPanel}>
           <div className={styles.quickAnswerTopRow}>
             <div className={styles.quickAnswerHeader}>
-              {language === 'ko' ? '질문 직접답' : 'Direct Answer'}
+              {quickSummary.answerHeader}
             </div>
+            {quickSummary.showLikelihood && (
             <span
               className={`${styles.likelihoodBadge} ${
                 quickSummary.likelihoodLevel === 'high'
@@ -370,6 +391,7 @@ export function ResultsStage(props: ResultsStageProps) {
             >
               {quickSummary.likelihoodBadge}
             </span>
+            )}
           </div>
           <p className={styles.quickAnswerConclusion}>
             <strong>{language === 'ko' ? '답변:' : 'Answer:'}</strong> {quickSummary.directAnswer}
@@ -414,12 +436,6 @@ export function ResultsStage(props: ResultsStageProps) {
         translate={translate}
         mode="summary"
       />
-      <CardInterpretationChat
-        readingResult={readingResult}
-        interpretation={interpretation}
-        language={language}
-      />
-
       {insight?.fallback ? (
         <div className={styles.interpretationFallbackNotice} role="status" aria-live="polite">
           <div className={styles.interpretationNoticeHeader}>
@@ -445,22 +461,6 @@ export function ResultsStage(props: ResultsStageProps) {
             : '✅ AI interpretation generated successfully.'}
         </div>
       )}
-      <OverallMessageChat
-        message={insight?.overall_message}
-        isLoading={showInterpretationLoading}
-        language={language}
-        mode="compact"
-      />
-      <div
-        className={`${styles.interpretationSourceNotice} ${
-          sourceInfo.isPrimary
-            ? styles.interpretationSourcePrimary
-            : styles.interpretationSourceFallback
-        }`}
-      >
-        <strong>{sourceInfo.label}</strong> {sourceInfo.detail}
-      </div>
-
       <div className={styles.resultSectionTag}>
         {language === 'ko' ? '마지막 조언' : 'Final Advice'}
       </div>

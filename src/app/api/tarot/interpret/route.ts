@@ -12,6 +12,10 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { tarotInterpretRequestSchema } from '@/lib/api/zodValidation'
 import { evaluateTarotInterpretationQuality } from '@/lib/Tarot/interpretationQuality'
+import {
+  buildQuestionContextPrompt,
+  type TarotQuestionAnalysisSnapshot,
+} from '@/lib/Tarot/questionFlow'
 import { recordCounter, recordTiming } from '@/lib/metrics'
 
 interface CardInput {
@@ -103,6 +107,15 @@ function contextForPrompt(
   } catch {
     return undefined
   }
+}
+
+function normalizeQuestionContext(
+  value: unknown
+): TarotQuestionAnalysisSnapshot | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return undefined
+  }
+  return value as TarotQuestionAnalysisSnapshot
 }
 
 function truncateToMax(value: unknown, maxLength: number): string | unknown {
@@ -695,11 +708,18 @@ export const POST = withApiMiddleware(
         includeSaju = true,
         sajuContext,
         astroContext,
+        questionContext,
       } = validationResult.data
 
       fallbackCards = validatedCards
       fallbackLanguage = language
-      fallbackQuestion = userQuestion
+      const normalizedQuestionContext = normalizeQuestionContext(questionContext)
+      const enrichedUserQuestion = buildQuestionContextPrompt(
+        userQuestion || '',
+        normalizedQuestionContext,
+        language
+      )
+      fallbackQuestion = enrichedUserQuestion
 
       const parsedSajuContext =
         includeSaju && sajuContext
@@ -748,7 +768,7 @@ export const POST = withApiMiddleware(
               is_reversed: c.isReversed,
               position: c.position,
             })),
-            user_question: userQuestion,
+            user_question: enrichedUserQuestion,
             language,
             birthdate: includeAstrology ? birthdate : undefined,
             moon_phase: moonPhase,
@@ -783,14 +803,14 @@ export const POST = withApiMiddleware(
             validatedCards,
             spreadTitle,
             language,
-            userQuestion,
+            enrichedUserQuestion,
             promptSajuContext,
             promptAstroContext
           )
           interpretationSource = 'gpt_fallback'
         } catch (gptErr) {
           logger.error('GPT interpretation failed:', gptErr)
-          result = buildEmergencyFallbackResult(validatedCards, language, userQuestion)
+          result = buildEmergencyFallbackResult(validatedCards, language, enrichedUserQuestion)
           interpretationSource = 'emergency_fallback'
           recordCounter('tarot.interpret.fallback_total', 1, { from: 'gpt', to: 'emergency' })
         }
@@ -800,7 +820,7 @@ export const POST = withApiMiddleware(
         rawResult: result,
         cards: validatedCards,
         language,
-        userQuestion,
+        userQuestion: enrichedUserQuestion,
       })
 
       if (

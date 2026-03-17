@@ -10,6 +10,11 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { tarotSaveRequestSchema, tarotQuerySchema } from '@/lib/api/zodValidation'
+import {
+  buildStoredCardsPayload,
+  extractStoredCards,
+  extractStoredQuestionContext,
+} from '@/lib/Tarot/savedReadingPayload'
 
 export const dynamic = 'force-dynamic'
 
@@ -74,6 +79,7 @@ export const POST = withApiMiddleware(
       source = 'standalone',
       counselorSessionId,
       locale = 'ko',
+      questionContext,
     } = body
 
     const tarotReading = await prisma.tarotReading.create({
@@ -83,7 +89,7 @@ export const POST = withApiMiddleware(
         theme,
         spreadId,
         spreadTitle,
-        cards,
+        cards: buildStoredCardsPayload(cards, questionContext),
         overallMessage,
         cardInsights,
         guidance,
@@ -140,20 +146,29 @@ export const GET = withApiMiddleware(
           createdAt: true,
           question: true,
           theme: true,
+          spreadId: true,
           spreadTitle: true,
           cards: true,
           overallMessage: true,
+          guidance: true,
+          cardInsights: true,
           source: true,
         },
       }),
       prisma.tarotReading.count({ where }),
     ])
 
+    const normalizedReadings = readings.map((reading) => ({
+      ...reading,
+      cards: extractStoredCards(reading.cards),
+      questionContext: extractStoredQuestionContext(reading.cards),
+    }))
+
     return apiSuccess({
       success: true,
-      readings,
+      readings: normalizedReadings,
       total,
-      hasMore: offset + readings.length < total,
+      hasMore: offset + normalizedReadings.length < total,
     })
   },
   createAuthenticatedGuard({

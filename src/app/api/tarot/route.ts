@@ -14,6 +14,7 @@ import { logger } from '@/lib/logger'
 type TarotBody = {
   categoryId?: string
   spreadId?: string
+  questionContext?: unknown
 }
 
 function drawCards(count: number): DrawnCard[] {
@@ -56,7 +57,7 @@ export const POST = withApiMiddleware(
         })
       }
 
-      const { categoryId, spreadId } = validationResult.data
+      const { categoryId, spreadId, questionContext } = validationResult.data
 
       const creditResult = await checkCreditsOnly('reading', 1)
       if (!creditResult.allowed) {
@@ -93,6 +94,7 @@ export const POST = withApiMiddleware(
         category: theme.category,
         spread,
         drawnCards,
+        questionContext: questionContext || null,
       })
     } catch (error) {
       recordApiRequest('tarot', 'generate', 'error', Date.now() - startTime)

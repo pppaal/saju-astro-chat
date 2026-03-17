@@ -17,6 +17,7 @@ import { getHourlyRecommendation } from '@/lib/destiny-map/calendar/specialDays-
 import { apiClient } from '@/lib/api/ApiClient'
 import { checkPremiumFromDatabase } from '@/lib/stripe/premiumCache'
 import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
+import { formatDecisionActionLabels, formatPolicyCheckLabels } from '@/lib/destiny-matrix/core/actionCopy'
 
 type TimelineTone = 'best' | 'caution' | 'neutral'
 type SlotType = 'deepWork' | 'decision' | 'communication' | 'money' | 'relationship' | 'recovery'
@@ -154,6 +155,31 @@ type ActionPlanCalendarContext = {
   sajuFactors?: string[]
   astroFactors?: string[]
   summary?: string
+  canonicalCore?: {
+    focusDomain?: string
+    phase?: string
+    phaseLabel?: string
+    thesis?: string
+    riskControl?: string
+    primaryAction?: string
+    primaryCaution?: string
+    topDecisionLabel?: string
+    attackPercent?: number
+    defensePercent?: number
+    confidence?: number
+    judgmentPolicy?: {
+      mode?: 'execute' | 'verify' | 'prepare'
+      rationale?: string
+      allowedActions?: string[]
+      allowedActionLabels?: string[]
+      blockedActions?: string[]
+      blockedActionLabels?: string[]
+      hardStops?: string[]
+      hardStopLabels?: string[]
+      softChecks?: string[]
+      softCheckLabels?: string[]
+    }
+  }
   evidence?: CalendarEvidence
 } | null
 
@@ -285,6 +311,35 @@ const actionPlanTimelineRequestSchema = z.object({
         .optional(),
       title: z.string().max(TEXT_LIMITS.MAX_TITLE).optional(),
       summary: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+      canonicalCore: z
+        .object({
+          focusDomain: z.string().max(32).optional(),
+          phase: z.string().max(48).optional(),
+          phaseLabel: z.string().max(60).optional(),
+          thesis: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+          riskControl: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+          primaryAction: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+          primaryCaution: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+          topDecisionLabel: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+          attackPercent: z.number().min(0).max(100).optional(),
+          defensePercent: z.number().min(0).max(100).optional(),
+          confidence: z.number().min(0).max(1).optional(),
+          judgmentPolicy: z
+            .object({
+              mode: z.enum(['execute', 'verify', 'prepare']).optional(),
+              rationale: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+              allowedActions: z.array(z.string().max(64)).max(8).optional(),
+              allowedActionLabels: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
+              blockedActions: z.array(z.string().max(64)).max(8).optional(),
+              blockedActionLabels: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
+              hardStops: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
+              hardStopLabels: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
+              softChecks: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
+              softCheckLabels: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
+            })
+            .optional(),
+        })
+        .optional(),
       ganzhi: z.string().max(TEXT_LIMITS.MAX_TITLE).optional(),
       transitSunSign: z.string().max(TEXT_LIMITS.MAX_TITLE).optional(),
       evidence: z
@@ -786,6 +841,10 @@ function getMatrixPacket(calendar?: ActionPlanCalendarContext): MatrixEvidencePa
   return calendar?.evidence?.matrixPacket
 }
 
+function getCanonicalCore(calendar?: ActionPlanCalendarContext) {
+  return calendar?.canonicalCore
+}
+
 function getMatrixVerdict(calendar?: ActionPlanCalendarContext) {
   return calendar?.evidence?.matrixVerdict
 }
@@ -1067,7 +1126,11 @@ function buildSlotGuardrail(input: {
   calendar?: ActionPlanCalendarContext
 }): string {
   const { locale, slotTypes, tone, calendar } = input
-  const matrixGuardrail = cleanGuidanceText(getMatrixVerdict(calendar)?.guardrail || '', 120)
+  const canonical = getCanonicalCore(calendar)
+  const matrixGuardrail = cleanGuidanceText(
+    canonical?.primaryCaution || canonical?.riskControl || getMatrixVerdict(calendar)?.guardrail || '',
+    120
+  )
   const slotSpecific =
     tone === 'caution'
       ? locale === 'ko'
@@ -1172,24 +1235,39 @@ function buildSlotNarrative(input: {
 }): string {
   const { locale, hour, tone, slotTypes, category, calendar, fallbackNote, source } = input
   const packet = getMatrixPacket(calendar)
+  const canonical = getCanonicalCore(calendar)
   const verdict = getMatrixVerdict(calendar)
-  const packetEvidence = getRelevantPacketEvidence({
-    packet,
-    slotTypes,
-    category,
-    tone,
-  })
+  const packetEvidence = canonical
+    ? { claims: [], anchors: [], scenarios: [], signals: [] }
+    : getRelevantPacketEvidence({
+        packet,
+        slotTypes,
+        category,
+        tone,
+      })
   const focusHint = cleanGuidanceText(getCategoryFocusHint(category, hour, locale), 42)
   const phase = cleanGuidanceText(
-    verdict?.phase || packet?.strategyBrief?.overallPhaseLabel || '',
+    canonical?.phaseLabel ||
+      canonical?.phase ||
+      verdict?.phase ||
+      '',
     36
   )
   const claim = cleanGuidanceText(
-    packetEvidence.claims[0]?.text || verdict?.topClaim || verdict?.verdict || '',
+    canonical?.topDecisionLabel ||
+      canonical?.thesis ||
+      packetEvidence.claims[0]?.text ||
+      verdict?.topClaim ||
+      verdict?.verdict ||
+      '',
     100
   )
   const anchor = cleanGuidanceText(
-    packetEvidence.anchors[0]?.summary || verdict?.topAnchorSummary || '',
+    canonical?.riskControl ||
+      canonical?.judgmentPolicy?.rationale ||
+      packetEvidence.anchors[0]?.summary ||
+      verdict?.topAnchorSummary ||
+      '',
     84
   )
   const scenario = cleanGuidanceText(
@@ -1235,6 +1313,7 @@ function analyzeConfidenceMeta(input: {
   const { locale, slot, calendar, baselineConfidence, why } = input
   const isKo = locale === 'ko'
   const packet = getMatrixPacket(calendar)
+  const canonical = getCanonicalCore(calendar)
   const base = typeof baselineConfidence === 'number' ? baselineConfidence : 62
   const toneDelta = slot.tone === 'best' ? 14 : slot.tone === 'caution' ? -18 : 0
   const sourceDelta = slot.source === 'hybrid' ? 8 : slot.source === 'rag' ? 4 : 0
@@ -1251,13 +1330,13 @@ function analyzeConfidenceMeta(input: {
   )
   const bestBonus = bestHit ? 4 : 0
   const cautionPenalty = warningHit ? -6 : 0
-  const packetBonus = Math.min(10, packetSetCount + Math.min(4, packetClaimCount))
+  const packetBonus = canonical ? 0 : Math.min(10, packetSetCount + Math.min(4, packetClaimCount))
 
   const reasons: string[] = []
   if (bestHit && warningHit) reasons.push(isKo ? '근거 충돌' : 'Evidence conflict')
-  if (why.anchorIds.length < 1 || packetAnchorCount < 1)
+  if (why.anchorIds.length < 1 || (!canonical && packetAnchorCount < 1))
     reasons.push(isKo ? 'anchor 부족' : 'Anchor shortage')
-  if (why.signalIds.length < 3 || packetSignalCount < 3)
+  if (why.signalIds.length < 3 || (!canonical && packetSignalCount < 3))
     reasons.push(isKo ? 'signal 밀도 낮음' : 'Low signal density')
   if (slot.tone === 'caution') reasons.push(isKo ? '리스크 구간' : 'Risk window')
   if (base < 55) reasons.push(isKo ? '기본 신뢰도 낮음' : 'Low baseline confidence')
@@ -1278,6 +1357,7 @@ function buildDeltaToday(input: {
 }): string {
   const { locale, timeline, calendar } = input
   const packet = getMatrixPacket(calendar)
+  const canonical = getCanonicalCore(calendar)
   const bestCount = timeline.filter((slot) => slot.tone === 'best').length
   const cautionCount = timeline.filter((slot) => slot.tone === 'caution').length
   const avgConfidence =
@@ -1290,11 +1370,11 @@ function buildDeltaToday(input: {
         )
       : 60
 
-  const topClaim = cleanGuidanceText(packet?.topClaims?.[0]?.text || '', 88)
+  const topClaim = cleanGuidanceText(canonical?.topDecisionLabel || canonical?.thesis || '', 88)
   const verdict = getMatrixVerdict(calendar)
   const primaryLine = topClaim || cleanGuidanceText(verdict?.verdict || '', 88)
-  const attack = verdict?.attackPercent ?? packet?.strategyBrief?.attackPercent ?? 0
-  const defense = verdict?.defensePercent ?? packet?.strategyBrief?.defensePercent ?? 0
+  const attack = canonical?.attackPercent ?? verdict?.attackPercent ?? 0
+  const defense = canonical?.defensePercent ?? verdict?.defensePercent ?? 0
 
   if (locale === 'ko') {
     if (attack >= defense + 15 && avgConfidence < 72) {
@@ -1344,18 +1424,52 @@ function buildActionPlanInsights(input: {
   const { locale, timeline, calendar, icp, persona, isPremiumUser } = input
   const isKo = locale === 'ko'
   const packet = getMatrixPacket(calendar)
+  const canonical = getCanonicalCore(calendar)
   const verdict = getMatrixVerdict(calendar)
   const bestSlot = timeline.find((slot) => slot.tone === 'best')
   const cautionSlot = timeline.find((slot) => slot.tone === 'caution')
   const topCategory = normalizeActionCategory(calendar?.categories?.[0])
-  const topClaim = cleanGuidanceText(verdict?.topClaim || packet?.topClaims?.[0]?.text || '', 110)
+  const topClaim = cleanGuidanceText(
+    canonical?.topDecisionLabel || canonical?.thesis || verdict?.topClaim || '',
+    110
+  )
   const topAnchor = cleanGuidanceText(
-    verdict?.topAnchorSummary || packet?.topAnchors?.[0]?.summary || '',
+    canonical?.riskControl ||
+      canonical?.judgmentPolicy?.rationale ||
+      verdict?.topAnchorSummary ||
+      '',
     96
   )
   const phaseLabel = cleanGuidanceText(
-    verdict?.phase || packet?.strategyBrief?.overallPhaseLabel || '',
+    canonical?.phaseLabel ||
+      canonical?.phase ||
+      verdict?.phase ||
+      '',
     48
+  )
+  const allowedActionCopy = formatDecisionActionLabels(
+    canonical?.judgmentPolicy?.allowedActionLabels?.length
+      ? canonical.judgmentPolicy.allowedActionLabels
+      : canonical?.judgmentPolicy?.allowedActions || [],
+    locale,
+    false
+  )
+  const blockedActionCopy = formatDecisionActionLabels(
+    canonical?.judgmentPolicy?.blockedActionLabels?.length
+      ? canonical.judgmentPolicy.blockedActionLabels
+      : canonical?.judgmentPolicy?.blockedActions || [],
+    locale,
+    true
+  )
+  const softCheckCopy = formatPolicyCheckLabels(
+    canonical?.judgmentPolicy?.softCheckLabels?.length
+      ? canonical.judgmentPolicy.softCheckLabels
+      : canonical?.judgmentPolicy?.softChecks || []
+  )
+  const hardStopCopy = formatPolicyCheckLabels(
+    canonical?.judgmentPolicy?.hardStopLabels?.length
+      ? canonical.judgmentPolicy.hardStopLabels
+      : canonical?.judgmentPolicy?.hardStops || []
   )
 
   const formatSlotLabel = (slot?: TimelineSlot) =>
@@ -1396,6 +1510,14 @@ function buildActionPlanInsights(input: {
           : 'If starting work, write one done-condition before execution.',
   ])
 
+  if (softCheckCopy[0]) {
+    ifThenRules.unshift(
+      isKo
+        ? `IF 실행 전 확인 THEN ${softCheckCopy[0]}`
+        : `Before execution, check this first: ${softCheckCopy[0]}`
+    )
+  }
+
   const situationTriggers = unique(
     [
       phaseLabel
@@ -1428,6 +1550,14 @@ function buildActionPlanInsights(input: {
     ],
     5
   )
+
+  if (hardStopCopy[0]) {
+    situationTriggers.unshift(
+      isKo
+        ? `즉시 중단 조건: ${hardStopCopy[0]}`
+        : `Immediate stop condition: ${hardStopCopy[0]}`
+    )
+  }
 
   const cautionSlots = timeline
     .filter((slot) => slot.tone === 'caution')
@@ -1513,6 +1643,12 @@ function buildActionPlanInsights(input: {
       4
     ),
   }
+
+  if (allowedActionCopy[0]) actionFramework.do.unshift(allowedActionCopy[0])
+  if (softCheckCopy[0]) actionFramework.do.push(softCheckCopy[0])
+  if (blockedActionCopy[0]) actionFramework.dont.unshift(blockedActionCopy[0])
+  if (hardStopCopy[0]) actionFramework.dont.push(hardStopCopy[0])
+  if (allowedActionCopy[1]) actionFramework.alternative.push(allowedActionCopy[1])
 
   const successKpi = unique(
     [
@@ -2273,3 +2409,6 @@ export const POST = withApiMiddleware(
     windowSeconds: 60,
   })
 )
+
+
+

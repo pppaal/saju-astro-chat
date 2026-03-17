@@ -1,0 +1,1299 @@
+{
+  "lang": "ko",
+  "results": [
+    {
+      "id": "relationship_push",
+      "theme": "love",
+      "lang": "ko",
+      "question": "요즘 관계가 애매한데 밀어붙여도 돼?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=relationship/timing actual=relationship"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "관계: 경계 정리 우선"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=경계/거리/기대치/검토 | pool=지금 우선은 관계: 경계 정리 우선입니다. relationship 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 관계: 경계 정리 우선 재정비 뒤 다시 살아나는 흐름 재정비 뒤 다시 살아나는 흐름 / 거리와 속도를 다시 맞추세요 / 관계 ..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 관계: 경계 정리 우선입니다. relationship 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Relationship Tension Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=목, currentWolun=N/A..."
+        }
+      ],
+      "focusDomain": "relationship",
+      "topDecisionLabel": "관계: 경계 정리 우선",
+      "verdict": "지금 우선은 관계: 경계 정리 우선입니다. relationship 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=목, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=",
+      "allowedActions": [
+        "거리와 속도를 다시 맞추세요",
+        "관계 경계를 다시 정리하세요",
+        "기대치를 먼저 명확히 하세요"
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=relationship graph_anchors=10 graph_sets=20 strategy=방어/재정렬 국면(54/46) [Canonical Core] grade=방어형 phase=방어/재정렬 국면 top_decision=관계: 경계 정리 우선 answer=relationship 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=재정비 뒤 다시 살아나는 흐름 caution=긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요. timing=now policy_mode=prepare allowed_actions=거리와 속도를 다시 맞추세요 | 관계 경계를 ..."
+    },
+    {
+      "id": "job_offer",
+      "theme": "career",
+      "lang": "ko",
+      "question": "이직 제안이 왔는데 바로 받아도 돼?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=career/timing actual=career"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "커리어: 검토 우선"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=검토/조건/협의/단계 | pool=지금 우선은 커리어: 검토 우선입니다. career 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 커리어: 검토 우선 공적 역할 확대 공적 역할 확대 / 승진/역할 검토를 먼저 하세요 / 조건 협의부터 하세요 지금 구간에 대운, 세운, 트..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 커리어: 검토 우선입니다. career 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Career Expansion Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=토, currentWolun=N/A..."
+        }
+      ],
+      "focusDomain": "career",
+      "topDecisionLabel": "커리어: 검토 우선",
+      "verdict": "지금 우선은 커리어: 검토 우선입니다. career 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=토, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=",
+      "allowedActions": [
+        "승진/역할 검토를 먼저 하세요",
+        "조건 협의부터 하세요",
+        "지금은 준비와 정보 수집에 집중하세요."
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=career graph_anchors=10 graph_sets=20 strategy=방어/재정렬 국면(46/54) [Canonical Core] grade=방어형 phase=방어/재정렬 국면 top_decision=커리어: 검토 우선 answer=career 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=공적 역할 확대 caution=긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요. timing=now policy_mode=prepare allowed_actions=승진/역할 검토를 먼저 하세요 | 조건 협의부터 하세요 | 지금은 준비와 정보 수집에..."
+    },
+    {
+      "id": "money_leak",
+      "theme": "wealth",
+      "lang": "ko",
+      "question": "돈이 새는 느낌인데 지금 뭘 막아야 해?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=wealth/timing actual=wealth"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "재정: 검토 우선"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=지출/보호/검토/조건 | pool=지금 우선은 재정: 검토 우선입니다. wealth 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 재정: 검토 우선 money expansion action money expansion action / 부채 구조를 재정리하세요 지금 구간에 ..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 재정: 검토 우선입니다. wealth 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "relationship caution"
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Wealth Volatility Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "wealth",
+      "topDecisionLabel": "재정: 검토 우선",
+      "verdict": "지금 우선은 재정: 검토 우선입니다. wealth 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "relationship caution",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "부채 구조를 재정리하세요",
+        "지금은 준비와 정보 수집에 집중하세요."
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=wealth graph_anchors=10 graph_sets=20 strategy=방어/재정렬 국면(50/50) [Canonical Core] grade=방어형 phase=방어/재정렬 국면 top_decision=재정: 검토 우선 answer=wealth 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=money expansion action caution=relationship caution timing=now policy_mode=prepare allowed_actions=부채 구조를 재정리하세요 | 지금은 준비와 정보 수집에 집중하세요. blocked_action..."
+    },
+    {
+      "id": "burnout",
+      "theme": "health",
+      "lang": "ko",
+      "question": "요즘 너무 지치는데 버텨야 돼 아니면 쉬어야 돼?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=health/timing actual=health"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "건강: 경계 정리 우선"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=회복/루틴/부하/경계 | pool=지금 우선은 건강: 경계 정리 우선입니다. health 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다 건강: 경계 정리 우선 재정비 뒤 다시 살아나는 흐름 재정비 뒤 다시 살아나는 흐름 / 회복 루틴을 먼저 복구하세요 지금 구간에 대운, ..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 건강: 경계 정리 우선입니다. health 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "recovery priority"
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Burnout Risk Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongin, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=토, currentWolun=N/A, ..."
+        }
+      ],
+      "focusDomain": "health",
+      "topDecisionLabel": "건강: 경계 정리 우선",
+      "verdict": "지금 우선은 건강: 경계 정리 우선입니다. health 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다",
+      "guardrail": "recovery priority",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongin, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=토, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06",
+      "allowedActions": [
+        "회복 루틴을 먼저 복구하세요",
+        "지금은 준비와 정보 수집에 집중하세요."
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=health graph_anchors=10 graph_sets=19 strategy=방어/재정렬 국면(50/50) [Canonical Core] grade=방어형 phase=방어/재정렬 국면 top_decision=건강: 경계 정리 우선 answer=health 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다. action=재정비 뒤 다시 살아나는 흐름 caution=recovery priority timing=now policy_mode=prepare allowed_actions=회복 루틴을 먼저 복구하세요 | 지금은 준비와 정보 수집에 집중하세요. blocked_actions=바로..."
+    },
+    {
+      "id": "relocation",
+      "theme": "life",
+      "lang": "ko",
+      "question": "이사나 생활 거점을 옮기는 게 맞아?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=move/timing/relationship actual=move"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "이동: 지금은 준비와 정보 수집에 집중하세요."
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=경로/거점/재확인/단계 | pool=지금 우선은 이동/변화: 거리와 속도를 다시 맞추세요입니다. move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 이동/변화: 거리와 속도를 다시 맞추세요 재정비 뒤 다시 살아나는 흐름 재정비 뒤 다시 살아나는 흐름 / 거리와 속도를 다..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 이동/변화: 거리와 속도를 다시 맞추세요입니다. move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "move 영역은 현재 국면과 도메인 주도권 기준으로 당장 확정보다 조건 정리가 먼저 필요한 구간입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "move",
+      "topDecisionLabel": "이동: 지금은 준비와 정보 수집에 집중하세요.",
+      "verdict": "지금 우선은 이동/변화: 거리와 속도를 다시 맞추세요입니다. move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "거리와 속도를 다시 맞추세요",
+        "관계 경계를 다시 정리하세요",
+        "기대치를 먼저 명확히 하세요"
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=move graph_anchors=10 graph_sets=20 strategy=확장+리스크관리 국면(56/44) [Canonical Core] grade=활용형 phase=확장+리스크관리 국면 top_decision=이동/변화: 거리와 속도를 다시 맞추세요 answer=move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=재정비 뒤 다시 살아나는 흐름 caution=긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요. timing=now policy_mode=prepare allowed_actions=거리와 속도를 다시 맞추세요 | 관계 경계를 다시..."
+    },
+    {
+      "id": "relationship_define",
+      "theme": "love",
+      "lang": "ko",
+      "question": "지금 관계 이름을 붙여도 돼?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=relationship/timing actual=relationship"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "관계: 경계 정리 우선"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=명확화/기대치/검토 | pool=지금 우선은 관계: 경계 정리 우선입니다. relationship 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 관계: 경계 정리 우선 재정비 뒤 다시 살아나는 흐름 재정비 뒤 다시 살아나는 흐름 / 거리와 속도를 다시 맞추세요 / 관계 ..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 관계: 경계 정리 우선입니다. relationship 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Relationship Tension Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=목, currentWolun=N/A..."
+        }
+      ],
+      "focusDomain": "relationship",
+      "topDecisionLabel": "관계: 경계 정리 우선",
+      "verdict": "지금 우선은 관계: 경계 정리 우선입니다. relationship 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=목, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=",
+      "allowedActions": [
+        "거리와 속도를 다시 맞추세요",
+        "관계 경계를 다시 정리하세요",
+        "기대치를 먼저 명확히 하세요"
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=relationship graph_anchors=10 graph_sets=20 strategy=방어/재정렬 국면(54/46) [Canonical Core] grade=방어형 phase=방어/재정렬 국면 top_decision=관계: 경계 정리 우선 answer=relationship 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=재정비 뒤 다시 살아나는 흐름 caution=긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요. timing=now policy_mode=prepare allowed_actions=거리와 속도를 다시 맞추세요 | 관계 경계를 ..."
+    },
+    {
+      "id": "relationship_reconcile",
+      "theme": "love",
+      "lang": "ko",
+      "question": "다시 연락해도 될까?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=relationship/timing actual=relationship"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "관계: 경계 정리 우선"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=거리/재확인/준비 | pool=지금 우선은 관계: 경계 정리 우선입니다. relationship 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 관계: 경계 정리 우선 재정비 뒤 다시 살아나는 흐름 재정비 뒤 다시 살아나는 흐름 / 거리와 속도를 다시 맞추세요 / 관계 ..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 관계: 경계 정리 우선입니다. relationship 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Relationship Tension Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=목, currentWolun=N/A..."
+        }
+      ],
+      "focusDomain": "relationship",
+      "topDecisionLabel": "관계: 경계 정리 우선",
+      "verdict": "지금 우선은 관계: 경계 정리 우선입니다. relationship 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=목, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=",
+      "allowedActions": [
+        "거리와 속도를 다시 맞추세요",
+        "관계 경계를 다시 정리하세요",
+        "기대치를 먼저 명확히 하세요"
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=relationship graph_anchors=10 graph_sets=20 strategy=방어/재정렬 국면(54/46) [Canonical Core] grade=방어형 phase=방어/재정렬 국면 top_decision=관계: 경계 정리 우선 answer=relationship 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=재정비 뒤 다시 살아나는 흐름 caution=긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요. timing=now policy_mode=prepare allowed_actions=거리와 속도를 다시 맞추세요 | 관계 경계를 ..."
+    },
+    {
+      "id": "relationship_commitment",
+      "theme": "love",
+      "lang": "ko",
+      "question": "결혼 얘기 꺼내도 되는 타이밍이야?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=relationship/timing actual=relationship"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "관계: 경계 정리 우선"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=준비/기대치/검토 | pool=지금 우선은 관계: 경계 정리 우선입니다. relationship 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 관계: 경계 정리 우선 재정비 뒤 다시 살아나는 흐름 재정비 뒤 다시 살아나는 흐름 / 거리와 속도를 다시 맞추세요 / 관계 ..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 관계: 경계 정리 우선입니다. relationship 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Relationship Tension Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=목, currentWolun=N/A..."
+        }
+      ],
+      "focusDomain": "relationship",
+      "topDecisionLabel": "관계: 경계 정리 우선",
+      "verdict": "지금 우선은 관계: 경계 정리 우선입니다. relationship 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=목, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=",
+      "allowedActions": [
+        "거리와 속도를 다시 맞추세요",
+        "관계 경계를 다시 정리하세요",
+        "기대치를 먼저 명확히 하세요"
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=relationship graph_anchors=10 graph_sets=20 strategy=방어/재정렬 국면(54/46) [Canonical Core] grade=방어형 phase=방어/재정렬 국면 top_decision=관계: 경계 정리 우선 answer=relationship 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=재정비 뒤 다시 살아나는 흐름 caution=긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요. timing=now policy_mode=prepare allowed_actions=거리와 속도를 다시 맞추세요 | 관계 경계를 ..."
+    },
+    {
+      "id": "career_promotion",
+      "theme": "career",
+      "lang": "ko",
+      "question": "승진 얘기 지금 꺼내도 괜찮아?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=career/timing actual=career"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "커리어: 검토 우선"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=검토/협의/조건 | pool=지금 우선은 커리어: 검토 우선입니다. career 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 커리어: 검토 우선 공적 역할 확대 공적 역할 확대 / 승진/역할 검토를 먼저 하세요 / 조건 협의부터 하세요 지금 구간에 대운, 세운, 트..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 커리어: 검토 우선입니다. career 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Career Expansion Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=토, currentWolun=N/A..."
+        }
+      ],
+      "focusDomain": "career",
+      "topDecisionLabel": "커리어: 검토 우선",
+      "verdict": "지금 우선은 커리어: 검토 우선입니다. career 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=토, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=",
+      "allowedActions": [
+        "승진/역할 검토를 먼저 하세요",
+        "조건 협의부터 하세요",
+        "지금은 준비와 정보 수집에 집중하세요."
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=career graph_anchors=10 graph_sets=20 strategy=방어/재정렬 국면(46/54) [Canonical Core] grade=방어형 phase=방어/재정렬 국면 top_decision=커리어: 검토 우선 answer=career 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=공적 역할 확대 caution=긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요. timing=now policy_mode=prepare allowed_actions=승진/역할 검토를 먼저 하세요 | 조건 협의부터 하세요 | 지금은 준비와 정보 수집에..."
+    },
+    {
+      "id": "career_role_shift",
+      "theme": "career",
+      "lang": "ko",
+      "question": "직무를 바꾸는 게 맞아?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=career/timing actual=career"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "커리어: 검토 우선"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=파일럿/검토/단계 | pool=지금 우선은 커리어: 검토 우선입니다. career 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 커리어: 검토 우선 공적 역할 확대 공적 역할 확대 / 승진/역할 검토를 먼저 하세요 / 조건 협의부터 하세요 지금 구간에 대운, 세운, 트..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 커리어: 검토 우선입니다. career 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Career Expansion Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=토, currentWolun=N/A..."
+        }
+      ],
+      "focusDomain": "career",
+      "topDecisionLabel": "커리어: 검토 우선",
+      "verdict": "지금 우선은 커리어: 검토 우선입니다. career 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=토, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=",
+      "allowedActions": [
+        "승진/역할 검토를 먼저 하세요",
+        "조건 협의부터 하세요",
+        "지금은 준비와 정보 수집에 집중하세요."
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=career graph_anchors=10 graph_sets=20 strategy=방어/재정렬 국면(46/54) [Canonical Core] grade=방어형 phase=방어/재정렬 국면 top_decision=커리어: 검토 우선 answer=career 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=공적 역할 확대 caution=긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요. timing=now policy_mode=prepare allowed_actions=승진/역할 검토를 먼저 하세요 | 조건 협의부터 하세요 | 지금은 준비와 정보 수집에..."
+    },
+    {
+      "id": "career_contract",
+      "theme": "career",
+      "lang": "ko",
+      "question": "계약 조건 다시 협상해도 될까?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=career/wealth/timing actual=career"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "커리어: 검토 우선"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=협의/조건/검토 | pool=지금 우선은 커리어: 검토 우선입니다. career 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 커리어: 검토 우선 공적 역할 확대 공적 역할 확대 / 승진/역할 검토를 먼저 하세요 / 조건 협의부터 하세요 지금 구간에 대운, 세운, 트..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 커리어: 검토 우선입니다. career 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Career Expansion Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=토, currentWolun=N/A..."
+        }
+      ],
+      "focusDomain": "career",
+      "topDecisionLabel": "커리어: 검토 우선",
+      "verdict": "지금 우선은 커리어: 검토 우선입니다. career 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=토, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=",
+      "allowedActions": [
+        "승진/역할 검토를 먼저 하세요",
+        "조건 협의부터 하세요",
+        "지금은 준비와 정보 수집에 집중하세요."
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=career graph_anchors=10 graph_sets=20 strategy=방어/재정렬 국면(46/54) [Canonical Core] grade=방어형 phase=방어/재정렬 국면 top_decision=커리어: 검토 우선 answer=career 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=공적 역할 확대 caution=긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요. timing=now policy_mode=prepare allowed_actions=승진/역할 검토를 먼저 하세요 | 조건 협의부터 하세요 | 지금은 준비와 정보 수집에..."
+    },
+    {
+      "id": "wealth_invest",
+      "theme": "wealth",
+      "lang": "ko",
+      "question": "지금 투자 비중을 늘려도 돼?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=wealth/timing actual=wealth"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "재정: 검토 우선"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=배분/검토/보호 | pool=지금 우선은 재정: 검토 우선입니다. wealth 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 재정: 검토 우선 money expansion action money expansion action / 부채 구조를 재정리하세요 지금 구간에 ..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 재정: 검토 우선입니다. wealth 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "relationship caution"
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Wealth Volatility Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "wealth",
+      "topDecisionLabel": "재정: 검토 우선",
+      "verdict": "지금 우선은 재정: 검토 우선입니다. wealth 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "relationship caution",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "부채 구조를 재정리하세요",
+        "지금은 준비와 정보 수집에 집중하세요."
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=wealth graph_anchors=10 graph_sets=20 strategy=방어/재정렬 국면(50/50) [Canonical Core] grade=방어형 phase=방어/재정렬 국면 top_decision=재정: 검토 우선 answer=wealth 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=money expansion action caution=relationship caution timing=now policy_mode=prepare allowed_actions=부채 구조를 재정리하세요 | 지금은 준비와 정보 수집에 집중하세요. blocked_action..."
+    },
+    {
+      "id": "wealth_debt",
+      "theme": "wealth",
+      "lang": "ko",
+      "question": "빚 구조를 다시 짜야 할까?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=wealth/timing actual=wealth"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "재정: 검토 우선"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=재구조화/조건/검토 | pool=지금 우선은 재정: 검토 우선입니다. wealth 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 재정: 검토 우선 money expansion action money expansion action / 부채 구조를 재정리하세요 지금 구간에 ..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 재정: 검토 우선입니다. wealth 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "relationship caution"
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Wealth Volatility Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "wealth",
+      "topDecisionLabel": "재정: 검토 우선",
+      "verdict": "지금 우선은 재정: 검토 우선입니다. wealth 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "relationship caution",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "부채 구조를 재정리하세요",
+        "지금은 준비와 정보 수집에 집중하세요."
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=wealth graph_anchors=10 graph_sets=20 strategy=방어/재정렬 국면(50/50) [Canonical Core] grade=방어형 phase=방어/재정렬 국면 top_decision=재정: 검토 우선 answer=wealth 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=money expansion action caution=relationship caution timing=now policy_mode=prepare allowed_actions=부채 구조를 재정리하세요 | 지금은 준비와 정보 수집에 집중하세요. blocked_action..."
+    },
+    {
+      "id": "wealth_pricing",
+      "theme": "wealth",
+      "lang": "ko",
+      "question": "가격을 올리거나 수익 구조를 바꿔도 될까?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=wealth/career actual=wealth"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "재정: 검토 우선"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=가격/협의/검토 | pool=지금 우선은 재정: 검토 우선입니다. wealth 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 재정: 검토 우선 money expansion action money expansion action / 부채 구조를 재정리하세요 지금 구간에 ..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 재정: 검토 우선입니다. wealth 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "relationship caution"
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Wealth Volatility Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "wealth",
+      "topDecisionLabel": "재정: 검토 우선",
+      "verdict": "지금 우선은 재정: 검토 우선입니다. wealth 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "relationship caution",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "부채 구조를 재정리하세요",
+        "지금은 준비와 정보 수집에 집중하세요."
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=wealth graph_anchors=10 graph_sets=20 strategy=방어/재정렬 국면(50/50) [Canonical Core] grade=방어형 phase=방어/재정렬 국면 top_decision=재정: 검토 우선 answer=wealth 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=money expansion action caution=relationship caution timing=now policy_mode=prepare allowed_actions=부채 구조를 재정리하세요 | 지금은 준비와 정보 수집에 집중하세요. blocked_action..."
+    },
+    {
+      "id": "health_sleep",
+      "theme": "health",
+      "lang": "ko",
+      "question": "수면이 무너졌는데 지금 제일 먼저 뭘 고쳐야 해?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=health/timing actual=health"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "건강: 경계 정리 우선"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=회복/루틴/부하 | pool=지금 우선은 건강: 경계 정리 우선입니다. health 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다 건강: 경계 정리 우선 재정비 뒤 다시 살아나는 흐름 재정비 뒤 다시 살아나는 흐름 / 회복 루틴을 먼저 복구하세요 지금 구간에 대운, ..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 건강: 경계 정리 우선입니다. health 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "recovery priority"
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Burnout Risk Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongin, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=토, currentWolun=N/A, ..."
+        }
+      ],
+      "focusDomain": "health",
+      "topDecisionLabel": "건강: 경계 정리 우선",
+      "verdict": "지금 우선은 건강: 경계 정리 우선입니다. health 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다",
+      "guardrail": "recovery priority",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongin, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=토, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06",
+      "allowedActions": [
+        "회복 루틴을 먼저 복구하세요",
+        "지금은 준비와 정보 수집에 집중하세요."
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=health graph_anchors=10 graph_sets=19 strategy=방어/재정렬 국면(50/50) [Canonical Core] grade=방어형 phase=방어/재정렬 국면 top_decision=건강: 경계 정리 우선 answer=health 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다. action=재정비 뒤 다시 살아나는 흐름 caution=recovery priority timing=now policy_mode=prepare allowed_actions=회복 루틴을 먼저 복구하세요 | 지금은 준비와 정보 수집에 집중하세요. blocked_actions=바로..."
+    },
+    {
+      "id": "health_load",
+      "theme": "health",
+      "lang": "ko",
+      "question": "지금 운동 강도를 올려도 돼?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=health/timing actual=health"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "건강: 경계 정리 우선"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=회복/검토/부하 | pool=지금 우선은 건강: 경계 정리 우선입니다. health 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다 건강: 경계 정리 우선 재정비 뒤 다시 살아나는 흐름 재정비 뒤 다시 살아나는 흐름 / 회복 루틴을 먼저 복구하세요 지금 구간에 대운, ..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 건강: 경계 정리 우선입니다. health 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "recovery priority"
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Burnout Risk Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongin, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=토, currentWolun=N/A, ..."
+        }
+      ],
+      "focusDomain": "health",
+      "topDecisionLabel": "건강: 경계 정리 우선",
+      "verdict": "지금 우선은 건강: 경계 정리 우선입니다. health 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다",
+      "guardrail": "recovery priority",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongin, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=토, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06",
+      "allowedActions": [
+        "회복 루틴을 먼저 복구하세요",
+        "지금은 준비와 정보 수집에 집중하세요."
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=health graph_anchors=10 graph_sets=19 strategy=방어/재정렬 국면(50/50) [Canonical Core] grade=방어형 phase=방어/재정렬 국면 top_decision=건강: 경계 정리 우선 answer=health 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다. action=재정비 뒤 다시 살아나는 흐름 caution=recovery priority timing=now policy_mode=prepare allowed_actions=회복 루틴을 먼저 복구하세요 | 지금은 준비와 정보 수집에 집중하세요. blocked_actions=바로..."
+    },
+    {
+      "id": "health_reset",
+      "theme": "health",
+      "lang": "ko",
+      "question": "루틴을 완전히 다시 짜야 할까?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=health/timing actual=health"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "건강: 경계 정리 우선"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=루틴/회복/준비 | pool=지금 우선은 건강: 경계 정리 우선입니다. health 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다 건강: 경계 정리 우선 재정비 뒤 다시 살아나는 흐름 재정비 뒤 다시 살아나는 흐름 / 회복 루틴을 먼저 복구하세요 지금 구간에 대운, ..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 건강: 경계 정리 우선입니다. health 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "recovery priority"
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Burnout Risk Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongin, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=토, currentWolun=N/A, ..."
+        }
+      ],
+      "focusDomain": "health",
+      "topDecisionLabel": "건강: 경계 정리 우선",
+      "verdict": "지금 우선은 건강: 경계 정리 우선입니다. health 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다",
+      "guardrail": "recovery priority",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongin, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=토, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06",
+      "allowedActions": [
+        "회복 루틴을 먼저 복구하세요",
+        "지금은 준비와 정보 수집에 집중하세요."
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=health graph_anchors=10 graph_sets=19 strategy=방어/재정렬 국면(50/50) [Canonical Core] grade=방어형 phase=방어/재정렬 국면 top_decision=건강: 경계 정리 우선 answer=health 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다. action=재정비 뒤 다시 살아나는 흐름 caution=recovery priority timing=now policy_mode=prepare allowed_actions=회복 루틴을 먼저 복구하세요 | 지금은 준비와 정보 수집에 집중하세요. blocked_actions=바로..."
+    },
+    {
+      "id": "life_commute",
+      "theme": "life",
+      "lang": "ko",
+      "question": "출퇴근 동선을 바꾸는 게 맞아?",
+      "status": "WARN",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=move/timing actual=move"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "이동: 지금은 준비와 정보 수집에 집중하세요."
+        },
+        {
+          "name": "action language fit",
+          "status": "WARN",
+          "detail": "hints=경로/재확인/파일럿 | pool=지금 우선은 이동/변화: 거리와 속도를 다시 맞추세요입니다. move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 이동/변화: 거리와 속도를 다시 맞추세요 재정비 뒤 다시 살아나는 흐름 재정비 뒤 다시 살아나는 흐름 / 거리와 속도를 다..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 이동/변화: 거리와 속도를 다시 맞추세요입니다. move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "move 영역은 현재 국면과 도메인 주도권 기준으로 당장 확정보다 조건 정리가 먼저 필요한 구간입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "move",
+      "topDecisionLabel": "이동: 지금은 준비와 정보 수집에 집중하세요.",
+      "verdict": "지금 우선은 이동/변화: 거리와 속도를 다시 맞추세요입니다. move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "거리와 속도를 다시 맞추세요",
+        "관계 경계를 다시 정리하세요",
+        "기대치를 먼저 명확히 하세요"
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=move graph_anchors=10 graph_sets=20 strategy=확장+리스크관리 국면(56/44) [Canonical Core] grade=활용형 phase=확장+리스크관리 국면 top_decision=이동/변화: 거리와 속도를 다시 맞추세요 answer=move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=재정비 뒤 다시 살아나는 흐름 caution=긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요. timing=now policy_mode=prepare allowed_actions=거리와 속도를 다시 맞추세요 | 관계 경계를 다시..."
+    },
+    {
+      "id": "life_route",
+      "theme": "life",
+      "lang": "ko",
+      "question": "지금은 이동보다 경로 재점검이 먼저야?",
+      "status": "WARN",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=move/timing actual=move"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "이동: 지금은 준비와 정보 수집에 집중하세요."
+        },
+        {
+          "name": "action language fit",
+          "status": "WARN",
+          "detail": "hints=경로/재확인/검토 | pool=지금 우선은 이동/변화: 거리와 속도를 다시 맞추세요입니다. move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 이동/변화: 거리와 속도를 다시 맞추세요 재정비 뒤 다시 살아나는 흐름 재정비 뒤 다시 살아나는 흐름 / 거리와 속도를 다..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 이동/변화: 거리와 속도를 다시 맞추세요입니다. move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "move 영역은 현재 국면과 도메인 주도권 기준으로 당장 확정보다 조건 정리가 먼저 필요한 구간입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "move",
+      "topDecisionLabel": "이동: 지금은 준비와 정보 수집에 집중하세요.",
+      "verdict": "지금 우선은 이동/변화: 거리와 속도를 다시 맞추세요입니다. move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "거리와 속도를 다시 맞추세요",
+        "관계 경계를 다시 정리하세요",
+        "기대치를 먼저 명확히 하세요"
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=move graph_anchors=10 graph_sets=20 strategy=확장+리스크관리 국면(56/44) [Canonical Core] grade=활용형 phase=확장+리스크관리 국면 top_decision=이동/변화: 거리와 속도를 다시 맞추세요 answer=move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=재정비 뒤 다시 살아나는 흐름 caution=긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요. timing=now policy_mode=prepare allowed_actions=거리와 속도를 다시 맞추세요 | 관계 경계를 다시..."
+    },
+    {
+      "id": "life_lease",
+      "theme": "life",
+      "lang": "ko",
+      "question": "집 계약을 지금 확정해도 돼?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=move/timing/wealth actual=move"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "이동: 지금은 준비와 정보 수집에 집중하세요."
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=협의/조건/재확인 | pool=지금 우선은 이동/변화: 거리와 속도를 다시 맞추세요입니다. move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 이동/변화: 거리와 속도를 다시 맞추세요 재정비 뒤 다시 살아나는 흐름 재정비 뒤 다시 살아나는 흐름 / 거리와 속도를 다..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 이동/변화: 거리와 속도를 다시 맞추세요입니다. move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "move 영역은 현재 국면과 도메인 주도권 기준으로 당장 확정보다 조건 정리가 먼저 필요한 구간입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "move",
+      "topDecisionLabel": "이동: 지금은 준비와 정보 수집에 집중하세요.",
+      "verdict": "지금 우선은 이동/변화: 거리와 속도를 다시 맞추세요입니다. move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "거리와 속도를 다시 맞추세요",
+        "관계 경계를 다시 정리하세요",
+        "기대치를 먼저 명확히 하세요"
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=move graph_anchors=10 graph_sets=20 strategy=확장+리스크관리 국면(56/44) [Canonical Core] grade=활용형 phase=확장+리스크관리 국면 top_decision=이동/변화: 거리와 속도를 다시 맞추세요 answer=move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=재정비 뒤 다시 살아나는 흐름 caution=긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요. timing=now policy_mode=prepare allowed_actions=거리와 속도를 다시 맞추세요 | 관계 경계를 다시..."
+    },
+    {
+      "id": "life_basecamp",
+      "theme": "life",
+      "lang": "ko",
+      "question": "생활 거점을 다시 잡는 게 먼저일까?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=move/timing/relationship actual=move"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "이동: 지금은 준비와 정보 수집에 집중하세요."
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=거점/단계/재확인 | pool=지금 우선은 이동/변화: 거리와 속도를 다시 맞추세요입니다. move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다 이동/변화: 거리와 속도를 다시 맞추세요 재정비 뒤 다시 살아나는 흐름 재정비 뒤 다시 살아나는 흐름 / 거리와 속도를 다..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "지금 우선은 이동/변화: 거리와 속도를 다시 맞추세요입니다. move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다"
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "move 영역은 현재 국면과 도메인 주도권 기준으로 당장 확정보다 조건 정리가 먼저 필요한 구간입니다."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "move",
+      "topDecisionLabel": "이동: 지금은 준비와 정보 수집에 집중하세요.",
+      "verdict": "지금 우선은 이동/변화: 거리와 속도를 다시 맞추세요입니다. move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다",
+      "guardrail": "긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "거리와 속도를 다시 맞추세요",
+        "관계 경계를 다시 정리하세요",
+        "기대치를 먼저 명확히 하세요"
+      ],
+      "blockedActions": [
+        "바로 확정하지 말고 최종 확인을 거치세요.",
+        "단계를 나눠 합의하고 중간 점검을 끼워 넣으세요.",
+        "결론보다 검토 기준과 보류 조건을 먼저 정리하세요."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=move graph_anchors=10 graph_sets=20 strategy=확장+리스크관리 국면(56/44) [Canonical Core] grade=활용형 phase=확장+리스크관리 국면 top_decision=이동/변화: 거리와 속도를 다시 맞추세요 answer=move 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다. action=재정비 뒤 다시 살아나는 흐름 caution=긴장 애스펙트는 속도 조절과 검증 루틴을 같이 두어 손실을 줄이세요. timing=now policy_mode=prepare allowed_actions=거리와 속도를 다시 맞추세요 | 관계 경계를 다시..."
+    }
+  ]
+}

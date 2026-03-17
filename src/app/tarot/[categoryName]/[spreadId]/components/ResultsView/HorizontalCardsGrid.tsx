@@ -16,6 +16,7 @@ interface HorizontalCardsGridProps {
   onCardReveal: (index: number) => void
   canRevealCard: (index: number) => boolean
   isCardRevealed: (index: number) => boolean
+  onCardSelect?: (index: number) => void
   translate: (key: string, fallback: string) => string
 }
 
@@ -27,6 +28,7 @@ export function HorizontalCardsGrid({
   onCardReveal,
   canRevealCard,
   isCardRevealed,
+  onCardSelect,
   translate,
 }: HorizontalCardsGridProps) {
   return (
@@ -40,6 +42,16 @@ export function HorizontalCardsGrid({
         const revealed = isCardRevealed(index)
         const canReveal = canRevealCard(index)
 
+        const handleCardClick = () => {
+          if (revealed) {
+            onCardSelect?.(index)
+            return
+          }
+          if (canReveal) {
+            onCardReveal(index)
+          }
+        }
+
         return (
           <div
             key={index}
@@ -51,20 +63,21 @@ export function HorizontalCardsGrid({
                 '--card-border': selectedColor.border,
               } as React.CSSProperties
             }
-            onClick={() => !revealed && canReveal && onCardReveal(index)}
+            onClick={handleCardClick}
             role="button"
-            tabIndex={canReveal && !revealed ? 0 : -1}
+            tabIndex={revealed || canReveal ? 0 : -1}
             aria-label={
               revealed
                 ? `${positionTitle}: ${language === 'ko' ? drawnCard.card.nameKo || drawnCard.card.name : drawnCard.card.name}${drawnCard.isReversed ? ` (${language === 'ko' ? '역위' : 'reversed'})` : ''}`
                 : `${positionTitle} - ${canReveal ? (language === 'ko' ? '클릭하여 공개' : 'Click to reveal') : language === 'ko' ? '잠김' : 'Locked'}`
             }
             aria-pressed={revealed}
-            onKeyDown={(e) => {
-              if ((e.key === 'Enter' || e.key === ' ') && !revealed && canReveal) {
-                e.preventDefault()
-                onCardReveal(index)
+            onKeyDown={(event) => {
+              if (event.key !== 'Enter' && event.key !== ' ') {
+                return
               }
+              event.preventDefault()
+              handleCardClick()
             }}
           >
             <div className={styles.cardNumberBadge}>{index + 1}</div>
@@ -82,8 +95,8 @@ export function HorizontalCardsGrid({
                       height={315}
                       className={styles.resultCardImageLarge}
                       placeholder="empty"
-                      onError={(e) => {
-                        e.currentTarget.style.opacity = '0.3'
+                      onError={(event) => {
+                        event.currentTarget.style.opacity = '0.3'
                       }}
                     />
                     {drawnCard.isReversed && (
@@ -100,7 +113,7 @@ export function HorizontalCardsGrid({
                   <div className={styles.cardBackImageLarge}></div>
                   {canReveal && (
                     <div className={styles.clickPrompt}>
-                      {translate('tarot.results.clickToReveal', '클릭하세요')}
+                      {translate('tarot.results.clickToReveal', language === 'ko' ? '클릭하세요' : 'Click to reveal')}
                     </div>
                   )}
                   {!canReveal && <div className={styles.lockIcon}>🔒</div>}
@@ -118,11 +131,17 @@ export function HorizontalCardsGrid({
                 <div className={styles.keywordsCompact}>
                   {(language === 'ko' ? meaning.keywordsKo || meaning.keywords : meaning.keywords)
                     .slice(0, 2)
-                    .map((keyword: string, i: number) => (
-                      <span key={i} className={styles.keywordTagCompact}>
+                    .map((keyword: string, keywordIndex: number) => (
+                      <span key={keywordIndex} className={styles.keywordTagCompact}>
                         {keyword}
                       </span>
                     ))}
+                </div>
+                <div className={styles.detailHintCompact}>
+                  {translate(
+                    'tarot.results.viewCardDetail',
+                    language === 'ko' ? '눌러서 상세 해석 보기' : 'Tap for detailed reading'
+                  )}
                 </div>
               </div>
             )}

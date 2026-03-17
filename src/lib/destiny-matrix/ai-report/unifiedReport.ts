@@ -75,6 +75,59 @@ function normalizeScore100(value?: number): number {
   return Math.round(clamp(value, 0, 100))
 }
 
+function blendDisplayDomainScore(params: {
+  overall: number
+  summaryScore?: number | null
+  analysisScore?: number | null
+  signalScore?: number | null
+}): number {
+  const sourceScores = [params.summaryScore, params.analysisScore, params.signalScore].filter(
+    (value): value is number => typeof value === 'number' && Number.isFinite(value)
+  )
+  if (sourceScores.length === 0) return params.overall
+
+  const summaryWeight = typeof params.summaryScore === 'number' ? 0.35 : 0
+  const analysisWeight = typeof params.analysisScore === 'number' ? 0.2 : 0
+  const signalWeight = typeof params.signalScore === 'number' ? 0.25 : 0
+  const overallWeight = Math.max(0.2, 1 - summaryWeight - analysisWeight - signalWeight)
+  const blended = Math.round(
+    params.overall * overallWeight +
+      (params.summaryScore || 0) * summaryWeight +
+      (params.analysisScore || 0) * analysisWeight +
+      (params.signalScore || 0) * signalWeight
+  )
+  let upperBound = params.overall + 22
+  if (typeof params.analysisScore === 'number' && Number.isFinite(params.analysisScore)) {
+    upperBound = Math.min(upperBound, params.analysisScore + 14)
+  }
+  if (typeof params.signalScore === 'number' && Number.isFinite(params.signalScore)) {
+    upperBound = Math.max(upperBound, Math.min(96, params.signalScore + 10))
+  }
+  return Math.round(clamp(blended, Math.max(24, params.overall - 18), Math.min(96, upperBound)))
+}
+
+function blendDisplayDomainConfidence(params: {
+  overallConfidence: number
+  displayScore: number
+  overallScore: number
+  summaryConfidence?: number | null
+  hasAnalysisScore: boolean
+  hasSignalScore: boolean
+}): number {
+  const sourceConfidence =
+    typeof params.summaryConfidence === 'number' && Number.isFinite(params.summaryConfidence)
+      ? params.summaryConfidence
+      : params.hasAnalysisScore
+        ? 0.72
+        : params.hasSignalScore
+          ? 0.76
+        : params.overallConfidence
+  const gapPenalty = Math.max(0, params.displayScore - params.overallScore - 12) * 0.008
+  return round2(
+    clamp(sourceConfidence * 0.75 + params.overallConfidence * 0.25 - gapPenalty, 0.45, 0.92)
+  )
+}
+
 function parseIsoDateParts(date: string): { year: number; month: number; day: number } | null {
   if (!date) return null
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date.trim())
@@ -458,6 +511,7 @@ function buildUnifiedEvidenceLinks(params: {
 function buildUnifiedScoresFromData(params: {
   matrixReport: FusionReport
   matrixSummary?: MatrixSummary
+  signalSynthesis?: SignalSynthesisResult
 }): UnifiedScores {
   const fallbackOverall = normalizeScore100(params.matrixReport.overallScore?.total || 0)
   const overall = normalizeScore100(params.matrixSummary?.finalScoreAdjusted ?? fallbackOverall)
@@ -479,14 +533,49 @@ function buildUnifiedScoresFromData(params: {
       { score: normalizeScore100(item.score), confidence: 0.7 },
     ])
   )
+  const signalBuckets = new Map<string, number[]>()
+  for (const signal of params.signalSynthesis?.selectedSignals || []) {
+    const domain = String(signal.domainHints?.[0] || '').toLowerCase()
+    if (!domain) continue
+    const score = normalizeScore100(signal.score)
+    const bucket = signalBuckets.get(domain) || []
+    bucket.push(score)
+    signalBuckets.set(domain, bucket)
+  }
+  const bySignal = new Map<string, { score: number; confidence: number }>(
+    [...signalBuckets.entries()].map(([domain, values]) => [
+      domain,
+      {
+        score: Math.round(values.reduce((sum, value) => sum + value, 0) / Math.max(1, values.length)),
+        confidence: 0.76,
+      },
+    ])
+  )
 
   const pick = (
     key: 'career' | 'relationship' | 'wealth' | 'health' | 'move',
     summaryKey: 'career' | 'love' | 'money' | 'health' | 'move'
   ) => {
     const fromS = domainFromSummary(summaryKey)
-    if (fromS) return fromS
-    return byDomainAnalysis.get(key) || { score: overall, confidence: overallConfidence }
+    const fromAnalysis = byDomainAnalysis.get(key) || null
+    const fromSignal = bySignal.get(key) || null
+    const displayScore = blendDisplayDomainScore({
+      overall,
+      summaryScore: fromS?.score,
+      analysisScore: fromAnalysis?.score,
+      signalScore: fromSignal?.score,
+    })
+    return {
+      score: displayScore,
+      confidence: blendDisplayDomainConfidence({
+        overallConfidence,
+        displayScore,
+        overallScore: overall,
+        summaryConfidence: fromS?.confidence,
+        hasAnalysisScore: Boolean(fromAnalysis),
+        hasSignalScore: Boolean(fromSignal),
+      }),
+    }
   }
 
   return {
@@ -1555,6 +1644,7 @@ export function buildUnifiedEnvelope(params: {
   const scores = buildUnifiedScoresFromData({
     matrixReport: params.matrixReport,
     matrixSummary: params.matrixSummary,
+    signalSynthesis: params.signalSynthesis,
   })
   const mappingRulebook = buildMappingRulebook({
     lang: params.lang,

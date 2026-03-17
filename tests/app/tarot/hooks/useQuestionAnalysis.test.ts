@@ -29,7 +29,7 @@ describe('useQuestionAnalysis', () => {
   const getQuickRecommendation = vi.fn((question: string) => ({
     path: `/tarot/general-insight/quick-reading?question=${encodeURIComponent(question)}`,
     cardCount: 1,
-    spreadTitle: 'ë¹ ë¥¸ ë¦¬ë”©',
+    spreadTitle: '빠른 리딩',
     isKeywordMatch: false,
   }))
 
@@ -46,7 +46,7 @@ describe('useQuestionAnalysis', () => {
 
     const { result } = renderHook(() =>
       useQuestionAnalysis({
-        question: 'ë‚´ê°€ ê°€ì§„ ìˆ¨ì€ ê°•ì ì€?',
+        question: '내가 가진 운의 강점은?',
         language: 'ko',
         isKo: true,
         getQuickRecommendation,
@@ -71,9 +71,9 @@ describe('useQuestionAnalysis', () => {
         isDangerous: false,
         themeId: 'general-insight',
         spreadId: 'quick-reading',
-        spreadTitle: 'ë¹ ë¥¸ ë¦¬ë”©',
+        spreadTitle: '빠른 리딩',
         cardCount: 1,
-        userFriendlyExplanation: 'ê¸°ë³¸ ìŠ¤í”„ë ˆë“œë¡œ ì—°ê²°í–ˆì–´ìš”',
+        userFriendlyExplanation: '기본 스프레드로 연결했어요',
         path: '/tarot/general-insight/quick-reading?question=test',
         source: 'fallback',
         fallback_reason: 'parse_failed',
@@ -82,7 +82,7 @@ describe('useQuestionAnalysis', () => {
 
     const { result } = renderHook(() =>
       useQuestionAnalysis({
-        question: 'í…ŒìŠ¤íŠ¸ ì§ˆë¬¸ìž…ë‹ˆë‹¤',
+        question: '테스트 질문입니다',
         language: 'ko',
         isKo: true,
         getQuickRecommendation,
@@ -99,7 +99,9 @@ describe('useQuestionAnalysis', () => {
     })
   })
 
-  it('uses quick fallback path on start-reading analyze failure (401)', async () => {
+  it('builds a quick fallback analysis on start-reading analyze failure (401)', async () => {
+    const question = '질문'
+
     mockApiFetch.mockResolvedValue({
       ok: false,
       status: 401,
@@ -107,7 +109,7 @@ describe('useQuestionAnalysis', () => {
 
     const { result } = renderHook(() =>
       useQuestionAnalysis({
-        question: 'ì§ˆë¬¸',
+        question,
         language: 'ko',
         isKo: true,
         getQuickRecommendation,
@@ -118,9 +120,8 @@ describe('useQuestionAnalysis', () => {
       await result.current.handleStartReading()
     })
 
-    expect(pushMock).toHaveBeenCalledTimes(1)
-    expect(pushMock).toHaveBeenCalledWith(
-      '/tarot/general-insight/quick-reading?question=%EC%A7%88%EB%AC%B8'
+    expect(result.current.analysisResult?.path).toBe(
+      `/tarot/general-insight/quick-reading?question=${encodeURIComponent(question)}`
     )
     expect(result.current.fallbackReason).toBe('auth_failed')
   })

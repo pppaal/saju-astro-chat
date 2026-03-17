@@ -1,6 +1,6 @@
 # Docs Index
 
-Last audited: 2026-02-15 (Asia/Seoul)
+Last audited: 2026-03-16 (Asia/Hong_Kong)
 
 ## Core Docs
 
@@ -26,6 +26,7 @@ Last audited: 2026-02-15 (Asia/Seoul)
 | `docs/TESTING_AND_GUARDRAILS.md`       | Required checks and optional suites          | All engineers               | 2026-02-15   |
 | `docs/API_AUDIT_REPORT.md`             | Generated API inventory and security signals | Backend/security engineers  | 2026-02-15   |
 | `docs/DOCS_AUDIT_REPORT_2026-02-15.md` | Documentation re-audit execution report      | Maintainers                 | 2026-02-15   |
+| `docs/PROJECT_QUALITY_REVIEW_2026-03-16.md` | Current quality assessment across tarot/counselor/calendar/report | Product and engineering leads | 2026-03-16   |
 
 ## Library Docs
 

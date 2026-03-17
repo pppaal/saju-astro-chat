@@ -97,6 +97,54 @@ class TestCounselingEngineClasses:
 
         assert CounselingSession is not None
 
+    def test_counseling_session_round_trip_serialization(self):
+        """CounselingSession should serialize and restore state."""
+        from app.counseling_engine import CounselingSession
+
+        session = CounselingSession(session_id="session-1")
+        session.add_message("user", "hello")
+        session.add_insight("notice the pattern", source="test")
+        session.crisis_detected = True
+        session.user_themes = ["career"]
+
+        restored = CounselingSession.from_dict(session.to_dict())
+
+        assert restored.session_id == "session-1"
+        assert restored.history[0]["content"] == "hello"
+        assert restored.insights[0]["text"] == "notice the pattern"
+        assert restored.crisis_detected is True
+        assert restored.user_themes == ["career"]
+
+    def test_engine_restores_session_from_shared_cache(self, monkeypatch):
+        """Engine should restore cached sessions when local memory is empty."""
+        import app.counseling_engine as counseling_engine
+
+        class FakeCache:
+            def __init__(self):
+                self.store = {}
+
+            def get(self, key):
+                return self.store.get(key)
+
+            def set(self, key, value, ttl=None):
+                self.store[key] = value
+                return True
+
+        fake_cache = FakeCache()
+        monkeypatch.setattr(counseling_engine, "_get_shared_cache", lambda: fake_cache, raising=False)
+
+        engine = counseling_engine.JungianCounselingEngine(api_key="")
+        session = engine.create_session("session-restore")
+        session.add_message("user", "restore me")
+        engine._persist_session(session)
+        engine.sessions.clear()
+
+        restored = engine.get_session("session-restore")
+
+        assert restored is not None
+        assert restored.session_id == "session-restore"
+        assert restored.history[0]["content"] == "restore me"
+
 
 class TestTherapeuticQuestionGenerator:
     """Tests for TherapeuticQuestionGenerator class."""

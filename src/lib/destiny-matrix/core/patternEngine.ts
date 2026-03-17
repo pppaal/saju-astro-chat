@@ -5,6 +5,9 @@ import type {
   SignalSynthesisResult,
 } from './signalSynthesizer'
 import type { DomainStrategy, StrategyEngineResult, StrategyPhaseCode } from './strategyEngine'
+import type { ActivationEngineResult } from './activationEngine'
+import type { RuleEngineResult } from './ruleEngine'
+import type { StateEngineResult, DomainState } from './stateEngine'
 
 export interface PatternMatcher {
   domains?: SignalDomain[]
@@ -17,6 +20,8 @@ export interface PatternMatcher {
 export interface PatternDefinition {
   id: string
   label: string
+  family: string
+  profile: 'upside' | 'risk' | 'support' | 'timing' | 'identity'
   domains: SignalDomain[]
   thesis: string
   risk: string
@@ -30,15 +35,29 @@ export interface PatternDefinition {
 export interface PatternResult {
   id: string
   label: string
+  family: string
+  profile: PatternDefinition['profile']
   domains: SignalDomain[]
   score: number
   confidence: number
   matchedSignalIds: string[]
+  matchedFamilies: string[]
   matchedKeywords: string[]
   thesis: string
   risk: string
   activationReason: string
   scenarioIds: string[]
+  blockedBy: string[]
+  resolvedMode: 'execute' | 'verify' | 'prepare'
+  domainState: DomainState | null
+  crossAgreement: number | null
+}
+
+export interface PatternBuildResolvedContext {
+  activation: ActivationEngineResult
+  rules: RuleEngineResult
+  states: StateEngineResult
+  crossAgreement?: number | null
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -83,14 +102,66 @@ function getLeadStrategy(
   )
 }
 
+function getPrimaryDomainContext(
+  domain: SignalDomain,
+  resolvedContext?: PatternBuildResolvedContext
+): {
+  activationScore: number
+  priorityScore: number
+  resolvedMode: 'execute' | 'verify' | 'prepare'
+  state: DomainState | null
+  blockedBy: string[]
+} {
+  const activation =
+    resolvedContext?.activation.domains.find((item) => item.domain === domain)?.activationScore ?? 0
+  const rules = resolvedContext?.rules.domains.find((item) => item.domain === domain)
+  const state = resolvedContext?.states.domains.find((item) => item.domain === domain)?.state ?? null
+  return {
+    activationScore: activation,
+    priorityScore: rules?.priorityScore ?? activation,
+    resolvedMode: rules?.resolvedMode ?? 'verify',
+    state,
+    blockedBy: [...(rules?.gate || []), ...(rules?.delay || []), ...(rules?.suppress || [])].slice(
+      0,
+      6
+    ),
+  }
+}
+
 function uniqueStrings(values: string[]): string[] {
   return [...new Set(values.filter(Boolean))]
+}
+
+function familyOverlapRatio(left: string[], right: string[]): number {
+  const leftSet = new Set(left)
+  const rightSet = new Set(right)
+  const union = new Set([...leftSet, ...rightSet])
+  if (union.size === 0) return 0
+  let intersection = 0
+  for (const value of leftSet) {
+    if (rightSet.has(value)) intersection += 1
+  }
+  return intersection / union.size
+}
+
+function overlapRatio(left: string[], right: string[]): number {
+  const leftSet = new Set(left)
+  const rightSet = new Set(right)
+  const union = new Set([...leftSet, ...rightSet])
+  if (union.size === 0) return 0
+  let intersection = 0
+  for (const value of leftSet) {
+    if (rightSet.has(value)) intersection += 1
+  }
+  return intersection / union.size
 }
 
 const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'career_expansion',
     label: 'Career Expansion Pattern',
+    family: 'career_growth',
+    profile: 'upside',
     domains: ['career'],
     thesis: 'Career upside is active and external advancement paths are opening.',
     risk: 'Expansion without role clarity can create delivery strain.',
@@ -106,6 +177,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'career_reset_rebuild',
     label: 'Career Reset Pattern',
+    family: 'career_rebuild',
+    profile: 'risk',
     domains: ['career'],
     thesis: 'Career direction is shifting and old role structures need redesign.',
     risk: 'Impatience can turn a strategic reset into unnecessary churn.',
@@ -121,6 +194,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'relationship_activation',
     label: 'Relationship Activation Pattern',
+    family: 'relationship_growth',
+    profile: 'upside',
     domains: ['relationship'],
     thesis: 'Relationship momentum is rising and direct engagement matters more than passivity.',
     risk: 'Intensity without pacing can create mixed signals.',
@@ -136,6 +211,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'relationship_tension',
     label: 'Relationship Tension Pattern',
+    family: 'relationship_guardrail',
+    profile: 'risk',
     domains: ['relationship'],
     thesis: 'Relationship signals are active but interpretation gaps need management.',
     risk: 'Fast commitment can amplify misunderstanding.',
@@ -151,6 +228,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'wealth_volatility',
     label: 'Wealth Volatility Pattern',
+    family: 'wealth_guardrail',
+    profile: 'risk',
     domains: ['wealth'],
     thesis: 'Money movement is active, but volatility control matters as much as upside.',
     risk: 'A strong opportunity signal can hide timing and cashflow risk.',
@@ -166,6 +245,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'wealth_accumulation',
     label: 'Wealth Accumulation Pattern',
+    family: 'wealth_growth',
+    profile: 'upside',
     domains: ['wealth'],
     thesis: 'Steady accumulation is available when execution is disciplined.',
     risk: 'Overconfidence can dilute compounding gains.',
@@ -181,6 +262,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'leadership_emergence',
     label: 'Leadership Emergence Pattern',
+    family: 'leadership',
+    profile: 'identity',
     domains: ['career', 'personality'],
     thesis: 'Personal authority is surfacing and people will look for direction.',
     risk: 'Visibility without operating rules can trigger pushback.',
@@ -196,6 +279,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'burnout_risk',
     label: 'Burnout Risk Pattern',
+    family: 'health_guardrail',
+    profile: 'risk',
     domains: ['health', 'career'],
     thesis: 'Output is possible, but recovery debt is building in the background.',
     risk: 'Pushing through fatigue can degrade judgment quality.',
@@ -211,6 +296,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'hidden_support',
     label: 'Hidden Support Pattern',
+    family: 'network_support',
+    profile: 'support',
     domains: ['career', 'relationship', 'wealth'],
     thesis: 'Indirect support exists and becomes visible when you ask clearly.',
     risk: 'Support stays latent if assumptions replace direct communication.',
@@ -230,6 +317,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'transformation_through_conflict',
     label: 'Transformation Through Conflict',
+    family: 'transformation',
+    profile: 'risk',
     domains: ['career', 'relationship', 'personality'],
     thesis: 'Pressure is forcing a redefinition that can become a long-term upgrade.',
     risk: 'Reacting to friction too quickly can turn a transition into damage.',
@@ -249,6 +338,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'reputation_risk_window',
     label: 'Reputation Risk Window',
+    family: 'reputation_guardrail',
+    profile: 'risk',
     domains: ['career', 'relationship'],
     thesis: 'Public perception matters more than usual, so precision must lead communication.',
     risk: 'A small wording error can create outsized downstream cost.',
@@ -264,6 +355,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'learning_acceleration',
     label: 'Learning Acceleration Pattern',
+    family: 'learning',
+    profile: 'upside',
     domains: ['career', 'personality', 'spirituality'],
     thesis: 'Study, credentialing, and structured skill gain compound quickly now.',
     risk: 'Consuming too broadly can reduce retention and execution.',
@@ -279,6 +372,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'travel_relocation_activation',
     label: 'Travel or Relocation Activation',
+    family: 'movement',
+    profile: 'timing',
     domains: ['move'],
     thesis: 'Movement, relocation, or cross-border transitions are becoming more viable.',
     risk: 'Logistics and timing mismatches can absorb gains.',
@@ -292,8 +387,27 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
     ],
   },
   {
+    id: 'movement_guardrail_window',
+    label: 'Movement Guardrail Window',
+    family: 'movement_guardrail',
+    profile: 'risk',
+    domains: ['move', 'timing'],
+    thesis: 'Movement is active, but route quality and decision pacing now matter more than speed.',
+    risk: 'A fast move with weak verification can create avoidable cost and misfit.',
+    activationRules: ['move caution signals', 'timing strain around travel/relocation'],
+    scenarioIds: ['route_recheck_window', 'travel_window', 'relocation_window'],
+    minMatchedSignals: 2,
+    preferredPhases: ['expansion_guarded', 'defensive_reset', 'high_tension_expansion'],
+    matchers: [
+      { domains: ['move'], polarities: ['caution'], minScore: 4 },
+      { keywords: ['move', 'travel', 'foreign', 'relocat', 'delay', 'verify', 'h9', 'h12'], minScore: 4 },
+    ],
+  },
+  {
     id: 'public_visibility_window',
     label: 'Public Visibility Window',
+    family: 'visibility',
+    profile: 'upside',
     domains: ['career', 'personality'],
     thesis: 'Public-facing work can scale faster than back-channel execution right now.',
     risk: 'Visibility without readiness can expose weak edges.',
@@ -309,6 +423,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'deep_partnership_activation',
     label: 'Deep Partnership Activation',
+    family: 'partnership',
+    profile: 'support',
     domains: ['relationship', 'wealth'],
     thesis: 'Trust-based partnership can unlock value if roles are explicit.',
     risk: 'Blurred expectations can turn alignment into tension.',
@@ -324,6 +440,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'healing_routine_stabilization',
     label: 'Healing and Routine Stabilization',
+    family: 'healing',
+    profile: 'support',
     domains: ['health', 'personality'],
     thesis: 'Routine, recovery, and consistency will outperform intensity right now.',
     risk: 'Skipping maintenance will reduce strategic capacity later.',
@@ -339,6 +457,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'structure_over_speed',
     label: 'Structure Over Speed',
+    family: 'verification',
+    profile: 'timing',
     domains: ['career', 'wealth', 'timing'],
     thesis: 'This is a structure-first period where sequencing beats force.',
     risk: 'Rushing the close will cost more than delaying it.',
@@ -354,6 +474,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'reinvention_cycle',
     label: 'Reinvention Cycle',
+    family: 'reinvention',
+    profile: 'identity',
     domains: ['personality', 'career', 'move'],
     thesis: 'Identity and direction are reformatting at the same time.',
     risk: 'Changing too many variables at once can blur the signal.',
@@ -369,6 +491,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'mission_alignment',
     label: 'Mission Alignment Pattern',
+    family: 'mission',
+    profile: 'identity',
     domains: ['spirituality', 'personality', 'career'],
     thesis: 'Long-term purpose and present execution are moving closer together.',
     risk: 'Idealism without operating constraints can diffuse the gain.',
@@ -384,6 +508,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'network_leverage',
     label: 'Network Leverage Pattern',
+    family: 'network_support',
+    profile: 'support',
     domains: ['career', 'relationship'],
     thesis: 'Results improve when you use connections, context, and introductions deliberately.',
     risk: 'Passive expectation will hide accessible leverage.',
@@ -399,6 +525,8 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
   {
     id: 'timing_compression',
     label: 'Timing Compression Pattern',
+    family: 'timing_guardrail',
+    profile: 'timing',
     domains: ['timing', 'career', 'relationship'],
     thesis: 'Multiple decisions are clustering together, so sequencing discipline matters.',
     risk: 'Compression increases error cost if everything is treated as urgent.',
@@ -476,6 +604,8 @@ function createDomainFocusPatterns(): PatternDefinition[] {
     const strengthPattern: PatternDefinition = {
       id: `${domain}_upside_cluster`,
       label: `${cfg.label} Upside Cluster`,
+      family: `${domain}_cluster`,
+      profile: 'upside',
       domains: [domain],
       thesis: `${cfg.label} signals are clustering on the upside, so deliberate execution can compound.`,
       risk: `If ${domain} decisions are rushed, upside can degrade into preventable rework.`,
@@ -493,6 +623,8 @@ function createDomainFocusPatterns(): PatternDefinition[] {
     const cautionPattern: PatternDefinition = {
       id: `${domain}_risk_cluster`,
       label: `${cfg.label} Risk Cluster`,
+      family: `${domain}_cluster`,
+      profile: 'risk',
       domains: [domain],
       thesis: `${cfg.label} caution signals are concentrated, so sequencing and validation must lead.`,
       risk: `Ignoring early friction in ${domain} can increase downstream correction cost.`,
@@ -555,6 +687,8 @@ function createPhasePatterns(): PatternDefinition[] {
   return PHASE_PATTERN_CONFIG.map((cfg) => ({
     id: `phase_${cfg.phase}`,
     label: cfg.label,
+    family: 'phase_window',
+    profile: 'timing',
     domains: ['timing'],
     thesis: cfg.thesis,
     risk: cfg.risk,
@@ -642,6 +776,8 @@ function buildCompositePatterns(
       composites.push({
         id: `composite_${pairKey}`,
         label: `${left.label} + ${right.label}`,
+        family: guarded ? 'guarded_composite' : 'aligned_composite',
+        profile: guarded ? 'risk' : 'upside',
         domains,
         score,
         confidence,
@@ -649,6 +785,10 @@ function buildCompositePatterns(
           ...left.matchedSignalIds,
           ...right.matchedSignalIds,
         ]).slice(0, 12),
+        matchedFamilies: uniqueStrings([
+          ...left.matchedFamilies,
+          ...right.matchedFamilies,
+        ]).slice(0, 8),
         matchedKeywords: uniqueStrings([...left.matchedKeywords, ...right.matchedKeywords]).slice(
           0,
           10
@@ -666,6 +806,18 @@ function buildCompositePatterns(
           phase,
         ]).join(' | '),
         scenarioIds: uniqueStrings([...left.scenarioIds, ...right.scenarioIds]).slice(0, 6),
+        blockedBy: uniqueStrings([...(left.blockedBy || []), ...(right.blockedBy || [])]).slice(0, 6),
+        resolvedMode:
+          left.resolvedMode === 'prepare' || right.resolvedMode === 'prepare'
+            ? 'prepare'
+            : left.resolvedMode === 'verify' || right.resolvedMode === 'verify'
+              ? 'verify'
+              : 'execute',
+        domainState: left.domainState || right.domainState,
+        crossAgreement:
+          typeof left.crossAgreement === 'number' && typeof right.crossAgreement === 'number'
+            ? Math.round(((left.crossAgreement + right.crossAgreement) / 2) * 100) / 100
+            : left.crossAgreement ?? right.crossAgreement ?? null,
       })
 
       if (composites.length >= 8) return composites
@@ -675,9 +827,83 @@ function buildCompositePatterns(
   return composites
 }
 
+function primaryDomain(pattern: PatternResult): SignalDomain {
+  return (pattern.domains[0] || 'personality') as SignalDomain
+}
+
+function prioritizePatterns(
+  patterns: PatternResult[],
+  resolvedContext?: PatternBuildResolvedContext
+): PatternResult[] {
+  const sorted = [...patterns].sort((a, b) => b.score - a.score || b.confidence - a.confidence)
+  const kept: PatternResult[] = []
+  const domainCounts = new Map<SignalDomain, number>()
+
+  for (const candidate of sorted) {
+    const candidateDomain = primaryDomain(candidate)
+    const candidateIsComposite = candidate.id.startsWith('composite_')
+    const candidateIsRisk = isRiskPattern(candidate)
+    const currentCount = domainCounts.get(candidateDomain) || 0
+    const context = getPrimaryDomainContext(candidateDomain, resolvedContext)
+
+    const overlapping = kept.filter((existing) => {
+      const sameDomain = primaryDomain(existing) === candidateDomain
+      const signalOverlap =
+        overlapRatio(existing.matchedSignalIds, candidate.matchedSignalIds) >= 0.55
+      const familyOverlap =
+        familyOverlapRatio(existing.matchedFamilies, candidate.matchedFamilies) >= 0.5
+      return sameDomain || signalOverlap || familyOverlap
+    })
+
+    const dominatedByComposite = overlapping.some(
+      (existing) =>
+        existing.id.startsWith('composite_') &&
+        !candidateIsComposite &&
+        existing.score >= candidate.score - 6 &&
+        (overlapRatio(existing.matchedSignalIds, candidate.matchedSignalIds) >= 0.35 ||
+          familyOverlapRatio(existing.matchedFamilies, candidate.matchedFamilies) >= 0.45)
+    )
+    if (dominatedByComposite) continue
+
+    const sameProfileOverlap = overlapping.some(
+      (existing) =>
+        isRiskPattern(existing) === candidateIsRisk &&
+        existing.score >= candidate.score - 8 &&
+        (overlapRatio(existing.matchedSignalIds, candidate.matchedSignalIds) >= 0.45 ||
+          familyOverlapRatio(existing.matchedFamilies, candidate.matchedFamilies) >= 0.55)
+    )
+    if (sameProfileOverlap) continue
+
+    const blockedUpsideInPrepare =
+      context.resolvedMode === 'prepare' &&
+      candidate.profile === 'upside' &&
+      overlapping.some(
+        (existing) => primaryDomain(existing) === candidateDomain && isRiskPattern(existing)
+      )
+    if (blockedUpsideInPrepare) continue
+
+    if (currentCount >= 2) {
+      const hasHigherValueSibling = overlapping.some(
+        (existing) =>
+          primaryDomain(existing) === candidateDomain &&
+          existing.score >= candidate.score - 5 &&
+          (existing.id.startsWith('composite_') || isRiskPattern(existing) !== candidateIsRisk)
+      )
+      if (hasHigherValueSibling) continue
+    }
+
+    kept.push(candidate)
+    domainCounts.set(candidateDomain, currentCount + 1)
+    if (kept.length >= 18) break
+  }
+
+  return kept
+}
+
 export function buildPatternEngine(
   synthesis: SignalSynthesisResult,
-  strategyEngine: StrategyEngineResult
+  strategyEngine: StrategyEngineResult,
+  resolvedContext?: PatternBuildResolvedContext
 ): PatternResult[] {
   const signals =
     synthesis.normalizedSignals.length > 0 ? synthesis.normalizedSignals : synthesis.selectedSignals
@@ -688,8 +914,13 @@ export function buildPatternEngine(
     )
     const matchedSignalIds = uniqueStrings(matchedSignals.map((signal) => signal.id))
     if (matchedSignalIds.length < definition.minMatchedSignals) return null
+    const matchedFamilies = uniqueStrings(matchedSignals.map((signal) => signal.family)).slice(0, 8)
 
     const leadStrategy = getLeadStrategy(strategyEngine, definition.domains)
+    const domainContext = getPrimaryDomainContext(
+      (definition.domains[0] || 'career') as SignalDomain,
+      resolvedContext
+    )
     const averageSignalScore =
       matchedSignals.reduce((sum, signal) => sum + signal.score, 0) /
       Math.max(1, matchedSignals.length)
@@ -702,13 +933,61 @@ export function buildPatternEngine(
     const selectedHitCount = matchedSignals.filter((signal) => selectedIdSet.has(signal.id)).length
     const selectedHitBonus = Math.min(10, selectedHitCount * 3)
     const attackBonus = (leadStrategy?.attackPercent || strategyEngine.attackPercent) * 0.15
+    const activationBonus = domainContext.activationScore * 4
+    const priorityBonus = domainContext.priorityScore * 2
+    const modeAdjustment =
+      domainContext.resolvedMode === 'execute'
+        ? definition.profile === 'upside' || definition.profile === 'support'
+          ? 6
+          : -2
+        : domainContext.resolvedMode === 'prepare'
+          ? definition.profile === 'risk'
+            ? 6
+            : -5
+          : definition.profile === 'timing'
+            ? 4
+            : 0
+    const stateAdjustment =
+      domainContext.state === 'peak'
+        ? 6
+        : domainContext.state === 'active'
+          ? 4
+          : domainContext.state === 'opening'
+            ? 2
+            : domainContext.state === 'consolidation'
+              ? definition.profile === 'risk' || definition.profile === 'support'
+                ? 3
+                : -2
+              : domainContext.state === 'residue'
+                ? -4
+                : 0
+    const crossAgreementValue =
+      typeof resolvedContext?.crossAgreement === 'number' &&
+      Number.isFinite(resolvedContext.crossAgreement)
+        ? resolvedContext.crossAgreement
+        : null
+    const crossAgreementAdjustment =
+      crossAgreementValue === null
+        ? 0
+        : crossAgreementValue >= 0.65
+          ? 4
+          : crossAgreementValue < 0.35 && definition.profile === 'risk'
+            ? 3
+            : crossAgreementValue < 0.35
+              ? -3
+              : 0
     const score = clamp(
       Math.round(
         (averageSignalScore / 10) * 55 +
           matchedSignalIds.length * 8 +
           selectedHitBonus +
           attackBonus +
-          phaseBonus
+          phaseBonus +
+          activationBonus +
+          priorityBonus +
+          modeAdjustment +
+          stateAdjustment +
+          crossAgreementAdjustment
       ),
       1,
       100
@@ -719,7 +998,11 @@ export function buildPatternEngine(
           0.32 +
           Math.min(0.3, matchedSignalIds.length * 0.08) +
           Math.min(0.22, averageSignalScore / 30) +
-          (phaseBonus > 0 ? 0.08 : 0)
+          (phaseBonus > 0 ? 0.08 : 0) +
+          Math.min(0.08, domainContext.activationScore * 0.02) +
+          (crossAgreementValue !== null
+            ? Math.max(-0.06, Math.min(0.06, crossAgreementValue - 0.5))
+            : 0)
         ).toFixed(2)
       ),
       0.1,
@@ -736,25 +1019,33 @@ export function buildPatternEngine(
     const activationReason = uniqueStrings([
       ...definition.activationRules,
       ...(leadStrategy ? [leadStrategy.phase] : []),
+      `rule:${domainContext.resolvedMode}`,
+      ...(domainContext.state ? [`state:${domainContext.state}`] : []),
+      ...(crossAgreementValue !== null ? [`cross:${crossAgreementValue.toFixed(2)}`] : []),
     ]).join(' | ')
 
     return {
       id: definition.id,
       label: definition.label,
+      family: definition.family,
+      profile: definition.profile,
       domains: definition.domains,
       score,
       confidence,
       matchedSignalIds,
+      matchedFamilies,
       matchedKeywords,
       thesis: definition.thesis,
       risk: definition.risk,
       activationReason,
       scenarioIds: definition.scenarioIds,
+      blockedBy: [...domainContext.blockedBy],
+      resolvedMode: domainContext.resolvedMode,
+      domainState: domainContext.state,
+      crossAgreement: crossAgreementValue,
     } satisfies PatternResult
   }).filter((value): value is PatternResult => Boolean(value))
 
   const compositePatterns = buildCompositePatterns(basePatterns, signals, strategyEngine)
-  return [...basePatterns, ...compositePatterns].sort(
-    (a, b) => b.score - a.score || b.confidence - a.confidence
-  )
+  return prioritizePatterns([...basePatterns, ...compositePatterns], resolvedContext)
 }

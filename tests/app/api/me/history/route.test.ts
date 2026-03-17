@@ -1057,6 +1057,30 @@ describe('History API – GET /api/me/history', () => {
       expect(record.summary).toBe('A basic analysis')
     })
 
+    it('should map free timing preview with period label in history', async () => {
+      vi.mocked(prisma.destinyMatrixReport.findMany).mockResolvedValue([
+        {
+          id: 'mx-free',
+          createdAt: fakeDate('2025-06-02'),
+          reportType: 'free',
+          period: 'monthly',
+          theme: null,
+          title: '6월 무료 요약',
+          summary: '이번달 핵심 요약',
+          overallScore: 68,
+          grade: 'B',
+        },
+      ] as any)
+
+      const response = await GET(makeRequest())
+      const data = await response.json()
+
+      const record = data.data.history[0].records[0]
+      expect(record.service).toBe('destiny-matrix')
+      expect(record.theme).toBe('monthly')
+      expect(record.summary).toBe('이번달 핵심 요약')
+    })
+
     it('should handle matrix report with no summary, title, grade, or score', async () => {
       vi.mocked(prisma.destinyMatrixReport.findMany).mockResolvedValue([
         {

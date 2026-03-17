@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { Prisma } from "@prisma/client";
 import { logger } from "@/lib/logger";
+import { deriveCounselorStorageSignals } from "@/app/api/destiny-map/chat-stream/lib/focusDomain";
 
 interface SaveConsultationParams {
   userId: string;
@@ -30,11 +31,19 @@ export async function saveConsultation(params: SaveConsultationParams) {
   } = params;
 
   try {
+    const storageSignals = deriveCounselorStorageSignals({
+      lastUserMessage: userQuestion || null,
+      theme,
+    });
+    const storedTheme = theme === "chat" ? storageSignals.inferredTheme : theme;
+    const primaryTopic =
+      theme === "chat" ? storageSignals.memoryTopics[0] || storedTheme : storedTheme;
+
     // 1. 상담 기록 저장
     const consultation = await prisma.consultationHistory.create({
       data: {
         userId,
-        theme,
+        theme: storedTheme,
         summary,
         fullReport,
         jungQuotes: jungQuotes ? (jungQuotes as Prisma.InputJsonValue) : Prisma.JsonNull,
@@ -45,7 +54,7 @@ export async function saveConsultation(params: SaveConsultationParams) {
     });
 
     // 2. 페르소나 기억 업데이트
-    await updatePersonaMemory(userId, theme);
+    await updatePersonaMemory(userId, primaryTopic);
 
     return { success: true, consultationId: consultation.id };
   } catch (err) {
@@ -60,7 +69,7 @@ export async function saveConsultation(params: SaveConsultationParams) {
  * - 세션 카운트 증가
  * - 테마를 dominantThemes, lastTopics에 추가
  */
-async function updatePersonaMemory(userId: string, theme: string) {
+async function updatePersonaMemory(userId: string, topic: string) {
   try {
     const existing = await prisma.personaMemory.findUnique({
       where: { userId },
@@ -71,12 +80,12 @@ async function updatePersonaMemory(userId: string, theme: string) {
       const lastTopics = (existing.lastTopics as string[]) || [];
 
       // 테마 빈도 업데이트
-      if (!currentThemes.includes(theme)) {
-        currentThemes.push(theme);
+      if (!currentThemes.includes(topic)) {
+        currentThemes.push(topic);
       }
 
       // 최근 토픽 업데이트 (최대 10개, 중복 제거)
-      const updatedLastTopics = [theme, ...lastTopics.filter((t) => t !== theme)].slice(0, 10);
+      const updatedLastTopics = [topic, ...lastTopics.filter((t) => t !== topic)].slice(0, 10);
 
       await prisma.personaMemory.update({
         where: { userId },
@@ -91,8 +100,8 @@ async function updatePersonaMemory(userId: string, theme: string) {
       await prisma.personaMemory.create({
         data: {
           userId,
-          dominantThemes: [theme],
-          lastTopics: [theme],
+          dominantThemes: [topic],
+          lastTopics: [topic],
           sessionCount: 1,
         },
       });

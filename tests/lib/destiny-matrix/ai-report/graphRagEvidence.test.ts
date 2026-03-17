@@ -138,4 +138,38 @@ describe('graphRagEvidence quality guardrail', () => {
     const prompt = formatGraphRAGEvidenceForPrompt(evidence, 'en')
     expect(prompt).toContain('[T1]')
   })
+
+  it('reranks mixed-section evidence toward the requested focus domain', () => {
+    const input = {
+      dayMasterElement: 'Wood',
+      geokguk: 'Officer',
+      yongsin: 'Fire',
+      sibsinDistribution: { career: 30, relationship: 24 },
+      dominantWesternElement: 'Air',
+      planetHouses: {},
+      aspects: [],
+      activeTransits: [],
+    } as any
+
+    const report = {
+      overallScore: { total: 82, grade: 'A' },
+      topInsights: [
+        { title: 'Career momentum', score: 88, domain: 'career', sources: [] },
+        { title: 'Relationship repair', score: 84, domain: 'relationship', sources: [] },
+      ],
+    } as any
+
+    const defaultEvidence = buildGraphRAGEvidence(input, report, { mode: 'comprehensive' })
+    const focusedEvidence = buildGraphRAGEvidence(input, report, {
+      mode: 'comprehensive',
+      focusDomain: 'relationship',
+    })
+
+    const defaultActionPlan = defaultEvidence.anchors.find((anchor) => anchor.section === 'actionPlan')
+    const focusedActionPlan = focusedEvidence.anchors.find((anchor) => anchor.section === 'actionPlan')
+
+    expect(defaultActionPlan?.crossEvidenceSets[0]?.id).toBe('M1')
+    expect(focusedActionPlan?.crossEvidenceSets[0]?.id).toBe('M2')
+    expect(focusedActionPlan?.crossEvidenceSets[0]?.overlapDomains).toContain('relationship')
+  })
 })

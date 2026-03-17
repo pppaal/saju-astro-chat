@@ -1,0 +1,1265 @@
+{
+  "lang": "en",
+  "results": [
+    {
+      "id": "relationship_push",
+      "theme": "love",
+      "lang": "en",
+      "question": "Things feel ambiguous in this relationship. Should I push it forward now?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=relationship/timing actual=relationship"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "relationship: Boundary first"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=boundary/distance/expectation/review | pool=The priority now is relationship: Boundary first. relationship is running in a mixed phase where upside and risk activate together, so reality is more likely to form through stage..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is relationship: Boundary first. relationship is running in a mixed phase where upside and risk activate together, so real..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "For tense aspects, pair execution with pace-control and verification routines."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "now is favored because daeun, seun, active transits align around the Relationship Tension Pattern pattern. Timing relev..."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=목, currentWolun=N/A..."
+        }
+      ],
+      "focusDomain": "relationship",
+      "topDecisionLabel": "relationship: Boundary first",
+      "verdict": "The priority now is relationship: Boundary first. relationship is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "For tense aspects, pair execution with pace-control and verification routines.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=목, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=relationship graph_anchors=10 graph_sets=20 strategy=Defensive Reset Phase(54/46) [Canonical Core] grade=Defend phase=Defensive Reset Phase top_decision=relationship: Boundary first answer=relationship is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=renewal aft..."
+    },
+    {
+      "id": "job_offer",
+      "theme": "career",
+      "lang": "en",
+      "question": "I got a job offer. Is it okay to accept it right away?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=career/timing actual=career"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "career: Review first"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=review/terms/negotiate/staged | pool=The priority now is career: Review first. career is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is career: Review first. career is running in a mixed phase where upside and risk activate together, so reality is more li..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "For tense aspects, pair execution with pace-control and verification routines."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "now is favored because daeun, seun, active transits align around the Career Expansion Pattern pattern. Timing relevance..."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=토, currentWolun=N/A..."
+        }
+      ],
+      "focusDomain": "career",
+      "topDecisionLabel": "career: Review first",
+      "verdict": "The priority now is career: Review first. career is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "For tense aspects, pair execution with pace-control and verification routines.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=토, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=career graph_anchors=10 graph_sets=20 strategy=Defensive Reset Phase(46/54) [Canonical Core] grade=Defend phase=Defensive Reset Phase top_decision=career: Review first answer=career is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=public role expansion caution=F..."
+    },
+    {
+      "id": "money_leak",
+      "theme": "wealth",
+      "lang": "en",
+      "question": "Money feels leaky right now. What should I stop first?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=wealth/timing actual=wealth"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "wealth: Review first"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=spending/protect/review/terms | pool=The priority now is wealth: Review first. wealth is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is wealth: Review first. wealth is running in a mixed phase where upside and risk activate together, so reality is more li..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "relationship caution"
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "now is favored because daeun, seun, active transits align around the Wealth Volatility Pattern pattern. Timing relevanc..."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "wealth",
+      "topDecisionLabel": "wealth: Review first",
+      "verdict": "The priority now is wealth: Review first. wealth is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "relationship caution",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=wealth graph_anchors=10 graph_sets=20 strategy=Defensive Reset Phase(50/50) [Canonical Core] grade=Defend phase=Defensive Reset Phase top_decision=wealth: Review first answer=wealth is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=money expansion action caution=..."
+    },
+    {
+      "id": "burnout",
+      "theme": "health",
+      "lang": "en",
+      "question": "I am exhausted lately. Should I keep pushing or pull back and recover?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=health/timing actual=health"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "health: Boundary first"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=recovery/routine/load/boundary | pool=The priority now is health: Boundary first. health is more likely to manifest as restructuring before commitment. The visible pace may slow, but internal conditions are being rese..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is health: Boundary first. health is more likely to manifest as restructuring before commitment. The visible pace may slow..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "recovery priority"
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "now is favored because daeun, seun, active transits align around the Burnout Risk Pattern pattern. Timing relevance is ..."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongin, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=토, currentWolun=N/A, ..."
+        }
+      ],
+      "focusDomain": "health",
+      "topDecisionLabel": "health: Boundary first",
+      "verdict": "The priority now is health: Boundary first. health is more likely to manifest as restructuring before commitment. The visible pace may slow, but internal conditions are being reset",
+      "guardrail": "recovery priority",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongin, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=토, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=health graph_anchors=10 graph_sets=19 strategy=Defensive Reset Phase(50/50) [Canonical Core] grade=Defend phase=Defensive Reset Phase top_decision=health: Boundary first answer=health is more likely to manifest as restructuring before commitment. The visible pace may slow, but internal conditions are being reset. action=renewal after recalibration caution=recovery priority..."
+    },
+    {
+      "id": "relocation",
+      "theme": "life",
+      "lang": "en",
+      "question": "Is this the right time to relocate or reset my living base?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=move/timing/relationship actual=move"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "wealth: Negotiate first"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=route/base/recheck/staged | pool=The priority now is wealth: Negotiate first. move is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verificatio..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is wealth: Negotiate first. move is running in a mixed phase where upside and risk activate together, so reality is more l..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "For tense aspects, pair execution with pace-control and verification routines."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "move currently needs condition-setting before hard commitment."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "move",
+      "topDecisionLabel": "wealth: Negotiate first",
+      "verdict": "The priority now is wealth: Negotiate first. move is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "For tense aspects, pair execution with pace-control and verification routines.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=move graph_anchors=10 graph_sets=20 strategy=Expansion with Guardrails(56/44) [Canonical Core] grade=Leverage phase=Expansion with Guardrails top_decision=wealth: Negotiate first answer=move is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=renewal after recalibr..."
+    },
+    {
+      "id": "relationship_define",
+      "theme": "love",
+      "lang": "en",
+      "question": "Is it the right time to define this relationship?",
+      "status": "WARN",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=relationship/timing actual=relationship"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "relationship: Boundary first"
+        },
+        {
+          "name": "action language fit",
+          "status": "WARN",
+          "detail": "hints=clarify/expectation/review | pool=The priority now is relationship: Boundary first. relationship is running in a mixed phase where upside and risk activate together, so reality is more likely to form through stage..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is relationship: Boundary first. relationship is running in a mixed phase where upside and risk activate together, so real..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "For tense aspects, pair execution with pace-control and verification routines."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "now is favored because daeun, seun, active transits align around the Relationship Tension Pattern pattern. Timing relev..."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=목, currentWolun=N/A..."
+        }
+      ],
+      "focusDomain": "relationship",
+      "topDecisionLabel": "relationship: Boundary first",
+      "verdict": "The priority now is relationship: Boundary first. relationship is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "For tense aspects, pair execution with pace-control and verification routines.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=목, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=relationship graph_anchors=10 graph_sets=20 strategy=Defensive Reset Phase(54/46) [Canonical Core] grade=Defend phase=Defensive Reset Phase top_decision=relationship: Boundary first answer=relationship is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=renewal aft..."
+    },
+    {
+      "id": "relationship_reconcile",
+      "theme": "love",
+      "lang": "en",
+      "question": "Should I reach out again and try to reconnect?",
+      "status": "WARN",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=relationship/timing actual=relationship"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "relationship: Boundary first"
+        },
+        {
+          "name": "action language fit",
+          "status": "WARN",
+          "detail": "hints=distance/recheck/prepare | pool=The priority now is relationship: Boundary first. relationship is running in a mixed phase where upside and risk activate together, so reality is more likely to form through stage..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is relationship: Boundary first. relationship is running in a mixed phase where upside and risk activate together, so real..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "For tense aspects, pair execution with pace-control and verification routines."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "now is favored because daeun, seun, active transits align around the Relationship Tension Pattern pattern. Timing relev..."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=목, currentWolun=N/A..."
+        }
+      ],
+      "focusDomain": "relationship",
+      "topDecisionLabel": "relationship: Boundary first",
+      "verdict": "The priority now is relationship: Boundary first. relationship is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "For tense aspects, pair execution with pace-control and verification routines.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=목, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=relationship graph_anchors=10 graph_sets=20 strategy=Defensive Reset Phase(54/46) [Canonical Core] grade=Defend phase=Defensive Reset Phase top_decision=relationship: Boundary first answer=relationship is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=renewal aft..."
+    },
+    {
+      "id": "relationship_commitment",
+      "theme": "love",
+      "lang": "en",
+      "question": "Is this a good time to bring up marriage seriously?",
+      "status": "WARN",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=relationship/timing actual=relationship"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "relationship: Boundary first"
+        },
+        {
+          "name": "action language fit",
+          "status": "WARN",
+          "detail": "hints=prepare/expectation/review | pool=The priority now is relationship: Boundary first. relationship is running in a mixed phase where upside and risk activate together, so reality is more likely to form through stage..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is relationship: Boundary first. relationship is running in a mixed phase where upside and risk activate together, so real..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "For tense aspects, pair execution with pace-control and verification routines."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "now is favored because daeun, seun, active transits align around the Relationship Tension Pattern pattern. Timing relev..."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=목, currentWolun=N/A..."
+        }
+      ],
+      "focusDomain": "relationship",
+      "topDecisionLabel": "relationship: Boundary first",
+      "verdict": "The priority now is relationship: Boundary first. relationship is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "For tense aspects, pair execution with pace-control and verification routines.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=목, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=relationship graph_anchors=10 graph_sets=20 strategy=Defensive Reset Phase(54/46) [Canonical Core] grade=Defend phase=Defensive Reset Phase top_decision=relationship: Boundary first answer=relationship is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=renewal aft..."
+    },
+    {
+      "id": "career_promotion",
+      "theme": "career",
+      "lang": "en",
+      "question": "Is this a good moment to raise the promotion conversation?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=career/timing actual=career"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "career: Review first"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=review/negotiate/terms | pool=The priority now is career: Review first. career is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is career: Review first. career is running in a mixed phase where upside and risk activate together, so reality is more li..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "For tense aspects, pair execution with pace-control and verification routines."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "now is favored because daeun, seun, active transits align around the Career Expansion Pattern pattern. Timing relevance..."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=토, currentWolun=N/A..."
+        }
+      ],
+      "focusDomain": "career",
+      "topDecisionLabel": "career: Review first",
+      "verdict": "The priority now is career: Review first. career is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "For tense aspects, pair execution with pace-control and verification routines.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=토, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=career graph_anchors=10 graph_sets=20 strategy=Defensive Reset Phase(46/54) [Canonical Core] grade=Defend phase=Defensive Reset Phase top_decision=career: Review first answer=career is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=public role expansion caution=F..."
+    },
+    {
+      "id": "career_role_shift",
+      "theme": "career",
+      "lang": "en",
+      "question": "Should I move into a different role now?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=career/timing actual=career"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "career: Review first"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=pilot/review/staged | pool=The priority now is career: Review first. career is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is career: Review first. career is running in a mixed phase where upside and risk activate together, so reality is more li..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "For tense aspects, pair execution with pace-control and verification routines."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "now is favored because daeun, seun, active transits align around the Career Expansion Pattern pattern. Timing relevance..."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=토, currentWolun=N/A..."
+        }
+      ],
+      "focusDomain": "career",
+      "topDecisionLabel": "career: Review first",
+      "verdict": "The priority now is career: Review first. career is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "For tense aspects, pair execution with pace-control and verification routines.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=토, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=career graph_anchors=10 graph_sets=20 strategy=Defensive Reset Phase(46/54) [Canonical Core] grade=Defend phase=Defensive Reset Phase top_decision=career: Review first answer=career is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=public role expansion caution=F..."
+    },
+    {
+      "id": "career_contract",
+      "theme": "career",
+      "lang": "en",
+      "question": "Should I reopen the contract terms and negotiate again?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=career/wealth/timing actual=career"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "career: Review first"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=negotiate/terms/review | pool=The priority now is career: Review first. career is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is career: Review first. career is running in a mixed phase where upside and risk activate together, so reality is more li..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "For tense aspects, pair execution with pace-control and verification routines."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "now is favored because daeun, seun, active transits align around the Career Expansion Pattern pattern. Timing relevance..."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=토, currentWolun=N/A..."
+        }
+      ],
+      "focusDomain": "career",
+      "topDecisionLabel": "career: Review first",
+      "verdict": "The priority now is career: Review first. career is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "For tense aspects, pair execution with pace-control and verification routines.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeonggwan, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=토, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=career graph_anchors=10 graph_sets=20 strategy=Defensive Reset Phase(46/54) [Canonical Core] grade=Defend phase=Defensive Reset Phase top_decision=career: Review first answer=career is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=public role expansion caution=F..."
+    },
+    {
+      "id": "wealth_invest",
+      "theme": "wealth",
+      "lang": "en",
+      "question": "Is it a good time to increase my investment exposure?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=wealth/timing actual=wealth"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "wealth: Review first"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=allocation/review/protect | pool=The priority now is wealth: Review first. wealth is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is wealth: Review first. wealth is running in a mixed phase where upside and risk activate together, so reality is more li..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "relationship caution"
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "now is favored because daeun, seun, active transits align around the Wealth Volatility Pattern pattern. Timing relevanc..."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "wealth",
+      "topDecisionLabel": "wealth: Review first",
+      "verdict": "The priority now is wealth: Review first. wealth is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "relationship caution",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=wealth graph_anchors=10 graph_sets=20 strategy=Defensive Reset Phase(50/50) [Canonical Core] grade=Defend phase=Defensive Reset Phase top_decision=wealth: Review first answer=wealth is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=money expansion action caution=..."
+    },
+    {
+      "id": "wealth_debt",
+      "theme": "wealth",
+      "lang": "en",
+      "question": "Do I need to restructure debt right now?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=wealth/timing actual=wealth"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "wealth: Review first"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=restructure/terms/review | pool=The priority now is wealth: Review first. wealth is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is wealth: Review first. wealth is running in a mixed phase where upside and risk activate together, so reality is more li..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "relationship caution"
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "now is favored because daeun, seun, active transits align around the Wealth Volatility Pattern pattern. Timing relevanc..."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "wealth",
+      "topDecisionLabel": "wealth: Review first",
+      "verdict": "The priority now is wealth: Review first. wealth is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "relationship caution",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=wealth graph_anchors=10 graph_sets=20 strategy=Defensive Reset Phase(50/50) [Canonical Core] grade=Defend phase=Defensive Reset Phase top_decision=wealth: Review first answer=wealth is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=money expansion action caution=..."
+    },
+    {
+      "id": "wealth_pricing",
+      "theme": "wealth",
+      "lang": "en",
+      "question": "Can I raise my pricing or change how I monetize now?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=wealth/career actual=wealth"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "wealth: Review first"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=pricing/negotiate/review | pool=The priority now is wealth: Review first. wealth is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is wealth: Review first. wealth is running in a mixed phase where upside and risk activate together, so reality is more li..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "relationship caution"
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "now is favored because daeun, seun, active transits align around the Wealth Volatility Pattern pattern. Timing relevanc..."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "wealth",
+      "topDecisionLabel": "wealth: Review first",
+      "verdict": "The priority now is wealth: Review first. wealth is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "relationship caution",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=wealth graph_anchors=10 graph_sets=20 strategy=Defensive Reset Phase(50/50) [Canonical Core] grade=Defend phase=Defensive Reset Phase top_decision=wealth: Review first answer=wealth is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=money expansion action caution=..."
+    },
+    {
+      "id": "health_sleep",
+      "theme": "health",
+      "lang": "en",
+      "question": "My sleep is falling apart. What should I correct first?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=health/timing actual=health"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "health: Boundary first"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=recovery/routine/load | pool=The priority now is health: Boundary first. health is more likely to manifest as restructuring before commitment. The visible pace may slow, but internal conditions are being rese..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is health: Boundary first. health is more likely to manifest as restructuring before commitment. The visible pace may slow..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "recovery priority"
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "now is favored because daeun, seun, active transits align around the Burnout Risk Pattern pattern. Timing relevance is ..."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongin, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=토, currentWolun=N/A, ..."
+        }
+      ],
+      "focusDomain": "health",
+      "topDecisionLabel": "health: Boundary first",
+      "verdict": "The priority now is health: Boundary first. health is more likely to manifest as restructuring before commitment. The visible pace may slow, but internal conditions are being reset",
+      "guardrail": "recovery priority",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongin, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=토, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=health graph_anchors=10 graph_sets=19 strategy=Defensive Reset Phase(50/50) [Canonical Core] grade=Defend phase=Defensive Reset Phase top_decision=health: Boundary first answer=health is more likely to manifest as restructuring before commitment. The visible pace may slow, but internal conditions are being reset. action=renewal after recalibration caution=recovery priority..."
+    },
+    {
+      "id": "health_load",
+      "theme": "health",
+      "lang": "en",
+      "question": "Can I safely increase training intensity right now?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=health/timing actual=health"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "health: Boundary first"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=recovery/review/load | pool=The priority now is health: Boundary first. health is more likely to manifest as restructuring before commitment. The visible pace may slow, but internal conditions are being rese..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is health: Boundary first. health is more likely to manifest as restructuring before commitment. The visible pace may slow..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "recovery priority"
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "now is favored because daeun, seun, active transits align around the Burnout Risk Pattern pattern. Timing relevance is ..."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongin, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=토, currentWolun=N/A, ..."
+        }
+      ],
+      "focusDomain": "health",
+      "topDecisionLabel": "health: Boundary first",
+      "verdict": "The priority now is health: Boundary first. health is more likely to manifest as restructuring before commitment. The visible pace may slow, but internal conditions are being reset",
+      "guardrail": "recovery priority",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongin, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=토, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=health graph_anchors=10 graph_sets=19 strategy=Defensive Reset Phase(50/50) [Canonical Core] grade=Defend phase=Defensive Reset Phase top_decision=health: Boundary first answer=health is more likely to manifest as restructuring before commitment. The visible pace may slow, but internal conditions are being reset. action=renewal after recalibration caution=recovery priority..."
+    },
+    {
+      "id": "health_reset",
+      "theme": "health",
+      "lang": "en",
+      "question": "Do I need to rebuild my routine from the ground up?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=health/timing actual=health"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "health: Boundary first"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=routine/recovery/prepare | pool=The priority now is health: Boundary first. health is more likely to manifest as restructuring before commitment. The visible pace may slow, but internal conditions are being rese..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is health: Boundary first. health is more likely to manifest as restructuring before commitment. The visible pace may slow..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "recovery priority"
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "now is favored because daeun, seun, active transits align around the Burnout Risk Pattern pattern. Timing relevance is ..."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongin, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=토, currentWolun=N/A, ..."
+        }
+      ],
+      "focusDomain": "health",
+      "topDecisionLabel": "health: Boundary first",
+      "verdict": "The priority now is health: Boundary first. health is more likely to manifest as restructuring before commitment. The visible pace may slow, but internal conditions are being reset",
+      "guardrail": "recovery priority",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongin, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=수, currentSaeun=토, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=health graph_anchors=10 graph_sets=19 strategy=Defensive Reset Phase(50/50) [Canonical Core] grade=Defend phase=Defensive Reset Phase top_decision=health: Boundary first answer=health is more likely to manifest as restructuring before commitment. The visible pace may slow, but internal conditions are being reset. action=renewal after recalibration caution=recovery priority..."
+    },
+    {
+      "id": "life_commute",
+      "theme": "life",
+      "lang": "en",
+      "question": "Should I change my commute pattern now?",
+      "status": "WARN",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=move/timing actual=move"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "wealth: Negotiate first"
+        },
+        {
+          "name": "action language fit",
+          "status": "WARN",
+          "detail": "hints=route/recheck/pilot | pool=The priority now is wealth: Negotiate first. move is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verificatio..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is wealth: Negotiate first. move is running in a mixed phase where upside and risk activate together, so reality is more l..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "For tense aspects, pair execution with pace-control and verification routines."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "move currently needs condition-setting before hard commitment."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "move",
+      "topDecisionLabel": "wealth: Negotiate first",
+      "verdict": "The priority now is wealth: Negotiate first. move is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "For tense aspects, pair execution with pace-control and verification routines.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=move graph_anchors=10 graph_sets=20 strategy=Expansion with Guardrails(56/44) [Canonical Core] grade=Leverage phase=Expansion with Guardrails top_decision=wealth: Negotiate first answer=move is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=renewal after recalibr..."
+    },
+    {
+      "id": "life_route",
+      "theme": "life",
+      "lang": "en",
+      "question": "Is this more about rechecking the route than moving immediately?",
+      "status": "WARN",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=move/timing actual=move"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "wealth: Negotiate first"
+        },
+        {
+          "name": "action language fit",
+          "status": "WARN",
+          "detail": "hints=route/recheck/review | pool=The priority now is wealth: Negotiate first. move is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verificatio..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is wealth: Negotiate first. move is running in a mixed phase where upside and risk activate together, so reality is more l..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "For tense aspects, pair execution with pace-control and verification routines."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "move currently needs condition-setting before hard commitment."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "move",
+      "topDecisionLabel": "wealth: Negotiate first",
+      "verdict": "The priority now is wealth: Negotiate first. move is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "For tense aspects, pair execution with pace-control and verification routines.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=move graph_anchors=10 graph_sets=20 strategy=Expansion with Guardrails(56/44) [Canonical Core] grade=Leverage phase=Expansion with Guardrails top_decision=wealth: Negotiate first answer=move is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=renewal after recalibr..."
+    },
+    {
+      "id": "life_lease",
+      "theme": "life",
+      "lang": "en",
+      "question": "Is it safe to finalize a housing lease right now?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=move/timing/wealth actual=move"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "wealth: Negotiate first"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=negotiate/terms/recheck | pool=The priority now is wealth: Negotiate first. move is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verificatio..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is wealth: Negotiate first. move is running in a mixed phase where upside and risk activate together, so reality is more l..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "For tense aspects, pair execution with pace-control and verification routines."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "move currently needs condition-setting before hard commitment."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "move",
+      "topDecisionLabel": "wealth: Negotiate first",
+      "verdict": "The priority now is wealth: Negotiate first. move is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "For tense aspects, pair execution with pace-control and verification routines.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=move graph_anchors=10 graph_sets=20 strategy=Expansion with Guardrails(56/44) [Canonical Core] grade=Leverage phase=Expansion with Guardrails top_decision=wealth: Negotiate first answer=move is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=renewal after recalibr..."
+    },
+    {
+      "id": "life_basecamp",
+      "theme": "life",
+      "lang": "en",
+      "question": "Should I reset my base of life before making bigger moves?",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "expected domain hit",
+          "status": "PASS",
+          "detail": "expected=move/timing/relationship actual=move"
+        },
+        {
+          "name": "decision exposed",
+          "status": "PASS",
+          "detail": "wealth: Negotiate first"
+        },
+        {
+          "name": "action language fit",
+          "status": "PASS",
+          "detail": "hints=base/staged/recheck | pool=The priority now is wealth: Negotiate first. move is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verificatio..."
+        },
+        {
+          "name": "direct answer tone",
+          "status": "PASS",
+          "detail": "The priority now is wealth: Negotiate first. move is running in a mixed phase where upside and risk activate together, so reality is more l..."
+        },
+        {
+          "name": "guardrail present",
+          "status": "PASS",
+          "detail": "For tense aspects, pair execution with pace-control and verification routines."
+        },
+        {
+          "name": "timing grounding",
+          "status": "PASS",
+          "detail": "move currently needs condition-setting before hard commitment."
+        },
+        {
+          "name": "evidence anchor present",
+          "status": "PASS",
+          "detail": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A,..."
+        }
+      ],
+      "focusDomain": "move",
+      "topDecisionLabel": "wealth: Negotiate first",
+      "verdict": "The priority now is wealth: Negotiate first. move is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment",
+      "guardrail": "For tense aspects, pair execution with pace-control and verification routines.",
+      "timingHint": "now",
+      "topAnchorSummary": "dayMaster=금, geokguk=jeongjae, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=목, currentSaeun=수, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=0",
+      "allowedActions": [
+        "Stay in preparation and information-gathering mode."
+      ],
+      "blockedActions": [
+        "Avoid instant commitment; run a final verification step.",
+        "Break the move into stages and insert a checkpoint.",
+        "Define review criteria and hold conditions before committing."
+      ],
+      "policyMode": "prepare",
+      "packetPreview": "[Counselor Evidence Packet v2] focus_domain=move graph_anchors=10 graph_sets=20 strategy=Expansion with Guardrails(56/44) [Canonical Core] grade=Leverage phase=Expansion with Guardrails top_decision=wealth: Negotiate first answer=move is running in a mixed phase where upside and risk activate together, so reality is more likely to form through staged verification than direct commitment. action=renewal after recalibr..."
+    }
+  ]
+}

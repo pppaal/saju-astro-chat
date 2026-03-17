@@ -6,6 +6,8 @@ import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
 import { getPeakLabel, resolvePeakLevel } from './peakUtils'
 import { repairMojibakeText } from '@/lib/text/mojibake'
+import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
+import { formatDecisionActionLabel } from '@/lib/destiny-matrix/core/actionCopy'
 import {
   EVIDENCE_CONFIDENCE_THRESHOLDS,
   getDisplayGradeFromScore,
@@ -72,6 +74,7 @@ interface ImportantDate {
 interface SelectedDatePanelProps {
   selectedDay: Date | null
   selectedDate: ImportantDate | null
+  canonicalCore?: CalendarCoreAdapterResult
   presentation?: {
     daySummary?: {
       date: string
@@ -213,6 +216,17 @@ function safeDisplayText(value: string | null | undefined, fallback = ''): strin
   return isUnreadableText(normalized) ? fallback : normalized
 }
 
+function formatPolicyMode(mode: 'execute' | 'verify' | 'prepare' | undefined, locale: 'ko' | 'en') {
+  if (locale === 'ko') {
+    if (mode === 'execute') return '실행 우선'
+    if (mode === 'prepare') return '준비 우선'
+    return '검토 우선'
+  }
+  if (mode === 'execute') return 'execute-first'
+  if (mode === 'prepare') return 'prepare-first'
+  return 'verify-first'
+}
+
 function getDomainLabel(
   domain: 'career' | 'love' | 'money' | 'health' | 'move' | 'general' | undefined,
   locale: 'ko' | 'en'
@@ -238,6 +252,16 @@ function getDomainLabel(
 
   const key = (domain || 'general') as keyof (typeof labels)['ko']
   return labels[locale][key]
+}
+
+function toCalendarDomain(
+  domain: string | undefined
+): 'career' | 'love' | 'money' | 'health' | 'move' | 'general' | undefined {
+  if (!domain) return undefined
+  if (domain === 'relationship') return 'love'
+  if (domain === 'wealth') return 'money'
+  if (domain === 'career' || domain === 'health' || domain === 'move') return domain
+  return 'general'
 }
 
 function getReliabilityBand(confidence: number | undefined): 'low' | 'medium' | 'high' {
@@ -300,8 +324,6 @@ function softenDecisionTone(value: string, locale: 'ko' | 'en', lowReliability =
   if (locale === 'ko') {
     let softened = line
       .replace(/1년에 몇 번 없는/gi, '드문 편인')
-      .replace(/최고의 날/gi, '유리한 흐름')
-      .replace(/완벽한 타이밍/gi, '검토 후 진행하기 좋은 타이밍')
       .replace(/결혼 결정/gi, '관계 관련 대화')
       .replace(/프로포즈/gi, '중요한 감정 표현')
       .replace(/오늘로 잡으세요/gi, '우선 검토해 보세요')
@@ -317,10 +339,7 @@ function softenDecisionTone(value: string, locale: 'ko' | 'en', lowReliability =
     return softened
   }
 
-  let softened = line
-    .replace(/best day/gi, 'favorable timing')
-    .replace(/perfect timing/gi, 'a good time to review and act')
-    .replace(/decide now/gi, 'confirm once more before deciding')
+  let softened = line.replace(/decide now/gi, 'confirm once more before deciding')
 
   if (lowReliability) {
     softened = softened
@@ -369,6 +388,7 @@ function toUserFacingEvidenceLine(
 const SelectedDatePanel = memo(function SelectedDatePanel({
   selectedDay,
   selectedDate,
+  canonicalCore,
   presentation,
   savedDates,
   saving,
@@ -648,21 +668,45 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     .map((line) => toUserFacingEvidenceLine(line, 'bridge', locale))
     .filter(Boolean)
 
-  const unifiedDayLabel = selectedDate ? getDisplayLabelFromScore(displayScore, locale) : ''
+  const canonicalAdvisory =
+    canonicalCore?.advisories.find((item) => item.domain === canonicalCore.focusDomain) ||
+    canonicalCore?.advisories[0]
+  const canonicalDomainVerdict =
+    canonicalCore?.domainVerdicts.find((item) => item.domain === canonicalCore.focusDomain) ||
+    canonicalCore?.domainVerdicts[0]
+  const canonicalGradeLabel = safeDisplayText(canonicalCore?.gradeLabel || '', '')
+  const canonicalPhaseLabel = safeDisplayText(
+    canonicalCore?.phaseLabel || canonicalCore?.phase || '',
+    ''
+  )
+  const canonicalFocusDomainLabel = canonicalCore
+    ? getDomainLabel(toCalendarDomain(canonicalCore.focusDomain), locale)
+    : ''
+  const canonicalReliabilityLabel = canonicalCore
+    ? formatPolicyMode(canonicalCore.judgmentPolicy.mode, locale)
+    : ''
+  const unifiedDayLabel =
+    canonicalGradeLabel || (selectedDate ? getDisplayLabelFromScore(displayScore, locale) : '')
   const presentationReliability = safeDisplayText(presentation?.daySummary?.reliability || '', '')
   const reliabilityLabel = selectedDate
     ? getReliabilityLabel(selectedDate.evidence?.confidence, locale)
     : ''
-  const reliabilityHeadline = presentationReliability || reliabilityLabel
+  const reliabilityHeadline = canonicalReliabilityLabel || presentationReliability || reliabilityLabel
   const domainLabel = selectedDate
     ? getDomainLabel(selectedDate.evidence?.matrix.domain, locale)
     : locale === 'ko'
       ? '전반'
       : 'overall'
   const focusDomainHeadline =
-    safeDisplayText(presentation?.daySummary?.focusDomain || '', '') || domainLabel
+    canonicalFocusDomainLabel ||
+    safeDisplayText(presentation?.daySummary?.focusDomain || '', '') ||
+    domainLabel
 
-  const evidenceSummaryPrimary = selectedDate?.evidence
+  const evidenceSummaryPrimary = canonicalCore
+    ? locale === 'ko'
+      ? `오늘 등급 ${unifiedDayLabel} · 국면 ${canonicalPhaseLabel || canonicalCore.phase} · 핵심 분야 ${focusDomainHeadline} · 정책 ${reliabilityHeadline}`
+      : `Today rating ${unifiedDayLabel} · Phase ${canonicalPhaseLabel || canonicalCore.phase} · Focus ${focusDomainHeadline} · Policy ${reliabilityHeadline}`
+    : selectedDate?.evidence
     ? locale === 'ko'
       ? `오늘 등급 ${unifiedDayLabel} · 점수 ${displayScore}/100 · 핵심 분야 ${domainLabel}${matrixVerdict?.phase ? ` · 국면 ${matrixVerdict.phase}` : ''}`
       : `Today rating ${unifiedDayLabel} · Score ${displayScore}/100 · Focus ${domainLabel}${matrixVerdict?.phase ? ` · Phase ${matrixVerdict.phase}` : ''}`
@@ -689,6 +733,17 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       : ''
 
   const evidenceScoreLine = (() => {
+    if (canonicalCore) {
+      const agreement = canonicalCore.crossAgreement
+      if (typeof agreement === 'number' && Number.isFinite(agreement)) {
+        return locale === 'ko'
+          ? `교차 정합도(참고): ${agreement}%`
+          : `Cross-agreement (reference): ${agreement}%`
+      }
+      return locale === 'ko'
+        ? `근거 강도(참고): ${canonicalCore.confidence}%`
+        : `Evidence strength (reference): ${canonicalCore.confidence}%`
+    }
     if (!selectedDate?.evidence) return ''
     const agreement = selectedDate.evidence.crossAgreementPercent
     if (typeof agreement === 'number' && Number.isFinite(agreement)) {
@@ -703,6 +758,12 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
   const quickThesis = (() => {
     if (!selectedDate) return ''
+    if (canonicalAdvisory?.thesis) {
+      return softenDecisionTone(canonicalAdvisory.thesis, locale, isLowReliability)
+    }
+    if (canonicalCore?.thesis) {
+      return softenDecisionTone(canonicalCore.thesis, locale, isLowReliability)
+    }
     if (presentation?.daySummary?.summary) {
       return softenDecisionTone(presentation.daySummary.summary, locale, isLowReliability)
     }
@@ -736,6 +797,21 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   ]).slice(0, 3)
 
   const topRecommendedActions = dedupeDisplayLines([
+    softenDecisionTone(
+      formatDecisionActionLabel(canonicalCore?.topDecisionAction || '', locale, false),
+      locale,
+      isLowReliability
+    ),
+    softenDecisionTone(canonicalCore?.primaryAction || '', locale, isLowReliability),
+    softenDecisionTone(canonicalAdvisory?.action || '', locale, isLowReliability),
+    ...((canonicalDomainVerdict?.allowedActionLabels || []).map((action) =>
+      softenDecisionTone(action, locale, isLowReliability)
+    ) || []),
+    ...(!(canonicalDomainVerdict?.allowedActionLabels || []).length
+      ? (canonicalDomainVerdict?.allowedActions || []).map((action) =>
+          formatDecisionActionLabel(action, locale, false)
+        )
+      : []),
     ...((presentation?.recommendedActions || []).map((line) =>
       softenDecisionTone(line, locale, isLowReliability)
     ) || []),
@@ -750,6 +826,20 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         : ['Start one outreach or coordination task.', 'Close one important document or task.']
 
   const quickDontCandidates = dedupeDisplayLines([
+    softenDecisionTone(canonicalCore?.primaryCaution || '', locale, isLowReliability),
+    softenDecisionTone(canonicalCore?.riskControl || '', locale, isLowReliability),
+    softenDecisionTone(canonicalAdvisory?.caution || '', locale, isLowReliability),
+    ...((canonicalCore?.judgmentPolicy.hardStopLabels || canonicalCore?.judgmentPolicy.hardStops || []).map((line) =>
+      softenDecisionTone(line, locale, isLowReliability)
+    ) || []),
+    ...((canonicalDomainVerdict?.blockedActionLabels || []).map((action) =>
+      softenDecisionTone(action, locale, isLowReliability)
+    ) || []),
+    ...(!(canonicalDomainVerdict?.blockedActionLabels || []).length
+      ? (canonicalDomainVerdict?.blockedActions || []).map((action) =>
+          formatDecisionActionLabel(action, locale, true)
+        )
+      : []),
     softenDecisionTone(matrixVerdict?.guardrail || '', locale, isLowReliability),
     ...topCautions,
   ])
@@ -762,16 +852,45 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         : ['Recheck contracts or major decisions before finalizing.']
 
   const quickWindows =
-    normalizedBestTimes.slice(0, 2).length > 0
-      ? normalizedBestTimes.slice(0, 2)
+    dedupeDisplayLines([
+      softenDecisionTone(canonicalAdvisory?.timingHint || '', locale, isLowReliability),
+      ...normalizedBestTimes,
+    ]).slice(0, 2).length > 0
+      ? dedupeDisplayLines([
+          softenDecisionTone(canonicalAdvisory?.timingHint || '', locale, isLowReliability),
+          ...normalizedBestTimes,
+        ]).slice(0, 2)
       : locale === 'ko'
         ? ['집중 가능한 시간대 1개를 먼저 확보하세요.']
         : ['Secure one focused time block first.']
 
   const safeActionSummary = safeDisplayText(
-    softenDecisionTone(selectedDate?.actionSummary || '', locale, isLowReliability),
+    softenDecisionTone(
+      canonicalCore?.topDecisionLabel || canonicalCore?.primaryAction || selectedDate?.actionSummary || '',
+      locale,
+      isLowReliability
+    ),
     ''
   )
+
+  const displayTitle = (() => {
+    const baseTitle = safeTitle
+    const looksFallback =
+      /fallback|기본 운세 안내|임시|temporary|server|retry/i.test(baseTitle) || !baseTitle
+    if (!looksFallback) return baseTitle
+    if (canonicalPhaseLabel && canonicalFocusDomainLabel) {
+      return locale === 'ko'
+        ? `${canonicalPhaseLabel} · ${canonicalFocusDomainLabel}`
+        : `${canonicalPhaseLabel} · ${canonicalFocusDomainLabel}`
+    }
+    if (canonicalPhaseLabel) return canonicalPhaseLabel
+    if (canonicalGradeLabel && canonicalFocusDomainLabel) {
+      return locale === 'ko'
+        ? `${canonicalGradeLabel} · ${canonicalFocusDomainLabel}`
+        : `${canonicalGradeLabel} · ${canonicalFocusDomainLabel}`
+    }
+    return baseTitle
+  })()
 
   const hasExtendedDetails = safeSajuFactors.length > 0 || safeAstroFactors.length > 0
 
@@ -854,7 +973,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
       {selectedDate ? (
         <div className={styles.selectedDayContent}>
-          <h3 className={styles.selectedTitle}>{safeTitle}</h3>
+          <h3 className={styles.selectedTitle}>{displayTitle}</h3>
 
           {displayGrade >= 3 && safeWarnings.length > 0 && (
             <div
@@ -913,9 +1032,10 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               <span className={styles.quickMetaChip}>
                 {locale === 'ko' ? '핵심 분야' : 'Focus'}: {focusDomainHeadline}
               </span>
-              {matrixVerdict?.phase && (
+              {(canonicalPhaseLabel || matrixVerdict?.phase) && (
                 <span className={styles.quickMetaChip}>
-                  {locale === 'ko' ? '국면' : 'Phase'}: {matrixVerdict.phase}
+                  {locale === 'ko' ? '국면' : 'Phase'}:{' '}
+                  {canonicalPhaseLabel || matrixVerdict?.phase}
                 </span>
               )}
               <span className={styles.quickMetaChip}>
@@ -1021,9 +1141,26 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 {selectedDate.evidence && (
                   <ul className={styles.calendarEvidenceList}>
                     {evidenceSummaryPrimary && <li>{evidenceSummaryPrimary}</li>}
-                    {matrixVerdict?.guardrail && (
+                    {canonicalCore?.gradeReason && (
+                      <li>
+                        {locale === 'ko' ? '등급 설명:' : 'Grade reason:'}{' '}
+                        {canonicalCore.gradeReason}
+                      </li>
+                    )}
+                    {canonicalCore?.riskControl && (
+                      <li>
+                        {locale === 'ko' ? '안전장치:' : 'Guardrail:'} {canonicalCore.riskControl}
+                      </li>
+                    )}
+                    {!canonicalCore?.riskControl && matrixVerdict?.guardrail && (
                       <li>
                         {locale === 'ko' ? '안전장치:' : 'Guardrail:'} {matrixVerdict.guardrail}
+                      </li>
+                    )}
+                    {canonicalCore?.judgmentPolicy?.rationale && (
+                      <li>
+                        {locale === 'ko' ? '판단 정책:' : 'Decision policy:'}{' '}
+                        {canonicalCore.judgmentPolicy.rationale}
                       </li>
                     )}
                     {evidenceSummaryCross && <li>{evidenceSummaryCross}</li>}

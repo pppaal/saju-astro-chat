@@ -124,7 +124,20 @@ export class StreamProcessor {
         continue
       }
 
-      const payload = dataLines.join('')
+      const hasControlToken = dataLines.some(
+        (line) => line === '[DONE]' || line.startsWith('[ERROR]')
+      )
+      if (dataLines.length > 1 && hasControlToken) {
+        // Be tolerant for malformed streams where control tokens are sent
+        // without proper event separators.
+        for (const line of dataLines) {
+          results.push(this.normalizeSSEData(line))
+        }
+        continue
+      }
+
+      // Per SSE spec, multi-line `data:` fields are joined with newline.
+      const payload = dataLines.join('\n')
       results.push(this.normalizeSSEData(payload))
     }
 
@@ -146,7 +159,8 @@ export class StreamProcessor {
    * - if JSON payload has "content", return that text only
    */
   private normalizeSSEData(payload: string): string {
-    const trimmed = payload.trim()
+    const normalized = payload.replace(/\r/g, '')
+    const trimmed = normalized.trim()
     if (!trimmed) {
       return ''
     }
@@ -162,7 +176,7 @@ export class StreamProcessor {
     } catch {
       // Non-JSON payload: return original text.
     }
-    return trimmed
+    return normalized
   }
 
   /**

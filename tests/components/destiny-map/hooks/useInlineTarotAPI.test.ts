@@ -119,6 +119,8 @@ describe('useInlineTarotAPI', () => {
       isSaving: false,
       isAnalyzing: false,
       aiReason: '',
+      questionAnalysis: null,
+      suggestedSpreads: [],
       ...overrides,
     },
     actions: {
@@ -137,6 +139,8 @@ describe('useInlineTarotAPI', () => {
       setIsSaving: vi.fn(),
       setIsAnalyzing: vi.fn(),
       setAiReason: vi.fn(),
+      setQuestionAnalysis: vi.fn(),
+      setSuggestedSpreads: vi.fn(),
       resetForDrawAgain: vi.fn(),
       selectSpreadAndProceed: vi.fn(),
     },
@@ -225,7 +229,7 @@ describe('useInlineTarotAPI', () => {
         await result.current.analyzeQuestion();
       });
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/tarot/analyze-question', {
+      expect(mockFetch).toHaveBeenCalledWith('/api/tarot/question-engine-v2', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -829,8 +833,8 @@ describe('useInlineTarotAPI', () => {
           json: async () => ({ drawnCards: [] }),
         })
         .mockResolvedValueOnce(createMockSSEResponse([
-          'data: {"section":"card_insight","index":0,"content":"First card insight"}\n',
-          'data: [DONE]\n',
+          'data: {"section":"card_insight","index":0,"content":"First card insight"}\n\n',
+          'data: [DONE]\n\n',
         ]));
 
       const { result } = renderHook(() =>
@@ -885,8 +889,8 @@ describe('useInlineTarotAPI', () => {
           json: async () => ({ drawnCards: [] }),
         })
         .mockResolvedValueOnce(createMockSSEResponse([
-          'data: {"section":"affirmation","content":"Your affirmation"}\n',
-          'data: [DONE]\n',
+          'data: {"section":"affirmation","content":"Your affirmation"}\n\n',
+          'data: [DONE]\n\n',
         ]));
 
       const { result } = renderHook(() =>

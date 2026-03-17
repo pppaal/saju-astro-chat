@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 // Mock functions that we can control per test
 const mockFindMany = vi.fn()
+const mockFindFirst = vi.fn()
 const mockFindUnique = vi.fn()
 const mockCreate = vi.fn()
 const mockUpdate = vi.fn()
@@ -33,6 +34,7 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     counselorChatSession: {
       findMany: (...args: any[]) => mockFindMany(...args),
+      findFirst: (...args: any[]) => mockFindFirst(...args),
       findUnique: (...args: any[]) => mockFindUnique(...args),
       create: (...args: any[]) => mockCreate(...args),
       update: (...args: any[]) => mockUpdate(...args),
@@ -105,6 +107,7 @@ describe('/api/counselor/chat-history', () => {
     vi.clearAllMocks()
     // Set up default mock implementations
     mockFindMany.mockResolvedValue([mockChatSession])
+    mockFindFirst.mockResolvedValue(mockChatSession)
     mockFindUnique.mockResolvedValue(mockChatSession)
     mockPersonaFindUnique.mockResolvedValue(mockPersonaMemory)
     mockCreate.mockResolvedValue(mockChatSession)
@@ -456,11 +459,12 @@ describe('/api/counselor/chat-history', () => {
         create: expect.objectContaining({
           userId: mockUserId,
           sessionCount: 1,
-          lastTopics: ['love'],
+          lastTopics: expect.arrayContaining(['love']),
         }),
-        update: {
+        update: expect.objectContaining({
+          lastTopics: expect.arrayContaining(['love']),
           sessionCount: { increment: 1 },
-        },
+        }),
       })
     })
 
@@ -552,7 +556,7 @@ describe('/api/counselor/chat-history', () => {
 
   describe('POST - Update Existing Session', () => {
     it('should update existing session when sessionId is provided', async () => {
-      mockFindUnique.mockResolvedValue({
+      mockFindFirst.mockResolvedValue({
         id: 'session-123',
         userId: mockUserId,
         messages: [{ role: 'user', content: 'First message', timestamp: '2024-01-15T10:00:00Z' }],
@@ -585,7 +589,7 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should return 404 when session does not exist', async () => {
-      mockFindUnique.mockResolvedValue(null)
+      mockFindFirst.mockResolvedValue(null)
 
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
         method: 'POST',
@@ -609,7 +613,7 @@ describe('/api/counselor/chat-history', () => {
         { role: 'assistant', content: 'Hi!', timestamp: '2024-01-15T10:00:01Z' },
       ]
 
-      mockFindUnique.mockResolvedValue({
+      mockFindFirst.mockResolvedValue({
         id: 'session-123',
         userId: mockUserId,
         messages: existingMessages,
@@ -640,7 +644,7 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should update lastMessageAt timestamp on update', async () => {
-      mockFindUnique.mockResolvedValue({
+      mockFindFirst.mockResolvedValue({
         id: 'session-123',
         userId: mockUserId,
         messages: [],
@@ -843,8 +847,12 @@ describe('/api/counselor/chat-history', () => {
 
       expect(response.status).toBe(200)
       expect(result.success).toBe(true)
-      expect(mockUpdate).toHaveBeenCalledWith({
+      expect(mockFindFirst).toHaveBeenCalledWith({
         where: { id: 'session-123', userId: mockUserId },
+        select: { id: true },
+      })
+      expect(mockUpdate).toHaveBeenCalledWith({
+        where: { id: 'session-123' },
         data: expect.objectContaining({
           summary: 'New summary',
         }),
@@ -868,8 +876,12 @@ describe('/api/counselor/chat-history', () => {
       const response = await PATCH(req)
 
       expect(response.status).toBe(200)
-      expect(mockUpdate).toHaveBeenCalledWith({
+      expect(mockFindFirst).toHaveBeenCalledWith({
         where: { id: 'session-123', userId: mockUserId },
+        select: { id: true },
+      })
+      expect(mockUpdate).toHaveBeenCalledWith({
+        where: { id: 'session-123' },
         data: expect.objectContaining({
           keyTopics: ['career', 'growth'],
         }),
@@ -894,8 +906,12 @@ describe('/api/counselor/chat-history', () => {
 
       await PATCH(req)
 
-      expect(mockUpdate).toHaveBeenCalledWith({
+      expect(mockFindFirst).toHaveBeenCalledWith({
         where: { id: 'session-123', userId: mockUserId },
+        select: { id: true },
+      })
+      expect(mockUpdate).toHaveBeenCalledWith({
+        where: { id: 'session-123' },
         data: expect.objectContaining({
           summary: 'Updated summary',
           keyTopics: ['topic1', 'topic2'],
@@ -1038,12 +1054,9 @@ describe('/api/counselor/chat-history', () => {
 
       await PATCH(req)
 
-      // Verify that the update was called with userId in where clause
-      expect(mockUpdate).toHaveBeenCalledWith({
-        where: expect.objectContaining({
-          userId: 'test-user-id',
-        }),
-        data: expect.anything(),
+      expect(mockFindFirst).toHaveBeenCalledWith({
+        where: { id: 'session-123', userId: 'test-user-id' },
+        select: { id: true },
       })
     })
   })
@@ -1077,7 +1090,7 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should propagate database errors on POST update', async () => {
-      mockFindUnique.mockResolvedValue({
+      mockFindFirst.mockResolvedValue({
         id: 'session-123',
         userId: mockUserId,
         messages: [],
@@ -1116,7 +1129,7 @@ describe('/api/counselor/chat-history', () => {
   // ============================================
   describe('Edge Cases', () => {
     it('should handle empty messages array in existing session', async () => {
-      mockFindUnique.mockResolvedValue({
+      mockFindFirst.mockResolvedValue({
         id: 'session-123',
         userId: mockUserId,
         messages: null, // No messages yet
@@ -1149,7 +1162,7 @@ describe('/api/counselor/chat-history', () => {
         { role: 'user', content: 'First', timestamp: '2024-01-15T10:00:00Z' },
       ]
 
-      mockFindUnique.mockResolvedValue({
+      mockFindFirst.mockResolvedValue({
         id: 'session-123',
         userId: mockUserId,
         messages: existingMessages,
@@ -1248,7 +1261,7 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should use correct userId for POST session ownership check', async () => {
-      mockFindUnique.mockResolvedValue({
+      mockFindFirst.mockResolvedValue({
         id: 'session-123',
         userId: mockUserId,
         messages: [],
@@ -1265,7 +1278,7 @@ describe('/api/counselor/chat-history', () => {
 
       await POST(req)
 
-      expect(mockFindUnique).toHaveBeenCalledWith({
+      expect(mockFindFirst).toHaveBeenCalledWith({
         where: { id: 'session-123', userId: mockUserId },
       })
     })

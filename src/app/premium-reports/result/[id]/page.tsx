@@ -13,6 +13,7 @@ import {
   type QualityAudit,
   type CalculationDetails,
 } from '@/lib/destiny-matrix/ai-report/qualityAudit'
+import { normalizeReportTheme, type ReportThemeValue } from '@/lib/destiny-matrix/ai-report/themeSchema'
 import { readPremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
 
 interface ReportSection {
@@ -67,6 +68,129 @@ const REPORT_FETCH_MAX_RETRIES = 8
 const REPORT_FETCH_RETRY_MS = 1200
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const THEME_LABELS: Record<ReportThemeValue, string> = {
+  love: '연애',
+  career: '커리어',
+  wealth: '재물',
+  health: '건강',
+  family: '가족',
+}
+
+const THEME_SUMMARY_KEYS: Record<
+  ReportThemeValue,
+  Array<{ key: string; label: string }>
+> = {
+  love: [
+    { key: 'deepAnalysis', label: '핵심 흐름' },
+    { key: 'compatibility', label: '관계 포인트' },
+    { key: 'marriageTiming', label: '전환 시기' },
+  ],
+  career: [
+    { key: 'deepAnalysis', label: '핵심 흐름' },
+    { key: 'strategy', label: '전략 포인트' },
+    { key: 'turningPoints', label: '전환 시기' },
+  ],
+  wealth: [
+    { key: 'deepAnalysis', label: '핵심 흐름' },
+    { key: 'strategy', label: '전략 포인트' },
+    { key: 'riskManagement', label: '리스크 관리' },
+  ],
+  health: [
+    { key: 'deepAnalysis', label: '핵심 흐름' },
+    { key: 'recoveryPlan', label: '회복 포인트' },
+    { key: 'riskWindows', label: '주의 시기' },
+  ],
+  family: [
+    { key: 'deepAnalysis', label: '핵심 흐름' },
+    { key: 'dynamics', label: '가족 구조' },
+    { key: 'communication', label: '대화 포인트' },
+  ],
+}
+
+function normalizeNarrativeText(text: string): string {
+  return text
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^#{1,6}\s*/gm, '')
+    .replace(/^\s*[-*•]\s+/gm, '')
+    .replace(/^\s*\d+\.\s+/gm, '')
+    .replace(/\*\*/g, '')
+    .replace(/__/g, '')
+    .replace(/\r/g, ' ')
+    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function takeLeadSentence(text: string, maxLength = 92): string {
+  const normalized = normalizeNarrativeText(text)
+  if (!normalized) {
+    return ''
+  }
+
+  const sentenceMatch = normalized.match(/(.+?[.!?。]|.+?다\.|.+?요\.|.+?$)/)
+  const sentence = sentenceMatch?.[1]?.trim() || normalized
+
+  if (sentence.length <= maxLength) {
+    return sentence
+  }
+
+  return `${sentence.slice(0, maxLength - 1).trimEnd()}…`
+}
+
+function findSectionSnippet(report: ReportData, key: string): string {
+  const exact = report.sections.find((section) => section.title === key)
+  if (exact?.content) {
+    return takeLeadSentence(exact.content)
+  }
+
+  const loose = report.sections.find((section) =>
+    section.title.toLowerCase().includes(key.toLowerCase())
+  )
+  if (loose?.content) {
+    return takeLeadSentence(loose.content)
+  }
+
+  return ''
+}
+
+function buildThemedHeadlineLines(
+  report: ReportData
+): Array<{ label: string; text: string }> {
+  const theme = normalizeReportTheme(report.theme)
+  if (!theme) {
+    return []
+  }
+
+  const preferredLines = THEME_SUMMARY_KEYS[theme]
+    .map(({ key, label }) => ({
+      label,
+      text: findSectionSnippet(report, key),
+    }))
+    .filter((line) => line.text.length > 0)
+
+  const fallbackSummary = takeLeadSentence(report.summary)
+  const fallbackLines = report.sections
+    .filter((section) => !preferredLines.some((line) => line.text === takeLeadSentence(section.content)))
+    .map((section, index) => ({
+      label: index === 0 ? '핵심 흐름' : index === 1 ? '포인트' : '실행 힌트',
+      text: takeLeadSentence(section.content),
+    }))
+    .filter((line) => line.text.length > 0)
+
+  const combined = [
+    ...(fallbackSummary ? [{ label: '핵심 요약', text: fallbackSummary }] : []),
+    ...preferredLines,
+    ...fallbackLines,
+  ]
+
+  const unique = combined.filter(
+    (line, index, lines) => lines.findIndex((candidate) => candidate.text === line.text) === index
+  )
+
+  return unique.slice(0, 3)
+}
 
 function extractReportPayload(data: unknown): Record<string, unknown> | null {
   if (!data || typeof data !== 'object') {
@@ -385,6 +509,9 @@ export default function ReportResultPage() {
   }
 
   const showThemedDiagnostics = report.type === 'themed' && !!report.calculationDetails
+  const normalizedTheme = normalizeReportTheme(report.theme)
+  const themedHeadlineLines =
+    report.type === 'themed' ? buildThemedHeadlineLines(report) : []
 
   return (
     <PremiumPageScaffold accent="cyan">
@@ -445,6 +572,38 @@ export default function ReportResultPage() {
             <p className="text-white/80 text-sm">운세 점수</p>
             <p className="text-4xl font-bold text-white">{report.score}점</p>
             {report.grade && <p className="text-white/80 text-sm mt-1">등급: {report.grade}</p>}
+          </div>
+        </div>
+      )}
+
+      {report.type === 'themed' && themedHeadlineLines.length > 0 && (
+        <div className="max-w-5xl mx-auto px-4 mt-6">
+          <div className="rounded-2xl border border-cyan-300/20 bg-gradient-to-br from-slate-900/90 via-slate-900/75 to-cyan-950/55 p-6 shadow-[0_18px_50px_rgba(8,145,178,0.18)] backdrop-blur-xl">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <div className="mb-2 inline-flex items-center rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-100">
+                  {normalizedTheme ? `${THEME_LABELS[normalizedTheme]} 테마 핵심 결론` : '테마 핵심 결론'}
+                </div>
+                <h2 className="text-xl font-bold text-white">먼저 봐야 할 핵심 3줄</h2>
+              </div>
+              <p className="text-sm text-slate-400">
+                아래 섹션에서 근거와 실행안을 자세히 확인하세요.
+              </p>
+            </div>
+
+            <div className="mt-5 grid gap-3">
+              {themedHeadlineLines.map((line, index) => (
+                <div
+                  key={`${line.label}-${index}`}
+                  className="rounded-xl border border-white/10 bg-slate-950/45 px-4 py-4"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-200/80">
+                    {line.label}
+                  </p>
+                  <p className="mt-2 text-base font-medium leading-7 text-slate-100">{line.text}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

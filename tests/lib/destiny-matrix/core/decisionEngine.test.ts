@@ -2,140 +2,397 @@ import { describe, expect, it } from 'vitest'
 import { buildDecisionEngine } from '@/lib/destiny-matrix/core/decisionEngine'
 import type { PatternResult } from '@/lib/destiny-matrix/core/patternEngine'
 import type { ScenarioResult } from '@/lib/destiny-matrix/core/scenarioEngine'
-import type { StrategyEngineResult } from '@/lib/destiny-matrix/ai-report/strategyEngine'
+import type { StrategyEngineResult } from '@/lib/destiny-matrix/core/strategyEngine'
 
 function makeStrategy(
-  phase: StrategyEngineResult['overallPhase'],
-  attackPercent: number,
-  defensePercent: number,
-  volatility: number
+  overrides: Partial<StrategyEngineResult['domainStrategies'][number]> = {}
 ): StrategyEngineResult {
   return {
-    overallPhase: phase,
-    overallPhaseLabel: phase,
-    attackPercent,
-    defensePercent,
+    overallPhase: 'stabilize',
+    overallPhaseLabel: 'Stabilization Phase',
+    attackPercent: 48,
+    defensePercent: 52,
     thesis: 'test',
-    vector: { expansion: 66, volatility, structure: 68 },
+    vector: { expansion: 30, volatility: 12, structure: 34 },
     vectorMode: 'v1-multi-domain',
     domainStrategies: [
       {
         domain: 'career',
-        phase,
-        phaseLabel: phase,
-        attackPercent,
-        defensePercent,
-        thesis: 'career',
-        strategy: 'career',
-        riskControl: 'risk',
-        evidenceIds: ['SIG_A', 'SIG_B'],
-        vector: { expansion: 66, volatility, structure: 68 },
+        phase: 'stabilize',
+        phaseLabel: 'Stabilization Phase',
+        attackPercent: 48,
+        defensePercent: 52,
+        thesis: 'test',
+        strategy: 'test',
+        riskControl: 'test',
+        evidenceIds: ['sig-1', 'sig-2'],
+        vector: { expansion: 30, volatility: 12, structure: 34 },
         signalContributions: [],
         metrics: {
-          strengthScore: 74,
-          cautionScore: 52,
-          balanceScore: 58,
-          effectiveStrength: 74,
-          effectiveCaution: 52,
-          effectiveBalance: 58,
-          volatility: 1.2,
-          momentum: 22,
-          timeActivation: 1.1,
+          strengthScore: 6,
+          cautionScore: 6,
+          balanceScore: 5,
+          effectiveStrength: 6,
+          effectiveCaution: 6,
+          effectiveBalance: 5,
+          volatility: 1.4,
+          momentum: 0,
+          timeActivation: 1,
         },
+        ...overrides,
       },
     ],
   }
 }
 
-function makePatterns(risky: boolean): PatternResult[] {
-  return [
-    {
-      id: 'career_expansion',
-      label: 'Career Expansion',
-      domains: ['career'],
-      score: 84,
-      confidence: 0.78,
-      matchedSignalIds: ['SIG_A'],
-      matchedKeywords: ['career'],
-      thesis: 'upside',
-      risk: risky ? 'conflict risk' : 'manageable',
-      activationReason: 'test',
-      scenarioIds: ['promotion_window'],
-    },
-    {
-      id: risky ? 'career_reset_rebuild' : 'leadership_emergence',
-      label: risky ? 'Career Reset' : 'Leadership Emergence',
-      domains: ['career'],
-      score: 71,
-      confidence: 0.65,
-      matchedSignalIds: ['SIG_B'],
-      matchedKeywords: ['career'],
-      thesis: 'support',
-      risk: risky ? 'defensive reset risk' : 'low risk',
-      activationReason: 'test',
-      scenarioIds: ['job_change_window'],
-    },
-  ]
+function makePattern(overrides: Partial<PatternResult> = {}): PatternResult {
+  return {
+    id: 'career_reset_rebuild',
+    label: 'Career Reset Pattern',
+    family: 'career_rebuild',
+    profile: 'risk',
+    domains: ['career'],
+    score: 84,
+    confidence: 0.78,
+    matchedSignalIds: ['sig-1', 'sig-2'],
+    matchedFamilies: ['career_rebuild', 'timing_guardrail'],
+    matchedKeywords: ['career', 'reset'],
+    thesis: 'test',
+    risk: 'reset risk',
+    activationReason: 'test',
+    scenarioIds: ['role_redefinition_window'],
+    blockedBy: [],
+    resolvedMode: 'verify',
+    domainState: 'opening',
+    crossAgreement: 0.52,
+    ...overrides,
+  }
 }
 
-function makeScenarios(): ScenarioResult[] {
-  return [
-    {
-      id: 'promotion_window',
-      patternId: 'career_expansion',
-      domain: 'career',
-      branch: 'promotion',
-      title: 'Promotion',
-      probability: 79,
-      confidence: 0.74,
-      window: '1-3m',
-      risk: 'scope drift',
-      actions: ['scope'],
-    },
-    {
-      id: 'job_change_window',
-      patternId: 'career_expansion',
-      domain: 'career',
-      branch: 'job_change',
-      title: 'Job change',
-      probability: 72,
-      confidence: 0.69,
-      window: '3-6m',
-      risk: 'timing',
-      actions: ['timing'],
-    },
-  ]
+function makeScenario(overrides: Partial<ScenarioResult> = {}): ScenarioResult {
+  return {
+    id: 'role_redefinition_window',
+    patternId: 'career_reset_rebuild',
+    domain: 'career',
+    branch: 'role_reset',
+    title: 'Role reset',
+    probability: 82,
+    confidence: 0.74,
+    window: '1-3m',
+    timingRelevance: 0.72,
+    risk: 'test',
+    reversible: true,
+    actions: ['a', 'b'],
+    whyNow: 'timing window active',
+    whyNotYet: 'verification still required',
+    entryConditions: ['condition-a'],
+    abortConditions: ['abort-a'],
+    manifestationHints: ['start with a reversible step'],
+    supportingSignalIds: ['sig-1', 'sig-2'],
+    evidenceIds: ['career_reset_rebuild', 'sig-1'],
+    ...overrides,
+  }
 }
 
-describe('buildDecisionEngine', () => {
-  it('prefers staged/prepare options in high tension phases', () => {
+describe('decision engine gating', () => {
+  it('blocks commit_now as top option in defensive reset contexts', () => {
     const result = buildDecisionEngine({
       lang: 'ko',
-      patterns: makePatterns(true),
-      scenarios: makeScenarios(),
-      strategyEngine: makeStrategy('high_tension_expansion', 72, 28, 74),
+      patterns: [makePattern()],
+      scenarios: [makeScenario()],
+      strategyEngine: makeStrategy({
+        phase: 'defensive_reset',
+        attackPercent: 35,
+        defensePercent: 65,
+        vector: { expansion: 22, volatility: 19, structure: 21 },
+      }),
     })
 
-    expect(result.mode).toBe('option-comparison-v1')
-    expect(result.options.length).toBeGreaterThanOrEqual(3)
-    const top = result.options[0]
-    expect(top.domain).toBe('career')
-    expect(top.action === 'staged_commit' || top.action === 'prepare_only').toBe(true)
+    const commitNow = result.options.find((option) => option.action === 'commit_now')
+    expect(commitNow?.gated).toBe(true)
+    expect(commitNow?.gateReason).toBeTruthy()
+    expect(result.topOptionId).not.toBe(commitNow?.id)
   })
 
-  it('keeps execution-first options on top when volatility is low in expansion phase', () => {
+  it('keeps commit_now available when expansion has enough structure', () => {
     const result = buildDecisionEngine({
       lang: 'en',
-      patterns: makePatterns(false),
-      scenarios: makeScenarios(),
-      strategyEngine: makeStrategy('expansion', 80, 20, 24),
+      patterns: [
+        makePattern({
+          id: 'career_expansion',
+          label: 'Career Expansion Pattern',
+          risk: 'execution risk',
+          scenarioIds: ['promotion_window'],
+        }),
+      ],
+      scenarios: [
+        makeScenario({
+          id: 'promotion_window',
+          patternId: 'career_expansion',
+          branch: 'promotion',
+          probability: 90,
+          confidence: 0.82,
+        }),
+      ],
+      strategyEngine: makeStrategy({
+        phase: 'expansion',
+        attackPercent: 71,
+        defensePercent: 29,
+        vector: { expansion: 47, volatility: 10, structure: 32 },
+      }),
     })
 
-    expect(
-      result.topOptionId === 'career__commit_now' || result.topOptionId === 'career__staged_commit'
-    ).toBe(true)
-    const top = result.options[0]
-    expect(top.action).not.toBe('prepare_only')
-    expect(top.scores.total).toBeGreaterThan(60)
+    const commitNow = result.options.find((option) => option.action === 'commit_now')
+    expect(commitNow?.gated).toBe(false)
+    expect(commitNow?.gateReason).toBeNull()
+  })
+
+  it('blocks commit_now when blocked by rule-layer context', () => {
+    const result = buildDecisionEngine({
+      lang: 'ko',
+      patterns: [
+        makePattern({
+          id: 'relationship_activation',
+          label: 'Relationship Activation Pattern',
+          domains: ['relationship'],
+          profile: 'upside',
+          blockedBy: ['commit_now'],
+          resolvedMode: 'verify',
+          domainState: 'opening',
+          crossAgreement: 0.31,
+          scenarioIds: ['new_connection_window'],
+        }),
+      ],
+      scenarios: [
+        makeScenario({
+          id: 'new_connection_window',
+          patternId: 'relationship_activation',
+          domain: 'relationship',
+          branch: 'new_connection',
+          reversible: true,
+        }),
+      ],
+      strategyEngine: {
+        ...makeStrategy(),
+        domainStrategies: [
+          {
+            ...makeStrategy().domainStrategies[0],
+            domain: 'relationship',
+            phase: 'expansion_guarded',
+            attackPercent: 58,
+            defensePercent: 42,
+            vector: { expansion: 34, volatility: 16, structure: 29 },
+          },
+        ],
+      },
+    })
+
+    const commitNow = result.options.find(
+      (option) => option.domain === 'relationship' && option.action === 'commit_now'
+    )
+    expect(commitNow?.gated).toBe(true)
+    expect(commitNow?.gateReason).toBeTruthy()
+  })
+
+  it('prefers the focus-domain best option as top option', () => {
+    const result = buildDecisionEngine({
+      lang: 'en',
+      patterns: [
+        makePattern({
+          id: 'career_expansion',
+          label: 'Career Expansion Pattern',
+          domains: ['career'],
+          profile: 'upside',
+          scenarioIds: ['promotion_window'],
+          resolvedMode: 'execute',
+          domainState: 'active',
+          crossAgreement: 0.72,
+        }),
+        makePattern({
+          id: 'relationship_activation',
+          label: 'Relationship Activation Pattern',
+          domains: ['relationship'],
+          profile: 'upside',
+          scenarioIds: ['new_connection_window'],
+          resolvedMode: 'execute',
+          domainState: 'peak',
+          crossAgreement: 0.82,
+        }),
+      ],
+      scenarios: [
+        makeScenario({
+          id: 'promotion_window',
+          patternId: 'career_expansion',
+          domain: 'career',
+          branch: 'promotion',
+          probability: 84,
+          confidence: 0.78,
+          timingRelevance: 0.76,
+        }),
+        makeScenario({
+          id: 'new_connection_window',
+          patternId: 'relationship_activation',
+          domain: 'relationship',
+          branch: 'new_connection',
+          probability: 92,
+          confidence: 0.84,
+          timingRelevance: 0.86,
+        }),
+      ],
+      strategyEngine: {
+        ...makeStrategy(),
+        domainStrategies: [
+          {
+            ...makeStrategy().domainStrategies[0],
+            domain: 'career',
+            phase: 'expansion_guarded',
+            attackPercent: 63,
+            defensePercent: 37,
+            vector: { expansion: 39, volatility: 13, structure: 31 },
+          },
+          {
+            ...makeStrategy().domainStrategies[0],
+            domain: 'relationship',
+            phase: 'expansion',
+            attackPercent: 74,
+            defensePercent: 26,
+            vector: { expansion: 46, volatility: 10, structure: 29 },
+            evidenceIds: ['sig-r1', 'sig-r2'],
+          },
+        ],
+      },
+    })
+
+    expect(result.topOptionId?.startsWith('career__')).toBe(true)
+  })
+
+  it('adds richer intermediate decision actions for verify-heavy contexts', () => {
+    const result = buildDecisionEngine({
+      lang: 'ko',
+      patterns: [
+        makePattern({
+          id: 'career_expansion',
+          label: 'Career Expansion Pattern',
+          domains: ['career'],
+          profile: 'upside',
+          matchedKeywords: ['career', 'authority', 'research'],
+          scenarioIds: ['promotion_review_window', 'contract_negotiation_window', 'specialist_track_window'],
+          resolvedMode: 'verify',
+          domainState: 'active',
+          crossAgreement: 0.48,
+        }),
+      ],
+      scenarios: [
+        makeScenario({
+          id: 'promotion_review_window',
+          patternId: 'career_expansion',
+          domain: 'career',
+          branch: 'promotion_review',
+          probability: 86,
+          confidence: 0.82,
+          reversible: true,
+        }),
+        makeScenario({
+          id: 'contract_negotiation_window',
+          patternId: 'career_expansion',
+          domain: 'career',
+          branch: 'contract_negotiation',
+          probability: 84,
+          confidence: 0.8,
+          reversible: true,
+        }),
+      ],
+      strategyEngine: {
+        ...makeStrategy({
+          phase: 'expansion_guarded',
+          attackPercent: 61,
+          defensePercent: 39,
+          vector: { expansion: 38, volatility: 13, structure: 30 },
+        }),
+      },
+    })
+
+    const review = result.options.find((option) => option.action === 'review_first')
+    const negotiate = result.options.find((option) => option.action === 'negotiate_first')
+    expect(review).toBeTruthy()
+    expect(negotiate).toBeTruthy()
+    expect(result.topOptionId).not.toBe('career__commit_now')
+  })
+
+  it('surfaces move-specific actions for route and lease-heavy move contexts', () => {
+    const result = buildDecisionEngine({
+      lang: 'en',
+      patterns: [
+        makePattern({
+          id: 'move_reset',
+          label: 'Move Reset Pattern',
+          domains: ['move'],
+          profile: 'timing',
+          matchedKeywords: ['move', 'route', 'lease'],
+          scenarioIds: ['route_recheck_window', 'lease_decision_window', 'basecamp_reset_window'],
+          resolvedMode: 'verify',
+          domainState: 'opening',
+          crossAgreement: 0.46,
+        }),
+      ],
+      scenarios: [
+        makeScenario({
+          id: 'route_recheck_window',
+          patternId: 'move_reset',
+          domain: 'move',
+          branch: 'route_recheck',
+          probability: 88,
+          confidence: 0.84,
+          timingRelevance: 0.82,
+          reversible: true,
+        }),
+        makeScenario({
+          id: 'lease_decision_window',
+          patternId: 'move_reset',
+          domain: 'move',
+          branch: 'lease_decision',
+          probability: 85,
+          confidence: 0.8,
+          timingRelevance: 0.79,
+          reversible: true,
+        }),
+        makeScenario({
+          id: 'basecamp_reset_window',
+          patternId: 'move_reset',
+          domain: 'move',
+          branch: 'basecamp_reset',
+          probability: 86,
+          confidence: 0.81,
+          timingRelevance: 0.8,
+          reversible: true,
+        }),
+      ],
+      strategyEngine: {
+        ...makeStrategy({
+          domain: 'move',
+          phase: 'expansion_guarded',
+          attackPercent: 56,
+          defensePercent: 44,
+          vector: { expansion: 34, volatility: 14, structure: 29 },
+        }),
+        domainStrategies: [
+          {
+            ...makeStrategy().domainStrategies[0],
+            domain: 'move',
+            phase: 'expansion_guarded',
+            attackPercent: 56,
+            defensePercent: 44,
+            vector: { expansion: 34, volatility: 14, structure: 29 },
+            evidenceIds: ['sig-m1', 'sig-m2'],
+          },
+        ],
+      },
+    })
+
+    expect(result.options.some((option) => option.action === 'route_recheck_first')).toBe(true)
+    expect(result.options.some((option) => option.action === 'lease_review_first')).toBe(true)
+    expect(result.options.some((option) => option.action === 'basecamp_reset_first')).toBe(true)
+    expect(result.topOptionId?.startsWith('move__')).toBe(true)
+    expect(result.topOptionId).not.toBe('move__prepare_only')
   })
 })

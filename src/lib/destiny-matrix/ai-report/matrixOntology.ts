@@ -234,8 +234,8 @@ export const THEME_DOMAIN_ONTOLOGY: Record<
 > = {
   love: {
     primary: ['relationship'],
-    support: ['personality'],
-    timing: ['timing', 'relationship'],
+    support: ['personality', 'wealth', 'health'],
+    timing: ['timing', 'relationship', 'wealth', 'health'],
   },
   career: {
     primary: ['career'],
@@ -254,8 +254,8 @@ export const THEME_DOMAIN_ONTOLOGY: Record<
   },
   family: {
     primary: ['relationship'],
-    support: ['personality'],
-    timing: ['timing', 'relationship'],
+    support: ['personality', 'wealth', 'health'],
+    timing: ['timing', 'relationship', 'wealth', 'health'],
   },
 }
 

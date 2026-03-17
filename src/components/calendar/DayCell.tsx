@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React from 'react'
 
@@ -38,24 +38,24 @@ const DayCell = React.memo(function DayCell({
   onClick,
   className,
 }: DayCellProps) {
-  const { locale, t } = useI18n()
+  const { locale } = useI18n()
   const effectiveGrade = dateInfo?.displayGrade ?? dateInfo?.grade ?? 2
 
   const labels = React.useMemo(
     () => ({
-      caution: locale === 'ko' ? '\u26A0 \uC8FC\uC758' : '\u26A0 Caution',
-      timing: locale === 'ko' ? '\u23F1 \uD0C0\uC774\uBC0D' : '\u23F1 Timing',
+      caution: locale === 'ko' ? '⚠ 주의' : '⚠ Caution',
+      timing: locale === 'ko' ? '⏱ 타이밍' : '⏱ Timing',
       categories: {
-        wealth: locale === 'ko' ? '\u{1F4B0} \uB3C8' : '\u{1F4B0} Money',
-        career: locale === 'ko' ? '\u{1F4BC} \uC77C' : '\u{1F4BC} Work',
-        love: locale === 'ko' ? '\u{1F495} \uC5F0\uC560' : '\u{1F495} Love',
-        travel: locale === 'ko' ? '\u{1F9ED} \uC774\uB3D9' : '\u{1F9ED} Move',
-        health: locale === 'ko' ? '\u{1F4AA} \uAC74\uAC15' : '\u{1F4AA} Health',
-        study: locale === 'ko' ? '\u{1F4D8} \uD559\uC5C5' : '\u{1F4D8} Study',
+        wealth: locale === 'ko' ? '💰 돈' : '💰 Money',
+        career: locale === 'ko' ? '💼 일' : '💼 Work',
+        love: locale === 'ko' ? '💞 관계' : '💞 Love',
+        travel: locale === 'ko' ? '🧭 이동' : '🧭 Move',
+        health: locale === 'ko' ? '💪 건강' : '💪 Health',
+        study: locale === 'ko' ? '📘 학업' : '📘 Study',
       } as const satisfies Record<Exclude<EventCategory, 'general'>, string>,
-      daySuffix: locale === 'ko' ? '\uC77C' : '',
-      noInfo: locale === 'ko' ? '\uC815\uBCF4 \uC5C6\uC74C' : 'No info',
-      today: locale === 'ko' ? '\uC624\uB298' : 'Today',
+      daySuffix: locale === 'ko' ? '일' : '',
+      noInfo: locale === 'ko' ? '정보 없음' : 'No info',
+      today: locale === 'ko' ? '오늘' : 'Today',
     }),
     [locale]
   )
@@ -85,25 +85,15 @@ const DayCell = React.memo(function DayCell({
   }, [dateInfo, effectiveGrade, labels])
 
   const getGradeLabel = (grade: number) => {
-    const key = `calendar.grades.${grade}`
-    return t(
-      key,
-      grade === 0
-        ? 'Best Day'
-        : grade === 1
-          ? 'Good Day'
-          : grade === 2
-            ? 'Normal Day'
-            : grade === 3
-              ? 'Bad Day'
-              : 'Worst Day'
-    )
+    if (grade === 0) return locale === 'ko' ? '실행 우선' : 'Execute-first'
+    if (grade === 1) return locale === 'ko' ? '활용 우선' : 'Leverage-first'
+    if (grade === 2) return locale === 'ko' ? '운영 우선' : 'Operate-first'
+    if (grade === 3) return locale === 'ko' ? '검토 우선' : 'Review-first'
+    return locale === 'ko' ? '방어 우선' : 'Protect-first'
   }
 
   const ariaLabel = date
-    ? `${date.getDate()}${labels.daySuffix}, ${
-        typeof effectiveGrade === 'number' ? getGradeLabel(effectiveGrade) : labels.noInfo
-      }${isToday ? `, ${labels.today}` : ''}`
+    ? `${date.getDate()}${labels.daySuffix}, ${typeof effectiveGrade === 'number' ? getGradeLabel(effectiveGrade) : labels.noInfo}${isToday ? `, ${labels.today}` : ''}`
     : undefined
 
   return (

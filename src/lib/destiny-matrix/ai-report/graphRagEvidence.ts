@@ -3,6 +3,8 @@ import type { MatrixCalculationInput } from '../types'
 import type { ReportPeriod, ReportTheme } from './types'
 import { getThemedSectionKeys } from './themeSchema'
 
+export type GraphRAGDomain = InsightDomain | 'move'
+
 const ASPECT_ANGLE_MAP: Record<string, number> = {
   conjunction: 0,
   sextile: 60,
@@ -27,7 +29,7 @@ const ASPECT_BASE_ORB_BY_TYPE: Record<string, number> = {
   biquintile: 2,
 }
 
-const DOMAIN_ORB_MULTIPLIER: Record<InsightDomain, number> = {
+const DOMAIN_ORB_MULTIPLIER: Record<GraphRAGDomain, number> = {
   personality: 1.05,
   career: 0.9,
   relationship: 1.0,
@@ -35,6 +37,7 @@ const DOMAIN_ORB_MULTIPLIER: Record<InsightDomain, number> = {
   health: 0.8,
   spirituality: 1.1,
   timing: 0.75,
+  move: 0.82,
 }
 
 const PLANET_PAIR_ORB_MULTIPLIER: Partial<Record<string, number>> = {
@@ -87,7 +90,7 @@ const PAIR_ASPECT_ORB_MULTIPLIER: Partial<Record<string, number>> = {
   'Sun-Pluto|square': 0.75,
 }
 
-const SECTION_DOMAIN_MAP: Record<string, InsightDomain[]> = {
+const SECTION_DOMAIN_MAP: Record<string, GraphRAGDomain[]> = {
   introduction: ['personality'],
   personalityDeep: ['personality'],
   careerPath: ['career', 'wealth'],
@@ -96,29 +99,41 @@ const SECTION_DOMAIN_MAP: Record<string, InsightDomain[]> = {
   healthGuidance: ['health'],
   lifeMission: ['spirituality', 'personality'],
   timingAdvice: ['timing'],
-  actionPlan: ['career', 'relationship', 'wealth', 'health', 'timing'],
+  actionPlan: ['career', 'relationship', 'wealth', 'health', 'timing', 'move'],
   conclusion: ['personality'],
   overview: ['timing', 'personality'],
   energy: ['timing', 'health'],
-  opportunities: ['career', 'wealth', 'relationship'],
+  opportunities: ['career', 'wealth', 'relationship', 'move'],
   cautions: ['health', 'timing'],
-  domains: ['career', 'relationship', 'wealth', 'health'],
+  domains: ['career', 'relationship', 'wealth', 'health', 'move'],
   deepAnalysis: ['personality', 'career', 'relationship'],
   patterns: ['personality', 'timing'],
-  timing: ['timing'],
-  compatibility: ['relationship'],
+  timing: ['timing', 'move'],
+  compatibility: ['relationship', 'personality'],
+  spouseProfile: ['relationship', 'personality', 'wealth'],
+  marriageTiming: ['timing', 'relationship', 'wealth', 'health'],
   recommendations: ['career', 'relationship', 'wealth', 'health'],
   prevention: ['health'],
-  dynamics: ['relationship'],
+  dynamics: ['relationship', 'wealth', 'health'],
+  communication: ['relationship', 'personality', 'health'],
+  legacy: ['relationship', 'wealth', 'health', 'personality'],
   strategy: ['career', 'wealth'],
+  roleFit: ['career', 'personality'],
+  turningPoints: ['timing', 'career'],
+  incomeStreams: ['wealth', 'career'],
+  riskManagement: ['wealth', 'health', 'timing'],
+  riskWindows: ['health', 'timing'],
+  recoveryPlan: ['health', 'personality'],
 }
 
 type BuildOptions = {
   mode: 'comprehensive' | 'timing' | 'themed'
   theme?: ReportTheme
   period?: ReportPeriod
-  focusDomain?: InsightDomain
+  focusDomain?: GraphRAGDomain
 }
+
+type ReportLang = 'ko' | 'en'
 
 type AspectInput = MatrixCalculationInput['aspects'][number]
 
@@ -127,7 +142,7 @@ export interface GraphRAGCrossEvidenceSet {
   matrixEvidence: string
   astrologyEvidence: string
   sajuEvidence: string
-  overlapDomains: InsightDomain[]
+  overlapDomains: GraphRAGDomain[]
   overlapScore: number
   orbFitScore: number
   combinedConclusion: string
@@ -199,13 +214,67 @@ function normalizeAspectType(type: string | undefined): string {
   return (type || '').toLowerCase()
 }
 
-function topSibsin(input: MatrixCalculationInput): string {
+function resolveLang(input: MatrixCalculationInput, report?: FusionReport): ReportLang {
+  if (input.lang === 'ko' || input.lang === 'en') return input.lang
+  if (report?.lang === 'ko' || report?.lang === 'en') return report.lang
+  return 'en'
+}
+
+function localizeFiveElement(value: string | undefined, lang: ReportLang): string {
+  if (!value) return 'N/A'
+  if (lang === 'ko') return value
+  const map: Record<string, string> = {
+    목: 'wood',
+    화: 'fire',
+    토: 'earth',
+    금: 'metal',
+    수: 'water',
+  }
+  return map[value] || value
+}
+
+function localizeSibsinName(value: string, lang: ReportLang): string {
+  if (lang === 'ko') return value
+  const map: Record<string, string> = {
+    비견: 'bigeon',
+    겁재: 'geopjae',
+    식신: 'siksin',
+    상관: 'sanggwan',
+    편재: 'pyeonjae',
+    정재: 'jeongjae',
+    편관: 'pyeongwan',
+    정관: 'jeonggwan',
+    편인: 'pyeongin',
+    정인: 'jeongin',
+  }
+  return map[value] || value
+}
+
+function localizeGeokguk(value: string | undefined, lang: ReportLang): string {
+  if (!value) return 'N/A'
+  if (lang === 'ko') return value
+  const map: Record<string, string> = {
+    정관격: 'jeonggwan',
+    편관격: 'pyeongwan',
+    정인격: 'jeongin',
+    편인격: 'pyeongin',
+    식신격: 'siksin',
+    상관격: 'sanggwan',
+    정재격: 'jeongjae',
+    편재격: 'pyeonjae',
+    양인격: 'yangin',
+    건록격: 'geonrok',
+  }
+  return map[value] || value
+}
+
+function topSibsin(input: MatrixCalculationInput, lang: ReportLang): string {
   const entries = Object.entries(input.sibsinDistribution || {})
     .filter(([, value]) => typeof value === 'number')
     .sort((a, b) => (b[1] as number) - (a[1] as number))
     .slice(0, 3)
-    .map(([key, value]) => `${key}(${value})`)
-  return entries.join(', ') || 'No dominant sibsin'
+    .map(([key, value]) => `${localizeSibsinName(key, lang)}(${value})`)
+  return entries.join(', ') || (lang === 'ko' ? '우세 십성 없음' : 'No dominant sibsin')
 }
 
 function buildProfileContextSnippet(input: MatrixCalculationInput): string {
@@ -242,7 +311,7 @@ function getPairOrbMultiplier(aspect: AspectInput): number {
   return PLANET_PAIR_ORB_MULTIPLIER[getPairKey(aspect)] || 1
 }
 
-function getDomainAspectOrbMultiplier(domain: InsightDomain, aspectType: string): number {
+function getDomainAspectOrbMultiplier(domain: GraphRAGDomain, aspectType: string): number {
   return DOMAIN_ASPECT_ORB_MULTIPLIER[`${domain}|${normalizeAspectType(aspectType)}`] || 1
 }
 
@@ -252,7 +321,7 @@ function getPairAspectOrbMultiplier(aspect: AspectInput): number {
   return PAIR_ASPECT_ORB_MULTIPLIER[key] || 1
 }
 
-function getAllowedOrb(aspect: AspectInput, domain: InsightDomain): number {
+function getAllowedOrb(aspect: AspectInput, domain: GraphRAGDomain): number {
   const base = getBaseAllowedOrb(aspect.type)
   const domainBase = DOMAIN_ORB_MULTIPLIER[domain]
   const domainAspect = getDomainAspectOrbMultiplier(domain, aspect.type)
@@ -262,10 +331,10 @@ function getAllowedOrb(aspect: AspectInput, domain: InsightDomain): number {
   return Math.max(0.8, raw)
 }
 
-function getOrbFitScore(aspect: AspectInput, domains: InsightDomain[]): number {
+function getOrbFitScore(aspect: AspectInput, domains: GraphRAGDomain[]): number {
   if (typeof aspect.orb !== 'number') return 0.55
   const orb = aspect.orb
-  const scoped: InsightDomain[] = domains.length > 0 ? domains : ['personality']
+  const scoped: GraphRAGDomain[] = domains.length > 0 ? domains : ['personality']
   const scores = scoped.map((domain) => {
     const allowed = getAllowedOrb(aspect, domain)
     return Math.max(0, 1 - orb / Math.max(allowed, 0.1))
@@ -273,7 +342,7 @@ function getOrbFitScore(aspect: AspectInput, domains: InsightDomain[]): number {
   return scores.reduce((a, b) => a + b, 0) / scores.length
 }
 
-function getAspectSortScore(aspect: AspectInput, domains: InsightDomain[]): number {
+function getAspectSortScore(aspect: AspectInput, domains: GraphRAGDomain[]): number {
   const orbFit = getOrbFitScore(aspect, domains)
   const orbScore = orbFit * 10
   const type = normalizeAspectType(aspect.type)
@@ -288,8 +357,8 @@ function getAspectSortScore(aspect: AspectInput, domains: InsightDomain[]): numb
   return orbScore + typeWeight
 }
 
-function inferAspectDomains(aspect: AspectInput): InsightDomain[] {
-  const domains = new Set<InsightDomain>()
+function inferAspectDomains(aspect: AspectInput): GraphRAGDomain[] {
+  const domains = new Set<GraphRAGDomain>()
   const pair = [aspect.planet1, aspect.planet2]
 
   if (pair.includes('Venus') || pair.includes('Moon')) domains.add('relationship')
@@ -298,6 +367,14 @@ function inferAspectDomains(aspect: AspectInput): InsightDomain[] {
   if (pair.includes('Jupiter') || pair.includes('Venus')) domains.add('wealth')
   if (pair.includes('Mars') || pair.includes('Saturn') || pair.includes('Moon'))
     domains.add('health')
+  if (
+    pair.includes('Mercury') ||
+    pair.includes('Uranus') ||
+    pair.includes('Neptune') ||
+    pair.includes('Pluto')
+  ) {
+    domains.add('move')
+  }
 
   const type = normalizeAspectType(aspect.type)
   if (type === 'square' || type === 'opposition' || type === 'quincunx') domains.add('timing')
@@ -307,8 +384,8 @@ function inferAspectDomains(aspect: AspectInput): InsightDomain[] {
   return [...domains]
 }
 
-function inferSajuDomains(input: MatrixCalculationInput): InsightDomain[] {
-  const domains = new Set<InsightDomain>()
+function inferSajuDomains(input: MatrixCalculationInput): GraphRAGDomain[] {
+  const domains = new Set<GraphRAGDomain>()
   const geokguk = (input.geokguk || '').toString()
 
   if (geokguk.includes('gwan') || geokguk.includes('관')) domains.add('career')
@@ -333,26 +410,32 @@ function inferSajuDomains(input: MatrixCalculationInput): InsightDomain[] {
   ) {
     domains.add('timing')
   }
+  if (
+    (input.shinsalList || []).some((item) => /역마|travel|relocat|move/i.test(String(item))) ||
+    (input.activeTransits || []).some((item) => /uranus|node|eclipse/i.test(String(item)))
+  ) {
+    domains.add('move')
+  }
   if (domains.size === 0) domains.add('personality')
   return [...domains]
 }
 
-function buildTimingCycleSummary(input: MatrixCalculationInput): string {
+function buildTimingCycleSummary(input: MatrixCalculationInput, lang: ReportLang): string {
   const parts = [
-    input.currentDaeunElement || 'N/A',
-    input.currentSaeunElement || 'N/A',
-    input.currentWolunElement || 'N/A',
-    input.currentIljinElement || 'N/A',
+    localizeFiveElement(input.currentDaeunElement, lang),
+    localizeFiveElement(input.currentSaeunElement, lang),
+    localizeFiveElement(input.currentWolunElement, lang),
+    localizeFiveElement(input.currentIljinElement, lang),
   ]
   const base = parts.join('/')
   return input.currentIljinDate ? `${base}@${input.currentIljinDate}` : base
 }
 
-function formatAspectEvidence(aspect: AspectInput, domains: InsightDomain[]): string {
+function formatAspectEvidence(aspect: AspectInput, domains: GraphRAGDomain[]): string {
   const angle = getAspectAngle(aspect)
   const angleText = typeof angle === 'number' ? `${toFixed1(angle)}deg` : 'n/a'
   const orbText = typeof aspect.orb === 'number' ? `${toFixed1(aspect.orb)}deg` : 'n/a'
-  const scoped: InsightDomain[] = domains.length > 0 ? domains : ['personality']
+  const scoped: GraphRAGDomain[] = domains.length > 0 ? domains : ['personality']
   const policy = scoped
     .slice(0, 2)
     .map((d) => `${d}<=${toFixed1(getAllowedOrb(aspect, d))}deg`)
@@ -364,14 +447,15 @@ function buildCrossEvidenceSets(
   input: MatrixCalculationInput,
   report: FusionReport
 ): GraphRAGCrossEvidenceSet[] {
+  const lang = resolveLang(input, report)
   const profileContext = buildProfileContextSnippet(input)
   const sajuEvidence = [
-    `dayMaster=${input.dayMasterElement}`,
-    `geokguk=${input.geokguk || 'N/A'}`,
-    `yongsin=${input.yongsin || 'N/A'}`,
-    `topSibsin=${topSibsin(input)}`,
+    `dayMaster=${localizeFiveElement(input.dayMasterElement, lang)}`,
+    `geokguk=${localizeGeokguk(input.geokguk, lang)}`,
+    `yongsin=${localizeFiveElement(input.yongsin, lang)}`,
+    `topSibsin=${topSibsin(input, lang)}`,
     profileContext ? `profile=${profileContext}` : '',
-    `timingCycle=${buildTimingCycleSummary(input)}`,
+    `timingCycle=${buildTimingCycleSummary(input, lang)}`,
   ]
     .filter(Boolean)
     .join(', ')
@@ -415,28 +499,30 @@ function buildCrossEvidenceSets(
       overlapDomains,
       overlapScore: Number(overlapScore.toFixed(2)),
       orbFitScore: Number(orbFitScore.toFixed(2)),
-      combinedConclusion: `Cross-domain overlap(${overlapDomains.join(', ')}) is high for "${topInsight}". Use this as a primary evidence anchor, then convert it into one reversible action and one risk-control step for this section.`,
+      combinedConclusion: `The overlap around "${topInsight}" is strongest in ${overlapDomains.join(', ')}. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step.`,
     }
   })
 
   const transitSets: GraphRAGCrossEvidenceSet[] = (input.activeTransits || [])
     .slice(0, 4)
     .map((transit, idx) => {
-      const transitDomains: InsightDomain[] =
+      const transitDomains: GraphRAGDomain[] =
         transit.includes('Return') || transit.includes('Retrograde')
-          ? ['timing', 'personality']
-          : ['timing']
+          ? ['timing', 'personality', 'move']
+          : /uranus|node|eclipse/i.test(transit)
+            ? ['timing', 'move']
+            : ['timing']
       const overlapDomains = transitDomains.filter((domain) => sajuDomains.includes(domain))
       const scopedOverlap = overlapDomains.length > 0 ? overlapDomains : transitDomains
       return {
         id: `T${idx + 1}`,
-        matrixEvidence: `timingLayer=${buildTimingCycleSummary(input)}`,
+        matrixEvidence: `timingLayer=${buildTimingCycleSummary(input, lang)}`,
         astrologyEvidence: `transit=${transit}${input.profileContext?.analysisAt ? ` @${input.profileContext.analysisAt}` : ''}`,
         sajuEvidence,
         overlapDomains: scopedOverlap,
         overlapScore: Number((0.45 + scopedOverlap.length * 0.12).toFixed(2)),
         orbFitScore: 0.5,
-        combinedConclusion: `Transit ${transit} must be interpreted with the current Saju timing cycle (${buildTimingCycleSummary(input)}). If signals diverge, prioritize verification and delay irreversible commitments.`,
+        combinedConclusion: `Read transit ${transit} together with the current Saju timing cycle (${buildTimingCycleSummary(input, lang)}). If the two do not line up, move in a verification-first sequence and delay irreversible commitments.`,
       }
     })
 
@@ -454,7 +540,7 @@ function buildCrossEvidenceSets(
         overlapDomains: [insight.domain],
         overlapScore: 0.6,
         orbFitScore: 0.5,
-        combinedConclusion: `Matrix insight "${insight.title}" should define the section core claim, with explicit justification from both Saju and Astrology evidence before giving action guidance.`,
+        combinedConclusion: `"${insight.title}" is the section's clearest matrix signal. Use it as the core claim only after confirming both the Saju basis and the astrology basis.`,
       }
     })
 
@@ -464,7 +550,8 @@ function buildCrossEvidenceSets(
 function selectEvidenceSetsForSection(
   section: string,
   sets: GraphRAGCrossEvidenceSet[],
-  mode: BuildOptions['mode']
+  mode: BuildOptions['mode'],
+  focusDomain?: GraphRAGDomain
 ): GraphRAGCrossEvidenceSet[] {
   const sectionDomains = SECTION_DOMAIN_MAP[section] || ['personality']
   const targetSetCount = mode === 'comprehensive' ? 2 : 4
@@ -473,7 +560,26 @@ function selectEvidenceSetsForSection(
     set.overlapDomains.some((d) => sectionDomains.includes(d))
   )
   const pool = matchedDomain.length > 0 ? matchedDomain : rankedByOverlap
-  return pool.slice(0, targetSetCount)
+  const reranked = [...pool].sort((a, b) => {
+    const aFocusBoost = focusDomain && a.overlapDomains.includes(focusDomain) ? 1 : 0
+    const bFocusBoost = focusDomain && b.overlapDomains.includes(focusDomain) ? 1 : 0
+    if (bFocusBoost !== aFocusBoost) return bFocusBoost - aFocusBoost
+
+    const aSectionMatchCount = a.overlapDomains.filter((domain) =>
+      sectionDomains.includes(domain)
+    ).length
+    const bSectionMatchCount = b.overlapDomains.filter((domain) =>
+      sectionDomains.includes(domain)
+    ).length
+    if (bSectionMatchCount !== aSectionMatchCount) {
+      return bSectionMatchCount - aSectionMatchCount
+    }
+
+    if (b.overlapScore !== a.overlapScore) return b.overlapScore - a.overlapScore
+    return b.orbFitScore - a.orbFitScore
+  })
+
+  return reranked.slice(0, targetSetCount)
 }
 
 function astroSnapshot(input: MatrixCalculationInput): string {
@@ -529,6 +635,7 @@ export function buildGraphRAGEvidence(
   report: FusionReport,
   options: BuildOptions
 ): GraphRAGEvidenceBundle {
+  const lang = resolveLang(input, report)
   const sections =
     options.mode === 'comprehensive'
       ? comprehensiveSections()
@@ -536,23 +643,23 @@ export function buildGraphRAGEvidence(
         ? timingSections()
         : themedSections(options.theme || 'career')
 
-  const dayMaster = input.dayMasterElement
-  const geokguk = input.geokguk || 'N/A'
-  const yongsin = input.yongsin || 'N/A'
-  const sibsin = topSibsin(input)
+  const dayMaster = localizeFiveElement(input.dayMasterElement, lang)
+  const geokguk = localizeGeokguk(input.geokguk, lang)
+  const yongsin = localizeFiveElement(input.yongsin, lang)
+  const sibsin = topSibsin(input, lang)
   const astro = astroSnapshot(input)
   const matrix = matrixSnapshot(report)
   const daeun = input.currentDaeunElement
-    ? `currentDaeun=${input.currentDaeunElement}`
+    ? `currentDaeun=${localizeFiveElement(input.currentDaeunElement, lang)}`
     : 'currentDaeun=N/A'
   const saeun = input.currentSaeunElement
-    ? `currentSaeun=${input.currentSaeunElement}`
+    ? `currentSaeun=${localizeFiveElement(input.currentSaeunElement, lang)}`
     : 'currentSaeun=N/A'
   const wolun = input.currentWolunElement
-    ? `currentWolun=${input.currentWolunElement}`
+    ? `currentWolun=${localizeFiveElement(input.currentWolunElement, lang)}`
     : 'currentWolun=N/A'
   const iljin = input.currentIljinElement
-    ? `currentIljin=${input.currentIljinElement}${input.currentIljinDate ? `@${input.currentIljinDate}` : ''}`
+    ? `currentIljin=${localizeFiveElement(input.currentIljinElement, lang)}${input.currentIljinDate ? `@${input.currentIljinDate}` : ''}`
     : input.currentIljinDate
       ? `currentIljin=N/A@${input.currentIljinDate}`
       : 'currentIljin=N/A'
@@ -561,13 +668,18 @@ export function buildGraphRAGEvidence(
 
   const anchors = sections.map((section, idx) => {
     const id = `E${idx + 1}`
-    const selectedSets = selectEvidenceSetsForSection(section, crossEvidenceSets, options.mode)
+    const selectedSets = selectEvidenceSetsForSection(
+      section,
+      crossEvidenceSets,
+      options.mode,
+      options.focusDomain
+    )
     return {
       id,
       section,
       sajuEvidence: `dayMaster=${dayMaster}, geokguk=${geokguk}, yongsin=${yongsin}, sibsin=${sibsin}, ${daeun}, ${saeun}, ${wolun}, ${iljin}${profileContext ? `, profile=${profileContext}` : ''}`,
       astrologyEvidence: astro,
-      crossConclusion: `Anchor with ${matrix}, then synthesize Saju+Astrology for "${section}" using ${selectedSets.map((s) => s.id).join(', ')}. Connect evidence -> interpretation -> action explicitly and avoid recommendations that contradict caution signals.`,
+      crossConclusion: `For "${section}", start from ${matrix} and use ${selectedSets.map((s) => s.id).join(', ')} as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.`,
       crossEvidenceSets: selectedSets,
     }
   })
@@ -586,10 +698,10 @@ export function formatGraphRAGEvidenceForPrompt(
 ): string {
   const lines: string[] = []
   if (lang === 'ko') {
-    lines.push('GraphRAG 앵커를 섹션별로 적용하세요.')
-    lines.push('각 섹션은 반드시 사주 근거 1문장 + 점성 근거 1문장 + 교차 결론 1문장을 포함하세요.')
-    lines.push('각 섹션마다 최소 1개 이상의 paired evidence set([Xn]/[Tn]/[Mn])를 인용하세요.')
-    lines.push('angle/orb/allowed 수치가 있으면 그대로 유지해 근거 추적 가능성을 보장하세요.')
+    lines.push('GraphRAG 앵커를 섹션별 근거 정렬용으로 사용하세요.')
+    lines.push('각 섹션은 사주 근거 1문장, 점성 근거 1문장, 두 근거를 묶는 교차 결론 1문장을 먼저 세우세요.')
+    lines.push('각 섹션마다 최소 1개 이상의 paired evidence set([Xn]/[Tn]/[Mn])를 붙여 근거 흐름을 추적 가능하게 유지하세요.')
+    lines.push('angle/orb/allowed 수치가 있으면 유지하되, 문장은 사용자 언어로 풀어쓰세요.')
     lines.push(
       'overlapScore<0.60 또는 orbFit<0.50인 set은 "재확인 필요"로 해석하고 확정/서명/즉시결정을 권하지 마세요.'
     )
@@ -597,14 +709,14 @@ export function formatGraphRAGEvidenceForPrompt(
       '교차 근거가 낮으면 "같은 방향" 단정 문장을 금지하고, 검증 중심 행동으로 전환하세요.'
     )
   } else {
-    lines.push('Apply the GraphRAG anchors section-by-section.')
+    lines.push('Use the GraphRAG anchors to organize evidence section by section.')
     lines.push(
-      'Each section must include: 1 Saju basis sentence + 1 Astrology basis sentence + 1 cross conclusion sentence.'
+      'For each section, start with one Saju basis sentence, one Astrology basis sentence, and one cross conclusion sentence.'
     )
     lines.push(
-      'Each section must cite at least one paired evidence set: Astrology (angle/orb) + matching Saju basis.'
+      'Each section should cite at least one paired evidence set: astrology evidence plus the matching Saju basis.'
     )
-    lines.push('Cite set IDs inline (e.g., [X1], [T1]) so evidence traces are auditable.')
+    lines.push('Keep set IDs inline (e.g., [X1], [T1]) so the evidence trail remains auditable.')
     lines.push(
       'If overlapScore<0.60 or orbFit<0.50, mark it as "recheck required" and avoid irreversible recommendations.'
     )

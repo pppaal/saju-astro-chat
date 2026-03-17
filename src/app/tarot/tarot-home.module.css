@@ -276,6 +276,283 @@
   line-height: 1.5;
 }
 
+.analysisPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(167, 139, 250, 0.28);
+  background:
+    linear-gradient(180deg, rgba(26, 14, 56, 0.86), rgba(10, 14, 32, 0.92)),
+    rgba(255, 255, 255, 0.03);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 44px rgba(4, 6, 20, 0.35);
+}
+
+.analysisHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.analysisHeaderCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.analysisTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.96);
+  line-height: 1.35;
+}
+
+.intentPill {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(167, 139, 250, 0.28);
+  background: rgba(167, 139, 250, 0.12);
+  color: rgba(226, 216, 255, 0.92);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.analysisSummary {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.55;
+}
+
+.profileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+}
+
+.profileItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.profileLabel {
+  font-size: 0.72rem;
+  color: rgba(196, 181, 253, 0.7);
+}
+
+.profileValue {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.94);
+  line-height: 1.45;
+}
+
+.directAnswerBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(129, 140, 248, 0.28);
+  background: linear-gradient(180deg, rgba(49, 46, 129, 0.28), rgba(15, 23, 42, 0.32));
+}
+
+.directAnswerLabel {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: rgba(199, 210, 254, 0.9);
+  letter-spacing: 0.02em;
+}
+
+.directAnswerText {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.96);
+  line-height: 1.6;
+}
+
+.primaryActionBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(94, 234, 212, 0.22);
+  background: linear-gradient(135deg, rgba(8, 47, 73, 0.4), rgba(17, 24, 39, 0.4));
+}
+
+.primaryActionCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.primaryActionTitle {
+  font-size: 0.95rem;
+  color: rgba(240, 253, 250, 0.96);
+  line-height: 1.4;
+}
+
+.primaryActionText {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(204, 251, 241, 0.78);
+  line-height: 1.55;
+}
+
+.primaryActionButton {
+  flex-shrink: 0;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(94, 234, 212, 0.28);
+  background: rgba(20, 184, 166, 0.16);
+  color: rgba(240, 253, 250, 0.98);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.primaryActionButton:hover {
+  transform: translateY(-1px);
+  background: rgba(20, 184, 166, 0.24);
+  border-color: rgba(94, 234, 212, 0.42);
+}
+
+.secondaryRecommendationSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.secondaryRecommendationHeader {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: rgba(226, 216, 255, 0.92);
+  letter-spacing: 0.04em;
+}
+
+.analysisLead {
+  margin: 0;
+  font-size: 0.88rem;
+  color: rgba(210, 197, 250, 0.88);
+  line-height: 1.65;
+}
+
+.analysisHint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(196, 181, 253, 0.72);
+  line-height: 1.55;
+}
+
+.recommendationList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.recommendationCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.recommendationCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(167, 139, 250, 0.35);
+  background: rgba(167, 139, 250, 0.12);
+  box-shadow: 0 14px 30px rgba(15, 8, 40, 0.28);
+}
+
+.recommendationCardPrimary {
+  border-color: rgba(167, 139, 250, 0.45);
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.2), rgba(255, 255, 255, 0.05));
+}
+
+.recommendationMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.recommendationBadge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.22);
+  color: rgba(240, 235, 255, 0.96);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.recommendationTheme {
+  font-size: 0.75rem;
+  color: rgba(196, 181, 253, 0.78);
+}
+
+.recommendationBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recommendationTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.recommendationCount {
+  font-size: 0.78rem;
+  color: rgba(226, 216, 255, 0.76);
+}
+
+.recommendationReason {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(218, 207, 249, 0.86);
+  line-height: 1.55;
+}
+
+.recommendationAction {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.96);
+}
+
 .dangerWarning {
   display: flex;
   gap: 10px;
@@ -582,6 +859,7 @@
 .submitButton:focus-visible,
 .clearButton:focus-visible,
 .quickStartButton:focus-visible,
+.recommendationCard:focus-visible,
 .themeQuestion:focus-visible,
 .recentItemButton:focus-visible,
 .recentDelete:focus-visible {
@@ -602,6 +880,23 @@
   .searchInput {
     padding: 18px 104px 18px 56px;
     font-size: 1rem;
+  }
+
+  .analysisHeader {
+    flex-direction: column;
+  }
+
+  .intentPill {
+    align-self: flex-start;
+  }
+
+  .profileGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .primaryActionBox {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 
@@ -645,6 +940,18 @@
   .quickStartCard {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .analysisPanel {
+    padding: 16px;
+  }
+
+  .recommendationList {
+    grid-template-columns: 1fr;
+  }
+
+  .profileGrid {
+    grid-template-columns: 1fr;
   }
 }
 

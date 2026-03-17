@@ -319,6 +319,7 @@ describe('PersonaMemory update-from-chat API - POST', () => {
       expect(prisma.counselorChatSession.updateMany).toHaveBeenCalledWith({
         where: { id: 'session-123', userId: 'test-user-id' },
         data: {
+          theme: 'career',
           summary: mockSummary.summary,
           keyTopics: mockSummary.keyTopics,
         },

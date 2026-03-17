@@ -183,6 +183,27 @@ describe("tarot-storage", () => {
       expect(result.interpretation.cardInsights[0].cardName).toBe("The Fool");
     });
 
+    it("includes optional question analysis metadata", () => {
+      const result = formatReadingForSave(
+        "Test",
+        mockSpread,
+        mockDrawnCards,
+        mockInterpretation,
+        "test",
+        "test",
+        undefined,
+        {
+          question_summary: "Current relationship flow",
+          direct_answer: "The next reply may be brief but meaningful.",
+        }
+      );
+
+      expect(result.questionAnalysis).toEqual({
+        question_summary: "Current relationship flow",
+        direct_answer: "The next reply may be brief but meaningful.",
+      });
+    });
+
     it("handles null interpretation", () => {
       const result = formatReadingForSave(
         "Test",

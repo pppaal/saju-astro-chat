@@ -1,12 +1,15 @@
 // 타로 리딩 결과 저장 및 관리
 
 import { DrawnCard, Spread } from './tarot.types';
+import type { TarotQuestionAnalysisSnapshot } from './questionFlow';
 import { logger } from "@/lib/logger";
 
 export interface SavedTarotReading {
   id: string;
   timestamp: number;
   question: string;
+  questionAnalysis?: TarotQuestionAnalysisSnapshot | null;
+  storageOrigin?: 'local' | 'server';
   spread: {
     title: string;
     titleKo?: string;
@@ -35,6 +38,44 @@ export interface SavedTarotReading {
 
 const STORAGE_KEY = 'tarot_saved_readings';
 const MAX_SAVED_READINGS = 50;
+const RESTORE_STORAGE_PREFIX = 'tarot_restore_reading:';
+
+type ServerSavedCard = {
+  name?: string;
+  isReversed?: boolean;
+  position?: string;
+};
+
+type ServerSavedInsight = {
+  position?: string;
+  card_name?: string;
+  interpretation?: string;
+};
+
+type ServerSavedReading = {
+  id: string;
+  createdAt: string | Date;
+  question?: string | null;
+  theme?: string | null;
+  spreadId?: string | null;
+  spreadTitle?: string | null;
+  cards?: ServerSavedCard[] | null;
+  questionContext?: TarotQuestionAnalysisSnapshot | null;
+  overallMessage?: string | null;
+  guidance?: string | null;
+  cardInsights?: ServerSavedInsight[] | null;
+};
+
+function normalizeQuestionText(
+  question: string,
+  spread: Pick<Spread, 'title' | 'titleKo'>
+): string {
+  const trimmed = question.trim();
+  if (trimmed) {
+    return trimmed;
+  }
+  return spread.titleKo || spread.title || 'Tarot reading';
+}
 
 // 저장된 리딩 목록 가져오기
 export function getSavedReadings(): SavedTarotReading[] {
@@ -54,6 +95,7 @@ export function saveReading(reading: Omit<SavedTarotReading, 'id' | 'timestamp'>
     ...reading,
     id: generateId(),
     timestamp: Date.now(),
+    storageOrigin: reading.storageOrigin || 'local',
   };
 
   const readings = getSavedReadings();
@@ -98,6 +140,40 @@ export function getReadingsCount(): number {
   return getSavedReadings().length;
 }
 
+export function storeReadingRestorePayload(reading: SavedTarotReading): string | null {
+  if (typeof window === 'undefined') {return null;}
+
+  const key = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  try {
+    window.sessionStorage.setItem(
+      `${RESTORE_STORAGE_PREFIX}${key}`,
+      JSON.stringify({
+        reading,
+        savedAt: Date.now(),
+      })
+    );
+    return key;
+  } catch (e) {
+    logger.error('Failed to store reading restore payload:', e);
+    return null;
+  }
+}
+
+export function loadReadingRestorePayload(key?: string | null): SavedTarotReading | null {
+  if (typeof window === 'undefined' || !key) {return null;}
+
+  try {
+    const raw = window.sessionStorage.getItem(`${RESTORE_STORAGE_PREFIX}${key}`);
+    if (!raw) {return null;}
+
+    const parsed = JSON.parse(raw) as { reading?: SavedTarotReading };
+    return parsed.reading || null;
+  } catch (e) {
+    logger.error('Failed to load reading restore payload:', e);
+    return null;
+  }
+}
+
 // ID 생성
 function generateId(): string {
   return `tarot_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
@@ -119,10 +195,13 @@ export function formatReadingForSave(
   } | null,
   categoryId: string,
   spreadId: string,
-  deckStyle?: string
+  deckStyle?: string,
+  questionAnalysis?: TarotQuestionAnalysisSnapshot | null
 ): Omit<SavedTarotReading, 'id' | 'timestamp'> {
   return {
-    question,
+    question: normalizeQuestionText(question, spread),
+    questionAnalysis: questionAnalysis || null,
+    storageOrigin: 'local',
     spread: {
       title: spread.title,
       titleKo: spread.titleKo,
@@ -147,6 +226,43 @@ export function formatReadingForSave(
     categoryId,
     spreadId,
     deckStyle,
+  };
+}
+
+export function mapServerReadingToSavedReading(reading: ServerSavedReading): SavedTarotReading {
+  const cards = Array.isArray(reading.cards) ? reading.cards : [];
+  const cardInsights = Array.isArray(reading.cardInsights) ? reading.cardInsights : [];
+  const createdAt =
+    reading.createdAt instanceof Date
+      ? reading.createdAt.getTime()
+      : new Date(reading.createdAt).getTime();
+
+  return {
+    id: reading.id,
+    timestamp: Number.isFinite(createdAt) ? createdAt : Date.now(),
+    question: (reading.question || '').trim() || reading.spreadTitle || 'Tarot reading',
+    questionAnalysis: reading.questionContext || null,
+    storageOrigin: 'server',
+    spread: {
+      title: reading.spreadTitle || 'Tarot Reading',
+      cardCount: cards.length,
+    },
+    cards: cards.map((card, index) => ({
+      name: card.name || `Card ${index + 1}`,
+      isReversed: Boolean(card.isReversed),
+      position: card.position || `Card ${index + 1}`,
+    })),
+    interpretation: {
+      overallMessage: reading.overallMessage || '',
+      guidance: reading.guidance || '',
+      cardInsights: cardInsights.map((insight) => ({
+        position: insight.position || '',
+        cardName: insight.card_name || '',
+        interpretation: insight.interpretation || '',
+      })),
+    },
+    categoryId: reading.theme || 'general',
+    spreadId: reading.spreadId || '',
   };
 }
 

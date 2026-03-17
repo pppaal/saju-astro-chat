@@ -300,6 +300,27 @@ describe("formatReadingForSave", () => {
     expect(result.interpretation.cardInsights).toHaveLength(3);
   });
 
+  it("includes question analysis metadata when provided", () => {
+    const result = formatReadingForSave(
+      "Test",
+      mockSpread,
+      mockDrawnCards,
+      mockInterpretation,
+      "general",
+      "three-card",
+      undefined,
+      {
+        question_summary: "Overall life direction",
+        direct_answer: "You are in a transition phase.",
+      }
+    );
+
+    expect(result.questionAnalysis).toEqual({
+      question_summary: "Overall life direction",
+      direct_answer: "You are in a transition phase.",
+    });
+  });
+
   it("handles null interpretation", () => {
     const result = formatReadingForSave(
       "Test",
