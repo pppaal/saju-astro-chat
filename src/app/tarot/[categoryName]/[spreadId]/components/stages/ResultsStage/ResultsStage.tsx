@@ -168,62 +168,6 @@ function fallbackAttitudeLine(level: LikelihoodLevel, language: string): string 
   return 'Stay neutral and validate small signals first.'
 }
 
-function getInterpretationSourceInfo(
-  source: string,
-  language: string
-): { label: string; detail: string; isPrimary: boolean } {
-  if (source === 'backend_rag') {
-    return {
-      label: language === 'ko' ? '해석 소스: Graph RAG' : 'Source: Graph RAG',
-      detail:
-        language === 'ko'
-          ? '질문 의도 + 카드 맥락 기반 1차 해석 경로입니다.'
-          : 'Primary path using question intent + card context.',
-      isPrimary: true,
-    }
-  }
-
-  if (source === 'gpt_fallback') {
-    return {
-      label: language === 'ko' ? '해석 소스: GPT Fallback' : 'Source: GPT Fallback',
-      detail:
-        language === 'ko'
-          ? 'Graph RAG 실패 후 GPT 보조 경로로 생성되었습니다.'
-          : 'Generated via GPT fallback after Graph RAG failure.',
-      isPrimary: false,
-    }
-  }
-
-  if (source === 'stream_sse_fallback' || source === 'stream_json_fallback') {
-    return {
-      label: language === 'ko' ? '해석 소스: Stream Fallback' : 'Source: Stream Fallback',
-      detail:
-        language === 'ko'
-          ? '실시간 스트림 보조 경로에서 복구된 결과입니다.'
-          : 'Recovered through stream fallback path.',
-      isPrimary: false,
-    }
-  }
-
-  if (source === 'local_personalized_fallback' || source === 'emergency_fallback') {
-    return {
-      label: language === 'ko' ? '해석 소스: Local Fallback' : 'Source: Local Fallback',
-      detail:
-        language === 'ko'
-          ? '서버 장애 대비 로컬 안전 해석 모드입니다.'
-          : 'Local safe fallback mode for server failures.',
-      isPrimary: false,
-    }
-  }
-
-  return {
-    label: language === 'ko' ? '해석 소스: 확인 중' : 'Source: Checking',
-    detail:
-      language === 'ko' ? '응답 경로를 확인하는 중입니다.' : 'Response path is being resolved.',
-    isPrimary: false,
-  }
-}
-
 export function ResultsStage(props: ResultsStageProps) {
   const {
     readingResult,

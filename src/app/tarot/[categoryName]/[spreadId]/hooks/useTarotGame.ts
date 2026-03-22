@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
 import { tarotDeck } from '@/lib/Tarot/tarot-data'
 import {
@@ -136,7 +136,6 @@ function buildRestoredInterpretation(reading: SavedTarotReading): Interpretation
 }
 
 export function useTarotGame(): UseTarotGameReturn {
-  const router = useRouter()
   const params = useParams()
   const searchParams = useSearchParams()
   const categoryName = params?.categoryName as string | undefined
