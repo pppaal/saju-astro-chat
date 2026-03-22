@@ -249,7 +249,7 @@ export function compileFeatureTokens(input: MatrixCalculationInput): FeatureComp
 
   for (const relation of input.relations || []) {
     const mapped = mapRelationOntology(relation)
-    const relationKey = `${String((relation as any)?.kind || 'relation')}:${String((relation as any)?.detail || '')}`
+    const relationKey = `${String(relation.kind || 'relation')}:${String(relation.detail || '')}`
     pushToken(tokens, {
       id: `relation:${relationKey}`,
       sourceKind: 'relation',

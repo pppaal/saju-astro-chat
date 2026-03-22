@@ -1,6 +1,7 @@
 ﻿import type { SignalDomain } from './signalSynthesizer'
 import type { ActivationEngineResult } from './activationEngine'
 import type { CompiledFeatureToken } from './tokenCompiler'
+import { repairMojibakeText } from '@/lib/text/mojibake'
 
 export interface DomainRuleResolution {
   domain: SignalDomain
@@ -55,8 +56,16 @@ export function buildRuleEngine(input: {
     }
 
     const domainTokens = allTokens.filter((token) => token.domainHints.includes(domain.domain))
-    const hasToken = (pattern: RegExp) => domainTokens.some((token) => pattern.test(token.id) || pattern.test(token.sourceValue))
-    const hasAnyToken = (pattern: RegExp) => allTokens.some((token) => pattern.test(token.id) || pattern.test(token.sourceValue))
+    const domainTokenTexts = domainTokens.flatMap((token) => [
+      repairMojibakeText(token.id),
+      repairMojibakeText(token.sourceValue),
+    ])
+    const allTokenTexts = allTokens.flatMap((token) => [
+      repairMojibakeText(token.id),
+      repairMojibakeText(token.sourceValue),
+    ])
+    const hasToken = (pattern: RegExp) => domainTokenTexts.some((value) => pattern.test(value))
+    const hasAnyToken = (pattern: RegExp) => allTokenTexts.some((value) => pattern.test(value))
     const hasAxis = (axis: string) => domain.dominantAxes.includes(axis)
 
     const hasSaturnRelationshipGate = hasAnyToken(
@@ -158,7 +167,7 @@ export function buildRuleEngine(input: {
     const hasAstroTransitFrame = hasAnyToken(/astrologySnapshot:transits|astrologySnapshot:advancedastrosignals|astrologySnapshot:eclipse|astrologySnapshot:return|astrologySnapshot:progress/i)
     const hasNatalAspectFrame = hasAnyToken(/astrologySnapshot:natalaspects|astrologySnapshot:aspect|astrologySnapshot:natalchart/i)
 
-    if (hasToken(/shinsal:.*í™”ê°œ|shinsal:.*Ã­â„¢â€ÃªÂ°Å“|shinsal:.*화개/i)) {
+    if (hasToken(/shinsal:.*화개/i)) {
       if (domain.domain === 'spirituality' || domain.domain === 'personality') {
         pushUnique(amplify, 'spiritual_focus', 'deep_work')
       }
@@ -179,7 +188,7 @@ export function buildRuleEngine(input: {
       }
     }
 
-    if (hasToken(/shinsal:.*ë„í™”|shinsal:.*í™ì—¼|shinsal:.*Ã«Ââ€žÃ­â„¢â€|shinsal:.*Ã­â„¢ÂÃ¬â€”Â¼|shinsal:.*도화|shinsal:.*홍염/i)) {
+    if (hasToken(/shinsal:.*도화|shinsal:.*홍염/i)) {
       if (domain.domain === 'relationship' || domain.domain === 'personality') {
         pushUnique(amplify, 'attraction_visibility')
       }
@@ -198,7 +207,7 @@ export function buildRuleEngine(input: {
       }
     }
 
-    if (hasToken(/shinsal:.*ì—­ë§ˆ|shinsal:.*Ã¬â€”Â­Ã«Â§Ë†|shinsal:.*역마/i)) {
+    if (hasToken(/shinsal:.*역마/i)) {
       if (domain.domain === 'move' || domain.domain === 'career') {
         pushUnique(amplify, 'movement_window')
       }
@@ -218,7 +227,7 @@ export function buildRuleEngine(input: {
       }
     }
 
-    if (hasAnyToken(/shinsal:.*ê³µë§|shinsal:.*ÃªÂ³ÂµÃ«Â§|shinsal:.*공망/i)) {
+    if (hasAnyToken(/shinsal:.*공망/i)) {
       pushUnique(delay, 'finalize_terms')
       pushUnique(convert, 'certainty -> recheck')
       if (domain.domain === 'relationship') pushUnique(gate, 'assumption_gap')
@@ -226,7 +235,7 @@ export function buildRuleEngine(input: {
       if (domain.domain === 'career') pushUnique(gate, 'blind_spot_commitment')
     }
 
-    if (hasToken(/shinsal:.*ë°±í˜¸|shinsal:.*Ã«Â°Â±Ã­ËœÂ¸|shinsal:.*ì–‘ì¸|shinsal:.*양인|shinsal:.*ÃªÂ´Â´ÃªÂ°â€¢|shinsal:.*괴강|shinsal:.*í˜„ì¹¨|shinsal:.*현침/i)) {
+    if (hasToken(/shinsal:.*백호|shinsal:.*양인|shinsal:.*괴강|shinsal:.*현침/i)) {
       pushUnique(suppress, 'overconfidence')
       pushUnique(gate, 'reckless_push')
       if (domain.domain === 'health') pushUnique(delay, 'overload', 'inflammation_spike')

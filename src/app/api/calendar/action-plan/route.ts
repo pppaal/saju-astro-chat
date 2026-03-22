@@ -1329,6 +1329,7 @@ function buildSlotNarrative(input: {
       preferOriginalNote ? fallbackNote || undefined : undefined,
       focusHint || undefined,
       phase ? `흐름 ${phase}` : undefined,
+      timingBrief || undefined,
       actionCue,
       claim || undefined,
       anchor ? `근거: ${anchor}` : scenario ? `시나리오: ${scenario}` : undefined,
@@ -1340,6 +1341,7 @@ function buildSlotNarrative(input: {
     preferOriginalNote ? fallbackNote || undefined : undefined,
     focusHint || undefined,
     phase ? `Flow ${phase}` : undefined,
+    timingBrief || undefined,
     actionCue,
     claim || undefined,
     anchor ? `Basis: ${anchor}` : scenario ? `Scenario: ${scenario}` : undefined,
@@ -1513,6 +1515,7 @@ function buildActionPlanInsights(input: {
       ? canonical.judgmentPolicy.hardStopLabels
       : canonical?.judgmentPolicy?.hardStops || []
   )
+  const timingBrief = cleanGuidanceText(buildCanonicalTimingBrief(calendar, locale), 140)
 
   const formatSlotLabel = (slot?: TimelineSlot) =>
     slot
@@ -1558,7 +1561,7 @@ function buildActionPlanInsights(input: {
         ? `IF 실행 전 확인 THEN ${softCheckCopy[0]}`
         : `Before execution, check this first: ${softCheckCopy[0]}`
     )
-  }
+  }`r`n  if (timingBrief) {`r`n    ifThenRules.unshift(`r`n      isKo ? ``IF 타이밍 해석 THEN ${timingBrief}`` : ``Timing read: ${timingBrief}```r`n    )`r`n  }
 
   const situationTriggers = unique(
     [
@@ -2451,3 +2454,8 @@ export const POST = withApiMiddleware(
     windowSeconds: 60,
   })
 )
+
+
+
+
+
