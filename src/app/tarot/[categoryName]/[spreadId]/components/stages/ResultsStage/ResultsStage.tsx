@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import {
   getQuestionIntent,
@@ -34,6 +35,8 @@ export interface ResultsStageProps {
   translate: (key: string, fallback: string) => string
   userTopic: string
   questionAnalysis: TarotQuestionAnalysisSnapshot | null
+  isGuestUser: boolean
+  signInUrl: string
   handleCardReveal: (index: number) => void
   canRevealCard: (index: number) => boolean
   isCardRevealed: (index: number) => boolean
@@ -234,6 +237,8 @@ export function ResultsStage(props: ResultsStageProps) {
     translate,
     userTopic,
     questionAnalysis,
+    isGuestUser,
+    signInUrl,
     handleCardReveal,
     canRevealCard,
     isCardRevealed,
@@ -342,36 +347,21 @@ export function ResultsStage(props: ResultsStageProps) {
         userTopic={userTopic}
         language={language}
         translate={translate}
+        questionAnalysis={questionAnalysis}
       />
 
-      <HorizontalCardsGrid
-        readingResult={readingResult}
-        selectedColor={selectedColor}
-        selectedDeckStyle={selectedDeckStyle}
-        language={language}
-        revealedCards={revealedCards}
-        onCardReveal={handleCardReveal}
-        canRevealCard={canRevealCard}
-        isCardRevealed={isCardRevealed}
-        onCardSelect={handleCardSelect}
-        translate={translate}
-      />
-
-      {revealedCards.length === readingResult.drawnCards.length && (
-        <button
-          className={styles.scrollToDetailsButton}
-          onClick={() => {
-            setShowLayer2Cards(true)
-            scrollToDetails()
-          }}
-        >
-          {translate('tarot.results.viewDetails', '원문 해석 보기')} ↓
-        </button>
+      {isGuestUser && (
+        <section className={styles.guestResultsBanner}>
+          <p className={styles.guestResultsText}>
+            {language === 'ko'
+              ? '이번 무료 1회 리딩은 완료되었습니다. 추가 질문과 다음 리딩은 로그인 후 이어서 볼 수 있습니다.'
+              : 'Your free guest reading is complete. Sign in to continue with more questions and another reading.'}
+          </p>
+          <Link href={signInUrl} className={styles.guestResultsLink}>
+            {language === 'ko' ? '로그인하고 계속 보기' : 'Sign In To Continue'}
+          </Link>
+        </section>
       )}
-
-      <div className={styles.resultSectionTag}>
-        {language === 'ko' ? '전체 결과' : 'Overall Result'}
-      </div>
 
       {quickSummary && (
         <section className={styles.quickAnswerPanel}>
@@ -406,6 +396,36 @@ export function ResultsStage(props: ResultsStageProps) {
           </p>
         </section>
       )}
+
+      <HorizontalCardsGrid
+        readingResult={readingResult}
+        selectedColor={selectedColor}
+        selectedDeckStyle={selectedDeckStyle}
+        language={language}
+        revealedCards={revealedCards}
+        onCardReveal={handleCardReveal}
+        canRevealCard={canRevealCard}
+        isCardRevealed={isCardRevealed}
+        onCardSelect={handleCardSelect}
+        translate={translate}
+      />
+
+      {revealedCards.length === readingResult.drawnCards.length && (
+        <button
+          className={styles.scrollToDetailsButton}
+          onClick={() => {
+            setShowLayer2Cards(true)
+            scrollToDetails()
+          }}
+        >
+          {translate('tarot.results.viewDetails', '원문 해석 보기')} ↓
+        </button>
+      )}
+
+      <div className={styles.resultSectionTag}>
+        {language === 'ko' ? '전체 결과' : 'Overall Result'}
+      </div>
+
 
       {quickSummary && (
         <section className={styles.quickReasonPanel}>

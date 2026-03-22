@@ -8,24 +8,10 @@ interface SectionDefinition {
 }
 
 const KO_SECTIONS: readonly SectionDefinition[] = [
-  {
-    heading: '\uD55C \uC904 \uACB0\uB860',
-    aliases: ['\uD55C \uC904 \uACB0\uB860', '\uD55C\uC904\uACB0\uB860', '\uD575\uC2EC \uACB0\uB860'],
-  },
-  { heading: '\uADFC\uAC70', aliases: ['\uADFC\uAC70', '\uADFC\uAC70/\uC0C1\uC138'] },
-  {
-    heading: '\uC2E4\uD589 \uACC4\uD68D',
-    aliases: ['\uC2E4\uD589 \uACC4\uD68D', '\uC2E4\uD589\uACC4\uD68D', '\uD589\uB3D9 \uACC4\uD68D'],
-  },
-  {
-    heading: '\uC8FC\uC758/\uC7AC\uD655\uC778',
-    aliases: [
-      '\uC8FC\uC758/\uC7AC\uD655\uC778',
-      '\uC8FC\uC758 / \uC7AC\uD655\uC778',
-      '\uC8FC\uC758\u00B7\uC7AC\uD655\uC778',
-      '\uC8FC\uC758\uC0AC\uD56D',
-    ],
-  },
+  { heading: '한 줄 결론', aliases: ['한 줄 결론', '한줄결론', '핵심 결론'] },
+  { heading: '근거', aliases: ['근거', '근거/상세'] },
+  { heading: '실행 계획', aliases: ['실행 계획', '실행계획', '행동 계획'] },
+  { heading: '주의/재확인', aliases: ['주의/재확인', '주의 / 재확인', '주의·재확인', '주의사항'] },
 ] as const
 
 const EN_SECTIONS: readonly SectionDefinition[] = [
@@ -58,7 +44,7 @@ function compactPreview(text: string, maxLen = 220): string {
 function firstSentence(text: string, fallback: string): string {
   const compact = text.replace(/\s+/g, ' ').trim()
   if (!compact) return fallback
-  const match = compact.match(/^(.+?[.!?]|.+?\uB2E4\.)/)
+  const match = compact.match(/^(.+?[.!?]|.+?다\.)/)
   const sentence = match?.[1]?.trim() || compact
   return sentence.length > 180 ? `${sentence.slice(0, 180).trim()}...` : sentence
 }
@@ -74,8 +60,8 @@ function aliasPattern(alias: string): string {
 }
 
 function normalizeHeadingSpacing(text: string): string {
-  const withHeadingBreaks = text.replace(/([^\n])\s*(##\s*[^\n#]+)/g, '$1\n$2')
-  return withHeadingBreaks
+  return text
+    .replace(/([^\n])\s*(##\s*[^\n#]+)/g, '$1\n$2')
     .replace(/^##(?!\s)/gm, '## ')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
@@ -87,48 +73,109 @@ function canonicalizeHeadings(raw: string, sections: readonly SectionDefinition[
   for (const section of sections) {
     for (const alias of section.aliases) {
       const pattern = aliasPattern(alias)
-
-      const hashHeading = new RegExp(
-        `(^|\\n)\\s*##\\s*${pattern}\\s*[:：\\-]?\\s*`,
-        'giu'
-      )
-      text = text.replace(hashHeading, `$1## ${section.heading}\n`)
-
-      const singleHash = new RegExp(`(^|\\n)\\s*#\\s*${pattern}\\s*[:：\\-]?\\s*`, 'giu')
-      text = text.replace(singleHash, `$1## ${section.heading}\n`)
-
-      const boldHeading = new RegExp(`(^|\\n)\\s*\\*\\*\\s*${pattern}\\s*\\*\\*\\s*`, 'giu')
-      text = text.replace(boldHeading, `$1## ${section.heading}\n`)
+      text = text.replace(new RegExp(`(^|\\n)\\s*##\\s*${pattern}\\s*[:：\\-]?\\s*`, 'giu'), `$1## ${section.heading}\n`)
+      text = text.replace(new RegExp(`(^|\\n)\\s*#\\s*${pattern}\\s*[:：\\-]?\\s*`, 'giu'), `$1## ${section.heading}\n`)
+      text = text.replace(new RegExp(`(^|\\n)\\s*\\*\\*\\s*${pattern}\\s*\\*\\*\\s*`, 'giu'), `$1## ${section.heading}\n`)
     }
   }
 
-  text = text.replace(/\n{3,}/g, '\n\n').trim()
-  return text
+  return text.replace(/\n{3,}/g, '\n\n').trim()
 }
 
 function hasAllRequiredHeadings(text: string, sections: readonly SectionDefinition[]): boolean {
-  return sections.every((section) => {
-    const headingPattern = new RegExp(
-      `(^|\\n)\\s*##\\s*${escapeRegExp(section.heading)}\\s*(?=\\n|$)`,
-      'u'
-    )
-    return headingPattern.test(text)
-  })
+  return sections.every((section) =>
+    new RegExp(`(^|\\n)\\s*##\\s*${escapeRegExp(section.heading)}\\s*(?=\\n|$)`, 'u').test(text)
+  )
 }
 
-function uniqueNonEmptyLines(value: string): string {
+function uniqueNonEmptyLines(value: string): string[] {
   const seen = new Set<string>()
-  const lines = value
+  return value
     .split('\n')
     .map((line) => line.trim())
-    .filter((line) => line.length > 0)
+    .filter(Boolean)
     .filter((line) => {
       const key = line.replace(/\s+/g, ' ')
       if (seen.has(key)) return false
       seen.add(key)
       return true
     })
-  return lines.join('\n')
+}
+
+function sentenceSplit(text: string, lang: CounselorLang): string[] {
+  const compact = text.replace(/\s+/g, ' ').trim()
+  if (!compact) return []
+
+  if (lang === 'ko') {
+    return compact
+      .split(/(?<=다\.|요\.|죠\.|니다\.|습니다\.|[!?])\s+/u)
+      .map((part) => part.trim())
+      .filter(Boolean)
+  }
+
+  return compact
+    .split(/(?<=[.!?])\s+/u)
+    .map((part) => part.trim())
+    .filter(Boolean)
+}
+
+function cleanSectionLine(text: string, lang: CounselorLang): string {
+  let cleaned = text
+    .replace(/\((?:wood|fire|earth|metal|water|Aquarius|Pisces|Aries|Taurus|Gemini|Cancer|Leo|Virgo|Libra|Scorpio|Sagittarius|Capricorn)\)/gi, '')
+    .replace(/\b(?:wood|fire|earth|metal|water)\b/gi, '')
+    .replace(/\b(?:ASC|MC|IC|DC)\b/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([,.)])/g, '$1')
+    .trim()
+
+  if (lang === 'ko') {
+    cleaned = cleaned
+      .replace(/\b(?:트랜짓|하우스|오브|사인|태그)\b/g, '')
+      .replace(/\b(?:Aquarius|Pisces|Aries|Taurus|Gemini|Cancer|Leo|Virgo|Libra|Scorpio|Sagittarius|Capricorn)\b/g, '')
+      .replace(/\(\s*\)/g, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+  }
+
+  return cleaned
+}
+
+function toBulletLines(text: string, lang: CounselorLang, limit: number): string[] {
+  const rawLines = uniqueNonEmptyLines(text)
+  const existingBullets = rawLines.filter((line) => /^[-*]\s+/.test(line))
+  if (existingBullets.length > 0) {
+    return existingBullets
+      .slice(0, limit)
+      .map((line) => cleanSectionLine(line, lang))
+  }
+
+  return sentenceSplit(rawLines.join(' '), lang)
+    .slice(0, limit)
+    .map((line) => `- ${cleanSectionLine(line, lang)}`)
+}
+
+function formatSectionBody(heading: string, body: string, lang: CounselorLang): string {
+  const compact = cleanSectionLine(body.replace(/\s+/g, ' ').trim(), lang)
+  if (!compact) {
+    return lang === 'ko' ? '- 핵심 조건을 다시 확인하세요.' : '- Recheck the key conditions.'
+  }
+
+  const isConclusion =
+    heading === KO_SECTIONS[0].heading || heading === EN_SECTIONS[0].heading
+
+  if (isConclusion) {
+    return firstSentence(compact, compact)
+  }
+
+  if (heading === KO_SECTIONS[1].heading || heading === EN_SECTIONS[1].heading) {
+    return toBulletLines(compact, lang, 3).join('\n')
+  }
+
+  if (heading === KO_SECTIONS[2].heading || heading === EN_SECTIONS[2].heading) {
+    return toBulletLines(compact, lang, 3).join('\n')
+  }
+
+  return toBulletLines(compact, lang, 2).join('\n')
 }
 
 function extractCanonicalSections(
@@ -156,8 +203,7 @@ function extractCanonicalSections(
 
     const current = headingMatches[idx]
     const next = headingMatches[idx + 1]
-    const body = text.slice(current.end, next ? next.start : text.length).trim()
-    result[section.heading] = uniqueNonEmptyLines(body)
+    result[section.heading] = text.slice(current.end, next ? next.start : text.length).trim()
   }
 
   return result
@@ -165,59 +211,49 @@ function extractCanonicalSections(
 
 function buildKoFallback(raw: string): string {
   const preview = compactPreview(raw)
-  const direct = firstSentence(
-    raw,
-    '\uD575\uC2EC \uC9C8\uBB38\uC5D0 \uBA3C\uC800 \uB2F5\uD558\uACE0, \uD070 \uACB0\uC815\uC740 \uC7AC\uD655\uC778 \uD6C4 \uC9C4\uD589\uD558\uC138\uC694.'
-  )
-  const evidenceLine = preview
-    ? `- \uC785\uB825 \uC694\uC57D: ${preview}`
-    : '- \uC785\uB825 \uC694\uC57D: \uC0AC\uC8FC\u00B7\uC810\uC131\u00B7\uBA54\uD2B8\uB9AD\uC2A4 \uAD50\uCC28 \uC2E0\uD638\uB97C \uAE30\uBC18\uC73C\uB85C \uD310\uB2E8\uD588\uC2B5\uB2C8\uB2E4.'
+  const direct = firstSentence(raw, '핵심 질문에 먼저 답하고, 큰 결정은 한 번 더 확인한 뒤 움직이세요.')
 
   return [
-    `## ${KO_SECTIONS[0].heading}`,
+    '## 한 줄 결론',
     direct,
     '',
-    `## ${KO_SECTIONS[1].heading}`,
-    evidenceLine,
-    '- \uACBD\uACE0 \uC2E0\uD638\uAC00 \uC788\uC73C\uBA74 \uBE44\uAC00\uC5ED \uACB0\uC815\uC740 \uBCF4\uB958\uD569\uB2C8\uB2E4.',
+    '## 근거',
+    preview
+      ? `- 입력 요약: ${preview}`
+      : '- 사주, 점성, 매트릭스 교차 신호를 바탕으로 핵심 흐름을 읽었습니다.',
+    '- 지금은 확정 판단보다 조건 확인이 더 중요합니다.',
     '',
-    `## ${KO_SECTIONS[2].heading}`,
-    '- \uC624\uB298 \uD575\uC2EC \uD560 \uC77C 1\uAC00\uC9C0\uB97C \uBA3C\uC800 \uD655\uC815\uD558\uC138\uC694.',
-    '- \uC870\uAC74(\uAE08\uC561\u00B7\uAE30\uD55C\u00B7\uCC45\uC784)\uC744 \uB2E4\uC2DC \uD655\uC778\uD558\uC138\uC694.',
-    '- \uCD5C\uC885 \uD655\uC815\uC740 24\uC2DC\uAC04 \uC7AC\uAC80\uD1A0 \uD6C4 \uC9C4\uD589\uD558\uC138\uC694.',
+    '## 실행 계획',
+    '- 오늘 가장 중요한 한 가지를 먼저 정하세요.',
+    '- 금액, 기한, 책임 범위를 다시 확인하세요.',
+    '- 최종 결정은 한 번 더 검토한 뒤 진행하세요.',
     '',
-    `## ${KO_SECTIONS[3].heading}`,
-    '- \uC11C\uBA85/\uACB0\uC81C/\uBC1C\uC1A1 \uC804\uC5D0 \uCCB4\uD06C\uB9AC\uC2A4\uD2B8 \uD655\uC778\uC744 \uBA3C\uC800 \uD558\uC138\uC694.',
-    '- \uC0C1\uB300\uC640 \uD575\uC2EC \uC870\uAC74\uC744 \uD55C \uC904\uB85C \uC7AC\uD655\uC778\uD558\uC138\uC694.',
+    '## 주의/재확인',
+    '- 서명, 결제, 약속 확정 전 체크리스트를 먼저 보세요.',
+    '- 상대와 핵심 조건을 한 문장으로 다시 맞춰보세요.',
   ].join('\n')
 }
 
 function buildEnFallback(raw: string): string {
   const preview = compactPreview(raw)
-  const direct = firstSentence(
-    raw,
-    'Answer first, then defer irreversible decisions until verification is complete.'
-  )
-  const evidenceLine = preview
-    ? `- Input summary: ${preview}`
-    : '- Input summary: grounded on saju/astrology/matrix cross-signals.'
+  const direct = firstSentence(raw, 'Answer first, then defer irreversible decisions until verification is complete.')
 
   return [
-    `## ${EN_SECTIONS[0].heading}`,
+    '## Direct Answer',
     direct,
     '',
-    `## ${EN_SECTIONS[1].heading}`,
-    evidenceLine,
-    '- If caution is present, delay irreversible decisions.',
+    '## Evidence',
+    preview ? `- Input summary: ${preview}` : '- Built from overlapping clues across saju, astrology, and matrix evidence.',
+    '- Caution is higher than certainty right now.',
     '',
-    `## ${EN_SECTIONS[2].heading}`,
+    '## Action Plan',
     '- Lock one top priority for today.',
     '- Recheck amount, deadline, and ownership before finalizing.',
-    '- Re-evaluate final confirmation after 24 hours.',
+    '- Re-evaluate once more before you commit.',
     '',
-    `## ${EN_SECTIONS[3].heading}`,
-    '- Do not sign/finalize/send/pay before checklist verification.',
-    '- Reconfirm key terms in one sentence with the other party.',
+    '## Avoid / Recheck',
+    '- Do not sign, send, or pay before checklist verification.',
+    '- Reconfirm the key terms in one sentence with the other side.',
   ].join('\n')
 }
 
@@ -236,11 +272,7 @@ function tidyStructuredResponse(
   }
 
   return sections
-    .map((section) => {
-      const body = extracted[section.heading]
-      const safeBody = body || (lang === 'ko' ? '- 핵심 조건을 다시 확인하세요.' : '- Recheck key conditions.')
-      return `## ${section.heading}\n${safeBody}`
-    })
+    .map((section) => `## ${section.heading}\n${formatSectionBody(section.heading, extracted[section.heading] || '', lang)}`)
     .join('\n\n')
 }
 
@@ -251,12 +283,8 @@ export function normalizeCounselorResponse(raw: string, lang: CounselorLang): st
   }
 
   const sections = getSections(lang)
-
-  if (hasAllRequiredHeadings(normalized, sections)) {
-    return normalized
-  }
-
   const canonicalized = canonicalizeHeadings(normalized, sections)
+
   if (hasAllRequiredHeadings(canonicalized, sections)) {
     return tidyStructuredResponse(canonicalized, sections, lang)
   }

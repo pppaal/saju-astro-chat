@@ -425,6 +425,7 @@ describe('generateAIPremiumReport', () => {
     expect(result.meta.qualityMetrics?.coreQualityGrade).toMatch(/[ABCD]/)
     expect(typeof result.meta.qualityMetrics?.coreQualityWarningCount).toBe('number')
     expect(typeof result.meta.qualityMetrics?.coreQualityPass).toBe('boolean')
+    expect(result.sections.introduction).not.toMatch(/dayMasterElement|sibsinDistribution|rule checks/i)
     expect(
       result.timelineEvents.some((event) =>
         ['job', 'marriage', 'relocation', 'money', 'timing', 'life'].includes(event.type)
@@ -458,6 +459,10 @@ describe('generateAIPremiumReport', () => {
     expect(timing.meta.qualityMetrics?.forbiddenAdditionsPass).toBe(true)
     expect(timing.meta.qualityMetrics?.coreQualityScore || 0).toBeGreaterThan(0)
     expect(timing.meta.qualityMetrics?.coreQualityGrade).toMatch(/[ABCD]/)
+    expect(timing.sections.overview).toMatch(
+      /(함께 참고해도 되는 편입니다|참고할 만하지만|큰 흐름 중심으로 참고하는 편이 맞습니다|세부 타이밍은 한 번 더 확인하는 편이 좋습니다)/
+    )
+    expect(timing.sections.overview).toMatch(/(함께 본 결과입니다|교차 근거 묶음|규칙 판정)/)
     expect((timing.coreHash || '').length).toBeGreaterThan(0)
     expect((timing.patterns || []).length).toBeGreaterThan(0)
     expect((timing.topMatchedPatterns || []).length).toBeGreaterThan(0)
@@ -503,6 +508,10 @@ describe('generateAIPremiumReport', () => {
     expect(themed.meta.qualityMetrics?.forbiddenAdditionsPass).toBe(true)
     expect(themed.meta.qualityMetrics?.coreQualityScore || 0).toBeGreaterThan(0)
     expect(themed.meta.qualityMetrics?.coreQualityGrade).toMatch(/[ABCD]/)
+    expect(themed.sections.deepAnalysis).toMatch(
+      /(함께 참고해도 되는 편입니다|참고할 만하지만|큰 흐름 중심으로 참고하는 편이 맞습니다|세부 타이밍은 한 번 더 확인하는 편이 좋습니다)/
+    )
+    expect(themed.sections.deepAnalysis).toMatch(/(함께 본 결과입니다|교차 근거 묶음|규칙 판정)/)
     expect((themed.coreHash || '').length).toBeGreaterThan(0)
     expect((themed.patterns || []).length).toBeGreaterThan(0)
     expect((themed.topMatchedPatterns || []).length).toBeGreaterThan(0)

@@ -12,7 +12,10 @@ export type CoreServiceKey = (typeof coreServiceKeys)[number]
 export type HomeCoreServiceOption = {
   key: string
   labelKey: string
-  labelFallback: string
+  labelFallback: {
+    ko: string
+    en: string
+  }
   icon: string
   path: string
   coreKey: CoreServiceKey
@@ -22,7 +25,10 @@ export const HOME_CORE_SERVICE_OPTIONS: readonly HomeCoreServiceOption[] = [
   {
     key: 'destinyMap',
     labelKey: 'landing.homeServiceDestinyCounselor',
-    labelFallback: 'AI 상담사',
+    labelFallback: {
+      ko: 'AI 상담사',
+      en: 'AI Counselor',
+    },
     icon: '\u{1F5FA}\uFE0F',
     path: '/destiny-counselor',
     coreKey: 'destiny-map',
@@ -30,7 +36,10 @@ export const HOME_CORE_SERVICE_OPTIONS: readonly HomeCoreServiceOption[] = [
   {
     key: 'tarot',
     labelKey: 'menu.tarot',
-    labelFallback: 'Tarot',
+    labelFallback: {
+      ko: '타로',
+      en: 'Tarot',
+    },
     icon: '\u{1F52E}',
     path: '/tarot',
     coreKey: 'tarot',
@@ -38,7 +47,10 @@ export const HOME_CORE_SERVICE_OPTIONS: readonly HomeCoreServiceOption[] = [
   {
     key: 'report',
     labelKey: 'menu.report',
-    labelFallback: 'Report',
+    labelFallback: {
+      ko: '리포트',
+      en: 'Report',
+    },
     icon: '\u{1F4DC}',
     path: '/report',
     coreKey: 'report',
@@ -46,7 +58,10 @@ export const HOME_CORE_SERVICE_OPTIONS: readonly HomeCoreServiceOption[] = [
   {
     key: 'calendar',
     labelKey: 'menu.calendar',
-    labelFallback: 'Destiny Calendar',
+    labelFallback: {
+      ko: '운세 캘린더',
+      en: 'Fortune Calendar',
+    },
     icon: '\u{1F4C5}',
     path: '/calendar',
     coreKey: 'calendar',

@@ -11,11 +11,8 @@ import type { TarotDrawError } from '../../../utils/errorHandling'
 import '../tarot-reading-mobile.module.css'
 
 export interface PageContentProps {
-  // State
   gameState: GameState
   spreadInfo: Spread | null
-
-  // Game state
   selectedColor: CardColor
   selectedDeckStyle: DeckStyle
   selectedIndices: number[]
@@ -25,22 +22,16 @@ export interface PageContentProps {
   userTopic: string
   questionAnalysis: TarotQuestionAnalysisSnapshot | null
   personalizationOptions: TarotPersonalizationOptions
-
-  // Results state
   readingResult: ReadingResponse | null
   interpretation: InterpretationResult | null
   drawError: TarotDrawError | null
-
-  // Refs
   detailedSectionRef: React.RefObject<HTMLDivElement | null>
   expandedCard: number | null
-
-  // Saving state
   isSaving: boolean
   isSaved: boolean
   saveMessage: string
-
-  // Handlers
+  isGuestUser: boolean
+  signInUrl: string
   handleColorSelect: (color: CardColor) => void
   handleStartReading: () => void
   handleCardClick: (index: number) => void
@@ -53,8 +44,6 @@ export interface PageContentProps {
   handleSaveReading: () => Promise<void>
   handleReset: () => void
   handlePersonalizationChange: (key: keyof TarotPersonalizationOptions, value: boolean) => void
-
-  // i18n
   language: string
   translate: (key: string, fallback: string) => string
 }
@@ -62,7 +51,6 @@ export interface PageContentProps {
 export function PageContent(props: PageContentProps) {
   const { gameState, spreadInfo, translate, language, drawError } = props
 
-  // Loading state
   if (gameState === 'loading') {
     return (
       <LoadingState
@@ -71,14 +59,15 @@ export function PageContent(props: PageContentProps) {
     )
   }
 
-  // Error state
   if (gameState === 'error' || !spreadInfo) {
     const errorTitle =
       drawError?.code === 'credit_exhausted'
         ? translate('tarot.reading.creditExhaustedTitle', '크레딧이 부족합니다')
-        : drawError?.code === 'auth_failed'
-          ? translate('tarot.reading.authFailedTitle', '인증이 필요합니다')
-          : translate('tarot.reading.invalidAccess', 'Invalid Access')
+        : drawError?.code === 'guest_limit_reached'
+          ? translate('tarot.reading.guestLimitTitle', '무료 1회 리딩을 모두 사용했습니다')
+          : drawError?.code === 'auth_failed'
+            ? translate('tarot.reading.authFailedTitle', '인증이 필요합니다')
+            : translate('tarot.reading.invalidAccess', 'Invalid Access')
 
     const errorDescription =
       drawError?.code === 'credit_exhausted'
@@ -86,18 +75,31 @@ export function PageContent(props: PageContentProps) {
             'tarot.reading.creditExhaustedDesc',
             '카드 리딩 크레딧이 부족합니다. 충전 후 다시 시도해 주세요.'
           )
-        : drawError?.code === 'auth_failed'
+        : drawError?.code === 'guest_limit_reached'
           ? translate(
-              'tarot.reading.authFailedDesc',
-              '로그인 또는 인증 상태를 확인한 후 다시 시도해 주세요.'
+              'tarot.reading.guestLimitDesc',
+              '비로그인 무료 리딩 1회는 이미 사용했습니다. 로그인하면 다음 질문부터 이어서 볼 수 있습니다.'
             )
-          : drawError?.message || undefined
+          : drawError?.code === 'auth_failed'
+            ? translate(
+                'tarot.reading.authFailedDesc',
+                '로그인 또는 인증 상태를 확인한 후 다시 시도해 주세요.'
+              )
+            : drawError?.message || undefined
 
-    const primaryActionHref = drawError?.code === 'credit_exhausted' ? '/pricing' : undefined
+    const primaryActionHref =
+      drawError?.code === 'credit_exhausted'
+        ? '/pricing'
+        : drawError?.code === 'guest_limit_reached' || drawError?.code === 'auth_failed'
+          ? props.signInUrl
+          : undefined
+
     const primaryActionText =
       drawError?.code === 'credit_exhausted'
         ? translate('tarot.reading.buyCredits', '크레딧 충전')
-        : undefined
+        : drawError?.code === 'guest_limit_reached' || drawError?.code === 'auth_failed'
+          ? translate('auth.signIn', '로그인')
+          : undefined
 
     return (
       <ErrorState
@@ -110,7 +112,6 @@ export function PageContent(props: PageContentProps) {
     )
   }
 
-  // Color selection stage
   if (gameState === 'color-select') {
     return (
       <DeckSelectStage
@@ -119,6 +120,8 @@ export function PageContent(props: PageContentProps) {
         userTopic={props.userTopic}
         personalizationOptions={props.personalizationOptions}
         language={language}
+        isGuestUser={props.isGuestUser}
+        signInUrl={props.signInUrl}
         handleColorSelect={props.handleColorSelect}
         handleStartReading={props.handleStartReading}
         handlePersonalizationChange={props.handlePersonalizationChange}
@@ -126,7 +129,6 @@ export function PageContent(props: PageContentProps) {
     )
   }
 
-  // Interpreting stage
   if (gameState === 'interpreting') {
     return (
       <LoadingState
@@ -136,7 +138,6 @@ export function PageContent(props: PageContentProps) {
     )
   }
 
-  // Results stage
   if (gameState === 'results' && props.readingResult) {
     return (
       <ResultsStage
@@ -151,6 +152,8 @@ export function PageContent(props: PageContentProps) {
         translate={translate}
         userTopic={props.userTopic}
         questionAnalysis={props.questionAnalysis}
+        isGuestUser={props.isGuestUser}
+        signInUrl={props.signInUrl}
         handleCardReveal={props.handleCardReveal}
         canRevealCard={props.canRevealCard}
         isCardRevealed={props.isCardRevealed}
@@ -165,7 +168,6 @@ export function PageContent(props: PageContentProps) {
     )
   }
 
-  // Picking/revealing stage (default)
   return (
     <PickingStage
       language={language}

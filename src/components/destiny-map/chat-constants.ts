@@ -35,6 +35,7 @@ export type Message = {
   role: 'system' | 'user' | 'assistant'
   content: string
   id?: string
+  streaming?: boolean
   evidence?: {
     title?: string
     summary?: string

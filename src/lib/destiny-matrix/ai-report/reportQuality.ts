@@ -18,6 +18,9 @@ export interface ReportQualityMetrics {
   coreQualityScore?: number
   coreQualityGrade?: 'A' | 'B' | 'C' | 'D'
   coreQualityWarningCount?: number
+  coreQualityWarnings?: string[]
+  coreQualityBlockingWarningCount?: number
+  coreQualityBlockingWarnings?: string[]
   coreQualityPass?: boolean
   sectionCompletenessRate?: number
   avgEvidencePerParagraph?: number
@@ -27,6 +30,10 @@ export interface ReportQualityMetrics {
   tokenIntegrityPass?: boolean
   structurePass?: boolean
   forbiddenAdditionsPass?: boolean
+  crossSectionRepetition?: number
+  genericAdviceDensity?: number
+  personalizationDensity?: number
+  internalScenarioLeakCount?: number
 }
 
 export interface ReportQualityContext {
@@ -64,6 +71,11 @@ type BuildQualityParams = {
   forbiddenAdditionsPass: boolean
 }
 
+const SOFT_CORE_QUALITY_WARNINGS = new Set([
+  'focus_domain_ambiguity_high',
+  'verification_bias_active',
+])
+
 function getPathText(sections: Record<string, unknown>, path: string): string {
   const parts = path.split('.')
   let cur: unknown = sections
@@ -95,6 +107,34 @@ function hasRequiredHeadings(
     }
   }
   return true
+}
+
+function toSentenceKeys(text: string): string[] {
+  return text
+    .split(/[.!?\n]+/)
+    .map((segment) =>
+      String(segment || '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .toLowerCase()
+    )
+    .filter((segment) => segment.length >= 18)
+}
+
+function countRepeatedSentences(texts: Array<{ path: string; text: string }>): number {
+  const seen = new Map<string, Set<string>>()
+  for (const item of texts) {
+    for (const key of toSentenceKeys(item.text)) {
+      const bucket = seen.get(key) || new Set<string>()
+      bucket.add(item.path)
+      seen.set(key, bucket)
+    }
+  }
+  let repeated = 0
+  for (const paths of seen.values()) {
+    if (paths.size >= 2) repeated += 1
+  }
+  return repeated
 }
 
 function countTimelineEventsByDomain(
@@ -237,15 +277,40 @@ export function buildReportQualityMetrics(params: BuildQualityParams): ReportQua
     ? hasRequiredHeadings(sections, context.requiredHeadingsByPath)
     : true
   const structurePass = requiredPresent === requiredPaths.length && headingPass
+  const repeatedSentenceCount = countRepeatedSentences(texts)
+  const genericAdviceRegex =
+    /(기준을 .*정리|속도 .*조절|재확인|단계적 합의|확정보다|조건 확인|check conditions|recheck|staged commitment|slow down|clarify expectations)/i
+  const genericAdviceHits = texts.reduce((sum, item) => {
+    const matches = item.text.match(new RegExp(genericAdviceRegex.source, 'gi'))
+    return sum + (matches ? matches.length : 0)
+  }, 0)
+  const personalizationRegex =
+    /(일간|격국|용신|대운|세운|월운|행성|하우스|aspect|transit|solar return|lunar return|jupiter|saturn|retrograde|eclipse|신살|십성|12운성)/i
+  const personalizationHits = texts.reduce((sum, item) => {
+    const matches = item.text.match(new RegExp(personalizationRegex.source, 'gi'))
+    return sum + (matches ? matches.length : 0)
+  }, 0)
+  const internalScenarioLeakRegex =
+    /(hidden support|defensive|cluster|fallback|generic|alt window|_window|scenario id)/i
+  const internalScenarioLeakCount = texts.filter((item) => internalScenarioLeakRegex.test(item.text)).length
   const coreQualityScore =
     typeof context.coreQuality?.score === 'number' ? context.coreQuality.score : undefined
   const coreQualityGrade = context.coreQuality?.grade
   const coreQualityWarningCount = Array.isArray(context.coreQuality?.warnings)
     ? context.coreQuality.warnings.length
     : undefined
+  const coreQualityWarnings = Array.isArray(context.coreQuality?.warnings)
+    ? [...context.coreQuality.warnings]
+    : undefined
+  const coreQualityBlockingWarnings = Array.isArray(context.coreQuality?.warnings)
+    ? context.coreQuality.warnings.filter((warning) => !SOFT_CORE_QUALITY_WARNINGS.has(warning))
+    : undefined
+  const coreQualityBlockingWarningCount = Array.isArray(coreQualityBlockingWarnings)
+    ? coreQualityBlockingWarnings.length
+    : undefined
   const coreQualityPass =
-    typeof coreQualityScore === 'number' && typeof coreQualityWarningCount === 'number'
-      ? coreQualityScore >= 90 && coreQualityWarningCount === 0
+    typeof coreQualityScore === 'number' && typeof coreQualityBlockingWarningCount === 'number'
+      ? coreQualityScore >= 90 && coreQualityBlockingWarningCount === 0
       : undefined
 
   return {
@@ -259,6 +324,9 @@ export function buildReportQualityMetrics(params: BuildQualityParams): ReportQua
     coreQualityScore,
     coreQualityGrade,
     coreQualityWarningCount,
+    coreQualityWarnings,
+    coreQualityBlockingWarningCount,
+    coreQualityBlockingWarnings,
     coreQualityPass,
     sectionCompletenessRate: Number(
       (requiredPresent / Math.max(1, requiredPaths.length)).toFixed(4)
@@ -272,6 +340,10 @@ export function buildReportQualityMetrics(params: BuildQualityParams): ReportQua
     tokenIntegrityPass,
     structurePass,
     forbiddenAdditionsPass,
+    crossSectionRepetition: repeatedSentenceCount,
+    genericAdviceDensity: Number((genericAdviceHits / Math.max(1, sectionCount)).toFixed(4)),
+    personalizationDensity: Number((personalizationHits / Math.max(1, sectionCount)).toFixed(4)),
+    internalScenarioLeakCount,
   }
 }
 
@@ -349,6 +421,34 @@ export function recordReportQualityMetrics(
     recordGauge(
       'destiny.ai_report.quality.forbidden_additions_pass',
       quality.forbiddenAdditionsPass ? 1 : 0,
+      labels
+    )
+  }
+  if (typeof quality.crossSectionRepetition === 'number') {
+    recordGauge(
+      'destiny.ai_report.quality.cross_section_repetition',
+      quality.crossSectionRepetition,
+      labels
+    )
+  }
+  if (typeof quality.genericAdviceDensity === 'number') {
+    recordGauge(
+      'destiny.ai_report.quality.generic_advice_density',
+      quality.genericAdviceDensity,
+      labels
+    )
+  }
+  if (typeof quality.personalizationDensity === 'number') {
+    recordGauge(
+      'destiny.ai_report.quality.personalization_density',
+      quality.personalizationDensity,
+      labels
+    )
+  }
+  if (typeof quality.internalScenarioLeakCount === 'number') {
+    recordGauge(
+      'destiny.ai_report.quality.internal_scenario_leak_count',
+      quality.internalScenarioLeakCount,
       labels
     )
   }

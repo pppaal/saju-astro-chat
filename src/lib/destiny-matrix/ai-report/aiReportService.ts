@@ -90,6 +90,14 @@ import type { ReportEvidenceRef, SectionEvidenceRefs } from './evidenceRefs'
 import type { StrategyEngineResult } from './strategyEngine'
 import { THEME_DOMAIN_ONTOLOGY } from './matrixOntology'
 import { generateNarrativeSectionsFromSynthesis } from './narrativeGenerator'
+import {
+  describeDataTrustSummary,
+  describeExecutionStance,
+  describeProvenanceSummary,
+  describePhaseFlow,
+  describeSajuAstroConflictByDomain,
+  describeTimingWindowNarrative as describeHumanTimingWindowNarrative,
+} from '@/lib/destiny-matrix/interpretation/humanSemantics'
 
 // Extracted modules
 import type { AIPremiumReport, AIReportGenerationOptions, AIUserPlan } from './reportTypes'
@@ -107,6 +115,7 @@ import {
   buildNormalizedMatrixInput,
   runDestinyCore,
 } from '@/lib/destiny-matrix/core/runDestinyCore'
+import type { DestinyCoreQuality } from '@/lib/destiny-matrix/core/runDestinyCore'
 import { adaptCoreToReport } from '@/lib/destiny-matrix/core/adapters'
 import type { PatternResult } from '@/lib/destiny-matrix/core/patternEngine'
 
@@ -335,14 +344,30 @@ function getWesternElementLabel(
   lang: 'ko' | 'en'
 ): string {
   if (!element) return lang === 'ko' ? '미상' : 'unknown'
-  if (lang !== 'ko') return element
-  const labels: Record<string, string> = {
+  const normalized = String(element).trim().toLowerCase()
+  const koLabels: Record<string, string> = {
     fire: '불',
     earth: '흙',
     air: '바람',
     water: '물',
+    불: '불',
+    흙: '흙',
+    바람: '바람',
+    물: '물',
   }
-  return labels[String(element).toLowerCase()] || String(element)
+  const enLabels: Record<string, string> = {
+    fire: 'fire',
+    earth: 'earth',
+    air: 'air',
+    water: 'water',
+    불: 'fire',
+    흙: 'earth',
+    바람: 'air',
+    물: 'water',
+  }
+  return lang === 'ko'
+    ? koLabels[normalized] || String(element)
+    : enLabels[normalized] || String(element)
 }
 
 function getElementByStemName(stem: string): string | undefined {
@@ -524,8 +549,12 @@ function buildPersonalLifeTimelineNarrative(
   const current = windows[currentIndex] || windows[0]
   const prev = currentIndex > 0 ? windows[currentIndex - 1] : null
   const next = currentIndex < windows.length - 1 ? windows[currentIndex + 1] : null
-  const currentLabel =
-    current.ganji || current.element ? `${current.ganji || ''}${current.element ? `(${current.element})` : ''}` : '현재 대운'
+  const currentLabel = formatCycleLabel(
+    current.ganji,
+    current.element,
+    lang,
+    lang === 'ko' ? '현재 대운' : 'current 10-year cycle'
+  )
   if (lang !== 'ko') {
     const currentAgeLine =
       age !== null
@@ -535,7 +564,12 @@ function buildPersonalLifeTimelineNarrative(
       ? `The previous ${prev.startAge}-${prev.endAge} cycle set the habits you are now either carrying forward or editing.`
       : ''
     const nextLine = next
-      ? `The next ${next.startAge}-${next.endAge} cycle is likely to shift emphasis toward ${next.ganji || next.element || 'a different operating mode'}, so this period should be used to prepare that handoff.`
+      ? `The next ${next.startAge}-${next.endAge} cycle is likely to shift emphasis toward ${formatCycleLabel(
+          next.ganji,
+          next.element,
+          lang,
+          'a different operating mode'
+        )}, so this period should be used to prepare that handoff.`
       : ''
     return [currentAgeLine, prevLine, nextLine].filter(Boolean).join(' ')
   }
@@ -598,10 +632,26 @@ function buildPersonalCycleNarrative(
   }
   const age = calculateProfileAge(input.profileContext?.birthDate, input.currentDateIso)
   const parts = [
-    input.currentDaeunElement ? `대운 ${input.currentDaeunElement}` : '',
-    input.currentSaeunElement ? `세운 ${input.currentSaeunElement}` : '',
-    input.currentWolunElement ? `월운 ${input.currentWolunElement}` : '',
-    input.currentIljinElement ? `일운 ${input.currentIljinElement}` : '',
+    input.currentDaeunElement
+      ? lang === 'ko'
+        ? `대운 ${input.currentDaeunElement}`
+        : `Daeun ${getElementLabel(input.currentDaeunElement, lang)}`
+      : '',
+    input.currentSaeunElement
+      ? lang === 'ko'
+        ? `세운 ${input.currentSaeunElement}`
+        : `annual cycle ${getElementLabel(input.currentSaeunElement, lang)}`
+      : '',
+    input.currentWolunElement
+      ? lang === 'ko'
+        ? `월운 ${input.currentWolunElement}`
+        : `monthly cycle ${getElementLabel(input.currentWolunElement, lang)}`
+      : '',
+    input.currentIljinElement
+      ? lang === 'ko'
+        ? `일운 ${input.currentIljinElement}`
+        : `daily cycle ${getElementLabel(input.currentIljinElement, lang)}`
+      : '',
   ].filter(Boolean)
   if (lang === 'ko') {
     const agePart = age !== null ? `현재 ${age}세 전후` : '현재 구간'
@@ -786,7 +836,7 @@ function replaceReportDomainTokens(text: string, lang: 'ko' | 'en'): string {
     .replace(/\btiming\b/gi, '타이밍')
 }
 
-function buildReportCoreLine(
+function normalizeNarrativeCoreText(
   value: string | undefined | null,
   lang: 'ko' | 'en'
 ): string {
@@ -818,12 +868,80 @@ function buildReportCoreLine(
       .replace(/머니 스타일:/g, lang === 'ko' ? '돈이 움직이는 방식을 보면' : 'Money style:')
       .replace(/경고 신호:/g, lang === 'ko' ? '특히 조심할 흐름은' : 'Caution signals:')
       .replace(/근거 흐름은/gi, lang === 'ko' ? '이번 해석의 중심에는' : 'Grounding centers on')
+      .replace(/Relation\s+/gi, lang === 'ko' ? '관계 ' : 'relationship ')
+      .replace(/astro progressions/gi, lang === 'ko' ? '점성 진행 흐름' : 'astro progressions')
+      .replace(/saju snapshot/gi, lang === 'ko' ? '사주 구조' : 'saju structure')
+      .replace(/\bunse\b/gi, lang === 'ko' ? '운 흐름' : 'cycle flow')
+      .replace(/Relation\s+three-branch harmony/gi, lang === 'ko' ? '지지삼합' : 'relationship three-branch harmony')
+      .replace(/relationship three-branch harmony/gi, lang === 'ko' ? '지지삼합' : 'relationship three-branch harmony')
+      .replace(/대운\s*금/gi, lang === 'ko' ? '대운 금' : 'Daeun metal')
+      .replace(/대운\s*목/gi, lang === 'ko' ? '대운 목' : 'Daeun wood')
+      .replace(/대운\s*수/gi, lang === 'ko' ? '대운 수' : 'Daeun water')
+      .replace(/대운\s*화/gi, lang === 'ko' ? '대운 화' : 'Daeun fire')
+      .replace(/대운\s*토/gi, lang === 'ko' ? '대운 토' : 'Daeun earth')
       .replace(/\bDaeun\b/gi, lang === 'ko' ? '대운' : 'Daeun')
+      .replace(/숨은 지원 흐름/gi, lang === 'ko' ? '숨은 지원 흐름' : 'hidden support')
+      .replace(/학습 가속 흐름/gi, lang === 'ko' ? '학습 가속 흐름' : 'learning acceleration')
+      .replace(/자산 축적 흐름/gi, lang === 'ko' ? '자산 축적 흐름' : 'asset accumulation')
+      .replace(/이동·변화 경계 구간/gi, lang === 'ko' ? '이동·변화 경계 구간' : 'movement guardrail window')
+      .replace(/대운/gi, lang === 'ko' ? '대운' : 'Daeun')
+      .replace(/세운/gi, lang === 'ko' ? '세운' : 'annual cycle')
+      .replace(/월운/gi, lang === 'ko' ? '월운' : 'monthly cycle')
+      .replace(/일운/gi, lang === 'ko' ? '일운' : 'daily cycle')
+      .replace(/양육/gi, lang === 'ko' ? '양육' : 'nurturing mode')
+      .replace(/귀인조력/gi, lang === 'ko' ? '귀인 조력' : 'noble support')
+      .replace(/커리어정점/gi, lang === 'ko' ? '커리어 정점' : 'career peak')
+      .replace(/극강시너지/gi, lang === 'ko' ? '극강시너지' : 'strong synergy')
+      .replace(/극심충돌/gi, lang === 'ko' ? '극심충돌' : 'hard clash')
+      .replace(/횡재/gi, lang === 'ko' ? '횡재' : 'windfall signal')
+      .replace(/임관/gi, lang === 'ko' ? '임관' : 'authority maturity stage')
+      .replace(/최상조화/gi, lang === 'ko' ? '흐름 정렬' : 'peak harmony')
+      .replace(/Shinsal\s+천을귀인/gi, lang === 'ko' ? '귀인의 도움 신호' : 'noble support')
+      .replace(/천을귀인/gi, lang === 'ko' ? '귀인의 도움 신호' : 'noble support')
+      .replace(/지지삼합/gi, lang === 'ko' ? '지지삼합' : 'three-branch harmony')
+      .replace(/자산 축적 흐름/gi, lang === 'ko' ? '자산 축적 흐름' : 'asset accumulation')
+      .replace(/ëŒ€ìš´/gi, 'Daeun')
+      .replace(/ì„¸ìš´/gi, 'annual cycle')
+      .replace(/ì›”ìš´/gi, 'monthly cycle')
+      .replace(/ì¼ìš´/gi, 'daily cycle')
+      .replace(/ë°”ëžŒ/gi, 'air')
+      .replace(/ìžì‚° ì¶•ì íë¦„/gi, 'asset accumulation')
+      .replace(/ì§€ì§€ì‚¼í•©/gi, 'three-branch harmony')
+      .replace(/ìµœìƒì¡°í™”/gi, 'peak harmony')
+      .replace(/ì²œì„ê·€ì¸/gi, 'noble support')
+      .replace(/íš¡ìž¬/gi, 'windfall signal')
+      .replace(/ìž„ê´€/gi, 'authority maturity stage')
+      .replace(/Daeun\s*금/gi, 'Daeun metal')
+      .replace(/Daeun\s*목/gi, 'Daeun wood')
+      .replace(/Daeun\s*수/gi, 'Daeun water')
+      .replace(/Daeun\s*화/gi, 'Daeun fire')
+      .replace(/Daeun\s*토/gi, 'Daeun earth')
+      .replace(/dominant western element\s+바람/gi, 'dominant western element air')
+      .replace(/바람/gi, lang === 'ko' ? '바람' : 'air')
+      .replace(/frame\s+([a-z]+)\s+frame/gi, '$1 frame')
+      .replace(/day master\s+금/gi, 'day master metal')
+      .replace(/day master\s+목/gi, 'day master wood')
+      .replace(/day master\s+수/gi, 'day master water')
+      .replace(/day master\s+화/gi, 'day master fire')
+      .replace(/day master\s+토/gi, 'day master earth')
+      .replace(/useful element\s+금/gi, 'useful element metal')
+      .replace(/useful element\s+목/gi, 'useful element wood')
+      .replace(/useful element\s+수/gi, 'useful element water')
+      .replace(/useful element\s+화/gi, 'useful element fire')
+      .replace(/useful element\s+토/gi, 'useful element earth')
       .trim()
     )
   const ENGINE_NOISE_REGEX =
     /(패턴 근거|시나리오 확률|타이밍 적합도|현재 모드는|resolvedmode|crossagreement|blockedby|signalid|claimid|anchorid|^career\s|^relationship\s|^wealth\s|^health\s|commit_now|staged_commit)/i
   if (ENGINE_NOISE_REGEX.test(cleaned)) return ''
+  return cleaned || ''
+}
+
+function buildReportCoreLine(
+  value: string | undefined | null,
+  lang: 'ko' | 'en'
+): string {
+  const cleaned = normalizeNarrativeCoreText(value, lang)
   if (!cleaned) return ''
   return formatNarrativeParagraphs(cleaned, lang)
 }
@@ -881,25 +999,14 @@ function buildTimingWindowNarrative(
   lang: 'ko' | 'en'
 ): string {
   const domainLabel = getReportDomainLabel(domain, lang)
-  const windowLabel = getTimingWindowLabel(item.window, lang)
-  const entry = item.entryConditions.filter(Boolean).join(', ')
-  const abort = item.abortConditions.filter(Boolean).join(', ')
-  if (lang === 'ko') {
-    const parts = [
-      `${domainLabel} 타이밍 창은 ${windowLabel}입니다.`,
-      item.whyNow,
-      entry ? `들어갈 때는 ${entry}부터 맞추는 편이 유리합니다.` : '',
-      abort ? `반대로 ${abort}가 보이면 속도를 늦추는 편이 안전합니다.` : '',
-    ]
-    return parts.filter(Boolean).join(' ')
-  }
-  const parts = [
-    `The ${domainLabel} timing window is ${windowLabel}.`,
-    item.whyNow,
-    entry ? `Entry works better when ${entry} is in place.` : '',
-    abort ? `Slow down if ${abort} starts to appear.` : '',
-  ]
-  return parts.filter(Boolean).join(' ')
+  return describeHumanTimingWindowNarrative({
+    domainLabel,
+    window: item.window,
+    whyNow: item.whyNow,
+    entryConditions: item.entryConditions,
+    abortConditions: item.abortConditions,
+    lang,
+  })
 }
 
 function buildManifestationNarrative(
@@ -959,6 +1066,1055 @@ function buildPrimaryCautionLead(
   if (!value) return fallback
   if (/[.!?]|[다요]\s*$|하세요\s*$/.test(value)) return value
   return lang === 'ko' ? `${value}은 먼저 막는 편이 맞습니다.` : `Block ${value} first.`
+}
+
+function findReportCoreDomainVerdict(
+  reportCore: ReportCoreViewModel,
+  domain: string
+) {
+  return reportCore.domainVerdicts.find((item) => item.domain === domain) || null
+}
+
+function formatScenarioIdForNarrative(
+  scenarioId: string | null | undefined,
+  lang: 'ko' | 'en'
+): string {
+  const value = String(scenarioId || '')
+    .replace(/_window$/i, '')
+    .replace(/_(main|alt|defensive)$/i, '')
+    .trim()
+  if (!value) return ''
+  if (/(hidden|support|defensive|cluster|fallback|generic|alt|residual|residue)/i.test(value)) {
+    return ''
+  }
+
+  const entries: Array<[RegExp, string, string]> = [
+    [/promotion_review/i, '승진/역할 재검토', 'promotion or role review'],
+    [/contract_negotiation/i, '조건 협의', 'contract negotiation'],
+    [/manager_track/i, '관리 책임 확장', 'management-track expansion'],
+    [/specialist_track/i, '전문성 심화', 'specialist-track deepening'],
+    [/entry/i, '새 역할 진입', 'entry into a new role'],
+    [/distance_tuning/i, '관계 거리 조정', 'distance tuning'],
+    [/boundary_reset/i, '경계 재설정', 'boundary reset'],
+    [/commitment_preparation/i, '관계 정의 준비', 'commitment preparation'],
+    [/clarify_expectations/i, '기대치 명확화', 'expectation clarification'],
+    [/commitment_execution/i, '관계 확정 실행', 'commitment execution'],
+    [/cohabitation/i, '생활 결합 점검', 'cohabitation planning'],
+    [/family_acceptance/i, '가족 수용 절차', 'family acceptance'],
+    [/separation/i, '관계 분리 정리', 'relationship separation'],
+    [/capital_allocation/i, '자금 배분 재검토', 'capital allocation review'],
+    [/asset_exit/i, '자산 정리', 'asset exit'],
+    [/debt_restructure/i, '부채 구조 재정리', 'debt restructuring'],
+    [/income_growth/i, '수입 확장', 'income growth'],
+    [/liquidity_defense/i, '유동성 방어', 'liquidity defense'],
+    [/recovery_reset/i, '회복 리듬 재설정', 'recovery reset'],
+    [/routine_lock/i, '루틴 고정', 'routine lock'],
+    [/burnout_trigger/i, '번아웃 경고', 'burnout risk'],
+    [/sleep_disruption/i, '수면 리듬 흔들림', 'sleep disruption'],
+    [/commute_restructure/i, '동선 재설계', 'commute restructure'],
+    [/route_recheck/i, '경로 재확인', 'route recheck'],
+    [/basecamp_reset/i, '생활 거점 재정비', 'basecamp reset'],
+    [/lease_decision/i, '계약 조건 검토', 'lease decision review'],
+    [/housing_search/i, '거주 후보지 탐색', 'housing search'],
+    [/relocation/i, '이동 결정', 'relocation'],
+    [/learning_acceleration/i, '학습/역량 가속', 'learning acceleration'],
+    [/deep_partnership_activation/i, '관계 심화 국면', 'deep partnership activation'],
+    [/timing_upside/i, '상승 타이밍 집중', 'timing upside cluster'],
+    [/timing_risk/i, '타이밍 변동 경계', 'timing risk cluster'],
+    [/health_risk/i, '건강 경계 국면', 'health risk cluster'],
+  ]
+
+  for (const [pattern, ko, en] of entries) {
+    if (pattern.test(value)) return lang === 'ko' ? ko : en
+  }
+
+  const normalized = value.replace(/_/g, ' ').trim()
+  return lang === 'ko' ? normalized : normalized
+}
+
+function getElementLabel(
+  element: string | undefined,
+  lang: 'ko' | 'en'
+): string {
+  const normalized = normalizeElementKey(element)
+  const map: Record<string, { ko: string; en: string }> = {
+    wood: { ko: '목', en: 'wood' },
+    fire: { ko: '화', en: 'fire' },
+    earth: { ko: '토', en: 'earth' },
+    metal: { ko: '금', en: 'metal' },
+    water: { ko: '수', en: 'water' },
+  }
+  return map[normalized]?.[lang] || String(element || '')
+}
+
+function capitalizeFirst(text: string | undefined | null): string {
+  const value = String(text || '').trim()
+  if (!value) return ''
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+function containsHangul(text: string | undefined | null): boolean {
+  return /[가-힣]/.test(String(text || ''))
+}
+
+function localizeGeokgukLabel(geokguk: string | undefined, lang: 'ko' | 'en'): string {
+  const value = String(geokguk || '').trim()
+  if (!value || lang === 'ko') return value
+  const map: Record<string, string> = {
+    '정재격': 'jeongjae frame',
+    '편재격': 'pyeonjae frame',
+    '정관격': 'jeonggwan frame',
+    '편관격': 'pyeongwan frame',
+    '인성격': 'inseong frame',
+    '재성격': 'jaeseong frame',
+    '식상격': 'siksang frame',
+  }
+  return map[value] || value
+}
+
+function formatCycleLabel(
+  ganji: string | undefined,
+  element: string | undefined,
+  lang: 'ko' | 'en',
+  fallback: string
+): string {
+  const ganjiLabel = String(ganji || '').trim()
+  const elementLabel = getElementLabel(element, lang)
+  if (ganjiLabel && elementLabel) return `${ganjiLabel} (${elementLabel})`
+  if (ganjiLabel) return ganjiLabel
+  if (elementLabel) return elementLabel
+  return fallback
+}
+
+function normalizeElementKey(element: string | undefined): string {
+  const raw = String(element || '').trim().toLowerCase()
+  const map: Record<string, string> = {
+    wood: 'wood',
+    '목': 'wood',
+    '木': 'wood',
+    fire: 'fire',
+    '화': 'fire',
+    '火': 'fire',
+    earth: 'earth',
+    '토': 'earth',
+    '土': 'earth',
+    metal: 'metal',
+    '금': 'metal',
+    '金': 'metal',
+    water: 'water',
+    '수': 'water',
+    '水': 'water',
+  }
+  return map[raw] || raw
+}
+
+function buildElementMetaphor(
+  input: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): {
+  archetype: string
+  environment: string
+  edge: string
+  risk: string
+} {
+  const dayMaster = normalizeElementKey(input.dayMasterElement)
+  switch (dayMaster) {
+    case 'metal':
+      return lang === 'ko'
+        ? {
+            archetype: '잡음을 잘라내는 칼날',
+            environment: '복잡한 판에서 군더더기를 걷어내는 장면',
+            edge: '정리와 절단력',
+            risk: '지나치게 빨리 결론을 내릴 때 날이 무뎌지는 것',
+          }
+        : {
+            archetype: 'a blade that cuts noise away',
+            environment: 'a scene where clutter gets stripped from a crowded stage',
+            edge: 'clarity and clean cuts',
+            risk: 'dulling the edge by deciding too fast',
+          }
+    case 'wood':
+      return lang === 'ko'
+        ? {
+            archetype: '판을 넓히며 자라는 큰 나무',
+            environment: '가지가 퍼지듯 영향권을 넓히는 장면',
+            edge: '확장과 성장력',
+            risk: '뿌리 정리 없이 가지부터 늘리는 것',
+          }
+        : {
+            archetype: 'a tree that expands by taking more ground',
+            environment: 'a scene where influence spreads like branches',
+            edge: 'growth and extension',
+            risk: 'adding branches before stabilizing the roots',
+          }
+    case 'water':
+      return lang === 'ko'
+        ? {
+            archetype: '빈틈을 찾아 흐르는 물길',
+            environment: '막힌 곳 사이로 길을 만들어내는 장면',
+            edge: '유연한 침투력',
+            risk: '방향 없이 흘러 판단이 번지는 것',
+          }
+        : {
+            archetype: 'a current that finds the opening',
+            environment: 'a scene where a path forms through narrow gaps',
+            edge: 'adaptive penetration',
+            risk: 'spreading too thin without a fixed direction',
+          }
+    case 'fire':
+      return lang === 'ko'
+        ? {
+            archetype: '순간에 판을 밝히는 불빛',
+            environment: '모두가 망설일 때 장면을 선명하게 드러내는 순간',
+            edge: '가시성과 추진력',
+            risk: '열이 너무 빨라 번아웃으로 꺼지는 것',
+          }
+        : {
+            archetype: 'a flame that lights the scene at once',
+            environment: 'a moment that makes the whole stage visible',
+            edge: 'visibility and momentum',
+            risk: 'burning too hot and fading early',
+          }
+    default:
+      return lang === 'ko'
+        ? {
+            archetype: '흔들리는 판을 붙잡는 축대',
+            environment: '무너질 장면을 버티게 만드는 버팀목',
+            edge: '지속력과 구조',
+            risk: '움직일 타이밍까지 지나치게 늦추는 것',
+          }
+        : {
+            archetype: 'a foundation that holds a shifting stage',
+            environment: 'a support that keeps collapse from happening',
+            edge: 'stability and structure',
+            risk: 'delaying movement past the right timing',
+          }
+  }
+}
+
+function buildEvidenceLine(
+  input: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): string {
+  const dayMaster = getElementLabel(input.dayMasterElement, lang)
+  const yongsin = getElementLabel(input.yongsin, lang)
+  const western = getWesternElementLabel(input.dominantWesternElement, lang)
+  if (lang === 'ko') {
+    const parts = [
+      dayMaster ? `일간 ${dayMaster}` : '',
+      input.geokguk ? `격국 ${input.geokguk}` : '',
+      yongsin ? `용신 ${yongsin}` : '',
+      western ? `서양 원소 ${western}` : '',
+    ].filter(Boolean)
+    return parts.length > 0
+      ? `${parts.join(', ')} 흐름이 같은 방향을 밀고 있기 때문에 이런 해석이 나옵니다.`
+      : ''
+  }
+  const parts = [
+    dayMaster ? `day master ${dayMaster}` : '',
+    input.geokguk ? `frame ${input.geokguk}` : '',
+    yongsin ? `useful element ${yongsin}` : '',
+    western ? `dominant western element ${western}` : '',
+  ].filter(Boolean)
+  return parts.length > 0
+    ? `This reading comes from the same directional push across ${parts.join(', ')}.`
+    : ''
+}
+
+function buildEvidenceFooter(
+  input: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): string {
+  const dayMaster = normalizeNarrativeCoreText(getElementLabel(input.dayMasterElement, lang), lang)
+  const yongsin = normalizeNarrativeCoreText(getElementLabel(input.yongsin, lang), lang)
+  const western = normalizeNarrativeCoreText(
+    getWesternElementLabel(input.dominantWesternElement, lang),
+    lang
+  )
+  const safeWestern = lang === 'en' && containsHangul(western) ? 'air' : western
+  const geokguk = localizeGeokgukLabel(input.geokguk, lang)
+
+  if (lang === 'ko') {
+    const parts = [
+      dayMaster ? `일간 ${dayMaster}` : '',
+      geokguk ? `격국 ${geokguk}` : '',
+      yongsin ? `용신 ${yongsin}` : '',
+      safeWestern ? `서양 원소 ${safeWestern}` : '',
+    ].filter(Boolean)
+    return parts.length > 0 ? `핵심 근거는 ${parts.join(', ')}입니다.` : ''
+  }
+
+  const parts = [
+    dayMaster ? `day master ${dayMaster}` : '',
+    geokguk ? `frame ${geokguk}` : '',
+    yongsin ? `useful element ${yongsin}` : '',
+    safeWestern ? `dominant western element ${safeWestern}` : '',
+  ].filter(Boolean)
+  return parts.length > 0 ? normalizeNarrativeCoreText(`Key grounding comes from ${parts.join(', ')}.`, lang) : ''
+}
+
+function appendEvidenceFooter(
+  body: string,
+  input: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): string {
+  const evidence = buildEvidenceFooter(input, lang)
+  if (!evidence) return body
+  return `${body} ${evidence}`.trim()
+}
+
+function sanitizeNarrativeReason(
+  value: string | null | undefined,
+  lang: 'ko' | 'en',
+  fallback = ''
+): string {
+  const text = String(value || '').trim()
+  if (!text) return fallback
+  return normalizeNarrativeCoreText(text, lang) || fallback
+}
+
+function buildReportTrustNarratives(
+  reportCore: ReportCoreViewModel,
+  coreQuality: DestinyCoreQuality | undefined,
+  lang: 'ko' | 'en'
+): { trust: string; provenance: string } {
+  const focusLabel = getReportDomainLabel(reportCore.focusDomain, lang)
+  const focusTiming = findReportCoreTimingWindow(reportCore, reportCore.focusDomain)
+  const focusAdvisory = findReportCoreAdvisory(reportCore, reportCore.focusDomain)
+  const focusManifestation = findReportCoreManifestation(reportCore, reportCore.focusDomain)
+
+  return {
+    trust: describeDataTrustSummary({
+      score: coreQuality?.score,
+      grade: coreQuality?.grade,
+      missingFields: coreQuality?.dataQuality.missingFields || [],
+      derivedFields: coreQuality?.dataQuality.derivedFields || [],
+      conflictingFields: coreQuality?.dataQuality.conflictingFields || [],
+      confidenceReason: coreQuality?.dataQuality.confidenceReason,
+      lang,
+    }),
+    provenance: describeProvenanceSummary({
+      sourceFields:
+        focusTiming?.provenance?.sourceFields ||
+        focusAdvisory?.provenance?.sourceFields ||
+        focusManifestation?.provenance?.sourceFields ||
+        [],
+      sourceSetIds:
+        focusTiming?.provenance?.sourceSetIds ||
+        focusAdvisory?.provenance?.sourceSetIds ||
+        focusManifestation?.provenance?.sourceSetIds ||
+        [],
+      sourceRuleIds:
+        focusTiming?.provenance?.sourceRuleIds ||
+        focusAdvisory?.provenance?.sourceRuleIds ||
+        focusManifestation?.provenance?.sourceRuleIds ||
+        [],
+      lang,
+    }),
+  }
+}
+
+function attachTrustNarrativeToSections<T extends Record<string, unknown>>(
+  mode: 'comprehensive' | 'timing' | 'themed',
+  sections: T,
+  trust: string,
+  provenance: string
+): T {
+  if (mode === 'comprehensive') return sections
+  const suffix = [trust, provenance].filter(Boolean).join(' ')
+  if (!suffix) return sections
+
+  if (mode === 'timing' && typeof sections.overview === 'string') {
+    return { ...sections, overview: `${sections.overview} ${suffix}`.trim() }
+  }
+  if (mode === 'themed' && typeof sections.deepAnalysis === 'string') {
+    return { ...sections, deepAnalysis: `${sections.deepAnalysis} ${suffix}`.trim() }
+  }
+  return sections
+}
+
+function renderIntroductionSection(
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): string {
+  const focusLabel = getReportDomainLabel(reportCore.focusDomain, lang)
+  const focusTiming = findReportCoreTimingWindow(reportCore, reportCore.focusDomain)
+  const topDecision = reportCore.topDecisionLabel || reportCore.primaryAction
+  const decadeLine = buildPersonalLifeTimelineNarrative(matrixInput, undefined, lang)
+  const shortDecadeLine =
+    String(decadeLine || '')
+      .split(/(?<=[.!?])\s+/)
+      .map((line) => line.trim())
+      .filter(Boolean)[0] || decadeLine
+  const timingReason = sanitizeNarrativeReason(focusTiming?.whyNow, lang)
+  const safeTimingReason = lang === 'en' && containsHangul(timingReason) ? '' : timingReason
+  const metaphor = buildElementMetaphor(matrixInput, lang)
+  const conflictNarrative = describeSajuAstroConflictByDomain({
+    crossAgreement: reportCore.crossAgreement,
+    focusDomainLabel: focusLabel,
+    lang,
+  })
+
+  if (lang === 'ko') {
+    const body = formatNarrativeParagraphs(
+      sanitizeUserFacingNarrative(
+        [
+          `이번 총운의 중심축은 ${focusLabel}입니다. 지금은 크게 벌이기보다 무엇을 먼저 고정할지가 결과를 가르는 구간입니다.`,
+          `현재 판단 기준도 ${topDecision} 쪽으로 기울어 있어, 속도보다 순서와 기준 정리가 더 중요하게 작동합니다.`,
+          timingReason
+            ? `이 흐름이 지금 선명한 이유는 ${timingReason}`
+            : `이 구간에서는 ${metaphor.edge}을 한 번에 다 쓰기보다, 어디에 먼저 써야 할지를 아는 쪽이 유리합니다.`,
+        ]
+          .filter(Boolean)
+          .join(' ')
+      ),
+      lang
+    )
+    return appendEvidenceFooter(body, matrixInput, lang)
+  }
+
+  const body = formatNarrativeParagraphs(
+    sanitizeUserFacingNarrative(
+      [
+        `You are at your strongest when the field gets cleaner, not louder. ${capitalizeFirst(metaphor.archetype)} is the right image for this phase.`,
+        `The central axis right now is ${focusLabel}, and the operating bias is ${topDecision}.`,
+        `${capitalizeFirst(metaphor.environment)} is where your ${metaphor.edge} become visible.`,
+        shortDecadeLine,
+        safeTimingReason
+          ? `This is sharp right now because ${safeTimingReason}`
+          : 'This phase rewards sequence more than speed.',
+        reportCore.riskControl,
+      ]
+        .filter(Boolean)
+        .join(' ')
+    ),
+    lang
+  )
+  return appendEvidenceFooter(body, matrixInput, lang)
+}
+
+function renderLifeMissionSection(
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): string {
+  const focusTiming = findReportCoreTimingWindow(reportCore, reportCore.focusDomain)
+  const focusVerdict = findReportCoreVerdict(reportCore, reportCore.focusDomain)
+  const leadScenarios = reportCore.topScenarioIds
+    .slice(0, 3)
+    .map((id) => formatScenarioIdForNarrative(id, lang))
+    .filter(Boolean)
+  const timeline = buildPersonalLifeTimelineNarrative(matrixInput, undefined, lang)
+  const focusLabel = getReportDomainLabel(reportCore.focusDomain, lang)
+  const metaphor = buildElementMetaphor(matrixInput, lang)
+  const cycleLead = buildFocusedCycleLead(matrixInput, undefined, lang, 'lifeMission')
+  const timingReason = sanitizeNarrativeReason(focusTiming?.whyNow, lang)
+  const safeCycleLead = lang === 'en' && containsHangul(cycleLead) ? '' : cycleLead
+  const safeTimingReason = lang === 'en' && containsHangul(timingReason) ? '' : timingReason
+
+  if (lang === 'ko') {
+    const body = formatNarrativeParagraphs(
+      sanitizeUserFacingNarrative(
+        [
+          '이번 인생 구간은 성과 하나를 더 만드는 시기가 아니라, 앞으로 오래 가져갈 기준을 다시 세우는 시기입니다.',
+          String(timeline || '')
+            .split(/(?<=[.!?])\s+/)
+            .map((line) => line.trim())
+            .filter(Boolean)[0] || timeline,
+          `이번 장기 흐름의 중심축은 ${focusLabel}이며, 지금 배워야 할 과제도 이 축에서 가장 선명하게 드러납니다.`,
+          `${focusLabel}에서는 더 많이 쥐는 것보다, 어떤 기준을 반복 선택의 중심에 둘지가 장기 결과를 가릅니다.`,
+          leadScenarios.length > 0
+            ? `지금 인생 서사를 실제로 앞으로 미는 장면은 ${leadScenarios.join(', ')} 쪽입니다.`
+            : '',
+          `그래서 이번 10년은 성과를 늘리는 법보다, 다음 구간까지 들고 갈 원칙을 남기는 법을 배우는 쪽에 가깝습니다.`,
+          `장기 흐름에서 가장 위험한 지점은 ${metaphor.risk}이 기준 상실이나 과속 확정으로 바뀌는 순간입니다.`,
+        ]
+          .filter(Boolean)
+          .join(' ')
+      ),
+      lang
+    )
+    return appendEvidenceFooter(body, matrixInput, lang)
+  }
+
+  const body = formatNarrativeParagraphs(
+    sanitizeUserFacingNarrative(
+      [
+        `This chapter is about learning how to carry ${metaphor.archetype} for the long run without losing its edge.`,
+        String(timeline || '')
+          .split(/(?<=[.!?])\s+/)
+          .map((line) => line.trim())
+          .filter(Boolean)[0] || timeline,
+        `The current life chapter is centered on ${focusLabel}, and that is where the main lesson is becoming visible.`,
+        `The long arc improves less through isolated wins and more through standards you can repeat under pressure.`,
+        leadScenarios.length > 0
+          ? `The scenes pushing this life chapter forward are ${leadScenarios.join(', ')}.`
+          : '',
+        `${metaphor.risk} is the long-range failure point, especially when standards collapse or commitments are rushed.`,
+        normalizeNarrativeCoreText(focusVerdict?.rationale || reportCore.riskControl, lang),
+      ]
+        .filter(Boolean)
+        .join(' ')
+    ),
+    lang
+  )
+  return appendEvidenceFooter(body, matrixInput, lang)
+}
+
+function renderPersonalityDeepSection(
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): string {
+  const focusManifestation = findReportCoreManifestation(reportCore, reportCore.focusDomain)
+  const metaphor = buildElementMetaphor(matrixInput, lang)
+
+  if (lang === 'ko') {
+    const body = formatNarrativeParagraphs(
+      sanitizeUserFacingNarrative(
+        [
+          focusManifestation?.baselineThesis || '타고난 구조는 기준을 세우고 흐름을 조율하는 쪽에 가깝습니다.',
+          `기본 성향의 강점은 ${metaphor.edge}을 빠르게 세우는 데 있고, 약점은 ${metaphor.risk}이 판단 과속으로 바뀔 때 드러납니다.`,
+          '그래서 이 성향은 감으로 먼저 밀기보다, 기준 한 줄을 먼저 적고 움직일 때 가장 안정적으로 힘을 냅니다.',
+          '핵심은 빠른 결론이 아니라, 결론과 확정의 타이밍을 분리하는 데 있습니다.',
+        ]
+          .filter(Boolean)
+          .join(' ')
+      ),
+      lang
+    )
+    return appendEvidenceFooter(body, matrixInput, lang)
+  }
+
+  const safeBaseline = normalizeNarrativeCoreText(focusManifestation?.baselineThesis || '', lang)
+    .replace(/\b(Personality Engine|Phase transition layer|Expansion resource layer)\b:?/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+  const body = formatNarrativeParagraphs(
+    sanitizeUserFacingNarrative(
+      [
+        'Your baseline temperament is strongest when standards are visible and pace is controlled.',
+        `The upside of this structure is how quickly ${metaphor.edge} can be established once the room is clean.`,
+        `The risk appears when ${metaphor.risk} turns into premature certainty before the shape of the situation is fully clear.`,
+        safeBaseline && !/\b(pattern|layer|signal|engine)\b/i.test(safeBaseline)
+          ? `In practical terms, ${safeBaseline.replace(/^[A-Z]/, (m) => m.toLowerCase())}`
+          : 'In practical terms, you work best when the standard is named first and momentum is allowed to follow later.',
+        'This personality is less about dramatic speed and more about knowing where the line should be drawn before anything becomes final.',
+      ]
+        .filter(Boolean)
+        .join(' ')
+    ),
+    lang
+  )
+  return appendEvidenceFooter(body, matrixInput, lang)
+}
+
+function renderTimingAdviceSection(
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): string {
+  const focusTiming = findReportCoreTimingWindow(reportCore, reportCore.focusDomain)
+  const focusLabel = getReportDomainLabel(reportCore.focusDomain, lang)
+  const rawSoftChecks = (reportCore.judgmentPolicy.softCheckLabels || reportCore.judgmentPolicy.softChecks || [])
+    .filter(Boolean)
+    .slice(0, 2)
+  const isSafeEnglishTimingCheck = (value: string) =>
+    !containsHangul(value) &&
+    !/\b(evidence|probability|confidence|abort if|must stay active|should hold|active signals?|timing relevance|support stays latent)\b/i.test(
+      value
+    )
+  const softChecks = rawSoftChecks
+    .map((item) => normalizeNarrativeCoreText(item, lang))
+    .filter((item) => (lang === 'en' ? isSafeEnglishTimingCheck(item) : true))
+    .filter(Boolean)
+  const entryChecks = (focusTiming?.entryConditions || [])
+    .map((item) => normalizeNarrativeCoreText(item, lang))
+    .filter((item) => (lang === 'en' ? isSafeEnglishTimingCheck(item) : true))
+    .filter(Boolean)
+    .slice(0, 2)
+  const abortChecks = (focusTiming?.abortConditions || [])
+    .map((item) => normalizeNarrativeCoreText(item, lang))
+    .filter((item) => (lang === 'en' ? isSafeEnglishTimingCheck(item) : true))
+    .filter(Boolean)
+    .slice(0, 1)
+  const metaphor = buildElementMetaphor(matrixInput, lang)
+  const koreanTimingExecutionLine = (() => {
+    switch (reportCore.focusDomain) {
+      case 'career':
+        return '지금은 문서, 역할, 기한을 먼저 고정한 뒤에야 움직임이 힘을 받습니다.'
+      case 'relationship':
+        return '지금은 감정보다 속도와 경계를 먼저 맞춘 뒤에야 관계가 덜 흔들립니다.'
+      case 'wealth':
+        return '지금은 수익 기대보다 조건, 손실 상한, 빠져나올 문을 먼저 정해야 합니다.'
+      case 'health':
+        return '지금은 의지보다 회복 리듬과 과부하 신호를 먼저 정리해야 몸이 따라옵니다.'
+      case 'move':
+        return '지금은 이동 자체보다 경로, 생활 거점, 하루 동선을 먼저 다시 점검해야 합니다.'
+      default:
+        return '지금은 다음 수를 크게 두기보다, 다시 볼 수 있는 작은 단계로 나누는 편이 맞습니다.'
+    }
+  })()
+
+  if (lang === 'ko') {
+    const body = formatNarrativeParagraphs(
+      sanitizeUserFacingNarrative(
+        [
+          focusTiming
+            ? `${focusLabel}에서는 지금 바로 크게 밀어붙이기보다, 검토와 확정을 다른 리듬으로 나눌 때 타이밍이 살아납니다.`
+            : `${focusLabel}에서는 지금 한 번에 밀어붙이기보다, 단계를 나눠 움직이는 편이 맞습니다.`,
+          `지금 타이밍의 힘은 속도를 올리는 데 있지 않고, ${metaphor.edge}을 언제 꺼내 쓸지 아는 데 있습니다.`,
+          koreanTimingExecutionLine,
+          '오늘은 결론을 서두르기보다, 한 번 더 확인할 지점을 먼저 문서로 남기는 편이 안전합니다.',
+        ]
+          .filter(Boolean)
+          .join(' ')
+      ),
+      lang
+    )
+    return appendEvidenceFooter(body, matrixInput, lang)
+  }
+
+  const englishTimingExecutionLine = (() => {
+    switch (reportCore.focusDomain) {
+      case 'career':
+        return 'The clean version of this move is simple: write down scope, deadline, and ownership before anything becomes public.'
+      case 'relationship':
+        return 'The clean version of this move is to align pace, boundaries, and expectations before giving the relationship a heavier name.'
+      case 'wealth':
+        return 'The clean version of this move is to lock the amount, the downside, and the exit terms before you expand.'
+      case 'health':
+        return 'The clean version of this move is to reduce load first and rebuild a repeatable recovery rhythm before intensity returns.'
+      case 'move':
+        return 'The clean version of this move is to verify the route, the base, and the daily friction before any larger relocation step.'
+      default:
+        return 'The clean version of this move is to keep the next step small enough to review before it becomes final.'
+    }
+  })()
+
+  const body = formatNarrativeParagraphs(
+    sanitizeUserFacingNarrative(
+      [
+        focusTiming
+          ? `This is a usable ${getTimingWindowLabel(focusTiming.window, lang).toLowerCase()} window for ${focusLabel}, but only if sequence comes before speed.`
+          : `This phase is usable for ${focusLabel}, but it should be handled in stages rather than in one push.`,
+        `The timing edge here is not acceleration, but knowing when ${metaphor.edge} should actually be used.`,
+        englishTimingExecutionLine,
+        'Pause the move when assumptions start replacing direct communication or when scope cannot be verified in writing.',
+      ]
+        .filter(Boolean)
+        .join(' ')
+    ),
+    lang
+  )
+  return body
+}
+
+function renderActionPlanSection(
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): string {
+  const softChecks = (reportCore.judgmentPolicy.softCheckLabels || reportCore.judgmentPolicy.softChecks || [])
+    .filter(Boolean)
+    .slice(0, 2)
+  const koreanActionCheckLine = (() => {
+    switch (reportCore.focusDomain) {
+      case 'career':
+        return '오늘은 먼저 닫을 것 하나와 보류할 것 하나를 분리해 두는 편이 맞습니다.'
+      case 'relationship':
+        return '오늘은 관계를 더 깊게 밀기보다, 기대치와 속도를 한 번 더 맞추는 편이 맞습니다.'
+      case 'wealth':
+        return '오늘은 이익을 키우기보다 손실 상한과 조건부터 다시 확인하는 편이 맞습니다.'
+      case 'health':
+        return '오늘은 성과를 더 내기보다 회복 루틴을 먼저 지키는 편이 맞습니다.'
+      case 'move':
+        return '오늘은 결정을 키우기보다 경로와 생활 동선을 다시 확인하는 편이 맞습니다.'
+      default:
+        return '오늘은 바로 닫기보다 다시 볼 수 있는 작은 단계로 나누는 편이 맞습니다.'
+    }
+  })()
+
+  if (lang === 'ko') {
+    const body = formatNarrativeParagraphs(
+      sanitizeUserFacingNarrative(
+        [
+          `이번 실행의 우선 행동은 ${reportCore.topDecisionLabel || reportCore.primaryAction}입니다.`,
+          '한 번에 닫으려 하지 말고, 먼저 역할과 범위를 적고 그다음 확인 지점을 끼워 넣으세요.',
+          '분위기나 압박이 결정을 대신하게 두면, 지금 구간의 장점이 바로 손실로 바뀝니다.',
+          koreanActionCheckLine,
+        ]
+          .filter(Boolean)
+          .join(' ')
+      ),
+      lang
+    )
+    return body
+  }
+
+  const englishExecutionLine = (() => {
+    switch (reportCore.focusDomain) {
+      case 'career':
+        return 'Start by fixing the role, the scope, and the review point before you try to close anything.'
+      case 'relationship':
+        return 'Start by clarifying pace and boundaries before you try to deepen or define the relationship.'
+      case 'wealth':
+        return 'Start by fixing the terms and the downside before you decide how much upside is worth chasing.'
+      case 'health':
+        return 'Start by reducing load and restoring a repeatable recovery rhythm before you ask the body for more output.'
+      case 'move':
+        return 'Start by reviewing the route, the base of operations, and the daily friction before any larger move.'
+      default:
+        return 'Start with a smaller, reviewable step before you try to turn the whole plan into a final commitment.'
+    }
+  })()
+
+  const body = formatNarrativeParagraphs(
+    sanitizeUserFacingNarrative(
+      [
+        `The current priority is ${reportCore.topDecisionLabel || reportCore.primaryAction}.`,
+        englishExecutionLine,
+        'Do not mistake momentum for readiness; if the plan cannot survive one round of review, it is not ready to close.',
+        'Before moving, make sure the next step can still be verified, revised, or paused without creating unnecessary damage.',
+      ]
+        .filter(Boolean)
+        .join(' ')
+    ),
+    lang
+  )
+  return body
+}
+
+function renderCareerPathSection(
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): string {
+  const timing = findReportCoreTimingWindow(reportCore, 'career')
+  const verdict = findReportCoreVerdict(reportCore, 'career')
+  const domainVerdict = findReportCoreDomainVerdict(reportCore, 'career')
+  const leadScenario = formatScenarioIdForNarrative(domainVerdict?.leadScenarioId, lang)
+  const allowed = (domainVerdict?.allowedActionLabels || domainVerdict?.allowedActions || [])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(', ')
+  const metaphor = buildElementMetaphor(matrixInput, lang)
+  const safeTimingReason = lang === 'en' && containsHangul(timing?.whyNow) ? '' : sanitizeNarrativeReason(timing?.whyNow, lang)
+
+  if (lang === 'ko') {
+    const body = formatNarrativeParagraphs(
+      sanitizeUserFacingNarrative(
+        [
+          `당신의 커리어는 ${metaphor.archetype}처럼, 복잡한 판을 정리할수록 더 위력이 생깁니다.`,
+          `${metaphor.environment}에서 ${metaphor.edge}이 커리어 강점으로 드러납니다.`,
+          '핵심은 일을 늘리는 것보다 우선순위와 책임 범위를 먼저 고정하는 데 있습니다.',
+          leadScenario ? `실제 커리어 서사는 ${leadScenario} 쪽으로 열려 있습니다.` : '',
+          sanitizeNarrativeReason(timing?.whyNow, lang)
+            ? `지금 이 장면이 중요한 이유는 ${sanitizeNarrativeReason(timing?.whyNow, lang)}`
+            : '',
+          `${metaphor.risk}이 커리어 손실로 이어지기 쉬우니, 확정보다 기준 고정이 먼저입니다.`,
+          allowed
+            ? '지금 커리어에서는 한 번에 닫기보다, 역할을 먼저 고정하고 중간 점검을 끼워 넣는 방식이 맞습니다.'
+            : '',
+          normalizeNarrativeCoreText(verdict?.rationale || reportCore.primaryAction, lang),
+        ]
+          .filter(Boolean)
+          .join(' ')
+      ),
+      lang
+    )
+    return appendEvidenceFooter(body, matrixInput, lang)
+  }
+
+  const body = formatNarrativeParagraphs(
+    sanitizeUserFacingNarrative(
+      [
+        `Your career gets sharper when the scene gets cleaner. ${capitalizeFirst(metaphor.archetype)} is the right image here.`,
+        `${capitalizeFirst(metaphor.environment)} is where your ${metaphor.edge} become visible in work.`,
+        'The real edge is not doing more, but deciding what you will be measured by.',
+        leadScenario ? `The live career scene is ${leadScenario}.` : '',
+        `${capitalizeFirst(metaphor.risk)} is the work risk to watch.`,
+        allowed
+          ? 'In career, the better move is not a one-shot close but a staged path: lock the role first, then insert a review point before final commitment.'
+          : '',
+        normalizeNarrativeCoreText(verdict?.rationale || reportCore.primaryAction, lang),
+      ]
+        .filter(Boolean)
+        .join(' ')
+    ),
+    lang
+  )
+  return appendEvidenceFooter(body, matrixInput, lang)
+}
+
+function renderRelationshipDynamicsSection(
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): string {
+  const timing = findReportCoreTimingWindow(reportCore, 'relationship')
+  const verdict = findReportCoreVerdict(reportCore, 'relationship')
+  const domainVerdict = findReportCoreDomainVerdict(reportCore, 'relationship')
+  const leadScenario = formatScenarioIdForNarrative(domainVerdict?.leadScenarioId, lang)
+  const blocked = (domainVerdict?.blockedActionLabels || domainVerdict?.blockedActions || [])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(', ')
+  const metaphor = buildElementMetaphor(matrixInput, lang)
+  const safeTimingReason = lang === 'en' && containsHangul(timing?.whyNow) ? '' : sanitizeNarrativeReason(timing?.whyNow, lang)
+
+  if (lang === 'ko') {
+    const body = formatNarrativeParagraphs(
+      sanitizeUserFacingNarrative(
+        [
+          '관계는 감정의 크기보다 해석 일치, 기대치 조정, 경계 설정이 맞을 때 훨씬 안정적으로 움직입니다.',
+          '이번 관계 흐름은 바로 결론을 내리기보다 거리와 속도를 먼저 맞추는 쪽에 가깝습니다.',
+          `${metaphor.archetype} 같은 기질은 관계에서도 선을 먼저 긋고 난 뒤에야 깊이를 허용하는 방식으로 드러납니다.`,
+          leadScenario
+            ? `지금 관계에서 실제로 반복되는 장면은 ${leadScenario}입니다.`
+            : '',
+          sanitizeNarrativeReason(timing?.whyNow, lang)
+            ? `이 관계 이슈가 지금 떠오르는 이유는 ${sanitizeNarrativeReason(timing?.whyNow, lang)}`
+            : '',
+          blocked
+            ? '특히 결론을 서두르거나 확인 없이 선을 넘는 방식은 오해를 키울 수 있습니다.'
+            : '',
+          normalizeNarrativeCoreText(verdict?.rationale || reportCore.primaryCaution, lang),
+        ]
+          .filter(Boolean)
+          .join(' ')
+      ),
+      lang
+    )
+    return appendEvidenceFooter(body, matrixInput, lang)
+  }
+
+  const body = formatNarrativeParagraphs(
+    sanitizeUserFacingNarrative(
+      [
+        'Relationships improve here when interpretation, boundaries, and pacing line up before commitment pressure rises.',
+        'This phase is less about forcing a conclusion and more about matching distance, pace, and expectations.',
+        `${capitalizeFirst(metaphor.archetype)} shows up in relationships as the need to draw the line before going deeper.`,
+        leadScenario ? `The relationship scene repeating now is ${leadScenario}.` : '',
+        blocked
+          ? 'Pushing commitment or crossing the line without enough verification is more likely to enlarge misunderstanding.'
+          : '',
+        normalizeNarrativeCoreText(verdict?.rationale || reportCore.primaryCaution, lang),
+      ]
+        .filter(Boolean)
+        .join(' ')
+    ),
+    lang
+  )
+  return appendEvidenceFooter(body, matrixInput, lang)
+}
+
+function renderWealthPotentialSection(
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): string {
+  const advisory = findReportCoreAdvisory(reportCore, 'wealth')
+  const timing = findReportCoreTimingWindow(reportCore, 'wealth')
+  const manifestation = findReportCoreManifestation(reportCore, 'wealth')
+  const verdict = findReportCoreVerdict(reportCore, 'wealth')
+  const metaphor = buildElementMetaphor(matrixInput, lang)
+  const safeTimingReason = lang === 'en' ? '' : sanitizeNarrativeReason(timing?.whyNow, lang)
+
+  if (lang === 'ko') {
+    const body = formatNarrativeParagraphs(
+      sanitizeUserFacingNarrative(
+        [
+          `재정은 ${metaphor.archetype}처럼 숫자와 조건을 차갑게 가를수록 더 오래 남습니다.`,
+          manifestation?.manifestation ||
+            '이번 돈의 흐름은 수익을 부풀리는 시기라기보다, 어디로 들어오고 어디서 새는지를 냉정하게 갈라봐야 하는 구간입니다.',
+          `${metaphor.environment}처럼 돈도 힘을 줄 자리와 잘라낼 지출을 먼저 가를 때 비로소 속도가 붙습니다.`,
+          sanitizeNarrativeReason(timing?.whyNow, lang)
+            ? `지금 이 판단이 필요한 이유는 ${sanitizeNarrativeReason(timing?.whyNow, lang)}`
+            : '',
+          `${metaphor.risk}이 재정에서는 과속 투자, 대충 넘긴 조건, 손실 상한 없는 약속으로 바뀌기 쉽습니다.`,
+          '이번 재정의 승부처는 많이 버는 장면이 아니라, 어디까지 잃을 수 있고 무엇까지 책임질지를 먼저 써두는 데 있습니다.',
+          '돈이 들어오는 문보다 먼저 점검해야 할 것은 계약 조건, 정산 기준, 손실 상한입니다.',
+          normalizeNarrativeCoreText(
+            verdict?.rationale || advisory?.caution || reportCore.riskControl,
+            lang
+          ),
+        ]
+          .filter(Boolean)
+          .join(' ')
+      ),
+      lang
+    )
+    return appendEvidenceFooter(body, matrixInput, lang)
+  }
+
+  const body = formatNarrativeParagraphs(
+    sanitizeUserFacingNarrative(
+      [
+        `Wealth lasts longer when numbers, limits, and terms stay clean. ${capitalizeFirst(metaphor.archetype)} is the right money image here.`,
+        capitalizeFirst(
+          manifestation?.manifestation ||
+            'This is less a phase for inflating upside and more a phase for separating inflow, leakage, and obligation with precision.'
+        ),
+        `${capitalizeFirst(metaphor.environment)} is where the money decision becomes visible: decide what gets resources and what gets cut before you scale anything.`,
+        safeTimingReason
+          ? `This matters now because ${safeTimingReason}`
+          : '',
+        `${capitalizeFirst(metaphor.risk)} tends to show up in money as rushed commitments, vague terms, and downside that was never defined in writing.`,
+        'The real money edge now is not bigger upside, but knowing exactly what can leak, what remains negotiable, and where the downside stops.',
+        'Before you chase more money, lock the terms, settlement logic, and loss boundary.',
+        normalizeNarrativeCoreText(
+          verdict?.rationale || advisory?.caution || reportCore.riskControl,
+          lang
+        ),
+      ]
+        .filter(Boolean)
+        .join(' ')
+    ),
+    lang
+  )
+  return appendEvidenceFooter(body, matrixInput, lang)
+}
+
+function renderConclusionSection(
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): string {
+  const focusLabel = getReportDomainLabel(reportCore.focusDomain, lang)
+  const metaphor = buildElementMetaphor(matrixInput, lang)
+
+  if (lang === 'ko') {
+    const body = formatNarrativeParagraphs(
+      sanitizeUserFacingNarrative(
+        [
+          `이번 총운의 결론은 단순합니다. ${focusLabel} 축에서는 재능보다 운영 순서가 결과를 더 크게 가릅니다.`,
+          `지금 차이를 만드는 건 ${metaphor.edge}을 어떤 순서로 쓰느냐입니다.`,
+          reportCore.riskControl,
+        ].join(' ')
+      ),
+      lang
+    )
+    return appendEvidenceFooter(body, matrixInput, lang)
+  }
+
+  const body = formatNarrativeParagraphs(
+    sanitizeUserFacingNarrative(
+      [
+        `The conclusion is simple: in ${focusLabel}, the person who sets the standard first usually controls the phase.`,
+        `What changes the outcome here is not raw talent, but how ${metaphor.edge} get applied in sequence.`,
+        reportCore.riskControl,
+      ].join(' ')
+    ),
+    lang
+  )
+  return appendEvidenceFooter(body, matrixInput, lang)
+}
+
+function renderHealthGuidanceSection(
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): string {
+  const timing = findReportCoreTimingWindow(reportCore, 'health')
+  const verdict = findReportCoreVerdict(reportCore, 'health')
+  const metaphor = buildElementMetaphor(matrixInput, lang)
+
+  if (lang === 'ko') {
+    const body = formatNarrativeParagraphs(
+      sanitizeUserFacingNarrative(
+        [
+          '건강은 버티는 힘보다 회복 리듬과 과부하 신호를 얼마나 빨리 정리하느냐에서 갈립니다.',
+          '이번 건강 흐름은 몰아붙이는 하루보다 반복 가능한 회복 루틴을 먼저 고정하는 쪽이 강합니다.',
+          `${metaphor.risk}이 몸에서는 피로 누적과 회복 지연으로 바뀌기 쉽습니다.`,
+          sanitizeNarrativeReason(timing?.whyNow, lang)
+            ? `지금 몸 상태를 다시 봐야 하는 이유는 ${sanitizeNarrativeReason(timing?.whyNow, lang)}`
+            : '',
+          normalizeNarrativeCoreText(verdict?.rationale || reportCore.primaryAction, lang),
+        ]
+          .filter(Boolean)
+          .join(' ')
+      ),
+      lang
+    )
+    return appendEvidenceFooter(body, matrixInput, lang)
+  }
+
+  const body = formatNarrativeParagraphs(
+    sanitizeUserFacingNarrative(
+      [
+        'Health depends more on recovery rhythm and overload detection than on endurance alone.',
+        'This phase rewards repeatable recovery before intensity.',
+        `${capitalizeFirst(metaphor.risk)} often turns into fatigue build-up or delayed recovery in the body.`,
+        normalizeNarrativeCoreText(verdict?.rationale || reportCore.primaryAction, lang),
+      ]
+        .filter(Boolean)
+        .join(' ')
+    ),
+    lang
+  )
+  return appendEvidenceFooter(body, matrixInput, lang)
+}
+
+function shouldForceComprehensiveNarrativeFallback(
+  quality: ReportQualityMetrics | undefined
+): boolean {
+  if (!quality) return false
+  return Boolean(
+    (quality.crossSectionRepetition || 0) >= 3 ||
+      (quality.genericAdviceDensity || 0) >= 0.5 ||
+      (quality.internalScenarioLeakCount || 0) > 0
+  )
+}
+
+function stripGenericEvidenceFooterText(
+  text: string,
+  lang: 'ko' | 'en'
+): string {
+  const value = String(text || '').trim()
+  if (!value) return value
+  const pattern =
+    lang === 'ko'
+      ? /\s*핵심 근거는\s*[^.!?\n]+입니다\.?\s*$/u
+      : /\s*Key grounding comes from\s*[^.!?\n]+\.\s*$/iu
+  return value.replace(pattern, '').trim()
+}
+
+function stripGenericEvidenceFooters(
+  sections: Record<string, unknown>,
+  paths: string[],
+  lang: 'ko' | 'en'
+): Record<string, unknown> {
+  for (const path of paths) {
+    const text = getPathText(sections, path)
+    if (!text) continue
+    setPathText(sections, path, stripGenericEvidenceFooterText(text, lang))
+  }
+  return sections
+}
+
+function enforceComprehensiveNarrativeQualityFallback(
+  sections: AIPremiumReport['sections'],
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): AIPremiumReport['sections'] {
+  const next: AIPremiumReport['sections'] = { ...sections }
+  next.introduction = renderIntroductionSection(reportCore, matrixInput, lang)
+  next.personalityDeep = renderPersonalityDeepSection(reportCore, matrixInput, lang)
+  next.lifeMission = renderLifeMissionSection(reportCore, matrixInput, lang)
+  next.careerPath = renderCareerPathSection(reportCore, matrixInput, lang)
+  next.relationshipDynamics = renderRelationshipDynamicsSection(reportCore, matrixInput, lang)
+  next.wealthPotential = renderWealthPotentialSection(reportCore, matrixInput, lang)
+  next.healthGuidance = renderHealthGuidanceSection(reportCore, matrixInput, lang)
+  next.timingAdvice = renderTimingAdviceSection(reportCore, matrixInput, lang)
+  next.actionPlan = renderActionPlanSection(reportCore, matrixInput, lang)
+  next.conclusion = renderConclusionSection(reportCore, matrixInput, lang)
+  return sanitizeComprehensiveSectionsForUser(
+    next as unknown as Record<string, unknown>,
+    lang
+  ) as AIPremiumReport['sections']
 }
 
 function buildTimingSectionHook(
@@ -1375,52 +2531,15 @@ function enrichComprehensiveSectionsWithReportCore(
       false,
       false
     ),
-    timingAdvice: buildNarrativeSectionFromCore(
-      [
-        buildSectionPersonalLead('timingAdvice', matrixInput, lang, timingData),
-        focusTiming
-          ? lang === 'ko'
-            ? `${getReportDomainLabel(reportCore.focusDomain, lang)}의 핵심 시간창은 ${getTimingWindowLabel(focusTiming.window, lang)}이며, ${focusTiming.whyNow}`
-            : `The core ${getReportDomainLabel(reportCore.focusDomain, lang)} window is ${getTimingWindowLabel(focusTiming.window, lang)}, and ${focusTiming.whyNow}.`
-          : reportCore.gradeReason,
-        reportCore.riskControl,
-      ],
-      [
-        ...reportCore.domainTimingWindows.slice(0, 4).map((item) =>
-          buildTimingWindowNarrative(item.domain, item, lang)
-        ),
-        ...(sectionSupplements.timingAdvice || []),
-      ],
-      sections.timingAdvice,
-      lang,
+    timingAdvice: ensureLongSectionNarrative(
+      renderTimingAdviceSection(reportCore, matrixInput, lang),
       lang === 'ko' ? 950 : 680,
-      false,
-      false
+      sectionSupplements.timingAdvice || []
     ),
-    actionPlan: buildNarrativeSectionFromCore(
-      [
-        buildSectionPersonalLead('actionPlan', matrixInput, lang, timingData),
-        lang === 'ko'
-          ? `현재 우선 행동은 ${reportCore.topDecisionLabel || reportCore.primaryAction}입니다. 실행의 첫 단계는 ${buildPrimaryActionLead(reportCore.primaryAction, '기준을 세우는 일', lang)} 그 다음 확인 절차를 거쳐 보류 대상을 정리하는 편이 맞습니다.`
-          : `The current priority action is ${reportCore.topDecisionLabel || reportCore.primaryAction}. The first step is ${buildPrimaryActionLead(reportCore.primaryAction, 'setting a standard', lang)} Then review and separate what should be held.`,
-        reportCore.riskControl,
-      ],
-      [
-        buildPrimaryCautionLead(
-          reportCore.primaryCaution,
-          lang === 'ko' ? '확인 없이 밀어붙이는 흐름입니다.' : 'Forcing progress without review.',
-          lang
-        ),
-        reportCore.judgmentPolicy.rationale,
-        ...(reportCore.judgmentPolicy.softChecks || []),
-        ...(reportCore.judgmentPolicy.hardStops || []),
-        ...(sectionSupplements.actionPlan || []),
-      ],
-      sections.actionPlan,
-      lang,
+    actionPlan: ensureLongSectionNarrative(
+      renderActionPlanSection(reportCore, matrixInput, lang),
       lang === 'ko' ? 900 : 650,
-      false,
-      false
+      sectionSupplements.actionPlan || []
     ),
     conclusion: buildNarrativeSectionFromCore(
       [
@@ -1732,9 +2851,7 @@ function enrichThemedSectionsWithReportCore(
       [
         buildThemedSectionHook(theme, 'timing', lang),
         focusTiming
-          ? lang === 'ko'
-            ? `${getTimingWindowLabel(focusTiming.window, lang)} 창이 열리며, ${focusTiming.whyNow}`
-            : `The ${getTimingWindowLabel(focusTiming.window, lang)} window opens, and ${focusTiming.whyNow}`
+          ? buildTimingWindowNarrative(reportCore.focusDomain, focusTiming, lang)
           : reportCore.gradeReason,
       ],
       [
@@ -2010,11 +3127,13 @@ const EVIDENCE_TOKEN_STOP_WORDS = new Set([
   'your',
 ])
 
-const FORCE_REWRITE_ONLY_MODE = true
-const FORCE_STRICT_COMPUTE_ONLY_MODE = true
+// Premium reports currently ship as deterministic core + selective AI polish.
+// Keep the old rewrite-only generation path disabled unless we intentionally revive it.
+const FORCE_REWRITE_ONLY_MODE = false
+const FORCE_DETERMINISTIC_CORE_MODE = true
 
 function shouldUseDeterministicOnly(flag?: boolean): boolean {
-  if (FORCE_STRICT_COMPUTE_ONLY_MODE) return true
+  if (FORCE_DETERMINISTIC_CORE_MODE) return true
   if (typeof flag === 'boolean') return flag
   const env = String(process.env.DESTINY_REPORT_DETERMINISTIC_ONLY || '')
     .trim()
@@ -2031,14 +3150,7 @@ function getPremiumPolishPaths(params: {
   theme?: ReportTheme
 }): string[] {
   if (params.reportType === 'comprehensive') {
-    return [
-      'introduction',
-      'careerPath',
-      'relationshipDynamics',
-      'wealthPotential',
-      'healthGuidance',
-      'conclusion',
-    ]
+    return ['timingAdvice']
   }
   if (params.reportType === 'timing') {
     return ['overview', 'opportunities', 'actionPlan']
@@ -2484,6 +3596,11 @@ function enforceEvidenceRefFooters(
   for (const path of sectionPaths) {
     const text = getPathText(sections, path)
     if (!text) continue
+    if (
+      /(?:핵심 근거는|Key grounding comes from)/i.test(text)
+    ) {
+      continue
+    }
     const refs = (evidenceRefs[path] || []).filter((ref) => Boolean(ref.id))
     if (refs.length === 0) continue
     if (hasEvidenceIdReference(text, refs)) continue
@@ -2496,7 +3613,14 @@ function enforceEvidenceRefFooters(
     const footer =
       lang === 'ko'
         ? `핵심 근거는 ${hintLine || '현재 활성 신호'}입니다.`
-        : `Key grounding comes from ${hintLine || 'current active signals'}.`
+        : normalizeNarrativeCoreText(`Key grounding comes from ${hintLine || 'current active signals'}.`, lang)
+            .replace(/대운\s+metal/gi, 'Daeun metal')
+            .replace(/대운\s+wood/gi, 'Daeun wood')
+            .replace(/대운\s+water/gi, 'Daeun water')
+            .replace(/대운\s+fire/gi, 'Daeun fire')
+            .replace(/대운\s+earth/gi, 'Daeun earth')
+            .replace(/dominant element\s+바람/gi, 'dominant element air')
+            .replace(/dominant western element\s+바람/gi, 'dominant western element air')
     setPathText(sections, path, `${text} ${footer}`.replace(/\s{2,}/g, ' ').trim())
   }
   return sections
@@ -2809,9 +3933,15 @@ function buildGraphRagSummaryPayload(
     .map((strategy) => {
       const strategyDomain = strategy.domain as SignalDomain
       if (lang === 'ko') {
-        return `${toKoreanDomainLabel(strategyDomain)} ${strategy.phaseLabel}, 공격 ${strategy.attackPercent}% / 방어 ${strategy.defensePercent}%`
+        return `${toKoreanDomainLabel(strategyDomain)}은 ${describePhaseFlow(
+          strategy.phaseLabel,
+          'ko'
+        )} ${describeExecutionStance(strategy.attackPercent, strategy.defensePercent, 'ko')}`
       }
-      return `${strategy.domain} ${strategy.phaseLabel}, offense ${strategy.attackPercent}% / defense ${strategy.defensePercent}%`
+      return `${strategy.domain} is in a phase where ${describePhaseFlow(
+        strategy.phaseLabel,
+        'en'
+      ).toLowerCase()} ${describeExecutionStance(strategy.attackPercent, strategy.defensePercent, 'en')}`
     })
   const drivers = uniqueStrings(
     [
@@ -2867,8 +3997,8 @@ function buildGraphRagSummaryPayload(
         ? drivers
         : [
             lang === 'ko'
-              ? '핵심 근거는 상승 신호와 국면 전략을 함께 확인하며 실행해야 합니다.'
-              : 'Use both upside signals and phase strategy together for execution.',
+              ? '좋아 보이는 근거가 있어도 지금 흐름과 실행 속도를 함께 보고 움직이는 편이 좋습니다.'
+              : 'Use the positive signals together with the current pace and phase before acting.',
           ],
     cautions:
       cautions.length > 0
@@ -2973,14 +4103,20 @@ function buildStrategyFactsForSection(
 
     if (lang === 'ko') {
       lines.push(
-        `${toKoreanDomainLabel(strategy.domain)} 국면은 ${strategy.phaseLabel}이며 공격 ${strategy.attackPercent}% / 방어 ${strategy.defensePercent}% 운영이 적합합니다.`
+        `${toKoreanDomainLabel(strategy.domain)}은 ${describePhaseFlow(
+          strategy.phaseLabel,
+          'ko'
+        )} ${describeExecutionStance(strategy.attackPercent, strategy.defensePercent, 'ko')}`
       )
       lines.push(strategy.strategy)
       lines.push(phaseAction)
       if (strategy.riskControl) lines.push(strategy.riskControl)
     } else {
       lines.push(
-        `${strategy.domain} is in ${strategy.phaseLabel} with offense ${strategy.attackPercent}% / defense ${strategy.defensePercent}%.`
+        `${strategy.domain} is in a phase where ${describePhaseFlow(
+          strategy.phaseLabel,
+          'en'
+        ).toLowerCase()} ${describeExecutionStance(strategy.attackPercent, strategy.defensePercent, 'en')}`
       )
       lines.push(strategy.strategy)
       lines.push(phaseAction)
@@ -3323,7 +4459,6 @@ function sanitizeUserFacingNarrative(text: string): string {
     .replace(/\b건강\s+영역은\b/g, '건강 흐름은')
     .replace(/\b이동\s+영역은\b/g, '이동 흐름은')
     .replace(/이번 해석의 중심에는\s*[, ]*/g, '이번 해석의 중심에는 ')
-    .replace(/\bair\b/g, '바람')
     .replace(/\.\./g, '.')
     .replace(/Alt:\s*/g, '')
     .replace(/Main:\s*/g, '')
@@ -3389,6 +4524,61 @@ function formatNarrativeParagraphs(text: string, lang: 'ko' | 'en'): string {
     .join('\n\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
+}
+
+function removeCrossSectionNarrativeRepetition(
+  sections: Record<string, unknown>,
+  sectionOrder: string[],
+  lang: 'ko' | 'en'
+): Record<string, unknown> {
+  const next = { ...sections }
+  const seen = new Set<string>()
+
+  for (const key of sectionOrder) {
+    const current = String(next[key] || '').trim()
+    if (!current) continue
+
+    if (key === 'actionPlan') {
+      const preserved = formatNarrativeParagraphs(current, lang)
+      next[key] = preserved
+      for (const sentence of splitSentences(preserved).map((item) => String(item || '').trim()).filter(Boolean)) {
+        seen.add(sentenceKey(sentence))
+      }
+      continue
+    }
+
+    const sentences = splitSentences(current)
+      .map((sentence) => String(sentence || '').trim())
+      .filter(Boolean)
+
+    if (sentences.length <= 2) {
+      for (const sentence of sentences) {
+        seen.add(sentenceKey(sentence))
+      }
+      continue
+    }
+
+    const kept: string[] = []
+    for (let index = 0; index < sentences.length; index += 1) {
+      const sentence = sentences[index]
+      const keyValue = sentenceKey(sentence)
+      const alreadySeen = seen.has(keyValue)
+
+      if (index === 0 || !alreadySeen) {
+        kept.push(sentence)
+        seen.add(keyValue)
+      }
+    }
+
+    const normalized =
+      kept.length >= 2
+        ? kept.join(' ')
+        : sentences.slice(0, Math.min(2, sentences.length)).join(' ')
+
+    next[key] = formatNarrativeParagraphs(normalized, lang)
+  }
+
+  return next
 }
 
 function cleanRecommendationLine(text: string, lang: 'ko' | 'en'): string {
@@ -3524,13 +4714,7 @@ function applyPremiumVoiceLayerToComprehensiveSections(
   const wealthPotential = String(next.wealthPotential || '').trim()
   if (wealthPotential) {
     next.wealthPotential = formatNarrativeParagraphs(
-      compactComprehensiveNarrative(
-        wealthPotential.replace(
-          /^재정은[^.]+\.\s*/u,
-          '재정은 더 벌 수 있느냐보다, 새는 구멍을 먼저 막을 수 있느냐에서 승부가 갈립니다. '
-        ),
-        'wealthPotential'
-      ),
+      compactComprehensiveNarrative(wealthPotential, 'wealthPotential'),
       'ko'
     )
   }
@@ -3597,25 +4781,182 @@ function applyPremiumVoiceLayerToThemedSections(
 }
 
 function sanitizeComprehensiveSectionsForUser(
-  sections: Record<string, unknown>
+  sections: Record<string, unknown>,
+  lang: 'ko' | 'en' = 'ko'
 ): Record<string, unknown> {
   const next = { ...sections }
   for (const key of COMPREHENSIVE_SECTION_KEYS) {
     const current = String(next[key] || '').trim()
     if (!current) continue
-    const cleaned = sanitizeUserFacingNarrative(current)
-      .replace(/배우자 아키타입:[\s\S]*?(?=(?:현재 나이|관계 타임라인|$))/g, '')
-      .replace(/현재 나이\(약\s*\d+세\)\s*기준으로 우선순위를 정렬하세요\.?/g, '')
-      .replace(/(?:\/\s*)?\d{1,2}-\d{1,2}세\s*\(\d+%\):[^.]+\./g, '')
-      .replace(/변곡점 Top:\s*/g, '')
-      .replace(/전체 점수\/신뢰 요약:\s*/g, '')
-      .replace(/상위 도메인:\s*/g, '상위 흐름은 ')
-      .replace(/관계 타임라인:\s*$/g, '')
-      .replace(/\s{2,}/g, ' ')
-      .trim()
-    next[key] = formatNarrativeParagraphs(cleaned, 'ko')
+    const cleaned =
+      lang === 'ko'
+        ? sanitizeUserFacingNarrative(current)
+            .replace(/배우자 아키타입:[\s\S]*?(?=(?:현재 나이|관계 타임라인|$))/g, '')
+            .replace(/현재 나이\(약\s*\d+세\)\s*기준으로 우선순위를 정렬하세요\.?/g, '')
+            .replace(/(?:\/\s*)?\d{1,2}-\d{1,2}세\s*\(\d+%\):[^.]+\./g, '')
+            .replace(/변곡점 Top:\s*/g, '')
+            .replace(/전체 점수\/신뢰 요약:\s*/g, '')
+            .replace(/상위 도메인:\s*/g, '상위 흐름은 ')
+            .replace(/관계 타임라인:\s*$/g, '')
+            .replace(/검증/g, '확인')
+            .replace(/\s{2,}/g, ' ')
+            .trim()
+        : sanitizeUserFacingNarrative(current)
+            .replace(/dominant western element\s+바람/gi, 'dominant western element air')
+            .replace(/\bwith\s+바람\s+as\s+the\s+dominant\s+western\s+element\b/gi, 'with air as the dominant western element')
+            .replace(/\bdominant element\s+바람\b/gi, 'dominant element air')
+            .replace(/격국\s+정재격/gi, 'frame jeongjae')
+            .replace(/격국\s+편재격/gi, 'frame pyeonjae')
+            .replace(/용신\s+화/gi, 'useful element fire')
+            .replace(/용신\s+목/gi, 'useful element wood')
+            .replace(/용신\s+수/gi, 'useful element water')
+            .replace(/용신\s+금/gi, 'useful element metal')
+            .replace(/용신\s+토/gi, 'useful element earth')
+            .replace(/대운\s+metal/gi, 'Daeun metal')
+            .replace(/대운\s+wood/gi, 'Daeun wood')
+            .replace(/대운\s+water/gi, 'Daeun water')
+            .replace(/대운\s+fire/gi, 'Daeun fire')
+            .replace(/대운\s+earth/gi, 'Daeun earth')
+            .replace(/대운/gi, 'Daeun')
+            .replace(/세운/gi, 'annual cycle')
+            .replace(/월운/gi, 'monthly cycle')
+            .replace(/일운/gi, 'daily cycle')
+            .replace(/\s{2,}/g, ' ')
+            .trim()
+    let formatted = formatNarrativeParagraphs(cleaned, lang)
+    if (lang === 'en') {
+      formatted = formatted
+        .replace(/dominant western element\s+바람/gi, 'dominant western element air')
+        .replace(/dominant element\s+바람/gi, 'dominant element air')
+        .replace(/with\s+바람\s+as\s+the\s+dominant\s+western\s+element/gi, 'with air as the dominant western element')
+        .replace(/격국\s+정재격/gi, 'frame jeongjae')
+        .replace(/격국\s+편재격/gi, 'frame pyeonjae')
+        .replace(/용신\s+화/gi, 'useful element fire')
+        .replace(/용신\s+목/gi, 'useful element wood')
+        .replace(/용신\s+수/gi, 'useful element water')
+        .replace(/용신\s+금/gi, 'useful element metal')
+        .replace(/용신\s+토/gi, 'useful element earth')
+        .replace(/대운\s+metal/gi, 'Daeun metal')
+        .replace(/대운\s+wood/gi, 'Daeun wood')
+        .replace(/대운\s+water/gi, 'Daeun water')
+        .replace(/대운\s+fire/gi, 'Daeun fire')
+        .replace(/대운\s+earth/gi, 'Daeun earth')
+        .replace(/\((목)\)/gi, '(wood)')
+        .replace(/\((화)\)/gi, '(fire)')
+        .replace(/\((수)\)/gi, '(water)')
+        .replace(/\((금)\)/gi, '(metal)')
+        .replace(/\((토)\)/gi, '(earth)')
+        .replace(/Key grounding comes from ([^.]+)\.\s+Key grounding comes from \1\./gi, 'Key grounding comes from $1.')
+    }
+    next[key] = formatted
   }
-  return applyPremiumVoiceLayerToComprehensiveSections(next)
+  const layered = lang === 'ko' ? applyPremiumVoiceLayerToComprehensiveSections(next) : next
+  return removeCrossSectionNarrativeRepetition(layered, [...COMPREHENSIVE_SECTION_KEYS], lang)
+}
+
+function applyComprehensiveSectionRoleGuards(
+  sections: AIPremiumReport['sections'],
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): AIPremiumReport['sections'] {
+  if (lang !== 'ko') return sections
+
+  const next: AIPremiumReport['sections'] = { ...sections }
+  const focusAdvisory = findReportCoreAdvisory(reportCore, reportCore.focusDomain)
+  const focusTiming = findReportCoreTimingWindow(reportCore, reportCore.focusDomain)
+  const focusManifestation = findReportCoreManifestation(reportCore, reportCore.focusDomain)
+  const careerAdvisory = findReportCoreAdvisory(reportCore, 'career')
+  const relationshipAdvisory = findReportCoreAdvisory(reportCore, 'relationship')
+  const blockedLabels = (reportCore.judgmentPolicy.blockedActionLabels || []).slice(0, 2)
+  const softChecks = (reportCore.judgmentPolicy.softCheckLabels || reportCore.judgmentPolicy.softChecks || []).slice(0, 2)
+  const focusLabel = getReportDomainLabel(reportCore.focusDomain, lang)
+  const daeunLead = matrixInput.currentDaeunElement
+    ? `현재 장기 흐름의 바탕은 ${matrixInput.currentDaeunElement} 축입니다.`
+    : ''
+  const focusWindow =
+    focusTiming && focusTiming.whyNow
+      ? `${getTimingWindowLabel(focusTiming.window, lang)} 구간에서는 ${focusTiming.whyNow}`
+      : focusTiming
+        ? buildTimingWindowNarrative(reportCore.focusDomain, focusTiming, lang)
+        : ''
+  const personalityStructure = [
+    matrixInput.dayMasterElement ? `원국의 중심은 ${matrixInput.dayMasterElement} 일간입니다.` : '',
+    matrixInput.geokguk ? `격국은 ${matrixInput.geokguk}으로 읽힙니다.` : '',
+    matrixInput.yongsin ? `용신 축은 ${matrixInput.yongsin}입니다.` : '',
+    matrixInput.dominantWesternElement
+      ? `서양 쪽에서는 ${matrixInput.dominantWesternElement} 원소가 강하게 작동합니다.`
+      : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+  const finalizeKoSection = (text: string) =>
+    formatNarrativeParagraphs(sanitizeUserFacingNarrative(text).replace(/검증/g, '확인'), 'ko')
+
+  next.introduction = finalizeKoSection(
+    renderIntroductionSection(reportCore, matrixInput, lang)
+  )
+
+  next.personalityDeep = finalizeKoSection(
+    [
+      personalityStructure,
+      `기본 성향의 강점은 구조화와 재정렬이고, 취약점은 해석이 끝나기 전에 확정을 서두를 때 발생합니다.`,
+      `그래서 이 사람은 속도로 승부를 보기보다 기준을 짧은 문장으로 먼저 고정하고 움직일 때 판단 품질이 올라갑니다.`,
+    ].join(' ')
+  )
+
+  next.careerPath = finalizeKoSection(
+    renderCareerPathSection(reportCore, matrixInput, lang)
+  )
+
+  next.relationshipDynamics = finalizeKoSection(
+    renderRelationshipDynamicsSection(reportCore, matrixInput, lang)
+  )
+
+  next.wealthPotential = finalizeKoSection(
+    renderWealthPotentialSection(reportCore, matrixInput, lang)
+  )
+
+  next.healthGuidance = finalizeKoSection(
+    renderHealthGuidanceSection(reportCore, matrixInput, lang)
+  )
+
+  next.lifeMission = finalizeKoSection(
+    renderLifeMissionSection(reportCore, matrixInput, lang)
+  )
+
+  next.timingAdvice = finalizeKoSection(
+    [
+      focusWindow || reportCore.gradeReason,
+      `타이밍의 핵심은 빨리 결정하는 것이 아니라, 확정과 검토를 다른 슬롯으로 분리하는 데 있습니다.`,
+      softChecks.length > 0
+        ? `지금은 문서, 합의, 전달 순서를 먼저 고정하는 편이 안전합니다.`
+        : '',
+      reportCore.riskControl,
+    ]
+      .filter(Boolean)
+      .join(' ')
+  )
+
+  next.actionPlan = finalizeKoSection(
+    [
+      `우선 행동은 ${reportCore.topDecisionLabel || reportCore.primaryAction}입니다.`,
+      `기본 실행 원칙은 역할·우선순위·기한을 먼저 고정한 뒤 움직이는 것입니다.`,
+      blockedLabels.length > 0
+        ? `반대로 피해야 할 것은 분위기나 압박에 밀려 바로 확정하는 방식입니다.`
+        : '',
+      reportCore.riskControl,
+      `실행은 착수-재확인-확정으로 나누고, 오늘 먼저 닫을 것과 보류할 것을 분리하세요.`,
+    ]
+      .filter(Boolean)
+      .join(' ')
+  )
+
+  next.conclusion = finalizeKoSection(
+    renderConclusionSection(reportCore, matrixInput, lang)
+  )
+
+  return next
 }
 
 function normalizeDeterministicLine(line: string): string {
@@ -3735,37 +5076,32 @@ function buildComprehensiveFallbackSections(
 ): AIPremiumReport['sections'] {
   if (reportCore) {
     const focusAdvisory = findReportCoreAdvisory(reportCore, reportCore.focusDomain)
-    const focusTiming = findReportCoreTimingWindow(reportCore, reportCore.focusDomain)
     const focusManifestation = findReportCoreManifestation(reportCore, reportCore.focusDomain)
-    const career = findReportCoreAdvisory(reportCore, 'career')
-    const relationship = findReportCoreAdvisory(reportCore, 'relationship')
-    const wealth = findReportCoreAdvisory(reportCore, 'wealth')
-    const health = findReportCoreAdvisory(reportCore, 'health')
     if (lang === 'ko') {
       return {
-        introduction: `${focusAdvisory?.thesis || focusManifestation?.manifestation || reportCore.thesis} 현재 중심 분야는 ${getReportDomainLabel(reportCore.focusDomain, lang)}이며, ${reportCore.gradeReason}`,
-        personalityDeep: `${focusManifestation?.baselineThesis || '타고난 구조는 기준을 세우고 흐름을 조율하는 쪽에 가깝습니다.'} ${reportCore.riskControl}`,
-        careerPath: `${career?.thesis || '커리어는 역할과 기준을 먼저 정할수록 결과가 선명해집니다.'} ${career?.action || reportCore.primaryAction}`,
-        relationshipDynamics: `${relationship?.thesis || '관계는 속도보다 해석 일치가 중요합니다.'} ${relationship?.caution || reportCore.primaryCaution}`,
-        wealthPotential: `${wealth?.thesis || '재정은 기회보다 조건 검증이 먼저입니다.'} ${wealth?.caution || reportCore.riskControl}`,
-        healthGuidance: `${health?.thesis || '건강은 회복 리듬을 먼저 지키는 쪽이 맞습니다.'} ${health?.action || reportCore.primaryAction}`,
-        lifeMission: `${reportCore.thesis} ${reportCore.judgmentPolicy.rationale}`,
-        timingAdvice: `${focusTiming ? buildTimingWindowNarrative(reportCore.focusDomain, focusTiming, lang) : reportCore.gradeReason} ${reportCore.riskControl}`,
-        actionPlan: `${reportCore.primaryAction} ${reportCore.primaryCaution} ${reportCore.riskControl}`,
-        conclusion: `${focusManifestation?.manifestation || reportCore.thesis} 최종 운영 원칙은 ${reportCore.judgmentPolicy.rationale}`,
+        introduction: renderIntroductionSection(reportCore, input, lang),
+        personalityDeep: renderPersonalityDeepSection(reportCore, input, lang),
+        careerPath: renderCareerPathSection(reportCore, input, lang),
+        relationshipDynamics: renderRelationshipDynamicsSection(reportCore, input, lang),
+        wealthPotential: renderWealthPotentialSection(reportCore, input, lang),
+        healthGuidance: renderHealthGuidanceSection(reportCore, input, lang),
+        lifeMission: renderLifeMissionSection(reportCore, input, lang),
+        timingAdvice: renderTimingAdviceSection(reportCore, input, lang),
+        actionPlan: renderActionPlanSection(reportCore, input, lang),
+        conclusion: renderConclusionSection(reportCore, input, lang),
       }
     }
     return {
-      introduction: `${focusAdvisory?.thesis || focusManifestation?.manifestation || reportCore.thesis} The current focus is ${getReportDomainLabel(reportCore.focusDomain, lang)}, and ${reportCore.gradeReason}.`,
-      personalityDeep: `${focusManifestation?.baselineThesis || 'Your baseline structure works best when standards and pacing are explicit.'} ${reportCore.riskControl}`,
-      careerPath: `${career?.thesis || 'Career favors clear role definition before expansion.'} ${career?.action || reportCore.primaryAction}`,
-      relationshipDynamics: `${relationship?.thesis || 'Relationships need interpretation alignment before commitment.'} ${relationship?.caution || reportCore.primaryCaution}`,
-      wealthPotential: `${wealth?.thesis || 'Wealth decisions need condition checks before upside pursuit.'} ${wealth?.caution || reportCore.riskControl}`,
-      healthGuidance: `${health?.thesis || 'Health improves when recovery rhythm is protected first.'} ${health?.action || reportCore.primaryAction}`,
-      lifeMission: `${reportCore.thesis} ${reportCore.judgmentPolicy.rationale}`,
-      timingAdvice: `${focusTiming ? buildTimingWindowNarrative(reportCore.focusDomain, focusTiming, lang) : reportCore.gradeReason} ${reportCore.riskControl}`,
-      actionPlan: `${reportCore.primaryAction} ${reportCore.primaryCaution} ${reportCore.riskControl}`,
-      conclusion: `${focusManifestation?.manifestation || reportCore.thesis} The operating principle is ${reportCore.judgmentPolicy.rationale}.`,
+      introduction: renderIntroductionSection(reportCore, input, lang),
+      personalityDeep: renderPersonalityDeepSection(reportCore, input, lang),
+      careerPath: renderCareerPathSection(reportCore, input, lang),
+      relationshipDynamics: renderRelationshipDynamicsSection(reportCore, input, lang),
+      wealthPotential: renderWealthPotentialSection(reportCore, input, lang),
+      healthGuidance: renderHealthGuidanceSection(reportCore, input, lang),
+      lifeMission: renderLifeMissionSection(reportCore, input, lang),
+      timingAdvice: renderTimingAdviceSection(reportCore, input, lang),
+      actionPlan: renderActionPlanSection(reportCore, input, lang),
+      conclusion: renderConclusionSection(reportCore, input, lang),
     }
   }
   const synthesisNarrative =
@@ -3826,8 +5162,8 @@ function buildComprehensiveFallbackSections(
       healthGuidance: `에너지는 단거리 스퍼트에 강한 편이라, 몰입 후 회복이 늦어질 때 컨디션 낙폭이 커질 수 있습니다. 오늘은 강한 루틴 하나보다 “짧은 회복 루틴 3번”이 더 효율적입니다. 수면, 수분, 호흡처럼 작지만 반복 가능한 기준을 지키면 집중력의 바닥이 올라갑니다.`,
       lifeMission: `장기적으로 당신의 힘은 한 번의 대박보다 “신뢰가 쌓이는 반복”에서 나옵니다. 기준을 설명할 수 있는 사람은 결국 큰 선택도 맡게 됩니다. 오늘의 작은 일관성이 1년 뒤의 큰 기회로 연결된다는 관점으로 움직이면 방향이 흔들리지 않습니다.`,
       timingAdvice: `결정 코어는 ${deterministicCore.decision.enabled ? `${deterministicCore.decision.verdict}(${deterministicCore.decision.score}점)` : '일반 모드'}입니다. 강점 신호(${strengthsLabel})가 뜨는 구간은 실행 속도를 높이고, 주의 신호(${cautionsLabel})가 걸린 구간은 확정 전 이중 확인을 넣으세요. 특히 문서·합의·대외 전달은 “초안-검토-확정” 3단계로 쪼개면 결과가 훨씬 안정됩니다.`,
-      actionPlan: `오늘 플랜은 세 줄이면 충분합니다. 1) 반드시 닫을 결과물 1개, 2) 외부 전달 전 재확인 1개, 3) 오늘 확정하지 않을 보류 1개. 이 구조만 지켜도 하루가 끝났을 때 “많이 한 느낌”이 아니라 “남는 결과”가 생깁니다.`,
-      conclusion: `이번 흐름의 승부 포인트는 재능이 아니라 운영입니다. 밀어야 할 때는 분명히 밀고, 확인해야 할 때는 반드시 멈추는 리듬만 지켜도 체감 성과가 달라집니다. 같은 패턴을 2주만 유지하면 운의 변동이 줄고 결과의 재현성이 올라갑니다.`,
+      actionPlan: `오늘 플랜은 세 줄이면 충분합니다. 1) 먼저 닫을 결과물 1개, 2) 외부 전달 전 재확인 1개, 3) 오늘 확정하지 않을 보류 1개. 이 구조만 지켜도 하루가 끝났을 때 “많이 한 느낌”이 아니라 “남는 결과”가 생깁니다.`,
+      conclusion: `이번 흐름의 승부 포인트는 재능이 아니라 운영입니다. 밀어야 할 때는 밀고, 확인해야 할 때는 멈추는 리듬만 지켜도 체감 성과가 달라집니다. 같은 패턴을 2주 정도 유지하면 운의 변동이 줄고 결과의 재현성이 올라갑니다.`,
     }
 
     const extraBySection: Record<keyof AIPremiumReport['sections'], string[]> = {
@@ -3862,7 +5198,7 @@ function buildComprehensiveFallbackSections(
       ],
       healthGuidance: [
         '컨디션이 떨어지기 전에 짧은 회복 루틴을 먼저 넣으면 하루 전체의 집중도가 유지됩니다.',
-        '강도 높은 하루 뒤에는 반드시 회복 시간을 일정에 고정해 누적 피로를 끊어내세요.',
+        '강도 높은 하루 뒤에는 회복 시간을 일정에 고정해 누적 피로를 끊어내세요.',
         '건강 관리는 의지의 문제가 아니라 배치의 문제라는 관점이 이번 흐름에서 특히 중요합니다.',
       ],
       lifeMission: [
@@ -3889,30 +5225,30 @@ function buildComprehensiveFallbackSections(
 
     const base = koSections
     return {
-      introduction: ensureLongSectionNarrative(base.introduction, 900, [
+      introduction: ensureLongSectionNarrative(base.introduction, 720, [
         ...extraBySection.introduction,
       ]),
-      personalityDeep: ensureLongSectionNarrative(base.personalityDeep, 900, [
+      personalityDeep: ensureLongSectionNarrative(base.personalityDeep, 520, [
         ...extraBySection.personalityDeep,
       ]),
-      careerPath: ensureLongSectionNarrative(base.careerPath, 900, [...extraBySection.careerPath]),
-      relationshipDynamics: ensureLongSectionNarrative(base.relationshipDynamics, 900, [
+      careerPath: ensureLongSectionNarrative(base.careerPath, 620, [...extraBySection.careerPath]),
+      relationshipDynamics: ensureLongSectionNarrative(base.relationshipDynamics, 520, [
         ...extraBySection.relationshipDynamics,
       ]),
-      wealthPotential: ensureLongSectionNarrative(base.wealthPotential, 900, [
+      wealthPotential: ensureLongSectionNarrative(base.wealthPotential, 520, [
         ...extraBySection.wealthPotential,
       ]),
-      healthGuidance: ensureLongSectionNarrative(base.healthGuidance, 900, [
+      healthGuidance: ensureLongSectionNarrative(base.healthGuidance, 520, [
         ...extraBySection.healthGuidance,
       ]),
-      lifeMission: ensureLongSectionNarrative(base.lifeMission, 900, [
+      lifeMission: ensureLongSectionNarrative(base.lifeMission, 520, [
         ...extraBySection.lifeMission,
       ]),
-      timingAdvice: ensureLongSectionNarrative(base.timingAdvice, 900, [
+      timingAdvice: ensureLongSectionNarrative(base.timingAdvice, 420, [
         ...extraBySection.timingAdvice,
       ]),
-      actionPlan: ensureLongSectionNarrative(base.actionPlan, 900, [...extraBySection.actionPlan]),
-      conclusion: ensureLongSectionNarrative(base.conclusion, 900, [...extraBySection.conclusion]),
+      actionPlan: ensureLongSectionNarrative(base.actionPlan, 420, [...extraBySection.actionPlan]),
+      conclusion: ensureLongSectionNarrative(base.conclusion, 420, [...extraBySection.conclusion]),
     }
   }
 
@@ -3970,8 +5306,8 @@ function buildSynthesisPromptBlock(
     .slice(0, 3)
     .map((item) =>
       lang === 'ko'
-        ? `- 전략 ${item.domain}: ${item.phaseLabel}, 공격 ${item.attackPercent}% / 방어 ${item.defensePercent}% | thesis=${item.thesis}`
-        : `- strategy ${item.domain}: ${item.phaseLabel}, offense ${item.attackPercent}% / defense ${item.defensePercent}% | thesis=${item.thesis}`
+        ? `- 전략 ${item.domain}: ${describePhaseFlow(item.phaseLabel, 'ko')} ${describeExecutionStance(item.attackPercent, item.defensePercent, 'ko')} | thesis=${item.thesis}`
+        : `- strategy ${item.domain}: ${describePhaseFlow(item.phaseLabel, 'en')} ${describeExecutionStance(item.attackPercent, item.defensePercent, 'en')} | thesis=${item.thesis}`
     )
   if (lang === 'ko') {
     return [
@@ -3979,7 +5315,7 @@ function buildSynthesisPromptBlock(
       '- 아래 클레임과 근거 ID를 벗어나는 사실 추가 금지',
       '- 같은 도메인에서 상승/주의가 동시에 있으면 반드시 "상승 + 리스크관리"로 통합 서술',
       strategyEngine
-        ? `- 전체 국면: ${strategyEngine.overallPhaseLabel}, 운영 비율 공격 ${strategyEngine.attackPercent}% / 방어 ${strategyEngine.defensePercent}%`
+        ? `- 전체 흐름: ${describePhaseFlow(strategyEngine.overallPhaseLabel, 'ko')} ${describeExecutionStance(strategyEngine.attackPercent, strategyEngine.defensePercent, 'ko')}`
         : '',
       ...strategyLines,
       ...claimLines,
@@ -4741,6 +6077,15 @@ export async function generateAIPremiumReport(
       comprehensiveSupplements,
       options.timingData
     )
+    if (lang === 'ko') {
+      const trustNarratives = buildReportTrustNarratives(reportCore, coreSeed.quality, lang)
+      sections = attachTrustNarrativeToSections(
+        'comprehensive',
+        sections,
+        trustNarratives.trust,
+        trustNarratives.provenance
+      )
+    }
     const polished = await maybePolishPremiumSections<AIPremiumReport['sections']>({
       reportType: 'comprehensive',
       sections: sections as AIPremiumReport['sections'],
@@ -4761,7 +6106,28 @@ export async function generateAIPremiumReport(
       )
     }
     sections = sanitizeSectionsByPaths(sections, sectionPaths)
-    sections = sanitizeComprehensiveSectionsForUser(sections as Record<string, unknown>)
+    sections = sanitizeComprehensiveSectionsForUser(sections as Record<string, unknown>, lang)
+    sections = applyComprehensiveSectionRoleGuards(
+      sections as AIPremiumReport['sections'],
+      reportCore,
+      normalizedInput,
+      lang
+    )
+    if (lang === 'en') {
+      sections = enforceComprehensiveNarrativeQualityFallback(
+        sections as AIPremiumReport['sections'],
+        reportCore,
+        normalizedInput,
+        lang
+      ) as unknown as Record<string, unknown>
+    }
+    sections = {
+      ...(sections as Record<string, unknown>),
+      timingAdvice: renderTimingAdviceSection(reportCore, normalizedInput, lang),
+      actionPlan: renderActionPlanSection(reportCore, normalizedInput, lang),
+    }
+    sections = stripGenericEvidenceFooters(sections, sectionPaths, lang)
+    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
 
     const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
     const keyStrengths = (matrixReport.topInsights || [])
@@ -4795,7 +6161,7 @@ export async function generateAIPremiumReport(
               'Recheck before final commitment',
               'Communication risk check',
             ]
-    const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
+    let qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
       requiredPaths: sectionPaths,
       claims: unified.claims,
       anchors: unified.anchors,
@@ -4803,7 +6169,39 @@ export async function generateAIPremiumReport(
       timelineEvents: unified.timelineEvents,
       coreQuality: coreSeed.quality,
     })
-    recordReportQualityMetrics('comprehensive', 'deterministic-only', qualityMetrics)
+    if (shouldForceComprehensiveNarrativeFallback(qualityMetrics)) {
+      sections = enforceComprehensiveNarrativeQualityFallback(
+        sections as AIPremiumReport['sections'],
+        reportCore,
+        normalizedInput,
+        lang
+      ) as unknown as Record<string, unknown>
+      sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
+      qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
+        requiredPaths: sectionPaths,
+        claims: unified.claims,
+        anchors: unified.anchors,
+        scenarioBundles: unified.scenarioBundles,
+        timelineEvents: unified.timelineEvents,
+        coreQuality: coreSeed.quality,
+      })
+    }
+    if (lang === 'en') {
+      sections = {
+        ...(sections as Record<string, unknown>),
+        personalityDeep: renderPersonalityDeepSection(reportCore, normalizedInput, lang),
+        timingAdvice: renderTimingAdviceSection(reportCore, normalizedInput, lang),
+        actionPlan: renderActionPlanSection(reportCore, normalizedInput, lang),
+      }
+      sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
+    }
+    const finalModelUsed = polished.modelUsed
+      ? `deterministic+${polished.modelUsed}`
+      : 'deterministic-only'
+    const finalReportVersion = polished.modelUsed
+      ? '1.2.0-deterministic+rewrite'
+      : '1.2.0-deterministic-only'
+    recordReportQualityMetrics('comprehensive', finalModelUsed, qualityMetrics)
 
     return {
       id: `air_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -4840,16 +6238,16 @@ export async function generateAIPremiumReport(
       signalSynthesis,
       strategyEngine,
       meta: {
-        modelUsed: polished.modelUsed ? `deterministic+${polished.modelUsed}` : 'deterministic-only',
+        modelUsed: finalModelUsed,
         tokensUsed: polished.tokensUsed || 0,
         processingTime: Math.max(1, Date.now() - startTime),
-        reportVersion: '1.2.0-deterministic-only',
+        reportVersion: finalReportVersion,
         qualityMetrics,
       },
     }
   }
 
-  if (FORCE_REWRITE_ONLY_MODE) {
+  if (FORCE_REWRITE_ONLY_MODE && !deterministicOnly) {
     const evidenceRefs = buildComprehensiveEvidenceRefs(signalSynthesis)
     const sectionPaths = [...COMPREHENSIVE_SECTION_KEYS] as string[]
     const fallbackSections = buildComprehensiveFallbackSections(
@@ -4895,6 +6293,15 @@ export async function generateAIPremiumReport(
       minCharsPerSection: lang === 'ko' ? 380 : 280,
     })
     let sections = rewrite.sections as unknown as Record<string, unknown>
+    if (lang === 'ko') {
+      const trustNarratives = buildReportTrustNarratives(reportCore, coreSeed.quality, lang)
+      sections = attachTrustNarrativeToSections(
+        'comprehensive',
+        sections,
+        trustNarratives.trust,
+        trustNarratives.provenance
+      )
+    }
     const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
     if (finalEvidenceCheck.needsRepair) {
       sections = enforceEvidenceBindingFallback(
@@ -4905,7 +6312,7 @@ export async function generateAIPremiumReport(
       )
     }
     sections = sanitizeSectionsByPaths(sections, sectionPaths)
-    sections = sanitizeComprehensiveSectionsForUser(sections)
+    sections = sanitizeComprehensiveSectionsForUser(sections, lang)
     sections = enrichComprehensiveSectionsWithReportCore(
       sections as AIPremiumReport['sections'],
       reportCore,
@@ -4914,7 +6321,28 @@ export async function generateAIPremiumReport(
       comprehensiveSupplements,
       options.timingData
     )
-    sections = sanitizeComprehensiveSectionsForUser(sections as Record<string, unknown>)
+    sections = sanitizeComprehensiveSectionsForUser(sections as Record<string, unknown>, lang)
+    sections = applyComprehensiveSectionRoleGuards(
+      sections as AIPremiumReport['sections'],
+      reportCore,
+      normalizedInput,
+      lang
+    )
+    if (lang === 'en') {
+      sections = enforceComprehensiveNarrativeQualityFallback(
+        sections as AIPremiumReport['sections'],
+        reportCore,
+        normalizedInput,
+        lang
+      ) as unknown as Record<string, unknown>
+    }
+    sections = {
+      ...(sections as Record<string, unknown>),
+      timingAdvice: renderTimingAdviceSection(reportCore, normalizedInput, lang),
+      actionPlan: renderActionPlanSection(reportCore, normalizedInput, lang),
+    }
+    sections = stripGenericEvidenceFooters(sections, sectionPaths, lang)
+    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
 
     const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
     const keyStrengths = (matrixReport.topInsights || [])
@@ -4948,7 +6376,7 @@ export async function generateAIPremiumReport(
               'Recheck before final commitment',
               'Communication risk check',
             ]
-    const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
+    let qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
       requiredPaths: sectionPaths,
       claims: unified.claims,
       anchors: unified.anchors,
@@ -4956,6 +6384,23 @@ export async function generateAIPremiumReport(
       timelineEvents: unified.timelineEvents,
       coreQuality: coreSeed.quality,
     })
+    if (shouldForceComprehensiveNarrativeFallback(qualityMetrics)) {
+      sections = enforceComprehensiveNarrativeQualityFallback(
+        sections as AIPremiumReport['sections'],
+        reportCore,
+        normalizedInput,
+        lang
+      ) as unknown as Record<string, unknown>
+      sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
+      qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
+        requiredPaths: sectionPaths,
+        claims: unified.claims,
+        anchors: unified.anchors,
+        scenarioBundles: unified.scenarioBundles,
+        timelineEvents: unified.timelineEvents,
+        coreQuality: coreSeed.quality,
+      })
+    }
     recordReportQualityMetrics('comprehensive', rewrite.modelUsed, qualityMetrics)
 
     recordRewriteModeMetric('comprehensive', rewrite.modelUsed, rewrite.tokensUsed)
@@ -5386,7 +6831,27 @@ export async function generateAIPremiumReport(
     lang
   )
   sections = sanitizeSectionsByPaths(sections, comprehensiveSectionPaths)
-  sections = sanitizeComprehensiveSectionsForUser(sections)
+  sections = sanitizeComprehensiveSectionsForUser(sections, lang)
+  sections = applyComprehensiveSectionRoleGuards(
+    sections as AIPremiumReport['sections'],
+    reportCore,
+    normalizedInput,
+    lang
+  )
+  if (lang === 'en') {
+    sections = enforceComprehensiveNarrativeQualityFallback(
+      sections as AIPremiumReport['sections'],
+      reportCore,
+      normalizedInput,
+      lang
+    ) as unknown as Record<string, unknown>
+  }
+  sections = enforceEvidenceRefFooters(
+    sections,
+    comprehensiveSectionPaths,
+    comprehensiveEvidenceRefs,
+    lang
+  )
 
   const model = usedDeterministicFallback ? 'deterministic-fallback' : [...models].join(' -> ')
   const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
@@ -5448,7 +6913,28 @@ export async function generateAIPremiumReport(
     comprehensiveSupplements,
     options.timingData
   )
-  const qualityMetrics = buildReportQualityMetrics(
+  sections = sanitizeComprehensiveSectionsForUser(sections as Record<string, unknown>, lang)
+  sections = applyComprehensiveSectionRoleGuards(
+    sections as AIPremiumReport['sections'],
+    reportCore,
+    normalizedInput,
+    lang
+  )
+  if (lang === 'en') {
+    sections = enforceComprehensiveNarrativeQualityFallback(
+      sections as AIPremiumReport['sections'],
+      reportCore,
+      normalizedInput,
+      lang
+    ) as unknown as Record<string, unknown>
+  }
+  sections = enforceEvidenceRefFooters(
+    sections as Record<string, unknown>,
+    comprehensiveSectionPaths,
+    comprehensiveEvidenceRefs,
+    lang
+  )
+  let qualityMetrics = buildReportQualityMetrics(
     sections as Record<string, unknown>,
     comprehensiveSectionPaths,
     comprehensiveEvidenceRefs,
@@ -5461,6 +6947,33 @@ export async function generateAIPremiumReport(
       coreQuality: coreSeed.quality,
     }
   )
+  if (shouldForceComprehensiveNarrativeFallback(qualityMetrics)) {
+    sections = enforceComprehensiveNarrativeQualityFallback(
+      sections as AIPremiumReport['sections'],
+      reportCore,
+      normalizedInput,
+      lang
+    )
+    sections = enforceEvidenceRefFooters(
+      sections as Record<string, unknown>,
+      comprehensiveSectionPaths,
+      comprehensiveEvidenceRefs,
+      lang
+    ) as AIPremiumReport['sections']
+    qualityMetrics = buildReportQualityMetrics(
+      sections as Record<string, unknown>,
+      comprehensiveSectionPaths,
+      comprehensiveEvidenceRefs,
+      {
+        requiredPaths: comprehensiveSectionPaths,
+        claims: unified.claims,
+        anchors: unified.anchors,
+        scenarioBundles: unified.scenarioBundles,
+        timelineEvents: unified.timelineEvents,
+        coreQuality: coreSeed.quality,
+      }
+    )
+  }
   recordReportQualityMetrics('comprehensive', model, qualityMetrics)
 
   // 3. ??? ??
@@ -5637,6 +7150,15 @@ export async function generateTimingReport(
       reportCore,
       lang
     ) as unknown as Record<string, unknown>
+    {
+      const trustNarratives = buildReportTrustNarratives(reportCore, coreSeed.quality, lang)
+      sections = attachTrustNarrativeToSections(
+        'timing',
+        sections,
+        trustNarratives.trust,
+        trustNarratives.provenance
+      )
+    }
     const polished = await maybePolishPremiumSections<TimingReportSections>({
       reportType: 'timing',
       sections: sections as unknown as TimingReportSections,
@@ -5647,6 +7169,15 @@ export async function generateTimingReport(
       minCharsPerSection: lang === 'ko' ? 320 : 240,
     })
     sections = polished.sections as unknown as Record<string, unknown>
+    {
+      const trustNarratives = buildReportTrustNarratives(reportCore, coreSeed.quality, lang)
+      sections = attachTrustNarrativeToSections(
+        'timing',
+        sections,
+        trustNarratives.trust,
+        trustNarratives.provenance
+      )
+    }
     const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
     if (finalEvidenceCheck.needsRepair) {
       sections = enforceEvidenceBindingFallback(
@@ -5678,7 +7209,13 @@ export async function generateTimingReport(
       timelineEvents: unified.timelineEvents,
       coreQuality: coreSeed.quality,
     })
-    recordReportQualityMetrics('timing', 'deterministic-only', qualityMetrics)
+    const finalModelUsed = polished.modelUsed
+      ? `deterministic+${polished.modelUsed}`
+      : 'deterministic-only'
+    const finalReportVersion = polished.modelUsed
+      ? '1.2.0-deterministic+rewrite'
+      : '1.2.0-deterministic-only'
+    recordReportQualityMetrics('timing', finalModelUsed, qualityMetrics)
     return {
       id: `timing_${period}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       generatedAt,
@@ -5710,16 +7247,16 @@ export async function generateTimingReport(
       renderedText: renderSectionsAsText(sections, sectionPaths),
       periodScore,
       meta: {
-        modelUsed: polished.modelUsed ? `deterministic+${polished.modelUsed}` : 'deterministic-only',
+        modelUsed: finalModelUsed,
         tokensUsed: polished.tokensUsed || 0,
         processingTime: Math.max(1, Date.now() - startTime),
-        reportVersion: '1.2.0-deterministic-only',
+        reportVersion: finalReportVersion,
         qualityMetrics,
       },
     }
   }
 
-  if (FORCE_REWRITE_ONLY_MODE) {
+  if (FORCE_REWRITE_ONLY_MODE && !deterministicOnly) {
     const sectionPaths = [
       'overview',
       'energy',
@@ -6288,6 +7825,15 @@ export async function generateThemedReport(
       normalizedInput,
       timingData
     ) as unknown as Record<string, unknown>
+    {
+      const trustNarratives = buildReportTrustNarratives(reportCore, coreSeed.quality, lang)
+      sections = attachTrustNarrativeToSections(
+        'themed',
+        sections,
+        trustNarratives.trust,
+        trustNarratives.provenance
+      )
+    }
     const polished = await maybePolishPremiumSections<ThemedReportSections>({
       reportType: 'themed',
       theme,
@@ -6299,6 +7845,15 @@ export async function generateThemedReport(
       minCharsPerSection: lang === 'ko' ? 340 : 260,
     })
     sections = polished.sections as unknown as Record<string, unknown>
+    {
+      const trustNarratives = buildReportTrustNarratives(reportCore, coreSeed.quality, lang)
+      sections = attachTrustNarrativeToSections(
+        'themed',
+        sections,
+        trustNarratives.trust,
+        trustNarratives.provenance
+      )
+    }
     const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
     if (finalEvidenceCheck.needsRepair) {
       sections = enforceEvidenceBindingFallback(
@@ -6323,7 +7878,13 @@ export async function generateThemedReport(
       timelineEvents: unified.timelineEvents,
       coreQuality: coreSeed.quality,
     })
-    recordReportQualityMetrics('themed', 'deterministic-only', qualityMetrics)
+    const finalModelUsed = polished.modelUsed
+      ? `deterministic+${polished.modelUsed}`
+      : 'deterministic-only'
+    const finalReportVersion = polished.modelUsed
+      ? '1.2.0-deterministic+rewrite'
+      : '1.2.0-deterministic-only'
+    recordReportQualityMetrics('themed', finalModelUsed, qualityMetrics)
     return {
       id: `themed_${theme}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       generatedAt,
@@ -6355,16 +7916,16 @@ export async function generateThemedReport(
       themeScore,
       keywords,
       meta: {
-        modelUsed: polished.modelUsed ? `deterministic+${polished.modelUsed}` : 'deterministic-only',
+        modelUsed: finalModelUsed,
         tokensUsed: polished.tokensUsed || 0,
         processingTime: Math.max(1, Date.now() - startTime),
-        reportVersion: '1.2.0-deterministic-only',
+        reportVersion: finalReportVersion,
         qualityMetrics,
       },
     }
   }
 
-  if (FORCE_REWRITE_ONLY_MODE) {
+  if (FORCE_REWRITE_ONLY_MODE && !deterministicOnly) {
     const sectionPaths = [...getThemedSectionKeys(theme)]
     const requiredPaths = [...sectionPaths]
     const draftSections = buildThemedFallbackSections(theme, reportCore, signalSynthesis, lang)
@@ -6787,3 +8348,4 @@ export async function generateThemedReport(
 
   return report
 }
+

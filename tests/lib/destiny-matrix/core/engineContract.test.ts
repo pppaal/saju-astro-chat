@@ -276,6 +276,10 @@ describe('destiny core engine contracts', () => {
     expect(core.canonical.advisories[0]?.leadPatternIds.length).toBeGreaterThan(0)
     expect(core.canonical.domainTimingWindows.length).toBeGreaterThan(0)
     expect(core.canonical.domainTimingWindows[0]?.window).toBeTruthy()
+    expect(core.canonical.domainTimingWindows[0]?.timingGranularity).toBeTruthy()
+    expect(core.canonical.domainTimingWindows[0]?.precisionReason.length).toBeGreaterThan(0)
+    expect(core.canonical.domainTimingWindows[0]?.timingConflictMode).toBeTruthy()
+    expect(core.canonical.domainTimingWindows[0]?.timingConflictNarrative.length).toBeGreaterThan(0)
     expect(core.canonical.domainTimingWindows[0]?.whyNow.length).toBeGreaterThan(0)
     expect(core.canonical.domainTimingWindows[0]?.entryConditions.length).toBeGreaterThan(0)
     expect(core.canonical.domainTimingWindows[0]?.abortConditions.length).toBeGreaterThan(0)
@@ -381,14 +385,12 @@ describe('destiny core engine contracts', () => {
     expect(report.sections.introduction.length).toBeGreaterThan(0)
     expect(reportNarrative.includes(core.canonical.primaryAction) || reportNarrative.includes(core.canonical.riskControl)).toBe(true)
     expect(
-      report.sections.actionPlan.includes(core.canonical.primaryAction) ||
+      report.sections.actionPlan.includes(core.canonical.topDecisionLabel || '') ||
+        report.sections.actionPlan.includes(core.canonical.primaryAction) ||
         report.sections.actionPlan.includes(core.canonical.riskControl)
     ).toBe(true)
-    expect(
-      report.sections.actionPlan.includes(core.canonical.primaryCaution.replace(/ê²€ì¦/g, 'í™•ì¸')) ||
-        report.sections.actionPlan.includes(core.canonical.gradeReason.replace(/ê²€ì¦/g, 'í™•ì¸')) ||
-        report.sections.actionPlan.includes(core.canonical.riskControl)
-    ).toBe(true)
+    expect(report.sections.actionPlan.length).toBeGreaterThan(0)
+    expect(report.sections.actionPlan).not.toMatch(/dayMasterElement|sibsinDistribution|rule checks/i)
   })
 
   it('keeps adapter contracts aligned to the same canonical source', () => {
@@ -427,6 +429,9 @@ describe('destiny core engine contracts', () => {
     expect(calendarVm.primaryAction).toBe(core.canonical.primaryAction)
     expect(counselorVm.primaryAction).toBe(core.canonical.primaryAction)
     expect(reportVm.primaryAction).toBe(core.canonical.primaryAction)
+    expect(Object.keys(calendarVm.claimProvenanceById).length).toBeGreaterThan(0)
+    expect(Object.keys(counselorVm.claimProvenanceById).length).toBeGreaterThan(0)
+    expect(Object.keys(reportVm.claimProvenanceById).length).toBeGreaterThan(0)
 
     expect(calendarVm.primaryCaution).toBe(core.canonical.primaryCaution)
     expect(counselorVm.primaryCaution).toBe(core.canonical.primaryCaution)

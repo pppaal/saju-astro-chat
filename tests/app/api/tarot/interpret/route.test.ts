@@ -17,6 +17,7 @@ vi.mock('@/lib/auth/publicToken', () => ({
 }))
 
 vi.mock('@/lib/credits/withCredits', () => ({
+  applyCreditResultCookies: vi.fn((response) => response),
   checkAndConsumeCredits: vi.fn().mockResolvedValue({ allowed: true }),
   creditErrorResponse: vi.fn(),
 }))

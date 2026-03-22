@@ -49,7 +49,11 @@ export function getAnalyzeFallbackNotice(reason: AnalyzeFallbackReason, isKo: bo
   return isKo ? ko[reason] : en[reason]
 }
 
-export type TarotDrawErrorCode = 'credit_exhausted' | 'auth_failed' | 'server_error'
+export type TarotDrawErrorCode =
+  | 'credit_exhausted'
+  | 'auth_failed'
+  | 'guest_limit_reached'
+  | 'server_error'
 
 export interface TarotDrawError {
   code: TarotDrawErrorCode
@@ -70,12 +74,19 @@ function extractApiErrorMessage(errorData: unknown): string {
   return ''
 }
 
+function extractApiErrorCode(errorData: unknown): string {
+  if (!errorData || typeof errorData !== 'object') return ''
+  const record = errorData as Record<string, unknown>
+  return typeof record.code === 'string' ? record.code : ''
+}
+
 export function classifyTarotDrawError(
   status: number,
   errorData: unknown,
   isKo: boolean
 ): TarotDrawError {
   const detail = extractApiErrorMessage(errorData)
+  const apiCode = extractApiErrorCode(errorData)
 
   if (status === 402) {
     return {
@@ -90,6 +101,18 @@ export function classifyTarotDrawError(
   }
 
   if (status === 401 || status === 403) {
+    if (apiCode === 'guest_limit_reached') {
+      return {
+        code: 'guest_limit_reached',
+        status,
+        message:
+          detail ||
+          (isKo
+            ? '무료 1회 리딩을 이미 사용했습니다. 로그인하면 다음 리딩을 이어서 볼 수 있습니다.'
+            : 'Your one free guest reading has already been used. Sign in to continue with another reading.'),
+      }
+    }
+
     return {
       code: 'auth_failed',
       status,

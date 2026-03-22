@@ -1284,7 +1284,7 @@ function buildSlotNarrative(input: {
     const parts = [
       preferOriginalNote ? fallbackNote || undefined : undefined,
       focusHint || undefined,
-      phase ? `국면 ${phase}` : undefined,
+      phase ? `흐름 ${phase}` : undefined,
       actionCue,
       claim || undefined,
       anchor ? `근거: ${anchor}` : scenario ? `시나리오: ${scenario}` : undefined,
@@ -1295,7 +1295,7 @@ function buildSlotNarrative(input: {
   const parts = [
     preferOriginalNote ? fallbackNote || undefined : undefined,
     focusHint || undefined,
-    phase ? `Phase ${phase}` : undefined,
+    phase ? `Flow ${phase}` : undefined,
     actionCue,
     claim || undefined,
     anchor ? `Basis: ${anchor}` : scenario ? `Scenario: ${scenario}` : undefined,
@@ -1522,8 +1522,8 @@ function buildActionPlanInsights(input: {
     [
       phaseLabel
         ? isKo
-          ? `현재 국면(${phaseLabel}) 체감: 정렬이 흐트러지면 즉시 속도 조절`
-          : `If the current phase (${phaseLabel}) slips out of alignment, slow down before expanding`
+          ? `현재 흐름(${phaseLabel})이 흔들리면 즉시 속도를 낮추고 다시 맞추세요`
+          : `If the current flow (${phaseLabel}) feels unstable, slow down and realign first`
         : null,
       isKo
         ? '피로 7/10 이상: 신규 결정 중단, 20분 회복 후 재평가'
@@ -2409,6 +2409,5 @@ export const POST = withApiMiddleware(
     windowSeconds: 60,
   })
 )
-
 
 

@@ -317,6 +317,142 @@ function dedupeDisplayLines(values: string[]): string[] {
   return out
 }
 
+function takeLeadLine(value: string, maxLength = 88): string {
+  const line = safeDisplayText(value, '')
+  if (!line) return ''
+
+  const sentenceMatch = line.match(/(.+?[.!?。]|.+?다\.|.+?요\.|.+?$)/)
+  const sentence = sentenceMatch?.[1]?.trim() || line
+  if (sentence.length <= maxLength) {
+    return sentence
+  }
+  return `${sentence.slice(0, maxLength - 1).trimEnd()}…`
+}
+
+function looksDefensivePhase(value: string): boolean {
+  return /(방어|재정렬|안정|검토|defensive|reset|stabil|review)/i.test(value)
+}
+
+function humanizePhaseLabel(value: string, locale: 'ko' | 'en'): string {
+  const line = safeDisplayText(value, '')
+  if (!line) return ''
+  if (locale === 'ko') {
+    return line
+      .replace(/방어\/재정렬 국면/g, '정비 우선 흐름')
+      .replace(/공격\/확장 국면/g, '추진 우선 흐름')
+      .replace(/국면/g, '흐름')
+  }
+  return line
+    .replace(/defensive\s*reset/gi, 'stabilizing flow')
+    .replace(/aggressive\s*expansion/gi, 'push flow')
+    .replace(/\bphase\b/gi, 'flow')
+}
+
+function buildReadableCrossLine(input: {
+  locale: 'ko' | 'en'
+  confidence?: number
+  crossAgreement?: number
+  focusDomain: string
+}): string {
+  const { locale, confidence, crossAgreement, focusDomain } = input
+  const agreement =
+    typeof crossAgreement === 'number' && Number.isFinite(crossAgreement)
+      ? Math.max(0, Math.min(100, Math.round(crossAgreement)))
+      : undefined
+  const conf =
+    typeof confidence === 'number' && Number.isFinite(confidence)
+      ? Math.max(0, Math.min(100, Math.round(confidence)))
+      : undefined
+
+  if (locale === 'ko') {
+    if (typeof agreement === 'number' && agreement < 60) {
+      return `${focusDomain} 해석에서 사주와 점성 신호가 완전히 겹치지 않아, 오늘은 확정보다 재확인이 더 중요합니다.`
+    }
+    if (typeof conf === 'number' && conf < 45) {
+      return `${focusDomain} 해석 근거는 약한 편이라, 방향은 참고하되 실행 범위는 작게 가져가는 편이 안전합니다.`
+    }
+    return `${focusDomain} 해석에서 사주와 점성 신호가 비교적 같은 방향을 가리켜 핵심 흐름을 읽는 데는 무리가 적습니다.`
+  }
+
+  if (typeof agreement === 'number' && agreement < 60) {
+    return `Saju and astrology are not fully aligned for ${focusDomain}, so re-checking matters more than committing today.`
+  }
+  if (typeof conf === 'number' && conf < 45) {
+    return `Evidence for ${focusDomain} is relatively weak, so keep execution small even if the direction looks usable.`
+  }
+  return `Saju and astrology broadly point in the same direction for ${focusDomain}, so the core flow is reasonably readable.`
+}
+
+function buildReadableFlowSummary(input: {
+  locale: 'ko' | 'en'
+  focusDomain: string
+  phase: string
+  gradeLabel: string
+  reliability: string
+  attackPercent?: number
+  defensePercent?: number
+  action?: string
+  caution?: string
+}): string {
+  const {
+    locale,
+    focusDomain,
+    phase,
+    gradeLabel,
+    reliability,
+    attackPercent,
+    defensePercent,
+    action,
+    caution,
+  } = input
+
+  const hasAttack = typeof attackPercent === 'number' && Number.isFinite(attackPercent)
+  const hasDefense = typeof defensePercent === 'number' && Number.isFinite(defensePercent)
+  const balanceGap = hasAttack && hasDefense ? Math.abs(attackPercent - defensePercent) : undefined
+  const defensive = looksDefensivePhase(phase)
+
+  if (locale === 'ko') {
+    const intro = phase
+      ? defensive
+        ? `지금은 ${phase}이지만 완전 정지보다 정비하면서 움직이는 쪽에 가깝습니다.`
+        : `지금은 ${phase}으로 ${focusDomain} 쪽 일을 밀 수 있는 여지가 있는 날입니다.`
+      : `${focusDomain} 흐름은 ${gradeLabel}이며, 오늘은 방향을 넓히기보다 핵심을 좁히는 편이 좋습니다.`
+
+    const balance = (() => {
+      if (!hasAttack || !hasDefense) return ''
+      if (typeof balanceGap === 'number' && balanceGap <= 8) {
+        return '실행 여력과 리스크 관리 비중이 비슷해 무리한 확장보다 핵심 1~2건만 정확히 처리하는 편이 낫습니다.'
+      }
+      if ((attackPercent as number) > (defensePercent as number)) {
+        return '움직일 여지는 있지만, 범위를 넓히기보다 작은 실행으로 먼저 확인하는 편이 안전합니다.'
+      }
+      return '리스크 관리 비중이 더 커서 속도보다 손실 방지와 조건 점검이 우선입니다.'
+    })()
+
+    const closing = caution || action || reliability
+    return [intro, balance, takeLeadLine(closing || '', 90)].filter(Boolean).join(' ')
+  }
+
+  const intro = phase
+    ? defensive
+      ? `The day sits in a ${phase} phase, but it is closer to review-led execution than a full stop.`
+      : `The day leans toward ${phase}, which supports execution in ${focusDomain}.`
+    : `${focusDomain} is in a ${gradeLabel.toLowerCase()} flow today, and narrowing the focus works better than expanding it.`
+  const balance = (() => {
+    if (!hasAttack || !hasDefense) return ''
+    if (typeof balanceGap === 'number' && balanceGap <= 8) {
+      return 'Attack and defense are close, so handling one or two priorities cleanly is better than pushing broadly.'
+    }
+    if ((attackPercent as number) > (defensePercent as number)) {
+      return 'Expansion is slightly ahead, but smaller verified execution is safer than widening the scope.'
+    }
+    return 'Defensive pressure is stronger, so loss prevention and condition checks matter more than speed.'
+  })()
+  return [intro, balance, takeLeadLine(caution || action || reliability || '', 90)]
+    .filter(Boolean)
+    .join(' ')
+}
+
 function softenDecisionTone(value: string, locale: 'ko' | 'en', lowReliability = false): string {
   const line = safeDisplayText(value)
   if (!line) return ''
@@ -602,7 +738,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         : '시간대를 고를 수 있다면 오전-오후 중 가장 집중이 잘 되는 구간에 핵심 일을 배치해 보세요.'
 
       if (displayGrade >= 3) {
-        return `${peakLabel}이지만 ${domainLabel} 영역에서는 주의 신호가 함께 보여 무리한 확장보다 손실 방어가 우선입니다. ${timeLine}`
+        return `${peakLabel}이지만 ${domainLabel} 영역에서는 주의 신호가 함께 보여 무리한 확장보다 손실 관리가 우선입니다. ${timeLine}`
       }
       return `${peakLabel}에서 ${domainLabel} 영역의 효율이 올라오는 날입니다. 속도를 올리되, 핵심 1~2개 과제에 집중할수록 체감 성과가 커집니다. ${timeLine}`
     }
@@ -675,10 +811,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     canonicalCore?.domainVerdicts.find((item) => item.domain === canonicalCore.focusDomain) ||
     canonicalCore?.domainVerdicts[0]
   const canonicalGradeLabel = safeDisplayText(canonicalCore?.gradeLabel || '', '')
-  const canonicalPhaseLabel = safeDisplayText(
-    canonicalCore?.phaseLabel || canonicalCore?.phase || '',
-    ''
-  )
+  const canonicalPhaseLabel = humanizePhaseLabel(canonicalCore?.phaseLabel || canonicalCore?.phase || '', locale)
   const canonicalFocusDomainLabel = canonicalCore
     ? getDomainLabel(toCalendarDomain(canonicalCore.focusDomain), locale)
     : ''
@@ -687,7 +820,13 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     : ''
   const unifiedDayLabel =
     canonicalGradeLabel || (selectedDate ? getDisplayLabelFromScore(displayScore, locale) : '')
-  const presentationReliability = safeDisplayText(presentation?.daySummary?.reliability || '', '')
+  const isPresentationDayMatch =
+    Boolean(selectedDate?.date) &&
+    Boolean(presentation?.daySummary?.date) &&
+    selectedDate?.date === presentation?.daySummary?.date
+  const presentationReliability = isPresentationDayMatch
+    ? safeDisplayText(presentation?.daySummary?.reliability || '', '')
+    : ''
   const reliabilityLabel = selectedDate
     ? getReliabilityLabel(selectedDate.evidence?.confidence, locale)
     : ''
@@ -699,30 +838,26 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       : 'overall'
   const focusDomainHeadline =
     canonicalFocusDomainLabel ||
-    safeDisplayText(presentation?.daySummary?.focusDomain || '', '') ||
+    (isPresentationDayMatch ? safeDisplayText(presentation?.daySummary?.focusDomain || '', '') : '') ||
     domainLabel
 
   const evidenceSummaryPrimary = canonicalCore
     ? locale === 'ko'
-      ? `오늘 등급 ${unifiedDayLabel} · 국면 ${canonicalPhaseLabel || canonicalCore.phase} · 핵심 분야 ${focusDomainHeadline} · 정책 ${reliabilityHeadline}`
-      : `Today rating ${unifiedDayLabel} · Phase ${canonicalPhaseLabel || canonicalCore.phase} · Focus ${focusDomainHeadline} · Policy ${reliabilityHeadline}`
+      ? `오늘 등급 ${unifiedDayLabel} · 흐름 ${canonicalPhaseLabel || canonicalCore.phase} · 핵심 분야 ${focusDomainHeadline} · 판단 기준 ${reliabilityHeadline}`
+      : `Today rating ${unifiedDayLabel} · Flow ${canonicalPhaseLabel || canonicalCore.phase} · Focus ${focusDomainHeadline} · Guidance ${reliabilityHeadline}`
     : selectedDate?.evidence
     ? locale === 'ko'
-      ? `오늘 등급 ${unifiedDayLabel} · 점수 ${displayScore}/100 · 핵심 분야 ${domainLabel}${matrixVerdict?.phase ? ` · 국면 ${matrixVerdict.phase}` : ''}`
-      : `Today rating ${unifiedDayLabel} · Score ${displayScore}/100 · Focus ${domainLabel}${matrixVerdict?.phase ? ` · Phase ${matrixVerdict.phase}` : ''}`
+      ? `오늘 등급 ${unifiedDayLabel} · 점수 ${displayScore}/100 · 핵심 분야 ${domainLabel}${matrixVerdict?.phase ? ` · 흐름 ${humanizePhaseLabel(matrixVerdict.phase, locale)}` : ''}`
+      : `Today rating ${unifiedDayLabel} · Score ${displayScore}/100 · Focus ${domainLabel}${matrixVerdict?.phase ? ` · Flow ${humanizePhaseLabel(matrixVerdict.phase, locale)}` : ''}`
     : ''
 
-  const sajuCrossLine =
-    toUserFacingEvidenceLine(selectedDate?.evidence?.cross?.sajuEvidence || '', 'saju', locale) ||
-    (locale === 'ko' ? '사주 일진 신호 반영' : 'Saju daily-pillar signal reflected')
-  const astroCrossLine =
-    toUserFacingEvidenceLine(selectedDate?.evidence?.cross?.astroEvidence || '', 'astro', locale) ||
-    (locale === 'ko' ? '점성 트랜짓 신호 반영' : 'Astrology transit signal reflected')
-
   const evidenceSummaryCross = selectedDate?.evidence
-    ? locale === 'ko'
-      ? `사주: ${sajuCrossLine} / 점성: ${astroCrossLine}`
-      : `Saju: ${sajuCrossLine} / Astrology: ${astroCrossLine}`
+    ? buildReadableCrossLine({
+        locale,
+        confidence: canonicalCore?.confidence ?? selectedDate.evidence.confidence,
+        crossAgreement: canonicalCore?.crossAgreement ?? selectedDate.evidence.crossAgreementPercent,
+        focusDomain: focusDomainHeadline,
+      })
     : ''
 
   const evidenceBridgeSummary =
@@ -756,15 +891,30 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       : `Evidence strength (reference): ${selectedDate.evidence.confidence}%`
   })()
 
+  const readableFlowSummary = buildReadableFlowSummary({
+    locale,
+    focusDomain: focusDomainHeadline,
+    phase: canonicalPhaseLabel || humanizePhaseLabel(matrixVerdict?.phase || '', locale),
+    gradeLabel: unifiedDayLabel,
+    reliability: reliabilityHeadline,
+    attackPercent: matrixVerdict?.attackPercent,
+    defensePercent: matrixVerdict?.defensePercent,
+    action: canonicalCore?.topDecisionLabel || canonicalCore?.primaryAction || canonicalAdvisory?.action || '',
+    caution: canonicalCore?.riskControl || canonicalCore?.primaryCaution || canonicalAdvisory?.caution || '',
+  })
+
   const quickThesis = (() => {
     if (!selectedDate) return ''
+    if (readableFlowSummary) {
+      return softenDecisionTone(readableFlowSummary, locale, isLowReliability)
+    }
     if (canonicalAdvisory?.thesis) {
       return softenDecisionTone(canonicalAdvisory.thesis, locale, isLowReliability)
     }
     if (canonicalCore?.thesis) {
       return softenDecisionTone(canonicalCore.thesis, locale, isLowReliability)
     }
-    if (presentation?.daySummary?.summary) {
+    if (isPresentationDayMatch && presentation?.daySummary?.summary) {
       return softenDecisionTone(presentation.daySummary.summary, locale, isLowReliability)
     }
     if (matrixVerdict?.verdict) {
@@ -873,6 +1023,30 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     ''
   )
 
+  const quickHighlightCards = [
+    {
+      label: locale === 'ko' ? '핵심 결론' : 'Core',
+      text: takeLeadLine(quickThesis),
+    },
+    {
+      label: locale === 'ko' ? '지금 할 것' : 'Do now',
+      text: takeLeadLine(quickDos[0] || safeActionSummary),
+    },
+    {
+      label: locale === 'ko' ? '오늘 주의' : 'Watch',
+      text: takeLeadLine(quickDonts[0] || topCautions[0]),
+    },
+    {
+      label: locale === 'ko' ? '좋은 시간' : 'Best time',
+      text: takeLeadLine(quickWindows[0]),
+    },
+  ].filter((item, index, items) => {
+    const text = safeDisplayText(item.text, '')
+    if (!text) return false
+    const key = normalizeSemanticKey(text)
+    return items.findIndex((candidate) => normalizeSemanticKey(candidate.text) === key) === index
+  })
+
   const displayTitle = (() => {
     const baseTitle = safeTitle
     const looksFallback =
@@ -896,6 +1070,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
   const detailInsight = (() => {
     const candidates = dedupeDisplayLines([
+      readableFlowSummary,
       matrixVerdict?.topClaim
         ? softenDecisionTone(matrixVerdict.topClaim, locale, isLowReliability)
         : '',
@@ -1014,6 +1189,17 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           )}
 
           <div className={styles.quickScanCard}>
+            {quickHighlightCards.length > 0 && (
+              <div className={styles.quickHeroGrid}>
+                {quickHighlightCards.map((item) => (
+                  <div key={`${item.label}-${item.text}`} className={styles.quickHeroBlock}>
+                    <span className={styles.quickHeroLabel}>{item.label}</span>
+                    <p className={styles.quickHeroText}>{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {safeActionSummary && (
               <div className={styles.quickSummaryBlock}>
                 <span className={styles.quickSummaryLabel}>
@@ -1034,8 +1220,8 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               </span>
               {(canonicalPhaseLabel || matrixVerdict?.phase) && (
                 <span className={styles.quickMetaChip}>
-                  {locale === 'ko' ? '국면' : 'Phase'}:{' '}
-                  {canonicalPhaseLabel || matrixVerdict?.phase}
+                  {locale === 'ko' ? '흐름' : 'Flow'}:{' '}
+                  {canonicalPhaseLabel || humanizePhaseLabel(matrixVerdict?.phase || '', locale)}
                 </span>
               )}
               <span className={styles.quickMetaChip}>

@@ -6,7 +6,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 
-const HEADER_USER_SLOT_WIDTH = 'clamp(120px, 16vw, 220px)'
+const HEADER_USER_SLOT_WIDTH = 'clamp(88px, 14vw, 220px)'
 
 export default function HeaderUser() {
   return <HeaderUserContent />

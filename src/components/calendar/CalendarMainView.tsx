@@ -33,20 +33,7 @@ interface CalendarMainViewProps {
   onUnsaveDate: () => void
 }
 
-const MONTHS_KO = [
-  '1월',
-  '2월',
-  '3월',
-  '4월',
-  '5월',
-  '6월',
-  '7월',
-  '8월',
-  '9월',
-  '10월',
-  '11월',
-  '12월',
-]
+const MONTHS_KO = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
 const MONTHS_EN = [
   'January',
   'February',
@@ -110,15 +97,16 @@ const CalendarMainView = memo(function CalendarMainView({
       const dateYear = new Date(d.date).getFullYear()
       if (dateYear === year) {
         result.total++
-        if (d.grade === 0) {
+        const effectiveGrade = d.displayGrade ?? d.grade
+        if (effectiveGrade === 0) {
           result.grade0++
-        } else if (d.grade === 1) {
+        } else if (effectiveGrade === 1) {
           result.grade1++
-        } else if (d.grade === 2) {
+        } else if (effectiveGrade === 2) {
           result.grade2++
-        } else if (d.grade === 3) {
+        } else if (effectiveGrade === 3) {
           result.grade3++
-        } else if (d.grade === 4) {
+        } else if (effectiveGrade === 4) {
           result.grade4++
         }
       }
@@ -139,8 +127,8 @@ const CalendarMainView = memo(function CalendarMainView({
       const dateInfo = data.allDates.find((d) => d.date === dateStr)
       monthData.push({
         day,
-        grade: dateInfo?.grade ?? 3,
-        score: dateInfo?.score ?? 50,
+        grade: dateInfo?.displayGrade ?? dateInfo?.grade ?? 3,
+        score: dateInfo?.displayScore ?? dateInfo?.score ?? 50,
       })
     }
     return monthData
@@ -249,8 +237,8 @@ const CalendarMainView = memo(function CalendarMainView({
       1: locale === 'ko' ? '활용 우선' : 'Leverage-first',
       2: locale === 'ko' ? '운영 우선' : 'Operate-first',
       3: locale === 'ko' ? '검토 우선' : 'Review-first',
-      4: locale === 'ko' ? '방어 우선' : 'Protect-first',
-      5: locale === 'ko' ? '방어 우선' : 'Protect-first',
+      4: locale === 'ko' ? '조정 우선' : 'Adjust-first',
+      5: locale === 'ko' ? '조정 우선' : 'Adjust-first',
     }
     return labels[grade as keyof typeof labels] || labels[3]
   }
@@ -287,7 +275,14 @@ const CalendarMainView = memo(function CalendarMainView({
 
         {/* Year Summary Badges */}
         {yearSummary && (
-          <div className={styles.summaryBadges}>
+          <>
+            <div className={styles.summaryBadges}>
+            <span className={styles.summaryTotal}>
+              {locale === 'ko'
+                ? `엔진 계산 ${yearSummary.total}일`
+                : `Engine-calculated ${yearSummary.total}d`}
+            </span>
+            <span className={styles.badgeDivider} />
             <span
               className={styles.summaryBadge}
               title={locale === 'ko' ? '실행 우선' : 'Execute-first'}
@@ -330,15 +325,21 @@ const CalendarMainView = memo(function CalendarMainView({
             </span>
             <span
               className={`${styles.summaryBadge} ${styles.worstBadge}`}
-              title={locale === 'ko' ? '방어 우선' : 'Protect-first'}
+              title={locale === 'ko' ? '조정 우선' : 'Adjust-first'}
             >
               <span className={styles.badgeEmoji}>☠️</span>
-              <span className={styles.badgeLabel}>{locale === 'ko' ? '방어' : 'Protect'}</span>
+              <span className={styles.badgeLabel}>{locale === 'ko' ? '조정' : 'Adjust'}</span>
               <span className={styles.badgeCount}>
                 {locale === 'ko' ? `${yearSummary.grade4}일` : `${yearSummary.grade4}d`}
               </span>
             </span>
           </div>
+          <p className={styles.summaryEngineNote}>
+            {locale === 'ko'
+              ? '사주·점성 100점 스코어와 교차 근거를 합쳐 좋은 날부터 조정일까지 자동 분류합니다.'
+              : 'Days are auto-ranked from execute-first to adjust-first using the combined Saju/Astrology score and cross-evidence.'}
+          </p>
+          </>
         )}
       </div>
 
@@ -564,7 +565,7 @@ const CalendarMainView = memo(function CalendarMainView({
               <span className={`${styles.legendDot} ${styles.grade4Dot}`} aria-hidden="true">
                 <span className={styles.legendPattern}>{'\u2715'}</span>
               </span>
-              <span>{locale === 'ko' ? '방어' : 'Protect'}</span>
+              <span>{locale === 'ko' ? '조정' : 'Adjust'}</span>
             </div>
           </div>
 

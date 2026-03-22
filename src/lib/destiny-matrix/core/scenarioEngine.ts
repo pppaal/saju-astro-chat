@@ -5,8 +5,13 @@ import type { PatternResult } from './patternEngine'
 import type { ActivationEngineResult } from './activationEngine'
 import type { RuleEngineResult } from './ruleEngine'
 import type { StateEngineResult } from './stateEngine'
+import {
+  resolveScenarioBranchPolicyWeight,
+  resolveScenarioTimingPolicyWeight,
+} from './scenarioPolicies'
 
 export type ScenarioWindow = 'now' | '1-3m' | '3-6m' | '6-12m'
+export type TimingGranularity = 'day' | 'week' | 'fortnight' | 'month' | 'season'
 
 export interface ScenarioDefinition {
   id: string
@@ -30,6 +35,8 @@ export interface ScenarioResult {
   confidence: number
   window: ScenarioWindow
   timingRelevance: number
+  timingGranularity: TimingGranularity
+  precisionReason: string
   risk: string
   reversible: boolean
   actions: string[]
@@ -61,10 +68,6 @@ function round1(value: number): number {
   return Math.round(value * 10) / 10
 }
 
-function hasRuleSignal(values: string[] | undefined, pattern: RegExp): boolean {
-  return (values || []).some((value) => pattern.test(value))
-}
-
 function resolveBranchSpecificWeight(input: {
   branch: string
   domain: SignalDomain
@@ -73,173 +76,7 @@ function resolveBranchSpecificWeight(input: {
   rule?: RuleEngineResult['domains'][number]
   state?: StateEngineResult['domains'][number]
 }): number {
-  const branch = input.branch.toLowerCase()
-  const amplify = input.rule?.amplify || []
-  const gate = input.rule?.gate || []
-  const delay = input.rule?.delay || []
-  const suppress = input.rule?.suppress || []
-  const convert = input.rule?.convert || []
-  const axes = input.activationAxes || []
-  const keywords = input.pattern.matchedKeywords || []
-  const mode = input.rule?.resolvedMode || input.pattern.resolvedMode
-  const state = input.state?.state || input.pattern.domainState
-  const hasAxis = (axis: string) => axes.includes(axis)
-  const hasKeyword = (pattern: RegExp) => keywords.some((keyword) => pattern.test(keyword))
-
-  let weight = 1
-
-  if (branch === 'alt') weight -= 0.08
-  if (branch === 'defensive') weight -= mode === 'prepare' ? 0.04 : 0.06
-  if (branch === 'main' && /_cluster$/i.test(input.pattern.id)) weight -= 0.03
-  if (/_cluster$/i.test(input.pattern.id)) {
-    if (branch === 'alt') weight -= 0.035
-    if (branch === 'defensive') weight -= 0.025
-    if (input.domain === 'personality' || input.domain === 'spirituality') weight -= 0.015
-  }
-
-  if (input.domain === 'career') {
-    if (branch === 'entry') {
-      if (mode === 'execute' && (state === 'opening' || state === 'active')) weight += 0.04
-      if (hasAxis('expansion')) weight += 0.02
-      if (gate.length > 0 || delay.length > 0) weight -= 0.03
-    }
-    if (branch === 'promotion_review') {
-      if (mode === 'verify' || mode === 'prepare') weight += 0.05
-      if (hasRuleSignal(gate, /commit_now|blind_spot_commitment|authority_conflict/i)) weight += 0.03
-      if (hasRuleSignal(delay, /finalize_terms|signature|certainty/i)) weight += 0.02
-      if (state === 'peak') weight -= 0.01
-    }
-    if (branch === 'contract_negotiation') {
-      if (mode === 'verify') weight += 0.05
-      if (hasRuleSignal(gate, /blind_spot_commitment|commit_now/i)) weight += 0.035
-      if (hasRuleSignal(delay, /finalize_terms|certainty|signature/i)) weight += 0.03
-      if (hasAxis('verification')) weight += 0.02
-    }
-    if (branch === 'manager_track') {
-      if (state === 'active' || state === 'peak') weight += 0.03
-      if (hasKeyword(/leadership|authority|visibility|manager/i)) weight += 0.035
-      if (hasRuleSignal(amplify, /strategy_planning|expansion/i)) weight += 0.015
-      if (mode === 'verify') weight -= 0.01
-      if (hasRuleSignal(suppress, /overextension/i)) weight -= 0.02
-    }
-    if (branch === 'specialist_track') {
-      if (hasAxis('deep_work')) weight += 0.035
-      if (hasRuleSignal(amplify, /research_planning|study_specialization|craft_refinement|service_specialization/i)) {
-        weight += 0.045
-      }
-      if (mode === 'verify') weight += 0.012
-      if (hasKeyword(/research|craft|specialist|expert/i)) weight += 0.02
-      if (hasRuleSignal(convert, /selective_distance/i)) weight += 0.01
-    }
-  }
-
-  if (input.domain === 'relationship') {
-    if (branch === 'commitment_preparation') {
-      if (mode === 'verify' || mode === 'prepare') weight += 0.05
-      if (hasRuleSignal(gate, /instant_commitment|forced_closeness|projection_bias/i)) weight += 0.035
-      if (hasRuleSignal(delay, /premature_definition|confirmation_before_labeling/i)) weight += 0.03
-      if (hasKeyword(/commitment|prepare|daily|fit|expectation/i)) weight += 0.02
-      if (state === 'opening' || state === 'consolidation') weight += 0.015
-    }
-    if (branch === 'commitment_execution') {
-      if (mode === 'execute' && (state === 'active' || state === 'peak')) weight += 0.03
-      if (hasRuleSignal(gate, /instant_commitment|forced_closeness|boundary_breach/i)) weight -= 0.05
-      if (hasRuleSignal(delay, /premature_definition|emotionally_loaded_decision/i)) weight -= 0.03
-    }
-    if (branch === 'cohabitation') {
-      if (hasRuleSignal(gate, /forced_closeness|boundary_breach/i)) weight -= 0.05
-      if (hasRuleSignal(delay, /premature_definition/i)) weight -= 0.03
-      if (hasKeyword(/daily|shared|home|cohabit/i)) weight += 0.02
-    }
-    if (branch === 'family_acceptance') {
-      if (mode === 'verify') weight += 0.05
-      if (hasRuleSignal(gate, /projection_bias|forced_closeness/i)) weight += 0.02
-      if (hasKeyword(/family|acceptance|approval/i)) weight += 0.025
-    }
-    if (branch === 'clarify_expectations') {
-      if (mode === 'verify' || mode === 'prepare') weight += 0.045
-      if (hasRuleSignal(delay, /confirmation_before_labeling|premature_definition|emotionally_loaded_decision/i)) {
-        weight += 0.04
-      }
-      if (hasRuleSignal(gate, /projection_bias|forced_closeness/i)) weight += 0.02
-      if (hasKeyword(/clarify|expectation|define|question|summary/i)) weight += 0.03
-      if (state === 'opening' || state === 'consolidation') weight += 0.015
-    }
-    if (branch === 'boundary_reset') {
-      if (hasRuleSignal(gate, /boundary_breach|shadow_reactivity|projection_bias/i)) weight += 0.05
-      if (hasRuleSignal(convert, /selective_distance/i)) weight += 0.03
-      if (mode === 'verify' || mode === 'prepare') weight += 0.02
-      if (state === 'consolidation' || state === 'residue' || state === 'opening') weight += 0.02
-      if (hasKeyword(/boundary|reset|limit|agreement|space/i)) weight += 0.03
-    }
-    if (branch === 'distance_tuning') {
-      if (hasRuleSignal(gate, /boundary_breach|shadow_reactivity|projection_bias/i)) weight += 0.035
-      if (hasRuleSignal(convert, /selective_distance/i)) weight += 0.045
-      if (hasRuleSignal(delay, /slow_trust_build|emotionally_loaded_decision/i)) weight += 0.02
-      if (mode === 'verify' || mode === 'prepare') weight += 0.02
-      if (state === 'consolidation' || state === 'opening' || state === 'residue') weight += 0.02
-      if (hasKeyword(/distance|space|tuning|pause|cool/i)) weight += 0.03
-    }
-    if (branch === 'separation') {
-      if (hasRuleSignal(gate, /shadow_reactivity|forced_closeness|projection_bias/i)) weight += 0.04
-      if (hasRuleSignal(delay, /emotionally_loaded_decision/i)) weight -= 0.03
-    }
-  }
-
-  if (input.domain === 'wealth') {
-    if (branch === 'income_growth') {
-      if (hasAxis('expansion')) weight += 0.03
-      if (mode === 'execute' || mode === 'verify') weight += 0.02
-    }
-    if (branch === 'capital_allocation') {
-      if (mode === 'verify') weight += 0.05
-      if (hasRuleSignal(delay, /finalize_terms|certainty/i)) weight += 0.03
-      if (hasRuleSignal(gate, /blind_spot_spending|commit_now/i)) weight += 0.03
-    }
-    if (branch === 'asset_exit') {
-      if (mode === 'verify' || mode === 'prepare') weight += 0.04
-      if (hasRuleSignal(delay, /finalize_terms|certainty/i)) weight += 0.02
-      if (hasRuleSignal(gate, /blind_spot_spending/i)) weight += 0.02
-    }
-    if (branch === 'debt_restructure') {
-      if (mode === 'prepare' || mode === 'verify') weight += 0.05
-      if (hasRuleSignal(gate, /blind_spot_spending/i)) weight += 0.03
-      if (hasKeyword(/debt|restructure|liquidity/i)) weight += 0.025
-    }
-    if (branch === 'expense_spike' || branch === 'liquidity_defense') {
-      if (mode === 'prepare') weight += 0.04
-      if (hasRuleSignal(gate, /blind_spot_spending/i)) weight += 0.03
-    }
-  }
-
-  if (input.domain === 'move') {
-    if (branch === 'route_recheck') {
-      if (mode === 'verify' || mode === 'prepare') weight += 0.05
-      if (hasRuleSignal(delay, /housing_commitment|finalize_terms/i)) weight += 0.03
-      if (hasRuleSignal(gate, /route_assumption|impulsive_move|commit_now/i)) weight += 0.03
-      if (hasKeyword(/route|recheck|review|commute/i)) weight += 0.025
-      if (state === 'opening' || state === 'consolidation') weight += 0.015
-    }
-    if (branch === 'commute_restructure') {
-      if (mode === 'verify' || mode === 'prepare') weight += 0.045
-      if (hasRuleSignal(delay, /housing_commitment|announcement_timing/i)) weight += 0.025
-      if (hasKeyword(/commute|route|daily|travel/i)) weight += 0.02
-      if (hasAxis('mobility') || hasAxis('transition')) weight += 0.02
-      if (state === 'opening' || state === 'consolidation') weight += 0.015
-    }
-    if (branch === 'basecamp_reset') {
-      if (mode === 'prepare') weight += 0.05
-      if (state === 'consolidation' || state === 'residue' || state === 'opening') weight += 0.02
-      if (hasRuleSignal(convert, /staged_move/i)) weight += 0.03
-      if (hasKeyword(/basecamp|home|reset|stability/i)) weight += 0.025
-    }
-    if (branch === 'relocation' || branch === 'cross_border_move' || branch === 'lease_decision') {
-      if (hasRuleSignal(gate, /route_assumption|impulsive_move|commit_now/i)) weight -= 0.04
-      if (hasRuleSignal(delay, /housing_commitment|finalize_terms|announcement_timing/i)) weight -= 0.03
-    }
-  }
-
-  return clamp(weight, 0.88, 1.14)
+  return resolveScenarioBranchPolicyWeight(input)
 }
 
 function resolveTimingPressureWeight(input: {
@@ -248,54 +85,7 @@ function resolveTimingPressureWeight(input: {
   rule?: RuleEngineResult['domains'][number]
   state?: StateEngineResult['domains'][number]
 }): number {
-  const branch = input.branch.toLowerCase()
-  const amplify = input.rule?.amplify || []
-  const gate = input.rule?.gate || []
-  const delay = input.rule?.delay || []
-  const state = input.state?.state
-  const has = (values: string[], pattern: RegExp) => values.some((value) => pattern.test(value))
-
-  const timingHot = has(amplify, /transition_window|phase_window|transit_trigger_window|fated_crossroad_window/i)
-  const timingSlow = has(delay, /announcement_timing|finalize_terms|emotionally_loaded_decision|slow_trust_build/i)
-  const timingGate = has(gate, /commit_now|route_assumption|premature_statement|projection_bias/i)
-
-  let weight = 1
-
-  if (timingHot && (state === 'opening' || state === 'active')) weight += 0.03
-  if (timingSlow) weight -= 0.02
-  if (timingGate && branch !== 'boundary_reset' && branch !== 'distance_tuning') weight -= 0.02
-
-  if (input.domain === 'career') {
-    if ((branch === 'promotion_review' || branch === 'contract_negotiation') && timingSlow) weight += 0.03
-    if ((branch === 'entry' || branch === 'promotion' || branch === 'project_launch') && timingGate) weight -= 0.03
-    if ((branch === 'manager_track' || branch === 'specialist_track') && timingHot) weight += 0.02
-  }
-
-  if (input.domain === 'relationship') {
-    if ((branch === 'commitment_execution' || branch === 'cohabitation') && (timingSlow || timingGate)) weight -= 0.04
-    if (branch === 'commitment_preparation' && timingSlow) weight += 0.035
-    if (branch === 'clarify_expectations' && (timingSlow || timingGate)) weight += 0.04
-    if (branch === 'boundary_reset' && timingGate) weight += 0.04
-    if (branch === 'distance_tuning' && (timingGate || timingSlow)) weight += 0.045
-  }
-
-  if (input.domain === 'wealth') {
-    if ((branch === 'capital_allocation' || branch === 'asset_exit') && (timingSlow || timingGate)) weight += 0.03
-    if ((branch === 'income_growth' || branch === 'side_income') && timingHot) weight += 0.02
-  }
-
-  if (input.domain === 'health') {
-    if ((branch === 'recovery' || branch === 'recovery_reset' || branch === 'recovery_compliance') && timingSlow) weight += 0.03
-    if ((branch === 'burnout_trigger' || branch === 'sleep_disruption') && timingGate) weight += 0.02
-  }
-
-  if (input.domain === 'move') {
-    if ((branch === 'lease_decision' || branch === 'relocation' || branch === 'cross_border_move') && (timingSlow || timingGate)) weight -= 0.03
-    if ((branch === 'housing_search' || branch === 'route_recheck') && timingSlow) weight += 0.03
-    if (branch === 'travel' && timingHot) weight += 0.02
-  }
-
-  return clamp(weight, 0.9, 1.1)
+  return resolveScenarioTimingPolicyWeight(input)
 }
 
 const DOMAIN_SENSITIVITY: Record<SignalDomain, number> = {
@@ -1047,6 +837,82 @@ function resolveTimingRelevance(
   return Number(clamp(windowBase[window] + activeTimingBoost + astroBoost, 0.2, 0.99).toFixed(2))
 }
 
+function resolveTimingGranularity(input: {
+  normalizedInput: MatrixCalculationInputNormalized
+  window: ScenarioWindow
+  astroTimingIndex: ResolvedAstroTimingIndex | undefined
+}): TimingGranularity {
+  const hasIljin = Boolean(input.normalizedInput.currentIljinElement || input.normalizedInput.currentIljinDate)
+  const hasWolun = Boolean(input.normalizedInput.currentWolunElement)
+  const hasSeun = Boolean(input.normalizedInput.currentSaeunElement)
+  const transitCount = input.normalizedInput.activeTransits.length
+  const daily = input.astroTimingIndex?.daily || 0
+  const monthly = input.astroTimingIndex?.monthly || 0
+
+  if (input.window === 'now') {
+    if (hasIljin && hasWolun && hasSeun && transitCount >= 2 && daily >= 0.68) return 'day'
+    if ((hasIljin && transitCount > 0) || daily >= 0.58) return 'week'
+    return 'fortnight'
+  }
+  if (input.window === '1-3m') {
+    if ((hasWolun && transitCount > 0) || monthly >= 0.68) return 'fortnight'
+    return 'month'
+  }
+  if (input.window === '3-6m') return 'month'
+  return 'season'
+}
+
+function buildPrecisionReason(input: {
+  lang: 'ko' | 'en'
+  granularity: TimingGranularity
+  normalizedInput: MatrixCalculationInputNormalized
+  astroTimingIndex: ResolvedAstroTimingIndex | undefined
+}): string {
+  const hasIljin = Boolean(input.normalizedInput.currentIljinElement || input.normalizedInput.currentIljinDate)
+  const hasWolun = Boolean(input.normalizedInput.currentWolunElement)
+  const hasSeun = Boolean(input.normalizedInput.currentSaeunElement)
+  const hasDaeun = Boolean(input.normalizedInput.currentDaeunElement)
+  const transitCount = input.normalizedInput.activeTransits.length
+  const daily = input.astroTimingIndex?.daily || 0
+  const monthly = input.astroTimingIndex?.monthly || 0
+
+  if (input.lang === 'ko') {
+    if (input.granularity === 'day') {
+      return '단기 사주 신호와 트랜짓이 함께 맞물린 경우에도, 표현 정밀도는 일 단위 상한으로만 엽니다.'
+    }
+    if (input.granularity === 'week') {
+      return (hasIljin || transitCount > 0 || daily >= 0.58)
+        ? '단기 촉발은 살아 있지만 과잉 정밀 예측을 피하려고 주 단위까지만 여는 편이 맞습니다.'
+        : '구조 지지가 더 넓게 깔려 있어 주 단위까지만 열어 두는 편이 안전합니다.'
+    }
+    if (input.granularity === 'fortnight') {
+      return hasWolun || monthly >= 0.6
+        ? '월운과 월간 타이밍 지표가 겹치지만, 실제 해석은 2주 단위 상한으로 두는 편이 맞습니다.'
+        : '구조는 열려 있지만 촉발이 좁지 않아 2주 단위 상한으로 말하는 편이 안전합니다.'
+    }
+    if (input.granularity === 'month') {
+      return hasDaeun || hasSeun
+        ? '대운·세운 지지가 중심이라 월 단위까지는 설명 가능하지만 일 단위로 좁히면 과잉 정밀이 됩니다.'
+        : '촉발보다 구조 지지가 우세해 월 단위 상한으로 보는 편이 맞습니다.'
+    }
+    return '지금은 구조적 흐름을 읽는 구간이라 계절 단위 이상으로 해석하는 편이 안전합니다.'
+  }
+
+  if (input.granularity === 'day') {
+    return 'Short-cycle Saju and transit triggers stack here, but the wording still caps itself at day-level rather than pretending to know an exact event stamp.'
+  }
+  if (input.granularity === 'week') {
+    return 'Short-cycle triggers are active, but the model caps the statement at week-level to avoid false precision.'
+  }
+  if (input.granularity === 'fortnight') {
+    return 'Monthly activation is visible, but the model keeps the claim at fortnight-level instead of forcing an exact date.'
+  }
+  if (input.granularity === 'month') {
+    return 'Structural support is clearer than short-term triggers, so month-level is the safe precision cap.'
+  }
+  return 'This is a structural window, so the model keeps timing at a seasonal cap rather than forcing a narrow date.'
+}
+
 function windowLabel(window: ScenarioWindow, lang: 'ko' | 'en'): string {
   if (lang === 'ko') {
     if (window === 'now') return '지금'
@@ -1326,6 +1192,11 @@ export function buildScenarioEngine(
         )
         const window = resolveWindow(normalizedInput, pattern, astroTimingIndex)
         const timingRelevance = resolveTimingRelevance(normalizedInput, window, astroTimingIndex)
+        const timingGranularity = resolveTimingGranularity({
+          normalizedInput,
+          window,
+          astroTimingIndex,
+        })
         const evidenceIds = [...new Set([pattern.id, ...pattern.matchedSignalIds.slice(0, 6)])]
         return {
           id: definition.id,
@@ -1338,6 +1209,13 @@ export function buildScenarioEngine(
           confidence,
           window,
           timingRelevance,
+          timingGranularity,
+          precisionReason: buildPrecisionReason({
+            lang,
+            granularity: timingGranularity,
+            normalizedInput,
+            astroTimingIndex,
+          }),
           risk: definition.risk,
           reversible: definition.reversible,
           actions: definition.actions,

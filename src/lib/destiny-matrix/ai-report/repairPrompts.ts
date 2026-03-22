@@ -1,5 +1,53 @@
 ﻿import type { AIUserPlan } from './reportTypes'
 
+function buildSectionRoleInstructions(
+  lang: 'ko' | 'en',
+  sections: Record<string, unknown>
+): string[] {
+  const keys = Object.keys(sections || {}).map((key) => key.toLowerCase())
+  const rules: string[] = []
+  if (keys.some((key) => key.includes('career') || key.includes('strategy'))) {
+    rules.push(
+      lang === 'ko'
+        ? '- career/strategy sections must stay on role, ownership, evaluation criteria, and work direction only; do not drift into relationship boundary language.'
+        : '- career/strategy sections must stay on role, ownership, evaluation criteria, and work direction only; do not drift into relationship boundary language.'
+    )
+  }
+  if (
+    keys.some(
+      (key) => key.includes('relationship') || key.includes('love') || key.includes('communication')
+    )
+  ) {
+    rules.push(
+      lang === 'ko'
+        ? '- relationship/love sections must stay on distance, boundaries, expectations, and agreement speed only; do not drift into job/performance/compensation language.'
+        : '- relationship/love sections must stay on distance, boundaries, expectations, and agreement speed only; do not drift into job/performance/compensation language.'
+    )
+  }
+  if (keys.some((key) => key.includes('wealth') || key.includes('money') || key.includes('risk'))) {
+    rules.push(
+      lang === 'ko'
+        ? '- wealth/risk sections must stay on inflow, leakage, downside caps, and condition review only; do not drift into relationship boundary language.'
+        : '- wealth/risk sections must stay on inflow, leakage, downside caps, and condition review only; do not drift into relationship boundary language.'
+    )
+  }
+  if (keys.some((key) => key.includes('health') || key.includes('energy') || key.includes('recovery'))) {
+    rules.push(
+      lang === 'ko'
+        ? '- health/recovery sections must stay on overload, recovery, routine, and rest rhythm only; do not drift into job/evaluation language.'
+        : '- health/recovery sections must stay on overload, recovery, routine, and rest rhythm only; do not drift into job/evaluation language.'
+    )
+  }
+  if (keys.some((key) => key.includes('life') || key.includes('mission') || key.includes('overview'))) {
+    rules.push(
+      lang === 'ko'
+        ? '- life/mission/overview sections must focus on the long arc and life track; do not reuse sentences from other sections.'
+        : '- life/mission/overview sections must focus on the long arc and life track; do not reuse sentences from other sections.'
+    )
+  }
+  return rules
+}
+
 export function buildNarrativeStyleRepairInstruction(
   lang: 'ko' | 'en',
   listStylePaths: string[]
@@ -65,6 +113,7 @@ export function buildNarrativeRewritePrompt(
   }
 ): string {
   const json = JSON.stringify(sections, null, 2)
+  const sectionRoleInstructions = buildSectionRoleInstructions(lang, sections)
   if (lang === 'ko') {
     return [
       'You are a premium Korean copy editor for destiny reports.',
@@ -75,9 +124,12 @@ export function buildNarrativeRewritePrompt(
       '- No new facts, entities, dates, or predictions.',
       '- Keep factual meaning exactly the same.',
       '- Avoid repetitive template openings and repetitive endings.',
-      '- Avoid bureaucratic wording: 영역, 구간, 프로토콜, 운영, 핵심은.',
+      '- Do not reuse the same sentence across multiple sections.',
+      '- Do not fall back to generic advice such as generic planning, slow down and recheck, staged agreement, or condition review unless it is directly grounded in the given section.',
+      '- Avoid bureaucratic wording and abstract operator language.',
       '- Use natural Korean with varied sentence rhythm and readable flow.',
       '- Add one concrete everyday scene per section without inventing facts.',
+      ...sectionRoleInstructions,
       `- Minimum ${options.minCharsPerSection} chars per section.`,
       `- Minimum ${options.minTotalChars} chars total.`,
       `- In ${options.requiredTimingSections.join(', ')}, include timing grounding at least once.`,
@@ -86,7 +138,7 @@ export function buildNarrativeRewritePrompt(
       '```json',
       json,
       '```',
-    ].join('\n')
+    ] .join('\n')
   }
   return [
     'You are a premium narrative editor for destiny reports.',
@@ -96,8 +148,11 @@ export function buildNarrativeRewritePrompt(
     '- No bullets/numbering; paragraph narrative only.',
     '- No new facts/entities/dates/predictions.',
     '- Avoid repeated sentence templates and repetitive openers.',
+    '- Do not reuse the same sentence across multiple sections.',
+    '- Do not fall back to generic advice such as slow down and recheck, clarify conditions, or recheck before commitment unless the phrasing is directly grounded in the section.',
     '- Avoid bureaucratic wording.',
     '- Add one concrete everyday scene per section without adding new facts.',
+    ...sectionRoleInstructions,
     `- Keep at least ${options.minCharsPerSection} chars per section.`,
     `- Keep at least ${options.minTotalChars} chars total.`,
     `- In ${options.requiredTimingSections.join(', ')}, include timing grounding with Daeun/Seun/Wolun/Iljin/transit at least once.`,
@@ -106,7 +161,7 @@ export function buildNarrativeRewritePrompt(
     '```json',
     json,
     '```',
-  ].join('\n')
+  ] .join('\n')
 }
 
 export function buildDepthRepairInstruction(

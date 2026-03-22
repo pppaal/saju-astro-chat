@@ -139,9 +139,11 @@ export function useChatApi({
   const [showCrisisModal, setShowCrisisModal] = React.useState(false)
   const MAX_CHAT_MESSAGE_CHARS = 2000
 
-  // Throttled message update to reduce re-renders during streaming
+  // Stream updates are buffered so the UI does not re-layout on every token.
   const pendingContentRef = React.useRef<string | null>(null)
   const updateTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastRenderedLengthRef = React.useRef(0)
+  const lastRenderTimeRef = React.useRef(0)
 
   const flushMessageUpdate = React.useCallback(() => {
     if (pendingContentRef.current !== null) {
@@ -151,22 +153,30 @@ export function useChatApi({
         const updated = [...prev]
         const lastIdx = updated.length - 1
         if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
-          updated[lastIdx] = { ...updated[lastIdx], content }
+          updated[lastIdx] = { ...updated[lastIdx], content, streaming: true }
         }
         return updated
       })
+      lastRenderedLengthRef.current = content.length
+      lastRenderTimeRef.current = Date.now()
     }
   }, [setMessages])
 
-  // Batched update: accumulates content and flushes every 50ms
+  // Batched update: hold partial markdown until a natural pause or punctuation.
   const updateLastAssistantMessage = React.useCallback(
     (content: string) => {
       pendingContentRef.current = content
-      if (!updateTimerRef.current) {
+      const now = Date.now()
+      const delta = content.length - lastRenderedLengthRef.current
+      const hasNaturalPause = /(?:[.!?]\s*$|[다요죠]\.\s*$|\n\s*$)/u.test(content)
+      const enoughTimePassed = now - lastRenderTimeRef.current > 220
+      const enoughContent = delta >= 18
+
+      if (!updateTimerRef.current && (hasNaturalPause || enoughTimePassed || enoughContent)) {
         updateTimerRef.current = setTimeout(() => {
           updateTimerRef.current = null
           flushMessageUpdate()
-        }, 50)
+        }, 120)
       }
     },
     [flushMessageUpdate]
@@ -184,10 +194,12 @@ export function useChatApi({
         const updated = [...prev]
         const lastIdx = updated.length - 1
         if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
-          updated[lastIdx] = { ...updated[lastIdx], content }
+          updated[lastIdx] = { ...updated[lastIdx], content, streaming: false }
         }
         return updated
       })
+      lastRenderedLengthRef.current = content.length
+      lastRenderTimeRef.current = Date.now()
     },
     [setMessages]
   )
@@ -417,6 +429,7 @@ export function useChatApi({
             role: 'assistant',
             content: '',
             id: assistantMsgId,
+            streaming: true,
             evidence: counselorEvidence,
           },
         ])

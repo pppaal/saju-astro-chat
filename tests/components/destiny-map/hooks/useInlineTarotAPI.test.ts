@@ -2,7 +2,6 @@
  * useInlineTarotAPI Hook Tests
  * InlineTarotModal API 훅 테스트
  *
- * SKIPPED: ReferenceError in fetchInterpretation - needs investigation
  */
 
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -463,7 +462,12 @@ describe('useInlineTarotAPI', () => {
         })
         .mockResolvedValueOnce({
           ok: true,
-          body: null,
+          json: async () => ({
+            overall_message: 'Overall message',
+            card_insights: [],
+            guidance: 'Guidance text',
+            affirmation: 'Affirmation text',
+          }),
         });
 
       const { result } = renderHook(() =>
@@ -500,7 +504,12 @@ describe('useInlineTarotAPI', () => {
         })
         .mockResolvedValueOnce({
           ok: true,
-          body: null,
+          json: async () => ({
+            overall_message: 'Overall message',
+            card_insights: [],
+            guidance: 'Guidance text',
+            affirmation: 'Affirmation text',
+          }),
         });
 
       const { result } = renderHook(() =>
@@ -771,42 +780,24 @@ describe('useInlineTarotAPI', () => {
     });
   });
 
-  describe('streaming interpretation', () => {
-    function createMockSSEResponse(events: string[]) {
-      const encoder = new TextEncoder();
-      let eventIndex = 0;
+  describe('interpretation fetch', () => {
+    it('should request the main tarot interpret endpoint', async () => {
+      const stateManager = createMockStateManager();
 
-      return {
-        ok: true,
-        status: 200,
-        body: {
-          getReader: () => ({
-            read: async () => {
-              if (eventIndex >= events.length) {
-                return { done: true, value: undefined };
-              }
-              const event = events[eventIndex++];
-              return { done: false, value: encoder.encode(event) };
-            },
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ drawnCards: [] }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            overall_message: 'Hello World',
+            card_insights: [],
+            guidance: 'Your guidance',
+            affirmation: 'Your affirmation',
           }),
-        },
-      };
-    }
-
-    it('should handle streaming interpretation', async () => {
-      const stateManager = createMockStateManager();
-
-      // First call for draw (empty cards to skip animation), second for interpretation
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({ drawnCards: [] }),
-        })
-        .mockResolvedValueOnce(createMockSSEResponse([
-          'data: {"section":"overall_message","content":"Hello "}\n',
-          'data: {"section":"overall_message","content":"World"}\n',
-          'data: [DONE]\n',
-        ]));
+        });
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -820,11 +811,19 @@ describe('useInlineTarotAPI', () => {
         await result.current.drawCards();
       });
 
-      // Should have set overall message
-      expect(stateManager.actions.setOverallMessage).toHaveBeenCalled();
+      expect(mockFetch).toHaveBeenNthCalledWith(
+        2,
+        '/api/tarot/interpret',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+          }),
+        })
+      );
     });
 
-    it('should handle card_insight section in stream', async () => {
+    it('should apply interpretation payload fields from the main tarot response', async () => {
       const stateManager = createMockStateManager();
 
       mockFetch
@@ -832,10 +831,15 @@ describe('useInlineTarotAPI', () => {
           ok: true,
           json: async () => ({ drawnCards: [] }),
         })
-        .mockResolvedValueOnce(createMockSSEResponse([
-          'data: {"section":"card_insight","index":0,"content":"First card insight"}\n\n',
-          'data: [DONE]\n\n',
-        ]));
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            overall_message: 'Hello World',
+            card_insights: [{ position: 'Past', interpretation: 'First card insight' }],
+            guidance: 'Your guidance',
+            affirmation: 'Your affirmation',
+          }),
+        });
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -849,10 +853,15 @@ describe('useInlineTarotAPI', () => {
         await result.current.drawCards();
       });
 
-      expect(stateManager.actions.setCardInsights).toHaveBeenCalled();
+      expect(stateManager.actions.setOverallMessage).toHaveBeenCalledWith('Hello World');
+      expect(stateManager.actions.setCardInsights).toHaveBeenCalledWith([
+        { position: 'Past', interpretation: 'First card insight' },
+      ]);
+      expect(stateManager.actions.setGuidance).toHaveBeenCalledWith('Your guidance');
+      expect(stateManager.actions.setAffirmation).toHaveBeenCalledWith('Your affirmation');
     });
 
-    it('should handle guidance section in stream', async () => {
+    it('should use default copy when interpretation payload is sparse', async () => {
       const stateManager = createMockStateManager();
 
       mockFetch
@@ -860,10 +869,15 @@ describe('useInlineTarotAPI', () => {
           ok: true,
           json: async () => ({ drawnCards: [] }),
         })
-        .mockResolvedValueOnce(createMockSSEResponse([
-          'data: {"section":"guidance","content":"Your guidance"}\n',
-          'data: [DONE]\n',
-        ]));
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            overall_message: '',
+            card_insights: [],
+            guidance: '',
+            affirmation: '',
+          }),
+        });
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -877,35 +891,13 @@ describe('useInlineTarotAPI', () => {
         await result.current.drawCards();
       });
 
-      expect(stateManager.actions.setGuidance).toHaveBeenCalled();
-    });
-
-    it('should handle affirmation section in stream', async () => {
-      const stateManager = createMockStateManager();
-
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({ drawnCards: [] }),
-        })
-        .mockResolvedValueOnce(createMockSSEResponse([
-          'data: {"section":"affirmation","content":"Your affirmation"}\n\n',
-          'data: [DONE]\n\n',
-        ]));
-
-      const { result } = renderHook(() =>
-        useInlineTarotAPI({
-          stateManager,
-          lang: 'en',
-          profile: mockProfile,
-        })
+      expect(stateManager.actions.setOverallMessage).toHaveBeenCalledWith(
+        'I summarized the core of your current situation based on the cards.'
       );
-
-      await act(async () => {
-        await result.current.drawCards();
-      });
-
-      expect(stateManager.actions.setAffirmation).toHaveBeenCalled();
+      expect(stateManager.actions.setGuidance).toHaveBeenCalledWith(
+        'Today, start with one practical action rather than forcing a big conclusion.'
+      );
+      expect(stateManager.actions.setAffirmation).not.toHaveBeenCalled();
     });
 
     it('should set step to result after interpretation', async () => {
@@ -916,10 +908,15 @@ describe('useInlineTarotAPI', () => {
           ok: true,
           json: async () => ({ drawnCards: [] }),
         })
-        .mockResolvedValueOnce(createMockSSEResponse([
-          'data: {"section":"overall_message","content":"Done"}\n',
-          'data: [DONE]\n',
-        ]));
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            overall_message: 'Done',
+            card_insights: [],
+            guidance: 'Guidance',
+            affirmation: '',
+          }),
+        });
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({
@@ -946,7 +943,7 @@ describe('useInlineTarotAPI', () => {
         })
         .mockResolvedValueOnce({
           ok: false,
-          body: null,
+          json: async () => ({ error: 'failed' }),
         });
 
       const { result } = renderHook(() =>

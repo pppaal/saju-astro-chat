@@ -14,9 +14,26 @@ interface MessageRowProps {
   styles: Record<string, string>
 }
 
-/**
- * Memoized message row component for performance
- */
+type CounselorSection = {
+  title: string
+  body: string
+}
+
+function parseCounselorSections(content: string): CounselorSection[] {
+  const matches = Array.from(content.matchAll(/^##\s+(.+)$/gm))
+  if (matches.length === 0) return []
+
+  return matches
+    .map((match, index) => {
+      const title = match[1].trim()
+      const start = (match.index ?? 0) + match[0].length
+      const end = index + 1 < matches.length ? (matches[index + 1].index ?? content.length) : content.length
+      const body = content.slice(start, end).trim()
+      return { title, body }
+    })
+    .filter((section) => section.title && section.body)
+}
+
 const MessageRow = React.memo(function MessageRow({
   message,
   index,
@@ -26,12 +43,15 @@ const MessageRow = React.memo(function MessageRow({
   styles: s,
 }: MessageRowProps) {
   const isAssistant = message.role === 'assistant'
+  const isStreaming = Boolean(message.streaming)
   const normalizedContent = repairMojibakeText(message.content || '')
+  const structuredSections = isAssistant && !isStreaming ? parseCounselorSections(normalizedContent) : []
   const rowClass = `${s.messageRow} ${isAssistant ? s.assistantRow : s.userRow}`
   const messageClass = isAssistant ? s.assistantMessage : s.userMessage
-  const hasFeedback = isAssistant && message.content && message.id
+  const hasFeedback = isAssistant && !isStreaming && message.content && message.id
   const hasEvidence =
     isAssistant &&
+    !isStreaming &&
     (message.evidence?.title || message.evidence?.summary || message.evidence?.bullets?.length)
 
   return (
@@ -41,16 +61,39 @@ const MessageRow = React.memo(function MessageRow({
       style={{ animationDelay: `${index * 0.1}s` }}
     >
       {isAssistant && <div className={s.counselorAvatar} />}
+
       <div className={s.messageBubble}>
         <div className={messageClass}>
-          {isAssistant ? <MarkdownMessage content={normalizedContent} /> : normalizedContent}
+          {isAssistant ? (
+            isStreaming ? (
+              <div className={s.streamingMessage}>{normalizedContent}</div>
+            ) : structuredSections.length > 0 ? (
+              <div className={s.counselorSections}>
+                {structuredSections.map((section, sectionIndex) => {
+                  const isLead = sectionIndex === 0
+                  return (
+                    <section
+                      key={`${section.title}-${sectionIndex}`}
+                      className={`${s.counselorSectionCard} ${isLead ? s.counselorLeadCard : ''}`}
+                    >
+                      <div className={s.counselorSectionTitle}>{section.title}</div>
+                      <MarkdownMessage content={section.body} />
+                    </section>
+                  )
+                })}
+              </div>
+            ) : (
+              <MarkdownMessage content={normalizedContent} />
+            )
+          ) : (
+            normalizedContent
+          )}
         </div>
 
         {hasEvidence && (
           <details className={s.messageEvidencePanel}>
             <summary className={s.messageEvidenceSummary}>
-              {message.evidence?.title ||
-                (lang === 'ko' ? '왜 이런 답변이 나왔는지' : 'Why this answer')}
+              {message.evidence?.title || (lang === 'ko' ? '왜 이런 답변이 나왔는지' : 'Why this answer')}
             </summary>
             {message.evidence?.summary && (
               <p className={s.messageEvidenceLead}>
@@ -76,7 +119,7 @@ const MessageRow = React.memo(function MessageRow({
               title={lang === 'ko' ? '도움이 됐어요' : 'Helpful'}
               aria-label={lang === 'ko' ? '도움이 됐어요' : 'Helpful'}
             >
-              👍
+              {'\u{1F44D}'}
             </button>
             <button
               type="button"
@@ -85,14 +128,15 @@ const MessageRow = React.memo(function MessageRow({
               title={lang === 'ko' ? '아쉬워요' : 'Not helpful'}
               aria-label={lang === 'ko' ? '아쉬워요' : 'Not helpful'}
             >
-              👎
+              {'\u{1F44E}'}
             </button>
           </div>
         )}
       </div>
+
       {!isAssistant && (
         <div className={s.avatar}>
-          <span className={s.avatarIcon}>👤</span>
+          <span className={s.avatarIcon}>{'\u{1F464}'}</span>
         </div>
       )}
     </div>

@@ -1,56 +1,133 @@
 # Destiny Matrix
 
+Last audited: 2026-03-17 (Asia/Hong_Kong)
+
 ## What It Is
 
-Destiny Matrix is a deterministic, structured profile/scoring engine implemented in `src/lib/destiny-matrix`.
+The destiny engine in `src/lib/destiny-matrix` is no longer just a 10-layer matrix scorer. The current runtime is a deterministic judgment engine with explicit evidence, rule, scenario, verdict, and evaluation zones.
 
-Characteristics:
+Current runtime shape:
 
-- 10-layer matrix model
-- fixed interaction scoring levels
-- computed highlights and synergies
-- deterministic output for same input payload
+- `Raw Input -> Feature -> Rule -> Pattern -> Scenario -> Verdict -> Evaluation`
 
-API metadata in `src/app/api/destiny-matrix/route.ts` reports total matrix scope (`totalCells: 1206`).
+Current role split:
 
-## Main Routes
+- Core: judgment
+- GraphRAG: evidence alignment and grounding
+- Calendar / Counselor / Report: presentation
 
-- Canonical page: `/destiny-map/matrix`
-- Redirect safety: `/destiny-matrix` -> `/destiny-map/matrix` (`src/app/destiny-matrix/page.tsx`)
-- Compute API: `POST /api/destiny-matrix`
+## Core Pipeline
 
-## Integration Points
+Primary entrypoint:
 
-### Counselor output
+- `src/lib/destiny-matrix/core/runDestinyCore.ts`
 
-`src/app/api/destiny-map/chat-stream/route.ts` fetches matrix data and injects a short `Matrix snapshot` section before the usual saju/astro/cross narrative.
+Major zones:
 
-Included fields:
+### Feature
 
-- total score
-- top layers
-- highlights
-- synergies
+- `src/lib/destiny-matrix/core/tokenCompiler.ts`
+- `src/lib/destiny-matrix/core/ontology.ts`
+- 10-layer matrix inputs and summary from `src/lib/destiny-matrix/types.ts`
 
-### 10-page PDF
+Feature compiles raw saju/astrology/cross inputs into shared semantic tokens and preserves the 10-layer matrix as evidence.
 
-`scripts/generate_life_report_pdf.py` fetches matrix summary from `/api/destiny-matrix` and stores it as `destiny_matrix_summary` in payload.  
-`backend_ai/reporting/saju_astro_life_report.py` renders:
+### Rule
 
-- Matrix snapshot text block
-- Matrix layer bar chart image (`matrix_layers.png`)
+- `src/lib/destiny-matrix/core/activationEngine.ts`
+- `src/lib/destiny-matrix/core/ruleEngine.ts`
+- `src/lib/destiny-matrix/core/stateEngine.ts`
 
-## Analytics Events
+Rule resolves natal structure, daeun/saeun/wolun/iljin, transits, advanced astrology, and domain state into activation pressure, gates, delays, and domain state.
 
-Defined in `src/components/analytics/GoogleAnalytics.tsx`:
+### Pattern
 
-- `matrix_view`
-- `matrix_generate`
-- `matrix_pdf_download`
+- `src/lib/destiny-matrix/core/signalSynthesizer.ts`
+- `src/lib/destiny-matrix/core/patternEngine.ts`
 
-Current UI page tracks `matrix_view` and `matrix_generate` from `src/app/destiny-map/matrix/page.tsx`.
+Pattern no longer reads raw matrix alone. It now reflects activation, resolved rule mode, state, and cross-agreement.
+
+### Scenario
+
+- `src/lib/destiny-matrix/core/scenarioEngine.ts`
+- `src/lib/destiny-matrix/core/manifestationEngine.ts`
+
+Scenario is event-oriented. It now handles detailed branches across:
+
+- relationship
+- career
+- wealth
+- health
+- move
+- timing
+
+It produces `whyNow`, `whyNotYet`, entry conditions, abort conditions, manifestation hints, and branch-specific timing pressure.
+
+### Verdict
+
+- `src/lib/destiny-matrix/core/decisionEngine.ts`
+- `src/lib/destiny-matrix/core/canonical.ts`
+- `src/lib/destiny-matrix/core/adapters.ts`
+
+Decision now supports more than simple commit/prepare. Current action space includes review-first, boundary-first, pilot-first, and move-specific actions such as route recheck and lease review.
+
+Canonical output is the contract that services should trust.
+
+### Evaluation
+
+- `src/lib/destiny-matrix/core/evaluationSuite.ts`
+- `src/lib/destiny-matrix/core/inputVerdictAudit.ts`
+- `src/lib/destiny-matrix/core/nextGenPipeline.ts`
+
+Evaluation provides:
+
+- architecture replay and contradiction checks
+- influence audit
+- input coverage vs verdict-pressure audit
+- timing sharpness and scenario compression metrics
+
+## Current Service Wiring
+
+### Calendar
+
+- Core adapter: `adaptCoreToCalendar(...)`
+- Main route: `src/app/api/calendar/route.ts`
+- Action plan route: `src/app/api/calendar/action-plan/route.ts`
+
+Calendar now prefers canonical labels and judgment policy fields over legacy score-first summaries.
+
+### Counselor
+
+- Core adapter: `adaptCoreToCounselor(...)`
+- Evidence packet: `src/lib/destiny-matrix/counselorEvidence.ts`
+- Route: `src/app/api/destiny-map/chat-stream/route.ts`
+
+Counselor prompt assembly is now core-first. Canonical brief, advisory, timing window, manifestation, and GraphRAG evidence are aligned around the same focus domain.
+
+### Report
+
+- Core adapter: `adaptCoreToReport(...)`
+- Main generator: `src/lib/destiny-matrix/ai-report/aiReportService.ts`
+
+Report now uses `reportCore` first for fact packs, fallback sections, and action-plan wording. GraphRAG remains evidence support, not the decision source.
+
+## Current QA Baseline
+
+The current green baseline for the destiny stack is:
+
+- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`
+  - `PASS=10 WARN=0 FAIL=0`
+- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`
+  - `PASS=42 WARN=0 FAIL=0`
+- Core quality:
+  - `core_quality_warning_count=0`
+  - `core_quality_pass=1`
 
 ## Operational Notes
 
-- Matrix API is part of the web app runtime; reporting scripts that call matrix endpoint require Next.js server availability.
-- Keep route redirect in place to prevent dead links from legacy `/destiny-matrix` URLs.
+- The old 10-layer matrix still matters, but it is now the evidence layer, not the whole engine.
+- The current debugging path is:
+  - `runDestinyCore(...)` for judgment
+  - `buildNextGenCorePipeline(...)` for audit and explanation
+  - `scripts/ops/trace-destinypal-pipeline.ts` for end-to-end tracing
+- Service regressions should be checked with the dedicated destiny QA scripts before release.

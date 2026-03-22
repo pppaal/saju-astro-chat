@@ -13,6 +13,82 @@ import type { AspectType, ZodiacKo } from '../astrology/foundation/types'
 // Re-export types for use in other modules
 export type { TwelveStage, ZodiacKo, AspectType }
 
+export interface SajuSnapshot {
+  source?: string
+  birthDate?: string
+  birthTime?: string
+  timezone?: string
+  dayMaster?: unknown
+  pillars?: unknown
+  fiveElements?: unknown
+  daeWoon?: unknown
+  unse?: unknown
+  sinsal?: unknown
+  advancedAnalysis?: unknown
+  facts?: unknown
+  derivedAt?: string
+  [key: string]: unknown
+}
+
+export interface AstrologySnapshot {
+  natalChart?: unknown
+  natalAspects?: unknown
+  currentTransits?: {
+    asOfIso?: string
+    majorTransits?: unknown
+    [key: string]: unknown
+  }
+  transits?: unknown
+  progressions?: unknown
+  returns?: {
+    solarReturn?: unknown
+    lunarReturn?: unknown
+    [key: string]: unknown
+  }
+  advanced?: {
+    draconic?: unknown
+    harmonics?: unknown
+    fixedStars?: unknown
+    eclipses?: unknown
+    midpoints?: unknown
+    [key: string]: unknown
+  }
+  advancedCoverage?: unknown
+  [key: string]: unknown
+}
+
+export interface CrossSnapshot {
+  source?: string
+  theme?: string | null
+  category?: string | null
+  currentDateIso?: string
+  astroTimingIndex?: AstroTimingIndex
+  crossAgreement?: number
+  crossEvidence?: unknown
+  domainScores?: Record<string, unknown>
+  anchors?: {
+    dayMasterElement?: string
+    geokguk?: string
+    yongsin?: string
+    currentDaeunElement?: string
+    currentSaeunElement?: string
+    currentWolunElement?: string
+    currentIljinElement?: string
+    currentIljinDate?: string
+    [key: string]: unknown
+  }
+  coverage?: {
+    relationCount?: number
+    aspectCount?: number
+    domainScoreCount?: number
+    hasAstrologySnapshot?: boolean
+    hasSajuSnapshot?: boolean
+    [key: string]: unknown
+  }
+  derivedAt?: string
+  [key: string]: unknown
+}
+
 // ===========================
 // Core Types
 // ===========================
@@ -438,9 +514,9 @@ export interface MatrixCalculationInput {
   extraPointSigns?: Partial<Record<ExtraPointName, ZodiacKo>>
 
   // Full raw snapshots for complete downstream grounding
-  sajuSnapshot?: Record<string, unknown>
-  astrologySnapshot?: Record<string, unknown>
-  crossSnapshot?: Record<string, unknown>
+  sajuSnapshot?: SajuSnapshot
+  astrologySnapshot?: AstrologySnapshot
+  crossSnapshot?: CrossSnapshot
   advancedAstroSignals?: Partial<
     Record<
       | 'solarReturn'

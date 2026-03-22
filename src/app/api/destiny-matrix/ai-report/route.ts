@@ -13,7 +13,14 @@ import {
   ErrorCodes,
   wrapError,
 } from '@/lib/destiny-matrix'
-import type { MatrixCalculationInput, InsightDomain, MatrixCell } from '@/lib/destiny-matrix'
+import type {
+  MatrixCalculationInput,
+  InsightDomain,
+  MatrixCell,
+  SajuSnapshot,
+  CrossSnapshot,
+  AstrologySnapshot,
+} from '@/lib/destiny-matrix'
 import { buildCoreEnvelope } from '@/lib/destiny-matrix/core'
 import {
   generateAIPremiumReport,
@@ -516,7 +523,7 @@ function parseYearFromBirthDate(birthDate?: string): number | undefined {
 function buildDerivedSajuSnapshot(
   requestBody: Record<string, unknown>,
   sajuData: ReturnType<typeof calculateSajuData>
-): Record<string, unknown> {
+): SajuSnapshot {
   return {
     source: 'auto-derived-from-birth',
     birthDate: toOptionalString(requestBody.birthDate),
@@ -531,7 +538,7 @@ function buildDerivedSajuSnapshot(
   }
 }
 
-function buildDerivedCrossSnapshot(requestBody: Record<string, unknown>): Record<string, unknown> {
+function buildDerivedCrossSnapshot(requestBody: Record<string, unknown>): CrossSnapshot {
   const relationCount = Array.isArray(requestBody.relations) ? requestBody.relations.length : 0
   const aspectCount = Array.isArray(requestBody.aspects) ? requestBody.aspects.length : 0
   const domainScoreMap =
@@ -941,7 +948,7 @@ async function enrichRequestWithDerivedAstrology(
           activations: midpointActivations,
         },
       },
-    }
+    } satisfies AstrologySnapshot
     if (!requestBody.planetSigns || typeof requestBody.planetSigns !== 'object') {
       requestBody.planetSigns = planetSigns
     }
@@ -1539,13 +1546,13 @@ function buildRichFreeDigestReport(baseReport: {
 
   const freePreviewSectionsByKey: Partial<Record<FreePreviewSectionKey, { title: string; content: string }>> = {
     summary: {
-      title: baseReport.lang === 'ko' ? 'ìš”ì•½' : 'Summary',
+      title: baseReport.lang === 'ko' ? '요약' : 'Summary',
       content: expressiveSummary,
     },
     insights:
       topInsights.length > 0
         ? {
-            title: baseReport.lang === 'ko' ? 'í•µì‹¬ ì¸ì‚¬ì´íŠ¸' : 'Top Insights',
+            title: baseReport.lang === 'ko' ? '핵심 인사이트' : 'Top Insights',
             content: topInsights
               .map((item) => `${item.title}: ${item.reason} ${item.action}`.trim())
               .join(' '),
@@ -1554,7 +1561,7 @@ function buildRichFreeDigestReport(baseReport: {
     focus:
       focusAreas.length > 0
         ? {
-            title: baseReport.lang === 'ko' ? 'ì§‘ì¤‘ ì˜ì—­' : 'Focus Areas',
+            title: baseReport.lang === 'ko' ? '집중 영역' : 'Focus Areas',
             content: focusAreas
               .map(
                 (item) =>
@@ -1566,12 +1573,12 @@ function buildRichFreeDigestReport(baseReport: {
     cautions:
       caution.length > 0
         ? {
-            title: baseReport.lang === 'ko' ? 'ì£¼ì˜ í¬ì¸íŠ¸' : 'Cautions',
+            title: baseReport.lang === 'ko' ? '주의 포인트' : 'Cautions',
             content: caution.join(' '),
           }
         : undefined,
     nextSteps: {
-      title: baseReport.lang === 'ko' ? 'ë‹¤ìŒ ë‹¨ê³„' : 'Next Steps',
+      title: baseReport.lang === 'ko' ? '다음 단계' : 'Next Steps',
       content: expressiveNextSteps.join(' '),
     },
   }
@@ -2008,10 +2015,21 @@ export const POST = withApiMiddleware(
       let aiReport: AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
       let premiumReport: AIPremiumReport | null = null
       const reportLang = normalizedMatrixInput.lang || 'ko'
+      const reportMode = resolveGeneratedReportMode(period, theme)
       const matrixSummaryForGeneration =
         matrix && typeof matrix === 'object' && 'summary' in matrix
           ? (matrix.summary as typeof matrix.summary)
           : undefined
+
+      logger.info('[destiny-matrix/ai-report] Starting premium report generation', {
+        reportMode,
+        theme: theme || null,
+        period: period || null,
+        lang: reportLang,
+        userPlan,
+        deterministicProfile: deterministicProfile || null,
+        hasUserQuestion: typeof userQuestion === 'string' && userQuestion.trim().length > 0,
+      })
 
       if (theme) {
         // 테마 리포트
@@ -2117,6 +2135,16 @@ export const POST = withApiMiddleware(
         aiReport = premiumReport
       }
 
+      logger.info('[destiny-matrix/ai-report] Report generation completed', {
+        reportMode,
+        theme: theme || null,
+        period: period || null,
+        metaModel:
+          typeof (aiReport as { meta?: { modelUsed?: string } })?.meta?.modelUsed === 'string'
+            ? (aiReport as { meta?: { modelUsed?: string } }).meta?.modelUsed
+            : null,
+      })
+
       const regenerateStrictReport = async (): Promise<{
         aiReport: AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
         premiumReport: AIPremiumReport | null
@@ -2217,7 +2245,6 @@ export const POST = withApiMiddleware(
         }
       }
 
-      const reportMode = resolveGeneratedReportMode(period, theme)
       let crossConsistencyAudit = auditCrossConsistency({
         mode: reportMode,
         matrixInput,
@@ -2353,19 +2380,45 @@ export const POST = withApiMiddleware(
       const overallScore = extractOverallScore(aiReportWithAudits)
       const destinyMatrixEvidenceSummary = summarizeDestinyMatrixEvidence(baseReport)
 
-      const savedReport = await prisma.destinyMatrixReport.create({
-        data: {
-          userId,
+      logger.info('[destiny-matrix/ai-report] Persisting generated report', {
+        reportMode,
+        reportType,
+        theme: theme || null,
+        period: period || null,
+        overallScore,
+      })
+      let savedReport
+      try {
+        savedReport = await prisma.destinyMatrixReport.create({
+          data: {
+            userId,
+            reportType,
+            period: period || null,
+            theme: theme || null,
+            reportData: aiReportWithAudits as object,
+            title: reportTitle,
+            summary: reportSummary,
+            overallScore,
+            grade: scoreToGrade(overallScore),
+            locale: normalizedMatrixInput.lang || 'ko',
+          },
+        })
+      } catch (persistError) {
+        logger.error('[destiny-matrix/ai-report] Failed to persist generated report', {
+          reportMode,
           reportType,
-          period: period || null,
           theme: theme || null,
-          reportData: aiReportWithAudits as object,
-          title: reportTitle,
-          summary: reportSummary,
-          overallScore,
-          grade: scoreToGrade(overallScore),
-          locale: normalizedMatrixInput.lang || 'ko',
-        },
+          period: period || null,
+          message: persistError instanceof Error ? persistError.message : String(persistError),
+          name: persistError instanceof Error ? persistError.name : 'Unknown',
+        })
+        throw persistError
+      }
+
+      logger.info('[destiny-matrix/ai-report] Report persisted successfully', {
+        reportId: savedReport.id,
+        reportMode,
+        reportType,
       })
 
       // 13. PDF 형식 요청인 경우 (종합 리포트만 지원, Pro 이상)
@@ -2436,6 +2489,8 @@ export const POST = withApiMiddleware(
       logger.error('AI Report Generation Error:', {
         message: rawErrorMessage,
         name: error instanceof Error ? error.name : 'Unknown',
+        hasOpenAIKey: !!process.env.OPENAI_API_KEY,
+        hasReplicateKey: !!process.env.REPLICATE_API_KEY,
       })
 
       // AI 프로바이더 관련 에러는 사용자에게 친절한 메시지로 변환
@@ -2462,6 +2517,43 @@ export const POST = withApiMiddleware(
             error: {
               code: 'AI_SERVICE_ERROR',
               message: 'AI 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
+            },
+          },
+          { status: HTTP_STATUS.SERVER_ERROR }
+        )
+      }
+
+      if (
+        rawErrorMessage.includes('No JSON found in AI response') ||
+        rawErrorMessage.includes('AI response JSON is malformed') ||
+        rawErrorMessage.includes('AI response is empty')
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'AI_RESPONSE_INVALID',
+              message:
+                'AI 응답 형식이 깨져 리포트 생성에 실패했습니다. 모델 설정이나 토큰 한도를 점검해 주세요.',
+            },
+          },
+          { status: HTTP_STATUS.SERVER_ERROR }
+        )
+      }
+
+      if (
+        rawErrorMessage.includes('prisma') ||
+        rawErrorMessage.includes('Prisma') ||
+        rawErrorMessage.includes('DATABASE_URL') ||
+        rawErrorMessage.includes('destinyMatrixReport')
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'REPORT_PERSIST_FAILED',
+              message:
+                '리포트 저장 단계에서 실패했습니다. 배포 DB 연결이나 마이그레이션 상태를 확인해 주세요.',
             },
           },
           { status: HTTP_STATUS.SERVER_ERROR }

@@ -308,6 +308,13 @@ export function useCounselorData(sp: SearchParams) {
     const prefetchRAG = async () => {
       try {
         const backendUrl = getPublicBackendUrl()
+        if (typeof window !== 'undefined') {
+          const backendOrigin = new URL(backendUrl, window.location.origin).origin
+          if (backendOrigin !== window.location.origin) {
+            setPrefetchStatus({ done: true })
+            return
+          }
+        }
         const res = await fetch(`${backendUrl}/counselor/init`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

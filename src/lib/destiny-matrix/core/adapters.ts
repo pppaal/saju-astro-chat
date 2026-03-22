@@ -2,6 +2,13 @@ import type { DestinyCoreResult } from './runDestinyCore'
 import type { SignalDomain } from './signalSynthesizer'
 import { formatDecisionActionLabels, formatPolicyCheckLabels } from './actionCopy'
 
+type AdapterProvenance = {
+  sourceFields: string[]
+  sourceSignalIds: string[]
+  sourceRuleIds: string[]
+  sourceSetIds: string[]
+}
+
 export interface CalendarCoreAdapterResult {
   coreHash: string
   gradeLabel: string
@@ -18,6 +25,7 @@ export interface CalendarCoreAdapterResult {
   primaryAction: string
   primaryCaution: string
   claimIds: string[]
+  claimProvenanceById: Record<string, AdapterProvenance>
   cautionIds: string[]
   topSignalIds: string[]
   topPatternIds: string[]
@@ -50,6 +58,7 @@ export interface CalendarCoreAdapterResult {
     blockedActionLabels: string[]
     rationale: string
     evidenceIds: string[]
+    provenance: AdapterProvenance
   }>
   coherenceAudit: {
     verificationBias: boolean
@@ -69,16 +78,25 @@ export interface CalendarCoreAdapterResult {
     leadSignalIds: string[]
     leadPatternIds: string[]
     leadScenarioIds: string[]
+    provenance: AdapterProvenance
   }>
   domainTimingWindows: Array<{
     domain: SignalDomain
     window: 'now' | '1-3m' | '3-6m' | '6-12m' | '12m+'
     confidence: number
     timingRelevance: number
+    timingGranularity: 'day' | 'week' | 'fortnight' | 'month' | 'season'
+    precisionReason: string
+    timingConflictMode: 'aligned' | 'readiness_ahead' | 'trigger_ahead' | 'weak_both'
+    timingConflictNarrative: string
+    readinessScore: number
+    triggerScore: number
+    convergenceScore: number
     whyNow: string
     entryConditions: string[]
     abortConditions: string[]
     evidenceIds: string[]
+    provenance: AdapterProvenance
   }>
   manifestations: Array<{
     domain: SignalDomain
@@ -96,6 +114,7 @@ export interface CalendarCoreAdapterResult {
       evidenceIds: string[]
     }>
     evidenceIds: string[]
+    provenance: AdapterProvenance
   }>
 }
 
@@ -112,6 +131,7 @@ export interface CounselorCoreAdapterResult {
   timingHint: string
   topClaimId: string | null
   claimIds: string[]
+  claimProvenanceById: Record<string, AdapterProvenance>
   topSignalIds: string[]
   topScenarioIds: string[]
   topDecisionId: string | null
@@ -142,6 +162,7 @@ export interface CounselorCoreAdapterResult {
     blockedActionLabels: string[]
     rationale: string
     evidenceIds: string[]
+    provenance: AdapterProvenance
   }>
   coherenceAudit: {
     verificationBias: boolean
@@ -160,16 +181,25 @@ export interface CounselorCoreAdapterResult {
     leadSignalIds: string[]
     leadPatternIds: string[]
     leadScenarioIds: string[]
+    provenance: AdapterProvenance
   }>
   domainTimingWindows: Array<{
     domain: SignalDomain
     window: 'now' | '1-3m' | '3-6m' | '6-12m' | '12m+'
     confidence: number
     timingRelevance: number
+    timingGranularity: 'day' | 'week' | 'fortnight' | 'month' | 'season'
+    precisionReason: string
+    timingConflictMode: 'aligned' | 'readiness_ahead' | 'trigger_ahead' | 'weak_both'
+    timingConflictNarrative: string
+    readinessScore: number
+    triggerScore: number
+    convergenceScore: number
     whyNow: string
     entryConditions: string[]
     abortConditions: string[]
     evidenceIds: string[]
+    provenance: AdapterProvenance
   }>
   manifestations: Array<{
     domain: SignalDomain
@@ -187,6 +217,7 @@ export interface CounselorCoreAdapterResult {
       evidenceIds: string[]
     }>
     evidenceIds: string[]
+    provenance: AdapterProvenance
   }>
 }
 
@@ -204,6 +235,7 @@ export interface ReportCoreAdapterResult {
   confidence: number
   crossAgreement: number | null
   claimIds: string[]
+  claimProvenanceById: Record<string, AdapterProvenance>
   evidenceRefs: Record<string, string[]>
   topSignalIds: string[]
   topPatternIds: string[]
@@ -236,6 +268,7 @@ export interface ReportCoreAdapterResult {
     blockedActionLabels: string[]
     rationale: string
     evidenceIds: string[]
+    provenance: AdapterProvenance
   }>
   coherenceAudit: {
     verificationBias: boolean
@@ -256,16 +289,25 @@ export interface ReportCoreAdapterResult {
     leadPatternIds: string[]
     leadScenarioIds: string[]
     evidenceIds: string[]
+    provenance: AdapterProvenance
   }>
   domainTimingWindows: Array<{
     domain: SignalDomain
     window: 'now' | '1-3m' | '3-6m' | '6-12m' | '12m+'
     confidence: number
     timingRelevance: number
+    timingGranularity: 'day' | 'week' | 'fortnight' | 'month' | 'season'
+    precisionReason: string
+    timingConflictMode: 'aligned' | 'readiness_ahead' | 'trigger_ahead' | 'weak_both'
+    timingConflictNarrative: string
+    readinessScore: number
+    triggerScore: number
+    convergenceScore: number
     whyNow: string
     entryConditions: string[]
     abortConditions: string[]
     evidenceIds: string[]
+    provenance: AdapterProvenance
   }>
   manifestations: Array<{
     domain: SignalDomain
@@ -283,6 +325,7 @@ export interface ReportCoreAdapterResult {
       evidenceIds: string[]
     }>
     evidenceIds: string[]
+    provenance: AdapterProvenance
   }>
 }
 
@@ -376,6 +419,12 @@ export function adaptCoreToCalendar(
     primaryAction: core.canonical.primaryAction,
     primaryCaution: core.canonical.primaryCaution,
     claimIds: [...core.canonical.claimIds],
+    claimProvenanceById: Object.fromEntries(
+      Object.entries(core.canonical.claimProvenanceById || {}).map(([id, provenance]) => [
+        id,
+        { ...provenance },
+      ])
+    ),
     cautionIds: [...core.canonical.cautions],
     topSignalIds: [...core.canonical.topSignalIds],
     topPatternIds: core.canonical.topPatterns.map((pattern) => pattern.id),
@@ -408,6 +457,7 @@ export function adaptCoreToCalendar(
       blockedActionLabels: getBlockedActionLabels(item.blockedActions, locale),
       rationale: item.rationale,
       evidenceIds: [...item.evidenceIds],
+      provenance: { ...item.provenance },
     })),
     coherenceAudit: {
       verificationBias: core.canonical.coherenceAudit.verificationBias,
@@ -427,16 +477,25 @@ export function adaptCoreToCalendar(
       leadSignalIds: [...item.leadSignalIds],
       leadPatternIds: [...item.leadPatternIds],
       leadScenarioIds: [...item.leadScenarioIds],
+      provenance: { ...item.provenance },
     })),
     domainTimingWindows: core.canonical.domainTimingWindows.map((item) => ({
       domain: item.domain,
       window: item.window,
       confidence: item.confidence,
       timingRelevance: item.timingRelevance,
+      timingGranularity: item.timingGranularity,
+      precisionReason: item.precisionReason,
+      timingConflictMode: item.timingConflictMode,
+      timingConflictNarrative: item.timingConflictNarrative,
+      readinessScore: item.readinessScore,
+      triggerScore: item.triggerScore,
+      convergenceScore: item.convergenceScore,
       whyNow: item.whyNow,
       entryConditions: [...item.entryConditions],
       abortConditions: [...item.abortConditions],
       evidenceIds: [...item.evidenceIds],
+      provenance: { ...item.provenance },
     })),
     manifestations: core.canonical.manifestations.map((item) => ({
       domain: item.domain,
@@ -454,6 +513,7 @@ export function adaptCoreToCalendar(
         evidenceIds: [...source.evidenceIds],
       })),
       evidenceIds: [...item.evidenceIds],
+      provenance: { ...item.provenance },
     })),
   }
 }
@@ -475,6 +535,12 @@ export function adaptCoreToCounselor(
     timingHint: getTimingHint(core),
     topClaimId: core.canonical.topClaimId,
     claimIds: [...core.canonical.claimIds],
+    claimProvenanceById: Object.fromEntries(
+      Object.entries(core.canonical.claimProvenanceById || {}).map(([id, provenance]) => [
+        id,
+        { ...provenance },
+      ])
+    ),
     topSignalIds: [...core.canonical.topSignalIds],
     topScenarioIds: core.canonical.topScenarios.map((scenario) => scenario.id),
     topDecisionId: core.canonical.topDecision?.id || null,
@@ -505,6 +571,7 @@ export function adaptCoreToCounselor(
       blockedActionLabels: getBlockedActionLabels(item.blockedActions, locale),
       rationale: item.rationale,
       evidenceIds: [...item.evidenceIds],
+      provenance: { ...item.provenance },
     })),
     coherenceAudit: {
       verificationBias: core.canonical.coherenceAudit.verificationBias,
@@ -523,16 +590,25 @@ export function adaptCoreToCounselor(
       leadSignalIds: [...item.leadSignalIds],
       leadPatternIds: [...item.leadPatternIds],
       leadScenarioIds: [...item.leadScenarioIds],
+      provenance: { ...item.provenance },
     })),
     domainTimingWindows: core.canonical.domainTimingWindows.map((item) => ({
       domain: item.domain,
       window: item.window,
       confidence: item.confidence,
       timingRelevance: item.timingRelevance,
+      timingGranularity: item.timingGranularity,
+      precisionReason: item.precisionReason,
+      timingConflictMode: item.timingConflictMode,
+      timingConflictNarrative: item.timingConflictNarrative,
+      readinessScore: item.readinessScore,
+      triggerScore: item.triggerScore,
+      convergenceScore: item.convergenceScore,
       whyNow: item.whyNow,
       entryConditions: [...item.entryConditions],
       abortConditions: [...item.abortConditions],
       evidenceIds: [...item.evidenceIds],
+      provenance: { ...item.provenance },
     })),
     manifestations: core.canonical.manifestations.map((item) => ({
       domain: item.domain,
@@ -550,6 +626,7 @@ export function adaptCoreToCounselor(
         evidenceIds: [...source.evidenceIds],
       })),
       evidenceIds: [...item.evidenceIds],
+      provenance: { ...item.provenance },
     })),
   }
 }
@@ -572,6 +649,12 @@ export function adaptCoreToReport(
     confidence: core.canonical.confidence,
     crossAgreement: core.canonical.crossAgreement,
     claimIds: [...core.canonical.claimIds],
+    claimProvenanceById: Object.fromEntries(
+      Object.entries(core.canonical.claimProvenanceById || {}).map(([id, provenance]) => [
+        id,
+        { ...provenance },
+      ])
+    ),
     evidenceRefs: { ...core.canonical.evidenceRefs },
     topSignalIds: [...core.canonical.topSignalIds],
     topPatternIds: core.canonical.topPatterns.map((pattern) => pattern.id),
@@ -604,6 +687,7 @@ export function adaptCoreToReport(
       blockedActionLabels: getBlockedActionLabels(item.blockedActions, locale),
       rationale: item.rationale,
       evidenceIds: [...item.evidenceIds],
+      provenance: { ...item.provenance },
     })),
     coherenceAudit: {
       verificationBias: core.canonical.coherenceAudit.verificationBias,
@@ -624,16 +708,25 @@ export function adaptCoreToReport(
       leadPatternIds: [...item.leadPatternIds],
       leadScenarioIds: [...item.leadScenarioIds],
       evidenceIds: [...item.evidenceIds],
+      provenance: { ...item.provenance },
     })),
     domainTimingWindows: core.canonical.domainTimingWindows.map((item) => ({
       domain: item.domain,
       window: item.window,
       confidence: item.confidence,
       timingRelevance: item.timingRelevance,
+      timingGranularity: item.timingGranularity,
+      precisionReason: item.precisionReason,
+      timingConflictMode: item.timingConflictMode,
+      timingConflictNarrative: item.timingConflictNarrative,
+      readinessScore: item.readinessScore,
+      triggerScore: item.triggerScore,
+      convergenceScore: item.convergenceScore,
       whyNow: item.whyNow,
       entryConditions: [...item.entryConditions],
       abortConditions: [...item.abortConditions],
       evidenceIds: [...item.evidenceIds],
+      provenance: { ...item.provenance },
     })),
     manifestations: core.canonical.manifestations.map((item) => ({
       domain: item.domain,
@@ -651,6 +744,7 @@ export function adaptCoreToReport(
         evidenceIds: [...source.evidenceIds],
       })),
       evidenceIds: [...item.evidenceIds],
+      provenance: { ...item.provenance },
     })),
   }
 }

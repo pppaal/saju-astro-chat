@@ -38,7 +38,7 @@ export interface TarotQuestionAnalysisResult {
   intent_label?: string
   recommended_spreads?: RecommendedSpreadOption[]
   path: string
-  source?: 'pattern' | 'llm' | 'fallback'
+  source?: 'pattern' | 'llm' | 'heuristic' | 'fallback'
   fallback_reason?: string | null
 }
 
@@ -89,6 +89,7 @@ export function getQuestionIntent(
   const toneCode = profile?.tone?.code
 
   if (
+    typeCode === 'broad_flow' ||
     toneCode === 'flow' ||
     timeframeCode === 'current_phase' ||
     subjectCode === 'overall_flow'
@@ -96,7 +97,15 @@ export function getQuestionIntent(
     return 'flow'
   }
 
-  if (typeCode === 'decision' || typeCode === 'other_response') {
+  if (
+    typeCode === 'decision' ||
+    typeCode === 'other_response' ||
+    typeCode === 'self_decision' ||
+    typeCode === 'other_person_response' ||
+    typeCode === 'meeting_likelihood' ||
+    typeCode === 'near_term_outcome' ||
+    typeCode === 'timing'
+  ) {
     return 'yesNo'
   }
 
@@ -112,11 +121,13 @@ export function resolveStableTarotEntry(
   analysis?: TarotQuestionAnalysisSnapshot | null
 ): StableEntry {
   const profile = analysis?.question_profile
+  const typeCode = profile?.type?.code
   const subjectCode = profile?.subject?.code
   const timeframeCode = profile?.timeframe?.code
   const toneCode = profile?.tone?.code
 
   if (
+    typeCode === 'broad_flow' ||
     timeframeCode === 'current_phase' ||
     toneCode === 'flow' ||
     subjectCode === 'overall_flow'

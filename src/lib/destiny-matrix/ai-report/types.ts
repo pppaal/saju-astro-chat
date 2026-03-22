@@ -353,6 +353,9 @@ export interface TimingAIPremiumReport {
       coreQualityScore?: number
       coreQualityGrade?: 'A' | 'B' | 'C' | 'D'
       coreQualityWarningCount?: number
+      coreQualityWarnings?: string[]
+      coreQualityBlockingWarningCount?: number
+      coreQualityBlockingWarnings?: string[]
       coreQualityPass?: boolean
       sectionCompletenessRate?: number
       avgEvidencePerParagraph?: number
@@ -463,6 +466,9 @@ export interface ThemedAIPremiumReport {
       coreQualityScore?: number
       coreQualityGrade?: 'A' | 'B' | 'C' | 'D'
       coreQualityWarningCount?: number
+      coreQualityWarnings?: string[]
+      coreQualityBlockingWarningCount?: number
+      coreQualityBlockingWarnings?: string[]
       coreQualityPass?: boolean
       sectionCompletenessRate?: number
       avgEvidencePerParagraph?: number

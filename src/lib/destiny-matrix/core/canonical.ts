@@ -11,11 +11,19 @@ import type {
   CoreJudgmentPolicy,
   CoreLayerScore,
   CorePatternLead,
+  CoreProvenance,
   CoreScenarioLead,
   CoreTimelineHit,
   DestinyCoreCanonicalOutput,
 } from './types'
 import { buildDomainManifestations } from './manifestationEngine'
+import {
+  buildCoherenceNote,
+  buildJudgmentPolicy,
+  DOMAIN_ARBITRATION_RULES,
+  downgradeMode,
+  uniqueActions,
+} from './canonicalPolicy'
 
 const ACTIONABLE_DOMAINS = ['career', 'relationship', 'wealth', 'health', 'move'] as const
 
@@ -32,6 +40,58 @@ function clamp(value: number, min: number, max: number): number {
 
 function round2(value: number): number {
   return Math.round(value * 100) / 100
+}
+
+function resolveTimingConflictProfile(input: {
+  lang: 'ko' | 'en'
+  readinessScore: number
+  triggerScore: number
+  convergenceScore: number
+  domain: string
+}): {
+  timingConflictMode: 'aligned' | 'readiness_ahead' | 'trigger_ahead' | 'weak_both'
+  timingConflictNarrative: string
+} {
+  const gap = input.readinessScore - input.triggerScore
+  const domainLabel = input.domain
+
+  if (input.readinessScore < 0.32 && input.triggerScore < 0.32) {
+    return {
+      timingConflictMode: 'weak_both',
+      timingConflictNarrative:
+        input.lang === 'ko'
+          ? `${domainLabel}은 구조 지지와 촉발 신호가 모두 약해, 사건을 좁혀 보기보다 판이 살아나는지부터 관찰하는 편이 맞습니다.`
+          : `${domainLabel} has weak structural support and weak triggering pressure, so the right move is to watch for activation before narrowing the timeline.`,
+    }
+  }
+
+  if (gap >= 0.18) {
+    return {
+      timingConflictMode: 'readiness_ahead',
+      timingConflictNarrative:
+        input.lang === 'ko'
+          ? `${domainLabel}은 구조 지지는 먼저 열려 있지만 촉발 신호가 아직 좁지 않아, 지금은 실행보다 준비와 검토가 더 맞습니다.`
+          : `${domainLabel} has structural readiness before a clean trigger, so preparation and staged review fit better than immediate execution.`,
+    }
+  }
+
+  if (gap <= -0.18) {
+    return {
+      timingConflictMode: 'trigger_ahead',
+      timingConflictNarrative:
+        input.lang === 'ko'
+          ? `${domainLabel}은 촉발은 강하지만 구조 지지가 뒤따르지 않아, 사건성은 있어도 지속성은 약할 수 있습니다.`
+          : `${domainLabel} has a live trigger before full structural support, so event pressure may be real while long-term sustainability stays weaker.`,
+    }
+  }
+
+  return {
+    timingConflictMode: 'aligned',
+    timingConflictNarrative:
+      input.lang === 'ko'
+        ? `${domainLabel}은 구조 지지와 촉발 신호가 비교적 같은 방향으로 맞물려, 준비와 실행 리듬을 함께 잡을 수 있는 구간입니다.`
+        : `${domainLabel} shows structural support and trigger pressure moving in the same direction, so timing can be staged without fighting the underlying trend.`,
+  }
 }
 
 function normalizeToUnit(value: unknown): number | null {
@@ -130,6 +190,24 @@ function buildEvidenceRefs(input: BuildCoreCanonicalOutputInput): Record<string,
   return refs
 }
 
+function buildClaimProvenanceById(
+  input: BuildCoreCanonicalOutputInput
+): Record<string, CoreProvenance> {
+  const out: Record<string, CoreProvenance> = {}
+  for (const claim of input.signalSynthesis.claims || []) {
+    if (!claim.claimId) continue
+    out[claim.claimId] = buildProvenance({
+      canonicalInput: input,
+      domain: claim.domain,
+      evidenceIds: claim.evidence || [],
+      signalIds: claim.evidence || [],
+      ruleIds: [claim.claimId],
+      includeTiming: claim.domain === 'timing',
+    })
+  }
+  return out
+}
+
 function buildCautions(input: BuildCoreCanonicalOutputInput): string[] {
   return (input.signalSynthesis.selectedSignals || [])
     .filter((signal) => signal.polarity === 'caution')
@@ -150,6 +228,77 @@ function buildTimingHintByDomain(
 
   const overlapMonth = (input.matrixSummary?.overlapTimeline || [])[0]?.month
   return overlapMonth || 'now'
+}
+
+function buildSourceFields(input: BuildCoreCanonicalOutputInput, domain: string, includeTiming = false): string[] {
+  const fields = new Set<string>()
+  const add = (condition: boolean, field: string) => {
+    if (condition) fields.add(field)
+  }
+
+  add(Boolean(input.matrixInput?.dayMasterElement), 'dayMasterElement')
+  add(Boolean(input.matrixInput?.pillarElements?.length), 'pillarElements')
+  add(Boolean(input.matrixInput?.sibsinDistribution && Object.keys(input.matrixInput.sibsinDistribution).length), 'sibsinDistribution')
+  add(Boolean(input.matrixInput?.relations?.length), 'relations')
+  add(Boolean(input.matrixInput?.geokguk), 'geokguk')
+  add(Boolean(input.matrixInput?.yongsin), 'yongsin')
+  add(Boolean(input.matrixInput?.planetSigns && Object.keys(input.matrixInput.planetSigns).length), 'planetSigns')
+  add(Boolean(input.matrixInput?.planetHouses && Object.keys(input.matrixInput.planetHouses).length), 'planetHouses')
+  add(Boolean(input.matrixInput?.aspects?.length), 'aspects')
+  add(Boolean(input.matrixInput?.activeTransits?.length), 'activeTransits')
+  add(Boolean(input.matrixInput?.astroTimingIndex), 'astroTimingIndex')
+  add(Boolean(input.matrixInput?.crossSnapshot?.crossAgreement !== undefined), 'crossSnapshot.crossAgreement')
+  add(Boolean(input.matrixInput?.crossSnapshot?.astroTimingIndex), 'crossSnapshot.astroTimingIndex')
+  add(Boolean(input.matrixInput?.advancedAstroSignals), 'advancedAstroSignals')
+
+  if (includeTiming) {
+    add(Boolean(input.matrixInput?.currentDaeunElement), 'currentDaeunElement')
+    add(Boolean(input.matrixInput?.currentSaeunElement), 'currentSaeunElement')
+    add(Boolean(input.matrixInput?.currentWolunElement), 'currentWolunElement')
+    add(Boolean(input.matrixInput?.currentIljinElement), 'currentIljinElement')
+    add(Boolean(input.matrixInput?.currentIljinDate), 'currentIljinDate')
+  }
+
+  if (domain === 'relationship') {
+    add(Boolean(input.matrixInput?.relations?.length), 'relations')
+    add(Boolean(input.matrixInput?.aspects?.length), 'aspects')
+  } else if (domain === 'career') {
+    add(Boolean(input.matrixInput?.geokguk), 'geokguk')
+    add(Boolean(input.matrixInput?.planetHouses && Object.keys(input.matrixInput.planetHouses).length), 'planetHouses')
+  } else if (domain === 'wealth') {
+    add(Boolean(input.matrixInput?.yongsin), 'yongsin')
+    add(Boolean(input.matrixInput?.aspects?.length), 'aspects')
+  } else if (domain === 'health') {
+    add(Boolean(input.matrixInput?.activeTransits?.length), 'activeTransits')
+    add(Boolean(input.matrixInput?.planetSigns && Object.keys(input.matrixInput.planetSigns).length), 'planetSigns')
+  } else if (domain === 'move') {
+    add(Boolean(input.matrixInput?.activeTransits?.length), 'activeTransits')
+    add(Boolean(input.matrixInput?.planetHouses && Object.keys(input.matrixInput.planetHouses).length), 'planetHouses')
+  }
+
+  return [...fields]
+}
+
+function buildSourceSetIds(evidenceIds: string[]): string[] {
+  return [...new Set(
+    (evidenceIds || []).filter((id) => /(set|anchor|claim|graph|rag)/i.test(String(id)))
+  )].slice(0, 8)
+}
+
+function buildProvenance(input: {
+  canonicalInput: BuildCoreCanonicalOutputInput
+  domain: string
+  evidenceIds: string[]
+  signalIds?: string[]
+  ruleIds?: string[]
+  includeTiming?: boolean
+}): CoreProvenance {
+  return {
+    sourceFields: buildSourceFields(input.canonicalInput, input.domain, input.includeTiming === true),
+    sourceSignalIds: [...new Set(input.signalIds || [])].slice(0, 8),
+    sourceRuleIds: [...new Set(input.ruleIds || [])].slice(0, 8),
+    sourceSetIds: buildSourceSetIds(input.evidenceIds || []),
+  }
 }
 
 function buildDomainLeads(input: BuildCoreCanonicalOutputInput): CoreDomainLead[] {
@@ -257,9 +406,24 @@ function buildTopPatterns(input: BuildCoreCanonicalOutputInput): CorePatternLead
     }))
 }
 
+function isPresentationScenario(scenario: { id: string; branch: string }): boolean {
+  const id = String(scenario.id || '').toLowerCase()
+  const branch = String(scenario.branch || '').toLowerCase()
+  if (!id && !branch) return false
+  const genericPattern =
+    /(hidden|support|defensive|cluster|alt|fallback|generic|background|residual|residue)/
+  return !genericPattern.test(id) && !genericPattern.test(branch)
+}
+
+function getPresentationScenarios(input: BuildCoreCanonicalOutputInput) {
+  const scenarios = (input.scenarios || []).filter((scenario) => isPresentationScenario(scenario))
+  return scenarios.length > 0 ? scenarios : input.scenarios || []
+}
+
 function buildTopScenarios(input: BuildCoreCanonicalOutputInput): CoreScenarioLead[] {
+  const sourceScenarios = getPresentationScenarios(input)
   const focusDomain = input.strategy.focusDomain || input.strategy.domainStrategies[0]?.domain || null
-  const leadScenarioId = input.scenarios.find((scenario) => scenario.domain === focusDomain)?.id || null
+  const leadScenarioId = sourceScenarios.find((scenario) => scenario.domain === focusDomain)?.id || null
   const scenarioSpecificity = (branch: string) => {
     const key = branch.toLowerCase()
     if (/(review|negotiation|restructure|compliance|acceptance|decision|conflict|disruption)/.test(key)) return 4
@@ -267,7 +431,7 @@ function buildTopScenarios(input: BuildCoreCanonicalOutputInput): CoreScenarioLe
     if (/(entry|travel|new_connection|recovery|bond_deepening)/.test(key)) return 2
     return 1
   }
-  return (input.scenarios || [])
+  return sourceScenarios
     .slice()
     .sort(
       (a, b) =>
@@ -289,6 +453,8 @@ function buildTopScenarios(input: BuildCoreCanonicalOutputInput): CoreScenarioLe
       confidence: round2(clamp(scenario.confidence, 0, 1)),
       window: scenario.window,
       timingRelevance: round2(clamp(scenario.timingRelevance, 0, 1)),
+      timingGranularity: scenario.timingGranularity,
+      precisionReason: scenario.precisionReason,
       reversible: scenario.reversible,
       whyNow: scenario.whyNow,
       entryConditions: [...scenario.entryConditions].slice(0, 3),
@@ -346,7 +512,7 @@ function resolveLeadPatternId(
   focusDomain: string
 ): string | null {
   return (
-    (input.patterns || []).find((pattern) => pattern.domains.includes(focusDomain as any))?.id ||
+    (input.patterns || []).find((pattern) => pattern.domains.some((domain) => domain === focusDomain))?.id ||
     input.patterns[0]?.id ||
     null
   )
@@ -356,11 +522,217 @@ function resolveLeadScenarioId(
   input: BuildCoreCanonicalOutputInput,
   focusDomain: string
 ): string | null {
+  const sourceScenarios = getPresentationScenarios(input)
   return (
-    (input.scenarios || []).find((scenario) => scenario.domain === focusDomain)?.id ||
-    input.scenarios[0]?.id ||
+    sourceScenarios.find((scenario) => scenario.domain === focusDomain)?.id ||
+    sourceScenarios[0]?.id ||
     null
   )
+}
+
+function buildDomainAdvisoryCopy(input: {
+  lang: 'ko' | 'en'
+  domain: string
+  phase: string
+  claimThesis?: string | null
+  scenarioWhyNow?: string | null
+  leadScenarioId?: string | null
+  action?: string | null
+  caution?: string | null
+  verdictRationale?: string | null
+}): Pick<CoreDomainAdvisory, 'thesis' | 'action' | 'caution' | 'strategyLine'> {
+  const leadScenario = String(input.leadScenarioId || '')
+  if (input.lang === 'ko') {
+    const koDefaults: Record<string, Pick<CoreDomainAdvisory, 'thesis' | 'action' | 'caution' | 'strategyLine'>> = {
+      career: {
+        thesis:
+          input.claimThesis ||
+          '커리어는 일을 넓히는 것보다 맡을 역할, 책임, 평가 기준을 먼저 분명히 할 때 성장 폭이 커집니다.',
+        action: input.action || '역할, 범위, 기한을 먼저 고정한 뒤 다음 단계를 여세요.',
+        caution: input.caution || '분위기만 보고 바로 확정하지 말고 조건과 책임 범위를 먼저 확인하세요.',
+        strategyLine:
+          input.verdictRationale ||
+          '커리어는 확장보다 우선순위와 책임 범위를 먼저 고정할 때 결과 변동이 줄어듭니다.',
+      },
+      relationship: {
+        thesis:
+          input.claimThesis ||
+          '관계는 감정의 강도보다 거리, 기대치, 경계가 같은 뜻으로 맞춰질 때 안정됩니다.',
+        action: input.action || '결론보다 기대치와 속도를 먼저 맞추는 대화를 여세요.',
+        caution: input.caution || '해석이 다르다고 느껴질 때 바로 확정이나 약속으로 밀지 마세요.',
+        strategyLine:
+          input.verdictRationale ||
+          '관계에서는 감정 표현보다 속도와 경계를 먼저 맞출수록 오해 비용이 줄어듭니다.',
+      },
+      wealth: {
+        thesis:
+          input.claimThesis ||
+          '재정은 수익 기대보다 유입 구조와 누수 지점을 먼저 분리해 볼 때 더 안정적으로 커집니다.',
+        action: input.action || '금액보다 기한, 취소 조건, 책임 범위를 먼저 나눠 확인하세요.',
+        caution: input.caution || '좋아 보이는 조건도 손실 상한을 정하지 않은 채 확정하지 마세요.',
+        strategyLine:
+          input.verdictRationale ||
+          '재정은 공격보다 손실 상한과 조건 점검을 먼저 고정할 때 복원력이 커집니다.',
+      },
+      health: {
+        thesis:
+          input.claimThesis ||
+          '건강은 버티는 힘보다 회복 리듬과 과부하 신호를 얼마나 빨리 정리하느냐에서 갈립니다.',
+        action: input.action || '강도를 올리기보다 회복 블록을 일정에 먼저 고정하세요.',
+        caution: input.caution || '피로 신호를 의지로 덮은 채 일정 밀도를 유지하지 마세요.',
+        strategyLine:
+          input.verdictRationale ||
+          '건강은 강한 하루보다 반복 가능한 회복 루틴을 먼저 세울 때 안정됩니다.',
+      },
+      move: {
+        thesis:
+          input.claimThesis ||
+          '이동과 거점 변화는 크게 옮기는 결정보다 동선, 경로, 생활 거점을 다시 설계할 때 더 정확해집니다.',
+        action: input.action || '경로와 생활 동선을 먼저 재확인한 뒤 큰 이동 결정을 여세요.',
+        caution: input.caution || '계약이나 이동 일정을 한 번에 확정하지 말고 경로와 비용을 나눠 보세요.',
+        strategyLine:
+          input.verdictRationale ||
+          '이동은 속도보다 경로 검증과 거점 재정비를 먼저 할 때 손실이 줄어듭니다.',
+      },
+      personality: {
+        thesis:
+          input.claimThesis ||
+          '기본 성향은 빠른 판단보다 기준을 먼저 세우고 정밀하게 조정할 때 더 강하게 작동합니다.',
+        action: input.action || '결론을 내리기 전에 기준 문장을 먼저 짧게 고정하세요.',
+        caution: input.caution || '해석이 끝나기 전에 결론부터 확정하지 마세요.',
+        strategyLine:
+          input.verdictRationale ||
+          '성향의 강점은 속도가 아니라 기준과 재정렬 능력에서 나옵니다.',
+      },
+      timing: {
+        thesis:
+          input.claimThesis ||
+          '타이밍은 빨리 결정하는지보다 검토와 확정을 다른 슬롯으로 나눌 수 있는지에 달려 있습니다.',
+        action: input.action || '착수와 확정 사이에 재확인 슬롯을 반드시 두세요.',
+        caution: input.caution || '당일 판단과 당일 확정을 같은 결정으로 묶지 마세요.',
+        strategyLine:
+          input.verdictRationale ||
+          '타이밍의 핵심은 속도가 아니라 검토와 확정의 분리입니다.',
+      },
+      spirituality: {
+        thesis:
+          input.claimThesis ||
+          '장기 방향은 외부 성과보다 어떤 기준을 반복 가능한 방식으로 남기는지에서 선명해집니다.',
+        action: input.action || '지금 선택을 설명하는 한 줄 원칙을 먼저 정리하세요.',
+        caution: input.caution || '큰 의미를 한 번에 확정하려 하지 마세요.',
+        strategyLine:
+          input.verdictRationale ||
+          '장기 방향은 순간의 확신보다 반복 가능한 기준에서 나옵니다.',
+      },
+    }
+    const base = koDefaults[input.domain] || koDefaults.personality
+    const scenarioLine = input.scenarioWhyNow
+      ? `${input.scenarioWhyNow}`
+      : leadScenario
+        ? `${leadScenario} 장면이 실제 사건축으로 붙고 있습니다.`
+        : ''
+    return {
+      thesis: base.thesis,
+      action: base.action,
+      caution: base.caution,
+      strategyLine: [base.strategyLine, scenarioLine].filter(Boolean).join(' '),
+    }
+  }
+
+  const enDefaults: Record<string, Pick<CoreDomainAdvisory, 'thesis' | 'action' | 'caution' | 'strategyLine'>> = {
+    career: {
+      thesis:
+        input.claimThesis ||
+        'Career grows faster when role, responsibility, and evaluation standards are clearer than raw expansion.',
+      action: input.action || 'Lock scope, deadline, and responsibility before opening the next step.',
+      caution: input.caution || 'Do not finalize on momentum alone before checking conditions and responsibility.',
+      strategyLine:
+        input.verdictRationale ||
+        'Career becomes more stable when priorities and responsibility are fixed before expansion.',
+    },
+    relationship: {
+      thesis:
+        input.claimThesis ||
+        'Relationships stabilize when distance, expectations, and boundaries line up before commitment pressure rises.',
+      action: input.action || 'Align pace and expectations before asking for a conclusion.',
+      caution: input.caution || 'Do not force labels or promises while interpretation is still mismatched.',
+      strategyLine:
+        input.verdictRationale ||
+        'Relationship risk falls when pace and boundaries are clarified before commitment.',
+    },
+    wealth: {
+      thesis:
+        input.claimThesis ||
+        'Wealth improves when inflow structure and leakage are separated before upside is chased.',
+      action: input.action || 'Check terms, deadlines, and downside first.',
+      caution: input.caution || 'Do not commit before the loss boundary is explicit.',
+      strategyLine:
+        input.verdictRationale ||
+        'Financial resilience improves when downside and conditions are fixed before growth.',
+    },
+    health: {
+      thesis:
+        input.claimThesis ||
+        'Health depends more on recovery rhythm and overload detection than on endurance alone.',
+      action: input.action || 'Schedule recovery blocks before increasing load.',
+      caution: input.caution || 'Do not cover fatigue signals with willpower.',
+      strategyLine:
+        input.verdictRationale ||
+        'Health stabilizes when recovery is repeatable rather than heroic.',
+    },
+    move: {
+      thesis:
+        input.claimThesis ||
+        'Movement and relocation improve when route, commute, and basecamp design are checked before big commitment.',
+      action: input.action || 'Recheck route and living logistics before final movement decisions.',
+      caution: input.caution || 'Do not bundle contract, route, and move timing into one rushed decision.',
+      strategyLine:
+        input.verdictRationale ||
+        'Movement works best when route validation comes before relocation commitment.',
+    },
+    personality: {
+      thesis:
+        input.claimThesis ||
+        'Your baseline works best when standards are set before speed takes over.',
+      action: input.action || 'Fix the standard in one short sentence before deciding.',
+      caution: input.caution || 'Do not finalize before the interpretation is complete.',
+      strategyLine:
+        input.verdictRationale ||
+        'The core strength is not speed but standards and recalibration.',
+    },
+    timing: {
+      thesis:
+        input.claimThesis ||
+        'Timing improves when review and commitment are treated as separate slots.',
+      action: input.action || 'Insert a recheck slot between starting and finalizing.',
+      caution: input.caution || 'Do not treat same-day judgment and same-day commitment as one action.',
+      strategyLine:
+        input.verdictRationale ||
+        'Timing is won through separation between review and commitment.',
+    },
+    spirituality: {
+      thesis:
+        input.claimThesis ||
+        'Long-range direction becomes clearer when repeatable standards outlast temporary certainty.',
+      action: input.action || 'Name the operating principle before chasing the outcome.',
+      caution: input.caution || 'Do not try to finalize meaning in one move.',
+      strategyLine:
+        input.verdictRationale ||
+        'Long-range direction is built through repeatable principles.',
+    },
+  }
+  const base = enDefaults[input.domain] || enDefaults.personality
+  const scenarioLine = input.scenarioWhyNow
+    ? input.scenarioWhyNow
+    : leadScenario
+      ? `${leadScenario} is the active scene underneath this domain.`
+      : ''
+  return {
+    thesis: base.thesis,
+    action: base.action,
+    caution: base.caution,
+    strategyLine: [base.strategyLine, scenarioLine].filter(Boolean).join(' '),
+  }
 }
 
 function resolvePrimaryAction(
@@ -408,7 +780,7 @@ function resolvePrimaryActionFromManifestation(input: {
 function resolvePrimaryCaution(input: BuildCoreCanonicalOutputInput, focusDomain: string): string {
   const cautionSignal =
     (input.signalSynthesis.selectedSignals || []).find(
-      (signal) => signal.polarity === 'caution' && signal.domainHints.includes(focusDomain as any)
+      (signal) => signal.polarity === 'caution' && signal.domainHints.some((domain) => domain === focusDomain)
     ) ||
     (input.signalSynthesis.selectedSignals || []).find((signal) => signal.polarity === 'caution')
 
@@ -447,6 +819,12 @@ function mergeAdvisoriesWithManifestations(input: {
       timingHint: manifestation.activationThesis || advisory.timingHint,
       strategyLine: manifestation.manifestation || advisory.strategyLine,
       evidenceIds: [...new Set([...(advisory.evidenceIds || []), ...(manifestation.evidenceIds || [])])].slice(0, 10),
+      provenance: {
+        sourceFields: [...new Set([...(advisory.provenance?.sourceFields || []), ...(manifestation.provenance?.sourceFields || [])])].slice(0, 10),
+        sourceSignalIds: [...new Set([...(advisory.provenance?.sourceSignalIds || []), ...(manifestation.provenance?.sourceSignalIds || [])])].slice(0, 10),
+        sourceRuleIds: [...new Set([...(advisory.provenance?.sourceRuleIds || []), ...(manifestation.provenance?.sourceRuleIds || [])])].slice(0, 10),
+        sourceSetIds: [...new Set([...(advisory.provenance?.sourceSetIds || []), ...(manifestation.provenance?.sourceSetIds || [])])].slice(0, 10),
+      },
     }
   })
 }
@@ -471,10 +849,10 @@ function findEvidenceIdsForDomain(
       .filter((item) => item.domain === domain)
       .flatMap((item) => item.evidence || []),
     ...(input.signalSynthesis.selectedSignals || [])
-      .filter((signal) => signal.domainHints.includes(domain as any))
+      .filter((signal) => signal.domainHints.some((hint) => hint === domain))
       .map((signal) => signal.id),
     ...(input.patterns || [])
-      .filter((pattern) => pattern.domains.includes(domain as any))
+      .filter((pattern) => pattern.domains.some((hint) => hint === domain))
       .map((pattern) => pattern.id),
     ...(input.scenarios || [])
       .filter((scenario) => scenario.domain === domain)
@@ -496,7 +874,7 @@ function buildFallbackDomainLead(
     (input.strategy.domainStrategies || []).find((item) => item.domain === domain) || null
   const patternScore = round2(
     (input.patterns || [])
-      .filter((pattern) => pattern.domains.includes(domain as any))
+      .filter((pattern) => pattern.domains.some((hint) => hint === domain))
       .reduce((sum, pattern) => sum + pattern.score, 0)
   )
   const scenarioScore = round2(
@@ -514,7 +892,7 @@ function buildFallbackDomainLead(
   )
   const totalSignalScore = round2(
     (input.signalSynthesis.selectedSignals || [])
-      .filter((signal) => signal.domainHints.includes(domain as any))
+      .filter((signal) => signal.domainHints.some((hint) => hint === domain))
       .reduce((sum, signal) => sum + signal.score, 0)
   )
 
@@ -561,6 +939,8 @@ function buildDomainTimingWindow(
           b.confidence - a.confidence
       )[0] || null
   const summaryDomainKey = mapSignalDomainToSummaryDomainKey(lead.domain)
+  const strategyDomain =
+    (input.strategy.domainStrategies || []).find((item) => item.domain === lead.domain) || null
   const overlapPoint = summaryDomainKey
     ? (input.matrixSummary?.overlapTimelineByDomain?.[summaryDomainKey] || [])[0] || null
     : null
@@ -581,6 +961,18 @@ function buildDomainTimingWindow(
   if (!scenario && !overlapPoint && domainVerdict?.mode === 'prepare') {
     window = '12m+'
   }
+  const timingGranularity =
+    scenario?.timingGranularity ||
+    (window === 'now'
+      ? 'week'
+      : window === '1-3m'
+        ? 'month'
+        : window === '3-6m'
+          ? 'month'
+          : 'season')
+  const readinessScore = round2(clamp(strategyDomain?.metrics.readinessScore || 0.25, 0, 1))
+  const triggerScore = round2(clamp(strategyDomain?.metrics.triggerScore || 0.25, 0, 1))
+  const convergenceScore = round2(clamp(strategyDomain?.metrics.convergenceScore || 0.2, 0, 1))
 
   const confidence = round2(
     clamp(
@@ -613,6 +1005,26 @@ function buildDomainTimingWindow(
       : overlapPoint
         ? `${lead.domain} is entering a stronger timing window around ${overlapPoint.month}.`
         : `${lead.domain} currently needs condition-setting before hard commitment.`)
+  const precisionReason =
+    scenario?.precisionReason ||
+    (input.lang === 'ko'
+      ? timingGranularity === 'week'
+        ? '단기 신호는 보이지만, 표현 정밀도는 주 단위 상한으로 제한합니다.'
+        : timingGranularity === 'month'
+          ? '구조 지지가 더 넓어 월 단위 상한으로 해석하는 편이 맞습니다.'
+          : '지금은 구조적 흐름을 읽는 구간이라 계절 단위 상한으로 보는 편이 안전합니다.'
+      : timingGranularity === 'week'
+        ? 'Short-term signals are visible, but the wording is capped at week-level.'
+        : timingGranularity === 'month'
+          ? 'Structural support is broader than the trigger, so month-level is the safe cap.'
+          : 'This is treated as a structural window, so the safe cap stays at season-level.')
+  const { timingConflictMode, timingConflictNarrative } = resolveTimingConflictProfile({
+    lang: input.lang,
+    readinessScore,
+    triggerScore,
+    convergenceScore,
+    domain: lead.domain,
+  })
   const entryConditions = scenario?.entryConditions?.length
     ? [...scenario.entryConditions].slice(0, 3)
     : input.lang === 'ko'
@@ -646,10 +1058,27 @@ function buildDomainTimingWindow(
     window,
     confidence,
     timingRelevance,
+    timingGranularity,
+    precisionReason,
+    timingConflictMode,
+    timingConflictNarrative,
+    readinessScore,
+    triggerScore,
+    convergenceScore,
     whyNow,
     entryConditions,
     abortConditions,
     evidenceIds: evidenceIds.slice(0, 8),
+    provenance: buildProvenance({
+      canonicalInput: input,
+      domain: lead.domain,
+      evidenceIds,
+      signalIds: lead.evidenceIds.filter((id) => (input.signalSynthesis.selectedSignals || []).some((signal) => signal.id === id)),
+      ruleIds: [scenario?.patternId, scenario?.id, domainVerdict?.leadPatternId, domainVerdict?.leadScenarioId].filter(
+        (value): value is string => Boolean(value)
+      ),
+      includeTiming: true,
+    }),
   }
 }
 
@@ -662,8 +1091,9 @@ function buildDomainAdvisories(
     const claim =
       (input.signalSynthesis.claims || []).find((item) => item.domain === lead.domain) ||
       input.signalSynthesis.claims[0]
-    const scenarios = (input.scenarios || []).filter((item) => item.domain === lead.domain)
-    const scenario = scenarios[0] || input.scenarios[0]
+    const sourceScenarios = getPresentationScenarios(input)
+    const scenarios = sourceScenarios.filter((item) => item.domain === lead.domain)
+    const scenario = scenarios[0] || sourceScenarios[0] || input.scenarios[0]
     const verdict = domainVerdicts.find((item) => item.domain === lead.domain) || null
     const cautionSignal =
       (input.signalSynthesis.selectedSignals || []).find(
@@ -675,7 +1105,7 @@ function buildDomainAdvisories(
       .sort((a, b) => b.rankScore - a.rankScore)
       .slice(0, 3)
     const leadPatterns = (input.patterns || [])
-      .filter((pattern) => pattern.domains.includes(lead.domain as any))
+      .filter((pattern) => pattern.domains.some((domain) => domain === lead.domain))
       .sort((a, b) => b.score - a.score || b.confidence - a.confidence)
       .slice(0, 2)
     const evidenceIds = [
@@ -686,14 +1116,13 @@ function buildDomainAdvisories(
       ...(lead.evidenceIds || []),
     ].filter((value, index, array) => Boolean(value) && array.indexOf(value) === index)
 
-    return {
+    const advisoryCopy = buildDomainAdvisoryCopy({
+      lang: input.lang,
       domain: lead.domain,
       phase: lead.phase,
-      thesis:
-        claim?.thesis ||
-        (input.lang === 'ko'
-          ? `${lead.domain} 축이 이번 입력의 상위 주도 영역입니다.`
-          : `${lead.domain} is acting as a lead domain in this input.`),
+      claimThesis: claim?.thesis,
+      scenarioWhyNow: scenario?.whyNow,
+      leadScenarioId: scenario?.id,
       action:
         claim?.actions?.[0] ||
         scenario?.actions?.[0] ||
@@ -702,18 +1131,30 @@ function buildDomainAdvisories(
         cautionSignal?.advice ||
         cautionSignal?.keyword ||
         (input.lang === 'ko'
-          ? '확정 전 재확인 과정을 생략하지 마세요.'
+          ? '?? ?? ??? ??? ???? ???.'
           : 'Do not skip the recheck step before commitment.'),
+      verdictRationale: verdict?.rationale,
+    })
+
+    return {
+      domain: lead.domain,
+      phase: lead.phase,
+      thesis: advisoryCopy.thesis,
+      action: advisoryCopy.action,
+      caution: advisoryCopy.caution,
       timingHint: scenario?.whyNow || buildTimingHintByDomain(input, lead.domain),
-      strategyLine:
-        verdict?.rationale ||
-        (input.lang === 'ko'
-          ? `${lead.domain} 영역은 ${lead.phase} 국면 기준으로 단계 실행이 적합합니다.`
-          : `${lead.domain} is best handled with staged execution under the ${lead.phase} phase.`),
+      strategyLine: advisoryCopy.strategyLine,
       leadSignalIds: leadSignals.map((signal) => signal.id),
       leadPatternIds: leadPatterns.map((pattern) => pattern.id),
       leadScenarioIds: scenarios.slice(0, 2).map((item) => item.id),
       evidenceIds: evidenceIds.slice(0, 8),
+      provenance: buildProvenance({
+        canonicalInput: input,
+        domain: lead.domain,
+        evidenceIds,
+        signalIds: leadSignals.map((signal) => signal.id),
+        ruleIds: [...leadPatterns.map((pattern) => pattern.id), ...scenarios.slice(0, 2).map((item) => item.id)],
+      }),
     } satisfies CoreDomainAdvisory
   })
 }
@@ -816,39 +1257,20 @@ function buildCoherenceAudit(input: BuildCoreCanonicalOutputInput): CoreCoherenc
     input.strategy.phase === 'defensive_reset' ||
     (crossAgreement !== null && crossAgreement < 0.45)
 
-  if (verificationBias) {
-    notes.push(
-      input.lang === 'ko'
-        ? '\uD604\uC7AC \uD310\uB2E8\uC740 \uD655\uC815\uBCF4\uB2E4 \uAC80\uC99D \uD3B8\uD5A5\uC774 \uC6B0\uC120\uC778 \uAD6C\uC870\uC785\uB2C8\uB2E4.'
-        : 'Current judgment is in verification-biased mode rather than direct commitment mode.'
-    )
-  }
+  if (verificationBias) notes.push(buildCoherenceNote({ lang: input.lang, key: 'verification_bias' }))
 
   if (topDecision?.gated) {
     contradictionFlags.push(`gated_top_decision:${topDecision.action}`)
-    notes.push(
-      topDecision.gateReason ||
-        (input.lang === 'ko'
-          ? '\uC0C1\uC704 \uACB0\uC815\uC548\uC5D0 \uAC8C\uC774\uD2B8\uAC00 \uAC78\uB824 \uC788\uC5B4 \uC989\uC2DC \uD655\uC815\uBCF4\uB2E4 \uBCF4\uB958\uAC00 \uB354 \uC548\uC804\uD569\uB2C8\uB2E4.'
-          : 'The top decision path is gated, so immediate commitment should be deferred.')
-    )
+    notes.push(buildCoherenceNote({ lang: input.lang, key: 'gated_defer' }))
   }
 
   if (crossAgreement !== null && crossAgreement < 0.35) {
     contradictionFlags.push('low_cross_agreement')
-    notes.push(
-      input.lang === 'ko'
-        ? '\uAD50\uCC28 \uD569\uC758\uB3C4\uAC00 \uB0AE\uC544 \uB2E8\uC815\uBCF4\uB2E4 \uC870\uAC74\uBD80 \uC2E4\uD589\uC774 \uB354 \uC801\uD569\uD569\uB2C8\uB2E4.'
-        : 'Cross-agreement is low, so conditional execution is safer than hard conclusions.'
-    )
+    notes.push(buildCoherenceNote({ lang: input.lang, key: 'conditional_execution' }))
   }
 
   if (domainConflictCount === 0 && !topDecision?.gated && !verificationBias) {
-    notes.push(
-      input.lang === 'ko'
-        ? '\uC0C1\uC704 \uB3C4\uBA54\uC778 \uC2E0\uD638\uAC00 \uBE44\uAD50\uC801 \uD55C \uBC29\uD5A5\uC73C\uB85C \uC815\uB82C\uB3FC \uC788\uC2B5\uB2C8\uB2E4.'
-        : 'Lead-domain signals are relatively aligned in one direction.'
-    )
+    notes.push(buildCoherenceNote({ lang: input.lang, key: 'aligned_domains' }))
   }
 
   return {
@@ -858,89 +1280,6 @@ function buildCoherenceAudit(input: BuildCoreCanonicalOutputInput): CoreCoherenc
     contradictionFlags,
     notes,
   }
-}
-
-function uniqueActions(actions: Array<
-  'commit_now' |
-  'staged_commit' |
-  'prepare_only' |
-  'review_first' |
-  'negotiate_first' |
-  'boundary_first' |
-  'pilot_first' |
-  'route_recheck_first' |
-  'lease_review_first' |
-  'basecamp_reset_first'
->) {
-  return [...new Set(actions)]
-}
-
-const MODE_RANK: Record<CoreJudgmentPolicy['mode'], number> = {
-  prepare: 0,
-  verify: 1,
-  execute: 2,
-}
-
-const RANK_MODE: Record<number, CoreJudgmentPolicy['mode']> = {
-  0: 'prepare',
-  1: 'verify',
-  2: 'execute',
-}
-
-const DOMAIN_ARBITRATION_RULES: Record<
-  string,
-  {
-    minMode: CoreJudgmentPolicy['mode']
-    commitThreshold: number
-    forceBlockCommitOnRiskFamily?: boolean
-    forceVerificationWhenIrreversible?: boolean
-  }
-> = {
-  career: {
-    minMode: 'verify',
-    commitThreshold: 0.72,
-    forceVerificationWhenIrreversible: true,
-  },
-  relationship: {
-    minMode: 'verify',
-    commitThreshold: 0.78,
-    forceBlockCommitOnRiskFamily: true,
-  },
-  wealth: {
-    minMode: 'verify',
-    commitThreshold: 0.8,
-    forceBlockCommitOnRiskFamily: true,
-    forceVerificationWhenIrreversible: true,
-  },
-  health: {
-    minMode: 'prepare',
-    commitThreshold: 0.99,
-    forceBlockCommitOnRiskFamily: true,
-  },
-  move: {
-    minMode: 'verify',
-    commitThreshold: 0.82,
-    forceVerificationWhenIrreversible: true,
-  },
-  timing: {
-    minMode: 'verify',
-    commitThreshold: 0.99,
-  },
-  personality: {
-    minMode: 'verify',
-    commitThreshold: 0.86,
-  },
-  spirituality: {
-    minMode: 'verify',
-    commitThreshold: 0.88,
-  },
-}
-
-function downgradeMode(
-  current: CoreJudgmentPolicy['mode'],
-  next: CoreJudgmentPolicy['mode']
-): CoreJudgmentPolicy['mode'] {
-  return RANK_MODE[Math.min(MODE_RANK[current], MODE_RANK[next])]
 }
 
 function resolveJudgmentPolicy(input: {
@@ -954,143 +1293,7 @@ function resolveJudgmentPolicy(input: {
   riskControl: string
   focusDomainVerdict: CoreDomainVerdict | null
 }): CoreJudgmentPolicy {
-  const hardStops: string[] = []
-  const softChecks: string[] = []
-
-  if (input.coherenceAudit.gatedDecision) {
-    hardStops.push(
-      input.topDecision?.gateReason ||
-        (input.lang === 'ko'
-          ? '상위 결정안이 게이트에 걸려 즉시 확정은 차단됩니다.'
-          : 'The top decision path is gated, so immediate commitment is blocked.')
-    )
-  }
-
-  if (input.crossAgreement !== null && input.crossAgreement < 0.35) {
-    hardStops.push(
-      input.lang === 'ko'
-        ? '교차 합의도가 낮아 확정형 해석보다 조건부 실행이 우선입니다.'
-        : 'Cross-agreement is too low for hard commitment; conditional execution comes first.'
-    )
-  }
-
-  if (
-    input.phase === 'defensive_reset' ||
-    input.confidence < 0.42 ||
-    input.coherenceAudit.domainConflictCount >= 2
-  ) {
-    hardStops.push(
-      input.lang === 'ko'
-        ? '현재 국면에서는 새 확장보다 방어와 재정렬이 우선입니다.'
-        : 'The current phase prioritizes defense and reset over fresh expansion.'
-    )
-  }
-
-  if (input.riskControl) softChecks.push(input.riskControl)
-  if (input.primaryCaution) softChecks.push(input.primaryCaution)
-  if (input.coherenceAudit.verificationBias) {
-    softChecks.push(
-      input.lang === 'ko'
-        ? '실행 전 검증 절차를 생략하지 마세요.'
-        : 'Do not skip the verification step before execution.'
-    )
-  }
-
-  let mode: CoreJudgmentPolicy['mode'] =
-    hardStops.length > 0
-      ? 'prepare'
-      : input.coherenceAudit.verificationBias || input.phase === 'expansion_guarded'
-        ? 'verify'
-        : 'execute'
-
-  if (input.focusDomainVerdict) {
-    mode = downgradeMode(mode, input.focusDomainVerdict.mode)
-    for (const action of input.focusDomainVerdict.blockedActions) {
-      if (!hardStops.some((item) => item.includes(action))) {
-        hardStops.push(
-          input.lang === 'ko'
-            ? `${input.focusDomainVerdict.domain} 영역에서는 ${action} 액션이 차단됩니다.`
-            : `${action} is blocked in the ${input.focusDomainVerdict.domain} domain.`
-        )
-      }
-    }
-  }
-
-  let allowedActions =
-    mode === 'execute'
-        ? uniqueActions([
-            'commit_now',
-            'staged_commit',
-            'review_first',
-            'negotiate_first',
-            'boundary_first',
-            'pilot_first',
-            'route_recheck_first',
-            'lease_review_first',
-            'basecamp_reset_first',
-            'prepare_only',
-          ])
-      : mode === 'verify'
-        ? uniqueActions([
-            'staged_commit',
-            'review_first',
-            'negotiate_first',
-            'boundary_first',
-            'pilot_first',
-            'route_recheck_first',
-            'lease_review_first',
-            'basecamp_reset_first',
-            'prepare_only',
-          ])
-        : uniqueActions(['prepare_only'])
-
-  if (input.focusDomainVerdict) {
-    allowedActions = uniqueActions(
-      allowedActions.filter((action) => input.focusDomainVerdict?.allowedActions.includes(action))
-    )
-    if (allowedActions.length === 0) {
-      allowedActions = [...input.focusDomainVerdict.allowedActions]
-    }
-  }
-
-  const blockedActions = uniqueActions(
-    (
-      [
-        'commit_now',
-        'staged_commit',
-        'prepare_only',
-        'review_first',
-        'negotiate_first',
-        'boundary_first',
-        'pilot_first',
-        'route_recheck_first',
-        'lease_review_first',
-        'basecamp_reset_first',
-      ] as const
-    ).filter((action) => !allowedActions.includes(action))
-  )
-
-  const rationale =
-    input.lang === 'ko'
-      ? mode === 'execute'
-        ? '근거 정렬도가 높아 실행 중심 판단이 가능합니다.'
-        : mode === 'verify'
-          ? '기회는 있으나 검증 절차를 포함한 단계 실행이 더 적합합니다.'
-          : '모순·게이트·저합의 신호 때문에 준비 중심 판단으로 낮춰야 합니다.'
-      : mode === 'execute'
-        ? 'Evidence alignment supports execution-first judgment.'
-        : mode === 'verify'
-          ? 'Upside exists, but staged execution with verification is safer.'
-          : 'Contradictions, gates, or low agreement force the judgment into prepare-first mode.'
-
-  return {
-    mode,
-    allowedActions,
-    blockedActions,
-    hardStops: [...new Set(hardStops)],
-    softChecks: [...new Set(softChecks)].slice(0, 4),
-    rationale,
-  }
+  return buildJudgmentPolicy(input)
 }
 
 function buildDomainVerdicts(input: {
@@ -1192,6 +1395,14 @@ function buildDomainVerdicts(input: {
       blockedActions,
       rationale,
       evidenceIds: [...new Set([...(lead.evidenceIds || []), ...(leadScenario?.evidenceIds || [])])].slice(0, 8),
+      provenance: buildProvenance({
+        canonicalInput: input as unknown as BuildCoreCanonicalOutputInput,
+        domain: lead.domain,
+        evidenceIds: [...new Set([...(lead.evidenceIds || []), ...(leadScenario?.evidenceIds || [])])],
+        signalIds: [],
+        ruleIds: [leadPattern?.id, leadScenario?.id].filter((value): value is string => Boolean(value)),
+        includeTiming: true,
+      }),
     }
   })
 }
@@ -1277,6 +1488,7 @@ export function buildCoreCanonicalOutput(
   return {
     version: 'v1',
     claimIds,
+    claimProvenanceById: buildClaimProvenanceById(input),
     evidenceRefs: buildEvidenceRefs(input),
     confidence: resolveConfidence(input),
     crossAgreement: normalizeToUnit(input.crossAgreement),
@@ -1311,5 +1523,3 @@ export function buildCoreCanonicalOutput(
     timelineHits: buildTimelineHits(input),
   }
 }
-
-

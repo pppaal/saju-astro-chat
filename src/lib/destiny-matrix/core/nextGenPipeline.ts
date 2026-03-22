@@ -6,6 +6,7 @@ import { buildRuleEngine } from './ruleEngine'
 import { buildStateEngine } from './stateEngine'
 import { evaluateCoreArchitecture } from './evaluationSuite'
 import { buildInputVerdictAudit } from './inputVerdictAudit'
+import { normalizeMatrixInput } from './inputNormalization'
 
 export interface NextGenCorePipelineResult {
   featureZone: ReturnType<typeof compileFeatureTokens>
@@ -29,9 +30,10 @@ export function buildNextGenCorePipeline(input: {
   matrixInput: MatrixCalculationInput
   core: DestinyCoreResult
 }): NextGenCorePipelineResult {
-  const featureZone = compileFeatureTokens(input.matrixInput)
+  const matrixInput = normalizeMatrixInput(input.matrixInput)
+  const featureZone = compileFeatureTokens(matrixInput)
   const activation = buildActivationEngine({
-    matrixInput: input.matrixInput,
+    matrixInput,
     tokens: featureZone.tokens,
   })
   const rules = buildRuleEngine({ activation, tokens: featureZone.tokens })
@@ -51,7 +53,7 @@ export function buildNextGenCorePipeline(input: {
     canonical: input.core.canonical,
   })
   const inputAudit = buildInputVerdictAudit({
-    matrixInput: input.matrixInput,
+    matrixInput,
     features: featureZone,
     activation,
     rules,

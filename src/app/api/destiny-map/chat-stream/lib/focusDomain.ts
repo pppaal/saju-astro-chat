@@ -33,42 +33,42 @@ const DOMAIN_PATTERNS: Array<{ domain: InsightDomain; patterns: RegExp[] }> = [
     domain: 'relationship',
     patterns: [
       /love|relationship|partner|dating|marriage|spouse|boyfriend|girlfriend|ex|reconcile|crush/i,
-      /연애|사랑|관계|상대|재회|결혼|이혼|배우자|부부|썸|남친|여친|호감|가족|부모|자녀|형제|갈등/,
+      /연애|사랑|관계|상대|재회|결혼|이혼|배우자|부부|썸|남친|여친|호감|가족|부모|자녀|형제|갈등/i,
     ],
   },
   {
     domain: 'career',
     patterns: [
       /career|job|work|business|promotion|interview|company|boss|coworker|startup|project|quit|resign/i,
-      /직업|직장|커리어|이직|회사|승진|면접|사업|창업|상사|동료|프로젝트|업무/,
+      /직업|직장|커리어|이직|회사|승진|면접|사업|창업|상사|동료|프로젝트|업무|퇴사/i,
     ],
   },
   {
     domain: 'wealth',
     patterns: [
       /money|finance|income|salary|investment|stock|debt|loan|budget|asset|real estate/i,
-      /돈|재정|투자|주식|연봉|수입|빚|대출|예산|저축|자산|부동산|매출/,
+      /돈|재정|투자|주식|연봉|수입|빚|대출|예산|저축|자산|부동산|매출/i,
     ],
   },
   {
     domain: 'health',
     patterns: [
       /health|body|sleep|stress|burnout|diet|exercise|recovery|anxiety|panic|sick/i,
-      /건강|몸|수면|스트레스|번아웃|식단|운동|회복|불안|우울|아프|컨디션/,
+      /건강|몸|수면|스트레스|번아웃|식단|운동|회복|불안|우울|아프|컨디션/i,
     ],
   },
   {
     domain: 'timing',
     patterns: [
       /when|timing|date|month|year|week|today|tomorrow|soon|later|schedule|window/i,
-      /언제|시기|타이밍|날짜|이번.?주|이번.?달|올해|내년|오늘|곧|나중|시점/,
+      /언제|시기|타이밍|날짜|이번.?주|이번.?달|올해|내년|오늘|곧|나중|시점/i,
     ],
   },
   {
     domain: 'spirituality',
     patterns: [
       /purpose|meaning|soul|calling|healing journey|shadow work|inner child/i,
-      /의미|소명|영성|영혼|치유|그림자|내면아이|각성|명상/,
+      /의미|소명|영성|영혼|치유|그림자|내면아이|각성|명상/i,
     ],
   },
 ]
@@ -102,25 +102,19 @@ function countMatches(text: string, patterns: RegExp[]): number {
 function domainBonus(domain: InsightDomain, text: string): number {
   if (
     domain === 'career' &&
-    /(job|career|work|resign|quit|promotion|interview|\uC774\uC9C1|\uD1F4\uC0AC|\uD68C\uC0AC)/i.test(
-      text
-    )
+    /(job|career|work|resign|quit|promotion|interview|이직|퇴사|회사)/i.test(text)
   ) {
     return 0.75
   }
   if (
     domain === 'relationship' &&
-    /(love|relationship|partner|marriage|reconcile|\uC5F0\uC560|\uC7AC\uD68C|\uC0C1\uB300|\uC368)/i.test(
-      text
-    )
+    /(love|relationship|partner|marriage|reconcile|연애|재회|상대|썸)/i.test(text)
   ) {
     return 0.45
   }
   if (
     domain === 'timing' &&
-    /(when|timing|month|year|window|\uC5B8\uC81C|\uC2DC\uAE30|\uD0C0\uC774\uBC0D|\uC62C\uD574|\uB0B4\uB144)/i.test(
-      text
-    )
+    /(when|timing|month|year|window|언제|시기|타이밍|올해|내년)/i.test(text)
   ) {
     return 0.6
   }
@@ -212,7 +206,8 @@ export function analyzeCounselorQuestion(input: {
   const needsTimingGuidance =
     primaryDomain === 'timing' || /언제|시기|timing|when|month|year|이번|올해|내년/i.test(text)
   const frame = inferFrame({ primaryDomain, text, needsTimingGuidance, isDecisionQuestion })
-  const signalCount = 1 + secondaryDomains.length + Number(isDecisionQuestion) + Number(needsTimingGuidance)
+  const signalCount =
+    1 + secondaryDomains.length + Number(isDecisionQuestion) + Number(needsTimingGuidance)
   const confidence: CounselorQuestionAnalysis['confidence'] =
     signalCount >= 3 ? 'high' : signalCount >= 2 ? 'medium' : 'low'
 
@@ -262,16 +257,11 @@ export function deriveCounselorStorageSignals(input: {
   }
 }
 
-export function mapFocusDomainToLayerDomain(
-  focusDomain: InsightDomain
-): DomainKey | null {
+export function mapFocusDomainToLayerDomain(focusDomain: InsightDomain): DomainKey | null {
   return LAYER_DOMAIN_MAP[focusDomain] || null
 }
 
-export function describeFocusDomain(
-  focusDomain: InsightDomain,
-  lang: 'ko' | 'en'
-): string {
+export function describeFocusDomain(focusDomain: InsightDomain, lang: 'ko' | 'en'): string {
   const labels: Record<InsightDomain, { ko: string; en: string }> = {
     personality: { ko: '성향/종합 흐름', en: 'personality / overall flow' },
     career: { ko: '커리어/일', en: 'career / work' },

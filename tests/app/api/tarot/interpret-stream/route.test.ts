@@ -12,13 +12,32 @@ const mockCreatePublicStreamGuard = vi.fn(() => ({
   route: 'tarot-interpret-stream',
   requireToken: true,
   rateLimit: { limit: 10, windowSeconds: 60 },
-  credits: { type: 'reading', amount: 1 },
 }))
 
 vi.mock('@/lib/api/middleware', () => ({
   initializeApiContext: (...args: unknown[]) => mockInitializeApiContext(...args),
   createPublicStreamGuard: (...args: unknown[]) => mockCreatePublicStreamGuard(...args),
   extractLocale: vi.fn(() => 'ko'),
+}))
+
+const mockCheckAndConsumeCredits = vi.fn()
+const mockCreditErrorResponse = vi.fn((result: { error?: string; errorCode?: string }) =>
+  new Response(JSON.stringify({ error: result.error, code: result.errorCode }), {
+    status: 401,
+    headers: { 'Content-Type': 'application/json' },
+  })
+)
+const mockApplyCreditResultCookies = vi.fn((response: Response, result?: { guestReadingAccess?: string }) => {
+  if (result?.guestReadingAccess) {
+    response.headers.set('x-credit-cookies', result.guestReadingAccess)
+  }
+  return response
+})
+
+vi.mock('@/lib/credits/withCredits', () => ({
+  checkAndConsumeCredits: (...args: unknown[]) => mockCheckAndConsumeCredits(...args),
+  creditErrorResponse: (...args: unknown[]) => mockCreditErrorResponse(...args),
+  applyCreditResultCookies: (...args: unknown[]) => mockApplyCreditResultCookies(...args),
 }))
 
 // Mock streaming utilities
@@ -218,6 +237,11 @@ function setupDefaults() {
   // Default: body size OK
   mockEnforceBodySize.mockReturnValue(null)
 
+  mockCheckAndConsumeCredits.mockResolvedValue({
+    allowed: true,
+    userId: 'user-123',
+  })
+
   // Default: validation passes
   mockTarotInterpretStreamSafeParse.mockReturnValue({
     success: true,
@@ -258,9 +282,6 @@ describe('POST /api/tarot/interpret-stream', () => {
         route: 'tarot-interpret-stream',
         limit: 10,
         windowSeconds: 60,
-        requireCredits: true,
-        creditType: 'reading',
-        creditAmount: 1,
       })
     })
 
@@ -313,6 +334,43 @@ describe('POST /api/tarot/interpret-stream', () => {
       const response = await POST(makePostRequest(VALID_REQUEST_BODY))
 
       expect(response.status).toBe(413)
+    })
+  })
+
+  describe('Credit Handling', () => {
+    it('should check and consume credits with the incoming request', async () => {
+      const req = makePostRequest(VALID_REQUEST_BODY)
+
+      await POST(req)
+
+      expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 1, req)
+    })
+
+    it('should return credit error response when guest/session access is denied', async () => {
+      mockCheckAndConsumeCredits.mockResolvedValue({
+        allowed: false,
+        error: '무료 체험 리딩은 이미 사용했습니다. 로그인 후 계속 이용하세요.',
+        errorCode: 'guest_limit_reached',
+      })
+
+      const response = await POST(makePostRequest(VALID_REQUEST_BODY))
+      const data = await response.json()
+
+      expect(response.status).toBe(401)
+      expect(data.code).toBe('guest_limit_reached')
+    })
+
+    it('should apply guest cookies to successful stream responses', async () => {
+      mockCheckAndConsumeCredits.mockResolvedValue({
+        allowed: true,
+        remaining: 0,
+        guestReadingAccess: 'interpret_granted',
+      })
+
+      const response = await POST(makePostRequest(VALID_REQUEST_BODY))
+
+      expect(response.headers.get('x-credit-cookies')).toBe('interpret_granted')
+      expect(mockApplyCreditResultCookies).toHaveBeenCalled()
     })
   })
 

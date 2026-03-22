@@ -5,7 +5,7 @@ import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { tarotThemes } from '@/lib/Tarot/tarot-spreads-data'
 import { Card, DrawnCard } from '@/lib/Tarot/tarot.types'
 import { tarotDeck } from '@/lib/Tarot/tarot-data'
-import { checkCreditsOnly, creditErrorResponse } from '@/lib/credits/withCredits'
+import { applyCreditResultCookies, checkCreditsOnly, creditErrorResponse } from '@/lib/credits/withCredits'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
 import { recordApiRequest } from '@/lib/metrics/index'
@@ -59,7 +59,7 @@ export const POST = withApiMiddleware(
 
       const { categoryId, spreadId, questionContext } = validationResult.data
 
-      const creditResult = await checkCreditsOnly('reading', 1)
+      const creditResult = await checkCreditsOnly('reading', 1, req)
       if (!creditResult.allowed) {
         recordApiRequest('tarot', 'generate', 'error')
         return creditErrorResponse(creditResult)
@@ -90,12 +90,13 @@ export const POST = withApiMiddleware(
       const drawnCards = drawCards(spread.cardCount)
 
       recordApiRequest('tarot', 'generate', 'success', Date.now() - startTime)
-      return NextResponse.json({
+      const response = NextResponse.json({
         category: theme.category,
         spread,
         drawnCards,
         questionContext: questionContext || null,
       })
+      return applyCreditResultCookies(response, creditResult)
     } catch (error) {
       recordApiRequest('tarot', 'generate', 'error', Date.now() - startTime)
       throw error

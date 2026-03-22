@@ -1,5 +1,35 @@
 # Project Quality Review
 
+Last reviewed: 2026-03-17 (Asia/Hong_Kong)
+
+## 2026-03-17 Addendum
+
+The destiny stack has materially improved since the original 2026-03-16 review.
+
+Current destiny-specific baseline:
+
+- 3-service regression: `PASS=10 WARN=0 FAIL=0`
+- counselor regression: `PASS=42 WARN=0 FAIL=0`
+- core quality: `core_quality_warning_count=0`, `core_quality_pass=1`
+
+Current state of the destiny surfaces:
+
+- Core judgment is now clearly separated from GraphRAG evidence.
+- Calendar, counselor, and report are substantially more synchronized around canonical output.
+- English and Korean action/guardrail labels are aligned through shared adapter/action-copy paths.
+- `move` is now a first-class focus domain in both the core and GraphRAG evidence path.
+
+Revised destiny assessment:
+
+- Core engine depth: high
+- Cross-surface sync quality: high
+- Counselor answer directness: high
+- GraphRAG role clarity: high
+- Maintainability: still medium because the report/counselor stack remains large
+
+The original review below remains useful as broader product context.
+
+---
 Last reviewed: 2026-03-16 (Asia/Hong_Kong)
 
 ## Executive Summary

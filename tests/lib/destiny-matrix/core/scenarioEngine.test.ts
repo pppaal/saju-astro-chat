@@ -128,6 +128,8 @@ describe('buildScenarioEngine realism contract', () => {
 
     expect(scenarios.length).toBeGreaterThan(0)
     expect(scenarios[0].timingRelevance).toBeGreaterThan(0.5)
+    expect(['day', 'week', 'fortnight', 'month', 'season']).toContain(scenarios[0].timingGranularity)
+    expect(scenarios[0].precisionReason.length).toBeGreaterThan(0)
     expect(scenarios[0].whyNow.length).toBeGreaterThan(0)
     expect(scenarios[0].whyNotYet.length).toBeGreaterThan(0)
     expect(scenarios[0].entryConditions.length).toBeGreaterThan(0)
@@ -135,6 +137,20 @@ describe('buildScenarioEngine realism contract', () => {
     expect(scenarios[0].manifestationHints.length).toBeGreaterThan(0)
     expect(scenarios[0].supportingSignalIds.length).toBeGreaterThan(0)
     expect(scenarios[0].evidenceIds[0]).toBe('career_expansion')
+  })
+
+  it('caps timing precision instead of forcing exact-date claims', () => {
+    const scenarios = buildScenarioEngine(
+      [createPattern()],
+      createStrategy(),
+      createInput(),
+      'ko'
+    )
+
+    const lead = scenarios[0]
+    expect(lead.window).toBe('now')
+    expect(['day', 'week', 'fortnight']).toContain(lead.timingGranularity)
+    expect(lead.precisionReason).toMatch(/상한|정밀/)
   })
 
   it('covers health and move domains with concrete scenario branches', () => {
@@ -544,6 +560,77 @@ describe('buildScenarioEngine realism contract', () => {
     )
     expect(byId.get('commitment_preparation_window')?.probability).toBeGreaterThan(
       byId.get('commitment_execution_window')?.probability || 0
+    )
+  })
+
+  it('separates health recovery branches from burnout-trigger branches under recovery pressure', () => {
+    const patterns = [
+      createPattern({
+        id: 'burnout_risk',
+        family: 'health_guardrail',
+        profile: 'risk',
+        domains: ['health'],
+        score: 72,
+        confidence: 0.74,
+        matchedKeywords: ['burnout', 'sleep', 'load', 'trigger'],
+        resolvedMode: 'prepare',
+        domainState: 'opening',
+        scenarioIds: ['burnout_trigger_window', 'sleep_disruption_window', 'recovery_reset_window', 'load_rebalance_window'],
+      }),
+      createPattern({
+        id: 'healing_routine_stabilization',
+        family: 'health_recovery',
+        profile: 'support',
+        domains: ['health'],
+        score: 71,
+        confidence: 0.73,
+        matchedKeywords: ['routine', 'habit', 'recovery', 'daily'],
+        resolvedMode: 'verify',
+        domainState: 'consolidation',
+        scenarioIds: ['recovery_window', 'routine_lock_window', 'recovery_compliance_window'],
+      }),
+    ]
+
+    const scenarios = buildScenarioEngine(patterns, createStrategy(), createInput(), 'ko', {
+      activation: {
+        domains: [
+          {
+            domain: 'health',
+            natalScore: 1.15,
+            timeScore: 1.25,
+            modulationScore: 0.7,
+            activationScore: 3.1,
+            dominantAxes: ['recovery', 'verification', 'pressure'],
+            sources: [],
+          },
+        ],
+        globalTimePressure: 0.74,
+        globalVerificationPressure: 0.71,
+      } as ActivationEngineResult,
+      rules: {
+        domains: [
+          {
+            domain: 'health',
+            amplify: ['recovery_protocol', 'nourishment_routine', 'phase_window'],
+            suppress: ['overextension'],
+            gate: ['commit_now'],
+            delay: ['overload', 'high_intensity_push', 'recovery_skipping'],
+            convert: [],
+            contradictionPenalty: 0.16,
+            priorityScore: 2.2,
+            resolvedMode: 'prepare',
+          },
+        ],
+        globalNotes: [],
+      } as RuleEngineResult,
+      states: {
+        domains: [{ domain: 'health', state: 'consolidation', rationale: 'test' }],
+      } as StateEngineResult,
+    })
+
+    const byId = new Map(scenarios.map((scenario) => [scenario.id, scenario]))
+    expect(byId.get('recovery_reset_window')?.probability).toBeGreaterThan(
+      byId.get('burnout_trigger_window')?.probability || 0
     )
   })
 

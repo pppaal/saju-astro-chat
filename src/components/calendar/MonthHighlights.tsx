@@ -41,7 +41,7 @@ const getStrategicGradeTitle = (grade: number, locale: 'ko' | 'en') => {
     1: locale === 'ko' ? '활용 우선' : 'Leverage-first',
     2: locale === 'ko' ? '운영 우선' : 'Operate-first',
     3: locale === 'ko' ? '검토 우선' : 'Review-first',
-    4: locale === 'ko' ? '방어 우선' : 'Protect-first',
+    4: locale === 'ko' ? '조정 우선' : 'Adjust-first',
   } as const
   return titles[Math.min(Math.max(grade, 0), 4) as keyof typeof titles]
 }

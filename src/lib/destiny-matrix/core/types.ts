@@ -59,6 +59,8 @@ export interface CoreScenarioLead {
   confidence: number
   window: ScenarioResult['window']
   timingRelevance: number
+  timingGranularity: ScenarioResult['timingGranularity']
+  precisionReason: string
   reversible: boolean
   whyNow: string
   entryConditions: string[]
@@ -89,6 +91,13 @@ export interface CoreDomainLead {
   evidenceIds: string[]
 }
 
+export interface CoreProvenance {
+  sourceFields: string[]
+  sourceSignalIds: string[]
+  sourceRuleIds: string[]
+  sourceSetIds: string[]
+}
+
 export interface CoreDomainAdvisory {
   domain: SignalDomain
   phase: StrategyPhaseCode
@@ -101,6 +110,7 @@ export interface CoreDomainAdvisory {
   leadPatternIds: string[]
   leadScenarioIds: string[]
   evidenceIds: string[]
+  provenance: CoreProvenance
 }
 
 export interface CoreDomainTimingWindow {
@@ -108,10 +118,18 @@ export interface CoreDomainTimingWindow {
   window: ScenarioResult['window'] | '12m+'
   confidence: number
   timingRelevance: number
+  timingGranularity: ScenarioResult['timingGranularity'] | 'season'
+  precisionReason: string
+  timingConflictMode: 'aligned' | 'readiness_ahead' | 'trigger_ahead' | 'weak_both'
+  timingConflictNarrative: string
+  readinessScore: number
+  triggerScore: number
+  convergenceScore: number
   whyNow: string
   entryConditions: string[]
   abortConditions: string[]
   evidenceIds: string[]
+  provenance: CoreProvenance
 }
 
 export interface CoreActivationSource {
@@ -140,6 +158,7 @@ export interface CoreDomainManifestation {
   timingWindow: CoreDomainTimingWindow['window']
   activationSources: CoreActivationSource[]
   evidenceIds: string[]
+  provenance: CoreProvenance
 }
 
 export interface CoreCoherenceAudit {
@@ -170,11 +189,13 @@ export interface CoreDomainVerdict {
   blockedActions: DecisionActionType[]
   rationale: string
   evidenceIds: string[]
+  provenance: CoreProvenance
 }
 
 export interface DestinyCoreCanonicalOutput {
   version: 'v1'
   claimIds: string[]
+  claimProvenanceById: Record<string, CoreProvenance>
   evidenceRefs: Record<string, string[]>
   confidence: number
   crossAgreement: number | null
@@ -256,6 +277,9 @@ export interface BuildCoreCanonicalOutputInput {
         strengthScore: number
         cautionScore: number
         balanceScore: number
+        readinessScore?: number
+        triggerScore?: number
+        convergenceScore?: number
       }
     }>
   }

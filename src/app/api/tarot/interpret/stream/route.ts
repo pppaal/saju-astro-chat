@@ -1,7 +1,7 @@
 // src/app/api/tarot/interpret/stream/route.ts
 // Streaming Tarot Interpretation API - Real-time SSE for first interpretation
 
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import {
   withApiMiddleware,
   createPublicStreamGuard,
@@ -14,6 +14,11 @@ import { logger } from '@/lib/logger'
 import { TarotInterpretSchema } from '@/lib/api/validator'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { createValidationErrorResponse } from '@/lib/api/zodValidation'
+import {
+  applyCreditResultCookies,
+  checkAndConsumeCredits,
+  creditErrorResponse,
+} from '@/lib/credits/withCredits'
 
 function buildCardContextMeaning(input: {
   name: string
@@ -47,6 +52,23 @@ function buildCardContextMeaning(input: {
   return `${name} (${orientation}) in ${pos}. ${keywordText}Interpret it directly for the user's question.`
 }
 
+function withCreditCookies(
+  response: Response,
+  creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null
+): Response {
+  if (!creditResult?.guestReadingAccess) {
+    return response
+  }
+
+  const nextResponse = new NextResponse(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  })
+
+  return applyCreditResultCookies(nextResponse, creditResult)
+}
+
 export const POST = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
     const body = await req.json().catch(() => null)
@@ -65,6 +87,11 @@ export const POST = withApiMiddleware(
         locale: extractLocale(req),
         route: 'tarot/interpret/stream',
       })
+    }
+
+    const creditResult = await checkAndConsumeCredits('reading', 1, req)
+    if (!creditResult.allowed) {
+      return creditErrorResponse(creditResult)
     }
 
     const { category, spreadTitle, cards, userQuestion, language } = parsed.data
@@ -123,23 +150,26 @@ export const POST = withApiMiddleware(
         status: streamResult.status,
         error: streamResult.error,
       })
-      return createErrorResponse({
-        code: ErrorCodes.BACKEND_ERROR,
-        message: streamResult.error || 'Backend service error',
-        locale: extractLocale(req),
-        route: 'tarot/interpret/stream',
-      })
+      return withCreditCookies(
+        createErrorResponse({
+          code: ErrorCodes.BACKEND_ERROR,
+          message: streamResult.error || 'Backend service error',
+          locale: extractLocale(req),
+          route: 'tarot/interpret/stream',
+        }),
+        creditResult
+      )
     }
 
     // Relay the SSE stream
-    return createSSEStreamProxy({ source: streamResult.response, route: 'TarotInterpretStream' })
+    return withCreditCookies(
+      createSSEStreamProxy({ source: streamResult.response, route: 'TarotInterpretStream' }),
+      creditResult
+    )
   },
   createPublicStreamGuard({
     route: 'tarot-interpret-stream',
     limit: 10,
     windowSeconds: 60,
-    requireCredits: true,
-    creditType: 'reading',
-    creditAmount: 1,
   })
 )

@@ -99,6 +99,42 @@ describe('useQuestionAnalysis', () => {
     })
   })
 
+  it('does not surface fallback notice when the engine returns heuristic analysis', async () => {
+    mockApiFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        isDangerous: false,
+        themeId: 'general-insight',
+        spreadId: 'quick-reading',
+        spreadTitle: '빠른 리딩',
+        cardCount: 1,
+        userFriendlyExplanation: '질문 해석을 먼저 고정했어요.',
+        path: '/tarot/general-insight/quick-reading?question=test',
+        source: 'heuristic',
+        fallback_reason: null,
+      }),
+    } as Response)
+
+    const { result } = renderHook(() =>
+      useQuestionAnalysis({
+        question: '내일 이차연이 나를 만날까?',
+        language: 'ko',
+        isKo: true,
+        getQuickRecommendation,
+      })
+    )
+
+    await act(async () => {
+      vi.advanceTimersByTime(450)
+      await Promise.resolve()
+    })
+
+    await waitFor(() => {
+      expect(result.current.fallbackReason).toBeNull()
+    })
+  })
+
   it('builds a quick fallback analysis on start-reading analyze failure (401)', async () => {
     const question = '질문'
 

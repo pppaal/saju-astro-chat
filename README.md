@@ -1,8 +1,8 @@
 # DestinyPal
 
-Last audited: 2026-02-15 (Asia/Seoul)
+Last audited: 2026-03-17 (Asia/Hong_Kong)
 
-DestinyPal is a Next.js App Router application for saju, astrology, tarot, and counseling flows, with a Python backend for GraphRAG and cross-domain reasoning.
+DestinyPal is a Next.js App Router application for saju, astrology, tarot, counseling, calendar guidance, and premium reporting, with a Python backend for GraphRAG and cross-domain reasoning.
 
 ## Quick Start
 
@@ -71,6 +71,51 @@ Measured with `npm run docs:stats` on 2026-02-15 (Asia/Seoul):
 - Markdown docs: `154`
 - `.env.example` variables: `79`
 
+## Current Destiny Engine Status
+
+The deterministic destiny stack is now organized as:
+
+- `Raw Input -> Feature -> Rule -> Pattern -> Scenario -> Verdict -> Evaluation`
+- Core judgment entry: `src/lib/destiny-matrix/core/runDestinyCore.ts`
+- Evidence/audit sidecar: `src/lib/destiny-matrix/core/nextGenPipeline.ts`
+- Presentation adapters:
+  - `adaptCoreToCalendar(...)`
+  - `adaptCoreToCounselor(...)`
+  - `adaptCoreToReport(...)`
+
+Role split:
+
+- Core: judgment and timing decisions
+- GraphRAG: evidence alignment and cross-source grounding
+- Calendar / Counselor / Report: presentation only
+
+Runtime logging strategy:
+
+- Use `UserInteraction` with a normalized destiny metadata envelope
+- Shared metadata builder: `src/lib/destiny-matrix/core/logging.ts`
+
+## Current QA Baseline
+
+Destiny engine and product sync checks as of 2026-03-17:
+
+- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`
+  - `PASS=10 WARN=0 FAIL=0`
+- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`
+  - `PASS=42 WARN=0 FAIL=0`
+- Core quality status:
+  - `core_quality_warning_count=0`
+  - `core_quality_pass=1`
+
+## Documentation Map
+
+Start with:
+
+- `docs/README.md`: canonical documentation hub
+- `docs/DESTINY_MATRIX.md`: current destiny engine architecture and service wiring
+- `docs/RAG_AND_GRAPHRAG.md`: GraphRAG role, domains, and evidence flow
+- `docs/TESTING_AND_GUARDRAILS.md`: required checks and destiny QA scripts
+- `docs/CALCULATION_SPEC.md`: code-derived current calculation spec for the modern pipeline
+
 API route audit baseline from `npm run audit:api`:
 
 - Total routes: `145`
@@ -78,44 +123,3 @@ API route audit baseline from `npm run audit:api`:
 - Validation signals: `113` (77.9%)
 - Rate limited: `129` (89.0%)
 
-## Architecture
-
-- Web/API: `src/app`, `src/lib`
-- Database: `prisma/schema.prisma`
-- AI backend: `backend_ai/main.py`
-- Graph retrieval: `backend_ai/app/rag`
-- Destiny Matrix engine: `src/lib/destiny-matrix`
-
-See `OVERVIEW.md` for runtime flow details.
-
-## Verification Commands
-
-Primary checks:
-
-```bash
-npm run lint
-npm run typecheck
-npm run build
-npm run test:e2e:smoke:public
-npx vitest run tests/i18n/pricing-keys-required.test.ts
-python scripts/self_check.py
-```
-
-Extended checks:
-
-```bash
-npm test
-npm run test:e2e:browser
-npm run test:backend
-```
-
-## Documentation
-
-- `BUILD_INSTRUCTIONS.md`: setup, env, migrations, deployment, troubleshooting
-- `SECURITY_AUDIT_REPORT.md`: current security posture and open items
-- `OVERVIEW.md`: system architecture
-- `docs/README.md`: docs hub
-- `docs/DOCS_INDEX.md`: documentation index and audiences
-- `docs/DOCS_AUDIT_REPORT_2026-02-15.md`: this audit summary
-
-Historical reports (`FINAL_*`, `*_REPORT.md`, `docs/archive/*`) are retained for traceability and are not normative for current operations.

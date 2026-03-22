@@ -68,12 +68,26 @@ import {
   buildLongTermMemorySection,
 } from './lib/context-builder'
 import {
+  analyzeCounselorQuestion,
+  buildCounselingStructureGuide,
+  describeQuestionAnalysis,
+  mapFocusDomainToTheme,
+} from './lib/focusDomain'
+import {
+  describeEvidenceConfidence,
+  describeExecutionStance,
+  describePhaseFlow,
+  describeTimingWindowTakeaways,
+  describeTimingWindowNarrative,
+} from '@/lib/destiny-matrix/interpretation/humanSemantics'
+import {
   assembleFinalPrompt,
   SECTION_PRIORITIES,
   type PromptSection,
 } from './builders/promptAssembly'
 import type { SajuDataStructure, AstroDataStructure } from './lib/types'
 import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
+import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -221,6 +235,7 @@ interface MatrixSnapshot {
         domain?: string
         signalIds?: string[]
         anchorIds?: string[]
+        provenanceSummary?: string
       }>
       scenarioBriefs?: Array<{
         id?: string
@@ -241,11 +256,26 @@ interface MatrixSnapshot {
         attackPercent?: number
         defensePercent?: number
       }
+      topTimingWindow?: {
+        domain: string
+        window: string
+        whyNow: string
+        entryConditions: string[]
+        abortConditions: string[]
+      }
+      whyStack?: string[]
     }
     quality?: {
       score: number
       grade: string
       warnings: string[]
+      dataQuality?: {
+        missingFields: string[]
+        derivedFields: string[]
+        conflictingFields: string[]
+        qualityPenalties: string[]
+        confidenceReason: string
+      }
     }
   }
   globalConflictPolicy?: string
@@ -280,15 +310,47 @@ function encodeCounselorUiEvidence(
   const phase =
     core.overallPhaseLabel?.trim() || packet.strategyBrief?.overallPhaseLabel?.trim() || ''
   const focus = packet.focusDomain?.trim() || ''
+  const phaseText = describePhaseFlow(phase, lang)
+  const stanceText = describeExecutionStance(core.attackPercent, core.defensePercent, lang)
+  const confidenceText = describeEvidenceConfidence(snapshot?.confidenceScore, lang)
+  const whyStack = (packet.whyStack || []).slice(0, 2)
+  const timingTakeaways = packet.topTimingWindow
+    ? describeTimingWindowTakeaways({
+        domainLabel: focus || packet.topTimingWindow.domain,
+        window: packet.topTimingWindow.window,
+        whyNow: packet.topTimingWindow.whyNow,
+        entryConditions: packet.topTimingWindow.entryConditions,
+        abortConditions: packet.topTimingWindow.abortConditions,
+        lang,
+      })
+    : []
+  const timingText =
+    timingTakeaways[0] ||
+    (packet.topTimingWindow
+      ? describeTimingWindowNarrative({
+          domainLabel: focus || packet.topTimingWindow.domain,
+          window: packet.topTimingWindow.window,
+          whyNow: packet.topTimingWindow.whyNow,
+          entryConditions: packet.topTimingWindow.entryConditions,
+          abortConditions: packet.topTimingWindow.abortConditions,
+          lang,
+        })
+      : '')
   const payload: CounselorUiEvidencePayload =
     lang === 'ko'
       ? {
           title: '왜 이런 답변이 나왔는지',
           summary:
             topClaim ||
-            `${phase || '현재 흐름'} 기준으로 ${focus || '핵심 주제'}를 우선 해석한 답변입니다.`,
+            `${focus || '지금 질문'}을 먼저 보기 위해 ${phaseText}`,
           bullets: [
-            phase ? `현재 국면: ${phase}` : '',
+            phase ? `현재 흐름: ${phaseText}` : '',
+            timingText ? `타이밍 해석: ${timingText}` : '',
+            timingTakeaways[1] ? `들어갈 조건: ${timingTakeaways[1]}` : '',
+            timingTakeaways[2] ? `늦출 신호: ${timingTakeaways[2]}` : '',
+            stanceText ? `실행 감각: ${stanceText}` : '',
+            confidenceText ? `근거 상태: ${confidenceText}` : '',
+            ...whyStack.map((line) => `왜 이렇게 보나: ${line}`),
             topAnchor ? `핵심 근거: ${topAnchor}` : '',
             cautionSignal ? `주의 신호: ${cautionSignal}` : '',
           ].filter(Boolean),
@@ -297,9 +359,15 @@ function encodeCounselorUiEvidence(
           title: 'Why this answer',
           summary:
             topClaim ||
-            `This response is aligned to the current ${phase || 'matrix'} phase and the ${focus || 'core'} domain first.`,
+            `This answer prioritizes ${focus || 'your current concern'} because ${phaseText.toLowerCase()}`,
           bullets: [
-            phase ? `Current phase: ${phase}` : '',
+            phase ? `Current flow: ${phaseText}` : '',
+            timingText ? `Timing read: ${timingText}` : '',
+            timingTakeaways[1] ? `Go conditions: ${timingTakeaways[1]}` : '',
+            timingTakeaways[2] ? `Slow-down signal: ${timingTakeaways[2]}` : '',
+            stanceText ? `Execution stance: ${stanceText}` : '',
+            confidenceText ? `Evidence read: ${confidenceText}` : '',
+            ...whyStack.map((line) => `Why this matters: ${line}`),
             topAnchor ? `Primary anchor: ${topAnchor}` : '',
             cautionSignal ? `Caution signal: ${cautionSignal}` : '',
           ].filter(Boolean),
@@ -1075,6 +1143,107 @@ function buildFocusDomainDepthGuide(
   }
 }
 
+function buildFocusDomainVoiceGuide(
+  focusDomain: string | null | undefined,
+  lang: string
+): string {
+  const domain = focusDomain || 'personality'
+
+  if (lang === 'ko') {
+    switch (domain) {
+      case 'relationship':
+        return [
+          '[Voice Guide]',
+          '- 한 줄 결론은 감정 단정이 아니라 관계 거리감, 대화 가능성, 확인 포인트 중심으로 씁니다.',
+          '- 실행 계획은 "대화를 어떻게 꺼낼지", "어떤 표현을 줄일지", "어떤 반응을 기다릴지"처럼 관계 운영 언어를 씁니다.',
+          '- 주의/재확인은 자존심 싸움, 추측성 확신, 답을 재촉하는 행동을 경계하는 문장으로 씁니다.',
+        ].join('\n')
+      case 'career':
+        return [
+          '[Voice Guide]',
+          '- 한 줄 결론은 가능성보다 역할, 책임 범위, 우선순위가 맞는지 중심으로 씁니다.',
+          '- 실행 계획은 "무엇을 먼저 끝낼지", "무슨 조건을 문서로 확인할지", "어디까지 협상할지"처럼 실무 언어를 씁니다.',
+          '- 주의/재확인은 성급한 확정, 책임 범위 불명확, 일정 과적재를 경계하는 문장으로 씁니다.',
+        ].join('\n')
+      case 'wealth':
+        return [
+          '[Voice Guide]',
+          '- 한 줄 결론은 기대 수익보다 현금 흐름, 손실 상한, 조건 검증을 먼저 말합니다.',
+          '- 실행 계획은 "얼마까지 허용할지", "어떤 숫자를 다시 볼지", "무슨 조건이 갖춰져야 들어갈지"처럼 숫자/조건 언어를 씁니다.',
+          '- 주의/재확인은 조급한 베팅, 대충 본 약관, 누수되는 지출을 경계하는 문장으로 씁니다.',
+        ].join('\n')
+      case 'health':
+        return [
+          '[Voice Guide]',
+          '- 한 줄 결론은 의지보다 회복 상태, 과부하 여부, 루틴 유지 가능성을 먼저 말합니다.',
+          '- 실행 계획은 "무엇을 줄일지", "어떤 회복 블록을 지킬지", "언제 쉬어야 하는지"처럼 회복 언어를 씁니다.',
+          '- 주의/재확인은 무리한 버티기, 수면 붕괴, 통증 무시를 경계하는 문장으로 씁니다.',
+        ].join('\n')
+      case 'move':
+      case 'timing':
+        return [
+          '[Voice Guide]',
+          '- 한 줄 결론은 가도 되는지보다 지금 움직일 창이 열렸는지, 더 봐야 하는지 중심으로 씁니다.',
+          '- 실행 계획은 "언제 다시 볼지", "무슨 신호가 맞아야 하는지", "어떤 조건이면 미룰지"처럼 타이밍 언어를 씁니다.',
+          '- 주의/재확인은 성급한 확정, 버퍼 없는 일정, 확인 없는 이동을 경계하는 문장으로 씁니다.',
+        ].join('\n')
+      default:
+        return [
+          '[Voice Guide]',
+          '- 한 줄 결론은 추상적 성향 설명보다 지금 질문에 대한 운영 판단으로 시작합니다.',
+          '- 실행 계획은 오늘 바로 할 수 있는 한두 가지 행동으로 씁니다.',
+          '- 주의/재확인은 과장된 확신, 반복 실수, 확인 없는 확정을 경계하는 문장으로 씁니다.',
+        ].join('\n')
+    }
+  }
+
+  switch (domain) {
+    case 'relationship':
+      return [
+        '[Voice Guide]',
+        '- Direct Answer should talk about distance, communication viability, and what still needs confirmation.',
+        '- Action Plan should sound like relationship management: what to say, what to stop, what response to wait for.',
+        '- Avoid/Recheck should warn against projection, emotional overconfidence, and forcing the pace.',
+      ].join('\n')
+    case 'career':
+      return [
+        '[Voice Guide]',
+        '- Direct Answer should focus on role fit, scope, and order of execution more than vague opportunity.',
+        '- Action Plan should sound operational: what to finish first, what to verify in writing, what to negotiate.',
+        '- Avoid/Recheck should warn against premature commitment, unclear ownership, and schedule overload.',
+      ].join('\n')
+    case 'wealth':
+      return [
+        '[Voice Guide]',
+        '- Direct Answer should focus on cash flow, downside, and validation before upside.',
+        '- Action Plan should sound numeric and conditional: limits, thresholds, and missing terms.',
+        '- Avoid/Recheck should warn against rushed bets, sloppy term review, and recurring leakage.',
+      ].join('\n')
+    case 'health':
+      return [
+        '[Voice Guide]',
+        '- Direct Answer should focus on recovery status, overload, and sustainability over pure willpower.',
+        '- Action Plan should sound restorative: what to reduce, what to protect, when to rest.',
+        '- Avoid/Recheck should warn against pushing through exhaustion and ignoring repeated symptoms.',
+      ].join('\n')
+    case 'move':
+    case 'timing':
+      return [
+        '[Voice Guide]',
+        '- Direct Answer should focus on whether the window is truly open or still conditional.',
+        '- Action Plan should sound timing-led: when to revisit, what has to align, what delays the move.',
+        '- Avoid/Recheck should warn against hard commitment without buffer, confirmation, or sequencing.',
+      ].join('\n')
+    default:
+      return [
+        '[Voice Guide]',
+        '- Direct Answer should start with an operational read, not an abstract personality summary.',
+        '- Action Plan should give one or two concrete next moves.',
+        '- Avoid/Recheck should warn against exaggerated certainty and preventable repetition.',
+      ].join('\n')
+  }
+}
+
 async function fetchMatrixSnapshot(input: {
   birthDate: string
   birthTime: string
@@ -1086,6 +1255,7 @@ async function fetchMatrixSnapshot(input: {
   advancedAstro?: Partial<CombinedResult>
   currentTransits?: unknown[]
   theme: string
+  focusDomain?: InsightDomain
 }): Promise<MatrixSnapshot | null> {
   try {
     const { planetSigns, planetHouses } = collectPlanetData(input.astro)
@@ -1267,12 +1437,12 @@ async function fetchMatrixSnapshot(input: {
       advancedAstroSignals,
       sajuSnapshot: rawSaju,
       astrologySnapshot: input.natalChartData
-        ? ({ natalChart: input.natalChartData } as Record<string, unknown>)
+        ? ({ natalChart: input.natalChartData } as MatrixCalculationInput['astrologySnapshot'])
         : undefined,
       crossSnapshot: {
         source: 'chat-stream',
         theme: input.theme,
-      },
+      } satisfies NonNullable<MatrixCalculationInput['crossSnapshot']>,
       currentDateIso: new Date().toISOString().slice(0, 10),
       profileContext: {
         birthDate: input.birthDate,
@@ -1296,8 +1466,9 @@ async function fetchMatrixSnapshot(input: {
     const matrixReport = coreEnvelope.matrixReport
     const core = coreEnvelope.coreSeed
     const counselorEvidence = buildCounselorEvidencePacket({
-      theme: 'chat',
+      theme: input.theme as Parameters<typeof buildCounselorEvidencePacket>[0]['theme'],
       lang: matrixLang,
+      focusDomainOverride: input.focusDomain,
       matrixInput: normalizedMatrixInput,
       matrixReport,
       matrixSummary: matrix.summary,
@@ -1349,9 +1520,9 @@ async function fetchMatrixSnapshot(input: {
       month: 'career',
       year: 'career',
       life: 'career',
-      chat: 'career',
+      chat: 'general',
     }
-    const themeDomain = themeDomainMap[input.theme] || 'career'
+    const themeDomain = input.focusDomain || themeDomainMap[input.theme] || 'career'
     const layerThemeBriefs = (layerThemeProfiles || [])
       .slice(0, 6)
       .map((layer) => {
@@ -1395,6 +1566,13 @@ async function fetchMatrixSnapshot(input: {
           score: core.quality.score,
           grade: core.quality.grade,
           warnings: core.quality.warnings.slice(0, 8),
+          dataQuality: {
+            missingFields: core.quality.dataQuality.missingFields.slice(0, 8),
+            derivedFields: core.quality.dataQuality.derivedFields.slice(0, 8),
+            conflictingFields: core.quality.dataQuality.conflictingFields.slice(0, 8),
+            qualityPenalties: core.quality.dataQuality.qualityPenalties.slice(0, 10),
+            confidenceReason: core.quality.dataQuality.confidenceReason,
+          },
         },
       },
       globalConflictPolicy: semantics.globalConflictPolicy,
@@ -1507,6 +1685,14 @@ export async function POST(req: NextRequest) {
       cvText,
       counselingBrief,
     } = validated
+    const trimmedHistory = clampMessages(messages)
+    const lastUser = [...trimmedHistory].reverse().find((m) => m.role === 'user')
+    const questionAnalysis = analyzeCounselorQuestion({
+      lastUserMessage: lastUser?.content,
+      theme,
+    })
+    const inferredTheme = mapFocusDomainToTheme(questionAnalysis.primaryDomain)
+    const effectiveTheme = theme === 'chat' ? inferredTheme : theme
 
     // ========================================
     // AUTO-LOAD: Try to load birth info from user profile if missing
@@ -1602,7 +1788,7 @@ export async function POST(req: NextRequest) {
     let recentSessionSummaries = ''
 
     if (userId) {
-      const memoryResult = await loadPersonaMemory(userId, theme, lang)
+      const memoryResult = await loadPersonaMemory(userId, effectiveTheme, lang)
       personaMemoryContext = memoryResult.personaMemoryContext
       recentSessionSummaries = memoryResult.recentSessionSummaries
     }
@@ -1632,15 +1818,11 @@ export async function POST(req: NextRequest) {
       gender: effectiveGender,
       latitude: effectiveLatitude,
       longitude: effectiveLongitude,
-      theme,
+      theme: effectiveTheme,
       advancedAstro: advancedAstro as Partial<CombinedResult> | undefined,
     })
 
-    // Messages are already validated by Zod as ChatMessage[]
-    const trimmedHistory = clampMessages(messages)
-
     // Safety check
-    const lastUser = [...trimmedHistory].reverse().find((m) => m.role === 'user')
     if (lastUser && containsForbidden(lastUser.content)) {
       const encoder = new TextEncoder()
       return new Response(
@@ -1673,7 +1855,7 @@ export async function POST(req: NextRequest) {
       currentTransits,
       birthDate: effectiveBirthDate,
       gender: effectiveGender,
-      theme,
+      theme: effectiveTheme,
       lang,
       trimmedHistory,
       lastUserMessage: lastUser?.content,
@@ -1695,12 +1877,13 @@ export async function POST(req: NextRequest) {
       natalChartData,
       advancedAstro: enrichedAdvancedAstro,
       currentTransits,
-      theme,
+      theme: effectiveTheme,
+      focusDomain: questionAnalysis.primaryDomain,
     })
     if (isCounselorStrictMatrixEnabled() && !matrixSnapshot) {
       logger.error('[chat-stream] Matrix snapshot unavailable (strict mode)', {
         userId: userId || 'guest',
-        theme,
+        theme: effectiveTheme,
         lang,
       })
       if (context?.refundCreditsOnError) {
@@ -1725,14 +1908,22 @@ export async function POST(req: NextRequest) {
       })
     }
     const coreCounselorPacket = matrixSnapshot?.core?.counselorEvidence || null
-    const coreFocusDomain = coreCounselorPacket?.focusDomain || null
-    const promptTheme = mapFocusDomainToPromptTheme(coreFocusDomain, theme)
+    const coreFocusDomain = coreCounselorPacket?.focusDomain || questionAnalysis.primaryDomain || null
+    const promptTheme = mapFocusDomainToPromptTheme(coreFocusDomain, effectiveTheme)
     const canonicalCounselorSection = formatCounselorEvidencePacket(
       coreCounselorPacket,
       lang === 'ko' ? 'ko' : 'en'
     )
     const matrixProfileSection = buildMatrixProfileSection(matrixSnapshot, lang, promptTheme)
     const counselorUiEvidence = encodeCounselorUiEvidence(matrixSnapshot, lang)
+    const questionAnalysisSection = describeQuestionAnalysis(
+      questionAnalysis,
+      lang === 'ko' ? 'ko' : 'en'
+    )
+    const counselingStructureGuide = buildCounselingStructureGuide(
+      questionAnalysis,
+      lang === 'ko' ? 'ko' : 'en'
+    )
 
     const themeDescriptions: Record<string, { ko: string; en: string }> = {
       love: { ko: '연애/배우자/관계 상담', en: 'Love, marriage, partner questions' },
@@ -1750,7 +1941,7 @@ export async function POST(req: NextRequest) {
     const themeContext =
       lang === 'ko'
         ? [
-            `현재 상담 요청 테마: ${theme}`,
+            `현재 상담 요청 테마: ${effectiveTheme}`,
             coreFocusDomain ? `현재 코어 초점 도메인: ${coreFocusDomain}` : '',
             `우선 답변 축: ${promptTheme} (${themeDesc.ko})`,
             '질문에 먼저 답하고, 코어 초점과 직접 관련된 근거를 우선 사용하세요.',
@@ -1758,7 +1949,7 @@ export async function POST(req: NextRequest) {
             .filter(Boolean)
             .join('\n')
         : [
-            `Requested theme: ${theme}`,
+            `Requested theme: ${effectiveTheme}`,
             coreFocusDomain ? `Current core focus domain: ${coreFocusDomain}` : '',
             `Primary answer track: ${promptTheme} (${themeDesc.en})`,
             'Answer the question first and prioritize evidence aligned with the core focus.',
@@ -1770,6 +1961,7 @@ export async function POST(req: NextRequest) {
     const fortuneGuide = buildFortuneWithIcpOutputGuide(lang)
     const themeDepthGuide = buildThemeDepthGuide(promptTheme, lang)
     const focusDepthGuide = buildFocusDomainDepthGuide(coreFocusDomain, lang)
+    const focusVoiceGuide = buildFocusDomainVoiceGuide(coreFocusDomain, lang)
     const evidenceGuide = buildEvidenceGroundingGuide(lang)
 
     const responseDensityContract =
@@ -1778,17 +1970,21 @@ export async function POST(req: NextRequest) {
             '[Response Contract: Question-first]',
             '- 첫 1~2문장에서 질문에 직접 답합니다.',
             '- 헤더 순서를 지킵니다: "## 한 줄 결론", "## 근거", "## 실행 계획", "## 주의/재확인".',
+            '- "근거", "실행 계획", "주의/재확인"은 짧은 bullet 위주로 씁니다.',
+            '- 어려운 용어를 그대로 나열하지 말고 자연스러운 한국어로 풀어 씁니다.',
             '- 섹션 간 문장 반복을 금지합니다.',
             '- 최종 결론은 core phase / claim / caution과 모순 없이 일치해야 합니다.',
-            '- 전체 길이는 650~1100자 내외를 유지합니다.',
+            '- 전체 길이는 420~760자 내외를 유지합니다.',
           ].join('\n')
         : [
             '[Response Contract: Question-first]',
             '- Answer the user question directly within the first two sentences.',
             '- Use headings in this exact order: "## Direct Answer", "## Evidence", "## Action Plan", "## Avoid / Recheck".',
+            '- Keep Evidence, Action Plan, and Avoid/Recheck concise and mostly bullet-based.',
+            '- Translate technical signals into natural language instead of dumping jargon.',
             '- Do not repeat sentences across sections.',
             '- Final verdict must align with core phase / top claims / cautions.',
-            '- Keep total length around 120-180 words.',
+            '- Keep total length around 90-140 words.',
           ].join('\n')
 
     const compactSections = buildCompactPromptSections({
@@ -1803,9 +1999,12 @@ export async function POST(req: NextRequest) {
       evidenceGuide,
       responseDensityContract,
       `Name: ${name || 'User'}`,
+      questionAnalysisSection,
+      counselingStructureGuide,
       canonicalCounselorSection,
       themeContext,
       focusDepthGuide,
+      focusVoiceGuide,
       fortuneIcpSection,
       themeDepthGuide,
       matrixProfileSection,
@@ -1828,7 +2027,7 @@ export async function POST(req: NextRequest) {
     const streamResult = await apiClient.postSSEStream(
       '/ask-stream',
       {
-        theme,
+        theme: promptTheme,
         prompt: chatPrompt,
         locale: lang,
         // Pass pre-computed chart data if available (instant response)

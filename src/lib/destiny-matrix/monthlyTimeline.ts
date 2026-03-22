@@ -17,15 +17,6 @@ interface MonthlyTimelineParams {
   baseOverlapStrength?: number
 }
 
-function stableHash(input: string): number {
-  let hash = 2166136261
-  for (let i = 0; i < input.length; i += 1) {
-    hash ^= input.charCodeAt(i)
-    hash = Math.imul(hash, 16777619)
-  }
-  return hash >>> 0
-}
-
 function pad2(value: number): string {
   return value.toString().padStart(2, '0')
 }
@@ -63,28 +54,49 @@ function toPeakLevel(overlapStrength: number): MonthlyOverlapPoint['peakLevel'] 
   return 'normal'
 }
 
-function buildInputSignature(input: MatrixCalculationInput): string {
-  return JSON.stringify({
-    dayMasterElement: input.dayMasterElement,
-    pillarElements: input.pillarElements,
-    sibsinDistribution: input.sibsinDistribution,
-    twelveStages: input.twelveStages,
-    geokguk: input.geokguk,
-    yongsin: input.yongsin,
-    currentDaeunElement: input.currentDaeunElement,
-    currentSaeunElement: input.currentSaeunElement,
-    currentWolunElement: input.currentWolunElement,
-    currentIljinElement: input.currentIljinElement,
-    currentIljinDate: input.currentIljinDate,
-    shinsalList: input.shinsalList,
-    dominantWesternElement: input.dominantWesternElement,
-    planetHouses: input.planetHouses,
-    planetSigns: input.planetSigns,
-    aspects: input.aspects,
-    activeTransits: input.activeTransits,
-    asteroidHouses: input.asteroidHouses,
-    extraPointSigns: input.extraPointSigns,
-  })
+function countAdvancedSignals(input: MatrixCalculationInput): number {
+  return Object.values(input.advancedAstroSignals || {}).filter(Boolean).length
+}
+
+function computeStructuralReadiness(input: MatrixCalculationInput): number {
+  const cycleSupport =
+    (input.currentDaeunElement ? 0.34 : 0) +
+    (input.currentSaeunElement ? 0.22 : 0) +
+    (input.currentWolunElement ? 0.12 : 0) +
+    (input.currentIljinElement || input.currentIljinDate ? 0.05 : 0)
+  const structuralSupport =
+    (input.geokguk ? 0.08 : 0) +
+    (input.yongsin ? 0.06 : 0) +
+    Math.min((input.relations || []).length * 0.01, 0.05) +
+    Math.min((input.shinsalList || []).length * 0.004, 0.04)
+
+  return clamp01(cycleSupport + structuralSupport)
+}
+
+function computeTriggerStrength(input: MatrixCalculationInput, layer4: Record<string, MatrixCell>, layer7: Record<string, MatrixCell>): number {
+  const transitStrength = Math.min((input.activeTransits || []).length * 0.08, 0.32)
+  const advancedStrength = Math.min(countAdvancedSignals(input) * 0.025, 0.15)
+  const layerStrength = Math.min(Object.keys(layer4).length * 0.01 + Object.keys(layer7).length * 0.006, 0.12)
+  const shortTermSupport =
+    (input.currentWolunElement ? 0.08 : 0) +
+    (input.currentIljinElement || input.currentIljinDate ? 0.05 : 0)
+
+  return clamp01(transitStrength + advancedStrength + layerStrength + shortTermSupport)
+}
+
+function computeMonthlySeasonalCurve(monthIndex: number, startMonth: number): number {
+  const seasonPhase = ((startMonth - 1 + monthIndex) / 12) * Math.PI * 2
+  const seasonalWave = Math.sin(seasonPhase) * 0.05
+  const quarterlyPulse = Math.cos((monthIndex / 3) * Math.PI) * 0.025
+  return seasonalWave + quarterlyPulse
+}
+
+function computeMonthlyTriggerCurve(monthIndex: number): number {
+  if (monthIndex === 0) return 0.12
+  if (monthIndex === 1) return 0.08
+  if (monthIndex === 2) return 0.05
+  if (monthIndex <= 5) return 0.02
+  return -0.015 * Math.min(monthIndex - 5, 4)
 }
 
 export function generateMonthlyOverlapTimeline({
@@ -98,18 +110,25 @@ export function generateMonthlyOverlapTimeline({
   const base = clamp01(baseOverlapStrength ?? baseFromModel)
 
   const start = parseStartYearMonth(startYearMonth)
-  const signature = buildInputSignature(input)
+  const readiness = computeStructuralReadiness(input)
+  const triggerStrength = computeTriggerStrength(input, layer4, layer7)
 
   const points: MonthlyOverlapPoint[] = []
   for (let monthIndex = 0; monthIndex < 12; monthIndex += 1) {
     const ym = addMonths(start.year, start.month, monthIndex)
     const monthKey = `${ym.year}-${pad2(ym.month)}`
 
-    const monthHash = stableHash(`${signature}|${monthKey}|${monthIndex}`)
-    const hashBump = ((monthHash % 2001) / 1000 - 1) * 0.1 // -0.1..0.1
-    const seasonalBump = Math.sin((monthIndex / 12) * Math.PI * 2) * 0.08
-
-    const overlapStrength = clamp01(base + seasonalBump + hashBump)
+    const seasonalBump = computeMonthlySeasonalCurve(monthIndex, start.month)
+    const triggerBump = computeMonthlyTriggerCurve(monthIndex) * triggerStrength
+    const readinessDrift = Math.max(0, readiness - 0.45) * 0.06
+    const overlapStrength = clamp01(
+      base * 0.58 +
+        readiness * 0.24 +
+        triggerStrength * 0.12 +
+        seasonalBump +
+        triggerBump +
+        readinessDrift
+    )
     const timeOverlapWeight = Math.min(1.3, Math.max(1.0, 1 + 0.3 * overlapStrength))
 
     points.push({
@@ -132,9 +151,29 @@ export function generateTimelineByDomain(
   for (const domain of DOMAIN_KEYS) {
     const score = domainScores[domain]?.finalScoreAdjusted ?? 5
     const domainIntensity = clamp01((score - 5) / 5)
+    const domainSeasonalBias =
+      domain === 'career'
+        ? 0.03
+        : domain === 'move'
+          ? 0.015
+          : domain === 'health'
+            ? -0.01
+            : 0
 
-    out[domain] = globalTimeline.map((point) => {
-      const overlapStrength = clamp01(point.overlapStrength * (0.7 + 0.6 * domainIntensity))
+    out[domain] = globalTimeline.map((point, monthIndex) => {
+      const domainPulse =
+        domain === 'move'
+          ? monthIndex <= 2
+            ? 0.02
+            : 0
+          : domain === 'health'
+            ? monthIndex >= 5 && monthIndex <= 8
+              ? 0.015
+              : 0
+            : 0
+      const overlapStrength = clamp01(
+        point.overlapStrength * (0.7 + 0.6 * domainIntensity) + domainSeasonalBias + domainPulse
+      )
       const timeOverlapWeight = Math.min(1.3, Math.max(1.0, 1 + 0.3 * overlapStrength))
       return {
         month: point.month,

@@ -4,7 +4,6 @@ import { useEffect, useCallback, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import dynamic from 'next/dynamic'
 import { useI18n } from '@/i18n/I18nProvider'
 import { ErrorBoundary, ChatErrorFallback } from '@/components/ErrorBoundary'
 import CreditBadge from '@/components/ui/CreditBadge'
@@ -13,24 +12,7 @@ import styles from './counselor.module.css'
 import { logger } from '@/lib/logger'
 import { useCounselorData } from './useCounselorData'
 import { CounselorLoadingScreen } from './CounselorLoadingScreen'
-
-const Chat = dynamic(() => import('@/components/destiny-map/Chat'), {
-  ssr: false,
-  loading: () => (
-    <div
-      style={{
-        height: '100%',
-        minHeight: 320,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#CBD5E1',
-      }}
-    >
-      Loading counselor chat...
-    </div>
-  ),
-})
+import Chat from '@/components/destiny-map/Chat'
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -98,6 +80,33 @@ export default function CounselorPage() {
 
   const handleBack = useCallback(() => router.back(), [router])
   const handleChatReset = useCallback(() => window.location.reload(), [])
+
+  if (!birthDate || !birthTime) {
+    return (
+      <main className={styles.page}>
+        <div className={styles.missingProfileCard}>
+          <div className={styles.missingProfileIcon}>🔮</div>
+          <h1 className={styles.missingProfileTitle}>
+            {t('destinyMap.counselor.title', 'Destiny Counselor')}
+          </h1>
+          <p className={styles.missingProfileText}>
+            {t(
+              'destinyMap.counselor.missingProfile',
+              '상담을 시작하려면 먼저 생년월일과 출생 시간을 입력해 주세요.'
+            )}
+          </p>
+          <div className={styles.missingProfileActions}>
+            <Link href="/destiny-counselor" className={styles.primaryAction}>
+              {t('destinyMap.counselor.goToForm', '정보 입력하러 가기')}
+            </Link>
+            <button type="button" className={styles.secondaryAction} onClick={handleBack}>
+              {t('common.back', 'Back')}
+            </button>
+          </div>
+        </div>
+      </main>
+    )
+  }
 
   if (isLoading) {
     return (

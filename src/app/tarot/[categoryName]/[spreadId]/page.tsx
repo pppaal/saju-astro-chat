@@ -4,12 +4,10 @@ import React, { Suspense, useEffect, useCallback, useMemo, useRef, useState } fr
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
-import AuthGate from '@/components/auth/AuthGate'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { useTarotGame, useTarotInterpretation } from './hooks'
 import { smoothScrollTo } from './utils'
 import { PageContent } from './components/PageContent'
-import LoginPrompt from './components/LoginPrompt'
 import styles from './tarot-reading.module.css'
 
 export default function TarotReadingPageWrapper() {
@@ -34,13 +32,13 @@ function TarotReadingPage() {
   const { status } = useSession()
   const { translate, language } = useI18n()
 
-  // Setup URLs
   const categoryName = params?.categoryName as string | undefined
   const spreadId = params?.spreadId as string | undefined
   const search = searchParams?.toString()
   const basePath = categoryName && spreadId ? `/tarot/${categoryName}/${spreadId}` : '/tarot'
   const callbackUrl = search ? `${basePath}?${search}` : basePath
   const signInUrl = buildSignInUrl(callbackUrl)
+  const isGuestUser = status === 'unauthenticated'
 
   // Local state
   const detailedSectionRef = useRef<HTMLDivElement | null>(null)
@@ -170,26 +168,22 @@ function TarotReadingPage() {
       </div>
     )
   }
-
-  // Login fallback
-  const loginFallback = <LoginPrompt signInUrl={signInUrl} language={language} />
-
   return (
-    <AuthGate statusOverride="authenticated" callbackUrl={callbackUrl} fallback={loginFallback}>
-      <PageContent
-        {...gameHook}
-        {...interpretationHook}
-        detailedSectionRef={detailedSectionRef}
-        expandedCard={expandedCard}
-        isSaving={isSaving}
-        handleCardReveal={handleCardReveal}
-        scrollToDetails={scrollToDetails}
-        handleSaveReading={handleSaveReading}
-        handleReset={handleReset}
-        toggleCardExpand={toggleCardExpand}
-        language={language}
-        translate={translate}
-      />
-    </AuthGate>
+    <PageContent
+      {...gameHook}
+      {...interpretationHook}
+      detailedSectionRef={detailedSectionRef}
+      expandedCard={expandedCard}
+      isSaving={isSaving}
+      isGuestUser={isGuestUser}
+      signInUrl={signInUrl}
+      handleCardReveal={handleCardReveal}
+      scrollToDetails={scrollToDetails}
+      handleSaveReading={handleSaveReading}
+      handleReset={handleReset}
+      toggleCardExpand={toggleCardExpand}
+      language={language}
+      translate={translate}
+    />
   )
 }

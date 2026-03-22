@@ -2,6 +2,7 @@
 import type { MatrixCalculationInput } from '../types'
 import type { ReportPeriod, ReportTheme } from './types'
 import { getThemedSectionKeys } from './themeSchema'
+import { describeGraphEvidenceWhy } from '@/lib/destiny-matrix/interpretation/humanSemantics'
 
 export type GraphRAGDomain = InsightDomain | 'move'
 
@@ -161,6 +162,8 @@ export interface GraphRAGEvidenceBundle {
   mode: 'comprehensive' | 'timing' | 'themed'
   theme?: ReportTheme
   period?: ReportPeriod
+  focusDomain?: GraphRAGDomain
+  lang?: 'ko' | 'en'
   anchors: GraphRAGEvidenceAnchor[]
 }
 
@@ -185,6 +188,8 @@ export interface GraphRAGEvidenceSummary {
   highTrustSetCount: number
   lowTrustSetCount: number
   cautionSections: string[]
+  focusReason: string
+  graphReason: string
   anchors: GraphRAGAnchorSummary[]
 }
 
@@ -688,6 +693,8 @@ export function buildGraphRAGEvidence(
     mode: options.mode,
     theme: options.theme,
     period: options.period,
+    focusDomain: options.focusDomain,
+    lang,
     anchors,
   }
 }
@@ -741,7 +748,8 @@ export function formatGraphRAGEvidenceForPrompt(
 }
 
 export function summarizeGraphRAGEvidence(
-  evidence?: GraphRAGEvidenceBundle | null
+  evidence?: GraphRAGEvidenceBundle | null,
+  options?: { focusDomain?: GraphRAGDomain; lang?: ReportLang }
 ): GraphRAGEvidenceSummary | null {
   if (!evidence || !Array.isArray(evidence.anchors) || evidence.anchors.length === 0) {
     return null
@@ -794,6 +802,16 @@ export function summarizeGraphRAGEvidence(
         anchor.lowTrustSetCount > 0 || anchor.avgOverlapScore < 0.6 || anchor.avgOrbFitScore < 0.5
     )
     .map((anchor) => anchor.section)
+  const strongestSet = allSets
+    .slice()
+    .sort((a, b) => b.overlapScore - a.overlapScore || b.orbFitScore - a.orbFitScore)[0]
+  const graphWhy = describeGraphEvidenceWhy({
+    focusDomainLabel: evidence.focusDomain,
+    overlapDomains: strongestSet?.overlapDomains || [],
+    overlapScore: strongestSet?.overlapScore,
+    orbFitScore: strongestSet?.orbFitScore,
+    lang: evidence.lang || 'ko',
+  })
 
   return {
     mode: evidence.mode,
@@ -806,6 +824,8 @@ export function summarizeGraphRAGEvidence(
     highTrustSetCount,
     lowTrustSetCount,
     cautionSections,
+    focusReason: graphWhy.focusReason,
+    graphReason: graphWhy.graphReason,
     anchors,
   }
 }

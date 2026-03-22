@@ -143,7 +143,14 @@ export async function callAIBackendGeneric<T>(
   const enabledProviders = AI_PROVIDERS.filter((p) => p.enabled && p.apiKey)
 
   if (enabledProviders.length === 0) {
-    logger.error('[AI Backend] No AI providers configured')
+    logger.error('[AI Backend] No AI providers configured', {
+      providers: AI_PROVIDERS.map((provider) => ({
+        name: provider.name,
+        enabled: provider.enabled,
+        hasApiKey: !!provider.apiKey,
+        model: provider.model,
+      })),
+    })
     throw new Error('No AI providers available')
   }
 
@@ -198,7 +205,14 @@ export async function callAIBackendGeneric<T>(
   }
 
   // 모든 프로바이더 실패
-  logger.error('[AI Backend] All providers failed', { lastError })
+  logger.error('[AI Backend] All providers failed', {
+    lastError: lastError?.message || 'Unknown',
+    providersTried: enabledProviders.map((provider) => ({
+      name: provider.name,
+      model: provider.name === 'openai' ? preferredOpenAIModel : provider.model,
+      timeoutMs: getProviderTimeoutMs(provider.name),
+    })),
+  })
   throw new Error(`All AI providers failed. Last error: ${lastError?.message || 'Unknown'}`)
 }
 

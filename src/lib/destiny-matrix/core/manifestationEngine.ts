@@ -8,6 +8,7 @@ import type {
   CoreDomainTimingWindow,
   CoreDomainVerdict,
   CorePatternLead,
+  CoreProvenance,
   CoreScenarioLead,
 } from './types'
 
@@ -295,6 +296,15 @@ function selectSourcesForDomain(
   return primary.slice(0, 5)
 }
 
+function mergeProvenance(parts: Array<CoreProvenance | undefined>): CoreProvenance {
+  return {
+    sourceFields: [...new Set(parts.flatMap((item) => item?.sourceFields || []))].slice(0, 10),
+    sourceSignalIds: [...new Set(parts.flatMap((item) => item?.sourceSignalIds || []))].slice(0, 10),
+    sourceRuleIds: [...new Set(parts.flatMap((item) => item?.sourceRuleIds || []))].slice(0, 10),
+    sourceSetIds: [...new Set(parts.flatMap((item) => item?.sourceSetIds || []))].slice(0, 10),
+  }
+}
+
 function describeBaseline(
   lead: CoreDomainLead,
   pattern: CorePatternLead | null,
@@ -405,6 +415,7 @@ export function buildDomainManifestations(input: {
       timingWindow: timing?.window || '12m+',
       activationSources: selectedSources,
       evidenceIds: evidenceIds.slice(0, 10),
+      provenance: mergeProvenance([advisory?.provenance, timing?.provenance, verdict?.provenance]),
     }
   })
 }

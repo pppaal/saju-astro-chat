@@ -306,6 +306,12 @@
   gap: 18px;
 }
 
+.desktopNav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
 .navItem {
   position: relative;
 }
@@ -695,6 +701,98 @@
   display: flex;
   gap: 12px;
   align-items: center;
+  margin-left: auto;
+}
+
+.headerBell {
+  display: inline-flex;
+  align-items: center;
+}
+
+.mobileMenuToggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 14px;
+  border: 1px solid rgba(99, 210, 255, 0.22);
+  background: rgba(10, 18, 34, 0.7);
+  cursor: pointer;
+}
+
+.mobileMenuBar {
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(236, 245, 255, 0.94);
+}
+
+.mobileMenuPanel {
+  display: none;
+}
+
+.mobileNav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.mobileNavLink {
+  display: block;
+  padding: 0.85rem 0.95rem;
+  border-radius: 14px;
+  color: rgba(239, 247, 255, 0.96);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(99, 210, 255, 0.1);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.mobileServicesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mobileServicesTitle {
+  margin: 0;
+  color: rgba(175, 223, 255, 0.88);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mobileServicesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.mobileServiceLink {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.8rem 0.85rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(99, 210, 255, 0.12);
+  color: rgba(239, 247, 255, 0.96);
+  text-decoration: none;
+}
+
+.mobileServiceIcon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.mobileServiceText {
+  font-size: 0.88rem;
+  font-weight: 700;
 }
 
 .headerLink {
@@ -845,6 +943,54 @@
   gap: 0.75rem;
 }
 
+.serviceTabRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.serviceTab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.72rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(99, 210, 255, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(223, 235, 246, 0.82);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.serviceTab:hover {
+  transform: translateY(-1px);
+  border-color: rgba(99, 210, 255, 0.28);
+  color: rgba(239, 247, 255, 0.94);
+}
+
+.serviceTabActive {
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.16), rgba(143, 242, 213, 0.12));
+  border-color: rgba(143, 242, 213, 0.4);
+  color: #f5fbff;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16);
+}
+
+.serviceTabIcon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.serviceTabLabel {
+  white-space: nowrap;
+}
+
 .serviceChoiceCard {
   display: flex;
   flex-direction: column;
@@ -945,30 +1091,47 @@
   gap: 0.75rem;
 }
 
-.selectedServiceBadge {
+.selectedServiceCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.95rem 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(99, 210, 255, 0.14);
+  background: linear-gradient(145deg, rgba(15, 26, 46, 0.68), rgba(10, 16, 32, 0.8));
+}
+
+.selectedServiceHeading {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  width: fit-content;
-  padding: 0.52rem 0.82rem;
-  border-radius: 999px;
-  border: 1px solid rgba(99, 210, 255, 0.18);
-  background: rgba(99, 210, 255, 0.08);
-  color: rgba(239, 247, 255, 0.96);
-  font-size: 0.85rem;
+  gap: 0.55rem;
+}
+
+.selectedServiceBadge {
+  color: rgba(239, 247, 255, 0.98);
+  font-size: 0.95rem;
   font-weight: 800;
 }
 
 .selectedServiceBadgeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: rgba(99, 210, 255, 0.12);
+  border: 1px solid rgba(99, 210, 255, 0.14);
   font-size: 1rem;
   line-height: 1;
 }
 
-.selectedServiceNote {
-  color: rgba(223, 235, 246, 0.64);
-  font-size: 0.82rem;
+.selectedServiceDescription {
+  margin: 0;
+  color: rgba(223, 235, 246, 0.74);
+  font-size: 0.9rem;
+  line-height: 1.55;
   font-weight: 600;
-  text-align: right;
 }
 
 .serviceSelectorWrap {
@@ -3863,63 +4026,48 @@
     gap: 2.5rem;
   }
   .topBar {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    grid-template-rows: auto auto;
-    gap: 8px 12px;
+    display: flex;
+    gap: 10px;
     position: fixed;
     padding: 10px 16px;
     align-items: center;
-    overflow-x: auto;
     overflow-y: visible;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    overscroll-behavior-x: contain;
-  }
-  .topBar::-webkit-scrollbar {
-    display: none;
   }
   .brand {
-    grid-column: 1;
-    grid-row: 1;
     min-width: max-content;
   }
   .brandText {
     font-size: 1.1rem;
   }
+  .desktopNav {
+    display: none;
+  }
   .headerLinks {
-    grid-column: 3;
-    grid-row: 1;
     gap: 6px;
-    justify-self: end;
+    margin-left: auto;
     min-width: max-content;
     flex-wrap: nowrap;
   }
-  .nav {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    display: flex;
-    overflow-x: auto;
-    gap: 6px;
-    padding: 6px 0;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .nav::-webkit-scrollbar {
+  .headerBell {
     display: none;
   }
-  .navLink,
-  .navLinkDisabled {
-    font-size: 0.8rem;
-    white-space: nowrap;
-    padding: 5px 10px;
+  .mobileMenuToggle {
+    display: inline-flex;
   }
-  .navItem {
-    position: static;
-  }
-  .navButton {
-    font-size: 0.8rem;
-    padding: 5px 10px;
+  .mobileMenuPanel {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 24px;
+    border: 1px solid rgba(99, 210, 255, 0.16);
+    background: linear-gradient(180deg, rgba(8, 16, 34, 0.98), rgba(5, 12, 26, 0.96));
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
+    backdrop-filter: blur(18px);
   }
   .logo {
     flex-shrink: 0;
@@ -4368,41 +4516,26 @@
     font-size: 1.05rem;
   }
 
-  .serviceChoiceGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.65rem;
+  .serviceTabRow {
+    gap: 0.55rem;
   }
 
-  .serviceChoiceCard {
-    min-height: 124px;
-    padding: 0.85rem;
+  .serviceTab {
+    flex: 1 1 calc(50% - 0.3rem);
+    min-width: 0;
+    padding: 0.72rem 0.8rem;
   }
 
-  .serviceChoiceHead {
-    gap: 0.65rem;
+  .serviceTabLabel {
+    font-size: 0.82rem;
   }
 
-  .serviceChoiceIcon {
-    width: 40px;
-    height: 40px;
-    font-size: 1.1rem;
+  .selectedServiceCard {
+    padding: 0.9rem 0.95rem;
   }
 
-  .serviceChoiceName {
-    font-size: 0.9rem;
-  }
-
-  .serviceChoiceDesc {
-    font-size: 0.74rem;
-  }
-
-  .selectedServiceRow {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .selectedServiceNote {
-    text-align: left;
+  .selectedServiceDescription {
+    font-size: 0.84rem;
   }
 
   .questionSearchWrapper {
@@ -4434,12 +4567,6 @@
 
   .serviceSelectArrow {
     font-size: 0.55rem;
-  }
-
-  .aiRoutingText {
-    justify-content: flex-start;
-    text-align: left;
-    max-width: none;
   }
 
   .questionHints {
@@ -4982,6 +5109,10 @@
   .questionHint {
     padding: 6px 12px;
     font-size: 0.75rem;
+  }
+
+  .serviceTab {
+    flex-basis: 100%;
   }
 
   .statItem {

@@ -646,6 +646,15 @@ export const GET = withApiMiddleware(
     let matrixInputCoverage: Record<string, unknown> | null = null
     let matrixEvidencePackets: Record<string, CounselorEvidencePacket> | null = null
     let calendarCoreCanonical: ReturnType<typeof adaptCoreToCalendar> | null = null
+    let calendarCoreDataQuality:
+      | {
+          missingFields: string[]
+          derivedFields: string[]
+          conflictingFields: string[]
+          qualityPenalties: string[]
+          confidenceReason: string
+        }
+      | null = null
     let topMatchedPatterns: Array<{
       id: string
       label: string
@@ -986,13 +995,13 @@ export const GET = withApiMiddleware(
               natalChart: natalChartData,
               natalAspects: natalAspectData,
               advancedCoverage: derivedAdvancedSignals,
-            } as Record<string, unknown>)
+            } as MatrixCalculationInput['astrologySnapshot'])
           : undefined,
         crossSnapshot: {
           source: 'calendar-route',
           category: category || null,
           astroTimingIndex,
-        },
+        } satisfies NonNullable<MatrixCalculationInput['crossSnapshot']>,
         currentDateIso: new Date().toISOString().slice(0, 10),
         profileContext: {
           birthDate: birthDateParam,
@@ -1035,6 +1044,7 @@ export const GET = withApiMiddleware(
       const matrixReport = coreEnvelope.matrixReport
       const coreSeed = coreEnvelope.coreSeed
       calendarCoreCanonical = adaptCoreToCalendar(coreSeed, locale === 'en' ? 'en' : 'ko')
+      calendarCoreDataQuality = coreSeed.quality.dataQuality
       topMatchedPatterns = coreSeed.patterns.slice(0, 10).map((pattern) => ({
         id: pattern.id,
         label: pattern.label,
@@ -1218,13 +1228,47 @@ export const GET = withApiMiddleware(
         aiEnrichmentFailed
       )
 
-    const formattedDates = matrixRegradedDates.map((d) => formatCalendarDate(d))
+    const formattedDatesBase = matrixRegradedDates.map((d) => formatCalendarDate(d))
+    const auspiciousDateSet = new Set((aiDates?.auspicious || []).map((item) => item.date).filter(Boolean))
+    const cautionDateSet = new Set((aiDates?.caution || []).map((item) => item.date).filter(Boolean))
+    const formattedDates = formattedDatesBase.map((item) => {
+      const aiNotes: string[] = []
+      if (auspiciousDateSet.has(item.date)) {
+        aiNotes.push(
+          locale === 'en'
+            ? 'AI review also marks this date as favorable.'
+            : 'AI 보강에서도 이 날짜를 유리한 날로 봅니다.'
+        )
+      }
+      if (cautionDateSet.has(item.date)) {
+        aiNotes.push(
+          locale === 'en'
+            ? 'AI review flags this date for extra caution.'
+            : 'AI 보강에서는 이 날짜를 주의 구간으로 봅니다.'
+        )
+      }
+      if (aiNotes.length === 0) {
+        return item
+      }
+      return {
+        ...item,
+        recommendations: auspiciousDateSet.has(item.date)
+          ? [...item.recommendations, ...aiNotes]
+          : item.recommendations,
+        warnings: cautionDateSet.has(item.date) ? [...item.warnings, ...aiNotes] : item.warnings,
+        summary: [item.summary, ...aiNotes].join(' '),
+      }
+    })
     const sortByDisplayScoreDesc = (
       a: (typeof formattedDates)[number],
       b: (typeof formattedDates)[number]
     ) => (b.displayScore ?? b.score) - (a.displayScore ?? a.score)
+    const sortByDisplayScoreAsc = (
+      a: (typeof formattedDates)[number],
+      b: (typeof formattedDates)[number]
+    ) => (a.displayScore ?? a.score) - (b.displayScore ?? b.score)
 
-    // 5등급별 그룹화 (single-pass instead of repeated filter calls)
+    // Group by the final display grade so API summaries match what the UI actually shows.
     const gradeGroups: Record<number, typeof formattedDates> = {
       0: [],
       1: [],
@@ -1233,8 +1277,9 @@ export const GET = withApiMiddleware(
       4: [],
     }
     for (const d of formattedDates) {
-      if (d.grade >= 0 && d.grade <= 4) {
-        gradeGroups[d.grade].push(d)
+      const effectiveGrade = d.displayGrade ?? d.grade
+      if (effectiveGrade >= 0 && effectiveGrade <= 4) {
+        gradeGroups[effectiveGrade].push(d)
       }
     }
     const grade0 = gradeGroups[0] // 천운의 날
@@ -1247,7 +1292,6 @@ export const GET = withApiMiddleware(
     let aiEnhanced = false
     if (aiDates) {
       aiEnhanced = true
-      // AI 날짜를 기존 날짜에 병합 가능
     }
 
     const todayPacket = matrixEvidencePackets?.today || matrixEvidencePackets?.general
@@ -1265,12 +1309,26 @@ export const GET = withApiMiddleware(
           }
         : undefined
 
+    const presentationDomainMap = {
+      career: 'career',
+      study: 'career',
+      love: 'love',
+      relationship: 'love',
+      wealth: 'money',
+      money: 'money',
+      health: 'health',
+      travel: 'move',
+      move: 'move',
+    } as const
+
     const presentationView = buildCalendarPresentationView({
       allDates: formattedDates,
       locale: locale === 'en' ? 'en' : 'ko',
       timeZone: timezone,
       canonicalCore: calendarCoreCanonical || undefined,
+      preferredFocusDomain: category ? presentationDomainMap[category as keyof typeof presentationDomainMap] : undefined,
       matrixContract: calendarMatrixContract,
+      dataQuality: calendarCoreDataQuality || undefined,
       domainScores: matrixCalendarContext?.domainScores,
     })
 
@@ -1305,8 +1363,8 @@ export const GET = withApiMiddleware(
         return topCandidates.sort(sortByDisplayScoreDesc).slice(0, 10)
       })(),
       goodDates: [...grade1, ...grade2].sort(sortByDisplayScoreDesc).slice(0, 20),
-      badDates: [...grade4, ...grade3].sort(sortByDisplayScoreDesc).slice(0, 10),
-      worstDates: [...grade4].sort(sortByDisplayScoreDesc).slice(0, 5),
+      badDates: [...grade4, ...grade3].sort(sortByDisplayScoreAsc).slice(0, 10),
+      worstDates: [...grade4].sort(sortByDisplayScoreAsc).slice(0, 5),
       allDates: formattedDates,
       daySummary: presentationView.daySummary,
       weekSummary: presentationView.weekSummary,

@@ -172,6 +172,23 @@ describe('destiny-matrix domain and timeline', () => {
     expect(byDomain.career[0].overlapStrength).toBeGreaterThan(byDomain.move[0].overlapStrength)
   })
 
+  it('front-loads short-term trigger pressure instead of hash noise', () => {
+    const timeline = generateMonthlyOverlapTimeline({
+      input: buildInput({
+        currentWolunElement: '\uBAA9',
+        currentIljinElement: '\uAE08',
+        activeTransits: ['saturnReturn', 'jupiterReturn', 'eclipse'],
+      }),
+      layer4: { a: {} as any, b: {} as any },
+      layer7: { c: {} as any },
+      startYearMonth: '2026-02',
+      baseOverlapStrength: 0.62,
+    })
+
+    expect(timeline[0].overlapStrength).toBeGreaterThanOrEqual(timeline[3].overlapStrength)
+    expect(timeline[1].overlapStrength).toBeGreaterThanOrEqual(timeline[5].overlapStrength)
+  })
+
   it('calendar_signals_include_peak_months', () => {
     const signals = deriveCalendarSignals({
       finalScoreAdjusted: 7.8,

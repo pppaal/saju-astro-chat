@@ -11,6 +11,14 @@ import { logger } from '@/lib/logger'
 
 export type CreditType = 'reading' | 'compatibility' | 'followUp'
 
+type CookieReadableRequest = {
+  cookies?: {
+    get: (name: string) => { value: string } | undefined
+  }
+}
+
+type GuestReadingAccess = 'draw_granted' | 'interpret_granted'
+
 interface CreditCheckResult {
   allowed: boolean
   userId?: string
@@ -22,6 +30,54 @@ interface CreditCheckResult {
     limit: number
     planName?: string
   }
+  guestReadingAccess?: GuestReadingAccess
+}
+
+const GUEST_TAROT_USED_COOKIE = 'tarot_guest_reading_used'
+const GUEST_TAROT_INTERPRET_COOKIE = 'tarot_guest_interpret_pass'
+const GUEST_TAROT_USED_MAX_AGE = 60 * 60 * 24 * 365
+const GUEST_TAROT_INTERPRET_MAX_AGE = 60 * 30
+
+function readCookie(request: CookieReadableRequest | undefined, name: string): string | null {
+  return request?.cookies?.get(name)?.value || null
+}
+
+function buildGuestReadingDeniedResult(): CreditCheckResult {
+  return {
+    allowed: false,
+    error: '무료 체험 리딩은 이미 사용했습니다. 로그인 후 계속 이용하세요.',
+    errorCode: 'guest_limit_reached',
+  }
+}
+
+function allowGuestDraw(request?: CookieReadableRequest): CreditCheckResult {
+  const alreadyUsed = readCookie(request, GUEST_TAROT_USED_COOKIE) === '1'
+  if (alreadyUsed) {
+    return buildGuestReadingDeniedResult()
+  }
+
+  return {
+    allowed: true,
+    remaining: 0,
+    guestReadingAccess: 'draw_granted',
+  }
+}
+
+function allowGuestInterpret(request?: CookieReadableRequest): CreditCheckResult {
+  const hasInterpretPass = readCookie(request, GUEST_TAROT_INTERPRET_COOKIE) === '1'
+  if (!hasInterpretPass) {
+    return {
+      allowed: false,
+      error: '무료 리딩 권한이 없습니다. 먼저 카드 뽑기를 시작하세요.',
+      errorCode: 'not_authenticated',
+    }
+  }
+
+  return {
+    allowed: true,
+    remaining: 0,
+    guestReadingAccess: 'interpret_granted',
+  }
 }
 
 /**
@@ -30,17 +86,19 @@ interface CreditCheckResult {
  */
 export async function checkAndConsumeCredits(
   type: CreditType = 'reading',
-  amount: number = 1
+  amount: number = 1,
+  request?: CookieReadableRequest
 ): Promise<CreditCheckResult> {
   const session = await getServerSession(authOptions)
 
-  // 비로그인 시 free 1회 허용 (별도 로직 필요)
   if (!session?.user?.id) {
-    return {
-      allowed: false,
-      error: '로그인이 필요합니다',
-      errorCode: 'not_authenticated',
-    }
+    return type === 'reading'
+      ? allowGuestInterpret(request)
+      : {
+          allowed: false,
+          error: '로그인이 필요합니다',
+          errorCode: 'not_authenticated',
+        }
   }
 
   const userId = session.user.id
@@ -123,16 +181,19 @@ export async function checkAndConsumeCredits(
  */
 export async function checkCreditsOnly(
   type: CreditType = 'reading',
-  amount: number = 1
+  amount: number = 1,
+  request?: CookieReadableRequest
 ): Promise<CreditCheckResult> {
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.id) {
-    return {
-      allowed: false,
-      error: '로그인이 필요합니다',
-      errorCode: 'not_authenticated',
-    }
+    return type === 'reading'
+      ? allowGuestDraw(request)
+      : {
+          allowed: false,
+          error: '로그인이 필요합니다',
+          errorCode: 'not_authenticated',
+        }
   }
 
   const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
@@ -168,7 +229,7 @@ export async function checkCreditsOnly(
  * NextResponse 에러 반환 헬퍼
  */
 export function creditErrorResponse(result: CreditCheckResult): NextResponse {
-  if (result.errorCode === 'not_authenticated') {
+  if (result.errorCode === 'not_authenticated' || result.errorCode === 'guest_limit_reached') {
     return NextResponse.json({ error: result.error, code: result.errorCode }, { status: 401 })
   }
 
@@ -182,6 +243,52 @@ export function creditErrorResponse(result: CreditCheckResult): NextResponse {
     },
     { status: 402 } // Payment Required
   )
+}
+
+export function applyCreditResultCookies(
+  response: NextResponse,
+  result: CreditCheckResult | null | undefined
+): NextResponse {
+  if (!result?.guestReadingAccess) {
+    return response
+  }
+
+  const secure = process.env.NODE_ENV === 'production'
+
+  if (result.guestReadingAccess === 'draw_granted') {
+    response.cookies.set(GUEST_TAROT_USED_COOKIE, '1', {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure,
+      path: '/',
+      maxAge: GUEST_TAROT_USED_MAX_AGE,
+    })
+    response.cookies.set(GUEST_TAROT_INTERPRET_COOKIE, '1', {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure,
+      path: '/',
+      maxAge: GUEST_TAROT_INTERPRET_MAX_AGE,
+    })
+    return response
+  }
+
+  response.cookies.set(GUEST_TAROT_USED_COOKIE, '1', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure,
+    path: '/',
+    maxAge: GUEST_TAROT_USED_MAX_AGE,
+  })
+  response.cookies.set(GUEST_TAROT_INTERPRET_COOKIE, '', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure,
+    path: '/',
+    maxAge: 0,
+  })
+
+  return response
 }
 
 /**

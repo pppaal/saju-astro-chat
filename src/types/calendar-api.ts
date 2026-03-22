@@ -143,6 +143,10 @@ export interface CalendarEvidence {
     phase?: string
     attackPercent?: number
     defensePercent?: number
+    timingWindow?: string
+    whyNow?: string
+    entryConditions?: string[]
+    abortConditions?: string[]
   }
 }
 

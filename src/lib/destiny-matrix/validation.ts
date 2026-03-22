@@ -250,6 +250,43 @@ export const AstroTimingIndexSchema = z.object({
   evidenceCount: z.number().int().min(0),
 })
 
+const GenericSnapshotSchema = z.object({}).catchall(z.unknown())
+
+const CrossSnapshotSchema = z
+  .object({
+    source: z.string().optional(),
+    theme: z.string().nullable().optional(),
+    category: z.string().nullable().optional(),
+    currentDateIso: z.string().optional(),
+    crossAgreement: z.number().optional(),
+    astroTimingIndex: AstroTimingIndexSchema.partial().optional(),
+    anchors: z
+      .object({
+        dayMasterElement: z.string().optional(),
+        geokguk: z.string().optional(),
+        yongsin: z.string().optional(),
+        currentDaeunElement: z.string().optional(),
+        currentSaeunElement: z.string().optional(),
+        currentWolunElement: z.string().optional(),
+        currentIljinElement: z.string().optional(),
+        currentIljinDate: z.string().optional(),
+      })
+      .catchall(z.unknown())
+      .optional(),
+    coverage: z
+      .object({
+        relationCount: z.number().optional(),
+        aspectCount: z.number().optional(),
+        domainScoreCount: z.number().optional(),
+        hasAstrologySnapshot: z.boolean().optional(),
+        hasSajuSnapshot: z.boolean().optional(),
+      })
+      .catchall(z.unknown())
+      .optional(),
+    derivedAt: z.string().optional(),
+  })
+  .catchall(z.unknown())
+
 // ===========================
 // 메인 입력 스키마
 // ===========================
@@ -410,9 +447,9 @@ export const MatrixCalculationInputSchema = z.object({
     .optional(),
 
   // Full snapshots (optional) for downstream deterministic grounding
-  sajuSnapshot: z.record(z.string(), z.unknown()).optional(),
-  astrologySnapshot: z.record(z.string(), z.unknown()).optional(),
-  crossSnapshot: z.record(z.string(), z.unknown()).optional(),
+  sajuSnapshot: GenericSnapshotSchema.optional(),
+  astrologySnapshot: GenericSnapshotSchema.optional(),
+  crossSnapshot: CrossSnapshotSchema.optional(),
   currentDateIso: z.string().optional(),
 
   // 옵션

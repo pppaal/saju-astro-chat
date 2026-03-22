@@ -21,6 +21,12 @@ import type {
 import { buildUnifiedEnvelope } from '@/lib/destiny-matrix/ai-report/unifiedReport'
 import { adaptCoreToCounselor } from '@/lib/destiny-matrix/core/adapters'
 import type { DestinyCoreResult } from '@/lib/destiny-matrix/core/runDestinyCore'
+import {
+  describeDataTrustSummary,
+  describeProvenanceSummary,
+  describeSajuAstroConflictByDomain,
+  describeWhyStack,
+} from '@/lib/destiny-matrix/interpretation/humanSemantics'
 
 const COUNSELOR_SECTION_PATHS = [
   'overview',
@@ -64,6 +70,7 @@ export interface CounselorEvidencePacket {
     domain?: string
     signalIds: string[]
     anchorIds: string[]
+    provenanceSummary?: string
   }>
   scenarioBriefs: Array<{
     id: string
@@ -124,6 +131,7 @@ export interface CounselorEvidencePacket {
     riskExpressions: string[]
     timingWindow: string
   }
+  whyStack: string[]
 }
 
 type CounselorEvidencePacketLike = {
@@ -144,6 +152,7 @@ type CounselorEvidencePacketLike = {
     domain?: string
     signalIds?: string[]
     anchorIds?: string[]
+    provenanceSummary?: string
   }>
   scenarioBriefs?: Array<{
     id?: string
@@ -168,6 +177,7 @@ type CounselorEvidencePacketLike = {
   topDomainAdvisory?: CounselorEvidencePacket['topDomainAdvisory']
   topTimingWindow?: CounselorEvidencePacket['topTimingWindow']
   topManifestation?: CounselorEvidencePacket['topManifestation']
+  whyStack?: string[]
 }
 
 function uniq<T>(items: T[]): T[] {
@@ -241,6 +251,244 @@ function localizeCounselorDomain(domain: string, lang: 'ko' | 'en'): string {
     move: '이동/변화',
   }
   return labels[domain] || domain
+}
+
+function buildDomainSpecificWhyReasons(input: {
+  domain: string
+  lang: 'ko' | 'en'
+  yongsin?: string
+  currentDaeunElement?: string
+  geokguk?: string
+  activeTransits?: string[]
+  aspectsCount?: number
+  graphFocusReason?: string
+  graphReason?: string
+  strategyLine?: string
+  answerThesis?: string
+}): {
+  sajuWhy: string
+  astroWhy: string
+  crossWhy: string
+  graphWhy: string
+} {
+  const {
+    domain,
+    lang,
+    yongsin,
+    currentDaeunElement,
+    geokguk,
+    activeTransits = [],
+    aspectsCount = 0,
+    graphFocusReason,
+    graphReason,
+    strategyLine,
+    answerThesis,
+  } = input
+
+  if (lang !== 'ko') {
+    const genericSaju =
+      yongsin && currentDaeunElement
+        ? yongsin === currentDaeunElement
+          ? `the current 10-year cycle matches the useful element (${yongsin}), so the broader pattern is supportive`
+          : `the current 10-year cycle (${currentDaeunElement}) does not fully match the useful element (${yongsin}), so pace control matters`
+        : geokguk
+          ? `the pattern frame (${geokguk}) sets the baseline temperament of this issue`
+          : `the broader pattern sets the baseline direction of the issue`
+    const genericAstro =
+      activeTransits.length > 0
+        ? `active transits like ${activeTransits.slice(0, 2).join(', ')} are changing timing and reaction speed`
+        : aspectsCount > 0
+          ? `the natal chart geometry explains which scene becomes visible first`
+          : `astrology is mainly reinforcing timing and variable management`
+    return {
+      sajuWhy: genericSaju,
+      astroWhy: genericAstro,
+      crossWhy:
+        strategyLine || answerThesis || graphFocusReason || 'the overlapping signals point to the same decision axis first',
+      graphWhy:
+        graphReason ||
+        'the top evidence bundle is ranked first because its overlap and fit are stronger than the surrounding sets',
+    }
+  }
+
+  const byDomain: Record<
+    string,
+    {
+      saju: string
+      astro: string
+      cross: string
+      graph: string
+    }
+  > = {
+    relationship: {
+      saju:
+        yongsin && currentDaeunElement
+          ? yongsin === currentDaeunElement
+            ? `현재 대운 오행이 용신(${yongsin})과 맞물려 관계를 밀 때와 멈출 때의 기준이 비교적 또렷합니다.`
+            : `현재 대운 오행(${currentDaeunElement})과 용신(${yongsin})이 어긋나 있어 감정보다 관계의 거리와 기준을 먼저 봐야 합니다.`
+          : `관계에서는 감정보다 기대치와 경계가 어떻게 굳어 있는지가 기본 체질을 만듭니다.`,
+      astro:
+        activeTransits.length > 0
+          ? `활성 트랜짓 ${activeTransits.slice(0, 2).join(', ')} 이 대화 속도와 오해 가능성을 직접 흔들고 있습니다.`
+          : `점성 쪽은 누가 먼저 열리고, 어디서 반응이 엇갈리는지 같은 타이밍 변수를 보여줍니다.`,
+      cross:
+        strategyLine ||
+        answerThesis ||
+        graphFocusReason ||
+        '관계는 감정의 강도보다 대화 순서와 확인 방식이 결과를 바꾸는 축으로 겹칩니다.',
+      graph:
+        graphReason ||
+        '상위 근거 묶음은 관계에서 말의 순서, 경계, 재확인 포인트가 가장 촘촘히 겹치는 장면을 먼저 잡습니다.',
+    },
+    career: {
+      saju:
+        yongsin && currentDaeunElement
+          ? yongsin === currentDaeunElement
+            ? `현재 대운 오행이 용신(${yongsin})과 맞아 역할 확장이나 책임 증가를 감당할 체력이 붙는 흐름입니다.`
+            : `현재 대운 오행(${currentDaeunElement})과 용신(${yongsin})이 어긋나 있어 성과보다 역할·범위 정리가 먼저입니다.`
+          : `커리어에서는 어떤 역할을 맡아도 버틸 구조인지가 기본 체질을 만듭니다.`,
+      astro:
+        activeTransits.length > 0
+          ? `활성 트랜짓 ${activeTransits.slice(0, 2).join(', ')} 이 마감, 평가, 사람 간 조율 속도를 바꾸고 있습니다.`
+          : `점성 쪽은 언제 책임이 늘고, 언제 일정 변수로 흔들리는지 보여줍니다.`,
+      cross:
+        strategyLine ||
+        answerThesis ||
+        graphFocusReason ||
+        '커리어는 가능성보다 역할, 책임 범위, 마감 기준을 먼저 고정해야 하는 축으로 근거가 모입니다.',
+      graph:
+        graphReason ||
+        '상위 근거 묶음은 커리어에서 역할 정의, 범위 조율, 마감 압력과 가장 직접 연결된 장면을 먼저 올립니다.',
+    },
+    wealth: {
+      saju:
+        yongsin && currentDaeunElement
+          ? yongsin === currentDaeunElement
+            ? `현재 대운 오행이 용신(${yongsin})과 맞아 돈의 흐름을 늘릴 여지는 있지만, 구조를 먼저 잡을수록 유지력이 커집니다.`
+            : `현재 대운 오행(${currentDaeunElement})과 용신(${yongsin})이 어긋나 있어 수익보다 누수와 손실 상한부터 봐야 합니다.`
+          : `재정에서는 얼마를 버느냐보다 무엇이 새고 있는지가 기본 체질을 만듭니다.`,
+      astro:
+        activeTransits.length > 0
+          ? `활성 트랜짓 ${activeTransits.slice(0, 2).join(', ')} 이 지출 타이밍, 협상 속도, 조건 변수를 직접 흔듭니다.`
+          : `점성 쪽은 금액보다 기한, 계약 조건, 변수 관리 쪽 리듬을 보여줍니다.`,
+      cross:
+        strategyLine ||
+        answerThesis ||
+        graphFocusReason ||
+        '재정은 기대 수익보다 금액, 기한, 손실 상한을 먼저 닫아야 하는 축으로 근거가 겹칩니다.',
+      graph:
+        graphReason ||
+        '상위 근거 묶음은 재정에서 조건 검토, 현금흐름, 손실 제한과 가장 직접 연결된 세트를 먼저 씁니다.',
+    },
+    health: {
+      saju:
+        yongsin && currentDaeunElement
+          ? yongsin === currentDaeunElement
+            ? `현재 대운 오행이 용신(${yongsin})과 맞아 회복 리듬을 다시 세우면 체력이 따라붙기 쉬운 흐름입니다.`
+            : `현재 대운 오행(${currentDaeunElement})과 용신(${yongsin})이 어긋나 있어 무리한 추진보다 회복 블록 확보가 먼저입니다.`
+          : `건강에서는 의지보다 회복 리듬이 얼마나 무너지지 않았는지가 기본 체질을 만듭니다.`,
+      astro:
+        activeTransits.length > 0
+          ? `활성 트랜짓 ${activeTransits.slice(0, 2).join(', ')} 이 피로 체감, 수면 흔들림, 과부하 타이밍을 직접 건드립니다.`
+          : `점성 쪽은 몸 상태가 언제 흔들리고 언제 회복 여지가 붙는지 같은 생활 타이밍을 보여줍니다.`,
+      cross:
+        strategyLine ||
+        answerThesis ||
+        graphFocusReason ||
+        '건강은 억지로 끌어올리는 힘보다 회복 리듬과 과부하 관리가 먼저라는 쪽으로 근거가 모입니다.',
+      graph:
+        graphReason ||
+        '상위 근거 묶음은 건강에서 피로 누적, 회복 순서, 루틴 유지와 가장 직접 맞닿은 세트를 먼저 고릅니다.',
+    },
+    move: {
+      saju:
+        yongsin && currentDaeunElement
+          ? yongsin === currentDaeunElement
+            ? `현재 대운 오행이 용신(${yongsin})과 맞아 이동이나 거점 재설계의 큰 방향을 잡기 쉬운 흐름입니다.`
+            : `현재 대운 오행(${currentDaeunElement})과 용신(${yongsin})이 어긋나 있어 크게 옮기기보다 경로와 생활 거점을 다시 짜는 편이 낫습니다.`
+          : `이동에서는 결단력보다 생활 동선과 유지 가능한 구조가 기본 체질을 만듭니다.`,
+      astro:
+        activeTransits.length > 0
+          ? `활성 트랜짓 ${activeTransits.slice(0, 2).join(', ')} 이 경로, 일정 변경, 외부 변수 유입 속도를 흔들고 있습니다.`
+          : `점성 쪽은 언제 이동 창이 열리고, 언제 일정 변수 때문에 틀어지기 쉬운지 보여줍니다.`,
+      cross:
+        strategyLine ||
+        answerThesis ||
+        graphFocusReason ||
+        '이동은 한 번에 확정하는 결정이 아니라 경로와 거점을 다시 설계하는 문제로 근거가 겹칩니다.',
+      graph:
+        graphReason ||
+        '상위 근거 묶음은 이동에서 경로 재확인, 계약 검토, 거점 재정리와 바로 연결되는 장면을 먼저 봅니다.',
+    },
+    timing: {
+      saju:
+        yongsin && currentDaeunElement
+          ? yongsin === currentDaeunElement
+            ? `현재 대운 오행이 용신(${yongsin})과 맞아 큰 흐름과 실제 타이밍이 비교적 같은 방향으로 갑니다.`
+            : `현재 대운 오행(${currentDaeunElement})과 용신(${yongsin})이 어긋나 있어 시기 판단은 더 보수적으로 잡는 편이 맞습니다.`
+          : `타이밍에서는 큰 흐름이 받쳐주는지부터 보는 것이 먼저입니다.`,
+      astro:
+        activeTransits.length > 0
+          ? `활성 트랜짓 ${activeTransits.slice(0, 2).join(', ')} 이 언제 열리고 언제 흔들리는지 같은 실제 시점 변수를 만듭니다.`
+          : `점성 쪽은 시점의 열림과 닫힘을 더 민감하게 보여줍니다.`,
+      cross:
+        strategyLine ||
+        answerThesis ||
+        graphFocusReason ||
+        '타이밍은 좋아 보이는 순간보다 실제로 조건이 맞는 순간을 고르는 문제라는 쪽으로 근거가 겹칩니다.',
+      graph:
+        graphReason ||
+        '상위 근거 묶음은 타이밍에서 열리는 조건과 늦춰야 할 신호가 가장 선명한 세트를 먼저 올립니다.',
+    },
+    personality: {
+      saju:
+        yongsin && currentDaeunElement
+          ? yongsin === currentDaeunElement
+            ? `현재 대운 오행이 용신(${yongsin})과 맞아 원래 강점이 더 잘 드러나는 흐름입니다.`
+            : `현재 대운 오행(${currentDaeunElement})과 용신(${yongsin})이 어긋나 있어 원래 강점보다 방어 습관이 먼저 튀어나오기 쉽습니다.`
+          : `성향에서는 원래 어떤 방식으로 버티고, 어디서 과해지는지가 기본 체질을 만듭니다.`,
+      astro:
+        activeTransits.length > 0
+          ? `활성 트랜짓 ${activeTransits.slice(0, 2).join(', ')} 이 반응 속도와 대인 태도를 일시적으로 바꿉니다.`
+          : `점성 쪽은 평소 성향이 어떤 상황에서 더 강하게 드러나는지 보여줍니다.`,
+      cross:
+        strategyLine ||
+        answerThesis ||
+        graphFocusReason ||
+        '성향은 장점이 어디서 힘이 되고, 어디서 과해지는지 보는 축으로 근거가 모입니다.',
+      graph:
+        graphReason ||
+        '상위 근거 묶음은 성향에서 반복되는 반응 패턴과 그 결과를 가장 잘 설명하는 세트를 먼저 씁니다.',
+    },
+    spirituality: {
+      saju:
+        yongsin && currentDaeunElement
+          ? yongsin === currentDaeunElement
+            ? `현재 대운 오행이 용신(${yongsin})과 맞아 장기 방향과 내적 기준을 다시 세우기 쉬운 흐름입니다.`
+            : `현재 대운 오행(${currentDaeunElement})과 용신(${yongsin})이 어긋나 있어 방향성은 급히 확정하기보다 가치 기준을 먼저 정리하는 편이 맞습니다.`
+          : `사명과 장기 방향에서는 외부 성과보다 무엇을 오래 가져갈지의 기준이 기본 체질을 만듭니다.`,
+      astro:
+        activeTransits.length > 0
+          ? `활성 트랜짓 ${activeTransits.slice(0, 2).join(', ')} 이 방향 감각과 의미 해석의 체감 변화를 크게 만듭니다.`
+          : `점성 쪽은 어떤 시점에 방향 감각이 흔들리고 다시 선명해지는지 보여줍니다.`,
+      cross:
+        strategyLine ||
+        answerThesis ||
+        graphFocusReason ||
+        '장기 방향은 성급한 결론보다 무엇을 오래 유지할지의 기준을 세우는 문제로 근거가 모입니다.',
+      graph:
+        graphReason ||
+        '상위 근거 묶음은 장기 방향에서 반복 가치와 선택 기준을 가장 잘 설명하는 세트를 먼저 씁니다.',
+    },
+  }
+
+  const selected = byDomain[domain] || byDomain.personality
+  return {
+    sajuWhy: selected.saju,
+    astroWhy: selected.astro,
+    crossWhy: selected.cross,
+    graphWhy: selected.graph,
+  }
 }
 
 function domainHintsForSection(sectionPath: string, focusDomain: string): string[] {
@@ -525,6 +773,8 @@ export function buildCounselorEvidencePacket(params: {
     highTrustSetCount: 0,
     lowTrustSetCount: 0,
     cautionSections: [],
+    focusReason: '',
+    graphReason: '',
     anchors: [],
   }
 
@@ -621,6 +871,63 @@ export function buildCounselorEvidencePacket(params: {
     })
     .slice(0, counselorCore ? 4 : 8)
   const topAnchorSummary = prioritizedAnchors[0] ? summarizeAnchor(prioritizedAnchors[0]) : ''
+  const whyReasons = buildDomainSpecificWhyReasons({
+    domain: preferredDomain,
+    lang: params.lang,
+    yongsin: params.matrixInput.yongsin,
+    currentDaeunElement: params.matrixInput.currentDaeunElement,
+    geokguk: params.matrixInput.geokguk,
+    activeTransits: params.matrixInput.activeTransits,
+    aspectsCount: params.matrixInput.aspects?.length,
+    graphFocusReason: graphRagEvidenceSummary.focusReason,
+    graphReason:
+      graphRagEvidenceSummary.graphReason ||
+      (topAnchorSummary
+        ? `"${topAnchorSummary}" 쪽에서 가장 촘촘하게 이어집니다.`
+        : '겹치는 포인트가 가장 많은 장면부터 우선 확인하는 방식으로 정렬됩니다.'),
+    strategyLine: topDomainAdvisory?.strategyLine,
+    answerThesis: counselorCore?.answerThesis,
+  })
+  const whyStack = describeWhyStack({
+    lang: params.lang,
+    focusDomainLabel: localizeCounselorDomain(preferredDomain, params.lang),
+    sajuReason: whyReasons.sajuWhy,
+    astroReason: whyReasons.astroWhy,
+    crossReason: whyReasons.crossWhy,
+    graphReason: whyReasons.graphWhy,
+  })
+  const conflictNarrative = describeSajuAstroConflictByDomain({
+    crossAgreement: params.core?.canonical.crossAgreement,
+    focusDomainLabel: localizeCounselorDomain(preferredDomain, params.lang),
+    lang: params.lang,
+  })
+  const trustNarrative = describeDataTrustSummary({
+    score: params.core?.quality.score,
+    grade: params.core?.quality.grade,
+    missingFields: params.core?.quality.dataQuality.missingFields || [],
+    derivedFields: params.core?.quality.dataQuality.derivedFields || [],
+    conflictingFields: params.core?.quality.dataQuality.conflictingFields || [],
+    confidenceReason: params.core?.quality.dataQuality.confidenceReason,
+    lang: params.lang,
+  })
+  const provenanceNarrative = describeProvenanceSummary({
+    sourceFields:
+      topTimingWindow?.provenance?.sourceFields ||
+      topDomainAdvisory?.provenance?.sourceFields ||
+      topManifestation?.provenance?.sourceFields ||
+      [],
+    sourceSetIds:
+      topTimingWindow?.provenance?.sourceSetIds ||
+      topDomainAdvisory?.provenance?.sourceSetIds ||
+      topManifestation?.provenance?.sourceSetIds ||
+      [],
+    sourceRuleIds:
+      topTimingWindow?.provenance?.sourceRuleIds ||
+      topDomainAdvisory?.provenance?.sourceRuleIds ||
+      topManifestation?.provenance?.sourceRuleIds ||
+      [],
+    lang: params.lang,
+  })
 
   return {
     focusDomain: preferredDomain,
@@ -640,6 +947,12 @@ export function buildCounselorEvidencePacket(params: {
       domain: claim.domain,
       signalIds: claim.selectedSignalIds.slice(0, 8),
       anchorIds: claim.anchorIds.slice(0, 6),
+      provenanceSummary: describeProvenanceSummary({
+        sourceFields: counselorCore?.claimProvenanceById?.[claim.id]?.sourceFields || [],
+        sourceSetIds: counselorCore?.claimProvenanceById?.[claim.id]?.sourceSetIds || [],
+        sourceRuleIds: counselorCore?.claimProvenanceById?.[claim.id]?.sourceRuleIds || [],
+        lang: params.lang,
+      }),
     })),
     scenarioBriefs: prioritizedScenarioBundles.map((bundle: UnifiedScenarioBundle) => ({
       id: bundle.id,
@@ -710,6 +1023,9 @@ export function buildCounselorEvidencePacket(params: {
           timingWindow: topManifestation.timingWindow,
         }
       : undefined,
+    whyStack: [...whyStack, conflictNarrative, trustNarrative, provenanceNarrative]
+      .filter(Boolean)
+      .slice(0, 6),
   }
 }
 
@@ -731,7 +1047,7 @@ export function formatCounselorEvidencePacket(
     .slice(0, claimLimit)
     .map(
       (claim) =>
-        `- [${claim.domain || 'general'}] ${claim.text} | signals=${(claim.signalIds || []).slice(0, 4).join(',') || 'none'}`
+        `- [${claim.domain || 'general'}] ${claim.text} | signals=${(claim.signalIds || []).slice(0, 4).join(',') || 'none'}${claim.provenanceSummary ? ` | provenance=${claim.provenanceSummary}` : ''}`
     )
   const scenarioLines = (packet.scenarioBriefs || []).slice(0, scenarioLimit).map((scenario) => {
     const main = (scenario.mainTokens || []).slice(0, 4).join(', ') || 'none'
@@ -805,6 +1121,8 @@ export function formatCounselorEvidencePacket(
       ]
     : []
 
+  const whyLines = (packet.whyStack || []).slice(0, 4).map((line) => `- ${line}`)
+
   const commonLines = [
     '[Counselor Evidence Packet v2]',
     `focus_domain=${packet.focusDomain}`,
@@ -816,6 +1134,9 @@ export function formatCounselorEvidencePacket(
     ...advisoryLines,
     ...timingLines,
     ...manifestationLines,
+    '[Why Stack]',
+    ...(whyLines.length > 0 ? whyLines : ['- none']),
+    '',
     '[Core Claims]',
     ...(claimLines.length > 0 ? claimLines : ['- none']),
     '',

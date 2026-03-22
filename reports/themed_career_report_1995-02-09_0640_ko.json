@@ -1,10 +1,14 @@
 {
-  "id": "themed_career_1773631136435_jg8huc",
-  "generatedAt": "2026-03-16T03:18:06.829Z",
+  "id": "themed_career_1773888270400_tht6f3",
+  "generatedAt": "2026-03-19T02:43:26.488Z",
   "lang": "ko",
+  "focusDomain": "career",
+  "topDecisionId": "career__staged_commit",
+  "topDecisionLabel": "커리어: 단계 확정",
+  "riskControl": "결정은 분할하고 역할·기한·책임을 문서로 고정하세요.",
   "reportMeta": {
     "schemaVersion": "1.1",
-    "generatedAt": "2026-03-16T03:18:06.829Z",
+    "generatedAt": "2026-03-19T02:43:26.488Z",
     "engineVersion": "destiny-matrix-ai-report-v2"
   },
   "timeWindow": {
@@ -43,7 +47,7 @@
   "claims": [
     {
       "id": "career_growth_with_guardrails",
-      "text": "커리어는 확장 동력이 크지만 역할·범위 재정의를 함께 해야 손실 없이 성장합니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다.",
+      "text": "커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어떤 일로 평가받을지 먼저 정하는 편이 맞습니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다.",
       "selectedSignalIds": [
         "L6:임관:H10",
         "L8:천을귀인:Jupiter",
@@ -61,7 +65,7 @@
     },
     {
       "id": "personality_growth_with_guardrails",
-      "text": "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요.",
+      "text": "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요.",
       "selectedSignalIds": [
         "L8:천을귀인:Sun",
         "L6:임관:H10",
@@ -76,7 +80,7 @@
     },
     {
       "id": "timing_growth_with_guardrails",
-      "text": "시기 축에서는 기회 창과 주의 창이 동시에 열립니다. 두 신호는 상충이 아니라 결정과 확정을 분리하라는 조건 신호입니다. 통합 레이어: 전체 패턴을 실행 가능한 전략으로 압축합니다. 모든 신호를 동시에 따르려 하면 실행력이 분산될 수 있습니다.",
+      "text": "지금은 기회도 보이지만 바로 확정하면 다시 손볼 일도 생기기 쉽습니다. 결정과 확정 사이에 한 번 더 확인 단계를 두는 편이 맞습니다. 통합 레이어: 전체 패턴을 실행 가능한 전략으로 압축합니다. 모든 신호를 동시에 따르려 하면 실행력이 분산될 수 있습니다.",
       "selectedSignalIds": [
         "COV:L10:snapshot_astro:natalAspects",
         "COV:L10:snapshot_astro:progressions",
@@ -118,7 +122,7 @@
     },
     {
       "id": "health_growth_with_guardrails",
-      "text": "건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신호입니다. 충돌 패턴 레이어: 긴장 구간의 트리거와 완충 전략을 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요.",
+      "text": "컨디션은 끌어올릴 수 있지만 무리하면 피로가 한 번에 몰릴 수 있습니다. 성과를 더 내기보다 회복 시간을 먼저 확보하는 편이 오래 갑니다. 충돌 패턴 레이어: 긴장 구간의 트리거와 완충 전략을 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요.",
       "selectedSignalIds": [
         "L5:chung:opposition",
         "L5:samhap:trine",
@@ -193,31 +197,31 @@
     {
       "id": "E1",
       "section": "deepAnalysis",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | For \"deepAnalysis\", start from overall=50 grade=C and use X9, X6, X11, X10 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | For \"deepAnalysis\", start from overall=50 grade=C and use X8, X10, X6, X11 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
       "setCount": 4,
-      "avgOverlapScore": 0.91,
-      "avgOrbFitScore": 0.39
+      "avgOverlapScore": 0.95,
+      "avgOrbFitScore": 0.37
     },
     {
       "id": "E2",
       "section": "patterns",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | For \"patterns\", start from overall=50 grade=C and use X3, X2, X9, X6 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | For \"patterns\", start from overall=50 grade=C and use X1, X3, X4, X2 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
       "setCount": 4,
-      "avgOverlapScore": 0.98,
-      "avgOrbFitScore": 0.71
+      "avgOverlapScore": 0.99,
+      "avgOrbFitScore": 0.9
     },
     {
       "id": "E3",
       "section": "timing",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | For \"timing\", start from overall=50 grade=C and use X3, X2, X1, X4 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | For \"timing\", start from overall=50 grade=C and use X1, X3, X7, T2 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
       "setCount": 4,
-      "avgOverlapScore": 0.92,
-      "avgOrbFitScore": 0.9
+      "avgOverlapScore": 0.91,
+      "avgOrbFitScore": 0.68
     },
     {
       "id": "E4",
       "section": "strategy",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | For \"strategy\", start from overall=50 grade=C and use X2, X9, X12, X3 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | For \"strategy\", start from overall=50 grade=C and use X2, X8, X12, X4 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
       "setCount": 4,
       "avgOverlapScore": 0.89,
       "avgOrbFitScore": 0.55
@@ -225,23 +229,23 @@
     {
       "id": "E5",
       "section": "roleFit",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | For \"roleFit\", start from overall=50 grade=C and use X9, X6, X11, X10 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | For \"roleFit\", start from overall=50 grade=C and use X8, X6, X2, X10 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
       "setCount": 4,
-      "avgOverlapScore": 0.91,
-      "avgOrbFitScore": 0.39
+      "avgOverlapScore": 0.98,
+      "avgOrbFitScore": 0.57
     },
     {
       "id": "E6",
       "section": "turningPoints",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | For \"turningPoints\", start from overall=50 grade=C and use X9, X6, X11, X10 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | For \"turningPoints\", start from overall=50 grade=C and use X2, X1, X3, X4 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
       "setCount": 4,
-      "avgOverlapScore": 0.91,
-      "avgOrbFitScore": 0.39
+      "avgOverlapScore": 0.99,
+      "avgOrbFitScore": 0.9
     },
     {
       "id": "E7",
       "section": "recommendations",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | For \"recommendations\", start from overall=50 grade=C and use X3, X2, X9, X11 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | For \"recommendations\", start from overall=50 grade=C and use X4, X2, X8, X11 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
       "setCount": 4,
       "avgOverlapScore": 0.96,
       "avgOrbFitScore": 0.57
@@ -249,10 +253,10 @@
     {
       "id": "E8",
       "section": "actionPlan",
-      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | For \"actionPlan\", start from overall=50 grade=C and use X3, X2, X9, X11 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
+      "crossEvidenceSummary": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z | dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg | For \"actionPlan\", start from overall=50 grade=C and use X4, X2, X8, X7 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
       "setCount": 4,
-      "avgOverlapScore": 0.96,
-      "avgOrbFitScore": 0.57
+      "avgOverlapScore": 0.99,
+      "avgOrbFitScore": 0.64
     }
   ],
   "evidenceLinks": [
@@ -265,8 +269,8 @@
       "anchorId": "E8",
       "section": "actionPlan",
       "setIds": [
-        "X3",
-        "X11"
+        "X4",
+        "X7"
       ],
       "domain": "relationship",
       "linkScore": 0.89,
@@ -283,8 +287,8 @@
       "anchorId": "E8",
       "section": "actionPlan",
       "setIds": [
-        "X3",
-        "X2"
+        "X4",
+        "X7"
       ],
       "domain": "timing",
       "linkScore": 0.86,
@@ -301,7 +305,7 @@
       "anchorId": "E8",
       "section": "actionPlan",
       "setIds": [
-        "X3",
+        "X4",
         "X2"
       ],
       "domain": "timing",
@@ -319,8 +323,8 @@
       "anchorId": "E8",
       "section": "actionPlan",
       "setIds": [
-        "X3",
-        "X2"
+        "X4",
+        "X7"
       ],
       "domain": "timing",
       "linkScore": 0.85,
@@ -339,7 +343,7 @@
       "section": "actionPlan",
       "setIds": [
         "X2",
-        "X3"
+        "X4"
       ],
       "domain": "career",
       "linkScore": 0.81,
@@ -358,7 +362,7 @@
       "section": "actionPlan",
       "setIds": [
         "X2",
-        "X3"
+        "X4"
       ],
       "domain": "career",
       "linkScore": 0.81,
@@ -375,13 +379,13 @@
       "anchorId": "E8",
       "section": "actionPlan",
       "setIds": [
-        "X9",
+        "X8",
         "X2"
       ],
       "domain": "career",
       "linkScore": 0.76,
       "overlapScore": 0.99,
-      "orbFitScore": 0.47,
+      "orbFitScore": 0.46,
       "reason": "section-match:actionPlan"
     },
     {
@@ -393,13 +397,13 @@
       "anchorId": "E8",
       "section": "actionPlan",
       "setIds": [
-        "X9",
+        "X8",
         "X2"
       ],
       "domain": "career",
       "linkScore": 0.76,
       "overlapScore": 0.99,
-      "orbFitScore": 0.47,
+      "orbFitScore": 0.46,
       "reason": "section-match:actionPlan"
     },
     {
@@ -411,13 +415,13 @@
       "anchorId": "E8",
       "section": "actionPlan",
       "setIds": [
-        "X9",
+        "X8",
         "X2"
       ],
       "domain": "career",
       "linkScore": 0.76,
       "overlapScore": 0.99,
-      "orbFitScore": 0.47,
+      "orbFitScore": 0.46,
       "reason": "section-match:actionPlan"
     },
     {
@@ -430,13 +434,13 @@
       "section": "patterns",
       "setIds": [
         "X2",
-        "X3"
+        "X4"
       ],
       "domain": "wealth",
       "linkScore": 0.75,
       "overlapScore": 0.99,
       "orbFitScore": 0.83,
-      "reason": "set-match:X2,X3"
+      "reason": "set-match:X2,X4"
     },
     {
       "id": "LINK_11",
@@ -447,13 +451,13 @@
       "anchorId": "E8",
       "section": "actionPlan",
       "setIds": [
-        "X9",
+        "X8",
         "X2"
       ],
       "domain": "career",
       "linkScore": 0.74,
       "overlapScore": 0.99,
-      "orbFitScore": 0.47,
+      "orbFitScore": 0.46,
       "reason": "section-match:actionPlan"
     },
     {
@@ -465,7 +469,7 @@
       "anchorId": "E8",
       "section": "actionPlan",
       "setIds": [
-        "X3",
+        "X4",
         "X2"
       ],
       "domain": "timing",
@@ -484,8 +488,8 @@
       "anchorId": "E8",
       "section": "actionPlan",
       "setIds": [
-        "X3",
-        "X11"
+        "X4",
+        "X7"
       ],
       "domain": "relationship",
       "linkScore": 0.7,
@@ -503,13 +507,13 @@
       "section": "deepAnalysis",
       "setIds": [
         "X6",
-        "X9"
+        "X8"
       ],
       "domain": "personality",
       "linkScore": 0.66,
       "overlapScore": 0.94,
       "orbFitScore": 0.62,
-      "reason": "set-match:X6,X9"
+      "reason": "set-match:X6,X8"
     },
     {
       "id": "LINK_15",
@@ -520,14 +524,14 @@
       "anchorId": "E1",
       "section": "deepAnalysis",
       "setIds": [
-        "X9",
+        "X8",
         "X6"
       ],
       "domain": "personality",
       "linkScore": 0.66,
       "overlapScore": 0.99,
-      "orbFitScore": 0.47,
-      "reason": "set-match:X9,X6"
+      "orbFitScore": 0.46,
+      "reason": "set-match:X8,X6"
     },
     {
       "id": "LINK_16",
@@ -539,13 +543,13 @@
       "section": "deepAnalysis",
       "setIds": [
         "X6",
-        "X9"
+        "X8"
       ],
       "domain": "personality",
       "linkScore": 0.66,
       "overlapScore": 0.94,
       "orbFitScore": 0.62,
-      "reason": "set-match:X6,X9"
+      "reason": "set-match:X6,X8"
     },
     {
       "id": "LINK_17",
@@ -557,14 +561,14 @@
       "anchorId": "E1",
       "section": "deepAnalysis",
       "setIds": [
-        "X9",
+        "X8",
         "X6"
       ],
       "domain": "personality",
       "linkScore": 0.66,
       "overlapScore": 0.99,
-      "orbFitScore": 0.47,
-      "reason": "set-match:X9,X6"
+      "orbFitScore": 0.46,
+      "reason": "set-match:X8,X6"
     },
     {
       "id": "LINK_18",
@@ -576,13 +580,13 @@
       "anchorId": "E8",
       "section": "actionPlan",
       "setIds": [
-        "X9",
-        "X3"
+        "X8",
+        "X4"
       ],
       "domain": "career",
       "linkScore": 0.64,
       "overlapScore": 0.99,
-      "orbFitScore": 0.47,
+      "orbFitScore": 0.46,
       "reason": "section-match:actionPlan"
     },
     {
@@ -595,17 +599,35 @@
       "anchorId": "E8",
       "section": "actionPlan",
       "setIds": [
-        "X9",
+        "X8",
         "X2"
       ],
       "domain": "career",
-      "linkScore": 0.63,
+      "linkScore": 0.62,
       "overlapScore": 0.99,
-      "orbFitScore": 0.47,
+      "orbFitScore": 0.46,
       "reason": "section-match:actionPlan"
     },
     {
       "id": "LINK_20",
+      "signalId": "L2:정인:Moon",
+      "claimIds": [
+        "health_growth_with_guardrails"
+      ],
+      "anchorId": "E8",
+      "section": "actionPlan",
+      "setIds": [
+        "X8",
+        "X4"
+      ],
+      "domain": "health",
+      "linkScore": 0.62,
+      "overlapScore": 0.99,
+      "orbFitScore": 0.46,
+      "reason": "section-match:actionPlan"
+    },
+    {
+      "id": "LINK_21",
       "signalId": "L5:samhap:trine",
       "claimIds": [
         "relationship_expansion",
@@ -614,8 +636,8 @@
       "anchorId": "E8",
       "section": "actionPlan",
       "setIds": [
-        "X3",
-        "X9"
+        "X4",
+        "X8"
       ],
       "domain": "relationship",
       "linkScore": 0.6,
@@ -624,7 +646,7 @@
       "reason": "section-match:actionPlan"
     },
     {
-      "id": "LINK_21",
+      "id": "LINK_22",
       "signalId": "COV:L7:yongsin:화",
       "claimIds": [
         "wealth_expansion"
@@ -632,17 +654,17 @@
       "anchorId": "E1",
       "section": "deepAnalysis",
       "setIds": [
-        "X9",
+        "X8",
         "X6"
       ],
       "domain": "wealth",
       "linkScore": 0.56,
       "overlapScore": 0.99,
-      "orbFitScore": 0.47,
-      "reason": "set-match:X9,X6"
+      "orbFitScore": 0.46,
+      "reason": "set-match:X8,X6"
     },
     {
-      "id": "LINK_22",
+      "id": "LINK_23",
       "signalId": "L6:임관:H10",
       "claimIds": [
         "personality_growth_with_guardrails"
@@ -651,16 +673,16 @@
       "section": "deepAnalysis",
       "setIds": [
         "X6",
-        "X9"
+        "X8"
       ],
       "domain": "personality",
       "linkScore": 0.55,
       "overlapScore": 0.94,
       "orbFitScore": 0.62,
-      "reason": "set-match:X6,X9"
+      "reason": "set-match:X6,X8"
     },
     {
-      "id": "LINK_23",
+      "id": "LINK_24",
       "signalId": "COV:L5:aspect:Jupiter-Saturn:square",
       "claimIds": [
         "personality_growth_with_guardrails"
@@ -669,16 +691,16 @@
       "section": "deepAnalysis",
       "setIds": [
         "X6",
-        "X9"
+        "X8"
       ],
       "domain": "personality",
       "linkScore": 0.55,
       "overlapScore": 0.94,
       "orbFitScore": 0.62,
-      "reason": "set-match:X6,X9"
+      "reason": "set-match:X6,X8"
     },
     {
-      "id": "LINK_24",
+      "id": "LINK_25",
       "signalId": "L2:편재:Saturn",
       "claimIds": [
         "wealth_expansion"
@@ -686,32 +708,14 @@
       "anchorId": "E1",
       "section": "deepAnalysis",
       "setIds": [
-        "X9",
+        "X8",
         "X6"
       ],
       "domain": "wealth",
-      "linkScore": 0.53,
+      "linkScore": 0.52,
       "overlapScore": 0.99,
-      "orbFitScore": 0.47,
-      "reason": "set-match:X9,X6"
-    },
-    {
-      "id": "LINK_25",
-      "signalId": "L2:정인:Moon",
-      "claimIds": [
-        "health_growth_with_guardrails"
-      ],
-      "anchorId": "E8",
-      "section": "actionPlan",
-      "setIds": [
-        "X9",
-        "X3"
-      ],
-      "domain": "health",
-      "linkScore": 0.51,
-      "overlapScore": 0.99,
-      "orbFitScore": 0.47,
-      "reason": "section-match:actionPlan"
+      "orbFitScore": 0.46,
+      "reason": "set-match:X8,X6"
     },
     {
       "id": "LINK_26",
@@ -719,17 +723,17 @@
       "claimIds": [
         "personality_growth_with_guardrails"
       ],
-      "anchorId": "E2",
-      "section": "patterns",
+      "anchorId": "E1",
+      "section": "deepAnalysis",
       "setIds": [
-        "X3",
+        "X10",
         "X6"
       ],
       "domain": "personality",
-      "linkScore": 0.5,
+      "linkScore": 0.51,
       "overlapScore": 0.99,
-      "orbFitScore": 0.92,
-      "reason": "set-match:X3,X6"
+      "orbFitScore": 0.35,
+      "reason": "set-match:X10,X6"
     }
   ],
   "timelineEvents": [
@@ -811,7 +815,7 @@
         "year": 2026,
         "confidence": 0.61
       },
-      "thesis": "커리어는 확장 동력이 크지만 역할·범위 재정의를 함께 해야 손실 없이 성장합니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다. 변곡점 구간에서는 결정을 단계화하고 확정 전에 조건 검증을 거치면 누적 성과가 커집니다.",
+      "thesis": "커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어떤 일로 평가받을지 먼저 정하는 편이 맞습니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다. 변곡점 구간에서는 결정을 단계화하고 확정 전에 조건 검증을 거치면 누적 성과가 커집니다.",
       "evidenceRefs": [
         "L6:임관:H10",
         "L8:천을귀인:Jupiter",
@@ -827,7 +831,7 @@
         "year": 2026,
         "confidence": 0.61
       },
-      "thesis": "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요. 변곡점 구간에서는 결정을 단계화하고 확정 전에 조건 검증을 거치면 누적 성과가 커집니다.",
+      "thesis": "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요. 변곡점 구간에서는 결정을 단계화하고 확정 전에 조건 검증을 거치면 누적 성과가 커집니다.",
       "evidenceRefs": [
         "L8:천을귀인:Sun",
         "L6:임관:H10",
@@ -842,7 +846,7 @@
         "year": 2026,
         "confidence": 0.61
       },
-      "thesis": "시기 축에서는 기회 창과 주의 창이 동시에 열립니다. 두 신호는 상충이 아니라 결정과 확정을 분리하라는 조건 신호입니다. 통합 레이어: 전체 패턴을 실행 가능한 전략으로 압축합니다. 모든 신호를 동시에 따르려 하면 실행력이 분산될 수 있습니다. 변곡점 구간에서는 결정을 단계화하고 확정 전에 조건 검증을 거치면 누적 성과가 커집니다.",
+      "thesis": "지금은 기회도 보이지만 바로 확정하면 다시 손볼 일도 생기기 쉽습니다. 결정과 확정 사이에 한 번 더 확인 단계를 두는 편이 맞습니다. 통합 레이어: 전체 패턴을 실행 가능한 전략으로 압축합니다. 모든 신호를 동시에 따르려 하면 실행력이 분산될 수 있습니다. 변곡점 구간에서는 결정을 단계화하고 확정 전에 조건 검증을 거치면 누적 성과가 커집니다.",
       "evidenceRefs": [
         "COV:L10:snapshot_astro:natalAspects",
         "COV:L10:snapshot_astro:progressions",
@@ -889,7 +893,7 @@
         "year": 2026,
         "confidence": 0.61
       },
-      "thesis": "건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신호입니다. 충돌 패턴 레이어: 긴장 구간의 트리거와 완충 전략을 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요. 변곡점 구간에서는 결정을 단계화하고 확정 전에 조건 검증을 거치면 누적 성과가 커집니다.",
+      "thesis": "컨디션은 끌어올릴 수 있지만 무리하면 피로가 한 번에 몰릴 수 있습니다. 성과를 더 내기보다 회복 시간을 먼저 확보하는 편이 오래 갑니다. 충돌 패턴 레이어: 긴장 구간의 트리거와 완충 전략을 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요. 변곡점 구간에서는 결정을 단계화하고 확정 전에 조건 검증을 거치면 누적 성과가 커집니다.",
       "evidenceRefs": [
         "L5:chung:opposition",
         "L5:samhap:trine",
@@ -1011,7 +1015,7 @@
           "EVT_TURN_1"
         ],
         "summaryTokens": [
-          "커리어는 확장 동력이 크지만 역할·범위 재정의를 함께 해야 손실 없이 성장합니다. 두 신호는 상충이 아니라 조건이 "
+          "커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어"
         ]
       },
       "alt": [
@@ -1097,7 +1101,7 @@
           "EVT_TURN_3"
         ],
         "summaryTokens": [
-          "시기 축에서는 기회 창과 주의 창이 동시에 열립니다. 두 신호는 상충이 아니라 결정과 확정을 분리하라는 조건 신호입"
+          "지금은 기회도 보이지만 바로 확정하면 다시 손볼 일도 생기기 쉽습니다. 결정과 확정 사이에 한 번 더 확인 단계를 "
         ]
       },
       "alt": [
@@ -1227,7 +1231,7 @@
           "EVT_TURN_6"
         ],
         "summaryTokens": [
-          "건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신"
+          "컨디션은 끌어올릴 수 있지만 무리하면 피로가 한 번에 몰릴 수 있습니다. 성과를 더 내기보다 회복 시간을 먼저 확보"
         ]
       },
       "alt": [
@@ -1675,19 +1679,19 @@
         "paraId": "deepAnalysis.p1",
         "heading": "## deepAnalysis 핵심 결론",
         "bullets": [
-          "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
+          "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
         ],
         "mustKeepTokens": [
-          "성향",
-          "축에서는",
-          "추진력과",
-          "과속",
-          "리스크가",
-          "동시에",
-          "나타납니다",
-          "신호는",
-          "상충이",
-          "아니라"
+          "지금은",
+          "추진력도",
+          "있지만",
+          "과속하면",
+          "실수도",
+          "같이",
+          "커질",
+          "있습니다",
+          "판단은",
+          "빠르게"
         ],
         "evidence": {
           "claimIds": [
@@ -1720,9 +1724,9 @@
           "판단",
           "강도를",
           "조절합니다",
-          "성향",
-          "축에서는",
-          "추진력과"
+          "지금은",
+          "추진력도",
+          "있지만"
         ],
         "evidence": {
           "claimIds": [
@@ -1783,19 +1787,19 @@
         "paraId": "patterns.p1",
         "heading": "## patterns 핵심 결론",
         "bullets": [
-          "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
+          "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
         ],
         "mustKeepTokens": [
-          "성향",
-          "축에서는",
-          "추진력과",
-          "과속",
-          "리스크가",
-          "동시에",
-          "나타납니다",
-          "신호는",
-          "상충이",
-          "아니라"
+          "지금은",
+          "추진력도",
+          "있지만",
+          "과속하면",
+          "실수도",
+          "같이",
+          "커질",
+          "있습니다",
+          "판단은",
+          "빠르게"
         ],
         "evidence": {
           "claimIds": [
@@ -1826,10 +1830,10 @@
           "판단",
           "강도를",
           "조절합니다",
-          "성향",
-          "축에서는",
-          "추진력과",
-          "과속"
+          "지금은",
+          "추진력도",
+          "있지만",
+          "과속하면"
         ],
         "evidence": {
           "claimIds": [
@@ -1888,19 +1892,19 @@
         "paraId": "timing.p1",
         "heading": "## timing 핵심 결론",
         "bullets": [
-          "시기 축에서는 기회 창과 주의 창이 동시에 열립니다. 두 신호는 상충이 아니라 결정과 확정을 분리하라는 조건 신호입니다. 통합 레이어: 전체 패턴을 실행 가능한 전략으로 압축합니다. 모든 신호를 동시에 따르려 하면 실행력이 분산될 수 있습니다."
+          "지금은 기회도 보이지만 바로 확정하면 다시 손볼 일도 생기기 쉽습니다. 결정과 확정 사이에 한 번 더 확인 단계를 두는 편이 맞습니다. 통합 레이어: 전체 패턴을 실행 가능한 전략으로 압축합니다. 모든 신호를 동시에 따르려 하면 실행력이 분산될 수 있습니다."
         ],
         "mustKeepTokens": [
-          "시기",
-          "축에서는",
-          "기회",
-          "창과",
-          "주의",
-          "창이",
-          "동시에",
-          "열립니다",
-          "신호는",
-          "상충이"
+          "지금은",
+          "기회도",
+          "보이지만",
+          "바로",
+          "확정하면",
+          "다시",
+          "손볼",
+          "일도",
+          "생기기",
+          "쉽습니다"
         ],
         "evidence": {
           "claimIds": [
@@ -1935,7 +1939,7 @@
           "판단",
           "강도를",
           "조절합니다",
-          "시기"
+          "지금은"
         ],
         "evidence": {
           "claimIds": [
@@ -1955,21 +1959,21 @@
         "paraId": "timing.p3",
         "heading": "## timing 실행 전략",
         "bullets": [
-          "시기 축에서는 기회 창과 주의 창이 동시에 열립니다. 두 신호는 상충이 아니라 결정과 확정을 분리하라는 조건 신호입니다. 통합 레이어: 전체 패턴을 실행 가능한 전략으로 압축합니다. 모든 신호를 동시에 따르려 하면 실행력이 분산될 수 있습니다. 변곡점 구간에서는 결정을 단계화하고 확정 전에 조건 검증을 거치면 누적 성과가 커집니다. 실행 시 재확인 후 확정 순서를 유지하세요.",
+          "지금은 기회도 보이지만 바로 확정하면 다시 손볼 일도 생기기 쉽습니다. 결정과 확정 사이에 한 번 더 확인 단계를 두는 편이 맞습니다. 통합 레이어: 전체 패턴을 실행 가능한 전략으로 압축합니다. 모든 신호를 동시에 따르려 하면 실행력이 분산될 수 있습니다. 변곡점 구간에서는 결정을 단계화하고 확정 전에 조건 검증을 거치면 누적 성과가 커집니다. 실행 시 재확인 후 확정 순서를 유지하세요.",
           "deepAnalysis 교차 근거는 월간 실행에서 검증 단계를 넣으면 오차를 줄일 수 있음을 보여줍니다. 실행 시 재확인 후 확정 순서를 유지하세요.",
           "patterns 교차 근거는 월간 실행에서 검증 단계를 넣으면 오차를 줄일 수 있음을 보여줍니다. 실행 시 재확인 후 확정 순서를 유지하세요."
         ],
         "mustKeepTokens": [
-          "시기",
-          "축에서는",
-          "기회",
-          "창과",
-          "주의",
-          "창이",
-          "동시에",
-          "열립니다",
-          "신호는",
-          "상충이"
+          "지금은",
+          "기회도",
+          "보이지만",
+          "바로",
+          "확정하면",
+          "다시",
+          "손볼",
+          "일도",
+          "생기기",
+          "쉽습니다"
         ],
         "evidence": {
           "claimIds": [
@@ -1993,19 +1997,19 @@
         "paraId": "strategy.p1",
         "heading": "## strategy 핵심 결론",
         "bullets": [
-          "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
+          "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
         ],
         "mustKeepTokens": [
-          "성향",
-          "축에서는",
-          "추진력과",
-          "과속",
-          "리스크가",
-          "동시에",
-          "나타납니다",
-          "신호는",
-          "상충이",
-          "아니라"
+          "지금은",
+          "추진력도",
+          "있지만",
+          "과속하면",
+          "실수도",
+          "같이",
+          "커질",
+          "있습니다",
+          "판단은",
+          "빠르게"
         ],
         "evidence": {
           "claimIds": [
@@ -2036,10 +2040,10 @@
           "판단",
           "강도를",
           "조절합니다",
-          "성향",
-          "축에서는",
-          "추진력과",
-          "과속"
+          "지금은",
+          "추진력도",
+          "있지만",
+          "과속하면"
         ],
         "evidence": {
           "claimIds": [
@@ -2098,19 +2102,19 @@
         "paraId": "roleFit.p1",
         "heading": "## roleFit 핵심 결론",
         "bullets": [
-          "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
+          "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
         ],
         "mustKeepTokens": [
-          "성향",
-          "축에서는",
-          "추진력과",
-          "과속",
-          "리스크가",
-          "동시에",
-          "나타납니다",
-          "신호는",
-          "상충이",
-          "아니라"
+          "지금은",
+          "추진력도",
+          "있지만",
+          "과속하면",
+          "실수도",
+          "같이",
+          "커질",
+          "있습니다",
+          "판단은",
+          "빠르게"
         ],
         "evidence": {
           "claimIds": [
@@ -2141,10 +2145,10 @@
           "판단",
           "강도를",
           "조절합니다",
-          "성향",
-          "축에서는",
-          "추진력과",
-          "과속"
+          "지금은",
+          "추진력도",
+          "있지만",
+          "과속하면"
         ],
         "evidence": {
           "claimIds": [
@@ -2202,19 +2206,19 @@
         "paraId": "turningPoints.p1",
         "heading": "## turningPoints 핵심 결론",
         "bullets": [
-          "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
+          "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
         ],
         "mustKeepTokens": [
-          "성향",
-          "축에서는",
-          "추진력과",
-          "과속",
-          "리스크가",
-          "동시에",
-          "나타납니다",
-          "신호는",
-          "상충이",
-          "아니라"
+          "지금은",
+          "추진력도",
+          "있지만",
+          "과속하면",
+          "실수도",
+          "같이",
+          "커질",
+          "있습니다",
+          "판단은",
+          "빠르게"
         ],
         "evidence": {
           "claimIds": [
@@ -2249,7 +2253,7 @@
           "판단",
           "강도를",
           "조절합니다",
-          "성향"
+          "지금은"
         ],
         "evidence": {
           "claimIds": [
@@ -2310,19 +2314,19 @@
         "paraId": "recommendations.p1",
         "heading": "## recommendations 핵심 결론",
         "bullets": [
-          "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
+          "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
         ],
         "mustKeepTokens": [
-          "성향",
-          "축에서는",
-          "추진력과",
-          "과속",
-          "리스크가",
-          "동시에",
-          "나타납니다",
-          "신호는",
-          "상충이",
-          "아니라"
+          "지금은",
+          "추진력도",
+          "있지만",
+          "과속하면",
+          "실수도",
+          "같이",
+          "커질",
+          "있습니다",
+          "판단은",
+          "빠르게"
         ],
         "evidence": {
           "claimIds": [
@@ -2353,10 +2357,10 @@
           "판단",
           "강도를",
           "조절합니다",
-          "성향",
-          "축에서는",
-          "추진력과",
-          "과속"
+          "지금은",
+          "추진력도",
+          "있지만",
+          "과속하면"
         ],
         "evidence": {
           "claimIds": [
@@ -2413,19 +2417,19 @@
         "heading": "# 2주 실행 3단계",
         "bullets": [
           "2주 실행 3단계: 완료 1건 고정 -> 재확인 1건 -> 보류/확정 분리.",
-          "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
+          "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
         ],
         "mustKeepTokens": [
-          "성향",
-          "축에서는",
-          "추진력과",
-          "과속",
-          "리스크가",
-          "동시에",
-          "나타납니다",
-          "신호는",
-          "상충이",
-          "아니라"
+          "지금은",
+          "추진력도",
+          "있지만",
+          "과속하면",
+          "실수도",
+          "같이",
+          "커질",
+          "있습니다",
+          "판단은",
+          "빠르게"
         ],
         "evidence": {
           "claimIds": [
@@ -2511,7 +2515,7 @@
     ]
   },
   "timelinePriority": "life_first",
-  "coreHash": "17a3c4bb153bf95e350a",
+  "coreHash": "2adb273c6a9ec2a1fffc",
   "patterns": [
     {
       "id": "wealth_accumulation",
@@ -3540,6 +3544,322 @@
   ],
   "scenarios": [
     {
+      "id": "hidden_support_defensive_window",
+      "patternId": "hidden_support",
+      "domain": "career",
+      "branch": "defensive",
+      "title": "Hidden Support Pattern defensive branch",
+      "rawScore": 87.3499,
+      "probability": 85.9,
+      "confidence": 0.89,
+      "window": "now",
+      "timingRelevance": 0.99,
+      "risk": "Use a slower sequence if evidence weakens.",
+      "reversible": true,
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ],
+      "whyNow": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Hidden Support Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다.",
+      "whyNotYet": "commit_now, blind_spot_commitment, premature_statement이 아직 풀리지 않았고, 현재 prepare 모드라 바로 확정보다 단계적 접근이 맞습니다. 타이밍 적합도는 99% 수준입니다.",
+      "entryConditions": [
+        "Hidden Support Pattern 패턴 근거가 유지될 것",
+        "시나리오 확률 85.9%와 신뢰도 89%가 유지될 것",
+        "타이밍 적합도 99% 이상에서 Pause final commitment를 바로 실행할 수 있을 것"
+      ],
+      "abortConditions": [
+        "핵심 조건이나 역할 범위가 문서로 정리되지 않으면 중단",
+        "시나리오 확률이 63.900000000000006% 아래로 떨어지면 중단",
+        "Support stays latent if assumptions replace direct communication."
+      ],
+      "manifestationHints": [
+        "확장보다 정리와 보존 쪽으로 체감될 수 있습니다.",
+        "즉시 확정보다 초안·탐색·검증이 더 맞습니다.",
+        "되돌릴 수 있는 작은 실행부터 시작하는 편이 유리합니다."
+      ],
+      "supportingSignalIds": [
+        "L5:samhap:trine",
+        "L5:samhap:conjunction",
+        "L5:chung:opposition",
+        "L6:임관:H10",
+        "L8:천을귀인:Jupiter",
+        "L8:괴강:Pluto"
+      ],
+      "evidenceIds": [
+        "hidden_support",
+        "L5:samhap:trine",
+        "L5:samhap:conjunction",
+        "L5:chung:opposition",
+        "L6:임관:H10",
+        "L8:천을귀인:Jupiter",
+        "L8:괴강:Pluto"
+      ]
+    },
+    {
+      "id": "learning_acceleration_defensive_window",
+      "patternId": "learning_acceleration",
+      "domain": "career",
+      "branch": "defensive",
+      "title": "Learning Acceleration Pattern defensive branch",
+      "rawScore": 87.3499,
+      "probability": 85.9,
+      "confidence": 0.89,
+      "window": "now",
+      "timingRelevance": 0.99,
+      "risk": "Use a slower sequence if evidence weakens.",
+      "reversible": true,
+      "actions": [
+        "Pause final commitment",
+        "Draft before commit",
+        "Re-check constraints"
+      ],
+      "whyNow": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Learning Acceleration Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다.",
+      "whyNotYet": "commit_now, blind_spot_commitment, premature_statement이 아직 풀리지 않았고, 현재 prepare 모드라 바로 확정보다 단계적 접근이 맞습니다. 타이밍 적합도는 99% 수준입니다.",
+      "entryConditions": [
+        "Learning Acceleration Pattern 패턴 근거가 유지될 것",
+        "시나리오 확률 85.9%와 신뢰도 89%가 유지될 것",
+        "타이밍 적합도 99% 이상에서 Pause final commitment를 바로 실행할 수 있을 것"
+      ],
+      "abortConditions": [
+        "핵심 조건이나 역할 범위가 문서로 정리되지 않으면 중단",
+        "시나리오 확률이 63.900000000000006% 아래로 떨어지면 중단",
+        "Consuming too broadly can reduce retention and execution."
+      ],
+      "manifestationHints": [
+        "확장보다 정리와 보존 쪽으로 체감될 수 있습니다.",
+        "즉시 확정보다 초안·탐색·검증이 더 맞습니다.",
+        "되돌릴 수 있는 작은 실행부터 시작하는 편이 유리합니다."
+      ],
+      "supportingSignalIds": [
+        "L5:samhap:trine",
+        "L6:임관:H10",
+        "L8:천을귀인:Sun",
+        "L8:천을귀인:Jupiter",
+        "L8:괴강:Pluto",
+        "L2:편재:Jupiter"
+      ],
+      "evidenceIds": [
+        "learning_acceleration",
+        "L5:samhap:trine",
+        "L6:임관:H10",
+        "L8:천을귀인:Sun",
+        "L8:천을귀인:Jupiter",
+        "L8:괴강:Pluto",
+        "L2:편재:Jupiter"
+      ]
+    },
+    {
+      "id": "hidden_support_alt_window",
+      "patternId": "hidden_support",
+      "domain": "career",
+      "branch": "alt",
+      "title": "Hidden Support Pattern alternate branch",
+      "rawScore": 83.7103,
+      "probability": 83.2,
+      "confidence": 0.86,
+      "window": "now",
+      "timingRelevance": 0.99,
+      "risk": "Alternate path: Support stays latent if assumptions replace direct communication.",
+      "reversible": true,
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ],
+      "whyNow": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Hidden Support Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다.",
+      "whyNotYet": "commit_now, blind_spot_commitment, premature_statement이 아직 풀리지 않았고, 현재 prepare 모드라 바로 확정보다 단계적 접근이 맞습니다. 타이밍 적합도는 99% 수준입니다.",
+      "entryConditions": [
+        "Hidden Support Pattern 패턴 근거가 유지될 것",
+        "시나리오 확률 83.2%와 신뢰도 86%가 유지될 것",
+        "타이밍 적합도 99% 이상에서 Reduce scope를 바로 실행할 수 있을 것"
+      ],
+      "abortConditions": [
+        "핵심 조건이나 역할 범위가 문서로 정리되지 않으면 중단",
+        "시나리오 확률이 61.2% 아래로 떨어지면 중단",
+        "Support stays latent if assumptions replace direct communication."
+      ],
+      "manifestationHints": [
+        "확장보다 정리와 보존 쪽으로 체감될 수 있습니다.",
+        "즉시 확정보다 초안·탐색·검증이 더 맞습니다.",
+        "되돌릴 수 있는 작은 실행부터 시작하는 편이 유리합니다."
+      ],
+      "supportingSignalIds": [
+        "L5:samhap:trine",
+        "L5:samhap:conjunction",
+        "L5:chung:opposition",
+        "L6:임관:H10",
+        "L8:천을귀인:Jupiter",
+        "L8:괴강:Pluto"
+      ],
+      "evidenceIds": [
+        "hidden_support",
+        "L5:samhap:trine",
+        "L5:samhap:conjunction",
+        "L5:chung:opposition",
+        "L6:임관:H10",
+        "L8:천을귀인:Jupiter",
+        "L8:괴강:Pluto"
+      ]
+    },
+    {
+      "id": "learning_acceleration_alt_window",
+      "patternId": "learning_acceleration",
+      "domain": "career",
+      "branch": "alt",
+      "title": "Learning Acceleration Pattern alternate branch",
+      "rawScore": 83.7103,
+      "probability": 83.2,
+      "confidence": 0.86,
+      "window": "now",
+      "timingRelevance": 0.99,
+      "risk": "Alternate path: Consuming too broadly can reduce retention and execution.",
+      "reversible": true,
+      "actions": [
+        "Reduce scope",
+        "Keep optionality",
+        "Collect one more signal"
+      ],
+      "whyNow": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Learning Acceleration Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다.",
+      "whyNotYet": "commit_now, blind_spot_commitment, premature_statement이 아직 풀리지 않았고, 현재 prepare 모드라 바로 확정보다 단계적 접근이 맞습니다. 타이밍 적합도는 99% 수준입니다.",
+      "entryConditions": [
+        "Learning Acceleration Pattern 패턴 근거가 유지될 것",
+        "시나리오 확률 83.2%와 신뢰도 86%가 유지될 것",
+        "타이밍 적합도 99% 이상에서 Reduce scope를 바로 실행할 수 있을 것"
+      ],
+      "abortConditions": [
+        "핵심 조건이나 역할 범위가 문서로 정리되지 않으면 중단",
+        "시나리오 확률이 61.2% 아래로 떨어지면 중단",
+        "Consuming too broadly can reduce retention and execution."
+      ],
+      "manifestationHints": [
+        "확장보다 정리와 보존 쪽으로 체감될 수 있습니다.",
+        "즉시 확정보다 초안·탐색·검증이 더 맞습니다.",
+        "되돌릴 수 있는 작은 실행부터 시작하는 편이 유리합니다."
+      ],
+      "supportingSignalIds": [
+        "L5:samhap:trine",
+        "L6:임관:H10",
+        "L8:천을귀인:Sun",
+        "L8:천을귀인:Jupiter",
+        "L8:괴강:Pluto",
+        "L2:편재:Jupiter"
+      ],
+      "evidenceIds": [
+        "learning_acceleration",
+        "L5:samhap:trine",
+        "L6:임관:H10",
+        "L8:천을귀인:Sun",
+        "L8:천을귀인:Jupiter",
+        "L8:괴강:Pluto",
+        "L2:편재:Jupiter"
+      ]
+    },
+    {
+      "id": "hidden_support_main_window",
+      "patternId": "hidden_support",
+      "domain": "career",
+      "branch": "main",
+      "title": "Hidden Support Pattern main branch",
+      "rawScore": 80.5477,
+      "probability": 80.5,
+      "confidence": 0.89,
+      "window": "now",
+      "timingRelevance": 0.99,
+      "risk": "Support stays latent if assumptions replace direct communication.",
+      "reversible": false,
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ],
+      "whyNow": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Hidden Support Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다.",
+      "whyNotYet": "commit_now, blind_spot_commitment, premature_statement이 아직 풀리지 않았고, 현재 prepare 모드라 바로 확정보다 단계적 접근이 맞습니다. 타이밍 적합도는 99% 수준입니다.",
+      "entryConditions": [
+        "Hidden Support Pattern 패턴 근거가 유지될 것",
+        "시나리오 확률 80.5%와 신뢰도 89%가 유지될 것",
+        "타이밍 적합도 99% 이상에서 Pick one focus를 바로 실행할 수 있을 것"
+      ],
+      "abortConditions": [
+        "핵심 조건이나 역할 범위가 문서로 정리되지 않으면 중단",
+        "시나리오 확률이 58.5% 아래로 떨어지면 중단",
+        "Support stays latent if assumptions replace direct communication."
+      ],
+      "manifestationHints": [
+        "확장보다 정리와 보존 쪽으로 체감될 수 있습니다.",
+        "즉시 확정보다 초안·탐색·검증이 더 맞습니다."
+      ],
+      "supportingSignalIds": [
+        "L5:samhap:trine",
+        "L5:samhap:conjunction",
+        "L5:chung:opposition",
+        "L6:임관:H10",
+        "L8:천을귀인:Jupiter",
+        "L8:괴강:Pluto"
+      ],
+      "evidenceIds": [
+        "hidden_support",
+        "L5:samhap:trine",
+        "L5:samhap:conjunction",
+        "L5:chung:opposition",
+        "L6:임관:H10",
+        "L8:천을귀인:Jupiter",
+        "L8:괴강:Pluto"
+      ]
+    },
+    {
+      "id": "learning_acceleration_main_window",
+      "patternId": "learning_acceleration",
+      "domain": "career",
+      "branch": "main",
+      "title": "Learning Acceleration Pattern main branch",
+      "rawScore": 80.5477,
+      "probability": 80.5,
+      "confidence": 0.89,
+      "window": "now",
+      "timingRelevance": 0.99,
+      "risk": "Consuming too broadly can reduce retention and execution.",
+      "reversible": false,
+      "actions": [
+        "Pick one focus",
+        "Write one verification rule",
+        "Review after one cycle"
+      ],
+      "whyNow": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Learning Acceleration Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다.",
+      "whyNotYet": "commit_now, blind_spot_commitment, premature_statement이 아직 풀리지 않았고, 현재 prepare 모드라 바로 확정보다 단계적 접근이 맞습니다. 타이밍 적합도는 99% 수준입니다.",
+      "entryConditions": [
+        "Learning Acceleration Pattern 패턴 근거가 유지될 것",
+        "시나리오 확률 80.5%와 신뢰도 89%가 유지될 것",
+        "타이밍 적합도 99% 이상에서 Pick one focus를 바로 실행할 수 있을 것"
+      ],
+      "abortConditions": [
+        "핵심 조건이나 역할 범위가 문서로 정리되지 않으면 중단",
+        "시나리오 확률이 58.5% 아래로 떨어지면 중단",
+        "Consuming too broadly can reduce retention and execution."
+      ],
+      "manifestationHints": [
+        "확장보다 정리와 보존 쪽으로 체감될 수 있습니다.",
+        "즉시 확정보다 초안·탐색·검증이 더 맞습니다."
+      ],
+      "supportingSignalIds": [
+        "L5:samhap:trine",
+        "L6:임관:H10",
+        "L8:천을귀인:Sun",
+        "L8:천을귀인:Jupiter",
+        "L8:괴강:Pluto",
+        "L2:편재:Jupiter"
+      ],
+      "evidenceIds": [
+        "learning_acceleration",
+        "L5:samhap:trine",
+        "L6:임관:H10",
+        "L8:천을귀인:Sun",
+        "L8:천을귀인:Jupiter",
+        "L8:괴강:Pluto",
+        "L2:편재:Jupiter"
+      ]
+    },
+    {
       "id": "route_recheck_window",
       "patternId": "travel_relocation_activation",
       "domain": "move",
@@ -3699,59 +4019,6 @@
       ]
     },
     {
-      "id": "basecamp_reset_window",
-      "patternId": "movement_guardrail_window",
-      "domain": "move",
-      "branch": "basecamp_reset",
-      "title": "Basecamp-reset branch",
-      "rawScore": 105.3335,
-      "probability": 90.2,
-      "confidence": 0.91,
-      "window": "now",
-      "timingRelevance": 0.99,
-      "risk": "If your base is misaligned, every other expansion becomes more expensive than it should be.",
-      "reversible": true,
-      "actions": [
-        "Define what the base must support",
-        "Drop one location mismatch",
-        "Reset around recovery, not just convenience"
-      ],
-      "whyNow": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Movement Guardrail Window 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다.",
-      "whyNotYet": "commit_now, finalize_terms, overextension이 아직 풀리지 않았고, 현재 verify 모드라 바로 확정보다 단계적 접근이 맞습니다. 타이밍 적합도는 99% 수준입니다.",
-      "entryConditions": [
-        "Movement Guardrail Window 패턴 근거가 유지될 것",
-        "시나리오 확률 90.2%와 신뢰도 91%가 유지될 것",
-        "타이밍 적합도 99% 이상에서 Define what the base must support를 바로 실행할 수 있을 것"
-      ],
-      "abortConditions": [
-        "핵심 조건이나 역할 범위가 문서로 정리되지 않으면 중단",
-        "시나리오 확률이 68.2% 아래로 떨어지면 중단",
-        "A fast move with weak verification can create avoidable cost and misfit."
-      ],
-      "manifestationHints": [
-        "기회는 열리지만 아직 조건 정리가 먼저입니다.",
-        "즉시 확정보다 초안·탐색·검증이 더 맞습니다.",
-        "되돌릴 수 있는 작은 실행부터 시작하는 편이 유리합니다."
-      ],
-      "supportingSignalIds": [
-        "L5:samhap:trine",
-        "L5:samhap:conjunction",
-        "L5:chung:opposition",
-        "L6:임관:H10",
-        "L8:천을귀인:Sun",
-        "L8:천을귀인:Jupiter"
-      ],
-      "evidenceIds": [
-        "movement_guardrail_window",
-        "L5:samhap:trine",
-        "L5:samhap:conjunction",
-        "L5:chung:opposition",
-        "L6:임관:H10",
-        "L8:천을귀인:Sun",
-        "L8:천을귀인:Jupiter"
-      ]
-    },
-    {
       "id": "travel_window",
       "patternId": "travel_relocation_activation",
       "domain": "move",
@@ -3802,6 +4069,59 @@
         "COV:L3:planet-house:Uranus:H12",
         "COV:L3:planet-house:Neptune:H12",
         "COV:L3:planet-house:True Node:H9"
+      ]
+    },
+    {
+      "id": "basecamp_reset_window",
+      "patternId": "movement_guardrail_window",
+      "domain": "move",
+      "branch": "basecamp_reset",
+      "title": "Basecamp-reset branch",
+      "rawScore": 105.3335,
+      "probability": 90.2,
+      "confidence": 0.91,
+      "window": "now",
+      "timingRelevance": 0.99,
+      "risk": "If your base is misaligned, every other expansion becomes more expensive than it should be.",
+      "reversible": true,
+      "actions": [
+        "Define what the base must support",
+        "Drop one location mismatch",
+        "Reset around recovery, not just convenience"
+      ],
+      "whyNow": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Movement Guardrail Window 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다.",
+      "whyNotYet": "commit_now, finalize_terms, overextension이 아직 풀리지 않았고, 현재 verify 모드라 바로 확정보다 단계적 접근이 맞습니다. 타이밍 적합도는 99% 수준입니다.",
+      "entryConditions": [
+        "Movement Guardrail Window 패턴 근거가 유지될 것",
+        "시나리오 확률 90.2%와 신뢰도 91%가 유지될 것",
+        "타이밍 적합도 99% 이상에서 Define what the base must support를 바로 실행할 수 있을 것"
+      ],
+      "abortConditions": [
+        "핵심 조건이나 역할 범위가 문서로 정리되지 않으면 중단",
+        "시나리오 확률이 68.2% 아래로 떨어지면 중단",
+        "A fast move with weak verification can create avoidable cost and misfit."
+      ],
+      "manifestationHints": [
+        "기회는 열리지만 아직 조건 정리가 먼저입니다.",
+        "즉시 확정보다 초안·탐색·검증이 더 맞습니다.",
+        "되돌릴 수 있는 작은 실행부터 시작하는 편이 유리합니다."
+      ],
+      "supportingSignalIds": [
+        "L5:samhap:trine",
+        "L5:samhap:conjunction",
+        "L5:chung:opposition",
+        "L6:임관:H10",
+        "L8:천을귀인:Sun",
+        "L8:천을귀인:Jupiter"
+      ],
+      "evidenceIds": [
+        "movement_guardrail_window",
+        "L5:samhap:trine",
+        "L5:samhap:conjunction",
+        "L5:chung:opposition",
+        "L6:임관:H10",
+        "L8:천을귀인:Sun",
+        "L8:천을귀인:Jupiter"
       ]
     },
     {
@@ -4596,112 +4916,6 @@
       ]
     },
     {
-      "id": "hidden_support_defensive_window",
-      "patternId": "hidden_support",
-      "domain": "career",
-      "branch": "defensive",
-      "title": "Hidden Support Pattern defensive branch",
-      "rawScore": 80.8795,
-      "probability": 80.9,
-      "confidence": 0.87,
-      "window": "now",
-      "timingRelevance": 0.99,
-      "risk": "Use a slower sequence if evidence weakens.",
-      "reversible": true,
-      "actions": [
-        "Pause final commitment",
-        "Draft before commit",
-        "Re-check constraints"
-      ],
-      "whyNow": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Hidden Support Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다.",
-      "whyNotYet": "commit_now, blind_spot_commitment, premature_statement이 아직 풀리지 않았고, 현재 prepare 모드라 바로 확정보다 단계적 접근이 맞습니다. 타이밍 적합도는 99% 수준입니다.",
-      "entryConditions": [
-        "Hidden Support Pattern 패턴 근거가 유지될 것",
-        "시나리오 확률 80.9%와 신뢰도 87%가 유지될 것",
-        "타이밍 적합도 99% 이상에서 Pause final commitment를 바로 실행할 수 있을 것"
-      ],
-      "abortConditions": [
-        "핵심 조건이나 역할 범위가 문서로 정리되지 않으면 중단",
-        "시나리오 확률이 58.900000000000006% 아래로 떨어지면 중단",
-        "Support stays latent if assumptions replace direct communication."
-      ],
-      "manifestationHints": [
-        "확장보다 정리와 보존 쪽으로 체감될 수 있습니다.",
-        "즉시 확정보다 초안·탐색·검증이 더 맞습니다.",
-        "되돌릴 수 있는 작은 실행부터 시작하는 편이 유리합니다."
-      ],
-      "supportingSignalIds": [
-        "L5:samhap:trine",
-        "L5:samhap:conjunction",
-        "L5:chung:opposition",
-        "L6:임관:H10",
-        "L8:천을귀인:Jupiter",
-        "L8:괴강:Pluto"
-      ],
-      "evidenceIds": [
-        "hidden_support",
-        "L5:samhap:trine",
-        "L5:samhap:conjunction",
-        "L5:chung:opposition",
-        "L6:임관:H10",
-        "L8:천을귀인:Jupiter",
-        "L8:괴강:Pluto"
-      ]
-    },
-    {
-      "id": "learning_acceleration_defensive_window",
-      "patternId": "learning_acceleration",
-      "domain": "career",
-      "branch": "defensive",
-      "title": "Learning Acceleration Pattern defensive branch",
-      "rawScore": 80.8795,
-      "probability": 80.9,
-      "confidence": 0.87,
-      "window": "now",
-      "timingRelevance": 0.99,
-      "risk": "Use a slower sequence if evidence weakens.",
-      "reversible": true,
-      "actions": [
-        "Pause final commitment",
-        "Draft before commit",
-        "Re-check constraints"
-      ],
-      "whyNow": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Learning Acceleration Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다.",
-      "whyNotYet": "commit_now, blind_spot_commitment, premature_statement이 아직 풀리지 않았고, 현재 prepare 모드라 바로 확정보다 단계적 접근이 맞습니다. 타이밍 적합도는 99% 수준입니다.",
-      "entryConditions": [
-        "Learning Acceleration Pattern 패턴 근거가 유지될 것",
-        "시나리오 확률 80.9%와 신뢰도 87%가 유지될 것",
-        "타이밍 적합도 99% 이상에서 Pause final commitment를 바로 실행할 수 있을 것"
-      ],
-      "abortConditions": [
-        "핵심 조건이나 역할 범위가 문서로 정리되지 않으면 중단",
-        "시나리오 확률이 58.900000000000006% 아래로 떨어지면 중단",
-        "Consuming too broadly can reduce retention and execution."
-      ],
-      "manifestationHints": [
-        "확장보다 정리와 보존 쪽으로 체감될 수 있습니다.",
-        "즉시 확정보다 초안·탐색·검증이 더 맞습니다.",
-        "되돌릴 수 있는 작은 실행부터 시작하는 편이 유리합니다."
-      ],
-      "supportingSignalIds": [
-        "L5:samhap:trine",
-        "L6:임관:H10",
-        "L8:천을귀인:Sun",
-        "L8:천을귀인:Jupiter",
-        "L8:괴강:Pluto",
-        "L2:편재:Jupiter"
-      ],
-      "evidenceIds": [
-        "learning_acceleration",
-        "L5:samhap:trine",
-        "L6:임관:H10",
-        "L8:천을귀인:Sun",
-        "L8:천을귀인:Jupiter",
-        "L8:괴강:Pluto",
-        "L2:편재:Jupiter"
-      ]
-    },
-    {
       "id": "timing_risk_cluster_alt_window",
       "patternId": "timing_risk_cluster",
       "domain": "timing",
@@ -4912,216 +5126,6 @@
       ]
     },
     {
-      "id": "hidden_support_alt_window",
-      "patternId": "hidden_support",
-      "domain": "career",
-      "branch": "alt",
-      "title": "Hidden Support Pattern alternate branch",
-      "rawScore": 77.5095,
-      "probability": 77.5,
-      "confidence": 0.85,
-      "window": "now",
-      "timingRelevance": 0.99,
-      "risk": "Alternate path: Support stays latent if assumptions replace direct communication.",
-      "reversible": true,
-      "actions": [
-        "Reduce scope",
-        "Keep optionality",
-        "Collect one more signal"
-      ],
-      "whyNow": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Hidden Support Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다.",
-      "whyNotYet": "commit_now, blind_spot_commitment, premature_statement이 아직 풀리지 않았고, 현재 prepare 모드라 바로 확정보다 단계적 접근이 맞습니다. 타이밍 적합도는 99% 수준입니다.",
-      "entryConditions": [
-        "Hidden Support Pattern 패턴 근거가 유지될 것",
-        "시나리오 확률 77.5%와 신뢰도 85%가 유지될 것",
-        "타이밍 적합도 99% 이상에서 Reduce scope를 바로 실행할 수 있을 것"
-      ],
-      "abortConditions": [
-        "핵심 조건이나 역할 범위가 문서로 정리되지 않으면 중단",
-        "시나리오 확률이 55.5% 아래로 떨어지면 중단",
-        "Support stays latent if assumptions replace direct communication."
-      ],
-      "manifestationHints": [
-        "확장보다 정리와 보존 쪽으로 체감될 수 있습니다.",
-        "즉시 확정보다 초안·탐색·검증이 더 맞습니다.",
-        "되돌릴 수 있는 작은 실행부터 시작하는 편이 유리합니다."
-      ],
-      "supportingSignalIds": [
-        "L5:samhap:trine",
-        "L5:samhap:conjunction",
-        "L5:chung:opposition",
-        "L6:임관:H10",
-        "L8:천을귀인:Jupiter",
-        "L8:괴강:Pluto"
-      ],
-      "evidenceIds": [
-        "hidden_support",
-        "L5:samhap:trine",
-        "L5:samhap:conjunction",
-        "L5:chung:opposition",
-        "L6:임관:H10",
-        "L8:천을귀인:Jupiter",
-        "L8:괴강:Pluto"
-      ]
-    },
-    {
-      "id": "learning_acceleration_alt_window",
-      "patternId": "learning_acceleration",
-      "domain": "career",
-      "branch": "alt",
-      "title": "Learning Acceleration Pattern alternate branch",
-      "rawScore": 77.5095,
-      "probability": 77.5,
-      "confidence": 0.85,
-      "window": "now",
-      "timingRelevance": 0.99,
-      "risk": "Alternate path: Consuming too broadly can reduce retention and execution.",
-      "reversible": true,
-      "actions": [
-        "Reduce scope",
-        "Keep optionality",
-        "Collect one more signal"
-      ],
-      "whyNow": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Learning Acceleration Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다.",
-      "whyNotYet": "commit_now, blind_spot_commitment, premature_statement이 아직 풀리지 않았고, 현재 prepare 모드라 바로 확정보다 단계적 접근이 맞습니다. 타이밍 적합도는 99% 수준입니다.",
-      "entryConditions": [
-        "Learning Acceleration Pattern 패턴 근거가 유지될 것",
-        "시나리오 확률 77.5%와 신뢰도 85%가 유지될 것",
-        "타이밍 적합도 99% 이상에서 Reduce scope를 바로 실행할 수 있을 것"
-      ],
-      "abortConditions": [
-        "핵심 조건이나 역할 범위가 문서로 정리되지 않으면 중단",
-        "시나리오 확률이 55.5% 아래로 떨어지면 중단",
-        "Consuming too broadly can reduce retention and execution."
-      ],
-      "manifestationHints": [
-        "확장보다 정리와 보존 쪽으로 체감될 수 있습니다.",
-        "즉시 확정보다 초안·탐색·검증이 더 맞습니다.",
-        "되돌릴 수 있는 작은 실행부터 시작하는 편이 유리합니다."
-      ],
-      "supportingSignalIds": [
-        "L5:samhap:trine",
-        "L6:임관:H10",
-        "L8:천을귀인:Sun",
-        "L8:천을귀인:Jupiter",
-        "L8:괴강:Pluto",
-        "L2:편재:Jupiter"
-      ],
-      "evidenceIds": [
-        "learning_acceleration",
-        "L5:samhap:trine",
-        "L6:임관:H10",
-        "L8:천을귀인:Sun",
-        "L8:천을귀인:Jupiter",
-        "L8:괴강:Pluto",
-        "L2:편재:Jupiter"
-      ]
-    },
-    {
-      "id": "hidden_support_main_window",
-      "patternId": "hidden_support",
-      "domain": "career",
-      "branch": "main",
-      "title": "Hidden Support Pattern main branch",
-      "rawScore": 74.5812,
-      "probability": 74.6,
-      "confidence": 0.88,
-      "window": "now",
-      "timingRelevance": 0.99,
-      "risk": "Support stays latent if assumptions replace direct communication.",
-      "reversible": false,
-      "actions": [
-        "Pick one focus",
-        "Write one verification rule",
-        "Review after one cycle"
-      ],
-      "whyNow": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Hidden Support Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다.",
-      "whyNotYet": "commit_now, blind_spot_commitment, premature_statement이 아직 풀리지 않았고, 현재 prepare 모드라 바로 확정보다 단계적 접근이 맞습니다. 타이밍 적합도는 99% 수준입니다.",
-      "entryConditions": [
-        "Hidden Support Pattern 패턴 근거가 유지될 것",
-        "시나리오 확률 74.6%와 신뢰도 88%가 유지될 것",
-        "타이밍 적합도 99% 이상에서 Pick one focus를 바로 실행할 수 있을 것"
-      ],
-      "abortConditions": [
-        "핵심 조건이나 역할 범위가 문서로 정리되지 않으면 중단",
-        "시나리오 확률이 52.599999999999994% 아래로 떨어지면 중단",
-        "Support stays latent if assumptions replace direct communication."
-      ],
-      "manifestationHints": [
-        "확장보다 정리와 보존 쪽으로 체감될 수 있습니다.",
-        "즉시 확정보다 초안·탐색·검증이 더 맞습니다."
-      ],
-      "supportingSignalIds": [
-        "L5:samhap:trine",
-        "L5:samhap:conjunction",
-        "L5:chung:opposition",
-        "L6:임관:H10",
-        "L8:천을귀인:Jupiter",
-        "L8:괴강:Pluto"
-      ],
-      "evidenceIds": [
-        "hidden_support",
-        "L5:samhap:trine",
-        "L5:samhap:conjunction",
-        "L5:chung:opposition",
-        "L6:임관:H10",
-        "L8:천을귀인:Jupiter",
-        "L8:괴강:Pluto"
-      ]
-    },
-    {
-      "id": "learning_acceleration_main_window",
-      "patternId": "learning_acceleration",
-      "domain": "career",
-      "branch": "main",
-      "title": "Learning Acceleration Pattern main branch",
-      "rawScore": 74.5812,
-      "probability": 74.6,
-      "confidence": 0.88,
-      "window": "now",
-      "timingRelevance": 0.99,
-      "risk": "Consuming too broadly can reduce retention and execution.",
-      "reversible": false,
-      "actions": [
-        "Pick one focus",
-        "Write one verification rule",
-        "Review after one cycle"
-      ],
-      "whyNow": "지금 구간에 대운, 세운, 트랜짓가 겹치며 Learning Acceleration Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다.",
-      "whyNotYet": "commit_now, blind_spot_commitment, premature_statement이 아직 풀리지 않았고, 현재 prepare 모드라 바로 확정보다 단계적 접근이 맞습니다. 타이밍 적합도는 99% 수준입니다.",
-      "entryConditions": [
-        "Learning Acceleration Pattern 패턴 근거가 유지될 것",
-        "시나리오 확률 74.6%와 신뢰도 88%가 유지될 것",
-        "타이밍 적합도 99% 이상에서 Pick one focus를 바로 실행할 수 있을 것"
-      ],
-      "abortConditions": [
-        "핵심 조건이나 역할 범위가 문서로 정리되지 않으면 중단",
-        "시나리오 확률이 52.599999999999994% 아래로 떨어지면 중단",
-        "Consuming too broadly can reduce retention and execution."
-      ],
-      "manifestationHints": [
-        "확장보다 정리와 보존 쪽으로 체감될 수 있습니다.",
-        "즉시 확정보다 초안·탐색·검증이 더 맞습니다."
-      ],
-      "supportingSignalIds": [
-        "L5:samhap:trine",
-        "L6:임관:H10",
-        "L8:천을귀인:Sun",
-        "L8:천을귀인:Jupiter",
-        "L8:괴강:Pluto",
-        "L2:편재:Jupiter"
-      ],
-      "evidenceIds": [
-        "learning_acceleration",
-        "L5:samhap:trine",
-        "L6:임관:H10",
-        "L8:천을귀인:Sun",
-        "L8:천을귀인:Jupiter",
-        "L8:괴강:Pluto",
-        "L2:편재:Jupiter"
-      ]
-    },
-    {
       "id": "health_risk_cluster_defensive_window",
       "patternId": "health_risk_cluster",
       "domain": "health",
@@ -5290,14 +5294,14 @@
   "themeLabel": "커리어 & 직업",
   "themeEmoji": "💼",
   "sections": {
-    "deepAnalysis": "이번 커리어 테마의 승부처는 단순히 많이 하는 사람이 아니라 기준이 뚜렷한 사람으로 보이는 데 있습니다. 커리어 흐름은 기회와 리스크가 함께 작용하는 시점입니다. 사건은 바로 확정보다 단계적 합의나 확인 과정을 통해 현실화될 가능성이 큽니다. 커리어는 확장 동력이 크지만 역할과 범위를 재정의해야 손실 없이 성장할 수 있습니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 기회를 넓힐 흐름과 기준을 다시 설정할 흐름이 함께 겹칩니다. 확장과 재정의가 겹칠 때 무리하면 성과의 변동이 커질 수 있습니다. 기본 구조에서는 검토와 정밀 조정의 성향이 강조됩니다. 두 성향이 모두 강해 역할과 존재감이 부각되는 구조입니다. 현재 31세 전후는 31-40세 대운(乙亥(목)) 흐름 안에 있어 커리어 판단에서도 새로운 확장보다 역할과 우선순위 정리가 먼저입니다. 목성은 사수자리 10하우스에, 토성은 물고기자리 1하우스에 위치하고 있습니다. 결정은 분할하고 역할, 기한, 책임을 문서로 고정하세요. 핵심은 기질 자체보다 기질을 운용하는 순서를 정하는 데 있습니다. 같은 재능도 실행 구조에 따라 결과의 밀도가 크게 달라질 수 있습니다. 핵심 근거는 횡재, 대운 금입니다.",
-    "patterns": "커리어는 확장 동력이 크지만 역할·범위 재정의를 함께 해야 손실 없이 성장합니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 기회를 넓힐 흐름과 기준을 다시 세울 흐름이 함께 겹칩니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다. 기본 구조에서 검토와 정밀 조정 성향이 강합니다. 양 성향이 강해 역할과 존재감이 앞에 서는 구조입니다. career 영역은 now 창이 열려 있고, 타고난 기본 구조, 대운 활성 (금), 세운 활성 (화)이 겹치면서 현재 모드는 verify로 수렴합니다. 지금은 성급하게 확정하기보다 준비와 기준 정리가 더 중요한 구간입니다. 상승 신호와 주의 신호가 동시에 있을 때는 공격과 방어를 분리하는 설계가 필수입니다. 패턴을 읽는 목적은 예언이 아니라 손실을 줄이면서 기회를 확장하는 데 있습니다. 핵심 근거는 횡재, 대운 금입니다.",
-    "timing": "현재 31세 전후의 핵심 장기 흐름은 31-40세 대운(乙亥(목))입니다. 이 구간이 인생 전체의 큰 기후를 정하고, 세운, 월운, 일운은 그 위에서 실제 사건의 속도와 체감 강도를 조절합니다. 21-30세 구간에서 굳어진 습관과 판단 기준이 지금 흐름의 출발점이 됩니다.\n\n그래서 현재 대운은 새 기회를 여는 동시에, 예전 방식 중 무엇을 유지하고 무엇을 버릴지 다시 고르게 만듭니다. 다음 41-50세 대운(甲戌)으로 넘어가기 전까지는, 지금 구간에서 성과를 내는 방식과 다음 구간에 가져갈 기준을 구분해 두는 것이 중요합니다. 커리어의 타이밍 창은 지금입니다.\n\n지금 구간에는 대운, 세운, 이 겹쳐져 Hidden Support Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다. 오늘, 이번 주, 이번 달의 시간축을 분리하면 의사결정 품질이 크게 향상됩니다.\n\n시기를 맞춘다는 것은 기다리는 것이 아니라 순서를 설계하는 일에 가깝습니다.",
-    "recommendations": "기준 정리 후 실행,긴장이 강한 시기일수록 속도를 조절하고 확인 루틴을 먼저 고정해야 손실을 줄일 수 있습니다.,기준 정리 후 실행 실행 전 체크포인트를 1개라도 명확히 두면 결과 편차를 줄일 수 있습니다.,긴장이 강한 시기일수록 속도를 조절하고 확인 루틴을 먼저 고정해야 손실을 줄일 수 있습니다. 실행 전 체크포인트를 2개라도 명확히 두면 결과 편차를 줄일 수 있습니다.,결정은 분할하고 역할·기한·책임을 문서로 고정하세요. 실행 전 체크포인트를 3개라도 명확히 두면 결과 편차를 줄일 수 있습니다. 핵심 근거는 횡재, 대운 금입니다.",
-    "actionPlan": "실행력은 의욕보다 역할, 범위, 마감이 먼저 고정될 때 훨씬 강해집니다. 주의 신호가 강한 시기에는 속도를 조금 낮추고 확인 순서를 먼저 세우는 편이 안전합니다. 현재 31세 전후는 31-40세 대운(乙亥(목)) 흐름에서 실행을 착수-재확인-확정으로 나눌수록 결과 재현성이 증가합니다.\n\n기준 정리 후 실행 시 긴장이 강한 시기일수록 속도를 조절하고 확인 루틴을 먼저 고정해야 손실을 줄일 수 있습니다. 결정은 분할하고 역할, 기한, 책임을 문서로 고정하세요. 실행 계획은 복잡한 구조보다 실제 행동으로 전환되는 단순한 단계가 효과적입니다.\n\n핵심은 계획을 많이 세우는 것이 아니라 계획을 끝까지 지키는 구조입니다. 지금은 성급하게 확정하기보다 준비와 기준 정리가 더 중요한 시점입니다.",
-    "strategy": "현재 커리어 전략의 승부처는 단순한 확장이 아니라 더 어려운 결정을 맡길 만한 사람으로 자리 잡는 데 있습니다. 기준 정리 후 실행 결정은 분할하고 역할, 기한, 책임을 문서로 고정하세요. 커리어 흐름은 기회와 리스크가 동시에 작용하는 구간입니다. 사건은 즉각적인 확정보다 단계적 합의나 확인 과정을 통해 현실화될 가능성이 큽니다. 커리어는 확장 동력이 크지만 역할과 범위를 재정의해야 손실 없이 성장할 수 있습니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 확장과 재정의가 겹칠 때 무리하면 성과의 변동이 커질 수 있습니다. 기본 구조에서는 검토와 정밀 조정의 성향이 강조됩니다. 두 성향이 모두 강해 역할과 존재감이 부각되는 구조입니다. 전략은 화려한 선택보다 재현 가능한 반복으로 완성됩니다. 실행 전에 기준을 문서로 고정하면 돌발 변수 대응력이 높아집니다. 핵심 근거는 횡재, 대운 금입니다.",
-    "roleFit": "잘 맞는 자리는 화려한 직함보다 판단과 조율의 무게를 견딜 수 있는 자리입니다. 커리어는 확장 동력이 크지만 역할과 범위를 재정의해야 손실 없이 성장할 수 있습니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 기회를 넓힐 흐름과 기준을 다시 설정할 흐름이 함께 겹칩니다. 확장과 재정의가 겹칠 때 무리하면 성과의 변동이 커질 수 있습니다. 기본 구조에서는 검토와 정밀 조정의 성향이 강조됩니다. 두 성향이 모두 강해 역할과 존재감이 부각되는 구조입니다. 기준 정리 후 실행 공적 역할 확대 career 영역은 기회와 리스크가 동시에 작용하는 구간입니다. 사건은 즉각적인 확정보다 단계적 합의나 재확인 과정을 통해 현실화될 가능성이 큽니다. 역할 적합은 겉으로 보이는 직함보다 실제 에너지 사용 방식과 맞아야 지속됩니다. 잘 맞는 포지션일수록 성과뿐만 아니라 피로 회복 속도도 함께 개선됩니다. 핵심 근거는 횡재, 대운 금입니다.",
-    "turningPoints": "커리어 전환점은 기회가 몰려올 때보다, 기존 방식이 더 이상 충분하지 않다는 걸 인정할 때 열립니다. 커리어 타이밍 창은 지금입니다. 지금 구간에 대운, 세운, 가 겹치며 Hidden Support Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다. 전환점은 보통 기회 신호와 조정 신호가 동시에 나타나는 지점에서 발생합니다. 변화를 크게 만들수록 기준을 더 단순하게 유지해야 흔들림이 줄어듭니다. 핵심 근거는 횡재, 대운 금입니다."
+    "deepAnalysis": "이번 커리어 테마의 승부처는 많은 일을 하는 사람이 아니라. 기준이 분명한 사람에게 있습니다. 커리어 흐름은 기회와 리스크가 함께 작용하는 시점입니다. 사건은 즉각적인 확정보다 단계적 합의나 확인 과정을 통해 현실화될 가능성이 큽니다. 커리어는 기회가 오더라도 맡을 역할과 책임 범위를 먼저 명확히 해야 손실 없이 성장할 수 있습니다. 현재는 무턱대고 넓히기보다 어떤 일로 평가받을지를 먼저 정하는 것이 바람직합니다. 기회를 확장할 흐름과 기준을 재정립할 흐름이 동시에 겹칩니다. 확장과 재정의가 얽힐 때 무리하면 성과 변동이 클 수 있습니다. 기본 구조에서 검토와 정밀 조정의 성향이 강합니다. 두 가지 성향이 두드러져 역할과 존재감이 두드러지는 구조입니다. 현재 31세 전후는 31-40세 대운(乙亥(목)) 흐름 안에 있어 커리어 판단에서 새롭게 확장하기보다 역할과 우선순위 정리가 먼저 이루어져야 합니다. 결정을 나누고 역할·기한·책임을 문서로 고정하세요. 핵심은 기질 자체보다 기질을 운용하는 순서를 정하는 것입니다. 동일한 재능도 실행 구조에 따라 결과의 밀도가 크게 달라질 수 있습니다. 핵심 근거는 횡재, 대운 금입니다.",
+    "patterns": "커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어떤 일로 평가받을지 먼저 정하는 편이 맞습니다. 기회를 넓힐 흐름과 기준을 다시 세울 흐름이 함께 겹칩니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다. 기본 구조에서 검토와 정밀 조정 성향이 강합니다. 양 성향이 강해 역할과 존재감이 앞에 서는 구조입니다. 커리어 흐름은 now 창이 열려 있고, 타고난 기본 구조, 대운 활성 (금), 세운 활성 (화)이 겹치면서 현재 모드는 verify로 수렴합니다. 도메인 규칙상 현재 모드는 verify로 정리됩니다. 상승 신호와 주의 신호가 동시에 있을 때는 공격과 방어를 분리하는 설계가 필수입니다. 패턴을 읽는 목적은 예언이 아니라 손실을 줄이면서 기회를 확장하는 데 있습니다. 핵심 근거는 횡재, 대운 금입니다.",
+    "timing": "현재 31세 전후의 핵심 장기 흐름은 31-40세 대운(乙亥(목))입니다. 이 구간이 인생 전체의 큰 기후를 정하고, 세운·월운·일운은 그 위에서 실제 사건의 속도와 체감 강도를 조절합니다. 21-30세 구간에서 굳어진 습관과 판단 기준이 현재 흐름의 출발점이 됩니다.\n\n따라서 현재 대운은 새로운 기회를 여는 동시에, 이전 방식 중 무엇을 유지하고 무엇을 버릴지를 다시 고르게 만듭니다. 다음 41-50세 대운(甲戌)으로 넘어가기 전까지는, 지금 구간에서 성과를 내는 방식과 다음 구간에 가져갈 기준을 구분하는 것이 중요합니다. 커리어는 지금 바로 움직일 수 있는 시점입니다.\n\n지금은 여러 조건이 한 방향으로 모여 실제로 움직이기 쉬운 때입니다. 특히 기준이 흔들리지 않을 때 먼저 맞춰야 실제 체감이 개선됩니다. 기준이 흔들리지 않을 때 먼저 맞춰야 실제 체감이 개선됩니다.\n\n반대로 역할과 기준이 애매하게 남아 있다면 조짐이 보이면 서두르지 않는 것이 안전합니다. 시나리오 확률이 63.9% 흐름이 꺾이면 속도를 줄여야 합니다. 일은 역할·범위·마감이 선명할수록 체감이 빨리 붙습니다.\n\n오늘-이번 주-이번 달의 시간축을 분리하면 의사결정 품질이 크게 향상됩니다. 시기를 맞춘다는 것은 기다리는 것이 아니라 순서를 설계하는 일에 가까운 것입니다.",
+    "recommendations": "기준 정리 후 실행. 긴장이 강한 시기일수록 속도를 조절하고 확인 루틴을 먼저 고정해야 손실을 줄일 수 있습니다. 기준을 정리한 뒤 실행하고 실행 전 체크포인트를 1개라도 명확히 두면 결과 편차를 줄일 수 있습니다. 실행 전 체크포인트를 2개라도 명확히 두면 결과 편차를 줄일 수 있습니다. 결정은 분할하고 역할·기한·책임을 문서로 고정하세요. 실행 전 체크포인트를 3개라도 명확히 두면 결과 편차를 줄일 수 있습니다. 핵심 근거는 횡재, 대운 금입니다.",
+    "actionPlan": "실행력은 의욕보다 역할·범위·마감이 먼저 고정될 때 훨씬 강해집니다. 커리어: 단계 확정 기준을 정리한 뒤 실행하고 주의 신호가 강한 구간에서는 속도를 조금 낮추고 확인 순서를 먼저 세우는 것이 안전합니다. 현재 31세 전후는 31-40세 대운(乙亥(목)) 흐름에서 실행을 착수-재확인-확정으로 나눌수록 결과 재현성이 높아집니다.\n\n기준을 정리한 뒤 실행하고 긴장이 강한 시기일수록 속도를 조절하고 확인 루틴을 먼저 고정해야 손실을 줄일 수 있습니다. 결정은 분할하고 역할·기한·책임을 문서로 고정하세요. 실행 계획은 복잡한 구조보다 실제 행동으로 전환되는 단순한 단계가 효과적입니다.\n\n핵심은 계획을 많이 세우는 것이 아니라 계획을 끝까지 지키는 구조입니다.",
+    "strategy": "지금 커리어 전략의 승부처는 일을 더 크게 벌이는 것이 아니라, 더 어려운 결정을 맡겨도 흔들리지 않는 사람으로 보이는 데 있습니다. 기준을 정리한 뒤 실행하고 결정은 분할하고 역할·기한·책임을 문서로 고정하세요. 커리어 흐름은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 확인 과정을 거쳐 현실화될 가능성이 큽니다. 커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어떤 일로 평가받을지 먼저 정하는 편이 맞습니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다. 기본 구조에서 검토와 정밀 조정 성향이 강합니다. 양 성향이 강해 역할과 존재감이 앞에 서는 구조입니다. 전략은 화려한 선택보다 재현 가능한 반복으로 완성됩니다. 실행 전에 기준을 문장으로 고정하면 돌발 변수 대응력이 높아집니다. 핵심 근거는 횡재, 대운 금입니다.",
+    "roleFit": "잘 맞는 자리는 화려한 직함보다 판단과 조율의 무게를 견딜 수 있는 자리입니다. 커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어떤 일로 평가받을지 먼저 정하는 편이 맞습니다. 기회를 넓힐 흐름과 기준을 다시 세울 흐름이 함께 겹칩니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다. 기본 구조에서 검토와 정밀 조정 성향이 강합니다. 양 성향이 강해 역할과 존재감이 앞에 서는 구조입니다. 기준을 정리한 뒤 실행하고 기준을 정리한 뒤 실행하고 공적 역할 확대 커리어 흐름은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 재확인 과정을 거쳐 현실화될 가능성이 큽니다. 역할 적합은 좋아 보이는 직함보다 실제 에너지 사용 방식과 맞아야 오래 갑니다. 잘 맞는 포지션일수록 성과뿐 아니라 피로 회복 속도도 함께 좋아집니다. 핵심 근거는 횡재, 대운 금입니다.",
+    "turningPoints": "커리어 전환점은 기회가 갑자기 커질 때보다, 지금 방식으로는 다음 단계에 못 간다는 사실을 인정할 때 열립니다. 커리어는 지금 바로 움직임을 걸 수 있는 구간입니다. 지금은 여러 조건이 한 방향으로 모여 실제로 움직이기 쉬운 때입니다. 특히 기준이 흔들리지 않을 때 먼저 맞아야 실제 체감이 좋아집니다. 기준이 흔들리지 않을 때 먼저 맞아야 실제 체감이 좋아집니다. 반대로 역할과 기준이 애매하게 남아 있으면 조짐이 보이면 서두르지 않는 편이 안전합니다, 시나리오 확률이 63.900000000000006% 흐름이 꺾이면 속도를 줄이기 조짐이 보이면 서두르지 않는 편이 안전합니다. 일은 역할·범위·마감이 선명할수록 체감이 빨리 붙습니다. 전환점은 보통 기회 신호와 조정 신호가 동시에 나타나는 지점에서 발생합니다. 변화를 크게 만들수록 기준을 더 단순하게 유지해야 흔들림이 줄어듭니다. 핵심 근거는 횡재, 대운 금입니다."
   },
   "graphRagEvidence": {
     "mode": "themed",
@@ -5306,29 +5310,44 @@
       {
         "id": "E1",
         "section": "deepAnalysis",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
-        "crossConclusion": "For \"deepAnalysis\", start from overall=50 grade=C and use X9, X6, X11, X10 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
+        "crossConclusion": "For \"deepAnalysis\", start from overall=50 grade=C and use X8, X10, X6, X11 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
         "crossEvidenceSets": [
           {
-            "id": "X9",
+            "id": "X8",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "career",
               "wealth",
+              "move",
               "personality"
             ],
             "overlapScore": 0.99,
-            "orbFitScore": 0.47,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+            "orbFitScore": 0.46,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, move, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+          },
+          {
+            "id": "X10",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Moon-trine-Mercury (pair=Mercury-Moon, angle=120deg, orb=4.7deg, allowed=relationship<=7.7deg, move<=6deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "relationship",
+              "move",
+              "personality"
+            ],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.35,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in relationship, move, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           },
           {
             "id": "X6",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "career",
               "personality"
@@ -5341,7 +5360,7 @@
             "id": "X11",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Venus-sextile-True Node (pair=True Node-Venus, angle=60deg, orb=4.8deg, allowed=relationship<=5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "relationship",
               "wealth",
@@ -5350,34 +5369,47 @@
             "overlapScore": 0.88,
             "orbFitScore": 0.06,
             "combinedConclusion": "The overlap around \"core trend\" is strongest in relationship, wealth, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
-          },
-          {
-            "id": "X10",
-            "matrixEvidence": "matrixInsight=core trend",
-            "astrologyEvidence": "Moon-trine-Mercury (pair=Mercury-Moon, angle=120deg, orb=4.7deg, allowed=relationship<=7.7deg, personality<=8.1deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": [
-              "relationship",
-              "personality"
-            ],
-            "overlapScore": 0.83,
-            "orbFitScore": 0.41,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in relationship, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           }
         ]
       },
       {
         "id": "E2",
         "section": "patterns",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
-        "crossConclusion": "For \"patterns\", start from overall=50 grade=C and use X3, X2, X9, X6 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
+        "crossConclusion": "For \"patterns\", start from overall=50 grade=C and use X1, X3, X4, X2 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
         "crossEvidenceSets": [
+          {
+            "id": "X1",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Mercury-square-True Node (pair=Mercury-True Node, angle=90deg, orb=0.3deg, allowed=move<=4.9deg, timing<=3.6deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "move",
+              "timing"
+            ],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.93,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in move, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+          },
           {
             "id": "X3",
             "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Mars-quincunx-Neptune (pair=Mars-Neptune, angle=150deg, orb=0.2deg, allowed=move<=2.5deg, timing<=1.8deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "move",
+              "timing"
+            ],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.92,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in move, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+          },
+          {
+            "id": "X4",
+            "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "relationship",
               "wealth",
@@ -5391,7 +5423,7 @@
             "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "career",
               "wealth",
@@ -5400,109 +5432,83 @@
             "overlapScore": 0.99,
             "orbFitScore": 0.83,
             "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
-          },
-          {
-            "id": "X9",
-            "matrixEvidence": "matrixInsight=core trend",
-            "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": [
-              "career",
-              "wealth",
-              "personality"
-            ],
-            "overlapScore": 0.99,
-            "orbFitScore": 0.47,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
-          },
-          {
-            "id": "X6",
-            "matrixEvidence": "matrixInsight=core trend",
-            "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": [
-              "career",
-              "personality"
-            ],
-            "overlapScore": 0.94,
-            "orbFitScore": 0.62,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           }
         ]
       },
       {
         "id": "E3",
         "section": "timing",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
-        "crossConclusion": "For \"timing\", start from overall=50 grade=C and use X3, X2, X1, X4 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
+        "crossConclusion": "For \"timing\", start from overall=50 grade=C and use X1, X3, X7, T2 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
         "crossEvidenceSets": [
-          {
-            "id": "X3",
-            "matrixEvidence": "matrixInsight=core trend",
-            "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": [
-              "relationship",
-              "wealth",
-              "timing"
-            ],
-            "overlapScore": 0.99,
-            "orbFitScore": 0.92,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in relationship, wealth, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
-          },
-          {
-            "id": "X2",
-            "matrixEvidence": "matrixInsight=core trend",
-            "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": [
-              "career",
-              "wealth",
-              "timing"
-            ],
-            "overlapScore": 0.99,
-            "orbFitScore": 0.83,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
-          },
           {
             "id": "X1",
             "matrixEvidence": "matrixInsight=core trend",
-            "astrologyEvidence": "Mercury-square-True Node (pair=Mercury-True Node, angle=90deg, orb=0.3deg, allowed=timing<=3.6deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "astrologyEvidence": "Mercury-square-True Node (pair=Mercury-True Node, angle=90deg, orb=0.3deg, allowed=move<=4.9deg, timing<=3.6deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
+              "move",
               "timing"
             ],
-            "overlapScore": 0.86,
-            "orbFitScore": 0.92,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+            "overlapScore": 0.99,
+            "orbFitScore": 0.93,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in move, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           },
           {
-            "id": "X4",
+            "id": "X3",
             "matrixEvidence": "matrixInsight=core trend",
-            "astrologyEvidence": "Mars-quincunx-Neptune (pair=Mars-Neptune, angle=150deg, orb=0.2deg, allowed=timing<=1.8deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "astrologyEvidence": "Mars-quincunx-Neptune (pair=Mars-Neptune, angle=150deg, orb=0.2deg, allowed=move<=2.5deg, timing<=1.8deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
+              "move",
               "timing"
             ],
-            "overlapScore": 0.85,
-            "orbFitScore": 0.91,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+            "overlapScore": 0.99,
+            "orbFitScore": 0.92,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in move, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+          },
+          {
+            "id": "X7",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Moon-opposition-Pluto (pair=Moon-Pluto, angle=180deg, orb=4deg, allowed=relationship<=8deg, move<=6.6deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "relationship",
+              "move",
+              "timing"
+            ],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.36,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in relationship, move, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+          },
+          {
+            "id": "T2",
+            "matrixEvidence": "timingLayer=금/화/N/A/N/A",
+            "astrologyEvidence": "transit=uranusSquare @2026-03-19T02:40:49.239Z",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "timing",
+              "move"
+            ],
+            "overlapScore": 0.69,
+            "orbFitScore": 0.5,
+            "combinedConclusion": "Read transit uranusSquare together with the current Saju timing cycle (금/화/N/A/N/A). If the two do not line up, move in a verification-first sequence and delay irreversible commitments."
           }
         ]
       },
       {
         "id": "E4",
         "section": "strategy",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
-        "crossConclusion": "For \"strategy\", start from overall=50 grade=C and use X2, X9, X12, X3 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
+        "crossConclusion": "For \"strategy\", start from overall=50 grade=C and use X2, X8, X12, X4 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
         "crossEvidenceSets": [
           {
             "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "career",
               "wealth",
@@ -5513,24 +5519,25 @@
             "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           },
           {
-            "id": "X9",
+            "id": "X8",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "career",
               "wealth",
+              "move",
               "personality"
             ],
             "overlapScore": 0.99,
-            "orbFitScore": 0.47,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+            "orbFitScore": 0.46,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, move, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           },
           {
             "id": "X12",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-semisextile-True Node (pair=Jupiter-True Node, angle=30deg, orb=2.2deg, allowed=career<=1.8deg, wealth<=1.7deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "career",
               "wealth"
@@ -5540,10 +5547,10 @@
             "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           },
           {
-            "id": "X3",
+            "id": "X4",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "relationship",
               "wealth",
@@ -5558,29 +5565,30 @@
       {
         "id": "E5",
         "section": "roleFit",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
-        "crossConclusion": "For \"roleFit\", start from overall=50 grade=C and use X9, X6, X11, X10 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
+        "crossConclusion": "For \"roleFit\", start from overall=50 grade=C and use X8, X6, X2, X10 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
         "crossEvidenceSets": [
           {
-            "id": "X9",
+            "id": "X8",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "career",
               "wealth",
+              "move",
               "personality"
             ],
             "overlapScore": 0.99,
-            "orbFitScore": 0.47,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+            "orbFitScore": 0.46,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, move, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           },
           {
             "id": "X6",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "career",
               "personality"
@@ -5590,109 +5598,110 @@
             "combinedConclusion": "The overlap around \"core trend\" is strongest in career, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           },
           {
-            "id": "X11",
+            "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
-            "astrologyEvidence": "Venus-sextile-True Node (pair=True Node-Venus, angle=60deg, orb=4.8deg, allowed=relationship<=5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
-              "relationship",
+              "career",
               "wealth",
-              "personality"
+              "timing"
             ],
-            "overlapScore": 0.88,
-            "orbFitScore": 0.06,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in relationship, wealth, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+            "overlapScore": 0.99,
+            "orbFitScore": 0.83,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           },
           {
             "id": "X10",
             "matrixEvidence": "matrixInsight=core trend",
-            "astrologyEvidence": "Moon-trine-Mercury (pair=Mercury-Moon, angle=120deg, orb=4.7deg, allowed=relationship<=7.7deg, personality<=8.1deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "astrologyEvidence": "Moon-trine-Mercury (pair=Mercury-Moon, angle=120deg, orb=4.7deg, allowed=relationship<=7.7deg, move<=6deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "relationship",
+              "move",
               "personality"
             ],
-            "overlapScore": 0.83,
-            "orbFitScore": 0.41,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in relationship, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+            "overlapScore": 0.99,
+            "orbFitScore": 0.35,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in relationship, move, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           }
         ]
       },
       {
         "id": "E6",
         "section": "turningPoints",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
-        "crossConclusion": "For \"turningPoints\", start from overall=50 grade=C and use X9, X6, X11, X10 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
+        "crossConclusion": "For \"turningPoints\", start from overall=50 grade=C and use X2, X1, X3, X4 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
         "crossEvidenceSets": [
           {
-            "id": "X9",
+            "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
-            "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "career",
               "wealth",
-              "personality"
+              "timing"
             ],
             "overlapScore": 0.99,
-            "orbFitScore": 0.47,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+            "orbFitScore": 0.83,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           },
           {
-            "id": "X6",
+            "id": "X1",
             "matrixEvidence": "matrixInsight=core trend",
-            "astrologyEvidence": "Saturn-trine-True Node (pair=Saturn-True Node, angle=120deg, orb=2.6deg, allowed=career<=6.3deg, personality<=7.7deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "astrologyEvidence": "Mercury-square-True Node (pair=Mercury-True Node, angle=90deg, orb=0.3deg, allowed=move<=4.9deg, timing<=3.6deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
-              "career",
-              "personality"
+              "move",
+              "timing"
             ],
-            "overlapScore": 0.94,
-            "orbFitScore": 0.62,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+            "overlapScore": 0.99,
+            "orbFitScore": 0.93,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in move, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           },
           {
-            "id": "X11",
+            "id": "X3",
             "matrixEvidence": "matrixInsight=core trend",
-            "astrologyEvidence": "Venus-sextile-True Node (pair=True Node-Venus, angle=60deg, orb=4.8deg, allowed=relationship<=5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "astrologyEvidence": "Mars-quincunx-Neptune (pair=Mars-Neptune, angle=150deg, orb=0.2deg, allowed=move<=2.5deg, timing<=1.8deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
+            "overlapDomains": [
+              "move",
+              "timing"
+            ],
+            "overlapScore": 0.99,
+            "orbFitScore": 0.92,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in move, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+          },
+          {
+            "id": "X4",
+            "matrixEvidence": "matrixInsight=core trend",
+            "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "relationship",
               "wealth",
-              "personality"
+              "timing"
             ],
-            "overlapScore": 0.88,
-            "orbFitScore": 0.06,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in relationship, wealth, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
-          },
-          {
-            "id": "X10",
-            "matrixEvidence": "matrixInsight=core trend",
-            "astrologyEvidence": "Moon-trine-Mercury (pair=Mercury-Moon, angle=120deg, orb=4.7deg, allowed=relationship<=7.7deg, personality<=8.1deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
-            "overlapDomains": [
-              "relationship",
-              "personality"
-            ],
-            "overlapScore": 0.83,
-            "orbFitScore": 0.41,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in relationship, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+            "overlapScore": 0.99,
+            "orbFitScore": 0.92,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in relationship, wealth, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           }
         ]
       },
       {
         "id": "E7",
         "section": "recommendations",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
-        "crossConclusion": "For \"recommendations\", start from overall=50 grade=C and use X3, X2, X9, X11 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
+        "crossConclusion": "For \"recommendations\", start from overall=50 grade=C and use X4, X2, X8, X11 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
         "crossEvidenceSets": [
           {
-            "id": "X3",
+            "id": "X4",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "relationship",
               "wealth",
@@ -5706,7 +5715,7 @@
             "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "career",
               "wealth",
@@ -5717,24 +5726,25 @@
             "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           },
           {
-            "id": "X9",
+            "id": "X8",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "career",
               "wealth",
+              "move",
               "personality"
             ],
             "overlapScore": 0.99,
-            "orbFitScore": 0.47,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+            "orbFitScore": 0.46,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, move, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           },
           {
             "id": "X11",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Venus-sextile-True Node (pair=True Node-Venus, angle=60deg, orb=4.8deg, allowed=relationship<=5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "relationship",
               "wealth",
@@ -5749,15 +5759,15 @@
       {
         "id": "E8",
         "section": "actionPlan",
-        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z",
+        "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, sibsin=편재(2), 비견(2), 상관(1), currentDaeun=금, currentSaeun=화, currentWolun=N/A, currentIljin=N/A, profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z",
         "astrologyEvidence": "dominant=air | houses=Sun->H1, Moon->H4, Mercury->H1, Venus->H11 | aspects=Mercury-square-True Node 90deg orb=0.3deg, Jupiter-square-Saturn 90deg orb=0.5deg, Moon-quincunx-Venus 150deg orb=0.2deg",
-        "crossConclusion": "For \"actionPlan\", start from overall=50 grade=C and use X3, X2, X9, X11 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
+        "crossConclusion": "For \"actionPlan\", start from overall=50 grade=C and use X4, X2, X8, X7 as the main cross-check set. Keep the flow evidence -> interpretation -> action, and do not let action guidance contradict caution signals.",
         "crossEvidenceSets": [
           {
-            "id": "X3",
+            "id": "X4",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Moon-quincunx-Venus (pair=Moon-Venus, angle=150deg, orb=0.2deg, allowed=relationship<=3deg, wealth<=2.5deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "relationship",
               "wealth",
@@ -5771,7 +5781,7 @@
             "id": "X2",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Jupiter-square-Saturn (pair=Jupiter-Saturn, angle=90deg, orb=0.5deg, allowed=career<=3.2deg, wealth<=3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "career",
               "wealth",
@@ -5782,32 +5792,33 @@
             "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           },
           {
-            "id": "X9",
+            "id": "X8",
             "matrixEvidence": "matrixInsight=core trend",
             "astrologyEvidence": "Mercury-sextile-Jupiter (pair=Jupiter-Mercury, angle=60deg, orb=2.5deg, allowed=career<=4.5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "career",
               "wealth",
+              "move",
               "personality"
             ],
             "overlapScore": 0.99,
-            "orbFitScore": 0.47,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+            "orbFitScore": 0.46,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in career, wealth, move, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           },
           {
-            "id": "X11",
+            "id": "X7",
             "matrixEvidence": "matrixInsight=core trend",
-            "astrologyEvidence": "Venus-sextile-True Node (pair=True Node-Venus, angle=60deg, orb=4.8deg, allowed=relationship<=5deg, wealth<=4.3deg)",
-            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-16T03:15:23.929Z, timingCycle=금/화/N/A/N/A",
+            "astrologyEvidence": "Moon-opposition-Pluto (pair=Moon-Pluto, angle=180deg, orb=4deg, allowed=relationship<=8deg, move<=6.6deg)",
+            "sajuEvidence": "dayMaster=금, geokguk=정재격, yongsin=화, topSibsin=편재(2), 비견(2), 상관(1), profile=birthDate=1995-02-09 | birthTime=06:40 | birthCity=Seoul | tz=Asia/Seoul | coords=37.5665,126.9780 | analysisAt=2026-03-19T02:40:49.239Z, timingCycle=금/화/N/A/N/A",
             "overlapDomains": [
               "relationship",
-              "wealth",
-              "personality"
+              "move",
+              "timing"
             ],
-            "overlapScore": 0.88,
-            "orbFitScore": 0.06,
-            "combinedConclusion": "The overlap around \"core trend\" is strongest in relationship, wealth, personality. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
+            "overlapScore": 0.99,
+            "orbFitScore": 0.36,
+            "combinedConclusion": "The overlap around \"core trend\" is strongest in relationship, move, timing. Treat this as the main evidence thread for the section, then turn it into one reversible move and one risk-control step."
           }
         ]
       }
@@ -5815,34 +5826,34 @@
   },
   "graphRagSummary": {
     "topInsights": [
-      "커리어는 확장 동력이 크지만 역할·범위 재정의를 함께 해야 손실 없이 성장합니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다.",
+      "커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어떤 일로 평가받을지 먼저 정하는 편이 맞습니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다.",
       "확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 충돌 패턴 레이어: 긴장 구간의 트리거와 완충 전략을 해석합니다. 속도 조절과 표현 명료화가 갈등 비용을 낮춥니다."
     ],
     "drivers": [
       "커리어 상승 근거: 횡재",
       "커리어 상승 근거: 커리어정점",
-      "커리어 안정화 국면, 공격 58% / 방어 42%",
-      "관계 안정화 국면, 공격 58% / 방어 42%",
-      "커리어: 커리어는 확장 동력이 크지만 역할·범위 재정의를 함께 해야 손실 없이 성장합니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다.",
+      "커리어은 밀 수 있는 부분과 멈춰 확인할 부분을 나눠서 가야 덜 흔들립니다. 속도는 낼 수 있지만, 바로 확정하지 말고 체크포인트를 하나씩 끼워 넣는 운영이 가장 현실적입니다.",
+      "관계은 밀 수 있는 부분과 멈춰 확인할 부분을 나눠서 가야 덜 흔들립니다. 속도는 낼 수 있지만, 바로 확정하지 말고 체크포인트를 하나씩 끼워 넣는 운영이 가장 현실적입니다.",
+      "커리어: 커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어떤 일로 평가받을지 먼저 정하는 편이 맞습니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다.",
       "관계: 확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다. 충돌 패턴 레이어: 긴장 구간의 트리거와 완충 전략을 해석합니다. 속도 조절과 표현 명료화가 갈등 비용을 낮춥니다."
     ],
     "cautions": [
       "커리어 주의: Jupiter-Saturn square 신호는 확정 전 재확인이 필요합니다.",
       "deepAnalysis 섹션은 교차 근거 신뢰가 낮아 검증 중심으로 운영해야 합니다.",
-      "patterns 섹션은 교차 근거 신뢰가 낮아 검증 중심으로 운영해야 합니다.",
+      "timing 섹션은 교차 근거 신뢰가 낮아 검증 중심으로 운영해야 합니다.",
       "strategy 섹션은 교차 근거 신뢰가 낮아 검증 중심으로 운영해야 합니다.",
-      "저신뢰 교차 세트 16건이 있어 서명/확정/즉시결정은 보수적으로 처리하세요."
+      "저신뢰 교차 세트 12건이 있어 서명/확정/즉시결정은 보수적으로 처리하세요."
     ],
     "trust": {
-      "avgOverlapScore": 0.93,
-      "avgOrbFitScore": 0.56,
-      "highTrustSetCount": 12,
-      "lowTrustSetCount": 16,
+      "avgOverlapScore": 0.96,
+      "avgOrbFitScore": 0.65,
+      "highTrustSetCount": 17,
+      "lowTrustSetCount": 12,
       "totalSets": 32
     },
     "cautionSections": [
       "deepAnalysis",
-      "patterns",
+      "timing",
       "strategy"
     ]
   },
@@ -6254,7 +6265,7 @@
         "domainScoreCount": 7,
         "snapshotKeys": 2,
         "hasCurrentDateIso": true,
-        "currentDateIso": "2026-03-16"
+        "currentDateIso": "2026-03-19"
       }
     },
     "decision": {
@@ -6265,7 +6276,7 @@
       "reasons": [],
       "blockers": []
     },
-    "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: balanced\n- SAJU coverage: dayMaster=true, pillars=4, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=true, saeun=true, shinsal=13, sajuSnapshotKeys=5\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=23, orb=23, angle=0, dominantElement=true, asteroids=0, extraPoints=0, activeTransits=3, astroSnapshotKeys=5\n- CROSS coverage: anchors=8, sets=32, topInsights=0, drivers=0, cautions=0, domainScores=7, crossSnapshotKeys=2, hasCurrentDateIso=true, currentDate=2026-03-16\n- DECISION: n/a (비결정형 질문)\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함.",
+    "promptBlock": "## Deterministic Core (모든 데이터 통합)\n- Profile: balanced\n- SAJU coverage: dayMaster=true, pillars=4, sibsinKeys=6, relations=6, geokguk=true, yongsin=true, daeun=true, saeun=true, shinsal=13, sajuSnapshotKeys=5\n- ASTRO coverage: planetHouses=11, planetSigns=11, aspects=23, orb=23, angle=0, dominantElement=true, asteroids=0, extraPoints=0, activeTransits=3, astroSnapshotKeys=5\n- CROSS coverage: anchors=8, sets=32, topInsights=0, drivers=0, cautions=0, domainScores=7, crossSnapshotKeys=2, hasCurrentDateIso=true, currentDate=2026-03-19\n- DECISION: n/a (비결정형 질문)\n- 작성 강제: 모든 핵심 섹션에서 사주근거 + 점성근거 + 교차결론 + 실행문장을 반드시 포함.",
     "artifacts": {
       "mappingRulebook": {
         "partnerArchetype": {
@@ -6352,19 +6363,19 @@
             "paraId": "deepAnalysis.p1",
             "heading": "## deepAnalysis 핵심 결론",
             "bullets": [
-              "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
+              "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
             ],
             "mustKeepTokens": [
-              "성향",
-              "축에서는",
-              "추진력과",
-              "과속",
-              "리스크가",
-              "동시에",
-              "나타납니다",
-              "신호는",
-              "상충이",
-              "아니라"
+              "지금은",
+              "추진력도",
+              "있지만",
+              "과속하면",
+              "실수도",
+              "같이",
+              "커질",
+              "있습니다",
+              "판단은",
+              "빠르게"
             ],
             "evidence": {
               "claimIds": [
@@ -6397,9 +6408,9 @@
               "판단",
               "강도를",
               "조절합니다",
-              "성향",
-              "축에서는",
-              "추진력과"
+              "지금은",
+              "추진력도",
+              "있지만"
             ],
             "evidence": {
               "claimIds": [
@@ -6460,19 +6471,19 @@
             "paraId": "patterns.p1",
             "heading": "## patterns 핵심 결론",
             "bullets": [
-              "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
+              "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
             ],
             "mustKeepTokens": [
-              "성향",
-              "축에서는",
-              "추진력과",
-              "과속",
-              "리스크가",
-              "동시에",
-              "나타납니다",
-              "신호는",
-              "상충이",
-              "아니라"
+              "지금은",
+              "추진력도",
+              "있지만",
+              "과속하면",
+              "실수도",
+              "같이",
+              "커질",
+              "있습니다",
+              "판단은",
+              "빠르게"
             ],
             "evidence": {
               "claimIds": [
@@ -6503,10 +6514,10 @@
               "판단",
               "강도를",
               "조절합니다",
-              "성향",
-              "축에서는",
-              "추진력과",
-              "과속"
+              "지금은",
+              "추진력도",
+              "있지만",
+              "과속하면"
             ],
             "evidence": {
               "claimIds": [
@@ -6565,19 +6576,19 @@
             "paraId": "timing.p1",
             "heading": "## timing 핵심 결론",
             "bullets": [
-              "시기 축에서는 기회 창과 주의 창이 동시에 열립니다. 두 신호는 상충이 아니라 결정과 확정을 분리하라는 조건 신호입니다. 통합 레이어: 전체 패턴을 실행 가능한 전략으로 압축합니다. 모든 신호를 동시에 따르려 하면 실행력이 분산될 수 있습니다."
+              "지금은 기회도 보이지만 바로 확정하면 다시 손볼 일도 생기기 쉽습니다. 결정과 확정 사이에 한 번 더 확인 단계를 두는 편이 맞습니다. 통합 레이어: 전체 패턴을 실행 가능한 전략으로 압축합니다. 모든 신호를 동시에 따르려 하면 실행력이 분산될 수 있습니다."
             ],
             "mustKeepTokens": [
-              "시기",
-              "축에서는",
-              "기회",
-              "창과",
-              "주의",
-              "창이",
-              "동시에",
-              "열립니다",
-              "신호는",
-              "상충이"
+              "지금은",
+              "기회도",
+              "보이지만",
+              "바로",
+              "확정하면",
+              "다시",
+              "손볼",
+              "일도",
+              "생기기",
+              "쉽습니다"
             ],
             "evidence": {
               "claimIds": [
@@ -6612,7 +6623,7 @@
               "판단",
               "강도를",
               "조절합니다",
-              "시기"
+              "지금은"
             ],
             "evidence": {
               "claimIds": [
@@ -6632,21 +6643,21 @@
             "paraId": "timing.p3",
             "heading": "## timing 실행 전략",
             "bullets": [
-              "시기 축에서는 기회 창과 주의 창이 동시에 열립니다. 두 신호는 상충이 아니라 결정과 확정을 분리하라는 조건 신호입니다. 통합 레이어: 전체 패턴을 실행 가능한 전략으로 압축합니다. 모든 신호를 동시에 따르려 하면 실행력이 분산될 수 있습니다. 변곡점 구간에서는 결정을 단계화하고 확정 전에 조건 검증을 거치면 누적 성과가 커집니다. 실행 시 재확인 후 확정 순서를 유지하세요.",
+              "지금은 기회도 보이지만 바로 확정하면 다시 손볼 일도 생기기 쉽습니다. 결정과 확정 사이에 한 번 더 확인 단계를 두는 편이 맞습니다. 통합 레이어: 전체 패턴을 실행 가능한 전략으로 압축합니다. 모든 신호를 동시에 따르려 하면 실행력이 분산될 수 있습니다. 변곡점 구간에서는 결정을 단계화하고 확정 전에 조건 검증을 거치면 누적 성과가 커집니다. 실행 시 재확인 후 확정 순서를 유지하세요.",
               "deepAnalysis 교차 근거는 월간 실행에서 검증 단계를 넣으면 오차를 줄일 수 있음을 보여줍니다. 실행 시 재확인 후 확정 순서를 유지하세요.",
               "patterns 교차 근거는 월간 실행에서 검증 단계를 넣으면 오차를 줄일 수 있음을 보여줍니다. 실행 시 재확인 후 확정 순서를 유지하세요."
             ],
             "mustKeepTokens": [
-              "시기",
-              "축에서는",
-              "기회",
-              "창과",
-              "주의",
-              "창이",
-              "동시에",
-              "열립니다",
-              "신호는",
-              "상충이"
+              "지금은",
+              "기회도",
+              "보이지만",
+              "바로",
+              "확정하면",
+              "다시",
+              "손볼",
+              "일도",
+              "생기기",
+              "쉽습니다"
             ],
             "evidence": {
               "claimIds": [
@@ -6670,19 +6681,19 @@
             "paraId": "strategy.p1",
             "heading": "## strategy 핵심 결론",
             "bullets": [
-              "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
+              "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
             ],
             "mustKeepTokens": [
-              "성향",
-              "축에서는",
-              "추진력과",
-              "과속",
-              "리스크가",
-              "동시에",
-              "나타납니다",
-              "신호는",
-              "상충이",
-              "아니라"
+              "지금은",
+              "추진력도",
+              "있지만",
+              "과속하면",
+              "실수도",
+              "같이",
+              "커질",
+              "있습니다",
+              "판단은",
+              "빠르게"
             ],
             "evidence": {
               "claimIds": [
@@ -6713,10 +6724,10 @@
               "판단",
               "강도를",
               "조절합니다",
-              "성향",
-              "축에서는",
-              "추진력과",
-              "과속"
+              "지금은",
+              "추진력도",
+              "있지만",
+              "과속하면"
             ],
             "evidence": {
               "claimIds": [
@@ -6775,19 +6786,19 @@
             "paraId": "roleFit.p1",
             "heading": "## roleFit 핵심 결론",
             "bullets": [
-              "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
+              "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
             ],
             "mustKeepTokens": [
-              "성향",
-              "축에서는",
-              "추진력과",
-              "과속",
-              "리스크가",
-              "동시에",
-              "나타납니다",
-              "신호는",
-              "상충이",
-              "아니라"
+              "지금은",
+              "추진력도",
+              "있지만",
+              "과속하면",
+              "실수도",
+              "같이",
+              "커질",
+              "있습니다",
+              "판단은",
+              "빠르게"
             ],
             "evidence": {
               "claimIds": [
@@ -6818,10 +6829,10 @@
               "판단",
               "강도를",
               "조절합니다",
-              "성향",
-              "축에서는",
-              "추진력과",
-              "과속"
+              "지금은",
+              "추진력도",
+              "있지만",
+              "과속하면"
             ],
             "evidence": {
               "claimIds": [
@@ -6879,19 +6890,19 @@
             "paraId": "turningPoints.p1",
             "heading": "## turningPoints 핵심 결론",
             "bullets": [
-              "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
+              "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
             ],
             "mustKeepTokens": [
-              "성향",
-              "축에서는",
-              "추진력과",
-              "과속",
-              "리스크가",
-              "동시에",
-              "나타납니다",
-              "신호는",
-              "상충이",
-              "아니라"
+              "지금은",
+              "추진력도",
+              "있지만",
+              "과속하면",
+              "실수도",
+              "같이",
+              "커질",
+              "있습니다",
+              "판단은",
+              "빠르게"
             ],
             "evidence": {
               "claimIds": [
@@ -6926,7 +6937,7 @@
               "판단",
               "강도를",
               "조절합니다",
-              "성향"
+              "지금은"
             ],
             "evidence": {
               "claimIds": [
@@ -6987,19 +6998,19 @@
             "paraId": "recommendations.p1",
             "heading": "## recommendations 핵심 결론",
             "bullets": [
-              "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
+              "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
             ],
             "mustKeepTokens": [
-              "성향",
-              "축에서는",
-              "추진력과",
-              "과속",
-              "리스크가",
-              "동시에",
-              "나타납니다",
-              "신호는",
-              "상충이",
-              "아니라"
+              "지금은",
+              "추진력도",
+              "있지만",
+              "과속하면",
+              "실수도",
+              "같이",
+              "커질",
+              "있습니다",
+              "판단은",
+              "빠르게"
             ],
             "evidence": {
               "claimIds": [
@@ -7030,10 +7041,10 @@
               "판단",
               "강도를",
               "조절합니다",
-              "성향",
-              "축에서는",
-              "추진력과",
-              "과속"
+              "지금은",
+              "추진력도",
+              "있지만",
+              "과속하면"
             ],
             "evidence": {
               "claimIds": [
@@ -7090,19 +7101,19 @@
             "heading": "# 2주 실행 3단계",
             "bullets": [
               "2주 실행 3단계: 완료 1건 고정 -> 재확인 1건 -> 보류/확정 분리.",
-              "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
+              "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요."
             ],
             "mustKeepTokens": [
-              "성향",
-              "축에서는",
-              "추진력과",
-              "과속",
-              "리스크가",
-              "동시에",
-              "나타납니다",
-              "신호는",
-              "상충이",
-              "아니라"
+              "지금은",
+              "추진력도",
+              "있지만",
+              "과속하면",
+              "실수도",
+              "같이",
+              "커질",
+              "있습니다",
+              "판단은",
+              "빠르게"
             ],
             "evidence": {
               "claimIds": [
@@ -7192,7 +7203,7 @@
           "id": "SCB_CAREER_01",
           "domain": "career",
           "mainTokens": [
-            "커리어는 확장 동력이 크지만 역할·범위 재정의를 함께 해야 손실 없이 성장합니다. 두 신호는 상충이 아니라 조건이 "
+            "커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어"
           ],
           "altTokens": [
             [
@@ -7222,7 +7233,7 @@
           "id": "SCB_TIMING_01",
           "domain": "timing",
           "mainTokens": [
-            "시기 축에서는 기회 창과 주의 창이 동시에 열립니다. 두 신호는 상충이 아니라 결정과 확정을 분리하라는 조건 신호입"
+            "지금은 기회도 보이지만 바로 확정하면 다시 손볼 일도 생기기 쉽습니다. 결정과 확정 사이에 한 번 더 확인 단계를 "
           ],
           "altTokens": [
             [
@@ -7267,7 +7278,7 @@
           "id": "SCB_HEALTH_01",
           "domain": "health",
           "mainTokens": [
-            "건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신"
+            "컨디션은 끌어올릴 수 있지만 무리하면 피로가 한 번에 몰릴 수 있습니다. 성과를 더 내기보다 회복 시간을 먼저 확보"
           ],
           "altTokens": [
             [
@@ -7288,8 +7299,8 @@
           ],
           "anchorId": "E8",
           "setIds": [
-            "X3",
-            "X11"
+            "X4",
+            "X7"
           ],
           "score": 0.89
         },
@@ -7301,8 +7312,8 @@
           ],
           "anchorId": "E8",
           "setIds": [
-            "X3",
-            "X2"
+            "X4",
+            "X7"
           ],
           "score": 0.86
         },
@@ -7314,7 +7325,7 @@
           ],
           "anchorId": "E8",
           "setIds": [
-            "X3",
+            "X4",
             "X2"
           ],
           "score": 0.86
@@ -7327,8 +7338,8 @@
           ],
           "anchorId": "E8",
           "setIds": [
-            "X3",
-            "X2"
+            "X4",
+            "X7"
           ],
           "score": 0.85
         },
@@ -7342,7 +7353,7 @@
           "anchorId": "E8",
           "setIds": [
             "X2",
-            "X3"
+            "X4"
           ],
           "score": 0.81
         },
@@ -7356,7 +7367,7 @@
           "anchorId": "E8",
           "setIds": [
             "X2",
-            "X3"
+            "X4"
           ],
           "score": 0.81
         },
@@ -7368,7 +7379,7 @@
           ],
           "anchorId": "E8",
           "setIds": [
-            "X9",
+            "X8",
             "X2"
           ],
           "score": 0.76
@@ -7381,7 +7392,7 @@
           ],
           "anchorId": "E8",
           "setIds": [
-            "X9",
+            "X8",
             "X2"
           ],
           "score": 0.76
@@ -7394,7 +7405,7 @@
           ],
           "anchorId": "E8",
           "setIds": [
-            "X9",
+            "X8",
             "X2"
           ],
           "score": 0.76
@@ -7408,7 +7419,7 @@
           "anchorId": "E2",
           "setIds": [
             "X2",
-            "X3"
+            "X4"
           ],
           "score": 0.75
         },
@@ -7420,7 +7431,7 @@
           ],
           "anchorId": "E8",
           "setIds": [
-            "X9",
+            "X8",
             "X2"
           ],
           "score": 0.74
@@ -7433,7 +7444,7 @@
           ],
           "anchorId": "E8",
           "setIds": [
-            "X3",
+            "X4",
             "X2"
           ],
           "score": 0.72
@@ -7447,8 +7458,8 @@
           ],
           "anchorId": "E8",
           "setIds": [
-            "X3",
-            "X11"
+            "X4",
+            "X7"
           ],
           "score": 0.7
         },
@@ -7461,7 +7472,7 @@
           "anchorId": "E1",
           "setIds": [
             "X6",
-            "X9"
+            "X8"
           ],
           "score": 0.66
         },
@@ -7473,7 +7484,7 @@
           ],
           "anchorId": "E1",
           "setIds": [
-            "X9",
+            "X8",
             "X6"
           ],
           "score": 0.66
@@ -7487,7 +7498,7 @@
           "anchorId": "E1",
           "setIds": [
             "X6",
-            "X9"
+            "X8"
           ],
           "score": 0.66
         },
@@ -7500,7 +7511,7 @@
           ],
           "anchorId": "E1",
           "setIds": [
-            "X9",
+            "X8",
             "X6"
           ],
           "score": 0.66
@@ -7514,8 +7525,8 @@
           ],
           "anchorId": "E8",
           "setIds": [
-            "X9",
-            "X3"
+            "X8",
+            "X4"
           ],
           "score": 0.64
         },
@@ -7528,13 +7539,26 @@
           ],
           "anchorId": "E8",
           "setIds": [
-            "X9",
+            "X8",
             "X2"
           ],
-          "score": 0.63
+          "score": 0.62
         },
         {
           "id": "LINK_20",
+          "signalId": "L2:정인:Moon",
+          "claimIds": [
+            "health_growth_with_guardrails"
+          ],
+          "anchorId": "E8",
+          "setIds": [
+            "X8",
+            "X4"
+          ],
+          "score": 0.62
+        },
+        {
+          "id": "LINK_21",
           "signalId": "L5:samhap:trine",
           "claimIds": [
             "relationship_expansion",
@@ -7542,26 +7566,26 @@
           ],
           "anchorId": "E8",
           "setIds": [
-            "X3",
-            "X9"
+            "X4",
+            "X8"
           ],
           "score": 0.6
         },
         {
-          "id": "LINK_21",
+          "id": "LINK_22",
           "signalId": "COV:L7:yongsin:화",
           "claimIds": [
             "wealth_expansion"
           ],
           "anchorId": "E1",
           "setIds": [
-            "X9",
+            "X8",
             "X6"
           ],
           "score": 0.56
         },
         {
-          "id": "LINK_22",
+          "id": "LINK_23",
           "signalId": "L6:임관:H10",
           "claimIds": [
             "personality_growth_with_guardrails"
@@ -7569,12 +7593,12 @@
           "anchorId": "E1",
           "setIds": [
             "X6",
-            "X9"
+            "X8"
           ],
           "score": 0.55
         },
         {
-          "id": "LINK_23",
+          "id": "LINK_24",
           "signalId": "COV:L5:aspect:Jupiter-Saturn:square",
           "claimIds": [
             "personality_growth_with_guardrails"
@@ -7582,35 +7606,22 @@
           "anchorId": "E1",
           "setIds": [
             "X6",
-            "X9"
+            "X8"
           ],
           "score": 0.55
         },
         {
-          "id": "LINK_24",
+          "id": "LINK_25",
           "signalId": "L2:편재:Saturn",
           "claimIds": [
             "wealth_expansion"
           ],
           "anchorId": "E1",
           "setIds": [
-            "X9",
+            "X8",
             "X6"
           ],
-          "score": 0.53
-        },
-        {
-          "id": "LINK_25",
-          "signalId": "L2:정인:Moon",
-          "claimIds": [
-            "health_growth_with_guardrails"
-          ],
-          "anchorId": "E8",
-          "setIds": [
-            "X9",
-            "X3"
-          ],
-          "score": 0.51
+          "score": 0.52
         },
         {
           "id": "LINK_26",
@@ -7618,12 +7629,12 @@
           "claimIds": [
             "personality_growth_with_guardrails"
           ],
-          "anchorId": "E2",
+          "anchorId": "E1",
           "setIds": [
-            "X3",
+            "X10",
             "X6"
           ],
-          "score": 0.5
+          "score": 0.51
         }
       ],
       "timelinePriority": "life_first"
@@ -7648,7 +7659,7 @@
         "phaseLabel": "안정화 국면",
         "attackPercent": 58,
         "defensePercent": 42,
-        "thesis": "커리어는 확장 동력이 크지만 역할·범위 재정의를 함께 해야 손실 없이 성장합니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다.",
+        "thesis": "커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어떤 일로 평가받을지 먼저 정하는 편이 맞습니다. 국면 전환 레이어: 확장 신호와 리셋 신호의 동시성을 해석합니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다.",
         "strategy": "커리어 전략은 공격 58% / 방어 42%로 운용하세요. Execute in staged steps with explicit recheck gates.",
         "riskControl": "결정은 분할하고 역할·기한·책임을 문서로 고정하세요.",
         "evidenceIds": [
@@ -7753,7 +7764,7 @@
         "phaseLabel": "방어/재정렬 국면",
         "attackPercent": 20,
         "defensePercent": 80,
-        "thesis": "시기 축에서는 기회 창과 주의 창이 동시에 열립니다. 두 신호는 상충이 아니라 결정과 확정을 분리하라는 조건 신호입니다. 통합 레이어: 전체 패턴을 실행 가능한 전략으로 압축합니다. 모든 신호를 동시에 따르려 하면 실행력이 분산될 수 있습니다.",
+        "thesis": "지금은 기회도 보이지만 바로 확정하면 다시 손볼 일도 생기기 쉽습니다. 결정과 확정 사이에 한 번 더 확인 단계를 두는 편이 맞습니다. 통합 레이어: 전체 패턴을 실행 가능한 전략으로 압축합니다. 모든 신호를 동시에 따르려 하면 실행력이 분산될 수 있습니다.",
         "strategy": "시기 전략은 공격 20% / 방어 80%로 운용하세요. Execute in staged steps with explicit recheck gates.",
         "riskControl": "시기 신호가 흔들리면 당일 확정을 피하고 24시간 재확인 슬롯을 넣으세요.",
         "evidenceIds": [
@@ -7858,7 +7869,7 @@
         "phaseLabel": "안정화 국면",
         "attackPercent": 58,
         "defensePercent": 42,
-        "thesis": "성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요.",
+        "thesis": "지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다. 확장 자원 레이어: 외부 기회/지원 네트워크 활용도를 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요.",
         "strategy": "성향 전략은 공격 58% / 방어 42%로 운용하세요. Execute in staged steps with explicit recheck gates.",
         "riskControl": "판단 시점과 실행 시점을 분리하면 오판 및 누락 리스크가 줄어듭니다.",
         "evidenceIds": [
@@ -8068,7 +8079,7 @@
         "phaseLabel": "방어/재정렬 국면",
         "attackPercent": 40,
         "defensePercent": 60,
-        "thesis": "건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신호입니다. 충돌 패턴 레이어: 긴장 구간의 트리거와 완충 전략을 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요.",
+        "thesis": "컨디션은 끌어올릴 수 있지만 무리하면 피로가 한 번에 몰릴 수 있습니다. 성과를 더 내기보다 회복 시간을 먼저 확보하는 편이 오래 갑니다. 충돌 패턴 레이어: 긴장 구간의 트리거와 완충 전략을 해석합니다. 확정 전 조건 재확인 단계를 분리해 변동 비용을 줄이세요.",
         "strategy": "건강 전략은 공격 40% / 방어 60%로 운용하세요. Reduce load immediately and restore sleep-hydration-recovery blocks first.",
         "riskControl": "과속보다 수면·수분·회복 시간을 먼저 고정하여 실수 비용을 줄이세요.",
         "evidenceIds": [
@@ -8439,8 +8450,8 @@
       }
     ]
   },
-  "renderedMarkdown": "## 섹션: deepAnalysis\n\n이번 커리어 테마의 승부처는 단순히 많이 하는 사람이 아니라 기준이 뚜렷한 사람으로 보이는 데 있습니다. 커리어 흐름은 기회와 리스크가 함께 작용하는 시점입니다. 사건은 바로 확정보다 단계적 합의나 확인 과정을 통해 현실화될 가능성이 큽니다. 커리어는 확장 동력이 크지만 역할과 범위를 재정의해야 손실 없이 성장할 수 있습니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 기회를 넓힐 흐름과 기준을 다시 설정할 흐름이 함께 겹칩니다. 확장과 재정의가 겹칠 때 무리하면 성과의 변동이 커질 수 있습니다. 기본 구조에서는 검토와 정밀 조정의 성향이 강조됩니다. 두 성향이 모두 강해 역할과 존재감이 부각되는 구조입니다. 현재 31세 전후는 31-40세 대운(乙亥(목)) 흐름 안에 있어 커리어 판단에서도 새로운 확장보다 역할과 우선순위 정리가 먼저입니다. 목성은 사수자리 10하우스에, 토성은 물고기자리 1하우스에 위치하고 있습니다. 결정은 분할하고 역할, 기한, 책임을 문서로 고정하세요. 핵심은 기질 자체보다 기질을 운용하는 순서를 정하는 데 있습니다. 같은 재능도 실행 구조에 따라 결과의 밀도가 크게 달라질 수 있습니다. 핵심 근거는 횡재, 대운 금입니다.\n\n## 섹션: patterns\n\n커리어는 확장 동력이 크지만 역할·범위 재정의를 함께 해야 손실 없이 성장합니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 기회를 넓힐 흐름과 기준을 다시 세울 흐름이 함께 겹칩니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다. 기본 구조에서 검토와 정밀 조정 성향이 강합니다. 양 성향이 강해 역할과 존재감이 앞에 서는 구조입니다. career 영역은 now 창이 열려 있고, 타고난 기본 구조, 대운 활성 (금), 세운 활성 (화)이 겹치면서 현재 모드는 verify로 수렴합니다. 지금은 성급하게 확정하기보다 준비와 기준 정리가 더 중요한 구간입니다. 상승 신호와 주의 신호가 동시에 있을 때는 공격과 방어를 분리하는 설계가 필수입니다. 패턴을 읽는 목적은 예언이 아니라 손실을 줄이면서 기회를 확장하는 데 있습니다. 핵심 근거는 횡재, 대운 금입니다.\n\n## 섹션: timing\n\n현재 31세 전후의 핵심 장기 흐름은 31-40세 대운(乙亥(목))입니다. 이 구간이 인생 전체의 큰 기후를 정하고, 세운, 월운, 일운은 그 위에서 실제 사건의 속도와 체감 강도를 조절합니다. 21-30세 구간에서 굳어진 습관과 판단 기준이 지금 흐름의 출발점이 됩니다.\n\n그래서 현재 대운은 새 기회를 여는 동시에, 예전 방식 중 무엇을 유지하고 무엇을 버릴지 다시 고르게 만듭니다. 다음 41-50세 대운(甲戌)으로 넘어가기 전까지는, 지금 구간에서 성과를 내는 방식과 다음 구간에 가져갈 기준을 구분해 두는 것이 중요합니다. 커리어의 타이밍 창은 지금입니다.\n\n지금 구간에는 대운, 세운, 이 겹쳐져 Hidden Support Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다. 오늘, 이번 주, 이번 달의 시간축을 분리하면 의사결정 품질이 크게 향상됩니다.\n\n시기를 맞춘다는 것은 기다리는 것이 아니라 순서를 설계하는 일에 가깝습니다.\n\n## 섹션: strategy\n\n현재 커리어 전략의 승부처는 단순한 확장이 아니라 더 어려운 결정을 맡길 만한 사람으로 자리 잡는 데 있습니다. 기준 정리 후 실행 결정은 분할하고 역할, 기한, 책임을 문서로 고정하세요. 커리어 흐름은 기회와 리스크가 동시에 작용하는 구간입니다. 사건은 즉각적인 확정보다 단계적 합의나 확인 과정을 통해 현실화될 가능성이 큽니다. 커리어는 확장 동력이 크지만 역할과 범위를 재정의해야 손실 없이 성장할 수 있습니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 확장과 재정의가 겹칠 때 무리하면 성과의 변동이 커질 수 있습니다. 기본 구조에서는 검토와 정밀 조정의 성향이 강조됩니다. 두 성향이 모두 강해 역할과 존재감이 부각되는 구조입니다. 전략은 화려한 선택보다 재현 가능한 반복으로 완성됩니다. 실행 전에 기준을 문서로 고정하면 돌발 변수 대응력이 높아집니다. 핵심 근거는 횡재, 대운 금입니다.\n\n## 섹션: roleFit\n\n잘 맞는 자리는 화려한 직함보다 판단과 조율의 무게를 견딜 수 있는 자리입니다. 커리어는 확장 동력이 크지만 역할과 범위를 재정의해야 손실 없이 성장할 수 있습니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 기회를 넓힐 흐름과 기준을 다시 설정할 흐름이 함께 겹칩니다. 확장과 재정의가 겹칠 때 무리하면 성과의 변동이 커질 수 있습니다. 기본 구조에서는 검토와 정밀 조정의 성향이 강조됩니다. 두 성향이 모두 강해 역할과 존재감이 부각되는 구조입니다. 기준 정리 후 실행 공적 역할 확대 career 영역은 기회와 리스크가 동시에 작용하는 구간입니다. 사건은 즉각적인 확정보다 단계적 합의나 재확인 과정을 통해 현실화될 가능성이 큽니다. 역할 적합은 겉으로 보이는 직함보다 실제 에너지 사용 방식과 맞아야 지속됩니다. 잘 맞는 포지션일수록 성과뿐만 아니라 피로 회복 속도도 함께 개선됩니다. 핵심 근거는 횡재, 대운 금입니다.\n\n## 섹션: turningPoints\n\n커리어 전환점은 기회가 몰려올 때보다, 기존 방식이 더 이상 충분하지 않다는 걸 인정할 때 열립니다. 커리어 타이밍 창은 지금입니다. 지금 구간에 대운, 세운, 가 겹치며 Hidden Support Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다. 전환점은 보통 기회 신호와 조정 신호가 동시에 나타나는 지점에서 발생합니다. 변화를 크게 만들수록 기준을 더 단순하게 유지해야 흔들림이 줄어듭니다. 핵심 근거는 횡재, 대운 금입니다.\n\n## 섹션: recommendations\n\n기준 정리 후 실행,긴장이 강한 시기일수록 속도를 조절하고 확인 루틴을 먼저 고정해야 손실을 줄일 수 있습니다.,기준 정리 후 실행 실행 전 체크포인트를 1개라도 명확히 두면 결과 편차를 줄일 수 있습니다.,긴장이 강한 시기일수록 속도를 조절하고 확인 루틴을 먼저 고정해야 손실을 줄일 수 있습니다. 실행 전 체크포인트를 2개라도 명확히 두면 결과 편차를 줄일 수 있습니다.,결정은 분할하고 역할·기한·책임을 문서로 고정하세요. 실행 전 체크포인트를 3개라도 명확히 두면 결과 편차를 줄일 수 있습니다. 핵심 근거는 횡재, 대운 금입니다.\n\n## 섹션: actionPlan\n\n실행력은 의욕보다 역할, 범위, 마감이 먼저 고정될 때 훨씬 강해집니다. 주의 신호가 강한 시기에는 속도를 조금 낮추고 확인 순서를 먼저 세우는 편이 안전합니다. 현재 31세 전후는 31-40세 대운(乙亥(목)) 흐름에서 실행을 착수-재확인-확정으로 나눌수록 결과 재현성이 증가합니다.\n\n기준 정리 후 실행 시 긴장이 강한 시기일수록 속도를 조절하고 확인 루틴을 먼저 고정해야 손실을 줄일 수 있습니다. 결정은 분할하고 역할, 기한, 책임을 문서로 고정하세요. 실행 계획은 복잡한 구조보다 실제 행동으로 전환되는 단순한 단계가 효과적입니다.\n\n핵심은 계획을 많이 세우는 것이 아니라 계획을 끝까지 지키는 구조입니다. 지금은 성급하게 확정하기보다 준비와 기준 정리가 더 중요한 시점입니다.",
-  "renderedText": "이번 커리어 테마의 승부처는 단순히 많이 하는 사람이 아니라 기준이 뚜렷한 사람으로 보이는 데 있습니다. 커리어 흐름은 기회와 리스크가 함께 작용하는 시점입니다. 사건은 바로 확정보다 단계적 합의나 확인 과정을 통해 현실화될 가능성이 큽니다. 커리어는 확장 동력이 크지만 역할과 범위를 재정의해야 손실 없이 성장할 수 있습니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 기회를 넓힐 흐름과 기준을 다시 설정할 흐름이 함께 겹칩니다. 확장과 재정의가 겹칠 때 무리하면 성과의 변동이 커질 수 있습니다. 기본 구조에서는 검토와 정밀 조정의 성향이 강조됩니다. 두 성향이 모두 강해 역할과 존재감이 부각되는 구조입니다. 현재 31세 전후는 31-40세 대운(乙亥(목)) 흐름 안에 있어 커리어 판단에서도 새로운 확장보다 역할과 우선순위 정리가 먼저입니다. 목성은 사수자리 10하우스에, 토성은 물고기자리 1하우스에 위치하고 있습니다. 결정은 분할하고 역할, 기한, 책임을 문서로 고정하세요. 핵심은 기질 자체보다 기질을 운용하는 순서를 정하는 데 있습니다. 같은 재능도 실행 구조에 따라 결과의 밀도가 크게 달라질 수 있습니다. 핵심 근거는 횡재, 대운 금입니다.\n\n커리어는 확장 동력이 크지만 역할·범위 재정의를 함께 해야 손실 없이 성장합니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 기회를 넓힐 흐름과 기준을 다시 세울 흐름이 함께 겹칩니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다. 기본 구조에서 검토와 정밀 조정 성향이 강합니다. 양 성향이 강해 역할과 존재감이 앞에 서는 구조입니다. career 영역은 now 창이 열려 있고, 타고난 기본 구조, 대운 활성 (금), 세운 활성 (화)이 겹치면서 현재 모드는 verify로 수렴합니다. 지금은 성급하게 확정하기보다 준비와 기준 정리가 더 중요한 구간입니다. 상승 신호와 주의 신호가 동시에 있을 때는 공격과 방어를 분리하는 설계가 필수입니다. 패턴을 읽는 목적은 예언이 아니라 손실을 줄이면서 기회를 확장하는 데 있습니다. 핵심 근거는 횡재, 대운 금입니다.\n\n현재 31세 전후의 핵심 장기 흐름은 31-40세 대운(乙亥(목))입니다. 이 구간이 인생 전체의 큰 기후를 정하고, 세운, 월운, 일운은 그 위에서 실제 사건의 속도와 체감 강도를 조절합니다. 21-30세 구간에서 굳어진 습관과 판단 기준이 지금 흐름의 출발점이 됩니다.\n\n그래서 현재 대운은 새 기회를 여는 동시에, 예전 방식 중 무엇을 유지하고 무엇을 버릴지 다시 고르게 만듭니다. 다음 41-50세 대운(甲戌)으로 넘어가기 전까지는, 지금 구간에서 성과를 내는 방식과 다음 구간에 가져갈 기준을 구분해 두는 것이 중요합니다. 커리어의 타이밍 창은 지금입니다.\n\n지금 구간에는 대운, 세운, 이 겹쳐져 Hidden Support Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다. 오늘, 이번 주, 이번 달의 시간축을 분리하면 의사결정 품질이 크게 향상됩니다.\n\n시기를 맞춘다는 것은 기다리는 것이 아니라 순서를 설계하는 일에 가깝습니다.\n\n현재 커리어 전략의 승부처는 단순한 확장이 아니라 더 어려운 결정을 맡길 만한 사람으로 자리 잡는 데 있습니다. 기준 정리 후 실행 결정은 분할하고 역할, 기한, 책임을 문서로 고정하세요. 커리어 흐름은 기회와 리스크가 동시에 작용하는 구간입니다. 사건은 즉각적인 확정보다 단계적 합의나 확인 과정을 통해 현실화될 가능성이 큽니다. 커리어는 확장 동력이 크지만 역할과 범위를 재정의해야 손실 없이 성장할 수 있습니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 확장과 재정의가 겹칠 때 무리하면 성과의 변동이 커질 수 있습니다. 기본 구조에서는 검토와 정밀 조정의 성향이 강조됩니다. 두 성향이 모두 강해 역할과 존재감이 부각되는 구조입니다. 전략은 화려한 선택보다 재현 가능한 반복으로 완성됩니다. 실행 전에 기준을 문서로 고정하면 돌발 변수 대응력이 높아집니다. 핵심 근거는 횡재, 대운 금입니다.\n\n잘 맞는 자리는 화려한 직함보다 판단과 조율의 무게를 견딜 수 있는 자리입니다. 커리어는 확장 동력이 크지만 역할과 범위를 재정의해야 손실 없이 성장할 수 있습니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다. 기회를 넓힐 흐름과 기준을 다시 설정할 흐름이 함께 겹칩니다. 확장과 재정의가 겹칠 때 무리하면 성과의 변동이 커질 수 있습니다. 기본 구조에서는 검토와 정밀 조정의 성향이 강조됩니다. 두 성향이 모두 강해 역할과 존재감이 부각되는 구조입니다. 기준 정리 후 실행 공적 역할 확대 career 영역은 기회와 리스크가 동시에 작용하는 구간입니다. 사건은 즉각적인 확정보다 단계적 합의나 재확인 과정을 통해 현실화될 가능성이 큽니다. 역할 적합은 겉으로 보이는 직함보다 실제 에너지 사용 방식과 맞아야 지속됩니다. 잘 맞는 포지션일수록 성과뿐만 아니라 피로 회복 속도도 함께 개선됩니다. 핵심 근거는 횡재, 대운 금입니다.\n\n커리어 전환점은 기회가 몰려올 때보다, 기존 방식이 더 이상 충분하지 않다는 걸 인정할 때 열립니다. 커리어 타이밍 창은 지금입니다. 지금 구간에 대운, 세운, 가 겹치며 Hidden Support Pattern 패턴이 활성화됩니다. 타이밍 적합도는 99% 수준입니다. 전환점은 보통 기회 신호와 조정 신호가 동시에 나타나는 지점에서 발생합니다. 변화를 크게 만들수록 기준을 더 단순하게 유지해야 흔들림이 줄어듭니다. 핵심 근거는 횡재, 대운 금입니다.\n\n기준 정리 후 실행,긴장이 강한 시기일수록 속도를 조절하고 확인 루틴을 먼저 고정해야 손실을 줄일 수 있습니다.,기준 정리 후 실행 실행 전 체크포인트를 1개라도 명확히 두면 결과 편차를 줄일 수 있습니다.,긴장이 강한 시기일수록 속도를 조절하고 확인 루틴을 먼저 고정해야 손실을 줄일 수 있습니다. 실행 전 체크포인트를 2개라도 명확히 두면 결과 편차를 줄일 수 있습니다.,결정은 분할하고 역할·기한·책임을 문서로 고정하세요. 실행 전 체크포인트를 3개라도 명확히 두면 결과 편차를 줄일 수 있습니다. 핵심 근거는 횡재, 대운 금입니다.\n\n실행력은 의욕보다 역할, 범위, 마감이 먼저 고정될 때 훨씬 강해집니다. 주의 신호가 강한 시기에는 속도를 조금 낮추고 확인 순서를 먼저 세우는 편이 안전합니다. 현재 31세 전후는 31-40세 대운(乙亥(목)) 흐름에서 실행을 착수-재확인-확정으로 나눌수록 결과 재현성이 증가합니다.\n\n기준 정리 후 실행 시 긴장이 강한 시기일수록 속도를 조절하고 확인 루틴을 먼저 고정해야 손실을 줄일 수 있습니다. 결정은 분할하고 역할, 기한, 책임을 문서로 고정하세요. 실행 계획은 복잡한 구조보다 실제 행동으로 전환되는 단순한 단계가 효과적입니다.\n\n핵심은 계획을 많이 세우는 것이 아니라 계획을 끝까지 지키는 구조입니다. 지금은 성급하게 확정하기보다 준비와 기준 정리가 더 중요한 시점입니다.",
+  "renderedMarkdown": "## 섹션: deepAnalysis\n\n이번 커리어 테마의 승부처는 많은 일을 하는 사람이 아니라. 기준이 분명한 사람에게 있습니다. 커리어 흐름은 기회와 리스크가 함께 작용하는 시점입니다. 사건은 즉각적인 확정보다 단계적 합의나 확인 과정을 통해 현실화될 가능성이 큽니다. 커리어는 기회가 오더라도 맡을 역할과 책임 범위를 먼저 명확히 해야 손실 없이 성장할 수 있습니다. 현재는 무턱대고 넓히기보다 어떤 일로 평가받을지를 먼저 정하는 것이 바람직합니다. 기회를 확장할 흐름과 기준을 재정립할 흐름이 동시에 겹칩니다. 확장과 재정의가 얽힐 때 무리하면 성과 변동이 클 수 있습니다. 기본 구조에서 검토와 정밀 조정의 성향이 강합니다. 두 가지 성향이 두드러져 역할과 존재감이 두드러지는 구조입니다. 현재 31세 전후는 31-40세 대운(乙亥(목)) 흐름 안에 있어 커리어 판단에서 새롭게 확장하기보다 역할과 우선순위 정리가 먼저 이루어져야 합니다. 결정을 나누고 역할·기한·책임을 문서로 고정하세요. 핵심은 기질 자체보다 기질을 운용하는 순서를 정하는 것입니다. 동일한 재능도 실행 구조에 따라 결과의 밀도가 크게 달라질 수 있습니다.\n\n근거: 횡재, 대운 금\n\n## 섹션: patterns\n\n커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어떤 일로 평가받을지 먼저 정하는 편이 맞습니다. 기회를 넓힐 흐름과 기준을 다시 세울 흐름이 함께 겹칩니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다. 기본 구조에서 검토와 정밀 조정 성향이 강합니다. 양 성향이 강해 역할과 존재감이 앞에 서는 구조입니다. 커리어 흐름은 now 창이 열려 있고, 타고난 기본 구조, 대운 활성 (금), 세운 활성 (화)이 겹치면서 현재 모드는 verify로 수렴합니다. 도메인 규칙상 현재 모드는 verify로 정리됩니다. 상승 신호와 주의 신호가 동시에 있을 때는 공격과 방어를 분리하는 설계가 필수입니다. 패턴을 읽는 목적은 예언이 아니라 손실을 줄이면서 기회를 확장하는 데 있습니다.\n\n근거: 횡재, 대운 금\n\n## 섹션: timing\n\n현재 31세 전후의 핵심 장기 흐름은 31-40세 대운(乙亥(목))입니다. 이 구간이 인생 전체의 큰 기후를 정하고, 세운·월운·일운은 그 위에서 실제 사건의 속도와 체감 강도를 조절합니다. 21-30세 구간에서 굳어진 습관과 판단 기준이 현재 흐름의 출발점이 됩니다.\n\n따라서 현재 대운은 새로운 기회를 여는 동시에, 이전 방식 중 무엇을 유지하고 무엇을 버릴지를 다시 고르게 만듭니다. 다음 41-50세 대운(甲戌)으로 넘어가기 전까지는, 지금 구간에서 성과를 내는 방식과 다음 구간에 가져갈 기준을 구분하는 것이 중요합니다. 커리어는 지금 바로 움직일 수 있는 시점입니다.\n\n지금은 여러 조건이 한 방향으로 모여 실제로 움직이기 쉬운 때입니다. 특히 기준이 흔들리지 않을 때 먼저 맞춰야 실제 체감이 개선됩니다. 기준이 흔들리지 않을 때 먼저 맞춰야 실제 체감이 개선됩니다.\n\n반대로 역할과 기준이 애매하게 남아 있다면 조짐이 보이면 서두르지 않는 것이 안전합니다. 시나리오 확률이 63.9% 흐름이 꺾이면 속도를 줄여야 합니다. 일은 역할·범위·마감이 선명할수록 체감이 빨리 붙습니다.\n\n오늘-이번 주-이번 달의 시간축을 분리하면 의사결정 품질이 크게 향상됩니다. 시기를 맞춘다는 것은 기다리는 것이 아니라 순서를 설계하는 일에 가까운 것입니다.\n\n## 섹션: strategy\n\n지금 커리어 전략의 승부처는 일을 더 크게 벌이는 것이 아니라, 더 어려운 결정을 맡겨도 흔들리지 않는 사람으로 보이는 데 있습니다. 기준을 정리한 뒤 실행하고 결정은 분할하고 역할·기한·책임을 문서로 고정하세요. 커리어 흐름은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 확인 과정을 거쳐 현실화될 가능성이 큽니다. 커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어떤 일로 평가받을지 먼저 정하는 편이 맞습니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다. 기본 구조에서 검토와 정밀 조정 성향이 강합니다. 양 성향이 강해 역할과 존재감이 앞에 서는 구조입니다. 전략은 화려한 선택보다 재현 가능한 반복으로 완성됩니다. 실행 전에 기준을 문장으로 고정하면 돌발 변수 대응력이 높아집니다.\n\n근거: 횡재, 대운 금\n\n## 섹션: roleFit\n\n잘 맞는 자리는 화려한 직함보다 판단과 조율의 무게를 견딜 수 있는 자리입니다. 커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어떤 일로 평가받을지 먼저 정하는 편이 맞습니다. 기회를 넓힐 흐름과 기준을 다시 세울 흐름이 함께 겹칩니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다. 기본 구조에서 검토와 정밀 조정 성향이 강합니다. 양 성향이 강해 역할과 존재감이 앞에 서는 구조입니다. 기준을 정리한 뒤 실행하고 기준을 정리한 뒤 실행하고 공적 역할 확대 커리어 흐름은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 재확인 과정을 거쳐 현실화될 가능성이 큽니다. 역할 적합은 좋아 보이는 직함보다 실제 에너지 사용 방식과 맞아야 오래 갑니다. 잘 맞는 포지션일수록 성과뿐 아니라 피로 회복 속도도 함께 좋아집니다.\n\n근거: 횡재, 대운 금\n\n## 섹션: turningPoints\n\n커리어 전환점은 기회가 갑자기 커질 때보다, 지금 방식으로는 다음 단계에 못 간다는 사실을 인정할 때 열립니다. 커리어는 지금 바로 움직임을 걸 수 있는 구간입니다. 지금은 여러 조건이 한 방향으로 모여 실제로 움직이기 쉬운 때입니다. 특히 기준이 흔들리지 않을 때 먼저 맞아야 실제 체감이 좋아집니다. 기준이 흔들리지 않을 때 먼저 맞아야 실제 체감이 좋아집니다. 반대로 역할과 기준이 애매하게 남아 있으면 조짐이 보이면 서두르지 않는 편이 안전합니다, 시나리오 확률이 63.900000000000006% 흐름이 꺾이면 속도를 줄이기 조짐이 보이면 서두르지 않는 편이 안전합니다. 일은 역할·범위·마감이 선명할수록 체감이 빨리 붙습니다. 전환점은 보통 기회 신호와 조정 신호가 동시에 나타나는 지점에서 발생합니다. 변화를 크게 만들수록 기준을 더 단순하게 유지해야 흔들림이 줄어듭니다.\n\n근거: 횡재, 대운 금\n\n## 섹션: recommendations\n\n기준 정리 후 실행. 긴장이 강한 시기일수록 속도를 조절하고 확인 루틴을 먼저 고정해야 손실을 줄일 수 있습니다. 기준을 정리한 뒤 실행하고 실행 전 체크포인트를 1개라도 명확히 두면 결과 편차를 줄일 수 있습니다. 실행 전 체크포인트를 2개라도 명확히 두면 결과 편차를 줄일 수 있습니다. 결정은 분할하고 역할·기한·책임을 문서로 고정하세요. 실행 전 체크포인트를 3개라도 명확히 두면 결과 편차를 줄일 수 있습니다.\n\n근거: 횡재, 대운 금\n\n## 섹션: actionPlan\n\n실행력은 의욕보다 역할·범위·마감이 먼저 고정될 때 훨씬 강해집니다. 커리어: 단계 확정 기준을 정리한 뒤 실행하고 주의 신호가 강한 구간에서는 속도를 조금 낮추고 확인 순서를 먼저 세우는 것이 안전합니다. 현재 31세 전후는 31-40세 대운(乙亥(목)) 흐름에서 실행을 착수-재확인-확정으로 나눌수록 결과 재현성이 높아집니다.\n\n기준을 정리한 뒤 실행하고 긴장이 강한 시기일수록 속도를 조절하고 확인 루틴을 먼저 고정해야 손실을 줄일 수 있습니다. 결정은 분할하고 역할·기한·책임을 문서로 고정하세요. 실행 계획은 복잡한 구조보다 실제 행동으로 전환되는 단순한 단계가 효과적입니다.\n\n핵심은 계획을 많이 세우는 것이 아니라 계획을 끝까지 지키는 구조입니다.",
+  "renderedText": "이번 커리어 테마의 승부처는 많은 일을 하는 사람이 아니라. 기준이 분명한 사람에게 있습니다. 커리어 흐름은 기회와 리스크가 함께 작용하는 시점입니다. 사건은 즉각적인 확정보다 단계적 합의나 확인 과정을 통해 현실화될 가능성이 큽니다. 커리어는 기회가 오더라도 맡을 역할과 책임 범위를 먼저 명확히 해야 손실 없이 성장할 수 있습니다. 현재는 무턱대고 넓히기보다 어떤 일로 평가받을지를 먼저 정하는 것이 바람직합니다. 기회를 확장할 흐름과 기준을 재정립할 흐름이 동시에 겹칩니다. 확장과 재정의가 얽힐 때 무리하면 성과 변동이 클 수 있습니다. 기본 구조에서 검토와 정밀 조정의 성향이 강합니다. 두 가지 성향이 두드러져 역할과 존재감이 두드러지는 구조입니다. 현재 31세 전후는 31-40세 대운(乙亥(목)) 흐름 안에 있어 커리어 판단에서 새롭게 확장하기보다 역할과 우선순위 정리가 먼저 이루어져야 합니다. 결정을 나누고 역할·기한·책임을 문서로 고정하세요. 핵심은 기질 자체보다 기질을 운용하는 순서를 정하는 것입니다. 동일한 재능도 실행 구조에 따라 결과의 밀도가 크게 달라질 수 있습니다.\n\n근거: 횡재, 대운 금\n\n커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어떤 일로 평가받을지 먼저 정하는 편이 맞습니다. 기회를 넓힐 흐름과 기준을 다시 세울 흐름이 함께 겹칩니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다. 기본 구조에서 검토와 정밀 조정 성향이 강합니다. 양 성향이 강해 역할과 존재감이 앞에 서는 구조입니다. 커리어 흐름은 now 창이 열려 있고, 타고난 기본 구조, 대운 활성 (금), 세운 활성 (화)이 겹치면서 현재 모드는 verify로 수렴합니다. 도메인 규칙상 현재 모드는 verify로 정리됩니다. 상승 신호와 주의 신호가 동시에 있을 때는 공격과 방어를 분리하는 설계가 필수입니다. 패턴을 읽는 목적은 예언이 아니라 손실을 줄이면서 기회를 확장하는 데 있습니다.\n\n근거: 횡재, 대운 금\n\n현재 31세 전후의 핵심 장기 흐름은 31-40세 대운(乙亥(목))입니다. 이 구간이 인생 전체의 큰 기후를 정하고, 세운·월운·일운은 그 위에서 실제 사건의 속도와 체감 강도를 조절합니다. 21-30세 구간에서 굳어진 습관과 판단 기준이 현재 흐름의 출발점이 됩니다.\n\n따라서 현재 대운은 새로운 기회를 여는 동시에, 이전 방식 중 무엇을 유지하고 무엇을 버릴지를 다시 고르게 만듭니다. 다음 41-50세 대운(甲戌)으로 넘어가기 전까지는, 지금 구간에서 성과를 내는 방식과 다음 구간에 가져갈 기준을 구분하는 것이 중요합니다. 커리어는 지금 바로 움직일 수 있는 시점입니다.\n\n지금은 여러 조건이 한 방향으로 모여 실제로 움직이기 쉬운 때입니다. 특히 기준이 흔들리지 않을 때 먼저 맞춰야 실제 체감이 개선됩니다. 기준이 흔들리지 않을 때 먼저 맞춰야 실제 체감이 개선됩니다.\n\n반대로 역할과 기준이 애매하게 남아 있다면 조짐이 보이면 서두르지 않는 것이 안전합니다. 시나리오 확률이 63.9% 흐름이 꺾이면 속도를 줄여야 합니다. 일은 역할·범위·마감이 선명할수록 체감이 빨리 붙습니다.\n\n오늘-이번 주-이번 달의 시간축을 분리하면 의사결정 품질이 크게 향상됩니다. 시기를 맞춘다는 것은 기다리는 것이 아니라 순서를 설계하는 일에 가까운 것입니다.\n\n지금 커리어 전략의 승부처는 일을 더 크게 벌이는 것이 아니라, 더 어려운 결정을 맡겨도 흔들리지 않는 사람으로 보이는 데 있습니다. 기준을 정리한 뒤 실행하고 결정은 분할하고 역할·기한·책임을 문서로 고정하세요. 커리어 흐름은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 확인 과정을 거쳐 현실화될 가능성이 큽니다. 커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어떤 일로 평가받을지 먼저 정하는 편이 맞습니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다. 기본 구조에서 검토와 정밀 조정 성향이 강합니다. 양 성향이 강해 역할과 존재감이 앞에 서는 구조입니다. 전략은 화려한 선택보다 재현 가능한 반복으로 완성됩니다. 실행 전에 기준을 문장으로 고정하면 돌발 변수 대응력이 높아집니다.\n\n근거: 횡재, 대운 금\n\n잘 맞는 자리는 화려한 직함보다 판단과 조율의 무게를 견딜 수 있는 자리입니다. 커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어떤 일로 평가받을지 먼저 정하는 편이 맞습니다. 기회를 넓힐 흐름과 기준을 다시 세울 흐름이 함께 겹칩니다. 확장과 재정의가 겹칠 때 무리하면 성과 변동이 커질 수 있습니다. 기본 구조에서 검토와 정밀 조정 성향이 강합니다. 양 성향이 강해 역할과 존재감이 앞에 서는 구조입니다. 기준을 정리한 뒤 실행하고 기준을 정리한 뒤 실행하고 공적 역할 확대 커리어 흐름은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 재확인 과정을 거쳐 현실화될 가능성이 큽니다. 역할 적합은 좋아 보이는 직함보다 실제 에너지 사용 방식과 맞아야 오래 갑니다. 잘 맞는 포지션일수록 성과뿐 아니라 피로 회복 속도도 함께 좋아집니다.\n\n근거: 횡재, 대운 금\n\n커리어 전환점은 기회가 갑자기 커질 때보다, 지금 방식으로는 다음 단계에 못 간다는 사실을 인정할 때 열립니다. 커리어는 지금 바로 움직임을 걸 수 있는 구간입니다. 지금은 여러 조건이 한 방향으로 모여 실제로 움직이기 쉬운 때입니다. 특히 기준이 흔들리지 않을 때 먼저 맞아야 실제 체감이 좋아집니다. 기준이 흔들리지 않을 때 먼저 맞아야 실제 체감이 좋아집니다. 반대로 역할과 기준이 애매하게 남아 있으면 조짐이 보이면 서두르지 않는 편이 안전합니다, 시나리오 확률이 63.900000000000006% 흐름이 꺾이면 속도를 줄이기 조짐이 보이면 서두르지 않는 편이 안전합니다. 일은 역할·범위·마감이 선명할수록 체감이 빨리 붙습니다. 전환점은 보통 기회 신호와 조정 신호가 동시에 나타나는 지점에서 발생합니다. 변화를 크게 만들수록 기준을 더 단순하게 유지해야 흔들림이 줄어듭니다.\n\n근거: 횡재, 대운 금\n\n기준 정리 후 실행. 긴장이 강한 시기일수록 속도를 조절하고 확인 루틴을 먼저 고정해야 손실을 줄일 수 있습니다. 기준을 정리한 뒤 실행하고 실행 전 체크포인트를 1개라도 명확히 두면 결과 편차를 줄일 수 있습니다. 실행 전 체크포인트를 2개라도 명확히 두면 결과 편차를 줄일 수 있습니다. 결정은 분할하고 역할·기한·책임을 문서로 고정하세요. 실행 전 체크포인트를 3개라도 명확히 두면 결과 편차를 줄일 수 있습니다.\n\n근거: 횡재, 대운 금\n\n실행력은 의욕보다 역할·범위·마감이 먼저 고정될 때 훨씬 강해집니다. 커리어: 단계 확정 기준을 정리한 뒤 실행하고 주의 신호가 강한 구간에서는 속도를 조금 낮추고 확인 순서를 먼저 세우는 것이 안전합니다. 현재 31세 전후는 31-40세 대운(乙亥(목)) 흐름에서 실행을 착수-재확인-확정으로 나눌수록 결과 재현성이 높아집니다.\n\n기준을 정리한 뒤 실행하고 긴장이 강한 시기일수록 속도를 조절하고 확인 루틴을 먼저 고정해야 손실을 줄일 수 있습니다. 결정은 분할하고 역할·기한·책임을 문서로 고정하세요. 실행 계획은 복잡한 구조보다 실제 행동으로 전환되는 단순한 단계가 효과적입니다.\n\n핵심은 계획을 많이 세우는 것이 아니라 계획을 끝까지 지키는 구조입니다.",
   "themeScore": {
     "overall": 67,
     "potential": 76,
@@ -8456,12 +8467,12 @@
   ],
   "meta": {
     "modelUsed": "deterministic+gpt-4o-mini-2024-07-18-validator-repair",
-    "tokensUsed": 14484,
-    "processingTime": 49723,
-    "reportVersion": "1.2.0-deterministic-only",
+    "tokensUsed": 8680,
+    "processingTime": 63973,
+    "reportVersion": "1.2.0-deterministic+rewrite",
     "qualityMetrics": {
       "sectionCount": 8,
-      "avgSectionChars": 424,
+      "avgSectionChars": 464,
       "evidenceCoverageRatio": 0.875,
       "minEvidenceSatisfiedRatio": 1,
       "contradictionCount": 0,
@@ -8469,7 +8480,7 @@
       "overclaimCount": 0,
       "coreQualityScore": 100,
       "coreQualityGrade": "A",
-      "coreQualityWarningCount": 1,
+      "coreQualityWarningCount": 2,
       "coreQualityPass": false,
       "sectionCompletenessRate": 1,
       "avgEvidencePerParagraph": 4,
@@ -8486,7 +8497,11 @@
       },
       "tokenIntegrityPass": true,
       "structurePass": true,
-      "forbiddenAdditionsPass": true
+      "forbiddenAdditionsPass": true,
+      "crossSectionRepetition": 10,
+      "genericAdviceDensity": 1.875,
+      "personalizationDensity": 1.875,
+      "internalScenarioLeakCount": 0
     }
   }
 }

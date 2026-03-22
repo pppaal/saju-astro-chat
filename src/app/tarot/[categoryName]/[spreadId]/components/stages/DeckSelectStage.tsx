@@ -10,6 +10,8 @@ export interface DeckSelectStageProps {
   userTopic: string
   personalizationOptions: TarotPersonalizationOptions
   language: string
+  isGuestUser: boolean
+  signInUrl: string
   handleColorSelect: (color: CardColor) => void
   handleStartReading: () => void
   handlePersonalizationChange: (key: keyof TarotPersonalizationOptions, value: boolean) => void
@@ -21,6 +23,8 @@ export function DeckSelectStage({
   userTopic,
   personalizationOptions,
   language,
+  isGuestUser,
+  signInUrl,
   handleColorSelect,
   handleStartReading,
   handlePersonalizationChange,
@@ -32,6 +36,8 @@ export function DeckSelectStage({
       userTopic={userTopic}
       personalizationOptions={personalizationOptions}
       language={language}
+      isGuestUser={isGuestUser}
+      signInUrl={signInUrl}
       onColorSelect={handleColorSelect}
       onStartReading={handleStartReading}
       onPersonalizationChange={handlePersonalizationChange}

@@ -1,111 +1,166 @@
 # RAG And GraphRAG
 
-## Components
+Last audited: 2026-03-17 (Asia/Hong_Kong)
 
-- Vector store manager: `backend_ai/app/rag/vector_store.py`
-- Cross reasoning store: `backend_ai/app/rag/cross_store.py`
-- Runtime orchestration: `backend_ai/services/streaming_service.py`
-- Canonical diagnostics: `scripts/self_check.py`
+## Current Position In The System
 
-## Collections And Domains
+GraphRAG is not the judgment engine.
 
-### `saju_astro_graph_nodes_v1`
+Current role split:
 
-- Domain: `saju_astro`
-- Purpose: GraphRAG evidence nodes for saju+astrology context retrieval.
-- Source indexing: `scripts/reindex_saju_astro_graph_nodes.py`
+- Core: judgment and timing decisions
+- GraphRAG: evidence alignment, cross-source grounding, and support traces
+- Calendar / Counselor / Report: presentation
 
-### `saju_astro_cross_v1`
+This separation is intentional. Core decides `focusDomain`, `phase`, `topDecision`, `riskControl`, and timing posture. GraphRAG explains and supports that decision with cross evidence.
 
-- Domain: `saju_astro_cross`
-- Purpose: Cross-analysis rules and fused thematic interpretations.
-- Source indexing: `scripts/reindex_saju_astro_cross.py`
+## Main Code Paths
 
-## Cross Summary Pipeline
+### Destiny-side GraphRAG
 
-`build_cross_summary()` in `backend_ai/app/rag/cross_store.py`:
+- `src/lib/destiny-matrix/ai-report/graphRagEvidence.ts`
+  - `buildGraphRAGEvidence(...)`
+  - `formatGraphRAGEvidenceForPrompt(...)`
+  - `summarizeGraphRAGEvidence(...)`
 
-1. search cross collection (`domain=saju_astro_cross`)
-2. rank score = `sim + 0.2*rule_match + 0.2*overlap`
-3. group by `axis/theme`
-4. return 1-3 grouped summaries (`max_groups=3`)
-5. attach evidence lines:
+### Python backend GraphRAG and vector infrastructure
 
-- `?? ??` from `saju_refs`
-- `?? ??` from `astro_refs`
+- `backend_ai/app/rag/vector_store.py`
+- `backend_ai/app/rag/cross_store.py`
+- `backend_ai/services/streaming_service.py`
+- `scripts/self_check.py`
 
-## Evidence Fill Strategy
+The Python side remains the retrieval/runtime substrate. The TypeScript destiny layer uses its own GraphRAG evidence bundle to align matrix, aspect, transit, and cross evidence around the core verdict.
 
-Cross evidence is filled in layers:
+## Supported GraphRAG Domains
 
-1. metadata refs
+Current GraphRAG domain set in the destiny stack:
 
-- `saju_refs` / `astro_refs`
-- JSON variants (`*_refs_json`)
+- `personality`
+- `career`
+- `relationship`
+- `wealth`
+- `health`
+- `spirituality`
+- `timing`
+- `move`
 
-2. metadata inference
+`move` is now a first-class GraphRAG domain. It is no longer forced through a timing fallback.
 
-- infer from tags/label/token rules
+## Evidence Model
 
-3. graph backfill
+### Bundle
 
-- query graph collection
-- derive refs from graph hit metadata/text
-- mark backfill trace path
+`buildGraphRAGEvidence(...)` returns a bundle with:
 
-Reindex path (`scripts/reindex_saju_astro_cross.py`) also backfills refs from graph similarity and records source markers such as `backfill_similarity`.
+- mode
+- optional theme/period
+- anchors[]
 
-## Domain Filtering And Isolation
+### Anchor
 
-Recommended production runtime:
+Each anchor contains:
 
-- `USE_CHROMADB=1`
-- `EXCLUDE_NON_SAJU_ASTRO=1`
+- `section`
+- `sajuEvidence`
+- `astrologyEvidence`
+- `crossConclusion`
+- `crossEvidenceSets[]`
 
-Effect:
+### Cross evidence set
 
-- retrieval uses saju/astro graph + cross collections
-- unrelated corpora (persona/domain/corpus) are skipped in streaming path
-- skip events are visible in `RAG_TRACE` logs
+Each set contains:
 
-## Fallback Policy
+- matrix evidence
+- astrology evidence
+- saju evidence
+- overlap domains
+- overlap score
+- orb fit score
+- combined conclusion
 
-Current behavior:
+## How It Is Used Now
 
-- if cross search fails or empty, `build_cross_summary()` returns empty summary
-- evidence slots are padded when insufficient refs remain (`id=none` fallback)
-- runtime graph backfill attempts to avoid empty evidence
+### Report
 
-Recommended production policy:
+- `src/lib/destiny-matrix/ai-report/aiReportService.ts`
 
-- keep Chroma + exclusion flags on
-- treat `self_check` `WARN/FAIL` as deploy blocker for AI quality-sensitive releases
-- monitor evidence-related metrics from diagnostics
+Report uses GraphRAG as evidence support. `reportCore` decides the focus domain and operating logic. GraphRAG summary is then narrowed around that core focus instead of re-judging the whole chart.
 
-## RAG Trace
+### Counselor
 
-Enable trace:
+- `src/lib/destiny-matrix/counselorEvidence.ts`
+- `src/app/api/destiny-map/chat-stream/route.ts`
 
-### PowerShell
+Counselor now aligns GraphRAG with the same preferred domain used by the canonical counselor block. Anchor selection and packet evidence are routed through the current core focus, not just the raw question theme.
 
-```powershell
-$env:USE_CHROMADB='1'
-$env:EXCLUDE_NON_SAJU_ASTRO='1'
-$env:RAG_TRACE='1'
+### Calendar
+
+- `src/app/api/calendar/action-plan/route.ts`
+- `src/components/calendar/CalendarActionPlanView.tsx`
+
+Calendar uses GraphRAG as evidence support for action-plan confidence and top cross-evidence summaries. It does not use GraphRAG to override canonical decisions.
+
+## Ranking And Alignment Notes
+
+GraphRAG ranking in the destiny stack currently depends on:
+
+- section-domain map
+- domain orb multipliers
+- aspect/domain-specific orb logic
+- overlap domains
+- core-driven focus narrowing in service layers
+
+Important constraint:
+
+- GraphRAG should surface the most relevant evidence for the current decision.
+- It should not become a second competing verdict engine.
+
+## Diagnostics And Trace
+
+### Runtime trace
+
+Use:
+
+```bash
+npx tsx scripts/ops/trace-destinypal-pipeline.ts
+```
+
+This produces end-to-end outputs under `reports/ops/` including:
+
+- core trace
+- next-gen evaluation
+- input verdict audit
+- GraphRAG evidence bundle summary
+- service consistency checks
+
+### Python-side retrieval checks
+
+Use:
+
+```bash
+python scripts/self_check.py
 python scripts/self_check.py --runtime-evidence
 ```
 
-### Bash
+These remain the canonical retrieval and evidence health checks for the Python GraphRAG substrate.
 
-```bash
-USE_CHROMADB=1 EXCLUDE_NON_SAJU_ASTRO=1 RAG_TRACE=1 python scripts/self_check.py --runtime-evidence
-```
+## Current Quality Baseline
 
-### What To Look For
+As of 2026-03-17:
 
-- cross grouping counts and top-k behavior
-- evidence backfill events in cross summary
-- skipped corpus/persona/domain logs when exclusion is enabled
-- quality table (`avg_unique_theme@12`, `cross_present_rate`, `evidence_rate`)
+- 3-service destiny regression: `PASS=10 WARN=0 FAIL=0`
+- counselor regression: `PASS=42 WARN=0 FAIL=0`
+- core quality warnings: `0`
 
-Current expected target: `evidence_rate = 100%`.
+This does not mean GraphRAG replaces the core. It means GraphRAG is currently synchronized well enough with the core and service layers to avoid visible drift in the tested paths.
+
+## Current Gaps
+
+The main remaining GraphRAG improvement area is precision, not role definition.
+
+Most useful next steps are:
+
+- tighten anchor ranking around `leadScenarioId` and `leadPatternId`
+- improve section-specific evidence wording
+- keep locale quality aligned between Korean and English outputs

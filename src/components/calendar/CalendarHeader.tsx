@@ -38,7 +38,7 @@ export default function CalendarHeader({
     grade1: locale === 'ko' ? '활용' : 'Leverage',
     grade2: locale === 'ko' ? '운영' : 'Operate',
     grade3: locale === 'ko' ? '검토' : 'Review',
-    grade4: locale === 'ko' ? '방어' : 'Protect',
+    grade4: locale === 'ko' ? '조정' : 'Adjust',
   }
 
   return (

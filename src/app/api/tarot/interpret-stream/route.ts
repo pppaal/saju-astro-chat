@@ -2,6 +2,7 @@
 // Direct OpenAI Streaming Tarot Interpretation API
 
 import { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { initializeApiContext, createPublicStreamGuard, extractLocale } from '@/lib/api/middleware'
 import { createSSEEvent, createSSEDoneEvent } from '@/lib/streaming'
 import { apiClient } from '@/lib/api/ApiClient'
@@ -14,6 +15,11 @@ import {
   buildQuestionContextPrompt,
   type TarotQuestionAnalysisSnapshot,
 } from '@/lib/Tarot/questionFlow'
+import {
+  applyCreditResultCookies,
+  checkAndConsumeCredits,
+  creditErrorResponse,
+} from '@/lib/credits/withCredits'
 
 interface CardInput {
   name: string
@@ -27,6 +33,22 @@ interface CardInput {
 
 const BACKEND_TIMEOUT_MS = 20000
 const OPENAI_TIMEOUT_MS = 30000
+
+function withCreditCookies(response: Response, creditResult: Awaited<
+  ReturnType<typeof checkAndConsumeCredits>
+> | null): Response {
+  if (!creditResult?.guestReadingAccess) {
+    return response
+  }
+
+  const nextResponse = new NextResponse(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  })
+
+  return applyCreditResultCookies(nextResponse, creditResult)
+}
 
 // Use centralized sanitizeString from @/lib/api/sanitizers
 
@@ -332,15 +354,14 @@ function analyzeQuestionMood(
 }
 
 export async function POST(req: NextRequest) {
+  let creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null = null
+
   try {
-    // Apply middleware: rate limiting + public token auth + credit consumption
+    // Apply middleware: rate limiting + public token auth
     const guardOptions = createPublicStreamGuard({
       route: 'tarot-interpret-stream',
       limit: 10,
       windowSeconds: 60,
-      requireCredits: true,
-      creditType: 'reading',
-      creditAmount: 1,
     })
 
     const { context, error } = await initializeApiContext(req, guardOptions)
@@ -350,9 +371,14 @@ export async function POST(req: NextRequest) {
 
     logger.info('Tarot stream request', { ip: context.ip })
 
+    creditResult = await checkAndConsumeCredits('reading', 1, req)
+    if (!creditResult.allowed) {
+      return creditErrorResponse(creditResult)
+    }
+
     const oversized = enforceBodySize(req, 256 * 1024)
     if (oversized) {
-      return oversized
+      return withCreditCookies(oversized, creditResult)
     }
 
     const rawBody = await req.json()
@@ -426,10 +452,11 @@ export async function POST(req: NextRequest) {
     const backendPrimaryPayload = normalizeBackendPayload(backendPrimary, backendPrimaryBase)
     if (backendPrimaryPayload) {
       logger.info('Tarot stream served by backend Hybrid RAG')
-      return streamJsonPayload(backendPrimaryPayload, { 'X-RAG-Source': 'backend' })
+      return withCreditCookies(
+        streamJsonPayload(backendPrimaryPayload, { 'X-RAG-Source': 'backend' }),
+        creditResult
+      )
     }
-
-    // Credits already consumed by middleware
 
     const isKorean = language === 'ko'
     const cardListText = rawCards
@@ -552,7 +579,7 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
     if (!process.env.OPENAI_API_KEY) {
       logger.warn('Tarot stream missing OPENAI_API_KEY, using fallback')
       const fallback = buildFallbackPayload(rawCards, language)
-      return streamJsonPayload(fallback, { 'X-Fallback': '1' })
+      return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
     }
 
     const openaiController = new AbortController()
@@ -604,7 +631,7 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
         astroContext,
       })
       const fallback = normalizeBackendPayload(backendFallback, fallbackBase) || fallbackBase
-      return streamJsonPayload(fallback, { 'X-Fallback': '1' })
+      return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
     }
     clearTimeout(openaiTimeoutId)
 
@@ -628,7 +655,7 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
         astroContext,
       })
       const fallback = normalizeBackendPayload(backendFallback, fallbackBase) || fallbackBase
-      return streamJsonPayload(fallback, { 'X-Fallback': '1' })
+      return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
     }
 
     // SSE - 성공 메트릭스 기록 (스트리밍 시작 시점)
@@ -729,19 +756,25 @@ ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element t
       },
     })
 
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive',
-      },
-    })
+    return withCreditCookies(
+      new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
+        },
+      }),
+      creditResult
+    )
   } catch (err) {
     logger.error('Tarot stream error:', { error: err })
-    return createErrorResponse({
-      code: ErrorCodes.INTERNAL_ERROR,
-      route: 'tarot/interpret-stream',
-      originalError: err instanceof Error ? err : new Error(String(err)),
-    })
+    return withCreditCookies(
+      createErrorResponse({
+        code: ErrorCodes.INTERNAL_ERROR,
+        route: 'tarot/interpret-stream',
+        originalError: err instanceof Error ? err : new Error(String(err)),
+      }),
+      creditResult
+    )
   }
 }

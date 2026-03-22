@@ -654,13 +654,12 @@ function normalizeFromMatrixInput(
     if (matrixInput.astroTimingIndex) return matrixInput.astroTimingIndex
     const candidate = matrixInput.crossSnapshot?.astroTimingIndex
     if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) return undefined
-    const record = candidate as Record<string, unknown>
-    const decade = Number(record.decade)
-    const annual = Number(record.annual)
-    const monthly = Number(record.monthly)
-    const daily = Number(record.daily)
-    const confidence = Number(record.confidence)
-    const evidenceCount = Number(record.evidenceCount)
+    const decade = Number(candidate.decade)
+    const annual = Number(candidate.annual)
+    const monthly = Number(candidate.monthly)
+    const daily = Number(candidate.daily)
+    const confidence = Number(candidate.confidence)
+    const evidenceCount = Number(candidate.evidenceCount)
     if (
       [decade, annual, monthly, daily, confidence, evidenceCount].every((v) => Number.isFinite(v))
     ) {
@@ -1421,20 +1420,20 @@ function conflictThesisByDomain(domain: SignalDomain, lang: 'ko' | 'en'): string
   if (lang === 'ko') {
     const ko: Record<SignalDomain, string> = {
       career:
-        '커리어는 확장 동력이 크지만 역할·범위 재정의를 함께 해야 손실 없이 성장합니다. 두 신호는 상충이 아니라 조건이 다른 분기 신호입니다.',
+        '커리어는 기회가 와도 맡을 역할과 책임 범위를 먼저 분명히 해야 손실 없이 커집니다. 지금은 무턱대고 넓히기보다 어떤 일로 평가받을지 먼저 정하는 편이 맞습니다.',
       relationship:
-        '관계는 진전 신호와 긴장 신호가 동시에 작동합니다. 두 신호는 상충이 아니라 속도와 확인 단계를 분리하라는 조건 신호입니다.',
+        '관계는 가까워질 여지도 있지만 속도를 잘못 잡으면 오해도 같이 커질 수 있습니다. 진전과 확인을 같은 날에 끝내려 하기보다 단계를 나눠 가는 편이 맞습니다.',
       wealth:
-        '재정은 수익 기회와 변동 리스크가 동시에 열려 있습니다. 두 신호는 상충이 아니라 확정 전에 조건 검증을 요구하는 분기 신호입니다.',
+        '재정은 돈이 들어올 여지도 있지만 조건을 대충 보면 다시 새어 나가기 쉽습니다. 지금은 수익 기대보다 금액, 기한, 손실 상한을 먼저 확인하는 편이 맞습니다.',
       health:
-        '건강은 퍼포먼스 상승과 피로 누적 신호가 함께 나타납니다. 두 신호는 상충이 아니라 회복 블록을 선행하라는 조건 신호입니다.',
+        '컨디션은 끌어올릴 수 있지만 무리하면 피로가 한 번에 몰릴 수 있습니다. 성과를 더 내기보다 회복 시간을 먼저 확보하는 편이 오래 갑니다.',
       move: '이동·변화는 기회와 불확실성이 동시에 큽니다. 두 신호는 상충이 아니라 단계별 검증을 요구하는 분기 신호입니다.',
       personality:
-        '성향 축에서는 추진력과 과속 리스크가 동시에 나타납니다. 두 신호는 상충이 아니라 판단과 실행 시점을 분리하라는 조건 신호입니다.',
+        '지금은 추진력도 있지만 과속하면 실수도 같이 커질 수 있습니다. 판단은 빠르게 하되 실행은 단계별로 끊어 가는 편이 안전합니다.',
       spirituality:
-        '장기 방향은 확장 욕구와 재정렬 요구가 동시에 있습니다. 두 신호는 상충이 아니라 우선순위를 재정의하라는 조건 신호입니다.',
+        '장기 방향은 넓혀 보고 싶은 마음과 다시 정리해야 한다는 요구가 함께 있습니다. 욕심을 더하기보다 지금 남길 기준을 먼저 정하는 편이 맞습니다.',
       timing:
-        '시기 축에서는 기회 창과 주의 창이 동시에 열립니다. 두 신호는 상충이 아니라 결정과 확정을 분리하라는 조건 신호입니다.',
+        '지금은 기회도 보이지만 바로 확정하면 다시 손볼 일도 생기기 쉽습니다. 결정과 확정 사이에 한 번 더 확인 단계를 두는 편이 맞습니다.',
     }
     return ko[domain]
   }

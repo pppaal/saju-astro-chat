@@ -121,6 +121,16 @@ const SLOT_TYPE_VALUES = [
 
 const SLOT_TYPE_KEYS = new Set<SanitizedSlotType>(SLOT_TYPE_VALUES)
 
+function normalizeTimelineSemanticKey(value: string): string {
+  if (!value) return ''
+  return value
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 const isSanitizedSlotType = (value: string): value is SanitizedSlotType =>
   SLOT_TYPE_KEYS.has(value as SanitizedSlotType)
 
@@ -694,6 +704,36 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       return isKo ? `신뢰도 메모: ${joined}` : `Confidence note: ${joined}`
     },
     [formatConfidenceReasonLabel, isKo]
+  )
+
+  const isGenericTimelineCopy = useCallback(
+    (value: string) => {
+      const normalized = normalizeTimelineSemanticKey(cleanText(value, ''))
+      if (!normalized) return false
+      const genericNeedles = isKo
+        ? [
+            '오늘 신호 균형을 기준으로 슬롯별 강약을 나눠 운영합니다',
+            '사주 일진 점성 트랜짓 기본 신호',
+            '좋은 시간대 사주 점성 공통 우세',
+            '주의 시간대 교차 리스크 신호',
+            '신호 정렬 양호',
+            '리스크 구간',
+            '실행 전 성공 조건 1줄 먼저 작성',
+            '결정은 하되 반대 근거 1개 확인 전 확정 금지',
+          ]
+        : [
+            'operate each slot based on today signal balance',
+            'baseline signal from saju daily pillar astrology transit',
+            'best time window saju astrology aligned',
+            'caution time window cross risk signal',
+            'signals aligned',
+            'risk window',
+            'write one success condition before execution',
+            'do not finalize before one counter evidence check',
+          ]
+      return genericNeedles.some((needle) => normalized.includes(normalizeTimelineSemanticKey(needle)))
+    },
+    [cleanText, isKo]
   )
 
   const clampConfidence = useCallback(
@@ -1578,7 +1618,9 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
     slots.forEach((slot) => {
       if (slot.tone === 'best') {
-        slot.badge = isKo ? '최적' : 'Best'
+        slot.badge = isKo ? '핵심' : 'Core'
+      } else if (slot.tone === 'caution') {
+        slot.badge = isKo ? '조절' : 'Pace'
       } else {
         slot.badge = null
       }
@@ -1643,6 +1685,29 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
             ? [isKo ? '리스크 구간' : 'Risk window']
             : [isKo ? '신호 정렬 양호' : 'Signals aligned']
       }
+
+      if (slot.whySummary && isGenericTimelineCopy(slot.whySummary) && slot.tone === 'neutral') {
+        slot.whySummary = undefined
+      }
+      if (slot.guardrail && isGenericTimelineCopy(slot.guardrail) && slot.tone === 'neutral') {
+        slot.guardrail = undefined
+      }
+      slot.evidenceSummary = (slot.evidenceSummary || [])
+        .filter((line, index, lines) => {
+          const normalized = normalizeTimelineSemanticKey(line)
+          if (!normalized) return false
+          const firstIndex = lines.findIndex(
+            (candidate) => normalizeTimelineSemanticKey(candidate) === normalized
+          )
+          if (firstIndex !== index) return false
+          if (slot.tone === 'neutral' && isGenericTimelineCopy(line)) return false
+          return true
+        })
+        .slice(0, slot.tone === 'neutral' ? 1 : 2)
+
+      if (slot.tone === 'neutral') {
+        slot.confidenceReason = undefined
+      }
     })
 
     return slots
@@ -1656,6 +1721,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     cleanText,
     baseInfo?.evidence?.confidence,
     intervalMinutes,
+    isGenericTimelineCopy,
     isKo,
   ])
 
@@ -1743,7 +1809,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
     if (cautionDays.length > 0) {
       const labels = cautionDays.map((entry) => formatDateLabel(entry.date)).join(', ')
-      pushItem(isKo ? `검토/방어일: ${labels}` : `Review/protect days: ${labels}`)
+      pushItem(isKo ? `검토/조정일: ${labels}` : `Review/adjust days: ${labels}`)
       pushItem(
         isKo ? '위험한 일은 실행 우선일로 이동' : 'Move risky tasks to execute-first days'
       )
@@ -1958,6 +2024,41 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       : `${peakText} timeline · ${cautionText}${precisionText ? ` · ${precisionText}` : ''}`
   }, [aiPrecisionMode, aiStatus, aiSummary, baseInfo, cleanText, isKo, resolvedPeakLevel])
 
+  const timelineHighlights = useMemo(() => {
+    const bestCount = timelineSlots.filter((slot) => slot.tone === 'best').length
+    const cautionCount = timelineSlots.filter((slot) => slot.tone === 'caution').length
+    const avgConfidence =
+      timelineSlots.length > 0
+        ? clampConfidence(
+            timelineSlots.reduce((sum, slot) => sum + (slot.confidence ?? 60), 0) /
+              timelineSlots.length
+          )
+        : 60
+    const leadBest = timelineSlots.find((slot) => slot.tone === 'best')
+    const leadCaution = timelineSlots.find((slot) => slot.tone === 'caution')
+
+    return [
+      isKo
+        ? `핵심 슬롯 ${bestCount}개`
+        : `${bestCount} core slots`,
+      isKo
+        ? `주의 슬롯 ${cautionCount}개`
+        : `${cautionCount} caution slots`,
+      isKo ? `평균 신뢰도 ${avgConfidence}%` : `Avg confidence ${avgConfidence}%`,
+      leadBest
+        ? isKo
+          ? `첫 실행 ${leadBest.label}`
+          : `First push ${leadBest.label}`
+        : leadCaution
+          ? isKo
+            ? `속도 조절 ${leadCaution.label}`
+            : `Pace at ${leadCaution.label}`
+          : isKo
+            ? '기본 리듬 유지'
+            : 'Keep a steady rhythm',
+    ]
+  }, [clampConfidence, isKo, timelineSlots])
+
   const todayInsight = useMemo(() => {
     if (evidenceLines[0]) return evidenceLines[0]
     return isKo
@@ -1970,8 +2071,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     const cautionCount = cautionDays.length
     const focusLabel = topCategory ? categoryLabel(topCategory) : isKo ? '전체' : 'general'
     return isKo
-      ? `실행/활용일 ${bestCount}회 · 검토/방어일 ${cautionCount}회 · ${focusLabel} 중심 배치`
-      : `${bestCount} execute/leverage slots · ${cautionCount} review/protect slots · ${focusLabel} focus`
+      ? `실행/활용일 ${bestCount}회 · 검토/조정일 ${cautionCount}회 · ${focusLabel} 중심 배치`
+      : `${bestCount} execute/leverage slots · ${cautionCount} review/adjust slots · ${focusLabel} focus`
   }, [bestDays.length, cautionDays.length, topCategory, categoryLabel, isKo])
 
   const actionPlanInsights = useMemo<ActionPlanInsights>(() => {
@@ -2086,7 +2187,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     }
     if (cautionDayChips.length > 0) {
       lines.push(
-        `${isKo ? '검토/방어일' : 'Review/Protect days'}: ${cautionDayChips.map((chip) => chip.label).join(', ')}`
+        `${isKo ? '검토/조정일' : 'Review/Adjust days'}: ${cautionDayChips.map((chip) => chip.label).join(', ')}`
       )
     }
     lines.push(isKo ? '오늘 체크리스트' : 'Today Checklist')
@@ -2300,7 +2401,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         {cautionDayChips.length > 0 && (
           <div className={styles.actionPlanChipGroup}>
             <span className={styles.actionPlanChipLabel}>
-              {isKo ? '검토/방어일' : 'Review/Protect days'}
+              {isKo ? '검토/조정일' : 'Review/Adjust days'}
             </span>
             {cautionDayChips.map((chip) => (
               <span
@@ -2444,14 +2545,23 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
             </div>
           </div>
           <p className={styles.actionPlanInsightLine}>{timelineInsight}</p>
+          <div className={styles.actionPlanTimelineHighlights}>
+            {timelineHighlights.map((item) => (
+              <span key={item} className={styles.actionPlanTimelineHighlightChip}>
+                {item}
+              </span>
+            ))}
+          </div>
           <div className={styles.actionPlanTimelineGrid} role="list">
             {timelineSlots.map((slot) =>
               (() => {
                 const whyMetaLabel = formatWhyMetaLabel(slot)
+                const isExpandedSlot = slot.tone !== 'neutral' || activeRhythmHour === slot.hour
                 const hasDetailPanel = Boolean(
-                  whyMetaLabel ||
-                  (slot.confidenceReason && slot.confidenceReason.length > 0) ||
-                  (slot.evidenceSummary && slot.evidenceSummary.length > 0)
+                  isExpandedSlot &&
+                    (whyMetaLabel ||
+                      (slot.confidenceReason && slot.confidenceReason.length > 0) ||
+                      (slot.evidenceSummary && slot.evidenceSummary.length > 0))
                 )
 
                 return (
@@ -2462,6 +2572,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
                       timelineSlotRefs.current[`${slot.hour}-${slot.minute ?? 0}`] = node
                     }}
                     className={`${styles.actionPlanTimelineSlot} ${
+                      !isExpandedSlot ? styles.actionPlanTimelineSlotCompact : ''
+                    } ${
                       slot.tone === 'best'
                         ? styles.actionPlanTimelineSlotBest
                         : slot.tone === 'caution'
@@ -2492,7 +2604,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
                       )}
                     </div>
                     <div className={styles.actionPlanTimelineMetaRow}>
-                      {typeof slot.confidence === 'number' && (
+                      {typeof slot.confidence === 'number' && isExpandedSlot && (
                         <div className={styles.actionPlanTimelineConfidence}>
                           {isKo ? '신뢰도' : 'Confidence'} {slot.confidence}%
                         </div>
@@ -2511,7 +2623,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
                       )}
                     </div>
                     <div className={styles.actionPlanTimelineNote}>{slot.note}</div>
-                    {slot.whySummary && (
+                    {slot.whySummary && isExpandedSlot && (
                       <div className={styles.actionPlanTimelineWhy}>
                         <span className={styles.actionPlanTimelineWhyLabel}>
                           {isKo ? '왜 이 시간대인가' : 'Why this slot'}
@@ -2519,12 +2631,17 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
                         <span>{slot.whySummary}</span>
                       </div>
                     )}
-                    {slot.guardrail && (
+                    {slot.guardrail && isExpandedSlot && (
                       <div className={styles.actionPlanTimelineGuardrail}>
                         <span className={styles.actionPlanTimelineGuardrailLabel}>
                           {isKo ? '안전장치' : 'Guardrail'}
                         </span>
                         <span>{slot.guardrail}</span>
+                      </div>
+                    )}
+                    {!isExpandedSlot && slot.evidenceSummary && slot.evidenceSummary.length > 0 && (
+                      <div className={styles.actionPlanTimelineCompactHint}>
+                        {slot.evidenceSummary[0]}
                       </div>
                     )}
                     {hasDetailPanel && (

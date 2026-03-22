@@ -89,7 +89,7 @@ const DayCell = React.memo(function DayCell({
     if (grade === 1) return locale === 'ko' ? '활용 우선' : 'Leverage-first'
     if (grade === 2) return locale === 'ko' ? '운영 우선' : 'Operate-first'
     if (grade === 3) return locale === 'ko' ? '검토 우선' : 'Review-first'
-    return locale === 'ko' ? '방어 우선' : 'Protect-first'
+    return locale === 'ko' ? '조정 우선' : 'Adjust-first'
   }
 
   const ariaLabel = date

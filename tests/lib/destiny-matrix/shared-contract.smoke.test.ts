@@ -271,6 +271,7 @@ describe('destiny shared contract smoke', () => {
       matrixSummary,
       signalSynthesis: core.signalSynthesis,
       strategyEngine: core.strategyEngine,
+      core,
       birthDate: '1995-02-09',
     })
 
@@ -282,6 +283,7 @@ describe('destiny shared contract smoke', () => {
       matrixSummary,
       signalSynthesis: core.signalSynthesis,
       strategyEngine: core.strategyEngine,
+      core,
       birthDate: '1995-02-09',
     })
 
@@ -297,6 +299,7 @@ describe('destiny shared contract smoke', () => {
     expect(counselorPacket.topClaims.length).toBeGreaterThan(0)
     expect(calendarPacket.topAnchors.length).toBeGreaterThan(0)
     expect(counselorPacket.topAnchors.length).toBeGreaterThan(0)
+    expect(counselorPacket.topClaims[0]?.provenanceSummary?.length || 0).toBeGreaterThan(0)
 
     calendarPacket.topClaims.forEach((claim) => expect(reportClaimIds.has(claim.id)).toBe(true))
     counselorPacket.topClaims.forEach((claim) => expect(reportClaimIds.has(claim.id)).toBe(true))

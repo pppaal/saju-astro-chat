@@ -7,7 +7,11 @@ import { apiClient } from '@/lib/api/ApiClient'
 import { prisma } from '@/lib/db/prisma'
 import { captureServerError } from '@/lib/telemetry'
 import { enforceBodySize, fetchWithRetry } from '@/lib/http'
-import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withCredits'
+import {
+  applyCreditResultCookies,
+  checkAndConsumeCredits,
+  creditErrorResponse,
+} from '@/lib/credits/withCredits'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { tarotInterpretRequestSchema } from '@/lib/api/zodValidation'
@@ -643,6 +647,7 @@ export const POST = withApiMiddleware(
     let fallbackCards: CardInput[] = []
     let fallbackLanguage = 'ko'
     let fallbackQuestion: string | undefined
+    let creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null = null
     const startedAt = Date.now()
     let interpretationSource: 'backend_rag' | 'gpt_fallback' | 'emergency_fallback' = 'backend_rag'
 
@@ -736,7 +741,7 @@ export const POST = withApiMiddleware(
         ? contextForPrompt(astroContext, parsedAstroContext)
         : undefined
 
-      const creditResult = await checkAndConsumeCredits('reading', 1)
+      creditResult = await checkAndConsumeCredits('reading', 1, req)
       if (!creditResult.allowed) {
         recordCounter('tarot.interpret.request_total', 1, { stage: 'credit_denied' })
         return creditErrorResponse(creditResult)
@@ -879,7 +884,8 @@ export const POST = withApiMiddleware(
         }
       }
 
-      return NextResponse.json(finalizedResult)
+      const response = NextResponse.json(finalizedResult)
+      return applyCreditResultCookies(response, creditResult)
     } catch (err: unknown) {
       captureServerError(err as Error, { route: '/api/tarot/interpret' })
 
@@ -906,7 +912,8 @@ export const POST = withApiMiddleware(
         cardCount: fallbackCards.length,
         elapsedMs,
       })
-      return NextResponse.json(fallbackWithSource, { status: HTTP_STATUS.OK })
+      const response = NextResponse.json(fallbackWithSource, { status: HTTP_STATUS.OK })
+      return applyCreditResultCookies(response, creditResult)
     }
   },
   createPublicStreamGuard({

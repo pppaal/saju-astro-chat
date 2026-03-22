@@ -128,6 +128,9 @@ export interface AIPremiumReport {
       coreQualityScore?: number
       coreQualityGrade?: 'A' | 'B' | 'C' | 'D'
       coreQualityWarningCount?: number
+      coreQualityWarnings?: string[]
+      coreQualityBlockingWarningCount?: number
+      coreQualityBlockingWarnings?: string[]
       coreQualityPass?: boolean
       sectionCompletenessRate?: number
       avgEvidencePerParagraph?: number

@@ -61,6 +61,8 @@ const InlineTarotModal = memo(function InlineTarotModal({
   });
 
   const { state, actions, recommendedSpreads } = stateManager;
+  const questionSummary = state.questionAnalysis?.question_summary?.trim();
+  const directAnswer = state.questionAnalysis?.direct_answer?.trim();
 
   // API hook
   const api = useInlineTarotAPI({
@@ -196,6 +198,9 @@ const InlineTarotModal = memo(function InlineTarotModal({
             <SpreadSelectStep
               tr={tr}
               lang={lang}
+              concern={state.concern}
+              questionSummary={questionSummary}
+              directAnswer={directAnswer}
               recommendedSpreads={recommendedSpreads}
               onSelect={handleSpreadSelect}
             />
@@ -208,6 +213,8 @@ const InlineTarotModal = memo(function InlineTarotModal({
               lang={lang}
               selectedSpread={state.selectedSpread}
               aiReason={state.aiReason}
+              questionSummary={questionSummary}
+              directAnswer={directAnswer}
               drawnCards={state.drawnCards}
               revealedCount={state.revealedCount}
               isDrawing={state.isDrawing}
@@ -226,6 +233,8 @@ const InlineTarotModal = memo(function InlineTarotModal({
               tr={tr}
               lang={lang}
               state={state}
+              questionSummary={questionSummary}
+              directAnswer={directAnswer}
               onDrawAgain={actions.resetForDrawAgain}
               onSave={api.saveReading}
               onComplete={handleComplete}
@@ -289,14 +298,37 @@ function ConcernStep({ tr, concern, isAnalyzing, onConcernChange, onNext, onAuto
 interface SpreadSelectStepProps {
   tr: ReturnType<typeof getTarotTranslations>;
   lang: LangKey;
+  concern: string;
+  questionSummary?: string;
+  directAnswer?: string;
   recommendedSpreads: Spread[];
   onSelect: (spread: Spread) => void;
 }
 
-function SpreadSelectStep({ tr, lang, recommendedSpreads, onSelect }: SpreadSelectStepProps) {
+function SpreadSelectStep({
+  tr,
+  lang,
+  concern,
+  questionSummary,
+  directAnswer,
+  recommendedSpreads,
+  onSelect,
+}: SpreadSelectStepProps) {
   return (
     <div className={styles.stepContent}>
       <h3 className={styles.stepTitle}>{tr.spreadTitle}</h3>
+      {(concern || directAnswer || questionSummary) && (
+        <div className={styles.concernDisplay}>
+          {concern && (
+            <>
+              <span className={styles.concernLabel}>Q.</span>
+              <span className={styles.concernText}>{concern}</span>
+            </>
+          )}
+          {directAnswer && <p className={styles.aiReasonText}>{directAnswer}</p>}
+          {questionSummary && <p className={styles.hint}>{questionSummary}</p>}
+        </div>
+      )}
       <div className={styles.spreadGrid}>
         {recommendedSpreads.map((spread) => (
           <button
@@ -332,13 +364,26 @@ interface CardDrawStepProps {
   lang: LangKey;
   selectedSpread: Spread | null;
   aiReason: string;
+  questionSummary?: string;
+  directAnswer?: string;
   drawnCards: Array<{ card: { name: string; nameKo?: string; image: string; upright: { keywords: string[]; keywordsKo?: string[] }; reversed: { keywords: string[]; keywordsKo?: string[] } }; isReversed: boolean }>;
   revealedCount: number;
   isDrawing: boolean;
   onDraw: () => void;
 }
 
-function CardDrawStep({ tr, lang, selectedSpread, aiReason, drawnCards, revealedCount, isDrawing, onDraw }: CardDrawStepProps) {
+function CardDrawStep({
+  tr,
+  lang,
+  selectedSpread,
+  aiReason,
+  questionSummary,
+  directAnswer,
+  drawnCards,
+  revealedCount,
+  isDrawing,
+  onDraw,
+}: CardDrawStepProps) {
   return (
     <div className={styles.stepContent}>
       <h3 className={styles.stepTitle}>
@@ -346,6 +391,13 @@ function CardDrawStep({ tr, lang, selectedSpread, aiReason, drawnCards, revealed
           ? selectedSpread?.titleKo || selectedSpread?.title
           : selectedSpread?.title}
       </h3>
+
+      {directAnswer && (
+        <p className={styles.resultText}>
+          <strong>{lang === "ko" ? "핵심 답변:" : "Direct answer:"}</strong> {directAnswer}
+        </p>
+      )}
+      {questionSummary && <p className={styles.hint}>{questionSummary}</p>}
 
       {aiReason && (
         <p className={styles.aiReasonText}>✨ {aiReason}</p>
@@ -439,13 +491,15 @@ interface ResultStepProps {
   tr: ReturnType<typeof getTarotTranslations>;
   lang: LangKey;
   state: ReturnType<typeof useInlineTarotState>["state"];
+  questionSummary?: string;
+  directAnswer?: string;
   onDrawAgain: () => void;
   onSave: () => void;
   onComplete: () => void;
   onDeeper: () => void;
 }
 
-function ResultStep({ tr, lang, state, onDrawAgain, onSave, onComplete, onDeeper }: ResultStepProps) {
+function ResultStep({ tr, lang, state, questionSummary, directAnswer, onDrawAgain, onSave, onComplete, onDeeper }: ResultStepProps) {
   const { concern, selectedSpread, drawnCards, cardInsights, overallMessage, guidance, affirmation, isSaving, isSaved } = state;
 
   return (
@@ -453,8 +507,19 @@ function ResultStep({ tr, lang, state, onDrawAgain, onSave, onComplete, onDeeper
       {/* Current Concern Display */}
       {concern && (
         <div className={styles.concernDisplay}>
-          <span className={styles.concernLabel}>💭 {tr.yourConcern}:</span>
+          <span className={styles.concernLabel}>Q. {tr.yourConcern}:</span>
           <span className={styles.concernText}>{concern}</span>
+        </div>
+      )}
+
+      {(directAnswer || questionSummary) && (
+        <div className={styles.resultSection}>
+          {directAnswer && (
+            <p className={styles.resultText}>
+              <strong>{lang === "ko" ? "핵심 답변:" : "Direct answer:"}</strong> {directAnswer}
+            </p>
+          )}
+          {questionSummary && <p className={styles.resultText}>{questionSummary}</p>}
         </div>
       )}
 
@@ -540,3 +605,5 @@ function ResultStep({ tr, lang, state, onDrawAgain, onSave, onComplete, onDeeper
     </div>
   );
 }
+
+

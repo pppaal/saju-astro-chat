@@ -4,6 +4,7 @@
 
 'use client'
 
+import Link from 'next/link'
 import Image from 'next/image'
 import BackButton from '@/components/ui/BackButton'
 import CreditBadge from '@/components/ui/CreditBadge'
@@ -18,6 +19,8 @@ interface DeckSelectorProps {
   userTopic: string
   personalizationOptions: TarotPersonalizationOptions
   language: string
+  isGuestUser: boolean
+  signInUrl: string
   onColorSelect: (color: (typeof CARD_COLORS)[0]) => void
   onStartReading: () => void
   onPersonalizationChange: (key: keyof TarotPersonalizationOptions, value: boolean) => void
@@ -29,6 +32,8 @@ export default function DeckSelector({
   userTopic,
   personalizationOptions,
   language,
+  isGuestUser,
+  signInUrl,
   onColorSelect,
   onStartReading,
   onPersonalizationChange,
@@ -52,6 +57,19 @@ export default function DeckSelector({
               <span className={styles.questionQuote}>&quot;</span>
               <p className={styles.userQuestionText}>{userTopic}</p>
               <span className={styles.questionQuote}>&quot;</span>
+            </div>
+          )}
+
+          {isGuestUser && (
+            <div className={styles.guestTrialBanner}>
+              <p className={styles.guestTrialText}>
+                {isKo
+                  ? '비로그인 무료 1회 체험 중입니다. 이번 리딩은 끝까지 볼 수 있고, 다음 리딩부터는 로그인이 필요합니다.'
+                  : 'You are using the one free guest reading. This reading will complete, and the next one will require sign-in.'}
+              </p>
+              <Link href={signInUrl} className={styles.guestTrialLink}>
+                {isKo ? '지금 로그인' : 'Sign In Now'}
+              </Link>
             </div>
           )}
 

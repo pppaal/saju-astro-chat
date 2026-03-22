@@ -149,6 +149,51 @@ const ALLOWED_LONG_REWRITE_TOKENS = new Set([
   'crossevidence',
 ])
 
+const GENERIC_ADVICE_PATTERNS = [
+  /기준을\s*정리/giu,
+  /속도(?:를)?\s*조절/giu,
+  /확정보다\s*재확인/giu,
+  /단계적\s*합의/giu,
+  /조건\s*확인/giu,
+  /recheck\s+before\s+commit/giu,
+  /slow\s+down\s+and\s+recheck/giu,
+  /clarify\s+conditions/giu,
+]
+
+const SECTION_ROLE_FORBIDDEN_PATTERNS: Array<{
+  match: RegExp
+  rules: Array<{ pattern: RegExp; label: string }>
+}> = [
+  {
+    match: /career|strategy/iu,
+    rules: [
+      { pattern: /거리\s*조정|경계\s*재설정|관계\s*속도|기대치\s*조정/giu, label: 'relationship-jargon' },
+      { pattern: /distance\s+tuning|boundary\s+reset|expectation\s+alignment/giu, label: 'relationship-jargon' },
+    ],
+  },
+  {
+    match: /relationship|love|communication/iu,
+    rules: [
+      { pattern: /역할\s*범위|책임\s*범위|평가\s*기준|직무|보상\s*구조/giu, label: 'career-jargon' },
+      { pattern: /role\s+scope|ownership|evaluation\s+criteria|compensation|job\s+scope/giu, label: 'career-jargon' },
+    ],
+  },
+  {
+    match: /wealth|money|risk/iu,
+    rules: [
+      { pattern: /거리\s*조정|관계\s*속도|경계\s*재설정/giu, label: 'relationship-jargon' },
+      { pattern: /distance\s+tuning|boundary\s+reset/giu, label: 'relationship-jargon' },
+    ],
+  },
+  {
+    match: /health|energy|recovery/iu,
+    rules: [
+      { pattern: /직무|평가\s*기준|성과|보상\s*구조/giu, label: 'career-jargon' },
+      { pattern: /job\s+scope|evaluation\s+criteria|performance|compensation/giu, label: 'career-jargon' },
+    ],
+  },
+]
+
 function compactToken(value: string): string {
   return value
     .toLowerCase()
@@ -472,6 +517,102 @@ function unique<T>(values: T[]): T[] {
   return [...new Set(values)]
 }
 
+function toSentenceKeys(text: string): string[] {
+  return text
+    .split(/[.!?\n]+/)
+    .map((segment) =>
+      String(segment || '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .toLowerCase()
+    )
+    .filter((segment) => segment.length >= 18)
+}
+
+function countCrossSectionRepetition(
+  rewrittenSections: Record<string, unknown>,
+  sectionPaths: string[]
+): number {
+  const seen = new Map<string, Set<string>>()
+  for (const path of sectionPaths) {
+    const text = getPathText(rewrittenSections, path)
+    if (!text) continue
+    for (const key of toSentenceKeys(text)) {
+      const bucket = seen.get(key) || new Set<string>()
+      bucket.add(path)
+      seen.set(key, bucket)
+    }
+  }
+  let repeated = 0
+  for (const paths of seen.values()) {
+    if (paths.size >= 2) repeated += 1
+  }
+  return repeated
+}
+
+function countGenericAdviceHits(text: string): number {
+  return GENERIC_ADVICE_PATTERNS.reduce((count, pattern) => {
+    const matches = text.match(pattern)
+    return count + (matches?.length || 0)
+  }, 0)
+}
+
+function getSectionRoleViolations(path: string, text: string): string[] {
+  const matchedRule = SECTION_ROLE_FORBIDDEN_PATTERNS.find((entry) => entry.match.test(path))
+  if (!matchedRule) return []
+  return matchedRule.rules
+    .filter((rule) => rule.pattern.test(text))
+    .map((rule) => rule.label)
+}
+
+function buildSectionRoleInstructions(lang: ReportLang, sectionPaths: string[]): string[] {
+  const rules = new Map<string, string>()
+  for (const path of sectionPaths) {
+    const key = path.toLowerCase()
+    if ((key.includes('career') || key.includes('strategy')) && !rules.has('career')) {
+      rules.set(
+        'career',
+        lang === 'ko'
+          ? '- career/strategy 섹션은 역할, 책임, 평가 기준, 직무 방향만 다루고 관계 거리 조정 문장을 넣지 마세요.'
+          : '- career/strategy sections must stay on role, ownership, evaluation criteria, and work direction only; do not drift into relationship boundary language.'
+      )
+    }
+    if ((key.includes('relationship') || key.includes('love') || key.includes('communication')) && !rules.has('relationship')) {
+      rules.set(
+        'relationship',
+        lang === 'ko'
+          ? '- relationship/love 섹션은 거리, 경계, 기대치, 합의 속도만 다루고 직무/성과/보상 문장을 넣지 마세요.'
+          : '- relationship/love sections must stay on distance, boundaries, expectations, and agreement speed only; do not drift into job/performance/compensation language.'
+      )
+    }
+    if ((key.includes('wealth') || key.includes('money') || key.includes('risk')) && !rules.has('wealth')) {
+      rules.set(
+        'wealth',
+        lang === 'ko'
+          ? '- wealth/risk 섹션은 유입, 누수, 손실 상한, 조건 검토만 다루고 관계 거리 조정 문장을 넣지 마세요.'
+          : '- wealth/risk sections must stay on inflow, leakage, downside caps, and condition review only; do not drift into relationship boundary language.'
+      )
+    }
+    if ((key.includes('health') || key.includes('energy') || key.includes('recovery')) && !rules.has('health')) {
+      rules.set(
+        'health',
+        lang === 'ko'
+          ? '- health/recovery 섹션은 과부하, 회복, 루틴, 휴식 리듬만 다루고 직무/평가 문장을 넣지 마세요.'
+          : '- health/recovery sections must stay on overload, recovery, routine, and rest rhythm only; do not drift into job/evaluation language.'
+      )
+    }
+    if ((key.includes('life') || key.includes('mission') || key.includes('overview')) && !rules.has('life')) {
+      rules.set(
+        'life',
+        lang === 'ko'
+          ? '- life/mission/overview 섹션은 장기 흐름과 인생 축을 다루고, 다른 섹션 문장을 그대로 반복하지 마세요.'
+          : '- life/mission/overview sections must focus on the long arc and life track; do not reuse sentences from other sections.'
+      )
+    }
+  }
+  return [...rules.values()]
+}
+
 function validateRewriteOnlyOutput(
   draftSections: Record<string, unknown>,
   rewrittenSections: Record<string, unknown>,
@@ -538,6 +679,21 @@ function validateRewriteOnlyOutput(
         reasons.push(`must-keep-missing:${path}:${missing.slice(0, 6).join(',')}`)
       }
     }
+
+    const genericAdviceHits = countGenericAdviceHits(rewrittenText)
+    if (genericAdviceHits >= 2) {
+      reasons.push(`generic-advice:${path}:count=${genericAdviceHits}`)
+    }
+
+    const roleViolations = getSectionRoleViolations(path, rewrittenText)
+    if (roleViolations.length > 0) {
+      reasons.push(`section-role:${path}:${roleViolations.join(',')}`)
+    }
+  }
+
+  const repeatedSentenceCount = countCrossSectionRepetition(rewrittenSections, sectionPaths)
+  if (repeatedSentenceCount >= 4) {
+    reasons.push(`cross-section-repetition:${repeatedSentenceCount}`)
   }
   return { pass: reasons.length === 0, reasons }
 }
@@ -554,6 +710,7 @@ function buildRewriteOnlyPrompt(
   const refs = JSON.stringify(evidenceRefs, null, 2)
   const blocks = JSON.stringify(blocksBySection || {}, null, 2)
   if (lang === 'ko') {
+    const sectionRoleInstructions = buildSectionRoleInstructions(lang, sectionPaths)
     return [
       'You are a rewrite-only Korean editor.',
       'Polish tone and readability only. Keep meaning and facts exactly the same.',
@@ -565,9 +722,12 @@ function buildRewriteOnlyPrompt(
       '- Keep section keys and structure unchanged',
       '- Keep minimum section length',
       '- Avoid repetitive sentence templates and repetitive endings',
+      '- Do not reuse the same sentence across multiple sections',
+      '- Do not fall back to generic advice such as 기준 정리, 속도 조절, 확정보다 재확인, 단계적 합의, 조건 확인 unless that wording already exists in the draft and is directly grounded',
       '- Avoid bureaucratic wording: 영역, 구간, 프로토콜, 운영, 핵심은',
       '- Use natural, vivid Korean prose with varied rhythm',
       '- Include practical micro-context without adding facts',
+      ...sectionRoleInstructions,
       `- minimum length: ${minCharsPerSection} chars`,
       `- target sections: ${sectionPaths.join(', ')}`,
       'evidenceRefs:',
@@ -579,6 +739,7 @@ function buildRewriteOnlyPrompt(
       'Return JSON only',
     ].join('\n')
   }
+  const sectionRoleInstructions = buildSectionRoleInstructions(lang, sectionPaths)
   return [
     'You are a rewrite-only editor.',
     'Polish prose only. Keep meaning and facts exactly the same.',
@@ -590,7 +751,10 @@ function buildRewriteOnlyPrompt(
     '- Keep section keys and structure unchanged',
     `- Keep minimum ${minCharsPerSection} chars per section`,
     '- Avoid repetitive sentence templates and bureaucratic tone',
+    '- Do not reuse the same sentence across multiple sections',
+    '- Do not fall back to generic advice such as slow down and recheck, clarify conditions, or recheck before commitment unless that exact wording is already grounded in the draft',
     '- Add practical context wording without adding facts',
+    ...sectionRoleInstructions,
     `- Target sections: ${sectionPaths.join(', ')}`,
     'evidenceRefs:',
     refs,

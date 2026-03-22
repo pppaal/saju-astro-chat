@@ -38,6 +38,7 @@ import {
   initializeUserCredits,
 } from '@/lib/credits/creditService'
 import {
+  applyCreditResultCookies,
   checkAndConsumeCredits,
   checkCreditsOnly,
   creditErrorResponse,
@@ -57,6 +58,22 @@ describe('withCredits helpers', () => {
   })
 
   describe('checkAndConsumeCredits', () => {
+    it('should allow anonymous interpretation when guest pass cookie exists', async () => {
+      vi.mocked(getServerSession).mockResolvedValue(null)
+
+      const result = await checkAndConsumeCredits('reading', 1, {
+        cookies: {
+          get: (name: string) =>
+            name === 'tarot_guest_interpret_pass' ? { value: '1' } : undefined,
+        },
+      })
+
+      expect(result.allowed).toBe(true)
+      expect(result.guestReadingAccess).toBe('interpret_granted')
+      expect(canUseCredits).not.toHaveBeenCalled()
+      expect(consumeCredits).not.toHaveBeenCalled()
+    })
+
     it('should return not_authenticated when no session', async () => {
       vi.mocked(getServerSession).mockResolvedValue(null)
 
@@ -196,8 +213,22 @@ describe('withCredits helpers', () => {
 
       const result = await checkCreditsOnly('reading', 1)
 
+      expect(result.allowed).toBe(true)
+      expect(result.guestReadingAccess).toBe('draw_granted')
+    })
+
+    it('should reject anonymous draw when guest reading was already used', async () => {
+      vi.mocked(getServerSession).mockResolvedValue(null)
+
+      const result = await checkCreditsOnly('reading', 1, {
+        cookies: {
+          get: (name: string) =>
+            name === 'tarot_guest_reading_used' ? { value: '1' } : undefined,
+        },
+      })
+
       expect(result.allowed).toBe(false)
-      expect(result.errorCode).toBe('not_authenticated')
+      expect(result.errorCode).toBe('guest_limit_reached')
     })
 
     it('should bypass credits when BYPASS_CREDITS is true', async () => {
@@ -268,6 +299,45 @@ describe('withCredits helpers', () => {
       })
 
       expect(result).toBeInstanceOf(NextResponse)
+    })
+
+    it('should return 401 for guest limit reached', () => {
+      const result = creditErrorResponse({
+        allowed: false,
+        error: '무료 체험 리딩은 이미 사용했습니다. 로그인 후 계속 이용하세요.',
+        errorCode: 'guest_limit_reached',
+      })
+
+      expect(result).toBeInstanceOf(NextResponse)
+    })
+  })
+
+  describe('applyCreditResultCookies', () => {
+    it('should set guest draw and interpret cookies when guest draw is granted', () => {
+      const response = NextResponse.json({ ok: true })
+
+      applyCreditResultCookies(response, {
+        allowed: true,
+        guestReadingAccess: 'draw_granted',
+      })
+
+      const cookieHeader = response.headers.get('set-cookie') || ''
+      expect(cookieHeader).toContain('tarot_guest_reading_used=1')
+      expect(cookieHeader).toContain('tarot_guest_interpret_pass=1')
+    })
+
+    it('should clear interpret pass when guest interpretation is granted', () => {
+      const response = NextResponse.json({ ok: true })
+
+      applyCreditResultCookies(response, {
+        allowed: true,
+        guestReadingAccess: 'interpret_granted',
+      })
+
+      const cookieHeader = response.headers.get('set-cookie') || ''
+      expect(cookieHeader).toContain('tarot_guest_reading_used=1')
+      expect(cookieHeader).toContain('tarot_guest_interpret_pass=')
+      expect(cookieHeader).toContain('Max-Age=0')
     })
   })
 

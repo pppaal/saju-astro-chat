@@ -31,22 +31,6 @@ interface UseInlineTarotAPIOptions {
   profile: Profile
 }
 
-function extractSseEvents(chunk: string, buffer: string) {
-  const merged = buffer + chunk
-  const normalized = merged.replace(/\r\n/g, '\n')
-  const parts = normalized.split('\n\n')
-  const nextBuffer = parts.pop() ?? ''
-  return { events: parts, nextBuffer }
-}
-
-function extractDataPayload(eventBlock: string): string {
-  return eventBlock
-    .split('\n')
-    .filter((line) => line.startsWith('data:'))
-    .map((line) => line.slice(5).trimStart())
-    .join('')
-}
-
 export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTarotAPIOptions) {
   const { state, actions, recommendedSpreads } = stateManager
   const {
@@ -193,7 +177,7 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
       }
 
       try {
-        const res = await fetch('/api/tarot/interpret/stream', {
+        const res = await fetch('/api/tarot/interpret', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -203,82 +187,30 @@ export function useInlineTarotAPI({ stateManager, lang, profile }: UseInlineTaro
           signal: abortControllerRef.current.signal,
         })
 
-        if (!res.ok || !res.body) {
-          throw new Error('Stream failed')
+        if (!res.ok) {
+          throw new Error('Interpretation failed')
         }
 
-        const reader = res.body.getReader()
-        const decoder = new TextDecoder()
-        const tempInsights: CardInsight[] = []
-        let sseBuffer = ''
+        const data = await res.json()
+        const nextOverall =
+          typeof data.overall_message === 'string' && data.overall_message.trim()
+            ? data.overall_message
+            : defaultOverallMessage
+        const nextGuidance =
+          typeof data.guidance === 'string' && data.guidance.trim()
+            ? data.guidance
+            : defaultGuidance
+        const nextAffirmation =
+          typeof data.affirmation === 'string' && data.affirmation.trim() ? data.affirmation : ''
+        const nextInsights = Array.isArray(data.card_insights)
+          ? (data.card_insights as CardInsight[])
+          : []
 
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) {
-            break
-          }
-
-          const chunk = decoder.decode(value, { stream: true })
-          const { events, nextBuffer } = extractSseEvents(chunk, sseBuffer)
-          sseBuffer = nextBuffer
-
-          for (const eventBlock of events) {
-            const data = extractDataPayload(eventBlock)
-            if (!data || data === '[DONE]') {
-              continue
-            }
-
-            try {
-              const parsed = JSON.parse(data)
-
-              if (parsed.section === 'overall_message') {
-                actions.setOverallMessage((prev: string) => prev + (parsed.content || ''))
-              } else if (parsed.section === 'card_insight') {
-                const idx = parsed.index ?? 0
-                if (!tempInsights[idx]) {
-                  tempInsights[idx] = {
-                    position: selectedSpread.positions[idx]?.title || '',
-                    card_name: cards[idx]?.card.name || '',
-                    is_reversed: cards[idx]?.isReversed || false,
-                    interpretation: '',
-                  }
-                }
-                tempInsights[idx].interpretation += parsed.content || ''
-                actions.setCardInsights([...tempInsights])
-
-                if (parsed.extras) {
-                  Object.assign(tempInsights[idx], parsed.extras)
-                  actions.setCardInsights([...tempInsights])
-                }
-              } else if (parsed.section === 'guidance') {
-                actions.setGuidance((prev: string) => prev + (parsed.content || ''))
-              } else if (parsed.section === 'affirmation') {
-                actions.setAffirmation((prev: string) => prev + (parsed.content || ''))
-              }
-            } catch {
-              // Skip malformed JSON
-            }
-          }
-        }
-
-        const finalPayload = extractDataPayload(sseBuffer)
-        if (finalPayload && finalPayload !== '[DONE]') {
-          try {
-            const parsed = JSON.parse(finalPayload)
-            if (parsed.section === 'overall_message' && typeof parsed.content === 'string') {
-              actions.setOverallMessage((prev: string) => prev + parsed.content)
-            }
-          } catch {
-            // Ignore tail parsing errors
-          }
-        }
-
-        const hasOverall = tempInsights.length > 0 || !!overallMessage.trim()
-        if (!hasOverall) {
-          actions.setOverallMessage(defaultOverallMessage)
-        }
-        if (!guidance.trim()) {
-          actions.setGuidance(defaultGuidance)
+        actions.setOverallMessage(nextOverall)
+        actions.setCardInsights(nextInsights)
+        actions.setGuidance(nextGuidance)
+        if (nextAffirmation) {
+          actions.setAffirmation(nextAffirmation)
         }
 
         actions.setStep('result')

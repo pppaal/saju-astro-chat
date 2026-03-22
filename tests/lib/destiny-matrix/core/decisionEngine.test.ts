@@ -80,6 +80,8 @@ function makeScenario(overrides: Partial<ScenarioResult> = {}): ScenarioResult {
     confidence: 0.74,
     window: '1-3m',
     timingRelevance: 0.72,
+    timingGranularity: 'fortnight',
+    precisionReason: 'month-level convergence is visible but exact dates stay capped',
     risk: 'test',
     reversible: true,
     actions: ['a', 'b'],

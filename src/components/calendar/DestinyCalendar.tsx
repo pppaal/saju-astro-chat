@@ -84,6 +84,9 @@ function buildFallbackCalendarData(year: number, locale: string): CalendarData {
     }
   }
 
+  const sortByScoreDesc = (a: ImportantDate, b: ImportantDate) => b.score - a.score
+  const sortByScoreAsc = (a: ImportantDate, b: ImportantDate) => a.score - b.score
+
   const summary = {
     total: allDates.length,
     grade0: allDates.filter((d) => d.grade === 0).length,
@@ -98,9 +101,9 @@ function buildFallbackCalendarData(year: number, locale: string): CalendarData {
     year,
     summary,
     allDates,
-    topDates: allDates.slice(0, 10),
-    goodDates: allDates.filter((d) => d.grade <= 2).slice(0, 30),
-    cautionDates: allDates.filter((d) => d.grade >= 3).slice(0, 30),
+    topDates: [...allDates].sort(sortByScoreDesc).slice(0, 10),
+    goodDates: allDates.filter((d) => d.grade <= 2).sort(sortByScoreDesc).slice(0, 30),
+    cautionDates: allDates.filter((d) => d.grade >= 3).sort(sortByScoreAsc).slice(0, 30),
   }
 }
 

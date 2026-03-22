@@ -21,6 +21,7 @@ import {
 } from '@/lib/destiny-matrix/core/decisionEngine'
 import { buildCoreCanonicalOutput } from '@/lib/destiny-matrix/core/canonical'
 import type { DestinyCoreCanonicalOutput } from '@/lib/destiny-matrix/core/types'
+import { normalizeMatrixInput } from '@/lib/destiny-matrix/core/inputNormalization'
 
 export type AvailabilityState = 'present' | 'empty-computed' | 'missing-upstream'
 
@@ -62,6 +63,13 @@ export interface DestinyCoreQuality {
   score: number
   grade: 'A' | 'B' | 'C' | 'D'
   warnings: string[]
+  dataQuality: {
+    missingFields: string[]
+    derivedFields: string[]
+    conflictingFields: string[]
+    qualityPenalties: string[]
+    confidenceReason: string
+  }
   metrics: {
     normalizedSignalCount: number
     selectedSignalCount: number
@@ -81,6 +89,96 @@ export interface DestinyCoreQuality {
     gatedDecisionCount: number
     domainConflictCount: number
     verificationBias: boolean
+    topScenarioGap: number
+    topDecisionGap: number
+    scenarioClusterCompression: number
+    focusDomainAmbiguity: number
+  }
+}
+
+function buildDataQualityMetadata(input: {
+  normalizedInput: MatrixCalculationInputNormalized
+  canonical: DestinyCoreCanonicalOutput
+  warnings: string[]
+  strategySumValid: boolean
+  focusDomainAmbiguity: number
+}): DestinyCoreQuality['dataQuality'] {
+  const profile = input.normalizedInput.profileContext
+  const missingFields = [
+    ...(profile?.birthDate ? [] : ['birthDate']),
+    ...(profile?.birthTime ? [] : ['birthTime']),
+    ...(profile?.timezone ? [] : ['timezone']),
+    ...(typeof profile?.latitude === 'number' && typeof profile?.longitude === 'number'
+      ? []
+      : ['coordinates']),
+    ...(input.normalizedInput.astroTimingIndex || input.normalizedInput.crossSnapshot?.astroTimingIndex
+      ? []
+      : ['astroTimingIndex']),
+    ...(input.normalizedInput.currentDaeunElement ? [] : ['currentDaeunElement']),
+    ...(input.normalizedInput.currentSaeunElement ? [] : ['currentSaeunElement']),
+    ...(input.normalizedInput.currentWolunElement ? [] : ['currentWolunElement']),
+    ...(input.normalizedInput.currentIljinElement || input.normalizedInput.currentIljinDate
+      ? []
+      : ['currentIljin']),
+    ...(input.normalizedInput.availability.activeTransits === 'missing-upstream'
+      ? ['activeTransits']
+      : []),
+    ...(input.normalizedInput.availability.shinsal === 'missing-upstream' ? ['shinsalList'] : []),
+    ...(input.normalizedInput.availability.advancedAstroSignals === 'missing-upstream'
+      ? ['advancedAstroSignals']
+      : []),
+  ]
+
+  const derivedFields = [
+    ...(String(input.normalizedInput.sajuSnapshot?.source || '').includes('auto-derived')
+      ? ['sajuSnapshot']
+      : []),
+    ...(String(input.normalizedInput.crossSnapshot?.source || '').includes('auto-derived')
+      ? ['crossSnapshot']
+      : []),
+    ...(input.normalizedInput.astrologySnapshot?.currentTransits ? ['astrologySnapshot.currentTransits'] : []),
+    ...(input.normalizedInput.currentIljinDate ? ['currentIljinDate'] : []),
+  ]
+
+  const conflictingFields = [
+    ...(typeof input.canonical.crossAgreement === 'number' && input.canonical.crossAgreement < 0.4
+      ? ['crossAgreement']
+      : []),
+    ...(input.canonical.coherenceAudit.domainConflictCount > 0 ? ['domainSignals'] : []),
+    ...(input.focusDomainAmbiguity >= 0.55 ? ['focusDomain'] : []),
+    ...(input.strategySumValid ? [] : ['strategyBalance']),
+  ]
+
+  const qualityPenalties = [
+    ...missingFields.map((field) => `missing:${field}`),
+    ...derivedFields.map((field) => `derived:${field}`),
+    ...conflictingFields.map((field) => `conflict:${field}`),
+    ...(input.warnings || []).map((warning) => `warning:${warning}`),
+  ]
+
+  const confidenceReasonParts: string[] = []
+  if (conflictingFields.length > 0) {
+    confidenceReasonParts.push(`conflicts in ${conflictingFields.join(', ')}`)
+  }
+  if (missingFields.length > 0) {
+    confidenceReasonParts.push(`missing ${missingFields.slice(0, 4).join(', ')}`)
+  }
+  if (derivedFields.length > 0) {
+    confidenceReasonParts.push(`derived support from ${derivedFields.slice(0, 3).join(', ')}`)
+  }
+  if (input.canonical.coherenceAudit.verificationBias) {
+    confidenceReasonParts.push('verification-first bias is active')
+  }
+  if (confidenceReasonParts.length === 0) {
+    confidenceReasonParts.push('inputs are sufficiently aligned and grounded')
+  }
+
+  return {
+    missingFields: [...new Set(missingFields)],
+    derivedFields: [...new Set(derivedFields)],
+    conflictingFields: [...new Set(conflictingFields)],
+    qualityPenalties: [...new Set(qualityPenalties)],
+    confidenceReason: confidenceReasonParts.join('; '),
   }
 }
 
@@ -153,9 +251,59 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
 }
 
+function round2(value: number): number {
+  return Math.round(value * 100) / 100
+}
+
 function scoreByThreshold(value: number, target: number, maxPoints: number): number {
   if (target <= 0) return maxPoints
   return clamp(Math.round((value / target) * maxPoints), 0, maxPoints)
+}
+
+function computeScenarioSharpness(scenarios: ScenarioResult[]): {
+  topScenarioGap: number
+  scenarioClusterCompression: number
+} {
+  const ranked = [...(scenarios || [])]
+    .sort((a, b) => (b.rawScore ?? b.probability) - (a.rawScore ?? a.probability))
+    .slice(0, 5)
+  if (ranked.length === 0) {
+    return { topScenarioGap: 0, scenarioClusterCompression: 0 }
+  }
+  const top = ranked[0]?.rawScore ?? ranked[0]?.probability ?? 0
+  const second = ranked[1]?.rawScore ?? ranked[1]?.probability ?? 0
+  const meanTop = ranked.reduce((sum, scenario) => sum + (scenario.rawScore ?? scenario.probability), 0) / ranked.length
+  const topScenarioGap = top > 0 ? round2((top - second) / top) : 0
+  const scenarioClusterCompression = top > 0 ? round2(clamp(meanTop / top, 0, 1)) : 0
+  return { topScenarioGap, scenarioClusterCompression }
+}
+
+function computeDecisionSharpness(decisionEngine: DecisionEngineResult): number {
+  const ranked = [...decisionEngine.options].sort((a, b) => b.scores.total - a.scores.total)
+  const top = ranked[0]?.scores.total ?? 0
+  const second = ranked[1]?.scores.total ?? 0
+  return top > 0 ? round2((top - second) / top) : 0
+}
+
+function computeFocusDomainAmbiguity(
+  focusDomain: string | null | undefined,
+  scenarios: ScenarioResult[],
+  options: DecisionEngineResult['options']
+): number {
+  if (!focusDomain) return 1
+  const topScenarios = [...scenarios]
+    .sort((a, b) => (b.rawScore ?? b.probability) - (a.rawScore ?? a.probability))
+    .slice(0, 5)
+  const topOptions = [...options].sort((a, b) => b.scores.total - a.scores.total).slice(0, 4)
+  const scenarioLeakage =
+    topScenarios.length === 0
+      ? 1
+      : topScenarios.filter((scenario) => scenario.domain !== focusDomain).length / topScenarios.length
+  const optionLeakage =
+    topOptions.length === 0
+      ? 1
+      : topOptions.filter((option) => option.domain !== focusDomain).length / topOptions.length
+  return round2(clamp(scenarioLeakage * 0.6 + optionLeakage * 0.4, 0, 1))
 }
 
 function buildDestinyCoreQuality(input: {
@@ -181,6 +329,13 @@ function buildDestinyCoreQuality(input: {
   const strategySumValid =
     input.strategyEngine.attackPercent + input.strategyEngine.defensePercent === 100
   const gatedDecisionCount = input.decisionEngine.options.filter((option) => option.gated).length
+  const { topScenarioGap, scenarioClusterCompression } = computeScenarioSharpness(input.scenarios)
+  const topDecisionGap = computeDecisionSharpness(input.decisionEngine)
+  const focusDomainAmbiguity = computeFocusDomainAmbiguity(
+    input.canonical.focusDomain,
+    input.scenarios,
+    input.decisionEngine.options
+  )
 
   let score = 0
   score += scoreByThreshold(input.signalSynthesis.selectedSignals.length, 7, 14)
@@ -203,6 +358,10 @@ function buildDestinyCoreQuality(input: {
   score += scoreByThreshold(input.decisionEngine.options.length, 9, 4)
   score += scoreByThreshold(input.decisionEngine.domains.length, 3, 3)
   score += gatedDecisionCount <= Math.ceil(Math.max(1, input.decisionEngine.options.length) * 0.5) ? 2 : 0
+  score += Math.round((1 - scenarioClusterCompression) * 6)
+  score += Math.round(topScenarioGap * 6)
+  score += Math.round(topDecisionGap * 6)
+  score += Math.round((1 - focusDomainAmbiguity) * 6)
 
   const warnings: string[] = []
   if (input.signalSynthesis.selectedSignals.length < 7) warnings.push('selected_signals_under_7')
@@ -219,6 +378,10 @@ function buildDestinyCoreQuality(input: {
   if (input.canonical.coherenceAudit.gatedDecision && gatedDecisionCount >= 3) {
     warnings.push('gated_decision_pressure_high')
   }
+  if (scenarioClusterCompression >= 0.94) warnings.push('scenario_cluster_compression_high')
+  if (topScenarioGap <= 0.03) warnings.push('top_scenario_gap_low')
+  if (topDecisionGap <= 0.05) warnings.push('top_decision_gap_low')
+  if (focusDomainAmbiguity >= 0.45) warnings.push('focus_domain_ambiguity_high')
   const specificVerificationAction = new Set([
     'review_first',
     'negotiate_first',
@@ -250,11 +413,19 @@ function buildDestinyCoreQuality(input: {
   const normalizedScore = clamp(score, 0, 100)
   const grade: DestinyCoreQuality['grade'] =
     normalizedScore >= 90 ? 'A' : normalizedScore >= 80 ? 'B' : normalizedScore >= 70 ? 'C' : 'D'
+  const dataQuality = buildDataQualityMetadata({
+    normalizedInput: input.normalizedInput,
+    canonical: input.canonical,
+    warnings,
+    strategySumValid,
+    focusDomainAmbiguity,
+  })
 
   return {
     score: normalizedScore,
     grade,
     warnings,
+    dataQuality,
     metrics: {
       normalizedSignalCount: input.signalSynthesis.normalizedSignals.length,
       selectedSignalCount: input.signalSynthesis.selectedSignals.length,
@@ -275,6 +446,10 @@ function buildDestinyCoreQuality(input: {
       gatedDecisionCount,
       domainConflictCount: input.canonical.coherenceAudit.domainConflictCount,
       verificationBias: input.canonical.coherenceAudit.verificationBias,
+      topScenarioGap,
+      topDecisionGap,
+      scenarioClusterCompression,
+      focusDomainAmbiguity,
     },
   }
 }
@@ -362,7 +537,7 @@ export function computeDestinyCoreHash(input: {
 }
 
 export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult {
-  const normalizedInput = buildNormalizedMatrixInput(params.matrixInput)
+  const normalizedInput = buildNormalizedMatrixInput(normalizeMatrixInput(params.matrixInput))
   const featureTokens = compileFeatureTokens(normalizedInput)
   const preActivation = buildActivationEngine({
     matrixInput: normalizedInput,
@@ -476,4 +651,3 @@ export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult 
     }),
   }
 }
-

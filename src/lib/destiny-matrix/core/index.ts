@@ -3,7 +3,6 @@ export * from './patternEngine'
 export * from './scenarioEngine'
 export * from './decisionEngine'
 export * from './signalSynthesizer'
-export * from './strategyEngine'
 export * from './canonical'
 export * from './adapters'
 export * from './types'
@@ -16,3 +15,14 @@ export * from './ruleEngine'
 export * from './stateEngine'
 export * from './evaluationSuite'
 export * from './nextGenPipeline'
+export * from './logging'
+export * from './inputNormalization'
+export {
+  buildPhaseStrategyEngine,
+  type DomainStrategy,
+  type Strategy3DVector,
+  type StrategyDomainWeights,
+  type StrategyEngineResult,
+  type StrategyPhaseCode,
+  type StrategyTimingContext,
+} from './strategyEngine'
