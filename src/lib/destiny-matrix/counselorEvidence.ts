@@ -1031,7 +1031,14 @@ export function buildCounselorEvidencePacket(params: {
           timingWindow: topManifestation.timingWindow,
         }
       : undefined,
-    whyStack: [...whyStack, conflictNarrative, trustNarrative, provenanceNarrative]
+    whyStack: [
+      ...whyStack,
+      topTimingWindow?.timingConflictNarrative || '',
+      topTimingWindow?.precisionReason || '',
+      conflictNarrative,
+      trustNarrative,
+      provenanceNarrative,
+    ]
       .filter(Boolean)
       .slice(0, 6),
   }

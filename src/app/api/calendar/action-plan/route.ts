@@ -1561,7 +1561,14 @@ function buildActionPlanInsights(input: {
         ? `IF 실행 전 확인 THEN ${softCheckCopy[0]}`
         : `Before execution, check this first: ${softCheckCopy[0]}`
     )
-  }`r`n  if (timingBrief) {`r`n    ifThenRules.unshift(`r`n      isKo ? ``IF 타이밍 해석 THEN ${timingBrief}`` : ``Timing read: ${timingBrief}```r`n    )`r`n  }
+  }
+  if (timingBrief) {
+    ifThenRules.unshift(
+      isKo
+        ? `IF \uD0C0\uC774\uBC0D \uD574\uC11D THEN ${timingBrief}`
+        : `Timing read: ${timingBrief}`
+    )
+  }
 
   const situationTriggers = unique(
     [
