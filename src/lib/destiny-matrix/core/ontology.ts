@@ -1,5 +1,6 @@
 ﻿import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
 import type { SignalDomain } from './signalSynthesizer'
+import { repairMojibakeText } from '@/lib/text/mojibake'
 
 export type SemanticAxis =
   | 'retreat'
@@ -114,8 +115,8 @@ const TWELVE_STAGE_ONTOLOGY: Record<string, { domains: SignalDomain[]; axes: Sem
 }
 
 export function mapShinsalOntology(shinsal: string): Pick<OntologyToken, 'domainHints' | 'axes' | 'weight' | 'role'> {
-  const raw = String(shinsal || '')
-  if (/화개|í™”ê°œ|華蓋/i.test(raw)) {
+  const raw = repairMojibakeText(String(shinsal || ''))
+  if (/화개|華蓋/i.test(raw)) {
     return {
       domainHints: ['spirituality', 'relationship', 'personality'],
       axes: ['retreat', 'meaning', 'selective_distance', 'deep_work'],
@@ -123,7 +124,7 @@ export function mapShinsalOntology(shinsal: string): Pick<OntologyToken, 'domain
       role: 'modulator',
     }
   }
-  if (/역마|ì—­ë§ˆ|驛馬/i.test(raw)) {
+  if (/역마|驛馬/i.test(raw)) {
     return {
       domainHints: ['move', 'career', 'timing'],
       axes: ['mobility', 'transition', 'expansion'],
@@ -131,7 +132,7 @@ export function mapShinsalOntology(shinsal: string): Pick<OntologyToken, 'domain
       role: 'modulator',
     }
   }
-  if (/도화|홍염|ë„í™”|í™ì—¼/i.test(raw)) {
+  if (/도화|홍염/i.test(raw)) {
     return {
       domainHints: ['relationship', 'personality'],
       axes: ['bonding', 'visibility'],
@@ -139,7 +140,7 @@ export function mapShinsalOntology(shinsal: string): Pick<OntologyToken, 'domain
       role: 'modulator',
     }
   }
-  if (/천을귀인|태극귀인|문창귀인|학당귀인|금여록|암록|건록|제왕|ì²œì„ê·€ì¸|íƒœê·¹ê·€ì¸|ë¬¸ì°½ê·€ì¸|í•™ë‹¹ê·€ì¸|ê¸ˆì—¬ë¡|ì•”ë¡|ê±´ë¡|ì œì™•/i.test(raw)) {
+  if (/천을귀인|태극귀인|문창귀인|학당귀인|금여록|암록|건록|제왕/i.test(raw)) {
     return {
       domainHints: ['career', 'wealth', 'personality'],
       axes: ['expansion', 'structure', 'meaning'],
@@ -147,7 +148,7 @@ export function mapShinsalOntology(shinsal: string): Pick<OntologyToken, 'domain
       role: 'modulator',
     }
   }
-  if (/백호|망신|고신|괴강|현침|귀문관|병부|상문|ë°±í˜¸|ë§ì‹ |ê³ ì‹ |ê´´ê°•|í˜„ì¹¨|ê·€ë¬¸ê´€|ë³‘ë¶€|ìƒë¬¸/i.test(raw)) {
+  if (/백호|망신|고신|괴강|현침|귀문관|병부|상문/i.test(raw)) {
     return {
       domainHints: ['health', 'relationship', 'timing'],
       axes: ['pressure', 'verification', 'recovery'],
@@ -223,7 +224,7 @@ export function mapTwelveStageOntology(
 export function mapRelationOntology(
   relation: MatrixCalculationInput['relations'][number]
 ): Pick<OntologyToken, 'domainHints' | 'axes' | 'weight' | 'role'> {
-  const raw = `${String((relation as any)?.kind || '')}:${String((relation as any)?.detail || '')}:${String((relation as any)?.note || '')}`.toLowerCase()
+  const raw = `${String(relation.kind || '')}:${String(relation.detail || '')}:${String(relation.note || '')}`.toLowerCase()
   if (/harmony|합|yukhap|samhap|banghap/.test(raw)) {
     return {
       domainHints: ['relationship', 'career', 'wealth'],

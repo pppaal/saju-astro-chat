@@ -1985,7 +1985,16 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       )
     }
     return lines.slice(0, 6).map((line) => cleanText(line))
-  }, [baseInfo?.evidence, categoryLabel, cleanText, isKo, selectedMatrixPacket, todayCaution])
+  }, [
+    baseInfo?.evidence,
+    categoryLabel,
+    cleanText,
+    data.canonicalCore?.judgmentPolicy,
+    data.canonicalCore?.topDecisionLabel,
+    isKo,
+    selectedMatrixPacket,
+    todayCaution,
+  ])
 
   const timelineInsight = useMemo(() => {
     if (!baseInfo) {

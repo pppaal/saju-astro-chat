@@ -18,6 +18,7 @@ import { apiClient } from '@/lib/api/ApiClient'
 import { checkPremiumFromDatabase } from '@/lib/stripe/premiumCache'
 import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
 import { formatDecisionActionLabels, formatPolicyCheckLabels } from '@/lib/destiny-matrix/core/actionCopy'
+import { describeTimingWindowBrief } from '@/lib/destiny-matrix/interpretation/humanSemantics'
 
 type TimelineTone = 'best' | 'caution' | 'neutral'
 type SlotType = 'deepWork' | 'decision' | 'communication' | 'money' | 'relationship' | 'recovery'
@@ -179,6 +180,16 @@ type ActionPlanCalendarContext = {
       softChecks?: string[]
       softCheckLabels?: string[]
     }
+    topTimingWindow?: {
+      domain?: string
+      window?: 'now' | '1-3m' | '3-6m' | '6-12m' | '12m+'
+      timingGranularity?: 'day' | 'week' | 'fortnight' | 'month' | 'season'
+      precisionReason?: string
+      timingConflictNarrative?: string
+      whyNow?: string
+      entryConditions?: string[]
+      abortConditions?: string[]
+    }
   }
   evidence?: CalendarEvidence
 } | null
@@ -336,6 +347,18 @@ const actionPlanTimelineRequestSchema = z.object({
               hardStopLabels: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
               softChecks: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
               softCheckLabels: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
+            })
+            .optional(),
+          topTimingWindow: z
+            .object({
+              domain: z.string().max(32).optional(),
+              window: z.enum(['now', '1-3m', '3-6m', '6-12m', '12m+']).optional(),
+              timingGranularity: z.enum(['day', 'week', 'fortnight', 'month', 'season']).optional(),
+              precisionReason: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+              timingConflictNarrative: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+              whyNow: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+              entryConditions: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
+              abortConditions: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
             })
             .optional(),
         })
@@ -845,6 +868,26 @@ function getCanonicalCore(calendar?: ActionPlanCalendarContext) {
   return calendar?.canonicalCore
 }
 
+function buildCanonicalTimingBrief(
+  calendar: ActionPlanCalendarContext | undefined,
+  locale: 'ko' | 'en'
+): string {
+  const canonical = getCanonicalCore(calendar)
+  const timing = canonical?.topTimingWindow
+  if (!timing?.window) return ''
+  return describeTimingWindowBrief({
+    domainLabel: canonical?.focusDomain || timing.domain || '',
+    window: timing.window,
+    whyNow: timing.whyNow,
+    entryConditions: timing.entryConditions || [],
+    abortConditions: timing.abortConditions || [],
+    timingGranularity: timing.timingGranularity,
+    precisionReason: timing.precisionReason,
+    timingConflictNarrative: timing.timingConflictNarrative,
+    lang: locale,
+  })
+}
+
 function getMatrixVerdict(calendar?: ActionPlanCalendarContext) {
   return calendar?.evidence?.matrixVerdict
 }
@@ -1278,6 +1321,7 @@ function buildSlotNarrative(input: {
     48
   )
   const actionCue = buildSlotActionCue({ locale, tone, slotTypes, category })
+  const timingBrief = cleanGuidanceText(buildCanonicalTimingBrief(calendar, locale), 108)
   const preferOriginalNote = source === 'rag' || source === 'hybrid'
 
   if (locale === 'ko') {
@@ -1356,7 +1400,6 @@ function buildDeltaToday(input: {
   calendar?: ActionPlanCalendarContext
 }): string {
   const { locale, timeline, calendar } = input
-  const packet = getMatrixPacket(calendar)
   const canonical = getCanonicalCore(calendar)
   const bestCount = timeline.filter((slot) => slot.tone === 'best').length
   const cautionCount = timeline.filter((slot) => slot.tone === 'caution').length
@@ -1423,7 +1466,6 @@ function buildActionPlanInsights(input: {
 }): ActionPlanInsights {
   const { locale, timeline, calendar, icp, persona, isPremiumUser } = input
   const isKo = locale === 'ko'
-  const packet = getMatrixPacket(calendar)
   const canonical = getCanonicalCore(calendar)
   const verdict = getMatrixVerdict(calendar)
   const bestSlot = timeline.find((slot) => slot.tone === 'best')
@@ -2409,5 +2451,3 @@ export const POST = withApiMiddleware(
     windowSeconds: 60,
   })
 )
-
-

@@ -31,7 +31,6 @@ import {
   describePhaseFlow,
   describeSajuAstroRole,
   describeTimingWindowBrief,
-  describeTimingWindowNarrative,
 } from '@/lib/destiny-matrix/interpretation/humanSemantics'
 
 type MatrixSignal = {
@@ -1551,8 +1550,8 @@ type AspectEvidenceLite = {
 const ASPECT_SYMBOL: Record<AspectEvidenceLite['aspect'], string> = {
   conjunction: '☌',
   sextile: '✶',
-  square: 'â–¡',
-  trine: 'â–³',
+  square: '\u25a1',
+  trine: '\u25b3',
   opposition: '☍',
 }
 
@@ -1837,9 +1836,9 @@ function buildMatrixOverlay(
 
   const koDomainLabel: Record<DomainKey, string> = {
     career: '커리어',
-    love: 'ì—°ì• ',
+    love: '\uC5F0\uC560',
     money: '재물',
-    health: 'ê±´ê°•',
+    health: '\uAC74\uAC15',
     move: '이동',
   }
   const enDomainLabel: Record<DomainKey, string> = {
@@ -2354,11 +2353,11 @@ export function formatDateForResponse(
   if (date.grade >= 3) {
     // 부정적 키워드가 포함된 요소를 앞으로
     const negativeKeywords = [
-      'ì¶©',
+      '\uCDA9',
       '형',
-      'í•´',
+      '\uD574',
       '공망',
-      'ì—­í–‰',
+      '\uC5ED\uD589',
       '주의',
       'clash',
       'conflict',
