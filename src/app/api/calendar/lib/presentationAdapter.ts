@@ -540,6 +540,9 @@ export function buildCalendarPresentationView(input: {
         whyNow: item.whyNow,
         entryConditions: item.entryConditions,
         abortConditions: item.abortConditions,
+        timingGranularity: item.timingGranularity,
+        precisionReason: item.precisionReason,
+        timingConflictNarrative: item.timingConflictNarrative,
         lang: locale,
       })
     ),
@@ -572,6 +575,9 @@ export function buildCalendarPresentationView(input: {
           whyNow: canonicalTimingWindows[0].whyNow,
           entryConditions: canonicalTimingWindows[0].entryConditions,
           abortConditions: canonicalTimingWindows[0].abortConditions,
+          timingGranularity: canonicalTimingWindows[0].timingGranularity,
+          precisionReason: canonicalTimingWindows[0].precisionReason,
+          timingConflictNarrative: canonicalTimingWindows[0].timingConflictNarrative,
           lang: locale,
         })
       : '') ||
@@ -623,6 +629,9 @@ export function buildCalendarPresentationView(input: {
                 whyNow: canonicalTimingWindows[0].whyNow,
                 entryConditions: canonicalTimingWindows[0].entryConditions,
                 abortConditions: canonicalTimingWindows[0].abortConditions,
+                timingGranularity: canonicalTimingWindows[0].timingGranularity,
+                precisionReason: canonicalTimingWindows[0].precisionReason,
+                timingConflictNarrative: canonicalTimingWindows[0].timingConflictNarrative,
                 lang: 'ko',
               })
             : canonicalCore?.riskControl || `상대적으로 여유가 있는 날은 ${weekTop?.date || weekStart}, 보수적으로 운영할 날은 ${weekLow?.date || weekEnd} 쪽입니다.`
@@ -668,6 +677,9 @@ export function buildCalendarPresentationView(input: {
                   whyNow: canonicalTimingWindows[0].whyNow,
                   entryConditions: canonicalTimingWindows[0].entryConditions,
                   abortConditions: canonicalTimingWindows[0].abortConditions,
+                  timingGranularity: canonicalTimingWindows[0].timingGranularity,
+                  precisionReason: canonicalTimingWindows[0].precisionReason,
+                  timingConflictNarrative: canonicalTimingWindows[0].timingConflictNarrative,
                   lang: 'ko',
                 })
               : `이번 달 평균 흐름은 ${Math.round(monthAvg)}/100 수준이며, 크게 벌리기보다 우선순위를 분명히 할수록 안정적입니다.`

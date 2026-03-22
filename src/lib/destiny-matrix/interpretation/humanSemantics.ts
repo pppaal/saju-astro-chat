@@ -1125,6 +1125,9 @@ export function describeTimingWindowTakeaways(input: {
   whyNow?: string | null
   entryConditions?: string[]
   abortConditions?: string[]
+  timingGranularity?: 'day' | 'week' | 'fortnight' | 'month' | 'season'
+  precisionReason?: string | null
+  timingConflictNarrative?: string | null
   lang?: HumanSemanticsLang
 }): string[] {
   const {
@@ -1133,11 +1136,15 @@ export function describeTimingWindowTakeaways(input: {
     whyNow,
     entryConditions = [],
     abortConditions = [],
+    precisionReason,
+    timingConflictNarrative,
     lang = 'ko',
   } = input
 
   const label = describeTimingWindowLabel(window, lang)
   const cleanedWhyNow = cleanTimingDetail(whyNow, lang)
+  const cleanedConflict = cleanTimingDetail(timingConflictNarrative, lang)
+  const cleanedPrecision = cleanTimingDetail(precisionReason, lang)
   const cleanedEntry = entryConditions
     .map((item) => formatTimingCondition(cleanTimingDetail(item, lang), 'entry', lang))
     .filter(Boolean)
@@ -1163,7 +1170,7 @@ export function describeTimingWindowTakeaways(input: {
         ? `반대로 ${joinNaturalList(cleanedAbort.slice(0, 2), lang)} 조짐이 보이면 범위를 줄이고 확정을 늦추는 편이 안전합니다.`
         : ''
 
-    return [opening, entryLine, abortLine, angle].filter(Boolean)
+    return [opening, cleanedConflict, entryLine, abortLine, cleanedPrecision, angle].filter(Boolean)
   }
 
   const opening = [domainLabel ? `In ${domainLabel}, this is ${label}.` : label, cleanedWhyNow]
@@ -1177,7 +1184,7 @@ export function describeTimingWindowTakeaways(input: {
     cleanedAbort.length > 0
       ? `Slow down and narrow the move if ${joinNaturalList(cleanedAbort.slice(0, 2), lang)} start to show up.`
       : ''
-  return [opening, entryLine, abortLine, angle].filter(Boolean)
+  return [opening, cleanedConflict, entryLine, abortLine, cleanedPrecision, angle].filter(Boolean)
 }
 
 export function describeTimingWindowBrief(input: {
@@ -1186,6 +1193,9 @@ export function describeTimingWindowBrief(input: {
   whyNow?: string | null
   entryConditions?: string[]
   abortConditions?: string[]
+  timingGranularity?: 'day' | 'week' | 'fortnight' | 'month' | 'season'
+  precisionReason?: string | null
+  timingConflictNarrative?: string | null
   lang?: HumanSemanticsLang
 }): string {
   const {
@@ -1194,6 +1204,9 @@ export function describeTimingWindowBrief(input: {
     whyNow,
     entryConditions = [],
     abortConditions = [],
+    timingGranularity,
+    precisionReason,
+    timingConflictNarrative,
     lang = 'ko',
   } = input
 
@@ -1203,6 +1216,9 @@ export function describeTimingWindowBrief(input: {
     whyNow,
     entryConditions,
     abortConditions,
+    timingGranularity,
+    precisionReason,
+    timingConflictNarrative,
     lang,
   })
 
@@ -1221,6 +1237,9 @@ export function describeTimingWindowNarrative(input: {
   whyNow?: string | null
   entryConditions?: string[]
   abortConditions?: string[]
+  timingGranularity?: 'day' | 'week' | 'fortnight' | 'month' | 'season'
+  precisionReason?: string | null
+  timingConflictNarrative?: string | null
   lang?: HumanSemanticsLang
 }): string {
   const {
@@ -1229,6 +1248,9 @@ export function describeTimingWindowNarrative(input: {
     whyNow,
     entryConditions = [],
     abortConditions = [],
+    timingGranularity,
+    precisionReason,
+    timingConflictNarrative,
     lang = 'ko',
   } = input
 
@@ -1238,6 +1260,9 @@ export function describeTimingWindowNarrative(input: {
     whyNow,
     entryConditions,
     abortConditions,
+    timingGranularity,
+    precisionReason,
+    timingConflictNarrative,
     lang,
   }).join(' ')
 }

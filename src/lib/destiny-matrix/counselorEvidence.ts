@@ -118,6 +118,10 @@ export interface CounselorEvidencePacket {
   topTimingWindow?: {
     domain: string
     window: string
+    timingGranularity?: 'day' | 'week' | 'fortnight' | 'month' | 'season'
+    precisionReason?: string
+    timingConflictMode?: 'aligned' | 'readiness_ahead' | 'trigger_ahead' | 'weak_both'
+    timingConflictNarrative?: string
     whyNow: string
     entryConditions: string[]
     abortConditions: string[]
@@ -1007,6 +1011,10 @@ export function buildCounselorEvidencePacket(params: {
       ? {
           domain: topTimingWindow.domain,
           window: topTimingWindow.window,
+          timingGranularity: topTimingWindow.timingGranularity,
+          precisionReason: topTimingWindow.precisionReason,
+          timingConflictMode: topTimingWindow.timingConflictMode,
+          timingConflictNarrative: topTimingWindow.timingConflictNarrative,
           whyNow: topTimingWindow.whyNow,
           entryConditions: [...topTimingWindow.entryConditions].slice(0, 3),
           abortConditions: [...topTimingWindow.abortConditions].slice(0, 3),
@@ -1101,6 +1109,10 @@ export function formatCounselorEvidencePacket(
         '[Timing Window]',
         `domain=${packet.topTimingWindow.domain}`,
         `window=${packet.topTimingWindow.window}`,
+        `granularity=${packet.topTimingWindow.timingGranularity || 'unknown'}`,
+        `precision=${packet.topTimingWindow.precisionReason || 'none'}`,
+        `conflict_mode=${packet.topTimingWindow.timingConflictMode || 'none'}`,
+        `conflict=${packet.topTimingWindow.timingConflictNarrative || 'none'}`,
         `why_now=${packet.topTimingWindow.whyNow}`,
         `entry=${(packet.topTimingWindow.entryConditions || []).join(' | ') || 'none'}`,
         `abort=${(packet.topTimingWindow.abortConditions || []).join(' | ') || 'none'}`,

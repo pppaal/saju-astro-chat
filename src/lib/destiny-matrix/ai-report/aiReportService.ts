@@ -1005,6 +1005,9 @@ function buildTimingWindowNarrative(
     whyNow: item.whyNow,
     entryConditions: item.entryConditions,
     abortConditions: item.abortConditions,
+    timingGranularity: item.timingGranularity,
+    precisionReason: item.precisionReason,
+    timingConflictNarrative: item.timingConflictNarrative,
     lang,
   })
 }
@@ -8348,4 +8351,3 @@ export async function generateThemedReport(
 
   return report
 }
-
