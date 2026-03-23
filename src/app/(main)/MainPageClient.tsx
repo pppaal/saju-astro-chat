@@ -1,7 +1,6 @@
 'use client'
 
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import Link from 'next/link'
 import { useCallback } from 'react'
 import styles from './main-page.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -11,7 +10,6 @@ import {
   toSafeFallbackText,
   type I18nMessages,
 } from '@/i18n/utils'
-import { HOME_CORE_SERVICE_OPTIONS } from '@/lib/coreServices'
 import { MainHeader, ServiceSearchBox, ParticleCanvas } from './components'
 import PrefetchLinks from '@/components/PrefetchLinks'
 
@@ -64,53 +62,31 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
 
       <section className={styles.fullscreenHero}>
         <div className={styles.heroContent}>
-          <p className={styles.heroEyebrow}>
-            {translate(
-              'landing.heroEyebrow',
-              localizedFallback('AI 운명 리딩', 'AI-guided destiny reading')
-            )}
-          </p>
           <h1 className={styles.heroTitle}>
-            {translate(
-              'landing.heroTitle',
-              localizedFallback(
-                '타이밍과 관계, 중요한 결정을 더 선명하게 봅니다.',
-                'Clarity for timing, relationships, and your next decision.'
-              )
-            )}
+            <span className={styles.heroTitleLead}>
+              {translate(
+                'landing.heroTitleLead',
+                localizedFallback('결정이 필요한 순간,', 'When a decision matters,')
+              )}
+            </span>
+            <span className={styles.heroTitleAccent}>
+              {translate(
+                'landing.heroTitleAccent',
+                localizedFallback('흐름과 타이밍을 함께 봅니다', 'see the flow and timing together')
+              )}
+            </span>
           </h1>
           <p className={styles.heroSub}>
             {translate(
               'landing.heroSub',
               localizedFallback(
-                '질문 하나로 사주, 점성, 타로, 캘린더 해석까지 자연스럽게 이어집니다.',
-                'Ask one question and move into Saju, astrology, tarot, or calendar guidance without losing context.'
+                '연애, 이직, 관계, 중요한 선택 앞에서 흐름을 읽고, 타이밍을 분석해 더 선명한 판단을 도와드립니다.',
+                'Read the situation, analyze the timing, and make clearer decisions across relationships, work, and major choices.'
               )
             )}
           </p>
 
           <ServiceSearchBox translate={translate} styles={styles} locale={locale as Locale} />
-
-          <div className={styles.quickServiceLinks}>
-            {HOME_CORE_SERVICE_OPTIONS.map((service) => (
-              <Link key={service.key} href={service.path} className={styles.quickServiceLink}>
-                <span aria-hidden>{service.icon}</span>
-                <span>{translate(service.labelKey, service.labelFallback[locale as Locale])}</span>
-              </Link>
-            ))}
-          </div>
-
-          <div className={styles.aboutShortcutWrap}>
-            <Link href="/about" className={styles.aboutShortcutLink}>
-              {translate(
-                'landing.aboutShortcut',
-                localizedFallback(
-                  '스크롤형 상세 소개는 About 페이지에서 확인할 수 있습니다.',
-                  'See the full product story on the About page.'
-                )
-              )}
-            </Link>
-          </div>
         </div>
       </section>
 

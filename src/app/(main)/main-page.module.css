@@ -23,11 +23,38 @@
     sans-serif;
   overflow-x: hidden;
   position: relative;
+  isolation: isolate;
   padding: 6rem 1.5rem 5rem;
   gap: 3rem;
   background:
-    radial-gradient(1200px 800px at 25% 5%, rgba(99, 210, 255, 0.12), transparent),
-    radial-gradient(1000px 700px at 80% 95%, rgba(124, 242, 156, 0.1), transparent);
+    radial-gradient(1200px 760px at 50% 18%, rgba(68, 95, 255, 0.2), transparent 62%),
+    radial-gradient(980px 680px at 50% 46%, rgba(191, 96, 255, 0.28), transparent 58%),
+    radial-gradient(760px 540px at 22% 22%, rgba(87, 207, 255, 0.16), transparent 60%),
+    radial-gradient(900px 620px at 82% 78%, rgba(117, 76, 255, 0.14), transparent 64%),
+    linear-gradient(180deg, #06091a 0%, #060916 52%, #050811 100%);
+}
+
+.container::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.06), transparent 34%),
+    linear-gradient(180deg, rgba(4, 7, 18, 0.12), rgba(3, 6, 14, 0.52) 42%, rgba(2, 4, 10, 0.72));
+}
+
+.container::after {
+  content: '';
+  position: fixed;
+  inset: auto 0 0;
+  height: 24vh;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(5, 7, 16, 0), rgba(4, 5, 12, 0.88)),
+    radial-gradient(circle at 50% 0%, rgba(196, 110, 255, 0.14), transparent 55%);
 }
 
 .particleCanvas {
@@ -37,6 +64,7 @@
   width: 100%;
   height: 100%;
   z-index: 0;
+  opacity: 0.7;
 }
 
 /* ====================================
@@ -51,9 +79,9 @@
   justify-content: center;
   position: relative;
   z-index: 1;
-  padding: 0 1.5rem;
-  margin-top: -6rem;
-  padding-top: 6rem;
+  padding: 0 1rem;
+  margin-top: -4.5rem;
+  padding-top: 7rem;
 }
 
 .heroContent {
@@ -61,42 +89,49 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  max-width: 920px;
+  width: min(1120px, 100%);
+  max-width: 1120px;
   animation: fadeInUp 1s ease-out;
 }
 
 .heroEyebrow {
-  margin: 0 0 0.9rem 0;
-  padding: 0.45rem 0.9rem;
-  border: 1px solid rgba(99, 210, 255, 0.28);
-  border-radius: 999px;
-  background: rgba(7, 18, 37, 0.58);
-  color: rgba(210, 241, 255, 0.92);
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  display: none;
 }
 
 .heroContent .heroTitle {
-  max-width: none;
-  font-size: clamp(2.2rem, 4.2vw, 4.2rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.08em;
+  max-width: 13ch;
+  font-size: clamp(3.2rem, 5.8vw, 5.4rem);
   font-weight: 900;
-  margin: 0 0 1.15rem 0;
-  background: linear-gradient(180deg, #ffffff 0%, #d7ebff 58%, #8ff2d5 100%);
+  margin: 0;
+  color: #ffffff;
+  line-height: 1.03;
+  letter-spacing: -0.045em;
+  text-align: center;
+  text-wrap: balance;
+  white-space: normal;
+  text-shadow:
+    0 14px 48px rgba(6, 12, 28, 0.52),
+    0 0 32px rgba(125, 132, 255, 0.12);
+  filter: none;
+  animation: none;
+}
+
+.heroTitleLead {
+  display: block;
+}
+
+.heroTitleAccent {
+  display: block;
+  background: linear-gradient(90deg, #8cf6f8 0%, #7de8f4 26%, #c5a7ff 62%, #f3e1ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  color: #ffffff;
-  line-height: 1.08;
-  letter-spacing: -0.035em;
-  text-align: center;
-  text-wrap: balance;
-  white-space: nowrap;
-  text-shadow: 0 10px 30px rgba(6, 12, 28, 0.42);
-  filter: none;
-  animation: none;
+  color: transparent;
+  text-shadow: none;
 }
 
 @keyframes heroTitleGlow {
@@ -109,15 +144,15 @@
 }
 
 .heroContent .heroSub {
-  max-width: 720px;
-  font-size: clamp(1.04rem, 1.6vw, 1.28rem);
-  color: rgba(231, 239, 249, 0.88);
-  margin: 0 0 2.4rem 0;
-  line-height: 1.72;
+  max-width: 760px;
+  font-size: clamp(1.05rem, 1.4vw, 1.32rem);
+  color: rgba(236, 242, 255, 0.9);
+  margin: 1.5rem 0 0;
+  line-height: 1.7;
   font-weight: 500;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   text-wrap: pretty;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.24);
+  text-shadow: 0 8px 28px rgba(4, 8, 18, 0.34);
 }
 
 .quickServiceLinks {
@@ -241,16 +276,16 @@
   top: 0;
   left: 0;
   right: 0;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  padding: 14px 32px;
-  backdrop-filter: blur(14px);
-  background: rgba(5, 7, 20, 0.82);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  padding: 12px 20px 12px 18px;
+  backdrop-filter: blur(18px);
+  background: rgba(7, 10, 24, 0.78);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
   z-index: 20;
-  gap: 32px;
+  gap: 24px;
 }
 
 .logo {
@@ -275,6 +310,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  justify-self: start;
   font-weight: 800;
   letter-spacing: 0.4px;
 }
@@ -310,6 +346,7 @@
 .desktopNav {
   display: flex;
   align-items: center;
+  justify-self: center;
   gap: 18px;
 }
 
@@ -702,6 +739,7 @@
   display: flex;
   gap: 12px;
   align-items: center;
+  justify-self: end;
 }
 
 .headerBell {
@@ -800,6 +838,251 @@
   text-decoration: none;
   font-size: 15px;
   opacity: 0.9;
+}
+
+.heroUtilityStack {
+  width: min(1080px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.35rem;
+  margin-top: 2rem;
+}
+
+.heroActionRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.heroPrimaryButton,
+.heroSecondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  min-height: 60px;
+  padding: 0.95rem 1.8rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease,
+    background-color 0.22s ease;
+}
+
+.heroPrimaryButton {
+  color: #041018;
+  border: 1px solid rgba(151, 255, 241, 0.8);
+  background: linear-gradient(90deg, #8ff7f6 0%, #86e6f9 42%, #b1e2ff 100%);
+  box-shadow:
+    0 14px 36px rgba(92, 221, 255, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+.heroSecondaryButton {
+  color: rgba(244, 247, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(28, 31, 66, 0.58);
+  box-shadow:
+    0 14px 34px rgba(7, 10, 24, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.heroPrimaryButton:hover,
+.heroSecondaryButton:hover {
+  transform: translateY(-2px);
+}
+
+.heroPrimaryButton:hover {
+  box-shadow:
+    0 18px 42px rgba(92, 221, 255, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.68);
+}
+
+.heroSecondaryButton:hover {
+  border-color: rgba(186, 171, 255, 0.34);
+  background: rgba(42, 40, 82, 0.72);
+}
+
+.heroButtonArrow {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.heroFlowRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  color: rgba(244, 246, 255, 0.92);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.heroFlowItem {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.heroFlowStep {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.2rem;
+}
+
+.heroFlowArrow {
+  color: rgba(196, 205, 255, 0.7);
+  font-size: 1.05rem;
+}
+
+.heroServiceGrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.05rem;
+  margin-top: 0.8rem;
+}
+
+.heroServiceCard {
+  --card-accent: rgba(99, 210, 255, 0.46);
+  --card-border: rgba(123, 181, 255, 0.36);
+  --card-glow: rgba(74, 144, 255, 0.22);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  min-height: 268px;
+  padding: 1.35rem 1.25rem 1.3rem;
+  border-radius: 28px;
+  border: 1px solid var(--card-border);
+  background:
+    linear-gradient(180deg, rgba(10, 16, 38, 0.88), rgba(7, 11, 28, 0.94)),
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.1), transparent 44%);
+  color: rgba(247, 250, 255, 0.96);
+  text-decoration: none;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 18px 48px rgba(3, 6, 16, 0.3),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  transition:
+    transform 0.24s ease,
+    border-color 0.24s ease,
+    box-shadow 0.24s ease;
+}
+
+.heroServiceCard::before {
+  content: '';
+  position: absolute;
+  inset: auto 12% -26%;
+  height: 42%;
+  border-radius: 999px;
+  background: radial-gradient(circle, var(--card-accent), transparent 68%);
+  filter: blur(24px);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.heroServiceCard:hover {
+  transform: translateY(-6px);
+  border-color: rgba(215, 232, 255, 0.5);
+  box-shadow:
+    0 24px 54px rgba(4, 8, 18, 0.38),
+    0 0 28px var(--card-glow),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.heroServiceCardCyan {
+  --card-accent: rgba(90, 178, 255, 0.4);
+  --card-border: rgba(90, 178, 255, 0.35);
+  --card-glow: rgba(90, 178, 255, 0.2);
+}
+
+.heroServiceCardViolet {
+  --card-accent: rgba(185, 118, 255, 0.42);
+  --card-border: rgba(195, 137, 255, 0.34);
+  --card-glow: rgba(176, 105, 255, 0.22);
+}
+
+.heroServiceCardRose {
+  --card-accent: rgba(233, 116, 255, 0.32);
+  --card-border: rgba(214, 130, 255, 0.34);
+  --card-glow: rgba(219, 118, 255, 0.18);
+}
+
+.heroServiceCardIndigo {
+  --card-accent: rgba(98, 164, 255, 0.36);
+  --card-border: rgba(109, 168, 255, 0.34);
+  --card-glow: rgba(98, 164, 255, 0.18);
+}
+
+.heroServiceGlow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.12), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 28%);
+  pointer-events: none;
+}
+
+.heroServiceSymbolWrap {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 92px;
+  height: 92px;
+  margin: 0 auto;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.26), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 18px 34px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.heroServiceSymbol {
+  font-size: 2.5rem;
+  line-height: 1;
+  filter: drop-shadow(0 8px 18px rgba(255, 255, 255, 0.12));
+}
+
+.heroServiceBody {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.95rem;
+  text-align: center;
+}
+
+.heroServiceLabel {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: -0.035em;
+}
+
+.heroServiceDescription {
+  margin: 0;
+  color: rgba(239, 244, 255, 0.88);
+  font-size: 1rem;
+  line-height: 1.55;
+  letter-spacing: -0.015em;
 }
 
 .ctaPrimary {
@@ -4002,7 +4285,9 @@
   }
 
   .heroContent .heroTitle {
-    max-width: 10.5ch;
+    max-width: 11ch;
+    font-size: clamp(2.7rem, 12vw, 3.7rem);
+    gap: 0.12em;
     text-shadow: none;
     filter: none;
     animation: none;
@@ -4011,6 +4296,8 @@
 
   .heroContent .heroSub {
     max-width: 34rem;
+    margin-top: 1.2rem;
+    font-size: 1rem;
     text-shadow: none;
   }
 
@@ -4075,6 +4362,54 @@
   }
   .logoLink {
     font-size: 1.2rem;
+  }
+  .heroUtilityStack {
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .heroActionRow {
+    width: 100%;
+    flex-direction: column;
+  }
+  .heroPrimaryButton,
+  .heroSecondaryButton {
+    width: 100%;
+    min-height: 56px;
+  }
+  .heroFlowRow {
+    flex-wrap: wrap;
+    gap: 0.45rem 0.8rem;
+    font-size: 0.95rem;
+  }
+  .heroFlowItem {
+    gap: 0.8rem;
+  }
+  .heroServiceGrid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+    margin-top: 0.4rem;
+  }
+  .heroServiceCard {
+    min-height: 0;
+    padding: 1.1rem 1rem 1.05rem;
+    border-radius: 22px;
+  }
+  .heroServiceSymbolWrap {
+    width: 74px;
+    height: 74px;
+    border-radius: 22px;
+  }
+  .heroServiceSymbol {
+    font-size: 2rem;
+  }
+  .heroServiceBody {
+    gap: 0.7rem;
+  }
+  .heroServiceLabel {
+    font-size: 1.22rem;
+  }
+  .heroServiceDescription {
+    font-size: 0.92rem;
   }
   .ctaPrimary {
     padding: 8px 12px;
@@ -4209,12 +4544,13 @@
     margin-top: -4rem;
   }
   .heroContent .heroTitle {
-    font-size: clamp(1.8rem, 6vw, 2.5rem);
+    max-width: 11ch;
+    font-size: clamp(2.7rem, 11vw, 3.7rem);
     white-space: normal;
   }
   .heroContent .heroSub {
     font-size: 1rem;
-    margin-bottom: 1.5rem;
+    margin-top: 1.1rem;
   }
   .scrollIndicator {
     bottom: 15px;
@@ -4961,16 +5297,25 @@
   }
 
   .heroContent .heroTitle {
-    font-size: clamp(2.15rem, 10vw, 3rem);
+    max-width: 12ch;
+    font-size: clamp(2.9rem, 7vw, 4.2rem);
     line-height: 1.1;
     letter-spacing: -0.03em;
     white-space: normal;
   }
 
   .heroContent .heroSub {
-    font-size: 1rem;
-    max-width: 32rem;
+    font-size: 1.02rem;
+    max-width: 40rem;
     line-height: 1.66;
+  }
+
+  .heroUtilityStack {
+    width: min(980px, 100%);
+  }
+
+  .heroServiceGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .questionSearchInput {
@@ -5052,14 +5397,21 @@
 
   .heroContent .heroTitle {
     font-size: 1.9rem;
-    margin-bottom: 0.75rem;
     max-width: 14ch;
   }
 
   .heroContent .heroSub {
     font-size: 0.95rem;
-    margin-bottom: 1.5rem;
+    margin-top: 0.85rem;
     line-height: 1.55;
+  }
+
+  .heroUtilityStack {
+    margin-top: 1rem;
+  }
+
+  .heroServiceGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .scrollIndicator {
@@ -5086,7 +5438,7 @@
 
   .heroContent .heroTitle {
     max-width: 9.5ch;
-    font-size: 1.9rem;
+    font-size: 2.3rem;
     line-height: 1.12;
     white-space: normal;
   }
@@ -5094,7 +5446,21 @@
   .heroContent .heroSub {
     font-size: 0.96rem;
     line-height: 1.58;
-    margin-bottom: 2rem;
+    margin-top: 1rem;
+  }
+
+  .heroPrimaryButton,
+  .heroSecondaryButton {
+    padding-inline: 1.05rem;
+    font-size: 0.94rem;
+  }
+
+  .heroServiceLabel {
+    font-size: 1.08rem;
+  }
+
+  .heroServiceDescription {
+    font-size: 0.88rem;
   }
 
   .questionSearchInput {
