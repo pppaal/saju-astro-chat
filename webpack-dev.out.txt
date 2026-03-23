@@ -1,0 +1,98 @@
+▲ Next.js 16.1.6 (webpack)
+- Local:         http://localhost:3005
+- Network:       http://192.168.219.103:3005
+- Environments: .env.local, .env
+- Experiments (use with caution):
+  · clientTraceMetadata
+  · optimizePackageImports
+  ✓ scrollRestoration
+
+✓ Starting...
+ ○ (pwa) PWA support is disabled.
+○ Compiling /instrumentation ...
+✓ Ready in 11.7s
+○ Compiling /tarot ...
+ HEAD /tarot 200 in 20.1s (compile: 19.4s, render: 658ms)
+ GET /tarot 200 in 1095ms (compile: 50ms, render: 1046ms)
+○ Compiling /tarot/[categoryName]/[spreadId] ...
+⨯ ./src/app/tarot/[categoryName]/[spreadId]/tarot-reading.module.css:1:1
+Syntax error: Selector ":global(:root)" is not pure (pure selectors must contain at least one local class or id)
+
+[1m[31m>[39m[22m[90m 1 | [39m[33m:[39m[36mglobal[39m[36m(:root)[39m [33m{[39m
+ [90m   | [39m[1m[31m^[39m[22m
+ [90m 2 | [39m  --tarot-font-body[33m:[39m
+ [90m 3 | [39m    [36mvar[39m[36m(--font-noto-kr)[39m, [36mvar[39m[36m(--font-montserrat)[39m, [32m'Apple SD Gothic Neo'[39m, [32m'Malgun Gothic'[39m, system-ui,
+⨯ ./src/app/tarot/[categoryName]/[spreadId]/tarot-reading.module.css:1:1
+Syntax error: Selector ":global(:root)" is not pure (pure selectors must contain at least one local class or id)
+
+[1m[31m>[39m[22m[90m 1 | [39m[33m:[39m[36mglobal[39m[36m(:root)[39m [33m{[39m
+ [90m   | [39m[1m[31m^[39m[22m
+ [90m 2 | [39m  --tarot-font-body[33m:[39m
+ [90m 3 | [39m    [36mvar[39m[36m(--font-noto-kr)[39m, [36mvar[39m[36m(--font-montserrat)[39m, [32m'Apple SD Gothic Neo'[39m, [32m'Malgun Gothic'[39m, system-ui,
+ ○ (pwa) PWA support is disabled.
+<w> [webpack.cache.PackFileCacheStrategy] Skipped not serializable cache item 'Compilation/modules|c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\css-loader\src\index.js??ruleSet[1].rules[15].oneOf[5].use[2]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\postcss-loader\src\index.js??ruleSet[1].rules[15].oneOf[5].use[3]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\src\app\tarot\[categoryName]\[spreadId]\tarot-reading.module.css': No serializer registered for CssSyntaxError
+<w> while serializing webpack/lib/cache/PackFileCacheStrategy.PackContentItems -> webpack/lib/NormalModule -> webpack/lib/ModuleBuildError -> CssSyntaxError
+<w> [webpack.cache.PackFileCacheStrategy] Skipped not serializable cache item 'Compilation/modules|c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\css-loader\src\index.js??ruleSet[1].rules[15].oneOf[5].use[2]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\postcss-loader\src\index.js??ruleSet[1].rules[15].oneOf[5].use[3]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\src\components\tarot\CardPickingScreen.module.css': No serializer registered for CssSyntaxError
+<w> while serializing webpack/lib/cache/PackFileCacheStrategy.PackContentItems -> webpack/lib/NormalModule -> webpack/lib/ModuleBuildError -> CssSyntaxError
+⨯ ./src/app/tarot/[categoryName]/[spreadId]/tarot-reading.module.css:1:1
+Syntax error: Selector ":global(:root)" is not pure (pure selectors must contain at least one local class or id)
+
+[1m[31m>[39m[22m[90m 1 | [39m[33m:[39m[36mglobal[39m[36m(:root)[39m [33m{[39m
+ [90m   | [39m[1m[31m^[39m[22m
+ [90m 2 | [39m  --tarot-font-body[33m:[39m
+ [90m 3 | [39m    [36mvar[39m[36m(--font-noto-kr)[39m, [36mvar[39m[36m(--font-montserrat)[39m, [32m'Apple SD Gothic Neo'[39m, [32m'Malgun Gothic'[39m, system-ui,
+ GET /tarot/general-insight/past-present-future?question=How%20does%20that%20person%20see%20me%3F 500 in 34.8s (compile: 34.5s, render: 284ms)
+ GET /tarot/general-insight/past-present-future?question=How%20does%20that%20person%20see%20me%3F 500 in 43ms (compile: 21ms, render: 22ms)
+<w> [webpack.cache.PackFileCacheStrategy] Skipped not serializable cache item 'Compilation/modules|javascript/auto|c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\next-flight-css-loader.js??ruleSet[1].rules[20].oneOf[5].use[0]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\css-loader\src\index.js??ruleSet[1].rules[20].oneOf[5].use[1]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\postcss-loader\src\index.js??ruleSet[1].rules[20].oneOf[5].use[2]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\src\app\tarot\[categoryName]\[spreadId]\tarot-reading.module.css|ssr': No serializer registered for CssSyntaxError
+<w> while serializing webpack/lib/cache/PackFileCacheStrategy.PackContentItems -> webpack/lib/NormalModule -> webpack/lib/ModuleBuildError -> CssSyntaxError
+<w> [webpack.cache.PackFileCacheStrategy] Skipped not serializable cache item 'Compilation/modules|javascript/auto|c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\next-flight-css-loader.js??ruleSet[1].rules[20].oneOf[5].use[0]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\css-loader\src\index.js??ruleSet[1].rules[20].oneOf[5].use[1]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\postcss-loader\src\index.js??ruleSet[1].rules[20].oneOf[5].use[2]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\src\components\tarot\CardPickingScreen.module.css|ssr': No serializer registered for CssSyntaxError
+<w> while serializing webpack/lib/cache/PackFileCacheStrategy.PackContentItems -> webpack/lib/NormalModule -> webpack/lib/ModuleBuildError -> CssSyntaxError
+<w> [webpack.cache.PackFileCacheStrategy] Skipped not serializable cache item 'Compilation/modules|c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\css-loader\src\index.js??ruleSet[1].rules[15].oneOf[5].use[2]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\postcss-loader\src\index.js??ruleSet[1].rules[15].oneOf[5].use[3]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\src\app\tarot\[categoryName]\[spreadId]\tarot-reading.module.css': No serializer registered for CssSyntaxError
+<w> while serializing webpack/lib/cache/PackFileCacheStrategy.PackContentItems -> webpack/lib/NormalModule -> webpack/lib/ModuleBuildError -> CssSyntaxError
+<w> [webpack.cache.PackFileCacheStrategy] Skipped not serializable cache item 'Compilation/modules|c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\css-loader\src\index.js??ruleSet[1].rules[15].oneOf[5].use[2]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\postcss-loader\src\index.js??ruleSet[1].rules[15].oneOf[5].use[3]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\src\components\tarot\CardPickingScreen.module.css': No serializer registered for CssSyntaxError
+<w> while serializing webpack/lib/cache/PackFileCacheStrategy.PackContentItems -> webpack/lib/NormalModule -> webpack/lib/ModuleBuildError -> CssSyntaxError
+ HEAD /tarot/general-insight/past-present-future?question=How%20does%20that%20person%20see%20me%3F 200 in 10.3s (compile: 9.0s, render: 1317ms)
+ GET /tarot/general-insight/past-present-future?question=How%20does%20that%20person%20see%20me%3F 200 in 7.3s (compile: 5.8s, render: 1550ms)
+○ Compiling /api/auth/[...nextauth] ...
+ GET /api/auth/session 200 in 19.5s (compile: 19.4s, render: 75ms)
+ GET /tarot/general-insight/past-present-future?question=How+does+that+person+see+me%3F 200 in 588ms (compile: 214ms, render: 374ms)
+⚠ The requested resource "/images/tarot/18-moon.webp" is an animated image so it will not be optimized. Consider adding the "unoptimized" property to the <Image>.
+⚠ The requested resource "/images/tarot/06-lovers.webp" is an animated image so it will not be optimized. Consider adding the "unoptimized" property to the <Image>.
+⚠ The requested resource "/images/tarot/cups-02.webp" is an animated image so it will not be optimized. Consider adding the "unoptimized" property to the <Image>.
+⨯ ./src/app/tarot/[categoryName]/[spreadId]/tarot-reading.module.css:1:1
+Syntax error: Selector ":global(:root)" is not pure (pure selectors must contain at least one local class or id)
+
+[1m[31m>[39m[22m[90m 1 | [39m[33m:[39m[36mglobal[39m[36m(:root)[39m [33m{[39m
+ [90m   | [39m[1m[31m^[39m[22m
+ [90m 2 | [39m  --tarot-font-body[33m:[39m
+ [90m 3 | [39m    [36mvar[39m[36m(--font-noto-kr)[39m, [36mvar[39m[36m(--font-montserrat)[39m, [32m'Apple SD Gothic Neo'[39m, [32m'Malgun Gothic'[39m, system-ui,
+<w> [webpack.cache.PackFileCacheStrategy] Skipped not serializable cache item 'Compilation/modules|javascript/auto|c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\next-flight-css-loader.js??ruleSet[1].rules[20].oneOf[5].use[0]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\css-loader\src\index.js??ruleSet[1].rules[20].oneOf[5].use[1]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\postcss-loader\src\index.js??ruleSet[1].rules[20].oneOf[5].use[2]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\src\app\tarot\[categoryName]\[spreadId]\tarot-reading.module.css|ssr': No serializer registered for CssSyntaxError
+<w> while serializing webpack/lib/cache/PackFileCacheStrategy.PackContentItems -> webpack/lib/NormalModule -> webpack/lib/ModuleBuildError -> CssSyntaxError
+<w> [webpack.cache.PackFileCacheStrategy] Skipped not serializable cache item 'Compilation/modules|c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\css-loader\src\index.js??ruleSet[1].rules[15].oneOf[5].use[2]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\postcss-loader\src\index.js??ruleSet[1].rules[15].oneOf[5].use[3]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\src\app\tarot\[categoryName]\[spreadId]\tarot-reading.module.css': No serializer registered for CssSyntaxError
+<w> while serializing webpack/lib/cache/PackFileCacheStrategy.PackContentItems -> webpack/lib/NormalModule -> webpack/lib/ModuleBuildError -> CssSyntaxError
+⨯ ./src/app/tarot/[categoryName]/[spreadId]/tarot-reading.module.css:1:1
+Syntax error: Selector ":global(:root)" is not pure (pure selectors must contain at least one local class or id)
+
+[1m[31m>[39m[22m[90m 1 | [39m[33m:[39m[36mglobal[39m[36m(:root)[39m [33m{[39m
+ [90m   | [39m[1m[31m^[39m[22m
+ [90m 2 | [39m  --tarot-font-body[33m:[39m
+ [90m 3 | [39m    [36mvar[39m[36m(--font-noto-kr)[39m, [36mvar[39m[36m(--font-montserrat)[39m, [32m'Apple SD Gothic Neo'[39m, [32m'Malgun Gothic'[39m, system-ui,
+<w> [webpack.cache.PackFileCacheStrategy] Skipped not serializable cache item 'Compilation/modules|javascript/auto|c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\next-flight-css-loader.js??ruleSet[1].rules[20].oneOf[5].use[0]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\css-loader\src\index.js??ruleSet[1].rules[20].oneOf[5].use[1]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\postcss-loader\src\index.js??ruleSet[1].rules[20].oneOf[5].use[2]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\src\app\tarot\[categoryName]\[spreadId]\tarot-reading.module.css|ssr': No serializer registered for CssSyntaxError
+<w> while serializing webpack/lib/cache/PackFileCacheStrategy.PackContentItems -> webpack/lib/NormalModule -> webpack/lib/ModuleBuildError -> CssSyntaxError
+<w> [webpack.cache.PackFileCacheStrategy] Skipped not serializable cache item 'Compilation/modules|c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\css-loader\src\index.js??ruleSet[1].rules[15].oneOf[5].use[2]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\node_modules\next\dist\build\webpack\loaders\postcss-loader\src\index.js??ruleSet[1].rules[15].oneOf[5].use[3]!c:\Users\pjyrh\Desktop\saju-astro-chat-backup-latest\src\app\tarot\[categoryName]\[spreadId]\tarot-reading.module.css': No serializer registered for CssSyntaxError
+<w> while serializing webpack/lib/cache/PackFileCacheStrategy.PackContentItems -> webpack/lib/NormalModule -> webpack/lib/ModuleBuildError -> CssSyntaxError
+⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+▲ Next.js 16.1.6 (webpack)
+- Local:         http://localhost:3005
+- Network:       http://192.168.219.103:3005
+- Environments: .env.local, .env
+- Experiments (use with caution):
+  · clientTraceMetadata
+  ✓ optimizeCss
+  · optimizePackageImports
+  ✓ scrollRestoration
+
+✓ Starting...
+ ○ (pwa) PWA support is disabled.
+○ Compiling /instrumentation ...
+✓ Ready in 18.4s
