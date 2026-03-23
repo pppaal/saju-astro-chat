@@ -6,8 +6,140 @@
   position: relative;
   min-height: 100svh;
   width: 100%;
-  background: linear-gradient(135deg, #0a0520 0%, #1a0a35 50%, #0d1025 100%);
+  background:
+    radial-gradient(circle at 50% 10%, rgba(201, 165, 255, 0.16), transparent 26%),
+    radial-gradient(circle at 20% 28%, rgba(148, 92, 255, 0.16), transparent 30%),
+    radial-gradient(circle at 82% 34%, rgba(255, 166, 245, 0.12), transparent 32%),
+    linear-gradient(180deg, #070510 0%, #12081f 42%, #090612 100%);
   overflow: hidden;
+}
+
+.spaceBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.spaceBackdrop::before,
+.spaceBackdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.spaceBackdrop::before {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.95) 0 1px, transparent 2px),
+    radial-gradient(circle at 24% 62%, rgba(255, 255, 255, 0.7) 0 1px, transparent 2px),
+    radial-gradient(circle at 44% 10%, rgba(255, 255, 255, 0.9) 0 1.2px, transparent 2.2px),
+    radial-gradient(circle at 66% 26%, rgba(255, 255, 255, 0.88) 0 1px, transparent 2px),
+    radial-gradient(circle at 86% 16%, rgba(255, 255, 255, 0.7) 0 1px, transparent 2px),
+    radial-gradient(circle at 73% 72%, rgba(255, 255, 255, 0.78) 0 1.2px, transparent 2.2px),
+    radial-gradient(circle at 18% 84%, rgba(255, 255, 255, 0.6) 0 1px, transparent 2px),
+    radial-gradient(circle at 92% 84%, rgba(255, 255, 255, 0.82) 0 1px, transparent 2px);
+  opacity: 0.85;
+}
+
+.spaceBackdrop::after {
+  background:
+    linear-gradient(115deg, transparent 0%, rgba(202, 146, 255, 0.1) 46%, transparent 58%),
+    linear-gradient(62deg, transparent 0%, rgba(255, 174, 244, 0.06) 48%, transparent 58%);
+  mix-blend-mode: screen;
+  opacity: 0.8;
+}
+
+.nebulaLeft,
+.nebulaRight,
+.nebulaBottom,
+.orbLeft,
+.orbRight,
+.starMesh {
+  position: absolute;
+  pointer-events: none;
+}
+
+.nebulaLeft,
+.nebulaRight,
+.nebulaBottom {
+  filter: blur(10px);
+  mix-blend-mode: screen;
+}
+
+.nebulaLeft {
+  top: 12%;
+  left: -8%;
+  width: 46vw;
+  height: 42vh;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(239, 160, 255, 0.28), transparent 42%),
+    radial-gradient(circle at 30% 62%, rgba(126, 85, 255, 0.22), transparent 48%),
+    radial-gradient(circle at 68% 36%, rgba(255, 255, 255, 0.12), transparent 18%);
+  transform: rotate(-14deg);
+  opacity: 0.9;
+}
+
+.nebulaRight {
+  top: 14%;
+  right: -10%;
+  width: 54vw;
+  height: 52vh;
+  background:
+    radial-gradient(circle at 40% 48%, rgba(255, 176, 236, 0.26), transparent 40%),
+    radial-gradient(circle at 62% 52%, rgba(165, 111, 255, 0.22), transparent 50%),
+    radial-gradient(circle at 54% 36%, rgba(255, 255, 255, 0.11), transparent 16%);
+  transform: rotate(12deg);
+  opacity: 0.9;
+}
+
+.nebulaBottom {
+  left: 24%;
+  bottom: -12%;
+  width: 52vw;
+  height: 30vh;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(212, 168, 255, 0.22), transparent 38%),
+    radial-gradient(circle at 30% 58%, rgba(118, 78, 255, 0.16), transparent 50%);
+  opacity: 0.65;
+}
+
+.orbLeft,
+.orbRight {
+  border-radius: 50%;
+  border: 1px solid rgba(202, 156, 255, 0.12);
+  background: radial-gradient(circle at 50% 50%, rgba(188, 152, 255, 0.06), transparent 70%);
+  box-shadow:
+    0 0 80px rgba(160, 118, 255, 0.08),
+    inset 0 0 30px rgba(255, 255, 255, 0.04);
+}
+
+.orbLeft {
+  top: 14%;
+  left: 7%;
+  width: 220px;
+  height: 220px;
+}
+
+.orbRight {
+  right: 9%;
+  bottom: 20%;
+  width: 180px;
+  height: 180px;
+}
+
+.starMesh {
+  inset: 0;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.34) 0.8px, transparent 0.8px),
+    radial-gradient(rgba(210, 181, 255, 0.22) 0.6px, transparent 0.6px);
+  background-position:
+    0 0,
+    22px 30px;
+  background-size:
+    150px 150px,
+    210px 210px;
+  opacity: 0.3;
 }
 
 .backgroundCanvas {
@@ -15,14 +147,14 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
-  opacity: 0.75;
+  opacity: 0.58;
 }
 
 .main {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   min-height: 100svh;
   display: flex;
   align-items: center;
@@ -33,24 +165,61 @@
 .card {
   width: 100%;
   max-width: 760px;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(30px);
-  border: 1px solid rgba(167, 139, 250, 0.25);
+  background:
+    linear-gradient(180deg, rgba(18, 12, 36, 0.72), rgba(8, 8, 20, 0.74)), rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(22px);
+  border: 1px solid rgba(206, 171, 255, 0.26);
   border-radius: 32px;
   padding: 40px 36px;
   box-shadow:
-    0 24px 60px rgba(0, 0, 0, 0.5),
-    0 0 40px rgba(139, 92, 246, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    0 30px 80px rgba(0, 0, 0, 0.52),
+    0 0 80px rgba(176, 126, 255, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 28px;
 }
 
+.card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 34px;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 235, 255, 0.85),
+    rgba(211, 163, 255, 0.42) 28%,
+    rgba(130, 96, 255, 0.2) 55%,
+    rgba(247, 173, 255, 0.48) 82%,
+    rgba(255, 240, 255, 0.75)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.12), transparent 22%),
+    radial-gradient(circle at 50% 100%, rgba(192, 144, 255, 0.1), transparent 24%);
+  pointer-events: none;
+}
+
 .header {
   text-align: center;
   margin-bottom: 6px;
+  position: relative;
+  z-index: 1;
 }
 
 .iconWrapper {
@@ -289,6 +458,18 @@
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     0 18px 44px rgba(4, 6, 20, 0.35);
+  position: relative;
+  overflow: hidden;
+}
+
+.analysisPanel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.035), transparent),
+    radial-gradient(circle at 20% 20%, rgba(197, 140, 255, 0.09), transparent 34%);
+  pointer-events: none;
 }
 
 .analysisHeader {
@@ -872,6 +1053,28 @@
     padding: 90px 16px 40px;
   }
 
+  .nebulaLeft {
+    width: 68vw;
+    height: 34vh;
+    left: -18%;
+  }
+
+  .nebulaRight {
+    width: 76vw;
+    height: 40vh;
+    right: -22%;
+  }
+
+  .orbLeft {
+    width: 160px;
+    height: 160px;
+  }
+
+  .orbRight {
+    width: 132px;
+    height: 132px;
+  }
+
   .card {
     padding: 32px 24px;
     border-radius: 26px;
@@ -907,6 +1110,14 @@
 
   .card {
     padding: 28px 20px;
+  }
+
+  .spaceBackdrop::before {
+    opacity: 0.65;
+  }
+
+  .starMesh {
+    opacity: 0.2;
   }
 
   .iconWrapper {

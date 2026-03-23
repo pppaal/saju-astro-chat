@@ -86,8 +86,8 @@ import { calculateTimeOverlapWeight } from './timeOverlap'
 import { deriveComponentScoresFromLayers } from './contributionMap'
 import { extractDriversAndCautions } from './drivers'
 import { deriveCalendarSignals } from './calendarSignals'
-import { computeDomainScores, applyTimelineToDomainScores } from './domainScoring'
-import { generateMonthlyOverlapTimeline, generateTimelineByDomain } from './monthlyTimeline'
+import { computeDomainScores } from './domainScoring'
+import { buildTimelineArtifacts } from './engineTimeline'
 
 // Import house system configuration
 import { HOUSE_SYSTEM_CONFIG } from './house-system'
@@ -561,6 +561,10 @@ function calculateLayer10(input: MatrixCalculationInput): Record<string, MatrixC
 // Summary Calculator
 // ===========================
 
+interface EngineExecutionOptions {
+  skipTimelineRecompute?: boolean
+}
+
 function calculateSummary(
   input: MatrixCalculationInput,
   layer1: Record<string, MatrixCell>,
@@ -572,7 +576,8 @@ function calculateSummary(
   layer7: Record<string, MatrixCell>,
   layer8: Record<string, MatrixCell>,
   layer9: Record<string, MatrixCell>,
-  layer10: Record<string, MatrixCell>
+  layer10: Record<string, MatrixCell>,
+  options: EngineExecutionOptions = {}
 ): MatrixSummary {
   const allCells: { layer: number; key: string; cell: MatrixCell }[] = []
 
@@ -690,15 +695,25 @@ function calculateSummary(
     confidenceScore,
   })
 
-  const overlapTimeline = generateMonthlyOverlapTimeline({
+  const {
+    overlapTimeline,
+    overlapTimelinePast,
+    overlapTimelineByDomain,
+    overlapTimelineByDomainPast,
+    domainScores,
+    timingCalibration,
+  } = buildTimelineArtifacts({
     input,
     layer4,
     layer7,
-    startYearMonth: input.startYearMonth,
     baseOverlapStrength: overlapStrength,
+    initialDomainScores,
+    skipTimelineRecompute: options.skipTimelineRecompute,
+    recalculateSummary: (timelineInput) =>
+      calculateDestinyMatrix(timelineInput, {
+        skipTimelineRecompute: true,
+      }).summary,
   })
-  const overlapTimelineByDomain = generateTimelineByDomain(overlapTimeline, initialDomainScores)
-  const domainScores = applyTimelineToDomainScores(initialDomainScores, overlapTimelineByDomain)
 
   const calendarSignalsWithTimeline = deriveCalendarSignals({
     finalScoreAdjusted,
@@ -725,6 +740,9 @@ function calculateSummary(
     domainScores,
     overlapTimeline,
     overlapTimelineByDomain,
+    overlapTimelinePast,
+    overlapTimelineByDomainPast,
+    timingCalibration,
     strengthPoints: strengthPoints.slice(0, 10),
     balancePoints: balancePoints.slice(0, 5),
     cautionPoints: cautionPoints.slice(0, 10),
@@ -750,7 +768,10 @@ function calculateDataCoverage(layerAverages: Record<string, number>): number {
 // Main Calculator
 // ===========================
 
-export function calculateDestinyMatrix(input: MatrixCalculationInput): DestinyFusionMatrixComputed {
+export function calculateDestinyMatrix(
+  input: MatrixCalculationInput,
+  options: EngineExecutionOptions = {}
+): DestinyFusionMatrixComputed {
   // Check cache first (if enabled)
   if (isCachingEnabled()) {
     const cached = getCachedMatrix(input)
@@ -786,7 +807,8 @@ export function calculateDestinyMatrix(input: MatrixCalculationInput): DestinyFu
     layer7Results,
     layer8Results,
     layer9Results,
-    layer10Results
+    layer10Results,
+    options
   )
 
   const result: DestinyFusionMatrixComputed = {

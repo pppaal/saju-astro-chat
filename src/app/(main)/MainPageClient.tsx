@@ -74,7 +74,7 @@ export default function MainPageClient({ initialLocale, initialMessages }: MainP
             {translate(
               'landing.heroTitle',
               localizedFallback(
-                '타이밍, 관계, 다음 결정을 더 선명하게 봅니다.',
+                '타이밍과 관계, 중요한 결정을 더 선명하게 봅니다.',
                 'Clarity for timing, relationships, and your next decision.'
               )
             )}

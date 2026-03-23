@@ -228,34 +228,43 @@ function reversibilityTieBreakBonus(
   return reversible ? 0.03 : -0.015
 }
 
-function scenarioBranchPolicyBonus(
-  branch: string,
-  mode: 'execute' | 'verify' | 'prepare'
-): number {
+function scenarioBranchPolicyBonus(branch: string, mode: 'execute' | 'verify' | 'prepare'): number {
   const key = branch.toLowerCase()
   if (mode === 'execute') {
-    if (/(execution|promotion|authority_gain|cohabitation|lease_decision|cross_border_move)/.test(key)) return 0.03
+    if (
+      /(execution|promotion|authority_gain|cohabitation|lease_decision|cross_border_move)/.test(key)
+    )
+      return 0.03
     if (/(entry|launch|restart|travel)/.test(key)) return 0.018
     if (/(review|clarify|recheck|preparation|search)/.test(key)) return 0.008
     return 0.012
   }
   if (mode === 'verify') {
-    if (/(review|clarify|negotiation|recheck|expectations|distance_tuning|boundary_reset)/.test(key)) return 0.03
+    if (
+      /(review|clarify|negotiation|recheck|expectations|distance_tuning|boundary_reset)/.test(key)
+    )
+      return 0.03
     if (/(search|preparation|role_shift|authority_conflict|debt_restructure)/.test(key)) return 0.02
     if (/(execution|promotion|cohabitation|relocation)/.test(key)) return -0.006
     return 0.01
   }
-  if (/(review|preparation|reset|restructure|search|compliance|recheck|clarify)/.test(key)) return 0.032
-  if (/(execution|promotion|authority_gain|cohabitation|asset_exit|cross_border_move)/.test(key)) return -0.012
+  if (/(review|preparation|reset|restructure|search|compliance|recheck|clarify)/.test(key))
+    return 0.032
+  if (/(execution|promotion|authority_gain|cohabitation|asset_exit|cross_border_move)/.test(key))
+    return -0.012
   return 0.012
 }
 
 function scenarioSpecificityBonus(branch: string): number {
   const key = branch.toLowerCase()
-  if (/(review|negotiation|restructure|compliance|acceptance|decision|conflict|disruption)/.test(key)) {
+  if (
+    /(review|negotiation|restructure|compliance|acceptance|decision|conflict|disruption)/.test(key)
+  ) {
     return 0.024
   }
-  if (/(manager|specialist|authority|cohabitation|cross_border|lease|allocation|execution)/.test(key)) {
+  if (
+    /(manager|specialist|authority|cohabitation|cross_border|lease|allocation|execution)/.test(key)
+  ) {
     return 0.018
   }
   if (/(entry|travel|new_connection|recovery|bond_deepening)/.test(key)) {
@@ -264,10 +273,7 @@ function scenarioSpecificityBonus(branch: string): number {
   return 0.012
 }
 
-function decisionActionFitBonus(
-  action: string,
-  mode: 'execute' | 'verify' | 'prepare'
-): number {
+function decisionActionFitBonus(action: string, mode: 'execute' | 'verify' | 'prepare'): number {
   if (mode === 'execute') {
     if (action === 'commit_now') return 0.045
     if (action === 'pilot_first') return 0.036
@@ -340,10 +346,15 @@ export function evaluateCoreArchitecture(input: {
   const focusState = canonical
     ? input.states.domains.find((item) => item.domain === canonical.focusDomain)
     : null
-  const focusScenarios = canonical ? scenarios.filter((scenario) => scenario.domain === canonical.focusDomain) : []
-  const topDecisionOption = canonical && input.decisionEngine?.topOptionId
-    ? input.decisionEngine.options.find((option) => option.id === input.decisionEngine?.topOptionId)
-    : null
+  const focusScenarios = canonical
+    ? scenarios.filter((scenario) => scenario.domain === canonical.focusDomain)
+    : []
+  const topDecisionOption =
+    canonical && input.decisionEngine?.topOptionId
+      ? input.decisionEngine.options.find(
+          (option) => option.id === input.decisionEngine?.topOptionId
+        )
+      : null
 
   const alignedStates = input.states.domains.filter((state) => {
     const rule = input.rules.domains.find((item) => item.domain === state.domain)
@@ -360,9 +371,12 @@ export function evaluateCoreArchitecture(input: {
     input.states.domains.length > 0 ? alignedStates / input.states.domains.length : 0
 
   const patternScenarioAlignedCount = scenarios.filter((scenario) =>
-    patterns.some((pattern) => pattern.id === scenario.patternId && pattern.domains.includes(scenario.domain))
+    patterns.some(
+      (pattern) => pattern.id === scenario.patternId && pattern.domains.includes(scenario.domain)
+    )
   ).length
-  const patternScenarioAlignmentRate = scenarios.length > 0 ? patternScenarioAlignedCount / scenarios.length : 1
+  const patternScenarioAlignmentRate =
+    scenarios.length > 0 ? patternScenarioAlignedCount / scenarios.length : 1
 
   const confidence = canonical?.confidence ?? 0.5
   const crossAgreement = canonical?.crossAgreement ?? null
@@ -374,39 +388,55 @@ export function evaluateCoreArchitecture(input: {
       )
     : 0
   const overcommitRisk = clamp01(
-    (focusRule?.resolvedMode === 'prepare' ? 0.45 : focusRule?.resolvedMode === 'verify' ? 0.22 : 0) +
+    (focusRule?.resolvedMode === 'prepare'
+      ? 0.45
+      : focusRule?.resolvedMode === 'verify'
+        ? 0.22
+        : 0) +
       (focusActivation && focusActivation.activationScore >= 3.5 ? 0.1 : 0) +
       (crossAgreement !== null && crossAgreement < 0.35 ? 0.2 : 0) +
       cautionPressure * 0.35
   )
   const irreversibilityPressure = clamp01(
-    (scenarios.filter((scenario) => !scenario.reversible).length / Math.max(1, scenarios.length)) * 0.7 +
+    (scenarios.filter((scenario) => !scenario.reversible).length / Math.max(1, scenarios.length)) *
+      0.7 +
       (topDecisionOption && !topDecisionOption.reversible ? 0.25 : 0) +
       (canonical?.judgmentPolicy.mode === 'execute' ? 0.1 : 0)
   )
   const domainConcentration = clamp01(
     canonical?.domainLeads?.length
       ? (canonical.domainLeads[0]?.dominanceScore || 0) /
-        Math.max(0.01, canonical.domainLeads.reduce((sum, lead) => sum + lead.dominanceScore, 0))
+          Math.max(
+            0.01,
+            canonical.domainLeads.reduce((sum, lead) => sum + lead.dominanceScore, 0)
+          )
       : 0
   )
 
   const contradictions: string[] = []
   const notes: string[] = []
   if (canonical) {
-    if (focusRule && focusRule.resolvedMode === 'prepare' && canonical.judgmentPolicy.mode === 'execute') {
+    if (
+      focusRule &&
+      focusRule.resolvedMode === 'prepare' &&
+      canonical.judgmentPolicy.mode === 'execute'
+    ) {
       contradictions.push('focus_rule_prepare_but_execute_verdict')
     }
     if (focusState?.state === 'residue' && canonical.judgmentPolicy.mode === 'execute') {
       contradictions.push('residue_state_execute_conflict')
     }
-    if (crossAgreement !== null && crossAgreement < 0.35 && canonical.judgmentPolicy.mode === 'execute') {
+    if (
+      crossAgreement !== null &&
+      crossAgreement < 0.35 &&
+      canonical.judgmentPolicy.mode === 'execute'
+    ) {
       contradictions.push('low_cross_agreement_execute_policy')
     }
     if (focusScenarios.length === 0) {
       contradictions.push('focus_domain_without_scenarios')
     }
-    if (topDecisionOption && topDecisionOption.domain !== canonical.focusDomain) {
+    if (topDecisionOption && topDecisionOption.domain !== canonical.actionFocusDomain) {
       contradictions.push('top_decision_domain_focus_mismatch')
     }
     if (canonical.judgmentPolicy.mode === 'execute' && focusRule?.resolvedMode === 'verify') {
@@ -425,6 +455,7 @@ export function evaluateCoreArchitecture(input: {
       warnings.push('irreversibility_pressure_high')
     }
     notes.push(`focus:${canonical.focusDomain}`)
+    notes.push(`action_focus:${canonical.actionFocusDomain}`)
     notes.push(`policy:${canonical.judgmentPolicy.mode}`)
     notes.push(`focus_scenarios:${focusScenarios.length}`)
   }
@@ -438,11 +469,14 @@ export function evaluateCoreArchitecture(input: {
         ...(rule.convert.slice(0, 1) || []),
       ].filter(Boolean)
       const focusBonus = canonical && rule.domain === canonical.focusDomain ? 0.25 : 0
-      const modeBonus = rule.resolvedMode === 'execute' ? 0.12 : rule.resolvedMode === 'verify' ? 0.08 : 0.05
+      const modeBonus =
+        rule.resolvedMode === 'execute' ? 0.12 : rule.resolvedMode === 'verify' ? 0.08 : 0.05
       const baseScore = rule.priorityScore / 3.6
       const reasonBonus = Math.min(reasons.length, 4) * 0.05
       const contradictionPenalty = rule.contradictionPenalty * 0.28
-      const score = round2(clamp01(softCap(baseScore + focusBonus + modeBonus + reasonBonus - contradictionPenalty)))
+      const score = round2(
+        clamp01(softCap(baseScore + focusBonus + modeBonus + reasonBonus - contradictionPenalty))
+      )
       return {
         domain: rule.domain,
         mode: rule.resolvedMode,
@@ -486,7 +520,8 @@ export function evaluateCoreArchitecture(input: {
       const modeBonus = pattern.resolvedMode === policyMode ? 0.04 : 0.01
       const profileBonus = policyProfileBonus(pattern.profile, policyMode)
       const stateBonus = stateTieBreakBonus(pattern.domainState, policyMode)
-      const agreementBonus = pattern.crossAgreement !== null ? clamp01(pattern.crossAgreement) * 0.025 : 0
+      const agreementBonus =
+        pattern.crossAgreement !== null ? clamp01(pattern.crossAgreement) * 0.025 : 0
       const blockedPenalty = Math.min(pattern.blockedBy.length, 4) * 0.018
       const gapBonus = relativeGapBonus(raw, topPatternRaw, secondPatternRaw)
       const score = round2(clamp01(softCap(raw + gapBonus)))
@@ -499,7 +534,14 @@ export function evaluateCoreArchitecture(input: {
         topGap: round3(topPatternRaw > 0 ? Math.max(0, (topPatternRaw - raw) / topPatternRaw) : 0),
         breakdown: {
           baseScore: normalizedBreakdownBase(
-            raw - focusBonus - leadBonus - modeBonus - profileBonus - stateBonus - agreementBonus + blockedPenalty
+            raw -
+              focusBonus -
+              leadBonus -
+              modeBonus -
+              profileBonus -
+              stateBonus -
+              agreementBonus +
+              blockedPenalty
           ),
           focusBonus: round2(focusBonus),
           leadBonus: round2(leadBonus),
@@ -513,7 +555,7 @@ export function evaluateCoreArchitecture(input: {
         },
       }
     })
-    .sort((a, b) => (b.raw - a.raw) || (b.score - a.score) || a.id.localeCompare(b.id))
+    .sort((a, b) => b.raw - a.raw || b.score - a.score || a.id.localeCompare(b.id))
     .map((item, index) => ({
       id: item.id,
       domainMatch: item.domainMatch,
@@ -568,7 +610,9 @@ export function evaluateCoreArchitecture(input: {
         reversible: scenario.reversible,
         raw,
         clusterRank: index + 1,
-        topGap: round3(topScenarioRaw > 0 ? Math.max(0, (topScenarioRaw - raw) / topScenarioRaw) : 0),
+        topGap: round3(
+          topScenarioRaw > 0 ? Math.max(0, (topScenarioRaw - raw) / topScenarioRaw) : 0
+        ),
         breakdown: {
           baseScore: normalizedBreakdownBase(
             raw -
@@ -617,45 +661,44 @@ export function evaluateCoreArchitecture(input: {
     .slice(0, 5)
   const topScenarioGap =
     topScenarioDrivers.length >= 2
-      ? round3(
-          Math.max(0, topScenarioRaw - secondScenarioRaw) /
-            Math.max(0.001, topScenarioRaw)
-        )
+      ? round3(Math.max(0, topScenarioRaw - secondScenarioRaw) / Math.max(0.001, topScenarioRaw))
       : 0
   const scenarioClusterCompression =
     topScenarioDrivers.length >= 3
       ? round3(
-          1 -
-            Math.max(
-              0,
-              (topScenarioRaw - thirdScenarioRaw) /
-                Math.max(0.001, topScenarioRaw)
-            )
+          1 - Math.max(0, (topScenarioRaw - thirdScenarioRaw) / Math.max(0.001, topScenarioRaw))
         )
       : 0
   const topTimingScenarios = scenarios
     .slice()
     .sort((a, b) => b.probability - a.probability)
     .slice(0, 5)
-  const timingSensitiveTopCount = topTimingScenarios.filter((scenario) => isTimingSensitiveBranch(scenario.branch)).length
+  const timingSensitiveTopCount = topTimingScenarios.filter((scenario) =>
+    isTimingSensitiveBranch(scenario.branch)
+  ).length
   const timingRelevanceMean =
     topTimingScenarios.length > 0
-      ? topTimingScenarios.reduce((sum, scenario) => sum + scenario.timingRelevance, 0) / topTimingScenarios.length
+      ? topTimingScenarios.reduce((sum, scenario) => sum + scenario.timingRelevance, 0) /
+        topTimingScenarios.length
       : 0
   const timingSharpness = round3(
-    clamp01(timingRelevanceMean * 0.65 + (timingSensitiveTopCount / Math.max(1, topTimingScenarios.length)) * 0.35)
+    clamp01(
+      timingRelevanceMean * 0.65 +
+        (timingSensitiveTopCount / Math.max(1, topTimingScenarios.length)) * 0.35
+    )
   )
 
   const sortedDecisionRaw = (input.decisionEngine?.options || [])
-    .map((option) =>
-      option.scores.total / 20 +
-      option.confidence * 0.24 +
-      (canonical && option.domain === canonical.focusDomain ? 0.12 : 0) +
-      decisionActionFitBonus(option.action, policyMode) +
-      reversibilityTieBreakBonus(option.reversible, policyMode) +
-      (option.id === input.decisionEngine?.topOptionId ? 0.04 : 0) +
-      Math.min(option.supportingScenarioIds.length, 4) * 0.01 +
-      (option.gated ? -0.18 : 0)
+    .map(
+      (option) =>
+        option.scores.total / 20 +
+        option.confidence * 0.24 +
+        (canonical && option.domain === canonical.actionFocusDomain ? 0.12 : 0) +
+        decisionActionFitBonus(option.action, policyMode) +
+        reversibilityTieBreakBonus(option.reversible, policyMode) +
+        (option.id === input.decisionEngine?.topOptionId ? 0.04 : 0) +
+        Math.min(option.supportingScenarioIds.length, 4) * 0.01 +
+        (option.gated ? -0.18 : 0)
     )
     .sort((a, b) => b - a)
   const topDecisionRaw = sortedDecisionRaw[0] || 0
@@ -666,26 +709,42 @@ export function evaluateCoreArchitecture(input: {
           const raw =
             topDecisionOption.scores.total / 20 +
             topDecisionOption.confidence * 0.24 +
-            (topDecisionOption.domain === canonical.focusDomain ? 0.12 : 0) +
+            (topDecisionOption.domain === canonical.actionFocusDomain ? 0.12 : 0) +
             decisionActionFitBonus(topDecisionOption.action, policyMode) +
             reversibilityTieBreakBonus(topDecisionOption.reversible, policyMode) +
             Math.min(topDecisionOption.supportingScenarioIds.length, 4) * 0.01 +
             (topDecisionOption.gated ? -0.18 : 0)
           return {
             id: topDecisionOption.id,
-            domainMatch: topDecisionOption.domain === canonical.focusDomain,
-            score: round2(clamp01(softCap(raw + relativeGapBonus(raw, topDecisionRaw, secondDecisionRaw)))),
+            domainMatch: topDecisionOption.domain === canonical.actionFocusDomain,
+            score: round2(
+              clamp01(softCap(raw + relativeGapBonus(raw, topDecisionRaw, secondDecisionRaw)))
+            ),
             gated: Boolean(topDecisionOption.gated),
-            topGap: round3(topDecisionRaw > 0 ? Math.max(0, (topDecisionRaw - secondDecisionRaw) / topDecisionRaw) : 0),
+            topGap: round3(
+              topDecisionRaw > 0
+                ? Math.max(0, (topDecisionRaw - secondDecisionRaw) / topDecisionRaw)
+                : 0
+            ),
             breakdown: {
-              baseScore: normalizedBreakdownBase(topDecisionOption.scores.total / 20 + topDecisionOption.confidence * 0.24),
-              focusBonus: round2(topDecisionOption.domain === canonical.focusDomain ? 0.12 : 0),
+              baseScore: normalizedBreakdownBase(
+                topDecisionOption.scores.total / 20 + topDecisionOption.confidence * 0.24
+              ),
+              focusBonus: round2(
+                topDecisionOption.domain === canonical.actionFocusDomain ? 0.12 : 0
+              ),
               actionFitBonus: round2(decisionActionFitBonus(topDecisionOption.action, policyMode)),
-              reversibleBonus: round2(reversibilityTieBreakBonus(topDecisionOption.reversible, policyMode)),
-              supportBonus: round2(Math.min(topDecisionOption.supportingScenarioIds.length, 4) * 0.01),
+              reversibleBonus: round2(
+                reversibilityTieBreakBonus(topDecisionOption.reversible, policyMode)
+              ),
+              supportBonus: round2(
+                Math.min(topDecisionOption.supportingScenarioIds.length, 4) * 0.01
+              ),
               gatedPenalty: round2(topDecisionOption.gated ? 0.18 : 0),
               gapBonus: round2(relativeGapBonus(raw, topDecisionRaw, secondDecisionRaw)),
-              finalScore: round2(clamp01(softCap(raw + relativeGapBonus(raw, topDecisionRaw, secondDecisionRaw)))),
+              finalScore: round2(
+                clamp01(softCap(raw + relativeGapBonus(raw, topDecisionRaw, secondDecisionRaw)))
+              ),
             },
           }
         })()
@@ -704,11 +763,15 @@ export function evaluateCoreArchitecture(input: {
     },
     replay: {
       verdictAligned: contradictions.length === 0,
-      focusDomainAligned: Boolean(canonical?.focusDomain && focusActivation && focusRule && focusState),
+      focusDomainAligned: Boolean(
+        canonical?.focusDomain && focusActivation && focusRule && focusState
+      ),
       stateRuleAlignmentRate: Math.round(stateRuleAlignmentRate * 100) / 100,
       patternScenarioAlignmentRate: Math.round(patternScenarioAlignmentRate * 100) / 100,
       focusScenarioDomainAligned: Boolean(canonical?.focusDomain && focusScenarios.length > 0),
-      topDecisionDomainAligned: Boolean(!canonical || !topDecisionOption || topDecisionOption.domain === canonical.focusDomain),
+      topDecisionDomainAligned: Boolean(
+        !canonical || !topDecisionOption || topDecisionOption.domain === canonical.actionFocusDomain
+      ),
     },
     calibration: {
       confidenceBand: confidence >= 0.7 ? 'high' : confidence >= 0.45 ? 'medium' : 'low',

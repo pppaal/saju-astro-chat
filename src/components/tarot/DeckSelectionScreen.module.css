@@ -1,12 +1,20 @@
+:global(:root) {
+  --tarot-font-body:
+    var(--font-noto-kr), var(--font-montserrat), 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui,
+    sans-serif;
+  --tarot-font-display:
+    var(--font-cinzel), var(--font-lora), var(--font-noto-kr), Georgia, 'Times New Roman', serif;
+}
 /* ===== Loading & Error States ===== */
-.loading, .error {
+.loading,
+.error {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   font-size: 1.5rem;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   color: rgba(255, 255, 255, 0.9);
   background: transparent;
   gap: 2rem;
@@ -17,8 +25,9 @@
   height: 80px;
   background: radial-gradient(circle at 35% 35%, #ffffff, #e0f7ff, #b8e8ff, #63d2ff, #4aa8d4 70%);
   border-radius: 50%;
-  box-shadow: 0 0 40px rgba(99, 210, 255, 0.6),
-              0 0 80px rgba(99, 210, 255, 0.3);
+  box-shadow:
+    0 0 40px rgba(99, 210, 255, 0.6),
+    0 0 80px rgba(99, 210, 255, 0.3);
   animation: orbPulse 2s ease-in-out infinite;
 }
 
@@ -88,7 +97,7 @@
 }
 
 .instructionTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 0.75rem 0;
@@ -212,8 +221,9 @@
   background-position: center;
   border: 2px solid var(--card-border, rgba(212, 175, 55, 0.6));
   border-radius: 10px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6),
-              0 0 20px rgba(212, 175, 55, 0.2);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(212, 175, 55, 0.2);
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -234,8 +244,9 @@
 
 .cardWrapper:hover .cardBack {
   border-color: rgba(212, 175, 55, 1);
-  box-shadow: 0 8px 30px rgba(212, 175, 55, 0.5),
-              0 0 40px rgba(212, 175, 55, 0.3);
+  box-shadow:
+    0 8px 30px rgba(212, 175, 55, 0.5),
+    0 0 40px rgba(212, 175, 55, 0.3);
 }
 
 .cardWrapper.selected {
@@ -254,8 +265,9 @@
 
 .cardWrapper.selected .cardBack {
   border-color: rgba(212, 175, 55, 1);
-  box-shadow: 0 10px 40px rgba(212, 175, 55, 0.6),
-              0 0 60px rgba(212, 175, 55, 0.4);
+  box-shadow:
+    0 10px 40px rgba(212, 175, 55, 0.6),
+    0 0 60px rgba(212, 175, 55, 0.4);
 }
 
 .selectionNumber {
@@ -275,8 +287,9 @@
   font-weight: bold;
   color: #0a1428;
   font-size: 1.1rem;
-  box-shadow: 0 4px 15px rgba(124, 242, 156, 0.8),
-              0 0 20px rgba(99, 210, 255, 0.5);
+  box-shadow:
+    0 4px 15px rgba(124, 242, 156, 0.8),
+    0 0 20px rgba(99, 210, 255, 0.5);
   animation: numberAppear 0.5s cubic-bezier(0.34, 1.2, 0.64, 1);
   z-index: 10;
 }
@@ -364,8 +377,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 30% 20%, rgba(99, 210, 255, 0.06) 0%, transparent 50%),
-              radial-gradient(circle at 70% 80%, rgba(124, 242, 156, 0.06) 0%, transparent 50%);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(99, 210, 255, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(124, 242, 156, 0.06) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -396,12 +410,19 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .resultsHeader {
@@ -412,7 +433,7 @@
 }
 
 .resultsTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 3rem;
   font-weight: 700;
   background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #7cf29c 100%);
@@ -504,12 +525,13 @@
 .resultCardSlot:hover {
   transform: translateY(-8px);
   border-color: rgba(99, 210, 255, 0.3);
-  box-shadow: 0 20px 50px rgba(99, 210, 255, 0.15),
-              0 0 60px rgba(99, 210, 255, 0.1);
+  box-shadow:
+    0 20px 50px rgba(99, 210, 255, 0.15),
+    0 0 60px rgba(99, 210, 255, 0.1);
 }
 
 .positionBadge {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.2rem;
   font-weight: 600;
   color: #7cf29c;
@@ -525,7 +547,7 @@
 }
 
 .positionBadgeWithNumber {
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: var(--tarot-font-display);
   font-size: 1.1rem;
   font-weight: 500;
   color: #ffffff;
@@ -575,7 +597,8 @@
   animation-fill-mode: both;
 }
 
-.cardFront, .cardBackResult {
+.cardFront,
+.cardBackResult {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -656,7 +679,7 @@
 }
 
 .cardName {
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: var(--tarot-font-display);
   font-size: 1.8rem;
   font-weight: 600;
   color: #ffffff;
@@ -698,7 +721,7 @@
   margin: 0;
   padding: 0 1rem;
   width: 100%;
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: var(--tarot-font-display);
   letter-spacing: 0.3px;
 }
 
@@ -708,7 +731,7 @@
   border: 3px solid #7cf29c;
   border-radius: 50px;
   color: #7cf29c;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.3rem;
   font-weight: 600;
   cursor: pointer;
@@ -732,8 +755,9 @@
 .resetButton:hover {
   background: #7cf29c;
   color: #0a0a1a;
-  box-shadow: 0 0 30px rgba(124, 242, 156, 0.6),
-              0 0 60px rgba(124, 242, 156, 0.3);
+  box-shadow:
+    0 0 30px rgba(124, 242, 156, 0.6),
+    0 0 60px rgba(124, 242, 156, 0.3);
   transform: translateY(-4px);
 }
 
@@ -766,7 +790,7 @@
 }
 
 .streamingTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 2rem;
   font-weight: 700;
   background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #7cf29c 100%);
@@ -799,13 +823,25 @@
   animation: streamDotBounce 1.4s ease-in-out infinite;
 }
 
-.streamingDot:nth-child(1) { animation-delay: 0s; }
-.streamingDot:nth-child(2) { animation-delay: 0.2s; }
-.streamingDot:nth-child(3) { animation-delay: 0.4s; }
+.streamingDot:nth-child(1) {
+  animation-delay: 0s;
+}
+.streamingDot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.streamingDot:nth-child(3) {
+  animation-delay: 0.4s;
+}
 
 @keyframes streamDotBounce {
-  0%, 60%, 100% { transform: translateY(0); }
-  30% { transform: translateY(-4px); }
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-4px);
+  }
 }
 
 /* Streaming Content Box */
@@ -835,7 +871,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.1rem;
   font-weight: 600;
   color: #7cf29c;
@@ -867,8 +903,14 @@
 }
 
 @keyframes cursorBlink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
 }
 
 /* Card Insight Streaming */
@@ -1012,7 +1054,7 @@
   line-height: 2.1;
   color: rgba(255, 255, 255, 0.95);
   margin: 0;
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: var(--tarot-font-display);
   letter-spacing: 0.3px;
   font-weight: 400;
 }
@@ -1082,7 +1124,7 @@
 }
 
 .counselorName {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 0.85rem;
   font-weight: 600;
   color: rgba(99, 210, 255, 0.9);
@@ -1091,7 +1133,7 @@
 }
 
 .counselorMessage {
-  font-family: 'Georgia', 'Noto Serif KR', serif;
+  font-family: var(--tarot-font-display);
   font-size: 1.1rem;
   line-height: 1.9;
   color: rgba(255, 255, 255, 0.95);
@@ -1127,7 +1169,9 @@
 }
 
 @keyframes typingDot {
-  0%, 60%, 100% {
+  0%,
+  60%,
+  100% {
     transform: translateY(0);
     opacity: 0.4;
   }
@@ -1168,7 +1212,7 @@
 }
 
 .insightTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.1rem;
   font-weight: 600;
   color: #7cf29c;
@@ -1181,7 +1225,7 @@
   color: rgba(255, 255, 255, 0.92);
   margin: 0;
   white-space: pre-wrap;
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: var(--tarot-font-display);
   letter-spacing: 0.3px;
 }
 
@@ -1285,7 +1329,7 @@
 }
 
 .sectionTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.5rem;
   color: #7cf29c;
   margin: 0 0 1.5rem 0;
@@ -1308,7 +1352,7 @@
 
 .comboCards {
   display: block;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.1rem;
   font-weight: 600;
   color: rgba(99, 210, 255, 1);
@@ -1338,7 +1382,12 @@
   flex: 1;
   width: 100%;
   min-width: 280px;
-  background: linear-gradient(145deg, rgba(99, 210, 255, 0.12) 0%, rgba(30, 30, 45, 0.7) 50%, rgba(124, 242, 156, 0.08) 100%);
+  background: linear-gradient(
+    145deg,
+    rgba(99, 210, 255, 0.12) 0%,
+    rgba(30, 30, 45, 0.7) 50%,
+    rgba(124, 242, 156, 0.08) 100%
+  );
   backdrop-filter: blur(25px);
   border: 2px solid rgba(99, 210, 255, 0.3);
   border-radius: 28px;
@@ -1347,9 +1396,10 @@
   position: relative;
   overflow: hidden;
   transition: all 0.4s ease;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-              0 0 60px rgba(99, 210, 255, 0.1),
-              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 60px rgba(99, 210, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .guidanceBox::before {
@@ -1359,18 +1409,25 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     transparent 0%,
     rgba(99, 210, 255, 0.6) 20%,
     rgba(124, 242, 156, 0.8) 50%,
     rgba(99, 210, 255, 0.6) 80%,
-    transparent 100%);
+    transparent 100%
+  );
   animation: shimmer 3s ease-in-out infinite;
 }
 
 @keyframes shimmer {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .guidanceBox:hover {
@@ -1382,7 +1439,12 @@
 .affirmationBox {
   flex: 1;
   min-width: 280px;
-  background: linear-gradient(145deg, rgba(124, 242, 156, 0.08) 0%, rgba(30, 30, 45, 0.6) 50%, rgba(212, 175, 55, 0.05) 100%);
+  background: linear-gradient(
+    145deg,
+    rgba(124, 242, 156, 0.08) 0%,
+    rgba(30, 30, 45, 0.6) 50%,
+    rgba(212, 175, 55, 0.05) 100%
+  );
   backdrop-filter: blur(20px);
   border: 1px solid rgba(124, 242, 156, 0.25);
   border-radius: 24px;
@@ -1400,7 +1462,13 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, transparent, rgba(124, 242, 156, 0.8), rgba(212, 175, 55, 0.8), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(124, 242, 156, 0.8),
+    rgba(212, 175, 55, 0.8),
+    transparent
+  );
 }
 
 .affirmationBox:hover {
@@ -1409,7 +1477,8 @@
   transform: translateY(-4px);
 }
 
-.guidanceIcon, .affirmationIcon {
+.guidanceIcon,
+.affirmationIcon {
   margin-bottom: 1.5rem;
   text-align: center;
 }
@@ -1429,17 +1498,29 @@
 }
 
 @keyframes iconFloat {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-8px) rotate(5deg); }
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(5deg);
+  }
 }
 
 @keyframes iconPulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.15); opacity: 0.9; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.9;
+  }
 }
 
 .guidanceTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.8rem;
   font-weight: 700;
   background: linear-gradient(135deg, #63d2ff 0%, #7cf29c 100%);
@@ -1452,7 +1533,7 @@
 }
 
 .affirmationTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.4rem;
   font-weight: 700;
   background: linear-gradient(135deg, #7cf29c, #d4af37);
@@ -1492,8 +1573,15 @@
 }
 
 @keyframes starTwinkle {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.2); }
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 .footerText {
@@ -1510,12 +1598,14 @@
 .affirmationDivider {
   width: 120px;
   height: 3px;
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     transparent 0%,
     rgba(124, 242, 156, 0.3) 20%,
     rgba(124, 242, 156, 0.8) 50%,
     rgba(124, 242, 156, 0.3) 80%,
-    transparent 100%);
+    transparent 100%
+  );
   margin: 0 auto 2rem auto;
   box-shadow: 0 0 10px rgba(124, 242, 156, 0.3);
 }
@@ -1542,8 +1632,15 @@
 }
 
 @keyframes moonGlow {
-  0%, 100% { opacity: 0.5; filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.3)); }
-  50% { opacity: 0.9; filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.6)); }
+  0%,
+  100% {
+    opacity: 0.5;
+    filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.3));
+  }
+  50% {
+    opacity: 0.9;
+    filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.6));
+  }
 }
 
 /* ===== Compact Guidance Box (New) ===== */
@@ -1581,11 +1678,13 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     transparent 0%,
     rgba(99, 210, 255, 0.3) 20%,
     rgba(124, 242, 156, 0.3) 80%,
-    transparent 100%);
+    transparent 100%
+  );
 }
 
 .guidanceBoxCompact:hover {
@@ -1607,7 +1706,7 @@
 }
 
 .guidanceTitleCompact {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 0.875rem;
   font-weight: 700;
   color: rgba(99, 210, 255, 1);
@@ -1623,7 +1722,7 @@
   margin: 0;
   white-space: pre-line;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: var(--tarot-font-display);
   letter-spacing: 0.3px;
   font-weight: 400;
 }
@@ -1657,27 +1756,49 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ===== Animations ===== */
 @keyframes orbPulse {
-  0%, 100% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.1); opacity: 1; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
 }
 
 @keyframes textGlow {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; text-shadow: 0 0 20px rgba(99, 210, 255, 0.6); }
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 20px rgba(99, 210, 255, 0.6);
+  }
 }
 
 @keyframes selectedPulse {
-  0%, 100% {
-    box-shadow: 0 10px 40px rgba(124, 242, 156, 0.5), 0 0 60px rgba(99, 210, 255, 0.6);
+  0%,
+  100% {
+    box-shadow:
+      0 10px 40px rgba(124, 242, 156, 0.5),
+      0 0 60px rgba(99, 210, 255, 0.6);
   }
   50% {
-    box-shadow: 0 12px 50px rgba(124, 242, 156, 0.7), 0 0 80px rgba(99, 210, 255, 0.8);
+    box-shadow:
+      0 12px 50px rgba(124, 242, 156, 0.7),
+      0 0 80px rgba(99, 210, 255, 0.8);
   }
 }
 
@@ -1697,19 +1818,38 @@
 }
 
 @keyframes cardReveal {
-  0% { transform: translateY(-150px) scale(1.15) rotate(0deg); }
-  50% { transform: translateY(-200px) scale(1.2) rotateY(180deg); }
-  100% { transform: translateY(-250px) scale(0) rotateY(360deg); opacity: 0; }
+  0% {
+    transform: translateY(-150px) scale(1.15) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-200px) scale(1.2) rotateY(180deg);
+  }
+  100% {
+    transform: translateY(-250px) scale(0) rotateY(360deg);
+    opacity: 0;
+  }
 }
 
 @keyframes titleAppear {
-  from { opacity: 0; transform: translateY(-30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes subtitleAppear {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes cardSlotAppear {
@@ -1882,8 +2022,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 20% 30%, rgba(99, 210, 255, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 70%, rgba(124, 242, 156, 0.08) 0%, transparent 50%);
+  background:
+    radial-gradient(circle at 20% 30%, rgba(99, 210, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(124, 242, 156, 0.08) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -1935,14 +2076,20 @@
 }
 
 @keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .questionQuote {
   font-size: 1.5rem;
   color: rgba(99, 210, 255, 0.5);
-  font-family: Georgia, serif;
+  font-family: var(--tarot-font-display);
   line-height: 1;
 }
 
@@ -2201,7 +2348,7 @@
 }
 
 .colorSelectTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 2.5rem;
   color: #7cf29c;
   margin: 0 0 1rem 0;
@@ -2288,7 +2435,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.15) 1px, transparent 0);
+  background-image: radial-gradient(
+    circle at 2px 2px,
+    rgba(255, 255, 255, 0.15) 1px,
+    transparent 0
+  );
   background-size: 12px 12px;
 }
 
@@ -2321,8 +2472,12 @@
 }
 
 @keyframes checkAppear {
-  from { transform: scale(0); }
-  to { transform: scale(1); }
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
 }
 
 .colorPreview {
@@ -2353,7 +2508,7 @@
 }
 
 .colorName {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.1rem;
   font-weight: 600;
   color: rgba(224, 224, 255, 0.95);
@@ -2389,7 +2544,7 @@
   border: 3px solid rgba(99, 210, 255, 0.6);
   border-radius: 50px;
   color: rgba(224, 224, 255, 0.9);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.2rem;
   font-weight: 600;
   cursor: pointer;
@@ -2418,7 +2573,7 @@
 }
 
 .spreadPreviewTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.5rem;
   color: rgba(99, 210, 255, 0.95);
   margin: 0 0 0.5rem 0;
@@ -2564,7 +2719,7 @@
   border: none;
   border-radius: 50px;
   color: #0a1428;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.3rem;
   font-weight: 700;
   cursor: pointer;
@@ -2625,7 +2780,7 @@
 }
 
 .chatTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.8rem;
   color: #7cf29c;
   margin: 0 0 1.5rem 0;
@@ -2644,7 +2799,7 @@
   border: 2px solid rgba(99, 210, 255, 0.5);
   border-radius: 50px;
   color: rgba(224, 224, 255, 0.9);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
@@ -2684,7 +2839,7 @@
   border: 3px solid rgba(99, 210, 255, 0.6);
   border-radius: 50px;
   color: #ffffff;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.2rem;
   font-weight: 600;
   cursor: pointer;
@@ -2710,7 +2865,7 @@
   border: 2px solid rgba(255, 193, 7, 0.5);
   border-radius: 50px;
   color: #ffc107;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -2744,10 +2899,18 @@
 }
 
 @keyframes fadeInOut {
-  0% { opacity: 0; }
-  10% { opacity: 1; }
-  80% { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 /* ===== Color Selection Responsive ===== */
@@ -2876,7 +3039,9 @@
 .resultCardHorizontal.canReveal {
   cursor: pointer;
   border-color: rgba(124, 242, 156, 0.5);
-  animation: slideInFromLeft 0.6s ease-out forwards, pulseGlow 2s ease-in-out 0.6s infinite;
+  animation:
+    slideInFromLeft 0.6s ease-out forwards,
+    pulseGlow 2s ease-in-out 0.6s infinite;
 }
 
 .resultCardHorizontal.canReveal:hover {
@@ -2901,7 +3066,8 @@
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(124, 242, 156, 0.2);
   }
   50% {
@@ -2919,7 +3085,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-weight: 700;
   color: #0a1428;
   font-size: 1rem;
@@ -2928,7 +3094,7 @@
 }
 
 .positionBadgeHorizontal {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 0.9rem;
   font-weight: 600;
   color: #7cf29c;
@@ -3002,7 +3168,8 @@
 }
 
 @keyframes bounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(-50%) translateY(0);
   }
   50% {
@@ -3107,7 +3274,7 @@
 }
 
 .cardNameCompact {
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: var(--tarot-font-display);
   font-size: 1.05rem;
   font-weight: 600;
   color: #ffffff;
@@ -3145,13 +3312,15 @@
   border: 2px solid rgba(99, 210, 255, 0.5);
   border-radius: 50px;
   color: rgba(224, 224, 255, 0.95);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.15rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10;
-  animation: fadeInUp 0.5s ease-out 2.5s forwards, pulseGlow 2s ease-in-out 3s infinite;
+  animation:
+    fadeInUp 0.5s ease-out 2.5s forwards,
+    pulseGlow 2s ease-in-out 3s infinite;
   opacity: 0;
 }
 
@@ -3187,7 +3356,7 @@
 }
 
 .detailedSectionTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 2rem;
   font-weight: 700;
   background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #7cf29c 100%);
@@ -3348,7 +3517,7 @@
 }
 
 .chatName {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 0.8rem;
   font-weight: 600;
   color: rgba(99, 210, 255, 0.85);
@@ -3396,7 +3565,7 @@
 }
 
 .chatText {
-  font-family: 'Georgia', 'Noto Serif KR', serif;
+  font-family: var(--tarot-font-display);
   font-size: 1.05rem;
   line-height: 1.85;
   color: rgba(255, 255, 255, 0.93);
@@ -3440,7 +3609,7 @@
 }
 
 .adviceText {
-  font-family: 'Inter', 'Noto Sans KR', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.1rem;
   line-height: 1.8;
   color: rgba(255, 255, 255, 0.97);
@@ -3492,14 +3661,14 @@
 }
 
 .adviceCardTitle {
-  font-family: 'Inter', 'Noto Sans KR', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.05rem;
   font-weight: 600;
   color: #7cf29c;
 }
 
 .adviceCardDetail {
-  font-family: 'Inter', 'Noto Sans KR', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 0.98rem;
   line-height: 1.75;
   color: rgba(255, 255, 255, 0.9);
@@ -3586,8 +3755,13 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .loginTitle {
@@ -3653,7 +3827,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: #000;
-  background: #FEE500;
+  background: #fee500;
   border: none;
   border-radius: 12px;
   cursor: pointer;
@@ -3664,7 +3838,7 @@
 .kakaoButton:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(254, 229, 0, 0.4);
-  background: #FFD900;
+  background: #ffd900;
 }
 
 .kakaoIcon {

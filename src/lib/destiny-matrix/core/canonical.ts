@@ -1,5 +1,8 @@
 import type { DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
+import type { SignalDomain } from './signalSynthesizer'
 import type {
+  CoreArbitrationEntry,
+  CoreArbitrationLedger,
   BuildCoreCanonicalOutputInput,
   CoreCoherenceAudit,
   CoreDomainAdvisory,
@@ -40,6 +43,215 @@ function clamp(value: number, min: number, max: number): number {
 
 function round2(value: number): number {
   return Math.round(value * 100) / 100
+}
+
+function pickTopBreakdownLabels(
+  breakdown: Record<string, number>,
+  labels: Record<string, string>
+): string[] {
+  return Object.entries(breakdown)
+    .filter(([, value]) => value > 0)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2)
+    .map(([key]) => labels[key] || key)
+}
+
+function buildFocusDomainRanking(
+  input: BuildCoreCanonicalOutputInput,
+  domainLeads: CoreDomainLead[]
+): CoreArbitrationEntry[] {
+  const candidateDomains = new Set<SignalDomain>()
+  for (const lead of domainLeads) candidateDomains.add(lead.domain)
+  if (input.strategy.focusDomain) candidateDomains.add(input.strategy.focusDomain)
+  for (const scenario of input.scenarios || []) {
+    if (scenario.domain) candidateDomains.add(scenario.domain)
+  }
+  for (const option of input.decisionEngine.options || []) {
+    if (option.domain) candidateDomains.add(option.domain)
+  }
+
+  const leadByDomain = new Map(domainLeads.map((lead) => [lead.domain, lead]))
+  const topScenarioByDomain = new Map<SignalDomain, number>()
+  for (const scenario of input.scenarios || []) {
+    const current = topScenarioByDomain.get(scenario.domain) || 0
+    topScenarioByDomain.set(
+      scenario.domain,
+      Math.max(current, round2((scenario.rawScore ?? scenario.probability) * 100))
+    )
+  }
+  const topDecisionByDomain = new Map<SignalDomain, number>()
+  for (const option of input.decisionEngine.options || []) {
+    const current = topDecisionByDomain.get(option.domain) || 0
+    topDecisionByDomain.set(option.domain, Math.max(current, round2(option.scores.total)))
+  }
+
+  return [...candidateDomains]
+    .map((domain) => {
+      const lead = leadByDomain.get(domain)
+      const strategy = (input.strategy.domainStrategies || []).find(
+        (item) => item.domain === domain
+      )
+      const summaryKey = mapSignalDomainToSummaryDomainKey(domain)
+      const summaryScore =
+        summaryKey && input.matrixSummary?.domainScores
+          ? input.matrixSummary.domainScores[summaryKey]
+          : null
+      const readiness = strategy?.metrics.readinessScore || 0
+      const trigger = strategy?.metrics.triggerScore || 0
+      const convergence = strategy?.metrics.convergenceScore || 0
+      const breakdown = {
+        signalDominance: round2((lead?.dominanceScore || 0) * 0.42),
+        scenarioDominance: round2(
+          (topScenarioByDomain.get(domain) || lead?.scenarioScore || 0) * 0.24
+        ),
+        decisionDominance: round2(
+          (topDecisionByDomain.get(domain) || lead?.decisionScore || 0) * 0.18
+        ),
+        summaryDominance: round2((summaryScore?.finalScoreAdjusted || 0) * 10 * 0.12),
+        convergenceBonus: round2(convergence * 10),
+        timingBalanceBonus: round2(
+          Math.max(0, readiness + trigger - Math.abs(readiness - trigger)) * 6
+        ),
+        focusBonus: round2(input.strategy.focusDomain === domain ? 4 : 0),
+      }
+      const score = round2(
+        breakdown.signalDominance +
+          breakdown.scenarioDominance +
+          breakdown.decisionDominance +
+          breakdown.summaryDominance +
+          breakdown.convergenceBonus +
+          breakdown.timingBalanceBonus +
+          breakdown.focusBonus
+      )
+      const reasons = pickTopBreakdownLabels(breakdown, {
+        signalDominance: 'signal dominance',
+        scenarioDominance: 'scenario pressure',
+        decisionDominance: 'decision pressure',
+        summaryDominance: 'summary score',
+        convergenceBonus: 'timing convergence',
+        timingBalanceBonus: 'timing balance',
+        focusBonus: 'strategy focus bias',
+      })
+      return {
+        domain,
+        score,
+        reason:
+          reasons.length > 0
+            ? `${domain} won on ${reasons.join(' + ')}`
+            : `${domain} won on aggregate support`,
+        breakdown,
+      } satisfies CoreArbitrationEntry
+    })
+    .sort((a, b) => b.score - a.score)
+}
+
+function buildActionDomainRanking(input: BuildCoreCanonicalOutputInput): CoreArbitrationEntry[] {
+  const bestByDomain = new Map<SignalDomain, CoreArbitrationEntry>()
+
+  for (const option of input.decisionEngine.options || []) {
+    const breakdown = {
+      optionStrength: round2(option.scores.total),
+      confidenceBoost: round2(option.confidence * 12),
+      topOptionBonus: round2(option.id === input.decisionEngine.topOptionId ? 3 : 0),
+      gatedPenalty: round2(option.gated ? 10 : 0),
+    }
+    const score = round2(
+      breakdown.optionStrength +
+        breakdown.confidenceBoost +
+        breakdown.topOptionBonus -
+        breakdown.gatedPenalty
+    )
+    const reasons = pickTopBreakdownLabels(breakdown, {
+      optionStrength: 'decision score',
+      confidenceBoost: 'confidence',
+      topOptionBonus: 'top-option priority',
+      gatedPenalty: 'gate penalty',
+    })
+    const entry = {
+      domain: option.domain,
+      score,
+      reason:
+        reasons.length > 0
+          ? `${option.domain} action lead came from ${reasons.join(' + ')}`
+          : `${option.domain} action lead came from aggregate option strength`,
+      breakdown,
+    } satisfies CoreArbitrationEntry
+    const current = bestByDomain.get(option.domain)
+    if (!current || entry.score > current.score) bestByDomain.set(option.domain, entry)
+  }
+
+  return [...bestByDomain.values()].sort((a, b) => b.score - a.score)
+}
+
+function buildArbitrationLedger(input: {
+  focusRanking: CoreArbitrationEntry[]
+  actionRanking: CoreArbitrationEntry[]
+  focusDomain: SignalDomain
+  actionFocusDomain: SignalDomain
+}): CoreArbitrationLedger {
+  const fallbackFocusEntry: CoreArbitrationEntry = {
+    domain: input.focusDomain,
+    score: 0,
+    reason: `${input.focusDomain} was used as the fallback focus domain`,
+    breakdown: {},
+  }
+  const fallbackActionEntry: CoreArbitrationEntry = {
+    domain: input.actionFocusDomain,
+    score: 0,
+    reason: `${input.actionFocusDomain} was used as the fallback action domain`,
+    breakdown: {},
+  }
+  const focusWinner =
+    input.focusRanking.find((item) => item.domain === input.focusDomain) ||
+    input.focusRanking[0] ||
+    fallbackFocusEntry
+  const focusRunnerUp =
+    input.focusRanking.find((item) => item.domain !== input.focusDomain) ||
+    input.focusRanking[1] ||
+    null
+  const actionWinner =
+    input.actionRanking.find((item) => item.domain === input.actionFocusDomain) ||
+    input.actionRanking[0] ||
+    fallbackActionEntry
+  const actionRunnerUp =
+    input.actionRanking.find((item) => item.domain !== input.actionFocusDomain) ||
+    input.actionRanking[1] ||
+    null
+
+  const suppressedDomains = input.focusRanking.slice(1, 5).map((item) => ({
+    domain: item.domain,
+    scoreGap: round2(Math.max(0, (focusWinner?.score || 0) - item.score)),
+    reason:
+      item.breakdown.convergenceBonus && item.breakdown.convergenceBonus < 1.5
+        ? `${item.domain} stayed secondary because convergence was weaker than the winner`
+        : `${item.domain} stayed secondary because total support remained below the winner`,
+  }))
+
+  const conflictReasons: string[] = []
+  if (input.focusDomain !== input.actionFocusDomain) {
+    conflictReasons.push(
+      `identity focus stayed on ${input.focusDomain} while the actionable pressure concentrated on ${input.actionFocusDomain}`
+    )
+  }
+  if (focusWinner && focusRunnerUp && focusWinner.score - focusRunnerUp.score < 8) {
+    conflictReasons.push(
+      `focus competition stayed narrow between ${focusWinner.domain} and ${focusRunnerUp.domain}`
+    )
+  }
+  if (actionWinner && actionRunnerUp && actionWinner.score - actionRunnerUp.score < 6) {
+    conflictReasons.push(
+      `action pressure stayed narrow between ${actionWinner.domain} and ${actionRunnerUp.domain}`
+    )
+  }
+
+  return {
+    focusWinner,
+    focusRunnerUp,
+    actionWinner,
+    actionRunnerUp,
+    suppressedDomains,
+    conflictReasons,
+  }
 }
 
 function resolveTimingConflictProfile(input: {
@@ -230,7 +442,11 @@ function buildTimingHintByDomain(
   return overlapMonth || 'now'
 }
 
-function buildSourceFields(input: BuildCoreCanonicalOutputInput, domain: string, includeTiming = false): string[] {
+function buildSourceFields(
+  input: BuildCoreCanonicalOutputInput,
+  domain: string,
+  includeTiming = false
+): string[] {
   const fields = new Set<string>()
   const add = (condition: boolean, field: string) => {
     if (condition) fields.add(field)
@@ -238,16 +454,31 @@ function buildSourceFields(input: BuildCoreCanonicalOutputInput, domain: string,
 
   add(Boolean(input.matrixInput?.dayMasterElement), 'dayMasterElement')
   add(Boolean(input.matrixInput?.pillarElements?.length), 'pillarElements')
-  add(Boolean(input.matrixInput?.sibsinDistribution && Object.keys(input.matrixInput.sibsinDistribution).length), 'sibsinDistribution')
+  add(
+    Boolean(
+      input.matrixInput?.sibsinDistribution &&
+      Object.keys(input.matrixInput.sibsinDistribution).length
+    ),
+    'sibsinDistribution'
+  )
   add(Boolean(input.matrixInput?.relations?.length), 'relations')
   add(Boolean(input.matrixInput?.geokguk), 'geokguk')
   add(Boolean(input.matrixInput?.yongsin), 'yongsin')
-  add(Boolean(input.matrixInput?.planetSigns && Object.keys(input.matrixInput.planetSigns).length), 'planetSigns')
-  add(Boolean(input.matrixInput?.planetHouses && Object.keys(input.matrixInput.planetHouses).length), 'planetHouses')
+  add(
+    Boolean(input.matrixInput?.planetSigns && Object.keys(input.matrixInput.planetSigns).length),
+    'planetSigns'
+  )
+  add(
+    Boolean(input.matrixInput?.planetHouses && Object.keys(input.matrixInput.planetHouses).length),
+    'planetHouses'
+  )
   add(Boolean(input.matrixInput?.aspects?.length), 'aspects')
   add(Boolean(input.matrixInput?.activeTransits?.length), 'activeTransits')
   add(Boolean(input.matrixInput?.astroTimingIndex), 'astroTimingIndex')
-  add(Boolean(input.matrixInput?.crossSnapshot?.crossAgreement !== undefined), 'crossSnapshot.crossAgreement')
+  add(
+    Boolean(input.matrixInput?.crossSnapshot?.crossAgreement !== undefined),
+    'crossSnapshot.crossAgreement'
+  )
   add(Boolean(input.matrixInput?.crossSnapshot?.astroTimingIndex), 'crossSnapshot.astroTimingIndex')
   add(Boolean(input.matrixInput?.advancedAstroSignals), 'advancedAstroSignals')
 
@@ -264,25 +495,40 @@ function buildSourceFields(input: BuildCoreCanonicalOutputInput, domain: string,
     add(Boolean(input.matrixInput?.aspects?.length), 'aspects')
   } else if (domain === 'career') {
     add(Boolean(input.matrixInput?.geokguk), 'geokguk')
-    add(Boolean(input.matrixInput?.planetHouses && Object.keys(input.matrixInput.planetHouses).length), 'planetHouses')
+    add(
+      Boolean(
+        input.matrixInput?.planetHouses && Object.keys(input.matrixInput.planetHouses).length
+      ),
+      'planetHouses'
+    )
   } else if (domain === 'wealth') {
     add(Boolean(input.matrixInput?.yongsin), 'yongsin')
     add(Boolean(input.matrixInput?.aspects?.length), 'aspects')
   } else if (domain === 'health') {
     add(Boolean(input.matrixInput?.activeTransits?.length), 'activeTransits')
-    add(Boolean(input.matrixInput?.planetSigns && Object.keys(input.matrixInput.planetSigns).length), 'planetSigns')
+    add(
+      Boolean(input.matrixInput?.planetSigns && Object.keys(input.matrixInput.planetSigns).length),
+      'planetSigns'
+    )
   } else if (domain === 'move') {
     add(Boolean(input.matrixInput?.activeTransits?.length), 'activeTransits')
-    add(Boolean(input.matrixInput?.planetHouses && Object.keys(input.matrixInput.planetHouses).length), 'planetHouses')
+    add(
+      Boolean(
+        input.matrixInput?.planetHouses && Object.keys(input.matrixInput.planetHouses).length
+      ),
+      'planetHouses'
+    )
   }
 
   return [...fields]
 }
 
 function buildSourceSetIds(evidenceIds: string[]): string[] {
-  return [...new Set(
-    (evidenceIds || []).filter((id) => /(set|anchor|claim|graph|rag)/i.test(String(id)))
-  )].slice(0, 8)
+  return [
+    ...new Set(
+      (evidenceIds || []).filter((id) => /(set|anchor|claim|graph|rag)/i.test(String(id)))
+    ),
+  ].slice(0, 8)
 }
 
 function buildProvenance(input: {
@@ -294,7 +540,11 @@ function buildProvenance(input: {
   includeTiming?: boolean
 }): CoreProvenance {
   return {
-    sourceFields: buildSourceFields(input.canonicalInput, input.domain, input.includeTiming === true),
+    sourceFields: buildSourceFields(
+      input.canonicalInput,
+      input.domain,
+      input.includeTiming === true
+    ),
     sourceSignalIds: [...new Set(input.signalIds || [])].slice(0, 8),
     sourceRuleIds: [...new Set(input.ruleIds || [])].slice(0, 8),
     sourceSetIds: buildSourceSetIds(input.evidenceIds || []),
@@ -328,7 +578,9 @@ function buildDomainLeads(input: BuildCoreCanonicalOutputInput): CoreDomainLead[
   return (input.strategy.domainStrategies || [])
     .map((strategy) => {
       const signalScore =
-        strategy.metrics.strengthScore + strategy.metrics.cautionScore + strategy.metrics.balanceScore
+        strategy.metrics.strengthScore +
+        strategy.metrics.cautionScore +
+        strategy.metrics.balanceScore
       const patternScore = round2(patternScores.get(strategy.domain) || 0)
       const scenarioScore = round2(scenarioScores.get(strategy.domain) || 0)
       const decisionScore = round2(decisionScores.get(strategy.domain) || 0)
@@ -350,23 +602,10 @@ function buildDomainLeads(input: BuildCoreCanonicalOutputInput): CoreDomainLead[
     .sort((a, b) => b.dominanceScore - a.dominanceScore)
 }
 
-function resolveFocusDomain(input: BuildCoreCanonicalOutputInput, domainLeads: CoreDomainLead[]) {
-  if (input.strategy.focusDomain) return input.strategy.focusDomain
-  if (domainLeads[0]?.domain) return domainLeads[0].domain
-
-  const topClaim = (input.signalSynthesis.claims || []).find((claim) => claim.domain)
-  if (topClaim?.domain) return topClaim.domain
-
-  const topSignal = (input.signalSynthesis.selectedSignals || []).find(
-    (signal) => signal.domainHints?.length
-  )
-  if (topSignal?.domainHints?.[0]) return topSignal.domainHints[0]
-
-  return 'personality'
-}
-
 function resolveRiskControl(input: BuildCoreCanonicalOutputInput, focusDomain: string): string {
-  const focusedClaim = (input.signalSynthesis.claims || []).find((claim) => claim.domain === focusDomain)
+  const focusedClaim = (input.signalSynthesis.claims || []).find(
+    (claim) => claim.domain === focusDomain
+  )
   if (focusedClaim?.riskControl) return focusedClaim.riskControl
 
   const firstClaim = (input.signalSynthesis.claims || []).find((claim) => claim.riskControl)
@@ -422,12 +661,24 @@ function getPresentationScenarios(input: BuildCoreCanonicalOutputInput) {
 
 function buildTopScenarios(input: BuildCoreCanonicalOutputInput): CoreScenarioLead[] {
   const sourceScenarios = getPresentationScenarios(input)
-  const focusDomain = input.strategy.focusDomain || input.strategy.domainStrategies[0]?.domain || null
-  const leadScenarioId = sourceScenarios.find((scenario) => scenario.domain === focusDomain)?.id || null
+  const focusDomain =
+    input.strategy.focusDomain || input.strategy.domainStrategies[0]?.domain || null
+  const leadScenarioId =
+    sourceScenarios.find((scenario) => scenario.domain === focusDomain)?.id || null
   const scenarioSpecificity = (branch: string) => {
     const key = branch.toLowerCase()
-    if (/(review|negotiation|restructure|compliance|acceptance|decision|conflict|disruption)/.test(key)) return 4
-    if (/(manager|specialist|authority|cohabitation|cross_border|lease|allocation|execution)/.test(key)) return 3
+    if (
+      /(review|negotiation|restructure|compliance|acceptance|decision|conflict|disruption)/.test(
+        key
+      )
+    )
+      return 4
+    if (
+      /(manager|specialist|authority|cohabitation|cross_border|lease|allocation|execution)/.test(
+        key
+      )
+    )
+      return 3
     if (/(entry|travel|new_connection|recovery|bond_deepening)/.test(key)) return 2
     return 1
   }
@@ -464,10 +715,17 @@ function buildTopScenarios(input: BuildCoreCanonicalOutputInput): CoreScenarioLe
 }
 
 function buildTopDecision(input: BuildCoreCanonicalOutputInput): CoreDecisionLead | null {
-  const focusDomain = input.strategy.focusDomain || input.strategy.domainStrategies[0]?.domain || null
+  const focusDomain =
+    input.strategy.focusDomain || input.strategy.domainStrategies[0]?.domain || null
   const actionSpecificity = (action: string) => {
-    if (action === 'route_recheck_first' || action === 'lease_review_first' || action === 'basecamp_reset_first') return 5
-    if (action === 'review_first' || action === 'negotiate_first' || action === 'boundary_first') return 4
+    if (
+      action === 'route_recheck_first' ||
+      action === 'lease_review_first' ||
+      action === 'basecamp_reset_first'
+    )
+      return 5
+    if (action === 'review_first' || action === 'negotiate_first' || action === 'boundary_first')
+      return 4
     if (action === 'pilot_first' || action === 'staged_commit') return 3
     if (action === 'prepare_only') return 2
     if (action === 'commit_now') return 1
@@ -499,7 +757,11 @@ function buildTopDecision(input: BuildCoreCanonicalOutputInput): CoreDecisionLea
   }
 }
 
-function resolveTopClaimId(input: BuildCoreCanonicalOutputInput, focusDomain: string, claimIds: string[]) {
+function resolveTopClaimId(
+  input: BuildCoreCanonicalOutputInput,
+  focusDomain: string,
+  claimIds: string[]
+) {
   return (
     (input.signalSynthesis.claims || []).find((claim) => claim.domain === focusDomain)?.claimId ||
     claimIds[0] ||
@@ -512,7 +774,9 @@ function resolveLeadPatternId(
   focusDomain: string
 ): string | null {
   return (
-    (input.patterns || []).find((pattern) => pattern.domains.some((domain) => domain === focusDomain))?.id ||
+    (input.patterns || []).find((pattern) =>
+      pattern.domains.some((domain) => domain === focusDomain)
+    )?.id ||
     input.patterns[0]?.id ||
     null
   )
@@ -543,13 +807,17 @@ function buildDomainAdvisoryCopy(input: {
 }): Pick<CoreDomainAdvisory, 'thesis' | 'action' | 'caution' | 'strategyLine'> {
   const leadScenario = String(input.leadScenarioId || '')
   if (input.lang === 'ko') {
-    const koDefaults: Record<string, Pick<CoreDomainAdvisory, 'thesis' | 'action' | 'caution' | 'strategyLine'>> = {
+    const koDefaults: Record<
+      string,
+      Pick<CoreDomainAdvisory, 'thesis' | 'action' | 'caution' | 'strategyLine'>
+    > = {
       career: {
         thesis:
           input.claimThesis ||
           '커리어는 일을 넓히는 것보다 맡을 역할, 책임, 평가 기준을 먼저 분명히 할 때 성장 폭이 커집니다.',
         action: input.action || '역할, 범위, 기한을 먼저 고정한 뒤 다음 단계를 여세요.',
-        caution: input.caution || '분위기만 보고 바로 확정하지 말고 조건과 책임 범위를 먼저 확인하세요.',
+        caution:
+          input.caution || '분위기만 보고 바로 확정하지 말고 조건과 책임 범위를 먼저 확인하세요.',
         strategyLine:
           input.verdictRationale ||
           '커리어는 확장보다 우선순위와 책임 범위를 먼저 고정할 때 결과 변동이 줄어듭니다.',
@@ -589,7 +857,8 @@ function buildDomainAdvisoryCopy(input: {
           input.claimThesis ||
           '이동과 거점 변화는 크게 옮기는 결정보다 동선, 경로, 생활 거점을 다시 설계할 때 더 정확해집니다.',
         action: input.action || '경로와 생활 동선을 먼저 재확인한 뒤 큰 이동 결정을 여세요.',
-        caution: input.caution || '계약이나 이동 일정을 한 번에 확정하지 말고 경로와 비용을 나눠 보세요.',
+        caution:
+          input.caution || '계약이나 이동 일정을 한 번에 확정하지 말고 경로와 비용을 나눠 보세요.',
         strategyLine:
           input.verdictRationale ||
           '이동은 속도보다 경로 검증과 거점 재정비를 먼저 할 때 손실이 줄어듭니다.',
@@ -601,8 +870,7 @@ function buildDomainAdvisoryCopy(input: {
         action: input.action || '결론을 내리기 전에 기준 문장을 먼저 짧게 고정하세요.',
         caution: input.caution || '해석이 끝나기 전에 결론부터 확정하지 마세요.',
         strategyLine:
-          input.verdictRationale ||
-          '성향의 강점은 속도가 아니라 기준과 재정렬 능력에서 나옵니다.',
+          input.verdictRationale || '성향의 강점은 속도가 아니라 기준과 재정렬 능력에서 나옵니다.',
       },
       timing: {
         thesis:
@@ -611,8 +879,7 @@ function buildDomainAdvisoryCopy(input: {
         action: input.action || '착수와 확정 사이에 재확인 슬롯을 반드시 두세요.',
         caution: input.caution || '당일 판단과 당일 확정을 같은 결정으로 묶지 마세요.',
         strategyLine:
-          input.verdictRationale ||
-          '타이밍의 핵심은 속도가 아니라 검토와 확정의 분리입니다.',
+          input.verdictRationale || '타이밍의 핵심은 속도가 아니라 검토와 확정의 분리입니다.',
       },
       spirituality: {
         thesis:
@@ -621,8 +888,7 @@ function buildDomainAdvisoryCopy(input: {
         action: input.action || '지금 선택을 설명하는 한 줄 원칙을 먼저 정리하세요.',
         caution: input.caution || '큰 의미를 한 번에 확정하려 하지 마세요.',
         strategyLine:
-          input.verdictRationale ||
-          '장기 방향은 순간의 확신보다 반복 가능한 기준에서 나옵니다.',
+          input.verdictRationale || '장기 방향은 순간의 확신보다 반복 가능한 기준에서 나옵니다.',
       },
     }
     const base = koDefaults[input.domain] || koDefaults.personality
@@ -639,13 +905,19 @@ function buildDomainAdvisoryCopy(input: {
     }
   }
 
-  const enDefaults: Record<string, Pick<CoreDomainAdvisory, 'thesis' | 'action' | 'caution' | 'strategyLine'>> = {
+  const enDefaults: Record<
+    string,
+    Pick<CoreDomainAdvisory, 'thesis' | 'action' | 'caution' | 'strategyLine'>
+  > = {
     career: {
       thesis:
         input.claimThesis ||
         'Career grows faster when role, responsibility, and evaluation standards are clearer than raw expansion.',
-      action: input.action || 'Lock scope, deadline, and responsibility before opening the next step.',
-      caution: input.caution || 'Do not finalize on momentum alone before checking conditions and responsibility.',
+      action:
+        input.action || 'Lock scope, deadline, and responsibility before opening the next step.',
+      caution:
+        input.caution ||
+        'Do not finalize on momentum alone before checking conditions and responsibility.',
       strategyLine:
         input.verdictRationale ||
         'Career becomes more stable when priorities and responsibility are fixed before expansion.',
@@ -655,7 +927,9 @@ function buildDomainAdvisoryCopy(input: {
         input.claimThesis ||
         'Relationships stabilize when distance, expectations, and boundaries line up before commitment pressure rises.',
       action: input.action || 'Align pace and expectations before asking for a conclusion.',
-      caution: input.caution || 'Do not force labels or promises while interpretation is still mismatched.',
+      caution:
+        input.caution ||
+        'Do not force labels or promises while interpretation is still mismatched.',
       strategyLine:
         input.verdictRationale ||
         'Relationship risk falls when pace and boundaries are clarified before commitment.',
@@ -685,7 +959,8 @@ function buildDomainAdvisoryCopy(input: {
         input.claimThesis ||
         'Movement and relocation improve when route, commute, and basecamp design are checked before big commitment.',
       action: input.action || 'Recheck route and living logistics before final movement decisions.',
-      caution: input.caution || 'Do not bundle contract, route, and move timing into one rushed decision.',
+      caution:
+        input.caution || 'Do not bundle contract, route, and move timing into one rushed decision.',
       strategyLine:
         input.verdictRationale ||
         'Movement works best when route validation comes before relocation commitment.',
@@ -697,18 +972,17 @@ function buildDomainAdvisoryCopy(input: {
       action: input.action || 'Fix the standard in one short sentence before deciding.',
       caution: input.caution || 'Do not finalize before the interpretation is complete.',
       strategyLine:
-        input.verdictRationale ||
-        'The core strength is not speed but standards and recalibration.',
+        input.verdictRationale || 'The core strength is not speed but standards and recalibration.',
     },
     timing: {
       thesis:
         input.claimThesis ||
         'Timing improves when review and commitment are treated as separate slots.',
       action: input.action || 'Insert a recheck slot between starting and finalizing.',
-      caution: input.caution || 'Do not treat same-day judgment and same-day commitment as one action.',
+      caution:
+        input.caution || 'Do not treat same-day judgment and same-day commitment as one action.',
       strategyLine:
-        input.verdictRationale ||
-        'Timing is won through separation between review and commitment.',
+        input.verdictRationale || 'Timing is won through separation between review and commitment.',
     },
     spirituality: {
       thesis:
@@ -717,8 +991,7 @@ function buildDomainAdvisoryCopy(input: {
       action: input.action || 'Name the operating principle before chasing the outcome.',
       caution: input.caution || 'Do not try to finalize meaning in one move.',
       strategyLine:
-        input.verdictRationale ||
-        'Long-range direction is built through repeatable principles.',
+        input.verdictRationale || 'Long-range direction is built through repeatable principles.',
     },
   }
   const base = enDefaults[input.domain] || enDefaults.personality
@@ -780,7 +1053,8 @@ function resolvePrimaryActionFromManifestation(input: {
 function resolvePrimaryCaution(input: BuildCoreCanonicalOutputInput, focusDomain: string): string {
   const cautionSignal =
     (input.signalSynthesis.selectedSignals || []).find(
-      (signal) => signal.polarity === 'caution' && signal.domainHints.some((domain) => domain === focusDomain)
+      (signal) =>
+        signal.polarity === 'caution' && signal.domainHints.some((domain) => domain === focusDomain)
     ) ||
     (input.signalSynthesis.selectedSignals || []).find((signal) => signal.polarity === 'caution')
 
@@ -818,12 +1092,34 @@ function mergeAdvisoriesWithManifestations(input: {
       caution: manifestation.riskExpressions[0] || advisory.caution,
       timingHint: manifestation.activationThesis || advisory.timingHint,
       strategyLine: manifestation.manifestation || advisory.strategyLine,
-      evidenceIds: [...new Set([...(advisory.evidenceIds || []), ...(manifestation.evidenceIds || [])])].slice(0, 10),
+      evidenceIds: [
+        ...new Set([...(advisory.evidenceIds || []), ...(manifestation.evidenceIds || [])]),
+      ].slice(0, 10),
       provenance: {
-        sourceFields: [...new Set([...(advisory.provenance?.sourceFields || []), ...(manifestation.provenance?.sourceFields || [])])].slice(0, 10),
-        sourceSignalIds: [...new Set([...(advisory.provenance?.sourceSignalIds || []), ...(manifestation.provenance?.sourceSignalIds || [])])].slice(0, 10),
-        sourceRuleIds: [...new Set([...(advisory.provenance?.sourceRuleIds || []), ...(manifestation.provenance?.sourceRuleIds || [])])].slice(0, 10),
-        sourceSetIds: [...new Set([...(advisory.provenance?.sourceSetIds || []), ...(manifestation.provenance?.sourceSetIds || [])])].slice(0, 10),
+        sourceFields: [
+          ...new Set([
+            ...(advisory.provenance?.sourceFields || []),
+            ...(manifestation.provenance?.sourceFields || []),
+          ]),
+        ].slice(0, 10),
+        sourceSignalIds: [
+          ...new Set([
+            ...(advisory.provenance?.sourceSignalIds || []),
+            ...(manifestation.provenance?.sourceSignalIds || []),
+          ]),
+        ].slice(0, 10),
+        sourceRuleIds: [
+          ...new Set([
+            ...(advisory.provenance?.sourceRuleIds || []),
+            ...(manifestation.provenance?.sourceRuleIds || []),
+          ]),
+        ].slice(0, 10),
+        sourceSetIds: [
+          ...new Set([
+            ...(advisory.provenance?.sourceSetIds || []),
+            ...(manifestation.provenance?.sourceSetIds || []),
+          ]),
+        ].slice(0, 10),
       },
     }
   })
@@ -840,10 +1136,7 @@ function buildGradeReasonWithManifestation(input: {
     : `${input.baseReason} Current manifestation: ${input.manifestation.activationThesis}`
 }
 
-function findEvidenceIdsForDomain(
-  input: BuildCoreCanonicalOutputInput,
-  domain: string
-): string[] {
+function findEvidenceIdsForDomain(input: BuildCoreCanonicalOutputInput, domain: string): string[] {
   return [
     ...(input.signalSynthesis.claims || [])
       .filter((item) => item.domain === domain)
@@ -944,9 +1237,15 @@ function buildDomainTimingWindow(
   const overlapPoint = summaryDomainKey
     ? (input.matrixSummary?.overlapTimelineByDomain?.[summaryDomainKey] || [])[0] || null
     : null
-  const domainScore = summaryDomainKey ? input.matrixSummary?.domainScores?.[summaryDomainKey] : null
+  const domainScore = summaryDomainKey
+    ? input.matrixSummary?.domainScores?.[summaryDomainKey]
+    : null
   const overlapConfidence = overlapPoint
-    ? clamp(overlapPoint.overlapStrength * 0.75 + (overlapPoint.timeOverlapWeight - 1) * 0.5, 0.2, 0.95)
+    ? clamp(
+        overlapPoint.overlapStrength * 0.75 + (overlapPoint.timeOverlapWeight - 1) * 0.5,
+        0.2,
+        0.95
+      )
     : null
 
   let window: CoreDomainTimingWindow['window'] = scenario?.window || '6-12m'
@@ -1073,10 +1372,15 @@ function buildDomainTimingWindow(
       canonicalInput: input,
       domain: lead.domain,
       evidenceIds,
-      signalIds: lead.evidenceIds.filter((id) => (input.signalSynthesis.selectedSignals || []).some((signal) => signal.id === id)),
-      ruleIds: [scenario?.patternId, scenario?.id, domainVerdict?.leadPatternId, domainVerdict?.leadScenarioId].filter(
-        (value): value is string => Boolean(value)
+      signalIds: lead.evidenceIds.filter((id) =>
+        (input.signalSynthesis.selectedSignals || []).some((signal) => signal.id === id)
       ),
+      ruleIds: [
+        scenario?.patternId,
+        scenario?.id,
+        domainVerdict?.leadPatternId,
+        domainVerdict?.leadScenarioId,
+      ].filter((value): value is string => Boolean(value)),
       includeTiming: true,
     }),
   }
@@ -1124,9 +1428,7 @@ function buildDomainAdvisories(
       scenarioWhyNow: scenario?.whyNow,
       leadScenarioId: scenario?.id,
       action:
-        claim?.actions?.[0] ||
-        scenario?.actions?.[0] ||
-        resolveRiskControl(input, lead.domain),
+        claim?.actions?.[0] || scenario?.actions?.[0] || resolveRiskControl(input, lead.domain),
       caution:
         cautionSignal?.advice ||
         cautionSignal?.keyword ||
@@ -1153,7 +1455,10 @@ function buildDomainAdvisories(
         domain: lead.domain,
         evidenceIds,
         signalIds: leadSignals.map((signal) => signal.id),
-        ruleIds: [...leadPatterns.map((pattern) => pattern.id), ...scenarios.slice(0, 2).map((item) => item.id)],
+        ruleIds: [
+          ...leadPatterns.map((pattern) => pattern.id),
+          ...scenarios.slice(0, 2).map((item) => item.id),
+        ],
       }),
     } satisfies CoreDomainAdvisory
   })
@@ -1178,13 +1483,16 @@ function resolveGrade(input: BuildCoreCanonicalOutputInput): {
   gradeReason: string
 } {
   const phase = input.strategy.phase
-  const confidence = normalizeToUnit(input.matrixSummary?.confidenceScore) ?? resolveConfidence(input)
+  const confidence =
+    normalizeToUnit(input.matrixSummary?.confidenceScore) ?? resolveConfidence(input)
   const crossAgreement = normalizeToUnit(input.crossAgreement)
   const cautionCount = (input.signalSynthesis.selectedSignals || []).filter(
     (signal) => signal.polarity === 'caution'
   ).length
   const topDecision = buildTopDecision(input)
-  const highRiskCommit = Boolean(topDecision && topDecision.reversible === false && cautionCount >= 2)
+  const highRiskCommit = Boolean(
+    topDecision && topDecision.reversible === false && cautionCount >= 2
+  )
 
   let label: string
   if (phase === 'expansion' && confidence >= 0.72 && cautionCount <= 1 && !highRiskCommit) {
@@ -1257,7 +1565,8 @@ function buildCoherenceAudit(input: BuildCoreCanonicalOutputInput): CoreCoherenc
     input.strategy.phase === 'defensive_reset' ||
     (crossAgreement !== null && crossAgreement < 0.45)
 
-  if (verificationBias) notes.push(buildCoherenceNote({ lang: input.lang, key: 'verification_bias' }))
+  if (verificationBias)
+    notes.push(buildCoherenceNote({ lang: input.lang, key: 'verification_bias' }))
 
   if (topDecision?.gated) {
     contradictionFlags.push(`gated_top_decision:${topDecision.action}`)
@@ -1310,7 +1619,9 @@ function buildDomainVerdicts(input: {
       input.topPatterns.find((pattern) => pattern.domains.includes(lead.domain)) || null
     const leadScenario =
       input.topScenarios.find((scenario) => scenario.domain === lead.domain) || null
-    const domainOptions = input.decisionEngine.options.filter((option) => option.domain === lead.domain)
+    const domainOptions = input.decisionEngine.options.filter(
+      (option) => option.domain === lead.domain
+    )
     let blockedActions = uniqueActions(
       domainOptions.filter((option) => option.gated).map((option) => option.action)
     )
@@ -1394,13 +1705,19 @@ function buildDomainVerdicts(input: {
       allowedActions: allowedActions.length > 0 ? allowedActions : ['prepare_only'],
       blockedActions,
       rationale,
-      evidenceIds: [...new Set([...(lead.evidenceIds || []), ...(leadScenario?.evidenceIds || [])])].slice(0, 8),
+      evidenceIds: [
+        ...new Set([...(lead.evidenceIds || []), ...(leadScenario?.evidenceIds || [])]),
+      ].slice(0, 8),
       provenance: buildProvenance({
         canonicalInput: input as unknown as BuildCoreCanonicalOutputInput,
         domain: lead.domain,
-        evidenceIds: [...new Set([...(lead.evidenceIds || []), ...(leadScenario?.evidenceIds || [])])],
+        evidenceIds: [
+          ...new Set([...(lead.evidenceIds || []), ...(leadScenario?.evidenceIds || [])]),
+        ],
         signalIds: [],
-        ruleIds: [leadPattern?.id, leadScenario?.id].filter((value): value is string => Boolean(value)),
+        ruleIds: [leadPattern?.id, leadScenario?.id].filter((value): value is string =>
+          Boolean(value)
+        ),
         includeTiming: true,
       }),
     }
@@ -1415,7 +1732,24 @@ export function buildCoreCanonicalOutput(
     .sort()
   const domainLeads = buildDomainLeads(input)
   const canonicalDomains = collectCanonicalDomains(input, domainLeads)
-  const focusDomain = resolveFocusDomain(input, domainLeads)
+  const topDecision = buildTopDecision(input)
+  const focusRanking = buildFocusDomainRanking(input, domainLeads)
+  const focusDomain =
+    focusRanking[0]?.domain ||
+    input.strategy.focusDomain ||
+    domainLeads[0]?.domain ||
+    (input.signalSynthesis.claims || []).find((claim) => claim.domain)?.domain ||
+    (input.signalSynthesis.selectedSignals || []).find((signal) => signal.domainHints?.length)
+      ?.domainHints?.[0] ||
+    'personality'
+  const actionFocusDomain = topDecision?.domain || focusDomain
+  const actionRanking = buildActionDomainRanking(input)
+  const arbitrationLedger = buildArbitrationLedger({
+    focusRanking,
+    actionRanking,
+    focusDomain,
+    actionFocusDomain,
+  })
   const riskControl = resolveRiskControl(input, focusDomain)
   const topClaimId = resolveTopClaimId(input, focusDomain, claimIds)
   const leadPatternId = resolveLeadPatternId(input, focusDomain)
@@ -1423,7 +1757,6 @@ export function buildCoreCanonicalOutput(
   const { gradeLabel, gradeReason: baseGradeReason } = resolveGrade(input)
   const coherenceAudit = buildCoherenceAudit(input)
   const basePrimaryCaution = resolvePrimaryCaution(input, focusDomain)
-  const topDecision = buildTopDecision(input)
   const topPatterns = buildTopPatterns(input)
   const topScenarios = buildTopScenarios(input)
   const domainVerdicts = buildDomainVerdicts({
@@ -1495,6 +1828,7 @@ export function buildCoreCanonicalOutput(
     gradeLabel,
     gradeReason,
     focusDomain,
+    actionFocusDomain,
     phase: input.strategy.phase,
     phaseLabel: input.strategy.phaseLabel,
     attackPercent: input.strategy.attackPercent,
@@ -1521,5 +1855,6 @@ export function buildCoreCanonicalOutput(
     layerScores: buildLayerScores(input),
     interactionHits: buildInteractionHits(input),
     timelineHits: buildTimelineHits(input),
+    arbitrationLedger,
   }
 }

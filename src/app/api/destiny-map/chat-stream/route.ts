@@ -41,6 +41,7 @@ import {
 } from '@/lib/destiny-matrix/counselorEvidence'
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
 import { buildAstroTimingIndex } from '@/lib/destiny-matrix/astroTimingIndex'
+import { buildPreciseTimelineSummary } from '@/lib/destiny-matrix/monthlyTimelinePrecise'
 import { buildCoreEnvelope } from '@/lib/destiny-matrix/core'
 import { buildMatrixSemanticContract } from '@/lib/destiny-matrix/layerSemantics'
 import { buildLayerThemeProfiles } from '@/lib/destiny-matrix/layerThemeProfiles'
@@ -256,6 +257,27 @@ interface MatrixSnapshot {
         attackPercent?: number
         defensePercent?: number
       }
+      actionFocusDomain?: string
+      canonicalBrief?: {
+        gradeLabel?: string
+        phaseLabel?: string
+        actionFocusDomain?: string
+        focusRunnerUpDomain?: string
+        actionRunnerUpDomain?: string
+        topDecisionAction?: string
+        topDecisionLabel?: string
+        answerThesis?: string
+        primaryAction?: string
+        primaryCaution?: string
+        timingHint?: string
+        policyMode?: 'execute' | 'verify' | 'prepare'
+        policyRationale?: string
+        allowedActions?: string[]
+        blockedActions?: string[]
+        softChecks?: string[]
+        hardStops?: string[]
+        latentTopAxes?: string[]
+      }
       topTimingWindow?: {
         domain: string
         window: string
@@ -314,6 +336,9 @@ function encodeCounselorUiEvidence(
   const stanceText = describeExecutionStance(core.attackPercent, core.defensePercent, lang)
   const confidenceText = describeEvidenceConfidence(snapshot?.confidenceScore, lang)
   const whyStack = (packet.whyStack || []).slice(0, 2)
+  const actionFocus =
+    packet.actionFocusDomain?.trim() || packet.canonicalBrief?.actionFocusDomain?.trim() || ''
+  const latentTopAxes = (packet.canonicalBrief?.latentTopAxes || []).slice(0, 2)
   const timingTakeaways = packet.topTimingWindow
     ? describeTimingWindowTakeaways({
         domainLabel: focus || packet.topTimingWindow.domain,
@@ -340,16 +365,16 @@ function encodeCounselorUiEvidence(
     lang === 'ko'
       ? {
           title: '왜 이런 답변이 나왔는지',
-          summary:
-            topClaim ||
-            `${focus || '지금 질문'}을 먼저 보기 위해 ${phaseText}`,
+          summary: topClaim || `${focus || '지금 질문'}을 먼저 보기 위해 ${phaseText}`,
           bullets: [
             phase ? `현재 흐름: ${phaseText}` : '',
+            actionFocus && actionFocus !== focus ? `행동축: 지금 우선 행동축은 ${actionFocus}` : '',
             timingText ? `타이밍 해석: ${timingText}` : '',
             timingTakeaways[1] ? `들어갈 조건: ${timingTakeaways[1]}` : '',
             timingTakeaways[2] ? `늦출 신호: ${timingTakeaways[2]}` : '',
             stanceText ? `실행 감각: ${stanceText}` : '',
             confidenceText ? `근거 상태: ${confidenceText}` : '',
+            latentTopAxes.length > 0 ? `핵심 작동층: ${latentTopAxes.join(', ')}` : '',
             ...whyStack.map((line) => `왜 이렇게 보나: ${line}`),
             topAnchor ? `핵심 근거: ${topAnchor}` : '',
             cautionSignal ? `주의 신호: ${cautionSignal}` : '',
@@ -362,11 +387,13 @@ function encodeCounselorUiEvidence(
             `This answer prioritizes ${focus || 'your current concern'} because ${phaseText.toLowerCase()}`,
           bullets: [
             phase ? `Current flow: ${phaseText}` : '',
+            actionFocus && actionFocus !== focus ? `Action axis: ${actionFocus}` : '',
             timingText ? `Timing read: ${timingText}` : '',
             timingTakeaways[1] ? `Go conditions: ${timingTakeaways[1]}` : '',
             timingTakeaways[2] ? `Slow-down signal: ${timingTakeaways[2]}` : '',
             stanceText ? `Execution stance: ${stanceText}` : '',
             confidenceText ? `Evidence read: ${confidenceText}` : '',
+            latentTopAxes.length > 0 ? `Active layers: ${latentTopAxes.join(', ')}` : '',
             ...whyStack.map((line) => `Why this matters: ${line}`),
             topAnchor ? `Primary anchor: ${topAnchor}` : '',
             cautionSignal ? `Caution signal: ${cautionSignal}` : '',
@@ -962,7 +989,7 @@ function buildMatrixProfileSection(
   const focus = pickMatrixThemeFocus(theme, snapshot.domainScores)
   const hasCommRisk = /communication|mercury|수성|소통|오해|문서|계약/i.test(cautionText)
   const counselorEvidenceText = formatCounselorEvidencePacket(
-    snapshot.core?.counselorEvidence,
+    snapshot.core?.counselorEvidence as Parameters<typeof formatCounselorEvidencePacket>[0],
     lang === 'ko' ? 'ko' : 'en'
   )
 
@@ -1036,7 +1063,10 @@ function buildMatrixProfileSection(
   ].join('\n')
 }
 
-function mapFocusDomainToPromptTheme(focusDomain: string | null | undefined, fallback: string): string {
+function mapFocusDomainToPromptTheme(
+  focusDomain: string | null | undefined,
+  fallback: string
+): string {
   switch (focusDomain) {
     case 'relationship':
       return 'love'
@@ -1057,10 +1087,7 @@ function mapFocusDomainToPromptTheme(focusDomain: string | null | undefined, fal
   }
 }
 
-function buildFocusDomainDepthGuide(
-  focusDomain: string | null | undefined,
-  lang: string
-): string {
+function buildFocusDomainDepthGuide(focusDomain: string | null | undefined, lang: string): string {
   const domain = focusDomain || 'personality'
   if (lang === 'ko') {
     switch (domain) {
@@ -1143,10 +1170,7 @@ function buildFocusDomainDepthGuide(
   }
 }
 
-function buildFocusDomainVoiceGuide(
-  focusDomain: string | null | undefined,
-  lang: string
-): string {
+function buildFocusDomainVoiceGuide(focusDomain: string | null | undefined, lang: string): string {
   const domain = focusDomain || 'personality'
 
   if (lang === 'ko') {
@@ -1465,13 +1489,42 @@ async function fetchMatrixSnapshot(input: {
     const matrix = coreEnvelope.matrix
     const matrixReport = coreEnvelope.matrixReport
     const core = coreEnvelope.coreSeed
+    let matrixSummaryForCounselor =
+      matrix && typeof matrix === 'object' && 'summary' in matrix ? matrix.summary : undefined
+
+    if (matrixSummaryForCounselor) {
+      try {
+        const preciseTimelineSummary = await buildPreciseTimelineSummary(
+          normalizedMatrixInput,
+          matrixSummaryForCounselor,
+          (timelineInput) =>
+            calculateDestinyMatrix(timelineInput, { skipTimelineRecompute: true }).summary
+        )
+        matrixSummaryForCounselor = {
+          ...matrixSummaryForCounselor,
+          ...preciseTimelineSummary,
+        }
+        logger.info('[chat-stream] Applied precise monthly timing summary', {
+          overlapTimelineCount: matrixSummaryForCounselor.overlapTimeline?.length || 0,
+          reliabilityBand: matrixSummaryForCounselor.timingCalibration?.reliabilityBand || null,
+        })
+      } catch (preciseTimingError) {
+        logger.warn('[chat-stream] Precise monthly timing summary failed; using base summary', {
+          error:
+            preciseTimingError instanceof Error
+              ? preciseTimingError.message
+              : String(preciseTimingError),
+        })
+      }
+    }
+
     const counselorEvidence = buildCounselorEvidencePacket({
       theme: input.theme as Parameters<typeof buildCounselorEvidencePacket>[0]['theme'],
       lang: matrixLang,
       focusDomainOverride: input.focusDomain,
       matrixInput: normalizedMatrixInput,
       matrixReport,
-      matrixSummary: matrix.summary,
+      matrixSummary: matrixSummaryForCounselor || matrix.summary,
       signalSynthesis: core.signalSynthesis,
       strategyEngine: core.strategyEngine,
       birthDate: input.birthDate,
@@ -1479,12 +1532,16 @@ async function fetchMatrixSnapshot(input: {
     const semantics = buildMatrixSemanticContract(matrix)
     const layerThemeProfiles = buildLayerThemeProfiles(matrix, normalizedMatrixInput)
 
-    const strengths: MatrixHighlight[] = (matrix.summary.strengthPoints || []).map((point) => ({
+    const strengths: MatrixHighlight[] = (
+      (matrixSummaryForCounselor || matrix.summary).strengthPoints || []
+    ).map((point) => ({
       layer: point.layer,
       keyword: point.cell?.interaction?.keyword || '',
       score: point.cell?.interaction?.score || 0,
     }))
-    const cautions: MatrixHighlight[] = (matrix.summary.cautionPoints || []).map((point) => ({
+    const cautions: MatrixHighlight[] = (
+      (matrixSummaryForCounselor || matrix.summary).cautionPoints || []
+    ).map((point) => ({
       layer: point.layer,
       keyword: point.cell?.interaction?.keyword || '',
       score: point.cell?.interaction?.score || 0,
@@ -1494,7 +1551,7 @@ async function fetchMatrixSnapshot(input: {
     const highlights = merged
       .map((item) => `${item.keyword || 'n/a'}(${Number(item.score || 0).toFixed(1)})`)
       .slice(0, 5)
-    const synergies = (matrix.summary.topSynergies || [])
+    const synergies = ((matrixSummaryForCounselor || matrix.summary).topSynergies || [])
       .map(
         (item) =>
           `${item.description || 'synergy'}${
@@ -1534,22 +1591,28 @@ async function fetchMatrixSnapshot(input: {
       .filter(Boolean)
 
     return {
-      totalScore: Number(matrix.summary.totalScore || 0),
+      totalScore: Number((matrixSummaryForCounselor || matrix.summary).totalScore || 0),
       topLayers,
       highlights,
       synergies,
-      drivers: normalizeStringList(matrix.summary.drivers, 6),
-      cautions: normalizeStringList(matrix.summary.cautions, 6),
-      calendarSignals: normalizeCalendarSignalLines(matrix.summary.calendarSignals),
-      overlapTimeline: normalizeOverlapTimelineLines(matrix.summary.overlapTimeline),
-      domainScores: normalizeDomainScoreMap(matrix.summary.domainScores),
+      drivers: normalizeStringList((matrixSummaryForCounselor || matrix.summary).drivers, 6),
+      cautions: normalizeStringList((matrixSummaryForCounselor || matrix.summary).cautions, 6),
+      calendarSignals: normalizeCalendarSignalLines(
+        (matrixSummaryForCounselor || matrix.summary).calendarSignals
+      ),
+      overlapTimeline: normalizeOverlapTimelineLines(
+        (matrixSummaryForCounselor || matrix.summary).overlapTimeline
+      ),
+      domainScores: normalizeDomainScoreMap(
+        (matrixSummaryForCounselor || matrix.summary).domainScores
+      ),
       confidenceScore:
-        typeof matrix.summary.confidenceScore === 'number'
-          ? matrix.summary.confidenceScore
+        typeof (matrixSummaryForCounselor || matrix.summary).confidenceScore === 'number'
+          ? (matrixSummaryForCounselor || matrix.summary).confidenceScore
           : undefined,
       finalScoreAdjusted:
-        typeof matrix.summary.finalScoreAdjusted === 'number'
-          ? matrix.summary.finalScoreAdjusted
+        typeof (matrixSummaryForCounselor || matrix.summary).finalScoreAdjusted === 'number'
+          ? (matrixSummaryForCounselor || matrix.summary).finalScoreAdjusted
           : undefined,
       semanticHints,
       layerThemeBriefs,
@@ -1908,10 +1971,11 @@ export async function POST(req: NextRequest) {
       })
     }
     const coreCounselorPacket = matrixSnapshot?.core?.counselorEvidence || null
-    const coreFocusDomain = coreCounselorPacket?.focusDomain || questionAnalysis.primaryDomain || null
+    const coreFocusDomain =
+      coreCounselorPacket?.focusDomain || questionAnalysis.primaryDomain || null
     const promptTheme = mapFocusDomainToPromptTheme(coreFocusDomain, effectiveTheme)
     const canonicalCounselorSection = formatCounselorEvidencePacket(
-      coreCounselorPacket,
+      coreCounselorPacket as Parameters<typeof formatCounselorEvidencePacket>[0],
       lang === 'ko' ? 'ko' : 'en'
     )
     const matrixProfileSection = buildMatrixProfileSection(matrixSnapshot, lang, promptTheme)

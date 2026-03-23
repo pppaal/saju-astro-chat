@@ -9,6 +9,23 @@ type AdapterProvenance = {
   sourceSetIds: string[]
 }
 
+type AdapterArbitrationBrief = {
+  focusWinnerDomain: SignalDomain
+  focusWinnerReason: string
+  focusRunnerUpDomain: SignalDomain | null
+  actionWinnerDomain: SignalDomain
+  actionWinnerReason: string
+  actionRunnerUpDomain: SignalDomain | null
+  conflictReasons: string[]
+}
+
+type AdapterLatentAxis = {
+  id: string
+  label: string
+  score: number
+  group: string
+}
+
 export interface CalendarCoreAdapterResult {
   coreHash: string
   gradeLabel: string
@@ -16,8 +33,11 @@ export interface CalendarCoreAdapterResult {
   phase: string
   phaseLabel: string
   focusDomain: SignalDomain
+  actionFocusDomain: SignalDomain
   confidence: number
   crossAgreement: number | null
+  arbitrationBrief: AdapterArbitrationBrief
+  latentTopAxes: AdapterLatentAxis[]
   attackPercent: number
   defensePercent: number
   thesis: string
@@ -121,6 +141,9 @@ export interface CalendarCoreAdapterResult {
 export interface CounselorCoreAdapterResult {
   coreHash: string
   focusDomain: SignalDomain
+  actionFocusDomain: SignalDomain
+  arbitrationBrief: AdapterArbitrationBrief
+  latentTopAxes: AdapterLatentAxis[]
   gradeLabel: string
   phase: string
   phaseLabel: string
@@ -224,6 +247,9 @@ export interface CounselorCoreAdapterResult {
 export interface ReportCoreAdapterResult {
   coreHash: string
   focusDomain: SignalDomain
+  actionFocusDomain: SignalDomain
+  arbitrationBrief: AdapterArbitrationBrief
+  latentTopAxes: AdapterLatentAxis[]
   gradeLabel: string
   gradeReason: string
   phase: string
@@ -365,30 +391,38 @@ function localizeDomain(domain: SignalDomain, locale: 'ko' | 'en'): string {
 }
 
 function getFocusDomainVerdict(core: DestinyCoreResult) {
-  return core.canonical.domainVerdicts.find(
-    (item) => item.domain === core.canonical.focusDomain
-  ) || null
+  return (
+    core.canonical.domainVerdicts.find((item) => item.domain === core.canonical.focusDomain) || null
+  )
+}
+
+function getActionFocusDomainVerdict(core: DestinyCoreResult) {
+  return (
+    core.canonical.domainVerdicts.find(
+      (item) => item.domain === core.canonical.actionFocusDomain
+    ) || null
+  )
 }
 
 function getTopDecisionAction(core: DestinyCoreResult): string | null {
   const topAction = core.canonical.topDecision?.action || null
   const topDomain = core.canonical.topDecision?.domain || null
-  if (topAction && topDomain === core.canonical.focusDomain) return topAction
-  const focusVerdict = getFocusDomainVerdict(core)
-  return focusVerdict?.allowedActions?.[0] || topAction
+  if (topAction && topDomain === core.canonical.actionFocusDomain) return topAction
+  const actionVerdict = getActionFocusDomainVerdict(core)
+  return actionVerdict?.allowedActions?.[0] || topAction
 }
 
 function getTopDecisionLabel(core: DestinyCoreResult, locale: 'ko' | 'en'): string | null {
   const topLabel = core.canonical.topDecision?.label || null
   const topDomain = core.canonical.topDecision?.domain || null
-  if (topLabel && topDomain === core.canonical.focusDomain) return topLabel
+  if (topLabel && topDomain === core.canonical.actionFocusDomain) return topLabel
 
-  const focusVerdict = getFocusDomainVerdict(core)
-  const action = focusVerdict?.allowedActions?.[0]
+  const actionVerdict = getActionFocusDomainVerdict(core)
+  const action = actionVerdict?.allowedActions?.[0]
   if (!action) return topLabel
   const actionLabel = formatDecisionActionLabels([action], locale, false)[0]
   if (!actionLabel) return topLabel
-  return `${localizeDomain(core.canonical.focusDomain, locale)}: ${actionLabel}`
+  return `${localizeDomain(core.canonical.actionFocusDomain, locale)}: ${actionLabel}`
 }
 
 function getAllowedActionLabels(actions: string[], locale: 'ko' | 'en'): string[] {
@@ -397,6 +431,73 @@ function getAllowedActionLabels(actions: string[], locale: 'ko' | 'en'): string[
 
 function getBlockedActionLabels(actions: string[], locale: 'ko' | 'en'): string[] {
   return formatDecisionActionLabels(actions, locale, true)
+}
+
+function localizeLatentAxis(axisId: string, locale: 'ko' | 'en'): string {
+  const ko: Record<string, string> = {
+    readiness: '구조 준비도',
+    trigger: '촉발 강도',
+    convergence: '교차 수렴도',
+    timing_conflict: '타이밍 충돌',
+    focus_strength: '중심축 강도',
+    action_focus_strength: '행동축 강도',
+    decision_certainty: '결정 선명도',
+    risk_control_intensity: '리스크 통제 강도',
+    career: '커리어 압력',
+    relationship: '관계 압력',
+    wealth: '재정 압력',
+    health: '건강 압력',
+    move: '이동 압력',
+    structure_trigger_mismatch: '구조-촉발 불일치',
+    opportunity_sustainability_gap: '기회-지속성 간극',
+    focus_ambiguity: '초점 경쟁',
+  }
+  const en: Record<string, string> = {
+    readiness: 'structural readiness',
+    trigger: 'trigger pressure',
+    convergence: 'cross convergence',
+    timing_conflict: 'timing conflict',
+    focus_strength: 'focus strength',
+    action_focus_strength: 'action focus strength',
+    decision_certainty: 'decision certainty',
+    risk_control_intensity: 'risk-control intensity',
+    career: 'career pressure',
+    relationship: 'relationship pressure',
+    wealth: 'wealth pressure',
+    health: 'health pressure',
+    move: 'move pressure',
+    structure_trigger_mismatch: 'structure-trigger mismatch',
+    opportunity_sustainability_gap: 'opportunity-sustainability gap',
+    focus_ambiguity: 'focus competition',
+  }
+  return (locale === 'ko' ? ko : en)[axisId] || axisId.replace(/_/g, ' ')
+}
+
+function buildArbitrationBrief(core: DestinyCoreResult): AdapterArbitrationBrief {
+  return {
+    focusWinnerDomain: core.canonical.arbitrationLedger.focusWinner.domain,
+    focusWinnerReason: core.canonical.arbitrationLedger.focusWinner.reason,
+    focusRunnerUpDomain: core.canonical.arbitrationLedger.focusRunnerUp?.domain || null,
+    actionWinnerDomain:
+      core.canonical.arbitrationLedger.actionWinner?.domain || core.canonical.actionFocusDomain,
+    actionWinnerReason:
+      core.canonical.arbitrationLedger.actionWinner?.reason ||
+      `${core.canonical.actionFocusDomain} action lead came from fallback action selection`,
+    actionRunnerUpDomain: core.canonical.arbitrationLedger.actionRunnerUp?.domain || null,
+    conflictReasons: [...(core.canonical.arbitrationLedger.conflictReasons || [])],
+  }
+}
+
+function buildLatentTopAxes(core: DestinyCoreResult, locale: 'ko' | 'en'): AdapterLatentAxis[] {
+  const axisGroupEntries = Object.entries(core.latentState?.groups || {}) as Array<
+    [string, string[]]
+  >
+  return (core.latentState?.topAxes || []).slice(0, 5).map((axis) => ({
+    id: axis.id,
+    label: localizeLatentAxis(axis.id, locale),
+    score: axis.value,
+    group: axisGroupEntries.find(([, ids]) => ids.includes(axis.id))?.[0] || 'unknown',
+  }))
 }
 
 export function adaptCoreToCalendar(
@@ -410,6 +511,9 @@ export function adaptCoreToCalendar(
     phase: core.canonical.phase,
     phaseLabel: core.canonical.phaseLabel,
     focusDomain: core.canonical.focusDomain,
+    actionFocusDomain: core.canonical.actionFocusDomain,
+    arbitrationBrief: buildArbitrationBrief(core),
+    latentTopAxes: buildLatentTopAxes(core, locale),
     confidence: core.canonical.confidence,
     crossAgreement: core.canonical.crossAgreement,
     attackPercent: core.canonical.attackPercent,
@@ -435,9 +539,15 @@ export function adaptCoreToCalendar(
     judgmentPolicy: {
       mode: core.canonical.judgmentPolicy.mode,
       allowedActions: [...core.canonical.judgmentPolicy.allowedActions],
-      allowedActionLabels: getAllowedActionLabels(core.canonical.judgmentPolicy.allowedActions, locale),
+      allowedActionLabels: getAllowedActionLabels(
+        core.canonical.judgmentPolicy.allowedActions,
+        locale
+      ),
       blockedActions: [...core.canonical.judgmentPolicy.blockedActions],
-      blockedActionLabels: getBlockedActionLabels(core.canonical.judgmentPolicy.blockedActions, locale),
+      blockedActionLabels: getBlockedActionLabels(
+        core.canonical.judgmentPolicy.blockedActions,
+        locale
+      ),
       hardStops: [...core.canonical.judgmentPolicy.hardStops],
       hardStopLabels: formatPolicyCheckLabels(core.canonical.judgmentPolicy.hardStops),
       softChecks: [...core.canonical.judgmentPolicy.softChecks],
@@ -525,6 +635,9 @@ export function adaptCoreToCounselor(
   return {
     coreHash: core.coreHash,
     focusDomain: core.canonical.focusDomain,
+    actionFocusDomain: core.canonical.actionFocusDomain,
+    arbitrationBrief: buildArbitrationBrief(core),
+    latentTopAxes: buildLatentTopAxes(core, locale),
     gradeLabel: core.canonical.gradeLabel,
     phase: core.canonical.phase,
     phaseLabel: core.canonical.phaseLabel,
@@ -549,9 +662,15 @@ export function adaptCoreToCounselor(
     judgmentPolicy: {
       mode: core.canonical.judgmentPolicy.mode,
       allowedActions: [...core.canonical.judgmentPolicy.allowedActions],
-      allowedActionLabels: getAllowedActionLabels(core.canonical.judgmentPolicy.allowedActions, locale),
+      allowedActionLabels: getAllowedActionLabels(
+        core.canonical.judgmentPolicy.allowedActions,
+        locale
+      ),
       blockedActions: [...core.canonical.judgmentPolicy.blockedActions],
-      blockedActionLabels: getBlockedActionLabels(core.canonical.judgmentPolicy.blockedActions, locale),
+      blockedActionLabels: getBlockedActionLabels(
+        core.canonical.judgmentPolicy.blockedActions,
+        locale
+      ),
       hardStops: [...core.canonical.judgmentPolicy.hardStops],
       hardStopLabels: formatPolicyCheckLabels(core.canonical.judgmentPolicy.hardStops),
       softChecks: [...core.canonical.judgmentPolicy.softChecks],
@@ -638,6 +757,9 @@ export function adaptCoreToReport(
   return {
     coreHash: core.coreHash,
     focusDomain: core.canonical.focusDomain,
+    actionFocusDomain: core.canonical.actionFocusDomain,
+    arbitrationBrief: buildArbitrationBrief(core),
+    latentTopAxes: buildLatentTopAxes(core, locale),
     gradeLabel: core.canonical.gradeLabel,
     gradeReason: core.canonical.gradeReason,
     phase: core.canonical.phase,
@@ -665,9 +787,15 @@ export function adaptCoreToReport(
     judgmentPolicy: {
       mode: core.canonical.judgmentPolicy.mode,
       allowedActions: [...core.canonical.judgmentPolicy.allowedActions],
-      allowedActionLabels: getAllowedActionLabels(core.canonical.judgmentPolicy.allowedActions, locale),
+      allowedActionLabels: getAllowedActionLabels(
+        core.canonical.judgmentPolicy.allowedActions,
+        locale
+      ),
       blockedActions: [...core.canonical.judgmentPolicy.blockedActions],
-      blockedActionLabels: getBlockedActionLabels(core.canonical.judgmentPolicy.blockedActions, locale),
+      blockedActionLabels: getBlockedActionLabels(
+        core.canonical.judgmentPolicy.blockedActions,
+        locale
+      ),
       hardStops: [...core.canonical.judgmentPolicy.hardStops],
       hardStopLabels: formatPolicyCheckLabels(core.canonical.judgmentPolicy.hardStops),
       softChecks: [...core.canonical.judgmentPolicy.softChecks],

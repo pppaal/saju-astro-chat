@@ -17,6 +17,7 @@ export * from './evaluationSuite'
 export * from './nextGenPipeline'
 export * from './logging'
 export * from './inputNormalization'
+export * from './latentState'
 export {
   buildPhaseStrategyEngine,
   type DomainStrategy,

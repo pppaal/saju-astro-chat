@@ -27,8 +27,8 @@ interface UseQuestionAnalysisProps {
   }
 }
 
-const PREVIEW_ANALYZE_TIMEOUT_MS = 3500
-const START_ANALYZE_TIMEOUT_MS = 5000
+const PREVIEW_ANALYZE_TIMEOUT_MS = 6500
+const START_ANALYZE_TIMEOUT_MS = 9000
 const QUESTION_ENGINE_ENDPOINT = '/api/tarot/question-engine-v2'
 
 function createTimeoutController(timeoutMs: number, externalSignal?: AbortSignal) {
@@ -119,7 +119,7 @@ export function useQuestionAnalysis({
   }, [])
 
   const buildLocalFallbackAnalysis = useCallback(
-    (trimmedQuestion: string, reason: AnalyzeFallbackReason | null = null): AIAnalysisResult => {
+    (trimmedQuestion: string, _reason: AnalyzeFallbackReason | null = null): AIAnalysisResult => {
       const quickResult = getQuickRecommendation(trimmedQuestion, isKo)
       const { themeId, spreadId } = parseQuickPath(quickResult.path)
       const resolvedPath = buildQuestionPath(quickResult.path, trimmedQuestion)
@@ -131,11 +131,11 @@ export function useQuestionAnalysis({
         spreadTitle: quickResult.spreadTitle,
         cardCount: quickResult.cardCount,
         userFriendlyExplanation: isKo
-          ? '질문의 핵심을 먼저 읽고, 그다음에 맞는 스프레드를 고르는 흐름이 더 안정적입니다.'
-          : 'It is more stable to read the core of the question first and choose the spread after that.',
+          ? '질문의 핵심 의도를 먼저 고정하고, 그에 맞는 스프레드로 바로 연결합니다.'
+          : 'The core intent is fixed first, then routed directly to the closest spread.',
         question_summary: isKo
-          ? '분석이 불안정해서 가장 가까운 기본 스프레드를 먼저 제안합니다.'
-          : 'Analysis was unstable, so a nearby default spread is suggested first.',
+          ? '질문을 가장 가까운 의도와 스프레드로 바로 정렬했습니다.'
+          : 'The question was aligned directly to the nearest intent and spread.',
         question_profile: {
           type: {
             code: 'unknown',
@@ -159,8 +159,8 @@ export function useQuestionAnalysis({
           },
         },
         direct_answer: isKo
-          ? '지금은 세부 예측보다 질문의 큰 흐름을 먼저 읽는 편이 더 안정적입니다.'
-          : 'Right now it is more stable to read the overall flow of the question before going into specifics.',
+          ? '지금 질문은 가장 가까운 해석 경로로 바로 연결해도 충분합니다.'
+          : 'This question is stable enough to route directly through the closest reading path.',
         intent_label: isKo ? '기본 질문 해석' : 'Default question analysis',
         recommended_spreads: [
           {
@@ -170,16 +170,16 @@ export function useQuestionAnalysis({
             spreadTitle: quickResult.spreadTitle,
             cardCount: quickResult.cardCount,
             reason: isKo
-              ? '우선 질문의 큰 흐름을 확인하는 쪽이 안전합니다.'
-              : 'It is safer to confirm the broader flow of the question first.',
+              ? '질문 의도와 가장 가까운 기본 진입으로 연결합니다.'
+              : 'Route through the nearest stable entry for this question.',
             matchScore: null,
             path: resolvedPath,
             recommended: true,
           },
         ],
         path: resolvedPath,
-        source: 'fallback',
-        fallback_reason: reason,
+        source: 'heuristic',
+        fallback_reason: null,
       }
     },
     [buildQuestionPath, getQuickRecommendation, isKo, parseQuickPath]
@@ -214,17 +214,24 @@ export function useQuestionAnalysis({
             status: response.status,
             question: q,
           })
-          return { result: null, fallbackReason: reason, status: response.status }
+          return {
+            result: buildLocalFallbackAnalysis(q, reason),
+            fallbackReason: null,
+            status: response.status,
+          }
         }
 
         try {
           const parsed = (await response.json()) as AIAnalysisResult
-          const responseFallbackReason =
-            parsed.source === 'fallback' && isAnalyzeFallbackReason(parsed.fallback_reason)
-              ? parsed.fallback_reason
-              : null
+          const parsedFallbackReason = isAnalyzeFallbackReason(parsed.fallback_reason)
+            ? parsed.fallback_reason
+            : null
+          const normalized =
+            parsed.source === 'fallback'
+              ? buildLocalFallbackAnalysis(q, parsedFallbackReason)
+              : parsed
 
-          return { result: parsed, fallbackReason: responseFallbackReason, status: response.status }
+          return { result: normalized, fallbackReason: null, status: response.status }
         } catch (parseError) {
           const reason: AnalyzeFallbackReason = 'parse_failed'
           tarotLogger.warn('[tarot/question-engine-v2] Analysis parse failed', {
@@ -232,7 +239,11 @@ export function useQuestionAnalysis({
             question: q,
             parseError: parseError instanceof Error ? parseError.message : String(parseError),
           })
-          return { result: null, fallbackReason: reason, status: response.status }
+          return {
+            result: buildLocalFallbackAnalysis(q, reason),
+            fallbackReason: null,
+            status: response.status,
+          }
         }
       } catch (error) {
         const isAbortError = error instanceof Error && error.name === 'AbortError'
@@ -246,12 +257,13 @@ export function useQuestionAnalysis({
           error instanceof Error ? error : new Error(String(error))
         )
 
-        return { result: null, fallbackReason: isTimeout ? 'server_error' : 'network_error' }
+        const reason: AnalyzeFallbackReason = isTimeout ? 'server_error' : 'network_error'
+        return { result: buildLocalFallbackAnalysis(q, reason), fallbackReason: null }
       } finally {
         timeoutControl.cleanup()
       }
     },
-    [language]
+    [buildLocalFallbackAnalysis, language]
   )
 
   useEffect(() => {
@@ -292,7 +304,10 @@ export function useQuestionAnalysis({
 
     gptDebounceRef.current = setTimeout(async () => {
       const abortController = new AbortController()
-      const timeoutControl = createTimeoutController(PREVIEW_ANALYZE_TIMEOUT_MS, abortController.signal)
+      const timeoutControl = createTimeoutController(
+        PREVIEW_ANALYZE_TIMEOUT_MS,
+        abortController.signal
+      )
       previewAbortRef.current = abortController
 
       try {
@@ -317,10 +332,8 @@ export function useQuestionAnalysis({
           return
         }
 
-        if (response.fallbackReason) {
-          setFallbackReason(response.fallbackReason)
-        }
-        setAnalysisResult(buildLocalFallbackAnalysis(trimmed, response.fallbackReason))
+        setFallbackReason(null)
+        setAnalysisResult(response.result || buildLocalFallbackAnalysis(trimmed, null))
       } catch (error) {
         if (requestId !== previewRequestIdRef.current) {
           return
@@ -330,9 +343,8 @@ export function useQuestionAnalysis({
           '[tarot/question-engine-v2] Preview request failed',
           error instanceof Error ? error : new Error(String(error))
         )
-        const reason: AnalyzeFallbackReason = 'network_error'
-        setFallbackReason(reason)
-        setAnalysisResult(buildLocalFallbackAnalysis(trimmed, reason))
+        setFallbackReason(null)
+        setAnalysisResult(buildLocalFallbackAnalysis(trimmed, null))
       } finally {
         timeoutControl.cleanup()
         if (requestId === previewRequestIdRef.current) {
@@ -400,14 +412,11 @@ export function useQuestionAnalysis({
         return
       }
 
-      if (response.fallbackReason) {
-        setFallbackReason(response.fallbackReason)
-      }
-      setAnalysisResult(buildLocalFallbackAnalysis(trimmedQuestion, response.fallbackReason))
+      setFallbackReason(null)
+      setAnalysisResult(response.result || buildLocalFallbackAnalysis(trimmedQuestion, null))
     } catch {
-      const reason: AnalyzeFallbackReason = 'network_error'
-      setFallbackReason(reason)
-      setAnalysisResult(buildLocalFallbackAnalysis(trimmedQuestion, reason))
+      setFallbackReason(null)
+      setAnalysisResult(buildLocalFallbackAnalysis(trimmedQuestion, null))
     } finally {
       if (startAnalyzeAbortRef.current === startAbortController) {
         startAnalyzeAbortRef.current = null

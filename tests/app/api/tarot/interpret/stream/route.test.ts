@@ -16,10 +16,12 @@ vi.mock('@/lib/streaming', () => ({
 }))
 
 // Mock API client
+const mockPost = vi.fn()
 const mockPostSSEStream = vi.fn()
 
 vi.mock('@/lib/api/ApiClient', () => ({
   apiClient: {
+    post: (...args: unknown[]) => mockPost(...args),
     postSSEStream: (...args: unknown[]) => mockPostSSEStream(...args),
   },
 }))
@@ -55,18 +57,21 @@ vi.mock('@/lib/api/middleware', () => ({
 }))
 
 const mockCheckAndConsumeCredits = vi.fn()
-const mockCreditErrorResponse = vi.fn((result: { error?: string; errorCode?: string }) =>
-  new Response(JSON.stringify({ error: result.error, code: result.errorCode }), {
-    status: 401,
-    headers: { 'Content-Type': 'application/json' },
-  })
+const mockCreditErrorResponse = vi.fn(
+  (result: { error?: string; errorCode?: string }) =>
+    new Response(JSON.stringify({ error: result.error, code: result.errorCode }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    })
 )
-const mockApplyCreditResultCookies = vi.fn((response: Response, result?: { guestReadingAccess?: string }) => {
-  if (result?.guestReadingAccess) {
-    response.headers.set('x-credit-cookies', result.guestReadingAccess)
+const mockApplyCreditResultCookies = vi.fn(
+  (response: Response, result?: { guestReadingAccess?: string }) => {
+    if (result?.guestReadingAccess) {
+      response.headers.set('x-credit-cookies', result.guestReadingAccess)
+    }
+    return response
   }
-  return response
-})
+)
 
 vi.mock('@/lib/credits/withCredits', () => ({
   checkAndConsumeCredits: (...args: unknown[]) => mockCheckAndConsumeCredits(...args),
@@ -214,6 +219,18 @@ function setupDefaultMocks() {
   mockPostSSEStream.mockResolvedValue({
     ok: true,
     response: createMockSSEResponse(),
+  })
+  mockPost.mockResolvedValue({
+    ok: true,
+    data: {
+      overall_message: 'Hybrid interpretation',
+      guidance: 'Hybrid guidance',
+      card_insights: [
+        { position: 'Past', interpretation: 'Past insight' },
+        { position: 'Present', interpretation: 'Present insight' },
+        { position: 'Future', interpretation: 'Future insight' },
+      ],
+    },
   })
 
   mockCreateSSEStreamProxy.mockReturnValue(
@@ -694,6 +711,36 @@ describe('POST /api/tarot/interpret/stream', () => {
         }),
         expect.any(Object)
       )
+    })
+
+    it('should use hybrid interpret backend when rich question context is provided', async () => {
+      const req = createPostRequest({
+        ...VALID_REQUEST_BODY,
+        birthdate: '1990-05-15',
+        questionContext: {
+          question_summary: 'Relationship follow-up',
+          direct_answer: 'The likely response matters most here.',
+        },
+        sajuContext: 'Strong water energy this month',
+        astroContext: 'Venus transit active',
+      })
+
+      const response = await POST(req)
+      const text = await response.text()
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/tarot/interpret',
+        expect.objectContaining({
+          birthdate: '1990-05-15',
+          saju_context: 'Strong water energy this month',
+          astro_context: 'Venus transit active',
+          user_question: expect.stringContaining('What does my love life look like?'),
+        }),
+        expect.any(Object)
+      )
+      expect(mockPostSSEStream).not.toHaveBeenCalled()
+      expect(response.headers.get('Content-Type')).toContain('text/event-stream')
+      expect(text).toContain('Hybrid interpretation')
     })
 
     it('should use "general reading" when userQuestion is not provided', async () => {

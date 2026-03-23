@@ -82,11 +82,20 @@ describe('Destiny matrix fusion property regression', () => {
     const b = calculateDestinyMatrix(buildInput({ startYearMonth: '2026-03' }))
     const monthsA = (a.summary.overlapTimeline || []).map((p) => p.month)
     const monthsB = (b.summary.overlapTimeline || []).map((p) => p.month)
+    const pastMonthsA = (a.summary.overlapTimelinePast || []).map((p) => p.month)
+    const pastMonthsB = (b.summary.overlapTimelinePast || []).map((p) => p.month)
 
     expect(monthsA).toEqual(monthsB)
     expect(monthsA[0]).toBe('2026-03')
     for (let i = 1; i < monthsA.length; i += 1) {
       expect(monthsA[i] > monthsA[i - 1]).toBe(true)
+    }
+
+    expect(pastMonthsA).toEqual(pastMonthsB)
+    expect(pastMonthsA[0]).toBe('2025-03')
+    expect(pastMonthsA[pastMonthsA.length - 1]).toBe('2026-02')
+    for (let i = 1; i < pastMonthsA.length; i += 1) {
+      expect(pastMonthsA[i] > pastMonthsA[i - 1]).toBe(true)
     }
   })
 
@@ -96,5 +105,21 @@ describe('Destiny matrix fusion property regression', () => {
     expect(a.summary.drivers).toEqual(b.summary.drivers)
     expect(a.summary.cautions).toEqual(b.summary.cautions)
     expect(a.summary.domainScores).toEqual(b.summary.domainScores)
+  })
+
+  it('timing calibration stays normalized and exposed', () => {
+    const result = calculateDestinyMatrix(buildInput())
+    const calibration = result.summary.timingCalibration
+
+    expect(calibration).toBeDefined()
+    expect(calibration!.readinessScore).toBeGreaterThanOrEqual(0)
+    expect(calibration!.readinessScore).toBeLessThanOrEqual(1)
+    expect(calibration!.triggerScore).toBeGreaterThanOrEqual(0)
+    expect(calibration!.triggerScore).toBeLessThanOrEqual(1)
+    expect(calibration!.convergenceScore).toBeGreaterThanOrEqual(0)
+    expect(calibration!.convergenceScore).toBeLessThanOrEqual(1)
+    expect(calibration!.reliabilityScore).toBeGreaterThanOrEqual(0)
+    expect(calibration!.reliabilityScore).toBeLessThanOrEqual(1)
+    expect(['low', 'medium', 'high']).toContain(calibration!.reliabilityBand)
   })
 })

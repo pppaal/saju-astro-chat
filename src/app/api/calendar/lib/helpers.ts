@@ -13,6 +13,7 @@ import type {
 import type { CalendarEvidence, TranslationData } from '@/types/calendar-api'
 import type { PillarData } from '@/lib/Saju/types'
 import type { DomainKey, DomainScore, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
+import type { TimingCalibrationSummary } from '@/lib/destiny-matrix/types'
 import type { CounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
 import type { SajuPillarAccessor, FormattedDate, LocationCoord } from './types'
 import { getFactorTranslation } from './translations'
@@ -203,9 +204,7 @@ function isLowCoherenceSignal(
 
 function isDefensivePhaseLabel(value: string | undefined): boolean {
   if (!value) return false
-  return /(defensive\s*reset|stabilization|방어\/재정렬|안정화)/i.test(
-    repairMojibakeText(value)
-  )
+  return /(defensive\s*reset|stabilization|방어\/재정렬|안정화)/i.test(repairMojibakeText(value))
 }
 
 function humanizeCalendarEngineText(value: string | undefined): string {
@@ -215,7 +214,10 @@ function humanizeCalendarEngineText(value: string | undefined): string {
   return repaired
     .replace(/레이어\s*0/gi, '핵심 조건')
     .replace(/레이어\s*1/gi, '보조 조건')
-    .replace(/공격\s*(\d+(?:\.\d+)?)%\s*\/\s*방어\s*(\d+(?:\.\d+)?)%/gi, '밀어붙일 힘 $1% / 신중하게 볼 부분 $2%')
+    .replace(
+      /공격\s*(\d+(?:\.\d+)?)%\s*\/\s*방어\s*(\d+(?:\.\d+)?)%/gi,
+      '밀어붙일 힘 $1% / 신중하게 볼 부분 $2%'
+    )
     .replace(/방어\/재정렬 국면/gi, '서두르기보다 정리와 점검이 중요한 흐름')
     .replace(/공격\/확장 국면/gi, '움직이되 범위를 넓히기보다 핵심을 밀기 좋은 흐름')
     .replace(
@@ -257,13 +259,31 @@ function sanitizeMatrixNarrativeLine(value: string | undefined): string {
     .replace(/통합 레이어:\s*/gi, '')
     .replace(/타이밍 레이어:\s*/gi, '')
     .replace(/전체 패턴을 실행 가능한 전략으로 압축합니다\./gi, '')
-    .replace(/대운·세운·월운·일진 활성도를 해석합니다\./gi, '큰 흐름과 당장의 변수를 함께 읽습니다.')
-    .replace(/핵심 조건 신호는 해당 구간의 실행 조건을 조정하라는 의미를 가집니다\./gi, '들어갈 때 필요한 조건을 먼저 맞추라는 뜻입니다.')
+    .replace(
+      /대운·세운·월운·일진 활성도를 해석합니다\./gi,
+      '큰 흐름과 당장의 변수를 함께 읽습니다.'
+    )
+    .replace(
+      /핵심 조건 신호는 해당 구간의 실행 조건을 조정하라는 의미를 가집니다\./gi,
+      '들어갈 때 필요한 조건을 먼저 맞추라는 뜻입니다.'
+    )
     .replace(/조건 신호입니다/gi, '조건으로 읽는 편이 맞습니다')
-    .replace(/재물 쪽에 힘이 실려 있어 잘게 나눠 밀면 성과가 나기 쉬운 날입니다\./gi, '돈 문제는 범위를 줄이고 조건을 분명히 할수록 결과가 좋아지기 쉽습니다.')
-    .replace(/커리어 쪽에 힘이 실려 있어 잘게 나눠 밀면 성과가 나기 쉬운 날입니다\./gi, '일은 한 번에 많이 벌리기보다 오늘 끝낼 결과 하나를 분명히 하는 편이 더 유리합니다.')
-    .replace(/이동 쪽에 힘이 실려 있어 잘게 나눠 밀면 성과가 나기 쉬운 날입니다\./gi, '일정 변경이나 이동은 미리 조율해 두면 생각보다 매끄럽게 풀릴 가능성이 큽니다.')
-    .replace(/움직일 여지는 있지만 판을 크게 벌리기보다 핵심 한두 가지에 집중하는 편이 좋습니다\./gi, '기회는 있지만 욕심을 넓히기보다 오늘 꼭 끝낼 핵심 한두 가지에 집중하는 편이 좋습니다.')
+    .replace(
+      /재물 쪽에 힘이 실려 있어 잘게 나눠 밀면 성과가 나기 쉬운 날입니다\./gi,
+      '돈 문제는 범위를 줄이고 조건을 분명히 할수록 결과가 좋아지기 쉽습니다.'
+    )
+    .replace(
+      /커리어 쪽에 힘이 실려 있어 잘게 나눠 밀면 성과가 나기 쉬운 날입니다\./gi,
+      '일은 한 번에 많이 벌리기보다 오늘 끝낼 결과 하나를 분명히 하는 편이 더 유리합니다.'
+    )
+    .replace(
+      /이동 쪽에 힘이 실려 있어 잘게 나눠 밀면 성과가 나기 쉬운 날입니다\./gi,
+      '일정 변경이나 이동은 미리 조율해 두면 생각보다 매끄럽게 풀릴 가능성이 큽니다.'
+    )
+    .replace(
+      /움직일 여지는 있지만 판을 크게 벌리기보다 핵심 한두 가지에 집중하는 편이 좋습니다\./gi,
+      '기회는 있지만 욕심을 넓히기보다 오늘 꼭 끝낼 핵심 한두 가지에 집중하는 편이 좋습니다.'
+    )
 
   if (!humanized) return ''
   if (MATRIX_TECHNICAL_PAYLOAD_PATTERN.test(original) && humanized.length < 18) return ''
@@ -466,6 +486,7 @@ export type MatrixCalendarContext = {
   calendarSignals?: MatrixSignal[]
   overlapTimeline?: MonthlyOverlapPoint[]
   overlapTimelineByDomain?: Record<DomainKey, MonthlyOverlapPoint[]>
+  timingCalibration?: TimingCalibrationSummary
   domainScores?: Record<DomainKey, DomainScore>
 } | null
 
@@ -735,7 +756,9 @@ export function generateSummary(
         ])
       )
     }
-    return repairMojibakeText(dedupeTexts([base, categoryTail || '', sourceTail || '', ...tails]).join(' '))
+    return repairMojibakeText(
+      dedupeTexts([base, categoryTail || '', sourceTail || '', ...tails]).join(' ')
+    )
   }
 
   if (grade === 0) {
@@ -1055,7 +1078,8 @@ function buildTimingSignals(input: {
   if (keys.some((key) => key.includes('seun') || key.includes('saeun'))) {
     add('\uC138\uC6B4 \uBC18\uC601', 'Annual cycle active')
   }
-  if (keys.some((key) => key.includes('wolun'))) add('\uC6D4\uC6B4 \uBC18\uC601', 'Monthly cycle active')
+  if (keys.some((key) => key.includes('wolun')))
+    add('\uC6D4\uC6B4 \uBC18\uC601', 'Monthly cycle active')
   if (keys.some((key) => key.includes('iljin') || key.includes('day'))) {
     add('\uC77C\uC9C4 \uBC18\uC601', 'Daily cycle active')
   }
@@ -1072,7 +1096,10 @@ function buildTimingSignals(input: {
     add('\uBCC0\uC218 \uBCC0\uD654 \uC2E0\uD638', 'Transit signal')
   }
   if (date.transitSync?.isMajorTransitYear) {
-    add('\uC0DD\uD65C \uD750\uB984\uC774 \uD06C\uAC8C \uBC14\uB00C\uAE30 \uC26C\uC6B4 \uD574', 'Major transit year')
+    add(
+      '\uC0DD\uD65C \uD750\uB984\uC774 \uD06C\uAC8C \uBC14\uB00C\uAE30 \uC26C\uC6B4 \uD574',
+      'Major transit year'
+    )
   }
   if (matrixVerdict?.phase) {
     add(
@@ -1100,9 +1127,15 @@ function buildTimingSignals(input: {
   }
 
   if (peakLevel === 'peak') {
-    add('\uC774\uBC88 \uB2EC \uD2B9\uD788 \uD798\uC774 \uC2E4\uB9AC\uB294 \uAD6C\uAC04', 'Monthly peak window')
+    add(
+      '\uC774\uBC88 \uB2EC \uD2B9\uD788 \uD798\uC774 \uC2E4\uB9AC\uB294 \uAD6C\uAC04',
+      'Monthly peak window'
+    )
   } else if (peakLevel === 'high') {
-    add('\uC774\uBC88 \uB2EC \uC18D\uB3C4\uB97C \uC62C\uB9AC\uAE30 \uC88B\uC740 \uD750\uB984', 'Monthly rising window')
+    add(
+      '\uC774\uBC88 \uB2EC \uC18D\uB3C4\uB97C \uC62C\uB9AC\uAE30 \uC88B\uC740 \uD750\uB984',
+      'Monthly rising window'
+    )
   }
 
   return signals.slice(0, 4).map((item) => (lang === 'ko' ? repairMojibakeText(item) : item))
@@ -2120,7 +2153,6 @@ function buildMatrixStrictSummaryFallback(input: {
   ]).join(' ')
 }
 
-
 function buildMatrixStrictDescriptionFallback(input: {
   lang: 'ko' | 'en'
   evidence: CalendarEvidence
@@ -2145,7 +2177,6 @@ function buildMatrixStrictDescriptionFallback(input: {
 
   return dedupeTexts([input.summary, baseDetail, confidenceDetail, input.guardrail || '']).join(' ')
 }
-
 
 function buildMatrixStrictRecommendations(input: {
   lang: 'ko' | 'en'
@@ -2532,34 +2563,34 @@ export function formatDateForResponse(
   })
   const finalDescription = sanitizeCalendarCopy(
     forceConservativeMode
-    ? lang === 'ko'
-      ? '신호가 엇갈립니다. 큰 결정은 재확인 후 진행하세요.'
-      : 'Signals are mixed. Re-check major decisions before committing.'
-    : buildMatrixFirstDescription({
-        topAnchorSummary: matrixVerdict?.topAnchorSummary,
-        verdict: matrixVerdict?.verdict,
-        topClaim: matrixVerdict?.topClaim,
-        overlaySummary: matrixOverlay.summary,
-        fallbackDescription: CALENDAR_MATRIX_STRICT_MODE
-          ? buildMatrixStrictDescriptionFallback({
-              lang,
-              evidence: evidenceWithVerdict,
-              summary: finalSummary,
-              guardrail: matrixVerdict?.guardrail,
-            })
-          : getTranslation(date.descKey, translations),
-      }),
+      ? lang === 'ko'
+        ? '신호가 엇갈립니다. 큰 결정은 재확인 후 진행하세요.'
+        : 'Signals are mixed. Re-check major decisions before committing.'
+      : buildMatrixFirstDescription({
+          topAnchorSummary: matrixVerdict?.topAnchorSummary,
+          verdict: matrixVerdict?.verdict,
+          topClaim: matrixVerdict?.topClaim,
+          overlaySummary: matrixOverlay.summary,
+          fallbackDescription: CALENDAR_MATRIX_STRICT_MODE
+            ? buildMatrixStrictDescriptionFallback({
+                lang,
+                evidence: evidenceWithVerdict,
+                summary: finalSummary,
+                guardrail: matrixVerdict?.guardrail,
+              })
+            : getTranslation(date.descKey, translations),
+        }),
     lang
   )
   const summarizedBase = sanitizeCalendarCopy(
     forceConservativeMode
-    ? dedupeTexts([
-        finalSummary,
-        lang === 'ko'
-          ? '핵심 결론: 지금은 확정보다 다시 확인하고 범위를 좁혀 움직이는 편이 안전합니다.'
-          : 'Core conclusion: low confidence/cross-alignment, so operate in review-first mode.',
-      ]).join(' ')
-    : finalSummary,
+      ? dedupeTexts([
+          finalSummary,
+          lang === 'ko'
+            ? '핵심 결론: 지금은 확정보다 다시 확인하고 범위를 좁혀 움직이는 편이 안전합니다.'
+            : 'Core conclusion: low confidence/cross-alignment, so operate in review-first mode.',
+        ]).join(' ')
+      : finalSummary,
     lang
   )
   const summarized = summarizedBase

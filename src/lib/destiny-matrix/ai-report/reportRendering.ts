@@ -2,7 +2,11 @@ type JsonLike = Record<string, unknown>
 
 function toText(value: unknown): string {
   if (typeof value === 'string') return value.trim()
-  if (Array.isArray(value)) return value.map((v) => (typeof v === 'string' ? v : '')).join('\n').trim()
+  if (Array.isArray(value))
+    return value
+      .map((v) => (typeof v === 'string' ? v : ''))
+      .join('\n')
+      .trim()
   return ''
 }
 
@@ -33,6 +37,133 @@ function formatRenderedSectionText(text: string, lang: 'ko' | 'en'): string {
   const body = match[1].trim()
   const evidence = match[2].trim()
   return `${body}\n\nEvidence: ${evidence}`.trim()
+}
+
+export function renderProjectionBlocksAsText(
+  projections:
+    | {
+        structure?: { headline?: string; summary?: string; topAxes?: string[] }
+        timing?: { headline?: string; summary?: string; window?: string; granularity?: string }
+        conflict?: { headline?: string; summary?: string; reasons?: string[] }
+        evidence?: {
+          headline?: string
+          summary?: string
+          signalIds?: string[]
+          patternIds?: string[]
+          scenarioIds?: string[]
+        }
+      }
+    | null
+    | undefined
+): string {
+  if (!projections) return ''
+  const blocks = [
+    projections.structure
+      ? [
+          projections.structure.headline || 'Structure Projection',
+          projections.structure.summary || '',
+          (projections.structure.topAxes || []).length > 0
+            ? `Top axes: ${(projections.structure.topAxes || []).join(', ')}`
+            : '',
+        ]
+          .filter(Boolean)
+          .join('\n')
+      : '',
+    projections.timing
+      ? [
+          projections.timing.headline || 'Timing Projection',
+          projections.timing.summary || '',
+          [projections.timing.window, projections.timing.granularity].filter(Boolean).join(' / '),
+        ]
+          .filter(Boolean)
+          .join('\n')
+      : '',
+    projections.conflict
+      ? [
+          projections.conflict.headline || 'Conflict Projection',
+          projections.conflict.summary || '',
+          ...(projections.conflict.reasons || []).slice(0, 3).map((item) => `- ${item}`),
+        ]
+          .filter(Boolean)
+          .join('\n')
+      : '',
+    projections.evidence
+      ? [
+          projections.evidence.headline || 'Evidence Projection',
+          projections.evidence.summary || '',
+          (projections.evidence.signalIds || []).length > 0
+            ? `Signals: ${(projections.evidence.signalIds || []).join(', ')}`
+            : '',
+          (projections.evidence.patternIds || []).length > 0
+            ? `Patterns: ${(projections.evidence.patternIds || []).join(', ')}`
+            : '',
+          (projections.evidence.scenarioIds || []).length > 0
+            ? `Scenarios: ${(projections.evidence.scenarioIds || []).join(', ')}`
+            : '',
+        ]
+          .filter(Boolean)
+          .join('\n')
+      : '',
+  ].filter(Boolean)
+
+  return blocks.join('\n\n').trim()
+}
+
+export function renderProjectionBlocksAsMarkdown(
+  projections:
+    | {
+        structure?: { headline?: string; summary?: string; topAxes?: string[] }
+        timing?: { headline?: string; summary?: string; window?: string; granularity?: string }
+        conflict?: { headline?: string; summary?: string; reasons?: string[] }
+        evidence?: {
+          headline?: string
+          summary?: string
+          signalIds?: string[]
+          patternIds?: string[]
+          scenarioIds?: string[]
+        }
+      }
+    | null
+    | undefined
+): string {
+  if (!projections) return ''
+  const lines: string[] = []
+  const pushBlock = (headline: string | undefined, bodyLines: string[]) => {
+    if (!headline || bodyLines.filter(Boolean).length === 0) return
+    lines.push(`## ${headline}`)
+    lines.push('')
+    lines.push(...bodyLines.filter(Boolean))
+    lines.push('')
+  }
+
+  pushBlock(projections.structure?.headline, [
+    projections.structure?.summary || '',
+    (projections.structure?.topAxes || []).length > 0
+      ? `- Top axes: ${(projections.structure?.topAxes || []).join(', ')}`
+      : '',
+  ])
+  pushBlock(projections.timing?.headline, [
+    projections.timing?.summary || '',
+    [projections.timing?.window, projections.timing?.granularity].filter(Boolean).join(' / '),
+  ])
+  pushBlock(projections.conflict?.headline, [
+    projections.conflict?.summary || '',
+    ...(projections.conflict?.reasons || []).slice(0, 3).map((item) => `- ${item}`),
+  ])
+  pushBlock(projections.evidence?.headline, [
+    projections.evidence?.summary || '',
+    (projections.evidence?.signalIds || []).length > 0
+      ? `- Signals: ${(projections.evidence?.signalIds || []).join(', ')}`
+      : '',
+    (projections.evidence?.patternIds || []).length > 0
+      ? `- Patterns: ${(projections.evidence?.patternIds || []).join(', ')}`
+      : '',
+    (projections.evidence?.scenarioIds || []).length > 0
+      ? `- Scenarios: ${(projections.evidence?.scenarioIds || []).join(', ')}`
+      : '',
+  ])
+
+  return lines.join('\n').trim()
 }
 
 export function renderSectionsAsText(

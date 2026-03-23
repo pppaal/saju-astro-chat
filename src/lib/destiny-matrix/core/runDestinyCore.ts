@@ -22,6 +22,10 @@ import {
 import { buildCoreCanonicalOutput } from '@/lib/destiny-matrix/core/canonical'
 import type { DestinyCoreCanonicalOutput } from '@/lib/destiny-matrix/core/types'
 import { normalizeMatrixInput } from '@/lib/destiny-matrix/core/inputNormalization'
+import {
+  buildDestinyLatentState,
+  type DestinyLatentState,
+} from '@/lib/destiny-matrix/core/latentState'
 
 export type AvailabilityState = 'present' | 'empty-computed' | 'missing-upstream'
 
@@ -56,6 +60,7 @@ export interface DestinyCoreResult {
   strategyEngine: StrategyEngineResult
   canonical: DestinyCoreCanonicalOutput
   quality: DestinyCoreQuality
+  latentState: DestinyLatentState
   coreHash: string
 }
 
@@ -111,7 +116,8 @@ function buildDataQualityMetadata(input: {
     ...(typeof profile?.latitude === 'number' && typeof profile?.longitude === 'number'
       ? []
       : ['coordinates']),
-    ...(input.normalizedInput.astroTimingIndex || input.normalizedInput.crossSnapshot?.astroTimingIndex
+    ...(input.normalizedInput.astroTimingIndex ||
+    input.normalizedInput.crossSnapshot?.astroTimingIndex
       ? []
       : ['astroTimingIndex']),
     ...(input.normalizedInput.currentDaeunElement ? [] : ['currentDaeunElement']),
@@ -136,7 +142,9 @@ function buildDataQualityMetadata(input: {
     ...(String(input.normalizedInput.crossSnapshot?.source || '').includes('auto-derived')
       ? ['crossSnapshot']
       : []),
-    ...(input.normalizedInput.astrologySnapshot?.currentTransits ? ['astrologySnapshot.currentTransits'] : []),
+    ...(input.normalizedInput.astrologySnapshot?.currentTransits
+      ? ['astrologySnapshot.currentTransits']
+      : []),
     ...(input.normalizedInput.currentIljinDate ? ['currentIljinDate'] : []),
   ]
 
@@ -272,7 +280,9 @@ function computeScenarioSharpness(scenarios: ScenarioResult[]): {
   }
   const top = ranked[0]?.rawScore ?? ranked[0]?.probability ?? 0
   const second = ranked[1]?.rawScore ?? ranked[1]?.probability ?? 0
-  const meanTop = ranked.reduce((sum, scenario) => sum + (scenario.rawScore ?? scenario.probability), 0) / ranked.length
+  const meanTop =
+    ranked.reduce((sum, scenario) => sum + (scenario.rawScore ?? scenario.probability), 0) /
+    ranked.length
   const topScenarioGap = top > 0 ? round2((top - second) / top) : 0
   const scenarioClusterCompression = top > 0 ? round2(clamp(meanTop / top, 0, 1)) : 0
   return { topScenarioGap, scenarioClusterCompression }
@@ -295,14 +305,29 @@ function computeFocusDomainAmbiguity(
     .sort((a, b) => (b.rawScore ?? b.probability) - (a.rawScore ?? a.probability))
     .slice(0, 5)
   const topOptions = [...options].sort((a, b) => b.scores.total - a.scores.total).slice(0, 4)
-  const scenarioLeakage =
-    topScenarios.length === 0
-      ? 1
-      : topScenarios.filter((scenario) => scenario.domain !== focusDomain).length / topScenarios.length
-  const optionLeakage =
-    topOptions.length === 0
-      ? 1
-      : topOptions.filter((option) => option.domain !== focusDomain).length / topOptions.length
+  const scenarioTotal = topScenarios.reduce(
+    (sum, scenario) => sum + Math.max(0, scenario.rawScore ?? scenario.probability),
+    0
+  )
+  const focusScenarioShare =
+    scenarioTotal <= 0
+      ? 0
+      : topScenarios
+          .filter((scenario) => scenario.domain === focusDomain)
+          .reduce(
+            (sum, scenario) => sum + Math.max(0, scenario.rawScore ?? scenario.probability),
+            0
+          ) / scenarioTotal
+  const scenarioLeakage = topScenarios.length === 0 ? 1 : 1 - focusScenarioShare
+
+  const optionTotal = topOptions.reduce((sum, option) => sum + Math.max(0, option.scores.total), 0)
+  const focusOptionShare =
+    optionTotal <= 0
+      ? 0
+      : topOptions
+          .filter((option) => option.domain === focusDomain)
+          .reduce((sum, option) => sum + Math.max(0, option.scores.total), 0) / optionTotal
+  const optionLeakage = topOptions.length === 0 ? 1 : 1 - focusOptionShare
   return round2(clamp(scenarioLeakage * 0.6 + optionLeakage * 0.4, 0, 1))
 }
 
@@ -357,7 +382,8 @@ function buildDestinyCoreQuality(input: {
   score += strategySumValid ? 7 : 0
   score += scoreByThreshold(input.decisionEngine.options.length, 9, 4)
   score += scoreByThreshold(input.decisionEngine.domains.length, 3, 3)
-  score += gatedDecisionCount <= Math.ceil(Math.max(1, input.decisionEngine.options.length) * 0.5) ? 2 : 0
+  score +=
+    gatedDecisionCount <= Math.ceil(Math.max(1, input.decisionEngine.options.length) * 0.5) ? 2 : 0
   score += Math.round((1 - scenarioClusterCompression) * 6)
   score += Math.round(topScenarioGap * 6)
   score += Math.round(topDecisionGap * 6)
@@ -632,6 +658,13 @@ export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult 
     strategyEngine,
     canonical,
   })
+  const latentState = buildDestinyLatentState({
+    normalizedInput,
+    matrixSummary: params.matrixSummary,
+    strategyEngine,
+    canonical,
+    quality,
+  })
 
   return {
     normalizedInput,
@@ -643,6 +676,7 @@ export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult 
     strategyEngine,
     canonical,
     quality,
+    latentState,
     coreHash: computeDestinyCoreHash({
       canonical,
       patterns,

@@ -176,10 +176,12 @@ async function callOpenAI(messages: { role: string; content: string }[], maxToke
       }),
     },
     {
-      maxRetries: 2,
-      initialDelayMs: 500,
-      maxDelayMs: 2000,
-      timeoutMs: 12000,
+      // Question routing already has a deterministic heuristic fallback.
+      // Fail fast here so the UI gets a stable answer instead of timing out locally.
+      maxRetries: 0,
+      initialDelayMs: 250,
+      maxDelayMs: 600,
+      timeoutMs: 4200,
       retryStatusCodes: [408, 409, 425, 429, 500, 502, 503, 504],
     }
   )
@@ -197,12 +199,82 @@ function isDangerousQuestion(question: string) {
   return DANGEROUS_KEYWORDS.some((keyword) => normalized.includes(keyword.toLowerCase()))
 }
 
+function expandColloquialQuestionVariants(question: string): string[] {
+  const trimmed = question.trim()
+  if (!trimmed) {
+    return []
+  }
+
+  const rewritten = trimmed
+    .replace(/[걔얘쟤]/g, '그 사람')
+    .replace(/남친/g, '남자친구')
+    .replace(/여친/g, '여자친구')
+    .replace(/속맘/g, '속마음')
+    .replace(/\b맘\b/g, '마음')
+    .replace(/어케|어캐|어떡해|우째/g, '어떻게')
+    .replace(/머임|뭐임/g, '뭐야')
+    .replace(/맞냐/g, '맞아')
+    .replace(/있냐/g, '있어')
+    .replace(/되냐/g, '될까')
+    .replace(/재회각/g, '재회 가능성')
+    .replace(/연락각/g, '연락 가능성')
+    .replace(/읽씹/g, '읽고 답장하지 않음')
+    .replace(/안읽씹/g, '읽지 않고 답장하지 않음')
+    .replace(/차였/g, '헤어졌')
+    .replace(/연락옴/g, '연락 올까')
+    .replace(/옴\?/g, '올까?')
+    .replace(/옴$/g, '올까')
+    .replace(/함\?/g, '할까?')
+    .replace(/함$/g, '할까')
+    .replace(/됌/g, '됨')
+
+  const variants = new Set<string>()
+
+  if (rewritten !== trimmed) {
+    variants.add(rewritten)
+  }
+
+  const compact = rewritten.replace(/\s+/g, ' ').trim()
+
+  if (
+    /속마음|마음|감정/.test(compact) &&
+    !/(어때|어떨까|뭐야|무엇|생각|좋아하|식은|있어)/.test(compact)
+  ) {
+    variants.add(`${compact}은 어떨까?`)
+  }
+
+  if (/재회/.test(compact) && !/(가능성|올까|다시|있어|있을까)/.test(compact)) {
+    variants.add(`${compact} 가능성 있을까?`)
+  }
+
+  if (/연락/.test(compact) && !/(올까|할까|답장|확률|가능성|언제)/.test(compact)) {
+    variants.add(`${compact} 올까?`)
+  }
+
+  if (
+    /(분위기|결과|흐름|방향)/.test(compact) &&
+    !/(어때|어떨까|궁금|맞아|될까|어떻게)/.test(compact)
+  ) {
+    variants.add(`${compact} 어때?`)
+  }
+
+  if (/(뭐야|맞아|있어|될까)$/.test(compact) && !/[?？]$/.test(compact)) {
+    variants.add(`${compact}?`)
+  }
+
+  return Array.from(variants)
+}
+
 function buildQuestionVariants(question: string): string[] {
-  const variants = prepareForMatching(question)
+  const seedQuestions = [question.trim(), ...expandColloquialQuestionVariants(question)].filter(
+    Boolean
+  )
+  const variants = seedQuestions
+    .flatMap((entry) => prepareForMatching(entry))
     .map((entry) => entry.trim())
     .filter(Boolean)
 
-  return Array.from(new Set([question.trim(), ...variants])).slice(0, 6)
+  return Array.from(new Set(seedQuestions.concat(variants))).slice(0, 10)
 }
 
 function hasPattern(text: string, patterns: RegExp[]) {
@@ -211,7 +283,7 @@ function hasPattern(text: string, patterns: RegExp[]) {
 
 function hasRelationshipSignal(questionVariants: string[]) {
   const joined = questionVariants.join(' ').toLowerCase()
-  return /(우리\s*관계|관계|사이|연애|결혼|사귀|만나는\s*사람|썸|애인|남자친구|여자친구|남친|여친|배우자|소개팅|커플|부부|relationship|dating|marriage|partner)/.test(
+  return /(우리\s*관계|결국\s*우리는|우리는\s*어떻게|관계|사이|연애|결혼|사귀|만나는\s*사람|썸|애인|남자친구|여자친구|남친|여친|배우자|소개팅|헤어진\s*사람|전\s*연인|전남친|전여친|커플|부부|relationship|dating|marriage|partner)/.test(
     joined
   )
 }
@@ -220,6 +292,24 @@ function hasSelfDecisionSignal(questionVariants: string[]) {
   const joined = questionVariants.join(' ').toLowerCase()
   return /(내가.*(해야|해도|하면|움직이면|연락하면|사과하면|고백하면|선택하면|기다리면)|(하는\s*게|하는게|해도|가도|믿어도|사인해도|이어가도|그만둬도|쉬는\s*게|참고\s*기다리면)\s*(맞아|맞을까|나아|괜찮을까|될까)|먼저\s*연락|할지\s*말지|해야\s*할까|해야\s*돼|should i|shall i|can i|may i|not sure if i should)/.test(
     joined
+  )
+}
+
+function isCareerQuestion(text: string) {
+  return /(\uC9C1\uC7A5|\uC774\uC9C1|\uD1F4\uC0AC|\uD68C\uC0AC|\uCEE4\uB9AC\uC5B4|\uCDE8\uC5C5|\uBA74\uC811|\uC2DC\uD5D8|\uD569\uACA9|\uD504\uB85C\uC81D\uD2B8|\uD68C\uC758|\uD611\uC5C5|\uBC1C\uD45C|job|career|work|interview|exam|project|meeting)/i.test(
+    text
+  )
+}
+
+function isMoneyQuestion(text: string) {
+  return /(\uB3C8|\uC7AC\uC815|\uAE08\uC804|\uB9E4\uCD9C|\uC218\uC785|\uC9C0\uCD9C|\uD22C\uC790|\uACC4\uC57D|\uAC70\uB798|\uC0AC\uC5C5|\uC7AC\uBB3C|finance|money|investment|contract|deal|business|sales)/i.test(
+    text
+  )
+}
+
+function isHealthQuestion(text: string) {
+  return /(\uAC74\uAC15|\uBAB8|\uCEE8\uB514\uC158|\uD68C\uBCF5|\uC5D0\uB108\uC9C0|\uC2A4\uD2B8\uB808\uC2A4|\uBC88\uC544\uC6C3|\uC2EC\uC2E0|\uC6F0\uBE59|health|body|condition|energy|burnout|well-being|wellbeing)/i.test(
+    text
   )
 }
 
@@ -234,6 +324,7 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
     /돌아오/,
     /복합/,
     /헤어졌/,
+    /헤어진/,
     /get back together/,
     /reconcil/,
     /come back/,
@@ -288,16 +379,6 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
     return 'timing'
   }
 
-  const broadFlowPatterns = [
-    /(\uD750\uB984|\uC804\uCCB4\s*\uD750\uB984|\uD070\s*\uD750\uB984|\uAD6D\uBA74|\uBC29\uD5A5)/,
-    /(\uC6B4\s*\uC5B4\uB54C|\uCCB4\uD06C\uD574\uC918|\uAD81\uAE08\uD574|\uC54C\uACE0\s*\uC2F6\uC5B4)/,
-    /(\uBC30\uC6CC\uC57C\s*\uD560\s*\uAC74|\uC65C\s*\uC790\uAFB8\s*\uAF2C\uC774\uB294\uC9C0)/,
-    /overall flow|big picture|current flow|direction/,
-  ]
-  if (hasPattern(joined, broadFlowPatterns)) {
-    return 'unknown'
-  }
-
   const otherSubjectPatterns = [
     /그 사람|그사람|상대(방)?|그분|그녀|그가|걔|얘|전남친|전여친/,
     /\bthey\b|\bhe\b|\bshe\b|\bpartner\b|\bex\b/,
@@ -311,11 +392,18 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
   ]
   const hasOtherSubject =
     hasPattern(joined, otherSubjectPatterns) || hasPattern(joined, namedOtherSubjectPatterns)
+  const implicitCounterpartyResponseCuePatterns = [
+    /(반응이\s*어떨까|반응은\s*어떨까|받아줄까|어떻게\s*받아들일까)/,
+    /(무슨\s*말|뭐라(고)?\s*할까|어떻게\s*말할까|생각\s*바꿀까)/,
+    /(다시\s*찾아올|다시\s*올까|돌아올)/,
+    /what will .* say|how will .* react|take me back|come back/,
+  ]
+  const implicitCounterpartyTriggerPatterns = [/(사과하면|고백하면|내가\s*움직이면|내가\s*먼저)/]
 
   const meetingLikelihoodPatterns = [
     /만날까|만날 수|만날 가능/,
     /성사될까|가능성/,
-    /연락 올까|답장 올까/,
+    /연락 올까|답장 올까|연락할까|답장할까/,
     /(\uC5F0\uB77D\uD560\s*\uD655\uB960|\uB2F5\uC7A5\uD560\s*\uD655\uB960|\uC5F0\uB77D\s*\uAC00\uB2A5\uC131|\uB2F5\uC7A5\s*\uAC00\uB2A5\uC131)/,
     /\bmeet\b|\bmeeting\b|\bshow up\b/,
     /\breply\b|\brespond\b/,
@@ -336,6 +424,21 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
     /do (they|he|she)/,
     /what will (they|he|she) say/,
   ]
+  if (
+    (hasRelationshipSignal(questionVariants) &&
+      hasPattern(joined, implicitCounterpartyResponseCuePatterns)) ||
+    (hasPattern(joined, implicitCounterpartyTriggerPatterns) &&
+      hasPattern(joined, implicitCounterpartyResponseCuePatterns))
+  ) {
+    return 'other_person_response'
+  }
+  if (
+    /(\uC0AC\uACFC\uD558\uBA74.*\uBC18\uC751\uC774\s*\uC5B4\uB5A8\uAE4C|\uACE0\uBC31\uD558\uBA74.*\uBC1B\uC544\uC904\uAE4C|\uB0B4\uAC00\s*\uBA3C\uC800.*\uBC18\uC751\uC774\s*\uC5B4\uB5A8\uAE4C)/.test(
+      joined
+    )
+  ) {
+    return 'other_person_response'
+  }
   if (hasOtherSubject && hasPattern(joined, otherResponsePatterns)) {
     return 'other_person_response'
   }
@@ -349,11 +452,26 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
   if (hasSelfDecisionSignal(questionVariants) || hasPattern(joined, selfDecisionPatterns)) {
     return 'self_decision'
   }
-
-  if (/(\uB2E4\uC74C\s*\uD55C\s*\uC218|\uBC29\uD5A5\s*\uB9DE\uC544|\uBB50\uC5EC\uC57C\s*\uD574|\uC870\uC5B8\uC740|\uB193\uCE58\uACE0\s*\uC788\uB294\s*\uAC74\s*\uBB50)/.test(joined)) {
+  if (
+    /((집|이사|연애|공부|관계|회사|직장)?\s*사는\s*게\s*맞아|(집|이사|연애|공부|관계|회사|직장)?\s*사는\s*게\s*맞을까|기다리는\s*게\s*맞을까|공부\s*방향\s*맞아|연애\s*시작할까|시작해도\s*될까)/.test(
+      joined
+    )
+  ) {
     return 'self_decision'
   }
-  if (/(\uC9C1\uC7A5\s*\uC62E\uAE30\uBA74|\uC774\uC9C1\uD574\uB3C4|\uC62E\uAE30\uBA74\s*\uB098\uC744\uAE4C)/.test(joined)) {
+
+  if (
+    /(\uB2E4\uC74C\s*\uD55C\s*\uC218|\uBC29\uD5A5\s*\uB9DE\uC544|\uBB50\uC5EC\uC57C\s*\uD574|\uC870\uC5B8\uC740|\uB193\uCE58\uACE0\s*\uC788\uB294\s*\uAC74\s*\uBB50)/.test(
+      joined
+    )
+  ) {
+    return 'self_decision'
+  }
+  if (
+    /(\uC9C1\uC7A5\s*\uC62E\uAE30\uBA74|\uC774\uC9C1\uD574\uB3C4|\uC62E\uAE30\uBA74\s*\uB098\uC744\uAE4C)/.test(
+      joined
+    )
+  ) {
     return 'self_decision'
   }
 
@@ -366,6 +484,16 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
   ]
   if (hasPattern(joined, nearTermOutcomePatterns)) {
     return 'near_term_outcome'
+  }
+
+  const broadFlowPatterns = [
+    /(\uD750\uB984|\uC804\uCCB4\s*\uD750\uB984|\uD070\s*\uD750\uB984|\uAD6D\uBA74|\uBC29\uD5A5)/,
+    /(\uC6B4\s*\uC5B4\uB54C|\uCCB4\uD06C\uD574\uC918|\uAD81\uAE08\uD574|\uC54C\uACE0\s*\uC2F6\uC5B4)/,
+    /(\uBC30\uC6CC\uC57C\s*\uD560\s*\uAC74|\uC65C\s*\uC790\uAFB8\s*\uAF2C\uC774\uB294\uC9C0)/,
+    /overall flow|big picture|current flow|direction/,
+  ]
+  if (hasPattern(joined, broadFlowPatterns)) {
+    return 'unknown'
   }
 
   return 'unknown'
@@ -408,7 +536,11 @@ function detectQuestionSubject(
     if (/(감정|기분|컨디션|상태|feel|emotion|마음)/.test(joinedUnknown)) {
       return 'self'
     }
-    if (/(회의|미팅|프로젝트|직장|회사|면접|시험|계약|투자|사업|job|career|exam|interview)/.test(joinedUnknown)) {
+    if (
+      /(회의|미팅|프로젝트|직장|회사|면접|시험|계약|투자|사업|job|career|exam|interview)/.test(
+        joinedUnknown
+      )
+    ) {
       return 'external_situation'
     }
     return 'overall_flow'
@@ -447,10 +579,7 @@ function detectQuestionTimeframe(questionVariants: string[]): QuestionTimeframe 
   return 'open'
 }
 
-function detectQuestionTone(
-  intent: TarotQuestionIntent,
-  questionVariants: string[]
-): QuestionTone {
+function detectQuestionTone(intent: TarotQuestionIntent, questionVariants: string[]): QuestionTone {
   const joined = questionVariants.join(' ').toLowerCase()
   if (intent === 'inner_feelings') {
     return 'emotion'
@@ -498,7 +627,13 @@ function normalizeTimeframe(
   value: string | undefined,
   fallback: QuestionTimeframe
 ): QuestionTimeframe {
-  const allowed: QuestionTimeframe[] = ['immediate', 'near_term', 'current_phase', 'mid_term', 'open']
+  const allowed: QuestionTimeframe[] = [
+    'immediate',
+    'near_term',
+    'current_phase',
+    'mid_term',
+    'open',
+  ]
   return value && allowed.includes(value as QuestionTimeframe)
     ? (value as QuestionTimeframe)
     : fallback
@@ -611,14 +746,46 @@ function getToneLabel(tone: QuestionTone, language: EngineLanguage): string {
   return language === 'ko' ? koLabels[tone] : enLabels[tone]
 }
 
+function refineQuestionSubject(
+  questionVariants: string[],
+  intent: TarotQuestionIntent,
+  baseSubject: QuestionSubject
+): QuestionSubject {
+  const joined = questionVariants.join(' ').toLowerCase()
+
+  if (hasRelationshipSignal(questionVariants)) {
+    return 'relationship'
+  }
+  if (isHealthQuestion(joined)) {
+    return 'self'
+  }
+  if (isCareerQuestion(joined) || isMoneyQuestion(joined)) {
+    return 'external_situation'
+  }
+  if (intent === 'unknown' && baseSubject === 'overall_flow') {
+    if (/(관계|연애|결혼|썸|소개팅|relationship|dating|marriage)/.test(joined)) {
+      return 'relationship'
+    }
+    if (isHealthQuestion(joined)) {
+      return 'self'
+    }
+    if (isCareerQuestion(joined) || isMoneyQuestion(joined)) {
+      return 'external_situation'
+    }
+  }
+
+  return baseSubject
+}
+
 function buildHeuristicIntent(
   questionVariants: string[],
   language: EngineLanguage
 ): StructuredIntent {
   const questionType = detectQuestionIntent(questionVariants)
+  const baseSubject = detectQuestionSubject(questionVariants, questionType)
   return {
     questionType,
-    subject: detectQuestionSubject(questionVariants, questionType),
+    subject: refineQuestionSubject(questionVariants, questionType, baseSubject),
     focus: getFocusLabel(questionType, language),
     timeframe: detectQuestionTimeframe(questionVariants),
     tone: detectQuestionTone(questionType, questionVariants),
@@ -676,7 +843,11 @@ function repairIntentAnalysis(
     next.subject = 'other_person'
   }
 
-  if (next.questionType === 'unknown' && next.tone === 'prediction' && hasStrongFlowSignal(questionVariants)) {
+  if (
+    next.questionType === 'unknown' &&
+    next.tone === 'prediction' &&
+    hasStrongFlowSignal(questionVariants)
+  ) {
     next.tone = 'flow'
   }
 
@@ -748,14 +919,18 @@ function buildHeuristicDirectAnswer(
   if (language === 'ko') {
     const answers: Record<TarotQuestionIntent, string> = {
       self_decision: '지금은 바로 결정하기보다 기준을 먼저 정리한 뒤 움직이는 편이 좋아 보여요.',
-      other_person_response: '상대 반응은 즉각적이기보다 한 템포 늦게 드러날 가능성에 무게가 있어 보여요.',
+      other_person_response:
+        '상대 반응은 즉각적이기보다 한 템포 늦게 드러날 가능성에 무게가 있어 보여요.',
       meeting_likelihood: isTomorrow
         ? '내일 바로 성사 쪽보다는 간격과 변수 확인이 먼저라서, 기대를 낮추고 가볍게 접근하는 편이 좋아 보여요.'
         : '연락이나 만남은 열려 있지만, 바로 확정된다고 보기보다 천천히 반응을 보는 편이 좋아 보여요.',
       near_term_outcome: '단기 결과는 열려 있지만, 확정적으로 밀기보다 변수 점검이 먼저입니다.',
-      timing: '지금은 결과보다 타이밍을 보는 질문이라서, 서두르기보다 시기를 기다리는 편이 맞아 보여요.',
-      reconciliation: '지금은 바로 재회를 단정하기보다 관계를 다시 여는 조건부터 보는 편이 맞아 보여요.',
-      inner_feelings: '겉으로는 조심스러워 보여도, 내면에서는 신경 쓰는 흐름이 남아 있을 가능성이 있습니다.',
+      timing:
+        '지금은 결과보다 타이밍을 보는 질문이라서, 서두르기보다 시기를 기다리는 편이 맞아 보여요.',
+      reconciliation:
+        '지금은 바로 재회를 단정하기보다 관계를 다시 여는 조건부터 보는 편이 맞아 보여요.',
+      inner_feelings:
+        '겉으로는 조심스러워 보여도, 내면에서는 신경 쓰는 흐름이 남아 있을 가능성이 있습니다.',
       unknown: '지금 전체 흐름은 확장보다 정리와 기준 재정비가 먼저인 전환기로 읽히는 편입니다.',
     }
     return answers[intent.questionType]
@@ -839,13 +1014,27 @@ function chooseIntentStableSpread(
   if (intent.subject === 'relationship') {
     stableCandidates.push({ themeId: 'love-relationships', spreadId: 'relationship-check-in' })
   }
+  if ((intent.tone === 'flow' || intent.questionType === 'unknown') && isCareerQuestion(question)) {
+    stableCandidates.push({ themeId: 'career-work', spreadId: 'career-path' })
+  }
+  if ((intent.tone === 'flow' || intent.questionType === 'unknown') && isMoneyQuestion(question)) {
+    stableCandidates.push({ themeId: 'money-finance', spreadId: 'financial-snapshot' })
+    stableCandidates.push({ themeId: 'money-finance', spreadId: 'abundance-path' })
+  }
+  if ((intent.tone === 'flow' || intent.questionType === 'unknown') && isHealthQuestion(question)) {
+    stableCandidates.push({ themeId: 'well-being-health', spreadId: 'mind-body-scan' })
+    stableCandidates.push({ themeId: 'well-being-health', spreadId: 'healing-path' })
+  }
   if (intent.tone === 'flow' || intent.timeframe === 'current_phase') {
     stableCandidates.push({ themeId: 'general-insight', spreadId: 'past-present-future' })
   }
   if (intent.questionType === 'meeting_likelihood') {
     stableCandidates.push({ themeId: 'decisions-crossroads', spreadId: 'yes-no-why' })
   }
-  if (intent.subject === 'external_situation' && /(직장|이직|옮기|퇴사|job change|quit)/i.test(question)) {
+  if (
+    intent.subject === 'external_situation' &&
+    /(직장|이직|옮기|퇴사|job change|quit)/i.test(question)
+  ) {
     stableCandidates.push({ themeId: 'career-work', spreadId: 'job-change' })
   }
   if (intent.questionType === 'self_decision') {
@@ -853,8 +1042,18 @@ function chooseIntentStableSpread(
     stableCandidates.push({ themeId: 'decisions-crossroads', spreadId: 'two-paths' })
   }
 
-  if (intent.subject === 'external_situation' && /(직장|이직|옮기|퇴사|job change|quit)/i.test(question)) {
+  if (
+    intent.subject === 'external_situation' &&
+    /(직장|이직|옮기|퇴사|job change|quit)/i.test(question)
+  ) {
     stableCandidates.push({ themeId: 'career-work', spreadId: 'job-change' })
+  }
+  if (
+    intent.subject === 'external_situation' &&
+    intent.questionType === 'near_term_outcome' &&
+    isMoneyQuestion(question)
+  ) {
+    stableCandidates.push({ themeId: 'money-finance', spreadId: 'financial-snapshot' })
   }
   if (
     intent.subject === 'external_situation' &&
@@ -903,7 +1102,9 @@ function resolveDeterministicSpread(
     }
   }
 
-  const candidates = Array.from(new Set([question, ...questionVariants].map((q) => q.trim()))).filter(Boolean)
+  const candidates = Array.from(
+    new Set([question, ...questionVariants].map((q) => q.trim()))
+  ).filter(Boolean)
   const ranked = candidates.flatMap((q) =>
     recommendSpreads(q, 3).map((rec) => ({
       ...rec,
@@ -1038,7 +1239,10 @@ function chooseResolvedIntent(
   if (heuristicIntent.questionType !== 'unknown' && llmIntent.questionType === 'unknown') {
     return heuristicIntent
   }
-  if (heuristicIntent.questionType === 'self_decision' && llmIntent.questionType === 'near_term_outcome') {
+  if (
+    heuristicIntent.questionType === 'self_decision' &&
+    llmIntent.questionType === 'near_term_outcome'
+  ) {
     return heuristicIntent
   }
   if (heuristicIntent.questionType === 'timing' && llmIntent.questionType === 'near_term_outcome') {
@@ -1061,7 +1265,29 @@ function chooseResolvedIntent(
   if (
     heuristicIntent.subject === 'relationship' &&
     heuristicIntent.questionType === 'near_term_outcome' &&
-    llmIntent.questionType === 'reconciliation'
+    (llmIntent.questionType === 'reconciliation' ||
+      llmIntent.questionType === 'other_person_response')
+  ) {
+    return heuristicIntent
+  }
+  if (
+    heuristicIntent.questionType === 'reconciliation' &&
+    (llmIntent.questionType === 'unknown' ||
+      llmIntent.questionType === 'near_term_outcome' ||
+      llmIntent.questionType === 'other_person_response')
+  ) {
+    return heuristicIntent
+  }
+  if (
+    heuristicIntent.questionType === 'other_person_response' &&
+    llmIntent.questionType === 'self_decision'
+  ) {
+    return heuristicIntent
+  }
+  if (
+    heuristicIntent.subject === 'relationship' &&
+    heuristicIntent.questionType === 'near_term_outcome' &&
+    llmIntent.questionType === 'self_decision'
   ) {
     return heuristicIntent
   }
@@ -1102,6 +1328,23 @@ function shouldPreferHeuristicSpread(
     heuristicSpread.themeId === 'decisions-crossroads' &&
     heuristicIntent.questionType === 'meeting_likelihood' &&
     llmSpread.themeId !== 'decisions-crossroads'
+  ) {
+    return true
+  }
+
+  if (
+    heuristicIntent.questionType === 'other_person_response' &&
+    heuristicSpread.id === 'crush-feelings' &&
+    llmSpread.themeId === 'decisions-crossroads'
+  ) {
+    return true
+  }
+
+  if (
+    heuristicIntent.subject === 'relationship' &&
+    heuristicIntent.questionType === 'near_term_outcome' &&
+    heuristicSpread.id === 'relationship-cross' &&
+    llmSpread.themeId === 'decisions-crossroads'
   ) {
     return true
   }
@@ -1339,7 +1582,10 @@ export async function analyzeTarotQuestionV2(input: {
   })
 
   const spreadList = spreadOptions
-    .map((spread) => `- ${spread.themeId}/${spread.id}: ${spread.titleKo || spread.title} (${spread.cardCount} cards)`)
+    .map(
+      (spread) =>
+        `- ${spread.themeId}/${spread.id}: ${spread.titleKo || spread.title} (${spread.cardCount} cards)`
+    )
     .join('\n')
 
   try {
@@ -1359,10 +1605,17 @@ export async function analyzeTarotQuestionV2(input: {
     )
 
     const parsed = JSON.parse(responseText) as LLMAnalysisPayload
-    const repairedLlmIntent = repairIntentAnalysis(questionVariants, heuristicIntent, parsed, language)
+    const repairedLlmIntent = repairIntentAnalysis(
+      questionVariants,
+      heuristicIntent,
+      parsed,
+      language
+    )
     const resolvedIntent = chooseResolvedIntent(heuristicIntent, repairedLlmIntent)
     const parsedPrimarySpread =
-      (parsed.themeId && parsed.spreadId && findSpread(parsed.themeId, parsed.spreadId, spreadOptions)) ||
+      (parsed.themeId &&
+        parsed.spreadId &&
+        findSpread(parsed.themeId, parsed.spreadId, spreadOptions)) ||
       defaultSpread
     const preferHeuristicSpread = shouldPreferHeuristicSpread(
       heuristicIntent,
@@ -1381,15 +1634,17 @@ export async function analyzeTarotQuestionV2(input: {
       language,
       intent: resolvedIntent,
       primarySpread,
-      reason: shouldUseHeuristicCopy ? heuristicSelection.reason : parsed.reason?.trim() || heuristicSelection.reason,
-      userFriendlyExplanation:
-        shouldUseHeuristicCopy
-          ? heuristicSelection.userFriendlyExplanation
-          : parsed.userFriendlyExplanation?.trim() || heuristicSelection.userFriendlyExplanation,
+      reason: shouldUseHeuristicCopy
+        ? heuristicSelection.reason
+        : parsed.reason?.trim() || heuristicSelection.reason,
+      userFriendlyExplanation: shouldUseHeuristicCopy
+        ? heuristicSelection.userFriendlyExplanation
+        : parsed.userFriendlyExplanation?.trim() || heuristicSelection.userFriendlyExplanation,
       directAnswer:
         shouldUseHeuristicCopy && heuristicIntent.questionType !== 'unknown'
           ? buildHeuristicDirectAnswer(resolvedIntent, questionVariants, language)
-          : parsed.directAnswer?.trim() || buildHeuristicDirectAnswer(resolvedIntent, questionVariants, language),
+          : parsed.directAnswer?.trim() ||
+            buildHeuristicDirectAnswer(resolvedIntent, questionVariants, language),
       source: 'llm',
       fallbackReason: null,
       recommended_spreads: buildRecommendedSpreads(
@@ -1398,7 +1653,9 @@ export async function analyzeTarotQuestionV2(input: {
         {
           themeId: primarySpread.themeId,
           spreadId: primarySpread.id,
-          reason: shouldUseHeuristicCopy ? heuristicSelection.reason : parsed.reason?.trim() || heuristicSelection.reason,
+          reason: shouldUseHeuristicCopy
+            ? heuristicSelection.reason
+            : parsed.reason?.trim() || heuristicSelection.reason,
         },
         spreadOptions
       ),
@@ -1406,7 +1663,11 @@ export async function analyzeTarotQuestionV2(input: {
   } catch (error) {
     const fallbackReason = classifyOpenAIFailure(error)
 
-    if (fallbackReason === 'auth_failed' || fallbackReason === 'parse_failed' || fallbackReason === 'server_error') {
+    if (
+      fallbackReason === 'auth_failed' ||
+      fallbackReason === 'parse_failed' ||
+      fallbackReason === 'server_error'
+    ) {
       return heuristicResult
     }
 

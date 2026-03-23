@@ -2,6 +2,17 @@ export type HumanSemanticsLang = 'ko' | 'en'
 
 export type HumanTimingWindow = 'now' | '1-3m' | '3-6m' | '6-12m' | '12m+'
 
+function describeProbeWindowBucket(probeDay: number, lang: HumanSemanticsLang): string {
+  if (lang === 'ko') {
+    if (probeDay <= 8) return '월초'
+    if (probeDay <= 22) return '월중'
+    return '월후반'
+  }
+  if (probeDay <= 8) return 'the early-month window'
+  if (probeDay <= 22) return 'the mid-month window'
+  return 'the late-month window'
+}
+
 export function describeWhyStack(input: {
   lang?: HumanSemanticsLang
   focusDomainLabel?: string
@@ -20,7 +31,11 @@ export function describeWhyStack(input: {
   } = input
 
   const normalized = [sajuReason, astroReason, crossReason, graphReason]
-    .map((item) => String(item || '').replace(/\s+/g, ' ').trim())
+    .map((item) =>
+      String(item || '')
+        .replace(/\s+/g, ' ')
+        .trim()
+    )
     .filter(Boolean)
 
   if (normalized.length === 0) return []
@@ -283,7 +298,7 @@ export function describeProvenanceSummary(input: {
   if (setCount > 0) {
     return `This judgment is grounded in ${setCount} cross-evidence bundles.`
   }
-      return `This judgment is grounded in ${ruleCount} rule checks.`
+  return `This judgment is grounded in ${ruleCount} rule checks.`
 }
 
 function describeGraphEvidenceWhyDetailed(input: {
@@ -435,7 +450,9 @@ function withTopicParticle(label: string): string {
 }
 
 function cleanTimingDetail(value: string | null | undefined, lang: HumanSemanticsLang): string {
-  const text = String(value || '').replace(/\s+/g, ' ').trim()
+  const text = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
   if (!text) return ''
 
   const normalized = text
@@ -459,7 +476,10 @@ function cleanTimingDetail(value: string | null | undefined, lang: HumanSemantic
     .replace(/pattern evidence/gi, lang === 'ko' ? '핵심 조건' : 'core conditions')
     .replace(/핵심 흐름 패턴/gi, '핵심 흐름')
     .replace(/핵심 흐름 근거가 유지될 것/gi, '기준이 흔들리지 않을 때')
-    .replace(/시나리오 확률이\s*\d+(?:\.\d+)?%\s*흐려지면 속도를 줄일 것/gi, '핵심 조건이 흔들리면 서두르지 않을 것')
+    .replace(
+      /시나리오 확률이\s*\d+(?:\.\d+)?%\s*흐려지면 속도를 줄일 것/gi,
+      '핵심 조건이 흔들리면 서두르지 않을 것'
+    )
     .replace(/\(\d+(?:\.\d+)?%\)/g, '')
     .replace(/\s{2,}/g, ' ')
     .trim()
@@ -493,7 +513,10 @@ function formatTimingCondition(
   mode: 'entry' | 'abort',
   lang: HumanSemanticsLang
 ): string {
-  const text = String(value || '').replace(/\s+/g, ' ').trim().replace(/[.。]+$/g, '')
+  const text = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[.。]+$/g, '')
   if (!text) return ''
 
   if (lang === 'ko') {
@@ -504,7 +527,10 @@ function formatTimingCondition(
       .replace(/기준이 흔들리지 않을 때/gu, '기준이 흔들리지 않을 때')
       .replace(/핵심 조건이 흔들리면 서두르지 않을 것/gu, '핵심 조건이 흔들리면 서두르지 않기')
       .replace(/흐름이 꺾이면 속도를 줄일 것/gu, '흐름이 꺾이면 속도를 줄이기')
-      .replace(/역할과 기준이 애매하게 남아 있으면\s*중단 조짐이 보이면/gu, '역할과 기준이 애매하게 남아 있으면')
+      .replace(
+        /역할과 기준이 애매하게 남아 있으면\s*중단 조짐이 보이면/gu,
+        '역할과 기준이 애매하게 남아 있으면'
+      )
       .replace(/중단 조짐이 보이면/gu, '')
       .replace(/있으면 중단$/gu, '있으면')
       .replace(/중단$/gu, '')
@@ -550,10 +576,7 @@ function joinNaturalList(items: string[], lang: HumanSemanticsLang): string {
   return `${cleaned.slice(0, -1).join(', ')}, and ${cleaned[cleaned.length - 1]}`
 }
 
-function describeDomainTimingAngle(
-  domainLabel: string,
-  lang: HumanSemanticsLang
-): string {
+function describeDomainTimingAngle(domainLabel: string, lang: HumanSemanticsLang): string {
   if (!domainLabel) return ''
 
   if (lang === 'ko') {
@@ -679,13 +702,17 @@ export function describeEvidenceConfidence(
   const score = Math.max(0, Math.min(100, Math.round(confidence ?? 0)))
 
   if (lang === 'ko') {
-    if (score >= 70) return '근거가 비교적 또렷해서 방향을 잡고 실행 우선순위를 정하기가 수월한 편입니다.'
-    if (score >= 40) return '한쪽으로 단정할 정도는 아니지만, 확인을 곁들이면 충분히 참고할 수 있는 수준입니다.'
+    if (score >= 70)
+      return '근거가 비교적 또렷해서 방향을 잡고 실행 우선순위를 정하기가 수월한 편입니다.'
+    if (score >= 40)
+      return '한쪽으로 단정할 정도는 아니지만, 확인을 곁들이면 충분히 참고할 수 있는 수준입니다.'
     return '근거가 서로 엇갈려서 확신을 크게 싣기보다는 보수적으로 읽는 편이 안전합니다.'
   }
 
-  if (score >= 70) return 'The evidence is clear enough to guide both direction and execution order.'
-  if (score >= 40) return 'The evidence is usable, but it works best when paired with one extra round of checking.'
+  if (score >= 70)
+    return 'The evidence is clear enough to guide both direction and execution order.'
+  if (score >= 40)
+    return 'The evidence is usable, but it works best when paired with one extra round of checking.'
   return 'The evidence is mixed enough that a conservative interpretation is safer than a confident push.'
 }
 
@@ -697,13 +724,17 @@ export function describeCrossAgreement(
   const score = Math.max(0, Math.min(100, Math.round(Number(agreement))))
 
   if (lang === 'ko') {
-    if (score >= 70) return '여러 근거가 거의 같은 방향을 가리켜서, 큰 흐름을 믿고 움직여도 되는 편입니다.'
-    if (score >= 45) return '좋아 보이는 부분도 있지만 바로 확정하기엔 걸리는 포인트가 함께 보여서 한 번 더 확인하는 편이 좋습니다.'
+    if (score >= 70)
+      return '여러 근거가 거의 같은 방향을 가리켜서, 큰 흐름을 믿고 움직여도 되는 편입니다.'
+    if (score >= 45)
+      return '좋아 보이는 부분도 있지만 바로 확정하기엔 걸리는 포인트가 함께 보여서 한 번 더 확인하는 편이 좋습니다.'
     return '근거들이 서로 다른 얘기를 하고 있어, 서두르는 쪽보다 속도를 늦추는 쪽이 안전합니다.'
   }
 
-  if (score >= 70) return 'The evidence sources are mostly aligned, so the broader direction is fairly trustworthy.'
-  if (score >= 45) return 'There is visible upside, but enough friction remains that one more check is worth it.'
+  if (score >= 70)
+    return 'The evidence sources are mostly aligned, so the broader direction is fairly trustworthy.'
+  if (score >= 45)
+    return 'There is visible upside, but enough friction remains that one more check is worth it.'
   return 'The evidence is pulling in different directions, so slower execution is the safer call.'
 }
 
@@ -1026,28 +1057,38 @@ function describeSajuAstroConflictByDomainDetailed(input: {
     }
   } else {
     if (focusKey === 'love') {
-      if (score >= 70) return `Saju and astrology align enough that ${focusDomainLabel || 'relationships'} can move once conversation order and confirmation style are clear.`
-      if (score >= 45) return `Saju and astrology point in a similar broad direction, but they still differ on pacing and distance, so ${focusDomainLabel || 'relationships'} need one more round of calibration.`
+      if (score >= 70)
+        return `Saju and astrology align enough that ${focusDomainLabel || 'relationships'} can move once conversation order and confirmation style are clear.`
+      if (score >= 45)
+        return `Saju and astrology point in a similar broad direction, but they still differ on pacing and distance, so ${focusDomainLabel || 'relationships'} need one more round of calibration.`
       return `Saju and astrology are warning in different ways, so ${focusDomainLabel || 'relationships'} should reset conversation order, commitment level, and boundaries before pushing ahead.`
     }
     if (focusKey === 'career') {
-      if (score >= 70) return `Saju and astrology align enough that ${focusDomainLabel || 'career matters'} can move faster once role, scope, and deadlines are explicit.`
-      if (score >= 45) return `Saju and astrology broadly agree, but they still diverge on timing and responsibility splits, so ${focusDomainLabel || 'career matters'} need tighter scope before commitment.`
+      if (score >= 70)
+        return `Saju and astrology align enough that ${focusDomainLabel || 'career matters'} can move faster once role, scope, and deadlines are explicit.`
+      if (score >= 45)
+        return `Saju and astrology broadly agree, but they still diverge on timing and responsibility splits, so ${focusDomainLabel || 'career matters'} need tighter scope before commitment.`
       return `Saju and astrology are warning in different ways, so ${focusDomainLabel || 'career matters'} should resolve role, ownership, and deadline conflicts before expanding.`
     }
     if (focusKey === 'money') {
-      if (score >= 70) return `Saju and astrology align enough that ${focusDomainLabel || 'financial decisions'} can move once amount, timing, and downside are clearly bounded.`
-      if (score >= 45) return `Saju and astrology broadly agree, but they diverge on cash-flow timing and risk pace, so ${focusDomainLabel || 'financial decisions'} need stricter limits first.`
+      if (score >= 70)
+        return `Saju and astrology align enough that ${focusDomainLabel || 'financial decisions'} can move once amount, timing, and downside are clearly bounded.`
+      if (score >= 45)
+        return `Saju and astrology broadly agree, but they diverge on cash-flow timing and risk pace, so ${focusDomainLabel || 'financial decisions'} need stricter limits first.`
       return `Saju and astrology are warning in different ways, so ${focusDomainLabel || 'financial decisions'} should recheck amount, timing, and downside before acting.`
     }
     if (focusKey === 'health') {
-      if (score >= 70) return `Saju and astrology align enough that ${focusDomainLabel || 'health matters'} can improve once recovery rhythm and routine are protected.`
-      if (score >= 45) return `Saju and astrology broadly agree, but they still differ on overload timing and recovery pace, so ${focusDomainLabel || 'health matters'} need gentler pacing first.`
+      if (score >= 70)
+        return `Saju and astrology align enough that ${focusDomainLabel || 'health matters'} can improve once recovery rhythm and routine are protected.`
+      if (score >= 45)
+        return `Saju and astrology broadly agree, but they still differ on overload timing and recovery pace, so ${focusDomainLabel || 'health matters'} need gentler pacing first.`
       return `Saju and astrology are warning in different ways, so ${focusDomainLabel || 'health matters'} should reset overload control and recovery rhythm before pushing harder.`
     }
     if (focusKey === 'move') {
-      if (score >= 70) return `Saju and astrology align enough that ${focusDomainLabel || 'movement decisions'} can move once sequence and buffer time are secured.`
-      if (score >= 45) return `Saju and astrology broadly agree, but they still differ on route timing and transition pace, so ${focusDomainLabel || 'movement decisions'} need more staging first.`
+      if (score >= 70)
+        return `Saju and astrology align enough that ${focusDomainLabel || 'movement decisions'} can move once sequence and buffer time are secured.`
+      if (score >= 45)
+        return `Saju and astrology broadly agree, but they still differ on route timing and transition pace, so ${focusDomainLabel || 'movement decisions'} need more staging first.`
       return `Saju and astrology are warning in different ways, so ${focusDomainLabel || 'movement decisions'} should reset sequencing, buffer time, and fallback planning before committing.`
     }
   }
@@ -1265,4 +1306,97 @@ export function describeTimingWindowNarrative(input: {
     timingConflictNarrative,
     lang,
   }).join(' ')
+}
+
+export function describeTimingCalibrationSummary(input: {
+  reliabilityBand?: 'low' | 'medium' | 'high' | null
+  reliabilityScore?: number | null
+  pastStability?: number | null
+  futureStability?: number | null
+  backtestConsistency?: number | null
+  lang?: HumanSemanticsLang
+}): string {
+  const {
+    reliabilityBand,
+    reliabilityScore,
+    pastStability,
+    futureStability,
+    backtestConsistency,
+    lang = 'ko',
+  } = input
+
+  if (!reliabilityBand) return ''
+
+  const score =
+    typeof reliabilityScore === 'number' && Number.isFinite(reliabilityScore)
+      ? Math.round(Math.max(0, Math.min(1, reliabilityScore)) * 100)
+      : null
+  const past =
+    typeof pastStability === 'number' && Number.isFinite(pastStability)
+      ? Math.round(Math.max(0, Math.min(1, pastStability)) * 100)
+      : null
+  const future =
+    typeof futureStability === 'number' && Number.isFinite(futureStability)
+      ? Math.round(Math.max(0, Math.min(1, futureStability)) * 100)
+      : null
+  const consistency =
+    typeof backtestConsistency === 'number' && Number.isFinite(backtestConsistency)
+      ? Math.round(Math.max(0, Math.min(1, backtestConsistency)) * 100)
+      : null
+
+  if (lang === 'ko') {
+    if (reliabilityBand === 'high') {
+      return `과거·미래 월별 재계산과 월중 강한 창 비교 기준으로 타이밍 신뢰도는 높은 편입니다${
+        score !== null ? ` (${score}%)` : ''
+      }.`
+    }
+    if (reliabilityBand === 'medium') {
+      return `과거·미래 월별 재계산과 월중 강한 창 비교 기준으로 타이밍 신뢰도는 중간 수준입니다${
+        past !== null || future !== null || consistency !== null
+          ? ` (과거 안정성 ${past ?? '-'}%, 미래 안정성 ${future ?? '-'}%, 일관성 ${consistency ?? '-'}%)`
+          : ''
+      }.`
+    }
+    return `과거·미래 월별 재계산과 월중 강한 창 비교 기준으로 타이밍 신뢰도는 낮은 편이므로, 월 전체 평균보다 월중 강한 구간 해석에 무게를 두는 편이 맞습니다.`
+  }
+
+  if (reliabilityBand === 'high') {
+    return `Month-by-month backtesting, anchored to the stronger intra-month window, puts timing reliability in the high band${
+      score !== null ? ` (${score}%)` : ''
+    }.`
+  }
+  if (reliabilityBand === 'medium') {
+    return `Month-by-month backtesting, anchored to the stronger intra-month window, puts timing reliability in the medium band${
+      past !== null || future !== null || consistency !== null
+        ? ` (past stability ${past ?? '-'}%, future stability ${future ?? '-'}%, consistency ${consistency ?? '-'}%)`
+        : ''
+    }.`
+  }
+  return 'Month-by-month backtesting, anchored to the stronger intra-month window, puts timing reliability in the low band, so this should be read as a window rather than a precise date call.'
+}
+
+export function describeIntraMonthPeakWindow(input: {
+  domainLabel?: string
+  points?: Array<{ probeDay?: number; peakLevel?: 'peak' | 'high' | 'normal' }> | null
+  lang?: HumanSemanticsLang
+}): string {
+  const { domainLabel = '', points = [], lang = 'ko' } = input
+  const point = (points || [])[0]
+  if (!point?.probeDay) return ''
+
+  const bucket = describeProbeWindowBucket(point.probeDay, lang)
+
+  if (lang === 'ko') {
+    const prefix = domainLabel ? `${withTopicParticle(domainLabel)} ` : ''
+    if (point.peakLevel === 'peak') {
+      return `${prefix}월 전체 평균보다 ${bucket} 창이 특히 강하게 잡힙니다.`
+    }
+    return `${prefix}월 전체 평균보다 ${bucket} 창을 더 눈여겨보는 편이 맞습니다.`
+  }
+
+  const prefix = domainLabel ? `For ${domainLabel}, ` : ''
+  if (point.peakLevel === 'peak') {
+    return `${prefix}the timing runs stronger through ${bucket} than through a flat month average.`
+  }
+  return `${prefix}${bucket} matters more than a flat month average here.`
 }

@@ -36,6 +36,14 @@ import {
 import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT, BRANCH_TO_ELEMENT_EN } from '@/lib/Saju/constants'
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
 import { buildAstroTimingIndex } from '@/lib/destiny-matrix/astroTimingIndex'
+import { buildPreciseTimelineSummary } from '@/lib/destiny-matrix/monthlyTimelinePrecise'
+import {
+  buildApproximateIljinTiming,
+  calculateAgeAtDate,
+  inferLifecycleTransitCycles,
+  inferRetrogradeTransitCycles,
+  toDatePartsInTimeZone,
+} from '@/lib/destiny-matrix/timingRuntime'
 import {
   buildCompleteAdvancedAstroSignals,
   buildServiceInputCrossAudit,
@@ -45,7 +53,6 @@ import {
 import type { FiveElement } from '@/lib/Saju/types'
 import type { MatrixCalculationInput, PlanetName } from '@/lib/destiny-matrix/types'
 import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
-import { getRetrogradePlanetsForDate } from '@/lib/destiny-map/calendar/astrology/retrograde'
 import {
   buildNormalizedMatrixInput,
   runDestinyCore,
@@ -177,21 +184,6 @@ const SHINSAL_KIND_ALIASES: Record<
   홍염: '홍염살',
 }
 
-const TRANSIT_CYCLE_SET = new Set<NonNullable<MatrixCalculationInput['activeTransits']>[number]>([
-  'saturnReturn',
-  'jupiterReturn',
-  'uranusSquare',
-  'neptuneSquare',
-  'plutoTransit',
-  'nodeReturn',
-  'eclipse',
-  'mercuryRetrograde',
-  'venusRetrograde',
-  'marsRetrograde',
-  'jupiterRetrograde',
-  'saturnRetrograde',
-])
-
 const CALENDAR_PACKET_THEME_BY_KEY: Record<
   string,
   'career' | 'love' | 'wealth' | 'health' | 'today'
@@ -255,128 +247,6 @@ function normalizeShinsalKind(
     return null
   }
   return aliased as NonNullable<MatrixCalculationInput['shinsalList']>[number]
-}
-
-function toDatePartsInTimeZone(
-  date: Date,
-  timeZone: string
-): { year: number; month: number; day: number } {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(date)
-
-  const getPart = (type: 'year' | 'month' | 'day') =>
-    Number(parts.find((part) => part.type === type)?.value ?? '0')
-
-  return {
-    year: getPart('year'),
-    month: getPart('month'),
-    day: getPart('day'),
-  }
-}
-
-function calculateAgeAtDate(birthDate: string, targetDate: Date, timeZone: string): number {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(birthDate.trim())
-  if (!match) return 0
-  const birthYear = Number(match[1])
-  const birthMonth = Number(match[2])
-  const birthDay = Number(match[3])
-  const { year, month, day } = toDatePartsInTimeZone(targetDate, timeZone)
-
-  let age = year - birthYear
-  if (month < birthMonth || (month === birthMonth && day < birthDay)) age -= 1
-  return Math.max(0, age)
-}
-
-function buildApproximateIljinTiming(
-  targetDate: Date,
-  timeZone: string
-): { element?: MatrixCalculationInput['currentIljinElement']; date: string } {
-  const { year, month, day } = toDatePartsInTimeZone(targetDate, timeZone)
-  const baseDate = new Date(1900, 0, 1)
-  const target = new Date(year, month - 1, day)
-  const dayDiff = Math.floor((target.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24))
-  const stemElements: MatrixCalculationInput['pillarElements'] = [
-    '목',
-    '목',
-    '화',
-    '화',
-    '토',
-    '토',
-    '금',
-    '금',
-    '수',
-    '수',
-  ]
-  const stemIdx = (((dayDiff + 10) % 10) + 10) % 10
-
-  return {
-    element: stemElements[stemIdx],
-    date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-  }
-}
-
-function inferLifecycleTransitCyclesForCalendar(
-  age: number
-): NonNullable<MatrixCalculationInput['activeTransits']> {
-  const out = new Set<NonNullable<MatrixCalculationInput['activeTransits']>[number]>()
-  const withinOneYear = (value: number, target: number) => Math.abs(value - target) <= 1
-
-  for (let trigger = 12; trigger <= 96; trigger += 12) {
-    if (withinOneYear(age, trigger)) {
-      out.add('jupiterReturn')
-      break
-    }
-  }
-  for (const trigger of [29, 58, 87]) {
-    if (withinOneYear(age, trigger)) {
-      out.add('saturnReturn')
-      break
-    }
-  }
-  for (const trigger of [21, 42, 63]) {
-    if (withinOneYear(age, trigger)) {
-      out.add('uranusSquare')
-      break
-    }
-  }
-  for (const trigger of [41, 82]) {
-    if (withinOneYear(age, trigger)) {
-      out.add('neptuneSquare')
-      break
-    }
-  }
-  for (const trigger of [18, 37, 56, 74]) {
-    if (withinOneYear(age, trigger)) {
-      out.add('nodeReturn')
-      break
-    }
-  }
-  if (age >= 36 && age <= 44) out.add('plutoTransit')
-  return [...out]
-}
-
-function inferRetrogradeTransitCyclesForCalendar(
-  targetDate: Date
-): NonNullable<MatrixCalculationInput['activeTransits']> {
-  const retrogrades = getRetrogradePlanetsForDate(targetDate)
-  const map: Record<string, NonNullable<MatrixCalculationInput['activeTransits']>[number]> = {
-    mercury: 'mercuryRetrograde',
-    venus: 'venusRetrograde',
-    mars: 'marsRetrograde',
-    jupiter: 'jupiterRetrograde',
-    saturn: 'saturnRetrograde',
-  }
-
-  const out = new Set<NonNullable<MatrixCalculationInput['activeTransits']>[number]>()
-  for (const planet of retrogrades) {
-    const cycle = map[planet]
-    if (cycle && TRANSIT_CYCLE_SET.has(cycle)) out.add(cycle)
-  }
-  return [...out]
 }
 
 function toTwelveStageCounts(
@@ -646,15 +516,13 @@ export const GET = withApiMiddleware(
     let matrixInputCoverage: Record<string, unknown> | null = null
     let matrixEvidencePackets: Record<string, CounselorEvidencePacket> | null = null
     let calendarCoreCanonical: ReturnType<typeof adaptCoreToCalendar> | null = null
-    let calendarCoreDataQuality:
-      | {
-          missingFields: string[]
-          derivedFields: string[]
-          conflictingFields: string[]
-          qualityPenalties: string[]
-          confidenceReason: string
-        }
-      | null = null
+    let calendarCoreDataQuality: {
+      missingFields: string[]
+      derivedFields: string[]
+      conflictingFields: string[]
+      qualityPenalties: string[]
+      confidenceReason: string
+    } | null = null
     let topMatchedPatterns: Array<{
       id: string
       label: string
@@ -896,8 +764,8 @@ export const GET = withApiMiddleware(
       const age = calculateAgeAtDate(birthDateParam, now, timezone)
       const activeTransits = Array.from(
         new Set<NonNullable<MatrixCalculationInput['activeTransits']>[number]>([
-          ...inferLifecycleTransitCyclesForCalendar(age),
-          ...inferRetrogradeTransitCyclesForCalendar(now),
+          ...inferLifecycleTransitCycles(age),
+          ...inferRetrogradeTransitCycles(now),
         ])
       )
       const astroTimingIndex = buildAstroTimingIndex({
@@ -1043,6 +911,35 @@ export const GET = withApiMiddleware(
       const matrix = coreEnvelope.matrix
       const matrixReport = coreEnvelope.matrixReport
       const coreSeed = coreEnvelope.coreSeed
+      let matrixSummaryForCalendar =
+        matrix && typeof matrix === 'object' && 'summary' in matrix ? matrix.summary : undefined
+
+      if (matrixSummaryForCalendar) {
+        try {
+          const preciseTimelineSummary = await buildPreciseTimelineSummary(
+            normalizedMatrixInput,
+            matrixSummaryForCalendar,
+            (timelineInput) =>
+              calculateDestinyMatrix(timelineInput, { skipTimelineRecompute: true }).summary
+          )
+          matrixSummaryForCalendar = {
+            ...matrixSummaryForCalendar,
+            ...preciseTimelineSummary,
+          }
+          logger.info('[Calendar] Applied precise monthly timing summary', {
+            overlapTimelineCount: matrixSummaryForCalendar.overlapTimeline?.length || 0,
+            reliabilityBand: matrixSummaryForCalendar.timingCalibration?.reliabilityBand || null,
+          })
+        } catch (preciseTimingError) {
+          logger.warn('[Calendar] Precise monthly timing summary failed; using base summary', {
+            error:
+              preciseTimingError instanceof Error
+                ? preciseTimingError.message
+                : String(preciseTimingError),
+          })
+        }
+      }
+
       calendarCoreCanonical = adaptCoreToCalendar(coreSeed, locale === 'en' ? 'en' : 'ko')
       calendarCoreDataQuality = coreSeed.quality.dataQuality
       topMatchedPatterns = coreSeed.patterns.slice(0, 10).map((pattern) => ({
@@ -1111,16 +1008,17 @@ export const GET = withApiMiddleware(
         lang: locale === 'en' ? 'en' : 'ko',
         matrixInput: normalizedMatrixInput,
         matrixReport,
-        matrixSummary: matrix.summary,
+        matrixSummary: matrixSummaryForCalendar || matrix.summary,
         coreSeed,
         birthDate: birthDateParam,
       })
 
       matrixCalendarContext = {
-        calendarSignals: matrix.summary.calendarSignals || [],
-        overlapTimeline: matrix.summary.overlapTimeline || [],
-        overlapTimelineByDomain: matrix.summary.overlapTimelineByDomain || undefined,
-        domainScores: matrix.summary.domainScores || undefined,
+        calendarSignals: matrixSummaryForCalendar?.calendarSignals || [],
+        overlapTimeline: matrixSummaryForCalendar?.overlapTimeline || [],
+        overlapTimelineByDomain: matrixSummaryForCalendar?.overlapTimelineByDomain || undefined,
+        timingCalibration: matrixSummaryForCalendar?.timingCalibration || undefined,
+        domainScores: matrixSummaryForCalendar?.domainScores || undefined,
       }
     } catch (matrixError) {
       if (CALENDAR_STRICT_MATRIX) {
@@ -1229,8 +1127,12 @@ export const GET = withApiMiddleware(
       )
 
     const formattedDatesBase = matrixRegradedDates.map((d) => formatCalendarDate(d))
-    const auspiciousDateSet = new Set((aiDates?.auspicious || []).map((item) => item.date).filter(Boolean))
-    const cautionDateSet = new Set((aiDates?.caution || []).map((item) => item.date).filter(Boolean))
+    const auspiciousDateSet = new Set(
+      (aiDates?.auspicious || []).map((item) => item.date).filter(Boolean)
+    )
+    const cautionDateSet = new Set(
+      (aiDates?.caution || []).map((item) => item.date).filter(Boolean)
+    )
     const formattedDates = formattedDatesBase.map((item) => {
       const aiNotes: string[] = []
       if (auspiciousDateSet.has(item.date)) {
@@ -1326,9 +1228,13 @@ export const GET = withApiMiddleware(
       locale: locale === 'en' ? 'en' : 'ko',
       timeZone: timezone,
       canonicalCore: calendarCoreCanonical || undefined,
-      preferredFocusDomain: category ? presentationDomainMap[category as keyof typeof presentationDomainMap] : undefined,
+      preferredFocusDomain: category
+        ? presentationDomainMap[category as keyof typeof presentationDomainMap]
+        : undefined,
       matrixContract: calendarMatrixContract,
       dataQuality: calendarCoreDataQuality || undefined,
+      timingCalibration: matrixCalendarContext?.timingCalibration,
+      overlapTimelineByDomain: matrixCalendarContext?.overlapTimelineByDomain,
       domainScores: matrixCalendarContext?.domainScores,
     })
 

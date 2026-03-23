@@ -80,8 +80,8 @@
 }
 
 .heroContent .heroTitle {
-  max-width: 12.5ch;
-  font-size: clamp(2.5rem, 6vw, 4.85rem);
+  max-width: none;
+  font-size: clamp(2.2rem, 4.2vw, 4.2rem);
   font-weight: 900;
   margin: 0 0 1.15rem 0;
   background: linear-gradient(180deg, #ffffff 0%, #d7ebff 58%, #8ff2d5 100%);
@@ -93,6 +93,7 @@
   letter-spacing: -0.035em;
   text-align: center;
   text-wrap: balance;
+  white-space: nowrap;
   text-shadow: 0 10px 30px rgba(6, 12, 28, 0.42);
   filter: none;
   animation: none;
@@ -701,7 +702,6 @@
   display: flex;
   gap: 12px;
   align-items: center;
-  margin-left: auto;
 }
 
 .headerBell {
@@ -4006,6 +4006,7 @@
     text-shadow: none;
     filter: none;
     animation: none;
+    white-space: normal;
   }
 
   .heroContent .heroSub {

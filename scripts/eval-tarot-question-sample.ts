@@ -92,6 +92,29 @@ function parseArg(name: string, fallback: string): string {
   return process.argv[index + 1] || fallback
 }
 
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+  const results = new Array<R>(items.length)
+  let cursor = 0
+
+  const workers = Array.from({ length: Math.max(1, concurrency) }, async () => {
+    while (true) {
+      const index = cursor
+      cursor += 1
+      if (index >= items.length) {
+        return
+      }
+      results[index] = await mapper(items[index], index)
+    }
+  })
+
+  await Promise.all(workers)
+  return results
+}
+
 function createSeededRandom(seed: number) {
   let state = seed >>> 0
   return () => {
@@ -128,29 +151,29 @@ async function main() {
 
   const count = Number.parseInt(parseArg('count', '50'), 10)
   const seed = Number.parseInt(parseArg('seed', '20260320'), 10)
+  const concurrency = Number.parseInt(parseArg('concurrency', '6'), 10)
   const questions = pickQuestions(count, seed)
 
-  const results: EvalRow[] = []
-  for (const question of questions) {
+  const results = await mapWithConcurrency(questions, concurrency, async (question) => {
     const analyzed = await analyzeTarotQuestionV2({ question, language: 'ko' })
-    results.push({
+    return {
       question,
       source: analyzed.source || 'unknown',
       intent: analyzed.intent || 'unknown',
       themeId: analyzed.themeId,
       spreadId: analyzed.spreadId,
       intentLabel: analyzed.intent_label,
-    })
-  }
+    }
+  })
 
-  const unknownRows = results.filter((row) => row.intent === 'unknown')
-  const fallbackRows = results.filter((row) => row.source === 'fallback')
+  const unknownRows = results.filter((row: EvalRow) => row.intent === 'unknown')
+  const fallbackRows = results.filter((row: EvalRow) => row.source === 'fallback')
 
-  console.log(`sample_count=${results.length} seed=${seed}`)
-  console.log(`sources=${JSON.stringify(countBy(results.map((row) => row.source)))}`)
-  console.log(`intents=${JSON.stringify(countBy(results.map((row) => row.intent)))}`)
+  console.log(`sample_count=${results.length} seed=${seed} concurrency=${concurrency}`)
+  console.log(`sources=${JSON.stringify(countBy(results.map((row: EvalRow) => row.source)))}`)
+  console.log(`intents=${JSON.stringify(countBy(results.map((row: EvalRow) => row.intent)))}`)
   console.log(
-    `spreads=${JSON.stringify(countBy(results.map((row) => `${row.themeId}/${row.spreadId}`)).slice(0, 10))}`
+    `spreads=${JSON.stringify(countBy(results.map((row: EvalRow) => `${row.themeId}/${row.spreadId}`)).slice(0, 10))}`
   )
   console.log(`unknown_count=${unknownRows.length}`)
   console.log(`fallback_count=${fallbackRows.length}`)

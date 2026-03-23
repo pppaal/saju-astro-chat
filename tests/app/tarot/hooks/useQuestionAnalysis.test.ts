@@ -38,7 +38,7 @@ describe('useQuestionAnalysis', () => {
     vi.clearAllMocks()
   })
 
-  it('records auth_failed fallback reason when analyze endpoint returns 401', async () => {
+  it('keeps a usable heuristic analysis when analyze endpoint returns 401', async () => {
     mockApiFetch.mockResolvedValue({
       ok: false,
       status: 401,
@@ -59,11 +59,12 @@ describe('useQuestionAnalysis', () => {
     })
 
     await waitFor(() => {
-      expect(result.current.fallbackReason).toBe('auth_failed')
+      expect(result.current.fallbackReason).toBeNull()
+      expect(result.current.analysisResult?.source).toBe('heuristic')
     })
   })
 
-  it('uses server fallback reason when response is 200 with source=fallback', async () => {
+  it('normalizes server fallback responses into heuristic analysis', async () => {
     mockApiFetch.mockResolvedValue({
       ok: true,
       status: 200,
@@ -95,7 +96,8 @@ describe('useQuestionAnalysis', () => {
     })
 
     await waitFor(() => {
-      expect(result.current.fallbackReason).toBe('parse_failed')
+      expect(result.current.fallbackReason).toBeNull()
+      expect(result.current.analysisResult?.source).toBe('heuristic')
     })
   })
 
@@ -135,7 +137,7 @@ describe('useQuestionAnalysis', () => {
     })
   })
 
-  it('builds a quick fallback analysis on start-reading analyze failure (401)', async () => {
+  it('builds a heuristic analysis on start-reading analyze failure (401)', async () => {
     const question = '질문'
 
     mockApiFetch.mockResolvedValue({
@@ -159,6 +161,7 @@ describe('useQuestionAnalysis', () => {
     expect(result.current.analysisResult?.path).toBe(
       `/tarot/general-insight/quick-reading?question=${encodeURIComponent(question)}`
     )
-    expect(result.current.fallbackReason).toBe('auth_failed')
+    expect(result.current.analysisResult?.source).toBe('heuristic')
+    expect(result.current.fallbackReason).toBeNull()
   })
 })

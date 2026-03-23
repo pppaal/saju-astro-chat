@@ -239,6 +239,7 @@ describe('destiny core engine contracts', () => {
     expect(core.canonical.gradeLabel.length).toBeGreaterThan(0)
     expect(core.canonical.gradeReason.length).toBeGreaterThan(0)
     expect(core.canonical.focusDomain).toBeTruthy()
+    expect(core.canonical.actionFocusDomain).toBeTruthy()
     expect(core.canonical.thesis.length).toBeGreaterThan(0)
     expect(core.canonical.riskControl.length).toBeGreaterThan(0)
     expect(core.canonical.primaryAction.length).toBeGreaterThan(0)
@@ -253,7 +254,9 @@ describe('destiny core engine contracts', () => {
     expect(core.canonical.judgmentPolicy.allowedActions.length).toBeGreaterThan(0)
     expect(core.canonical.domainVerdicts.length).toBeGreaterThan(0)
     expect(core.canonical.domainVerdicts[0]?.leadPatternFamily).toBeTruthy()
-    const healthVerdict = core.canonical.domainVerdicts.find((verdict) => verdict.domain === 'health')
+    const healthVerdict = core.canonical.domainVerdicts.find(
+      (verdict) => verdict.domain === 'health'
+    )
     if (healthVerdict) {
       expect(healthVerdict.mode).toBe('prepare')
       expect(healthVerdict.allowedActions).not.toContain('commit_now')
@@ -283,6 +286,13 @@ describe('destiny core engine contracts', () => {
     expect(core.canonical.domainTimingWindows[0]?.whyNow.length).toBeGreaterThan(0)
     expect(core.canonical.domainTimingWindows[0]?.entryConditions.length).toBeGreaterThan(0)
     expect(core.canonical.domainTimingWindows[0]?.abortConditions.length).toBeGreaterThan(0)
+    expect(core.canonical.arbitrationLedger.focusWinner.domain).toBe(core.canonical.focusDomain)
+    expect(core.canonical.arbitrationLedger.focusWinner.reason.length).toBeGreaterThan(0)
+    expect(core.canonical.arbitrationLedger.actionWinner.domain).toBe(
+      core.canonical.actionFocusDomain
+    )
+    expect(core.canonical.arbitrationLedger.actionWinner.reason.length).toBeGreaterThan(0)
+    expect(Array.isArray(core.canonical.arbitrationLedger.conflictReasons)).toBe(true)
     expect(core.canonical.manifestations.length).toBeGreaterThan(0)
     expect(core.canonical.manifestations[0]?.baselineThesis.length).toBeGreaterThan(0)
     expect(core.canonical.manifestations[0]?.activationThesis.length).toBeGreaterThan(0)
@@ -383,14 +393,19 @@ describe('destiny core engine contracts', () => {
     expect(counselorPacket.topTimingWindow?.domain).toBe(core.canonical.focusDomain)
     const reportNarrative = Object.values(report.sections).join('\n')
     expect(report.sections.introduction.length).toBeGreaterThan(0)
-    expect(reportNarrative.includes(core.canonical.primaryAction) || reportNarrative.includes(core.canonical.riskControl)).toBe(true)
+    expect(
+      reportNarrative.includes(core.canonical.primaryAction) ||
+        reportNarrative.includes(core.canonical.riskControl)
+    ).toBe(true)
     expect(
       report.sections.actionPlan.includes(core.canonical.topDecisionLabel || '') ||
         report.sections.actionPlan.includes(core.canonical.primaryAction) ||
         report.sections.actionPlan.includes(core.canonical.riskControl)
     ).toBe(true)
     expect(report.sections.actionPlan.length).toBeGreaterThan(0)
-    expect(report.sections.actionPlan).not.toMatch(/dayMasterElement|sibsinDistribution|rule checks/i)
+    expect(report.sections.actionPlan).not.toMatch(
+      /dayMasterElement|sibsinDistribution|rule checks/i
+    )
   })
 
   it('keeps adapter contracts aligned to the same canonical source', () => {

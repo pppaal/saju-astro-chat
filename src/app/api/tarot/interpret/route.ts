@@ -113,9 +113,7 @@ function contextForPrompt(
   }
 }
 
-function normalizeQuestionContext(
-  value: unknown
-): TarotQuestionAnalysisSnapshot | undefined {
+function normalizeQuestionContext(value: unknown): TarotQuestionAnalysisSnapshot | undefined {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return undefined
   }
@@ -309,14 +307,76 @@ function buildActionableGuidance(language: string, userQuestion: string | undefi
   ].join('\n')
 }
 
+function extractQuestionAnchorTerms(question: string): string[] {
+  return question
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter(
+      (token) =>
+        token.length >= 2 &&
+        ![
+          '지금',
+          '이번',
+          '오늘',
+          '내일',
+          '정말',
+          '그냥',
+          '어떻게',
+          '뭐',
+          '무슨',
+          '대한',
+          '기준',
+          'where',
+          'what',
+          'when',
+          'with',
+          'about',
+          'this',
+          'that',
+        ].includes(token)
+    )
+    .slice(0, 8)
+}
+
+function hasQuestionAnchor(overall: string, userQuestion: string | undefined): boolean {
+  const question = (userQuestion || '').trim()
+  if (!question) return true
+
+  const normalizedOverall = overall.toLowerCase().replace(/\s+/g, ' ').trim()
+  const normalizedQuestion = question.toLowerCase().replace(/\s+/g, ' ').trim()
+  if (normalizedOverall.includes(normalizedQuestion)) {
+    return true
+  }
+
+  const anchorTerms = extractQuestionAnchorTerms(question)
+  if (anchorTerms.length === 0) {
+    return true
+  }
+
+  return anchorTerms.some((term) => normalizedOverall.includes(term))
+}
+
+function isTooGenericOverall(overall: string, userQuestion: string | undefined): boolean {
+  const normalized = overall.toLowerCase().replace(/\s+/g, ' ').trim()
+  if (!normalized || normalized.length < 90) return true
+  if (!hasQuestionAnchor(normalized, userQuestion)) return true
+
+  return /(?:성급한 결정보다 우선순위 정리|작은 실행 단위를 먼저 만들고|stabilizing priorities and execution rhythm matters more)/i.test(
+    overall
+  )
+}
+
 function buildMinimumOverall(
   language: string,
   cards: CardInput[],
   userQuestion: string | undefined,
   currentOverall: string
 ): string {
-  if (currentOverall.trim().length >= 90) {
-    return currentOverall
+  const normalizedOverall = currentOverall.trim()
+  if (!isTooGenericOverall(normalizedOverall, userQuestion)) {
+    return normalizedOverall
   }
 
   const cardNames = cards
@@ -324,15 +384,80 @@ function buildMinimumOverall(
     .map((card) => (language === 'ko' ? card.nameKo || card.name : card.name))
     .join(', ')
 
+  const question = (userQuestion || '').trim()
+  const focusSummary = summarizeQuestionFocus(language, question)
+
   if (language === 'ko') {
-    const q = (userQuestion || '').trim()
-    const qLine = q ? `질문 "${q}" 기준으로 보면, ` : ''
-    return `${qLine}${cardNames} 카드 조합은 지금은 성급한 결정보다 우선순위 정리와 실행 리듬 회복이 핵심이라는 신호예요. 감정 반응으로 바로 움직이기보다, 작은 실행 단위를 먼저 만들고 결과를 확인하면서 조정하면 흐름이 안정됩니다. 결론: 오늘 바로 실행 가능한 1개 행동부터 시작하세요.`
+    const qLine = question ? `질문 "${question}" 기준으로 보면, ` : ''
+    return `${qLine}${cardNames} 카드 조합은 ${focusSummary} 감정 반응으로 바로 결론내리기보다, 지금은 확인 가능한 신호와 실행 조건을 먼저 분리해야 흐름을 정확하게 읽을 수 있습니다. 결론: 오늘 바로 검증 가능한 행동 1개를 정하고, 이번 주 안에 결과 변화를 기록하세요.`
   }
 
-  const q = (userQuestion || '').trim()
-  const qLine = q ? `For your question "${q}", ` : ''
-  return `${qLine}the combination of ${cardNames} suggests that stabilizing priorities and execution rhythm matters more than reacting fast. Start with one small concrete action, observe the outcome, and iterate from evidence. Conclusion: begin with one action you can complete today.`
+  const qLine = question ? `For your question "${question}", ` : ''
+  return `${qLine}the combination of ${cardNames} suggests that ${focusSummary} Instead of forcing a quick conclusion, separate observable signals from assumptions and test one concrete condition first. Conclusion: choose one action you can verify today and review the outcome within this week.`
+}
+
+function summarizeQuestionFocus(language: string, userQuestion: string): string {
+  const normalized = userQuestion.toLowerCase().replace(/\s+/g, ' ').trim()
+
+  if (language === 'ko') {
+    if (/(연락|답장|만날|찾아오|올까|올지|반응)/.test(normalized)) {
+      return '상대의 연락이나 반응 가능성은 기대감보다 실제 움직임의 패턴을 보는 쪽이 맞다는 신호예요.'
+    }
+    if (/(재회|헤어|돌아오|전 연인|헤어진)/.test(normalized)) {
+      return '재회 가능성은 감정의 크기보다 관계가 다시 움직일 현실 조건이 있는지부터 봐야 한다는 뜻에 가깝습니다.'
+    }
+    if (/(속마음|마음|감정|좋아하|미련|식은)/.test(normalized)) {
+      return '상대의 마음은 말보다 거리감, 반복 반응, 숨기는 패턴을 읽어야 드러난다는 흐름으로 보입니다.'
+    }
+    if (/(언제|타이밍|시기)/.test(normalized)) {
+      return '지금은 날짜를 바로 찍기보다, 시점이 열리는 조건이 먼저 정리돼야 한다는 의미가 강합니다.'
+    }
+    if (/(맞아|맞냐|할까|해야|될까|계속해도|그만둬|사인해도|믿어도)/.test(normalized)) {
+      return '이 질문은 단순 찬반보다 지금 선택을 밀어도 되는 조건과 멈춰야 하는 기준을 함께 보라는 신호예요.'
+    }
+    if (/(면접|이직|취업|회사|직장|프로젝트|회의|시험|합격)/.test(normalized)) {
+      return '외부 결과는 운보다 준비도와 상대 평가 기준이 어떻게 맞물리는지가 핵심이라는 뜻으로 읽힙니다.'
+    }
+    if (/(돈|재정|매출|투자|계약|거래|사업)/.test(normalized)) {
+      return '금전과 거래 흐름은 감으로 밀기보다 수치, 조건, 리스크를 나눠 봐야 한다는 경고에 가깝습니다.'
+    }
+    if (/(건강|컨디션|몸)/.test(normalized)) {
+      return '건강 흐름은 단기 불안보다 생활 리듬과 무리 신호를 먼저 조정해야 한다는 쪽에 가깝습니다.'
+    }
+    if (/(관계|연애|결혼|썸|소개팅)/.test(normalized)) {
+      return '관계 흐름은 상대의 감정 하나보다 두 사람의 리듬과 기대 차이를 같이 봐야 한다는 의미예요.'
+    }
+    return '지금은 성급한 결정보다 우선순위 정리와 실행 리듬 회복이 핵심이라는 신호예요.'
+  }
+
+  if (/(contact|reply|message|meet|show up|response)/.test(normalized)) {
+    return 'the key is to read real signals of movement rather than expectation around the other person’s response.'
+  }
+  if (/(reconcile|ex|come back|get back|breakup)/.test(normalized)) {
+    return 'reconciliation depends less on emotional intensity and more on whether real conditions for reconnection are reopening.'
+  }
+  if (/(feeling|feel|emotion|heart|interest)/.test(normalized)) {
+    return 'the emotional truth is more likely to appear through patterns, distance, and repeated reactions than through wishful thinking.'
+  }
+  if (/(when|timing|right time|best time)/.test(normalized)) {
+    return 'timing becomes clearer once the opening conditions are visible, not when a date is forced too early.'
+  }
+  if (/(should i|can i|may i|is it right|continue|quit|sign)/.test(normalized)) {
+    return 'this is less about a raw yes-or-no and more about whether the current conditions support action or caution.'
+  }
+  if (/(interview|job|career|work|project|meeting|exam)/.test(normalized)) {
+    return 'external results depend on the fit between preparation, timing, and evaluation criteria more than on hope alone.'
+  }
+  if (/(money|finance|investment|contract|deal|business)/.test(normalized)) {
+    return 'financial movement should be read through terms, numbers, and risk separation rather than impulse.'
+  }
+  if (/(health|body|condition)/.test(normalized)) {
+    return 'the message is to stabilize rhythm and stress signals before drawing strong conclusions.'
+  }
+  if (/(relationship|love|dating|marriage|partner)/.test(normalized)) {
+    return 'relationship direction becomes clearer when both pace and expectation gaps are examined together.'
+  }
+  return 'stabilizing priorities and execution rhythm matters more than reacting fast.'
 }
 
 function getCardKeywordSummary(card: CardInput, language: string): string {

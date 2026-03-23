@@ -75,7 +75,8 @@ describe('questionEngineV2', () => {
     )
 
     const result = await analyzeTarotQuestionV2({
-      question: '\uC9C0\uAE08 \uB098\uB97C \uB458\uB7EC\uC2FC \uC804\uCCB4 \uD750\uB984\uC740 \uC5B4\uB54C?',
+      question:
+        '\uC9C0\uAE08 \uB098\uB97C \uB458\uB7EC\uC2FC \uC804\uCCB4 \uD750\uB984\uC740 \uC5B4\uB54C?',
       language: 'ko',
     })
 
@@ -131,7 +132,8 @@ describe('questionEngineV2', () => {
     )
 
     const result = await analyzeTarotQuestionV2({
-      question: '\uC9C0\uAE08 \uB9CC\uB098\uB294 \uC0AC\uB78C\uACFC \uACB0\uD63C \uAC00\uB2A5\uC131 \uC788\uC5B4?',
+      question:
+        '\uC9C0\uAE08 \uB9CC\uB098\uB294 \uC0AC\uB78C\uACFC \uACB0\uD63C \uAC00\uB2A5\uC131 \uC788\uC5B4?',
       language: 'ko',
     })
 
@@ -164,6 +166,45 @@ describe('questionEngineV2', () => {
 
     expect(result.source).toBe('heuristic')
     expect(result.intent).toBe('meeting_likelihood')
+    expect(result.spreadId).toBe('yes-no-why')
+  })
+
+  it('treats direct contact questions as meeting likelihood without the LLM', async () => {
+    mockFetchWithRetry.mockRejectedValueOnce(new Error('OpenAI timeout'))
+
+    const result = await analyzeTarotQuestionV2({
+      question: '내일 그 사람이 나한테 연락할까?',
+      language: 'ko',
+    })
+
+    expect(result.source).toBe('heuristic')
+    expect(result.intent).toBe('meeting_likelihood')
+    expect(result.spreadId).toBe('yes-no-why')
+  })
+
+  it('keeps concrete yes-no life decisions off the broad-flow bucket', async () => {
+    mockFetchWithRetry.mockRejectedValueOnce(new Error('OpenAI timeout'))
+
+    const result = await analyzeTarotQuestionV2({
+      question: '지금 집 사는 게 맞아?',
+      language: 'ko',
+    })
+
+    expect(result.source).toBe('heuristic')
+    expect(result.intent).toBe('self_decision')
+    expect(result.spreadId).toBe('yes-no-why')
+  })
+
+  it('keeps waiting-or-not questions as self decisions without the LLM', async () => {
+    mockFetchWithRetry.mockRejectedValueOnce(new Error('OpenAI timeout'))
+
+    const result = await analyzeTarotQuestionV2({
+      question: '내가 기다리는 게 맞을까?',
+      language: 'ko',
+    })
+
+    expect(result.source).toBe('heuristic')
+    expect(result.intent).toBe('self_decision')
     expect(result.spreadId).toBe('yes-no-why')
   })
 
@@ -219,6 +260,97 @@ describe('questionEngineV2', () => {
     expect(result.spreadId).toBe('yes-no-why')
   })
 
+  it('understands colloquial relationship feeling questions without the LLM', async () => {
+    mockFetchWithRetry.mockRejectedValueOnce(new Error('OpenAI timeout'))
+
+    const result = await analyzeTarotQuestionV2({
+      question: '걔 속맘 뭐임',
+      language: 'ko',
+    })
+
+    expect(result.source).toBe('heuristic')
+    expect(result.intent).toBe('inner_feelings')
+    expect(result.spreadId).toBe('crush-feelings')
+  })
+
+  it('understands slang reconciliation questions without the LLM', async () => {
+    mockFetchWithRetry.mockRejectedValueOnce(new Error('OpenAI timeout'))
+
+    const result = await analyzeTarotQuestionV2({
+      question: '재회각 있냐',
+      language: 'ko',
+    })
+
+    expect(result.source).toBe('heuristic')
+    expect(result.intent).toBe('reconciliation')
+    expect(result.spreadId).toBe('reconciliation')
+  })
+
+  it('understands compressed contact questions without the LLM', async () => {
+    mockFetchWithRetry.mockRejectedValueOnce(new Error('OpenAI timeout'))
+
+    const result = await analyzeTarotQuestionV2({
+      question: '걔 연락옴?',
+      language: 'ko',
+    })
+
+    expect(result.source).toBe('heuristic')
+    expect(result.intent).toBe('meeting_likelihood')
+    expect(result.spreadId).toBe('yes-no-why')
+  })
+
+  it('understands no-space decision questions without the LLM', async () => {
+    mockFetchWithRetry.mockRejectedValueOnce(new Error('OpenAI timeout'))
+
+    const result = await analyzeTarotQuestionV2({
+      question: '지금공부방향맞냐',
+      language: 'ko',
+    })
+
+    expect(result.source).toBe('heuristic')
+    expect(result.intent).toBe('self_decision')
+    expect(result.spreadId).toBe('yes-no-why')
+  })
+
+  it('routes career flow questions to the career-path spread without the LLM', async () => {
+    mockFetchWithRetry.mockRejectedValueOnce(new Error('OpenAI timeout'))
+
+    const result = await analyzeTarotQuestionV2({
+      question: '내 커리어 큰 흐름이 어떻게 가고 있어?',
+      language: 'ko',
+    })
+
+    expect(result.source).toBe('heuristic')
+    expect(result.themeId).toBe('career-work')
+    expect(result.spreadId).toBe('career-path')
+  })
+
+  it('routes health flow questions to the health spread without the LLM', async () => {
+    mockFetchWithRetry.mockRejectedValueOnce(new Error('OpenAI timeout'))
+
+    const result = await analyzeTarotQuestionV2({
+      question: '내 건강 흐름 체크해줘',
+      language: 'ko',
+    })
+
+    expect(result.source).toBe('heuristic')
+    expect(result.themeId).toBe('well-being-health')
+    expect(result.spreadId).toBe('mind-body-scan')
+  })
+
+  it('routes money flow questions to the money spread without the LLM', async () => {
+    mockFetchWithRetry.mockRejectedValueOnce(new Error('OpenAI timeout'))
+
+    const result = await analyzeTarotQuestionV2({
+      question: '이번 분기 사업운 어때?',
+      language: 'ko',
+    })
+
+    expect(result.source).toBe('heuristic')
+    expect(result.themeId).toBe('money-finance')
+    expect(result.spreadId).toBe('financial-snapshot')
+  })
+
   it('does not let relationship future questions collapse into reconciliation intent', async () => {
     mockFetchWithRetry.mockResolvedValueOnce(
       createOpenAIResponse({
@@ -229,14 +361,18 @@ describe('questionEngineV2', () => {
         tone: 'prediction',
         themeId: 'love-relationships',
         spreadId: 'relationship-cross',
-        reason: '\uAD00\uACC4 \uD68C\uBCF5 \uAD00\uC810\uC73C\uB85C \uBCF4\uBA74 \uB429\uB2C8\uB2E4.',
-        userFriendlyExplanation: '\uAD00\uACC4 \uD68C\uBCF5 \uAC00\uB2A5\uC131\uC744 \uBCF4\uBA74 \uB429\uB2C8\uB2E4.',
-        directAnswer: '\uB2E4\uC2DC \uC774\uC5B4\uC9C8 \uC218 \uC788\uB294\uC9C0 \uBCF4\uC138\uC694.',
+        reason:
+          '\uAD00\uACC4 \uD68C\uBCF5 \uAD00\uC810\uC73C\uB85C \uBCF4\uBA74 \uB429\uB2C8\uB2E4.',
+        userFriendlyExplanation:
+          '\uAD00\uACC4 \uD68C\uBCF5 \uAC00\uB2A5\uC131\uC744 \uBCF4\uBA74 \uB429\uB2C8\uB2E4.',
+        directAnswer:
+          '\uB2E4\uC2DC \uC774\uC5B4\uC9C8 \uC218 \uC788\uB294\uC9C0 \uBCF4\uC138\uC694.',
       }) as never
     )
 
     const result = await analyzeTarotQuestionV2({
-      question: '\uC9C0\uAE08 \uB9CC\uB098\uB294 \uC0AC\uB78C\uACFC \uACB0\uD63C \uAC00\uB2A5\uC131 \uC788\uC5B4?',
+      question:
+        '\uC9C0\uAE08 \uB9CC\uB098\uB294 \uC0AC\uB78C\uACFC \uACB0\uD63C \uAC00\uB2A5\uC131 \uC788\uC5B4?',
       language: 'ko',
     })
 
@@ -245,11 +381,90 @@ describe('questionEngineV2', () => {
     expect(result.spreadId).toBe('relationship-cross')
   })
 
+  it('does not let relationship future questions collapse into other-person-response intent', async () => {
+    mockFetchWithRetry.mockResolvedValueOnce(
+      createOpenAIResponse({
+        questionType: 'other_person_response',
+        subject: 'relationship',
+        focus: '결혼 가능성',
+        timeframe: 'mid_term',
+        tone: 'prediction',
+        themeId: 'love-relationships',
+        spreadId: 'relationship-cross',
+        reason: '상대 반응 기준으로 보면 됩니다.',
+        userFriendlyExplanation: '상대 반응부터 보면 됩니다.',
+        directAnswer: '상대가 어떻게 반응할지 보세요.',
+      }) as never
+    )
+
+    const result = await analyzeTarotQuestionV2({
+      question: '지금 만나는 사람과 결혼 가능성 있어?',
+      language: 'ko',
+    })
+
+    expect(result.source).toBe('llm')
+    expect(result.intent).toBe('near_term_outcome')
+    expect(result.spreadId).toBe('relationship-cross')
+  })
+
+  it('keeps implicit relationship response questions off self-decision spreads', async () => {
+    mockFetchWithRetry.mockResolvedValueOnce(
+      createOpenAIResponse({
+        questionType: 'self_decision',
+        subject: 'self',
+        focus: '사과 여부',
+        timeframe: 'near_term',
+        tone: 'advice',
+        themeId: 'decisions-crossroads',
+        spreadId: 'yes-no-why',
+        reason: '내 선택 질문으로 보면 됩니다.',
+        userFriendlyExplanation: '내 행동 기준으로 읽으면 됩니다.',
+        directAnswer: '내가 먼저 움직일지 보면 됩니다.',
+      }) as never
+    )
+
+    const result = await analyzeTarotQuestionV2({
+      question: '내가 먼저 사과하면 반응이 어떨까?',
+      language: 'ko',
+    })
+
+    expect(result.intent).toBe('other_person_response')
+    expect(result.themeId).toBe('love-relationships')
+    expect(result.spreadId).toBe('crush-feelings')
+  })
+
+  it('keeps reconciliation questions on the dedicated reconciliation spread', async () => {
+    mockFetchWithRetry.mockResolvedValueOnce(
+      createOpenAIResponse({
+        questionType: 'near_term_outcome',
+        subject: 'relationship',
+        focus: '재접촉 가능성',
+        timeframe: 'near_term',
+        tone: 'prediction',
+        themeId: 'general-insight',
+        spreadId: 'past-present-future',
+        reason: '흐름으로 보면 됩니다.',
+        userFriendlyExplanation: '전체 흐름으로 보면 됩니다.',
+        directAnswer: '조금 더 흐름을 지켜보세요.',
+      }) as never
+    )
+
+    const result = await analyzeTarotQuestionV2({
+      question: '헤어진 사람이 다시 올까?',
+      language: 'ko',
+    })
+
+    expect(result.intent).toBe('reconciliation')
+    expect(result.themeId).toBe('love-relationships')
+    expect(result.spreadId).toBe('reconciliation')
+  })
+
   it('surfaces broad flow questions with a dedicated intent instead of unknown', async () => {
     mockFetchWithRetry.mockRejectedValueOnce(new Error('OpenAI timeout'))
 
     const result = await analyzeTarotQuestionV2({
-      question: '\uC9C0\uAE08 \uB0B4 \uD750\uB984\uC774 \uC5B4\uB5A4\uC9C0 \uC54C\uACE0 \uC2F6\uC5B4',
+      question:
+        '\uC9C0\uAE08 \uB0B4 \uD750\uB984\uC774 \uC5B4\uB5A4\uC9C0 \uC54C\uACE0 \uC2F6\uC5B4',
       language: 'ko',
     })
 

@@ -192,6 +192,42 @@ export interface CoreDomainVerdict {
   provenance: CoreProvenance
 }
 
+export interface CoreArbitrationEntryBreakdown {
+  signalDominance?: number
+  scenarioDominance?: number
+  decisionDominance?: number
+  summaryDominance?: number
+  convergenceBonus?: number
+  timingBalanceBonus?: number
+  focusBonus?: number
+  optionStrength?: number
+  confidenceBoost?: number
+  topOptionBonus?: number
+  gatedPenalty?: number
+}
+
+export interface CoreArbitrationEntry {
+  domain: SignalDomain
+  score: number
+  reason: string
+  breakdown: CoreArbitrationEntryBreakdown
+}
+
+export interface CoreArbitrationSuppression {
+  domain: SignalDomain
+  scoreGap: number
+  reason: string
+}
+
+export interface CoreArbitrationLedger {
+  focusWinner: CoreArbitrationEntry
+  focusRunnerUp: CoreArbitrationEntry | null
+  actionWinner: CoreArbitrationEntry | null
+  actionRunnerUp: CoreArbitrationEntry | null
+  suppressedDomains: CoreArbitrationSuppression[]
+  conflictReasons: string[]
+}
+
 export interface DestinyCoreCanonicalOutput {
   version: 'v1'
   claimIds: string[]
@@ -202,6 +238,7 @@ export interface DestinyCoreCanonicalOutput {
   gradeLabel: string
   gradeReason: string
   focusDomain: SignalDomain
+  actionFocusDomain: SignalDomain
   phase: StrategyPhaseCode
   phaseLabel: string
   attackPercent: number
@@ -228,6 +265,7 @@ export interface DestinyCoreCanonicalOutput {
   layerScores: CoreLayerScore[]
   interactionHits: CoreInteractionHit[]
   timelineHits: CoreTimelineHit[]
+  arbitrationLedger: CoreArbitrationLedger
 }
 
 export interface BuildCoreCanonicalOutputInput {

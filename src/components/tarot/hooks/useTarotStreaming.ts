@@ -54,6 +54,7 @@ export function useTarotStreaming(params: UseTarotStreamingParams) {
   const [loading, setLoading] = useState(false)
   const [streamingContent, setStreamingContent] = useState<string>('')
   const [usedFallback, setUsedFallback] = useState(false)
+  const ACCESS_BLOCKED_ERROR = 'TAROT_ACCESS_BLOCKED'
 
   // Guard against duplicate requests (e.g., rapid double-click)
   const requestInFlightRef = React.useRef(false)
@@ -70,6 +71,7 @@ export function useTarotStreaming(params: UseTarotStreamingParams) {
       setUsedFallback(false)
 
       const nextMessages: Message[] = [...messages, { role: 'user', content: messageText }]
+      let fallbackChatContext = buildContext()
       setLoading(true)
       setMessages(nextMessages)
       setStreamingContent('')
@@ -93,10 +95,10 @@ export function useTarotStreaming(params: UseTarotStreamingParams) {
             }),
           })
 
-          if (!drawResponse.ok && drawResponse.status === 402) {
-            devWarn('Insufficient credits when drawing card (402)')
+          if (!drawResponse.ok && (drawResponse.status === 401 || drawResponse.status === 402)) {
+            devWarn('Access blocked when drawing card', { status: drawResponse.status })
             showDepleted()
-            throw new Error('INSUFFICIENT_CREDITS')
+            throw new Error(ACCESS_BLOCKED_ERROR)
           }
 
           if (drawResponse.ok) {
@@ -108,17 +110,18 @@ export function useTarotStreaming(params: UseTarotStreamingParams) {
           }
         } catch (drawErr) {
           // 크레딧 부족 에러는 상위로 전파
-          if (drawErr instanceof Error && drawErr.message === 'INSUFFICIENT_CREDITS') {
+          if (drawErr instanceof Error && drawErr.message === ACCESS_BLOCKED_ERROR) {
             throw drawErr
           }
           devWarn('Failed to draw new card, using existing context:', drawErr)
         }
 
         // Build context with new card added to cards array (backend processes cards array)
-        const baseContext = buildContext()
+        const baseContext = fallbackChatContext
         const contextWithNewCard = newDrawnCard
           ? buildContextWithNewCard(baseContext, newDrawnCard, language)
           : baseContext
+        fallbackChatContext = contextWithNewCard
 
         // Step 2: Try streaming endpoint with the new card context
         const response = await apiFetch('/api/tarot/chat/stream', {
@@ -135,10 +138,10 @@ export function useTarotStreaming(params: UseTarotStreamingParams) {
 
         if (!response.ok) {
           // 402 Payment Required - 크레딧 부족
-          if (response.status === 402) {
-            devWarn('Insufficient credits (402)')
+          if (response.status === 401 || response.status === 402) {
+            devWarn('Access blocked during tarot chat stream', { status: response.status })
             showDepleted()
-            throw new Error('INSUFFICIENT_CREDITS')
+            throw new Error(ACCESS_BLOCKED_ERROR)
           }
           throw new Error(`Stream failed: ${response.status}`)
         }
@@ -186,6 +189,10 @@ export function useTarotStreaming(params: UseTarotStreamingParams) {
         devError('Streaming error, falling back:', error)
         onLoadingStop()
 
+        if (error instanceof Error && error.message === ACCESS_BLOCKED_ERROR) {
+          return
+        }
+
         // Fallback to non-streaming endpoint
         try {
           const fallbackResponse = await apiFetch('/api/tarot/chat', {
@@ -193,7 +200,7 @@ export function useTarotStreaming(params: UseTarotStreamingParams) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               messages: nextMessages,
-              context: buildContext(),
+              context: fallbackChatContext,
               language,
               counselor_id: counselorId,
               counselor_style: counselorStyle,
@@ -211,6 +218,13 @@ export function useTarotStreaming(params: UseTarotStreamingParams) {
               },
             ])
           } else {
+            if (fallbackResponse.status === 401 || fallbackResponse.status === 402) {
+              devWarn('Access blocked during tarot chat fallback', {
+                status: fallbackResponse.status,
+              })
+              showDepleted()
+              return
+            }
             throw new Error('Fallback also failed')
           }
         } catch (fallbackError) {

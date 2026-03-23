@@ -1,3 +1,10 @@
+:global(:root) {
+  --tarot-font-body:
+    var(--font-noto-kr), var(--font-montserrat), 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui,
+    sans-serif;
+  --tarot-font-display:
+    var(--font-cinzel), var(--font-lora), var(--font-noto-kr), Georgia, 'Times New Roman', serif;
+}
 /* ===== Loading & Error States ===== */
 .loading,
 .error {
@@ -7,7 +14,7 @@
   align-items: center;
   min-height: 100vh;
   font-size: 1.5rem;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   color: rgba(255, 255, 255, 0.9);
   background: transparent;
   gap: 2rem;
@@ -123,7 +130,7 @@
 }
 
 .instructionTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 0.75rem 0;
@@ -536,7 +543,7 @@
 }
 
 .resultsTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 3rem;
   font-weight: 700;
   background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #7cf29c 100%);
@@ -595,7 +602,7 @@
   border: 1px solid rgba(99, 210, 255, 0.28);
   background: linear-gradient(140deg, rgba(22, 33, 57, 0.82), rgba(16, 25, 44, 0.8));
   color: rgba(222, 242, 255, 0.95);
-  font-family: 'Noto Sans KR', 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 0.94rem;
   font-weight: 700;
   line-height: 1.45;
@@ -654,7 +661,7 @@
 }
 
 .positionBadge {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.2rem;
   font-weight: 600;
   color: #7cf29c;
@@ -670,7 +677,7 @@
 }
 
 .positionBadgeWithNumber {
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: var(--tarot-font-display);
   font-size: 1.1rem;
   font-weight: 500;
   color: #ffffff;
@@ -802,7 +809,7 @@
 }
 
 .cardName {
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: var(--tarot-font-display);
   font-size: 1.8rem;
   font-weight: 600;
   color: #ffffff;
@@ -844,7 +851,7 @@
   margin: 0;
   padding: 0 1rem;
   width: 100%;
-  font-family: 'Noto Sans KR', 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   letter-spacing: 0.3px;
   word-break: keep-all;
 }
@@ -857,7 +864,7 @@
   line-height: 1.8;
   color: rgba(173, 230, 255, 0.92);
   text-align: left;
-  font-family: 'Noto Sans KR', 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   letter-spacing: 0.2px;
   word-break: keep-all;
 }
@@ -910,7 +917,7 @@
   border: 2px solid rgba(124, 242, 156, 0.62);
   border-radius: 999px;
   color: rgba(230, 255, 246, 0.98);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.3rem;
   font-weight: 600;
   cursor: pointer;
@@ -969,7 +976,7 @@
 }
 
 .streamingTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 2rem;
   font-weight: 700;
   background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #7cf29c 100%);
@@ -1050,7 +1057,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.1rem;
   font-weight: 600;
   color: #7cf29c;
@@ -1233,7 +1240,7 @@
   line-height: 2.1;
   color: rgba(255, 255, 255, 0.95);
   margin: 0;
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: var(--tarot-font-display);
   letter-spacing: 0.3px;
   font-weight: 400;
 }
@@ -1303,7 +1310,7 @@
 }
 
 .counselorName {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 0.85rem;
   font-weight: 600;
   color: rgba(99, 210, 255, 0.9);
@@ -1312,7 +1319,7 @@
 }
 
 .counselorMessage {
-  font-family: 'Georgia', 'Noto Serif KR', serif;
+  font-family: var(--tarot-font-display);
   font-size: 1.1rem;
   line-height: 1.9;
   color: rgba(255, 255, 255, 0.95);
@@ -1408,7 +1415,7 @@
 }
 
 .insightTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.1rem;
   font-weight: 600;
   color: #7cf29c;
@@ -1420,7 +1427,7 @@
   line-height: 1.9;
   color: rgba(248, 252, 255, 0.96);
   margin: 0;
-  font-family: 'Noto Sans KR', 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   letter-spacing: 0.2px;
 }
 
@@ -1535,7 +1542,7 @@
 }
 
 .sectionTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.5rem;
   color: #7cf29c;
   margin: 0 0 1.5rem 0;
@@ -1558,7 +1565,7 @@
 
 .comboCards {
   display: block;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.1rem;
   font-weight: 600;
   color: rgba(99, 210, 255, 1);
@@ -1726,7 +1733,7 @@
 }
 
 .guidanceTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.8rem;
   font-weight: 700;
   background: linear-gradient(135deg, #63d2ff 0%, #7cf29c 100%);
@@ -1739,7 +1746,7 @@
 }
 
 .affirmationTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.4rem;
   font-weight: 700;
   background: linear-gradient(135deg, #7cf29c, #d4af37);
@@ -1912,7 +1919,7 @@
 }
 
 .guidanceTitleCompact {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 0.875rem;
   font-weight: 700;
   color: rgba(99, 210, 255, 1);
@@ -1928,7 +1935,7 @@
   margin: 0;
   white-space: pre-line;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: var(--tarot-font-display);
   letter-spacing: 0.3px;
   font-weight: 400;
 }
@@ -2295,7 +2302,7 @@
 .questionQuote {
   font-size: 1.5rem;
   color: rgba(99, 210, 255, 0.5);
-  font-family: Georgia, serif;
+  font-family: var(--tarot-font-display);
   line-height: 1;
 }
 
@@ -2642,7 +2649,7 @@
 }
 
 .colorSelectTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 2.5rem;
   color: #7cf29c;
   margin: 0 0 1rem 0;
@@ -2802,7 +2809,7 @@
 }
 
 .colorName {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.1rem;
   font-weight: 600;
   color: rgba(224, 224, 255, 0.95);
@@ -2838,7 +2845,7 @@
   border: 3px solid rgba(99, 210, 255, 0.6);
   border-radius: 50px;
   color: rgba(224, 224, 255, 0.9);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.2rem;
   font-weight: 600;
   cursor: pointer;
@@ -2867,7 +2874,7 @@
 }
 
 .spreadPreviewTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.5rem;
   color: rgba(99, 210, 255, 0.95);
   margin: 0 0 0.5rem 0;
@@ -3013,7 +3020,7 @@
   border: none;
   border-radius: 50px;
   color: #0a1428;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.3rem;
   font-weight: 700;
   cursor: pointer;
@@ -3074,7 +3081,7 @@
 }
 
 .chatTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.8rem;
   color: #7cf29c;
   margin: 0 0 1.5rem 0;
@@ -3093,7 +3100,7 @@
   border: 2px solid rgba(99, 210, 255, 0.5);
   border-radius: 50px;
   color: rgba(224, 224, 255, 0.9);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
@@ -3141,7 +3148,7 @@
   border: 3px solid rgba(99, 210, 255, 0.6);
   border-radius: 50px;
   color: #ffffff;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.2rem;
   font-weight: 600;
   cursor: pointer;
@@ -3167,7 +3174,7 @@
   border: 2px solid rgba(255, 193, 7, 0.62);
   border-radius: 50px;
   color: #ffc107;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -3466,7 +3473,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-weight: 700;
   color: #0a1428;
   font-size: 1rem;
@@ -3475,7 +3482,7 @@
 }
 
 .positionBadgeHorizontal {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 0.9rem;
   font-weight: 600;
   color: #7cf29c;
@@ -3655,7 +3662,7 @@
 }
 
 .cardNameCompact {
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: var(--tarot-font-display);
   font-size: 1.05rem;
   font-weight: 600;
   color: #ffffff;
@@ -3699,7 +3706,7 @@
   border: 2px solid rgba(99, 210, 255, 0.62);
   border-radius: 50px;
   color: rgba(224, 224, 255, 0.95);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.15rem;
   font-weight: 600;
   cursor: pointer;
@@ -3743,7 +3750,7 @@
 }
 
 .detailedSectionTitle {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 2rem;
   font-weight: 700;
   background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #7cf29c 100%);
@@ -3915,7 +3922,7 @@
 }
 
 .chatName {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 0.98rem;
   font-weight: 600;
   color: rgba(99, 210, 255, 0.85);
@@ -3963,7 +3970,7 @@
 }
 
 .chatText {
-  font-family: 'Noto Sans KR', 'Inter', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.12rem;
   line-height: 1.92;
   color: rgba(255, 255, 255, 0.93);
@@ -4197,7 +4204,7 @@
 }
 
 .adviceText {
-  font-family: 'Inter', 'Noto Sans KR', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.12rem;
   line-height: 1.9;
   color: rgba(255, 255, 255, 0.97);
@@ -4250,14 +4257,14 @@
 }
 
 .adviceCardTitle {
-  font-family: 'Inter', 'Noto Sans KR', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.05rem;
   font-weight: 600;
   color: #7cf29c;
 }
 
 .adviceCardDetail {
-  font-family: 'Inter', 'Noto Sans KR', system-ui, sans-serif;
+  font-family: var(--tarot-font-body);
   font-size: 1.02rem;
   line-height: 1.82;
   color: rgba(255, 255, 255, 0.9);

@@ -9,7 +9,7 @@ import { useCallback, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import type { TarotQuestionAnalysisSnapshot } from '@/lib/Tarot/questionFlow'
-import { Spread, DrawnCard, DeckStyle, getCardImagePath } from '@/lib/Tarot/tarot.types'
+import { Spread, DrawnCard, DeckStyle } from '@/lib/Tarot/tarot.types'
 import { buildTarotSaveRequest, flattenTarotGuidance } from '@/lib/Tarot/tarot-save-request'
 import { getStoredBirthDate, fetchAndSyncUserProfile } from '@/lib/userProfile'
 import { saveReading, formatReadingForSave } from '@/lib/Tarot/tarot-storage'
@@ -38,8 +38,10 @@ interface UseTarotInterpretationReturn {
   ) => Promise<void>
 }
 
-const PRIMARY_INTERPRET_TIMEOUT_MS = 22000
-const STREAM_INTERPRET_TIMEOUT_MS = 22000
+// The server route can legitimately spend much longer on backend_rag/GPT fallback.
+// Do not abort early on the client and force a local fallback while AI is still working.
+const PRIMARY_INTERPRET_TIMEOUT_MS = 70000
+const STREAM_INTERPRET_TIMEOUT_MS = 35000
 
 class RequestTimeoutError extends Error {
   constructor(timeoutMs: number) {
@@ -204,7 +206,8 @@ function parseStreamedInterpretation(
     }),
     guidance:
       parsed.guidance ||
-      parsed.advice || (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
+      parsed.advice ||
+      (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
     affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
     combinations: [],
     followup_questions: [],
@@ -561,11 +564,6 @@ export function useTarotInterpretation({
       const spreadInfo = _spreadInfo
 
       try {
-        const normalizedQuestion =
-          userTopic.trim() ||
-          (language === 'ko'
-            ? `${spreadInfo.titleKo || spreadInfo.title} 리딩`
-            : `${spreadInfo.title} reading`)
         const resolvedSpreadId = spreadId || spreadInfo.id
 
         if (!resolvedSpreadId) {
@@ -616,55 +614,6 @@ export function useTarotInterpretation({
           setSaveMessage(language === 'ko' ? '저장되었습니다!' : 'Saved!')
           setTimeout(() => setSaveMessage(''), 3000)
           return
-
-          const saveResponse = await apiFetch('/api/tarot/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              question: normalizedQuestion,
-              theme: categoryName,
-              spreadId: resolvedSpreadId,
-              spreadTitle:
-                language === 'ko' ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title,
-              cards: readingResult.drawnCards.map((dc, idx) => ({
-                cardId: String(dc.card.id),
-                name: language === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
-                image: getCardImagePath(dc.card.id, selectedDeckStyle),
-                isReversed: dc.isReversed,
-                position:
-                  language === 'ko'
-                    ? readingResult.spread.positions[idx]?.titleKo ||
-                      readingResult.spread.positions[idx]?.title ||
-                      `카드 ${idx + 1}`
-                    : readingResult.spread.positions[idx]?.title || `Card ${idx + 1}`,
-              })),
-              overallMessage: interpretation?.overall_message || '',
-              cardInsights:
-                interpretation?.card_insights?.map((ci) => ({
-                  position: ci.position,
-                  card_name: ci.card_name,
-                  is_reversed: ci.is_reversed,
-                  interpretation: ci.interpretation,
-                })) || [],
-              guidance: guidanceText || '',
-              affirmation: interpretation?.affirmation || '',
-              source: 'standalone',
-              locale: language,
-              questionContext: questionAnalysis || readingResult.questionContext || undefined,
-            }),
-          })
-
-          if (!saveResponse.ok) {
-            const errorPayload = (await saveResponse.json().catch(() => null)) as {
-              error?: { message?: string }
-              message?: string
-            } | null
-            const errorMessage =
-              errorPayload?.error?.message ||
-              errorPayload?.message ||
-              `Save failed (${saveResponse.status})`
-            throw new Error(errorMessage)
-          }
         } else {
           const formattedReading = formatReadingForSave(
             userTopic,
@@ -688,7 +637,16 @@ export function useTarotInterpretation({
         setTimeout(() => setSaveMessage(''), 3000)
       }
     },
-    [categoryName, spreadId, selectedDeckStyle, language, isSaved, session, userTopic, questionAnalysis]
+    [
+      categoryName,
+      spreadId,
+      selectedDeckStyle,
+      language,
+      isSaved,
+      session,
+      userTopic,
+      questionAnalysis,
+    ]
   )
 
   return {

@@ -423,6 +423,9 @@ export interface MatrixSummary {
   domainScores?: Record<DomainKey, DomainScore>
   overlapTimeline?: MonthlyOverlapPoint[]
   overlapTimelineByDomain?: Record<DomainKey, MonthlyOverlapPoint[]>
+  overlapTimelinePast?: MonthlyOverlapPoint[]
+  overlapTimelineByDomainPast?: Record<DomainKey, MonthlyOverlapPoint[]>
+  timingCalibration?: TimingCalibrationSummary
 }
 
 export type DomainKey = 'career' | 'love' | 'money' | 'health' | 'move'
@@ -446,6 +449,18 @@ export type MonthlyOverlapPoint = {
   overlapStrength: number // 0..1
   timeOverlapWeight: number // 1.0..1.3
   peakLevel: 'peak' | 'high' | 'normal'
+  probeDay?: number
+}
+
+export interface TimingCalibrationSummary {
+  readinessScore: number // 0..1
+  triggerScore: number // 0..1
+  convergenceScore: number // 0..1
+  pastStability: number // 0..1
+  futureStability: number // 0..1
+  backtestConsistency: number // 0..1
+  reliabilityScore: number // 0..1
+  reliabilityBand: 'low' | 'medium' | 'high'
 }
 
 export interface MatrixHighlight {

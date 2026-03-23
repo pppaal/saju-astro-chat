@@ -76,13 +76,18 @@ export default function TarotHomePage() {
     }
     addRecentQuestion(trimmedQuestion)
     const analysisKey = storeQuestionAnalysisSnapshot(trimmedQuestion, analysisResult)
-    const primaryPath = buildStableEntryPath(trimmedQuestion, analysisResult, analysisKey)
+    const primaryPath =
+      analysisResult?.path && analysisResult.source !== 'fallback'
+        ? appendQuestionContextToPath(analysisResult.path, trimmedQuestion, analysisKey)
+        : buildStableEntryPath(trimmedQuestion, analysisResult, analysisKey)
     router.push(primaryPath)
   }, [question, analysisResult, addRecentQuestion, router])
 
   const handleQuickStart = useCallback(() => {
     triggerHaptic('light')
-    const defaultQuestion = isKo ? '오늘 나에게 필요한 조언은?' : 'What guidance do I need right now?'
+    const defaultQuestion = isKo
+      ? '오늘 나에게 필요한 조언은?'
+      : 'What guidance do I need right now?'
     const seedQuestion = question.trim() || defaultQuestion
     addRecentQuestion(seedQuestion)
     const quick = getQuickRecommendation(seedQuestion, isKo)
@@ -145,6 +150,14 @@ export default function TarotHomePage() {
 
   return (
     <div className={styles.container}>
+      <div className={styles.spaceBackdrop} aria-hidden="true">
+        <div className={styles.nebulaLeft} />
+        <div className={styles.nebulaRight} />
+        <div className={styles.nebulaBottom} />
+        <div className={styles.orbLeft} />
+        <div className={styles.orbRight} />
+        <div className={styles.starMesh} />
+      </div>
       <canvas ref={canvasRef} className={styles.backgroundCanvas} />
 
       <BackButton />
@@ -233,7 +246,9 @@ export default function TarotHomePage() {
               {isLoadingPreview && question.trim().length > 3 && (
                 <div className={styles.previewBox}>
                   <div className={styles.previewShimmer}>
-                    <span>{isKo ? '질문 의도를 읽는 중...' : 'Reading the intent of your question...'}</span>
+                    <span>
+                      {isKo ? '질문 의도를 읽는 중...' : 'Reading the intent of your question...'}
+                    </span>
                   </div>
                 </div>
               )}
@@ -268,7 +283,9 @@ export default function TarotHomePage() {
                       {isKo ? '질문 이해 완료' : 'Question understood'}
                     </span>
                     <h2 className={styles.analysisTitle}>
-                      {isKo ? 'AI가 질문을 이렇게 읽고 있어요' : 'Here is how AI is reading your question'}
+                      {isKo
+                        ? 'AI가 질문을 이렇게 읽고 있어요'
+                        : 'Here is how AI is reading your question'}
                     </h2>
                   </div>
                   {analysisResult.intent_label && (
@@ -282,20 +299,28 @@ export default function TarotHomePage() {
                 {questionProfile && (
                   <div className={styles.profileGrid}>
                     <div className={styles.profileItem}>
-                      <span className={styles.profileLabel}>{isKo ? '질문 종류' : 'Question type'}</span>
+                      <span className={styles.profileLabel}>
+                        {isKo ? '질문 종류' : 'Question type'}
+                      </span>
                       <strong className={styles.profileValue}>{questionProfile.type.label}</strong>
                     </div>
                     <div className={styles.profileItem}>
                       <span className={styles.profileLabel}>{isKo ? '주체' : 'Subject'}</span>
-                      <strong className={styles.profileValue}>{questionProfile.subject.label}</strong>
+                      <strong className={styles.profileValue}>
+                        {questionProfile.subject.label}
+                      </strong>
                     </div>
                     <div className={styles.profileItem}>
-                      <span className={styles.profileLabel}>{isKo ? '무엇을 묻는지' : 'What it asks'}</span>
+                      <span className={styles.profileLabel}>
+                        {isKo ? '무엇을 묻는지' : 'What it asks'}
+                      </span>
                       <strong className={styles.profileValue}>{questionProfile.focus.label}</strong>
                     </div>
                     <div className={styles.profileItem}>
                       <span className={styles.profileLabel}>{isKo ? '시간축' : 'Timeframe'}</span>
-                      <strong className={styles.profileValue}>{questionProfile.timeframe.label}</strong>
+                      <strong className={styles.profileValue}>
+                        {questionProfile.timeframe.label}
+                      </strong>
                     </div>
                     <div className={styles.profileItem}>
                       <span className={styles.profileLabel}>{isKo ? '질문 톤' : 'Tone'}</span>
@@ -345,29 +370,31 @@ export default function TarotHomePage() {
                     </div>
                     <div className={styles.recommendationList}>
                       {secondarySpreads.map((spread, index) => (
-                    <button
-                      key={`${spread.themeId}-${spread.spreadId}-${index}`}
-                      type="button"
-                      className={styles.recommendationCard}
-                      onClick={() => handleChooseSpread(spread.path)}
-                    >
-                      <div className={styles.recommendationMeta}>
-                        <span className={styles.recommendationBadge}>
-                          {isKo ? `후보 ${index + 2}` : `Option ${index + 2}`}
-                        </span>
-                        <span className={styles.recommendationTheme}>{spread.themeTitle}</span>
-                      </div>
-                      <div className={styles.recommendationBody}>
-                        <strong className={styles.recommendationTitle}>{spread.spreadTitle}</strong>
-                        <span className={styles.recommendationCount}>
-                          {isKo ? `${spread.cardCount}장 리딩` : `${spread.cardCount} cards`}
-                        </span>
-                      </div>
-                      <p className={styles.recommendationReason}>{spread.reason}</p>
-                      <span className={styles.recommendationAction}>
-                        {isKo ? '이 스프레드로 시작' : 'Start with this spread'}
-                      </span>
-                    </button>
+                        <button
+                          key={`${spread.themeId}-${spread.spreadId}-${index}`}
+                          type="button"
+                          className={styles.recommendationCard}
+                          onClick={() => handleChooseSpread(spread.path)}
+                        >
+                          <div className={styles.recommendationMeta}>
+                            <span className={styles.recommendationBadge}>
+                              {isKo ? `후보 ${index + 2}` : `Option ${index + 2}`}
+                            </span>
+                            <span className={styles.recommendationTheme}>{spread.themeTitle}</span>
+                          </div>
+                          <div className={styles.recommendationBody}>
+                            <strong className={styles.recommendationTitle}>
+                              {spread.spreadTitle}
+                            </strong>
+                            <span className={styles.recommendationCount}>
+                              {isKo ? `${spread.cardCount}장 리딩` : `${spread.cardCount} cards`}
+                            </span>
+                          </div>
+                          <p className={styles.recommendationReason}>{spread.reason}</p>
+                          <span className={styles.recommendationAction}>
+                            {isKo ? '이 스프레드로 시작' : 'Start with this spread'}
+                          </span>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -394,7 +421,9 @@ export default function TarotHomePage() {
 
             <section className={styles.themeSection}>
               <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>{isKo ? '테마별 질문 예시' : 'Examples by Theme'}</h2>
+                <h2 className={styles.sectionTitle}>
+                  {isKo ? '테마별 질문 예시' : 'Examples by Theme'}
+                </h2>
                 <p className={styles.sectionSubtitle}>
                   {isKo
                     ? '예시 질문으로 바로 시작해도 됩니다. 누르면 입력창에 바로 들어갑니다.'
@@ -426,7 +455,9 @@ export default function TarotHomePage() {
                           <button
                             key={`${group.themeId}-${index}`}
                             className={styles.themeQuestion}
-                            onClick={() => handleThemeQuestion(isKo ? themeQuestion.ko : themeQuestion.en)}
+                            onClick={() =>
+                              handleThemeQuestion(isKo ? themeQuestion.ko : themeQuestion.en)
+                            }
                             onTouchStart={handleTouchStart}
                             disabled={isAnalyzing}
                             type="button"

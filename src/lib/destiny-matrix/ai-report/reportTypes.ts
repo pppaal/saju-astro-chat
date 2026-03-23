@@ -34,9 +34,36 @@ export interface AIPremiumReport {
   generatedAt: string
   lang: 'ko' | 'en'
   focusDomain?: string
+  actionFocusDomain?: string
   topDecisionId?: string | null
   topDecisionLabel?: string | null
   riskControl?: string
+  projections?: {
+    structure: {
+      headline: string
+      summary: string
+      topAxes: string[]
+    }
+    timing: {
+      headline: string
+      summary: string
+      window?: string
+      granularity?: string
+      reliabilityBand?: string
+    }
+    conflict: {
+      headline: string
+      summary: string
+      reasons: string[]
+    }
+    evidence: {
+      headline: string
+      summary: string
+      signalIds: string[]
+      patternIds: string[]
+      scenarioIds: string[]
+    }
+  }
   reportMeta: UnifiedReportMeta
   timeWindow: UnifiedTimeWindow
   scores: UnifiedScores

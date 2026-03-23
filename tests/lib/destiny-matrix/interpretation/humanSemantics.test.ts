@@ -7,10 +7,12 @@ import {
   describeExecutionStance,
   describeGraphEvidenceWhy,
   describeDataTrustSummary,
+  describeIntraMonthPeakWindow,
   describeProvenanceSummary,
   describePhaseFlow,
   describeSajuAstroConflictByDomain,
   describeSajuAstroRole,
+  describeTimingCalibrationSummary,
   describeTimingWindowBrief,
   describeTimingWindowNarrative,
   describeTimingWindowTakeaways,
@@ -102,6 +104,41 @@ describe('humanSemantics', () => {
     expect(lines[2]).toContain('범위를 줄이고 확정을 늦추는 편이 안전합니다')
     expect(lines[3]).toContain('금액')
   })
+  it('describes timing calibration as strongest intra-month windows, not flat month averages', () => {
+    const ko = describeTimingCalibrationSummary({
+      reliabilityBand: 'medium',
+      pastStability: 0.71,
+      futureStability: 0.66,
+      backtestConsistency: 0.69,
+      lang: 'ko',
+    })
+    const en = describeTimingCalibrationSummary({
+      reliabilityBand: 'high',
+      reliabilityScore: 0.82,
+      lang: 'en',
+    })
+
+    expect(ko).toContain('월중 강한 창')
+    expect(en).toContain('stronger intra-month window')
+  })
+
+  it('describes a domain-specific intra-month peak window', () => {
+    const ko = describeIntraMonthPeakWindow({
+      domainLabel: '건강',
+      points: [{ probeDay: 22, peakLevel: 'peak' }],
+      lang: 'ko',
+    })
+    const en = describeIntraMonthPeakWindow({
+      domainLabel: 'career',
+      points: [{ probeDay: 8, peakLevel: 'high' }],
+      lang: 'en',
+    })
+
+    expect(ko).toContain('월중')
+    expect(ko).toContain('특히 강하게')
+    expect(en).toContain('early-month window')
+  })
+
   it('describes graph evidence in domain-specific finance language', () => {
     const text = describeGraphEvidenceWhy({
       focusDomainLabel: '재정',

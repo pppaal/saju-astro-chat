@@ -909,4 +909,134 @@ describe('POST /api/tarot/interpret', () => {
     expect(data.card_insights[0].interpretation.length).toBeGreaterThanOrEqual(80)
     expect(data.card_insights[0].interpretation).toMatch(/today|this week|within 7 days/i)
   })
+
+  it('should rebuild a long but question-generic overall message', async () => {
+    const { apiClient } = await import('@/lib/api/ApiClient')
+
+    vi.mocked(apiClient.post).mockResolvedValue({
+      ok: true,
+      data: {
+        overall_message:
+          '지금은 성급한 결정보다 우선순위를 정리하고 작은 실행 단위를 먼저 만드는 것이 중요합니다. 감정 반응으로 바로 움직이기보다 현재 리듬을 회복하면서 결과를 확인하는 편이 더 안정적입니다.',
+        card_insights: [
+          {
+            position: 'Past',
+            card_name: 'The Fool',
+            interpretation:
+              '질문 "헤어진 사람이 다시 올까?"을 기준으로, Past의 The Fool 카드는 성급한 기대보다 흐름을 보라고 말합니다. 오늘은 연락 충동을 기록하고 이번 주 반응 변화를 관찰하세요.',
+          },
+        ],
+        guidance:
+          '1) 오늘: 재접촉 신호를 추정하지 말고 실제 반응만 기록하세요.\n2) 이번 주: 먼저 패턴을 정리하세요.\n3) 다음 7일: 바뀐 징후가 있는지 확인하세요.',
+      },
+    })
+
+    const req = new NextRequest('http://localhost/api/tarot/interpret', {
+      method: 'POST',
+      body: JSON.stringify({
+        categoryId: 'love-relationships',
+        spreadId: 'reconciliation',
+        spreadTitle: 'Reconciliation',
+        cards: [
+          {
+            name: 'The Fool',
+            isReversed: false,
+            position: 'Past',
+            meaning: 'New beginning',
+          },
+        ],
+        language: 'ko',
+        userQuestion: '헤어진 사람이 다시 올까?',
+      }),
+    })
+
+    const response = await POST(req)
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(data.overall_message).toContain('질문 "헤어진 사람이 다시 올까?" 기준으로 보면')
+    expect(data.overall_message).toContain('The Fool')
+  })
+
+  it('should rebuild a generic contact overall into a contact-specific summary', async () => {
+    const { apiClient } = await import('@/lib/api/ApiClient')
+
+    vi.mocked(apiClient.post).mockResolvedValue({
+      ok: true,
+      data: {
+        overall_message:
+          '지금은 성급한 결정보다 우선순위를 정리하고 작은 실행을 만드는 것이 중요합니다. 감정적으로 흔들리기보다 지금 할 수 있는 일을 정리하고 흐름을 기다려 보세요.',
+        card_insights: [],
+        guidance:
+          '1) 오늘: 상대 반응을 기록하세요.\n2) 이번 주: 패턴을 확인하세요.\n3) 다음 7일: 변화 여부를 보세요.',
+      },
+    })
+
+    const req = new NextRequest('http://localhost/api/tarot/interpret', {
+      method: 'POST',
+      body: JSON.stringify({
+        categoryId: 'love-relationships',
+        spreadId: 'crush-feelings',
+        spreadTitle: 'Crush Feelings',
+        cards: [
+          {
+            name: 'The Magician',
+            isReversed: false,
+            position: 'Present',
+            meaning: 'Initiative',
+          },
+        ],
+        language: 'ko',
+        userQuestion: '걔가 오늘 연락할까?',
+      }),
+    })
+
+    const response = await POST(req)
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(data.overall_message).toContain('질문 "걔가 오늘 연락할까?" 기준으로 보면')
+    expect(data.overall_message).toMatch(/연락|반응/)
+  })
+
+  it('should rebuild a generic decision overall into a decision-specific summary', async () => {
+    const { apiClient } = await import('@/lib/api/ApiClient')
+
+    vi.mocked(apiClient.post).mockResolvedValue({
+      ok: true,
+      data: {
+        overall_message:
+          '지금은 성급한 결정보다 우선순위를 정리하고 작은 실행을 만드는 것이 중요합니다. 감정적으로 흔들리기보다 지금 할 수 있는 일을 정리하고 흐름을 기다려 보세요.',
+        card_insights: [],
+        guidance:
+          '1) 오늘: 조건을 적으세요.\n2) 이번 주: 기준을 확인하세요.\n3) 다음 7일: 결과를 보세요.',
+      },
+    })
+
+    const req = new NextRequest('http://localhost/api/tarot/interpret', {
+      method: 'POST',
+      body: JSON.stringify({
+        categoryId: 'decisions-crossroads',
+        spreadId: 'yes-no-why',
+        spreadTitle: 'Yes No Why',
+        cards: [
+          {
+            name: 'Justice',
+            isReversed: false,
+            position: 'Core',
+            meaning: 'Balance',
+          },
+        ],
+        language: 'ko',
+        userQuestion: '지금 집 사는 게 맞아?',
+      }),
+    })
+
+    const response = await POST(req)
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(data.overall_message).toContain('질문 "지금 집 사는 게 맞아?" 기준으로 보면')
+    expect(data.overall_message).toMatch(/조건|기준|선택/)
+  })
 })

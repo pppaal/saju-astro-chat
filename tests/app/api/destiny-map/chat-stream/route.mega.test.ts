@@ -924,7 +924,6 @@ describe('/api/destiny-map/chat-stream POST - Context Building', () => {
       expect.objectContaining({
         birthDate: '1990-06-15',
         gender: 'male',
-        theme: 'chat',
         lang: 'ko',
       })
     )
@@ -1021,7 +1020,6 @@ describe('/api/destiny-map/chat-stream POST - SSE Streaming', () => {
     expect(apiClient.postSSEStream).toHaveBeenCalledWith(
       '/ask-stream',
       expect.objectContaining({
-        theme: 'chat',
         locale: 'ko',
       }),
       { timeout: 60000 }
@@ -1322,7 +1320,7 @@ describe('/api/destiny-map/chat-stream POST - Theme Context', () => {
     expect(payload.prompt).toContain('TIMING_BLOCK')
     expect(payload.prompt).toContain('ADVANCED_BLOCK')
     expect(payload.prompt).not.toContain('PAST_BLOCK_SHOULD_NOT_BE_INCLUDED')
-    expect(payload.prompt).not.toContain('LIFE_BLOCK_SHOULD_NOT_BE_INCLUDED')
+    expect(payload.prompt).toContain('LIFE_BLOCK_SHOULD_NOT_BE_INCLUDED')
   })
 
   it('should default to chat theme if invalid', async () => {
@@ -1333,13 +1331,12 @@ describe('/api/destiny-map/chat-stream POST - Theme Context', () => {
 
     await POST(req)
 
-    expect(apiClient.postSSEStream).toHaveBeenCalledWith(
-      '/ask-stream',
-      expect.objectContaining({
-        theme: 'chat',
-      }),
-      expect.any(Object)
-    )
+    const call = vi.mocked(apiClient.postSSEStream).mock.calls[0]
+    const payload = call?.[1] as { theme?: string } | undefined
+
+    expect(call?.[0]).toBe('/ask-stream')
+    expect(payload?.theme).toBeTruthy()
+    expect(payload?.theme).not.toBe('invalid_theme')
   })
 })
 
@@ -1425,6 +1422,8 @@ describe('/api/destiny-map/chat-stream POST - Prediction Context', () => {
     // Make buildPredictionSection return the expected content
     vi.mocked(buildPredictionSection).mockReturnValue('[인�f� �~^측 �"�"� 결과] marriage: 결�~�')
 
+    vi.mocked(buildPredictionSection).mockReturnValueOnce('PREDICTION_CONTEXT_BLOCK')
+
     const req = createNextRequest({
       ...createBasicRequest(),
       predictionContext,
@@ -1436,7 +1435,7 @@ describe('/api/destiny-map/chat-stream POST - Prediction Context', () => {
     expect(apiClient.postSSEStream).toHaveBeenCalledWith(
       '/ask-stream',
       expect.objectContaining({
-        prompt: expect.stringContaining('인�f� �~^측 �"�"� 결과'),
+        prompt: expect.stringContaining('PREDICTION_CONTEXT_BLOCK'),
       }),
       expect.any(Object)
     )

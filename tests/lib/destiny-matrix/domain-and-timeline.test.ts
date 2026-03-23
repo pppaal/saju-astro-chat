@@ -3,6 +3,7 @@ import { calculateDestinyMatrix } from '@/lib/destiny-matrix/engine'
 import { computeDomainScores } from '@/lib/destiny-matrix/domainScoring'
 import { computeDomainBaseNorm } from '@/lib/destiny-matrix/domainMap'
 import {
+  buildProjectedMonthlyInputs,
   generateMonthlyOverlapTimeline,
   generateTimelineByDomain,
 } from '@/lib/destiny-matrix/monthlyTimeline'
@@ -187,6 +188,37 @@ describe('destiny-matrix domain and timeline', () => {
 
     expect(timeline[0].overlapStrength).toBeGreaterThanOrEqual(timeline[3].overlapStrength)
     expect(timeline[1].overlapStrength).toBeGreaterThanOrEqual(timeline[5].overlapStrength)
+  })
+
+  it('recomputes monthly cycle elements from unse snapshot instead of carrying current month forward', () => {
+    const points = buildProjectedMonthlyInputs(
+      buildInput({
+        currentSaeunElement: '\uAE08',
+        currentWolunElement: '\uC218',
+        currentDateIso: '2026-02-01',
+        profileContext: {
+          birthDate: '1995-02-09',
+          timezone: 'Asia/Seoul',
+        },
+        sajuSnapshot: {
+          unse: {
+            annual: [
+              { year: 2026, element: 'metal' },
+              { year: 2027, element: 'water' },
+            ],
+            monthly: [
+              { year: 2026, month: 2, element: 'water' },
+              { year: 2026, month: 3, element: 'wood' },
+            ],
+          },
+        },
+      }),
+      '2026-02'
+    )
+
+    expect(points[0].input.currentWolunElement).toBe('\uC218')
+    expect(points[1].input.currentWolunElement).toBe('\uBAA9')
+    expect(points[11].input.currentSaeunElement).toBe('\uC218')
   })
 
   it('calendar_signals_include_peak_months', () => {

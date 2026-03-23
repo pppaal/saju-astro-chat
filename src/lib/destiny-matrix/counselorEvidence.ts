@@ -23,8 +23,10 @@ import { adaptCoreToCounselor } from '@/lib/destiny-matrix/core/adapters'
 import type { DestinyCoreResult } from '@/lib/destiny-matrix/core/runDestinyCore'
 import {
   describeDataTrustSummary,
+  describeIntraMonthPeakWindow,
   describeProvenanceSummary,
   describeSajuAstroConflictByDomain,
+  describeTimingCalibrationSummary,
   describeWhyStack,
 } from '@/lib/destiny-matrix/interpretation/humanSemantics'
 
@@ -52,8 +54,28 @@ type CounselorTheme =
   | 'chat'
   | string
 
+function mapSignalDomainToTimelineDomain(
+  domain?: string
+): import('@/lib/destiny-matrix/types').DomainKey | null {
+  switch (domain) {
+    case 'career':
+      return 'career'
+    case 'relationship':
+      return 'love'
+    case 'wealth':
+      return 'money'
+    case 'health':
+      return 'health'
+    case 'move':
+      return 'move'
+    default:
+      return null
+  }
+}
+
 export interface CounselorEvidencePacket {
   focusDomain: string
+  actionFocusDomain?: string
   verdict: string
   guardrail: string
   topAnchorSummary: string
@@ -94,6 +116,9 @@ export interface CounselorEvidencePacket {
   canonicalBrief?: {
     gradeLabel: string
     phaseLabel: string
+    actionFocusDomain?: string
+    focusRunnerUpDomain?: string
+    actionRunnerUpDomain?: string
     topDecisionAction?: string
     topDecisionLabel?: string
     answerThesis: string
@@ -106,6 +131,7 @@ export interface CounselorEvidencePacket {
     blockedActions: string[]
     softChecks: string[]
     hardStops: string[]
+    latentTopAxes?: string[]
   }
   topDomainAdvisory?: {
     domain: string
@@ -119,6 +145,8 @@ export interface CounselorEvidencePacket {
     domain: string
     window: string
     timingGranularity?: 'day' | 'week' | 'fortnight' | 'month' | 'season'
+    timingReliabilityBand?: 'low' | 'medium' | 'high'
+    timingReliabilityScore?: number
     precisionReason?: string
     timingConflictMode?: 'aligned' | 'readiness_ahead' | 'trigger_ahead' | 'weak_both'
     timingConflictNarrative?: string
@@ -177,7 +205,7 @@ type CounselorEvidencePacketLike = {
     attackPercent?: number
     defensePercent?: number
   }
-  canonicalBrief?: CounselorEvidencePacket['canonicalBrief']
+  canonicalBrief?: Partial<NonNullable<CounselorEvidencePacket['canonicalBrief']>>
   topDomainAdvisory?: CounselorEvidencePacket['topDomainAdvisory']
   topTimingWindow?: CounselorEvidencePacket['topTimingWindow']
   topManifestation?: CounselorEvidencePacket['topManifestation']
@@ -189,7 +217,10 @@ function uniq<T>(items: T[]): T[] {
 }
 
 function normalizeCounselorSentence(value: string): string {
-  return value.replace(/\s+/g, ' ').trim().replace(/[.。!！?？]+$/u, '')
+  return value
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[.。!！?？]+$/u, '')
 }
 
 function joinUniqueVerdictParts(parts: Array<string | null | undefined>): string {
@@ -212,12 +243,51 @@ function joinUniqueVerdictParts(parts: Array<string | null | undefined>): string
 
 function buildCounselorVerdictLead(
   topDecisionLabel: string | undefined,
+  actionFocusDomain: string | undefined,
+  focusDomain: string | undefined,
   lang: 'ko' | 'en'
 ): string | undefined {
   if (!topDecisionLabel) return undefined
+  if (actionFocusDomain && focusDomain && actionFocusDomain !== focusDomain) {
+    return lang === 'ko'
+      ? `중심축은 ${localizeCounselorDomain(focusDomain, lang)}이지만, 지금 우선 행동축은 ${localizeCounselorDomain(actionFocusDomain, lang)}입니다. 우선은 ${topDecisionLabel}입니다.`
+      : `The underlying axis is ${localizeCounselorDomain(focusDomain, lang)}, but the action axis right now is ${localizeCounselorDomain(actionFocusDomain, lang)}. The priority now is ${topDecisionLabel}.`
+  }
   return lang === 'ko'
     ? `지금 우선은 ${topDecisionLabel}입니다`
     : `The priority now is ${topDecisionLabel}.`
+}
+
+function buildCounselorArbitrationLine(input: {
+  focusDomain: string
+  actionFocusDomain?: string
+  focusRunnerUpDomain?: string
+  actionRunnerUpDomain?: string
+  lang: 'ko' | 'en'
+}): string {
+  const focusLabel = localizeCounselorDomain(input.focusDomain, input.lang)
+  const actionLabel = localizeCounselorDomain(
+    input.actionFocusDomain || input.focusDomain,
+    input.lang
+  )
+  const focusRunnerUp = input.focusRunnerUpDomain
+    ? localizeCounselorDomain(input.focusRunnerUpDomain, input.lang)
+    : ''
+  const actionRunnerUp = input.actionRunnerUpDomain
+    ? localizeCounselorDomain(input.actionRunnerUpDomain, input.lang)
+    : ''
+
+  if (input.lang === 'ko') {
+    if (input.actionFocusDomain && input.actionFocusDomain !== input.focusDomain) {
+      return `${focusLabel}이 중심축으로 남았고, 실제 행동 압력은 ${actionLabel}이 ${actionRunnerUp || '다른 축'}보다 앞서 올라왔습니다.`
+    }
+    return `${focusLabel}이 ${focusRunnerUp || '다른 축'}보다 한 단계 앞서 현재 중심 판단으로 채택됐습니다.`
+  }
+
+  if (input.actionFocusDomain && input.actionFocusDomain !== input.focusDomain) {
+    return `${focusLabel} stayed as the identity axis, while ${actionLabel} moved ahead of ${actionRunnerUp || 'the runner-up domain'} as the actionable pressure.`
+  }
+  return `${focusLabel} stayed ahead of ${focusRunnerUp || 'the runner-up domain'} as the current lead axis.`
 }
 
 function mapThemeToDomain(theme: CounselorTheme): InsightDomain {
@@ -308,7 +378,10 @@ function buildDomainSpecificWhyReasons(input: {
       sajuWhy: genericSaju,
       astroWhy: genericAstro,
       crossWhy:
-        strategyLine || answerThesis || graphFocusReason || 'the overlapping signals point to the same decision axis first',
+        strategyLine ||
+        answerThesis ||
+        graphFocusReason ||
+        'the overlapping signals point to the same decision axis first',
       graphWhy:
         graphReason ||
         'the top evidence bundle is ranked first because its overlap and fit are stronger than the surrounding sets',
@@ -520,7 +593,9 @@ function toEvidenceRefs(
   const selected = (signalSynthesis.selectedSignals || [])
     .slice()
     .sort((a, b) => b.rankScore - a.rankScore)
-  const prioritized = selected.filter((signal) => signal.domainHints.some((domain) => domainHints.includes(domain)))
+  const prioritized = selected.filter((signal) =>
+    signal.domainHints.some((domain) => domainHints.includes(domain))
+  )
   const fallback = selected.slice(0, 8)
   const source = (prioritized.length > 0 ? prioritized : fallback).slice(0, 8)
 
@@ -539,7 +614,10 @@ function toEvidenceRefs(
 
 function mergeUniqueSignals(signalSynthesis: SignalSynthesisResult): NormalizedSignal[] {
   const seen = new Set<string>()
-  const ordered = [...(signalSynthesis.selectedSignals || []), ...(signalSynthesis.normalizedSignals || [])]
+  const ordered = [
+    ...(signalSynthesis.selectedSignals || []),
+    ...(signalSynthesis.normalizedSignals || []),
+  ]
   const out: NormalizedSignal[] = []
   for (const signal of ordered) {
     if (!signal?.id || seen.has(signal.id)) continue
@@ -558,9 +636,14 @@ function scoreCounselorSignal(
   const signalDomains = signal.domainHints || []
   const matchesFocusLead = signalDomains[0] === focusDomain
   const matchesFocusAny = signalDomains.some((domain) => domain === focusDomain)
-  const sectionHints = sectionPath ? domainHintsForSection(sectionPath, focusDomain as InsightDomain) : []
-  const matchesSectionLead = sectionHints.length > 0 && signalDomains[0] && sectionHints.includes(signalDomains[0])
-  const matchesSectionAny = sectionHints.some((hint) => signalDomains.some((domain) => domain === hint))
+  const sectionHints = sectionPath
+    ? domainHintsForSection(sectionPath, focusDomain as InsightDomain)
+    : []
+  const matchesSectionLead =
+    sectionHints.length > 0 && signalDomains[0] && sectionHints.includes(signalDomains[0])
+  const matchesSectionAny = sectionHints.some((hint) =>
+    signalDomains.some((domain) => domain === hint)
+  )
   return (
     (matchesFocusLead ? 120 : 0) +
     (matchesFocusAny ? 80 : 0) +
@@ -623,7 +706,11 @@ function inferScenarioSectionHints(scenarioIds: string[]): string[] {
   for (const id of scenarioIds) {
     const key = String(id || '').toLowerCase()
     if (!key) continue
-    if (/boundary|distance|commitment|cohabitation|family_acceptance|reconciliation|separation|clarify/.test(key)) {
+    if (
+      /boundary|distance|commitment|cohabitation|family_acceptance|reconciliation|separation|clarify/.test(
+        key
+      )
+    ) {
       hints.add('relationshipDynamics')
       hints.add('actionPlan')
       hints.add('timing')
@@ -652,10 +739,7 @@ function inferScenarioSectionHints(scenarioIds: string[]): string[] {
   return [...hints]
 }
 
-function buildScenarioActionHints(
-  scenarioIds: string[],
-  lang: 'ko' | 'en'
-): string[] {
+function buildScenarioActionHints(scenarioIds: string[], lang: 'ko' | 'en'): string[] {
   const hints = new Set<string>()
   for (const id of scenarioIds) {
     const key = String(id || '').toLowerCase()
@@ -670,7 +754,9 @@ function buildScenarioActionHints(
       hints.add(lang === 'ko' ? '관계 경계를 다시 정리하세요' : 'reset the boundary')
     }
     if (/commitment_preparation/.test(key)) {
-      hints.add(lang === 'ko' ? '확정보다 준비 단계를 먼저 두세요' : 'prepare before defining commitment')
+      hints.add(
+        lang === 'ko' ? '확정보다 준비 단계를 먼저 두세요' : 'prepare before defining commitment'
+      )
     }
     if (/route_recheck/.test(key)) {
       hints.add(lang === 'ko' ? '경로를 먼저 재확인하세요' : 'recheck the route first')
@@ -682,7 +768,11 @@ function buildScenarioActionHints(
       hints.add(lang === 'ko' ? '생활 거점을 다시 정리하세요' : 'reset the base of operations')
     }
     if (/lease_decision/.test(key)) {
-      hints.add(lang === 'ko' ? '계약 조건을 먼저 재확인하고 다시 협의하세요' : 'renegotiate the lease terms')
+      hints.add(
+        lang === 'ko'
+          ? '계약 조건을 먼저 재확인하고 다시 협의하세요'
+          : 'renegotiate the lease terms'
+      )
     }
     if (/promotion_review/.test(key)) {
       hints.add(lang === 'ko' ? '승진/역할 검토를 먼저 하세요' : 'review the promotion case first')
@@ -691,13 +781,17 @@ function buildScenarioActionHints(
       hints.add(lang === 'ko' ? '조건 협의부터 하세요' : 'negotiate the terms first')
     }
     if (/debt_restructure/.test(key)) {
-      hints.add(lang === 'ko' ? '부채 구조를 재정리하세요' : 'restructure the debt before expanding')
+      hints.add(
+        lang === 'ko' ? '부채 구조를 재정리하세요' : 'restructure the debt before expanding'
+      )
     }
     if (/capital_allocation/.test(key)) {
       hints.add(lang === 'ko' ? '자금 배분부터 다시 점검하세요' : 'review capital allocation first')
     }
     if (/recovery_reset|recovery_compliance/.test(key)) {
-      hints.add(lang === 'ko' ? '회복 루틴을 먼저 복구하세요' : 'restore the recovery routine first')
+      hints.add(
+        lang === 'ko' ? '회복 루틴을 먼저 복구하세요' : 'restore the recovery routine first'
+      )
     }
   }
   return [...hints].slice(0, 3)
@@ -711,8 +805,7 @@ function buildPacketGuardrail(
     if (phase === 'expansion') return '실행은 하되, 확정 전 반대 근거 1개를 반드시 확인하세요.'
     if (phase === 'high_tension_expansion')
       return '속도는 내되 문서, 금액, 약속은 이중 확인 후 확정하세요.'
-    if (phase === 'expansion_guarded')
-      return '기회는 잡되 체크리스트를 먼저 끝낸 뒤 확장하세요.'
+    if (phase === 'expansion_guarded') return '기회는 잡되 체크리스트를 먼저 끝낸 뒤 확장하세요.'
     if (phase === 'stabilize') return '새 확장보다 구조 정렬과 우선순위 재정리를 먼저 하세요.'
     return '새로운 확장보다 손실, 오해, 과속을 먼저 막으세요.'
   }
@@ -798,21 +891,29 @@ export function buildCounselorEvidencePacket(params: {
     counselorCore?.manifestations.find((item) => item.domain === preferredDomain) ||
     counselorCore?.manifestations[0] ||
     null
-  const scenarioActionHints = buildScenarioActionHints(counselorCore?.topScenarioIds || [], params.lang)
+  const scenarioActionHints = buildScenarioActionHints(
+    counselorCore?.topScenarioIds || [],
+    params.lang
+  )
   const prefersScenarioActionLead =
     preferredDomain === 'move' &&
     scenarioActionHints.length > 0 &&
-    (
-      counselorCore?.topDecisionAction === 'prepare_only' ||
-      /preparation|information-gathering|준비|정보 수집/i.test(counselorCore?.topDecisionLabel || '')
-    )
+    (counselorCore?.topDecisionAction === 'prepare_only' ||
+      /preparation|information-gathering|준비|정보 수집/i.test(
+        counselorCore?.topDecisionLabel || ''
+      ))
   const topDecisionLeadLabel =
     prefersScenarioActionLead && scenarioActionHints[0]
       ? `${localizeCounselorDomain(preferredDomain, params.lang)}: ${scenarioActionHints[0]}`
       : counselorCore?.topDecisionLabel
 
   const verdict = joinUniqueVerdictParts([
-    buildCounselorVerdictLead(topDecisionLeadLabel ?? undefined, params.lang),
+    buildCounselorVerdictLead(
+      topDecisionLeadLabel ?? undefined,
+      counselorCore?.actionFocusDomain,
+      preferredDomain,
+      params.lang
+    ),
     counselorCore?.answerThesis,
     prefersScenarioActionLead ? scenarioActionHints[0] : undefined,
     topManifestation?.manifestation,
@@ -932,9 +1033,46 @@ export function buildCounselorEvidencePacket(params: {
       [],
     lang: params.lang,
   })
+  const timingCalibrationNarrative = describeTimingCalibrationSummary({
+    reliabilityBand: params.matrixSummary?.timingCalibration?.reliabilityBand,
+    reliabilityScore: params.matrixSummary?.timingCalibration?.reliabilityScore,
+    pastStability: params.matrixSummary?.timingCalibration?.pastStability,
+    futureStability: params.matrixSummary?.timingCalibration?.futureStability,
+    backtestConsistency: params.matrixSummary?.timingCalibration?.backtestConsistency,
+    lang: params.lang,
+  })
+  const timelineDomain = mapSignalDomainToTimelineDomain(preferredDomain)
+  const intraMonthPeakNarrative = describeIntraMonthPeakWindow({
+    domainLabel: localizeCounselorDomain(preferredDomain, params.lang),
+    points: timelineDomain
+      ? params.matrixSummary?.overlapTimelineByDomain?.[timelineDomain]
+      : undefined,
+    lang: params.lang,
+  })
+  const arbitrationNarrative = counselorCore
+    ? buildCounselorArbitrationLine({
+        focusDomain: preferredDomain,
+        actionFocusDomain: counselorCore.actionFocusDomain,
+        focusRunnerUpDomain: counselorCore.arbitrationBrief.focusRunnerUpDomain || undefined,
+        actionRunnerUpDomain: counselorCore.arbitrationBrief.actionRunnerUpDomain || undefined,
+        lang: params.lang,
+      })
+    : ''
+  const latentNarrative = counselorCore?.latentTopAxes?.length
+    ? params.lang === 'ko'
+      ? `지금 해석을 가장 세게 끄는 축은 ${counselorCore.latentTopAxes
+          .slice(0, 3)
+          .map((axis) => axis.label)
+          .join(', ')}입니다.`
+      : `The strongest latent drivers right now are ${counselorCore.latentTopAxes
+          .slice(0, 3)
+          .map((axis) => axis.label)
+          .join(', ')}.`
+    : ''
 
   return {
     focusDomain: preferredDomain,
+    actionFocusDomain: counselorCore?.actionFocusDomain,
     verdict,
     guardrail: counselorCore?.primaryCaution || guardrail,
     topAnchorSummary,
@@ -981,6 +1119,9 @@ export function buildCounselorEvidencePacket(params: {
       ? {
           gradeLabel: counselorCore.gradeLabel,
           phaseLabel: counselorCore.phaseLabel,
+          actionFocusDomain: counselorCore.actionFocusDomain,
+          focusRunnerUpDomain: counselorCore.arbitrationBrief.focusRunnerUpDomain || undefined,
+          actionRunnerUpDomain: counselorCore.arbitrationBrief.actionRunnerUpDomain || undefined,
           topDecisionAction: counselorCore.topDecisionAction || undefined,
           topDecisionLabel: topDecisionLeadLabel || undefined,
           answerThesis: counselorCore.answerThesis,
@@ -989,19 +1130,27 @@ export function buildCounselorEvidencePacket(params: {
           timingHint: counselorCore.timingHint,
           policyMode: counselorCore.judgmentPolicy.mode,
           policyRationale: counselorCore.judgmentPolicy.rationale,
-          allowedActions: [...scenarioActionHints, ...(counselorCore.judgmentPolicy.allowedActionLabels || [])].slice(0, 3),
+          allowedActions: [
+            ...scenarioActionHints,
+            ...(counselorCore.judgmentPolicy.allowedActionLabels || []),
+          ].slice(0, 3),
           blockedActions: (counselorCore.judgmentPolicy.blockedActionLabels || []).slice(0, 3),
-          softChecks: (counselorCore.judgmentPolicy.softCheckLabels || counselorCore.judgmentPolicy.softChecks).slice(0, 3),
-          hardStops: (counselorCore.judgmentPolicy.hardStopLabels || counselorCore.judgmentPolicy.hardStops).slice(0, 3),
+          softChecks: (
+            counselorCore.judgmentPolicy.softCheckLabels || counselorCore.judgmentPolicy.softChecks
+          ).slice(0, 3),
+          hardStops: (
+            counselorCore.judgmentPolicy.hardStopLabels || counselorCore.judgmentPolicy.hardStops
+          ).slice(0, 3),
+          latentTopAxes: counselorCore.latentTopAxes.slice(0, 3).map((axis) => axis.label),
         }
       : undefined,
     topDomainAdvisory: topDomainAdvisory
       ? {
           domain: topDomainAdvisory.domain,
           thesis: topDomainAdvisory.thesis,
-          action: [topDomainAdvisory.action, ...scenarioActionHints].filter(Boolean).join(
-            params.lang === 'ko' ? ' / ' : ' / '
-          ),
+          action: [topDomainAdvisory.action, ...scenarioActionHints]
+            .filter(Boolean)
+            .join(params.lang === 'ko' ? ' / ' : ' / '),
           caution: topDomainAdvisory.caution,
           timingHint: topDomainAdvisory.timingHint,
           strategyLine: topDomainAdvisory.strategyLine,
@@ -1012,6 +1161,8 @@ export function buildCounselorEvidencePacket(params: {
           domain: topTimingWindow.domain,
           window: topTimingWindow.window,
           timingGranularity: topTimingWindow.timingGranularity,
+          timingReliabilityBand: params.matrixSummary?.timingCalibration?.reliabilityBand,
+          timingReliabilityScore: params.matrixSummary?.timingCalibration?.reliabilityScore,
           precisionReason: topTimingWindow.precisionReason,
           timingConflictMode: topTimingWindow.timingConflictMode,
           timingConflictNarrative: topTimingWindow.timingConflictNarrative,
@@ -1033,7 +1184,11 @@ export function buildCounselorEvidencePacket(params: {
       : undefined,
     whyStack: [
       ...whyStack,
+      arbitrationNarrative,
+      latentNarrative,
       topTimingWindow?.timingConflictNarrative || '',
+      timingCalibrationNarrative,
+      intraMonthPeakNarrative,
       topTimingWindow?.precisionReason || '',
       conflictNarrative,
       trustNarrative,
@@ -1082,18 +1237,22 @@ export function formatCounselorEvidencePacket(
   const canonicalLines = packet.canonicalBrief
     ? [
         '[Canonical Core]',
-        `grade=${packet.canonicalBrief.gradeLabel}`,
-        `phase=${packet.canonicalBrief.phaseLabel}`,
+        `grade=${packet.canonicalBrief.gradeLabel || 'none'}`,
+        `phase=${packet.canonicalBrief.phaseLabel || 'none'}`,
+        `action_focus=${packet.canonicalBrief.actionFocusDomain || 'none'}`,
+        `focus_runner_up=${packet.canonicalBrief.focusRunnerUpDomain || 'none'}`,
+        `action_runner_up=${packet.canonicalBrief.actionRunnerUpDomain || 'none'}`,
         `top_decision=${packet.canonicalBrief.topDecisionLabel || packet.canonicalBrief.topDecisionAction || 'none'}`,
-        `answer=${packet.canonicalBrief.answerThesis}`,
-        `action=${packet.canonicalBrief.primaryAction}`,
-        `caution=${packet.canonicalBrief.primaryCaution}`,
-        `timing=${packet.canonicalBrief.timingHint}`,
-        `policy_mode=${packet.canonicalBrief.policyMode}`,
+        `answer=${packet.canonicalBrief.answerThesis || 'none'}`,
+        `action=${packet.canonicalBrief.primaryAction || 'none'}`,
+        `caution=${packet.canonicalBrief.primaryCaution || 'none'}`,
+        `timing=${packet.canonicalBrief.timingHint || 'none'}`,
+        `policy_mode=${packet.canonicalBrief.policyMode || 'none'}`,
         `allowed_actions=${(packet.canonicalBrief.allowedActions || []).join(' | ') || 'none'}`,
         `blocked_actions=${(packet.canonicalBrief.blockedActions || []).join(' | ') || 'none'}`,
         `soft_checks=${(packet.canonicalBrief.softChecks || []).join(' | ') || 'none'}`,
         `hard_stops=${(packet.canonicalBrief.hardStops || []).join(' | ') || 'none'}`,
+        `latent_top_axes=${(packet.canonicalBrief.latentTopAxes || []).join(' | ') || 'none'}`,
         '',
       ]
     : []
@@ -1117,6 +1276,7 @@ export function formatCounselorEvidencePacket(
         `domain=${packet.topTimingWindow.domain}`,
         `window=${packet.topTimingWindow.window}`,
         `granularity=${packet.topTimingWindow.timingGranularity || 'unknown'}`,
+        `reliability=${packet.topTimingWindow.timingReliabilityBand || 'unknown'}${typeof packet.topTimingWindow.timingReliabilityScore === 'number' ? `:${Math.round(packet.topTimingWindow.timingReliabilityScore * 100)}` : ''}`,
         `precision=${packet.topTimingWindow.precisionReason || 'none'}`,
         `conflict_mode=${packet.topTimingWindow.timingConflictMode || 'none'}`,
         `conflict=${packet.topTimingWindow.timingConflictNarrative || 'none'}`,

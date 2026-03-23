@@ -17,7 +17,10 @@ import { getHourlyRecommendation } from '@/lib/destiny-map/calendar/specialDays-
 import { apiClient } from '@/lib/api/ApiClient'
 import { checkPremiumFromDatabase } from '@/lib/stripe/premiumCache'
 import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
-import { formatDecisionActionLabels, formatPolicyCheckLabels } from '@/lib/destiny-matrix/core/actionCopy'
+import {
+  formatDecisionActionLabels,
+  formatPolicyCheckLabels,
+} from '@/lib/destiny-matrix/core/actionCopy'
 import { describeTimingWindowBrief } from '@/lib/destiny-matrix/interpretation/humanSemantics'
 
 type TimelineTone = 'best' | 'caution' | 'neutral'
@@ -190,6 +193,16 @@ type ActionPlanCalendarContext = {
       entryConditions?: string[]
       abortConditions?: string[]
     }
+    domainTimingWindows?: Array<{
+      domain?: string
+      window?: 'now' | '1-3m' | '3-6m' | '6-12m' | '12m+'
+      timingGranularity?: 'day' | 'week' | 'fortnight' | 'month' | 'season'
+      precisionReason?: string
+      timingConflictNarrative?: string
+      whyNow?: string
+      entryConditions?: string[]
+      abortConditions?: string[]
+    }>
   }
   evidence?: CalendarEvidence
 } | null
@@ -340,9 +353,15 @@ const actionPlanTimelineRequestSchema = z.object({
               mode: z.enum(['execute', 'verify', 'prepare']).optional(),
               rationale: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
               allowedActions: z.array(z.string().max(64)).max(8).optional(),
-              allowedActionLabels: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
+              allowedActionLabels: z
+                .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+                .max(8)
+                .optional(),
               blockedActions: z.array(z.string().max(64)).max(8).optional(),
-              blockedActionLabels: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
+              blockedActionLabels: z
+                .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+                .max(8)
+                .optional(),
               hardStops: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
               hardStopLabels: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
               softChecks: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
@@ -360,6 +379,29 @@ const actionPlanTimelineRequestSchema = z.object({
               entryConditions: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
               abortConditions: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
             })
+            .optional(),
+          domainTimingWindows: z
+            .array(
+              z.object({
+                domain: z.string().max(32).optional(),
+                window: z.enum(['now', '1-3m', '3-6m', '6-12m', '12m+']).optional(),
+                timingGranularity: z
+                  .enum(['day', 'week', 'fortnight', 'month', 'season'])
+                  .optional(),
+                precisionReason: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                timingConflictNarrative: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                whyNow: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                entryConditions: z
+                  .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+                  .max(8)
+                  .optional(),
+                abortConditions: z
+                  .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+                  .max(8)
+                  .optional(),
+              })
+            )
+            .max(8)
             .optional(),
         })
         .optional(),
@@ -873,7 +915,10 @@ function buildCanonicalTimingBrief(
   locale: 'ko' | 'en'
 ): string {
   const canonical = getCanonicalCore(calendar)
-  const timing = canonical?.topTimingWindow
+  const timing =
+    canonical?.topTimingWindow ||
+    canonical?.domainTimingWindows?.find((item) => item.domain === canonical?.focusDomain) ||
+    canonical?.domainTimingWindows?.[0]
   if (!timing?.window) return ''
   return describeTimingWindowBrief({
     domainLabel: canonical?.focusDomain || timing.domain || '',
@@ -1171,7 +1216,10 @@ function buildSlotGuardrail(input: {
   const { locale, slotTypes, tone, calendar } = input
   const canonical = getCanonicalCore(calendar)
   const matrixGuardrail = cleanGuidanceText(
-    canonical?.primaryCaution || canonical?.riskControl || getMatrixVerdict(calendar)?.guardrail || '',
+    canonical?.primaryCaution ||
+      canonical?.riskControl ||
+      getMatrixVerdict(calendar)?.guardrail ||
+      '',
     120
   )
   const slotSpecific =
@@ -1290,10 +1338,7 @@ function buildSlotNarrative(input: {
       })
   const focusHint = cleanGuidanceText(getCategoryFocusHint(category, hour, locale), 42)
   const phase = cleanGuidanceText(
-    canonical?.phaseLabel ||
-      canonical?.phase ||
-      verdict?.phase ||
-      '',
+    canonical?.phaseLabel || canonical?.phase || verdict?.phase || '',
     36
   )
   const claim = cleanGuidanceText(
@@ -1485,10 +1530,7 @@ function buildActionPlanInsights(input: {
     96
   )
   const phaseLabel = cleanGuidanceText(
-    canonical?.phaseLabel ||
-      canonical?.phase ||
-      verdict?.phase ||
-      '',
+    canonical?.phaseLabel || canonical?.phase || verdict?.phase || '',
     48
   )
   const allowedActionCopy = formatDecisionActionLabels(
@@ -1605,9 +1647,7 @@ function buildActionPlanInsights(input: {
 
   if (hardStopCopy[0]) {
     situationTriggers.unshift(
-      isKo
-        ? `즉시 중단 조건: ${hardStopCopy[0]}`
-        : `Immediate stop condition: ${hardStopCopy[0]}`
+      isKo ? `즉시 중단 조건: ${hardStopCopy[0]}` : `Immediate stop condition: ${hardStopCopy[0]}`
     )
   }
 
@@ -2461,8 +2501,3 @@ export const POST = withApiMiddleware(
     windowSeconds: 60,
   })
 )
-
-
-
-
-

@@ -1,9 +1,16 @@
 ﻿import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
-import type { DomainKey, DomainScore } from '@/lib/destiny-matrix/types'
+import type {
+  DomainKey,
+  DomainScore,
+  MonthlyOverlapPoint,
+  TimingCalibrationSummary,
+} from '@/lib/destiny-matrix/types'
 import {
   describeDataTrustSummary,
+  describeIntraMonthPeakWindow,
   describeProvenanceSummary,
   describeSajuAstroConflictByDomain,
+  describeTimingCalibrationSummary,
   describeTimingWindowBrief,
 } from '@/lib/destiny-matrix/interpretation/humanSemantics'
 import type { FormattedDate } from './types'
@@ -106,10 +113,21 @@ function mapCoreDomainToPresentationDomain(domain?: string): PresentationDomain 
   if (!domain) return 'general'
   if (domain === 'relationship') return 'love'
   if (domain === 'wealth') return 'money'
-  if (domain === 'career' || domain === 'health' || domain === 'move' || domain === 'love' || domain === 'money') {
+  if (
+    domain === 'career' ||
+    domain === 'health' ||
+    domain === 'move' ||
+    domain === 'love' ||
+    domain === 'money'
+  ) {
     return domain
   }
   return 'general'
+}
+
+function mapPresentationDomainToDomainKey(domain: PresentationDomain): DomainKey | null {
+  if (domain === 'general') return null
+  return domain
 }
 
 function matchesPresentationDomain(date: FormattedDate, domain: PresentationDomain): boolean {
@@ -119,7 +137,8 @@ function matchesPresentationDomain(date: FormattedDate, domain: PresentationDoma
   if (domain === 'money' && matrixDomain === 'money') return true
   if (matrixDomain === domain) return true
 
-  if (domain === 'career') return date.categories.includes('career') || date.categories.includes('study')
+  if (domain === 'career')
+    return date.categories.includes('career') || date.categories.includes('study')
   if (domain === 'love') return date.categories.includes('love')
   if (domain === 'money') return date.categories.includes('wealth')
   if (domain === 'health') return date.categories.includes('health')
@@ -172,7 +191,8 @@ function getReliabilityText(
     return '신호는 안정적인 편이며 핵심 1~2개 실행에 집중하기 좋습니다.'
   }
 
-  if (lowConf && lowAgreement) return 'Signal alignment is low, so review should come before commitment.'
+  if (lowConf && lowAgreement)
+    return 'Signal alignment is low, so review should come before commitment.'
   if (lowConf) return 'Evidence strength is low, so act conservatively.'
   if (lowAgreement) return 'Cross-agreement is weak, so a second check helps.'
   return 'Signals are stable enough to focus on one or two priorities.'
@@ -225,19 +245,25 @@ function weatherSummaryText(
 ): string {
   if (locale === 'ko') {
     if (area === 'relationship') {
-      if (grade === 'strong') return '관계 흐름이 좋습니다. 연결은 넓히되 약속은 짧게 확인하는 편이 낫습니다.'
+      if (grade === 'strong')
+        return '관계 흐름이 좋습니다. 연결은 넓히되 약속은 짧게 확인하는 편이 낫습니다.'
       if (grade === 'good') return '관계 흐름은 우호적입니다. 핵심 대화 한 건에 집중하면 좋습니다.'
-      if (grade === 'neutral') return '관계는 무난한 흐름입니다. 기대치와 표현 방식을 먼저 맞추는 편이 안정적입니다.'
+      if (grade === 'neutral')
+        return '관계는 무난한 흐름입니다. 기대치와 표현 방식을 먼저 맞추는 편이 안정적입니다.'
       return '관계는 주의 구간입니다. 반응보다 확인, 추정보다 문장 정리가 우선입니다.'
     }
-    if (grade === 'strong') return '일과 돈의 흐름이 강합니다. 확장보다 우선순위 하나를 정확히 잡는 편이 더 좋습니다.'
-    if (grade === 'good') return '일과 돈은 실행 가능성이 높습니다. 작은 검증 단계를 끼우면 성과가 안정됩니다.'
-    if (grade === 'neutral') return '일과 돈은 무난한 흐름입니다. 속도보다 체크리스트 운영이 더 안전합니다.'
+    if (grade === 'strong')
+      return '일과 돈의 흐름이 강합니다. 확장보다 우선순위 하나를 정확히 잡는 편이 더 좋습니다.'
+    if (grade === 'good')
+      return '일과 돈은 실행 가능성이 높습니다. 작은 검증 단계를 끼우면 성과가 안정됩니다.'
+    if (grade === 'neutral')
+      return '일과 돈은 무난한 흐름입니다. 속도보다 체크리스트 운영이 더 안전합니다.'
     return '일과 돈은 변동성이 있어 신규 확정보다 조건 검토와 손실 방지가 우선입니다.'
   }
 
   if (area === 'relationship') {
-    if (grade === 'strong') return 'Relationship flow is strong. Expand gently and confirm commitments briefly.'
+    if (grade === 'strong')
+      return 'Relationship flow is strong. Expand gently and confirm commitments briefly.'
     if (grade === 'good') return 'Relationship flow is supportive. Focus on one key conversation.'
     if (grade === 'neutral') return 'Relationship flow is neutral. Align expectations first.'
     return 'Relationship flow is cautious. Verification matters more than reaction.'
@@ -245,7 +271,8 @@ function weatherSummaryText(
 
   if (grade === 'strong') return 'Work and finance are strong. Lock one high-impact priority first.'
   if (grade === 'good') return 'Work and finance support execution. Add one verification step.'
-  if (grade === 'neutral') return 'Work and finance are neutral. Checklist pacing is safer than speed.'
+  if (grade === 'neutral')
+    return 'Work and finance are neutral. Checklist pacing is safer than speed.'
   return 'Work and finance are volatile. Review terms before any commitment.'
 }
 
@@ -322,7 +349,9 @@ function buildDomainSummaryFrame(
     .replace(/^이번 주 돈 문제는\s+재정/u, '재정')
     .replace(/^이번 달 일은\s+\d{4}-\d{2}은\s+커리어/u, (m) => m.replace(/^이번 달 일은\s+/, ''))
     .replace(/^이번 달 관계는\s+\d{4}-\d{2}은\s+관계/u, (m) => m.replace(/^이번 달 관계는\s+/, ''))
-    .replace(/^이번 달 돈 문제는\s+\d{4}-\d{2}은\s+재정/u, (m) => m.replace(/^이번 달 돈 문제는\s+/, ''))
+    .replace(/^이번 달 돈 문제는\s+\d{4}-\d{2}은\s+재정/u, (m) =>
+      m.replace(/^이번 달 돈 문제는\s+/, '')
+    )
 
   const finalTail = baseWithoutDuplicatePrefix.includes(tail) ? '' : tail
   const keywordMatchedTail =
@@ -402,13 +431,11 @@ function prioritizeTopDomains(
   preferredFocusDomain?: PresentationDomain
 ): TopDomain[] {
   if (!preferredFocusDomain) return rows
-  return rows
-    .slice()
-    .sort((a, b) => {
-      if (a.domain === preferredFocusDomain && b.domain !== preferredFocusDomain) return -1
-      if (b.domain === preferredFocusDomain && a.domain !== preferredFocusDomain) return 1
-      return b.score - a.score
-    })
+  return rows.slice().sort((a, b) => {
+    if (a.domain === preferredFocusDomain && b.domain !== preferredFocusDomain) return -1
+    if (b.domain === preferredFocusDomain && a.domain !== preferredFocusDomain) return 1
+    return b.score - a.score
+  })
 }
 
 function buildTopDomainsFromCanonical(
@@ -450,9 +477,22 @@ export function buildCalendarPresentationView(input: {
     qualityPenalties: string[]
     confidenceReason: string
   }
+  timingCalibration?: TimingCalibrationSummary
+  overlapTimelineByDomain?: Record<DomainKey, MonthlyOverlapPoint[]>
   domainScores?: Record<DomainKey, DomainScore>
 }): CalendarPresentationView {
-  const { allDates, locale, timeZone, canonicalCore, preferredFocusDomain, matrixContract, dataQuality, domainScores } = input
+  const {
+    allDates,
+    locale,
+    timeZone,
+    canonicalCore,
+    preferredFocusDomain,
+    matrixContract,
+    dataQuality,
+    timingCalibration,
+    overlapTimelineByDomain,
+    domainScores,
+  } = input
   const selected = pickSelectedDate(allDates, timeZone)
 
   if (!selected) {
@@ -483,15 +523,20 @@ export function buildCalendarPresentationView(input: {
   )
   const canonicalTopDomains = buildTopDomainsFromCanonical(locale, canonicalCore)
   const rawTopDomains =
-    canonicalTopDomains.length > 0 ? canonicalTopDomains : buildTopDomains(locale, allDates, domainScores)
+    canonicalTopDomains.length > 0
+      ? canonicalTopDomains
+      : buildTopDomains(locale, allDates, domainScores)
   const focusDomain =
     preferredFocusDomain ||
     mapCoreDomainToPresentationDomain(canonicalCore?.focusDomain) ||
     (selected.evidence?.matrix?.domain as PresentationDomain | undefined) ||
     rawTopDomains[0]?.domain ||
     'general'
+  const actionFocusDomain =
+    mapCoreDomainToPresentationDomain(canonicalCore?.actionFocusDomain) || focusDomain
   const topDomains = prioritizeTopDomains(rawTopDomains, focusDomain).slice(0, 3)
   const focusDomainLabel = getDomainLabel(focusDomain, locale)
+  const actionFocusDomainLabel = getDomainLabel(actionFocusDomain, locale)
   const detailSelected = pickDomainAlignedDate(allDates, focusDomain, selected)
   const canonicalAdvisories =
     canonicalCore?.advisories?.filter(
@@ -504,8 +549,9 @@ export function buildCalendarPresentationView(input: {
   const primaryProvenance =
     canonicalTimingWindows[0]?.provenance ||
     canonicalAdvisories[0]?.provenance ||
-    canonicalCore?.domainVerdicts?.find((item) => mapCoreDomainToPresentationDomain(item.domain) === focusDomain)
-      ?.provenance
+    canonicalCore?.domainVerdicts?.find(
+      (item) => mapCoreDomainToPresentationDomain(item.domain) === focusDomain
+    )?.provenance
   const reliability = dedupe([
     getReliabilityText(
       locale,
@@ -517,7 +563,10 @@ export function buildCalendarPresentationView(input: {
         : selected.evidence?.crossAgreementPercent
     ),
     describeDataTrustSummary({
-      score: typeof canonicalCore?.confidence === 'number' ? Math.round(canonicalCore.confidence * 100) : undefined,
+      score:
+        typeof canonicalCore?.confidence === 'number'
+          ? Math.round(canonicalCore.confidence * 100)
+          : undefined,
       missingFields: dataQuality?.missingFields || [],
       derivedFields: dataQuality?.derivedFields || [],
       conflictingFields: dataQuality?.conflictingFields || [],
@@ -528,6 +577,22 @@ export function buildCalendarPresentationView(input: {
       sourceFields: primaryProvenance?.sourceFields || [],
       sourceSetIds: primaryProvenance?.sourceSetIds || [],
       sourceRuleIds: primaryProvenance?.sourceRuleIds || [],
+      lang: locale,
+    }),
+    describeTimingCalibrationSummary({
+      reliabilityBand: timingCalibration?.reliabilityBand,
+      reliabilityScore: timingCalibration?.reliabilityScore,
+      pastStability: timingCalibration?.pastStability,
+      futureStability: timingCalibration?.futureStability,
+      backtestConsistency: timingCalibration?.backtestConsistency,
+      lang: locale,
+    }),
+    describeIntraMonthPeakWindow({
+      domainLabel: getDomainLabel(focusDomain, locale),
+      points:
+        mapPresentationDomainToDomainKey(focusDomain) && overlapTimelineByDomain
+          ? overlapTimelineByDomain[mapPresentationDomainToDomainKey(focusDomain) as DomainKey]
+          : undefined,
       lang: locale,
     }),
   ]).join(' ')
@@ -592,6 +657,54 @@ export function buildCalendarPresentationView(input: {
     focusDomainLabel,
     lang: locale,
   })
+  const focusSplitLead =
+    actionFocusDomain !== focusDomain
+      ? locale === 'ko'
+        ? `중심축은 ${focusDomainLabel}이고, 지금 행동축은 ${actionFocusDomainLabel}입니다.`
+        : `The underlying axis is ${focusDomainLabel}, while the action axis right now is ${actionFocusDomainLabel}.`
+      : ''
+  const focusRunnerUpLabel = canonicalCore?.arbitrationBrief?.focusRunnerUpDomain
+    ? getDomainLabel(
+        mapCoreDomainToPresentationDomain(canonicalCore.arbitrationBrief.focusRunnerUpDomain) ||
+          'general',
+        locale
+      )
+    : ''
+  const actionRunnerUpLabel = canonicalCore?.arbitrationBrief?.actionRunnerUpDomain
+    ? getDomainLabel(
+        mapCoreDomainToPresentationDomain(canonicalCore.arbitrationBrief.actionRunnerUpDomain) ||
+          'general',
+        locale
+      )
+    : ''
+  const arbitrationLead = canonicalCore?.arbitrationBrief
+    ? locale === 'ko'
+      ? actionFocusDomain !== focusDomain
+        ? actionRunnerUpLabel
+          ? `${actionFocusDomainLabel} 축이 ${actionRunnerUpLabel}보다 앞서 이번 실행축으로 올라왔습니다.`
+          : `${actionFocusDomainLabel} 축이 이번 실행 판단을 가장 직접 끌고 갑니다.`
+        : focusRunnerUpLabel
+          ? `${focusDomainLabel} 축이 ${focusRunnerUpLabel}보다 앞서 이번 중심축으로 남았습니다.`
+          : `${focusDomainLabel} 축이 이번 중심 판단을 가장 직접 끌고 갑니다.`
+      : actionFocusDomain !== focusDomain
+        ? actionRunnerUpLabel
+          ? `${actionFocusDomainLabel} moved ahead of ${actionRunnerUpLabel} as the current action axis.`
+          : `${actionFocusDomainLabel} is carrying the action pressure most directly right now.`
+        : focusRunnerUpLabel
+          ? `${focusDomainLabel} stayed ahead of ${focusRunnerUpLabel} as the current lead axis.`
+          : `${focusDomainLabel} is carrying the lead pressure most directly right now.`
+    : ''
+  const latentLead = canonicalCore?.latentTopAxes?.length
+    ? locale === 'ko'
+      ? `가장 강하게 작동하는 층은 ${canonicalCore.latentTopAxes
+          .slice(0, 2)
+          .map((axis) => axis.label)
+          .join(', ')}입니다.`
+      : `The strongest active layers are ${canonicalCore.latentTopAxes
+          .slice(0, 2)
+          .map((axis) => axis.label)
+          .join(', ')}.`
+    : ''
 
   const daySummary: DaySummary = {
     date: selected.date,
@@ -601,9 +714,9 @@ export function buildCalendarPresentationView(input: {
       focusDomain,
       defensivePhase
         ? locale === 'ko'
-          ? `${daySummaryText} ${crossConflictText} 오늘은 확정보다 검토와 재정렬을 우선하세요.`
-          : `${daySummaryText} ${crossConflictText} Today favors review and reset over commitment.`
-        : `${daySummaryText} ${crossConflictText}`.trim()
+          ? `${focusSplitLead} ${arbitrationLead} ${latentLead} ${daySummaryText} ${crossConflictText} 오늘은 확정보다 검토와 재정렬을 우선하세요.`
+          : `${focusSplitLead} ${arbitrationLead} ${latentLead} ${daySummaryText} ${crossConflictText} Today favors review and reset over commitment.`
+        : `${focusSplitLead} ${arbitrationLead} ${latentLead} ${daySummaryText} ${crossConflictText}`.trim()
     ),
     focusDomain: focusDomainLabel,
     reliability,
@@ -618,7 +731,9 @@ export function buildCalendarPresentationView(input: {
   const weekTop = weekSorted[0]
   const weekLow = weekSorted[weekSorted.length - 1]
   const weekDomain = topDomains[0] || buildTopDomains(locale, weekDates, undefined)[0]
-  const weekDomainLabel = preferredFocusDomain ? focusDomainLabel : weekDomain?.label || focusDomainLabel
+  const weekDomainLabel = preferredFocusDomain
+    ? focusDomainLabel
+    : weekDomain?.label || focusDomainLabel
   const weekSummaryText =
     locale === 'ko'
       ? `${weekDomainLabel} 흐름이 중심인 주간입니다. ${
@@ -634,7 +749,8 @@ export function buildCalendarPresentationView(input: {
                 timingConflictNarrative: canonicalTimingWindows[0].timingConflictNarrative,
                 lang: 'ko',
               })
-            : canonicalCore?.riskControl || `상대적으로 여유가 있는 날은 ${weekTop?.date || weekStart}, 보수적으로 운영할 날은 ${weekLow?.date || weekEnd} 쪽입니다.`
+            : canonicalCore?.riskControl ||
+              `상대적으로 여유가 있는 날은 ${weekTop?.date || weekStart}, 보수적으로 운영할 날은 ${weekLow?.date || weekEnd} 쪽입니다.`
         }`
       : `This week centers on ${weekDomain?.label || focusDomainLabel}. The lighter window is around ${weekTop?.date || weekStart}, while the more conservative window is around ${weekLow?.date || weekEnd}.`
 
@@ -660,7 +776,9 @@ export function buildCalendarPresentationView(input: {
     monthDates.length > 0
       ? monthDates.reduce((sum, d) => sum + (d.displayScore ?? d.score), 0) / monthDates.length
       : (selected.displayScore ?? selected.score)
-  const monthDomainLabel = preferredFocusDomain ? focusDomainLabel : monthDomain?.label || focusDomainLabel
+  const monthDomainLabel = preferredFocusDomain
+    ? focusDomainLabel
+    : monthDomain?.label || focusDomainLabel
 
   const monthSummary: MonthSummary = {
     month: monthKey,
