@@ -8,6 +8,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import BackButton from '@/components/ui/BackButton'
 import CreditBadge from '@/components/ui/CreditBadge'
+import { getDeckPreviewImagePath } from '@/lib/Tarot/deckPreview'
 import { CARD_COLORS } from '../hooks/useTarotState'
 import type { TarotPersonalizationOptions } from '../hooks/useTarotGame'
 import type { Spread } from '@/lib/Tarot/tarot.types'
@@ -105,10 +106,12 @@ export default function DeckSelector({
               >
                 <div className={styles.deckCardPreview}>
                   <Image
-                    src={deck.backImage}
+                    src={getDeckPreviewImagePath(deck.backImage)}
                     alt={deck.name}
                     width={100}
                     height={155}
+                    sizes="(max-width: 768px) 80px, 100px"
+                    quality={68}
                     className={styles.deckBackImage}
                   />
                 </div>

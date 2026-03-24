@@ -360,6 +360,32 @@ function buildReportOutputCoreFields(
   lang: 'ko' | 'en' = 'ko'
 ) {
   if (!reportCore) return {}
+  const localizeReportFreeText = (text: string | undefined | null): string => {
+    const value = String(text || '').trim()
+    if (!value || lang !== 'ko') return value
+    return value
+      .replace(/\bpersonality\b/gi, '성향')
+      .replace(/\bcareer\b/gi, '커리어')
+      .replace(/\brelationship\b/gi, '관계')
+      .replace(/\bwealth\b/gi, '재정')
+      .replace(/\bhealth\b/gi, '건강')
+      .replace(/\bmove\b/gi, '이동')
+      .replace(/\bnow\b/gi, '지금')
+      .replace(/\bweek\b/gi, '주 단위')
+      .replace(/\bcaution\b/gi, '주의 신호')
+      .replace(/\bdowngrade pressure\b/gi, '하향 조정 압력')
+      .replace(
+        /action pressure stayed narrow between ([^\s]+) and ([^\s]+)/gi,
+        (_, left: string, right: string) =>
+          `${getReportDomainLabel(left, 'ko')}와 ${getReportDomainLabel(right, 'ko')} 사이의 행동 압력이 좁게 경쟁했습니다`
+      )
+      .replace(/커리어은/g, '커리어는')
+      .replace(/관계은/g, '관계는')
+      .replace(/재정와/g, '재정과')
+      .replace(/건강와/g, '건강과')
+      .replace(/\s+/g, ' ')
+      .trim()
+  }
   const focusLabel = getReportDomainLabel(reportCore.focusDomain, lang)
   const actionLabel = getReportDomainLabel(
     reportCore.actionFocusDomain || reportCore.focusDomain,
@@ -380,17 +406,17 @@ function buildReportOutputCoreFields(
           .join(', ')}.`
   const timingSummary =
     lang === 'ko'
-      ? `${actionLabel} 쪽 타이밍은 ${timingWindow?.window || 'unknown'} 구간으로 읽히며, ${timingWindow?.timingConflictNarrative || '구조와 촉발을 함께 봐야 합니다.'}`
+      ? `${actionLabel} 쪽 타이밍은 ${localizeReportFreeText(timingWindow?.window || 'unknown')} 구간으로 읽히며, ${localizeReportFreeText(timingWindow?.timingConflictNarrative || '구조와 촉발을 함께 봐야 합니다.')}`
       : `Timing for ${actionLabel} reads as ${timingWindow?.window || 'unknown'}, and ${timingWindow?.timingConflictNarrative || 'structure and trigger need to be read together.'}`
   const conflictSummary =
     lang === 'ko'
-      ? reportCore.arbitrationBrief.conflictReasons[0] ||
+      ? localizeReportFreeText(reportCore.arbitrationBrief.conflictReasons[0]) ||
         `${focusLabel} 중심축과 ${actionLabel} 행동축이 분리돼 읽히는 구간입니다.`
       : reportCore.arbitrationBrief.conflictReasons[0] ||
         `${focusLabel} and ${actionLabel} currently separate into identity and action axes.`
   const evidenceSummary =
     lang === 'ko'
-      ? `상위 신호 ${reportCore.topSignalIds.slice(0, 3).join(', ')}, 패턴 ${reportCore.topPatternIds.slice(0, 2).join(', ')}, 시나리오 ${reportCore.topScenarioIds.slice(0, 2).join(', ')}가 이번 해석의 골격입니다.`
+      ? `상위 신호 ${reportCore.topSignalIds.slice(0, 3).length}개와 핵심 패턴 ${reportCore.topPatternIds.slice(0, 2).length}개, 시나리오 ${reportCore.topScenarioIds.slice(0, 2).length}개가 이번 해석의 골격입니다.`
       : `Top signals ${reportCore.topSignalIds.slice(0, 3).join(', ')}, patterns ${reportCore.topPatternIds.slice(0, 2).join(', ')}, and scenarios ${reportCore.topScenarioIds.slice(0, 2).join(', ')} form the current spine.`
   return {
     focusDomain: reportCore.focusDomain,
@@ -412,14 +438,63 @@ function buildReportOutputCoreFields(
       conflict: {
         headline: lang === 'ko' ? '충돌 투영' : 'Conflict Projection',
         summary: conflictSummary,
-        reasons: reportCore.arbitrationBrief.conflictReasons.slice(0, 3),
+        reasons:
+          lang === 'ko'
+            ? reportCore.arbitrationBrief.conflictReasons
+                .slice(0, 3)
+                .map((item) => localizeReportFreeText(item))
+            : reportCore.arbitrationBrief.conflictReasons.slice(0, 3),
+      },
+      action: {
+        headline: lang === 'ko' ? '행동 투영' : 'Action Projection',
+        summary:
+          lang === 'ko'
+            ? `${actionLabel} 축에서는 ${reportCore.topDecisionLabel || reportCore.topDecisionId || reportCore.primaryAction}이 실제 움직임의 중심입니다.`
+            : `On the ${actionLabel} axis, ${reportCore.topDecisionLabel || reportCore.topDecisionId || reportCore.primaryAction} is the live move.`,
+        reasons: [
+          reportCore.topDecisionLabel || reportCore.topDecisionId || '',
+          ...(reportCore.judgmentPolicy.allowedActionLabels || []).slice(0, 2),
+        ].filter(Boolean),
+      },
+      risk: {
+        headline: lang === 'ko' ? '리스크 투영' : 'Risk Projection',
+        summary:
+          lang === 'ko'
+            ? [
+                localizeReportFreeText(reportCore.primaryCaution),
+                localizeReportFreeText(reportCore.riskControl),
+              ]
+                .filter(Boolean)
+                .join('. ')
+            : `${reportCore.primaryCaution} ${reportCore.riskControl}`.trim(),
+        reasons: [
+          ...(reportCore.judgmentPolicy.blockedActionLabels || []).slice(0, 2),
+          ...(reportCore.judgmentPolicy.hardStopLabels || []).slice(0, 2),
+        ]
+          .map((item) => (lang === 'ko' ? localizeReportFreeText(item) : item))
+          .filter(Boolean),
       },
       evidence: {
         headline: lang === 'ko' ? '근거 투영' : 'Evidence Projection',
         summary: evidenceSummary,
-        signalIds: reportCore.topSignalIds.slice(0, 6),
-        patternIds: reportCore.topPatternIds.slice(0, 4),
-        scenarioIds: reportCore.topScenarioIds.slice(0, 4),
+        reasons:
+          lang === 'ko'
+            ? [
+                reportCore.topSignalIds.length
+                  ? `핵심 신호 ${reportCore.topSignalIds.slice(0, 3).length}개가 동시에 작동 중입니다.`
+                  : '',
+                reportCore.topPatternIds.length
+                  ? `상위 패턴 ${reportCore.topPatternIds.slice(0, 2).length}개가 같은 방향으로 겹칩니다.`
+                  : '',
+                reportCore.topScenarioIds.length
+                  ? `대표 시나리오 ${reportCore.topScenarioIds.slice(0, 2).length}개가 현재 판단을 지지합니다.`
+                  : '',
+              ].filter(Boolean)
+            : [
+                ...reportCore.topSignalIds.slice(0, 2),
+                ...reportCore.topPatternIds.slice(0, 1),
+                ...reportCore.topScenarioIds.slice(0, 1),
+              ].filter(Boolean),
       },
     },
     topDecisionId: reportCore.topDecisionId,
@@ -865,12 +940,35 @@ function buildFocusedCycleLead(
 }
 
 function buildPersonalBaseNarrative(input: MatrixCalculationInput, lang: 'ko' | 'en'): string {
+  const dayMaster = sanitizeEvidenceToken(getElementLabel(input.dayMasterElement, lang), lang)
+  const yongsin = sanitizeEvidenceToken(getElementLabel(input.yongsin, lang), lang)
+  const western = sanitizeEvidenceToken(
+    getWesternElementLabel(input.dominantWesternElement, lang),
+    lang
+  )
+  const geokguk = sanitizeEvidenceToken(localizeGeokgukLabel(input.geokguk, lang), lang)
+
   if (lang === 'ko') {
-    const dayMaster = withSubjectParticle(`일간 ${input.dayMasterElement}`)
-    const yongsin = withSubjectParticle(`용신 ${input.yongsin || '미상'}`)
-    return `원국 기준으로는 ${dayMaster} 기본 축이고, 격국은 ${input.geokguk || '미상'}, ${yongsin} 작동합니다. 서양 쪽에서는 ${getWesternElementLabel(input.dominantWesternElement, lang)} 원소가 강하게 잡혀 있습니다.`
+    const parts = [
+      dayMaster ? `일간 ${dayMaster}` : '',
+      geokguk ? `격국 ${geokguk}` : '',
+      yongsin ? `용신 ${yongsin}` : '',
+      western ? `서양 원소 ${western}` : '',
+    ].filter(Boolean)
+    if (parts.length === 0)
+      return '원국에서는 기본 구조보다 현재 활성 흐름과 실행 순서를 함께 보는 편이 맞습니다.'
+    return `원국 기준으로는 ${parts.join(', ')} 흐름이 현재 판단의 바탕을 만듭니다.`
   }
-  return `At the natal level the base axis is day master ${input.dayMasterElement}, geokguk ${input.geokguk || 'unknown'}, yongsin ${input.yongsin || 'unknown'}, with ${getWesternElementLabel(input.dominantWesternElement, lang)} as the dominant western element.`
+
+  const parts = [
+    dayMaster ? `day master ${dayMaster}` : '',
+    geokguk ? `frame ${geokguk}` : '',
+    yongsin ? `useful element ${yongsin}` : '',
+    western ? `dominant western element ${western}` : '',
+  ].filter(Boolean)
+  if (parts.length === 0)
+    return 'At the natal level, the base structure matters less than how the current phase is being activated.'
+  return `At the natal level, ${parts.join(', ')} form the base layer behind the current reading.`
 }
 
 function buildSectionPersonalLead(
@@ -1462,14 +1560,32 @@ function buildElementMetaphor(
   }
 }
 
+function isMeaningfulEvidenceToken(value: string | undefined | null): boolean {
+  const token = String(value || '').trim()
+  if (!token) return false
+  const normalized = token.toLowerCase()
+  if (['?', '-', 'unknown', '??', 'none', 'n/a'].includes(normalized)) return false
+  if (/^[?\s.-]+$/.test(token)) return false
+  return true
+}
+
+function sanitizeEvidenceToken(value: string | undefined | null, lang: 'ko' | 'en'): string {
+  const token = normalizeNarrativeCoreText(String(value || '').trim(), lang)
+  return isMeaningfulEvidenceToken(token) ? token : ''
+}
+
 function buildEvidenceLine(input: MatrixCalculationInput, lang: 'ko' | 'en'): string {
-  const dayMaster = getElementLabel(input.dayMasterElement, lang)
-  const yongsin = getElementLabel(input.yongsin, lang)
-  const western = getWesternElementLabel(input.dominantWesternElement, lang)
+  const dayMaster = sanitizeEvidenceToken(getElementLabel(input.dayMasterElement, lang), lang)
+  const yongsin = sanitizeEvidenceToken(getElementLabel(input.yongsin, lang), lang)
+  const western = sanitizeEvidenceToken(
+    getWesternElementLabel(input.dominantWesternElement, lang),
+    lang
+  )
+  const geokguk = sanitizeEvidenceToken(localizeGeokgukLabel(input.geokguk, lang), lang)
   if (lang === 'ko') {
     const parts = [
       dayMaster ? `일간 ${dayMaster}` : '',
-      input.geokguk ? `격국 ${input.geokguk}` : '',
+      geokguk ? `격국 ${geokguk}` : '',
       yongsin ? `용신 ${yongsin}` : '',
       western ? `서양 원소 ${western}` : '',
     ].filter(Boolean)
@@ -1479,7 +1595,7 @@ function buildEvidenceLine(input: MatrixCalculationInput, lang: 'ko' | 'en'): st
   }
   const parts = [
     dayMaster ? `day master ${dayMaster}` : '',
-    input.geokguk ? `frame ${input.geokguk}` : '',
+    geokguk ? `frame ${geokguk}` : '',
     yongsin ? `useful element ${yongsin}` : '',
     western ? `dominant western element ${western}` : '',
   ].filter(Boolean)
@@ -1489,21 +1605,20 @@ function buildEvidenceLine(input: MatrixCalculationInput, lang: 'ko' | 'en'): st
 }
 
 function buildEvidenceFooter(input: MatrixCalculationInput, lang: 'ko' | 'en'): string {
-  const dayMaster = normalizeNarrativeCoreText(getElementLabel(input.dayMasterElement, lang), lang)
-  const yongsin = normalizeNarrativeCoreText(getElementLabel(input.yongsin, lang), lang)
-  const western = normalizeNarrativeCoreText(
+  const dayMaster = sanitizeEvidenceToken(getElementLabel(input.dayMasterElement, lang), lang)
+  const yongsin = sanitizeEvidenceToken(getElementLabel(input.yongsin, lang), lang)
+  const western = sanitizeEvidenceToken(
     getWesternElementLabel(input.dominantWesternElement, lang),
     lang
   )
-  const safeWestern = lang === 'en' && containsHangul(western) ? 'air' : western
-  const geokguk = localizeGeokgukLabel(input.geokguk, lang)
+  const geokguk = sanitizeEvidenceToken(localizeGeokgukLabel(input.geokguk, lang), lang)
 
   if (lang === 'ko') {
     const parts = [
       dayMaster ? `일간 ${dayMaster}` : '',
       geokguk ? `격국 ${geokguk}` : '',
       yongsin ? `용신 ${yongsin}` : '',
-      safeWestern ? `서양 원소 ${safeWestern}` : '',
+      western ? `서양 원소 ${western}` : '',
     ].filter(Boolean)
     return parts.length > 0 ? `핵심 근거는 ${parts.join(', ')}입니다.` : ''
   }
@@ -1512,7 +1627,7 @@ function buildEvidenceFooter(input: MatrixCalculationInput, lang: 'ko' | 'en'): 
     dayMaster ? `day master ${dayMaster}` : '',
     geokguk ? `frame ${geokguk}` : '',
     yongsin ? `useful element ${yongsin}` : '',
-    safeWestern ? `dominant western element ${safeWestern}` : '',
+    western ? `dominant western element ${western}` : '',
   ].filter(Boolean)
   return parts.length > 0
     ? normalizeNarrativeCoreText(`Key grounding comes from ${parts.join(', ')}.`, lang)
@@ -1744,6 +1859,16 @@ function shouldForceComprehensiveNarrativeFallback(
   )
 }
 
+function shouldForceThemedNarrativeFallback(quality: ReportQualityMetrics | undefined): boolean {
+  if (!quality) return false
+  return Boolean(
+    (quality.crossSectionRepetition || 0) >= 4 ||
+    (quality.genericAdviceDensity || 0) >= 0.8 ||
+    (quality.internalScenarioLeakCount || 0) > 0 ||
+    ((quality.personalizationDensity || 0) > 0 && (quality.personalizationDensity || 0) < 0.6)
+  )
+}
+
 function enforceComprehensiveNarrativeQualityFallback(
   sections: AIPremiumReport['sections'],
   reportCore: ReportCoreViewModel,
@@ -1767,6 +1892,88 @@ function enforceComprehensiveNarrativeQualityFallback(
     comprehensivePostProcessDeps,
     lang
   ) as AIPremiumReport['sections']
+}
+
+function shouldForceThemedNarrativeFallback(quality: ReportQualityMetrics | undefined): boolean {
+  if (!quality) return false
+  return Boolean(
+    (quality.crossSectionRepetition || 0) >= 4 ||
+    (quality.genericAdviceDensity || 0) >= 0.8 ||
+    (quality.internalScenarioLeakCount || 0) > 0 ||
+    ((quality.personalizationDensity || 0) > 0 && (quality.personalizationDensity || 0) < 0.6)
+  )
+}
+function enforceThemedNarrativeQualityFallback(
+  theme: ReportTheme,
+  reportCore: ReportCoreViewModel,
+  signalSynthesis: SignalSynthesisResult | undefined,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en',
+  timingData: TimingData | undefined,
+  evidenceRefs: SectionEvidenceRefs
+): ThemedReportSections {
+  const sectionPaths = [...getThemedSectionKeys(theme)]
+  let next = buildThemedFallbackSectionsExternal(
+    theme,
+    reportCore,
+    signalSynthesis,
+    lang,
+    secondaryFallbackDeps
+  ) as unknown as Record<string, unknown>
+  next = enrichThemedSectionsWithReportCore(
+    next as unknown as ThemedReportSections,
+    reportCore,
+    lang,
+    theme,
+    matrixInput,
+    reportCoreEnrichmentDeps,
+    timingData
+  ) as unknown as Record<string, unknown>
+  next = sanitizeThemedSectionsForUserExternal(
+    next,
+    sectionPaths,
+    lang,
+    secondaryPostProcessDeps,
+    theme
+  )
+  const deepAnalysis = typeof next.deepAnalysis === 'string' ? next.deepAnalysis : ''
+  if (deepAnalysis) {
+    const needsTimingDisclaimer =
+      lang === 'ko'
+        ? !/(함께 참고해도 되는 편입니다|참고할 만하지만|큰 흐름 중심으로 참고하는 편이 맞습니다|세부 타이밍은 한 번 더 확인하는 편이 좋습니다)/.test(
+            deepAnalysis
+          )
+        : !/(worth using as a broad directional read|use this as a broad directional guide|confirm finer timing separately)/.test(
+            deepAnalysis
+          )
+    const needsEvidenceNarrative =
+      lang === 'ko'
+        ? !/(함께 본 결과입니다|교차 근거 묶음|규칙 판정)/.test(deepAnalysis)
+        : !/(cross-evidence bundle|rule arbitration|read together across signals)/.test(
+            deepAnalysis
+          )
+    const additions: string[] = []
+    if (needsTimingDisclaimer) {
+      additions.push(
+        lang === 'ko'
+          ? '큰 흐름 중심으로 참고하는 편이 맞습니다.'
+          : 'Use this as a broad directional guide and confirm finer timing separately.'
+      )
+    }
+    if (needsEvidenceNarrative) {
+      additions.push(
+        lang === 'ko'
+          ? '교차 근거 묶음을 함께 본 결과입니다.'
+          : 'This read is grounded in a cross-evidence bundle and rule arbitration.'
+      )
+    }
+    if (additions.length > 0) {
+      next.deepAnalysis = `${deepAnalysis.trim()} ${additions.join(' ')}`.trim()
+    }
+  }
+  next = enforceEvidenceRefFooters(next, sectionPaths, evidenceRefs, lang)
+  next = sanitizeSectionsByPathsExternal(next, sectionPaths, narrativePathSanitizerDeps)
+  return next as unknown as ThemedReportSections
 }
 
 const reportCoreEnrichmentDeps: ReportCoreEnrichmentDeps = {
@@ -2077,7 +2284,17 @@ const reportSectionRendererDeps: ReportSectionRendererDeps = {
   capitalizeFirst,
   describeDataTrustSummary,
   describeProvenanceSummary,
-  describeTimingCalibrationSummary: (params) =>
+  describeTimingCalibrationSummary: (params: {
+    reliabilityBand?: string
+    reliabilityScore?: number
+    pastStability?: number
+    futureStability?: number
+    backtestConsistency?: number
+    calibratedFromHistory?: boolean
+    calibrationSampleSize?: number
+    calibrationMatchedRate?: number
+    lang: 'ko' | 'en'
+  }) =>
     describeTimingCalibrationSummary({
       reliabilityBand:
         params.reliabilityBand === 'low' ||
@@ -2089,6 +2306,9 @@ const reportSectionRendererDeps: ReportSectionRendererDeps = {
       pastStability: params.pastStability,
       futureStability: params.futureStability,
       backtestConsistency: params.backtestConsistency,
+      calibratedFromHistory: params.calibratedFromHistory,
+      calibrationSampleSize: params.calibrationSampleSize,
+      calibrationMatchedRate: params.calibrationMatchedRate,
       lang: params.lang,
     }),
   describeIntraMonthPeakWindow: (params) =>
@@ -3861,6 +4081,10 @@ export async function generateAIPremiumReport(
     evidenceRefsByPara: unified.evidenceRefsByPara,
     deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
     renderedMarkdown: [
+      renderProjectionBlocksAsMarkdown(
+        buildReportOutputCoreFields(reportCore, lang).projections,
+        lang
+      ),
       renderSectionsAsMarkdown(
         sections as Record<string, unknown>,
         [
@@ -3877,11 +4101,11 @@ export async function generateAIPremiumReport(
         ],
         lang
       ),
-      renderProjectionBlocksAsMarkdown(buildReportOutputCoreFields(reportCore, lang).projections),
     ]
       .filter(Boolean)
       .join('\n\n'),
     renderedText: [
+      renderProjectionBlocksAsText(buildReportOutputCoreFields(reportCore, lang).projections, lang),
       renderSectionsAsText(
         sections as Record<string, unknown>,
         [
@@ -3898,7 +4122,6 @@ export async function generateAIPremiumReport(
         ],
         lang
       ),
-      renderProjectionBlocksAsText(buildReportOutputCoreFields(reportCore, lang).projections),
     ]
       .filter(Boolean)
       .join('\n\n'),
@@ -4773,7 +4996,7 @@ export async function generateThemedReport(
     const themeMeta = THEME_META[theme]
     const themeScore = calculateThemeScore(theme, normalizedInput.sibsinDistribution)
     const keywords = extractKeywords(sections as unknown as ThemedReportSections, theme, lang)
-    const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
+    let qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
       requiredPaths: sectionPaths,
       claims: unified.claims,
       anchors: unified.anchors,
@@ -4781,6 +5004,25 @@ export async function generateThemedReport(
       timelineEvents: unified.timelineEvents,
       coreQuality: coreSeed.quality,
     })
+    if (shouldForceThemedNarrativeFallback(qualityMetrics)) {
+      sections = enforceThemedNarrativeQualityFallback(
+        theme,
+        reportCore,
+        signalSynthesis,
+        normalizedInput,
+        lang,
+        timingData,
+        evidenceRefs
+      ) as unknown as Record<string, unknown>
+      qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
+        requiredPaths: sectionPaths,
+        claims: unified.claims,
+        anchors: unified.anchors,
+        scenarioBundles: unified.scenarioBundles,
+        timelineEvents: unified.timelineEvents,
+        coreQuality: coreSeed.quality,
+      })
+    }
     const finalModelUsed = polished.modelUsed
       ? `deterministic+${polished.modelUsed}`
       : 'deterministic-only'
@@ -4896,7 +5138,7 @@ export async function generateThemedReport(
     const themeMeta = THEME_META[theme]
     const themeScore = calculateThemeScore(theme, normalizedInput.sibsinDistribution)
     const keywords = extractKeywords(sections as unknown as ThemedReportSections, theme, lang)
-    const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
+    let qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
       requiredPaths,
       claims: unified.claims,
       anchors: unified.anchors,
@@ -4904,6 +5146,25 @@ export async function generateThemedReport(
       timelineEvents: unified.timelineEvents,
       coreQuality: coreSeed.quality,
     })
+    if (shouldForceThemedNarrativeFallback(qualityMetrics)) {
+      sections = enforceThemedNarrativeQualityFallback(
+        theme,
+        reportCore,
+        signalSynthesis,
+        normalizedInput,
+        lang,
+        timingData,
+        evidenceRefs
+      ) as unknown as Record<string, unknown>
+      qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
+        requiredPaths,
+        claims: unified.claims,
+        anchors: unified.anchors,
+        scenarioBundles: unified.scenarioBundles,
+        timelineEvents: unified.timelineEvents,
+        coreQuality: coreSeed.quality,
+      })
+    }
     recordReportQualityMetrics('themed', rewrite.modelUsed, qualityMetrics)
     recordRewriteModeMetric('themed', rewrite.modelUsed, rewrite.tokensUsed)
     return {
@@ -5208,7 +5469,7 @@ export async function generateThemedReport(
     sectionPaths,
     evidenceRefs: themedEvidenceRefs,
   })
-  const qualityMetrics = buildReportQualityMetrics(
+  let qualityMetrics = buildReportQualityMetrics(
     sections as Record<string, unknown>,
     sectionPaths,
     themedEvidenceRefs,
@@ -5221,6 +5482,30 @@ export async function generateThemedReport(
       coreQuality: coreSeed.quality,
     }
   )
+  if (shouldForceThemedNarrativeFallback(qualityMetrics)) {
+    sections = enforceThemedNarrativeQualityFallback(
+      theme,
+      reportCore,
+      signalSynthesis,
+      normalizedInput,
+      lang,
+      timingData,
+      themedEvidenceRefs
+    ) as unknown as Record<string, unknown>
+    qualityMetrics = buildReportQualityMetrics(
+      sections as Record<string, unknown>,
+      sectionPaths,
+      themedEvidenceRefs,
+      {
+        requiredPaths: themedRequiredPaths,
+        claims: unified.claims,
+        anchors: unified.anchors,
+        scenarioBundles: unified.scenarioBundles,
+        timelineEvents: unified.timelineEvents,
+        coreQuality: coreSeed.quality,
+      }
+    )
+  }
 
   // 7. Assemble report
   const report: ThemedAIPremiumReport = {

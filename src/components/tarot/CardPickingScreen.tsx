@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import BackButton from '@/components/ui/BackButton'
+import { getDeckPreviewImagePath } from '@/lib/Tarot/deckPreview'
 import type { Spread } from '@/lib/Tarot/tarot.types'
 import type { CardColorOption } from '@/lib/Tarot/tarotThemeConfig'
 import styles from './CardPickingScreen.module.css'
@@ -29,16 +30,49 @@ export function CardPickingScreen({
 }: CardPickingScreenProps) {
   const isKo = locale === 'ko'
   const cardCount = spreadInfo?.cardCount || 3
+  const spreadTitle = isKo ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title
+  const positionLabels = spreadInfo.positions
+    .slice(0, cardCount)
+    .map((position, index) =>
+      isKo
+        ? position.titleKo || position.title || `카드 ${index + 1}`
+        : position.title || `Card ${index + 1}`
+    )
+  const nextSelectionOrder = Math.min(selectedIndices.length + 1, cardCount)
+  const nextSelectionIndex = Math.min(selectedIndices.length, Math.max(cardCount - 1, 0))
+  const activePositionLabel = positionLabels[nextSelectionIndex] || ''
+  const fanBackImage = getDeckPreviewImagePath(selectedColor.backImage)
+  const instructionTitle =
+    gameState === 'revealing'
+      ? isKo
+        ? '선택한 카드의 흐름을 읽고 있습니다'
+        : 'Reading the flow of your selected cards'
+      : isKo
+        ? `끌리는 카드를 ${cardCount}장 선택하세요`
+        : `Select ${cardCount} cards that call to you`
+  const guidanceText =
+    gameState === 'revealing'
+      ? isKo
+        ? '선택이 완료되었습니다. 카드의 연결과 흐름을 해석하고 있습니다.'
+        : 'Your selection is complete. Interpreting the links and flow between the cards.'
+      : selectedIndices.length === 0
+        ? isKo
+          ? '자연스럽게 마음이 끌리는 카드부터 고르세요. 첫 느낌이 가장 정확합니다.'
+          : 'Begin with the card that draws you in naturally. Your first instinct is usually right.'
+        : activePositionLabel
+          ? isKo
+            ? `${nextSelectionOrder}번째 자리인 ${activePositionLabel}에 놓일 카드를 골라보세요.`
+            : `Choose the card that belongs in the ${activePositionLabel} position next.`
+          : isKo
+            ? '질문을 떠올리며 순서대로 카드를 선택하세요.'
+            : 'Keep your question in mind and continue choosing in order.'
 
-  // First-time user tooltip
   const [showTooltip, setShowTooltip] = useState(false)
 
   useEffect(() => {
-    // Check if user has seen the tooltip before
     const hasSeenTooltip = localStorage.getItem('tarot_card_picking_tooltip_seen')
     if (!hasSeenTooltip && gameState === 'picking') {
       setShowTooltip(true)
-      // Auto-hide after 8 seconds
       const timer = setTimeout(() => {
         setShowTooltip(false)
         localStorage.setItem('tarot_card_picking_tooltip_seen', 'true')
@@ -59,36 +93,37 @@ export function CardPickingScreen({
       </div>
 
       <div className={styles.instructions}>
-        <h1 className={styles.instructionTitle}>
-          {isKo ? spreadInfo.titleKo || spreadInfo.title : spreadInfo.title}
-        </h1>
+        <p className={styles.spreadLabel}>{spreadTitle}</p>
+        <h1 className={styles.instructionTitle}>{instructionTitle}</h1>
         <div className={styles.instructionContent}>
-          {gameState === 'picking' && selectedIndices.length === 0 && (
-            <p className={styles.guidanceText}>
-              ✨{' '}
-              {isKo
-                ? `질문을 떠올리며 ${cardCount}장을 순서대로 선택하세요 (첫 느낌 우선)`
-                : `Focus on your question and choose ${cardCount} cards in order (trust your first instinct).`}
-            </p>
-          )}
+          <p className={styles.guidanceText}>{guidanceText}</p>
+          {gameState === 'picking' && activePositionLabel ? (
+            <div className={styles.currentPositionPanel}>
+              <span className={styles.currentPositionNumber}>{nextSelectionOrder}</span>
+              <div className={styles.currentPositionText}>
+                <span className={styles.currentPositionEyebrow}>
+                  {isKo ? '현재 선택할 위치' : 'Current position'}
+                </span>
+                <strong className={styles.currentPositionLabel}>{activePositionLabel}</strong>
+              </div>
+            </div>
+          ) : null}
           {gameState === 'revealing' && (
             <>
               <div className={styles.revealingOrb}></div>
               <p className={styles.revealingText}>
-                ✨{' '}
                 {isKo
-                  ? '선택 완료! 해석을 준비하고 있어요 (보통 5~10초)'
-                  : 'Selection complete! Preparing your reading (usually 5–10 seconds).'}
+                  ? '선택 완료. 해석을 준비하고 있어요. 보통 5~10초 정도 걸립니다.'
+                  : 'Selection complete. Preparing your reading. This usually takes 5 to 10 seconds.'}
               </p>
             </>
           )}
         </div>
       </div>
 
-      {/* First-time user tooltip */}
       {showTooltip && gameState === 'picking' && (
         <div className={styles.tooltipOverlay} onClick={handleDismissTooltip}>
-          <div className={styles.tooltipCard} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.tooltipCard} onClick={(event) => event.stopPropagation()}>
             <button
               className={styles.tooltipClose}
               onClick={handleDismissTooltip}
@@ -159,6 +194,8 @@ export function CardPickingScreen({
         {Array.from({ length: 78 }).map((_, index) => {
           const isSelected = selectionOrderMap.has(index)
           const displayNumber = selectionOrderMap.get(index) || 0
+          const selectionLabel = displayNumber > 0 ? positionLabels[displayNumber - 1] : ''
+
           return (
             <button
               key={`card-${index}-${displayNumber}`}
@@ -171,7 +208,7 @@ export function CardPickingScreen({
                   '--i': index,
                   '--card-gradient': selectedColor.gradient,
                   '--card-border': selectedColor.border,
-                  '--card-back-image': `url(${selectedColor.backImage})`,
+                  '--card-back-image': `url(${fanBackImage})`,
                 } as React.CSSProperties
               }
               onClick={() => onCardClick(index)}
@@ -188,9 +225,35 @@ export function CardPickingScreen({
                 <div className={styles.cardCenterIcon}>✦</div>
               </div>
               {isSelected && <div className={styles.selectionNumber}>{displayNumber}</div>}
+              {isSelected && selectionLabel ? (
+                <div className={styles.selectionPositionLabel}>{selectionLabel}</div>
+              ) : null}
             </button>
           )
         })}
+
+        <div className={styles.positionGuide} aria-hidden>
+          <div className={styles.positionGuideArc} />
+          <div className={styles.positionGuideTrack}>
+            {positionLabels.map((label, index) => {
+              const order = index + 1
+              const isComplete = selectedIndices.length > index
+              const isCurrent = selectedIndices.length === index && gameState === 'picking'
+
+              return (
+                <div
+                  key={`${spreadInfo.id}-position-${order}`}
+                  className={`${styles.positionGuideItem} ${
+                    isComplete ? styles.positionGuideItemComplete : ''
+                  } ${isCurrent ? styles.positionGuideItemCurrent : ''}`}
+                >
+                  <span className={styles.positionGuideIndex}>{order}</span>
+                  <span className={styles.positionGuideLabel}>{label}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
     </div>
   )

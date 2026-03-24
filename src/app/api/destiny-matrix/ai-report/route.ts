@@ -11,7 +11,6 @@ import {
   validateReportRequest,
   DestinyMatrixError,
   ErrorCodes,
-  wrapError,
 } from '@/lib/destiny-matrix'
 import type {
   MatrixCalculationInput,
@@ -27,7 +26,6 @@ import {
   generatePremiumPDF,
   REPORT_CREDIT_COSTS,
   summarizeDestinyMatrixEvidence,
-  summarizeGraphRAGEvidence,
   type AIPremiumReport,
   type ReportPeriod,
   type ReportTheme,
@@ -81,6 +79,12 @@ import {
   generateRouteAiReport,
   regenerateRouteAiReportStrict,
 } from './routeReportGeneration'
+import { buildAiReportErrorResponse } from './routeErrorResponses'
+import {
+  buildGeneratedReportJsonResponse,
+  buildGeneratedReportPdfResponse,
+  persistReportPredictionSnapshotEntry,
+} from './routeReportOutput'
 
 // ===========================
 // 크레딧 비용 계산
@@ -1804,40 +1808,38 @@ export const POST = withApiMiddleware(
           data: { pdfGenerated: true },
         })
 
-        return new NextResponse(Buffer.from(pdfBytes), {
-          status: HTTP_STATUS.OK,
-          headers: {
-            'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="destiny-matrix-report-${savedReport.id}.pdf"`,
-            'Content-Length': pdfBytes.length.toString(),
-          },
+        return buildGeneratedReportPdfResponse({
+          savedReportId: savedReport.id,
+          pdfBytes,
         })
       }
 
       // 14. JSON 응답 (저장된 리포트 ID 포함)
-      const res = NextResponse.json({
-        success: true,
+      const predictionId = await persistReportPredictionSnapshotEntry({
+        userId,
+        lang: (normalizedMatrixInput.lang || 'ko') === 'en' ? 'en' : 'ko',
+        theme: theme || reportType,
+        reportType,
+        reportSummary,
+        report: aiReportWithAudits,
+        matrixSummaryForGeneration,
+      })
+
+      return buildGeneratedReportJsonResponse({
+        predictionId,
         creditsUsed: creditCost,
         remainingCredits: balance.remainingCredits - creditCost,
         reportType,
-        matrixContract: {
-          coreHash: aiReportWithAudits.coreHash,
-          overallPhase: aiReportWithAudits.strategyEngine?.overallPhase,
-          overallPhaseLabel: aiReportWithAudits.strategyEngine?.overallPhaseLabel,
-          topClaimId: aiReportWithAudits.claims?.[0]?.id,
-          topClaim: aiReportWithAudits.claims?.[0]?.text,
-        },
-        report: {
-          ...aiReportWithAudits,
-          id: savedReport.id, // DB에 저장된 ID로 덮어쓰기
-          destinyMatrixEvidenceSummary,
-          graphRagEvidenceSummary: summarizeGraphRAGEvidence(
-            (aiReportWithAudits as AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport)
-              .graphRagEvidence
-          ),
-        },
+        report: aiReportWithAudits,
+        savedReportId: savedReport.id,
+        destinyMatrixEvidenceSummary,
       })
-      return res
+
+      /*
+
+
+          id: savedReport.id, // DB에 저장된 ID로 덮어쓰기
+      */
     } catch (error) {
       const rawErrorMessage = error instanceof Error ? error.message : String(error)
 
@@ -1849,7 +1851,9 @@ export const POST = withApiMiddleware(
       })
 
       // AI 프로바이더 관련 에러는 사용자에게 친절한 메시지로 변환
-      if (rawErrorMessage.includes('No AI providers available')) {
+      return buildAiReportErrorResponse(error)
+
+      /* if (rawErrorMessage.includes('No AI providers available')) {
         return NextResponse.json(
           {
             success: false,
@@ -1935,7 +1939,7 @@ export const POST = withApiMiddleware(
       const wrappedError = wrapError(error)
       return NextResponse.json(wrappedError.toJSON(), {
         status: wrappedError.getHttpStatus(),
-      })
+      }) */
     }
   },
   createAuthenticatedGuard({

@@ -461,6 +461,10 @@ export interface TimingCalibrationSummary {
   backtestConsistency: number // 0..1
   reliabilityScore: number // 0..1
   reliabilityBand: 'low' | 'medium' | 'high'
+  calibratedFromHistory?: boolean
+  calibrationSampleSize?: number
+  calibrationMatchedRate?: number
+  calibrationBucket?: string
 }
 
 export interface MatrixHighlight {

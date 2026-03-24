@@ -39,7 +39,7 @@ export default defineConfig({
   ],
   webServer: {
     command:
-      'cross-env DEMO_TOKEN=demo-test-token SUPPORT_EMAIL=support@destinypal.com npm run dev',
+      'cross-env DEMO_TOKEN=demo-test-token SUPPORT_EMAIL=support@destinypal.com npm run dev:webpack',
     url: baseURL,
     reuseExistingServer: true,
     timeout: 120 * 1000, // 2 minutes for Next.js startup

@@ -15,14 +15,24 @@ import {
   buildCalculationDetails,
 } from '@/lib/destiny-matrix/ai-report/qualityAudit'
 import { buildPreciseTimelineSummary } from '@/lib/destiny-matrix/monthlyTimelinePrecise'
+import { applyRuntimeCalibration } from '@/lib/destiny-matrix/calibrationRuntime'
 import type { MatrixCalculationInput, MatrixCell } from '@/lib/destiny-matrix'
 import type { MatrixSummary } from '@/lib/destiny-matrix/types'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
 import type { InsightDomain } from '@/lib/destiny-matrix'
 import type { AIUserPlan } from '@/lib/destiny-matrix/ai-report/reportTypes'
 import type { DeterministicProfile } from '@/lib/destiny-matrix/ai-report/deterministicCoreConfig'
+import type {
+  DestinyTimingGranularity,
+  DestinyTimingWindow,
+} from '@/lib/destiny-matrix/core/logging'
+
 
 type RouteAiReport = AIPremiumReport | TimingAIPremiumReport | ThemedAIPremiumReport
+
+type PremiumReportWithTimingWindows = AIPremiumReport & {
+  projections?: AIPremiumReport['projections']
+}
 
 type RouteReportGenerationContext = {
   matrixInput: MatrixCalculationInput
@@ -194,9 +204,53 @@ export async function generateRouteAiReport(context: RouteReportGenerationContex
     matrixSummary: context.matrixSummaryForGeneration,
   })
 
+  let calibratedReport = premiumReport
+  if (context.matrixSummaryForGeneration?.timingCalibration) {
+    const premiumReportWithTiming = premiumReport as PremiumReportWithTimingWindows
+    const timingProjection = premiumReportWithTiming.projections?.timing
+    const calibratedTiming = await applyRuntimeCalibration(
+      context.matrixSummaryForGeneration.timingCalibration,
+      {
+        service: 'report',
+        actionFocusDomain:
+          premiumReportWithTiming.actionFocusDomain || premiumReportWithTiming.focusDomain,
+        timingWindow: (timingProjection?.window as DestinyTimingWindow | undefined) ?? undefined,
+        timingGranularity:
+          (timingProjection?.granularity as DestinyTimingGranularity | undefined) ?? undefined,
+        overlapTimeline: context.matrixSummaryForGeneration.overlapTimeline,
+        overlapTimelineByDomain: context.matrixSummaryForGeneration.overlapTimelineByDomain,
+      }
+    )
+    if (
+      calibratedTiming &&
+      (calibratedTiming.reliabilityScore !== context.matrixSummaryForGeneration.timingCalibration.reliabilityScore ||
+        calibratedTiming.reliabilityBand !== context.matrixSummaryForGeneration.timingCalibration.reliabilityBand)
+    ) {
+      const calibratedSummary = {
+        ...context.matrixSummaryForGeneration,
+        timingCalibration: calibratedTiming,
+      }
+      calibratedReport = await generateAIPremiumReport(context.matrixInput, context.baseReport, {
+        name: context.name,
+        birthDate: context.birthDate,
+        lang: context.reportLang,
+        focusDomain: context.queryDomain,
+        detailLevel: context.detailLevel || 'detailed',
+        bilingual: context.bilingual,
+        targetChars: context.targetChars ? Math.floor(context.targetChars) : undefined,
+        tone: context.tone,
+        timingData: context.timingData,
+        userPlan: context.userPlan,
+        userQuestion: context.userQuestion,
+        deterministicProfile: context.deterministicProfile,
+        matrixSummary: calibratedSummary,
+      })
+    }
+  }
+
   return {
-    aiReport: premiumReport,
-    premiumReport,
+    aiReport: calibratedReport,
+    premiumReport: calibratedReport,
   }
 }
 
@@ -253,8 +307,53 @@ export async function regenerateRouteAiReportStrict(
     matrixSummary: context.matrixSummaryForGeneration,
   })
 
+  let calibratedReport = premiumReport
+  if (context.matrixSummaryForGeneration?.timingCalibration) {
+    const premiumReportWithTiming = premiumReport as PremiumReportWithTimingWindows
+    const timingProjection = premiumReportWithTiming.projections?.timing
+    const calibratedTiming = await applyRuntimeCalibration(
+      context.matrixSummaryForGeneration.timingCalibration,
+      {
+        service: 'report',
+        actionFocusDomain:
+          premiumReportWithTiming.actionFocusDomain || premiumReportWithTiming.focusDomain,
+        timingWindow: (timingProjection?.window as DestinyTimingWindow | undefined) ?? undefined,
+        timingGranularity:
+          (timingProjection?.granularity as DestinyTimingGranularity | undefined) ?? undefined,
+        overlapTimeline: context.matrixSummaryForGeneration.overlapTimeline,
+        overlapTimelineByDomain: context.matrixSummaryForGeneration.overlapTimelineByDomain,
+      }
+    )
+    if (
+      calibratedTiming &&
+      (calibratedTiming.reliabilityScore !== context.matrixSummaryForGeneration.timingCalibration.reliabilityScore ||
+        calibratedTiming.reliabilityBand !== context.matrixSummaryForGeneration.timingCalibration.reliabilityBand)
+    ) {
+      const calibratedSummary = {
+        ...context.matrixSummaryForGeneration,
+        timingCalibration: calibratedTiming,
+      }
+      calibratedReport = await generateAIPremiumReport(context.matrixInput, context.baseReport, {
+        name: context.name,
+        birthDate: context.birthDate,
+        lang: context.reportLang,
+        focusDomain: context.queryDomain,
+        detailLevel: context.detailLevel || 'detailed',
+        bilingual: context.bilingual,
+        targetChars: context.targetChars ? Math.floor(context.targetChars) : undefined,
+        tone: context.tone,
+        timingData: context.timingData,
+        userPlan: context.userPlan,
+        userQuestion: context.userQuestion,
+        deterministicProfile: context.deterministicProfile,
+        deterministicOnly: true,
+        matrixSummary: calibratedSummary,
+      })
+    }
+  }
+
   return {
-    aiReport: premiumReport,
-    premiumReport,
+    aiReport: calibratedReport,
+    premiumReport: calibratedReport,
   }
 }

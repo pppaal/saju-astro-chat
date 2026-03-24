@@ -1,12 +1,22 @@
-type JsonLike = Record<string, unknown>
+﻿type JsonLike = Record<string, unknown>
+
+type ProjectionBlocks = {
+  structure?: { headline?: string; summary?: string; topAxes?: string[] }
+  timing?: { headline?: string; summary?: string; window?: string; granularity?: string }
+  conflict?: { headline?: string; summary?: string; reasons?: string[] }
+  action?: { headline?: string; summary?: string; reasons?: string[] }
+  risk?: { headline?: string; summary?: string; reasons?: string[] }
+  evidence?: { headline?: string; summary?: string; reasons?: string[] }
+}
 
 function toText(value: unknown): string {
   if (typeof value === 'string') return value.trim()
-  if (Array.isArray(value))
+  if (Array.isArray(value)) {
     return value
       .map((v) => (typeof v === 'string' ? v : ''))
       .join('\n')
       .trim()
+  }
   return ''
 }
 
@@ -18,6 +28,32 @@ function readPath(data: JsonLike, path: string): string {
     cur = (cur as JsonLike)[part]
   }
   return toText(cur)
+}
+
+function getProjectionLabels(lang: 'ko' | 'en') {
+  return lang === 'ko'
+    ? {
+        structure: '구조 투영',
+        timing: '타이밍 투영',
+        conflict: '충돌 투영',
+        action: '행동 투영',
+        risk: '리스크 투영',
+        evidence: '근거 투영',
+        topAxes: '상위 축',
+        evidencePrefix: '근거',
+        section: '섹션',
+      }
+    : {
+        structure: 'Structure View',
+        timing: 'Timing View',
+        conflict: 'Conflict View',
+        action: 'Action View',
+        risk: 'Risk View',
+        evidence: 'Evidence View',
+        topAxes: 'Top axes',
+        evidencePrefix: 'Evidence',
+        section: 'Section',
+      }
 }
 
 function formatRenderedSectionText(text: string, lang: 'ko' | 'en'): string {
@@ -40,30 +76,19 @@ function formatRenderedSectionText(text: string, lang: 'ko' | 'en'): string {
 }
 
 export function renderProjectionBlocksAsText(
-  projections:
-    | {
-        structure?: { headline?: string; summary?: string; topAxes?: string[] }
-        timing?: { headline?: string; summary?: string; window?: string; granularity?: string }
-        conflict?: { headline?: string; summary?: string; reasons?: string[] }
-        evidence?: {
-          headline?: string
-          summary?: string
-          signalIds?: string[]
-          patternIds?: string[]
-          scenarioIds?: string[]
-        }
-      }
-    | null
-    | undefined
+  projections: ProjectionBlocks | null | undefined,
+  lang: 'ko' | 'en' = 'ko'
 ): string {
   if (!projections) return ''
+
+  const labels = getProjectionLabels(lang)
   const blocks = [
     projections.structure
       ? [
-          projections.structure.headline || 'Structure Projection',
+          projections.structure.headline || labels.structure,
           projections.structure.summary || '',
           (projections.structure.topAxes || []).length > 0
-            ? `Top axes: ${(projections.structure.topAxes || []).join(', ')}`
+            ? `${labels.topAxes}: ${(projections.structure.topAxes || []).join(', ')}`
             : '',
         ]
           .filter(Boolean)
@@ -71,7 +96,7 @@ export function renderProjectionBlocksAsText(
       : '',
     projections.timing
       ? [
-          projections.timing.headline || 'Timing Projection',
+          projections.timing.headline || labels.timing,
           projections.timing.summary || '',
           [projections.timing.window, projections.timing.granularity].filter(Boolean).join(' / '),
         ]
@@ -80,26 +105,36 @@ export function renderProjectionBlocksAsText(
       : '',
     projections.conflict
       ? [
-          projections.conflict.headline || 'Conflict Projection',
+          projections.conflict.headline || labels.conflict,
           projections.conflict.summary || '',
           ...(projections.conflict.reasons || []).slice(0, 3).map((item) => `- ${item}`),
         ]
           .filter(Boolean)
           .join('\n')
       : '',
+    projections.action
+      ? [
+          projections.action.headline || labels.action,
+          projections.action.summary || '',
+          ...(projections.action.reasons || []).slice(0, 3).map((item) => `- ${item}`),
+        ]
+          .filter(Boolean)
+          .join('\n')
+      : '',
+    projections.risk
+      ? [
+          projections.risk.headline || labels.risk,
+          projections.risk.summary || '',
+          ...(projections.risk.reasons || []).slice(0, 3).map((item) => `- ${item}`),
+        ]
+          .filter(Boolean)
+          .join('\n')
+      : '',
     projections.evidence
       ? [
-          projections.evidence.headline || 'Evidence Projection',
+          projections.evidence.headline || labels.evidence,
           projections.evidence.summary || '',
-          (projections.evidence.signalIds || []).length > 0
-            ? `Signals: ${(projections.evidence.signalIds || []).join(', ')}`
-            : '',
-          (projections.evidence.patternIds || []).length > 0
-            ? `Patterns: ${(projections.evidence.patternIds || []).join(', ')}`
-            : '',
-          (projections.evidence.scenarioIds || []).length > 0
-            ? `Scenarios: ${(projections.evidence.scenarioIds || []).join(', ')}`
-            : '',
+          ...(projections.evidence.reasons || []).slice(0, 4).map((item) => `- ${item}`),
         ]
           .filter(Boolean)
           .join('\n')
@@ -110,23 +145,12 @@ export function renderProjectionBlocksAsText(
 }
 
 export function renderProjectionBlocksAsMarkdown(
-  projections:
-    | {
-        structure?: { headline?: string; summary?: string; topAxes?: string[] }
-        timing?: { headline?: string; summary?: string; window?: string; granularity?: string }
-        conflict?: { headline?: string; summary?: string; reasons?: string[] }
-        evidence?: {
-          headline?: string
-          summary?: string
-          signalIds?: string[]
-          patternIds?: string[]
-          scenarioIds?: string[]
-        }
-      }
-    | null
-    | undefined
+  projections: ProjectionBlocks | null | undefined,
+  lang: 'ko' | 'en' = 'ko'
 ): string {
   if (!projections) return ''
+
+  const labels = getProjectionLabels(lang)
   const lines: string[] = []
   const pushBlock = (headline: string | undefined, bodyLines: string[]) => {
     if (!headline || bodyLines.filter(Boolean).length === 0) return
@@ -136,31 +160,31 @@ export function renderProjectionBlocksAsMarkdown(
     lines.push('')
   }
 
-  pushBlock(projections.structure?.headline, [
+  pushBlock(projections.structure?.headline || labels.structure, [
     projections.structure?.summary || '',
     (projections.structure?.topAxes || []).length > 0
-      ? `- Top axes: ${(projections.structure?.topAxes || []).join(', ')}`
+      ? `- ${labels.topAxes}: ${(projections.structure?.topAxes || []).join(', ')}`
       : '',
   ])
-  pushBlock(projections.timing?.headline, [
+  pushBlock(projections.timing?.headline || labels.timing, [
     projections.timing?.summary || '',
     [projections.timing?.window, projections.timing?.granularity].filter(Boolean).join(' / '),
   ])
-  pushBlock(projections.conflict?.headline, [
+  pushBlock(projections.conflict?.headline || labels.conflict, [
     projections.conflict?.summary || '',
     ...(projections.conflict?.reasons || []).slice(0, 3).map((item) => `- ${item}`),
   ])
-  pushBlock(projections.evidence?.headline, [
+  pushBlock(projections.action?.headline || labels.action, [
+    projections.action?.summary || '',
+    ...(projections.action?.reasons || []).slice(0, 3).map((item) => `- ${item}`),
+  ])
+  pushBlock(projections.risk?.headline || labels.risk, [
+    projections.risk?.summary || '',
+    ...(projections.risk?.reasons || []).slice(0, 3).map((item) => `- ${item}`),
+  ])
+  pushBlock(projections.evidence?.headline || labels.evidence, [
     projections.evidence?.summary || '',
-    (projections.evidence?.signalIds || []).length > 0
-      ? `- Signals: ${(projections.evidence?.signalIds || []).join(', ')}`
-      : '',
-    (projections.evidence?.patternIds || []).length > 0
-      ? `- Patterns: ${(projections.evidence?.patternIds || []).join(', ')}`
-      : '',
-    (projections.evidence?.scenarioIds || []).length > 0
-      ? `- Scenarios: ${(projections.evidence?.scenarioIds || []).join(', ')}`
-      : '',
+    ...(projections.evidence?.reasons || []).slice(0, 4).map((item) => `- ${item}`),
   ])
 
   return lines.join('\n').trim()
@@ -184,11 +208,12 @@ export function renderSectionsAsMarkdown(
   orderedPaths: string[],
   lang: 'ko' | 'en'
 ): string {
+  const labels = getProjectionLabels(lang)
   const lines: string[] = []
   for (const path of orderedPaths) {
     const text = readPath(sections, path)
     if (!text) continue
-    const title = lang === 'ko' ? `섹션: ${path}` : `Section: ${path}`
+    const title = `${labels.section}: ${path}`
     lines.push(`## ${title}`)
     lines.push('')
     lines.push(formatRenderedSectionText(text, lang))

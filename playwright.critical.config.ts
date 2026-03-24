@@ -44,7 +44,8 @@ export default defineConfig({
   // Only start webServer if not already running
   ...(process.env.PLAYWRIGHT_SKIP_WEBSERVER !== 'true' && {
     webServer: {
-      command: 'npm run dev',
+      command:
+        'cross-env DEMO_TOKEN=demo-test-token SUPPORT_EMAIL=support@destinypal.com npm run dev:webpack',
       url: baseURL,
       reuseExistingServer: true, // Reuse existing server by default
       timeout: 240 * 1000, // 4 minutes for slow dev server

@@ -35,6 +35,20 @@ type ElementMetaphor = {
   risk: string
 }
 
+function hasBatchim(text: string): boolean {
+  const value = String(text || '').trim()
+  if (!value) return false
+  const last = value.charCodeAt(value.length - 1)
+  if (last < 0xac00 || last > 0xd7a3) return false
+  return (last - 0xac00) % 28 !== 0
+}
+
+function withObjectParticle(text: string): string {
+  const value = String(text || '').trim()
+  if (!value) return ''
+  return `${value}${hasBatchim(value) ? '을' : '를'}`
+}
+
 export type ReportSectionRendererDeps = {
   buildEvidenceFooter: (input: MatrixCalculationInput, lang: 'ko' | 'en') => string
   normalizeNarrativeCoreText: (text: string, lang: 'ko' | 'en') => string
@@ -92,6 +106,9 @@ export type ReportSectionRendererDeps = {
     pastStability?: number
     futureStability?: number
     backtestConsistency?: number
+    calibratedFromHistory?: boolean
+    calibrationSampleSize?: number
+    calibrationMatchedRate?: number
     lang: 'ko' | 'en'
   }) => string
   describeIntraMonthPeakWindow: (params: {
@@ -215,7 +232,7 @@ export function renderIntroductionSection(
             : `현재 판단 기준도 ${topDecision} 쪽으로 기울어 있어, 속도보다 순서와 기준 정리가 더 중요하게 작동합니다.`,
           timingReason
             ? `이 흐름이 지금 선명한 이유는 ${timingReason}`
-            : `이 구간에서는 ${metaphor.edge}을 한 번에 다 쓰기보다, 어디에 먼저 써야 할지를 아는 쪽이 유리합니다.`,
+            : `이 구간에서는 ${withObjectParticle(metaphor.edge)} 한 번에 다 쓰기보다, 어디에 먼저 써야 할지를 아는 쪽이 유리합니다.`,
         ]
           .filter(Boolean)
           .join(' ')
@@ -326,7 +343,7 @@ export function renderPersonalityDeepSection(
         [
           focusManifestation?.baselineThesis ||
             '타고난 구조는 기준을 세우고 흐름을 조율하는 쪽에 가깝습니다.',
-          `기본 성향의 강점은 ${metaphor.edge}을 빠르게 세우는 데 있고, 약점은 ${metaphor.risk}이 판단 과속으로 바뀔 때 드러납니다.`,
+          `기본 성향의 강점은 ${withObjectParticle(metaphor.edge)} 빠르게 세우는 데 있고, 약점은 ${metaphor.risk}이 판단 과속으로 바뀔 때 드러납니다.`,
           '그래서 이 성향은 감으로 먼저 밀기보다, 기준 한 줄을 먼저 적고 움직일 때 가장 안정적으로 힘을 냅니다.',
           '핵심은 빠른 결론이 아니라, 결론과 확정의 타이밍을 분리하는 데 있습니다.',
         ]
@@ -394,6 +411,9 @@ export function renderTimingAdviceSection(
     pastStability: matrixSummary?.timingCalibration?.pastStability,
     futureStability: matrixSummary?.timingCalibration?.futureStability,
     backtestConsistency: matrixSummary?.timingCalibration?.backtestConsistency,
+    calibratedFromHistory: matrixSummary?.timingCalibration?.calibratedFromHistory,
+    calibrationSampleSize: matrixSummary?.timingCalibration?.calibrationSampleSize,
+    calibrationMatchedRate: matrixSummary?.timingCalibration?.calibrationMatchedRate,
     lang,
   })
   const intraMonthPeakLine = deps.describeIntraMonthPeakWindow({
@@ -428,7 +448,7 @@ export function renderTimingAdviceSection(
           focusTiming
             ? `${focusLabel}에서는 지금 바로 크게 밀어붙이기보다, 검토와 확정을 다른 리듬으로 나눌 때 타이밍이 살아납니다.`
             : `${focusLabel}에서는 지금 한 번에 밀어붙이기보다, 단계를 나눠 움직이는 편이 맞습니다.`,
-          `지금 타이밍의 힘은 속도를 올리는 데 있지 않고, ${metaphor.edge}을 언제 꺼내 쓸지 아는 데 있습니다.`,
+          `지금 타이밍의 힘은 속도를 올리는 데 있지 않고, ${withObjectParticle(metaphor.edge)} 언제 꺼내 쓸지 아는 데 있습니다.`,
           koreanTimingExecutionLine,
           '오늘은 결론을 서두르기보다, 한 번 더 확인할 지점을 먼저 문서로 남기는 편이 안전합니다.',
           intraMonthPeakLine,
@@ -766,7 +786,7 @@ export function renderConclusionSection(
       lang === 'ko'
         ? [
             `이번 총운의 결론은 단순합니다. ${focusLabel} 축에서는 재능보다 운영 순서가 결과를 더 크게 가릅니다.`,
-            `지금 차이를 만드는 건 ${metaphor.edge}을 어떤 순서로 쓰느냐입니다.`,
+            `지금 차이를 만드는 건 ${withObjectParticle(metaphor.edge)} 어떤 순서로 쓰느냐입니다.`,
             reportCore.riskControl,
           ].join(' ')
         : [

@@ -1314,6 +1314,9 @@ export function describeTimingCalibrationSummary(input: {
   pastStability?: number | null
   futureStability?: number | null
   backtestConsistency?: number | null
+  calibratedFromHistory?: boolean | null
+  calibrationSampleSize?: number | null
+  calibrationMatchedRate?: number | null
   lang?: HumanSemanticsLang
 }): string {
   const {
@@ -1322,6 +1325,9 @@ export function describeTimingCalibrationSummary(input: {
     pastStability,
     futureStability,
     backtestConsistency,
+    calibratedFromHistory,
+    calibrationSampleSize,
+    calibrationMatchedRate,
     lang = 'ko',
   } = input
 
@@ -1343,19 +1349,27 @@ export function describeTimingCalibrationSummary(input: {
     typeof backtestConsistency === 'number' && Number.isFinite(backtestConsistency)
       ? Math.round(Math.max(0, Math.min(1, backtestConsistency)) * 100)
       : null
+  const matchedRate =
+    typeof calibrationMatchedRate === 'number' && Number.isFinite(calibrationMatchedRate)
+      ? Math.round(Math.max(0, Math.min(1, calibrationMatchedRate)) * 100)
+      : null
+  const sampleSize =
+    typeof calibrationSampleSize === 'number' && Number.isFinite(calibrationSampleSize)
+      ? Math.max(0, Math.round(calibrationSampleSize))
+      : null
 
   if (lang === 'ko') {
     if (reliabilityBand === 'high') {
       return `과거·미래 월별 재계산과 월중 강한 창 비교 기준으로 타이밍 신뢰도는 높은 편입니다${
         score !== null ? ` (${score}%)` : ''
-      }.`
+      }${calibratedFromHistory && sampleSize ? ` 실제 피드백 ${sampleSize}건 기준 보정이 적용됐습니다${matchedRate !== null ? ` (${matchedRate}%)` : ''}.` : '.'}`
     }
     if (reliabilityBand === 'medium') {
       return `과거·미래 월별 재계산과 월중 강한 창 비교 기준으로 타이밍 신뢰도는 중간 수준입니다${
         past !== null || future !== null || consistency !== null
           ? ` (과거 안정성 ${past ?? '-'}%, 미래 안정성 ${future ?? '-'}%, 일관성 ${consistency ?? '-'}%)`
           : ''
-      }.`
+      }${calibratedFromHistory && sampleSize ? ` 실제 피드백 ${sampleSize}건 기준 보정이 적용됐습니다${matchedRate !== null ? ` (${matchedRate}%)` : ''}.` : '.'}`
     }
     return `과거·미래 월별 재계산과 월중 강한 창 비교 기준으로 타이밍 신뢰도는 낮은 편이므로, 월 전체 평균보다 월중 강한 구간 해석에 무게를 두는 편이 맞습니다.`
   }
@@ -1363,14 +1377,14 @@ export function describeTimingCalibrationSummary(input: {
   if (reliabilityBand === 'high') {
     return `Month-by-month backtesting, anchored to the stronger intra-month window, puts timing reliability in the high band${
       score !== null ? ` (${score}%)` : ''
-    }.`
+    }${calibratedFromHistory && sampleSize ? ` Historical feedback calibration is applied from ${sampleSize} cases${matchedRate !== null ? ` (${matchedRate}%)` : ''}.` : '.'}`
   }
   if (reliabilityBand === 'medium') {
     return `Month-by-month backtesting, anchored to the stronger intra-month window, puts timing reliability in the medium band${
       past !== null || future !== null || consistency !== null
         ? ` (past stability ${past ?? '-'}%, future stability ${future ?? '-'}%, consistency ${consistency ?? '-'}%)`
         : ''
-    }.`
+    }${calibratedFromHistory && sampleSize ? ` Historical feedback calibration is applied from ${sampleSize} cases${matchedRate !== null ? ` (${matchedRate}%)` : ''}.` : '.'}`
   }
   return 'Month-by-month backtesting, anchored to the stronger intra-month window, puts timing reliability in the low band, so this should be read as a window rather than a precise date call.'
 }

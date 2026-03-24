@@ -3,7 +3,6 @@
 // src/components/calendar/CalendarActionPlanView.tsx
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
-import { apiFetch } from '@/lib/api/ApiClient'
 import { analyzeICP } from '@/lib/icp/analysis'
 import { analyzePersona } from '@/lib/persona/analysis'
 import type { ICPAnalysis, ICPQuizAnswers } from '@/lib/icp/types'
@@ -22,32 +21,34 @@ import {
 import { formatDecisionActionLabels, formatPolicyCheckLabels } from '@/lib/destiny-matrix/core/actionCopy'
 import type { CalendarData, ImportantDate, EventCategory } from './types'
 import { getPeakLabel, resolvePeakLevel } from './peakUtils'
+import { ActionPlanInsightsPanel, ActionPlanSummaryPanels } from './CalendarActionPlanPanels'
+import { CalendarActionPlanTimelinePanel } from './CalendarActionPlanTimelinePanel'
+import {
+  buildActionPlanAiButtonLabel,
+  buildActionPlanAiStatusText,
+  type ActionPlanInsights,
+  type AiTimelineSlot,
+} from './CalendarActionPlanAI'
+import { buildActionPlanAiPayload } from './CalendarActionPlanRequest'
+import { useActionPlanAiTimeline } from './useActionPlanAiTimeline'
+import {
+  buildActionPlanShareText,
+  buildFallbackActionPlanInsights,
+  buildHourlyRhythm,
+  buildTimelineInsight,
+  buildTimelineHighlights,
+  buildTodayInsight,
+  buildWeekInsight,
+  buildWeekItems,
+  findPreferredRhythmSlot,
+  getPreferredRhythmHour,
+} from './CalendarActionPlanViewModel'
 
 interface CalendarActionPlanViewProps {
   data: CalendarData
   selectedDay: Date | null
   selectedDate: ImportantDate | null
   onSelectDate?: (date: Date) => void
-}
-
-type AiTimelineSlot = {
-  hour: number
-  minute?: number
-  note: string
-  tone?: 'neutral' | 'best' | 'caution'
-  slotTypes?: Array<
-    'deepWork' | 'decision' | 'communication' | 'money' | 'relationship' | 'recovery'
-  >
-  why?: {
-    signalIds?: string[]
-    anchorIds?: string[]
-    patterns?: string[]
-    summary?: string
-  }
-  guardrail?: string
-  evidenceSummary?: string[]
-  confidence?: number
-  confidenceReason?: string[]
 }
 
 type TimelineSlotView = {
@@ -66,28 +67,6 @@ type TimelineSlotView = {
   evidenceSummary?: string[]
   confidence?: number | null
   confidenceReason?: string[]
-}
-
-type ActionPlanPrecisionMode = 'ai-graphrag' | 'rule-fallback' | null
-
-type ActionPlanInsights = {
-  ifThenRules: string[]
-  situationTriggers: string[]
-  actionFramework: {
-    do: string[]
-    dont: string[]
-    alternative: string[]
-  }
-  riskTriggers: string[]
-  successKpi: string[]
-  deltaToday: string
-}
-
-type ActionPlanCacheEntry = {
-  timeline: AiTimelineSlot[]
-  summary: string | null
-  precisionMode: ActionPlanPrecisionMode
-  insights: ActionPlanInsights | null
 }
 
 type SanitizedSlotType = NonNullable<AiTimelineSlot['slotTypes']>[number]
@@ -306,13 +285,6 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const [icpResult, setIcpResult] = useState<ICPAnalysis | null>(null)
   const [personaResult, setPersonaResult] = useState<PersonaAnalysis | null>(null)
   const [profileReady, setProfileReady] = useState(false)
-  const [aiTimeline, setAiTimeline] = useState<AiTimelineSlot[] | null>(null)
-  const [aiSummary, setAiSummary] = useState<string | null>(null)
-  const [aiInsights, setAiInsights] = useState<ActionPlanInsights | null>(null)
-  const [aiStatus, setAiStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
-  const [aiPrecisionMode, setAiPrecisionMode] = useState<ActionPlanPrecisionMode>(null)
-  const aiCacheRef = useRef<Record<string, ActionPlanCacheEntry>>({})
-  const aiAbortRef = useRef<AbortController | null>(null)
   const timelineSlotRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const [activeRhythmHour, setActiveRhythmHour] = useState<number | null>(null)
 
@@ -821,485 +793,43 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       .filter(Boolean)
   }, [baseInfo, cleanText, isKo, topCategory])
 
-  const sanitizeAiTimeline = useCallback(
-    (raw: unknown) => {
-      if (!Array.isArray(raw)) return [] as AiTimelineSlot[]
-      const cleaned: AiTimelineSlot[] = []
-      raw.forEach((item) => {
-        if (!item || typeof item !== 'object') return
-        const hour = Number((item as { hour?: unknown }).hour)
-        const minuteRaw = (item as { minute?: unknown }).minute
-        const minute = minuteRaw === undefined ? 0 : Number(minuteRaw)
-        const noteRaw = (item as { note?: unknown }).note
-        const note = typeof noteRaw === 'string' ? cleanText(noteRaw, '') : ''
-        if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !note) return
-        if (!Number.isInteger(minute) || (minute !== 0 && minute !== 30)) return
-        const toneValue = (item as { tone?: unknown }).tone
-        const tone =
-          toneValue === 'best' || toneValue === 'caution' || toneValue === 'neutral'
-            ? toneValue
-            : undefined
-        const evidenceRaw = (item as { evidenceSummary?: unknown }).evidenceSummary
-        const evidenceSummary = Array.isArray(evidenceRaw)
-          ? evidenceRaw
-              .map((line) => (typeof line === 'string' ? cleanText(line, '') : ''))
-              .filter(Boolean)
-              .slice(0, 3)
-          : undefined
-        const slotTypesRaw = (item as { slotTypes?: unknown }).slotTypes
-        const slotTypes = Array.isArray(slotTypesRaw)
-          ? slotTypesRaw
-              .map((type) => (typeof type === 'string' ? cleanText(type, '') : ''))
-              .filter(isSanitizedSlotType)
-              .slice(0, 2)
-          : undefined
-        const whyRaw = (item as { why?: unknown }).why
-        const whySummary =
-          whyRaw && typeof whyRaw === 'object'
-            ? cleanText((whyRaw as { summary?: unknown }).summary as string | undefined, '')
-            : ''
-        const whySignalIds =
-          whyRaw &&
-          typeof whyRaw === 'object' &&
-          Array.isArray((whyRaw as { signalIds?: unknown }).signalIds)
-            ? ((whyRaw as { signalIds?: unknown }).signalIds as unknown[])
-                .map((line) => (typeof line === 'string' ? cleanText(line, '') : ''))
-                .filter(Boolean)
-                .slice(0, 4)
-            : undefined
-        const whyAnchorIds =
-          whyRaw &&
-          typeof whyRaw === 'object' &&
-          Array.isArray((whyRaw as { anchorIds?: unknown }).anchorIds)
-            ? ((whyRaw as { anchorIds?: unknown }).anchorIds as unknown[])
-                .map((line) => (typeof line === 'string' ? cleanText(line, '') : ''))
-                .filter(Boolean)
-                .slice(0, 3)
-            : undefined
-        const whyPatterns =
-          whyRaw &&
-          typeof whyRaw === 'object' &&
-          Array.isArray((whyRaw as { patterns?: unknown }).patterns)
-            ? ((whyRaw as { patterns?: unknown }).patterns as unknown[])
-                .map((line) => (typeof line === 'string' ? cleanText(line, '') : ''))
-                .filter(Boolean)
-                .slice(0, 3)
-            : undefined
-        const guardrailRaw = (item as { guardrail?: unknown }).guardrail
-        const guardrail = typeof guardrailRaw === 'string' ? cleanText(guardrailRaw, '') : ''
-        const confidenceRaw = (item as { confidence?: unknown }).confidence
-        const confidence =
-          typeof confidenceRaw === 'number' && Number.isFinite(confidenceRaw)
-            ? clampConfidence(confidenceRaw)
-            : undefined
-        const confidenceReasonRaw = (item as { confidenceReason?: unknown }).confidenceReason
-        const confidenceReason = Array.isArray(confidenceReasonRaw)
-          ? confidenceReasonRaw
-              .map((line) => (typeof line === 'string' ? cleanText(line, '') : ''))
-              .filter(Boolean)
-              .slice(0, 3)
-          : undefined
-        cleaned.push({
-          hour,
-          minute,
-          note,
-          tone,
-          slotTypes: slotTypes && slotTypes.length > 0 ? slotTypes : undefined,
-          why:
-            whySummary || (whySignalIds && whySignalIds.length > 0)
-              ? {
-                  summary: whySummary || undefined,
-                  signalIds: whySignalIds,
-                  anchorIds: whyAnchorIds,
-                  patterns: whyPatterns,
-                }
-              : undefined,
-          guardrail: guardrail || undefined,
-          evidenceSummary,
-          confidence,
-          confidenceReason,
-        })
-      })
-      return cleaned
-    },
-    [clampConfidence, cleanText]
-  )
-
-  const sanitizeAiInsights = useCallback(
-    (raw: unknown): ActionPlanInsights | null => {
-      if (!raw || typeof raw !== 'object') return null
-      const insights = raw as {
-        ifThenRules?: unknown
-        actionFramework?: {
-          do?: unknown
-          dont?: unknown
-          alternative?: unknown
-        }
-        riskTriggers?: unknown
-        successKpi?: unknown
-      }
-      const toLines = (value: unknown, max: number) =>
-        Array.isArray(value)
-          ? value
-              .map((line) => (typeof line === 'string' ? cleanText(line, '') : ''))
-              .filter(Boolean)
-              .slice(0, max)
-          : []
-
-      const ifThenRules = toLines(insights.ifThenRules, 4)
-      const situationTriggers = toLines(
-        (insights as { situationTriggers?: unknown }).situationTriggers,
-        5
-      )
-      const doLines = toLines(insights.actionFramework?.do, 5)
-      const dontLines = toLines(insights.actionFramework?.dont, 5)
-      const alternativeLines = toLines(insights.actionFramework?.alternative, 5)
-      const riskTriggers = toLines(insights.riskTriggers, 5)
-      const successKpi = toLines(insights.successKpi, 5)
-      const deltaTodayRaw = (insights as { deltaToday?: unknown }).deltaToday
-      const deltaToday = typeof deltaTodayRaw === 'string' ? cleanText(deltaTodayRaw, '') : ''
-
-      if (
-        ifThenRules.length === 0 &&
-        situationTriggers.length === 0 &&
-        doLines.length === 0 &&
-        dontLines.length === 0 &&
-        alternativeLines.length === 0 &&
-        riskTriggers.length === 0 &&
-        successKpi.length === 0 &&
-        !deltaToday
-      ) {
-        return null
-      }
-
-      return {
-        ifThenRules,
-        situationTriggers,
-        actionFramework: {
-          do: doLines,
-          dont: dontLines,
-          alternative: alternativeLines,
-        },
-        riskTriggers,
-        successKpi,
-        deltaToday,
-      }
-    },
-    [cleanText]
-  )
-
-  const buildAiPayload = useCallback(() => {
-    const trimText = (value: string | undefined, max: number) => {
-      if (!value) return undefined
-      return cleanText(value, '').slice(0, max) || undefined
-    }
-    const trimList = (list: string[] | undefined, max: number, maxText = 220) => {
-      if (!list || list.length === 0) return undefined
-      const compact = list
-        .map((item) => trimText(item, maxText))
-        .filter((item): item is string => Boolean(item))
-      return compact.length ? compact.slice(0, max) : undefined
-    }
-    const compactMatrixPacket = selectedMatrixPacket
-      ? {
-          focusDomain: trimText(selectedMatrixPacket.focusDomain, 24),
-          graphFocusSummary: trimText(
-            selectedMatrixPacket.focusDomain && selectedMatrixPacket.topAnchors?.[0]?.summary
-              ? `${isKo ? '핵심 교차 근거' : 'Core cross evidence'}: ${
-                  selectedMatrixPacket.focusDomain
-                } · ${selectedMatrixPacket.topAnchors[0].summary}`
-              : selectedMatrixPacket.topAnchors?.[0]?.summary,
-            220
-          ),
-          graphRagEvidenceSummary: selectedMatrixPacket.graphRagEvidenceSummary
-            ? {
-                totalAnchors: selectedMatrixPacket.graphRagEvidenceSummary.totalAnchors,
-                totalSets: selectedMatrixPacket.graphRagEvidenceSummary.totalSets,
-              }
-            : undefined,
-          topAnchors: selectedMatrixPacket.topAnchors
-            ?.map((anchor) => ({
-              id: trimText(anchor.id, 48),
-              section: trimText(anchor.section, 32),
-              summary: trimText(anchor.summary, 180),
-              setCount: anchor.setCount,
-            }))
-            .filter((anchor) => anchor.id && anchor.summary)
-            .slice(0, 3),
-          topClaims: selectedMatrixPacket.topClaims
-            ?.map((claim) => ({
-              id: trimText(claim.id, 48),
-              text: trimText(claim.text, 180),
-              domain: trimText(claim.domain, 24),
-              signalIds: trimList(claim.signalIds, 4, 32),
-              anchorIds: trimList(claim.anchorIds, 3, 32),
-            }))
-            .filter((claim) => claim.id && claim.text)
-            .slice(0, 4),
-          scenarioBriefs: selectedMatrixPacket.scenarioBriefs
-            ?.map((scenario) => ({
-              id: trimText(scenario.id, 48),
-              domain: trimText(scenario.domain, 24),
-              mainTokens: trimList(scenario.mainTokens, 4, 32),
-              altTokens: trimList(scenario.altTokens, 4, 32),
-            }))
-            .filter((scenario) => scenario.id)
-            .slice(0, 3),
-          selectedSignals: selectedMatrixPacket.selectedSignals
-            ?.map((signal) => ({
-              id: trimText(signal.id, 48),
-              domain: trimText(signal.domain, 24),
-              polarity: trimText(signal.polarity, 16),
-              summary: trimText(signal.summary, 160),
-              score: signal.score,
-            }))
-            .filter((signal) => signal.id && signal.summary)
-            .slice(0, 5),
-          strategyBrief: selectedMatrixPacket.strategyBrief
-            ? {
-                overallPhase: trimText(selectedMatrixPacket.strategyBrief.overallPhase, 24),
-                overallPhaseLabel: trimText(
-                  selectedMatrixPacket.strategyBrief.overallPhaseLabel,
-                  48
-                ),
-                attackPercent: selectedMatrixPacket.strategyBrief.attackPercent,
-                defensePercent: selectedMatrixPacket.strategyBrief.defensePercent,
-              }
-            : undefined,
-        }
-      : undefined
-    const compactEvidence = baseInfo?.evidence
-      ? {
-          matrix: baseInfo.evidence.matrix
-            ? {
-                domain: baseInfo.evidence.matrix.domain,
-                finalScoreAdjusted:
-                  typeof baseInfo.evidence.matrix.finalScoreAdjusted === 'number'
-                    ? Math.max(0, Math.min(10, baseInfo.evidence.matrix.finalScoreAdjusted))
-                    : undefined,
-                overlapStrength:
-                  typeof baseInfo.evidence.matrix.overlapStrength === 'number'
-                    ? Math.max(0, Math.min(1, baseInfo.evidence.matrix.overlapStrength))
-                    : undefined,
-                peakLevel: baseInfo.evidence.matrix.peakLevel,
-                monthKey: trimText(baseInfo.evidence.matrix.monthKey, 20),
-              }
-            : undefined,
-          cross: baseInfo.evidence.cross
-            ? {
-                sajuEvidence: trimText(baseInfo.evidence.cross.sajuEvidence, 360),
-                astroEvidence: trimText(baseInfo.evidence.cross.astroEvidence, 360),
-                sajuDetails: trimList(baseInfo.evidence.cross.sajuDetails, 2, 260),
-                astroDetails: trimList(baseInfo.evidence.cross.astroDetails, 2, 260),
-                bridges: trimList(baseInfo.evidence.cross.bridges, 2, 260),
-              }
-            : undefined,
-          confidence:
-            typeof baseInfo.evidence.confidence === 'number'
-              ? Math.max(0, Math.min(100, baseInfo.evidence.confidence))
-              : undefined,
-          source:
-            baseInfo.evidence.source === 'rule' ||
-            baseInfo.evidence.source === 'rag' ||
-            baseInfo.evidence.source === 'hybrid'
-              ? baseInfo.evidence.source
-              : undefined,
-          matrixVerdict: baseInfo.evidence.matrixVerdict
-            ? {
-                focusDomain: trimText(baseInfo.evidence.matrixVerdict.focusDomain, 24),
-                verdict: trimText(baseInfo.evidence.matrixVerdict.verdict, 180),
-                guardrail: trimText(baseInfo.evidence.matrixVerdict.guardrail, 180),
-                topClaim: trimText(baseInfo.evidence.matrixVerdict.topClaim, 180),
-                topAnchorSummary: trimText(baseInfo.evidence.matrixVerdict.topAnchorSummary, 160),
-                phase: trimText(baseInfo.evidence.matrixVerdict.phase, 48),
-                attackPercent: baseInfo.evidence.matrixVerdict.attackPercent,
-                defensePercent: baseInfo.evidence.matrixVerdict.defensePercent,
-              }
-            : undefined,
-          matrixPacket: compactMatrixPacket,
-        }
-      : undefined
-
-    const compactCalendar = baseInfo
-      ? {
-          grade: baseInfo.displayGrade ?? baseInfo.grade,
-          displayGrade: baseInfo.displayGrade,
-          score: baseInfo.displayScore ?? baseInfo.score,
-          displayScore: baseInfo.displayScore,
-          categories: trimList(baseInfo.categories, 4, 32),
-          bestTimes: trimList(baseInfo.bestTimes, 4, 120),
-          warnings: trimList(baseInfo.warnings, 3, 220),
-          recommendations: trimList(baseInfo.recommendations, 3, 220),
-          sajuFactors: trimList(baseInfo.sajuFactors, 3, 220),
-          astroFactors: trimList(baseInfo.astroFactors, 3, 220),
-          title: trimText(baseInfo.title, 120),
-          summary: trimText(baseInfo.summary, 240),
-          ganzhi: trimText(baseInfo.ganzhi, 60),
-          transitSunSign: trimText(baseInfo.transitSunSign, 60),
-          evidence: compactEvidence,
-        }
-      : null
-
-    const compactIcp = icpResult
-      ? {
-          primaryStyle: trimText(icpResult.primaryStyle, 10),
-          secondaryStyle: trimText(icpResult.secondaryStyle ?? undefined, 10),
-          dominanceScore: icpResult.dominanceScore,
-          affiliationScore: icpResult.affiliationScore,
-          summary: trimText(isKo ? icpResult.summaryKo : icpResult.summary, 240),
-          traits: trimList(
-            (isKo ? icpResult.primaryOctant.traitsKo : icpResult.primaryOctant.traits) ?? [],
-            4,
-            80
-          ),
-        }
-      : null
-
-    const compactPersona = personaResult
-      ? {
-          typeCode: trimText(personaResult.typeCode, 20),
-          personaName: trimText(personaResult.personaName, 80),
-          summary: trimText(personaResult.summary, 240),
-          strengths: trimList(personaResult.strengths, 4, 80),
-          challenges: trimList(personaResult.challenges, 4, 80),
-          guidance: trimText(personaResult.guidance, 240),
-          motivations: trimList(personaResult.keyMotivations, 4, 80),
-          axes: personaResult.axes,
-        }
-      : null
-
-    return {
-      date: dateKey,
-      locale: analysisLocale,
-      intervalMinutes,
-      calendar: compactCalendar,
-      icp: compactIcp,
-      persona: compactPersona,
-    }
-  }, [
-    analysisLocale,
-    baseInfo,
-    cleanText,
-    dateKey,
-    icpResult,
-    intervalMinutes,
-    isKo,
-    personaResult,
-    selectedMatrixPacket,
-  ])
-
-  const fetchAiTimeline = useCallback(
-    async (options?: { force?: boolean }) => {
-      if (!profileReady || !baseInfo) return
-
-      if (!options?.force && aiCacheRef.current[aiCacheKey]) {
-        const cached = aiCacheRef.current[aiCacheKey]
-        setAiTimeline(cached.timeline)
-        setAiSummary(cached.summary)
-        setAiInsights(cached.insights)
-        setAiPrecisionMode(cached.precisionMode)
-        setAiStatus('ready')
-        return
-      }
-
-      if (aiAbortRef.current) {
-        aiAbortRef.current.abort()
-      }
-      const controller = new AbortController()
-      aiAbortRef.current = controller
-
-      setAiStatus('loading')
-      setAiPrecisionMode(null)
-      setAiInsights(null)
-
-      try {
-        const payload = buildAiPayload()
-        const response = await apiFetch('/api/calendar/action-plan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          signal: controller.signal,
-        })
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`)
-        }
-
-        const json = await response.json()
-        if (!json?.success) {
-          throw new Error(json?.error?.message ?? 'AI generation failed')
-        }
-
-        const timeline = sanitizeAiTimeline(json?.data?.timeline)
-        if (timeline.length === 0) {
-          throw new Error('Invalid AI timeline')
-        }
-        const summary = cleanText(json?.data?.summary, '')
-        const insights = sanitizeAiInsights(json?.data?.insights)
-        const precisionMode: ActionPlanPrecisionMode =
-          json?.data?.precisionMode === 'ai-graphrag' ||
-          json?.data?.precisionMode === 'rule-fallback'
-            ? json.data.precisionMode
-            : null
-
-        aiCacheRef.current[aiCacheKey] = {
-          timeline,
-          summary,
-          precisionMode,
-          insights,
-        }
-        setAiTimeline(timeline)
-        setAiSummary(summary)
-        setAiInsights(insights)
-        setAiPrecisionMode(precisionMode)
-        setAiStatus('ready')
-      } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          return
-        }
-        logger.warn('[ActionPlan] AI timeline failed', {
-          error: error instanceof Error ? error.message : String(error),
-        })
-        setAiTimeline(null)
-        setAiSummary(
-          isKo
-            ? '정밀 생성이 일시 실패해 규칙 기반 플랜으로 표시합니다.'
-            : 'Precision generation failed temporarily. Showing rule-based plan.'
-        )
-        setAiInsights(null)
-        setAiPrecisionMode('rule-fallback')
-        setAiStatus('ready')
-      }
-    },
+  const aiPayload = useMemo(
+    () =>
+      buildActionPlanAiPayload({
+        dateKey,
+        locale: analysisLocale,
+        intervalMinutes,
+        baseInfo,
+        selectedMatrixPacket,
+        icpResult,
+        personaResult,
+        isKo,
+        cleanText,
+      }),
     [
-      aiCacheKey,
+      analysisLocale,
       baseInfo,
-      buildAiPayload,
       cleanText,
+      dateKey,
+      icpResult,
+      intervalMinutes,
       isKo,
-      profileReady,
-      sanitizeAiInsights,
-      sanitizeAiTimeline,
+      personaResult,
+      selectedMatrixPacket,
     ]
   )
 
-  useEffect(() => {
-    if (!profileReady) return
-    if (!baseInfo) {
-      setAiTimeline(null)
-      setAiSummary(null)
-      setAiInsights(null)
-      setAiStatus('idle')
-      setAiPrecisionMode(null)
-      return
-    }
-    void fetchAiTimeline()
-    return () => {
-      if (aiAbortRef.current) {
-        aiAbortRef.current.abort()
-      }
-    }
-  }, [baseInfo, fetchAiTimeline, profileReady])
+  const { aiTimeline, aiSummary, aiInsights, aiStatus, aiPrecisionMode, refreshAiTimeline } =
+    useActionPlanAiTimeline({
+      enabled: profileReady,
+      hasBaseInfo: Boolean(baseInfo),
+      aiCacheKey,
+      aiPayload,
+      cleanText,
+      clampConfidence,
+      isKo,
+      isSanitizedSlotType,
+    })
 
   const aiContextLabel = useMemo(() => {
     if (hasIcp && hasPersona) {
@@ -1314,51 +844,32 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     return isKo ? '기본' : 'Base'
   }, [hasIcp, hasPersona, isKo])
 
-  const aiStatusText = useMemo(() => {
-    if (!baseInfo) {
-      return isKo ? '날짜 정보 없음' : 'No date data'
-    }
-    if (aiStatus === 'loading') {
-      return isKo ? '정밀 타임라인 생성 중' : 'Generating precision timeline'
-    }
-    if (aiStatus === 'error') {
-      return isKo
-        ? '정밀 생성 실패 · 사주+점성 규칙 플랜 표시'
-        : 'Precision failed · showing rule-based Saju+Astrology plan'
-    }
-    if (aiStatus === 'ready' && aiPrecisionMode === 'rule-fallback') {
-      return isKo
-        ? '규칙 기반 개인화 타임라인 · 사주+점성 근거 적용'
-        : 'Rule-based personalized timeline · Saju+Astrology grounded'
-    }
-    if (aiStatus === 'ready') {
-      return isKo
-        ? `근거 기반 타임라인 적용 · ${aiContextLabel}`
-        : `Evidence-based timeline applied · ${aiContextLabel}`
-    }
-    return isKo ? '정밀 준비됨' : 'Precision ready'
-  }, [aiContextLabel, aiPrecisionMode, aiStatus, baseInfo, isKo])
+  const aiStatusText = useMemo(
+    () =>
+      buildActionPlanAiStatusText({
+        isKo,
+        hasBaseInfo: Boolean(baseInfo),
+        aiStatus,
+        aiPrecisionMode,
+        aiContextLabel,
+      }),
+    [aiContextLabel, aiPrecisionMode, aiStatus, baseInfo, isKo]
+  )
 
-  const aiButtonLabel = useMemo(() => {
-    if (aiStatus === 'loading') {
-      return isKo ? '정밀 생성 중' : 'Generating'
-    }
-    return aiTimeline
-      ? isKo
-        ? '정밀 새로고침'
-        : 'Refresh precision'
-      : isKo
-        ? '정밀 생성'
-        : 'Generate precision'
-  }, [aiStatus, aiTimeline, isKo])
+  const aiButtonLabel = useMemo(
+    () =>
+      buildActionPlanAiButtonLabel({
+        isKo,
+        aiStatus,
+        hasAiTimeline: Boolean(aiTimeline),
+      }),
+    [aiStatus, aiTimeline, isKo]
+  )
 
   const handleAiRefresh = useCallback(() => {
     if (!baseInfo) return
-    if (aiCacheRef.current[aiCacheKey]) {
-      delete aiCacheRef.current[aiCacheKey]
-    }
-    void fetchAiTimeline({ force: true })
-  }, [aiCacheKey, baseInfo, fetchAiTimeline])
+    refreshAiTimeline()
+  }, [baseInfo, refreshAiTimeline])
 
   const baseTexts = useCallback(
     (hour: number) => {
@@ -1726,43 +1237,23 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   ])
 
   const hourlyRhythm = useMemo(() => {
-    return Array.from({ length: 24 }, (_, hour) => {
-      const hourSlots = timelineSlots.filter((slot) => slot.hour === hour)
-      let tone: 'best' | 'caution' | 'neutral' = 'neutral'
-      if (hourSlots.some((slot) => slot.tone === 'caution')) {
-        tone = 'caution'
-      } else if (hourSlots.some((slot) => slot.tone === 'best')) {
-        tone = 'best'
-      }
-
-      const primarySlot =
-        hourSlots.find((slot) => slot.tone === tone && slot.note) ||
-        hourSlots.find((slot) => slot.note) ||
-        hourSlots[0]
-
-      return {
-        hour,
-        tone,
-        note: cleanText(primarySlot?.note || ''),
-      }
+    return buildHourlyRhythm({
+      timelineSlots,
+      cleanText,
     })
-  }, [timelineSlots, cleanText])
+  }, [cleanText, timelineSlots])
 
   useEffect(() => {
-    const preferredHour =
-      timelineSlots.find((slot) => slot.tone === 'best')?.hour ??
-      timelineSlots.find((slot) => slot.tone === 'neutral')?.hour ??
-      9
-    setActiveRhythmHour(preferredHour)
+    setActiveRhythmHour(getPreferredRhythmHour(timelineSlots))
   }, [timelineSlots])
 
   const handleRhythmSelect = useCallback(
     (hour: number) => {
       setActiveRhythmHour(hour)
-      const preferredSlot =
-        timelineSlots.find((slot) => slot.hour === hour && slot.tone === 'best') ||
-        timelineSlots.find((slot) => slot.hour === hour && slot.tone === 'neutral') ||
-        timelineSlots.find((slot) => slot.hour === hour)
+      const preferredSlot = findPreferredRhythmSlot({
+        timelineSlots,
+        hour,
+      })
       if (!preferredSlot) return
       const key = `${preferredSlot.hour}-${preferredSlot.minute ?? 0}`
       const element = timelineSlotRefs.current[key]
@@ -1778,52 +1269,24 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   }, [activeRhythmHour, hourlyRhythm])
 
   const weekItems = useMemo(() => {
-    const items: string[] = []
-    const pushItem = (item: string | undefined) => {
-      if (!item) return
-      if (!items.includes(item)) {
-        items.push(item)
-      }
-    }
-
-    if (bestDays.length > 0) {
-      const labels = bestDays.map((entry) => formatDateLabel(entry.date)).join(', ')
-      pushItem(isKo ? `중요 일정은 ${labels}에 배치` : `Schedule key tasks on ${labels}`)
-    }
-
     const weekCategory: EventCategory = topCategory ?? baseInfo?.categories?.[0] ?? 'general'
-    const weekActions = isKo
+    const weekAction = (isKo
       ? CATEGORY_ACTIONS[weekCategory].week.ko
-      : CATEGORY_ACTIONS[weekCategory].week.en
+      : CATEGORY_ACTIONS[weekCategory].week.en)[0]
     const weekRangeLabel =
       rangeDays === 7 ? (isKo ? '이번 주' : 'this week') : isKo ? '이번 2주' : 'the next 2 weeks'
-    pushItem(
-      isKo
-        ? `${weekRangeLabel} ${categoryLabel(weekCategory)} 중심 목표 1개 설정`
-        : `Focus on one ${categoryLabel(weekCategory)} goal ${weekRangeLabel}`
-    )
-    pushItem(weekActions[0])
-
     const bestRec = bestDays.find((d) => d.info.recommendations?.length)?.info.recommendations?.[0]
-    pushItem(bestRec)
-
-    if (cautionDays.length > 0) {
-      const labels = cautionDays.map((entry) => formatDateLabel(entry.date)).join(', ')
-      pushItem(isKo ? `검토/조정일: ${labels}` : `Review/adjust days: ${labels}`)
-      pushItem(
-        isKo ? '위험한 일은 실행 우선일로 이동' : 'Move risky tasks to execute-first days'
-      )
-    }
-
-    while (items.length < 4) {
-      const fallback = (isKo ? DEFAULT_WEEK_KO : DEFAULT_WEEK_EN)[items.length]
-      pushItem(fallback)
-    }
-
-    return items
-      .slice(0, 4)
-      .map((item) => cleanText(item))
-      .filter(Boolean)
+    return buildWeekItems({
+      isKo,
+      bestDayLabels: bestDays.map((entry) => formatDateLabel(entry.date)),
+      cautionDayLabels: cautionDays.map((entry) => formatDateLabel(entry.date)),
+      weekRangeLabel,
+      goalLabel: categoryLabel(weekCategory),
+      weekAction,
+      bestRecommendation: bestRec,
+      fallbackItems: isKo ? DEFAULT_WEEK_KO : DEFAULT_WEEK_EN,
+      cleanText,
+    })
   }, [
     bestDays,
     cleanText,
@@ -2009,13 +1472,6 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       : isKo
         ? '기본 구간'
         : 'Base window'
-    const cautionText = baseInfo.warnings?.length
-      ? isKo
-        ? '주의 슬롯 포함'
-        : 'Caution slots included'
-      : isKo
-        ? '주의 슬롯 없음'
-        : 'No caution slots'
     const precisionText =
       aiStatus === 'error'
         ? isKo
@@ -2028,150 +1484,49 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           : aiSummary
             ? cleanText(aiSummary, '')
             : ''
-    return isKo
-      ? `${peakText} 기준 타임라인 · ${cautionText}${precisionText ? ` · ${precisionText}` : ''}`
-      : `${peakText} timeline · ${cautionText}${precisionText ? ` · ${precisionText}` : ''}`
+    return buildTimelineInsight({
+      isKo,
+      peakText,
+      hasWarnings: Boolean(baseInfo.warnings?.length),
+      precisionText,
+    })
   }, [aiPrecisionMode, aiStatus, aiSummary, baseInfo, cleanText, isKo, resolvedPeakLevel])
 
   const timelineHighlights = useMemo(() => {
-    const bestCount = timelineSlots.filter((slot) => slot.tone === 'best').length
-    const cautionCount = timelineSlots.filter((slot) => slot.tone === 'caution').length
-    const avgConfidence =
-      timelineSlots.length > 0
-        ? clampConfidence(
-            timelineSlots.reduce((sum, slot) => sum + (slot.confidence ?? 60), 0) /
-              timelineSlots.length
-          )
-        : 60
-    const leadBest = timelineSlots.find((slot) => slot.tone === 'best')
-    const leadCaution = timelineSlots.find((slot) => slot.tone === 'caution')
-
-    return [
-      isKo
-        ? `핵심 슬롯 ${bestCount}개`
-        : `${bestCount} core slots`,
-      isKo
-        ? `주의 슬롯 ${cautionCount}개`
-        : `${cautionCount} caution slots`,
-      isKo ? `평균 신뢰도 ${avgConfidence}%` : `Avg confidence ${avgConfidence}%`,
-      leadBest
-        ? isKo
-          ? `첫 실행 ${leadBest.label}`
-          : `First push ${leadBest.label}`
-        : leadCaution
-          ? isKo
-            ? `속도 조절 ${leadCaution.label}`
-            : `Pace at ${leadCaution.label}`
-          : isKo
-            ? '기본 리듬 유지'
-            : 'Keep a steady rhythm',
-    ]
+    return buildTimelineHighlights({
+      isKo,
+      timelineSlots,
+      clampConfidence,
+    })
   }, [clampConfidence, isKo, timelineSlots])
 
-  const todayInsight = useMemo(() => {
-    if (evidenceLines[0]) return evidenceLines[0]
-    return isKo
-      ? '교차 신호를 바탕으로 오늘 실행 우선순위를 압축했습니다.'
-      : 'Today priorities are compressed from cross-signals.'
-  }, [evidenceLines, isKo])
+  const todayInsight = useMemo(
+    () =>
+      buildTodayInsight({
+        isKo,
+        evidenceLines,
+      }),
+    [evidenceLines, isKo]
+  )
 
   const weekInsight = useMemo(() => {
-    const bestCount = bestDays.length
-    const cautionCount = cautionDays.length
-    const focusLabel = topCategory ? categoryLabel(topCategory) : isKo ? '전체' : 'general'
-    return isKo
-      ? `실행/활용일 ${bestCount}회 · 검토/조정일 ${cautionCount}회 · ${focusLabel} 중심 배치`
-      : `${bestCount} execute/leverage slots · ${cautionCount} review/adjust slots · ${focusLabel} focus`
+    return buildWeekInsight({
+      isKo,
+      bestCount: bestDays.length,
+      cautionCount: cautionDays.length,
+      focusLabel: topCategory ? categoryLabel(topCategory) : isKo ? '전체' : 'general',
+    })
   }, [bestDays.length, cautionDays.length, topCategory, categoryLabel, isKo])
 
   const actionPlanInsights = useMemo<ActionPlanInsights>(() => {
-    if (aiInsights) {
-      return aiInsights
-    }
-    const bestSlot = timelineSlots.find((slot) => slot.tone === 'best')
-    const cautionSlot = timelineSlots.find((slot) => slot.tone === 'caution')
-    const cautionCount = timelineSlots.filter((slot) => slot.tone === 'caution').length
-    const avgConfidence =
-      timelineSlots.length > 0
-        ? clampConfidence(
-            timelineSlots.reduce((sum, slot) => sum + (slot.confidence ?? 60), 0) /
-              timelineSlots.length
-          )
-        : 60
-    const formatSlot = (slot?: TimelineSlotView) =>
-      slot ? `${String(slot.hour).padStart(2, '0')}:${String(slot.minute).padStart(2, '0')}` : '-'
-
-    return {
-      ifThenRules: [
-        bestSlot
-          ? isKo
-            ? `IF ${formatSlot(bestSlot)} 시작 THEN 25분 내 초안 1개 저장`
-            : `IF start at ${formatSlot(bestSlot)} THEN save one draft within 25 minutes.`
-          : isKo
-            ? 'IF 시작 지연 THEN 우선순위 1개만 먼저 실행'
-            : 'IF start is delayed THEN execute one top priority first.',
-        cautionSlot
-          ? isKo
-            ? `IF ${formatSlot(cautionSlot)} 결정 요청 THEN 10분 유예 + 체크리스트 3항목 확인`
-            : `IF decision requested at ${formatSlot(cautionSlot)} THEN delay 10m + validate 3 checklist items.`
-          : isKo
-            ? 'IF 피로 누적 THEN 큰 결정 보류'
-            : 'IF fatigue accumulates THEN hold major decisions.',
-      ],
-      situationTriggers: [
-        isKo
-          ? '피로 7/10 이상: 신규 결정 중단, 20분 회복'
-          : 'Fatigue >= 7/10: pause new decisions and recover for 20m',
-        isKo
-          ? '10분 내 요청 3건 이상: 즉답 금지, 우선순위 재정렬'
-          : '3+ requests within 10m: no instant replies, reprioritize first',
-        isKo
-          ? '지출 유혹 발생: 총액·한도·대안 확인 전 집행 금지'
-          : 'Spending urge: do not execute before amount-limit-alternative check',
-      ],
-      actionFramework: {
-        do: todayItems.slice(0, 3),
-        dont: [
-          ...(baseInfo?.warnings?.slice(0, 2) || []),
-          isKo ? '근거 없는 즉흥 결정 금지' : 'No impulsive decision without evidence',
-        ].slice(0, 3),
-        alternative: [
-          isKo
-            ? '주의 슬롯: 결정보다 초안/검증 작업'
-            : 'Caution slot: draft/validation instead of decisions',
-          isKo
-            ? '집중 슬롯: 핵심 1건 완료 후 로그'
-            : 'Best slot: finish one key task and log outcome',
-        ],
-      },
-      riskTriggers: [
-        cautionCount > 0
-          ? isKo
-            ? `주의 슬롯 ${cautionCount}개: 확정 결정보다 검증 우선`
-            : `${cautionCount} caution slots: validate before finalizing`
-          : isKo
-            ? '주의 슬롯이 적어도 피로 신호 우선 점검'
-            : 'Even with fewer caution slots, check fatigue signal first',
-        isKo
-          ? '응답 지연 + 기준 불명확 + 멀티태스킹 동시 발생: 즉시 속도 조절'
-          : 'Delay + unclear criteria + multitasking together: reduce pace immediately',
-      ],
-      successKpi: [
-        isKo
-          ? `평균 슬롯 신뢰도 ${avgConfidence}% 이상`
-          : `Average slot confidence >= ${avgConfidence}%`,
-        isKo ? '핵심 액션 2건 이상 완료' : 'Complete at least 2 core actions',
-        isKo ? '주의 슬롯 확정 결정 0건' : 'Zero final decisions in caution slots',
-      ],
-      deltaToday:
-        cautionCount > 1
-          ? isKo
-            ? '오늘은 신규 확정보다 리스크 제거가 우선입니다.'
-            : 'Today prioritizes risk removal over new commitments.'
-          : isKo
-            ? '오늘은 속도는 좋고, 검증 규칙을 붙이면 성과가 커집니다.'
-            : 'Momentum is good today; stricter validation improves outcomes.',
-    }
+    return buildFallbackActionPlanInsights({
+      aiInsights,
+      isKo,
+      timelineSlots,
+      todayItems,
+      warnings: baseInfo?.warnings,
+      clampConfidence,
+    })
   }, [aiInsights, baseInfo?.warnings, clampConfidence, isKo, timelineSlots, todayItems])
 
   const bestDayChips = bestDays.map((entry) => ({
@@ -2183,46 +1538,25 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     emoji: GRADE_EMOJI[entry.info.grade],
   }))
   const shareText = useCallback(() => {
-    const lines: string[] = []
-    lines.push(
-      isKo
-        ? `행동 플랜 (${formatDateLabel(baseDate)})`
-        : `Action Plan (${formatDateLabel(baseDate)})`
-    )
-    if (bestDayChips.length > 0) {
-      lines.push(
-        `${isKo ? '실행/활용일' : 'Execute/Leverage days'}: ${bestDayChips.map((chip) => chip.label).join(', ')}`
-      )
-    }
-    if (cautionDayChips.length > 0) {
-      lines.push(
-        `${isKo ? '검토/조정일' : 'Review/Adjust days'}: ${cautionDayChips.map((chip) => chip.label).join(', ')}`
-      )
-    }
-    lines.push(isKo ? '오늘 체크리스트' : 'Today Checklist')
-    todayItems.forEach((item) => lines.push(`- ${item}`))
-    if (todayTiming) {
-      lines.push(isKo ? `추천 시간: ${todayTiming}` : `Best timing: ${todayTiming}`)
-    }
-    if (todayCaution) {
-      lines.push(isKo ? `주의: ${todayCaution}` : `Caution: ${todayCaution}`)
-    }
-    lines.push(weekTitle)
-    weekItems.forEach((item) => lines.push(`- ${item}`))
-    if (topCategory) {
-      lines.push(
-        isKo
-          ? `주간 포커스: ${categoryLabel(topCategory)}`
-          : `Weekly focus: ${categoryLabel(topCategory)}`
-      )
-    }
-    return lines.join('\n')
+    return buildActionPlanShareText({
+      isKo,
+      baseDate,
+      formatDateLabel,
+      bestDays,
+      cautionDays,
+      todayItems,
+      todayTiming,
+      todayCaution,
+      weekTitle,
+      weekItems,
+      topCategoryLabel: topCategory ? categoryLabel(topCategory) : null,
+    })
   }, [
     isKo,
     formatDateLabel,
     baseDate,
-    bestDayChips,
-    cautionDayChips,
+    bestDays,
+    cautionDays,
     todayItems,
     todayTiming,
     todayCaution,
@@ -2425,440 +1759,50 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       </div>
 
       <div className={styles.actionPlanGrid}>
-        <div className={`${styles.actionPlanCard} ${styles.actionPlanTimeline}`}>
-          <div className={styles.actionPlanTimelineHeader}>
-            <div>
-              <span className={styles.actionPlanCardTitle}>
-                {isKo ? '24시간 타임라인' : '24-Hour Timeline'}
-              </span>
-              <span className={styles.actionPlanCardFocus}>
-                {intervalMinutes === 30
-                  ? isKo
-                    ? '30분 단위로 오늘의 리듬 정리'
-                    : '30-minute rhythm for today'
-                  : isKo
-                    ? '1시간 단위로 오늘의 리듬 정리'
-                    : 'Hourly rhythm for today'}
-              </span>
-            </div>
-            <div className={styles.actionPlanTimelineMeta}>
-              <div className={styles.actionPlanTimelineActions}>
-                <div className={styles.actionPlanRange}>
-                  <button
-                    type="button"
-                    className={`${styles.actionPlanRangeBtn} ${intervalMinutes === 30 ? styles.actionPlanRangeBtnActive : ''}`}
-                    aria-pressed={intervalMinutes === 30}
-                    onClick={() => setIntervalMinutes(30)}
-                  >
-                    {isKo ? '30분' : '30m'}
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.actionPlanRangeBtn} ${intervalMinutes === 60 ? styles.actionPlanRangeBtnActive : ''}`}
-                    aria-pressed={intervalMinutes === 60}
-                    onClick={() => setIntervalMinutes(60)}
-                  >
-                    {isKo ? '1시간' : '1h'}
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  className={styles.actionPlanTimelineAiBtn}
-                  onClick={handleAiRefresh}
-                  disabled={!baseInfo || aiStatus === 'loading'}
-                  aria-label={isKo ? '정밀 타임라인 생성' : 'Generate precision timeline'}
-                >
-                  {aiButtonLabel}
-                </button>
-                {aiStatus === 'loading' && (
-                  <span className={styles.actionPlanTimelineSpinner} aria-hidden="true" />
-                )}
-                <span
-                  className={`${styles.actionPlanTimelineStatus} ${
-                    aiStatus === 'error' ? styles.actionPlanTimelineStatusError : ''
-                  }`}
-                >
-                  {aiStatusText}
-                </span>
-              </div>
-              <div className={styles.actionPlanTimelineLegend}>
-                <span className={styles.actionPlanTimelineLegendItem}>
-                  <span
-                    className={`${styles.actionPlanTimelineDot} ${styles.actionPlanTimelineDotBest}`}
-                  />
-                  {isKo ? '좋은 시간' : 'Best'}
-                </span>
-                <span className={styles.actionPlanTimelineLegendItem}>
-                  <span
-                    className={`${styles.actionPlanTimelineDot} ${styles.actionPlanTimelineDotCaution}`}
-                  />
-                  {isKo ? '주의 시간' : 'Caution'}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className={styles.actionPlanRhythmWrap}>
-            <div className={styles.actionPlanRhythmHeader}>
-              <span className={styles.actionPlanCardTitle}>
-                {isKo ? '원형 하루 리듬' : 'Circular Day Rhythm'}
-              </span>
-              <span className={styles.actionPlanCardFocus}>
-                {isKo
-                  ? '시간대를 누르면 아래 상세 슬롯으로 이동'
-                  : 'Tap an hour to jump to detailed slots'}
-              </span>
-            </div>
-            <div
-              className={styles.actionPlanRhythmRing}
-              role="list"
-              aria-label={isKo ? '하루 시간대 리듬' : 'Daily rhythm by hour'}
-            >
-              {hourlyRhythm.map((item) => {
-                const angle = (item.hour / 24) * 360
-                const isActive = activeRhythmHour === item.hour
-                return (
-                  <button
-                    key={`rhythm-${item.hour}`}
-                    type="button"
-                    role="listitem"
-                    className={`${styles.actionPlanRhythmSector} ${
-                      item.tone === 'best'
-                        ? styles.actionPlanRhythmSectorBest
-                        : item.tone === 'caution'
-                          ? styles.actionPlanRhythmSectorCaution
-                          : styles.actionPlanRhythmSectorNeutral
-                    } ${isActive ? styles.actionPlanRhythmSectorActive : ''}`}
-                    style={{
-                      transform: `rotate(${angle}deg) translateY(calc(-1 * var(--action-plan-ring-radius))) rotate(${-angle}deg)`,
-                    }}
-                    aria-label={`${item.hour}:00`}
-                    onClick={() => handleRhythmSelect(item.hour)}
-                  >
-                    {String(item.hour).padStart(2, '0')}
-                  </button>
-                )
-              })}
-              <div className={styles.actionPlanRhythmCenter}>
-                <div className={styles.actionPlanRhythmHour}>
-                  {activeRhythmHour !== null
-                    ? `${String(activeRhythmHour).padStart(2, '0')}:00`
-                    : isKo
-                      ? '시간 선택'
-                      : 'Select hour'}
-                </div>
-                <div className={styles.actionPlanRhythmNote}>
-                  {activeRhythmInfo?.note ||
-                    (isKo ? '원형에서 시간대를 선택하세요.' : 'Select an hour from the ring.')}
-                </div>
-              </div>
-            </div>
-          </div>
-          <p className={styles.actionPlanInsightLine}>{timelineInsight}</p>
-          <div className={styles.actionPlanTimelineHighlights}>
-            {timelineHighlights.map((item) => (
-              <span key={item} className={styles.actionPlanTimelineHighlightChip}>
-                {item}
-              </span>
-            ))}
-          </div>
-          <div className={styles.actionPlanTimelineGrid} role="list">
-            {timelineSlots.map((slot) =>
-              (() => {
-                const whyMetaLabel = formatWhyMetaLabel(slot)
-                const isExpandedSlot = slot.tone !== 'neutral' || activeRhythmHour === slot.hour
-                const hasDetailPanel = Boolean(
-                  isExpandedSlot &&
-                    (whyMetaLabel ||
-                      (slot.confidenceReason && slot.confidenceReason.length > 0) ||
-                      (slot.evidenceSummary && slot.evidenceSummary.length > 0))
-                )
+        <CalendarActionPlanTimelinePanel
+          isKo={isKo}
+          intervalMinutes={intervalMinutes}
+          onIntervalChange={setIntervalMinutes}
+          onAiRefresh={handleAiRefresh}
+          aiDisabled={!baseInfo}
+          aiStatus={aiStatus}
+          aiButtonLabel={aiButtonLabel}
+          aiStatusText={aiStatusText}
+          hourlyRhythm={hourlyRhythm}
+          activeRhythmHour={activeRhythmHour}
+          activeRhythmInfo={activeRhythmInfo}
+          onRhythmSelect={handleRhythmSelect}
+          timelineInsight={timelineInsight}
+          timelineHighlights={timelineHighlights}
+          timelineSlots={timelineSlots.map((slot) => ({
+            ...slot,
+            slotTypes: slot.slotTypes?.map((slotType) => formatSlotTypeLabel(slotType)),
+          }))}
+          formatWhyMetaLabel={formatWhyMetaLabel}
+          formatConfidenceNote={(reasons) => formatConfidenceNote(reasons ?? [])}
+          onSlotRef={(key, node) => {
+            timelineSlotRefs.current[key] = node
+          }}
+          onSlotClick={setActiveRhythmHour}
+        />
+        <ActionPlanSummaryPanels
+          isKo={isKo}
+          todayFocus={todayFocus}
+          todayInsight={todayInsight}
+          todayItems={todayItems}
+          evidenceBadges={evidenceBadges}
+          evidenceLines={evidenceLines}
+          todayTiming={todayTiming}
+          todayCaution={todayCaution}
+          weekTitle={weekTitle}
+          weekFocus={weekFocus}
+          weekInsight={weekInsight}
+          weekItems={weekItems}
+          topCategory={topCategory}
+          categoryLabel={categoryLabel}
+        />
 
-                return (
-                  <div
-                    key={`${slot.hour}-${slot.minute ?? 0}`}
-                    role="listitem"
-                    ref={(node) => {
-                      timelineSlotRefs.current[`${slot.hour}-${slot.minute ?? 0}`] = node
-                    }}
-                    className={`${styles.actionPlanTimelineSlot} ${
-                      !isExpandedSlot ? styles.actionPlanTimelineSlotCompact : ''
-                    } ${
-                      slot.tone === 'best'
-                        ? styles.actionPlanTimelineSlotBest
-                        : slot.tone === 'caution'
-                          ? styles.actionPlanTimelineSlotCaution
-                          : ''
-                    } ${activeRhythmHour === slot.hour ? styles.actionPlanTimelineSlotLinked : ''}`}
-                    onClick={() => setActiveRhythmHour(slot.hour)}
-                  >
-                    <div className={styles.actionPlanTimelineTime}>
-                      <div className={styles.actionPlanTimelineTimeMain}>
-                        <span className={styles.actionPlanTimelineClock}>{slot.label}</span>
-                        <span className={styles.actionPlanTimelineTone}>
-                          {slot.tone === 'best'
-                            ? isKo
-                              ? '집중'
-                              : 'Focus'
-                            : slot.tone === 'caution'
-                              ? isKo
-                                ? '주의'
-                                : 'Caution'
-                              : isKo
-                                ? '기본'
-                                : 'Base'}
-                        </span>
-                      </div>
-                      {slot.badge && (
-                        <span className={styles.actionPlanTimelineBadge}>{slot.badge}</span>
-                      )}
-                    </div>
-                    <div className={styles.actionPlanTimelineMetaRow}>
-                      {typeof slot.confidence === 'number' && isExpandedSlot && (
-                        <div className={styles.actionPlanTimelineConfidence}>
-                          {isKo ? '신뢰도' : 'Confidence'} {slot.confidence}%
-                        </div>
-                      )}
-                      {slot.slotTypes && slot.slotTypes.length > 0 && (
-                        <div className={styles.actionPlanTimelineSlotTypes}>
-                          {slot.slotTypes.map((slotType) => (
-                            <span
-                              key={`${slot.label}-${slotType}`}
-                              className={styles.actionPlanTimelineSlotTypeChip}
-                            >
-                              {formatSlotTypeLabel(slotType)}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className={styles.actionPlanTimelineNote}>{slot.note}</div>
-                    {slot.whySummary && isExpandedSlot && (
-                      <div className={styles.actionPlanTimelineWhy}>
-                        <span className={styles.actionPlanTimelineWhyLabel}>
-                          {isKo ? '왜 이 시간대인가' : 'Why this slot'}
-                        </span>
-                        <span>{slot.whySummary}</span>
-                      </div>
-                    )}
-                    {slot.guardrail && isExpandedSlot && (
-                      <div className={styles.actionPlanTimelineGuardrail}>
-                        <span className={styles.actionPlanTimelineGuardrailLabel}>
-                          {isKo ? '안전장치' : 'Guardrail'}
-                        </span>
-                        <span>{slot.guardrail}</span>
-                      </div>
-                    )}
-                    {!isExpandedSlot && slot.evidenceSummary && slot.evidenceSummary.length > 0 && (
-                      <div className={styles.actionPlanTimelineCompactHint}>
-                        {slot.evidenceSummary[0]}
-                      </div>
-                    )}
-                    {hasDetailPanel && (
-                      <details className={styles.actionPlanTimelineDetails}>
-                        <summary className={styles.actionPlanTimelineDetailsSummary}>
-                          {isKo ? '근거 보기' : 'Why this works'}
-                        </summary>
-                        <div className={styles.actionPlanTimelineDetailsBody}>
-                          {whyMetaLabel && (
-                            <div className={styles.actionPlanTimelineWhyMeta}>{whyMetaLabel}</div>
-                          )}
-                          {slot.confidenceReason && slot.confidenceReason.length > 0 && (
-                            <div className={styles.actionPlanTimelineConfidenceReason}>
-                              {formatConfidenceNote(slot.confidenceReason)}
-                            </div>
-                          )}
-                          {slot.evidenceSummary && slot.evidenceSummary.length > 0 && (
-                            <ul className={styles.actionPlanTimelineEvidenceList}>
-                              {slot.evidenceSummary.map((line) => (
-                                <li key={`${slot.hour}-${slot.minute}-${line}`}>{line}</li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      </details>
-                    )}
-                  </div>
-                )
-              })()
-            )}
-          </div>
-        </div>
-        <div className={styles.actionPlanCard}>
-          <div className={styles.actionPlanCardHeader}>
-            <span className={styles.actionPlanCardTitle}>
-              {isKo ? '오늘 체크리스트' : 'Today Checklist'}
-            </span>
-            <span className={styles.actionPlanCardFocus}>{todayFocus}</span>
-          </div>
-          <p className={styles.actionPlanInsightLine}>{todayInsight}</p>
-          <ul className={styles.actionPlanList}>
-            {todayItems.map((item, idx) => (
-              <li key={idx} className={styles.actionPlanItem}>
-                <span className={styles.actionPlanItemCheck}>✓</span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-          <div className={styles.actionPlanEvidence}>
-            <div className={styles.actionPlanEvidenceBadges}>
-              {evidenceBadges.map((badge) => (
-                <span key={badge} className={styles.actionPlanEvidenceBadge}>
-                  {badge}
-                </span>
-              ))}
-            </div>
-            <ul className={styles.actionPlanEvidenceList}>
-              {evidenceLines.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
-          </div>
-          {todayTiming && (
-            <div className={styles.actionPlanTiming}>
-              ⏰ {isKo ? '추천 시간' : 'Best timing'}: {todayTiming}
-            </div>
-          )}
-          {todayCaution && (
-            <div className={styles.actionPlanCaution}>
-              ⚠ {isKo ? '주의' : 'Caution'}: {todayCaution}
-            </div>
-          )}
-        </div>
-
-        <div className={styles.actionPlanCard}>
-          <div className={styles.actionPlanCardHeader}>
-            <span className={styles.actionPlanCardTitle}>{weekTitle}</span>
-            <span className={styles.actionPlanCardFocus}>{weekFocus}</span>
-          </div>
-          <p className={styles.actionPlanInsightLine}>{weekInsight}</p>
-          <ul className={styles.actionPlanList}>
-            {weekItems.map((item, idx) => (
-              <li key={idx} className={styles.actionPlanItem}>
-                <span className={styles.actionPlanItemCheck}>✓</span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-          {topCategory && (
-            <div className={styles.actionPlanTiming}>
-              🎯 {isKo ? '주간 포커스' : 'Weekly focus'}: {CATEGORY_EMOJI[topCategory]}{' '}
-              {categoryLabel(topCategory)}
-            </div>
-          )}
-        </div>
-
-        <div className={`${styles.actionPlanCard} ${styles.actionPlanInsightsCard}`}>
-          <div className={styles.actionPlanCardHeader}>
-            <span className={styles.actionPlanCardTitle}>
-              {isKo ? '전략 인사이트' : 'Strategic Insights'}
-            </span>
-            <span className={styles.actionPlanCardFocus}>
-              {isKo ? 'If-Then 규칙과 리스크 대비 플로우' : 'If-Then rules and risk-response flow'}
-            </span>
-          </div>
-
-          <div className={styles.actionPlanInsightSection}>
-            <p className={styles.actionPlanInsightSectionTitle}>
-              {isKo ? 'ΔToday (평소 대비)' : 'ΔToday (vs usual)'}
-            </p>
-            <p className={styles.actionPlanInsightLine}>{actionPlanInsights.deltaToday}</p>
-          </div>
-
-          <div className={styles.actionPlanInsightSection}>
-            <p className={styles.actionPlanInsightSectionTitle}>
-              {isKo ? 'If-Then 규칙' : 'If-Then Rules'}
-            </p>
-            <ul className={styles.actionPlanList}>
-              {actionPlanInsights.ifThenRules.map((item) => (
-                <li key={`if-then-${item}`} className={styles.actionPlanItem}>
-                  <span className={styles.actionPlanItemCheck}>→</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className={styles.actionPlanInsightSection}>
-            <p className={styles.actionPlanInsightSectionTitle}>
-              {isKo ? '상황 트리거 If-Then' : 'Situation Triggers'}
-            </p>
-            <ul className={styles.actionPlanList}>
-              {actionPlanInsights.situationTriggers.map((item) => (
-                <li key={`trigger-${item}`} className={styles.actionPlanItem}>
-                  <span className={styles.actionPlanItemCheck}>⚡</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className={styles.actionPlanInsightTriple}>
-            <div className={styles.actionPlanInsightSection}>
-              <p className={styles.actionPlanInsightSectionTitle}>{isKo ? 'DO' : 'DO'}</p>
-              <ul className={styles.actionPlanList}>
-                {actionPlanInsights.actionFramework.do.map((item) => (
-                  <li key={`do-${item}`} className={styles.actionPlanItem}>
-                    <span className={styles.actionPlanItemCheck}>✓</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className={styles.actionPlanInsightSection}>
-              <p className={styles.actionPlanInsightSectionTitle}>{isKo ? "DON'T" : "DON'T"}</p>
-              <ul className={styles.actionPlanList}>
-                {actionPlanInsights.actionFramework.dont.map((item) => (
-                  <li key={`dont-${item}`} className={styles.actionPlanItem}>
-                    <span className={styles.actionPlanItemCheck}>!</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className={styles.actionPlanInsightSection}>
-              <p className={styles.actionPlanInsightSectionTitle}>
-                {isKo ? '대안 플랜' : 'Alternative'}
-              </p>
-              <ul className={styles.actionPlanList}>
-                {actionPlanInsights.actionFramework.alternative.map((item) => (
-                  <li key={`alt-${item}`} className={styles.actionPlanItem}>
-                    <span className={styles.actionPlanItemCheck}>↺</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className={styles.actionPlanInsightTriple}>
-            <div className={styles.actionPlanInsightSection}>
-              <p className={styles.actionPlanInsightSectionTitle}>
-                {isKo ? '리스크 트리거' : 'Risk Triggers'}
-              </p>
-              <ul className={styles.actionPlanList}>
-                {actionPlanInsights.riskTriggers.map((item) => (
-                  <li key={`risk-${item}`} className={styles.actionPlanItem}>
-                    <span className={styles.actionPlanItemCheck}>⚠</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className={styles.actionPlanInsightSection}>
-              <p className={styles.actionPlanInsightSectionTitle}>
-                {isKo ? '성공 KPI' : 'Success KPI'}
-              </p>
-              <ul className={styles.actionPlanList}>
-                {actionPlanInsights.successKpi.map((item) => (
-                  <li key={`kpi-${item}`} className={styles.actionPlanItem}>
-                    <span className={styles.actionPlanItemCheck}>📍</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
+        <ActionPlanInsightsPanel isKo={isKo} actionPlanInsights={actionPlanInsights} />
       </div>
     </div>
   )

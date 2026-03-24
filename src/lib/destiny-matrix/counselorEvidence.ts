@@ -119,6 +119,9 @@ export interface CounselorEvidencePacket {
     actionFocusDomain?: string
     focusRunnerUpDomain?: string
     actionRunnerUpDomain?: string
+    focusNarrative?: string
+    actionNarrative?: string
+    suppressionNarratives?: string[]
     topDecisionAction?: string
     topDecisionLabel?: string
     answerThesis: string
@@ -147,6 +150,9 @@ export interface CounselorEvidencePacket {
     timingGranularity?: 'day' | 'week' | 'fortnight' | 'month' | 'season'
     timingReliabilityBand?: 'low' | 'medium' | 'high'
     timingReliabilityScore?: number
+    readinessScore?: number
+    triggerScore?: number
+    convergenceScore?: number
     precisionReason?: string
     timingConflictMode?: 'aligned' | 'readiness_ahead' | 'trigger_ahead' | 'weak_both'
     timingConflictNarrative?: string
@@ -162,6 +168,14 @@ export interface CounselorEvidencePacket {
     likelyExpressions: string[]
     riskExpressions: string[]
     timingWindow: string
+  }
+  projections?: {
+    structure?: { headline: string; summary: string; reasons?: string[] }
+    timing?: { headline: string; summary: string; reasons?: string[] }
+    conflict?: { headline: string; summary: string; reasons?: string[] }
+    action?: { headline: string; summary: string; reasons?: string[] }
+    risk?: { headline: string; summary: string; reasons?: string[] }
+    evidence?: { headline: string; summary: string; reasons?: string[] }
   }
   whyStack: string[]
 }
@@ -209,6 +223,7 @@ type CounselorEvidencePacketLike = {
   topDomainAdvisory?: CounselorEvidencePacket['topDomainAdvisory']
   topTimingWindow?: CounselorEvidencePacket['topTimingWindow']
   topManifestation?: CounselorEvidencePacket['topManifestation']
+  projections?: CounselorEvidencePacket['projections']
   whyStack?: string[]
 }
 
@@ -325,6 +340,57 @@ function localizeCounselorDomain(domain: string, lang: 'ko' | 'en'): string {
     move: '이동/변화',
   }
   return labels[domain] || domain
+}
+
+function sanitizeCounselorFreeText(text: string | undefined | null, lang: 'ko' | 'en'): string {
+  const value = String(text || '').trim()
+  if (!value) return ''
+  if (lang !== 'ko') return value
+
+  return value
+    .replace(/\bpersonality\b/gi, '성향')
+    .replace(/\bcareer\b/gi, '커리어')
+    .replace(/\brelationship\b/gi, '관계')
+    .replace(/\bwealth\b/gi, '재정')
+    .replace(/\bhealth\b/gi, '건강')
+    .replace(/\bmove\b/gi, '이동')
+    .replace(/\btiming\b/gi, '타이밍')
+    .replace(/\brelationship caution\b/gi, '관계 주의 신호')
+    .replace(/\bcaution\b/gi, '주의 신호')
+    .replace(/\bdowngrade pressure\b/gi, '하향 조정 압력')
+    .replace(/\bmoney expansion action\b/gi, '재정 확장 실행')
+    .replace(/\bvolatility pattern\b/gi, '변동성 패턴')
+    .replace(/\bMap full debt stack\b/gi, '전체 부채 구조를 다시 정리하기')
+    .replace(
+      /action pressure stayed narrow between ([^\s]+) and ([^\s]+)/gi,
+      (_, left: string, right: string) =>
+        `${localizeCounselorDomain(left, 'ko')}와 ${localizeCounselorDomain(right, 'ko')} 사이의 행동 압력이 좁게 경쟁했습니다`
+    )
+    .replace(
+      /(\w+)\s+stayed secondary because total support remained below the winner/gi,
+      (_, domain: string) =>
+        `${localizeCounselorDomain(domain, 'ko')}은 최종 지지가 승자축보다 약해 보조축에 머물렀습니다`
+    )
+    .replace(
+      /\bstayed secondary because total support remained below the winner\b/gi,
+      '최종 지지가 승자축보다 약해 보조축에 머물렀습니다'
+    )
+    .replace(/\bweek\b/gi, '주 단위')
+    .replace(/\bfortnight\b/gi, '2주 단위')
+    .replace(/\bmonth\b/gi, '월 단위')
+    .replace(/\bseason\b/gi, '분기 단위')
+    .replace(/\bnow\b/gi, '지금')
+    .replace(/\bnone\b/gi, '없음')
+    .replace(/커리어은/g, '커리어는')
+    .replace(/관계은/g, '관계는')
+    .replace(/재정와/g, '재정과')
+    .replace(/건강와/g, '건강과')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function sanitizeCounselorTextList(items: Array<string | undefined | null>, lang: 'ko' | 'en'): string[] {
+  return items.map((item) => sanitizeCounselorFreeText(item, lang)).filter(Boolean)
 }
 
 function buildDomainSpecificWhyReasons(input: {
@@ -1039,6 +1105,9 @@ export function buildCounselorEvidencePacket(params: {
     pastStability: params.matrixSummary?.timingCalibration?.pastStability,
     futureStability: params.matrixSummary?.timingCalibration?.futureStability,
     backtestConsistency: params.matrixSummary?.timingCalibration?.backtestConsistency,
+    calibratedFromHistory: params.matrixSummary?.timingCalibration?.calibratedFromHistory,
+    calibrationSampleSize: params.matrixSummary?.timingCalibration?.calibrationSampleSize,
+    calibrationMatchedRate: params.matrixSummary?.timingCalibration?.calibrationMatchedRate,
     lang: params.lang,
   })
   const timelineDomain = mapSignalDomainToTimelineDomain(preferredDomain)
@@ -1073,8 +1142,8 @@ export function buildCounselorEvidencePacket(params: {
   return {
     focusDomain: preferredDomain,
     actionFocusDomain: counselorCore?.actionFocusDomain,
-    verdict,
-    guardrail: counselorCore?.primaryCaution || guardrail,
+    verdict: sanitizeCounselorFreeText(verdict, params.lang),
+    guardrail: sanitizeCounselorFreeText(counselorCore?.primaryCaution || guardrail, params.lang),
     topAnchorSummary,
     graphRagEvidenceSummary,
     topAnchors: prioritizedAnchors.map((anchor) => ({
@@ -1122,24 +1191,38 @@ export function buildCounselorEvidencePacket(params: {
           actionFocusDomain: counselorCore.actionFocusDomain,
           focusRunnerUpDomain: counselorCore.arbitrationBrief.focusRunnerUpDomain || undefined,
           actionRunnerUpDomain: counselorCore.arbitrationBrief.actionRunnerUpDomain || undefined,
+          focusNarrative: counselorCore.arbitrationBrief.focusNarrative || undefined,
+          actionNarrative: counselorCore.arbitrationBrief.actionNarrative || undefined,
+          suppressionNarratives: sanitizeCounselorTextList(
+            counselorCore.arbitrationBrief.suppressionNarratives.slice(0, 2),
+            params.lang
+          ),
           topDecisionAction: counselorCore.topDecisionAction || undefined,
           topDecisionLabel: topDecisionLeadLabel || undefined,
-          answerThesis: counselorCore.answerThesis,
-          primaryAction: counselorCore.primaryAction,
-          primaryCaution: counselorCore.primaryCaution,
-          timingHint: counselorCore.timingHint,
+          answerThesis: sanitizeCounselorFreeText(counselorCore.answerThesis, params.lang),
+          primaryAction: sanitizeCounselorFreeText(counselorCore.primaryAction, params.lang),
+          primaryCaution: sanitizeCounselorFreeText(counselorCore.primaryCaution, params.lang),
+          timingHint: sanitizeCounselorFreeText(counselorCore.timingHint, params.lang),
           policyMode: counselorCore.judgmentPolicy.mode,
-          policyRationale: counselorCore.judgmentPolicy.rationale,
+          policyRationale: sanitizeCounselorFreeText(
+            counselorCore.judgmentPolicy.rationale,
+            params.lang
+          ),
           allowedActions: [
             ...scenarioActionHints,
             ...(counselorCore.judgmentPolicy.allowedActionLabels || []),
-          ].slice(0, 3),
-          blockedActions: (counselorCore.judgmentPolicy.blockedActionLabels || []).slice(0, 3),
-          softChecks: (
-            counselorCore.judgmentPolicy.softCheckLabels || counselorCore.judgmentPolicy.softChecks
+          ].slice(0, 3).map((item) => sanitizeCounselorFreeText(item, params.lang)).filter(Boolean),
+          blockedActions: sanitizeCounselorTextList(
+            (counselorCore.judgmentPolicy.blockedActionLabels || []).slice(0, 3),
+            params.lang
+          ),
+          softChecks: sanitizeCounselorTextList(
+            counselorCore.judgmentPolicy.softCheckLabels || counselorCore.judgmentPolicy.softChecks,
+            params.lang
           ).slice(0, 3),
-          hardStops: (
-            counselorCore.judgmentPolicy.hardStopLabels || counselorCore.judgmentPolicy.hardStops
+          hardStops: sanitizeCounselorTextList(
+            counselorCore.judgmentPolicy.hardStopLabels || counselorCore.judgmentPolicy.hardStops,
+            params.lang
           ).slice(0, 3),
           latentTopAxes: counselorCore.latentTopAxes.slice(0, 3).map((axis) => axis.label),
         }
@@ -1147,39 +1230,95 @@ export function buildCounselorEvidencePacket(params: {
     topDomainAdvisory: topDomainAdvisory
       ? {
           domain: topDomainAdvisory.domain,
-          thesis: topDomainAdvisory.thesis,
-          action: [topDomainAdvisory.action, ...scenarioActionHints]
-            .filter(Boolean)
-            .join(params.lang === 'ko' ? ' / ' : ' / '),
-          caution: topDomainAdvisory.caution,
-          timingHint: topDomainAdvisory.timingHint,
-          strategyLine: topDomainAdvisory.strategyLine,
+          thesis: sanitizeCounselorFreeText(topDomainAdvisory.thesis, params.lang),
+          action: sanitizeCounselorFreeText(
+            [topDomainAdvisory.action, ...scenarioActionHints].filter(Boolean).join(' / '),
+            params.lang
+          ),
+          caution: sanitizeCounselorFreeText(topDomainAdvisory.caution, params.lang),
+          timingHint: sanitizeCounselorFreeText(topDomainAdvisory.timingHint, params.lang),
+          strategyLine: sanitizeCounselorFreeText(topDomainAdvisory.strategyLine, params.lang),
         }
       : undefined,
     topTimingWindow: topTimingWindow
-      ? {
+        ? {
           domain: topTimingWindow.domain,
           window: topTimingWindow.window,
           timingGranularity: topTimingWindow.timingGranularity,
           timingReliabilityBand: params.matrixSummary?.timingCalibration?.reliabilityBand,
           timingReliabilityScore: params.matrixSummary?.timingCalibration?.reliabilityScore,
-          precisionReason: topTimingWindow.precisionReason,
+          readinessScore: topTimingWindow.readinessScore,
+          triggerScore: topTimingWindow.triggerScore,
+          convergenceScore: topTimingWindow.convergenceScore,
+          precisionReason: sanitizeCounselorFreeText(topTimingWindow.precisionReason, params.lang),
           timingConflictMode: topTimingWindow.timingConflictMode,
-          timingConflictNarrative: topTimingWindow.timingConflictNarrative,
-          whyNow: topTimingWindow.whyNow,
-          entryConditions: [...topTimingWindow.entryConditions].slice(0, 3),
-          abortConditions: [...topTimingWindow.abortConditions].slice(0, 3),
+          timingConflictNarrative: sanitizeCounselorFreeText(
+            topTimingWindow.timingConflictNarrative,
+            params.lang
+          ),
+          whyNow: sanitizeCounselorFreeText(topTimingWindow.whyNow, params.lang),
+          entryConditions: sanitizeCounselorTextList(
+            [...topTimingWindow.entryConditions].slice(0, 3),
+            params.lang
+          ),
+          abortConditions: sanitizeCounselorTextList(
+            [...topTimingWindow.abortConditions].slice(0, 3),
+            params.lang
+          ),
         }
       : undefined,
     topManifestation: topManifestation
       ? {
           domain: topManifestation.domain,
-          baselineThesis: topManifestation.baselineThesis,
-          activationThesis: topManifestation.activationThesis,
-          manifestation: topManifestation.manifestation,
-          likelyExpressions: [...topManifestation.likelyExpressions].slice(0, 3),
-          riskExpressions: [...topManifestation.riskExpressions].slice(0, 3),
+          baselineThesis: sanitizeCounselorFreeText(topManifestation.baselineThesis, params.lang),
+          activationThesis: sanitizeCounselorFreeText(
+            topManifestation.activationThesis,
+            params.lang
+          ),
+          manifestation: sanitizeCounselorFreeText(topManifestation.manifestation, params.lang),
+          likelyExpressions: sanitizeCounselorTextList(
+            [...topManifestation.likelyExpressions].slice(0, 3),
+            params.lang
+          ),
+          riskExpressions: sanitizeCounselorTextList(
+            [...topManifestation.riskExpressions].slice(0, 3),
+            params.lang
+          ),
           timingWindow: topManifestation.timingWindow,
+        }
+      : undefined,
+    projections: counselorCore
+      ? {
+          structure: {
+            ...counselorCore.projections.structure,
+            summary: sanitizeCounselorFreeText(counselorCore.projections.structure.summary, params.lang),
+            reasons: sanitizeCounselorTextList(counselorCore.projections.structure.reasons || [], params.lang),
+          },
+          timing: {
+            ...counselorCore.projections.timing,
+            summary: sanitizeCounselorFreeText(counselorCore.projections.timing.summary, params.lang),
+            reasons: sanitizeCounselorTextList(counselorCore.projections.timing.reasons || [], params.lang),
+          },
+          conflict: {
+            ...counselorCore.projections.conflict,
+            summary: sanitizeCounselorFreeText(counselorCore.projections.conflict.summary, params.lang),
+            reasons: sanitizeCounselorTextList(counselorCore.projections.conflict.reasons || [], params.lang),
+          },
+          action: {
+            ...counselorCore.projections.action,
+            summary: sanitizeCounselorFreeText(counselorCore.projections.action.summary, params.lang),
+            reasons: sanitizeCounselorTextList(counselorCore.projections.action.reasons || [], params.lang),
+          },
+          risk: {
+            ...counselorCore.projections.risk,
+            summary: sanitizeCounselorFreeText(counselorCore.projections.risk.summary, params.lang),
+            reasons: sanitizeCounselorTextList(counselorCore.projections.risk.reasons || [], params.lang),
+          },
+          evidence: {
+            ...counselorCore.projections.evidence,
+            summary: sanitizeCounselorFreeText(counselorCore.projections.evidence.summary, params.lang),
+            reasons: sanitizeCounselorTextList(counselorCore.projections.evidence.reasons || [], params.lang),
+          },
         }
       : undefined,
     whyStack: [
@@ -1194,6 +1333,7 @@ export function buildCounselorEvidencePacket(params: {
       trustNarrative,
       provenanceNarrative,
     ]
+      .map((line) => sanitizeCounselorFreeText(line, params.lang))
       .filter(Boolean)
       .slice(0, 6),
   }
@@ -1204,32 +1344,6 @@ export function formatCounselorEvidencePacket(
   lang: 'ko' | 'en'
 ): string {
   if (!packet || !packet.focusDomain || !packet.graphRagEvidenceSummary) return ''
-
-  const claimLimit = packet.canonicalBrief ? 3 : 6
-  const scenarioLimit = packet.canonicalBrief ? 2 : 4
-  const signalLimit = packet.canonicalBrief ? 4 : 8
-  const anchorLimit = packet.canonicalBrief ? 3 : 6
-
-  const anchorLines = (packet.topAnchors || [])
-    .slice(0, anchorLimit)
-    .map((anchor) => `- ${anchor.section}: ${anchor.summary} (sets=${anchor.setCount})`)
-  const claimLines = (packet.topClaims || [])
-    .slice(0, claimLimit)
-    .map(
-      (claim) =>
-        `- [${claim.domain || 'general'}] ${claim.text} | signals=${(claim.signalIds || []).slice(0, 4).join(',') || 'none'}${claim.provenanceSummary ? ` | provenance=${claim.provenanceSummary}` : ''}`
-    )
-  const scenarioLines = (packet.scenarioBriefs || []).slice(0, scenarioLimit).map((scenario) => {
-    const main = (scenario.mainTokens || []).slice(0, 4).join(', ') || 'none'
-    const alt = (scenario.altTokens || []).slice(0, 4).join(', ') || 'none'
-    return `- ${scenario.domain}: main=${main} | alt=${alt}`
-  })
-  const signalLines = (packet.selectedSignals || [])
-    .slice(0, signalLimit)
-    .map(
-      (signal) =>
-        `- ${signal.domain}/${signal.polarity}/score=${signal.score}: ${signal.summary || 'none'}`
-    )
   const strategyLabel = packet.strategyBrief?.overallPhaseLabel || 'none'
   const attackPercent = packet.strategyBrief?.attackPercent ?? '-'
   const defensePercent = packet.strategyBrief?.defensePercent ?? '-'
@@ -1248,11 +1362,17 @@ export function formatCounselorEvidencePacket(
         `caution=${packet.canonicalBrief.primaryCaution || 'none'}`,
         `timing=${packet.canonicalBrief.timingHint || 'none'}`,
         `policy_mode=${packet.canonicalBrief.policyMode || 'none'}`,
-        `allowed_actions=${(packet.canonicalBrief.allowedActions || []).join(' | ') || 'none'}`,
-        `blocked_actions=${(packet.canonicalBrief.blockedActions || []).join(' | ') || 'none'}`,
-        `soft_checks=${(packet.canonicalBrief.softChecks || []).join(' | ') || 'none'}`,
-        `hard_stops=${(packet.canonicalBrief.hardStops || []).join(' | ') || 'none'}`,
         `latent_top_axes=${(packet.canonicalBrief.latentTopAxes || []).join(' | ') || 'none'}`,
+        '',
+      ]
+    : []
+
+  const arbitrationLines = packet.canonicalBrief
+    ? [
+        '[Arbitration]',
+        `focus_narrative=${packet.canonicalBrief.focusNarrative || 'none'}`,
+        `action_narrative=${packet.canonicalBrief.actionNarrative || 'none'}`,
+        `suppression=${(packet.canonicalBrief.suppressionNarratives || []).join(' | ') || 'none'}`,
         '',
       ]
     : []
@@ -1277,56 +1397,78 @@ export function formatCounselorEvidencePacket(
         `window=${packet.topTimingWindow.window}`,
         `granularity=${packet.topTimingWindow.timingGranularity || 'unknown'}`,
         `reliability=${packet.topTimingWindow.timingReliabilityBand || 'unknown'}${typeof packet.topTimingWindow.timingReliabilityScore === 'number' ? `:${Math.round(packet.topTimingWindow.timingReliabilityScore * 100)}` : ''}`,
+        `scores=readiness:${typeof packet.topTimingWindow.readinessScore === 'number' ? packet.topTimingWindow.readinessScore.toFixed(2) : 'n/a'}|trigger:${typeof packet.topTimingWindow.triggerScore === 'number' ? packet.topTimingWindow.triggerScore.toFixed(2) : 'n/a'}|convergence:${typeof packet.topTimingWindow.convergenceScore === 'number' ? packet.topTimingWindow.convergenceScore.toFixed(2) : 'n/a'}`,
         `precision=${packet.topTimingWindow.precisionReason || 'none'}`,
         `conflict_mode=${packet.topTimingWindow.timingConflictMode || 'none'}`,
         `conflict=${packet.topTimingWindow.timingConflictNarrative || 'none'}`,
-        `why_now=${packet.topTimingWindow.whyNow}`,
-        `entry=${(packet.topTimingWindow.entryConditions || []).join(' | ') || 'none'}`,
-        `abort=${(packet.topTimingWindow.abortConditions || []).join(' | ') || 'none'}`,
         '',
       ]
     : []
 
-  const manifestationLines = packet.topManifestation
+  const projectionLines = packet.projections
     ? [
-        '[Manifestation]',
-        `domain=${packet.topManifestation.domain}`,
-        `baseline=${packet.topManifestation.baselineThesis}`,
-        `activation=${packet.topManifestation.activationThesis}`,
-        `manifestation=${packet.topManifestation.manifestation}`,
-        `likely=${(packet.topManifestation.likelyExpressions || []).join(' | ') || 'none'}`,
-        `risk=${(packet.topManifestation.riskExpressions || []).join(' | ') || 'none'}`,
+        '[Projections]',
+        packet.projections.structure?.summary
+          ? `structure=${packet.projections.structure.summary}`
+          : '',
+        ...(packet.projections.structure?.reasons || [])
+          .slice(0, 2)
+          .map((line) => `structure_reason=${line}`),
+        packet.projections.timing?.summary ? `timing=${packet.projections.timing.summary}` : '',
+        ...(packet.projections.timing?.reasons || [])
+          .slice(0, 2)
+          .map((line) => `timing_reason=${line}`),
+        packet.projections.conflict?.summary
+          ? `conflict=${packet.projections.conflict.summary}`
+          : '',
+        ...(packet.projections.conflict?.reasons || [])
+          .slice(0, 2)
+          .map((line) => `conflict_reason=${line}`),
+        packet.projections.action?.summary ? `action=${packet.projections.action.summary}` : '',
+        ...(packet.projections.action?.reasons || [])
+          .slice(0, 2)
+          .map((line) => `action_reason=${line}`),
+        packet.projections.risk?.summary ? `risk=${packet.projections.risk.summary}` : '',
+        ...(packet.projections.risk?.reasons || [])
+          .slice(0, 2)
+          .map((line) => `risk_reason=${line}`),
+        packet.projections.evidence?.summary
+          ? `evidence=${packet.projections.evidence.summary}`
+          : '',
+        ...(packet.projections.evidence?.reasons || [])
+          .slice(0, 2)
+          .map((line) => `evidence_reason=${line}`),
+        '',
+      ].filter(Boolean)
+    : []
+
+  const whyLines = (packet.whyStack || []).slice(0, 3).map((line) => `- ${line}`)
+  const actionLines = packet.canonicalBrief
+    ? [
+        '[Action and Guardrails]',
+        `primary_action=${packet.canonicalBrief.primaryAction || 'none'}`,
+        `primary_caution=${packet.canonicalBrief.primaryCaution || 'none'}`,
+        `soft_checks=${(packet.canonicalBrief.softChecks || []).slice(0, 3).join(' | ') || 'none'}`,
+        `hard_stops=${(packet.canonicalBrief.hardStops || []).slice(0, 2).join(' | ') || 'none'}`,
         '',
       ]
     : []
-
-  const whyLines = (packet.whyStack || []).slice(0, 4).map((line) => `- ${line}`)
 
   const commonLines = [
-    '[Counselor Evidence Packet v2]',
+    '[Counselor Evidence Packet v3 - Slim]',
     `focus_domain=${packet.focusDomain}`,
     `graph_anchors=${packet.graphRagEvidenceSummary.totalAnchors}`,
     `graph_sets=${packet.graphRagEvidenceSummary.totalSets}`,
     `strategy=${strategyLabel}(${attackPercent}/${defensePercent})`,
     '',
     ...canonicalLines,
+    ...arbitrationLines,
     ...advisoryLines,
     ...timingLines,
-    ...manifestationLines,
+    ...projectionLines,
+    ...actionLines,
     '[Why Stack]',
     ...(whyLines.length > 0 ? whyLines : ['- none']),
-    '',
-    '[Core Claims]',
-    ...(claimLines.length > 0 ? claimLines : ['- none']),
-    '',
-    '[Scenarios]',
-    ...(scenarioLines.length > 0 ? scenarioLines : ['- none']),
-    '',
-    '[Signal Evidence]',
-    ...(signalLines.length > 0 ? signalLines : ['- none']),
-    '',
-    '[Anchor Evidence]',
-    ...(anchorLines.length > 0 ? anchorLines : ['- none']),
     '',
   ]
 
@@ -1334,19 +1476,21 @@ export function formatCounselorEvidencePacket(
     return [
       ...commonLines,
       '[Response Contract]',
-      '- 답변은 4문단 이상으로 작성: 현재국면 -> 근거해석 -> 실행전략 -> 재확인체크리스트.',
-      '- 각 문단에 근거를 최소 1개씩 연결하고, 추천/주의가 서로 충돌하지 않게 유지.',
-      '- irreversible 행동(서명, 확정, 발송, 결제)은 caution 신호가 있으면 즉시 권하지 말 것.',
-      '- 핵심 결론은 strategy와 top claim에 반드시 일치시킬 것.',
+      '- 첫 문단에서 질문에 직접 답하고, 바로 현재 국면을 단정형 문장으로 요약할 것.',
+      '- 둘째 문단에서는 structure와 timing을 함께 풀고, readiness/trigger/convergence 차이가 있으면 그 이유를 직접 설명할 것.',
+      '- 셋째 문단에서는 conflict와 action을 같이 다루고, 지금 해야 할 행동과 미뤄야 할 행동을 분리할 것.',
+      '- 마지막 문단에서는 risk와 recheck checklist를 제시하고, caution 신호가 있으면 irreversible 행동(서명, 확정, 발송, 결제)을 바로 밀지 말 것.',
+      '- projection summary와 projection reason을 우선 사용하고, 각 문단에 근거를 최소 1개씩 연결할 것.',
     ].join('\n')
   }
 
   return [
     ...commonLines,
     '[Response Contract]',
-    '- Write at least 4 paragraphs: current phase -> grounded interpretation -> strategy -> recheck checklist.',
-    '- Each paragraph must include at least one evidence item and keep recommendation/caution non-contradictory.',
-    '- If caution signals exist, do not push irreversible actions (sign/finalize/send/pay) immediately.',
-    '- Keep final verdict strictly aligned with strategy and top claims.',
+    '- Open with a direct answer and a declarative read of the current phase.',
+    '- In the second paragraph, explain structure and timing together, and explicitly name any readiness/trigger/convergence mismatch.',
+    '- In the third paragraph, translate conflict into action: what to do now, what to delay, and why.',
+    '- End with risk and a recheck checklist; if caution signals exist, do not push irreversible actions (sign/finalize/send/pay) immediately.',
+    '- Prefer projection summaries and projection reasons first, and attach at least one grounding item to every paragraph.',
   ].join('\n')
 }

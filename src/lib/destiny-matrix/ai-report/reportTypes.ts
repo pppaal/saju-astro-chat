@@ -56,12 +56,20 @@ export interface AIPremiumReport {
       summary: string
       reasons: string[]
     }
+    action: {
+      headline: string
+      summary: string
+      reasons: string[]
+    }
+    risk: {
+      headline: string
+      summary: string
+      reasons: string[]
+    }
     evidence: {
       headline: string
       summary: string
-      signalIds: string[]
-      patternIds: string[]
-      scenarioIds: string[]
+      reasons: string[]
     }
   }
   reportMeta: UnifiedReportMeta

@@ -585,6 +585,9 @@ export function buildCalendarPresentationView(input: {
       pastStability: timingCalibration?.pastStability,
       futureStability: timingCalibration?.futureStability,
       backtestConsistency: timingCalibration?.backtestConsistency,
+      calibratedFromHistory: timingCalibration?.calibratedFromHistory,
+      calibrationSampleSize: timingCalibration?.calibrationSampleSize,
+      calibrationMatchedRate: timingCalibration?.calibrationMatchedRate,
       lang: locale,
     }),
     describeIntraMonthPeakWindow({
@@ -596,8 +599,14 @@ export function buildCalendarPresentationView(input: {
       lang: locale,
     }),
   ]).join(' ')
+  const projectionStructure = canonicalCore?.projections?.structure?.summary || ''
+  const projectionTiming = canonicalCore?.projections?.timing?.summary || ''
+  const projectionConflict = canonicalCore?.projections?.conflict?.summary || ''
+  const projectionAction = canonicalCore?.projections?.action?.summary || ''
+  const projectionRisk = canonicalCore?.projections?.risk?.summary || ''
 
   const timingSignals = dedupe([
+    projectionTiming,
     ...canonicalTimingWindows.map((item) =>
       describeTimingWindowBrief({
         domainLabel: getDomainLabel(mapCoreDomainToPresentationDomain(item.domain), locale),
@@ -614,6 +623,8 @@ export function buildCalendarPresentationView(input: {
     ...(detailSelected.timingSignals || []),
   ]).slice(0, 4)
   const cautions = dedupe([
+    projectionConflict,
+    projectionRisk,
     ...canonicalAdvisories.map((item) => item.caution),
     ...(canonicalCore?.judgmentPolicy.blockedActionLabels || []),
     ...(canonicalCore?.judgmentPolicy.hardStopLabels || []),
@@ -621,6 +632,7 @@ export function buildCalendarPresentationView(input: {
     ...(detailSelected.warnings || []),
   ]).slice(0, 3)
   const baseActions = dedupe([
+    projectionAction,
     canonicalCore?.topDecisionLabel || '',
     ...(canonicalCore?.judgmentPolicy.allowedActionLabels || []),
     ...(canonicalCore?.judgmentPolicy.softCheckLabels || []),
@@ -705,6 +717,9 @@ export function buildCalendarPresentationView(input: {
           .map((axis) => axis.label)
           .join(', ')}.`
     : ''
+  const projectionDayLead = [projectionStructure, projectionTiming].filter(Boolean).join(' ')
+  const projectionRiskLead = [projectionConflict, projectionRisk].filter(Boolean).join(' ')
+  const projectionActionLead = projectionAction
 
   const daySummary: DaySummary = {
     date: selected.date,
@@ -714,9 +729,9 @@ export function buildCalendarPresentationView(input: {
       focusDomain,
       defensivePhase
         ? locale === 'ko'
-          ? `${focusSplitLead} ${arbitrationLead} ${latentLead} ${daySummaryText} ${crossConflictText} 오늘은 확정보다 검토와 재정렬을 우선하세요.`
-          : `${focusSplitLead} ${arbitrationLead} ${latentLead} ${daySummaryText} ${crossConflictText} Today favors review and reset over commitment.`
-        : `${focusSplitLead} ${arbitrationLead} ${latentLead} ${daySummaryText} ${crossConflictText}`.trim()
+          ? `${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${daySummaryText} ${projectionRiskLead} 오늘은 확정보다 검토와 재정렬을 우선하세요.`
+          : `${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${daySummaryText} ${projectionRiskLead} Today favors review and reset over commitment.`
+        : `${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${daySummaryText} ${projectionActionLead} ${crossConflictText}`.trim()
     ),
     focusDomain: focusDomainLabel,
     reliability,
@@ -763,9 +778,9 @@ export function buildCalendarPresentationView(input: {
       focusDomain,
       defensivePhase
         ? locale === 'ko'
-          ? `${weekSummaryText} ${crossConflictText} 주간 전체로는 검토형 실행이 더 유리합니다.`
-          : `${weekSummaryText} ${crossConflictText} Across the week, review-led execution is safer.`
-        : `${weekSummaryText} ${crossConflictText}`.trim()
+          ? `${projectionStructure} ${weekSummaryText} ${projectionRiskLead} 주간 전체로는 검토형 실행이 더 유리합니다.`
+          : `${projectionStructure} ${weekSummaryText} ${projectionRiskLead} Across the week, review-led execution is safer.`
+        : `${projectionStructure} ${weekSummaryText} ${projectionActionLead} ${crossConflictText}`.trim()
     ),
   }
 
@@ -787,7 +802,7 @@ export function buildCalendarPresentationView(input: {
       'month',
       focusDomain,
       locale === 'ko'
-        ? `${monthKey}은 ${monthDomainLabel} 중심으로 보는 편이 맞습니다. ${
+        ? `${projectionStructure} ${monthKey}은 ${monthDomainLabel} 중심으로 보는 편이 맞습니다. ${
             canonicalTimingWindows[0]
               ? describeTimingWindowBrief({
                   domainLabel: monthDomainLabel,
@@ -801,13 +816,15 @@ export function buildCalendarPresentationView(input: {
                   lang: 'ko',
                 })
               : `이번 달 평균 흐름은 ${Math.round(monthAvg)}/100 수준이며, 크게 벌리기보다 우선순위를 분명히 할수록 안정적입니다.`
-          } ${crossConflictText}`.trim()
-        : `${monthKey} is best read through ${monthDomain?.label || focusDomainLabel}. ${canonicalCore?.gradeReason || `Average intensity is ${Math.round(monthAvg)}/100, with review and operation mixed into the month.`} ${crossConflictText}`.trim()
+          } ${projectionActionLead} ${crossConflictText}`.trim()
+        : `${projectionStructure} ${monthKey} is best read through ${monthDomain?.label || focusDomainLabel}. ${canonicalCore?.gradeReason || `Average intensity is ${Math.round(monthAvg)}/100, with review and operation mixed into the month.`} ${projectionActionLead} ${crossConflictText}`.trim()
     ),
   }
 
   const timingSignalsWithConflict = dedupe(
-    crossConflictText ? [crossConflictText, ...timingSignals] : timingSignals
+    crossConflictText
+      ? [projectionConflict, crossConflictText, ...timingSignals]
+      : [projectionConflict, ...timingSignals]
   )
 
   const relationCandidates = allDates.filter(

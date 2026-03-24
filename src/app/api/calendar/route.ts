@@ -35,8 +35,10 @@ import {
 } from '@/lib/astrology'
 import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT, BRANCH_TO_ELEMENT_EN } from '@/lib/Saju/constants'
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
+import { persistDestinyPredictionSnapshot } from '@/lib/destiny-matrix/predictionSnapshot'
 import { buildAstroTimingIndex } from '@/lib/destiny-matrix/astroTimingIndex'
 import { buildPreciseTimelineSummary } from '@/lib/destiny-matrix/monthlyTimelinePrecise'
+import { applyRuntimeCalibration } from '@/lib/destiny-matrix/calibrationRuntime'
 import {
   buildApproximateIljinTiming,
   calculateAgeAtDate,
@@ -348,7 +350,7 @@ function collectCalendarMatrixMissing(input: MatrixCalculationInput): string[] {
  * - locale: 언어 (ko, en)
  */
 export const GET = withApiMiddleware(
-  async (request: NextRequest, _context: ApiContext) => {
+  async (request: NextRequest, context: ApiContext) => {
     const { searchParams } = new URL(request.url)
 
     // Validate query params with Zod
@@ -941,6 +943,30 @@ export const GET = withApiMiddleware(
       }
 
       calendarCoreCanonical = adaptCoreToCalendar(coreSeed, locale === 'en' ? 'en' : 'ko')
+      if (matrixSummaryForCalendar?.timingCalibration && calendarCoreCanonical) {
+        const calendarCanonical = calendarCoreCanonical
+        const actionFocusDomain = calendarCanonical.actionFocusDomain
+        const actionTimingWindow = calendarCanonical.domainTimingWindows.find(
+          (item) => item.domain === actionFocusDomain
+        )
+        const calibratedTiming = await applyRuntimeCalibration(
+          matrixSummaryForCalendar.timingCalibration,
+          {
+            service: 'calendar',
+            actionFocusDomain,
+            timingWindow: actionTimingWindow?.window,
+            timingGranularity: actionTimingWindow?.timingGranularity,
+            overlapTimeline: matrixSummaryForCalendar.overlapTimeline,
+            overlapTimelineByDomain: matrixSummaryForCalendar.overlapTimelineByDomain,
+          }
+        )
+        if (calibratedTiming) {
+          matrixSummaryForCalendar = {
+            ...matrixSummaryForCalendar,
+            timingCalibration: calibratedTiming,
+          }
+        }
+      }
       calendarCoreDataQuality = coreSeed.quality.dataQuality
       topMatchedPatterns = coreSeed.patterns.slice(0, 10).map((pattern) => ({
         id: pattern.id,
@@ -1238,8 +1264,40 @@ export const GET = withApiMiddleware(
       domainScores: matrixCalendarContext?.domainScores,
     })
 
+    const actionTimingWindow = calendarCoreCanonical?.domainTimingWindows?.find(
+      (item) => item.domain === calendarCoreCanonical.actionFocusDomain
+    )
+    const predictionId = await persistDestinyPredictionSnapshot({
+      userId: context.userId,
+      service: 'calendar',
+      lang: locale === 'en' ? 'en' : 'ko',
+      theme: category || 'yearly',
+      focusDomain: calendarCoreCanonical?.focusDomain,
+      actionFocusDomain: calendarCoreCanonical?.actionFocusDomain,
+      phase: calendarCoreCanonical?.phase,
+      phaseLabel: calendarCoreCanonical?.phaseLabel,
+      topDecisionId: calendarCoreCanonical?.topDecisionId,
+      topDecisionAction: calendarCoreCanonical?.topDecisionAction,
+      topDecisionLabel: calendarCoreCanonical?.topDecisionLabel,
+      timingWindow: actionTimingWindow?.window,
+      timingGranularity: actionTimingWindow?.timingGranularity,
+      precisionReason: actionTimingWindow?.precisionReason,
+      timingConflictMode: actionTimingWindow?.timingConflictMode,
+      timingConflictNarrative: actionTimingWindow?.timingConflictNarrative,
+      readinessScore: actionTimingWindow?.readinessScore,
+      triggerScore: actionTimingWindow?.triggerScore,
+      convergenceScore: actionTimingWindow?.convergenceScore,
+      timingReliabilityScore: matrixCalendarContext?.timingCalibration?.reliabilityScore ?? null,
+      timingReliabilityBand: matrixCalendarContext?.timingCalibration?.reliabilityBand ?? null,
+      predictionClaim:
+        typeof presentationView.daySummary === 'string'
+          ? presentationView.daySummary
+          : presentationView.daySummary.summary,
+    })
+
     const responsePayload = normalizeMojibakePayload({
       success: true,
+      predictionId,
       type: 'yearly',
       year,
       aiEnhanced,

@@ -120,7 +120,7 @@ const nextConfig = {
 
   // Experimental performance features
   experimental: {
-    optimizeCss: true, // CSS optimization
+    optimizeCss: false, // Avoid critters/CSS post-processing failures in local and CI environments
     scrollRestoration: true, // Remember scroll position
     optimizePackageImports: [
       'framer-motion',

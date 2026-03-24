@@ -194,7 +194,7 @@ function createReport(): FusionReport {
 }
 
 describe('destiny latent state', () => {
-  it('builds a stable 48-axis latent state from the core result', () => {
+  it('builds a stable 72-axis latent state from the core result', () => {
     const core = runDestinyCore({
       mode: 'comprehensive',
       lang: 'ko',
@@ -203,18 +203,27 @@ describe('destiny latent state', () => {
       matrixSummary: createSummary(),
     })
 
-    expect(core.latentState.version).toBe('v1-48')
-    expect(Object.keys(core.latentState.dimensions)).toHaveLength(48)
-    expect(core.latentState.groups.structural).toHaveLength(12)
-    expect(core.latentState.groups.timing).toHaveLength(10)
-    expect(core.latentState.groups.astrology).toHaveLength(8)
-    expect(core.latentState.groups.domain).toHaveLength(8)
-    expect(core.latentState.groups.conflict).toHaveLength(6)
-    expect(core.latentState.groups.narrative).toHaveLength(4)
-    expect(core.latentState.topAxes).toHaveLength(8)
+    expect(core.latentState.version).toBe('v3-96')
+    expect(Object.keys(core.latentState.dimensions)).toHaveLength(96)
+    expect(core.latentState.groups.structural).toHaveLength(20)
+    expect(core.latentState.groups.timing).toHaveLength(18)
+    expect(core.latentState.groups.astrology).toHaveLength(16)
+    expect(core.latentState.groups.domain).toHaveLength(20)
+    expect(core.latentState.groups.conflict).toHaveLength(14)
+    expect(core.latentState.groups.narrative).toHaveLength(8)
+    expect(core.latentState.topAxes).toHaveLength(12)
     expect(core.latentState.dimensions.readiness).toBeGreaterThan(0)
     expect(core.latentState.dimensions.trigger).toBeGreaterThan(0)
     expect(core.latentState.dimensions.action_focus_strength).toBeGreaterThanOrEqual(0)
     expect(core.latentState.dimensions.action_focus_strength).toBeLessThanOrEqual(1)
+    expect(core.latentState.dimensions.timing_reliability).toBeGreaterThan(0)
+    expect(core.latentState.dimensions.draconic_support).toBeGreaterThanOrEqual(0)
+    expect(core.latentState.dimensions.career_growth).toBeGreaterThanOrEqual(0)
+    expect(core.latentState.dimensions.evidence_cohesion).toBeGreaterThanOrEqual(0)
+
+    expect(core.latentState.dimensions.projection_clarity).toBeGreaterThanOrEqual(0)
+    expect(core.latentState.dimensions.explanation_depth).toBeGreaterThanOrEqual(0)
+    expect(core.latentState.dimensions.career_authority).toBeGreaterThanOrEqual(0)
+    expect(core.latentState.dimensions.return_stack_pressure).toBeGreaterThanOrEqual(0)
   })
 })

@@ -24,6 +24,14 @@ export type DestinyLatentAxisId =
   | 'saju_coverage'
   | 'element_balance'
   | 'identity_pressure'
+  | 'relation_harmony_density'
+  | 'relation_conflict_density'
+  | 'shinsal_density'
+  | 'supportive_cycle_alignment'
+  | 'cycle_cohesion'
+  | 'house_emphasis'
+  | 'relational_capacity'
+  | 'support_resilience'
   | 'readiness'
   | 'trigger'
   | 'convergence'
@@ -34,6 +42,14 @@ export type DestinyLatentAxisId =
   | 'timing_conflict'
   | 'past_stability'
   | 'future_stability'
+  | 'timing_reliability'
+  | 'timing_reversibility'
+  | 'timing_sustainability'
+  | 'intra_month_concentration'
+  | 'trigger_decay'
+  | 'timing_consistency'
+  | 'timing_window_width'
+  | 'activation_elasticity'
   | 'natal_baseline'
   | 'transit_pressure'
   | 'retrograde_drag'
@@ -42,6 +58,14 @@ export type DestinyLatentAxisId =
   | 'lunar_return_activation'
   | 'eclipse_sensitivity'
   | 'advanced_astro_support'
+  | 'draconic_support'
+  | 'harmonic_resonance'
+  | 'fixed_star_pressure'
+  | 'midpoint_activation'
+  | 'asteroid_signal_density'
+  | 'extra_point_density'
+  | 'return_stack_pressure'
+  | 'aspect_cluster_density'
   | 'career'
   | 'relationship'
   | 'wealth'
@@ -50,19 +74,43 @@ export type DestinyLatentAxisId =
   | 'personality'
   | 'spirituality'
   | 'timing'
+  | 'career_growth'
+  | 'relationship_commitment'
+  | 'wealth_leakage'
+  | 'health_recovery'
+  | 'move_disruption'
+  | 'identity_rebuild'
+  | 'career_authority'
+  | 'relationship_repair'
+  | 'wealth_accumulation'
+  | 'health_load'
+  | 'move_opportunity'
+  | 'spiritual_opening'
   | 'saju_astro_disagreement'
   | 'structure_trigger_mismatch'
   | 'opportunity_sustainability_gap'
   | 'pressure_readiness_gap'
   | 'focus_ambiguity'
   | 'downgrade_pressure'
+  | 'evidence_fragmentation'
+  | 'signal_competition'
+  | 'decision_reversal_risk'
+  | 'timing_false_precision_risk'
+  | 'domain_polarization'
+  | 'evidence_mismatch_risk'
+  | 'cross_system_tension'
+  | 'action_overreach_risk'
   | 'focus_strength'
   | 'action_focus_strength'
   | 'decision_certainty'
   | 'risk_control_intensity'
+  | 'evidence_cohesion'
+  | 'narrative_density'
+  | 'projection_clarity'
+  | 'explanation_depth'
 
 export interface DestinyLatentState {
-  version: 'v1-48'
+  version: 'v3-96'
   dimensions: Record<DestinyLatentAxisId, number>
   groups: Record<DestinyLatentGroup, DestinyLatentAxisId[]>
   topAxes: Array<{ id: DestinyLatentAxisId; value: number }>
@@ -90,6 +138,14 @@ const GROUPS: Record<DestinyLatentGroup, DestinyLatentAxisId[]> = {
     'saju_coverage',
     'element_balance',
     'identity_pressure',
+    'relation_harmony_density',
+    'relation_conflict_density',
+    'shinsal_density',
+    'supportive_cycle_alignment',
+    'cycle_cohesion',
+    'house_emphasis',
+    'relational_capacity',
+    'support_resilience',
   ],
   timing: [
     'readiness',
@@ -102,6 +158,14 @@ const GROUPS: Record<DestinyLatentGroup, DestinyLatentAxisId[]> = {
     'timing_conflict',
     'past_stability',
     'future_stability',
+    'timing_reliability',
+    'timing_reversibility',
+    'timing_sustainability',
+    'intra_month_concentration',
+    'trigger_decay',
+    'timing_consistency',
+    'timing_window_width',
+    'activation_elasticity',
   ],
   astrology: [
     'natal_baseline',
@@ -112,6 +176,14 @@ const GROUPS: Record<DestinyLatentGroup, DestinyLatentAxisId[]> = {
     'lunar_return_activation',
     'eclipse_sensitivity',
     'advanced_astro_support',
+    'draconic_support',
+    'harmonic_resonance',
+    'fixed_star_pressure',
+    'midpoint_activation',
+    'asteroid_signal_density',
+    'extra_point_density',
+    'return_stack_pressure',
+    'aspect_cluster_density',
   ],
   domain: [
     'career',
@@ -122,6 +194,18 @@ const GROUPS: Record<DestinyLatentGroup, DestinyLatentAxisId[]> = {
     'personality',
     'spirituality',
     'timing',
+    'career_growth',
+    'relationship_commitment',
+    'wealth_leakage',
+    'health_recovery',
+    'move_disruption',
+    'identity_rebuild',
+    'career_authority',
+    'relationship_repair',
+    'wealth_accumulation',
+    'health_load',
+    'move_opportunity',
+    'spiritual_opening',
   ],
   conflict: [
     'saju_astro_disagreement',
@@ -130,12 +214,24 @@ const GROUPS: Record<DestinyLatentGroup, DestinyLatentAxisId[]> = {
     'pressure_readiness_gap',
     'focus_ambiguity',
     'downgrade_pressure',
+    'evidence_fragmentation',
+    'signal_competition',
+    'decision_reversal_risk',
+    'timing_false_precision_risk',
+    'domain_polarization',
+    'evidence_mismatch_risk',
+    'cross_system_tension',
+    'action_overreach_risk',
   ],
   narrative: [
     'focus_strength',
     'action_focus_strength',
     'decision_certainty',
     'risk_control_intensity',
+    'evidence_cohesion',
+    'narrative_density',
+    'projection_clarity',
+    'explanation_depth',
   ],
 }
 
@@ -192,6 +288,11 @@ function ratio(part: number, total: number): number {
 function normalizedCount(count: number, cap: number): number {
   if (!Number.isFinite(count) || count <= 0) return 0
   return clamp01(count / cap)
+}
+
+function average(values: number[]): number {
+  if (values.length === 0) return 0
+  return values.reduce((sum, value) => sum + value, 0) / values.length
 }
 
 function pickTimingWindow(input: BuildDestinyLatentStateInput) {
@@ -323,6 +424,10 @@ export function buildDestinyLatentState(input: BuildDestinyLatentStateInput): De
     overlapTimeline.length > 0
       ? Math.max(...overlapTimeline.map((item) => item.overlapStrength || 0))
       : 0
+  const monthlyAverage =
+    overlapTimeline.length > 0
+      ? average(overlapTimeline.map((item) => item.overlapStrength || 0))
+      : 0
   const baseFieldCoverage = [
     Boolean(normalizedInput.dayMasterElement),
     Boolean(normalizedInput.geokguk),
@@ -338,8 +443,13 @@ export function buildDestinyLatentState(input: BuildDestinyLatentStateInput): De
   ].filter(Boolean).length
   const attackPressure = clamp01((canonical.attackPercent || 0) / 100)
   const decisionGap = clamp01(quality.metrics.topDecisionGap || 0)
+  const scenarioGap = clamp01(quality.metrics.topScenarioGap || 0)
   const focusGap = clamp01(1 - (quality.metrics.focusDomainAmbiguity || 0))
+  const clusterCompression = clamp01(quality.metrics.scenarioClusterCompression || 0)
   const futureStability = calibration?.futureStability ?? 0.5
+  const pastStability = calibration?.pastStability ?? 0.5
+  const timingReliability =
+    calibration?.reliabilityScore ?? clamp01(average([futureStability, pastStability]))
   const readiness =
     timingWindow?.readinessScore ?? strategyEngine.domainStrategies[0]?.metrics.readinessScore ?? 0
   const trigger =
@@ -348,6 +458,142 @@ export function buildDestinyLatentState(input: BuildDestinyLatentStateInput): De
     timingWindow?.convergenceScore ??
     strategyEngine.domainStrategies[0]?.metrics.convergenceScore ??
     0
+  const longCycleSupport = clamp01(
+    (Boolean(normalizedInput.currentDaeunElement) ? 0.6 : 0) +
+      (Boolean(normalizedInput.currentSaeunElement) ? 0.25 : 0) +
+      readiness * 0.15
+  )
+  const relationHarmonyDensity = normalizedCount(harmonyCount, 4)
+  const relationConflictDensity = normalizedCount(conflictCount, 4)
+  const shinsalDensity = normalizedCount(shinsalTotal, 6)
+  const supportiveCycleAlignment = clamp01(
+    average([ratio(extractMatchCount(normalizedInput), 4), readiness, longCycleSupport])
+  )
+  const timingReversibility = clamp01(
+    (canonical.judgmentPolicy.mode === 'prepare'
+      ? 0.72
+      : canonical.judgmentPolicy.mode === 'verify'
+        ? 0.54
+        : 0.24) + canonical.judgmentPolicy.softChecks.length * 0.03
+  )
+  const timingSustainability = clamp01(
+    average([futureStability, readiness, 1 - clusterCompression * 0.2])
+  )
+  const evidenceFragmentation = clamp01(
+    average([
+      typeof canonical.crossAgreement === 'number' ? 1 - canonical.crossAgreement : 0.5,
+      normalizedCount(canonical.coherenceAudit.domainConflictCount, 4),
+      normalizedCount(canonical.coherenceAudit.contradictionFlags.length, 4),
+    ])
+  )
+  const signalCompetition = clamp01(average([1 - scenarioGap, clusterCompression, 1 - focusGap]))
+  const decisionReversalRisk = clamp01(
+    average([
+      1 - decisionGap,
+      canonical.judgmentPolicy.mode === 'execute'
+        ? 0.2
+        : canonical.judgmentPolicy.mode === 'verify'
+          ? 0.58
+          : 0.72,
+      normalizedCount(canonical.judgmentPolicy.softChecks.length, 5),
+    ])
+  )
+  const timingFalsePrecisionRisk = clamp01(1 - granularityConfidence(timingWindow?.timingGranularity))
+  const evidenceCohesion = clamp01(
+    average([
+      typeof canonical.crossAgreement === 'number' ? canonical.crossAgreement : 0.5,
+      focusGap,
+      decisionGap,
+    ])
+  )
+  const narrativeDensity = clamp01(
+    average([
+      normalizedCount(canonical.topSignalIds.length, 5),
+      normalizedCount(canonical.topPatterns.length, 4),
+      normalizedCount(canonical.topScenarios.length, 4),
+      normalizedCount(canonical.domainLeads.length, 5),
+    ])
+  )
+  const hardStopPressure = normalizedCount(canonical.judgmentPolicy.hardStops.length, 4)
+  const blockedPressure = normalizedCount(canonical.judgmentPolicy.blockedActions.length, 4)
+  const careerGrowth = clamp01(
+    average([
+      domainAxes.career,
+      canonical.actionFocusDomain === 'career' ? 0.9 : 0.25,
+      topDecision?.domain === 'career' ? 0.88 : 0.2,
+    ])
+  )
+  const relationshipCommitment = clamp01(
+    average([
+      domainAxes.relationship,
+      normalizedCount(
+        canonical.topScenarios.filter((item) =>
+          /commit|partner|boundary|relationship|expectation|distance/i.test(item.id)
+        ).length,
+        3
+      ),
+      canonical.actionFocusDomain === 'relationship' ? 0.85 : 0.2,
+    ])
+  )
+  const wealthLeakage = clamp01(
+    average([
+      domainAxes.wealth,
+      blockedPressure,
+      /wealth|money|finance/i.test(canonical.primaryCaution) ? 0.78 : 0.22,
+    ])
+  )
+  const healthRecovery = clamp01(
+    average([
+      domainAxes.health,
+      normalizedCount(
+        canonical.topScenarios.filter((item) => /recovery|reset|routine|burnout|health/i.test(item.id))
+          .length,
+        3
+      ),
+      canonical.actionFocusDomain === 'health' ? 0.82 : 0.24,
+    ])
+  )
+  const moveDisruption = clamp01(
+    average([
+      domainAxes.move,
+      normalizedCount(
+        canonical.topScenarios.filter((item) => /move|route|commute|relocat/i.test(item.id)).length,
+        3
+      ),
+      /move|route|commute|relocat/i.test(canonical.primaryCaution) ? 0.8 : 0.25,
+    ])
+  )
+  const identityRebuild = clamp01(
+    average([
+      domainAxes.personality,
+      domainAxes.spirituality,
+      canonical.focusDomain === 'personality' ? 0.88 : 0.28,
+    ])
+  )
+  const cycleCohesion = clamp01(average([longCycleSupport, supportiveCycleAlignment, ratio(extractMatchCount(normalizedInput), 4)]))
+  const houseEmphasis = clamp01(average([normalizedCount(Object.keys(normalizedInput.planetHouses || {}).length, 8), normalizedCount(Object.keys(normalizedInput.planetSigns || {}).length, 8)]))
+  const relationalCapacity = clamp01(average([relationHarmonyDensity, 1 - relationConflictDensity, domainAxes.relationship]))
+  const supportResilience = clamp01(average([ratio(shinsalSupportCount, Math.max(1, shinsalTotal)), 1 - hardStopPressure, evidenceCohesion]))
+  const triggerDecay = clamp01(Math.max(0, trigger - futureStability))
+  const timingConsistency = clamp01(average([pastStability, futureStability, 1 - Math.abs(pastStability - futureStability)]))
+  const timingWindowWidth = clamp01(1 - granularityConfidence(timingWindow?.timingGranularity))
+  const activationElasticity = clamp01(average([timingReversibility, 1 - hardStopPressure, 1 - blockedPressure]))
+  const asteroidSignalDensity = round3(normalizedInput.advancedAstroSignals?.asteroids ? 0.72 : 0)
+  const extraPointDensity = round3(normalizedInput.advancedAstroSignals?.extraPoints ? 0.72 : 0)
+  const returnStackPressure = clamp01(average([normalizedInput.advancedAstroSignals?.solarReturn ? 1 : 0, normalizedInput.advancedAstroSignals?.lunarReturn ? 1 : 0]))
+  const aspectClusterDensity = clamp01(normalizedCount(normalizedInput.aspects?.length || 0, 10))
+  const careerAuthority = clamp01(average([domainAxes.career, careerGrowth, normalizedCount(Object.values(normalizedInput.sibsinDistribution || {}).reduce((sum, value) => sum + Number(value || 0), 0), 8)]))
+  const relationshipRepair = clamp01(average([domainAxes.relationship, 1 - relationConflictDensity, normalizedCount(canonical.judgmentPolicy.softChecks.length, 5)]))
+  const wealthAccumulation = clamp01(average([domainAxes.wealth, 1 - wealthLeakage, longCycleSupport]))
+  const healthLoad = clamp01(average([domainAxes.health, blockedPressure, ratio(conflictCount, Math.max(1, relationCount))]))
+  const moveOpportunity = clamp01(average([domainAxes.move, 1 - moveDisruption, trigger]))
+  const spiritualOpening = clamp01(average([domainAxes.spirituality, round3(normalizedInput.advancedAstroSignals?.draconic ? 0.78 : 0), round3(normalizedInput.advancedAstroSignals?.harmonics ? 0.76 : 0)]))
+  const domainPolarization = clamp01(Math.max(...Object.values(domainAxes)) - average(Object.values(domainAxes)))
+  const evidenceMismatchRisk = clamp01(average([evidenceFragmentation, 1 - evidenceCohesion, normalizedCount(canonical.coherenceAudit.contradictionFlags.length, 4)]))
+  const crossSystemTension = clamp01(average([typeof canonical.crossAgreement === 'number' ? 1 - canonical.crossAgreement : 0.5, relationConflictDensity, timingConflictLevel(timingWindow?.timingConflictMode)]))
+  const actionOverreachRisk = clamp01(average([attackPressure, blockedPressure, 1 - readiness]))
+  const projectionClarity = clamp01(average([focusGap, decisionGap, evidenceCohesion]))
+  const explanationDepth = clamp01(average([narrativeDensity, evidenceCohesion, signalCompetition]))
 
   const dimensions: Record<DestinyLatentAxisId, number> = {
     day_master_stability: round3(normalizedInput.dayMasterElement ? 0.9 : 0.2),
@@ -362,24 +608,34 @@ export function buildDestinyLatentState(input: BuildDestinyLatentStateInput): De
     saju_coverage: round3(ratio(baseFieldCoverage, 11)),
     element_balance: computeElementBalance(normalizedInput),
     identity_pressure: round3(domainAxes.personality),
+    relation_harmony_density: round3(relationHarmonyDensity),
+    relation_conflict_density: round3(relationConflictDensity),
+    shinsal_density: round3(shinsalDensity),
+    supportive_cycle_alignment: round3(supportiveCycleAlignment),
+    cycle_cohesion: round3(cycleCohesion),
+    house_emphasis: round3(houseEmphasis),
+    relational_capacity: round3(relationalCapacity),
+    support_resilience: round3(supportResilience),
     readiness: round3(readiness),
     trigger: round3(trigger),
     convergence: round3(convergence),
     granularity_confidence: round3(granularityConfidence(timingWindow?.timingGranularity)),
     monthly_pulse: round3(clamp01(monthlyPeak)),
+    intra_month_concentration: round3(clamp01(Math.max(0, monthlyPeak - monthlyAverage))),
     short_term_volatility: round3(
-      clamp01(1 - ((calibration?.pastStability ?? 0.5) + (calibration?.futureStability ?? 0.5)) / 2)
+      clamp01(1 - (pastStability + futureStability) / 2)
     ),
-    long_cycle_support: round3(
-      clamp01(
-        (Boolean(normalizedInput.currentDaeunElement) ? 0.6 : 0) +
-          (Boolean(normalizedInput.currentSaeunElement) ? 0.25 : 0) +
-          readiness * 0.15
-      )
-    ),
+    long_cycle_support: round3(longCycleSupport),
     timing_conflict: round3(timingConflictLevel(timingWindow?.timingConflictMode)),
-    past_stability: round3(calibration?.pastStability ?? 0.5),
-    future_stability: round3(calibration?.futureStability ?? 0.5),
+    past_stability: round3(pastStability),
+    future_stability: round3(futureStability),
+    timing_reliability: round3(timingReliability),
+    timing_reversibility: round3(timingReversibility),
+    timing_sustainability: round3(timingSustainability),
+    trigger_decay: round3(triggerDecay),
+    timing_consistency: round3(timingConsistency),
+    timing_window_width: round3(timingWindowWidth),
+    activation_elasticity: round3(activationElasticity),
     natal_baseline: round3(
       clamp01(
         (normalizedInput.astrologySnapshot?.natalChart ? 0.45 : 0) +
@@ -397,6 +653,14 @@ export function buildDestinyLatentState(input: BuildDestinyLatentStateInput): De
     advanced_astro_support: round3(
       ratio(advancedTrueCount, Math.max(1, advancedSignals.length || 10))
     ),
+    draconic_support: round3(normalizedInput.advancedAstroSignals?.draconic ? 0.78 : 0),
+    harmonic_resonance: round3(normalizedInput.advancedAstroSignals?.harmonics ? 0.76 : 0),
+    fixed_star_pressure: round3(normalizedInput.advancedAstroSignals?.fixedStars ? 0.72 : 0),
+    midpoint_activation: round3(normalizedInput.advancedAstroSignals?.midpoints ? 0.74 : 0),
+    asteroid_signal_density: round3(asteroidSignalDensity),
+    extra_point_density: round3(extraPointDensity),
+    return_stack_pressure: round3(returnStackPressure),
+    aspect_cluster_density: round3(aspectClusterDensity),
     career: round3(domainAxes.career),
     relationship: round3(domainAxes.relationship),
     wealth: round3(domainAxes.wealth),
@@ -405,6 +669,18 @@ export function buildDestinyLatentState(input: BuildDestinyLatentStateInput): De
     personality: round3(domainAxes.personality),
     spirituality: round3(domainAxes.spirituality),
     timing: round3(domainAxes.timing),
+    career_growth: round3(careerGrowth),
+    relationship_commitment: round3(relationshipCommitment),
+    wealth_leakage: round3(wealthLeakage),
+    health_recovery: round3(healthRecovery),
+    move_disruption: round3(moveDisruption),
+    identity_rebuild: round3(identityRebuild),
+    career_authority: round3(careerAuthority),
+    relationship_repair: round3(relationshipRepair),
+    wealth_accumulation: round3(wealthAccumulation),
+    health_load: round3(healthLoad),
+    move_opportunity: round3(moveOpportunity),
+    spiritual_opening: round3(spiritualOpening),
     saju_astro_disagreement: round3(
       typeof canonical.crossAgreement === 'number' ? clamp01(1 - canonical.crossAgreement) : 0.5
     ),
@@ -419,6 +695,14 @@ export function buildDestinyLatentState(input: BuildDestinyLatentStateInput): De
           (canonical.coherenceAudit.domainConflictCount > 0 ? 0.2 : 0)
       )
     ),
+    evidence_fragmentation: round3(evidenceFragmentation),
+    signal_competition: round3(signalCompetition),
+    decision_reversal_risk: round3(decisionReversalRisk),
+    timing_false_precision_risk: round3(timingFalsePrecisionRisk),
+    domain_polarization: round3(domainPolarization),
+    evidence_mismatch_risk: round3(evidenceMismatchRisk),
+    cross_system_tension: round3(crossSystemTension),
+    action_overreach_risk: round3(actionOverreachRisk),
     focus_strength: round3(
       clamp01(
         (focusLead?.dominanceScore || 0) /
@@ -444,15 +728,19 @@ export function buildDestinyLatentState(input: BuildDestinyLatentStateInput): De
               : 0)
       )
     ),
+    evidence_cohesion: round3(evidenceCohesion),
+    narrative_density: round3(narrativeDensity),
+    projection_clarity: round3(projectionClarity),
+    explanation_depth: round3(explanationDepth),
   }
 
   const topAxes = Object.entries(dimensions)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
+    .slice(0, 12)
     .map(([id, value]) => ({ id: id as DestinyLatentAxisId, value }))
 
   return {
-    version: 'v1-48',
+    version: 'v3-96',
     dimensions,
     groups: GROUPS,
     topAxes,
