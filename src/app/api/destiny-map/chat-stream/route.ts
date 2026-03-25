@@ -17,10 +17,7 @@ import { logger } from '@/lib/logger'
 import { parseRequestBody } from '@/lib/api/requestParser'
 import { createValidationErrorResponse } from '@/lib/api/zodValidation'
 import {
-  buildFortuneWithIcpOutputGuide,
   buildFortuneWithIcpSection,
-  buildThemeDepthGuide,
-  buildEvidenceGroundingGuide,
 } from '@/lib/prompts/fortuneWithIcp'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
@@ -52,8 +49,6 @@ import type { SajuDataStructure, AstroDataStructure } from './lib/types'
 import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
 import {
   buildCompactPromptSections,
-  buildFocusDomainDepthGuide,
-  buildFocusDomainVoiceGuide,
   buildMatrixProfileSection,
   mapFocusDomainToPromptTheme,
 } from './routePromptSupport'

@@ -237,11 +237,6 @@ const toOptionalRecord = (value: unknown): Record<string, unknown> | undefined =
   return value as Record<string, unknown>
 }
 
-const hasObjectKeys = (value: unknown): boolean => {
-  const obj = toOptionalRecord(value)
-  return !!obj && Object.keys(obj).length > 0
-}
-
 const REQUIRED_ADVANCED_ASTRO_SIGNAL_KEYS = [
   'solarReturn',
   'lunarReturn',

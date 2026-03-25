@@ -2,7 +2,9 @@
   "buildCommand": "npm run vercel-build",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": ["icn1"],
+  "regions": [
+    "icn1"
+  ],
   "env": {
     "NODE_ENV": "production",
     "NODE_OPTIONS": "--max-old-space-size=7168"
@@ -15,7 +17,31 @@
     }
   },
   "functions": {
-    "app/api/**/*.ts": {
+    "app/api/calendar/route.ts": {
+      "maxDuration": 60,
+      "includeFiles": "node_modules/swisseph/build/Release/**/*.node"
+    },
+    "app/api/destiny-map/chat-stream/route.ts": {
+      "maxDuration": 60,
+      "includeFiles": "node_modules/swisseph/build/Release/**/*.node"
+    },
+    "app/api/destiny-matrix/ai-report/route.ts": {
+      "maxDuration": 60,
+      "includeFiles": "node_modules/swisseph/build/Release/**/*.node"
+    },
+    "app/api/astrology/**/*.ts": {
+      "maxDuration": 60,
+      "includeFiles": "node_modules/swisseph/build/Release/**/*.node"
+    },
+    "app/api/precompute-chart/route.ts": {
+      "maxDuration": 60,
+      "includeFiles": "node_modules/swisseph/build/Release/**/*.node"
+    },
+    "app/api/past-life/route.ts": {
+      "maxDuration": 60,
+      "includeFiles": "node_modules/swisseph/build/Release/**/*.node"
+    },
+    "app/api/life-prediction/**/*.ts": {
       "maxDuration": 60,
       "includeFiles": "node_modules/swisseph/build/Release/**/*.node"
     }

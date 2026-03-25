@@ -1,4 +1,4 @@
-﻿import { access, readFile } from 'node:fs/promises'
+﻿import { access, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 
 import type { TimingCalibrationSummary, DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
@@ -10,11 +10,14 @@ import type {
 } from '@/lib/destiny-matrix/core/logging'
 import type { DestinyCalibrationAggregate, DestinyCalibrationReport } from '@/lib/destiny-matrix/calibration'
 
-const DEFAULT_CANDIDATE_PATHS = [
-  path.join(process.cwd(), 'tmp', 'destiny-calibration-table.json'),
-  path.join(process.cwd(), 'reports', 'destiny-calibration-table.json'),
-  path.join(process.cwd(), 'artifacts', 'destiny-calibration-table.json'),
-]
+function getDefaultCandidatePaths(): string[] {
+  if (process.env.NODE_ENV === 'production') return []
+  return [
+    path.join(process.cwd(), 'tmp', 'destiny-calibration-table.json'),
+    path.join(process.cwd(), 'reports', 'destiny-calibration-table.json'),
+    path.join(process.cwd(), 'artifacts', 'destiny-calibration-table.json'),
+  ]
+}
 
 type RuntimeCalibrationContext = {
   service: DestinyLoggedService
@@ -52,7 +55,7 @@ function asCalibrationReport(value: unknown): DestinyCalibrationReport | null {
 
 async function resolveCalibrationPath(): Promise<string | null> {
   const envPath = process.env.DESTINY_CALIBRATION_TABLE_PATH?.trim()
-  const candidates = envPath ? [envPath, ...DEFAULT_CANDIDATE_PATHS] : DEFAULT_CANDIDATE_PATHS
+  const candidates = envPath ? [envPath, ...getDefaultCandidatePaths()] : getDefaultCandidatePaths()
   for (const candidate of candidates) {
     try {
       await access(candidate)
@@ -68,15 +71,15 @@ async function loadCalibrationReport(): Promise<DestinyCalibrationReport | null>
   const resolved = await resolveCalibrationPath()
   if (!resolved) return null
 
-  const stat = await import('node:fs/promises').then((fs) => fs.stat(resolved))
-  if (cachedPath === resolved && cachedMtimeMs === stat.mtimeMs && cachedReport) {
+  const fileStat = await stat(resolved)
+  if (cachedPath === resolved && cachedMtimeMs === fileStat.mtimeMs && cachedReport) {
     return cachedReport
   }
 
   const raw = await readFile(resolved, 'utf8')
   const parsed = asCalibrationReport(JSON.parse(raw))
   cachedPath = resolved
-  cachedMtimeMs = stat.mtimeMs
+  cachedMtimeMs = fileStat.mtimeMs
   cachedReport = parsed
   return parsed
 }

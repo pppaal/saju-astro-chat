@@ -57,14 +57,9 @@ import type { MatrixCalculationInput, PlanetName } from '@/lib/destiny-matrix/ty
 import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
 import {
   buildNormalizedMatrixInput,
-  runDestinyCore,
 } from '@/lib/destiny-matrix/core/runDestinyCore'
-import { adaptCoreToCalendar, buildCoreEnvelope } from '@/lib/destiny-matrix/core'
-import { reportGenerator } from '@/lib/destiny-matrix/interpreter'
-import {
-  buildCounselorEvidencePacket,
-  type CounselorEvidencePacket,
-} from '@/lib/destiny-matrix/counselorEvidence'
+import { adaptCoreToCalendar } from '@/lib/destiny-matrix/core'
+import { buildCalendarCoreEnvelope } from '@/lib/destiny-matrix/core/buildCalendarCoreEnvelope'
 import koTranslations from '@/i18n/locales/ko'
 import enTranslations from '@/i18n/locales/en'
 import type { TranslationData } from '@/types/calendar-api'
@@ -83,6 +78,8 @@ import {
   fetchAIDates,
   LOCATION_COORDS,
   buildCalendarPresentationView,
+  buildCalendarMatrixEvidencePacketMap,
+  type CalendarMatrixEvidencePacketMap,
 } from './lib'
 
 export const dynamic = 'force-dynamic'
@@ -184,55 +181,6 @@ const SHINSAL_KIND_ALIASES: Record<
   금여록: '금여록',
   공망살: '공망',
   홍염: '홍염살',
-}
-
-const CALENDAR_PACKET_THEME_BY_KEY: Record<
-  string,
-  'career' | 'love' | 'wealth' | 'health' | 'today'
-> = {
-  career: 'career',
-  study: 'career',
-  love: 'love',
-  relationship: 'love',
-  wealth: 'wealth',
-  money: 'wealth',
-  health: 'health',
-  travel: 'today',
-  move: 'today',
-  general: 'today',
-  today: 'today',
-}
-
-function buildCalendarEvidencePacketMap(input: {
-  lang: 'ko' | 'en'
-  matrixInput: MatrixCalculationInput
-  matrixReport: ReturnType<typeof reportGenerator.generateReport>
-  matrixSummary: ReturnType<typeof calculateDestinyMatrix>['summary']
-  coreSeed: ReturnType<typeof runDestinyCore>
-  birthDate?: string
-}): Record<string, CounselorEvidencePacket> {
-  const cache = new Map<string, CounselorEvidencePacket>()
-  const out: Record<string, CounselorEvidencePacket> = {}
-
-  for (const [key, theme] of Object.entries(CALENDAR_PACKET_THEME_BY_KEY)) {
-    let packet = cache.get(theme)
-    if (!packet) {
-      packet = buildCounselorEvidencePacket({
-        theme,
-        lang: input.lang,
-        matrixInput: input.matrixInput,
-        matrixReport: input.matrixReport,
-        matrixSummary: input.matrixSummary,
-        signalSynthesis: input.coreSeed.signalSynthesis,
-        strategyEngine: input.coreSeed.strategyEngine,
-        birthDate: input.birthDate,
-      })
-      cache.set(theme, packet)
-    }
-    out[key] = packet
-  }
-
-  return out
 }
 
 function normalizeShinsalKind(
@@ -516,7 +464,7 @@ export const GET = withApiMiddleware(
 
     let matrixCalendarContext: MatrixCalendarContext = null
     let matrixInputCoverage: Record<string, unknown> | null = null
-    let matrixEvidencePackets: Record<string, CounselorEvidencePacket> | null = null
+    let matrixEvidencePackets: CalendarMatrixEvidencePacketMap | null = null
     let calendarCoreCanonical: ReturnType<typeof adaptCoreToCalendar> | null = null
     let calendarCoreDataQuality: {
       missingFields: string[]
@@ -905,13 +853,11 @@ export const GET = withApiMiddleware(
         }
       }
 
-      const coreEnvelope = buildCoreEnvelope({
-        mode: 'calendar',
+      const coreEnvelope = buildCalendarCoreEnvelope({
         lang: locale === 'en' ? 'en' : 'ko',
         matrixInput: normalizedMatrixInput,
       })
       const matrix = coreEnvelope.matrix
-      const matrixReport = coreEnvelope.matrixReport
       const coreSeed = coreEnvelope.coreSeed
       let matrixSummaryForCalendar =
         matrix && typeof matrix === 'object' && 'summary' in matrix ? matrix.summary : undefined
@@ -1030,14 +976,7 @@ export const GET = withApiMiddleware(
           topPatternIds: topMatchedPatterns.map((pattern) => pattern.id),
         },
       }
-      matrixEvidencePackets = buildCalendarEvidencePacketMap({
-        lang: locale === 'en' ? 'en' : 'ko',
-        matrixInput: normalizedMatrixInput,
-        matrixReport,
-        matrixSummary: matrixSummaryForCalendar || matrix.summary,
-        coreSeed,
-        birthDate: birthDateParam,
-      })
+      matrixEvidencePackets = buildCalendarMatrixEvidencePacketMap(calendarCoreCanonical)
 
       matrixCalendarContext = {
         calendarSignals: matrixSummaryForCalendar?.calendarSignals || [],
