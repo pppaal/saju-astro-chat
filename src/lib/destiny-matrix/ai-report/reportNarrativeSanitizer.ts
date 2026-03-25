@@ -62,6 +62,7 @@ export function normalizeUserFacingArtifacts(text: string): string {
     .replace(/\bGeokguk\b/gi, '격국')
     .replace(/현재 흐름 흐름/g, '현재 흐름')
     .replace(/트랜짓가/g, '트랜짓이')
+    .replace(/트랜짓/gi, '점성 흐름')
     .replace(/패턴 패턴/g, '패턴')
     .replace(/(숨은 지원 흐름|학습 가속 흐름|자산 축적 흐름|이동·변화 경계 구간)\s*패턴/g, '$1')
     .replace(/관계\s*Adjustment/gi, '관계 조정')

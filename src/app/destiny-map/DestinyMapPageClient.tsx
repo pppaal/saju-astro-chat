@@ -17,7 +17,6 @@ import { logger } from '@/lib/logger'
 import DateTimePicker from '@/components/ui/DateTimePicker'
 import CreditBadge from '@/components/ui/CreditBadge'
 import BackButton from '@/components/ui/BackButton'
-import ParticleBackground from '@/components/destiny-map/ParticleBackground'
 import {
   type CityHit,
   formReducer,
@@ -332,7 +331,6 @@ function DestinyMapContent({
 
   return (
     <div className={styles.container}>
-      <ParticleBackground className={styles.particleCanvas} />
       <BackButton />
 
       <main className={styles.main}>

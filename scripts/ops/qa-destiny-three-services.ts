@@ -126,6 +126,10 @@ async function evaluateCase(
 
   const checks: Array<{ name: string; status: QAStatus; detail: string }> = []
   const sharedFocus = core.canonical.focusDomain
+  const serviceFocus =
+    questionCase.theme === 'life'
+      ? sharedFocus
+      : counselor.actionFocusDomain || calendar.actionFocusDomain || sharedFocus
 
   checks.push({
     name: 'core-calendar focus sync',
@@ -153,8 +157,8 @@ async function evaluateCase(
 
   checks.push({
     name: 'expected domain hit',
-    status: questionCase.expectedDomains.includes(sharedFocus) ? 'PASS' : 'WARN',
-    detail: `expected=${questionCase.expectedDomains.join('/')} actual=${sharedFocus}`,
+    status: questionCase.expectedDomains.includes(serviceFocus) ? 'PASS' : 'WARN',
+    detail: `expected=${questionCase.expectedDomains.join('/')} actual=${serviceFocus} core_focus=${sharedFocus}`,
   })
 
   const actionHints = questionCase.expectedActionHints.map((item) => getLocalizedText(item, lang))

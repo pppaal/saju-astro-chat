@@ -370,19 +370,74 @@ function buildReportOutputCoreFields(
       .replace(/\bwealth\b/gi, '재정')
       .replace(/\bhealth\b/gi, '건강')
       .replace(/\bmove\b/gi, '이동')
+      .replace(/\bspirituality\b/gi, '장기 방향')
       .replace(/\bnow\b/gi, '지금')
       .replace(/\bweek\b/gi, '주 단위')
+      .replace(/\bfortnight\b/gi, '2주 단위')
+      .replace(/\bmonth\b/gi, '월 단위')
+      .replace(/\bseason\b/gi, '분기 단위')
+      .replace(/\bverify\b/gi, '확인')
+      .replace(/\bprepare\b/gi, '준비 우선')
+      .replace(/\bexecute\b/gi, '실행')
+      .replace(/\bTransit\s+saturnReturn\b/gi, '책임 압력 신호')
+      .replace(/\bTransit\s+jupiterReturn\b/gi, '확장 신호')
+      .replace(/\bTransit\s+nodeReturn\b/gi, '방향 전환 신호')
+      .replace(/\bTransit\s+mercuryRetrograde\b/gi, '소통 재검토 신호')
+      .replace(/\bTransit\s+marsRetrograde\b/gi, '마찰 재검토 신호')
+      .replace(/\bTransit\s+venusRetrograde\b/gi, '관계 재검토 신호')
+      .replace(/\bsaturnReturn\b/gi, '책임 압력 신호')
+      .replace(/\bjupiterReturn\b/gi, '확장 신호')
+      .replace(/\bnodeReturn\b/gi, '방향 전환 신호')
+      .replace(/\bmercuryRetrograde\b/gi, '소통 재검토 신호')
+      .replace(/\bmarsRetrograde\b/gi, '마찰 재검토 신호')
+      .replace(/\bvenusRetrograde\b/gi, '관계 재검토 신호')
+      .replace(/\bsolarReturn\b/gi, '연간 초점 강조')
+      .replace(/\blunarReturn\b/gi, '감정 파동 신호')
+      .replace(/\bprogressions?\b/gi, '장기 전개 흐름')
       .replace(/\bcaution\b/gi, '주의 신호')
       .replace(/\bdowngrade pressure\b/gi, '하향 조정 압력')
+      .replace(/\bgeokguk strength\b/gi, '격국 응집력')
+      .replace(/\bdebt restructure\b/gi, '부채 재정리')
+      .replace(/\bliquidity defense\b/gi, '유동성 방어')
+      .replace(/\bexpense spike\b/gi, '지출 급증 대응')
+      .replace(/\bpromotion review\b/gi, '승진 검토')
+      .replace(/\brecovery reset\b/gi, '회복 재정렬')
+      .replace(/\bbasecamp reset\b/gi, '거점 재정비')
+      .replace(/\bmap full debt stack\b/gi, '전체 부채 구조를 다시 정리하기')
+      .replace(/\bwealth volatility pattern\b/gi, '재정 변동성 패턴')
+      .replace(/\bcareer expansion pattern\b/gi, '커리어 확장 패턴')
+      .replace(/\brelationship tension pattern\b/gi, '관계 긴장 패턴')
+      .replace(/\bcashflow\b/gi, '현금흐름')
+      .replace(/\bmoney expansion action\b/gi, '재정 확장은 조건 검증부터 진행하세요')
+      .replace(/\brelationship caution\b/gi, '관계에서는 속도보다 기준 확인이 먼저입니다')
+      .replace(/활성 신호\s+책임 압력 신호/gi, '책임 압력 신호')
+      .replace(/활성 신호\s+확장 신호/gi, '확장 신호')
+      .replace(/활성 신호\s+방향 전환 신호/gi, '방향 전환 신호')
+      .replace(/활성 신호\s+소통 재검토 신호/gi, '소통 재검토 신호')
+      .replace(/변동성 패턴\s+패턴/gi, '변동성 패턴')
       .replace(
         /action pressure stayed narrow between ([^\s]+) and ([^\s]+)/gi,
         (_, left: string, right: string) =>
           `${getReportDomainLabel(left, 'ko')}와 ${getReportDomainLabel(right, 'ko')} 사이의 행동 압력이 좁게 경쟁했습니다`
       )
+      .replace(
+        /\b\w+\s+stayed secondary because total support remained below the winner\b/gi,
+        '최종 지지가 승자축보다 약해 보조축에 머물렀습니다'
+      )
+      .replace(
+        /([가-힣]+)\s+stayed secondary because total support remained below the winner/gi,
+        '$1은 최종 지지가 승자축보다 약해 보조축에 머물렀습니다'
+      )
+      .replace(/밀는/g, '미는')
+      .replace(/중단는/g, '중단은')
       .replace(/커리어은/g, '커리어는')
       .replace(/관계은/g, '관계는')
+      .replace(/타이밍와/g, '타이밍과')
+      .replace(/장기 방향와/g, '장기 방향과')
       .replace(/재정와/g, '재정과')
       .replace(/건강와/g, '건강과')
+      .replace(/편이 맞습니다\.입니다\./g, '편이 맞습니다.')
+      .replace(/트랜짓가/g, '트랜짓이')
       .replace(/\s+/g, ' ')
       .trim()
   }
@@ -391,6 +446,8 @@ function buildReportOutputCoreFields(
     reportCore.actionFocusDomain || reportCore.focusDomain,
     lang
   )
+  const localizeProjectionList = (items: Array<string | undefined | null>) =>
+    items.map((item) => localizeReportFreeText(item)).filter(Boolean)
   const timingWindow = reportCore.domainTimingWindows.find(
     (item) => item.domain === reportCore.actionFocusDomain || item.domain === reportCore.focusDomain
   )
@@ -428,16 +485,28 @@ function buildReportOutputCoreFields(
         headline: lang === 'ko' ? '구조 투영' : 'Structure Projection',
         summary: structureSummary,
         topAxes: reportCore.latentTopAxes.slice(0, 4).map((axis) => axis.label),
+        detailLines: localizeProjectionList(reportCore.projections?.structure?.detailLines || []),
+        drivers: localizeProjectionList(reportCore.projections?.structure?.drivers || []),
+        counterweights: localizeProjectionList(reportCore.projections?.structure?.counterweights || []),
+        nextMoves: localizeProjectionList(reportCore.projections?.structure?.nextMoves || []),
       },
       timing: {
         headline: lang === 'ko' ? '타이밍 투영' : 'Timing Projection',
         summary: timingSummary,
         window: timingWindow?.window,
         granularity: timingWindow?.timingGranularity,
+        detailLines: localizeProjectionList(reportCore.projections?.timing?.detailLines || []),
+        drivers: localizeProjectionList(reportCore.projections?.timing?.drivers || []),
+        counterweights: localizeProjectionList(reportCore.projections?.timing?.counterweights || []),
+        nextMoves: localizeProjectionList(reportCore.projections?.timing?.nextMoves || []),
       },
       conflict: {
         headline: lang === 'ko' ? '충돌 투영' : 'Conflict Projection',
         summary: conflictSummary,
+        detailLines: localizeProjectionList(reportCore.projections?.conflict?.detailLines || []),
+        drivers: localizeProjectionList(reportCore.projections?.conflict?.drivers || []),
+        counterweights: localizeProjectionList(reportCore.projections?.conflict?.counterweights || []),
+        nextMoves: localizeProjectionList(reportCore.projections?.conflict?.nextMoves || []),
         reasons:
           lang === 'ko'
             ? reportCore.arbitrationBrief.conflictReasons
@@ -451,6 +520,10 @@ function buildReportOutputCoreFields(
           lang === 'ko'
             ? `${actionLabel} 축에서는 ${reportCore.topDecisionLabel || reportCore.topDecisionId || reportCore.primaryAction}이 실제 움직임의 중심입니다.`
             : `On the ${actionLabel} axis, ${reportCore.topDecisionLabel || reportCore.topDecisionId || reportCore.primaryAction} is the live move.`,
+        detailLines: localizeProjectionList(reportCore.projections?.action?.detailLines || []),
+        drivers: localizeProjectionList(reportCore.projections?.action?.drivers || []),
+        counterweights: localizeProjectionList(reportCore.projections?.action?.counterweights || []),
+        nextMoves: localizeProjectionList(reportCore.projections?.action?.nextMoves || []),
         reasons: [
           reportCore.topDecisionLabel || reportCore.topDecisionId || '',
           ...(reportCore.judgmentPolicy.allowedActionLabels || []).slice(0, 2),
@@ -467,6 +540,10 @@ function buildReportOutputCoreFields(
                 .filter(Boolean)
                 .join('. ')
             : `${reportCore.primaryCaution} ${reportCore.riskControl}`.trim(),
+        detailLines: localizeProjectionList(reportCore.projections?.risk?.detailLines || []),
+        drivers: localizeProjectionList(reportCore.projections?.risk?.drivers || []),
+        counterweights: localizeProjectionList(reportCore.projections?.risk?.counterweights || []),
+        nextMoves: localizeProjectionList(reportCore.projections?.risk?.nextMoves || []),
         reasons: [
           ...(reportCore.judgmentPolicy.blockedActionLabels || []).slice(0, 2),
           ...(reportCore.judgmentPolicy.hardStopLabels || []).slice(0, 2),
@@ -477,6 +554,10 @@ function buildReportOutputCoreFields(
       evidence: {
         headline: lang === 'ko' ? '근거 투영' : 'Evidence Projection',
         summary: evidenceSummary,
+        detailLines: localizeProjectionList(reportCore.projections?.evidence?.detailLines || []),
+        drivers: localizeProjectionList(reportCore.projections?.evidence?.drivers || []),
+        counterweights: localizeProjectionList(reportCore.projections?.evidence?.counterweights || []),
+        nextMoves: localizeProjectionList(reportCore.projections?.evidence?.nextMoves || []),
         reasons:
           lang === 'ko'
             ? [
@@ -495,6 +576,21 @@ function buildReportOutputCoreFields(
                 ...reportCore.topPatternIds.slice(0, 1),
                 ...reportCore.topScenarioIds.slice(0, 1),
               ].filter(Boolean),
+      },
+      branches: {
+        headline: lang === 'ko' ? '분기 투영' : 'Branch Projection',
+        summary:
+          localizeReportFreeText(reportCore.projections?.branches?.summary) ||
+          (lang === 'ko'
+            ? '가능한 경로가 하나로 고정되기보다 여러 갈래로 열려 있습니다.'
+            : 'Multiple realistic branches are open rather than one fixed outcome.'),
+        window: reportCore.projections?.branches?.window,
+        granularity: reportCore.projections?.branches?.granularity,
+        detailLines: localizeProjectionList(reportCore.projections?.branches?.detailLines || []),
+        drivers: localizeProjectionList(reportCore.projections?.branches?.drivers || []),
+        counterweights: localizeProjectionList(reportCore.projections?.branches?.counterweights || []),
+        nextMoves: localizeProjectionList(reportCore.projections?.branches?.nextMoves || []),
+        reasons: localizeProjectionList(reportCore.projections?.branches?.reasons || []),
       },
     },
     topDecisionId: reportCore.topDecisionId,
@@ -525,6 +621,53 @@ function getReportDomainLabel(domain: string, lang: 'ko' | 'en'): string {
     timing: 'timing',
   }
   return lang === 'ko' ? koLabels[domain] || domain : enLabels[domain] || domain
+}
+
+function localizeReportNarrativeText(text: string | undefined | null, lang: 'ko' | 'en'): string {
+  const value = String(text || '').trim()
+  if (!value || lang !== 'ko') return value
+  return value
+    .replace(/\bpersonality\b/gi, '성향')
+    .replace(/\bcareer\b/gi, '커리어')
+    .replace(/\brelationship\b/gi, '관계')
+    .replace(/\bwealth\b/gi, '재정')
+    .replace(/\bhealth\b/gi, '건강')
+    .replace(/\bmove\b/gi, '이동')
+    .replace(/\bspirituality\b/gi, '장기 방향')
+    .replace(/\bnow\b/gi, '지금')
+    .replace(/\bweek\b/gi, '주 단위')
+    .replace(/\bfortnight\b/gi, '2주 단위')
+    .replace(/\bmonth\b/gi, '월 단위')
+    .replace(/\bseason\b/gi, '분기 단위')
+    .replace(/\bcaution\b/gi, '주의 신호')
+    .replace(/\bdowngrade pressure\b/gi, '하향 조정 압력')
+    .replace(/\bgeokguk strength\b/gi, '격국 응집력')
+    .replace(/\bdebt restructure\b/gi, '부채 재정리')
+    .replace(/\bliquidity defense\b/gi, '유동성 방어')
+    .replace(/\bexpense spike\b/gi, '지출 급증 대응')
+    .replace(/\bmap full debt stack\b/gi, '전체 부채 구조를 다시 정리하기')
+    .replace(/\bwealth volatility pattern\b/gi, '재정 변동성 패턴')
+    .replace(/\bcareer expansion pattern\b/gi, '커리어 확장 패턴')
+    .replace(/\brelationship tension pattern\b/gi, '관계 긴장 패턴')
+    .replace(/\bcashflow\b/gi, '현금흐름')
+    .replace(
+      /\b\w+\s+stayed secondary because total support remained below the winner\b/gi,
+      '최종 지지가 승자축보다 약해 보조축에 머물렀습니다'
+    )
+    .replace(
+      /([가-힣]+)\s+stayed secondary because total support remained below the winner/gi,
+      '$1은 최종 지지가 승자축보다 약해 보조축에 머물렀습니다'
+    )
+    .replace(/밀는/g, '미는')
+    .replace(/중단는/g, '중단은')
+    .replace(/커리어은/g, '커리어는')
+    .replace(/관계은/g, '관계는')
+    .replace(/타이밍와/g, '타이밍과')
+    .replace(/장기 방향와/g, '장기 방향과')
+    .replace(/편이 맞습니다\.입니다\./g, '편이 맞습니다.')
+    .replace(/트랜짓가/g, '트랜짓이')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 function getTimingWindowLabel(
@@ -1075,8 +1218,31 @@ function normalizeNarrativeCoreText(value: string | undefined | null, lang: 'ko'
       .replace(/staged_commit/gi, lang === 'ko' ? '단계 실행' : 'staged execution')
       .replace(/\bverify\b/gi, lang === 'ko' ? '확인' : 'review')
       .replace(/\bprepare\b/gi, lang === 'ko' ? '준비 우선' : 'prepare first')
+      .replace(/\bexecute\b/gi, lang === 'ko' ? '실행' : 'execute')
+      .replace(/\bTransit\s+saturnReturn\b/gi, lang === 'ko' ? '책임 압력 신호' : 'responsibility pressure')
+      .replace(/\bTransit\s+jupiterReturn\b/gi, lang === 'ko' ? '확장 신호' : 'expansion signal')
+      .replace(/\bTransit\s+nodeReturn\b/gi, lang === 'ko' ? '방향 전환 신호' : 'direction-shift signal')
+      .replace(/\bTransit\s+mercuryRetrograde\b/gi, lang === 'ko' ? '소통 재검토 신호' : 'communication review signal')
+      .replace(/\bTransit\s+marsRetrograde\b/gi, lang === 'ko' ? '마찰 재검토 신호' : 'friction review signal')
+      .replace(/\bTransit\s+venusRetrograde\b/gi, lang === 'ko' ? '관계 재검토 신호' : 'relationship review signal')
+      .replace(/\bsaturnReturn\b/gi, lang === 'ko' ? '책임 압력 신호' : 'responsibility pressure')
+      .replace(/\bjupiterReturn\b/gi, lang === 'ko' ? '확장 신호' : 'expansion signal')
+      .replace(/\bnodeReturn\b/gi, lang === 'ko' ? '방향 전환 신호' : 'direction-shift signal')
+      .replace(/\bmercuryRetrograde\b/gi, lang === 'ko' ? '소통 재검토 신호' : 'communication review signal')
+      .replace(/\bmarsRetrograde\b/gi, lang === 'ko' ? '마찰 재검토 신호' : 'friction review signal')
+      .replace(/\bvenusRetrograde\b/gi, lang === 'ko' ? '관계 재검토 신호' : 'relationship review signal')
+      .replace(/\bsolarReturn\b/gi, lang === 'ko' ? '연간 초점 강조' : 'annual emphasis')
+      .replace(/\blunarReturn\b/gi, lang === 'ko' ? '감정 파동 신호' : 'emotional pulse signal')
+      .replace(/\bprogressions?\b/gi, lang === 'ko' ? '장기 전개 흐름' : 'long-arc development')
+      .replace(/\bmoney expansion action\b/gi, lang === 'ko' ? '재정 확장은 조건 검증부터 진행하세요' : 'expand finances only after condition checks')
+      .replace(/\brelationship caution\b/gi, lang === 'ko' ? '관계에서는 속도보다 기준 확인이 먼저입니다' : 'relationship pace should stay behind clear standards')
       .replace(/검증/g, '확인')
       .replace(/레이어\s*0/gi, lang === 'ko' ? '핵심 흐름' : 'core flow')
+      .replace(/활성 신호\s+책임 압력 신호/gi, lang === 'ko' ? '책임 압력 신호' : 'responsibility pressure')
+      .replace(/활성 신호\s+확장 신호/gi, lang === 'ko' ? '확장 신호' : 'expansion signal')
+      .replace(/활성 신호\s+방향 전환 신호/gi, lang === 'ko' ? '방향 전환 신호' : 'direction-shift signal')
+      .replace(/활성 신호\s+소통 재검토 신호/gi, lang === 'ko' ? '소통 재검토 신호' : 'communication review signal')
+      .replace(/변동성 패턴\s+패턴/gi, lang === 'ko' ? '변동성 패턴' : 'volatility pattern')
       .replace(
         /확장 자원 레이어:/g,
         lang === 'ko'
@@ -1717,8 +1883,72 @@ function renderIntroductionSection(
           .slice(0, 3)
           .map((axis) => axis.label)
           .join(', ')}.`
-    : ''
-  return [arbitrationLine, latentLine, base].filter(Boolean).join(' ')
+      : ''
+  const riskAxisLine =
+    reportCore.riskAxisLabel
+      ? lang === 'ko'
+        ? `동시에 가장 예민한 리스크 축은 ${reportCore.riskAxisLabel}입니다.`
+        : `At the same time, the most sensitive risk axis is ${reportCore.riskAxisLabel}.`
+      : ''
+  const timingMatrixLine =
+    reportCore.timingMatrix?.length
+      ? lang === 'ko'
+        ? `도메인별로는 ${reportCore.timingMatrix
+            .slice(0, 3)
+            .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
+            .join(', ')} 순으로 창이 갈립니다.`
+        : `By domain, windows split as ${reportCore.timingMatrix
+            .slice(0, 3)
+            .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
+            .join(', ')}.`
+      : ''
+  const structureProjection = reportCore.projections?.structure
+  const structureDetailLine = localizeReportNarrativeText(
+    structureProjection?.detailLines?.[0] || '',
+    lang
+  )
+  const structureDriversLine =
+    structureProjection?.drivers?.length
+      ? lang === 'ko'
+        ? `구조를 받치는 직접 축은 ${structureProjection.drivers
+            .slice(0, 3)
+            .map((item) => localizeReportNarrativeText(item, lang))
+            .join(', ')}입니다.`
+        : `The direct structural drivers are ${structureProjection.drivers.slice(0, 3).join(', ')}.`
+      : ''
+  const structureCounterweightLine =
+    reportCore.arbitrationBrief?.suppressionNarratives?.length || structureProjection?.counterweights?.length
+      ? lang === 'ko'
+        ? `다만 ${(reportCore.arbitrationBrief?.suppressionNarratives?.length
+            ? reportCore.arbitrationBrief.suppressionNarratives
+            : structureProjection?.counterweights || [])
+            .slice(0, 2)
+            .map((item) => localizeReportNarrativeText(item, lang))
+            .join(' 또한 ')} 같은 보조 압력이 함께 걸립니다.`
+        : `Counterweights are still coming from ${(reportCore.arbitrationBrief?.suppressionNarratives?.length
+            ? reportCore.arbitrationBrief.suppressionNarratives
+            : structureProjection?.counterweights || [])
+            .slice(0, 2)
+            .join(', ')}.`
+      : ''
+  const branchProjection = reportCore.projections?.branches
+  const branchLeadLine = localizeReportNarrativeText(
+    branchProjection?.detailLines?.[0] || '',
+    lang
+  )
+  return [
+    arbitrationLine,
+    latentLine,
+    structureDetailLine,
+    structureDriversLine,
+    structureCounterweightLine,
+    branchLeadLine,
+    riskAxisLine,
+    timingMatrixLine,
+    base,
+  ]
+    .filter(Boolean)
+    .join(' ')
 }
 
 function renderLifeMissionSection(
@@ -1748,13 +1978,83 @@ function renderTimingAdviceSection(
   lang: 'ko' | 'en',
   matrixSummary?: MatrixSummary
 ): string {
-  return renderTimingAdviceSectionExternal(
+  const base = renderTimingAdviceSectionExternal(
     reportCore,
     matrixInput,
     lang,
     reportSectionRendererDeps,
     matrixSummary
   )
+  const timingProjection = reportCore.projections?.timing
+  const preferredTimingRow =
+    reportCore.timingMatrix?.find(
+      (row) => row.domain === (reportCore.actionFocusDomain || reportCore.focusDomain)
+    ) || reportCore.timingMatrix?.[0]
+  const timingDetailLine = localizeReportNarrativeText(
+    preferredTimingRow?.summary || timingProjection?.detailLines?.[0] || '',
+    lang
+  )
+  const timingDriverLine =
+    timingProjection?.drivers?.length
+      ? lang === 'ko'
+        ? `지금 창을 직접 밀고 있는 축은 ${timingProjection.drivers
+            .slice(0, 3)
+            .map((item) => localizeReportNarrativeText(item, lang))
+            .join(', ')}입니다.`
+        : `The live timing drivers are ${timingProjection.drivers.slice(0, 3).join(', ')}.`
+      : ''
+  const timingCounterweightLine =
+    timingProjection?.counterweights?.length
+      ? lang === 'ko'
+        ? `반대로 ${timingProjection.counterweights
+            .slice(0, 2)
+            .map((item) => localizeReportNarrativeText(item, lang))
+            .join(', ')} 같은 조건은 속도를 늦추는 신호로 같이 읽어야 합니다.`
+        : `Counterweights still come from ${timingProjection.counterweights.slice(0, 2).join(', ')}.`
+      : ''
+  const timingNextLine =
+    timingProjection?.nextMoves?.length
+      ? lang === 'ko'
+        ? `지금 타이밍을 살리려면 ${timingProjection.nextMoves
+            .slice(0, 2)
+            .map((item) => localizeReportNarrativeText(item, lang))
+            .join(' 그리고 ')
+            .replace(/가 유지될 것/g, '이 유지되는지')
+            .replace(/이 유지될 것/g, '이 유지되는지')
+            .replace(/를 바로 실행할 수 있을 것/g, '를 바로 실행할 수 있는지')
+            .replace(/근거이/g, '근거가')
+            .replace(/(\d+(?:\.\d+)?)%이 유지되는지/g, '$1%가 유지되는지')}를 먼저 확인하는 편이 맞습니다.`
+        : `To use this timing well, satisfy ${timingProjection.nextMoves.slice(0, 2).join(', ')} first.`
+      : ''
+  const timingMatrixLine =
+    reportCore.timingMatrix?.length
+      ? lang === 'ko'
+        ? `도메인별 창을 같이 보면 ${reportCore.timingMatrix
+            .slice(0, 3)
+            .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
+            .join(', ')} 흐름으로 갈립니다.`
+        : `Across domains, timing splits into ${reportCore.timingMatrix
+            .slice(0, 3)
+            .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
+            .join(', ')}.`
+      : ''
+  const branchProjection = reportCore.projections?.branches
+  const branchTimingLine =
+    localizeReportNarrativeText(branchProjection?.detailLines?.[0] || '', lang) ||
+    (branchProjection?.summary && lang === 'ko'
+      ? `지금은 가능한 경로를 한 갈래로 고정하기보다 ${localizeReportNarrativeText(branchProjection.summary, lang)}`
+      : localizeReportNarrativeText(branchProjection?.summary || '', lang) || '')
+  const enriched = [
+    timingDetailLine,
+    timingDriverLine,
+    timingCounterweightLine,
+    timingNextLine,
+    timingMatrixLine,
+    branchTimingLine,
+  ].filter(Boolean)
+  return [...enriched, ...(enriched.length < 4 ? [base] : [])]
+    .filter(Boolean)
+    .join(' ')
 }
 
 function renderActionPlanSection(
@@ -1768,29 +2068,73 @@ function renderActionPlanSection(
     reportCore.actionFocusDomain || reportCore.focusDomain,
     lang
   )
-  const actionRunnerUpLabel = reportCore.arbitrationBrief?.actionRunnerUpDomain
-    ? getReportDomainLabel(reportCore.arbitrationBrief.actionRunnerUpDomain, lang)
-    : ''
-  const arbitrationLine =
+  const topDecisionLabel = reportCore.topDecisionLabel || reportCore.primaryAction
+  const openingLine =
     lang === 'ko'
-      ? actionRunnerUpLabel
-        ? `${actionLabel} 축이 ${actionRunnerUpLabel}보다 앞서 이번 실행축으로 선택됐습니다.`
-        : ''
-      : actionRunnerUpLabel
-        ? `${actionLabel} moved ahead of ${actionRunnerUpLabel} as the execution axis for this phase.`
-        : ''
-  const latentLine = reportCore.latentTopAxes?.length
-    ? lang === 'ko'
-      ? `실행을 미는 실제 축은 ${reportCore.latentTopAxes
-          .slice(0, 2)
-          .map((axis) => axis.label)
-          .join(', ')}입니다.`
-      : `Execution pressure is currently being pushed by ${reportCore.latentTopAxes
-          .slice(0, 2)
-          .map((axis) => axis.label)
-          .join(', ')}.`
-    : ''
-  return [arbitrationLine, latentLine, base].filter(Boolean).join(' ')
+      ? `이번 ${actionLabel} 실행 기준은 ${topDecisionLabel}입니다.`
+      : `The operating rule on the ${actionLabel} axis is ${topDecisionLabel}.`
+  const guardrailLine = reportCore.riskControl
+  const actionProjection = reportCore.projections?.action
+  const actionDetailLine = localizeReportNarrativeText(
+    actionProjection?.detailLines?.[0] || '',
+    lang
+  )
+  const actionDriverLine =
+    actionProjection?.drivers?.length
+      ? lang === 'ko'
+        ? `지금 실행을 받치는 층은 ${actionProjection.drivers
+            .slice(0, 3)
+            .map((item) => localizeReportNarrativeText(item, lang))
+            .join(', ')}입니다.`
+        : `The current execution drivers are ${actionProjection.drivers.slice(0, 3).join(', ')}.`
+      : ''
+  const actionCounterweightLine =
+    actionProjection?.counterweights?.length
+      ? lang === 'ko'
+        ? `${actionProjection.counterweights
+            .slice(0, 2)
+            .map((item) => localizeReportNarrativeText(item, lang))
+            .join(', ')} 같은 제약은 속도를 늦추라는 신호로 같이 읽어야 합니다.`
+        : `${actionProjection.counterweights.slice(0, 2).join(', ')} still signal that pace should stay controlled.`
+      : ''
+  const actionNextLine =
+    actionProjection?.nextMoves?.length
+      ? lang === 'ko'
+        ? `다음 움직임은 ${actionProjection.nextMoves
+            .slice(0, 2)
+            .map((item) => localizeReportNarrativeText(item, lang))
+            .join(', ')}부터 고정하는 편이 맞습니다.`
+        : `The next move should begin with ${actionProjection.nextMoves.slice(0, 2).join(', ')}.`
+      : ''
+  const riskAxisLine =
+    reportCore.riskAxisLabel
+      ? lang === 'ko'
+        ? `실행을 밀더라도 ${reportCore.riskAxisLabel} 축을 먼저 리스크 축으로 관리해야 합니다.`
+        : `Even while acting, ${reportCore.riskAxisLabel} should be managed as the primary risk axis first.`
+      : ''
+  const branchProjection = reportCore.projections?.branches
+  const branchActionLine =
+    branchProjection?.nextMoves?.length
+      ? lang === 'ko'
+        ? `지금 열려 있는 분기에서는 ${branchProjection.nextMoves
+            .slice(0, 2)
+            .map((item) => localizeReportNarrativeText(item, lang))
+            .join(', ')}를 먼저 고정해야 실제 실행축으로 넘어갑니다.`
+        : `Across the live branches, ${branchProjection.nextMoves.slice(0, 2).join(', ')} should be fixed first before execution.`
+      : ''
+  const enriched = [
+    openingLine,
+    actionDetailLine,
+    actionDriverLine,
+    actionCounterweightLine,
+    actionNextLine,
+    riskAxisLine,
+    branchActionLine,
+    guardrailLine,
+  ].filter(Boolean)
+  return [...enriched, ...(enriched.length < 5 ? [base] : [])]
+    .filter(Boolean)
+    .join(' ')
 }
 
 function renderCareerPathSection(
@@ -1832,7 +2176,15 @@ function renderConclusionSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  return renderConclusionSectionExternal(reportCore, matrixInput, lang, reportSectionRendererDeps)
+  const base = renderConclusionSectionExternal(reportCore, matrixInput, lang, reportSectionRendererDeps)
+  const riskAxisLine =
+    reportCore.riskAxisLabel
+      ? lang === 'ko'
+        ? `마지막까지 가장 민감하게 관리해야 할 축은 ${reportCore.riskAxisLabel}입니다.`
+        : `The axis that must be managed most carefully through the close is ${reportCore.riskAxisLabel}.`
+      : ''
+  const branchLine = reportCore.projections?.branches?.detailLines?.[0] || ''
+  return [riskAxisLine, branchLine, base].filter(Boolean).join(' ')
 }
 
 function renderHealthGuidanceSection(
@@ -1856,16 +2208,6 @@ function shouldForceComprehensiveNarrativeFallback(
     (quality.crossSectionRepetition || 0) >= 3 ||
     (quality.genericAdviceDensity || 0) >= 0.5 ||
     (quality.internalScenarioLeakCount || 0) > 0
-  )
-}
-
-function shouldForceThemedNarrativeFallback(quality: ReportQualityMetrics | undefined): boolean {
-  if (!quality) return false
-  return Boolean(
-    (quality.crossSectionRepetition || 0) >= 4 ||
-    (quality.genericAdviceDensity || 0) >= 0.8 ||
-    (quality.internalScenarioLeakCount || 0) > 0 ||
-    ((quality.personalizationDensity || 0) > 0 && (quality.personalizationDensity || 0) < 0.6)
   )
 }
 
@@ -1897,12 +2239,901 @@ function enforceComprehensiveNarrativeQualityFallback(
 function shouldForceThemedNarrativeFallback(quality: ReportQualityMetrics | undefined): boolean {
   if (!quality) return false
   return Boolean(
-    (quality.crossSectionRepetition || 0) >= 4 ||
-    (quality.genericAdviceDensity || 0) >= 0.8 ||
+    (quality.crossSectionRepetition || 0) >= 3 ||
+    (quality.genericAdviceDensity || 0) >= 0.5 ||
     (quality.internalScenarioLeakCount || 0) > 0 ||
-    ((quality.personalizationDensity || 0) > 0 && (quality.personalizationDensity || 0) < 0.6)
+    ((quality.personalizationDensity || 0) > 0 && (quality.personalizationDensity || 0) < 0.8)
   )
 }
+
+function joinNarrativeParts(parts: Array<string | null | undefined>): string {
+  return parts
+    .map((part) => String(part || '').trim())
+    .filter(Boolean)
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function buildProjectionFirstThemedSections(
+  theme: ReportTheme,
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en',
+  timingData: TimingData | undefined
+): ThemedReportSections {
+  const outputCore = buildReportOutputCoreFields(reportCore, lang)
+  const projections = outputCore.projections
+  const focusLabel = getReportDomainLabel(reportCore.focusDomain, lang)
+  const actionLabel = getReportDomainLabel(
+    reportCore.actionFocusDomain || reportCore.focusDomain,
+    lang
+  )
+  const focusTiming = findReportCoreTimingWindow(
+    reportCore,
+    reportCore.actionFocusDomain || reportCore.focusDomain
+  )
+  const careerAdvisory = findReportCoreAdvisory(reportCore, 'career')
+  const relationshipAdvisory = findReportCoreAdvisory(reportCore, 'relationship')
+  const wealthAdvisory = findReportCoreAdvisory(reportCore, 'wealth')
+  const healthAdvisory = findReportCoreAdvisory(reportCore, 'health')
+  const moveAdvisory = findReportCoreAdvisory(reportCore, 'move')
+  const actionSummary = projections?.action?.summary || reportCore.primaryAction
+  const riskSummary = projections?.risk?.summary || reportCore.riskControl
+  const timingSummary = projections?.timing?.summary || reportCore.gradeReason
+  const structureSummary = projections?.structure?.summary || reportCore.thesis
+  const conflictSummary = projections?.conflict?.summary || reportCore.primaryCaution
+  const evidenceSummary = projections?.evidence?.summary || reportCore.judgmentPolicy.rationale
+  const structureDetail = projections?.structure?.detailLines?.[0] || ''
+  const timingDetail = projections?.timing?.detailLines?.[0] || ''
+  const conflictDetail = projections?.conflict?.detailLines?.[0] || ''
+  const actionDetail = projections?.action?.detailLines?.[0] || ''
+  const riskDetail = projections?.risk?.detailLines?.[0] || ''
+  const evidenceDetail = projections?.evidence?.detailLines?.[0] || ''
+  const branchDetail = projections?.branches?.detailLines?.[0] || ''
+  const branchNextMoves = projections?.branches?.nextMoves?.slice(0, 2) || []
+  const branchReasons = projections?.branches?.reasons?.slice(0, 2) || []
+  const structureDrivers = projections?.structure?.drivers?.slice(0, 3) || []
+  const timingDrivers = projections?.timing?.drivers?.slice(0, 3) || []
+  const actionDrivers = projections?.action?.drivers?.slice(0, 3) || []
+  const riskCounterweights = projections?.risk?.counterweights?.slice(0, 2) || []
+  const timingNextMoves = projections?.timing?.nextMoves?.slice(0, 2) || []
+  const actionNextMoves = projections?.action?.nextMoves?.slice(0, 2) || []
+  const timingMatrixLead = reportCore.timingMatrix?.length
+    ? lang === 'ko'
+      ? `지금 창은 ${reportCore.timingMatrix
+          .slice(0, 3)
+          .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
+          .join(', ')} 순으로 다르게 열립니다.`
+      : `The active windows split by domain as ${reportCore.timingMatrix
+          .slice(0, 3)
+          .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
+          .join(', ')}.`
+    : ''
+  const riskAxisLead = reportCore.riskAxisLabel
+    ? lang === 'ko'
+      ? `이번 테마에서 가장 예민한 리스크 축은 ${reportCore.riskAxisLabel}입니다.`
+      : `The most sensitive risk axis in this theme is ${reportCore.riskAxisLabel}.`
+    : ''
+  const timelineNarrative = buildPersonalLifeTimelineNarrative(matrixInput, undefined, lang)
+  const timingGuardrail = focusTiming
+    ? buildTimingWindowNarrative(reportCore.actionFocusDomain || reportCore.focusDomain, focusTiming, lang)
+    : ''
+  const themeAngle =
+    theme === 'love'
+      ? lang === 'ko'
+        ? '관계 테마는 감정 강도보다 해석 일치와 속도 조율이 실제 성패를 가릅니다.'
+        : 'The relationship theme turns more on aligned interpretation and pace than on intensity alone.'
+      : theme === 'career'
+        ? lang === 'ko'
+          ? '커리어 테마는 기회를 넓게 잡는 것보다 역할과 평가 기준을 먼저 고정하는 쪽이 강합니다.'
+          : 'The career theme strengthens when role and evaluation criteria are fixed before expansion.'
+        : theme === 'wealth'
+          ? lang === 'ko'
+            ? '재정 테마는 수익 기대보다 손실 상한과 회수 조건을 먼저 정할 때 오래 갑니다.'
+            : 'The wealth theme lasts longer when downside limits and exit conditions are set before upside.'
+          : theme === 'health'
+            ? lang === 'ko'
+              ? '건강 테마는 버티는 힘보다 과부하를 빨리 끊는 운영 습관에서 차이가 납니다.'
+              : 'The health theme separates more by interrupting overload early than by endurance.'
+            : lang === 'ko'
+              ? '가족 테마는 감정보다 역할, 비용, 돌봄 분담을 보이는 언어로 맞출 때 안정됩니다.'
+              : 'The family theme stabilizes when roles, cost, and care are made explicit.'
+  const themeActionLine =
+    theme === 'love'
+      ? lang === 'ko'
+        ? '관계를 서두르기보다 기대치와 생활 조건을 먼저 맞추는 편이 맞습니다.'
+        : 'Do not rush the relationship; align expectations and living conditions first.'
+      : theme === 'career'
+        ? lang === 'ko'
+          ? '성과를 늘리기보다 책임 범위와 검토 지점을 먼저 고정하세요.'
+          : 'Before increasing output, lock responsibility boundaries and review points.'
+        : theme === 'wealth'
+          ? lang === 'ko'
+            ? '확장을 서두르기보다 금액, 기한, 취소 조건을 먼저 고정하세요.'
+            : 'Before expanding, lock amount, timing, and exit conditions.'
+          : theme === 'health'
+            ? lang === 'ko'
+              ? '강도를 올리기보다 회복 블록과 일정 완충부터 확보하세요.'
+              : 'Before increasing intensity, secure recovery blocks and schedule buffers.'
+            : lang === 'ko'
+              ? '결론을 밀기보다 역할과 해석 일치부터 확인하세요.'
+              : 'Before pushing conclusions, align roles and interpretations first.'
+  const themeRiskLine =
+    theme === 'love'
+      ? lang === 'ko'
+        ? '감정이 앞서도 생활 운영이 맞지 않으면 빠른 확정이 오히려 갈등 비용을 키울 수 있습니다.'
+        : 'Even with strong feeling, quick commitment can increase conflict cost when daily fit is weak.'
+      : theme === 'career'
+        ? lang === 'ko'
+          ? '속도는 성과처럼 보여도 기준 없는 확장은 바로 재작업 비용으로 돌아올 수 있습니다.'
+          : 'Speed can look like progress, but expansion without criteria often returns as rework cost.'
+        : theme === 'wealth'
+          ? lang === 'ko'
+            ? '문서화되지 않은 이점은 쉽게 손실로 뒤집히므로 수익보다 보호 장치를 먼저 세워야 합니다.'
+            : 'Undocumented upside flips into loss easily, so protection must come before profit.'
+          : theme === 'health'
+            ? lang === 'ko'
+              ? '회복이 밀린 상태에서 버티기로 버티면 다음 구간의 비용이 더 커질 수 있습니다.'
+              : 'When recovery is deferred, endurance often increases the cost of the next window.'
+            : lang === 'ko'
+              ? '보이지 않는 역할 불균형을 오래 끌면 가까운 관계일수록 피로와 억울함이 크게 남습니다.'
+              : 'Unspoken role imbalance leaves more fatigue and resentment the longer it stays implicit.'
+
+  const themeStructureLine =
+    theme === 'love'
+      ? lang === 'ko'
+        ? '이 관계 테마는 감정 표현보다 생활 리듬과 기대치 조율이 구조를 만듭니다.'
+        : 'This relationship theme is structured more by daily rhythm and expectation alignment than by expression alone.'
+      : theme === 'career'
+        ? lang === 'ko'
+          ? '이 커리어 테마는 재능보다 역할 정의와 평가 기준의 선명도가 구조를 만듭니다.'
+          : 'This career theme is structured more by role clarity and evaluation criteria than by talent alone.'
+        : theme === 'wealth'
+          ? lang === 'ko'
+            ? '이 재정 테마는 수익률보다 누수 통제와 회수 규칙이 구조를 만듭니다.'
+            : 'This wealth theme is structured more by leakage control and recovery rules than by return rate alone.'
+          : theme === 'health'
+            ? lang === 'ko'
+              ? '이 건강 테마는 의지보다 회복 리듬과 과부하 차단이 구조를 만듭니다.'
+              : 'This health theme is structured more by recovery rhythm and overload interruption than by willpower.'
+            : lang === 'ko'
+              ? '이 가족 테마는 감정보다 역할 분담과 해석 일치가 구조를 만듭니다.'
+              : 'This family theme is structured more by role distribution and aligned interpretation than by emotion alone.'
+
+  const themeWindowLine =
+    theme === 'love'
+      ? lang === 'ko'
+        ? '강한 창이 와도 감정 확인보다 생활 조건과 관계 속도를 먼저 맞출 때 성사 가능성이 커집니다.'
+        : 'Even when the window opens, probability improves when living conditions and relationship pace are aligned first.'
+      : theme === 'career'
+        ? lang === 'ko'
+          ? '강한 창은 확장 자체보다 역할과 검토 지점을 문서로 고정할 때 더 선명하게 살아납니다.'
+          : 'The stronger window shows up more clearly when role and review points are fixed in writing before expansion.'
+        : theme === 'wealth'
+          ? lang === 'ko'
+            ? '강한 창은 기대 수익을 키우는 순간보다 조건과 손실 상한을 잠글 때 더 유효합니다.'
+            : 'The stronger window is more reliable when downside limits are locked before upside is chased.'
+          : theme === 'health'
+            ? lang === 'ko'
+              ? '강한 창은 버티는 때가 아니라 회복 블록을 되찾고 과부하를 끊는 때에 더 잘 열립니다.'
+              : 'The stronger window opens less in endurance and more in reclaiming recovery blocks and cutting overload.'
+            : lang === 'ko'
+              ? '강한 창은 결론을 재촉하는 때보다 역할과 비용을 다시 맞추는 때에 더 잘 열립니다.'
+              : 'The stronger window opens less in forced conclusions and more in realigning roles and cost.'
+
+  const themeBranchLine =
+    theme === 'love'
+      ? lang === 'ko'
+        ? branchDetail || '이 관계 테마는 한 번의 확정으로 닫히기보다 몇 갈래 현실 경로가 같이 열려 움직입니다.'
+        : branchDetail || 'This relationship theme moves through multiple live branches rather than one fixed commitment path.'
+      : theme === 'career'
+        ? lang === 'ko'
+          ? branchDetail || '이 커리어 테마는 확정과 보류, 재협상 경로가 동시에 열려 있어 조건 차이가 결과를 가릅니다.'
+          : branchDetail || 'This career theme keeps commit, defer, and renegotiation paths open at the same time.'
+        : theme === 'wealth'
+          ? lang === 'ko'
+            ? branchDetail || '이 재정 테마는 확대와 방어, 재조정 경로가 같이 살아 있어 조건 관리가 핵심입니다.'
+            : branchDetail || 'This wealth theme keeps expansion, defense, and reset paths alive together.'
+          : theme === 'health'
+            ? lang === 'ko'
+              ? branchDetail || '이 건강 테마는 회복과 과부하가 동시에 경쟁해 일상 리듬 조정이 결과를 가릅니다.'
+              : branchDetail || 'This health theme keeps recovery and overload competing at the same time.'
+            : lang === 'ko'
+              ? branchDetail || '이 가족 테마는 감정선보다 역할과 비용 재조정 경로가 같이 열려 있습니다.'
+              : branchDetail || 'This family theme keeps multiple role and cost realignment paths open.'
+
+  const deepStructureLine =
+    theme === 'love'
+      ? lang === 'ko'
+        ? '이 테마에서는 끌림보다 생활 리듬과 기대치가 맞는지가 관계의 뼈대를 만듭니다.'
+        : 'Here the relationship is built less by attraction and more by aligned rhythm and expectations.'
+      : theme === 'career'
+        ? lang === 'ko'
+          ? '이 테마에서는 능력보다 역할 정의와 평가 기준이 커리어의 뼈대를 만듭니다.'
+          : 'Here the career frame is built less by talent and more by role definition and evaluation criteria.'
+        : theme === 'wealth'
+          ? lang === 'ko'
+            ? '이 테마에서는 수익률보다 누수 통제와 회수 규칙이 재정의 뼈대를 만듭니다.'
+            : 'Here the financial frame is built less by return rate and more by leakage control and recovery rules.'
+          : theme === 'health'
+            ? lang === 'ko'
+              ? '이 테마에서는 의지보다 회복 리듬과 과부하 차단이 건강의 뼈대를 만듭니다.'
+              : 'Here the health frame is built less by willpower and more by recovery rhythm and overload control.'
+            : lang === 'ko'
+              ? '이 테마에서는 감정보다 역할 분담과 해석 일치가 가족 흐름의 뼈대를 만듭니다.'
+              : 'Here the family frame is built less by emotion and more by role distribution and aligned interpretation.'
+
+  const patternPressureLine =
+    theme === 'love'
+      ? lang === 'ko'
+        ? `핵심 패턴은 관계를 빠르게 정하는 힘보다 속도와 경계를 다시 맞추는 압력이 더 크다는 점입니다.`
+        : `The active pattern favors pace and boundary alignment over rushing the bond into definition.`
+      : theme === 'career'
+        ? lang === 'ko'
+          ? `핵심 패턴은 일을 넓히는 힘보다 역할과 검토 기준을 좁히는 압력이 더 크다는 점입니다.`
+          : `The active pattern favors narrowing role and review criteria over widening the workload.`
+        : theme === 'wealth'
+          ? lang === 'ko'
+            ? `핵심 패턴은 공격적 확장보다 손실 상한과 회수 조건을 먼저 잠그는 압력이 더 크다는 점입니다.`
+            : `The active pattern favors locking downside and recovery conditions before aggressive expansion.`
+          : theme === 'health'
+            ? lang === 'ko'
+              ? `핵심 패턴은 버티는 힘보다 과부하를 빨리 끊고 회복 블록을 확보하는 압력이 더 크다는 점입니다.`
+              : `The active pattern favors cutting overload and securing recovery blocks over simple endurance.`
+            : lang === 'ko'
+              ? `핵심 패턴은 감정 표현보다 역할, 비용, 돌봄 분담을 다시 맞추는 압력이 더 크다는 점입니다.`
+              : `The active pattern favors realigning role, cost, and care distribution over emotional insistence.`
+
+  const timingReadLine =
+    theme === 'love'
+      ? lang === 'ko'
+        ? '세부 날짜를 좇기보다 관계 속도와 생활 조건이 맞는 구간을 먼저 찾는 편이 오차를 줄입니다.'
+        : 'Error stays lower when the read is tied to pace-fit windows instead of exact dates.'
+      : theme === 'career'
+        ? lang === 'ko'
+          ? '세부 날짜보다 역할과 검토 지점을 문서로 고정할 수 있는 구간을 찾는 편이 더 정확합니다.'
+          : 'This reads more accurately by finding windows that allow role and review points to be fixed in writing.'
+        : theme === 'wealth'
+          ? lang === 'ko'
+            ? '세부 날짜보다 조건과 손실 상한을 잠글 수 있는 구간을 찾는 편이 더 정확합니다.'
+            : 'This reads more accurately by finding windows where conditions and downside limits can be locked.'
+          : theme === 'health'
+            ? lang === 'ko'
+              ? '세부 날짜보다 회복 블록을 되찾고 과부하를 줄일 수 있는 구간을 찾는 편이 더 정확합니다.'
+              : 'This reads more accurately by finding windows that restore recovery blocks and reduce overload.'
+            : lang === 'ko'
+              ? '세부 날짜보다 역할과 비용을 다시 맞출 수 있는 구간을 찾는 편이 더 정확합니다.'
+              : 'This reads more accurately by finding windows where roles and cost can be realigned.'
+
+  const recommendationCloseLine =
+    theme === 'love'
+      ? lang === 'ko'
+        ? '감정 확인은 그 다음 문제이고, 지금은 속도와 생활 조건을 먼저 맞춰야 합니다.'
+        : 'Emotional confirmation comes after pace and living fit are aligned.'
+      : theme === 'career'
+        ? lang === 'ko'
+          ? '성과 압박은 뒤로 미루고, 지금은 책임 범위와 검토 지점을 먼저 잠가야 합니다.'
+          : 'Push output pressure back; first lock responsibility boundaries and review points.'
+        : theme === 'wealth'
+          ? lang === 'ko'
+            ? '수익 기대는 뒤로 미루고, 지금은 금액과 기한, 빠져나올 문부터 잠가야 합니다.'
+            : 'Defer upside expectation; first lock amount, timing, and the exit door.'
+          : theme === 'health'
+            ? lang === 'ko'
+              ? '강도 증가는 뒤로 미루고, 지금은 회복 블록과 일정 완충부터 확보해야 합니다.'
+              : 'Delay intensity gains; first secure recovery blocks and schedule buffers.'
+            : lang === 'ko'
+              ? '결론은 뒤로 미루고, 지금은 역할과 해석 일치부터 확보해야 합니다.'
+              : 'Delay conclusions; first secure aligned roles and interpretation.'
+
+  const actionRhythmLine =
+    theme === 'love'
+      ? lang === 'ko'
+        ? `지금은 ${actionLabel} 축에서도 감정 확정보다 확인-조율-공식화 순서가 더 안전합니다.`
+        : `Even on the ${actionLabel} axis, confirm-align-formalize is safer than immediate emotional commitment.`
+      : theme === 'career'
+        ? lang === 'ko'
+          ? `지금은 ${actionLabel} 축에서도 착수-검토-확정 순서가 확장보다 더 중요합니다.`
+          : `Even on the ${actionLabel} axis, start-review-commit matters more than expansion itself.`
+        : theme === 'wealth'
+          ? lang === 'ko'
+            ? `지금은 ${actionLabel} 축에서도 조건 확인-손실 제한-확정 순서가 더 중요합니다.`
+            : `Even on the ${actionLabel} axis, condition check-downside control-commit matters more than speed.`
+          : theme === 'health'
+            ? lang === 'ko'
+              ? `지금은 ${actionLabel} 축에서도 강도 상승보다 회복 확보-부하 감축-재개 순서가 더 중요합니다.`
+              : `Even on the ${actionLabel} axis, recovery-load reduction-resume matters more than pushing intensity.`
+            : lang === 'ko'
+              ? `지금은 ${actionLabel} 축에서도 결론보다 역할 정리-비용 확인-합의 순서가 더 중요합니다.`
+              : `Even on the ${actionLabel} axis, role alignment-cost review-agreement matters more than rushing closure.`
+  const common =
+    theme === 'love'
+      ? {
+          deepAnalysis: joinNarrativeParts([
+            relationshipAdvisory?.thesis,
+            structureDetail,
+            themeAngle,
+            deepStructureLine,
+            timelineNarrative,
+            structureDrivers.length
+              ? lang === 'ko'
+                ? `이번 관계 해석을 직접 밀어주는 축은 ${structureDrivers.join(', ')}입니다.`
+                : `The relationship read is being driven directly by ${structureDrivers.join(', ')}.`
+              : '',
+            lang === 'ko'
+              ? '이 사랑 테마는 감정의 세기보다 관계를 운영하는 생활 리듬이 맞는지에서 갈립니다.'
+              : 'This love theme turns more on relational operating rhythm than on emotional intensity alone.',
+          ]),
+          patterns: joinNarrativeParts([
+            relationshipAdvisory?.caution,
+            conflictDetail,
+            patternPressureLine,
+            lang === 'ko'
+              ? '마음이 앞서도 현실 조건이 늦게 따라오면 관계는 쉽게 과열됐다가 식을 수 있습니다.'
+              : 'When feeling outruns practical fit, the relationship can overheat and cool just as quickly.',
+          ]),
+          timing: joinNarrativeParts([
+            relationshipAdvisory?.timingHint,
+            timingDetail,
+            timingGuardrail,
+            themeWindowLine,
+            timingMatrixLead,
+            themeBranchLine,
+            timingDrivers.length
+              ? lang === 'ko'
+                ? `관계 창을 미는 축은 ${timingDrivers.join(', ')}입니다.`
+                : `The relationship window is being driven by ${timingDrivers.join(', ')}.`
+              : '',
+            timingNextMoves.length
+              ? lang === 'ko'
+                ? `지금 창을 살리려면 ${timingNextMoves.join(', ')}를 먼저 맞춰야 합니다.`
+                : `To use the relationship window well, align ${timingNextMoves.join(', ')} first.`
+              : '',
+            timingReadLine,
+          ]),
+          recommendations: [
+            joinNarrativeParts([
+              themeActionLine,
+              relationshipAdvisory?.action,
+              riskAxisLead,
+              actionNextMoves.length
+                ? lang === 'ko'
+                  ? `지금은 ${actionNextMoves.join(', ')}부터 맞추는 편이 실제 진전으로 이어집니다.`
+                  : `Real progress begins when ${actionNextMoves.join(', ')} are aligned first.`
+                : '',
+              recommendationCloseLine,
+            ]),
+            joinNarrativeParts([
+              riskDetail,
+              riskCounterweights.length
+                ? lang === 'ko'
+                  ? `특히 ${riskCounterweights.join(', ')} 같은 제약은 먼저 줄여야 합니다.`
+                  : `Counterweights like ${riskCounterweights.join(', ')} should be reduced first.`
+                : '',
+              lang === 'ko'
+                ? '감정 확인과 관계 공식화는 같은 호흡으로 처리하지 않는 편이 안전합니다.'
+                : 'Do not treat emotional confirmation and formal commitment as the same move.',
+            ]),
+            joinNarrativeParts([
+              conflictSummary,
+              lang === 'ko'
+                ? '서로 다른 속도가 보이면 더 빠른 쪽을 누르고 같은 속도를 먼저 만드는 편이 맞습니다.'
+                : 'When pace diverges, slow the faster side first and build a shared rhythm.',
+            ]),
+          ].filter(Boolean),
+          actionPlan: joinNarrativeParts([
+            actionDetail,
+            actionNextMoves.length
+              ? lang === 'ko'
+                ? `지금은 ${actionNextMoves.join(', ')}부터 순서대로 맞추는 편이 좋습니다.`
+                : `Start by aligning ${actionNextMoves.join(', ')} in order.`
+              : '',
+            actionRhythmLine,
+            lang === 'ko'
+              ? '핵심은 감정을 더 크게 표현하는 것보다 속도와 경계를 먼저 맞추는 데 있습니다.'
+              : 'The edge here comes less from stronger expression and more from aligning pace and boundaries first.',
+            themeRiskLine,
+          ]),
+        }
+      : theme === 'career'
+        ? {
+            deepAnalysis: joinNarrativeParts([
+              careerAdvisory?.thesis,
+              structureDetail,
+              themeAngle,
+              deepStructureLine,
+              timelineNarrative,
+              structureDrivers.length
+                ? lang === 'ko'
+                  ? `이번 커리어 해석을 직접 받치는 축은 ${structureDrivers.join(', ')}입니다.`
+                  : `The career read is being driven directly by ${structureDrivers.join(', ')}.`
+                : '',
+              lang === 'ko'
+                ? '이 커리어 테마는 많이 하는 사람보다 기준을 먼저 세우는 사람이 오래 가져갑니다.'
+                : 'This career theme favors the person who fixes standards first, not the one who simply does more.',
+            ]),
+            patterns: joinNarrativeParts([
+              careerAdvisory?.caution,
+              conflictDetail,
+              patternPressureLine,
+              lang === 'ko'
+                ? '능력보다 역할 정의가 흐릴 때 재작업과 소모가 커지는 패턴이 반복되기 쉽습니다.'
+                : 'When role definition stays blurry, rework and depletion repeat faster than skill can compensate.',
+            ]),
+            timing: joinNarrativeParts([
+              careerAdvisory?.timingHint,
+              timingDetail,
+              timingGuardrail,
+            themeWindowLine,
+            timingMatrixLead,
+            themeBranchLine,
+            timingDrivers.length
+                ? lang === 'ko'
+                  ? `커리어 창을 미는 축은 ${timingDrivers.join(', ')}입니다.`
+                  : `The career window is being driven by ${timingDrivers.join(', ')}.`
+                : '',
+              timingNextMoves.length
+                ? lang === 'ko'
+                  ? `지금 창을 살리려면 ${timingNextMoves.join(', ')}를 먼저 고정해야 합니다.`
+                  : `To use the career window well, fix ${timingNextMoves.join(', ')} first.`
+                : '',
+              timingReadLine,
+            ]),
+            recommendations: [
+              joinNarrativeParts([
+              themeActionLine,
+              careerAdvisory?.action,
+              riskAxisLead,
+              actionNextMoves.length
+                  ? lang === 'ko'
+                    ? `지금은 ${actionNextMoves.join(', ')}를 먼저 남기는 편이 성과로 이어집니다.`
+                    : `Progress improves when ${actionNextMoves.join(', ')} are documented first.`
+                  : '',
+                recommendationCloseLine,
+              ]),
+              joinNarrativeParts([
+                riskDetail,
+                riskCounterweights.length
+                  ? lang === 'ko'
+                    ? `특히 ${riskCounterweights.join(', ')} 같은 제약은 역할보다 먼저 정리해야 합니다.`
+                    : `Counterweights like ${riskCounterweights.join(', ')} should be cleared before expansion.`
+                  : '',
+                lang === 'ko'
+                  ? '실행과 검토를 같은 호흡으로 밀면 성과보다 재작업이 먼저 쌓일 수 있습니다.'
+                  : 'If execution and review are forced into one move, rework builds faster than results.',
+              ]),
+              joinNarrativeParts([
+                conflictSummary,
+                lang === 'ko'
+                  ? '여러 일감이 경쟁하면 더 큰 일보다 기준이 분명한 일 하나를 먼저 고르는 편이 맞습니다.'
+                  : 'When tasks compete, choose the one with the clearest criteria before the larger one.',
+              ]),
+            ].filter(Boolean),
+            actionPlan: joinNarrativeParts([
+            actionDetail,
+            actionNextMoves.length
+                ? lang === 'ko'
+                  ? `이번 구간은 ${actionNextMoves.join(', ')}부터 고정해야 실행력이 살아납니다.`
+                  : `This phase works best when ${actionNextMoves.join(', ')} are fixed first.`
+                : '',
+              actionRhythmLine,
+              lang === 'ko'
+                ? '핵심은 더 많은 일을 잡는 것보다 역할, 기준, 책임을 먼저 고정하는 데 있습니다.'
+                : 'The edge comes from fixing role, criteria, and responsibility before taking on more work.',
+              themeRiskLine,
+            ]),
+          }
+        : theme === 'wealth'
+          ? {
+              deepAnalysis: joinNarrativeParts([
+                wealthAdvisory?.thesis,
+                structureDetail,
+                themeAngle,
+                deepStructureLine,
+                timelineNarrative,
+                structureDrivers.length
+                  ? lang === 'ko'
+                    ? `이번 재정 해석을 직접 받치는 축은 ${structureDrivers.join(', ')}입니다.`
+                    : `The wealth read is being driven directly by ${structureDrivers.join(', ')}.`
+                  : '',
+                lang === 'ko'
+                  ? '이 재정 테마는 크게 버는 사람보다 손실을 먼저 잠그는 사람이 오래 앞섭니다.'
+                  : 'This wealth theme rewards the person who locks downside first, not the one who chases upside hardest.',
+              ]),
+              patterns: joinNarrativeParts([
+                wealthAdvisory?.caution,
+                conflictDetail,
+                patternPressureLine,
+                lang === 'ko'
+                  ? '조건이 문서화되지 않은 이점은 쉽게 누수로 바뀌어 수익보다 피로를 먼저 남길 수 있습니다.'
+                  : 'Undocumented upside turns into leakage easily and can leave fatigue before profit.',
+              ]),
+              timing: joinNarrativeParts([
+                wealthAdvisory?.timingHint,
+                timingDetail,
+                timingGuardrail,
+                themeWindowLine,
+                timingMatrixLead,
+                themeBranchLine,
+                timingDrivers.length
+                  ? lang === 'ko'
+                    ? `재정 창을 미는 축은 ${timingDrivers.join(', ')}입니다.`
+                    : `The wealth window is being driven by ${timingDrivers.join(', ')}.`
+                  : '',
+                timingNextMoves.length
+                  ? lang === 'ko'
+                    ? `지금 창을 살리려면 ${timingNextMoves.join(', ')}를 먼저 잠가야 합니다.`
+                    : `To use the wealth window well, lock ${timingNextMoves.join(', ')} first.`
+                  : '',
+                timingReadLine,
+              ]),
+              recommendations: [
+                joinNarrativeParts([
+                  themeActionLine,
+                  wealthAdvisory?.action,
+                  riskAxisLead,
+                  actionNextMoves.length
+                    ? lang === 'ko'
+                      ? `지금은 ${actionNextMoves.join(', ')}부터 확정하는 편이 실제 이익을 지킵니다.`
+                      : `Actual gain is protected when ${actionNextMoves.join(', ')} are fixed first.`
+                    : '',
+                  recommendationCloseLine,
+                ]),
+                joinNarrativeParts([
+                  riskDetail,
+                  riskCounterweights.length
+                    ? lang === 'ko'
+                      ? `특히 ${riskCounterweights.join(', ')} 같은 제약은 수익 논의보다 먼저 줄여야 합니다.`
+                      : `Counterweights like ${riskCounterweights.join(', ')} should be reduced before upside is discussed.`
+                    : '',
+                  lang === 'ko'
+                    ? '확장과 확정이 한 번에 붙으면 수익보다 손실 복구 비용이 더 빨리 커질 수 있습니다.'
+                    : 'If expansion and commitment happen in one move, recovery cost can grow faster than return.',
+                ]),
+                joinNarrativeParts([
+                  conflictSummary,
+                  lang === 'ko'
+                    ? '여러 수입 흐름이 경쟁하면 더 커 보이는 제안보다 회수 규칙이 선명한 흐름을 먼저 택하세요.'
+                    : 'When revenue paths compete, choose the one with the clearest recovery rules before the bigger-looking one.',
+                ]),
+              ].filter(Boolean),
+              actionPlan: joinNarrativeParts([
+                actionDetail,
+                actionNextMoves.length
+                  ? lang === 'ko'
+                    ? `지금은 ${actionNextMoves.join(', ')}부터 잠가야 재정 흐름이 덜 새어 나갑니다.`
+                    : `Lock ${actionNextMoves.join(', ')} first to reduce leakage in the money flow.`
+                  : '',
+                actionRhythmLine,
+                lang === 'ko'
+                  ? '핵심은 기대 수익을 키우는 것보다 손실 상한과 회수 조건을 먼저 잠그는 데 있습니다.'
+                  : 'The edge comes from locking downside and recovery rules before enlarging upside.',
+                themeRiskLine,
+              ]),
+            }
+          : theme === 'health'
+            ? {
+                deepAnalysis: joinNarrativeParts([
+                  healthAdvisory?.thesis,
+                  structureDetail,
+                  themeAngle,
+                  deepStructureLine,
+                  timelineNarrative,
+                  structureDrivers.length
+                    ? lang === 'ko'
+                      ? `이번 건강 해석을 직접 받치는 축은 ${structureDrivers.join(', ')}입니다.`
+                      : `The health read is being driven directly by ${structureDrivers.join(', ')}.`
+                    : '',
+                  lang === 'ko'
+                    ? '이 건강 테마는 강하게 버티는 사람보다 과부하를 빨리 끊는 사람이 오래 버팁니다.'
+                    : 'This health theme favors the person who interrupts overload early, not the one who simply endures harder.',
+                ]),
+                patterns: joinNarrativeParts([
+                  healthAdvisory?.caution,
+                  conflictDetail,
+                  patternPressureLine,
+                  lang === 'ko'
+                    ? '피로와 일정 압력이 겹치면 의지보다 회복 리듬 붕괴가 먼저 누적되기 쉽습니다.'
+                    : 'When fatigue overlaps with schedule pressure, recovery breakdown accumulates faster than willpower can compensate.',
+                ]),
+                timing: joinNarrativeParts([
+                  healthAdvisory?.timingHint,
+                  timingDetail,
+                  timingGuardrail,
+                  themeWindowLine,
+                  timingMatrixLead,
+                  themeBranchLine,
+                  timingDrivers.length
+                    ? lang === 'ko'
+                      ? `건강 창을 미는 축은 ${timingDrivers.join(', ')}입니다.`
+                      : `The health window is being driven by ${timingDrivers.join(', ')}.`
+                    : '',
+                  timingNextMoves.length
+                    ? lang === 'ko'
+                      ? `지금 창을 살리려면 ${timingNextMoves.join(', ')}를 먼저 확보해야 합니다.`
+                      : `To use the health window well, secure ${timingNextMoves.join(', ')} first.`
+                    : '',
+                  timingReadLine,
+                ]),
+                recommendations: [
+                  joinNarrativeParts([
+                    themeActionLine,
+                    healthAdvisory?.action,
+                    riskAxisLead,
+                    actionNextMoves.length
+                      ? lang === 'ko'
+                        ? `지금은 ${actionNextMoves.join(', ')}부터 회복 루틴에 넣는 편이 맞습니다.`
+                        : `Recovery improves when ${actionNextMoves.join(', ')} enter the routine first.`
+                      : '',
+                    recommendationCloseLine,
+                  ]),
+                  joinNarrativeParts([
+                    riskDetail,
+                    riskCounterweights.length
+                      ? lang === 'ko'
+                        ? `특히 ${riskCounterweights.join(', ')} 같은 제약은 체력보다 일정에서 먼저 줄여야 합니다.`
+                        : `Counterweights like ${riskCounterweights.join(', ')} should be reduced in the schedule before intensity is raised.`
+                      : '',
+                    lang === 'ko'
+                      ? '무리한 회복 계획은 오래 가지 않으니 작아도 반복 가능한 리듬부터 남겨야 합니다.'
+                      : 'Recovery plans that are too intense do not last; keep the smallest repeatable rhythm first.',
+                  ]),
+                  joinNarrativeParts([
+                    conflictSummary,
+                    lang === 'ko'
+                      ? '회복과 성과가 경쟁하면 이번 구간은 성과보다 회복을 먼저 선택하는 편이 맞습니다.'
+                      : 'When recovery competes with output, this phase should choose recovery first.',
+                  ]),
+                ].filter(Boolean),
+                actionPlan: joinNarrativeParts([
+                  actionDetail,
+                  actionNextMoves.length
+                    ? lang === 'ko'
+                      ? `이번 구간은 ${actionNextMoves.join(', ')}부터 작게 회복 루틴으로 고정하는 편이 맞습니다.`
+                      : `This phase should begin by turning ${actionNextMoves.join(', ')} into a small repeatable recovery routine.`
+                    : '',
+                  actionRhythmLine,
+                  lang === 'ko'
+                    ? '핵심은 더 버티는 것이 아니라 회복 블록과 일정 완충을 먼저 되찾는 데 있습니다.'
+                    : 'The edge comes from restoring recovery blocks and schedule buffers before pushing harder.',
+                  themeRiskLine,
+                ]),
+              }
+            : {
+                deepAnalysis: joinNarrativeParts([
+                  relationshipAdvisory?.thesis,
+                  structureDetail,
+                  themeAngle,
+                  deepStructureLine,
+                  timelineNarrative,
+                  structureDrivers.length
+                    ? lang === 'ko'
+                      ? `이번 가족 해석을 직접 받치는 축은 ${structureDrivers.join(', ')}입니다.`
+                      : `The family read is being driven directly by ${structureDrivers.join(', ')}.`
+                    : '',
+                  lang === 'ko'
+                    ? '이 가족 테마는 감정 표현보다 역할과 비용을 보이는 언어로 맞추는 사람이 오래 버팁니다.'
+                    : 'This family theme favors the person who makes roles and cost explicit rather than relying on feeling alone.',
+                ]),
+                patterns: joinNarrativeParts([
+                  relationshipAdvisory?.caution,
+                  conflictDetail,
+                  patternPressureLine,
+                  lang === 'ko'
+                    ? '보이지 않는 역할 불균형은 가까운 사이일수록 억울함과 피로를 더 크게 남깁니다.'
+                    : 'Invisible role imbalance leaves greater fatigue and resentment the closer the relationship is.',
+                ]),
+                timing: joinNarrativeParts([
+                  relationshipAdvisory?.timingHint,
+                  timingDetail,
+                  timingGuardrail,
+                  themeWindowLine,
+                  timingMatrixLead,
+                  themeBranchLine,
+                  timingDrivers.length
+                    ? lang === 'ko'
+                      ? `가족 창을 미는 축은 ${timingDrivers.join(', ')}입니다.`
+                      : `The family window is being driven by ${timingDrivers.join(', ')}.`
+                    : '',
+                  timingNextMoves.length
+                    ? lang === 'ko'
+                      ? `지금 창을 살리려면 ${timingNextMoves.join(', ')}를 먼저 맞춰야 합니다.`
+                      : `To use the family window well, align ${timingNextMoves.join(', ')} first.`
+                    : '',
+                  timingReadLine,
+                ]),
+                recommendations: [
+                  joinNarrativeParts([
+                    themeActionLine,
+                    relationshipAdvisory?.action,
+                    riskAxisLead,
+                    actionNextMoves.length
+                      ? lang === 'ko'
+                        ? `지금은 ${actionNextMoves.join(', ')}부터 보이는 언어로 남기는 편이 맞습니다.`
+                        : `Progress improves when ${actionNextMoves.join(', ')} are made explicit first.`
+                      : '',
+                    recommendationCloseLine,
+                  ]),
+                  joinNarrativeParts([
+                    riskDetail,
+                    riskCounterweights.length
+                      ? lang === 'ko'
+                        ? `특히 ${riskCounterweights.join(', ')} 같은 제약은 감정보다 역할 조정에서 먼저 풀어야 합니다.`
+                        : `Counterweights like ${riskCounterweights.join(', ')} should be resolved through role adjustment before emotion is pushed harder.`
+                      : '',
+                    lang === 'ko'
+                      ? '같은 장면을 다르게 읽고 있으면 결론보다 해석 일치를 먼저 만드는 편이 안전합니다.'
+                      : 'When people read the same scene differently, aligned interpretation must come before conclusions.',
+                  ]),
+                  joinNarrativeParts([
+                    conflictSummary,
+                    lang === 'ko'
+                      ? '가족 안에서 여러 요구가 경쟁하면 더 큰 목소리보다 더 오래 남는 부담을 먼저 줄이세요.'
+                      : 'When demands compete inside the family, reduce the burden that lasts longer before reacting to the louder voice.',
+                  ]),
+                ].filter(Boolean),
+                actionPlan: joinNarrativeParts([
+                  actionDetail,
+                  actionNextMoves.length
+                    ? lang === 'ko'
+                      ? `가족 안에서는 ${actionNextMoves.join(', ')}부터 합의해 두는 편이 전체 마찰을 줄입니다.`
+                      : `Within the family, agree on ${actionNextMoves.join(', ')} first to reduce friction overall.`
+                    : '',
+                  actionRhythmLine,
+                  lang === 'ko'
+                    ? '핵심은 감정을 더 세게 말하는 것이 아니라 역할, 비용, 돌봄을 먼저 보이는 언어로 바꾸는 데 있습니다.'
+                    : 'The edge comes from making role, cost, and care explicit before pushing emotion harder.',
+                  themeRiskLine,
+                ]),
+              }
+
+  switch (theme) {
+    case 'love':
+      return {
+        ...common,
+        compatibility: joinNarrativeParts([
+          relationshipAdvisory?.thesis,
+          structureSummary,
+          lang === 'ko'
+            ? '궁합은 감정 강도보다 속도와 기대치 조율이 맞는지가 더 중요합니다.'
+            : 'Compatibility depends more on pace and expectation alignment than emotional intensity.',
+        ]),
+        spouseProfile: joinNarrativeParts([
+          relationshipAdvisory?.action,
+          lang === 'ko'
+            ? '관계에서는 생활 운영과 책임 분담이 되는 사람이 더 강하게 맞습니다.'
+            : 'The stronger fit is someone who can share daily structure and responsibility.',
+        ]),
+        marriageTiming: joinNarrativeParts([
+          timingSummary,
+          relationshipAdvisory?.timingHint,
+          lang === 'ko'
+            ? '공식화는 감정보다 기준과 생활 조건이 맞는 창에서 성사시키는 편이 맞습니다.'
+            : 'Formal commitment is strongest when standards and living conditions align.',
+        ]),
+      }
+    case 'career':
+      return {
+        ...common,
+        strategy: joinNarrativeParts([
+          careerAdvisory?.thesis,
+          actionSummary,
+          actionDetail,
+          lang === 'ko'
+            ? '이번 승부처는 더 많이 벌이는 순간이 아니라, 역할과 평가 기준을 먼저 고정하는 순간입니다.'
+            : 'The real turning point is not expansion itself, but the moment role and evaluation criteria are fixed.',
+          lang === 'ko'
+            ? '커리어는 역할, 범위, 평가 기준을 먼저 고정할수록 결과가 좋아집니다.'
+            : 'Career improves when role, scope, and evaluation criteria are fixed first.',
+        ]),
+        roleFit: joinNarrativeParts([
+          structureSummary,
+          careerAdvisory?.action,
+          lang === 'ko'
+            ? '직무 적합도는 속도보다 기준 정리와 조율 능력이 필요한 역할에서 더 강합니다.'
+            : 'Role fit is strongest where prioritization and coordination matter more than speed.',
+          lang === 'ko'
+            ? '혼자 몰아치는 자리보다 기준을 세우고 여러 흐름을 조율해야 하는 자리에서 강점이 더 분명하게 드러납니다.'
+            : 'Strength shows more clearly in roles that set criteria and coordinate moving parts than in roles that reward isolated speed.',
+        ]),
+        turningPoints: joinNarrativeParts([
+          timingSummary,
+          careerAdvisory?.timingHint,
+          lang === 'ko'
+            ? '전환점은 판이 커지는 순간보다 역할과 책임이 다시 정리되는 순간에 더 선명하게 옵니다.'
+            : 'Turning points arrive more clearly when role and responsibility are reset.',
+          lang === 'ko'
+            ? '특히 평가 기준과 검토 주기가 다시 잡히는 구간이 오면 같은 노력도 결과로 붙는 속도가 달라질 수 있습니다.'
+            : 'The shift becomes sharper when evaluation criteria and review cadence are reset, because the same effort starts converting into visible results faster.',
+        ]),
+      }
+    case 'wealth':
+      return {
+        ...common,
+        strategy: joinNarrativeParts([
+          wealthAdvisory?.thesis,
+          actionSummary,
+          lang === 'ko'
+            ? '재정은 수익 기대보다 조건과 손실 상한을 먼저 고정할수록 오래 남습니다.'
+            : 'Wealth holds better when conditions and downside limits are fixed first.',
+        ]),
+        incomeStreams: joinNarrativeParts([
+          lang === 'ko'
+            ? '수입 흐름은 새 채널을 크게 여는 것보다 작게 시험하고 살아남는 구조만 남길 때 좋아집니다.'
+            : 'Income flow improves when new channels are tested small and only durable structures remain.',
+          evidenceDetail,
+          wealthAdvisory?.action,
+          lang === 'ko'
+            ? '새 수입원은 작게 검증하고 반복 가능한 구조만 남기는 방식이 맞습니다.'
+            : 'New income channels should be tested small and kept only when repeatable.',
+        ]),
+        riskManagement: joinNarrativeParts([
+          riskSummary,
+          wealthAdvisory?.caution,
+          lang === 'ko'
+            ? '금액, 기한, 취소 조건이 문서로 남지 않으면 이점이 바로 손실로 바뀔 수 있습니다.'
+            : 'If amount, timing, and exit conditions are not written down, upside can flip into loss quickly.',
+        ]),
+      }
+    case 'health':
+      return {
+        ...common,
+        prevention: joinNarrativeParts([
+          lang === 'ko'
+            ? '예방의 핵심은 버티는 힘보다 과부하를 빨리 끊는 운영 습관을 만드는 데 있습니다.'
+            : 'Prevention works best when overload is interrupted early, not when endurance is forced.',
+          healthAdvisory?.thesis,
+          lang === 'ko'
+            ? '건강은 버티는 힘보다 과부하 신호를 빨리 끊는 습관에서 차이가 납니다.'
+            : 'Health separates more by interrupting overload early than by endurance.',
+        ]),
+        riskWindows: joinNarrativeParts([
+          timingSummary,
+          healthAdvisory?.timingHint,
+          lang === 'ko'
+            ? '피로와 일정 압력이 겹치는 창에서는 강도를 낮추고 회복 블록을 먼저 고정하세요.'
+            : 'When fatigue and schedule pressure overlap, lower intensity and lock recovery blocks first.',
+        ]),
+        recoveryPlan: joinNarrativeParts([
+          healthAdvisory?.action,
+          riskSummary,
+          lang === 'ko'
+            ? '회복은 큰 결심보다 수면, 수분, 식사, 일정 조정의 반복성에서 나옵니다.'
+            : 'Recovery comes from repeatable sleep, hydration, meals, and schedule adjustment.',
+        ]),
+      }
+    case 'family':
+      return {
+        ...common,
+        dynamics: joinNarrativeParts([
+          relationshipAdvisory?.thesis,
+          wealthAdvisory?.caution,
+          lang === 'ko'
+            ? '가족 역학은 감정보다 역할, 비용, 돌봄 분담이 보이지 않을 때 더 꼬입니다.'
+            : 'Family dynamics tangle more when roles, cost, and care distribution stay implicit.',
+        ]),
+        communication: joinNarrativeParts([
+          lang === 'ko'
+            ? '가족 커뮤니케이션은 결론을 빨리 내리는 것보다 서로 같은 장면을 보고 있는지부터 확인할 때 좋아집니다.'
+            : 'Family communication improves when people confirm they are reading the same scene before pushing conclusions.',
+          relationshipAdvisory?.caution,
+          healthAdvisory?.action,
+          lang === 'ko'
+            ? '가족 소통은 결론보다 해석 일치 확인을 먼저 두는 편이 갈등 비용을 줄입니다.'
+            : 'In family communication, aligned interpretation before conclusions lowers conflict cost.',
+        ]),
+        legacy: joinNarrativeParts([
+          timelineNarrative,
+          moveAdvisory?.caution,
+          lang === 'ko'
+            ? '세대 과제는 말보다 운영 규칙으로 남길 때 반복 갈등을 줄일 수 있습니다.'
+            : 'Intergenerational legacy improves when left as operating rules rather than words.',
+        ]),
+      }
+  }
+}
+
 function enforceThemedNarrativeQualityFallback(
   theme: ReportTheme,
   reportCore: ReportCoreViewModel,
@@ -1913,20 +3144,11 @@ function enforceThemedNarrativeQualityFallback(
   evidenceRefs: SectionEvidenceRefs
 ): ThemedReportSections {
   const sectionPaths = [...getThemedSectionKeys(theme)]
-  let next = buildThemedFallbackSectionsExternal(
+  let next = buildProjectionFirstThemedSections(
     theme,
     reportCore,
-    signalSynthesis,
-    lang,
-    secondaryFallbackDeps
-  ) as unknown as Record<string, unknown>
-  next = enrichThemedSectionsWithReportCore(
-    next as unknown as ThemedReportSections,
-    reportCore,
-    lang,
-    theme,
     matrixInput,
-    reportCoreEnrichmentDeps,
+    lang,
     timingData
   ) as unknown as Record<string, unknown>
   next = sanitizeThemedSectionsForUserExternal(
@@ -4912,12 +6134,12 @@ export async function generateThemedReport(
 
   if (deterministicOnly) {
     const sectionPaths = [...getThemedSectionKeys(theme)]
-    const draftSections = buildThemedFallbackSectionsExternal(
+    const draftSections = buildProjectionFirstThemedSections(
       theme,
       reportCore,
-      signalSynthesis,
+      normalizedInput,
       lang,
-      secondaryFallbackDeps
+      timingData
     )
     const evidenceRefs = buildThemedEvidenceRefs(theme, sectionPaths, signalSynthesis)
     const generatedAt = new Date().toISOString()
@@ -5073,12 +6295,12 @@ export async function generateThemedReport(
   if (FORCE_REWRITE_ONLY_MODE && !deterministicOnly) {
     const sectionPaths = [...getThemedSectionKeys(theme)]
     const requiredPaths = [...sectionPaths]
-    const draftSections = buildThemedFallbackSectionsExternal(
+    const draftSections = buildProjectionFirstThemedSections(
       theme,
       reportCore,
-      signalSynthesis,
+      normalizedInput,
       lang,
-      secondaryFallbackDeps
+      timingData
     )
     const evidenceRefs = buildThemedEvidenceRefs(theme, sectionPaths, signalSynthesis)
     const generatedAt = new Date().toISOString()
@@ -5246,12 +6468,12 @@ export async function generateThemedReport(
   const themedRequiredPaths = [...getThemedSectionKeys(theme)]
   let sections = hasRequiredSectionPaths(base.sections as unknown, themedRequiredPaths)
     ? (base.sections as unknown as Record<string, unknown>)
-    : (buildThemedFallbackSectionsExternal(
+    : (buildProjectionFirstThemedSections(
         theme,
         reportCore,
-        signalSynthesis,
+        normalizedInput,
         lang,
-        secondaryFallbackDeps
+        timingData
       ) as unknown as Record<string, unknown>)
   let model = base.model
   let tokensUsed = base.tokensUsed

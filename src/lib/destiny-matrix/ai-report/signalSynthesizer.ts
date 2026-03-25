@@ -1004,10 +1004,10 @@ function normalizeFromMatrixInput(
         advice:
           polarity === 'caution'
             ? lang === 'ko'
-              ? '변동 트랜짓 구간은 당일 확정보다 24시간 재확인으로 오차를 줄이세요.'
+              ? '변동 구간은 당일 확정보다 24시간 재확인으로 오차를 줄이세요.'
               : 'During volatile transits, prefer a 24h recheck before final commitment.'
             : lang === 'ko'
-              ? '트랜짓 상승 구간은 실행 블록을 먼저 확보해 흐름을 선점하세요.'
+              ? '상승 구간은 실행 블록을 먼저 확보해 흐름을 선점하세요.'
               : 'In supportive transit windows, lock execution blocks early.',
         tags: ['coverage', 'transit', transit],
         domainHints: ['timing', ...inferDomainsFromText(transit)],

@@ -535,6 +535,30 @@ export function enrichThemedSectionsWithReportCore(
   deps: ReportCoreEnrichmentDeps,
   timingData?: TimingData
 ): ThemedReportSections {
+  const actionProjection = reportCore.projections?.action
+  const riskProjection = reportCore.projections?.risk
+  const evidenceProjection = reportCore.projections?.evidence
+  const safePrimaryAction = deps.sanitizeUserFacingNarrative(
+    actionProjection?.detailLines?.[0] ||
+      reportCore.topDecisionLabel ||
+      reportCore.primaryAction ||
+      ''
+  )
+  const safePrimaryCaution = deps.sanitizeUserFacingNarrative(
+    riskProjection?.detailLines?.[0] || reportCore.primaryCaution || ''
+  )
+  const safeRiskControl = deps.sanitizeUserFacingNarrative(
+    riskProjection?.summary || reportCore.riskControl || ''
+  )
+  const safeRationale = deps.sanitizeUserFacingNarrative(
+    evidenceProjection?.detailLines?.[0] ||
+      evidenceProjection?.summary ||
+      reportCore.judgmentPolicy.rationale ||
+      ''
+  )
+  const safeActionDrivers = (actionProjection?.drivers || [])
+    .map((item) => deps.sanitizeUserFacingNarrative(String(item || '').trim()))
+    .filter(Boolean)
   const focusAdvisory = findReportCoreAdvisory(reportCore, reportCore.focusDomain)
   const focusTiming = findReportCoreTimingWindow(reportCore, reportCore.focusDomain)
   const focusManifestation = findReportCoreManifestation(reportCore, reportCore.focusDomain)
@@ -736,11 +760,11 @@ export function enrichThemedSectionsWithReportCore(
           sections.strategy,
           [
             buildThemedSectionHook(theme, 'strategy', lang),
-            reportCore.primaryAction,
-            reportCore.riskControl,
+            safePrimaryAction,
+            safeRiskControl,
             ...(themeSpecificLines[theme]?.strategy || []),
           ],
-          [reportCore.judgmentPolicy.rationale],
+          [safeRationale],
           lang,
           lang === 'ko' ? 360 : 240,
           deps
@@ -890,9 +914,10 @@ export function enrichThemedSectionsWithReportCore(
     recommendations: [
       ...new Set(
         [
-          reportCore.primaryAction,
+          safePrimaryAction,
           focusAdvisory?.action,
           focusAdvisory?.caution,
+          safeRiskControl,
           ...sections.recommendations,
         ]
           .map((item) => deps.sanitizeUserFacingNarrative(String(item || '').trim()))
@@ -903,11 +928,15 @@ export function enrichThemedSectionsWithReportCore(
       sectionsWithThemeLead.actionPlan,
       [
         buildThemedSectionHook(theme, 'actionPlan', lang),
-        reportCore.topDecisionLabel || reportCore.primaryAction,
-        reportCore.primaryAction,
-        reportCore.primaryCaution,
+        safePrimaryAction,
+        safePrimaryCaution,
+        safeActionDrivers.length
+          ? lang === 'ko'
+            ? `실행을 미는 축은 ${safeActionDrivers.slice(0, 2).join(', ')}입니다.`
+            : `Execution is being pushed by ${safeActionDrivers.slice(0, 2).join(', ')}.`
+          : '',
       ],
-      [reportCore.riskControl, reportCore.judgmentPolicy.rationale],
+      [safeRiskControl, safeRationale],
       lang,
       lang === 'ko' ? 420 : 280,
       deps

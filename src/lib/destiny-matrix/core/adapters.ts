@@ -1,4 +1,4 @@
-import type { DestinyCoreResult } from './runDestinyCore'
+﻿import type { DestinyCoreResult } from './runDestinyCore'
 import type { SignalDomain } from './signalSynthesizer'
 import { formatDecisionActionLabels, formatPolicyCheckLabels } from './actionCopy'
 
@@ -29,10 +29,27 @@ type AdapterLatentAxis = {
   group: string
 }
 
+type AdapterTimingMatrixRow = {
+  domain: SignalDomain
+  label: string
+  window: string
+  granularity: string
+  confidence: number
+  conflictMode: 'aligned' | 'readiness_ahead' | 'trigger_ahead' | 'weak_both'
+  summary: string
+}
+
 type AdapterProjectionBlock = {
   headline: string
   summary: string
   reasons: string[]
+  detailLines: string[]
+  drivers: string[]
+  counterweights: string[]
+  nextMoves: string[]
+  topAxes?: string[]
+  window?: string
+  granularity?: string
 }
 
 type AdapterProjectionSet = {
@@ -42,6 +59,7 @@ type AdapterProjectionSet = {
   action: AdapterProjectionBlock
   risk: AdapterProjectionBlock
   evidence: AdapterProjectionBlock
+  branches: AdapterProjectionBlock
 }
 
 export interface CalendarCoreAdapterResult {
@@ -52,6 +70,9 @@ export interface CalendarCoreAdapterResult {
   phaseLabel: string
   focusDomain: SignalDomain
   actionFocusDomain: SignalDomain
+  riskAxisDomain: SignalDomain
+  riskAxisLabel: string
+  timingMatrix: AdapterTimingMatrixRow[]
   confidence: number
   crossAgreement: number | null
   arbitrationBrief: AdapterArbitrationBrief
@@ -161,6 +182,9 @@ export interface CounselorCoreAdapterResult {
   coreHash: string
   focusDomain: SignalDomain
   actionFocusDomain: SignalDomain
+  riskAxisDomain: SignalDomain
+  riskAxisLabel: string
+  timingMatrix: AdapterTimingMatrixRow[]
   arbitrationBrief: AdapterArbitrationBrief
   latentTopAxes: AdapterLatentAxis[]
   projections: AdapterProjectionSet
@@ -268,6 +292,9 @@ export interface ReportCoreAdapterResult {
   coreHash: string
   focusDomain: SignalDomain
   actionFocusDomain: SignalDomain
+  riskAxisDomain: SignalDomain
+  riskAxisLabel: string
+  timingMatrix: AdapterTimingMatrixRow[]
   arbitrationBrief: AdapterArbitrationBrief
   latentTopAxes: AdapterLatentAxis[]
   projections: AdapterProjectionSet
@@ -386,14 +413,14 @@ function getTimingHint(core: DestinyCoreResult): string {
 function localizeDomain(domain: SignalDomain, locale: 'ko' | 'en'): string {
   if (locale === 'ko') {
     const ko: Record<SignalDomain, string> = {
-      personality: '성향',
-      career: '커리어',
-      relationship: '관계',
-      wealth: '재정',
-      health: '건강',
-      spirituality: '영성',
-      timing: '타이밍',
-      move: '이동',
+      personality: '\uC131\uD5A5',
+      career: '\uCEE4\uB9AC\uC5B4',
+      relationship: '\uAD00\uACC4',
+      wealth: '\uC7AC\uC815',
+      health: '\uAC74\uAC15',
+      spirituality: '\uC601\uC131',
+      timing: '\uD0C0\uC774\uBC0D',
+      move: '\uC774\uB3D9',
     }
     return ko[domain] || domain
   }
@@ -466,7 +493,10 @@ function localizeAdapterFreeText(text: string | undefined | null, locale: 'ko' |
     .replace(/\bwealth\b/g, '재정')
     .replace(/\bhealth\b/g, '건강')
     .replace(/\bmove\b/g, '이동')
+    .replace(/\bspirituality\b/g, '장기 방향')
     .replace(/\btiming\b/g, '타이밍')
+    .replace(/\bnow\b/g, '지금')
+    .replace(/\bunknown\b/g, '현재')
     .replace(/\bweek\b/g, '주 단위')
     .replace(/\bfortnight\b/g, '2주 단위')
     .replace(/\bmonth\b/g, '월 단위')
@@ -476,8 +506,49 @@ function localizeAdapterFreeText(text: string | undefined | null, locale: 'ko' |
     .replace(/\breadiness_ahead\b/g, '구조가 먼저 열린 상태')
     .replace(/\btrigger_ahead\b/g, '촉발이 먼저 앞선 상태')
     .replace(/\bdowngrade pressure\b/gi, '하향 조정 압력')
-    .replace(/\brelationship caution\b/gi, '관계 주의 신호')
-    .replace(/\bmoney expansion action\b/gi, '재정 확장 실행')
+    .replace(/\bverify\b/gi, '검토 우선')
+    .replace(/\bprepare\b/gi, '준비 우선')
+    .replace(/\bexecute\b/gi, '실행 우선')
+    .replace(/\bstabilize\b/gi, '안정화')
+    .replace(/\bcaution\b/gi, '주의 신호')
+    .replace(/\bnatal baseline(?: structure)?\b/gi, '기본 차트 기반')
+    .replace(/\bcore pattern family\b/gi, '핵심 패턴 흐름')
+    .replace(/\bcore\s*패턴\s*계열\b/gi, '핵심 패턴 흐름')
+    .replace(/\bTransit\s+saturnReturn\b/gi, '책임 압력 신호')
+    .replace(/\bTransit\s+jupiterReturn\b/gi, '확장 신호')
+    .replace(/\bTransit\s+nodeReturn\b/gi, '방향 전환 신호')
+    .replace(/\bTransit\s+mercuryRetrograde\b/gi, '소통 재검토 신호')
+    .replace(/\bTransit\s+marsRetrograde\b/gi, '마찰 재검토 신호')
+    .replace(/\bTransit\s+venusRetrograde\b/gi, '관계 재검토 신호')
+    .replace(/\bsaturnReturn\b/gi, '책임 압력 신호')
+    .replace(/\bjupiterReturn\b/gi, '확장 신호')
+    .replace(/\bnodeReturn\b/gi, '방향 전환 신호')
+    .replace(/\bmercuryRetrograde\b/gi, '소통 재검토 신호')
+    .replace(/\bmarsRetrograde\b/gi, '마찰 재검토 신호')
+    .replace(/\bvenusRetrograde\b/gi, '관계 재검토 신호')
+    .replace(/\bsolarReturn\b/gi, '연간 초점 강조')
+    .replace(/\blunarReturn\b/gi, '감정 파동 신호')
+    .replace(/\bprogressions?\b/gi, '장기 전개 흐름')
+    .replace(/\bgeokguk strength\b/gi, '격국 응집력')
+    .replace(/\bdebt restructure\b/gi, '부채 재정리')
+    .replace(/\bliquidity defense\b/gi, '유동성 방어')
+    .replace(/\bexpense spike\b/gi, '지출 급증 대응')
+    .replace(/\bpromotion review\b/gi, '승진 검토')
+    .replace(/\brecovery reset\b/gi, '회복 재정렬')
+    .replace(/\bbasecamp reset\b/gi, '거점 재정비')
+    .replace(/\bmap full debt stack\b/gi, '전체 부채 구조를 다시 정리하기')
+    .replace(/\bwealth volatility pattern\b/gi, '재정 변동성 패턴')
+    .replace(/\bcareer expansion pattern\b/gi, '커리어 확장 패턴')
+    .replace(/\brelationship tension pattern\b/gi, '관계 긴장 패턴')
+    .replace(/\bcashflow\b/gi, '현금흐름')
+    .replace(/\b도메인 규칙상 현재 모드는 ([^\\s.]+)로 정리됩니다\b/gi, '현재 판단은 $1 쪽으로 정리됩니다')
+    .replace(/\brelationship caution\b/gi, '관계에서는 속도보다 기준 확인이 먼저입니다')
+    .replace(/\bmoney expansion action\b/gi, '재정 확장은 조건 검증부터 진행하세요')
+    .replace(/활성 신호\s+책임 압력 신호/gi, '책임 압력 신호')
+    .replace(/활성 신호\s+확장 신호/gi, '확장 신호')
+    .replace(/활성 신호\s+방향 전환 신호/gi, '방향 전환 신호')
+    .replace(/활성 신호\s+소통 재검토 신호/gi, '소통 재검토 신호')
+    .replace(/변동성 패턴\s+패턴/gi, '변동성 패턴')
     .replace(
       /action pressure stayed narrow between ([^\s]+) and ([^\s]+)/gi,
       (_, left: string, right: string) =>
@@ -487,6 +558,17 @@ function localizeAdapterFreeText(text: string | undefined | null, locale: 'ko' |
       /\b\w+\s+stayed secondary because total support remained below the winner\b/gi,
       '최종 지지가 승자축보다 약해 보조축에 머물렀습니다'
     )
+    .replace(
+      /\bA strong opportunity signal can hide ([^\s]+) and ([^\s]+) risk\./gi,
+      (_, left: string, right: string) =>
+        `강한 기회 신호가 ${localizeAdapterFreeText(left, 'ko')}와 ${localizeAdapterFreeText(right, 'ko')} 리스크를 가릴 수 있습니다.`
+    )
+    .replace(/트랜짓가/g, '트랜짓이')
+    .replace(/커리어은/g, '커리어는')
+    .replace(/관계은/g, '관계는')
+    .replace(/타이밍와/g, '타이밍과')
+    .replace(/장기 방향와/g, '장기 방향과')
+    .replace(/편이 맞습니다\.입니다\./g, '편이 맞습니다.')
     .replace(/\s+/g, ' ')
     .trim()
 
@@ -519,7 +601,7 @@ function buildEvidenceProjectionReasons(
 ): string[] {
   if (locale === 'ko') {
     return [
-      topSignals.length ? `핵심 신호 ${topSignals.length}개가 동시 작동 중입니다.` : '',
+      topSignals.length ? `핵심 신호 ${topSignals.length}개가 동시에 작동 중입니다.` : '',
       topPatterns.length ? `상위 패턴 ${topPatterns.length}개가 같은 방향으로 겹칩니다.` : '',
       topScenarios.length ? `대표 시나리오 ${topScenarios.length}개가 현재 판단을 지지합니다.` : '',
     ].filter(Boolean)
@@ -530,6 +612,138 @@ function buildEvidenceProjectionReasons(
     topPatterns.length ? `${topPatterns.length} lead patterns overlap in the same direction.` : '',
     topScenarios.length ? `${topScenarios.length} lead scenarios are supporting the current read.` : '',
   ].filter(Boolean)
+}
+
+function rankRiskAxis(core: DestinyCoreResult): SignalDomain {
+  const candidateDomains = core.canonical.domainVerdicts
+    .map((item) => item.domain)
+    .filter((domain) =>
+      ['career', 'relationship', 'wealth', 'health', 'move', 'personality'].includes(domain)
+    ) as SignalDomain[]
+  const uniqueDomains = [...new Set(candidateDomains)]
+  const scored = uniqueDomains.map((domain) => {
+    const verdict = core.canonical.domainVerdicts.find((item) => item.domain === domain)
+    const timing = core.canonical.domainTimingWindows.find((item) => item.domain === domain)
+    const manifestation = core.canonical.manifestations.find((item) => item.domain === domain)
+    let score = 0
+    if (verdict?.mode === 'prepare') score += 0.45
+    else if (verdict?.mode === 'verify') score += 0.28
+    else score += 0.08
+    score += Math.min((verdict?.blockedActions?.length || 0) * 0.08, 0.24)
+    score += Math.min((verdict?.confidence || 0) * 0.08, 0.08)
+    if (timing?.timingConflictMode === 'weak_both') score += 0.28
+    else if (timing?.timingConflictMode === 'trigger_ahead') score += 0.18
+    else if (timing?.timingConflictMode === 'readiness_ahead') score += 0.12
+    score += Math.min((timing?.abortConditions?.length || 0) * 0.06, 0.18)
+    score += Math.min((manifestation?.riskExpressions?.length || 0) * 0.08, 0.24)
+    return { domain, score }
+  })
+
+  return (
+    scored.sort((a, b) => b.score - a.score)[0]?.domain ||
+    core.canonical.actionFocusDomain ||
+    core.canonical.focusDomain
+  )
+}
+
+function buildTimingMatrix(core: DestinyCoreResult, locale: 'ko' | 'en'): AdapterTimingMatrixRow[] {
+  const order: SignalDomain[] = ['career', 'relationship', 'wealth', 'health', 'move', 'personality']
+  return [...(core.canonical.domainTimingWindows || [])]
+    .filter((item) => order.includes(item.domain))
+    .sort(
+      (a, b) =>
+        order.indexOf(a.domain) - order.indexOf(b.domain) ||
+        b.timingRelevance - a.timingRelevance ||
+        b.confidence - a.confidence
+    )
+    .slice(0, 6)
+    .map((item) => {
+      const label = localizeDomain(item.domain, locale)
+      const window = localizeAdapterFreeText(item.window, locale)
+      const granularity = localizeAdapterFreeText(item.timingGranularity, locale)
+      const summary =
+        locale === 'ko'
+          ? `${label}은 ${window} 창이 가장 직접적이며, ${localizeAdapterFreeText(item.timingConflictNarrative, locale)}`
+          : `${label} is most active in the ${window} window, and ${localizeAdapterFreeText(item.timingConflictNarrative, locale)}`
+      return {
+        domain: item.domain,
+        label,
+        window,
+        granularity,
+        confidence: item.confidence,
+        conflictMode: item.timingConflictMode,
+        summary,
+      }
+    })
+}
+
+function formatScenarioBranchLabel(
+  branch: string | undefined | null,
+  locale: 'ko' | 'en'
+): string {
+  const raw = String(branch || '')
+    .replace(/_/g, ' ')
+    .trim()
+  if (!raw) return locale === 'ko' ? '대안 경로' : 'alternate path'
+  return localizeAdapterFreeText(raw, locale)
+}
+
+function buildBranchProjectionSummary(
+  core: DestinyCoreResult,
+  locale: 'ko' | 'en'
+): AdapterProjectionBlock {
+  const scenarios = (core.canonical.topScenarios || []).slice(0, 3)
+  const branches = scenarios.map((scenario, index) => {
+    const label = formatScenarioBranchLabel(scenario.branch || scenario.id, locale)
+    const window = localizeAdapterFreeText(scenario.window || '', locale)
+    const whyNow = localizeAdapterFreeText(scenario.whyNow || '', locale)
+    const reversibility = scenario.reversible
+      ? locale === 'ko'
+        ? '되돌릴 여지가 남습니다'
+        : 'it stays reversible'
+      : locale === 'ko'
+        ? '한 번 들어가면 되돌리기 어렵습니다'
+        : 'it becomes hard to reverse once entered'
+    return {
+      summary:
+        locale === 'ko'
+          ? `${index + 1}안은 ${label} 쪽입니다. ${window ? `${window} 구간에서 ` : ''}${whyNow || '현재 조건이 맞으면 실제 사건축으로 붙습니다.'}`
+          : `Path ${index + 1} leans toward ${label}. ${window ? `In the ${window} window, ` : ''}${whyNow || 'it becomes actionable when current conditions line up.'}`,
+      driver: label,
+      counterweight: reversibility,
+      nextMove:
+        (scenario.entryConditions || []).length > 0
+          ? localizeAdapterFreeText(scenario.entryConditions[0], locale)
+          : locale === 'ko'
+            ? '진입 조건을 먼저 확인하세요.'
+            : 'Check the entry condition first.',
+      reason:
+        locale === 'ko'
+          ? `${label} 경로는 ${window || '현재'} 구간에서 ${reversibility}`
+          : `${label} is strongest in ${window || 'the current'} window, and ${reversibility}`,
+    }
+  })
+
+  const summary =
+    locale === 'ko'
+      ? branches.length > 0
+        ? `지금은 답이 하나로 고정되기보다 ${branches.length}개의 현실 경로가 동시에 열려 있습니다.`
+        : '지금은 분기 경로를 더 지켜보며 조건을 모으는 편이 맞습니다.'
+      : branches.length > 0
+        ? `${branches.length} live branches are open right now rather than a single fixed outcome.`
+        : 'It is better to gather conditions before locking into a single branch.'
+
+  return {
+    headline: locale === 'ko' ? '분기' : 'Branches',
+    summary,
+    detailLines: branches.map((item) => item.summary),
+    drivers: branches.map((item) => item.driver).filter(Boolean),
+    counterweights: branches.map((item) => item.counterweight).filter(Boolean),
+    nextMoves: branches.map((item) => item.nextMove).filter(Boolean),
+    reasons: branches.map((item) => item.reason).filter(Boolean),
+    window: scenarios[0]?.window,
+    granularity: scenarios[0]?.timingGranularity,
+  }
 }
 
 function localizeLatentAxis(axisId: string, locale: 'ko' | 'en'): string {
@@ -739,6 +953,9 @@ function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en'): Adapt
   const arbitrationBrief = buildArbitrationBrief(core, locale)
   const focusLabel = localizeDomain(core.canonical.focusDomain, locale)
   const actionLabel = localizeDomain(core.canonical.actionFocusDomain, locale)
+  const riskAxisDomain = rankRiskAxis(core)
+  const riskAxisLabel = localizeDomain(riskAxisDomain, locale)
+  const timingMatrix = buildTimingMatrix(core, locale)
   const topAxes = buildLatentTopAxes(core, locale)
   const groupedTopAxes = (group: string, limit = 3) => {
     const groupAxisIds = ((core.latentState?.groups as Record<string, string[]> | undefined)?.[group] || []) as string[]
@@ -757,28 +974,28 @@ function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en'): Adapt
 
   const structureSummary =
     locale === 'ko'
-      ? `중심축은 ${focusLabel}, 행동축은 ${actionLabel}이며 지금 판을 미는 층은 ${topAxes
+      ? `\uC911\uC2EC\uCD95\uC740 ${focusLabel}, \uD589\uB3D9\uCD95\uC740 ${actionLabel}, \uB9AC\uC2A4\uD06C\uCD95\uC740 ${riskAxisLabel}\uC774\uBA70 \uC9C0\uAE08 \uD310\uC744 \uBBF8\uB294 \uCE35\uC740 ${topAxes
           .slice(0, 3)
           .map((axis) => axis.label)
-          .join(', ')}입니다. ${arbitrationBrief.focusNarrative}`
-      : `The identity axis is ${focusLabel}, the action axis is ${actionLabel}, and the live drivers are ${topAxes
+          .join(', ')}\uC785\uB2C8\uB2E4. ${arbitrationBrief.focusNarrative}`
+      : `The identity axis is ${focusLabel}, the action axis is ${actionLabel}, the risk axis is ${riskAxisLabel}, and the live drivers are ${topAxes
           .slice(0, 3)
           .map((axis) => axis.label)
           .join(', ')}. ${arbitrationBrief.focusNarrative}`
 
   const timingSummary =
     locale === 'ko'
-      ? `${actionLabel} 쪽 타이밍은 ${localizeAdapterFreeText(timingWindow?.window || 'unknown', locale)} 구간으로 읽히며, ${localizeAdapterFreeText(timingWindow?.timingConflictNarrative || '구조와 촉발을 함께 봐야 합니다.', locale)}`
+      ? `${actionLabel} \uCABD \uD0C0\uC774\uBC0D\uC740 ${localizeAdapterFreeText(timingWindow?.window || 'unknown', locale)} \uAD6C\uAC04\uC73C\uB85C \uC77D\uD788\uBA70, ${localizeAdapterFreeText(timingWindow?.timingConflictNarrative || '\uAD6C\uC870\uC640 \uCD09\uBC1C\uC744 \uD568\uAED8 \uBD10\uC57C \uD569\uB2C8\uB2E4.', locale)}`
       : `Timing for ${actionLabel} reads as ${timingWindow?.window || 'unknown'}, and ${timingWindow?.timingConflictNarrative || 'structure and trigger need to be read together.'}`
 
   const conflictSummary =
     locale === 'ko'
-      ? arbitrationBrief.actionNarrative || `${focusLabel} 중심축과 ${actionLabel} 행동축이 분리돼 읽히는 구간입니다.`
+      ? arbitrationBrief.actionNarrative || `${focusLabel} \uC911\uC2EC\uCD95\uACFC ${actionLabel} \uD589\uB3D9\uCD95\uC774 \uBD84\uB9AC\uB3FC \uC77D\uD788\uB294 \uAD6C\uAC04\uC785\uB2C8\uB2E4.`
       : arbitrationBrief.actionNarrative || `${focusLabel} and ${actionLabel} currently separate into identity and action axes.`
 
   const actionSummary =
     locale === 'ko'
-      ? `${actionLabel} 축에서는 ${getTopDecisionLabel(core, locale) || core.canonical.primaryAction}이 실제 움직임의 중심입니다. ${arbitrationBrief.actionNarrative}`
+      ? `${actionLabel} \uCD95\uC5D0\uC11C\uB294 ${getTopDecisionLabel(core, locale) || core.canonical.primaryAction}\uC774 \uC2E4\uC81C \uC6C0\uC9C1\uC784\uC758 \uC911\uC2EC\uC785\uB2C8\uB2E4. ${arbitrationBrief.actionNarrative}`
       : `On the ${actionLabel} axis, ${getTopDecisionLabel(core, locale) || core.canonical.primaryAction} is the live move. ${arbitrationBrief.actionNarrative}`
 
   const riskSummary = localizeAdapterFreeText(
@@ -794,29 +1011,88 @@ function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en'): Adapt
     topPatterns,
     topScenarios
   )
+  const timingGranularity = localizeAdapterFreeText(timingWindow?.timingGranularity || '', locale)
+  const precisionReason = localizeAdapterFreeText(timingWindow?.precisionReason || '', locale)
+  const timingConflictNarrative = localizeAdapterFreeText(
+    timingWindow?.timingConflictNarrative || '',
+    locale
+  )
+  const entryConditions = (timingWindow?.entryConditions || [])
+    .slice(0, 3)
+    .map((item) => localizeAdapterFreeText(item, locale))
+    .filter(Boolean)
+  const abortConditions = (timingWindow?.abortConditions || [])
+    .slice(0, 3)
+    .map((item) => localizeAdapterFreeText(item, locale))
+    .filter(Boolean)
+  const allowedActionLabels = getAllowedActionLabels(core.canonical.judgmentPolicy.allowedActions, locale)
+  const blockedActionLabels = getBlockedActionLabels(core.canonical.judgmentPolicy.blockedActions, locale)
+  const hardStopLabels = formatPolicyCheckLabels(core.canonical.judgmentPolicy.hardStops)
+    .slice(0, 3)
+    .map((item) => localizeAdapterFreeText(item, locale))
+    .filter(Boolean)
+  const softCheckLabels = formatPolicyCheckLabels(core.canonical.judgmentPolicy.softChecks)
+    .slice(0, 3)
+    .map((item) => localizeAdapterFreeText(item, locale))
+    .filter(Boolean)
+  const structuralDrivers =
+    groupedTopAxes('structural').length > 0
+      ? groupedTopAxes('structural', 4)
+      : topAxes.slice(0, 4).map((axis) => axis.label)
+  const evidenceReasons = buildEvidenceProjectionReasons(locale, topSignals, topPatterns, topScenarios)
 
   return {
     structure: {
-      headline: locale === 'ko' ? '구조' : 'Structure',
+      headline: locale === 'ko' ? '\uAD6C\uC870' : 'Structure',
       summary: structureSummary,
-      reasons:
-        groupedTopAxes('structural').length > 0
-          ? groupedTopAxes('structural')
-          : topAxes.slice(0, 3).map((axis) => axis.label),
+      detailLines: [
+        arbitrationBrief.focusNarrative,
+        locale === 'ko'
+          ? `지금 구조를 받치는 층은 ${structuralDrivers.join(', ')}입니다.`
+          : `The live structural drivers are ${structuralDrivers.join(', ')}.`,
+        locale === 'ko'
+          ? `동시에 ${riskAxisLabel} 축이 가장 예민한 리스크 축으로 같이 움직입니다.`
+          : `At the same time, ${riskAxisLabel} is acting as the most sensitive risk axis.`,
+      ].filter(Boolean),
+      drivers: structuralDrivers,
+      counterweights: arbitrationBrief.suppressionNarratives.slice(0, 3),
+      nextMoves: [],
+      topAxes: topAxes.slice(0, 4).map((axis) => axis.label),
+      reasons: structuralDrivers.slice(0, 5),
     },
     timing: {
-      headline: locale === 'ko' ? '타이밍' : 'Timing',
+      headline: locale === 'ko' ? '\uD0C0\uC774\uBC0D' : 'Timing',
       summary: timingSummary,
+      detailLines: [
+        ...timingMatrix.slice(0, 3).map((item) => item.summary),
+        precisionReason
+          ? locale === 'ko'
+            ? `정밀도 기준은 ${precisionReason}입니다.`
+            : `The precision cap is ${precisionReason}.`
+          : '',
+        timingConflictNarrative,
+      ].filter(Boolean),
+      drivers: groupedTopAxes('timing', 4),
+      counterweights: abortConditions,
+      nextMoves: entryConditions,
+      window: timingWindow?.window,
+      granularity: timingGranularity || timingWindow?.timingGranularity,
       reasons: [
         ...groupedTopAxes('timing', 3),
-        localizeAdapterFreeText(timingWindow?.timingGranularity || 'unknown', locale),
-        localizeAdapterFreeText(timingWindow?.precisionReason || '', locale),
+        timingGranularity || localizeAdapterFreeText(timingWindow?.timingGranularity || 'unknown', locale),
+        precisionReason,
         localizeAdapterFreeText(timingWindow?.timingConflictMode || '', locale),
       ].filter(Boolean).slice(0, 5),
     },
     conflict: {
-      headline: locale === 'ko' ? '충돌' : 'Conflict',
+      headline: locale === 'ko' ? '\uCDA9\uB3CC' : 'Conflict',
       summary: localizeAdapterFreeText(conflictSummary, locale),
+      detailLines: [
+        ...arbitrationBrief.suppressionNarratives.slice(0, 2),
+      ].filter(Boolean),
+      drivers: groupedTopAxes('conflict', 4),
+      counterweights: arbitrationBrief.suppressionNarratives.slice(0, 3),
+      nextMoves: softCheckLabels,
       reasons: [
         ...groupedTopAxes('conflict', 3),
         ...core.canonical.arbitrationLedger.conflictReasons
@@ -826,34 +1102,56 @@ function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en'): Adapt
       ].filter(Boolean).slice(0, 5),
     },
     action: {
-      headline: locale === 'ko' ? '행동' : 'Action',
+      headline: locale === 'ko' ? '\uD589\uB3D9' : 'Action',
       summary: localizeAdapterFreeText(actionSummary, locale),
+      detailLines: [
+        localizeAdapterFreeText(core.canonical.judgmentPolicy.rationale, locale),
+      ].filter(Boolean),
+      drivers: [...groupedTopAxes('domain', 3), ...allowedActionLabels.slice(0, 2)].filter(Boolean),
+      counterweights: [...blockedActionLabels.slice(0, 2), ...hardStopLabels.slice(0, 2)].filter(Boolean),
+      nextMoves: [...allowedActionLabels.slice(0, 2), ...softCheckLabels.slice(0, 2)].filter(Boolean),
       reasons: [
         ...groupedTopAxes('domain', 3),
         getTopDecisionLabel(core, locale) || '',
-        ...getAllowedActionLabels(core.canonical.judgmentPolicy.allowedActions, locale).slice(0, 2),
+        ...allowedActionLabels.slice(0, 2),
       ].filter(Boolean).slice(0, 5),
     },
     risk: {
-      headline: locale === 'ko' ? '리스크' : 'Risk',
+      headline: locale === 'ko' ? '\uB9AC\uC2A4\uD06C' : 'Risk',
       summary: riskSummary,
+      detailLines: [
+        locale === 'ko'
+          ? `지금 가장 먼저 지켜봐야 할 축은 ${riskAxisLabel}입니다.`
+          : `The axis to monitor first right now is ${riskAxisLabel}.`,
+        ...hardStopLabels.slice(0, 2),
+      ].filter(Boolean),
+      drivers: [...groupedTopAxes('conflict', 2), ...blockedActionLabels.slice(0, 2)].filter(Boolean),
+      counterweights: hardStopLabels,
+      nextMoves: softCheckLabels,
       reasons: [
         ...groupedTopAxes('conflict', 2),
-        ...getBlockedActionLabels(core.canonical.judgmentPolicy.blockedActions, locale).slice(0, 2),
-        ...formatPolicyCheckLabels(core.canonical.judgmentPolicy.hardStops)
-          .slice(0, 2)
-          .map((item) => localizeAdapterFreeText(item, locale)),
+        ...blockedActionLabels.slice(0, 2),
+        ...hardStopLabels.slice(0, 2),
       ].filter(Boolean).slice(0, 5),
     },
     evidence: {
-      headline: locale === 'ko' ? '근거' : 'Evidence',
+      headline: locale === 'ko' ? '\uADFC\uAC70' : 'Evidence',
       summary: localizeAdapterFreeText(evidenceSummary, locale),
+      detailLines: [...evidenceReasons].filter(Boolean),
+      drivers: [
+        ...groupedTopAxes('astrology', 2),
+        ...groupedTopAxes('narrative', 2),
+        ...evidenceReasons.slice(0, 2),
+      ].filter(Boolean),
+      counterweights: [],
+      nextMoves: [],
       reasons: [
         ...groupedTopAxes('astrology', 2),
         ...groupedTopAxes('narrative', 2),
-        ...buildEvidenceProjectionReasons(locale, topSignals, topPatterns, topScenarios),
+        ...evidenceReasons,
       ].filter(Boolean).slice(0, 6),
     },
+    branches: buildBranchProjectionSummary(core, locale),
   }
 }
 
@@ -861,6 +1159,8 @@ export function adaptCoreToCalendar(
   core: DestinyCoreResult,
   locale: 'ko' | 'en' = 'ko'
 ): CalendarCoreAdapterResult {
+  const riskAxisDomain = rankRiskAxis(core)
+  const timingMatrix = buildTimingMatrix(core, locale)
   return {
     coreHash: core.coreHash,
     gradeLabel: core.canonical.gradeLabel,
@@ -869,6 +1169,9 @@ export function adaptCoreToCalendar(
     phaseLabel: core.canonical.phaseLabel,
     focusDomain: core.canonical.focusDomain,
     actionFocusDomain: core.canonical.actionFocusDomain,
+    riskAxisDomain,
+    riskAxisLabel: localizeDomain(riskAxisDomain, locale),
+    timingMatrix,
     arbitrationBrief: buildArbitrationBrief(core, locale),
     latentTopAxes: buildLatentTopAxes(core, locale),
     projections: buildProjectionSet(core, locale),
@@ -990,10 +1293,15 @@ export function adaptCoreToCounselor(
   core: DestinyCoreResult,
   locale: 'ko' | 'en' = 'ko'
 ): CounselorCoreAdapterResult {
+  const riskAxisDomain = rankRiskAxis(core)
+  const timingMatrix = buildTimingMatrix(core, locale)
   return {
     coreHash: core.coreHash,
     focusDomain: core.canonical.focusDomain,
     actionFocusDomain: core.canonical.actionFocusDomain,
+    riskAxisDomain,
+    riskAxisLabel: localizeDomain(riskAxisDomain, locale),
+    timingMatrix,
     arbitrationBrief: buildArbitrationBrief(core, locale),
     latentTopAxes: buildLatentTopAxes(core, locale),
     projections: buildProjectionSet(core, locale),
@@ -1113,10 +1421,15 @@ export function adaptCoreToReport(
   core: DestinyCoreResult,
   locale: 'ko' | 'en' = 'ko'
 ): ReportCoreAdapterResult {
+  const riskAxisDomain = rankRiskAxis(core)
+  const timingMatrix = buildTimingMatrix(core, locale)
   return {
     coreHash: core.coreHash,
     focusDomain: core.canonical.focusDomain,
     actionFocusDomain: core.canonical.actionFocusDomain,
+    riskAxisDomain,
+    riskAxisLabel: localizeDomain(riskAxisDomain, locale),
+    timingMatrix,
     arbitrationBrief: buildArbitrationBrief(core, locale),
     latentTopAxes: buildLatentTopAxes(core, locale),
     projections: buildProjectionSet(core, locale),
@@ -1236,3 +1549,5 @@ export function adaptCoreToReport(
     })),
   }
 }
+
+

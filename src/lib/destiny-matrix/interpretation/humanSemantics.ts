@@ -42,12 +42,12 @@ export function describeWhyStack(input: {
 
   if (lang === 'ko') {
     return [
-      sajuReason ? `사주는 ${sajuReason}` : '',
-      astroReason ? `점성은 ${astroReason}` : '',
+      sajuReason ? `사주 쪽에서는 ${sajuReason}` : '',
+      astroReason ? `점성 쪽에서는 ${astroReason}` : '',
       crossReason
-        ? `${focusDomainLabel ? withTopicParticle(focusDomainLabel) : '교차 근거는'} ${crossReason}`
+        ? `${focusDomainLabel ? `${withTopicParticle(focusDomainLabel)} ` : ''}${crossReason}`
         : '',
-      graphReason ? `근거 묶음은 ${graphReason}` : '',
+      graphReason ? `겹치는 근거를 보면 ${graphReason}` : '',
     ].filter(Boolean)
   }
 

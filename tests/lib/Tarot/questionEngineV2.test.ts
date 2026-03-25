@@ -286,6 +286,20 @@ describe('questionEngineV2', () => {
     expect(result.spreadId).toBe('reconciliation')
   })
 
+
+  it('keeps reunion-possibility questions on reconciliation instead of meeting likelihood', async () => {
+    mockFetchWithRetry.mockRejectedValueOnce(new Error('OpenAI timeout'))
+
+    const result = await analyzeTarotQuestionV2({
+      question: '\uADF8 \uC0AC\uB78C\uACFC \uB2E4\uC2DC \uB9CC\uB0A0 \uAC00\uB2A5\uC131 \uC788\uC5B4?',
+      language: 'ko',
+    })
+
+    expect(result.source).toBe('heuristic')
+    expect(result.intent).toBe('reconciliation')
+    expect(result.spreadId).toBe('reconciliation')
+  })
+
   it('understands compressed contact questions without the LLM', async () => {
     mockFetchWithRetry.mockRejectedValueOnce(new Error('OpenAI timeout'))
 
@@ -405,6 +419,33 @@ describe('questionEngineV2', () => {
     expect(result.source).toBe('llm')
     expect(result.intent).toBe('near_term_outcome')
     expect(result.spreadId).toBe('relationship-cross')
+  })
+
+  it('keeps relationship flow questions broad even when llm over-narrows to other-person response', async () => {
+    mockFetchWithRetry.mockResolvedValueOnce(
+      createOpenAIResponse({
+        questionType: 'other_person_response',
+        subject: 'other_person',
+        focus: '상대 반응',
+        timeframe: 'mid_term',
+        tone: 'prediction',
+        themeId: 'love-relationships',
+        spreadId: 'crush-feelings',
+        reason: '상대 반응 중심으로 보면 됩니다.',
+        userFriendlyExplanation: '상대 반응 위주로 읽으면 됩니다.',
+        directAnswer: '상대가 어떻게 반응할지 먼저 보세요.',
+      }) as never
+    )
+
+    const result = await analyzeTarotQuestionV2({
+      question: '올해 연애운 어떻게 흘러가?',
+      language: 'ko',
+    })
+
+    expect(result.source).toBe('llm')
+    expect(result.intent).toBe('broad_flow')
+    expect(result.themeId).toBe('love-relationships')
+    expect(result.spreadId).toBe('relationship-check-in')
   })
 
   it('keeps implicit relationship response questions off self-decision spreads', async () => {

@@ -76,6 +76,15 @@ function mapSignalDomainToTimelineDomain(
 export interface CounselorEvidencePacket {
   focusDomain: string
   actionFocusDomain?: string
+  riskAxisLabel?: string
+  timingMatrix?: Array<{
+    domain: string
+    label: string
+    window: string
+    granularity: string
+    confidence: number
+    summary: string
+  }>
   verdict: string
   guardrail: string
   topAnchorSummary: string
@@ -170,18 +179,31 @@ export interface CounselorEvidencePacket {
     timingWindow: string
   }
   projections?: {
-    structure?: { headline: string; summary: string; reasons?: string[] }
-    timing?: { headline: string; summary: string; reasons?: string[] }
-    conflict?: { headline: string; summary: string; reasons?: string[] }
-    action?: { headline: string; summary: string; reasons?: string[] }
-    risk?: { headline: string; summary: string; reasons?: string[] }
-    evidence?: { headline: string; summary: string; reasons?: string[] }
+    structure?: CounselorProjectionBlock
+    timing?: CounselorProjectionBlock
+    conflict?: CounselorProjectionBlock
+    action?: CounselorProjectionBlock
+    risk?: CounselorProjectionBlock
+    evidence?: CounselorProjectionBlock
+    branches?: CounselorProjectionBlock
   }
   whyStack: string[]
 }
 
+type CounselorProjectionBlock = {
+  headline: string
+  summary: string
+  reasons?: string[]
+  detailLines?: string[]
+  drivers?: string[]
+  counterweights?: string[]
+  nextMoves?: string[]
+}
+
 type CounselorEvidencePacketLike = {
   focusDomain?: string
+  riskAxisLabel?: string
+  timingMatrix?: CounselorEvidencePacket['timingMatrix']
   verdict?: string
   guardrail?: string
   topAnchorSummary?: string
@@ -265,12 +287,80 @@ function buildCounselorVerdictLead(
   if (!topDecisionLabel) return undefined
   if (actionFocusDomain && focusDomain && actionFocusDomain !== focusDomain) {
     return lang === 'ko'
-      ? `중심축은 ${localizeCounselorDomain(focusDomain, lang)}이지만, 지금 우선 행동축은 ${localizeCounselorDomain(actionFocusDomain, lang)}입니다. 우선은 ${topDecisionLabel}입니다.`
-      : `The underlying axis is ${localizeCounselorDomain(focusDomain, lang)}, but the action axis right now is ${localizeCounselorDomain(actionFocusDomain, lang)}. The priority now is ${topDecisionLabel}.`
+      ? `지금 질문에 바로 닿는 축은 ${localizeCounselorDomain(actionFocusDomain, lang)}입니다. 우선은 ${topDecisionLabel}입니다. 중심축은 ${localizeCounselorDomain(focusDomain, lang)}으로 남아 있습니다.`
+      : `The axis that matters most for this question right now is ${localizeCounselorDomain(actionFocusDomain, lang)}. The priority is ${topDecisionLabel}. The underlying axis still remains ${localizeCounselorDomain(focusDomain, lang)}.`
   }
   return lang === 'ko'
     ? `지금 우선은 ${topDecisionLabel}입니다`
     : `The priority now is ${topDecisionLabel}.`
+}
+
+function buildCounselorVerdictContext(input: {
+  lang: 'ko' | 'en'
+  domainLabel: string
+  topTimingWindow?: CounselorEvidencePacket['topTimingWindow'] | null
+  topDomainAdvisory?: CounselorEvidencePacket['topDomainAdvisory'] | null
+  topManifestation?: CounselorEvidencePacket['topManifestation'] | null
+}): string | undefined {
+  const timing = input.topTimingWindow
+  const advisory = input.topDomainAdvisory
+  const manifestation = input.topManifestation
+
+  if (input.lang === 'ko') {
+    if (advisory?.thesis) return `${input.domainLabel} 해석의 핵심은 ${advisory.thesis}`
+    if (timing?.timingConflictNarrative) return timing.timingConflictNarrative
+    if (manifestation?.manifestation) return manifestation.manifestation
+    if (timing?.whyNow) return timing.whyNow
+    return undefined
+  }
+
+  if (advisory?.thesis) return `The core read on ${input.domainLabel} is ${advisory.thesis}`
+  if (timing?.timingConflictNarrative) return timing.timingConflictNarrative
+  if (manifestation?.manifestation) return manifestation.manifestation
+  if (timing?.whyNow) return timing.whyNow
+  return undefined
+}
+
+function buildCounselorVerdictTimingLine(input: {
+  lang: 'ko' | 'en'
+  topTimingWindow?: CounselorEvidencePacket['topTimingWindow'] | null
+  topManifestation?: CounselorEvidencePacket['topManifestation'] | null
+}): string | undefined {
+  const timing = input.topTimingWindow
+  const manifestation = input.topManifestation
+
+  if (input.lang === 'ko') {
+    if (timing?.entryConditions?.length) {
+      const entry = timing.entryConditions
+        .slice(0, 2)
+        .map((item) =>
+          sanitizeCounselorFreeText(item, 'ko')
+            .replace(/가 유지될 것/g, '이 유지되고')
+            .replace(/이 유지될 것/g, '이 유지되고')
+            .replace(/를 바로 실행할 수 있을 것/g, '를 바로 실행할 수 있는지')
+            .replace(/할 수 있을 것/g, '할 수 있는지')
+            .replace(/근거이/g, '근거가')
+            .replace(/(\d+(?:\.\d+)?)%이 유지되고/g, '$1%가 유지되고')
+            .replace(/(\d+(?:\.\d+)?)%이 유지되는지/g, '$1%가 유지되는지')
+        )
+        .filter(Boolean)
+      return entry.length > 1
+        ? `실제 성사는 먼저 ${entry[0]}가 유지되고, 동시에 ${entry[1]} 조건이 맞아야 빨라집니다`
+        : `실제 성사는 먼저 ${entry[0]} 조건이 맞아야 빨라집니다`
+    }
+    if (manifestation?.likelyExpressions?.length) {
+      return `지금 먼저 보이는 형태는 ${manifestation.likelyExpressions.slice(0, 2).join(', ')} 쪽입니다`
+    }
+    return undefined
+  }
+
+  if (timing?.entryConditions?.length) {
+    return `This moves faster when ${timing.entryConditions.slice(0, 2).join(', ')} are met first`
+  }
+  if (manifestation?.likelyExpressions?.length) {
+    return `The first visible form is likely ${manifestation.likelyExpressions.slice(0, 2).join(', ')}`
+  }
+  return undefined
 }
 
 function buildCounselorArbitrationLine(input: {
@@ -355,12 +445,57 @@ function sanitizeCounselorFreeText(text: string | undefined | null, lang: 'ko' |
     .replace(/\bhealth\b/gi, '건강')
     .replace(/\bmove\b/gi, '이동')
     .replace(/\btiming\b/gi, '타이밍')
-    .replace(/\brelationship caution\b/gi, '관계 주의 신호')
+    .replace(/\bspirituality\b/gi, '장기 방향')
+    .replace(/\bverify\b/gi, '확인')
+    .replace(/\bprepare\b/gi, '준비 우선')
+    .replace(/\bexecute\b/gi, '실행')
+    .replace(/레이어\s*0/gi, '핵심 흐름')
+    .replace(/활성 트랜짓/gi, '활성 신호')
+    .replace(/\bTransit\s+saturnReturn\b/gi, '책임 압력 신호')
+    .replace(/\bTransit\s+jupiterReturn\b/gi, '확장 신호')
+    .replace(/\bTransit\s+nodeReturn\b/gi, '방향 전환 신호')
+    .replace(/\bTransit\s+mercuryRetrograde\b/gi, '소통 재검토 신호')
+    .replace(/\bTransit\s+marsRetrograde\b/gi, '마찰 재검토 신호')
+    .replace(/\bTransit\s+venusRetrograde\b/gi, '관계 재검토 신호')
+    .replace(/\bsaturnReturn\b/gi, '책임 압력 신호')
+    .replace(/\bjupiterReturn\b/gi, '확장 신호')
+    .replace(/\bnodeReturn\b/gi, '방향 전환 신호')
+    .replace(/\bmercuryRetrograde\b/gi, '소통 재검토 신호')
+    .replace(/\bmarsRetrograde\b/gi, '마찰 재검토 신호')
+    .replace(/\bvenusRetrograde\b/gi, '관계 재검토 신호')
+    .replace(/\bsolarReturn\b/gi, '연간 초점 강조')
+    .replace(/\blunarReturn\b/gi, '감정 파동 신호')
+    .replace(/\bprogressions?\b/gi, '장기 전개 흐름')
+    .replace(/\brelationship caution\b/gi, '관계에서는 속도보다 기준 확인이 먼저입니다')
     .replace(/\bcaution\b/gi, '주의 신호')
     .replace(/\bdowngrade pressure\b/gi, '하향 조정 압력')
-    .replace(/\bmoney expansion action\b/gi, '재정 확장 실행')
+    .replace(/\bmoney expansion action\b/gi, '재정 확장은 조건 검증부터 진행하세요')
     .replace(/\bvolatility pattern\b/gi, '변동성 패턴')
+    .replace(/\bgeokguk strength\b/gi, '격국 응집력')
+    .replace(/\bdebt restructure\b/gi, '부채 재정리')
+    .replace(/\bliquidity defense\b/gi, '유동성 방어')
+    .replace(/\bexpense spike\b/gi, '지출 급증 대응')
+    .replace(/\bpromotion review\b/gi, '승진 검토')
+    .replace(/\brecovery reset\b/gi, '회복 재정렬')
+    .replace(/\bbasecamp reset\b/gi, '거점 재정비')
+    .replace(/\bmap full debt stack\b/gi, '전체 부채 구조를 다시 정리하기')
+    .replace(/\bwealth volatility pattern\b/gi, '재정 변동성 패턴')
+    .replace(/\bcareer expansion pattern\b/gi, '커리어 확장 패턴')
+    .replace(/\brelationship tension pattern\b/gi, '관계 긴장 패턴')
     .replace(/\bMap full debt stack\b/gi, '전체 부채 구조를 다시 정리하기')
+    .replace(/활성 신호\s+책임 압력 신호/gi, '책임 압력 신호')
+    .replace(/활성 신호\s+확장 신호/gi, '확장 신호')
+    .replace(/활성 신호\s+방향 전환 신호/gi, '방향 전환 신호')
+    .replace(/활성 신호\s+소통 재검토 신호/gi, '소통 재검토 신호')
+    .replace(/활성 신호\s+마찰 재검토 신호/gi, '마찰 재검토 신호')
+    .replace(/활성 신호\s+관계 재검토 신호/gi, '관계 재검토 신호')
+    .replace(/변동성 패턴\s+패턴/gi, '변동성 패턴')
+    .replace(/확장 신호\s+이\s+/gi, '확장 신호가 ')
+    .replace(/책임 압력 신호\s+이\s+/gi, '책임 압력 신호가 ')
+    .replace(/방향 전환 신호\s+이\s+/gi, '방향 전환 신호가 ')
+    .replace(/소통 재검토 신호\s+이\s+/gi, '소통 재검토 신호가 ')
+    .replace(/마찰 재검토 신호\s+이\s+/gi, '마찰 재검토 신호가 ')
+    .replace(/관계 재검토 신호\s+이\s+/gi, '관계 재검토 신호가 ')
     .replace(
       /action pressure stayed narrow between ([^\s]+) and ([^\s]+)/gi,
       (_, left: string, right: string) =>
@@ -375,6 +510,11 @@ function sanitizeCounselorFreeText(text: string | undefined | null, lang: 'ko' |
       /\bstayed secondary because total support remained below the winner\b/gi,
       '최종 지지가 승자축보다 약해 보조축에 머물렀습니다'
     )
+    .replace(
+      /\bA strong opportunity signal can hide ([^\s]+) and ([^\s]+) risk\./gi,
+      (_, left: string, right: string) =>
+        `강한 기회 신호가 ${sanitizeCounselorFreeText(left, 'ko')}과 ${sanitizeCounselorFreeText(right, 'ko')} 리스크를 가릴 수 있습니다`
+    )
     .replace(/\bweek\b/gi, '주 단위')
     .replace(/\bfortnight\b/gi, '2주 단위')
     .replace(/\bmonth\b/gi, '월 단위')
@@ -385,12 +525,36 @@ function sanitizeCounselorFreeText(text: string | undefined | null, lang: 'ko' |
     .replace(/관계은/g, '관계는')
     .replace(/재정와/g, '재정과')
     .replace(/건강와/g, '건강과')
+    .replace(/밀는/g, '미는')
+    .replace(/편이 맞습니다\.입니다\./g, '편이 맞습니다.')
     .replace(/\s+/g, ' ')
     .trim()
 }
 
 function sanitizeCounselorTextList(items: Array<string | undefined | null>, lang: 'ko' | 'en'): string[] {
   return items.map((item) => sanitizeCounselorFreeText(item, lang)).filter(Boolean)
+}
+
+function formatTransitLabels(
+  activeTransits: string[],
+  lang: 'ko' | 'en',
+  limit = 2
+): string {
+  const labels = activeTransits
+    .slice(0, limit)
+    .map((item) =>
+      sanitizeCounselorFreeText(`Transit ${item}`, lang)
+        .replace(/^활성 신호\s+/u, '')
+        .trim()
+    )
+    .filter(Boolean)
+  if (labels.length === 0) return ''
+  if (lang === 'ko') {
+    if (labels.length === 1) return labels[0]
+    return `${labels.slice(0, -1).join(', ')}와 ${labels[labels.length - 1]}`
+  }
+  if (labels.length === 1) return labels[0]
+  return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`
 }
 
 function buildDomainSpecificWhyReasons(input: {
@@ -472,7 +636,7 @@ function buildDomainSpecificWhyReasons(input: {
           : `관계에서는 감정보다 기대치와 경계가 어떻게 굳어 있는지가 기본 체질을 만듭니다.`,
       astro:
         activeTransits.length > 0
-          ? `활성 트랜짓 ${activeTransits.slice(0, 2).join(', ')} 이 대화 속도와 오해 가능성을 직접 흔들고 있습니다.`
+          ? `${formatTransitLabels(activeTransits, lang)} 같은 현재 변수가 대화 속도와 오해 가능성을 직접 흔들고 있습니다.`
           : `점성 쪽은 누가 먼저 열리고, 어디서 반응이 엇갈리는지 같은 타이밍 변수를 보여줍니다.`,
       cross:
         strategyLine ||
@@ -492,7 +656,7 @@ function buildDomainSpecificWhyReasons(input: {
           : `커리어에서는 어떤 역할을 맡아도 버틸 구조인지가 기본 체질을 만듭니다.`,
       astro:
         activeTransits.length > 0
-          ? `활성 트랜짓 ${activeTransits.slice(0, 2).join(', ')} 이 마감, 평가, 사람 간 조율 속도를 바꾸고 있습니다.`
+          ? `${formatTransitLabels(activeTransits, lang)} 같은 현재 변수가 마감, 평가, 조율 속도를 바꾸고 있습니다.`
           : `점성 쪽은 언제 책임이 늘고, 언제 일정 변수로 흔들리는지 보여줍니다.`,
       cross:
         strategyLine ||
@@ -512,7 +676,7 @@ function buildDomainSpecificWhyReasons(input: {
           : `재정에서는 얼마를 버느냐보다 무엇이 새고 있는지가 기본 체질을 만듭니다.`,
       astro:
         activeTransits.length > 0
-          ? `활성 트랜짓 ${activeTransits.slice(0, 2).join(', ')} 이 지출 타이밍, 협상 속도, 조건 변수를 직접 흔듭니다.`
+          ? `${formatTransitLabels(activeTransits, lang)} 같은 현재 변수가 지출 타이밍, 협상 속도, 조건 변수를 직접 흔듭니다.`
           : `점성 쪽은 금액보다 기한, 계약 조건, 변수 관리 쪽 리듬을 보여줍니다.`,
       cross:
         strategyLine ||
@@ -532,7 +696,7 @@ function buildDomainSpecificWhyReasons(input: {
           : `건강에서는 의지보다 회복 리듬이 얼마나 무너지지 않았는지가 기본 체질을 만듭니다.`,
       astro:
         activeTransits.length > 0
-          ? `활성 트랜짓 ${activeTransits.slice(0, 2).join(', ')} 이 피로 체감, 수면 흔들림, 과부하 타이밍을 직접 건드립니다.`
+          ? `${formatTransitLabels(activeTransits, lang)} 같은 현재 변수가 피로 체감, 수면 흔들림, 과부하 타이밍을 직접 건드립니다.`
           : `점성 쪽은 몸 상태가 언제 흔들리고 언제 회복 여지가 붙는지 같은 생활 타이밍을 보여줍니다.`,
       cross:
         strategyLine ||
@@ -552,7 +716,7 @@ function buildDomainSpecificWhyReasons(input: {
           : `이동에서는 결단력보다 생활 동선과 유지 가능한 구조가 기본 체질을 만듭니다.`,
       astro:
         activeTransits.length > 0
-          ? `활성 트랜짓 ${activeTransits.slice(0, 2).join(', ')} 이 경로, 일정 변경, 외부 변수 유입 속도를 흔들고 있습니다.`
+          ? `${formatTransitLabels(activeTransits, lang)} 같은 현재 변수가 경로, 일정 변경, 외부 변수 유입 속도를 흔들고 있습니다.`
           : `점성 쪽은 언제 이동 창이 열리고, 언제 일정 변수 때문에 틀어지기 쉬운지 보여줍니다.`,
       cross:
         strategyLine ||
@@ -572,7 +736,7 @@ function buildDomainSpecificWhyReasons(input: {
           : `타이밍에서는 큰 흐름이 받쳐주는지부터 보는 것이 먼저입니다.`,
       astro:
         activeTransits.length > 0
-          ? `활성 트랜짓 ${activeTransits.slice(0, 2).join(', ')} 이 언제 열리고 언제 흔들리는지 같은 실제 시점 변수를 만듭니다.`
+          ? `${formatTransitLabels(activeTransits, lang)} 같은 현재 변수가 언제 열리고 언제 흔들리는지 같은 실제 시점 변수를 만듭니다.`
           : `점성 쪽은 시점의 열림과 닫힘을 더 민감하게 보여줍니다.`,
       cross:
         strategyLine ||
@@ -592,7 +756,7 @@ function buildDomainSpecificWhyReasons(input: {
           : `성향에서는 원래 어떤 방식으로 버티고, 어디서 과해지는지가 기본 체질을 만듭니다.`,
       astro:
         activeTransits.length > 0
-          ? `활성 트랜짓 ${activeTransits.slice(0, 2).join(', ')} 이 반응 속도와 대인 태도를 일시적으로 바꿉니다.`
+          ? `${formatTransitLabels(activeTransits, lang)} 같은 현재 변수가 반응 속도와 대인 태도를 일시적으로 바꿉니다.`
           : `점성 쪽은 평소 성향이 어떤 상황에서 더 강하게 드러나는지 보여줍니다.`,
       cross:
         strategyLine ||
@@ -612,7 +776,7 @@ function buildDomainSpecificWhyReasons(input: {
           : `사명과 장기 방향에서는 외부 성과보다 무엇을 오래 가져갈지의 기준이 기본 체질을 만듭니다.`,
       astro:
         activeTransits.length > 0
-          ? `활성 트랜짓 ${activeTransits.slice(0, 2).join(', ')} 이 방향 감각과 의미 해석의 체감 변화를 크게 만듭니다.`
+          ? `${formatTransitLabels(activeTransits, lang)} 같은 현재 변수가 방향 감각과 의미 해석의 체감 변화를 크게 만듭니다.`
           : `점성 쪽은 어떤 시점에 방향 감각이 흔들리고 다시 선명해지는지 보여줍니다.`,
       cross:
         strategyLine ||
@@ -972,6 +1136,18 @@ export function buildCounselorEvidencePacket(params: {
     prefersScenarioActionLead && scenarioActionHints[0]
       ? `${localizeCounselorDomain(preferredDomain, params.lang)}: ${scenarioActionHints[0]}`
       : counselorCore?.topDecisionLabel
+  const verdictContext = buildCounselorVerdictContext({
+    lang: params.lang,
+    domainLabel: localizeCounselorDomain(preferredDomain, params.lang),
+    topTimingWindow,
+    topDomainAdvisory,
+    topManifestation,
+  })
+  const verdictTimingLine = buildCounselorVerdictTimingLine({
+    lang: params.lang,
+    topTimingWindow,
+    topManifestation,
+  })
 
   const verdict = joinUniqueVerdictParts([
     buildCounselorVerdictLead(
@@ -980,9 +1156,9 @@ export function buildCounselorEvidencePacket(params: {
       preferredDomain,
       params.lang
     ),
-    counselorCore?.answerThesis,
+    verdictContext || counselorCore?.answerThesis,
     prefersScenarioActionLead ? scenarioActionHints[0] : undefined,
-    topManifestation?.manifestation,
+    verdictTimingLine || topManifestation?.manifestation,
     counselorCore ? undefined : topClaimText,
   ])
 
@@ -1142,6 +1318,15 @@ export function buildCounselorEvidencePacket(params: {
   return {
     focusDomain: preferredDomain,
     actionFocusDomain: counselorCore?.actionFocusDomain,
+    riskAxisLabel: counselorCore?.riskAxisLabel,
+    timingMatrix: (counselorCore?.timingMatrix || []).slice(0, 4).map((item) => ({
+      domain: item.domain,
+      label: item.label,
+      window: item.window,
+      granularity: item.granularity,
+      confidence: item.confidence,
+      summary: sanitizeCounselorFreeText(item.summary, params.lang),
+    })),
     verdict: sanitizeCounselorFreeText(verdict, params.lang),
     guardrail: sanitizeCounselorFreeText(counselorCore?.primaryCaution || guardrail, params.lang),
     topAnchorSummary,
@@ -1199,7 +1384,7 @@ export function buildCounselorEvidencePacket(params: {
           ),
           topDecisionAction: counselorCore.topDecisionAction || undefined,
           topDecisionLabel: topDecisionLeadLabel || undefined,
-          answerThesis: sanitizeCounselorFreeText(counselorCore.answerThesis, params.lang),
+          answerThesis: counselorCore.answerThesis,
           primaryAction: sanitizeCounselorFreeText(counselorCore.primaryAction, params.lang),
           primaryCaution: sanitizeCounselorFreeText(counselorCore.primaryCaution, params.lang),
           timingHint: sanitizeCounselorFreeText(counselorCore.timingHint, params.lang),
@@ -1293,31 +1478,64 @@ export function buildCounselorEvidencePacket(params: {
             ...counselorCore.projections.structure,
             summary: sanitizeCounselorFreeText(counselorCore.projections.structure.summary, params.lang),
             reasons: sanitizeCounselorTextList(counselorCore.projections.structure.reasons || [], params.lang),
+            detailLines: sanitizeCounselorTextList(counselorCore.projections.structure.detailLines || [], params.lang),
+            drivers: sanitizeCounselorTextList(counselorCore.projections.structure.drivers || [], params.lang),
+            counterweights: sanitizeCounselorTextList(counselorCore.projections.structure.counterweights || [], params.lang),
+            nextMoves: sanitizeCounselorTextList(counselorCore.projections.structure.nextMoves || [], params.lang),
           },
           timing: {
             ...counselorCore.projections.timing,
             summary: sanitizeCounselorFreeText(counselorCore.projections.timing.summary, params.lang),
             reasons: sanitizeCounselorTextList(counselorCore.projections.timing.reasons || [], params.lang),
+            detailLines: sanitizeCounselorTextList(counselorCore.projections.timing.detailLines || [], params.lang),
+            drivers: sanitizeCounselorTextList(counselorCore.projections.timing.drivers || [], params.lang),
+            counterweights: sanitizeCounselorTextList(counselorCore.projections.timing.counterweights || [], params.lang),
+            nextMoves: sanitizeCounselorTextList(counselorCore.projections.timing.nextMoves || [], params.lang),
           },
           conflict: {
             ...counselorCore.projections.conflict,
             summary: sanitizeCounselorFreeText(counselorCore.projections.conflict.summary, params.lang),
             reasons: sanitizeCounselorTextList(counselorCore.projections.conflict.reasons || [], params.lang),
+            detailLines: sanitizeCounselorTextList(counselorCore.projections.conflict.detailLines || [], params.lang),
+            drivers: sanitizeCounselorTextList(counselorCore.projections.conflict.drivers || [], params.lang),
+            counterweights: sanitizeCounselorTextList(counselorCore.projections.conflict.counterweights || [], params.lang),
+            nextMoves: sanitizeCounselorTextList(counselorCore.projections.conflict.nextMoves || [], params.lang),
           },
           action: {
             ...counselorCore.projections.action,
             summary: sanitizeCounselorFreeText(counselorCore.projections.action.summary, params.lang),
             reasons: sanitizeCounselorTextList(counselorCore.projections.action.reasons || [], params.lang),
+            detailLines: sanitizeCounselorTextList(counselorCore.projections.action.detailLines || [], params.lang),
+            drivers: sanitizeCounselorTextList(counselorCore.projections.action.drivers || [], params.lang),
+            counterweights: sanitizeCounselorTextList(counselorCore.projections.action.counterweights || [], params.lang),
+            nextMoves: sanitizeCounselorTextList(counselorCore.projections.action.nextMoves || [], params.lang),
           },
           risk: {
             ...counselorCore.projections.risk,
             summary: sanitizeCounselorFreeText(counselorCore.projections.risk.summary, params.lang),
             reasons: sanitizeCounselorTextList(counselorCore.projections.risk.reasons || [], params.lang),
+            detailLines: sanitizeCounselorTextList(counselorCore.projections.risk.detailLines || [], params.lang),
+            drivers: sanitizeCounselorTextList(counselorCore.projections.risk.drivers || [], params.lang),
+            counterweights: sanitizeCounselorTextList(counselorCore.projections.risk.counterweights || [], params.lang),
+            nextMoves: sanitizeCounselorTextList(counselorCore.projections.risk.nextMoves || [], params.lang),
           },
           evidence: {
             ...counselorCore.projections.evidence,
             summary: sanitizeCounselorFreeText(counselorCore.projections.evidence.summary, params.lang),
             reasons: sanitizeCounselorTextList(counselorCore.projections.evidence.reasons || [], params.lang),
+            detailLines: sanitizeCounselorTextList(counselorCore.projections.evidence.detailLines || [], params.lang),
+            drivers: sanitizeCounselorTextList(counselorCore.projections.evidence.drivers || [], params.lang),
+            counterweights: sanitizeCounselorTextList(counselorCore.projections.evidence.counterweights || [], params.lang),
+            nextMoves: sanitizeCounselorTextList(counselorCore.projections.evidence.nextMoves || [], params.lang),
+          },
+          branches: {
+            ...counselorCore.projections.branches,
+            summary: sanitizeCounselorFreeText(counselorCore.projections.branches.summary, params.lang),
+            reasons: sanitizeCounselorTextList(counselorCore.projections.branches.reasons || [], params.lang),
+            detailLines: sanitizeCounselorTextList(counselorCore.projections.branches.detailLines || [], params.lang),
+            drivers: sanitizeCounselorTextList(counselorCore.projections.branches.drivers || [], params.lang),
+            counterweights: sanitizeCounselorTextList(counselorCore.projections.branches.counterweights || [], params.lang),
+            nextMoves: sanitizeCounselorTextList(counselorCore.projections.branches.nextMoves || [], params.lang),
           },
         }
       : undefined,
@@ -1343,7 +1561,7 @@ export function formatCounselorEvidencePacket(
   packet: CounselorEvidencePacketLike | null | undefined,
   lang: 'ko' | 'en'
 ): string {
-  if (!packet || !packet.focusDomain || !packet.graphRagEvidenceSummary) return ''
+  if (!packet || !packet.focusDomain) return ''
   const strategyLabel = packet.strategyBrief?.overallPhaseLabel || 'none'
   const attackPercent = packet.strategyBrief?.attackPercent ?? '-'
   const defensePercent = packet.strategyBrief?.defensePercent ?? '-'
@@ -1352,11 +1570,14 @@ export function formatCounselorEvidencePacket(
     ? [
         '[Canonical Core]',
         `grade=${packet.canonicalBrief.gradeLabel || 'none'}`,
+        `core_phase=${packet.canonicalBrief.phaseLabel || 'none'}`,
         `phase=${packet.canonicalBrief.phaseLabel || 'none'}`,
         `action_focus=${packet.canonicalBrief.actionFocusDomain || 'none'}`,
         `focus_runner_up=${packet.canonicalBrief.focusRunnerUpDomain || 'none'}`,
         `action_runner_up=${packet.canonicalBrief.actionRunnerUpDomain || 'none'}`,
         `top_decision=${packet.canonicalBrief.topDecisionLabel || packet.canonicalBrief.topDecisionAction || 'none'}`,
+        `core_claim_ids=${(packet.topClaims || []).map((claim) => claim.id).filter(Boolean).slice(0, 6).join(' | ') || 'none'}`,
+        `core_caution_signal_ids=${(packet.selectedSignals || []).map((signal) => signal.id).filter(Boolean).slice(0, 6).join(' | ') || 'none'}`,
         `answer=${packet.canonicalBrief.answerThesis || 'none'}`,
         `action=${packet.canonicalBrief.primaryAction || 'none'}`,
         `caution=${packet.canonicalBrief.primaryCaution || 'none'}`,
@@ -1380,12 +1601,9 @@ export function formatCounselorEvidencePacket(
   const advisoryLines = packet.topDomainAdvisory
     ? [
         '[Domain Advisory]',
-        `domain=${packet.topDomainAdvisory.domain}`,
         `thesis=${packet.topDomainAdvisory.thesis}`,
         `action=${packet.topDomainAdvisory.action}`,
         `caution=${packet.topDomainAdvisory.caution}`,
-        `timing=${packet.topDomainAdvisory.timingHint}`,
-        `strategy_line=${packet.topDomainAdvisory.strategyLine}`,
         '',
       ]
     : []
@@ -1405,44 +1623,124 @@ export function formatCounselorEvidencePacket(
       ]
     : []
 
+  const timingMatrixLines =
+    (packet.timingMatrix || []).length > 0
+      ? [
+          '[Timing Matrix]',
+          ...(packet.timingMatrix || [])
+            .slice(0, 4)
+            .map(
+              (row) =>
+                `matrix=${row.label}:${row.window}/${row.granularity}:${Math.round(row.confidence * 100)}|${row.summary}`
+            ),
+          '',
+        ]
+      : []
+
   const projectionLines = packet.projections
     ? [
         '[Projections]',
         packet.projections.structure?.summary
           ? `structure=${packet.projections.structure.summary}`
           : '',
+        ...(packet.projections.structure?.detailLines || [])
+          .slice(0, 2)
+          .map((line) => `structure_detail=${line}`),
+        ...(packet.projections.structure?.drivers || [])
+          .slice(0, 2)
+          .map((line) => `structure_driver=${line}`),
         ...(packet.projections.structure?.reasons || [])
           .slice(0, 2)
           .map((line) => `structure_reason=${line}`),
         packet.projections.timing?.summary ? `timing=${packet.projections.timing.summary}` : '',
+        ...(packet.projections.timing?.detailLines || [])
+          .slice(0, 2)
+          .map((line) => `timing_detail=${line}`),
+        ...(packet.projections.timing?.drivers || [])
+          .slice(0, 2)
+          .map((line) => `timing_driver=${line}`),
+        ...(packet.projections.timing?.counterweights || [])
+          .slice(0, 2)
+          .map((line) => `timing_counterweight=${line}`),
+        ...(packet.projections.timing?.nextMoves || [])
+          .slice(0, 2)
+          .map((line) => `timing_next=${line}`),
         ...(packet.projections.timing?.reasons || [])
           .slice(0, 2)
           .map((line) => `timing_reason=${line}`),
         packet.projections.conflict?.summary
           ? `conflict=${packet.projections.conflict.summary}`
           : '',
+        ...(packet.projections.conflict?.detailLines || [])
+          .slice(0, 2)
+          .map((line) => `conflict_detail=${line}`),
+        ...(packet.projections.conflict?.counterweights || [])
+          .slice(0, 2)
+          .map((line) => `conflict_counterweight=${line}`),
         ...(packet.projections.conflict?.reasons || [])
           .slice(0, 2)
           .map((line) => `conflict_reason=${line}`),
         packet.projections.action?.summary ? `action=${packet.projections.action.summary}` : '',
+        ...(packet.projections.action?.detailLines || [])
+          .slice(0, 2)
+          .map((line) => `action_detail=${line}`),
+        ...(packet.projections.action?.drivers || [])
+          .slice(0, 2)
+          .map((line) => `action_driver=${line}`),
+        ...(packet.projections.action?.nextMoves || [])
+          .slice(0, 2)
+          .map((line) => `action_next=${line}`),
         ...(packet.projections.action?.reasons || [])
           .slice(0, 2)
           .map((line) => `action_reason=${line}`),
         packet.projections.risk?.summary ? `risk=${packet.projections.risk.summary}` : '',
+        ...(packet.projections.risk?.detailLines || [])
+          .slice(0, 2)
+          .map((line) => `risk_detail=${line}`),
+        ...(packet.projections.risk?.counterweights || [])
+          .slice(0, 2)
+          .map((line) => `risk_counterweight=${line}`),
+        ...(packet.projections.risk?.nextMoves || [])
+          .slice(0, 2)
+          .map((line) => `risk_next=${line}`),
         ...(packet.projections.risk?.reasons || [])
           .slice(0, 2)
           .map((line) => `risk_reason=${line}`),
         packet.projections.evidence?.summary
           ? `evidence=${packet.projections.evidence.summary}`
           : '',
+        ...(packet.projections.evidence?.detailLines || [])
+          .slice(0, 2)
+          .map((line) => `evidence_detail=${line}`),
+        ...(packet.projections.evidence?.drivers || [])
+          .slice(0, 2)
+          .map((line) => `evidence_driver=${line}`),
         ...(packet.projections.evidence?.reasons || [])
           .slice(0, 2)
           .map((line) => `evidence_reason=${line}`),
+        packet.projections.branches?.summary
+          ? `branches=${packet.projections.branches.summary}`
+          : '',
+        ...(packet.projections.branches?.detailLines || [])
+          .slice(0, 3)
+          .map((line) => `branch_detail=${line}`),
+        ...(packet.projections.branches?.drivers || [])
+          .slice(0, 3)
+          .map((line) => `branch_driver=${line}`),
+        ...(packet.projections.branches?.counterweights || [])
+          .slice(0, 2)
+          .map((line) => `branch_counterweight=${line}`),
+        ...(packet.projections.branches?.nextMoves || [])
+          .slice(0, 2)
+          .map((line) => `branch_next=${line}`),
+        ...(packet.projections.branches?.reasons || [])
+          .slice(0, 2)
+          .map((line) => `branch_reason=${line}`),
         '',
       ].filter(Boolean)
     : []
 
-  const whyLines = (packet.whyStack || []).slice(0, 3).map((line) => `- ${line}`)
+  const whyLines = (packet.whyStack || []).slice(0, 1).map((line) => `- ${line}`)
   const actionLines = packet.canonicalBrief
     ? [
         '[Action and Guardrails]',
@@ -1457,14 +1755,15 @@ export function formatCounselorEvidencePacket(
   const commonLines = [
     '[Counselor Evidence Packet v3 - Slim]',
     `focus_domain=${packet.focusDomain}`,
-    `graph_anchors=${packet.graphRagEvidenceSummary.totalAnchors}`,
-    `graph_sets=${packet.graphRagEvidenceSummary.totalSets}`,
+    `risk_axis=${packet.riskAxisLabel || 'none'}`,
+    `graph_anchors=${packet.graphRagEvidenceSummary?.totalAnchors ?? 0}`,
+    `graph_sets=${packet.graphRagEvidenceSummary?.totalSets ?? 0}`,
     `strategy=${strategyLabel}(${attackPercent}/${defensePercent})`,
     '',
     ...canonicalLines,
     ...arbitrationLines,
-    ...advisoryLines,
     ...timingLines,
+    ...timingMatrixLines,
     ...projectionLines,
     ...actionLines,
     '[Why Stack]',
@@ -1476,11 +1775,12 @@ export function formatCounselorEvidencePacket(
     return [
       ...commonLines,
       '[Response Contract]',
-      '- 첫 문단에서 질문에 직접 답하고, 바로 현재 국면을 단정형 문장으로 요약할 것.',
-      '- 둘째 문단에서는 structure와 timing을 함께 풀고, readiness/trigger/convergence 차이가 있으면 그 이유를 직접 설명할 것.',
-      '- 셋째 문단에서는 conflict와 action을 같이 다루고, 지금 해야 할 행동과 미뤄야 할 행동을 분리할 것.',
-      '- 마지막 문단에서는 risk와 recheck checklist를 제시하고, caution 신호가 있으면 irreversible 행동(서명, 확정, 발송, 결제)을 바로 밀지 말 것.',
-      '- projection summary와 projection reason을 우선 사용하고, 각 문단에 근거를 최소 1개씩 연결할 것.',
+      '- 첫 문단에서 질문에 직접 답하고, 현재 국면을 단정형 문장으로 바로 정리할 것.',
+      '- 둘째 문단에서는 구조와 타이밍을 함께 풀고, readiness/trigger/convergence 차이가 있으면 왜 그런지 직접 설명할 것.',
+      '- 셋째 문단에서는 충돌과 행동을 같이 다루고, 지금 해야 할 행동과 미뤄야 할 행동을 분리할 것.',
+      '- 가능하면 하나의 정답처럼 말하지 말고, branch_detail과 branch_next를 바탕으로 현실 경로 2~3개를 짧게 구분할 것.',
+      '- 마지막 문단에서는 리스크와 재확인 체크리스트를 제시하고, caution 신호가 있으면 irreversible 행동(서명, 확정, 발송, 결제)을 바로 밀지 말 것.',
+      '- projection summary는 fallback으로만 쓰고, detail/driver/counterweight/next와 reason을 우선 사용할 것.',
     ].join('\n')
   }
 
@@ -1490,6 +1790,7 @@ export function formatCounselorEvidencePacket(
     '- Open with a direct answer and a declarative read of the current phase.',
     '- In the second paragraph, explain structure and timing together, and explicitly name any readiness/trigger/convergence mismatch.',
     '- In the third paragraph, translate conflict into action: what to do now, what to delay, and why.',
+    '- When possible, do not present a single fixed destiny; use branch_detail and branch_next to distinguish 2-3 realistic paths.',
     '- End with risk and a recheck checklist; if caution signals exist, do not push irreversible actions (sign/finalize/send/pay) immediately.',
     '- Prefer projection summaries and projection reasons first, and attach at least one grounding item to every paragraph.',
   ].join('\n')

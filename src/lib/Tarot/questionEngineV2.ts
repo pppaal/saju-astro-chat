@@ -207,21 +207,74 @@ function expandColloquialQuestionVariants(question: string): string[] {
 
   const rewritten = trimmed
     .replace(/[걔얘쟤]/g, '그 사람')
+    .replace(/엑스/g, '전 연인')
     .replace(/남친/g, '남자친구')
     .replace(/여친/g, '여자친구')
+    .replace(/언팔/g, '언팔로우')
+    .replace(/프필|프사/g, '프로필')
+    .replace(/\bdm\b/gi, '메시지')
+    .replace(/디엠/g, '메시지')
     .replace(/속맘/g, '속마음')
     .replace(/\b맘\b/g, '마음')
+    .replace(/어떰|어땜|어떄/g, '어때')
     .replace(/어케|어캐|어떡해|우째/g, '어떻게')
     .replace(/머임|뭐임/g, '뭐야')
     .replace(/맞냐/g, '맞아')
     .replace(/있냐/g, '있어')
     .replace(/되냐/g, '될까')
+    .replace(/됨\?/g, '될까?')
+    .replace(/됨$/g, '될까')
     .replace(/재회각/g, '재회 가능성')
+    .replace(/이직각/g, '이직')
+    .replace(/퇴사각/g, '퇴사')
     .replace(/연락각/g, '연락 가능성')
+    .replace(/올각/g, '올 가능성')
+    .replace(/연락해오냐/g, '연락해 올까')
+    .replace(/연락오냐/g, '연락 올까')
     .replace(/읽씹/g, '읽고 답장하지 않음')
     .replace(/안읽씹/g, '읽지 않고 답장하지 않음')
     .replace(/차였/g, '헤어졌')
     .replace(/연락옴/g, '연락 올까')
+    .replace(/애프터 옴/g, '애프터 올까')
+    .replace(/연락함/g, '연락할까')
+    .replace(/다시옴/g, '다시 올까')
+    .replace(/좋아함/g, '좋아해')
+    .replace(/생각함/g, '생각해')
+    .replace(/맘정리함/g, '마음 정리했어')
+    .replace(/미련 남음/g, '미련 남아')
+    .replace(/마음 있냐/g, '마음 있어')
+    .replace(/볼수있음/g, '볼 수 있을까')
+    .replace(/만날수있나/g, '만날 수 있을까')
+    .replace(/붙냐/g, '붙을까')
+    .replace(/망함/g, '망할까')
+    .replace(/잘풀림/g, '잘 풀릴까')
+    .replace(/풀림\?/g, '풀릴까?')
+    .replace(/집사도/g, '집 사도')
+    .replace(/연락 박으면/g, '연락하면')
+    .replace(/들이대면/g, '다가가면')
+    .replace(/찾아가면/g, '내가 찾아가면')
+    .replace(/어케됨|어떻게됨/g, '반응 어떨까')
+    .replace(/의식함/g, '의식해')
+    .replace(/보냐/g, '볼까')
+    .replace(/체크하냐/g, '볼까')
+    .replace(/말 걸까/g, '먼저 말할까')
+    .replace(/염탐하냐/g, '몰래 볼까')
+    .replace(/신경쓰나/g, '신경쓸까')
+    .replace(/당하는중임/g, '당하는 중일까')
+    .replace(/썸붕/g, '썸이 끝난 상태')
+    .replace(/맞팔/g, '맞팔로우')
+    .replace(/찍은사람/g, '관심 있는 사람')
+    .replace(/찍었을까/g, '관심 있어할까')
+    .replace(/관심있는애/g, '관심 있는 사람')
+    .replace(/간보는건가/g, '간보는 걸까')
+    .replace(/재고있는건가/g, '재고 있는 걸까')
+    .replace(/어장관리하는거 맞음|어장인가/g, '어장관리하는 걸까')
+    .replace(/김치국마시는건가/g, '혼자 착각하는 걸까')
+    .replace(/기다리면 됨/g, '기다리면 될까')
+    .replace(/다녀도됨/g, '다녀도 될까')
+    .replace(/해도됨/g, '해도 될까')
+    .replace(/차단풀면/g, '차단 풀리면')
+    .replace(/들어옴/g, '들어올까')
     .replace(/옴\?/g, '올까?')
     .replace(/옴$/g, '올까')
     .replace(/함\?/g, '할까?')
@@ -283,7 +336,7 @@ function hasPattern(text: string, patterns: RegExp[]) {
 
 function hasRelationshipSignal(questionVariants: string[]) {
   const joined = questionVariants.join(' ').toLowerCase()
-  return /(우리\s*관계|결국\s*우리는|우리는\s*어떻게|관계|사이|연애|결혼|사귀|만나는\s*사람|썸|애인|남자친구|여자친구|남친|여친|배우자|소개팅|헤어진\s*사람|전\s*연인|전남친|전여친|커플|부부|relationship|dating|marriage|partner)/.test(
+  return /(우리\s*관계|결국\s*우리는|우리는\s*어떻게|관계|사이|연애|결혼|사귀|만나는\s*사람|썸|애인|남자친구|여자친구|남친|여친|배우자|소개팅|헤어진\s*사람|전\s*연인|전남친|전여친|커플|부부|인연|새\s*사람|싱글\s*탈출|팔로우|언팔로우|프로필|스토리|relationship|dating|marriage|partner)/.test(
     joined
   )
 }
@@ -319,12 +372,14 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
     .join(' || ')
 
   const reconciliationPatterns = [
-    /재회/,
-    /다시 만나/,
-    /돌아오/,
-    /복합/,
-    /헤어졌/,
-    /헤어진/,
+    /\uC7AC\uD68C/,
+    /\uB2E4\uC2DC\s*\uB9CC\uB098/,
+    /\uB2E4\uC2DC\s*\uC774\uC5B4\uC9C8/,
+    /\uC7AC\uC811\uCD09/,
+    /\uB3CC\uC544\uC624/,
+    /\uBCF5\uD569/,
+    /\uD5E4\uC5B4\uC84C/,
+    /\uD5E4\uC5B4\uC9C4/,
     /get back together/,
     /reconcil/,
     /come back/,
@@ -341,6 +396,17 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
     /어떻게 생각/,
     /좋아하/,
     /관심 있/,
+    /미련 남/,
+    /마음 정리했/,
+    /날 어떻게 보/,
+    /눈에 내가 어때/,
+    /의식해/,
+    /관심 있는 사람/,
+    /관심 있어할까/,
+    /간보는 걸까/,
+    /재고 있는 걸까/,
+    /어장관리하는 걸까/,
+    /혼자 착각하는 걸까/,
     /\uBBF8\uB828 \uC788/,
     /\uC228\uAE30\uB294 \uAC10\uC815/,
     /\uC2DD\uC740 \uAC78\uAE4C/,
@@ -363,6 +429,14 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
   ) {
     return 'inner_feelings'
   }
+  if (
+    hasStrongOtherSubjectSignal(questionVariants) &&
+    /(\uC88B\uC544\uD574\??|\uC88B\uC544\uD568\??|\uBBF8\uB828\s*\uB0A8|\uB0A0\s*\uC5B4\uB5BB\uAC8C\s*\uBCF4)/.test(
+      joined
+    )
+  ) {
+    return 'inner_feelings'
+  }
 
   const timingPatterns = [
     /언제/,
@@ -378,6 +452,26 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
   if (hasPattern(joined, timingPatterns)) {
     return 'timing'
   }
+  if (
+    /(\uB2E4\uC2DC\s*\uB9CC\uB0A0|\uB2E4\uC2DC\s*\uC62C\uAE4C|\uC7AC\uD68C|\uB3CC\uC544\uC62C|\uC7AC\uC811\uCD09)/.test(joined) &&
+    /(\uADF8\s*\uC0AC\uB78C|\uC0C1\uB300|\uD5E4\uC5B4\uC9C4\s*\uC0AC\uB78C|\uC804\s*\uC5F0\uC778|\uC804\uB0A8\uCE5C|\uC804\uC5EC\uCE5C|partner|ex)/.test(joined)
+  ) {
+    return 'reconciliation'
+  }
+  if (/(\uCC28\uB2E8\s*\uD480\uB9AC\uBA74.*\uB2E4\uC2DC\s*\uC62C\uAE4C)/.test(joined)) {
+    return 'reconciliation'
+  }
+  if (/(\uC6B0\uB9AC\s*\uB2E4\uC2DC\s*\uB420\uAE4C|\uC6B0\uB9AC\s*\uB2E4\uC2DC\s*\uB418\uB0D0)/.test(joined)) {
+    return 'reconciliation'
+  }
+  if (
+    /(\uC378.*\uB2E4\uC2DC\s*\uBD99\uC744\uAE4C|\uC378\uC774\s*\uB05D\uB09C\s*\uC0C1\uD0DC.*\uB2E4\uC2DC\s*\uBD99\uC744\uAE4C|\uC77D\uC539.*\uB2E4\uC2DC\s*\uC62C\uAE4C|\uC77D\uACE0\s*\uB2F5\uC7A5\uD558\uC9C0\s*\uC54A\uC74C.*\uB2E4\uC2DC\s*\uC62C\uAE4C)/.test(
+      joined
+    )
+  ) {
+    return 'reconciliation'
+  }
+
 
   const otherSubjectPatterns = [
     /그 사람|그사람|상대(방)?|그분|그녀|그가|걔|얘|전남친|전여친/,
@@ -393,12 +487,16 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
   const hasOtherSubject =
     hasPattern(joined, otherSubjectPatterns) || hasPattern(joined, namedOtherSubjectPatterns)
   const implicitCounterpartyResponseCuePatterns = [
-    /(반응이\s*어떨까|반응은\s*어떨까|받아줄까|어떻게\s*받아들일까)/,
-    /(무슨\s*말|뭐라(고)?\s*할까|어떻게\s*말할까|생각\s*바꿀까)/,
+    /(반응이\s*어떨까|반응은\s*어떨까|반응\s*어때|받아줄까|어떻게\s*받아들일까|차단\s*풀릴까)/,
+    /(무슨\s*말|뭐라(고)?\s*할까|어떻게\s*말할까|먼저\s*말할까|생각\s*바꿀까)/,
+    /(신경\s*쓸까|부담스러워할까|차단할까)/,
     /(다시\s*찾아올|다시\s*올까|돌아올)/,
     /what will .* say|how will .* react|take me back|come back/,
   ]
   const implicitCounterpartyTriggerPatterns = [/(사과하면|고백하면|내가\s*움직이면|내가\s*먼저)/]
+  const expandedCounterpartyTriggerPatterns = [
+    /(사과하면|고백하면|호감표시하면|내가\s*움직이면|내가\s*먼저|연락하면|다가가면|내가\s*찾아가면|팔로우\s*끊으면|맞팔로우\s*끊으면|스토리\s*숨기면|프로필\s*바꾸면)/,
+  ]
 
   const meetingLikelihoodPatterns = [
     /만날까|만날 수|만날 가능/,
@@ -412,7 +510,10 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
     return 'meeting_likelihood'
   }
 
-  if (/(\uC5F0\uB77D\s*\uC62C\uAE4C|\uC911\uC694\uD55C\s*\uC5F0\uB77D)/.test(joined)) {
+  if (/(\uC5F0\uB77D\s*\uC62C\uAE4C|\uC911\uC694\uD55C\s*\uC5F0\uB77D|\uC560\ud504\ud130\s*\uC62C\uAE4C)/.test(joined)) {
+    return 'meeting_likelihood'
+  }
+  if (/(\uCC28\uB2E8\s*\uD480\uB9AC\uBA74.*\uC5F0\uB77D\ud560\uAE4C)/.test(joined)) {
     return 'meeting_likelihood'
   }
 
@@ -427,7 +528,7 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
   if (
     (hasRelationshipSignal(questionVariants) &&
       hasPattern(joined, implicitCounterpartyResponseCuePatterns)) ||
-    (hasPattern(joined, implicitCounterpartyTriggerPatterns) &&
+    (hasPattern(joined, expandedCounterpartyTriggerPatterns) &&
       hasPattern(joined, implicitCounterpartyResponseCuePatterns))
   ) {
     return 'other_person_response'
@@ -439,8 +540,69 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
   ) {
     return 'other_person_response'
   }
+  if (/(\uB0B4\uAC00\s*\uCC3E\uC544\uAC00\uBA74.*\uBC18\uC751\s*\uC5B4\uB5A8\uAE4C)/.test(joined)) {
+    return 'other_person_response'
+  }
   if (hasOtherSubject && hasPattern(joined, otherResponsePatterns)) {
     return 'other_person_response'
+  }
+  if (
+    hasOtherSubject &&
+    /(\uC5F0\uB77D\s*\uC62C\uAE4C|\uC5F0\uB77D\ud574\s*\uC62C\uAE4C|\uC560\ud504\ud130\s*\uC62C\uAE4C)/.test(
+      joined
+    )
+  ) {
+    return 'meeting_likelihood'
+  }
+  if (
+    hasOtherSubject &&
+    /(\uD504\uB85C\uD544\s*\uBCFC\uAE4C|\uC2A4\uD1A0\uB9AC\s*\uBCFC\uAE4C|\uCC28\uB2E8\s*\uD480\uB9B4\uAE4C|\uB2E4\uC2DC\s*\uB9D0\ud560\uAE4C)/.test(
+      joined
+    )
+  ) {
+    return 'other_person_response'
+  }
+  if (
+    /(\uC2A4\uD1A0\uB9AC\s*\uC62C\uB9AC\uBA74\s*\uBCFC\uAE4C|\uB0B4\uAC00\s*\uD504\uB85C\uD544\s*\uBC14\uAFB8\uBA74\s*\uBCFC\uAE4C|\uB0B4\s*\uD504\uB85C\uD544\s*\uBCFC\uAE4C)/.test(
+      joined
+    )
+  ) {
+    return 'other_person_response'
+  }
+  if (
+    /(\uC5B8\uD314\uB85C\uC6B0.*\uBCFC\uAE4C|\uD314\uB85C\uC6B0\s*\uB04A\uC73C\uBA74.*\uBC18\uC751\s*(\uC5B4\uB5A8\uAE4C|\uC5B4\uB54C)|\uC2A4\uD1A0\uB9AC.*(\uC5FC\uD0D0|\uBAB0\uB798\s*\uBCFC\uAE4C))/.test(
+      joined
+    )
+  ) {
+    return 'other_person_response'
+  }
+  if (
+    /(\uC5B8\uD314\uB85C\uC6B0.*\uC2E0\uACBD\s*\uC4F8\uAE4C|\uB9DE\uD314\uB85C\uC6B0\s*\uB04A\uC73C\uBA74.*\uBC18\uC751\s*(\uC5B4\uB5A8\uAE4C|\uC5B4\uB54C)|\uD504\uB85C\uD544\s*\uBC14\uAFB8\uBA74.*\uC2E0\uACBD\s*\uC4F8\uAE4C|\uC2A4\uD1A0\uB9AC\s*\uC228\uAE30\uBA74.*\uBC18\uC751\ud560\uAE4C|\uADF8\s*\uC0AC\uB78C\s*\uB098\s*\uCC28\uB2E8\ud560\uAE4C|\uD638\uAC10\uD45C\uC2DC\ud558\uBA74.*\uBD80\uB2F4\uC2A4\uB7EC\uC6CC\ud560\uAE4C)/.test(
+      joined
+    )
+  ) {
+    return 'other_person_response'
+  }
+  if (
+    hasOtherSubject &&
+    /(\uC0DD\uAC01\ud574\??|\uB9C8\uC74C\s*\uC788\uC5B4\??|\uC0DD\uAC01\s*\uC5C6\uC5B4\??)/.test(
+      joined
+    )
+  ) {
+    return 'inner_feelings'
+  }
+  if (/(\uBA54\uC2DC\uC9C0.*\uBCF4\uBA74.*\uBB50\uB77C\s*\uC0DD\uAC01\ud560\uAE4C)/.test(joined)) {
+    return 'inner_feelings'
+  }
+  if (
+    /(\uAD00\uC2EC\s*\uC788\uB294\s*\uC0AC\uB78C\s*\uC788\uC5B4\??|\uAD00\uC2EC\s*\uC788\uC5B4\ud560\uae4c|\uB208\uC5D0\s*\uB0B4\uAC00\s*\uC5B4\uB54C|\uC758\uC2DD\ud574\??)/.test(
+      joined
+    )
+  ) {
+    return 'inner_feelings'
+  }
+  if (/(\uC5B4\uC7A5\s*\uB2F9\uD558\uB294\s*\uC911\uC77C\uAE4C|\uC5B4\uC7A5\s*\uB2F9\uD558\uB294\uC911\uC784)/.test(joined)) {
+    return 'inner_feelings'
   }
 
   const selfDecisionPatterns = [
@@ -449,11 +611,25 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
     /thinking about/,
     /not sure if i should/,
   ]
+  if (
+    /(\uBA74\uC811.*\uB9DD\ud560\uAE4C|\uC2DC\uD5D8.*\uB9DD\ud560\uAE4C|\uD569\uACA9.*\uB5A8\uC5B4\uC9C8\uAE4C)/.test(
+      joined
+    )
+  ) {
+    return 'near_term_outcome'
+  }
   if (hasSelfDecisionSignal(questionVariants) || hasPattern(joined, selfDecisionPatterns)) {
     return 'self_decision'
   }
   if (
     /((집|이사|연애|공부|관계|회사|직장)?\s*사는\s*게\s*맞아|(집|이사|연애|공부|관계|회사|직장)?\s*사는\s*게\s*맞을까|기다리는\s*게\s*맞을까|공부\s*방향\s*맞아|연애\s*시작할까|시작해도\s*될까)/.test(
+      joined
+    )
+  ) {
+    return 'self_decision'
+  }
+  if (
+    /(\uB2E4\uB140\uB3C4\s*\uB420\uAE4C|\uC9D1\s*\uC0AC\uB3C4\s*\uB420\uAE4C|\uAE30\uB2E4\uB9AC\uBA74\s*\uB420\uAE4C)/.test(
       joined
     )
   ) {
@@ -467,8 +643,18 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
   ) {
     return 'self_decision'
   }
+  if (/(\uACE0\uBC31\s*\uD574\uB3C4\s*\uB420\uAE4C|\uACE0\uBC31\s*\uBC15\uC544\uB3C4\s*\uB420\uAE4C)/.test(joined)) {
+    return 'self_decision'
+  }
   if (
     /(\uC9C1\uC7A5\s*\uC62E\uAE30\uBA74|\uC774\uC9C1\uD574\uB3C4|\uC62E\uAE30\uBA74\s*\uB098\uC744\uAE4C)/.test(
+      joined
+    )
+  ) {
+    return 'self_decision'
+  }
+  if (
+    /(\uD1F4\uC0AC(\s|\S)*\uB420\uAE4C|\uD1F4\uC0AC\s*\uD574\uB3C4\s*\uB420\uAE4C|\uD1F4\uC0AC\s*\uC7AC\uB3C4\s*\uB420\uAE4C)/.test(
       joined
     )
   ) {
@@ -485,6 +671,9 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
   if (hasPattern(joined, nearTermOutcomePatterns)) {
     return 'near_term_outcome'
   }
+  if (/(\uC6B0\uB9AC\s*\uB2E4\uC2DC\s*\uB418\uB0D0|\uC6B0\uB9AC\s*\uB2E4\uC2DC\s*\uB420\uAE4C)/.test(joined)) {
+    return 'reconciliation'
+  }
 
   const broadFlowPatterns = [
     /(\uD750\uB984|\uC804\uCCB4\s*\uD750\uB984|\uD070\s*\uD750\uB984|\uAD6D\uBA74|\uBC29\uD5A5)/,
@@ -493,6 +682,13 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
     /overall flow|big picture|current flow|direction/,
   ]
   if (hasPattern(joined, broadFlowPatterns)) {
+    return 'unknown'
+  }
+  if (
+    /(\uB204\uAC00\s*\uB0B4\uAC8C\s*\uC62C\uAE4C|\uB0B4\uAC8C\s*\uB204\uAC00\s*\uB4E4\uC5B4\uC62C\uAE4C|\uC0C8\s*\uC0AC\uB78C\s*\uB4E4\uC5B4\uC62C\uAE4C|\uB0B4\s*\uC778\uC5F0\s*\uC5B4\uB290\s*\uCABD\uC5D0\uC11C\s*\uC62C\uAE4C)/.test(
+      joined
+    )
+  ) {
     return 'unknown'
   }
 
@@ -999,6 +1195,9 @@ function chooseIntentStableSpread(
   if (intent.questionType === 'timing') {
     stableCandidates.push({ themeId: 'decisions-crossroads', spreadId: 'timing-window' })
   }
+  if (intent.questionType === 'meeting_likelihood') {
+    stableCandidates.push({ themeId: 'decisions-crossroads', spreadId: 'yes-no-why' })
+  }
   if (intent.questionType === 'reconciliation') {
     stableCandidates.push({ themeId: 'love-relationships', spreadId: 'reconciliation' })
   }
@@ -1014,6 +1213,12 @@ function chooseIntentStableSpread(
   if (intent.subject === 'relationship') {
     stableCandidates.push({ themeId: 'love-relationships', spreadId: 'relationship-check-in' })
   }
+  if (
+    (intent.tone === 'flow' || intent.questionType === 'unknown') &&
+    /(누가\s*내게\s*올까|내게\s*누가\s*들어올까|새\s*사람\s*들어올까|인연)/i.test(question)
+  ) {
+    stableCandidates.push({ themeId: 'love-relationships', spreadId: 'relationship-check-in' })
+  }
   if ((intent.tone === 'flow' || intent.questionType === 'unknown') && isCareerQuestion(question)) {
     stableCandidates.push({ themeId: 'career-work', spreadId: 'career-path' })
   }
@@ -1027,9 +1232,6 @@ function chooseIntentStableSpread(
   }
   if (intent.tone === 'flow' || intent.timeframe === 'current_phase') {
     stableCandidates.push({ themeId: 'general-insight', spreadId: 'past-present-future' })
-  }
-  if (intent.questionType === 'meeting_likelihood') {
-    stableCandidates.push({ themeId: 'decisions-crossroads', spreadId: 'yes-no-why' })
   }
   if (
     intent.subject === 'external_situation' &&
@@ -1240,6 +1442,16 @@ function chooseResolvedIntent(
     return heuristicIntent
   }
   if (
+    heuristicIntent.questionType === 'unknown' &&
+    heuristicIntent.tone === 'flow' &&
+    heuristicIntent.subject === 'relationship' &&
+    (llmIntent.questionType === 'other_person_response' ||
+      llmIntent.questionType === 'meeting_likelihood' ||
+      llmIntent.questionType === 'inner_feelings')
+  ) {
+    return heuristicIntent
+  }
+  if (
     heuristicIntent.questionType === 'self_decision' &&
     llmIntent.questionType === 'near_term_outcome'
   ) {
@@ -1300,7 +1512,14 @@ function shouldPreferHeuristicSpread(
   heuristicSpread: SpreadOption,
   llmSpread: SpreadOption
 ) {
-  if (heuristicIntent.questionType === 'unknown') {
+  if (
+    heuristicIntent.questionType === 'unknown' &&
+    !(
+      heuristicIntent.tone === 'flow' &&
+      heuristicIntent.subject === 'relationship' &&
+      heuristicSpread.id === 'relationship-check-in'
+    )
+  ) {
     return false
   }
 
@@ -1345,6 +1564,16 @@ function shouldPreferHeuristicSpread(
     heuristicIntent.questionType === 'near_term_outcome' &&
     heuristicSpread.id === 'relationship-cross' &&
     llmSpread.themeId === 'decisions-crossroads'
+  ) {
+    return true
+  }
+
+  if (
+    heuristicIntent.questionType === 'unknown' &&
+    heuristicIntent.tone === 'flow' &&
+    heuristicIntent.subject === 'relationship' &&
+    heuristicSpread.id === 'relationship-check-in' &&
+    llmSpread.id !== 'relationship-check-in'
   ) {
     return true
   }

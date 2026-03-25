@@ -43,6 +43,10 @@ export interface AIPremiumReport {
       headline: string
       summary: string
       topAxes: string[]
+      detailLines?: string[]
+      drivers?: string[]
+      counterweights?: string[]
+      nextMoves?: string[]
     }
     timing: {
       headline: string
@@ -50,26 +54,57 @@ export interface AIPremiumReport {
       window?: string
       granularity?: string
       reliabilityBand?: string
+      detailLines?: string[]
+      drivers?: string[]
+      counterweights?: string[]
+      nextMoves?: string[]
     }
     conflict: {
       headline: string
       summary: string
       reasons: string[]
+      detailLines?: string[]
+      drivers?: string[]
+      counterweights?: string[]
+      nextMoves?: string[]
     }
     action: {
       headline: string
       summary: string
       reasons: string[]
+      detailLines?: string[]
+      drivers?: string[]
+      counterweights?: string[]
+      nextMoves?: string[]
     }
     risk: {
       headline: string
       summary: string
       reasons: string[]
+      detailLines?: string[]
+      drivers?: string[]
+      counterweights?: string[]
+      nextMoves?: string[]
     }
     evidence: {
       headline: string
       summary: string
       reasons: string[]
+      detailLines?: string[]
+      drivers?: string[]
+      counterweights?: string[]
+      nextMoves?: string[]
+    }
+    branches: {
+      headline: string
+      summary: string
+      reasons: string[]
+      detailLines?: string[]
+      drivers?: string[]
+      counterweights?: string[]
+      nextMoves?: string[]
+      window?: string
+      granularity?: string
     }
   }
   reportMeta: UnifiedReportMeta

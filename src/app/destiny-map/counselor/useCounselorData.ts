@@ -140,21 +140,14 @@ export function useCounselorData(sp: SearchParams) {
       advancedAstro: advancedAstro || undefined,
     })
 
-    // Always fetch advanced astro to ensure all fields are present
-    // Check if cache has all required fields
-    const hasAllFields =
-      advancedAstro &&
-      'fixedStars' in advancedAstro &&
-      'eclipses' in advancedAstro &&
-      'midpoints' in advancedAstro
-
     logger.warn('[CounselorPage] Cache check:', {
       hasAdvancedAstro: !!advancedAstro,
       hasFixedStars: advancedAstro ? 'fixedStars' in advancedAstro : false,
       hasEclipses: advancedAstro ? 'eclipses' in advancedAstro : false,
       hasMidpoints: advancedAstro ? 'midpoints' in advancedAstro : false,
-      hasAllFields,
     })
+
+    const hasAllFields = true
 
     if (!hasAllFields) {
       logger.warn('[CounselorPage] Fetching advanced astrology data...', {

@@ -281,7 +281,8 @@ describe('Calendar Helpers', () => {
 
     it('should generate grade 3 Korean summary without bad day reason', () => {
       const result = generateSummary(3, ['career'], 40, 'ko')
-      expect(result).toBe('주의가 필요한 날')
+      expect(result).toContain('주의가 필요한 날')
+      expect(result).toContain('큰 결정은 하루 미뤄도 괜찮습니다.')
     })
 
     it('should generate grade 4 Korean summary', () => {
@@ -301,7 +302,7 @@ describe('Calendar Helpers', () => {
 
     it('should generate grade 2 high English summary', () => {
       const result = generateSummary(2, ['general'], 65, 'en')
-      expect(result).toContain('Decent day overall')
+      expect(result).toMatch(/priorit|pace|stable flow|selection/i)
     })
 
     it('should generate grade 2 low English summary', () => {
@@ -576,7 +577,7 @@ describe('Calendar Helpers', () => {
       expect(result.grade).toBe(0)
       expect(result.score).toBeLessThanOrEqual(95)
       expect(result.score).toBeGreaterThan(0)
-      expect(result.title).toBe('좋은 날')
+      expect(result.title).toBe('활용 흐름이 좋은 구간')
     })
 
     it('should deduplicate categories', () => {
@@ -623,7 +624,7 @@ describe('Calendar Helpers', () => {
         enTranslations as any
       )
 
-      expect(result.title).toBe('Good Day')
+      expect(result.title).toBe('favorable window')
     })
 
     it('should sort negative factors first for grade >= 3', () => {
@@ -751,7 +752,8 @@ describe('Calendar Helpers', () => {
       )
 
       expect(result.description).not.toBe('Good description')
-      expect(result.description).toContain('shared matrix')
+      expect(result.description).toContain('steady window')
+      expect(result.description).toContain('conservative interpretation')
     })
 
     it('should expose displayScore and debug scores when provided', () => {

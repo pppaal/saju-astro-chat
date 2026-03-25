@@ -45,6 +45,73 @@ function round2(value: number): number {
   return Math.round(value * 100) / 100
 }
 
+function localizeCanonicalDomain(domain: SignalDomain): string {
+  switch (domain) {
+    case 'career':
+      return '커리어'
+    case 'relationship':
+      return '관계'
+    case 'wealth':
+      return '재정'
+    case 'health':
+      return '건강'
+    case 'move':
+      return '이동'
+    case 'personality':
+    default:
+      return '성향'
+  }
+}
+
+function localizeCanonicalPhase(phase: string | null | undefined): string {
+  switch (phase) {
+    case 'expansion':
+      return '확장 국면'
+    case 'stabilize':
+      return '안정화 국면'
+    case 'expansion_guarded':
+      return '확장 관리 국면'
+    case 'defensive_reset':
+      return '방어적 재정비 국면'
+    default:
+      return phase || '현재 국면'
+  }
+}
+
+function localizeCanonicalMode(mode: 'execute' | 'verify' | 'prepare'): string {
+  switch (mode) {
+    case 'execute':
+      return '실행 우선'
+    case 'prepare':
+      return '준비 우선'
+    case 'verify':
+    default:
+      return '검토 우선'
+  }
+}
+
+function localizePatternFamily(family: string | null | undefined): string {
+  switch (family) {
+    case 'career':
+      return '커리어 흐름'
+    case 'relationship':
+      return '관계 흐름'
+    case 'wealth':
+      return '재정 흐름'
+    case 'health':
+      return '건강 흐름'
+    case 'move':
+      return '이동 흐름'
+    case 'timing':
+      return '타이밍 흐름'
+    case 'personality':
+      return '성향 흐름'
+    case 'core':
+    default:
+      return '핵심 패턴'
+  }
+}
+
 function pickTopBreakdownLabels(
   breakdown: Record<string, number>,
   labels: Record<string, string>
@@ -1692,8 +1759,8 @@ function buildDomainVerdicts(input: {
 
     const rationale =
       input.lang === 'ko'
-        ? `${lead.domain} 영역은 ${lead.phase} 국면이며, ${leadPattern?.family || 'core'} 패턴 계열이 주도합니다. 도메인 규칙상 현재 모드는 ${mode}로 정리됩니다.`
-        : `${lead.domain} is in ${lead.phase} phase, led by the ${leadPattern?.family || 'core'} pattern family. Domain arbitration resolves the current mode as ${mode}.`
+        ? `${localizeCanonicalDomain(lead.domain)} 영역은 ${localizeCanonicalPhase(lead.phase)}이며, ${localizePatternFamily(leadPattern?.family)}이 중심을 잡고 있습니다. 현재 판단은 ${localizeCanonicalMode(mode)} 쪽으로 정리됩니다.`
+        : `${lead.domain} is in ${lead.phase} phase, led by the ${leadPattern?.family || 'core'} pattern family. The current judgment resolves toward ${mode}.`
 
     return {
       domain: lead.domain,

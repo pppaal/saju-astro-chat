@@ -1,4 +1,4 @@
-import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
+﻿import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
 import type {
   BuildCoreCanonicalOutputInput,
   CoreActivationSource,
@@ -20,25 +20,93 @@ function round2(value: number): number {
   return Math.round(value * 100) / 100
 }
 
+function localizeManifestationDomain(domain: string): string {
+  switch (domain) {
+    case 'career':
+      return '\ucee4\ub9ac\uc5b4'
+    case 'relationship':
+      return '\uad00\uacc4'
+    case 'wealth':
+      return '\uc7ac\uc815'
+    case 'health':
+      return '\uac74\uac15'
+    case 'move':
+      return '\uc774\ub3d9'
+    case 'timing':
+      return '\ud0c0\uc774\ubc0d'
+    case 'personality':
+    default:
+      return '\uc131\ud5a5'
+  }
+}
+function localizeManifestationWindow(window: string): string {
+  switch (window) {
+    case 'now':
+      return '\uc9c0\uae08'
+    case '1-3m':
+      return '1~3\uac1c\uc6d4'
+    case '3-6m':
+      return '3~6\uac1c\uc6d4'
+    case '6-12m':
+      return '6~12\uac1c\uc6d4'
+    case '12m+':
+      return '1\ub144 \uc774\uc0c1'
+    default:
+      return window
+  }
+}
+function localizeManifestationMode(mode: string | null | undefined): string {
+  switch (mode) {
+    case 'execute':
+      return '\uc2e4\ud589 \ubaa8\ub4dc'
+    case 'prepare':
+      return '\uc900\ube44 \ubaa8\ub4dc'
+    case 'verify':
+    default:
+      return '\uac80\uc99d \ubaa8\ub4dc'
+  }
+}
+function localizePatternFamily(family: string | null | undefined): string {
+  switch (family) {
+    case 'career':
+      return '\ucee4\ub9ac\uc5b4 \uacc4\uc5f4'
+    case 'relationship':
+      return '\uad00\uacc4 \uacc4\uc5f4'
+    case 'wealth':
+      return '\uc7ac\uc815 \uacc4\uc5f4'
+    case 'health':
+      return '\uac74\uac15 \uacc4\uc5f4'
+    case 'move':
+      return '\uc774\ub3d9 \uacc4\uc5f4'
+    case 'timing':
+      return '\ud0c0\uc774\ubc0d \uacc4\uc5f4'
+    case 'personality':
+      return '\uc131\ud5a5 \uacc4\uc5f4'
+    case 'core':
+    default:
+      return '\ud575\uc2ec \uacc4\uc5f4'
+  }
+}
+
 function normalizeKoreanish(value: string): string {
   const raw = String(value || '').toLowerCase()
-  if (/imgwan|임관/.test(raw)) return '임관'
-  if (/jewang|제왕/.test(raw)) return '제왕'
-  if (/geonrok|건록/.test(raw)) return '건록'
-  if (/gwandae|관대/.test(raw)) return '관대'
-  if (/jangsaeng|장생/.test(raw)) return '장생'
-  if (/yang|양/.test(raw)) return '양'
-  if (/tae|태/.test(raw)) return '태'
-  if (/byeong|병/.test(raw)) return '병'
-  if (/soe|쇠/.test(raw)) return '쇠'
-  if (/jeol|절/.test(raw)) return '절'
-  if (/myo|묘/.test(raw)) return '묘'
-  if (/sa$|사/.test(raw)) return '사'
-  if (/목|wood/.test(raw)) return '목'
-  if (/화|fire/.test(raw)) return '화'
-  if (/토|earth/.test(raw)) return '토'
-  if (/금|metal/.test(raw)) return '금'
-  if (/수|water/.test(raw)) return '수'
+  if (/imgwan|\uc784\uad00/.test(raw)) return '\uc784\uad00'
+  if (/jewang|\uc81c\uc655/.test(raw)) return '\uc81c\uc655'
+  if (/geonrok|\uac74\ub85d/.test(raw)) return '\uac74\ub85d'
+  if (/gwandae|\uad00\ub300/.test(raw)) return '\uad00\ub300'
+  if (/jangsaeng|\uc7a5\uc0dd/.test(raw)) return '\uc7a5\uc0dd'
+  if (/yang|\uc591/.test(raw)) return '\uc591'
+  if (/tae|\ud0dc/.test(raw)) return '\ud0dc'
+  if (/byeong|\ubcd1/.test(raw)) return '\ubcd1'
+  if (/soe|\uc1e0/.test(raw)) return '\uc1e0'
+  if (/jeol|\uc808/.test(raw)) return '\uc808'
+  if (/myo|\ubb18/.test(raw)) return '\ubb18'
+  if (/sa$|\uc0ac/.test(raw)) return '\uc0ac'
+  if (/\ubaa9|wood/.test(raw)) return '\ubaa9'
+  if (/\ud654|fire/.test(raw)) return '\ud654'
+  if (/\ud1a0|earth/.test(raw)) return '\ud1a0'
+  if (/\uae08|metal/.test(raw)) return '\uae08'
+  if (/\uc218|water/.test(raw)) return '\uc218'
   return String(value || '')
 }
 
@@ -74,61 +142,61 @@ function buildStructuralNotes(domain: string, matrixInput: MatrixCalculationInpu
   const risk: string[] = []
 
   if (pillar.dominantCount >= 2) {
-    if (pillar.dominantElement === '금' && ['career', 'personality', 'wealth'].includes(domain)) {
+    if (pillar.dominantElement === '\uae08' && ['career', 'personality', 'wealth'].includes(domain)) {
       baseline.push(
         lang === 'ko'
-          ? '기본 구조에서 검토와 정밀 조정 성향이 강합니다.'
+          ? '\uae30\ubcf8 \uad6c\uc870\uc5d0\uc11c \uac80\ud1a0\uc640 \uc815\ubc00 \uc870\uc815 \uc131\ud5a5\uc774 \uac15\ud569\ub2c8\ub2e4.'
           : 'The baseline structure favors precision, filtering, and verification.'
       )
-      likely.push(lang === 'ko' ? '기준 정리 후 실행' : 'execute after criteria-setting')
+      likely.push(lang === 'ko' ? '\uae30\uc900 \uc815\ub9ac \ud6c4 \uc2e4\ud589' : 'execute after criteria-setting')
     }
-    if (pillar.dominantElement === '목' && ['career', 'move', 'relationship'].includes(domain)) {
+    if (pillar.dominantElement === '\ubaa9' && ['career', 'move', 'relationship'].includes(domain)) {
       baseline.push(
         lang === 'ko'
-          ? '기본 구조에서 확장과 연결을 먼저 여는 경향이 강합니다.'
+          ? '\uae30\ubcf8 \uad6c\uc870\uc5d0\uc11c \ud655\uc7a5\uacfc \uc5f0\uacb0\uc744 \uba3c\uc800 \uc5ec\ub294 \uacbd\ud5a5\uc774 \uac15\ud569\ub2c8\ub2e4.'
           : 'The baseline structure opens through growth and connection first.'
       )
-      likely.push(lang === 'ko' ? '새 연결 또는 새 판 열기' : 'open a new lane or connection')
+      likely.push(lang === 'ko' ? '\uc0c8 \uc5f0\uacb0 \ub610\ub294 \uc0c8 \ud310 \uc5f4\uae30' : 'open a new lane or connection')
     }
-    if (pillar.dominantElement === '토' && ['wealth', 'career', 'health'].includes(domain)) {
+    if (pillar.dominantElement === '\ud1a0' && ['wealth', 'career', 'health'].includes(domain)) {
       baseline.push(
         lang === 'ko'
-          ? '기본 구조에서 기반 정비와 누적 운영이 우선됩니다.'
+          ? '\uae30\ubcf8 \uad6c\uc870\uc5d0\uc11c \uae30\ubc18 \uc815\ube44\uc640 \ub204\uc801 \uc6b4\uc601\uc774 \uc6b0\uc120\ub429\ub2c8\ub2e4.'
           : 'The baseline structure prefers foundation-building and accumulation.'
       )
-      likely.push(lang === 'ko' ? '기반 정비 후 확장' : 'expand after base-building')
+      likely.push(lang === 'ko' ? '\uae30\ubc18 \uc815\ube44 \ud6c4 \ud655\uc7a5' : 'expand after base-building')
     }
-    if (pillar.dominantElement === '수' && ['health', 'spirituality', 'relationship'].includes(domain)) {
+    if (pillar.dominantElement === '\uc218' && ['health', 'spirituality', 'relationship'].includes(domain)) {
       baseline.push(
         lang === 'ko'
-          ? '기본 구조에서 회복과 감정 순환을 먼저 살피는 편입니다.'
+          ? '\uae30\ubcf8 \uad6c\uc870\uc5d0\uc11c \ud68c\ubcf5\uacfc \uac10\uc815 \uc21c\ud658\uc744 \uba3c\uc800 \uc0b4\ud53c\ub294 \ud3b8\uc785\ub2c8\ub2e4.'
           : 'The baseline structure checks recovery and emotional flow first.'
       )
-      likely.push(lang === 'ko' ? '회복 후 재개' : 'resume after recovery')
+      likely.push(lang === 'ko' ? '\ud68c\ubcf5 \ud6c4 \uc7ac\uac1c' : 'resume after recovery')
     }
   }
 
   if (stage.leadStage) {
-    if (['임관', '제왕', '건록', '관대', '양'].includes(stage.leadStage) && ['career', 'timing', 'personality'].includes(domain)) {
+    if (['\uc784\uad00', '\uc81c\uc655', '\uac74\ub85d', '\uad00\ub300', '\uc591'].includes(stage.leadStage) && ['career', 'timing', 'personality'].includes(domain)) {
       baseline.push(
         lang === 'ko'
-          ? `${stage.leadStage} 성향이 강해 역할과 존재감이 앞에 서는 구조입니다.`
+          ? `${stage.leadStage} \uc131\ud5a5\uc774 \uac15\ud574 \uc5ed\ud560\uacfc \uc874\uc7ac\uac10\uc774 \uc55e\uc5d0 \uc11c\ub294 \uad6c\uc870\uc785\ub2c8\ub2e4.`
           : `A ${stage.leadStage} stage signature makes role and presence more outward-facing.`
       )
-      likely.push(lang === 'ko' ? '공적 역할 확대' : 'public role expansion')
+      likely.push(lang === 'ko' ? '\uacf5\uc801 \uc5ed\ud560 \ud655\ub300' : 'public role expansion')
     }
-    if (['병', '쇠', '절', '사', '묘'].includes(stage.leadStage) && ['health', 'relationship', 'timing'].includes(domain)) {
+    if (['\ubcd1', '\uc1e0', '\uc808', '\uc0ac', '\ubb18'].includes(stage.leadStage) && ['health', 'relationship', 'timing'].includes(domain)) {
       baseline.push(
         lang === 'ko'
-          ? `${stage.leadStage} 성향이 강해 속도보다 회복과 거리 조절이 중요합니다.`
+          ? `${stage.leadStage} \uc131\ud5a5\uc774 \uac15\ud574 \uc18d\ub3c4\ubcf4\ub2e4 \ud68c\ubcf5\uacfc \uac70\ub9ac \uc870\uc808\uc774 \uc911\uc694\ud569\ub2c8\ub2e4.`
           : `A ${stage.leadStage} stage signature makes recovery and pacing more important than speed.`
       )
-      risk.push(lang === 'ko' ? '무리한 밀어붙이기' : 'overpushing before readiness')
+      risk.push(lang === 'ko' ? '\ubb34\ub9ac\ud55c \ubc00\uc5b4\ubd99\uc774\uae30' : 'overpushing before readiness')
     }
-    if (['장생', '태', '양'].includes(stage.leadStage) && ['health', 'move', 'relationship'].includes(domain)) {
+    if (['\uc7a5\uc0dd', '\ud0dc', '\uc591'].includes(stage.leadStage) && ['health', 'move', 'relationship'].includes(domain)) {
       likely.push(
         lang === 'ko'
-          ? '재정비 뒤 다시 살아나는 흐름'
+          ? '\uc7ac\uc815\ube44 \ub4a4 \ub2e4\uc2dc \uc0b4\uc544\ub098\ub294 \ud750\ub984'
           : 'renewal after recalibration'
       )
     }
@@ -152,7 +220,7 @@ function buildActivationSources(
       intensity: 0.95,
       label:
         input.lang === 'ko'
-          ? '타고난 기본 구조'
+          ? '\ud0c0\uace0\ub09c \uae30\ubcf8 \uad6c\uc870'
           : 'Natal baseline structure',
       evidenceIds: ['natal:baseline'],
     },
@@ -163,8 +231,8 @@ function buildActivationSources(
       label:
         input.lang === 'ko'
           ? matrixInput?.currentDaeunElement
-            ? `대운 활성 (${matrixInput.currentDaeunElement})`
-            : '대운 비활성'
+            ? `\ub300\uc6b4 \ud65c\uc131 (${matrixInput.currentDaeunElement})`
+            : '\ub300\uc6b4 \ube44\ud65c\uc131'
           : matrixInput?.currentDaeunElement
             ? `Daeun active (${matrixInput.currentDaeunElement})`
             : 'Daeun inactive',
@@ -177,8 +245,8 @@ function buildActivationSources(
       label:
         input.lang === 'ko'
           ? matrixInput?.currentSaeunElement
-            ? `세운 활성 (${matrixInput.currentSaeunElement})`
-            : '세운 비활성'
+            ? `\uc138\uc6b4 \ud65c\uc131 (${matrixInput.currentSaeunElement})`
+            : '\uc138\uc6b4 \ube44\ud65c\uc131'
           : matrixInput?.currentSaeunElement
             ? `Annual cycle active (${matrixInput.currentSaeunElement})`
             : 'Annual cycle inactive',
@@ -191,8 +259,8 @@ function buildActivationSources(
       label:
         input.lang === 'ko'
           ? matrixInput?.currentWolunElement
-            ? `월운 활성 (${matrixInput.currentWolunElement})`
-            : '월운 비활성'
+            ? `\uc6d4\uc6b4 \ud65c\uc131 (${matrixInput.currentWolunElement})`
+            : '\uc6d4\uc6b4 \ube44\ud65c\uc131'
           : matrixInput?.currentWolunElement
             ? `Monthly cycle active (${matrixInput.currentWolunElement})`
             : 'Monthly cycle inactive',
@@ -205,10 +273,10 @@ function buildActivationSources(
       label:
         input.lang === 'ko'
           ? matrixInput?.currentIljinElement
-            ? `일운 활성 (${matrixInput.currentIljinElement})`
+            ? `\uc77c\uc6b4 \ud65c\uc131 (${matrixInput.currentIljinElement})`
             : matrixInput?.currentIljinDate
-              ? `일운 활성 (${matrixInput.currentIljinDate})`
-              : '일운 비활성'
+              ? `\uc77c\uc6b4 \ud65c\uc131 (${matrixInput.currentIljinDate})`
+              : '\uc77c\uc6b4 \ube44\ud65c\uc131'
           : matrixInput?.currentIljinElement
             ? `Daily cycle active (${matrixInput.currentIljinElement})`
             : matrixInput?.currentIljinDate
@@ -226,8 +294,8 @@ function buildActivationSources(
       label:
         input.lang === 'ko'
           ? transitCount > 0
-            ? `트랜짓 활성 (${transitCount}개)`
-            : '트랜짓 비활성'
+            ? `\ud2b8\ub79c\uc9d3 \ud65c\uc131 (${transitCount}\uac1c)`
+            : '\ud2b8\ub79c\uc9d3 \ube44\ud65c\uc131'
           : transitCount > 0
             ? `Active transits (${transitCount})`
             : 'No active transits',
@@ -249,8 +317,8 @@ function buildActivationSources(
       label:
         input.lang === 'ko'
           ? astroTiming
-            ? `점성 타이밍 지수 (${Math.round(astroTiming.confidence * 100)}%)`
-            : '점성 타이밍 비활성'
+            ? `\uc810\uc131 \ud0c0\uc774\ubc0d \uc9c0\uc218 (${Math.round(astroTiming.confidence * 100)}%)`
+            : '\uc810\uc131 \ud0c0\uc774\ubc0d \ube44\ud65c\uc131'
           : astroTiming
             ? `Astro timing index (${Math.round(astroTiming.confidence * 100)}%)`
             : 'Astro timing inactive',
@@ -263,8 +331,8 @@ function buildActivationSources(
       label:
         input.lang === 'ko'
           ? advancedAstroCount > 0
-            ? `고급 점성 활성 (${advancedAstroCount}개)`
-            : '고급 점성 비활성'
+            ? `\uace0\uae09 \uc810\uc131 \ud65c\uc131 (${advancedAstroCount}\uac1c)`
+            : '\uace0\uae09 \uc810\uc131 \ube44\ud65c\uc131'
           : advancedAstroCount > 0
             ? `Advanced astrology active (${advancedAstroCount})`
             : 'Advanced astrology inactive',
@@ -312,9 +380,14 @@ function describeBaseline(
   lang: 'ko' | 'en'
 ): string {
   if (advisory?.thesis) return advisory.thesis
+  const domainLabel = lang === 'ko' ? localizeManifestationDomain(lead.domain) : lead.domain
+  const familyLabel =
+    lang === 'ko'
+      ? localizePatternFamily(pattern?.family || 'core')
+      : pattern?.family || 'core'
   return lang === 'ko'
-    ? `${lead.domain} 영역은 ${pattern?.family || 'core'} 계열이 기본 구조를 이루고 있습니다.`
-    : `${lead.domain} is structurally anchored by the ${pattern?.family || 'core'} family.`
+    ? `${domainLabel} \uc601\uc5ed\uc740 ${familyLabel}\uc774 \uae30\ubcf8 \uad6c\uc870\ub97c \uc774\ub8e8\uace0 \uc788\uc2b5\ub2c8\ub2e4.`
+    : `${lead.domain} is structurally anchored by the ${familyLabel} family.`
 }
 
 function describeActivation(
@@ -324,9 +397,13 @@ function describeActivation(
   verdict: CoreDomainVerdict | null,
   lang: 'ko' | 'en'
 ): string {
+  const domainLabel = lang === 'ko' ? localizeManifestationDomain(domain) : domain
+  const windowLabel = lang === 'ko' ? localizeManifestationWindow(timing.window) : timing.window
+  const modeLabel =
+    lang === 'ko' ? localizeManifestationMode(verdict?.mode || 'verify') : verdict?.mode || 'verify'
   const sourceLabels = sources.slice(0, 3).map((source) => source.label).join(lang === 'ko' ? ', ' : ', ')
   return lang === 'ko'
-    ? `${domain} 영역은 ${timing.window} 창이 열려 있고, ${sourceLabels || '기본 활성'}이 겹치면서 현재 모드는 ${verdict?.mode || 'verify'}로 수렴합니다.`
+    ? `${domainLabel} \uc601\uc5ed\uc740 ${windowLabel} \ucc3d\uc774 \uc5f4\ub824 \uc788\uace0, ${sourceLabels || '\uae30\ubcf8 \ud65c\uc131'}\uc774 \uacb9\uce58\uba74\uc11c \ud604\uc7ac \ubaa8\ub4dc\ub294 ${modeLabel}\ub85c \uc218\ub834\ud569\ub2c8\ub2e4.`
     : `${domain} is in a ${timing.window} window, and ${sourceLabels || 'baseline activation'} is converging into ${verdict?.mode || 'verify'} mode.`
 }
 
@@ -337,14 +414,15 @@ function describeManifestation(
   verdict: CoreDomainVerdict | null,
   lang: 'ko' | 'en'
 ): string {
+  const domainLabel = lang === 'ko' ? localizeManifestationDomain(lead.domain) : lead.domain
   if (lang === 'ko') {
     if (verdict?.mode === 'execute') {
-      return `${lead.domain} 영역은 ${pattern?.label || '주도 패턴'}이 실제 사건으로 전환되기 쉬운 구간입니다. ${scenario?.branch || '대표 분기'} 쪽으로 일이 구체화될 가능성이 높습니다.`
+      return `${domainLabel} \uc601\uc5ed\uc740 ${pattern?.label || '\uc8fc\ub3c4 \ud328\ud134'}\uc774 \uc2e4\uc81c \uc0ac\uac74\uc73c\ub85c \uc804\ud658\ub418\uae30 \uc26c\uc6b4 \uad6c\uac04\uc785\ub2c8\ub2e4. ${scenario?.branch || '\ub300\ud45c \ubd84\uae30'} \ucabd\uc73c\ub85c \uc77c\uc774 \uad6c\uccb4\ud654\ub420 \uac00\ub2a5\uc131\uc774 \ub192\uc2b5\ub2c8\ub2e4.`
     }
     if (verdict?.mode === 'prepare') {
-      return `${lead.domain} 영역은 당장 확정보다 구조 재정비가 먼저 일어나는 구간입니다. 겉으로는 느려 보여도 내부 조건을 재배열하는 현상이 중심이 됩니다.`
+      return `${domainLabel} \uc601\uc5ed\uc740 \ub2f9\uc7a5 \ud655\uc815\ubcf4\ub2e4 \uad6c\uc870 \uc7ac\uc815\ube44\uac00 \uba3c\uc800 \uc77c\uc5b4\ub098\ub294 \uad6c\uac04\uc785\ub2c8\ub2e4. \uac89\uc73c\ub85c\ub294 \ub290\ub824 \ubcf4\uc5ec\ub3c4 \ub0b4\ubd80 \uc870\uac74\uc744 \uc7ac\ubc30\uc5f4\ud558\ub294 \ud604\uc0c1\uc774 \uc911\uc2ec\uc774 \ub429\ub2c8\ub2e4.`
     }
-    return `${lead.domain} 영역은 기회와 리스크가 함께 작동하는 구간입니다. 사건은 바로 확정보다 단계적 합의나 검증 과정을 거쳐 현실화될 가능성이 큽니다.`
+    return `${domainLabel} \uc601\uc5ed\uc740 \uae30\ud68c\uc640 \ub9ac\uc2a4\ud06c\uac00 \ud568\uaed8 \uc791\ub3d9\ud558\ub294 \uad6c\uac04\uc785\ub2c8\ub2e4. \uc0ac\uac74\uc740 \ubc14\ub85c \ud655\uc815\ubcf4\ub2e4 \ub2e8\uacc4\uc801 \ud569\uc758\ub098 \uac80\uc99d \uacfc\uc815\uc744 \uac70\uccd0 \ud604\uc2e4\ud654\ub420 \uac00\ub2a5\uc131\uc774 \ud07d\ub2c8\ub2e4.`
   }
   if (verdict?.mode === 'execute') {
     return `${lead.domain} is in a phase where the ${pattern?.label || 'lead pattern'} is more likely to materialize as an actual event, especially through the ${scenario?.branch || 'lead branch'} branch.`
@@ -407,7 +485,7 @@ export function buildDomainManifestations(input: {
       activationThesis: timing
         ? describeActivation(lead.domain, timing, selectedSources, verdict, input.lang)
         : input.lang === 'ko'
-          ? `${lead.domain} 영역은 현재 국면 기준으로 단계적 활성화가 우선입니다.`
+          ? `${localizeManifestationDomain(lead.domain)} \uc601\uc5ed\uc740 \ud604\uc7ac \uad6d\uba74 \uae30\uc900\uc73c\ub85c \ub2e8\uacc4\uc801 \ud65c\uc131\ud654\uac00 \uc6b0\uc120\uc785\ub2c8\ub2e4.`
           : `${lead.domain} is currently activating in a staged manner under the present phase.`,
       manifestation: describeManifestation(lead, pattern, scenario, verdict, input.lang),
       likelyExpressions: likelyExpressions.slice(0, 5),
@@ -419,3 +497,4 @@ export function buildDomainManifestations(input: {
     }
   })
 }
+

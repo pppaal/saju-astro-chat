@@ -1,5 +1,6 @@
 import type { MatrixCalculationInput } from '../types'
 import type { ReportTheme } from './types'
+import { removeCrossSectionNarrativeRepetition } from './reportNarrativeFormatting'
 
 type Lang = 'ko' | 'en'
 
@@ -74,9 +75,13 @@ export function sanitizeThemedSectionsForUser(
     next[key] = deps.formatNarrativeParagraphs(cleaned, lang)
   }
   if (lang === 'ko' && theme) {
-    return applyPremiumVoiceLayerToThemedSections(next, theme, deps)
+    return removeCrossSectionNarrativeRepetition(
+      applyPremiumVoiceLayerToThemedSections(next, theme, deps),
+      sectionPaths,
+      lang
+    )
   }
-  return next
+  return removeCrossSectionNarrativeRepetition(next, sectionPaths, lang)
 }
 
 export function sanitizeTimingContradictions(text: string, input: MatrixCalculationInput): string {

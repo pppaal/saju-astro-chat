@@ -1,12 +1,26 @@
 ﻿type JsonLike = Record<string, unknown>
 
 type ProjectionBlocks = {
-  structure?: { headline?: string; summary?: string; topAxes?: string[] }
-  timing?: { headline?: string; summary?: string; window?: string; granularity?: string }
-  conflict?: { headline?: string; summary?: string; reasons?: string[] }
-  action?: { headline?: string; summary?: string; reasons?: string[] }
-  risk?: { headline?: string; summary?: string; reasons?: string[] }
-  evidence?: { headline?: string; summary?: string; reasons?: string[] }
+  structure?: ProjectionBlock
+  timing?: ProjectionBlock
+  conflict?: ProjectionBlock
+  action?: ProjectionBlock
+  risk?: ProjectionBlock
+  evidence?: ProjectionBlock
+  branches?: ProjectionBlock
+}
+
+type ProjectionBlock = {
+  headline?: string
+  summary?: string
+  topAxes?: string[]
+  window?: string
+  granularity?: string
+  reasons?: string[]
+  detailLines?: string[]
+  drivers?: string[]
+  counterweights?: string[]
+  nextMoves?: string[]
 }
 
 function toText(value: unknown): string {
@@ -39,7 +53,11 @@ function getProjectionLabels(lang: 'ko' | 'en') {
         action: '행동 투영',
         risk: '리스크 투영',
         evidence: '근거 투영',
+        branches: '분기 투영',
         topAxes: '상위 축',
+        drivers: '작동층',
+        counterweights: '제약층',
+        nextMoves: '다음 움직임',
         evidencePrefix: '근거',
         section: '섹션',
       }
@@ -50,10 +68,41 @@ function getProjectionLabels(lang: 'ko' | 'en') {
         action: 'Action View',
         risk: 'Risk View',
         evidence: 'Evidence View',
+        branches: 'Branch View',
         topAxes: 'Top axes',
+        drivers: 'Drivers',
+        counterweights: 'Counterweights',
+        nextMoves: 'Next moves',
         evidencePrefix: 'Evidence',
         section: 'Section',
       }
+}
+
+function renderProjectionExtras(
+  projection: ProjectionBlock | null | undefined,
+  labels: ReturnType<typeof getProjectionLabels>,
+  bulletPrefix = '- '
+): string[] {
+  if (!projection) return []
+  const lines: string[] = []
+  if ((projection.detailLines || []).length > 0) {
+    lines.push(...(projection.detailLines || []).slice(0, 3))
+  }
+  if ((projection.drivers || []).length > 0) {
+    lines.push(`${labels.drivers}: ${(projection.drivers || []).slice(0, 4).join(', ')}`)
+  }
+  if ((projection.counterweights || []).length > 0) {
+    lines.push(
+      `${labels.counterweights}: ${(projection.counterweights || []).slice(0, 3).join(', ')}`
+    )
+  }
+  if ((projection.nextMoves || []).length > 0) {
+    lines.push(`${labels.nextMoves}: ${(projection.nextMoves || []).slice(0, 3).join(', ')}`)
+  }
+  return lines
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line, index) => (index === 0 && !line.startsWith(bulletPrefix) ? line : `${bulletPrefix}${line}`))
 }
 
 function formatRenderedSectionText(text: string, lang: 'ko' | 'en'): string {
@@ -90,6 +139,7 @@ export function renderProjectionBlocksAsText(
           (projections.structure.topAxes || []).length > 0
             ? `${labels.topAxes}: ${(projections.structure.topAxes || []).join(', ')}`
             : '',
+          ...renderProjectionExtras(projections.structure, labels),
         ]
           .filter(Boolean)
           .join('\n')
@@ -99,6 +149,7 @@ export function renderProjectionBlocksAsText(
           projections.timing.headline || labels.timing,
           projections.timing.summary || '',
           [projections.timing.window, projections.timing.granularity].filter(Boolean).join(' / '),
+          ...renderProjectionExtras(projections.timing, labels),
         ]
           .filter(Boolean)
           .join('\n')
@@ -107,6 +158,7 @@ export function renderProjectionBlocksAsText(
       ? [
           projections.conflict.headline || labels.conflict,
           projections.conflict.summary || '',
+          ...renderProjectionExtras(projections.conflict, labels),
           ...(projections.conflict.reasons || []).slice(0, 3).map((item) => `- ${item}`),
         ]
           .filter(Boolean)
@@ -116,6 +168,7 @@ export function renderProjectionBlocksAsText(
       ? [
           projections.action.headline || labels.action,
           projections.action.summary || '',
+          ...renderProjectionExtras(projections.action, labels),
           ...(projections.action.reasons || []).slice(0, 3).map((item) => `- ${item}`),
         ]
           .filter(Boolean)
@@ -125,6 +178,7 @@ export function renderProjectionBlocksAsText(
       ? [
           projections.risk.headline || labels.risk,
           projections.risk.summary || '',
+          ...renderProjectionExtras(projections.risk, labels),
           ...(projections.risk.reasons || []).slice(0, 3).map((item) => `- ${item}`),
         ]
           .filter(Boolean)
@@ -134,7 +188,19 @@ export function renderProjectionBlocksAsText(
       ? [
           projections.evidence.headline || labels.evidence,
           projections.evidence.summary || '',
+          ...renderProjectionExtras(projections.evidence, labels),
           ...(projections.evidence.reasons || []).slice(0, 4).map((item) => `- ${item}`),
+        ]
+          .filter(Boolean)
+          .join('\n')
+      : '',
+    projections.branches
+      ? [
+          projections.branches.headline || labels.branches,
+          projections.branches.summary || '',
+          [projections.branches.window, projections.branches.granularity].filter(Boolean).join(' / '),
+          ...renderProjectionExtras(projections.branches, labels),
+          ...(projections.branches.reasons || []).slice(0, 4).map((item) => `- ${item}`),
         ]
           .filter(Boolean)
           .join('\n')
@@ -165,26 +231,39 @@ export function renderProjectionBlocksAsMarkdown(
     (projections.structure?.topAxes || []).length > 0
       ? `- ${labels.topAxes}: ${(projections.structure?.topAxes || []).join(', ')}`
       : '',
+    ...renderProjectionExtras(projections.structure, labels, '- '),
   ])
   pushBlock(projections.timing?.headline || labels.timing, [
     projections.timing?.summary || '',
     [projections.timing?.window, projections.timing?.granularity].filter(Boolean).join(' / '),
+    ...renderProjectionExtras(projections.timing, labels, '- '),
   ])
   pushBlock(projections.conflict?.headline || labels.conflict, [
     projections.conflict?.summary || '',
+    ...renderProjectionExtras(projections.conflict, labels, '- '),
     ...(projections.conflict?.reasons || []).slice(0, 3).map((item) => `- ${item}`),
   ])
   pushBlock(projections.action?.headline || labels.action, [
     projections.action?.summary || '',
+    ...renderProjectionExtras(projections.action, labels, '- '),
     ...(projections.action?.reasons || []).slice(0, 3).map((item) => `- ${item}`),
   ])
   pushBlock(projections.risk?.headline || labels.risk, [
     projections.risk?.summary || '',
+    ...renderProjectionExtras(projections.risk, labels, '- '),
     ...(projections.risk?.reasons || []).slice(0, 3).map((item) => `- ${item}`),
   ])
   pushBlock(projections.evidence?.headline || labels.evidence, [
     projections.evidence?.summary || '',
+    ...renderProjectionExtras(projections.evidence, labels, '- '),
     ...(projections.evidence?.reasons || []).slice(0, 4).map((item) => `- ${item}`),
+  ])
+
+  pushBlock(projections.branches?.headline || labels.branches, [
+    projections.branches?.summary || '',
+    [projections.branches?.window, projections.branches?.granularity].filter(Boolean).join(' / '),
+    ...renderProjectionExtras(projections.branches, labels, '- '),
+    ...(projections.branches?.reasons || []).slice(0, 4).map((item) => `- ${item}`),
   ])
 
   return lines.join('\n').trim()

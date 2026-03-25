@@ -599,14 +599,34 @@ export function buildCalendarPresentationView(input: {
       lang: locale,
     }),
   ]).join(' ')
-  const projectionStructure = canonicalCore?.projections?.structure?.summary || ''
-  const projectionTiming = canonicalCore?.projections?.timing?.summary || ''
-  const projectionConflict = canonicalCore?.projections?.conflict?.summary || ''
-  const projectionAction = canonicalCore?.projections?.action?.summary || ''
-  const projectionRisk = canonicalCore?.projections?.risk?.summary || ''
+  const projectionStructure =
+    canonicalCore?.projections?.structure?.detailLines?.[0] ||
+    canonicalCore?.projections?.structure?.summary ||
+    ''
+  const projectionTiming =
+    canonicalCore?.projections?.timing?.detailLines?.[0] ||
+    canonicalCore?.projections?.timing?.summary ||
+    ''
+  const projectionConflict =
+    canonicalCore?.projections?.conflict?.detailLines?.[0] ||
+    canonicalCore?.projections?.conflict?.summary ||
+    ''
+  const projectionAction =
+    canonicalCore?.projections?.action?.detailLines?.[0] ||
+    canonicalCore?.projections?.action?.summary ||
+    ''
+  const projectionRisk =
+    canonicalCore?.projections?.risk?.detailLines?.[0] ||
+    canonicalCore?.projections?.risk?.summary ||
+    ''
+  const projectionBranch =
+    canonicalCore?.projections?.branches?.detailLines?.[0] ||
+    canonicalCore?.projections?.branches?.summary ||
+    ''
 
   const timingSignals = dedupe([
     projectionTiming,
+    projectionBranch,
     ...canonicalTimingWindows.map((item) =>
       describeTimingWindowBrief({
         domainLabel: getDomainLabel(mapCoreDomainToPresentationDomain(item.domain), locale),
@@ -718,6 +738,7 @@ export function buildCalendarPresentationView(input: {
           .join(', ')}.`
     : ''
   const projectionDayLead = [projectionStructure, projectionTiming].filter(Boolean).join(' ')
+  const projectionBranchLead = projectionBranch
   const projectionRiskLead = [projectionConflict, projectionRisk].filter(Boolean).join(' ')
   const projectionActionLead = projectionAction
 
@@ -729,9 +750,9 @@ export function buildCalendarPresentationView(input: {
       focusDomain,
       defensivePhase
         ? locale === 'ko'
-          ? `${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${daySummaryText} ${projectionRiskLead} 오늘은 확정보다 검토와 재정렬을 우선하세요.`
-          : `${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${daySummaryText} ${projectionRiskLead} Today favors review and reset over commitment.`
-        : `${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${daySummaryText} ${projectionActionLead} ${crossConflictText}`.trim()
+          ? `${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${projectionBranchLead} ${daySummaryText} ${projectionRiskLead} 오늘은 확정보다 검토와 재정렬을 우선하세요.`
+          : `${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${projectionBranchLead} ${daySummaryText} ${projectionRiskLead} Today favors review and reset over commitment.`
+        : `${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${projectionBranchLead} ${daySummaryText} ${projectionActionLead} ${crossConflictText}`.trim()
     ),
     focusDomain: focusDomainLabel,
     reliability,

@@ -18,9 +18,11 @@ const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN
 
 // Rate limit prefix for Redis keys
 const RATE_LIMIT_PREFIX = 'rl:'
+const UPSTASH_DISABLE_TTL_MS = 5 * 60 * 1000
 
 // Upstash Redis client singleton
 let redisClient: Redis | null = null
+let upstashDisabledUntil = 0
 
 // In-memory fallback store with automatic cleanup and LRU eviction
 interface RateLimitEntry {
@@ -42,6 +44,10 @@ function getRedisClient(): Redis | null {
     return null
   }
 
+  if (Date.now() < upstashDisabledUntil) {
+    return null
+  }
+
   if (redisClient) {
     return redisClient
   }
@@ -52,6 +58,35 @@ function getRedisClient(): Redis | null {
   })
 
   return redisClient
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+  return String(error)
+}
+
+function isUpstashQuotaExceededError(error: unknown): boolean {
+  const message = getErrorMessage(error).toLowerCase()
+  return (
+    message.includes('max requests limit exceeded') ||
+    (message.includes('err max requests') && message.includes('limit'))
+  )
+}
+
+function disableUpstashTemporarily(reason: string): void {
+  const nextDisabledUntil = Date.now() + UPSTASH_DISABLE_TTL_MS
+  if (nextDisabledUntil <= upstashDisabledUntil) {
+    return
+  }
+
+  upstashDisabledUntil = nextDisabledUntil
+  redisClient = null
+  logger.error('[RateLimit] Upstash temporarily disabled', {
+    reason,
+    disabledForMs: UPSTASH_DISABLE_TTL_MS,
+  })
 }
 
 /**
@@ -149,6 +184,9 @@ async function upstashIncrement(key: string, windowSeconds: number): Promise<num
 
     return count
   } catch (error) {
+    if (isUpstashQuotaExceededError(error)) {
+      disableUpstashTemporarily(getErrorMessage(error))
+    }
     logger.warn('[RateLimit] Upstash increment failed:', error)
     return null
   }
@@ -223,29 +261,14 @@ export async function rateLimit(
   }
 
   // 2. Fall back to in-memory
-  if (process.env.NODE_ENV !== 'production') {
-    // In development: use in-memory and allow
-    const memoryCount = inMemoryIncrement(fullKey, windowSeconds)
-    recordCounter('api.rate_limit.check', 1, { backend: 'memory' })
-    recordCounter('api.rate_limit.fallback', 1, { from: 'upstash', to: 'memory' })
-    logger.warn('[RateLimit] Using in-memory fallback in development')
-    return buildResult(memoryCount, 'memory')
-  }
-
-  // 3. Production without any backend: DENY for security
-  logger.error('[SECURITY] Rate limiting completely unavailable in production - denying request')
-  recordCounter('api.rate_limit.misconfig', 1, { env: 'prod' })
-  headers.set('X-RateLimit-Backend', 'disabled')
-  headers.set('X-RateLimit-Remaining', '0')
-
-  return {
-    allowed: false,
-    limit,
-    remaining: 0,
-    reset,
-    headers,
-    backend: 'disabled',
-  }
+  const memoryCount = inMemoryIncrement(fullKey, windowSeconds)
+  recordCounter('api.rate_limit.check', 1, { backend: 'memory' })
+  recordCounter('api.rate_limit.fallback', 1, { from: 'upstash', to: 'memory' })
+  logger.warn('[RateLimit] Using in-memory fallback', {
+    env: process.env.NODE_ENV || 'unknown',
+    key,
+  })
+  return buildResult(memoryCount, 'memory')
 }
 
 /**
@@ -262,6 +285,9 @@ export async function resetRateLimit(key: string): Promise<boolean> {
         await client.del(fullKey)
         return true
       } catch (error) {
+        if (isUpstashQuotaExceededError(error)) {
+          disableUpstashTemporarily(getErrorMessage(error))
+        }
         logger.warn('[RateLimit] Upstash delete failed:', error)
       }
     }
@@ -301,6 +327,9 @@ export async function getRateLimitStatus(
           ttl: ttl || 0,
         }
       } catch (error) {
+        if (isUpstashQuotaExceededError(error)) {
+          disableUpstashTemporarily(getErrorMessage(error))
+        }
         logger.warn('[RateLimit] Upstash get status failed:', error)
       }
     }
@@ -337,7 +366,10 @@ export async function rateLimitHealthCheck(): Promise<{
     try {
       const pong = await client.ping()
       upstashHealthy = pong === 'PONG'
-    } catch {
+    } catch (error) {
+      if (isUpstashQuotaExceededError(error)) {
+        disableUpstashTemporarily(getErrorMessage(error))
+      }
       upstashHealthy = false
     }
   }
