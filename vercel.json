@@ -2,9 +2,7 @@
   "buildCommand": "npm run vercel-build",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": [
-    "icn1"
-  ],
+  "regions": ["icn1"],
   "env": {
     "NODE_ENV": "production",
     "NODE_OPTIONS": "--max-old-space-size=7168"
