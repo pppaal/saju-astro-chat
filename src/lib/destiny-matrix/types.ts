@@ -64,6 +64,7 @@ export interface CrossSnapshot {
   currentDateIso?: string
   astroTimingIndex?: AstroTimingIndex
   crossAgreement?: number
+  crossAgreementMatrix?: CrossAgreementMatrixRow[]
   crossEvidence?: unknown
   domainScores?: Record<string, unknown>
   anchors?: {
@@ -489,6 +490,65 @@ export interface AstroTimingIndex {
   evidenceCount: number
 }
 
+export type CrossAgreementDomain =
+  | 'career'
+  | 'relationship'
+  | 'wealth'
+  | 'health'
+  | 'move'
+  | 'personality'
+  | 'spirituality'
+  | 'timing'
+
+export type CrossAgreementTimescale = 'now' | '1-3m' | '3-6m' | '6-12m'
+
+export interface CrossAgreementMatrixCell {
+  agreement: number
+  contradiction?: number
+  leadLag?: number
+}
+
+export interface CrossAgreementMatrixRow {
+  domain: CrossAgreementDomain
+  timescales: Partial<Record<CrossAgreementTimescale, CrossAgreementMatrixCell>>
+  leadLag?: number
+}
+
+export interface SubjectContext {
+  subjectId: string
+  role?: 'self' | 'partner' | 'family' | 'friend' | 'team' | 'client' | 'other'
+  label?: string
+  profileContext?: {
+    birthDate?: string
+    birthTime?: string
+    birthCity?: string
+    timezone?: string
+    latitude?: number
+    longitude?: number
+    houseSystem?: string
+    analysisAt?: string
+  }
+  tags?: string[]
+}
+
+export interface RelationContext {
+  relationId: string
+  sourceSubjectId: string
+  targetSubjectId: string
+  relationType: 'self' | 'partner' | 'family' | 'friend' | 'team' | 'client' | 'other'
+  status?: 'open' | 'stable' | 'strained' | 'distant' | 'unknown'
+  notes?: string[]
+}
+
+export interface TemporalSlice {
+  sliceId: string
+  window: CrossAgreementTimescale
+  label?: string
+  startDateIso?: string
+  endDateIso?: string
+  certainty?: number
+}
+
 // ===========================
 // Input Types for Calculation
 // ===========================
@@ -557,6 +617,9 @@ export interface MatrixCalculationInput {
   lang?: 'ko' | 'en'
   // Optional anchor month for deterministic 12-month timeline generation (YYYY-MM)
   startYearMonth?: string
+  subjects?: SubjectContext[]
+  relationContexts?: RelationContext[]
+  timeSlices?: TemporalSlice[]
   // Optional profile context used for deterministic evidence traceability in AI reports.
   profileContext?: {
     birthDate?: string

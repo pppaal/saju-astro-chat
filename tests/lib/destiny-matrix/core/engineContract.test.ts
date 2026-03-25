@@ -86,7 +86,41 @@ function createInput(overrides: Partial<MatrixCalculationInput> = {}): MatrixCal
       asteroids: true,
       extraPoints: true,
     },
-    crossSnapshot: { source: 'engine-contract', crossAgreement: 0.62 } as any,
+    crossSnapshot: {
+      source: 'engine-contract',
+      crossAgreement: 0.62,
+      crossAgreementMatrix: [
+        {
+          domain: 'wealth',
+          timescales: {
+            now: { agreement: 0.74, contradiction: 0.18, leadLag: 0.21 },
+            '1-3m': { agreement: 0.68, contradiction: 0.22, leadLag: 0.1 },
+          },
+          leadLag: 0.16,
+        },
+        {
+          domain: 'health',
+          timescales: {
+            now: { agreement: 0.51, contradiction: 0.39, leadLag: -0.12 },
+          },
+          leadLag: -0.12,
+        },
+      ],
+    } as any,
+    subjects: [{ subjectId: 'self', role: 'self', label: 'Self' }],
+    relationContexts: [
+      {
+        relationId: 'self:self',
+        sourceSubjectId: 'self',
+        targetSubjectId: 'self',
+        relationType: 'self',
+        status: 'stable',
+      },
+    ],
+    timeSlices: [
+      { sliceId: 'now', window: 'now', label: 'Now', certainty: 0.92 },
+      { sliceId: '1-3m', window: '1-3m', label: '1-3 months', certainty: 0.81 },
+    ],
     profileContext: {
       birthDate: '1995-02-09',
       birthTime: '06:40',
@@ -234,6 +268,10 @@ describe('destiny core engine contracts', () => {
     expect(core.canonical.confidence).toBeGreaterThanOrEqual(0)
     expect(core.canonical.confidence).toBeLessThanOrEqual(1)
     expect(Object.keys(core.canonical.evidenceRefs).length).toBeGreaterThan(0)
+    expect(core.canonical.crossAgreementMatrix.length).toBeGreaterThan(0)
+    expect(core.canonical.subjects[0]?.subjectId).toBe('self')
+    expect(core.canonical.relationContexts[0]?.relationType).toBe('self')
+    expect(core.canonical.timeSlices[0]?.window).toBe('now')
     expect(core.canonical.phase).toBe(core.strategyEngine.overallPhase)
     expect(core.canonical.phaseLabel).toBe(core.strategyEngine.overallPhaseLabel)
     expect(core.canonical.gradeLabel.length).toBeGreaterThan(0)
@@ -273,6 +311,10 @@ describe('destiny core engine contracts', () => {
     expect(core.canonical.topScenarios[0]?.whyNow.length).toBeGreaterThan(0)
     expect(core.canonical.topScenarios[0]?.entryConditions.length).toBeGreaterThan(0)
     expect(core.canonical.topScenarios[0]?.abortConditions.length).toBeGreaterThan(0)
+    expect(core.canonical.topScenarios[0]?.sustainConditions.length).toBeGreaterThan(0)
+    expect(core.canonical.topScenarios[0]?.reversalRisk.length).toBeGreaterThan(0)
+    expect(core.canonical.topScenarios[0]?.wrongMoveCost.length).toBeGreaterThan(0)
+    expect(core.canonical.topScenarios[0]?.sustainability).toBeGreaterThan(0)
     expect(core.canonical.topScenarios[0]?.evidenceIds.length).toBeGreaterThan(0)
     expect(core.canonical.advisories[0]?.strategyLine.length).toBeGreaterThan(0)
     expect(core.canonical.advisories[0]?.leadSignalIds.length).toBeGreaterThan(0)

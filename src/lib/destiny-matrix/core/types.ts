@@ -1,4 +1,11 @@
-import type { MatrixCalculationInput, MatrixSummary } from '@/lib/destiny-matrix/types'
+import type {
+  CrossAgreementMatrixRow,
+  MatrixCalculationInput,
+  MatrixSummary,
+  RelationContext,
+  SubjectContext,
+  TemporalSlice,
+} from '@/lib/destiny-matrix/types'
 import type {
   SignalDomain,
   SignalPolarity,
@@ -65,6 +72,10 @@ export interface CoreScenarioLead {
   whyNow: string
   entryConditions: string[]
   abortConditions: string[]
+  sustainConditions: string[]
+  reversalRisk: string
+  wrongMoveCost: string
+  sustainability: number
   evidenceIds: string[]
 }
 
@@ -235,6 +246,7 @@ export interface DestinyCoreCanonicalOutput {
   evidenceRefs: Record<string, string[]>
   confidence: number
   crossAgreement: number | null
+  crossAgreementMatrix: CrossAgreementMatrixRow[]
   gradeLabel: string
   gradeReason: string
   focusDomain: SignalDomain
@@ -266,6 +278,9 @@ export interface DestinyCoreCanonicalOutput {
   interactionHits: CoreInteractionHit[]
   timelineHits: CoreTimelineHit[]
   arbitrationLedger: CoreArbitrationLedger
+  subjects: SubjectContext[]
+  relationContexts: RelationContext[]
+  timeSlices: TemporalSlice[]
 }
 
 export interface BuildCoreCanonicalOutputInput {
@@ -322,4 +337,5 @@ export interface BuildCoreCanonicalOutputInput {
     }>
   }
   crossAgreement?: unknown
+  crossAgreementMatrix?: CrossAgreementMatrixRow[] | null
 }

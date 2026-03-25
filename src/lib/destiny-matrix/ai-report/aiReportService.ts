@@ -453,14 +453,24 @@ function buildReportOutputCoreFields(
   )
   const structureSummary =
     lang === 'ko'
-      ? `중심축은 ${focusLabel}, 행동축은 ${actionLabel}이며 상위 잠재 축은 ${reportCore.latentTopAxes
-          .slice(0, 3)
-          .map((axis) => axis.label)
-          .join(', ')}입니다.`
-      : `The identity axis is ${focusLabel}, the action axis is ${actionLabel}, and the top latent drivers are ${reportCore.latentTopAxes
-          .slice(0, 3)
-          .map((axis) => axis.label)
-          .join(', ')}.`
+      ? reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
+        ? `지금 바로 다뤄야 할 축은 ${actionLabel}이고, 배경 구조축은 ${focusLabel}입니다. 상위 잠재 축은 ${reportCore.latentTopAxes
+            .slice(0, 3)
+            .map((axis) => axis.label)
+            .join(', ')}입니다.`
+        : `중심축은 ${focusLabel}, 행동축은 ${actionLabel}이며 상위 잠재 축은 ${reportCore.latentTopAxes
+            .slice(0, 3)
+            .map((axis) => axis.label)
+            .join(', ')}입니다.`
+      : reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
+        ? `The axis to handle directly right now is ${actionLabel}, while ${focusLabel} remains the background structural axis. The top latent drivers are ${reportCore.latentTopAxes
+            .slice(0, 3)
+            .map((axis) => axis.label)
+            .join(', ')}.`
+        : `The identity axis is ${focusLabel}, the action axis is ${actionLabel}, and the top latent drivers are ${reportCore.latentTopAxes
+            .slice(0, 3)
+            .map((axis) => axis.label)
+            .join(', ')}.`
   const timingSummary =
     lang === 'ko'
       ? `${actionLabel} 쪽 타이밍은 ${localizeReportFreeText(timingWindow?.window || 'unknown')} 구간으로 읽히며, ${localizeReportFreeText(timingWindow?.timingConflictNarrative || '구조와 촉발을 함께 봐야 합니다.')}`
@@ -1864,12 +1874,12 @@ function renderIntroductionSection(
   const arbitrationLine =
     lang === 'ko'
       ? reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
-        ? `${actionLabel} 축이 이번 국면의 실제 행동 압력을 더 직접 끌고 갑니다.`
+        ? `이번 질문에 바로 닿는 축은 ${actionLabel}이며, 실제 행동 압력도 이 축이 더 직접 끌고 갑니다.`
         : focusRunnerUpLabel
           ? `${focusLabel} 축이 ${focusRunnerUpLabel}보다 앞서 이번 중심 판단으로 채택됐습니다.`
           : ''
       : reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
-        ? `${actionLabel} is carrying the actionable pressure more directly in this phase.`
+        ? `${actionLabel} is the axis that answers the question most directly, and it is carrying the actionable pressure in this phase.`
         : focusRunnerUpLabel
           ? `${focusLabel} stayed ahead of ${focusRunnerUpLabel} as the lead axis in this phase.`
           : ''
@@ -1907,6 +1917,12 @@ function renderIntroductionSection(
     structureProjection?.detailLines?.[0] || '',
     lang
   )
+  const structureBackgroundLine =
+    reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
+      ? lang === 'ko'
+        ? `${focusLabel} 축은 이번 판단의 배경 구조로 남아 있습니다.`
+        : `${focusLabel} remains the background structural axis behind this reading.`
+      : ''
   const structureDriversLine =
     structureProjection?.drivers?.length
       ? lang === 'ko'
@@ -1940,6 +1956,7 @@ function renderIntroductionSection(
     arbitrationLine,
     latentLine,
     structureDetailLine,
+    structureBackgroundLine,
     structureDriversLine,
     structureCounterweightLine,
     branchLeadLine,

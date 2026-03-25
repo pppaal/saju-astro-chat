@@ -44,6 +44,10 @@ export interface ScenarioResult {
   whyNotYet: string
   entryConditions: string[]
   abortConditions: string[]
+  sustainConditions: string[]
+  reversalRisk: string
+  wrongMoveCost: string
+  sustainability: number
   manifestationHints: string[]
   supportingSignalIds: string[]
   evidenceIds: string[]
@@ -1041,6 +1045,70 @@ function buildAbortConditions(input: {
   ]
 }
 
+function buildSustainConditions(input: {
+  lang: 'ko' | 'en'
+  pattern: PatternResult
+  definition: ScenarioDefinition
+  timingRelevance: number
+}): string[] {
+  if (input.lang === 'ko') {
+    return [
+      `${input.definition.actions[0]} 이후에도 ${input.pattern.label} 근거가 이어질 것`,
+      `타이밍 적합도 ${Math.round(input.timingRelevance * 100)}% 수준이 급락하지 않을 것`,
+      `역할·범위·속도 조절 조건이 동시에 유지될 것`,
+    ]
+  }
+  return [
+    `${input.pattern.label} evidence should stay active after the first move`,
+    `Timing relevance should not collapse after the initial step`,
+    `Scope, pace, and role alignment should stay intact at the same time`,
+  ]
+}
+
+function buildReversalRisk(input: {
+  lang: 'ko' | 'en'
+  pattern: PatternResult
+  definition: ScenarioDefinition
+}): string {
+  if (input.lang === 'ko') {
+    return input.definition.reversible
+      ? '되돌릴 수는 있지만, 첫 단계에서 조건을 느슨하게 잡으면 방향을 다시 꺾는 비용이 커집니다.'
+      : '한 번 확정하면 되돌림 비용이 커서, 초기 판단이 흔들리면 손실이 빠르게 커집니다.'
+  }
+  return input.definition.reversible
+    ? 'This branch can be reversed, but loose conditions in the first step make reversal more expensive.'
+    : 'Once committed, reversal gets expensive quickly if the initial judgment was off.'
+}
+
+function buildWrongMoveCost(input: {
+  lang: 'ko' | 'en'
+  pattern: PatternResult
+  definition: ScenarioDefinition
+}): string {
+  if (input.lang === 'ko') {
+    return input.definition.reversible
+      ? '작은 시간 손실과 재정렬 비용'
+      : '시간 손실, 신뢰 저하, 재협상 비용'
+  }
+  return input.definition.reversible
+    ? 'A smaller time loss plus re-alignment cost'
+    : 'Time loss, trust erosion, and renegotiation cost'
+}
+
+function buildSustainability(input: {
+  pattern: PatternResult
+  probability: number
+  timingRelevance: number
+  definition: ScenarioDefinition
+}): number {
+  const base =
+    input.probability * 0.45 +
+    input.timingRelevance * 100 * 0.25 +
+    input.pattern.confidence * 100 * 0.2 +
+    (input.definition.reversible ? 4 : -2)
+  return clamp(round1(base / 100), 0.1, 0.98)
+}
+
 export function buildScenarioEngine(
   patterns: PatternResult[],
   strategyEngine: StrategyEngineResult,
@@ -1246,6 +1314,28 @@ export function buildScenarioEngine(
             pattern,
             probability,
             timingRelevance,
+          }),
+          sustainConditions: buildSustainConditions({
+            lang,
+            pattern,
+            definition,
+            timingRelevance,
+          }),
+          reversalRisk: buildReversalRisk({
+            lang,
+            pattern,
+            definition,
+          }),
+          wrongMoveCost: buildWrongMoveCost({
+            lang,
+            pattern,
+            definition,
+          }),
+          sustainability: buildSustainability({
+            pattern,
+            probability,
+            timingRelevance,
+            definition,
           }),
           manifestationHints: buildManifestationHints({
             lang,

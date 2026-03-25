@@ -252,6 +252,60 @@ export const AstroTimingIndexSchema = z.object({
 
 const GenericSnapshotSchema = z.object({}).catchall(z.unknown())
 
+const CrossAgreementMatrixCellSchema = z.object({
+  agreement: z.number().min(0).max(1),
+  contradiction: z.number().min(0).max(1).optional(),
+  leadLag: z.number().min(-1).max(1).optional(),
+})
+
+const CrossAgreementMatrixRowSchema = z.object({
+  domain: z.enum([
+    'career',
+    'relationship',
+    'wealth',
+    'health',
+    'move',
+    'personality',
+    'spirituality',
+    'timing',
+  ]),
+  timescales: z
+    .object({
+      now: CrossAgreementMatrixCellSchema.optional(),
+      '1-3m': CrossAgreementMatrixCellSchema.optional(),
+      '3-6m': CrossAgreementMatrixCellSchema.optional(),
+      '6-12m': CrossAgreementMatrixCellSchema.optional(),
+    })
+    .partial(),
+  leadLag: z.number().min(-1).max(1).optional(),
+})
+
+const SubjectContextSchema = z.object({
+  subjectId: z.string().min(1),
+  role: z.enum(['self', 'partner', 'family', 'friend', 'team', 'client', 'other']).optional(),
+  label: z.string().optional(),
+  profileContext: ProfileContextSchema.optional(),
+  tags: z.array(z.string()).optional(),
+})
+
+const RelationContextSchema = z.object({
+  relationId: z.string().min(1),
+  sourceSubjectId: z.string().min(1),
+  targetSubjectId: z.string().min(1),
+  relationType: z.enum(['self', 'partner', 'family', 'friend', 'team', 'client', 'other']),
+  status: z.enum(['open', 'stable', 'strained', 'distant', 'unknown']).optional(),
+  notes: z.array(z.string()).optional(),
+})
+
+const TemporalSliceSchema = z.object({
+  sliceId: z.string().min(1),
+  window: z.enum(['now', '1-3m', '3-6m', '6-12m']),
+  label: z.string().optional(),
+  startDateIso: z.string().optional(),
+  endDateIso: z.string().optional(),
+  certainty: z.number().min(0).max(1).optional(),
+})
+
 const CrossSnapshotSchema = z
   .object({
     source: z.string().optional(),
@@ -259,6 +313,7 @@ const CrossSnapshotSchema = z
     category: z.string().nullable().optional(),
     currentDateIso: z.string().optional(),
     crossAgreement: z.number().optional(),
+    crossAgreementMatrix: z.array(CrossAgreementMatrixRowSchema).optional(),
     astroTimingIndex: AstroTimingIndexSchema.partial().optional(),
     anchors: z
       .object({
@@ -454,6 +509,9 @@ export const MatrixCalculationInputSchema = z.object({
 
   // 옵션
   lang: LangSchema.optional().default('ko'),
+  subjects: z.array(SubjectContextSchema).optional(),
+  relationContexts: z.array(RelationContextSchema).optional(),
+  timeSlices: z.array(TemporalSliceSchema).optional(),
   profileContext: ProfileContextSchema.optional(),
 })
 

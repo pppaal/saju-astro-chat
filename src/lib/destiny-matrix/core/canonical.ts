@@ -762,23 +762,29 @@ function buildTopScenarios(input: BuildCoreCanonicalOutputInput): CoreScenarioLe
         a.abortConditions.length - b.abortConditions.length
     )
     .slice(0, 6)
-    .map((scenario) => ({
-      id: scenario.id,
-      patternId: scenario.patternId,
-      domain: scenario.domain,
-      branch: scenario.branch,
-      probability: scenario.probability,
-      confidence: round2(clamp(scenario.confidence, 0, 1)),
-      window: scenario.window,
-      timingRelevance: round2(clamp(scenario.timingRelevance, 0, 1)),
-      timingGranularity: scenario.timingGranularity,
-      precisionReason: scenario.precisionReason,
-      reversible: scenario.reversible,
-      whyNow: scenario.whyNow,
-      entryConditions: [...scenario.entryConditions].slice(0, 3),
-      abortConditions: [...scenario.abortConditions].slice(0, 3),
-      evidenceIds: [...scenario.evidenceIds].slice(0, 6),
-    }))
+    .map(
+      (scenario): CoreScenarioLead => ({
+        id: scenario.id,
+        patternId: scenario.patternId,
+        domain: scenario.domain,
+        branch: scenario.branch,
+        probability: scenario.probability,
+        confidence: round2(clamp(scenario.confidence, 0, 1)),
+        window: scenario.window,
+        timingRelevance: round2(clamp(scenario.timingRelevance, 0, 1)),
+        timingGranularity: scenario.timingGranularity,
+        precisionReason: scenario.precisionReason,
+        reversible: scenario.reversible,
+        whyNow: scenario.whyNow,
+        entryConditions: [...scenario.entryConditions].slice(0, 3),
+        abortConditions: [...scenario.abortConditions].slice(0, 3),
+        sustainConditions: [...scenario.sustainConditions].slice(0, 3),
+        reversalRisk: scenario.reversalRisk,
+        wrongMoveCost: scenario.wrongMoveCost,
+        sustainability: round2(clamp(scenario.sustainability, 0, 1)),
+        evidenceIds: [...scenario.evidenceIds].slice(0, 6),
+      })
+    )
 }
 
 function buildTopDecision(input: BuildCoreCanonicalOutputInput): CoreDecisionLead | null {
@@ -1892,6 +1898,9 @@ export function buildCoreCanonicalOutput(
     evidenceRefs: buildEvidenceRefs(input),
     confidence: resolveConfidence(input),
     crossAgreement: normalizeToUnit(input.crossAgreement),
+    crossAgreementMatrix: Array.isArray(input.crossAgreementMatrix)
+      ? input.crossAgreementMatrix
+      : [],
     gradeLabel,
     gradeReason,
     focusDomain,
@@ -1923,5 +1932,8 @@ export function buildCoreCanonicalOutput(
     interactionHits: buildInteractionHits(input),
     timelineHits: buildTimelineHits(input),
     arbitrationLedger,
-  }
+    subjects: input.matrixInput?.subjects || [],
+    relationContexts: input.matrixInput?.relationContexts || [],
+    timeSlices: input.matrixInput?.timeSlices || [],
+  } satisfies DestinyCoreCanonicalOutput
 }

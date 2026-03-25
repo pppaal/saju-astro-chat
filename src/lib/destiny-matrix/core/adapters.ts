@@ -710,17 +710,22 @@ function buildBranchProjectionSummary(
           ? `${index + 1}안은 ${label} 쪽입니다. ${window ? `${window} 구간에서 ` : ''}${whyNow || '현재 조건이 맞으면 실제 사건축으로 붙습니다.'}`
           : `Path ${index + 1} leans toward ${label}. ${window ? `In the ${window} window, ` : ''}${whyNow || 'it becomes actionable when current conditions line up.'}`,
       driver: label,
-      counterweight: reversibility,
+      counterweight:
+        locale === 'ko'
+          ? `${reversibility} ${localizeAdapterFreeText(scenario.reversalRisk || '', locale)}`
+          : `${reversibility} ${localizeAdapterFreeText(scenario.reversalRisk || '', locale)}`.trim(),
       nextMove:
-        (scenario.entryConditions || []).length > 0
+        (scenario.sustainConditions || []).length > 0
+          ? localizeAdapterFreeText(scenario.sustainConditions[0], locale)
+          : (scenario.entryConditions || []).length > 0
           ? localizeAdapterFreeText(scenario.entryConditions[0], locale)
           : locale === 'ko'
             ? '진입 조건을 먼저 확인하세요.'
             : 'Check the entry condition first.',
       reason:
         locale === 'ko'
-          ? `${label} 경로는 ${window || '현재'} 구간에서 ${reversibility}`
-          : `${label} is strongest in ${window || 'the current'} window, and ${reversibility}`,
+          ? `${label} 경로는 ${window || '현재'} 구간에서 ${reversibility} 잘못 움직이면 ${localizeAdapterFreeText(scenario.wrongMoveCost || '', locale)}가 커집니다.`
+          : `${label} is strongest in ${window || 'the current'} window, ${reversibility}, and the wrong move cost is ${localizeAdapterFreeText(scenario.wrongMoveCost || '', locale)}.`,
     }
   })
 
@@ -974,11 +979,21 @@ function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en'): Adapt
 
   const structureSummary =
     locale === 'ko'
-      ? `\uC911\uC2EC\uCD95\uC740 ${focusLabel}, \uD589\uB3D9\uCD95\uC740 ${actionLabel}, \uB9AC\uC2A4\uD06C\uCD95\uC740 ${riskAxisLabel}\uC774\uBA70 \uC9C0\uAE08 \uD310\uC744 \uBBF8\uB294 \uCE35\uC740 ${topAxes
-          .slice(0, 3)
-          .map((axis) => axis.label)
-          .join(', ')}\uC785\uB2C8\uB2E4. ${arbitrationBrief.focusNarrative}`
-      : `The identity axis is ${focusLabel}, the action axis is ${actionLabel}, the risk axis is ${riskAxisLabel}, and the live drivers are ${topAxes
+      ? core.canonical.actionFocusDomain !== core.canonical.focusDomain
+        ? `지금 바로 다뤄야 할 축은 ${actionLabel}이고, 배경 구조축은 ${focusLabel}입니다. 리스크축은 ${riskAxisLabel}이며 지금 판을 미는 층은 ${topAxes
+            .slice(0, 3)
+            .map((axis) => axis.label)
+            .join(', ')}입니다.`
+        : `중심축은 ${focusLabel}, 행동축은 ${actionLabel}, 리스크축은 ${riskAxisLabel}이며 지금 판을 미는 층은 ${topAxes
+            .slice(0, 3)
+            .map((axis) => axis.label)
+            .join(', ')}입니다. ${arbitrationBrief.focusNarrative}`
+      : core.canonical.actionFocusDomain !== core.canonical.focusDomain
+        ? `The axis to handle directly right now is ${actionLabel}, while ${focusLabel} stays as the background structural axis. The risk axis is ${riskAxisLabel}, and the live drivers are ${topAxes
+            .slice(0, 3)
+            .map((axis) => axis.label)
+            .join(', ')}.`
+        : `The identity axis is ${focusLabel}, the action axis is ${actionLabel}, the risk axis is ${riskAxisLabel}, and the live drivers are ${topAxes
           .slice(0, 3)
           .map((axis) => axis.label)
           .join(', ')}. ${arbitrationBrief.focusNarrative}`
@@ -1046,7 +1061,13 @@ function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en'): Adapt
       headline: locale === 'ko' ? '\uAD6C\uC870' : 'Structure',
       summary: structureSummary,
       detailLines: [
-        arbitrationBrief.focusNarrative,
+        locale === 'ko'
+          ? core.canonical.actionFocusDomain !== core.canonical.focusDomain
+            ? `${actionLabel} 축이 지금 설명의 앞면을 끌고 가고, ${focusLabel} 축은 배경 구조로 남아 있습니다.`
+            : arbitrationBrief.focusNarrative
+          : core.canonical.actionFocusDomain !== core.canonical.focusDomain
+            ? `${actionLabel} is carrying the front-facing explanation right now, while ${focusLabel} remains the background structural axis.`
+            : arbitrationBrief.focusNarrative,
         locale === 'ko'
           ? `지금 구조를 받치는 층은 ${structuralDrivers.join(', ')}입니다.`
           : `The live structural drivers are ${structuralDrivers.join(', ')}.`,
@@ -1549,5 +1570,3 @@ export function adaptCoreToReport(
     })),
   }
 }
-
-

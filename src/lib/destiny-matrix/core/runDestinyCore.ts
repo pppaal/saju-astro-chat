@@ -1,6 +1,10 @@
 import { createHash } from 'node:crypto'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
-import type { MatrixCalculationInput, MatrixSummary } from '@/lib/destiny-matrix/types'
+import type {
+  CrossAgreementMatrixRow,
+  MatrixCalculationInput,
+  MatrixSummary,
+} from '@/lib/destiny-matrix/types'
 import {
   synthesizeMatrixSignals,
   type SignalSynthesisResult,
@@ -40,6 +44,52 @@ export interface MatrixCalculationInputNormalized extends MatrixCalculationInput
   activeTransits: NonNullable<MatrixCalculationInput['activeTransits']>
   advancedAstroSignals: NonNullable<MatrixCalculationInput['advancedAstroSignals']>
   availability: MatrixInputAvailability
+}
+
+function clampUnit(value: number): number {
+  return clamp(value, 0, 1)
+}
+
+function normalizeCrossAgreementMatrix(
+  raw: CrossAgreementMatrixRow[] | undefined | null
+): CrossAgreementMatrixRow[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .filter((row) => row && typeof row.domain === 'string')
+    .map((row) => ({
+      domain: row.domain,
+      timescales: Object.fromEntries(
+        Object.entries(row.timescales || {})
+          .filter(([, cell]) => cell && typeof cell.agreement === 'number')
+          .map(([timescale, cell]) => [
+            timescale,
+            {
+              agreement: clampUnit(Number(cell?.agreement || 0)),
+              contradiction:
+                typeof cell?.contradiction === 'number'
+                  ? clampUnit(Number(cell.contradiction))
+                  : undefined,
+              leadLag:
+                typeof cell?.leadLag === 'number'
+                  ? clamp(Number(cell.leadLag), -1, 1)
+                  : undefined,
+            },
+          ])
+      ) as CrossAgreementMatrixRow['timescales'],
+      leadLag: typeof row.leadLag === 'number' ? clamp(Number(row.leadLag), -1, 1) : undefined,
+    }))
+}
+
+function deriveScalarCrossAgreement(matrix: CrossAgreementMatrixRow[], fallback?: number | null): number | null {
+  const matrixValues = matrix.flatMap((row) =>
+    Object.values(row.timescales || {})
+      .map((cell) => (typeof cell?.agreement === 'number' ? clampUnit(cell.agreement) : null))
+      .filter((value): value is number => value !== null)
+  )
+  if (matrixValues.length > 0) {
+    return round2(matrixValues.reduce((sum, value) => sum + value, 0) / matrixValues.length)
+  }
+  return typeof fallback === 'number' && Number.isFinite(fallback) ? round2(clampUnit(fallback)) : null
 }
 
 export interface RunDestinyCoreParams {
@@ -564,6 +614,15 @@ export function computeDestinyCoreHash(input: {
 
 export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult {
   const normalizedInput = buildNormalizedMatrixInput(normalizeMatrixInput(params.matrixInput))
+  const crossAgreementMatrix = normalizeCrossAgreementMatrix(
+    normalizedInput.crossSnapshot?.crossAgreementMatrix
+  )
+  const crossAgreement = deriveScalarCrossAgreement(
+    crossAgreementMatrix,
+    typeof normalizedInput.crossSnapshot?.crossAgreement === 'number'
+      ? normalizedInput.crossSnapshot.crossAgreement
+      : null
+  )
   const featureTokens = compileFeatureTokens(normalizedInput)
   const preActivation = buildActivationEngine({
     matrixInput: normalizedInput,
@@ -601,10 +660,8 @@ export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult 
     activation: preActivation,
     rules: preRules,
     states: preStates,
-    crossAgreement:
-      typeof normalizedInput.crossSnapshot?.crossAgreement === 'number'
-        ? normalizedInput.crossSnapshot.crossAgreement
-        : null,
+    crossAgreement,
+    crossAgreementMatrix,
   })
   const scenarios = buildScenarioEngine(patterns, strategyEngine, normalizedInput, params.lang, {
     activation: preActivation,
@@ -647,7 +704,8 @@ export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult 
         },
       })),
     },
-    crossAgreement: normalizedInput.crossSnapshot?.crossAgreement,
+    crossAgreement,
+    crossAgreementMatrix,
   })
   const quality = buildDestinyCoreQuality({
     normalizedInput,

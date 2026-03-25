@@ -287,8 +287,8 @@ function buildCounselorVerdictLead(
   if (!topDecisionLabel) return undefined
   if (actionFocusDomain && focusDomain && actionFocusDomain !== focusDomain) {
     return lang === 'ko'
-      ? `지금 질문에 바로 닿는 축은 ${localizeCounselorDomain(actionFocusDomain, lang)}입니다. 우선은 ${topDecisionLabel}입니다. 중심축은 ${localizeCounselorDomain(focusDomain, lang)}으로 남아 있습니다.`
-      : `The axis that matters most for this question right now is ${localizeCounselorDomain(actionFocusDomain, lang)}. The priority is ${topDecisionLabel}. The underlying axis still remains ${localizeCounselorDomain(focusDomain, lang)}.`
+      ? `지금 질문에 바로 닿는 축은 ${localizeCounselorDomain(actionFocusDomain, lang)}입니다. 우선은 ${topDecisionLabel}입니다.`
+      : `The axis that matters most for this question right now is ${localizeCounselorDomain(actionFocusDomain, lang)}. The priority is ${topDecisionLabel}.`
   }
   return lang === 'ko'
     ? `지금 우선은 ${topDecisionLabel}입니다`
@@ -384,15 +384,19 @@ function buildCounselorArbitrationLine(input: {
 
   if (input.lang === 'ko') {
     if (input.actionFocusDomain && input.actionFocusDomain !== input.focusDomain) {
-      return `${focusLabel}이 중심축으로 남았고, 실제 행동 압력은 ${actionLabel}이 ${actionRunnerUp || '다른 축'}보다 앞서 올라왔습니다.`
+      return `${actionLabel}이 ${actionRunnerUp || '다른 축'}보다 앞서 실제 행동 압력을 끌고 가고, ${focusLabel} 축은 배경 구조로 남아 있습니다.`
     }
     return `${focusLabel}이 ${focusRunnerUp || '다른 축'}보다 한 단계 앞서 현재 중심 판단으로 채택됐습니다.`
   }
 
   if (input.actionFocusDomain && input.actionFocusDomain !== input.focusDomain) {
-    return `${focusLabel} stayed as the identity axis, while ${actionLabel} moved ahead of ${actionRunnerUp || 'the runner-up domain'} as the actionable pressure.`
+    return `${actionLabel} moved ahead of ${actionRunnerUp || 'the runner-up domain'} as the actionable pressure, while ${focusLabel} remains the background structural axis.`
   }
   return `${focusLabel} stayed ahead of ${focusRunnerUp || 'the runner-up domain'} as the current lead axis.`
+}
+
+function isQuestionDrivenTheme(theme: CounselorTheme): boolean {
+  return ['love', 'career', 'wealth', 'health', 'family', 'life'].includes(String(theme))
 }
 
 function mapThemeToDomain(theme: CounselorTheme): InsightDomain {
@@ -1063,8 +1067,14 @@ export function buildCounselorEvidencePacket(params: {
 }): CounselorEvidencePacket {
   const fallbackFocusDomain = params.focusDomainOverride || mapThemeToDomain(params.theme)
   const counselorCore = params.core ? adaptCoreToCounselor(params.core, params.lang) : null
+  const questionDrivenTheme = isQuestionDrivenTheme(params.theme)
+  const themedQuestionDomain = questionDrivenTheme ? mapThemeToDomain(params.theme) : undefined
   const preferredDomain =
-    params.focusDomainOverride || counselorCore?.focusDomain || fallbackFocusDomain
+    params.focusDomainOverride ||
+    themedQuestionDomain ||
+    counselorCore?.actionFocusDomain ||
+    counselorCore?.focusDomain ||
+    fallbackFocusDomain
 
   const graphRagEvidence = buildGraphRAGEvidence(params.matrixInput, params.matrixReport, {
     mode: 'comprehensive',
@@ -1110,14 +1120,23 @@ export function buildCounselorEvidencePacket(params: {
   const guardrail = buildPacketGuardrail(params.strategyEngine.overallPhase, params.lang)
 
   const topDomainAdvisory =
+    counselorCore?.advisories.find(
+      (item) => item.domain === (counselorCore?.actionFocusDomain || preferredDomain)
+    ) ||
     counselorCore?.advisories.find((item) => item.domain === preferredDomain) ||
     counselorCore?.advisories[0] ||
     null
   const topTimingWindow =
+    counselorCore?.domainTimingWindows.find(
+      (item) => item.domain === (counselorCore?.actionFocusDomain || preferredDomain)
+    ) ||
     counselorCore?.domainTimingWindows.find((item) => item.domain === preferredDomain) ||
     counselorCore?.domainTimingWindows[0] ||
     null
   const topManifestation =
+    counselorCore?.manifestations.find(
+      (item) => item.domain === (counselorCore?.actionFocusDomain || preferredDomain)
+    ) ||
     counselorCore?.manifestations.find((item) => item.domain === preferredDomain) ||
     counselorCore?.manifestations[0] ||
     null
@@ -1640,18 +1659,19 @@ export function formatCounselorEvidencePacket(
   const projectionLines = packet.projections
     ? [
         '[Projections]',
-        packet.projections.structure?.summary
-          ? `structure=${packet.projections.structure.summary}`
-          : '',
-        ...(packet.projections.structure?.detailLines || [])
+        packet.projections.action?.summary ? `action=${packet.projections.action.summary}` : '',
+        ...(packet.projections.action?.detailLines || [])
           .slice(0, 2)
-          .map((line) => `structure_detail=${line}`),
-        ...(packet.projections.structure?.drivers || [])
+          .map((line) => `action_detail=${line}`),
+        ...(packet.projections.action?.drivers || [])
           .slice(0, 2)
-          .map((line) => `structure_driver=${line}`),
-        ...(packet.projections.structure?.reasons || [])
+          .map((line) => `action_driver=${line}`),
+        ...(packet.projections.action?.nextMoves || [])
           .slice(0, 2)
-          .map((line) => `structure_reason=${line}`),
+          .map((line) => `action_next=${line}`),
+        ...(packet.projections.action?.reasons || [])
+          .slice(0, 2)
+          .map((line) => `action_reason=${line}`),
         packet.projections.timing?.summary ? `timing=${packet.projections.timing.summary}` : '',
         ...(packet.projections.timing?.detailLines || [])
           .slice(0, 2)
@@ -1668,31 +1688,6 @@ export function formatCounselorEvidencePacket(
         ...(packet.projections.timing?.reasons || [])
           .slice(0, 2)
           .map((line) => `timing_reason=${line}`),
-        packet.projections.conflict?.summary
-          ? `conflict=${packet.projections.conflict.summary}`
-          : '',
-        ...(packet.projections.conflict?.detailLines || [])
-          .slice(0, 2)
-          .map((line) => `conflict_detail=${line}`),
-        ...(packet.projections.conflict?.counterweights || [])
-          .slice(0, 2)
-          .map((line) => `conflict_counterweight=${line}`),
-        ...(packet.projections.conflict?.reasons || [])
-          .slice(0, 2)
-          .map((line) => `conflict_reason=${line}`),
-        packet.projections.action?.summary ? `action=${packet.projections.action.summary}` : '',
-        ...(packet.projections.action?.detailLines || [])
-          .slice(0, 2)
-          .map((line) => `action_detail=${line}`),
-        ...(packet.projections.action?.drivers || [])
-          .slice(0, 2)
-          .map((line) => `action_driver=${line}`),
-        ...(packet.projections.action?.nextMoves || [])
-          .slice(0, 2)
-          .map((line) => `action_next=${line}`),
-        ...(packet.projections.action?.reasons || [])
-          .slice(0, 2)
-          .map((line) => `action_reason=${line}`),
         packet.projections.risk?.summary ? `risk=${packet.projections.risk.summary}` : '',
         ...(packet.projections.risk?.detailLines || [])
           .slice(0, 2)
@@ -1706,6 +1701,30 @@ export function formatCounselorEvidencePacket(
         ...(packet.projections.risk?.reasons || [])
           .slice(0, 2)
           .map((line) => `risk_reason=${line}`),
+        packet.projections.conflict?.summary
+          ? `conflict=${packet.projections.conflict.summary}`
+          : '',
+        ...(packet.projections.conflict?.detailLines || [])
+          .slice(0, 2)
+          .map((line) => `conflict_detail=${line}`),
+        ...(packet.projections.conflict?.counterweights || [])
+          .slice(0, 2)
+          .map((line) => `conflict_counterweight=${line}`),
+        ...(packet.projections.conflict?.reasons || [])
+          .slice(0, 2)
+          .map((line) => `conflict_reason=${line}`),
+        packet.projections.structure?.summary
+          ? `structure=${packet.projections.structure.summary}`
+          : '',
+        ...(packet.projections.structure?.detailLines || [])
+          .slice(0, 2)
+          .map((line) => `structure_detail=${line}`),
+        ...(packet.projections.structure?.drivers || [])
+          .slice(0, 2)
+          .map((line) => `structure_driver=${line}`),
+        ...(packet.projections.structure?.reasons || [])
+          .slice(0, 2)
+          .map((line) => `structure_reason=${line}`),
         packet.projections.evidence?.summary
           ? `evidence=${packet.projections.evidence.summary}`
           : '',

@@ -8,6 +8,7 @@ import type { DomainStrategy, StrategyEngineResult, StrategyPhaseCode } from './
 import type { ActivationEngineResult } from './activationEngine'
 import type { RuleEngineResult } from './ruleEngine'
 import type { StateEngineResult, DomainState } from './stateEngine'
+import type { CrossAgreementMatrixRow, CrossAgreementTimescale } from '@/lib/destiny-matrix/types'
 
 export interface PatternMatcher {
   domains?: SignalDomain[]
@@ -51,6 +52,7 @@ export interface PatternResult {
   resolvedMode: 'execute' | 'verify' | 'prepare'
   domainState: DomainState | null
   crossAgreement: number | null
+  crossAgreementMatrix: CrossAgreementMatrixRow[]
 }
 
 export interface PatternBuildResolvedContext {
@@ -58,6 +60,47 @@ export interface PatternBuildResolvedContext {
   rules: RuleEngineResult
   states: StateEngineResult
   crossAgreement?: number | null
+  crossAgreementMatrix?: CrossAgreementMatrixRow[] | null
+}
+
+function clampUnit(value: number): number {
+  return clamp(value, 0, 1)
+}
+
+function average(values: number[]): number {
+  if (values.length === 0) return 0
+  return values.reduce((sum, value) => sum + value, 0) / values.length
+}
+
+function resolveCrossAgreementForDomains(
+  matrix: CrossAgreementMatrixRow[] | null | undefined,
+  domains: SignalDomain[]
+): number | null {
+  if (!Array.isArray(matrix) || matrix.length === 0) return null
+  const weightedTimescales: Array<[CrossAgreementTimescale, number]> = [
+    ['now', 0.4],
+    ['1-3m', 0.3],
+    ['3-6m', 0.2],
+    ['6-12m', 0.1],
+  ]
+  const rows = matrix.filter((row) => domains.includes(row.domain as SignalDomain))
+  if (rows.length === 0) return null
+
+  const rowScores = rows
+    .map((row) => {
+      let weighted = 0
+      let totalWeight = 0
+      for (const [timescale, weight] of weightedTimescales) {
+        const cell = row.timescales?.[timescale]
+        if (!cell || typeof cell.agreement !== 'number') continue
+        weighted += clampUnit(cell.agreement) * weight
+        totalWeight += weight
+      }
+      return totalWeight > 0 ? weighted / totalWeight : null
+    })
+    .filter((value): value is number => value !== null)
+
+  return rowScores.length > 0 ? clampUnit(average(rowScores)) : null
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -818,7 +861,14 @@ function buildCompositePatterns(
           typeof left.crossAgreement === 'number' && typeof right.crossAgreement === 'number'
             ? Math.round(((left.crossAgreement + right.crossAgreement) / 2) * 100) / 100
             : left.crossAgreement ?? right.crossAgreement ?? null,
-      })
+        crossAgreementMatrix: Array.from(
+          new Map(
+            [...(left.crossAgreementMatrix || []), ...(right.crossAgreementMatrix || [])].map(
+              (row) => [row.domain, row]
+            )
+          ).values()
+        ),
+      } satisfies PatternResult)
 
       if (composites.length >= 8) return composites
     }
@@ -961,11 +1011,17 @@ export function buildPatternEngine(
               : domainContext.state === 'residue'
                 ? -4
                 : 0
+    const crossAgreementValueFromMatrix = resolveCrossAgreementForDomains(
+      resolvedContext?.crossAgreementMatrix,
+      definition.domains
+    )
     const crossAgreementValue =
-      typeof resolvedContext?.crossAgreement === 'number' &&
-      Number.isFinite(resolvedContext.crossAgreement)
-        ? resolvedContext.crossAgreement
-        : null
+      typeof crossAgreementValueFromMatrix === 'number'
+        ? crossAgreementValueFromMatrix
+        : typeof resolvedContext?.crossAgreement === 'number' &&
+            Number.isFinite(resolvedContext.crossAgreement)
+          ? resolvedContext.crossAgreement
+          : null
     const crossAgreementAdjustment =
       crossAgreementValue === null
         ? 0
@@ -1043,6 +1099,11 @@ export function buildPatternEngine(
       resolvedMode: domainContext.resolvedMode,
       domainState: domainContext.state,
       crossAgreement: crossAgreementValue,
+      crossAgreementMatrix: Array.isArray(resolvedContext?.crossAgreementMatrix)
+        ? resolvedContext.crossAgreementMatrix.filter((row) =>
+            definition.domains.includes(row.domain as SignalDomain)
+          )
+        : [],
     } satisfies PatternResult
   }).filter((value): value is PatternResult => Boolean(value))
 
