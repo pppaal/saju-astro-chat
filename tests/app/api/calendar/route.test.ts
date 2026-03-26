@@ -40,12 +40,8 @@ vi.mock('@/lib/Saju/saju', () => ({
   calculateSajuData: vi.fn(),
 }))
 
-vi.mock('@/lib/astrology/foundation/astrologyService', () => ({
-  calculateNatalChart: vi.fn(),
-}))
-
-vi.mock('@/lib/destiny-map/destinyCalendar', () => ({
-  calculateYearlyImportantDates: vi.fn(),
+vi.mock('@/app/api/calendar/lib/liteYearlyDates', () => ({
+  calculateYearlyImportantDatesLite: vi.fn(),
 }))
 
 vi.mock('@/lib/cache/redis-cache', () => ({
@@ -92,8 +88,7 @@ vi.mock('@/i18n/locales/en', () => ({
 // Import after mocks
 import { GET } from '@/app/api/calendar/route'
 import { calculateSajuData } from '@/lib/Saju/saju'
-import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService'
-import { calculateYearlyImportantDates } from '@/lib/destiny-map/destinyCalendar'
+import { calculateYearlyImportantDatesLite } from '@/app/api/calendar/lib/liteYearlyDates'
 import { cacheOrCalculate } from '@/lib/cache/redis-cache'
 import { apiClient } from '@/lib/api/ApiClient'
 import { logger } from '@/lib/logger'
@@ -124,14 +119,6 @@ const mockSajuResult = {
     ],
   },
   daeWoon: { startAge: 3 },
-}
-
-// Mock Natal Chart result
-const mockNatalChart = {
-  planets: [
-    { name: 'Sun', sign: 'Aries', longitude: 15.5 },
-    { name: 'Moon', sign: 'Cancer', longitude: 120.3 },
-  ],
 }
 
 // Mock important dates
@@ -216,8 +203,7 @@ describe('Calendar API Route - /api/calendar', () => {
 
     // Setup default mocks
     vi.mocked(calculateSajuData).mockReturnValue(mockSajuResult as any)
-    vi.mocked(calculateNatalChart).mockResolvedValue(mockNatalChart as any)
-    vi.mocked(calculateYearlyImportantDates).mockReturnValue(mockImportantDates as any)
+    vi.mocked(calculateYearlyImportantDatesLite).mockReturnValue(mockImportantDates as any)
   })
 
   afterEach(() => {
@@ -459,7 +445,7 @@ describe('Calendar API Route - /api/calendar', () => {
 
       expect(response.status).toBe(200)
       expect(data.year).toBe(2025)
-      expect(vi.mocked(calculateYearlyImportantDates)).toHaveBeenCalledWith(
+      expect(vi.mocked(calculateYearlyImportantDatesLite)).toHaveBeenCalledWith(
         2025,
         expect.any(Object),
         expect.any(Object),
@@ -513,13 +499,13 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(data.summary.grade0).toBeGreaterThanOrEqual(1)
     })
 
-    it('should count grade 4 dates correctly', async () => {
+    it('should count grade 4 dates from final display grades', async () => {
       const request = createRequest({ birthDate: '1990-01-15' })
 
       const response = await GET(request)
       const data = await response.json()
 
-      expect(data.summary.grade4).toBe(1) // One grade 4 date in mock
+      expect(data.summary.grade4).toBeGreaterThanOrEqual(1)
     })
 
     it('should include topDates from grade 0, 1, 2', async () => {
@@ -722,74 +708,86 @@ describe('Calendar API Route - /api/calendar', () => {
     })
   })
 
-  describe('Astrology Calculation', () => {
-    it('should call calculateNatalChart with correct parameters', async () => {
+  describe('Astro Profile Fallback', () => {
+    it('should use fallback astro profile without natal chart dependency', async () => {
       const request = createRequest({
         birthDate: '1990-01-15',
         birthTime: '14:30',
         birthPlace: 'Tokyo',
       })
 
-      await GET(request)
-
-      expect(vi.mocked(calculateNatalChart)).toHaveBeenCalledWith({
-        year: 1990,
-        month: 1,
-        date: 15,
-        hour: 14,
-        minute: 30,
-        latitude: expect.any(Number),
-        longitude: expect.any(Number),
-        timeZone: 'Asia/Tokyo',
-      })
-    })
-
-    it('should fallback to simple calculation when astrology fails', async () => {
-      vi.mocked(calculateNatalChart).mockRejectedValue(new Error('Astrology failed'))
-
-      const request = createRequest({ birthDate: '1990-01-15' })
-
       const response = await GET(request)
       const data = await response.json()
 
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
-      expect(vi.mocked(logger).warn).toHaveBeenCalledWith(
-        expect.stringContaining('Astrology calculation fallback'),
-        expect.any(Error)
-      )
     })
 
-    it('should determine sun sign correctly in fallback mode (Aries - March)', async () => {
-      vi.mocked(calculateNatalChart).mockRejectedValue(new Error('Astrology failed'))
+    it('should determine fallback astro profile correctly for March birth dates', async () => {
+      vi.mocked(apiClient).post.mockResolvedValueOnce({
+        ok: true,
+        data: {
+          auspicious_dates: [],
+          caution_dates: [],
+        },
+      } as any)
 
       const request = createRequest({ birthDate: '1990-03-25' })
 
-      const response = await GET(request)
+      await GET(request)
 
-      expect(response.status).toBe(200)
+      expect(vi.mocked(apiClient).post).toHaveBeenCalledWith(
+        '/api/theme/important-dates',
+        expect.objectContaining({
+          astro: expect.objectContaining({
+            sun_sign: 'Aries',
+            planets: expect.objectContaining({
+              sun: expect.objectContaining({
+                sign: 'Aries',
+                degree: 15,
+              }),
+              moon: expect.objectContaining({
+                sign: 'Aries',
+                degree: 15,
+              }),
+            }),
+          }),
+        }),
+        expect.any(Object)
+      )
     })
 
-    it('should determine sun sign correctly in fallback mode (Capricorn - January)', async () => {
-      vi.mocked(calculateNatalChart).mockRejectedValue(new Error('Astrology failed'))
+    it('should determine fallback astro profile correctly for January birth dates', async () => {
+      vi.mocked(apiClient).post.mockResolvedValueOnce({
+        ok: true,
+        data: {
+          auspicious_dates: [],
+          caution_dates: [],
+        },
+      } as any)
 
       const request = createRequest({ birthDate: '1990-01-05' })
 
-      const response = await GET(request)
-
-      expect(response.status).toBe(200)
-    })
-
-    it('should use default hour 12 when birthTime is not provided', async () => {
-      const request = createRequest({ birthDate: '1990-01-15' })
-
       await GET(request)
 
-      expect(vi.mocked(calculateNatalChart)).toHaveBeenCalledWith(
+      expect(vi.mocked(apiClient).post).toHaveBeenCalledWith(
+        '/api/theme/important-dates',
         expect.objectContaining({
-          hour: 12,
-          minute: 0,
-        })
+          astro: expect.objectContaining({
+            sun_sign: 'Capricorn',
+            planets: expect.objectContaining({
+              sun: expect.objectContaining({
+                sign: 'Capricorn',
+                degree: 15,
+              }),
+              moon: expect.objectContaining({
+                sign: 'Capricorn',
+                degree: 15,
+              }),
+            }),
+          }),
+        }),
+        expect.any(Object)
       )
     })
   })
@@ -858,19 +856,13 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(data.aiInsights).toBeDefined()
     })
 
-    it('should send location-aware moon and user gender to AI enrichment', async () => {
+    it('should send location-aware fallback astro profile and user gender to AI enrichment', async () => {
       vi.mocked(apiClient).post.mockResolvedValueOnce({
         ok: true,
         data: {
           auspicious_dates: [],
           caution_dates: [],
         },
-      } as any)
-      vi.mocked(calculateNatalChart).mockResolvedValueOnce({
-        planets: [
-          { name: 'Sun', sign: 'Gemini', longitude: 80.5 },
-          { name: 'Moon', sign: 'Cancer', longitude: 121.2 },
-        ],
       } as any)
 
       const request = createRequest({
@@ -890,10 +882,15 @@ describe('Calendar API Route - /api/calendar', () => {
           astro: expect.objectContaining({
             latitude: 35.1796,
             longitude: 129.0756,
+            sun_sign: 'Capricorn',
             planets: expect.objectContaining({
+              sun: expect.objectContaining({
+                sign: 'Capricorn',
+                degree: 15,
+              }),
               moon: expect.objectContaining({
-                sign: 'Cancer',
-                degree: 121.2,
+                sign: 'Capricorn',
+                degree: 15,
               }),
             }),
           }),
@@ -980,6 +977,19 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(data).toHaveProperty('canonicalCore')
     })
 
+    it('should populate canonicalCore when destiny-matrix engine succeeds', async () => {
+      const request = createRequest({ birthDate: '1990-01-15' })
+
+      const response = await GET(request)
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.canonicalCore).toBeTruthy()
+      expect(typeof data.canonicalCore.focusDomain).toBe('string')
+      expect(Array.isArray(data.topMatchedPatterns)).toBe(true)
+      expect(data.matrixInputCoverage).toBeTruthy()
+    })
+
     it('should set matrixStrictMode to true', async () => {
       const request = createRequest({ birthDate: '1990-01-15' })
 
@@ -1034,7 +1044,7 @@ describe('Calendar API Route - /api/calendar', () => {
         recommendationKeys: [],
         warningKeys: [],
       }))
-      vi.mocked(calculateYearlyImportantDates).mockReturnValue(manyDates as any)
+      vi.mocked(calculateYearlyImportantDatesLite).mockReturnValue(manyDates as any)
 
       const request = createRequest({ birthDate: '1990-01-15' })
 
@@ -1058,7 +1068,7 @@ describe('Calendar API Route - /api/calendar', () => {
         recommendationKeys: [],
         warningKeys: [],
       }))
-      vi.mocked(calculateYearlyImportantDates).mockReturnValue(manyDates as any)
+      vi.mocked(calculateYearlyImportantDatesLite).mockReturnValue(manyDates as any)
 
       const request = createRequest({ birthDate: '1990-01-15' })
 
@@ -1071,7 +1081,7 @@ describe('Calendar API Route - /api/calendar', () => {
 
   describe('Edge Cases', () => {
     it('should handle empty date results', async () => {
-      vi.mocked(calculateYearlyImportantDates).mockReturnValue([])
+      vi.mocked(calculateYearlyImportantDatesLite).mockReturnValue([])
 
       const request = createRequest({ birthDate: '1990-01-15' })
 

@@ -12,75 +12,29 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { calculateYearlyImportantDates } from '@/lib/destiny-map/destinyCalendar'
-import { calculateSajuData } from '@/lib/Saju/saju'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/Saju/relations'
-import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/Saju/shinsal'
-import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService'
-import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
-import { toChart } from '@/lib/astrology/foundation/astrologyService'
-import {
-  calculateAllAsteroids,
-  calculateExtraPoints,
-  calculateSecondaryProgressions,
-  calculateSolarReturn,
-  calculateLunarReturn,
-  compareDraconicToNatal,
-  generateHarmonicProfile,
-  findFixedStarConjunctions,
-  findEclipseImpact,
-  getUpcomingEclipses,
-  calculateMidpoints,
-  findMidpointActivations,
-} from '@/lib/astrology'
-import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT, BRANCH_TO_ELEMENT_EN } from '@/lib/Saju/constants'
-import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
-import { persistDestinyPredictionSnapshot } from '@/lib/destiny-matrix/predictionSnapshot'
-import { buildAstroTimingIndex } from '@/lib/destiny-matrix/astroTimingIndex'
-import { buildPreciseTimelineSummary } from '@/lib/destiny-matrix/monthlyTimelinePrecise'
-import { applyRuntimeCalibration } from '@/lib/destiny-matrix/calibrationRuntime'
-import {
-  buildApproximateIljinTiming,
-  calculateAgeAtDate,
-  inferLifecycleTransitCycles,
-  inferRetrogradeTransitCycles,
-  toDatePartsInTimeZone,
-} from '@/lib/destiny-matrix/timingRuntime'
-import {
-  buildCompleteAdvancedAstroSignals,
-  buildServiceInputCrossAudit,
-  ensureMatrixInputCrossCompleteness,
-  listMissingCrossKeysForService,
-} from '@/lib/destiny-matrix/inputCross'
+import { BRANCH_TO_ELEMENT, STEM_TO_ELEMENT, STEM_TO_ELEMENT_EN } from '@/lib/Saju/constants'
 import type { FiveElement } from '@/lib/Saju/types'
-import type { MatrixCalculationInput, PlanetName } from '@/lib/destiny-matrix/types'
-import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
-import {
-  buildNormalizedMatrixInput,
-} from '@/lib/destiny-matrix/core/runDestinyCore'
-import { adaptCoreToCalendar } from '@/lib/destiny-matrix/core'
-import { buildCalendarCoreEnvelope } from '@/lib/destiny-matrix/core/buildCalendarCoreEnvelope'
 import koTranslations from '@/i18n/locales/ko'
 import enTranslations from '@/i18n/locales/en'
 import type { TranslationData } from '@/types/calendar-api'
 import { logger } from '@/lib/logger'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
-import type { MatrixCalendarContext } from './lib/helpers'
+import { calculateYearlyImportantDatesLite } from './lib/liteYearlyDates'
+import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 
-// Import from extracted modules
 import {
   getPillarStemName,
   getPillarBranchName,
   parseBirthDate,
   applyMatrixPreformatRegrade,
   formatDateForResponse,
-  fetchAIDates,
   LOCATION_COORDS,
-  buildCalendarPresentationView,
-  buildCalendarMatrixEvidencePacketMap,
-  type CalendarMatrixEvidencePacketMap,
-} from './lib'
+  type MatrixCalendarContext,
+} from './lib/helpers'
+import { buildCalendarPresentationView } from './lib/presentationAdapter'
+import type { DomainKey, MatrixCalculationInput } from '@/lib/destiny-matrix/types'
+import type { CalendarMatrixEvidencePacketMap } from './lib/matrixEvidencePacket'
 
 export const dynamic = 'force-dynamic'
 
@@ -106,139 +60,189 @@ const ZODIAC_TO_ELEMENT: Record<string, string> = {
   Pisces: 'water',
 }
 
-const EN_TO_KO_ELEMENT: Record<string, FiveElement> = {
-  wood: '\uBAA9',
-  fire: '\uD654',
-  earth: '\uD1A0',
-  metal: '\uAE08',
-  water: '\uC218',
-}
-
-const MAJOR_PLANETS: readonly PlanetName[] = [
-  'Sun',
-  'Moon',
-  'Mercury',
-  'Venus',
-  'Mars',
-  'Jupiter',
-  'Saturn',
-  'Uranus',
-  'Neptune',
-  'Pluto',
-]
-
-const MAJOR_PLANET_SET = new Set<string>(MAJOR_PLANETS)
-
-const MATRIX_SHINSAL_KIND_SET = new Set<NonNullable<MatrixCalculationInput['shinsalList']>[number]>(
-  [
-    '천을귀인',
-    '태극귀인',
-    '천덕귀인',
-    '월덕귀인',
-    '문창귀인',
-    '학당귀인',
-    '금여록',
-    '천주귀인',
-    '암록',
-    '건록',
-    '제왕',
-    '도화',
-    '홍염살',
-    '양인',
-    '백호',
-    '겁살',
-    '재살',
-    '천살',
-    '지살',
-    '년살',
-    '월살',
-    '망신',
-    '고신',
-    '괴강',
-    '현침',
-    '귀문관',
-    '병부',
-    '효신살',
-    '상문살',
-    '역마',
-    '화개',
-    '장성',
-    '반안',
-    '천라지망',
-    '공망',
-    '삼재',
-    '원진',
-  ]
-)
-
-const SHINSAL_KIND_ALIASES: Record<
-  string,
-  NonNullable<MatrixCalculationInput['shinsalList']>[number]
-> = {
-  문창: '문창귀인',
-  학당귀인: '학당귀인',
-  금여성: '금여록',
-  금여록: '금여록',
-  공망살: '공망',
-  홍염: '홍염살',
-}
-
-function normalizeShinsalKind(
-  raw: unknown
-): NonNullable<MatrixCalculationInput['shinsalList']>[number] | null {
-  if (typeof raw !== 'string') return null
-  const trimmed = raw.trim()
-  const aliased = SHINSAL_KIND_ALIASES[trimmed] || trimmed
-  if (
-    !MATRIX_SHINSAL_KIND_SET.has(
-      aliased as NonNullable<MatrixCalculationInput['shinsalList']>[number]
-    )
-  ) {
-    return null
-  }
-  return aliased as NonNullable<MatrixCalculationInput['shinsalList']>[number]
-}
-
-function toTwelveStageCounts(
-  stageMap: ReturnType<typeof getTwelveStagesForPillars>
-): MatrixCalculationInput['twelveStages'] {
-  return Object.values(stageMap).reduce<Record<string, number>>((acc, stage) => {
-    acc[stage] = (acc[stage] || 0) + 1
-    return acc
-  }, {})
-}
-
-const ASPECT_ANGLE_MAP: Record<
-  | 'conjunction'
-  | 'opposition'
-  | 'trine'
-  | 'square'
-  | 'sextile'
-  | 'quincunx'
-  | 'semisextile'
-  | 'quintile'
-  | 'biquintile',
-  number
-> = {
-  conjunction: 0,
-  opposition: 180,
-  trine: 120,
-  square: 90,
-  sextile: 60,
-  quincunx: 150,
-  semisextile: 30,
-  quintile: 72,
-  biquintile: 144,
-}
-
-const CALENDAR_STRICT_ASTROLOGY =
-  process.env.NODE_ENV !== 'test' && process.env.CALENDAR_STRICT_ASTROLOGY !== 'false'
-const CALENDAR_STRICT_MATRIX =
-  process.env.NODE_ENV !== 'test' && process.env.CALENDAR_STRICT_MATRIX !== 'false'
 // AI enrichment should be best-effort by default.
 // Enable strict failure only when explicitly opted in.
 const CALENDAR_STRICT_AI_ENRICHMENT =
   process.env.NODE_ENV !== 'test' && process.env.CALENDAR_STRICT_AI_ENRICHMENT === 'true'
+
+const ZODIAC_TO_WESTERN_ELEMENT: Record<
+  string,
+  NonNullable<MatrixCalculationInput['dominantWesternElement']>
+> = {
+  Aries: 'fire',
+  Leo: 'fire',
+  Sagittarius: 'fire',
+  Taurus: 'earth',
+  Virgo: 'earth',
+  Capricorn: 'earth',
+  Gemini: 'air',
+  Libra: 'air',
+  Aquarius: 'air',
+  Cancer: 'water',
+  Scorpio: 'water',
+  Pisces: 'water',
+}
+
+const CORE_SIGNAL_DOMAIN_TO_CALENDAR_DOMAIN: Record<string, DomainKey | null> = {
+  career: 'career',
+  relationship: 'love',
+  wealth: 'money',
+  health: 'health',
+  move: 'move',
+  personality: null,
+  spirituality: null,
+  timing: null,
+}
+
+function normalizeFiveElement(value: unknown): FiveElement | undefined {
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  if (!trimmed) return undefined
+  if (
+    trimmed === '목' ||
+    trimmed === '화' ||
+    trimmed === '토' ||
+    trimmed === '금' ||
+    trimmed === '수'
+  ) {
+    return trimmed
+  }
+  if (trimmed === 'wood') return '목'
+  if (trimmed === 'fire') return '화'
+  if (trimmed === 'earth') return '토'
+  if (trimmed === 'metal') return '금'
+  if (trimmed === 'water') return '수'
+  return undefined
+}
+
+function mapCoreSignalDomainToCalendarDomain(domain: string | undefined): DomainKey | null {
+  if (!domain) return null
+  return CORE_SIGNAL_DOMAIN_TO_CALENDAR_DOMAIN[domain] ?? null
+}
+
+function pickCurrentDaeunStem(
+  daeunCycles: Array<{ age: number; heavenlyStem: string }>,
+  birthYear: number,
+  targetYear: number
+): string | undefined {
+  const currentAge = Math.max(1, targetYear - birthYear + 1)
+  return [...daeunCycles]
+    .filter((cycle) => Number.isFinite(cycle.age) && cycle.age <= currentAge && cycle.heavenlyStem)
+    .sort((a, b) => b.age - a.age)[0]?.heavenlyStem
+}
+
+function buildCalendarMatrixInput(params: {
+  birthDate: string
+  birthTime?: string
+  birthPlace: string
+  year: number
+  timezone: string
+  latitude: number
+  longitude: number
+  locale: 'ko' | 'en'
+  category?: string
+  sajuResult: Record<string, unknown>
+  sajuProfile: {
+    dayMasterElement: string
+    birthYear: number
+    daeunCycles: Array<{ age: number; heavenlyStem: string; earthlyBranch: string }>
+    pillars: {
+      year: { stem: string; branch: string }
+      month: { stem: string; branch: string }
+      day: { stem: string; branch: string }
+      hour: { stem: string; branch: string }
+    }
+  }
+  astroProfile: {
+    sunSign: string
+    sunElement: string
+  }
+}): MatrixCalculationInput {
+  const { sajuProfile, astroProfile } = params
+  const pillarElements = [
+    STEM_TO_ELEMENT[sajuProfile.pillars.year.stem],
+    BRANCH_TO_ELEMENT[sajuProfile.pillars.year.branch],
+    STEM_TO_ELEMENT[sajuProfile.pillars.month.stem],
+    BRANCH_TO_ELEMENT[sajuProfile.pillars.month.branch],
+    STEM_TO_ELEMENT[sajuProfile.pillars.day.stem],
+    BRANCH_TO_ELEMENT[sajuProfile.pillars.day.branch],
+    STEM_TO_ELEMENT[sajuProfile.pillars.hour.stem],
+    BRANCH_TO_ELEMENT[sajuProfile.pillars.hour.branch],
+  ]
+    .map((value) => normalizeFiveElement(value))
+    .filter((value): value is FiveElement => Boolean(value))
+
+  const dayMasterElement =
+    normalizeFiveElement(STEM_TO_ELEMENT[sajuProfile.pillars.day.stem]) ||
+    normalizeFiveElement(sajuProfile.dayMasterElement) ||
+    '목'
+
+  const currentDaeunElement = normalizeFiveElement(
+    STEM_TO_ELEMENT[
+      pickCurrentDaeunStem(sajuProfile.daeunCycles, sajuProfile.birthYear, params.year) || ''
+    ]
+  )
+
+  const currentDateIso = `${params.year}-01-01`
+  const dominantWesternElement = ZODIAC_TO_WESTERN_ELEMENT[astroProfile.sunSign] || 'fire'
+
+  return {
+    dayMasterElement,
+    pillarElements,
+    sibsinDistribution: {},
+    twelveStages: {},
+    relations: [],
+    currentDaeunElement,
+    currentIljinElement: currentDaeunElement || dayMasterElement,
+    currentIljinDate: currentDateIso,
+    shinsalList: [],
+    dominantWesternElement,
+    planetHouses: {},
+    planetSigns: {
+      Sun: astroProfile.sunSign as MatrixCalculationInput['planetSigns']['Sun'],
+      Moon: astroProfile.sunSign as MatrixCalculationInput['planetSigns']['Moon'],
+    },
+    aspects: [],
+    activeTransits: [],
+    asteroidHouses: {},
+    extraPointSigns: {},
+    advancedAstroSignals: {},
+    sajuSnapshot: params.sajuResult,
+    astrologySnapshot: {
+      currentTransits: {
+        asOfIso: currentDateIso,
+      },
+    },
+    crossSnapshot: {
+      source: 'calendar-route',
+      theme: params.category || 'yearly',
+      category: params.category || 'yearly',
+      currentDateIso,
+      coverage: {
+        hasAstrologySnapshot: true,
+        hasSajuSnapshot: true,
+      },
+      anchors: {
+        dayMasterElement,
+        currentDaeunElement,
+        currentIljinElement: currentDaeunElement || dayMasterElement,
+        currentIljinDate: currentDateIso,
+      },
+    },
+    currentDateIso,
+    lang: params.locale,
+    startYearMonth: `${params.year}-01`,
+    profileContext: {
+      birthDate: params.birthDate,
+      birthTime: params.birthTime,
+      birthCity: params.birthPlace,
+      timezone: params.timezone,
+      latitude: params.latitude,
+      longitude: params.longitude,
+      analysisAt: new Date().toISOString(),
+    },
+  }
+}
 
 function deriveFallbackSunSign(birthDate: Date): string {
   const month = birthDate.getMonth()
@@ -257,34 +261,6 @@ function deriveFallbackSunSign(birthDate: Date): string {
   return 'Pisces'
 }
 
-function toOptionalRecord(value: unknown): Record<string, unknown> | undefined {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
-  return value as Record<string, unknown>
-}
-
-function toKoElement(value?: string): FiveElement | undefined {
-  if (!value) return undefined
-  const direct: FiveElement[] = ['\uBAA9', '\uD654', '\uD1A0', '\uAE08', '\uC218']
-  if (direct.includes(value as FiveElement)) return value as FiveElement
-  return EN_TO_KO_ELEMENT[value]
-}
-
-function collectCalendarMatrixMissing(input: MatrixCalculationInput): string[] {
-  const missing: string[] = []
-  if (!input.sajuSnapshot || Object.keys(input.sajuSnapshot).length === 0)
-    missing.push('sajuSnapshot')
-  if (!input.astrologySnapshot || Object.keys(input.astrologySnapshot).length === 0)
-    missing.push('astrologySnapshot')
-  if (!input.crossSnapshot || Object.keys(input.crossSnapshot).length === 0)
-    missing.push('crossSnapshot')
-  if (!input.currentDaeunElement) missing.push('currentDaeunElement')
-  if (!input.currentSaeunElement) missing.push('currentSaeunElement')
-  if (!input.planetSigns || Object.keys(input.planetSigns).length === 0) missing.push('planetSigns')
-  if (!input.planetHouses || Object.keys(input.planetHouses).length === 0)
-    missing.push('planetHouses')
-  if (!Array.isArray(input.aspects) || input.aspects.length === 0) missing.push('aspects')
-  return missing
-}
 /**
  * GET /api/calendar
  * 중요 날짜 조회 (인증 불필요)
@@ -349,6 +325,7 @@ export const GET = withApiMiddleware(
     let sajuResult
     try {
       const sajuGender = gender.toLowerCase() === 'female' ? ('female' as const) : ('male' as const)
+      const { calculateSajuData } = await import('@/lib/Saju/saju')
       sajuResult = calculateSajuData(birthDateParam, birthTimeParam, sajuGender, 'solar', timezone)
     } catch (sajuError) {
       logger.error('[Calendar] Saju calculation error:', sajuError)
@@ -384,7 +361,7 @@ export const GET = withApiMiddleware(
     }
 
     const dayMasterStem = pillars.day.stem
-    const dayMasterElement = STEM_TO_ELEMENT[dayMasterStem] || 'wood'
+    const dayMasterElement = STEM_TO_ELEMENT_EN[dayMasterStem] || 'wood'
 
     // 대운 추출 - DaeunCycle 타입에 맞춤
     const daeunCycles =
@@ -407,72 +384,25 @@ export const GET = withApiMiddleware(
       pillars,
     }
 
-    // 정확한 점성술 계산 (Swiss Ephemeris 사용)
-    const [birthHour, birthMinute] = birthTimeParam.split(':').map(Number)
-    let astroProfile
-    let natalChartData: Awaited<ReturnType<typeof calculateNatalChart>> | null = null
-    let natalAspectData: ReturnType<typeof findNatalAspects> = []
-    try {
-      const natalChart = await calculateNatalChart({
-        year: birthDate.getFullYear(),
-        month: birthDate.getMonth() + 1,
-        date: birthDate.getDate(),
-        hour: birthHour || 12,
-        minute: birthMinute || 0,
-        latitude: coords.lat,
-        longitude: coords.lng,
-        timeZone: timezone,
-      })
-      natalChartData = natalChart
-      natalAspectData = findNatalAspects(toChart(natalChart), {
-        includeMinor: true,
-        maxResults: 60,
-      })
-
-      // 태양 정보 추출
-      const sunPlanet = natalChart.planets.find((p) => p.name === 'Sun')
-      const sunSign = sunPlanet?.sign || 'Aries'
-      const sunLongitude = sunPlanet?.longitude || 0
-
-      astroProfile = {
-        sunSign,
-        sunElement: ZODIAC_TO_ELEMENT[sunSign] || 'fire',
-        sunLongitude,
-        birthMonth: birthDate.getMonth() + 1,
-        birthDay: birthDate.getDate(),
-      }
-    } catch (astroError) {
-      if (CALENDAR_STRICT_ASTROLOGY) {
-        logger.error('[Calendar] Astrology calculation failed (strict mode):', astroError)
-        return createErrorResponse({
-          code: ErrorCodes.SERVICE_UNAVAILABLE,
-          message: 'Advanced astrology calculation unavailable',
-          locale: extractLocale(request),
-          route: 'calendar',
-          originalError: astroError instanceof Error ? astroError : new Error(String(astroError)),
-        })
-      }
-      logger.warn('[Calendar] Astrology calculation fallback:', astroError)
-      const sunSign = deriveFallbackSunSign(birthDate)
-      astroProfile = {
-        sunSign,
-        sunElement: ZODIAC_TO_ELEMENT[sunSign] || 'fire',
-        birthMonth: birthDate.getMonth() + 1,
-        birthDay: birthDate.getDate(),
-      }
+    const sunSign = deriveFallbackSunSign(birthDate)
+    const astroProfile = {
+      sunSign,
+      sunElement: ZODIAC_TO_ELEMENT[sunSign] || 'fire',
+      birthMonth: birthDate.getMonth() + 1,
+      birthDay: birthDate.getDate(),
     }
 
     let matrixCalendarContext: MatrixCalendarContext = null
     let matrixInputCoverage: Record<string, unknown> | null = null
     let matrixEvidencePackets: CalendarMatrixEvidencePacketMap | null = null
-    let calendarCoreCanonical: ReturnType<typeof adaptCoreToCalendar> | null = null
-    let calendarCoreDataQuality: {
+    let calendarCoreCanonical = null as CalendarCoreAdapterResult | null
+    let calendarCoreDataQuality = null as {
       missingFields: string[]
       derivedFields: string[]
       conflictingFields: string[]
       qualityPenalties: string[]
       confidenceReason: string
-    } | null = null
+    } | null
     let topMatchedPatterns: Array<{
       id: string
       label: string
@@ -481,523 +411,104 @@ export const GET = withApiMiddleware(
       domains: string[]
       activationReason: string
     }> = []
+    let calendarMatrixContract:
+      | {
+          coreHash?: string
+          overallPhase?: string
+          overallPhaseLabel?: string
+          topClaimId?: string
+          topClaim?: string
+          focusDomain?: string
+        }
+      | undefined
+
     try {
-      const stemElements = [
-        pillars.year.stem,
-        pillars.month.stem,
-        pillars.day.stem,
-        pillars.hour.stem,
-      ]
-        .map((stem) => STEM_TO_ELEMENT[stem])
-        .filter((el): el is string => Boolean(el))
-
-      const branchElements = [
-        pillars.year.branch,
-        pillars.month.branch,
-        pillars.day.branch,
-        pillars.hour.branch,
-      ]
-        .map((branch) => BRANCH_TO_ELEMENT_EN[branch])
-        .filter((el): el is string => Boolean(el))
-
-      const pillarElements = [...stemElements, ...branchElements]
-        .map((el) => EN_TO_KO_ELEMENT[el])
-        .filter((el): el is FiveElement => Boolean(el))
-
-      const dayMasterElementKo = EN_TO_KO_ELEMENT[dayMasterElement] || '\uBAA9'
-      const sibsinDistribution: Record<string, number> = {}
-      const pillarRows = [
-        sajuResult.yearPillar,
-        sajuResult.monthPillar,
-        sajuResult.dayPillar,
-        sajuResult.timePillar,
-      ]
-      for (const row of pillarRows) {
-        const cheon = row?.heavenlyStem?.sibsin
-        const ji = row?.earthlyBranch?.sibsin
-        if (typeof cheon === 'string' && cheon.trim().length > 0) {
-          sibsinDistribution[cheon] = (sibsinDistribution[cheon] || 0) + 1
-        }
-        if (typeof ji === 'string' && ji.trim().length > 0) {
-          sibsinDistribution[ji] = (sibsinDistribution[ji] || 0) + 1
-        }
-      }
-
-      const advanced = analyzeAdvancedSaju(
+      const [
+        { buildCalendarCoreEnvelope },
+        { adaptCoreToCalendar },
         {
-          name: sajuResult.dayPillar.heavenlyStem.name,
-          element: sajuResult.dayPillar.heavenlyStem.element,
-          yin_yang: sajuResult.dayPillar.heavenlyStem.yin_yang || '\uC591',
+          ensureMatrixInputCrossCompleteness,
+          buildServiceInputCrossAudit,
+          listMissingCrossKeysForService,
         },
-        {
-          yearPillar: sajuResult.yearPillar,
-          monthPillar: sajuResult.monthPillar,
-          dayPillar: sajuResult.dayPillar,
-          timePillar: sajuResult.timePillar,
-        }
-      )
+        { deriveCalendarSignals },
+        { buildCalendarMatrixEvidencePacketMap },
+      ] = await Promise.all([
+        import('@/lib/destiny-matrix/core/buildCalendarCoreEnvelope'),
+        import('@/lib/destiny-matrix/core/adapters'),
+        import('@/lib/destiny-matrix/inputCross'),
+        import('@/lib/destiny-matrix/calendarSignals'),
+        import('./lib/matrixEvidencePacket'),
+      ])
 
-      const planetHouses: Partial<
-        Record<PlanetName, MatrixCalculationInput['planetHouses'][PlanetName]>
-      > = {}
-      const planetSigns: Partial<
-        Record<PlanetName, MatrixCalculationInput['planetSigns'][PlanetName]>
-      > = {}
-      if (natalChartData) {
-        for (const p of natalChartData.planets) {
-          if (!MAJOR_PLANET_SET.has(p.name)) continue
-          const planet = p.name as PlanetName
-          if (typeof p.house === 'number' && p.house >= 1 && p.house <= 12) {
-            planetHouses[planet] = p.house as MatrixCalculationInput['planetHouses'][PlanetName]
-          }
-          if (typeof p.sign === 'string' && p.sign.length > 0) {
-            planetSigns[planet] = p.sign as MatrixCalculationInput['planetSigns'][PlanetName]
-          }
-        }
-      }
-
-      const aspects = natalAspectData
-        .filter((a) => MAJOR_PLANET_SET.has(a.from.name) && MAJOR_PLANET_SET.has(a.to.name))
-        .map((a) => ({
-          planet1: a.from.name as PlanetName,
-          planet2: a.to.name as PlanetName,
-          type: a.type,
-          orb: typeof a.orb === 'number' ? a.orb : undefined,
-          angle: ASPECT_ANGLE_MAP[a.type],
-        }))
-
-      const asteroidHouses: Record<string, number> = {}
-      const extraPointSigns: Record<string, string> = {}
-      let derivedAdvancedSignals = buildCompleteAdvancedAstroSignals(undefined)
-
-      if (natalChartData?.meta?.jdUT) {
-        const houseCusps = Array.isArray(natalChartData.houses)
-          ? natalChartData.houses.map((h) => h.cusp)
-          : []
-
-        if (houseCusps.length > 0) {
-          try {
-            const asteroids = calculateAllAsteroids(natalChartData.meta.jdUT, houseCusps)
-            for (const key of ['Ceres', 'Pallas', 'Juno', 'Vesta'] as const) {
-              const house = asteroids[key]?.house
-              if (typeof house === 'number' && house >= 1 && house <= 12) {
-                asteroidHouses[key] = house
-              }
-            }
-          } catch (error) {
-            logger.warn('[Calendar] Failed to derive asteroid houses', {
-              error: error instanceof Error ? error.message : String(error),
-            })
-          }
-
-          const sun = natalChartData.planets.find((p) => p.name === 'Sun')
-          const moon = natalChartData.planets.find((p) => p.name === 'Moon')
-          if (sun && moon && natalChartData.ascendant) {
-            try {
-              const extras = await calculateExtraPoints(
-                natalChartData.meta.jdUT,
-                coords.lat,
-                coords.lng,
-                natalChartData.ascendant.longitude,
-                sun.longitude,
-                moon.longitude,
-                sun.house,
-                houseCusps
-              )
-              extraPointSigns.Chiron = extras.chiron.sign
-              extraPointSigns.Lilith = extras.lilith.sign
-              extraPointSigns.PartOfFortune = extras.partOfFortune.sign
-              extraPointSigns.Vertex = extras.vertex.sign
-            } catch (error) {
-              logger.warn('[Calendar] Failed to derive extra-point signs', {
-                error: error instanceof Error ? error.message : String(error),
-              })
-            }
-          }
-        }
-      }
-
-      let hasProgressions = false
-      let hasSolarReturn = false
-      let hasLunarReturn = false
-      let hasDraconic = false
-      let hasHarmonics = false
-      let hasFixedStars = false
-      let hasEclipses = false
-      let hasMidpoints = false
-
-      if (natalChartData) {
-        const nowIso = new Date().toISOString()
-        const currentYear = new Date().getFullYear()
-        const currentMonth = new Date().getMonth() + 1
-        const natalInput = {
-          year: birthDate.getFullYear(),
-          month: birthDate.getMonth() + 1,
-          date: birthDate.getDate(),
-          hour: birthHour || 12,
-          minute: birthMinute || 0,
-          latitude: coords.lat,
-          longitude: coords.lng,
-          timeZone: timezone,
-        }
-        try {
-          const progressions = await calculateSecondaryProgressions({
-            natal: natalInput,
-            targetDate: nowIso.slice(0, 10),
-          })
-          hasProgressions = Boolean(progressions)
-        } catch {}
-        try {
-          const solarReturn = await calculateSolarReturn({
-            natal: natalInput,
-            year: currentYear,
-          })
-          hasSolarReturn = Boolean(solarReturn)
-        } catch {}
-        try {
-          const lunarReturn = await calculateLunarReturn({
-            natal: natalInput,
-            year: currentYear,
-            month: currentMonth,
-          })
-          hasLunarReturn = Boolean(lunarReturn)
-        } catch {}
-
-        try {
-          const natalChart = toChart(natalChartData)
-          hasDraconic = Boolean(compareDraconicToNatal(natalChart))
-          const birthYear = Number(birthDateParam.slice(0, 4))
-          const age = Number.isFinite(birthYear) ? Math.max(0, currentYear - birthYear) : undefined
-          hasHarmonics = Boolean(generateHarmonicProfile(natalChart, age))
-          hasFixedStars = findFixedStarConjunctions(natalChart, currentYear, 1.0).length > 0
-          const eclipseImpactCount = findEclipseImpact(natalChart).length
-          const upcomingEclipsesCount = getUpcomingEclipses(new Date(nowIso), 6).length
-          hasEclipses = eclipseImpactCount > 0 || upcomingEclipsesCount > 0
-          const midpoints = calculateMidpoints(natalChart)
-          const midpointActivations = findMidpointActivations(natalChart, 1.5)
-          hasMidpoints = midpoints.length > 0 || midpointActivations.length > 0
-        } catch {}
-      }
-
-      derivedAdvancedSignals = buildCompleteAdvancedAstroSignals({
-        solarReturn: hasSolarReturn,
-        lunarReturn: hasLunarReturn,
-        progressions: hasProgressions,
-        draconic: hasDraconic,
-        harmonics: hasHarmonics,
-        fixedStars: hasFixedStars,
-        eclipses: hasEclipses,
-        midpoints: hasMidpoints,
-        asteroids: Object.keys(asteroidHouses).length > 0,
-        extraPoints: Object.keys(extraPointSigns).length > 0,
+      const matrixInput = buildCalendarMatrixInput({
+        birthDate: birthDateParam,
+        birthTime: birthTimeParam,
+        birthPlace,
+        year,
+        timezone,
+        latitude: coords.lat,
+        longitude: coords.lng,
+        locale: locale === 'en' ? 'en' : 'ko',
+        category: category || undefined,
+        sajuResult: sajuResult as unknown as Record<string, unknown>,
+        sajuProfile,
+        astroProfile,
       })
-
-      const currentDaeunElement = toKoElement(
-        STEM_TO_ELEMENT[sajuResult.daeWoon?.current?.heavenlyStem || '']
-      )
-      const now = new Date()
-      const currentDateParts = toDatePartsInTimeZone(now, timezone)
-      const currentSaeunElement = toKoElement(
-        (
-          (sajuResult.unse?.annual || []).find((row) => row.year === currentDateParts.year) ||
-          sajuResult.unse?.annual?.[0]
-        )?.element
-      )
-      const currentWolunElement = toKoElement(
-        (
-          (sajuResult.unse?.monthly || []).find(
-            (row) => row.year === currentDateParts.year && row.month === currentDateParts.month
-          ) || sajuResult.unse?.monthly?.[0]
-        )?.element
-      )
-      const currentIljin = buildApproximateIljinTiming(now, timezone)
-      const age = calculateAgeAtDate(birthDateParam, now, timezone)
-      const activeTransits = Array.from(
-        new Set<NonNullable<MatrixCalculationInput['activeTransits']>[number]>([
-          ...inferLifecycleTransitCycles(age),
-          ...inferRetrogradeTransitCycles(now),
-        ])
-      )
-      const astroTimingIndex = buildAstroTimingIndex({
-        activeTransits,
-        advancedAstroSignals: derivedAdvancedSignals,
-      })
-
-      let relations: MatrixCalculationInput['relations'] = []
-      let twelveStages: MatrixCalculationInput['twelveStages'] = {}
-      let shinsalList: NonNullable<MatrixCalculationInput['shinsalList']> = []
-      try {
-        const hasCompletePillars =
-          Boolean(sajuResult?.yearPillar?.heavenlyStem?.name) &&
-          Boolean(sajuResult?.monthPillar?.heavenlyStem?.name) &&
-          Boolean(sajuResult?.dayPillar?.heavenlyStem?.name) &&
-          Boolean(sajuResult?.timePillar?.heavenlyStem?.name) &&
-          Boolean(sajuResult?.yearPillar?.earthlyBranch?.name) &&
-          Boolean(sajuResult?.monthPillar?.earthlyBranch?.name) &&
-          Boolean(sajuResult?.dayPillar?.earthlyBranch?.name) &&
-          Boolean(sajuResult?.timePillar?.earthlyBranch?.name)
-
-        if (hasCompletePillars) {
-          const relationInput = toAnalyzeInputFromSaju(
-            {
-              year: sajuResult.yearPillar,
-              month: sajuResult.monthPillar,
-              day: sajuResult.dayPillar,
-              time: sajuResult.timePillar,
-            },
-            sajuResult.dayPillar.heavenlyStem.name
-          )
-          relations = analyzeRelations(relationInput)
-
-          const pillarsLike = toSajuPillarsLike({
-            yearPillar: sajuResult.yearPillar,
-            monthPillar: sajuResult.monthPillar,
-            dayPillar: sajuResult.dayPillar,
-            timePillar: sajuResult.timePillar,
-          })
-          twelveStages = toTwelveStageCounts(getTwelveStagesForPillars(pillarsLike))
-
-          const shinsalHits = getShinsalHits(pillarsLike, {
-            includeTwelveAll: true,
-            includeGeneralShinsal: true,
-            includeLuckyDetails: true,
-            ruleSet: 'standard',
-          })
-          shinsalList = Array.from(
-            new Set(
-              shinsalHits
-                .map((hit) => normalizeShinsalKind(hit.kind))
-                .filter(
-                  (kind): kind is NonNullable<MatrixCalculationInput['shinsalList']>[number] =>
-                    Boolean(kind)
-                )
-            )
-          )
-        }
-      } catch (sajuSignalError) {
-        logger.warn('[Calendar] Failed to derive saju signals for matrix input', sajuSignalError)
-      }
-
-      const matrixInput: MatrixCalculationInput = {
-        dayMasterElement: dayMasterElementKo,
-        pillarElements,
-        sibsinDistribution,
-        twelveStages,
-        relations,
-        geokguk: advanced.geokguk.type as MatrixCalculationInput['geokguk'],
-        yongsin: advanced.yongsin.primary,
-        currentDaeunElement,
-        currentSaeunElement,
-        currentWolunElement,
-        currentIljinElement: currentIljin.element,
-        currentIljinDate: currentIljin.date,
-        shinsalList,
-        dominantWesternElement:
-          astroProfile.sunElement === 'air' ||
-          astroProfile.sunElement === 'fire' ||
-          astroProfile.sunElement === 'earth' ||
-          astroProfile.sunElement === 'water'
-            ? astroProfile.sunElement
-            : undefined,
-        planetHouses,
-        planetSigns,
-        aspects,
-        activeTransits,
-        astroTimingIndex,
-        asteroidHouses,
-        extraPointSigns,
-        advancedAstroSignals: derivedAdvancedSignals,
-        sajuSnapshot: toOptionalRecord(sajuResult),
-        astrologySnapshot: natalChartData
-          ? ({
-              natalChart: natalChartData,
-              natalAspects: natalAspectData,
-              advancedCoverage: derivedAdvancedSignals,
-            } as MatrixCalculationInput['astrologySnapshot'])
-          : undefined,
-        crossSnapshot: {
-          source: 'calendar-route',
-          category: category || null,
-          astroTimingIndex,
-        } satisfies NonNullable<MatrixCalculationInput['crossSnapshot']>,
-        currentDateIso: new Date().toISOString().slice(0, 10),
-        profileContext: {
-          birthDate: birthDateParam,
-          birthTime: birthTimeParam,
-          birthCity: birthPlace,
-          timezone,
-          latitude: coords.lat,
-          longitude: coords.lng,
-          analysisAt: new Date().toISOString(),
-        },
+      const crossCompleteInput = ensureMatrixInputCrossCompleteness(matrixInput)
+      const engineEnvelope = buildCalendarCoreEnvelope({
         lang: locale === 'en' ? 'en' : 'ko',
-        startYearMonth: `${year}-01`,
-      }
-      const crossCompleteMatrixInput = ensureMatrixInputCrossCompleteness(matrixInput)
-      const crossAudit = buildServiceInputCrossAudit(crossCompleteMatrixInput, 'calendar')
-      const crossMissingKeys = listMissingCrossKeysForService(crossAudit, 'calendar')
-      const normalizedMatrixInput = buildNormalizedMatrixInput(crossCompleteMatrixInput)
-
-      if (CALENDAR_STRICT_MATRIX) {
-        const missing = [
-          ...collectCalendarMatrixMissing(normalizedMatrixInput),
-          ...crossMissingKeys,
-        ]
-        if (missing.length > 0) {
-          return createErrorResponse({
-            code: ErrorCodes.SERVICE_UNAVAILABLE,
-            message: `Calendar matrix input incomplete: ${missing.join(', ')}`,
-            locale: extractLocale(request),
-            route: 'calendar',
-          })
-        }
-      }
-
-      const coreEnvelope = buildCalendarCoreEnvelope({
-        lang: locale === 'en' ? 'en' : 'ko',
-        matrixInput: normalizedMatrixInput,
+        matrixInput: crossCompleteInput,
       })
-      const matrix = coreEnvelope.matrix
-      const coreSeed = coreEnvelope.coreSeed
-      let matrixSummaryForCalendar =
-        matrix && typeof matrix === 'object' && 'summary' in matrix ? matrix.summary : undefined
-
-      if (matrixSummaryForCalendar) {
-        try {
-          const preciseTimelineSummary = await buildPreciseTimelineSummary(
-            normalizedMatrixInput,
-            matrixSummaryForCalendar,
-            (timelineInput) =>
-              calculateDestinyMatrix(timelineInput, { skipTimelineRecompute: true }).summary
-          )
-          matrixSummaryForCalendar = {
-            ...matrixSummaryForCalendar,
-            ...preciseTimelineSummary,
-          }
-          logger.info('[Calendar] Applied precise monthly timing summary', {
-            overlapTimelineCount: matrixSummaryForCalendar.overlapTimeline?.length || 0,
-            reliabilityBand: matrixSummaryForCalendar.timingCalibration?.reliabilityBand || null,
-          })
-        } catch (preciseTimingError) {
-          logger.warn('[Calendar] Precise monthly timing summary failed; using base summary', {
-            error:
-              preciseTimingError instanceof Error
-                ? preciseTimingError.message
-                : String(preciseTimingError),
-          })
-        }
+      const coreSummary = engineEnvelope.matrix.summary
+      calendarCoreCanonical = adaptCoreToCalendar(
+        engineEnvelope.coreSeed,
+        locale === 'en' ? 'en' : 'ko'
+      )
+      calendarCoreDataQuality = engineEnvelope.coreSeed.quality.dataQuality
+      matrixEvidencePackets = buildCalendarMatrixEvidencePacketMap(calendarCoreCanonical)
+      matrixCalendarContext = {
+        calendarSignals:
+          coreSummary.calendarSignals && coreSummary.calendarSignals.length > 0
+            ? coreSummary.calendarSignals
+            : deriveCalendarSignals(coreSummary),
+        overlapTimeline: coreSummary.overlapTimeline,
+        overlapTimelineByDomain: coreSummary.overlapTimelineByDomain,
+        timingCalibration: coreSummary.timingCalibration,
+        domainScores: coreSummary.domainScores,
       }
-
-      calendarCoreCanonical = adaptCoreToCalendar(coreSeed, locale === 'en' ? 'en' : 'ko')
-      if (matrixSummaryForCalendar?.timingCalibration && calendarCoreCanonical) {
-        const calendarCanonical = calendarCoreCanonical
-        const actionFocusDomain = calendarCanonical.actionFocusDomain
-        const actionTimingWindow = calendarCanonical.domainTimingWindows.find(
-          (item) => item.domain === actionFocusDomain
-        )
-        const calibratedTiming = await applyRuntimeCalibration(
-          matrixSummaryForCalendar.timingCalibration,
-          {
-            service: 'calendar',
-            actionFocusDomain,
-            timingWindow: actionTimingWindow?.window,
-            timingGranularity: actionTimingWindow?.timingGranularity,
-            overlapTimeline: matrixSummaryForCalendar.overlapTimeline,
-            overlapTimelineByDomain: matrixSummaryForCalendar.overlapTimelineByDomain,
-          }
-        )
-        if (calibratedTiming) {
-          matrixSummaryForCalendar = {
-            ...matrixSummaryForCalendar,
-            timingCalibration: calibratedTiming,
-          }
-        }
+      const crossAudit = buildServiceInputCrossAudit(crossCompleteInput, 'calendar')
+      matrixInputCoverage = {
+        availability: engineEnvelope.coreSeed.availability,
+        qualityScore: engineEnvelope.coreSeed.quality.score,
+        qualityGrade: engineEnvelope.coreSeed.quality.grade,
+        dataQuality: engineEnvelope.coreSeed.quality.dataQuality,
+        missingServiceKeys: listMissingCrossKeysForService(crossAudit, 'calendar'),
       }
-      calendarCoreDataQuality = coreSeed.quality.dataQuality
-      topMatchedPatterns = coreSeed.patterns.slice(0, 10).map((pattern) => ({
+      topMatchedPatterns = engineEnvelope.coreSeed.patterns.slice(0, 10).map((pattern) => ({
         id: pattern.id,
         label: pattern.label,
         score: pattern.score,
         confidence: pattern.confidence,
-        domains: [...(pattern.domains || [])],
+        domains: [...pattern.domains],
         activationReason: pattern.activationReason,
       }))
-      matrixInputCoverage = {
-        saju: {
-          pillarElementCount: pillarElements.length,
-          sibsinKeyCount: Object.keys(sibsinDistribution).length,
-          twelveStageCount: Object.keys(normalizedMatrixInput.twelveStages || {}).length,
-          relationCount: Array.isArray(normalizedMatrixInput.relations)
-            ? normalizedMatrixInput.relations.length
-            : 0,
-          shinsalCount: Array.isArray(normalizedMatrixInput.shinsalList)
-            ? normalizedMatrixInput.shinsalList.length
-            : 0,
-          geokguk: normalizedMatrixInput.geokguk || null,
-          yongsin: normalizedMatrixInput.yongsin || null,
-          hasCurrentDaeun: !!normalizedMatrixInput.currentDaeunElement,
-          hasCurrentSaeun: !!normalizedMatrixInput.currentSaeunElement,
-          snapshotKeys: Object.keys(normalizedMatrixInput.sajuSnapshot || {}).length,
-        },
-        astrology: {
-          planetHouseCount: Object.keys(normalizedMatrixInput.planetHouses || {}).length,
-          planetSignCount: Object.keys(normalizedMatrixInput.planetSigns || {}).length,
-          aspectCount: Array.isArray(normalizedMatrixInput.aspects)
-            ? normalizedMatrixInput.aspects.length
-            : 0,
-          activeTransitCount: Array.isArray(normalizedMatrixInput.activeTransits)
-            ? normalizedMatrixInput.activeTransits.length
-            : 0,
-          dominantWesternElement: normalizedMatrixInput.dominantWesternElement || null,
-          snapshotKeys: Object.keys(normalizedMatrixInput.astrologySnapshot || {}).length,
-        },
-        cross: {
-          snapshotKeys: Object.keys(normalizedMatrixInput.crossSnapshot || {}).length,
-          currentDateIso: normalizedMatrixInput.currentDateIso || null,
-          availability: normalizedMatrixInput.availability,
-          inputCrossAudit: crossAudit,
-          inputCrossMissing: crossMissingKeys,
-        },
-        core: {
-          coreHash: coreSeed.coreHash,
-          canonicalClaimCount: coreSeed.canonical.claimIds.length,
-          canonicalCautionCount: coreSeed.canonical.cautions.length,
-          canonicalConfidence: coreSeed.canonical.confidence,
-          canonicalPhase: coreSeed.canonical.phase,
-          canonicalPhaseLabel: coreSeed.canonical.phaseLabel,
-          canonicalFocusDomain: coreSeed.canonical.focusDomain,
-          canonicalRiskControl: coreSeed.canonical.riskControl,
-          canonicalTopDecisionId: coreSeed.canonical.topDecision?.id || null,
-          patternCount: coreSeed.patterns.length,
-          scenarioCount: coreSeed.scenarios.length,
-          qualityScore: coreSeed.quality.score,
-          qualityGrade: coreSeed.quality.grade,
-          qualityWarnings: coreSeed.quality.warnings,
-          topPatternIds: topMatchedPatterns.map((pattern) => pattern.id),
-        },
-      }
-      matrixEvidencePackets = buildCalendarMatrixEvidencePacketMap(calendarCoreCanonical)
-
-      matrixCalendarContext = {
-        calendarSignals: matrixSummaryForCalendar?.calendarSignals || [],
-        overlapTimeline: matrixSummaryForCalendar?.overlapTimeline || [],
-        overlapTimelineByDomain: matrixSummaryForCalendar?.overlapTimelineByDomain || undefined,
-        timingCalibration: matrixSummaryForCalendar?.timingCalibration || undefined,
-        domainScores: matrixSummaryForCalendar?.domainScores || undefined,
+      calendarMatrixContract = {
+        coreHash: calendarCoreCanonical.coreHash,
+        overallPhase: calendarCoreCanonical.phase,
+        overallPhaseLabel: calendarCoreCanonical.phaseLabel,
+        topClaimId: calendarCoreCanonical.claimIds[0],
+        topClaim: calendarCoreCanonical.thesis,
+        focusDomain:
+          mapCoreSignalDomainToCalendarDomain(calendarCoreCanonical.focusDomain) || undefined,
       }
     } catch (matrixError) {
-      if (CALENDAR_STRICT_MATRIX) {
-        logger.error('[Calendar] Matrix overlay failed (strict mode):', matrixError)
-        return createErrorResponse({
-          code: ErrorCodes.SERVICE_UNAVAILABLE,
-          message: 'Destiny matrix calculation unavailable',
-          locale: extractLocale(request),
-          route: 'calendar',
-          originalError:
-            matrixError instanceof Error ? matrixError : new Error(String(matrixError)),
-        })
-      }
-      logger.warn('[Calendar] Matrix overlay fallback:', matrixError)
+      logger.warn(
+        '[Calendar] destiny-matrix core unavailable; continuing with lightweight calendar',
+        {
+          error: matrixError instanceof Error ? matrixError.message : String(matrixError),
+        }
+      )
     }
 
     // 로컬 계산으로 중요 날짜 가져오기 (Redis 캐싱 적용)
@@ -1011,11 +522,12 @@ export const GET = withApiMiddleware(
     )
     const localDates = await cacheOrCalculate(
       cacheKey,
-      async () => {
-        return calculateYearlyImportantDates(year, sajuProfile, astroProfile, {
+      async () =>
+        calculateYearlyImportantDatesLite(year, sajuProfile, astroProfile, {
           minGrade: 4, // grade 4(최악의 날)까지 포함
-        })
-      },
+          locale: locale === 'en' ? 'en' : 'ko',
+          matrixContext: matrixCalendarContext || undefined,
+        }),
       CACHE_TTL.CALENDAR_DATA // 1 day
     )
 
@@ -1047,8 +559,6 @@ export const GET = withApiMiddleware(
       elements: sajuProfile,
     }
 
-    const moonPlanet = natalChartData?.planets.find((p) => p.name === 'Moon')
-
     const astroData = {
       birth_date: birthDateParam,
       birth_time: birthTimeParam,
@@ -1057,15 +567,16 @@ export const GET = withApiMiddleware(
       timezone: coords.tz,
       sun_sign: astroProfile.sunSign,
       planets: {
-        sun: { sign: astroProfile.sunSign, degree: astroProfile.sunLongitude || 15 },
+        sun: { sign: astroProfile.sunSign, degree: 15 },
         moon: {
-          sign: moonPlanet?.sign || astroProfile.sunSign,
-          degree: moonPlanet?.longitude || 15,
+          sign: astroProfile.sunSign,
+          degree: 15,
         },
       },
     }
 
     // AI 백엔드 호출 시도
+    const { fetchAIDates } = await import('./lib/helpers')
     const aiDates = await fetchAIDates(sajuData, astroData, category || 'overall')
     if (!aiDates && CALENDAR_STRICT_AI_ENRICHMENT) {
       logger.error('[Calendar] AI date enrichment unavailable (strict mode)')
@@ -1161,21 +672,6 @@ export const GET = withApiMiddleware(
       aiEnhanced = true
     }
 
-    const todayPacket = matrixEvidencePackets?.today || matrixEvidencePackets?.general
-    const coreCoverage = (matrixInputCoverage as { core?: { coreHash?: string } } | undefined)?.core
-    const calendarMatrixContract =
-      coreCoverage || todayPacket
-        ? {
-            coreHash: coreCoverage?.coreHash,
-            overallPhase: calendarCoreCanonical?.phase || todayPacket?.strategyBrief?.overallPhase,
-            overallPhaseLabel:
-              calendarCoreCanonical?.phaseLabel || todayPacket?.strategyBrief?.overallPhaseLabel,
-            topClaimId: todayPacket?.topClaims?.[0]?.id,
-            topClaim: calendarCoreCanonical?.thesis || todayPacket?.topClaims?.[0]?.text,
-            focusDomain: calendarCoreCanonical?.focusDomain || todayPacket?.focusDomain,
-          }
-        : undefined
-
     const presentationDomainMap = {
       career: 'career',
       study: 'career',
@@ -1198,36 +694,38 @@ export const GET = withApiMiddleware(
         : undefined,
       matrixContract: calendarMatrixContract,
       dataQuality: calendarCoreDataQuality || undefined,
-      timingCalibration: matrixCalendarContext?.timingCalibration,
-      overlapTimelineByDomain: matrixCalendarContext?.overlapTimelineByDomain,
-      domainScores: matrixCalendarContext?.domainScores,
+      timingCalibration: undefined,
+      overlapTimelineByDomain: undefined,
+      domainScores: undefined,
     })
 
-    const actionTimingWindow = calendarCoreCanonical?.domainTimingWindows?.find(
-      (item) => item.domain === calendarCoreCanonical.actionFocusDomain
-    )
+    const { persistDestinyPredictionSnapshot } =
+      await import('@/lib/destiny-matrix/predictionSnapshot')
     const predictionId = await persistDestinyPredictionSnapshot({
       userId: context.userId,
       service: 'calendar',
       lang: locale === 'en' ? 'en' : 'ko',
       theme: category || 'yearly',
-      focusDomain: calendarCoreCanonical?.focusDomain,
-      actionFocusDomain: calendarCoreCanonical?.actionFocusDomain,
+      focusDomain:
+        mapCoreSignalDomainToCalendarDomain(calendarCoreCanonical?.focusDomain) || undefined,
+      actionFocusDomain:
+        mapCoreSignalDomainToCalendarDomain(calendarCoreCanonical?.actionFocusDomain) || undefined,
       phase: calendarCoreCanonical?.phase,
       phaseLabel: calendarCoreCanonical?.phaseLabel,
-      topDecisionId: calendarCoreCanonical?.topDecisionId,
-      topDecisionAction: calendarCoreCanonical?.topDecisionAction,
-      topDecisionLabel: calendarCoreCanonical?.topDecisionLabel,
-      timingWindow: actionTimingWindow?.window,
-      timingGranularity: actionTimingWindow?.timingGranularity,
-      precisionReason: actionTimingWindow?.precisionReason,
-      timingConflictMode: actionTimingWindow?.timingConflictMode,
-      timingConflictNarrative: actionTimingWindow?.timingConflictNarrative,
-      readinessScore: actionTimingWindow?.readinessScore,
-      triggerScore: actionTimingWindow?.triggerScore,
-      convergenceScore: actionTimingWindow?.convergenceScore,
-      timingReliabilityScore: matrixCalendarContext?.timingCalibration?.reliabilityScore ?? null,
-      timingReliabilityBand: matrixCalendarContext?.timingCalibration?.reliabilityBand ?? null,
+      topDecisionId: calendarCoreCanonical?.topDecisionId || undefined,
+      topDecisionAction: calendarCoreCanonical?.topDecisionAction || undefined,
+      topDecisionLabel: calendarCoreCanonical?.topDecisionLabel || undefined,
+      timingWindow: calendarCoreCanonical?.domainTimingWindows?.[0]?.window,
+      timingGranularity: calendarCoreCanonical?.domainTimingWindows?.[0]?.timingGranularity,
+      precisionReason: calendarCoreCanonical?.domainTimingWindows?.[0]?.precisionReason,
+      timingConflictMode: calendarCoreCanonical?.domainTimingWindows?.[0]?.timingConflictMode,
+      timingConflictNarrative:
+        calendarCoreCanonical?.domainTimingWindows?.[0]?.timingConflictNarrative,
+      readinessScore: calendarCoreCanonical?.domainTimingWindows?.[0]?.readinessScore,
+      triggerScore: calendarCoreCanonical?.domainTimingWindows?.[0]?.triggerScore,
+      convergenceScore: calendarCoreCanonical?.domainTimingWindows?.[0]?.convergenceScore,
+      timingReliabilityScore: null,
+      timingReliabilityBand: null,
       predictionClaim:
         typeof presentationView.daySummary === 'string'
           ? presentationView.daySummary
