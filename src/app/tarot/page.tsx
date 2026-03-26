@@ -126,13 +126,18 @@ export default function TarotHomePage() {
   const recommendedSpreads = analysisResult?.recommended_spreads ?? []
   const secondarySpreads = recommendedSpreads.slice(1)
   const questionProfile = analysisResult?.question_profile
-  const primaryStableSpread = useMemo(() => {
-    const trimmedQuestion = question.trim()
-    if (!analysisResult || !trimmedQuestion) {
+  const primaryEntryDisplay = useMemo(() => {
+    if (!analysisResult) {
       return null
     }
 
-    const entry = resolveStableTarotEntry(trimmedQuestion, analysisResult)
+    const entry =
+      analysisResult.source === 'fallback'
+        ? resolveStableTarotEntry(question.trim(), analysisResult)
+        : {
+            themeId: analysisResult.themeId,
+            spreadId: analysisResult.spreadId,
+          }
     const theme = themeLookup.get(entry.themeId)
     const spread = theme?.spreads.find((item) => item.id === entry.spreadId)
     if (!theme || !spread) {
@@ -340,13 +345,17 @@ export default function TarotHomePage() {
                   <div className={styles.primaryActionCopy}>
                     <strong className={styles.primaryActionTitle}>
                       {isKo
-                        ? `기본 진입: ${primaryStableSpread?.spreadTitle || analysisResult.spreadTitle} (${primaryStableSpread?.cardCount || analysisResult.cardCount}장)`
-                        : `Primary entry: ${primaryStableSpread?.spreadTitle || analysisResult.spreadTitle} (${primaryStableSpread?.cardCount || analysisResult.cardCount} cards)`}
+                        ? `권장 진입: ${primaryEntryDisplay?.spreadTitle || analysisResult.spreadTitle} (${primaryEntryDisplay?.cardCount || analysisResult.cardCount}장)`
+                        : `Recommended entry: ${primaryEntryDisplay?.spreadTitle || analysisResult.spreadTitle} (${primaryEntryDisplay?.cardCount || analysisResult.cardCount} cards)`}
                     </strong>
                     <p className={styles.primaryActionText}>
                       {isKo
-                        ? '지금 질문에는 이 스프레드가 가장 자연스럽습니다. 카드 뽑기와 해석 기준도 이 추천에 맞춰 이어집니다.'
-                        : 'This is the most natural spread for the current question, and the draw plus interpretation stay aligned to it.'}
+                        ? analysisResult.source === 'fallback'
+                          ? 'AI 분석이 불안정할 때는 가장 가까운 안정 경로로 먼저 연결합니다.'
+                          : '지금 질문에는 이 스프레드가 가장 자연스럽고, 카드 뽑기와 해석도 이 경로에 맞춰 이어집니다.'
+                        : analysisResult.source === 'fallback'
+                          ? 'When AI analysis is unstable, the flow falls back to the nearest safe route first.'
+                          : 'This spread is the closest match for the current question, and the draw plus interpretation stay aligned to it.'}
                     </p>
                   </div>
                   <button

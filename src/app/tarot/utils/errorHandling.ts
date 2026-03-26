@@ -27,23 +27,23 @@ export function classifyAnalyzeFallbackReason(status?: number): AnalyzeFallbackR
 
 export function getAnalyzeFallbackNotice(reason: AnalyzeFallbackReason, isKo: boolean): string {
   const ko: Record<AnalyzeFallbackReason, string> = {
-    auth_failed: '자동선택 인증이 실패해 quick fallback을 사용했어요.',
-    rate_limited: '자동선택 요청이 많아 quick fallback을 사용했어요.',
-    parse_failed: '자동선택 응답 파싱에 실패해 quick fallback을 사용했어요.',
-    no_candidate: '자동선택 결과를 만들 수 없어 quick fallback을 사용했어요.',
-    invalid_spread: '자동선택 결과가 유효하지 않아 quick fallback을 사용했어요.',
-    server_error: '자동선택 서버 오류로 quick fallback을 사용했어요.',
-    network_error: '네트워크 문제로 quick fallback을 사용했어요.',
+    auth_failed: 'AI 질문 분석이 잠시 불안정해 가장 가까운 경로로 먼저 연결했어요.',
+    rate_limited: 'AI 질문 분석 요청이 몰려 가장 가까운 경로로 먼저 연결했어요.',
+    parse_failed: 'AI 질문 분석 결과가 불안정해 가장 가까운 경로로 먼저 연결했어요.',
+    no_candidate: '질문에 맞는 추천을 바로 고정하지 못해 가장 가까운 경로로 먼저 연결했어요.',
+    invalid_spread: '추천 스프레드를 확정하지 못해 가장 가까운 경로로 먼저 연결했어요.',
+    server_error: 'AI 질문 분석이 지연돼 가장 가까운 경로로 먼저 연결했어요.',
+    network_error: '네트워크가 불안정해 가장 가까운 경로로 먼저 연결했어요.',
   }
 
   const en: Record<AnalyzeFallbackReason, string> = {
-    auth_failed: 'Auto selection auth failed; quick fallback was used.',
-    rate_limited: 'Auto selection was rate-limited; quick fallback was used.',
-    parse_failed: 'Auto selection response parse failed; quick fallback was used.',
-    no_candidate: 'Auto selection returned no candidate; quick fallback was used.',
-    invalid_spread: 'Auto selection returned invalid spread; quick fallback was used.',
-    server_error: 'Auto selection server error; quick fallback was used.',
-    network_error: 'Network issue on auto selection; quick fallback was used.',
+    auth_failed: 'AI question analysis was unstable, so the flow used the nearest route first.',
+    rate_limited: 'AI question analysis is busy right now, so the flow used the nearest route first.',
+    parse_failed: 'AI question analysis was unstable, so the flow used the nearest route first.',
+    no_candidate: 'The question could not be locked to a single recommendation, so the nearest route was used first.',
+    invalid_spread: 'The recommended spread could not be confirmed, so the nearest route was used first.',
+    server_error: 'AI question analysis was delayed, so the nearest route was used first.',
+    network_error: 'The network was unstable, so the nearest route was used first.',
   }
 
   return isKo ? ko[reason] : en[reason]

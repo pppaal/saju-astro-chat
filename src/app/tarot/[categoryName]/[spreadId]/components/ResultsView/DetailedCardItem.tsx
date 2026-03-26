@@ -128,14 +128,6 @@ export function DetailedCardItem({
           ))}
         </div>
 
-        <div className={styles.interpretationBlock}>
-          <div className={styles.interpretationBlockHeader}>
-            {language === 'ko' ? '기본 카드 해석' : 'Card Meaning'}
-          </div>
-          <p className={styles.meaning}>{isSummaryMode ? shortMeaning : baseMeaning}</p>
-          <p className={styles.practicalMeaning}>{practicalMeaning}</p>
-        </div>
-
         {hasAiInterpretation && (
           <div className={styles.premiumInsights}>
             <div className={styles.interpretationBlock}>
@@ -222,6 +214,14 @@ export function DetailedCardItem({
             </p>
           </div>
         )}
+
+        <div className={styles.interpretationBlock}>
+          <div className={styles.interpretationBlockHeader}>
+            {language === 'ko' ? '기본 카드 해석' : 'Card Meaning'}
+          </div>
+          <p className={styles.meaning}>{isSummaryMode ? shortMeaning : baseMeaning}</p>
+          <p className={styles.practicalMeaning}>{practicalMeaning}</p>
+        </div>
 
         <div className={styles.expandHint}>
           {isExpanded

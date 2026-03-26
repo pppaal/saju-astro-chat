@@ -119,11 +119,12 @@ export function useQuestionAnalysis({
   }, [])
 
   const buildLocalFallbackAnalysis = useCallback(
-    (trimmedQuestion: string, _reason: AnalyzeFallbackReason | null = null): AIAnalysisResult => {
+    (trimmedQuestion: string, reason: AnalyzeFallbackReason | null = null): AIAnalysisResult => {
       const quickResult = getQuickRecommendation(trimmedQuestion, isKo)
       const { themeId, spreadId } = parseQuickPath(quickResult.path)
       const resolvedPath = buildQuestionPath(quickResult.path, trimmedQuestion)
       const themeTitle = isKo ? '종합 리딩' : 'General reading'
+      const isDegraded = Boolean(reason)
 
       return {
         themeId,
@@ -131,37 +132,57 @@ export function useQuestionAnalysis({
         spreadTitle: quickResult.spreadTitle,
         cardCount: quickResult.cardCount,
         userFriendlyExplanation: isKo
-          ? '질문의 핵심 의도를 먼저 고정하고, 그에 맞는 스프레드로 바로 연결합니다.'
-          : 'The core intent is fixed first, then routed directly to the closest spread.',
+          ? isDegraded
+            ? 'AI 분석이 잠시 불안정해 질문과 가장 가까운 리딩 경로로 먼저 연결합니다.'
+            : '질문의 핵심 의도를 먼저 고정하고, 그에 맞는 스프레드로 바로 연결합니다.'
+          : isDegraded
+            ? 'AI analysis is temporarily unstable, so the flow uses the nearest reading route first.'
+            : 'The core intent is fixed first, then routed directly to the closest spread.',
         question_summary: isKo
-          ? '질문을 가장 가까운 의도와 스프레드로 바로 정렬했습니다.'
-          : 'The question was aligned directly to the nearest intent and spread.',
-        question_profile: {
-          type: {
-            code: 'unknown',
-            label: isKo ? '전체 흐름을 살피는 질문' : 'A question about the overall flow',
-          },
-          subject: {
-            code: 'overall_flow',
-            label: isKo ? '전체 흐름을 보는 질문' : 'The subject is the overall flow',
-          },
-          focus: {
-            code: 'unknown',
-            label: isKo ? '현재 국면과 전체 흐름' : 'Current phase and overall flow',
-          },
-          timeframe: {
-            code: 'open',
-            label: isKo ? '시간축이 열려 있음' : 'Open-ended timeframe',
-          },
-          tone: {
-            code: 'flow',
-            label: isKo ? '흐름 해석 중심' : 'Flow-focused',
-          },
-        },
+          ? isDegraded
+            ? '세부 의도 분석 대신 가장 가까운 리딩 경로로 우선 정렬했습니다.'
+            : '질문을 가장 가까운 의도와 스프레드로 바로 정렬했습니다.'
+          : isDegraded
+            ? 'Instead of a full intent read, the question was aligned to the nearest stable route first.'
+            : 'The question was aligned directly to the nearest intent and spread.',
+        question_profile: isDegraded
+          ? undefined
+          : {
+              type: {
+                code: 'unknown',
+                label: isKo ? '전체 흐름을 살피는 질문' : 'A question about the overall flow',
+              },
+              subject: {
+                code: 'overall_flow',
+                label: isKo ? '전체 흐름을 보는 질문' : 'The subject is the overall flow',
+              },
+              focus: {
+                code: 'unknown',
+                label: isKo ? '현재 국면과 전체 흐름' : 'Current phase and overall flow',
+              },
+              timeframe: {
+                code: 'open',
+                label: isKo ? '시간축이 열려 있음' : 'Open-ended timeframe',
+              },
+              tone: {
+                code: 'flow',
+                label: isKo ? '흐름 해석 중심' : 'Flow-focused',
+              },
+            },
         direct_answer: isKo
-          ? '지금 질문은 가장 가까운 해석 경로로 바로 연결해도 충분합니다.'
-          : 'This question is stable enough to route directly through the closest reading path.',
-        intent_label: isKo ? '기본 질문 해석' : 'Default question analysis',
+          ? isDegraded
+            ? '세부 AI 분석은 잠시 지연되고 있어, 가장 가까운 스프레드로 먼저 이어집니다.'
+            : '지금 질문은 가장 가까운 해석 경로로 바로 연결해도 충분합니다.'
+          : isDegraded
+            ? 'Detailed AI analysis is delayed, so the flow moves through the nearest spread first.'
+            : 'This question is stable enough to route directly through the closest reading path.',
+        intent_label: isKo
+          ? isDegraded
+            ? '임시 경로 추천'
+            : '기본 질문 해석'
+          : isDegraded
+            ? 'Temporary route recommendation'
+            : 'Default question analysis',
         recommended_spreads: [
           {
             themeId,
@@ -179,7 +200,7 @@ export function useQuestionAnalysis({
         ],
         path: resolvedPath,
         source: 'heuristic',
-        fallback_reason: null,
+        fallback_reason: reason,
       }
     },
     [buildQuestionPath, getQuickRecommendation, isKo, parseQuickPath]
@@ -216,7 +237,7 @@ export function useQuestionAnalysis({
           })
           return {
             result: buildLocalFallbackAnalysis(q, reason),
-            fallbackReason: null,
+            fallbackReason: reason,
             status: response.status,
           }
         }
@@ -231,7 +252,11 @@ export function useQuestionAnalysis({
               ? buildLocalFallbackAnalysis(q, parsedFallbackReason)
               : parsed
 
-          return { result: normalized, fallbackReason: null, status: response.status }
+          return {
+            result: normalized,
+            fallbackReason: parsed.source === 'fallback' ? parsedFallbackReason : null,
+            status: response.status,
+          }
         } catch (parseError) {
           const reason: AnalyzeFallbackReason = 'parse_failed'
           tarotLogger.warn('[tarot/question-engine-v2] Analysis parse failed', {
@@ -241,7 +266,7 @@ export function useQuestionAnalysis({
           })
           return {
             result: buildLocalFallbackAnalysis(q, reason),
-            fallbackReason: null,
+            fallbackReason: reason,
             status: response.status,
           }
         }
@@ -258,7 +283,7 @@ export function useQuestionAnalysis({
         )
 
         const reason: AnalyzeFallbackReason = isTimeout ? 'server_error' : 'network_error'
-        return { result: buildLocalFallbackAnalysis(q, reason), fallbackReason: null }
+        return { result: buildLocalFallbackAnalysis(q, reason), fallbackReason: reason }
       } finally {
         timeoutControl.cleanup()
       }

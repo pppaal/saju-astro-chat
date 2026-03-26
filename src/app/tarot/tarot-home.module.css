@@ -252,7 +252,7 @@
 }
 
 .mainTitle {
-  font-family: var(--font-cinzel), ui-serif, Georgia, serif;
+  font-family: var(--tarot-font-display);
   font-size: 2.5rem;
   font-weight: 700;
   margin: 0 0 10px;

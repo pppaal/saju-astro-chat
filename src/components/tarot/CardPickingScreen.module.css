@@ -129,12 +129,12 @@
 
 .spreadLabel {
   margin: 0 0 0.8rem;
-  font-family: var(--tarot-font-body);
+  font-family: var(--tarot-font-display);
   font-size: clamp(1.4rem, 2vw, 2.25rem);
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.03em;
-  background: linear-gradient(135deg, #77dbff 0%, #ffffff 45%, #87f4d6 100%);
+  background: linear-gradient(135deg, #fff8ff 0%, #d6b7ff 48%, #8fd7ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -142,14 +142,14 @@
 }
 
 .instructionTitle {
-  font-family: var(--tarot-font-body);
+  font-family: var(--tarot-font-display);
   font-size: clamp(2.3rem, 4vw, 4.1rem);
   font-weight: 700;
   margin: 0;
   line-height: 1.08;
   letter-spacing: -0.04em;
-  text-shadow: 0 0 24px rgba(99, 210, 255, 0.28);
-  background: linear-gradient(135deg, #fff6e8 0%, #ffffff 30%, #89dfff 62%, #86f6d4 100%);
+  text-shadow: 0 0 24px rgba(167, 139, 250, 0.22);
+  background: linear-gradient(135deg, #fff7ee 0%, #fff8ff 28%, #d6b7ff 62%, #8fd7ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -965,10 +965,10 @@
 }
 
 .resultsTitle {
-  font-family: var(--tarot-font-body);
+  font-family: var(--tarot-font-display);
   font-size: 3rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #7cf29c 100%);
+  background: linear-gradient(135deg, #fff8ff 0%, #d6b7ff 46%, #8fd7ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -2823,11 +2823,11 @@
 }
 
 .deckSelectTitle {
-  font-family: var(--font-cinzel), ui-serif, Georgia, serif;
+  font-family: var(--tarot-font-display);
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 0.5rem;
-  background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #7cf29c 100%);
+  background: linear-gradient(135deg, #fff8ff 0%, #d6b7ff 46%, #8fd7ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

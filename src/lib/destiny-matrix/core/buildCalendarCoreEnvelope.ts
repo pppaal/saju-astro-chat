@@ -1,5 +1,6 @@
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix/engine'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
+import type { SibsinKind } from '@/lib/Saju/types'
 import type {
   DestinyFusionMatrixComputed,
   MatrixCalculationInput,
@@ -49,15 +50,15 @@ function buildCalendarFusionReport(
   const dominantSibsin = Object.entries(input.sibsinDistribution || {})
     .sort((a, b) => b[1] - a[1])
     .slice(0, 4)
-    .map(([name]) => name)
+    .map(([name]) => name as SibsinKind)
 
   const overall = Math.max(
     0,
     Math.min(
       100,
       Math.round(
-        typeof matrixSummary?.overallScore === 'number'
-          ? matrixSummary.overallScore
+        typeof matrixSummary?.totalScore === 'number'
+          ? matrixSummary.totalScore
           : typeof matrixSummary?.overlapStrength === 'number'
             ? matrixSummary.overlapStrength * 100
             : 50

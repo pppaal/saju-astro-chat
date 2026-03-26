@@ -97,12 +97,12 @@
 }
 
 .instructionTitle {
-  font-family: var(--tarot-font-body);
+  font-family: var(--tarot-font-display);
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 0.75rem 0;
-  text-shadow: 0 0 20px rgba(99, 210, 255, 0.5);
-  background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #7cf29c 100%);
+  text-shadow: 0 0 20px rgba(167, 139, 250, 0.34);
+  background: linear-gradient(135deg, #fff8ff 0%, #d6b7ff 48%, #8fd7ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -433,10 +433,10 @@
 }
 
 .resultsTitle {
-  font-family: var(--tarot-font-body);
+  font-family: var(--tarot-font-display);
   font-size: 3rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #7cf29c 100%);
+  background: linear-gradient(135deg, #fff8ff 0%, #d6b7ff 46%, #8fd7ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -2135,11 +2135,11 @@
 }
 
 .deckSelectTitle {
-  font-family: var(--font-cinzel), ui-serif, Georgia, serif;
+  font-family: var(--tarot-font-display);
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 0.5rem;
-  background: linear-gradient(135deg, #ffffff 0%, #63d2ff 50%, #7cf29c 100%);
+  background: linear-gradient(135deg, #fff8ff 0%, #d6b7ff 46%, #8fd7ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

@@ -59,8 +59,9 @@ describe('useQuestionAnalysis', () => {
     })
 
     await waitFor(() => {
-      expect(result.current.fallbackReason).toBeNull()
+      expect(result.current.fallbackReason).toBe('auth_failed')
       expect(result.current.analysisResult?.source).toBe('heuristic')
+      expect(result.current.analysisResult?.question_profile).toBeUndefined()
     })
   })
 
@@ -96,8 +97,9 @@ describe('useQuestionAnalysis', () => {
     })
 
     await waitFor(() => {
-      expect(result.current.fallbackReason).toBeNull()
+      expect(result.current.fallbackReason).toBe('parse_failed')
       expect(result.current.analysisResult?.source).toBe('heuristic')
+      expect(result.current.analysisResult?.question_profile).toBeUndefined()
     })
   })
 
@@ -162,6 +164,6 @@ describe('useQuestionAnalysis', () => {
       `/tarot/general-insight/quick-reading?question=${encodeURIComponent(question)}`
     )
     expect(result.current.analysisResult?.source).toBe('heuristic')
-    expect(result.current.fallbackReason).toBeNull()
+    expect(result.current.fallbackReason).toBe('auth_failed')
   })
 })
