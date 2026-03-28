@@ -10,7 +10,13 @@ import {
 import { describeTimingWindowBrief } from '@/lib/destiny-matrix/interpretation/humanSemantics'
 
 export type TimelineTone = 'best' | 'caution' | 'neutral'
-export type SlotType = 'deepWork' | 'decision' | 'communication' | 'money' | 'relationship' | 'recovery'
+export type SlotType =
+  | 'deepWork'
+  | 'decision'
+  | 'communication'
+  | 'money'
+  | 'relationship'
+  | 'recovery'
 
 export type SlotWhy = {
   signalIds: string[]
@@ -174,7 +180,6 @@ export type ActionPlanInsights = {
   successKpi: string[]
   deltaToday: string
 }
-
 
 export const trimList = <T>(items: T[] | undefined, max: number): T[] | undefined => {
   if (!items || items.length === 0) return undefined
@@ -576,7 +581,9 @@ const SLOT_TYPE_DOMAIN_HINTS: Record<SlotType, string[]> = {
   recovery: ['health', 'timing'],
 }
 
-export function getMatrixPacket(calendar?: ActionPlanCalendarContext): MatrixEvidencePacket | undefined {
+export function getMatrixPacket(
+  calendar?: ActionPlanCalendarContext
+): MatrixEvidencePacket | undefined {
   return calendar?.evidence?.matrixPacket
 }
 
@@ -584,18 +591,29 @@ export function getCanonicalCore(calendar?: ActionPlanCalendarContext) {
   return calendar?.canonicalCore
 }
 
+export function getCanonicalActionDomain(calendar?: ActionPlanCalendarContext): string {
+  const canonical = getCanonicalCore(calendar)
+  return canonical?.actionFocusDomain || canonical?.focusDomain || ''
+}
+
+export function getCanonicalBranchProjection(calendar?: ActionPlanCalendarContext) {
+  return calendar?.canonicalCore?.projections?.branches
+}
+
 export function buildCanonicalTimingBrief(
   calendar: ActionPlanCalendarContext | undefined,
   locale: 'ko' | 'en'
 ): string {
   const canonical = getCanonicalCore(calendar)
+  const actionDomain = getCanonicalActionDomain(calendar)
   const timing =
     canonical?.topTimingWindow ||
+    canonical?.domainTimingWindows?.find((item) => item.domain === actionDomain) ||
     canonical?.domainTimingWindows?.find((item) => item.domain === canonical?.focusDomain) ||
     canonical?.domainTimingWindows?.[0]
   if (!timing?.window) return ''
   return describeTimingWindowBrief({
-    domainLabel: canonical?.focusDomain || timing.domain || '',
+    domainLabel: actionDomain || timing.domain || '',
     window: timing.window,
     whyNow: timing.whyNow,
     entryConditions: timing.entryConditions || [],
@@ -615,7 +633,9 @@ export function getEffectiveCalendarGrade(calendar?: ActionPlanCalendarContext):
   return calendar?.displayGrade ?? calendar?.grade ?? 2
 }
 
-export function getEffectiveCalendarScore(calendar?: ActionPlanCalendarContext): number | undefined {
+export function getEffectiveCalendarScore(
+  calendar?: ActionPlanCalendarContext
+): number | undefined {
   return calendar?.displayScore ?? calendar?.score
 }
 
@@ -889,6 +909,7 @@ export function buildSlotGuardrail(input: {
 }): string {
   const { locale, slotTypes, tone, calendar } = input
   const canonical = getCanonicalCore(calendar)
+  const riskAxisLabel = cleanGuidanceText(canonical?.riskAxisLabel || '', 48)
   const matrixGuardrail = cleanGuidanceText(
     canonical?.primaryCaution ||
       canonical?.riskControl ||
@@ -921,11 +942,29 @@ export function buildSlotGuardrail(input: {
                 ? '시작 전 성공 조건 1줄과 중단 기준 1줄을 기록'
                 : 'Write one success condition and one stop condition before starting.'
 
-  if (!matrixGuardrail) return slotSpecific
+  if (!matrixGuardrail) {
+    if (!riskAxisLabel) return slotSpecific
+    return [
+      slotSpecific,
+      locale === 'ko'
+        ? `${riskAxisLabel} 축 리스크를 먼저 관리`
+        : `Manage the ${riskAxisLabel} risk axis first.`,
+    ]
+      .filter(Boolean)
+      .join(' / ')
+  }
   if (matrixGuardrail.includes(slotSpecific)) return matrixGuardrail
-  return locale === 'ko'
-    ? `${slotSpecific} / ${matrixGuardrail}`
-    : `${slotSpecific} / ${matrixGuardrail}`
+  return [
+    slotSpecific,
+    matrixGuardrail,
+    riskAxisLabel
+      ? locale === 'ko'
+        ? `${riskAxisLabel} 축 리스크를 먼저 관리`
+        : `Manage the ${riskAxisLabel} risk axis first.`
+      : '',
+  ]
+    .filter(Boolean)
+    .join(' / ')
 }
 
 export function getPrimarySlotType(slotTypes: SlotType[]): SlotType {
@@ -1188,10 +1227,12 @@ export function buildActionPlanInsights(input: {
   const { locale, timeline, calendar, icp, persona, isPremiumUser } = input
   const isKo = locale === 'ko'
   const canonical = getCanonicalCore(calendar)
+  const actionDomain = getCanonicalActionDomain(calendar)
+  const branchProjection = getCanonicalBranchProjection(calendar)
   const verdict = getMatrixVerdict(calendar)
   const bestSlot = timeline.find((slot) => slot.tone === 'best')
   const cautionSlot = timeline.find((slot) => slot.tone === 'caution')
-  const topCategory = normalizeActionCategory(calendar?.categories?.[0])
+  const topCategory = normalizeActionCategory(actionDomain || calendar?.categories?.[0])
   const topClaim = cleanGuidanceText(
     canonical?.topDecisionLabel || canonical?.thesis || verdict?.topClaim || '',
     110
@@ -1232,6 +1273,21 @@ export function buildActionPlanInsights(input: {
       : canonical?.judgmentPolicy?.hardStops || []
   )
   const timingBrief = cleanGuidanceText(buildCanonicalTimingBrief(calendar, locale), 140)
+  const branchLead = cleanGuidanceText(
+    branchProjection?.detailLines?.[0] ||
+      branchProjection?.summary ||
+      branchProjection?.nextMoves?.[0] ||
+      '',
+    120
+  )
+  const riskAxisLead = cleanGuidanceText(
+    canonical?.riskAxisLabel
+      ? isKo
+        ? `${canonical.riskAxisLabel} 축 리스크를 먼저 관리`
+        : `Manage the ${canonical.riskAxisLabel} risk axis first.`
+      : '',
+    96
+  )
 
   const formatSlotLabel = (slot?: TimelineSlot) =>
     slot
@@ -1269,6 +1325,11 @@ export function buildActionPlanInsights(input: {
         : isKo
           ? 'IF 작업 착수 THEN 종료 조건 1줄 기록 후 시작'
           : 'If starting work, write one done-condition before execution.',
+    branchLead
+      ? isKo
+        ? `IF 분기 조건이 갈리면 THEN ${branchLead}`
+        : `If branch conditions diverge, follow this first: ${branchLead}`
+      : null,
   ])
 
   if (softCheckCopy[0]) {
@@ -1325,12 +1386,20 @@ export function buildActionPlanInsights(input: {
     )
   }
 
+  if (riskAxisLead) {
+    situationTriggers.unshift(riskAxisLead)
+  }
+  if (branchLead) {
+    situationTriggers.push(branchLead)
+  }
+
   const cautionSlots = timeline
     .filter((slot) => slot.tone === 'caution')
     .slice(0, 3)
     .map((slot) => formatSlotLabel(slot))
   const riskTriggers = unique(
     [
+      riskAxisLead || null,
       topAnchor
         ? isKo
           ? `핵심 앵커 이탈: ${topAnchor}`
@@ -1371,6 +1440,7 @@ export function buildActionPlanInsights(input: {
     do: unique(
       [
         (calendar?.recommendations || [])[0],
+        branchProjection?.nextMoves?.[0],
         isKo ? `${topCategory} 영역 핵심 액션 1건 완료` : `Complete one key ${topCategory} action`,
         isKo ? '시작 전 완료 기준 1줄 작성' : 'Write one done-condition before start',
         isKo
@@ -1585,4 +1655,3 @@ export const buildRuleBasedTimeline = (input: {
 
   return slots
 }
-

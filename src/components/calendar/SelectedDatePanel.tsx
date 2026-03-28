@@ -91,6 +91,11 @@ interface SelectedDatePanelProps {
       month: string
       summary: string
     }
+    surfaceCards?: Array<{
+      key: 'action' | 'risk' | 'window' | 'agreement' | 'branch'
+      label: string
+      summary: string
+    }>
     topDomains?: Array<{
       domain: 'career' | 'love' | 'money' | 'health' | 'move' | 'general'
       label: string
@@ -811,7 +816,10 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     canonicalCore?.domainVerdicts.find((item) => item.domain === canonicalCore.focusDomain) ||
     canonicalCore?.domainVerdicts[0]
   const canonicalGradeLabel = safeDisplayText(canonicalCore?.gradeLabel || '', '')
-  const canonicalPhaseLabel = humanizePhaseLabel(canonicalCore?.phaseLabel || canonicalCore?.phase || '', locale)
+  const canonicalPhaseLabel = humanizePhaseLabel(
+    canonicalCore?.phaseLabel || canonicalCore?.phase || '',
+    locale
+  )
   const canonicalFocusDomainLabel = canonicalCore
     ? getDomainLabel(toCalendarDomain(canonicalCore.focusDomain), locale)
     : ''
@@ -830,7 +838,8 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   const reliabilityLabel = selectedDate
     ? getReliabilityLabel(selectedDate.evidence?.confidence, locale)
     : ''
-  const reliabilityHeadline = canonicalReliabilityLabel || presentationReliability || reliabilityLabel
+  const reliabilityHeadline =
+    canonicalReliabilityLabel || presentationReliability || reliabilityLabel
   const domainLabel = selectedDate
     ? getDomainLabel(selectedDate.evidence?.matrix.domain, locale)
     : locale === 'ko'
@@ -838,7 +847,9 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       : 'overall'
   const focusDomainHeadline =
     canonicalFocusDomainLabel ||
-    (isPresentationDayMatch ? safeDisplayText(presentation?.daySummary?.focusDomain || '', '') : '') ||
+    (isPresentationDayMatch
+      ? safeDisplayText(presentation?.daySummary?.focusDomain || '', '')
+      : '') ||
     domainLabel
 
   const evidenceSummaryPrimary = canonicalCore
@@ -846,16 +857,17 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       ? `오늘 등급 ${unifiedDayLabel} · 흐름 ${canonicalPhaseLabel || canonicalCore.phase} · 핵심 분야 ${focusDomainHeadline} · 판단 기준 ${reliabilityHeadline}`
       : `Today rating ${unifiedDayLabel} · Flow ${canonicalPhaseLabel || canonicalCore.phase} · Focus ${focusDomainHeadline} · Guidance ${reliabilityHeadline}`
     : selectedDate?.evidence
-    ? locale === 'ko'
-      ? `오늘 등급 ${unifiedDayLabel} · 점수 ${displayScore}/100 · 핵심 분야 ${domainLabel}${matrixVerdict?.phase ? ` · 흐름 ${humanizePhaseLabel(matrixVerdict.phase, locale)}` : ''}`
-      : `Today rating ${unifiedDayLabel} · Score ${displayScore}/100 · Focus ${domainLabel}${matrixVerdict?.phase ? ` · Flow ${humanizePhaseLabel(matrixVerdict.phase, locale)}` : ''}`
-    : ''
+      ? locale === 'ko'
+        ? `오늘 등급 ${unifiedDayLabel} · 점수 ${displayScore}/100 · 핵심 분야 ${domainLabel}${matrixVerdict?.phase ? ` · 흐름 ${humanizePhaseLabel(matrixVerdict.phase, locale)}` : ''}`
+        : `Today rating ${unifiedDayLabel} · Score ${displayScore}/100 · Focus ${domainLabel}${matrixVerdict?.phase ? ` · Flow ${humanizePhaseLabel(matrixVerdict.phase, locale)}` : ''}`
+      : ''
 
   const evidenceSummaryCross = selectedDate?.evidence
     ? buildReadableCrossLine({
         locale,
         confidence: canonicalCore?.confidence ?? selectedDate.evidence.confidence,
-        crossAgreement: canonicalCore?.crossAgreement ?? selectedDate.evidence.crossAgreementPercent,
+        crossAgreement:
+          canonicalCore?.crossAgreement ?? selectedDate.evidence.crossAgreementPercent,
         focusDomain: focusDomainHeadline,
       })
     : ''
@@ -899,8 +911,16 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     reliability: reliabilityHeadline,
     attackPercent: matrixVerdict?.attackPercent,
     defensePercent: matrixVerdict?.defensePercent,
-    action: canonicalCore?.topDecisionLabel || canonicalCore?.primaryAction || canonicalAdvisory?.action || '',
-    caution: canonicalCore?.riskControl || canonicalCore?.primaryCaution || canonicalAdvisory?.caution || '',
+    action:
+      canonicalCore?.topDecisionLabel ||
+      canonicalCore?.primaryAction ||
+      canonicalAdvisory?.action ||
+      '',
+    caution:
+      canonicalCore?.riskControl ||
+      canonicalCore?.primaryCaution ||
+      canonicalAdvisory?.caution ||
+      '',
   })
 
   const quickThesis = (() => {
@@ -979,9 +999,11 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     softenDecisionTone(canonicalCore?.primaryCaution || '', locale, isLowReliability),
     softenDecisionTone(canonicalCore?.riskControl || '', locale, isLowReliability),
     softenDecisionTone(canonicalAdvisory?.caution || '', locale, isLowReliability),
-    ...((canonicalCore?.judgmentPolicy.hardStopLabels || canonicalCore?.judgmentPolicy.hardStops || []).map((line) =>
-      softenDecisionTone(line, locale, isLowReliability)
-    ) || []),
+    ...((
+      canonicalCore?.judgmentPolicy.hardStopLabels ||
+      canonicalCore?.judgmentPolicy.hardStops ||
+      []
+    ).map((line) => softenDecisionTone(line, locale, isLowReliability)) || []),
     ...((canonicalDomainVerdict?.blockedActionLabels || []).map((action) =>
       softenDecisionTone(action, locale, isLowReliability)
     ) || []),
@@ -1016,36 +1038,38 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
   const safeActionSummary = safeDisplayText(
     softenDecisionTone(
-      canonicalCore?.topDecisionLabel || canonicalCore?.primaryAction || selectedDate?.actionSummary || '',
+      canonicalCore?.topDecisionLabel ||
+        canonicalCore?.primaryAction ||
+        selectedDate?.actionSummary ||
+        '',
       locale,
       isLowReliability
     ),
     ''
   )
 
+  const explicitSurfaceCards =
+    (presentation?.surfaceCards || [])
+      .map((item) => ({
+        label: safeDisplayText(item.label, ''),
+        text: takeLeadLine(item.summary),
+      }))
+      .filter((item) => item.label && item.text) || []
+
   const quickHighlightCards = [
+    ...explicitSurfaceCards,
     {
       label: locale === 'ko' ? '핵심 결론' : 'Core',
       text: takeLeadLine(quickThesis),
     },
-    {
-      label: locale === 'ko' ? '지금 할 것' : 'Do now',
-      text: takeLeadLine(quickDos[0] || safeActionSummary),
-    },
-    {
-      label: locale === 'ko' ? '오늘 주의' : 'Watch',
-      text: takeLeadLine(quickDonts[0] || topCautions[0]),
-    },
-    {
-      label: locale === 'ko' ? '좋은 시간' : 'Best time',
-      text: takeLeadLine(quickWindows[0]),
-    },
-  ].filter((item, index, items) => {
-    const text = safeDisplayText(item.text, '')
-    if (!text) return false
-    const key = normalizeSemanticKey(text)
-    return items.findIndex((candidate) => normalizeSemanticKey(candidate.text) === key) === index
-  })
+  ]
+    .filter((item, index, items) => {
+      const text = safeDisplayText(item.text, '')
+      if (!text) return false
+      const key = normalizeSemanticKey(text)
+      return items.findIndex((candidate) => normalizeSemanticKey(candidate.text) === key) === index
+    })
+    .slice(0, 5)
 
   const displayTitle = (() => {
     const baseTitle = safeTitle

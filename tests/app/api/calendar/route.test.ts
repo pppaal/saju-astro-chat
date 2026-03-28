@@ -1207,6 +1207,11 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(data).toHaveProperty('daySummary')
       expect(data).toHaveProperty('weekSummary')
       expect(data).toHaveProperty('monthSummary')
+      expect(data).toHaveProperty('surfaceCards')
+      expect(Array.isArray(data.surfaceCards)).toBe(true)
+      expect(data.surfaceCards.map((item: { key: string }) => item.key)).toEqual(
+        expect.arrayContaining(['action', 'risk', 'window', 'agreement', 'branch'])
+      )
       expect(data).toHaveProperty('topDomains')
       expect(data).toHaveProperty('timingSignals')
       expect(data).toHaveProperty('cautions')

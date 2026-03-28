@@ -1,5 +1,7 @@
 ﻿import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 import type {
+  CrossAgreementMatrixCell,
+  CrossAgreementMatrixRow,
   DomainKey,
   DomainScore,
   MonthlyOverlapPoint,
@@ -29,6 +31,12 @@ type WeatherSummary = {
   summary: string
 }
 
+type SurfaceCard = {
+  key: 'action' | 'risk' | 'window' | 'agreement' | 'branch'
+  label: string
+  summary: string
+}
+
 type DaySummary = {
   date: string
   summary: string
@@ -51,6 +59,7 @@ export type CalendarPresentationView = {
   daySummary: DaySummary
   weekSummary: WeekSummary
   monthSummary: MonthSummary
+  surfaceCards: SurfaceCard[]
   topDomains: TopDomain[]
   timingSignals: string[]
   cautions: string[]
@@ -128,6 +137,167 @@ function mapCoreDomainToPresentationDomain(domain?: string): PresentationDomain 
 function mapPresentationDomainToDomainKey(domain: PresentationDomain): DomainKey | null {
   if (domain === 'general') return null
   return domain
+}
+
+function mapPresentationDomainToCrossDomain(
+  domain: PresentationDomain
+): CrossAgreementMatrixRow['domain'] | null {
+  if (domain === 'general') return 'timing'
+  if (domain === 'love') return 'relationship'
+  if (domain === 'money') return 'wealth'
+  return domain
+}
+
+function pickAgreementCell(
+  matrix: CrossAgreementMatrixRow[] | undefined,
+  domain: PresentationDomain
+): { row: CrossAgreementMatrixRow; scale: string; cell: CrossAgreementMatrixCell } | null {
+  const crossDomain = mapPresentationDomainToCrossDomain(domain)
+  if (!crossDomain || !Array.isArray(matrix) || matrix.length === 0) return null
+  const row = matrix.find((item) => item.domain === crossDomain)
+  if (!row) return null
+  const orderedScales: Array<'now' | '1-3m' | '3-6m' | '6-12m'> = ['now', '1-3m', '3-6m', '6-12m']
+  for (const scale of orderedScales) {
+    const cell = row.timescales?.[scale]
+    if (cell) return { row, scale, cell }
+  }
+  return null
+}
+
+function localizeWindowToken(window: string, locale: Locale): string {
+  if (locale === 'ko') {
+    if (window === 'now') return '지금'
+    if (window === '1-3m') return '1~3개월'
+    if (window === '3-6m') return '3~6개월'
+    if (window === '6-12m') return '6~12개월'
+  }
+  return window
+}
+
+function buildAgreementCardSummary(input: {
+  locale: Locale
+  focusDomainLabel: string
+  actionDomain: PresentationDomain
+  matrix: CrossAgreementMatrixRow[] | undefined
+  fallbackAgreementPercent?: number
+  fallbackConflictText?: string
+}): string {
+  const {
+    locale,
+    focusDomainLabel,
+    actionDomain,
+    matrix,
+    fallbackAgreementPercent,
+    fallbackConflictText,
+  } = input
+  const picked = pickAgreementCell(matrix, actionDomain)
+  if (picked) {
+    const agreementPct = Math.round((picked.cell.agreement || 0) * 100)
+    const contradictionPct = Math.round((picked.cell.contradiction || 0) * 100)
+    const leadLag = picked.cell.leadLag ?? picked.row.leadLag ?? 0
+    const windowLabel = localizeWindowToken(picked.scale, locale)
+    if (locale === 'ko') {
+      const alignment =
+        agreementPct >= 75
+          ? '같은 방향이 강합니다'
+          : agreementPct >= 60
+            ? '대체로 같은 방향이지만 재확인이 필요합니다'
+            : '엇갈림이 커서 보수적으로 읽어야 합니다'
+      const contradictionLine =
+        contradictionPct >= 35
+          ? `충돌도는 ${contradictionPct}%로 높은 편입니다.`
+          : `충돌도는 ${contradictionPct}%로 관리 가능한 수준입니다.`
+      const leadLagLine =
+        leadLag >= 0.18
+          ? '구조 지지가 먼저 앞서고 촉발은 뒤따르는 형태입니다.'
+          : leadLag <= -0.18
+            ? '촉발은 먼저 오지만 구조 지지는 뒤에서 따라오는 형태입니다.'
+            : '구조와 촉발 시차는 크지 않습니다.'
+      return `${windowLabel} 기준 ${focusDomainLabel} 합의도는 ${agreementPct}%이며 ${alignment} ${contradictionLine} ${leadLagLine}`.trim()
+    }
+    const alignment =
+      agreementPct >= 75
+        ? 'alignment is strong'
+        : agreementPct >= 60
+          ? 'alignment is usable but still needs confirmation'
+          : 'misalignment is high, so a conservative read is safer'
+    const contradictionLine =
+      contradictionPct >= 35
+        ? `Contradiction is relatively high at ${contradictionPct}%.`
+        : `Contradiction stays manageable at ${contradictionPct}%.`
+    const leadLagLine =
+      leadLag >= 0.18
+        ? 'Structural support is ahead of trigger pressure.'
+        : leadLag <= -0.18
+          ? 'Trigger pressure arrives ahead of structural support.'
+          : 'Lead-lag between structure and trigger is limited.'
+    return `In the ${windowLabel} window, agreement for ${focusDomainLabel} is ${agreementPct}% and ${alignment}. ${contradictionLine} ${leadLagLine}`.trim()
+  }
+
+  if (fallbackConflictText) return fallbackConflictText
+  if (typeof fallbackAgreementPercent === 'number') {
+    return locale === 'ko'
+      ? `${focusDomainLabel} 기준 교차 합의도는 ${fallbackAgreementPercent}% 수준입니다. 세부 창은 다시 확인하는 편이 낫습니다.`
+      : `Cross-agreement for ${focusDomainLabel} is around ${fallbackAgreementPercent}%. Rechecking the timing window is still useful.`
+  }
+  return locale === 'ko'
+    ? `${focusDomainLabel} 기준 합의도는 중간 수준이라, 한 방향으로만 밀기보다 재확인을 끼워 넣는 편이 낫습니다.`
+    : `Agreement for ${focusDomainLabel} is moderate, so build in confirmation instead of pushing one-way execution.`
+}
+
+function buildBranchCardSummary(input: {
+  locale: Locale
+  actionDomainLabel: string
+  projectionBranch: string
+  actionTimingWindow?: {
+    entryConditions?: string[]
+    abortConditions?: string[]
+    timingConflictMode?: string
+  }
+}): string {
+  const { locale, actionDomainLabel, projectionBranch, actionTimingWindow } = input
+  const entry = actionTimingWindow?.entryConditions?.[0]
+  const abort = actionTimingWindow?.abortConditions?.[0]
+  const mode = actionTimingWindow?.timingConflictMode
+  if (locale === 'ko') {
+    const modeLead =
+      mode === 'trigger_ahead'
+        ? '지금은 촉발이 먼저 와 있어 서두르면 지속성이 약해질 수 있습니다.'
+        : mode === 'readiness_ahead'
+          ? '지금은 구조가 먼저 열려 있어 조건을 맞춘 뒤 들어가는 편이 유리합니다.'
+          : mode === 'weak_both'
+            ? '지금은 진입보다 관찰과 정리가 우선입니다.'
+            : ''
+    const entryLead = entry ? `진입 조건은 ${entry}입니다.` : ''
+    const abortLead = abort ? `중단 신호는 ${abort}입니다.` : ''
+    return [
+      projectionBranch || `${actionDomainLabel} 축은 하나의 답보다 여러 경로를 함께 봐야 합니다.`,
+      modeLead,
+      entryLead,
+      abortLead,
+    ]
+      .filter(Boolean)
+      .join(' ')
+  }
+  const modeLead =
+    mode === 'trigger_ahead'
+      ? 'Trigger arrives before structural support, so rushing weakens sustainability.'
+      : mode === 'readiness_ahead'
+        ? 'Structure opens first, so entry works better after conditions line up.'
+        : mode === 'weak_both'
+          ? 'Observation and reset matter more than entry right now.'
+          : ''
+  const entryLead = entry ? `Entry condition: ${entry}.` : ''
+  const abortLead = abort ? `Abort signal: ${abort}.` : ''
+  return [
+    projectionBranch ||
+      `${actionDomainLabel} should be read through multiple live branches rather than one fixed path.`,
+    modeLead,
+    entryLead,
+    abortLead,
+  ]
+    .filter(Boolean)
+    .join(' ')
 }
 
 function matchesPresentationDomain(date: FormattedDate, domain: PresentationDomain): boolean {
@@ -509,6 +679,7 @@ export function buildCalendarPresentationView(input: {
       },
       weekSummary: { rangeStart: '', rangeEnd: '', summary: emptySummary },
       monthSummary: { month: '', summary: emptySummary },
+      surfaceCards: [],
       topDomains: [],
       timingSignals: [],
       cautions: [],
@@ -546,6 +717,10 @@ export function buildCalendarPresentationView(input: {
     canonicalCore?.domainTimingWindows?.filter(
       (item) => mapCoreDomainToPresentationDomain(item.domain) === focusDomain
     ) || []
+  const actionTimingWindow =
+    canonicalCore?.domainTimingWindows?.find(
+      (item) => mapCoreDomainToPresentationDomain(item.domain) === actionFocusDomain
+    ) || canonicalTimingWindows[0]
   const primaryProvenance =
     canonicalTimingWindows[0]?.provenance ||
     canonicalAdvisories[0]?.provenance ||
@@ -623,6 +798,11 @@ export function buildCalendarPresentationView(input: {
     canonicalCore?.projections?.branches?.detailLines?.[0] ||
     canonicalCore?.projections?.branches?.summary ||
     ''
+  const crossConflictText = describeSajuAstroConflictByDomain({
+    crossAgreement: canonicalCore?.crossAgreement,
+    focusDomainLabel,
+    lang: locale,
+  })
 
   const timingSignals = dedupe([
     projectionTiming,
@@ -664,6 +844,83 @@ export function buildCalendarPresentationView(input: {
     ? baseActions.map((line) => softenForDefensivePhase(line, locale))
     : baseActions
 
+  const actionCardSummary =
+    projectionAction ||
+    canonicalCore?.topDecisionLabel ||
+    canonicalCore?.primaryAction ||
+    recommendedActions[0] ||
+    (locale === 'ko'
+      ? `${actionFocusDomainLabel} 축은 지금 작은 실행보다 기준 정리를 먼저 하는 편이 낫습니다.`
+      : `${actionFocusDomainLabel} works better through clarified criteria than broad execution right now.`)
+  const riskCardSummary =
+    projectionRisk ||
+    cautions[0] ||
+    (locale === 'ko'
+      ? `${canonicalCore?.riskAxisLabel || focusDomainLabel} 축은 오늘 가장 먼저 관리해야 할 리스크입니다.`
+      : `${canonicalCore?.riskAxisLabel || focusDomainLabel} is the risk axis to manage first today.`)
+  const agreementPercent =
+    typeof canonicalCore?.crossAgreement === 'number'
+      ? Math.round(canonicalCore.crossAgreement * 100)
+      : selected.evidence?.crossAgreementPercent
+  const agreementCardSummary = buildAgreementCardSummary({
+    locale,
+    focusDomainLabel: actionFocusDomainLabel,
+    actionDomain: actionFocusDomain,
+    matrix: canonicalCore?.crossAgreementMatrix,
+    fallbackAgreementPercent: agreementPercent,
+    fallbackConflictText: crossConflictText,
+  })
+  const windowCardSummary =
+    timingSignals[0] ||
+    (canonicalTimingWindows[0]
+      ? describeTimingWindowBrief({
+          domainLabel: actionFocusDomainLabel,
+          window: canonicalTimingWindows[0].window,
+          whyNow: canonicalTimingWindows[0].whyNow,
+          entryConditions: canonicalTimingWindows[0].entryConditions,
+          abortConditions: canonicalTimingWindows[0].abortConditions,
+          timingGranularity: canonicalTimingWindows[0].timingGranularity,
+          precisionReason: canonicalTimingWindows[0].precisionReason,
+          timingConflictNarrative: canonicalTimingWindows[0].timingConflictNarrative,
+          lang: locale,
+        })
+      : locale === 'ko'
+        ? `${actionFocusDomainLabel} 창은 지금은 작게 열려 있으니 검토 후 움직이는 편이 안전합니다.`
+        : `The ${actionFocusDomainLabel} window is only partly open, so review before moving.`)
+  const branchCardSummary = buildBranchCardSummary({
+    locale,
+    actionDomainLabel: actionFocusDomainLabel,
+    projectionBranch,
+    actionTimingWindow,
+  })
+  const surfaceCards: SurfaceCard[] = [
+    {
+      key: 'action',
+      label: locale === 'ko' ? '행동축' : 'Action',
+      summary: actionCardSummary,
+    },
+    {
+      key: 'risk',
+      label: locale === 'ko' ? '리스크축' : 'Risk',
+      summary: riskCardSummary,
+    },
+    {
+      key: 'window',
+      label: locale === 'ko' ? '강한 창' : 'Window',
+      summary: windowCardSummary,
+    },
+    {
+      key: 'agreement',
+      label: locale === 'ko' ? '합의도' : 'Agreement',
+      summary: agreementCardSummary,
+    },
+    {
+      key: 'branch',
+      label: locale === 'ko' ? '가능한 경로' : 'Branch',
+      summary: branchCardSummary,
+    },
+  ]
+
   const daySummaryText =
     (canonicalTimingWindows[0]
       ? describeTimingWindowBrief({
@@ -684,11 +941,6 @@ export function buildCalendarPresentationView(input: {
     (locale === 'ko'
       ? '오늘은 핵심 과제 1~2개 중심으로 운영하는 편이 좋습니다.'
       : 'Today is better handled by focusing on one or two priorities.')
-  const crossConflictText = describeSajuAstroConflictByDomain({
-    crossAgreement: canonicalCore?.crossAgreement,
-    focusDomainLabel,
-    lang: locale,
-  })
   const focusSplitLead =
     actionFocusDomain !== focusDomain
       ? locale === 'ko'
@@ -750,9 +1002,9 @@ export function buildCalendarPresentationView(input: {
       focusDomain,
       defensivePhase
         ? locale === 'ko'
-          ? `${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${projectionBranchLead} ${daySummaryText} ${projectionRiskLead} 오늘은 확정보다 검토와 재정렬을 우선하세요.`
-          : `${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${projectionBranchLead} ${daySummaryText} ${projectionRiskLead} Today favors review and reset over commitment.`
-        : `${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${projectionBranchLead} ${daySummaryText} ${projectionActionLead} ${crossConflictText}`.trim()
+          ? `${actionCardSummary} ${riskCardSummary} ${windowCardSummary} ${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${projectionBranchLead} ${daySummaryText} 오늘은 확정보다 검토와 재정렬을 우선하세요.`
+          : `${actionCardSummary} ${riskCardSummary} ${windowCardSummary} ${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${projectionBranchLead} ${daySummaryText} Today favors review and reset over commitment.`
+        : `${actionCardSummary} ${riskCardSummary} ${windowCardSummary} ${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${projectionBranchLead} ${daySummaryText} ${projectionActionLead} ${crossConflictText}`.trim()
     ),
     focusDomain: focusDomainLabel,
     reliability,
@@ -898,6 +1150,7 @@ export function buildCalendarPresentationView(input: {
     daySummary,
     weekSummary,
     monthSummary,
+    surfaceCards,
     topDomains,
     timingSignals: timingSignalsWithConflict,
     cautions,

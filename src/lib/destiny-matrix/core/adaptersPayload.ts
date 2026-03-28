@@ -43,6 +43,7 @@ export function buildSharedSurface(
   riskAxisDomain: ReturnType<typeof rankRiskAxis>
   riskAxisLabel: string
   timingMatrix: AdapterTimingMatrixRow[]
+  crossAgreementMatrix: DestinyCoreResult['canonical']['crossAgreementMatrix']
   arbitrationBrief: AdapterArbitrationBrief
   latentTopAxes: AdapterLatentAxis[]
   projections: AdapterProjectionSet
@@ -52,6 +53,7 @@ export function buildSharedSurface(
     riskAxisDomain,
     riskAxisLabel: localizeDomain(riskAxisDomain, locale),
     timingMatrix: buildTimingMatrix(core, locale),
+    crossAgreementMatrix: [...(core.canonical.crossAgreementMatrix || [])],
     arbitrationBrief: buildArbitrationBrief(core, locale),
     latentTopAxes: buildLatentTopAxes(core, locale),
     projections: buildProjectionSet(core, locale),
@@ -62,9 +64,15 @@ export function buildJudgmentPolicy(core: DestinyCoreResult, locale: 'ko' | 'en'
   return {
     mode: core.canonical.judgmentPolicy.mode,
     allowedActions: [...core.canonical.judgmentPolicy.allowedActions],
-    allowedActionLabels: getAllowedActionLabels(core.canonical.judgmentPolicy.allowedActions, locale),
+    allowedActionLabels: getAllowedActionLabels(
+      core.canonical.judgmentPolicy.allowedActions,
+      locale
+    ),
     blockedActions: [...core.canonical.judgmentPolicy.blockedActions],
-    blockedActionLabels: getBlockedActionLabels(core.canonical.judgmentPolicy.blockedActions, locale),
+    blockedActionLabels: getBlockedActionLabels(
+      core.canonical.judgmentPolicy.blockedActions,
+      locale
+    ),
     hardStops: [...core.canonical.judgmentPolicy.hardStops],
     hardStopLabels: formatPolicyCheckLabels(core.canonical.judgmentPolicy.hardStops),
     softChecks: [...core.canonical.judgmentPolicy.softChecks],

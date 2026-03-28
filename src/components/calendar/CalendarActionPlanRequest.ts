@@ -1,6 +1,7 @@
 import type { ICPAnalysis } from '@/lib/icp/types'
 import type { PersonaAnalysis } from '@/lib/persona/types'
 import type { CounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
+import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 import type { ImportantDate } from './types'
 import {
   resolveActionPlanPrecisionMode,
@@ -34,6 +35,7 @@ export function buildActionPlanAiPayload(input: {
   locale: 'ko' | 'en'
   intervalMinutes: 30 | 60
   baseInfo: ImportantDate | null
+  canonicalCore?: CalendarCoreAdapterResult | null
   selectedMatrixPacket: CounselorEvidencePacket | null | undefined
   icpResult: ICPAnalysis | null
   personaResult: PersonaAnalysis | null
@@ -45,6 +47,7 @@ export function buildActionPlanAiPayload(input: {
     locale,
     intervalMinutes,
     baseInfo,
+    canonicalCore,
     selectedMatrixPacket,
     icpResult,
     personaResult,
@@ -198,6 +201,93 @@ export function buildActionPlanAiPayload(input: {
         summary: trimText(baseInfo.summary, 240),
         ganzhi: trimText(baseInfo.ganzhi, 60),
         transitSunSign: trimText(baseInfo.transitSunSign, 60),
+        canonicalCore: canonicalCore
+          ? {
+              focusDomain: trimText(canonicalCore.focusDomain, 24),
+              actionFocusDomain: trimText(canonicalCore.actionFocusDomain, 24),
+              riskAxisLabel: trimText(canonicalCore.riskAxisLabel, 80),
+              phase: trimText(canonicalCore.phase, 48),
+              phaseLabel: trimText(canonicalCore.phaseLabel, 60),
+              thesis: trimText(canonicalCore.thesis, 220),
+              riskControl: trimText(canonicalCore.riskControl, 220),
+              primaryAction: trimText(canonicalCore.primaryAction, 220),
+              primaryCaution: trimText(canonicalCore.primaryCaution, 220),
+              topDecisionLabel: trimText(canonicalCore.topDecisionLabel || undefined, 220),
+              attackPercent: canonicalCore.attackPercent,
+              defensePercent: canonicalCore.defensePercent,
+              confidence: canonicalCore.confidence,
+              judgmentPolicy: canonicalCore.judgmentPolicy
+                ? {
+                    mode: canonicalCore.judgmentPolicy.mode,
+                    rationale: trimText(canonicalCore.judgmentPolicy.rationale, 220),
+                    allowedActions: trimList(canonicalCore.judgmentPolicy.allowedActions, 8, 64),
+                    allowedActionLabels: trimList(
+                      canonicalCore.judgmentPolicy.allowedActionLabels,
+                      8,
+                      160
+                    ),
+                    blockedActions: trimList(canonicalCore.judgmentPolicy.blockedActions, 8, 64),
+                    blockedActionLabels: trimList(
+                      canonicalCore.judgmentPolicy.blockedActionLabels,
+                      8,
+                      160
+                    ),
+                    hardStops: trimList(canonicalCore.judgmentPolicy.hardStops, 8, 160),
+                    hardStopLabels: trimList(canonicalCore.judgmentPolicy.hardStopLabels, 8, 160),
+                    softChecks: trimList(canonicalCore.judgmentPolicy.softChecks, 8, 160),
+                    softCheckLabels: trimList(canonicalCore.judgmentPolicy.softCheckLabels, 8, 160),
+                  }
+                : undefined,
+              topTimingWindow: canonicalCore.topTimingWindow
+                ? {
+                    domain: trimText(canonicalCore.topTimingWindow.domain, 24),
+                    window: canonicalCore.topTimingWindow.window,
+                    timingGranularity: canonicalCore.topTimingWindow.timingGranularity,
+                    precisionReason: trimText(canonicalCore.topTimingWindow.precisionReason, 220),
+                    timingConflictNarrative: trimText(
+                      canonicalCore.topTimingWindow.timingConflictNarrative,
+                      220
+                    ),
+                    whyNow: trimText(canonicalCore.topTimingWindow.whyNow, 220),
+                    entryConditions: trimList(
+                      canonicalCore.topTimingWindow.entryConditions,
+                      4,
+                      160
+                    ),
+                    abortConditions: trimList(
+                      canonicalCore.topTimingWindow.abortConditions,
+                      4,
+                      160
+                    ),
+                  }
+                : undefined,
+              domainTimingWindows: canonicalCore.domainTimingWindows?.slice(0, 6).map((item) => ({
+                domain: trimText(item.domain, 24),
+                window: item.window,
+                timingGranularity: item.timingGranularity,
+                precisionReason: trimText(item.precisionReason, 220),
+                timingConflictNarrative: trimText(item.timingConflictNarrative, 220),
+                whyNow: trimText(item.whyNow, 220),
+                entryConditions: trimList(item.entryConditions, 4, 160),
+                abortConditions: trimList(item.abortConditions, 4, 160),
+              })),
+              projections: canonicalCore.projections?.branches
+                ? {
+                    branches: {
+                      summary: trimText(canonicalCore.projections.branches.summary, 220),
+                      detailLines: trimList(canonicalCore.projections.branches.detailLines, 4, 180),
+                      reasons: trimList(canonicalCore.projections.branches.reasons, 4, 180),
+                      nextMoves: trimList(canonicalCore.projections.branches.nextMoves, 4, 180),
+                      counterweights: trimList(
+                        canonicalCore.projections.branches.counterweights,
+                        4,
+                        180
+                      ),
+                    },
+                  }
+                : undefined,
+            }
+          : undefined,
         evidence: compactEvidence,
       }
     : null

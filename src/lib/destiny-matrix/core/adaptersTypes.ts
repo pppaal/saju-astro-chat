@@ -1,3 +1,4 @@
+import type { CrossAgreementMatrixRow } from '../types'
 import type { SignalDomain } from './signalSynthesizer'
 
 export type AdapterProvenance = {
@@ -73,6 +74,7 @@ export interface CalendarCoreAdapterResult {
   timingMatrix: AdapterTimingMatrixRow[]
   confidence: number
   crossAgreement: number | null
+  crossAgreementMatrix: CrossAgreementMatrixRow[]
   arbitrationBrief: AdapterArbitrationBrief
   latentTopAxes: AdapterLatentAxis[]
   projections: AdapterProjectionSet
@@ -183,6 +185,7 @@ export interface CounselorCoreAdapterResult {
   riskAxisDomain: SignalDomain
   riskAxisLabel: string
   timingMatrix: AdapterTimingMatrixRow[]
+  crossAgreementMatrix: CrossAgreementMatrixRow[]
   arbitrationBrief: AdapterArbitrationBrief
   latentTopAxes: AdapterLatentAxis[]
   projections: AdapterProjectionSet
@@ -293,6 +296,7 @@ export interface ReportCoreAdapterResult {
   riskAxisDomain: SignalDomain
   riskAxisLabel: string
   timingMatrix: AdapterTimingMatrixRow[]
+  crossAgreementMatrix: CrossAgreementMatrixRow[]
   arbitrationBrief: AdapterArbitrationBrief
   latentTopAxes: AdapterLatentAxis[]
   projections: AdapterProjectionSet

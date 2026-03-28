@@ -18,7 +18,10 @@ import {
   WEEKDAYS_EN,
   WEEKDAYS_KO,
 } from './constants'
-import { formatDecisionActionLabels, formatPolicyCheckLabels } from '@/lib/destiny-matrix/core/actionCopy'
+import {
+  formatDecisionActionLabels,
+  formatPolicyCheckLabels,
+} from '@/lib/destiny-matrix/core/actionCopy'
 import type { CalendarData, ImportantDate, EventCategory } from './types'
 import { getPeakLabel, resolvePeakLevel } from './peakUtils'
 import { ActionPlanInsightsPanel, ActionPlanSummaryPanels } from './CalendarActionPlanPanels'
@@ -703,7 +706,9 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
             'write one success condition before execution',
             'do not finalize before one counter evidence check',
           ]
-      return genericNeedles.some((needle) => normalized.includes(normalizeTimelineSemanticKey(needle)))
+      return genericNeedles.some((needle) =>
+        normalized.includes(normalizeTimelineSemanticKey(needle))
+      )
     },
     [cleanText, isKo]
   )
@@ -800,6 +805,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         locale: analysisLocale,
         intervalMinutes,
         baseInfo,
+        canonicalCore: data?.canonicalCore,
         selectedMatrixPacket,
         icpResult,
         personaResult,
@@ -811,6 +817,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       baseInfo,
       cleanText,
       dateKey,
+      data?.canonicalCore,
       icpResult,
       intervalMinutes,
       isKo,
@@ -1270,9 +1277,9 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
   const weekItems = useMemo(() => {
     const weekCategory: EventCategory = topCategory ?? baseInfo?.categories?.[0] ?? 'general'
-    const weekAction = (isKo
-      ? CATEGORY_ACTIONS[weekCategory].week.ko
-      : CATEGORY_ACTIONS[weekCategory].week.en)[0]
+    const weekAction = (
+      isKo ? CATEGORY_ACTIONS[weekCategory].week.ko : CATEGORY_ACTIONS[weekCategory].week.en
+    )[0]
     const weekRangeLabel =
       rangeDays === 7 ? (isKo ? '이번 주' : 'this week') : isKo ? '이번 2주' : 'the next 2 weeks'
     const bestRec = bestDays.find((d) => d.info.recommendations?.length)?.info.recommendations?.[0]
@@ -1318,11 +1325,9 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       ''
     )
     const allowedActionLine = cleanText(
-      (data?.canonicalCore?.judgmentPolicy?.allowedActionLabels?.length ||
-        data?.canonicalCore?.judgmentPolicy?.allowedActions?.length)
-        ? `${
-            isKo ? '허용 행동' : 'Allowed moves'
-          }: ${(
+      data?.canonicalCore?.judgmentPolicy?.allowedActionLabels?.length ||
+        data?.canonicalCore?.judgmentPolicy?.allowedActions?.length
+        ? `${isKo ? '허용 행동' : 'Allowed moves'}: ${(
             data?.canonicalCore?.judgmentPolicy?.allowedActionLabels ||
             formatDecisionActionLabels(
               data?.canonicalCore?.judgmentPolicy?.allowedActions || [],
@@ -1335,11 +1340,9 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       ''
     )
     const blockedActionLine = cleanText(
-      (data?.canonicalCore?.judgmentPolicy?.blockedActionLabels?.length ||
-        data?.canonicalCore?.judgmentPolicy?.blockedActions?.length)
-        ? `${
-            isKo ? '차단 행동' : 'Blocked moves'
-          }: ${(
+      data?.canonicalCore?.judgmentPolicy?.blockedActionLabels?.length ||
+        data?.canonicalCore?.judgmentPolicy?.blockedActions?.length
+        ? `${isKo ? '차단 행동' : 'Blocked moves'}: ${(
             data?.canonicalCore?.judgmentPolicy?.blockedActionLabels ||
             formatDecisionActionLabels(
               data?.canonicalCore?.judgmentPolicy?.blockedActions || [],
@@ -1354,24 +1357,22 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     )
     const checkLine = cleanText(
       data?.canonicalCore?.judgmentPolicy
-        ? `${
-            isKo ? '점검 포인트' : 'Checkpoints'
-          }: ${formatPolicyCheckLabels([
+        ? `${isKo ? '점검 포인트' : 'Checkpoints'}: ${formatPolicyCheckLabels([
             ...((data.canonicalCore.judgmentPolicy.softCheckLabels ||
               data.canonicalCore.judgmentPolicy.softChecks ||
               []) as string[]),
             ...((data.canonicalCore.judgmentPolicy.hardStopLabels ||
               data.canonicalCore.judgmentPolicy.hardStops ||
               []) as string[]),
-          ]).slice(0, 2).join(' · ')}`
+          ])
+            .slice(0, 2)
+            .join(' · ')}`
         : '',
       ''
     )
     const graphFocusSummary = cleanText(
       selectedMatrixPacket?.focusDomain && selectedMatrixPacket.topAnchors?.[0]?.summary
-        ? `${
-            isKo ? '핵심 교차 근거' : 'Core cross evidence'
-          }: ${categoryLabel(
+        ? `${isKo ? '핵심 교차 근거' : 'Core cross evidence'}: ${categoryLabel(
             normalizeCategory(
               selectedMatrixPacket.focusDomain === 'wealth'
                 ? 'wealth'

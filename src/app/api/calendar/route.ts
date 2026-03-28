@@ -799,6 +799,7 @@ export const GET = withApiMiddleware(
       daySummary: presentationView.daySummary,
       weekSummary: presentationView.weekSummary,
       monthSummary: presentationView.monthSummary,
+      surfaceCards: presentationView.surfaceCards,
       topDomains: presentationView.topDomains,
       timingSignals: presentationView.timingSignals,
       cautions: presentationView.cautions,

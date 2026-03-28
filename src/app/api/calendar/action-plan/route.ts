@@ -15,8 +15,6 @@ import { generatePrecisionTimelineWithRag } from './routePrecisionTimeline'
 import { buildActionPlanPayload } from './routeTimelineAssembly'
 import {
   analyzeConfidenceMeta,
-  type ActionPlanIcpProfile,
-  type ActionPlanPersonaProfile,
   buildActionPlanInsights,
   buildPersonalizationHint,
   buildPersonalSummaryTag,
@@ -40,7 +38,13 @@ import {
 export type { ActionPlanIcpProfile, ActionPlanPersonaProfile } from './routeActionPlanSupport'
 
 export type TimelineTone = 'best' | 'caution' | 'neutral'
-export type SlotType = 'deepWork' | 'decision' | 'communication' | 'money' | 'relationship' | 'recovery'
+export type SlotType =
+  | 'deepWork'
+  | 'decision'
+  | 'communication'
+  | 'money'
+  | 'relationship'
+  | 'recovery'
 
 export type SlotWhy = {
   signalIds: string[]
@@ -146,6 +150,8 @@ export type ActionPlanCalendarContext = {
   summary?: string
   canonicalCore?: {
     focusDomain?: string
+    actionFocusDomain?: string
+    riskAxisLabel?: string
     phase?: string
     phaseLabel?: string
     thesis?: string
@@ -188,6 +194,15 @@ export type ActionPlanCalendarContext = {
       entryConditions?: string[]
       abortConditions?: string[]
     }>
+    projections?: {
+      branches?: {
+        summary?: string
+        detailLines?: string[]
+        reasons?: string[]
+        nextMoves?: string[]
+        counterweights?: string[]
+      }
+    }
   }
   evidence?: CalendarEvidence
 } | null
@@ -323,6 +338,8 @@ const actionPlanTimelineRequestSchema = z.object({
       canonicalCore: z
         .object({
           focusDomain: z.string().max(32).optional(),
+          actionFocusDomain: z.string().max(32).optional(),
+          riskAxisLabel: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
           phase: z.string().max(48).optional(),
           phaseLabel: z.string().max(60).optional(),
           thesis: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
@@ -387,6 +404,22 @@ const actionPlanTimelineRequestSchema = z.object({
               })
             )
             .max(8)
+            .optional(),
+          projections: z
+            .object({
+              branches: z
+                .object({
+                  summary: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                  detailLines: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(6).optional(),
+                  reasons: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(6).optional(),
+                  nextMoves: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(6).optional(),
+                  counterweights: z
+                    .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+                    .max(6)
+                    .optional(),
+                })
+                .optional(),
+            })
             .optional(),
         })
         .optional(),
@@ -564,38 +597,41 @@ export const POST = withApiMiddleware(
     })
 
     const aiResult = canUseAiPrecision
-      ? await generatePrecisionTimelineWithRag({
-          date,
-          locale: lang,
-          intervalMinutes: safeInterval,
-          baseTimeline,
-          calendar: calendar
-            ? {
-                grade: getEffectiveCalendarGrade(calendar),
-                displayGrade: calendar.displayGrade,
-                score: getEffectiveCalendarScore(calendar),
-                displayScore: calendar.displayScore,
-                categories: trimList(calendar.categories, 3),
-                bestTimes: trimList(calendar.bestTimes, 3),
-                warnings: trimList(calendar.warnings, 3),
-                recommendations: trimList(calendar.recommendations, 3),
-                sajuFactors: trimList(calendar.sajuFactors, 3),
-                astroFactors: trimList(calendar.astroFactors, 3),
-                summary: calendar.summary,
-                evidence: calendar.evidence,
-              }
-            : null,
-        }, {
-          extractHoursFromText,
-          getEffectiveCalendarGrade,
-          getEffectiveCalendarScore,
-          getMatrixPacket,
-          summarizeMatrixPacketForPrompt: (packet, locale) =>
-            summarizeMatrixPacketForPrompt(packet as ReturnType<typeof getMatrixPacket>, locale),
-          summarizeMatrixVerdictForPrompt,
-          cleanGuidanceText,
-          clampPercent,
-        })
+      ? await generatePrecisionTimelineWithRag(
+          {
+            date,
+            locale: lang,
+            intervalMinutes: safeInterval,
+            baseTimeline,
+            calendar: calendar
+              ? {
+                  grade: getEffectiveCalendarGrade(calendar),
+                  displayGrade: calendar.displayGrade,
+                  score: getEffectiveCalendarScore(calendar),
+                  displayScore: calendar.displayScore,
+                  categories: trimList(calendar.categories, 3),
+                  bestTimes: trimList(calendar.bestTimes, 3),
+                  warnings: trimList(calendar.warnings, 3),
+                  recommendations: trimList(calendar.recommendations, 3),
+                  sajuFactors: trimList(calendar.sajuFactors, 3),
+                  astroFactors: trimList(calendar.astroFactors, 3),
+                  summary: calendar.summary,
+                  evidence: calendar.evidence,
+                }
+              : null,
+          },
+          {
+            extractHoursFromText,
+            getEffectiveCalendarGrade,
+            getEffectiveCalendarScore,
+            getMatrixPacket,
+            summarizeMatrixPacketForPrompt: (packet, locale) =>
+              summarizeMatrixPacketForPrompt(packet as ReturnType<typeof getMatrixPacket>, locale),
+            summarizeMatrixVerdictForPrompt,
+            cleanGuidanceText,
+            clampPercent,
+          }
+        )
       : { timeline: null, errorReason: 'premium_required' }
     const aiRefined = aiResult.timeline
       ? { timeline: aiResult.timeline, summary: aiResult.summary }

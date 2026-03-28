@@ -110,6 +110,11 @@ export interface CalendarData {
     month: string
     summary: string
   }
+  surfaceCards?: Array<{
+    key: 'action' | 'risk' | 'window' | 'agreement' | 'branch'
+    label: string
+    summary: string
+  }>
   topDomains?: Array<{
     domain: 'career' | 'love' | 'money' | 'health' | 'move' | 'general'
     label: string
