@@ -135,6 +135,31 @@ export function resolveStableTarotEntry(
     return { themeId: 'general-insight', spreadId: 'past-present-future' }
   }
 
+  if (typeCode === 'reconciliation') {
+    return { themeId: 'love-relationships', spreadId: 'reconciliation' }
+  }
+
+  if (typeCode === 'meeting_likelihood') {
+    return { themeId: 'decisions-crossroads', spreadId: 'yes-no-why' }
+  }
+
+  if (typeCode === 'timing') {
+    return { themeId: 'decisions-crossroads', spreadId: 'timing-window' }
+  }
+
+  if (typeCode === 'self_decision' || typeCode === 'decision') {
+    return { themeId: 'decisions-crossroads', spreadId: 'yes-no-why' }
+  }
+
+  if (
+    typeCode === 'inner_feelings' ||
+    typeCode === 'emotion_read' ||
+    typeCode === 'other_person_response' ||
+    typeCode === 'other_response'
+  ) {
+    return { themeId: 'love-relationships', spreadId: 'crush-feelings' }
+  }
+
   if (subjectCode === 'relationship' && toneCode === 'emotion') {
     return { themeId: 'love-relationships', spreadId: 'relationship-check-in' }
   }
@@ -144,7 +169,7 @@ export function resolveStableTarotEntry(
   }
 
   if (subjectCode === 'other_person') {
-    return { themeId: 'general-insight', spreadId: 'quick-reading' }
+    return { themeId: 'love-relationships', spreadId: 'crush-feelings' }
   }
 
   if (inferIntentFromQuestion(question) === 'flow') {

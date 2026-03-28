@@ -1,9 +1,16 @@
 // tests/components/calendar/DayCell.test.tsx
 import { describe, it, expect, vi } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import DayCell from '@/components/calendar/DayCell'
-import { I18nProvider } from '@/i18n/I18nProvider'
+
+let currentLocale: 'en' | 'ko' = 'en'
+
+vi.mock('@/i18n/I18nProvider', () => ({
+  useI18n: () => ({
+    locale: currentLocale,
+  }),
+}))
 
 const mockDateInfo = {
   date: '2024-01-15',
@@ -19,11 +26,8 @@ const mockDateInfo = {
 }
 
 const renderWithI18n = (ui: React.ReactElement, locale: 'en' | 'ko' = 'en') => {
-  let rendered: ReturnType<typeof render>
-  act(() => {
-    rendered = render(<I18nProvider initialLocale={locale}>{ui}</I18nProvider>)
-  })
-  return rendered!
+  currentLocale = locale
+  return render(ui)
 }
 
 describe('DayCell', () => {
@@ -145,7 +149,7 @@ describe('DayCell', () => {
 
       const cell = screen.getByRole('gridcell')
       expect(cell).toHaveAttribute('aria-label', expect.stringContaining('15'))
-      expect(cell).toHaveAttribute('aria-label', expect.stringContaining('Good Day'))
+      expect(cell).toHaveAttribute('aria-label', expect.stringContaining('Leverage-first'))
     })
 
     it('should have proper ARIA label for today', () => {
@@ -460,16 +464,14 @@ describe('DayCell', () => {
       )
 
       rerender(
-        <I18nProvider initialLocale="en">
-          <DayCell
-            date={date}
-            dateInfo={mockDateInfo}
-            isToday={false}
-            isSelected={false}
-            onClick={onClick}
-            className="test-class"
-          />
-        </I18nProvider>
+        <DayCell
+          date={date}
+          dateInfo={mockDateInfo}
+          isToday={false}
+          isSelected={false}
+          onClick={onClick}
+          className="test-class"
+        />
       )
 
       expect(screen.getByText('15')).toBeInTheDocument()

@@ -29,6 +29,23 @@ import {
   describeTimingCalibrationSummary,
   describeWhyStack,
 } from '@/lib/destiny-matrix/interpretation/humanSemantics'
+import {
+  buildSanitizedCanonicalBrief,
+  formatTransitLabels,
+  localizeCounselorDomain,
+  sanitizeCounselorFreeText,
+  sanitizeCounselorProjectionBlock,
+  sanitizeCounselorTextList,
+} from '@/lib/destiny-matrix/counselorEvidenceSanitizer'
+import {
+  buildCounselorArbitrationLine,
+  buildCounselorVerdictContext,
+  buildCounselorVerdictLead,
+  buildCounselorVerdictTimingLine,
+  isQuestionDrivenTheme,
+  joinUniqueVerdictParts,
+  mapThemeToDomain,
+} from '@/lib/destiny-matrix/counselorEvidenceVerdict'
 
 const COUNSELOR_SECTION_PATHS = [
   'overview',
@@ -41,7 +58,7 @@ const COUNSELOR_SECTION_PATHS = [
   'wealthPotential',
 ] as const
 
-type CounselorTheme =
+export type CounselorTheme =
   | 'love'
   | 'career'
   | 'wealth'
@@ -190,7 +207,7 @@ export interface CounselorEvidencePacket {
   whyStack: string[]
 }
 
-type CounselorProjectionBlock = {
+export type CounselorProjectionBlock = {
   headline: string
   summary: string
   reasons?: string[]
@@ -251,314 +268,6 @@ type CounselorEvidencePacketLike = {
 
 function uniq<T>(items: T[]): T[] {
   return [...new Set(items)]
-}
-
-function normalizeCounselorSentence(value: string): string {
-  return value
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(/[.。!！?？]+$/u, '')
-}
-
-function joinUniqueVerdictParts(parts: Array<string | null | undefined>): string {
-  const normalized: string[] = []
-  for (const raw of parts) {
-    const cleaned = normalizeCounselorSentence(String(raw || ''))
-    if (!cleaned) continue
-    if (
-      normalized.some(
-        (existing) =>
-          existing === cleaned || existing.includes(cleaned) || cleaned.includes(existing)
-      )
-    ) {
-      continue
-    }
-    normalized.push(cleaned)
-  }
-  return normalized.join('. ').trim()
-}
-
-function buildCounselorVerdictLead(
-  topDecisionLabel: string | undefined,
-  actionFocusDomain: string | undefined,
-  focusDomain: string | undefined,
-  lang: 'ko' | 'en'
-): string | undefined {
-  if (!topDecisionLabel) return undefined
-  if (actionFocusDomain && focusDomain && actionFocusDomain !== focusDomain) {
-    return lang === 'ko'
-      ? `지금 질문에 바로 닿는 축은 ${localizeCounselorDomain(actionFocusDomain, lang)}입니다. 우선은 ${topDecisionLabel}입니다.`
-      : `The axis that matters most for this question right now is ${localizeCounselorDomain(actionFocusDomain, lang)}. The priority is ${topDecisionLabel}.`
-  }
-  return lang === 'ko'
-    ? `지금 우선은 ${topDecisionLabel}입니다`
-    : `The priority now is ${topDecisionLabel}.`
-}
-
-function buildCounselorVerdictContext(input: {
-  lang: 'ko' | 'en'
-  domainLabel: string
-  topTimingWindow?: CounselorEvidencePacket['topTimingWindow'] | null
-  topDomainAdvisory?: CounselorEvidencePacket['topDomainAdvisory'] | null
-  topManifestation?: CounselorEvidencePacket['topManifestation'] | null
-}): string | undefined {
-  const timing = input.topTimingWindow
-  const advisory = input.topDomainAdvisory
-  const manifestation = input.topManifestation
-
-  if (input.lang === 'ko') {
-    if (advisory?.thesis) return `${input.domainLabel} 해석의 핵심은 ${advisory.thesis}`
-    if (timing?.timingConflictNarrative) return timing.timingConflictNarrative
-    if (manifestation?.manifestation) return manifestation.manifestation
-    if (timing?.whyNow) return timing.whyNow
-    return undefined
-  }
-
-  if (advisory?.thesis) return `The core read on ${input.domainLabel} is ${advisory.thesis}`
-  if (timing?.timingConflictNarrative) return timing.timingConflictNarrative
-  if (manifestation?.manifestation) return manifestation.manifestation
-  if (timing?.whyNow) return timing.whyNow
-  return undefined
-}
-
-function buildCounselorVerdictTimingLine(input: {
-  lang: 'ko' | 'en'
-  topTimingWindow?: CounselorEvidencePacket['topTimingWindow'] | null
-  topManifestation?: CounselorEvidencePacket['topManifestation'] | null
-}): string | undefined {
-  const timing = input.topTimingWindow
-  const manifestation = input.topManifestation
-
-  if (input.lang === 'ko') {
-    if (timing?.entryConditions?.length) {
-      const entry = timing.entryConditions
-        .slice(0, 2)
-        .map((item) =>
-          sanitizeCounselorFreeText(item, 'ko')
-            .replace(/가 유지될 것/g, '이 유지되고')
-            .replace(/이 유지될 것/g, '이 유지되고')
-            .replace(/를 바로 실행할 수 있을 것/g, '를 바로 실행할 수 있는지')
-            .replace(/할 수 있을 것/g, '할 수 있는지')
-            .replace(/근거이/g, '근거가')
-            .replace(/(\d+(?:\.\d+)?)%이 유지되고/g, '$1%가 유지되고')
-            .replace(/(\d+(?:\.\d+)?)%이 유지되는지/g, '$1%가 유지되는지')
-        )
-        .filter(Boolean)
-      return entry.length > 1
-        ? `실제 성사는 먼저 ${entry[0]}가 유지되고, 동시에 ${entry[1]} 조건이 맞아야 빨라집니다`
-        : `실제 성사는 먼저 ${entry[0]} 조건이 맞아야 빨라집니다`
-    }
-    if (manifestation?.likelyExpressions?.length) {
-      return `지금 먼저 보이는 형태는 ${manifestation.likelyExpressions.slice(0, 2).join(', ')} 쪽입니다`
-    }
-    return undefined
-  }
-
-  if (timing?.entryConditions?.length) {
-    return `This moves faster when ${timing.entryConditions.slice(0, 2).join(', ')} are met first`
-  }
-  if (manifestation?.likelyExpressions?.length) {
-    return `The first visible form is likely ${manifestation.likelyExpressions.slice(0, 2).join(', ')}`
-  }
-  return undefined
-}
-
-function buildCounselorArbitrationLine(input: {
-  focusDomain: string
-  actionFocusDomain?: string
-  focusRunnerUpDomain?: string
-  actionRunnerUpDomain?: string
-  lang: 'ko' | 'en'
-}): string {
-  const focusLabel = localizeCounselorDomain(input.focusDomain, input.lang)
-  const actionLabel = localizeCounselorDomain(
-    input.actionFocusDomain || input.focusDomain,
-    input.lang
-  )
-  const focusRunnerUp = input.focusRunnerUpDomain
-    ? localizeCounselorDomain(input.focusRunnerUpDomain, input.lang)
-    : ''
-  const actionRunnerUp = input.actionRunnerUpDomain
-    ? localizeCounselorDomain(input.actionRunnerUpDomain, input.lang)
-    : ''
-
-  if (input.lang === 'ko') {
-    if (input.actionFocusDomain && input.actionFocusDomain !== input.focusDomain) {
-      return `${actionLabel}이 ${actionRunnerUp || '다른 축'}보다 앞서 실제 행동 압력을 끌고 가고, ${focusLabel} 축은 배경 구조로 남아 있습니다.`
-    }
-    return `${focusLabel}이 ${focusRunnerUp || '다른 축'}보다 한 단계 앞서 현재 중심 판단으로 채택됐습니다.`
-  }
-
-  if (input.actionFocusDomain && input.actionFocusDomain !== input.focusDomain) {
-    return `${actionLabel} moved ahead of ${actionRunnerUp || 'the runner-up domain'} as the actionable pressure, while ${focusLabel} remains the background structural axis.`
-  }
-  return `${focusLabel} stayed ahead of ${focusRunnerUp || 'the runner-up domain'} as the current lead axis.`
-}
-
-function isQuestionDrivenTheme(theme: CounselorTheme): boolean {
-  return ['love', 'career', 'wealth', 'health', 'family', 'life'].includes(String(theme))
-}
-
-function mapThemeToDomain(theme: CounselorTheme): InsightDomain {
-  switch (theme) {
-    case 'love':
-    case 'family':
-      return 'relationship'
-    case 'career':
-      return 'career'
-    case 'wealth':
-      return 'wealth'
-    case 'health':
-      return 'health'
-    case 'today':
-    case 'month':
-    case 'year':
-      return 'timing'
-    case 'life':
-    case 'chat':
-    default:
-      return 'personality'
-  }
-}
-
-function localizeCounselorDomain(domain: string, lang: 'ko' | 'en'): string {
-  if (lang === 'en') return domain
-  const labels: Record<string, string> = {
-    personality: '성향',
-    career: '커리어',
-    relationship: '관계',
-    wealth: '재정',
-    health: '건강',
-    spirituality: '사명',
-    timing: '타이밍',
-    move: '이동/변화',
-  }
-  return labels[domain] || domain
-}
-
-function sanitizeCounselorFreeText(text: string | undefined | null, lang: 'ko' | 'en'): string {
-  const value = String(text || '').trim()
-  if (!value) return ''
-  if (lang !== 'ko') return value
-
-  return value
-    .replace(/\bpersonality\b/gi, '성향')
-    .replace(/\bcareer\b/gi, '커리어')
-    .replace(/\brelationship\b/gi, '관계')
-    .replace(/\bwealth\b/gi, '재정')
-    .replace(/\bhealth\b/gi, '건강')
-    .replace(/\bmove\b/gi, '이동')
-    .replace(/\btiming\b/gi, '타이밍')
-    .replace(/\bspirituality\b/gi, '장기 방향')
-    .replace(/\bverify\b/gi, '확인')
-    .replace(/\bprepare\b/gi, '준비 우선')
-    .replace(/\bexecute\b/gi, '실행')
-    .replace(/레이어\s*0/gi, '핵심 흐름')
-    .replace(/활성 트랜짓/gi, '활성 신호')
-    .replace(/\bTransit\s+saturnReturn\b/gi, '책임 압력 신호')
-    .replace(/\bTransit\s+jupiterReturn\b/gi, '확장 신호')
-    .replace(/\bTransit\s+nodeReturn\b/gi, '방향 전환 신호')
-    .replace(/\bTransit\s+mercuryRetrograde\b/gi, '소통 재검토 신호')
-    .replace(/\bTransit\s+marsRetrograde\b/gi, '마찰 재검토 신호')
-    .replace(/\bTransit\s+venusRetrograde\b/gi, '관계 재검토 신호')
-    .replace(/\bsaturnReturn\b/gi, '책임 압력 신호')
-    .replace(/\bjupiterReturn\b/gi, '확장 신호')
-    .replace(/\bnodeReturn\b/gi, '방향 전환 신호')
-    .replace(/\bmercuryRetrograde\b/gi, '소통 재검토 신호')
-    .replace(/\bmarsRetrograde\b/gi, '마찰 재검토 신호')
-    .replace(/\bvenusRetrograde\b/gi, '관계 재검토 신호')
-    .replace(/\bsolarReturn\b/gi, '연간 초점 강조')
-    .replace(/\blunarReturn\b/gi, '감정 파동 신호')
-    .replace(/\bprogressions?\b/gi, '장기 전개 흐름')
-    .replace(/\brelationship caution\b/gi, '관계에서는 속도보다 기준 확인이 먼저입니다')
-    .replace(/\bcaution\b/gi, '주의 신호')
-    .replace(/\bdowngrade pressure\b/gi, '하향 조정 압력')
-    .replace(/\bmoney expansion action\b/gi, '재정 확장은 조건 검증부터 진행하세요')
-    .replace(/\bvolatility pattern\b/gi, '변동성 패턴')
-    .replace(/\bgeokguk strength\b/gi, '격국 응집력')
-    .replace(/\bdebt restructure\b/gi, '부채 재정리')
-    .replace(/\bliquidity defense\b/gi, '유동성 방어')
-    .replace(/\bexpense spike\b/gi, '지출 급증 대응')
-    .replace(/\bpromotion review\b/gi, '승진 검토')
-    .replace(/\brecovery reset\b/gi, '회복 재정렬')
-    .replace(/\bbasecamp reset\b/gi, '거점 재정비')
-    .replace(/\bmap full debt stack\b/gi, '전체 부채 구조를 다시 정리하기')
-    .replace(/\bwealth volatility pattern\b/gi, '재정 변동성 패턴')
-    .replace(/\bcareer expansion pattern\b/gi, '커리어 확장 패턴')
-    .replace(/\brelationship tension pattern\b/gi, '관계 긴장 패턴')
-    .replace(/\bMap full debt stack\b/gi, '전체 부채 구조를 다시 정리하기')
-    .replace(/활성 신호\s+책임 압력 신호/gi, '책임 압력 신호')
-    .replace(/활성 신호\s+확장 신호/gi, '확장 신호')
-    .replace(/활성 신호\s+방향 전환 신호/gi, '방향 전환 신호')
-    .replace(/활성 신호\s+소통 재검토 신호/gi, '소통 재검토 신호')
-    .replace(/활성 신호\s+마찰 재검토 신호/gi, '마찰 재검토 신호')
-    .replace(/활성 신호\s+관계 재검토 신호/gi, '관계 재검토 신호')
-    .replace(/변동성 패턴\s+패턴/gi, '변동성 패턴')
-    .replace(/확장 신호\s+이\s+/gi, '확장 신호가 ')
-    .replace(/책임 압력 신호\s+이\s+/gi, '책임 압력 신호가 ')
-    .replace(/방향 전환 신호\s+이\s+/gi, '방향 전환 신호가 ')
-    .replace(/소통 재검토 신호\s+이\s+/gi, '소통 재검토 신호가 ')
-    .replace(/마찰 재검토 신호\s+이\s+/gi, '마찰 재검토 신호가 ')
-    .replace(/관계 재검토 신호\s+이\s+/gi, '관계 재검토 신호가 ')
-    .replace(
-      /action pressure stayed narrow between ([^\s]+) and ([^\s]+)/gi,
-      (_, left: string, right: string) =>
-        `${localizeCounselorDomain(left, 'ko')}와 ${localizeCounselorDomain(right, 'ko')} 사이의 행동 압력이 좁게 경쟁했습니다`
-    )
-    .replace(
-      /(\w+)\s+stayed secondary because total support remained below the winner/gi,
-      (_, domain: string) =>
-        `${localizeCounselorDomain(domain, 'ko')}은 최종 지지가 승자축보다 약해 보조축에 머물렀습니다`
-    )
-    .replace(
-      /\bstayed secondary because total support remained below the winner\b/gi,
-      '최종 지지가 승자축보다 약해 보조축에 머물렀습니다'
-    )
-    .replace(
-      /\bA strong opportunity signal can hide ([^\s]+) and ([^\s]+) risk\./gi,
-      (_, left: string, right: string) =>
-        `강한 기회 신호가 ${sanitizeCounselorFreeText(left, 'ko')}과 ${sanitizeCounselorFreeText(right, 'ko')} 리스크를 가릴 수 있습니다`
-    )
-    .replace(/\bweek\b/gi, '주 단위')
-    .replace(/\bfortnight\b/gi, '2주 단위')
-    .replace(/\bmonth\b/gi, '월 단위')
-    .replace(/\bseason\b/gi, '분기 단위')
-    .replace(/\bnow\b/gi, '지금')
-    .replace(/\bnone\b/gi, '없음')
-    .replace(/커리어은/g, '커리어는')
-    .replace(/관계은/g, '관계는')
-    .replace(/재정와/g, '재정과')
-    .replace(/건강와/g, '건강과')
-    .replace(/밀는/g, '미는')
-    .replace(/편이 맞습니다\.입니다\./g, '편이 맞습니다.')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function sanitizeCounselorTextList(items: Array<string | undefined | null>, lang: 'ko' | 'en'): string[] {
-  return items.map((item) => sanitizeCounselorFreeText(item, lang)).filter(Boolean)
-}
-
-function formatTransitLabels(
-  activeTransits: string[],
-  lang: 'ko' | 'en',
-  limit = 2
-): string {
-  const labels = activeTransits
-    .slice(0, limit)
-    .map((item) =>
-      sanitizeCounselorFreeText(`Transit ${item}`, lang)
-        .replace(/^활성 신호\s+/u, '')
-        .trim()
-    )
-    .filter(Boolean)
-  if (labels.length === 0) return ''
-  if (lang === 'ko') {
-    if (labels.length === 1) return labels[0]
-    return `${labels.slice(0, -1).join(', ')}와 ${labels[labels.length - 1]}`
-  }
-  if (labels.length === 1) return labels[0]
-  return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`
 }
 
 function buildDomainSpecificWhyReasons(input: {
@@ -1389,47 +1098,12 @@ export function buildCounselorEvidencePacket(params: {
       defensePercent: params.strategyEngine.defensePercent,
     },
     canonicalBrief: counselorCore
-      ? {
-          gradeLabel: counselorCore.gradeLabel,
-          phaseLabel: counselorCore.phaseLabel,
-          actionFocusDomain: counselorCore.actionFocusDomain,
-          focusRunnerUpDomain: counselorCore.arbitrationBrief.focusRunnerUpDomain || undefined,
-          actionRunnerUpDomain: counselorCore.arbitrationBrief.actionRunnerUpDomain || undefined,
-          focusNarrative: counselorCore.arbitrationBrief.focusNarrative || undefined,
-          actionNarrative: counselorCore.arbitrationBrief.actionNarrative || undefined,
-          suppressionNarratives: sanitizeCounselorTextList(
-            counselorCore.arbitrationBrief.suppressionNarratives.slice(0, 2),
-            params.lang
-          ),
-          topDecisionAction: counselorCore.topDecisionAction || undefined,
-          topDecisionLabel: topDecisionLeadLabel || undefined,
-          answerThesis: counselorCore.answerThesis,
-          primaryAction: sanitizeCounselorFreeText(counselorCore.primaryAction, params.lang),
-          primaryCaution: sanitizeCounselorFreeText(counselorCore.primaryCaution, params.lang),
-          timingHint: sanitizeCounselorFreeText(counselorCore.timingHint, params.lang),
-          policyMode: counselorCore.judgmentPolicy.mode,
-          policyRationale: sanitizeCounselorFreeText(
-            counselorCore.judgmentPolicy.rationale,
-            params.lang
-          ),
-          allowedActions: [
-            ...scenarioActionHints,
-            ...(counselorCore.judgmentPolicy.allowedActionLabels || []),
-          ].slice(0, 3).map((item) => sanitizeCounselorFreeText(item, params.lang)).filter(Boolean),
-          blockedActions: sanitizeCounselorTextList(
-            (counselorCore.judgmentPolicy.blockedActionLabels || []).slice(0, 3),
-            params.lang
-          ),
-          softChecks: sanitizeCounselorTextList(
-            counselorCore.judgmentPolicy.softCheckLabels || counselorCore.judgmentPolicy.softChecks,
-            params.lang
-          ).slice(0, 3),
-          hardStops: sanitizeCounselorTextList(
-            counselorCore.judgmentPolicy.hardStopLabels || counselorCore.judgmentPolicy.hardStops,
-            params.lang
-          ).slice(0, 3),
-          latentTopAxes: counselorCore.latentTopAxes.slice(0, 3).map((axis) => axis.label),
-        }
+      ? buildSanitizedCanonicalBrief({
+          counselorCore,
+          lang: params.lang,
+          topDecisionLeadLabel,
+          scenarioActionHints,
+        })
       : undefined,
     topDomainAdvisory: topDomainAdvisory
       ? {
@@ -1493,69 +1167,13 @@ export function buildCounselorEvidencePacket(params: {
       : undefined,
     projections: counselorCore
       ? {
-          structure: {
-            ...counselorCore.projections.structure,
-            summary: sanitizeCounselorFreeText(counselorCore.projections.structure.summary, params.lang),
-            reasons: sanitizeCounselorTextList(counselorCore.projections.structure.reasons || [], params.lang),
-            detailLines: sanitizeCounselorTextList(counselorCore.projections.structure.detailLines || [], params.lang),
-            drivers: sanitizeCounselorTextList(counselorCore.projections.structure.drivers || [], params.lang),
-            counterweights: sanitizeCounselorTextList(counselorCore.projections.structure.counterweights || [], params.lang),
-            nextMoves: sanitizeCounselorTextList(counselorCore.projections.structure.nextMoves || [], params.lang),
-          },
-          timing: {
-            ...counselorCore.projections.timing,
-            summary: sanitizeCounselorFreeText(counselorCore.projections.timing.summary, params.lang),
-            reasons: sanitizeCounselorTextList(counselorCore.projections.timing.reasons || [], params.lang),
-            detailLines: sanitizeCounselorTextList(counselorCore.projections.timing.detailLines || [], params.lang),
-            drivers: sanitizeCounselorTextList(counselorCore.projections.timing.drivers || [], params.lang),
-            counterweights: sanitizeCounselorTextList(counselorCore.projections.timing.counterweights || [], params.lang),
-            nextMoves: sanitizeCounselorTextList(counselorCore.projections.timing.nextMoves || [], params.lang),
-          },
-          conflict: {
-            ...counselorCore.projections.conflict,
-            summary: sanitizeCounselorFreeText(counselorCore.projections.conflict.summary, params.lang),
-            reasons: sanitizeCounselorTextList(counselorCore.projections.conflict.reasons || [], params.lang),
-            detailLines: sanitizeCounselorTextList(counselorCore.projections.conflict.detailLines || [], params.lang),
-            drivers: sanitizeCounselorTextList(counselorCore.projections.conflict.drivers || [], params.lang),
-            counterweights: sanitizeCounselorTextList(counselorCore.projections.conflict.counterweights || [], params.lang),
-            nextMoves: sanitizeCounselorTextList(counselorCore.projections.conflict.nextMoves || [], params.lang),
-          },
-          action: {
-            ...counselorCore.projections.action,
-            summary: sanitizeCounselorFreeText(counselorCore.projections.action.summary, params.lang),
-            reasons: sanitizeCounselorTextList(counselorCore.projections.action.reasons || [], params.lang),
-            detailLines: sanitizeCounselorTextList(counselorCore.projections.action.detailLines || [], params.lang),
-            drivers: sanitizeCounselorTextList(counselorCore.projections.action.drivers || [], params.lang),
-            counterweights: sanitizeCounselorTextList(counselorCore.projections.action.counterweights || [], params.lang),
-            nextMoves: sanitizeCounselorTextList(counselorCore.projections.action.nextMoves || [], params.lang),
-          },
-          risk: {
-            ...counselorCore.projections.risk,
-            summary: sanitizeCounselorFreeText(counselorCore.projections.risk.summary, params.lang),
-            reasons: sanitizeCounselorTextList(counselorCore.projections.risk.reasons || [], params.lang),
-            detailLines: sanitizeCounselorTextList(counselorCore.projections.risk.detailLines || [], params.lang),
-            drivers: sanitizeCounselorTextList(counselorCore.projections.risk.drivers || [], params.lang),
-            counterweights: sanitizeCounselorTextList(counselorCore.projections.risk.counterweights || [], params.lang),
-            nextMoves: sanitizeCounselorTextList(counselorCore.projections.risk.nextMoves || [], params.lang),
-          },
-          evidence: {
-            ...counselorCore.projections.evidence,
-            summary: sanitizeCounselorFreeText(counselorCore.projections.evidence.summary, params.lang),
-            reasons: sanitizeCounselorTextList(counselorCore.projections.evidence.reasons || [], params.lang),
-            detailLines: sanitizeCounselorTextList(counselorCore.projections.evidence.detailLines || [], params.lang),
-            drivers: sanitizeCounselorTextList(counselorCore.projections.evidence.drivers || [], params.lang),
-            counterweights: sanitizeCounselorTextList(counselorCore.projections.evidence.counterweights || [], params.lang),
-            nextMoves: sanitizeCounselorTextList(counselorCore.projections.evidence.nextMoves || [], params.lang),
-          },
-          branches: {
-            ...counselorCore.projections.branches,
-            summary: sanitizeCounselorFreeText(counselorCore.projections.branches.summary, params.lang),
-            reasons: sanitizeCounselorTextList(counselorCore.projections.branches.reasons || [], params.lang),
-            detailLines: sanitizeCounselorTextList(counselorCore.projections.branches.detailLines || [], params.lang),
-            drivers: sanitizeCounselorTextList(counselorCore.projections.branches.drivers || [], params.lang),
-            counterweights: sanitizeCounselorTextList(counselorCore.projections.branches.counterweights || [], params.lang),
-            nextMoves: sanitizeCounselorTextList(counselorCore.projections.branches.nextMoves || [], params.lang),
-          },
+          structure: sanitizeCounselorProjectionBlock(counselorCore.projections.structure, params.lang),
+          timing: sanitizeCounselorProjectionBlock(counselorCore.projections.timing, params.lang),
+          conflict: sanitizeCounselorProjectionBlock(counselorCore.projections.conflict, params.lang),
+          action: sanitizeCounselorProjectionBlock(counselorCore.projections.action, params.lang),
+          risk: sanitizeCounselorProjectionBlock(counselorCore.projections.risk, params.lang),
+          evidence: sanitizeCounselorProjectionBlock(counselorCore.projections.evidence, params.lang),
+          branches: sanitizeCounselorProjectionBlock(counselorCore.projections.branches, params.lang),
         }
       : undefined,
     whyStack: [

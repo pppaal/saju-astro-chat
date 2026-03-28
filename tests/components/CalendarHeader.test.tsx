@@ -46,7 +46,7 @@ describe('CalendarHeader', () => {
 
     it('should render year in subtitle', () => {
       render(<CalendarHeader {...defaultProps} />)
-      expect(screen.getByText('Your special days in 2026')).toBeInTheDocument()
+      expect(screen.getByText('Your operating flow in 2026')).toBeInTheDocument()
     })
 
     it('should render credit badge', () => {
@@ -74,25 +74,25 @@ describe('CalendarHeader', () => {
     })
     it('should display best days badge', () => {
       render(<CalendarHeader {...defaultProps} />)
-      const bestBadge = screen.getByText('Best').closest('[class*="summaryBadge"]')
+      const bestBadge = screen.getByText('Execute').closest('[class*="summaryBadge"]')
       expect(bestBadge).toBeInTheDocument()
       expect(bestBadge?.querySelector('[class*="badgeEmoji"]')).toBeInTheDocument()
     })
     it('should display good days badge', () => {
       render(<CalendarHeader {...defaultProps} />)
-      const goodBadge = screen.getByText('Good').closest('[class*="summaryBadge"]')
+      const goodBadge = screen.getByText('Leverage').closest('[class*="summaryBadge"]')
       expect(goodBadge).toBeInTheDocument()
       expect(goodBadge?.querySelector('[class*="badgeEmoji"]')).toBeInTheDocument()
     })
     it('should display bad days badge', () => {
       render(<CalendarHeader {...defaultProps} />)
-      const badBadge = screen.getByText('Bad').closest('[class*="summaryBadge"]')
+      const badBadge = screen.getByText('Review').closest('[class*="summaryBadge"]')
       expect(badBadge).toBeInTheDocument()
       expect(badBadge?.querySelector('[class*="badgeEmoji"]')).toBeInTheDocument()
     })
     it('should display worst days badge when count > 0', () => {
       render(<CalendarHeader {...defaultProps} />)
-      const worstBadge = screen.getByText('Worst').closest('[class*="summaryBadge"]')
+      const worstBadge = screen.getByText('Adjust').closest('[class*="summaryBadge"]')
       expect(worstBadge).toBeInTheDocument()
       expect(worstBadge?.querySelector('[class*="badgeEmoji"]')).toBeInTheDocument()
     })
@@ -101,13 +101,13 @@ describe('CalendarHeader', () => {
       render(<CalendarHeader {...defaultProps} yearSummary={summaryWithNoWorst} />)
 
       // Worst badge is always rendered (shows 0d)
-      expect(screen.getByText('Worst')).toBeInTheDocument()
+      expect(screen.getByText('Adjust')).toBeInTheDocument()
       expect(screen.getByText('0d')).toBeInTheDocument()
     })
     it('should not render summary badges when yearSummary is null', () => {
       render(<CalendarHeader {...defaultProps} yearSummary={null} />)
 
-      expect(screen.queryByText('Best')).not.toBeInTheDocument()
+      expect(screen.queryByText('Execute')).not.toBeInTheDocument()
     })
   })
 
@@ -171,12 +171,12 @@ describe('CalendarHeader', () => {
   describe('Different Years', () => {
     it('should display year 2025', () => {
       render(<CalendarHeader {...defaultProps} year={2025} />)
-      expect(screen.getByText('Your special days in 2025')).toBeInTheDocument()
+      expect(screen.getByText('Your operating flow in 2025')).toBeInTheDocument()
     })
 
     it('should display year 2030', () => {
       render(<CalendarHeader {...defaultProps} year={2030} />)
-      expect(screen.getByText('Your special days in 2030')).toBeInTheDocument()
+      expect(screen.getByText('Your operating flow in 2030')).toBeInTheDocument()
     })
   })
 
@@ -210,7 +210,7 @@ describe('CalendarHeader', () => {
       render(<CalendarHeader {...defaultProps} yearSummary={largeSummary} />)
 
       const badges = screen.getAllByText('999d')
-      expect(badges.length).toBe(5) // 5 visible badges (Best, Good, Normal, Bad, Worst)
+      expect(badges.length).toBe(5) // 5 visible badges (Execute, Leverage, Operate, Review, Adjust)
     })
 
     it('should handle missing onEditClick gracefully', () => {
@@ -238,7 +238,7 @@ describe('CalendarHeader', () => {
       render(<CalendarHeader {...defaultProps} />)
 
       // The summary badge wrapper should have a title attribute (for tooltip)
-      const bestBadge = screen.getByText('Best').closest('[class*="summaryBadge"]')
+      const bestBadge = screen.getByText('Execute').closest('[class*="summaryBadge"]')
       expect(bestBadge).toHaveAttribute('title')
     })
 
@@ -254,14 +254,14 @@ describe('CalendarHeader', () => {
     it('should apply caution badge class to bad days', () => {
       render(<CalendarHeader {...defaultProps} />)
 
-      const badBadge = screen.getByText('Bad').closest('[class*="summaryBadge"]')
+      const badBadge = screen.getByText('Review').closest('[class*="summaryBadge"]')
       // CSS Module adds hash to class names, check for partial match
       expect(badBadge?.className).toMatch(/cautionBadge/)
     })
     it('should apply worst badge class to worst days', () => {
       render(<CalendarHeader {...defaultProps} />)
 
-      const worstBadge = screen.getByText('Worst').closest('[class*="summaryBadge"]')
+      const worstBadge = screen.getByText('Adjust').closest('[class*="summaryBadge"]')
       // CSS Module adds hash to class names, check for partial match
       expect(worstBadge?.className).toMatch(/worstBadge/)
     })

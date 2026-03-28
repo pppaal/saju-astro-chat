@@ -208,6 +208,19 @@ describe('questionEngineV2', () => {
     expect(result.spreadId).toBe('yes-no-why')
   })
 
+  it('treats relationship-start possibility questions as outcomes instead of self decisions', async () => {
+    mockFetchWithRetry.mockRejectedValueOnce(new Error('OpenAI timeout'))
+
+    const result = await analyzeTarotQuestionV2({
+      question: '올해 안에 연애 시작할까?',
+      language: 'ko',
+    })
+
+    expect(result.source).toBe('heuristic')
+    expect(result.intent).toBe('near_term_outcome')
+    expect(result.themeId).toBe('love-relationships')
+  })
+
   it('treats meeting atmosphere as an external situation rather than a contact question', async () => {
     mockFetchWithRetry.mockResolvedValueOnce(
       createOpenAIResponse({

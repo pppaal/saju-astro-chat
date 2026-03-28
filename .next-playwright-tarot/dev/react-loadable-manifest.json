@@ -1,0 +1,28 @@
+{
+  "..\\node_modules\\next\\dist\\client\\dev\\hot-reloader\\app\\web-socket.js -> @vercel/turbopack-ecmascript-runtime/browser/dev/hmr-client/hmr-client.ts": {
+    "id": "..\\node_modules\\next\\dist\\client\\dev\\hot-reloader\\app\\web-socket.js -> @vercel/turbopack-ecmascript-runtime/browser/dev/hmr-client/hmr-client.ts",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_next_dist_client_dev_noop-turbopack-hmr_js.js"
+    ]
+  },
+  "app\\tarot\\history\\page.tsx -> ./TarotHistoryClient": {
+    "id": "app\\tarot\\history\\page.tsx -> ./TarotHistoryClient",
+    "files": [
+      "static/chunks/vendors.js",
+      "static/css/common.css",
+      "static/chunks/common.js",
+      "static/css/_app-pages-browser_src_app_tarot_history_TarotHistoryClient_tsx.css",
+      "static/chunks/_app-pages-browser_src_app_tarot_history_TarotHistoryClient_tsx.js"
+    ]
+  },
+  "lib\\performance\\web-vitals-reporter.ts -> web-vitals": {
+    "id": "lib\\performance\\web-vitals-reporter.ts -> web-vitals",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_web-vitals_dist_web-vitals_js.js"
+    ]
+  },
+  "lib\\telemetry.ts -> @sentry/nextjs": {
+    "id": "lib\\telemetry.ts -> @sentry/nextjs",
+    "files": []
+  }
+}

@@ -1,0 +1,25 @@
+"use strict";
+/*
+ * ATTENTION: An "eval-source-map" devtool has been used.
+ * This devtool is neither made for production nor for readable output files.
+ * It uses "eval()" calls to create a separate source file with attached SourceMaps in the browser devtools.
+ * If you are trying to read the output file, select a different devtool (https://webpack.js.org/configuration/devtool/)
+ * or disable the default devtool with "devtool: false".
+ * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
+ */
+exports.id = "_ssr_src_i18n_locales_ko_destinyMatch_json";
+exports.ids = ["_ssr_src_i18n_locales_ko_destinyMatch_json"];
+exports.modules = {
+
+/***/ 23546:
+/*!***********************************************!*\
+  !*** ./src/i18n/locales/ko/destinyMatch.json ***!
+  \***********************************************/
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"destinyMatch":{"title":"Destiny Match","subtitle":"운명의 인연을 찾아보세요","back":"돌아가기","grid":"그리드","swipe":"스와이프","filter":"필터","matches":"매치","switchToGrid":"그리드 보기로 전환","switchToSwipe":"스와이프 보기로 전환","showFilters":"필터 보기","hideFilters":"필터 숨기기","viewMatches":"매치 확인하기","likes":"좋아요","undo":"실행 취소","pass":"패스","superLike":"슈퍼 좋아요","like":"좋아요","status":{"loading":"프로필을 불러오는 중...","loadingWait":"잠시만 기다려주세요","startTitle":"운명의 만남을 시작하세요","startDesc":"사주와 별자리 기반으로\\n완벽한 궁합의 상대를 찾아드립니다","signIn":"로그인하고 시작하기","setupTitle":"프로필을 만들어주세요","setupDesc":"매칭을 시작하려면\\n간단한 프로필 설정이 필요합니다","setupButton":"프로필 만들기","errorTitle":"오류가 발생했습니다","retry":"다시 시도하기"},"noMore":{"empty":"아직 매칭 상대가 없습니다","emptyDesc":"나중에 다시 확인해주세요","done":"모든 프로필을 확인했어요!","doneDesc":"나중에 더 많은 인연이 기다리고 있어요","refresh":"새로고침","viewMatches":"매치 확인하기"},"error":{"title":"매칭 오류","desc":"매칭 페이지를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.","retry":"다시 시도","home":"홈으로"}}}');
+
+/***/ })
+
+};
+;

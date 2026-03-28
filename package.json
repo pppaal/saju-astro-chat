@@ -64,6 +64,7 @@
     "test:e2e:browser:ui": "playwright test --ui",
     "test:e2e:browser:headed": "playwright test --headed",
     "test:e2e:browser:debug": "playwright test --debug",
+    "test:e2e:calendar": "playwright test --config=playwright.calendar.config.ts",
     "test:e2e:critical": "playwright test --config=playwright.ci.config.ts e2e/critical-flows e2e/myjourney-core-services-persistence.spec.ts",
     "test:e2e:critical:auto": "playwright test --config=playwright.critical.config.ts e2e/critical-flows e2e/myjourney-core-services-persistence.spec.ts",
     "test:e2e:critical:ui": "playwright test --config=playwright.critical.config.ts e2e/critical-flows e2e/myjourney-core-services-persistence.spec.ts --ui",

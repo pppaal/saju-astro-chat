@@ -618,6 +618,12 @@ function detectQuestionIntent(questionVariants: string[]): TarotQuestionIntent {
   ) {
     return 'near_term_outcome'
   }
+  if (
+    /(연애\s*시작할까|연애\s*시작될까)/.test(joined) &&
+    !/(내가|내\s*쪽|고백|움직이|시작해도|해볼까)/.test(joined)
+  ) {
+    return 'near_term_outcome'
+  }
   if (hasSelfDecisionSignal(questionVariants) || hasPattern(joined, selfDecisionPatterns)) {
     return 'self_decision'
   }

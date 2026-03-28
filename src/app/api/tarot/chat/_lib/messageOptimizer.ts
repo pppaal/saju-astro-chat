@@ -1,8 +1,8 @@
 import type { ChatMessage } from '@/lib/api'
 
-const DEFAULT_MAX_MESSAGES = 8
-const DEFAULT_MAX_USER_LENGTH = 1400
-const DEFAULT_MAX_ASSISTANT_LENGTH = 700
+const DEFAULT_MAX_MESSAGES = 12
+const DEFAULT_MAX_USER_LENGTH = 2200
+const DEFAULT_MAX_ASSISTANT_LENGTH = 900
 
 function truncateWithHeadTail(text: string, maxLength: number, head = 0.7): string {
   if (text.length <= maxLength) return text

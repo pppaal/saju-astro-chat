@@ -45,10 +45,17 @@ export function normalizeUserFacingArtifacts(text: string): string {
     /^[은는이가를]\s*[가-힣A-Za-z]+\s*\d+하우스에 (?:놓여|위치해) 있습니다\.?$/u
 
   let normalized = String(text || '')
+    .replace(/\bbasecamp reset\b/gi, '거점 재정비')
     .replace(/\bHidden Support Pattern\b/gi, '숨은 지원 흐름')
     .replace(/\bLearning Acceleration Pattern\b/gi, '학습 가속 흐름')
     .replace(/\bMovement Guardrail Window\b/gi, '이동·변화 경계 구간')
     .replace(/\bWealth Accumulation Pattern\b/gi, '자산 축적 흐름')
+    .replace(/\bCareer Expansion Pattern\b/gi, '커리어 확장 패턴')
+    .replace(/\bRelationship Tension Pattern\b/gi, '관계 긴장 패턴')
+    .replace(/\bBurnout Risk Pattern\b/gi, '번아웃 리스크 패턴')
+    .replace(/\bExpansion Pattern\b/gi, '확장 패턴')
+    .replace(/\bTension Pattern\b/gi, '긴장 패턴')
+    .replace(/\bsaju pillars\b/gi, '사주 원국 축')
     .replace(/\bjeonggwan\b/gi, '정관')
     .replace(/\bYongsin\b/gi, '용신')
     .replace(/\bearth\b/gi, '흙')
@@ -98,6 +105,8 @@ export function normalizeUserFacingArtifacts(text: string): string {
     .replace(/지금 결론은\s+([가-힣]+)\s+흐름은/g, '지금 결론은 $1 흐름이')
     .replace(/기준 정리 후 실행(?=\s*[가-힣])/g, '기준을 정리한 뒤 실행하고')
     .replace(/,\s*(?=(?:기준|긴장|결정은|실행 전|주의 신호가|핵심 근거는))/g, '. ')
+    .replace(/세요\.,/g, '세요.')
+    .replace(/역할\.\s*기준/gi, '역할, 기준')
     .replace(/\s{2,}/g, ' ')
     .trim()
 

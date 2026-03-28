@@ -3,23 +3,24 @@ import {
   generateAIPremiumReport,
   generateTimingReport,
   generateThemedReport,
-  type AIPremiumReport,
-  type ReportPeriod,
-  type ReportTheme,
-  type TimingAIPremiumReport,
-  type TimingData,
-  type ThemedAIPremiumReport,
-} from '@/lib/destiny-matrix/ai-report'
+} from '@/lib/destiny-matrix/ai-report/aiReportService'
+import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
+import type {
+  ReportPeriod,
+  ReportTheme,
+  TimingAIPremiumReport,
+  TimingData,
+  ThemedAIPremiumReport,
+} from '@/lib/destiny-matrix/ai-report/types'
 import {
   evaluateThemedReportQuality,
   buildCalculationDetails,
 } from '@/lib/destiny-matrix/ai-report/qualityAudit'
 import { buildPreciseTimelineSummary } from '@/lib/destiny-matrix/monthlyTimelinePrecise'
 import { applyRuntimeCalibration } from '@/lib/destiny-matrix/calibrationRuntime'
-import type { MatrixCalculationInput, MatrixCell } from '@/lib/destiny-matrix'
-import type { MatrixSummary } from '@/lib/destiny-matrix/types'
+import type { MatrixCalculationInput, MatrixCell, MatrixSummary } from '@/lib/destiny-matrix/types'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
-import type { InsightDomain } from '@/lib/destiny-matrix'
+import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
 import type { AIUserPlan } from '@/lib/destiny-matrix/ai-report/reportTypes'
 import type { DeterministicProfile } from '@/lib/destiny-matrix/ai-report/deterministicCoreConfig'
 import type {

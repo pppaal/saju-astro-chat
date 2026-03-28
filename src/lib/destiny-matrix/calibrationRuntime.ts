@@ -1,6 +1,4 @@
-﻿import { access, readFile, stat } from 'node:fs/promises'
-import path from 'node:path'
-
+import { access, readFile, stat } from 'node:fs/promises'
 import type { TimingCalibrationSummary, DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
 import type {
   DestinyLoggedService,
@@ -11,12 +9,7 @@ import type {
 import type { DestinyCalibrationAggregate, DestinyCalibrationReport } from '@/lib/destiny-matrix/calibration'
 
 function getDefaultCandidatePaths(): string[] {
-  if (process.env.NODE_ENV === 'production') return []
-  return [
-    path.join(process.cwd(), 'tmp', 'destiny-calibration-table.json'),
-    path.join(process.cwd(), 'reports', 'destiny-calibration-table.json'),
-    path.join(process.cwd(), 'artifacts', 'destiny-calibration-table.json'),
-  ]
+  return []
 }
 
 type RuntimeCalibrationContext = {
@@ -172,3 +165,4 @@ export async function applyRuntimeCalibration(
     ].join('|'),
   }
 }
+

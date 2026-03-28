@@ -1,11 +1,7 @@
-import {
-  calculateLunarReturn,
-  calculateSecondaryProgressions,
-  calculateSolarReturn,
-  calculateTransitChart,
-  findMajorTransits,
-  type Chart,
-} from '@/lib/astrology'
+import { calculateSecondaryProgressions } from '@/lib/astrology/foundation/progressions'
+import { calculateLunarReturn, calculateSolarReturn } from '@/lib/astrology/foundation/returns'
+import { calculateTransitChart, findMajorTransits } from '@/lib/astrology/foundation/transit'
+import type { Chart } from '@/lib/astrology/foundation/types'
 import { buildCompleteAdvancedAstroSignals } from './inputCross'
 import { mapMajorTransitsToActiveTransits } from './ai-report/transitMapping'
 import { buildAstroTimingIndex } from './astroTimingIndex'

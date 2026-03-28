@@ -22,6 +22,7 @@ import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { calculateYearlyImportantDatesLite } from './lib/liteYearlyDates'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
+import type { CounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
 
 import {
   getPillarStemName,
@@ -93,6 +94,15 @@ const CORE_SIGNAL_DOMAIN_TO_CALENDAR_DOMAIN: Record<string, DomainKey | null> = 
   spirituality: null,
   timing: null,
 }
+
+const CALENDAR_PACKET_THEME_MAP = {
+  career: { theme: 'career', focusDomainOverride: 'career' },
+  love: { theme: 'love', focusDomainOverride: 'relationship' },
+  wealth: { theme: 'wealth', focusDomainOverride: 'wealth' },
+  health: { theme: 'health', focusDomainOverride: 'health' },
+  today: { theme: 'today', focusDomainOverride: undefined },
+  general: { theme: 'today', focusDomainOverride: undefined },
+} as const
 
 function normalizeFiveElement(value: unknown): FiveElement | undefined {
   if (typeof value !== 'string') return undefined
@@ -395,6 +405,7 @@ export const GET = withApiMiddleware(
     let matrixCalendarContext: MatrixCalendarContext = null
     let matrixInputCoverage: Record<string, unknown> | null = null
     let matrixEvidencePackets: CalendarMatrixEvidencePacketMap | null = null
+    let responseMatrixEvidencePackets: Record<string, CounselorEvidencePacket> | null = null
     let calendarCoreCanonical = null as CalendarCoreAdapterResult | null
     let calendarCoreDataQuality = null as {
       missingFields: string[]
@@ -432,13 +443,13 @@ export const GET = withApiMiddleware(
           listMissingCrossKeysForService,
         },
         { deriveCalendarSignals },
-        { buildCalendarMatrixEvidencePacketMap },
+        { buildCounselorEvidencePacket },
       ] = await Promise.all([
         import('@/lib/destiny-matrix/core/buildCalendarCoreEnvelope'),
         import('@/lib/destiny-matrix/core/adapters'),
         import('@/lib/destiny-matrix/inputCross'),
         import('@/lib/destiny-matrix/calendarSignals'),
-        import('./lib/matrixEvidencePacket'),
+        import('@/lib/destiny-matrix/counselorEvidence'),
       ])
 
       const matrixInput = buildCalendarMatrixInput({
@@ -466,7 +477,25 @@ export const GET = withApiMiddleware(
         locale === 'en' ? 'en' : 'ko'
       )
       calendarCoreDataQuality = engineEnvelope.coreSeed.quality.dataQuality
-      matrixEvidencePackets = buildCalendarMatrixEvidencePacketMap(calendarCoreCanonical)
+      responseMatrixEvidencePackets = Object.fromEntries(
+        Object.entries(CALENDAR_PACKET_THEME_MAP).map(([key, config]) => [
+          key,
+          buildCounselorEvidencePacket({
+            theme: config.theme,
+            lang: locale === 'en' ? 'en' : 'ko',
+            focusDomainOverride: config.focusDomainOverride,
+            matrixInput: engineEnvelope.normalizedInput,
+            matrixReport: engineEnvelope.matrixReport,
+            matrixSummary: coreSummary,
+            signalSynthesis: engineEnvelope.coreSeed.signalSynthesis,
+            strategyEngine: engineEnvelope.coreSeed.strategyEngine,
+            core: engineEnvelope.coreSeed,
+            birthDate: birthDateParam,
+          }),
+        ])
+      )
+      matrixEvidencePackets =
+        responseMatrixEvidencePackets as unknown as CalendarMatrixEvidencePacketMap
       matrixCalendarContext = {
         calendarSignals:
           coreSummary.calendarSignals && coreSummary.calendarSignals.length > 0
@@ -694,9 +723,9 @@ export const GET = withApiMiddleware(
         : undefined,
       matrixContract: calendarMatrixContract,
       dataQuality: calendarCoreDataQuality || undefined,
-      timingCalibration: undefined,
-      overlapTimelineByDomain: undefined,
-      domainScores: undefined,
+      timingCalibration: matrixCalendarContext?.timingCalibration,
+      overlapTimelineByDomain: matrixCalendarContext?.overlapTimelineByDomain,
+      domainScores: matrixCalendarContext?.domainScores,
     })
 
     const { persistDestinyPredictionSnapshot } =
@@ -777,7 +806,7 @@ export const GET = withApiMiddleware(
       relationshipWeather: presentationView.relationshipWeather,
       workMoneyWeather: presentationView.workMoneyWeather,
       matrixInputCoverage,
-      matrixEvidencePackets,
+      matrixEvidencePackets: responseMatrixEvidencePackets,
       topMatchedPatterns,
       ...(aiDates && {
         aiInsights: {

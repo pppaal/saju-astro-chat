@@ -4,8 +4,8 @@ import type {
   CrossSnapshot,
   MatrixCalculationInput,
   SajuSnapshot,
-} from '@/lib/destiny-matrix'
-import type { TimingData } from '@/lib/destiny-matrix/ai-report'
+} from '@/lib/destiny-matrix/types'
+import type { TimingData } from '@/lib/destiny-matrix/ai-report/types'
 import { logger } from '@/lib/logger'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'

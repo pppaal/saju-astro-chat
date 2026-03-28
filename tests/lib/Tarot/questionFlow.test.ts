@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+
 import {
-  buildQuestionContextPrompt,
   appendQuestionContextToPath,
+  buildQuestionContextPrompt,
   buildStableEntryPath,
   getQuestionIntent,
+  loadQuestionAnalysisSnapshot,
   resolveStableTarotEntry,
   storeQuestionAnalysisSnapshot,
-  loadQuestionAnalysisSnapshot,
   type TarotQuestionAnalysisResult,
 } from '@/lib/Tarot/questionFlow'
 
@@ -53,7 +54,7 @@ describe('questionFlow', () => {
     })
   })
 
-  it('keeps other-person questions on a stable quick entry path', () => {
+  it('keeps other-person questions on a stable relationship entry path', () => {
     const analysis = createAnalysis({
       question_profile: {
         type: { code: 'other_response', label: 'Other response' },
@@ -65,8 +66,25 @@ describe('questionFlow', () => {
     })
 
     expect(buildStableEntryPath('내일 이차연이 무슨 대답을 할까?', analysis)).toBe(
-      '/tarot/general-insight/quick-reading?question=%EB%82%B4%EC%9D%BC+%EC%9D%B4%EC%B0%A8%EC%97%B0%EC%9D%B4+%EB%AC%B4%EC%8A%A8+%EB%8C%80%EB%8B%B5%EC%9D%84+%ED%95%A0%EA%B9%8C%3F'
+      '/tarot/love-relationships/crush-feelings?question=%EB%82%B4%EC%9D%BC+%EC%9D%B4%EC%B0%A8%EC%97%B0%EC%9D%B4+%EB%AC%B4%EC%8A%A8+%EB%8C%80%EB%8B%B5%EC%9D%84+%ED%95%A0%EA%B9%8C%3F'
     )
+  })
+
+  it('keeps meeting-likelihood questions on a stable yes-no path', () => {
+    const analysis = createAnalysis({
+      question_profile: {
+        type: { code: 'meeting_likelihood', label: 'Meeting likelihood' },
+        subject: { code: 'other_person', label: 'Other person' },
+        focus: { code: 'contact', label: 'Contact' },
+        timeframe: { code: 'near_term', label: 'Near term' },
+        tone: { code: 'prediction', label: 'Prediction' },
+      },
+    })
+
+    expect(resolveStableTarotEntry('걔 연락 올까?', analysis)).toEqual({
+      themeId: 'decisions-crossroads',
+      spreadId: 'yes-no-why',
+    })
   })
 
   it('prefers analyzed intent over regex fallback', () => {
@@ -105,7 +123,9 @@ describe('questionFlow', () => {
   it('appends both question and analysis key to existing paths', () => {
     expect(
       appendQuestionContextToPath('/tarot/general-insight/quick-reading?foo=bar', '질문', 'abc123')
-    ).toBe('/tarot/general-insight/quick-reading?foo=bar&question=%EC%A7%88%EB%AC%B8&analysisKey=abc123')
+    ).toBe(
+      '/tarot/general-insight/quick-reading?foo=bar&question=%EC%A7%88%EB%AC%B8&analysisKey=abc123'
+    )
   })
 
   it('builds a prompt-friendly question context block', () => {

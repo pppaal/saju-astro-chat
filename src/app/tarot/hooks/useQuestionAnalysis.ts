@@ -357,8 +357,9 @@ export function useQuestionAnalysis({
           return
         }
 
-        setFallbackReason(null)
-        setAnalysisResult(response.result || buildLocalFallbackAnalysis(trimmed, null))
+        const fallback = response.fallbackReason ?? 'server_error'
+        setFallbackReason(fallback)
+        setAnalysisResult(response.result || buildLocalFallbackAnalysis(trimmed, fallback))
       } catch (error) {
         if (requestId !== previewRequestIdRef.current) {
           return
@@ -368,8 +369,8 @@ export function useQuestionAnalysis({
           '[tarot/question-engine-v2] Preview request failed',
           error instanceof Error ? error : new Error(String(error))
         )
-        setFallbackReason(null)
-        setAnalysisResult(buildLocalFallbackAnalysis(trimmed, null))
+        setFallbackReason('network_error')
+        setAnalysisResult(buildLocalFallbackAnalysis(trimmed, 'network_error'))
       } finally {
         timeoutControl.cleanup()
         if (requestId === previewRequestIdRef.current) {
@@ -437,11 +438,12 @@ export function useQuestionAnalysis({
         return
       }
 
-      setFallbackReason(null)
-      setAnalysisResult(response.result || buildLocalFallbackAnalysis(trimmedQuestion, null))
+      const fallback = response.fallbackReason ?? 'server_error'
+      setFallbackReason(fallback)
+      setAnalysisResult(response.result || buildLocalFallbackAnalysis(trimmedQuestion, fallback))
     } catch {
-      setFallbackReason(null)
-      setAnalysisResult(buildLocalFallbackAnalysis(trimmedQuestion, null))
+      setFallbackReason('network_error')
+      setAnalysisResult(buildLocalFallbackAnalysis(trimmedQuestion, 'network_error'))
     } finally {
       if (startAnalyzeAbortRef.current === startAbortController) {
         startAnalyzeAbortRef.current = null

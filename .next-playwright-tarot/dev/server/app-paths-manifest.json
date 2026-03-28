@@ -1,0 +1,5 @@
+{
+  "/api/me/credits/route": "app/api/me/credits/route.js",
+  "/tarot/page": "app/tarot/page.js",
+  "/tarot/history/page": "app/tarot/history/page.js"
+}

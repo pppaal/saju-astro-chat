@@ -53,10 +53,10 @@ describe('calendar/cache-utils', () => {
     gender: 'M',
   }
 
-  const mockCalendarData: CalendarData = {
-    dates: [],
+  const mockCalendarData = {
+    allDates: [],
     profile: null,
-  }
+  } as unknown as CalendarData
 
   beforeEach(() => {
     localStorage.clear()
@@ -121,7 +121,7 @@ describe('calendar/cache-utils', () => {
     it('should return cached data when valid', () => {
       const cacheKey = getCacheKey(mockBirthInfo, 2024, 'all')
       const cachedData = {
-        version: 'v3',
+        version: 'v4',
         timestamp: Date.now(),
         birthInfo: mockBirthInfo,
         year: 2024,
@@ -140,7 +140,7 @@ describe('calendar/cache-utils', () => {
       const cacheKey = getCacheKey(mockBirthInfo, 2024, 'all')
       const expiredTimestamp = Date.now() - 31 * 24 * 60 * 60 * 1000 // 31 days ago
       const cachedData = {
-        version: 'v3',
+        version: 'v4',
         timestamp: expiredTimestamp,
         birthInfo: mockBirthInfo,
         year: 2024,
@@ -186,7 +186,7 @@ describe('calendar/cache-utils', () => {
       const cacheKey = getCacheKey(mockBirthInfo, 2024, 'all')
       const expiredTimestamp = Date.now() - 31 * 24 * 60 * 60 * 1000
       const cachedData = {
-        version: 'v3',
+        version: 'v4',
         timestamp: expiredTimestamp,
         birthInfo: mockBirthInfo,
         year: 2024,
@@ -227,7 +227,7 @@ describe('calendar/cache-utils', () => {
       expect(stored).toBeTruthy()
 
       const parsed = JSON.parse(stored!)
-      expect(parsed.version).toBe('v3')
+      expect(parsed.version).toBe('v4')
       expect(parsed.data).toEqual(mockCalendarData)
       expect(parsed.birthInfo).toEqual(mockBirthInfo)
       expect(parsed.year).toBe(2024)
@@ -272,8 +272,16 @@ describe('calendar/cache-utils', () => {
 
     it('should overwrite existing cache', () => {
       const cacheKey = getCacheKey(mockBirthInfo, 2024, 'all')
-      const data1 = { ...mockCalendarData, dates: [{ day: 1 }] as any }
-      const data2 = { ...mockCalendarData, dates: [{ day: 2 }] as any }
+      const data1 = {
+        ...mockCalendarData,
+        allDates: [{ day: 1 }] as any,
+        matrixContract: { coreHash: 'hash-1' } as any,
+      }
+      const data2 = {
+        ...mockCalendarData,
+        allDates: [{ day: 2 }] as any,
+        matrixContract: { coreHash: 'hash-2' } as any,
+      }
 
       setCachedData(cacheKey, mockBirthInfo, 2024, 'all', data1)
       setCachedData(cacheKey, mockBirthInfo, 2024, 'all', data2)
@@ -293,8 +301,8 @@ describe('calendar/cache-utils', () => {
 
       localStorage.setItem(
         expiredKey,
-        JSON.stringify({
-          version: 'v3',
+          JSON.stringify({
+          version: 'v4',
           timestamp: expiredTimestamp,
           data: mockCalendarData,
         })
@@ -302,8 +310,8 @@ describe('calendar/cache-utils', () => {
 
       localStorage.setItem(
         validKey,
-        JSON.stringify({
-          version: 'v3',
+          JSON.stringify({
+          version: 'v4',
           timestamp: validTimestamp,
           data: mockCalendarData,
         })
@@ -407,7 +415,11 @@ describe('calendar/cache-utils', () => {
       ]
 
       keys.forEach((key, index) => {
-        const data = { ...mockCalendarData, dates: [{ day: index }] as any }
+        const data = {
+          ...mockCalendarData,
+          allDates: [{ day: index }] as any,
+          matrixContract: { coreHash: `hash-${index}` } as any,
+        }
         setCachedData(
           key,
           mockBirthInfo,
@@ -419,7 +431,7 @@ describe('calendar/cache-utils', () => {
 
       keys.forEach((key, index) => {
         const result = getCachedData(key)
-        expect(result?.dates[0]).toEqual({ day: index })
+        expect((result as any)?.allDates[0]).toEqual({ day: index })
       })
     })
 
@@ -428,7 +440,7 @@ describe('calendar/cache-utils', () => {
 
       // Simulate cache from 31 days ago
       const expiredData = {
-        version: 'v3',
+        version: 'v4',
         timestamp: Date.now() - 31 * 24 * 60 * 60 * 1000,
         birthInfo: mockBirthInfo,
         year: 2024,

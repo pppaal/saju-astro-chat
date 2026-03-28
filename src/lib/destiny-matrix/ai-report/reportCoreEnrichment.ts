@@ -170,10 +170,11 @@ export function enrichComprehensiveSectionsWithReportCore(
   sectionSupplements: Record<string, string[]> = {},
   timingData?: TimingData
 ): AIPremiumReport['sections'] {
-  const focusAdvisory = findReportCoreAdvisory(reportCore, reportCore.focusDomain)
-  const focusTiming = findReportCoreTimingWindow(reportCore, reportCore.focusDomain)
-  const focusManifestation = findReportCoreManifestation(reportCore, reportCore.focusDomain)
-  const focusDomainLabel = deps.getReportDomainLabel(reportCore.focusDomain, lang)
+  const leadDomain = reportCore.actionFocusDomain || reportCore.focusDomain
+  const focusAdvisory = findReportCoreAdvisory(reportCore, leadDomain)
+  const focusTiming = findReportCoreTimingWindow(reportCore, leadDomain)
+  const focusManifestation = findReportCoreManifestation(reportCore, leadDomain)
+  const focusDomainLabel = deps.getReportDomainLabel(leadDomain, lang)
   const rawFocusNarrative =
     focusAdvisory?.thesis || focusManifestation?.manifestation || reportCore.thesis || ''
   const focusNarrativeForIntro =
@@ -207,7 +208,7 @@ export function enrichComprehensiveSectionsWithReportCore(
         buildComprehensiveSectionHookLocal('introduction', lang),
         deps.buildSectionPersonalLead('introduction', matrixInput, lang, timingData),
         lang === 'ko'
-          ? `지금 인생 전체 흐름에서 가장 크게 움직이는 축은 ${focusDomainLabel}이고, 현재 국면은 ${focusNarrativeForIntro}`
+          ? `지금 실제로 먼저 대응해야 할 축은 ${focusDomainLabel}이고, 현재 국면은 ${focusNarrativeForIntro}`
           : `The strongest axis in your life right now is ${focusDomainLabel}, and the current movement is ${focusNarrativeForIntro}.`,
         deps.buildPrimaryActionLead(reportCore.primaryAction, reportCore.riskControl, lang),
         deps.buildPrimaryCautionLead(reportCore.primaryCaution, reportCore.riskControl, lang),
@@ -535,6 +536,7 @@ export function enrichThemedSectionsWithReportCore(
   deps: ReportCoreEnrichmentDeps,
   timingData?: TimingData
 ): ThemedReportSections {
+  const leadDomain = reportCore.actionFocusDomain || reportCore.focusDomain
   const actionProjection = reportCore.projections?.action
   const riskProjection = reportCore.projections?.risk
   const evidenceProjection = reportCore.projections?.evidence
@@ -559,9 +561,9 @@ export function enrichThemedSectionsWithReportCore(
   const safeActionDrivers = (actionProjection?.drivers || [])
     .map((item) => deps.sanitizeUserFacingNarrative(String(item || '').trim()))
     .filter(Boolean)
-  const focusAdvisory = findReportCoreAdvisory(reportCore, reportCore.focusDomain)
-  const focusTiming = findReportCoreTimingWindow(reportCore, reportCore.focusDomain)
-  const focusManifestation = findReportCoreManifestation(reportCore, reportCore.focusDomain)
+  const focusAdvisory = findReportCoreAdvisory(reportCore, leadDomain)
+  const focusTiming = findReportCoreTimingWindow(reportCore, leadDomain)
+  const focusManifestation = findReportCoreManifestation(reportCore, leadDomain)
   const relationship = findReportCoreAdvisory(reportCore, 'relationship')
   const career = findReportCoreAdvisory(reportCore, 'career')
   const wealth = findReportCoreAdvisory(reportCore, 'wealth')
@@ -705,7 +707,7 @@ export function enrichThemedSectionsWithReportCore(
       [
         buildThemedSectionHook(theme, 'timing', lang),
         focusTiming
-          ? deps.buildTimingWindowNarrative(reportCore.focusDomain, focusTiming, lang)
+          ? deps.buildTimingWindowNarrative(leadDomain, focusTiming, lang)
           : reportCore.gradeReason,
       ],
       [...(focusTiming?.entryConditions || []), ...(focusTiming?.abortConditions || [])],

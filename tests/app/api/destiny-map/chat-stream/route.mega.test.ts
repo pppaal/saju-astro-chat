@@ -160,19 +160,17 @@ vi.mock('@/lib/api/requestParser', () => ({
   }),
 }))
 
-// Mock local modules - the route imports from ./lib (re-exports from profileLoader)
-vi.mock('@/app/api/destiny-map/chat-stream/lib', () => ({
-  ALLOWED_LANG: new Set(['ko', 'en']),
-  ALLOWED_GENDER: new Set(['male', 'female']),
-  MAX_MESSAGES: 20,
+// Mock helper imports used directly by route.ts
+vi.mock('@/app/api/destiny-map/chat-stream/lib/helpers', () => ({
   clampMessages: vi.fn((msgs: any[]) => msgs.slice(-20)),
   counselorSystemPrompt: vi.fn(() => 'System prompt'),
-  loadPersonaMemory: vi.fn(),
+  getThemeContext: vi.fn(() => ''),
 }))
 
-// Mock profileLoader (loadUserProfile is imported from ./lib/profileLoader in route.ts)
+// Mock profileLoader (route.ts imports both loadUserProfile and loadPersonaMemory directly)
 vi.mock('@/app/api/destiny-map/chat-stream/lib/profileLoader', () => ({
   loadUserProfile: vi.fn(),
+  loadPersonaMemory: vi.fn(),
 }))
 
 // Mock Zod validation module
@@ -243,7 +241,7 @@ import { loadPersonaMemory } from '@/app/api/destiny-map/chat-stream/lib'
 import { loadUserProfile } from '@/app/api/destiny-map/chat-stream/lib/profileLoader'
 import { validateDestinyMapRequest } from '@/app/api/destiny-map/chat-stream/lib/validation'
 import { calculateChartData } from '@/app/api/destiny-map/chat-stream/lib/chart-calculator'
-import * as destinyMatrixModule from '@/lib/destiny-matrix'
+import * as destinyMatrixModule from '@/lib/destiny-matrix/engine'
 import {
   buildContextSections,
   buildPredictionSection,

@@ -133,6 +133,26 @@ import {
 } from './reportNarrativeSanitizer'
 export { sanitizeSectionNarrative } from './reportNarrativeSanitizer'
 import {
+  buildReportCoreLine,
+  capitalizeFirst,
+  collectCleanNarrativeLines,
+  containsHangul,
+  distinctNarrative,
+  getElementByStemName,
+  getElementLabel,
+  getReportDomainLabel,
+  getTimingWindowLabel,
+  getWesternElementLabel,
+  hasBatchim,
+  localizeGeokgukLabel,
+  localizePlanetName,
+  localizeReportNarrativeText,
+  localizeSignName,
+  normalizeNarrativeCoreText,
+  sanitizeEvidenceToken,
+  withSubjectParticle,
+} from './reportTextHelpers'
+import {
   buildActionRepairInstruction,
   buildAntiRepetitionInstruction,
   buildCrossRepairInstruction,
@@ -609,155 +629,6 @@ function buildReportOutputCoreFields(
   }
 }
 
-function getReportDomainLabel(domain: string, lang: 'ko' | 'en'): string {
-  const koLabels: Record<string, string> = {
-    career: '커리어',
-    relationship: '관계',
-    wealth: '재정',
-    health: '건강',
-    move: '이동',
-    personality: '성향',
-    spirituality: '장기 방향',
-    timing: '타이밍',
-  }
-  const enLabels: Record<string, string> = {
-    career: 'career',
-    relationship: 'relationships',
-    wealth: 'wealth',
-    health: 'health',
-    move: 'movement',
-    personality: 'personality',
-    spirituality: 'direction',
-    timing: 'timing',
-  }
-  return lang === 'ko' ? koLabels[domain] || domain : enLabels[domain] || domain
-}
-
-function localizeReportNarrativeText(text: string | undefined | null, lang: 'ko' | 'en'): string {
-  const value = String(text || '').trim()
-  if (!value || lang !== 'ko') return value
-  return value
-    .replace(/\bpersonality\b/gi, '성향')
-    .replace(/\bcareer\b/gi, '커리어')
-    .replace(/\brelationship\b/gi, '관계')
-    .replace(/\bwealth\b/gi, '재정')
-    .replace(/\bhealth\b/gi, '건강')
-    .replace(/\bmove\b/gi, '이동')
-    .replace(/\bspirituality\b/gi, '장기 방향')
-    .replace(/\bnow\b/gi, '지금')
-    .replace(/\bweek\b/gi, '주 단위')
-    .replace(/\bfortnight\b/gi, '2주 단위')
-    .replace(/\bmonth\b/gi, '월 단위')
-    .replace(/\bseason\b/gi, '분기 단위')
-    .replace(/\bcaution\b/gi, '주의 신호')
-    .replace(/\bdowngrade pressure\b/gi, '하향 조정 압력')
-    .replace(/\bgeokguk strength\b/gi, '격국 응집력')
-    .replace(/\bdebt restructure\b/gi, '부채 재정리')
-    .replace(/\bliquidity defense\b/gi, '유동성 방어')
-    .replace(/\bexpense spike\b/gi, '지출 급증 대응')
-    .replace(/\bmap full debt stack\b/gi, '전체 부채 구조를 다시 정리하기')
-    .replace(/\bwealth volatility pattern\b/gi, '재정 변동성 패턴')
-    .replace(/\bcareer expansion pattern\b/gi, '커리어 확장 패턴')
-    .replace(/\brelationship tension pattern\b/gi, '관계 긴장 패턴')
-    .replace(/\bcashflow\b/gi, '현금흐름')
-    .replace(
-      /\b\w+\s+stayed secondary because total support remained below the winner\b/gi,
-      '최종 지지가 승자축보다 약해 보조축에 머물렀습니다'
-    )
-    .replace(
-      /([가-힣]+)\s+stayed secondary because total support remained below the winner/gi,
-      '$1은 최종 지지가 승자축보다 약해 보조축에 머물렀습니다'
-    )
-    .replace(/밀는/g, '미는')
-    .replace(/중단는/g, '중단은')
-    .replace(/커리어은/g, '커리어는')
-    .replace(/관계은/g, '관계는')
-    .replace(/타이밍와/g, '타이밍과')
-    .replace(/장기 방향와/g, '장기 방향과')
-    .replace(/편이 맞습니다\.입니다\./g, '편이 맞습니다.')
-    .replace(/트랜짓가/g, '트랜짓이')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function getTimingWindowLabel(
-  window: 'now' | '1-3m' | '3-6m' | '6-12m' | '12m+',
-  lang: 'ko' | 'en'
-): string {
-  if (lang === 'ko') {
-    const labels = {
-      now: '지금',
-      '1-3m': '1~3개월',
-      '3-6m': '3~6개월',
-      '6-12m': '6~12개월',
-      '12m+': '1년 이후',
-    }
-    return labels[window]
-  }
-  const labels = {
-    now: 'now',
-    '1-3m': '1-3 months',
-    '3-6m': '3-6 months',
-    '6-12m': '6-12 months',
-    '12m+': '12+ months',
-  }
-  return labels[window]
-}
-
-function getWesternElementLabel(element: string | undefined, lang: 'ko' | 'en'): string {
-  if (!element) return lang === 'ko' ? '미상' : 'unknown'
-  const normalized = String(element).trim().toLowerCase()
-  const koLabels: Record<string, string> = {
-    fire: '불',
-    earth: '흙',
-    air: '바람',
-    water: '물',
-    불: '불',
-    흙: '흙',
-    바람: '바람',
-    물: '물',
-  }
-  const enLabels: Record<string, string> = {
-    fire: 'fire',
-    earth: 'earth',
-    air: 'air',
-    water: 'water',
-    불: 'fire',
-    흙: 'earth',
-    바람: 'air',
-    물: 'water',
-  }
-  return lang === 'ko'
-    ? koLabels[normalized] || String(element)
-    : enLabels[normalized] || String(element)
-}
-
-function getElementByStemName(stem: string): string | undefined {
-  const mapping: Record<string, string> = {
-    갑: '목',
-    을: '목',
-    병: '화',
-    정: '화',
-    무: '토',
-    기: '토',
-    경: '금',
-    신: '금',
-    임: '수',
-    계: '수',
-    甲: '목',
-    乙: '목',
-    丙: '화',
-    丁: '화',
-    戊: '토',
-    己: '토',
-    庚: '금',
-    辛: '금',
-    壬: '수',
-    癸: '수',
-  }
-  return mapping[stem]
-}
-
 function toObjectRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null
   return value as Record<string, unknown>
@@ -770,55 +641,6 @@ function toFiniteNumber(value: unknown): number | null {
     return Number.isFinite(parsed) ? parsed : null
   }
   return null
-}
-
-function hasBatchim(text: string | undefined): boolean {
-  if (!text) return false
-  const last = text.trim().charCodeAt(text.trim().length - 1)
-  if (last < 0xac00 || last > 0xd7a3) return false
-  return (last - 0xac00) % 28 !== 0
-}
-
-function withSubjectParticle(text: string | undefined): string {
-  if (!text) return ''
-  return `${text}${hasBatchim(text) ? '이' : '가'}`
-}
-
-function localizePlanetName(
-  planet: 'Sun' | 'Moon' | 'Mercury' | 'Venus' | 'Mars' | 'Jupiter' | 'Saturn',
-  lang: 'ko' | 'en'
-): string {
-  if (lang !== 'ko') return planet
-  const labels: Record<string, string> = {
-    Sun: '태양',
-    Moon: '달',
-    Mercury: '수성',
-    Venus: '금성',
-    Mars: '화성',
-    Jupiter: '목성',
-    Saturn: '토성',
-  }
-  return labels[planet] || planet
-}
-
-function localizeSignName(sign: string | undefined, lang: 'ko' | 'en'): string {
-  if (!sign) return ''
-  if (lang !== 'ko') return sign
-  const labels: Record<string, string> = {
-    Aries: '양자리',
-    Taurus: '황소자리',
-    Gemini: '쌍둥이자리',
-    Cancer: '게자리',
-    Leo: '사자자리',
-    Virgo: '처녀자리',
-    Libra: '천칭자리',
-    Scorpio: '전갈자리',
-    Sagittarius: '사수자리',
-    Capricorn: '염소자리',
-    Aquarius: '물병자리',
-    Pisces: '물고기자리',
-  }
-  return labels[String(sign)] || String(sign)
 }
 
 type PersonalDaeunWindow = {
@@ -1207,205 +1029,6 @@ function buildSectionPersonalLead(
   }
 }
 
-function replaceReportDomainTokens(text: string, lang: 'ko' | 'en'): string {
-  const value = String(text || '')
-  if (!value || lang !== 'ko') return value
-  return value
-    .replace(/\bcareer\b/gi, '커리어')
-    .replace(/\brelationships?\b/gi, '관계')
-    .replace(/\bwealth\b/gi, '재정')
-    .replace(/\bhealth\b/gi, '건강')
-    .replace(/\bmove(?:ment)?\b/gi, '이동')
-    .replace(/\bpersonality\b/gi, '성향')
-    .replace(/\bspirituality\b/gi, '장기 방향')
-    .replace(/\btiming\b/gi, '타이밍')
-}
-
-function normalizeNarrativeCoreText(value: string | undefined | null, lang: 'ko' | 'en'): string {
-  const cleaned = sanitizeUserFacingNarrative(
-    replaceReportDomainTokens(String(value || ''), lang)
-      .replace(/commit_now/gi, lang === 'ko' ? '즉시 확정' : 'immediate commitment')
-      .replace(/staged_commit/gi, lang === 'ko' ? '단계 실행' : 'staged execution')
-      .replace(/\bverify\b/gi, lang === 'ko' ? '확인' : 'review')
-      .replace(/\bprepare\b/gi, lang === 'ko' ? '준비 우선' : 'prepare first')
-      .replace(/\bexecute\b/gi, lang === 'ko' ? '실행' : 'execute')
-      .replace(/\bTransit\s+saturnReturn\b/gi, lang === 'ko' ? '책임 압력 신호' : 'responsibility pressure')
-      .replace(/\bTransit\s+jupiterReturn\b/gi, lang === 'ko' ? '확장 신호' : 'expansion signal')
-      .replace(/\bTransit\s+nodeReturn\b/gi, lang === 'ko' ? '방향 전환 신호' : 'direction-shift signal')
-      .replace(/\bTransit\s+mercuryRetrograde\b/gi, lang === 'ko' ? '소통 재검토 신호' : 'communication review signal')
-      .replace(/\bTransit\s+marsRetrograde\b/gi, lang === 'ko' ? '마찰 재검토 신호' : 'friction review signal')
-      .replace(/\bTransit\s+venusRetrograde\b/gi, lang === 'ko' ? '관계 재검토 신호' : 'relationship review signal')
-      .replace(/\bsaturnReturn\b/gi, lang === 'ko' ? '책임 압력 신호' : 'responsibility pressure')
-      .replace(/\bjupiterReturn\b/gi, lang === 'ko' ? '확장 신호' : 'expansion signal')
-      .replace(/\bnodeReturn\b/gi, lang === 'ko' ? '방향 전환 신호' : 'direction-shift signal')
-      .replace(/\bmercuryRetrograde\b/gi, lang === 'ko' ? '소통 재검토 신호' : 'communication review signal')
-      .replace(/\bmarsRetrograde\b/gi, lang === 'ko' ? '마찰 재검토 신호' : 'friction review signal')
-      .replace(/\bvenusRetrograde\b/gi, lang === 'ko' ? '관계 재검토 신호' : 'relationship review signal')
-      .replace(/\bsolarReturn\b/gi, lang === 'ko' ? '연간 초점 강조' : 'annual emphasis')
-      .replace(/\blunarReturn\b/gi, lang === 'ko' ? '감정 파동 신호' : 'emotional pulse signal')
-      .replace(/\bprogressions?\b/gi, lang === 'ko' ? '장기 전개 흐름' : 'long-arc development')
-      .replace(/\bmoney expansion action\b/gi, lang === 'ko' ? '재정 확장은 조건 검증부터 진행하세요' : 'expand finances only after condition checks')
-      .replace(/\brelationship caution\b/gi, lang === 'ko' ? '관계에서는 속도보다 기준 확인이 먼저입니다' : 'relationship pace should stay behind clear standards')
-      .replace(/검증/g, '확인')
-      .replace(/레이어\s*0/gi, lang === 'ko' ? '핵심 흐름' : 'core flow')
-      .replace(/활성 신호\s+책임 압력 신호/gi, lang === 'ko' ? '책임 압력 신호' : 'responsibility pressure')
-      .replace(/활성 신호\s+확장 신호/gi, lang === 'ko' ? '확장 신호' : 'expansion signal')
-      .replace(/활성 신호\s+방향 전환 신호/gi, lang === 'ko' ? '방향 전환 신호' : 'direction-shift signal')
-      .replace(/활성 신호\s+소통 재검토 신호/gi, lang === 'ko' ? '소통 재검토 신호' : 'communication review signal')
-      .replace(/변동성 패턴\s+패턴/gi, lang === 'ko' ? '변동성 패턴' : 'volatility pattern')
-      .replace(
-        /확장 자원 레이어:/g,
-        lang === 'ko'
-          ? '외부 기회와 지원 흐름을 보면'
-          : 'Looking at external opportunity and support,'
-      )
-      .replace(
-        /십성 역할 레이어:/g,
-        lang === 'ko' ? '행동 습관을 보면' : 'Looking at behavioral patterns,'
-      )
-      .replace(
-        /충돌 패턴 레이어:/g,
-        lang === 'ko' ? '엇갈리는 지점을 보면' : 'Looking at the tension phase,'
-      )
-      .replace(
-        /국면 전환 레이어:/g,
-        lang === 'ko' ? '흐름이 바뀌는 지점을 보면' : 'Looking at the transition,'
-      )
-      .replace(
-        /인생 챕터 흐름:\s*LIFE\s*\([^)]*\)/g,
-        lang === 'ko' ? '인생 전체 흐름을 보면' : 'Across the life arc,'
-      )
-      .replace(/실행 타이밍 전략:/g, '')
-      .replace(
-        /즉시 확정 액션이 차단됩니다\./g,
-        lang === 'ko'
-          ? '성급한 확정은 지금 맞지 않습니다.'
-          : 'Immediate commitment is not suitable right now.'
-      )
-      .replace(
-        /인생 총운 한 줄 로그라인:/g,
-        lang === 'ko' ? '이 해석의 출발점은' : 'The starting point is'
-      )
-      .replace(/격국 신호/g, lang === 'ko' ? '사주의 기본 구조' : 'the saju base structure')
-      .replace(/긴장 애스펙트/g, lang === 'ko' ? '주의 신호' : 'tension signals')
-      .replace(/긴장 신호/g, lang === 'ko' ? '주의 신호' : 'caution signals')
-      .replace(
-        /커리어 엔진\(역할 아키타입\):/g,
-        lang === 'ko' ? '잘 맞는 역할을 보면' : 'Role fit:'
-      )
-      .replace(/성향 엔진\(강점\):/g, lang === 'ko' ? '타고난 강점을 보면' : 'Strengths:')
-      .replace(
-        /그림자 패턴\(리스크\):/g,
-        lang === 'ko' ? '반복해서 조심할 패턴을 보면' : 'Risk patterns:'
-      )
-      .replace(/머니 스타일:/g, lang === 'ko' ? '돈이 움직이는 방식을 보면' : 'Money style:')
-      .replace(/경고 신호:/g, lang === 'ko' ? '특히 조심할 흐름은' : 'Caution signals:')
-      .replace(/근거 흐름은/gi, lang === 'ko' ? '이번 해석의 중심에는' : 'Grounding centers on')
-      .replace(/Relation\s+/gi, lang === 'ko' ? '관계 ' : 'relationship ')
-      .replace(/astro progressions/gi, lang === 'ko' ? '점성 진행 흐름' : 'astro progressions')
-      .replace(/saju snapshot/gi, lang === 'ko' ? '사주 구조' : 'saju structure')
-      .replace(/\bunse\b/gi, lang === 'ko' ? '운 흐름' : 'cycle flow')
-      .replace(
-        /Relation\s+three-branch harmony/gi,
-        lang === 'ko' ? '지지삼합' : 'relationship three-branch harmony'
-      )
-      .replace(
-        /relationship three-branch harmony/gi,
-        lang === 'ko' ? '지지삼합' : 'relationship three-branch harmony'
-      )
-      .replace(/대운\s*금/gi, lang === 'ko' ? '대운 금' : 'Daeun metal')
-      .replace(/대운\s*목/gi, lang === 'ko' ? '대운 목' : 'Daeun wood')
-      .replace(/대운\s*수/gi, lang === 'ko' ? '대운 수' : 'Daeun water')
-      .replace(/대운\s*화/gi, lang === 'ko' ? '대운 화' : 'Daeun fire')
-      .replace(/대운\s*토/gi, lang === 'ko' ? '대운 토' : 'Daeun earth')
-      .replace(/\bDaeun\b/gi, lang === 'ko' ? '대운' : 'Daeun')
-      .replace(/숨은 지원 흐름/gi, lang === 'ko' ? '숨은 지원 흐름' : 'hidden support')
-      .replace(/학습 가속 흐름/gi, lang === 'ko' ? '학습 가속 흐름' : 'learning acceleration')
-      .replace(/자산 축적 흐름/gi, lang === 'ko' ? '자산 축적 흐름' : 'asset accumulation')
-      .replace(
-        /이동·변화 경계 구간/gi,
-        lang === 'ko' ? '이동·변화 경계 구간' : 'movement guardrail window'
-      )
-      .replace(/대운/gi, lang === 'ko' ? '대운' : 'Daeun')
-      .replace(/세운/gi, lang === 'ko' ? '세운' : 'annual cycle')
-      .replace(/월운/gi, lang === 'ko' ? '월운' : 'monthly cycle')
-      .replace(/일운/gi, lang === 'ko' ? '일운' : 'daily cycle')
-      .replace(/양육/gi, lang === 'ko' ? '양육' : 'nurturing mode')
-      .replace(/귀인조력/gi, lang === 'ko' ? '귀인 조력' : 'noble support')
-      .replace(/커리어정점/gi, lang === 'ko' ? '커리어 정점' : 'career peak')
-      .replace(/극강시너지/gi, lang === 'ko' ? '극강시너지' : 'strong synergy')
-      .replace(/극심충돌/gi, lang === 'ko' ? '극심충돌' : 'hard clash')
-      .replace(/횡재/gi, lang === 'ko' ? '횡재' : 'windfall signal')
-      .replace(/임관/gi, lang === 'ko' ? '임관' : 'authority maturity stage')
-      .replace(/최상조화/gi, lang === 'ko' ? '흐름 정렬' : 'peak harmony')
-      .replace(/Shinsal\s+천을귀인/gi, lang === 'ko' ? '귀인의 도움 신호' : 'noble support')
-      .replace(/천을귀인/gi, lang === 'ko' ? '귀인의 도움 신호' : 'noble support')
-      .replace(/지지삼합/gi, lang === 'ko' ? '지지삼합' : 'three-branch harmony')
-      .replace(/자산 축적 흐름/gi, lang === 'ko' ? '자산 축적 흐름' : 'asset accumulation')
-      .replace(/ëŒ€ìš´/gi, 'Daeun')
-      .replace(/ì„¸ìš´/gi, 'annual cycle')
-      .replace(/ì›”ìš´/gi, 'monthly cycle')
-      .replace(/ì¼ìš´/gi, 'daily cycle')
-      .replace(/ë°”ëžŒ/gi, 'air')
-      .replace(/ìžì‚° ì¶•ì íë¦„/gi, 'asset accumulation')
-      .replace(/ì§€ì§€ì‚¼í•©/gi, 'three-branch harmony')
-      .replace(/ìµœìƒì¡°í™”/gi, 'peak harmony')
-      .replace(/ì²œì„ê·€ì¸/gi, 'noble support')
-      .replace(/íš¡ìž¬/gi, 'windfall signal')
-      .replace(/ìž„ê´€/gi, 'authority maturity stage')
-      .replace(/Daeun\s*금/gi, 'Daeun metal')
-      .replace(/Daeun\s*목/gi, 'Daeun wood')
-      .replace(/Daeun\s*수/gi, 'Daeun water')
-      .replace(/Daeun\s*화/gi, 'Daeun fire')
-      .replace(/Daeun\s*토/gi, 'Daeun earth')
-      .replace(/dominant western element\s+바람/gi, 'dominant western element air')
-      .replace(/바람/gi, lang === 'ko' ? '바람' : 'air')
-      .replace(/frame\s+([a-z]+)\s+frame/gi, '$1 frame')
-      .replace(/day master\s+금/gi, 'day master metal')
-      .replace(/day master\s+목/gi, 'day master wood')
-      .replace(/day master\s+수/gi, 'day master water')
-      .replace(/day master\s+화/gi, 'day master fire')
-      .replace(/day master\s+토/gi, 'day master earth')
-      .replace(/useful element\s+금/gi, 'useful element metal')
-      .replace(/useful element\s+목/gi, 'useful element wood')
-      .replace(/useful element\s+수/gi, 'useful element water')
-      .replace(/useful element\s+화/gi, 'useful element fire')
-      .replace(/useful element\s+토/gi, 'useful element earth')
-      .trim()
-  )
-  const ENGINE_NOISE_REGEX =
-    /(패턴 근거|시나리오 확률|타이밍 적합도|현재 모드는|resolvedmode|crossagreement|blockedby|signalid|claimid|anchorid|^career\s|^relationship\s|^wealth\s|^health\s|commit_now|staged_commit)/i
-  if (ENGINE_NOISE_REGEX.test(cleaned)) return ''
-  return cleaned || ''
-}
-
-function buildReportCoreLine(value: string | undefined | null, lang: 'ko' | 'en'): string {
-  const cleaned = normalizeNarrativeCoreText(value, lang)
-  if (!cleaned) return ''
-  return formatNarrativeParagraphs(cleaned, lang)
-}
-
-function collectCleanNarrativeLines(
-  lines: Array<string | undefined | null>,
-  lang: 'ko' | 'en'
-): string[] {
-  return [...new Set(lines.map((item) => buildReportCoreLine(item, lang)).filter(Boolean))]
-}
-
-function isSameNarrative(a: string | undefined | null, b: string | undefined | null): boolean {
-  const left = sentenceKey(String(a || ''))
-  const right = sentenceKey(String(b || ''))
-  return Boolean(left) && left === right
-}
-
-function distinctNarrative(
-  candidate: string | undefined | null,
-  blocked: Array<string | undefined | null>
-): string {
-  const value = String(candidate || '').trim()
-  if (!value) return ''
-  return blocked.some((item) => isSameNarrative(value, item)) ? '' : value
-}
 
 function buildNarrativeSectionFromCore(
   primary: Array<string | undefined | null>,
@@ -1577,42 +1200,6 @@ function formatScenarioIdForNarrative(
   return lang === 'ko' ? normalized : normalized
 }
 
-function getElementLabel(element: string | undefined, lang: 'ko' | 'en'): string {
-  const normalized = normalizeElementKey(element)
-  const map: Record<string, { ko: string; en: string }> = {
-    wood: { ko: '목', en: 'wood' },
-    fire: { ko: '화', en: 'fire' },
-    earth: { ko: '토', en: 'earth' },
-    metal: { ko: '금', en: 'metal' },
-    water: { ko: '수', en: 'water' },
-  }
-  return map[normalized]?.[lang] || String(element || '')
-}
-
-function capitalizeFirst(text: string | undefined | null): string {
-  const value = String(text || '').trim()
-  if (!value) return ''
-  return value.charAt(0).toUpperCase() + value.slice(1)
-}
-
-function containsHangul(text: string | undefined | null): boolean {
-  return /[가-힣]/.test(String(text || ''))
-}
-
-function localizeGeokgukLabel(geokguk: string | undefined, lang: 'ko' | 'en'): string {
-  const value = String(geokguk || '').trim()
-  if (!value || lang === 'ko') return value
-  const map: Record<string, string> = {
-    정재격: 'jeongjae frame',
-    편재격: 'pyeonjae frame',
-    정관격: 'jeonggwan frame',
-    편관격: 'pyeongwan frame',
-    인성격: 'inseong frame',
-    재성격: 'jaeseong frame',
-    식상격: 'siksang frame',
-  }
-  return map[value] || value
-}
 
 function formatCycleLabel(
   ganji: string | undefined,
@@ -1745,10 +1332,6 @@ function isMeaningfulEvidenceToken(value: string | undefined | null): boolean {
   return true
 }
 
-function sanitizeEvidenceToken(value: string | undefined | null, lang: 'ko' | 'en'): string {
-  const token = normalizeNarrativeCoreText(String(value || '').trim(), lang)
-  return isMeaningfulEvidenceToken(token) ? token : ''
-}
 
 function buildEvidenceLine(input: MatrixCalculationInput, lang: 'ko' | 'en'): string {
   const dayMaster = sanitizeEvidenceToken(getElementLabel(input.dayMasterElement, lang), lang)
@@ -2031,17 +1614,13 @@ function renderTimingAdviceSection(
       : ''
   const timingNextLine =
     timingProjection?.nextMoves?.length
-      ? lang === 'ko'
-        ? `지금 타이밍을 살리려면 ${timingProjection.nextMoves
-            .slice(0, 2)
-            .map((item) => localizeReportNarrativeText(item, lang))
-            .join(' 그리고 ')
-            .replace(/가 유지될 것/g, '이 유지되는지')
-            .replace(/이 유지될 것/g, '이 유지되는지')
-            .replace(/를 바로 실행할 수 있을 것/g, '를 바로 실행할 수 있는지')
-            .replace(/근거이/g, '근거가')
-            .replace(/(\d+(?:\.\d+)?)%이 유지되는지/g, '$1%가 유지되는지')}를 먼저 확인하는 편이 맞습니다.`
-        : `To use this timing well, satisfy ${timingProjection.nextMoves.slice(0, 2).join(', ')} first.`
+      ? buildProjectionMoveSentence(
+          timingProjection.nextMoves.slice(0, 2),
+          lang,
+          lang === 'ko'
+            ? '지금 타이밍을 살리려면 실행 조건을 다시 작게 맞춰 보는 편이 맞습니다.'
+            : 'To use this timing well, realign the live execution conditions first.'
+        )
       : ''
   const timingMatrixLine =
     reportCore.timingMatrix?.length
@@ -2069,9 +1648,11 @@ function renderTimingAdviceSection(
     timingMatrixLine,
     branchTimingLine,
   ].filter(Boolean)
-  return [...enriched, ...(enriched.length < 4 ? [base] : [])]
-    .filter(Boolean)
-    .join(' ')
+  return sanitizeUserFacingNarrative(
+    [...enriched, ...(enriched.length < 4 ? [base] : [])]
+      .filter(Boolean)
+      .join(' ')
+  )
 }
 
 function renderActionPlanSection(
@@ -2092,18 +1673,12 @@ function renderActionPlanSection(
       : `The operating rule on the ${actionLabel} axis is ${topDecisionLabel}.`
   const guardrailLine = reportCore.riskControl
   const actionProjection = reportCore.projections?.action
-  const actionDetailLine = localizeReportNarrativeText(
-    actionProjection?.detailLines?.[0] || '',
-    lang
-  )
+  const actionDriverLabels = collectProjectionDriverLabels(actionProjection?.drivers, lang)
   const actionDriverLine =
-    actionProjection?.drivers?.length
+    actionDriverLabels.length
       ? lang === 'ko'
-        ? `지금 실행을 받치는 층은 ${actionProjection.drivers
-            .slice(0, 3)
-            .map((item) => localizeReportNarrativeText(item, lang))
-            .join(', ')}입니다.`
-        : `The current execution drivers are ${actionProjection.drivers.slice(0, 3).join(', ')}.`
+        ? `지금 실행을 받치는 층은 ${actionDriverLabels.join(', ')}입니다.`
+        : `The current execution drivers are ${actionDriverLabels.join(', ')}.`
       : ''
   const actionCounterweightLine =
     actionProjection?.counterweights?.length
@@ -2116,12 +1691,13 @@ function renderActionPlanSection(
       : ''
   const actionNextLine =
     actionProjection?.nextMoves?.length
-      ? lang === 'ko'
-        ? `다음 움직임은 ${actionProjection.nextMoves
-            .slice(0, 2)
-            .map((item) => localizeReportNarrativeText(item, lang))
-            .join(', ')}부터 고정하는 편이 맞습니다.`
-        : `The next move should begin with ${actionProjection.nextMoves.slice(0, 2).join(', ')}.`
+      ? buildProjectionMoveSentence(
+          actionProjection.nextMoves.slice(0, 2),
+          lang,
+          lang === 'ko'
+            ? '다음 움직임은 실행 기준을 작은 단위로 다시 고정하는 데서 시작하는 편이 맞습니다.'
+            : 'The next move should begin by resetting execution criteria in smaller steps.'
+        )
       : ''
   const riskAxisLine =
     reportCore.riskAxisLabel
@@ -2132,16 +1708,16 @@ function renderActionPlanSection(
   const branchProjection = reportCore.projections?.branches
   const branchActionLine =
     branchProjection?.nextMoves?.length
-      ? lang === 'ko'
-        ? `지금 열려 있는 분기에서는 ${branchProjection.nextMoves
-            .slice(0, 2)
-            .map((item) => localizeReportNarrativeText(item, lang))
-            .join(', ')}를 먼저 고정해야 실제 실행축으로 넘어갑니다.`
-        : `Across the live branches, ${branchProjection.nextMoves.slice(0, 2).join(', ')} should be fixed first before execution.`
+      ? buildProjectionMoveSentence(
+          branchProjection.nextMoves.slice(0, 2),
+          lang,
+          lang === 'ko'
+            ? '열려 있는 분기에서는 실행 전에 기준과 경계부터 다시 고정하는 편이 맞습니다.'
+            : 'Across the live branches, reset criteria and guardrails before execution.'
+        )
       : ''
   const enriched = [
     openingLine,
-    actionDetailLine,
     actionDriverLine,
     actionCounterweightLine,
     actionNextLine,
@@ -2149,9 +1725,11 @@ function renderActionPlanSection(
     branchActionLine,
     guardrailLine,
   ].filter(Boolean)
-  return [...enriched, ...(enriched.length < 5 ? [base] : [])]
-    .filter(Boolean)
-    .join(' ')
+  return sanitizeUserFacingNarrative(
+    [...enriched, ...(enriched.length < 5 ? [base] : [])]
+      .filter(Boolean)
+      .join(' ')
+  )
 }
 
 function renderCareerPathSection(
@@ -2201,7 +1779,7 @@ function renderConclusionSection(
         : `The axis that must be managed most carefully through the close is ${reportCore.riskAxisLabel}.`
       : ''
   const branchLine = reportCore.projections?.branches?.detailLines?.[0] || ''
-  return [riskAxisLine, branchLine, base].filter(Boolean).join(' ')
+  return sanitizeUserFacingNarrative([riskAxisLine, branchLine, base].filter(Boolean).join(' '))
 }
 
 function renderHealthGuidanceSection(
@@ -2264,12 +1842,52 @@ function shouldForceThemedNarrativeFallback(quality: ReportQualityMetrics | unde
 }
 
 function joinNarrativeParts(parts: Array<string | null | undefined>): string {
-  return parts
+  return sanitizeUserFacingNarrative(
+    parts
     .map((part) => String(part || '').trim())
     .filter(Boolean)
     .join(' ')
     .replace(/\s+/g, ' ')
     .trim()
+  )
+}
+
+function toSentenceCaseNarrativeLine(text: string, lang: 'ko' | 'en'): string {
+  const normalized = sanitizeUserFacingNarrative(localizeReportNarrativeText(text, lang))
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!normalized) return ''
+  if (/[.!?]$/u.test(normalized)) return normalized
+  return lang === 'ko' ? `${normalized}.` : `${normalized}.`
+}
+
+function buildProjectionMoveSentence(
+  moves: string[] | undefined,
+  lang: 'ko' | 'en',
+  fallback: string
+): string {
+  const first = String(moves?.[0] || '').trim()
+  if (!first) return ''
+  const normalized = toSentenceCaseNarrativeLine(first, lang)
+  return normalized || fallback
+}
+
+function collectProjectionDriverLabels(
+  items: string[] | undefined,
+  lang: 'ko' | 'en',
+  limit = 2
+): string[] {
+  return (items || [])
+    .map((item) => sanitizeUserFacingNarrative(localizeReportNarrativeText(item, lang)).trim())
+    .filter(Boolean)
+    .filter(
+      (item) =>
+        !/(하세요|하십시오|합니다\.|입니다\.|거치세요|가세요|맞추세요|고정하세요|잠그세요|확보하세요|정리하세요)$/u.test(
+          item
+        )
+    )
+    .filter((item) => item.length <= 24)
+    .slice(0, limit)
 }
 
 function buildProjectionFirstThemedSections(
@@ -2316,6 +1934,20 @@ function buildProjectionFirstThemedSections(
   const riskCounterweights = projections?.risk?.counterweights?.slice(0, 2) || []
   const timingNextMoves = projections?.timing?.nextMoves?.slice(0, 2) || []
   const actionNextMoves = projections?.action?.nextMoves?.slice(0, 2) || []
+  const timingMoveLine = buildProjectionMoveSentence(
+    timingNextMoves,
+    lang,
+    lang === 'ko'
+      ? '지금 창을 살리려면 먼저 실행 조건을 작은 단위로 다시 맞추는 편이 좋습니다.'
+      : 'To use this window well, realign the live execution conditions first.'
+  )
+  const actionMoveLine = buildProjectionMoveSentence(
+    actionNextMoves,
+    lang,
+    lang === 'ko'
+      ? '다음 움직임은 작은 단위로 실행 기준을 다시 고정하는 데서 시작하는 편이 맞습니다.'
+      : 'The next move should begin by resetting execution criteria in smaller steps.'
+  )
   const timingMatrixLead = reportCore.timingMatrix?.length
     ? lang === 'ko'
       ? `지금 창은 ${reportCore.timingMatrix
@@ -2376,6 +2008,10 @@ function buildProjectionFirstThemedSections(
             : lang === 'ko'
               ? '결론을 밀기보다 역할과 해석 일치부터 확인하세요.'
               : 'Before pushing conclusions, align roles and interpretations first.'
+  const actionOpeningLine =
+    lang === 'ko'
+      ? `이번 ${actionLabel} 실행 기준은 ${reportCore.topDecisionLabel || reportCore.primaryAction}입니다.`
+      : `The operating rule on the ${actionLabel} axis is ${reportCore.topDecisionLabel || reportCore.primaryAction}.`
   const themeRiskLine =
     theme === 'love'
       ? lang === 'ko'
@@ -2602,11 +2238,7 @@ function buildProjectionFirstThemedSections(
                 ? `관계 창을 미는 축은 ${timingDrivers.join(', ')}입니다.`
                 : `The relationship window is being driven by ${timingDrivers.join(', ')}.`
               : '',
-            timingNextMoves.length
-              ? lang === 'ko'
-                ? `지금 창을 살리려면 ${timingNextMoves.join(', ')}를 먼저 맞춰야 합니다.`
-                : `To use the relationship window well, align ${timingNextMoves.join(', ')} first.`
-              : '',
+            timingMoveLine,
             timingReadLine,
           ]),
           recommendations: [
@@ -2614,11 +2246,7 @@ function buildProjectionFirstThemedSections(
               themeActionLine,
               relationshipAdvisory?.action,
               riskAxisLead,
-              actionNextMoves.length
-                ? lang === 'ko'
-                  ? `지금은 ${actionNextMoves.join(', ')}부터 맞추는 편이 실제 진전으로 이어집니다.`
-                  : `Real progress begins when ${actionNextMoves.join(', ')} are aligned first.`
-                : '',
+              actionMoveLine,
               recommendationCloseLine,
             ]),
             joinNarrativeParts([
@@ -2640,12 +2268,8 @@ function buildProjectionFirstThemedSections(
             ]),
           ].filter(Boolean),
           actionPlan: joinNarrativeParts([
-            actionDetail,
-            actionNextMoves.length
-              ? lang === 'ko'
-                ? `지금은 ${actionNextMoves.join(', ')}부터 순서대로 맞추는 편이 좋습니다.`
-                : `Start by aligning ${actionNextMoves.join(', ')} in order.`
-              : '',
+            actionOpeningLine,
+            actionMoveLine,
             actionRhythmLine,
             lang === 'ko'
               ? '핵심은 감정을 더 크게 표현하는 것보다 속도와 경계를 먼저 맞추는 데 있습니다.'
@@ -2690,11 +2314,7 @@ function buildProjectionFirstThemedSections(
                   ? `커리어 창을 미는 축은 ${timingDrivers.join(', ')}입니다.`
                   : `The career window is being driven by ${timingDrivers.join(', ')}.`
                 : '',
-              timingNextMoves.length
-                ? lang === 'ko'
-                  ? `지금 창을 살리려면 ${timingNextMoves.join(', ')}를 먼저 고정해야 합니다.`
-                  : `To use the career window well, fix ${timingNextMoves.join(', ')} first.`
-                : '',
+              timingMoveLine,
               timingReadLine,
             ]),
             recommendations: [
@@ -2702,13 +2322,9 @@ function buildProjectionFirstThemedSections(
               themeActionLine,
               careerAdvisory?.action,
               riskAxisLead,
-              actionNextMoves.length
-                  ? lang === 'ko'
-                    ? `지금은 ${actionNextMoves.join(', ')}를 먼저 남기는 편이 성과로 이어집니다.`
-                    : `Progress improves when ${actionNextMoves.join(', ')} are documented first.`
-                  : '',
-                recommendationCloseLine,
-              ]),
+              actionMoveLine,
+              recommendationCloseLine,
+            ]),
               joinNarrativeParts([
                 riskDetail,
                 riskCounterweights.length
@@ -2728,12 +2344,8 @@ function buildProjectionFirstThemedSections(
               ]),
             ].filter(Boolean),
             actionPlan: joinNarrativeParts([
-            actionDetail,
-            actionNextMoves.length
-                ? lang === 'ko'
-                  ? `이번 구간은 ${actionNextMoves.join(', ')}부터 고정해야 실행력이 살아납니다.`
-                  : `This phase works best when ${actionNextMoves.join(', ')} are fixed first.`
-                : '',
+            actionOpeningLine,
+            actionMoveLine,
               actionRhythmLine,
               lang === 'ko'
                 ? '핵심은 더 많은 일을 잡는 것보다 역할, 기준, 책임을 먼저 고정하는 데 있습니다.'
@@ -2778,11 +2390,7 @@ function buildProjectionFirstThemedSections(
                     ? `재정 창을 미는 축은 ${timingDrivers.join(', ')}입니다.`
                     : `The wealth window is being driven by ${timingDrivers.join(', ')}.`
                   : '',
-                timingNextMoves.length
-                  ? lang === 'ko'
-                    ? `지금 창을 살리려면 ${timingNextMoves.join(', ')}를 먼저 잠가야 합니다.`
-                    : `To use the wealth window well, lock ${timingNextMoves.join(', ')} first.`
-                  : '',
+                timingMoveLine,
                 timingReadLine,
               ]),
               recommendations: [
@@ -2790,11 +2398,7 @@ function buildProjectionFirstThemedSections(
                   themeActionLine,
                   wealthAdvisory?.action,
                   riskAxisLead,
-                  actionNextMoves.length
-                    ? lang === 'ko'
-                      ? `지금은 ${actionNextMoves.join(', ')}부터 확정하는 편이 실제 이익을 지킵니다.`
-                      : `Actual gain is protected when ${actionNextMoves.join(', ')} are fixed first.`
-                    : '',
+                  actionMoveLine,
                   recommendationCloseLine,
                 ]),
                 joinNarrativeParts([
@@ -2816,12 +2420,8 @@ function buildProjectionFirstThemedSections(
                 ]),
               ].filter(Boolean),
               actionPlan: joinNarrativeParts([
-                actionDetail,
-                actionNextMoves.length
-                  ? lang === 'ko'
-                    ? `지금은 ${actionNextMoves.join(', ')}부터 잠가야 재정 흐름이 덜 새어 나갑니다.`
-                    : `Lock ${actionNextMoves.join(', ')} first to reduce leakage in the money flow.`
-                  : '',
+                actionOpeningLine,
+                actionMoveLine,
                 actionRhythmLine,
                 lang === 'ko'
                   ? '핵심은 기대 수익을 키우는 것보다 손실 상한과 회수 조건을 먼저 잠그는 데 있습니다.'
@@ -2866,11 +2466,7 @@ function buildProjectionFirstThemedSections(
                       ? `건강 창을 미는 축은 ${timingDrivers.join(', ')}입니다.`
                       : `The health window is being driven by ${timingDrivers.join(', ')}.`
                     : '',
-                  timingNextMoves.length
-                    ? lang === 'ko'
-                      ? `지금 창을 살리려면 ${timingNextMoves.join(', ')}를 먼저 확보해야 합니다.`
-                      : `To use the health window well, secure ${timingNextMoves.join(', ')} first.`
-                    : '',
+                  timingMoveLine,
                   timingReadLine,
                 ]),
                 recommendations: [
@@ -2878,11 +2474,7 @@ function buildProjectionFirstThemedSections(
                     themeActionLine,
                     healthAdvisory?.action,
                     riskAxisLead,
-                    actionNextMoves.length
-                      ? lang === 'ko'
-                        ? `지금은 ${actionNextMoves.join(', ')}부터 회복 루틴에 넣는 편이 맞습니다.`
-                        : `Recovery improves when ${actionNextMoves.join(', ')} enter the routine first.`
-                      : '',
+                    actionMoveLine,
                     recommendationCloseLine,
                   ]),
                   joinNarrativeParts([
@@ -2904,12 +2496,8 @@ function buildProjectionFirstThemedSections(
                   ]),
                 ].filter(Boolean),
                 actionPlan: joinNarrativeParts([
-                  actionDetail,
-                  actionNextMoves.length
-                    ? lang === 'ko'
-                      ? `이번 구간은 ${actionNextMoves.join(', ')}부터 작게 회복 루틴으로 고정하는 편이 맞습니다.`
-                      : `This phase should begin by turning ${actionNextMoves.join(', ')} into a small repeatable recovery routine.`
-                    : '',
+                  actionOpeningLine,
+                  actionMoveLine,
                   actionRhythmLine,
                   lang === 'ko'
                     ? '핵심은 더 버티는 것이 아니라 회복 블록과 일정 완충을 먼저 되찾는 데 있습니다.'
@@ -2953,11 +2541,7 @@ function buildProjectionFirstThemedSections(
                       ? `가족 창을 미는 축은 ${timingDrivers.join(', ')}입니다.`
                       : `The family window is being driven by ${timingDrivers.join(', ')}.`
                     : '',
-                  timingNextMoves.length
-                    ? lang === 'ko'
-                      ? `지금 창을 살리려면 ${timingNextMoves.join(', ')}를 먼저 맞춰야 합니다.`
-                      : `To use the family window well, align ${timingNextMoves.join(', ')} first.`
-                    : '',
+                  timingMoveLine,
                   timingReadLine,
                 ]),
                 recommendations: [
@@ -2965,11 +2549,7 @@ function buildProjectionFirstThemedSections(
                     themeActionLine,
                     relationshipAdvisory?.action,
                     riskAxisLead,
-                    actionNextMoves.length
-                      ? lang === 'ko'
-                        ? `지금은 ${actionNextMoves.join(', ')}부터 보이는 언어로 남기는 편이 맞습니다.`
-                        : `Progress improves when ${actionNextMoves.join(', ')} are made explicit first.`
-                      : '',
+                    actionMoveLine,
                     recommendationCloseLine,
                   ]),
                   joinNarrativeParts([
@@ -2991,12 +2571,8 @@ function buildProjectionFirstThemedSections(
                   ]),
                 ].filter(Boolean),
                 actionPlan: joinNarrativeParts([
-                  actionDetail,
-                  actionNextMoves.length
-                    ? lang === 'ko'
-                      ? `가족 안에서는 ${actionNextMoves.join(', ')}부터 합의해 두는 편이 전체 마찰을 줄입니다.`
-                      : `Within the family, agree on ${actionNextMoves.join(', ')} first to reduce friction overall.`
-                    : '',
+                  actionOpeningLine,
+                  actionMoveLine,
                   actionRhythmLine,
                   lang === 'ko'
                     ? '핵심은 감정을 더 세게 말하는 것이 아니라 역할, 비용, 돌봄을 먼저 보이는 언어로 바꾸는 데 있습니다.'

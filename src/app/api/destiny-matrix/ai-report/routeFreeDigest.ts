@@ -1,5 +1,5 @@
-import type { InsightDomain } from '@/lib/destiny-matrix'
-import type { ReportPeriod, ReportTheme } from '@/lib/destiny-matrix/ai-report'
+import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
+import type { ReportPeriod, ReportTheme } from '@/lib/destiny-matrix/ai-report/types'
 import { PERIOD_LABELS, THEME_LABELS } from './routeReportPersistence'
 
 export type FreeAIDigestReport = {

@@ -1,0 +1,509 @@
+/*!******************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[15].oneOf[5].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[15].oneOf[5].use[3]!./src/components/ui/TarotPageSkeleton.module.css ***!
+  \******************************************************************************************************************************************************************************************************************************************************************************************/
+/* 타로 메인 페이지 스켈레톤 */
+.TarotPageSkeleton_container__W3LRV {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.TarotPageSkeleton_background__Y08Wf {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(10, 10, 26, 1) 0%, rgba(13, 31, 45, 1) 50%, rgba(22, 33, 62, 1) 100%);
+  z-index: -1;
+}
+
+/* 로고 섹션 */
+.TarotPageSkeleton_logoSection__Obqv1 {
+  text-align: center;
+  margin-bottom: 3rem;
+  animation: TarotPageSkeleton_fadeIn__bXZgK 0.5s ease-in;
+}
+
+.TarotPageSkeleton_icon__epnUG {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: TarotPageSkeleton_pulse___t66u 2s ease-in-out infinite;
+}
+
+.TarotPageSkeleton_title__nHaB7 {
+  width: 200px;
+  height: 40px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  animation: TarotPageSkeleton_shimmer__xh8C8 1.5s ease-in-out infinite;
+  border-radius: 8px;
+  margin: 0 auto 1rem;
+}
+
+.TarotPageSkeleton_subtitle__Pv50F {
+  width: 300px;
+  height: 20px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: TarotPageSkeleton_shimmer__xh8C8 1.5s ease-in-out infinite 0.2s;
+  border-radius: 6px;
+  margin: 0 auto;
+}
+
+/* 검색창 */
+.TarotPageSkeleton_searchBox__KsxW_ {
+  width: 100%;
+  max-width: 600px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  animation: TarotPageSkeleton_fadeIn__bXZgK 0.5s ease-in 0.2s both;
+}
+
+.TarotPageSkeleton_searchIcon__zBXwH {
+  font-size: 1.5rem;
+  opacity: 0.5;
+  animation: TarotPageSkeleton_pulse___t66u 2s ease-in-out infinite;
+}
+
+.TarotPageSkeleton_searchInput__HcwaE {
+  flex: 1;
+  height: 20px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: TarotPageSkeleton_shimmer__xh8C8 1.5s ease-in-out infinite 0.3s;
+  border-radius: 6px;
+}
+
+/* 빠른 질문 섹션 */
+.TarotPageSkeleton_quickSection__9MunK {
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 2rem;
+  animation: TarotPageSkeleton_fadeIn__bXZgK 0.5s ease-in 0.4s both;
+}
+
+.TarotPageSkeleton_quickLabel__VpcbM {
+  width: 100px;
+  height: 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: TarotPageSkeleton_shimmer__xh8C8 1.5s ease-in-out infinite 0.4s;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.TarotPageSkeleton_quickTags__XEQ9t {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.TarotPageSkeleton_tag__GZqkC {
+  width: 120px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  animation: TarotPageSkeleton_pulse___t66u 2s ease-in-out infinite;
+}
+
+.TarotPageSkeleton_tag__GZqkC:nth-child(1) { animation-delay: 0s; }
+.TarotPageSkeleton_tag__GZqkC:nth-child(2) { animation-delay: 0.1s; }
+.TarotPageSkeleton_tag__GZqkC:nth-child(3) { animation-delay: 0.2s; }
+.TarotPageSkeleton_tag__GZqkC:nth-child(4) { animation-delay: 0.3s; }
+.TarotPageSkeleton_tag__GZqkC:nth-child(5) { animation-delay: 0.4s; }
+.TarotPageSkeleton_tag__GZqkC:nth-child(6) { animation-delay: 0.5s; }
+
+/* 하단 힌트 */
+.TarotPageSkeleton_hint__ESaYw {
+  width: 400px;
+  height: 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: TarotPageSkeleton_shimmer__xh8C8 1.5s ease-in-out infinite 0.6s;
+  border-radius: 4px;
+  margin-top: 2rem;
+}
+
+/* 타로 리딩 페이지 스켈레톤 */
+.TarotPageSkeleton_readingContainer__3wKaH {
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(10, 10, 26, 1) 0%, rgba(13, 31, 45, 1) 50%, rgba(22, 33, 62, 1) 100%);
+}
+
+.TarotPageSkeleton_questionSection__H_H4U {
+  text-align: center;
+  margin-bottom: 3rem;
+  animation: TarotPageSkeleton_fadeIn__bXZgK 0.5s ease-in;
+}
+
+.TarotPageSkeleton_questionTitle__KZBOy {
+  width: 150px;
+  height: 24px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  animation: TarotPageSkeleton_shimmer__xh8C8 1.5s ease-in-out infinite;
+  border-radius: 6px;
+  margin: 0 auto 1rem;
+}
+
+.TarotPageSkeleton_questionText__gtQAW {
+  width: 300px;
+  height: 20px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: TarotPageSkeleton_shimmer__xh8C8 1.5s ease-in-out infinite 0.2s;
+  border-radius: 6px;
+  margin: 0 auto;
+}
+
+.TarotPageSkeleton_cardsGrid__9IAYU {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+  animation: TarotPageSkeleton_fadeIn__bXZgK 0.5s ease-in 0.2s both;
+}
+
+.TarotPageSkeleton_card__U2Hvg {
+  width: 180px;
+  height: 280px;
+  animation: TarotPageSkeleton_pulse___t66u 2s ease-in-out infinite;
+}
+
+.TarotPageSkeleton_card__U2Hvg:nth-child(1) { animation-delay: 0s; }
+.TarotPageSkeleton_card__U2Hvg:nth-child(2) { animation-delay: 0.2s; }
+.TarotPageSkeleton_card__U2Hvg:nth-child(3) { animation-delay: 0.4s; }
+
+.TarotPageSkeleton_cardBack__4vv9U {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(99, 210, 255, 0.15) 0%, rgba(99, 210, 255, 0.05) 100%);
+  border: 2px solid rgba(99, 210, 255, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(99, 210, 255, 0.2);
+}
+
+.TarotPageSkeleton_interpretationBox__ySC1D {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  animation: TarotPageSkeleton_fadeIn__bXZgK 0.5s ease-in 0.4s both;
+}
+
+.TarotPageSkeleton_interpretationTitle__WKAxK {
+  width: 200px;
+  height: 24px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  animation: TarotPageSkeleton_shimmer__xh8C8 1.5s ease-in-out infinite;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.TarotPageSkeleton_interpretationLine__f4TV_ {
+  height: 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: TarotPageSkeleton_shimmer__xh8C8 1.5s ease-in-out infinite;
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+}
+
+/* 애니메이션 */
+@keyframes TarotPageSkeleton_shimmer__xh8C8 {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes TarotPageSkeleton_pulse___t66u {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes TarotPageSkeleton_fadeIn__bXZgK {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .TarotPageSkeleton_container__W3LRV {
+    padding: 1rem;
+  }
+
+  .TarotPageSkeleton_searchBox__KsxW_ {
+    max-width: 100%;
+  }
+
+  .TarotPageSkeleton_subtitle__Pv50F {
+    width: 250px;
+  }
+
+  .TarotPageSkeleton_hint__ESaYw {
+    width: 300px;
+  }
+
+  .TarotPageSkeleton_cardsGrid__9IAYU {
+    gap: 1rem;
+  }
+
+  .TarotPageSkeleton_card__U2Hvg {
+    width: 140px;
+    height: 220px;
+  }
+}
+
+/* Mobile responsive - Small */
+@media (max-width: 480px) {
+  .TarotPageSkeleton_container__W3LRV {
+    padding: 0.75rem;
+  }
+
+  .TarotPageSkeleton_logoSection__Obqv1 {
+    margin-bottom: 2rem;
+  }
+
+  .TarotPageSkeleton_icon__epnUG {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .TarotPageSkeleton_title__nHaB7 {
+    width: 160px;
+    height: 32px;
+    border-radius: 6px;
+  }
+
+  .TarotPageSkeleton_subtitle__Pv50F {
+    width: 200px;
+    height: 16px;
+  }
+
+  .TarotPageSkeleton_searchBox__KsxW_ {
+    height: 52px;
+    padding: 0 1.25rem;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    border-radius: 14px;
+  }
+
+  .TarotPageSkeleton_searchIcon__zBXwH {
+    font-size: 1.25rem;
+  }
+
+  .TarotPageSkeleton_searchInput__HcwaE {
+    height: 16px;
+  }
+
+  .TarotPageSkeleton_quickSection__9MunK {
+    margin-bottom: 1.5rem;
+  }
+
+  .TarotPageSkeleton_quickLabel__VpcbM {
+    height: 14px;
+    margin-bottom: 0.75rem;
+  }
+
+  .TarotPageSkeleton_quickTags__XEQ9t {
+    gap: 0.5rem;
+  }
+
+  .TarotPageSkeleton_tag__GZqkC {
+    width: 100px;
+    height: 32px;
+    border-radius: 16px;
+  }
+
+  .TarotPageSkeleton_hint__ESaYw {
+    width: 240px;
+    height: 14px;
+    margin-top: 1.5rem;
+  }
+
+  .TarotPageSkeleton_readingContainer__3wKaH {
+    padding: 1.5rem 1rem;
+  }
+
+  .TarotPageSkeleton_questionSection__H_H4U {
+    margin-bottom: 2rem;
+  }
+
+  .TarotPageSkeleton_questionTitle__KZBOy {
+    width: 120px;
+    height: 20px;
+  }
+
+  .TarotPageSkeleton_questionText__gtQAW {
+    width: 240px;
+    height: 16px;
+  }
+
+  .TarotPageSkeleton_cardsGrid__9IAYU {
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .TarotPageSkeleton_card__U2Hvg {
+    width: 110px;
+    height: 172px;
+  }
+
+  .TarotPageSkeleton_cardBack__4vv9U {
+    border-radius: 10px;
+  }
+
+  .TarotPageSkeleton_interpretationBox__ySC1D {
+    padding: 1.25rem;
+    border-radius: 14px;
+  }
+
+  .TarotPageSkeleton_interpretationTitle__WKAxK {
+    width: 160px;
+    height: 20px;
+    margin-bottom: 1rem;
+  }
+
+  .TarotPageSkeleton_interpretationLine__f4TV_ {
+    height: 14px;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Mobile responsive - Extra Small */
+@media (max-width: 360px) {
+  .TarotPageSkeleton_icon__epnUG {
+    font-size: 2.5rem;
+  }
+
+  .TarotPageSkeleton_title__nHaB7 {
+    width: 140px;
+    height: 28px;
+  }
+
+  .TarotPageSkeleton_subtitle__Pv50F {
+    width: 160px;
+    height: 14px;
+  }
+
+  .TarotPageSkeleton_searchBox__KsxW_ {
+    height: 48px;
+    padding: 0 1rem;
+    border-radius: 12px;
+  }
+
+  .TarotPageSkeleton_searchIcon__zBXwH {
+    font-size: 1.1rem;
+  }
+
+  .TarotPageSkeleton_tag__GZqkC {
+    width: 85px;
+    height: 28px;
+    border-radius: 14px;
+  }
+
+  .TarotPageSkeleton_hint__ESaYw {
+    width: 200px;
+    height: 12px;
+  }
+
+  .TarotPageSkeleton_card__U2Hvg {
+    width: 90px;
+    height: 140px;
+  }
+
+  .TarotPageSkeleton_cardBack__4vv9U {
+    border-radius: 8px;
+  }
+
+  .TarotPageSkeleton_interpretationBox__ySC1D {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .TarotPageSkeleton_interpretationTitle__WKAxK {
+    width: 140px;
+    height: 18px;
+  }
+
+  .TarotPageSkeleton_interpretationLine__f4TV_ {
+    height: 12px;
+  }
+}

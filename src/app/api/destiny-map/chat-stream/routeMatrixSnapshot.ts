@@ -10,11 +10,11 @@ import {
   type CombinedResult as DestinyMapCombinedResult,
 } from '@/lib/destiny-map/astrology'
 import { buildCounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
-import { calculateDestinyMatrix } from '@/lib/destiny-matrix'
+import { calculateDestinyMatrix } from '@/lib/destiny-matrix/engine'
 import { buildAstroTimingIndex } from '@/lib/destiny-matrix/astroTimingIndex'
 import { buildPreciseTimelineSummary } from '@/lib/destiny-matrix/monthlyTimelinePrecise'
 import { applyRuntimeCalibration } from '@/lib/destiny-matrix/calibrationRuntime'
-import { buildCoreEnvelope } from '@/lib/destiny-matrix/core'
+import { buildCoreEnvelope } from '@/lib/destiny-matrix/core/buildCoreEnvelope'
 import { buildMatrixSemanticContract } from '@/lib/destiny-matrix/layerSemantics'
 import { buildLayerThemeProfiles } from '@/lib/destiny-matrix/layerThemeProfiles'
 import {

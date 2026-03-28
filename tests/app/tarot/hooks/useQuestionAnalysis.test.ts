@@ -166,4 +166,28 @@ describe('useQuestionAnalysis', () => {
     expect(result.current.analysisResult?.source).toBe('heuristic')
     expect(result.current.fallbackReason).toBe('auth_failed')
   })
+
+  it('keeps fallback reason visible when preview analyze throws a network error', async () => {
+    mockApiFetch.mockRejectedValueOnce(new Error('network down'))
+
+    const { result } = renderHook(() =>
+      useQuestionAnalysis({
+        question: '그 사람은 나를 어떻게 생각해?',
+        language: 'ko',
+        isKo: true,
+        getQuickRecommendation,
+      })
+    )
+
+    await act(async () => {
+      vi.advanceTimersByTime(450)
+      await Promise.resolve()
+    })
+
+    await waitFor(() => {
+      expect(result.current.fallbackReason).toBe('network_error')
+      expect(result.current.analysisResult?.source).toBe('heuristic')
+      expect(result.current.analysisResult?.question_profile).toBeUndefined()
+    })
+  })
 })

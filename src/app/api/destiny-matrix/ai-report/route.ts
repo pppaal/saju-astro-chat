@@ -5,38 +5,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createAuthenticatedGuard } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
-import {
-  calculateDestinyMatrix,
-  FusionReportGenerator,
-  validateReportRequest,
-  DestinyMatrixError,
-  ErrorCodes,
-} from '@/lib/destiny-matrix'
 import type {
-  MatrixCalculationInput,
-  InsightDomain,
   MatrixCell,
-} from '@/lib/destiny-matrix'
-import { buildCoreEnvelope } from '@/lib/destiny-matrix/core'
+} from '@/lib/destiny-matrix/types'
+import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
+import { calculateDestinyMatrix } from '@/lib/destiny-matrix/engine'
+import { FusionReportGenerator } from '@/lib/destiny-matrix/interpreter/report-generator'
+import { DestinyMatrixError, ErrorCodes } from '@/lib/destiny-matrix/errors'
+import { buildCoreEnvelope } from '@/lib/destiny-matrix/core/buildCoreEnvelope'
+import { generateFivePagePDF, generatePremiumPDF } from '@/lib/destiny-matrix/ai-report/pdfGenerator'
+import { summarizeDestinyMatrixEvidence } from '@/lib/destiny-matrix/ai-report/graphRagEvidence'
+import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
 import {
-  generateFivePagePDF,
-  generatePremiumPDF,
   REPORT_CREDIT_COSTS,
-  summarizeDestinyMatrixEvidence,
-  type AIPremiumReport,
   type ReportPeriod,
   type ReportTheme,
-  type TimingData,
   type TimingAIPremiumReport,
   type ThemedAIPremiumReport,
-} from '@/lib/destiny-matrix/ai-report'
+} from '@/lib/destiny-matrix/ai-report/types'
 import { auditMatrixInputReadiness } from '@/lib/destiny-matrix/ai-report/qualityAudit'
 import { auditCrossConsistency } from '@/lib/destiny-matrix/ai-report/crossConsistencyAudit'
 import { canUseFeature, consumeCredits, getCreditBalance } from '@/lib/credits/creditService'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { mapMajorTransitsToActiveTransits } from '@/lib/destiny-matrix/ai-report/transitMapping'
-import { buildAstroTimingIndex } from '@/lib/destiny-matrix/astroTimingIndex'
 import {
   extractOverallScore,
   extractReportSummary,
@@ -53,20 +44,16 @@ import {
 } from './routeReportGeneration'
 import { buildAiReportErrorResponse } from './routeErrorResponses'
 import {
-  buildAutoDaeunTiming,
-  buildTimingData,
   buildTimingDataFromDerivedSaju,
   deriveDominantWesternElementFromPlanetSigns,
-  enrichRequestWithDerivedAstrology,
   enrichRequestWithDerivedSaju,
-  ensureDerivedDominantWesternElement,
-  ensureDerivedSnapshots,
 } from './routeDerivedContext'
 import {
   buildGeneratedReportJsonResponse,
   buildGeneratedReportPdfResponse,
   persistReportPredictionSnapshotEntry,
 } from './routeReportOutput'
+import { prepareAiReportRequest } from './routeRequestPreparation'
 
 // ===========================
 // 크레딧 비용 계산
@@ -217,90 +204,6 @@ function evaluatePatternQualityGate(input: {
   }
 }
 
-const toOptionalString = (value: unknown): string | undefined => {
-  if (typeof value !== 'string') return undefined
-  const trimmed = value.trim()
-  return trimmed.length > 0 ? trimmed : undefined
-}
-
-const toOptionalNumber = (value: unknown): number | undefined => {
-  if (typeof value === 'number' && Number.isFinite(value)) return value
-  if (typeof value === 'string' && value.trim().length > 0) {
-    const parsed = Number(value)
-    return Number.isFinite(parsed) ? parsed : undefined
-  }
-  return undefined
-}
-
-const toOptionalRecord = (value: unknown): Record<string, unknown> | undefined => {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
-  return value as Record<string, unknown>
-}
-
-const REQUIRED_ADVANCED_ASTRO_SIGNAL_KEYS = [
-  'solarReturn',
-  'lunarReturn',
-  'progressions',
-  'draconic',
-  'harmonics',
-  'fixedStars',
-  'eclipses',
-  'midpoints',
-  'asteroids',
-  'extraPoints',
-] as const
-
-function mergeTimingData(
-  autoTiming: TimingData,
-  requestTiming?: Record<string, unknown>
-): TimingData {
-  const req = requestTiming || {}
-  return {
-    daeun: (toOptionalRecord(req.daeun) as TimingData['daeun']) || autoTiming.daeun,
-    seun: (toOptionalRecord(req.seun) as TimingData['seun']) || autoTiming.seun,
-    wolun: (toOptionalRecord(req.wolun) as TimingData['wolun']) || autoTiming.wolun,
-    iljin: (toOptionalRecord(req.iljin) as TimingData['iljin']) || autoTiming.iljin,
-  }
-}
-
-function listAiReportMissing(
-  matrixInput: MatrixCalculationInput,
-  timingData: TimingData
-): string[] {
-  const missing: string[] = []
-  if (!matrixInput.sajuSnapshot || Object.keys(matrixInput.sajuSnapshot).length === 0) {
-    missing.push('sajuSnapshot')
-  }
-  if (!matrixInput.astrologySnapshot || Object.keys(matrixInput.astrologySnapshot).length === 0) {
-    missing.push('astrologySnapshot')
-  }
-  if (!matrixInput.crossSnapshot || Object.keys(matrixInput.crossSnapshot).length === 0) {
-    missing.push('crossSnapshot')
-  }
-  if (!timingData.seun) missing.push('timingData.seun')
-  if (!timingData.wolun) missing.push('timingData.wolun')
-  if (!timingData.iljin) missing.push('timingData.iljin')
-  if (!timingData.daeun) missing.push('timingData.daeun')
-
-  const hasBirthProfile =
-    !!matrixInput.profileContext?.birthDate && !!matrixInput.profileContext?.birthTime
-  if (hasBirthProfile) {
-    if (!matrixInput.asteroidHouses || Object.keys(matrixInput.asteroidHouses).length === 0) {
-      missing.push('asteroidHouses')
-    }
-    if (!matrixInput.extraPointSigns || Object.keys(matrixInput.extraPointSigns).length === 0) {
-      missing.push('extraPointSigns')
-    }
-    const signals = (matrixInput.advancedAstroSignals || {}) as Record<string, unknown>
-    for (const key of REQUIRED_ADVANCED_ASTRO_SIGNAL_KEYS) {
-      if (signals[key] !== true) {
-        missing.push(`advancedAstroSignals.${key}`)
-      }
-    }
-  }
-  return missing
-}
-
 function normalizeAIUserPlan(plan: unknown): 'free' | 'starter' | 'pro' | 'premium' {
   if (plan === 'starter' || plan === 'pro' || plan === 'premium') {
     return plan
@@ -334,12 +237,43 @@ export const POST = withApiMiddleware(
         })
       }
 
-      let requestBody = enrichRequestWithDerivedSaju({ ...(body as Record<string, unknown>) })
-      requestBody = await enrichRequestWithDerivedAstrology(requestBody)
-      requestBody = ensureDerivedDominantWesternElement(requestBody)
-      requestBody = ensureDerivedSnapshots(requestBody)
-      const period = requestBody.period as ReportPeriod | undefined
-      const theme = requestBody.theme as ReportTheme | undefined
+      const preparedRequest = await prepareAiReportRequest(body)
+      if (!preparedRequest.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: ErrorCodes.VALIDATION_ERROR,
+              message: '입력 데이터 검증에 실패했습니다.',
+              details: preparedRequest.validationErrors,
+            },
+          },
+          { status: HTTP_STATUS.BAD_REQUEST }
+        )
+      }
+      const {
+        requestBody,
+        period,
+        theme,
+        name,
+        birthDate,
+        format,
+        detailLevel,
+        bilingual,
+        targetChars,
+        userQuestion,
+        deterministicProfile,
+        tone,
+        targetDate,
+        profileContext,
+        matrixInput,
+        timingData,
+        missingKeys,
+        queryDomain,
+        maxInsights,
+        includeVisualizations,
+        includeDetailedData,
+      } = preparedRequest.data
       const reportTier = normalizeReportTier(requestBody.reportTier)
       const isFreeTier = reportTier === 'free'
 
@@ -363,122 +297,11 @@ export const POST = withApiMiddleware(
         )
       }
 
-      // 5. 요청 검증
-      const validation = validateReportRequest(requestBody)
-      if (!validation.success) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: {
-              code: ErrorCodes.VALIDATION_ERROR,
-              message: '입력 데이터 검증에 실패했습니다.',
-              details: validation.errors,
-            },
-          },
-          { status: HTTP_STATUS.BAD_REQUEST }
-        )
-      }
-
-      const validatedInput = validation.data!
-      const { queryDomain, maxInsights, includeVisualizations, includeDetailedData, ...rest } =
-        validatedInput
-
-      // 6. 추가 옵션 추출
-      const name = requestBody.name as string | undefined
-      const birthDate = requestBody.birthDate as string | undefined
-      const format = requestBody.format as 'json' | 'pdf' | undefined
-      const detailLevel = requestBody.detailLevel as
-        | 'standard'
-        | 'detailed'
-        | 'comprehensive'
-        | undefined
-      const bilingual = requestBody.bilingual === true
-      const targetChars = toOptionalNumber(requestBody.targetChars)
-      const userQuestion = toOptionalString(requestBody.userQuestion)
-      const deterministicProfile =
-        requestBody.deterministicProfile === 'strict' ||
-        requestBody.deterministicProfile === 'balanced' ||
-        requestBody.deterministicProfile === 'aggressive'
-          ? requestBody.deterministicProfile
-          : 'balanced'
-      const tone =
-        requestBody.tone === 'realistic' || requestBody.tone === 'friendly'
-          ? (requestBody.tone as 'realistic' | 'friendly')
-          : undefined
-      const targetDate = requestBody.targetDate as string | undefined
-      const profileContext = {
-        birthDate: toOptionalString(requestBody.birthDate),
-        birthTime: toOptionalString(requestBody.birthTime),
-        birthCity: toOptionalString(requestBody.birthCity),
-        timezone: toOptionalString(requestBody.timezone),
-        latitude: toOptionalNumber(requestBody.latitude),
-        longitude: toOptionalNumber(requestBody.longitude),
-        houseSystem: toOptionalString(requestBody.houseSystem),
-        analysisAt: toOptionalString(requestBody.analysisAt) || new Date().toISOString(),
-      }
-      const sajuSnapshot =
-        toOptionalRecord(requestBody.sajuSnapshot) || toOptionalRecord(requestBody.saju)
-      const astrologySnapshot =
-        toOptionalRecord(requestBody.astrologySnapshot) || toOptionalRecord(requestBody.astrology)
-      const crossSnapshot =
-        toOptionalRecord(requestBody.crossSnapshot) ||
-        toOptionalRecord(requestBody.graphRagEvidence) ||
-        toOptionalRecord(requestBody.matrixSummary)
-      const currentDateIso =
-        toOptionalString(requestBody.currentDateIso) ||
-        (profileContext.analysisAt
-          ? profileContext.analysisAt.slice(0, 10)
-          : new Date().toISOString().slice(0, 10))
-      const rawMajorTransits = (
-        astrologySnapshot?.currentTransits as Record<string, unknown> | undefined
-      )?.majorTransits
-      const derivedActiveTransits = mapMajorTransitsToActiveTransits(rawMajorTransits, 8)
-      const normalizedActiveTransits: NonNullable<MatrixCalculationInput['activeTransits']> =
-        Array.isArray((rest as MatrixCalculationInput).activeTransits)
-          ? ((rest as MatrixCalculationInput).activeTransits as NonNullable<
-              MatrixCalculationInput['activeTransits']
-            >)
-          : []
-      const resolvedActiveTransits =
-        normalizedActiveTransits.length > 0 ? normalizedActiveTransits : derivedActiveTransits
-      const resolvedAstroTimingIndex =
-        (rest as MatrixCalculationInput).astroTimingIndex ||
-        buildAstroTimingIndex({
-          activeTransits: resolvedActiveTransits,
-          advancedAstroSignals: (rest as MatrixCalculationInput).advancedAstroSignals,
-        })
-      const mergedCrossSnapshot = {
-        ...(crossSnapshot || {}),
-        astroTimingIndex: resolvedAstroTimingIndex,
-      }
-      const matrixInput = {
-        ...(rest as MatrixCalculationInput),
-        activeTransits: resolvedActiveTransits,
-        astroTimingIndex: resolvedAstroTimingIndex,
-        profileContext,
-        sajuSnapshot,
-        astrologySnapshot,
-        crossSnapshot: mergedCrossSnapshot,
-        currentDateIso,
-      } as MatrixCalculationInput
-
-      // 7. 기본 입력/타이밍 준비
+      // 6. 기본 입력/타이밍 준비
       const detailBasedMaxInsights =
         detailLevel === 'comprehensive' ? 20 : detailLevel === 'detailed' ? 10 : 5
       const resolvedMaxInsights = Math.min(20, Math.max(1, maxInsights ?? detailBasedMaxInsights))
-      const autoTimingData: TimingData = buildTimingData(targetDate)
-      const derivedTiming = buildTimingDataFromDerivedSaju(requestBody, targetDate)
-      autoTimingData.daeun = buildAutoDaeunTiming(requestBody, targetDate)
-      const mergedAutoTiming = mergeTimingData(
-        autoTimingData,
-        derivedTiming as Record<string, unknown>
-      )
-      const timingData: TimingData = mergeTimingData(
-        mergedAutoTiming,
-        toOptionalRecord(requestBody.timingData)
-      )
       const strictCompleteness = isStrictGateEnabled('AI_REPORT_STRICT_COMPLETENESS')
-      const missingKeys = listAiReportMissing(matrixInput, timingData)
       if (strictCompleteness && missingKeys.length > 0) {
         return NextResponse.json(
           {
@@ -501,7 +324,7 @@ export const POST = withApiMiddleware(
         )
       }
 
-      // 8. 기본 리포트 생성
+      // 7. 기본 리포트 생성
       const inputReadinessAudit = auditMatrixInputReadiness(matrixInput)
       const strictInputReadiness = isStrictGateEnabled('AI_REPORT_STRICT_INPUT_READINESS')
       if (strictInputReadiness && !inputReadinessAudit.ready) {

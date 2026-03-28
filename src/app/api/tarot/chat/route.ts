@@ -120,9 +120,9 @@ export async function POST(req: NextRequest) {
     messages = validatedMessages as ChatMessage[]
     context = validatedContext as TarotContext
     const optimizedMessages = optimizeTarotMessagesForBackend(messages, language, {
-      maxMessages: 8,
-      maxUserLength: 1400,
-      maxAssistantLength: 650,
+      maxMessages: 12,
+      maxUserLength: 2200,
+      maxAssistantLength: 900,
     })
 
     // Credits already consumed by middleware

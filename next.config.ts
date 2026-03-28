@@ -78,6 +78,7 @@ const withPWA = withPWAInit({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   // 이 옵션은 swisseph가 node_modules를 참조할 수 있도록 도와줍니다.
   outputFileTracingRoot: path.join(__dirname),
   // Performance optimizations
@@ -115,6 +116,17 @@ const nextConfig = {
     '/app/api/life-prediction/**': [
       './node_modules/swisseph/build/Release/**/*.node',
       './public/ephe/**/*',
+    ],
+  },
+  outputFileTracingExcludes: {
+    '/app/api/**': [
+      './public/images/**/*',
+      './artifacts/**/*',
+      './tmp/**/*',
+      './htmlcov/**/*',
+      './playwright-report/**/*',
+      './package-lock.json',
+      './tsconfig.tsbuildinfo',
     ],
   },
 

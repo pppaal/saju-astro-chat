@@ -1,0 +1,22 @@
+"use strict";
+/*
+ * ATTENTION: An "eval-source-map" devtool has been used.
+ * This devtool is neither made for production nor for readable output files.
+ * It uses "eval()" calls to create a separate source file with attached SourceMaps in the browser devtools.
+ * If you are trying to read the output file, select a different devtool (https://webpack.js.org/configuration/devtool/)
+ * or disable the default devtool with "devtool: false".
+ * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
+ */
+(self["webpackChunk_N_E"] = self["webpackChunk_N_E"] || []).push([["_app-pages-browser_src_i18n_locales_ko_common_json"],{
+
+/***/ 3989:
+/*!*****************************************!*\
+  !*** ./src/i18n/locales/ko/common.json ***!
+  \*****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"common":{"loading":"로딩 중...","loadMyProfile":"내 프로필 불러오기","profileLoaded":"프로필 불러오기 완료!","change":"변경","copy":"복사","copied":"복사됨!","birthDate":"생년월일","birthTime":"태어난 시간","birthCity":"태어난 도시","birthTimeHint":"모르시면 12:00(정오)로 자동 설정됩니다","birthCityPlaceholder":"예: 서울, 부산, Seoul","birthCityHint":"더 정확한 분석을 위해 입력해주세요","gender":"성별","male":"남성","female":"여성","optional":"선택","continue":"다음으로","skipBirthInfo":"생년월일 없이 진행","skipBirthInfoHint":"생년월일 없이도 기본적인 해석은 가능합니다","loginToSave":"로그인하면 정보가 저장되어 더 편리하게 이용할 수 있어요","login":"로그인하기"},"app":{"title":"destinypal","subtitle":"AI가 당신의 운명 지도를 펼칩니다.","visitors":"오늘 방문자","myJourney":"나의 여정","destinyMatch":"데스티니 매치","community":"커뮤니티","back":"뒤로","name":"이름","namePh":"자신의 이름을 입력하세요.","birthDate":"생일","birthTime":"출생 시간","birthCity":"출생 도시","cityPh":"Seoul","gender":"성별","male":"남자","female":"여자","other":"기타","preferNot":"밝히고 싶지 않음","analyze":"분석","loadMyProfile":"내 프로필","loadingProfile":"로드 중...","profileLoaded":"프로필 로드 완료!","profileLoadedSuccess":"프로필을 성공적으로 불러왔습니다."},"ui":{"tipChooseCity":"도시를 선택하면 시간대가 자동으로 설정됩니다.","timeZone":"시간대","changeManually":"수동 변경","generate":"차트 생성","analyzing":"분석 중...","titleAstrology":"AI 탄생 차트","subtitleAstrology":"출생 정보를 바탕으로 우주 지도를 발견하세요.","datePlaceholder":"yyyy-mm-dd","timePlaceholder":"--:--"},"error":{"dateRequired":"유효한 생년월일을 입력해주세요 (YYYY-MM-DD).","timeRequired":"유효한 출생 시간을 입력해주세요 (HH:MM).","cityRequired":"출생 도시를 검색하고 선택해주세요.","timezoneRequired":"시간대를 선택해주세요.","noData":"서버에서 받은 분석 데이터가 없습니다.","unknown":"알 수 없는 오류 발생.","profileLoadFailed":"프로필을 불러오지 못했습니다. 다시 시도해주세요.","noProfileData":"저장된 프로필 데이터가 없습니다. 먼저 내 여정에서 정보를 저장해주세요."},"errors":{"errorCode":"오류 코드","tryAgain":"다시 시도","contactSupport":"지원팀 문의","networkErrorTitle":"네트워크 오류","networkErrorMessage":"서버에 연결할 수 없습니다. 인터넷 연결을 확인하고 다시 시도해주세요.","notFoundTitle":"찾을 수 없음","notFoundMessage":"요청하신 리소스를 찾을 수 없습니다.","permissionDeniedTitle":"권한 거부","permissionDeniedMessage":"이 리소스에 접근할 권한이 없습니다. 문제가 있다고 생각되면 지원팀에 문의해주세요.","validationErrorTitle":"입력 오류","serverErrorTitle":"서버 오류","serverErrorMessage":"서버에서 오류가 발생했습니다. 잠시 후 다시 시도해주세요."},"menu":{"destinyMap":"운명 지도","aiReports":"AI 프리미엄 리포트","report":"리포트","lifePrediction":"인생 예측","saju":"사주","astrology":"점성술","iching":"역경","tarot":"타로","dream":"꿈해몽","calendar":"운세 캘린더","numerology":"수비학","compatibility":"궁합","personality":"성격분석","icp":"대인관계 스타일","icpPersonality":"ICP + 성격분석","pastLife":"전생","destinyMatch":"데스티니 매치"},"emoji":{"sparkles":"sparkles"},"auth":{"signIn":"로그인","welcomeBack":"환영합니다! 시작해볼까요?","signInToContinue":"계속하려면 로그인해주세요","signInWithGoogle":"Google로 로그인","termsConsentPrefix":"계속 진행하면","termsOfUse":"이용 약관","termsConsentJoin":"에 동의하고","privacyPolicy":"개인정보 처리방침","checkboxHint":"(동의하려면 체크박스를 선택해주세요)","secureAuthentication":"안전한 인증","dataProtected":"귀하의 데이터는 안전하게 보호됩니다","error":{"oauthSignin":"OAuth 로그인 중 오류가 발생했습니다.","oauthCallback":"OAuth 콜백 처리 중 오류가 발생했습니다.","oauthAccountNotLinked":"이미 다른 방법으로 등록된 이메일입니다.","callback":"콜백 처리 중 오류가 발생했습니다.","default":"로그인 중 오류가 발생했습니다.","unexpected":"예상치 못한 오류가 발생했습니다."}}}');
+
+/***/ })
+
+}]);

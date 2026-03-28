@@ -781,7 +781,7 @@ describe('POST /api/tarot/chat', () => {
       const postCall = vi.mocked(apiClient.post).mock.calls[0]
       const messages = postCall[1].messages as Array<{ role: string; content: string }>
       // The route now trims history before backend submission.
-      expect(messages.length).toBe(9)
+      expect(messages.length).toBe(13)
     })
 
     it('should accept long messages within Zod limits', async () => {
@@ -804,7 +804,7 @@ describe('POST /api/tarot/chat', () => {
       const messages = postCall[1].messages as Array<{ role: string; content: string }>
       const userMessage = messages.find((m) => m.role === 'user')
       // Message passes validation, then is trimmed for backend efficiency.
-      expect(userMessage?.content.length).toBe(1400)
+      expect(userMessage?.content.length).toBe(2200)
     })
   })
 

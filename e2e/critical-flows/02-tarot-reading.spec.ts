@@ -1,9 +1,10 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+
 import { TestHelpers } from '../fixtures/test-helpers'
 
 const hasAny = (text: string | null, keywords: string[]) => {
   const source = (text || '').toLowerCase()
-  return keywords.some((k) => source.includes(k.toLowerCase()))
+  return keywords.some((keyword) => source.includes(keyword.toLowerCase()))
 }
 
 test.describe('Complete Tarot Reading Flow', () => {
@@ -33,7 +34,8 @@ test.describe('Complete Tarot Reading Flow', () => {
       await submitButton.click()
       await helpers.waitForAnyText(['tarot', 'card', 'interpretation', 'result'], 15000)
 
-      const hasCards = (await page.locator('.card, .tarot-card, [data-testid*="card"]').count()) > 0
+      const hasCards =
+        (await page.locator('.card, .tarot-card, [data-testid*="card"]').count()) > 0
       const body = await page.locator('body').textContent()
       const hasResults = hasAny(body, ['interpretation', 'result', 'tarot'])
       expect(hasCards || hasResults).toBe(true)
@@ -59,8 +61,7 @@ test.describe('Complete Tarot Reading Flow', () => {
     }
 
     await questionInput.fill('Tell me about my past, present, and future')
-    const submitButton = page.locator('button[type="submit"]').first()
-    await submitButton.click()
+    await page.locator('button[type="submit"]').first().click()
 
     await helpers.waitForAnyText(['past', 'present', 'future', 'card', 'tarot'], 15000)
 
@@ -127,29 +128,34 @@ test.describe('Complete Tarot Reading Flow', () => {
     expect(hasHistoryUI).toBe(true)
   })
 
-  test('should handle chat-based tarot reading', async ({ page }) => {
+  test('should handle question-led tarot reading flow', async ({ page }) => {
     await page.goto('/tarot', { waitUntil: 'domcontentloaded' })
 
-    const chatInput = page
+    const questionInput = page
       .locator('textarea, input[placeholder*="question" i], input[placeholder*="질문"]')
       .first()
 
-    if (!(await chatInput.isVisible({ timeout: 3000 }).catch(() => false))) {
+    if (!(await questionInput.isVisible({ timeout: 3000 }).catch(() => false))) {
       await expect(page.locator('body')).toBeVisible()
       return
     }
 
-    await chatInput.fill('Can you help me understand my love life?')
-    const sendButton = page
-      .locator('button:has-text("Send"), button:has-text("전송"), button[type="submit"]')
+    await questionInput.fill('Can you help me understand my love life?')
+    const submitButton = page
+      .locator('button[type="submit"], button:has-text("Start"), button:has-text("Analyze")')
       .first()
 
-    await sendButton.click()
-    await helpers.waitForAnyText(['message', 'tarot', 'interpretation', 'card'], 20000)
+    if (!(await submitButton.isVisible({ timeout: 5000 }).catch(() => false))) {
+      await expect(page.locator('body')).toBeVisible()
+      return
+    }
 
-    const messages = await page.locator('.message, .chat-message, [data-testid*="message"]').count()
+    await submitButton.click()
+    await helpers.waitForAnyText(['tarot', 'interpretation', 'card', 'result', 'spread'], 20000)
+
+    const cards = await page.locator('.card, .tarot-card, [data-testid*="card"]').count()
     const body = await page.locator('body').textContent()
-    expect(messages > 0 || hasAny(body, ['message', 'tarot', 'card'])).toBe(true)
+    expect(cards > 0 || hasAny(body, ['tarot', 'card', 'interpretation', 'spread'])).toBe(true)
   })
 
   test('should display card interpretations', async ({ page }) => {
