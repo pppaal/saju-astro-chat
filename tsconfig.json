@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ESNext"
-    ],
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -19,15 +15,8 @@
     "jsx": "react-jsx",
     "incremental": true,
     "allowImportingTsExtensions": false,
-    "types": [
-      "node",
-      "react",
-      "react-dom"
-    ],
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types"
-    ],
+    "types": ["node", "react", "react-dom"],
+    "typeRoots": ["./node_modules/@types", "./src/types"],
     "plugins": [
       {
         "name": "next"
@@ -35,9 +24,7 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      "@/*": ["src/*"]
     }
   },
   "include": [
@@ -45,14 +32,12 @@
     "next-env.d.ts",
     "src/**/*",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    ".next-playwright-calendar/types/**/*.ts",
-    ".next-playwright-calendar/dev/types/**/*.ts",
-    ".next-playwright-tarot/types/**/*.ts",
-    ".next-playwright-tarot/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "src/lib/api/openapi/**/*"
+    "src/lib/api/openapi/**/*",
+    ".next-playwright-calendar/**/*",
+    ".next-playwright-tarot/**/*"
   ]
 }
