@@ -140,6 +140,24 @@ export interface CalendarCoreAdapterResult {
     leadScenarioIds: string[]
     provenance: AdapterProvenance
   }>
+  topTimingWindow?: {
+    domain: SignalDomain
+    window: 'now' | '1-3m' | '3-6m' | '6-12m' | '12m+'
+    confidence: number
+    timingRelevance: number
+    timingGranularity: 'day' | 'week' | 'fortnight' | 'month' | 'season'
+    precisionReason: string
+    timingConflictMode: 'aligned' | 'readiness_ahead' | 'trigger_ahead' | 'weak_both'
+    timingConflictNarrative: string
+    readinessScore: number
+    triggerScore: number
+    convergenceScore: number
+    whyNow: string
+    entryConditions: string[]
+    abortConditions: string[]
+    evidenceIds: string[]
+    provenance: AdapterProvenance
+  }
   domainTimingWindows: Array<{
     domain: SignalDomain
     window: 'now' | '1-3m' | '3-6m' | '6-12m' | '12m+'

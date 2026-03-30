@@ -35,6 +35,19 @@ type SurfaceCard = {
   key: 'action' | 'risk' | 'window' | 'agreement' | 'branch'
   label: string
   summary: string
+  tag?: string
+  details?: string[]
+  visual?:
+    | {
+        kind: 'agreement'
+        agreementPercent: number
+        contradictionPercent: number
+        leadLagState: 'structure-ahead' | 'trigger-ahead' | 'balanced'
+      }
+    | {
+        kind: 'branch'
+        rows: Array<{ label: string; text: string }>
+      }
 }
 
 type DaySummary = {
@@ -174,14 +187,14 @@ function localizeWindowToken(window: string, locale: Locale): string {
   return window
 }
 
-function buildAgreementCardSummary(input: {
+function buildAgreementCardData(input: {
   locale: Locale
   focusDomainLabel: string
   actionDomain: PresentationDomain
   matrix: CrossAgreementMatrixRow[] | undefined
   fallbackAgreementPercent?: number
   fallbackConflictText?: string
-}): string {
+}): Pick<SurfaceCard, 'summary' | 'tag' | 'details' | 'visual'> {
   const {
     locale,
     focusDomainLabel,
@@ -196,6 +209,10 @@ function buildAgreementCardSummary(input: {
     const contradictionPct = Math.round((picked.cell.contradiction || 0) * 100)
     const leadLag = picked.cell.leadLag ?? picked.row.leadLag ?? 0
     const windowLabel = localizeWindowToken(picked.scale, locale)
+    const tagKo =
+      agreementPct >= 75 ? '합의 강함' : agreementPct >= 60 ? '합의 보통' : '충돌 주의'
+    const tagEn =
+      agreementPct >= 75 ? 'Strong alignment' : agreementPct >= 60 ? 'Mixed alignment' : 'Conflict watch'
     if (locale === 'ko') {
       const alignment =
         agreementPct >= 75
@@ -205,15 +222,26 @@ function buildAgreementCardSummary(input: {
             : '엇갈림이 커서 보수적으로 읽어야 합니다'
       const contradictionLine =
         contradictionPct >= 35
-          ? `충돌도는 ${contradictionPct}%로 높은 편입니다.`
-          : `충돌도는 ${contradictionPct}%로 관리 가능한 수준입니다.`
+          ? `충돌도 ${contradictionPct}%: 반대 신호가 꽤 큽니다.`
+          : `충돌도 ${contradictionPct}%: 관리 가능한 수준입니다.`
       const leadLagLine =
         leadLag >= 0.18
-          ? '구조 지지가 먼저 앞서고 촉발은 뒤따르는 형태입니다.'
+          ? '구조가 먼저 열리고 촉발은 뒤따릅니다.'
           : leadLag <= -0.18
-            ? '촉발은 먼저 오지만 구조 지지는 뒤에서 따라오는 형태입니다.'
-            : '구조와 촉발 시차는 크지 않습니다.'
-      return `${windowLabel} 기준 ${focusDomainLabel} 합의도는 ${agreementPct}%이며 ${alignment} ${contradictionLine} ${leadLagLine}`.trim()
+            ? '촉발은 먼저 오지만 구조 지지는 뒤에서 따라옵니다.'
+            : '구조와 촉발의 시차는 크지 않습니다.'
+      return {
+        summary: `${windowLabel} 기준 ${focusDomainLabel} 합의도는 ${agreementPct}%입니다. ${alignment}`,
+        tag: tagKo,
+        details: [contradictionLine, leadLagLine].filter(Boolean),
+        visual: {
+          kind: 'agreement',
+          agreementPercent: agreementPct,
+          contradictionPercent: contradictionPct,
+          leadLagState:
+            leadLag >= 0.18 ? 'structure-ahead' : leadLag <= -0.18 ? 'trigger-ahead' : 'balanced',
+        },
+      }
     }
     const alignment =
       agreementPct >= 75
@@ -223,29 +251,92 @@ function buildAgreementCardSummary(input: {
           : 'misalignment is high, so a conservative read is safer'
     const contradictionLine =
       contradictionPct >= 35
-        ? `Contradiction is relatively high at ${contradictionPct}%.`
-        : `Contradiction stays manageable at ${contradictionPct}%.`
+        ? `Contradiction ${contradictionPct}%: opposing pressure is meaningful.`
+        : `Contradiction ${contradictionPct}%: still manageable.`
     const leadLagLine =
       leadLag >= 0.18
-        ? 'Structural support is ahead of trigger pressure.'
+        ? 'Structure opens before trigger pressure.'
         : leadLag <= -0.18
-          ? 'Trigger pressure arrives ahead of structural support.'
+          ? 'Trigger pressure arrives before structure catches up.'
           : 'Lead-lag between structure and trigger is limited.'
-    return `In the ${windowLabel} window, agreement for ${focusDomainLabel} is ${agreementPct}% and ${alignment}. ${contradictionLine} ${leadLagLine}`.trim()
+    return {
+      summary: `In the ${windowLabel} window, agreement for ${focusDomainLabel} is ${agreementPct}% and ${alignment}.`,
+      tag: tagEn,
+      details: [contradictionLine, leadLagLine].filter(Boolean),
+      visual: {
+        kind: 'agreement',
+        agreementPercent: agreementPct,
+        contradictionPercent: contradictionPct,
+        leadLagState:
+          leadLag >= 0.18 ? 'structure-ahead' : leadLag <= -0.18 ? 'trigger-ahead' : 'balanced',
+      },
+    }
   }
 
-  if (fallbackConflictText) return fallbackConflictText
+  if (fallbackConflictText) {
+    return {
+      summary: fallbackConflictText,
+      tag: locale === 'ko' ? '합의 재확인' : 'Recheck alignment',
+      details: [],
+      visual: {
+        kind: 'agreement',
+        agreementPercent: typeof fallbackAgreementPercent === 'number' ? fallbackAgreementPercent : 50,
+        contradictionPercent: 40,
+        leadLagState: 'balanced',
+      },
+    }
+  }
   if (typeof fallbackAgreementPercent === 'number') {
     return locale === 'ko'
-      ? `${focusDomainLabel} 기준 교차 합의도는 ${fallbackAgreementPercent}% 수준입니다. 세부 창은 다시 확인하는 편이 낫습니다.`
-      : `Cross-agreement for ${focusDomainLabel} is around ${fallbackAgreementPercent}%. Rechecking the timing window is still useful.`
+      ? {
+          summary: `${focusDomainLabel} 기준 교차 합의도는 ${fallbackAgreementPercent}% 수준입니다.`,
+          tag: '합의 재확인',
+          details: ['세부 창과 충돌 신호를 한 번 더 확인하는 편이 낫습니다.'],
+          visual: {
+            kind: 'agreement',
+            agreementPercent: fallbackAgreementPercent,
+            contradictionPercent: Math.max(0, 100 - fallbackAgreementPercent),
+            leadLagState: 'balanced',
+          },
+        }
+      : {
+          summary: `Cross-agreement for ${focusDomainLabel} is around ${fallbackAgreementPercent}%.`,
+          tag: 'Recheck alignment',
+          details: ['A second pass on timing and conflict signals is still useful.'],
+          visual: {
+            kind: 'agreement',
+            agreementPercent: fallbackAgreementPercent,
+            contradictionPercent: Math.max(0, 100 - fallbackAgreementPercent),
+            leadLagState: 'balanced',
+          },
+        }
   }
   return locale === 'ko'
-    ? `${focusDomainLabel} 기준 합의도는 중간 수준이라, 한 방향으로만 밀기보다 재확인을 끼워 넣는 편이 낫습니다.`
-    : `Agreement for ${focusDomainLabel} is moderate, so build in confirmation instead of pushing one-way execution.`
+    ? {
+        summary: `${focusDomainLabel} 기준 합의도는 중간 수준입니다.`,
+        tag: '합의 보통',
+        details: ['한 방향으로만 밀기보다 재확인을 끼워 넣는 편이 낫습니다.'],
+        visual: {
+          kind: 'agreement',
+          agreementPercent: 58,
+          contradictionPercent: 28,
+          leadLagState: 'balanced',
+        },
+      }
+    : {
+        summary: `Agreement for ${focusDomainLabel} is moderate.`,
+        tag: 'Mixed alignment',
+        details: ['Build in confirmation instead of pushing one-way execution.'],
+        visual: {
+          kind: 'agreement',
+          agreementPercent: 58,
+          contradictionPercent: 28,
+          leadLagState: 'balanced',
+        },
+      }
 }
 
-function buildBranchCardSummary(input: {
+function buildBranchCardData(input: {
   locale: Locale
   actionDomainLabel: string
   projectionBranch: string
@@ -254,7 +345,7 @@ function buildBranchCardSummary(input: {
     abortConditions?: string[]
     timingConflictMode?: string
   }
-}): string {
+}): Pick<SurfaceCard, 'summary' | 'tag' | 'details' | 'visual'> {
   const { locale, actionDomainLabel, projectionBranch, actionTimingWindow } = input
   const entry = actionTimingWindow?.entryConditions?.[0]
   const abort = actionTimingWindow?.abortConditions?.[0]
@@ -262,42 +353,68 @@ function buildBranchCardSummary(input: {
   if (locale === 'ko') {
     const modeLead =
       mode === 'trigger_ahead'
-        ? '지금은 촉발이 먼저 와 있어 서두르면 지속성이 약해질 수 있습니다.'
+        ? '서두르면 지속성이 약해질 수 있습니다.'
         : mode === 'readiness_ahead'
-          ? '지금은 구조가 먼저 열려 있어 조건을 맞춘 뒤 들어가는 편이 유리합니다.'
+          ? '조건을 맞춘 뒤 들어가는 편이 유리합니다.'
           : mode === 'weak_both'
             ? '지금은 진입보다 관찰과 정리가 우선입니다.'
-            : ''
-    const entryLead = entry ? `진입 조건은 ${entry}입니다.` : ''
-    const abortLead = abort ? `중단 신호는 ${abort}입니다.` : ''
-    return [
-      projectionBranch || `${actionDomainLabel} 축은 하나의 답보다 여러 경로를 함께 봐야 합니다.`,
-      modeLead,
-      entryLead,
-      abortLead,
-    ]
-      .filter(Boolean)
-      .join(' ')
+            : '한 경로만 밀기보다 조건형으로 읽어야 합니다.'
+    const entryLead = entry ? `들어가도 되는 조건: ${entry}` : '들어가도 되는 조건: 핵심 조건부터 맞춘 뒤 움직이기'
+    const abortLead = abort ? `멈춰야 하는 조건: ${abort}` : '멈춰야 하는 조건: 충돌 신호가 커지면 속도 줄이기'
+    return {
+      summary:
+        projectionBranch || `${actionDomainLabel} 축은 하나의 답보다 여러 경로를 함께 봐야 합니다.`,
+      tag:
+        mode === 'trigger_ahead'
+          ? '서두름 주의'
+          : mode === 'readiness_ahead'
+            ? '조건 후 진입'
+            : mode === 'weak_both'
+              ? '관찰 우선'
+              : '분기형 실행',
+      details: [entryLead, abortLead, `서두르면 생기는 리스크: ${modeLead}`],
+      visual: {
+        kind: 'branch',
+        rows: [
+          { label: '진입', text: entryLead },
+          { label: '중단', text: abortLead },
+          { label: '리스크', text: `서두르면 생기는 리스크: ${modeLead}` },
+        ],
+      },
+    }
   }
   const modeLead =
     mode === 'trigger_ahead'
-      ? 'Trigger arrives before structural support, so rushing weakens sustainability.'
+      ? 'Rushing weakens sustainability because trigger arrives before structure.'
       : mode === 'readiness_ahead'
-        ? 'Structure opens first, so entry works better after conditions line up.'
+        ? 'Entry works better after conditions line up.'
         : mode === 'weak_both'
           ? 'Observation and reset matter more than entry right now.'
-          : ''
-  const entryLead = entry ? `Entry condition: ${entry}.` : ''
-  const abortLead = abort ? `Abort signal: ${abort}.` : ''
-  return [
-    projectionBranch ||
+          : 'Read this through multiple live branches rather than one fixed path.'
+  const entryLead = entry ? `Entry condition: ${entry}` : 'Entry condition: line up the core conditions first'
+  const abortLead = abort ? `Abort signal: ${abort}` : 'Abort signal: slow down when conflict pressure grows'
+  return {
+    summary:
+      projectionBranch ||
       `${actionDomainLabel} should be read through multiple live branches rather than one fixed path.`,
-    modeLead,
-    entryLead,
-    abortLead,
-  ]
-    .filter(Boolean)
-    .join(' ')
+    tag:
+      mode === 'trigger_ahead'
+        ? 'Rush caution'
+        : mode === 'readiness_ahead'
+          ? 'Enter after setup'
+          : mode === 'weak_both'
+            ? 'Observe first'
+            : 'Branch-led',
+    details: [entryLead, abortLead, `Risk of rushing: ${modeLead}`],
+    visual: {
+      kind: 'branch',
+      rows: [
+        { label: 'Entry', text: entryLead },
+        { label: 'Abort', text: abortLead },
+        { label: 'Risk', text: `Risk of rushing: ${modeLead}` },
+      ],
+    },
+  }
 }
 
 function matchesPresentationDomain(date: FormattedDate, domain: PresentationDomain): boolean {
@@ -862,7 +979,7 @@ export function buildCalendarPresentationView(input: {
     typeof canonicalCore?.crossAgreement === 'number'
       ? Math.round(canonicalCore.crossAgreement * 100)
       : selected.evidence?.crossAgreementPercent
-  const agreementCardSummary = buildAgreementCardSummary({
+  const agreementCard = buildAgreementCardData({
     locale,
     focusDomainLabel: actionFocusDomainLabel,
     actionDomain: actionFocusDomain,
@@ -887,7 +1004,7 @@ export function buildCalendarPresentationView(input: {
       : locale === 'ko'
         ? `${actionFocusDomainLabel} 창은 지금은 작게 열려 있으니 검토 후 움직이는 편이 안전합니다.`
         : `The ${actionFocusDomainLabel} window is only partly open, so review before moving.`)
-  const branchCardSummary = buildBranchCardSummary({
+  const branchCard = buildBranchCardData({
     locale,
     actionDomainLabel: actionFocusDomainLabel,
     projectionBranch,
@@ -912,12 +1029,16 @@ export function buildCalendarPresentationView(input: {
     {
       key: 'agreement',
       label: locale === 'ko' ? '합의도' : 'Agreement',
-      summary: agreementCardSummary,
+      summary: agreementCard.summary,
+      tag: agreementCard.tag,
+      details: agreementCard.details,
     },
     {
       key: 'branch',
       label: locale === 'ko' ? '가능한 경로' : 'Branch',
-      summary: branchCardSummary,
+      summary: branchCard.summary,
+      tag: branchCard.tag,
+      details: branchCard.details,
     },
   ]
 

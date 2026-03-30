@@ -99,6 +99,18 @@ function buildFallbackCalendarData(year: number, locale: string): CalendarData {
   return {
     success: true,
     year,
+    matrixStrictMode: false,
+    matrixInputMode: 'lite',
+    degradedMode: {
+      active: true,
+      level: 'fallback-lite',
+      reasons: ['reference_only_fallback'],
+      labels: [
+        locale === 'ko'
+          ? '현재 결과는 reference-only fallback 데이터입니다.'
+          : 'This result is reference-only fallback data.',
+      ],
+    },
     summary,
     allDates,
     topDates: [...allDates].sort(sortByScoreDesc).slice(0, 10),

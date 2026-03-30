@@ -15,11 +15,31 @@ type ActionPlanInsights = {
   deltaToday: string
 }
 
+type ActionPlanEngineCard = {
+  key: 'action' | 'risk' | 'window' | 'agreement' | 'branch'
+  label: string
+  summary: string
+  tag?: string
+  details?: string[]
+  visual?:
+    | {
+        kind: 'agreement'
+        agreementPercent: number
+        contradictionPercent: number
+        leadLagState: 'structure-ahead' | 'trigger-ahead' | 'balanced'
+      }
+    | {
+        kind: 'branch'
+        rows: Array<{ label: string; text: string }>
+      }
+}
+
 type ActionPlanSummaryPanelsProps = {
   isKo: boolean
   todayFocus: string
   todayInsight: string
   todayItems: string[]
+  engineCards: ActionPlanEngineCard[]
   evidenceBadges: string[]
   evidenceLines: string[]
   todayTiming: string | null
@@ -32,12 +52,31 @@ type ActionPlanSummaryPanelsProps = {
   categoryLabel: (category: EventCategory) => string
 }
 
+function pickEngineCard(
+  engineCards: ActionPlanEngineCard[],
+  key: ActionPlanEngineCard['key']
+): ActionPlanEngineCard | null {
+  return engineCards.find((card) => card.key === key) || null
+}
+
+function splitBranchDetails(details: string[] | undefined, isKo: boolean) {
+  const fallback = isKo
+    ? ['들어가도 되는 조건', '멈춰야 하는 조건', '서두르면 생기는 리스크']
+    : ['Entry condition', 'Abort signal', 'Risk of rushing']
+  const normalized = (details || []).filter(Boolean).slice(0, 3)
+  return fallback.map((label, index) => ({
+    label,
+    text: normalized[index] || '',
+  }))
+}
+
 export function ActionPlanSummaryPanels(props: ActionPlanSummaryPanelsProps) {
   const {
     isKo,
     todayFocus,
     todayInsight,
     todayItems,
+    engineCards,
     evidenceBadges,
     evidenceLines,
     todayTiming,
@@ -49,6 +88,12 @@ export function ActionPlanSummaryPanels(props: ActionPlanSummaryPanelsProps) {
     topCategory,
     categoryLabel,
   } = props
+  const heroCards = ['action', 'risk', 'window']
+    .map((key) => pickEngineCard(engineCards, key as ActionPlanEngineCard['key']))
+    .filter((card): card is ActionPlanEngineCard => Boolean(card))
+  const agreementCard = pickEngineCard(engineCards, 'agreement')
+  const branchCard = pickEngineCard(engineCards, 'branch')
+  const branchRows = splitBranchDetails(branchCard?.details, isKo)
 
   return (
     <>
@@ -60,6 +105,95 @@ export function ActionPlanSummaryPanels(props: ActionPlanSummaryPanelsProps) {
           <span className={styles.actionPlanCardFocus}>{todayFocus}</span>
         </div>
         <p className={styles.actionPlanInsightLine}>{todayInsight}</p>
+        {heroCards.length > 0 && (
+          <div className={styles.actionPlanHeroGrid}>
+            {heroCards.map((card) => (
+              <div key={card.key} className={styles.actionPlanHeroCard}>
+                <div className={styles.actionPlanHeroHeader}>
+                  <span className={styles.actionPlanHeroLabel}>{card.label}</span>
+                  {card.tag ? <span className={styles.actionPlanHeroTag}>{card.tag}</span> : null}
+                </div>
+                <p className={styles.actionPlanHeroSummary}>{card.summary}</p>
+                {card.details?.[0] ? (
+                  <p className={styles.actionPlanHeroDetail}>{card.details[0]}</p>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        )}
+        {(agreementCard || branchCard) && (
+          <div className={styles.actionPlanEngineGrid}>
+            {agreementCard && (
+              <div className={styles.actionPlanEngineBlock}>
+                <div className={styles.actionPlanEngineHeader}>
+                  <span className={styles.actionPlanEngineLabel}>{agreementCard.label}</span>
+                  {agreementCard.tag ? (
+                    <span className={styles.actionPlanEngineTag}>{agreementCard.tag}</span>
+                  ) : null}
+                </div>
+                <p className={styles.actionPlanEngineSummary}>{agreementCard.summary}</p>
+                {agreementCard.visual?.kind === 'agreement' ? (
+                  <div className={styles.actionPlanAgreementMeterWrap}>
+                    <div className={styles.actionPlanAgreementMeterRow}>
+                      <span className={styles.actionPlanAgreementMeterLabel}>
+                        {isKo ? '합의' : 'Alignment'}
+                      </span>
+                      <span className={styles.actionPlanAgreementMeterValue}>
+                        {agreementCard.visual.agreementPercent}%
+                      </span>
+                    </div>
+                    <div className={styles.actionPlanAgreementMeterTrack}>
+                      <div
+                        className={`${styles.actionPlanAgreementMeterFill} ${styles.actionPlanAgreementMeterFillGood}`}
+                        style={{ width: `${Math.max(6, agreementCard.visual.agreementPercent)}%` }}
+                      />
+                    </div>
+                    <div className={styles.actionPlanAgreementMeterRow}>
+                      <span className={styles.actionPlanAgreementMeterLabel}>
+                        {isKo ? '충돌' : 'Conflict'}
+                      </span>
+                      <span className={styles.actionPlanAgreementMeterValue}>
+                        {agreementCard.visual.contradictionPercent}%
+                      </span>
+                    </div>
+                    <div className={styles.actionPlanAgreementMeterTrack}>
+                      <div
+                        className={`${styles.actionPlanAgreementMeterFill} ${styles.actionPlanAgreementMeterFillRisk}`}
+                        style={{ width: `${Math.max(6, agreementCard.visual.contradictionPercent)}%` }}
+                      />
+                    </div>
+                  </div>
+                ) : null}
+                {agreementCard.details?.length ? (
+                  <ul className={styles.actionPlanEngineList}>
+                    {agreementCard.details.map((detail) => (
+                      <li key={`agreement-${detail}`}>{detail}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            )}
+            {branchCard && (
+              <div className={styles.actionPlanEngineBlock}>
+                <div className={styles.actionPlanEngineHeader}>
+                  <span className={styles.actionPlanEngineLabel}>{branchCard.label}</span>
+                  {branchCard.tag ? (
+                    <span className={styles.actionPlanEngineTag}>{branchCard.tag}</span>
+                  ) : null}
+                </div>
+                <p className={styles.actionPlanEngineSummary}>{branchCard.summary}</p>
+                <div className={styles.actionPlanBranchGrid}>
+                  {(branchCard.visual?.kind === 'branch' ? branchCard.visual.rows : branchRows).map((row) => (
+                    <div key={`${row.label}-${row.text}`} className={styles.actionPlanBranchRow}>
+                      <span className={styles.actionPlanBranchLabel}>{row.label}</span>
+                      <span className={styles.actionPlanBranchText}>{row.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         <ul className={styles.actionPlanList}>
           {todayItems.map((item, idx) => (
             <li key={idx} className={styles.actionPlanItem}>

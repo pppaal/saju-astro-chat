@@ -39,6 +39,7 @@ import {
 } from '@/lib/destiny-matrix/counselorEvidenceSanitizer'
 import {
   buildCounselorArbitrationLine,
+  buildCounselorCrossSystemSummary,
   buildCounselorVerdictContext,
   buildCounselorVerdictLead,
   buildCounselorVerdictTimingLine,
@@ -867,6 +868,7 @@ export function buildCounselorEvidencePacket(params: {
   const verdictContext = buildCounselorVerdictContext({
     lang: params.lang,
     domainLabel: localizeCounselorDomain(preferredDomain, params.lang),
+    crossAgreement: params.core?.canonical.crossAgreement,
     topTimingWindow,
     topDomainAdvisory,
     topManifestation,
@@ -975,6 +977,12 @@ export function buildCounselorEvidencePacket(params: {
     crossAgreement: params.core?.canonical.crossAgreement,
     focusDomainLabel: localizeCounselorDomain(preferredDomain, params.lang),
     lang: params.lang,
+  })
+  const crossSystemSummary = buildCounselorCrossSystemSummary({
+    lang: params.lang,
+    domainLabel: localizeCounselorDomain(preferredDomain, params.lang),
+    crossAgreement: params.core?.canonical.crossAgreement,
+    topTimingWindow,
   })
   const trustNarrative = describeDataTrustSummary({
     score: params.core?.quality.score,
@@ -1098,10 +1106,10 @@ export function buildCounselorEvidencePacket(params: {
       defensePercent: params.strategyEngine.defensePercent,
     },
     canonicalBrief: counselorCore
-      ? buildSanitizedCanonicalBrief({
+        ? buildSanitizedCanonicalBrief({
           counselorCore,
           lang: params.lang,
-          topDecisionLeadLabel,
+          topDecisionLeadLabel: topDecisionLeadLabel || undefined,
           scenarioActionHints,
         })
       : undefined,
@@ -1177,6 +1185,7 @@ export function buildCounselorEvidencePacket(params: {
         }
       : undefined,
     whyStack: [
+      crossSystemSummary,
       ...whyStack,
       arbitrationNarrative,
       latentNarrative,

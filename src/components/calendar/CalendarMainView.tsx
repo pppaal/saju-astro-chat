@@ -341,6 +341,28 @@ const CalendarMainView = memo(function CalendarMainView({
           </p>
           </>
         )}
+
+        {data.degradedMode?.active && (
+          <div className={styles.matrixStatusBanner} role="status">
+            <strong>{locale === 'ko' ? '계산 모드' : 'Computation mode'}</strong>
+            <span>
+              {data.degradedMode.level === 'fallback-lite'
+                ? locale === 'ko'
+                  ? ' 경량 fallback'
+                  : ' lightweight fallback'
+                : data.degradedMode.level === 'engine-degraded'
+                  ? locale === 'ko'
+                    ? ' 엔진 degraded'
+                    : ' engine degraded'
+                  : locale === 'ko'
+                    ? ' 풀 엔진'
+                    : ' full engine'}
+            </span>
+            {data.degradedMode.labels?.[0] && (
+              <p className={styles.matrixStatusBannerText}>{data.degradedMode.labels[0]}</p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* View Tabs */}

@@ -258,4 +258,68 @@ describe('runDestinyCore', () => {
 
     expect(result.scenarios.some((scenario) => scenario.window === 'now')).toBe(true)
   })
+
+  it('penalizes cross agreement when contradiction and lead-lag stay high', () => {
+    const stable = runDestinyCore({
+      mode: 'comprehensive',
+      lang: 'ko',
+      matrixInput: createInput({
+        crossSnapshot: {
+          source: 'test',
+          crossAgreement: 0.66,
+          crossAgreementMatrix: [
+            {
+              domain: 'career',
+              timescales: {
+                now: { agreement: 0.82, contradiction: 0.08, leadLag: 0.04 },
+                '1-3m': { agreement: 0.79, contradiction: 0.12, leadLag: 0.06 },
+              },
+              leadLag: 0.05,
+            },
+            {
+              domain: 'wealth',
+              timescales: {
+                now: { agreement: 0.74, contradiction: 0.1, leadLag: 0.08 },
+              },
+              leadLag: 0.08,
+            },
+          ],
+        } as any,
+      }),
+      matrixReport: createReport(),
+    })
+
+    const stressed = runDestinyCore({
+      mode: 'comprehensive',
+      lang: 'ko',
+      matrixInput: createInput({
+        crossSnapshot: {
+          source: 'test',
+          crossAgreement: 0.66,
+          crossAgreementMatrix: [
+            {
+              domain: 'career',
+              timescales: {
+                now: { agreement: 0.82, contradiction: 0.48, leadLag: 0.58 },
+                '1-3m': { agreement: 0.79, contradiction: 0.42, leadLag: 0.44 },
+              },
+              leadLag: 0.51,
+            },
+            {
+              domain: 'wealth',
+              timescales: {
+                now: { agreement: 0.74, contradiction: 0.45, leadLag: 0.53 },
+              },
+              leadLag: 0.53,
+            },
+          ],
+        } as any,
+      }),
+      matrixReport: createReport(),
+    })
+
+    expect(stable.canonical.crossAgreement).not.toBeNull()
+    expect(stressed.canonical.crossAgreement).not.toBeNull()
+    expect((stable.canonical.crossAgreement || 0) - (stressed.canonical.crossAgreement || 0)).toBeGreaterThan(0.1)
+  })
 })

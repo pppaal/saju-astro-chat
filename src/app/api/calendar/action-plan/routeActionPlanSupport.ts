@@ -8,6 +8,7 @@ import {
   formatPolicyCheckLabels,
 } from '@/lib/destiny-matrix/core/actionCopy'
 import { describeTimingWindowBrief } from '@/lib/destiny-matrix/interpretation/humanSemantics'
+import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 
 export type TimelineTone = 'best' | 'caution' | 'neutral'
 export type SlotType =
@@ -120,51 +121,7 @@ export type ActionPlanCalendarContext = {
   sajuFactors?: string[]
   astroFactors?: string[]
   summary?: string
-  canonicalCore?: {
-    focusDomain?: string
-    phase?: string
-    phaseLabel?: string
-    thesis?: string
-    riskControl?: string
-    primaryAction?: string
-    primaryCaution?: string
-    topDecisionLabel?: string
-    attackPercent?: number
-    defensePercent?: number
-    confidence?: number
-    judgmentPolicy?: {
-      mode?: 'execute' | 'verify' | 'prepare'
-      rationale?: string
-      allowedActions?: string[]
-      allowedActionLabels?: string[]
-      blockedActions?: string[]
-      blockedActionLabels?: string[]
-      hardStops?: string[]
-      hardStopLabels?: string[]
-      softChecks?: string[]
-      softCheckLabels?: string[]
-    }
-    topTimingWindow?: {
-      domain?: string
-      window?: 'now' | '1-3m' | '3-6m' | '6-12m' | '12m+'
-      timingGranularity?: 'day' | 'week' | 'fortnight' | 'month' | 'season'
-      precisionReason?: string
-      timingConflictNarrative?: string
-      whyNow?: string
-      entryConditions?: string[]
-      abortConditions?: string[]
-    }
-    domainTimingWindows?: Array<{
-      domain?: string
-      window?: 'now' | '1-3m' | '3-6m' | '6-12m' | '12m+'
-      timingGranularity?: 'day' | 'week' | 'fortnight' | 'month' | 'season'
-      precisionReason?: string
-      timingConflictNarrative?: string
-      whyNow?: string
-      entryConditions?: string[]
-      abortConditions?: string[]
-    }>
-  }
+  canonicalCore?: Partial<CalendarCoreAdapterResult>
   evidence?: CalendarEvidence
 } | null
 

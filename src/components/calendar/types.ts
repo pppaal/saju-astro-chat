@@ -74,6 +74,13 @@ export interface CalendarData {
   success: boolean
   year: number
   matrixStrictMode?: boolean
+  matrixInputMode?: 'full-chart' | 'lite'
+  degradedMode?: {
+    active: boolean
+    level: 'full-engine' | 'engine-degraded' | 'fallback-lite'
+    reasons: string[]
+    labels: string[]
+  }
   canonicalCore?: CalendarCoreAdapterResult
   matrixContract?: {
     coreHash?: string
@@ -114,6 +121,19 @@ export interface CalendarData {
     key: 'action' | 'risk' | 'window' | 'agreement' | 'branch'
     label: string
     summary: string
+    tag?: string
+    details?: string[]
+    visual?:
+      | {
+          kind: 'agreement'
+          agreementPercent: number
+          contradictionPercent: number
+          leadLagState: 'structure-ahead' | 'trigger-ahead' | 'balanced'
+        }
+      | {
+          kind: 'branch'
+          rows: Array<{ label: string; text: string }>
+        }
   }>
   topDomains?: Array<{
     domain: 'career' | 'love' | 'money' | 'health' | 'move' | 'general'

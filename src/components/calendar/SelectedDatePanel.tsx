@@ -95,6 +95,8 @@ interface SelectedDatePanelProps {
       key: 'action' | 'risk' | 'window' | 'agreement' | 'branch'
       label: string
       summary: string
+      tag?: string
+      details?: string[]
     }>
     topDomains?: Array<{
       domain: 'career' | 'love' | 'money' | 'health' | 'move' | 'general'
@@ -1048,15 +1050,55 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     ''
   )
 
-  const explicitSurfaceCards =
+  const explicitSurfaceCards: Array<{
+    label: string
+    tag?: string
+    text: string
+    details?: string[]
+    visual?: {
+      kind: 'agreement'
+      agreementPercent: number
+      contradictionPercent: number
+      leadLagState: 'structure-ahead' | 'trigger-ahead' | 'balanced'
+    } | {
+      kind: 'branch'
+      rows: Array<{ label: string; text: string }>
+    }
+  }> =
     (presentation?.surfaceCards || [])
       .map((item) => ({
         label: safeDisplayText(item.label, ''),
+        tag: safeDisplayText(item.tag || '', ''),
         text: takeLeadLine(item.summary),
+        details: (item.details || []).map((line) => safeDisplayText(line, '')).filter(Boolean).slice(0, 3),
+        visual:
+          item.visual?.kind === 'agreement'
+            ? {
+                kind: 'agreement',
+                agreementPercent: item.visual.agreementPercent,
+                contradictionPercent: item.visual.contradictionPercent,
+                leadLagState: item.visual.leadLagState,
+              }
+            : item.visual?.kind === 'branch'
+              ? {
+                  kind: 'branch',
+                  rows: item.visual.rows
+                    .map((row) => ({
+                      label: safeDisplayText(row.label, ''),
+                      text: safeDisplayText(row.text, ''),
+                    }))
+                    .filter((row) => row.label && row.text),
+                }
+              : undefined,
       }))
       .filter((item) => item.label && item.text) || []
 
-  const quickHighlightCards = [
+  const quickHighlightCards: Array<{
+    label: string
+    tag?: string
+    text: string
+    details?: string[]
+  }> = [
     ...explicitSurfaceCards,
     {
       label: locale === 'ko' ? '핵심 결론' : 'Core',
@@ -1217,8 +1259,62 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               <div className={styles.quickHeroGrid}>
                 {quickHighlightCards.map((item) => (
                   <div key={`${item.label}-${item.text}`} className={styles.quickHeroBlock}>
-                    <span className={styles.quickHeroLabel}>{item.label}</span>
+                    <span className={styles.quickHeroLabel}>
+                      {item.label}
+                      {item.tag ? <span className={styles.quickHeroTag}>{item.tag}</span> : null}
+                    </span>
                     <p className={styles.quickHeroText}>{item.text}</p>
+                    {item.visual?.kind === 'agreement' ? (
+                      <div className={styles.quickHeroMeterWrap}>
+                        <div className={styles.quickHeroMeterRow}>
+                          <span className={styles.quickHeroMeterLabel}>
+                            {locale === 'ko' ? '합의' : 'Alignment'}
+                          </span>
+                          <span className={styles.quickHeroMeterValue}>
+                            {item.visual.agreementPercent}%
+                          </span>
+                        </div>
+                        <div className={styles.quickHeroMeterTrack}>
+                          <div
+                            className={`${styles.quickHeroMeterFill} ${styles.quickHeroMeterFillGood}`}
+                            style={{ width: `${Math.max(6, item.visual.agreementPercent)}%` }}
+                          />
+                        </div>
+                        <div className={styles.quickHeroMeterRow}>
+                          <span className={styles.quickHeroMeterLabel}>
+                            {locale === 'ko' ? '충돌' : 'Conflict'}
+                          </span>
+                          <span className={styles.quickHeroMeterValue}>
+                            {item.visual.contradictionPercent}%
+                          </span>
+                        </div>
+                        <div className={styles.quickHeroMeterTrack}>
+                          <div
+                            className={`${styles.quickHeroMeterFill} ${styles.quickHeroMeterFillRisk}`}
+                            style={{ width: `${Math.max(6, item.visual.contradictionPercent)}%` }}
+                          />
+                        </div>
+                      </div>
+                    ) : null}
+                    {item.visual?.kind === 'branch' && item.visual.rows.length ? (
+                      <div className={styles.quickHeroBranchGrid}>
+                        {item.visual.rows.map((row) => (
+                          <div key={`${item.label}-${row.label}-${row.text}`} className={styles.quickHeroBranchRow}>
+                            <span className={styles.quickHeroBranchLabel}>{row.label}</span>
+                            <span className={styles.quickHeroBranchText}>{row.text}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                    {item.details?.length ? (
+                      <ul className={styles.quickHeroDetailList}>
+                        {item.details.map((detail) => (
+                          <li key={`${item.label}-${detail}`} className={styles.quickHeroDetailItem}>
+                            {detail}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
                   </div>
                 ))}
               </div>

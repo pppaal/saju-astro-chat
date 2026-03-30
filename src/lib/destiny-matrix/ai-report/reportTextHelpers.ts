@@ -308,17 +308,32 @@ export function normalizeNarrativeCoreText(value: string | undefined | null, lan
       .replace(/천을귀인/gi, lang === 'ko' ? '귀인의 도움 신호' : 'noble support')
       .replace(/지지삼합/gi, lang === 'ko' ? '지지삼합' : 'three-branch harmony')
       .replace(/자산 축적 흐름/gi, lang === 'ko' ? '자산 축적 흐름' : 'asset accumulation')
-      .replace(/ëŒ€ìš´/gi, 'Daeun')
-      .replace(/ì„¸ìš´/gi, 'annual cycle')
-      .replace(/ì›”ìš´/gi, 'monthly cycle')
-      .replace(/ì¼ìš´/gi, 'daily cycle')
-      .replace(/ë°”ëžŒ/gi, 'air')
-      .replace(/ìžì‚° ì¶•ì íë¦„/gi, 'asset accumulation')
-      .replace(/ì§€ì§€ì‚¼í•©/gi, 'three-branch harmony')
-      .replace(/ìµœìƒì¡°í™”/gi, 'peak harmony')
-      .replace(/ì²œì„ê·€ì¸/gi, 'noble support')
-      .replace(/íš¡ìž¬/gi, 'windfall signal')
-      .replace(/ìž„ê´€/gi, 'authority maturity stage')
+      .replace(new RegExp('\u00eb\u0152\u20ac\u00ec\u0161\u00b4', 'gi'), 'Daeun')
+      .replace(new RegExp('\u00ec\u201e\u00b8\u00ec\u0161\u00b4', 'gi'), 'annual cycle')
+      .replace(new RegExp('\u00ec\u203a\u201d\u00ec\u0161\u00b4', 'gi'), 'monthly cycle')
+      .replace(new RegExp('\u00ec\u009d\u00bc\u00ec\u0161\u00b4', 'gi'), 'daily cycle')
+      .replace(new RegExp('\u00eb\u00b0\u201d\u00eb\u017e\u0152', 'gi'), 'air')
+      .replace(
+        new RegExp(
+          '\u00ec\u017e\u0090\u00ec\u201a\u00b0\u0020\u00ec\u00b6\u2022\u00ec\u0081\u0020\u00ed\u009d\u0090\u00eb\u00a6\u201e',
+          'gi'
+        ),
+        'asset accumulation'
+      )
+      .replace(
+        new RegExp('\u00ec\u00a7\u20ac\u00ec\u00a7\u20ac\u00ec\u201a\u00bc\u00ed\u2022\u00a9', 'gi'),
+        'three-branch harmony'
+      )
+      .replace(
+        new RegExp('\u00ec\u00b5\u0153\u00ec\u0192\u0081\u00ec\u00a1\u00b0\u00ed\u2122\u201d', 'gi'),
+        'peak harmony'
+      )
+      .replace(
+        new RegExp('\u00ec\u00b2\u0153\u00ec\u009d\u201e\u00ea\u00b7\u20ac\u00ec\u009d\u00b8', 'gi'),
+        'noble support'
+      )
+      .replace(new RegExp('\u00ed\u0161\u00a1\u00ec\u017e\u00ac', 'gi'), 'windfall signal')
+      .replace(new RegExp('\u00ec\u017e\u201e\u00ea\u00b4\u20ac', 'gi'), 'authority maturity stage')
       .replace(/Daeun\s*금/gi, 'Daeun metal')
       .replace(/Daeun\s*목/gi, 'Daeun wood')
       .replace(/Daeun\s*수/gi, 'Daeun water')

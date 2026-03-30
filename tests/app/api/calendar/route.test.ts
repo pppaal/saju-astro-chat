@@ -40,6 +40,49 @@ vi.mock('@/lib/Saju/saju', () => ({
   calculateSajuData: vi.fn(),
 }))
 
+vi.mock('@/lib/astrology/foundation/astrologyService', () => ({
+  calculateNatalChart: vi.fn(async () => ({
+    planets: [
+      { name: 'Sun', sign: 'Capricorn', house: 10, longitude: 0, degree: 15, minute: 0, formatted: 'Capricorn 15°', speed: 1 },
+      { name: 'Moon', sign: 'Pisces', house: 12, longitude: 0, degree: 10, minute: 0, formatted: 'Pisces 10°', speed: 13 },
+      { name: 'Mercury', sign: 'Capricorn', house: 10, longitude: 0, degree: 5, minute: 0, formatted: 'Capricorn 5°', speed: 1.2 },
+    ],
+    ascendant: { name: 'Ascendant', sign: 'Aries', house: 1, longitude: 0, degree: 0, minute: 0, formatted: 'Aries 0°' },
+    mc: { name: 'MC', sign: 'Capricorn', house: 10, longitude: 0, degree: 0, minute: 0, formatted: 'Capricorn 0°' },
+    houses: Array.from({ length: 12 }, (_, i) => ({ index: i + 1, cusp: i * 30, formatted: `H${i + 1}`, sign: 'Aries' })),
+  })),
+  toChart: vi.fn((chart) => ({
+    planets: chart.planets,
+    ascendant: chart.ascendant,
+    mc: chart.mc,
+    houses: chart.houses,
+  })),
+}))
+
+vi.mock('@/lib/astrology/foundation/transit', () => ({
+  calculateTransitChart: vi.fn(async () => ({
+    planets: [
+      { name: 'Saturn', sign: 'Pisces', house: 12, longitude: 0, degree: 8, minute: 0, formatted: 'Pisces 8°', speed: 0.03, retrograde: false },
+      { name: 'Mercury', sign: 'Aries', house: 1, longitude: 0, degree: 2, minute: 0, formatted: 'Aries 2°', speed: -0.4, retrograde: true },
+    ],
+    ascendant: { name: 'Ascendant', sign: 'Aries', house: 1, longitude: 0, degree: 0, minute: 0, formatted: 'Aries 0°' },
+    mc: { name: 'MC', sign: 'Capricorn', house: 10, longitude: 0, degree: 0, minute: 0, formatted: 'Capricorn 0°' },
+    houses: Array.from({ length: 12 }, (_, i) => ({ index: i + 1, cusp: i * 30, formatted: `H${i + 1}`, sign: 'Aries' })),
+  })),
+  findTransitAspects: vi.fn(() => [
+    { transitPlanet: 'Saturn', natalPoint: 'Sun', type: 'sextile', orb: 1.2 },
+    { transitPlanet: 'Mercury', natalPoint: 'Mercury', type: 'conjunction', orb: 0.4 },
+  ]),
+  findMajorTransits: vi.fn(() => [{ transitPlanet: 'Saturn', natalPoint: 'Sun', type: 'sextile', orb: 1.2 }]),
+}))
+
+vi.mock('@/lib/astrology/foundation/aspects', () => ({
+  findNatalAspects: vi.fn(() => [
+    { from: { name: 'Sun' }, to: { name: 'Moon' }, type: 'trine', orb: 2.1 },
+    { from: { name: 'Mercury' }, to: { name: 'Sun' }, type: 'conjunction', orb: 1.5 },
+  ]),
+}))
+
 vi.mock('@/app/api/calendar/lib/liteYearlyDates', () => ({
   calculateYearlyImportantDatesLite: vi.fn(),
 }))
@@ -327,6 +370,7 @@ vi.mock('@/i18n/locales/en', () => ({
 // Import after mocks
 import { GET } from '@/app/api/calendar/route'
 import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService'
 import { calculateYearlyImportantDatesLite } from '@/app/api/calendar/lib/liteYearlyDates'
 import { cacheOrCalculate } from '@/lib/cache/redis-cache'
 import { apiClient } from '@/lib/api/ApiClient'
@@ -442,6 +486,16 @@ describe('Calendar API Route - /api/calendar', () => {
 
     // Setup default mocks
     vi.mocked(calculateSajuData).mockReturnValue(mockSajuResult as any)
+    vi.mocked(calculateNatalChart).mockResolvedValue({
+      planets: [
+        { name: 'Sun', sign: 'Capricorn', house: 10, longitude: 0, degree: 15, minute: 0, formatted: 'Capricorn 15°' },
+        { name: 'Moon', sign: 'Pisces', house: 12, longitude: 0, degree: 10, minute: 0, formatted: 'Pisces 10°' },
+        { name: 'Mercury', sign: 'Capricorn', house: 10, longitude: 0, degree: 5, minute: 0, formatted: 'Capricorn 5°' },
+      ],
+      ascendant: { name: 'Ascendant', sign: 'Aries', house: 1, longitude: 0, degree: 0, minute: 0, formatted: 'Aries 0°' },
+      mc: { name: 'MC', sign: 'Capricorn', house: 10, longitude: 0, degree: 0, minute: 0, formatted: 'Capricorn 0°' },
+      houses: Array.from({ length: 12 }, (_, i) => ({ index: i + 1, cusp: i * 30, formatted: `H${i + 1}`, sign: 'Aries' })),
+    } as any)
     vi.mocked(calculateYearlyImportantDatesLite).mockReturnValue(mockImportantDates as any)
   })
 
@@ -948,7 +1002,7 @@ describe('Calendar API Route - /api/calendar', () => {
   })
 
   describe('Astro Profile Fallback', () => {
-    it('should use fallback astro profile without natal chart dependency', async () => {
+    it('should use full astrology input when natal/transit calculation succeeds', async () => {
       const request = createRequest({
         birthDate: '1990-01-15',
         birthTime: '14:30',
@@ -960,9 +1014,11 @@ describe('Calendar API Route - /api/calendar', () => {
 
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
+      expect(data.matrixInputMode).toBe('full-chart')
+      expect(data.matrixStrictMode).toBe(true)
     })
 
-    it('should determine fallback astro profile correctly for March birth dates', async () => {
+    it('should send real natal signs to AI enrichment when chart calculation succeeds', async () => {
       vi.mocked(apiClient).post.mockResolvedValueOnce({
         ok: true,
         data: {
@@ -979,15 +1035,15 @@ describe('Calendar API Route - /api/calendar', () => {
         '/api/theme/important-dates',
         expect.objectContaining({
           astro: expect.objectContaining({
-            sun_sign: 'Aries',
+            sun_sign: 'Capricorn',
             planets: expect.objectContaining({
               sun: expect.objectContaining({
-                sign: 'Aries',
+                sign: 'Capricorn',
                 degree: 15,
               }),
               moon: expect.objectContaining({
-                sign: 'Aries',
-                degree: 15,
+                sign: 'Pisces',
+                degree: 10,
               }),
             }),
           }),
@@ -996,38 +1052,19 @@ describe('Calendar API Route - /api/calendar', () => {
       )
     })
 
-    it('should determine fallback astro profile correctly for January birth dates', async () => {
-      vi.mocked(apiClient).post.mockResolvedValueOnce({
-        ok: true,
-        data: {
-          auspicious_dates: [],
-          caution_dates: [],
-        },
-      } as any)
+    it('should mark degraded mode when full astrology input fails', async () => {
+      vi.mocked(calculateNatalChart).mockRejectedValueOnce(new Error('swisseph unavailable'))
 
       const request = createRequest({ birthDate: '1990-01-05' })
 
-      await GET(request)
+      const response = await GET(request)
+      const data = await response.json()
 
-      expect(vi.mocked(apiClient).post).toHaveBeenCalledWith(
-        '/api/theme/important-dates',
-        expect.objectContaining({
-          astro: expect.objectContaining({
-            sun_sign: 'Capricorn',
-            planets: expect.objectContaining({
-              sun: expect.objectContaining({
-                sign: 'Capricorn',
-                degree: 15,
-              }),
-              moon: expect.objectContaining({
-                sign: 'Capricorn',
-                degree: 15,
-              }),
-            }),
-          }),
-        }),
-        expect.any(Object)
-      )
+      expect(response.status).toBe(200)
+      expect(data.matrixInputMode).toBe('lite')
+      expect(data.matrixStrictMode).toBe(false)
+      expect(data.degradedMode.active).toBe(true)
+      expect(data.degradedMode.reasons).toContain('astrology_input_lite')
     })
   })
 
@@ -1095,7 +1132,7 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(data.aiInsights).toBeDefined()
     })
 
-    it('should send location-aware fallback astro profile and user gender to AI enrichment', async () => {
+    it('should send location-aware astrology profile and user gender to AI enrichment', async () => {
       vi.mocked(apiClient).post.mockResolvedValueOnce({
         ok: true,
         data: {
@@ -1128,8 +1165,8 @@ describe('Calendar API Route - /api/calendar', () => {
                 degree: 15,
               }),
               moon: expect.objectContaining({
-                sign: 'Capricorn',
-                degree: 15,
+                sign: 'Pisces',
+                degree: 10,
               }),
             }),
           }),
@@ -1197,6 +1234,8 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(data).toHaveProperty('year')
       expect(data).toHaveProperty('aiEnhanced')
       expect(data).toHaveProperty('matrixStrictMode')
+      expect(data).toHaveProperty('matrixInputMode')
+      expect(data).toHaveProperty('degradedMode')
       expect(data).toHaveProperty('birthInfo')
       expect(data).toHaveProperty('summary')
       expect(data).toHaveProperty('topDates')
@@ -1234,7 +1273,7 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(data.matrixInputCoverage).toBeTruthy()
     })
 
-    it('should set matrixStrictMode to true', async () => {
+    it('should set matrixStrictMode to true in full-engine mode', async () => {
       const request = createRequest({ birthDate: '1990-01-15' })
 
       const response = await GET(request)
@@ -1242,6 +1281,9 @@ describe('Calendar API Route - /api/calendar', () => {
 
       expect(response.status).toBe(200)
       expect(data.matrixStrictMode).toBe(true)
+      expect(data.matrixInputMode).toBe('full-chart')
+      expect(data.degradedMode.active).toBe(true)
+      expect(data.degradedMode.reasons).toContain('ai_enrichment_unavailable')
     })
 
     it('should include birthInfo with date, time, and place', async () => {

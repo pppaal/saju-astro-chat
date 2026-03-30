@@ -50,6 +50,13 @@ function clampUnit(value: number): number {
   return clamp(value, 0, 1)
 }
 
+const CROSS_TIMESCALE_WEIGHTS: Record<string, number> = {
+  now: 1,
+  '1-3m': 0.92,
+  '3-6m': 0.78,
+  '6-12m': 0.64,
+}
+
 function normalizeCrossAgreementMatrix(
   raw: CrossAgreementMatrixRow[] | undefined | null
 ): CrossAgreementMatrixRow[] {
@@ -81,13 +88,54 @@ function normalizeCrossAgreementMatrix(
 }
 
 function deriveScalarCrossAgreement(matrix: CrossAgreementMatrixRow[], fallback?: number | null): number | null {
-  const matrixValues = matrix.flatMap((row) =>
-    Object.values(row.timescales || {})
-      .map((cell) => (typeof cell?.agreement === 'number' ? clampUnit(cell.agreement) : null))
-      .filter((value): value is number => value !== null)
-  )
-  if (matrixValues.length > 0) {
-    return round2(matrixValues.reduce((sum, value) => sum + value, 0) / matrixValues.length)
+  let weightedAgreementSum = 0
+  let weightedBaseSum = 0
+  let cellCount = 0
+  const coveredDomains = new Set<string>()
+
+  for (const row of matrix) {
+    const domainLeadLag =
+      typeof row.leadLag === 'number' && Number.isFinite(row.leadLag)
+        ? clamp(Math.abs(row.leadLag), 0, 1)
+        : 0
+    for (const [timescale, cell] of Object.entries(row.timescales || {})) {
+      if (!cell || typeof cell.agreement !== 'number' || !Number.isFinite(cell.agreement)) continue
+      const agreement = clampUnit(cell.agreement)
+      const contradiction =
+        typeof cell.contradiction === 'number' && Number.isFinite(cell.contradiction)
+          ? clampUnit(cell.contradiction)
+          : 0
+      const leadLag =
+        typeof cell.leadLag === 'number' && Number.isFinite(cell.leadLag)
+          ? clamp(Math.abs(cell.leadLag), 0, 1)
+          : domainLeadLag
+      const baseWeight = CROSS_TIMESCALE_WEIGHTS[timescale] || 0.58
+      const stabilityWeight = clamp(1 - contradiction * 0.55 - leadLag * 0.18, 0.32, 1)
+      const emphasisWeight = baseWeight * (0.85 + agreement * 0.15)
+      weightedAgreementSum += agreement * stabilityWeight * emphasisWeight
+      weightedBaseSum += emphasisWeight
+      cellCount += 1
+      coveredDomains.add(row.domain)
+    }
+  }
+
+  if (cellCount > 0 && weightedBaseSum > 0) {
+    const weightedAgreement = weightedAgreementSum / weightedBaseSum
+    const coverageFactor = clamp(
+      0.92 + Math.min(coveredDomains.size, 4) * 0.03 + Math.min(cellCount, 6) * 0.012,
+      0.92,
+      1
+    )
+    const matrixScore = round2(clampUnit(weightedAgreement * coverageFactor))
+
+    if (typeof fallback === 'number' && Number.isFinite(fallback)) {
+      const matrixShare = clamp(0.4 + cellCount * 0.08 + coveredDomains.size * 0.05, 0.45, 0.88)
+      return round2(
+        clampUnit(matrixScore * matrixShare + clampUnit(fallback) * (1 - matrixShare))
+      )
+    }
+
+    return matrixScore
   }
   return typeof fallback === 'number' && Number.isFinite(fallback) ? round2(clampUnit(fallback)) : null
 }

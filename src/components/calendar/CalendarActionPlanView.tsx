@@ -1460,6 +1460,39 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     todayCaution,
   ])
 
+  const engineCards = useMemo(() => {
+    return (data?.surfaceCards || [])
+      .filter((card) => ['action', 'risk', 'window', 'agreement', 'branch'].includes(card.key))
+      .map((card) => ({
+        key: card.key,
+        label: cleanText(card.label, ''),
+        summary: cleanText(card.summary, ''),
+        tag: cleanText(card.tag || '', ''),
+        details: (card.details || []).map((line) => cleanText(line, '')).filter(Boolean).slice(0, 3),
+        visual:
+          card.visual?.kind === 'agreement'
+            ? {
+                kind: 'agreement' as const,
+                agreementPercent: card.visual.agreementPercent,
+                contradictionPercent: card.visual.contradictionPercent,
+                leadLagState: card.visual.leadLagState,
+              }
+            : card.visual?.kind === 'branch'
+              ? {
+                  kind: 'branch' as const,
+                  rows: card.visual.rows
+                    .map((row) => ({
+                      label: cleanText(row.label, ''),
+                      text: cleanText(row.text, ''),
+                    }))
+                    .filter((row) => row.label && row.text),
+                }
+              : undefined,
+      }))
+      .filter((card) => card.label && card.summary)
+      .slice(0, 5)
+  }, [cleanText, data?.surfaceCards])
+
   const timelineInsight = useMemo(() => {
     if (!baseInfo) {
       return isKo
@@ -1791,6 +1824,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           todayFocus={todayFocus}
           todayInsight={todayInsight}
           todayItems={todayItems}
+          engineCards={engineCards}
           evidenceBadges={evidenceBadges}
           evidenceLines={evidenceLines}
           todayTiming={todayTiming}

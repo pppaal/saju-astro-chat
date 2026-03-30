@@ -11,6 +11,7 @@ import { createValidationErrorResponse, dateSchema } from '@/lib/api/zodValidati
 import { LIST_LIMITS, TEXT_LIMITS } from '@/lib/constants/api-limits'
 import { logger } from '@/lib/logger'
 import { checkPremiumFromDatabase } from '@/lib/stripe/premiumCache'
+import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 import { generatePrecisionTimelineWithRag } from './routePrecisionTimeline'
 import { buildActionPlanPayload } from './routeTimelineAssembly'
 import {
@@ -148,62 +149,7 @@ export type ActionPlanCalendarContext = {
   sajuFactors?: string[]
   astroFactors?: string[]
   summary?: string
-  canonicalCore?: {
-    focusDomain?: string
-    actionFocusDomain?: string
-    riskAxisLabel?: string
-    phase?: string
-    phaseLabel?: string
-    thesis?: string
-    riskControl?: string
-    primaryAction?: string
-    primaryCaution?: string
-    topDecisionLabel?: string
-    attackPercent?: number
-    defensePercent?: number
-    confidence?: number
-    judgmentPolicy?: {
-      mode?: 'execute' | 'verify' | 'prepare'
-      rationale?: string
-      allowedActions?: string[]
-      allowedActionLabels?: string[]
-      blockedActions?: string[]
-      blockedActionLabels?: string[]
-      hardStops?: string[]
-      hardStopLabels?: string[]
-      softChecks?: string[]
-      softCheckLabels?: string[]
-    }
-    topTimingWindow?: {
-      domain?: string
-      window?: 'now' | '1-3m' | '3-6m' | '6-12m' | '12m+'
-      timingGranularity?: 'day' | 'week' | 'fortnight' | 'month' | 'season'
-      precisionReason?: string
-      timingConflictNarrative?: string
-      whyNow?: string
-      entryConditions?: string[]
-      abortConditions?: string[]
-    }
-    domainTimingWindows?: Array<{
-      domain?: string
-      window?: 'now' | '1-3m' | '3-6m' | '6-12m' | '12m+'
-      timingGranularity?: 'day' | 'week' | 'fortnight' | 'month' | 'season'
-      precisionReason?: string
-      timingConflictNarrative?: string
-      whyNow?: string
-      entryConditions?: string[]
-      abortConditions?: string[]
-    }>
-    projections?: {
-      branches?: {
-        summary?: string
-        detailLines?: string[]
-        reasons?: string[]
-        nextMoves?: string[]
-        counterweights?: string[]
-      }
-    }
-  }
+  canonicalCore?: Partial<CalendarCoreAdapterResult>
   evidence?: CalendarEvidence
 } | null
 
@@ -536,6 +482,12 @@ export const POST = withApiMiddleware(
     }
 
     const { date, locale, timezone, calendar, icp, persona, intervalMinutes } = validation.data
+    const actionPlanCalendar: ActionPlanCalendarContext = calendar
+      ? {
+          ...calendar,
+          canonicalCore: calendar.canonicalCore as Partial<CalendarCoreAdapterResult> | undefined,
+        }
+      : null
     const lang = locale || (context.locale === 'ko' ? 'ko' : 'en')
     const safeInterval = intervalMinutes ?? 60
     let isPremiumUser = context.isPremium
@@ -578,20 +530,20 @@ export const POST = withApiMiddleware(
             axes: persona.axes,
           }
         : null,
-      calendar: calendar
+      calendar: actionPlanCalendar
         ? {
-            grade: getEffectiveCalendarGrade(calendar),
-            displayGrade: calendar.displayGrade,
-            score: getEffectiveCalendarScore(calendar),
-            displayScore: calendar.displayScore,
-            categories: trimList(calendar.categories, 3),
-            bestTimes: trimList(calendar.bestTimes, 4),
-            recommendations: trimList(calendar.recommendations, 3),
-            warnings: trimList(calendar.warnings, 3),
-            summary: calendar.summary,
-            sajuFactors: trimList(calendar.sajuFactors, 3),
-            astroFactors: trimList(calendar.astroFactors, 3),
-            evidence: calendar.evidence,
+            grade: getEffectiveCalendarGrade(actionPlanCalendar),
+            displayGrade: actionPlanCalendar.displayGrade,
+            score: getEffectiveCalendarScore(actionPlanCalendar),
+            displayScore: actionPlanCalendar.displayScore,
+            categories: trimList(actionPlanCalendar.categories, 3),
+            bestTimes: trimList(actionPlanCalendar.bestTimes, 4),
+            recommendations: trimList(actionPlanCalendar.recommendations, 3),
+            warnings: trimList(actionPlanCalendar.warnings, 3),
+            summary: actionPlanCalendar.summary,
+            sajuFactors: trimList(actionPlanCalendar.sajuFactors, 3),
+            astroFactors: trimList(actionPlanCalendar.astroFactors, 3),
+            evidence: actionPlanCalendar.evidence,
           }
         : null,
     })
@@ -603,20 +555,20 @@ export const POST = withApiMiddleware(
             locale: lang,
             intervalMinutes: safeInterval,
             baseTimeline,
-            calendar: calendar
+            calendar: actionPlanCalendar
               ? {
-                  grade: getEffectiveCalendarGrade(calendar),
-                  displayGrade: calendar.displayGrade,
-                  score: getEffectiveCalendarScore(calendar),
-                  displayScore: calendar.displayScore,
-                  categories: trimList(calendar.categories, 3),
-                  bestTimes: trimList(calendar.bestTimes, 3),
-                  warnings: trimList(calendar.warnings, 3),
-                  recommendations: trimList(calendar.recommendations, 3),
-                  sajuFactors: trimList(calendar.sajuFactors, 3),
-                  astroFactors: trimList(calendar.astroFactors, 3),
-                  summary: calendar.summary,
-                  evidence: calendar.evidence,
+                  grade: getEffectiveCalendarGrade(actionPlanCalendar),
+                  displayGrade: actionPlanCalendar.displayGrade,
+                  score: getEffectiveCalendarScore(actionPlanCalendar),
+                  displayScore: actionPlanCalendar.displayScore,
+                  categories: trimList(actionPlanCalendar.categories, 3),
+                  bestTimes: trimList(actionPlanCalendar.bestTimes, 3),
+                  warnings: trimList(actionPlanCalendar.warnings, 3),
+                  recommendations: trimList(actionPlanCalendar.recommendations, 3),
+                  sajuFactors: trimList(actionPlanCalendar.sajuFactors, 3),
+                  astroFactors: trimList(actionPlanCalendar.astroFactors, 3),
+                  summary: actionPlanCalendar.summary,
+                  evidence: actionPlanCalendar.evidence,
                 }
               : null,
           },
@@ -648,13 +600,15 @@ export const POST = withApiMiddleware(
     )
     const sourceTimeline = usingAiRefinement ? aiRefined!.timeline : baseTimeline
     const baselineConfidence =
-      typeof calendar?.evidence?.confidence === 'number' ? calendar.evidence.confidence : undefined
+      typeof actionPlanCalendar?.evidence?.confidence === 'number'
+        ? actionPlanCalendar.evidence.confidence
+        : undefined
 
     const responsePayload = buildActionPlanPayload(
       {
         locale: lang,
         sourceTimeline,
-        calendar,
+        calendar: actionPlanCalendar,
         icp,
         persona,
         isPremiumUser,

@@ -89,6 +89,39 @@ type BuildActionPlanPayloadInput = {
   creditCost: number
 }
 
+function buildCanonicalActionPlanLead(input: {
+  locale: 'ko' | 'en'
+  calendar?: ActionPlanCalendarContext
+}): string | null {
+  const { locale, calendar } = input
+  const canonical = calendar?.canonicalCore
+  if (!canonical) return null
+
+  const actionDomain = canonical.actionFocusDomain || canonical.focusDomain
+  const timingRow =
+    canonical.topTimingWindow ||
+    canonical.domainTimingWindows?.find((item) => item.domain === actionDomain) ||
+    canonical.domainTimingWindows?.[0]
+  const branch =
+    canonical.projections?.branches?.detailLines?.[0] ||
+    canonical.projections?.branches?.summary ||
+    canonical.projections?.branches?.nextMoves?.[0]
+
+  const parts = [
+    canonical.topDecisionLabel || canonical.primaryAction,
+    timingRow?.whyNow || timingRow?.timingConflictNarrative,
+    branch,
+    canonical.riskAxisLabel
+      ? locale === 'ko'
+        ? `${canonical.riskAxisLabel} 축 리스크를 먼저 관리`
+        : `Manage the ${canonical.riskAxisLabel} risk axis first`
+      : null,
+  ].filter(Boolean)
+
+  if (parts.length === 0) return null
+  return repairMojibakeText(parts.join(locale === 'ko' ? ' · ' : ' · ')).trim() || null
+}
+
 export function buildActionPlanPayload(
   input: BuildActionPlanPayloadInput,
   deps: TimelineAssemblyDeps
@@ -199,6 +232,10 @@ export function buildActionPlanPayload(
   })
 
   const summaryParts: string[] = []
+  const canonicalLead = buildCanonicalActionPlanLead({ locale, calendar })
+  if (canonicalLead) {
+    summaryParts.push(canonicalLead)
+  }
   if (calendar?.bestTimes?.length) {
     summaryParts.push(
       locale === 'ko'
@@ -218,7 +255,9 @@ export function buildActionPlanPayload(
     summaryParts.push(personalizationTag)
   }
   if (usingAiRefinement && aiSummary) {
-    summaryParts.push(aiSummary)
+    summaryParts.push(
+      locale === 'ko' ? `AI 미세조정: ${aiSummary}` : `AI refinement: ${aiSummary}`
+    )
   }
   if (!canUseAiPrecision) {
     summaryParts.push(

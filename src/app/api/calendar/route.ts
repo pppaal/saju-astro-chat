@@ -36,6 +36,7 @@ import {
 import { buildCalendarPresentationView } from './lib/presentationAdapter'
 import type { DomainKey, MatrixCalculationInput } from '@/lib/destiny-matrix/types'
 import type { CalendarMatrixEvidencePacketMap } from './lib/matrixEvidencePacket'
+import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 
 export const dynamic = 'force-dynamic'
 
@@ -141,6 +142,124 @@ function pickCurrentDaeunStem(
     .sort((a, b) => b.age - a.age)[0]?.heavenlyStem
 }
 
+type CalendarAstroProfile = {
+  sunSign: string
+  sunElement: string
+  birthMonth?: number
+  birthDay?: number
+  inputMode?: 'full-chart' | 'lite'
+  natalChart?: {
+    planets?: Array<{
+      name?: string
+      sign?: string
+      degree?: number
+      house?: number
+      retrograde?: boolean
+    }>
+    houses?: Array<{ index?: number; sign?: string; cusp?: number; formatted?: string }>
+  } | NatalChartData | null
+  transitChart?: {
+    planets?: Array<{
+      name?: string
+      sign?: string
+      degree?: number
+      house?: number
+      retrograde?: boolean
+    }>
+  } | null
+  natalAspects?: Array<{
+    from?: { name?: string }
+    to?: { name?: string }
+    type?: string
+    orb?: number
+  }>
+  transitAspects?: Array<{
+    transitPlanet?: string
+    natalPoint?: string
+    type?: string
+    orb?: number
+  }>
+  majorTransits?: Array<{
+    transitPlanet?: string
+    natalPoint?: string
+    type?: string
+    orb?: number
+  }>
+}
+
+const MATRIX_PLANET_NAMES = new Set<keyof MatrixCalculationInput['planetSigns']>([
+  'Sun',
+  'Moon',
+  'Mercury',
+  'Venus',
+  'Mars',
+  'Jupiter',
+  'Saturn',
+  'Uranus',
+  'Neptune',
+  'Pluto',
+])
+
+const MATRIX_ASPECT_TYPES = new Set<
+  NonNullable<MatrixCalculationInput['aspects']>[number]['type']
+>([
+  'conjunction',
+  'sextile',
+  'square',
+  'trine',
+  'opposition',
+  'semisextile',
+  'quincunx',
+  'quintile',
+  'biquintile',
+])
+
+function isMatrixPlanetName(
+  value: string | undefined
+): value is NonNullable<MatrixCalculationInput['aspects']>[number]['planet1'] {
+  return Boolean(value && MATRIX_PLANET_NAMES.has(value as keyof MatrixCalculationInput['planetSigns']))
+}
+
+function isMatrixAspectType(
+  value: string | undefined
+): value is NonNullable<MatrixCalculationInput['aspects']>[number]['type'] {
+  return Boolean(value && MATRIX_ASPECT_TYPES.has(value as NonNullable<MatrixCalculationInput['aspects']>[number]['type']))
+}
+
+function clampHouseNumber(value: number | undefined): MatrixCalculationInput['planetHouses'][keyof MatrixCalculationInput['planetHouses']] | undefined {
+  if (typeof value !== 'number' || !Number.isInteger(value)) return undefined
+  if (value < 1 || value > 12) return undefined
+  return value as MatrixCalculationInput['planetHouses'][keyof MatrixCalculationInput['planetHouses']]
+}
+
+function isDefined<T>(value: T | null | undefined): value is T {
+  return value !== null && value !== undefined
+}
+
+function buildActiveTransitCycles(
+  astroProfile: CalendarAstroProfile
+): NonNullable<MatrixCalculationInput['activeTransits']> {
+  const cycles = new Set<NonNullable<MatrixCalculationInput['activeTransits']>[number]>()
+  for (const aspect of astroProfile.majorTransits || []) {
+    if (aspect.transitPlanet === 'Saturn' && aspect.natalPoint === 'Saturn') cycles.add('saturnReturn')
+    if (aspect.transitPlanet === 'Jupiter' && aspect.natalPoint === 'Jupiter') cycles.add('jupiterReturn')
+    if (aspect.transitPlanet === 'Uranus' && aspect.type === 'square') cycles.add('uranusSquare')
+    if (aspect.transitPlanet === 'Neptune' && aspect.type === 'square') cycles.add('neptuneSquare')
+    if (aspect.transitPlanet === 'Pluto') cycles.add('plutoTransit')
+  }
+
+  for (const planet of astroProfile.transitChart?.planets || []) {
+    if (!planet?.retrograde) continue
+    if (planet.name === 'Mercury') cycles.add('mercuryRetrograde')
+    if (planet.name === 'Venus') cycles.add('venusRetrograde')
+    if (planet.name === 'Mars') cycles.add('marsRetrograde')
+    if (planet.name === 'Jupiter') cycles.add('jupiterRetrograde')
+    if (planet.name === 'Saturn') cycles.add('saturnRetrograde')
+  }
+
+  return [...cycles]
+}
+
 function buildCalendarMatrixInput(params: {
   birthDate: string
   birthTime?: string
@@ -163,10 +282,7 @@ function buildCalendarMatrixInput(params: {
       hour: { stem: string; branch: string }
     }
   }
-  astroProfile: {
-    sunSign: string
-    sunElement: string
-  }
+  astroProfile: CalendarAstroProfile
 }): MatrixCalculationInput {
   const { sajuProfile, astroProfile } = params
   const pillarElements = [
@@ -193,8 +309,60 @@ function buildCalendarMatrixInput(params: {
     ]
   )
 
-  const currentDateIso = `${params.year}-01-01`
+  const currentDateIso = `${params.year}-01-01T12:00:00`
   const dominantWesternElement = ZODIAC_TO_WESTERN_ELEMENT[astroProfile.sunSign] || 'fire'
+
+  const planetHouses: MatrixCalculationInput['planetHouses'] = {}
+  const planetSigns: MatrixCalculationInput['planetSigns'] = {}
+  for (const planet of astroProfile.natalChart?.planets || []) {
+    if (!isMatrixPlanetName(planet?.name)) continue
+    const house = clampHouseNumber(planet.house)
+    if (house) planetHouses[planet.name] = house
+    if (planet.sign && MATRIX_PLANET_NAMES.has(planet.name)) {
+      planetSigns[planet.name] = planet.sign as MatrixCalculationInput['planetSigns'][typeof planet.name]
+    }
+  }
+
+  if (!planetSigns.Sun) {
+    planetSigns.Sun = astroProfile.sunSign as MatrixCalculationInput['planetSigns']['Sun']
+  }
+  if (!planetSigns.Moon) {
+    planetSigns.Moon = astroProfile.sunSign as MatrixCalculationInput['planetSigns']['Moon']
+  }
+
+  const aspects: MatrixCalculationInput['aspects'] = (astroProfile.natalAspects || [])
+    .map((aspect) => {
+      const planet1 = aspect.from?.name
+      const planet2 = aspect.to?.name
+      const type = aspect.type
+      if (!isMatrixPlanetName(planet1) || !isMatrixPlanetName(planet2) || !isMatrixAspectType(type)) {
+        return null
+      }
+      return {
+        planet1,
+        planet2,
+        type,
+        orb: typeof aspect.orb === 'number' ? aspect.orb : undefined,
+      }
+    })
+    .filter(isDefined)
+
+  const activeTransits = buildActiveTransitCycles(astroProfile)
+
+  const asteroidHouses: MatrixCalculationInput['asteroidHouses'] = {}
+  const extraPointSigns: MatrixCalculationInput['extraPointSigns'] = {}
+  const advancedAstroSignals: NonNullable<MatrixCalculationInput['advancedAstroSignals']> = {
+    progressions: false,
+    solarReturn: false,
+    lunarReturn: false,
+    draconic: false,
+    harmonics: false,
+    fixedStars: false,
+    eclipses: false,
+    midpoints: false,
+    asteroids: Boolean(Object.keys(asteroidHouses).length),
+    extraPoints: Boolean(Object.keys(extraPointSigns).length),
+  }
 
   return {
     dayMasterElement,
@@ -207,20 +375,28 @@ function buildCalendarMatrixInput(params: {
     currentIljinDate: currentDateIso,
     shinsalList: [],
     dominantWesternElement,
-    planetHouses: {},
-    planetSigns: {
-      Sun: astroProfile.sunSign as MatrixCalculationInput['planetSigns']['Sun'],
-      Moon: astroProfile.sunSign as MatrixCalculationInput['planetSigns']['Moon'],
-    },
-    aspects: [],
-    activeTransits: [],
-    asteroidHouses: {},
-    extraPointSigns: {},
-    advancedAstroSignals: {},
+    planetHouses,
+    planetSigns,
+    aspects,
+    activeTransits,
+    asteroidHouses,
+    extraPointSigns,
+    advancedAstroSignals,
     sajuSnapshot: params.sajuResult,
     astrologySnapshot: {
+      natalChart: astroProfile.natalChart || undefined,
+      natalAspects: astroProfile.natalAspects || undefined,
       currentTransits: {
         asOfIso: currentDateIso,
+        majorTransits: astroProfile.majorTransits || undefined,
+      },
+      transits: astroProfile.transitAspects || undefined,
+      advancedCoverage: {
+        inputMode: astroProfile.inputMode || 'lite',
+        hasNatalChart: Boolean(astroProfile.natalChart),
+        hasTransitChart: Boolean(astroProfile.transitChart),
+        natalAspectCount: astroProfile.natalAspects?.length || 0,
+        transitAspectCount: astroProfile.transitAspects?.length || 0,
       },
     },
     crossSnapshot: {
@@ -231,6 +407,7 @@ function buildCalendarMatrixInput(params: {
       coverage: {
         hasAstrologySnapshot: true,
         hasSajuSnapshot: true,
+        aspectCount: aspects.length,
       },
       anchors: {
         dayMasterElement,
@@ -395,11 +572,61 @@ export const GET = withApiMiddleware(
     }
 
     const sunSign = deriveFallbackSunSign(birthDate)
-    const astroProfile = {
+    const astroProfile: CalendarAstroProfile = {
       sunSign,
       sunElement: ZODIAC_TO_ELEMENT[sunSign] || 'fire',
       birthMonth: birthDate.getMonth() + 1,
       birthDay: birthDate.getDate(),
+      inputMode: 'lite',
+    }
+    const degradationReasons: string[] = []
+    const matrixDegradationReasons: string[] = []
+
+    try {
+      const birthHour = Number.parseInt((birthTimeParam || '12:00').split(':')[0] || '12', 10)
+      const birthMinute = Number.parseInt((birthTimeParam || '12:00').split(':')[1] || '0', 10)
+      const [{ calculateNatalChart, toChart }, { calculateTransitChart, findMajorTransits, findTransitAspects }, { findNatalAspects }] =
+        await Promise.all([
+          import('@/lib/astrology/foundation/astrologyService'),
+          import('@/lib/astrology/foundation/transit'),
+          import('@/lib/astrology/foundation/aspects'),
+        ])
+
+      const natalChartData = await calculateNatalChart({
+        year: birthDate.getFullYear(),
+        month: birthDate.getMonth() + 1,
+        date: birthDate.getDate(),
+        hour: Number.isFinite(birthHour) ? birthHour : 12,
+        minute: Number.isFinite(birthMinute) ? birthMinute : 0,
+        latitude: coords.lat,
+        longitude: coords.lng,
+        timeZone: timezone,
+      })
+      const natalChart = toChart(natalChartData)
+      const transitChart = await calculateTransitChart({
+        iso: `${year}-01-01T12:00:00`,
+        latitude: coords.lat,
+        longitude: coords.lng,
+        timeZone: timezone,
+      })
+      const natalAspects = findNatalAspects(natalChart)
+      const transitAspects = findTransitAspects(transitChart, natalChart)
+      const majorTransits = findMajorTransits(transitChart, natalChart)
+
+      astroProfile.sunSign = natalChart.planets.find((planet) => planet.name === 'Sun')?.sign || sunSign
+      astroProfile.sunElement = ZODIAC_TO_ELEMENT[astroProfile.sunSign] || astroProfile.sunElement
+      astroProfile.inputMode = 'full-chart'
+      astroProfile.natalChart = natalChartData
+      astroProfile.transitChart = transitChart
+      astroProfile.natalAspects = natalAspects
+      astroProfile.transitAspects = transitAspects
+      astroProfile.majorTransits = majorTransits
+    } catch (astroError) {
+      degradationReasons.push('astrology_input_lite')
+      matrixDegradationReasons.push('astrology_input_lite')
+      logger.warn('[Calendar] full astrology input unavailable; using lite astrology profile', {
+        error: astroError instanceof Error ? astroError.message : String(astroError),
+      })
     }
 
     let matrixCalendarContext: MatrixCalendarContext = null
@@ -432,6 +659,8 @@ export const GET = withApiMiddleware(
           focusDomain?: string
         }
       | undefined
+
+    let matrixEngineAvailable = false
 
     try {
       const [
@@ -531,7 +760,10 @@ export const GET = withApiMiddleware(
         focusDomain:
           mapCoreSignalDomainToCalendarDomain(calendarCoreCanonical.focusDomain) || undefined,
       }
+      matrixEngineAvailable = true
     } catch (matrixError) {
+      degradationReasons.push('matrix_core_unavailable')
+      matrixDegradationReasons.push('matrix_core_unavailable')
       logger.warn(
         '[Calendar] destiny-matrix core unavailable; continuing with lightweight calendar',
         {
@@ -596,10 +828,23 @@ export const GET = withApiMiddleware(
       timezone: coords.tz,
       sun_sign: astroProfile.sunSign,
       planets: {
-        sun: { sign: astroProfile.sunSign, degree: 15 },
+        sun: {
+          sign:
+            astroProfile.natalChart?.planets?.find((planet) => planet?.name === 'Sun')?.sign ||
+            astroProfile.sunSign,
+          degree:
+            Number(
+              astroProfile.natalChart?.planets?.find((planet) => planet?.name === 'Sun')?.degree
+            ) || 15,
+        },
         moon: {
-          sign: astroProfile.sunSign,
-          degree: 15,
+          sign:
+            astroProfile.natalChart?.planets?.find((planet) => planet?.name === 'Moon')?.sign ||
+            astroProfile.sunSign,
+          degree:
+            Number(
+              astroProfile.natalChart?.planets?.find((planet) => planet?.name === 'Moon')?.degree
+            ) || 15,
         },
       },
     }
@@ -617,6 +862,7 @@ export const GET = withApiMiddleware(
       })
     }
     if (!aiDates && !CALENDAR_STRICT_AI_ENRICHMENT) {
+      degradationReasons.push('ai_enrichment_unavailable')
       logger.warn('[Calendar] AI date enrichment unavailable (fallback to local rules)')
     }
     const aiEnrichmentFailed = !aiDates
@@ -700,6 +946,44 @@ export const GET = withApiMiddleware(
     if (aiDates) {
       aiEnhanced = true
     }
+    const degradationReasonSet = [...new Set(degradationReasons)]
+    const matrixDegradationReasonSet = [...new Set(matrixDegradationReasons)]
+    const matrixInputMode = astroProfile.inputMode === 'full-chart' ? 'full-chart' : 'lite'
+    const degradedMode = {
+      active: degradationReasonSet.length > 0,
+      level: !matrixEngineAvailable
+        ? ('fallback-lite' as const)
+        : degradationReasonSet.length > 0
+          ? ('engine-degraded' as const)
+          : ('full-engine' as const),
+      reasons: degradationReasonSet,
+      labels:
+        locale === 'en'
+          ? degradationReasonSet.map((reason) => {
+              switch (reason) {
+                case 'astrology_input_lite':
+                  return 'Using lite astrology input instead of full natal/transit chart data.'
+                case 'matrix_core_unavailable':
+                  return 'Destiny matrix core is unavailable; lightweight calendar fallback is active.'
+                case 'ai_enrichment_unavailable':
+                  return 'AI date enrichment is unavailable; local rules are being used.'
+                default:
+                  return reason
+              }
+            })
+          : degradationReasonSet.map((reason) => {
+              switch (reason) {
+                case 'astrology_input_lite':
+                  return '풀 natal/transit 차트 대신 lite 점성 입력으로 계산했습니다.'
+                case 'matrix_core_unavailable':
+                  return 'destiny-matrix core를 사용할 수 없어 경량 캘린더 fallback으로 동작했습니다.'
+                case 'ai_enrichment_unavailable':
+                  return 'AI 날짜 보강을 사용할 수 없어 로컬 규칙으로 계산했습니다.'
+                default:
+                  return reason
+              }
+            }),
+    }
 
     const presentationDomainMap = {
       career: 'career',
@@ -767,7 +1051,9 @@ export const GET = withApiMiddleware(
       type: 'yearly',
       year,
       aiEnhanced,
-      matrixStrictMode: true,
+      matrixStrictMode: matrixEngineAvailable && matrixDegradationReasonSet.length === 0,
+      matrixInputMode,
+      degradedMode,
       matrixContract: calendarMatrixContract,
       canonicalCore: calendarCoreCanonical,
       birthInfo: {

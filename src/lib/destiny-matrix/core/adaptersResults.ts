@@ -21,6 +21,7 @@ export function adaptCoreToCalendar(
   locale: 'ko' | 'en' = 'ko'
 ): CalendarCoreAdapterResult {
   const sharedSurface = buildSharedSurface(core, locale)
+  const domainTimingWindows = buildDomainTimingWindows(core)
   return {
     coreHash: core.coreHash,
     gradeLabel: core.canonical.gradeLabel,
@@ -63,7 +64,11 @@ export function adaptCoreToCalendar(
       leadScenarioIds: [...item.leadScenarioIds],
       provenance: { ...item.provenance },
     })),
-    domainTimingWindows: buildDomainTimingWindows(core),
+    topTimingWindow:
+      domainTimingWindows.find((item) => item.domain === core.canonical.actionFocusDomain) ||
+      domainTimingWindows.find((item) => item.domain === core.canonical.focusDomain) ||
+      domainTimingWindows[0],
+    domainTimingWindows,
     manifestations: buildManifestations(core),
   }
 }
