@@ -1219,7 +1219,7 @@ describe('/api/destiny-map/chat-stream POST - Theme Context', () => {
     setupDefaultMocks()
   })
 
-  it('should inject matrix core phase/claims/caution into prompt when matrix snapshot is available', async () => {
+  it('should inject slim matrix context into prompt when matrix snapshot is available', async () => {
     const req = createNextRequest({
       ...createBasicRequest(),
       theme: 'career',
@@ -1237,14 +1237,21 @@ describe('/api/destiny-map/chat-stream POST - Theme Context', () => {
     expect(apiClient.postSSEStream).toHaveBeenCalledWith(
       '/ask-stream',
       expect.objectContaining({
-        prompt: expect.stringContaining('core_claim_ids='),
+        prompt: expect.stringContaining('theme_focus='),
       }),
       expect.any(Object)
     )
     expect(apiClient.postSSEStream).toHaveBeenCalledWith(
       '/ask-stream',
       expect.objectContaining({
-        prompt: expect.stringContaining('core_caution_signal_ids='),
+        prompt: expect.stringContaining('cross_evidence='),
+      }),
+      expect.any(Object)
+    )
+    expect(apiClient.postSSEStream).toHaveBeenCalledWith(
+      '/ask-stream',
+      expect.objectContaining({
+        prompt: expect.stringContaining('opening_rationale='),
       }),
       expect.any(Object)
     )

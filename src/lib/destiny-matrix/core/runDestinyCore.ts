@@ -1,7 +1,10 @@
 import { createHash } from 'node:crypto'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
 import type {
+  CrossAgreementDomain,
+  CrossAgreementTimescale,
   CrossAgreementMatrixRow,
+  DomainKey,
   MatrixCalculationInput,
   MatrixSummary,
 } from '@/lib/destiny-matrix/types'
@@ -57,6 +60,369 @@ const CROSS_TIMESCALE_WEIGHTS: Record<string, number> = {
   '6-12m': 0.64,
 }
 
+const SYNTHETIC_CROSS_DOMAINS: CrossAgreementDomain[] = [
+  'career',
+  'relationship',
+  'wealth',
+  'health',
+  'move',
+]
+
+const CROSS_TIMESCALES: CrossAgreementTimescale[] = ['now', '1-3m', '3-6m', '6-12m']
+
+const CROSS_DOMAIN_TO_SUMMARY_KEY: Record<CrossAgreementDomain, DomainKey | null> = {
+  career: 'career',
+  relationship: 'love',
+  wealth: 'money',
+  health: 'health',
+  move: 'move',
+  personality: null,
+  spirituality: null,
+  timing: null,
+}
+
+function normalizeScoreToUnit(raw: unknown): number | null {
+  if (typeof raw !== 'number' || !Number.isFinite(raw)) return null
+  if (raw <= 1) return clampUnit(raw)
+  if (raw <= 10) return clampUnit(raw / 10)
+  return clampUnit(raw / 100)
+}
+
+function round3(value: number): number {
+  return Math.round(value * 1000) / 1000
+}
+
+function monthDiff(fromIso: string | undefined, targetMonth: string | undefined): number | null {
+  if (!fromIso || !targetMonth) return null
+  const from = /^(\d{4})-(\d{2})/.exec(fromIso)
+  const target = /^(\d{4})-(\d{2})/.exec(targetMonth)
+  if (!from || !target) return null
+  const fromYear = Number(from[1])
+  const fromMonth = Number(from[2])
+  const targetYear = Number(target[1])
+  const targetMonthNum = Number(target[2])
+  if (![fromYear, fromMonth, targetYear, targetMonthNum].every(Number.isFinite)) return null
+  return (targetYear - fromYear) * 12 + (targetMonthNum - fromMonth)
+}
+
+function getRelevantSibsinCount(
+  distribution: MatrixCalculationInputNormalized['sibsinDistribution'],
+  keys: string[]
+): number {
+  return keys.reduce((sum, key) => {
+    const value = distribution[key as keyof typeof distribution]
+    return sum + (typeof value === 'number' && Number.isFinite(value) ? value : 0)
+  }, 0)
+}
+
+function countPlanetsInHouses(
+  houses: MatrixCalculationInputNormalized['planetHouses'],
+  targetHouses: number[]
+): number {
+  return Object.values(houses).filter(
+    (house) => typeof house === 'number' && targetHouses.includes(house)
+  ).length
+}
+
+function countTransitMatches(
+  activeTransits: MatrixCalculationInputNormalized['activeTransits'],
+  keys: string[]
+): number {
+  return activeTransits.filter((item) => keys.includes(String(item))).length
+}
+
+function computeHeuristicSajuSupport(
+  input: MatrixCalculationInputNormalized,
+  domain: CrossAgreementDomain
+): number {
+  if (domain === 'career') {
+    const sibsin = getRelevantSibsinCount(input.sibsinDistribution, [
+      'jeonggwan',
+      'pyeongwan',
+      'siksin',
+      'sanggwan',
+    ])
+    return clampUnit(0.2 + (input.geokguk ? 0.14 : 0) + (input.currentDaeunElement ? 0.12 : 0) + sibsin * 0.08)
+  }
+  if (domain === 'relationship') {
+    return clampUnit(
+      0.18 +
+        Math.min(0.3, input.relations.length * 0.08) +
+        Math.min(0.12, input.shinsalList.length * 0.02)
+    )
+  }
+  if (domain === 'wealth') {
+    const sibsin = getRelevantSibsinCount(input.sibsinDistribution, ['jeongjae', 'pyeonjae'])
+    return clampUnit(0.18 + (input.yongsin ? 0.16 : 0) + (input.geokguk ? 0.06 : 0) + sibsin * 0.1)
+  }
+  if (domain === 'health') {
+    return clampUnit(
+      0.22 +
+        (input.currentSaeunElement ? 0.14 : 0) +
+        (input.currentWolunElement ? 0.12 : 0) +
+        (input.currentIljinElement ? 0.08 : 0)
+    )
+  }
+  if (domain === 'move') {
+    const moveShinsal = input.shinsalList.some((item) => String(item) === '역마')
+    return clampUnit(
+      0.18 +
+        (moveShinsal ? 0.2 : 0) +
+        (input.currentWolunElement ? 0.08 : 0) +
+        Math.min(0.18, input.activeTransits.length * 0.04)
+    )
+  }
+  return 0.5
+}
+
+function computeHeuristicAstroSupport(
+  input: MatrixCalculationInputNormalized,
+  domain: CrossAgreementDomain
+): number {
+  if (domain === 'career') {
+    const houseHits = countPlanetsInHouses(input.planetHouses, [6, 10])
+    const transitHits = countTransitMatches(input.activeTransits, ['saturnReturn', 'jupiterReturn'])
+    return clampUnit(0.18 + houseHits * 0.12 + transitHits * 0.12 + Math.min(0.14, input.aspects.length * 0.02))
+  }
+  if (domain === 'relationship') {
+    const houseHits = countPlanetsInHouses(input.planetHouses, [5, 7])
+    return clampUnit(0.2 + houseHits * 0.12 + Math.min(0.22, input.aspects.length * 0.04))
+  }
+  if (domain === 'wealth') {
+    const houseHits = countPlanetsInHouses(input.planetHouses, [2, 8, 11])
+    const transitHits = countTransitMatches(input.activeTransits, ['jupiterReturn', 'venusRetrograde'])
+    return clampUnit(0.16 + houseHits * 0.11 + transitHits * 0.1 + Math.min(0.12, input.aspects.length * 0.02))
+  }
+  if (domain === 'health') {
+    const houseHits = countPlanetsInHouses(input.planetHouses, [6, 12])
+    const transitHits = countTransitMatches(input.activeTransits, [
+      'saturnReturn',
+      'marsRetrograde',
+      'saturnRetrograde',
+    ])
+    return clampUnit(0.18 + houseHits * 0.1 + transitHits * 0.12 + Math.min(0.12, input.aspects.length * 0.02))
+  }
+  if (domain === 'move') {
+    const houseHits = countPlanetsInHouses(input.planetHouses, [3, 4, 9])
+    const transitHits = countTransitMatches(input.activeTransits, ['uranusSquare', 'eclipse', 'plutoTransit'])
+    return clampUnit(0.16 + houseHits * 0.1 + transitHits * 0.12 + Math.min(0.12, input.aspects.length * 0.02))
+  }
+  return 0.5
+}
+
+function resolveReportDomainSupport(report: FusionReport, domain: CrossAgreementDomain): number | null {
+  const aliases: Record<CrossAgreementDomain, string[]> = {
+    career: ['career'],
+    relationship: ['relationship', 'love'],
+    wealth: ['wealth', 'money'],
+    health: ['health'],
+    move: ['move', 'mobility'],
+    personality: ['personality'],
+    spirituality: ['spirituality'],
+    timing: ['timing'],
+  }
+  const hit = (report.domainAnalysis || []).find((item) =>
+    aliases[domain].includes(String((item as { domain?: string }).domain || '').toLowerCase())
+  ) as { score?: number } | undefined
+  return normalizeScoreToUnit(hit?.score)
+}
+
+function resolveAstroTimingByTimescale(
+  input: MatrixCalculationInputNormalized,
+  timescale: CrossAgreementTimescale
+): number {
+  const astroTiming = input.crossSnapshot?.astroTimingIndex || input.astroTimingIndex
+  if (!astroTiming) return 0.5
+  if (timescale === 'now') {
+    return clampUnit(astroTiming.daily * 0.65 + astroTiming.monthly * 0.35)
+  }
+  if (timescale === '1-3m') {
+    return clampUnit(astroTiming.monthly * 0.7 + astroTiming.annual * 0.3)
+  }
+  if (timescale === '3-6m') {
+    return clampUnit(astroTiming.annual * 0.65 + astroTiming.monthly * 0.2 + astroTiming.decade * 0.15)
+  }
+  return clampUnit(astroTiming.annual * 0.45 + astroTiming.decade * 0.55)
+}
+
+function resolveSajuTimingByTimescale(
+  input: MatrixCalculationInputNormalized,
+  timescale: CrossAgreementTimescale
+): number {
+  if (timescale === 'now') {
+    return clampUnit(
+      0.26 +
+        (input.currentIljinElement || input.currentIljinDate ? 0.34 : 0) +
+        (input.currentWolunElement ? 0.16 : 0) +
+        (input.currentSaeunElement ? 0.08 : 0)
+    )
+  }
+  if (timescale === '1-3m') {
+    return clampUnit(
+      0.3 +
+        (input.currentWolunElement ? 0.28 : 0) +
+        (input.currentSaeunElement ? 0.16 : 0) +
+        (input.currentIljinElement ? 0.08 : 0)
+    )
+  }
+  if (timescale === '3-6m') {
+    return clampUnit(
+      0.34 +
+        (input.currentSaeunElement ? 0.26 : 0) +
+        (input.currentDaeunElement ? 0.14 : 0) +
+        (input.currentWolunElement ? 0.08 : 0)
+    )
+  }
+  return clampUnit(0.38 + (input.currentDaeunElement ? 0.28 : 0) + (input.currentSaeunElement ? 0.12 : 0))
+}
+
+function resolveTimelineProximity(
+  points: MatrixSummary['overlapTimelineByDomain'][DomainKey] | undefined,
+  currentDateIso: string | undefined,
+  timescale: CrossAgreementTimescale
+): number {
+  if (!points?.length) return 0.45
+  const ranges: Record<CrossAgreementTimescale, [number, number]> = {
+    now: [0, 1],
+    '1-3m': [0, 3],
+    '3-6m': [2, 6],
+    '6-12m': [5, 12],
+  }
+  const [minDiff, maxDiff] = ranges[timescale]
+  let best = 0.25
+  for (const point of points) {
+    const diff = monthDiff(currentDateIso, point.month)
+    if (diff === null) continue
+    const absDiff = Math.abs(diff)
+    if (absDiff < minDiff || absDiff > maxDiff) continue
+    const closeness = 1 - (absDiff - minDiff) / Math.max(1, maxDiff - minDiff + 1)
+    best = Math.max(best, clampUnit(point.overlapStrength * 0.78 + closeness * 0.22))
+  }
+  return best
+}
+
+function buildSyntheticCrossAgreementMatrix(input: {
+  normalizedInput: MatrixCalculationInputNormalized
+  matrixSummary?: MatrixSummary
+  matrixReport: FusionReport
+}): CrossAgreementMatrixRow[] {
+  const rows: CrossAgreementMatrixRow[] = []
+
+  for (const domain of SYNTHETIC_CROSS_DOMAINS) {
+    const summaryKey = CROSS_DOMAIN_TO_SUMMARY_KEY[domain]
+    const domainScore = summaryKey ? input.matrixSummary?.domainScores?.[summaryKey] : undefined
+    const overlapPoints = summaryKey ? input.matrixSummary?.overlapTimelineByDomain?.[summaryKey] : undefined
+    const reportSupport = resolveReportDomainSupport(input.matrixReport, domain)
+    const sajuSupport = clampUnit(
+      domainScore?.sajuComponentScore ?? computeHeuristicSajuSupport(input.normalizedInput, domain)
+    )
+    const astroSupport = clampUnit(
+      domainScore?.astroComponentScore ?? computeHeuristicAstroSupport(input.normalizedInput, domain)
+    )
+    const overlapStrength = clampUnit(
+      overlapPoints?.[0]?.overlapStrength ?? domainScore?.overlapStrength ?? input.matrixSummary?.overlapStrength ?? 0.45
+    )
+    const confidence = clampUnit(
+      domainScore?.confidenceScore ??
+        ((reportSupport ?? 0.5) * 0.4 + overlapStrength * 0.25 + 0.3)
+    )
+    const semanticBridge = clampUnit(1 - Math.abs(sajuSupport - astroSupport))
+    const alignmentScore = clampUnit(
+      domainScore?.alignmentScore ??
+        semanticBridge * 0.6 + (reportSupport ?? semanticBridge) * 0.25 + overlapStrength * 0.15
+    )
+    const evidenceDensity = clampUnit(
+      (summaryKey && domainScore ? 0.24 : 0) +
+        Math.min(0.18, (overlapPoints?.length || 0) * 0.06) +
+        Math.min(0.14, input.normalizedInput.aspects.length * 0.015) +
+        Math.min(0.16, input.normalizedInput.relations.length * 0.04) +
+        Math.min(0.12, input.normalizedInput.activeTransits.length * 0.03) +
+        (reportSupport !== null ? 0.12 : 0)
+    )
+
+    const domainStrength = clampUnit(
+      alignmentScore * 0.36 +
+        semanticBridge * 0.24 +
+        ((sajuSupport + astroSupport) / 2) * 0.22 +
+        overlapStrength * 0.1 +
+        confidence * 0.08
+    )
+    if (domainStrength < 0.33) continue
+
+    const timescales = {} as CrossAgreementMatrixRow['timescales']
+    let leadLagAccumulator = 0
+    let leadLagCount = 0
+
+    for (const timescale of CROSS_TIMESCALES) {
+      const sajuTiming = resolveSajuTimingByTimescale(input.normalizedInput, timescale)
+      const astroTiming = resolveAstroTimingByTimescale(input.normalizedInput, timescale)
+      const proximity = resolveTimelineProximity(
+        overlapPoints,
+        input.normalizedInput.currentDateIso,
+        timescale
+      )
+      const timingParity = clampUnit(1 - Math.abs(astroTiming - sajuTiming))
+      const contradiction = clampUnit(
+        Math.abs(sajuSupport - astroSupport) * 0.48 +
+          (1 - alignmentScore) * 0.24 +
+          Math.abs(astroTiming - sajuTiming) * 0.18 +
+          Math.max(0, 0.52 - proximity) * 0.1
+      )
+      const agreement = clampUnit(
+        domainStrength * 0.58 +
+          timingParity * 0.16 +
+          proximity * 0.12 +
+          confidence * 0.08 +
+          (reportSupport ?? domainStrength) * 0.06 -
+          contradiction * 0.1 +
+          evidenceDensity * 0.08
+      )
+      const leadLag = round3(clamp(astroTiming - sajuTiming, -1, 1))
+      timescales[timescale] = {
+        agreement: round3(agreement),
+        contradiction: round3(contradiction),
+        leadLag,
+      }
+      leadLagAccumulator += leadLag
+      leadLagCount += 1
+    }
+
+    rows.push({
+      domain,
+      timescales,
+      leadLag: leadLagCount > 0 ? round3(leadLagAccumulator / leadLagCount) : undefined,
+    })
+  }
+
+  return rows
+}
+
+function mergeCrossAgreementMatrices(
+  primary: CrossAgreementMatrixRow[],
+  fallback: CrossAgreementMatrixRow[]
+): CrossAgreementMatrixRow[] {
+  if (primary.length > 0) {
+    const fallbackByDomain = new Map(fallback.map((row) => [row.domain, row]))
+    return primary.map((row) => {
+      const fallbackRow = fallbackByDomain.get(row.domain)
+      return {
+        domain: row.domain,
+        timescales: {
+          ...(fallbackRow?.timescales || {}),
+          ...(row.timescales || {}),
+        },
+        leadLag: typeof row.leadLag === 'number' ? row.leadLag : fallbackRow?.leadLag,
+      }
+    })
+  }
+
+  const merged = new Map<CrossAgreementDomain, CrossAgreementMatrixRow>()
+  for (const row of fallback) {
+    merged.set(row.domain, row)
+  }
+  return [...merged.values()]
+}
+
 function normalizeCrossAgreementMatrix(
   raw: CrossAgreementMatrixRow[] | undefined | null
 ): CrossAgreementMatrixRow[] {
@@ -110,7 +476,7 @@ function deriveScalarCrossAgreement(matrix: CrossAgreementMatrixRow[], fallback?
           ? clamp(Math.abs(cell.leadLag), 0, 1)
           : domainLeadLag
       const baseWeight = CROSS_TIMESCALE_WEIGHTS[timescale] || 0.58
-      const stabilityWeight = clamp(1 - contradiction * 0.55 - leadLag * 0.18, 0.32, 1)
+      const stabilityWeight = clamp(1 - contradiction * 0.68 - leadLag * 0.26, 0.24, 1)
       const emphasisWeight = baseWeight * (0.85 + agreement * 0.15)
       weightedAgreementSum += agreement * stabilityWeight * emphasisWeight
       weightedBaseSum += emphasisWeight
@@ -662,8 +1028,17 @@ export function computeDestinyCoreHash(input: {
 
 export function runDestinyCore(params: RunDestinyCoreParams): DestinyCoreResult {
   const normalizedInput = buildNormalizedMatrixInput(normalizeMatrixInput(params.matrixInput))
-  const crossAgreementMatrix = normalizeCrossAgreementMatrix(
+  const rawCrossAgreementMatrix = normalizeCrossAgreementMatrix(
     normalizedInput.crossSnapshot?.crossAgreementMatrix
+  )
+  const syntheticCrossAgreementMatrix = buildSyntheticCrossAgreementMatrix({
+    normalizedInput,
+    matrixSummary: params.matrixSummary,
+    matrixReport: params.matrixReport,
+  })
+  const crossAgreementMatrix = mergeCrossAgreementMatrices(
+    rawCrossAgreementMatrix,
+    syntheticCrossAgreementMatrix
   )
   const crossAgreement = deriveScalarCrossAgreement(
     crossAgreementMatrix,

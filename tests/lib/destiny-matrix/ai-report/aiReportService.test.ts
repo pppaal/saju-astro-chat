@@ -460,7 +460,7 @@ describe('generateAIPremiumReport', () => {
     expect(timing.meta.qualityMetrics?.coreQualityScore || 0).toBeGreaterThan(0)
     expect(timing.meta.qualityMetrics?.coreQualityGrade).toMatch(/[ABCD]/)
     expect(timing.sections.overview).toMatch(
-      /(함께 참고해도 되는 편입니다|참고할 만하지만|큰 흐름 중심으로 참고하는 편이 맞습니다|세부 타이밍은 한 번 더 확인하는 편이 좋습니다)/
+      /(함께 참고해도 되는 편입니다|참고할 만하지만|큰 흐름 중심으로 참고하는 편이 맞습니다|세부 타이밍은 한 번 더 확인하는 편이 좋습니다|순서를 잘 나눠서 이기는 날입니다)/
     )
     expect(timing.sections.overview).toMatch(/(함께 본 결과입니다|교차 근거 묶음|규칙 판정)/)
     expect((timing.coreHash || '').length).toBeGreaterThan(0)
@@ -509,7 +509,7 @@ describe('generateAIPremiumReport', () => {
     expect(themed.meta.qualityMetrics?.coreQualityScore || 0).toBeGreaterThan(0)
     expect(themed.meta.qualityMetrics?.coreQualityGrade).toMatch(/[ABCD]/)
     expect(themed.sections.deepAnalysis).toMatch(
-      /(함께 참고해도 되는 편입니다|참고할 만하지만|큰 흐름 중심으로 참고하는 편이 맞습니다|세부 타이밍은 한 번 더 확인하는 편이 좋습니다)/
+      /(함께 참고해도 되는 편입니다|참고할 만하지만|큰 흐름 중심으로 참고하는 편이 맞습니다|세부 타이밍은 한 번 더 확인하는 편이 좋습니다|순서를 잘 나눠서 이기는 날입니다)/
     )
     expect(themed.sections.deepAnalysis).toMatch(/(함께 본 결과입니다|교차 근거 묶음|규칙 판정)/)
     expect((themed.coreHash || '').length).toBeGreaterThan(0)
@@ -867,3 +867,4 @@ describe('sanitizeSectionNarrative', () => {
     expect(cleaned).not.toContain('타로')
   })
 })
+

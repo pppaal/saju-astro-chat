@@ -161,6 +161,12 @@ function reinforceNarrativeSection(
   return deps.formatNarrativeParagraphs(deps.sanitizeUserFacingNarrative(out), lang)
 }
 
+function hasSubstantialNarrative(base: string | undefined | null, lang: Lang): boolean {
+  const normalized = String(base || '').trim()
+  if (!normalized) return false
+  return normalized.length >= (lang === 'ko' ? 240 : 180)
+}
+
 export function enrichComprehensiveSectionsWithReportCore(
   sections: AIPremiumReport['sections'],
   reportCore: ReportCoreViewModel,
@@ -366,16 +372,43 @@ export function enrichComprehensiveSectionsWithReportCore(
       false,
       false
     ),
-    timingAdvice: deps.ensureLongSectionNarrative(
-      deps.renderTimingAdviceSection(reportCore, matrixInput, lang),
-      lang === 'ko' ? 950 : 680,
-      sectionSupplements.timingAdvice || []
-    ),
-    actionPlan: deps.ensureLongSectionNarrative(
-      deps.renderActionPlanSection(reportCore, matrixInput, lang),
-      lang === 'ko' ? 900 : 650,
-      sectionSupplements.actionPlan || []
-    ),
+    timingAdvice: hasSubstantialNarrative(sections.timingAdvice, lang)
+      ? reinforceNarrativeSection(
+          sections.timingAdvice,
+          [
+            focusTiming ? deps.buildTimingWindowNarrative(focusTiming.domain, focusTiming, lang) : '',
+            reportCore.primaryCaution,
+          ],
+          [
+            focusAdvisory?.strategyLine || '',
+            ...(sectionSupplements.timingAdvice || []),
+          ],
+          lang,
+          lang === 'ko' ? 950 : 680,
+          deps
+        )
+      : deps.ensureLongSectionNarrative(
+          deps.renderTimingAdviceSection(reportCore, matrixInput, lang),
+          lang === 'ko' ? 950 : 680,
+          sectionSupplements.timingAdvice || []
+        ),
+    actionPlan: hasSubstantialNarrative(sections.actionPlan, lang)
+      ? reinforceNarrativeSection(
+          sections.actionPlan,
+          [reportCore.primaryAction, reportCore.riskControl],
+          [
+            focusAdvisory?.action || '',
+            ...(sectionSupplements.actionPlan || []),
+          ],
+          lang,
+          lang === 'ko' ? 900 : 650,
+          deps
+        )
+      : deps.ensureLongSectionNarrative(
+          deps.renderActionPlanSection(reportCore, matrixInput, lang),
+          lang === 'ko' ? 900 : 650,
+          sectionSupplements.actionPlan || []
+        ),
     conclusion: deps.buildNarrativeSectionFromCore(
       [
         buildComprehensiveSectionHookLocal('conclusion', lang),

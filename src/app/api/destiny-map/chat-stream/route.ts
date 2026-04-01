@@ -201,8 +201,8 @@ export async function POST(req: NextRequest) {
         theme: preparedExecution.promptTheme,
         prompt: preparedExecution.chatPrompt,
         locale: preparedInputs.lang,
-        saju: preparedInputs.effectiveSaju || undefined,
-        astro: preparedInputs.effectiveAstro || undefined,
+        saju: preparedExecution.backendSaju || preparedInputs.effectiveSaju || undefined,
+        astro: preparedExecution.backendAstro || preparedInputs.effectiveAstro || undefined,
         birth: {
           date: preparedInputs.effectiveBirthDate,
           time: preparedInputs.effectiveBirthTime,

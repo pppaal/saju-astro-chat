@@ -28,6 +28,27 @@ export function sanitizeCounselorFreeText(
   if (lang !== 'ko') return value
 
   return value
+    .replace(/배경 구조축/g, '삶의 배경 흐름')
+    .replace(/전면 행동축/g, '지금 먼저 움직여야 할 영역')
+    .replace(/행동축/g, '실제 행동 방향')
+    .replace(/중심축/g, '중심 흐름')
+    .replace(/리스크축/g, '가장 조심해야 할 변수')
+    .replace(/identity axis/gi, 'background flow')
+    .replace(/action axis/gi, 'action direction')
+    .replace(/risk axis/gi, 'main risk')
+    .replace(/\bList leverage points\b/gi, '\uC9C0\uB81B\uB300 \uC870\uAC74\uC744 \uBA3C\uC800 \uC815\uB9AC\uD558\uAE30')
+    .replace(
+      /\bNegotiate role and compensation together\b/gi,
+      '\uC5ED\uD560\uACFC \uBCF4\uC0C1 \uC870\uAC74\uC744 \uD568\uAED8 \uD611\uC758\uD558\uAE30'
+    )
+    .replace(
+      /\bDelay signature until scope is fixed\b/gi,
+      '\uBC94\uC704\uAC00 \uACE0\uC815\uB418\uAE30 \uC804\uC5D0\uB294 \uC11C\uBA85\uC744 \uBBF8\uB8E8\uAE30'
+    )
+    .replace(
+      /\bExpansion without role clarity can create delivery strain\./gi,
+      '\uC5ED\uD560 \uC120\uBA85\uB3C4 \uC5C6\uC774 \uD655\uC7A5\uD558\uBA74 \uC2E4\uD589 \uBD80\uB2F4\uC774 \uCEE4\uC9C8 \uC218 \uC788\uC2B5\uB2C8\uB2E4.'
+    )
     .replace(/\bpersonality\b/gi, '성향')
     .replace(/\bcareer\b/gi, '커리어')
     .replace(/\brelationship\b/gi, '관계')
@@ -123,6 +144,20 @@ export function sanitizeCounselorFreeText(
     .replace(/건강와/g, '건강과')
     .replace(/밀는/g, '미는')
     .replace(/편이 맞습니다\.입니다\./g, '편이 맞습니다.')
+    .replace(/\uD328\uD134\s+\uD328\uD134/gi, '\uD328\uD134')
+    .replace(/\uCEE4\uB9AC\uC5B4\uC774/g, '\uCEE4\uB9AC\uC5B4\uB294')
+    .replace(/\uAD00\uACC4\uC774/g, '\uAD00\uACC4\uB294')
+    .replace(/\uC7AC\uC815\uC774/g, '\uC7AC\uC815\uC740')
+    .replace(/\uAC74\uAC15\uC774/g, '\uAC74\uAC15\uC740')
+    .replace(/\uAC83\uAC00 \uB9DE\uC73C\uBA74/g, '\uAC83\uC774 \uB9DE\uC73C\uBA74')
+    .replace(/\uC810\uC131 \uCABD\uC5D0\uC11C\uB294 \uC810\uC131 \uCABD\uC740/g, '\uC810\uC131 \uCABD\uC5D0\uC11C\uB294')
+    .replace(/\uC0AC\uC8FC \uCABD\uC5D0\uC11C\uB294 \uCEE4\uB9AC\uC5B4\uC5D0\uC11C\uB294/g, '\uC0AC\uC8FC \uCABD\uC5D0\uC11C\uB294 \uCEE4\uB9AC\uC5B4\uC5D0\uC11C')
+    .replace(/\uCEE4\uB9AC\uC5B4\uB294 \uCEE4\uB9AC\uC5B4 \uC601\uC5ED\uC740/g, '\uCEE4\uB9AC\uC5B4 \uC601\uC5ED\uC740')
+    .replace(/\uD2B8\uB79C\uC9D3\uAC00/g, '\uD2B8\uB79C\uC9D3\uC774')
+    .replace(/\uC0AC\uC8FC \uCABD\uC5D0\uC11C\uB294 \uC5ED\uD560\uACFC \uCC45\uC784\uC120\uC774 \uC0AC\uC8FC \uCABD\uC5D0\uC11C\uB294/g, '\uC0AC\uC8FC \uCABD\uC5D0\uC11C\uB294 \uC5ED\uD560\uACFC \uCC45\uC784\uC120\uC774')
+    .replace(/\uC810\uC131 \uCABD\uC5D0\uC11C\uB294 \uCEE4\uB9AC\uC5B4 \uD2B8\uB9AC\uAC70\uAC00 \uC810\uC131 \uCABD\uC5D0\uC11C\uB294/g, '\uC810\uC131 \uCABD\uC5D0\uC11C\uB294 \uCEE4\uB9AC\uC5B4 \uD2B8\uB9AC\uAC70\uAC00')
+    .replace(/\uADF8\uB798\uC11C \uCEE4\uB9AC\uC5B4 \uD310\uB2E8\uC740 \uCEE4\uB9AC\uC5B4 \uAE30\uC900\uC73C\uB85C \uC7A1\uB294 \uD3B8\uC774 \uB9DE\uC2B5\uB2C8\uB2E4/g, '\uADF8\uB798\uC11C \uCEE4\uB9AC\uC5B4 \uD310\uB2E8\uC740 \uCEE4\uB9AC\uC5B4 \uAE30\uC900\uC73C\uB85C \uC7A1\uB294 \uD3B8\uC774 \uB9DE\uC2B5\uB2C8\uB2E4')
+    .replace(/\.\s*\./g, '.')
     .replace(/\s+/g, ' ')
     .trim()
 }
@@ -221,3 +256,4 @@ export function formatTransitLabels(
   if (labels.length === 1) return labels[0]
   return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`
 }
+

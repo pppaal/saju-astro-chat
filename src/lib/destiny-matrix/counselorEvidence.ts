@@ -1,4 +1,4 @@
-﻿import type { FusionReport, InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
+import type { FusionReport, InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
 import type { MatrixCalculationInput, MatrixSummary } from '@/lib/destiny-matrix/types'
 import {
   buildGraphRAGEvidence,
@@ -7,6 +7,11 @@ import {
   type GraphRAGDomain,
 } from '@/lib/destiny-matrix/ai-report/graphRagEvidence'
 import type { ReportEvidenceRef } from '@/lib/destiny-matrix/ai-report/evidenceRefs'
+import type {
+  AdapterBranchCandidate,
+  AdapterMatrixViewRow,
+  AdapterSingleUserModel,
+} from '@/lib/destiny-matrix/core/adaptersTypes'
 import type {
   NormalizedSignal,
   SignalDomain,
@@ -40,6 +45,7 @@ import {
 import {
   buildCounselorArbitrationLine,
   buildCounselorCrossSystemSummary,
+  buildCounselorWhyStack,
   buildCounselorVerdictContext,
   buildCounselorVerdictLead,
   buildCounselorVerdictTimingLine,
@@ -95,6 +101,9 @@ export interface CounselorEvidencePacket {
   focusDomain: string
   actionFocusDomain?: string
   riskAxisLabel?: string
+  matrixView?: AdapterMatrixViewRow[]
+  branchSet?: AdapterBranchCandidate[]
+  singleUserModel?: AdapterSingleUserModel
   timingMatrix?: Array<{
     domain: string
     label: string
@@ -221,6 +230,9 @@ export type CounselorProjectionBlock = {
 type CounselorEvidencePacketLike = {
   focusDomain?: string
   riskAxisLabel?: string
+  matrixView?: CounselorEvidencePacket['matrixView']
+  branchSet?: CounselorEvidencePacket['branchSet']
+  singleUserModel?: CounselorEvidencePacket['singleUserModel']
   timingMatrix?: CounselorEvidencePacket['timingMatrix']
   verdict?: string
   guardrail?: string
@@ -345,161 +357,161 @@ function buildDomainSpecificWhyReasons(input: {
       saju:
         yongsin && currentDaeunElement
           ? yongsin === currentDaeunElement
-            ? `현재 대운 오행이 용신(${yongsin})과 맞물려 관계를 밀 때와 멈출 때의 기준이 비교적 또렷합니다.`
-            : `현재 대운 오행(${currentDaeunElement})과 용신(${yongsin})이 어긋나 있어 감정보다 관계의 거리와 기준을 먼저 봐야 합니다.`
-          : `관계에서는 감정보다 기대치와 경계가 어떻게 굳어 있는지가 기본 체질을 만듭니다.`,
+            ? `?? ??? ?? ?? ??? ?? ???? ???? ??? ?? ?????.`
+            : `?? ?? ?? ?? ??? ???? ???? ?? ??? ?????.`
+          : `??? ?? ?? ?? ???? ?? ???? ?? ??? ???? ?? ????.`,
       astro:
         activeTransits.length > 0
-          ? `${formatTransitLabels(activeTransits, lang)} 같은 현재 변수가 대화 속도와 오해 가능성을 직접 흔들고 있습니다.`
-          : `점성 쪽은 누가 먼저 열리고, 어디서 반응이 엇갈리는지 같은 타이밍 변수를 보여줍니다.`,
+          ? `${formatTransitLabels(activeTransits, lang)}? ?? ??? ?? ???? ??? ??? ?? ?????.`
+          : `?? ? ?? ??? ????, ??? ??? ???? ??? ?? ? ????.`,
       cross:
         strategyLine ||
         answerThesis ||
         graphFocusReason ||
-        '관계는 감정의 강도보다 대화 순서와 확인 방식이 결과를 바꾸는 축으로 겹칩니다.',
+        '??? ???? ?? ??? ?? ??? ?? ??? ????? ????.',
       graph:
         graphReason ||
-        '상위 근거 묶음은 관계에서 말의 순서, 경계, 재확인 포인트가 가장 촘촘히 겹치는 장면을 먼저 잡습니다.',
+        '?? ??? ?? ???? ?? ??? ?? ??? ?? ?????.',
     },
     career: {
       saju:
         yongsin && currentDaeunElement
           ? yongsin === currentDaeunElement
-            ? `현재 대운 오행이 용신(${yongsin})과 맞아 역할 확장이나 책임 증가를 감당할 체력이 붙는 흐름입니다.`
-            : `현재 대운 오행(${currentDaeunElement})과 용신(${yongsin})이 어긋나 있어 성과보다 역할·범위 정리가 먼저입니다.`
-          : `커리어에서는 어떤 역할을 맡아도 버틸 구조인지가 기본 체질을 만듭니다.`,
+            ? `?? ??? ?? ?? ??? ??? ??? ?? ??? ?? ?????.`
+            : `?? ?? ?? ?? ???? ???? ?? ??? ??? ??? ?????.`
+          : `??? ?? ?? ?? ?? ?? ?? ??? ???? ??? ?? ????.`,
       astro:
         activeTransits.length > 0
-          ? `${formatTransitLabels(activeTransits, lang)} 같은 현재 변수가 마감, 평가, 조율 속도를 바꾸고 있습니다.`
-          : `점성 쪽은 언제 책임이 늘고, 언제 일정 변수로 흔들리는지 보여줍니다.`,
+          ? `${formatTransitLabels(activeTransits, lang)}? ?? ??? ??? ??? ???, ?? ??? ?? ??? ?? ???? ???.`
+          : `?? ? ??? ????, ??? ?? ??? ?? ??? ??? ?? ????.`,
       cross:
         strategyLine ||
         answerThesis ||
         graphFocusReason ||
-        '커리어는 가능성보다 역할, 책임 범위, 마감 기준을 먼저 고정해야 하는 축으로 근거가 모입니다.',
+        '???? ?? ???? ?? ??? ?? ??? ?? ???? ??? ?????.',
       graph:
         graphReason ||
-        '상위 근거 묶음은 커리어에서 역할 정의, 범위 조율, 마감 압력과 가장 직접 연결된 장면을 먼저 올립니다.',
+        '?? ?? ??? ?? ???? ?? ???? ?? ?? ??? ?? ?????.',
     },
     wealth: {
       saju:
         yongsin && currentDaeunElement
           ? yongsin === currentDaeunElement
-            ? `현재 대운 오행이 용신(${yongsin})과 맞아 돈의 흐름을 늘릴 여지는 있지만, 구조를 먼저 잡을수록 유지력이 커집니다.`
-            : `현재 대운 오행(${currentDaeunElement})과 용신(${yongsin})이 어긋나 있어 수익보다 누수와 손실 상한부터 봐야 합니다.`
-          : `재정에서는 얼마를 버느냐보다 무엇이 새고 있는지가 기본 체질을 만듭니다.`,
+            ? `?? ?? ??? ??(${yongsin})? ?? ?? ??? ?? ??? ???, ??? ?? ???? ???? ????.`
+            : `?? ?? ??(${currentDaeunElement})? ??(${yongsin})? ??? ?? ???? ??? ?? ???? ?? ???.`
+          : `????? ??? ????? ??? ?? ???? ?? ??? ????.`,
       astro:
         activeTransits.length > 0
-          ? `${formatTransitLabels(activeTransits, lang)} 같은 현재 변수가 지출 타이밍, 협상 속도, 조건 변수를 직접 흔듭니다.`
-          : `점성 쪽은 금액보다 기한, 계약 조건, 변수 관리 쪽 리듬을 보여줍니다.`,
+          ? `${formatTransitLabels(activeTransits, lang)} ?? ?? ??? ?? ???, ?? ??, ?? ??? ?? ????.`
+          : `?? ?? ???? ??, ?? ??, ?? ?? ? ??? ?????.`,
       cross:
         strategyLine ||
         answerThesis ||
         graphFocusReason ||
-        '재정은 기대 수익보다 금액, 기한, 손실 상한을 먼저 닫아야 하는 축으로 근거가 겹칩니다.',
+        '??? ?? ???? ??, ??, ?? ??? ?? ??? ?? ??? ??? ????.',
       graph:
         graphReason ||
-        '상위 근거 묶음은 재정에서 조건 검토, 현금흐름, 손실 제한과 가장 직접 연결된 세트를 먼저 씁니다.',
+        '?? ?? ??? ???? ?? ??, ????, ?? ??? ?? ?? ??? ??? ?? ???.',
     },
     health: {
       saju:
         yongsin && currentDaeunElement
           ? yongsin === currentDaeunElement
-            ? `현재 대운 오행이 용신(${yongsin})과 맞아 회복 리듬을 다시 세우면 체력이 따라붙기 쉬운 흐름입니다.`
-            : `현재 대운 오행(${currentDaeunElement})과 용신(${yongsin})이 어긋나 있어 무리한 추진보다 회복 블록 확보가 먼저입니다.`
-          : `건강에서는 의지보다 회복 리듬이 얼마나 무너지지 않았는지가 기본 체질을 만듭니다.`,
+            ? `?? ?? ??? ??(${yongsin})? ?? ?? ??? ?? ??? ??? ???? ?? ?????.`
+            : `?? ?? ??(${currentDaeunElement})? ??(${yongsin})? ??? ?? ??? ???? ?? ?? ??? ?????.`
+          : `????? ???? ?? ??? ??? ???? ????? ?? ??? ????.`,
       astro:
         activeTransits.length > 0
-          ? `${formatTransitLabels(activeTransits, lang)} 같은 현재 변수가 피로 체감, 수면 흔들림, 과부하 타이밍을 직접 건드립니다.`
-          : `점성 쪽은 몸 상태가 언제 흔들리고 언제 회복 여지가 붙는지 같은 생활 타이밍을 보여줍니다.`,
+          ? `${formatTransitLabels(activeTransits, lang)} ?? ?? ??? ?? ??, ?? ???, ??? ???? ?? ?????.`
+          : `?? ?? ? ??? ?? ???? ?? ?? ??? ??? ?? ?? ???? ?????.`,
       cross:
         strategyLine ||
         answerThesis ||
         graphFocusReason ||
-        '건강은 억지로 끌어올리는 힘보다 회복 리듬과 과부하 관리가 먼저라는 쪽으로 근거가 모입니다.',
+        '??? ??? ????? ??? ?? ??? ??? ??? ???? ??? ??? ????.',
       graph:
         graphReason ||
-        '상위 근거 묶음은 건강에서 피로 누적, 회복 순서, 루틴 유지와 가장 직접 맞닿은 세트를 먼저 고릅니다.',
+        '?? ?? ??? ???? ?? ??, ?? ??, ?? ??? ?? ?? ??? ??? ?? ????.',
     },
     move: {
       saju:
         yongsin && currentDaeunElement
           ? yongsin === currentDaeunElement
-            ? `현재 대운 오행이 용신(${yongsin})과 맞아 이동이나 거점 재설계의 큰 방향을 잡기 쉬운 흐름입니다.`
-            : `현재 대운 오행(${currentDaeunElement})과 용신(${yongsin})이 어긋나 있어 크게 옮기기보다 경로와 생활 거점을 다시 짜는 편이 낫습니다.`
-          : `이동에서는 결단력보다 생활 동선과 유지 가능한 구조가 기본 체질을 만듭니다.`,
+            ? `?? ?? ??? ??(${yongsin})? ?? ???? ?? ???? ? ??? ?? ?? ?????.`
+            : `?? ?? ??(${currentDaeunElement})? ??(${yongsin})? ??? ?? ?? ????? ??? ?? ??? ?? ?? ?? ????.`
+          : `????? ????? ?? ??? ?? ??? ??? ?? ??? ????.`,
       astro:
         activeTransits.length > 0
-          ? `${formatTransitLabels(activeTransits, lang)} 같은 현재 변수가 경로, 일정 변경, 외부 변수 유입 속도를 흔들고 있습니다.`
-          : `점성 쪽은 언제 이동 창이 열리고, 언제 일정 변수 때문에 틀어지기 쉬운지 보여줍니다.`,
+          ? `${formatTransitLabels(activeTransits, lang)} ?? ?? ??? ??, ?? ??, ?? ?? ?? ??? ??? ????.`
+          : `?? ?? ?? ?? ?? ???, ?? ?? ?? ??? ???? ??? ?????.`,
       cross:
         strategyLine ||
         answerThesis ||
         graphFocusReason ||
-        '이동은 한 번에 확정하는 결정이 아니라 경로와 거점을 다시 설계하는 문제로 근거가 겹칩니다.',
+        '??? ? ?? ???? ??? ??? ??? ??? ?? ???? ??? ??? ????.',
       graph:
         graphReason ||
-        '상위 근거 묶음은 이동에서 경로 재확인, 계약 검토, 거점 재정리와 바로 연결되는 장면을 먼저 봅니다.',
+        '?? ?? ??? ???? ?? ???, ?? ??, ?? ???? ?? ???? ??? ?? ???.',
     },
     timing: {
       saju:
         yongsin && currentDaeunElement
           ? yongsin === currentDaeunElement
-            ? `현재 대운 오행이 용신(${yongsin})과 맞아 큰 흐름과 실제 타이밍이 비교적 같은 방향으로 갑니다.`
-            : `현재 대운 오행(${currentDaeunElement})과 용신(${yongsin})이 어긋나 있어 시기 판단은 더 보수적으로 잡는 편이 맞습니다.`
-          : `타이밍에서는 큰 흐름이 받쳐주는지부터 보는 것이 먼저입니다.`,
+            ? `?? ?? ??? ??(${yongsin})? ?? ? ??? ?? ???? ??? ?? ???? ???.`
+            : `?? ?? ??(${currentDaeunElement})? ??(${yongsin})? ??? ?? ?? ??? ? ????? ?? ?? ????.`
+          : `?????? ? ??? ??????? ?? ?? ?????.`,
       astro:
         activeTransits.length > 0
-          ? `${formatTransitLabels(activeTransits, lang)} 같은 현재 변수가 언제 열리고 언제 흔들리는지 같은 실제 시점 변수를 만듭니다.`
-          : `점성 쪽은 시점의 열림과 닫힘을 더 민감하게 보여줍니다.`,
+          ? `${formatTransitLabels(activeTransits, lang)} ?? ?? ??? ?? ??? ?? ????? ?? ?? ?? ??? ????.`
+          : `?? ?? ??? ??? ??? ? ???? ?????.`,
       cross:
         strategyLine ||
         answerThesis ||
         graphFocusReason ||
-        '타이밍은 좋아 보이는 순간보다 실제로 조건이 맞는 순간을 고르는 문제라는 쪽으로 근거가 겹칩니다.',
+        '???? ?? ??? ???? ??? ??? ?? ??? ??? ???? ??? ??? ????.',
       graph:
         graphReason ||
-        '상위 근거 묶음은 타이밍에서 열리는 조건과 늦춰야 할 신호가 가장 선명한 세트를 먼저 올립니다.',
+        '?? ?? ??? ????? ??? ??? ??? ? ??? ?? ??? ??? ?? ????.',
     },
     personality: {
       saju:
         yongsin && currentDaeunElement
           ? yongsin === currentDaeunElement
-            ? `현재 대운 오행이 용신(${yongsin})과 맞아 원래 강점이 더 잘 드러나는 흐름입니다.`
-            : `현재 대운 오행(${currentDaeunElement})과 용신(${yongsin})이 어긋나 있어 원래 강점보다 방어 습관이 먼저 튀어나오기 쉽습니다.`
-          : `성향에서는 원래 어떤 방식으로 버티고, 어디서 과해지는지가 기본 체질을 만듭니다.`,
+            ? `?? ?? ??? ??(${yongsin})? ?? ?? ??? ? ? ???? ?????.`
+            : `?? ?? ??(${currentDaeunElement})? ??(${yongsin})? ??? ?? ?? ???? ?? ??? ?? ????? ????.`
+          : `????? ?? ?? ???? ???, ??? ?????? ?? ??? ????.`,
       astro:
         activeTransits.length > 0
-          ? `${formatTransitLabels(activeTransits, lang)} 같은 현재 변수가 반응 속도와 대인 태도를 일시적으로 바꿉니다.`
-          : `점성 쪽은 평소 성향이 어떤 상황에서 더 강하게 드러나는지 보여줍니다.`,
+          ? `${formatTransitLabels(activeTransits, lang)} ?? ?? ??? ?? ??? ?? ??? ????? ????.`
+          : `?? ?? ?? ??? ?? ???? ? ??? ????? ?????.`,
       cross:
         strategyLine ||
         answerThesis ||
         graphFocusReason ||
-        '성향은 장점이 어디서 힘이 되고, 어디서 과해지는지 보는 축으로 근거가 모입니다.',
+        '??? ??? ??? ?? ??, ??? ????? ?? ??? ??? ????.',
       graph:
         graphReason ||
-        '상위 근거 묶음은 성향에서 반복되는 반응 패턴과 그 결과를 가장 잘 설명하는 세트를 먼저 씁니다.',
+        '?? ?? ??? ???? ???? ?? ??? ? ??? ?? ? ???? ??? ?? ???.',
     },
     spirituality: {
       saju:
         yongsin && currentDaeunElement
           ? yongsin === currentDaeunElement
-            ? `현재 대운 오행이 용신(${yongsin})과 맞아 장기 방향과 내적 기준을 다시 세우기 쉬운 흐름입니다.`
-            : `현재 대운 오행(${currentDaeunElement})과 용신(${yongsin})이 어긋나 있어 방향성은 급히 확정하기보다 가치 기준을 먼저 정리하는 편이 맞습니다.`
-          : `사명과 장기 방향에서는 외부 성과보다 무엇을 오래 가져갈지의 기준이 기본 체질을 만듭니다.`,
+            ? `?? ?? ??? ??(${yongsin})? ?? ?? ??? ?? ??? ?? ??? ?? ?????.`
+            : `?? ?? ??(${currentDaeunElement})? ??(${yongsin})? ??? ?? ???? ?? ?????? ?? ??? ?? ???? ?? ????.`
+          : `??? ?? ????? ?? ???? ??? ?? ????? ??? ?? ??? ????.`,
       astro:
         activeTransits.length > 0
-          ? `${formatTransitLabels(activeTransits, lang)} 같은 현재 변수가 방향 감각과 의미 해석의 체감 변화를 크게 만듭니다.`
-          : `점성 쪽은 어떤 시점에 방향 감각이 흔들리고 다시 선명해지는지 보여줍니다.`,
+          ? `${formatTransitLabels(activeTransits, lang)} ?? ?? ??? ?? ??? ?? ??? ?? ??? ?? ????.`
+          : `?? ?? ?? ??? ?? ??? ???? ?? ?????? ?????.`,
       cross:
         strategyLine ||
         answerThesis ||
         graphFocusReason ||
-        '장기 방향은 성급한 결론보다 무엇을 오래 유지할지의 기준을 세우는 문제로 근거가 모입니다.',
+        '?? ??? ??? ???? ??? ?? ????? ??? ??? ??? ??? ????.',
       graph:
         graphReason ||
-        '상위 근거 묶음은 장기 방향에서 반복 가치와 선택 기준을 가장 잘 설명하는 세트를 먼저 씁니다.',
+        '?? ?? ??? ?? ???? ?? ??? ?? ??? ?? ? ???? ??? ?? ???.',
     },
   }
 
@@ -616,11 +628,30 @@ function rankCounselorSignals(
 }
 
 function summarizeAnchor(anchor: UnifiedAnchor): string {
-  return anchor.crossEvidenceSummary.replace(/\s+/g, ' ').trim().slice(0, 180)
+  const normalized = anchor.crossEvidenceSummary.replace(/\s+/g, ' ').trim()
+  if (normalized.length <= 180) return normalized
+  const candidate = normalized.slice(0, 180)
+  const lastBoundary = Math.max(candidate.lastIndexOf(' '), candidate.lastIndexOf('|'))
+  return `${candidate.slice(0, lastBoundary > 72 ? lastBoundary : 180).trim()}...`
 }
 
 function summarizeClaim(claim: UnifiedClaim): string {
   return claim.text.replace(/\s+/g, ' ').trim().slice(0, 180)
+}
+
+function compactCounselorNarrative(
+  text: string | undefined,
+  lang: 'ko' | 'en',
+  maxSentences: number
+): string {
+  const cleaned = sanitizeCounselorFreeText(text, lang).replace(/\s+/g, ' ').trim()
+  if (!cleaned) return ''
+  const sentences = cleaned
+    .split(/(?<=[.!?])\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+  if (sentences.length === 0) return cleaned
+  return sentences.slice(0, maxSentences).join(' ').trim()
 }
 
 function isInsightDomain(domain: string): domain is InsightDomain {
@@ -689,52 +720,52 @@ function buildScenarioActionHints(scenarioIds: string[], lang: 'ko' | 'en'): str
     const key = String(id || '').toLowerCase()
     if (!key) continue
     if (/clarify_expectations/.test(key)) {
-      hints.add(lang === 'ko' ? '기대치를 먼저 명확히 하세요' : 'clarify expectations first')
+      hints.add(lang === 'ko' ? '???? ???? ?? ????' : 'clarify expectations first')
     }
     if (/distance_tuning/.test(key)) {
-      hints.add(lang === 'ko' ? '거리와 속도를 다시 맞추세요' : 'tune distance and pace')
+      hints.add(lang === 'ko' ? '??? ???? ????' : 'tune distance and pace')
     }
     if (/boundary_reset/.test(key)) {
-      hints.add(lang === 'ko' ? '관계 경계를 다시 정리하세요' : 'reset the boundary')
+      hints.add(lang === 'ko' ? '????? ?? ???' : 'reset the boundary')
     }
     if (/commitment_preparation/.test(key)) {
       hints.add(
-        lang === 'ko' ? '확정보다 준비 단계를 먼저 두세요' : 'prepare before defining commitment'
+        lang === 'ko' ? '??? ??? ?? ???? ???' : 'prepare before defining commitment'
       )
     }
     if (/route_recheck/.test(key)) {
-      hints.add(lang === 'ko' ? '경로를 먼저 재확인하세요' : 'recheck the route first')
+      hints.add(lang === 'ko' ? '???? ?? ????' : 'recheck the route first')
     }
     if (/commute_restructure/.test(key)) {
-      hints.add(lang === 'ko' ? '경로와 동선을 다시 설계하세요' : 'restructure the commute')
+      hints.add(lang === 'ko' ? '?? ???? ?????' : 'restructure the commute')
     }
     if (/basecamp_reset/.test(key)) {
-      hints.add(lang === 'ko' ? '생활 거점을 다시 정리하세요' : 'reset the base of operations')
+      hints.add(lang === 'ko' ? '???? ?? ????' : 'reset the base of operations')
     }
     if (/lease_decision/.test(key)) {
       hints.add(
         lang === 'ko'
-          ? '계약 조건을 먼저 재확인하고 다시 협의하세요'
+          ? '?? ???? ?? ????'
           : 'renegotiate the lease terms'
       )
     }
     if (/promotion_review/.test(key)) {
-      hints.add(lang === 'ko' ? '승진/역할 검토를 먼저 하세요' : 'review the promotion case first')
+      hints.add(lang === 'ko' ? '??/?? ???? ?? ????' : 'review the promotion case first')
     }
     if (/contract_negotiation/.test(key)) {
-      hints.add(lang === 'ko' ? '조건 협의부터 하세요' : 'negotiate the terms first')
+      hints.add(lang === 'ko' ? '???? ?? ????' : 'negotiate the terms first')
     }
     if (/debt_restructure/.test(key)) {
       hints.add(
-        lang === 'ko' ? '부채 구조를 재정리하세요' : 'restructure the debt before expanding'
+        lang === 'ko' ? '?? ?? ?? ???? ?????' : 'restructure the debt before expanding'
       )
     }
     if (/capital_allocation/.test(key)) {
-      hints.add(lang === 'ko' ? '자금 배분부터 다시 점검하세요' : 'review capital allocation first')
+      hints.add(lang === 'ko' ? '?? ???? ?? ????' : 'review capital allocation first')
     }
     if (/recovery_reset|recovery_compliance/.test(key)) {
       hints.add(
-        lang === 'ko' ? '회복 루틴을 먼저 복구하세요' : 'restore the recovery routine first'
+        lang === 'ko' ? '?? ???? ?? ???' : 'restore the recovery routine first'
       )
     }
   }
@@ -746,12 +777,12 @@ function buildPacketGuardrail(
   lang: 'ko' | 'en'
 ): string {
   if (lang === 'ko') {
-    if (phase === 'expansion') return '실행은 하되, 확정 전 반대 근거 1개를 반드시 확인하세요.'
+    if (phase === 'expansion') return '??? ?? ???, ?? ? ?? ??? ? ? ? ?????.'
     if (phase === 'high_tension_expansion')
-      return '속도는 내되 문서, 금액, 약속은 이중 확인 후 확정하세요.'
-    if (phase === 'expansion_guarded') return '기회는 잡되 체크리스트를 먼저 끝낸 뒤 확장하세요.'
-    if (phase === 'stabilize') return '새 확장보다 구조 정렬과 우선순위 재정리를 먼저 하세요.'
-    return '새로운 확장보다 손실, 오해, 과속을 먼저 막으세요.'
+      return '??? ??? ??, ?, ???? ?? ?????.'
+    if (phase === 'expansion_guarded') return '?????? ?? ??? ?? ??? ????.'
+    if (phase === 'stabilize') return '? ???? ?? ??? ?? ??? ?????.'
+    return '??, ??, ?? ???? ?? ?? ?? ??? ????.'
   }
 
   if (phase === 'expansion') return 'Move forward, but force one counter-check before committing.'
@@ -858,7 +889,7 @@ export function buildCounselorEvidencePacket(params: {
     preferredDomain === 'move' &&
     scenarioActionHints.length > 0 &&
     (counselorCore?.topDecisionAction === 'prepare_only' ||
-      /preparation|information-gathering|준비|정보 수집/i.test(
+      /preparation|information-gathering|review|slow prep/i.test(
         counselorCore?.topDecisionLabel || ''
       ))
   const topDecisionLeadLabel =
@@ -886,9 +917,17 @@ export function buildCounselorEvidencePacket(params: {
       preferredDomain,
       params.lang
     ),
-    verdictContext || counselorCore?.answerThesis,
-    prefersScenarioActionLead ? scenarioActionHints[0] : undefined,
-    verdictTimingLine || topManifestation?.manifestation,
+    compactCounselorNarrative(
+      verdictContext || counselorCore?.answerThesis,
+      params.lang,
+      2
+    ),
+    prefersScenarioActionLead ? compactCounselorNarrative(scenarioActionHints[0], params.lang, 1) : undefined,
+    compactCounselorNarrative(
+      verdictTimingLine || topManifestation?.manifestation,
+      params.lang,
+      2
+    ),
     counselorCore ? undefined : topClaimText,
   ])
 
@@ -960,8 +999,8 @@ export function buildCounselorEvidencePacket(params: {
     graphReason:
       graphRagEvidenceSummary.graphReason ||
       (topAnchorSummary
-        ? `"${topAnchorSummary}" 쪽에서 가장 촘촘하게 이어집니다.`
-        : '겹치는 포인트가 가장 많은 장면부터 우선 확인하는 방식으로 정렬됩니다.'),
+        ? `"${topAnchorSummary}"? ?? ??? ?? ?????.`
+        : '?? ?? ??? ?? ??? ?? ????? ?????.'),
     strategyLine: topDomainAdvisory?.strategyLine,
     answerThesis: counselorCore?.answerThesis,
   })
@@ -1041,10 +1080,10 @@ export function buildCounselorEvidencePacket(params: {
     : ''
   const latentNarrative = counselorCore?.latentTopAxes?.length
     ? params.lang === 'ko'
-      ? `지금 해석을 가장 세게 끄는 축은 ${counselorCore.latentTopAxes
+      ? `?? ?? ??? ???? ?? ?? ${counselorCore.latentTopAxes
           .slice(0, 3)
           .map((axis) => axis.label)
-          .join(', ')}입니다.`
+          .join(', ')}???.`
       : `The strongest latent drivers right now are ${counselorCore.latentTopAxes
           .slice(0, 3)
           .map((axis) => axis.label)
@@ -1055,6 +1094,35 @@ export function buildCounselorEvidencePacket(params: {
     focusDomain: preferredDomain,
     actionFocusDomain: counselorCore?.actionFocusDomain,
     riskAxisLabel: counselorCore?.riskAxisLabel,
+    matrixView: (counselorCore?.matrixView || []).slice(0, 4).map((row) => ({
+      domain: row.domain,
+      label: sanitizeCounselorFreeText(row.label, params.lang),
+      cells: row.cells.slice(0, 4).map((cell) => ({
+        ...cell,
+        summary: sanitizeCounselorFreeText(cell.summary, params.lang),
+      })),
+    })),
+    branchSet: (counselorCore?.branchSet || []).slice(0, 3).map((branch) => ({
+      ...branch,
+      label: sanitizeCounselorFreeText(branch.label, params.lang),
+      summary: sanitizeCounselorFreeText(branch.summary, params.lang),
+      entry: sanitizeCounselorTextList(branch.entry || [], params.lang),
+      abort: sanitizeCounselorTextList(branch.abort || [], params.lang),
+      sustain: sanitizeCounselorTextList(branch.sustain || [], params.lang),
+      reversalRisk: sanitizeCounselorFreeText(branch.reversalRisk || '', params.lang),
+      wrongMoveCost: sanitizeCounselorFreeText(branch.wrongMoveCost || '', params.lang),
+    })),
+    singleUserModel: counselorCore?.singleUserModel
+      ? {
+          subject: sanitizeCounselorFreeText(counselorCore.singleUserModel.subject, params.lang),
+          facets: counselorCore.singleUserModel.facets.map((facet) => ({
+            ...facet,
+            label: sanitizeCounselorFreeText(facet.label, params.lang),
+            summary: sanitizeCounselorFreeText(facet.summary, params.lang),
+            details: sanitizeCounselorTextList(facet.details || [], params.lang),
+          })),
+        }
+      : undefined,
     timingMatrix: (counselorCore?.timingMatrix || []).slice(0, 4).map((item) => ({
       domain: item.domain,
       label: item.label,
@@ -1184,22 +1252,31 @@ export function buildCounselorEvidencePacket(params: {
           branches: sanitizeCounselorProjectionBlock(counselorCore.projections.branches, params.lang),
         }
       : undefined,
-    whyStack: [
-      crossSystemSummary,
-      ...whyStack,
-      arbitrationNarrative,
-      latentNarrative,
-      topTimingWindow?.timingConflictNarrative || '',
-      timingCalibrationNarrative,
-      intraMonthPeakNarrative,
-      topTimingWindow?.precisionReason || '',
-      conflictNarrative,
-      trustNarrative,
-      provenanceNarrative,
-    ]
-      .map((line) => sanitizeCounselorFreeText(line, params.lang))
-      .filter(Boolean)
-      .slice(0, 6),
+    whyStack: buildCounselorWhyStack({
+      lang: params.lang,
+      domain: preferredDomain,
+      sajuReasons: whyReasons.sajuWhy ? [whyReasons.sajuWhy] : [],
+      astroReasons: whyReasons.astroWhy ? [whyReasons.astroWhy] : [],
+      crossSummary: crossSystemSummary || whyReasons.crossWhy,
+      timingSummary: [
+        topTimingWindow?.whyNow || '',
+        topTimingWindow?.timingConflictNarrative || '',
+        intraMonthPeakNarrative,
+      ]
+        .map((line) => sanitizeCounselorFreeText(line, params.lang))
+        .filter(Boolean)
+        .join(params.lang === 'ko' ? ' / ' : ' / '),
+      decisionSummary: arbitrationNarrative,
+      conflictSummary: conflictNarrative,
+      calibrationSummary: [timingCalibrationNarrative, topTimingWindow?.precisionReason || '']
+        .map((line) => sanitizeCounselorFreeText(line, params.lang))
+        .filter(Boolean)
+        .join(params.lang === 'ko' ? ' / ' : ' / '),
+      trustSummary: trustNarrative,
+      provenanceSummary: provenanceNarrative,
+      latentSummary: latentNarrative,
+      limit: 7,
+    }),
   }
 }
 
@@ -1208,212 +1285,65 @@ export function formatCounselorEvidencePacket(
   lang: 'ko' | 'en'
 ): string {
   if (!packet || !packet.focusDomain) return ''
-  const strategyLabel = packet.strategyBrief?.overallPhaseLabel || 'none'
-  const attackPercent = packet.strategyBrief?.attackPercent ?? '-'
-  const defensePercent = packet.strategyBrief?.defensePercent ?? '-'
 
-  const canonicalLines = packet.canonicalBrief
-    ? [
-        '[Canonical Core]',
-        `grade=${packet.canonicalBrief.gradeLabel || 'none'}`,
-        `core_phase=${packet.canonicalBrief.phaseLabel || 'none'}`,
-        `phase=${packet.canonicalBrief.phaseLabel || 'none'}`,
-        `action_focus=${packet.canonicalBrief.actionFocusDomain || 'none'}`,
-        `focus_runner_up=${packet.canonicalBrief.focusRunnerUpDomain || 'none'}`,
-        `action_runner_up=${packet.canonicalBrief.actionRunnerUpDomain || 'none'}`,
-        `top_decision=${packet.canonicalBrief.topDecisionLabel || packet.canonicalBrief.topDecisionAction || 'none'}`,
-        `core_claim_ids=${(packet.topClaims || []).map((claim) => claim.id).filter(Boolean).slice(0, 6).join(' | ') || 'none'}`,
-        `core_caution_signal_ids=${(packet.selectedSignals || []).map((signal) => signal.id).filter(Boolean).slice(0, 6).join(' | ') || 'none'}`,
-        `answer=${packet.canonicalBrief.answerThesis || 'none'}`,
-        `action=${packet.canonicalBrief.primaryAction || 'none'}`,
-        `caution=${packet.canonicalBrief.primaryCaution || 'none'}`,
-        `timing=${packet.canonicalBrief.timingHint || 'none'}`,
-        `policy_mode=${packet.canonicalBrief.policyMode || 'none'}`,
-        `latent_top_axes=${(packet.canonicalBrief.latentTopAxes || []).join(' | ') || 'none'}`,
-        '',
-      ]
-    : []
-
-  const arbitrationLines = packet.canonicalBrief
-    ? [
-        '[Arbitration]',
-        `focus_narrative=${packet.canonicalBrief.focusNarrative || 'none'}`,
-        `action_narrative=${packet.canonicalBrief.actionNarrative || 'none'}`,
-        `suppression=${(packet.canonicalBrief.suppressionNarratives || []).join(' | ') || 'none'}`,
-        '',
-      ]
-    : []
-
-  const advisoryLines = packet.topDomainAdvisory
-    ? [
-        '[Domain Advisory]',
-        `thesis=${packet.topDomainAdvisory.thesis}`,
-        `action=${packet.topDomainAdvisory.action}`,
-        `caution=${packet.topDomainAdvisory.caution}`,
-        '',
-      ]
-    : []
-
-  const timingLines = packet.topTimingWindow
-    ? [
-        '[Timing Window]',
-        `domain=${packet.topTimingWindow.domain}`,
-        `window=${packet.topTimingWindow.window}`,
-        `granularity=${packet.topTimingWindow.timingGranularity || 'unknown'}`,
-        `reliability=${packet.topTimingWindow.timingReliabilityBand || 'unknown'}${typeof packet.topTimingWindow.timingReliabilityScore === 'number' ? `:${Math.round(packet.topTimingWindow.timingReliabilityScore * 100)}` : ''}`,
-        `scores=readiness:${typeof packet.topTimingWindow.readinessScore === 'number' ? packet.topTimingWindow.readinessScore.toFixed(2) : 'n/a'}|trigger:${typeof packet.topTimingWindow.triggerScore === 'number' ? packet.topTimingWindow.triggerScore.toFixed(2) : 'n/a'}|convergence:${typeof packet.topTimingWindow.convergenceScore === 'number' ? packet.topTimingWindow.convergenceScore.toFixed(2) : 'n/a'}`,
-        `precision=${packet.topTimingWindow.precisionReason || 'none'}`,
-        `conflict_mode=${packet.topTimingWindow.timingConflictMode || 'none'}`,
-        `conflict=${packet.topTimingWindow.timingConflictNarrative || 'none'}`,
-        '',
-      ]
-    : []
-
-  const timingMatrixLines =
-    (packet.timingMatrix || []).length > 0
-      ? [
-          '[Timing Matrix]',
-          ...(packet.timingMatrix || [])
-            .slice(0, 4)
-            .map(
-              (row) =>
-                `matrix=${row.label}:${row.window}/${row.granularity}:${Math.round(row.confidence * 100)}|${row.summary}`
-            ),
-          '',
-        ]
-      : []
-
-  const projectionLines = packet.projections
-    ? [
-        '[Projections]',
-        packet.projections.action?.summary ? `action=${packet.projections.action.summary}` : '',
-        ...(packet.projections.action?.detailLines || [])
-          .slice(0, 2)
-          .map((line) => `action_detail=${line}`),
-        ...(packet.projections.action?.drivers || [])
-          .slice(0, 2)
-          .map((line) => `action_driver=${line}`),
-        ...(packet.projections.action?.nextMoves || [])
-          .slice(0, 2)
-          .map((line) => `action_next=${line}`),
-        ...(packet.projections.action?.reasons || [])
-          .slice(0, 2)
-          .map((line) => `action_reason=${line}`),
-        packet.projections.timing?.summary ? `timing=${packet.projections.timing.summary}` : '',
-        ...(packet.projections.timing?.detailLines || [])
-          .slice(0, 2)
-          .map((line) => `timing_detail=${line}`),
-        ...(packet.projections.timing?.drivers || [])
-          .slice(0, 2)
-          .map((line) => `timing_driver=${line}`),
-        ...(packet.projections.timing?.counterweights || [])
-          .slice(0, 2)
-          .map((line) => `timing_counterweight=${line}`),
-        ...(packet.projections.timing?.nextMoves || [])
-          .slice(0, 2)
-          .map((line) => `timing_next=${line}`),
-        ...(packet.projections.timing?.reasons || [])
-          .slice(0, 2)
-          .map((line) => `timing_reason=${line}`),
-        packet.projections.risk?.summary ? `risk=${packet.projections.risk.summary}` : '',
-        ...(packet.projections.risk?.detailLines || [])
-          .slice(0, 2)
-          .map((line) => `risk_detail=${line}`),
-        ...(packet.projections.risk?.counterweights || [])
-          .slice(0, 2)
-          .map((line) => `risk_counterweight=${line}`),
-        ...(packet.projections.risk?.nextMoves || [])
-          .slice(0, 2)
-          .map((line) => `risk_next=${line}`),
-        ...(packet.projections.risk?.reasons || [])
-          .slice(0, 2)
-          .map((line) => `risk_reason=${line}`),
-        packet.projections.conflict?.summary
-          ? `conflict=${packet.projections.conflict.summary}`
-          : '',
-        ...(packet.projections.conflict?.detailLines || [])
-          .slice(0, 2)
-          .map((line) => `conflict_detail=${line}`),
-        ...(packet.projections.conflict?.counterweights || [])
-          .slice(0, 2)
-          .map((line) => `conflict_counterweight=${line}`),
-        ...(packet.projections.conflict?.reasons || [])
-          .slice(0, 2)
-          .map((line) => `conflict_reason=${line}`),
-        packet.projections.structure?.summary
-          ? `structure=${packet.projections.structure.summary}`
-          : '',
-        ...(packet.projections.structure?.detailLines || [])
-          .slice(0, 2)
-          .map((line) => `structure_detail=${line}`),
-        ...(packet.projections.structure?.drivers || [])
-          .slice(0, 2)
-          .map((line) => `structure_driver=${line}`),
-        ...(packet.projections.structure?.reasons || [])
-          .slice(0, 2)
-          .map((line) => `structure_reason=${line}`),
-        packet.projections.evidence?.summary
-          ? `evidence=${packet.projections.evidence.summary}`
-          : '',
-        ...(packet.projections.evidence?.detailLines || [])
-          .slice(0, 2)
-          .map((line) => `evidence_detail=${line}`),
-        ...(packet.projections.evidence?.drivers || [])
-          .slice(0, 2)
-          .map((line) => `evidence_driver=${line}`),
-        ...(packet.projections.evidence?.reasons || [])
-          .slice(0, 2)
-          .map((line) => `evidence_reason=${line}`),
-        packet.projections.branches?.summary
-          ? `branches=${packet.projections.branches.summary}`
-          : '',
-        ...(packet.projections.branches?.detailLines || [])
-          .slice(0, 3)
-          .map((line) => `branch_detail=${line}`),
-        ...(packet.projections.branches?.drivers || [])
-          .slice(0, 3)
-          .map((line) => `branch_driver=${line}`),
-        ...(packet.projections.branches?.counterweights || [])
-          .slice(0, 2)
-          .map((line) => `branch_counterweight=${line}`),
-        ...(packet.projections.branches?.nextMoves || [])
-          .slice(0, 2)
-          .map((line) => `branch_next=${line}`),
-        ...(packet.projections.branches?.reasons || [])
-          .slice(0, 2)
-          .map((line) => `branch_reason=${line}`),
-        '',
-      ].filter(Boolean)
-    : []
-
-  const whyLines = (packet.whyStack || []).slice(0, 1).map((line) => `- ${line}`)
-  const actionLines = packet.canonicalBrief
-    ? [
-        '[Action and Guardrails]',
-        `primary_action=${packet.canonicalBrief.primaryAction || 'none'}`,
-        `primary_caution=${packet.canonicalBrief.primaryCaution || 'none'}`,
-        `soft_checks=${(packet.canonicalBrief.softChecks || []).slice(0, 3).join(' | ') || 'none'}`,
-        `hard_stops=${(packet.canonicalBrief.hardStops || []).slice(0, 2).join(' | ') || 'none'}`,
-        '',
-      ]
-    : []
+  const actionBlock = packet.projections?.action
+  const timingBlock = packet.projections?.timing
+  const riskBlock = packet.projections?.risk
+  const branchBlock = packet.projections?.branches
+  const topBranches = (packet.branchSet || []).slice(0, 3)
+  const openingWhyLines = (packet.whyStack || []).slice(0, 2)
+  const actionDetails = [
+    ...(actionBlock?.detailLines || []).slice(0, 2),
+    ...(actionBlock?.nextMoves || []).slice(0, 2),
+  ].filter(Boolean)
+  const timingDetails = [
+    ...(timingBlock?.detailLines || []).slice(0, 2),
+    ...(timingBlock?.counterweights || []).slice(0, 1),
+  ].filter(Boolean)
+  const riskDetails = [
+    ...(riskBlock?.detailLines || []).slice(0, 2),
+    ...(riskBlock?.counterweights || []).slice(0, 1),
+  ].filter(Boolean)
+  const keyEvidence = [
+    ...(packet.projections?.structure?.drivers || []).slice(0, 1),
+    ...(packet.projections?.evidence?.detailLines || []).slice(0, 2),
+    ...(packet.projections?.evidence?.drivers || []).slice(0, 2),
+  ]
+    .filter(Boolean)
+    .slice(0, 4)
 
   const commonLines = [
-    '[Counselor Evidence Packet v3 - Slim]',
-    `focus_domain=${packet.focusDomain}`,
-    `risk_axis=${packet.riskAxisLabel || 'none'}`,
-    `graph_anchors=${packet.graphRagEvidenceSummary?.totalAnchors ?? 0}`,
-    `graph_sets=${packet.graphRagEvidenceSummary?.totalSets ?? 0}`,
-    `strategy=${strategyLabel}(${attackPercent}/${defensePercent})`,
+    '[Counselor Answer Plan]',
+    `answer=${packet.canonicalBrief?.answerThesis || actionBlock?.summary || 'none'}`,
+    `action_focus=${packet.canonicalBrief?.actionFocusDomain || packet.focusDomain || 'none'}`,
+    `risk_focus=${packet.riskAxisLabel || 'none'}`,
+    `top_decision=${packet.canonicalBrief?.topDecisionLabel || packet.canonicalBrief?.topDecisionAction || 'none'}`,
+    `opening_rationale=${openingWhyLines[0] || packet.canonicalBrief?.answerThesis || 'none'}`,
     '',
-    ...canonicalLines,
-    ...arbitrationLines,
-    ...timingLines,
-    ...timingMatrixLines,
-    ...projectionLines,
-    ...actionLines,
-    '[Why Stack]',
-    ...(whyLines.length > 0 ? whyLines : ['- none']),
+    '[Current Read]',
+    ...actionDetails.slice(0, 2).map((line, index) => `current_${index + 1}=${line}`),
+    ...(riskDetails.slice(0, 1).map((line, index) => `current_risk_${index + 1}=${line}`)),
+    '',
+    '[Timing]',
+    `window=${packet.topTimingWindow?.window || 'none'}`,
+    `conflict=${packet.topTimingWindow?.timingConflictNarrative || timingBlock?.summary || 'none'}`,
+    ...timingDetails.slice(0, 2).map((line, index) => `timing_${index + 1}=${line}`),
+    '',
+    '[Branch Options]',
+    ...(
+      topBranches.length > 0
+        ? topBranches.flatMap((branch, index) => [
+            `branch_${index + 1}=${branch.summary}`,
+            ...(branch.entry || []).slice(0, 1).map((line) => `branch_${index + 1}_entry=${line}`),
+            ...(branch.abort || []).slice(0, 1).map((line) => `branch_${index + 1}_stop=${line}`),
+          ])
+        : (branchBlock?.detailLines || []).slice(0, 2).map((line, index) => `branch_${index + 1}=${line}`)
+    ),
+    '',
+    '[Evidence Cues]',
+    ...(keyEvidence.length > 0
+      ? keyEvidence.slice(0, 3).map((line, index) => `evidence_${index + 1}=${line}`)
+      : ['evidence_1=none']),
     '',
   ]
 
@@ -1421,12 +1351,16 @@ export function formatCounselorEvidencePacket(
     return [
       ...commonLines,
       '[Response Contract]',
-      '- 첫 문단에서 질문에 직접 답하고, 현재 국면을 단정형 문장으로 바로 정리할 것.',
-      '- 둘째 문단에서는 구조와 타이밍을 함께 풀고, readiness/trigger/convergence 차이가 있으면 왜 그런지 직접 설명할 것.',
-      '- 셋째 문단에서는 충돌과 행동을 같이 다루고, 지금 해야 할 행동과 미뤄야 할 행동을 분리할 것.',
-      '- 가능하면 하나의 정답처럼 말하지 말고, branch_detail과 branch_next를 바탕으로 현실 경로 2~3개를 짧게 구분할 것.',
-      '- 마지막 문단에서는 리스크와 재확인 체크리스트를 제시하고, caution 신호가 있으면 irreversible 행동(서명, 확정, 발송, 결제)을 바로 밀지 말 것.',
-      '- projection summary는 fallback으로만 쓰고, detail/driver/counterweight/next와 reason을 우선 사용할 것.',
+      '- 첫 문장은 질문에 대한 직접 답으로 시작하고, 둘째 문장 안에서 현재 국면을 단정적으로 정리하세요.',
+      '- 첫 두 문장에는 opening_rationale_1과 opening_rationale_2의 핵심을 흡수해 왜 이런 결론이 나왔는지 바로 이해되게 하세요.',
+      '- 그 다음 문단에서는 구조와 타이밍을 함께 설명하고, 준비도와 촉발의 어긋남이 있으면 분명히 적으세요.',
+      '- 다음 문단에서는 행동과 리스크를 같이 설명하세요. 지금 할 것, 미룰 것, 서두르면 손해인 이유를 분리해서 적으세요.',
+      '- 답변은 한 줄 운세처럼 쓰지 말고 구조, 주기, 촉발, 리스크, 행동, 보정이 함께 보이게 쓰세요.',
+      '- 가능한 경우 Branch Options를 사용해 2~3개의 현실 경로를 구분하세요. 정답 하나처럼 몰아가지 마세요.',
+      '- 마지막 문단에는 위험 신호와 재확인 기준을 넣으세요. 사인, 확정, 송금, 결제 같은 비가역 행동은 섣불리 밀지 마세요.',
+      '- Direct Answer Seed, Timing, Action, Risk, Branch Options, Evidence Cues를 우선 사용하고, 엔진 라벨을 그대로 반복하지 마세요.',
+      '- 문체는 상담사처럼 짧고 단정하게 유지하세요. 추상 명사만 늘어놓지 말고 실제 행동 문장으로 마무리하세요.',
+      '- 전체 분량은 650~1100자 사이의 자연스러운 한국어 답변으로 맞추세요.',
     ].join('\n')
   }
 
@@ -1434,10 +1368,13 @@ export function formatCounselorEvidencePacket(
     ...commonLines,
     '[Response Contract]',
     '- Open with a direct answer and a declarative read of the current phase.',
+    '- In those first two sentences, explicitly absorb opening_rationale_1 and opening_rationale_2 so the user immediately understands why this conclusion is being made.',
     '- In the second paragraph, explain structure and timing together, and explicitly name any readiness/trigger/convergence mismatch.',
     '- In the third paragraph, translate conflict into action: what to do now, what to delay, and why.',
-    '- When possible, do not present a single fixed destiny; use branch_detail and branch_next to distinguish 2-3 realistic paths.',
+    '- Make the answer reflect structure, cycle, trigger, risk, action, and calibration rather than one flat verdict.',
+    '- When possible, do not present a single fixed destiny; use Branch Options to distinguish 2-3 realistic paths.',
     '- End with risk and a recheck checklist; if caution signals exist, do not push irreversible actions (sign/finalize/send/pay) immediately.',
-    '- Prefer projection summaries and projection reasons first, and attach at least one grounding item to every paragraph.',
+    '- Prefer Direct Answer Seed, Timing, Action, Risk, Branch Options, and Evidence Cues over raw engine labels.',
   ].join('\n')
 }
+

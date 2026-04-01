@@ -70,12 +70,10 @@ export interface ApiResponse<T = unknown> {
 export class ApiClient {
   private explicitBaseUrl?: string
   private defaultTimeout: number
-  private apiToken?: string
 
   constructor(baseUrl?: string, defaultTimeout = 60000) {
     this.explicitBaseUrl = baseUrl
     this.defaultTimeout = defaultTimeout
-    this.apiToken = process.env.ADMIN_API_TOKEN
   }
 
   private resolveBaseUrl(): string {
@@ -90,15 +88,16 @@ export class ApiClient {
     options: ApiClientOptions = {},
     contentType = 'application/json'
   ): Record<string, string> {
+    const apiToken = process.env.ADMIN_API_TOKEN
     const headers: Record<string, string> = {
       'Content-Type': contentType,
       ...options.headers,
     }
 
     // Add Authorization header (preferred) or X-API-KEY fallback
-    if (options.includeApiToken !== false && this.apiToken) {
-      headers['Authorization'] = `Bearer ${this.apiToken}`
-      headers['X-API-KEY'] = this.apiToken // Fallback for legacy endpoints
+    if (options.includeApiToken !== false && apiToken) {
+      headers['Authorization'] = `Bearer ${apiToken}`
+      headers['X-API-KEY'] = apiToken // Fallback for legacy endpoints
     }
 
     return headers

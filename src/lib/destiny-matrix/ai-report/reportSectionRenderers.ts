@@ -226,9 +226,9 @@ export function renderIntroductionSection(
     const body = deps.formatNarrativeParagraphs(
       deps.sanitizeUserFacingNarrative(
         [
-          `이번 총운의 중심축은 ${focusLabel}입니다. 지금은 크게 벌이기보다 무엇을 먼저 고정할지가 결과를 가르는 구간입니다.`,
+          `지금 인생에서 가장 크게 움직이는 흐름은 ${focusLabel}입니다. 지금은 크게 벌이기보다 무엇을 먼저 고정할지가 결과를 가르는 구간입니다.`,
           reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
-            ? `중심축은 ${focusLabel}이지만, 지금 실제 행동축은 ${actionFocusLabel}입니다. 현재 판단 기준도 ${topDecision} 쪽으로 기울어 있어, 속도보다 순서와 기준 정리가 더 중요하게 작동합니다.`
+            ? `삶의 바탕에는 ${focusLabel} 흐름이 깔려 있지만, 지금 먼저 움직여야 할 영역은 ${actionFocusLabel}입니다. 현재 판단 기준도 ${topDecision} 쪽으로 기울어 있어, 속도보다 순서와 기준 정리가 더 중요하게 작동합니다.`
             : `현재 판단 기준도 ${topDecision} 쪽으로 기울어 있어, 속도보다 순서와 기준 정리가 더 중요하게 작동합니다.`,
           timingReason
             ? `이 흐름이 지금 선명한 이유는 ${timingReason}`
@@ -288,7 +288,7 @@ export function renderLifeMissionSection(
             .split(/(?<=[.!?])\s+/)
             .map((line) => line.trim())
             .filter(Boolean)[0] || timeline,
-          `이번 장기 흐름의 중심축은 ${focusLabel}이며, 지금 배워야 할 과제도 이 축에서 가장 선명하게 드러납니다.`,
+          `이번 장기 흐름에서 가장 크게 움직이는 영역은 ${focusLabel}이며, 지금 배워야 할 과제도 이 흐름에서 가장 선명하게 드러납니다.`,
           `${focusLabel}에서는 더 많이 쥐는 것보다, 어떤 기준을 반복 선택의 중심에 둘지가 장기 결과를 가릅니다.`,
           leadScenarios.length > 0
             ? `지금 인생 서사를 실제로 앞으로 미는 장면은 ${leadScenarios.join(', ')} 쪽입니다.`
@@ -531,7 +531,7 @@ export function renderActionPlanSection(
         [
           `이번 실행의 우선 행동은 ${reportCore.topDecisionLabel || reportCore.primaryAction}입니다.`,
           reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
-            ? `중심축은 ${focusLabel}이지만, 이번 실행은 ${actionFocusLabel} 축에서 먼저 정리하는 편이 맞습니다.`
+            ? `삶의 배경에는 ${focusLabel} 흐름이 깔려 있지만, 이번 실행은 ${actionFocusLabel} 쪽부터 먼저 정리하는 편이 맞습니다.`
             : '',
           '한 번에 닫으려 하지 말고, 먼저 역할과 범위를 적고 그다음 확인 지점을 끼워 넣으세요.',
           '분위기나 압박이 결정을 대신하게 두면, 지금 구간의 장점이 바로 손실로 바뀝니다.',

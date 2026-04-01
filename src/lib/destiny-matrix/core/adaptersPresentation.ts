@@ -3,9 +3,13 @@ import type { SignalDomain } from './signalSynthesizer'
 import { formatDecisionActionLabels, formatPolicyCheckLabels } from './actionCopy'
 import type {
   AdapterArbitrationBrief,
+  AdapterBranchCandidate,
   AdapterLatentAxis,
+  AdapterMatrixViewCell,
+  AdapterMatrixViewRow,
   AdapterProjectionBlock,
   AdapterProjectionSet,
+  AdapterSingleUserModel,
   AdapterTimingMatrixRow,
 } from './adaptersTypes'
 
@@ -62,14 +66,20 @@ export function getTopDecisionAction(core: DestinyCoreResult): string | null {
 export function getTopDecisionLabel(core: DestinyCoreResult, locale: 'ko' | 'en'): string | null {
   const topLabel = core.canonical.topDecision?.label || null
   const topDomain = core.canonical.topDecision?.domain || null
-  if (topLabel && topDomain === core.canonical.actionFocusDomain) return topLabel
+  if (topLabel && topDomain === core.canonical.actionFocusDomain) {
+    const actionDomainLabel = localizeDomain(core.canonical.actionFocusDomain, locale)
+    return topLabel
+      .replace(new RegExp(`^${actionDomainLabel}\\s*:\\s*`, 'i'), '')
+      .replace(new RegExp(`^${actionDomainLabel}\\s+`, 'i'), '')
+      .trim()
+  }
 
   const actionVerdict = getActionFocusDomainVerdict(core)
   const action = actionVerdict?.allowedActions?.[0]
   if (!action) return topLabel
   const actionLabel = formatDecisionActionLabels([action], locale, false)[0]
   if (!actionLabel) return topLabel
-  return `${localizeDomain(core.canonical.actionFocusDomain, locale)}: ${actionLabel}`
+  return actionLabel
 }
 
 export function getAllowedActionLabels(actions: string[], locale: 'ko' | 'en'): string[] {
@@ -86,93 +96,43 @@ function localizeAdapterFreeText(text: string | undefined | null, locale: 'ko' |
   if (locale !== 'ko') return value
 
   let out = value
-    .replace(/\bpersonality\b/g, '성향')
-    .replace(/\bcareer\b/g, '커리어')
-    .replace(/\brelationship\b/g, '관계')
-    .replace(/\bwealth\b/g, '재정')
-    .replace(/\bhealth\b/g, '건강')
-    .replace(/\bmove\b/g, '이동')
-    .replace(/\bspirituality\b/g, '장기 방향')
-    .replace(/\btiming\b/g, '타이밍')
-    .replace(/\bnow\b/g, '지금')
-    .replace(/\bunknown\b/g, '현재')
-    .replace(/\bweek\b/g, '주 단위')
-    .replace(/\bfortnight\b/g, '2주 단위')
-    .replace(/\bmonth\b/g, '월 단위')
-    .replace(/\bseason\b/g, '분기 단위')
-    .replace(/\bweak_both\b/g, '구조와 촉발이 모두 약한 상태')
-    .replace(/\baligned\b/g, '구조와 촉발이 함께 맞물린 상태')
-    .replace(/\breadiness_ahead\b/g, '구조가 먼저 열린 상태')
-    .replace(/\btrigger_ahead\b/g, '촉발이 먼저 앞선 상태')
-    .replace(/\bdowngrade pressure\b/gi, '하향 조정 압력')
+    .replace(/\bpersonality\b/gi, '성향')
+    .replace(/\bcareer\b/gi, '커리어')
+    .replace(/\brelationship\b/gi, '관계')
+    .replace(/\bwealth\b/gi, '재정')
+    .replace(/\bhealth\b/gi, '건강')
+    .replace(/\bmove\b/gi, '이동')
+    .replace(/\bspirituality\b/gi, '장기 방향')
+    .replace(/\btiming\b/gi, '타이밍')
+    .replace(/\bnow\b/gi, '지금')
+    .replace(/\bunknown\b/gi, '현재')
+    .replace(/\bweek\b/gi, '주 단위')
+    .replace(/\bfortnight\b/gi, '2주 단위')
+    .replace(/\bmonth\b/gi, '월 단위')
+    .replace(/\bseason\b/gi, '분기 단위')
     .replace(/\bverify\b/gi, '검토 우선')
     .replace(/\bprepare\b/gi, '준비 우선')
     .replace(/\bexecute\b/gi, '실행 우선')
     .replace(/\bstabilize\b/gi, '안정화')
     .replace(/\bcaution\b/gi, '주의 신호')
-    .replace(/\bnatal baseline(?: structure)?\b/gi, '기본 차트 기반')
-    .replace(/\bcore pattern family\b/gi, '핵심 패턴 흐름')
-    .replace(/\bcore\s*패턴\s*계열\b/gi, '핵심 패턴 흐름')
-    .replace(/\bTransit\s+saturnReturn\b/gi, '책임 압력 신호')
-    .replace(/\bTransit\s+jupiterReturn\b/gi, '확장 신호')
-    .replace(/\bTransit\s+nodeReturn\b/gi, '방향 전환 신호')
-    .replace(/\bTransit\s+mercuryRetrograde\b/gi, '소통 재검토 신호')
-    .replace(/\bTransit\s+marsRetrograde\b/gi, '마찰 재검토 신호')
-    .replace(/\bTransit\s+venusRetrograde\b/gi, '관계 재검토 신호')
-    .replace(/\bsaturnReturn\b/gi, '책임 압력 신호')
-    .replace(/\bjupiterReturn\b/gi, '확장 신호')
-    .replace(/\bnodeReturn\b/gi, '방향 전환 신호')
-    .replace(/\bmercuryRetrograde\b/gi, '소통 재검토 신호')
-    .replace(/\bmarsRetrograde\b/gi, '마찰 재검토 신호')
-    .replace(/\bvenusRetrograde\b/gi, '관계 재검토 신호')
-    .replace(/\bsolarReturn\b/gi, '연간 초점 강조')
-    .replace(/\blunarReturn\b/gi, '감정 파동 신호')
-    .replace(/\bprogressions?\b/gi, '장기 전개 흐름')
-    .replace(/\bgeokguk strength\b/gi, '격국 응집력')
-    .replace(/\bdebt restructure\b/gi, '부채 재정리')
-    .replace(/\bliquidity defense\b/gi, '유동성 방어')
-    .replace(/\bexpense spike\b/gi, '지출 급증 대응')
-    .replace(/\bpromotion review\b/gi, '승진 검토')
-    .replace(/\brecovery reset\b/gi, '회복 재정렬')
-    .replace(/\bbasecamp reset\b/gi, '거점 재정비')
-    .replace(/\bmap full debt stack\b/gi, '전체 부채 구조를 다시 정리하기')
-    .replace(/\bwealth volatility pattern\b/gi, '재정 변동성 패턴')
-    .replace(/\bcareer expansion pattern\b/gi, '커리어 확장 패턴')
-    .replace(/\brelationship tension pattern\b/gi, '관계 긴장 패턴')
-    .replace(/\bburnout risk pattern\b/gi, '번아웃 리스크 패턴')
+    .replace(/\bcore pattern family\b/gi, '핵심 흐름')
+    .replace(/\bcareer expansion pattern\b/gi, '커리어 확장 흐름')
+    .replace(/\brelationship tension pattern\b/gi, '관계 긴장 흐름')
+    .replace(/\bwealth volatility pattern\b/gi, '재정 변동성 흐름')
+    .replace(/\bburnout risk pattern\b/gi, '번아웃 리스크 흐름')
     .replace(/\bmovement guardrail window\b/gi, '이동·변화 경계 구간')
-    .replace(/\bexpansion pattern\b/gi, '확장 패턴')
-    .replace(/\btension pattern\b/gi, '긴장 패턴')
-    .replace(/\bsaju pillars\b/gi, '사주 원국 축')
-    .replace(/\bcashflow\b/gi, '현금흐름')
-    .replace(/\b도메인 규칙상 현재 모드는 ([^\\s.]+)로 정리됩니다\b/gi, '현재 판단은 $1 쪽으로 정리됩니다')
-    .replace(/\brelationship caution\b/gi, '관계에서는 속도보다 기준 확인이 먼저입니다')
-    .replace(/\bmoney expansion action\b/gi, '재정 확장은 조건 검증부터 진행하세요')
-    .replace(/활성 신호\s+책임 압력 신호/gi, '책임 압력 신호')
-    .replace(/활성 신호\s+확장 신호/gi, '확장 신호')
-    .replace(/활성 신호\s+방향 전환 신호/gi, '방향 전환 신호')
-    .replace(/활성 신호\s+소통 재검토 신호/gi, '소통 재검토 신호')
-    .replace(/변동성 패턴\s+패턴/gi, '변동성 패턴')
-    .replace(
-      /action pressure stayed narrow between ([^\s]+) and ([^\s]+)/gi,
-      (_, left: string, right: string) =>
-        `${localizeDomain(left as SignalDomain, 'ko')}와 ${localizeDomain(right as SignalDomain, 'ko')} 사이의 행동 압력이 좁게 경쟁했습니다`
+    .replace(/\bpromotion review\b/gi, '승진 검토')
+    .replace(/\bcontract negotiation\b/gi, '조건 협상')
+    .replace(/\bspecialist track\b/gi, '전문화 트랙')
+    .replace(/\bExpansion without role clarity can create delivery strain\.?\b/gi, '역할과 범위가 불분명하면 실행 부담이 커질 수 있습니다')
+    .replace(/\bA strong opportunity signal can hide ([^\s]+) and ([^\s]+) risk\./gi, (_, left: string, right: string) =>
+      '강한 기회 신호가 ' + localizeAdapterFreeText(left, 'ko') + '와 ' + localizeAdapterFreeText(right, 'ko') + ' 리스크를 가릴 수 있습니다.'
     )
-    .replace(
-      /\b\w+\s+stayed secondary because total support remained below the winner\b/gi,
-      '최종 지지가 승자축보다 약해 보조축에 머물렀습니다'
-    )
-    .replace(
-      /\bA strong opportunity signal can hide ([^\s]+) and ([^\s]+) risk\./gi,
-      (_, left: string, right: string) =>
-        `강한 기회 신호가 ${localizeAdapterFreeText(left, 'ko')}와 ${localizeAdapterFreeText(right, 'ko')} 리스크를 가릴 수 있습니다.`
-    )
-    .replace(/트랜짓가/g, '트랜짓이')
-    .replace(/커리어은/g, '커리어는')
-    .replace(/관계은/g, '관계는')
-    .replace(/타이밍와/g, '타이밍과')
-    .replace(/장기 방향와/g, '장기 방향과')
-    .replace(/편이 맞습니다\.입니다\./g, '편이 맞습니다.')
+    .replace(/\b\w+\s+stayed secondary because total support remained below the winner\b/gi, '최종 지지가 승자축보다 약해 보조축에 머물렀습니다')
+    .replace(/\bweak_both\b/gi, '구조와 촉발이 모두 약한 상태')
+    .replace(/\baligned\b/gi, '구조와 촉발이 함께 맞물린 상태')
+    .replace(/\breadiness_ahead\b/gi, '구조가 먼저 열린 상태')
+    .replace(/\btrigger_ahead\b/gi, '촉발이 먼저 앞선 상태')
     .replace(/\s+/g, ' ')
     .trim()
 
@@ -279,6 +239,180 @@ export function buildTimingMatrix(core: DestinyCoreResult, locale: 'ko' | 'en'):
         summary,
       }
     })
+}
+
+function localizeTimescale(
+  timescale: 'now' | '1-3m' | '3-6m' | '6-12m',
+  locale: 'ko' | 'en'
+): string {
+  if (locale === 'ko') {
+    if (timescale === 'now') return '지금'
+    if (timescale === '1-3m') return '1~3개월'
+    if (timescale === '3-6m') return '3~6개월'
+    return '6~12개월'
+  }
+  return timescale
+}
+
+export function buildMatrixView(core: DestinyCoreResult, locale: 'ko' | 'en'): AdapterMatrixViewRow[] {
+  const preferred: SignalDomain[] = [
+    core.canonical.actionFocusDomain,
+    core.canonical.focusDomain,
+    rankRiskAxis(core),
+    'career',
+    'relationship',
+    'wealth',
+    'health',
+    'move',
+  ].filter((value, index, array): value is SignalDomain => Boolean(value) && array.indexOf(value) === index)
+
+  const matrix = core.canonical.crossAgreementMatrix || []
+  return preferred
+    .map((domain) => matrix.find((row) => row.domain === domain))
+    .filter((row): row is NonNullable<(typeof matrix)[number]> => Boolean(row))
+    .slice(0, 4)
+    .map((row) => {
+      const cells: AdapterMatrixViewCell[] = (['now', '1-3m', '3-6m', '6-12m'] as const)
+        .map((timescale) => {
+          const cell = row.timescales?.[timescale]
+          if (!cell) return null
+          const agreementPct = Math.round((cell.agreement || 0) * 100)
+          const contradictionPct = Math.round((cell.contradiction || 0) * 100)
+          const leadLag = cell.leadLag ?? row.leadLag ?? 0
+          const leadLagSummary =
+            locale === 'ko'
+              ? leadLag >= 0.18
+                ? '구조 선행'
+                : leadLag <= -0.18
+                  ? '촉발 선행'
+                  : '거의 동시'
+              : leadLag >= 0.18
+                ? 'structure ahead'
+                : leadLag <= -0.18
+                  ? 'trigger ahead'
+                  : 'balanced'
+          return {
+            timescale,
+            agreement: cell.agreement || 0,
+            contradiction: cell.contradiction || 0,
+            leadLag,
+            summary:
+              locale === 'ko'
+                ? `${localizeTimescale(timescale, locale)}: 합의 ${agreementPct}% / 충돌 ${contradictionPct}% / ${leadLagSummary}`
+                : `${localizeTimescale(timescale, locale)}: alignment ${agreementPct}% / conflict ${contradictionPct}% / ${leadLagSummary}`,
+          }
+        })
+        .filter((cell): cell is AdapterMatrixViewCell => Boolean(cell))
+      return {
+        domain: row.domain,
+        label: localizeDomain(row.domain, locale),
+        cells,
+      }
+    })
+}
+
+export function buildBranchSet(
+  core: DestinyCoreResult,
+  locale: 'ko' | 'en'
+): AdapterBranchCandidate[] {
+  return (core.canonical.topScenarios || []).slice(0, 3).map((scenario) => ({
+    id: scenario.id,
+    label: formatScenarioBranchLabel(scenario.branch || scenario.id, locale),
+    domain: scenario.domain,
+    window: scenario.window,
+    granularity: scenario.timingGranularity,
+    summary:
+      locale === 'ko'
+        ? `${formatScenarioBranchLabel(scenario.branch || scenario.id, locale)} 경로는 ${localizeAdapterFreeText(scenario.window || 'now', locale)} 구간에서 가장 현실적입니다.`
+        : `${formatScenarioBranchLabel(scenario.branch || scenario.id, locale)} is the most realistic path in the ${localizeAdapterFreeText(scenario.window || 'now', locale)} window.`,
+    entry: (scenario.entryConditions || []).slice(0, 3).map((item) => localizeAdapterFreeText(item, locale)),
+    abort: (scenario.abortConditions || []).slice(0, 3).map((item) => localizeAdapterFreeText(item, locale)),
+    sustain: (scenario.sustainConditions || []).slice(0, 3).map((item) => localizeAdapterFreeText(item, locale)),
+    reversalRisk: localizeAdapterFreeText(scenario.reversalRisk || '', locale),
+    sustainability: scenario.sustainability,
+    wrongMoveCost: localizeAdapterFreeText(scenario.wrongMoveCost || '', locale),
+  }))
+}
+
+export function buildSingleUserModel(
+  core: DestinyCoreResult,
+  locale: 'ko' | 'en'
+): AdapterSingleUserModel {
+  const timingWindow =
+    core.canonical.domainTimingWindows.find((item) => item.domain === core.canonical.actionFocusDomain) ||
+    core.canonical.domainTimingWindows[0]
+  const riskAxis = rankRiskAxis(core)
+  const matrixLead = buildMatrixView(core, locale)[0]
+  const facets = [
+    {
+      key: 'structure' as const,
+      label: locale === 'ko' ? '구조' : 'Structure',
+      summary:
+        locale === 'ko'
+          ? `${localizeDomain(core.canonical.focusDomain, locale)} 흐름이 배경에 깔려 있고 ${localizeDomain(core.canonical.actionFocusDomain, locale)} 쪽이 실제로 먼저 움직여야 할 영역입니다.`
+          : `${localizeDomain(core.canonical.focusDomain, locale)} is the background structural axis, while ${localizeDomain(core.canonical.actionFocusDomain, locale)} is the front action axis.`,
+      details: [
+        buildArbitrationBrief(core, locale).focusNarrative,
+        ...buildLatentTopAxes(core, locale).slice(0, 2).map((axis) => axis.label),
+      ].filter(Boolean),
+    },
+    {
+      key: 'cycle' as const,
+      label: locale === 'ko' ? '주기' : 'Cycle',
+      summary:
+        locale === 'ko'
+          ? `${localizeAdapterFreeText(timingWindow?.window || 'now', locale)} 구간이 현재 주기 중심입니다.`
+          : `The ${localizeAdapterFreeText(timingWindow?.window || 'now', locale)} window is the current cycle center.`,
+      details: buildTimingMatrix(core, locale)
+        .slice(0, 2)
+        .map((row) => row.summary)
+        .filter(Boolean),
+    },
+    {
+      key: 'trigger' as const,
+      label: locale === 'ko' ? '촉발' : 'Trigger',
+      summary:
+        locale === 'ko'
+          ? localizeAdapterFreeText(timingWindow?.timingConflictNarrative || '구조와 촉발을 함께 읽어야 합니다.', locale)
+          : localizeAdapterFreeText(timingWindow?.timingConflictNarrative || 'Structure and trigger should be read together.', locale),
+      details: (timingWindow?.entryConditions || []).slice(0, 2).map((item) => localizeAdapterFreeText(item, locale)),
+    },
+    {
+      key: 'risk' as const,
+      label: locale === 'ko' ? '리스크' : 'Risk',
+      summary:
+        locale === 'ko'
+          ? `${localizeDomain(riskAxis, locale)} 문제가 가장 예민한 변수입니다.`
+          : `${localizeDomain(riskAxis, locale)} is the most sensitive risk axis.`,
+      details: [
+        core.canonical.primaryCaution,
+        core.canonical.riskControl,
+      ].map((item) => localizeAdapterFreeText(item, locale)).filter(Boolean),
+    },
+    {
+      key: 'action' as const,
+      label: locale === 'ko' ? '행동' : 'Action',
+      summary:
+        locale === 'ko'
+          ? `${getTopDecisionLabel(core, locale) || core.canonical.primaryAction}이 현재 실행 우선순위입니다.`
+          : `${getTopDecisionLabel(core, locale) || core.canonical.primaryAction} is the current action priority.`,
+      details: getAllowedActionLabels(core.canonical.judgmentPolicy.allowedActions, locale).slice(0, 3),
+    },
+    {
+      key: 'calibration' as const,
+      label: locale === 'ko' ? '보정' : 'Calibration',
+      summary:
+        locale === 'ko'
+          ? `현재 신뢰도는 ${Math.round((core.canonical.confidence || 0) * 100)}% 수준이며, ${matrixLead ? `${matrixLead.label} 축의 matrix를 같이 봐야 합니다.` : '교차 합의도를 같이 봐야 합니다.'}`
+          : `Current confidence is around ${Math.round((core.canonical.confidence || 0) * 100)}%, and ${matrixLead ? `${matrixLead.label} matrix should be read alongside it.` : 'cross-system agreement should be read alongside it.'}`,
+      details: matrixLead?.cells.slice(0, 2).map((cell) => cell.summary) || [],
+    },
+  ]
+
+  return {
+    subject: locale === 'ko' ? '단일 주체 엔진' : 'Single-subject engine',
+    facets,
+  }
 }
 
 function formatScenarioBranchLabel(
@@ -525,16 +659,16 @@ export function buildArbitrationBrief(
     focusNarrative:
       locale === 'ko'
         ? focusRunnerUpDomain
-          ? `${localizeDomain(focusWinnerDomain, locale)}이 ${localizeDomain(focusRunnerUpDomain, locale)}보다 앞서 이번 중심축으로 올라왔습니다.`
-          : `${localizeDomain(focusWinnerDomain, locale)}이 이번 중심축으로 유지됩니다.`
+          ? `${localizeDomain(focusWinnerDomain, locale)} 흐름이 ${localizeDomain(focusRunnerUpDomain, locale)}보다 앞서 이번 국면의 배경을 이끌고 있습니다.`
+          : `${localizeDomain(focusWinnerDomain, locale)} 흐름이 이번 국면의 배경을 이끌고 있습니다.`
         : focusRunnerUpDomain
           ? `${focusWinnerDomain} stayed ahead of ${focusRunnerUpDomain} as the lead identity axis.`
           : `${focusWinnerDomain} remained the lead identity axis.`,
     actionNarrative:
       locale === 'ko'
         ? actionRunnerUpDomain
-          ? `${localizeDomain(actionWinnerDomain, locale)}이 ${localizeDomain(actionRunnerUpDomain, locale)}보다 앞서 지금의 행동축이 되었습니다.`
-          : `${localizeDomain(actionWinnerDomain, locale)}이 지금 실제 움직임을 이끄는 축입니다.`
+          ? `${localizeDomain(actionWinnerDomain, locale)} 쪽이 ${localizeDomain(actionRunnerUpDomain, locale)}보다 앞서 지금 실제로 먼저 움직여야 할 영역이 되었습니다.`
+          : `${localizeDomain(actionWinnerDomain, locale)} 쪽이 지금 실제로 먼저 움직여야 할 영역입니다.`
         : actionRunnerUpDomain
           ? `${actionWinnerDomain} moved ahead of ${actionRunnerUpDomain} as the live action axis.`
           : `${actionWinnerDomain} is carrying the live action pressure.`,
@@ -584,11 +718,11 @@ export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en')
   const structureSummary =
     locale === 'ko'
       ? core.canonical.actionFocusDomain !== core.canonical.focusDomain
-        ? `지금 바로 다뤄야 할 축은 ${actionLabel}이고, 배경 구조축은 ${focusLabel}입니다. 리스크축은 ${riskAxisLabel}이며 지금 판을 미는 층은 ${topAxes
+        ? `지금 바로 다뤄야 할 영역은 ${actionLabel}이고, 삶의 배경 흐름은 ${focusLabel}입니다. 가장 조심해야 할 변수는 ${riskAxisLabel}이며 지금 판을 미는 층은 ${topAxes
             .slice(0, 3)
             .map((axis) => axis.label)
             .join(', ')}입니다.`
-        : `중심축은 ${focusLabel}, 행동축은 ${actionLabel}, 리스크축은 ${riskAxisLabel}이며 지금 판을 미는 층은 ${topAxes
+        : `지금 가장 크게 움직이는 흐름은 ${focusLabel}, 실제로 먼저 움직여야 할 영역은 ${actionLabel}, 가장 조심해야 할 변수는 ${riskAxisLabel}이며 지금 판을 미는 층은 ${topAxes
             .slice(0, 3)
             .map((axis) => axis.label)
             .join(', ')}입니다. ${arbitrationBrief.focusNarrative}`
@@ -667,7 +801,7 @@ export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en')
       detailLines: [
         locale === 'ko'
           ? core.canonical.actionFocusDomain !== core.canonical.focusDomain
-            ? `${actionLabel} 축이 지금 설명의 앞면을 끌고 가고, ${focusLabel} 축은 배경 구조로 남아 있습니다.`
+            ? `${actionLabel} 쪽 설명이 지금 가장 앞에 와야 하고, ${focusLabel} 흐름은 배경으로 남아 있습니다.`
             : arbitrationBrief.focusNarrative
           : core.canonical.actionFocusDomain !== core.canonical.focusDomain
             ? `${actionLabel} is carrying the front-facing explanation right now, while ${focusLabel} remains the background structural axis.`
@@ -676,7 +810,7 @@ export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en')
           ? `지금 구조를 받치는 층은 ${structuralDrivers.join(', ')}입니다.`
           : `The live structural drivers are ${structuralDrivers.join(', ')}.`,
         locale === 'ko'
-          ? `동시에 ${riskAxisLabel} 축이 가장 예민한 리스크 축으로 같이 움직입니다.`
+          ? `동시에 ${riskAxisLabel} 문제가 가장 예민한 변수로 같이 움직입니다.`
           : `At the same time, ${riskAxisLabel} is acting as the most sensitive risk axis.`,
       ].filter(Boolean),
       drivers: structuralDrivers,
@@ -746,7 +880,7 @@ export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en')
       summary: riskSummary,
       detailLines: [
         locale === 'ko'
-          ? `지금 가장 먼저 지켜봐야 할 축은 ${riskAxisLabel}입니다.`
+          ? `지금 가장 먼저 지켜봐야 할 변수는 ${riskAxisLabel}입니다.`
           : `The axis to monitor first right now is ${riskAxisLabel}.`,
         ...hardStopLabels.slice(0, 2),
       ].filter(Boolean),
@@ -779,3 +913,4 @@ export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en')
     branches: buildBranchProjectionSummary(core, locale),
   }
 }
+

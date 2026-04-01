@@ -816,7 +816,7 @@ export const POST = withApiMiddleware(
         message: rawErrorMessage,
         name: error instanceof Error ? error.name : 'Unknown',
         hasOpenAIKey: !!process.env.OPENAI_API_KEY,
-        hasReplicateKey: !!process.env.REPLICATE_API_KEY,
+        hasReplicateKey: !!(process.env.REPLICATE_API_KEY || process.env.REPLICATE_API_TOKEN),
       })
 
       // AI 프로바이더 관련 에러는 사용자에게 친절한 메시지로 변환

@@ -26,6 +26,11 @@ import type { SectionEvidenceRefs } from './evidenceRefs'
 import type { StrategyEngineResult } from './strategyEngine'
 import type { PatternResult } from '@/lib/destiny-matrix/core/patternEngine'
 import type { ScenarioResult } from '@/lib/destiny-matrix/core/scenarioEngine'
+import type {
+  AdapterBranchCandidate,
+  AdapterMatrixViewRow,
+  AdapterSingleUserModel,
+} from '@/lib/destiny-matrix/core/adaptersTypes'
 
 export type AIUserPlan = 'free' | 'starter' | 'pro' | 'premium'
 
@@ -38,6 +43,9 @@ export interface AIPremiumReport {
   topDecisionId?: string | null
   topDecisionLabel?: string | null
   riskControl?: string
+  matrixView?: AdapterMatrixViewRow[]
+  branchSet?: AdapterBranchCandidate[]
+  singleUserModel?: AdapterSingleUserModel
   projections?: {
     structure: {
       headline: string

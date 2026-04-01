@@ -23,6 +23,7 @@ import {
   listMissingCrossKeysForService,
 } from '@/lib/destiny-matrix/inputCross'
 import type { MatrixCalculationInput, TransitCycle } from '@/lib/destiny-matrix/types'
+import { buildDerivedCrossSnapshot } from '@/app/api/destiny-matrix/ai-report/routeDerivedContext'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import type { FiveElement, PillarData } from '@/lib/Saju/types'
 import { STEMS } from '@/lib/Saju/constants'
@@ -138,6 +139,88 @@ type CounselorUiEvidencePayload = {
   bullets: string[]
 }
 
+function normalizeCrossEvidenceDomain(value: string | undefined): string | undefined {
+  if (!value) return undefined
+  switch (value) {
+    case 'love':
+    case 'family':
+    case 'relationship':
+      return 'relationship'
+    case 'career':
+      return 'career'
+    case 'wealth':
+    case 'money':
+      return 'wealth'
+    case 'health':
+      return 'health'
+    case 'move':
+      return 'move'
+    default:
+      return undefined
+  }
+}
+
+function collectCrossEvidenceHighlights(
+  crossSnapshot: unknown,
+  focusDomain?: string,
+  limit = 4
+): string[] {
+  const snapshot =
+    crossSnapshot && typeof crossSnapshot === 'object'
+      ? (crossSnapshot as Record<string, unknown>)
+      : null
+  const crossEvidence =
+    snapshot?.crossEvidence && typeof snapshot.crossEvidence === 'object'
+      ? (snapshot.crossEvidence as Record<string, unknown>)
+      : null
+  if (!crossEvidence) return []
+
+  const out: string[] = []
+  const seen = new Set<string>()
+  const pushText = (value: unknown) => {
+    if (typeof value !== 'string') return
+    const cleaned = value.replace(/\s+/g, ' ').trim()
+    if (!cleaned || seen.has(cleaned)) return
+    seen.add(cleaned)
+    out.push(cleaned)
+  }
+
+  const normalizedDomain = normalizeCrossEvidenceDomain(focusDomain)
+  const domainMap =
+    crossEvidence.domains && typeof crossEvidence.domains === 'object'
+      ? (crossEvidence.domains as Record<string, unknown>)
+      : null
+  if (
+    normalizedDomain &&
+    domainMap?.[normalizedDomain] &&
+    typeof domainMap[normalizedDomain] === 'object'
+  ) {
+    pushText((domainMap[normalizedDomain] as { crossConclusion?: unknown }).crossConclusion)
+  }
+
+  const summary = Array.isArray(crossEvidence.summary) ? crossEvidence.summary : []
+  for (const item of summary) {
+    if (!normalizedDomain) break
+    if (!item || typeof item !== 'object') continue
+    const summaryDomain = normalizeCrossEvidenceDomain(
+      typeof (item as { domain?: unknown }).domain === 'string'
+        ? (item as { domain?: string }).domain
+        : undefined
+    )
+    if (summaryDomain === normalizedDomain) {
+      pushText((item as { text?: unknown }).text)
+    }
+  }
+
+  for (const item of summary) {
+    if (out.length >= limit) break
+    if (!item || typeof item !== 'object') continue
+    pushText((item as { text?: unknown }).text)
+  }
+
+  return out.slice(0, limit)
+}
+
 export function encodeCounselorUiEvidence(
   snapshot: MatrixSnapshot | null,
   lang: 'ko' | 'en'
@@ -162,7 +245,8 @@ export function encodeCounselorUiEvidence(
   const phaseText = describePhaseFlow(phase, lang)
   const stanceText = describeExecutionStance(core.attackPercent, core.defensePercent, lang)
   const confidenceText = describeEvidenceConfidence(snapshot?.confidenceScore, lang)
-  const whyStack = (packet.whyStack || []).slice(0, 2)
+  const whyStack = (packet.whyStack || []).slice(0, 3)
+  const crossEvidenceHighlights = (snapshot?.crossEvidenceHighlights || []).slice(0, 2)
   const actionFocus =
     packet.actionFocusDomain?.trim() || packet.canonicalBrief?.actionFocusDomain?.trim() || ''
   const latentTopAxes = (packet.canonicalBrief?.latentTopAxes || []).slice(0, 2)
@@ -265,6 +349,13 @@ export function encodeCounselorUiEvidence(
             cautionSignal ? `Caution signal: ${cautionSignal}` : '',
           ].filter(Boolean),
         }
+
+  if (crossEvidenceHighlights.length > 0) {
+    const crossBullets = crossEvidenceHighlights.map((line) =>
+      lang === 'ko' ? `\uad50\ucc28 \ud574\uc11d: ${line}` : `Cross read: ${line}`
+    )
+    payload.bullets = [...payload.bullets, ...crossBullets]
+  }
 
   return Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url')
 }
@@ -838,7 +929,7 @@ export async function fetchMatrixSnapshot(input: {
       advancedAstroSignals,
     })
 
-    const matrixInput: MatrixCalculationInput = {
+    const baseMatrixInput: MatrixCalculationInput = {
       dayMasterElement,
       pillarElements,
       sibsinDistribution,
@@ -865,7 +956,6 @@ export async function fetchMatrixSnapshot(input: {
       astrologySnapshot: input.natalChartData
         ? ({ natalChart: input.natalChartData } as MatrixCalculationInput['astrologySnapshot'])
         : undefined,
-      crossSnapshot: { source: 'chat-stream', theme: input.theme },
       currentDateIso: new Date().toISOString().slice(0, 10),
       profileContext: {
         birthDate: input.birthDate,
@@ -874,6 +964,14 @@ export async function fetchMatrixSnapshot(input: {
       },
       lang: matrixLang,
       startYearMonth: `${new Date().getFullYear()}-01`,
+    }
+    const matrixInput: MatrixCalculationInput = {
+      ...baseMatrixInput,
+      crossSnapshot: buildDerivedCrossSnapshot(baseMatrixInput as unknown as Record<string, unknown>, {
+        source: 'chat-stream',
+        theme: input.theme,
+        category: input.theme,
+      }),
     }
     const crossCompleteInput = ensureMatrixInputCrossCompleteness(matrixInput)
     const crossAudit = buildServiceInputCrossAudit(crossCompleteInput, 'counselor')
@@ -978,6 +1076,10 @@ export async function fetchMatrixSnapshot(input: {
       chat: 'general',
     }
     const themeDomain = input.focusDomain || themeDomainMap[input.theme] || 'career'
+    const crossEvidenceHighlights = collectCrossEvidenceHighlights(
+      normalizedMatrixInput.crossSnapshot,
+      input.focusDomain || themeDomain
+    )
 
     return {
       totalScore: Number((matrixSummaryForCounselor || matrix.summary).totalScore || 0),
@@ -985,6 +1087,7 @@ export async function fetchMatrixSnapshot(input: {
       highlights: merged
         .map((item) => `${item.keyword || 'n/a'}(${Number(item.score || 0).toFixed(1)})`)
         .slice(0, 5),
+      crossEvidenceHighlights,
       synergies: ((matrixSummaryForCounselor || matrix.summary).topSynergies || [])
         .map(
           (item) =>

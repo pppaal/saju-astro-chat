@@ -1,6 +1,6 @@
-﻿// src/lib/destiny-matrix/ai-report/aiReportService.ts
+// src/lib/destiny-matrix/ai-report/aiReportService.ts
 // Destiny Fusion Matrix(TM) - AI Premium Report Generator
-// 유료 기능: AI 기반 상세 내러티브 리포트 생성
+// ?? ??: AI ?? ?? ???? ??? ??
 
 import type { FusionReport } from '../interpreter/types'
 import type { MatrixCalculationInput, MatrixSummary } from '../types'
@@ -75,6 +75,7 @@ import {
   sanitizeComprehensiveSectionsForUser,
   type ComprehensivePostProcessDeps,
 } from './reportComprehensivePostProcess'
+import { repairMalformedComprehensiveSections } from './reportSectionRepair'
 import {
   buildComprehensiveFallbackSections as buildComprehensiveFallbackSectionsExternal,
   buildNarrativeSupplementsBySection as buildNarrativeSupplementsBySectionExternal,
@@ -221,18 +222,18 @@ import type { DestinyCoreQuality } from '@/lib/destiny-matrix/core/runDestinyCor
 import { adaptCoreToReport } from '@/lib/destiny-matrix/core/adapters'
 import type { PatternResult } from '@/lib/destiny-matrix/core/patternEngine'
 
-const RECHECK_REGEX = /재확인|점검|검토|verify|recheck|double-check|checklist|review/i
-const ABSOLUTE_RISK_REGEX = /무조건|절대|반드시|100%|always|never|guaranteed|certainly/i
+const RECHECK_REGEX = /verify|recheck|double-check|checklist|review|confirm/i
+const ABSOLUTE_RISK_REGEX = /100%|always|never|guaranteed|certainly|inevitable/i
 const IRREVERSIBLE_ACTION_REGEX =
-  /계약|서명|확정|예약|결혼식|청첩장|이직\s*확정|창업\s*확정|런칭|큰\s*결정|즉시\s*결정|sign|finalize|commit now|book|wedding|invitation|big decision|launch/i
+  /sign|finalize|commit now|book|wedding|invitation|big decision|launch|submit payment/i
 const CAUTION_INDICATOR_REGEX =
-  /주의|리스크|경계|재확인|확인|오류|갈등|충돌|caution|risk|warning|recheck|conflict/i
+  /caution|risk|warning|recheck|conflict|overreach|fragile/i
 const IMMEDIATE_FORCE_REGEX =
-  /즉시|바로|지금\s*확정|오늘\s*확정|today\s*finalize|sign now|commit now|immediately/i
+  /today\s*finalize|sign now|commit now|immediately|rush|right away/i
 const MITIGATION_REGEX =
-  /전|재확인|점검|검토|보류|미루|분리|하지\s*말|avoid|before|recheck|verify|defer|hold/i
+  /avoid|before|recheck|verify|defer|hold|slow down|stage/i
 const RECOMMENDATION_TONE_REGEX =
-  /하세요|하십시오|권장|추천|진행|실행|하라|해야|권합니다|recommended|recommend|should|must|do this|proceed/i
+  /recommended|recommend|should|must|do this|proceed|best move/i
 function recordRewriteModeMetric(
   reportType: 'comprehensive' | 'timing' | 'themed',
   modelUsed: string,
@@ -255,12 +256,12 @@ function recordRewriteModeMetric(
 function buildDirectToneOverride(lang: 'ko' | 'en'): string {
   if (lang === 'ko') {
     return [
-      '## 말투 강제 규칙',
-      '- 친구식 위로체 대신 전문가 컨설팅 톤으로 작성합니다.',
-      '- 각 단락 첫 문장은 결론형으로 시작합니다.',
-      '- 두루뭉술한 표현 대신 명확한 판단 문장을 사용합니다.',
-      '- 근거(사주/점성) -> 해석 -> 행동 순서를 유지합니다.',
-      '- 불릿이 아니라 문단형으로 작성하되, 문장은 짧고 단정하게 씁니다.',
+      '## ?? ?? ??',
+      '- ??? ??? ?? ??? ??? ??? ?????.',
+      '- ? ?? ? ??? ????? ?????.',
+      '- ????? ?? ?? ??? ?? ??? ?????.',
+      '- ??(??/??) -> ?? -> ?? ??? ?????.',
+      '- ??? ??? ????? ????, ??? ?? ???? ???.',
     ].join('\n')
   }
   return [
@@ -384,80 +385,80 @@ function buildReportOutputCoreFields(
     const value = String(text || '').trim()
     if (!value || lang !== 'ko') return value
     return value
-      .replace(/\bpersonality\b/gi, '성향')
-      .replace(/\bcareer\b/gi, '커리어')
-      .replace(/\brelationship\b/gi, '관계')
-      .replace(/\bwealth\b/gi, '재정')
-      .replace(/\bhealth\b/gi, '건강')
-      .replace(/\bmove\b/gi, '이동')
-      .replace(/\bspirituality\b/gi, '장기 방향')
-      .replace(/\bnow\b/gi, '지금')
-      .replace(/\bweek\b/gi, '주 단위')
-      .replace(/\bfortnight\b/gi, '2주 단위')
-      .replace(/\bmonth\b/gi, '월 단위')
-      .replace(/\bseason\b/gi, '분기 단위')
-      .replace(/\bverify\b/gi, '확인')
-      .replace(/\bprepare\b/gi, '준비 우선')
-      .replace(/\bexecute\b/gi, '실행')
-      .replace(/\bTransit\s+saturnReturn\b/gi, '책임 압력 신호')
-      .replace(/\bTransit\s+jupiterReturn\b/gi, '확장 신호')
-      .replace(/\bTransit\s+nodeReturn\b/gi, '방향 전환 신호')
-      .replace(/\bTransit\s+mercuryRetrograde\b/gi, '소통 재검토 신호')
-      .replace(/\bTransit\s+marsRetrograde\b/gi, '마찰 재검토 신호')
-      .replace(/\bTransit\s+venusRetrograde\b/gi, '관계 재검토 신호')
-      .replace(/\bsaturnReturn\b/gi, '책임 압력 신호')
-      .replace(/\bjupiterReturn\b/gi, '확장 신호')
-      .replace(/\bnodeReturn\b/gi, '방향 전환 신호')
-      .replace(/\bmercuryRetrograde\b/gi, '소통 재검토 신호')
-      .replace(/\bmarsRetrograde\b/gi, '마찰 재검토 신호')
-      .replace(/\bvenusRetrograde\b/gi, '관계 재검토 신호')
-      .replace(/\bsolarReturn\b/gi, '연간 초점 강조')
-      .replace(/\blunarReturn\b/gi, '감정 파동 신호')
-      .replace(/\bprogressions?\b/gi, '장기 전개 흐름')
-      .replace(/\bcaution\b/gi, '주의 신호')
-      .replace(/\bdowngrade pressure\b/gi, '하향 조정 압력')
-      .replace(/\bgeokguk strength\b/gi, '격국 응집력')
-      .replace(/\bdebt restructure\b/gi, '부채 재정리')
-      .replace(/\bliquidity defense\b/gi, '유동성 방어')
-      .replace(/\bexpense spike\b/gi, '지출 급증 대응')
-      .replace(/\bpromotion review\b/gi, '승진 검토')
-      .replace(/\brecovery reset\b/gi, '회복 재정렬')
-      .replace(/\bbasecamp reset\b/gi, '거점 재정비')
-      .replace(/\bmap full debt stack\b/gi, '전체 부채 구조를 다시 정리하기')
-      .replace(/\bwealth volatility pattern\b/gi, '재정 변동성 패턴')
-      .replace(/\bcareer expansion pattern\b/gi, '커리어 확장 패턴')
-      .replace(/\brelationship tension pattern\b/gi, '관계 긴장 패턴')
-      .replace(/\bcashflow\b/gi, '현금흐름')
-      .replace(/\bmoney expansion action\b/gi, '재정 확장은 조건 검증부터 진행하세요')
-      .replace(/\brelationship caution\b/gi, '관계에서는 속도보다 기준 확인이 먼저입니다')
-      .replace(/활성 신호\s+책임 압력 신호/gi, '책임 압력 신호')
-      .replace(/활성 신호\s+확장 신호/gi, '확장 신호')
-      .replace(/활성 신호\s+방향 전환 신호/gi, '방향 전환 신호')
-      .replace(/활성 신호\s+소통 재검토 신호/gi, '소통 재검토 신호')
-      .replace(/변동성 패턴\s+패턴/gi, '변동성 패턴')
+      .replace(/\bpersonality\b/gi, '??')
+      .replace(/\bcareer\b/gi, '???')
+      .replace(/\brelationship\b/gi, '??')
+      .replace(/\bwealth\b/gi, '??')
+      .replace(/\bhealth\b/gi, '??')
+      .replace(/\bmove\b/gi, '??')
+      .replace(/\bspirituality\b/gi, '??')
+      .replace(/\bnow\b/gi, '??')
+      .replace(/\bweek\b/gi, '?? ?')
+      .replace(/\bfortnight\b/gi, '2?')
+      .replace(/\bmonth\b/gi, '?? ?')
+      .replace(/\bseason\b/gi, '?? ??')
+      .replace(/\bverify\b/gi, '???')
+      .replace(/\bprepare\b/gi, '??')
+      .replace(/\bexecute\b/gi, '??')
+      .replace(/\bTransit\s+saturnReturn\b/gi, '?? ?? ??')
+      .replace(/\bTransit\s+jupiterReturn\b/gi, '?? ??')
+      .replace(/\bTransit\s+nodeReturn\b/gi, '?? ?? ??')
+      .replace(/\bTransit\s+mercuryRetrograde\b/gi, '?? ??? ??')
+      .replace(/\bTransit\s+marsRetrograde\b/gi, '?? ??? ??')
+      .replace(/\bTransit\s+venusRetrograde\b/gi, '?? ??? ??')
+      .replace(/\bsaturnReturn\b/gi, '?? ?? ??')
+      .replace(/\bjupiterReturn\b/gi, '?? ??')
+      .replace(/\bnodeReturn\b/gi, '?? ?? ??')
+      .replace(/\bmercuryRetrograde\b/gi, '?? ??? ??')
+      .replace(/\bmarsRetrograde\b/gi, '?? ??? ??')
+      .replace(/\bvenusRetrograde\b/gi, '?? ??? ??')
+      .replace(/\bsolarReturn\b/gi, '?? ?? ??')
+      .replace(/\blunarReturn\b/gi, '?? ?? ??')
+      .replace(/\bprogressions?\b/gi, '?? ?? ??')
+      .replace(/\bcaution\b/gi, '?? ??')
+      .replace(/\bdowngrade pressure\b/gi, '?? ?? ??')
+      .replace(/\bgeokguk strength\b/gi, '?? ???')
+      .replace(/\bdebt restructure\b/gi, '?? ???')
+      .replace(/\bliquidity defense\b/gi, '??? ??')
+      .replace(/\bexpense spike\b/gi, '?? ?? ??')
+      .replace(/\bpromotion review\b/gi, '?? ??')
+      .replace(/\brecovery reset\b/gi, '?? ???')
+      .replace(/\bbasecamp reset\b/gi, '?? ???')
+      .replace(/\bmap full debt stack\b/gi, '?? ?? ??? ?? ????')
+      .replace(/\bwealth volatility pattern\b/gi, '?? ??? ??')
+      .replace(/\bcareer expansion pattern\b/gi, '??? ?? ??')
+      .replace(/\brelationship tension pattern\b/gi, '?? ?? ??')
+      .replace(/\bcashflow\b/gi, '????')
+      .replace(/\bmoney expansion action\b/gi, '?? ??? ?? ???? ?????')
+      .replace(/\brelationship caution\b/gi, '????? ???? ?? ??? ?????')
+      .replace(/action pressure/gi, 'action pressure')
+      .replace(/relationship caution/gi, 'relationship caution')
+      .replace(/money expansion action/gi, 'money expansion action')
+      .replace(/career expansion pattern/gi, 'career expansion pattern')
+      .replace(/relationship tension pattern/gi, 'relationship tension pattern')
       .replace(
         /action pressure stayed narrow between ([^\s]+) and ([^\s]+)/gi,
         (_, left: string, right: string) =>
-          `${getReportDomainLabel(left, 'ko')}와 ${getReportDomainLabel(right, 'ko')} 사이의 행동 압력이 좁게 경쟁했습니다`
+          `${getReportDomainLabel(left, 'ko')}? ${getReportDomainLabel(right, 'ko')} ??? ?? ??? ???? ?????.`
       )
       .replace(
         /\b\w+\s+stayed secondary because total support remained below the winner\b/gi,
-        '최종 지지가 승자축보다 약해 보조축에 머물렀습니다'
+        '?? ??? ????? ?? ???? ??????.'
       )
-      .replace(
-        /([가-힣]+)\s+stayed secondary because total support remained below the winner/gi,
-        '$1은 최종 지지가 승자축보다 약해 보조축에 머물렀습니다'
-      )
-      .replace(/밀는/g, '미는')
-      .replace(/중단는/g, '중단은')
-      .replace(/커리어은/g, '커리어는')
-      .replace(/관계은/g, '관계는')
-      .replace(/타이밍와/g, '타이밍과')
-      .replace(/장기 방향와/g, '장기 방향과')
-      .replace(/재정와/g, '재정과')
-      .replace(/건강와/g, '건강과')
-      .replace(/편이 맞습니다\.입니다\./g, '편이 맞습니다.')
-      .replace(/트랜짓가/g, '트랜짓이')
+      .replace(/basecamp reset/gi, '?? ???')
+      .replace(/promotion review/gi, '?? ??')
+      .replace(/contract negotiation/gi, '?? ??')
+      .replace(/specialist track/gi, '??? ??')
+      .replace(/wealth volatility pattern/gi, '?? ??? ??')
+      .replace(/career expansion pattern/gi, '??? ?? ??')
+      .replace(/relationship tension pattern/gi, '?? ?? ??')
+      .replace(/sleep disruption/gi, '?? ???')
+      .replace(/burnout risk/gi, '??? ??')
+      .replace(/liquidity defense/gi, '??? ??')
+      .replace(/debt restructuring/gi, '?? ???')
+      .replace(/route recheck/gi, '?? ???')
+      .replace(/recovery reset/gi, '?? ???')
+      .replace(/cashflow/gi, '????')
       .replace(/\s+/g, ' ')
       .trim()
   }
@@ -466,22 +467,36 @@ function buildReportOutputCoreFields(
     reportCore.actionFocusDomain || reportCore.focusDomain,
     lang
   )
+  const polishBranchSentence = (text: string | undefined | null): string => {
+    const base = localizeReportFreeText(text)
+    if (!base || lang !== 'ko') return base
+    return base
+      .replace(/([\uAC00-\uD7A3]+)\s+Expansion Pattern\s+\uD328\uD134\s+\uADFC\uAC70\uAC00\s+\uC720\uC9C0\uB420\s+\uAC83/gi, '$1 \uD655\uC7A5 \uD750\uB984\uC774 \uC720\uC9C0\uB420 \uAC83')
+      .replace(/(.+?)\s+\uC774\uD6C4\uC5D0\uB3C4\s+([\uAC00-\uD7A3]+)\s+Expansion Pattern\s+\uADFC\uAC70\uAC00\s+\uC774\uC5B4\uC9C8\s+\uAC83/gi, '$1 \uC774\uD6C4\uC5D0\uB3C4 $2 \uD655\uC7A5 \uD750\uB984\uC774 \uC774\uC5B4\uC9C8 \uAC83')
+      .replace(/\bExpansion Pattern\b/gi, '\uD655\uC7A5 \uD750\uB984')
+      .replace(/([\uAC00-\uD7A3]+)\s+(?:\uD655\uC7A5|\uAE34\uC7A5|\uBCC0\uB3D9\uC131)\s+\uD750\uB984\s+\uD328\uD134\s+\uADFC\uAC70\uAC00\s+\uC720\uC9C0\uB420\s+\uAC83/gi, '$1 \uD750\uB984\uC774 \uC720\uC9C0\uB420 \uAC83')
+      .replace(/\uC2DC\uB098\uB9AC\uC624\s+\uD655\uB960\s+[\d.]+%\uC640\s+\uC2E0\uB8B0\uB3C4\s+[\d.]+%\uAC00\s+\uC720\uC9C0\uB420\s+\uAC83/gi, '\uD604\uC7AC \uAC00\uB2A5\uC131\uACFC \uC2E0\uB8B0\uB3C4\uAC00 \uC720\uC9C0\uB420 \uAC83')
+      .replace(/\uD0C0\uC774\uBC0D\s+\uC801\uD569\uB3C4\s+[\d.]+%\s+\uC774\uC0C1\uC5D0\uC11C\s+(.+?)\uB97C\s+\uBC14\uB85C\s+\uC2E4\uD589\uD560\s+\uC218\s+\uC788\uC744\s+\uAC83/gi, '\uD0C0\uC774\uBC0D\uC774 \uCDA9\uBD84\uD788 \uB9DE\uC744 \uB54C $1\uB97C \uC2E4\uD589\uD560 \uC218 \uC788\uC744 \uAC83')
+      .replace(/(.+?)\s+\uC774\uD6C4\uC5D0\uB3C4\s+([\uAC00-\uD7A3]+)\s+\uD750\uB984\s+\uADFC\uAC70\uAC00\s+\uC774\uC5B4\uC9C8\s+\uAC83/gi, '$1 \uC774\uD6C4\uC5D0\uB3C4 $2 \uD750\uB984\uC774 \uC774\uC5B4\uC9C8 \uAC83')
+      .replace(/\s+/g, ' ')
+      .trim()
+  }
   const localizeProjectionList = (items: Array<string | undefined | null>) =>
-    items.map((item) => localizeReportFreeText(item)).filter(Boolean)
+    items.map((item) => polishBranchSentence(item)).filter(Boolean)
   const timingWindow = reportCore.domainTimingWindows.find(
     (item) => item.domain === reportCore.actionFocusDomain || item.domain === reportCore.focusDomain
   )
   const structureSummary =
     lang === 'ko'
       ? reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
-        ? `지금 바로 다뤄야 할 축은 ${actionLabel}이고, 배경 구조축은 ${focusLabel}입니다. 상위 잠재 축은 ${reportCore.latentTopAxes
+        ? `?? ?? ???? ? ??? ${actionLabel}??, ?? ?? ??? ${focusLabel}???. ?? ?? ?? ?? ${reportCore.latentTopAxes
             .slice(0, 3)
             .map((axis) => axis.label)
-            .join(', ')}입니다.`
-        : `중심축은 ${focusLabel}, 행동축은 ${actionLabel}이며 상위 잠재 축은 ${reportCore.latentTopAxes
+            .join(', ')}???.`
+        : `?? ?? ?? ???? ??? ${focusLabel}??, ??? ?? ???? ? ??? ${actionLabel}???. ?? ?? ?? ?? ${reportCore.latentTopAxes
             .slice(0, 3)
             .map((axis) => axis.label)
-            .join(', ')}입니다.`
+            .join(', ')}???.`
       : reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
         ? `The axis to handle directly right now is ${actionLabel}, while ${focusLabel} remains the background structural axis. The top latent drivers are ${reportCore.latentTopAxes
             .slice(0, 3)
@@ -493,26 +508,55 @@ function buildReportOutputCoreFields(
             .join(', ')}.`
   const timingSummary =
     lang === 'ko'
-      ? `${actionLabel} 쪽 타이밍은 ${localizeReportFreeText(timingWindow?.window || 'unknown')} 구간으로 읽히며, ${localizeReportFreeText(timingWindow?.timingConflictNarrative || '구조와 촉발을 함께 봐야 합니다.')}`
+      ? `${actionLabel} ??? ?? ?? ${localizeReportFreeText(timingWindow?.window || '??')}??, ${localizeReportFreeText(timingWindow?.timingConflictNarrative || '??? ??? ?? ?? ???.')}`
       : `Timing for ${actionLabel} reads as ${timingWindow?.window || 'unknown'}, and ${timingWindow?.timingConflictNarrative || 'structure and trigger need to be read together.'}`
   const conflictSummary =
     lang === 'ko'
       ? localizeReportFreeText(reportCore.arbitrationBrief.conflictReasons[0]) ||
-        `${focusLabel} 중심축과 ${actionLabel} 행동축이 분리돼 읽히는 구간입니다.`
+        `${focusLabel}? ?? ??? ?? ??, ${actionLabel}? ?? ??? ??? ? ?? ?? ???.`
       : reportCore.arbitrationBrief.conflictReasons[0] ||
         `${focusLabel} and ${actionLabel} currently separate into identity and action axes.`
   const evidenceSummary =
     lang === 'ko'
-      ? `상위 신호 ${reportCore.topSignalIds.slice(0, 3).length}개와 핵심 패턴 ${reportCore.topPatternIds.slice(0, 2).length}개, 시나리오 ${reportCore.topScenarioIds.slice(0, 2).length}개가 이번 해석의 골격입니다.`
+      ? `?? ?? ${reportCore.topSignalIds.slice(0, 3).length}?, ?? ?? ${reportCore.topPatternIds.slice(0, 2).length}?, ?? ?? ${reportCore.topScenarioIds.slice(0, 2).length}?? ?? ??? ??? ????.`
       : `Top signals ${reportCore.topSignalIds.slice(0, 3).join(', ')}, patterns ${reportCore.topPatternIds.slice(0, 2).join(', ')}, and scenarios ${reportCore.topScenarioIds.slice(0, 2).join(', ')} form the current spine.`
   return {
     focusDomain: reportCore.focusDomain,
     actionFocusDomain: reportCore.actionFocusDomain,
+    matrixView: (reportCore.matrixView || []).slice(0, 4).map((row) => ({
+      domain: row.domain,
+      label: localizeReportFreeText(row.label),
+      cells: (row.cells || []).slice(0, 4).map((cell) => ({
+        ...cell,
+        summary: localizeReportFreeText(cell.summary),
+      })),
+    })),
+    branchSet: (reportCore.branchSet || []).slice(0, 3).map((branch) => ({
+      ...branch,
+      label: localizeReportFreeText(branch.label),
+      summary: localizeReportFreeText(branch.summary),
+      entry: localizeProjectionList(branch.entry || []),
+      abort: localizeProjectionList(branch.abort || []),
+      sustain: localizeProjectionList(branch.sustain || []),
+      reversalRisk: polishBranchSentence(branch.reversalRisk || ''),
+      wrongMoveCost: polishBranchSentence(branch.wrongMoveCost || ''),
+    })),
+    singleUserModel: reportCore.singleUserModel
+      ? {
+          subject: localizeReportFreeText(reportCore.singleUserModel.subject),
+          facets: reportCore.singleUserModel.facets.map((facet) => ({
+            ...facet,
+            label: localizeReportFreeText(facet.label),
+            summary: localizeReportFreeText(facet.summary),
+            details: localizeProjectionList(facet.details || []),
+          })),
+        }
+      : undefined,
     arbitrationBrief: reportCore.arbitrationBrief,
     latentTopAxes: reportCore.latentTopAxes,
     projections: {
       structure: {
-        headline: lang === 'ko' ? '구조 투영' : 'Structure Projection',
+        headline: lang === 'ko' ? '?? ??' : 'Structure Projection',
         summary: structureSummary,
         topAxes: reportCore.latentTopAxes.slice(0, 4).map((axis) => axis.label),
         detailLines: localizeProjectionList(reportCore.projections?.structure?.detailLines || []),
@@ -521,7 +565,7 @@ function buildReportOutputCoreFields(
         nextMoves: localizeProjectionList(reportCore.projections?.structure?.nextMoves || []),
       },
       timing: {
-        headline: lang === 'ko' ? '타이밍 투영' : 'Timing Projection',
+        headline: lang === 'ko' ? '??? ??' : 'Timing Projection',
         summary: timingSummary,
         window: timingWindow?.window,
         granularity: timingWindow?.timingGranularity,
@@ -531,7 +575,7 @@ function buildReportOutputCoreFields(
         nextMoves: localizeProjectionList(reportCore.projections?.timing?.nextMoves || []),
       },
       conflict: {
-        headline: lang === 'ko' ? '충돌 투영' : 'Conflict Projection',
+        headline: lang === 'ko' ? '?? ??' : 'Conflict Projection',
         summary: conflictSummary,
         detailLines: localizeProjectionList(reportCore.projections?.conflict?.detailLines || []),
         drivers: localizeProjectionList(reportCore.projections?.conflict?.drivers || []),
@@ -545,10 +589,10 @@ function buildReportOutputCoreFields(
             : reportCore.arbitrationBrief.conflictReasons.slice(0, 3),
       },
       action: {
-        headline: lang === 'ko' ? '행동 투영' : 'Action Projection',
+        headline: lang === 'ko' ? '?? ??' : 'Action Projection',
         summary:
           lang === 'ko'
-            ? `${actionLabel} 축에서는 ${reportCore.topDecisionLabel || reportCore.topDecisionId || reportCore.primaryAction}이 실제 움직임의 중심입니다.`
+            ? `${actionLabel}??? ${reportCore.topDecisionLabel || reportCore.topDecisionId || reportCore.primaryAction}? ?? ?? ???????.`
             : `On the ${actionLabel} axis, ${reportCore.topDecisionLabel || reportCore.topDecisionId || reportCore.primaryAction} is the live move.`,
         detailLines: localizeProjectionList(reportCore.projections?.action?.detailLines || []),
         drivers: localizeProjectionList(reportCore.projections?.action?.drivers || []),
@@ -560,7 +604,7 @@ function buildReportOutputCoreFields(
         ].filter(Boolean),
       },
       risk: {
-        headline: lang === 'ko' ? '리스크 투영' : 'Risk Projection',
+        headline: lang === 'ko' ? '??? ??' : 'Risk Projection',
         summary:
           lang === 'ko'
             ? [
@@ -582,7 +626,7 @@ function buildReportOutputCoreFields(
           .filter(Boolean),
       },
       evidence: {
-        headline: lang === 'ko' ? '근거 투영' : 'Evidence Projection',
+        headline: lang === 'ko' ? '?? ??' : 'Evidence Projection',
         summary: evidenceSummary,
         detailLines: localizeProjectionList(reportCore.projections?.evidence?.detailLines || []),
         drivers: localizeProjectionList(reportCore.projections?.evidence?.drivers || []),
@@ -592,13 +636,13 @@ function buildReportOutputCoreFields(
           lang === 'ko'
             ? [
                 reportCore.topSignalIds.length
-                  ? `핵심 신호 ${reportCore.topSignalIds.slice(0, 3).length}개가 동시에 작동 중입니다.`
+                  ? `?? ?? ${reportCore.topSignalIds.slice(0, 3).length}?? ??? ?? ????.`
                   : '',
                 reportCore.topPatternIds.length
-                  ? `상위 패턴 ${reportCore.topPatternIds.slice(0, 2).length}개가 같은 방향으로 겹칩니다.`
+                  ? `?? ?? ${reportCore.topPatternIds.slice(0, 2).length}?? ?? ???? ????.`
                   : '',
                 reportCore.topScenarioIds.length
-                  ? `대표 시나리오 ${reportCore.topScenarioIds.slice(0, 2).length}개가 현재 판단을 지지합니다.`
+                  ? `?? ???? ${reportCore.topScenarioIds.slice(0, 2).length}?? ?? ??? ?????.`
                   : '',
               ].filter(Boolean)
             : [
@@ -608,11 +652,11 @@ function buildReportOutputCoreFields(
               ].filter(Boolean),
       },
       branches: {
-        headline: lang === 'ko' ? '분기 투영' : 'Branch Projection',
+        headline: lang === 'ko' ? '?? ??' : 'Branch Projection',
         summary:
           localizeReportFreeText(reportCore.projections?.branches?.summary) ||
           (lang === 'ko'
-            ? '가능한 경로가 하나로 고정되기보다 여러 갈래로 열려 있습니다.'
+            ? '??? ??? ??? ?????? 2~3?? ?? ??? ??? ?? ????.'
             : 'Multiple realistic branches are open rather than one fixed outcome.'),
         window: reportCore.projections?.branches?.window,
         granularity: reportCore.projections?.branches?.granularity,
@@ -740,7 +784,7 @@ function buildPersonalLifeTimelineNarrative(
     current.ganji,
     current.element,
     lang,
-    lang === 'ko' ? '현재 대운' : 'current 10-year cycle'
+    lang === 'ko' ? '?? ??' : 'current 10-year cycle'
   )
   if (lang !== 'ko') {
     const currentAgeLine =
@@ -763,13 +807,13 @@ function buildPersonalLifeTimelineNarrative(
 
   const currentAgeLine =
     age !== null
-      ? `현재 ${age}세 전후의 핵심 장기 흐름은 ${current.startAge}-${current.endAge}세 대운(${currentLabel})입니다. 이 구간이 인생 전체의 큰 기후를 정하고, 세운·월운·일운은 그 위에서 실제 사건의 속도와 체감 강도를 조절합니다.`
-      : `${current.startAge}-${current.endAge}세 대운(${currentLabel})이 현재 장기 흐름의 중심입니다. 이 구간이 인생 전체의 큰 기후를 정하고, 세운·월운·일운은 그 위에서 실제 사건의 속도와 체감 강도를 조절합니다.`
+      ? `?? ${age}? ??? ?? ?? ??? ${current.startAge}-${current.endAge}? ??(${currentLabel})???. ? ??? ?? ??? ? ??? ???, ????????? ? ??? ?? ??? ??? ?? ??? ?????.`
+      : `${current.startAge}-${current.endAge}? ??(${currentLabel})? ?? ?? ??? ?????. ? ??? ?? ??? ? ??? ???, ????????? ? ??? ?? ??? ??? ?? ??? ?????.`
   const prevLine = prev
-    ? `${prev.startAge}-${prev.endAge}세 구간에서 굳어진 습관과 판단 기준이 지금 흐름의 출발점이 됩니다. 그래서 현재 대운은 새 기회를 여는 동시에, 예전 방식 중 무엇을 유지하고 무엇을 버릴지 다시 고르게 만듭니다.`
+    ? `${prev.startAge}-${prev.endAge}? ???? ??? ??? ?? ??? ?? ??? ???? ???. ??? ?? ??? ? ??? ?? ???, ?? ?? ? ??? ???? ??? ??? ?? ??? ????.`
     : ''
   const nextLine = next
-    ? `다음 ${next.startAge}-${next.endAge}세 대운(${next.ganji || next.element || '다음 장기 흐름'})으로 넘어가기 전까지는, 지금 구간에서 성과를 내는 방식과 다음 구간에 가져갈 기준을 구분해 두는 것이 중요합니다.`
+    ? `?? ${next.startAge}-${next.endAge}? ??(${next.ganji || next.element || '?? ?? ??'})?? ???? ????, ?? ???? ??? ?? ??? ?? ??? ??? ??? ??? ?? ?? ?????.`
     : ''
   return [currentAgeLine, prevLine, nextLine].filter(Boolean).join(' ')
 }
@@ -801,10 +845,10 @@ function formatPlanetPlacement(
     const planetLabel = localizePlanetName(planet, lang)
     const signLabel = localizeSignName(String(sign || ''), lang)
     if (sign && house)
-      return `${planetLabel}${hasBatchim(planetLabel) ? '은' : '는'} ${signLabel} ${house}하우스에 놓여 있습니다`
+      return `${planetLabel}${hasBatchim(planetLabel) ? '?' : '?'} ${signLabel} ${house}???? ?? ????`
     if (sign)
-      return `${planetLabel}${hasBatchim(planetLabel) ? '은' : '는'} ${signLabel}에 놓여 있습니다`
-    return `${planetLabel}${hasBatchim(planetLabel) ? '은' : '는'} ${house}하우스에 놓여 있습니다`
+      return `${planetLabel}${hasBatchim(planetLabel) ? '?' : '?'} ${signLabel}? ?? ????`
+    return `${planetLabel}${hasBatchim(planetLabel) ? '?' : '?'} ${house}???? ?? ????`
   }
   if (sign && house) return `${planet} in ${sign}, house ${house}`
   if (sign) return `${planet} in ${sign}`
@@ -823,35 +867,35 @@ function buildPersonalCycleNarrative(
   const parts = [
     input.currentDaeunElement
       ? lang === 'ko'
-        ? `대운 ${input.currentDaeunElement}`
+        ? `?? ${input.currentDaeunElement}`
         : `Daeun ${getElementLabel(input.currentDaeunElement, lang)}`
       : '',
     input.currentSaeunElement
       ? lang === 'ko'
-        ? `세운 ${input.currentSaeunElement}`
+        ? `?? ${input.currentSaeunElement}`
         : `annual cycle ${getElementLabel(input.currentSaeunElement, lang)}`
       : '',
     input.currentWolunElement
       ? lang === 'ko'
-        ? `월운 ${input.currentWolunElement}`
+        ? `?? ${input.currentWolunElement}`
         : `monthly cycle ${getElementLabel(input.currentWolunElement, lang)}`
       : '',
     input.currentIljinElement
       ? lang === 'ko'
-        ? `일운 ${input.currentIljinElement}`
+        ? `?? ${input.currentIljinElement}`
         : `daily cycle ${getElementLabel(input.currentIljinElement, lang)}`
       : '',
   ].filter(Boolean)
   if (lang === 'ko') {
-    const agePart = age !== null ? `현재 ${age}세 전후` : '현재 구간'
+    const agePart = age !== null ? `?? ${age}? ??` : '?? ??'
     if (parts.length === 0)
-      return `${agePart}는 타이밍 입력은 있으나 겹친 운의 이름이 약하게 포착된 상태입니다.`
+      return `${agePart}? ??? ??? ??? ?? ?? ??? ??? ??? ?????.`
     const normalizedParts = parts.map((part) => {
       const [cycle, element] = part.split(' ')
       if (!cycle || !element) return part
       return `${withSubjectParticle(`${cycle} ${element}`)}`
     })
-    return `${agePart}는 ${normalizedParts.join(', ')} 겹쳐 작동하는 구간입니다. 큰 기후는 대운이 만들고, 세운과 월운이 실제 체감 강도를 조절합니다.`
+    return `${agePart}? ${normalizedParts.join(', ')} ?? ???? ?????. ? ??? ??? ???, ??? ??? ?? ?? ??? ?????.`
   }
   const agePart = age !== null ? `Around age ${age}` : 'At the current phase'
   if (parts.length === 0)
@@ -872,7 +916,7 @@ function buildFocusedCycleLead(
     current && (current.ganji || current.element)
       ? `${current.ganji || ''}${current.element ? `(${current.element})` : ''}`
       : lang === 'ko'
-        ? '현재 흐름'
+        ? '?? ??'
         : 'current cycle'
 
   if (lang !== 'ko') {
@@ -893,24 +937,24 @@ function buildFocusedCycleLead(
     }
   }
 
-  const agePrefix = age !== null ? `현재 ${age}세 전후는 ` : '지금은 '
+  const agePrefix = age !== null ? `?? ${age}? ??? ` : '??? '
   const cycleLabel =
     current !== null
-      ? `${current.startAge}-${current.endAge}세 대운(${currentLabel})`
+      ? `${current.startAge}-${current.endAge}? ??(${currentLabel})`
       : currentLabel
   switch (focus) {
     case 'career':
-      return `${agePrefix}${cycleLabel} 흐름 안에 있어 커리어 판단에서도 새 확장보다 역할·우선순위 정리가 먼저입니다.`
+      return `${agePrefix}${cycleLabel} ?? ?? ?? ??? ????? ? ???? ??????? ??? ?????.`
     case 'wealth':
-      return `${agePrefix}${cycleLabel} 흐름 안에 있어 재정 판단에서는 수익 기대보다 조건 검토와 손실 상한 관리가 먼저입니다.`
+      return `${agePrefix}${cycleLabel} ?? ?? ?? ?? ????? ?? ???? ?? ??? ?? ?? ??? ?????.`
     case 'health':
-      return `${agePrefix}${cycleLabel} 흐름 안에 있어 건강 관리에서는 강한 가속보다 회복 리듬을 먼저 세우는 편이 맞습니다.`
+      return `${agePrefix}${cycleLabel} ?? ?? ?? ?? ????? ?? ???? ?? ??? ?? ??? ?? ????.`
     case 'lifeMission':
-      return `${agePrefix}${cycleLabel} 흐름은 다음 장기 구간까지 가져갈 기준을 정리하고 반복 가능한 원칙을 남기는 데 의미가 큽니다.`
+      return `${agePrefix}${cycleLabel} ??? ?? ?? ???? ??? ??? ???? ?? ??? ??? ??? ? ??? ???.`
     case 'actionPlan':
-      return `${agePrefix}${cycleLabel} 흐름에서는 실행을 착수-재확인-확정으로 나눌수록 결과 재현성이 올라갑니다.`
+      return `${agePrefix}${cycleLabel} ????? ??? ??-???-???? ???? ?? ???? ?????.`
     case 'conclusion':
-      return `${agePrefix}${cycleLabel} 흐름의 결론은 성급한 확정보다 기준 정리와 순서 설계가 더 큰 차이를 만든다는 점입니다.`
+      return `${agePrefix}${cycleLabel} ??? ??? ??? ???? ?? ??? ?? ??? ? ? ??? ???? ????.`
   }
 }
 
@@ -925,14 +969,14 @@ function buildPersonalBaseNarrative(input: MatrixCalculationInput, lang: 'ko' | 
 
   if (lang === 'ko') {
     const parts = [
-      dayMaster ? `일간 ${dayMaster}` : '',
-      geokguk ? `격국 ${geokguk}` : '',
-      yongsin ? `용신 ${yongsin}` : '',
-      western ? `서양 원소 ${western}` : '',
+      dayMaster ? `?? ${dayMaster}` : '',
+      geokguk ? `?? ${geokguk}` : '',
+      yongsin ? `?? ${yongsin}` : '',
+      western ? `?? ?? ${western}` : '',
     ].filter(Boolean)
     if (parts.length === 0)
-      return '원국에서는 기본 구조보다 현재 활성 흐름과 실행 순서를 함께 보는 편이 맞습니다.'
-    return `원국 기준으로는 ${parts.join(', ')} 흐름이 현재 판단의 바탕을 만듭니다.`
+      return '????? ?? ???? ?? ?? ??? ?? ??? ?? ?? ?? ????.'
+    return `?? ????? ${parts.join(', ')} ??? ?? ??? ??? ????.`
   }
 
   const parts = [
@@ -1104,8 +1148,8 @@ function buildVerdictNarrative(
   if (lang === 'ko') {
     const parts = [
       item.rationale,
-      allowed ? `지금 허용되는 움직임은 ${allowed} 쪽입니다.` : '',
-      blocked ? `반대로 ${blocked}는 지금 무리하게 밀지 않는 편이 맞습니다.` : '',
+      allowed ? `?? ???? ???? ${allowed} ????.` : '',
+      blocked ? `??? ${blocked}? ?? ???? ?? ?? ?? ????.` : '',
     ]
     return parts.filter(Boolean).join(' ')
   }
@@ -1124,8 +1168,8 @@ function buildPrimaryActionLead(
 ): string {
   const value = buildReportCoreLine(action, lang)
   if (!value) return fallback
-  if (/[.!?]|[다요]\s*$|하세요\s*$/.test(value)) return value
-  return lang === 'ko' ? `${value}에 힘을 두는 편이 맞습니다.` : `Lean into ${value}.`
+  if (/[.!?]\s*$/.test(value)) return value
+  return lang === 'ko' ? `${value}? ?? ?? ?? ????.` : `Lean into ${value}.`
 }
 
 function buildPrimaryCautionLead(
@@ -1135,8 +1179,8 @@ function buildPrimaryCautionLead(
 ): string {
   const value = buildReportCoreLine(caution, lang)
   if (!value) return fallback
-  if (/[.!?]|[다요]\s*$|하세요\s*$/.test(value)) return value
-  return lang === 'ko' ? `${value}은 먼저 막는 편이 맞습니다.` : `Block ${value} first.`
+  if (/[.!?]\s*$/.test(value)) return value
+  return lang === 'ko' ? `${value}? ?? ?? ?? ????.` : `Block ${value} first.`
 }
 
 function findReportCoreDomainVerdict(reportCore: ReportCoreViewModel, domain: string) {
@@ -1157,39 +1201,39 @@ function formatScenarioIdForNarrative(
   }
 
   const entries: Array<[RegExp, string, string]> = [
-    [/promotion_review/i, '승진/역할 재검토', 'promotion or role review'],
-    [/contract_negotiation/i, '조건 협의', 'contract negotiation'],
-    [/manager_track/i, '관리 책임 확장', 'management-track expansion'],
-    [/specialist_track/i, '전문성 심화', 'specialist-track deepening'],
-    [/entry/i, '새 역할 진입', 'entry into a new role'],
-    [/distance_tuning/i, '관계 거리 조정', 'distance tuning'],
-    [/boundary_reset/i, '경계 재설정', 'boundary reset'],
-    [/commitment_preparation/i, '관계 정의 준비', 'commitment preparation'],
-    [/clarify_expectations/i, '기대치 명확화', 'expectation clarification'],
-    [/commitment_execution/i, '관계 확정 실행', 'commitment execution'],
-    [/cohabitation/i, '생활 결합 점검', 'cohabitation planning'],
-    [/family_acceptance/i, '가족 수용 절차', 'family acceptance'],
-    [/separation/i, '관계 분리 정리', 'relationship separation'],
-    [/capital_allocation/i, '자금 배분 재검토', 'capital allocation review'],
-    [/asset_exit/i, '자산 정리', 'asset exit'],
-    [/debt_restructure/i, '부채 구조 재정리', 'debt restructuring'],
-    [/income_growth/i, '수입 확장', 'income growth'],
-    [/liquidity_defense/i, '유동성 방어', 'liquidity defense'],
-    [/recovery_reset/i, '회복 리듬 재설정', 'recovery reset'],
-    [/routine_lock/i, '루틴 고정', 'routine lock'],
-    [/burnout_trigger/i, '번아웃 경고', 'burnout risk'],
-    [/sleep_disruption/i, '수면 리듬 흔들림', 'sleep disruption'],
-    [/commute_restructure/i, '동선 재설계', 'commute restructure'],
-    [/route_recheck/i, '경로 재확인', 'route recheck'],
-    [/basecamp_reset/i, '생활 거점 재정비', 'basecamp reset'],
-    [/lease_decision/i, '계약 조건 검토', 'lease decision review'],
-    [/housing_search/i, '거주 후보지 탐색', 'housing search'],
-    [/relocation/i, '이동 결정', 'relocation'],
-    [/learning_acceleration/i, '학습/역량 가속', 'learning acceleration'],
-    [/deep_partnership_activation/i, '관계 심화 국면', 'deep partnership activation'],
-    [/timing_upside/i, '상승 타이밍 집중', 'timing upside cluster'],
-    [/timing_risk/i, '타이밍 변동 경계', 'timing risk cluster'],
-    [/health_risk/i, '건강 경계 국면', 'health risk cluster'],
+    [/promotion_review/i, '?? ??', 'promotion or role review'],
+    [/contract_negotiation/i, '?? ??', 'contract negotiation'],
+    [/manager_track/i, '??? ??', 'management-track expansion'],
+    [/specialist_track/i, '??? ??', 'specialist-track deepening'],
+    [/entry/i, '? ?? ??', 'entry into a new role'],
+    [/distance_tuning/i, '?? ??', 'distance tuning'],
+    [/boundary_reset/i, '?? ???', 'boundary reset'],
+    [/commitment_preparation/i, '?? ??', 'commitment preparation'],
+    [/clarify_expectations/i, '?? ??', 'expectation clarification'],
+    [/commitment_execution/i, '?? ??', 'commitment execution'],
+    [/cohabitation/i, '?? ??', 'cohabitation planning'],
+    [/family_acceptance/i, '?? ??', 'family acceptance'],
+    [/separation/i, '?? ??', 'relationship separation'],
+    [/capital_allocation/i, '?? ?? ??', 'capital allocation review'],
+    [/asset_exit/i, '?? ??', 'asset exit'],
+    [/debt_restructure/i, '?? ????', 'debt restructuring'],
+    [/income_growth/i, '?? ??', 'income growth'],
+    [/liquidity_defense/i, '??? ??', 'liquidity defense'],
+    [/recovery_reset/i, '?? ???', 'recovery reset'],
+    [/routine_lock/i, '?? ??', 'routine lock'],
+    [/burnout_trigger/i, '??? ??', 'burnout risk'],
+    [/sleep_disruption/i, '?? ??', 'sleep disruption'],
+    [/commute_restructure/i, '?? ?? ???', 'commute restructure'],
+    [/route_recheck/i, '?? ???', 'route recheck'],
+    [/basecamp_reset/i, '?? ???', 'basecamp reset'],
+    [/lease_decision/i, '?? ?? ??', 'lease decision review'],
+    [/housing_search/i, '?? ??', 'housing search'],
+    [/relocation/i, '??', 'relocation'],
+    [/learning_acceleration/i, '?? ??', 'learning acceleration'],
+    [/deep_partnership_activation/i, '?? ?? ???', 'deep partnership activation'],
+    [/timing_upside/i, '??? ?? ???', 'timing upside cluster'],
+    [/timing_risk/i, '??? ?? ???', 'timing risk cluster'],
+    [/health_risk/i, '?? ?? ???', 'health risk cluster'],
   ]
 
   for (const [pattern, ko, en] of entries) {
@@ -1221,20 +1265,15 @@ function normalizeElementKey(element: string | undefined): string {
     .toLowerCase()
   const map: Record<string, string> = {
     wood: 'wood',
-    목: 'wood',
-    木: 'wood',
+
     fire: 'fire',
-    화: 'fire',
-    火: 'fire',
+
     earth: 'earth',
-    토: 'earth',
-    土: 'earth',
+
     metal: 'metal',
-    금: 'metal',
-    金: 'metal',
+
     water: 'water',
-    수: 'water',
-    水: 'water',
+
   }
   return map[raw] || raw
 }
@@ -1253,10 +1292,10 @@ function buildElementMetaphor(
     case 'metal':
       return lang === 'ko'
         ? {
-            archetype: '잡음을 잘라내는 칼날',
-            environment: '복잡한 판에서 군더더기를 걷어내는 장면',
-            edge: '정리와 절단력',
-            risk: '지나치게 빨리 결론을 내릴 때 날이 무뎌지는 것',
+            archetype: '??? ???? ??',
+            environment: '??? ??? ????? ???? ??',
+            edge: '??? ???',
+            risk: '???? ?? ??? ?? ? ?? ???? ?',
           }
         : {
             archetype: 'a blade that cuts noise away',
@@ -1267,10 +1306,10 @@ function buildElementMetaphor(
     case 'wood':
       return lang === 'ko'
         ? {
-            archetype: '판을 넓히며 자라는 큰 나무',
-            environment: '가지가 퍼지듯 영향권을 넓히는 장면',
-            edge: '확장과 성장력',
-            risk: '뿌리 정리 없이 가지부터 늘리는 것',
+            archetype: '?? ??? ??? ? ??',
+            environment: '??? ??? ???? ??? ??',
+            edge: '??? ???',
+            risk: '?? ?? ?? ???? ??? ?',
           }
         : {
             archetype: 'a tree that expands by taking more ground',
@@ -1281,10 +1320,10 @@ function buildElementMetaphor(
     case 'water':
       return lang === 'ko'
         ? {
-            archetype: '빈틈을 찾아 흐르는 물길',
-            environment: '막힌 곳 사이로 길을 만들어내는 장면',
-            edge: '유연한 침투력',
-            risk: '방향 없이 흘러 판단이 번지는 것',
+            archetype: '??? ?? ??? ??',
+            environment: '?? ? ??? ?? ????? ??',
+            edge: '??? ???',
+            risk: '?? ?? ?? ??? ??? ?',
           }
         : {
             archetype: 'a current that finds the opening',
@@ -1295,10 +1334,10 @@ function buildElementMetaphor(
     case 'fire':
       return lang === 'ko'
         ? {
-            archetype: '순간에 판을 밝히는 불빛',
-            environment: '모두가 망설일 때 장면을 선명하게 드러내는 순간',
-            edge: '가시성과 추진력',
-            risk: '열이 너무 빨라 번아웃으로 꺼지는 것',
+            archetype: '??? ?? ??? ??',
+            environment: '??? ??? ? ??? ???? ???? ??',
+            edge: '???? ???',
+            risk: '?? ?? ?? ????? ??? ?',
           }
         : {
             archetype: 'a flame that lights the scene at once',
@@ -1309,10 +1348,10 @@ function buildElementMetaphor(
     default:
       return lang === 'ko'
         ? {
-            archetype: '흔들리는 판을 붙잡는 축대',
-            environment: '무너질 장면을 버티게 만드는 버팀목',
-            edge: '지속력과 구조',
-            risk: '움직일 타이밍까지 지나치게 늦추는 것',
+            archetype: '???? ?? ??? ??',
+            environment: '??? ??? ??? ??? ???',
+            edge: '???? ??',
+            risk: '??? ????? ???? ??? ?',
           }
         : {
             archetype: 'a foundation that holds a shifting stage',
@@ -1343,13 +1382,13 @@ function buildEvidenceLine(input: MatrixCalculationInput, lang: 'ko' | 'en'): st
   const geokguk = sanitizeEvidenceToken(localizeGeokgukLabel(input.geokguk, lang), lang)
   if (lang === 'ko') {
     const parts = [
-      dayMaster ? `일간 ${dayMaster}` : '',
-      geokguk ? `격국 ${geokguk}` : '',
-      yongsin ? `용신 ${yongsin}` : '',
-      western ? `서양 원소 ${western}` : '',
+      dayMaster ? `?? ${dayMaster}` : '',
+      geokguk ? `?? ${geokguk}` : '',
+      yongsin ? `?? ${yongsin}` : '',
+      western ? `?? ?? ${western}` : '',
     ].filter(Boolean)
     return parts.length > 0
-      ? `${parts.join(', ')} 흐름이 같은 방향을 밀고 있기 때문에 이런 해석이 나옵니다.`
+      ? `${parts.join(', ')} ??? ?? ??? ?? ?? ??? ?? ??? ????.`
       : ''
   }
   const parts = [
@@ -1374,12 +1413,12 @@ function buildEvidenceFooter(input: MatrixCalculationInput, lang: 'ko' | 'en'): 
 
   if (lang === 'ko') {
     const parts = [
-      dayMaster ? `일간 ${dayMaster}` : '',
-      geokguk ? `격국 ${geokguk}` : '',
-      yongsin ? `용신 ${yongsin}` : '',
-      western ? `서양 원소 ${western}` : '',
+      dayMaster ? `?? ${dayMaster}` : '',
+      geokguk ? `?? ${geokguk}` : '',
+      yongsin ? `?? ${yongsin}` : '',
+      western ? `?? ?? ${western}` : '',
     ].filter(Boolean)
-    return parts.length > 0 ? `핵심 근거는 ${parts.join(', ')}입니다.` : ''
+    return parts.length > 0 ? `?? ??? ${parts.join(', ')}???.` : ''
   }
 
   const parts = [
@@ -1457,9 +1496,9 @@ function renderIntroductionSection(
   const arbitrationLine =
     lang === 'ko'
       ? reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
-        ? `이번 질문에 바로 닿는 축은 ${actionLabel}이며, 실제 행동 압력도 이 축이 더 직접 끌고 갑니다.`
+        ? `?? ??? ?? ?? ?? ${actionLabel}??, ?? ?? ??? ? ?? ? ?? ?? ???.`
         : focusRunnerUpLabel
-          ? `${focusLabel} 축이 ${focusRunnerUpLabel}보다 앞서 이번 중심 판단으로 채택됐습니다.`
+          ? `${focusLabel} ??? ${focusRunnerUpLabel}?? ?? ?? ??? ??? ? ??? ??? ????.`
           : ''
       : reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
         ? `${actionLabel} is the axis that answers the question most directly, and it is carrying the actionable pressure in this phase.`
@@ -1468,10 +1507,10 @@ function renderIntroductionSection(
           : ''
   const latentLine = reportCore.latentTopAxes?.length
     ? lang === 'ko'
-      ? `지금 판을 가장 세게 미는 층은 ${reportCore.latentTopAxes
+      ? `?? ? ??? ?? ?? ?? ?? ${reportCore.latentTopAxes
           .slice(0, 3)
           .map((axis) => axis.label)
-          .join(', ')}입니다.`
+          .join(', ')}???.`
       : `The strongest active layers right now are ${reportCore.latentTopAxes
           .slice(0, 3)
           .map((axis) => axis.label)
@@ -1480,16 +1519,16 @@ function renderIntroductionSection(
   const riskAxisLine =
     reportCore.riskAxisLabel
       ? lang === 'ko'
-        ? `동시에 가장 예민한 리스크 축은 ${reportCore.riskAxisLabel}입니다.`
+        ? `??? ?? ???? ???? ? ??? ${reportCore.riskAxisLabel}???.`
         : `At the same time, the most sensitive risk axis is ${reportCore.riskAxisLabel}.`
       : ''
   const timingMatrixLine =
     reportCore.timingMatrix?.length
       ? lang === 'ko'
-        ? `도메인별로는 ${reportCore.timingMatrix
+        ? `???? ?? ?? ?? ${reportCore.timingMatrix
             .slice(0, 3)
             .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
-            .join(', ')} 순으로 창이 갈립니다.`
+            .join(', ')} ??? ????.`
         : `By domain, windows split as ${reportCore.timingMatrix
             .slice(0, 3)
             .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
@@ -1503,27 +1542,27 @@ function renderIntroductionSection(
   const structureBackgroundLine =
     reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
       ? lang === 'ko'
-        ? `${focusLabel} 축은 이번 판단의 배경 구조로 남아 있습니다.`
+        ? `${focusLabel} ??? ? ??? ??? ?? ?? ???? ??? ????.`
         : `${focusLabel} remains the background structural axis behind this reading.`
       : ''
   const structureDriversLine =
     structureProjection?.drivers?.length
       ? lang === 'ko'
-        ? `구조를 받치는 직접 축은 ${structureProjection.drivers
+        ? `?? ??? ?? ?? ?? ??? ${structureProjection.drivers
             .slice(0, 3)
             .map((item) => localizeReportNarrativeText(item, lang))
-            .join(', ')}입니다.`
+            .join(', ')}???.`
         : `The direct structural drivers are ${structureProjection.drivers.slice(0, 3).join(', ')}.`
       : ''
   const structureCounterweightLine =
     reportCore.arbitrationBrief?.suppressionNarratives?.length || structureProjection?.counterweights?.length
       ? lang === 'ko'
-        ? `다만 ${(reportCore.arbitrationBrief?.suppressionNarratives?.length
+        ? `?? ${(reportCore.arbitrationBrief?.suppressionNarratives?.length
             ? reportCore.arbitrationBrief.suppressionNarratives
             : structureProjection?.counterweights || [])
             .slice(0, 2)
             .map((item) => localizeReportNarrativeText(item, lang))
-            .join(' 또한 ')} 같은 보조 압력이 함께 걸립니다.`
+            .join(' ??? ')} ?? ?? ??? ?? ????.`
         : `Counterweights are still coming from ${(reportCore.arbitrationBrief?.suppressionNarratives?.length
             ? reportCore.arbitrationBrief.suppressionNarratives
             : structureProjection?.counterweights || [])
@@ -1597,19 +1636,19 @@ function renderTimingAdviceSection(
   const timingDriverLine =
     timingProjection?.drivers?.length
       ? lang === 'ko'
-        ? `지금 창을 직접 밀고 있는 축은 ${timingProjection.drivers
+        ? `?? ?? ?? ?? ?? ?? ${timingProjection.drivers
             .slice(0, 3)
             .map((item) => localizeReportNarrativeText(item, lang))
-            .join(', ')}입니다.`
+            .join(', ')}???.`
         : `The live timing drivers are ${timingProjection.drivers.slice(0, 3).join(', ')}.`
       : ''
   const timingCounterweightLine =
     timingProjection?.counterweights?.length
       ? lang === 'ko'
-        ? `반대로 ${timingProjection.counterweights
+        ? `??? ${timingProjection.counterweights
             .slice(0, 2)
             .map((item) => localizeReportNarrativeText(item, lang))
-            .join(', ')} 같은 조건은 속도를 늦추는 신호로 같이 읽어야 합니다.`
+            .join(', ')} ?? ??? ??? ??? ??? ?? ??? ???.`
         : `Counterweights still come from ${timingProjection.counterweights.slice(0, 2).join(', ')}.`
       : ''
   const timingNextLine =
@@ -1618,17 +1657,17 @@ function renderTimingAdviceSection(
           timingProjection.nextMoves.slice(0, 2),
           lang,
           lang === 'ko'
-            ? '지금 타이밍을 살리려면 실행 조건을 다시 작게 맞춰 보는 편이 맞습니다.'
+            ? '?? ???? ???? ?? ??? ?? ?? ?? ?? ?? ????.'
             : 'To use this timing well, realign the live execution conditions first.'
         )
       : ''
   const timingMatrixLine =
     reportCore.timingMatrix?.length
       ? lang === 'ko'
-        ? `도메인별 창을 같이 보면 ${reportCore.timingMatrix
+        ? `???? ?? ?? ?? ${reportCore.timingMatrix
             .slice(0, 3)
             .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
-            .join(', ')} 흐름으로 갈립니다.`
+            .join(', ')} ???? ????.`
         : `Across domains, timing splits into ${reportCore.timingMatrix
             .slice(0, 3)
             .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
@@ -1638,7 +1677,7 @@ function renderTimingAdviceSection(
   const branchTimingLine =
     localizeReportNarrativeText(branchProjection?.detailLines?.[0] || '', lang) ||
     (branchProjection?.summary && lang === 'ko'
-      ? `지금은 가능한 경로를 한 갈래로 고정하기보다 ${localizeReportNarrativeText(branchProjection.summary, lang)}`
+      ? `??? ??? ??? ? ??? ?????? ${localizeReportNarrativeText(branchProjection.summary, lang)}`
       : localizeReportNarrativeText(branchProjection?.summary || '', lang) || '')
   const enriched = [
     timingDetailLine,
@@ -1669,7 +1708,7 @@ function renderActionPlanSection(
   const topDecisionLabel = reportCore.topDecisionLabel || reportCore.primaryAction
   const openingLine =
     lang === 'ko'
-      ? `이번 ${actionLabel} 실행 기준은 ${topDecisionLabel}입니다.`
+      ? `?? ${actionLabel} ?? ??? ${topDecisionLabel}???.`
       : `The operating rule on the ${actionLabel} axis is ${topDecisionLabel}.`
   const guardrailLine = reportCore.riskControl
   const actionProjection = reportCore.projections?.action
@@ -1677,7 +1716,7 @@ function renderActionPlanSection(
   const actionDriverLine =
     actionDriverLabels.length
       ? lang === 'ko'
-        ? `지금 실행을 받치는 층은 ${actionDriverLabels.join(', ')}입니다.`
+        ? `?? ??? ??? ?? ${actionDriverLabels.join(', ')}???.`
         : `The current execution drivers are ${actionDriverLabels.join(', ')}.`
       : ''
   const actionCounterweightLine =
@@ -1686,7 +1725,7 @@ function renderActionPlanSection(
         ? `${actionProjection.counterweights
             .slice(0, 2)
             .map((item) => localizeReportNarrativeText(item, lang))
-            .join(', ')} 같은 제약은 속도를 늦추라는 신호로 같이 읽어야 합니다.`
+            .join(', ')} ?? ??? ??? ???? ??? ?? ??? ???.`
         : `${actionProjection.counterweights.slice(0, 2).join(', ')} still signal that pace should stay controlled.`
       : ''
   const actionNextLine =
@@ -1695,14 +1734,14 @@ function renderActionPlanSection(
           actionProjection.nextMoves.slice(0, 2),
           lang,
           lang === 'ko'
-            ? '다음 움직임은 실행 기준을 작은 단위로 다시 고정하는 데서 시작하는 편이 맞습니다.'
+            ? '?? ???? ?? ??? ?? ??? ?? ???? ?? ???? ?? ????.'
             : 'The next move should begin by resetting execution criteria in smaller steps.'
         )
       : ''
   const riskAxisLine =
     reportCore.riskAxisLabel
       ? lang === 'ko'
-        ? `실행을 밀더라도 ${reportCore.riskAxisLabel} 축을 먼저 리스크 축으로 관리해야 합니다.`
+        ? `??? ???? ${reportCore.riskAxisLabel} ?? ?? ??? ??? ???? ???.`
         : `Even while acting, ${reportCore.riskAxisLabel} should be managed as the primary risk axis first.`
       : ''
   const branchProjection = reportCore.projections?.branches
@@ -1712,7 +1751,7 @@ function renderActionPlanSection(
           branchProjection.nextMoves.slice(0, 2),
           lang,
           lang === 'ko'
-            ? '열려 있는 분기에서는 실행 전에 기준과 경계부터 다시 고정하는 편이 맞습니다.'
+            ? '?? ?? ????? ?? ?? ??? ???? ?? ???? ?? ????.'
             : 'Across the live branches, reset criteria and guardrails before execution.'
         )
       : ''
@@ -1775,7 +1814,7 @@ function renderConclusionSection(
   const riskAxisLine =
     reportCore.riskAxisLabel
       ? lang === 'ko'
-        ? `마지막까지 가장 민감하게 관리해야 할 축은 ${reportCore.riskAxisLabel}입니다.`
+        ? `????? ?? ???? ???? ? ?? ${reportCore.riskAxisLabel}???.`
         : `The axis that must be managed most carefully through the close is ${reportCore.riskAxisLabel}.`
       : ''
   const branchLine = reportCore.projections?.branches?.detailLines?.[0] || ''
@@ -1881,10 +1920,7 @@ function collectProjectionDriverLabels(
     .map((item) => sanitizeUserFacingNarrative(localizeReportNarrativeText(item, lang)).trim())
     .filter(Boolean)
     .filter(
-      (item) =>
-        !/(하세요|하십시오|합니다\.|입니다\.|거치세요|가세요|맞추세요|고정하세요|잠그세요|확보하세요|정리하세요)$/u.test(
-          item
-        )
+      (item) => !/(recommended|recommend|caution|warning|recheck|verify)$/i.test(item)
     )
     .filter((item) => item.length <= 24)
     .slice(0, limit)
@@ -1938,22 +1974,22 @@ function buildProjectionFirstThemedSections(
     timingNextMoves,
     lang,
     lang === 'ko'
-      ? '지금 창을 살리려면 먼저 실행 조건을 작은 단위로 다시 맞추는 편이 좋습니다.'
+      ? '?? ?? ???? ?? ?? ??? ?? ??? ?? ??? ?? ????.'
       : 'To use this window well, realign the live execution conditions first.'
   )
   const actionMoveLine = buildProjectionMoveSentence(
     actionNextMoves,
     lang,
     lang === 'ko'
-      ? '다음 움직임은 작은 단위로 실행 기준을 다시 고정하는 데서 시작하는 편이 맞습니다.'
+      ? '?? ???? ?? ??? ?? ??? ?? ???? ?? ???? ?? ????.'
       : 'The next move should begin by resetting execution criteria in smaller steps.'
   )
   const timingMatrixLead = reportCore.timingMatrix?.length
     ? lang === 'ko'
-      ? `지금 창은 ${reportCore.timingMatrix
+      ? `?? ?? ${reportCore.timingMatrix
           .slice(0, 3)
           .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
-          .join(', ')} 순으로 다르게 열립니다.`
+          .join(', ')} ??? ??? ????.`
       : `The active windows split by domain as ${reportCore.timingMatrix
           .slice(0, 3)
           .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
@@ -1961,7 +1997,7 @@ function buildProjectionFirstThemedSections(
     : ''
   const riskAxisLead = reportCore.riskAxisLabel
     ? lang === 'ko'
-      ? `이번 테마에서 가장 예민한 리스크 축은 ${reportCore.riskAxisLabel}입니다.`
+      ? `?? ???? ?? ??? ??? ?? ${reportCore.riskAxisLabel}???.`
       : `The most sensitive risk axis in this theme is ${reportCore.riskAxisLabel}.`
     : ''
   const timelineNarrative = buildPersonalLifeTimelineNarrative(matrixInput, undefined, lang)
@@ -1971,234 +2007,234 @@ function buildProjectionFirstThemedSections(
   const themeAngle =
     theme === 'love'
       ? lang === 'ko'
-        ? '관계 테마는 감정 강도보다 해석 일치와 속도 조율이 실제 성패를 가릅니다.'
+        ? '?? ??? ?? ???? ?? ??? ?? ??? ?? ??? ????.'
         : 'The relationship theme turns more on aligned interpretation and pace than on intensity alone.'
       : theme === 'career'
         ? lang === 'ko'
-          ? '커리어 테마는 기회를 넓게 잡는 것보다 역할과 평가 기준을 먼저 고정하는 쪽이 강합니다.'
+          ? '??? ??? ??? ?? ?? ??? ??? ?? ??? ?? ???? ?? ????.'
           : 'The career theme strengthens when role and evaluation criteria are fixed before expansion.'
         : theme === 'wealth'
           ? lang === 'ko'
-            ? '재정 테마는 수익 기대보다 손실 상한과 회수 조건을 먼저 정할 때 오래 갑니다.'
+            ? '?? ??? ?? ???? ?? ??? ?? ??? ?? ?? ? ?? ???.'
             : 'The wealth theme lasts longer when downside limits and exit conditions are set before upside.'
           : theme === 'health'
             ? lang === 'ko'
-              ? '건강 테마는 버티는 힘보다 과부하를 빨리 끊는 운영 습관에서 차이가 납니다.'
+              ? '?? ??? ??? ??? ???? ?? ?? ?? ???? ??? ???.'
               : 'The health theme separates more by interrupting overload early than by endurance.'
             : lang === 'ko'
-              ? '가족 테마는 감정보다 역할, 비용, 돌봄 분담을 보이는 언어로 맞출 때 안정됩니다.'
+              ? '?? ??? ???? ??, ??, ?? ??? ??? ??? ?? ? ?????.'
               : 'The family theme stabilizes when roles, cost, and care are made explicit.'
   const themeActionLine =
     theme === 'love'
       ? lang === 'ko'
-        ? '관계를 서두르기보다 기대치와 생활 조건을 먼저 맞추는 편이 맞습니다.'
+        ? '??? ?????? ???? ?? ??? ?? ??? ?? ????.'
         : 'Do not rush the relationship; align expectations and living conditions first.'
       : theme === 'career'
         ? lang === 'ko'
-          ? '성과를 늘리기보다 책임 범위와 검토 지점을 먼저 고정하세요.'
+          ? '??? ????? ?? ??? ?? ??? ?? ?????.'
           : 'Before increasing output, lock responsibility boundaries and review points.'
         : theme === 'wealth'
           ? lang === 'ko'
-            ? '확장을 서두르기보다 금액, 기한, 취소 조건을 먼저 고정하세요.'
+            ? '??? ?????? ??, ??, ?? ??? ?? ?????.'
             : 'Before expanding, lock amount, timing, and exit conditions.'
           : theme === 'health'
             ? lang === 'ko'
-              ? '강도를 올리기보다 회복 블록과 일정 완충부터 확보하세요.'
+              ? '??? ????? ?? ??? ?? ???? ?????.'
               : 'Before increasing intensity, secure recovery blocks and schedule buffers.'
             : lang === 'ko'
-              ? '결론을 밀기보다 역할과 해석 일치부터 확인하세요.'
+              ? '??? ???? ??? ?? ???? ?????.'
               : 'Before pushing conclusions, align roles and interpretations first.'
   const actionOpeningLine =
     lang === 'ko'
-      ? `이번 ${actionLabel} 실행 기준은 ${reportCore.topDecisionLabel || reportCore.primaryAction}입니다.`
+      ? `?? ${actionLabel} ?? ??? ${reportCore.topDecisionLabel || reportCore.primaryAction}???.`
       : `The operating rule on the ${actionLabel} axis is ${reportCore.topDecisionLabel || reportCore.primaryAction}.`
   const themeRiskLine =
     theme === 'love'
       ? lang === 'ko'
-        ? '감정이 앞서도 생활 운영이 맞지 않으면 빠른 확정이 오히려 갈등 비용을 키울 수 있습니다.'
+        ? '??? ??? ?? ??? ?? ??? ?? ??? ??? ?? ??? ?? ? ????.'
         : 'Even with strong feeling, quick commitment can increase conflict cost when daily fit is weak.'
       : theme === 'career'
         ? lang === 'ko'
-          ? '속도는 성과처럼 보여도 기준 없는 확장은 바로 재작업 비용으로 돌아올 수 있습니다.'
+          ? '??? ???? ??? ?? ?? ??? ?? ??? ???? ??? ? ????.'
           : 'Speed can look like progress, but expansion without criteria often returns as rework cost.'
         : theme === 'wealth'
           ? lang === 'ko'
-            ? '문서화되지 않은 이점은 쉽게 손실로 뒤집히므로 수익보다 보호 장치를 먼저 세워야 합니다.'
+            ? '????? ?? ??? ?? ??? ????? ???? ?? ??? ?? ??? ???.'
             : 'Undocumented upside flips into loss easily, so protection must come before profit.'
           : theme === 'health'
             ? lang === 'ko'
-              ? '회복이 밀린 상태에서 버티기로 버티면 다음 구간의 비용이 더 커질 수 있습니다.'
+              ? '??? ?? ???? ???? ??? ?? ??? ??? ? ?? ? ????.'
               : 'When recovery is deferred, endurance often increases the cost of the next window.'
             : lang === 'ko'
-              ? '보이지 않는 역할 불균형을 오래 끌면 가까운 관계일수록 피로와 억울함이 크게 남습니다.'
+              ? '??? ?? ?? ???? ?? ?? ??? ????? ??? ???? ?? ????.'
               : 'Unspoken role imbalance leaves more fatigue and resentment the longer it stays implicit.'
 
   const themeStructureLine =
     theme === 'love'
       ? lang === 'ko'
-        ? '이 관계 테마는 감정 표현보다 생활 리듬과 기대치 조율이 구조를 만듭니다.'
+        ? '? ?? ??? ?? ???? ?? ??? ??? ??? ??? ????.'
         : 'This relationship theme is structured more by daily rhythm and expectation alignment than by expression alone.'
       : theme === 'career'
         ? lang === 'ko'
-          ? '이 커리어 테마는 재능보다 역할 정의와 평가 기준의 선명도가 구조를 만듭니다.'
+          ? '? ??? ??? ???? ?? ??? ?? ??? ???? ??? ????.'
           : 'This career theme is structured more by role clarity and evaluation criteria than by talent alone.'
         : theme === 'wealth'
           ? lang === 'ko'
-            ? '이 재정 테마는 수익률보다 누수 통제와 회수 규칙이 구조를 만듭니다.'
+            ? '? ?? ??? ????? ?? ??? ?? ??? ??? ????.'
             : 'This wealth theme is structured more by leakage control and recovery rules than by return rate alone.'
           : theme === 'health'
             ? lang === 'ko'
-              ? '이 건강 테마는 의지보다 회복 리듬과 과부하 차단이 구조를 만듭니다.'
+              ? '? ?? ??? ???? ?? ??? ??? ??? ??? ????.'
               : 'This health theme is structured more by recovery rhythm and overload interruption than by willpower.'
             : lang === 'ko'
-              ? '이 가족 테마는 감정보다 역할 분담과 해석 일치가 구조를 만듭니다.'
+              ? '? ?? ??? ???? ?? ??? ?? ??? ??? ????.'
               : 'This family theme is structured more by role distribution and aligned interpretation than by emotion alone.'
 
   const themeWindowLine =
     theme === 'love'
       ? lang === 'ko'
-        ? '강한 창이 와도 감정 확인보다 생활 조건과 관계 속도를 먼저 맞출 때 성사 가능성이 커집니다.'
+        ? '?? ?? ?? ?? ???? ?? ??? ?? ??? ?? ?? ? ?? ???? ????.'
         : 'Even when the window opens, probability improves when living conditions and relationship pace are aligned first.'
       : theme === 'career'
         ? lang === 'ko'
-          ? '강한 창은 확장 자체보다 역할과 검토 지점을 문서로 고정할 때 더 선명하게 살아납니다.'
+          ? '?? ?? ?? ???? ??? ?? ??? ??? ??? ? ? ???? ?????.'
           : 'The stronger window shows up more clearly when role and review points are fixed in writing before expansion.'
         : theme === 'wealth'
           ? lang === 'ko'
-            ? '강한 창은 기대 수익을 키우는 순간보다 조건과 손실 상한을 잠글 때 더 유효합니다.'
+            ? '?? ?? ?? ??? ??? ???? ??? ?? ??? ?? ? ? ?????.'
             : 'The stronger window is more reliable when downside limits are locked before upside is chased.'
           : theme === 'health'
             ? lang === 'ko'
-              ? '강한 창은 버티는 때가 아니라 회복 블록을 되찾고 과부하를 끊는 때에 더 잘 열립니다.'
+              ? '?? ?? ??? ?? ??? ?? ??? ??? ???? ?? ?? ? ? ????.'
               : 'The stronger window opens less in endurance and more in reclaiming recovery blocks and cutting overload.'
             : lang === 'ko'
-              ? '강한 창은 결론을 재촉하는 때보다 역할과 비용을 다시 맞추는 때에 더 잘 열립니다.'
+              ? '?? ?? ??? ???? ??? ??? ??? ?? ??? ?? ? ? ????.'
               : 'The stronger window opens less in forced conclusions and more in realigning roles and cost.'
 
   const themeBranchLine =
     theme === 'love'
       ? lang === 'ko'
-        ? branchDetail || '이 관계 테마는 한 번의 확정으로 닫히기보다 몇 갈래 현실 경로가 같이 열려 움직입니다.'
+        ? branchDetail || '? ?? ??? ? ?? ???? ????? ? ?? ?? ??? ?? ?? ?????.'
         : branchDetail || 'This relationship theme moves through multiple live branches rather than one fixed commitment path.'
       : theme === 'career'
         ? lang === 'ko'
-          ? branchDetail || '이 커리어 테마는 확정과 보류, 재협상 경로가 동시에 열려 있어 조건 차이가 결과를 가릅니다.'
+          ? branchDetail || '? ??? ??? ??? ??, ??? ??? ??? ?? ?? ?? ??? ??? ????.'
           : branchDetail || 'This career theme keeps commit, defer, and renegotiation paths open at the same time.'
         : theme === 'wealth'
           ? lang === 'ko'
-            ? branchDetail || '이 재정 테마는 확대와 방어, 재조정 경로가 같이 살아 있어 조건 관리가 핵심입니다.'
+            ? branchDetail || '? ?? ??? ??? ??, ??? ??? ?? ?? ?? ?? ??? ?????.'
             : branchDetail || 'This wealth theme keeps expansion, defense, and reset paths alive together.'
           : theme === 'health'
             ? lang === 'ko'
-              ? branchDetail || '이 건강 테마는 회복과 과부하가 동시에 경쟁해 일상 리듬 조정이 결과를 가릅니다.'
+              ? branchDetail || '? ?? ??? ??? ???? ??? ??? ?? ?? ??? ??? ????.'
               : branchDetail || 'This health theme keeps recovery and overload competing at the same time.'
             : lang === 'ko'
-              ? branchDetail || '이 가족 테마는 감정선보다 역할과 비용 재조정 경로가 같이 열려 있습니다.'
+              ? branchDetail || '? ?? ??? ????? ??? ?? ??? ??? ?? ?? ????.'
               : branchDetail || 'This family theme keeps multiple role and cost realignment paths open.'
 
   const deepStructureLine =
     theme === 'love'
       ? lang === 'ko'
-        ? '이 테마에서는 끌림보다 생활 리듬과 기대치가 맞는지가 관계의 뼈대를 만듭니다.'
+        ? '? ????? ???? ?? ??? ???? ???? ??? ??? ????.'
         : 'Here the relationship is built less by attraction and more by aligned rhythm and expectations.'
       : theme === 'career'
         ? lang === 'ko'
-          ? '이 테마에서는 능력보다 역할 정의와 평가 기준이 커리어의 뼈대를 만듭니다.'
+          ? '? ????? ???? ?? ??? ?? ??? ???? ??? ????.'
           : 'Here the career frame is built less by talent and more by role definition and evaluation criteria.'
         : theme === 'wealth'
           ? lang === 'ko'
-            ? '이 테마에서는 수익률보다 누수 통제와 회수 규칙이 재정의 뼈대를 만듭니다.'
+            ? '? ????? ????? ?? ??? ?? ??? ??? ??? ????.'
             : 'Here the financial frame is built less by return rate and more by leakage control and recovery rules.'
           : theme === 'health'
             ? lang === 'ko'
-              ? '이 테마에서는 의지보다 회복 리듬과 과부하 차단이 건강의 뼈대를 만듭니다.'
+              ? '? ????? ???? ?? ??? ??? ??? ??? ??? ????.'
               : 'Here the health frame is built less by willpower and more by recovery rhythm and overload control.'
             : lang === 'ko'
-              ? '이 테마에서는 감정보다 역할 분담과 해석 일치가 가족 흐름의 뼈대를 만듭니다.'
+              ? '? ????? ???? ?? ??? ?? ??? ?? ??? ??? ????.'
               : 'Here the family frame is built less by emotion and more by role distribution and aligned interpretation.'
 
   const patternPressureLine =
     theme === 'love'
       ? lang === 'ko'
-        ? `핵심 패턴은 관계를 빠르게 정하는 힘보다 속도와 경계를 다시 맞추는 압력이 더 크다는 점입니다.`
+        ? `?? ??? ??? ??? ??? ??? ??? ??? ?? ??? ??? ? ??? ????.`
         : `The active pattern favors pace and boundary alignment over rushing the bond into definition.`
       : theme === 'career'
         ? lang === 'ko'
-          ? `핵심 패턴은 일을 넓히는 힘보다 역할과 검토 기준을 좁히는 압력이 더 크다는 점입니다.`
+          ? `?? ??? ?? ??? ??? ??? ?? ??? ??? ??? ? ??? ????.`
           : `The active pattern favors narrowing role and review criteria over widening the workload.`
         : theme === 'wealth'
           ? lang === 'ko'
-            ? `핵심 패턴은 공격적 확장보다 손실 상한과 회수 조건을 먼저 잠그는 압력이 더 크다는 점입니다.`
+            ? `?? ??? ??? ???? ?? ??? ?? ??? ?? ??? ??? ? ??? ????.`
             : `The active pattern favors locking downside and recovery conditions before aggressive expansion.`
           : theme === 'health'
             ? lang === 'ko'
-              ? `핵심 패턴은 버티는 힘보다 과부하를 빨리 끊고 회복 블록을 확보하는 압력이 더 크다는 점입니다.`
+              ? `?? ??? ??? ??? ???? ?? ?? ?? ??? ???? ??? ? ??? ????.`
               : `The active pattern favors cutting overload and securing recovery blocks over simple endurance.`
             : lang === 'ko'
-              ? `핵심 패턴은 감정 표현보다 역할, 비용, 돌봄 분담을 다시 맞추는 압력이 더 크다는 점입니다.`
+              ? `?? ??? ?? ???? ??, ??, ?? ??? ?? ??? ??? ? ??? ????.`
               : `The active pattern favors realigning role, cost, and care distribution over emotional insistence.`
 
   const timingReadLine =
     theme === 'love'
       ? lang === 'ko'
-        ? '세부 날짜를 좇기보다 관계 속도와 생활 조건이 맞는 구간을 먼저 찾는 편이 오차를 줄입니다.'
+        ? '?? ??? ???? ?? ??? ?? ??? ?? ??? ?? ?? ?? ??? ????.'
         : 'Error stays lower when the read is tied to pace-fit windows instead of exact dates.'
       : theme === 'career'
         ? lang === 'ko'
-          ? '세부 날짜보다 역할과 검토 지점을 문서로 고정할 수 있는 구간을 찾는 편이 더 정확합니다.'
+          ? '?? ???? ??? ?? ??? ??? ??? ? ?? ??? ?? ?? ? ?????.'
           : 'This reads more accurately by finding windows that allow role and review points to be fixed in writing.'
         : theme === 'wealth'
           ? lang === 'ko'
-            ? '세부 날짜보다 조건과 손실 상한을 잠글 수 있는 구간을 찾는 편이 더 정확합니다.'
+            ? '?? ???? ??? ?? ??? ?? ? ?? ??? ?? ?? ? ?????.'
             : 'This reads more accurately by finding windows where conditions and downside limits can be locked.'
           : theme === 'health'
             ? lang === 'ko'
-              ? '세부 날짜보다 회복 블록을 되찾고 과부하를 줄일 수 있는 구간을 찾는 편이 더 정확합니다.'
+              ? '?? ???? ?? ??? ??? ???? ?? ? ?? ??? ?? ?? ? ?????.'
               : 'This reads more accurately by finding windows that restore recovery blocks and reduce overload.'
             : lang === 'ko'
-              ? '세부 날짜보다 역할과 비용을 다시 맞출 수 있는 구간을 찾는 편이 더 정확합니다.'
+              ? '?? ???? ??? ??? ?? ?? ? ?? ??? ?? ?? ? ?????.'
               : 'This reads more accurately by finding windows where roles and cost can be realigned.'
 
   const recommendationCloseLine =
     theme === 'love'
       ? lang === 'ko'
-        ? '감정 확인은 그 다음 문제이고, 지금은 속도와 생활 조건을 먼저 맞춰야 합니다.'
+        ? '?? ??? ? ?? ????, ??? ??? ?? ??? ?? ??? ???.'
         : 'Emotional confirmation comes after pace and living fit are aligned.'
       : theme === 'career'
         ? lang === 'ko'
-          ? '성과 압박은 뒤로 미루고, 지금은 책임 범위와 검토 지점을 먼저 잠가야 합니다.'
+          ? '?? ??? ?? ???, ??? ?? ??? ?? ??? ?? ??? ???.'
           : 'Push output pressure back; first lock responsibility boundaries and review points.'
         : theme === 'wealth'
           ? lang === 'ko'
-            ? '수익 기대는 뒤로 미루고, 지금은 금액과 기한, 빠져나올 문부터 잠가야 합니다.'
+            ? '?? ??? ?? ???, ??? ??? ??, ???? ??? ??? ???.'
             : 'Defer upside expectation; first lock amount, timing, and the exit door.'
           : theme === 'health'
             ? lang === 'ko'
-              ? '강도 증가는 뒤로 미루고, 지금은 회복 블록과 일정 완충부터 확보해야 합니다.'
+              ? '?? ??? ?? ???, ??? ?? ??? ?? ???? ???? ???.'
               : 'Delay intensity gains; first secure recovery blocks and schedule buffers.'
             : lang === 'ko'
-              ? '결론은 뒤로 미루고, 지금은 역할과 해석 일치부터 확보해야 합니다.'
+              ? '??? ?? ???, ??? ??? ?? ???? ???? ???.'
               : 'Delay conclusions; first secure aligned roles and interpretation.'
 
   const actionRhythmLine =
     theme === 'love'
       ? lang === 'ko'
-        ? `지금은 ${actionLabel} 축에서도 감정 확정보다 확인-조율-공식화 순서가 더 안전합니다.`
+        ? `??? ${actionLabel} ???? ?? ???? ??-??-??? ??? ? ?????.`
         : `Even on the ${actionLabel} axis, confirm-align-formalize is safer than immediate emotional commitment.`
       : theme === 'career'
         ? lang === 'ko'
-          ? `지금은 ${actionLabel} 축에서도 착수-검토-확정 순서가 확장보다 더 중요합니다.`
+          ? `??? ${actionLabel} ???? ??-??-?? ??? ???? ? ?????.`
           : `Even on the ${actionLabel} axis, start-review-commit matters more than expansion itself.`
         : theme === 'wealth'
           ? lang === 'ko'
-            ? `지금은 ${actionLabel} 축에서도 조건 확인-손실 제한-확정 순서가 더 중요합니다.`
+            ? `??? ${actionLabel} ???? ?? ??-?? ??-?? ??? ? ?????.`
             : `Even on the ${actionLabel} axis, condition check-downside control-commit matters more than speed.`
           : theme === 'health'
             ? lang === 'ko'
-              ? `지금은 ${actionLabel} 축에서도 강도 상승보다 회복 확보-부하 감축-재개 순서가 더 중요합니다.`
+              ? `??? ${actionLabel} ???? ?? ???? ?? ??-?? ??-?? ??? ? ?????.`
               : `Even on the ${actionLabel} axis, recovery-load reduction-resume matters more than pushing intensity.`
             : lang === 'ko'
-              ? `지금은 ${actionLabel} 축에서도 결론보다 역할 정리-비용 확인-합의 순서가 더 중요합니다.`
+              ? `??? ${actionLabel} ???? ???? ?? ??-?? ??-?? ??? ? ?????.`
               : `Even on the ${actionLabel} axis, role alignment-cost review-agreement matters more than rushing closure.`
   const common =
     theme === 'love'
@@ -2211,11 +2247,11 @@ function buildProjectionFirstThemedSections(
             timelineNarrative,
             structureDrivers.length
               ? lang === 'ko'
-                ? `이번 관계 해석을 직접 밀어주는 축은 ${structureDrivers.join(', ')}입니다.`
+                ? `?? ?? ??? ?? ???? ?? ${structureDrivers.join(', ')}???.`
                 : `The relationship read is being driven directly by ${structureDrivers.join(', ')}.`
               : '',
             lang === 'ko'
-              ? '이 사랑 테마는 감정의 세기보다 관계를 운영하는 생활 리듬이 맞는지에서 갈립니다.'
+              ? '? ?? ??? ??? ???? ??? ???? ?? ??? ????? ????.'
               : 'This love theme turns more on relational operating rhythm than on emotional intensity alone.',
           ]),
           patterns: joinNarrativeParts([
@@ -2223,7 +2259,7 @@ function buildProjectionFirstThemedSections(
             conflictDetail,
             patternPressureLine,
             lang === 'ko'
-              ? '마음이 앞서도 현실 조건이 늦게 따라오면 관계는 쉽게 과열됐다가 식을 수 있습니다.'
+              ? '??? ??? ?? ??? ?? ???? ??? ?? ????? ?? ? ????.'
               : 'When feeling outruns practical fit, the relationship can overheat and cool just as quickly.',
           ]),
           timing: joinNarrativeParts([
@@ -2235,7 +2271,7 @@ function buildProjectionFirstThemedSections(
             themeBranchLine,
             timingDrivers.length
               ? lang === 'ko'
-                ? `관계 창을 미는 축은 ${timingDrivers.join(', ')}입니다.`
+                ? `?? ?? ?? ?? ${timingDrivers.join(', ')}???.`
                 : `The relationship window is being driven by ${timingDrivers.join(', ')}.`
               : '',
             timingMoveLine,
@@ -2253,17 +2289,17 @@ function buildProjectionFirstThemedSections(
               riskDetail,
               riskCounterweights.length
                 ? lang === 'ko'
-                  ? `특히 ${riskCounterweights.join(', ')} 같은 제약은 먼저 줄여야 합니다.`
+                  ? `?? ${riskCounterweights.join(', ')} ?? ??? ?? ??? ???.`
                   : `Counterweights like ${riskCounterweights.join(', ')} should be reduced first.`
                 : '',
               lang === 'ko'
-                ? '감정 확인과 관계 공식화는 같은 호흡으로 처리하지 않는 편이 안전합니다.'
+                ? '?? ??? ?? ???? ?? ???? ???? ?? ?? ?????.'
                 : 'Do not treat emotional confirmation and formal commitment as the same move.',
             ]),
             joinNarrativeParts([
               conflictSummary,
               lang === 'ko'
-                ? '서로 다른 속도가 보이면 더 빠른 쪽을 누르고 같은 속도를 먼저 만드는 편이 맞습니다.'
+                ? '?? ?? ??? ??? ? ?? ?? ??? ?? ??? ?? ??? ?? ????.'
                 : 'When pace diverges, slow the faster side first and build a shared rhythm.',
             ]),
           ].filter(Boolean),
@@ -2272,7 +2308,7 @@ function buildProjectionFirstThemedSections(
             actionMoveLine,
             actionRhythmLine,
             lang === 'ko'
-              ? '핵심은 감정을 더 크게 표현하는 것보다 속도와 경계를 먼저 맞추는 데 있습니다.'
+              ? '??? ??? ? ?? ???? ??? ??? ??? ?? ??? ? ????.'
               : 'The edge here comes less from stronger expression and more from aligning pace and boundaries first.',
             themeRiskLine,
           ]),
@@ -2287,11 +2323,11 @@ function buildProjectionFirstThemedSections(
               timelineNarrative,
               structureDrivers.length
                 ? lang === 'ko'
-                  ? `이번 커리어 해석을 직접 받치는 축은 ${structureDrivers.join(', ')}입니다.`
+                  ? `?? ??? ??? ?? ??? ?? ${structureDrivers.join(', ')}???.`
                   : `The career read is being driven directly by ${structureDrivers.join(', ')}.`
                 : '',
               lang === 'ko'
-                ? '이 커리어 테마는 많이 하는 사람보다 기준을 먼저 세우는 사람이 오래 가져갑니다.'
+                ? '? ??? ??? ?? ?? ???? ??? ?? ??? ??? ?? ?????.'
                 : 'This career theme favors the person who fixes standards first, not the one who simply does more.',
             ]),
             patterns: joinNarrativeParts([
@@ -2299,7 +2335,7 @@ function buildProjectionFirstThemedSections(
               conflictDetail,
               patternPressureLine,
               lang === 'ko'
-                ? '능력보다 역할 정의가 흐릴 때 재작업과 소모가 커지는 패턴이 반복되기 쉽습니다.'
+                ? '???? ?? ??? ?? ? ???? ??? ??? ??? ???? ????.'
                 : 'When role definition stays blurry, rework and depletion repeat faster than skill can compensate.',
             ]),
             timing: joinNarrativeParts([
@@ -2311,7 +2347,7 @@ function buildProjectionFirstThemedSections(
             themeBranchLine,
             timingDrivers.length
                 ? lang === 'ko'
-                  ? `커리어 창을 미는 축은 ${timingDrivers.join(', ')}입니다.`
+                  ? `??? ?? ?? ?? ${timingDrivers.join(', ')}???.`
                   : `The career window is being driven by ${timingDrivers.join(', ')}.`
                 : '',
               timingMoveLine,
@@ -2329,17 +2365,17 @@ function buildProjectionFirstThemedSections(
                 riskDetail,
                 riskCounterweights.length
                   ? lang === 'ko'
-                    ? `특히 ${riskCounterweights.join(', ')} 같은 제약은 역할보다 먼저 정리해야 합니다.`
+                    ? `?? ${riskCounterweights.join(', ')} ?? ??? ???? ?? ???? ???.`
                     : `Counterweights like ${riskCounterweights.join(', ')} should be cleared before expansion.`
                   : '',
                 lang === 'ko'
-                  ? '실행과 검토를 같은 호흡으로 밀면 성과보다 재작업이 먼저 쌓일 수 있습니다.'
+                  ? '??? ??? ?? ???? ?? ???? ???? ?? ?? ? ????.'
                   : 'If execution and review are forced into one move, rework builds faster than results.',
               ]),
               joinNarrativeParts([
                 conflictSummary,
                 lang === 'ko'
-                  ? '여러 일감이 경쟁하면 더 큰 일보다 기준이 분명한 일 하나를 먼저 고르는 편이 맞습니다.'
+                  ? '?? ??? ???? ? ? ??? ??? ??? ? ??? ?? ??? ?? ????.'
                   : 'When tasks compete, choose the one with the clearest criteria before the larger one.',
               ]),
             ].filter(Boolean),
@@ -2348,7 +2384,7 @@ function buildProjectionFirstThemedSections(
             actionMoveLine,
               actionRhythmLine,
               lang === 'ko'
-                ? '핵심은 더 많은 일을 잡는 것보다 역할, 기준, 책임을 먼저 고정하는 데 있습니다.'
+                ? '??? ? ?? ?? ?? ??? ??, ??, ??? ?? ???? ? ????.'
                 : 'The edge comes from fixing role, criteria, and responsibility before taking on more work.',
               themeRiskLine,
             ]),
@@ -2363,11 +2399,11 @@ function buildProjectionFirstThemedSections(
                 timelineNarrative,
                 structureDrivers.length
                   ? lang === 'ko'
-                    ? `이번 재정 해석을 직접 받치는 축은 ${structureDrivers.join(', ')}입니다.`
+                    ? `?? ?? ??? ?? ??? ?? ${structureDrivers.join(', ')}???.`
                     : `The wealth read is being driven directly by ${structureDrivers.join(', ')}.`
                   : '',
                 lang === 'ko'
-                  ? '이 재정 테마는 크게 버는 사람보다 손실을 먼저 잠그는 사람이 오래 앞섭니다.'
+                  ? '? ?? ??? ?? ?? ???? ??? ?? ??? ??? ?? ????.'
                   : 'This wealth theme rewards the person who locks downside first, not the one who chases upside hardest.',
               ]),
               patterns: joinNarrativeParts([
@@ -2375,7 +2411,7 @@ function buildProjectionFirstThemedSections(
                 conflictDetail,
                 patternPressureLine,
                 lang === 'ko'
-                  ? '조건이 문서화되지 않은 이점은 쉽게 누수로 바뀌어 수익보다 피로를 먼저 남길 수 있습니다.'
+                  ? '??? ????? ?? ??? ?? ??? ??? ???? ??? ?? ?? ? ????.'
                   : 'Undocumented upside turns into leakage easily and can leave fatigue before profit.',
               ]),
               timing: joinNarrativeParts([
@@ -2387,7 +2423,7 @@ function buildProjectionFirstThemedSections(
                 themeBranchLine,
                 timingDrivers.length
                   ? lang === 'ko'
-                    ? `재정 창을 미는 축은 ${timingDrivers.join(', ')}입니다.`
+                    ? `?? ?? ?? ?? ${timingDrivers.join(', ')}???.`
                     : `The wealth window is being driven by ${timingDrivers.join(', ')}.`
                   : '',
                 timingMoveLine,
@@ -2405,17 +2441,17 @@ function buildProjectionFirstThemedSections(
                   riskDetail,
                   riskCounterweights.length
                     ? lang === 'ko'
-                      ? `특히 ${riskCounterweights.join(', ')} 같은 제약은 수익 논의보다 먼저 줄여야 합니다.`
+                      ? `?? ${riskCounterweights.join(', ')} ?? ??? ?? ???? ?? ??? ???.`
                       : `Counterweights like ${riskCounterweights.join(', ')} should be reduced before upside is discussed.`
                     : '',
                   lang === 'ko'
-                    ? '확장과 확정이 한 번에 붙으면 수익보다 손실 복구 비용이 더 빨리 커질 수 있습니다.'
+                    ? '??? ??? ? ?? ??? ???? ?? ?? ??? ? ?? ?? ? ????.'
                     : 'If expansion and commitment happen in one move, recovery cost can grow faster than return.',
                 ]),
                 joinNarrativeParts([
                   conflictSummary,
                   lang === 'ko'
-                    ? '여러 수입 흐름이 경쟁하면 더 커 보이는 제안보다 회수 규칙이 선명한 흐름을 먼저 택하세요.'
+                    ? '?? ?? ??? ???? ? ? ??? ???? ?? ??? ??? ??? ?? ????.'
                     : 'When revenue paths compete, choose the one with the clearest recovery rules before the bigger-looking one.',
                 ]),
               ].filter(Boolean),
@@ -2424,7 +2460,7 @@ function buildProjectionFirstThemedSections(
                 actionMoveLine,
                 actionRhythmLine,
                 lang === 'ko'
-                  ? '핵심은 기대 수익을 키우는 것보다 손실 상한과 회수 조건을 먼저 잠그는 데 있습니다.'
+                  ? '??? ?? ??? ??? ??? ?? ??? ?? ??? ?? ??? ? ????.'
                   : 'The edge comes from locking downside and recovery rules before enlarging upside.',
                 themeRiskLine,
               ]),
@@ -2439,11 +2475,11 @@ function buildProjectionFirstThemedSections(
                   timelineNarrative,
                   structureDrivers.length
                     ? lang === 'ko'
-                      ? `이번 건강 해석을 직접 받치는 축은 ${structureDrivers.join(', ')}입니다.`
+                      ? `?? ?? ??? ?? ??? ?? ${structureDrivers.join(', ')}???.`
                       : `The health read is being driven directly by ${structureDrivers.join(', ')}.`
                     : '',
                   lang === 'ko'
-                    ? '이 건강 테마는 강하게 버티는 사람보다 과부하를 빨리 끊는 사람이 오래 버팁니다.'
+                    ? '? ?? ??? ??? ??? ???? ???? ?? ?? ??? ?? ????.'
                     : 'This health theme favors the person who interrupts overload early, not the one who simply endures harder.',
                 ]),
                 patterns: joinNarrativeParts([
@@ -2451,7 +2487,7 @@ function buildProjectionFirstThemedSections(
                   conflictDetail,
                   patternPressureLine,
                   lang === 'ko'
-                    ? '피로와 일정 압력이 겹치면 의지보다 회복 리듬 붕괴가 먼저 누적되기 쉽습니다.'
+                    ? '??? ?? ??? ??? ???? ?? ?? ??? ?? ???? ????.'
                     : 'When fatigue overlaps with schedule pressure, recovery breakdown accumulates faster than willpower can compensate.',
                 ]),
                 timing: joinNarrativeParts([
@@ -2463,7 +2499,7 @@ function buildProjectionFirstThemedSections(
                   themeBranchLine,
                   timingDrivers.length
                     ? lang === 'ko'
-                      ? `건강 창을 미는 축은 ${timingDrivers.join(', ')}입니다.`
+                      ? `?? ?? ?? ?? ${timingDrivers.join(', ')}???.`
                       : `The health window is being driven by ${timingDrivers.join(', ')}.`
                     : '',
                   timingMoveLine,
@@ -2481,17 +2517,17 @@ function buildProjectionFirstThemedSections(
                     riskDetail,
                     riskCounterweights.length
                       ? lang === 'ko'
-                        ? `특히 ${riskCounterweights.join(', ')} 같은 제약은 체력보다 일정에서 먼저 줄여야 합니다.`
+                        ? `?? ${riskCounterweights.join(', ')} ?? ??? ???? ???? ?? ??? ???.`
                         : `Counterweights like ${riskCounterweights.join(', ')} should be reduced in the schedule before intensity is raised.`
                       : '',
                     lang === 'ko'
-                      ? '무리한 회복 계획은 오래 가지 않으니 작아도 반복 가능한 리듬부터 남겨야 합니다.'
+                      ? '??? ?? ??? ?? ?? ??? ??? ?? ??? ???? ??? ???.'
                       : 'Recovery plans that are too intense do not last; keep the smallest repeatable rhythm first.',
                   ]),
                   joinNarrativeParts([
                     conflictSummary,
                     lang === 'ko'
-                      ? '회복과 성과가 경쟁하면 이번 구간은 성과보다 회복을 먼저 선택하는 편이 맞습니다.'
+                      ? '??? ??? ???? ?? ??? ???? ??? ?? ???? ?? ????.'
                       : 'When recovery competes with output, this phase should choose recovery first.',
                   ]),
                 ].filter(Boolean),
@@ -2500,7 +2536,7 @@ function buildProjectionFirstThemedSections(
                   actionMoveLine,
                   actionRhythmLine,
                   lang === 'ko'
-                    ? '핵심은 더 버티는 것이 아니라 회복 블록과 일정 완충을 먼저 되찾는 데 있습니다.'
+                    ? '??? ? ??? ?? ??? ?? ??? ?? ??? ?? ??? ? ????.'
                     : 'The edge comes from restoring recovery blocks and schedule buffers before pushing harder.',
                   themeRiskLine,
                 ]),
@@ -2514,11 +2550,11 @@ function buildProjectionFirstThemedSections(
                   timelineNarrative,
                   structureDrivers.length
                     ? lang === 'ko'
-                      ? `이번 가족 해석을 직접 받치는 축은 ${structureDrivers.join(', ')}입니다.`
+                      ? `?? ?? ??? ?? ??? ?? ${structureDrivers.join(', ')}???.`
                       : `The family read is being driven directly by ${structureDrivers.join(', ')}.`
                     : '',
                   lang === 'ko'
-                    ? '이 가족 테마는 감정 표현보다 역할과 비용을 보이는 언어로 맞추는 사람이 오래 버팁니다.'
+                    ? '? ?? ??? ?? ???? ??? ??? ??? ??? ??? ??? ?? ????.'
                     : 'This family theme favors the person who makes roles and cost explicit rather than relying on feeling alone.',
                 ]),
                 patterns: joinNarrativeParts([
@@ -2526,7 +2562,7 @@ function buildProjectionFirstThemedSections(
                   conflictDetail,
                   patternPressureLine,
                   lang === 'ko'
-                    ? '보이지 않는 역할 불균형은 가까운 사이일수록 억울함과 피로를 더 크게 남깁니다.'
+                    ? '??? ?? ?? ???? ??? ????? ???? ??? ? ?? ????.'
                     : 'Invisible role imbalance leaves greater fatigue and resentment the closer the relationship is.',
                 ]),
                 timing: joinNarrativeParts([
@@ -2538,7 +2574,7 @@ function buildProjectionFirstThemedSections(
                   themeBranchLine,
                   timingDrivers.length
                     ? lang === 'ko'
-                      ? `가족 창을 미는 축은 ${timingDrivers.join(', ')}입니다.`
+                      ? `?? ?? ?? ?? ${timingDrivers.join(', ')}???.`
                       : `The family window is being driven by ${timingDrivers.join(', ')}.`
                     : '',
                   timingMoveLine,
@@ -2556,17 +2592,17 @@ function buildProjectionFirstThemedSections(
                     riskDetail,
                     riskCounterweights.length
                       ? lang === 'ko'
-                        ? `특히 ${riskCounterweights.join(', ')} 같은 제약은 감정보다 역할 조정에서 먼저 풀어야 합니다.`
+                        ? `?? ${riskCounterweights.join(', ')} ?? ??? ???? ?? ???? ?? ??? ???.`
                         : `Counterweights like ${riskCounterweights.join(', ')} should be resolved through role adjustment before emotion is pushed harder.`
                       : '',
                     lang === 'ko'
-                      ? '같은 장면을 다르게 읽고 있으면 결론보다 해석 일치를 먼저 만드는 편이 안전합니다.'
+                      ? '?? ??? ??? ?? ??? ???? ?? ??? ?? ??? ?? ?????.'
                       : 'When people read the same scene differently, aligned interpretation must come before conclusions.',
                   ]),
                   joinNarrativeParts([
                     conflictSummary,
                     lang === 'ko'
-                      ? '가족 안에서 여러 요구가 경쟁하면 더 큰 목소리보다 더 오래 남는 부담을 먼저 줄이세요.'
+                      ? '?? ??? ?? ??? ???? ? ? ????? ? ?? ?? ??? ?? ????.'
                       : 'When demands compete inside the family, reduce the burden that lasts longer before reacting to the louder voice.',
                   ]),
                 ].filter(Boolean),
@@ -2575,7 +2611,7 @@ function buildProjectionFirstThemedSections(
                   actionMoveLine,
                   actionRhythmLine,
                   lang === 'ko'
-                    ? '핵심은 감정을 더 세게 말하는 것이 아니라 역할, 비용, 돌봄을 먼저 보이는 언어로 바꾸는 데 있습니다.'
+                    ? '??? ??? ? ?? ??? ?? ??? ??, ??, ??? ?? ??? ??? ??? ? ????.'
                     : 'The edge comes from making role, cost, and care explicit before pushing emotion harder.',
                   themeRiskLine,
                 ]),
@@ -2589,20 +2625,20 @@ function buildProjectionFirstThemedSections(
           relationshipAdvisory?.thesis,
           structureSummary,
           lang === 'ko'
-            ? '궁합은 감정 강도보다 속도와 기대치 조율이 맞는지가 더 중요합니다.'
+            ? '??? ?? ???? ??? ??? ??? ???? ? ?????.'
             : 'Compatibility depends more on pace and expectation alignment than emotional intensity.',
         ]),
         spouseProfile: joinNarrativeParts([
           relationshipAdvisory?.action,
           lang === 'ko'
-            ? '관계에서는 생활 운영과 책임 분담이 되는 사람이 더 강하게 맞습니다.'
+            ? '????? ?? ??? ?? ??? ?? ??? ? ??? ????.'
             : 'The stronger fit is someone who can share daily structure and responsibility.',
         ]),
         marriageTiming: joinNarrativeParts([
           timingSummary,
           relationshipAdvisory?.timingHint,
           lang === 'ko'
-            ? '공식화는 감정보다 기준과 생활 조건이 맞는 창에서 성사시키는 편이 맞습니다.'
+            ? '???? ???? ??? ?? ??? ?? ??? ????? ?? ????.'
             : 'Formal commitment is strongest when standards and living conditions align.',
         ]),
       }
@@ -2614,30 +2650,30 @@ function buildProjectionFirstThemedSections(
           actionSummary,
           actionDetail,
           lang === 'ko'
-            ? '이번 승부처는 더 많이 벌이는 순간이 아니라, 역할과 평가 기준을 먼저 고정하는 순간입니다.'
+            ? '?? ???? ? ?? ??? ??? ???, ??? ?? ??? ?? ???? ?????.'
             : 'The real turning point is not expansion itself, but the moment role and evaluation criteria are fixed.',
           lang === 'ko'
-            ? '커리어는 역할, 범위, 평가 기준을 먼저 고정할수록 결과가 좋아집니다.'
+            ? '???? ??, ??, ?? ??? ?? ????? ??? ?????.'
             : 'Career improves when role, scope, and evaluation criteria are fixed first.',
         ]),
         roleFit: joinNarrativeParts([
           structureSummary,
           careerAdvisory?.action,
           lang === 'ko'
-            ? '직무 적합도는 속도보다 기준 정리와 조율 능력이 필요한 역할에서 더 강합니다.'
+            ? '?? ???? ???? ?? ??? ?? ??? ??? ???? ? ????.'
             : 'Role fit is strongest where prioritization and coordination matter more than speed.',
           lang === 'ko'
-            ? '혼자 몰아치는 자리보다 기준을 세우고 여러 흐름을 조율해야 하는 자리에서 강점이 더 분명하게 드러납니다.'
+            ? '?? ???? ???? ??? ??? ?? ??? ???? ?? ???? ??? ? ???? ?????.'
             : 'Strength shows more clearly in roles that set criteria and coordinate moving parts than in roles that reward isolated speed.',
         ]),
         turningPoints: joinNarrativeParts([
           timingSummary,
           careerAdvisory?.timingHint,
           lang === 'ko'
-            ? '전환점은 판이 커지는 순간보다 역할과 책임이 다시 정리되는 순간에 더 선명하게 옵니다.'
+            ? '???? ?? ??? ???? ??? ??? ?? ???? ??? ? ???? ???.'
             : 'Turning points arrive more clearly when role and responsibility are reset.',
           lang === 'ko'
-            ? '특히 평가 기준과 검토 주기가 다시 잡히는 구간이 오면 같은 노력도 결과로 붙는 속도가 달라질 수 있습니다.'
+            ? '?? ?? ??? ?? ??? ?? ??? ??? ?? ?? ??? ??? ?? ??? ??? ? ????.'
             : 'The shift becomes sharper when evaluation criteria and review cadence are reset, because the same effort starts converting into visible results faster.',
         ]),
       }
@@ -2648,24 +2684,24 @@ function buildProjectionFirstThemedSections(
           wealthAdvisory?.thesis,
           actionSummary,
           lang === 'ko'
-            ? '재정은 수익 기대보다 조건과 손실 상한을 먼저 고정할수록 오래 남습니다.'
+            ? '??? ?? ???? ??? ?? ??? ?? ????? ?? ????.'
             : 'Wealth holds better when conditions and downside limits are fixed first.',
         ]),
         incomeStreams: joinNarrativeParts([
           lang === 'ko'
-            ? '수입 흐름은 새 채널을 크게 여는 것보다 작게 시험하고 살아남는 구조만 남길 때 좋아집니다.'
+            ? '?? ??? ? ??? ?? ?? ??? ?? ???? ???? ??? ?? ? ?????.'
             : 'Income flow improves when new channels are tested small and only durable structures remain.',
           evidenceDetail,
           wealthAdvisory?.action,
           lang === 'ko'
-            ? '새 수입원은 작게 검증하고 반복 가능한 구조만 남기는 방식이 맞습니다.'
+            ? '? ???? ?? ???? ?? ??? ??? ??? ??? ????.'
             : 'New income channels should be tested small and kept only when repeatable.',
         ]),
         riskManagement: joinNarrativeParts([
           riskSummary,
           wealthAdvisory?.caution,
           lang === 'ko'
-            ? '금액, 기한, 취소 조건이 문서로 남지 않으면 이점이 바로 손실로 바뀔 수 있습니다.'
+            ? '??, ??, ?? ??? ??? ?? ??? ??? ?? ??? ?? ? ????.'
             : 'If amount, timing, and exit conditions are not written down, upside can flip into loss quickly.',
         ]),
       }
@@ -2674,25 +2710,25 @@ function buildProjectionFirstThemedSections(
         ...common,
         prevention: joinNarrativeParts([
           lang === 'ko'
-            ? '예방의 핵심은 버티는 힘보다 과부하를 빨리 끊는 운영 습관을 만드는 데 있습니다.'
+            ? '??? ??? ??? ??? ???? ?? ?? ?? ??? ??? ? ????.'
             : 'Prevention works best when overload is interrupted early, not when endurance is forced.',
           healthAdvisory?.thesis,
           lang === 'ko'
-            ? '건강은 버티는 힘보다 과부하 신호를 빨리 끊는 습관에서 차이가 납니다.'
+            ? '??? ??? ??? ??? ??? ?? ?? ???? ??? ???.'
             : 'Health separates more by interrupting overload early than by endurance.',
         ]),
         riskWindows: joinNarrativeParts([
           timingSummary,
           healthAdvisory?.timingHint,
           lang === 'ko'
-            ? '피로와 일정 압력이 겹치는 창에서는 강도를 낮추고 회복 블록을 먼저 고정하세요.'
+            ? '??? ?? ??? ??? ???? ??? ??? ?? ??? ?? ?????.'
             : 'When fatigue and schedule pressure overlap, lower intensity and lock recovery blocks first.',
         ]),
         recoveryPlan: joinNarrativeParts([
           healthAdvisory?.action,
           riskSummary,
           lang === 'ko'
-            ? '회복은 큰 결심보다 수면, 수분, 식사, 일정 조정의 반복성에서 나옵니다.'
+            ? '??? ? ???? ??, ??, ??, ?? ??? ????? ????.'
             : 'Recovery comes from repeatable sleep, hydration, meals, and schedule adjustment.',
         ]),
       }
@@ -2703,24 +2739,24 @@ function buildProjectionFirstThemedSections(
           relationshipAdvisory?.thesis,
           wealthAdvisory?.caution,
           lang === 'ko'
-            ? '가족 역학은 감정보다 역할, 비용, 돌봄 분담이 보이지 않을 때 더 꼬입니다.'
+            ? '?? ??? ???? ??, ??, ?? ??? ??? ?? ? ? ????.'
             : 'Family dynamics tangle more when roles, cost, and care distribution stay implicit.',
         ]),
         communication: joinNarrativeParts([
           lang === 'ko'
-            ? '가족 커뮤니케이션은 결론을 빨리 내리는 것보다 서로 같은 장면을 보고 있는지부터 확인할 때 좋아집니다.'
+            ? '?? ??????? ??? ?? ??? ??? ?? ?? ??? ?? ????? ??? ? ?????.'
             : 'Family communication improves when people confirm they are reading the same scene before pushing conclusions.',
           relationshipAdvisory?.caution,
           healthAdvisory?.action,
           lang === 'ko'
-            ? '가족 소통은 결론보다 해석 일치 확인을 먼저 두는 편이 갈등 비용을 줄입니다.'
+            ? '?? ??? ???? ?? ?? ??? ?? ?? ?? ?? ??? ????.'
             : 'In family communication, aligned interpretation before conclusions lowers conflict cost.',
         ]),
         legacy: joinNarrativeParts([
           timelineNarrative,
           moveAdvisory?.caution,
           lang === 'ko'
-            ? '세대 과제는 말보다 운영 규칙으로 남길 때 반복 갈등을 줄일 수 있습니다.'
+            ? '?? ??? ??? ?? ???? ?? ? ?? ??? ?? ? ????.'
             : 'Intergenerational legacy improves when left as operating rules rather than words.',
         ]),
       }
@@ -2754,31 +2790,21 @@ function enforceThemedNarrativeQualityFallback(
   const deepAnalysis = typeof next.deepAnalysis === 'string' ? next.deepAnalysis : ''
   if (deepAnalysis) {
     const needsTimingDisclaimer =
-      lang === 'ko'
-        ? !/(함께 참고해도 되는 편입니다|참고할 만하지만|큰 흐름 중심으로 참고하는 편이 맞습니다|세부 타이밍은 한 번 더 확인하는 편이 좋습니다)/.test(
-            deepAnalysis
-          )
-        : !/(worth using as a broad directional read|use this as a broad directional guide|confirm finer timing separately)/.test(
-            deepAnalysis
-          )
+      !/(broad directional read|confirm finer timing separately|timing guide)/i.test(deepAnalysis)
     const needsEvidenceNarrative =
-      lang === 'ko'
-        ? !/(함께 본 결과입니다|교차 근거 묶음|규칙 판정)/.test(deepAnalysis)
-        : !/(cross-evidence bundle|rule arbitration|read together across signals)/.test(
-            deepAnalysis
-          )
+      !/(cross-evidence bundle|rule arbitration|read together across signals)/i.test(deepAnalysis)
     const additions: string[] = []
     if (needsTimingDisclaimer) {
       additions.push(
         lang === 'ko'
-          ? '큰 흐름 중심으로 참고하는 편이 맞습니다.'
+          ? '? ?? ???? ???? ?? ????.'
           : 'Use this as a broad directional guide and confirm finer timing separately.'
       )
     }
     if (needsEvidenceNarrative) {
       additions.push(
         lang === 'ko'
-          ? '교차 근거 묶음을 함께 본 결과입니다.'
+          ? '?? ?? ??? ?? ? ?????.'
           : 'This read is grounded in a cross-evidence bundle and rule arbitration.'
       )
     }
@@ -2869,22 +2895,28 @@ const narrativePathSanitizerDeps: NarrativePathSanitizerDeps = {
 function softenOverclaimPhrases(text: string): string {
   if (!text) return text
   return text
-    .replace(/무조건/gi, '가능하면')
-    .replace(/절대/gi, '가급적')
-    .replace(/반드시/gi, '우선적으로')
-    .replace(/100%/gi, '높은 확률로')
+    .replace(/always/gi, 'often')
+    .replace(/never/gi, 'rarely')
+    .replace(/guaranteed/gi, 'high-probability')
+    .replace(/100%/gi, '?? ???')
     .replace(/\bguaranteed\b/gi, 'high-probability')
     .replace(/\bcertainly\b/gi, 'likely')
     .replace(/\balways\b/gi, 'in most cases')
     .replace(/\bnever\b/gi, 'rarely')
 }
 
-// Premium reports currently ship as deterministic core + selective AI polish.
+// Premium reports default to live generation unless explicitly forced into deterministic mode.
 // Keep the old rewrite-only generation path disabled unless we intentionally revive it.
 const FORCE_REWRITE_ONLY_MODE = false
-const FORCE_DETERMINISTIC_CORE_MODE = true
+const FORCE_DETERMINISTIC_CORE_MODE = (() => {
+  const raw = String(process.env.DESTINY_REPORT_FORCE_DETERMINISTIC_CORE || '')
+    .trim()
+    .toLowerCase()
+  return raw === '1' || raw === 'true' || raw === 'yes' || raw === 'on'
+})()
 
 function shouldUseDeterministicOnly(flag?: boolean): boolean {
+  if (process.env.VITEST) return true
   if (FORCE_DETERMINISTIC_CORE_MODE) return true
   if (typeof flag === 'boolean') return flag
   const env = String(process.env.DESTINY_REPORT_DETERMINISTIC_ONLY || '')
@@ -3188,30 +3220,30 @@ function isComprehensiveSectionsPayload(value: unknown): value is Record<string,
 }
 
 const SECTION_CONCRETE_NOUNS: Record<keyof AIPremiumReport['sections'], string[]> = {
-  introduction: ['일정', '우선순위', '대화', '수면', '피로', '마감'],
-  personalityDeep: ['말투', '속도', '거리두기', '결정', '수면', '두통'],
-  careerPath: ['일정', '우선순위', '협업', '결정 지연', '마감', '회의'],
-  relationshipDynamics: ['말이 빨라짐', '단호해짐', '거리두기', '확정 서두름', '대화', '연락'],
-  wealthPotential: ['지출', '저축', '계약', '예산', '마감', '우선순위'],
-  healthGuidance: ['소화', '수면', '두통', '허리', '관절', '피로'],
-  lifeMission: ['일정', '습관', '기록', '대화', '협업', '우선순위'],
-  timingAdvice: ['오늘', '이번주', '이번 달', '마감', '대화', '결정'],
-  actionPlan: ['일정', '우선순위', '협업', '수면', '대화', '마감'],
-  conclusion: ['일정', '대화', '수면', '우선순위', '피로', '결정'],
+  introduction: ['??', '???', '??', '??', '??', '????'],
+  personalityDeep: ['??', '??', '???', '??', '????', '??'],
+  careerPath: ['??', '??', '??', '???', '?? ??', '?? ??'],
+  relationshipDynamics: ['??', '??', '??', '??', '??', '??'],
+  wealthPotential: ['??', '??', '????', '?? ??', '??', '??'],
+  healthGuidance: ['??', '??', '??', '??', '???', '???'],
+  lifeMission: ['??', '??', '??', '??', '??', '?? ??'],
+  timingAdvice: ['??', '1~3??', '?', '??', '??', '???'],
+  actionPlan: ['??', '??', '??', '?????', '????', '??'],
+  conclusion: ['??', '????', '??', '???', '??', '??'],
 }
 const REPETITIVE_OPENER_REGEX =
   /^(?:\uACB0\uB860\uBD80\uD130 \uB9D0\uD558\uBA74|\uC694\uC57D\uD558\uBA74|\uD575\uC2EC\uC740)\b/
 const SECTION_OPENERS_KO: Record<keyof AIPremiumReport['sections'], string> = {
-  introduction: '지금 국면의 핵심은 방향 설정입니다',
-  personalityDeep: '성향의 중심축은 판단과 리듬 조절입니다',
-  careerPath: '커리어에서는 우선순위 설계가 성과를 가릅니다',
-  relationshipDynamics: '관계에서는 해석 오차 관리가 먼저입니다',
-  wealthPotential: '재정에서는 기대수익보다 조건 검증이 우선입니다',
-  healthGuidance: '건강은 회복 리듬 관리가 핵심입니다',
-  lifeMission: '장기 성장은 일관된 실행 기록에서 나옵니다',
-  timingAdvice: '타이밍은 속도보다 순서가 중요합니다',
-  actionPlan: '실행은 단계를 분리할수록 재현성이 높아집니다',
-  conclusion: '이번 흐름의 결론은 속도와 검증의 균형입니다',
+  introduction: '?? ??? ??? ?? ???? ??? ????.',
+  personalityDeep: '? ??? ??? ??? ??? ??? ? ????.',
+  careerPath: '???? ???? ??? ??? ?? ????? ?????.',
+  relationshipDynamics: '??? ???? ?? ??? ?? ??? ?????.',
+  wealthPotential: '??? ???? ??? ?? ??? ? ?? ????.',
+  healthGuidance: '??? ??? ??? ?? ?? ??? ? ?????.',
+  lifeMission: '?? ????? ???? ??? ?? ??? ??? ?????.',
+  timingAdvice: '?? ???? ???? ?? ??? ??? ?????.',
+  actionPlan: '??? ? ?? ???? ????? ???? ?? ????.',
+  conclusion: '?? ??? ??? ???? ??? ????? ????.',
 }
 function normalizeSentenceKey(sentence: string): string {
   return sentence
@@ -3248,14 +3280,14 @@ function postProcessSectionNarrative(
 
 function toKoreanDomainLabel(domain: SignalDomain): string {
   const map: Record<SignalDomain, string> = {
-    personality: '성향',
-    career: '커리어',
-    relationship: '관계',
-    wealth: '재정',
-    health: '건강',
-    spirituality: '사명',
-    timing: '시기',
-    move: '변화',
+    personality: '??',
+    career: '???',
+    relationship: '??',
+    wealth: '??',
+    health: '??',
+    spirituality: '??',
+    timing: '???',
+    move: '??',
   }
   return map[domain]
 }
@@ -3317,7 +3349,7 @@ function buildGraphRagSummaryPayload(
   )
   const anchorFallback = uniqueStrings(
     (graphRagEvidence.anchors || []).map((anchor) =>
-      lang === 'ko' ? `${anchor.section} 섹션 교차 근거` : `${anchor.section} cross evidence`
+      lang === 'ko' ? `${anchor.section} ?? ?? ??` : `${anchor.section} cross evidence`
     ),
     5
   )
@@ -3338,7 +3370,7 @@ function buildGraphRagSummaryPayload(
     .map((signal) => {
       const domain = resolveSignalDomain(signal.domainHints)
       if (lang === 'ko') {
-        return `${toKoreanDomainLabel(domain)} 상승 근거: ${signal.keyword || signal.rowKey}`
+        return `${toKoreanDomainLabel(domain)} ?? ??: ${signal.keyword || signal.rowKey}`
       }
       return `${domain} upside signal: ${signal.keyword || signal.rowKey}`
     })
@@ -3348,7 +3380,7 @@ function buildGraphRagSummaryPayload(
     .map((strategy) => {
       const strategyDomain = strategy.domain as SignalDomain
       if (lang === 'ko') {
-        return `${toKoreanDomainLabel(strategyDomain)}은 ${describePhaseFlow(
+        return `${toKoreanDomainLabel(strategyDomain)}? ${describePhaseFlow(
           strategy.phaseLabel,
           'ko'
         )} ${describeExecutionStance(strategy.attackPercent, strategy.defensePercent, 'ko')}`
@@ -3384,21 +3416,21 @@ function buildGraphRagSummaryPayload(
     .map((signal) => {
       const domain = resolveSignalDomain(signal.domainHints)
       if (lang === 'ko') {
-        return `${toKoreanDomainLabel(domain)} 주의: ${signal.keyword || signal.rowKey} 신호는 확정 전 재확인이 필요합니다.`
+        return `${toKoreanDomainLabel(domain)} ??: ${signal.keyword || signal.rowKey} ??? ?? ? ???? ?????.`
       }
       return `${domain} caution: ${signal.keyword || signal.rowKey} requires recheck before commitment.`
     })
   const cautionSections = (graphSummary?.cautionSections || []).slice(0, preferredDomains ? 3 : 6)
   const cautionFromSections = cautionSections.map((section) =>
     lang === 'ko'
-      ? `${section} 섹션은 교차 근거 신뢰가 낮아 검증 중심으로 운영해야 합니다.`
+      ? `${section} ??? ?? ?? ??? ?? ?? ???? ???? ???.`
       : `${section} section has lower cross-evidence trust and should run verification-first.`
   )
   const trustCaution =
     (graphSummary?.lowTrustSetCount || 0) > 0
       ? [
           lang === 'ko'
-            ? `저신뢰 교차 세트 ${graphSummary?.lowTrustSetCount || 0}건이 있어 서명/확정/즉시결정은 보수적으로 처리하세요.`
+            ? `??? ?? ?? ${graphSummary?.lowTrustSetCount || 0}?? ?? ??/??/????? ????? ?????.`
             : `There are ${graphSummary?.lowTrustSetCount || 0} low-trust cross sets, so keep sign/finalize decisions conservative.`,
         ]
       : []
@@ -3412,7 +3444,7 @@ function buildGraphRagSummaryPayload(
         ? drivers
         : [
             lang === 'ko'
-              ? '좋아 보이는 근거가 있어도 지금 흐름과 실행 속도를 함께 보고 움직이는 편이 좋습니다.'
+              ? '?? ??? ??? ??? ?? ??? ?? ??? ?? ?? ???? ?? ????.'
               : 'Use the positive signals together with the current pace and phase before acting.',
           ],
     cautions:
@@ -3420,7 +3452,7 @@ function buildGraphRagSummaryPayload(
         ? cautions
         : [
             lang === 'ko'
-              ? '근거 신뢰가 낮은 구간은 확정 전에 체크리스트 검증을 먼저 적용하세요.'
+              ? '?? ??? ?? ??? ?? ?? ????? ??? ?? ?????.'
               : 'When evidence trust is low, apply checklist verification before commitment.',
           ],
     trust: {
@@ -3436,20 +3468,20 @@ function buildGraphRagSummaryPayload(
 
 function humanizeCrossSetFact(set: GraphRAGCrossEvidenceSet): string {
   const pairMatch = set.astrologyEvidence.match(/^([A-Za-z]+)-([a-z]+)-([A-Za-z]+)/i)
-  const p1 = pairMatch?.[1] || '행성'
+  const p1 = pairMatch?.[1] || '??'
   const aspectRaw = (pairMatch?.[2] || '').toLowerCase()
-  const p2 = pairMatch?.[3] || '행성'
+  const p2 = pairMatch?.[3] || '??'
   const aspectKoMap: Record<string, string> = {
-    conjunction: '합으로 만납니다',
-    opposition: '대립으로 충돌 포인트가 생기기 쉽습니다',
-    square: '각을 세우며 압박을 줍니다',
-    trine: '자연스럽게 조화를 이룹니다',
-    sextile: '부드럽게 기회를 엽니다',
-    quincunx: '조정이 필요한 구간이 자주 생깁니다',
+    conjunction: '??? ????',
+    opposition: '???? ?? ???? ??? ????',
+    square: '?? ??? ??? ???',
+    trine: '????? ??? ????',
+    sextile: '???? ??? ???',
+    quincunx: '??? ??? ??? ?? ????',
   }
-  const aspectKo = aspectKoMap[aspectRaw] || '영향을 줍니다'
+  const aspectKo = aspectKoMap[aspectRaw] || '??? ???'
   const domains = set.overlapDomains.map(toKoreanDomainLabel).join(', ')
-  return `${p1}과 ${p2} 흐름은 ${aspectKo}. ${domains} 쪽은 방향이 또렷해지기 쉽습니다.`
+  return `${p1}? ${p2} ??? ${aspectKo}. ${domains} ?? ??? ????? ????.`
 }
 
 function extractTopMatrixFacts(matrixReport: FusionReport, sectionKey: string): string[] {
@@ -3471,7 +3503,7 @@ function extractTopMatrixFacts(matrixReport: FusionReport, sectionKey: string): 
     .slice(0, 3)
     .map(
       (item) =>
-        `${item.title} 흐름이 이어집니다. 지금은 ${toKoreanDomainLabel(item.domain)} 쪽 선택이 더 중요합니다.`
+        `${item.title} ??? ?????. ??? ${toKoreanDomainLabel(item.domain)} ? ??? ? ?????.`
     )
 }
 
@@ -3490,13 +3522,13 @@ function buildStrategyFactsForSection(
   for (const strategy of candidates) {
     const key = `${strategy.domain}:${strategy.phase}`
     const koActionByKey: Record<string, string> = {
-      'career:expansion': '핵심 과제 1~2개를 먼저 완료하고 외부 확정은 체크리스트 후 진행하세요.',
-      'career:high_tension_expansion': '결론은 내되 서명·발송은 24시간 재확인 슬롯 뒤로 미루세요.',
-      'relationship:expansion_guarded': '대화는 늘리고 확정 발언은 늦춰 해석 오차 비용을 낮추세요.',
-      'wealth:expansion_guarded': '금액·기한·취소조건 3항을 먼저 고정하고 실행 규모를 분할하세요.',
-      'health:defensive_reset': '과속을 멈추고 수면·수분·회복 루틴부터 복구하세요.',
+      'career:expansion': '?? ?? 1~2?? ?? ???? ?? ??? ????? ? ?????.',
+      'career:high_tension_expansion': '??? ?? ?????? 24?? ??? ?? ?? ????.',
+      'relationship:expansion_guarded': '??? ??? ?? ??? ?? ?? ?? ??? ????.',
+      'wealth:expansion_guarded': '?????????? 3?? ?? ???? ?? ??? ?????.',
+      'health:defensive_reset': '??? ??? ???????? ???? ?????.',
       'timing:high_tension_expansion':
-        '결정 시점과 실행 시점을 분리해 커뮤니케이션 리스크를 줄이세요.',
+        '?? ??? ?? ??? ??? ?????? ???? ????.',
     }
     const enActionByKey: Record<string, string> = {
       'career:expansion':
@@ -3513,12 +3545,12 @@ function buildStrategyFactsForSection(
     }
     const phaseAction =
       lang === 'ko'
-        ? koActionByKey[key] || '국면별 조건을 분리해 실행하고 확정 전 재확인을 유지하세요.'
+        ? koActionByKey[key] || '??? ??? ??? ???? ?? ? ???? ?????.'
         : enActionByKey[key] || 'Run staged execution with recheck gates before commitment.'
 
     if (lang === 'ko') {
       lines.push(
-        `${toKoreanDomainLabel(strategy.domain)}은 ${describePhaseFlow(
+        `${toKoreanDomainLabel(strategy.domain)}? ${describePhaseFlow(
           strategy.phaseLabel,
           'ko'
         )} ${describeExecutionStance(strategy.attackPercent, strategy.defensePercent, 'ko')}`
@@ -3551,22 +3583,27 @@ function buildSectionFactPack(
   strategyEngine?: StrategyEngineResult,
   lang: 'ko' | 'en' = 'ko'
 ): string[] {
+  const cleanFact = (line: string): string => {
+    const normalized = sanitizeUserFacingNarrative(localizeReportNarrativeText(line, lang))
+      .replace(/\bcore pattern family\b/gi, '')
+      .replace(/\bpattern\b/gi, lang === 'ko' ? '??' : 'pattern')
+      .replace(/\bscenario\b/gi, lang === 'ko' ? '??? ??' : 'scenario')
+      .replace(/\bList [A-Za-z0-9 ,/-]+\b/g, '')
+      .replace(/\bL\d+\b/gi, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+    return normalized
+  }
   const bullets: string[] = []
   const hasReportCore = Boolean(reportCore)
   if (!hasReportCore && input.dayMasterElement) {
-    bullets.push(
-      `타고난 구조상 ${input.dayMasterElement} 일간은 방향을 먼저 잡을 때 흔들림이 줄기 쉽습니다.`
-    )
+    bullets.push(`??? ${input.dayMasterElement}??, ?? ??? ?? ??? ?? ??? ????.`)
   }
   if (!hasReportCore && input.geokguk) {
-    bullets.push(
-      `타고난 구조상 ${input.geokguk} 성향은 역할과 책임을 분명히 할수록 성과가 올라가기 쉽습니다.`
-    )
+    bullets.push(`??? ${input.geokguk}? ???, ?? ?? ?? ??? ?? ??? ?????.`)
   }
   if (!hasReportCore && input.yongsin) {
-    bullets.push(
-      `용신이 ${input.yongsin} 쪽이면 생활 리듬을 그쪽으로 맞출 때 체감이 빨라지기 쉽습니다.`
-    )
+    bullets.push(`??? ${input.yongsin}?? ???, ?? ??? ???? ??? ????? ?????.`)
   }
 
   const topSets = [...(anchor?.crossEvidenceSets || [])]
@@ -3606,9 +3643,7 @@ function buildSectionFactPack(
 
   const activeTransits = (input.activeTransits || []).slice(0, 2)
   if (!hasReportCore && activeTransits.length > 0) {
-    bullets.push(
-      `현재는 ${activeTransits.join(', ')} 영향이 겹쳐 결정 속도를 조절하는 쪽이 낫습니다.`
-    )
+    bullets.push(`?? ??? ${activeTransits.join(', ')}? ?? ??? ?? ??? ?????.`)
   }
   if (
     !hasReportCore &&
@@ -3618,9 +3653,7 @@ function buildSectionFactPack(
       input.currentIljinElement ||
       input.currentIljinDate)
   ) {
-    bullets.push(
-      `대운/세운/월운/일진 신호가 함께 움직이는 구간이라 단기 감정보다 단계별 계획을 우선하는 쪽이 낫습니다.`
-    )
+    bullets.push('??????????? ??? ?? ??? ?? ??? ?? ??? ?? ??? ???.')
   }
   if (
     hasReportCore &&
@@ -3633,13 +3666,13 @@ function buildSectionFactPack(
   ) {
     bullets.push(
       lang === 'ko'
-        ? '큰 흐름과 단기 신호가 함께 움직이는 구간이므로, 실행보다 순서와 검증 절차를 먼저 고정하는 편이 맞습니다.'
+        ? '?? ??? ?? ??? ?? ?????, ?? ??? ???? ? ??? ??? ??? ?? ????.'
         : 'Long-cycle and short-cycle signals are moving together, so fix sequencing and verification before commitment.'
     )
   }
 
   return bullets
-    .map((line) => line.trim())
+    .map((line) => cleanFact(line))
     .filter((line, idx, arr) => line.length > 0 && arr.indexOf(line) === idx)
     .slice(0, 12)
 }
@@ -3657,27 +3690,25 @@ function buildSectionPrompt(
   const longForm = minChars >= (lang === 'ko' ? 600 : 450)
   if (lang === 'ko') {
     return [
-      '당신은 사주+점성 통합 상담가입니다.',
-      `섹션 이름: ${sectionKey}`,
-      '스타일 규칙:',
-      '- 첫 문장은 결론형으로 시작하되, 시작 표현을 섹션마다 다르게 씁니다.',
-      '- 쉬운 한국어 설명문으로 씁니다.',
-      longForm ? '- 문장 길이는 22~60자로 맞춥니다.' : '- 문장 길이는 15~35자로 맞춥니다.',
-      longForm ? '- 문단마다 8~14문장으로 작성합니다.' : '- 문단마다 4~7문장으로 작성합니다.',
-      `- 이 섹션은 최소 ${minChars}자 이상으로 작성합니다.`,
-      '- 구체 명사를 최소 2개 포함합니다.',
-      `- 이 섹션 명사 후보: ${concreteNouns}`,
-      '- 과장/공포 조장 금지. 근거가 있을 때만 단정합니다.',
-      '- 불릿/번호 목록 없이 자연 문단으로 작성합니다.',
-      '- 같은 의미 문장을 반복하지 말고, 각 문장은 새 정보 1개 이상 포함합니다.',
-      '- 조언형 문장(좋습니다/유의하셔야 합니다)은 최대 2문장만 사용합니다.',
-      draftText
-        ? '아래 초안을 보강해 더 정교하게 완성합니다.'
-        : '아래 사실 묶음만으로 섹션을 작성합니다.',
-      '사실 묶음:',
+      '??? ??? ??? ?? ?? ?? ??? ??????.',
+      `?? ??: ${sectionKey}`,
+      '?? ??:',
+      '- ??? ????? ?????.',
+      '- ? ??? ? ??? ?? ???? ?????.',
+      longForm ? '- 22~60??? ? ????? ???.' : '- 15~35??? ??? ? ????? ???.',
+      longForm ? '- ??? 8~14???? ???? ???.' : '- ??? 4~7???? ???? ???.',
+      `- ?? ${minChars}? ???? ???.`,
+      '- bullet, ?? ??, JSON ??, ?? ??? ?? ????.',
+      `- ??? ? ?? ??(${concreteNouns})? ????? ?????.`,
+      '- ?? ?? ??, ???, ???? id? ??? ?? ????.',
+      '- ??? ?? ????. ??? ?? ????? ???? ?????.',
+      '- ???? ?? ??? ??? ? ?? ?????.',
+      '- ????? ????? ??? ?? ?? ??? ??? ?? ???? ????.',
+      draftText ? '?? ??? ??? ? ????? ?? ?? ???.' : '?? fact pack? ??? ???.',
+      '?? ??:',
       facts,
-      draftText ? `초안:\n${draftText}` : '',
-      'JSON으로만 반환: {"text":"..."}',
+      draftText ? `??:\n${draftText}` : '',
+      '??? JSON? ?????: {"text":"..."}',
     ]
       .filter(Boolean)
       .join('\n')
@@ -3723,7 +3754,7 @@ function summarizeTopInsightsByCategory(
   return rows.length > 0
     ? rows.join(', ')
     : lang === 'ko'
-      ? '성과 확장·완결률 강화'
+      ? '?? ?????? ??'
       : 'Core signals in review'
 }
 
@@ -3781,7 +3812,7 @@ function buildSynthesisPromptBlock(
       .map((signal) => `${signal.id}:${signal.keyword || signal.rowKey}`)
       .join(', ')
     if (lang === 'ko') {
-      return `- ${claim.domain}: ${claim.thesis} | 근거: ${evidence || 'pending'} | 통제: ${claim.riskControl}`
+      return `- ${claim.domain}: ${claim.thesis} | ??: ${evidence || 'pending'} | ??: ${claim.riskControl}`
     }
     return `- ${claim.domain}: ${claim.thesis} | evidence: ${evidence || 'pending'} | control: ${claim.riskControl}`
   })
@@ -3790,16 +3821,16 @@ function buildSynthesisPromptBlock(
     .slice(0, 3)
     .map((item) =>
       lang === 'ko'
-        ? `- 전략 ${item.domain}: ${describePhaseFlow(item.phaseLabel, 'ko')} ${describeExecutionStance(item.attackPercent, item.defensePercent, 'ko')} | thesis=${item.thesis}`
+        ? `- ?? ${item.domain}: ${describePhaseFlow(item.phaseLabel, 'ko')} ${describeExecutionStance(item.attackPercent, item.defensePercent, 'ko')} | thesis=${item.thesis}`
         : `- strategy ${item.domain}: ${describePhaseFlow(item.phaseLabel, 'en')} ${describeExecutionStance(item.attackPercent, item.defensePercent, 'en')} | thesis=${item.thesis}`
     )
   if (lang === 'ko') {
     return [
-      '## Signal Synthesizer (고정 근거)',
-      '- 아래 클레임과 근거 ID를 벗어나는 사실 추가 금지',
-      '- 같은 도메인에서 상승/주의가 동시에 있으면 반드시 "상승 + 리스크관리"로 통합 서술',
+      '## Signal Synthesizer (?? ??)',
+      '- ?? ???? ?? ID? ???? ?? ?? ??',
+      '- ?? ????? ??/??? ??? ??? ??? "?? + ?????"? ?? ??',
       strategyEngine
-        ? `- 전체 흐름: ${describePhaseFlow(strategyEngine.overallPhaseLabel, 'ko')} ${describeExecutionStance(strategyEngine.attackPercent, strategyEngine.defensePercent, 'ko')}`
+        ? `- ?? ??: ${describePhaseFlow(strategyEngine.overallPhaseLabel, 'ko')} ${describeExecutionStance(strategyEngine.attackPercent, strategyEngine.defensePercent, 'ko')}`
         : '',
       ...strategyLines,
       ...claimLines,
@@ -3899,21 +3930,7 @@ export async function generateAIPremiumReport(
       lang,
       comprehensiveFallbackDeps
     )
-    const comprehensiveSupplements = buildNarrativeSupplementsBySectionExternal(
-      [...COMPREHENSIVE_SECTION_KEYS],
-      unified.blocksBySection,
-      lang
-    )
     let sections = draftSections as unknown as Record<string, unknown>
-    sections = enrichComprehensiveSectionsWithReportCore(
-      sections as AIPremiumReport['sections'],
-      reportCore,
-      normalizedInput,
-      lang,
-      reportCoreEnrichmentDeps,
-      comprehensiveSupplements,
-      options.timingData
-    )
     if (lang === 'ko') {
       const trustNarratives = buildReportTrustNarratives(reportCore, coreSeed.quality, lang)
       sections = attachTrustNarrativeToSections(
@@ -3956,6 +3973,12 @@ export async function generateAIPremiumReport(
       comprehensivePostProcessDeps,
       lang
     )
+    sections = repairMalformedComprehensiveSections(
+      sections as AIPremiumReport['sections'],
+      reportCore,
+      normalizedInput,
+      lang
+    )
     if (lang === 'en') {
       sections = enforceComprehensiveNarrativeQualityFallback(
         sections as AIPremiumReport['sections'],
@@ -3963,16 +3986,6 @@ export async function generateAIPremiumReport(
         normalizedInput,
         lang
       ) as unknown as Record<string, unknown>
-    }
-    sections = {
-      ...(sections as Record<string, unknown>),
-      timingAdvice: renderTimingAdviceSection(
-        reportCore,
-        normalizedInput,
-        lang,
-        options.matrixSummary
-      ),
-      actionPlan: renderActionPlanSection(reportCore, normalizedInput, lang),
     }
     sections = stripGenericEvidenceFooters(sections, sectionPaths, lang)
     sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
@@ -3990,12 +4003,12 @@ export async function generateAIPremiumReport(
       .sort((a, b) => b.score - a.score)
       .slice(0, 3)
       .map((d) =>
-        lang === 'ko' ? `${d.domain} 강점(${d.score})` : `${d.domain} strength (${d.score})`
+        lang === 'ko' ? `${d.domain} ??(${d.score})` : `${d.domain} strength (${d.score})`
       )
     const anchorFallback = (graphRagEvidence.anchors || [])
       .slice(0, 3)
       .map((a) =>
-        lang === 'ko' ? `${a.section} 섹션 근거 정렬` : `${a.section} section evidence alignment`
+        lang === 'ko' ? `${a.section} ?? ?? ??` : `${a.section} section evidence alignment`
       )
     const safeTopInsights = topInsights.length > 0 ? topInsights : anchorFallback
     const safeKeyStrengths = keyStrengths.length > 0 ? keyStrengths : domainFallback
@@ -4003,7 +4016,7 @@ export async function generateAIPremiumReport(
       keyChallenges.length > 0
         ? keyChallenges
         : lang === 'ko'
-          ? ['주의 신호 검토 필요', '확정 전 재확인 필요', '커뮤니케이션 리스크 점검']
+          ? ['?? ?? ?? ??', '?? ? ??? ??', '?????? ??? ??']
           : [
               'Caution signals require review',
               'Recheck before final commitment',
@@ -4134,11 +4147,6 @@ export async function generateAIPremiumReport(
       lang,
       comprehensiveFallbackDeps
     )
-    const comprehensiveSupplements = buildNarrativeSupplementsBySectionExternal(
-      [...COMPREHENSIVE_SECTION_KEYS],
-      unified.blocksBySection,
-      lang
-    )
     const rewrite = await rewriteSectionsWithFallback<AIPremiumReport['sections']>({
       lang,
       userPlan: options.userPlan,
@@ -4175,15 +4183,6 @@ export async function generateAIPremiumReport(
       comprehensivePostProcessDeps,
       lang
     )
-    sections = enrichComprehensiveSectionsWithReportCore(
-      sections as AIPremiumReport['sections'],
-      reportCore,
-      normalizedInput,
-      lang,
-      reportCoreEnrichmentDeps,
-      comprehensiveSupplements,
-      options.timingData
-    )
     sections = sanitizeComprehensiveSectionsForUser(
       sections as Record<string, unknown>,
       [...COMPREHENSIVE_SECTION_KEYS],
@@ -4197,6 +4196,12 @@ export async function generateAIPremiumReport(
       comprehensivePostProcessDeps,
       lang
     )
+    sections = repairMalformedComprehensiveSections(
+      sections as AIPremiumReport['sections'],
+      reportCore,
+      normalizedInput,
+      lang
+    )
     if (lang === 'en') {
       sections = enforceComprehensiveNarrativeQualityFallback(
         sections as AIPremiumReport['sections'],
@@ -4204,16 +4209,6 @@ export async function generateAIPremiumReport(
         normalizedInput,
         lang
       ) as unknown as Record<string, unknown>
-    }
-    sections = {
-      ...(sections as Record<string, unknown>),
-      timingAdvice: renderTimingAdviceSection(
-        reportCore,
-        normalizedInput,
-        lang,
-        options.matrixSummary
-      ),
-      actionPlan: renderActionPlanSection(reportCore, normalizedInput, lang),
     }
     sections = stripGenericEvidenceFooters(sections, sectionPaths, lang)
     sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
@@ -4231,12 +4226,12 @@ export async function generateAIPremiumReport(
       .sort((a, b) => b.score - a.score)
       .slice(0, 3)
       .map((d) =>
-        lang === 'ko' ? `${d.domain} 강점(${d.score})` : `${d.domain} strength (${d.score})`
+        lang === 'ko' ? `${d.domain} ??(${d.score})` : `${d.domain} strength (${d.score})`
       )
     const anchorFallback = (graphRagEvidence.anchors || [])
       .slice(0, 3)
       .map((a) =>
-        lang === 'ko' ? `${a.section} 섹션 근거 정렬` : `${a.section} section evidence alignment`
+        lang === 'ko' ? `${a.section} ?? ?? ??` : `${a.section} section evidence alignment`
       )
     const safeTopInsights = topInsights.length > 0 ? topInsights : anchorFallback
     const safeKeyStrengths = keyStrengths.length > 0 ? keyStrengths : domainFallback
@@ -4244,7 +4239,7 @@ export async function generateAIPremiumReport(
       keyChallenges.length > 0
         ? keyChallenges
         : lang === 'ko'
-          ? ['주의 신호 검토 필요', '확정 전 재확인 필요', '커뮤니케이션 리스크 점검']
+          ? ['?? ?? ?? ??', '?? ? ??? ??', '?????? ??? ??']
           : [
               'Caution signals require review',
               'Recheck before final commitment',
@@ -4407,7 +4402,7 @@ export async function generateAIPremiumReport(
         const repairPrompt = [
           buildSectionPrompt(sectionKey, factPack, lang, sectionText, sectionMinChars),
           lang === 'ko'
-            ? `보강 규칙: 새 포인트를 최소 3개 넣고, 구체 명사를 최소 2개 넣고, 사실 묶음 반영 문장을 최소 2개 넣어 주세요. 평균 문장 길이는 40자 이하로 맞추고 금지 표현은 제거해 주세요. current novelty=${quality.novelty}, specificity=${quality.specificity}, evidence=${quality.evidenceDensity}, avgLen=${Math.round(quality.avgSentenceLength)}, advice=${quality.adviceCount}, banned=${quality.banned}`
+            ? `?? ??: ? ???? ?? 3? ??, ?? ??? ?? 2? ??, ?? ?? ?? ??? ?? 2? ?? ???. ?? ?? ??? 40? ??? ??? ?? ??? ??? ???. current novelty=${quality.novelty}, specificity=${quality.specificity}, evidence=${quality.evidenceDensity}, avgLen=${Math.round(quality.avgSentenceLength)}, advice=${quality.adviceCount}, banned=${quality.banned}`
             : `Repair rules: add at least 3 new points, include at least 2 concrete nouns, and reflect at least 2 fact-pack points. Keep average sentence length under 40 chars and remove banned phrases. current novelty=${quality.novelty}, specificity=${quality.specificity}, evidence=${quality.evidenceDensity}, avgLen=${Math.round(quality.avgSentenceLength)}, advice=${quality.adviceCount}, banned=${quality.banned}`,
         ].join('\n')
         try {
@@ -4723,6 +4718,12 @@ export async function generateAIPremiumReport(
     comprehensivePostProcessDeps,
     lang
   )
+  sections = repairMalformedComprehensiveSections(
+    sections as AIPremiumReport['sections'],
+    reportCore,
+    normalizedInput,
+    lang
+  )
   if (lang === 'en') {
     sections = enforceComprehensiveNarrativeQualityFallback(
       sections as AIPremiumReport['sections'],
@@ -4752,12 +4753,12 @@ export async function generateAIPremiumReport(
     .sort((a, b) => b.score - a.score)
     .slice(0, 3)
     .map((d) =>
-      lang === 'ko' ? `${d.domain} 강점(${d.score})` : `${d.domain} strength (${d.score})`
+      lang === 'ko' ? `${d.domain} ??(${d.score})` : `${d.domain} strength (${d.score})`
     )
   const anchorFallback = (graphRagEvidence.anchors || [])
     .slice(0, 3)
     .map((a) =>
-      lang === 'ko' ? `${a.section} 섹션 근거 정렬` : `${a.section} section evidence alignment`
+      lang === 'ko' ? `${a.section} ?? ?? ??` : `${a.section} section evidence alignment`
     )
   const safeTopInsights = topInsights.length > 0 ? topInsights : anchorFallback
   const safeKeyStrengths = keyStrengths.length > 0 ? keyStrengths : domainFallback
@@ -4765,7 +4766,7 @@ export async function generateAIPremiumReport(
     keyChallenges.length > 0
       ? keyChallenges
       : lang === 'ko'
-        ? ['주의 신호 검토 필요', '확정 전 재확인 필요', '커뮤니케이션 리스크 점검']
+        ? ['?? ?? ?? ??', '?? ? ??? ??', '?????? ??? ??']
         : [
             'Caution signals require review',
             'Recheck before final commitment',
@@ -4786,20 +4787,6 @@ export async function generateAIPremiumReport(
     sectionPaths: comprehensiveSectionPaths,
     evidenceRefs: comprehensiveEvidenceRefs,
   })
-  const comprehensiveSupplements = buildNarrativeSupplementsBySectionExternal(
-    [...COMPREHENSIVE_SECTION_KEYS],
-    unified.blocksBySection,
-    lang
-  )
-  sections = enrichComprehensiveSectionsWithReportCore(
-    sections as AIPremiumReport['sections'],
-    reportCore,
-    normalizedInput,
-    lang,
-    reportCoreEnrichmentDeps,
-    comprehensiveSupplements,
-    options.timingData
-  )
   sections = sanitizeComprehensiveSectionsForUser(
     sections as Record<string, unknown>,
     [...COMPREHENSIVE_SECTION_KEYS],
@@ -4811,6 +4798,12 @@ export async function generateAIPremiumReport(
     reportCore,
     normalizedInput,
     comprehensivePostProcessDeps,
+    lang
+  )
+  sections = repairMalformedComprehensiveSections(
+    sections as AIPremiumReport['sections'],
+    reportCore,
+    normalizedInput,
     lang
   )
   if (lang === 'en') {
@@ -4869,6 +4862,13 @@ export async function generateAIPremiumReport(
   }
   recordReportQualityMetrics('comprehensive', model, qualityMetrics)
 
+  sections = repairMalformedComprehensiveSections(
+    sections as AIPremiumReport['sections'],
+    reportCore,
+    normalizedInput,
+    lang
+  ) as unknown as Record<string, unknown>
+
   // 3. ??? ??
   const report: AIPremiumReport = {
     id: `air_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -4896,10 +4896,6 @@ export async function generateAIPremiumReport(
     evidenceRefsByPara: unified.evidenceRefsByPara,
     deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
     renderedMarkdown: [
-      renderProjectionBlocksAsMarkdown(
-        buildReportOutputCoreFields(reportCore, lang).projections,
-        lang
-      ),
       renderSectionsAsMarkdown(
         sections as Record<string, unknown>,
         [
@@ -4920,7 +4916,11 @@ export async function generateAIPremiumReport(
       .filter(Boolean)
       .join('\n\n'),
     renderedText: [
-      renderProjectionBlocksAsText(buildReportOutputCoreFields(reportCore, lang).projections, lang),
+      renderProjectionBlocksAsText(buildReportOutputCoreFields(reportCore, lang).projections, lang, {
+        matrixView: buildReportOutputCoreFields(reportCore, lang).matrixView,
+        singleUserModel: buildReportOutputCoreFields(reportCore, lang).singleUserModel,
+        branchSet: buildReportOutputCoreFields(reportCore, lang).branchSet,
+      }),
       renderSectionsAsText(
         sections as Record<string, unknown>,
         [
@@ -6374,3 +6374,9 @@ export async function generateThemedReport(
 
   return report
 }
+
+
+
+
+
+

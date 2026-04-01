@@ -2,15 +2,21 @@ import type { DestinyCoreResult } from './runDestinyCore'
 import { formatPolicyCheckLabels } from './actionCopy'
 import type {
   AdapterArbitrationBrief,
+  AdapterBranchCandidate,
   AdapterLatentAxis,
+  AdapterMatrixViewRow,
   AdapterProjectionSet,
   AdapterProvenance,
+  AdapterSingleUserModel,
   AdapterTimingMatrixRow,
 } from './adaptersTypes'
 import {
   buildArbitrationBrief,
+  buildBranchSet,
   buildLatentTopAxes,
+  buildMatrixView,
   buildProjectionSet,
+  buildSingleUserModel,
   buildTimingMatrix,
   getAllowedActionLabels,
   getBlockedActionLabels,
@@ -44,6 +50,9 @@ export function buildSharedSurface(
   riskAxisLabel: string
   timingMatrix: AdapterTimingMatrixRow[]
   crossAgreementMatrix: DestinyCoreResult['canonical']['crossAgreementMatrix']
+  matrixView: AdapterMatrixViewRow[]
+  branchSet: AdapterBranchCandidate[]
+  singleUserModel: AdapterSingleUserModel
   arbitrationBrief: AdapterArbitrationBrief
   latentTopAxes: AdapterLatentAxis[]
   projections: AdapterProjectionSet
@@ -54,6 +63,9 @@ export function buildSharedSurface(
     riskAxisLabel: localizeDomain(riskAxisDomain, locale),
     timingMatrix: buildTimingMatrix(core, locale),
     crossAgreementMatrix: [...(core.canonical.crossAgreementMatrix || [])],
+    matrixView: buildMatrixView(core, locale),
+    branchSet: buildBranchSet(core, locale),
+    singleUserModel: buildSingleUserModel(core, locale),
     arbitrationBrief: buildArbitrationBrief(core, locale),
     latentTopAxes: buildLatentTopAxes(core, locale),
     projections: buildProjectionSet(core, locale),

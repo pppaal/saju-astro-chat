@@ -97,6 +97,17 @@ interface SelectedDatePanelProps {
       summary: string
       tag?: string
       details?: string[]
+      visual?:
+        | {
+            kind: 'agreement'
+            agreementPercent: number
+            contradictionPercent: number
+            leadLagState: 'structure-ahead' | 'trigger-ahead' | 'balanced'
+          }
+        | {
+            kind: 'branch'
+            rows: Array<{ label: string; text: string }>
+          }
     }>
     topDomains?: Array<{
       domain: 'career' | 'love' | 'money' | 'health' | 'move' | 'general'
@@ -1074,14 +1085,14 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
         visual:
           item.visual?.kind === 'agreement'
             ? {
-                kind: 'agreement',
+                kind: 'agreement' as const,
                 agreementPercent: item.visual.agreementPercent,
                 contradictionPercent: item.visual.contradictionPercent,
                 leadLagState: item.visual.leadLagState,
               }
             : item.visual?.kind === 'branch'
               ? {
-                  kind: 'branch',
+                  kind: 'branch' as const,
                   rows: item.visual.rows
                     .map((row) => ({
                       label: safeDisplayText(row.label, ''),
@@ -1098,6 +1109,15 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     tag?: string
     text: string
     details?: string[]
+    visual?: {
+      kind: 'agreement'
+      agreementPercent: number
+      contradictionPercent: number
+      leadLagState: 'structure-ahead' | 'trigger-ahead' | 'balanced'
+    } | {
+      kind: 'branch'
+      rows: Array<{ label: string; text: string }>
+    }
   }> = [
     ...explicitSurfaceCards,
     {

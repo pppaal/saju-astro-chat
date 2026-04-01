@@ -58,6 +58,10 @@ interface AIProvider {
   enabled: boolean
 }
 
+function getReplicateApiKey(): string | undefined {
+  return process.env.REPLICATE_API_KEY || process.env.REPLICATE_API_TOKEN
+}
+
 function getProviderTimeoutMs(providerName: AIProvider['name']): number {
   switch (providerName) {
     case 'openai':
@@ -78,22 +82,26 @@ function isValidApiKey(key: string | undefined): boolean {
   return !placeholders.includes(trimmed)
 }
 
-const AI_PROVIDERS: AIProvider[] = [
-  {
-    name: 'openai',
-    apiKey: process.env.OPENAI_API_KEY,
-    endpoint: 'https://api.openai.com/v1/chat/completions',
-    model: process.env.FUSION_MODEL || 'gpt-4o-mini',
-    enabled: isValidApiKey(process.env.OPENAI_API_KEY),
-  },
-  {
-    name: 'replicate',
-    apiKey: process.env.REPLICATE_API_KEY,
-    endpoint: 'https://api.replicate.com/v1/predictions',
-    model: 'meta/llama-2-70b-chat',
-    enabled: isValidApiKey(process.env.REPLICATE_API_KEY),
-  },
-]
+function getAiProviders(): AIProvider[] {
+  const replicateApiKey = getReplicateApiKey()
+
+  return [
+    {
+      name: 'openai',
+      apiKey: process.env.OPENAI_API_KEY,
+      endpoint: 'https://api.openai.com/v1/chat/completions',
+      model: process.env.FUSION_MODEL || 'gpt-4o-mini',
+      enabled: isValidApiKey(process.env.OPENAI_API_KEY),
+    },
+    {
+      name: 'replicate',
+      apiKey: replicateApiKey,
+      endpoint: 'https://api.replicate.com/v1/predictions',
+      model: 'meta/llama-2-70b-chat',
+      enabled: isValidApiKey(replicateApiKey),
+    },
+  ]
+}
 
 // ===========================
 // 기본 AI 백엔드 호출
@@ -140,11 +148,12 @@ export async function callAIBackendGeneric<T>(
       : baseMaxTokens
 
   // 활성화된 프로바이더만 필터링
-  const enabledProviders = AI_PROVIDERS.filter((p) => p.enabled && p.apiKey)
+  const aiProviders = getAiProviders()
+  const enabledProviders = aiProviders.filter((p) => p.enabled && p.apiKey)
 
   if (enabledProviders.length === 0) {
     logger.error('[AI Backend] No AI providers configured', {
-      providers: AI_PROVIDERS.map((provider) => ({
+      providers: aiProviders.map((provider) => ({
         name: provider.name,
         enabled: provider.enabled,
         hasApiKey: !!provider.apiKey,

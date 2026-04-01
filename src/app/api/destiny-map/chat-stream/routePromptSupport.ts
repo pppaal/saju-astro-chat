@@ -9,6 +9,7 @@ export interface MatrixSnapshot {
   totalScore: number
   topLayers: Array<{ layer: number; score: number }>
   highlights: string[]
+  crossEvidenceHighlights?: string[]
   synergies: string[]
   drivers: string[]
   cautions: string[]
@@ -238,27 +239,10 @@ export function buildMatrixProfileSection(
     return ''
   }
 
-  const layerText = snapshot.topLayers.map((l) => `L${l.layer}:${l.score}`).join(', ') || 'none'
-  const highlightText = snapshot.highlights.slice(0, 5).join(' | ') || 'none'
-  const synergyText = snapshot.synergies.slice(0, 3).join(' | ') || 'none'
-  const driverText = snapshot.drivers.slice(0, 5).join(' | ') || 'none'
-  const cautionText = snapshot.cautions.slice(0, 5).join(' | ') || 'none'
-  const signalText = snapshot.calendarSignals.slice(0, 4).join(' | ') || 'none'
-  const timelineText = snapshot.overlapTimeline.slice(0, 4).join(' | ') || 'none'
-  const domainScoreText =
-    Object.entries(snapshot.domainScores)
-      .slice(0, 6)
-      .map(([k, v]) => `${k}:${typeof v === 'number' ? Number(v).toFixed(1) : '-'}`)
-      .join(', ') || 'none'
-  const semanticText = snapshot.semanticHints.slice(0, 6).join(' | ') || 'none'
-  const themeLayerText = snapshot.layerThemeBriefs.slice(0, 4).join(' | ') || 'none'
+  const crossEvidenceText = snapshot.crossEvidenceHighlights?.slice(0, 3).join(' | ') || 'none'
+  const cautionText = snapshot.cautions.slice(0, 3).join(' | ') || 'none'
   const corePhaseText = snapshot.core
     ? `${snapshot.core.overallPhaseLabel}(${snapshot.core.attackPercent}/${snapshot.core.defensePercent})`
-    : 'none'
-  const coreClaimText = snapshot.core?.topClaimIds?.slice(0, 6).join(' | ') || 'none'
-  const coreCautionText = snapshot.core?.topCautionSignalIds?.slice(0, 6).join(' | ') || 'none'
-  const coreQualityText = snapshot.core?.quality
-    ? `${snapshot.core.quality.grade}:${snapshot.core.quality.score} (${(snapshot.core.quality.warnings || []).join('|') || '-'})`
     : 'none'
   const focus = pickMatrixThemeFocus(theme, snapshot.domainScores)
   const hasCommRisk = /communication|mercury|수성|소통|오해|문서|계약/i.test(cautionText)
@@ -270,73 +254,33 @@ export function buildMatrixProfileSection(
   if (lang === 'ko') {
     return [
       '[Destiny Matrix Profile Context]',
-      `total_score=${snapshot.totalScore}`,
-      `final_score_adjusted=${snapshot.finalScoreAdjusted ?? '-'}`,
-      `confidence_score=${snapshot.confidenceScore ?? '-'}`,
-      `top_layers=${layerText}`,
-      `highlights=${highlightText}`,
-      `synergies=${synergyText}`,
-      `drivers=${driverText}`,
-      `cautions=${cautionText}`,
-      `calendar_signals=${signalText}`,
-      `overlap_timeline=${timelineText}`,
-      `domain_scores=${domainScoreText}`,
-      `core_phase=${corePhaseText}`,
-      `core_claim_ids=${coreClaimText}`,
-      `core_caution_signal_ids=${coreCautionText}`,
-      `core_quality=${coreQualityText}`,
-      `core_hash=${snapshot.core?.coreHash || '-'}`,
-      `layer_semantics=${semanticText}`,
-      `layer_theme_briefs=${themeLayerText}`,
       `theme_focus=${focus.domain}${typeof focus.score === 'number' ? `(${focus.score.toFixed(1)})` : ''}`,
-      `global_conflict_policy=${snapshot.globalConflictPolicy || '-'}`,
-      `low_confidence_policy=${snapshot.lowConfidencePolicy || '-'}`,
+      `core_phase=${corePhaseText}`,
+      `cross_evidence=${crossEvidenceText}`,
+      `cautions=${cautionText}`,
       counselorEvidenceText,
-      'Answer the user question directly in the first 1-2 sentences.',
-      'Use matrix data as supporting evidence, not as the opening block.',
-      'Prioritize theme_focus and domain_scores in actionable guidance.',
-      'Final verdict must align with core_phase, core_claim_ids, and core_caution_signal_ids.',
+      '첫 두 문장은 질문에 대한 직접 답으로 시작하고, 교차 근거는 설명 보강에만 사용하세요.',
+      '점수, 레이어, 내부 id를 늘어놓지 말고 지금 먼저 움직여야 할 영역과 가장 조심해야 할 변수만 분명하게 말하세요.',
       hasCommRisk
-        ? 'If communication or document risk exists, avoid immediate irreversible actions.'
-        : 'Recommendations must not conflict with cautions.',
+        ? '문서나 소통 리스크가 보이면 서명·확정·송금 같은 비가역 행동은 바로 밀지 마세요.'
+        : '추천은 반드시 주의 문장과 충돌하지 않게 유지하세요.',
     ].join('\n')
   }
 
   return [
     '[Destiny Matrix Profile Context]',
-    `total_score=${snapshot.totalScore}`,
-    `final_score_adjusted=${snapshot.finalScoreAdjusted ?? '-'}`,
-    `confidence_score=${snapshot.confidenceScore ?? '-'}`,
-    `top_layers=${layerText}`,
-    `highlights=${highlightText}`,
-    `synergies=${synergyText}`,
-    `drivers=${driverText}`,
-    `cautions=${cautionText}`,
-    `calendar_signals=${signalText}`,
-    `overlap_timeline=${timelineText}`,
-    `domain_scores=${domainScoreText}`,
-    `core_phase=${corePhaseText}`,
-    `core_claim_ids=${coreClaimText}`,
-    `core_caution_signal_ids=${coreCautionText}`,
-    `core_quality=${coreQualityText}`,
-    `core_hash=${snapshot.core?.coreHash || '-'}`,
-    `layer_semantics=${semanticText}`,
-    `layer_theme_briefs=${themeLayerText}`,
     `theme_focus=${focus.domain}${typeof focus.score === 'number' ? `(${focus.score.toFixed(1)})` : ''}`,
-    `global_conflict_policy=${snapshot.globalConflictPolicy || '-'}`,
-    `low_confidence_policy=${snapshot.lowConfidencePolicy || '-'}`,
+    `core_phase=${corePhaseText}`,
+    `cross_evidence=${crossEvidenceText}`,
+    `cautions=${cautionText}`,
     counselorEvidenceText,
-    'Answer the user question directly in the first 1-2 sentences.',
-    'Use matrix snapshot as supporting evidence, not as the opening block.',
-    'Prioritize theme_focus and domain_scores in actionable advice.',
-    'Keep final verdict strictly aligned with core_phase/core_claim_ids/core_caution_signal_ids (no contradictions).',
-    'Follow layer_semantics axes and keep evidence -> interpretation -> action flow.',
+    'Answer directly in the first 1-2 sentences, and use cross_evidence only as supporting explanation.',
+    'Prioritize the immediate action area, the main risk, and the realistic branches over raw score or layer dumps.',
     hasCommRisk
       ? 'If communication/document risk is present, do not recommend immediate signing/finalizing; prefer verification actions.'
       : 'Ensure recommendations never contradict cautions.',
   ].join('\n')
 }
-
 export function mapFocusDomainToPromptTheme(
   focusDomain: string | null | undefined,
   fallback: string
@@ -547,3 +491,4 @@ export function buildFocusDomainVoiceGuide(
       ].join('\n')
   }
 }
+

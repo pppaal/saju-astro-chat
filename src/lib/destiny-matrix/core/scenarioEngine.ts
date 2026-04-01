@@ -162,7 +162,7 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Promotion-review branch',
     risk: 'If promotion review criteria are vague, energy goes into impression management instead of proof.',
     reversible: true,
-    actions: ['List promotion criteria', 'Turn output into evidence', 'Ask what still blocks the review'],
+    actions: ['승진 판단 기준을 정리하기', '성과를 근거로 문서화하기', '무엇이 아직 승진을 막는지 확인하기'],
   },
   {
     id: 'contract_negotiation_window',
@@ -172,7 +172,7 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Contract-negotiation branch',
     risk: 'Negotiating without leverage mapping weakens long-term positioning.',
     reversible: true,
-    actions: ['List leverage points', 'Negotiate role and compensation together', 'Delay signature until scope is fixed'],
+    actions: ['협상 포인트를 정리하기', '역할과 보상 조건을 함께 협의하기', '범위가 고정되기 전에는 서명을 미루기'],
   },
   {
     id: 'manager_track_window',
@@ -192,7 +192,7 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Specialist-track branch',
     risk: 'Expert positioning without proof of depth looks narrower than it is.',
     reversible: true,
-    actions: ['Name your narrow edge', 'Show deep proof', 'Tie expertise to business value'],
+    actions: ['자신의 전문 포지션을 명확히 하기', '깊이를 보여주는 근거를 제시하기', '전문성을 실제 성과와 연결하기'],
   },
   {
     id: 'role_redefinition_window',

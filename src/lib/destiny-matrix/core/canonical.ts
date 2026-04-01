@@ -216,24 +216,24 @@ function buildArbitrationLedger(input: {
     scoreGap: round2(Math.max(0, (focusWinner?.score || 0) - item.score)),
     reason:
       item.breakdown.convergenceBonus && item.breakdown.convergenceBonus < 1.5
-        ? `${item.domain} stayed secondary because convergence was weaker than the winner`
-        : `${item.domain} stayed secondary because total support remained below the winner`,
+        ? `${item.domain}은 승자축보다 타이밍 합의가 약해 보조축에 머물렀습니다`
+        : `${item.domain}은 전체 지지가 승자축보다 약해 보조축에 머물렀습니다`,
   }))
 
   const conflictReasons: string[] = []
   if (input.focusDomain !== input.actionFocusDomain) {
     conflictReasons.push(
-      `identity focus stayed on ${input.focusDomain} while the actionable pressure concentrated on ${input.actionFocusDomain}`
+      `${input.focusDomain} 흐름이 배경에 남아 있고, 실제로 먼저 움직여야 할 힘은 ${input.actionFocusDomain} 쪽에 더 강하게 모입니다`
     )
   }
   if (focusWinner && focusRunnerUp && focusWinner.score - focusRunnerUp.score < 8) {
     conflictReasons.push(
-      `focus competition stayed narrow between ${focusWinner.domain} and ${focusRunnerUp.domain}`
+      `${focusWinner.domain}과 ${focusRunnerUp.domain} 사이의 주도권 경쟁이 아주 가깝게 붙어 있습니다`
     )
   }
   if (actionWinner && actionRunnerUp && actionWinner.score - actionRunnerUp.score < 6) {
     conflictReasons.push(
-      `action pressure stayed narrow between ${actionWinner.domain} and ${actionRunnerUp.domain}`
+      `${actionWinner.domain}과 ${actionRunnerUp.domain} 사이의 행동 압력이 좁게 경쟁하고 있습니다`
     )
   }
 

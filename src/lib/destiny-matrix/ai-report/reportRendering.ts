@@ -23,6 +23,37 @@ type ProjectionBlock = {
   nextMoves?: string[]
 }
 
+type MatrixViewRow = {
+  label?: string
+  cells?: Array<{
+    summary?: string
+  }>
+}
+
+type SingleUserModel = {
+  subject?: string
+  facets?: Array<{
+    label?: string
+    summary?: string
+    details?: string[]
+  }>
+}
+
+type BranchSet = Array<{
+  label?: string
+  summary?: string
+  entry?: string[]
+  abort?: string[]
+  sustain?: string[]
+  reversalRisk?: string
+}>
+
+type RenderExtras = {
+  matrixView?: MatrixViewRow[]
+  singleUserModel?: SingleUserModel
+  branchSet?: BranchSet
+}
+
 function toText(value: unknown): string {
   if (typeof value === 'string') return value.trim()
   if (Array.isArray(value)) {
@@ -47,19 +78,22 @@ function readPath(data: JsonLike, path: string): string {
 function getProjectionLabels(lang: 'ko' | 'en') {
   return lang === 'ko'
     ? {
-        structure: '구조 투영',
-        timing: '타이밍 투영',
-        conflict: '충돌 투영',
-        action: '행동 투영',
-        risk: '리스크 투영',
-        evidence: '근거 투영',
-        branches: '분기 투영',
-        topAxes: '상위 축',
-        drivers: '작동층',
-        counterweights: '제약층',
-        nextMoves: '다음 움직임',
+        structure: '지금 읽히는 기본 흐름',
+        timing: '타이밍 요약',
+        conflict: '걸림돌',
+        action: '지금 먼저 할 일',
+        risk: '주의할 변수',
+        evidence: '왜 이렇게 읽히는가',
+        branches: '현실적으로 가능한 경로',
+        topAxes: '핵심 배경',
+        drivers: '힘이 실리는 이유',
+        counterweights: '발목을 잡는 요소',
+        nextMoves: '지금 맞는 다음 움직임',
         evidencePrefix: '근거',
         section: '섹션',
+        matrix: '도메인별 흐름 비교',
+        singleUser: '인생 구조 요약',
+        branchSet: '현실 경로',
       }
     : {
         structure: 'Structure View',
@@ -75,7 +109,35 @@ function getProjectionLabels(lang: 'ko' | 'en') {
         nextMoves: 'Next moves',
         evidencePrefix: 'Evidence',
         section: 'Section',
+        matrix: 'Domain-Time Matrix',
+        singleUser: 'Single-Subject Facets',
+        branchSet: 'Plausible Branches',
       }
+}
+
+function normalizeProjectionHeadline(
+  headline: string | undefined,
+  fallback: string
+): string {
+  const value = String(headline || '').trim()
+  if (!value) return fallback
+  if (/\?{2,}|�/.test(value)) return fallback
+  return value
+}
+
+function normalizeRenderLine(value: string | undefined): string {
+  return String(value || '')
+    .replace(/\?{2,}/g, '')
+    .replace(/\bcontract negotiation\b/gi, '조건 협상')
+    .replace(/\bspecialist track\b/gi, '전문화 트랙')
+    .replace(/\bpromotion review\b/gi, '승진 검토')
+    .replace(/\bList promotion criteria\b/gi, '승진 판단 기준을 정리하기')
+    .replace(/\bList leverage points\b/gi, '협상 포인트를 정리하기')
+    .replace(/\bName your narrow edge\b/gi, '자신의 전문 포지션을 명확히 하기')
+    .replace(/\bstayed secondary because total support remained below the winner\b/gi, '승자축보다 지지가 약해 보조축에 머물렀습니다')
+    .replace(/\bExpansion without role clarity can create delivery strain\.?\b/gi, '역할과 범위가 불분명하면 실행 부담이 커질 수 있습니다')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
 }
 
 function renderProjectionExtras(
@@ -126,7 +188,8 @@ function formatRenderedSectionText(text: string, lang: 'ko' | 'en'): string {
 
 export function renderProjectionBlocksAsText(
   projections: ProjectionBlocks | null | undefined,
-  lang: 'ko' | 'en' = 'ko'
+  lang: 'ko' | 'en' = 'ko',
+  extras?: RenderExtras
 ): string {
   if (!projections) return ''
 
@@ -134,7 +197,7 @@ export function renderProjectionBlocksAsText(
   const blocks = [
     projections.structure
       ? [
-          projections.structure.headline || labels.structure,
+          normalizeProjectionHeadline(projections.structure.headline, labels.structure),
           projections.structure.summary || '',
           (projections.structure.topAxes || []).length > 0
             ? `${labels.topAxes}: ${(projections.structure.topAxes || []).join(', ')}`
@@ -146,7 +209,7 @@ export function renderProjectionBlocksAsText(
       : '',
     projections.timing
       ? [
-          projections.timing.headline || labels.timing,
+          normalizeProjectionHeadline(projections.timing.headline, labels.timing),
           projections.timing.summary || '',
           [projections.timing.window, projections.timing.granularity].filter(Boolean).join(' / '),
           ...renderProjectionExtras(projections.timing, labels),
@@ -156,7 +219,7 @@ export function renderProjectionBlocksAsText(
       : '',
     projections.conflict
       ? [
-          projections.conflict.headline || labels.conflict,
+          normalizeProjectionHeadline(projections.conflict.headline, labels.conflict),
           projections.conflict.summary || '',
           ...renderProjectionExtras(projections.conflict, labels),
           ...(projections.conflict.reasons || []).slice(0, 3).map((item) => `- ${item}`),
@@ -166,7 +229,7 @@ export function renderProjectionBlocksAsText(
       : '',
     projections.action
       ? [
-          projections.action.headline || labels.action,
+          normalizeProjectionHeadline(projections.action.headline, labels.action),
           projections.action.summary || '',
           ...renderProjectionExtras(projections.action, labels),
           ...(projections.action.reasons || []).slice(0, 3).map((item) => `- ${item}`),
@@ -176,7 +239,7 @@ export function renderProjectionBlocksAsText(
       : '',
     projections.risk
       ? [
-          projections.risk.headline || labels.risk,
+          normalizeProjectionHeadline(projections.risk.headline, labels.risk),
           projections.risk.summary || '',
           ...renderProjectionExtras(projections.risk, labels),
           ...(projections.risk.reasons || []).slice(0, 3).map((item) => `- ${item}`),
@@ -186,7 +249,7 @@ export function renderProjectionBlocksAsText(
       : '',
     projections.evidence
       ? [
-          projections.evidence.headline || labels.evidence,
+          normalizeProjectionHeadline(projections.evidence.headline, labels.evidence),
           projections.evidence.summary || '',
           ...renderProjectionExtras(projections.evidence, labels),
           ...(projections.evidence.reasons || []).slice(0, 4).map((item) => `- ${item}`),
@@ -196,7 +259,7 @@ export function renderProjectionBlocksAsText(
       : '',
     projections.branches
       ? [
-          projections.branches.headline || labels.branches,
+          normalizeProjectionHeadline(projections.branches.headline, labels.branches),
           projections.branches.summary || '',
           [projections.branches.window, projections.branches.granularity].filter(Boolean).join(' / '),
           ...renderProjectionExtras(projections.branches, labels),
@@ -207,12 +270,87 @@ export function renderProjectionBlocksAsText(
       : '',
   ].filter(Boolean)
 
+  if ((extras?.matrixView || []).length > 0) {
+    blocks.push(
+      [
+        labels.matrix,
+        ...(extras?.matrixView || [])
+          .slice(0, 3)
+          .map(
+            (row) =>
+              `${row.label || ''}: ${(row.cells || [])
+                .slice(0, 2)
+                .map((cell) => cell.summary || '')
+                .filter(Boolean)
+                .join(' | ')}`
+          ),
+      ]
+        .filter(Boolean)
+        .join('\n')
+    )
+  }
+
+  if (extras?.singleUserModel?.facets?.length) {
+    blocks.push(
+      [
+        labels.singleUser,
+        ...(extras.singleUserModel.facets || [])
+          .slice(0, 4)
+          .map(
+            (facet) => `${facet.label || ''}: ${facet.summary || ''}`
+          ),
+      ]
+        .filter(Boolean)
+        .join('\n')
+    )
+  }
+
+  if ((extras?.branchSet || []).length > 0) {
+    blocks.push(
+      [
+        labels.branchSet,
+        ...(extras?.branchSet || []).slice(0, 3).flatMap((branch, index) => [
+          `${index + 1}. ${normalizeRenderLine(branch.summary || branch.label || '')}`,
+          ...(branch.entry || [])
+            .slice(0, 1)
+            .map((item) =>
+              lang === 'ko'
+                ? `- 들어가도 되는 조건: ${normalizeRenderLine(item)}`
+                : `- Entry condition: ${normalizeRenderLine(item)}`
+            ),
+          ...(branch.abort || [])
+            .slice(0, 1)
+            .map((item) =>
+              lang === 'ko'
+                ? `- 멈춰야 하는 조건: ${normalizeRenderLine(item)}`
+                : `- Stop condition: ${normalizeRenderLine(item)}`
+            ),
+          ...(branch.sustain || [])
+            .slice(0, 1)
+            .map((item) =>
+              lang === 'ko'
+                ? `- 이어질 때의 모습: ${normalizeRenderLine(item)}`
+                : `- Sustain case: ${normalizeRenderLine(item)}`
+            ),
+          branch.reversalRisk
+            ? lang === 'ko'
+              ? `- 서두를 때 생기는 비용: ${normalizeRenderLine(branch.reversalRisk)}`
+              : `- Reversal risk: ${normalizeRenderLine(branch.reversalRisk)}`
+            : '',
+        ]),
+      ]
+        .filter(Boolean)
+        .join('\n')
+    )
+  }
+
   return blocks.join('\n\n').trim()
 }
 
 export function renderProjectionBlocksAsMarkdown(
   projections: ProjectionBlocks | null | undefined,
-  lang: 'ko' | 'en' = 'ko'
+  lang: 'ko' | 'en' = 'ko',
+  extras?: RenderExtras
 ): string {
   if (!projections) return ''
 
@@ -222,48 +360,99 @@ export function renderProjectionBlocksAsMarkdown(
     if (!headline || bodyLines.filter(Boolean).length === 0) return
     lines.push(`## ${headline}`)
     lines.push('')
-    lines.push(...bodyLines.filter(Boolean))
+    lines.push(...bodyLines.filter(Boolean).map((line) => normalizeRenderLine(line)))
     lines.push('')
   }
 
-  pushBlock(projections.structure?.headline || labels.structure, [
+  pushBlock(normalizeProjectionHeadline(projections.structure?.headline, labels.structure), [
     projections.structure?.summary || '',
     (projections.structure?.topAxes || []).length > 0
       ? `- ${labels.topAxes}: ${(projections.structure?.topAxes || []).join(', ')}`
       : '',
     ...renderProjectionExtras(projections.structure, labels, '- '),
   ])
-  pushBlock(projections.timing?.headline || labels.timing, [
+  pushBlock(normalizeProjectionHeadline(projections.timing?.headline, labels.timing), [
     projections.timing?.summary || '',
     [projections.timing?.window, projections.timing?.granularity].filter(Boolean).join(' / '),
     ...renderProjectionExtras(projections.timing, labels, '- '),
   ])
-  pushBlock(projections.conflict?.headline || labels.conflict, [
+  pushBlock(normalizeProjectionHeadline(projections.conflict?.headline, labels.conflict), [
     projections.conflict?.summary || '',
     ...renderProjectionExtras(projections.conflict, labels, '- '),
     ...(projections.conflict?.reasons || []).slice(0, 3).map((item) => `- ${item}`),
   ])
-  pushBlock(projections.action?.headline || labels.action, [
+  pushBlock(normalizeProjectionHeadline(projections.action?.headline, labels.action), [
     projections.action?.summary || '',
     ...renderProjectionExtras(projections.action, labels, '- '),
     ...(projections.action?.reasons || []).slice(0, 3).map((item) => `- ${item}`),
   ])
-  pushBlock(projections.risk?.headline || labels.risk, [
+  pushBlock(normalizeProjectionHeadline(projections.risk?.headline, labels.risk), [
     projections.risk?.summary || '',
     ...renderProjectionExtras(projections.risk, labels, '- '),
     ...(projections.risk?.reasons || []).slice(0, 3).map((item) => `- ${item}`),
   ])
-  pushBlock(projections.evidence?.headline || labels.evidence, [
+  pushBlock(normalizeProjectionHeadline(projections.evidence?.headline, labels.evidence), [
     projections.evidence?.summary || '',
     ...renderProjectionExtras(projections.evidence, labels, '- '),
     ...(projections.evidence?.reasons || []).slice(0, 4).map((item) => `- ${item}`),
   ])
 
-  pushBlock(projections.branches?.headline || labels.branches, [
+  pushBlock(normalizeProjectionHeadline(projections.branches?.headline, labels.branches), [
     projections.branches?.summary || '',
     [projections.branches?.window, projections.branches?.granularity].filter(Boolean).join(' / '),
     ...renderProjectionExtras(projections.branches, labels, '- '),
     ...(projections.branches?.reasons || []).slice(0, 4).map((item) => `- ${item}`),
+  ])
+
+  pushBlock(labels.matrix, [
+    ...(extras?.matrixView || [])
+      .slice(0, 3)
+      .map(
+        (row) =>
+          `- ${row.label || ''}: ${(row.cells || [])
+            .slice(0, 2)
+            .map((cell) => cell.summary || '')
+            .filter(Boolean)
+            .join(' | ')}`
+      ),
+  ])
+
+  pushBlock(labels.singleUser, [
+    ...(extras?.singleUserModel?.facets || [])
+      .slice(0, 4)
+      .map((facet) => `- ${facet.label || ''}: ${facet.summary || ''}`),
+  ])
+
+  pushBlock(labels.branchSet, [
+    ...(extras?.branchSet || []).slice(0, 3).flatMap((branch, index) => [
+      `- ${index + 1}. ${normalizeRenderLine(branch.summary || branch.label || '')}`,
+      ...(branch.entry || [])
+        .slice(0, 1)
+        .map((item) =>
+          lang === 'ko'
+            ? `  - 들어가도 되는 조건: ${normalizeRenderLine(item)}`
+            : `  - Entry condition: ${normalizeRenderLine(item)}`
+        ),
+      ...(branch.abort || [])
+        .slice(0, 1)
+        .map((item) =>
+          lang === 'ko'
+            ? `  - 멈춰야 하는 조건: ${normalizeRenderLine(item)}`
+            : `  - Stop condition: ${normalizeRenderLine(item)}`
+        ),
+      ...(branch.sustain || [])
+        .slice(0, 1)
+        .map((item) =>
+          lang === 'ko'
+            ? `  - 이어질 때의 모습: ${normalizeRenderLine(item)}`
+            : `  - Sustain case: ${normalizeRenderLine(item)}`
+        ),
+      branch.reversalRisk
+        ? lang === 'ko'
+          ? `  - 서두를 때 생기는 비용: ${normalizeRenderLine(branch.reversalRisk)}`
+          : `  - Reversal risk: ${normalizeRenderLine(branch.reversalRisk)}`
+        : '',
+    ]),
   ])
 
   return lines.join('\n').trim()
@@ -288,11 +477,37 @@ export function renderSectionsAsMarkdown(
   lang: 'ko' | 'en'
 ): string {
   const labels = getProjectionLabels(lang)
+  const sectionTitleMap: Record<string, string> =
+    lang === 'ko'
+      ? {
+          introduction: '전체 흐름',
+          personalityDeep: '기질과 내면',
+          careerPath: '커리어',
+          relationshipDynamics: '관계',
+          wealthPotential: '재정',
+          healthGuidance: '건강',
+          lifeMission: '장기 과제',
+          timingAdvice: '타이밍',
+          actionPlan: '실행 계획',
+          conclusion: '결론',
+        }
+      : {
+          introduction: 'Overview',
+          personalityDeep: 'Inner Pattern',
+          careerPath: 'Career',
+          relationshipDynamics: 'Relationships',
+          wealthPotential: 'Wealth',
+          healthGuidance: 'Health',
+          lifeMission: 'Long-Term Task',
+          timingAdvice: 'Timing',
+          actionPlan: 'Action Plan',
+          conclusion: 'Conclusion',
+        }
   const lines: string[] = []
   for (const path of orderedPaths) {
     const text = readPath(sections, path)
     if (!text) continue
-    const title = `${labels.section}: ${path}`
+    const title = sectionTitleMap[path] || `${labels.section}: ${path}`
     lines.push(`## ${title}`)
     lines.push('')
     lines.push(formatRenderedSectionText(text, lang))

@@ -37,6 +37,7 @@ import { buildCalendarPresentationView } from './lib/presentationAdapter'
 import type { DomainKey, MatrixCalculationInput } from '@/lib/destiny-matrix/types'
 import type { CalendarMatrixEvidencePacketMap } from './lib/matrixEvidencePacket'
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
+import { buildDerivedCrossSnapshot } from '@/app/api/destiny-matrix/ai-report/routeDerivedContext'
 
 export const dynamic = 'force-dynamic'
 
@@ -364,7 +365,7 @@ function buildCalendarMatrixInput(params: {
     extraPoints: Boolean(Object.keys(extraPointSigns).length),
   }
 
-  return {
+  const baseMatrixInput: MatrixCalculationInput = {
     dayMasterElement,
     pillarElements,
     sibsinDistribution: {},
@@ -399,23 +400,6 @@ function buildCalendarMatrixInput(params: {
         transitAspectCount: astroProfile.transitAspects?.length || 0,
       },
     },
-    crossSnapshot: {
-      source: 'calendar-route',
-      theme: params.category || 'yearly',
-      category: params.category || 'yearly',
-      currentDateIso,
-      coverage: {
-        hasAstrologySnapshot: true,
-        hasSajuSnapshot: true,
-        aspectCount: aspects.length,
-      },
-      anchors: {
-        dayMasterElement,
-        currentDaeunElement,
-        currentIljinElement: currentDaeunElement || dayMasterElement,
-        currentIljinDate: currentDateIso,
-      },
-    },
     currentDateIso,
     lang: params.locale,
     startYearMonth: `${params.year}-01`,
@@ -428,6 +412,14 @@ function buildCalendarMatrixInput(params: {
       longitude: params.longitude,
       analysisAt: new Date().toISOString(),
     },
+  }
+  return {
+    ...baseMatrixInput,
+    crossSnapshot: buildDerivedCrossSnapshot(baseMatrixInput as unknown as Record<string, unknown>, {
+      source: 'calendar-route',
+      theme: params.category || 'yearly',
+      category: params.category || 'yearly',
+    }),
   }
 }
 

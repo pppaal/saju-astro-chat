@@ -203,6 +203,8 @@ export interface PreparedCounselorExecution {
   counselorUiEvidence: string
   predictionId: string | null
   isStrictMatrixFailure: boolean
+  backendSaju?: SajuDataStructure
+  backendAstro?: AstroDataStructure
 }
 
 export async function prepareCounselorExecution(params: {
@@ -309,6 +311,8 @@ export async function prepareCounselorExecution(params: {
       counselorUiEvidence: '',
       predictionId: null,
       isStrictMatrixFailure: true,
+      backendSaju: finalSaju,
+      backendAstro: finalAstro,
     }
   }
 
@@ -397,6 +401,7 @@ export async function prepareCounselorExecution(params: {
       ? [
           '[Response Contract: Projection-first]',
           '- 첫 1~2문장에서 직접 답부터 말하세요.',
+          '- 첫 1~2문장 안에 Opening Rationale의 핵심 두 줄을 흡수해서, 왜 이런 결론인지 바로 드러내세요.',
           '- 아래 순서를 유지하세요: "## 직접 답", "## 구조와 상황", "## 타이밍과 충돌", "## 실행", "## 리스크와 재확인".',
           '- 불릿 남발보다 짧은 문단을 우선하세요.',
           '- 각 문단은 2~4문장으로 유지하고, 문단 역할을 섞지 마세요.',
@@ -405,6 +410,9 @@ export async function prepareCounselorExecution(params: {
           '- "실행"에서는 action_detail과 action_next를 먼저 쓰고, 실제 다음 행동을 2~3문장으로 단정하게 정리하세요.',
           '- "리스크와 재확인"에서는 risk_detail과 risk_counterweight를 먼저 쓰고, 과속·지속성·검증 리스크를 분명히 적으세요.',
           '- 기술적 신호 이름은 그대로 던지지 말고 자연어로 번역하세요.',
+          '- "중심축/행동축/리스크축" 같은 엔진 용어를 그대로 쓰지 말고, "삶의 배경 흐름", "지금 먼저 움직여야 할 영역", "가장 조심해야 할 변수"처럼 사람말로 바꾸세요.',
+          '- 답변 마지막에 "사주에서는", "점성에서는", "타이밍은" 같은 메타 요약 꼬리를 따로 덧붙이지 마세요.',
+          '- 최종 답변은 상담문으로 끝내고, 내부 근거 요약이나 엔진 설명 꼬리를 붙이지 마세요.',
           '- 문단끼리 문장을 반복하지 마세요. 각 문단은 새로운 정보를 추가해야 합니다.',
           '- projection summary는 fallback 용도로만 쓰고, detail/driver/counterweight/next lines를 우선 사용하세요.',
           '- 일반론, 자기계발체, 추상 격려 문장을 피하세요.',
@@ -414,6 +422,7 @@ export async function prepareCounselorExecution(params: {
       : [
           '[Response Contract: Projection-first]',
           '- Answer the user question directly within the first two sentences.',
+          '- In those first two sentences, absorb the two Opening Rationale lines so the user immediately sees why this conclusion is being made.',
           '- Use headings in this exact order: "## Direct Answer", "## Structure and Situation", "## Timing and Tension", "## Action Plan", "## Risk and Recheck".',
           '- Prefer short paragraphs over bullet dumping.',
           '- Keep each section to 2-4 sentences and do not mix section roles.',
@@ -422,6 +431,7 @@ export async function prepareCounselorExecution(params: {
           '- In "Action Plan", use action_detail and action_next first, then state the next move in 2-3 assertive sentences.',
           '- In "Risk and Recheck", use risk_detail and risk_counterweight first, then state overreach, persistence, and verification risk clearly.',
           '- Translate technical signals into natural language instead of dumping jargon.',
+          '- Do not expose engine terms like focus/action/risk axis directly; rewrite them as background flow, live priority, and main risk in plain language.',
           '- Do not repeat sentences across sections; each paragraph must add a new piece of information.',
           '- Treat projection summaries as fallback only; prefer detail/driver/counterweight/next lines.',
           '- Avoid generic encouragement and abstract self-help phrasing.',
@@ -465,6 +475,8 @@ export async function prepareCounselorExecution(params: {
     counselorUiEvidence,
     predictionId,
     isStrictMatrixFailure: false,
+    backendSaju: finalSaju,
+    backendAstro: finalAstro,
   }
 }
 

@@ -61,6 +61,47 @@ export type AdapterProjectionSet = {
   branches: AdapterProjectionBlock
 }
 
+export type AdapterMatrixViewCell = {
+  timescale: 'now' | '1-3m' | '3-6m' | '6-12m'
+  agreement: number
+  contradiction: number
+  leadLag: number
+  summary: string
+}
+
+export type AdapterMatrixViewRow = {
+  domain: SignalDomain
+  label: string
+  cells: AdapterMatrixViewCell[]
+}
+
+export type AdapterBranchCandidate = {
+  id: string
+  label: string
+  domain: SignalDomain
+  window?: string
+  granularity?: string
+  summary: string
+  entry: string[]
+  abort: string[]
+  sustain: string[]
+  reversalRisk?: string
+  sustainability?: number
+  wrongMoveCost?: string
+}
+
+export type AdapterSingleUserFacet = {
+  key: 'structure' | 'cycle' | 'trigger' | 'risk' | 'action' | 'calibration'
+  label: string
+  summary: string
+  details: string[]
+}
+
+export type AdapterSingleUserModel = {
+  subject: string
+  facets: AdapterSingleUserFacet[]
+}
+
 export interface CalendarCoreAdapterResult {
   coreHash: string
   gradeLabel: string
@@ -75,6 +116,9 @@ export interface CalendarCoreAdapterResult {
   confidence: number
   crossAgreement: number | null
   crossAgreementMatrix: CrossAgreementMatrixRow[]
+  matrixView: AdapterMatrixViewRow[]
+  branchSet: AdapterBranchCandidate[]
+  singleUserModel: AdapterSingleUserModel
   arbitrationBrief: AdapterArbitrationBrief
   latentTopAxes: AdapterLatentAxis[]
   projections: AdapterProjectionSet
@@ -204,6 +248,9 @@ export interface CounselorCoreAdapterResult {
   riskAxisLabel: string
   timingMatrix: AdapterTimingMatrixRow[]
   crossAgreementMatrix: CrossAgreementMatrixRow[]
+  matrixView: AdapterMatrixViewRow[]
+  branchSet: AdapterBranchCandidate[]
+  singleUserModel: AdapterSingleUserModel
   arbitrationBrief: AdapterArbitrationBrief
   latentTopAxes: AdapterLatentAxis[]
   projections: AdapterProjectionSet
@@ -315,6 +362,9 @@ export interface ReportCoreAdapterResult {
   riskAxisLabel: string
   timingMatrix: AdapterTimingMatrixRow[]
   crossAgreementMatrix: CrossAgreementMatrixRow[]
+  matrixView: AdapterMatrixViewRow[]
+  branchSet: AdapterBranchCandidate[]
+  singleUserModel: AdapterSingleUserModel
   arbitrationBrief: AdapterArbitrationBrief
   latentTopAxes: AdapterLatentAxis[]
   projections: AdapterProjectionSet

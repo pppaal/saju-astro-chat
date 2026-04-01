@@ -7,6 +7,7 @@ import {
   runDestinyCore,
 } from '@/lib/destiny-matrix/core/runDestinyCore'
 import { PATTERN_DEFINITIONS } from '@/lib/destiny-matrix/core/patternEngine'
+import type { MatrixSummary } from '@/lib/destiny-matrix/types'
 
 function createInput(overrides: Partial<MatrixCalculationInput> = {}): MatrixCalculationInput {
   return {
@@ -100,6 +101,91 @@ function createReport(): FusionReport {
       timeline: { events: [] },
     },
   } as any
+}
+
+function createSummary(): MatrixSummary {
+  return {
+    totalScore: 7.8,
+    confidenceScore: 0.74,
+    strengthPoints: [] as any,
+    balancePoints: [] as any,
+    cautionPoints: [] as any,
+    topSynergies: [],
+    domainScores: {
+      career: {
+        domain: 'career',
+        baseFinalScore: 7.5,
+        finalScoreAdjusted: 8.2,
+        sajuComponentScore: 0.79,
+        astroComponentScore: 0.76,
+        alignmentScore: 0.81,
+        overlapStrength: 0.72,
+        timeOverlapWeight: 1.2,
+        confidenceScore: 0.78,
+        drivers: ['role fit'],
+        cautions: ['approval lag'],
+      },
+      love: {
+        domain: 'love',
+        baseFinalScore: 6.8,
+        finalScoreAdjusted: 7.1,
+        sajuComponentScore: 0.7,
+        astroComponentScore: 0.73,
+        alignmentScore: 0.75,
+        overlapStrength: 0.68,
+        timeOverlapWeight: 1.16,
+        confidenceScore: 0.72,
+        drivers: ['cadence'],
+        cautions: ['mixed pace'],
+      },
+      money: {
+        domain: 'money',
+        baseFinalScore: 6.9,
+        finalScoreAdjusted: 7.4,
+        sajuComponentScore: 0.76,
+        astroComponentScore: 0.62,
+        alignmentScore: 0.63,
+        overlapStrength: 0.64,
+        timeOverlapWeight: 1.14,
+        confidenceScore: 0.69,
+        drivers: ['cash flow'],
+        cautions: ['terms'],
+      },
+      health: {
+        domain: 'health',
+        baseFinalScore: 6.2,
+        finalScoreAdjusted: 6.7,
+        sajuComponentScore: 0.58,
+        astroComponentScore: 0.71,
+        alignmentScore: 0.6,
+        overlapStrength: 0.57,
+        timeOverlapWeight: 1.1,
+        confidenceScore: 0.68,
+        drivers: ['recovery'],
+        cautions: ['fatigue'],
+      },
+      move: {
+        domain: 'move',
+        baseFinalScore: 6.1,
+        finalScoreAdjusted: 6.5,
+        sajuComponentScore: 0.55,
+        astroComponentScore: 0.66,
+        alignmentScore: 0.58,
+        overlapStrength: 0.52,
+        timeOverlapWeight: 1.08,
+        confidenceScore: 0.62,
+        drivers: ['route'],
+        cautions: ['cost'],
+      },
+    },
+    overlapTimelineByDomain: {
+      career: [{ month: '2026-04', overlapStrength: 0.78, timeOverlapWeight: 1.22, peakLevel: 'peak' }],
+      love: [{ month: '2026-05', overlapStrength: 0.72, timeOverlapWeight: 1.18, peakLevel: 'high' }],
+      money: [{ month: '2026-07', overlapStrength: 0.65, timeOverlapWeight: 1.14, peakLevel: 'high' }],
+      health: [{ month: '2026-03', overlapStrength: 0.62, timeOverlapWeight: 1.13, peakLevel: 'high' }],
+      move: [{ month: '2026-09', overlapStrength: 0.59, timeOverlapWeight: 1.1, peakLevel: 'normal' }],
+    },
+  }
 }
 
 describe('buildNormalizedMatrixInput', () => {
@@ -321,5 +407,39 @@ describe('runDestinyCore', () => {
     expect(stable.canonical.crossAgreement).not.toBeNull()
     expect(stressed.canonical.crossAgreement).not.toBeNull()
     expect((stable.canonical.crossAgreement || 0) - (stressed.canonical.crossAgreement || 0)).toBeGreaterThan(0.1)
+  })
+
+  it('synthesizes cross agreement matrix from summary and timing inputs when matrix rows are missing', () => {
+    const result = runDestinyCore({
+      mode: 'comprehensive',
+      lang: 'ko',
+      matrixInput: createInput({
+        activeTransits: ['saturnReturn', 'jupiterReturn', 'uranusSquare'] as any,
+        crossSnapshot: {
+          source: 'test',
+          crossAgreement: 0.64,
+        } as any,
+        astroTimingIndex: {
+          decade: 0.48,
+          annual: 0.66,
+          monthly: 0.74,
+          daily: 0.61,
+          confidence: 0.81,
+          evidenceCount: 5,
+        },
+      }),
+      matrixReport: createReport(),
+      matrixSummary: createSummary(),
+    })
+
+    const careerRow = result.canonical.crossAgreementMatrix.find((row) => row.domain === 'career')
+    const relationshipRow = result.canonical.crossAgreementMatrix.find(
+      (row) => row.domain === 'relationship'
+    )
+
+    expect(result.canonical.crossAgreementMatrix.length).toBeGreaterThanOrEqual(4)
+    expect(careerRow?.timescales.now?.agreement).toBeGreaterThan(0.5)
+    expect(relationshipRow?.timescales['1-3m']?.agreement).toBeGreaterThan(0.5)
+    expect(relationshipRow?.timescales['1-3m']?.leadLag).not.toBeUndefined()
   })
 })
