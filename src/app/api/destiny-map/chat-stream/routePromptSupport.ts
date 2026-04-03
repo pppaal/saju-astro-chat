@@ -1,9 +1,6 @@
 import { formatCounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
 import { buildContextSections } from './lib/context-builder'
-import {
-  SECTION_PRIORITIES,
-  type PromptSection,
-} from './builders/promptAssembly'
+import { SECTION_PRIORITIES, type PromptSection } from './builders/promptAssembly'
 
 export interface MatrixSnapshot {
   totalScore: number
@@ -112,6 +109,74 @@ export interface MatrixSnapshot {
         risk?: { headline?: string; summary?: string; reasons?: string[] }
         evidence?: { headline?: string; summary?: string; reasons?: string[] }
       }
+      personModel?: {
+        domainStateGraph?: Array<{
+          domain?: string
+          label?: string
+          currentState?: string
+          thesis?: string
+          firstMove?: string
+          holdMove?: string
+          supportSignals?: string[]
+          pressureSignals?: string[]
+        }>
+        appliedProfile?: {
+          foodProfile?: {
+            summary?: string
+            helpfulFoods?: string[]
+            cautionFoods?: string[]
+            rhythmGuidance?: string[]
+          }
+          lifeRhythmProfile?: {
+            summary?: string
+            peakWindows?: string[]
+            recoveryWindows?: string[]
+            regulationMoves?: string[]
+          }
+          relationshipStyleProfile?: {
+            summary?: string
+            attractionPatterns?: string[]
+            ruptureTriggers?: string[]
+            repairMoves?: string[]
+          }
+          workStyleProfile?: {
+            summary?: string
+            bestRoles?: string[]
+            bestConditions?: string[]
+            leverageMoves?: string[]
+          }
+          moneyStyleProfile?: {
+            summary?: string
+            earningPattern?: string[]
+            leakageRisks?: string[]
+            controlRules?: string[]
+          }
+          environmentProfile?: {
+            summary?: string
+            preferredSettings?: string[]
+            drainSignals?: string[]
+            resetActions?: string[]
+          }
+        }
+        eventOutlook?: Array<{
+          key?: string
+          label?: string
+          domain?: string
+          status?: string
+          readiness?: number
+          bestWindow?: string
+          summary?: string
+          entryConditions?: string[]
+          abortConditions?: string[]
+          nextMove?: string
+        }>
+        uncertaintyEnvelope?: {
+          summary?: string
+          reliableAreas?: string[]
+          conditionalAreas?: string[]
+          unresolvedAreas?: string[]
+        }
+      }
       whyStack?: string[]
     }
     quality?: {
@@ -174,6 +239,155 @@ function firstNonEmptyBlock(...blocks: string[]): string {
   return blocks.find((block) => block && block.trim().length > 0) || ''
 }
 
+function isCounselorCostOptimized(): boolean {
+  const explicit = process.env.COUNSELOR_COST_OPTIMIZED?.trim().toLowerCase()
+  if (explicit) return explicit === 'true' || explicit === '1' || explicit === 'yes'
+  const shared = process.env.AI_BACKEND_COST_OPTIMIZED?.trim().toLowerCase()
+  return shared === 'true' || shared === '1' || shared === 'yes'
+}
+
+function isRelationshipTheme(theme: string): boolean {
+  return theme === 'love' || theme === 'family'
+}
+
+function buildThemeSpecificAppliedContext(
+  snapshot: MatrixSnapshot | null,
+  lang: string,
+  theme: string
+): string {
+  const personModel = snapshot?.core?.counselorEvidence?.personModel
+  if (!personModel) return ''
+
+  const domainStateGraph = personModel.domainStateGraph || []
+  const eventOutlook = personModel.eventOutlook || []
+  const appliedProfile = personModel.appliedProfile
+  const uncertainty = personModel.uncertaintyEnvelope
+
+  const targetDomain = isRelationshipTheme(theme)
+    ? 'relationship'
+    : theme === 'career'
+      ? 'career'
+      : theme === 'wealth'
+        ? 'wealth'
+        : theme === 'health'
+          ? 'health'
+          : null
+
+  const domainState =
+    (targetDomain && domainStateGraph.find((item) => item.domain === targetDomain)) ||
+    domainStateGraph[0]
+  const eventCandidates =
+    theme === 'career'
+      ? eventOutlook.filter((item) => item.key === 'careerEntry' || item.domain === 'career')
+      : isRelationshipTheme(theme)
+        ? eventOutlook.filter(
+            (item) =>
+              item.key === 'partnerEntry' ||
+              item.key === 'commitment' ||
+              item.domain === 'relationship'
+          )
+        : theme === 'wealth'
+          ? eventOutlook.filter((item) => item.key === 'moneyBuild' || item.domain === 'wealth')
+          : theme === 'health'
+            ? eventOutlook.filter((item) => item.key === 'healthReset' || item.domain === 'health')
+            : eventOutlook.slice(0, 2)
+
+  const profileLines =
+    theme === 'career'
+      ? [
+          appliedProfile?.workStyleProfile?.summary || '',
+          ...((appliedProfile?.workStyleProfile?.bestConditions || []).slice(0, 2) as string[]),
+          ...((appliedProfile?.workStyleProfile?.leverageMoves || []).slice(0, 2) as string[]),
+        ]
+      : isRelationshipTheme(theme)
+        ? [
+            appliedProfile?.relationshipStyleProfile?.summary || '',
+            ...((appliedProfile?.relationshipStyleProfile?.attractionPatterns || []).slice(
+              0,
+              2
+            ) as string[]),
+            ...((appliedProfile?.relationshipStyleProfile?.repairMoves || []).slice(
+              0,
+              2
+            ) as string[]),
+          ]
+        : theme === 'wealth'
+          ? [
+              appliedProfile?.moneyStyleProfile?.summary || '',
+              ...((appliedProfile?.moneyStyleProfile?.earningPattern || []).slice(
+                0,
+                2
+              ) as string[]),
+              ...((appliedProfile?.moneyStyleProfile?.controlRules || []).slice(0, 2) as string[]),
+            ]
+          : theme === 'health'
+            ? [
+                appliedProfile?.lifeRhythmProfile?.summary || '',
+                ...((appliedProfile?.lifeRhythmProfile?.recoveryWindows || []).slice(
+                  0,
+                  2
+                ) as string[]),
+                ...((appliedProfile?.foodProfile?.rhythmGuidance || []).slice(0, 2) as string[]),
+              ]
+            : [
+                appliedProfile?.lifeRhythmProfile?.summary || '',
+                appliedProfile?.environmentProfile?.summary || '',
+                ...(appliedProfile?.lifeRhythmProfile?.regulationMoves || []).slice(0, 2),
+              ]
+
+  const lines = [
+    '[Theme Applied Context]',
+    targetDomain ? `theme_domain=${targetDomain}` : `theme_domain=${theme || 'general'}`,
+    domainState?.label ? `domain_label=${domainState.label}` : '',
+    domainState?.currentState ? `domain_state=${domainState.currentState}` : '',
+    domainState?.thesis ? `domain_read=${domainState.thesis}` : '',
+    domainState?.firstMove ? `domain_first_move=${domainState.firstMove}` : '',
+    domainState?.holdMove ? `domain_hold=${domainState.holdMove}` : '',
+    ...(domainState?.supportSignals || [])
+      .slice(0, 2)
+      .map((item, index) => `support_${index + 1}=${item}`),
+    ...(domainState?.pressureSignals || [])
+      .slice(0, 2)
+      .map((item, index) => `pressure_${index + 1}=${item}`),
+    ...profileLines
+      .filter(Boolean)
+      .slice(0, 4)
+      .map((item, index) => `profile_${index + 1}=${item}`),
+    ...eventCandidates
+      .slice(0, 2)
+      .flatMap((event, index) => [
+        event.label ? `event_${index + 1}=${event.label}` : '',
+        event.summary ? `event_${index + 1}_summary=${event.summary}` : '',
+        event.bestWindow ? `event_${index + 1}_window=${event.bestWindow}` : '',
+        event.nextMove ? `event_${index + 1}_next=${event.nextMove}` : '',
+        ...((event.entryConditions || [])
+          .slice(0, 1)
+          .map((item) => `event_${index + 1}_entry=${item}`) as string[]),
+        ...((event.abortConditions || [])
+          .slice(0, 1)
+          .map((item) => `event_${index + 1}_stop=${item}`) as string[]),
+      ]),
+    uncertainty?.summary ? `uncertainty=${uncertainty.summary}` : '',
+    ...((uncertainty?.conditionalAreas || [])
+      .slice(0, 2)
+      .map((item, index) => `conditional_${index + 1}=${item}`) as string[]),
+  ].filter(Boolean)
+
+  if (lines.length <= 1) return ''
+
+  if (lang === 'ko') {
+    return [
+      ...lines,
+      '이 블록은 질문 테마에 맞는 적용층입니다. 답변에서는 이 테마와 직접 연결되는 event/profile/domain lines를 우선 사용하고, 다른 영역은 보조 근거로만 쓰세요.',
+    ].join('\n')
+  }
+
+  return [
+    ...lines,
+    'This block is the theme-specific applied layer. Prioritize event/profile/domain lines that directly fit the current question theme, and use other domains only as support.',
+  ].join('\n')
+}
+
 export function buildCompactPromptSections(params: {
   contextSections: ReturnType<typeof buildContextSections>
   longTermMemorySection: string
@@ -181,6 +395,7 @@ export function buildCompactPromptSections(params: {
   theme: string
 }): PromptSection[] {
   const { contextSections, longTermMemorySection, predictionSection, theme } = params
+  const costOptimized = isCounselorCostOptimized()
   const sections: Array<PromptSection | null> = []
 
   sections.push(
@@ -188,7 +403,7 @@ export function buildCompactPromptSections(params: {
       'base',
       contextSections.v3Snapshot ? `[Saju/Astro Base]\n${contextSections.v3Snapshot}` : '',
       SECTION_PRIORITIES.BASE_DATA,
-      1800
+      costOptimized ? 1200 : 1800
     )
   )
 
@@ -197,20 +412,39 @@ export function buildCompactPromptSections(params: {
     contextSections.daeunTransitSection,
     contextSections.enhancedAnalysisSection
   )
-  sections.push(createPromptBlock('timing', timingBlock, SECTION_PRIORITIES.TIMING, 900))
+  sections.push(
+    createPromptBlock('timing', timingBlock, SECTION_PRIORITIES.TIMING, costOptimized ? 520 : 900)
+  )
 
   const advancedBlock = firstNonEmptyBlock(
     contextSections.advancedAstroSection,
     contextSections.tier4AdvancedSection
   )
-  sections.push(createPromptBlock('advanced', advancedBlock, SECTION_PRIORITIES.TIER3_ASTRO, 900))
-
   sections.push(
-    createPromptBlock('memory', longTermMemorySection, SECTION_PRIORITIES.PAST_ANALYSIS, 700)
+    createPromptBlock(
+      'advanced',
+      advancedBlock,
+      SECTION_PRIORITIES.TIER3_ASTRO,
+      costOptimized ? 520 : 900
+    )
   )
 
   sections.push(
-    createPromptBlock('prediction', predictionSection, SECTION_PRIORITIES.DATE_RECOMMENDATION, 500)
+    createPromptBlock(
+      'memory',
+      longTermMemorySection,
+      SECTION_PRIORITIES.PAST_ANALYSIS,
+      costOptimized ? 320 : 700
+    )
+  )
+
+  sections.push(
+    createPromptBlock(
+      'prediction',
+      predictionSection,
+      SECTION_PRIORITIES.DATE_RECOMMENDATION,
+      costOptimized ? 260 : 500
+    )
   )
 
   if (theme === 'life' || theme === 'year' || theme === 'month') {
@@ -222,7 +456,7 @@ export function buildCompactPromptSections(params: {
           contextSections.pastAnalysisSection
         ),
         SECTION_PRIORITIES.LIFE_PREDICTION,
-        700
+        costOptimized ? 360 : 700
       )
     )
   }
@@ -238,6 +472,7 @@ export function buildMatrixProfileSection(
   if (!snapshot) {
     return ''
   }
+  const costOptimized = isCounselorCostOptimized()
 
   const crossEvidenceText = snapshot.crossEvidenceHighlights?.slice(0, 3).join(' | ') || 'none'
   const cautionText = snapshot.cautions.slice(0, 3).join(' | ') || 'none'
@@ -250,6 +485,14 @@ export function buildMatrixProfileSection(
     snapshot.core?.counselorEvidence as Parameters<typeof formatCounselorEvidencePacket>[0],
     lang === 'ko' ? 'ko' : 'en'
   )
+  const compactCounselorEvidenceText = trimPromptBlock(
+    counselorEvidenceText,
+    costOptimized ? 320 : 700
+  )
+  const themeAppliedContext = trimPromptBlock(
+    buildThemeSpecificAppliedContext(snapshot, lang, theme),
+    costOptimized ? 360 : 760
+  )
 
   if (lang === 'ko') {
     return [
@@ -258,7 +501,8 @@ export function buildMatrixProfileSection(
       `core_phase=${corePhaseText}`,
       `cross_evidence=${crossEvidenceText}`,
       `cautions=${cautionText}`,
-      counselorEvidenceText,
+      compactCounselorEvidenceText,
+      themeAppliedContext,
       '첫 두 문장은 질문에 대한 직접 답으로 시작하고, 교차 근거는 설명 보강에만 사용하세요.',
       '점수, 레이어, 내부 id를 늘어놓지 말고 지금 먼저 움직여야 할 영역과 가장 조심해야 할 변수만 분명하게 말하세요.',
       hasCommRisk
@@ -273,7 +517,8 @@ export function buildMatrixProfileSection(
     `core_phase=${corePhaseText}`,
     `cross_evidence=${crossEvidenceText}`,
     `cautions=${cautionText}`,
-    counselorEvidenceText,
+    compactCounselorEvidenceText,
+    themeAppliedContext,
     'Answer directly in the first 1-2 sentences, and use cross_evidence only as supporting explanation.',
     'Prioritize the immediate action area, the main risk, and the realistic branches over raw score or layer dumps.',
     hasCommRisk
@@ -491,4 +736,3 @@ export function buildFocusDomainVoiceGuide(
       ].join('\n')
   }
 }
-
