@@ -367,6 +367,153 @@ const actionPlanTimelineRequestSchema = z.object({
                 .optional(),
             })
             .optional(),
+          singleSubjectView: z
+            .object({
+              directAnswer: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+              actionAxis: z
+                .object({
+                  domain: z.string().max(32).optional(),
+                  label: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                  nowAction: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                  whyThisFirst: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                })
+                .optional(),
+              riskAxis: z
+                .object({
+                  domain: z.string().max(32).optional(),
+                  label: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                  warning: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                  hardStops: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
+                })
+                .optional(),
+              timingState: z
+                .object({
+                  bestWindow: z.string().max(40).optional(),
+                  whyNow: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                  whyNotYet: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                })
+                .optional(),
+              branches: z
+                .array(
+                  z.object({
+                    label: z.string().max(80).optional(),
+                    summary: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                    entryConditions: z
+                      .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+                      .max(8)
+                      .optional(),
+                    abortConditions: z
+                      .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+                      .max(8)
+                      .optional(),
+                    nextMove: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                  })
+                )
+                .max(4)
+                .optional(),
+              entryConditions: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
+              abortConditions: z.array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE)).max(8).optional(),
+              nextMove: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+            })
+            .optional(),
+          personModel: z
+            .object({
+              overview: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+              domainStateGraph: z
+                .array(
+                  z.object({
+                    domain: z.string().max(32).optional(),
+                    label: z.string().max(80).optional(),
+                    currentState: z
+                      .enum(['expansion', 'stable', 'mixed', 'defensive', 'blocked'])
+                      .optional(),
+                    currentWindow: z.string().max(40).optional(),
+                    thesis: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                    nextShift: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                    firstMove: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                    holdMove: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                  })
+                )
+                .max(8)
+                .optional(),
+              appliedProfile: z
+                .object({
+                  lifeRhythmProfile: z
+                    .object({
+                      summary: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                      regulationMoves: z
+                        .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+                        .max(6)
+                        .optional(),
+                    })
+                    .optional(),
+                  relationshipStyleProfile: z
+                    .object({
+                      summary: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                      repairMoves: z
+                        .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+                        .max(6)
+                        .optional(),
+                    })
+                    .optional(),
+                  workStyleProfile: z
+                    .object({
+                      summary: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                      leverageMoves: z
+                        .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+                        .max(6)
+                        .optional(),
+                    })
+                    .optional(),
+                  moneyStyleProfile: z
+                    .object({
+                      summary: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                      controlRules: z
+                        .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+                        .max(6)
+                        .optional(),
+                    })
+                    .optional(),
+                  environmentProfile: z
+                    .object({
+                      summary: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                    })
+                    .optional(),
+                })
+                .optional(),
+              eventOutlook: z
+                .array(
+                  z.object({
+                    key: z
+                      .enum([
+                        'careerEntry',
+                        'partnerEntry',
+                        'commitment',
+                        'moneyBuild',
+                        'healthReset',
+                      ])
+                      .optional(),
+                    label: z.string().max(80).optional(),
+                    domain: z.string().max(32).optional(),
+                    status: z.enum(['open', 'mixed', 'blocked']).optional(),
+                    readiness: z.number().min(0).max(100).optional(),
+                    bestWindow: z.string().max(40).optional(),
+                    summary: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                    entryConditions: z
+                      .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+                      .max(8)
+                      .optional(),
+                    abortConditions: z
+                      .array(z.string().max(TEXT_LIMITS.MAX_GUIDANCE))
+                      .max(8)
+                      .optional(),
+                    nextMove: z.string().max(TEXT_LIMITS.MAX_GUIDANCE).optional(),
+                  })
+                )
+                .max(8)
+                .optional(),
+            })
+            .optional(),
         })
         .optional(),
       ganzhi: z.string().max(TEXT_LIMITS.MAX_TITLE).optional(),
@@ -543,6 +690,7 @@ export const POST = withApiMiddleware(
             summary: actionPlanCalendar.summary,
             sajuFactors: trimList(actionPlanCalendar.sajuFactors, 3),
             astroFactors: trimList(actionPlanCalendar.astroFactors, 3),
+            canonicalCore: actionPlanCalendar.canonicalCore,
             evidence: actionPlanCalendar.evidence,
           }
         : null,
@@ -568,6 +716,7 @@ export const POST = withApiMiddleware(
                   sajuFactors: trimList(actionPlanCalendar.sajuFactors, 3),
                   astroFactors: trimList(actionPlanCalendar.astroFactors, 3),
                   summary: actionPlanCalendar.summary,
+                  canonicalCore: actionPlanCalendar.canonicalCore,
                   evidence: actionPlanCalendar.evidence,
                 }
               : null,

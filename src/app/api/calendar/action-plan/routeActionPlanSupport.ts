@@ -1,8 +1,7 @@
-import { repairMojibakeText } from '@/lib/text/mojibake'
+﻿import { repairMojibakeText } from '@/lib/text/mojibake'
 import { calculateDailyPillar, generateHourlyAdvice } from '@/lib/prediction/ultra-precision-daily'
 import { STEM_ELEMENTS } from '@/lib/destiny-map/config/specialDays.data'
 import { getHourlyRecommendation } from '@/lib/destiny-map/calendar/specialDays-analysis'
-import { normalizeReportTheme } from '@/lib/destiny-matrix/ai-report/themeSchema'
 import {
   formatDecisionActionLabels,
   formatPolicyCheckLabels,
@@ -10,7 +9,28 @@ import {
 import { describeTimingWindowBrief } from '@/lib/destiny-matrix/interpretation/humanSemantics'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 
-export type TimelineTone = 'best' | 'caution' | 'neutral'
+import {
+  buildCrossReasonText,
+  clampPercent,
+  cleanGuidanceText,
+  extractHoursFromText,
+  getCategoryFocusHint,
+  getHourlyWindowLabel,
+  normalizeActionCategory,
+  pickByHour,
+  pickCategoryByHour,
+  pickCrossLineByTone,
+  type TimelineTone,
+} from './routeActionPlanCommon'
+
+export {
+  clampPercent,
+  cleanGuidanceText,
+  extractHoursFromText,
+  pickCategoryByHour,
+  trimList,
+} from './routeActionPlanCommon'
+
 export type SlotType =
   | 'deepWork'
   | 'decision'
@@ -138,234 +158,6 @@ export type ActionPlanInsights = {
   deltaToday: string
 }
 
-export const trimList = <T>(items: T[] | undefined, max: number): T[] | undefined => {
-  if (!items || items.length === 0) return undefined
-  return items.slice(0, max)
-}
-
-export const clampPercent = (value: number) => Math.max(0, Math.min(100, Math.round(value)))
-
-export const extractHoursFromText = (value: string) => {
-  if (!value || /년|월/.test(value)) return [] as number[]
-  const normalized = value.replace(/\s+/g, '')
-  const rangeMatch = normalized.match(/(\d{1,2})(?::\d{2})?[-~](\d{1,2})/)
-  if (rangeMatch) {
-    const start = Number(rangeMatch[1])
-    const end = Number(rangeMatch[2])
-    if (Number.isNaN(start) || Number.isNaN(end) || start < 0 || start > 23) return []
-    const safeEnd = Math.min(24, Math.max(0, end))
-    if (safeEnd <= start) return [start]
-    return Array.from({ length: safeEnd - start }, (_, idx) => start + idx)
-  }
-  const singleMatch = normalized.match(/(\d{1,2})(?::\d{2})?/)
-  if (!singleMatch) return []
-  const hour = Number(singleMatch[1])
-  if (Number.isNaN(hour) || hour < 0 || hour > 23) return []
-  return [hour]
-}
-
-export const cleanGuidanceText = (value: string, maxLength = 96): string => {
-  const normalized = repairMojibakeText(value || '')
-    .replace(/[\u0000-\u001F\u007F]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-  if (!normalized) return ''
-
-  const noEvidenceTail = normalized.replace(/\s*(근거|evidence)\s*:.*/i, '').trim()
-  const noHype = noEvidenceTail
-    .replace(
-      /\b(자시|축시|인시|묘시|진시|사시|오시|미시|신시|유시|술시|해시)\s*\(([^)]*)\)\s*:?/g,
-      ''
-    )
-    .replace(/\b(자시|축시|인시|묘시|진시|사시|오시|미시|신시|유시|술시|해시)\b/g, '')
-    .replace(/\b(?:Ja|Chuk|In|Myo|Jin|Sa|O|Mi|Shin|Yu|Sul|Hae)-si\b[^:]*:?/gi, '')
-    .replace(/인생을 바꿀[^.!\n]*/g, '')
-    .replace(/완벽한 날[^.!\n]*/g, '')
-    .replace(/1년에 몇 번[^.!\n]*/g, '')
-    .replace(/에너지가 도와줘요!?/g, '')
-    .replace(/청첩장[^.!\n]*/g, '')
-    .replace(/예식장 예약[^.!\n]*/g, '')
-    .replace(/핵심 1~2개[^.!\n]*/g, '')
-    .replace(/\s{2,}/g, ' ')
-    .trim()
-
-  const cleaned = noHype.replace(/(?:\.\.\.|…|~)+$/g, '').trim()
-  if (cleaned.includes('\uFFFD')) return ''
-  if (cleaned.length <= maxLength) return cleaned
-  return `${cleaned.slice(0, Math.max(20, maxLength - 3)).trimEnd()}...`
-}
-
-export const pickCrossLineByTone = (lines: string[] | undefined, tone: TimelineTone): string => {
-  const list = (lines || []).map((line) => cleanGuidanceText(line, 120)).filter(Boolean)
-  if (list.length === 0) return ''
-
-  const hardPattern = /(square|opposition|긴장|충돌|압박|friction|caution|\u26a0)/i
-  const softPattern = /(trine|sextile|지원|기회|흐름|support|flow|\u2705)/i
-
-  if (tone === 'caution') {
-    return list.find((line) => hardPattern.test(line)) || list[0]
-  }
-  if (tone === 'best') {
-    return list.find((line) => softPattern.test(line)) || list[0]
-  }
-  return list[0]
-}
-
-export const buildCrossReasonText = (
-  cross:
-    | {
-        sajuEvidence?: string
-        astroEvidence?: string
-        sajuDetails?: string[]
-        astroDetails?: string[]
-        bridges?: string[]
-      }
-    | undefined,
-  tone: TimelineTone,
-  locale: 'ko' | 'en'
-): string => {
-  if (!cross) return ''
-  const astro =
-    pickCrossLineByTone(cross.astroDetails, tone) ||
-    cleanGuidanceText(cross.astroEvidence || '', 92)
-  const saju =
-    pickCrossLineByTone(cross.sajuDetails, tone) || cleanGuidanceText(cross.sajuEvidence || '', 80)
-  if (!astro && !saju) return ''
-  const merged = [astro, saju].filter(Boolean).join(' + ')
-  const prefix = locale === 'ko' ? '근거: ' : 'Evidence: '
-  return cleanGuidanceText(`${prefix}${merged}`, 132)
-}
-
-const CATEGORY_FOCUS_HINTS: Record<
-  string,
-  {
-    ko: { morning: string; day: string; evening: string }
-    en: { morning: string; day: string; evening: string }
-  }
-> = {
-  career: {
-    ko: {
-      morning: '중요 업무 1건을 먼저 밀어붙이세요',
-      day: '협업/보고는 핵심만 짧게 정리하세요',
-      evening: '내일 우선순위를 3개로 압축하세요',
-    },
-    en: {
-      morning: 'Push one high-impact work item first',
-      day: 'Keep collaboration and updates concise',
-      evening: 'Compress tomorrow into 3 priorities',
-    },
-  },
-  wealth: {
-    ko: {
-      morning: '지출/투자 기준선을 먼저 확정하세요',
-      day: '금전 의사결정은 수치 재확인 후 진행하세요',
-      evening: '현금흐름 메모를 5분만 정리하세요',
-    },
-    en: {
-      morning: 'Lock spending and investment guardrails first',
-      day: 'Confirm numbers before money decisions',
-      evening: 'Do a quick 5-minute cash-flow review',
-    },
-  },
-  love: {
-    ko: {
-      morning: '감정 표현보다 의도를 먼저 명확히 하세요',
-      day: '민감한 대화는 사실 확인부터 시작하세요',
-      evening: '관계 대화 20분을 확보하세요',
-    },
-    en: {
-      morning: 'Clarify intent before emotional messaging',
-      day: 'Start sensitive talks with facts first',
-      evening: 'Reserve 20 minutes for relationship conversation',
-    },
-  },
-  health: {
-    ko: {
-      morning: '가벼운 운동으로 몸을 먼저 깨우세요',
-      day: '과부하를 줄이고 수분/호흡을 챙기세요',
-      evening: '수면 준비 루틴을 앞당기세요',
-    },
-    en: {
-      morning: 'Wake your body with light movement',
-      day: 'Reduce overload and protect hydration/breathing',
-      evening: 'Start your sleep routine earlier',
-    },
-  },
-  travel: {
-    ko: {
-      morning: '동선과 출발시간을 먼저 재점검하세요',
-      day: '이동 중 변수 대비책을 준비하세요',
-      evening: '내일 일정 버퍼를 확보하세요',
-    },
-    en: {
-      morning: 'Re-check route and departure timing',
-      day: 'Prepare a contingency for travel variables',
-      evening: 'Add time buffer for tomorrow',
-    },
-  },
-  study: {
-    ko: {
-      morning: '집중 학습 블록을 먼저 실행하세요',
-      day: '핵심 개념 3개만 고정해서 복습하세요',
-      evening: '요약 노트를 짧게 마무리하세요',
-    },
-    en: {
-      morning: 'Run a focused study block first',
-      day: 'Review only 3 core concepts',
-      evening: 'Close with a short summary note',
-    },
-  },
-}
-
-export function getTimeBucket(hour: number): 'morning' | 'day' | 'evening' {
-  if (hour < 12) return 'morning'
-  if (hour < 18) return 'day'
-  return 'evening'
-}
-
-export function normalizeActionCategory(category?: string): string {
-  if (!category) return 'career'
-  const normalized = normalizeReportTheme(category)
-  if (normalized) return normalized
-
-  const key = category.trim().toLowerCase()
-  if (key === 'money') return 'wealth'
-  if (key === 'move') return 'travel'
-  if (key === 'general') return 'career'
-  return key || 'career'
-}
-
-export function getCategoryFocusHint(
-  category: string | undefined,
-  hour: number,
-  locale: 'ko' | 'en'
-): string {
-  const normalized = normalizeActionCategory(category)
-  const hint = CATEGORY_FOCUS_HINTS[normalized]
-  if (!hint) return locale === 'ko' ? '핵심 1가지에 집중하세요' : 'Focus on one core action'
-  const bucket = getTimeBucket(hour)
-  return hint[locale][bucket]
-}
-
-export function pickByHour(items: string[] | undefined, hour: number): string | null {
-  if (!items || items.length === 0) return null
-  const index =
-    hour < 10 ? 0 : hour < 16 ? Math.min(1, items.length - 1) : Math.min(2, items.length - 1)
-  const value = items[index]
-  return value ? value.trim() : null
-}
-
-export function pickCategoryByHour(categories: string[] | undefined, hour: number): string {
-  if (!categories || categories.length === 0) return 'career'
-  const index =
-    hour < 10
-      ? 0
-      : hour < 16
-        ? Math.min(1, categories.length - 1)
-        : Math.min(2, categories.length - 1)
-  return normalizeActionCategory(categories[index] || categories[0] || 'career')
-}
-
 export type ActionPlanIcpProfile =
   | {
       primaryStyle?: string
@@ -392,26 +184,6 @@ export type ActionPlanPersonaProfile =
   | null
   | undefined
 
-export function getHourlyWindowLabel(hour: number, locale: 'ko' | 'en'): string {
-  if (locale === 'ko') {
-    if (hour < 6) return '심야 정리 구간: 결정보다 정리/휴식 우선'
-    if (hour < 9) return '아침 시동 구간: 핵심 1건 먼저 착수'
-    if (hour < 12) return '오전 집중 구간: 복잡한 판단/실행 우선'
-    if (hour < 15) return '점심 이후 조정 구간: 협업/정리 작업 적합'
-    if (hour < 18) return '오후 실행 구간: 결과물 마감 속도 올리기'
-    if (hour < 21) return '저녁 소통 구간: 대화/관계 조율 효율 상승'
-    return '야간 회복 구간: 과부하 줄이고 다음 날 준비'
-  }
-
-  if (hour < 6) return 'Late-night low-noise window: favor cleanup and recovery'
-  if (hour < 9) return 'Morning ramp-up window: start with one core task'
-  if (hour < 12) return 'AM focus window: prioritize complex decisions and execution'
-  if (hour < 15) return 'Post-lunch adjustment window: good for collaboration and review'
-  if (hour < 18) return 'PM execution window: raise closure speed on deliverables'
-  if (hour < 21) return 'Evening relationship window: communication quality tends to improve'
-  return 'Night recovery window: reduce load and prep for tomorrow'
-}
-
 export function buildPersonalizationHint(input: {
   locale: 'ko' | 'en'
   tone: TimelineTone
@@ -429,8 +201,8 @@ export function buildPersonalizationHint(input: {
       hints.push(
         locale === 'ko'
           ? tone === 'caution'
-            ? '결론을 미루고 체크리스트 3개부터 검증하세요'
-            : '1차 결론을 빠르게 내고 후속 보완으로 마무리하세요'
+            ? 'ê²°ë¡ ì„ ë¯¸ë£¨ê³  ì²´í¬ë¦¬ìŠ¤íŠ¸ 3ê°œë¶€í„° ê²€ì¦í•˜ì„¸ìš”'
+            : '1ì°¨ ê²°ë¡ ì„ ë¹ ë¥´ê²Œ ë‚´ê³  í›„ì† ë³´ì™„ìœ¼ë¡œ ë§ˆë¬´ë¦¬í•˜ì„¸ìš”'
           : tone === 'caution'
             ? 'Delay final decision and validate 3 checklist items first'
             : 'Lock a first decision quickly, then close with follow-up refinement'
@@ -438,7 +210,7 @@ export function buildPersonalizationHint(input: {
     } else if (dominance <= 35) {
       hints.push(
         locale === 'ko'
-          ? '의사결정 전에 기준 2~3개를 먼저 고정하세요'
+          ? 'ì˜ì‚¬ê²°ì • ì „ì— ê¸°ì¤€ 2~3ê°œë¥¼ ë¨¼ì € ê³ ì •í•˜ì„¸ìš”'
           : 'Fix 2-3 decision criteria before taking action'
       )
     }
@@ -448,13 +220,13 @@ export function buildPersonalizationHint(input: {
     if (affiliation >= 70) {
       hints.push(
         locale === 'ko'
-          ? '핵심 관계자 1명에게 먼저 공유해 오해를 줄이세요'
+          ? 'í•µì‹¬ ê´€ê³„ìž 1ëª…ì—ê²Œ ë¨¼ì € ê³µìœ í•´ ì˜¤í•´ë¥¼ ì¤„ì´ì„¸ìš”'
           : 'Pre-brief one key stakeholder to reduce misunderstanding'
       )
     } else if (affiliation <= 30) {
       hints.push(
         locale === 'ko'
-          ? '알림을 끄고 40분 단독 집중 블록을 확보하세요'
+          ? 'ì•Œë¦¼ì„ ë„ê³  40ë¶„ ë‹¨ë… ì§‘ì¤‘ ë¸”ë¡ì„ í™•ë³´í•˜ì„¸ìš”'
           : 'Silence notifications and secure a 40-minute solo focus block'
       )
     }
@@ -464,13 +236,13 @@ export function buildPersonalizationHint(input: {
   if (decisionPole === 'logic') {
     hints.push(
       locale === 'ko'
-        ? '판단은 감각보다 수치/근거 2개를 기준으로 두세요'
+        ? 'íŒë‹¨ì€ ê°ê°ë³´ë‹¤ ìˆ˜ì¹˜/ê·¼ê±° 2ê°œë¥¼ ê¸°ì¤€ìœ¼ë¡œ ë‘ì„¸ìš”'
         : 'Anchor decisions on two concrete metrics over intuition'
     )
   } else if (decisionPole === 'empathic') {
     hints.push(
       locale === 'ko'
-        ? '결정 전에 상대 영향 1가지를 먼저 확인하세요'
+        ? 'ê²°ì • ì „ì— ìƒëŒ€ ì˜í–¥ 1ê°€ì§€ë¥¼ ë¨¼ì € í™•ì¸í•˜ì„¸ìš”'
         : 'Before deciding, check one human-impact factor first'
     )
   }
@@ -479,13 +251,13 @@ export function buildPersonalizationHint(input: {
   if (rhythmPole === 'flow') {
     hints.push(
       locale === 'ko'
-        ? '짧은 스프린트 2회로 추진력을 유지하세요'
+        ? 'ì§§ì€ ìŠ¤í”„ë¦°íŠ¸ 2íšŒë¡œ ì¶”ì§„ë ¥ì„ ìœ ì§€í•˜ì„¸ìš”'
         : 'Use two short sprints to maintain momentum'
     )
   } else if (rhythmPole === 'anchor') {
     hints.push(
       locale === 'ko'
-        ? '정해진 순서 3단계로 진행하면 흔들림이 줄어듭니다'
+        ? 'ì •í•´ì§„ ìˆœì„œ 3ë‹¨ê³„ë¡œ ì§„í–‰í•˜ë©´ í”ë“¤ë¦¼ì´ ì¤„ì–´ë“­ë‹ˆë‹¤'
         : 'Follow a fixed 3-step sequence to reduce drift'
     )
   }
@@ -505,14 +277,18 @@ export function buildPersonalSummaryTag(input: {
     tokens.push(locale === 'ko' ? `ICP ${icp.primaryStyle}` : `ICP ${icp.primaryStyle}`)
   if (persona?.personaName) {
     tokens.push(
-      locale === 'ko' ? `페르소나 ${persona.personaName}` : `Persona ${persona.personaName}`
+      locale === 'ko' ? `íŽ˜ë¥´ì†Œë‚˜ ${persona.personaName}` : `Persona ${persona.personaName}`
     )
   } else if (persona?.typeCode) {
-    tokens.push(locale === 'ko' ? `페르소나 ${persona.typeCode}` : `Persona ${persona.typeCode}`)
+    tokens.push(
+      locale === 'ko' ? `íŽ˜ë¥´ì†Œë‚˜ ${persona.typeCode}` : `Persona ${persona.typeCode}`
+    )
   }
 
   if (tokens.length === 0) return null
-  return locale === 'ko' ? `개인화: ${tokens.join(', ')}` : `Personalization: ${tokens.join(', ')}`
+  return locale === 'ko'
+    ? `ê°œì¸í™”: ${tokens.join(', ')}`
+    : `Personalization: ${tokens.join(', ')}`
 }
 
 export const containsAny = (value: string | undefined, keywords: string[]) => {
@@ -548,6 +324,113 @@ export function getCanonicalCore(calendar?: ActionPlanCalendarContext) {
   return calendar?.canonicalCore
 }
 
+export function getCanonicalSingleSubjectView(calendar?: ActionPlanCalendarContext) {
+  return calendar?.canonicalCore?.singleSubjectView
+}
+
+export function getCanonicalPersonModel(calendar?: ActionPlanCalendarContext) {
+  return calendar?.canonicalCore?.personModel
+}
+
+function normalizeCalendarCategoryToCoreDomain(category?: string): string {
+  const normalized = normalizeActionCategory(category)
+  if (normalized === 'love') return 'relationship'
+  if (normalized === 'money') return 'wealth'
+  if (normalized === 'travel') return 'move'
+  return normalized
+}
+
+function pickPrimaryPersonDomain(calendar?: ActionPlanCalendarContext, category?: string) {
+  const canonical = getCanonicalCore(calendar)
+  return (
+    normalizeCalendarCategoryToCoreDomain(category) ||
+    canonical?.actionFocusDomain ||
+    canonical?.focusDomain ||
+    ''
+  )
+}
+
+function getDomainStateLead(calendar?: ActionPlanCalendarContext, category?: string) {
+  const personModel = getCanonicalPersonModel(calendar)
+  const domain = pickPrimaryPersonDomain(calendar, category)
+  return personModel?.domainStateGraph?.find((item) => item.domain === domain)
+}
+
+function getEventOutlookLead(calendar?: ActionPlanCalendarContext, category?: string) {
+  const personModel = getCanonicalPersonModel(calendar)
+  const domain = pickPrimaryPersonDomain(calendar, category)
+  return (
+    personModel?.eventOutlook?.find((item) => item.domain === domain) ||
+    personModel?.eventOutlook?.[0]
+  )
+}
+
+function getAppliedProfileLead(calendar?: ActionPlanCalendarContext, category?: string) {
+  const personModel = getCanonicalPersonModel(calendar)
+  const domain = pickPrimaryPersonDomain(calendar, category)
+  const profile = personModel?.appliedProfile
+  if (!profile) return ''
+
+  if (domain === 'career') {
+    return profile.workStyleProfile.summary || profile.workStyleProfile.leverageMoves?.[0] || ''
+  }
+  if (domain === 'relationship') {
+    return (
+      profile.relationshipStyleProfile.summary ||
+      profile.relationshipStyleProfile.repairMoves?.[0] ||
+      ''
+    )
+  }
+  if (domain === 'wealth') {
+    return profile.moneyStyleProfile.summary || profile.moneyStyleProfile.controlRules?.[0] || ''
+  }
+  if (domain === 'health') {
+    return profile.lifeRhythmProfile.summary || profile.lifeRhythmProfile.regulationMoves?.[0] || ''
+  }
+  return profile.environmentProfile.summary || profile.lifeRhythmProfile.summary || ''
+}
+
+function buildSingleSubjectBranchLead(
+  calendar: ActionPlanCalendarContext | undefined,
+  locale: 'ko' | 'en'
+): string {
+  const branch = getCanonicalSingleSubjectView(calendar)?.branches?.[0]
+  if (!branch) return ''
+  const label = cleanGuidanceText(branch.label || '', 48)
+  const summary = cleanGuidanceText(branch.summary || '', 96)
+  const nextMove = cleanGuidanceText(branch.nextMove || '', 96)
+  if (locale === 'ko') {
+    return cleanGuidanceText(
+      [label, summary, nextMove ? `다음 행동: ${nextMove}` : ''].filter(Boolean).join(' · '),
+      140
+    )
+  }
+  return cleanGuidanceText(
+    [label, summary, nextMove ? `Next move: ${nextMove}` : ''].filter(Boolean).join(' · '),
+    140
+  )
+}
+
+function buildSingleSubjectTimingLead(
+  calendar: ActionPlanCalendarContext | undefined,
+  locale: 'ko' | 'en'
+): string {
+  const timing = getCanonicalSingleSubjectView(calendar)?.timingState
+  if (!timing?.bestWindow) return ''
+  const whyLine =
+    cleanGuidanceText(timing.whyNow || '', 84) || cleanGuidanceText(timing.whyNotYet || '', 84)
+  if (locale === 'ko') {
+    return cleanGuidanceText(
+      [`강한 창: ${timing.bestWindow}`, whyLine].filter(Boolean).join(' · '),
+      140
+    )
+  }
+  return cleanGuidanceText(
+    [`Best window: ${timing.bestWindow}`, whyLine].filter(Boolean).join(' · '),
+    140
+  )
+}
+
 export function getCanonicalActionDomain(calendar?: ActionPlanCalendarContext): string {
   const canonical = getCanonicalCore(calendar)
   return canonical?.actionFocusDomain || canonical?.focusDomain || ''
@@ -562,14 +445,15 @@ export function buildCanonicalTimingBrief(
   locale: 'ko' | 'en'
 ): string {
   const canonical = getCanonicalCore(calendar)
+  const singleSubjectTimingLead = buildSingleSubjectTimingLead(calendar, locale)
   const actionDomain = getCanonicalActionDomain(calendar)
   const timing =
     canonical?.topTimingWindow ||
     canonical?.domainTimingWindows?.find((item) => item.domain === actionDomain) ||
     canonical?.domainTimingWindows?.find((item) => item.domain === canonical?.focusDomain) ||
     canonical?.domainTimingWindows?.[0]
-  if (!timing?.window) return ''
-  return describeTimingWindowBrief({
+  if (!timing?.window) return singleSubjectTimingLead
+  const canonicalBrief = describeTimingWindowBrief({
     domainLabel: actionDomain || timing.domain || '',
     window: timing.window,
     whyNow: timing.whyNow,
@@ -580,6 +464,10 @@ export function buildCanonicalTimingBrief(
     timingConflictNarrative: timing.timingConflictNarrative,
     lang: locale,
   })
+  return cleanGuidanceText(
+    [singleSubjectTimingLead, canonicalBrief].filter(Boolean).join(' · '),
+    180
+  )
 }
 
 export function getMatrixVerdict(calendar?: ActionPlanCalendarContext) {
@@ -688,14 +576,14 @@ export function derivePacketPatterns(input: {
   if (hints.has('wealth')) patterns.add('spending_impulse_up')
   if (
     input.slotTypes.includes('recovery') ||
-    /recover|rest|reset|sleep|회복|휴식|정리/.test(joinedText)
+    /recover|rest|reset|sleep|íšŒë³µ|íœ´ì‹|ì •ë¦¬/.test(joinedText)
   ) {
     patterns.add('recovery_need_up')
   }
-  if (/speed|momentum|push|attack|fast|속도|추진|가속/.test(joinedText)) {
+  if (/speed|momentum|push|attack|fast|ì†ë„|ì¶”ì§„|ê°€ì†/.test(joinedText)) {
     patterns.add('speed_up_validation_down')
   }
-  if (/risk|friction|delay|counter|caution|주의|충돌|마찰|검증/.test(joinedText)) {
+  if (/risk|friction|delay|counter|caution|ì£¼ì˜|ì¶©ëŒ|ë§ˆì°°|ê²€ì¦/.test(joinedText)) {
     patterns.add('risk_exposure_up')
   }
   if (patterns.size === 0) patterns.add('signal_balance')
@@ -763,13 +651,13 @@ export function inferSlotTypes(input: {
 
   if (
     normalizedCategory === 'wealth' ||
-    containsAny(note, ['money', 'budget', 'spend', '지출', '예산'])
+    containsAny(note, ['money', 'budget', 'spend', 'ì§€ì¶œ', 'ì˜ˆì‚°'])
   ) {
     types.add('money')
   }
   if (
     normalizedCategory === 'love' ||
-    containsAny(note, ['relationship', 'message', 'talk', '관계', '대화', '소통'])
+    containsAny(note, ['relationship', 'message', 'talk', 'ê´€ê³„', 'ëŒ€í™”', 'ì†Œí†µ'])
   ) {
     types.add('relationship')
   }
@@ -847,7 +735,7 @@ export function buildSlotWhy(input: {
   const patternHint = (patternList[0] || 'signal_balance').replace(/_/g, ' ')
   const summary =
     locale === 'ko'
-      ? `${patternHint} 흐름이 강합니다. ${matrixDomain} 영역은 근거를 확인한 뒤 실행하세요.`
+      ? `${patternHint} íë¦„ì´ ê°•í•©ë‹ˆë‹¤. ${matrixDomain} ì˜ì—­ì€ ê·¼ê±°ë¥¼ í™•ì¸í•œ ë’¤ ì‹¤í–‰í•˜ì„¸ìš”.`
       : `${patternHint} is dominant. In ${matrixDomain}, validate evidence before final execution.`
 
   return {
@@ -877,26 +765,26 @@ export function buildSlotGuardrail(input: {
   const slotSpecific =
     tone === 'caution'
       ? locale === 'ko'
-        ? '최종 확정 금지: 반대 근거 1개와 영향 범위 1줄 확인 후 확정'
+        ? 'ìµœì¢… í™•ì • ê¸ˆì§€: ë°˜ëŒ€ ê·¼ê±° 1ê°œì™€ ì˜í–¥ ë²”ìœ„ 1ì¤„ í™•ì¸ í›„ í™•ì •'
         : 'No final decision until one counter-evidence and one impact line are verified.'
       : slotTypes.includes('money')
         ? locale === 'ko'
-          ? '집행 전 총액·한도·최악손실 3개 숫자를 먼저 확인'
+          ? 'ì§‘í–‰ ì „ ì´ì•¡Â·í•œë„Â·ìµœì•…ì†ì‹¤ 3ê°œ ìˆ«ìžë¥¼ ë¨¼ì € í™•ì¸'
           : 'Check total, limit, and worst-case loss before spending or investing.'
         : slotTypes.includes('relationship')
           ? locale === 'ko'
-            ? '전송 전 의도·요청·기한 3요소를 한 줄로 먼저 정리'
+            ? 'ì „ì†¡ ì „ ì˜ë„Â·ìš”ì²­Â·ê¸°í•œ 3ìš”ì†Œë¥¼ í•œ ì¤„ë¡œ ë¨¼ì € ì •ë¦¬'
             : 'Before sending, make intent, request, and deadline clear in one line.'
           : slotTypes.includes('recovery')
             ? locale === 'ko'
-              ? '새 약속 추가보다 회복과 정리를 우선'
+              ? 'ìƒˆ ì•½ì† ì¶”ê°€ë³´ë‹¤ íšŒë³µê³¼ ì •ë¦¬ë¥¼ ìš°ì„ '
               : 'Prioritize recovery and reset before adding new commitments.'
             : slotTypes.includes('decision')
               ? locale === 'ko'
-                ? '결론 전에 판단 기준 2개를 먼저 적기'
+                ? 'ê²°ë¡  ì „ì— íŒë‹¨ ê¸°ì¤€ 2ê°œë¥¼ ë¨¼ì € ì ê¸°'
                 : 'Write two decision criteria before committing.'
               : locale === 'ko'
-                ? '시작 전 성공 조건 1줄과 중단 기준 1줄을 기록'
+                ? 'ì‹œìž‘ ì „ ì„±ê³µ ì¡°ê±´ 1ì¤„ê³¼ ì¤‘ë‹¨ ê¸°ì¤€ 1ì¤„ì„ ê¸°ë¡'
                 : 'Write one success condition and one stop condition before starting.'
 
   if (!matrixGuardrail) {
@@ -904,7 +792,7 @@ export function buildSlotGuardrail(input: {
     return [
       slotSpecific,
       locale === 'ko'
-        ? `${riskAxisLabel} 축 리스크를 먼저 관리`
+        ? `${riskAxisLabel} ì¶• ë¦¬ìŠ¤í¬ë¥¼ ë¨¼ì € ê´€ë¦¬`
         : `Manage the ${riskAxisLabel} risk axis first.`,
     ]
       .filter(Boolean)
@@ -916,7 +804,7 @@ export function buildSlotGuardrail(input: {
     matrixGuardrail,
     riskAxisLabel
       ? locale === 'ko'
-        ? `${riskAxisLabel} 축 리스크를 먼저 관리`
+        ? `${riskAxisLabel} ì¶• ë¦¬ìŠ¤í¬ë¥¼ ë¨¼ì € ê´€ë¦¬`
         : `Manage the ${riskAxisLabel} risk axis first.`
       : '',
   ]
@@ -942,45 +830,49 @@ export function buildSlotActionCue(input: {
   if (tone === 'caution') {
     if (primary === 'money' || normalizedCategory === 'wealth') {
       return isKo
-        ? '숫자 검증만 하고 집행은 미루는 편이 낫습니다.'
+        ? 'ìˆ«ìž ê²€ì¦ë§Œ í•˜ê³  ì§‘í–‰ì€ ë¯¸ë£¨ëŠ” íŽ¸ì´ ë‚«ìŠµë‹ˆë‹¤.'
         : 'Validate the numbers now and delay execution.'
     }
     if (primary === 'relationship') {
       return isKo
-        ? '해석보다 확인 질문 1개가 우선입니다.'
+        ? 'í•´ì„ë³´ë‹¤ í™•ì¸ ì§ˆë¬¸ 1ê°œê°€ ìš°ì„ ìž…ë‹ˆë‹¤.'
         : 'One clarifying question beats interpretation right now.'
     }
     if (primary === 'decision') {
       return isKo
-        ? '결론보다 검증과 재정렬에 쓰는 편이 낫습니다.'
+        ? 'ê²°ë¡ ë³´ë‹¤ ê²€ì¦ê³¼ ìž¬ì •ë ¬ì— ì“°ëŠ” íŽ¸ì´ ë‚«ìŠµë‹ˆë‹¤.'
         : 'Use this slot for validation and re-alignment, not commitment.'
     }
     return isKo
-      ? '확정보다 리스크 제거에 쓰는 편이 낫습니다.'
+      ? 'í™•ì •ë³´ë‹¤ ë¦¬ìŠ¤í¬ ì œê±°ì— ì“°ëŠ” íŽ¸ì´ ë‚«ìŠµë‹ˆë‹¤.'
       : 'Use this slot to remove risk, not to finalize.'
   }
 
   switch (primary) {
     case 'money':
       return isKo
-        ? '예산·조건을 맞춘 뒤 실행하기 좋습니다.'
+        ? 'ì˜ˆì‚°Â·ì¡°ê±´ì„ ë§žì¶˜ ë’¤ ì‹¤í–‰í•˜ê¸° ì¢‹ìŠµë‹ˆë‹¤.'
         : 'Good for execution after budget and terms are locked.'
     case 'relationship':
       return isKo
-        ? '핵심 메시지를 짧고 명확하게 전하기 좋습니다.'
+        ? 'í•µì‹¬ ë©”ì‹œì§€ë¥¼ ì§§ê³  ëª…í™•í•˜ê²Œ ì „í•˜ê¸° ì¢‹ìŠµë‹ˆë‹¤.'
         : 'Good for a short, clear message or check-in.'
     case 'recovery':
-      return isKo ? '회복과 정리 루틴을 넣기 좋습니다.' : 'Good for recovery, reset, and cleanup.'
+      return isKo
+        ? 'íšŒë³µê³¼ ì •ë¦¬ ë£¨í‹´ì„ ë„£ê¸° ì¢‹ìŠµë‹ˆë‹¤.'
+        : 'Good for recovery, reset, and cleanup.'
     case 'decision':
       return isKo
-        ? '판단 기준을 세우고 한 건 결정하기 좋습니다.'
+        ? 'íŒë‹¨ ê¸°ì¤€ì„ ì„¸ìš°ê³  í•œ ê±´ ê²°ì •í•˜ê¸° ì¢‹ìŠµë‹ˆë‹¤.'
         : 'Good for setting criteria and making one decision.'
     case 'communication':
       return isKo
-        ? '설명, 조율, 피드백 전달에 유리합니다.'
+        ? 'ì„¤ëª…, ì¡°ìœ¨, í”¼ë“œë°± ì „ë‹¬ì— ìœ ë¦¬í•©ë‹ˆë‹¤.'
         : 'Good for explanation, alignment, and feedback.'
     default:
-      return isKo ? '핵심 한 건을 집중해서 밀기 좋습니다.' : 'Good for pushing one focused task.'
+      return isKo
+        ? 'í•µì‹¬ í•œ ê±´ì„ ì§‘ì¤‘í•´ì„œ ë°€ê¸° ì¢‹ìŠµë‹ˆë‹¤.'
+        : 'Good for pushing one focused task.'
   }
 }
 
@@ -1043,13 +935,27 @@ export function buildSlotNarrative(input: {
     const parts = [
       preferOriginalNote ? fallbackNote || undefined : undefined,
       focusHint || undefined,
-      phase ? `흐름 ${phase}` : undefined,
+      phase ? `íë¦„ ${phase}` : undefined,
       timingBrief || undefined,
       actionCue,
       claim || undefined,
-      anchor ? `근거: ${anchor}` : scenario ? `시나리오: ${scenario}` : undefined,
+      anchor ? `ê·¼ê±°: ${anchor}` : scenario ? `ì‹œë‚˜ë¦¬ì˜¤: ${scenario}` : undefined,
     ].filter(Boolean)
-    return cleanGuidanceText(parts.join(' · ') || fallbackNote || '기본 운영 슬롯입니다.', 180)
+    const composed = cleanGuidanceText(
+      parts.join(' Â· ') || fallbackNote || 'ê¸°ë³¸ ìš´ì˜ ìŠ¬ë¡¯ìž…ë‹ˆë‹¤.',
+      180
+    )
+    if (composed) return composed
+    return (
+      cleanGuidanceText(repairMojibakeText(fallbackNote || ''), 180) ||
+      cleanGuidanceText(
+        repairMojibakeText(
+          `${focusHint || 'í•µì‹¬ íë¦„'} · ${actionCue || 'ê¸°ë³¸ ìš´ì˜ ìŠ¬ë¡¯ìž…ë‹ˆë‹¤.'}`
+        ),
+        180
+      ) ||
+      'ê¸°ë³¸ ìš´ì˜ ìŠ¬ë¡¯ìž…ë‹ˆë‹¤.'
+    )
   }
 
   const parts = [
@@ -1061,7 +967,21 @@ export function buildSlotNarrative(input: {
     claim || undefined,
     anchor ? `Basis: ${anchor}` : scenario ? `Scenario: ${scenario}` : undefined,
   ].filter(Boolean)
-  return cleanGuidanceText(parts.join(' · ') || fallbackNote || 'Baseline operating slot.', 180)
+  const composed = cleanGuidanceText(
+    parts.join(' Â· ') || fallbackNote || 'Baseline operating slot.',
+    180
+  )
+  if (composed) return composed
+  return (
+    cleanGuidanceText(repairMojibakeText(fallbackNote || ''), 180) ||
+    cleanGuidanceText(
+      repairMojibakeText(
+        `${focusHint || 'Core flow'} · ${actionCue || 'Baseline operating slot.'}`
+      ),
+      180
+    ) ||
+    'Baseline operating slot.'
+  )
 }
 
 export function analyzeConfidenceMeta(input: {
@@ -1094,14 +1014,14 @@ export function analyzeConfidenceMeta(input: {
   const packetBonus = canonical ? 0 : Math.min(10, packetSetCount + Math.min(4, packetClaimCount))
 
   const reasons: string[] = []
-  if (bestHit && warningHit) reasons.push(isKo ? '근거 충돌' : 'Evidence conflict')
+  if (bestHit && warningHit) reasons.push(isKo ? 'ê·¼ê±° ì¶©ëŒ' : 'Evidence conflict')
   if (why.anchorIds.length < 1 || (!canonical && packetAnchorCount < 1))
-    reasons.push(isKo ? 'anchor 부족' : 'Anchor shortage')
+    reasons.push(isKo ? 'anchor ë¶€ì¡±' : 'Anchor shortage')
   if (why.signalIds.length < 3 || (!canonical && packetSignalCount < 3))
-    reasons.push(isKo ? 'signal 밀도 낮음' : 'Low signal density')
-  if (slot.tone === 'caution') reasons.push(isKo ? '리스크 구간' : 'Risk window')
-  if (base < 55) reasons.push(isKo ? '기본 신뢰도 낮음' : 'Low baseline confidence')
-  if (reasons.length === 0) reasons.push(isKo ? '신호 정렬 양호' : 'Signals aligned')
+    reasons.push(isKo ? 'signal ë°€ë„ ë‚®ìŒ' : 'Low signal density')
+  if (slot.tone === 'caution') reasons.push(isKo ? 'ë¦¬ìŠ¤í¬ êµ¬ê°„' : 'Risk window')
+  if (base < 55) reasons.push(isKo ? 'ê¸°ë³¸ ì‹ ë¢°ë„ ë‚®ìŒ' : 'Low baseline confidence')
+  if (reasons.length === 0) reasons.push(isKo ? 'ì‹ í˜¸ ì •ë ¬ ì–‘í˜¸' : 'Signals aligned')
 
   return {
     score: clampPercent(
@@ -1139,18 +1059,18 @@ export function buildDeltaToday(input: {
   if (locale === 'ko') {
     if (attack >= defense + 15 && avgConfidence < 72) {
       return cleanGuidanceText(
-        `오늘은 추진은 강한데 검증이 약해지기 쉽습니다. ${primaryLine || '큰 결정은 초안-검증-확정 3단계로 나누세요.'}`,
+        `ì˜¤ëŠ˜ì€ ì¶”ì§„ì€ ê°•í•œë° ê²€ì¦ì´ ì•½í•´ì§€ê¸° ì‰½ìŠµë‹ˆë‹¤. ${primaryLine || 'í° ê²°ì •ì€ ì´ˆì•ˆ-ê²€ì¦-í™•ì • 3ë‹¨ê³„ë¡œ ë‚˜ëˆ„ì„¸ìš”.'}`,
         140
       )
     }
     if (bestCount >= cautionCount + 2 && avgConfidence < 72) {
-      return '오늘은 속도는 빠르지만 검증 누락 위험이 큽니다. 결정 1건당 검증 1회를 강제하세요.'
+      return 'ì˜¤ëŠ˜ì€ ì†ë„ëŠ” ë¹ ë¥´ì§€ë§Œ ê²€ì¦ ëˆ„ë½ ìœ„í—˜ì´ í½ë‹ˆë‹¤. ê²°ì • 1ê±´ë‹¹ ê²€ì¦ 1íšŒë¥¼ ê°•ì œí•˜ì„¸ìš”.'
     }
     if (defense > attack + 10 || cautionCount > bestCount) {
-      return '오늘은 외부 변수 대응일입니다. 신규 확정보다 리스크 제거와 재정렬을 우선하세요.'
+      return 'ì˜¤ëŠ˜ì€ ì™¸ë¶€ ë³€ìˆ˜ ëŒ€ì‘ì¼ìž…ë‹ˆë‹¤. ì‹ ê·œ í™•ì •ë³´ë‹¤ ë¦¬ìŠ¤í¬ ì œê±°ì™€ ìž¬ì •ë ¬ì„ ìš°ì„ í•˜ì„¸ìš”.'
     }
     return cleanGuidanceText(
-      `오늘은 성과 구간과 조정 구간이 섞여 있습니다. ${primaryLine || '큰 일은 좋은 슬롯에, 조정은 주의 슬롯에 배치하세요.'}`,
+      `ì˜¤ëŠ˜ì€ ì„±ê³¼ êµ¬ê°„ê³¼ ì¡°ì • êµ¬ê°„ì´ ì„žì—¬ ìžˆìŠµë‹ˆë‹¤. ${primaryLine || 'í° ì¼ì€ ì¢‹ì€ ìŠ¬ë¡¯ì—, ì¡°ì •ì€ ì£¼ì˜ ìŠ¬ë¡¯ì— ë°°ì¹˜í•˜ì„¸ìš”.'}`,
       140
     )
   }
@@ -1184,14 +1104,23 @@ export function buildActionPlanInsights(input: {
   const { locale, timeline, calendar, icp, persona, isPremiumUser } = input
   const isKo = locale === 'ko'
   const canonical = getCanonicalCore(calendar)
+  const singleSubjectView = getCanonicalSingleSubjectView(calendar)
   const actionDomain = getCanonicalActionDomain(calendar)
   const branchProjection = getCanonicalBranchProjection(calendar)
   const verdict = getMatrixVerdict(calendar)
   const bestSlot = timeline.find((slot) => slot.tone === 'best')
   const cautionSlot = timeline.find((slot) => slot.tone === 'caution')
   const topCategory = normalizeActionCategory(actionDomain || calendar?.categories?.[0])
+  const personDomainState = getDomainStateLead(calendar, topCategory)
+  const eventOutlook = getEventOutlookLead(calendar, topCategory)
+  const appliedProfileLead = cleanGuidanceText(getAppliedProfileLead(calendar, topCategory), 120)
   const topClaim = cleanGuidanceText(
-    canonical?.topDecisionLabel || canonical?.thesis || verdict?.topClaim || '',
+    singleSubjectView?.directAnswer ||
+      singleSubjectView?.actionAxis.nowAction ||
+      canonical?.topDecisionLabel ||
+      canonical?.thesis ||
+      verdict?.topClaim ||
+      '',
     110
   )
   const topAnchor = cleanGuidanceText(
@@ -1231,18 +1160,20 @@ export function buildActionPlanInsights(input: {
   )
   const timingBrief = cleanGuidanceText(buildCanonicalTimingBrief(calendar, locale), 140)
   const branchLead = cleanGuidanceText(
-    branchProjection?.detailLines?.[0] ||
+    buildSingleSubjectBranchLead(calendar, locale) ||
+      branchProjection?.detailLines?.[0] ||
       branchProjection?.summary ||
       branchProjection?.nextMoves?.[0] ||
       '',
     120
   )
   const riskAxisLead = cleanGuidanceText(
-    canonical?.riskAxisLabel
-      ? isKo
-        ? `${canonical.riskAxisLabel} 축 리스크를 먼저 관리`
-        : `Manage the ${canonical.riskAxisLabel} risk axis first.`
-      : '',
+    singleSubjectView?.riskAxis.warning ||
+      (canonical?.riskAxisLabel
+        ? isKo
+          ? `${canonical.riskAxisLabel} ì¶• ë¦¬ìŠ¤í¬ë¥¼ ë¨¼ì € ê´€ë¦¬`
+          : `Manage the ${canonical.riskAxisLabel} risk axis first.`
+        : ''),
     96
   )
 
@@ -1258,33 +1189,43 @@ export function buildActionPlanInsights(input: {
   const ifThenRules = unique([
     topClaim
       ? isKo
-        ? `IF 핵심 신호 체감 THEN ${topClaim} 기준으로 초안→검증→확정 순서를 유지`
+        ? `IF í•µì‹¬ ì‹ í˜¸ ì²´ê° THEN ${topClaim} ê¸°ì¤€ìœ¼ë¡œ ì´ˆì•ˆâ†’ê²€ì¦â†’í™•ì • ìˆœì„œë¥¼ ìœ ì§€`
         : `If the core signal spikes, keep draft -> validate -> commit around: ${topClaim}`
+      : null,
+    singleSubjectView?.nextMove
+      ? isKo
+        ? `IF ì§€ê¸ˆ ì£¼ì¶•ì„ ë”°ë¥¸ë‹¤ë©´ THEN ${cleanGuidanceText(singleSubjectView.nextMove, 110)}`
+        : `If you follow the current axis, do this next: ${cleanGuidanceText(singleSubjectView.nextMove, 110)}`
       : null,
     bestSlot
       ? isKo
-        ? `IF ${formatSlotLabel(bestSlot)} 시작 THEN 25분 내 초안/산출물 1개 저장`
+        ? `IF ${formatSlotLabel(bestSlot)} ì‹œìž‘ THEN 25ë¶„ ë‚´ ì´ˆì•ˆ/ì‚°ì¶œë¬¼ 1ê°œ ì €ìž¥`
         : `If you start at ${formatSlotLabel(bestSlot)}, lock the first output within 25 minutes.`
       : null,
     cautionSlot
       ? isKo
-        ? `IF ${formatSlotLabel(cautionSlot)} 결정 요청 THEN 10분 유예 + 체크리스트(목표/비용/리스크) 3항목 확인`
+        ? `IF ${formatSlotLabel(cautionSlot)} ê²°ì • ìš”ì²­ THEN 10ë¶„ ìœ ì˜ˆ + ì²´í¬ë¦¬ìŠ¤íŠ¸(ëª©í‘œ/ë¹„ìš©/ë¦¬ìŠ¤í¬) 3í•­ëª© í™•ì¸`
         : `If a decision is needed at ${formatSlotLabel(cautionSlot)}, delay 10 minutes and validate 3 checklist points.`
       : null,
     topCategory === 'wealth'
       ? isKo
-        ? 'IF 지출/투자 집행 THEN 총액·한도·최악손실 숫자 3개 확인 후 진행'
+        ? 'IF ì§€ì¶œ/íˆ¬ìž ì§‘í–‰ THEN ì´ì•¡Â·í•œë„Â·ìµœì•…ì†ì‹¤ ìˆ«ìž 3ê°œ í™•ì¸ í›„ ì§„í–‰'
         : 'If spending/investing, confirm total-limit-worst loss before execution.'
       : topCategory === 'love'
         ? isKo
-          ? 'IF 민감 대화 시작 THEN 사실 1줄 먼저, 감정 표현은 그다음'
+          ? 'IF ë¯¼ê° ëŒ€í™” ì‹œìž‘ THEN ì‚¬ì‹¤ 1ì¤„ ë¨¼ì €, ê°ì • í‘œí˜„ì€ ê·¸ë‹¤ìŒ'
           : 'If starting a sensitive talk, state one fact first, then emotion.'
         : isKo
-          ? 'IF 작업 착수 THEN 종료 조건 1줄 기록 후 시작'
+          ? 'IF ìž‘ì—… ì°©ìˆ˜ THEN ì¢…ë£Œ ì¡°ê±´ 1ì¤„ ê¸°ë¡ í›„ ì‹œìž‘'
           : 'If starting work, write one done-condition before execution.',
+    eventOutlook?.nextMove
+      ? isKo
+        ? `IF ${eventOutlook.label} ì¡°ê±´ì´ ë§žìœ¼ë©´ THEN ${cleanGuidanceText(eventOutlook.nextMove, 100)}`
+        : `If ${eventOutlook.label} conditions line up, do this next: ${cleanGuidanceText(eventOutlook.nextMove, 100)}`
+      : null,
     branchLead
       ? isKo
-        ? `IF 분기 조건이 갈리면 THEN ${branchLead}`
+        ? `IF ë¶„ê¸° ì¡°ê±´ì´ ê°ˆë¦¬ë©´ THEN ${branchLead}`
         : `If branch conditions diverge, follow this first: ${branchLead}`
       : null,
   ])
@@ -1292,7 +1233,7 @@ export function buildActionPlanInsights(input: {
   if (softCheckCopy[0]) {
     ifThenRules.unshift(
       isKo
-        ? `IF 실행 전 확인 THEN ${softCheckCopy[0]}`
+        ? `IF ì‹¤í–‰ ì „ í™•ì¸ THEN ${softCheckCopy[0]}`
         : `Before execution, check this first: ${softCheckCopy[0]}`
     )
   }
@@ -1308,30 +1249,40 @@ export function buildActionPlanInsights(input: {
     [
       phaseLabel
         ? isKo
-          ? `현재 흐름(${phaseLabel})이 흔들리면 즉시 속도를 낮추고 다시 맞추세요`
+          ? `í˜„ìž¬ íë¦„(${phaseLabel})ì´ í”ë“¤ë¦¬ë©´ ì¦‰ì‹œ ì†ë„ë¥¼ ë‚®ì¶”ê³  ë‹¤ì‹œ ë§žì¶”ì„¸ìš”`
           : `If the current flow (${phaseLabel}) feels unstable, slow down and realign first`
         : null,
       isKo
-        ? '피로 7/10 이상: 신규 결정 중단, 20분 회복 후 재평가'
+        ? 'í”¼ë¡œ 7/10 ì´ìƒ: ì‹ ê·œ ê²°ì • ì¤‘ë‹¨, 20ë¶„ íšŒë³µ í›„ ìž¬í‰ê°€'
         : 'If fatigue >= 7/10: pause new decisions and run the validation checklist first',
       isKo
-        ? '10분 내 요청 3건 이상 유입: 즉답 금지, 우선순위 재정렬'
+        ? '10ë¶„ ë‚´ ìš”ì²­ 3ê±´ ì´ìƒ ìœ ìž…: ì¦‰ë‹µ ê¸ˆì§€, ìš°ì„ ìˆœìœ„ ìž¬ì •ë ¬'
         : 'If 3+ incoming requests cluster: re-prioritize before replying fast',
       isKo
-        ? '예상 외 지출 유혹 발생: 24시간 보류 후 재승인'
+        ? 'ì˜ˆìƒ ì™¸ ì§€ì¶œ ìœ í˜¹ ë°œìƒ: 24ì‹œê°„ ë³´ë¥˜ í›„ ìž¬ìŠ¹ì¸'
         : 'If spending/investment urge appears: validate amount-limit-alternative before action',
       isKo
-        ? '요구사항이 1시간 내 2회 이상 변경: 확정 전 문서화'
+        ? 'ìš”êµ¬ì‚¬í•­ì´ 1ì‹œê°„ ë‚´ 2íšŒ ì´ìƒ ë³€ê²½: í™•ì • ì „ ë¬¸ì„œí™”'
         : 'If requirements change twice within an hour: document before commitment',
       typeof icp?.dominanceScore === 'number' && icp.dominanceScore >= 70
         ? isKo
-          ? '속도 욕구 급상승: 반대 근거 1개 수집 전 결론 금지'
+          ? 'ì†ë„ ìš•êµ¬ ê¸‰ìƒìŠ¹: ë°˜ëŒ€ ê·¼ê±° 1ê°œ ìˆ˜ì§‘ ì „ ê²°ë¡  ê¸ˆì§€'
           : 'If drive spikes: force-collect one counter-evidence'
         : null,
       persona?.challenges?.[0]
         ? isKo
-          ? `반복 약점(${persona.challenges[0]}) 신호 감지: 고난도 작업 중단 후 저리스크 대체안 실행`
+          ? `ë°˜ë³µ ì•½ì (${persona.challenges[0]}) ì‹ í˜¸ ê°ì§€: ê³ ë‚œë„ ìž‘ì—… ì¤‘ë‹¨ í›„ ì €ë¦¬ìŠ¤í¬ ëŒ€ì²´ì•ˆ ì‹¤í–‰`
           : `If recurring weakness (${persona.challenges[0]}) appears: switch to low-risk fallback immediately`
+        : null,
+      singleSubjectView?.abortConditions?.[0]
+        ? isKo
+          ? `ì¤‘ë‹¨ ì¡°ê±´: ${cleanGuidanceText(singleSubjectView.abortConditions[0], 96)}`
+          : `Abort condition: ${cleanGuidanceText(singleSubjectView.abortConditions[0], 96)}`
+        : null,
+      eventOutlook?.abortConditions?.[0]
+        ? isKo
+          ? `ì´ë²¤íŠ¸ ì¤‘ë‹¨ ì‹ í˜¸: ${cleanGuidanceText(eventOutlook.abortConditions[0], 96)}`
+          : `Event abort signal: ${cleanGuidanceText(eventOutlook.abortConditions[0], 96)}`
         : null,
     ],
     5
@@ -1339,7 +1290,9 @@ export function buildActionPlanInsights(input: {
 
   if (hardStopCopy[0]) {
     situationTriggers.unshift(
-      isKo ? `즉시 중단 조건: ${hardStopCopy[0]}` : `Immediate stop condition: ${hardStopCopy[0]}`
+      isKo
+        ? `ì¦‰ì‹œ ì¤‘ë‹¨ ì¡°ê±´: ${hardStopCopy[0]}`
+        : `Immediate stop condition: ${hardStopCopy[0]}`
     )
   }
 
@@ -1357,27 +1310,33 @@ export function buildActionPlanInsights(input: {
   const riskTriggers = unique(
     [
       riskAxisLead || null,
+      singleSubjectView?.riskAxis.hardStops?.[0]
+        ? cleanGuidanceText(singleSubjectView.riskAxis.hardStops[0], 120)
+        : null,
       topAnchor
         ? isKo
-          ? `핵심 앵커 이탈: ${topAnchor}`
+          ? `í•µì‹¬ ì•µì»¤ ì´íƒˆ: ${topAnchor}`
           : `Anchor drift detected: ${topAnchor}`
         : null,
       cautionSlots.length
         ? isKo
-          ? `주의 시간대 집중: ${cautionSlots.join(', ')}`
+          ? `ì£¼ì˜ ì‹œê°„ëŒ€ ì§‘ì¤‘: ${cautionSlots.join(', ')}`
           : `Caution windows concentrated: ${cautionSlots.join(', ')}`
         : null,
       (calendar?.warnings || [])[0]
         ? isKo
-          ? `반복 리스크: ${(calendar?.warnings || [])[0]}`
+          ? `ë°˜ë³µ ë¦¬ìŠ¤í¬: ${(calendar?.warnings || [])[0]}`
           : `Repeated risk: ${(calendar?.warnings || [])[0]}`
         : null,
       isKo
-        ? '근거 충돌(좋은 시간+주의 신호 동시): 최종 확정 지연'
+        ? 'ê·¼ê±° ì¶©ëŒ(ì¢‹ì€ ì‹œê°„+ì£¼ì˜ ì‹ í˜¸ ë™ì‹œ): ìµœì¢… í™•ì • ì§€ì—°'
         : 'If evidence conflict occurs (best-time + warning overlap), delay finalization',
       isKo
-        ? '근거 신호가 약한 슬롯은 확정보다 초안/검증 작업으로 전환'
+        ? 'ê·¼ê±° ì‹ í˜¸ê°€ ì•½í•œ ìŠ¬ë¡¯ì€ í™•ì •ë³´ë‹¤ ì´ˆì•ˆ/ê²€ì¦ ìž‘ì—…ìœ¼ë¡œ ì „í™˜'
         : 'When evidence is weak, switch from final decisions to draft/validation tasks',
+      eventOutlook?.abortConditions?.[0]
+        ? cleanGuidanceText(eventOutlook.abortConditions[0], 120)
+        : null,
     ],
     4
   )
@@ -1397,11 +1356,17 @@ export function buildActionPlanInsights(input: {
     do: unique(
       [
         (calendar?.recommendations || [])[0],
+        singleSubjectView?.actionAxis.nowAction,
+        singleSubjectView?.nextMove,
+        personDomainState?.firstMove,
+        eventOutlook?.nextMove,
         branchProjection?.nextMoves?.[0],
-        isKo ? `${topCategory} 영역 핵심 액션 1건 완료` : `Complete one key ${topCategory} action`,
-        isKo ? '시작 전 완료 기준 1줄 작성' : 'Write one done-condition before start',
         isKo
-          ? '작업 종료 직후 결과 로그 1줄 기록'
+          ? `${topCategory} ì˜ì—­ í•µì‹¬ ì•¡ì…˜ 1ê±´ ì™„ë£Œ`
+          : `Complete one key ${topCategory} action`,
+        isKo ? 'ì‹œìž‘ ì „ ì™„ë£Œ ê¸°ì¤€ 1ì¤„ ìž‘ì„±' : 'Write one done-condition before start',
+        isKo
+          ? 'ìž‘ì—… ì¢…ë£Œ ì§í›„ ê²°ê³¼ ë¡œê·¸ 1ì¤„ ê¸°ë¡'
           : 'Log one result line immediately after completion',
       ],
       4
@@ -1409,9 +1374,13 @@ export function buildActionPlanInsights(input: {
     dont: unique(
       [
         (calendar?.warnings || [])[0],
-        isKo ? '근거 없는 즉흥 결정 금지' : 'No impulsive decision without evidence',
-        isKo ? '주의 슬롯에서 확정 결론 금지' : 'No final decisions in caution slots',
-        isKo ? '멀티태스킹 3개 이상 동시 진행 금지' : 'No 3+ parallel tasks at the same time',
+        singleSubjectView?.riskAxis.warning,
+        personDomainState?.holdMove,
+        isKo ? 'ê·¼ê±° ì—†ëŠ” ì¦‰í¥ ê²°ì • ê¸ˆì§€' : 'No impulsive decision without evidence',
+        isKo ? 'ì£¼ì˜ ìŠ¬ë¡¯ì—ì„œ í™•ì • ê²°ë¡  ê¸ˆì§€' : 'No final decisions in caution slots',
+        isKo
+          ? 'ë©€í‹°íƒœìŠ¤í‚¹ 3ê°œ ì´ìƒ ë™ì‹œ ì§„í–‰ ê¸ˆì§€'
+          : 'No 3+ parallel tasks at the same time',
       ],
       4
     ),
@@ -1419,17 +1388,19 @@ export function buildActionPlanInsights(input: {
       [
         cautionSlot
           ? isKo
-            ? `${formatSlotLabel(cautionSlot)}에는 결정보다 초안 작성/검증 작업으로 대체`
+            ? `${formatSlotLabel(cautionSlot)}ì—ëŠ” ê²°ì •ë³´ë‹¤ ì´ˆì•ˆ ìž‘ì„±/ê²€ì¦ ìž‘ì—…ìœ¼ë¡œ ëŒ€ì²´`
             : `At ${formatSlotLabel(cautionSlot)}, switch from decision to draft/validation work`
           : null,
+        personDomainState?.holdMove,
+        appliedProfileLead,
         bestSlot
           ? isKo
-            ? `${formatSlotLabel(bestSlot)}에는 핵심 1건만 완수하고 로그 기록`
+            ? `${formatSlotLabel(bestSlot)}ì—ëŠ” í•µì‹¬ 1ê±´ë§Œ ì™„ìˆ˜í•˜ê³  ë¡œê·¸ ê¸°ë¡`
             : `At ${formatSlotLabel(bestSlot)}, complete one key action and log it`
           : null,
         isPremiumUser
           ? isKo
-            ? '리스크 감지 시 3단계 복구(중단-정렬-재개) 적용'
+            ? 'ë¦¬ìŠ¤í¬ ê°ì§€ ì‹œ 3ë‹¨ê³„ ë³µêµ¬(ì¤‘ë‹¨-ì •ë ¬-ìž¬ê°œ) ì ìš©'
             : 'Use 3-step recovery (pause-align-resume) when risk is detected'
           : null,
       ],
@@ -1446,13 +1417,13 @@ export function buildActionPlanInsights(input: {
   const successKpi = unique(
     [
       isKo
-        ? `평균 슬롯 신뢰도 ${avgConfidence}% 이상`
+        ? `í‰ê·  ìŠ¬ë¡¯ ì‹ ë¢°ë„ ${avgConfidence}% ì´ìƒ`
         : `Average slot confidence >= ${avgConfidence}%`,
       isKo
-        ? `핵심 액션 완료 ${Math.max(1, Math.min(3, bestCount))}건`
+        ? `í•µì‹¬ ì•¡ì…˜ ì™„ë£Œ ${Math.max(1, Math.min(3, bestCount))}ê±´`
         : `Complete ${Math.max(1, Math.min(3, bestCount))} core actions`,
-      isKo ? '주의 슬롯에서 확정 의사결정 0건' : 'Zero final decisions in caution slots',
-      isKo ? '체크리스트 실행률 100%' : 'Checklist execution rate 100%',
+      isKo ? 'ì£¼ì˜ ìŠ¬ë¡¯ì—ì„œ í™•ì • ì˜ì‚¬ê²°ì • 0ê±´' : 'Zero final decisions in caution slots',
+      isKo ? 'ì²´í¬ë¦¬ìŠ¤íŠ¸ ì‹¤í–‰ë¥  100%' : 'Checklist execution rate 100%',
     ],
     4
   )
@@ -1530,8 +1501,19 @@ export const buildRuleBasedTimeline = (input: {
       const warningHint = cleanGuidanceText(pickByHour(calendar?.warnings, hour) || '', 78)
       const matrixPacketSummary = summarizeMatrixPacketForPrompt(getMatrixPacket(calendar), locale)
       const matrixVerdictSummary = summarizeMatrixVerdictForPrompt(calendar, locale)
+      const singleSubjectSummary = cleanGuidanceText(
+        [
+          getCanonicalSingleSubjectView(calendar)?.directAnswer,
+          getCanonicalSingleSubjectView(calendar)?.actionAxis.nowAction,
+          getCanonicalSingleSubjectView(calendar)?.timingState.whyNow,
+        ]
+          .filter(Boolean)
+          .join(' · '),
+        120
+      )
       const matrixSummary =
         matrixVerdictSummary ||
+        singleSubjectSummary ||
         matrixPacketSummary ||
         (typeof calendar?.evidence?.confidence === 'number'
           ? `Signals: confidence ${calendar.evidence.confidence}%`
@@ -1559,15 +1541,15 @@ export const buildRuleBasedTimeline = (input: {
       if (locale === 'ko') {
         if (tone === 'caution') {
           detailLine = `${focusHint}. ${
-            warningHint ? `주의 포인트: ${warningHint}` : `주의: ${avoid || '무리한 결정'}`
+            warningHint ? `ì£¼ì˜ í¬ì¸íŠ¸: ${warningHint}` : `ì£¼ì˜: ${avoid || 'ë¬´ë¦¬í•œ ê²°ì •'}`
           }`
         } else {
           detailLine = `${focusHint}. ${
-            recHint ? `실행: ${recHint}` : `추천: ${best || '핵심 업무'}`
+            recHint ? `ì‹¤í–‰: ${recHint}` : `ì¶”ì²œ: ${best || 'í•µì‹¬ ì—…ë¬´'}`
           }`
         }
         if (personalHint) {
-          detailLine = `${detailLine}. 개인화: ${personalHint}`
+          detailLine = `${detailLine}. ê°œì¸í™”: ${personalHint}`
         }
       } else {
         if (tone === 'caution') {
@@ -1598,7 +1580,7 @@ export const buildRuleBasedTimeline = (input: {
             cleanGuidanceText(
               personalHint
                 ? locale === 'ko'
-                  ? `개인화 근거: ${personalHint}`
+                  ? `ê°œì¸í™” ê·¼ê±°: ${personalHint}`
                   : `Personalized basis: ${personalHint}`
                 : primaryBridgeLine || '',
               124

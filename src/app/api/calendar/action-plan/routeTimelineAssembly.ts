@@ -103,14 +103,28 @@ function buildCanonicalActionPlanLead(input: {
     canonical.domainTimingWindows?.find((item) => item.domain === actionDomain) ||
     canonical.domainTimingWindows?.[0]
   const branch =
+    canonical.singleSubjectView?.branches?.[0]?.summary ||
+    canonical.singleSubjectView?.branches?.[0]?.nextMove ||
     canonical.projections?.branches?.detailLines?.[0] ||
     canonical.projections?.branches?.summary ||
     canonical.projections?.branches?.nextMoves?.[0]
+  const domainState =
+    canonical.personModel?.domainStateGraph?.find((item) => item.domain === actionDomain) ||
+    canonical.personModel?.domainStateGraph?.[0]
+  const eventOutlook =
+    canonical.personModel?.eventOutlook?.find((item) => item.domain === actionDomain) ||
+    canonical.personModel?.eventOutlook?.[0]
 
   const parts = [
-    canonical.topDecisionLabel || canonical.primaryAction,
-    timingRow?.whyNow || timingRow?.timingConflictNarrative,
-    branch,
+    canonical.singleSubjectView?.directAnswer ||
+      canonical.singleSubjectView?.actionAxis?.nowAction ||
+      canonical.topDecisionLabel ||
+      canonical.primaryAction,
+    canonical.singleSubjectView?.timingState?.whyNow ||
+      timingRow?.whyNow ||
+      timingRow?.timingConflictNarrative,
+    domainState?.thesis,
+    eventOutlook?.nextMove || branch,
     canonical.riskAxisLabel
       ? locale === 'ko'
         ? `${canonical.riskAxisLabel} 축 리스크를 먼저 관리`
@@ -215,10 +229,10 @@ export function buildActionPlanPayload(
 
     return {
       ...common,
-      evidenceSummary: [
-        ...baseEvidence.slice(0, 2),
-        ...(personalLine ? [personalLine] : []),
-      ].slice(0, 3),
+      evidenceSummary: [...baseEvidence.slice(0, 2), ...(personalLine ? [personalLine] : [])].slice(
+        0,
+        3
+      ),
     }
   })
 
@@ -255,9 +269,7 @@ export function buildActionPlanPayload(
     summaryParts.push(personalizationTag)
   }
   if (usingAiRefinement && aiSummary) {
-    summaryParts.push(
-      locale === 'ko' ? `AI 미세조정: ${aiSummary}` : `AI refinement: ${aiSummary}`
-    )
+    summaryParts.push(locale === 'ko' ? `AI 미세조정: ${aiSummary}` : `AI refinement: ${aiSummary}`)
   }
   if (!canUseAiPrecision) {
     summaryParts.push(

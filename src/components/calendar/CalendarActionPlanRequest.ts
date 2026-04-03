@@ -286,6 +286,160 @@ export function buildActionPlanAiPayload(input: {
                     },
                   }
                 : undefined,
+              singleSubjectView: canonicalCore.singleSubjectView
+                ? {
+                    directAnswer: trimText(canonicalCore.singleSubjectView.directAnswer, 220),
+                    actionAxis: canonicalCore.singleSubjectView.actionAxis
+                      ? {
+                          domain: trimText(canonicalCore.singleSubjectView.actionAxis.domain, 24),
+                          label: trimText(canonicalCore.singleSubjectView.actionAxis.label, 80),
+                          nowAction: trimText(
+                            canonicalCore.singleSubjectView.actionAxis.nowAction,
+                            220
+                          ),
+                          whyThisFirst: trimText(
+                            canonicalCore.singleSubjectView.actionAxis.whyThisFirst,
+                            220
+                          ),
+                        }
+                      : undefined,
+                    riskAxis: canonicalCore.singleSubjectView.riskAxis
+                      ? {
+                          domain: trimText(canonicalCore.singleSubjectView.riskAxis.domain, 24),
+                          label: trimText(canonicalCore.singleSubjectView.riskAxis.label, 80),
+                          warning: trimText(canonicalCore.singleSubjectView.riskAxis.warning, 220),
+                          hardStops: trimList(
+                            canonicalCore.singleSubjectView.riskAxis.hardStops,
+                            4,
+                            160
+                          ),
+                        }
+                      : undefined,
+                    timingState: canonicalCore.singleSubjectView.timingState
+                      ? {
+                          bestWindow: trimText(
+                            canonicalCore.singleSubjectView.timingState.bestWindow,
+                            40
+                          ),
+                          whyNow: trimText(canonicalCore.singleSubjectView.timingState.whyNow, 220),
+                          whyNotYet: trimText(
+                            canonicalCore.singleSubjectView.timingState.whyNotYet,
+                            220
+                          ),
+                        }
+                      : undefined,
+                    branches: canonicalCore.singleSubjectView.branches
+                      ?.map((branch) => ({
+                        label: trimText(branch.label, 80),
+                        summary: trimText(branch.summary, 180),
+                        entryConditions: trimList(branch.entryConditions, 4, 160),
+                        abortConditions: trimList(branch.abortConditions, 4, 160),
+                        nextMove: trimText(branch.nextMove, 180),
+                      }))
+                      .slice(0, 3),
+                    entryConditions: trimList(
+                      canonicalCore.singleSubjectView.entryConditions,
+                      4,
+                      160
+                    ),
+                    abortConditions: trimList(
+                      canonicalCore.singleSubjectView.abortConditions,
+                      4,
+                      160
+                    ),
+                    nextMove: trimText(canonicalCore.singleSubjectView.nextMove, 220),
+                  }
+                : undefined,
+              personModel: canonicalCore.personModel
+                ? {
+                    overview: trimText(canonicalCore.personModel.overview, 220),
+                    domainStateGraph: canonicalCore.personModel.domainStateGraph
+                      ?.map((item) => ({
+                        domain: trimText(item.domain, 24),
+                        label: trimText(item.label, 80),
+                        currentState: item.currentState,
+                        currentWindow: trimText(item.currentWindow, 40),
+                        thesis: trimText(item.thesis, 180),
+                        nextShift: trimText(item.nextShift, 180),
+                        firstMove: trimText(item.firstMove, 180),
+                        holdMove: trimText(item.holdMove, 180),
+                      }))
+                      .slice(0, 6),
+                    appliedProfile: canonicalCore.personModel.appliedProfile
+                      ? {
+                          lifeRhythmProfile: {
+                            summary: trimText(
+                              canonicalCore.personModel.appliedProfile.lifeRhythmProfile.summary,
+                              180
+                            ),
+                            regulationMoves: trimList(
+                              canonicalCore.personModel.appliedProfile.lifeRhythmProfile
+                                .regulationMoves,
+                              4,
+                              160
+                            ),
+                          },
+                          relationshipStyleProfile: {
+                            summary: trimText(
+                              canonicalCore.personModel.appliedProfile.relationshipStyleProfile
+                                .summary,
+                              180
+                            ),
+                            repairMoves: trimList(
+                              canonicalCore.personModel.appliedProfile.relationshipStyleProfile
+                                .repairMoves,
+                              4,
+                              160
+                            ),
+                          },
+                          workStyleProfile: {
+                            summary: trimText(
+                              canonicalCore.personModel.appliedProfile.workStyleProfile.summary,
+                              180
+                            ),
+                            leverageMoves: trimList(
+                              canonicalCore.personModel.appliedProfile.workStyleProfile
+                                .leverageMoves,
+                              4,
+                              160
+                            ),
+                          },
+                          moneyStyleProfile: {
+                            summary: trimText(
+                              canonicalCore.personModel.appliedProfile.moneyStyleProfile.summary,
+                              180
+                            ),
+                            controlRules: trimList(
+                              canonicalCore.personModel.appliedProfile.moneyStyleProfile
+                                .controlRules,
+                              4,
+                              160
+                            ),
+                          },
+                          environmentProfile: {
+                            summary: trimText(
+                              canonicalCore.personModel.appliedProfile.environmentProfile.summary,
+                              180
+                            ),
+                          },
+                        }
+                      : undefined,
+                    eventOutlook: canonicalCore.personModel.eventOutlook
+                      ?.map((item) => ({
+                        key: item.key,
+                        label: trimText(item.label, 80),
+                        domain: trimText(item.domain, 24),
+                        status: item.status,
+                        readiness: item.readiness,
+                        bestWindow: trimText(item.bestWindow, 40),
+                        summary: trimText(item.summary, 180),
+                        entryConditions: trimList(item.entryConditions, 4, 160),
+                        abortConditions: trimList(item.abortConditions, 4, 160),
+                        nextMove: trimText(item.nextMove, 180),
+                      }))
+                      .slice(0, 6),
+                  }
+                : undefined,
             }
           : undefined,
         evidence: compactEvidence,
