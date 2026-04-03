@@ -705,6 +705,86 @@ describe('/api/calendar/save', () => {
         })
       })
 
+      it('should persist single-subject interpretation into saved summary and guidance fields', async () => {
+        ;(prisma.savedCalendarDate.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
+          id: 'saved-interpretation-1',
+        })
+
+        const data = {
+          ...validCalendarData,
+          canonicalCore: {
+            singleSubjectView: {
+              directAnswer: 'This is a career-entry phase, not a wait-and-see phase.',
+              actionAxis: {
+                nowAction: 'Submit two targeted applications',
+              },
+              riskAxis: {
+                warning: 'Lower overwork risk first.',
+                hardStops: ['Sleep collapse'],
+              },
+              branches: [
+                {
+                  summary: 'Structured roles open first.',
+                  nextMove: 'Shortlist two roles first.',
+                },
+              ],
+              abortConditions: ['Cash pressure spikes'],
+              nextMove: 'Submit two targeted applications',
+            },
+            personModel: {
+              domainStateGraph: [
+                {
+                  thesis: 'Career is the domain to convert into visible moves now.',
+                  firstMove: 'Submit two targeted applications',
+                  holdMove: 'Avoid vague roles.',
+                },
+              ],
+              eventOutlook: [
+                {
+                  summary: 'Entry is open if the role is clearly defined.',
+                  nextMove: 'Shortlist two roles first.',
+                  abortConditions: ['Cash pressure spikes'],
+                },
+              ],
+            },
+          },
+          presentation: {
+            daySummary: {
+              summary: 'Today favors visible career movement.',
+            },
+          },
+        }
+
+        const req = new NextRequest('http://localhost:3000/api/calendar/save', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        })
+
+        const { POST } = await import('@/app/api/calendar/save/route')
+        const response = await POST(req)
+
+        expect(response.status).toBe(200)
+        expect(prisma.savedCalendarDate.upsert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            create: expect.objectContaining({
+              summary: 'This is a career-entry phase, not a wait-and-see phase.',
+              recommendations: expect.arrayContaining([
+                'Submit two targeted applications',
+                'Shortlist two roles first.',
+              ]),
+              warnings: expect.arrayContaining([
+                'Lower overwork risk first.',
+                'Sleep collapse',
+                'Cash pressure spikes',
+              ]),
+            }),
+            update: expect.objectContaining({
+              summary: 'This is a career-entry phase, not a wait-and-see phase.',
+            }),
+          })
+        )
+      })
+
       it('should use default locale "ko" when not provided', async () => {
         ;(prisma.savedCalendarDate.upsert as ReturnType<typeof vi.fn>).mockResolvedValue({
           id: 'saved-123',

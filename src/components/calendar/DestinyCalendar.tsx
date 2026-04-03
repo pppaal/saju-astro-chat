@@ -114,8 +114,14 @@ function buildFallbackCalendarData(year: number, locale: string): CalendarData {
     summary,
     allDates,
     topDates: [...allDates].sort(sortByScoreDesc).slice(0, 10),
-    goodDates: allDates.filter((d) => d.grade <= 2).sort(sortByScoreDesc).slice(0, 30),
-    cautionDates: allDates.filter((d) => d.grade >= 3).sort(sortByScoreAsc).slice(0, 30),
+    goodDates: allDates
+      .filter((d) => d.grade <= 2)
+      .sort(sortByScoreDesc)
+      .slice(0, 30),
+    cautionDates: allDates
+      .filter((d) => d.grade >= 3)
+      .sort(sortByScoreAsc)
+      .slice(0, 30),
   }
 }
 
@@ -295,9 +301,9 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
 
           const serverMessage =
             json && typeof json === 'object'
-              ? ((json as { error?: { message?: string }; message?: string }).error?.message ||
-                  (json as { message?: string }).message ||
-                  '')
+              ? (json as { error?: { message?: string }; message?: string }).error?.message ||
+                (json as { message?: string }).message ||
+                ''
               : ''
           setData(null)
           setHasBirthInfo(true)
@@ -468,6 +474,14 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
           birthTime: birthInfo.birthTime,
           birthPlace: birthInfo.birthPlace,
           locale,
+          canonicalCore: data?.canonicalCore,
+          presentation: data
+            ? {
+                daySummary: data.daySummary,
+                weekSummary: data.weekSummary,
+                monthSummary: data.monthSummary,
+              }
+            : undefined,
         }),
       })
 

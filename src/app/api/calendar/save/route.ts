@@ -45,6 +45,140 @@ const toStringArray = (value: unknown): string[] => {
 
 const normalizeBirthField = (value?: string | null): string => value?.trim() || ''
 
+const cleanText = (value: unknown, max = 220): string => {
+  if (typeof value !== 'string') return ''
+  return value.replace(/\s+/g, ' ').trim().slice(0, max)
+}
+
+const compactLines = (input: unknown, maxItems = 4, maxText = 220): string[] => {
+  if (!Array.isArray(input)) return []
+  return Array.from(
+    new Set(
+      input
+        .map((item) => cleanText(item, maxText))
+        .filter((item): item is string => item.length > 0)
+    )
+  ).slice(0, maxItems)
+}
+
+const compactBranchLines = (input: unknown): string[] => {
+  if (!Array.isArray(input)) return []
+  return input
+    .flatMap((item) => {
+      if (!item || typeof item !== 'object') return []
+      const branch = item as {
+        summary?: unknown
+        nextMove?: unknown
+        entryConditions?: unknown
+        abortConditions?: unknown
+      }
+      return [
+        cleanText(branch.summary, 180),
+        cleanText(branch.nextMove, 180),
+        ...compactLines(branch.entryConditions, 2, 160),
+        ...compactLines(branch.abortConditions, 2, 160),
+      ]
+    })
+    .filter(Boolean)
+    .slice(0, 6)
+}
+
+function buildSavedInterpretationSnapshot(rawBody: unknown) {
+  if (!rawBody || typeof rawBody !== 'object') return null
+  const input = rawBody as {
+    summary?: unknown
+    recommendations?: unknown
+    warnings?: unknown
+    canonicalCore?: {
+      singleSubjectView?: {
+        directAnswer?: unknown
+        actionAxis?: { nowAction?: unknown; whyThisFirst?: unknown }
+        riskAxis?: { warning?: unknown; hardStops?: unknown }
+        timingState?: { whyNow?: unknown; whyNotYet?: unknown }
+        branches?: unknown
+        entryConditions?: unknown
+        abortConditions?: unknown
+        nextMove?: unknown
+      }
+      personModel?: {
+        domainStateGraph?: unknown
+        eventOutlook?: unknown
+      }
+    }
+    presentation?: {
+      daySummary?: { summary?: unknown }
+    }
+  }
+
+  const singleSubjectView = input.canonicalCore?.singleSubjectView
+  const personModel = input.canonicalCore?.personModel
+
+  const domainStateLines = Array.isArray(personModel?.domainStateGraph)
+    ? personModel.domainStateGraph.flatMap((item) => {
+        if (!item || typeof item !== 'object') return []
+        const state = item as { thesis?: unknown; firstMove?: unknown; holdMove?: unknown }
+        return [
+          cleanText(state.thesis, 180),
+          cleanText(state.firstMove, 180),
+          cleanText(state.holdMove, 180),
+        ]
+      })
+    : []
+
+  const eventLines = Array.isArray(personModel?.eventOutlook)
+    ? personModel.eventOutlook.flatMap((item) => {
+        if (!item || typeof item !== 'object') return []
+        const event = item as {
+          summary?: unknown
+          nextMove?: unknown
+          entryConditions?: unknown
+          abortConditions?: unknown
+        }
+        return [
+          cleanText(event.summary, 180),
+          cleanText(event.nextMove, 180),
+          ...compactLines(event.entryConditions, 2, 160),
+          ...compactLines(event.abortConditions, 2, 160),
+        ]
+      })
+    : []
+
+  const summary =
+    cleanText(singleSubjectView?.directAnswer, 240) ||
+    cleanText(input.presentation?.daySummary?.summary, 240) ||
+    cleanText(input.summary, 240)
+
+  const recommendations = Array.from(
+    new Set(
+      [
+        cleanText(singleSubjectView?.actionAxis?.nowAction, 180),
+        cleanText(singleSubjectView?.nextMove, 180),
+        ...compactBranchLines(singleSubjectView?.branches),
+        ...domainStateLines,
+        ...eventLines,
+        ...compactLines(input.recommendations, 4, 180),
+      ].filter(Boolean)
+    )
+  ).slice(0, 6)
+
+  const warnings = Array.from(
+    new Set(
+      [
+        cleanText(singleSubjectView?.riskAxis?.warning, 180),
+        ...compactLines(singleSubjectView?.riskAxis?.hardStops, 3, 160),
+        ...compactLines(singleSubjectView?.abortConditions, 3, 160),
+        ...compactLines(input.warnings, 4, 180),
+      ].filter(Boolean)
+    )
+  ).slice(0, 6)
+
+  return {
+    summary,
+    recommendations,
+    warnings,
+  }
+}
+
 const hasProfileConflict = (
   existing: {
     birthDate: string | null
@@ -116,10 +250,16 @@ export const POST = withApiMiddleware(
         locale = 'ko',
       } = body
 
+      const savedInterpretation = buildSavedInterpretationSnapshot(rawBody)
+
       const normalizedSajuFactors = toJsonObjectOrArray(sajuFactors, [])
       const normalizedAstroFactors = toJsonObjectOrArray(astroFactors, [])
-      const normalizedRecommendations = toStringArray(recommendations)
-      const normalizedWarnings = toStringArray(warnings)
+      const normalizedRecommendations = savedInterpretation?.recommendations?.length
+        ? savedInterpretation.recommendations
+        : toStringArray(recommendations)
+      const normalizedWarnings = savedInterpretation?.warnings?.length
+        ? savedInterpretation.warnings
+        : toStringArray(warnings)
       const normalizedBirthDate = normalizeBirthField(birthDate)
       const normalizedBirthTime = normalizeBirthField(birthTime)
       const normalizedBirthPlace = normalizeBirthField(birthPlace)
@@ -165,7 +305,7 @@ export const POST = withApiMiddleware(
           score,
           title,
           description: description || '',
-          summary: summary || '',
+          summary: savedInterpretation?.summary || summary || '',
           categories: categories || [],
           bestTimes: bestTimes && bestTimes.length > 0 ? bestTimes : [],
           sajuFactors: normalizedSajuFactors,
@@ -185,7 +325,7 @@ export const POST = withApiMiddleware(
           score,
           title,
           description: description || '',
-          summary: summary || '',
+          summary: savedInterpretation?.summary || summary || '',
           categories: categories || [],
           bestTimes: bestTimes && bestTimes.length > 0 ? bestTimes : [],
           sajuFactors: normalizedSajuFactors,
