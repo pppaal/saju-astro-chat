@@ -209,10 +209,13 @@ function buildAgreementCardData(input: {
     const contradictionPct = Math.round((picked.cell.contradiction || 0) * 100)
     const leadLag = picked.cell.leadLag ?? picked.row.leadLag ?? 0
     const windowLabel = localizeWindowToken(picked.scale, locale)
-    const tagKo =
-      agreementPct >= 75 ? '합의 강함' : agreementPct >= 60 ? '합의 보통' : '충돌 주의'
+    const tagKo = agreementPct >= 75 ? '합의 강함' : agreementPct >= 60 ? '합의 보통' : '충돌 주의'
     const tagEn =
-      agreementPct >= 75 ? 'Strong alignment' : agreementPct >= 60 ? 'Mixed alignment' : 'Conflict watch'
+      agreementPct >= 75
+        ? 'Strong alignment'
+        : agreementPct >= 60
+          ? 'Mixed alignment'
+          : 'Conflict watch'
     if (locale === 'ko') {
       const alignment =
         agreementPct >= 75
@@ -280,7 +283,8 @@ function buildAgreementCardData(input: {
       details: [],
       visual: {
         kind: 'agreement',
-        agreementPercent: typeof fallbackAgreementPercent === 'number' ? fallbackAgreementPercent : 50,
+        agreementPercent:
+          typeof fallbackAgreementPercent === 'number' ? fallbackAgreementPercent : 50,
         contradictionPercent: 40,
         leadLagState: 'balanced',
       },
@@ -359,8 +363,12 @@ function buildBranchCardData(input: {
           : mode === 'weak_both'
             ? '지금은 진입보다 관찰과 정리가 우선입니다.'
             : '한 경로만 밀기보다 조건형으로 읽어야 합니다.'
-    const entryLead = entry ? `들어가도 되는 조건: ${entry}` : '들어가도 되는 조건: 핵심 조건부터 맞춘 뒤 움직이기'
-    const abortLead = abort ? `멈춰야 하는 조건: ${abort}` : '멈춰야 하는 조건: 충돌 신호가 커지면 속도 줄이기'
+    const entryLead = entry
+      ? `들어가도 되는 조건: ${entry}`
+      : '들어가도 되는 조건: 핵심 조건부터 맞춘 뒤 움직이기'
+    const abortLead = abort
+      ? `멈춰야 하는 조건: ${abort}`
+      : '멈춰야 하는 조건: 충돌 신호가 커지면 속도 줄이기'
     return {
       summary:
         projectionBranch || `${actionDomainLabel} 축은 하나의 답보다 여러 경로를 함께 봐야 합니다.`,
@@ -391,8 +399,12 @@ function buildBranchCardData(input: {
         : mode === 'weak_both'
           ? 'Observation and reset matter more than entry right now.'
           : 'Read this through multiple live branches rather than one fixed path.'
-  const entryLead = entry ? `Entry condition: ${entry}` : 'Entry condition: line up the core conditions first'
-  const abortLead = abort ? `Abort signal: ${abort}` : 'Abort signal: slow down when conflict pressure grows'
+  const entryLead = entry
+    ? `Entry condition: ${entry}`
+    : 'Entry condition: line up the core conditions first'
+  const abortLead = abort
+    ? `Abort signal: ${abort}`
+    : 'Abort signal: slow down when conflict pressure grows'
   return {
     summary:
       projectionBranch ||
@@ -825,6 +837,20 @@ export function buildCalendarPresentationView(input: {
   const topDomains = prioritizeTopDomains(rawTopDomains, focusDomain).slice(0, 3)
   const focusDomainLabel = getDomainLabel(focusDomain, locale)
   const actionFocusDomainLabel = getDomainLabel(actionFocusDomain, locale)
+  const singleSubjectView = canonicalCore?.singleSubjectView
+  const personModel = canonicalCore?.personModel
+  const focusPersonState =
+    personModel?.domainStateGraph?.find(
+      (item) => mapCoreDomainToPresentationDomain(item.domain) === focusDomain
+    ) || personModel?.domainStateGraph?.[0]
+  const actionPersonState =
+    personModel?.domainStateGraph?.find(
+      (item) => mapCoreDomainToPresentationDomain(item.domain) === actionFocusDomain
+    ) || focusPersonState
+  const actionEvent =
+    personModel?.eventOutlook?.find(
+      (item) => mapCoreDomainToPresentationDomain(item.domain) === actionFocusDomain
+    ) || personModel?.eventOutlook?.[0]
   const detailSelected = pickDomainAlignedDate(allDates, focusDomain, selected)
   const canonicalAdvisories =
     canonicalCore?.advisories?.filter(
@@ -915,6 +941,23 @@ export function buildCalendarPresentationView(input: {
     canonicalCore?.projections?.branches?.detailLines?.[0] ||
     canonicalCore?.projections?.branches?.summary ||
     ''
+  const singleSubjectTimingSummary = dedupe(
+    [
+      singleSubjectView?.timingState?.bestWindow
+        ? locale === 'ko'
+          ? `강한 창 ${singleSubjectView.timingState.bestWindow}`
+          : `Best window ${singleSubjectView.timingState.bestWindow}`
+        : '',
+      singleSubjectView?.timingState?.whyNow || '',
+      singleSubjectView?.timingState?.whyNotYet || '',
+    ].filter(Boolean)
+  ).join(' ')
+  const singleSubjectBranchSummary = dedupe(
+    [
+      singleSubjectView?.branches?.[0]?.summary || '',
+      singleSubjectView?.branches?.[0]?.nextMove || '',
+    ].filter(Boolean)
+  ).join(' ')
   const crossConflictText = describeSajuAstroConflictByDomain({
     crossAgreement: canonicalCore?.crossAgreement,
     focusDomainLabel,
@@ -922,7 +965,9 @@ export function buildCalendarPresentationView(input: {
   })
 
   const timingSignals = dedupe([
+    singleSubjectTimingSummary,
     projectionTiming,
+    singleSubjectBranchSummary,
     projectionBranch,
     ...canonicalTimingWindows.map((item) =>
       describeTimingWindowBrief({
@@ -940,6 +985,9 @@ export function buildCalendarPresentationView(input: {
     ...(detailSelected.timingSignals || []),
   ]).slice(0, 4)
   const cautions = dedupe([
+    singleSubjectView?.riskAxis?.warning || '',
+    ...(singleSubjectView?.abortConditions || []),
+    actionEvent?.abortConditions?.[0] || '',
     projectionConflict,
     projectionRisk,
     ...canonicalAdvisories.map((item) => item.caution),
@@ -949,6 +997,10 @@ export function buildCalendarPresentationView(input: {
     ...(detailSelected.warnings || []),
   ]).slice(0, 3)
   const baseActions = dedupe([
+    singleSubjectView?.actionAxis?.nowAction || '',
+    singleSubjectView?.nextMove || '',
+    actionPersonState?.firstMove || '',
+    actionEvent?.nextMove || '',
     projectionAction,
     canonicalCore?.topDecisionLabel || '',
     ...(canonicalCore?.judgmentPolicy.allowedActionLabels || []),
@@ -962,6 +1014,9 @@ export function buildCalendarPresentationView(input: {
     : baseActions
 
   const actionCardSummary =
+    singleSubjectView?.actionAxis?.nowAction ||
+    actionEvent?.nextMove ||
+    actionPersonState?.firstMove ||
     projectionAction ||
     canonicalCore?.topDecisionLabel ||
     canonicalCore?.primaryAction ||
@@ -970,6 +1025,8 @@ export function buildCalendarPresentationView(input: {
       ? `${actionFocusDomainLabel} 축은 지금 작은 실행보다 기준 정리를 먼저 하는 편이 낫습니다.`
       : `${actionFocusDomainLabel} works better through clarified criteria than broad execution right now.`)
   const riskCardSummary =
+    singleSubjectView?.riskAxis?.warning ||
+    actionPersonState?.holdMove ||
     projectionRisk ||
     cautions[0] ||
     (locale === 'ko'
@@ -988,6 +1045,7 @@ export function buildCalendarPresentationView(input: {
     fallbackConflictText: crossConflictText,
   })
   const windowCardSummary =
+    singleSubjectTimingSummary ||
     timingSignals[0] ||
     (canonicalTimingWindows[0]
       ? describeTimingWindowBrief({
@@ -1007,7 +1065,7 @@ export function buildCalendarPresentationView(input: {
   const branchCard = buildBranchCardData({
     locale,
     actionDomainLabel: actionFocusDomainLabel,
-    projectionBranch,
+    projectionBranch: singleSubjectBranchSummary || projectionBranch,
     actionTimingWindow,
   })
   const surfaceCards: SurfaceCard[] = [
@@ -1043,6 +1101,9 @@ export function buildCalendarPresentationView(input: {
   ]
 
   const daySummaryText =
+    singleSubjectView?.directAnswer ||
+    actionPersonState?.thesis ||
+    actionEvent?.summary ||
     (canonicalTimingWindows[0]
       ? describeTimingWindowBrief({
           domainLabel: focusDomainLabel,
@@ -1111,9 +1172,19 @@ export function buildCalendarPresentationView(input: {
           .join(', ')}.`
     : ''
   const projectionDayLead = [projectionStructure, projectionTiming].filter(Boolean).join(' ')
-  const projectionBranchLead = projectionBranch
-  const projectionRiskLead = [projectionConflict, projectionRisk].filter(Boolean).join(' ')
-  const projectionActionLead = projectionAction
+  const projectionBranchLead = singleSubjectBranchSummary || projectionBranch
+  const projectionRiskLead = [
+    singleSubjectView?.riskAxis?.warning || '',
+    projectionConflict,
+    projectionRisk,
+  ]
+    .filter(Boolean)
+    .join(' ')
+  const projectionActionLead =
+    singleSubjectView?.nextMove ||
+    singleSubjectView?.actionAxis?.nowAction ||
+    actionEvent?.nextMove ||
+    projectionAction
 
   const daySummary: DaySummary = {
     date: selected.date,
