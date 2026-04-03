@@ -10,6 +10,8 @@ import type { ReportEvidenceRef } from '@/lib/destiny-matrix/ai-report/evidenceR
 import type {
   AdapterBranchCandidate,
   AdapterMatrixViewRow,
+  AdapterPersonModel,
+  AdapterSingleSubjectView,
   AdapterSingleUserModel,
 } from '@/lib/destiny-matrix/core/adaptersTypes'
 import type {
@@ -104,6 +106,8 @@ export interface CounselorEvidencePacket {
   matrixView?: AdapterMatrixViewRow[]
   branchSet?: AdapterBranchCandidate[]
   singleUserModel?: AdapterSingleUserModel
+  singleSubjectView?: AdapterSingleSubjectView
+  personModel?: AdapterPersonModel
   timingMatrix?: Array<{
     domain: string
     label: string
@@ -233,6 +237,7 @@ type CounselorEvidencePacketLike = {
   matrixView?: CounselorEvidencePacket['matrixView']
   branchSet?: CounselorEvidencePacket['branchSet']
   singleUserModel?: CounselorEvidencePacket['singleUserModel']
+  singleSubjectView?: CounselorEvidencePacket['singleSubjectView']
   timingMatrix?: CounselorEvidencePacket['timingMatrix']
   verdict?: string
   guardrail?: string
@@ -369,9 +374,7 @@ function buildDomainSpecificWhyReasons(input: {
         answerThesis ||
         graphFocusReason ||
         '??? ???? ?? ??? ?? ??? ?? ??? ????? ????.',
-      graph:
-        graphReason ||
-        '?? ??? ?? ???? ?? ??? ?? ??? ?? ?????.',
+      graph: graphReason || '?? ??? ?? ???? ?? ??? ?? ??? ?? ?????.',
     },
     career: {
       saju:
@@ -389,9 +392,7 @@ function buildDomainSpecificWhyReasons(input: {
         answerThesis ||
         graphFocusReason ||
         '???? ?? ???? ?? ??? ?? ??? ?? ???? ??? ?????.',
-      graph:
-        graphReason ||
-        '?? ?? ??? ?? ???? ?? ???? ?? ?? ??? ?? ?????.',
+      graph: graphReason || '?? ?? ??? ?? ???? ?? ???? ?? ?? ??? ?? ?????.',
     },
     wealth: {
       saju:
@@ -409,9 +410,7 @@ function buildDomainSpecificWhyReasons(input: {
         answerThesis ||
         graphFocusReason ||
         '??? ?? ???? ??, ??, ?? ??? ?? ??? ?? ??? ??? ????.',
-      graph:
-        graphReason ||
-        '?? ?? ??? ???? ?? ??, ????, ?? ??? ?? ?? ??? ??? ?? ???.',
+      graph: graphReason || '?? ?? ??? ???? ?? ??, ????, ?? ??? ?? ?? ??? ??? ?? ???.',
     },
     health: {
       saju:
@@ -429,9 +428,7 @@ function buildDomainSpecificWhyReasons(input: {
         answerThesis ||
         graphFocusReason ||
         '??? ??? ????? ??? ?? ??? ??? ??? ???? ??? ??? ????.',
-      graph:
-        graphReason ||
-        '?? ?? ??? ???? ?? ??, ?? ??, ?? ??? ?? ?? ??? ??? ?? ????.',
+      graph: graphReason || '?? ?? ??? ???? ?? ??, ?? ??, ?? ??? ?? ?? ??? ??? ?? ????.',
     },
     move: {
       saju:
@@ -449,9 +446,7 @@ function buildDomainSpecificWhyReasons(input: {
         answerThesis ||
         graphFocusReason ||
         '??? ? ?? ???? ??? ??? ??? ??? ?? ???? ??? ??? ????.',
-      graph:
-        graphReason ||
-        '?? ?? ??? ???? ?? ???, ?? ??, ?? ???? ?? ???? ??? ?? ???.',
+      graph: graphReason || '?? ?? ??? ???? ?? ???, ?? ??, ?? ???? ?? ???? ??? ?? ???.',
     },
     timing: {
       saju:
@@ -469,9 +464,7 @@ function buildDomainSpecificWhyReasons(input: {
         answerThesis ||
         graphFocusReason ||
         '???? ?? ??? ???? ??? ??? ?? ??? ??? ???? ??? ??? ????.',
-      graph:
-        graphReason ||
-        '?? ?? ??? ????? ??? ??? ??? ? ??? ?? ??? ??? ?? ????.',
+      graph: graphReason || '?? ?? ??? ????? ??? ??? ??? ? ??? ?? ??? ??? ?? ????.',
     },
     personality: {
       saju:
@@ -489,9 +482,7 @@ function buildDomainSpecificWhyReasons(input: {
         answerThesis ||
         graphFocusReason ||
         '??? ??? ??? ?? ??, ??? ????? ?? ??? ??? ????.',
-      graph:
-        graphReason ||
-        '?? ?? ??? ???? ???? ?? ??? ? ??? ?? ? ???? ??? ?? ???.',
+      graph: graphReason || '?? ?? ??? ???? ???? ?? ??? ? ??? ?? ? ???? ??? ?? ???.',
     },
     spirituality: {
       saju:
@@ -509,9 +500,7 @@ function buildDomainSpecificWhyReasons(input: {
         answerThesis ||
         graphFocusReason ||
         '?? ??? ??? ???? ??? ?? ????? ??? ??? ??? ??? ????.',
-      graph:
-        graphReason ||
-        '?? ?? ??? ?? ???? ?? ??? ?? ??? ?? ? ???? ??? ?? ???.',
+      graph: graphReason || '?? ?? ??? ?? ???? ?? ??? ?? ??? ?? ? ???? ??? ?? ???.',
     },
   }
 
@@ -729,9 +718,7 @@ function buildScenarioActionHints(scenarioIds: string[], lang: 'ko' | 'en'): str
       hints.add(lang === 'ko' ? '????? ?? ???' : 'reset the boundary')
     }
     if (/commitment_preparation/.test(key)) {
-      hints.add(
-        lang === 'ko' ? '??? ??? ?? ???? ???' : 'prepare before defining commitment'
-      )
+      hints.add(lang === 'ko' ? '??? ??? ?? ???? ???' : 'prepare before defining commitment')
     }
     if (/route_recheck/.test(key)) {
       hints.add(lang === 'ko' ? '???? ?? ????' : 'recheck the route first')
@@ -743,11 +730,7 @@ function buildScenarioActionHints(scenarioIds: string[], lang: 'ko' | 'en'): str
       hints.add(lang === 'ko' ? '???? ?? ????' : 'reset the base of operations')
     }
     if (/lease_decision/.test(key)) {
-      hints.add(
-        lang === 'ko'
-          ? '?? ???? ?? ????'
-          : 'renegotiate the lease terms'
-      )
+      hints.add(lang === 'ko' ? '?? ???? ?? ????' : 'renegotiate the lease terms')
     }
     if (/promotion_review/.test(key)) {
       hints.add(lang === 'ko' ? '??/?? ???? ?? ????' : 'review the promotion case first')
@@ -756,17 +739,13 @@ function buildScenarioActionHints(scenarioIds: string[], lang: 'ko' | 'en'): str
       hints.add(lang === 'ko' ? '???? ?? ????' : 'negotiate the terms first')
     }
     if (/debt_restructure/.test(key)) {
-      hints.add(
-        lang === 'ko' ? '?? ?? ?? ???? ?????' : 'restructure the debt before expanding'
-      )
+      hints.add(lang === 'ko' ? '?? ?? ?? ???? ?????' : 'restructure the debt before expanding')
     }
     if (/capital_allocation/.test(key)) {
       hints.add(lang === 'ko' ? '?? ???? ?? ????' : 'review capital allocation first')
     }
     if (/recovery_reset|recovery_compliance/.test(key)) {
-      hints.add(
-        lang === 'ko' ? '?? ???? ?? ???' : 'restore the recovery routine first'
-      )
+      hints.add(lang === 'ko' ? '?? ???? ?? ???' : 'restore the recovery routine first')
     }
   }
   return [...hints].slice(0, 3)
@@ -778,8 +757,7 @@ function buildPacketGuardrail(
 ): string {
   if (lang === 'ko') {
     if (phase === 'expansion') return '??? ?? ???, ?? ? ?? ??? ? ? ? ?????.'
-    if (phase === 'high_tension_expansion')
-      return '??? ??? ??, ?, ???? ?? ?????.'
+    if (phase === 'high_tension_expansion') return '??? ??? ??, ?, ???? ?? ?????.'
     if (phase === 'expansion_guarded') return '?????? ?? ??? ?? ??? ????.'
     if (phase === 'stabilize') return '? ???? ?? ??? ?? ??? ?????.'
     return '??, ??, ?? ???? ?? ?? ?? ??? ????.'
@@ -917,17 +895,11 @@ export function buildCounselorEvidencePacket(params: {
       preferredDomain,
       params.lang
     ),
-    compactCounselorNarrative(
-      verdictContext || counselorCore?.answerThesis,
-      params.lang,
-      2
-    ),
-    prefersScenarioActionLead ? compactCounselorNarrative(scenarioActionHints[0], params.lang, 1) : undefined,
-    compactCounselorNarrative(
-      verdictTimingLine || topManifestation?.manifestation,
-      params.lang,
-      2
-    ),
+    compactCounselorNarrative(verdictContext || counselorCore?.answerThesis, params.lang, 2),
+    prefersScenarioActionLead
+      ? compactCounselorNarrative(scenarioActionHints[0], params.lang, 1)
+      : undefined,
+    compactCounselorNarrative(verdictTimingLine || topManifestation?.manifestation, params.lang, 2),
     counselorCore ? undefined : topClaimText,
   ])
 
@@ -1123,6 +1095,277 @@ export function buildCounselorEvidencePacket(params: {
           })),
         }
       : undefined,
+    singleSubjectView: counselorCore?.singleSubjectView
+      ? {
+          directAnswer: sanitizeCounselorFreeText(
+            counselorCore.singleSubjectView.directAnswer,
+            params.lang
+          ),
+          structureAxis: {
+            ...counselorCore.singleSubjectView.structureAxis,
+            label: sanitizeCounselorFreeText(
+              counselorCore.singleSubjectView.structureAxis.label,
+              params.lang
+            ),
+            thesis: sanitizeCounselorFreeText(
+              counselorCore.singleSubjectView.structureAxis.thesis,
+              params.lang
+            ),
+            topAxes: sanitizeCounselorTextList(
+              counselorCore.singleSubjectView.structureAxis.topAxes || [],
+              params.lang
+            ),
+          },
+          actionAxis: {
+            ...counselorCore.singleSubjectView.actionAxis,
+            label: sanitizeCounselorFreeText(
+              counselorCore.singleSubjectView.actionAxis.label,
+              params.lang
+            ),
+            nowAction: sanitizeCounselorFreeText(
+              counselorCore.singleSubjectView.actionAxis.nowAction,
+              params.lang
+            ),
+            whyThisFirst: sanitizeCounselorFreeText(
+              counselorCore.singleSubjectView.actionAxis.whyThisFirst,
+              params.lang
+            ),
+          },
+          riskAxis: {
+            ...counselorCore.singleSubjectView.riskAxis,
+            label: sanitizeCounselorFreeText(
+              counselorCore.singleSubjectView.riskAxis.label,
+              params.lang
+            ),
+            warning: sanitizeCounselorFreeText(
+              counselorCore.singleSubjectView.riskAxis.warning,
+              params.lang
+            ),
+            hardStops: sanitizeCounselorTextList(
+              counselorCore.singleSubjectView.riskAxis.hardStops || [],
+              params.lang
+            ),
+          },
+          timingState: {
+            ...counselorCore.singleSubjectView.timingState,
+            bestWindow: sanitizeCounselorFreeText(
+              counselorCore.singleSubjectView.timingState.bestWindow,
+              params.lang
+            ),
+            whyNow: sanitizeCounselorFreeText(
+              counselorCore.singleSubjectView.timingState.whyNow || '',
+              params.lang
+            ),
+            whyNotYet: sanitizeCounselorFreeText(
+              counselorCore.singleSubjectView.timingState.whyNotYet || '',
+              params.lang
+            ),
+            windows: counselorCore.singleSubjectView.timingState.windows.map((window) => ({
+              ...window,
+              summary: sanitizeCounselorFreeText(window.summary, params.lang),
+            })),
+          },
+          competingPressures: counselorCore.singleSubjectView.competingPressures.map(
+            (pressure) => ({
+              ...pressure,
+              label: sanitizeCounselorFreeText(pressure.label, params.lang),
+              nextWindow: sanitizeCounselorFreeText(pressure.nextWindow || '', params.lang),
+              summary: sanitizeCounselorFreeText(pressure.summary, params.lang),
+            })
+          ),
+          branches: counselorCore.singleSubjectView.branches.map((branch) => ({
+            label: sanitizeCounselorFreeText(branch.label, params.lang),
+            summary: sanitizeCounselorFreeText(branch.summary, params.lang),
+            entryConditions: sanitizeCounselorTextList(branch.entryConditions || [], params.lang),
+            abortConditions: sanitizeCounselorTextList(branch.abortConditions || [], params.lang),
+            nextMove: sanitizeCounselorFreeText(branch.nextMove, params.lang),
+          })),
+          entryConditions: sanitizeCounselorTextList(
+            counselorCore.singleSubjectView.entryConditions || [],
+            params.lang
+          ),
+          abortConditions: sanitizeCounselorTextList(
+            counselorCore.singleSubjectView.abortConditions || [],
+            params.lang
+          ),
+          nextMove: sanitizeCounselorFreeText(
+            counselorCore.singleSubjectView.nextMove,
+            params.lang
+          ),
+          confidence: counselorCore.singleSubjectView.confidence,
+          reliability: counselorCore.singleSubjectView.reliability
+            ? {
+                crossAgreement: counselorCore.singleSubjectView.reliability.crossAgreement,
+                contradictionFlags: sanitizeCounselorTextList(
+                  counselorCore.singleSubjectView.reliability.contradictionFlags || [],
+                  params.lang
+                ),
+                notes: sanitizeCounselorTextList(
+                  counselorCore.singleSubjectView.reliability.notes || [],
+                  params.lang
+                ),
+              }
+            : undefined,
+        }
+      : undefined,
+    personModel: counselorCore?.personModel
+      ? {
+          subject: sanitizeCounselorFreeText(counselorCore.personModel.subject, params.lang),
+          overview: sanitizeCounselorFreeText(counselorCore.personModel.overview, params.lang),
+          structuralCore: {
+            ...counselorCore.personModel.structuralCore,
+            overview: sanitizeCounselorFreeText(
+              counselorCore.personModel.structuralCore.overview,
+              params.lang
+            ),
+            latentAxes: sanitizeCounselorTextList(
+              counselorCore.personModel.structuralCore.latentAxes || [],
+              params.lang
+            ),
+          },
+          formationProfile: {
+            ...counselorCore.personModel.formationProfile,
+            summary: sanitizeCounselorFreeText(
+              counselorCore.personModel.formationProfile.summary,
+              params.lang
+            ),
+            repeatedPatternFamilies: sanitizeCounselorTextList(
+              counselorCore.personModel.formationProfile.repeatedPatternFamilies || [],
+              params.lang
+            ),
+            dominantLatentGroups: sanitizeCounselorTextList(
+              counselorCore.personModel.formationProfile.dominantLatentGroups || [],
+              params.lang
+            ),
+            pressureHabits: sanitizeCounselorTextList(
+              counselorCore.personModel.formationProfile.pressureHabits || [],
+              params.lang
+            ),
+            supportHabits: sanitizeCounselorTextList(
+              counselorCore.personModel.formationProfile.supportHabits || [],
+              params.lang
+            ),
+          },
+          timeProfile: {
+            ...counselorCore.personModel.timeProfile,
+            timingNarrative: sanitizeCounselorFreeText(
+              counselorCore.personModel.timeProfile.timingNarrative,
+              params.lang
+            ),
+            windows: counselorCore.personModel.timeProfile.windows.map((window) => ({
+              ...window,
+              label: sanitizeCounselorFreeText(window.label, params.lang),
+              window: sanitizeCounselorFreeText(window.window, params.lang),
+              granularity: sanitizeCounselorFreeText(window.granularity, params.lang),
+              whyNow: sanitizeCounselorFreeText(window.whyNow, params.lang),
+              entryConditions: sanitizeCounselorTextList(window.entryConditions || [], params.lang),
+              abortConditions: sanitizeCounselorTextList(window.abortConditions || [], params.lang),
+            })),
+            activationSources: counselorCore.personModel.timeProfile.activationSources.map(
+              (source) => ({
+                ...source,
+                label: sanitizeCounselorFreeText(source.label, params.lang),
+              })
+            ),
+          },
+          layers: counselorCore.personModel.layers.map((layer) => ({
+            ...layer,
+            label: sanitizeCounselorFreeText(layer.label, params.lang),
+            summary: sanitizeCounselorFreeText(layer.summary, params.lang),
+            bullets: sanitizeCounselorTextList(layer.bullets || [], params.lang),
+          })),
+          dimensions: counselorCore.personModel.dimensions.map((dimension) => ({
+            ...dimension,
+            label: sanitizeCounselorFreeText(dimension.label, params.lang),
+            summary: sanitizeCounselorFreeText(dimension.summary, params.lang),
+          })),
+          domainPortraits: counselorCore.personModel.domainPortraits.map((portrait) => ({
+            ...portrait,
+            label: sanitizeCounselorFreeText(portrait.label, params.lang),
+            summary: sanitizeCounselorFreeText(portrait.summary, params.lang),
+            baselineThesis: sanitizeCounselorFreeText(portrait.baselineThesis, params.lang),
+            activationThesis: sanitizeCounselorFreeText(portrait.activationThesis, params.lang),
+            likelyExpressions: sanitizeCounselorTextList(
+              portrait.likelyExpressions || [],
+              params.lang
+            ),
+            riskExpressions: sanitizeCounselorTextList(portrait.riskExpressions || [], params.lang),
+            allowedActions: sanitizeCounselorTextList(portrait.allowedActions || [], params.lang),
+            blockedActions: sanitizeCounselorTextList(portrait.blockedActions || [], params.lang),
+          })),
+          states: counselorCore.personModel.states.map((state) => ({
+            ...state,
+            label: sanitizeCounselorFreeText(state.label, params.lang),
+            summary: sanitizeCounselorFreeText(state.summary, params.lang),
+            drivers: sanitizeCounselorTextList(state.drivers || [], params.lang),
+            counterweights: sanitizeCounselorTextList(state.counterweights || [], params.lang),
+          })),
+          relationshipProfile: {
+            ...counselorCore.personModel.relationshipProfile,
+            summary: sanitizeCounselorFreeText(
+              counselorCore.personModel.relationshipProfile.summary,
+              params.lang
+            ),
+            partnerArchetypes: sanitizeCounselorTextList(
+              counselorCore.personModel.relationshipProfile.partnerArchetypes || [],
+              params.lang
+            ),
+            inflowPaths: sanitizeCounselorTextList(
+              counselorCore.personModel.relationshipProfile.inflowPaths || [],
+              params.lang
+            ),
+            commitmentConditions: sanitizeCounselorTextList(
+              counselorCore.personModel.relationshipProfile.commitmentConditions || [],
+              params.lang
+            ),
+            breakPatterns: sanitizeCounselorTextList(
+              counselorCore.personModel.relationshipProfile.breakPatterns || [],
+              params.lang
+            ),
+          },
+          careerProfile: {
+            ...counselorCore.personModel.careerProfile,
+            summary: sanitizeCounselorFreeText(
+              counselorCore.personModel.careerProfile.summary,
+              params.lang
+            ),
+            suitableLanes: sanitizeCounselorTextList(
+              counselorCore.personModel.careerProfile.suitableLanes || [],
+              params.lang
+            ),
+            executionStyle: sanitizeCounselorTextList(
+              counselorCore.personModel.careerProfile.executionStyle || [],
+              params.lang
+            ),
+            hiringTriggers: sanitizeCounselorTextList(
+              counselorCore.personModel.careerProfile.hiringTriggers || [],
+              params.lang
+            ),
+            blockers: sanitizeCounselorTextList(
+              counselorCore.personModel.careerProfile.blockers || [],
+              params.lang
+            ),
+          },
+          futureBranches: counselorCore.personModel.futureBranches.map((branch) => ({
+            ...branch,
+            label: sanitizeCounselorFreeText(branch.label, params.lang),
+            summary: sanitizeCounselorFreeText(branch.summary, params.lang),
+            conditions: sanitizeCounselorTextList(branch.conditions || [], params.lang),
+            blockers: sanitizeCounselorTextList(branch.blockers || [], params.lang),
+          })),
+          evidenceLedger: {
+            ...counselorCore.personModel.evidenceLedger,
+            coherenceNotes: sanitizeCounselorTextList(
+              counselorCore.personModel.evidenceLedger.coherenceNotes || [],
+              params.lang
+            ),
+            contradictionFlags: sanitizeCounselorTextList(
+              counselorCore.personModel.evidenceLedger.contradictionFlags || [],
+              params.lang
+            ),
+          },
+        }
+      : undefined,
     timingMatrix: (counselorCore?.timingMatrix || []).slice(0, 4).map((item) => ({
       domain: item.domain,
       label: item.label,
@@ -1174,7 +1417,7 @@ export function buildCounselorEvidencePacket(params: {
       defensePercent: params.strategyEngine.defensePercent,
     },
     canonicalBrief: counselorCore
-        ? buildSanitizedCanonicalBrief({
+      ? buildSanitizedCanonicalBrief({
           counselorCore,
           lang: params.lang,
           topDecisionLeadLabel: topDecisionLeadLabel || undefined,
@@ -1195,7 +1438,7 @@ export function buildCounselorEvidencePacket(params: {
         }
       : undefined,
     topTimingWindow: topTimingWindow
-        ? {
+      ? {
           domain: topTimingWindow.domain,
           window: topTimingWindow.window,
           timingGranularity: topTimingWindow.timingGranularity,
@@ -1243,13 +1486,25 @@ export function buildCounselorEvidencePacket(params: {
       : undefined,
     projections: counselorCore
       ? {
-          structure: sanitizeCounselorProjectionBlock(counselorCore.projections.structure, params.lang),
+          structure: sanitizeCounselorProjectionBlock(
+            counselorCore.projections.structure,
+            params.lang
+          ),
           timing: sanitizeCounselorProjectionBlock(counselorCore.projections.timing, params.lang),
-          conflict: sanitizeCounselorProjectionBlock(counselorCore.projections.conflict, params.lang),
+          conflict: sanitizeCounselorProjectionBlock(
+            counselorCore.projections.conflict,
+            params.lang
+          ),
           action: sanitizeCounselorProjectionBlock(counselorCore.projections.action, params.lang),
           risk: sanitizeCounselorProjectionBlock(counselorCore.projections.risk, params.lang),
-          evidence: sanitizeCounselorProjectionBlock(counselorCore.projections.evidence, params.lang),
-          branches: sanitizeCounselorProjectionBlock(counselorCore.projections.branches, params.lang),
+          evidence: sanitizeCounselorProjectionBlock(
+            counselorCore.projections.evidence,
+            params.lang
+          ),
+          branches: sanitizeCounselorProjectionBlock(
+            counselorCore.projections.branches,
+            params.lang
+          ),
         }
       : undefined,
     whyStack: buildCounselorWhyStack({
@@ -1286,12 +1541,27 @@ export function formatCounselorEvidencePacket(
 ): string {
   if (!packet || !packet.focusDomain) return ''
 
+  const singleSubject = packet.singleSubjectView
   const actionBlock = packet.projections?.action
   const timingBlock = packet.projections?.timing
   const riskBlock = packet.projections?.risk
   const branchBlock = packet.projections?.branches
   const topBranches = (packet.branchSet || []).slice(0, 3)
   const openingWhyLines = (packet.whyStack || []).slice(0, 2)
+  const branchCandidates =
+    (singleSubject?.branches || []).length > 0
+      ? (singleSubject?.branches || []).slice(0, 3).map((branch) => ({
+          summary: branch.summary,
+          entry: branch.entryConditions,
+          abort: branch.abortConditions,
+          nextMove: branch.nextMove,
+        }))
+      : topBranches.map((branch) => ({
+          summary: branch.summary,
+          entry: branch.entry || [],
+          abort: branch.abort || [],
+          nextMove: branch.sustain?.[0] || branch.entry?.[0] || '',
+        }))
   const actionDetails = [
     ...(actionBlock?.detailLines || []).slice(0, 2),
     ...(actionBlock?.nextMoves || []).slice(0, 2),
@@ -1314,31 +1584,41 @@ export function formatCounselorEvidencePacket(
 
   const commonLines = [
     '[Counselor Answer Plan]',
-    `answer=${packet.canonicalBrief?.answerThesis || actionBlock?.summary || 'none'}`,
+    `answer=${singleSubject?.directAnswer || packet.canonicalBrief?.answerThesis || actionBlock?.summary || 'none'}`,
     `action_focus=${packet.canonicalBrief?.actionFocusDomain || packet.focusDomain || 'none'}`,
     `risk_focus=${packet.riskAxisLabel || 'none'}`,
     `top_decision=${packet.canonicalBrief?.topDecisionLabel || packet.canonicalBrief?.topDecisionAction || 'none'}`,
-    `opening_rationale=${openingWhyLines[0] || packet.canonicalBrief?.answerThesis || 'none'}`,
+    `opening_rationale=${singleSubject?.actionAxis.whyThisFirst || openingWhyLines[0] || packet.canonicalBrief?.answerThesis || 'none'}`,
+    `next_move=${singleSubject?.nextMove || actionDetails[0] || 'none'}`,
     '',
     '[Current Read]',
-    ...actionDetails.slice(0, 2).map((line, index) => `current_${index + 1}=${line}`),
-    ...(riskDetails.slice(0, 1).map((line, index) => `current_risk_${index + 1}=${line}`)),
+    `current_direct=${singleSubject?.directAnswer || actionDetails[0] || 'none'}`,
+    `current_why=${singleSubject?.actionAxis.whyThisFirst || actionDetails[1] || openingWhyLines[1] || 'none'}`,
+    `current_risk=${singleSubject?.riskAxis.warning || riskDetails[0] || riskBlock?.summary || packet.guardrail || 'none'}`,
     '',
     '[Timing]',
-    `window=${packet.topTimingWindow?.window || 'none'}`,
-    `conflict=${packet.topTimingWindow?.timingConflictNarrative || timingBlock?.summary || 'none'}`,
+    `window=${singleSubject?.timingState.bestWindow || packet.topTimingWindow?.window || 'none'}`,
+    `why_now=${singleSubject?.timingState.whyNow || packet.topTimingWindow?.whyNow || timingBlock?.summary || 'none'}`,
+    `why_not_yet=${singleSubject?.timingState.whyNotYet || packet.topTimingWindow?.timingConflictNarrative || 'none'}`,
     ...timingDetails.slice(0, 2).map((line, index) => `timing_${index + 1}=${line}`),
     '',
     '[Branch Options]',
-    ...(
-      topBranches.length > 0
-        ? topBranches.flatMap((branch, index) => [
-            `branch_${index + 1}=${branch.summary}`,
-            ...(branch.entry || []).slice(0, 1).map((line) => `branch_${index + 1}_entry=${line}`),
-            ...(branch.abort || []).slice(0, 1).map((line) => `branch_${index + 1}_stop=${line}`),
-          ])
-        : (branchBlock?.detailLines || []).slice(0, 2).map((line, index) => `branch_${index + 1}=${line}`)
-    ),
+    ...(branchCandidates.length > 0
+      ? branchCandidates.flatMap((branch, index) => [
+          `branch_${index + 1}=${branch.summary}`,
+          ...(branch.entry || []).slice(0, 1).map((line) => `branch_${index + 1}_entry=${line}`),
+          ...(branch.abort || []).slice(0, 1).map((line) => `branch_${index + 1}_stop=${line}`),
+          ...(branch.nextMove ? [`branch_${index + 1}_next=${branch.nextMove}`] : []),
+        ])
+      : (branchBlock?.detailLines || [])
+          .slice(0, 2)
+          .map((line, index) => `branch_${index + 1}=${line}`)),
+    '',
+    '[Risk Guardrails]',
+    `risk=${singleSubject?.riskAxis.warning || riskBlock?.summary || packet.guardrail || 'none'}`,
+    ...(singleSubject?.riskAxis.hardStops || [])
+      .slice(0, 2)
+      .map((line, index) => `hard_stop_${index + 1}=${line}`),
     '',
     '[Evidence Cues]',
     ...(keyEvidence.length > 0
@@ -1347,7 +1627,23 @@ export function formatCounselorEvidencePacket(
     '',
   ]
 
+  const responseContractKo = [
+    '- 첫 문장은 질문에 대한 직접 답으로 시작하고, 둘째 문장 안에서 현재 국면을 단정적으로 정리하세요.',
+    '- 첫 두 문장에는 current_direct, current_why, next_move의 핵심을 흡수해 왜 지금 이런 답이 나오는지 바로 이해되게 쓰세요.',
+    '- 다음 문단에서는 structure, timing, why_now, why_not_yet를 함께 설명하고 준비도와 촉발 조건의 어긋남이 있으면 분명히 적으세요.',
+    '- 그 다음 문단에서는 action과 risk를 같이 다루세요. 지금 할 것, 미룰 것, 서두르면 손해인 이유를 분리해서 적으세요.',
+    '- 가능하면 Branch Options를 사용해 2~3개의 현실 경로를 구분하세요. 정답 하나처럼 몰아가지 마세요.',
+    '- 마지막 문단에는 Risk Guardrails와 재확인 기준을 넣으세요. 사인, 확정, 송금, 결제 같은 비가역 행동은 성급히 밀지 마세요.',
+    '- Direct Answer Seed, Timing, Action, Risk, Branch Options, Evidence Cues를 우선 사용하고 엔진 라벨을 그대로 반복하지 마세요.',
+    '- 문체는 상담사처럼 짧고 단정하게 유지하세요. 추상 명사만 늘어놓지 말고 실제 행동 문장으로 마무리하세요.',
+    '- 전체 분량은 650~1100자 사이의 자연스러운 한국어 답변으로 맞추세요.',
+  ]
+
   if (lang === 'ko') {
+    return [...commonLines, '[Response Contract]', ...responseContractKo].join('\n')
+  }
+
+  if (responseContractKo.length < 0) {
     return [
       ...commonLines,
       '[Response Contract]',
@@ -1377,4 +1673,3 @@ export function formatCounselorEvidencePacket(
     '- Prefer Direct Answer Seed, Timing, Action, Risk, Branch Options, and Evidence Cues over raw engine labels.',
   ].join('\n')
 }
-

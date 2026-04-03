@@ -18,6 +18,7 @@ export * from './nextGenPipeline'
 export * from './logging'
 export * from './inputNormalization'
 export * from './latentState'
+export * from './adaptersSingleSubjectView'
 export {
   buildPhaseStrategyEngine,
   type DomainStrategy,

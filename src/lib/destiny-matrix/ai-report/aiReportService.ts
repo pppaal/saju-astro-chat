@@ -124,6 +124,13 @@ import {
   type ReportSectionRendererDeps,
 } from './reportSectionRenderers'
 import {
+  renderComprehensiveFutureOutlookSection as renderComprehensiveFutureOutlookSectionExternal,
+  renderComprehensiveLifeStagesSection as renderComprehensiveLifeStagesSectionExternal,
+  renderComprehensiveSpouseProfileSection as renderComprehensiveSpouseProfileSectionExternal,
+  renderComprehensiveTurningPointsSection as renderComprehensiveTurningPointsSectionExternal,
+  type ReportLifeSectionDeps,
+} from './reportLifeSections'
+import {
   containsBannedPhrase,
   dedupeNarrativeSentences,
   normalizeUserFacingArtifacts,
@@ -133,6 +140,7 @@ import {
   stripBannedPhrases,
 } from './reportNarrativeSanitizer'
 export { sanitizeSectionNarrative } from './reportNarrativeSanitizer'
+import { applyReportBrandVoice, buildReportStyleMetrics } from './reportBrandVoice'
 import {
   buildReportCoreLine,
   capitalizeFirst,
@@ -226,14 +234,40 @@ const RECHECK_REGEX = /verify|recheck|double-check|checklist|review|confirm/i
 const ABSOLUTE_RISK_REGEX = /100%|always|never|guaranteed|certainly|inevitable/i
 const IRREVERSIBLE_ACTION_REGEX =
   /sign|finalize|commit now|book|wedding|invitation|big decision|launch|submit payment/i
-const CAUTION_INDICATOR_REGEX =
-  /caution|risk|warning|recheck|conflict|overreach|fragile/i
-const IMMEDIATE_FORCE_REGEX =
-  /today\s*finalize|sign now|commit now|immediately|rush|right away/i
-const MITIGATION_REGEX =
-  /avoid|before|recheck|verify|defer|hold|slow down|stage/i
-const RECOMMENDATION_TONE_REGEX =
-  /recommended|recommend|should|must|do this|proceed|best move/i
+const CAUTION_INDICATOR_REGEX = /caution|risk|warning|recheck|conflict|overreach|fragile/i
+const IMMEDIATE_FORCE_REGEX = /today\s*finalize|sign now|commit now|immediately|rush|right away/i
+const MITIGATION_REGEX = /avoid|before|recheck|verify|defer|hold|slow down|stage/i
+const RECOMMENDATION_TONE_REGEX = /recommended|recommend|should|must|do this|proceed|best move/i
+
+function isCostOptimizedAiPath(): boolean {
+  const explicit = process.env.AI_BACKEND_COST_OPTIMIZED?.trim().toLowerCase()
+  if (explicit) return explicit === 'true' || explicit === '1' || explicit === 'yes'
+  const provider = process.env.AI_BACKEND_PROVIDER?.trim().toLowerCase()
+  return provider === 'claude' || provider === 'anthropic'
+}
+
+function getAiQualityTier(stage: 'base' | 'repair'): 'fast' | 'quality' {
+  if (!isCostOptimizedAiPath()) return 'quality'
+  return stage === 'base' ? 'fast' : 'quality'
+}
+
+function getEffectiveMaxRepairPasses(plan?: AIUserPlan): number {
+  const base = getMaxRepairPassesByPlan(plan)
+  if (!isCostOptimizedAiPath()) return base
+  return 0
+}
+
+function getCostOptimizedComprehensiveLiveSectionKeys(): Array<keyof AIPremiumReport['sections']> {
+  return [
+    'introduction',
+    'careerPath',
+    'relationshipDynamics',
+    'timingAdvice',
+    'actionPlan',
+    'conclusion',
+  ]
+}
+
 function recordRewriteModeMetric(
   reportType: 'comprehensive' | 'timing' | 'themed',
   modelUsed: string,
@@ -319,24 +353,27 @@ function buildReportQualityMetrics(
     evidenceRefs
   ).violations.some((violation) => violation.unsupportedTokens.length > 0)
 
-  return buildReportQualityMetricsCore({
-    sections,
-    sectionPaths,
-    evidenceRefs,
-    context,
-    minEvidenceRefsPerSection: MIN_EVIDENCE_REFS_PER_SECTION_EXTERNAL,
-    regex: {
-      recheck: RECHECK_REGEX,
-      absoluteRisk: ABSOLUTE_RISK_REGEX,
-      irreversibleAction: IRREVERSIBLE_ACTION_REGEX,
-      cautionIndicator: CAUTION_INDICATOR_REGEX,
-      immediateForce: IMMEDIATE_FORCE_REGEX,
-      mitigation: MITIGATION_REGEX,
-      recommendationTone: RECOMMENDATION_TONE_REGEX,
-    },
-    hasEvidenceSupport,
-    forbiddenAdditionsPass,
-  })
+  return {
+    ...buildReportQualityMetricsCore({
+      sections,
+      sectionPaths,
+      evidenceRefs,
+      context,
+      minEvidenceRefsPerSection: MIN_EVIDENCE_REFS_PER_SECTION_EXTERNAL,
+      regex: {
+        recheck: RECHECK_REGEX,
+        absoluteRisk: ABSOLUTE_RISK_REGEX,
+        irreversibleAction: IRREVERSIBLE_ACTION_REGEX,
+        cautionIndicator: CAUTION_INDICATOR_REGEX,
+        immediateForce: IMMEDIATE_FORCE_REGEX,
+        mitigation: MITIGATION_REGEX,
+        recommendationTone: RECOMMENDATION_TONE_REGEX,
+      },
+      hasEvidenceSupport,
+      forbiddenAdditionsPass,
+    }),
+    ...buildReportStyleMetrics(sections, sectionPaths, 'ko'),
+  }
 }
 
 function recordReportQualityMetrics(
@@ -345,6 +382,19 @@ function recordReportQualityMetrics(
   quality: ReportQualityMetrics
 ) {
   recordReportQualityMetricsCore(reportType, modelUsed, quality)
+}
+
+function applyFinalReportStyle<T extends Record<string, unknown>>(
+  sections: T,
+  sectionPaths: string[],
+  lang: 'ko' | 'en',
+  reportCore: ReportCoreViewModel
+): T {
+  return applyReportBrandVoice(sections, sectionPaths, lang, {
+    focusDomain: reportCore.focusDomain,
+    actionFocusDomain: reportCore.actionFocusDomain,
+    riskAxisLabel: reportCore.riskAxisLabel,
+  }) as T
 }
 
 function attachDeterministicArtifacts(
@@ -471,13 +521,31 @@ function buildReportOutputCoreFields(
     const base = localizeReportFreeText(text)
     if (!base || lang !== 'ko') return base
     return base
-      .replace(/([\uAC00-\uD7A3]+)\s+Expansion Pattern\s+\uD328\uD134\s+\uADFC\uAC70\uAC00\s+\uC720\uC9C0\uB420\s+\uAC83/gi, '$1 \uD655\uC7A5 \uD750\uB984\uC774 \uC720\uC9C0\uB420 \uAC83')
-      .replace(/(.+?)\s+\uC774\uD6C4\uC5D0\uB3C4\s+([\uAC00-\uD7A3]+)\s+Expansion Pattern\s+\uADFC\uAC70\uAC00\s+\uC774\uC5B4\uC9C8\s+\uAC83/gi, '$1 \uC774\uD6C4\uC5D0\uB3C4 $2 \uD655\uC7A5 \uD750\uB984\uC774 \uC774\uC5B4\uC9C8 \uAC83')
+      .replace(
+        /([\uAC00-\uD7A3]+)\s+Expansion Pattern\s+\uD328\uD134\s+\uADFC\uAC70\uAC00\s+\uC720\uC9C0\uB420\s+\uAC83/gi,
+        '$1 \uD655\uC7A5 \uD750\uB984\uC774 \uC720\uC9C0\uB420 \uAC83'
+      )
+      .replace(
+        /(.+?)\s+\uC774\uD6C4\uC5D0\uB3C4\s+([\uAC00-\uD7A3]+)\s+Expansion Pattern\s+\uADFC\uAC70\uAC00\s+\uC774\uC5B4\uC9C8\s+\uAC83/gi,
+        '$1 \uC774\uD6C4\uC5D0\uB3C4 $2 \uD655\uC7A5 \uD750\uB984\uC774 \uC774\uC5B4\uC9C8 \uAC83'
+      )
       .replace(/\bExpansion Pattern\b/gi, '\uD655\uC7A5 \uD750\uB984')
-      .replace(/([\uAC00-\uD7A3]+)\s+(?:\uD655\uC7A5|\uAE34\uC7A5|\uBCC0\uB3D9\uC131)\s+\uD750\uB984\s+\uD328\uD134\s+\uADFC\uAC70\uAC00\s+\uC720\uC9C0\uB420\s+\uAC83/gi, '$1 \uD750\uB984\uC774 \uC720\uC9C0\uB420 \uAC83')
-      .replace(/\uC2DC\uB098\uB9AC\uC624\s+\uD655\uB960\s+[\d.]+%\uC640\s+\uC2E0\uB8B0\uB3C4\s+[\d.]+%\uAC00\s+\uC720\uC9C0\uB420\s+\uAC83/gi, '\uD604\uC7AC \uAC00\uB2A5\uC131\uACFC \uC2E0\uB8B0\uB3C4\uAC00 \uC720\uC9C0\uB420 \uAC83')
-      .replace(/\uD0C0\uC774\uBC0D\s+\uC801\uD569\uB3C4\s+[\d.]+%\s+\uC774\uC0C1\uC5D0\uC11C\s+(.+?)\uB97C\s+\uBC14\uB85C\s+\uC2E4\uD589\uD560\s+\uC218\s+\uC788\uC744\s+\uAC83/gi, '\uD0C0\uC774\uBC0D\uC774 \uCDA9\uBD84\uD788 \uB9DE\uC744 \uB54C $1\uB97C \uC2E4\uD589\uD560 \uC218 \uC788\uC744 \uAC83')
-      .replace(/(.+?)\s+\uC774\uD6C4\uC5D0\uB3C4\s+([\uAC00-\uD7A3]+)\s+\uD750\uB984\s+\uADFC\uAC70\uAC00\s+\uC774\uC5B4\uC9C8\s+\uAC83/gi, '$1 \uC774\uD6C4\uC5D0\uB3C4 $2 \uD750\uB984\uC774 \uC774\uC5B4\uC9C8 \uAC83')
+      .replace(
+        /([\uAC00-\uD7A3]+)\s+(?:\uD655\uC7A5|\uAE34\uC7A5|\uBCC0\uB3D9\uC131)\s+\uD750\uB984\s+\uD328\uD134\s+\uADFC\uAC70\uAC00\s+\uC720\uC9C0\uB420\s+\uAC83/gi,
+        '$1 \uD750\uB984\uC774 \uC720\uC9C0\uB420 \uAC83'
+      )
+      .replace(
+        /\uC2DC\uB098\uB9AC\uC624\s+\uD655\uB960\s+[\d.]+%\uC640\s+\uC2E0\uB8B0\uB3C4\s+[\d.]+%\uAC00\s+\uC720\uC9C0\uB420\s+\uAC83/gi,
+        '\uD604\uC7AC \uAC00\uB2A5\uC131\uACFC \uC2E0\uB8B0\uB3C4\uAC00 \uC720\uC9C0\uB420 \uAC83'
+      )
+      .replace(
+        /\uD0C0\uC774\uBC0D\s+\uC801\uD569\uB3C4\s+[\d.]+%\s+\uC774\uC0C1\uC5D0\uC11C\s+(.+?)\uB97C\s+\uBC14\uB85C\s+\uC2E4\uD589\uD560\s+\uC218\s+\uC788\uC744\s+\uAC83/gi,
+        '\uD0C0\uC774\uBC0D\uC774 \uCDA9\uBD84\uD788 \uB9DE\uC744 \uB54C $1\uB97C \uC2E4\uD589\uD560 \uC218 \uC788\uC744 \uAC83'
+      )
+      .replace(
+        /(.+?)\s+\uC774\uD6C4\uC5D0\uB3C4\s+([\uAC00-\uD7A3]+)\s+\uD750\uB984\s+\uADFC\uAC70\uAC00\s+\uC774\uC5B4\uC9C8\s+\uAC83/gi,
+        '$1 \uC774\uD6C4\uC5D0\uB3C4 $2 \uD750\uB984\uC774 \uC774\uC5B4\uC9C8 \uAC83'
+      )
       .replace(/\s+/g, ' ')
       .trim()
   }
@@ -552,6 +620,200 @@ function buildReportOutputCoreFields(
           })),
         }
       : undefined,
+    singleSubjectView: reportCore.singleSubjectView
+      ? {
+          directAnswer: localizeReportFreeText(reportCore.singleSubjectView.directAnswer),
+          structureAxis: {
+            ...reportCore.singleSubjectView.structureAxis,
+            label: localizeReportFreeText(reportCore.singleSubjectView.structureAxis.label),
+            thesis: localizeReportFreeText(reportCore.singleSubjectView.structureAxis.thesis),
+            topAxes: localizeProjectionList(
+              reportCore.singleSubjectView.structureAxis.topAxes || []
+            ),
+          },
+          actionAxis: {
+            ...reportCore.singleSubjectView.actionAxis,
+            label: localizeReportFreeText(reportCore.singleSubjectView.actionAxis.label),
+            nowAction: localizeReportFreeText(reportCore.singleSubjectView.actionAxis.nowAction),
+            whyThisFirst: localizeReportFreeText(
+              reportCore.singleSubjectView.actionAxis.whyThisFirst
+            ),
+          },
+          riskAxis: {
+            ...reportCore.singleSubjectView.riskAxis,
+            label: localizeReportFreeText(reportCore.singleSubjectView.riskAxis.label),
+            warning: localizeReportFreeText(reportCore.singleSubjectView.riskAxis.warning),
+            hardStops: localizeProjectionList(
+              reportCore.singleSubjectView.riskAxis.hardStops || []
+            ),
+          },
+          timingState: {
+            ...reportCore.singleSubjectView.timingState,
+            bestWindow: localizeReportFreeText(reportCore.singleSubjectView.timingState.bestWindow),
+            whyNow: localizeReportFreeText(reportCore.singleSubjectView.timingState.whyNow),
+            whyNotYet: localizeReportFreeText(reportCore.singleSubjectView.timingState.whyNotYet),
+            windows: reportCore.singleSubjectView.timingState.windows.map((window) => ({
+              ...window,
+              summary: localizeReportFreeText(window.summary),
+            })),
+          },
+          competingPressures: reportCore.singleSubjectView.competingPressures.map((pressure) => ({
+            ...pressure,
+            label: localizeReportFreeText(pressure.label),
+            nextWindow: localizeReportFreeText(pressure.nextWindow),
+            summary: localizeReportFreeText(pressure.summary),
+          })),
+          branches: reportCore.singleSubjectView.branches.map((branch) => ({
+            label: localizeReportFreeText(branch.label),
+            summary: localizeReportFreeText(branch.summary),
+            entryConditions: localizeProjectionList(branch.entryConditions || []),
+            abortConditions: localizeProjectionList(branch.abortConditions || []),
+            nextMove: localizeReportFreeText(branch.nextMove),
+          })),
+          entryConditions: localizeProjectionList(
+            reportCore.singleSubjectView.entryConditions || []
+          ),
+          abortConditions: localizeProjectionList(
+            reportCore.singleSubjectView.abortConditions || []
+          ),
+          nextMove: localizeReportFreeText(reportCore.singleSubjectView.nextMove),
+          confidence: reportCore.singleSubjectView.confidence,
+          reliability: reportCore.singleSubjectView.reliability
+            ? {
+                crossAgreement: reportCore.singleSubjectView.reliability.crossAgreement,
+                contradictionFlags: localizeProjectionList(
+                  reportCore.singleSubjectView.reliability.contradictionFlags || []
+                ),
+                notes: localizeProjectionList(reportCore.singleSubjectView.reliability.notes || []),
+              }
+            : undefined,
+        }
+      : undefined,
+    personModel: reportCore.personModel
+      ? {
+          subject: localizeReportFreeText(reportCore.personModel.subject),
+          overview: localizeReportFreeText(reportCore.personModel.overview),
+          structuralCore: {
+            ...reportCore.personModel.structuralCore,
+            overview: localizeReportFreeText(reportCore.personModel.structuralCore.overview),
+            latentAxes: localizeProjectionList(
+              reportCore.personModel.structuralCore.latentAxes || []
+            ),
+          },
+          formationProfile: {
+            ...reportCore.personModel.formationProfile,
+            summary: localizeReportFreeText(reportCore.personModel.formationProfile.summary),
+            repeatedPatternFamilies: localizeProjectionList(
+              reportCore.personModel.formationProfile.repeatedPatternFamilies || []
+            ),
+            dominantLatentGroups: localizeProjectionList(
+              reportCore.personModel.formationProfile.dominantLatentGroups || []
+            ),
+            pressureHabits: localizeProjectionList(
+              reportCore.personModel.formationProfile.pressureHabits || []
+            ),
+            supportHabits: localizeProjectionList(
+              reportCore.personModel.formationProfile.supportHabits || []
+            ),
+          },
+          timeProfile: {
+            ...reportCore.personModel.timeProfile,
+            timingNarrative: localizeReportFreeText(
+              reportCore.personModel.timeProfile.timingNarrative
+            ),
+            windows: reportCore.personModel.timeProfile.windows.map((window) => ({
+              ...window,
+              label: localizeReportFreeText(window.label),
+              window: localizeReportFreeText(window.window),
+              granularity: localizeReportFreeText(window.granularity),
+              whyNow: localizeReportFreeText(window.whyNow),
+              entryConditions: localizeProjectionList(window.entryConditions || []),
+              abortConditions: localizeProjectionList(window.abortConditions || []),
+            })),
+            activationSources: reportCore.personModel.timeProfile.activationSources.map(
+              (source) => ({
+                ...source,
+                label: localizeReportFreeText(source.label),
+              })
+            ),
+          },
+          layers: reportCore.personModel.layers.map((layer) => ({
+            ...layer,
+            label: localizeReportFreeText(layer.label),
+            summary: localizeReportFreeText(layer.summary),
+            bullets: localizeProjectionList(layer.bullets || []),
+          })),
+          dimensions: reportCore.personModel.dimensions.map((dimension) => ({
+            ...dimension,
+            label: localizeReportFreeText(dimension.label),
+            summary: localizeReportFreeText(dimension.summary),
+          })),
+          domainPortraits: reportCore.personModel.domainPortraits.map((portrait) => ({
+            ...portrait,
+            label: localizeReportFreeText(portrait.label),
+            summary: localizeReportFreeText(portrait.summary),
+            baselineThesis: localizeReportFreeText(portrait.baselineThesis),
+            activationThesis: localizeReportFreeText(portrait.activationThesis),
+            likelyExpressions: localizeProjectionList(portrait.likelyExpressions || []),
+            riskExpressions: localizeProjectionList(portrait.riskExpressions || []),
+            allowedActions: localizeProjectionList(portrait.allowedActions || []),
+            blockedActions: localizeProjectionList(portrait.blockedActions || []),
+          })),
+          states: reportCore.personModel.states.map((state) => ({
+            ...state,
+            label: localizeReportFreeText(state.label),
+            summary: localizeReportFreeText(state.summary),
+            drivers: localizeProjectionList(state.drivers || []),
+            counterweights: localizeProjectionList(state.counterweights || []),
+          })),
+          relationshipProfile: {
+            ...reportCore.personModel.relationshipProfile,
+            summary: localizeReportFreeText(reportCore.personModel.relationshipProfile.summary),
+            partnerArchetypes: localizeProjectionList(
+              reportCore.personModel.relationshipProfile.partnerArchetypes || []
+            ),
+            inflowPaths: localizeProjectionList(
+              reportCore.personModel.relationshipProfile.inflowPaths || []
+            ),
+            commitmentConditions: localizeProjectionList(
+              reportCore.personModel.relationshipProfile.commitmentConditions || []
+            ),
+            breakPatterns: localizeProjectionList(
+              reportCore.personModel.relationshipProfile.breakPatterns || []
+            ),
+          },
+          careerProfile: {
+            ...reportCore.personModel.careerProfile,
+            summary: localizeReportFreeText(reportCore.personModel.careerProfile.summary),
+            suitableLanes: localizeProjectionList(
+              reportCore.personModel.careerProfile.suitableLanes || []
+            ),
+            executionStyle: localizeProjectionList(
+              reportCore.personModel.careerProfile.executionStyle || []
+            ),
+            hiringTriggers: localizeProjectionList(
+              reportCore.personModel.careerProfile.hiringTriggers || []
+            ),
+            blockers: localizeProjectionList(reportCore.personModel.careerProfile.blockers || []),
+          },
+          futureBranches: reportCore.personModel.futureBranches.map((branch) => ({
+            ...branch,
+            label: localizeReportFreeText(branch.label),
+            summary: localizeReportFreeText(branch.summary),
+            conditions: localizeProjectionList(branch.conditions || []),
+            blockers: localizeProjectionList(branch.blockers || []),
+          })),
+          evidenceLedger: {
+            ...reportCore.personModel.evidenceLedger,
+            coherenceNotes: localizeProjectionList(
+              reportCore.personModel.evidenceLedger.coherenceNotes || []
+            ),
+            contradictionFlags: localizeProjectionList(
+              reportCore.personModel.evidenceLedger.contradictionFlags || []
+            ),
+          },
+        }
+      : undefined,
     arbitrationBrief: reportCore.arbitrationBrief,
     latentTopAxes: reportCore.latentTopAxes,
     projections: {
@@ -561,7 +823,9 @@ function buildReportOutputCoreFields(
         topAxes: reportCore.latentTopAxes.slice(0, 4).map((axis) => axis.label),
         detailLines: localizeProjectionList(reportCore.projections?.structure?.detailLines || []),
         drivers: localizeProjectionList(reportCore.projections?.structure?.drivers || []),
-        counterweights: localizeProjectionList(reportCore.projections?.structure?.counterweights || []),
+        counterweights: localizeProjectionList(
+          reportCore.projections?.structure?.counterweights || []
+        ),
         nextMoves: localizeProjectionList(reportCore.projections?.structure?.nextMoves || []),
       },
       timing: {
@@ -571,7 +835,9 @@ function buildReportOutputCoreFields(
         granularity: timingWindow?.timingGranularity,
         detailLines: localizeProjectionList(reportCore.projections?.timing?.detailLines || []),
         drivers: localizeProjectionList(reportCore.projections?.timing?.drivers || []),
-        counterweights: localizeProjectionList(reportCore.projections?.timing?.counterweights || []),
+        counterweights: localizeProjectionList(
+          reportCore.projections?.timing?.counterweights || []
+        ),
         nextMoves: localizeProjectionList(reportCore.projections?.timing?.nextMoves || []),
       },
       conflict: {
@@ -579,7 +845,9 @@ function buildReportOutputCoreFields(
         summary: conflictSummary,
         detailLines: localizeProjectionList(reportCore.projections?.conflict?.detailLines || []),
         drivers: localizeProjectionList(reportCore.projections?.conflict?.drivers || []),
-        counterweights: localizeProjectionList(reportCore.projections?.conflict?.counterweights || []),
+        counterweights: localizeProjectionList(
+          reportCore.projections?.conflict?.counterweights || []
+        ),
         nextMoves: localizeProjectionList(reportCore.projections?.conflict?.nextMoves || []),
         reasons:
           lang === 'ko'
@@ -596,7 +864,9 @@ function buildReportOutputCoreFields(
             : `On the ${actionLabel} axis, ${reportCore.topDecisionLabel || reportCore.topDecisionId || reportCore.primaryAction} is the live move.`,
         detailLines: localizeProjectionList(reportCore.projections?.action?.detailLines || []),
         drivers: localizeProjectionList(reportCore.projections?.action?.drivers || []),
-        counterweights: localizeProjectionList(reportCore.projections?.action?.counterweights || []),
+        counterweights: localizeProjectionList(
+          reportCore.projections?.action?.counterweights || []
+        ),
         nextMoves: localizeProjectionList(reportCore.projections?.action?.nextMoves || []),
         reasons: [
           reportCore.topDecisionLabel || reportCore.topDecisionId || '',
@@ -630,7 +900,9 @@ function buildReportOutputCoreFields(
         summary: evidenceSummary,
         detailLines: localizeProjectionList(reportCore.projections?.evidence?.detailLines || []),
         drivers: localizeProjectionList(reportCore.projections?.evidence?.drivers || []),
-        counterweights: localizeProjectionList(reportCore.projections?.evidence?.counterweights || []),
+        counterweights: localizeProjectionList(
+          reportCore.projections?.evidence?.counterweights || []
+        ),
         nextMoves: localizeProjectionList(reportCore.projections?.evidence?.nextMoves || []),
         reasons:
           lang === 'ko'
@@ -662,7 +934,9 @@ function buildReportOutputCoreFields(
         granularity: reportCore.projections?.branches?.granularity,
         detailLines: localizeProjectionList(reportCore.projections?.branches?.detailLines || []),
         drivers: localizeProjectionList(reportCore.projections?.branches?.drivers || []),
-        counterweights: localizeProjectionList(reportCore.projections?.branches?.counterweights || []),
+        counterweights: localizeProjectionList(
+          reportCore.projections?.branches?.counterweights || []
+        ),
         nextMoves: localizeProjectionList(reportCore.projections?.branches?.nextMoves || []),
         reasons: localizeProjectionList(reportCore.projections?.branches?.reasons || []),
       },
@@ -846,8 +1120,7 @@ function formatPlanetPlacement(
     const signLabel = localizeSignName(String(sign || ''), lang)
     if (sign && house)
       return `${planetLabel}${hasBatchim(planetLabel) ? '?' : '?'} ${signLabel} ${house}???? ?? ????`
-    if (sign)
-      return `${planetLabel}${hasBatchim(planetLabel) ? '?' : '?'} ${signLabel}? ?? ????`
+    if (sign) return `${planetLabel}${hasBatchim(planetLabel) ? '?' : '?'} ${signLabel}? ?? ????`
     return `${planetLabel}${hasBatchim(planetLabel) ? '?' : '?'} ${house}???? ?? ????`
   }
   if (sign && house) return `${planet} in ${sign}, house ${house}`
@@ -888,8 +1161,7 @@ function buildPersonalCycleNarrative(
   ].filter(Boolean)
   if (lang === 'ko') {
     const agePart = age !== null ? `?? ${age}? ??` : '?? ??'
-    if (parts.length === 0)
-      return `${agePart}? ??? ??? ??? ?? ?? ??? ??? ??? ?????.`
+    if (parts.length === 0) return `${agePart}? ??? ??? ??? ?? ?? ??? ??? ??? ?????.`
     const normalizedParts = parts.map((part) => {
       const [cycle, element] = part.split(' ')
       if (!cycle || !element) return part
@@ -939,9 +1211,7 @@ function buildFocusedCycleLead(
 
   const agePrefix = age !== null ? `?? ${age}? ??? ` : '??? '
   const cycleLabel =
-    current !== null
-      ? `${current.startAge}-${current.endAge}? ??(${currentLabel})`
-      : currentLabel
+    current !== null ? `${current.startAge}-${current.endAge}? ??(${currentLabel})` : currentLabel
   switch (focus) {
     case 'career':
       return `${agePrefix}${cycleLabel} ?? ?? ?? ??? ????? ? ???? ??????? ??? ?????.`
@@ -974,8 +1244,7 @@ function buildPersonalBaseNarrative(input: MatrixCalculationInput, lang: 'ko' | 
       yongsin ? `?? ${yongsin}` : '',
       western ? `?? ?? ${western}` : '',
     ].filter(Boolean)
-    if (parts.length === 0)
-      return '????? ?? ???? ?? ?? ??? ?? ??? ?? ?? ?? ????.'
+    if (parts.length === 0) return '????? ?? ???? ?? ?? ??? ?? ??? ?? ?? ?? ????.'
     return `?? ????? ${parts.join(', ')} ??? ?? ??? ??? ????.`
   }
 
@@ -1072,7 +1341,6 @@ function buildSectionPersonalLead(
       return ''
   }
 }
-
 
 function buildNarrativeSectionFromCore(
   primary: Array<string | undefined | null>,
@@ -1244,7 +1512,6 @@ function formatScenarioIdForNarrative(
   return lang === 'ko' ? normalized : normalized
 }
 
-
 function formatCycleLabel(
   ganji: string | undefined,
   element: string | undefined,
@@ -1273,7 +1540,6 @@ function normalizeElementKey(element: string | undefined): string {
     metal: 'metal',
 
     water: 'water',
-
   }
   return map[raw] || raw
 }
@@ -1371,7 +1637,6 @@ function isMeaningfulEvidenceToken(value: string | undefined | null): boolean {
   return true
 }
 
-
 function buildEvidenceLine(input: MatrixCalculationInput, lang: 'ko' | 'en'): string {
   const dayMaster = sanitizeEvidenceToken(getElementLabel(input.dayMasterElement, lang), lang)
   const yongsin = sanitizeEvidenceToken(getElementLabel(input.yongsin, lang), lang)
@@ -1387,9 +1652,7 @@ function buildEvidenceLine(input: MatrixCalculationInput, lang: 'ko' | 'en'): st
       yongsin ? `?? ${yongsin}` : '',
       western ? `?? ?? ${western}` : '',
     ].filter(Boolean)
-    return parts.length > 0
-      ? `${parts.join(', ')} ??? ?? ??? ?? ?? ??? ?? ??? ????.`
-      : ''
+    return parts.length > 0 ? `${parts.join(', ')} ??? ?? ??? ?? ?? ??? ?? ??? ????.` : ''
   }
   const parts = [
     dayMaster ? `day master ${dayMaster}` : '',
@@ -1515,25 +1778,23 @@ function renderIntroductionSection(
           .slice(0, 3)
           .map((axis) => axis.label)
           .join(', ')}.`
-      : ''
-  const riskAxisLine =
-    reportCore.riskAxisLabel
-      ? lang === 'ko'
-        ? `??? ?? ???? ???? ? ??? ${reportCore.riskAxisLabel}???.`
-        : `At the same time, the most sensitive risk axis is ${reportCore.riskAxisLabel}.`
-      : ''
-  const timingMatrixLine =
-    reportCore.timingMatrix?.length
-      ? lang === 'ko'
-        ? `???? ?? ?? ?? ${reportCore.timingMatrix
-            .slice(0, 3)
-            .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
-            .join(', ')} ??? ????.`
-        : `By domain, windows split as ${reportCore.timingMatrix
-            .slice(0, 3)
-            .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
-            .join(', ')}.`
-      : ''
+    : ''
+  const riskAxisLine = reportCore.riskAxisLabel
+    ? lang === 'ko'
+      ? `??? ?? ???? ???? ? ??? ${reportCore.riskAxisLabel}???.`
+      : `At the same time, the most sensitive risk axis is ${reportCore.riskAxisLabel}.`
+    : ''
+  const timingMatrixLine = reportCore.timingMatrix?.length
+    ? lang === 'ko'
+      ? `???? ?? ?? ?? ${reportCore.timingMatrix
+          .slice(0, 3)
+          .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
+          .join(', ')} ??? ????.`
+      : `By domain, windows split as ${reportCore.timingMatrix
+          .slice(0, 3)
+          .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
+          .join(', ')}.`
+    : ''
   const structureProjection = reportCore.projections?.structure
   const structureDetailLine = localizeReportNarrativeText(
     structureProjection?.detailLines?.[0] || '',
@@ -1545,35 +1806,35 @@ function renderIntroductionSection(
         ? `${focusLabel} ??? ? ??? ??? ?? ?? ???? ??? ????.`
         : `${focusLabel} remains the background structural axis behind this reading.`
       : ''
-  const structureDriversLine =
-    structureProjection?.drivers?.length
-      ? lang === 'ko'
-        ? `?? ??? ?? ?? ?? ??? ${structureProjection.drivers
-            .slice(0, 3)
-            .map((item) => localizeReportNarrativeText(item, lang))
-            .join(', ')}???.`
-        : `The direct structural drivers are ${structureProjection.drivers.slice(0, 3).join(', ')}.`
-      : ''
+  const structureDriversLine = structureProjection?.drivers?.length
+    ? lang === 'ko'
+      ? `?? ??? ?? ?? ?? ??? ${structureProjection.drivers
+          .slice(0, 3)
+          .map((item) => localizeReportNarrativeText(item, lang))
+          .join(', ')}???.`
+      : `The direct structural drivers are ${structureProjection.drivers.slice(0, 3).join(', ')}.`
+    : ''
   const structureCounterweightLine =
-    reportCore.arbitrationBrief?.suppressionNarratives?.length || structureProjection?.counterweights?.length
+    reportCore.arbitrationBrief?.suppressionNarratives?.length ||
+    structureProjection?.counterweights?.length
       ? lang === 'ko'
         ? `?? ${(reportCore.arbitrationBrief?.suppressionNarratives?.length
             ? reportCore.arbitrationBrief.suppressionNarratives
-            : structureProjection?.counterweights || [])
+            : structureProjection?.counterweights || []
+          )
             .slice(0, 2)
             .map((item) => localizeReportNarrativeText(item, lang))
             .join(' ??? ')} ?? ?? ??? ?? ????.`
-        : `Counterweights are still coming from ${(reportCore.arbitrationBrief?.suppressionNarratives?.length
+        : `Counterweights are still coming from ${(reportCore.arbitrationBrief
+            ?.suppressionNarratives?.length
             ? reportCore.arbitrationBrief.suppressionNarratives
-            : structureProjection?.counterweights || [])
+            : structureProjection?.counterweights || []
+          )
             .slice(0, 2)
             .join(', ')}.`
       : ''
   const branchProjection = reportCore.projections?.branches
-  const branchLeadLine = localizeReportNarrativeText(
-    branchProjection?.detailLines?.[0] || '',
-    lang
-  )
+  const branchLeadLine = localizeReportNarrativeText(branchProjection?.detailLines?.[0] || '', lang)
   return [
     arbitrationLine,
     latentLine,
@@ -1633,46 +1894,42 @@ function renderTimingAdviceSection(
     preferredTimingRow?.summary || timingProjection?.detailLines?.[0] || '',
     lang
   )
-  const timingDriverLine =
-    timingProjection?.drivers?.length
-      ? lang === 'ko'
-        ? `?? ?? ?? ?? ?? ?? ${timingProjection.drivers
-            .slice(0, 3)
-            .map((item) => localizeReportNarrativeText(item, lang))
-            .join(', ')}???.`
-        : `The live timing drivers are ${timingProjection.drivers.slice(0, 3).join(', ')}.`
-      : ''
-  const timingCounterweightLine =
-    timingProjection?.counterweights?.length
-      ? lang === 'ko'
-        ? `??? ${timingProjection.counterweights
-            .slice(0, 2)
-            .map((item) => localizeReportNarrativeText(item, lang))
-            .join(', ')} ?? ??? ??? ??? ??? ?? ??? ???.`
-        : `Counterweights still come from ${timingProjection.counterweights.slice(0, 2).join(', ')}.`
-      : ''
-  const timingNextLine =
-    timingProjection?.nextMoves?.length
-      ? buildProjectionMoveSentence(
-          timingProjection.nextMoves.slice(0, 2),
-          lang,
-          lang === 'ko'
-            ? '?? ???? ???? ?? ??? ?? ?? ?? ?? ?? ????.'
-            : 'To use this timing well, realign the live execution conditions first.'
-        )
-      : ''
-  const timingMatrixLine =
-    reportCore.timingMatrix?.length
-      ? lang === 'ko'
-        ? `???? ?? ?? ?? ${reportCore.timingMatrix
-            .slice(0, 3)
-            .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
-            .join(', ')} ???? ????.`
-        : `Across domains, timing splits into ${reportCore.timingMatrix
-            .slice(0, 3)
-            .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
-            .join(', ')}.`
-      : ''
+  const timingDriverLine = timingProjection?.drivers?.length
+    ? lang === 'ko'
+      ? `?? ?? ?? ?? ?? ?? ${timingProjection.drivers
+          .slice(0, 3)
+          .map((item) => localizeReportNarrativeText(item, lang))
+          .join(', ')}???.`
+      : `The live timing drivers are ${timingProjection.drivers.slice(0, 3).join(', ')}.`
+    : ''
+  const timingCounterweightLine = timingProjection?.counterweights?.length
+    ? lang === 'ko'
+      ? `??? ${timingProjection.counterweights
+          .slice(0, 2)
+          .map((item) => localizeReportNarrativeText(item, lang))
+          .join(', ')} ?? ??? ??? ??? ??? ?? ??? ???.`
+      : `Counterweights still come from ${timingProjection.counterweights.slice(0, 2).join(', ')}.`
+    : ''
+  const timingNextLine = timingProjection?.nextMoves?.length
+    ? buildProjectionMoveSentence(
+        timingProjection.nextMoves.slice(0, 2),
+        lang,
+        lang === 'ko'
+          ? '?? ???? ???? ?? ??? ?? ?? ?? ?? ?? ????.'
+          : 'To use this timing well, realign the live execution conditions first.'
+      )
+    : ''
+  const timingMatrixLine = reportCore.timingMatrix?.length
+    ? lang === 'ko'
+      ? `???? ?? ?? ?? ${reportCore.timingMatrix
+          .slice(0, 3)
+          .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
+          .join(', ')} ???? ????.`
+      : `Across domains, timing splits into ${reportCore.timingMatrix
+          .slice(0, 3)
+          .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
+          .join(', ')}.`
+    : ''
   const branchProjection = reportCore.projections?.branches
   const branchTimingLine =
     localizeReportNarrativeText(branchProjection?.detailLines?.[0] || '', lang) ||
@@ -1688,9 +1945,7 @@ function renderTimingAdviceSection(
     branchTimingLine,
   ].filter(Boolean)
   return sanitizeUserFacingNarrative(
-    [...enriched, ...(enriched.length < 4 ? [base] : [])]
-      .filter(Boolean)
-      .join(' ')
+    [...enriched, ...(enriched.length < 4 ? [base] : [])].filter(Boolean).join(' ')
   )
 }
 
@@ -1713,48 +1968,43 @@ function renderActionPlanSection(
   const guardrailLine = reportCore.riskControl
   const actionProjection = reportCore.projections?.action
   const actionDriverLabels = collectProjectionDriverLabels(actionProjection?.drivers, lang)
-  const actionDriverLine =
-    actionDriverLabels.length
-      ? lang === 'ko'
-        ? `?? ??? ??? ?? ${actionDriverLabels.join(', ')}???.`
-        : `The current execution drivers are ${actionDriverLabels.join(', ')}.`
-      : ''
-  const actionCounterweightLine =
-    actionProjection?.counterweights?.length
-      ? lang === 'ko'
-        ? `${actionProjection.counterweights
-            .slice(0, 2)
-            .map((item) => localizeReportNarrativeText(item, lang))
-            .join(', ')} ?? ??? ??? ???? ??? ?? ??? ???.`
-        : `${actionProjection.counterweights.slice(0, 2).join(', ')} still signal that pace should stay controlled.`
-      : ''
-  const actionNextLine =
-    actionProjection?.nextMoves?.length
-      ? buildProjectionMoveSentence(
-          actionProjection.nextMoves.slice(0, 2),
-          lang,
-          lang === 'ko'
-            ? '?? ???? ?? ??? ?? ??? ?? ???? ?? ???? ?? ????.'
-            : 'The next move should begin by resetting execution criteria in smaller steps.'
-        )
-      : ''
-  const riskAxisLine =
-    reportCore.riskAxisLabel
-      ? lang === 'ko'
-        ? `??? ???? ${reportCore.riskAxisLabel} ?? ?? ??? ??? ???? ???.`
-        : `Even while acting, ${reportCore.riskAxisLabel} should be managed as the primary risk axis first.`
-      : ''
+  const actionDriverLine = actionDriverLabels.length
+    ? lang === 'ko'
+      ? `?? ??? ??? ?? ${actionDriverLabels.join(', ')}???.`
+      : `The current execution drivers are ${actionDriverLabels.join(', ')}.`
+    : ''
+  const actionCounterweightLine = actionProjection?.counterweights?.length
+    ? lang === 'ko'
+      ? `${actionProjection.counterweights
+          .slice(0, 2)
+          .map((item) => localizeReportNarrativeText(item, lang))
+          .join(', ')} ?? ??? ??? ???? ??? ?? ??? ???.`
+      : `${actionProjection.counterweights.slice(0, 2).join(', ')} still signal that pace should stay controlled.`
+    : ''
+  const actionNextLine = actionProjection?.nextMoves?.length
+    ? buildProjectionMoveSentence(
+        actionProjection.nextMoves.slice(0, 2),
+        lang,
+        lang === 'ko'
+          ? '?? ???? ?? ??? ?? ??? ?? ???? ?? ???? ?? ????.'
+          : 'The next move should begin by resetting execution criteria in smaller steps.'
+      )
+    : ''
+  const riskAxisLine = reportCore.riskAxisLabel
+    ? lang === 'ko'
+      ? `??? ???? ${reportCore.riskAxisLabel} ?? ?? ??? ??? ???? ???.`
+      : `Even while acting, ${reportCore.riskAxisLabel} should be managed as the primary risk axis first.`
+    : ''
   const branchProjection = reportCore.projections?.branches
-  const branchActionLine =
-    branchProjection?.nextMoves?.length
-      ? buildProjectionMoveSentence(
-          branchProjection.nextMoves.slice(0, 2),
-          lang,
-          lang === 'ko'
-            ? '?? ?? ????? ?? ?? ??? ???? ?? ???? ?? ????.'
-            : 'Across the live branches, reset criteria and guardrails before execution.'
-        )
-      : ''
+  const branchActionLine = branchProjection?.nextMoves?.length
+    ? buildProjectionMoveSentence(
+        branchProjection.nextMoves.slice(0, 2),
+        lang,
+        lang === 'ko'
+          ? '?? ?? ????? ?? ?? ??? ???? ?? ???? ?? ????.'
+          : 'Across the live branches, reset criteria and guardrails before execution.'
+      )
+    : ''
   const enriched = [
     openingLine,
     actionDriverLine,
@@ -1765,9 +2015,7 @@ function renderActionPlanSection(
     guardrailLine,
   ].filter(Boolean)
   return sanitizeUserFacingNarrative(
-    [...enriched, ...(enriched.length < 5 ? [base] : [])]
-      .filter(Boolean)
-      .join(' ')
+    [...enriched, ...(enriched.length < 5 ? [base] : [])].filter(Boolean).join(' ')
   )
 }
 
@@ -1810,13 +2058,17 @@ function renderConclusionSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  const base = renderConclusionSectionExternal(reportCore, matrixInput, lang, reportSectionRendererDeps)
-  const riskAxisLine =
-    reportCore.riskAxisLabel
-      ? lang === 'ko'
-        ? `????? ?? ???? ???? ? ?? ${reportCore.riskAxisLabel}???.`
-        : `The axis that must be managed most carefully through the close is ${reportCore.riskAxisLabel}.`
-      : ''
+  const base = renderConclusionSectionExternal(
+    reportCore,
+    matrixInput,
+    lang,
+    reportSectionRendererDeps
+  )
+  const riskAxisLine = reportCore.riskAxisLabel
+    ? lang === 'ko'
+      ? `????? ?? ???? ???? ? ?? ${reportCore.riskAxisLabel}???.`
+      : `The axis that must be managed most carefully through the close is ${reportCore.riskAxisLabel}.`
+    : ''
   const branchLine = reportCore.projections?.branches?.detailLines?.[0] || ''
   return sanitizeUserFacingNarrative([riskAxisLine, branchLine, base].filter(Boolean).join(' '))
 }
@@ -1832,6 +2084,269 @@ function renderHealthGuidanceSection(
     lang,
     reportSectionRendererDeps
   )
+}
+
+function renderComprehensiveSpouseProfileSection(
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): string {
+  const actionLabel = getReportDomainLabel(
+    reportCore.actionFocusDomain || reportCore.focusDomain,
+    lang
+  )
+  const riskLabel =
+    reportCore.riskAxisLabel || getReportDomainLabel(reportCore.riskAxisDomain, lang)
+
+  if (lang === 'ko') {
+    return formatNarrativeParagraphs(
+      sanitizeUserFacingNarrative(
+        [
+          '오래 가는 관계는 감정의 세기보다 생활 리듬, 책임감, 속도를 함께 맞출 수 있는 사람과의 관계에서 나옵니다. 당신은 설렘이 커도 기준이 맞지 않으면 오래 버티지 않는 편이고, 반대로 속도와 기준이 맞는 관계에서는 깊이를 천천히 키워 갑니다.',
+          `지금 삶의 전면에 ${actionLabel} 문제가 올라와 있기 때문에, 관계 역시 말보다 실제 일정과 책임을 함께 운영할 수 있는 사람이 더 잘 맞습니다. 함께 시간을 쓰는 방식, 약속을 지키는 방식, 서로의 일을 존중하는 태도가 중요합니다.`,
+          '배우자상으로 보면 겉으로 화려한 사람보다 기준이 분명하고, 감정이 흔들릴 때도 생활을 무너뜨리지 않는 사람이 더 맞습니다. 대화가 잘 되는 것만큼이나 속도 조절과 경계 감각이 맞는지가 핵심입니다.',
+          riskLabel
+            ? `${riskLabel} 문제가 예민해질수록 관계도 감정적으로 몰입하기보다 서로의 리듬을 보호해 줄 수 있는지가 더 중요해집니다. 같이 있을 때 편해지는 사람, 무리한 속도를 강요하지 않는 사람이 오래 갑니다.`
+            : '관계는 결론을 서두르는 사람보다, 서로의 속도와 경계를 먼저 맞추는 사람과 더 안정적으로 깊어집니다.',
+        ].join(' ')
+      ),
+      lang
+    )
+  }
+
+  return formatNarrativeParagraphs(
+    sanitizeUserFacingNarrative(
+      [
+        'Long-term partner fit depends less on intensity and more on pace, responsibility, and the ability to keep shared standards.',
+        `Because ${actionLabel} is on the front line of life right now, relationship fit also has to survive real scheduling, pressure, and obligation.`,
+        `When ${riskLabel} becomes sensitive, the better match is the person who can protect rhythm and trust, not just chemistry.`,
+      ].join(' ')
+    ),
+    lang
+  )
+}
+
+function renderComprehensiveLifeStagesSection(
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en',
+  matrixSummary?: MatrixSummary
+): string {
+  const age = calculateProfileAge(matrixInput.profileContext?.birthDate, matrixInput.currentDateIso)
+  const focusLabel = getReportDomainLabel(reportCore.focusDomain, lang)
+  const actionLabel = getReportDomainLabel(
+    reportCore.actionFocusDomain || reportCore.focusDomain,
+    lang
+  )
+
+  if (lang === 'ko') {
+    const stageLead =
+      age === null
+        ? '지금 구간은 기준을 다시 세우고 삶의 우선순위를 정리해야 하는 시기로 읽힙니다.'
+        : age < 20
+          ? '초년기에는 주변 환경 안에서 배운 기준이 성격과 선택의 바탕이 되는 흐름이 강합니다.'
+          : age < 35
+            ? '청년기에는 관계와 현실 조건이 삶의 배경을 흔들고, 실제로는 자기 자리를 만드는 쪽에서 방향이 정해집니다.'
+            : age < 55
+              ? '중년기에는 지금 세우는 기준이 평판과 성과로 굳어지면서, 무엇을 맡고 무엇을 줄일지의 판단이 더 중요해집니다.'
+              : '후반부로 갈수록 더 넓히는 것보다 무엇을 남기고 무엇을 정리할지를 아는 힘이 삶의 안정성을 만듭니다.'
+
+    return formatNarrativeParagraphs(
+      sanitizeUserFacingNarrative(
+        [
+          '이 사람의 삶은 한 번에 뒤집히는 사건보다, 시기마다 무엇을 기준으로 선택하느냐에 따라 방향이 분명하게 갈리는 구조입니다. 그래서 생애 흐름도 감정의 파도보다 기준의 변화로 읽는 편이 정확합니다.',
+          `${focusLabel} 문제는 삶의 배경에서 계속 작동하고, 실제로 손을 대고 움직이게 만드는 쪽은 ${actionLabel} 영역으로 모입니다. ${stageLead}`,
+          '초년기에는 주변 환경이 준 기준을 배우는 시간이 길고, 청년기에는 사람과 현실 조건을 동시에 맞추면서 자기 자리를 만들게 됩니다. 이후에는 지금 세운 기준이 성과와 평판으로 굳어질 가능성이 큽니다.',
+          `예를 들어, 지금 세우는 ${actionLabel} 기준은 앞으로 더 큰 선택을 할 때 흔들리지 않는 뼈대가 됩니다. 지금 대충 넘긴 문제는 나중에 더 큰 비용으로 돌아올 수 있습니다.`,
+        ].join(' ')
+      ),
+      lang
+    )
+  }
+
+  return formatNarrativeParagraphs(
+    sanitizeUserFacingNarrative(
+      [
+        'Early life is shaped less by emotion itself and more by the standards learned inside the surrounding environment.',
+        `In young adulthood, ${focusLabel} keeps setting the background while ${actionLabel} is where real positioning happens.`,
+        'Midlife turns today’s standards into reputation, structure, and durable consequence.',
+        'Later life rewards discernment: knowing what to keep, what to reduce, and what should outlast the current phase.',
+      ].join(' ')
+    ),
+    lang
+  )
+}
+
+function renderComprehensiveTurningPointsSection(
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): string {
+  const actionLabel = getReportDomainLabel(
+    reportCore.actionFocusDomain || reportCore.focusDomain,
+    lang
+  )
+  const branches = (reportCore.branchSet || []).slice(0, 3)
+  const branchLabels = branches
+    .map((branch) =>
+      sanitizeUserFacingNarrative(
+        localizeReportNarrativeText(branch.label || branch.summary || '', lang)
+      )
+    )
+    .filter(Boolean)
+
+  if (lang === 'ko') {
+    return formatNarrativeParagraphs(
+      sanitizeUserFacingNarrative(
+        [
+          `이 사람의 큰 변곡점은 감정 하나로 뒤집히기보다, 현실에서 맡는 역할과 조건을 다시 정리해야 할 때 강하게 들어옵니다. 가장 직접적인 변곡점은 ${actionLabel} 문제를 어떻게 다루느냐에 달려 있습니다.`,
+          '그래서 변화는 한 사건으로 오기보다 일, 사람, 돈의 조건이 동시에 재배열되는 식으로 들어올 가능성이 큽니다. 무엇을 계속 가져가고 무엇을 끊어낼지 결정해야 할 때가 바로 변곡점입니다.',
+          branchLabels.length > 0
+            ? `현실적으로는 ${branchLabels.join(', ')} 같은 경로를 비교하면서 판이 갈릴 가능성이 큽니다. 한 방향만 정답처럼 밀기보다 여러 경로를 놓고 손실과 되돌림 비용을 함께 봐야 합니다.`
+            : '현실적인 분기점은 하나의 정답보다 몇 가지 가능한 경로를 비교하는 과정에서 열릴 가능성이 큽니다.',
+          '결국 변곡점의 본질은 속도를 올리는 데 있지 않습니다. 지금까지의 기준으로 더는 버틸 수 없을 때, 무엇을 새 기준으로 삼을지 결정하는 데 있습니다.',
+        ].join(' ')
+      ),
+      lang
+    )
+  }
+
+  return formatNarrativeParagraphs(
+    sanitizeUserFacingNarrative(
+      [
+        `The strongest turning points arrive where ${actionLabel} has to be reorganized first.`,
+        'The shift is more likely to arrive as a reordering of role, people, and conditions than as a single dramatic event.',
+        branchLabels.length > 0
+          ? `Realistically, the choice will narrow through paths such as ${branchLabels.join(', ')}.`
+          : 'The turning point will likely open through comparison rather than a single obvious answer.',
+      ].join(' ')
+    ),
+    lang
+  )
+}
+
+function renderComprehensiveFutureOutlookSection(
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en'
+): string {
+  const matrixRow = (reportCore.matrixView || []).find(
+    (row) => row.domain === (reportCore.actionFocusDomain || reportCore.focusDomain)
+  )
+  const topBranches = (reportCore.branchSet || []).slice(0, 3)
+  const riskLabel =
+    reportCore.riskAxisLabel || getReportDomainLabel(reportCore.riskAxisDomain, lang)
+
+  if (lang === 'ko') {
+    const timingLine = matrixRow?.cells?.length
+      ? (() => {
+          const cells = matrixRow.cells.slice(0, 3)
+          const avgAgreement =
+            cells.reduce((sum, cell) => sum + (cell.agreement || 0), 0) / Math.max(1, cells.length)
+          const avgContradiction =
+            cells.reduce((sum, cell) => sum + (cell.contradiction || 0), 0) /
+            Math.max(1, cells.length)
+          if (avgAgreement >= 0.82 && avgContradiction <= 0.18) {
+            return '가까운 시기부터 중기까지는 전반적으로 흐름이 잘 맞는 편이라, 조건만 맞추면 실제 성과로 이어질 가능성이 큽니다.'
+          }
+          if (avgContradiction >= 0.3) {
+            return '앞으로 몇 년은 기회와 부담이 함께 들어올 수 있으니, 무리하게 넓히기보다 감당 가능한 범위를 먼저 정하는 편이 맞습니다.'
+          }
+          return '앞으로 몇 년은 열려 있는 흐름이 이어지지만, 속도 조절과 기준 관리가 결과를 더 크게 가를 가능성이 큽니다.'
+        })()
+      : ''
+    const branchLine =
+      topBranches.length > 0
+        ? `현실적인 경로는 ${topBranches
+            .map((branch) =>
+              sanitizeUserFacingNarrative(
+                localizeReportNarrativeText(branch.label || branch.summary || '', lang)
+              )
+            )
+            .filter(Boolean)
+            .join(
+              ', '
+            )} 쪽으로 열려 있습니다. 한 번에 확정하기보다 비교 가능한 경로부터 좁혀가는 편이 맞습니다.`
+        : ''
+
+    return formatNarrativeParagraphs(
+      sanitizeUserFacingNarrative(
+        [
+          `앞으로 3~5년은 한 번의 큰 승부보다, 반복 가능한 기준을 만드는 사람이 더 멀리 갑니다. 실제로 판을 움직이는 중심은 ${getReportDomainLabel(reportCore.actionFocusDomain || reportCore.focusDomain, lang)} 쪽입니다.`,
+          timingLine,
+          branchLine,
+          riskLabel
+            ? `다만 앞으로 3~5년 동안도 ${riskLabel} 관리를 놓치면 좋은 기회가 소모로 바뀔 수 있습니다. 결과는 능력만이 아니라 회복과 운영의 안정성에 크게 좌우됩니다.`
+            : '',
+        ].join(' ')
+      ),
+      lang
+    )
+  }
+
+  return formatNarrativeParagraphs(
+    sanitizeUserFacingNarrative(
+      [
+        'Over the next three to five years, repeatable standards matter more than one dramatic move.',
+        matrixRow?.cells?.length
+          ? matrixRow.cells
+              .slice(0, 3)
+              .map((cell) =>
+                sanitizeUserFacingNarrative(localizeReportNarrativeText(cell.summary || '', lang))
+              )
+              .filter(Boolean)
+              .join(' / ')
+          : '',
+        topBranches.length > 0
+          ? `The realistic paths are ${topBranches
+              .map((branch) =>
+                sanitizeUserFacingNarrative(
+                  localizeReportNarrativeText(branch.label || branch.summary || '', lang)
+                )
+              )
+              .filter(Boolean)
+              .join(', ')}.`
+          : '',
+        riskLabel ? `Longer-term results depend heavily on how well ${riskLabel} is managed.` : '',
+      ].join(' ')
+    ),
+    lang
+  )
+}
+
+function buildExtendedComprehensiveSections(
+  sections: AIPremiumReport['sections'],
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en',
+  matrixSummary?: MatrixSummary
+): AIPremiumReport['sections'] {
+  const forceDeterministicOptionalLifeSections = isCostOptimizedAiPath()
+  return {
+    ...sections,
+    spouseProfile:
+      (!forceDeterministicOptionalLifeSections && sections.spouseProfile) ||
+      renderComprehensiveSpouseProfileSection(reportCore, matrixInput, lang),
+    lifeStages:
+      (!forceDeterministicOptionalLifeSections && sections.lifeStages) ||
+      renderComprehensiveLifeStagesSection(reportCore, matrixInput, lang, matrixSummary),
+    turningPoints:
+      (!forceDeterministicOptionalLifeSections && sections.turningPoints) ||
+      renderComprehensiveTurningPointsSection(reportCore, matrixInput, lang),
+    futureOutlook:
+      (!forceDeterministicOptionalLifeSections && sections.futureOutlook) ||
+      renderComprehensiveFutureOutlookSection(reportCore, matrixInput, lang),
+  }
+}
+
+function getComprehensiveRenderPaths(sections: Partial<AIPremiumReport['sections']>): string[] {
+  return [
+    ...COMPREHENSIVE_SECTION_KEYS,
+    ...COMPREHENSIVE_OPTIONAL_LIFE_SECTION_KEYS.filter((key) => {
+      const value = sections[key]
+      return typeof value === 'string' && value.trim().length > 0
+    }),
+  ]
 }
 
 function shouldForceComprehensiveNarrativeFallback(
@@ -1883,11 +2398,11 @@ function shouldForceThemedNarrativeFallback(quality: ReportQualityMetrics | unde
 function joinNarrativeParts(parts: Array<string | null | undefined>): string {
   return sanitizeUserFacingNarrative(
     parts
-    .map((part) => String(part || '').trim())
-    .filter(Boolean)
-    .join(' ')
-    .replace(/\s+/g, ' ')
-    .trim()
+      .map((part) => String(part || '').trim())
+      .filter(Boolean)
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .trim()
   )
 }
 
@@ -1919,9 +2434,7 @@ function collectProjectionDriverLabels(
   return (items || [])
     .map((item) => sanitizeUserFacingNarrative(localizeReportNarrativeText(item, lang)).trim())
     .filter(Boolean)
-    .filter(
-      (item) => !/(recommended|recommend|caution|warning|recheck|verify)$/i.test(item)
-    )
+    .filter((item) => !/(recommended|recommend|caution|warning|recheck|verify)$/i.test(item))
     .filter((item) => item.length <= 24)
     .slice(0, limit)
 }
@@ -1935,832 +2448,553 @@ function buildProjectionFirstThemedSections(
 ): ThemedReportSections {
   const outputCore = buildReportOutputCoreFields(reportCore, lang)
   const projections = outputCore.projections
+  const actionDomain = reportCore.actionFocusDomain || reportCore.focusDomain
   const focusLabel = getReportDomainLabel(reportCore.focusDomain, lang)
-  const actionLabel = getReportDomainLabel(
-    reportCore.actionFocusDomain || reportCore.focusDomain,
-    lang
-  )
-  const focusTiming = findReportCoreTimingWindow(
-    reportCore,
-    reportCore.actionFocusDomain || reportCore.focusDomain
-  )
-  const careerAdvisory = findReportCoreAdvisory(reportCore, 'career')
+  const actionLabel = getReportDomainLabel(actionDomain, lang)
+  const riskLabel = reportCore.riskAxisLabel || (lang === 'ko' ? '??' : 'health')
+
+  const clean = (value: string | undefined): string =>
+    sanitizeUserFacingNarrative(localizeReportNarrativeText(String(value || ''), lang)).trim()
+
+  const focusTiming = findReportCoreTimingWindow(reportCore, actionDomain)
+  const branchSet = (reportCore.branchSet || []).slice(0, 3)
+  const matrixRows = reportCore.matrixView || []
+  const actionMatrixRow = matrixRows.find((row) => row.domain === actionDomain) || matrixRows[0]
   const relationshipAdvisory = findReportCoreAdvisory(reportCore, 'relationship')
+  const careerAdvisory = findReportCoreAdvisory(reportCore, 'career')
   const wealthAdvisory = findReportCoreAdvisory(reportCore, 'wealth')
   const healthAdvisory = findReportCoreAdvisory(reportCore, 'health')
-  const moveAdvisory = findReportCoreAdvisory(reportCore, 'move')
-  const actionSummary = projections?.action?.summary || reportCore.primaryAction
-  const riskSummary = projections?.risk?.summary || reportCore.riskControl
-  const timingSummary = projections?.timing?.summary || reportCore.gradeReason
-  const structureSummary = projections?.structure?.summary || reportCore.thesis
-  const conflictSummary = projections?.conflict?.summary || reportCore.primaryCaution
-  const evidenceSummary = projections?.evidence?.summary || reportCore.judgmentPolicy.rationale
-  const structureDetail = projections?.structure?.detailLines?.[0] || ''
-  const timingDetail = projections?.timing?.detailLines?.[0] || ''
-  const conflictDetail = projections?.conflict?.detailLines?.[0] || ''
-  const actionDetail = projections?.action?.detailLines?.[0] || ''
-  const riskDetail = projections?.risk?.detailLines?.[0] || ''
-  const evidenceDetail = projections?.evidence?.detailLines?.[0] || ''
-  const branchDetail = projections?.branches?.detailLines?.[0] || ''
-  const branchNextMoves = projections?.branches?.nextMoves?.slice(0, 2) || []
-  const branchReasons = projections?.branches?.reasons?.slice(0, 2) || []
-  const structureDrivers = projections?.structure?.drivers?.slice(0, 3) || []
-  const timingDrivers = projections?.timing?.drivers?.slice(0, 3) || []
-  const actionDrivers = projections?.action?.drivers?.slice(0, 3) || []
-  const riskCounterweights = projections?.risk?.counterweights?.slice(0, 2) || []
-  const timingNextMoves = projections?.timing?.nextMoves?.slice(0, 2) || []
-  const actionNextMoves = projections?.action?.nextMoves?.slice(0, 2) || []
-  const timingMoveLine = buildProjectionMoveSentence(
-    timingNextMoves,
-    lang,
-    lang === 'ko'
-      ? '?? ?? ???? ?? ?? ??? ?? ??? ?? ??? ?? ????.'
-      : 'To use this window well, realign the live execution conditions first.'
+
+  const paragraph = (...parts: Array<string | undefined>): string =>
+    joinNarrativeParts(parts.map((part) => clean(part)).filter(Boolean))
+
+  const listText = (values: string[] | undefined): string => {
+    const cleaned = (values || []).map((value) => clean(value)).filter(Boolean)
+    return cleaned.join(lang === 'ko' ? ', ' : ', ')
+  }
+
+  const structureSummary = clean(projections?.structure?.summary || reportCore.thesis)
+  const structureDetail = clean(projections?.structure?.detailLines?.[0] || '')
+  const actionSummary = clean(projections?.action?.summary || reportCore.primaryAction)
+  const actionDetail = clean(projections?.action?.detailLines?.[0] || '')
+  const riskSummary = clean(projections?.risk?.summary || reportCore.riskControl)
+  const timingSummary = clean(projections?.timing?.summary || reportCore.gradeReason)
+  const timingDetail = clean(projections?.timing?.detailLines?.[0] || '')
+  const conflictSummary = clean(projections?.conflict?.summary || reportCore.primaryCaution)
+  const evidenceSummary = clean(
+    projections?.evidence?.summary || reportCore.judgmentPolicy.rationale
   )
-  const actionMoveLine = buildProjectionMoveSentence(
-    actionNextMoves,
-    lang,
-    lang === 'ko'
-      ? '?? ???? ?? ??? ?? ??? ?? ???? ?? ???? ?? ????.'
-      : 'The next move should begin by resetting execution criteria in smaller steps.'
-  )
-  const timingMatrixLead = reportCore.timingMatrix?.length
+
+  const windowNarrative = focusTiming
+    ? clean(buildTimingWindowNarrative(actionDomain, focusTiming, lang))
+    : lang === 'ko'
+      ? '??? ?? ????? ????? ??? ?????.'
+      : 'This phase is better used to confirm direction before locking decisions.'
+
+  const firstBranch = branchSet[0]
+  const branchEntry = clean((firstBranch?.entry || []).join(', '))
+  const branchAbort = clean((firstBranch?.abort || []).join(', '))
+  const branchRisk = clean(firstBranch?.reversalRisk || firstBranch?.wrongMoveCost || '')
+  const branchLead = branchSet
+    .map((branch, index) => `${index + 1}. ${clean(branch.summary || branch.label || '')}`)
+    .filter((line) => !/^[0-9]+\.\s*$/.test(line))
+    .join('\n')
+
+  const matrixSummary = actionMatrixRow
     ? lang === 'ko'
-      ? `?? ?? ${reportCore.timingMatrix
-          .slice(0, 3)
-          .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
-          .join(', ')} ??? ??? ????.`
-      : `The active windows split by domain as ${reportCore.timingMatrix
-          .slice(0, 3)
-          .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
-          .join(', ')}.`
+      ? `${actionLabel} ?? ${clean(
+          actionMatrixRow.cells
+            .map((cell) => cell.summary)
+            .filter(Boolean)
+            .slice(0, 2)
+            .join(', ')
+        )}`
+      : `${actionLabel} currently reads as ${clean(
+          actionMatrixRow.cells
+            .map((cell) => cell.summary)
+            .filter(Boolean)
+            .slice(0, 2)
+            .join(', ')
+        )}`
     : ''
-  const riskAxisLead = reportCore.riskAxisLabel
-    ? lang === 'ko'
-      ? `?? ???? ?? ??? ??? ?? ${reportCore.riskAxisLabel}???.`
-      : `The most sensitive risk axis in this theme is ${reportCore.riskAxisLabel}.`
-    : ''
-  const timelineNarrative = buildPersonalLifeTimelineNarrative(matrixInput, undefined, lang)
-  const timingGuardrail = focusTiming
-    ? buildTimingWindowNarrative(reportCore.actionFocusDomain || reportCore.focusDomain, focusTiming, lang)
-    : ''
-  const themeAngle =
-    theme === 'love'
-      ? lang === 'ko'
-        ? '?? ??? ?? ???? ?? ??? ?? ??? ?? ??? ????.'
-        : 'The relationship theme turns more on aligned interpretation and pace than on intensity alone.'
-      : theme === 'career'
-        ? lang === 'ko'
-          ? '??? ??? ??? ?? ?? ??? ??? ?? ??? ?? ???? ?? ????.'
-          : 'The career theme strengthens when role and evaluation criteria are fixed before expansion.'
-        : theme === 'wealth'
-          ? lang === 'ko'
-            ? '?? ??? ?? ???? ?? ??? ?? ??? ?? ?? ? ?? ???.'
-            : 'The wealth theme lasts longer when downside limits and exit conditions are set before upside.'
-          : theme === 'health'
-            ? lang === 'ko'
-              ? '?? ??? ??? ??? ???? ?? ?? ?? ???? ??? ???.'
-              : 'The health theme separates more by interrupting overload early than by endurance.'
-            : lang === 'ko'
-              ? '?? ??? ???? ??, ??, ?? ??? ??? ??? ?? ? ?????.'
-              : 'The family theme stabilizes when roles, cost, and care are made explicit.'
-  const themeActionLine =
-    theme === 'love'
-      ? lang === 'ko'
-        ? '??? ?????? ???? ?? ??? ?? ??? ?? ????.'
-        : 'Do not rush the relationship; align expectations and living conditions first.'
-      : theme === 'career'
-        ? lang === 'ko'
-          ? '??? ????? ?? ??? ?? ??? ?? ?????.'
-          : 'Before increasing output, lock responsibility boundaries and review points.'
-        : theme === 'wealth'
-          ? lang === 'ko'
-            ? '??? ?????? ??, ??, ?? ??? ?? ?????.'
-            : 'Before expanding, lock amount, timing, and exit conditions.'
-          : theme === 'health'
-            ? lang === 'ko'
-              ? '??? ????? ?? ??? ?? ???? ?????.'
-              : 'Before increasing intensity, secure recovery blocks and schedule buffers.'
-            : lang === 'ko'
-              ? '??? ???? ??? ?? ???? ?????.'
-              : 'Before pushing conclusions, align roles and interpretations first.'
-  const actionOpeningLine =
+
+  const timingDrivers = listText(projections?.timing?.drivers)
+  const actionMoves = listText(projections?.action?.nextMoves)
+  const riskCounters = listText(projections?.risk?.counterweights)
+  const structureDrivers = listText(projections?.structure?.drivers)
+
+  const sharedDeepAnalysis =
     lang === 'ko'
-      ? `?? ${actionLabel} ?? ??? ${reportCore.topDecisionLabel || reportCore.primaryAction}???.`
-      : `The operating rule on the ${actionLabel} axis is ${reportCore.topDecisionLabel || reportCore.primaryAction}.`
-  const themeRiskLine =
-    theme === 'love'
-      ? lang === 'ko'
-        ? '??? ??? ?? ??? ?? ??? ?? ??? ??? ?? ??? ?? ? ????.'
-        : 'Even with strong feeling, quick commitment can increase conflict cost when daily fit is weak.'
-      : theme === 'career'
-        ? lang === 'ko'
-          ? '??? ???? ??? ?? ?? ??? ?? ??? ???? ??? ? ????.'
-          : 'Speed can look like progress, but expansion without criteria often returns as rework cost.'
-        : theme === 'wealth'
-          ? lang === 'ko'
-            ? '????? ?? ??? ?? ??? ????? ???? ?? ??? ?? ??? ???.'
-            : 'Undocumented upside flips into loss easily, so protection must come before profit.'
-          : theme === 'health'
-            ? lang === 'ko'
-              ? '??? ?? ???? ???? ??? ?? ??? ??? ? ?? ? ????.'
-              : 'When recovery is deferred, endurance often increases the cost of the next window.'
-            : lang === 'ko'
-              ? '??? ?? ?? ???? ?? ?? ??? ????? ??? ???? ?? ????.'
-              : 'Unspoken role imbalance leaves more fatigue and resentment the longer it stays implicit.'
+      ? paragraph(
+          `${focusLabel}? ?? ??? ???, ?? ??? ???? ? ?? ${actionLabel}???.`,
+          structureSummary || structureDetail,
+          structureDrivers ? `${actionLabel} ??? ??? ???? ??? ${structureDrivers}???.` : '',
+          `${riskLabel} ??? ?? ???? ?? ??? ???? ????.`
+        )
+      : paragraph(
+          `${focusLabel} forms the background while ${actionLabel} is the front line that actually changes outcomes.`,
+          structureSummary || structureDetail,
+          structureDrivers ? `${actionLabel} is being supported by ${structureDrivers}.` : '',
+          `${riskLabel} must be managed at the same time to keep the whole read stable.`
+        )
 
-  const themeStructureLine =
-    theme === 'love'
-      ? lang === 'ko'
-        ? '? ?? ??? ?? ???? ?? ??? ??? ??? ??? ????.'
-        : 'This relationship theme is structured more by daily rhythm and expectation alignment than by expression alone.'
-      : theme === 'career'
-        ? lang === 'ko'
-          ? '? ??? ??? ???? ?? ??? ?? ??? ???? ??? ????.'
-          : 'This career theme is structured more by role clarity and evaluation criteria than by talent alone.'
-        : theme === 'wealth'
-          ? lang === 'ko'
-            ? '? ?? ??? ????? ?? ??? ?? ??? ??? ????.'
-            : 'This wealth theme is structured more by leakage control and recovery rules than by return rate alone.'
-          : theme === 'health'
-            ? lang === 'ko'
-              ? '? ?? ??? ???? ?? ??? ??? ??? ??? ????.'
-              : 'This health theme is structured more by recovery rhythm and overload interruption than by willpower.'
-            : lang === 'ko'
-              ? '? ?? ??? ???? ?? ??? ?? ??? ??? ????.'
-              : 'This family theme is structured more by role distribution and aligned interpretation than by emotion alone.'
+  const sharedTiming =
+    lang === 'ko'
+      ? paragraph(
+          timingSummary || timingDetail,
+          windowNarrative,
+          matrixSummary,
+          timingDrivers ? `${actionLabel} ???? ??? ?? ??? ${timingDrivers}???.` : '',
+          branchEntry ? `??? ${branchEntry}` : ''
+        )
+      : paragraph(
+          timingSummary || timingDetail,
+          windowNarrative,
+          matrixSummary,
+          timingDrivers ? `${actionLabel} timing is being pushed by ${timingDrivers}.` : '',
+          branchEntry ? `For now, ${branchEntry}` : ''
+        )
 
-  const themeWindowLine =
-    theme === 'love'
-      ? lang === 'ko'
-        ? '?? ?? ?? ?? ???? ?? ??? ?? ??? ?? ?? ? ?? ???? ????.'
-        : 'Even when the window opens, probability improves when living conditions and relationship pace are aligned first.'
-      : theme === 'career'
-        ? lang === 'ko'
-          ? '?? ?? ?? ???? ??? ?? ??? ??? ??? ? ? ???? ?????.'
-          : 'The stronger window shows up more clearly when role and review points are fixed in writing before expansion.'
-        : theme === 'wealth'
-          ? lang === 'ko'
-            ? '?? ?? ?? ??? ??? ???? ??? ?? ??? ?? ? ? ?????.'
-            : 'The stronger window is more reliable when downside limits are locked before upside is chased.'
-          : theme === 'health'
-            ? lang === 'ko'
-              ? '?? ?? ??? ?? ??? ?? ??? ??? ???? ?? ?? ? ? ????.'
-              : 'The stronger window opens less in endurance and more in reclaiming recovery blocks and cutting overload.'
-            : lang === 'ko'
-              ? '?? ?? ??? ???? ??? ??? ??? ?? ??? ?? ? ? ????.'
-              : 'The stronger window opens less in forced conclusions and more in realigning roles and cost.'
+  const sharedActionPlan =
+    lang === 'ko'
+      ? paragraph(
+          `${actionLabel}??? ${actionSummary || reportCore.topDecisionLabel || reportCore.primaryAction}? ?? ?????.`,
+          actionDetail,
+          actionMoves ? `?? ?? ? ?? ?? ???? ${actionMoves}???.` : '',
+          branchAbort ? `??? ${branchAbort} ?? ??? ??? ??? ??? ?? ????.` : '',
+          branchRisk ? `???? ${branchRisk}` : '',
+          riskCounters ? `${riskLabel} ???? ${riskCounters}?? ?? ??? ???.` : ''
+        )
+      : paragraph(
+          `On the ${actionLabel} axis, ${actionSummary || reportCore.topDecisionLabel || reportCore.primaryAction} is the base operating rule.`,
+          actionDetail,
+          actionMoves ? `The next practical move is ${actionMoves}.` : '',
+          branchAbort ? `If ${branchAbort} shows up, slow down before committing.` : '',
+          branchRisk ? `If you rush, ${branchRisk}` : '',
+          riskCounters ? `On the ${riskLabel} side, reduce ${riskCounters} first.` : ''
+        )
 
-  const themeBranchLine =
-    theme === 'love'
-      ? lang === 'ko'
-        ? branchDetail || '? ?? ??? ? ?? ???? ????? ? ?? ?? ??? ?? ?? ?????.'
-        : branchDetail || 'This relationship theme moves through multiple live branches rather than one fixed commitment path.'
-      : theme === 'career'
-        ? lang === 'ko'
-          ? branchDetail || '? ??? ??? ??? ??, ??? ??? ??? ?? ?? ?? ??? ??? ????.'
-          : branchDetail || 'This career theme keeps commit, defer, and renegotiation paths open at the same time.'
-        : theme === 'wealth'
-          ? lang === 'ko'
-            ? branchDetail || '? ?? ??? ??? ??, ??? ??? ?? ?? ?? ?? ??? ?????.'
-            : branchDetail || 'This wealth theme keeps expansion, defense, and reset paths alive together.'
-          : theme === 'health'
-            ? lang === 'ko'
-              ? branchDetail || '? ?? ??? ??? ???? ??? ??? ?? ?? ??? ??? ????.'
-              : branchDetail || 'This health theme keeps recovery and overload competing at the same time.'
-            : lang === 'ko'
-              ? branchDetail || '? ?? ??? ????? ??? ?? ??? ??? ?? ?? ????.'
-              : branchDetail || 'This family theme keeps multiple role and cost realignment paths open.'
-
-  const deepStructureLine =
-    theme === 'love'
-      ? lang === 'ko'
-        ? '? ????? ???? ?? ??? ???? ???? ??? ??? ????.'
-        : 'Here the relationship is built less by attraction and more by aligned rhythm and expectations.'
-      : theme === 'career'
-        ? lang === 'ko'
-          ? '? ????? ???? ?? ??? ?? ??? ???? ??? ????.'
-          : 'Here the career frame is built less by talent and more by role definition and evaluation criteria.'
-        : theme === 'wealth'
-          ? lang === 'ko'
-            ? '? ????? ????? ?? ??? ?? ??? ??? ??? ????.'
-            : 'Here the financial frame is built less by return rate and more by leakage control and recovery rules.'
-          : theme === 'health'
-            ? lang === 'ko'
-              ? '? ????? ???? ?? ??? ??? ??? ??? ??? ????.'
-              : 'Here the health frame is built less by willpower and more by recovery rhythm and overload control.'
-            : lang === 'ko'
-              ? '? ????? ???? ?? ??? ?? ??? ?? ??? ??? ????.'
-              : 'Here the family frame is built less by emotion and more by role distribution and aligned interpretation.'
-
-  const patternPressureLine =
-    theme === 'love'
-      ? lang === 'ko'
-        ? `?? ??? ??? ??? ??? ??? ??? ??? ?? ??? ??? ? ??? ????.`
-        : `The active pattern favors pace and boundary alignment over rushing the bond into definition.`
-      : theme === 'career'
-        ? lang === 'ko'
-          ? `?? ??? ?? ??? ??? ??? ?? ??? ??? ??? ? ??? ????.`
-          : `The active pattern favors narrowing role and review criteria over widening the workload.`
-        : theme === 'wealth'
-          ? lang === 'ko'
-            ? `?? ??? ??? ???? ?? ??? ?? ??? ?? ??? ??? ? ??? ????.`
-            : `The active pattern favors locking downside and recovery conditions before aggressive expansion.`
-          : theme === 'health'
-            ? lang === 'ko'
-              ? `?? ??? ??? ??? ???? ?? ?? ?? ??? ???? ??? ? ??? ????.`
-              : `The active pattern favors cutting overload and securing recovery blocks over simple endurance.`
-            : lang === 'ko'
-              ? `?? ??? ?? ???? ??, ??, ?? ??? ?? ??? ??? ? ??? ????.`
-              : `The active pattern favors realigning role, cost, and care distribution over emotional insistence.`
-
-  const timingReadLine =
-    theme === 'love'
-      ? lang === 'ko'
-        ? '?? ??? ???? ?? ??? ?? ??? ?? ??? ?? ?? ?? ??? ????.'
-        : 'Error stays lower when the read is tied to pace-fit windows instead of exact dates.'
-      : theme === 'career'
-        ? lang === 'ko'
-          ? '?? ???? ??? ?? ??? ??? ??? ? ?? ??? ?? ?? ? ?????.'
-          : 'This reads more accurately by finding windows that allow role and review points to be fixed in writing.'
-        : theme === 'wealth'
-          ? lang === 'ko'
-            ? '?? ???? ??? ?? ??? ?? ? ?? ??? ?? ?? ? ?????.'
-            : 'This reads more accurately by finding windows where conditions and downside limits can be locked.'
-          : theme === 'health'
-            ? lang === 'ko'
-              ? '?? ???? ?? ??? ??? ???? ?? ? ?? ??? ?? ?? ? ?????.'
-              : 'This reads more accurately by finding windows that restore recovery blocks and reduce overload.'
-            : lang === 'ko'
-              ? '?? ???? ??? ??? ?? ?? ? ?? ??? ?? ?? ? ?????.'
-              : 'This reads more accurately by finding windows where roles and cost can be realigned.'
-
-  const recommendationCloseLine =
-    theme === 'love'
-      ? lang === 'ko'
-        ? '?? ??? ? ?? ????, ??? ??? ?? ??? ?? ??? ???.'
-        : 'Emotional confirmation comes after pace and living fit are aligned.'
-      : theme === 'career'
-        ? lang === 'ko'
-          ? '?? ??? ?? ???, ??? ?? ??? ?? ??? ?? ??? ???.'
-          : 'Push output pressure back; first lock responsibility boundaries and review points.'
-        : theme === 'wealth'
-          ? lang === 'ko'
-            ? '?? ??? ?? ???, ??? ??? ??, ???? ??? ??? ???.'
-            : 'Defer upside expectation; first lock amount, timing, and the exit door.'
-          : theme === 'health'
-            ? lang === 'ko'
-              ? '?? ??? ?? ???, ??? ?? ??? ?? ???? ???? ???.'
-              : 'Delay intensity gains; first secure recovery blocks and schedule buffers.'
-            : lang === 'ko'
-              ? '??? ?? ???, ??? ??? ?? ???? ???? ???.'
-              : 'Delay conclusions; first secure aligned roles and interpretation.'
-
-  const actionRhythmLine =
-    theme === 'love'
-      ? lang === 'ko'
-        ? `??? ${actionLabel} ???? ?? ???? ??-??-??? ??? ? ?????.`
-        : `Even on the ${actionLabel} axis, confirm-align-formalize is safer than immediate emotional commitment.`
-      : theme === 'career'
-        ? lang === 'ko'
-          ? `??? ${actionLabel} ???? ??-??-?? ??? ???? ? ?????.`
-          : `Even on the ${actionLabel} axis, start-review-commit matters more than expansion itself.`
-        : theme === 'wealth'
-          ? lang === 'ko'
-            ? `??? ${actionLabel} ???? ?? ??-?? ??-?? ??? ? ?????.`
-            : `Even on the ${actionLabel} axis, condition check-downside control-commit matters more than speed.`
-          : theme === 'health'
-            ? lang === 'ko'
-              ? `??? ${actionLabel} ???? ?? ???? ?? ??-?? ??-?? ??? ? ?????.`
-              : `Even on the ${actionLabel} axis, recovery-load reduction-resume matters more than pushing intensity.`
-            : lang === 'ko'
-              ? `??? ${actionLabel} ???? ???? ?? ??-?? ??-?? ??? ? ?????.`
-              : `Even on the ${actionLabel} axis, role alignment-cost review-agreement matters more than rushing closure.`
-  const common =
-    theme === 'love'
-      ? {
-          deepAnalysis: joinNarrativeParts([
-            relationshipAdvisory?.thesis,
-            structureDetail,
-            themeAngle,
-            deepStructureLine,
-            timelineNarrative,
-            structureDrivers.length
-              ? lang === 'ko'
-                ? `?? ?? ??? ?? ???? ?? ${structureDrivers.join(', ')}???.`
-                : `The relationship read is being driven directly by ${structureDrivers.join(', ')}.`
-              : '',
-            lang === 'ko'
-              ? '? ?? ??? ??? ???? ??? ???? ?? ??? ????? ????.'
-              : 'This love theme turns more on relational operating rhythm than on emotional intensity alone.',
-          ]),
-          patterns: joinNarrativeParts([
-            relationshipAdvisory?.caution,
-            conflictDetail,
-            patternPressureLine,
-            lang === 'ko'
-              ? '??? ??? ?? ??? ?? ???? ??? ?? ????? ?? ? ????.'
-              : 'When feeling outruns practical fit, the relationship can overheat and cool just as quickly.',
-          ]),
-          timing: joinNarrativeParts([
-            relationshipAdvisory?.timingHint,
-            timingDetail,
-            timingGuardrail,
-            themeWindowLine,
-            timingMatrixLead,
-            themeBranchLine,
-            timingDrivers.length
-              ? lang === 'ko'
-                ? `?? ?? ?? ?? ${timingDrivers.join(', ')}???.`
-                : `The relationship window is being driven by ${timingDrivers.join(', ')}.`
-              : '',
-            timingMoveLine,
-            timingReadLine,
-          ]),
-          recommendations: [
-            joinNarrativeParts([
-              themeActionLine,
-              relationshipAdvisory?.action,
-              riskAxisLead,
-              actionMoveLine,
-              recommendationCloseLine,
-            ]),
-            joinNarrativeParts([
-              riskDetail,
-              riskCounterweights.length
-                ? lang === 'ko'
-                  ? `?? ${riskCounterweights.join(', ')} ?? ??? ?? ??? ???.`
-                  : `Counterweights like ${riskCounterweights.join(', ')} should be reduced first.`
-                : '',
-              lang === 'ko'
-                ? '?? ??? ?? ???? ?? ???? ???? ?? ?? ?????.'
-                : 'Do not treat emotional confirmation and formal commitment as the same move.',
-            ]),
-            joinNarrativeParts([
-              conflictSummary,
-              lang === 'ko'
-                ? '?? ?? ??? ??? ? ?? ?? ??? ?? ??? ?? ??? ?? ????.'
-                : 'When pace diverges, slow the faster side first and build a shared rhythm.',
-            ]),
-          ].filter(Boolean),
-          actionPlan: joinNarrativeParts([
-            actionOpeningLine,
-            actionMoveLine,
-            actionRhythmLine,
-            lang === 'ko'
-              ? '??? ??? ? ?? ???? ??? ??? ??? ?? ??? ? ????.'
-              : 'The edge here comes less from stronger expression and more from aligning pace and boundaries first.',
-            themeRiskLine,
-          ]),
-        }
-      : theme === 'career'
-        ? {
-            deepAnalysis: joinNarrativeParts([
-              careerAdvisory?.thesis,
-              structureDetail,
-              themeAngle,
-              deepStructureLine,
-              timelineNarrative,
-              structureDrivers.length
-                ? lang === 'ko'
-                  ? `?? ??? ??? ?? ??? ?? ${structureDrivers.join(', ')}???.`
-                  : `The career read is being driven directly by ${structureDrivers.join(', ')}.`
-                : '',
-              lang === 'ko'
-                ? '? ??? ??? ?? ?? ???? ??? ?? ??? ??? ?? ?????.'
-                : 'This career theme favors the person who fixes standards first, not the one who simply does more.',
-            ]),
-            patterns: joinNarrativeParts([
-              careerAdvisory?.caution,
-              conflictDetail,
-              patternPressureLine,
-              lang === 'ko'
-                ? '???? ?? ??? ?? ? ???? ??? ??? ??? ???? ????.'
-                : 'When role definition stays blurry, rework and depletion repeat faster than skill can compensate.',
-            ]),
-            timing: joinNarrativeParts([
-              careerAdvisory?.timingHint,
-              timingDetail,
-              timingGuardrail,
-            themeWindowLine,
-            timingMatrixLead,
-            themeBranchLine,
-            timingDrivers.length
-                ? lang === 'ko'
-                  ? `??? ?? ?? ?? ${timingDrivers.join(', ')}???.`
-                  : `The career window is being driven by ${timingDrivers.join(', ')}.`
-                : '',
-              timingMoveLine,
-              timingReadLine,
-            ]),
-            recommendations: [
-              joinNarrativeParts([
-              themeActionLine,
-              careerAdvisory?.action,
-              riskAxisLead,
-              actionMoveLine,
-              recommendationCloseLine,
-            ]),
-              joinNarrativeParts([
-                riskDetail,
-                riskCounterweights.length
-                  ? lang === 'ko'
-                    ? `?? ${riskCounterweights.join(', ')} ?? ??? ???? ?? ???? ???.`
-                    : `Counterweights like ${riskCounterweights.join(', ')} should be cleared before expansion.`
-                  : '',
-                lang === 'ko'
-                  ? '??? ??? ?? ???? ?? ???? ???? ?? ?? ? ????.'
-                  : 'If execution and review are forced into one move, rework builds faster than results.',
-              ]),
-              joinNarrativeParts([
-                conflictSummary,
-                lang === 'ko'
-                  ? '?? ??? ???? ? ? ??? ??? ??? ? ??? ?? ??? ?? ????.'
-                  : 'When tasks compete, choose the one with the clearest criteria before the larger one.',
-              ]),
-            ].filter(Boolean),
-            actionPlan: joinNarrativeParts([
-            actionOpeningLine,
-            actionMoveLine,
-              actionRhythmLine,
-              lang === 'ko'
-                ? '??? ? ?? ?? ?? ??? ??, ??, ??? ?? ???? ? ????.'
-                : 'The edge comes from fixing role, criteria, and responsibility before taking on more work.',
-              themeRiskLine,
-            ]),
-          }
-        : theme === 'wealth'
-          ? {
-              deepAnalysis: joinNarrativeParts([
-                wealthAdvisory?.thesis,
-                structureDetail,
-                themeAngle,
-                deepStructureLine,
-                timelineNarrative,
-                structureDrivers.length
-                  ? lang === 'ko'
-                    ? `?? ?? ??? ?? ??? ?? ${structureDrivers.join(', ')}???.`
-                    : `The wealth read is being driven directly by ${structureDrivers.join(', ')}.`
-                  : '',
-                lang === 'ko'
-                  ? '? ?? ??? ?? ?? ???? ??? ?? ??? ??? ?? ????.'
-                  : 'This wealth theme rewards the person who locks downside first, not the one who chases upside hardest.',
-              ]),
-              patterns: joinNarrativeParts([
-                wealthAdvisory?.caution,
-                conflictDetail,
-                patternPressureLine,
-                lang === 'ko'
-                  ? '??? ????? ?? ??? ?? ??? ??? ???? ??? ?? ?? ? ????.'
-                  : 'Undocumented upside turns into leakage easily and can leave fatigue before profit.',
-              ]),
-              timing: joinNarrativeParts([
-                wealthAdvisory?.timingHint,
-                timingDetail,
-                timingGuardrail,
-                themeWindowLine,
-                timingMatrixLead,
-                themeBranchLine,
-                timingDrivers.length
-                  ? lang === 'ko'
-                    ? `?? ?? ?? ?? ${timingDrivers.join(', ')}???.`
-                    : `The wealth window is being driven by ${timingDrivers.join(', ')}.`
-                  : '',
-                timingMoveLine,
-                timingReadLine,
-              ]),
-              recommendations: [
-                joinNarrativeParts([
-                  themeActionLine,
-                  wealthAdvisory?.action,
-                  riskAxisLead,
-                  actionMoveLine,
-                  recommendationCloseLine,
-                ]),
-                joinNarrativeParts([
-                  riskDetail,
-                  riskCounterweights.length
-                    ? lang === 'ko'
-                      ? `?? ${riskCounterweights.join(', ')} ?? ??? ?? ???? ?? ??? ???.`
-                      : `Counterweights like ${riskCounterweights.join(', ')} should be reduced before upside is discussed.`
-                    : '',
-                  lang === 'ko'
-                    ? '??? ??? ? ?? ??? ???? ?? ?? ??? ? ?? ?? ? ????.'
-                    : 'If expansion and commitment happen in one move, recovery cost can grow faster than return.',
-                ]),
-                joinNarrativeParts([
-                  conflictSummary,
-                  lang === 'ko'
-                    ? '?? ?? ??? ???? ? ? ??? ???? ?? ??? ??? ??? ?? ????.'
-                    : 'When revenue paths compete, choose the one with the clearest recovery rules before the bigger-looking one.',
-                ]),
-              ].filter(Boolean),
-              actionPlan: joinNarrativeParts([
-                actionOpeningLine,
-                actionMoveLine,
-                actionRhythmLine,
-                lang === 'ko'
-                  ? '??? ?? ??? ??? ??? ?? ??? ?? ??? ?? ??? ? ????.'
-                  : 'The edge comes from locking downside and recovery rules before enlarging upside.',
-                themeRiskLine,
-              ]),
-            }
-          : theme === 'health'
-            ? {
-                deepAnalysis: joinNarrativeParts([
-                  healthAdvisory?.thesis,
-                  structureDetail,
-                  themeAngle,
-                  deepStructureLine,
-                  timelineNarrative,
-                  structureDrivers.length
-                    ? lang === 'ko'
-                      ? `?? ?? ??? ?? ??? ?? ${structureDrivers.join(', ')}???.`
-                      : `The health read is being driven directly by ${structureDrivers.join(', ')}.`
-                    : '',
-                  lang === 'ko'
-                    ? '? ?? ??? ??? ??? ???? ???? ?? ?? ??? ?? ????.'
-                    : 'This health theme favors the person who interrupts overload early, not the one who simply endures harder.',
-                ]),
-                patterns: joinNarrativeParts([
-                  healthAdvisory?.caution,
-                  conflictDetail,
-                  patternPressureLine,
-                  lang === 'ko'
-                    ? '??? ?? ??? ??? ???? ?? ?? ??? ?? ???? ????.'
-                    : 'When fatigue overlaps with schedule pressure, recovery breakdown accumulates faster than willpower can compensate.',
-                ]),
-                timing: joinNarrativeParts([
-                  healthAdvisory?.timingHint,
-                  timingDetail,
-                  timingGuardrail,
-                  themeWindowLine,
-                  timingMatrixLead,
-                  themeBranchLine,
-                  timingDrivers.length
-                    ? lang === 'ko'
-                      ? `?? ?? ?? ?? ${timingDrivers.join(', ')}???.`
-                      : `The health window is being driven by ${timingDrivers.join(', ')}.`
-                    : '',
-                  timingMoveLine,
-                  timingReadLine,
-                ]),
-                recommendations: [
-                  joinNarrativeParts([
-                    themeActionLine,
-                    healthAdvisory?.action,
-                    riskAxisLead,
-                    actionMoveLine,
-                    recommendationCloseLine,
-                  ]),
-                  joinNarrativeParts([
-                    riskDetail,
-                    riskCounterweights.length
-                      ? lang === 'ko'
-                        ? `?? ${riskCounterweights.join(', ')} ?? ??? ???? ???? ?? ??? ???.`
-                        : `Counterweights like ${riskCounterweights.join(', ')} should be reduced in the schedule before intensity is raised.`
-                      : '',
-                    lang === 'ko'
-                      ? '??? ?? ??? ?? ?? ??? ??? ?? ??? ???? ??? ???.'
-                      : 'Recovery plans that are too intense do not last; keep the smallest repeatable rhythm first.',
-                  ]),
-                  joinNarrativeParts([
-                    conflictSummary,
-                    lang === 'ko'
-                      ? '??? ??? ???? ?? ??? ???? ??? ?? ???? ?? ????.'
-                      : 'When recovery competes with output, this phase should choose recovery first.',
-                  ]),
-                ].filter(Boolean),
-                actionPlan: joinNarrativeParts([
-                  actionOpeningLine,
-                  actionMoveLine,
-                  actionRhythmLine,
-                  lang === 'ko'
-                    ? '??? ? ??? ?? ??? ?? ??? ?? ??? ?? ??? ? ????.'
-                    : 'The edge comes from restoring recovery blocks and schedule buffers before pushing harder.',
-                  themeRiskLine,
-                ]),
-              }
-            : {
-                deepAnalysis: joinNarrativeParts([
-                  relationshipAdvisory?.thesis,
-                  structureDetail,
-                  themeAngle,
-                  deepStructureLine,
-                  timelineNarrative,
-                  structureDrivers.length
-                    ? lang === 'ko'
-                      ? `?? ?? ??? ?? ??? ?? ${structureDrivers.join(', ')}???.`
-                      : `The family read is being driven directly by ${structureDrivers.join(', ')}.`
-                    : '',
-                  lang === 'ko'
-                    ? '? ?? ??? ?? ???? ??? ??? ??? ??? ??? ??? ?? ????.'
-                    : 'This family theme favors the person who makes roles and cost explicit rather than relying on feeling alone.',
-                ]),
-                patterns: joinNarrativeParts([
-                  relationshipAdvisory?.caution,
-                  conflictDetail,
-                  patternPressureLine,
-                  lang === 'ko'
-                    ? '??? ?? ?? ???? ??? ????? ???? ??? ? ?? ????.'
-                    : 'Invisible role imbalance leaves greater fatigue and resentment the closer the relationship is.',
-                ]),
-                timing: joinNarrativeParts([
-                  relationshipAdvisory?.timingHint,
-                  timingDetail,
-                  timingGuardrail,
-                  themeWindowLine,
-                  timingMatrixLead,
-                  themeBranchLine,
-                  timingDrivers.length
-                    ? lang === 'ko'
-                      ? `?? ?? ?? ?? ${timingDrivers.join(', ')}???.`
-                      : `The family window is being driven by ${timingDrivers.join(', ')}.`
-                    : '',
-                  timingMoveLine,
-                  timingReadLine,
-                ]),
-                recommendations: [
-                  joinNarrativeParts([
-                    themeActionLine,
-                    relationshipAdvisory?.action,
-                    riskAxisLead,
-                    actionMoveLine,
-                    recommendationCloseLine,
-                  ]),
-                  joinNarrativeParts([
-                    riskDetail,
-                    riskCounterweights.length
-                      ? lang === 'ko'
-                        ? `?? ${riskCounterweights.join(', ')} ?? ??? ???? ?? ???? ?? ??? ???.`
-                        : `Counterweights like ${riskCounterweights.join(', ')} should be resolved through role adjustment before emotion is pushed harder.`
-                      : '',
-                    lang === 'ko'
-                      ? '?? ??? ??? ?? ??? ???? ?? ??? ?? ??? ?? ?????.'
-                      : 'When people read the same scene differently, aligned interpretation must come before conclusions.',
-                  ]),
-                  joinNarrativeParts([
-                    conflictSummary,
-                    lang === 'ko'
-                      ? '?? ??? ?? ??? ???? ? ? ????? ? ?? ?? ??? ?? ????.'
-                      : 'When demands compete inside the family, reduce the burden that lasts longer before reacting to the louder voice.',
-                  ]),
-                ].filter(Boolean),
-                actionPlan: joinNarrativeParts([
-                  actionOpeningLine,
-                  actionMoveLine,
-                  actionRhythmLine,
-                  lang === 'ko'
-                    ? '??? ??? ? ?? ??? ?? ??? ??, ??, ??? ?? ??? ??? ??? ? ????.'
-                    : 'The edge comes from making role, cost, and care explicit before pushing emotion harder.',
-                  themeRiskLine,
-                ]),
-              }
+  const recommendations =
+    lang === 'ko'
+      ? [
+          `${actionLabel}??? ???? ??? ?? ?????.`,
+          branchAbort
+            ? `${branchAbort} ?? ??? ??? ???? ???? ?????.`
+            : `${riskLabel} ??? ??? ???? ???? ?????.`,
+          branchRisk
+            ? `${branchRisk} ?? ??? ??? ??? ?? ??? ??????.`
+            : `? ?? ?? ?????? ??? ? ?? ??? ????? ?? ????.`,
+        ]
+      : [
+          `Fix criteria before speed on the ${actionLabel} axis.`,
+          branchAbort
+            ? `If ${branchAbort} appears, review before committing.`
+            : `If ${riskLabel} rises, review before committing.`,
+          branchRisk
+            ? `Test in small reversible steps so ${branchRisk} does not grow.`
+            : `Use small reversible moves instead of one large irreversible decision.`,
+        ]
 
   switch (theme) {
     case 'love':
       return {
-        ...common,
-        compatibility: joinNarrativeParts([
-          relationshipAdvisory?.thesis,
-          structureSummary,
+        deepAnalysis: paragraph(
+          sharedDeepAnalysis,
+          relationshipAdvisory?.thesis ||
+            (lang === 'ko'
+              ? '??? ??? ???? ??? ??? ?? ??? ?? ? ????? ?????.'
+              : 'Relationships become stable when interpretation and daily rhythm align better than emotional intensity alone.')
+        ),
+        patterns: paragraph(
+          relationshipAdvisory?.caution || conflictSummary,
           lang === 'ko'
-            ? '??? ?? ???? ??? ??? ??? ???? ? ?????.'
-            : 'Compatibility depends more on pace and expectation alignment than emotional intensity.',
-        ]),
-        spouseProfile: joinNarrativeParts([
-          relationshipAdvisory?.action,
+            ? '?? ?? ??? ??? ????? ??? ???? ??? ?? ??? ?? ?? ?????.'
+            : 'This relationship phase favors aligning pace and expectation before moving closer quickly.'
+        ),
+        timing: sharedTiming,
+        compatibility: paragraph(
           lang === 'ko'
-            ? '????? ?? ??? ?? ??? ?? ??? ? ??? ????.'
-            : 'The stronger fit is someone who can share daily structure and responsibility.',
-        ]),
-        marriageTiming: joinNarrativeParts([
-          timingSummary,
-          relationshipAdvisory?.timingHint,
+            ? '? ?? ??? ??? ???? ?? ??? ?? ??? ??? ?????.'
+            : 'The stronger match is based more on pace and boundaries than intensity.',
+          evidenceSummary
+        ),
+        spouseProfile: paragraph(
           lang === 'ko'
-            ? '???? ???? ??? ?? ??? ?? ??? ????? ?? ????.'
-            : 'Formal commitment is strongest when standards and living conditions align.',
-        ]),
+            ? '?? ?? ??? ?? ??? ? ???? ???? ?? ??? ?? ?? ? ?? ?? ?? ?????.'
+            : 'The longer-lasting partner is steadier and more realistic than merely exciting.',
+          relationshipAdvisory?.action
+        ),
+        marriageTiming: paragraph(
+          sharedTiming,
+          lang === 'ko'
+            ? '???? ??? ??? ?? ??? ??? ?? ??? ?? ?? ? ? ?????.'
+            : 'Commitment timing strengthens when trust and daily fit rise together.'
+        ),
+        recommendations,
+        actionPlan: sharedActionPlan,
       }
     case 'career':
       return {
-        ...common,
-        strategy: joinNarrativeParts([
-          careerAdvisory?.thesis,
-          actionSummary,
+        deepAnalysis: paragraph(
+          sharedDeepAnalysis,
+          careerAdvisory?.thesis ||
+            (lang === 'ko'
+              ? '???? ? ?? ?? ??? ???? ??? ?? ??? ?? ???? ??? ??? ??? ?????.'
+              : 'Career favors the person who fixes role and evaluation criteria before expanding workload.')
+        ),
+        patterns: paragraph(
+          careerAdvisory?.caution || conflictSummary,
+          lang === 'ko'
+            ? '?? ???? ??? ????? ???? ??? ???, ??? ?? ??? ??? ?? ?????.'
+            : 'Right now career punishes rushed expansion and rewards clearly fixed standards.'
+        ),
+        timing: sharedTiming,
+        strategy: paragraph(
+          lang === 'ko'
+            ? '??? ??? ??? ? ?? ?? ?? ???, ?? ??? ??? ??? ?? ???? ? ????.'
+            : 'The strategy is to fix role and ownership before chasing more opportunities.',
           actionDetail,
+          actionMoves ? `?????? ${actionMoves}?? ???? ?? ????.` : ''
+        ),
+        roleFit: paragraph(
           lang === 'ko'
-            ? '?? ???? ? ?? ??? ??? ???, ??? ?? ??? ?? ???? ?????.'
-            : 'The real turning point is not expansion itself, but the moment role and evaluation criteria are fixed.',
+            ? '? ?? ??? ??? ???? ???? ??, ??, ?? ??? ??? ?????.'
+            : 'The better fit is a role where judgment and coordination matter more than raw speed.',
+          structureDetail
+        ),
+        turningPoints: paragraph(
           lang === 'ko'
-            ? '???? ??, ??, ?? ??? ?? ????? ??? ?????.'
-            : 'Career improves when role, scope, and evaluation criteria are fixed first.',
-        ]),
-        roleFit: joinNarrativeParts([
-          structureSummary,
-          careerAdvisory?.action,
-          lang === 'ko'
-            ? '?? ???? ???? ?? ??? ?? ??? ??? ???? ? ????.'
-            : 'Role fit is strongest where prioritization and coordination matter more than speed.',
-          lang === 'ko'
-            ? '?? ???? ???? ??? ??? ?? ??? ???? ?? ???? ??? ? ???? ?????.'
-            : 'Strength shows more clearly in roles that set criteria and coordinate moving parts than in roles that reward isolated speed.',
-        ]),
-        turningPoints: joinNarrativeParts([
-          timingSummary,
-          careerAdvisory?.timingHint,
-          lang === 'ko'
-            ? '???? ?? ??? ???? ??? ??? ?? ???? ??? ? ???? ???.'
-            : 'Turning points arrive more clearly when role and responsibility are reset.',
-          lang === 'ko'
-            ? '?? ?? ??? ?? ??? ?? ??? ??? ?? ?? ??? ??? ?? ??? ??? ? ????.'
-            : 'The shift becomes sharper when evaluation criteria and review cadence are reset, because the same effort starts converting into visible results faster.',
-        ]),
+            ? '???? ? ? ??? ?? ?? ???, ?? ????? ?? ??? ? ??? ??? ???? ? ????.'
+            : 'Turning points open when the old operating method stops being enough.',
+          sharedTiming,
+          branchLead
+        ),
+        recommendations,
+        actionPlan: sharedActionPlan,
       }
     case 'wealth':
       return {
-        ...common,
-        strategy: joinNarrativeParts([
-          wealthAdvisory?.thesis,
-          actionSummary,
+        deepAnalysis: paragraph(
+          sharedDeepAnalysis,
+          wealthAdvisory?.thesis ||
+            (lang === 'ko'
+              ? '??? ?? ?? ????, ?? ??? ?? ?? ??? ???? ??? ?? ????? ?????.'
+              : 'Wealth improves more reliably by fixing leakage and conditions first than by chasing larger upside.')
+        ),
+        patterns: paragraph(
+          wealthAdvisory?.caution || conflictSummary,
           lang === 'ko'
-            ? '??? ?? ???? ??? ?? ??? ?? ????? ?? ????.'
-            : 'Wealth holds better when conditions and downside limits are fixed first.',
-        ]),
-        incomeStreams: joinNarrativeParts([
+            ? '??? ?? ??? ??? ?? ??, ?? ?? ???? ??? ??? ?? ??? ? ????.'
+            : 'Upside can look large now, but unclear conditions can increase both loss and fatigue.'
+        ),
+        timing: sharedTiming,
+        strategy: paragraph(
           lang === 'ko'
-            ? '?? ??? ? ??? ?? ?? ??? ?? ???? ???? ??? ?? ? ?????.'
-            : 'Income flow improves when new channels are tested small and only durable structures remain.',
-          evidenceDetail,
-          wealthAdvisory?.action,
+            ? '?? ??? ??? ??, ??, ?? ??? ?? ?? ?? ? ????.'
+            : 'The financial strategy starts by fixing amount, timing, and downside limit in writing.',
+          actionDetail
+        ),
+        incomeStreams: paragraph(
           lang === 'ko'
-            ? '? ???? ?? ???? ?? ??? ??? ??? ??? ????.'
-            : 'New income channels should be tested small and kept only when repeatable.',
-        ]),
-        riskManagement: joinNarrativeParts([
+            ? '? ???? ?? ? ? ?? ????, ?? ???? ?? ??? ??? ??? ??? ? ????.'
+            : 'New income streams are better tested small and kept only if repeatable.',
+          evidenceSummary
+        ),
+        riskManagement: paragraph(
+          lang === 'ko'
+            ? '??? ??? ??? ??? ??? ??? ???? ??? ?? ??? ?? ?????.'
+            : 'Risk management starts by limiting downside before enlarging return.',
           riskSummary,
-          wealthAdvisory?.caution,
-          lang === 'ko'
-            ? '??, ??, ?? ??? ??? ?? ??? ??? ?? ??? ?? ? ????.'
-            : 'If amount, timing, and exit conditions are not written down, upside can flip into loss quickly.',
-        ]),
+          branchAbort ? `?? ${branchAbort} ?? ??? ??? ?? ??? ???.` : ''
+        ),
+        recommendations,
+        actionPlan: sharedActionPlan,
       }
     case 'health':
       return {
-        ...common,
-        prevention: joinNarrativeParts([
+        deepAnalysis: paragraph(
+          sharedDeepAnalysis,
+          healthAdvisory?.thesis ||
+            (lang === 'ko'
+              ? '??? ??? ??? ?? ??? ??? ?? ???? ?? ?? ?????.'
+              : 'Health improves more through repeatable recovery rhythm than endurance alone.')
+        ),
+        patterns: paragraph(
+          healthAdvisory?.caution || conflictSummary,
           lang === 'ko'
-            ? '??? ??? ??? ??? ???? ?? ?? ?? ??? ??? ? ????.'
-            : 'Prevention works best when overload is interrupted early, not when endurance is forced.',
-          healthAdvisory?.thesis,
+            ? '???? ??? ?? ??? ?? ??? ?? ??? ?? ?? ??? ?? ? ????.'
+            : 'If overload is not interrupted early, small fatigue can shake the whole rhythm.'
+        ),
+        timing: sharedTiming,
+        prevention: paragraph(
           lang === 'ko'
-            ? '??? ??? ??? ??? ??? ?? ?? ???? ??? ???.'
-            : 'Health separates more by interrupting overload early than by endurance.',
-        ]),
-        riskWindows: joinNarrativeParts([
-          timingSummary,
-          healthAdvisory?.timingHint,
+            ? '??? ??? ? ??? ?? ?? ?? ?? ??? ?? ??? ????.'
+            : 'Prevention starts by responding to small warning signs early.',
+          riskSummary
+        ),
+        riskWindows: paragraph(
           lang === 'ko'
-            ? '??? ?? ??? ??? ???? ??? ??? ?? ??? ?? ?????.'
-            : 'When fatigue and schedule pressure overlap, lower intensity and lock recovery blocks first.',
-        ]),
-        recoveryPlan: joinNarrativeParts([
-          healthAdvisory?.action,
-          riskSummary,
+            ? '?? ??? ??? ??????, ??? ???? ?? ??? ???? ??? ??? ??? ????.'
+            : 'Risk windows usually open quietly when recovery lags and schedule pressure stacks up.',
+          sharedTiming
+        ),
+        recoveryPlan: paragraph(
           lang === 'ko'
-            ? '??? ? ???? ??, ??, ??, ?? ??? ????? ????.'
-            : 'Recovery comes from repeatable sleep, hydration, meals, and schedule adjustment.',
-        ]),
+            ? '??? ?? ?? ? ???, ?????????? ?? ?? ?? ??? ??? ??? ??? ? ?? ? ????.'
+            : 'Recovery holds better through repeatable routines than a single strong correction.',
+          healthAdvisory?.action
+        ),
+        recommendations,
+        actionPlan: sharedActionPlan,
       }
     case 'family':
       return {
-        ...common,
-        dynamics: joinNarrativeParts([
-          relationshipAdvisory?.thesis,
-          wealthAdvisory?.caution,
+        deepAnalysis: paragraph(
+          sharedDeepAnalysis,
           lang === 'ko'
-            ? '?? ??? ???? ??, ??, ?? ??? ??? ?? ? ? ????.'
-            : 'Family dynamics tangle more when roles, cost, and care distribution stay implicit.',
-        ]),
-        communication: joinNarrativeParts([
+            ? '?? ??? ?? ????? ??? ?? ??? ??? ?? ? ???? ? ?????.'
+            : 'Family issues improve more through aligned interpretation than deciding who is right.'
+        ),
+        patterns: paragraph(
+          conflictSummary,
           lang === 'ko'
-            ? '?? ??????? ??? ?? ??? ??? ?? ?? ??? ?? ????? ??? ? ?????.'
-            : 'Family communication improves when people confirm they are reading the same scene before pushing conclusions.',
-          relationshipAdvisory?.caution,
-          healthAdvisory?.action,
+            ? '??? ???? ????? ?? ??? ??? ???? ?? ???? ????.'
+            : 'If roles and expectations stay implicit, fatigue and resentment accumulate.'
+        ),
+        timing: sharedTiming,
+        dynamics: paragraph(
           lang === 'ko'
-            ? '?? ??? ???? ?? ?? ??? ?? ?? ?? ?? ??? ????.'
-            : 'In family communication, aligned interpretation before conclusions lowers conflict cost.',
-        ]),
-        legacy: joinNarrativeParts([
-          timelineNarrative,
-          moveAdvisory?.caution,
+            ? '?? ??? ??? ???? ??? ??, ?? ??? ??? ????? ?? ?? ?????.'
+            : 'Family dynamics shift more through clear roles and care distribution than emotion alone.',
+          structureDetail
+        ),
+        communication: paragraph(
           lang === 'ko'
-            ? '?? ??? ??? ?? ???? ?? ? ?? ??? ?? ? ????.'
-            : 'Intergenerational legacy improves when left as operating rules rather than words.',
-        ]),
+            ? '?? ??? ?? ?? ?? ???, ?? ??? ?? ??? ???? ??? ?? ? ?????.'
+            : 'Family communication improves when people understand the same scene the same way.',
+          actionDetail
+        ),
+        legacy: paragraph(
+          lang === 'ko'
+            ? '??? ?? ?? ? ?? ?? ??? ??? ??? ?? ?????.'
+            : 'What remains in family life is shaped more by repeated patterns than one intense moment.',
+          evidenceSummary
+        ),
+        recommendations,
+        actionPlan: sharedActionPlan,
       }
   }
+}
+
+function finalizeThemedSectionsForUser(
+  theme: ReportTheme,
+  reportCore: ReportCoreViewModel,
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en',
+  timingData: TimingData | undefined
+): ThemedReportSections {
+  const base = buildProjectionFirstThemedSections(theme, reportCore, matrixInput, lang, timingData)
+  if (lang !== 'ko') return base
+
+  const focusDomain = reportCore.focusDomain
+  const actionDomain = reportCore.actionFocusDomain || reportCore.focusDomain
+  const focusLabel = getReportDomainLabel(focusDomain, lang)
+  const actionLabel = getReportDomainLabel(actionDomain, lang)
+  const riskLabel = reportCore.riskAxisLabel || '\uac74\uac15'
+  const focusTiming = findReportCoreTimingWindow(reportCore, actionDomain)
+  const branchSet = (reportCore.branchSet || []).slice(0, 3)
+
+  const clean = (value: string | undefined): string =>
+    sanitizeUserFacingNarrative(localizeReportNarrativeText(String(value || ''), lang)).trim()
+
+  const dedupe = (items: string[]): string[] => {
+    const seen = new Set<string>()
+    const out: string[] = []
+    for (const item of items.map((v) => v.trim()).filter(Boolean)) {
+      if (seen.has(item)) continue
+      seen.add(item)
+      out.push(item)
+    }
+    return out
+  }
+
+  const p = (...parts: Array<string | undefined>): string =>
+    joinNarrativeParts(dedupe(parts.map((part) => clean(part)).filter(Boolean)))
+
+  const timingWindow = clean(String(focusTiming?.window || '\uc9c0\uae08')) || '\uc9c0\uae08'
+  const timingLine =
+    timingWindow === '\uc9c0\uae08'
+      ? '\uc9c0\uae08\uc740 \uc870\uac74\ub9cc \ub9de\uc73c\uba74 \uc2e4\uc81c\ub85c \uc6c0\uc9c1\uc77c \uc218 \uc788\ub294 \ucc3d\uc774 \uc5f4\ub824 \uc788\uc2b5\ub2c8\ub2e4.'
+      : `\ud604\uc7ac\ub294 ${timingWindow} \uad6c\uac04\uc774 \uac00\uc7a5 \uc9c1\uc811\uc801\uc73c\ub85c \uc791\ub3d9\ud569\ub2c8\ub2e4.`
+
+  const localizeBranchTitle = (title: string): string => {
+    const lower = title.toLowerCase()
+    if (lower.includes('promotion')) return '\uc2b9\uc9c4 \ub610\ub294 \uc5ed\ud560 \ud655\uc7a5'
+    if (lower.includes('contract')) return '\uc870\uac74 \uc7ac\ud611\uc0c1'
+    if (lower.includes('specialist')) return '\uc804\ubb38\uc131 \uc2ec\ud654'
+    if (lower.includes('reconcile')) return '\uad00\uacc4 \ud68c\ubcf5'
+    if (lower.includes('distance')) return '\uac70\ub9ac \uc7ac\uc870\uc815'
+    if (lower.includes('restart')) return '\ub2e4\uc2dc \uc2dc\uc791'
+    return clean(title)
+  }
+
+  const branchTitles = dedupe(
+    branchSet
+      .map((branch) => localizeBranchTitle(String(branch.label || branch.summary || '')))
+      .filter(Boolean)
+  )
+  const branchEntry = clean(String(branchSet[0]?.entry || ''))
+  const branchAbort = clean(String(branchSet[0]?.abort || ''))
+  const branchRisk = clean(String(branchSet[0]?.reversalRisk || branchSet[0]?.wrongMoveCost || ''))
+  const branchList =
+    branchTitles.length > 0
+      ? branchTitles.join(', ')
+      : '\uc2b9\uc9c4 \ub610\ub294 \uc5ed\ud560 \ud655\uc7a5, \uc870\uac74 \uc7ac\ud611\uc0c1, \uc804\ubb38\uc131 \uc2ec\ud654'
+  const riskLine = `${riskLabel} \ubb38\uc81c\uac00 \uac00\uc7a5 \uc608\ubbfc\ud55c \ubcc0\uc218\ub85c \uac19\uc774 \uc6c0\uc9c1\uc774\uae30 \ub54c\ubb38\uc5d0, \uc88b\uc740 \uae30\ud68c\uac00 \uc640\ub3c4 \uc6b4\uc601 \uc21c\uc11c\ub97c \uc798\ubabb \uc7a1\uc73c\uba74 \uacb0\uacfc\ubcf4\ub2e4 \uc18c\ubaa8\uac00 \uba3c\uc800 \ucee4\uc9c8 \uc218 \uc788\uc2b5\ub2c8\ub2e4.`
+
+  if (theme === 'career') {
+    return {
+      deepAnalysis: p(
+        `\uc774\ubc88 \ucee4\ub9ac\uc5b4 \ub9ac\ud3ec\ud2b8\uc5d0\uc11c \uba3c\uc800 \ubd10\uc57c \ud560 \uac83\uc740 \uc0b6\uc758 \ubc30\uacbd \ud750\ub984\uacfc \uc9c0\uae08 \uba3c\uc800 \uc6c0\uc9c1\uc5ec\uc57c \ud560 \uc601\uc5ed\uc774 \ub2e4\ub974\ub2e4\ub294 \uc810\uc785\ub2c8\ub2e4. \uc9c0\uae08 \uc0b6\uc758 \ubc14\ud0d5\uc5d0\ub294 ${focusLabel} \ud750\ub984\uc774 \uae54\ub824 \uc788\uc9c0\ub9cc, \uc2e4\uc81c\ub85c \uc190\uc744 \ub300\uace0 \uc6c0\uc9c1\uc5ec\uc57c \ud558\ub294 \ucabd\uc740 ${actionLabel}\uc785\ub2c8\ub2e4.`,
+        `\uadf8\ub798\uc11c \uc774 \uc2dc\uae30\uc758 \uc2b9\ubd80\ub294 \ubb34\uc5c7\uc774 \uc911\uc694\ud558\ub0d0\ub97c \uc544\ub294 \ub370\uc11c \ub05d\ub098\uc9c0 \uc54a\uace0, \ubb34\uc5c7\uc744 \uba3c\uc800 \uc815\ub9ac\ud558\uace0 \ubb34\uc5c7\uc744 \ub098\uc911\uc5d0 \ud655\uc815\ud560\uc9c0\ub97c \uac00\ub974\ub294 \ub370 \uc788\uc2b5\ub2c8\ub2e4.`,
+        riskLine
+      ),
+      patterns: p(
+        '\ub2f9\uc2e0\uc740 \ubb34\uc791\uc815 \ubc00\uc5b4\ubd99\uc774\ub294 \uc0ac\ub78c\ubcf4\ub2e4, \uae30\uc900\uc744 \uc138\uc6b4 \ub4a4 \uc624\ub798 \ubc00\uace0 \uac00\ub294 \ubc29\uc2dd\uc5d0 \ub354 \uac15\ud569\ub2c8\ub2e4.',
+        '\uc5ed\ud560 \ubc94\uc704\uc640 \ucc45\uc784 \ubc94\uc704, \ud3c9\uac00 \uae30\uc900\uc744 \uba3c\uc800 \uace0\uc815\ud558\ub294 \uc0ac\ub78c\uc774 \uacb0\uad6d \uc55e\uc11c\uac11\ub2c8\ub2e4.',
+        '\ubc29\ud5a5\uc774 \ubd84\uba85\ud558\uba74 \ubc84\ud2f0\ub294 \ud798\uc774 \uc788\uc9c0\ub9cc, \uae30\uc900\uc774 \ud750\ub824\uc9c0\uba74 \uc5d0\ub108\uc9c0\uac00 \ubd84\uc0b0\ub418\uace0 \uc790\uae30\uac80\uc5f4\uc774 \uac15\ud574\uc9c8 \uc218 \uc788\uc2b5\ub2c8\ub2e4.'
+      ),
+      timing: p(
+        timingLine,
+        '\ud558\uc9c0\ub9cc \uc774 \ud750\ub984\uc758 \uc758\ubbf8\ub294 \uc9c0\uae08 \ub2f9\uc7a5 \ubaa8\ub4e0 \uac83\uc744 \ud655\uc815\ud558\ub77c\ub294 \ub73b\uc774 \uc544\ub2d9\ub2c8\ub2e4. \uc9c0\uae08\uc740 \ud310\uc774 \uc0b4\uc544\ub098\ub294\uc9c0, \uc870\uac74\uc774 \uc720\uc9c0\ub418\ub294\uc9c0, \uae30\uc900\uc774 \ubb34\ub108\uc9c0\uc9c0 \uc54a\ub294\uc9c0\ub97c \uba3c\uc800 \ud655\uc778\ud558\ub294 \uad6c\uac04\uc785\ub2c8\ub2e4.',
+        branchEntry
+          ? `\ud2b9\ud788 ${branchEntry}\uac00 \ub9de\uc744 \ub54c \uc2e4\ud589\ub825\uc774 \uac00\uc7a5 \uc548\uc815\uc801\uc73c\ub85c \ubd99\uc2b5\ub2c8\ub2e4.`
+          : ''
+      ),
+      strategy: p(
+        `\ud604\uc2e4\uc801\uc73c\ub85c \uc5f4\ub9b0 \uacbd\ub85c\ub294 ${branchList}\uc785\ub2c8\ub2e4.`,
+        '\uacf5\ud1b5\uc810\uc740 \ud558\ub098\uc785\ub2c8\ub2e4. \ubb34\uc5c7\uc744 \ub9e1\uace0 \ubb34\uc5c7\uc73c\ub85c \ud3c9\uac00\ubc1b\uc744\uc9c0\ub97c \uba3c\uc800 \ubd84\uba85\ud558\uac8c \ud574\uc57c \ud55c\ub2e4\ub294 \uc810\uc785\ub2c8\ub2e4.',
+        '\uac10\uc73c\ub85c \uc6c0\uc9c1\uc774\uba74 \uc18c\ubaa8\uac00 \ucee4\uc9c0\uace0, \uae30\uc900\uc744 \uba3c\uc800 \uc138\uc6b0\uba74 \uc131\uacfc\uac00 \ubd99\ub294 \uad6c\uc870\uc785\ub2c8\ub2e4.'
+      ),
+      roleFit: p(
+        '\uc9c0\uae08 \ub2f9\uc2e0\uc5d0\uac8c \ub9de\ub294 \uc790\ub9ac\ub294 \ub2e8\uc21c\ud788 \uc77c\uc774 \ub9ce\uc740 \uc790\ub9ac\ubcf4\ub2e4, \ud310\ub2e8\uacfc \uc870\uc728 \ub2a5\ub825\uc774 \uc2e4\uc81c \uacb0\uacfc\uc5d0 \ubc18\uc601\ub418\ub294 \uc790\ub9ac\uc785\ub2c8\ub2e4.',
+        '\uc9c1\ud568\ubcf4\ub2e4 \uad8c\ud55c, \uc5ed\ud560 \ubc94\uc704, \ucc45\uc784 \uad6c\uc870\uac00 \uc120\uba85\ud55c \ud3ec\uc9c0\uc158\uc774 \ub354 \uc798 \ub9de\uc2b5\ub2c8\ub2e4.'
+      ),
+      turningPoints: p(
+        '\ucee4\ub9ac\uc5b4\uc758 \ud070 \ubcc0\uace1\uc810\uc740 \ud55c \ubc88\uc758 \uc0ac\uac74\ubcf4\ub2e4 \uae30\uc874 \uc6b4\uc601 \ubc29\uc2dd\uc774 \ub354\ub294 \ud1b5\ud558\uc9c0 \uc54a\ub294 \uc21c\uac04\uc5d0 \uc5f4\ub9bd\ub2c8\ub2e4.',
+        '\uc9c0\uae08\uc740 \ubc14\ub85c \uadf8 \uc804\ud658 \uc9c1\uc804 \uad6c\uac04\uc5d0 \uac00\uae5d\uace0, \uc5ed\ud560 \uae30\uc900\uc744 \ub2e4\uc2dc \uc138\uc6b0\ub294 \ucabd\uc5d0\uc11c \ud310\uc774 \uac08\ub9b4 \uac00\ub2a5\uc131\uc774 \ud07d\ub2c8\ub2e4.',
+        branchAbort
+          ? `\ubc18\ub300\ub85c ${branchAbort} \uac19\uc740 \uc2e0\ud638\uac00 \ubcf4\uc774\uba74 \uc18d\ub3c4\ub97c \uc904\uc774\uace0 \uc7ac\uac80\ud1a0\ud558\ub294 \ud3b8\uc774 \ub9de\uc2b5\ub2c8\ub2e4.`
+          : ''
+      ),
+      recommendations: dedupe([
+        '\uc5ed\ud560 \ubc94\uc704\uc640 \ucc45\uc784 \ubc94\uc704\ub97c \uba3c\uc800 \ubb38\uc11c\ud654\ud558\uc138\uc694.',
+        branchAbort ||
+          '\ud3c9\uac00 \uae30\uc900\uc774 \ud750\ub824\uc9c0\uba74 \ud655\uc815\uc744 \ub2a6\ucd94\uc138\uc694.',
+        '\uc18d\ub3c4\ubcf4\ub2e4 \uc21c\uc11c\ub97c \uba3c\uc800 \uc7a1\uc73c\uc138\uc694.',
+      ]),
+      actionPlan: p(
+        '\uc9c0\uae08 \ucee4\ub9ac\uc5b4\uc5d0\uc11c \uac00\uc7a5 \ub9de\ub294 \uae30\ubcf8 \uc790\uc138\ub294 \uac80\ud1a0 \uc6b0\uc120\uc785\ub2c8\ub2e4.',
+        '\uba3c\uc800 \uc2b9\ubd80\ub97c \uac78\uae30\ubcf4\ub2e4 \uc5ed\ud560\uacfc \uae30\uc900\uc744 \uace0\uc815\ud558\uace0, \uadf8\ub2e4\uc74c \uc2e4\ud589 \uac15\ub3c4\ub97c \uc62c\ub9ac\ub294 \ud3b8\uc774 \ud6e8\uc52c \uc720\ub9ac\ud569\ub2c8\ub2e4.',
+        branchRisk ? `\uc11c\ub450\ub974\uba74 ${branchRisk}` : '',
+        '\uc608\ub97c \ub4e4\uc5b4 \uc2b9\uc9c4 \uc81c\uc548\uc774\ub098 \uc774\uc9c1 \uc774\uc57c\uae30\uac00 \ub4e4\uc5b4\uc624\uba74 \uc9c1\ud568\ubcf4\ub2e4 \uc5ed\ud560 \ubc94\uc704, \uc758\uc0ac\uacb0\uc815 \uad8c\ud55c, \ud3c9\uac00 \uae30\uc900\ubd80\ud130 \ubb38\uc11c\ub85c \ud655\uc778\ud558\ub294 \ud3b8\uc774 \ub9de\uc2b5\ub2c8\ub2e4.'
+      ),
+    }
+  }
+
+  if (theme === 'love') {
+    return {
+      deepAnalysis: p(
+        '\uc774\ubc88 \uad00\uacc4 \ub9ac\ud3ec\ud2b8\uc5d0\uc11c \uba3c\uc800 \ubd10\uc57c \ud560 \uac83\uc740 \uac10\uc815\uc758 \ud06c\uae30\ubcf4\ub2e4 \uad00\uacc4\ub97c \uc6b4\uc601\ud558\ub294 \ubc29\uc2dd\uc785\ub2c8\ub2e4. \uc9c0\uae08 \uc0b6\uc758 \ubc30\uacbd\uc5d0\ub294 ' +
+          focusLabel +
+          ' \ud750\ub984\uc774 \uae54\ub824 \uc788\uc9c0\ub9cc, \uc2e4\uc81c\ub85c \uad00\uacc4\uc758 \uacb0\uacfc\ub97c \ubc14\uafb8\ub294 \uc190\uc740 \uc18d\ub3c4\uc640 \uacbd\uacc4\ub97c \uc5b4\ub5bb\uac8c \ub9de\ucd94\ub290\ub0d0\uc5d0 \uc788\uc2b5\ub2c8\ub2e4.',
+        '\ub2f9\uc2e0\uc740 \uc124\ub818\ub9cc\uc73c\ub85c \uc624\ub798 \uac00\uc9c0 \uc54a\uace0, \uc0dd\ud65c \ub9ac\ub4ec\uacfc \ucc45\uc784\uac10\uc774 \ub9de\uc744 \ub54c \uad00\uacc4\uac00 \uc548\uc815\ub418\ub294 \ucabd\uc5d0 \uac00\uae5d\uc2b5\ub2c8\ub2e4.',
+        riskLine
+      ),
+      patterns: p(
+        '\uc9c0\uae08 \uad00\uacc4\uc5d0\uc11c\ub294 \ube68\ub9ac \uac00\uae4c\uc6cc\uc9c0\ub294 \uac83\ubcf4\ub2e4 \uc11c\ub85c\uc758 \uae30\ub300\uce58\uc640 \uc18d\ub3c4\ub97c \uba3c\uc800 \ub9de\ucd94\ub294 \ud3b8\uc774 \ub9de\uc2b5\ub2c8\ub2e4.',
+        '\ub9d0\uc774 \uc798 \ud1b5\ud558\ub294 \uc0ac\ub78c\ubcf4\ub2e4 \uc77c\uc815, \uc0dd\ud65c \ub9ac\ub4ec, \ucc45\uc784\uac10\uc774 \ub9de\ub294 \uc0ac\ub78c\uc774 \uc624\ub798 \uac11\ub2c8\ub2e4.'
+      ),
+      timing: p(
+        timingLine,
+        '\uad00\uacc4\ub294 \uc9c0\uae08 \ub2f9\uc7a5 \uacb0\ub860\uc744 \ub0b4\ub9ac\uae30\ubcf4\ub2e4 \uac70\ub9ac\uc640 \uc18d\ub3c4\ub97c \uba3c\uc800 \ub9de\ucd9c\uc218\ub85d \ud6e8\uc52c \uc548\uc815\uc801\uc73c\ub85c \uc6c0\uc9c1\uc785\ub2c8\ub2e4.',
+        branchEntry
+          ? `\ud2b9\ud788 ${branchEntry}\uac00 \uc790\uc5f0\uc2a4\ub7fd\uac8c \ub9de\uc544\ub5a8\uc5b4\uc9c8 \ub54c \uad00\uacc4\ub294 \ub354 \uc624\ub798 \uac11\ub2c8\ub2e4.`
+          : ''
+      ),
+      compatibility: p(
+        '\uc798 \ub9de\ub294 \uc0ac\ub78c\uc740 \uac10\uc815\uc758 \uc628\ub3c4\ubcf4\ub2e4 \uc0dd\ud65c\uc758 \uc18d\ub3c4\uc640 \uacbd\uacc4\ub97c \ud568\uaed8 \uc870\uc728\ud560 \uc218 \uc788\ub294 \uc0ac\ub78c\uc785\ub2c8\ub2e4.',
+        '\ub2f9\uc2e0\uc5d0\uac8c\ub294 \uc11c\ub85c\uc758 \uc2dc\uac04\uc744 \uc874\uc911\ud558\uace0 \ucc45\uc784 \ubc94\uc704\ub97c \ubd84\uba85\ud788 \ud558\ub294 \uad00\uacc4\uac00 \ub354 \uc798 \ub9de\uc2b5\ub2c8\ub2e4.'
+      ),
+      spouseProfile: p(
+        '\ubc30\uc6b0\uc790\uc0c1\ub3c4 \ud654\ub824\ud568\ubcf4\ub2e4 \uc548\uc815\uac10, \ub9d0\ubcf4\ub2e4 \ud589\ub3d9 \uae30\uc900\uc774 \ubd84\uba85\ud55c \uc0ac\ub78c \ucabd\uc73c\ub85c \uc77d\ud799\ub2c8\ub2e4.',
+        '\ud2b9\ud788 \uc77c\uc744 \ub300\ud558\ub294 \ud0dc\ub3c4\uc640 \uc0dd\ud65c \ub8e8\ud2f4\uc774 \uc548\uc815\uc801\uc778 \uc0ac\ub78c\uc774 \uc2e4\uc81c\ub85c \uc624\ub798 \uac08 \uac00\ub2a5\uc131\uc774 \ud07d\ub2c8\ub2e4.'
+      ),
+      marriageTiming: p(
+        '\uacb0\ud63c\uc774\ub098 \uae4a\uc740 \uad00\uacc4\uc758 \ud0c0\uc774\ubc0d\uc740 \uac10\uc815\uc774 \ucee4\uc9c8 \ub54c\ubcf4\ub2e4 \uc2e0\ub8b0\uc640 \uc0dd\ud65c \uc801\ud569\ub3c4\uac00 \ud568\uaed8 \uc62c\ub77c\uc62c \ub54c \ub354 \uac15\ud569\ub2c8\ub2e4.',
+        '\uc9c0\uae08\uc740 \uacb0\ub860\uc744 \uc11c\ub450\ub974\uae30\ubcf4\ub2e4 \uad00\uacc4\ub97c \uc2e4\uc81c \uc0dd\ud65c \uc18d\uc5d0\uc11c \uac80\uc99d\ud558\ub294 \ud3b8\uc774 \ub9de\uc2b5\ub2c8\ub2e4.'
+      ),
+      recommendations: dedupe([
+        '\uad00\uacc4\uc758 \uc18d\ub3c4\ubcf4\ub2e4 \uacbd\uacc4\uc640 \uc0dd\ud65c \ub9ac\ub4ec\uc744 \uba3c\uc800 \ud655\uc778\ud558\uc138\uc694.',
+        branchAbort ||
+          '\uae30\ub300\uce58\uac00 \uc5b4\uae0b\ub098\uba74 \uacb0\ub860\uc744 \ub2a6\ucd94\uc138\uc694.',
+        '\uc124\ub818\ubcf4\ub2e4 \uc9c0\uc18d \uac00\ub2a5\uc131\uc744 \uba3c\uc800 \ubcf4\uc138\uc694.',
+      ]),
+      actionPlan: p(
+        '\uc9c0\uae08 \uad00\uacc4\uc5d0\uc11c \uac00\uc7a5 \uc911\uc694\ud55c \uac83\uc740 \ube68\ub9ac \uac00\uae4c\uc6cc\uc9c0\ub294 \uac83\uc774 \uc544\ub2c8\ub77c, \uc624\ub798 \uac08 \uc218 \uc788\ub294 \uc6b4\uc601 \ubc29\uc2dd\uc744 \ud655\uc778\ud558\ub294 \uc77c\uc785\ub2c8\ub2e4.',
+        '\uc608\ub97c \ub4e4\uc5b4 \uc5f0\ub77d \ube48\ub3c4, \ub9cc\ub0a8 \uc18d\ub3c4, \uc77c\uc815 \uc870\uc728 \uac19\uc740 \uc0dd\ud65c \ub9ac\ub4ec\ubd80\ud130 \ub9de\ub294\uc9c0 \ud655\uc778\ud558\ub294 \ud3b8\uc774 \ud6e8\uc52c \ud604\uc2e4\uc801\uc785\ub2c8\ub2e4.',
+        branchRisk ? `\uc11c\ub450\ub974\uba74 ${branchRisk}` : ''
+      ),
+    }
+  }
+
+  if (theme === 'wealth') {
+    return {
+      deepAnalysis: p(
+        '\uc774\ubc88 \uc7ac\uc815 \ub9ac\ud3ec\ud2b8\uc758 \ud575\uc2ec\uc740 \ub3c8\uc744 \ub9ce\uc774 \ubc84\ub294 \uc120\ud0dd\ubcf4\ub2e4, \uc5b4\ub5a4 \uc870\uac74\uc5d0\uc11c \ub3c8\uc774 \ub0a8\uace0 \uc5b4\ub5a4 \uc870\uac74\uc5d0\uc11c \uc0c8\ub294\uc9c0\ub97c \uba3c\uc800 \uac00\ub974\ub294 \uc77c\uc785\ub2c8\ub2e4.',
+        `\uc9c0\uae08 \uc7ac\uc815\uc740 ${actionLabel} \uacb0\uc815\uacfc \uac15\ud558\uac8c \uc5f0\uacb0\ub3fc \uc788\uc5b4\uc11c, \uc77c\uc758 \uae30\uc900\uc774 \ud750\ub4e4\ub9ac\uba74 \ub3c8\uc758 \ud750\ub984\ub3c4 \uac19\uc774 \ud754\ub4e4\ub9b4 \uac00\ub2a5\uc131\uc774 \ud07d\ub2c8\ub2e4.`,
+        riskLine
+      ),
+      patterns: p(
+        '\uc9c0\uae08 \uc7ac\uc815\uc5d0\uc11c\ub294 \ud070 \uc218\uc775 \uae30\ud68c\ubcf4\ub2e4 \uc870\uac74\uc744 \uc815\ud655\ud788 \uc77d\ub294 \ub2a5\ub825\uc774 \ub354 \uc911\uc694\ud569\ub2c8\ub2e4.',
+        '\uae08\uc561, \uae30\ud55c, \ucde8\uc18c \uc870\uac74, \uc190\uc2e4 \uc0c1\ud55c\uc744 \uba3c\uc800 \uc801\uc5b4\ub450\ub294 \uc0ac\ub78c\uc774 \uacb0\uad6d \uc190\uc2e4\uc744 \uc904\uc785\ub2c8\ub2e4.'
+      ),
+      timing: p(
+        timingLine,
+        '\uc7ac\uc815\ub3c4 \uc9c0\uae08 \ucc3d\uc774 \uc5f4\ub824 \uc788\uc9c0\ub9cc, \uadf8 \uc758\ubbf8\ub294 \ubc14\ub85c \ud06c\uac8c \ubca0\ud305\ud558\ub77c\ub294 \ub73b\uc774 \uc544\ub2d9\ub2c8\ub2e4.',
+        '\uc9c0\uae08\uc740 \ud310\uc774 \uc0b4\uc544\ub098\ub294\uc9c0, \uc870\uac74\uc774 \uc720\uc9c0\ub418\ub294\uc9c0, \uc190\uc2e4 \uc0c1\ud55c\uc744 \ud1b5\uc81c\ud560 \uc218 \uc788\ub294\uc9c0\ub97c \uba3c\uc800 \ud655\uc778\ud558\ub294 \uad6c\uac04\uc785\ub2c8\ub2e4.'
+      ),
+      strategy: p(
+        '\uc7ac\uc815 \uc804\ub7b5\uc758 \ud575\uc2ec\uc740 \uc218\uc775 \ud655\ub300\ubcf4\ub2e4 \uae30\uc900 \uace0\uc815\uc785\ub2c8\ub2e4.',
+        '\uc5bc\ub9c8\ub97c \ubc8c \uc218 \uc788\ub098\ubcf4\ub2e4 \uc5b4\ub5a4 \uc870\uac74\uc744 \ubc1b\uc544\ub4e4\uc77c \uac83\uc778\uac00\ub97c \uba3c\uc800 \uc815\ud574\uc57c \ud754\ub4e4\ub9bc\uc774 \uc904\uc5b4\ub4ed\ub2c8\ub2e4.',
+        '\ub3cc\uc774\ud0ac \uc218 \uc788\ub294 \uc120\ud0dd\uc744 \uba3c\uc800 \ube44\uad50\ud558\ub294 \ucabd\uc774 \uc9c0\uae08\uc740 \ud6e8\uc52c \ud604\uc2e4\uc801\uc785\ub2c8\ub2e4.'
+      ),
+      incomeStreams: p(
+        '\uc0c8\ub85c\uc6b4 \uc218\uc785 \uacbd\ub85c\ub294 \ud06c\uac8c \ud55c \ubc88\uc5d0 \ubc8c\ub9ac\ub294 \uac83\ubcf4\ub2e4 \uc791\uac8c \uc2dc\ud5d8\ud558\uace0, \ubc18\ubcf5 \uac00\ub2a5\ud55c\uc9c0\ub9cc \ud655\uc778\ud558\ub294 \ud3b8\uc774 \ub9de\uc2b5\ub2c8\ub2e4.',
+        '\uc9c0\uc18d \uac00\ub2a5\ud55c \ud750\ub984\uc778\uc9c0 \ud655\uc778\ub418\uae30 \uc804\uae4c\uc9c0\ub294 \ubab8\uc9d1\uc744 \ud0a4\uc6b0\uc9c0 \uc54a\ub294 \ucabd\uc774 \uc720\ub9ac\ud569\ub2c8\ub2e4.'
+      ),
+      riskManagement: p(
+        '\ub9ac\uc2a4\ud06c \uad00\ub9ac\ub294 \uae30\ud68c\uac00 \uc801\uc5b4\uc11c\uac00 \uc544\ub2c8\ub77c, \uc190\uc2e4\uc744 \ub9c9\ub294 \uae30\uc900\uc774 \uc5c6\uc744 \ub54c \ubb38\uc81c\uac00 \ucee4\uc9d1\ub2c8\ub2e4.',
+        '\uadf8\ub798\uc11c \uc218\uc775\ubcf4\ub2e4 \uc190\uc2e4 \uc0c1\ud55c, \uae30\uac04, \ucca0\uc218 \uc870\uac74\uc744 \uba3c\uc800 \uc815\ud574\uc57c \ud569\ub2c8\ub2e4.',
+        branchAbort
+          ? `\ud2b9\ud788 ${branchAbort} \uac19\uc740 \uc2e0\ud638\uac00 \ubcf4\uc774\uba74 \uba48\ucd94\ub294 \ud3b8\uc774 \ub9de\uc2b5\ub2c8\ub2e4.`
+          : ''
+      ),
+      recommendations: dedupe([
+        '\uae08\uc561\ubcf4\ub2e4 \uc870\uac74\uc744 \uba3c\uc800 \uc801\uc5b4\ub450\uc138\uc694.',
+        branchAbort ||
+          '\uc190\uc2e4 \uc0c1\ud55c\uc774 \ubd88\ubd84\uba85\ud558\uba74 \uba48\ucd94\uc138\uc694.',
+        '\uc0c8 \uc218\uc785 \uacbd\ub85c\ub294 \uc791\uac8c \uc2dc\ud5d8\ud55c \ub4a4 \ud0a4\uc6b0\uc138\uc694.',
+      ]),
+      actionPlan: p(
+        '\uc9c0\uae08 \uc7ac\uc815\uc5d0\uc11c \uac00\uc7a5 \uc911\uc694\ud55c \uac74 \ub354 \ud06c\uac8c \ubc8c\ub9ac\ub294 \uac83\uc774 \uc544\ub2c8\ub77c, \ud754\ub4e4\ub824\ub3c4 \ubc84\ud2f8 \uc218 \uc788\ub294 \uad6c\uc870\ub97c \ub9cc\ub4dc\ub294 \uc77c\uc785\ub2c8\ub2e4.',
+        '\uc608\ub97c \ub4e4\uc5b4 \ud22c\uc790, \uacc4\uc57d, \ubd80\uc5c5 \uc81c\uc548\uc774 \ub4e4\uc5b4\uc624\uba74 \uae30\ub300 \uc218\uc775\ubcf4\ub2e4 \ucde8\uc18c \uc870\uac74, \uace0\uc815\ube44 \uc99d\uac00, \uc190\uc2e4 \uc0c1\ud55c\ubd80\ud130 \ud655\uc778\ud558\ub294 \ud3b8\uc774 \ub9de\uc2b5\ub2c8\ub2e4.',
+        branchRisk ? `\uc11c\ub450\ub974\uba74 ${branchRisk}` : ''
+      ),
+    }
+  }
+
+  return base
 }
 
 function enforceThemedNarrativeQualityFallback(
@@ -2926,6 +3160,7 @@ function shouldUseDeterministicOnly(flag?: boolean): boolean {
 }
 
 function shouldUsePremiumSelectivePolish(userPlan?: AIUserPlan): boolean {
+  if (isCostOptimizedAiPath()) return false
   return userPlan === 'premium'
 }
 
@@ -3073,7 +3308,19 @@ async function maybePolishPremiumSections<T extends object>(params: {
   }
 }
 
-const COMPREHENSIVE_SECTION_KEYS: Array<keyof AIPremiumReport['sections']> = [
+type CoreComprehensiveSectionKey =
+  | 'introduction'
+  | 'personalityDeep'
+  | 'careerPath'
+  | 'relationshipDynamics'
+  | 'wealthPotential'
+  | 'healthGuidance'
+  | 'lifeMission'
+  | 'timingAdvice'
+  | 'actionPlan'
+  | 'conclusion'
+
+const COMPREHENSIVE_SECTION_KEYS: CoreComprehensiveSectionKey[] = [
   'introduction',
   'personalityDeep',
   'careerPath',
@@ -3085,6 +3332,13 @@ const COMPREHENSIVE_SECTION_KEYS: Array<keyof AIPremiumReport['sections']> = [
   'actionPlan',
   'conclusion',
 ]
+
+const COMPREHENSIVE_OPTIONAL_LIFE_SECTION_KEYS: Array<
+  keyof Pick<
+    AIPremiumReport['sections'],
+    'spouseProfile' | 'lifeStages' | 'turningPoints' | 'futureOutlook'
+  >
+> = ['spouseProfile', 'lifeStages', 'turningPoints', 'futureOutlook']
 
 const reportEvidenceSupportDeps: ReportEvidenceSupportDeps = {
   comprehensiveSectionKeys: [...COMPREHENSIVE_SECTION_KEYS] as string[],
@@ -3166,6 +3420,14 @@ const reportSectionRendererDeps: ReportSectionRendererDeps = {
     }),
 }
 
+const reportLifeSectionDeps: ReportLifeSectionDeps = {
+  calculateProfileAge,
+  formatNarrativeParagraphs,
+  getReportDomainLabel,
+  localizeReportNarrativeText,
+  sanitizeUserFacingNarrative,
+}
+
 function resolveSignalDomain(
   domainHints: string[] | undefined,
   preferredDomains?: Set<SignalDomain>
@@ -3224,9 +3486,13 @@ const SECTION_CONCRETE_NOUNS: Record<keyof AIPremiumReport['sections'], string[]
   personalityDeep: ['??', '??', '???', '??', '????', '??'],
   careerPath: ['??', '??', '??', '???', '?? ??', '?? ??'],
   relationshipDynamics: ['??', '??', '??', '??', '??', '??'],
+  spouseProfile: ['??', '??', '??', '??', '??', '???'],
   wealthPotential: ['??', '??', '????', '?? ??', '??', '??'],
   healthGuidance: ['??', '??', '??', '??', '???', '???'],
   lifeMission: ['??', '??', '??', '??', '??', '?? ??'],
+  lifeStages: ['??', '??', '??', '??', '??', '??'],
+  turningPoints: ['??', '??', '??', '??', '??', '????'],
+  futureOutlook: ['??', '??', '??', '???', '??', '??'],
   timingAdvice: ['??', '1~3??', '?', '??', '??', '???'],
   actionPlan: ['??', '??', '??', '?????', '????', '??'],
   conclusion: ['??', '????', '??', '???', '??', '??'],
@@ -3238,9 +3504,13 @@ const SECTION_OPENERS_KO: Record<keyof AIPremiumReport['sections'], string> = {
   personalityDeep: '? ??? ??? ??? ??? ??? ? ????.',
   careerPath: '???? ???? ??? ??? ?? ????? ?????.',
   relationshipDynamics: '??? ???? ?? ??? ?? ??? ?????.',
+  spouseProfile: '?? ?? ???? ?? ?? ??? ????.',
   wealthPotential: '??? ???? ??? ?? ??? ? ?? ????.',
   healthGuidance: '??? ??? ??? ?? ?? ??? ? ?????.',
   lifeMission: '?? ????? ???? ??? ?? ??? ??? ?????.',
+  lifeStages: '?? ???? ??? ??? ??? ?????.',
+  turningPoints: '?? ??? ???? ??? ?? ??? ????.',
+  futureOutlook: '???? 3~5? ??? ??? ???? ????.',
   timingAdvice: '?? ???? ???? ?? ??? ??? ?????.',
   actionPlan: '??? ? ?? ???? ????? ???? ?? ????.',
   conclusion: '?? ??? ??? ???? ??? ????? ????.',
@@ -3502,8 +3772,7 @@ function extractTopMatrixFacts(matrixReport: FusionReport, sectionKey: string): 
     .filter((item) => targets.has(item.domain))
     .slice(0, 3)
     .map(
-      (item) =>
-        `${item.title} ??? ?????. ??? ${toKoreanDomainLabel(item.domain)} ? ??? ? ?????.`
+      (item) => `${item.title} ??? ?????. ??? ${toKoreanDomainLabel(item.domain)} ? ??? ? ?????.`
     )
 }
 
@@ -3527,8 +3796,7 @@ function buildStrategyFactsForSection(
       'relationship:expansion_guarded': '??? ??? ?? ??? ?? ?? ?? ??? ????.',
       'wealth:expansion_guarded': '?????????? 3?? ?? ???? ?? ??? ?????.',
       'health:defensive_reset': '??? ??? ???????? ???? ?????.',
-      'timing:high_tension_expansion':
-        '?? ??? ?? ??? ??? ?????? ???? ????.',
+      'timing:high_tension_expansion': '?? ??? ?? ??? ??? ?????? ???? ????.',
     }
     const enActionByKey: Record<string, string> = {
       'career:expansion':
@@ -4068,6 +4336,36 @@ export async function generateAIPremiumReport(
       ? '1.2.0-deterministic+rewrite'
       : '1.2.0-deterministic-only'
     recordReportQualityMetrics('comprehensive', finalModelUsed, qualityMetrics)
+    let outputSections = buildExtendedComprehensiveSections(
+      sections as AIPremiumReport['sections'],
+      reportCore,
+      normalizedInput,
+      lang,
+      options.matrixSummary
+    )
+    let outputSectionPaths = getComprehensiveRenderPaths(outputSections)
+    outputSections = sanitizeComprehensiveSectionsForUser(
+      outputSections as Record<string, unknown>,
+      outputSectionPaths,
+      comprehensivePostProcessDeps,
+      lang
+    ) as AIPremiumReport['sections']
+    outputSectionPaths = getComprehensiveRenderPaths(outputSections)
+    outputSections = applyFinalReportStyle(outputSections, outputSectionPaths, lang, reportCore)
+    outputSectionPaths = getComprehensiveRenderPaths(outputSections)
+    qualityMetrics = buildReportQualityMetrics(
+      outputSections as Record<string, unknown>,
+      outputSectionPaths,
+      evidenceRefs,
+      {
+        requiredPaths: outputSectionPaths,
+        claims: unified.claims,
+        anchors: unified.anchors,
+        scenarioBundles: unified.scenarioBundles,
+        timelineEvents: unified.timelineEvents,
+        coreQuality: coreSeed.quality,
+      }
+    )
 
     return {
       id: `air_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -4086,14 +4384,14 @@ export async function generateAIPremiumReport(
         dominantElement: input.dominantWesternElement || input.dayMasterElement,
         geokguk: input.geokguk,
       },
-      sections: sections as AIPremiumReport['sections'],
+      sections: outputSections,
       graphRagEvidence,
       graphRagSummary,
       evidenceRefs,
       evidenceRefsByPara: unified.evidenceRefsByPara,
       deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
-      renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
-      renderedText: renderSectionsAsText(sections, sectionPaths),
+      renderedMarkdown: renderSectionsAsMarkdown(outputSections, outputSectionPaths, lang),
+      renderedText: renderSectionsAsText(outputSections, outputSectionPaths),
       matrixSummary: {
         overallScore: matrixReport.overallScore.total,
         grade: matrixReport.overallScore.grade,
@@ -4273,6 +4571,36 @@ export async function generateAIPremiumReport(
     recordReportQualityMetrics('comprehensive', rewrite.modelUsed, qualityMetrics)
 
     recordRewriteModeMetric('comprehensive', rewrite.modelUsed, rewrite.tokensUsed)
+    let outputSections = buildExtendedComprehensiveSections(
+      sections as AIPremiumReport['sections'],
+      reportCore,
+      normalizedInput,
+      lang,
+      options.matrixSummary
+    )
+    let outputSectionPaths = getComprehensiveRenderPaths(outputSections)
+    outputSections = sanitizeComprehensiveSectionsForUser(
+      outputSections as Record<string, unknown>,
+      outputSectionPaths,
+      comprehensivePostProcessDeps,
+      lang
+    ) as AIPremiumReport['sections']
+    outputSectionPaths = getComprehensiveRenderPaths(outputSections)
+    outputSections = applyFinalReportStyle(outputSections, outputSectionPaths, lang, reportCore)
+    outputSectionPaths = getComprehensiveRenderPaths(outputSections)
+    qualityMetrics = buildReportQualityMetrics(
+      outputSections as Record<string, unknown>,
+      outputSectionPaths,
+      evidenceRefs,
+      {
+        requiredPaths: outputSectionPaths,
+        claims: unified.claims,
+        anchors: unified.anchors,
+        scenarioBundles: unified.scenarioBundles,
+        timelineEvents: unified.timelineEvents,
+        coreQuality: coreSeed.quality,
+      }
+    )
     return {
       id: `air_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       generatedAt,
@@ -4290,14 +4618,14 @@ export async function generateAIPremiumReport(
         dominantElement: input.dominantWesternElement || input.dayMasterElement,
         geokguk: input.geokguk,
       },
-      sections: sections as AIPremiumReport['sections'],
+      sections: outputSections,
       graphRagEvidence,
       graphRagSummary,
       evidenceRefs,
       evidenceRefsByPara: unified.evidenceRefsByPara,
       deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
-      renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
-      renderedText: renderSectionsAsText(sections, sectionPaths),
+      renderedMarkdown: renderSectionsAsMarkdown(outputSections, outputSectionPaths, lang),
+      renderedText: renderSectionsAsText(outputSections, outputSectionPaths),
       matrixSummary: {
         overallScore: matrixReport.overallScore.total,
         grade: matrixReport.overallScore.grade,
@@ -4330,8 +4658,11 @@ export async function generateAIPremiumReport(
             : 8500
           : undefined
   const maxTokensOverride = requestedChars ? Math.ceil(requestedChars / 2) + 1200 : undefined
+  const costOptimizedAiPath = isCostOptimizedAiPath()
   const sectionTokenBudget = maxTokensOverride
-    ? Math.max(850, Math.min(2400, Math.floor(maxTokensOverride / 4)))
+    ? costOptimizedAiPath
+      ? Math.max(700, Math.min(1400, Math.floor(maxTokensOverride / 6)))
+      : Math.max(850, Math.min(2400, Math.floor(maxTokensOverride / 4)))
     : undefined
   const sectionMinChars =
     detailLevel === 'comprehensive'
@@ -4349,13 +4680,27 @@ export async function generateAIPremiumReport(
   const sectionAnchors = new Map(
     (graphRagEvidence.anchors || []).map((anchor) => [anchor.section, anchor])
   )
-  let sections: Record<string, unknown> = {}
+  const deterministicFallbackSections = buildComprehensiveFallbackSectionsExternal(
+    normalizedInput,
+    matrixReport,
+    deterministicCore,
+    lang,
+    comprehensiveFallbackDeps,
+    reportCore,
+    { matrixSummary: options.matrixSummary }
+  ) as Record<string, unknown>
+  let sections: Record<string, unknown> = costOptimizedAiPath
+    ? { ...deterministicFallbackSections }
+    : {}
   let tokensUsed = 0
   const models = new Set<string>()
   let usedDeterministicFallback = false
 
   try {
-    for (const sectionKey of COMPREHENSIVE_SECTION_KEYS) {
+    const liveSectionKeys = costOptimizedAiPath
+      ? getCostOptimizedComprehensiveLiveSectionKeys()
+      : COMPREHENSIVE_SECTION_KEYS
+    for (const sectionKey of liveSectionKeys) {
       const anchor = sectionAnchors.get(sectionKey)
       const factPack = buildSectionFactPack(
         sectionKey,
@@ -4372,33 +4717,41 @@ export async function generateAIPremiumReport(
       const draft = await callAIBackendGeneric<{ text: string }>(draftPrompt, lang, {
         userPlan: options.userPlan,
         maxTokensOverride: sectionTokenBudget,
-        modelOverride: 'gpt-4o-mini',
+        qualityTier: getAiQualityTier('base'),
+        debugTag: `comprehensive.sectionDraft.${sectionKey}`,
       })
       tokensUsed += draft.tokensUsed || 0
       models.add(draft.model)
       const draftText = sanitizeSectionNarrative(draft.sections?.text || '')
-
-      const synthesisPrompt = buildSectionPrompt(
-        sectionKey,
-        factPack,
-        lang,
-        draftText,
-        sectionMinChars
-      )
-      const synthesized = await callAIBackendGeneric<{ text: string }>(synthesisPrompt, lang, {
-        userPlan: options.userPlan,
-        maxTokensOverride: sectionTokenBudget,
-        modelOverride: 'gpt-4o',
-      })
-      tokensUsed += synthesized.tokensUsed || 0
-      models.add(synthesized.model)
       let sectionText = sanitizeTimingContradictionsExternal(
-        postProcessSectionNarrative(synthesized.sections?.text || draftText, sectionKey, lang),
+        postProcessSectionNarrative(draftText, sectionKey, lang),
         input
       )
 
+      if (!costOptimizedAiPath) {
+        const synthesisPrompt = buildSectionPrompt(
+          sectionKey,
+          factPack,
+          lang,
+          draftText,
+          sectionMinChars
+        )
+        const synthesized = await callAIBackendGeneric<{ text: string }>(synthesisPrompt, lang, {
+          userPlan: options.userPlan,
+          maxTokensOverride: sectionTokenBudget,
+          qualityTier: getAiQualityTier('base'),
+          debugTag: `comprehensive.sectionSynthesis.${sectionKey}`,
+        })
+        tokensUsed += synthesized.tokensUsed || 0
+        models.add(synthesized.model)
+        sectionText = sanitizeTimingContradictionsExternal(
+          postProcessSectionNarrative(synthesized.sections?.text || draftText, sectionKey, lang),
+          input
+        )
+      }
+
       const quality = evaluateSectionGate(sectionText, factPack, sectionKey, containsBannedPhrase)
-      if (!quality.pass) {
+      if (!quality.pass && !costOptimizedAiPath) {
         const repairPrompt = [
           buildSectionPrompt(sectionKey, factPack, lang, sectionText, sectionMinChars),
           lang === 'ko'
@@ -4409,7 +4762,8 @@ export async function generateAIPremiumReport(
           const repaired = await callAIBackendGeneric<{ text: string }>(repairPrompt, lang, {
             userPlan: options.userPlan,
             maxTokensOverride: sectionTokenBudget,
-            modelOverride: 'gpt-4o',
+            qualityTier: getAiQualityTier('repair'),
+            debugTag: `comprehensive.sectionRepair.${sectionKey}`,
           })
           tokensUsed += repaired.tokensUsed || 0
           models.add(repaired.model)
@@ -4447,7 +4801,7 @@ export async function generateAIPremiumReport(
     })
   }
 
-  const maxRepairPasses = getMaxRepairPassesByPlan(options.userPlan)
+  const maxRepairPasses = getEffectiveMaxRepairPasses(options.userPlan)
   if (!usedDeterministicFallback && maxRepairPasses > 0) {
     const sectionPaths = [...COMPREHENSIVE_SECTION_KEYS] as string[]
     const crossPaths = sectionPaths.filter((path) => path !== 'conclusion')
@@ -4512,7 +4866,7 @@ export async function generateAIPremiumReport(
       listStylePaths.length > 0 ||
       repetitivePaths.length > 0
 
-    if (needsRepair) {
+    if (needsRepair && maxRepairPasses > 0) {
       const rewritePrompt = buildNarrativeRewritePrompt(lang, sections, {
         minCharsPerSection,
         minTotalChars,
@@ -4568,7 +4922,8 @@ export async function generateAIPremiumReport(
           {
             userPlan: options.userPlan,
             maxTokensOverride,
-            modelOverride: 'gpt-4o',
+            qualityTier: getAiQualityTier('repair'),
+            debugTag: 'comprehensive.globalRepair',
           }
         )
         const candidateSections = repaired.sections as unknown
@@ -4613,7 +4968,8 @@ export async function generateAIPremiumReport(
               {
                 userPlan: options.userPlan,
                 maxTokensOverride,
-                modelOverride: 'gpt-4o',
+                qualityTier: getAiQualityTier('repair'),
+                debugTag: 'comprehensive.globalRepair.second',
               }
             )
             const secondCandidate = second.sections as unknown
@@ -4663,7 +5019,8 @@ export async function generateAIPremiumReport(
           {
             userPlan: options.userPlan,
             maxTokensOverride,
-            modelOverride: 'gpt-4o',
+            qualityTier: getAiQualityTier('repair'),
+            debugTag: 'comprehensive.evidenceRepair',
           }
         )
         const candidate = repaired.sections as unknown
@@ -4868,6 +5225,36 @@ export async function generateAIPremiumReport(
     normalizedInput,
     lang
   ) as unknown as Record<string, unknown>
+  let outputSections = buildExtendedComprehensiveSections(
+    sections as AIPremiumReport['sections'],
+    reportCore,
+    normalizedInput,
+    lang,
+    options.matrixSummary
+  )
+  let outputSectionPaths = getComprehensiveRenderPaths(outputSections)
+  outputSections = sanitizeComprehensiveSectionsForUser(
+    outputSections as Record<string, unknown>,
+    outputSectionPaths,
+    comprehensivePostProcessDeps,
+    lang
+  ) as AIPremiumReport['sections']
+  outputSectionPaths = getComprehensiveRenderPaths(outputSections)
+  outputSections = applyFinalReportStyle(outputSections, outputSectionPaths, lang, reportCore)
+  outputSectionPaths = getComprehensiveRenderPaths(outputSections)
+  qualityMetrics = buildReportQualityMetrics(
+    outputSections as Record<string, unknown>,
+    outputSectionPaths,
+    comprehensiveEvidenceRefs,
+    {
+      requiredPaths: outputSectionPaths,
+      claims: unified.claims,
+      anchors: unified.anchors,
+      scenarioBundles: unified.scenarioBundles,
+      timelineEvents: unified.timelineEvents,
+      coreQuality: coreSeed.quality,
+    }
+  )
 
   // 3. ??? ??
   const report: AIPremiumReport = {
@@ -4889,54 +5276,29 @@ export async function generateAIPremiumReport(
       geokguk: input.geokguk,
     },
 
-    sections: sections as AIPremiumReport['sections'],
+    sections: outputSections,
     graphRagEvidence,
     graphRagSummary,
     evidenceRefs: comprehensiveEvidenceRefs,
     evidenceRefsByPara: unified.evidenceRefsByPara,
     deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
     renderedMarkdown: [
-      renderSectionsAsMarkdown(
-        sections as Record<string, unknown>,
-        [
-          'introduction',
-          'personalityDeep',
-          'careerPath',
-          'relationshipDynamics',
-          'wealthPotential',
-          'healthGuidance',
-          'lifeMission',
-          'timingAdvice',
-          'actionPlan',
-          'conclusion',
-        ],
-        lang
-      ),
+      renderSectionsAsMarkdown(outputSections as Record<string, unknown>, outputSectionPaths, lang),
     ]
       .filter(Boolean)
       .join('\n\n'),
     renderedText: [
-      renderProjectionBlocksAsText(buildReportOutputCoreFields(reportCore, lang).projections, lang, {
-        matrixView: buildReportOutputCoreFields(reportCore, lang).matrixView,
-        singleUserModel: buildReportOutputCoreFields(reportCore, lang).singleUserModel,
-        branchSet: buildReportOutputCoreFields(reportCore, lang).branchSet,
-      }),
-      renderSectionsAsText(
-        sections as Record<string, unknown>,
-        [
-          'introduction',
-          'personalityDeep',
-          'careerPath',
-          'relationshipDynamics',
-          'wealthPotential',
-          'healthGuidance',
-          'lifeMission',
-          'timingAdvice',
-          'actionPlan',
-          'conclusion',
-        ],
-        lang
+      renderProjectionBlocksAsText(
+        buildReportOutputCoreFields(reportCore, lang).projections,
+        lang,
+        {
+          matrixView: buildReportOutputCoreFields(reportCore, lang).matrixView,
+          singleUserModel: buildReportOutputCoreFields(reportCore, lang).singleUserModel,
+          branchSet: buildReportOutputCoreFields(reportCore, lang).branchSet,
+          singleSubjectView: buildReportOutputCoreFields(reportCore, lang).singleSubjectView,
+        }
       ),
+      renderSectionsAsText(outputSections as Record<string, unknown>, outputSectionPaths, lang),
     ]
       .filter(Boolean)
       .join('\n\n'),
@@ -5334,6 +5696,7 @@ export async function generateTimingReport(
   // 3. Call AI backend + quality gate (length/cross evidence)
   const base = await callAIBackendGeneric<TimingReportSections>(prompt, lang, {
     userPlan: options.userPlan,
+    qualityTier: getAiQualityTier('base'),
   })
   const timingRequiredPaths = [
     'overview',
@@ -5357,7 +5720,7 @@ export async function generateTimingReport(
       ) as unknown as Record<string, unknown>)
   let model = base.model
   let tokensUsed = base.tokensUsed
-  const maxRepairPasses = getMaxRepairPassesByPlan(options.userPlan)
+  const maxRepairPasses = getEffectiveMaxRepairPasses(options.userPlan)
 
   const sectionPaths = [
     'overview',
@@ -5451,6 +5814,7 @@ export async function generateTimingReport(
     try {
       const repaired = await callAIBackendGeneric<TimingReportSections>(repairPrompt, lang, {
         userPlan: options.userPlan,
+        qualityTier: getAiQualityTier('repair'),
       })
       const repairedSections = repaired.sections as unknown
       if (hasRequiredSectionPaths(repairedSections, timingRequiredPaths)) {
@@ -5486,6 +5850,7 @@ export async function generateTimingReport(
         try {
           const second = await callAIBackendGeneric<TimingReportSections>(secondPrompt, lang, {
             userPlan: options.userPlan,
+            qualityTier: getAiQualityTier('repair'),
           })
           const secondSections = second.sections as unknown
           if (hasRequiredSectionPaths(secondSections, timingRequiredPaths)) {
@@ -5520,6 +5885,7 @@ export async function generateTimingReport(
       )
       const repaired = await callAIBackendGeneric<TimingReportSections>(repairPrompt, lang, {
         userPlan: options.userPlan,
+        qualityTier: getAiQualityTier('repair'),
       })
       const repairedSections = repaired.sections as unknown
       if (hasRequiredSectionPaths(repairedSections, timingRequiredPaths)) {
@@ -5580,6 +5946,25 @@ export async function generateTimingReport(
     evidenceRefs: timingEvidenceRefs,
   })
   const qualityMetrics = buildReportQualityMetrics(
+    sections as Record<string, unknown>,
+    sectionPaths,
+    timingEvidenceRefs,
+    {
+      requiredPaths: timingRequiredPaths,
+      claims: unified.claims,
+      anchors: unified.anchors,
+      scenarioBundles: unified.scenarioBundles,
+      timelineEvents: unified.timelineEvents,
+      coreQuality: coreSeed.quality,
+    }
+  )
+  sections = applyFinalReportStyle(
+    sections as Record<string, unknown>,
+    sectionPaths,
+    lang,
+    reportCore
+  )
+  const styledTimingQualityMetrics = buildReportQualityMetrics(
     sections as Record<string, unknown>,
     sectionPaths,
     timingEvidenceRefs,
@@ -5659,7 +6044,7 @@ export async function generateTimingReport(
       tokensUsed,
       processingTime: Math.max(1, Date.now() - startTime),
       reportVersion: '1.0.0',
-      qualityMetrics,
+      qualityMetrics: styledTimingQualityMetrics,
     },
   }
 
@@ -5838,6 +6223,14 @@ export async function generateThemedReport(
         coreQuality: coreSeed.quality,
       })
     }
+    sections = finalizeThemedSectionsForUser(
+      theme,
+      reportCore,
+      normalizedInput,
+      lang,
+      timingData
+    ) as unknown as Record<string, unknown>
+    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
     const finalModelUsed = polished.modelUsed
       ? `deterministic+${polished.modelUsed}`
       : 'deterministic-only'
@@ -6057,6 +6450,7 @@ export async function generateThemedReport(
   // 3. Call AI backend + quality gate (length/cross evidence)
   const base = await callAIBackendGeneric<ThemedReportSections>(prompt, lang, {
     userPlan: options.userPlan,
+    qualityTier: getAiQualityTier('base'),
   })
   const themedRequiredPaths = [...getThemedSectionKeys(theme)]
   let sections = hasRequiredSectionPaths(base.sections as unknown, themedRequiredPaths)
@@ -6070,7 +6464,7 @@ export async function generateThemedReport(
       ) as unknown as Record<string, unknown>)
   let model = base.model
   let tokensUsed = base.tokensUsed
-  const maxRepairPasses = getMaxRepairPassesByPlan(options.userPlan)
+  const maxRepairPasses = getEffectiveMaxRepairPasses(options.userPlan)
 
   const sectionPaths = [...getThemedSectionKeys(theme)]
   const crossPaths = sectionPaths.filter((path) => path !== 'recommendations')
@@ -6142,6 +6536,7 @@ export async function generateThemedReport(
     try {
       const repaired = await callAIBackendGeneric<ThemedReportSections>(repairPrompt, lang, {
         userPlan: options.userPlan,
+        qualityTier: getAiQualityTier('repair'),
       })
       const repairedSections = repaired.sections as unknown
       if (hasRequiredSectionPaths(repairedSections, themedRequiredPaths)) {
@@ -6179,6 +6574,7 @@ export async function generateThemedReport(
         try {
           const second = await callAIBackendGeneric<ThemedReportSections>(secondPrompt, lang, {
             userPlan: options.userPlan,
+            qualityTier: getAiQualityTier('repair'),
           })
           const secondSections = second.sections as unknown
           if (hasRequiredSectionPaths(secondSections, themedRequiredPaths)) {
@@ -6213,6 +6609,7 @@ export async function generateThemedReport(
       )
       const repaired = await callAIBackendGeneric<ThemedReportSections>(repairPrompt, lang, {
         userPlan: options.userPlan,
+        qualityTier: getAiQualityTier('repair'),
       })
       const repairedSections = repaired.sections as unknown
       if (hasRequiredSectionPaths(repairedSections, themedRequiredPaths)) {
@@ -6321,6 +6718,33 @@ export async function generateThemedReport(
       }
     )
   }
+  sections = finalizeThemedSectionsForUser(
+    theme,
+    reportCore,
+    normalizedInput,
+    lang,
+    timingData
+  ) as unknown as Record<string, unknown>
+  sections = enforceEvidenceRefFooters(sections, sectionPaths, themedEvidenceRefs, lang)
+  sections = applyFinalReportStyle(
+    sections as Record<string, unknown>,
+    sectionPaths,
+    lang,
+    reportCore
+  )
+  qualityMetrics = buildReportQualityMetrics(
+    sections as Record<string, unknown>,
+    sectionPaths,
+    themedEvidenceRefs,
+    {
+      requiredPaths: themedRequiredPaths,
+      claims: unified.claims,
+      anchors: unified.anchors,
+      scenarioBundles: unified.scenarioBundles,
+      timelineEvents: unified.timelineEvents,
+      coreQuality: coreSeed.quality,
+    }
+  )
 
   // 7. Assemble report
   const report: ThemedAIPremiumReport = {
@@ -6374,9 +6798,3 @@ export async function generateThemedReport(
 
   return report
 }
-
-
-
-
-
-

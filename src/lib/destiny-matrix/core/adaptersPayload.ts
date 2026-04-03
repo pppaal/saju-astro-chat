@@ -5,6 +5,7 @@ import type {
   AdapterBranchCandidate,
   AdapterLatentAxis,
   AdapterMatrixViewRow,
+  AdapterPersonModel,
   AdapterProjectionSet,
   AdapterProvenance,
   AdapterSingleUserModel,
@@ -23,6 +24,8 @@ import {
   localizeDomain,
   rankRiskAxis,
 } from './adaptersPresentation'
+import { buildPersonModel } from './adaptersPersonModel'
+import { buildSingleSubjectView } from './adaptersSingleSubjectView'
 
 export function getTimingHint(core: DestinyCoreResult): string {
   const scenarioWindow = core.canonical.topScenarios[0]?.window
@@ -53,22 +56,42 @@ export function buildSharedSurface(
   matrixView: AdapterMatrixViewRow[]
   branchSet: AdapterBranchCandidate[]
   singleUserModel: AdapterSingleUserModel
+  personModel: AdapterPersonModel
   arbitrationBrief: AdapterArbitrationBrief
   latentTopAxes: AdapterLatentAxis[]
   projections: AdapterProjectionSet
+  singleSubjectView: import('./adaptersTypes').AdapterSingleSubjectView
 } {
   const riskAxisDomain = rankRiskAxis(core)
+  const timingMatrix = buildTimingMatrix(core, locale)
+  const matrixView = buildMatrixView(core, locale)
+  const branchSet = buildBranchSet(core, locale)
+  const arbitrationBrief = buildArbitrationBrief(core, locale)
+  const latentTopAxes = buildLatentTopAxes(core, locale)
+  const projections = buildProjectionSet(core, locale)
   return {
     riskAxisDomain,
     riskAxisLabel: localizeDomain(riskAxisDomain, locale),
-    timingMatrix: buildTimingMatrix(core, locale),
+    timingMatrix,
     crossAgreementMatrix: [...(core.canonical.crossAgreementMatrix || [])],
-    matrixView: buildMatrixView(core, locale),
-    branchSet: buildBranchSet(core, locale),
+    matrixView,
+    branchSet,
     singleUserModel: buildSingleUserModel(core, locale),
-    arbitrationBrief: buildArbitrationBrief(core, locale),
-    latentTopAxes: buildLatentTopAxes(core, locale),
-    projections: buildProjectionSet(core, locale),
+    singleSubjectView: buildSingleSubjectView({
+      core,
+      locale,
+      riskAxisDomain,
+      timingMatrix,
+      matrixView,
+      branchSet,
+      arbitrationBrief,
+      latentTopAxes,
+      projections,
+    }),
+    personModel: buildPersonModel(core, locale),
+    arbitrationBrief,
+    latentTopAxes,
+    projections,
   }
 }
 

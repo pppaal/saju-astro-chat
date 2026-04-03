@@ -102,6 +102,201 @@ export type AdapterSingleUserModel = {
   facets: AdapterSingleUserFacet[]
 }
 
+export type AdapterPersonLayer = {
+  key: 'foundation' | 'formation' | 'active' | 'future'
+  label: string
+  summary: string
+  bullets: string[]
+}
+
+export type AdapterPersonDimension = {
+  domain: SignalDomain
+  label: string
+  structuralScore: number
+  activationScore: number
+  pressureScore: number
+  supportScore: number
+  timingWindow?: string
+  summary: string
+}
+
+export type AdapterPersonState = {
+  key: 'baseline' | 'pressure' | 'opportunity'
+  label: string
+  summary: string
+  drivers: string[]
+  counterweights: string[]
+  domains: SignalDomain[]
+}
+
+export type AdapterPersonFutureBranch = {
+  id: string
+  label: string
+  domain: SignalDomain
+  window?: string
+  probability?: number
+  summary: string
+  conditions: string[]
+  blockers: string[]
+}
+
+export type AdapterSingleSubjectTimingCell = {
+  timescale: 'now' | '1-3m' | '3-6m' | '6-12m'
+  status: 'open' | 'mixed' | 'blocked'
+  agreement: number
+  contradiction: number
+  leadLag: number
+  summary: string
+}
+
+export type AdapterSingleSubjectPressure = {
+  domain: SignalDomain
+  label: string
+  status: 'open' | 'mixed' | 'blocked'
+  nextWindow?: string
+  agreement?: number
+  contradiction?: number
+  leadLag?: number
+  summary: string
+}
+
+export type AdapterSingleSubjectBranch = {
+  label: string
+  summary: string
+  entryConditions: string[]
+  abortConditions: string[]
+  nextMove: string
+}
+
+export type AdapterSingleSubjectView = {
+  directAnswer: string
+  structureAxis: {
+    domain: SignalDomain
+    label: string
+    thesis: string
+    topAxes: string[]
+  }
+  actionAxis: {
+    domain: SignalDomain
+    label: string
+    nowAction: string
+    whyThisFirst: string
+  }
+  riskAxis: {
+    domain: SignalDomain
+    label: string
+    warning: string
+    hardStops: string[]
+  }
+  timingState: {
+    bestWindow: string
+    whyNow?: string
+    whyNotYet?: string
+    confidence?: number
+    windows: AdapterSingleSubjectTimingCell[]
+  }
+  competingPressures: AdapterSingleSubjectPressure[]
+  branches: AdapterSingleSubjectBranch[]
+  entryConditions: string[]
+  abortConditions: string[]
+  nextMove: string
+  confidence?: number
+  reliability?: {
+    crossAgreement?: number | null
+    contradictionFlags: string[]
+    notes: string[]
+  }
+}
+
+export type AdapterPersonModel = {
+  subject: string
+  overview: string
+  structuralCore: {
+    focusDomain: SignalDomain
+    actionFocusDomain: SignalDomain
+    riskAxisDomain: SignalDomain
+    gradeLabel: string
+    phaseLabel: string
+    overview: string
+    latentAxes: string[]
+  }
+  formationProfile: {
+    summary: string
+    repeatedPatternFamilies: string[]
+    dominantLatentGroups: string[]
+    pressureHabits: string[]
+    supportHabits: string[]
+  }
+  timeProfile: {
+    currentWindow?: string
+    currentGranularity?: string
+    timingNarrative: string
+    confidence: number
+    windows: Array<{
+      domain: SignalDomain
+      label: string
+      window: string
+      granularity: string
+      confidence: number
+      whyNow: string
+      entryConditions: string[]
+      abortConditions: string[]
+    }>
+    activationSources: Array<{
+      domain: SignalDomain
+      source: string
+      label: string
+      intensity: number
+      active: boolean
+    }>
+  }
+  layers: AdapterPersonLayer[]
+  dimensions: AdapterPersonDimension[]
+  domainPortraits: Array<{
+    domain: SignalDomain
+    label: string
+    mode: 'execute' | 'verify' | 'prepare'
+    structuralScore: number
+    activationScore: number
+    pressureScore: number
+    supportScore: number
+    timingWindow?: string
+    summary: string
+    baselineThesis: string
+    activationThesis: string
+    likelyExpressions: string[]
+    riskExpressions: string[]
+    allowedActions: string[]
+    blockedActions: string[]
+  }>
+  states: AdapterPersonState[]
+  relationshipProfile: {
+    summary: string
+    partnerArchetypes: string[]
+    inflowPaths: string[]
+    commitmentConditions: string[]
+    breakPatterns: string[]
+  }
+  careerProfile: {
+    summary: string
+    suitableLanes: string[]
+    executionStyle: string[]
+    hiringTriggers: string[]
+    blockers: string[]
+  }
+  futureBranches: AdapterPersonFutureBranch[]
+  evidenceLedger: {
+    topClaimIds: string[]
+    topSignalIds: string[]
+    topPatternIds: string[]
+    topScenarioIds: string[]
+    topDecisionId: string | null
+    topDecisionLabel: string | null
+    coherenceNotes: string[]
+    contradictionFlags: string[]
+  }
+}
+
 export interface CalendarCoreAdapterResult {
   coreHash: string
   gradeLabel: string
@@ -119,6 +314,8 @@ export interface CalendarCoreAdapterResult {
   matrixView: AdapterMatrixViewRow[]
   branchSet: AdapterBranchCandidate[]
   singleUserModel: AdapterSingleUserModel
+  singleSubjectView: AdapterSingleSubjectView
+  personModel: AdapterPersonModel
   arbitrationBrief: AdapterArbitrationBrief
   latentTopAxes: AdapterLatentAxis[]
   projections: AdapterProjectionSet
@@ -251,6 +448,8 @@ export interface CounselorCoreAdapterResult {
   matrixView: AdapterMatrixViewRow[]
   branchSet: AdapterBranchCandidate[]
   singleUserModel: AdapterSingleUserModel
+  singleSubjectView: AdapterSingleSubjectView
+  personModel: AdapterPersonModel
   arbitrationBrief: AdapterArbitrationBrief
   latentTopAxes: AdapterLatentAxis[]
   projections: AdapterProjectionSet
@@ -365,6 +564,8 @@ export interface ReportCoreAdapterResult {
   matrixView: AdapterMatrixViewRow[]
   branchSet: AdapterBranchCandidate[]
   singleUserModel: AdapterSingleUserModel
+  singleSubjectView: AdapterSingleSubjectView
+  personModel: AdapterPersonModel
   arbitrationBrief: AdapterArbitrationBrief
   latentTopAxes: AdapterLatentAxis[]
   projections: AdapterProjectionSet

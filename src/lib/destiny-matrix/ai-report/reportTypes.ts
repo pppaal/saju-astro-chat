@@ -29,6 +29,8 @@ import type { ScenarioResult } from '@/lib/destiny-matrix/core/scenarioEngine'
 import type {
   AdapterBranchCandidate,
   AdapterMatrixViewRow,
+  AdapterPersonModel,
+  AdapterSingleSubjectView,
   AdapterSingleUserModel,
 } from '@/lib/destiny-matrix/core/adaptersTypes'
 
@@ -46,6 +48,8 @@ export interface AIPremiumReport {
   matrixView?: AdapterMatrixViewRow[]
   branchSet?: AdapterBranchCandidate[]
   singleUserModel?: AdapterSingleUserModel
+  singleSubjectView?: AdapterSingleSubjectView
+  personModel?: AdapterPersonModel
   projections?: {
     structure: {
       headline: string
@@ -144,9 +148,13 @@ export interface AIPremiumReport {
     personalityDeep: string // 성격 심층 분석
     careerPath: string // 커리어 경로 & 적성
     relationshipDynamics: string // 관계 역학
+    spouseProfile?: string // 배우자상 / 관계 상대상
     wealthPotential: string // 재물운 & 재테크 조언
     healthGuidance: string // 건강 가이드
     lifeMission: string // 인생 사명 & 영적 성장
+    lifeStages?: string // 초년기/청년기/중년기/노년기
+    turningPoints?: string // 주요 변곡점
+    futureOutlook?: string // 향후 3~5년 전망
     timingAdvice: string // 타이밍 조언 (대운/세운)
     actionPlan: string // 실천 가이드
     conclusion: string // 마무리 메시지
@@ -218,6 +226,10 @@ export interface AIPremiumReport {
       tokenIntegrityPass?: boolean
       structurePass?: boolean
       forbiddenAdditionsPass?: boolean
+      repetitiveLeadPatternCount?: number
+      abstractNounRatio?: number
+      sentenceLengthVariance?: number
+      bilingualToneSkew?: number
     }
   }
 }
