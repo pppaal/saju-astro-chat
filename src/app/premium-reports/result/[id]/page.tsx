@@ -4,16 +4,42 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import {
+  AlertTriangle,
+  ArrowRight,
+  BadgeCheck,
+  Briefcase,
+  Compass,
+  Heart,
+  ShieldAlert,
+  Sparkles,
+  Target,
+} from 'lucide-react'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
+import CalculationDetailsSection from '@/app/premium-reports/_components/CalculationDetailsSection'
+import GraphRagEvidenceSection from '@/app/premium-reports/_components/GraphRagEvidenceSection'
 import PremiumPageScaffold from '@/app/premium-reports/_components/PremiumPageScaffold'
-import PremiumNarrativeCard from '@/components/reports/PremiumNarrativeCard'
+import PersonModelOverview from '@/app/premium-reports/_components/PersonModelOverview'
+import QualityAuditSection from '@/app/premium-reports/_components/QualityAuditSection'
+import ReportBulletListSection from '@/app/premium-reports/_components/ReportBulletListSection'
+import ReportInsightCards from '@/app/premium-reports/_components/ReportInsightCards'
+import ReportSectionReader from '@/app/premium-reports/_components/ReportSectionReader'
+import ReportSummarySection from '@/app/premium-reports/_components/ReportSummarySection'
+import SingleSubjectViewSection from '@/app/premium-reports/_components/SingleSubjectViewSection'
 import {
   toQualityMarkdown,
   type QualityAudit,
   type CalculationDetails,
 } from '@/lib/destiny-matrix/ai-report/qualityAudit'
-import { normalizeReportTheme, type ReportThemeValue } from '@/lib/destiny-matrix/ai-report/themeSchema'
+import {
+  normalizeReportTheme,
+  type ReportThemeValue,
+} from '@/lib/destiny-matrix/ai-report/themeSchema'
+import type {
+  AdapterPersonModel,
+  AdapterSingleSubjectView,
+} from '@/lib/destiny-matrix/core/adaptersTypes'
 import { readPremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
 
 interface ReportSection {
@@ -61,6 +87,8 @@ interface ReportData {
   qualityAudit?: QualityAudit
   calculationDetails?: CalculationDetails
   graphRagEvidence?: GraphRAGEvidenceBundle
+  singleSubjectView?: AdapterSingleSubjectView
+  personModel?: AdapterPersonModel
   fullData?: Record<string, unknown>
 }
 
@@ -77,10 +105,27 @@ const THEME_LABELS: Record<ReportThemeValue, string> = {
   family: '가족',
 }
 
-const THEME_SUMMARY_KEYS: Record<
-  ReportThemeValue,
-  Array<{ key: string; label: string }>
-> = {
+const REPORT_TYPE_LABELS: Record<ReportData['type'], string> = {
+  comprehensive: '종합 인물 리포트',
+  themed: '테마 심화 리포트',
+  timing: '타이밍 리포트',
+}
+
+const MODE_LABELS: Record<'execute' | 'verify' | 'prepare', string> = {
+  execute: '실행 우위',
+  verify: '검토 우위',
+  prepare: '준비 우위',
+}
+
+const WINDOW_LABELS: Record<string, string> = {
+  now: '지금',
+  '1-3m': '1-3개월',
+  '3-6m': '3-6개월',
+  '6-12m': '6-12개월',
+  '12m+': '12개월 이후',
+}
+
+const THEME_SUMMARY_KEYS: Record<ReportThemeValue, Array<{ key: string; label: string }>> = {
   love: [
     { key: 'deepAnalysis', label: '핵심 흐름' },
     { key: 'compatibility', label: '관계 포인트' },
@@ -155,9 +200,7 @@ function findSectionSnippet(report: ReportData, key: string): string {
   return ''
 }
 
-function buildThemedHeadlineLines(
-  report: ReportData
-): Array<{ label: string; text: string }> {
+function buildThemedHeadlineLines(report: ReportData): Array<{ label: string; text: string }> {
   const theme = normalizeReportTheme(report.theme)
   if (!theme) {
     return []
@@ -172,7 +215,9 @@ function buildThemedHeadlineLines(
 
   const fallbackSummary = takeLeadSentence(report.summary)
   const fallbackLines = report.sections
-    .filter((section) => !preferredLines.some((line) => line.text === takeLeadSentence(section.content)))
+    .filter(
+      (section) => !preferredLines.some((line) => line.text === takeLeadSentence(section.content))
+    )
     .map((section, index) => ({
       label: index === 0 ? '핵심 흐름' : index === 1 ? '포인트' : '실행 힌트',
       text: takeLeadSentence(section.content),
@@ -190,6 +235,48 @@ function buildThemedHeadlineLines(
   )
 
   return unique.slice(0, 3)
+}
+
+function isPersonModel(value: unknown): value is AdapterPersonModel {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+  const candidate = value as Record<string, unknown>
+  return typeof candidate.overview === 'string' && !!candidate.structuralCore
+}
+
+function isSingleSubjectView(value: unknown): value is AdapterSingleSubjectView {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+  const candidate = value as Record<string, unknown>
+  return (
+    typeof candidate.directAnswer === 'string' && !!candidate.actionAxis && !!candidate.timingState
+  )
+}
+
+function formatRatioPercent(value?: number): string {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return '-'
+  }
+  return `${Math.round(value * 100)}%`
+}
+
+function labelWindow(window?: string): string {
+  if (!window) {
+    return '현재'
+  }
+  return WINDOW_LABELS[window] || window
+}
+
+function labelDomainFromModel(
+  personModel: AdapterPersonModel | undefined,
+  domain?: string
+): string {
+  if (!domain) {
+    return '-'
+  }
+  return personModel?.dimensions.find((item) => item.domain === domain)?.label || domain
 }
 
 function extractReportPayload(data: unknown): Record<string, unknown> | null {
@@ -301,6 +388,16 @@ function buildReportData(
     graphRagEvidence:
       (payload.graphRagEvidence as GraphRAGEvidenceBundle | undefined) ||
       (fullData.graphRagEvidence as GraphRAGEvidenceBundle | undefined),
+    singleSubjectView: isSingleSubjectView(payload.singleSubjectView)
+      ? payload.singleSubjectView
+      : isSingleSubjectView(fullData.singleSubjectView)
+        ? fullData.singleSubjectView
+        : undefined,
+    personModel: isPersonModel(payload.personModel)
+      ? payload.personModel
+      : isPersonModel(fullData.personModel)
+        ? fullData.personModel
+        : undefined,
     fullData,
   }
 }
@@ -316,8 +413,6 @@ export default function ReportResultPage() {
   const [report, setReport] = useState<ReportData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeSection, setActiveSection] = useState(0)
-  const [showRawJson, setShowRawJson] = useState(false)
 
   const loadReport = useCallback(async () => {
     if (!reportId) {
@@ -510,79 +605,175 @@ export default function ReportResultPage() {
 
   const showThemedDiagnostics = report.type === 'themed' && !!report.calculationDetails
   const normalizedTheme = normalizeReportTheme(report.theme)
-  const themedHeadlineLines =
-    report.type === 'themed' ? buildThemedHeadlineLines(report) : []
+  const themedHeadlineLines = report.type === 'themed' ? buildThemedHeadlineLines(report) : []
+  const singleSubjectView = report.singleSubjectView
+  const personModel = report.personModel
+  const primaryWindow = personModel?.timeProfile.windows[0]
+  const leadPortraits = personModel?.domainPortraits.slice(0, 4) || []
+  const leadStates = personModel?.states.slice(0, 3) || []
+  const leadBranches = personModel?.futureBranches.slice(0, 3) || []
+  const leadInsights = report.insights?.slice(0, 3) || []
+  const coherenceNotes = personModel?.evidenceLedger.coherenceNotes.slice(0, 3) || []
+  const contradictionFlags = personModel?.evidenceLedger.contradictionFlags.slice(0, 3) || []
 
   return (
     <PremiumPageScaffold accent="cyan">
-      <header className="border-b border-white/10 px-4 py-8">
-        <div className="max-w-5xl mx-auto">
+      <header className="px-4 pb-6 pt-8">
+        <div className="mx-auto max-w-6xl">
           <Link
             href="/premium-reports"
-            className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-slate-900/60 px-3 py-1 text-sm text-slate-300 backdrop-blur-xl hover:border-cyan-300/60 hover:text-white"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-slate-300 backdrop-blur-xl transition hover:border-cyan-300/45 hover:text-white"
           >
+            <ArrowRight className="h-3.5 w-3.5 rotate-180" />
             리포트 목록으로
           </Link>
 
-          <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white">{report.title}</h1>
-              <p className="text-gray-400 text-sm mt-1">
-                생성일: {new Date(report.createdAt).toLocaleDateString('ko-KR')}
-              </p>
-            </div>
+          <div className="mt-5 overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(9,14,24,0.94),rgba(6,10,18,0.88))] shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
+            <div className="grid gap-8 px-6 py-7 lg:grid-cols-[1.55fr_0.95fr] lg:px-8 lg:py-8">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-400/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-100/88">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    {REPORT_TYPE_LABELS[report.type]}
+                  </span>
+                  {report.theme && normalizedTheme && (
+                    <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-300">
+                      {THEME_LABELS[normalizedTheme]} 테마
+                    </span>
+                  )}
+                  {report.period && (
+                    <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-300">
+                      {report.period}
+                    </span>
+                  )}
+                </div>
 
-            <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={handleDownloadPDF}
-                className="rounded-lg border border-cyan-300/35 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-100 transition hover:bg-cyan-400/20"
-              >
-                PDF 다운로드
-              </button>
-              <button
-                onClick={handleShare}
-                className="rounded-lg border border-white/20 bg-slate-900/70 px-4 py-2 text-sm text-white transition hover:border-cyan-300/60"
-              >
-                공유하기
-              </button>
-              {showThemedDiagnostics && report.qualityAudit && (
-                <button
-                  onClick={handleDownloadQualityMarkdown}
-                  className="rounded-lg border border-indigo-300/40 bg-indigo-500/20 px-4 py-2 text-sm text-indigo-100 transition hover:bg-indigo-500/35"
-                >
-                  품질 리포트(.md)
-                </button>
-              )}
-              {showThemedDiagnostics && (
-                <button
-                  onClick={handleDownloadCalculationJson}
-                  className="rounded-lg border border-cyan-300/40 bg-cyan-500/20 px-4 py-2 text-sm text-cyan-100 transition hover:bg-cyan-500/35"
-                >
-                  계산 근거(.json)
-                </button>
-              )}
+                <h1 className="mt-4 text-3xl font-black tracking-tight text-white md:text-4xl">
+                  {report.title}
+                </h1>
+                <p className="mt-3 max-w-3xl whitespace-pre-line text-[15px] leading-7 text-slate-300">
+                  {singleSubjectView?.directAnswer || personModel?.overview || report.summary}
+                </p>
+
+                <div className="mt-5 flex flex-wrap gap-3">
+                  {personModel?.structuralCore.focusDomain && (
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                        Focus Axis
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        {labelDomainFromModel(personModel, personModel.structuralCore.focusDomain)}
+                      </p>
+                    </div>
+                  )}
+                  {personModel?.structuralCore.actionFocusDomain && (
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                        Action Axis
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        {labelDomainFromModel(
+                          personModel,
+                          personModel.structuralCore.actionFocusDomain
+                        )}
+                      </p>
+                    </div>
+                  )}
+                  {personModel?.timeProfile.currentWindow && (
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                        Current Window
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        {labelWindow(personModel.timeProfile.currentWindow)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                  <div className="rounded-[24px] border border-cyan-300/18 bg-[linear-gradient(135deg,rgba(13,43,66,0.88),rgba(9,14,28,0.92))] p-5 shadow-[0_16px_50px_rgba(10,86,120,0.18)]">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-100/74">
+                      Report Score
+                    </p>
+                    <div className="mt-3 flex items-end gap-3">
+                      <p className="text-4xl font-black text-white">
+                        {report.score !== undefined
+                          ? `${report.score}점`
+                          : formatRatioPercent(personModel?.timeProfile.confidence)}
+                      </p>
+                      {report.grade && (
+                        <p className="pb-1 text-sm text-cyan-100/72">{report.grade}</p>
+                      )}
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-slate-300">
+                      생성일 {new Date(report.createdAt).toLocaleDateString('ko-KR')}
+                    </p>
+                  </div>
+
+                  <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                      Execution Posture
+                    </p>
+                    <p className="mt-3 text-lg font-semibold text-white">
+                      {personModel?.states[0]?.label ||
+                        (primaryWindow ? labelWindow(primaryWindow.window) : '요약 모드')}
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-300">
+                      {singleSubjectView?.actionAxis.whyThisFirst ||
+                        personModel?.timeProfile.timingNarrative ||
+                        report.summary}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={handleDownloadPDF}
+                    className="rounded-xl border border-cyan-300/28 bg-cyan-400/8 px-4 py-2.5 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/14"
+                  >
+                    PDF 다운로드
+                  </button>
+                  <button
+                    onClick={handleShare}
+                    className="rounded-xl border border-white/12 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-white transition hover:border-cyan-300/35"
+                  >
+                    공유하기
+                  </button>
+                  {showThemedDiagnostics && report.qualityAudit && (
+                    <button
+                      onClick={handleDownloadQualityMarkdown}
+                      className="rounded-xl border border-indigo-300/28 bg-indigo-500/10 px-4 py-2.5 text-sm font-medium text-indigo-100 transition hover:bg-indigo-500/16"
+                    >
+                      품질 리포트(.md)
+                    </button>
+                  )}
+                  {showThemedDiagnostics && (
+                    <button
+                      onClick={handleDownloadCalculationJson}
+                      className="rounded-xl border border-cyan-300/28 bg-cyan-500/10 px-4 py-2.5 text-sm font-medium text-cyan-100 transition hover:bg-cyan-500/16"
+                    >
+                      계산 근거(.json)
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      {report.score !== undefined && (
-        <div className="max-w-5xl mx-auto px-4 mt-6">
-          <div className="rounded-2xl border border-white/15 bg-gradient-to-r from-cyan-500/75 to-indigo-500/75 p-6 shadow-[0_16px_44px_rgba(14,165,233,0.35)]">
-            <p className="text-white/80 text-sm">운세 점수</p>
-            <p className="text-4xl font-bold text-white">{report.score}점</p>
-            {report.grade && <p className="text-white/80 text-sm mt-1">등급: {report.grade}</p>}
-          </div>
-        </div>
-      )}
-
       {report.type === 'themed' && themedHeadlineLines.length > 0 && (
-        <div className="max-w-5xl mx-auto px-4 mt-6">
+        <div className="mx-auto mt-6 max-w-6xl px-4">
           <div className="rounded-2xl border border-cyan-300/20 bg-gradient-to-br from-slate-900/90 via-slate-900/75 to-cyan-950/55 p-6 shadow-[0_18px_50px_rgba(8,145,178,0.18)] backdrop-blur-xl">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <div className="mb-2 inline-flex items-center rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-100">
-                  {normalizedTheme ? `${THEME_LABELS[normalizedTheme]} 테마 핵심 결론` : '테마 핵심 결론'}
+                  {normalizedTheme
+                    ? `${THEME_LABELS[normalizedTheme]} 테마 핵심 결론`
+                    : '테마 핵심 결론'}
                 </div>
                 <h2 className="text-xl font-bold text-white">먼저 봐야 할 핵심 3줄</h2>
               </div>
@@ -608,246 +799,331 @@ export default function ReportResultPage() {
         </div>
       )}
 
-      <div className="max-w-5xl mx-auto px-4 mt-6">
-        <div className="rounded-2xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
-          <h2 className="text-lg font-bold text-white mb-3">핵심 요약</h2>
-          <p className="text-gray-300 whitespace-pre-line">{report.summary}</p>
-          {report.keywords && report.keywords.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {report.keywords.map((keyword) => (
-                <span
-                  key={keyword}
-                  className="rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3 py-1 text-sm text-cyan-100"
-                >
-                  #{keyword}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {showThemedDiagnostics && report.qualityAudit && (
-        <div className="max-w-5xl mx-auto px-4 mt-6">
-          <div className="rounded-2xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
-            <h2 className="text-lg font-bold text-white mb-4">품질 점검</h2>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
-              <div className="bg-slate-900/60 rounded p-3 text-slate-200">
-                Overall: {report.qualityAudit.overallQualityScore}
-              </div>
-              <div className="bg-slate-900/60 rounded p-3 text-slate-200">
-                완성도: {report.qualityAudit.completenessScore}
-              </div>
-              <div className="bg-slate-900/60 rounded p-3 text-slate-200">
-                교차근거: {report.qualityAudit.crossEvidenceScore}
-              </div>
-              <div className="bg-slate-900/60 rounded p-3 text-slate-200">
-                실행성: {report.qualityAudit.actionabilityScore}
-              </div>
-              <div className="bg-slate-900/60 rounded p-3 text-slate-200">
-                명확성: {report.qualityAudit.clarityScore}
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-4 mt-4">
-              <div>
-                <h3 className="text-sm font-semibold text-green-300 mb-2">Strengths</h3>
-                <ul className="text-xs text-slate-300 space-y-1">
-                  {report.qualityAudit.strengths.map((item, idx) => (
-                    <li key={`${item}-${idx}`}>• {item}</li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-amber-300 mb-2">Issues</h3>
-                <ul className="text-xs text-slate-300 space-y-1">
-                  {report.qualityAudit.issues.map((item, idx) => (
-                    <li key={`${item}-${idx}`}>• {item}</li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-cyan-300 mb-2">Recommendations</h3>
-                <ul className="text-xs text-slate-300 space-y-1">
-                  {report.qualityAudit.recommendations.map((item, idx) => (
-                    <li key={`${item}-${idx}`}>• {item}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+      {singleSubjectView && (
+        <SingleSubjectViewSection view={singleSubjectView} personModel={personModel} />
       )}
 
-      {showThemedDiagnostics && report.calculationDetails && (
-        <div className="max-w-5xl mx-auto px-4 mt-6">
-          <div className="rounded-2xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
-            <h2 className="text-lg font-bold text-white mb-4">사주/점성 계산 근거 전체 상세</h2>
+      {personModel && (
+        <>
+          <PersonModelOverview personModel={personModel} className="mt-6" />
 
-            <details className="mb-3">
-              <summary className="cursor-pointer text-slate-200">입력 스냅샷 (사주 + 점성)</summary>
-              <pre className="mt-2 text-xs text-slate-300 overflow-auto bg-slate-900/60 p-3 rounded">
-                {JSON.stringify(report.calculationDetails.inputSnapshot, null, 2)}
-              </pre>
-            </details>
-
-            <details className="mb-3">
-              <summary className="cursor-pointer text-slate-200">타이밍 데이터</summary>
-              <pre className="mt-2 text-xs text-slate-300 overflow-auto bg-slate-900/60 p-3 rounded">
-                {JSON.stringify(report.calculationDetails.timingData, null, 2)}
-              </pre>
-            </details>
-
-            <details className="mb-3" open>
-              <summary className="cursor-pointer text-slate-200">Matrix Summary</summary>
-              <pre className="mt-2 text-xs text-slate-300 overflow-auto bg-slate-900/60 p-3 rounded">
-                {JSON.stringify(report.calculationDetails.matrixSummary, null, 2)}
-              </pre>
-            </details>
-
-            <details className="mb-3">
-              <summary className="cursor-pointer text-slate-200">Top Insights + Sources</summary>
-              <pre className="mt-2 text-xs text-slate-300 overflow-auto bg-slate-900/60 p-3 rounded">
-                {JSON.stringify(report.calculationDetails.topInsightsWithSources, null, 2)}
-              </pre>
-            </details>
-
-            <button
-              onClick={() => setShowRawJson((prev) => !prev)}
-              className="mt-2 px-3 py-2 rounded bg-slate-700 hover:bg-slate-600 text-xs text-white"
-            >
-              {showRawJson ? 'Raw JSON 숨기기' : 'Raw JSON 전체 보기'}
-            </button>
-
-            {showRawJson && (
-              <pre className="mt-3 text-xs text-slate-300 overflow-auto bg-slate-900/60 p-3 rounded max-h-[420px]">
-                {JSON.stringify(report.calculationDetails, null, 2)}
-              </pre>
-            )}
-          </div>
-        </div>
-      )}
-
-      {report.graphRagEvidence && report.graphRagEvidence.anchors?.length > 0 && (
-        <div className="max-w-5xl mx-auto px-4 mt-6">
-          <div className="rounded-2xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
-            <h2 className="text-lg font-bold text-white mb-2">GraphRAG 교차 근거</h2>
-            <p className="text-xs text-slate-400 mb-4">
-              mode: {report.graphRagEvidence.mode}
-              {report.graphRagEvidence.theme ? ` / theme: ${report.graphRagEvidence.theme}` : ''}
-              {report.graphRagEvidence.period ? ` / period: ${report.graphRagEvidence.period}` : ''}
-            </p>
-
-            <div className="space-y-3">
-              {report.graphRagEvidence.anchors.map((anchor) => (
-                <details
-                  key={anchor.id}
-                  className="rounded-lg border border-white/15 bg-slate-950/45 p-3"
-                >
-                  <summary className="cursor-pointer text-sm font-semibold text-slate-200">
-                    [{anchor.id}] {anchor.section}
-                  </summary>
-                  <div className="mt-3 space-y-2 text-xs leading-relaxed">
-                    <div>
-                      <p className="text-amber-300 font-semibold">Saju Basis</p>
-                      <p className="text-slate-300">{anchor.sajuEvidence}</p>
-                    </div>
-                    <div>
-                      <p className="text-cyan-300 font-semibold">Astrology Basis</p>
-                      <p className="text-slate-300">{anchor.astrologyEvidence}</p>
-                    </div>
-                    <div>
-                      <p className="text-emerald-300 font-semibold">Cross Conclusion</p>
-                      <p className="text-slate-300">{anchor.crossConclusion}</p>
-                    </div>
-                    {Array.isArray(anchor.crossEvidenceSets) &&
-                      anchor.crossEvidenceSets.length > 0 && (
-                        <div>
-                          <p className="text-violet-300 font-semibold mb-2">
-                            Paired Cross Evidence Sets
+          {leadStates.length > 0 && (
+            <section className="mx-auto mt-6 max-w-6xl px-4">
+              <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
+                <div className="flex items-center gap-2 text-cyan-100">
+                  <Target className="h-4 w-4" />
+                  <h2 className="text-lg font-semibold text-white">상태 레이어</h2>
+                </div>
+                <div className="mt-5 grid gap-4 lg:grid-cols-3">
+                  {leadStates.map((state) => (
+                    <article
+                      key={state.key}
+                      className="rounded-[22px] border border-white/10 bg-[#090f1b]/88 p-5"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-base font-semibold text-white">{state.label}</p>
+                        <span className="rounded-full border border-white/10 px-2.5 py-1 text-[11px] text-slate-400">
+                          {state.domains
+                            .map((domain) => labelDomainFromModel(personModel, domain))
+                            .join(' / ')}
+                        </span>
+                      </div>
+                      <p className="mt-3 text-sm leading-6 text-slate-300">{state.summary}</p>
+                      {state.drivers.length > 0 && (
+                        <div className="mt-4">
+                          <p className="text-xs uppercase tracking-[0.18em] text-cyan-100/70">
+                            Drivers
                           </p>
-                          <div className="space-y-2">
-                            {anchor.crossEvidenceSets.map((set) => (
-                              <div
-                                key={`${anchor.id}-${set.id}`}
-                                className="rounded border border-violet-300/20 bg-violet-900/20 p-2"
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {state.drivers.map((driver) => (
+                              <span
+                                key={driver}
+                                className="rounded-full border border-cyan-300/18 bg-cyan-400/8 px-3 py-1 text-xs text-cyan-100"
                               >
-                                <p className="text-violet-200 font-semibold">
-                                  {set.id}
-                                  {typeof set.overlapScore === 'number'
-                                    ? ` · overlap ${Math.round(set.overlapScore * 100)}%`
-                                    : ''}
-                                </p>
-                                <p className="text-cyan-200 mt-1">
-                                  Astrology (angle/orb): {set.astrologyEvidence}
-                                </p>
-                                <p className="text-amber-200 mt-1">
-                                  Saju 대응 근거: {set.sajuEvidence}
-                                </p>
-                                {set.overlapDomains && set.overlapDomains.length > 0 && (
-                                  <p className="text-slate-300 mt-1">
-                                    Overlap domains: {set.overlapDomains.join(', ')}
-                                  </p>
-                                )}
-                                {set.combinedConclusion && (
-                                  <p className="text-emerald-200 mt-1">{set.combinedConclusion}</p>
-                                )}
-                              </div>
+                                {driver}
+                              </span>
                             ))}
                           </div>
                         </div>
                       )}
+                      {state.counterweights.length > 0 && (
+                        <div className="mt-4">
+                          <p className="text-xs uppercase tracking-[0.18em] text-amber-100/70">
+                            Counterweights
+                          </p>
+                          <ul className="mt-2 space-y-1 text-sm text-slate-400">
+                            {state.counterweights.slice(0, 3).map((item) => (
+                              <li key={item}>• {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {leadPortraits.length > 0 && (
+            <section className="mx-auto mt-6 max-w-6xl px-4">
+              <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
+                <div className="flex items-center gap-2 text-cyan-100">
+                  <BadgeCheck className="h-4 w-4" />
+                  <h2 className="text-lg font-semibold text-white">도메인별 발현</h2>
+                </div>
+                <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                  {leadPortraits.map((portrait) => (
+                    <article
+                      key={portrait.domain}
+                      className="rounded-[22px] border border-white/10 bg-[#090f1b]/88 p-5"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-base font-semibold text-white">{portrait.label}</p>
+                          <p className="mt-1 text-xs text-slate-400">
+                            {MODE_LABELS[portrait.mode]} ·{' '}
+                            {portrait.timingWindow ? labelWindow(portrait.timingWindow) : '상시'}
+                          </p>
+                        </div>
+                        <span className="rounded-full border border-white/10 px-2.5 py-1 text-[11px] text-slate-400">
+                          구조 {formatRatioPercent(portrait.structuralScore)}
+                        </span>
+                      </div>
+                      <p className="mt-3 text-sm leading-6 text-slate-300">{portrait.summary}</p>
+
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                        <div className="rounded-2xl border border-emerald-300/12 bg-emerald-400/[0.05] p-3">
+                          <p className="text-xs uppercase tracking-[0.18em] text-emerald-100/70">
+                            Allowed
+                          </p>
+                          <ul className="mt-2 space-y-1 text-sm text-slate-300">
+                            {portrait.allowedActions.slice(0, 3).map((item) => (
+                              <li key={item}>• {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="rounded-2xl border border-amber-300/12 bg-amber-400/[0.05] p-3">
+                          <p className="text-xs uppercase tracking-[0.18em] text-amber-100/70">
+                            Blocked
+                          </p>
+                          <ul className="mt-2 space-y-1 text-sm text-slate-300">
+                            {portrait.blockedActions.slice(0, 3).map((item) => (
+                              <li key={item}>• {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          <section className="mx-auto mt-6 grid max-w-6xl gap-4 px-4 lg:grid-cols-[1.15fr_0.85fr]">
+            <article className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
+              <div className="flex items-center gap-2 text-cyan-100">
+                <Briefcase className="h-4 w-4" />
+                <h2 className="text-lg font-semibold text-white">커리어 프로필</h2>
+              </div>
+              <p className="mt-3 text-sm leading-7 text-slate-300">
+                {personModel.careerProfile.summary}
+              </p>
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-cyan-100/70">
+                    Suitable Lanes
+                  </p>
+                  <ul className="mt-2 space-y-1 text-sm text-slate-300">
+                    {personModel.careerProfile.suitableLanes.slice(0, 4).map((item) => (
+                      <li key={item}>• {item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-cyan-100/70">
+                    Hiring Triggers
+                  </p>
+                  <ul className="mt-2 space-y-1 text-sm text-slate-300">
+                    {personModel.careerProfile.hiringTriggers.slice(0, 4).map((item) => (
+                      <li key={item}>• {item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </article>
+
+            <article className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
+              <div className="flex items-center gap-2 text-cyan-100">
+                <Heart className="h-4 w-4" />
+                <h2 className="text-lg font-semibold text-white">관계 프로필</h2>
+              </div>
+              <p className="mt-3 text-sm leading-7 text-slate-300">
+                {personModel.relationshipProfile.summary}
+              </p>
+              <div className="mt-5 space-y-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-cyan-100/70">
+                    Partner Archetypes
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {personModel.relationshipProfile.partnerArchetypes.slice(0, 4).map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-slate-300"
+                      >
+                        {item}
+                      </span>
+                    ))}
                   </div>
-                </details>
-              ))}
-            </div>
-          </div>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-cyan-100/70">
+                    Commitment Conditions
+                  </p>
+                  <ul className="mt-2 space-y-1 text-sm text-slate-300">
+                    {personModel.relationshipProfile.commitmentConditions
+                      .slice(0, 3)
+                      .map((item) => (
+                        <li key={item}>• {item}</li>
+                      ))}
+                  </ul>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          {leadBranches.length > 0 && (
+            <section className="mx-auto mt-6 max-w-6xl px-4">
+              <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
+                <div className="flex items-center gap-2 text-cyan-100">
+                  <Compass className="h-4 w-4" />
+                  <h2 className="text-lg font-semibold text-white">미래 분기</h2>
+                </div>
+                <div className="mt-5 grid gap-4 lg:grid-cols-3">
+                  {leadBranches.map((branch) => (
+                    <article
+                      key={branch.id}
+                      className="rounded-[22px] border border-white/10 bg-[#090f1b]/88 p-5"
+                    >
+                      <p className="text-base font-semibold text-white">{branch.label}</p>
+                      <p className="mt-1 text-xs text-slate-400">
+                        {branch.window ? labelWindow(branch.window) : '시기 미정'} · 가능성{' '}
+                        {formatRatioPercent(branch.probability)}
+                      </p>
+                      <p className="mt-3 text-sm leading-6 text-slate-300">{branch.summary}</p>
+                      {branch.conditions.length > 0 && (
+                        <div className="mt-4">
+                          <p className="text-xs uppercase tracking-[0.18em] text-emerald-100/70">
+                            Conditions
+                          </p>
+                          <ul className="mt-2 space-y-1 text-sm text-slate-300">
+                            {branch.conditions.slice(0, 3).map((item) => (
+                              <li key={item}>• {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {branch.blockers.length > 0 && (
+                        <div className="mt-4">
+                          <p className="text-xs uppercase tracking-[0.18em] text-amber-100/70">
+                            Blockers
+                          </p>
+                          <ul className="mt-2 space-y-1 text-sm text-slate-400">
+                            {branch.blockers.slice(0, 3).map((item) => (
+                              <li key={item}>• {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {(leadInsights.length > 0 ||
+            coherenceNotes.length > 0 ||
+            contradictionFlags.length > 0) && (
+            <section className="mx-auto mt-6 grid max-w-6xl gap-4 px-4 lg:grid-cols-[1.2fr_0.8fr]">
+              {leadInsights.length > 0 && (
+                <ReportInsightCards
+                  title="핵심 인사이트"
+                  className="h-full"
+                  items={leadInsights.map((item) => ({
+                    title: item.title,
+                    body: item.content,
+                  }))}
+                />
+              )}
+
+              {(coherenceNotes.length > 0 || contradictionFlags.length > 0) && (
+                <article className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
+                  <div className="flex items-center gap-2 text-cyan-100">
+                    <ShieldAlert className="h-4 w-4" />
+                    <h2 className="text-lg font-semibold text-white">해석 안정성</h2>
+                  </div>
+                  {coherenceNotes.length > 0 && (
+                    <div className="mt-5">
+                      <p className="text-xs uppercase tracking-[0.18em] text-emerald-100/70">
+                        Coherence Notes
+                      </p>
+                      <ul className="mt-2 space-y-2 text-sm text-slate-300">
+                        {coherenceNotes.map((item) => (
+                          <li key={item}>• {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {contradictionFlags.length > 0 && (
+                    <div className="mt-5">
+                      <p className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-amber-100/70">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        Contradiction Flags
+                      </p>
+                      <ul className="mt-2 space-y-2 text-sm text-slate-400">
+                        {contradictionFlags.map((item) => (
+                          <li key={item}>• {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </article>
+              )}
+            </section>
+          )}
+        </>
+      )}
+
+      <div className="mx-auto mt-6 max-w-6xl px-4">
+        <ReportSummarySection summary={report.summary} keywords={report.keywords} />
+      </div>
+
+      {showThemedDiagnostics && report.qualityAudit && (
+        <div className="mx-auto mt-6 max-w-6xl px-4">
+          <QualityAuditSection qualityAudit={report.qualityAudit} />
         </div>
       )}
 
-      {report.sections.length > 0 && (
-        <div className="max-w-5xl mx-auto px-4 mt-6">
-          <div className="flex overflow-x-auto gap-2 pb-2">
-            {report.sections.map((section, index) => (
-              <button
-                key={`${section.title}-${index}`}
-                onClick={() => setActiveSection(index)}
-                className={`px-4 py-2 rounded-lg whitespace-nowrap ${
-                  activeSection === index
-                    ? 'bg-cyan-500 text-white'
-                    : 'bg-slate-700/70 text-gray-300 hover:bg-slate-600'
-                }`}
-              >
-                {section.title}
-              </button>
-            ))}
-          </div>
+      {showThemedDiagnostics && report.calculationDetails && (
+        <div className="mx-auto mt-6 max-w-6xl px-4">
+          <CalculationDetailsSection calculationDetails={report.calculationDetails} />
         </div>
       )}
 
-      {report.sections.length > 0 && (
-        <main className="max-w-5xl mx-auto px-4 py-6 pb-20">
-          <PremiumNarrativeCard
-            title={report.sections[activeSection].title}
-            content={report.sections[activeSection].content}
-            defaultOpen
-            className="border-white/15 bg-white/95"
-          />
-        </main>
+      {report.graphRagEvidence && report.graphRagEvidence.anchors?.length > 0 && (
+        <div className="mx-auto mt-6 max-w-6xl px-4">
+          <GraphRagEvidenceSection evidence={report.graphRagEvidence} />
+        </div>
       )}
+
+      {report.sections.length > 0 && <ReportSectionReader sections={report.sections} />}
 
       {report.actionItems && report.actionItems.length > 0 && (
-        <div className="max-w-5xl mx-auto px-4 pb-20">
-          <div className="rounded-2xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
-            <h2 className="text-lg font-bold text-white mb-4">실천 가이드</h2>
-            <ul className="space-y-2">
-              {report.actionItems.map((item, index) => (
-                <li key={`${item}-${index}`} className="text-gray-300">
-                  • {item}
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div className="mx-auto max-w-6xl px-4 pb-20">
+          <ReportBulletListSection title="실천 가이드" items={report.actionItems} />
         </div>
       )}
     </PremiumPageScaffold>
