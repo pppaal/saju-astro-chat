@@ -140,6 +140,93 @@ export type AdapterPersonFutureBranch = {
   blockers: string[]
 }
 
+export type AdapterPersonDomainState = {
+  domain: SignalDomain
+  label: string
+  currentState: 'expansion' | 'stable' | 'mixed' | 'defensive' | 'blocked'
+  currentWindow?: string
+  thesis: string
+  supportSignals: string[]
+  pressureSignals: string[]
+  alignedWith: SignalDomain[]
+  conflictingWith: SignalDomain[]
+  nextShift?: string
+  firstMove: string
+  holdMove: string
+  timescales: Array<{
+    timescale: 'now' | '1-3m' | '3-6m' | '6-12m'
+    status: 'open' | 'mixed' | 'blocked'
+    thesis: string
+    entryConditions: string[]
+    abortConditions: string[]
+  }>
+}
+
+export type AdapterPersonAppliedProfile = {
+  foodProfile: {
+    summary: string
+    thermalBias: string
+    digestionStyle: string
+    helpfulFoods: string[]
+    cautionFoods: string[]
+    rhythmGuidance: string[]
+  }
+  lifeRhythmProfile: {
+    summary: string
+    peakWindows: string[]
+    recoveryWindows: string[]
+    stressBehaviors: string[]
+    regulationMoves: string[]
+  }
+  relationshipStyleProfile: {
+    summary: string
+    attractionPatterns: string[]
+    stabilizers: string[]
+    ruptureTriggers: string[]
+    repairMoves: string[]
+  }
+  workStyleProfile: {
+    summary: string
+    bestRoles: string[]
+    bestConditions: string[]
+    fatigueTriggers: string[]
+    leverageMoves: string[]
+  }
+  moneyStyleProfile: {
+    summary: string
+    earningPattern: string[]
+    savingPattern: string[]
+    leakageRisks: string[]
+    controlRules: string[]
+  }
+  environmentProfile: {
+    summary: string
+    preferredSettings: string[]
+    drainSignals: string[]
+    resetActions: string[]
+  }
+}
+
+export type AdapterPersonEventOutlook = {
+  key: 'careerEntry' | 'partnerEntry' | 'commitment' | 'moneyBuild' | 'healthReset'
+  label: string
+  domain: SignalDomain
+  status: 'open' | 'mixed' | 'blocked'
+  readiness: number
+  bestWindow?: string
+  summary: string
+  entryConditions: string[]
+  abortConditions: string[]
+  nextMove: string
+}
+
+export type AdapterPersonUncertaintyEnvelope = {
+  summary: string
+  reliableAreas: string[]
+  conditionalAreas: string[]
+  unresolvedAreas: string[]
+}
+
 export type AdapterSingleSubjectTimingCell = {
   timescale: 'now' | '1-3m' | '3-6m' | '6-12m'
   status: 'open' | 'mixed' | 'blocked'
@@ -252,6 +339,7 @@ export type AdapterPersonModel = {
   }
   layers: AdapterPersonLayer[]
   dimensions: AdapterPersonDimension[]
+  domainStateGraph: AdapterPersonDomainState[]
   domainPortraits: Array<{
     domain: SignalDomain
     label: string
@@ -270,6 +358,7 @@ export type AdapterPersonModel = {
     blockedActions: string[]
   }>
   states: AdapterPersonState[]
+  appliedProfile: AdapterPersonAppliedProfile
   relationshipProfile: {
     summary: string
     partnerArchetypes: string[]
@@ -285,6 +374,8 @@ export type AdapterPersonModel = {
     blockers: string[]
   }
   futureBranches: AdapterPersonFutureBranch[]
+  eventOutlook: AdapterPersonEventOutlook[]
+  uncertaintyEnvelope: AdapterPersonUncertaintyEnvelope
   evidenceLedger: {
     topClaimIds: string[]
     topSignalIds: string[]

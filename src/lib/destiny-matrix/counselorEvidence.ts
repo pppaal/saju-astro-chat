@@ -55,6 +55,24 @@ import {
   joinUniqueVerdictParts,
   mapThemeToDomain,
 } from '@/lib/destiny-matrix/counselorEvidenceVerdict'
+import {
+  buildDomainSpecificWhyReasons,
+  buildPacketGuardrail,
+  buildScenarioActionHints,
+  compactCounselorNarrative,
+  domainHintsForSection,
+  getCounselorDomainPriority,
+  getGraphRagFocusDomain,
+  inferScenarioSectionHints,
+  isInsightDomain,
+  mergeUniqueSignals,
+  rankCounselorSignals,
+  scoreCounselorSignal,
+  summarizeAnchor,
+  summarizeClaim,
+  toEvidenceRefs,
+  uniq,
+} from '@/lib/destiny-matrix/counselorEvidenceSupport'
 
 const COUNSELOR_SECTION_PATHS = [
   'overview',
@@ -282,494 +300,6 @@ type CounselorEvidencePacketLike = {
   topManifestation?: CounselorEvidencePacket['topManifestation']
   projections?: CounselorEvidencePacket['projections']
   whyStack?: string[]
-}
-
-function uniq<T>(items: T[]): T[] {
-  return [...new Set(items)]
-}
-
-function buildDomainSpecificWhyReasons(input: {
-  domain: string
-  lang: 'ko' | 'en'
-  yongsin?: string
-  currentDaeunElement?: string
-  geokguk?: string
-  activeTransits?: string[]
-  aspectsCount?: number
-  graphFocusReason?: string
-  graphReason?: string
-  strategyLine?: string
-  answerThesis?: string
-}): {
-  sajuWhy: string
-  astroWhy: string
-  crossWhy: string
-  graphWhy: string
-} {
-  const {
-    domain,
-    lang,
-    yongsin,
-    currentDaeunElement,
-    geokguk,
-    activeTransits = [],
-    aspectsCount = 0,
-    graphFocusReason,
-    graphReason,
-    strategyLine,
-    answerThesis,
-  } = input
-
-  if (lang !== 'ko') {
-    const genericSaju =
-      yongsin && currentDaeunElement
-        ? yongsin === currentDaeunElement
-          ? `the current 10-year cycle matches the useful element (${yongsin}), so the broader pattern is supportive`
-          : `the current 10-year cycle (${currentDaeunElement}) does not fully match the useful element (${yongsin}), so pace control matters`
-        : geokguk
-          ? `the pattern frame (${geokguk}) sets the baseline temperament of this issue`
-          : `the broader pattern sets the baseline direction of the issue`
-    const genericAstro =
-      activeTransits.length > 0
-        ? `active transits like ${activeTransits.slice(0, 2).join(', ')} are changing timing and reaction speed`
-        : aspectsCount > 0
-          ? `the natal chart geometry explains which scene becomes visible first`
-          : `astrology is mainly reinforcing timing and variable management`
-    return {
-      sajuWhy: genericSaju,
-      astroWhy: genericAstro,
-      crossWhy:
-        strategyLine ||
-        answerThesis ||
-        graphFocusReason ||
-        'the overlapping signals point to the same decision axis first',
-      graphWhy:
-        graphReason ||
-        'the top evidence bundle is ranked first because its overlap and fit are stronger than the surrounding sets',
-    }
-  }
-
-  const byDomain: Record<
-    string,
-    {
-      saju: string
-      astro: string
-      cross: string
-      graph: string
-    }
-  > = {
-    relationship: {
-      saju:
-        yongsin && currentDaeunElement
-          ? yongsin === currentDaeunElement
-            ? `?? ??? ?? ?? ??? ?? ???? ???? ??? ?? ?????.`
-            : `?? ?? ?? ?? ??? ???? ???? ?? ??? ?????.`
-          : `??? ?? ?? ?? ???? ?? ???? ?? ??? ???? ?? ????.`,
-      astro:
-        activeTransits.length > 0
-          ? `${formatTransitLabels(activeTransits, lang)}? ?? ??? ?? ???? ??? ??? ?? ?????.`
-          : `?? ? ?? ??? ????, ??? ??? ???? ??? ?? ? ????.`,
-      cross:
-        strategyLine ||
-        answerThesis ||
-        graphFocusReason ||
-        '??? ???? ?? ??? ?? ??? ?? ??? ????? ????.',
-      graph: graphReason || '?? ??? ?? ???? ?? ??? ?? ??? ?? ?????.',
-    },
-    career: {
-      saju:
-        yongsin && currentDaeunElement
-          ? yongsin === currentDaeunElement
-            ? `?? ??? ?? ?? ??? ??? ??? ?? ??? ?? ?????.`
-            : `?? ?? ?? ?? ???? ???? ?? ??? ??? ??? ?????.`
-          : `??? ?? ?? ?? ?? ?? ?? ??? ???? ??? ?? ????.`,
-      astro:
-        activeTransits.length > 0
-          ? `${formatTransitLabels(activeTransits, lang)}? ?? ??? ??? ??? ???, ?? ??? ?? ??? ?? ???? ???.`
-          : `?? ? ??? ????, ??? ?? ??? ?? ??? ??? ?? ????.`,
-      cross:
-        strategyLine ||
-        answerThesis ||
-        graphFocusReason ||
-        '???? ?? ???? ?? ??? ?? ??? ?? ???? ??? ?????.',
-      graph: graphReason || '?? ?? ??? ?? ???? ?? ???? ?? ?? ??? ?? ?????.',
-    },
-    wealth: {
-      saju:
-        yongsin && currentDaeunElement
-          ? yongsin === currentDaeunElement
-            ? `?? ?? ??? ??(${yongsin})? ?? ?? ??? ?? ??? ???, ??? ?? ???? ???? ????.`
-            : `?? ?? ??(${currentDaeunElement})? ??(${yongsin})? ??? ?? ???? ??? ?? ???? ?? ???.`
-          : `????? ??? ????? ??? ?? ???? ?? ??? ????.`,
-      astro:
-        activeTransits.length > 0
-          ? `${formatTransitLabels(activeTransits, lang)} ?? ?? ??? ?? ???, ?? ??, ?? ??? ?? ????.`
-          : `?? ?? ???? ??, ?? ??, ?? ?? ? ??? ?????.`,
-      cross:
-        strategyLine ||
-        answerThesis ||
-        graphFocusReason ||
-        '??? ?? ???? ??, ??, ?? ??? ?? ??? ?? ??? ??? ????.',
-      graph: graphReason || '?? ?? ??? ???? ?? ??, ????, ?? ??? ?? ?? ??? ??? ?? ???.',
-    },
-    health: {
-      saju:
-        yongsin && currentDaeunElement
-          ? yongsin === currentDaeunElement
-            ? `?? ?? ??? ??(${yongsin})? ?? ?? ??? ?? ??? ??? ???? ?? ?????.`
-            : `?? ?? ??(${currentDaeunElement})? ??(${yongsin})? ??? ?? ??? ???? ?? ?? ??? ?????.`
-          : `????? ???? ?? ??? ??? ???? ????? ?? ??? ????.`,
-      astro:
-        activeTransits.length > 0
-          ? `${formatTransitLabels(activeTransits, lang)} ?? ?? ??? ?? ??, ?? ???, ??? ???? ?? ?????.`
-          : `?? ?? ? ??? ?? ???? ?? ?? ??? ??? ?? ?? ???? ?????.`,
-      cross:
-        strategyLine ||
-        answerThesis ||
-        graphFocusReason ||
-        '??? ??? ????? ??? ?? ??? ??? ??? ???? ??? ??? ????.',
-      graph: graphReason || '?? ?? ??? ???? ?? ??, ?? ??, ?? ??? ?? ?? ??? ??? ?? ????.',
-    },
-    move: {
-      saju:
-        yongsin && currentDaeunElement
-          ? yongsin === currentDaeunElement
-            ? `?? ?? ??? ??(${yongsin})? ?? ???? ?? ???? ? ??? ?? ?? ?????.`
-            : `?? ?? ??(${currentDaeunElement})? ??(${yongsin})? ??? ?? ?? ????? ??? ?? ??? ?? ?? ?? ????.`
-          : `????? ????? ?? ??? ?? ??? ??? ?? ??? ????.`,
-      astro:
-        activeTransits.length > 0
-          ? `${formatTransitLabels(activeTransits, lang)} ?? ?? ??? ??, ?? ??, ?? ?? ?? ??? ??? ????.`
-          : `?? ?? ?? ?? ?? ???, ?? ?? ?? ??? ???? ??? ?????.`,
-      cross:
-        strategyLine ||
-        answerThesis ||
-        graphFocusReason ||
-        '??? ? ?? ???? ??? ??? ??? ??? ?? ???? ??? ??? ????.',
-      graph: graphReason || '?? ?? ??? ???? ?? ???, ?? ??, ?? ???? ?? ???? ??? ?? ???.',
-    },
-    timing: {
-      saju:
-        yongsin && currentDaeunElement
-          ? yongsin === currentDaeunElement
-            ? `?? ?? ??? ??(${yongsin})? ?? ? ??? ?? ???? ??? ?? ???? ???.`
-            : `?? ?? ??(${currentDaeunElement})? ??(${yongsin})? ??? ?? ?? ??? ? ????? ?? ?? ????.`
-          : `?????? ? ??? ??????? ?? ?? ?????.`,
-      astro:
-        activeTransits.length > 0
-          ? `${formatTransitLabels(activeTransits, lang)} ?? ?? ??? ?? ??? ?? ????? ?? ?? ?? ??? ????.`
-          : `?? ?? ??? ??? ??? ? ???? ?????.`,
-      cross:
-        strategyLine ||
-        answerThesis ||
-        graphFocusReason ||
-        '???? ?? ??? ???? ??? ??? ?? ??? ??? ???? ??? ??? ????.',
-      graph: graphReason || '?? ?? ??? ????? ??? ??? ??? ? ??? ?? ??? ??? ?? ????.',
-    },
-    personality: {
-      saju:
-        yongsin && currentDaeunElement
-          ? yongsin === currentDaeunElement
-            ? `?? ?? ??? ??(${yongsin})? ?? ?? ??? ? ? ???? ?????.`
-            : `?? ?? ??(${currentDaeunElement})? ??(${yongsin})? ??? ?? ?? ???? ?? ??? ?? ????? ????.`
-          : `????? ?? ?? ???? ???, ??? ?????? ?? ??? ????.`,
-      astro:
-        activeTransits.length > 0
-          ? `${formatTransitLabels(activeTransits, lang)} ?? ?? ??? ?? ??? ?? ??? ????? ????.`
-          : `?? ?? ?? ??? ?? ???? ? ??? ????? ?????.`,
-      cross:
-        strategyLine ||
-        answerThesis ||
-        graphFocusReason ||
-        '??? ??? ??? ?? ??, ??? ????? ?? ??? ??? ????.',
-      graph: graphReason || '?? ?? ??? ???? ???? ?? ??? ? ??? ?? ? ???? ??? ?? ???.',
-    },
-    spirituality: {
-      saju:
-        yongsin && currentDaeunElement
-          ? yongsin === currentDaeunElement
-            ? `?? ?? ??? ??(${yongsin})? ?? ?? ??? ?? ??? ?? ??? ?? ?????.`
-            : `?? ?? ??(${currentDaeunElement})? ??(${yongsin})? ??? ?? ???? ?? ?????? ?? ??? ?? ???? ?? ????.`
-          : `??? ?? ????? ?? ???? ??? ?? ????? ??? ?? ??? ????.`,
-      astro:
-        activeTransits.length > 0
-          ? `${formatTransitLabels(activeTransits, lang)} ?? ?? ??? ?? ??? ?? ??? ?? ??? ?? ????.`
-          : `?? ?? ?? ??? ?? ??? ???? ?? ?????? ?????.`,
-      cross:
-        strategyLine ||
-        answerThesis ||
-        graphFocusReason ||
-        '?? ??? ??? ???? ??? ?? ????? ??? ??? ??? ??? ????.',
-      graph: graphReason || '?? ?? ??? ?? ???? ?? ??? ?? ??? ?? ? ???? ??? ?? ???.',
-    },
-  }
-
-  const selected = byDomain[domain] || byDomain.personality
-  return {
-    sajuWhy: selected.saju,
-    astroWhy: selected.astro,
-    crossWhy: selected.cross,
-    graphWhy: selected.graph,
-  }
-}
-
-function domainHintsForSection(sectionPath: string, focusDomain: string): string[] {
-  switch (sectionPath) {
-    case 'overview':
-      return uniq([focusDomain, 'personality', 'timing'])
-    case 'patterns':
-      return uniq([focusDomain, 'personality'])
-    case 'timing':
-      return uniq(['timing', focusDomain])
-    case 'recommendations':
-    case 'actionPlan':
-      return uniq([focusDomain, 'timing'])
-    default:
-      return [focusDomain]
-  }
-}
-
-function toEvidenceRefs(
-  sectionPath: string,
-  focusDomain: string,
-  signalSynthesis: SignalSynthesisResult
-): ReportEvidenceRef[] {
-  const domainHints = domainHintsForSection(sectionPath, focusDomain)
-  const selected = (signalSynthesis.selectedSignals || [])
-    .slice()
-    .sort((a, b) => b.rankScore - a.rankScore)
-  const prioritized = selected.filter((signal) =>
-    signal.domainHints.some((domain) => domainHints.includes(domain))
-  )
-  const fallback = selected.slice(0, 8)
-  const source = (prioritized.length > 0 ? prioritized : fallback).slice(0, 8)
-
-  return source.map((signal) => ({
-    id: signal.id,
-    domain: signal.domainHints[0],
-    layer: signal.layer,
-    rowKey: signal.rowKey,
-    colKey: signal.colKey,
-    keyword: signal.keyword,
-    sajuBasis: signal.sajuBasis,
-    astroBasis: signal.astroBasis,
-    score: signal.score,
-  }))
-}
-
-function mergeUniqueSignals(signalSynthesis: SignalSynthesisResult): NormalizedSignal[] {
-  const seen = new Set<string>()
-  const ordered = [
-    ...(signalSynthesis.selectedSignals || []),
-    ...(signalSynthesis.normalizedSignals || []),
-  ]
-  const out: NormalizedSignal[] = []
-  for (const signal of ordered) {
-    if (!signal?.id || seen.has(signal.id)) continue
-    seen.add(signal.id)
-    out.push(signal)
-  }
-  return out
-}
-
-function scoreCounselorSignal(
-  signal: NormalizedSignal,
-  focusDomain: string,
-  sectionPath: string | undefined,
-  isSelected: boolean
-): number {
-  const signalDomains = signal.domainHints || []
-  const matchesFocusLead = signalDomains[0] === focusDomain
-  const matchesFocusAny = signalDomains.some((domain) => domain === focusDomain)
-  const sectionHints = sectionPath
-    ? domainHintsForSection(sectionPath, focusDomain as InsightDomain)
-    : []
-  const matchesSectionLead =
-    sectionHints.length > 0 && signalDomains[0] && sectionHints.includes(signalDomains[0])
-  const matchesSectionAny = sectionHints.some((hint) =>
-    signalDomains.some((domain) => domain === hint)
-  )
-  return (
-    (matchesFocusLead ? 120 : 0) +
-    (matchesFocusAny ? 80 : 0) +
-    (matchesSectionLead ? 48 : 0) +
-    (matchesSectionAny ? 24 : 0) +
-    (isSelected ? 12 : 0) +
-    signal.rankScore
-  )
-}
-
-function rankCounselorSignals(
-  signalSynthesis: SignalSynthesisResult,
-  focusDomain: string,
-  sectionPath?: string
-): NormalizedSignal[] {
-  const selectedIds = new Set((signalSynthesis.selectedSignals || []).map((signal) => signal.id))
-  return mergeUniqueSignals(signalSynthesis)
-    .slice()
-    .sort((a, b) => {
-      const delta =
-        scoreCounselorSignal(b, focusDomain, sectionPath, selectedIds.has(b.id)) -
-        scoreCounselorSignal(a, focusDomain, sectionPath, selectedIds.has(a.id))
-      if (delta !== 0) return delta
-      return b.rankScore - a.rankScore
-    })
-}
-
-function summarizeAnchor(anchor: UnifiedAnchor): string {
-  const normalized = anchor.crossEvidenceSummary.replace(/\s+/g, ' ').trim()
-  if (normalized.length <= 180) return normalized
-  const candidate = normalized.slice(0, 180)
-  const lastBoundary = Math.max(candidate.lastIndexOf(' '), candidate.lastIndexOf('|'))
-  return `${candidate.slice(0, lastBoundary > 72 ? lastBoundary : 180).trim()}...`
-}
-
-function summarizeClaim(claim: UnifiedClaim): string {
-  return claim.text.replace(/\s+/g, ' ').trim().slice(0, 180)
-}
-
-function compactCounselorNarrative(
-  text: string | undefined,
-  lang: 'ko' | 'en',
-  maxSentences: number
-): string {
-  const cleaned = sanitizeCounselorFreeText(text, lang).replace(/\s+/g, ' ').trim()
-  if (!cleaned) return ''
-  const sentences = cleaned
-    .split(/(?<=[.!?])\s+/)
-    .map((part) => part.trim())
-    .filter(Boolean)
-  if (sentences.length === 0) return cleaned
-  return sentences.slice(0, maxSentences).join(' ').trim()
-}
-
-function isInsightDomain(domain: string): domain is InsightDomain {
-  return (
-    domain === 'personality' ||
-    domain === 'career' ||
-    domain === 'relationship' ||
-    domain === 'wealth' ||
-    domain === 'health' ||
-    domain === 'spirituality' ||
-    domain === 'timing'
-  )
-}
-
-function getGraphRagFocusDomain(domain: SignalDomain): GraphRAGDomain {
-  if (domain === 'move') return 'move'
-  return isInsightDomain(domain) ? domain : 'personality'
-}
-
-function getCounselorDomainPriority(domain: SignalDomain): string[] {
-  if (domain === 'move') return ['move', 'timing', 'spirituality']
-  return [domain]
-}
-
-function inferScenarioSectionHints(scenarioIds: string[]): string[] {
-  const hints = new Set<string>()
-  for (const id of scenarioIds) {
-    const key = String(id || '').toLowerCase()
-    if (!key) continue
-    if (
-      /boundary|distance|commitment|cohabitation|family_acceptance|reconciliation|separation|clarify/.test(
-        key
-      )
-    ) {
-      hints.add('relationshipDynamics')
-      hints.add('actionPlan')
-      hints.add('timing')
-    }
-    if (/promotion|contract|manager|specialist|authority|entry|restart|role/.test(key)) {
-      hints.add('careerPath')
-      hints.add('actionPlan')
-      hints.add('timing')
-    }
-    if (/income|asset|capital|debt|expense|cashflow|pricing/.test(key)) {
-      hints.add('wealthPotential')
-      hints.add('actionPlan')
-      hints.add('timing')
-    }
-    if (/recovery|burnout|sleep|inflammation|routine|load/.test(key)) {
-      hints.add('recommendations')
-      hints.add('actionPlan')
-      hints.add('timing')
-    }
-    if (/travel|relocation|housing|lease|route|commute|basecamp|cross_border|foreign/.test(key)) {
-      hints.add('timing')
-      hints.add('actionPlan')
-      hints.add('overview')
-    }
-  }
-  return [...hints]
-}
-
-function buildScenarioActionHints(scenarioIds: string[], lang: 'ko' | 'en'): string[] {
-  const hints = new Set<string>()
-  for (const id of scenarioIds) {
-    const key = String(id || '').toLowerCase()
-    if (!key) continue
-    if (/clarify_expectations/.test(key)) {
-      hints.add(lang === 'ko' ? '???? ???? ?? ????' : 'clarify expectations first')
-    }
-    if (/distance_tuning/.test(key)) {
-      hints.add(lang === 'ko' ? '??? ???? ????' : 'tune distance and pace')
-    }
-    if (/boundary_reset/.test(key)) {
-      hints.add(lang === 'ko' ? '????? ?? ???' : 'reset the boundary')
-    }
-    if (/commitment_preparation/.test(key)) {
-      hints.add(lang === 'ko' ? '??? ??? ?? ???? ???' : 'prepare before defining commitment')
-    }
-    if (/route_recheck/.test(key)) {
-      hints.add(lang === 'ko' ? '???? ?? ????' : 'recheck the route first')
-    }
-    if (/commute_restructure/.test(key)) {
-      hints.add(lang === 'ko' ? '?? ???? ?????' : 'restructure the commute')
-    }
-    if (/basecamp_reset/.test(key)) {
-      hints.add(lang === 'ko' ? '???? ?? ????' : 'reset the base of operations')
-    }
-    if (/lease_decision/.test(key)) {
-      hints.add(lang === 'ko' ? '?? ???? ?? ????' : 'renegotiate the lease terms')
-    }
-    if (/promotion_review/.test(key)) {
-      hints.add(lang === 'ko' ? '??/?? ???? ?? ????' : 'review the promotion case first')
-    }
-    if (/contract_negotiation/.test(key)) {
-      hints.add(lang === 'ko' ? '???? ?? ????' : 'negotiate the terms first')
-    }
-    if (/debt_restructure/.test(key)) {
-      hints.add(lang === 'ko' ? '?? ?? ?? ???? ?????' : 'restructure the debt before expanding')
-    }
-    if (/capital_allocation/.test(key)) {
-      hints.add(lang === 'ko' ? '?? ???? ?? ????' : 'review capital allocation first')
-    }
-    if (/recovery_reset|recovery_compliance/.test(key)) {
-      hints.add(lang === 'ko' ? '?? ???? ?? ???' : 'restore the recovery routine first')
-    }
-  }
-  return [...hints].slice(0, 3)
-}
-
-function buildPacketGuardrail(
-  phase: StrategyEngineResult['overallPhase'],
-  lang: 'ko' | 'en'
-): string {
-  if (lang === 'ko') {
-    if (phase === 'expansion') return '??? ?? ???, ?? ? ?? ??? ? ? ? ?????.'
-    if (phase === 'high_tension_expansion') return '??? ??? ??, ?, ???? ?? ?????.'
-    if (phase === 'expansion_guarded') return '?????? ?? ??? ?? ??? ????.'
-    if (phase === 'stabilize') return '? ???? ?? ??? ?? ??? ?????.'
-    return '??, ??, ?? ???? ?? ?? ?? ??? ????.'
-  }
-
-  if (phase === 'expansion') return 'Move forward, but force one counter-check before committing.'
-  if (phase === 'high_tension_expansion')
-    return 'Keep momentum, but double-check documents, money, and commitments first.'
-  if (phase === 'expansion_guarded')
-    return 'Take the opportunity only after your checklist is complete.'
-  if (phase === 'stabilize') return 'Prioritize structural alignment before new expansion.'
-  return 'Contain loss, confusion, and overspeed before starting something new.'
 }
 
 export function buildCounselorEvidencePacket(params: {
@@ -1279,6 +809,27 @@ export function buildCounselorEvidencePacket(params: {
             label: sanitizeCounselorFreeText(dimension.label, params.lang),
             summary: sanitizeCounselorFreeText(dimension.summary, params.lang),
           })),
+          domainStateGraph: counselorCore.personModel.domainStateGraph.map((state) => ({
+            ...state,
+            label: sanitizeCounselorFreeText(state.label, params.lang),
+            thesis: sanitizeCounselorFreeText(state.thesis, params.lang),
+            supportSignals: sanitizeCounselorTextList(state.supportSignals || [], params.lang),
+            pressureSignals: sanitizeCounselorTextList(state.pressureSignals || [], params.lang),
+            firstMove: sanitizeCounselorFreeText(state.firstMove, params.lang),
+            holdMove: sanitizeCounselorFreeText(state.holdMove, params.lang),
+            timescales: (state.timescales || []).map((timescale) => ({
+              ...timescale,
+              thesis: sanitizeCounselorFreeText(timescale.thesis, params.lang),
+              entryConditions: sanitizeCounselorTextList(
+                timescale.entryConditions || [],
+                params.lang
+              ),
+              abortConditions: sanitizeCounselorTextList(
+                timescale.abortConditions || [],
+                params.lang
+              ),
+            })),
+          })),
           domainPortraits: counselorCore.personModel.domainPortraits.map((portrait) => ({
             ...portrait,
             label: sanitizeCounselorFreeText(portrait.label, params.lang),
@@ -1300,6 +851,148 @@ export function buildCounselorEvidencePacket(params: {
             drivers: sanitizeCounselorTextList(state.drivers || [], params.lang),
             counterweights: sanitizeCounselorTextList(state.counterweights || [], params.lang),
           })),
+          appliedProfile: {
+            foodProfile: {
+              ...counselorCore.personModel.appliedProfile.foodProfile,
+              summary: sanitizeCounselorFreeText(
+                counselorCore.personModel.appliedProfile.foodProfile.summary,
+                params.lang
+              ),
+              thermalBias: sanitizeCounselorFreeText(
+                counselorCore.personModel.appliedProfile.foodProfile.thermalBias,
+                params.lang
+              ),
+              digestionStyle: sanitizeCounselorFreeText(
+                counselorCore.personModel.appliedProfile.foodProfile.digestionStyle,
+                params.lang
+              ),
+              helpfulFoods: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.foodProfile.helpfulFoods || [],
+                params.lang
+              ),
+              cautionFoods: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.foodProfile.cautionFoods || [],
+                params.lang
+              ),
+              rhythmGuidance: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.foodProfile.rhythmGuidance || [],
+                params.lang
+              ),
+            },
+            lifeRhythmProfile: {
+              ...counselorCore.personModel.appliedProfile.lifeRhythmProfile,
+              summary: sanitizeCounselorFreeText(
+                counselorCore.personModel.appliedProfile.lifeRhythmProfile.summary,
+                params.lang
+              ),
+              peakWindows: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.lifeRhythmProfile.peakWindows || [],
+                params.lang
+              ),
+              recoveryWindows: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.lifeRhythmProfile.recoveryWindows || [],
+                params.lang
+              ),
+              stressBehaviors: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.lifeRhythmProfile.stressBehaviors || [],
+                params.lang
+              ),
+              regulationMoves: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.lifeRhythmProfile.regulationMoves || [],
+                params.lang
+              ),
+            },
+            relationshipStyleProfile: {
+              ...counselorCore.personModel.appliedProfile.relationshipStyleProfile,
+              summary: sanitizeCounselorFreeText(
+                counselorCore.personModel.appliedProfile.relationshipStyleProfile.summary,
+                params.lang
+              ),
+              attractionPatterns: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.relationshipStyleProfile
+                  .attractionPatterns || [],
+                params.lang
+              ),
+              stabilizers: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.relationshipStyleProfile.stabilizers || [],
+                params.lang
+              ),
+              ruptureTriggers: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.relationshipStyleProfile.ruptureTriggers ||
+                  [],
+                params.lang
+              ),
+              repairMoves: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.relationshipStyleProfile.repairMoves || [],
+                params.lang
+              ),
+            },
+            workStyleProfile: {
+              ...counselorCore.personModel.appliedProfile.workStyleProfile,
+              summary: sanitizeCounselorFreeText(
+                counselorCore.personModel.appliedProfile.workStyleProfile.summary,
+                params.lang
+              ),
+              bestRoles: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.workStyleProfile.bestRoles || [],
+                params.lang
+              ),
+              bestConditions: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.workStyleProfile.bestConditions || [],
+                params.lang
+              ),
+              fatigueTriggers: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.workStyleProfile.fatigueTriggers || [],
+                params.lang
+              ),
+              leverageMoves: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.workStyleProfile.leverageMoves || [],
+                params.lang
+              ),
+            },
+            moneyStyleProfile: {
+              ...counselorCore.personModel.appliedProfile.moneyStyleProfile,
+              summary: sanitizeCounselorFreeText(
+                counselorCore.personModel.appliedProfile.moneyStyleProfile.summary,
+                params.lang
+              ),
+              earningPattern: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.moneyStyleProfile.earningPattern || [],
+                params.lang
+              ),
+              savingPattern: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.moneyStyleProfile.savingPattern || [],
+                params.lang
+              ),
+              leakageRisks: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.moneyStyleProfile.leakageRisks || [],
+                params.lang
+              ),
+              controlRules: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.moneyStyleProfile.controlRules || [],
+                params.lang
+              ),
+            },
+            environmentProfile: {
+              ...counselorCore.personModel.appliedProfile.environmentProfile,
+              summary: sanitizeCounselorFreeText(
+                counselorCore.personModel.appliedProfile.environmentProfile.summary,
+                params.lang
+              ),
+              preferredSettings: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.environmentProfile.preferredSettings || [],
+                params.lang
+              ),
+              drainSignals: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.environmentProfile.drainSignals || [],
+                params.lang
+              ),
+              resetActions: sanitizeCounselorTextList(
+                counselorCore.personModel.appliedProfile.environmentProfile.resetActions || [],
+                params.lang
+              ),
+            },
+          },
           relationshipProfile: {
             ...counselorCore.personModel.relationshipProfile,
             summary: sanitizeCounselorFreeText(
@@ -1353,6 +1046,34 @@ export function buildCounselorEvidencePacket(params: {
             conditions: sanitizeCounselorTextList(branch.conditions || [], params.lang),
             blockers: sanitizeCounselorTextList(branch.blockers || [], params.lang),
           })),
+          eventOutlook: counselorCore.personModel.eventOutlook.map((event) => ({
+            ...event,
+            label: sanitizeCounselorFreeText(event.label, params.lang),
+            summary: sanitizeCounselorFreeText(event.summary, params.lang),
+            bestWindow: sanitizeCounselorFreeText(event.bestWindow || '', params.lang),
+            entryConditions: sanitizeCounselorTextList(event.entryConditions || [], params.lang),
+            abortConditions: sanitizeCounselorTextList(event.abortConditions || [], params.lang),
+            nextMove: sanitizeCounselorFreeText(event.nextMove, params.lang),
+          })),
+          uncertaintyEnvelope: {
+            ...counselorCore.personModel.uncertaintyEnvelope,
+            summary: sanitizeCounselorFreeText(
+              counselorCore.personModel.uncertaintyEnvelope.summary,
+              params.lang
+            ),
+            reliableAreas: sanitizeCounselorTextList(
+              counselorCore.personModel.uncertaintyEnvelope.reliableAreas || [],
+              params.lang
+            ),
+            conditionalAreas: sanitizeCounselorTextList(
+              counselorCore.personModel.uncertaintyEnvelope.conditionalAreas || [],
+              params.lang
+            ),
+            unresolvedAreas: sanitizeCounselorTextList(
+              counselorCore.personModel.uncertaintyEnvelope.unresolvedAreas || [],
+              params.lang
+            ),
+          },
           evidenceLedger: {
             ...counselorCore.personModel.evidenceLedger,
             coherenceNotes: sanitizeCounselorTextList(

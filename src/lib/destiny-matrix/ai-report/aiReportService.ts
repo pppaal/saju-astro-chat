@@ -748,6 +748,21 @@ function buildReportOutputCoreFields(
             label: localizeReportFreeText(dimension.label),
             summary: localizeReportFreeText(dimension.summary),
           })),
+          domainStateGraph: reportCore.personModel.domainStateGraph.map((state) => ({
+            ...state,
+            label: localizeReportFreeText(state.label),
+            thesis: localizeReportFreeText(state.thesis),
+            supportSignals: localizeProjectionList(state.supportSignals || []),
+            pressureSignals: localizeProjectionList(state.pressureSignals || []),
+            firstMove: localizeReportFreeText(state.firstMove),
+            holdMove: localizeReportFreeText(state.holdMove),
+            timescales: (state.timescales || []).map((timescale) => ({
+              ...timescale,
+              thesis: localizeReportFreeText(timescale.thesis),
+              entryConditions: localizeProjectionList(timescale.entryConditions || []),
+              abortConditions: localizeProjectionList(timescale.abortConditions || []),
+            })),
+          })),
           domainPortraits: reportCore.personModel.domainPortraits.map((portrait) => ({
             ...portrait,
             label: localizeReportFreeText(portrait.label),
@@ -766,6 +781,117 @@ function buildReportOutputCoreFields(
             drivers: localizeProjectionList(state.drivers || []),
             counterweights: localizeProjectionList(state.counterweights || []),
           })),
+          appliedProfile: {
+            foodProfile: {
+              ...reportCore.personModel.appliedProfile.foodProfile,
+              summary: localizeReportFreeText(
+                reportCore.personModel.appliedProfile.foodProfile.summary
+              ),
+              thermalBias: localizeReportFreeText(
+                reportCore.personModel.appliedProfile.foodProfile.thermalBias
+              ),
+              digestionStyle: localizeReportFreeText(
+                reportCore.personModel.appliedProfile.foodProfile.digestionStyle
+              ),
+              helpfulFoods: localizeProjectionList(
+                reportCore.personModel.appliedProfile.foodProfile.helpfulFoods || []
+              ),
+              cautionFoods: localizeProjectionList(
+                reportCore.personModel.appliedProfile.foodProfile.cautionFoods || []
+              ),
+              rhythmGuidance: localizeProjectionList(
+                reportCore.personModel.appliedProfile.foodProfile.rhythmGuidance || []
+              ),
+            },
+            lifeRhythmProfile: {
+              ...reportCore.personModel.appliedProfile.lifeRhythmProfile,
+              summary: localizeReportFreeText(
+                reportCore.personModel.appliedProfile.lifeRhythmProfile.summary
+              ),
+              peakWindows: localizeProjectionList(
+                reportCore.personModel.appliedProfile.lifeRhythmProfile.peakWindows || []
+              ),
+              recoveryWindows: localizeProjectionList(
+                reportCore.personModel.appliedProfile.lifeRhythmProfile.recoveryWindows || []
+              ),
+              stressBehaviors: localizeProjectionList(
+                reportCore.personModel.appliedProfile.lifeRhythmProfile.stressBehaviors || []
+              ),
+              regulationMoves: localizeProjectionList(
+                reportCore.personModel.appliedProfile.lifeRhythmProfile.regulationMoves || []
+              ),
+            },
+            relationshipStyleProfile: {
+              ...reportCore.personModel.appliedProfile.relationshipStyleProfile,
+              summary: localizeReportFreeText(
+                reportCore.personModel.appliedProfile.relationshipStyleProfile.summary
+              ),
+              attractionPatterns: localizeProjectionList(
+                reportCore.personModel.appliedProfile.relationshipStyleProfile.attractionPatterns ||
+                  []
+              ),
+              stabilizers: localizeProjectionList(
+                reportCore.personModel.appliedProfile.relationshipStyleProfile.stabilizers || []
+              ),
+              ruptureTriggers: localizeProjectionList(
+                reportCore.personModel.appliedProfile.relationshipStyleProfile.ruptureTriggers || []
+              ),
+              repairMoves: localizeProjectionList(
+                reportCore.personModel.appliedProfile.relationshipStyleProfile.repairMoves || []
+              ),
+            },
+            workStyleProfile: {
+              ...reportCore.personModel.appliedProfile.workStyleProfile,
+              summary: localizeReportFreeText(
+                reportCore.personModel.appliedProfile.workStyleProfile.summary
+              ),
+              bestRoles: localizeProjectionList(
+                reportCore.personModel.appliedProfile.workStyleProfile.bestRoles || []
+              ),
+              bestConditions: localizeProjectionList(
+                reportCore.personModel.appliedProfile.workStyleProfile.bestConditions || []
+              ),
+              fatigueTriggers: localizeProjectionList(
+                reportCore.personModel.appliedProfile.workStyleProfile.fatigueTriggers || []
+              ),
+              leverageMoves: localizeProjectionList(
+                reportCore.personModel.appliedProfile.workStyleProfile.leverageMoves || []
+              ),
+            },
+            moneyStyleProfile: {
+              ...reportCore.personModel.appliedProfile.moneyStyleProfile,
+              summary: localizeReportFreeText(
+                reportCore.personModel.appliedProfile.moneyStyleProfile.summary
+              ),
+              earningPattern: localizeProjectionList(
+                reportCore.personModel.appliedProfile.moneyStyleProfile.earningPattern || []
+              ),
+              savingPattern: localizeProjectionList(
+                reportCore.personModel.appliedProfile.moneyStyleProfile.savingPattern || []
+              ),
+              leakageRisks: localizeProjectionList(
+                reportCore.personModel.appliedProfile.moneyStyleProfile.leakageRisks || []
+              ),
+              controlRules: localizeProjectionList(
+                reportCore.personModel.appliedProfile.moneyStyleProfile.controlRules || []
+              ),
+            },
+            environmentProfile: {
+              ...reportCore.personModel.appliedProfile.environmentProfile,
+              summary: localizeReportFreeText(
+                reportCore.personModel.appliedProfile.environmentProfile.summary
+              ),
+              preferredSettings: localizeProjectionList(
+                reportCore.personModel.appliedProfile.environmentProfile.preferredSettings || []
+              ),
+              drainSignals: localizeProjectionList(
+                reportCore.personModel.appliedProfile.environmentProfile.drainSignals || []
+              ),
+              resetActions: localizeProjectionList(
+                reportCore.personModel.appliedProfile.environmentProfile.resetActions || []
+              ),
+            },
+          },
           relationshipProfile: {
             ...reportCore.personModel.relationshipProfile,
             summary: localizeReportFreeText(reportCore.personModel.relationshipProfile.summary),
@@ -803,6 +929,28 @@ function buildReportOutputCoreFields(
             conditions: localizeProjectionList(branch.conditions || []),
             blockers: localizeProjectionList(branch.blockers || []),
           })),
+          eventOutlook: reportCore.personModel.eventOutlook.map((event) => ({
+            ...event,
+            label: localizeReportFreeText(event.label),
+            summary: localizeReportFreeText(event.summary),
+            bestWindow: localizeReportFreeText(event.bestWindow || ''),
+            entryConditions: localizeProjectionList(event.entryConditions || []),
+            abortConditions: localizeProjectionList(event.abortConditions || []),
+            nextMove: localizeReportFreeText(event.nextMove),
+          })),
+          uncertaintyEnvelope: {
+            ...reportCore.personModel.uncertaintyEnvelope,
+            summary: localizeReportFreeText(reportCore.personModel.uncertaintyEnvelope.summary),
+            reliableAreas: localizeProjectionList(
+              reportCore.personModel.uncertaintyEnvelope.reliableAreas || []
+            ),
+            conditionalAreas: localizeProjectionList(
+              reportCore.personModel.uncertaintyEnvelope.conditionalAreas || []
+            ),
+            unresolvedAreas: localizeProjectionList(
+              reportCore.personModel.uncertaintyEnvelope.unresolvedAreas || []
+            ),
+          },
           evidenceLedger: {
             ...reportCore.personModel.evidenceLedger,
             coherenceNotes: localizeProjectionList(
@@ -3423,7 +3571,7 @@ const reportSectionRendererDeps: ReportSectionRendererDeps = {
 const reportLifeSectionDeps: ReportLifeSectionDeps = {
   calculateProfileAge,
   formatNarrativeParagraphs,
-  getReportDomainLabel,
+  getReportDomainLabel: (domain, lang) => getReportDomainLabel(domain || 'timing', lang),
   localizeReportNarrativeText,
   sanitizeUserFacingNarrative,
 }

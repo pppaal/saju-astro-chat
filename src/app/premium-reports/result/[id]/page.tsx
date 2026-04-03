@@ -19,6 +19,8 @@ import { analytics } from '@/components/analytics/GoogleAnalytics'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
 import CalculationDetailsSection from '@/app/premium-reports/_components/CalculationDetailsSection'
 import GraphRagEvidenceSection from '@/app/premium-reports/_components/GraphRagEvidenceSection'
+import PersonAppliedProfileSection from '@/app/premium-reports/_components/PersonAppliedProfileSection'
+import PersonDomainStateSection from '@/app/premium-reports/_components/PersonDomainStateSection'
 import PremiumPageScaffold from '@/app/premium-reports/_components/PremiumPageScaffold'
 import PersonModelOverview from '@/app/premium-reports/_components/PersonModelOverview'
 import QualityAuditSection from '@/app/premium-reports/_components/QualityAuditSection'
@@ -921,6 +923,8 @@ export default function ReportResultPage() {
             </section>
           )}
 
+          <PersonDomainStateSection personModel={personModel} />
+
           <section className="mx-auto mt-6 grid max-w-6xl gap-4 px-4 lg:grid-cols-[1.15fr_0.85fr]">
             <article className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
               <div className="flex items-center gap-2 text-cyan-100">
@@ -993,6 +997,8 @@ export default function ReportResultPage() {
               </div>
             </article>
           </section>
+
+          <PersonAppliedProfileSection personModel={personModel} />
 
           {leadBranches.length > 0 && (
             <section className="mx-auto mt-6 max-w-6xl px-4">

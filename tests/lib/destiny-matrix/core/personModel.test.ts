@@ -58,15 +58,40 @@ describe('person model adapters', () => {
       'opportunity',
     ])
     expect(counselorVm.personModel.dimensions.length).toBeGreaterThanOrEqual(2)
+    expect(counselorVm.personModel.domainStateGraph.length).toBeGreaterThanOrEqual(2)
+    expect(counselorVm.personModel.domainStateGraph[0]?.timescales).toHaveLength(4)
     expect(counselorVm.personModel.domainPortraits.length).toBeGreaterThanOrEqual(2)
+    expect(counselorVm.personModel.appliedProfile.foodProfile.helpfulFoods.length).toBeGreaterThan(
+      0
+    )
+    expect(
+      counselorVm.personModel.appliedProfile.lifeRhythmProfile.peakWindows.length
+    ).toBeGreaterThan(0)
+    expect(
+      counselorVm.personModel.appliedProfile.relationshipStyleProfile.repairMoves.length
+    ).toBeGreaterThan(0)
+    expect(
+      counselorVm.personModel.appliedProfile.workStyleProfile.bestConditions.length
+    ).toBeGreaterThan(0)
+    expect(
+      counselorVm.personModel.appliedProfile.moneyStyleProfile.controlRules.length
+    ).toBeGreaterThan(0)
     expect(counselorVm.personModel.relationshipProfile.summary.length).toBeGreaterThan(0)
     expect(counselorVm.personModel.careerProfile.summary.length).toBeGreaterThan(0)
     expect(counselorVm.personModel.futureBranches.length).toBeGreaterThanOrEqual(1)
+    expect(counselorVm.personModel.eventOutlook.length).toBe(5)
+    expect(counselorVm.personModel.eventOutlook[0]?.entryConditions.length).toBeGreaterThanOrEqual(
+      1
+    )
+    expect(counselorVm.personModel.uncertaintyEnvelope.summary.length).toBeGreaterThan(0)
     expect(counselorVm.personModel.evidenceLedger.topClaimIds.length).toBeGreaterThanOrEqual(1)
 
     expect(reportVm.personModel.overview.length).toBeGreaterThan(0)
     expect(reportVm.personModel.dimensions[0]?.summary.length).toBeGreaterThan(0)
+    expect(reportVm.personModel.domainStateGraph[0]?.thesis.length).toBeGreaterThan(0)
+    expect(reportVm.personModel.appliedProfile.foodProfile.summary.length).toBeGreaterThan(0)
     expect(reportVm.personModel.domainPortraits[0]?.summary.length).toBeGreaterThan(0)
     expect(reportVm.personModel.futureBranches[0]?.conditions.length).toBeGreaterThan(0)
+    expect(reportVm.personModel.eventOutlook[0]?.nextMove.length).toBeGreaterThan(0)
   })
 })
