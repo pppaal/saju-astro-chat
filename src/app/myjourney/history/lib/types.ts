@@ -75,6 +75,33 @@ export type CalendarContent = {
   astroFactors?: string[]
   recommendations?: string[]
   warnings?: string[]
+  presentation?: {
+    daySummary?: {
+      date: string
+      summary: string
+      focusDomain: string
+      reliability: string
+    }
+    surfaceCards?: Array<{
+      key: 'action' | 'risk' | 'window' | 'branch'
+      label: string
+      summary: string
+      tag?: string
+      details?: string[]
+      visual?: {
+        kind: 'branch'
+        rows: Array<{ label: string; text: string }>
+      }
+    }>
+    timingSignals?: string[]
+    recommendedActions?: string[]
+    cautions?: string[]
+    topDomains?: Array<{
+      domain: 'career' | 'love' | 'money' | 'health' | 'move' | 'general'
+      label: string
+      score: number
+    }>
+  }
   createdAt: string
 }
 

@@ -73,6 +73,11 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : {}
 }
 
+function asCalendarPresentation(value: unknown): CalendarContent['presentation'] {
+  if (!value || typeof value !== 'object') return undefined
+  return value as CalendarContent['presentation']
+}
+
 export function useDetailModal(): UseDetailModalReturn {
   const [selectedRecord, setSelectedRecord] = useState<ServiceRecord | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
@@ -147,6 +152,7 @@ export function useDetailModal(): UseDetailModalReturn {
               astroFactors: toFactorLines(payload.savedDate.astroFactors),
               recommendations: toStringArray(payload.savedDate.recommendations),
               warnings: toStringArray(payload.savedDate.warnings),
+              presentation: asCalendarPresentation(payload.savedDate.presentation),
             } as CalendarContent)
           }
         }

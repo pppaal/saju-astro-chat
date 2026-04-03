@@ -420,6 +420,25 @@ describe('/api/calendar/save/[id]', () => {
         expect(result.data.savedDate.birthDate).toBe('1990-05-20')
         expect(result.data.savedDate.birthTime).toBe('14:30')
         expect(result.data.savedDate.birthPlace).toBe('Seoul')
+        expect(result.data.savedDate.presentation.daySummary.summary).toBe(
+          'Excellent energy for professional growth'
+        )
+        expect(result.data.savedDate.presentation.daySummary.focusDomain).toBe('커리어')
+        expect(result.data.savedDate.presentation.surfaceCards).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              key: 'action',
+              summary: 'Focus on networking',
+            }),
+            expect.objectContaining({
+              key: 'risk',
+              summary: 'Avoid conflicts',
+            }),
+            expect.objectContaining({
+              key: 'window',
+            }),
+          ])
+        )
       })
 
       it('should return calendar date with minimal fields', async () => {
@@ -460,6 +479,8 @@ describe('/api/calendar/save/[id]', () => {
 
         expect(response.status).toBe(200)
         expect(result.data.savedDate.id).toBe('minimal-id')
+        expect(result.data.savedDate.presentation.daySummary.summary).toBe('Test day')
+        expect(result.data.savedDate.presentation.surfaceCards).toEqual([])
       })
     })
 
