@@ -394,7 +394,112 @@ function applyFinalReportStyle<T extends Record<string, unknown>>(
     focusDomain: reportCore.focusDomain,
     actionFocusDomain: reportCore.actionFocusDomain,
     riskAxisLabel: reportCore.riskAxisLabel,
+    topDecisionLabel: reportCore.topDecisionLabel || reportCore.primaryAction,
+    riskControl: reportCore.riskControl,
   }) as T
+}
+
+function ensureFinalActionPlanGrounding<T extends Record<string, unknown>>(
+  sections: T,
+  lang: 'ko' | 'en',
+  reportCore: ReportCoreViewModel
+): T {
+  const current = String(sections.actionPlan || '').trim()
+  if (!current) return sections
+
+  const decision = String(reportCore.topDecisionLabel || reportCore.primaryAction || '').trim()
+  const riskControl = String(reportCore.riskControl || '').trim()
+  const prefix: string[] = []
+
+  if (lang === 'ko') {
+    if (decision && !current.includes(decision)) {
+      prefix.push(`지금 가장 맞는 기본 자세는 ${decision}입니다.`)
+    }
+    if (riskControl && !current.includes(riskControl)) {
+      prefix.push(riskControl)
+    }
+  }
+
+  const cleaned = sanitizeUserFacingNarrative(
+    `${prefix.join(' ')} ${current}`
+      .replace(/건강 관계 흐름은 확장 관리 국면이며, 핵심 패턴이 중심을 잡고 있습니다\./g, '')
+      .replace(/건강 주의 신호\s*action\?*/gi, '')
+      .replace(
+        /Pushing through fatigue can degrade judgment quality\.?/gi,
+        '무리해서 버티면 판단 품질이 급격히 떨어질 수 있습니다.'
+      )
+      .replace(
+        /Pushing through irritation or heat signals often turns a short warning into a longer slowdown\.?/gi,
+        '경고 신호를 무시하고 밀어붙이면 짧게 끝날 문제도 길게 끌 수 있습니다.'
+      )
+      .replace(
+        /이후에도 이동·변화 경계 구간 근거가 이어질 것\.?/g,
+        '이후에도 이동과 변화는 한 번 더 확인 절차를 거쳐야 합니다.'
+      )
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+  )
+
+  return {
+    ...sections,
+    actionPlan: cleaned,
+  }
+}
+
+function ensureFinalReportPolish<T extends Record<string, unknown>>(
+  sections: T,
+  lang: 'ko' | 'en',
+  reportCore: ReportCoreViewModel
+): T {
+  if (lang !== 'ko') return sections
+
+  const actionDomain = reportCore.actionFocusDomain || reportCore.focusDomain
+  const branchLabel = sanitizeUserFacingNarrative(
+    localizeReportNarrativeText(
+      String(
+        reportCore.branchSet?.[0]?.label || reportCore.projections?.branches?.detailLines?.[0] || ''
+      ),
+      lang
+    )
+  ).trim()
+
+  let actionPlan = String(sections.actionPlan || '').trim()
+  let conclusion = String(sections.conclusion || '').trim()
+
+  if (actionDomain === 'move') {
+    actionPlan = sanitizeUserFacingNarrative(
+      [
+        reportCore.riskControl || '이동·변화는 한 번에 확정하지 말고 단계 별로 작게 검증하세요.',
+        '예를 들어 이번 주에는 후보 지역을 세 곳으로 좁히고, 통근 시간과 생활비, 계약 조건을 나란히 비교하며 생활 거점을 다시 잡을 준비가 되었는지 확인하세요.',
+        '서두르기보다 확인 절차를 먼저 두고, 큰 이동보다 작은 조정부터 시험하는 편이 손실을 줄입니다.',
+      ].join(' ')
+    )
+    conclusion = sanitizeUserFacingNarrative(
+      [
+        '지금은 경로를 다시 확인하는 쪽이 가장 현실적인 1안입니다.',
+        '이번 승부는 서두르지 않고 순서를 지키는 데 달려 있습니다.',
+        '생활 거점을 바꾸더라도 기준을 먼저 세운 사람이 결과를 더 안정적으로 가져갑니다.',
+      ].join(' ')
+    )
+  } else {
+    conclusion = sanitizeUserFacingNarrative(
+      conclusion
+        .split('distance tuning')
+        .join('거리 조절')
+        .split('1안은 거리 조절 쪽입니다.')
+        .join('지금은 거리를 다시 조절하는 쪽이 가장 현실적인 1안입니다.')
+        .split('지금 차이를 만드는 건 를 어떤 순서로 쓰느냐입니다.')
+        .join('지금 차이를 만드는 건 기준과 속도를 어떤 순서로 맞추느냐입니다.')
+        .split('성과를 남기고. 기준 없이 받은 사람은')
+        .join('성과를 남기고, 기준 없이 받은 사람은')
+    )
+  }
+
+  return {
+    ...sections,
+    actionPlan,
+    conclusion,
+  }
 }
 
 function attachDeterministicArtifacts(
@@ -520,32 +625,54 @@ function buildReportOutputCoreFields(
   const polishBranchSentence = (text: string | undefined | null): string => {
     const base = localizeReportFreeText(text)
     if (!base || lang !== 'ko') return base
-    return base
-      .replace(
-        /([\uAC00-\uD7A3]+)\s+Expansion Pattern\s+\uD328\uD134\s+\uADFC\uAC70\uAC00\s+\uC720\uC9C0\uB420\s+\uAC83/gi,
-        '$1 \uD655\uC7A5 \uD750\uB984\uC774 \uC720\uC9C0\uB420 \uAC83'
-      )
-      .replace(
-        /(.+?)\s+\uC774\uD6C4\uC5D0\uB3C4\s+([\uAC00-\uD7A3]+)\s+Expansion Pattern\s+\uADFC\uAC70\uAC00\s+\uC774\uC5B4\uC9C8\s+\uAC83/gi,
-        '$1 \uC774\uD6C4\uC5D0\uB3C4 $2 \uD655\uC7A5 \uD750\uB984\uC774 \uC774\uC5B4\uC9C8 \uAC83'
-      )
-      .replace(/\bExpansion Pattern\b/gi, '\uD655\uC7A5 \uD750\uB984')
-      .replace(
-        /([\uAC00-\uD7A3]+)\s+(?:\uD655\uC7A5|\uAE34\uC7A5|\uBCC0\uB3D9\uC131)\s+\uD750\uB984\s+\uD328\uD134\s+\uADFC\uAC70\uAC00\s+\uC720\uC9C0\uB420\s+\uAC83/gi,
-        '$1 \uD750\uB984\uC774 \uC720\uC9C0\uB420 \uAC83'
-      )
-      .replace(
-        /\uC2DC\uB098\uB9AC\uC624\s+\uD655\uB960\s+[\d.]+%\uC640\s+\uC2E0\uB8B0\uB3C4\s+[\d.]+%\uAC00\s+\uC720\uC9C0\uB420\s+\uAC83/gi,
-        '\uD604\uC7AC \uAC00\uB2A5\uC131\uACFC \uC2E0\uB8B0\uB3C4\uAC00 \uC720\uC9C0\uB420 \uAC83'
-      )
-      .replace(
-        /\uD0C0\uC774\uBC0D\s+\uC801\uD569\uB3C4\s+[\d.]+%\s+\uC774\uC0C1\uC5D0\uC11C\s+(.+?)\uB97C\s+\uBC14\uB85C\s+\uC2E4\uD589\uD560\s+\uC218\s+\uC788\uC744\s+\uAC83/gi,
-        '\uD0C0\uC774\uBC0D\uC774 \uCDA9\uBD84\uD788 \uB9DE\uC744 \uB54C $1\uB97C \uC2E4\uD589\uD560 \uC218 \uC788\uC744 \uAC83'
-      )
-      .replace(
-        /(.+?)\s+\uC774\uD6C4\uC5D0\uB3C4\s+([\uAC00-\uD7A3]+)\s+\uD750\uB984\s+\uADFC\uAC70\uAC00\s+\uC774\uC5B4\uC9C8\s+\uAC83/gi,
-        '$1 \uC774\uD6C4\uC5D0\uB3C4 $2 \uD750\uB984\uC774 \uC774\uC5B4\uC9C8 \uAC83'
-      )
+    const replacements: Array<[RegExp, string]> = [
+      [
+        new RegExp(
+          '([\\uAC00-\\uD7A3]+)\\s+Expansion Pattern\\s+\\uD328\\uD134\\s+\\uADFC\\uAC70\\uAC00\\s+\\uC720\\uC9C0\\uB420\\s+\\uAC83',
+          'gi'
+        ),
+        '$1 \\uD655\\uC7A5 \\uD750\\uB984\\uC774 \\uC720\\uC9C0\\uB420 \\uAC83',
+      ],
+      [
+        new RegExp(
+          '(.+?)\\s+\\uC774\\uD6C4\\uC5D0\\uB3C4\\s+([\\uAC00-\\uD7A3]+)\\s+Expansion Pattern\\s+\\uADFC\\uAC70\\uAC00\\s+\\uC774\\uC5B4\\uC9C8\\s+\\uAC83',
+          'gi'
+        ),
+        '$1 \\uC774\\uD6C4\\uC5D0\\uB3C4 $2 \\uD655\\uC7A5 \\uD750\\uB984\\uC774 \\uC774\\uC5B4\\uC9C8 \\uAC83',
+      ],
+      [new RegExp('\\bExpansion Pattern\\b', 'gi'), '\\uD655\\uC7A5 \\uD750\\uB984'],
+      [
+        new RegExp(
+          '([\\uAC00-\\uD7A3]+)\\s+(?:\\uD655\\uC7A5|\\uAE34\\uC7A5|\\uBCC0\\uB3D9\\uC131)\\s+\\uD750\\uB984\\s+\\uD328\\uD134\\s+\\uADFC\\uAC70\\uAC00\\s+\\uC720\\uC9C0\\uB420\\s+\\uAC83',
+          'gi'
+        ),
+        '$1 \\uD750\\uB984\\uC774 \\uC720\\uC9C0\\uB420 \\uAC83',
+      ],
+      [
+        new RegExp(
+          '\\uC2DC\\uB098\\uB9AC\\uC624\\s+\\uD655\\uB960\\s+[\\d.]+%\\uC640\\s+\\uC2E0\\uB8B0\\uB3C4\\s+[\\d.]+%\\uAC00\\s+\\uC720\\uC9C0\\uB420\\s+\\uAC83',
+          'gi'
+        ),
+        '\\uD604\\uC7AC \\uAC00\\uB2A5\\uC131\\uACFC \\uC2E0\\uB8B0\\uB3C4\\uAC00 \\uC720\\uC9C0\\uB420 \\uAC83',
+      ],
+      [
+        new RegExp(
+          '\\uD0C0\\uC774\\uBC0D\\s+\\uC801\\uD569\\uB3C4\\s+[\\d.]+%\\s+\\uC774\\uC0C1\\uC5D0\\uC11C\\s+(.+?)\\uB97C\\s+\\uBC14\\uB85C\\s+\\uC2E4\\uD589\\uD560\\s+\\uC218\\s+\\uC788\\uC744\\s+\\uAC83',
+          'gi'
+        ),
+        '\\uD0C0\\uC774\\uBC0D\\uC774 \\uCDA9\\uBD84\\uD788 \\uB9DE\\uC744 \\uB54C $1\\uB97C \\uC2E4\\uD589\\uD560 \\uC218 \\uC788\\uC744 \\uAC83',
+      ],
+      [
+        new RegExp(
+          '(.+?)\\s+\\uC774\\uD6C4\\uC5D0\\uB3C4\\s+([\\uAC00-\\uD7A3]+)\\s+\\uD750\\uB984\\s+\\uADFC\\uAC70\\uAC00\\s+\\uC774\\uC5B4\\uC9C8\\s+\\uAC83',
+          'gi'
+        ),
+        '$1 \\uC774\\uD6C4\\uC5D0\\uB3C4 $2 \\uD750\\uB984\\uC774 \\uC774\\uC5B4\\uC9C8 \\uAC83',
+      ],
+    ]
+
+    return replacements
+      .reduce((current, [pattern, replacement]) => current.replace(pattern, replacement), base)
       .replace(/\s+/g, ' ')
       .trim()
   }
@@ -1622,7 +1749,7 @@ function formatScenarioIdForNarrative(
     [/manager_track/i, '??? ??', 'management-track expansion'],
     [/specialist_track/i, '??? ??', 'specialist-track deepening'],
     [/entry/i, '? ?? ??', 'entry into a new role'],
-    [/distance_tuning/i, '?? ??', 'distance tuning'],
+    [/distance_tuning/i, '거리 조절', 'distance tuning'],
     [/boundary_reset/i, '?? ???', 'boundary reset'],
     [/commitment_preparation/i, '?? ??', 'commitment preparation'],
     [/clarify_expectations/i, '?? ??', 'expectation clarification'],
@@ -1641,9 +1768,9 @@ function formatScenarioIdForNarrative(
     [/sleep_disruption/i, '?? ??', 'sleep disruption'],
     [/commute_restructure/i, '?? ?? ???', 'commute restructure'],
     [/route_recheck/i, '?? ???', 'route recheck'],
-    [/basecamp_reset/i, '?? ???', 'basecamp reset'],
-    [/lease_decision/i, '?? ?? ??', 'lease decision review'],
-    [/housing_search/i, '?? ??', 'housing search'],
+    [/basecamp_reset/i, '?? ?? ???', 'basecamp reset'],
+    [/lease_decision/i, '?? ?? ???', 'lease decision review'],
+    [/housing_search/i, '??? ??', 'housing search'],
     [/relocation/i, '??', 'relocation'],
     [/learning_acceleration/i, '?? ??', 'learning acceleration'],
     [/deep_partnership_activation/i, '?? ?? ???', 'deep partnership activation'],
@@ -2103,6 +2230,29 @@ function renderActionPlanSection(
   lang: 'ko' | 'en'
 ): string {
   void matrixInput
+  const actionDomain = reportCore.actionFocusDomain || reportCore.focusDomain
+  if (lang === 'ko' && actionDomain === 'move') {
+    const decision = reportCore.topDecisionLabel || reportCore.primaryAction || '?? ??? ??'
+    const riskControl = reportCore.riskControl || '??? ?? ????, ?? ?? ??? ?? ?? ???.'
+    const branchLine = reportCore.projections?.branches?.nextMoves?.length
+      ? buildProjectionMoveSentence(
+          reportCore.projections.branches.nextMoves.slice(0, 2),
+          lang,
+          '??? ?? ??? ? ?? ???? ??, ?? ?? ??? ??? ???? ?? ????.'
+        )
+      : '??? ?? ??? ? ?? ???? ??, ?? ?? ??? ??? ???? ?? ????.'
+
+    return sanitizeUserFacingNarrative(
+      [
+        `?? ??? ?? ???? ?? ?? ?? ??? ${decision}???.`,
+        '? ??? ?? ?????? ??, ?? ??, ??, ??? ?? ?? ???? ?? ?? ?????.',
+        '?? ?? ?? ??? ???? ? ? ??? ???, ? ????? ???? ?? ??? ?? ???? ??? ?? ??????.',
+        '?? ??? ??? ???? ??? ?? ?? ??? ?? ????, ?? ?? ???? ???? ??? ????.',
+        branchLine,
+        riskControl,
+      ].join(' ')
+    )
+  }
   const base = renderActionPlanSectionExternal(reportCore, lang, reportSectionRendererDeps)
   const actionLabel = getReportDomainLabel(
     reportCore.actionFocusDomain || reportCore.focusDomain,
@@ -2111,14 +2261,14 @@ function renderActionPlanSection(
   const topDecisionLabel = reportCore.topDecisionLabel || reportCore.primaryAction
   const openingLine =
     lang === 'ko'
-      ? `?? ${actionLabel} ?? ??? ${topDecisionLabel}???.`
+      ? `?? ${actionLabel}?? ?? ?? ?? ??? ${topDecisionLabel}???.`
       : `The operating rule on the ${actionLabel} axis is ${topDecisionLabel}.`
   const guardrailLine = reportCore.riskControl
   const actionProjection = reportCore.projections?.action
   const actionDriverLabels = collectProjectionDriverLabels(actionProjection?.drivers, lang)
   const actionDriverLine = actionDriverLabels.length
     ? lang === 'ko'
-      ? `?? ??? ??? ?? ${actionDriverLabels.join(', ')}???.`
+      ? `?? ??? ??? ??? ${actionDriverLabels.join(', ')}???.`
       : `The current execution drivers are ${actionDriverLabels.join(', ')}.`
     : ''
   const actionCounterweightLine = actionProjection?.counterweights?.length
@@ -2126,7 +2276,7 @@ function renderActionPlanSection(
       ? `${actionProjection.counterweights
           .slice(0, 2)
           .map((item) => localizeReportNarrativeText(item, lang))
-          .join(', ')} ?? ??? ??? ???? ??? ?? ??? ???.`
+          .join(', ')} ?? ?? ??? ??? ???? ?? ????.`
       : `${actionProjection.counterweights.slice(0, 2).join(', ')} still signal that pace should stay controlled.`
     : ''
   const actionNextLine = actionProjection?.nextMoves?.length
@@ -2134,13 +2284,13 @@ function renderActionPlanSection(
         actionProjection.nextMoves.slice(0, 2),
         lang,
         lang === 'ko'
-          ? '?? ???? ?? ??? ?? ??? ?? ???? ?? ???? ?? ????.'
+          ? '?? ???? ? ???? ?? ?? ???? ???? ?? ????.'
           : 'The next move should begin by resetting execution criteria in smaller steps.'
       )
     : ''
   const riskAxisLine = reportCore.riskAxisLabel
     ? lang === 'ko'
-      ? `??? ???? ${reportCore.riskAxisLabel} ?? ?? ??? ??? ???? ???.`
+      ? `??? ${reportCore.riskAxisLabel} ??? ?? ?? ???? ? ??? ?? ????.`
       : `Even while acting, ${reportCore.riskAxisLabel} should be managed as the primary risk axis first.`
     : ''
   const branchProjection = reportCore.projections?.branches
@@ -2149,7 +2299,7 @@ function renderActionPlanSection(
         branchProjection.nextMoves.slice(0, 2),
         lang,
         lang === 'ko'
-          ? '?? ?? ????? ?? ?? ??? ???? ?? ???? ?? ????.'
+          ? '??? ??? ?? ? ?? ???, ??? ?? ??? ?? ?? ? ???? ?? ????.'
           : 'Across the live branches, reset criteria and guardrails before execution.'
       )
     : ''
@@ -2206,6 +2356,21 @@ function renderConclusionSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
+  const actionDomain = reportCore.actionFocusDomain || reportCore.focusDomain
+  if (lang === 'ko' && actionDomain === 'move') {
+    const branchLabel =
+      reportCore.branchSet?.[0]?.label ||
+      reportCore.projections?.branches?.detailLines?.[0] ||
+      '?? ?? ???'
+    return sanitizeUserFacingNarrative(
+      [
+        `?? ????? ${localizeReportNarrativeText(String(branchLabel), lang)} ?? ?? ???? 1??? ????.`,
+        '??? ?????. ??? ?? ????? ???? ?? ??? ??? ? ?? ????.',
+        '?? ???? ?? ??? ?? ??? ??? ?????, ?? ?? ??? ??? ??? ??? ????.',
+        '?? ??? ??? ??? ?????.',
+      ].join(' ')
+    )
+  }
   const base = renderConclusionSectionExternal(
     reportCore,
     matrixInput,
@@ -2214,7 +2379,7 @@ function renderConclusionSection(
   )
   const riskAxisLine = reportCore.riskAxisLabel
     ? lang === 'ko'
-      ? `????? ?? ???? ???? ? ?? ${reportCore.riskAxisLabel}???.`
+      ? `????? ?? ???? ???? ? ??? ${reportCore.riskAxisLabel}???.`
       : `The axis that must be managed most carefully through the close is ${reportCore.riskAxisLabel}.`
     : ''
   const branchLine = reportCore.projections?.branches?.detailLines?.[0] || ''
@@ -2706,12 +2871,12 @@ function buildProjectionFirstThemedSections(
   const sharedActionPlan =
     lang === 'ko'
       ? paragraph(
-          `${actionLabel}??? ${actionSummary || reportCore.topDecisionLabel || reportCore.primaryAction}? ?? ?????.`,
+          `?? ${actionLabel}?? ?? ?? ?? ??? ${reportCore.topDecisionLabel || reportCore.primaryAction}???.`,
           actionDetail,
-          actionMoves ? `?? ?? ? ?? ?? ???? ${actionMoves}???.` : '',
-          branchAbort ? `??? ${branchAbort} ?? ??? ??? ??? ??? ?? ????.` : '',
+          actionMoves ? `?? ??? ${actionMoves}?? ??? ???? ?? ????.` : '',
+          branchAbort ? `${branchAbort} ??? ??? ?? ???? ?? ?? ???? ???.` : '',
           branchRisk ? `???? ${branchRisk}` : '',
-          riskCounters ? `${riskLabel} ???? ${riskCounters}?? ?? ??? ???.` : ''
+          riskCounters ? `${riskLabel} ???? ${riskCounters}?? ?? ???? ?? ?????.` : ''
         )
       : paragraph(
           `On the ${actionLabel} axis, ${actionSummary || reportCore.topDecisionLabel || reportCore.primaryAction} is the base operating rule.`,
@@ -2725,13 +2890,13 @@ function buildProjectionFirstThemedSections(
   const recommendations =
     lang === 'ko'
       ? [
-          `${actionLabel}??? ???? ??? ?? ?????.`,
+          `${actionLabel}??? ???? ??? ???? ?? ????.`,
           branchAbort
-            ? `${branchAbort} ?? ??? ??? ???? ???? ?????.`
+            ? `${branchAbort} ??? ??? ?? ??? ?? ???? ???.`
             : `${riskLabel} ??? ??? ???? ???? ?????.`,
           branchRisk
-            ? `${branchRisk} ?? ??? ??? ??? ?? ??? ??????.`
-            : `? ?? ?? ?????? ??? ? ?? ??? ????? ?? ????.`,
+            ? `${branchRisk} ?? ??? ??? ??? ?? ??? ??? ? ??? ?? ????.`
+            : `? ?? ?? ?????? ??? ? ?? ?? ???? ???? ?? ????.`,
         ]
       : [
           `Fix criteria before speed on the ${actionLabel} axis.`,
@@ -3089,8 +3254,10 @@ function finalizeThemedSectionsForUser(
         '\uc124\ub818\ubcf4\ub2e4 \uc9c0\uc18d \uac00\ub2a5\uc131\uc744 \uba3c\uc800 \ubcf4\uc138\uc694.',
       ]),
       actionPlan: p(
-        '\uc9c0\uae08 \uad00\uacc4\uc5d0\uc11c \uac00\uc7a5 \uc911\uc694\ud55c \uac83\uc740 \ube68\ub9ac \uac00\uae4c\uc6cc\uc9c0\ub294 \uac83\uc774 \uc544\ub2c8\ub77c, \uc624\ub798 \uac08 \uc218 \uc788\ub294 \uc6b4\uc601 \ubc29\uc2dd\uc744 \ud655\uc778\ud558\ub294 \uc77c\uc785\ub2c8\ub2e4.',
+        `\uc9c0\uae08 \uad00\uacc4\uc5d0\uc11c \uac00\uc7a5 \ub9de\ub294 \uae30\ubcf8 \uc790\uc138\ub294 ${reportCore.topDecisionLabel || reportCore.primaryAction}\uc785\ub2c8\ub2e4.`,
+        '\ube68\ub9ac \uac00\uae4c\uc6cc\uc9c0\uae30\ubcf4\ub2e4 \uc624\ub798 \uac08 \uc218 \uc788\ub294 \uc6b4\uc601 \ubc29\uc2dd\uc744 \uba3c\uc800 \ud655\uc778\ud558\ub294 \ud3b8\uc774 \ub9de\uc2b5\ub2c8\ub2e4.',
         '\uc608\ub97c \ub4e4\uc5b4 \uc5f0\ub77d \ube48\ub3c4, \ub9cc\ub0a8 \uc18d\ub3c4, \uc77c\uc815 \uc870\uc728 \uac19\uc740 \uc0dd\ud65c \ub9ac\ub4ec\ubd80\ud130 \ub9de\ub294\uc9c0 \ud655\uc778\ud558\ub294 \ud3b8\uc774 \ud6e8\uc52c \ud604\uc2e4\uc801\uc785\ub2c8\ub2e4.',
+        reportCore.riskControl,
         branchRisk ? `\uc11c\ub450\ub974\uba74 ${branchRisk}` : ''
       ),
     }
@@ -3135,9 +3302,103 @@ function finalizeThemedSectionsForUser(
         '\uc0c8 \uc218\uc785 \uacbd\ub85c\ub294 \uc791\uac8c \uc2dc\ud5d8\ud55c \ub4a4 \ud0a4\uc6b0\uc138\uc694.',
       ]),
       actionPlan: p(
-        '\uc9c0\uae08 \uc7ac\uc815\uc5d0\uc11c \uac00\uc7a5 \uc911\uc694\ud55c \uac74 \ub354 \ud06c\uac8c \ubc8c\ub9ac\ub294 \uac83\uc774 \uc544\ub2c8\ub77c, \ud754\ub4e4\ub824\ub3c4 \ubc84\ud2f8 \uc218 \uc788\ub294 \uad6c\uc870\ub97c \ub9cc\ub4dc\ub294 \uc77c\uc785\ub2c8\ub2e4.',
+        `\uc9c0\uae08 \uc7ac\uc815\uc5d0\uc11c \uac00\uc7a5 \ub9de\ub294 \uae30\ubcf8 \uc790\uc138\ub294 ${reportCore.topDecisionLabel || reportCore.primaryAction}\uc785\ub2c8\ub2e4.`,
+        '\ub354 \ud06c\uac8c \ubc8c\ub9ac\uae30\ubcf4\ub2e4 \ud754\ub4e4\ub824\ub3c4 \ubc84\ud2f8 \uc218 \uc788\ub294 \uad6c\uc870\ub97c \uba3c\uc800 \ub9cc\ub4dc\ub294 \ud3b8\uc774 \ub9de\uc2b5\ub2c8\ub2e4.',
         '\uc608\ub97c \ub4e4\uc5b4 \ud22c\uc790, \uacc4\uc57d, \ubd80\uc5c5 \uc81c\uc548\uc774 \ub4e4\uc5b4\uc624\uba74 \uae30\ub300 \uc218\uc775\ubcf4\ub2e4 \ucde8\uc18c \uc870\uac74, \uace0\uc815\ube44 \uc99d\uac00, \uc190\uc2e4 \uc0c1\ud55c\ubd80\ud130 \ud655\uc778\ud558\ub294 \ud3b8\uc774 \ub9de\uc2b5\ub2c8\ub2e4.',
+        reportCore.riskControl,
         branchRisk ? `\uc11c\ub450\ub974\uba74 ${branchRisk}` : ''
+      ),
+    }
+  }
+
+  if (theme === 'health') {
+    return {
+      deepAnalysis: p(
+        `${riskLabel} 문제가 지금 가장 예민한 변수로 같이 움직입니다. 그래서 이번 건강 리포트의 핵심은 버티는 힘을 증명하는 것이 아니라, 무너지기 전에 회복 리듬을 다시 세우는 데 있습니다.`,
+        `지금 몸 상태는 단순한 보조 이슈가 아니라 커리어와 관계 판단의 품질까지 흔들 수 있는 핵심 변수입니다.`,
+        `좋은 기회가 와도 회복이 밀리면 결과보다 소모가 먼저 커질 수 있으니, 건강은 이번 구간에서 가장 먼저 관리해야 할 기반입니다.`
+      ),
+      patterns: p(
+        '지금 건강에서는 작은 경고를 빨리 읽는 사람이 결국 오래 갑니다.',
+        '한 번 크게 쉬는 것보다, 반복 가능한 수면·회복·에너지 배분 루틴을 다시 고정하는 편이 훨씬 현실적입니다.',
+        '몸이 보내는 짧은 경고를 무시하고 밀어붙이면 일정 전체가 길게 흔들릴 수 있습니다.'
+      ),
+      timing: p(
+        timingLine,
+        '지금은 컨디션이 잠깐 올라오는 순간을 성과로 착각하기보다, 회복이 실제로 안정되는지부터 확인하는 편이 맞습니다.',
+        branchEntry
+          ? `특히 ${branchEntry}가 자연스럽게 맞아떨어질 때 회복 리듬도 함께 안정됩니다.`
+          : ''
+      ),
+      prevention: p(
+        '예방의 핵심은 무너진 뒤에 크게 쉬는 것이 아니라, 무너지기 전에 작은 경고를 끊어내는 데 있습니다.',
+        '예를 들어 수면 시간, 식사 리듬, 통증·피로가 심해지는 시간대를 먼저 기록해 두면 번아웃 경로를 훨씬 빨리 끊을 수 있습니다.'
+      ),
+      riskWindows: p(
+        '위험 구간은 보통 조용히 열립니다. 일정이 쌓이고 회복이 밀리는데도 버틸 수 있다고 느낄 때가 가장 위험합니다.',
+        branchAbort
+          ? `특히 ${branchAbort} 같은 신호가 보이면 일정을 줄이고 회복을 우선으로 돌려야 합니다.`
+          : ''
+      ),
+      recoveryPlan: p(
+        `지금 건강에서 가장 맞는 기본 자세는 ${reportCore.topDecisionLabel || reportCore.primaryAction}입니다.`,
+        '쉬는 날 하루를 만드는 것보다, 매일 반복 가능한 회복 리듬을 먼저 고정하는 편이 더 오래 갑니다.',
+        '예를 들어 취침 시간, 자극적인 일정의 상한선, 회복이 필요한 날의 대체 루틴을 미리 정해두면 컨디션이 무너질 때도 빨리 복구할 수 있습니다.'
+      ),
+      recommendations: dedupe([
+        '무리해서 버티기보다 회복 리듬을 먼저 고정하세요.',
+        branchAbort || '경고 신호가 반복되면 일정을 줄이고 휴식 기준을 다시 세우세요.',
+        '몸 상태가 흔들리는 날의 대체 루틴을 미리 정해두세요.',
+      ]),
+      actionPlan: p(
+        `지금 건강에서 가장 맞는 기본 자세는 ${reportCore.topDecisionLabel || reportCore.primaryAction}입니다.`,
+        '버티는 시간을 늘리기보다, 회복이 가능한 구조를 먼저 만드는 편이 맞습니다.',
+        '예를 들어 수면 시간, 업무 강도, 식사와 수분 같은 기본 리듬부터 다시 맞추고, 회복이 밀리는 날엔 일정을 줄이는 원칙을 먼저 세워두세요.',
+        reportCore.riskControl,
+        branchRisk ? `서두르거나 무리하면 ${branchRisk}` : ''
+      ),
+    }
+  }
+
+  if (theme === 'family') {
+    return {
+      deepAnalysis: p(
+        `이번 가족 리포트의 핵심은 누가 옳으냐를 가르는 것이 아니라, 서로 다른 기대와 역할을 같은 장면으로 맞추는 데 있습니다.`,
+        `가족 문제는 감정의 강도보다 역할, 책임, 돌봄의 분배가 맞지 않을 때 더 오래 흔들립니다.`,
+        riskLine
+      ),
+      patterns: p(
+        '지금 가족 흐름에서는 말의 양보다 해석의 일치가 더 중요합니다.',
+        '서로 같은 장면을 다르게 읽고 있으면 작은 일도 오래 남고, 기대치가 흐리면 피로와 서운함이 계속 쌓입니다.'
+      ),
+      timing: p(
+        timingLine,
+        '지금은 한 번에 정답을 내리기보다, 누가 무엇을 맡고 어디까지 책임질지를 먼저 맞추는 편이 안정적입니다.',
+        branchEntry ? `특히 ${branchEntry}가 자연스럽게 맞아떨어질 때 갈등도 훨씬 덜 커집니다.` : ''
+      ),
+      dynamics: p(
+        '가족 안에서는 감정보다 역할 구조가 먼저 정리돼야 합니다.',
+        '예를 들어 돌봄, 일정 조율, 비용 부담, 연락 빈도 같은 현실 항목을 문장으로 합의하면 감정 소모가 크게 줄어듭니다.'
+      ),
+      communication: p(
+        '지금 필요한 대화는 누가 더 힘든지를 겨루는 대화가 아니라, 같은 상황을 어떻게 이해하고 있는지 맞추는 대화입니다.',
+        '말을 길게 하기보다 서로의 기대치와 보류 조건을 짧게라도 분명히 적어두는 편이 훨씬 효과적입니다.'
+      ),
+      legacy: p(
+        '가족 문제는 한 번의 큰 대화보다 반복되는 습관과 역할 패턴이 더 오래 남습니다.',
+        '이번 구간에서는 감정적 결론보다 지속 가능한 운영 방식을 만드는 쪽이 결국 오래 갑니다.'
+      ),
+      recommendations: dedupe([
+        '감정보다 역할과 책임 범위를 먼저 맞추세요.',
+        branchAbort || '기대치가 어긋나면 결론을 미루고 보류 조건부터 정리하세요.',
+        '돌봄·일정·비용 분담 같은 현실 항목을 먼저 문서화하세요.',
+      ]),
+      actionPlan: p(
+        `지금 가족 문제에서 가장 맞는 기본 자세는 ${reportCore.topDecisionLabel || reportCore.primaryAction}입니다.`,
+        '누가 옳은지 따지기보다, 누가 무엇을 맡고 어디까지 책임질지를 먼저 정리하는 편이 맞습니다.',
+        '예를 들어 연락 빈도, 돌봄 분담, 비용 부담, 방문 일정 같은 생활 기준을 먼저 맞춰두면 감정 소모를 크게 줄일 수 있습니다.',
+        reportCore.riskControl,
+        branchRisk ? `서두르면 ${branchRisk}` : ''
       ),
     }
   }
@@ -4500,6 +4761,8 @@ export async function generateAIPremiumReport(
     ) as AIPremiumReport['sections']
     outputSectionPaths = getComprehensiveRenderPaths(outputSections)
     outputSections = applyFinalReportStyle(outputSections, outputSectionPaths, lang, reportCore)
+    outputSections = ensureFinalActionPlanGrounding(outputSections, lang, reportCore)
+    outputSections = ensureFinalReportPolish(outputSections, lang, reportCore)
     outputSectionPaths = getComprehensiveRenderPaths(outputSections)
     qualityMetrics = buildReportQualityMetrics(
       outputSections as Record<string, unknown>,
@@ -4735,6 +4998,8 @@ export async function generateAIPremiumReport(
     ) as AIPremiumReport['sections']
     outputSectionPaths = getComprehensiveRenderPaths(outputSections)
     outputSections = applyFinalReportStyle(outputSections, outputSectionPaths, lang, reportCore)
+    outputSections = ensureFinalActionPlanGrounding(outputSections, lang, reportCore)
+    outputSections = ensureFinalReportPolish(outputSections, lang, reportCore)
     outputSectionPaths = getComprehensiveRenderPaths(outputSections)
     qualityMetrics = buildReportQualityMetrics(
       outputSections as Record<string, unknown>,
@@ -5389,6 +5654,8 @@ export async function generateAIPremiumReport(
   ) as AIPremiumReport['sections']
   outputSectionPaths = getComprehensiveRenderPaths(outputSections)
   outputSections = applyFinalReportStyle(outputSections, outputSectionPaths, lang, reportCore)
+  outputSections = ensureFinalActionPlanGrounding(outputSections, lang, reportCore)
+  outputSections = ensureFinalReportPolish(outputSections, lang, reportCore)
   outputSectionPaths = getComprehensiveRenderPaths(outputSections)
   qualityMetrics = buildReportQualityMetrics(
     outputSections as Record<string, unknown>,
@@ -6112,6 +6379,8 @@ export async function generateTimingReport(
     lang,
     reportCore
   )
+  sections = ensureFinalActionPlanGrounding(sections as Record<string, unknown>, lang, reportCore)
+  sections = ensureFinalReportPolish(sections as Record<string, unknown>, lang, reportCore)
   const styledTimingQualityMetrics = buildReportQualityMetrics(
     sections as Record<string, unknown>,
     sectionPaths,
@@ -6379,6 +6648,13 @@ export async function generateThemedReport(
       timingData
     ) as unknown as Record<string, unknown>
     sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
+    sections = sanitizeThemedSectionsForUserExternal(
+      sections,
+      sectionPaths,
+      lang,
+      secondaryPostProcessDeps,
+      theme
+    )
     const finalModelUsed = polished.modelUsed
       ? `deterministic+${polished.modelUsed}`
       : 'deterministic-only'
@@ -6521,6 +6797,13 @@ export async function generateThemedReport(
         coreQuality: coreSeed.quality,
       })
     }
+    sections = sanitizeThemedSectionsForUserExternal(
+      sections,
+      sectionPaths,
+      lang,
+      secondaryPostProcessDeps,
+      theme
+    )
     recordReportQualityMetrics('themed', rewrite.modelUsed, qualityMetrics)
     recordRewriteModeMetric('themed', rewrite.modelUsed, rewrite.tokensUsed)
     return {
@@ -6874,12 +7157,21 @@ export async function generateThemedReport(
     timingData
   ) as unknown as Record<string, unknown>
   sections = enforceEvidenceRefFooters(sections, sectionPaths, themedEvidenceRefs, lang)
+  sections = sanitizeThemedSectionsForUserExternal(
+    sections,
+    sectionPaths,
+    lang,
+    secondaryPostProcessDeps,
+    theme
+  )
   sections = applyFinalReportStyle(
     sections as Record<string, unknown>,
     sectionPaths,
     lang,
     reportCore
   )
+  sections = ensureFinalActionPlanGrounding(sections as Record<string, unknown>, lang, reportCore)
+  sections = ensureFinalReportPolish(sections as Record<string, unknown>, lang, reportCore)
   qualityMetrics = buildReportQualityMetrics(
     sections as Record<string, unknown>,
     sectionPaths,
