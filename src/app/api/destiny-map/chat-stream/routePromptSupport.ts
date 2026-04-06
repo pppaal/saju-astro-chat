@@ -170,6 +170,36 @@ export interface MatrixSnapshot {
           abortConditions?: string[]
           nextMove?: string
         }>
+        birthTimeHypotheses?: Array<{
+          label?: string
+          birthTime?: string
+          status?: string
+          fitScore?: number
+          summary?: string
+          supportSignals?: string[]
+          cautionSignals?: string[]
+        }>
+        crossConflictMap?: Array<{
+          domain?: string
+          label?: string
+          status?: string
+          strongestTimescale?: string
+          summary?: string
+          sajuView?: string
+          astroView?: string
+          resolutionMove?: string
+        }>
+        pastEventReconstruction?: {
+          summary?: string
+          markers?: Array<{
+            key?: string
+            label?: string
+            ageWindow?: string
+            status?: string
+            summary?: string
+            evidence?: string[]
+          }>
+        }
         uncertaintyEnvelope?: {
           summary?: string
           reliableAreas?: string[]
@@ -291,6 +321,9 @@ function buildThemeSpecificAppliedContext(
           : theme === 'health'
             ? eventOutlook.filter((item) => item.key === 'healthReset' || item.domain === 'health')
             : eventOutlook.slice(0, 2)
+  const birthTimeHypothesis = (personModel.birthTimeHypotheses || []).slice(0, 2)
+  const crossConflict = (personModel.crossConflictMap || []).slice(0, 2)
+  const pastMarkers = personModel.pastEventReconstruction?.markers || []
 
   const profileLines =
     theme === 'career'
@@ -335,6 +368,26 @@ function buildThemeSpecificAppliedContext(
                 ...(appliedProfile?.lifeRhythmProfile?.regulationMoves || []).slice(0, 2),
               ]
 
+  const eventConditionLines = eventCandidates
+    .slice(0, 2)
+    .flatMap((event, index) => [
+      event.label ? `condition_${index + 1}_label=${event.label}` : '',
+      event.status ? `condition_${index + 1}_status=${event.status}` : '',
+      event.bestWindow ? `condition_${index + 1}_window=${event.bestWindow}` : '',
+      event.summary ? `condition_${index + 1}_summary=${event.summary}` : '',
+      ...((event.entryConditions || [])
+        .slice(0, 2)
+        .map(
+          (item, itemIndex) => `condition_${index + 1}_entry_${itemIndex + 1}=${item}`
+        ) as string[]),
+      ...((event.abortConditions || [])
+        .slice(0, 2)
+        .map(
+          (item, itemIndex) => `condition_${index + 1}_abort_${itemIndex + 1}=${item}`
+        ) as string[]),
+      event.nextMove ? `condition_${index + 1}_next=${event.nextMove}` : '',
+    ])
+
   const lines = [
     '[Theme Applied Context]',
     targetDomain ? `theme_domain=${targetDomain}` : `theme_domain=${theme || 'general'}`,
@@ -349,10 +402,34 @@ function buildThemeSpecificAppliedContext(
     ...(domainState?.pressureSignals || [])
       .slice(0, 2)
       .map((item, index) => `pressure_${index + 1}=${item}`),
-    ...profileLines
-      .filter(Boolean)
-      .slice(0, 4)
-      .map((item, index) => `profile_${index + 1}=${item}`),
+    '[Theme Event Condition Packet]',
+    ...eventConditionLines,
+    ...birthTimeHypothesis.flatMap((item, index) => [
+      item.label ? `birth_hypothesis_${index + 1}=${item.label}` : '',
+      item.birthTime ? `birth_hypothesis_${index + 1}_time=${item.birthTime}` : '',
+      item.status ? `birth_hypothesis_${index + 1}_status=${item.status}` : '',
+      typeof item.fitScore === 'number'
+        ? `birth_hypothesis_${index + 1}_fit=${item.fitScore.toFixed(2)}`
+        : '',
+      item.summary ? `birth_hypothesis_${index + 1}_summary=${item.summary}` : '',
+    ]),
+    ...crossConflict.flatMap((item, index) => [
+      item.label ? `conflict_${index + 1}_label=${item.label}` : '',
+      item.status ? `conflict_${index + 1}_status=${item.status}` : '',
+      item.strongestTimescale ? `conflict_${index + 1}_window=${item.strongestTimescale}` : '',
+      item.summary ? `conflict_${index + 1}_summary=${item.summary}` : '',
+      item.resolutionMove ? `conflict_${index + 1}_resolve=${item.resolutionMove}` : '',
+    ]),
+    personModel.pastEventReconstruction?.summary
+      ? `past_reconstruction=${personModel.pastEventReconstruction.summary}`
+      : '',
+    ...pastMarkers
+      .slice(0, 2)
+      .flatMap((item, index) => [
+        item.label ? `past_marker_${index + 1}=${item.label}` : '',
+        item.ageWindow ? `past_marker_${index + 1}_age=${item.ageWindow}` : '',
+        item.summary ? `past_marker_${index + 1}_summary=${item.summary}` : '',
+      ]),
     ...eventCandidates
       .slice(0, 2)
       .flatMap((event, index) => [
@@ -367,6 +444,10 @@ function buildThemeSpecificAppliedContext(
           .slice(0, 1)
           .map((item) => `event_${index + 1}_stop=${item}`) as string[]),
       ]),
+    ...profileLines
+      .filter(Boolean)
+      .slice(0, 4)
+      .map((item, index) => `profile_${index + 1}=${item}`),
     uncertainty?.summary ? `uncertainty=${uncertainty.summary}` : '',
     ...((uncertainty?.conditionalAreas || [])
       .slice(0, 2)
@@ -491,7 +572,7 @@ export function buildMatrixProfileSection(
   )
   const themeAppliedContext = trimPromptBlock(
     buildThemeSpecificAppliedContext(snapshot, lang, theme),
-    costOptimized ? 360 : 760
+    costOptimized ? 520 : 1100
   )
 
   if (lang === 'ko') {
