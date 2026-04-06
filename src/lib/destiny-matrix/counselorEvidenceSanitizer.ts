@@ -2,7 +2,7 @@ import { adaptCoreToCounselor } from '@/lib/destiny-matrix/core/adapters'
 import type {
   CounselorEvidencePacket,
   CounselorProjectionBlock,
-} from '@/lib/destiny-matrix/counselorEvidence'
+} from '@/lib/destiny-matrix/counselorEvidenceTypes'
 
 export function localizeCounselorDomain(domain: string, lang: 'ko' | 'en'): string {
   if (lang === 'en') return domain

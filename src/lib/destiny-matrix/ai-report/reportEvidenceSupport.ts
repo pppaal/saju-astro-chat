@@ -346,6 +346,9 @@ export function enforceEvidenceRefFooters(
   deps: ReportEvidenceSupportDeps
 ): Record<string, unknown> {
   for (const path of sectionPaths) {
+    if (path === 'actionPlan' || path.endsWith('.actionPlan')) {
+      continue
+    }
     const text = deps.getPathText(sections, path)
     if (!text) continue
     if (/(?:핵심 근거는|Key grounding comes from)/i.test(text)) {

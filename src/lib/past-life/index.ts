@@ -1,1 +1,0 @@
-export { analyzePastLife } from './analyzer';

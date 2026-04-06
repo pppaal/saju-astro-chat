@@ -44,6 +44,12 @@ const config = [
       'out/**',
       'dist/**',
       'build/**',
+      'artifacts/**',
+      'qa-dumps/**',
+      'reports/ops/**',
+      'reports/quality/**',
+      'reports/typecheck/**',
+      'tmp/**',
       // Test artifacts
       'playwright-report/**',
       'test-results/**',

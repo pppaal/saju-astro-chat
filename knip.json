@@ -1,0 +1,25 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "entry": [
+    "src/app/**/*.{ts,tsx}",
+    "src/instrumentation.ts",
+    "src/instrumentation-client.ts"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx}"
+  ],
+  "ignore": [
+    "src/**/*.test.{ts,tsx}",
+    "src/**/*.stories.{ts,tsx}",
+    "src/app/**/head.tsx",
+    "src/styles/**",
+    "src/data/**",
+    "tests/**",
+    "scripts/**",
+    "backend_ai/**",
+    "tmp/**",
+    "artifacts/**",
+    "reports/**",
+    "docs/archive/**"
+  ]
+}

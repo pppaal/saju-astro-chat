@@ -13,6 +13,7 @@ import { calculateDestinyMatrix } from '@/lib/destiny-matrix/engine'
 import { FusionReportGenerator } from '@/lib/destiny-matrix/interpreter/report-generator'
 import { DestinyMatrixError, ErrorCodes } from '@/lib/destiny-matrix/errors'
 import { buildCoreEnvelope } from '@/lib/destiny-matrix/core/buildCoreEnvelope'
+import { buildSharedSurface } from '@/lib/destiny-matrix/core/adaptersPayload'
 import { generateFivePagePDF, generatePremiumPDF } from '@/lib/destiny-matrix/ai-report/pdfGenerator'
 import { summarizeDestinyMatrixEvidence } from '@/lib/destiny-matrix/ai-report/graphRagEvidence'
 import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
@@ -393,6 +394,10 @@ export const POST = withApiMiddleware(
       const layerResults = coreEnvelope.layerResults
       const baseReport = coreEnvelope.matrixReport
       const normalizedMatrixInput = coreEnvelope.normalizedInput
+      const sharedSurface = buildSharedSurface(
+        coreEnvelope.coreSeed,
+        (((normalizedMatrixInput.lang || 'ko') as 'ko' | 'en') || 'ko')
+      )
 
       if (isFreeTier) {
         const freeReport = buildRichFreeDigestReportExternal({
@@ -413,6 +418,7 @@ export const POST = withApiMiddleware(
             summary: domain.summary,
             hasData: domain.hasData,
           })),
+          personModel: sharedSurface.personModel,
           lang: normalizedMatrixInput.lang || 'ko',
           theme,
           period,
@@ -815,7 +821,9 @@ export const POST = withApiMiddleware(
       logger.error('AI Report Generation Error:', {
         message: rawErrorMessage,
         name: error instanceof Error ? error.name : 'Unknown',
+        hasAnthropicKey: !!(process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY),
         hasOpenAIKey: !!process.env.OPENAI_API_KEY,
+        hasTogetherKey: !!process.env.TOGETHER_API_KEY,
         hasReplicateKey: !!(process.env.REPLICATE_API_KEY || process.env.REPLICATE_API_TOKEN),
       })
 

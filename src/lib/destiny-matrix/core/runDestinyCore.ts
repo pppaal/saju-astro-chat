@@ -277,7 +277,7 @@ function resolveSajuTimingByTimescale(
 }
 
 function resolveTimelineProximity(
-  points: MatrixSummary['overlapTimelineByDomain'][DomainKey] | undefined,
+  points: NonNullable<MatrixSummary['overlapTimelineByDomain']>[DomainKey] | undefined,
   currentDateIso: string | undefined,
   timescale: CrossAgreementTimescale
 ): number {

@@ -1044,14 +1044,18 @@ describe('/api/destiny-map/chat-stream POST - SSE Streaming', () => {
     const req = createNextRequest(createBasicRequest())
     await POST(req)
 
-    expect(createTransformedSSEStream).toHaveBeenCalledWith({
-      source: expect.anything(),
-      transform: expect.any(Function),
-      route: 'DestinyMapChatStream',
-      additionalHeaders: expect.objectContaining({
-        'X-Fallback': expect.any(String),
-      }),
-    })
+    expect(createTransformedSSEStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: expect.anything(),
+        transform: expect.any(Function),
+        extractText: expect.any(Function),
+        finalizeText: expect.any(Function),
+        route: 'DestinyMapChatStream',
+        additionalHeaders: expect.objectContaining({
+          'X-Fallback': expect.any(String),
+        }),
+      })
+    )
   })
 
   it('should return fallback stream on backend error', async () => {
@@ -1090,7 +1094,16 @@ describe('/api/destiny-map/chat-stream POST - SSE Streaming', () => {
 
     expect(createFallbackSSEStream).toHaveBeenCalledWith(
       expect.objectContaining({
-        content: expect.stringContaining('Could not connect to AI service'),
+        content: expect.stringContaining('## Direct Answer'),
+        done: true,
+        'X-Fallback': '1',
+        'X-Guest-Mode': '0',
+      })
+    )
+
+    expect(createFallbackSSEStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.stringContaining('## Action Plan'),
         done: true,
         'X-Fallback': '1',
         'X-Guest-Mode': '0',

@@ -816,7 +816,7 @@ export function renderHealthGuidanceSection(
         [
           '건강은 버티는 힘보다 회복 리듬과 과부하 신호를 얼마나 빨리 정리하느냐에서 갈립니다.',
           '이번 건강 흐름은 몰아붙이는 하루보다 반복 가능한 회복 루틴을 먼저 고정하는 쪽이 강합니다.',
-          `${metaphor.risk}이 몸에서는 피로 누적과 회복 지연으로 바뀌기 쉽습니다.`,
+          `${metaphor.risk}은 몸에서 피로 누적과 회복 지연으로 번지기 쉽습니다.`,
           timing?.whyNow
             ? `지금 몸 상태를 다시 봐야 하는 이유는 ${sanitizeNarrativeReason(timing.whyNow, lang, deps)}`
             : '',

@@ -1,7 +1,7 @@
 import type {
   CounselorEvidencePacket,
   CounselorTheme,
-} from '@/lib/destiny-matrix/counselorEvidence'
+} from '@/lib/destiny-matrix/counselorEvidenceTypes'
 import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
 import {
   localizeCounselorDomain,

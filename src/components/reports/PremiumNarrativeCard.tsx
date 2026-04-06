@@ -76,27 +76,35 @@ export default function PremiumNarrativeCard({
 
   return (
     <section
-      className={`rounded-2xl border border-slate-300/70 bg-white/95 text-slate-800 shadow-sm ${className}`}
+      className={`overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,16,28,0.96),rgba(7,11,19,0.92))] text-slate-100 shadow-[0_22px_70px_rgba(0,0,0,0.34)] backdrop-blur-xl ${className}`}
     >
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+        className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left"
         aria-expanded={isOpen}
       >
-        <h3 className="text-xl font-semibold">{title}</h3>
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-200/62">
+            Narrative
+          </p>
+          <h3 className="mt-1 text-xl font-semibold text-white">{title}</h3>
+        </div>
         <span
-          className={`text-slate-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`text-cyan-100/70 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         >
           ^
         </span>
       </button>
 
       {isOpen && (
-        <div className="border-t border-slate-200 px-4 py-4">
+        <div className="border-t border-white/10 px-5 py-5">
           <div className="space-y-5">
             {paragraphs.map((paragraph, idx) => (
-              <p key={`${paragraph.slice(0, 24)}-${idx}`} className="text-[1.05rem] leading-8">
+              <p
+                key={`${paragraph.slice(0, 24)}-${idx}`}
+                className="text-[1.02rem] leading-8 text-slate-200"
+              >
                 {highlightText(paragraph, highlights)}
               </p>
             ))}

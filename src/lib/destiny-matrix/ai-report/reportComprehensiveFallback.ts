@@ -5,7 +5,17 @@ import type { ReportCoreViewModel } from './reportCoreHelpers'
 import type { AIPremiumReport } from './reportTypes'
 
 type Lang = 'ko' | 'en'
-type ComprehensiveSectionKey = keyof AIPremiumReport['sections']
+type ComprehensiveSectionKey =
+  | 'introduction'
+  | 'personalityDeep'
+  | 'careerPath'
+  | 'relationshipDynamics'
+  | 'wealthPotential'
+  | 'healthGuidance'
+  | 'lifeMission'
+  | 'timingAdvice'
+  | 'actionPlan'
+  | 'conclusion'
 type InsightCategory = 'strength' | 'opportunity' | 'balance' | 'caution' | 'challenge'
 
 export interface ComprehensiveFallbackDeps {
@@ -152,7 +162,7 @@ export function mergeComprehensiveDraftWithBlocks(
   for (const key of sectionKeys) {
     const supplements = collectNarrativeSupplementsFromBlocks(blocksBySection[key], lang)
     if (supplements.length === 0) continue
-    merged[key] = deps.ensureLongSectionNarrative(fallback[key], minCharsPerSection, supplements)
+    merged[key] = deps.ensureLongSectionNarrative(fallback[key] || '', minCharsPerSection, supplements)
   }
   return merged
 }

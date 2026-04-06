@@ -48,6 +48,12 @@ const envSchema = z.object({
 
   // OpenAI
   OPENAI_API_KEY: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(),
+  CLAUDE_API_KEY: z.string().optional(),
+  ANTHROPIC_MODEL: z.string().optional(),
+  CLAUDE_MODEL: z.string().optional(),
+  ANTHROPIC_FAST_MODEL: z.string().optional(),
+  CLAUDE_FAST_MODEL: z.string().optional(),
 
   // Sentry
   NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
@@ -79,6 +85,8 @@ const envSchema = z.object({
 
   // Replicate AI
   REPLICATE_API_TOKEN: z.string().optional(),
+  TOGETHER_API_KEY: z.string().optional(),
+  TOGETHER_MODEL: z.string().optional(),
 
   // Google OAuth
   GOOGLE_CLIENT_ID: z.string().optional(),

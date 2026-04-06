@@ -18,37 +18,37 @@
     "app/api/calendar/route.ts": {
       "maxDuration": 60,
       "includeFiles": "node_modules/swisseph/build/Release/**/*.node",
-      "excludeFiles": "{public/images/**,artifacts/**,tmp/**,htmlcov/**,playwright-report/**}"
+      "excludeFiles": "{public/images/**,artifacts/**,qa-dumps/**,reports/**,tmp/**,htmlcov/**,playwright-report/**}"
     },
     "app/api/destiny-map/chat-stream/route.ts": {
       "maxDuration": 60,
       "includeFiles": "node_modules/swisseph/build/Release/**/*.node",
-      "excludeFiles": "{public/images/**,artifacts/**,tmp/**,htmlcov/**,playwright-report/**}"
+      "excludeFiles": "{public/images/**,artifacts/**,qa-dumps/**,reports/**,tmp/**,htmlcov/**,playwright-report/**}"
     },
     "app/api/destiny-matrix/ai-report/route.ts": {
       "maxDuration": 60,
       "includeFiles": "node_modules/swisseph/build/Release/**/*.node",
-      "excludeFiles": "{public/images/**,artifacts/**,tmp/**,htmlcov/**,playwright-report/**}"
+      "excludeFiles": "{public/images/**,artifacts/**,qa-dumps/**,reports/**,tmp/**,htmlcov/**,playwright-report/**}"
     },
     "app/api/astrology/**/*.ts": {
       "maxDuration": 60,
       "includeFiles": "node_modules/swisseph/build/Release/**/*.node",
-      "excludeFiles": "{public/images/**,artifacts/**,tmp/**,htmlcov/**,playwright-report/**}"
+      "excludeFiles": "{public/images/**,artifacts/**,qa-dumps/**,reports/**,tmp/**,htmlcov/**,playwright-report/**}"
     },
     "app/api/precompute-chart/route.ts": {
       "maxDuration": 60,
       "includeFiles": "node_modules/swisseph/build/Release/**/*.node",
-      "excludeFiles": "{public/images/**,artifacts/**,tmp/**,htmlcov/**,playwright-report/**}"
+      "excludeFiles": "{public/images/**,artifacts/**,qa-dumps/**,reports/**,tmp/**,htmlcov/**,playwright-report/**}"
     },
     "app/api/past-life/route.ts": {
       "maxDuration": 60,
       "includeFiles": "node_modules/swisseph/build/Release/**/*.node",
-      "excludeFiles": "{public/images/**,artifacts/**,tmp/**,htmlcov/**,playwright-report/**}"
+      "excludeFiles": "{public/images/**,artifacts/**,qa-dumps/**,reports/**,tmp/**,htmlcov/**,playwright-report/**}"
     },
     "app/api/life-prediction/**/*.ts": {
       "maxDuration": 60,
       "includeFiles": "node_modules/swisseph/build/Release/**/*.node",
-      "excludeFiles": "{public/images/**,artifacts/**,tmp/**,htmlcov/**,playwright-report/**}"
+      "excludeFiles": "{public/images/**,artifacts/**,qa-dumps/**,reports/**,tmp/**,htmlcov/**,playwright-report/**}"
     }
   },
   "crons": [

@@ -20,7 +20,6 @@ import type {
 } from './types'
 import { THEME_META } from './types'
 import { logger } from '@/lib/logger'
-import { recordCounter } from '@/lib/metrics'
 import { buildTimingPrompt } from './prompts/timingPrompts'
 import { buildThemedPrompt } from './prompts/themedPrompts'
 import {
@@ -34,28 +33,10 @@ import {
   renderSectionsAsMarkdown,
   renderSectionsAsText,
 } from './reportRendering'
-import { buildDeterministicCore, type DeterministicSectionBlock } from './deterministicCore'
 import type { DeterministicProfile } from './deterministicCoreConfig'
 import { getThemedSectionKeys } from './themeSchema'
 import { buildLifeCyclePromptBlock, buildThemeSchemaPromptBlock } from '../interpretationSchema'
-import { buildUnifiedEnvelope, inferAgeFromBirthDate } from './unifiedReport'
 import { formatPolicyCheckLabels } from '@/lib/destiny-matrix/core/actionCopy'
-import {
-  buildReportQualityMetrics as buildReportQualityMetricsCore,
-  recordReportQualityMetrics as recordReportQualityMetricsCore,
-  type ReportQualityContext,
-  type ReportQualityMetrics,
-} from './reportQuality'
-import {
-  buildEvidenceBindingRepairPrompt,
-  enforceEvidenceBindingFallback,
-  getPathText,
-  getPathValue,
-  hasRequiredSectionPaths,
-  rewriteSectionsWithFallback,
-  setPathText,
-  validateEvidenceBinding,
-} from './rewriteGuards'
 import {
   findReportCoreAdvisory,
   findReportCoreManifestation,
@@ -99,16 +80,6 @@ import {
   type NarrativePathSanitizerDeps,
 } from './reportNarrativeFormatting'
 import {
-  buildComprehensiveEvidenceRefs as buildComprehensiveEvidenceRefsExternal,
-  buildThemedEvidenceRefs as buildThemedEvidenceRefsExternal,
-  buildTimingEvidenceRefs as buildTimingEvidenceRefsExternal,
-  enforceEvidenceRefFooters as enforceEvidenceRefFootersExternal,
-  hasEvidenceSupport as hasEvidenceSupportExternal,
-  MIN_EVIDENCE_REFS_PER_SECTION as MIN_EVIDENCE_REFS_PER_SECTION_EXTERNAL,
-  resolveSignalDomain as resolveSignalDomainExternal,
-  type ReportEvidenceSupportDeps,
-} from './reportEvidenceSupport'
-import {
   attachTrustNarrativeToSections as attachTrustNarrativeToSectionsExternal,
   buildReportTrustNarratives as buildReportTrustNarrativesExternal,
   renderActionPlanSection as renderActionPlanSectionExternal,
@@ -131,17 +102,6 @@ import {
   type ReportLifeSectionDeps,
 } from './reportLifeSections'
 import {
-  containsBannedPhrase,
-  dedupeNarrativeSentences,
-  normalizeUserFacingArtifacts,
-  sanitizeSectionNarrative,
-  sanitizeUserFacingNarrative,
-  sentenceKey,
-  stripBannedPhrases,
-} from './reportNarrativeSanitizer'
-export { sanitizeSectionNarrative } from './reportNarrativeSanitizer'
-import { applyReportBrandVoice, buildReportStyleMetrics } from './reportBrandVoice'
-import {
   buildReportCoreLine,
   capitalizeFirst,
   collectCleanNarrativeLines,
@@ -162,18 +122,12 @@ import {
   withSubjectParticle,
 } from './reportTextHelpers'
 import {
-  buildActionRepairInstruction,
-  buildAntiRepetitionInstruction,
-  buildCrossRepairInstruction,
-  buildCrossCoverageRepairInstruction,
-  buildDepthRepairInstruction,
-  buildEvidenceRepairInstruction,
-  buildNarrativeRewritePrompt,
-  buildNarrativeStyleRepairInstruction,
-  buildSecondPassInstruction,
-  buildTimingRepairInstruction,
-  getMaxRepairPassesByPlan,
-} from './repairPrompts'
+  containsBannedPhrase,
+  dedupeNarrativeSentences,
+  sanitizeSectionNarrative,
+  sanitizeUserFacingNarrative,
+} from './reportNarrativeSanitizer'
+export { sanitizeSectionNarrative } from './reportNarrativeSanitizer'
 import {
   getCoverageRatioByPredicate,
   getCrossCoverageRatio,
@@ -190,6 +144,7 @@ import {
   hasTimingInText,
 } from './sectionAudit'
 import { evaluateSectionGate, splitSentences } from './sectionQualityGate'
+import type { ReportQualityMetrics } from './reportQuality'
 import {
   buildSynthesisFactsForSection,
   type SignalSynthesisResult,
@@ -199,6 +154,39 @@ import {
 import type { ReportEvidenceRef, SectionEvidenceRefs } from './evidenceRefs'
 import type { StrategyEngineResult } from './strategyEngine'
 import { generateNarrativeSectionsFromSynthesis } from './narrativeGenerator'
+import { buildDeterministicCore, type DeterministicSectionBlock } from './deterministicCore'
+import { buildUnifiedEnvelope, inferAgeFromBirthDate } from './unifiedReport'
+import {
+  buildActionRepairInstruction,
+  buildAntiRepetitionInstruction,
+  buildCrossCoverageRepairInstruction,
+  buildCrossRepairInstruction,
+  buildDepthRepairInstruction,
+  buildEvidenceRepairInstruction,
+  buildNarrativeRewritePrompt,
+  buildNarrativeStyleRepairInstruction,
+  buildSecondPassInstruction,
+  buildTimingRepairInstruction,
+} from './repairPrompts'
+import {
+  buildComprehensiveEvidenceRefs as buildComprehensiveEvidenceRefsExternal,
+  buildThemedEvidenceRefs as buildThemedEvidenceRefsExternal,
+  buildTimingEvidenceRefs as buildTimingEvidenceRefsExternal,
+  enforceEvidenceRefFooters as enforceEvidenceRefFootersExternal,
+  hasEvidenceSupport as hasEvidenceSupportExternal,
+  resolveSignalDomain as resolveSignalDomainExternal,
+  type ReportEvidenceSupportDeps,
+} from './reportEvidenceSupport'
+import {
+  buildEvidenceBindingRepairPrompt,
+  enforceEvidenceBindingFallback,
+  getPathText,
+  getPathValue,
+  hasRequiredSectionPaths,
+  rewriteSectionsWithFallback,
+  setPathText,
+  validateEvidenceBinding,
+} from './rewriteGuards'
 import {
   describeDataTrustSummary,
   describeExecutionStance,
@@ -229,1745 +217,82 @@ import {
 import type { DestinyCoreQuality } from '@/lib/destiny-matrix/core/runDestinyCore'
 import { adaptCoreToReport } from '@/lib/destiny-matrix/core/adapters'
 import type { PatternResult } from '@/lib/destiny-matrix/core/patternEngine'
-
-const RECHECK_REGEX = /verify|recheck|double-check|checklist|review|confirm/i
-const ABSOLUTE_RISK_REGEX = /100%|always|never|guaranteed|certainly|inevitable/i
-const IRREVERSIBLE_ACTION_REGEX =
-  /sign|finalize|commit now|book|wedding|invitation|big decision|launch|submit payment/i
-const CAUTION_INDICATOR_REGEX = /caution|risk|warning|recheck|conflict|overreach|fragile/i
-const IMMEDIATE_FORCE_REGEX = /today\s*finalize|sign now|commit now|immediately|rush|right away/i
-const MITIGATION_REGEX = /avoid|before|recheck|verify|defer|hold|slow down|stage/i
-const RECOMMENDATION_TONE_REGEX = /recommended|recommend|should|must|do this|proceed|best move/i
-
-function isCostOptimizedAiPath(): boolean {
-  const explicit = process.env.AI_BACKEND_COST_OPTIMIZED?.trim().toLowerCase()
-  if (explicit) return explicit === 'true' || explicit === '1' || explicit === 'yes'
-  const provider = process.env.AI_BACKEND_PROVIDER?.trim().toLowerCase()
-  return provider === 'claude' || provider === 'anthropic'
-}
-
-function getAiQualityTier(stage: 'base' | 'repair'): 'fast' | 'quality' {
-  if (!isCostOptimizedAiPath()) return 'quality'
-  return stage === 'base' ? 'fast' : 'quality'
-}
-
-function getEffectiveMaxRepairPasses(plan?: AIUserPlan): number {
-  const base = getMaxRepairPassesByPlan(plan)
-  if (!isCostOptimizedAiPath()) return base
-  return 0
-}
-
-function getCostOptimizedComprehensiveLiveSectionKeys(): Array<keyof AIPremiumReport['sections']> {
-  return [
-    'introduction',
-    'careerPath',
-    'relationshipDynamics',
-    'timingAdvice',
-    'actionPlan',
-    'conclusion',
-  ]
-}
-
-function recordRewriteModeMetric(
-  reportType: 'comprehensive' | 'timing' | 'themed',
-  modelUsed: string,
-  tokensUsed: number | undefined
-) {
-  const fallback = modelUsed.includes('rewrite-fallback') ? 'true' : 'false'
-  recordCounter('destiny.ai_report.rewrite.mode', 1, {
-    report_type: reportType,
-    model_used: modelUsed,
-    fallback,
-  })
-  if (typeof tokensUsed === 'number') {
-    recordCounter('destiny.ai_report.rewrite.tokens', tokensUsed, {
-      report_type: reportType,
-      model_used: modelUsed,
-    })
-  }
-}
-
-function buildDirectToneOverride(lang: 'ko' | 'en'): string {
-  if (lang === 'ko') {
-    return [
-      '## ?? ?? ??',
-      '- ??? ??? ?? ??? ??? ??? ?????.',
-      '- ? ?? ? ??? ????? ?????.',
-      '- ????? ?? ?? ??? ?? ??? ?????.',
-      '- ??(??/??) -> ?? -> ?? ??? ?????.',
-      '- ??? ??? ????? ????, ??? ?? ???? ???.',
-    ].join('\n')
-  }
-  return [
-    '## Tone Override',
-    '- Use a professional consultant tone, not friendly consolation.',
-    '- Start each paragraph with a conclusion sentence.',
-    '- Prefer clear judgments over vague hedging.',
-    '- Keep the flow: evidence (Saju/Astrology) -> interpretation -> action.',
-    '- Keep short, assertive paragraph sentences.',
-  ].join('\n')
-}
-
-function countSectionChars(sections: Record<string, unknown>): number {
-  const values = Object.values(sections || {}) as unknown[]
-  return values.reduce<number>((acc, value) => {
-    if (typeof value === 'string') {
-      return acc + value.length
-    }
-    if (Array.isArray(value)) {
-      return acc + value.join(' ').length
-    }
-    if (value && typeof value === 'object') {
-      return acc + countSectionChars(value as Record<string, unknown>)
-    }
-    return acc
-  }, 0)
-}
-
-function buildTopMatchedPatterns(
-  patterns: PatternResult[] | undefined,
-  limit = 10
-): TopMatchedPattern[] {
-  if (!Array.isArray(patterns) || patterns.length === 0) return []
-  return patterns.slice(0, limit).map((pattern) => ({
-    id: pattern.id,
-    label: pattern.label,
-    score: pattern.score,
-    confidence: pattern.confidence,
-    domains: [...(pattern.domains || [])],
-    activationReason: pattern.activationReason,
-    matchedSignalIds: [...(pattern.matchedSignalIds || [])].slice(0, 8),
-    matchedKeywords: [...(pattern.matchedKeywords || [])].slice(0, 8),
-  }))
-}
-
-function buildReportQualityMetrics(
-  sections: Record<string, unknown>,
-  sectionPaths: string[],
-  evidenceRefs: SectionEvidenceRefs,
-  context: ReportQualityContext = {}
-): ReportQualityMetrics {
-  const forbiddenAdditionsPass = !validateEvidenceBinding(
-    sections,
-    sectionPaths,
-    evidenceRefs
-  ).violations.some((violation) => violation.unsupportedTokens.length > 0)
-
-  return {
-    ...buildReportQualityMetricsCore({
-      sections,
-      sectionPaths,
-      evidenceRefs,
-      context,
-      minEvidenceRefsPerSection: MIN_EVIDENCE_REFS_PER_SECTION_EXTERNAL,
-      regex: {
-        recheck: RECHECK_REGEX,
-        absoluteRisk: ABSOLUTE_RISK_REGEX,
-        irreversibleAction: IRREVERSIBLE_ACTION_REGEX,
-        cautionIndicator: CAUTION_INDICATOR_REGEX,
-        immediateForce: IMMEDIATE_FORCE_REGEX,
-        mitigation: MITIGATION_REGEX,
-        recommendationTone: RECOMMENDATION_TONE_REGEX,
-      },
-      hasEvidenceSupport,
-      forbiddenAdditionsPass,
-    }),
-    ...buildReportStyleMetrics(sections, sectionPaths, 'ko'),
-  }
-}
-
-function recordReportQualityMetrics(
-  reportType: 'comprehensive' | 'timing' | 'themed',
-  modelUsed: string,
-  quality: ReportQualityMetrics
-) {
-  recordReportQualityMetricsCore(reportType, modelUsed, quality)
-}
-
-function applyFinalReportStyle<T extends Record<string, unknown>>(
-  sections: T,
-  sectionPaths: string[],
-  lang: 'ko' | 'en',
-  reportCore: ReportCoreViewModel
-): T {
-  return applyReportBrandVoice(sections, sectionPaths, lang, {
-    focusDomain: reportCore.focusDomain,
-    actionFocusDomain: reportCore.actionFocusDomain,
-    riskAxisLabel: reportCore.riskAxisLabel,
-    topDecisionLabel: reportCore.topDecisionLabel || reportCore.primaryAction,
-    riskControl: reportCore.riskControl,
-  }) as T
-}
-
-function ensureFinalActionPlanGrounding<T extends Record<string, unknown>>(
-  sections: T,
-  lang: 'ko' | 'en',
-  reportCore: ReportCoreViewModel
-): T {
-  const current = String(sections.actionPlan || '').trim()
-  if (!current) return sections
-
-  const decision = String(reportCore.topDecisionLabel || reportCore.primaryAction || '').trim()
-  const riskControl = String(reportCore.riskControl || '').trim()
-  const prefix: string[] = []
-
-  if (lang === 'ko') {
-    if (decision && !current.includes(decision)) {
-      prefix.push(`지금 가장 맞는 기본 자세는 ${decision}입니다.`)
-    }
-    if (riskControl && !current.includes(riskControl)) {
-      prefix.push(riskControl)
-    }
-  }
-
-  const cleaned = sanitizeUserFacingNarrative(
-    `${prefix.join(' ')} ${current}`
-      .replace(/건강 관계 흐름은 확장 관리 국면이며, 핵심 패턴이 중심을 잡고 있습니다\./g, '')
-      .replace(/건강 주의 신호\s*action\?*/gi, '')
-      .replace(
-        /Pushing through fatigue can degrade judgment quality\.?/gi,
-        '무리해서 버티면 판단 품질이 급격히 떨어질 수 있습니다.'
-      )
-      .replace(
-        /Pushing through irritation or heat signals often turns a short warning into a longer slowdown\.?/gi,
-        '경고 신호를 무시하고 밀어붙이면 짧게 끝날 문제도 길게 끌 수 있습니다.'
-      )
-      .replace(
-        /이후에도 이동·변화 경계 구간 근거가 이어질 것\.?/g,
-        '이후에도 이동과 변화는 한 번 더 확인 절차를 거쳐야 합니다.'
-      )
-      .replace(/\s{2,}/g, ' ')
-      .trim()
-  )
-
-  return {
-    ...sections,
-    actionPlan: cleaned,
-  }
-}
-
-function ensureFinalReportPolish<T extends Record<string, unknown>>(
-  sections: T,
-  lang: 'ko' | 'en',
-  reportCore: ReportCoreViewModel
-): T {
-  if (lang !== 'ko') return sections
-
-  const actionDomain = reportCore.actionFocusDomain || reportCore.focusDomain
-  const branchLabel = sanitizeUserFacingNarrative(
-    localizeReportNarrativeText(
-      String(
-        reportCore.branchSet?.[0]?.label || reportCore.projections?.branches?.detailLines?.[0] || ''
-      ),
-      lang
-    )
-  ).trim()
-
-  let actionPlan = String(sections.actionPlan || '').trim()
-  let conclusion = String(sections.conclusion || '').trim()
-
-  if (actionDomain === 'move') {
-    actionPlan = sanitizeUserFacingNarrative(
-      [
-        reportCore.riskControl || '이동·변화는 한 번에 확정하지 말고 단계 별로 작게 검증하세요.',
-        '예를 들어 이번 주에는 후보 지역을 세 곳으로 좁히고, 통근 시간과 생활비, 계약 조건을 나란히 비교하며 생활 거점을 다시 잡을 준비가 되었는지 확인하세요.',
-        '서두르기보다 확인 절차를 먼저 두고, 큰 이동보다 작은 조정부터 시험하는 편이 손실을 줄입니다.',
-      ].join(' ')
-    )
-    conclusion = sanitizeUserFacingNarrative(
-      [
-        '지금은 경로를 다시 확인하는 쪽이 가장 현실적인 1안입니다.',
-        '이번 승부는 서두르지 않고 순서를 지키는 데 달려 있습니다.',
-        '생활 거점을 바꾸더라도 기준을 먼저 세운 사람이 결과를 더 안정적으로 가져갑니다.',
-      ].join(' ')
-    )
-  } else {
-    conclusion = sanitizeUserFacingNarrative(
-      conclusion
-        .split('distance tuning')
-        .join('거리 조절')
-        .split('1안은 거리 조절 쪽입니다.')
-        .join('지금은 거리를 다시 조절하는 쪽이 가장 현실적인 1안입니다.')
-        .split('지금 차이를 만드는 건 를 어떤 순서로 쓰느냐입니다.')
-        .join('지금 차이를 만드는 건 기준과 속도를 어떤 순서로 맞추느냐입니다.')
-        .split('성과를 남기고. 기준 없이 받은 사람은')
-        .join('성과를 남기고, 기준 없이 받은 사람은')
-    )
-  }
-
-  return {
-    ...sections,
-    actionPlan,
-    conclusion,
-  }
-}
-
-function attachDeterministicArtifacts(
-  deterministicCore: ReturnType<typeof buildDeterministicCore>,
-  unified: ReturnType<typeof buildUnifiedEnvelope>
-): ReturnType<typeof buildDeterministicCore> {
-  return {
-    ...deterministicCore,
-    artifacts: {
-      ...(deterministicCore.artifacts || {}),
-      mappingRulebook: unified.mappingRulebook as unknown as Record<string, unknown>,
-      blocksBySection: unified.blocksBySection,
-      scenarioBundles: (unified.scenarioBundles || []).map((bundle) => ({
-        id: bundle.id,
-        domain: bundle.domain,
-        mainTokens: bundle.main.summaryTokens || [],
-        altTokens: (bundle.alt || []).map((alt) => alt.summaryTokens || []),
-      })),
-      evidenceLinks: (unified.evidenceLinks || []).map((link) => ({
-        id: link.id,
-        signalId: link.signalId,
-        claimIds: link.claimIds || [],
-        anchorId: link.anchorId,
-        setIds: link.setIds || [],
-        score: link.linkScore,
-      })),
-      timelinePriority: unified.timelinePriority,
-    },
-  }
-}
-
-function buildReportOutputCoreFields(
-  reportCore: ReportCoreViewModel | null | undefined,
-  lang: 'ko' | 'en' = 'ko'
-) {
-  if (!reportCore) return {}
-  const localizeReportFreeText = (text: string | undefined | null): string => {
-    const value = String(text || '').trim()
-    if (!value || lang !== 'ko') return value
-    return value
-      .replace(/\bpersonality\b/gi, '??')
-      .replace(/\bcareer\b/gi, '???')
-      .replace(/\brelationship\b/gi, '??')
-      .replace(/\bwealth\b/gi, '??')
-      .replace(/\bhealth\b/gi, '??')
-      .replace(/\bmove\b/gi, '??')
-      .replace(/\bspirituality\b/gi, '??')
-      .replace(/\bnow\b/gi, '??')
-      .replace(/\bweek\b/gi, '?? ?')
-      .replace(/\bfortnight\b/gi, '2?')
-      .replace(/\bmonth\b/gi, '?? ?')
-      .replace(/\bseason\b/gi, '?? ??')
-      .replace(/\bverify\b/gi, '???')
-      .replace(/\bprepare\b/gi, '??')
-      .replace(/\bexecute\b/gi, '??')
-      .replace(/\bTransit\s+saturnReturn\b/gi, '?? ?? ??')
-      .replace(/\bTransit\s+jupiterReturn\b/gi, '?? ??')
-      .replace(/\bTransit\s+nodeReturn\b/gi, '?? ?? ??')
-      .replace(/\bTransit\s+mercuryRetrograde\b/gi, '?? ??? ??')
-      .replace(/\bTransit\s+marsRetrograde\b/gi, '?? ??? ??')
-      .replace(/\bTransit\s+venusRetrograde\b/gi, '?? ??? ??')
-      .replace(/\bsaturnReturn\b/gi, '?? ?? ??')
-      .replace(/\bjupiterReturn\b/gi, '?? ??')
-      .replace(/\bnodeReturn\b/gi, '?? ?? ??')
-      .replace(/\bmercuryRetrograde\b/gi, '?? ??? ??')
-      .replace(/\bmarsRetrograde\b/gi, '?? ??? ??')
-      .replace(/\bvenusRetrograde\b/gi, '?? ??? ??')
-      .replace(/\bsolarReturn\b/gi, '?? ?? ??')
-      .replace(/\blunarReturn\b/gi, '?? ?? ??')
-      .replace(/\bprogressions?\b/gi, '?? ?? ??')
-      .replace(/\bcaution\b/gi, '?? ??')
-      .replace(/\bdowngrade pressure\b/gi, '?? ?? ??')
-      .replace(/\bgeokguk strength\b/gi, '?? ???')
-      .replace(/\bdebt restructure\b/gi, '?? ???')
-      .replace(/\bliquidity defense\b/gi, '??? ??')
-      .replace(/\bexpense spike\b/gi, '?? ?? ??')
-      .replace(/\bpromotion review\b/gi, '?? ??')
-      .replace(/\brecovery reset\b/gi, '?? ???')
-      .replace(/\bbasecamp reset\b/gi, '?? ???')
-      .replace(/\bmap full debt stack\b/gi, '?? ?? ??? ?? ????')
-      .replace(/\bwealth volatility pattern\b/gi, '?? ??? ??')
-      .replace(/\bcareer expansion pattern\b/gi, '??? ?? ??')
-      .replace(/\brelationship tension pattern\b/gi, '?? ?? ??')
-      .replace(/\bcashflow\b/gi, '????')
-      .replace(/\bmoney expansion action\b/gi, '?? ??? ?? ???? ?????')
-      .replace(/\brelationship caution\b/gi, '????? ???? ?? ??? ?????')
-      .replace(/action pressure/gi, 'action pressure')
-      .replace(/relationship caution/gi, 'relationship caution')
-      .replace(/money expansion action/gi, 'money expansion action')
-      .replace(/career expansion pattern/gi, 'career expansion pattern')
-      .replace(/relationship tension pattern/gi, 'relationship tension pattern')
-      .replace(
-        /action pressure stayed narrow between ([^\s]+) and ([^\s]+)/gi,
-        (_, left: string, right: string) =>
-          `${getReportDomainLabel(left, 'ko')}? ${getReportDomainLabel(right, 'ko')} ??? ?? ??? ???? ?????.`
-      )
-      .replace(
-        /\b\w+\s+stayed secondary because total support remained below the winner\b/gi,
-        '?? ??? ????? ?? ???? ??????.'
-      )
-      .replace(/basecamp reset/gi, '?? ???')
-      .replace(/promotion review/gi, '?? ??')
-      .replace(/contract negotiation/gi, '?? ??')
-      .replace(/specialist track/gi, '??? ??')
-      .replace(/wealth volatility pattern/gi, '?? ??? ??')
-      .replace(/career expansion pattern/gi, '??? ?? ??')
-      .replace(/relationship tension pattern/gi, '?? ?? ??')
-      .replace(/sleep disruption/gi, '?? ???')
-      .replace(/burnout risk/gi, '??? ??')
-      .replace(/liquidity defense/gi, '??? ??')
-      .replace(/debt restructuring/gi, '?? ???')
-      .replace(/route recheck/gi, '?? ???')
-      .replace(/recovery reset/gi, '?? ???')
-      .replace(/cashflow/gi, '????')
-      .replace(/\s+/g, ' ')
-      .trim()
-  }
-  const focusLabel = getReportDomainLabel(reportCore.focusDomain, lang)
-  const actionLabel = getReportDomainLabel(
-    reportCore.actionFocusDomain || reportCore.focusDomain,
-    lang
-  )
-  const polishBranchSentence = (text: string | undefined | null): string => {
-    const base = localizeReportFreeText(text)
-    if (!base || lang !== 'ko') return base
-    const replacements: Array<[RegExp, string]> = [
-      [
-        new RegExp(
-          '([\\uAC00-\\uD7A3]+)\\s+Expansion Pattern\\s+\\uD328\\uD134\\s+\\uADFC\\uAC70\\uAC00\\s+\\uC720\\uC9C0\\uB420\\s+\\uAC83',
-          'gi'
-        ),
-        '$1 \\uD655\\uC7A5 \\uD750\\uB984\\uC774 \\uC720\\uC9C0\\uB420 \\uAC83',
-      ],
-      [
-        new RegExp(
-          '(.+?)\\s+\\uC774\\uD6C4\\uC5D0\\uB3C4\\s+([\\uAC00-\\uD7A3]+)\\s+Expansion Pattern\\s+\\uADFC\\uAC70\\uAC00\\s+\\uC774\\uC5B4\\uC9C8\\s+\\uAC83',
-          'gi'
-        ),
-        '$1 \\uC774\\uD6C4\\uC5D0\\uB3C4 $2 \\uD655\\uC7A5 \\uD750\\uB984\\uC774 \\uC774\\uC5B4\\uC9C8 \\uAC83',
-      ],
-      [new RegExp('\\bExpansion Pattern\\b', 'gi'), '\\uD655\\uC7A5 \\uD750\\uB984'],
-      [
-        new RegExp(
-          '([\\uAC00-\\uD7A3]+)\\s+(?:\\uD655\\uC7A5|\\uAE34\\uC7A5|\\uBCC0\\uB3D9\\uC131)\\s+\\uD750\\uB984\\s+\\uD328\\uD134\\s+\\uADFC\\uAC70\\uAC00\\s+\\uC720\\uC9C0\\uB420\\s+\\uAC83',
-          'gi'
-        ),
-        '$1 \\uD750\\uB984\\uC774 \\uC720\\uC9C0\\uB420 \\uAC83',
-      ],
-      [
-        new RegExp(
-          '\\uC2DC\\uB098\\uB9AC\\uC624\\s+\\uD655\\uB960\\s+[\\d.]+%\\uC640\\s+\\uC2E0\\uB8B0\\uB3C4\\s+[\\d.]+%\\uAC00\\s+\\uC720\\uC9C0\\uB420\\s+\\uAC83',
-          'gi'
-        ),
-        '\\uD604\\uC7AC \\uAC00\\uB2A5\\uC131\\uACFC \\uC2E0\\uB8B0\\uB3C4\\uAC00 \\uC720\\uC9C0\\uB420 \\uAC83',
-      ],
-      [
-        new RegExp(
-          '\\uD0C0\\uC774\\uBC0D\\s+\\uC801\\uD569\\uB3C4\\s+[\\d.]+%\\s+\\uC774\\uC0C1\\uC5D0\\uC11C\\s+(.+?)\\uB97C\\s+\\uBC14\\uB85C\\s+\\uC2E4\\uD589\\uD560\\s+\\uC218\\s+\\uC788\\uC744\\s+\\uAC83',
-          'gi'
-        ),
-        '\\uD0C0\\uC774\\uBC0D\\uC774 \\uCDA9\\uBD84\\uD788 \\uB9DE\\uC744 \\uB54C $1\\uB97C \\uC2E4\\uD589\\uD560 \\uC218 \\uC788\\uC744 \\uAC83',
-      ],
-      [
-        new RegExp(
-          '(.+?)\\s+\\uC774\\uD6C4\\uC5D0\\uB3C4\\s+([\\uAC00-\\uD7A3]+)\\s+\\uD750\\uB984\\s+\\uADFC\\uAC70\\uAC00\\s+\\uC774\\uC5B4\\uC9C8\\s+\\uAC83',
-          'gi'
-        ),
-        '$1 \\uC774\\uD6C4\\uC5D0\\uB3C4 $2 \\uD750\\uB984\\uC774 \\uC774\\uC5B4\\uC9C8 \\uAC83',
-      ],
-    ]
-
-    return replacements
-      .reduce((current, [pattern, replacement]) => current.replace(pattern, replacement), base)
-      .replace(/\s+/g, ' ')
-      .trim()
-  }
-  const localizeProjectionList = (items: Array<string | undefined | null>) =>
-    items.map((item) => polishBranchSentence(item)).filter(Boolean)
-  const timingWindow = reportCore.domainTimingWindows.find(
-    (item) => item.domain === reportCore.actionFocusDomain || item.domain === reportCore.focusDomain
-  )
-  const structureSummary =
-    lang === 'ko'
-      ? reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
-        ? `?? ?? ???? ? ??? ${actionLabel}??, ?? ?? ??? ${focusLabel}???. ?? ?? ?? ?? ${reportCore.latentTopAxes
-            .slice(0, 3)
-            .map((axis) => axis.label)
-            .join(', ')}???.`
-        : `?? ?? ?? ???? ??? ${focusLabel}??, ??? ?? ???? ? ??? ${actionLabel}???. ?? ?? ?? ?? ${reportCore.latentTopAxes
-            .slice(0, 3)
-            .map((axis) => axis.label)
-            .join(', ')}???.`
-      : reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
-        ? `The axis to handle directly right now is ${actionLabel}, while ${focusLabel} remains the background structural axis. The top latent drivers are ${reportCore.latentTopAxes
-            .slice(0, 3)
-            .map((axis) => axis.label)
-            .join(', ')}.`
-        : `The identity axis is ${focusLabel}, the action axis is ${actionLabel}, and the top latent drivers are ${reportCore.latentTopAxes
-            .slice(0, 3)
-            .map((axis) => axis.label)
-            .join(', ')}.`
-  const timingSummary =
-    lang === 'ko'
-      ? `${actionLabel} ??? ?? ?? ${localizeReportFreeText(timingWindow?.window || '??')}??, ${localizeReportFreeText(timingWindow?.timingConflictNarrative || '??? ??? ?? ?? ???.')}`
-      : `Timing for ${actionLabel} reads as ${timingWindow?.window || 'unknown'}, and ${timingWindow?.timingConflictNarrative || 'structure and trigger need to be read together.'}`
-  const conflictSummary =
-    lang === 'ko'
-      ? localizeReportFreeText(reportCore.arbitrationBrief.conflictReasons[0]) ||
-        `${focusLabel}? ?? ??? ?? ??, ${actionLabel}? ?? ??? ??? ? ?? ?? ???.`
-      : reportCore.arbitrationBrief.conflictReasons[0] ||
-        `${focusLabel} and ${actionLabel} currently separate into identity and action axes.`
-  const evidenceSummary =
-    lang === 'ko'
-      ? `?? ?? ${reportCore.topSignalIds.slice(0, 3).length}?, ?? ?? ${reportCore.topPatternIds.slice(0, 2).length}?, ?? ?? ${reportCore.topScenarioIds.slice(0, 2).length}?? ?? ??? ??? ????.`
-      : `Top signals ${reportCore.topSignalIds.slice(0, 3).join(', ')}, patterns ${reportCore.topPatternIds.slice(0, 2).join(', ')}, and scenarios ${reportCore.topScenarioIds.slice(0, 2).join(', ')} form the current spine.`
-  return {
-    focusDomain: reportCore.focusDomain,
-    actionFocusDomain: reportCore.actionFocusDomain,
-    matrixView: (reportCore.matrixView || []).slice(0, 4).map((row) => ({
-      domain: row.domain,
-      label: localizeReportFreeText(row.label),
-      cells: (row.cells || []).slice(0, 4).map((cell) => ({
-        ...cell,
-        summary: localizeReportFreeText(cell.summary),
-      })),
-    })),
-    branchSet: (reportCore.branchSet || []).slice(0, 3).map((branch) => ({
-      ...branch,
-      label: localizeReportFreeText(branch.label),
-      summary: localizeReportFreeText(branch.summary),
-      entry: localizeProjectionList(branch.entry || []),
-      abort: localizeProjectionList(branch.abort || []),
-      sustain: localizeProjectionList(branch.sustain || []),
-      reversalRisk: polishBranchSentence(branch.reversalRisk || ''),
-      wrongMoveCost: polishBranchSentence(branch.wrongMoveCost || ''),
-    })),
-    singleUserModel: reportCore.singleUserModel
-      ? {
-          subject: localizeReportFreeText(reportCore.singleUserModel.subject),
-          facets: reportCore.singleUserModel.facets.map((facet) => ({
-            ...facet,
-            label: localizeReportFreeText(facet.label),
-            summary: localizeReportFreeText(facet.summary),
-            details: localizeProjectionList(facet.details || []),
-          })),
-        }
-      : undefined,
-    singleSubjectView: reportCore.singleSubjectView
-      ? {
-          directAnswer: localizeReportFreeText(reportCore.singleSubjectView.directAnswer),
-          structureAxis: {
-            ...reportCore.singleSubjectView.structureAxis,
-            label: localizeReportFreeText(reportCore.singleSubjectView.structureAxis.label),
-            thesis: localizeReportFreeText(reportCore.singleSubjectView.structureAxis.thesis),
-            topAxes: localizeProjectionList(
-              reportCore.singleSubjectView.structureAxis.topAxes || []
-            ),
-          },
-          actionAxis: {
-            ...reportCore.singleSubjectView.actionAxis,
-            label: localizeReportFreeText(reportCore.singleSubjectView.actionAxis.label),
-            nowAction: localizeReportFreeText(reportCore.singleSubjectView.actionAxis.nowAction),
-            whyThisFirst: localizeReportFreeText(
-              reportCore.singleSubjectView.actionAxis.whyThisFirst
-            ),
-          },
-          riskAxis: {
-            ...reportCore.singleSubjectView.riskAxis,
-            label: localizeReportFreeText(reportCore.singleSubjectView.riskAxis.label),
-            warning: localizeReportFreeText(reportCore.singleSubjectView.riskAxis.warning),
-            hardStops: localizeProjectionList(
-              reportCore.singleSubjectView.riskAxis.hardStops || []
-            ),
-          },
-          timingState: {
-            ...reportCore.singleSubjectView.timingState,
-            bestWindow: localizeReportFreeText(reportCore.singleSubjectView.timingState.bestWindow),
-            whyNow: localizeReportFreeText(reportCore.singleSubjectView.timingState.whyNow),
-            whyNotYet: localizeReportFreeText(reportCore.singleSubjectView.timingState.whyNotYet),
-            windows: reportCore.singleSubjectView.timingState.windows.map((window) => ({
-              ...window,
-              summary: localizeReportFreeText(window.summary),
-            })),
-          },
-          competingPressures: reportCore.singleSubjectView.competingPressures.map((pressure) => ({
-            ...pressure,
-            label: localizeReportFreeText(pressure.label),
-            nextWindow: localizeReportFreeText(pressure.nextWindow),
-            summary: localizeReportFreeText(pressure.summary),
-          })),
-          branches: reportCore.singleSubjectView.branches.map((branch) => ({
-            label: localizeReportFreeText(branch.label),
-            summary: localizeReportFreeText(branch.summary),
-            entryConditions: localizeProjectionList(branch.entryConditions || []),
-            abortConditions: localizeProjectionList(branch.abortConditions || []),
-            nextMove: localizeReportFreeText(branch.nextMove),
-          })),
-          entryConditions: localizeProjectionList(
-            reportCore.singleSubjectView.entryConditions || []
-          ),
-          abortConditions: localizeProjectionList(
-            reportCore.singleSubjectView.abortConditions || []
-          ),
-          nextMove: localizeReportFreeText(reportCore.singleSubjectView.nextMove),
-          confidence: reportCore.singleSubjectView.confidence,
-          reliability: reportCore.singleSubjectView.reliability
-            ? {
-                crossAgreement: reportCore.singleSubjectView.reliability.crossAgreement,
-                contradictionFlags: localizeProjectionList(
-                  reportCore.singleSubjectView.reliability.contradictionFlags || []
-                ),
-                notes: localizeProjectionList(reportCore.singleSubjectView.reliability.notes || []),
-              }
-            : undefined,
-        }
-      : undefined,
-    personModel: reportCore.personModel
-      ? {
-          subject: localizeReportFreeText(reportCore.personModel.subject),
-          overview: localizeReportFreeText(reportCore.personModel.overview),
-          structuralCore: {
-            ...reportCore.personModel.structuralCore,
-            overview: localizeReportFreeText(reportCore.personModel.structuralCore.overview),
-            latentAxes: localizeProjectionList(
-              reportCore.personModel.structuralCore.latentAxes || []
-            ),
-          },
-          formationProfile: {
-            ...reportCore.personModel.formationProfile,
-            summary: localizeReportFreeText(reportCore.personModel.formationProfile.summary),
-            repeatedPatternFamilies: localizeProjectionList(
-              reportCore.personModel.formationProfile.repeatedPatternFamilies || []
-            ),
-            dominantLatentGroups: localizeProjectionList(
-              reportCore.personModel.formationProfile.dominantLatentGroups || []
-            ),
-            pressureHabits: localizeProjectionList(
-              reportCore.personModel.formationProfile.pressureHabits || []
-            ),
-            supportHabits: localizeProjectionList(
-              reportCore.personModel.formationProfile.supportHabits || []
-            ),
-          },
-          timeProfile: {
-            ...reportCore.personModel.timeProfile,
-            timingNarrative: localizeReportFreeText(
-              reportCore.personModel.timeProfile.timingNarrative
-            ),
-            windows: reportCore.personModel.timeProfile.windows.map((window) => ({
-              ...window,
-              label: localizeReportFreeText(window.label),
-              window: localizeReportFreeText(window.window),
-              granularity: localizeReportFreeText(window.granularity),
-              whyNow: localizeReportFreeText(window.whyNow),
-              entryConditions: localizeProjectionList(window.entryConditions || []),
-              abortConditions: localizeProjectionList(window.abortConditions || []),
-            })),
-            activationSources: reportCore.personModel.timeProfile.activationSources.map(
-              (source) => ({
-                ...source,
-                label: localizeReportFreeText(source.label),
-              })
-            ),
-          },
-          layers: reportCore.personModel.layers.map((layer) => ({
-            ...layer,
-            label: localizeReportFreeText(layer.label),
-            summary: localizeReportFreeText(layer.summary),
-            bullets: localizeProjectionList(layer.bullets || []),
-          })),
-          dimensions: reportCore.personModel.dimensions.map((dimension) => ({
-            ...dimension,
-            label: localizeReportFreeText(dimension.label),
-            summary: localizeReportFreeText(dimension.summary),
-          })),
-          domainStateGraph: reportCore.personModel.domainStateGraph.map((state) => ({
-            ...state,
-            label: localizeReportFreeText(state.label),
-            thesis: localizeReportFreeText(state.thesis),
-            supportSignals: localizeProjectionList(state.supportSignals || []),
-            pressureSignals: localizeProjectionList(state.pressureSignals || []),
-            firstMove: localizeReportFreeText(state.firstMove),
-            holdMove: localizeReportFreeText(state.holdMove),
-            timescales: (state.timescales || []).map((timescale) => ({
-              ...timescale,
-              thesis: localizeReportFreeText(timescale.thesis),
-              entryConditions: localizeProjectionList(timescale.entryConditions || []),
-              abortConditions: localizeProjectionList(timescale.abortConditions || []),
-            })),
-          })),
-          domainPortraits: reportCore.personModel.domainPortraits.map((portrait) => ({
-            ...portrait,
-            label: localizeReportFreeText(portrait.label),
-            summary: localizeReportFreeText(portrait.summary),
-            baselineThesis: localizeReportFreeText(portrait.baselineThesis),
-            activationThesis: localizeReportFreeText(portrait.activationThesis),
-            likelyExpressions: localizeProjectionList(portrait.likelyExpressions || []),
-            riskExpressions: localizeProjectionList(portrait.riskExpressions || []),
-            allowedActions: localizeProjectionList(portrait.allowedActions || []),
-            blockedActions: localizeProjectionList(portrait.blockedActions || []),
-          })),
-          states: reportCore.personModel.states.map((state) => ({
-            ...state,
-            label: localizeReportFreeText(state.label),
-            summary: localizeReportFreeText(state.summary),
-            drivers: localizeProjectionList(state.drivers || []),
-            counterweights: localizeProjectionList(state.counterweights || []),
-          })),
-          appliedProfile: {
-            foodProfile: {
-              ...reportCore.personModel.appliedProfile.foodProfile,
-              summary: localizeReportFreeText(
-                reportCore.personModel.appliedProfile.foodProfile.summary
-              ),
-              thermalBias: localizeReportFreeText(
-                reportCore.personModel.appliedProfile.foodProfile.thermalBias
-              ),
-              digestionStyle: localizeReportFreeText(
-                reportCore.personModel.appliedProfile.foodProfile.digestionStyle
-              ),
-              helpfulFoods: localizeProjectionList(
-                reportCore.personModel.appliedProfile.foodProfile.helpfulFoods || []
-              ),
-              cautionFoods: localizeProjectionList(
-                reportCore.personModel.appliedProfile.foodProfile.cautionFoods || []
-              ),
-              rhythmGuidance: localizeProjectionList(
-                reportCore.personModel.appliedProfile.foodProfile.rhythmGuidance || []
-              ),
-            },
-            lifeRhythmProfile: {
-              ...reportCore.personModel.appliedProfile.lifeRhythmProfile,
-              summary: localizeReportFreeText(
-                reportCore.personModel.appliedProfile.lifeRhythmProfile.summary
-              ),
-              peakWindows: localizeProjectionList(
-                reportCore.personModel.appliedProfile.lifeRhythmProfile.peakWindows || []
-              ),
-              recoveryWindows: localizeProjectionList(
-                reportCore.personModel.appliedProfile.lifeRhythmProfile.recoveryWindows || []
-              ),
-              stressBehaviors: localizeProjectionList(
-                reportCore.personModel.appliedProfile.lifeRhythmProfile.stressBehaviors || []
-              ),
-              regulationMoves: localizeProjectionList(
-                reportCore.personModel.appliedProfile.lifeRhythmProfile.regulationMoves || []
-              ),
-            },
-            relationshipStyleProfile: {
-              ...reportCore.personModel.appliedProfile.relationshipStyleProfile,
-              summary: localizeReportFreeText(
-                reportCore.personModel.appliedProfile.relationshipStyleProfile.summary
-              ),
-              attractionPatterns: localizeProjectionList(
-                reportCore.personModel.appliedProfile.relationshipStyleProfile.attractionPatterns ||
-                  []
-              ),
-              stabilizers: localizeProjectionList(
-                reportCore.personModel.appliedProfile.relationshipStyleProfile.stabilizers || []
-              ),
-              ruptureTriggers: localizeProjectionList(
-                reportCore.personModel.appliedProfile.relationshipStyleProfile.ruptureTriggers || []
-              ),
-              repairMoves: localizeProjectionList(
-                reportCore.personModel.appliedProfile.relationshipStyleProfile.repairMoves || []
-              ),
-            },
-            workStyleProfile: {
-              ...reportCore.personModel.appliedProfile.workStyleProfile,
-              summary: localizeReportFreeText(
-                reportCore.personModel.appliedProfile.workStyleProfile.summary
-              ),
-              bestRoles: localizeProjectionList(
-                reportCore.personModel.appliedProfile.workStyleProfile.bestRoles || []
-              ),
-              bestConditions: localizeProjectionList(
-                reportCore.personModel.appliedProfile.workStyleProfile.bestConditions || []
-              ),
-              fatigueTriggers: localizeProjectionList(
-                reportCore.personModel.appliedProfile.workStyleProfile.fatigueTriggers || []
-              ),
-              leverageMoves: localizeProjectionList(
-                reportCore.personModel.appliedProfile.workStyleProfile.leverageMoves || []
-              ),
-            },
-            moneyStyleProfile: {
-              ...reportCore.personModel.appliedProfile.moneyStyleProfile,
-              summary: localizeReportFreeText(
-                reportCore.personModel.appliedProfile.moneyStyleProfile.summary
-              ),
-              earningPattern: localizeProjectionList(
-                reportCore.personModel.appliedProfile.moneyStyleProfile.earningPattern || []
-              ),
-              savingPattern: localizeProjectionList(
-                reportCore.personModel.appliedProfile.moneyStyleProfile.savingPattern || []
-              ),
-              leakageRisks: localizeProjectionList(
-                reportCore.personModel.appliedProfile.moneyStyleProfile.leakageRisks || []
-              ),
-              controlRules: localizeProjectionList(
-                reportCore.personModel.appliedProfile.moneyStyleProfile.controlRules || []
-              ),
-            },
-            environmentProfile: {
-              ...reportCore.personModel.appliedProfile.environmentProfile,
-              summary: localizeReportFreeText(
-                reportCore.personModel.appliedProfile.environmentProfile.summary
-              ),
-              preferredSettings: localizeProjectionList(
-                reportCore.personModel.appliedProfile.environmentProfile.preferredSettings || []
-              ),
-              drainSignals: localizeProjectionList(
-                reportCore.personModel.appliedProfile.environmentProfile.drainSignals || []
-              ),
-              resetActions: localizeProjectionList(
-                reportCore.personModel.appliedProfile.environmentProfile.resetActions || []
-              ),
-            },
-          },
-          relationshipProfile: {
-            ...reportCore.personModel.relationshipProfile,
-            summary: localizeReportFreeText(reportCore.personModel.relationshipProfile.summary),
-            partnerArchetypes: localizeProjectionList(
-              reportCore.personModel.relationshipProfile.partnerArchetypes || []
-            ),
-            inflowPaths: localizeProjectionList(
-              reportCore.personModel.relationshipProfile.inflowPaths || []
-            ),
-            commitmentConditions: localizeProjectionList(
-              reportCore.personModel.relationshipProfile.commitmentConditions || []
-            ),
-            breakPatterns: localizeProjectionList(
-              reportCore.personModel.relationshipProfile.breakPatterns || []
-            ),
-          },
-          careerProfile: {
-            ...reportCore.personModel.careerProfile,
-            summary: localizeReportFreeText(reportCore.personModel.careerProfile.summary),
-            suitableLanes: localizeProjectionList(
-              reportCore.personModel.careerProfile.suitableLanes || []
-            ),
-            executionStyle: localizeProjectionList(
-              reportCore.personModel.careerProfile.executionStyle || []
-            ),
-            hiringTriggers: localizeProjectionList(
-              reportCore.personModel.careerProfile.hiringTriggers || []
-            ),
-            blockers: localizeProjectionList(reportCore.personModel.careerProfile.blockers || []),
-          },
-          futureBranches: reportCore.personModel.futureBranches.map((branch) => ({
-            ...branch,
-            label: localizeReportFreeText(branch.label),
-            summary: localizeReportFreeText(branch.summary),
-            conditions: localizeProjectionList(branch.conditions || []),
-            blockers: localizeProjectionList(branch.blockers || []),
-          })),
-          eventOutlook: reportCore.personModel.eventOutlook.map((event) => ({
-            ...event,
-            label: localizeReportFreeText(event.label),
-            summary: localizeReportFreeText(event.summary),
-            bestWindow: localizeReportFreeText(event.bestWindow || ''),
-            entryConditions: localizeProjectionList(event.entryConditions || []),
-            abortConditions: localizeProjectionList(event.abortConditions || []),
-            nextMove: localizeReportFreeText(event.nextMove),
-          })),
-          uncertaintyEnvelope: {
-            ...reportCore.personModel.uncertaintyEnvelope,
-            summary: localizeReportFreeText(reportCore.personModel.uncertaintyEnvelope.summary),
-            reliableAreas: localizeProjectionList(
-              reportCore.personModel.uncertaintyEnvelope.reliableAreas || []
-            ),
-            conditionalAreas: localizeProjectionList(
-              reportCore.personModel.uncertaintyEnvelope.conditionalAreas || []
-            ),
-            unresolvedAreas: localizeProjectionList(
-              reportCore.personModel.uncertaintyEnvelope.unresolvedAreas || []
-            ),
-          },
-          evidenceLedger: {
-            ...reportCore.personModel.evidenceLedger,
-            coherenceNotes: localizeProjectionList(
-              reportCore.personModel.evidenceLedger.coherenceNotes || []
-            ),
-            contradictionFlags: localizeProjectionList(
-              reportCore.personModel.evidenceLedger.contradictionFlags || []
-            ),
-          },
-        }
-      : undefined,
-    arbitrationBrief: reportCore.arbitrationBrief,
-    latentTopAxes: reportCore.latentTopAxes,
-    projections: {
-      structure: {
-        headline: lang === 'ko' ? '?? ??' : 'Structure Projection',
-        summary: structureSummary,
-        topAxes: reportCore.latentTopAxes.slice(0, 4).map((axis) => axis.label),
-        detailLines: localizeProjectionList(reportCore.projections?.structure?.detailLines || []),
-        drivers: localizeProjectionList(reportCore.projections?.structure?.drivers || []),
-        counterweights: localizeProjectionList(
-          reportCore.projections?.structure?.counterweights || []
-        ),
-        nextMoves: localizeProjectionList(reportCore.projections?.structure?.nextMoves || []),
-      },
-      timing: {
-        headline: lang === 'ko' ? '??? ??' : 'Timing Projection',
-        summary: timingSummary,
-        window: timingWindow?.window,
-        granularity: timingWindow?.timingGranularity,
-        detailLines: localizeProjectionList(reportCore.projections?.timing?.detailLines || []),
-        drivers: localizeProjectionList(reportCore.projections?.timing?.drivers || []),
-        counterweights: localizeProjectionList(
-          reportCore.projections?.timing?.counterweights || []
-        ),
-        nextMoves: localizeProjectionList(reportCore.projections?.timing?.nextMoves || []),
-      },
-      conflict: {
-        headline: lang === 'ko' ? '?? ??' : 'Conflict Projection',
-        summary: conflictSummary,
-        detailLines: localizeProjectionList(reportCore.projections?.conflict?.detailLines || []),
-        drivers: localizeProjectionList(reportCore.projections?.conflict?.drivers || []),
-        counterweights: localizeProjectionList(
-          reportCore.projections?.conflict?.counterweights || []
-        ),
-        nextMoves: localizeProjectionList(reportCore.projections?.conflict?.nextMoves || []),
-        reasons:
-          lang === 'ko'
-            ? reportCore.arbitrationBrief.conflictReasons
-                .slice(0, 3)
-                .map((item) => localizeReportFreeText(item))
-            : reportCore.arbitrationBrief.conflictReasons.slice(0, 3),
-      },
-      action: {
-        headline: lang === 'ko' ? '?? ??' : 'Action Projection',
-        summary:
-          lang === 'ko'
-            ? `${actionLabel}??? ${reportCore.topDecisionLabel || reportCore.topDecisionId || reportCore.primaryAction}? ?? ?? ???????.`
-            : `On the ${actionLabel} axis, ${reportCore.topDecisionLabel || reportCore.topDecisionId || reportCore.primaryAction} is the live move.`,
-        detailLines: localizeProjectionList(reportCore.projections?.action?.detailLines || []),
-        drivers: localizeProjectionList(reportCore.projections?.action?.drivers || []),
-        counterweights: localizeProjectionList(
-          reportCore.projections?.action?.counterweights || []
-        ),
-        nextMoves: localizeProjectionList(reportCore.projections?.action?.nextMoves || []),
-        reasons: [
-          reportCore.topDecisionLabel || reportCore.topDecisionId || '',
-          ...(reportCore.judgmentPolicy.allowedActionLabels || []).slice(0, 2),
-        ].filter(Boolean),
-      },
-      risk: {
-        headline: lang === 'ko' ? '??? ??' : 'Risk Projection',
-        summary:
-          lang === 'ko'
-            ? [
-                localizeReportFreeText(reportCore.primaryCaution),
-                localizeReportFreeText(reportCore.riskControl),
-              ]
-                .filter(Boolean)
-                .join('. ')
-            : `${reportCore.primaryCaution} ${reportCore.riskControl}`.trim(),
-        detailLines: localizeProjectionList(reportCore.projections?.risk?.detailLines || []),
-        drivers: localizeProjectionList(reportCore.projections?.risk?.drivers || []),
-        counterweights: localizeProjectionList(reportCore.projections?.risk?.counterweights || []),
-        nextMoves: localizeProjectionList(reportCore.projections?.risk?.nextMoves || []),
-        reasons: [
-          ...(reportCore.judgmentPolicy.blockedActionLabels || []).slice(0, 2),
-          ...(reportCore.judgmentPolicy.hardStopLabels || []).slice(0, 2),
-        ]
-          .map((item) => (lang === 'ko' ? localizeReportFreeText(item) : item))
-          .filter(Boolean),
-      },
-      evidence: {
-        headline: lang === 'ko' ? '?? ??' : 'Evidence Projection',
-        summary: evidenceSummary,
-        detailLines: localizeProjectionList(reportCore.projections?.evidence?.detailLines || []),
-        drivers: localizeProjectionList(reportCore.projections?.evidence?.drivers || []),
-        counterweights: localizeProjectionList(
-          reportCore.projections?.evidence?.counterweights || []
-        ),
-        nextMoves: localizeProjectionList(reportCore.projections?.evidence?.nextMoves || []),
-        reasons:
-          lang === 'ko'
-            ? [
-                reportCore.topSignalIds.length
-                  ? `?? ?? ${reportCore.topSignalIds.slice(0, 3).length}?? ??? ?? ????.`
-                  : '',
-                reportCore.topPatternIds.length
-                  ? `?? ?? ${reportCore.topPatternIds.slice(0, 2).length}?? ?? ???? ????.`
-                  : '',
-                reportCore.topScenarioIds.length
-                  ? `?? ???? ${reportCore.topScenarioIds.slice(0, 2).length}?? ?? ??? ?????.`
-                  : '',
-              ].filter(Boolean)
-            : [
-                ...reportCore.topSignalIds.slice(0, 2),
-                ...reportCore.topPatternIds.slice(0, 1),
-                ...reportCore.topScenarioIds.slice(0, 1),
-              ].filter(Boolean),
-      },
-      branches: {
-        headline: lang === 'ko' ? '?? ??' : 'Branch Projection',
-        summary:
-          localizeReportFreeText(reportCore.projections?.branches?.summary) ||
-          (lang === 'ko'
-            ? '??? ??? ??? ?????? 2~3?? ?? ??? ??? ?? ????.'
-            : 'Multiple realistic branches are open rather than one fixed outcome.'),
-        window: reportCore.projections?.branches?.window,
-        granularity: reportCore.projections?.branches?.granularity,
-        detailLines: localizeProjectionList(reportCore.projections?.branches?.detailLines || []),
-        drivers: localizeProjectionList(reportCore.projections?.branches?.drivers || []),
-        counterweights: localizeProjectionList(
-          reportCore.projections?.branches?.counterweights || []
-        ),
-        nextMoves: localizeProjectionList(reportCore.projections?.branches?.nextMoves || []),
-        reasons: localizeProjectionList(reportCore.projections?.branches?.reasons || []),
-      },
-    },
-    topDecisionId: reportCore.topDecisionId,
-    topDecisionLabel: reportCore.topDecisionLabel,
-    riskControl: reportCore.riskControl,
-  }
-}
-
-function toObjectRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
-  return value as Record<string, unknown>
-}
-
-function toFiniteNumber(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) return value
-  if (typeof value === 'string') {
-    const parsed = Number(value)
-    return Number.isFinite(parsed) ? parsed : null
-  }
-  return null
-}
-
-type PersonalDaeunWindow = {
-  startAge: number
-  endAge: number
-  element?: string
-  ganji?: string
-  isCurrent: boolean
-}
-
-function extractPersonalDaeunWindows(
-  input: MatrixCalculationInput,
-  timingData?: TimingData
-): PersonalDaeunWindow[] {
-  const age = calculateProfileAge(input.profileContext?.birthDate, input.currentDateIso)
-  const windows: PersonalDaeunWindow[] = []
-  const rawSnapshot = toObjectRecord(input.sajuSnapshot)
-  const rawUnse = toObjectRecord(rawSnapshot?.unse)
-  const rawDaeun = rawUnse?.daeun
-  if (Array.isArray(rawDaeun)) {
-    for (const item of rawDaeun) {
-      const row = toObjectRecord(item)
-      if (!row) continue
-      const startAge =
-        toFiniteNumber(row.startAge) ??
-        toFiniteNumber(row.age) ??
-        toFiniteNumber(row.start) ??
-        toFiniteNumber(row.beginAge)
-      if (startAge === null) continue
-      const endAge =
-        toFiniteNumber(row.endAge) ??
-        toFiniteNumber(row.end) ??
-        (Number.isFinite(startAge) ? startAge + 9 : null)
-      if (endAge === null) continue
-      const heavenlyStem = typeof row.heavenlyStem === 'string' ? row.heavenlyStem : ''
-      const earthlyBranch = typeof row.earthlyBranch === 'string' ? row.earthlyBranch : ''
-      const ganji =
-        typeof row.ganji === 'string' && row.ganji
-          ? row.ganji
-          : `${heavenlyStem || ''}${earthlyBranch || ''}` || undefined
-      const element =
-        typeof row.element === 'string'
-          ? row.element
-          : heavenlyStem
-            ? getElementByStemName(heavenlyStem)
-            : undefined
-      const isCurrent =
-        row.current === true ||
-        row.isCurrent === true ||
-        (age !== null && age >= startAge && age <= endAge)
-      windows.push({
-        startAge,
-        endAge,
-        element,
-        ganji,
-        isCurrent,
-      })
-    }
-  }
-
-  if (windows.length === 0 && timingData?.daeun) {
-    windows.push({
-      startAge: timingData.daeun.startAge,
-      endAge: timingData.daeun.endAge,
-      element: timingData.daeun.element,
-      ganji: `${timingData.daeun.heavenlyStem}${timingData.daeun.earthlyBranch}`,
-      isCurrent:
-        timingData.daeun.isCurrent ||
-        (age !== null && age >= timingData.daeun.startAge && age <= timingData.daeun.endAge),
-    })
-  }
-
-  return windows
-    .sort((a, b) => a.startAge - b.startAge)
-    .filter((item, index, array) => {
-      const prev = array[index - 1]
-      return !prev || prev.startAge !== item.startAge || prev.ganji !== item.ganji
-    })
-}
-
-function buildPersonalLifeTimelineNarrative(
-  input: MatrixCalculationInput,
-  timingData: TimingData | undefined,
-  lang: 'ko' | 'en'
-): string {
-  const windows = extractPersonalDaeunWindows(input, timingData)
-  const age = calculateProfileAge(input.profileContext?.birthDate, input.currentDateIso)
-  if (windows.length === 0) return buildPersonalCycleNarrative(input, lang)
-  const currentIndex = Math.max(
-    0,
-    windows.findIndex((item) => item.isCurrent)
-  )
-  const current = windows[currentIndex] || windows[0]
-  const prev = currentIndex > 0 ? windows[currentIndex - 1] : null
-  const next = currentIndex < windows.length - 1 ? windows[currentIndex + 1] : null
-  const currentLabel = formatCycleLabel(
-    current.ganji,
-    current.element,
-    lang,
-    lang === 'ko' ? '?? ??' : 'current 10-year cycle'
-  )
-  if (lang !== 'ko') {
-    const currentAgeLine =
-      age !== null
-        ? `At around age ${age}, the active 10-year cycle is ${current.startAge}-${current.endAge} (${currentLabel}).`
-        : `The active 10-year cycle is ${current.startAge}-${current.endAge} (${currentLabel}).`
-    const prevLine = prev
-      ? `The previous ${prev.startAge}-${prev.endAge} cycle set the habits you are now either carrying forward or editing.`
-      : ''
-    const nextLine = next
-      ? `The next ${next.startAge}-${next.endAge} cycle is likely to shift emphasis toward ${formatCycleLabel(
-          next.ganji,
-          next.element,
-          lang,
-          'a different operating mode'
-        )}, so this period should be used to prepare that handoff.`
-      : ''
-    return [currentAgeLine, prevLine, nextLine].filter(Boolean).join(' ')
-  }
-
-  const currentAgeLine =
-    age !== null
-      ? `?? ${age}? ??? ?? ?? ??? ${current.startAge}-${current.endAge}? ??(${currentLabel})???. ? ??? ?? ??? ? ??? ???, ????????? ? ??? ?? ??? ??? ?? ??? ?????.`
-      : `${current.startAge}-${current.endAge}? ??(${currentLabel})? ?? ?? ??? ?????. ? ??? ?? ??? ? ??? ???, ????????? ? ??? ?? ??? ??? ?? ??? ?????.`
-  const prevLine = prev
-    ? `${prev.startAge}-${prev.endAge}? ???? ??? ??? ?? ??? ?? ??? ???? ???. ??? ?? ??? ? ??? ?? ???, ?? ?? ? ??? ???? ??? ??? ?? ??? ????.`
-    : ''
-  const nextLine = next
-    ? `?? ${next.startAge}-${next.endAge}? ??(${next.ganji || next.element || '?? ?? ??'})?? ???? ????, ?? ???? ??? ?? ??? ?? ??? ??? ??? ??? ?? ?? ?????.`
-    : ''
-  return [currentAgeLine, prevLine, nextLine].filter(Boolean).join(' ')
-}
-
-function calculateProfileAge(
-  birthDate: string | undefined,
-  currentDateIso: string | undefined
-): number | null {
-  if (!birthDate) return null
-  const birth = new Date(birthDate)
-  const current = currentDateIso ? new Date(currentDateIso) : new Date()
-  if (Number.isNaN(birth.getTime()) || Number.isNaN(current.getTime())) return null
-  let age = current.getUTCFullYear() - birth.getUTCFullYear()
-  const currentMonthDay = current.toISOString().slice(5, 10)
-  const birthMonthDay = birth.toISOString().slice(5, 10)
-  if (currentMonthDay < birthMonthDay) age -= 1
-  return age >= 0 ? age : null
-}
-
-function formatPlanetPlacement(
-  input: MatrixCalculationInput,
-  planet: 'Sun' | 'Moon' | 'Mercury' | 'Venus' | 'Mars' | 'Jupiter' | 'Saturn',
-  lang: 'ko' | 'en'
-): string {
-  const sign = input.planetSigns?.[planet]
-  const house = input.planetHouses?.[planet]
-  if (!sign && !house) return ''
-  if (lang === 'ko') {
-    const planetLabel = localizePlanetName(planet, lang)
-    const signLabel = localizeSignName(String(sign || ''), lang)
-    if (sign && house)
-      return `${planetLabel}${hasBatchim(planetLabel) ? '?' : '?'} ${signLabel} ${house}???? ?? ????`
-    if (sign) return `${planetLabel}${hasBatchim(planetLabel) ? '?' : '?'} ${signLabel}? ?? ????`
-    return `${planetLabel}${hasBatchim(planetLabel) ? '?' : '?'} ${house}???? ?? ????`
-  }
-  if (sign && house) return `${planet} in ${sign}, house ${house}`
-  if (sign) return `${planet} in ${sign}`
-  return `${planet} in house ${house}`
-}
-
-function buildPersonalCycleNarrative(
-  input: MatrixCalculationInput,
-  lang: 'ko' | 'en',
-  timingData?: TimingData
-): string {
-  if (lang === 'ko' && timingData?.daeun) {
-    return buildPersonalLifeTimelineNarrative(input, timingData, lang)
-  }
-  const age = calculateProfileAge(input.profileContext?.birthDate, input.currentDateIso)
-  const parts = [
-    input.currentDaeunElement
-      ? lang === 'ko'
-        ? `?? ${input.currentDaeunElement}`
-        : `Daeun ${getElementLabel(input.currentDaeunElement, lang)}`
-      : '',
-    input.currentSaeunElement
-      ? lang === 'ko'
-        ? `?? ${input.currentSaeunElement}`
-        : `annual cycle ${getElementLabel(input.currentSaeunElement, lang)}`
-      : '',
-    input.currentWolunElement
-      ? lang === 'ko'
-        ? `?? ${input.currentWolunElement}`
-        : `monthly cycle ${getElementLabel(input.currentWolunElement, lang)}`
-      : '',
-    input.currentIljinElement
-      ? lang === 'ko'
-        ? `?? ${input.currentIljinElement}`
-        : `daily cycle ${getElementLabel(input.currentIljinElement, lang)}`
-      : '',
-  ].filter(Boolean)
-  if (lang === 'ko') {
-    const agePart = age !== null ? `?? ${age}? ??` : '?? ??'
-    if (parts.length === 0) return `${agePart}? ??? ??? ??? ?? ?? ??? ??? ??? ?????.`
-    const normalizedParts = parts.map((part) => {
-      const [cycle, element] = part.split(' ')
-      if (!cycle || !element) return part
-      return `${withSubjectParticle(`${cycle} ${element}`)}`
-    })
-    return `${agePart}? ${normalizedParts.join(', ')} ?? ???? ?????. ? ??? ??? ???, ??? ??? ?? ?? ??? ?????.`
-  }
-  const agePart = age !== null ? `Around age ${age}` : 'At the current phase'
-  if (parts.length === 0)
-    return `${agePart}, timing inputs are present but the active cycle names are only weakly captured.`
-  return `${agePart}, ${parts.join(', ')} are overlapping. The long climate is set by the larger cycle, and yearly/monthly cycles adjust what becomes tangible.`
-}
-
-function buildFocusedCycleLead(
-  input: MatrixCalculationInput,
-  timingData: TimingData | undefined,
-  lang: 'ko' | 'en',
-  focus: 'career' | 'wealth' | 'health' | 'lifeMission' | 'actionPlan' | 'conclusion'
-): string {
-  const windows = extractPersonalDaeunWindows(input, timingData)
-  const current = windows.find((item) => item.isCurrent) || windows[0] || null
-  const age = calculateProfileAge(input.profileContext?.birthDate, input.currentDateIso)
-  const currentLabel =
-    current && (current.ganji || current.element)
-      ? `${current.ganji || ''}${current.element ? `(${current.element})` : ''}`
-      : lang === 'ko'
-        ? '?? ??'
-        : 'current cycle'
-
-  if (lang !== 'ko') {
-    const agePrefix = age !== null ? `Around age ${age}, ` : 'At the current phase, '
-    switch (focus) {
-      case 'career':
-        return `${agePrefix}${current ? `${current.startAge}-${current.endAge} (${currentLabel})` : currentLabel} favors role clarity and priority control over broad expansion.`
-      case 'wealth':
-        return `${agePrefix}${current ? `${current.startAge}-${current.endAge} (${currentLabel})` : currentLabel} rewards term checks and downside control before chasing upside.`
-      case 'health':
-        return `${agePrefix}${current ? `${current.startAge}-${current.endAge} (${currentLabel})` : currentLabel} works better when recovery rhythm is protected before intensity.`
-      case 'lifeMission':
-        return `${agePrefix}${current ? `${current.startAge}-${current.endAge} (${currentLabel})` : currentLabel} is a phase for refining standards you can carry into the next stage.`
-      case 'actionPlan':
-        return `${agePrefix}${current ? `${current.startAge}-${current.endAge} (${currentLabel})` : currentLabel} is best managed by separating start, review, and commitment.`
-      case 'conclusion':
-        return `${agePrefix}${current ? `${current.startAge}-${current.endAge} (${currentLabel})` : currentLabel} puts more value on clean sequencing than fast commitment.`
-    }
-  }
-
-  const agePrefix = age !== null ? `?? ${age}? ??? ` : '??? '
-  const cycleLabel =
-    current !== null ? `${current.startAge}-${current.endAge}? ??(${currentLabel})` : currentLabel
-  switch (focus) {
-    case 'career':
-      return `${agePrefix}${cycleLabel} ?? ?? ?? ??? ????? ? ???? ??????? ??? ?????.`
-    case 'wealth':
-      return `${agePrefix}${cycleLabel} ?? ?? ?? ?? ????? ?? ???? ?? ??? ?? ?? ??? ?????.`
-    case 'health':
-      return `${agePrefix}${cycleLabel} ?? ?? ?? ?? ????? ?? ???? ?? ??? ?? ??? ?? ????.`
-    case 'lifeMission':
-      return `${agePrefix}${cycleLabel} ??? ?? ?? ???? ??? ??? ???? ?? ??? ??? ??? ? ??? ???.`
-    case 'actionPlan':
-      return `${agePrefix}${cycleLabel} ????? ??? ??-???-???? ???? ?? ???? ?????.`
-    case 'conclusion':
-      return `${agePrefix}${cycleLabel} ??? ??? ??? ???? ?? ??? ?? ??? ? ? ??? ???? ????.`
-  }
-}
-
-function buildPersonalBaseNarrative(input: MatrixCalculationInput, lang: 'ko' | 'en'): string {
-  const dayMaster = sanitizeEvidenceToken(getElementLabel(input.dayMasterElement, lang), lang)
-  const yongsin = sanitizeEvidenceToken(getElementLabel(input.yongsin, lang), lang)
-  const western = sanitizeEvidenceToken(
-    getWesternElementLabel(input.dominantWesternElement, lang),
-    lang
-  )
-  const geokguk = sanitizeEvidenceToken(localizeGeokgukLabel(input.geokguk, lang), lang)
-
-  if (lang === 'ko') {
-    const parts = [
-      dayMaster ? `?? ${dayMaster}` : '',
-      geokguk ? `?? ${geokguk}` : '',
-      yongsin ? `?? ${yongsin}` : '',
-      western ? `?? ?? ${western}` : '',
-    ].filter(Boolean)
-    if (parts.length === 0) return '????? ?? ???? ?? ?? ??? ?? ??? ?? ?? ?? ????.'
-    return `?? ????? ${parts.join(', ')} ??? ?? ??? ??? ????.`
-  }
-
-  const parts = [
-    dayMaster ? `day master ${dayMaster}` : '',
-    geokguk ? `frame ${geokguk}` : '',
-    yongsin ? `useful element ${yongsin}` : '',
-    western ? `dominant western element ${western}` : '',
-  ].filter(Boolean)
-  if (parts.length === 0)
-    return 'At the natal level, the base structure matters less than how the current phase is being activated.'
-  return `At the natal level, ${parts.join(', ')} form the base layer behind the current reading.`
-}
-
-function buildSectionPersonalLead(
-  section:
-    | 'introduction'
-    | 'personalityDeep'
-    | 'careerPath'
-    | 'relationshipDynamics'
-    | 'wealthPotential'
-    | 'healthGuidance'
-    | 'lifeMission'
-    | 'timingAdvice'
-    | 'actionPlan'
-    | 'conclusion',
-  input: MatrixCalculationInput,
-  lang: 'ko' | 'en',
-  timingData?: TimingData
-): string {
-  switch (section) {
-    case 'introduction':
-      return buildPersonalCycleNarrative(input, lang, timingData)
-    case 'personalityDeep':
-      return [
-        buildPersonalBaseNarrative(input, lang),
-        formatPlanetPlacement(input, 'Sun', lang),
-        formatPlanetPlacement(input, 'Moon', lang),
-        formatPlanetPlacement(input, 'Mercury', lang),
-      ]
-        .filter(Boolean)
-        .join(lang === 'ko' ? '. ' : '. ')
-    case 'careerPath':
-      return [
-        buildFocusedCycleLead(input, timingData, lang, 'career'),
-        formatPlanetPlacement(input, 'Jupiter', lang),
-        formatPlanetPlacement(input, 'Saturn', lang),
-      ]
-        .filter(Boolean)
-        .join(lang === 'ko' ? '. ' : '. ')
-    case 'relationshipDynamics':
-      return [
-        formatPlanetPlacement(input, 'Moon', lang),
-        formatPlanetPlacement(input, 'Venus', lang),
-        formatPlanetPlacement(input, 'Mars', lang),
-      ]
-        .filter(Boolean)
-        .join(lang === 'ko' ? '. ' : '. ')
-    case 'wealthPotential':
-      return [
-        buildFocusedCycleLead(input, timingData, lang, 'wealth'),
-        formatPlanetPlacement(input, 'Jupiter', lang),
-        formatPlanetPlacement(input, 'Venus', lang),
-      ]
-        .filter(Boolean)
-        .join(lang === 'ko' ? '. ' : '. ')
-    case 'healthGuidance':
-      return [
-        buildFocusedCycleLead(input, timingData, lang, 'health'),
-        formatPlanetPlacement(input, 'Moon', lang),
-        formatPlanetPlacement(input, 'Saturn', lang),
-      ]
-        .filter(Boolean)
-        .join(lang === 'ko' ? '. ' : '. ')
-    case 'lifeMission':
-      return [
-        buildPersonalBaseNarrative(input, lang),
-        buildFocusedCycleLead(input, timingData, lang, 'lifeMission'),
-      ]
-        .filter(Boolean)
-        .join(lang === 'ko' ? ' ' : ' ')
-    case 'timingAdvice':
-      return buildPersonalLifeTimelineNarrative(input, timingData, lang)
-    case 'actionPlan':
-      return buildFocusedCycleLead(input, timingData, lang, 'actionPlan')
-    case 'conclusion':
-      return [
-        buildPersonalBaseNarrative(input, lang),
-        buildFocusedCycleLead(input, timingData, lang, 'conclusion'),
-      ]
-        .filter(Boolean)
-        .join(lang === 'ko' ? ' ' : ' ')
-    default:
-      return ''
-  }
-}
-
-function buildNarrativeSectionFromCore(
-  primary: Array<string | undefined | null>,
-  supporting: Array<string | undefined | null>,
-  base: string,
-  lang: 'ko' | 'en',
-  minChars: number,
-  includeBase = false,
-  allowBaseFallback = true
-): string {
-  const primaryLines = collectCleanNarrativeLines(primary, lang)
-  const supportingLines = collectCleanNarrativeLines(supporting, lang)
-  const baseLine = includeBase ? buildReportCoreLine(base, lang) : ''
-  let out = primaryLines.join(' ').trim()
-
-  if (baseLine && !out.includes(baseLine)) {
-    out = out ? `${out} ${baseLine}` : baseLine
-  }
-
-  out = ensureLongSectionNarrative(out, minChars, supportingLines)
-  if (allowBaseFallback && (!out || out.length < Math.floor(minChars * 0.7))) {
-    out = ensureLongSectionNarrative(out, minChars, [sanitizeUserFacingNarrative(base)])
-  }
-  return formatNarrativeParagraphs(sanitizeUserFacingNarrative(out), lang)
-}
-
-function buildTimingWindowNarrative(
-  domain: string,
-  item: NonNullable<ReturnType<typeof findReportCoreTimingWindow>>,
-  lang: 'ko' | 'en'
-): string {
-  const domainLabel = getReportDomainLabel(domain, lang)
-  return describeHumanTimingWindowNarrative({
-    domainLabel,
-    window: item.window,
-    whyNow: item.whyNow,
-    entryConditions: item.entryConditions,
-    abortConditions: item.abortConditions,
-    timingGranularity: item.timingGranularity,
-    precisionReason: item.precisionReason,
-    timingConflictNarrative: item.timingConflictNarrative,
-    lang,
-  })
-}
-
-function buildManifestationNarrative(
-  item: NonNullable<ReturnType<typeof findReportCoreManifestation>>,
-  lang: 'ko' | 'en'
-): string {
-  const expressions = [...(item.likelyExpressions || []), ...(item.riskExpressions || [])]
-  if (lang === 'ko') {
-    return [item.baselineThesis, item.activationThesis, item.manifestation, ...expressions]
-      .filter(Boolean)
-      .join(' ')
-  }
-  return [item.baselineThesis, item.activationThesis, item.manifestation, ...expressions]
-    .filter(Boolean)
-    .join(' ')
-}
-
-function buildVerdictNarrative(
-  item: NonNullable<ReturnType<typeof findReportCoreVerdict>>,
-  lang: 'ko' | 'en'
-): string {
-  const allowed = (item.allowedActionLabels || item.allowedActions || [])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join(', ')
-  const blocked = (item.blockedActionLabels || item.blockedActions || [])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join(', ')
-  if (lang === 'ko') {
-    const parts = [
-      item.rationale,
-      allowed ? `?? ???? ???? ${allowed} ????.` : '',
-      blocked ? `??? ${blocked}? ?? ???? ?? ?? ?? ????.` : '',
-    ]
-    return parts.filter(Boolean).join(' ')
-  }
-  const parts = [
-    item.rationale,
-    allowed ? `The moves currently allowed are ${allowed}.` : '',
-    blocked ? `By contrast, ${blocked} should not be forced right now.` : '',
-  ]
-  return parts.filter(Boolean).join(' ')
-}
-
-function buildPrimaryActionLead(
-  action: string | undefined | null,
-  fallback: string,
-  lang: 'ko' | 'en'
-): string {
-  const value = buildReportCoreLine(action, lang)
-  if (!value) return fallback
-  if (/[.!?]\s*$/.test(value)) return value
-  return lang === 'ko' ? `${value}? ?? ?? ?? ????.` : `Lean into ${value}.`
-}
-
-function buildPrimaryCautionLead(
-  caution: string | undefined | null,
-  fallback: string,
-  lang: 'ko' | 'en'
-): string {
-  const value = buildReportCoreLine(caution, lang)
-  if (!value) return fallback
-  if (/[.!?]\s*$/.test(value)) return value
-  return lang === 'ko' ? `${value}? ?? ?? ?? ????.` : `Block ${value} first.`
-}
-
-function findReportCoreDomainVerdict(reportCore: ReportCoreViewModel, domain: string) {
-  return reportCore.domainVerdicts.find((item) => item.domain === domain) || null
-}
-
-function formatScenarioIdForNarrative(
-  scenarioId: string | null | undefined,
-  lang: 'ko' | 'en'
-): string {
-  const value = String(scenarioId || '')
-    .replace(/_window$/i, '')
-    .replace(/_(main|alt|defensive)$/i, '')
-    .trim()
-  if (!value) return ''
-  if (/(hidden|support|defensive|cluster|fallback|generic|alt|residual|residue)/i.test(value)) {
-    return ''
-  }
-
-  const entries: Array<[RegExp, string, string]> = [
-    [/promotion_review/i, '?? ??', 'promotion or role review'],
-    [/contract_negotiation/i, '?? ??', 'contract negotiation'],
-    [/manager_track/i, '??? ??', 'management-track expansion'],
-    [/specialist_track/i, '??? ??', 'specialist-track deepening'],
-    [/entry/i, '? ?? ??', 'entry into a new role'],
-    [/distance_tuning/i, '거리 조절', 'distance tuning'],
-    [/boundary_reset/i, '?? ???', 'boundary reset'],
-    [/commitment_preparation/i, '?? ??', 'commitment preparation'],
-    [/clarify_expectations/i, '?? ??', 'expectation clarification'],
-    [/commitment_execution/i, '?? ??', 'commitment execution'],
-    [/cohabitation/i, '?? ??', 'cohabitation planning'],
-    [/family_acceptance/i, '?? ??', 'family acceptance'],
-    [/separation/i, '?? ??', 'relationship separation'],
-    [/capital_allocation/i, '?? ?? ??', 'capital allocation review'],
-    [/asset_exit/i, '?? ??', 'asset exit'],
-    [/debt_restructure/i, '?? ????', 'debt restructuring'],
-    [/income_growth/i, '?? ??', 'income growth'],
-    [/liquidity_defense/i, '??? ??', 'liquidity defense'],
-    [/recovery_reset/i, '?? ???', 'recovery reset'],
-    [/routine_lock/i, '?? ??', 'routine lock'],
-    [/burnout_trigger/i, '??? ??', 'burnout risk'],
-    [/sleep_disruption/i, '?? ??', 'sleep disruption'],
-    [/commute_restructure/i, '?? ?? ???', 'commute restructure'],
-    [/route_recheck/i, '?? ???', 'route recheck'],
-    [/basecamp_reset/i, '?? ?? ???', 'basecamp reset'],
-    [/lease_decision/i, '?? ?? ???', 'lease decision review'],
-    [/housing_search/i, '??? ??', 'housing search'],
-    [/relocation/i, '??', 'relocation'],
-    [/learning_acceleration/i, '?? ??', 'learning acceleration'],
-    [/deep_partnership_activation/i, '?? ?? ???', 'deep partnership activation'],
-    [/timing_upside/i, '??? ?? ???', 'timing upside cluster'],
-    [/timing_risk/i, '??? ?? ???', 'timing risk cluster'],
-    [/health_risk/i, '?? ?? ???', 'health risk cluster'],
-  ]
-
-  for (const [pattern, ko, en] of entries) {
-    if (pattern.test(value)) return lang === 'ko' ? ko : en
-  }
-
-  const normalized = value.replace(/_/g, ' ').trim()
-  return lang === 'ko' ? normalized : normalized
-}
-
-function formatCycleLabel(
-  ganji: string | undefined,
-  element: string | undefined,
-  lang: 'ko' | 'en',
-  fallback: string
-): string {
-  const ganjiLabel = String(ganji || '').trim()
-  const elementLabel = getElementLabel(element, lang)
-  if (ganjiLabel && elementLabel) return `${ganjiLabel} (${elementLabel})`
-  if (ganjiLabel) return ganjiLabel
-  if (elementLabel) return elementLabel
-  return fallback
-}
-
-function normalizeElementKey(element: string | undefined): string {
-  const raw = String(element || '')
-    .trim()
-    .toLowerCase()
-  const map: Record<string, string> = {
-    wood: 'wood',
-
-    fire: 'fire',
-
-    earth: 'earth',
-
-    metal: 'metal',
-
-    water: 'water',
-  }
-  return map[raw] || raw
-}
-
-function buildElementMetaphor(
-  input: MatrixCalculationInput,
-  lang: 'ko' | 'en'
-): {
-  archetype: string
-  environment: string
-  edge: string
-  risk: string
-} {
-  const dayMaster = normalizeElementKey(input.dayMasterElement)
-  switch (dayMaster) {
-    case 'metal':
-      return lang === 'ko'
-        ? {
-            archetype: '??? ???? ??',
-            environment: '??? ??? ????? ???? ??',
-            edge: '??? ???',
-            risk: '???? ?? ??? ?? ? ?? ???? ?',
-          }
-        : {
-            archetype: 'a blade that cuts noise away',
-            environment: 'a scene where clutter gets stripped from a crowded stage',
-            edge: 'clarity and clean cuts',
-            risk: 'dulling the edge by deciding too fast',
-          }
-    case 'wood':
-      return lang === 'ko'
-        ? {
-            archetype: '?? ??? ??? ? ??',
-            environment: '??? ??? ???? ??? ??',
-            edge: '??? ???',
-            risk: '?? ?? ?? ???? ??? ?',
-          }
-        : {
-            archetype: 'a tree that expands by taking more ground',
-            environment: 'a scene where influence spreads like branches',
-            edge: 'growth and extension',
-            risk: 'adding branches before stabilizing the roots',
-          }
-    case 'water':
-      return lang === 'ko'
-        ? {
-            archetype: '??? ?? ??? ??',
-            environment: '?? ? ??? ?? ????? ??',
-            edge: '??? ???',
-            risk: '?? ?? ?? ??? ??? ?',
-          }
-        : {
-            archetype: 'a current that finds the opening',
-            environment: 'a scene where a path forms through narrow gaps',
-            edge: 'adaptive penetration',
-            risk: 'spreading too thin without a fixed direction',
-          }
-    case 'fire':
-      return lang === 'ko'
-        ? {
-            archetype: '??? ?? ??? ??',
-            environment: '??? ??? ? ??? ???? ???? ??',
-            edge: '???? ???',
-            risk: '?? ?? ?? ????? ??? ?',
-          }
-        : {
-            archetype: 'a flame that lights the scene at once',
-            environment: 'a moment that makes the whole stage visible',
-            edge: 'visibility and momentum',
-            risk: 'burning too hot and fading early',
-          }
-    default:
-      return lang === 'ko'
-        ? {
-            archetype: '???? ?? ??? ??',
-            environment: '??? ??? ??? ??? ???',
-            edge: '???? ??',
-            risk: '??? ????? ???? ??? ?',
-          }
-        : {
-            archetype: 'a foundation that holds a shifting stage',
-            environment: 'a support that keeps collapse from happening',
-            edge: 'stability and structure',
-            risk: 'delaying movement past the right timing',
-          }
-  }
-}
+import {
+  applyFinalReportStyle,
+  attachDeterministicArtifacts,
+  buildDirectToneOverride,
+  buildReportOutputCoreFields,
+  buildReportQualityMetrics,
+  buildTopMatchedPatterns,
+  countSectionChars,
+  ensureFinalActionPlanGrounding,
+  ensureFinalReportPolish,
+  getAiQualityTier,
+  getCostOptimizedComprehensiveLiveSectionKeys,
+  getEffectiveMaxRepairPasses,
+  isCostOptimizedAiPath,
+  recordReportQualityMetrics,
+  recordRewriteModeMetric,
+} from './aiReportServiceRuntimeSupport'
+import {
+  buildElementMetaphor,
+  buildFocusedCycleLead,
+  buildManifestationNarrative,
+  buildNarrativeSectionFromCore,
+  buildPersonalBaseNarrative,
+  buildPersonalCycleNarrative,
+  buildPersonalLifeTimelineNarrative,
+  buildPrimaryActionLead,
+  buildPrimaryCautionLead,
+  buildSectionPersonalLead,
+  buildTimingWindowNarrative,
+  buildVerdictNarrative,
+  calculateProfileAge,
+  extractPersonalDaeunWindows,
+  findReportCoreDomainVerdict,
+  formatCycleLabel,
+  formatPlanetPlacement,
+  formatScenarioIdForNarrative,
+  normalizeElementKey,
+  toFiniteNumber,
+  toObjectRecord,
+} from './aiReportServiceNarrativeSupport'
+import {
+  appendEvidenceFooter as appendEvidenceFooterSupport,
+  attachTrustNarrativeToSections as attachTrustNarrativeToSectionsSupport,
+  buildEvidenceFooter as buildEvidenceFooterSupport,
+  buildEvidenceLine as buildEvidenceLineSupport,
+  buildExtendedComprehensiveSections as buildExtendedComprehensiveSectionsSupport,
+  buildReportTrustNarratives as buildReportTrustNarrativesSupport,
+  getComprehensiveRenderPaths as getComprehensiveRenderPathsSupport,
+  isMeaningfulEvidenceToken as isMeaningfulEvidenceTokenSupport,
+  renderActionPlanSection as renderActionPlanSectionSupport,
+  renderCareerPathSection as renderCareerPathSectionSupport,
+  renderComprehensiveFutureOutlookSection as renderComprehensiveFutureOutlookSectionSupport,
+  renderComprehensiveLifeStagesSection as renderComprehensiveLifeStagesSectionSupport,
+  renderComprehensiveSpouseProfileSection as renderComprehensiveSpouseProfileSectionSupport,
+  renderComprehensiveTurningPointsSection as renderComprehensiveTurningPointsSectionSupport,
+  renderConclusionSection as renderConclusionSectionSupport,
+  renderHealthGuidanceSection as renderHealthGuidanceSectionSupport,
+  renderIntroductionSection as renderIntroductionSectionSupport,
+  renderLifeMissionSection as renderLifeMissionSectionSupport,
+  renderPersonalityDeepSection as renderPersonalityDeepSectionSupport,
+  renderRelationshipDynamicsSection as renderRelationshipDynamicsSectionSupport,
+  renderTimingAdviceSection as renderTimingAdviceSectionSupport,
+  renderWealthPotentialSection as renderWealthPotentialSectionSupport,
+  sanitizeNarrativeReason as sanitizeNarrativeReasonSupport,
+} from './aiReportServiceSectionSupport'
 
 function isMeaningfulEvidenceToken(value: string | undefined | null): boolean {
-  const token = String(value || '').trim()
-  if (!token) return false
-  const normalized = token.toLowerCase()
-  if (['?', '-', 'unknown', '??', 'none', 'n/a'].includes(normalized)) return false
-  if (/^[?\s.-]+$/.test(token)) return false
-  return true
+  return isMeaningfulEvidenceTokenSupport(value)
 }
 
 function buildEvidenceLine(input: MatrixCalculationInput, lang: 'ko' | 'en'): string {
-  const dayMaster = sanitizeEvidenceToken(getElementLabel(input.dayMasterElement, lang), lang)
-  const yongsin = sanitizeEvidenceToken(getElementLabel(input.yongsin, lang), lang)
-  const western = sanitizeEvidenceToken(
-    getWesternElementLabel(input.dominantWesternElement, lang),
-    lang
-  )
-  const geokguk = sanitizeEvidenceToken(localizeGeokgukLabel(input.geokguk, lang), lang)
-  if (lang === 'ko') {
-    const parts = [
-      dayMaster ? `?? ${dayMaster}` : '',
-      geokguk ? `?? ${geokguk}` : '',
-      yongsin ? `?? ${yongsin}` : '',
-      western ? `?? ?? ${western}` : '',
-    ].filter(Boolean)
-    return parts.length > 0 ? `${parts.join(', ')} ??? ?? ??? ?? ?? ??? ?? ??? ????.` : ''
-  }
-  const parts = [
-    dayMaster ? `day master ${dayMaster}` : '',
-    geokguk ? `frame ${geokguk}` : '',
-    yongsin ? `useful element ${yongsin}` : '',
-    western ? `dominant western element ${western}` : '',
-  ].filter(Boolean)
-  return parts.length > 0
-    ? `This reading comes from the same directional push across ${parts.join(', ')}.`
-    : ''
+  return buildEvidenceLineSupport(input, lang)
 }
 
 function buildEvidenceFooter(input: MatrixCalculationInput, lang: 'ko' | 'en'): string {
-  const dayMaster = sanitizeEvidenceToken(getElementLabel(input.dayMasterElement, lang), lang)
-  const yongsin = sanitizeEvidenceToken(getElementLabel(input.yongsin, lang), lang)
-  const western = sanitizeEvidenceToken(
-    getWesternElementLabel(input.dominantWesternElement, lang),
-    lang
-  )
-  const geokguk = sanitizeEvidenceToken(localizeGeokgukLabel(input.geokguk, lang), lang)
-
-  if (lang === 'ko') {
-    const parts = [
-      dayMaster ? `?? ${dayMaster}` : '',
-      geokguk ? `?? ${geokguk}` : '',
-      yongsin ? `?? ${yongsin}` : '',
-      western ? `?? ?? ${western}` : '',
-    ].filter(Boolean)
-    return parts.length > 0 ? `?? ??? ${parts.join(', ')}???.` : ''
-  }
-
-  const parts = [
-    dayMaster ? `day master ${dayMaster}` : '',
-    geokguk ? `frame ${geokguk}` : '',
-    yongsin ? `useful element ${yongsin}` : '',
-    western ? `dominant western element ${western}` : '',
-  ].filter(Boolean)
-  return parts.length > 0
-    ? normalizeNarrativeCoreText(`Key grounding comes from ${parts.join(', ')}.`, lang)
-    : ''
+  return buildEvidenceFooterSupport(input, lang)
 }
 
 function appendEvidenceFooter(
@@ -1975,9 +300,7 @@ function appendEvidenceFooter(
   input: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  const evidence = buildEvidenceFooter(input, lang)
-  if (!evidence) return body
-  return `${body} ${evidence}`.trim()
+  return appendEvidenceFooterSupport(body, input, lang)
 }
 
 function sanitizeNarrativeReason(
@@ -1985,9 +308,7 @@ function sanitizeNarrativeReason(
   lang: 'ko' | 'en',
   fallback = ''
 ): string {
-  const text = String(value || '').trim()
-  if (!text) return fallback
-  return normalizeNarrativeCoreText(text, lang) || fallback
+  return sanitizeNarrativeReasonSupport(value, lang, fallback)
 }
 
 function buildReportTrustNarratives(
@@ -1995,12 +316,7 @@ function buildReportTrustNarratives(
   coreQuality: DestinyCoreQuality | undefined,
   lang: 'ko' | 'en'
 ): { trust: string; provenance: string } {
-  return buildReportTrustNarrativesExternal(
-    reportCore,
-    coreQuality,
-    lang,
-    reportSectionRendererDeps
-  )
+  return buildReportTrustNarrativesSupport(reportCore, coreQuality, lang, aiReportSectionSupportDeps)
 }
 
 function attachTrustNarrativeToSections<T extends Record<string, unknown>>(
@@ -2009,7 +325,7 @@ function attachTrustNarrativeToSections<T extends Record<string, unknown>>(
   trust: string,
   provenance: string
 ): T {
-  return attachTrustNarrativeToSectionsExternal(mode, sections, trust, provenance)
+  return attachTrustNarrativeToSectionsSupport(mode, sections, trust, provenance)
 }
 
 function renderIntroductionSection(
@@ -2017,113 +333,7 @@ function renderIntroductionSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  const base = renderIntroductionSectionExternal(
-    reportCore,
-    matrixInput,
-    lang,
-    reportSectionRendererDeps
-  )
-  const focusLabel = getReportDomainLabel(reportCore.focusDomain, lang)
-  const actionLabel = getReportDomainLabel(
-    reportCore.actionFocusDomain || reportCore.focusDomain,
-    lang
-  )
-  const focusRunnerUpLabel = reportCore.arbitrationBrief?.focusRunnerUpDomain
-    ? getReportDomainLabel(reportCore.arbitrationBrief.focusRunnerUpDomain, lang)
-    : ''
-  const arbitrationLine =
-    lang === 'ko'
-      ? reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
-        ? `?? ??? ?? ?? ?? ${actionLabel}??, ?? ?? ??? ? ?? ? ?? ?? ???.`
-        : focusRunnerUpLabel
-          ? `${focusLabel} ??? ${focusRunnerUpLabel}?? ?? ?? ??? ??? ? ??? ??? ????.`
-          : ''
-      : reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
-        ? `${actionLabel} is the axis that answers the question most directly, and it is carrying the actionable pressure in this phase.`
-        : focusRunnerUpLabel
-          ? `${focusLabel} stayed ahead of ${focusRunnerUpLabel} as the lead axis in this phase.`
-          : ''
-  const latentLine = reportCore.latentTopAxes?.length
-    ? lang === 'ko'
-      ? `?? ? ??? ?? ?? ?? ?? ${reportCore.latentTopAxes
-          .slice(0, 3)
-          .map((axis) => axis.label)
-          .join(', ')}???.`
-      : `The strongest active layers right now are ${reportCore.latentTopAxes
-          .slice(0, 3)
-          .map((axis) => axis.label)
-          .join(', ')}.`
-    : ''
-  const riskAxisLine = reportCore.riskAxisLabel
-    ? lang === 'ko'
-      ? `??? ?? ???? ???? ? ??? ${reportCore.riskAxisLabel}???.`
-      : `At the same time, the most sensitive risk axis is ${reportCore.riskAxisLabel}.`
-    : ''
-  const timingMatrixLine = reportCore.timingMatrix?.length
-    ? lang === 'ko'
-      ? `???? ?? ?? ?? ${reportCore.timingMatrix
-          .slice(0, 3)
-          .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
-          .join(', ')} ??? ????.`
-      : `By domain, windows split as ${reportCore.timingMatrix
-          .slice(0, 3)
-          .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
-          .join(', ')}.`
-    : ''
-  const structureProjection = reportCore.projections?.structure
-  const structureDetailLine = localizeReportNarrativeText(
-    structureProjection?.detailLines?.[0] || '',
-    lang
-  )
-  const structureBackgroundLine =
-    reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
-      ? lang === 'ko'
-        ? `${focusLabel} ??? ? ??? ??? ?? ?? ???? ??? ????.`
-        : `${focusLabel} remains the background structural axis behind this reading.`
-      : ''
-  const structureDriversLine = structureProjection?.drivers?.length
-    ? lang === 'ko'
-      ? `?? ??? ?? ?? ?? ??? ${structureProjection.drivers
-          .slice(0, 3)
-          .map((item) => localizeReportNarrativeText(item, lang))
-          .join(', ')}???.`
-      : `The direct structural drivers are ${structureProjection.drivers.slice(0, 3).join(', ')}.`
-    : ''
-  const structureCounterweightLine =
-    reportCore.arbitrationBrief?.suppressionNarratives?.length ||
-    structureProjection?.counterweights?.length
-      ? lang === 'ko'
-        ? `?? ${(reportCore.arbitrationBrief?.suppressionNarratives?.length
-            ? reportCore.arbitrationBrief.suppressionNarratives
-            : structureProjection?.counterweights || []
-          )
-            .slice(0, 2)
-            .map((item) => localizeReportNarrativeText(item, lang))
-            .join(' ??? ')} ?? ?? ??? ?? ????.`
-        : `Counterweights are still coming from ${(reportCore.arbitrationBrief
-            ?.suppressionNarratives?.length
-            ? reportCore.arbitrationBrief.suppressionNarratives
-            : structureProjection?.counterweights || []
-          )
-            .slice(0, 2)
-            .join(', ')}.`
-      : ''
-  const branchProjection = reportCore.projections?.branches
-  const branchLeadLine = localizeReportNarrativeText(branchProjection?.detailLines?.[0] || '', lang)
-  return [
-    arbitrationLine,
-    latentLine,
-    structureDetailLine,
-    structureBackgroundLine,
-    structureDriversLine,
-    structureCounterweightLine,
-    branchLeadLine,
-    riskAxisLine,
-    timingMatrixLine,
-    base,
-  ]
-    .filter(Boolean)
-    .join(' ')
+  return renderIntroductionSectionSupport(reportCore, matrixInput, lang, aiReportSectionSupportDeps)
 }
 
 function renderLifeMissionSection(
@@ -2131,7 +341,7 @@ function renderLifeMissionSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  return renderLifeMissionSectionExternal(reportCore, matrixInput, lang, reportSectionRendererDeps)
+  return renderLifeMissionSectionSupport(reportCore, matrixInput, lang, aiReportSectionSupportDeps)
 }
 
 function renderPersonalityDeepSection(
@@ -2139,12 +349,7 @@ function renderPersonalityDeepSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  return renderPersonalityDeepSectionExternal(
-    reportCore,
-    matrixInput,
-    lang,
-    reportSectionRendererDeps
-  )
+  return renderPersonalityDeepSectionSupport(reportCore, matrixInput, lang, aiReportSectionSupportDeps)
 }
 
 function renderTimingAdviceSection(
@@ -2153,74 +358,12 @@ function renderTimingAdviceSection(
   lang: 'ko' | 'en',
   matrixSummary?: MatrixSummary
 ): string {
-  const base = renderTimingAdviceSectionExternal(
+  return renderTimingAdviceSectionSupport(
     reportCore,
     matrixInput,
     lang,
-    reportSectionRendererDeps,
-    matrixSummary
-  )
-  const timingProjection = reportCore.projections?.timing
-  const preferredTimingRow =
-    reportCore.timingMatrix?.find(
-      (row) => row.domain === (reportCore.actionFocusDomain || reportCore.focusDomain)
-    ) || reportCore.timingMatrix?.[0]
-  const timingDetailLine = localizeReportNarrativeText(
-    preferredTimingRow?.summary || timingProjection?.detailLines?.[0] || '',
-    lang
-  )
-  const timingDriverLine = timingProjection?.drivers?.length
-    ? lang === 'ko'
-      ? `?? ?? ?? ?? ?? ?? ${timingProjection.drivers
-          .slice(0, 3)
-          .map((item) => localizeReportNarrativeText(item, lang))
-          .join(', ')}???.`
-      : `The live timing drivers are ${timingProjection.drivers.slice(0, 3).join(', ')}.`
-    : ''
-  const timingCounterweightLine = timingProjection?.counterweights?.length
-    ? lang === 'ko'
-      ? `??? ${timingProjection.counterweights
-          .slice(0, 2)
-          .map((item) => localizeReportNarrativeText(item, lang))
-          .join(', ')} ?? ??? ??? ??? ??? ?? ??? ???.`
-      : `Counterweights still come from ${timingProjection.counterweights.slice(0, 2).join(', ')}.`
-    : ''
-  const timingNextLine = timingProjection?.nextMoves?.length
-    ? buildProjectionMoveSentence(
-        timingProjection.nextMoves.slice(0, 2),
-        lang,
-        lang === 'ko'
-          ? '?? ???? ???? ?? ??? ?? ?? ?? ?? ?? ????.'
-          : 'To use this timing well, realign the live execution conditions first.'
-      )
-    : ''
-  const timingMatrixLine = reportCore.timingMatrix?.length
-    ? lang === 'ko'
-      ? `???? ?? ?? ?? ${reportCore.timingMatrix
-          .slice(0, 3)
-          .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
-          .join(', ')} ???? ????.`
-      : `Across domains, timing splits into ${reportCore.timingMatrix
-          .slice(0, 3)
-          .map((row) => `${getReportDomainLabel(row.domain, lang)}=${row.window}`)
-          .join(', ')}.`
-    : ''
-  const branchProjection = reportCore.projections?.branches
-  const branchTimingLine =
-    localizeReportNarrativeText(branchProjection?.detailLines?.[0] || '', lang) ||
-    (branchProjection?.summary && lang === 'ko'
-      ? `??? ??? ??? ? ??? ?????? ${localizeReportNarrativeText(branchProjection.summary, lang)}`
-      : localizeReportNarrativeText(branchProjection?.summary || '', lang) || '')
-  const enriched = [
-    timingDetailLine,
-    timingDriverLine,
-    timingCounterweightLine,
-    timingNextLine,
-    timingMatrixLine,
-    branchTimingLine,
-  ].filter(Boolean)
-  return sanitizeUserFacingNarrative(
-    [...enriched, ...(enriched.length < 4 ? [base] : [])].filter(Boolean).join(' ')
+    matrixSummary,
+    aiReportSectionSupportDeps
   )
 }
 
@@ -2229,92 +372,7 @@ function renderActionPlanSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  void matrixInput
-  const actionDomain = reportCore.actionFocusDomain || reportCore.focusDomain
-  if (lang === 'ko' && actionDomain === 'move') {
-    const decision = reportCore.topDecisionLabel || reportCore.primaryAction || '?? ??? ??'
-    const riskControl = reportCore.riskControl || '??? ?? ????, ?? ?? ??? ?? ?? ???.'
-    const branchLine = reportCore.projections?.branches?.nextMoves?.length
-      ? buildProjectionMoveSentence(
-          reportCore.projections.branches.nextMoves.slice(0, 2),
-          lang,
-          '??? ?? ??? ? ?? ???? ??, ?? ?? ??? ??? ???? ?? ????.'
-        )
-      : '??? ?? ??? ? ?? ???? ??, ?? ?? ??? ??? ???? ?? ????.'
-
-    return sanitizeUserFacingNarrative(
-      [
-        `?? ??? ?? ???? ?? ?? ?? ??? ${decision}???.`,
-        '? ??? ?? ?????? ??, ?? ??, ??, ??? ?? ?? ???? ?? ?? ?????.',
-        '?? ?? ?? ??? ???? ? ? ??? ???, ? ????? ???? ?? ??? ?? ???? ??? ?? ??????.',
-        '?? ??? ??? ???? ??? ?? ?? ??? ?? ????, ?? ?? ???? ???? ??? ????.',
-        branchLine,
-        riskControl,
-      ].join(' ')
-    )
-  }
-  const base = renderActionPlanSectionExternal(reportCore, lang, reportSectionRendererDeps)
-  const actionLabel = getReportDomainLabel(
-    reportCore.actionFocusDomain || reportCore.focusDomain,
-    lang
-  )
-  const topDecisionLabel = reportCore.topDecisionLabel || reportCore.primaryAction
-  const openingLine =
-    lang === 'ko'
-      ? `?? ${actionLabel}?? ?? ?? ?? ??? ${topDecisionLabel}???.`
-      : `The operating rule on the ${actionLabel} axis is ${topDecisionLabel}.`
-  const guardrailLine = reportCore.riskControl
-  const actionProjection = reportCore.projections?.action
-  const actionDriverLabels = collectProjectionDriverLabels(actionProjection?.drivers, lang)
-  const actionDriverLine = actionDriverLabels.length
-    ? lang === 'ko'
-      ? `?? ??? ??? ??? ${actionDriverLabels.join(', ')}???.`
-      : `The current execution drivers are ${actionDriverLabels.join(', ')}.`
-    : ''
-  const actionCounterweightLine = actionProjection?.counterweights?.length
-    ? lang === 'ko'
-      ? `${actionProjection.counterweights
-          .slice(0, 2)
-          .map((item) => localizeReportNarrativeText(item, lang))
-          .join(', ')} ?? ?? ??? ??? ???? ?? ????.`
-      : `${actionProjection.counterweights.slice(0, 2).join(', ')} still signal that pace should stay controlled.`
-    : ''
-  const actionNextLine = actionProjection?.nextMoves?.length
-    ? buildProjectionMoveSentence(
-        actionProjection.nextMoves.slice(0, 2),
-        lang,
-        lang === 'ko'
-          ? '?? ???? ? ???? ?? ?? ???? ???? ?? ????.'
-          : 'The next move should begin by resetting execution criteria in smaller steps.'
-      )
-    : ''
-  const riskAxisLine = reportCore.riskAxisLabel
-    ? lang === 'ko'
-      ? `??? ${reportCore.riskAxisLabel} ??? ?? ?? ???? ? ??? ?? ????.`
-      : `Even while acting, ${reportCore.riskAxisLabel} should be managed as the primary risk axis first.`
-    : ''
-  const branchProjection = reportCore.projections?.branches
-  const branchActionLine = branchProjection?.nextMoves?.length
-    ? buildProjectionMoveSentence(
-        branchProjection.nextMoves.slice(0, 2),
-        lang,
-        lang === 'ko'
-          ? '??? ??? ?? ? ?? ???, ??? ?? ??? ?? ?? ? ???? ?? ????.'
-          : 'Across the live branches, reset criteria and guardrails before execution.'
-      )
-    : ''
-  const enriched = [
-    openingLine,
-    actionDriverLine,
-    actionCounterweightLine,
-    actionNextLine,
-    riskAxisLine,
-    branchActionLine,
-    guardrailLine,
-  ].filter(Boolean)
-  return sanitizeUserFacingNarrative(
-    [...enriched, ...(enriched.length < 5 ? [base] : [])].filter(Boolean).join(' ')
-  )
+  return renderActionPlanSectionSupport(reportCore, matrixInput, lang, aiReportSectionSupportDeps)
 }
 
 function renderCareerPathSection(
@@ -2322,7 +380,7 @@ function renderCareerPathSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  return renderCareerPathSectionExternal(reportCore, matrixInput, lang, reportSectionRendererDeps)
+  return renderCareerPathSectionSupport(reportCore, matrixInput, lang, aiReportSectionSupportDeps)
 }
 
 function renderRelationshipDynamicsSection(
@@ -2330,11 +388,11 @@ function renderRelationshipDynamicsSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  return renderRelationshipDynamicsSectionExternal(
+  return renderRelationshipDynamicsSectionSupport(
     reportCore,
     matrixInput,
     lang,
-    reportSectionRendererDeps
+    aiReportSectionSupportDeps
   )
 }
 
@@ -2343,12 +401,7 @@ function renderWealthPotentialSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  return renderWealthPotentialSectionExternal(
-    reportCore,
-    matrixInput,
-    lang,
-    reportSectionRendererDeps
-  )
+  return renderWealthPotentialSectionSupport(reportCore, matrixInput, lang, aiReportSectionSupportDeps)
 }
 
 function renderConclusionSection(
@@ -2356,34 +409,7 @@ function renderConclusionSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  const actionDomain = reportCore.actionFocusDomain || reportCore.focusDomain
-  if (lang === 'ko' && actionDomain === 'move') {
-    const branchLabel =
-      reportCore.branchSet?.[0]?.label ||
-      reportCore.projections?.branches?.detailLines?.[0] ||
-      '?? ?? ???'
-    return sanitizeUserFacingNarrative(
-      [
-        `?? ????? ${localizeReportNarrativeText(String(branchLabel), lang)} ?? ?? ???? 1??? ????.`,
-        '??? ?????. ??? ?? ????? ???? ?? ??? ??? ? ?? ????.',
-        '?? ???? ?? ??? ?? ??? ??? ?????, ?? ?? ??? ??? ??? ??? ????.',
-        '?? ??? ??? ??? ?????.',
-      ].join(' ')
-    )
-  }
-  const base = renderConclusionSectionExternal(
-    reportCore,
-    matrixInput,
-    lang,
-    reportSectionRendererDeps
-  )
-  const riskAxisLine = reportCore.riskAxisLabel
-    ? lang === 'ko'
-      ? `????? ?? ???? ???? ? ??? ${reportCore.riskAxisLabel}???.`
-      : `The axis that must be managed most carefully through the close is ${reportCore.riskAxisLabel}.`
-    : ''
-  const branchLine = reportCore.projections?.branches?.detailLines?.[0] || ''
-  return sanitizeUserFacingNarrative([riskAxisLine, branchLine, base].filter(Boolean).join(' '))
+  return renderConclusionSectionSupport(reportCore, matrixInput, lang, aiReportSectionSupportDeps)
 }
 
 function renderHealthGuidanceSection(
@@ -2391,12 +417,7 @@ function renderHealthGuidanceSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  return renderHealthGuidanceSectionExternal(
-    reportCore,
-    matrixInput,
-    lang,
-    reportSectionRendererDeps
-  )
+  return renderHealthGuidanceSectionSupport(reportCore, matrixInput, lang, aiReportSectionSupportDeps)
 }
 
 function renderComprehensiveSpouseProfileSection(
@@ -2404,89 +425,24 @@ function renderComprehensiveSpouseProfileSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  const actionLabel = getReportDomainLabel(
-    reportCore.actionFocusDomain || reportCore.focusDomain,
-    lang
-  )
-  const riskLabel =
-    reportCore.riskAxisLabel || getReportDomainLabel(reportCore.riskAxisDomain, lang)
-
-  if (lang === 'ko') {
-    return formatNarrativeParagraphs(
-      sanitizeUserFacingNarrative(
-        [
-          '오래 가는 관계는 감정의 세기보다 생활 리듬, 책임감, 속도를 함께 맞출 수 있는 사람과의 관계에서 나옵니다. 당신은 설렘이 커도 기준이 맞지 않으면 오래 버티지 않는 편이고, 반대로 속도와 기준이 맞는 관계에서는 깊이를 천천히 키워 갑니다.',
-          `지금 삶의 전면에 ${actionLabel} 문제가 올라와 있기 때문에, 관계 역시 말보다 실제 일정과 책임을 함께 운영할 수 있는 사람이 더 잘 맞습니다. 함께 시간을 쓰는 방식, 약속을 지키는 방식, 서로의 일을 존중하는 태도가 중요합니다.`,
-          '배우자상으로 보면 겉으로 화려한 사람보다 기준이 분명하고, 감정이 흔들릴 때도 생활을 무너뜨리지 않는 사람이 더 맞습니다. 대화가 잘 되는 것만큼이나 속도 조절과 경계 감각이 맞는지가 핵심입니다.',
-          riskLabel
-            ? `${riskLabel} 문제가 예민해질수록 관계도 감정적으로 몰입하기보다 서로의 리듬을 보호해 줄 수 있는지가 더 중요해집니다. 같이 있을 때 편해지는 사람, 무리한 속도를 강요하지 않는 사람이 오래 갑니다.`
-            : '관계는 결론을 서두르는 사람보다, 서로의 속도와 경계를 먼저 맞추는 사람과 더 안정적으로 깊어집니다.',
-        ].join(' ')
-      ),
-      lang
-    )
-  }
-
-  return formatNarrativeParagraphs(
-    sanitizeUserFacingNarrative(
-      [
-        'Long-term partner fit depends less on intensity and more on pace, responsibility, and the ability to keep shared standards.',
-        `Because ${actionLabel} is on the front line of life right now, relationship fit also has to survive real scheduling, pressure, and obligation.`,
-        `When ${riskLabel} becomes sensitive, the better match is the person who can protect rhythm and trust, not just chemistry.`,
-      ].join(' ')
-    ),
-    lang
+  return renderComprehensiveSpouseProfileSectionSupport(
+    reportCore,
+    matrixInput,
+    lang,
+    aiReportSectionSupportDeps
   )
 }
 
 function renderComprehensiveLifeStagesSection(
   reportCore: ReportCoreViewModel,
   matrixInput: MatrixCalculationInput,
-  lang: 'ko' | 'en',
-  matrixSummary?: MatrixSummary
+  lang: 'ko' | 'en'
 ): string {
-  const age = calculateProfileAge(matrixInput.profileContext?.birthDate, matrixInput.currentDateIso)
-  const focusLabel = getReportDomainLabel(reportCore.focusDomain, lang)
-  const actionLabel = getReportDomainLabel(
-    reportCore.actionFocusDomain || reportCore.focusDomain,
-    lang
-  )
-
-  if (lang === 'ko') {
-    const stageLead =
-      age === null
-        ? '지금 구간은 기준을 다시 세우고 삶의 우선순위를 정리해야 하는 시기로 읽힙니다.'
-        : age < 20
-          ? '초년기에는 주변 환경 안에서 배운 기준이 성격과 선택의 바탕이 되는 흐름이 강합니다.'
-          : age < 35
-            ? '청년기에는 관계와 현실 조건이 삶의 배경을 흔들고, 실제로는 자기 자리를 만드는 쪽에서 방향이 정해집니다.'
-            : age < 55
-              ? '중년기에는 지금 세우는 기준이 평판과 성과로 굳어지면서, 무엇을 맡고 무엇을 줄일지의 판단이 더 중요해집니다.'
-              : '후반부로 갈수록 더 넓히는 것보다 무엇을 남기고 무엇을 정리할지를 아는 힘이 삶의 안정성을 만듭니다.'
-
-    return formatNarrativeParagraphs(
-      sanitizeUserFacingNarrative(
-        [
-          '이 사람의 삶은 한 번에 뒤집히는 사건보다, 시기마다 무엇을 기준으로 선택하느냐에 따라 방향이 분명하게 갈리는 구조입니다. 그래서 생애 흐름도 감정의 파도보다 기준의 변화로 읽는 편이 정확합니다.',
-          `${focusLabel} 문제는 삶의 배경에서 계속 작동하고, 실제로 손을 대고 움직이게 만드는 쪽은 ${actionLabel} 영역으로 모입니다. ${stageLead}`,
-          '초년기에는 주변 환경이 준 기준을 배우는 시간이 길고, 청년기에는 사람과 현실 조건을 동시에 맞추면서 자기 자리를 만들게 됩니다. 이후에는 지금 세운 기준이 성과와 평판으로 굳어질 가능성이 큽니다.',
-          `예를 들어, 지금 세우는 ${actionLabel} 기준은 앞으로 더 큰 선택을 할 때 흔들리지 않는 뼈대가 됩니다. 지금 대충 넘긴 문제는 나중에 더 큰 비용으로 돌아올 수 있습니다.`,
-        ].join(' ')
-      ),
-      lang
-    )
-  }
-
-  return formatNarrativeParagraphs(
-    sanitizeUserFacingNarrative(
-      [
-        'Early life is shaped less by emotion itself and more by the standards learned inside the surrounding environment.',
-        `In young adulthood, ${focusLabel} keeps setting the background while ${actionLabel} is where real positioning happens.`,
-        'Midlife turns today’s standards into reputation, structure, and durable consequence.',
-        'Later life rewards discernment: knowing what to keep, what to reduce, and what should outlast the current phase.',
-      ].join(' ')
-    ),
-    lang
+  return renderComprehensiveLifeStagesSectionSupport(
+    reportCore,
+    matrixInput,
+    lang,
+    aiReportSectionSupportDeps
   )
 }
 
@@ -2495,46 +451,11 @@ function renderComprehensiveTurningPointsSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  const actionLabel = getReportDomainLabel(
-    reportCore.actionFocusDomain || reportCore.focusDomain,
-    lang
-  )
-  const branches = (reportCore.branchSet || []).slice(0, 3)
-  const branchLabels = branches
-    .map((branch) =>
-      sanitizeUserFacingNarrative(
-        localizeReportNarrativeText(branch.label || branch.summary || '', lang)
-      )
-    )
-    .filter(Boolean)
-
-  if (lang === 'ko') {
-    return formatNarrativeParagraphs(
-      sanitizeUserFacingNarrative(
-        [
-          `이 사람의 큰 변곡점은 감정 하나로 뒤집히기보다, 현실에서 맡는 역할과 조건을 다시 정리해야 할 때 강하게 들어옵니다. 가장 직접적인 변곡점은 ${actionLabel} 문제를 어떻게 다루느냐에 달려 있습니다.`,
-          '그래서 변화는 한 사건으로 오기보다 일, 사람, 돈의 조건이 동시에 재배열되는 식으로 들어올 가능성이 큽니다. 무엇을 계속 가져가고 무엇을 끊어낼지 결정해야 할 때가 바로 변곡점입니다.',
-          branchLabels.length > 0
-            ? `현실적으로는 ${branchLabels.join(', ')} 같은 경로를 비교하면서 판이 갈릴 가능성이 큽니다. 한 방향만 정답처럼 밀기보다 여러 경로를 놓고 손실과 되돌림 비용을 함께 봐야 합니다.`
-            : '현실적인 분기점은 하나의 정답보다 몇 가지 가능한 경로를 비교하는 과정에서 열릴 가능성이 큽니다.',
-          '결국 변곡점의 본질은 속도를 올리는 데 있지 않습니다. 지금까지의 기준으로 더는 버틸 수 없을 때, 무엇을 새 기준으로 삼을지 결정하는 데 있습니다.',
-        ].join(' ')
-      ),
-      lang
-    )
-  }
-
-  return formatNarrativeParagraphs(
-    sanitizeUserFacingNarrative(
-      [
-        `The strongest turning points arrive where ${actionLabel} has to be reorganized first.`,
-        'The shift is more likely to arrive as a reordering of role, people, and conditions than as a single dramatic event.',
-        branchLabels.length > 0
-          ? `Realistically, the choice will narrow through paths such as ${branchLabels.join(', ')}.`
-          : 'The turning point will likely open through comparison rather than a single obvious answer.',
-      ].join(' ')
-    ),
-    lang
+  return renderComprehensiveTurningPointsSectionSupport(
+    reportCore,
+    matrixInput,
+    lang,
+    aiReportSectionSupportDeps
   )
 }
 
@@ -2543,87 +464,11 @@ function renderComprehensiveFutureOutlookSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  const matrixRow = (reportCore.matrixView || []).find(
-    (row) => row.domain === (reportCore.actionFocusDomain || reportCore.focusDomain)
-  )
-  const topBranches = (reportCore.branchSet || []).slice(0, 3)
-  const riskLabel =
-    reportCore.riskAxisLabel || getReportDomainLabel(reportCore.riskAxisDomain, lang)
-
-  if (lang === 'ko') {
-    const timingLine = matrixRow?.cells?.length
-      ? (() => {
-          const cells = matrixRow.cells.slice(0, 3)
-          const avgAgreement =
-            cells.reduce((sum, cell) => sum + (cell.agreement || 0), 0) / Math.max(1, cells.length)
-          const avgContradiction =
-            cells.reduce((sum, cell) => sum + (cell.contradiction || 0), 0) /
-            Math.max(1, cells.length)
-          if (avgAgreement >= 0.82 && avgContradiction <= 0.18) {
-            return '가까운 시기부터 중기까지는 전반적으로 흐름이 잘 맞는 편이라, 조건만 맞추면 실제 성과로 이어질 가능성이 큽니다.'
-          }
-          if (avgContradiction >= 0.3) {
-            return '앞으로 몇 년은 기회와 부담이 함께 들어올 수 있으니, 무리하게 넓히기보다 감당 가능한 범위를 먼저 정하는 편이 맞습니다.'
-          }
-          return '앞으로 몇 년은 열려 있는 흐름이 이어지지만, 속도 조절과 기준 관리가 결과를 더 크게 가를 가능성이 큽니다.'
-        })()
-      : ''
-    const branchLine =
-      topBranches.length > 0
-        ? `현실적인 경로는 ${topBranches
-            .map((branch) =>
-              sanitizeUserFacingNarrative(
-                localizeReportNarrativeText(branch.label || branch.summary || '', lang)
-              )
-            )
-            .filter(Boolean)
-            .join(
-              ', '
-            )} 쪽으로 열려 있습니다. 한 번에 확정하기보다 비교 가능한 경로부터 좁혀가는 편이 맞습니다.`
-        : ''
-
-    return formatNarrativeParagraphs(
-      sanitizeUserFacingNarrative(
-        [
-          `앞으로 3~5년은 한 번의 큰 승부보다, 반복 가능한 기준을 만드는 사람이 더 멀리 갑니다. 실제로 판을 움직이는 중심은 ${getReportDomainLabel(reportCore.actionFocusDomain || reportCore.focusDomain, lang)} 쪽입니다.`,
-          timingLine,
-          branchLine,
-          riskLabel
-            ? `다만 앞으로 3~5년 동안도 ${riskLabel} 관리를 놓치면 좋은 기회가 소모로 바뀔 수 있습니다. 결과는 능력만이 아니라 회복과 운영의 안정성에 크게 좌우됩니다.`
-            : '',
-        ].join(' ')
-      ),
-      lang
-    )
-  }
-
-  return formatNarrativeParagraphs(
-    sanitizeUserFacingNarrative(
-      [
-        'Over the next three to five years, repeatable standards matter more than one dramatic move.',
-        matrixRow?.cells?.length
-          ? matrixRow.cells
-              .slice(0, 3)
-              .map((cell) =>
-                sanitizeUserFacingNarrative(localizeReportNarrativeText(cell.summary || '', lang))
-              )
-              .filter(Boolean)
-              .join(' / ')
-          : '',
-        topBranches.length > 0
-          ? `The realistic paths are ${topBranches
-              .map((branch) =>
-                sanitizeUserFacingNarrative(
-                  localizeReportNarrativeText(branch.label || branch.summary || '', lang)
-                )
-              )
-              .filter(Boolean)
-              .join(', ')}.`
-          : '',
-        riskLabel ? `Longer-term results depend heavily on how well ${riskLabel} is managed.` : '',
-      ].join(' ')
-    ),
-    lang
+  return renderComprehensiveFutureOutlookSectionSupport(
+    reportCore,
+    matrixInput,
+    lang,
+    aiReportSectionSupportDeps
   )
 }
 
@@ -2632,34 +477,21 @@ function buildExtendedComprehensiveSections(
   reportCore: ReportCoreViewModel,
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en',
-  matrixSummary?: MatrixSummary
+  _matrixSummary?: MatrixSummary
 ): AIPremiumReport['sections'] {
-  const forceDeterministicOptionalLifeSections = isCostOptimizedAiPath()
   return {
     ...sections,
-    spouseProfile:
-      (!forceDeterministicOptionalLifeSections && sections.spouseProfile) ||
-      renderComprehensiveSpouseProfileSection(reportCore, matrixInput, lang),
-    lifeStages:
-      (!forceDeterministicOptionalLifeSections && sections.lifeStages) ||
-      renderComprehensiveLifeStagesSection(reportCore, matrixInput, lang, matrixSummary),
-    turningPoints:
-      (!forceDeterministicOptionalLifeSections && sections.turningPoints) ||
-      renderComprehensiveTurningPointsSection(reportCore, matrixInput, lang),
-    futureOutlook:
-      (!forceDeterministicOptionalLifeSections && sections.futureOutlook) ||
-      renderComprehensiveFutureOutlookSection(reportCore, matrixInput, lang),
+    ...buildExtendedComprehensiveSectionsSupport(
+      reportCore,
+      matrixInput,
+      lang,
+      aiReportSectionSupportDeps
+    ),
   }
 }
 
 function getComprehensiveRenderPaths(sections: Partial<AIPremiumReport['sections']>): string[] {
-  return [
-    ...COMPREHENSIVE_SECTION_KEYS,
-    ...COMPREHENSIVE_OPTIONAL_LIFE_SECTION_KEYS.filter((key) => {
-      const value = sections[key]
-      return typeof value === 'string' && value.trim().length > 0
-    }),
-  ]
+  return getComprehensiveRenderPathsSupport(sections)
 }
 
 function shouldForceComprehensiveNarrativeFallback(
@@ -3835,6 +1667,13 @@ const reportLifeSectionDeps: ReportLifeSectionDeps = {
   getReportDomainLabel: (domain, lang) => getReportDomainLabel(domain || 'timing', lang),
   localizeReportNarrativeText,
   sanitizeUserFacingNarrative,
+}
+
+const aiReportSectionSupportDeps = {
+  reportSectionRendererDeps,
+  reportLifeSectionDeps,
+  buildProjectionMoveSentence,
+  collectProjectionDriverLabels,
 }
 
 function resolveSignalDomain(
@@ -7238,3 +5077,5 @@ export async function generateThemedReport(
 
   return report
 }
+
+

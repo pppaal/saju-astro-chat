@@ -1,0 +1,749 @@
+﻿import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
+import type {
+  CrossAgreementMatrixCell,
+  CrossAgreementMatrixRow,
+  DomainKey,
+  DomainScore,
+} from '@/lib/destiny-matrix/types'
+import type { FormattedDate } from './types'
+
+export type Locale = 'ko' | 'en'
+export type PresentationDomain = DomainKey | 'general'
+
+export type TopDomain = {
+  domain: PresentationDomain
+  label: string
+  score: number
+}
+
+export type WeatherSummary = {
+  grade: 'strong' | 'good' | 'neutral' | 'caution'
+  summary: string
+}
+
+export type SurfaceCard = {
+  key: 'action' | 'risk' | 'window' | 'agreement' | 'branch'
+  label: string
+  summary: string
+  tag?: string
+  details?: string[]
+  visual?:
+    | {
+        kind: 'agreement'
+        agreementPercent: number
+        contradictionPercent: number
+        leadLagState: 'structure-ahead' | 'trigger-ahead' | 'balanced'
+      }
+    | {
+        kind: 'branch'
+        rows: Array<{ label: string; text: string }>
+      }
+}
+
+export type DaySummary = {
+  date: string
+  summary: string
+  focusDomain: string
+  reliability: string
+}
+
+export type WeekSummary = {
+  rangeStart: string
+  rangeEnd: string
+  summary: string
+}
+
+export type MonthSummary = {
+  month: string
+  summary: string
+}
+
+export type CalendarPresentationView = {
+  daySummary: DaySummary
+  weekSummary: WeekSummary
+  monthSummary: MonthSummary
+  surfaceCards: SurfaceCard[]
+  topDomains: TopDomain[]
+  timingSignals: string[]
+  cautions: string[]
+  recommendedActions: string[]
+  relationshipWeather: WeatherSummary
+  workMoneyWeather: WeatherSummary
+}
+
+export function toDatePartsInTimeZone(
+  date: Date,
+  timeZone: string
+): { year: number; month: number; day: number } {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date)
+
+  const getPart = (type: 'year' | 'month' | 'day') =>
+    Number(parts.find((part) => part.type === type)?.value ?? '0')
+
+  return {
+    year: getPart('year'),
+    month: getPart('month'),
+    day: getPart('day'),
+  }
+}
+
+export function toIsoDate(parts: { year: number; month: number; day: number }): string {
+  return `${parts.year}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}`
+}
+
+export function addDaysIso(iso: string, days: number): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  const dt = new Date(y, m - 1, d)
+  dt.setDate(dt.getDate() + days)
+  return toIsoDate({ year: dt.getFullYear(), month: dt.getMonth() + 1, day: dt.getDate() })
+}
+
+export function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value))
+}
+
+export function dedupe(lines: string[]): string[] {
+  const out: string[] = []
+  const seen = new Set<string>()
+  for (const line of lines) {
+    const cleaned = String(line || '').trim()
+    if (!cleaned) continue
+    const key = cleaned.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(cleaned)
+  }
+  return out
+}
+
+export function mapCoreDomainToPresentationDomain(domain?: string): PresentationDomain {
+  if (!domain) return 'general'
+  if (domain === 'relationship') return 'love'
+  if (domain === 'wealth') return 'money'
+  if (
+    domain === 'career' ||
+    domain === 'health' ||
+    domain === 'move' ||
+    domain === 'love' ||
+    domain === 'money'
+  ) {
+    return domain
+  }
+  return 'general'
+}
+
+export function mapPresentationDomainToDomainKey(domain: PresentationDomain): DomainKey | null {
+  if (domain === 'general') return null
+  return domain
+}
+
+export function mapPresentationDomainToCrossDomain(
+  domain: PresentationDomain
+): CrossAgreementMatrixRow['domain'] | null {
+  if (domain === 'general') return 'timing'
+  if (domain === 'love') return 'relationship'
+  if (domain === 'money') return 'wealth'
+  return domain
+}
+
+export function pickAgreementCell(
+  matrix: CrossAgreementMatrixRow[] | undefined,
+  domain: PresentationDomain
+): { row: CrossAgreementMatrixRow; scale: string; cell: CrossAgreementMatrixCell } | null {
+  const crossDomain = mapPresentationDomainToCrossDomain(domain)
+  if (!crossDomain || !Array.isArray(matrix) || matrix.length === 0) return null
+  const row = matrix.find((item) => item.domain === crossDomain)
+  if (!row) return null
+  const orderedScales: Array<'now' | '1-3m' | '3-6m' | '6-12m'> = ['now', '1-3m', '3-6m', '6-12m']
+  for (const scale of orderedScales) {
+    const cell = row.timescales?.[scale]
+    if (cell) return { row, scale, cell }
+  }
+  return null
+}
+
+export function localizeWindowToken(window: string, locale: Locale): string {
+  if (locale === 'ko') {
+    if (window === 'now') return '지금'
+    if (window === '1-3m') return '1~3개월'
+    if (window === '3-6m') return '3~6개월'
+    if (window === '6-12m') return '6~12개월'
+  }
+  return window
+}
+
+export function buildAgreementCardData(input: {
+  locale: Locale
+  focusDomainLabel: string
+  actionDomain: PresentationDomain
+  matrix: CrossAgreementMatrixRow[] | undefined
+  fallbackAgreementPercent?: number
+  fallbackConflictText?: string
+}): Pick<SurfaceCard, 'summary' | 'tag' | 'details' | 'visual'> {
+  const {
+    locale,
+    focusDomainLabel,
+    actionDomain,
+    matrix,
+    fallbackAgreementPercent,
+    fallbackConflictText,
+  } = input
+  const picked = pickAgreementCell(matrix, actionDomain)
+  if (picked) {
+    const agreementPct = Math.round((picked.cell.agreement || 0) * 100)
+    const contradictionPct = Math.round((picked.cell.contradiction || 0) * 100)
+    const leadLag = picked.cell.leadLag ?? picked.row.leadLag ?? 0
+    const windowLabel = localizeWindowToken(picked.scale, locale)
+    const tagKo = agreementPct >= 75 ? '합의 강함' : agreementPct >= 60 ? '합의 보통' : '충돌 주의'
+    const tagEn =
+      agreementPct >= 75
+        ? 'Strong alignment'
+        : agreementPct >= 60
+          ? 'Mixed alignment'
+          : 'Conflict watch'
+    if (locale === 'ko') {
+      const alignment =
+        agreementPct >= 75
+          ? '같은 방향이 강합니다'
+          : agreementPct >= 60
+            ? '대체로 같은 방향이지만 재확인이 필요합니다'
+            : '엇갈림이 커서 보수적으로 읽어야 합니다'
+      const contradictionLine =
+        contradictionPct >= 35
+          ? `충돌도 ${contradictionPct}%: 반대 신호가 꽤 큽니다.`
+          : `충돌도 ${contradictionPct}%: 관리 가능한 수준입니다.`
+      const leadLagLine =
+        leadLag >= 0.18
+          ? '구조가 먼저 열리고 촉발은 뒤따릅니다.'
+          : leadLag <= -0.18
+            ? '촉발은 먼저 오지만 구조 지지는 뒤에서 따라옵니다.'
+            : '구조와 촉발의 시차는 크지 않습니다.'
+      return {
+        summary: `${windowLabel} 기준 ${focusDomainLabel} 합의도는 ${agreementPct}%입니다. ${alignment}`,
+        tag: tagKo,
+        details: [contradictionLine, leadLagLine].filter(Boolean),
+        visual: {
+          kind: 'agreement',
+          agreementPercent: agreementPct,
+          contradictionPercent: contradictionPct,
+          leadLagState:
+            leadLag >= 0.18 ? 'structure-ahead' : leadLag <= -0.18 ? 'trigger-ahead' : 'balanced',
+        },
+      }
+    }
+    const alignment =
+      agreementPct >= 75
+        ? 'alignment is strong'
+        : agreementPct >= 60
+          ? 'alignment is usable but still needs confirmation'
+          : 'misalignment is high, so a conservative read is safer'
+    const contradictionLine =
+      contradictionPct >= 35
+        ? `Contradiction ${contradictionPct}%: opposing pressure is meaningful.`
+        : `Contradiction ${contradictionPct}%: still manageable.`
+    const leadLagLine =
+      leadLag >= 0.18
+        ? 'Structure opens before trigger pressure.'
+        : leadLag <= -0.18
+          ? 'Trigger pressure arrives before structure catches up.'
+          : 'Lead-lag between structure and trigger is limited.'
+    return {
+      summary: `In the ${windowLabel} window, agreement for ${focusDomainLabel} is ${agreementPct}% and ${alignment}.`,
+      tag: tagEn,
+      details: [contradictionLine, leadLagLine].filter(Boolean),
+      visual: {
+        kind: 'agreement',
+        agreementPercent: agreementPct,
+        contradictionPercent: contradictionPct,
+        leadLagState:
+          leadLag >= 0.18 ? 'structure-ahead' : leadLag <= -0.18 ? 'trigger-ahead' : 'balanced',
+      },
+    }
+  }
+
+  if (fallbackConflictText) {
+    return {
+      summary: fallbackConflictText,
+      tag: locale === 'ko' ? '합의 재확인' : 'Recheck alignment',
+      details: [],
+      visual: {
+        kind: 'agreement',
+        agreementPercent:
+          typeof fallbackAgreementPercent === 'number' ? fallbackAgreementPercent : 50,
+        contradictionPercent: 40,
+        leadLagState: 'balanced',
+      },
+    }
+  }
+  if (typeof fallbackAgreementPercent === 'number') {
+    return locale === 'ko'
+      ? {
+          summary: `${focusDomainLabel} 기준 교차 합의도는 ${fallbackAgreementPercent}% 수준입니다.`,
+          tag: '합의 재확인',
+          details: ['세부 창과 충돌 신호를 한 번 더 확인하는 편이 낫습니다.'],
+          visual: {
+            kind: 'agreement',
+            agreementPercent: fallbackAgreementPercent,
+            contradictionPercent: Math.max(0, 100 - fallbackAgreementPercent),
+            leadLagState: 'balanced',
+          },
+        }
+      : {
+          summary: `Cross-agreement for ${focusDomainLabel} is around ${fallbackAgreementPercent}%.`,
+          tag: 'Recheck alignment',
+          details: ['A second pass on timing and conflict signals is still useful.'],
+          visual: {
+            kind: 'agreement',
+            agreementPercent: fallbackAgreementPercent,
+            contradictionPercent: Math.max(0, 100 - fallbackAgreementPercent),
+            leadLagState: 'balanced',
+          },
+        }
+  }
+  return locale === 'ko'
+    ? {
+        summary: `${focusDomainLabel} 기준 합의도는 중간 수준입니다.`,
+        tag: '합의 보통',
+        details: ['한 방향으로만 밀기보다 재확인을 끼워 넣는 편이 낫습니다.'],
+        visual: {
+          kind: 'agreement',
+          agreementPercent: 58,
+          contradictionPercent: 28,
+          leadLagState: 'balanced',
+        },
+      }
+    : {
+        summary: `Agreement for ${focusDomainLabel} is moderate.`,
+        tag: 'Mixed alignment',
+        details: ['Build in confirmation instead of pushing one-way execution.'],
+        visual: {
+          kind: 'agreement',
+          agreementPercent: 58,
+          contradictionPercent: 28,
+          leadLagState: 'balanced',
+        },
+      }
+}
+
+export function buildBranchCardData(input: {
+  locale: Locale
+  actionDomainLabel: string
+  projectionBranch: string
+  actionTimingWindow?: {
+    entryConditions?: string[]
+    abortConditions?: string[]
+    timingConflictMode?: string
+  }
+}): Pick<SurfaceCard, 'summary' | 'tag' | 'details' | 'visual'> {
+  const { locale, actionDomainLabel, projectionBranch, actionTimingWindow } = input
+  const entry = actionTimingWindow?.entryConditions?.[0]
+  const abort = actionTimingWindow?.abortConditions?.[0]
+  const mode = actionTimingWindow?.timingConflictMode
+  if (locale === 'ko') {
+    const modeLead =
+      mode === 'trigger_ahead'
+        ? '서두르면 지속성이 약해질 수 있습니다.'
+        : mode === 'readiness_ahead'
+          ? '조건을 맞춘 뒤 들어가는 편이 유리합니다.'
+          : mode === 'weak_both'
+            ? '지금은 진입보다 관찰과 정리가 우선입니다.'
+            : '한 경로만 밀기보다 조건형으로 읽어야 합니다.'
+    const entryLead = entry
+      ? `들어가도 되는 조건: ${entry}`
+      : '들어가도 되는 조건: 핵심 조건부터 맞춘 뒤 움직이기'
+    const abortLead = abort
+      ? `멈춰야 하는 조건: ${abort}`
+      : '멈춰야 하는 조건: 충돌 신호가 커지면 속도 줄이기'
+    return {
+      summary:
+        projectionBranch || `${actionDomainLabel} 축은 하나의 답보다 여러 경로를 함께 봐야 합니다.`,
+      tag:
+        mode === 'trigger_ahead'
+          ? '서두름 주의'
+          : mode === 'readiness_ahead'
+            ? '조건 후 진입'
+            : mode === 'weak_both'
+              ? '관찰 우선'
+              : '분기형 실행',
+      details: [entryLead, abortLead, `서두르면 생기는 리스크: ${modeLead}`],
+      visual: {
+        kind: 'branch',
+        rows: [
+          { label: '진입', text: entryLead },
+          { label: '중단', text: abortLead },
+          { label: '리스크', text: `서두르면 생기는 리스크: ${modeLead}` },
+        ],
+      },
+    }
+  }
+  const modeLead =
+    mode === 'trigger_ahead'
+      ? 'Rushing weakens sustainability because trigger arrives before structure.'
+      : mode === 'readiness_ahead'
+        ? 'Entry works better after conditions line up.'
+        : mode === 'weak_both'
+          ? 'Observation and reset matter more than entry right now.'
+          : 'Read this through multiple live branches rather than one fixed path.'
+  const entryLead = entry
+    ? `Entry condition: ${entry}`
+    : 'Entry condition: line up the core conditions first'
+  const abortLead = abort
+    ? `Abort signal: ${abort}`
+    : 'Abort signal: slow down when conflict pressure grows'
+  return {
+    summary:
+      projectionBranch ||
+      `${actionDomainLabel} should be read through multiple live branches rather than one fixed path.`,
+    tag:
+      mode === 'trigger_ahead'
+        ? 'Rush caution'
+        : mode === 'readiness_ahead'
+          ? 'Enter after setup'
+          : mode === 'weak_both'
+            ? 'Observe first'
+            : 'Branch-led',
+    details: [entryLead, abortLead, `Risk of rushing: ${modeLead}`],
+    visual: {
+      kind: 'branch',
+      rows: [
+        { label: 'Entry', text: entryLead },
+        { label: 'Abort', text: abortLead },
+        { label: 'Risk', text: `Risk of rushing: ${modeLead}` },
+      ],
+    },
+  }
+}
+
+export function matchesPresentationDomain(date: FormattedDate, domain: PresentationDomain): boolean {
+  if (domain === 'general') return true
+
+  const matrixDomain = date.evidence?.matrix?.domain
+  if (domain === 'money' && matrixDomain === 'money') return true
+  if (matrixDomain === domain) return true
+
+  if (domain === 'career')
+    return date.categories.includes('career') || date.categories.includes('study')
+  if (domain === 'love') return date.categories.includes('love')
+  if (domain === 'money') return date.categories.includes('wealth')
+  if (domain === 'health') return date.categories.includes('health')
+  if (domain === 'move') return date.categories.includes('travel')
+  return false
+}
+
+export function pickDomainAlignedDate(
+  allDates: FormattedDate[],
+  domain: PresentationDomain,
+  fallback: FormattedDate
+): FormattedDate {
+  return allDates.find((item) => matchesPresentationDomain(item, domain)) || fallback
+}
+
+export function getDomainLabel(domain: PresentationDomain, locale: Locale): string {
+  const ko: Record<PresentationDomain, string> = {
+    career: '커리어',
+    love: '관계',
+    money: '재정',
+    health: '건강',
+    move: '이동/변화',
+    general: '전반',
+  }
+  const en: Record<PresentationDomain, string> = {
+    career: 'career',
+    love: 'relationship',
+    money: 'finance',
+    health: 'health',
+    move: 'movement',
+    general: 'overall',
+  }
+  return locale === 'ko' ? ko[domain] : en[domain]
+}
+
+export function getReliabilityText(
+  locale: Locale,
+  confidence?: number,
+  crossAgreementPercent?: number
+): string {
+  const conf = typeof confidence === 'number' ? confidence : 0
+  const agreement = typeof crossAgreementPercent === 'number' ? crossAgreementPercent : undefined
+  const lowConf = conf < 40
+  const lowAgreement = typeof agreement === 'number' && agreement < 60
+
+  if (locale === 'ko') {
+    if (lowConf && lowAgreement) return '신호 일치도가 낮아 확정보다 검토가 우선입니다.'
+    if (lowConf) return '근거 강도가 낮아 보수적으로 움직이는 편이 좋습니다.'
+    if (lowAgreement) return '사주와 점성의 합의가 약해 재확인이 유리합니다.'
+    return '신호는 안정적인 편이며 핵심 1~2개 실행에 집중하기 좋습니다.'
+  }
+
+  if (lowConf && lowAgreement)
+    return 'Signal alignment is low, so review should come before commitment.'
+  if (lowConf) return 'Evidence strength is low, so act conservatively.'
+  if (lowAgreement) return 'Cross-agreement is weak, so a second check helps.'
+  return 'Signals are stable enough to focus on one or two priorities.'
+}
+
+export function isDefensivePhase(value?: string): boolean {
+  if (!value) return false
+  return /(defensive|reset|stabil|재정렬|방어|안정)/i.test(value)
+}
+
+export function softenForDefensivePhase(line: string, locale: Locale): string {
+  if (locale === 'ko') {
+    return line
+      .replace(/(서명|계약|확정|예약|즉시 결정|큰 결정)/g, '검토')
+      .replace(/최적/g, '점검 우선')
+      .replace(/바로/g, '검토 후')
+  }
+  return line
+    .replace(/\b(sign|finalize|confirm|book|commit now|big decision)\b/gi, 'review')
+    .replace(/\b(best|optimal|perfect)\b/gi, 'review-first')
+}
+
+export function pickSelectedDate(allDates: FormattedDate[], timeZone: string): FormattedDate | undefined {
+  const todayIso = toIsoDate(toDatePartsInTimeZone(new Date(), timeZone))
+  return allDates.find((d) => d.date === todayIso) || allDates[0]
+}
+
+export function scoreToWeatherGrade(avg: number, cautionRatio: number): WeatherSummary['grade'] {
+  if (cautionRatio >= 0.5 || avg < 45) return 'caution'
+  if (avg >= 78) return 'strong'
+  if (avg >= 62) return 'good'
+  return 'neutral'
+}
+
+export function verdictModeToWeatherGrade(
+  mode: 'execute' | 'verify' | 'prepare' | undefined,
+  confidence?: number
+): WeatherSummary['grade'] {
+  const normalized = typeof confidence === 'number' ? clamp01(confidence) : 0
+  if (mode === 'execute' && normalized >= 0.7) return 'strong'
+  if (mode === 'execute' || (mode === 'verify' && normalized >= 0.55)) return 'good'
+  if (mode === 'prepare' || normalized < 0.45) return 'caution'
+  return 'neutral'
+}
+
+export function weatherSummaryText(
+  locale: Locale,
+  area: 'relationship' | 'workMoney',
+  grade: WeatherSummary['grade']
+): string {
+  if (locale === 'ko') {
+    if (area === 'relationship') {
+      if (grade === 'strong')
+        return '관계 흐름이 좋습니다. 연결은 넓히되 약속은 짧게 확인하는 편이 낫습니다.'
+      if (grade === 'good') return '관계 흐름은 우호적입니다. 핵심 대화 한 건에 집중하면 좋습니다.'
+      if (grade === 'neutral')
+        return '관계는 무난한 흐름입니다. 기대치와 표현 방식을 먼저 맞추는 편이 안정적입니다.'
+      return '관계는 주의 구간입니다. 반응보다 확인, 추정보다 문장 정리가 우선입니다.'
+    }
+    if (grade === 'strong')
+      return '일과 돈의 흐름이 강합니다. 확장보다 우선순위 하나를 정확히 잡는 편이 더 좋습니다.'
+    if (grade === 'good')
+      return '일과 돈은 실행 가능성이 높습니다. 작은 검증 단계를 끼우면 성과가 안정됩니다.'
+    if (grade === 'neutral')
+      return '일과 돈은 무난한 흐름입니다. 속도보다 체크리스트 운영이 더 안전합니다.'
+    return '일과 돈은 변동성이 있어 신규 확정보다 조건 검토와 손실 방지가 우선입니다.'
+  }
+
+  if (area === 'relationship') {
+    if (grade === 'strong')
+      return 'Relationship flow is strong. Expand gently and confirm commitments briefly.'
+    if (grade === 'good') return 'Relationship flow is supportive. Focus on one key conversation.'
+    if (grade === 'neutral') return 'Relationship flow is neutral. Align expectations first.'
+    return 'Relationship flow is cautious. Verification matters more than reaction.'
+  }
+
+  if (grade === 'strong') return 'Work and finance are strong. Lock one high-impact priority first.'
+  if (grade === 'good') return 'Work and finance support execution. Add one verification step.'
+  if (grade === 'neutral')
+    return 'Work and finance are neutral. Checklist pacing is safer than speed.'
+  return 'Work and finance are volatile. Review terms before any commitment.'
+}
+
+export function buildDomainSummaryFrame(
+  locale: Locale,
+  scope: 'day' | 'week' | 'month',
+  domain: PresentationDomain,
+  base: string
+): string {
+  if (locale !== 'ko') return base
+
+  const trimmedBase = String(base || '').trim()
+  if (!trimmedBase) return trimmedBase
+
+  const prefix =
+    scope === 'day'
+      ? domain === 'career'
+        ? '오늘 일은'
+        : domain === 'love'
+          ? '오늘 관계는'
+          : domain === 'money'
+            ? '오늘 돈 문제는'
+            : domain === 'health'
+              ? '오늘 컨디션은'
+              : domain === 'move'
+                ? '오늘 이동과 변화는'
+                : '오늘은'
+      : scope === 'week'
+        ? domain === 'career'
+          ? '이번 주 일은'
+          : domain === 'love'
+            ? '이번 주 관계는'
+            : domain === 'money'
+              ? '이번 주 돈 문제는'
+              : domain === 'health'
+                ? '이번 주 컨디션은'
+                : domain === 'move'
+                  ? '이번 주 이동과 변화는'
+                  : '이번 주는'
+        : domain === 'career'
+          ? '이번 달 일은'
+          : domain === 'love'
+            ? '이번 달 관계는'
+            : domain === 'money'
+              ? '이번 달 돈 문제는'
+              : domain === 'health'
+                ? '이번 달 컨디션은'
+                : domain === 'move'
+                  ? '이번 달 이동과 변화는'
+                  : '이번 달은'
+
+  const tail =
+    domain === 'career'
+      ? '우선순위와 맡을 범위를 먼저 정해 둘수록 실제 성과로 이어지기 쉽습니다.'
+      : domain === 'love'
+        ? '감정 해석보다 대화 순서와 확인 방식이 결과를 더 크게 좌우합니다.'
+        : domain === 'money'
+          ? '기대감보다 금액, 기한, 손실 상한을 먼저 닫아야 흔들림이 줄어듭니다.'
+          : domain === 'health'
+            ? '무리해서 끌어올리기보다 수면과 회복 시간을 먼저 지키는 편이 낫습니다.'
+            : domain === 'move'
+              ? '한 번에 확정하기보다 순서와 여유 시간을 먼저 확보하는 편이 안전합니다.'
+              : '욕심을 넓히기보다 핵심 조건을 먼저 맞추는 편이 유리합니다.'
+
+  const baseWithoutDuplicatePrefix = trimmedBase
+    .replace(new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+`), '')
+    .replace(/^오늘 일은\s+커리어는/u, '커리어는')
+    .replace(/^오늘 관계는\s+관계는/u, '관계는')
+    .replace(/^오늘 돈 문제는\s+재정은/u, '재정은')
+    .replace(/^오늘 컨디션은\s+건강은/u, '건강은')
+    .replace(/^오늘 이동과 변화는\s+이동\/변화는/u, '이동/변화는')
+    .replace(/^이번 주 일은\s+커리어/u, '커리어')
+    .replace(/^이번 주 관계는\s+관계/u, '관계')
+    .replace(/^이번 주 돈 문제는\s+재정/u, '재정')
+    .replace(/^이번 달 일은\s+\d{4}-\d{2}은\s+커리어/u, (m) => m.replace(/^이번 달 일은\s+/, ''))
+    .replace(/^이번 달 관계는\s+\d{4}-\d{2}은\s+관계/u, (m) => m.replace(/^이번 달 관계는\s+/, ''))
+    .replace(/^이번 달 돈 문제는\s+\d{4}-\d{2}은\s+재정/u, (m) =>
+      m.replace(/^이번 달 돈 문제는\s+/, '')
+    )
+
+  const finalTail = baseWithoutDuplicatePrefix.includes(tail) ? '' : tail
+  const keywordMatchedTail =
+    (domain === 'career' &&
+      (baseWithoutDuplicatePrefix.includes('역할·범위·마감') ||
+        baseWithoutDuplicatePrefix.includes('우선순위'))) ||
+    (domain === 'love' &&
+      (baseWithoutDuplicatePrefix.includes('대화 순서') ||
+        baseWithoutDuplicatePrefix.includes('확인 방식'))) ||
+    (domain === 'money' &&
+      (baseWithoutDuplicatePrefix.includes('금액·기한·손실 상한') ||
+        baseWithoutDuplicatePrefix.includes('금액, 기한, 손실 상한'))) ||
+    (domain === 'health' &&
+      (baseWithoutDuplicatePrefix.includes('수면과 회복') ||
+        baseWithoutDuplicatePrefix.includes('회복 시간'))) ||
+    (domain === 'move' &&
+      (baseWithoutDuplicatePrefix.includes('순서와 여유 시간') ||
+        baseWithoutDuplicatePrefix.includes('한 번에 확정하기보다')))
+
+  const needsPrefix =
+    !baseWithoutDuplicatePrefix.startsWith('커리어는') &&
+    !baseWithoutDuplicatePrefix.startsWith('관계는') &&
+    !baseWithoutDuplicatePrefix.startsWith('재정은') &&
+    !baseWithoutDuplicatePrefix.startsWith('건강은') &&
+    !baseWithoutDuplicatePrefix.startsWith('이동/변화는') &&
+    !/^\d{4}-\d{2}은/u.test(baseWithoutDuplicatePrefix)
+
+  return [
+    needsPrefix ? prefix : '',
+    baseWithoutDuplicatePrefix,
+    keywordMatchedTail ? '' : finalTail,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .trim()
+}
+
+export function buildTopDomains(
+  locale: Locale,
+  allDates: FormattedDate[],
+  domainScores?: Record<DomainKey, DomainScore>
+): TopDomain[] {
+  if (domainScores && Object.keys(domainScores).length > 0) {
+    return Object.values(domainScores)
+      .slice()
+      .sort((a, b) => b.finalScoreAdjusted - a.finalScoreAdjusted)
+      .slice(0, 3)
+      .map((item) => ({
+        domain: item.domain,
+        label: getDomainLabel(item.domain, locale),
+        score: Number(clamp01(item.finalScoreAdjusted / 10).toFixed(2)),
+      }))
+  }
+
+  const buckets = new Map<PresentationDomain, { sum: number; count: number }>()
+  for (const date of allDates) {
+    const domain = (date.evidence?.matrix?.domain || 'general') as PresentationDomain
+    const score = Number.isFinite(date.displayScore) ? (date.displayScore as number) : date.score
+    const prev = buckets.get(domain) || { sum: 0, count: 0 }
+    prev.sum += Math.max(0, Math.min(100, score))
+    prev.count += 1
+    buckets.set(domain, prev)
+  }
+
+  return [...buckets.entries()]
+    .map(([domain, row]) => ({
+      domain,
+      label: getDomainLabel(domain, locale),
+      score: Number(clamp01(row.count > 0 ? row.sum / row.count / 100 : 0).toFixed(2)),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+}
+
+export function prioritizeTopDomains(
+  rows: TopDomain[],
+  preferredFocusDomain?: PresentationDomain
+): TopDomain[] {
+  if (!preferredFocusDomain) return rows
+  return rows.slice().sort((a, b) => {
+    if (a.domain === preferredFocusDomain && b.domain !== preferredFocusDomain) return -1
+    if (b.domain === preferredFocusDomain && a.domain !== preferredFocusDomain) return 1
+    return b.score - a.score
+  })
+}
+
+export function buildTopDomainsFromCanonical(
+  locale: Locale,
+  canonicalCore?: CalendarCoreAdapterResult
+): TopDomain[] {
+  if (!canonicalCore?.domainVerdicts?.length) return []
+
+  return canonicalCore.domainVerdicts
+    .slice()
+    .sort((a, b) => b.confidence - a.confidence)
+    .map((item) => {
+      const domain = mapCoreDomainToPresentationDomain(item.domain)
+      return {
+        domain,
+        label: getDomainLabel(domain, locale),
+        score: Number(clamp01(item.confidence).toFixed(2)),
+      }
+    })
+    .filter((item, index, rows) => rows.findIndex((row) => row.domain === item.domain) === index)
+    .slice(0, 3)
+}

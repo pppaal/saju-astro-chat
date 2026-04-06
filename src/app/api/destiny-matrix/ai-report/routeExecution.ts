@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { calculateDestinyMatrix } from '@/lib/destiny-matrix/engine'
 import { FusionReportGenerator } from '@/lib/destiny-matrix/interpreter/report-generator'
 import { buildCoreEnvelope } from '@/lib/destiny-matrix/core/buildCoreEnvelope'
+import { buildSharedSurface } from '@/lib/destiny-matrix/core/adaptersPayload'
 import type { AIPremiumReport } from '@/lib/destiny-matrix/ai-report/reportTypes'
 import { type TimingAIPremiumReport, type ThemedAIPremiumReport } from '@/lib/destiny-matrix/ai-report/types'
 import { auditMatrixInputReadiness } from '@/lib/destiny-matrix/ai-report/qualityAudit'
@@ -178,6 +179,10 @@ export async function executeAiReportRequest(input: {
   const layerResults = coreEnvelope.layerResults
   const baseReport = coreEnvelope.matrixReport
   const normalizedMatrixInput = coreEnvelope.normalizedInput
+  const sharedSurface = buildSharedSurface(
+    coreEnvelope.coreSeed,
+    (((normalizedMatrixInput.lang || 'ko') as 'ko' | 'en') || 'ko')
+  )
 
   if (isFreeTier) {
     const freeReport = buildRichFreeDigestReportExternal({
@@ -198,6 +203,7 @@ export async function executeAiReportRequest(input: {
         summary: domain.summary,
         hasData: domain.hasData,
       })),
+      personModel: sharedSurface.personModel,
       lang: normalizedMatrixInput.lang || 'ko',
       theme,
       period,

@@ -87,9 +87,10 @@ function buildRepairSection(
   const leadVerdict = findReportCoreVerdict(reportCore, reportCore.actionFocusDomain)
   const branchLabels = topBranchLabels(reportCore)
   const matrixSummary = summarizeMatrix(reportCore)
+  const birthDate = typeof input.profileContext?.birthDate === 'string' ? input.profileContext.birthDate : ''
   const currentAge =
-    typeof input.birthDate === 'string'
-      ? Math.max(0, new Date().getUTCFullYear() - Number(input.birthDate.slice(0, 4)))
+    birthDate
+      ? Math.max(0, new Date().getUTCFullYear() - Number(birthDate.slice(0, 4)))
       : null
 
   switch (section) {
@@ -178,6 +179,8 @@ function buildRepairSection(
         `한 번에 인생을 뒤집는 결정보다, 기준을 먼저 세우고 가능한 경로를 비교하면서 움직일 때 이번 구간의 힘을 가장 제대로 쓸 수 있습니다.`,
       ])
   }
+
+  return ''
 }
 
 export function repairMalformedComprehensiveSections(
@@ -195,3 +198,4 @@ export function repairMalformedComprehensiveSections(
   }
   return repaired
 }
+

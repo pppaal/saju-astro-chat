@@ -17,6 +17,8 @@ import { parseRequestBody } from '@/lib/api/requestParser'
 import { createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
+import { normalizeCounselorResponse } from '@/lib/counselor/responseContract'
+import { applyCounselorBrandVoice } from '@/lib/counselor/brandVoice'
 
 import { clampMessages } from './lib/helpers'
 import { validateDestinyMapRequest } from './lib/validation'
@@ -40,6 +42,161 @@ function isCounselorStrictMatrixEnabled(): boolean {
   if (raw === 'true') return true
   if (raw === 'false') return false
   return process.env.NODE_ENV !== 'test'
+}
+
+function isCounselorCostOptimized(): boolean {
+  const explicit = process.env.COUNSELOR_COST_OPTIMIZED?.trim().toLowerCase()
+  if (explicit) return explicit === 'true' || explicit === '1' || explicit === 'yes'
+  const shared = process.env.AI_BACKEND_COST_OPTIMIZED?.trim().toLowerCase()
+  return shared === 'true' || shared === '1' || shared === 'yes'
+}
+
+function getCounselorBackendProviderHint(): string | undefined {
+  const forced = process.env.COUNSELOR_BACKEND_PROVIDER?.trim().toLowerCase()
+  if (forced) return forced
+  const shared = process.env.AI_BACKEND_PROVIDER?.trim().toLowerCase()
+  return shared || undefined
+}
+
+function getCounselorBackendModelHint(): string | undefined {
+  const forced = process.env.COUNSELOR_BACKEND_MODEL?.trim()
+  if (forced) return forced
+  if (isCounselorCostOptimized()) {
+    return process.env.CLAUDE_FAST_MODEL?.trim() || 'claude-3-haiku-20240307'
+  }
+  return process.env.CLAUDE_MODEL?.trim() || undefined
+}
+
+function extractCounselorTextFromSSEChunk(chunk: string): string {
+  const lines = String(chunk || '').split(/\r?\n/)
+  const parts: string[] = []
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim()
+    if (!line.startsWith('data:')) continue
+    const payload = line.slice(5).trim()
+    if (!payload || payload === '[DONE]') continue
+
+    try {
+      const parsed = JSON.parse(payload) as
+        | { content?: unknown; delta?: { content?: unknown }; message?: unknown }
+        | string
+      if (typeof parsed === 'string') {
+        parts.push(parsed)
+        continue
+      }
+      const value =
+        typeof parsed.content === 'string'
+          ? parsed.content
+          : typeof parsed.delta?.content === 'string'
+            ? parsed.delta.content
+            : typeof parsed.message === 'string'
+              ? parsed.message
+              : ''
+      if (value) parts.push(value)
+    } catch {
+      parts.push(payload)
+    }
+  }
+
+  return parts.join('')
+}
+
+type CounselorUiEvidencePayload = {
+  title?: string
+  summary?: string
+  bullets?: string[]
+}
+
+function decodeCounselorUiEvidence(
+  encoded: string | null | undefined
+): CounselorUiEvidencePayload | null {
+  const value = String(encoded || '').trim()
+  if (!value) return null
+  try {
+    const normalized = value.replace(/-/g, '+').replace(/_/g, '/')
+    const padding = normalized.length % 4 === 0 ? '' : '='.repeat(4 - (normalized.length % 4))
+    const json = Buffer.from(normalized + padding, 'base64').toString('utf8')
+    const parsed = JSON.parse(json) as CounselorUiEvidencePayload
+    return parsed && typeof parsed === 'object' ? parsed : null
+  } catch {
+    return null
+  }
+}
+
+function buildCounselorFallbackContent(
+  lang: 'ko' | 'en',
+  uiEvidence: string | null | undefined,
+  genericFallback: string
+): string {
+  const payload = decodeCounselorUiEvidence(uiEvidence)
+  if (!payload) {
+    return applyCounselorBrandVoice(normalizeCounselorResponse(genericFallback, lang), lang)
+  }
+
+  const summary = String(payload.summary || '').trim()
+  const bullets = Array.isArray(payload.bullets)
+    ? payload.bullets.map((item) => String(item || '').trim()).filter(Boolean)
+    : []
+
+  if (lang === 'ko') {
+    const evidence = bullets.slice(0, 2).map((line) => `- ${line}`).join('\n')
+    const action = bullets
+      .filter((line) => /행동|타이밍|들어갈 조건|실행 감각|Action read|Timing read/i.test(line))
+      .slice(0, 3)
+      .map((line) => `- ${line.replace(/^(행동 해석:|타이밍 해석:|들어갈 조건:|실행 감각:)\s*/u, '')}`)
+      .join('\n')
+    const caution = bullets
+      .filter((line) => /리스크|주의|느출|Slow-down|Caution/i.test(line))
+      .slice(0, 2)
+      .map((line) => `- ${line.replace(/^(리스크 해석:|주의 신호:|느출 신호:)\s*/u, '')}`)
+      .join('\n')
+
+    return applyCounselorBrandVoice(
+      normalizeCounselorResponse(
+      [
+        '## 한 줄 결론',
+        summary || '지금은 성급한 확정보다 조건을 다시 확인한 뒤 움직이는 편이 맞습니다.',
+        '',
+        '## 근거',
+        evidence || '- 현재 구조와 타이밍을 함께 보면, 지금은 확정보다 검토가 더 유리한 구간으로 읽힙니다.',
+        '',
+        '## 실행 계획',
+        action ||
+          '- 오늘 가장 중요한 한 가지를 먼저 정하세요.\n- 들어가기 전 조건과 책임 범위를 먼저 확인하세요.\n- 최종 확정은 한 박자 늦게 가져가세요.',
+        '',
+        '## 주의/재확인',
+        caution ||
+          '- 서명, 결제, 확정처럼 되돌리기 어려운 행동은 한 번 더 확인한 뒤 진행하세요.\n- 상대와 핵심 조건을 한 문장으로 다시 맞춰보세요.',
+      ].join('\n'),
+      lang
+      ),
+      lang
+    )
+  }
+
+  return applyCounselorBrandVoice(
+    normalizeCounselorResponse(
+    [
+      '## Direct Answer',
+      summary || 'Move with verification first and delay irreversible commitments.',
+      '',
+      '## Evidence',
+      bullets.slice(0, 2).map((line) => `- ${line}`).join('\n') ||
+        '- Current structure and timing both favor review before commitment.',
+      '',
+      '## Action Plan',
+      bullets.slice(2, 5).map((line) => `- ${line}`).join('\n') ||
+        '- Lock one priority.\n- Confirm conditions before entry.\n- Delay final commitment until the checklist is complete.',
+      '',
+      '## Avoid / Recheck',
+      bullets.slice(5, 7).map((line) => `- ${line}`).join('\n') ||
+        '- Recheck any irreversible action before signing, sending, or paying.',
+    ].join('\n'),
+    lang
+    ),
+    lang
+  )
 }
 
 export async function POST(req: NextRequest) {
@@ -214,6 +371,10 @@ export async function POST(req: NextRequest) {
         session_id: req.headers.get('x-session-id') || undefined,
         user_context: preparedInputs.userContext || undefined,
         cv_text: preparedInputs.cvText || undefined,
+        provider_hint: getCounselorBackendProviderHint(),
+        model_hint: getCounselorBackendModelHint(),
+        quality_tier: isCounselorCostOptimized() ? 'fast' : 'quality',
+        cost_optimized: isCounselorCostOptimized(),
       },
       { timeout: 60000 }
     )
@@ -236,8 +397,14 @@ export async function POST(req: NextRequest) {
           ? 'AI ???? ???? ?????. ?? ? ?? ??????.'
           : 'Could not connect to AI service. Please try again.'
 
+      const fallbackContent = buildCounselorFallbackContent(
+        preparedInputs.lang,
+        preparedExecution.counselorUiEvidence,
+        fallback
+      )
+
       return createFallbackSSEStream({
-        content: fallback,
+        content: fallbackContent,
         done: true,
         'X-Fallback': '1',
         ...(preparedExecution.counselorUiEvidence
@@ -255,6 +422,16 @@ export async function POST(req: NextRequest) {
       transform: (chunk) => {
         return maskTextWithName(sanitizeLocaleText(chunk, preparedInputs.lang), preparedInputs.name)
       },
+      extractText: (chunk) =>
+        maskTextWithName(
+          sanitizeLocaleText(extractCounselorTextFromSSEChunk(chunk), preparedInputs.lang),
+          preparedInputs.name
+        ),
+      finalizeText: (fullText) =>
+        applyCounselorBrandVoice(
+          normalizeCounselorResponse(fullText, preparedInputs.lang),
+          preparedInputs.lang
+        ),
       route: 'DestinyMapChatStream',
       additionalHeaders: {
         'X-Fallback': streamResult.response.headers.get('x-fallback') || '0',

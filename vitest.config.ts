@@ -64,7 +64,7 @@ export default defineConfig({
       enabled: isCoverageRun,
       provider: 'v8',
       reporter: coverageReporters,
-      reportsDirectory: './coverage',
+      reportsDirectory: './tmp/coverage',
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
         'src/**/*.d.ts',

@@ -365,6 +365,10 @@ export interface TimingAIPremiumReport {
       tokenIntegrityPass?: boolean
       structurePass?: boolean
       forbiddenAdditionsPass?: boolean
+      repetitiveLeadPatternCount?: number
+      abstractNounRatio?: number
+      sentenceLengthVariance?: number
+      bilingualToneSkew?: number
     }
   }
 }
@@ -478,6 +482,10 @@ export interface ThemedAIPremiumReport {
       tokenIntegrityPass?: boolean
       structurePass?: boolean
       forbiddenAdditionsPass?: boolean
+      repetitiveLeadPatternCount?: number
+      abstractNounRatio?: number
+      sentenceLengthVariance?: number
+      bilingualToneSkew?: number
     }
   }
 }

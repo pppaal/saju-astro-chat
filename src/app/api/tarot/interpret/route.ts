@@ -1,4 +1,4 @@
-﻿// src/app/api/tarot/interpret/route.ts
+// src/app/api/tarot/interpret/route.ts
 // Premium Tarot Interpretation API using Hybrid RAG
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -189,8 +189,8 @@ function extractJsonObjectSlice(raw: string): string | null {
 function sanitizeJsonLikeText(raw: string): string {
   return raw
     .replace(/^\uFEFF/, '')
-    .replace(/[“”]/g, '"')
-    .replace(/[‘’]/g, "'")
+    .replace(/[��]/g, '"')
+    .replace(/[��]/g, "'")
     .replace(/\/\/[^\n\r]*/g, '')
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/,\s*([}\]])/g, '$1')
@@ -278,7 +278,7 @@ function isTooGenericGuidance(guidance: string, language: string): boolean {
   if (!normalized || normalized.length < 25) return true
 
   if (language === 'ko') {
-    return /(메시지에 귀 기울|화이팅|힘내|좋은 하루)/i.test(guidance)
+    return ['??? ???', '??? ???', '?? ??', '?????'].some((term) => guidance.includes(term))
   }
   return /(listen to the cards|you got this|stay positive|good luck)/i.test(normalized)
 }
@@ -288,15 +288,15 @@ function buildActionableGuidance(language: string, userQuestion: string | undefi
   const focusLabel =
     question.length > 0
       ? language === 'ko'
-        ? `질문(${question}) 기준으로`
+        ? `??(${question}) ????`
         : `Based on your question (${question})`
       : ''
 
   if (language === 'ko') {
     return [
-      `1) 오늘: ${focusLabel || '현재 카드 흐름 기준으로'} 가장 중요한 변수 1개를 정하고, 실행할 행동 1개를 20분 안에 시작하세요.`,
-      '2) 이번 주: 결과를 3줄로 기록하세요. (무엇을 했는지/어떤 반응이 있었는지/다음 수정 포인트)',
-      '3) 다음 7일: 반복 패턴 1개를 끊는 실험을 하고, 효과가 있으면 같은 방식으로 1회 더 실행하세요.',
+      `1) ??: ${focusLabel || '?? ?? ?? ????'} ?? ??? ?? 1?? ???, ??? ?? 1?? 20? ?? ?????.`,
+      '2) ?? ?: ??? 3?? ?????. (??? ???/?? ??? ????/?? ?? ???)',
+      '3) ?? 7?: ?? ?? 1?? ?? ??? ??, ??? ??? ?? ???? 1? ? ?????.',
     ].join('\n')
   }
 
@@ -317,17 +317,17 @@ function extractQuestionAnchorTerms(question: string): string[] {
       (token) =>
         token.length >= 2 &&
         ![
-          '지금',
-          '이번',
-          '오늘',
-          '내일',
-          '정말',
-          '그냥',
-          '어떻게',
-          '뭐',
-          '무슨',
-          '대한',
-          '기준',
+          '??',
+          '??',
+          '??',
+          '??',
+          '??',
+          '??',
+          '???',
+          '?',
+          '??',
+          '??',
+          '??',
           'where',
           'what',
           'when',
@@ -340,45 +340,12 @@ function extractQuestionAnchorTerms(question: string): string[] {
     .slice(0, 8)
 }
 
-function hasQuestionAnchor(overall: string, userQuestion: string | undefined): boolean {
-  const question = (userQuestion || '').trim()
-  if (!question) return true
-
-  const normalizedOverall = overall.toLowerCase().replace(/\s+/g, ' ').trim()
-  const normalizedQuestion = question.toLowerCase().replace(/\s+/g, ' ').trim()
-  if (normalizedOverall.includes(normalizedQuestion)) {
-    return true
-  }
-
-  const anchorTerms = extractQuestionAnchorTerms(question)
-  if (anchorTerms.length === 0) {
-    return true
-  }
-
-  return anchorTerms.some((term) => normalizedOverall.includes(term))
-}
-
-function isTooGenericOverall(overall: string, userQuestion: string | undefined): boolean {
-  const normalized = overall.toLowerCase().replace(/\s+/g, ' ').trim()
-  if (!normalized || normalized.length < 90) return true
-  if (!hasQuestionAnchor(normalized, userQuestion)) return true
-
-  return /(?:성급한 결정보다 우선순위 정리|작은 실행 단위를 먼저 만들고|stabilizing priorities and execution rhythm matters more)/i.test(
-    overall
-  )
-}
-
 function buildMinimumOverall(
   language: string,
   cards: CardInput[],
-  userQuestion: string | undefined,
-  currentOverall: string
+  userQuestion?: string,
+  _existingOverall?: string
 ): string {
-  const normalizedOverall = currentOverall.trim()
-  if (!isTooGenericOverall(normalizedOverall, userQuestion)) {
-    return normalizedOverall
-  }
-
   const cardNames = cards
     .slice(0, 3)
     .map((card) => (language === 'ko' ? card.nameKo || card.name : card.name))
@@ -389,75 +356,47 @@ function buildMinimumOverall(
 
   if (language === 'ko') {
     const qLine = question ? `질문 "${question}" 기준으로 보면, ` : ''
-    return `${qLine}${cardNames} 카드 조합은 ${focusSummary} 감정 반응으로 바로 결론내리기보다, 지금은 확인 가능한 신호와 실행 조건을 먼저 분리해야 흐름을 정확하게 읽을 수 있습니다. 결론: 오늘 바로 검증 가능한 행동 1개를 정하고, 이번 주 안에 결과 변화를 기록하세요.`
+    return `${qLine}${cardNames} 조합은 ${focusSummary} 지금은 결론을 서두르기보다 조건과 신호를 먼저 분리해서 읽는 편이 맞습니다. 오늘 바로 확인할 행동 하나를 정하고, 이번 주 안에 결과를 다시 점검하세요.`
   }
 
   const qLine = question ? `For your question "${question}", ` : ''
-  return `${qLine}the combination of ${cardNames} suggests that ${focusSummary} Instead of forcing a quick conclusion, separate observable signals from assumptions and test one concrete condition first. Conclusion: choose one action you can verify today and review the outcome within this week.`
+  return `${qLine}the combination of ${cardNames} suggests that ${focusSummary} Instead of forcing a quick conclusion, separate observable signals from assumptions and test one concrete condition first. Choose one action you can verify today and review the outcome within this week.`
 }
 
 function summarizeQuestionFocus(language: string, userQuestion: string): string {
   const normalized = userQuestion.toLowerCase().replace(/\s+/g, ' ').trim()
 
   if (language === 'ko') {
-    if (/(연락|답장|만날|찾아오|올까|올지|반응)/.test(normalized)) {
-      return '상대의 연락이나 반응 가능성은 기대감보다 실제 움직임의 패턴을 보는 쪽이 맞다는 신호예요.'
+    const hasAny = (terms: string[]) => terms.some((term) => normalized.includes(term))
+
+    if (hasAny(['연애', '사랑', '재회', '이별', '썬', '고백', '연락'])) {
+      return '관계의 흐름을 단정하기보다 상대의 반응과 거리 변화를 차분하게 읽어야 하는 질문입니다.'
     }
-    if (/(재회|헤어|돌아오|전 연인|헤어진)/.test(normalized)) {
-      return '재회 가능성은 감정의 크기보다 관계가 다시 움직일 현실 조건이 있는지부터 봐야 한다는 뜻에 가깝습니다.'
+    if (hasAny(['직업', '커리어', '이직', '면접', '회사', '승진', '취업'])) {
+      return '일의 방향과 기회를 고를 때, 조건과 실행 순서를 먼저 정리해야 하는 질문입니다.'
     }
-    if (/(속마음|마음|감정|좋아하|미련|식은)/.test(normalized)) {
-      return '상대의 마음은 말보다 거리감, 반복 반응, 숨기는 패턴을 읽어야 드러난다는 흐름으로 보입니다.'
+    if (hasAny(['돈', '재정', '투자', '매매', '집', '부동산', '계약'])) {
+      return '손익보다 조건과 기준을 먼저 세워야 결과가 달라지는 질문입니다.'
     }
-    if (/(언제|타이밍|시기)/.test(normalized)) {
-      return '지금은 날짜를 바로 찍기보다, 시점이 열리는 조건이 먼저 정리돼야 한다는 의미가 강합니다.'
+    if (hasAny(['건강', '몸', '컨디션', '회복', '병원', '수술'])) {
+      return '몸 상태와 회복 리듬을 먼저 살피고 무리한 판단을 줄여야 하는 질문입니다.'
     }
-    if (/(맞아|맞냐|할까|해야|될까|계속해도|그만둬|사인해도|믿어도)/.test(normalized)) {
-      return '이 질문은 단순 찬반보다 지금 선택을 밀어도 되는 조건과 멈춰야 하는 기준을 함께 보라는 신호예요.'
+    if (hasAny(['가족', '부모', '형제', '자녀', '집안'])) {
+      return '가까운 관계의 기대치와 역할을 다시 조정해야 풀리는 질문입니다.'
     }
-    if (/(면접|이직|취업|회사|직장|프로젝트|회의|시험|합격)/.test(normalized)) {
-      return '외부 결과는 운보다 준비도와 상대 평가 기준이 어떻게 맞물리는지가 핵심이라는 뜻으로 읽힙니다.'
+    if (hasAny(['이사', '이동', '변화', '유학', '해외'])) {
+      return '방향을 바꾸기 전에 생활 조건과 이동 비용을 먼저 따져야 하는 질문입니다.'
     }
-    if (/(돈|재정|매출|투자|계약|거래|사업)/.test(normalized)) {
-      return '금전과 거래 흐름은 감으로 밀기보다 수치, 조건, 리스크를 나눠 봐야 한다는 경고에 가깝습니다.'
+    if (hasAny(['결정', '선택', '맞아', '해도 될까', '해야 할까'])) {
+      return '감정 반응보다 기준과 우선순위를 세워야 답이 보이는 질문입니다.'
     }
-    if (/(건강|컨디션|몸)/.test(normalized)) {
-      return '건강 흐름은 단기 불안보다 생활 리듬과 무리 신호를 먼저 조정해야 한다는 쪽에 가깝습니다.'
+    if (hasAny(['연락', '답장', '반응'])) {
+      return '상대의 반응 속도보다 실제 의도와 흐름을 읽는 것이 중요한 질문입니다.'
     }
-    if (/(관계|연애|결혼|썸|소개팅)/.test(normalized)) {
-      return '관계 흐름은 상대의 감정 하나보다 두 사람의 리듬과 기대 차이를 같이 봐야 한다는 의미예요.'
-    }
-    return '지금은 성급한 결정보다 우선순위 정리와 실행 리듬 회복이 핵심이라는 신호예요.'
+    return '핵심 조건과 다음 행동을 나눠서 읽을수록 해석 정확도가 높아지는 질문입니다.'
   }
 
-  if (/(contact|reply|message|meet|show up|response)/.test(normalized)) {
-    return 'the key is to read real signals of movement rather than expectation around the other person’s response.'
-  }
-  if (/(reconcile|ex|come back|get back|breakup)/.test(normalized)) {
-    return 'reconciliation depends less on emotional intensity and more on whether real conditions for reconnection are reopening.'
-  }
-  if (/(feeling|feel|emotion|heart|interest)/.test(normalized)) {
-    return 'the emotional truth is more likely to appear through patterns, distance, and repeated reactions than through wishful thinking.'
-  }
-  if (/(when|timing|right time|best time)/.test(normalized)) {
-    return 'timing becomes clearer once the opening conditions are visible, not when a date is forced too early.'
-  }
-  if (/(should i|can i|may i|is it right|continue|quit|sign)/.test(normalized)) {
-    return 'this is less about a raw yes-or-no and more about whether the current conditions support action or caution.'
-  }
-  if (/(interview|job|career|work|project|meeting|exam)/.test(normalized)) {
-    return 'external results depend on the fit between preparation, timing, and evaluation criteria more than on hope alone.'
-  }
-  if (/(money|finance|investment|contract|deal|business)/.test(normalized)) {
-    return 'financial movement should be read through terms, numbers, and risk separation rather than impulse.'
-  }
-  if (/(health|body|condition)/.test(normalized)) {
-    return 'the message is to stabilize rhythm and stress signals before drawing strong conclusions.'
-  }
-  if (/(relationship|love|dating|marriage|partner)/.test(normalized)) {
-    return 'relationship direction becomes clearer when both pace and expectation gaps are examined together.'
-  }
-  return 'stabilizing priorities and execution rhythm matters more than reacting fast.'
+  return 'The question is easier to read when you separate the key condition from the next action first.'
 }
 
 function getCardKeywordSummary(card: CardInput, language: string): string {
@@ -473,7 +412,7 @@ function getCardKeywordSummary(card: CardInput, language: string): string {
   }
 
   return language === 'ko'
-    ? `핵심 키워드는 ${compact.join(', ')} 입니다. `
+    ? `핵심 단서는 ${compact.join(', ')} 입니다. `
     : `Key cues are ${compact.join(', ')}. `
 }
 
@@ -489,12 +428,12 @@ function buildMinimumInsight(language: string, card: CardInput): string {
   const baseMeaning =
     (language === 'ko' ? card.meaningKo || card.meaning : card.meaning) ||
     (language === 'ko'
-      ? '현재 상황의 핵심 변수를 확인하고 단계별 실행으로 전환하세요.'
+      ? '핵심 변수 하나를 먼저 확인하고, 단계적으로 움직이는 편이 맞습니다.'
       : 'Check the key variable in your current situation and move with staged execution.')
   const keywordSummary = getCardKeywordSummary(card, language)
 
   if (language === 'ko') {
-    return `${cardName}(${orientation}) 카드는 지금 국면에서 감정 반응보다 구조화된 선택이 중요하다고 말해요. ${keywordSummary}${baseMeaning} 오늘은 이 카드가 가리키는 변수 1개만 정리하고, 이번 주에는 결과 기록으로 판단 정확도를 높이세요.`
+    return `${cardName}(${orientation})은 지금 감정 반응보다 구조를 먼저 읽으라고 말합니다. ${keywordSummary}${baseMeaning} 오늘은 이 카드가 가리키는 변수 하나만 확인하고, 이번 주 안에 작은 행동으로 검증해 보세요.`
   }
 
   return `${cardName} (${orientation}) signals that structured choices beat emotional reaction in this phase. ${keywordSummary}${baseMeaning} Today, isolate one variable this card points to, and this week, use outcome logging to improve decision accuracy.`
@@ -513,15 +452,15 @@ function ensureCardAnchoring(
 
   const hasCardName = normalized.includes(cardName)
   const hasPosition = position ? normalized.includes(position) : false
-  const hasQuestionAnchor = question.length === 0 || normalized.includes(question.slice(0, 12))
+  const hasQuestionAnchor = question.length === 0 || normalized.includes(question.slice(0, 6))
 
   if (hasCardName && hasPosition && hasQuestionAnchor) {
     return normalized
   }
 
   if (language === 'ko') {
-    const questionLine = question ? `질문 "${question}"을 기준으로, ` : ''
-    return `${questionLine}${position}의 ${cardName} 카드는 ${normalized}`
+    const questionLine = question ? `질문 "${question}" 기준으로 보면, ` : ''
+    return `${questionLine}${position}의 ${cardName}는 ${normalized}`
   }
 
   const questionLine = question ? `For your question "${question}", ` : ''
@@ -530,21 +469,16 @@ function ensureCardAnchoring(
 
 function ensureActionAndTimeAnchor(language: string, interpretation: string): string {
   const normalized = interpretation.trim()
-  const hasTimeAnchor =
-    /(?:today|this week|within 7 days|next week|오늘|이번\s*주|다음\s*7일|이번\s*달)/i.test(
-      normalized
-    )
-  const hasActionVerb =
-    /(?:write|plan|track|review|start|focus|set|talk|record|apply|정리|기록|실행|집중|설정|점검|대화|시작|적어|해보)/i.test(
-      normalized
-    )
+  const lower = normalized.toLowerCase()
+  const hasTimeAnchor = ['today', 'this week', 'within 7 days', 'next week', '오늘', '이번 주', '7일', '다음 주'].some((term) => lower.includes(term))
+  const hasActionVerb = ['write', 'plan', 'track', 'review', 'start', 'focus', 'set', 'talk', 'record', 'apply', '적기', '계획', '기록', '검토', '시작', '집중', '정리', '대화', '확인', '실행'].some((term) => lower.includes(term))
 
   if (hasTimeAnchor && hasActionVerb) {
     return normalized
   }
 
   if (language === 'ko') {
-    return `${normalized} 오늘 20분 실행 1개를 정하고, 이번 주 안에 결과를 3줄로 기록해 다음 선택 기준으로 삼으세요.`
+    return `${normalized} 오늘은 바로 확인할 행동 하나만 정하고, 이번 주 안에 7일 기준으로 결과를 다시 점검하세요.`
   }
 
   return `${normalized} Pick one 20-minute action for today, then log outcomes in 3 lines within this week to guide your next move.`
@@ -582,16 +516,16 @@ function diversifyDuplicateInsights(input: {
     const position = language === 'ko' ? card.positionKo || card.position : card.position
     const orientation = card.isReversed
       ? language === 'ko'
-        ? '역방향'
+        ? '???'
         : 'reversed'
       : language === 'ko'
-        ? '정방향'
+        ? '???'
         : 'upright'
 
     const koVariations = [
-      `핵심은 ${position}의 ${cardName}(${orientation}) 메시지를 오늘 바로 실천하는 것입니다. 지금 당장 할 수 있는 행동 1가지를 정하고, 하루가 끝나기 전에 변화 여부를 확인하세요.`,
-      `${position}의 ${cardName}(${orientation})는 미루지 말고 작은 실행으로 확인하는 카드입니다. 오늘 한 번 시도하고, 결과를 한 줄로 남겨 다음 선택 기준으로 삼으세요.`,
-      `이번에는 ${position}의 ${cardName}(${orientation})를 계획보다 실행에 연결해 보세요. 10분 안에 가능한 행동부터 시작하고, 끝난 뒤 체감 변화를 점검하세요.`,
+      `??? ${position}? ${cardName}(${orientation}) ???? ?? ?? ???? ????. ?? ?? ? ? ?? ?? 1??? ???, ??? ??? ?? ?? ??? ?????.`,
+      `${position}? ${cardName}(${orientation})? ??? ?? ?? ???? ???? ?????. ?? ? ? ????, ??? ? ?? ?? ?? ?? ???? ????.`,
+      `???? ${position}? ${cardName}(${orientation})? ???? ??? ??? ???. 10? ?? ??? ???? ????, ?? ? ?? ??? ?????.`,
     ]
     const enVariations = [
       `The key is to apply ${cardName} (${orientation}) in the ${position} position today. Choose one immediate action and check before the day ends whether anything shifted.`,
@@ -698,8 +632,8 @@ function enforceInterpretationQuality(input: {
       typeof payload.affirmation === 'string' && payload.affirmation.trim()
         ? payload.affirmation
         : isKorean
-          ? '오늘의 선택을 작은 실행으로 증명해보세요.'
-          : 'Prove today’s choice with one small execution.',
+          ? '??? ??? ?? ???? ??????.'
+          : 'Prove today�s choice with one small execution.',
     combinations: normalizeCombinations(payload.combinations, input.cards, input.language),
     followup_questions: Array.isArray(payload.followup_questions) ? payload.followup_questions : [],
     fallback: Boolean(payload.fallback),
@@ -981,7 +915,7 @@ export const POST = withApiMiddleware(
         fallback: Boolean(finalizedResult.fallback),
       })
 
-      // ======== 기록 저장 (로그인 사용자만) ========
+      // ======== ?? ?? (??? ????) ========
       const session = context.session
       if (session?.user?.id) {
         try {
@@ -1048,7 +982,7 @@ export const POST = withApiMiddleware(
   })
 )
 
-// GPT-4o-mini API 호출 헬퍼 (속도 최적화)
+// GPT-4o-mini API ?? ?? (?? ???)
 async function callGPT(
   prompt: string,
   maxTokens = 400,
@@ -1131,9 +1065,9 @@ function getPromptBudget(cardCount: number, isKorean: boolean): PromptBudget {
   if (cardCount >= LARGE_SPREAD_THRESHOLD) {
     return isKorean
       ? {
-          overallGuide: '180-300자',
-          perCardGuide: '90-160자',
-          adviceGuide: '120-180자',
+          overallGuide: '180-300?',
+          perCardGuide: '90-160?',
+          adviceGuide: '120-180?',
           maxTokens: LARGE_SPREAD_GPT_MAX_TOKENS,
           timeoutMs: LARGE_SPREAD_GPT_TIMEOUT_MS,
         }
@@ -1149,9 +1083,9 @@ function getPromptBudget(cardCount: number, isKorean: boolean): PromptBudget {
   if (cardCount >= 5) {
     return isKorean
       ? {
-          overallGuide: '320-520자',
-          perCardGuide: '180-320자',
-          adviceGuide: '140-220자',
+          overallGuide: '320-520?',
+          perCardGuide: '180-320?',
+          adviceGuide: '140-220?',
           maxTokens: 2600,
           timeoutMs: 55000,
         }
@@ -1166,9 +1100,9 @@ function getPromptBudget(cardCount: number, isKorean: boolean): PromptBudget {
 
   return isKorean
     ? {
-        overallGuide: '500-850자',
-        perCardGuide: '260-480자',
-        adviceGuide: '160-260자',
+        overallGuide: '500-850?',
+        perCardGuide: '260-480?',
+        adviceGuide: '160-260?',
         maxTokens: 3000,
         timeoutMs: OPENAI_TIMEOUT_MS,
       }
@@ -1188,7 +1122,7 @@ function truncatePromptContext(input: string | undefined, maxLength = 1200): str
   return `${normalized.slice(0, maxLength)}\n...[truncated]`
 }
 
-// GPT를 사용한 해석 생성 (백엔드 없이 직접 호출) - 통합 프롬프트로 속도 최적화
+// GPT? ??? ?? ?? (??? ?? ?? ??) - ?? ????? ?? ???
 async function generateGPTInterpretation(
   cards: CardInput[],
   spreadTitle: string,
@@ -1201,17 +1135,17 @@ async function generateGPTInterpretation(
   const isLargeSpread = cards.length >= LARGE_SPREAD_THRESHOLD
   const budget = getPromptBudget(cards.length, isKorean)
 
-  // 위치별 카드 정보
+  // ??? ?? ??
   const cardListText = cards
     .map((c, i) => {
       const name = isKorean && c.nameKo ? c.nameKo : c.name
       const pos = isKorean && c.positionKo ? c.positionKo : c.position
       const keywords = (isKorean && c.keywordsKo ? c.keywordsKo : c.keywords) || []
-      return `${i + 1}. [${pos}] ${name}${c.isReversed ? '(역방향)' : ''} - ${keywords.slice(0, 3).join(', ')}`
+      return `${i + 1}. [${pos}] ${name}${c.isReversed ? '(???)' : ''} - ${keywords.slice(0, 3).join(', ')}`
     })
     .join('\n')
 
-  let q = userQuestion || (isKorean ? '일반 운세' : 'general reading')
+  let q = userQuestion || (isKorean ? '?? ??' : 'general reading')
   const compactSaju = truncatePromptContext(sajuContext)
   const compactAstro = truncatePromptContext(astroContext)
   const contextBlock = [compactSaju, compactAstro].filter(Boolean).join('\n')
@@ -1225,7 +1159,7 @@ async function generateGPTInterpretation(
         .map((c, i) => {
           const pos = isKorean && c.positionKo ? c.positionKo : c.position
           const ordinal = isKorean
-            ? `${i + 1}번째`
+            ? `${i + 1}??`
             : i === 0
               ? 'First'
               : i === 1
@@ -1236,7 +1170,7 @@ async function generateGPTInterpretation(
           return isKorean
             ? `    {
       "position": "${pos}",
-      "interpretation": "${ordinal} 카드 해석 (${budget.perCardGuide})"
+      "interpretation": "${ordinal} ?? ?? (${budget.perCardGuide})"
     }`
             : `    {
       "position": "${pos}",
@@ -1247,15 +1181,15 @@ async function generateGPTInterpretation(
 
   const outputSchemaKo = isLargeSpread
     ? `{
-  "overall": "전체 메시지 (${budget.overallGuide})",
-  "advice": "실행 지침 (150-230자)"
+  "overall": "?? ??? (${budget.overallGuide})",
+  "advice": "?? ?? (150-230?)"
 }`
     : `{
-  "overall": "전체 메시지 (${budget.overallGuide})",
+  "overall": "?? ??? (${budget.overallGuide})",
   "cards": [
 ${cardExamples}
   ],
-  "advice": "실행 지침 (${budget.adviceGuide})"
+  "advice": "?? ?? (${budget.adviceGuide})"
 }`
 
   const outputSchemaEn = isLargeSpread
@@ -1271,33 +1205,33 @@ ${cardExamples}
   "advice": "Practical action steps (${budget.adviceGuide})"
 }`
 
-  // 통합 프롬프트 (전체 해석 + 카드별 해석 + 조언)
+  // ?? ???? (?? ?? + ??? ?? + ??)
   const unifiedPrompt = isKorean
-    ? `당신은 실전형 타로 리더입니다. 핵심만 정확하고 따뜻하게 전달하세요.
+    ? `??? ??? ?? ?????. ??? ???? ???? ?????.
 
-## 스프레드: ${spreadTitle}
-## 질문: "${q}"
+## ????: ${spreadTitle}
+## ??: "${q}"
 
-## 뽑힌 카드
+## ?? ??
 ${cardListText}
 
-## 중요
-- 질문에 직접 답하고, 장황한 설명은 금지합니다.
-- 출력은 오직 JSON입니다.
+## ??
+- ??? ?? ???, ??? ??? ?????.
+- ??? ?? JSON???.
 - ${
         isLargeSpread
-          ? '대형 스프레드이므로 cards 필드는 출력하지 말고, 전체 메시지와 실행 지침만 정확히 작성하세요.'
-          : `반드시 모든 ${cards.length}개 카드 해석을 포함하세요.`
+          ? '?? ??????? cards ??? ???? ??, ?? ???? ?? ??? ??? ?????.'
+          : `??? ?? ${cards.length}? ?? ??? ?????.`
       }
 
-## 출력 형식 (JSON)
-다음 형식으로 정확히 JSON 응답:
+## ?? ?? (JSON)
+?? ???? ??? JSON ??:
 ${outputSchemaKo}
 
-## 작성 규칙
-- ${isLargeSpread ? '전체 메시지는 질문 중심으로 작성하고, 실행 지침은 3단계로 구체화' : '각 카드 해석은 위치 의미 + 현재 상황 연결 + 오늘 실행 포인트를 포함'}
-- 역방향 카드는 막힘/지연/내면화 관점으로 구체화
-- 추상적 문장 금지, 바로 실행 가능한 문장 사용`
+## ?? ??
+- ${isLargeSpread ? '?? ???? ?? ???? ????, ?? ??? 3??? ???' : '? ?? ??? ?? ?? + ?? ?? ?? + ?? ?? ???? ??'}
+- ??? ??? ??/??/??? ???? ???
+- ??? ?? ??, ?? ?? ??? ?? ??`
     : `You are a practical tarot reader. Be precise, warm, and concise.
 
 ## Spread: ${spreadTitle}
@@ -1342,7 +1276,7 @@ ${outputSchemaEn}
             let interpretation =
               typeof cardData.interpretation === 'string' ? cardData.interpretation : ''
 
-            // 해석이 너무 짧거나 없으면, 카드명/포지션/질문 앵커가 있는 최소 품질 문장으로 보강
+            // ??? ?? ??? ???, ???/???/?? ??? ?? ?? ?? ???? ??
             if (!interpretation || interpretation.length < 80) {
               interpretation = ensureCardAnchoring(
                 language,
@@ -1375,7 +1309,7 @@ ${outputSchemaEn}
         guidance:
           (typeof parsed.advice === 'string' && parsed.advice) ||
           buildActionableGuidance(language, userQuestion),
-        affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
+        affirmation: isKorean ? '?? ??? ??? ?? ??.' : 'Just be yourself today.',
         combinations: normalizeCombinations(parsed.combinations, cards, language),
         followup_questions: [],
         fallback: false,
@@ -1386,12 +1320,12 @@ ${outputSchemaEn}
       preview: result.slice(0, 280),
     })
 
-    // JSON 파싱 실패 시 전체 텍스트를 overall로 사용
+    // JSON ?? ?? ? ?? ???? overall? ??
     return {
       overall_message: result,
       card_insights: buildAnchoredCardInsights(cards, language, userQuestion),
-      guidance: isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.',
-      affirmation: isKorean ? '오늘도 화이팅!' : 'You got this!',
+      guidance: isKorean ? '??? ???? ? ??????.' : 'Listen to the cards.',
+      affirmation: isKorean ? '??? ???!' : 'You got this!',
       combinations: normalizeCombinations(undefined, cards, language),
       followup_questions: [],
       fallback: false,
@@ -1418,21 +1352,21 @@ function buildLocalCombinationHints(
       const nameB = isKorean ? cardB.nameKo || cardB.name : cardB.name
       const orientationA = cardA.isReversed
         ? isKorean
-          ? '역방향'
+          ? '???'
           : 'reversed'
         : isKorean
-          ? '정방향'
+          ? '???'
           : 'upright'
       const orientationB = cardB.isReversed
         ? isKorean
-          ? '역방향'
+          ? '???'
           : 'reversed'
         : isKorean
-          ? '정방향'
+          ? '???'
           : 'upright'
 
       const summary = isKorean
-        ? `${nameA}(${orientationA})와 ${nameB}(${orientationB}) 조합은 같은 주제에서 보완 또는 긴장 흐름을 만듭니다.`
+        ? `${nameA}(${orientationA})? ${nameB}(${orientationB}) ??? ?? ???? ?? ?? ?? ??? ????.`
         : `${nameA} (${orientationA}) with ${nameB} (${orientationB}) creates either reinforcement or tension in the same theme.`
 
       hints.push({
@@ -1469,7 +1403,7 @@ function buildAnchoredCardInsights(
   }))
 }
 
-// 간단한 fallback (GPT도 실패한 경우)
+// ??? fallback (GPT? ??? ??)
 function generateSimpleFallback(
   cards: CardInput[],
   spreadTitle: string,
@@ -1480,19 +1414,19 @@ function generateSimpleFallback(
   const question = (userQuestion || '').trim()
   const questionLine = question
     ? isKorean
-      ? `질문 "${question}"을 기준으로 보면, `
+      ? `?? "${question}"? ???? ??, `
       : `For your question "${question}", `
     : ''
 
   const overallMessage = isKorean
-    ? `${questionLine}${cards.map((c) => c.nameKo || c.name).join(', ')} 카드 조합은 지금 흐름을 억지로 밀어붙이기보다, 우선순위를 정리한 뒤 작은 실행으로 판을 바꾸라는 신호예요.`
+    ? `${questionLine}${cards.map((c) => c.nameKo || c.name).join(', ')} ?? ??? ?? ??? ??? ???????, ????? ??? ? ?? ???? ?? ???? ????.`
     : `${questionLine}the spread of ${cards.map((c) => c.name).join(', ')} suggests that steady prioritization and small decisive actions will shift the current momentum more effectively than forcing outcomes.`
 
   const guidanceMessage = isKorean
     ? [
-        '1) 오늘: 지금 가장 큰 변수 1개만 정해 20분 실행하세요.',
-        '2) 3일: 결과를 기록하고(무엇을 했는지/반응/수정점) 같은 패턴을 한 번 더 검증하세요.',
-        '3) 7일: 효과 있었던 방식만 남기고 나머지는 과감히 정리하세요.',
+        '1) ??: ?? ?? ? ?? 1?? ?? 20? ?????.',
+        '2) 3?: ??? ????(??? ???/??/???) ?? ??? ? ? ? ?????.',
+        '3) 7?: ?? ??? ??? ??? ???? ??? ?????.',
       ].join('\n')
     : [
         '1) Today: choose one controllable variable and run a focused 20-minute action block.',
@@ -1524,7 +1458,7 @@ function generateSimpleFallback(
     }),
     guidance: guidanceMessage,
     affirmation: isKorean
-      ? '감정이 아니라 실행 데이터가 당신의 다음 길을 열어줍니다.'
+      ? '??? ??? ?? ???? ??? ?? ?? ?????.'
       : 'Let evidence from your actions lead your next move.',
     combinations: buildLocalCombinationHints(cards, language),
     followup_questions: [],

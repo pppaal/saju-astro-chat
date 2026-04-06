@@ -1,5 +1,6 @@
 import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
 import type { ReportPeriod, ReportTheme } from '@/lib/destiny-matrix/ai-report/types'
+import type { AdapterPersonModel } from '@/lib/destiny-matrix/core/adaptersTypes'
 import { PERIOD_LABELS, THEME_LABELS } from './routeReportPersistence'
 
 export type FreeAIDigestReport = {
@@ -23,6 +24,7 @@ export type FreeAIDigestReport = {
   }>
   caution: string[]
   nextSteps: string[]
+  personModel?: AdapterPersonModel
   sections: Array<{
     title: string
     content: string
@@ -252,6 +254,7 @@ export function buildRichFreeDigestReport(baseReport: {
     summary: string
     hasData?: boolean
   }>
+  personModel?: AdapterPersonModel
   lang: 'ko' | 'en'
   theme?: ReportTheme
   period?: ReportPeriod
@@ -382,6 +385,7 @@ export function buildRichFreeDigestReport(baseReport: {
     focusAreas,
     caution,
     nextSteps: expressiveNextSteps,
+    personModel: baseReport.personModel,
     legacySections: [
       {
         title: baseReport.lang === 'ko' ? '요약' : 'Summary',

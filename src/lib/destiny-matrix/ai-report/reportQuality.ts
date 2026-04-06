@@ -34,6 +34,10 @@ export interface ReportQualityMetrics {
   genericAdviceDensity?: number
   personalizationDensity?: number
   internalScenarioLeakCount?: number
+  repetitiveLeadPatternCount?: number
+  abstractNounRatio?: number
+  sentenceLengthVariance?: number
+  bilingualToneSkew?: number
 }
 
 export interface ReportQualityContext {
@@ -135,6 +139,51 @@ function countRepeatedSentences(texts: Array<{ path: string; text: string }>): n
     if (paths.size >= 2) repeated += 1
   }
   return repeated
+}
+
+function countRepeatedLeads(texts: Array<{ path: string; text: string }>): number {
+  const seen = new Map<string, Set<string>>()
+  for (const item of texts) {
+    const lead = item.text
+      .split(/\n+/)[0]
+      ?.trim()
+      .replace(/\s+/g, ' ')
+      .toLowerCase()
+    if (!lead || lead.length < 12) continue
+    const key = lead.slice(0, 48)
+    const bucket = seen.get(key) || new Set<string>()
+    bucket.add(item.path)
+    seen.set(key, bucket)
+  }
+  let repeated = 0
+  for (const paths of seen.values()) {
+    if (paths.size >= 2) repeated += 1
+  }
+  return repeated
+}
+
+function buildStyleMetrics(texts: Array<{ path: string; text: string }>) {
+  const joined = texts.map((item) => item.text).join(' ')
+  const tokenCount = joined.split(/\s+/).filter(Boolean).length || 1
+  const abstractRegex =
+    /(구조|흐름|변수|기준|방향|운영|관계|조건|리듬|가능성|판단|과제|국면|구간|영역|장면)/g
+  const abstractHits = (joined.match(abstractRegex) || []).length
+  const sentences = joined
+    .split(/[.!?\n]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+  const lengths = sentences.map((sentence) => sentence.length)
+  const avg = lengths.reduce((sum, len) => sum + len, 0) / Math.max(1, lengths.length)
+  const variance =
+    lengths.reduce((sum, len) => sum + (len - avg) ** 2, 0) / Math.max(1, lengths.length)
+  const englishWordCount = (joined.match(/[A-Za-z]{3,}/g) || []).length
+
+  return {
+    repetitiveLeadPatternCount: countRepeatedLeads(texts),
+    abstractNounRatio: Number((abstractHits / tokenCount).toFixed(4)),
+    sentenceLengthVariance: Number(variance.toFixed(2)),
+    bilingualToneSkew: Number((englishWordCount / tokenCount).toFixed(4)),
+  }
 }
 
 function countTimelineEventsByDomain(
@@ -293,6 +342,7 @@ export function buildReportQualityMetrics(params: BuildQualityParams): ReportQua
   const internalScenarioLeakRegex =
     /(hidden support|defensive|cluster|fallback|generic|alt window|_window|scenario id)/i
   const internalScenarioLeakCount = texts.filter((item) => internalScenarioLeakRegex.test(item.text)).length
+  const styleMetrics = buildStyleMetrics(texts)
   const coreQualityScore =
     typeof context.coreQuality?.score === 'number' ? context.coreQuality.score : undefined
   const coreQualityGrade = context.coreQuality?.grade
@@ -344,6 +394,7 @@ export function buildReportQualityMetrics(params: BuildQualityParams): ReportQua
     genericAdviceDensity: Number((genericAdviceHits / Math.max(1, sectionCount)).toFixed(4)),
     personalizationDensity: Number((personalizationHits / Math.max(1, sectionCount)).toFixed(4)),
     internalScenarioLeakCount,
+    ...styleMetrics,
   }
 }
 
@@ -449,6 +500,34 @@ export function recordReportQualityMetrics(
     recordGauge(
       'destiny.ai_report.quality.internal_scenario_leak_count',
       quality.internalScenarioLeakCount,
+      labels
+    )
+  }
+  if (typeof quality.repetitiveLeadPatternCount === 'number') {
+    recordGauge(
+      'destiny.ai_report.quality.repetitive_lead_pattern_count',
+      quality.repetitiveLeadPatternCount,
+      labels
+    )
+  }
+  if (typeof quality.abstractNounRatio === 'number') {
+    recordGauge(
+      'destiny.ai_report.quality.abstract_noun_ratio',
+      quality.abstractNounRatio,
+      labels
+    )
+  }
+  if (typeof quality.sentenceLengthVariance === 'number') {
+    recordGauge(
+      'destiny.ai_report.quality.sentence_length_variance',
+      quality.sentenceLengthVariance,
+      labels
+    )
+  }
+  if (typeof quality.bilingualToneSkew === 'number') {
+    recordGauge(
+      'destiny.ai_report.quality.bilingual_tone_skew',
+      quality.bilingualToneSkew,
       labels
     )
   }

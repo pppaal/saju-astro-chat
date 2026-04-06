@@ -254,6 +254,28 @@ function localizeTimescale(
   return timescale
 }
 
+function summarizeRatioLevel(value: number, locale: 'ko' | 'en', type: 'agreement' | 'contradiction'): string {
+  if (locale === 'ko') {
+    if (type === 'agreement') {
+      if (value >= 0.85) return '합의 강함'
+      if (value >= 0.65) return '합의 보통'
+      return '합의 약함'
+    }
+    if (value >= 0.35) return '충돌 큼'
+    if (value >= 0.18) return '충돌 주의'
+    return '충돌 낮음'
+  }
+
+  if (type === 'agreement') {
+    if (value >= 0.85) return 'strong alignment'
+    if (value >= 0.65) return 'moderate alignment'
+    return 'weak alignment'
+  }
+  if (value >= 0.35) return 'high conflict'
+  if (value >= 0.18) return 'conflict warning'
+  return 'low conflict'
+}
+
 export function buildMatrixView(core: DestinyCoreResult, locale: 'ko' | 'en'): AdapterMatrixViewRow[] {
   const preferred: SignalDomain[] = [
     core.canonical.actionFocusDomain,
@@ -276,8 +298,6 @@ export function buildMatrixView(core: DestinyCoreResult, locale: 'ko' | 'en'): A
         .map((timescale) => {
           const cell = row.timescales?.[timescale]
           if (!cell) return null
-          const agreementPct = Math.round((cell.agreement || 0) * 100)
-          const contradictionPct = Math.round((cell.contradiction || 0) * 100)
           const leadLag = cell.leadLag ?? row.leadLag ?? 0
           const leadLagSummary =
             locale === 'ko'
@@ -298,8 +318,8 @@ export function buildMatrixView(core: DestinyCoreResult, locale: 'ko' | 'en'): A
             leadLag,
             summary:
               locale === 'ko'
-                ? `${localizeTimescale(timescale, locale)}: 합의 ${agreementPct}% / 충돌 ${contradictionPct}% / ${leadLagSummary}`
-                : `${localizeTimescale(timescale, locale)}: alignment ${agreementPct}% / conflict ${contradictionPct}% / ${leadLagSummary}`,
+                ? `${localizeTimescale(timescale, locale)}: ${summarizeRatioLevel(cell.agreement || 0, locale, 'agreement')}, ${summarizeRatioLevel(cell.contradiction || 0, locale, 'contradiction')}, ${leadLagSummary}`
+                : `${localizeTimescale(timescale, locale)}: ${summarizeRatioLevel(cell.agreement || 0, locale, 'agreement')}, ${summarizeRatioLevel(cell.contradiction || 0, locale, 'contradiction')}, ${leadLagSummary}`,
           }
         })
         .filter((cell): cell is AdapterMatrixViewCell => Boolean(cell))
@@ -913,4 +933,3 @@ export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en')
     branches: buildBranchProjectionSummary(core, locale),
   }
 }
-

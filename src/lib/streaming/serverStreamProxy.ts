@@ -155,12 +155,21 @@ export function createFallbackSSEStream(
 export interface StreamTransformOptions {
   source: Response
   transform: (chunk: string) => string
+  extractText?: (chunk: string) => string
+  finalizeText?: (fullText: string) => string
   route?: string
   additionalHeaders?: HeadersInit
 }
 
 export function createTransformedSSEStream(options: StreamTransformOptions): Response {
-  const { source, transform, route = 'stream', additionalHeaders = {} } = options
+  const {
+    source,
+    transform,
+    extractText,
+    finalizeText,
+    route = 'stream',
+    additionalHeaders = {},
+  } = options
 
   const encoder = new TextEncoder()
   const stream = new ReadableStream({
@@ -173,6 +182,7 @@ export function createTransformedSSEStream(options: StreamTransformOptions): Res
       }
 
       const decoder = new TextDecoder()
+      let bufferedText = ''
 
       try {
         while (true) {
@@ -182,8 +192,19 @@ export function createTransformedSSEStream(options: StreamTransformOptions): Res
           }
 
           const text = decoder.decode(value, { stream: true })
+          if (finalizeText) {
+            bufferedText += extractText ? extractText(text) : text
+            continue
+          }
+
           const transformed = transform(text)
           controller.enqueue(encoder.encode(transformed))
+        }
+
+        if (finalizeText) {
+          const finalized = finalizeText(bufferedText)
+          controller.enqueue(encoder.encode(createSSEEvent({ content: finalized })))
+          controller.enqueue(encoder.encode(createSSEDoneEvent()))
         }
       } catch (error) {
         logger.error(`[${route}] Transform stream error:`, error)

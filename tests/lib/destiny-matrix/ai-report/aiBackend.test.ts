@@ -4,7 +4,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // Set env vars before any module evaluation (vi.hoisted runs before vi.mock)
 vi.hoisted(() => {
   process.env.OPENAI_API_KEY = 'test-openai-key'
+  delete process.env.ANTHROPIC_API_KEY
+  delete process.env.CLAUDE_API_KEY
   delete process.env.REPLICATE_API_KEY
+  delete process.env.AI_BACKEND_ENABLE_REPLICATE
 })
 
 // Mock logger before importing the module
@@ -22,6 +25,9 @@ import { callAIBackendGeneric } from '@/lib/destiny-matrix/ai-report/aiBackend'
 describe('AI Backend', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    process.env.OPENAI_API_KEY = 'test-openai-key'
+    delete process.env.ANTHROPIC_API_KEY
+    delete process.env.CLAUDE_API_KEY
   })
 
   describe('callAIBackendGeneric', () => {
@@ -79,6 +85,36 @@ describe('AI Backend', () => {
       const result = await callAIBackendGeneric('Test', 'ko')
 
       expect(result.sections).toEqual({ test: 'value' })
+    })
+
+    it('should call Anthropic Messages API when Claude key is configured', async () => {
+      delete process.env.OPENAI_API_KEY
+      process.env.CLAUDE_API_KEY = 'test-claude-key'
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          content: [{ type: 'text', text: JSON.stringify({ summary: 'anthropic-ok' }) }],
+          model: 'claude-sonnet-4-20250514',
+          usage: { input_tokens: 120, output_tokens: 80 },
+        }),
+      })
+
+      const result = await callAIBackendGeneric('Test', 'ko')
+
+      expect(result.sections).toEqual({ summary: 'anthropic-ok' })
+      expect(result.model).toBe('claude-sonnet-4-20250514')
+      expect(result.tokensUsed).toBe(200)
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://api.anthropic.com/v1/messages',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'x-api-key': 'test-claude-key',
+            'anthropic-version': '2023-06-01',
+          }),
+        })
+      )
     })
 
     it('should handle errors gracefully with failover', async () => {

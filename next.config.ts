@@ -78,7 +78,7 @@ const withPWA = withPWAInit({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
+  distDir: process.env.NEXT_DIST_DIR || 'tmp/.next',
   // 이 옵션은 swisseph가 node_modules를 참조할 수 있도록 도와줍니다.
   outputFileTracingRoot: path.join(__dirname),
   // Performance optimizations
@@ -122,11 +122,13 @@ const nextConfig = {
     '/app/api/**': [
       './public/images/**/*',
       './artifacts/**/*',
+      './qa-dumps/**/*',
+      './reports/**/*',
       './tmp/**/*',
       './htmlcov/**/*',
       './playwright-report/**/*',
       './package-lock.json',
-      './tsconfig.tsbuildinfo',
+      './tmp/tsconfig.tsbuildinfo',
     ],
   },
 

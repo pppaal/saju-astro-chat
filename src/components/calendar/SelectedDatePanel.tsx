@@ -1,20 +1,43 @@
-﻿'use client'
+'use client'
 
 import React, { memo, useCallback, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
 import { getPeakLabel, resolvePeakLevel } from './peakUtils'
-import { repairMojibakeText } from '@/lib/text/mojibake'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 import { formatDecisionActionLabel } from '@/lib/destiny-matrix/core/actionCopy'
 import {
-  EVIDENCE_CONFIDENCE_THRESHOLDS,
   getDisplayGradeFromScore,
   getDisplayLabelFromScore,
 } from '@/lib/destiny-map/calendar/scoring-config'
+import {
+  CATEGORY_EMOJI,
+  WEEKDAYS_EN,
+  WEEKDAYS_KO,
+  buildReadableCrossLine,
+  buildReadableFlowSummary,
+  dedupeDisplayLines,
+  formatPolicyMode,
+  getDomainLabel,
+  getReliabilityBand,
+  getReliabilityLabel,
+  humanizePhaseLabel,
+  normalizeSemanticKey,
+  safeDisplayText,
+  softenDecisionTone,
+  takeLeadLine,
+  toCalendarDomain,
+  toUserFacingEvidenceLine,
+  type SelectedPanelEventCategory,
+} from './SelectedDatePanel.helpers'
+import {
+  SelectedDateEvidenceDetails,
+  SelectedDateExtendedDetails,
+  SelectedDateQuickScanSection,
+} from './SelectedDatePanel.sections'
 
-type EventCategory = 'wealth' | 'career' | 'love' | 'health' | 'travel' | 'study' | 'general'
+type EventCategory = SelectedPanelEventCategory
 type ImportanceGrade = 0 | 1 | 2 | 3 | 4
 
 interface ImportantDate {
@@ -135,409 +158,6 @@ interface SelectedDatePanelProps {
   getScoreClass: (score: number) => string
 }
 
-const CATEGORY_EMOJI: Record<EventCategory, string> = {
-  wealth: '\u{1F4B0}',
-  career: '\u{1F4BC}',
-  love: '\u{1F495}',
-  health: '\u{1F4AA}',
-  travel: '\u2708\uFE0F',
-  study: '\u{1F4DA}',
-  general: '\u2B50',
-}
-
-const WEEKDAYS_KO = ['\uC77C', '\uC6D4', '\uD654', '\uC218', '\uBAA9', '\uAE08', '\uD1A0']
-const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-
-function normalizeEvidenceLine(value: string): string {
-  if (!value) return ''
-  const normalized = stripMatrixDomainText(deepRepairText(value)).replace(/\s+/g, ' ').trim()
-  return isUnreadableText(normalized) ? '' : normalized
-}
-
-function decodeUtf8FromLatin1(value: string): string {
-  try {
-    const bytes = Uint8Array.from([...value].map((ch) => ch.charCodeAt(0) & 0xff))
-    return new TextDecoder('utf-8', { fatal: false }).decode(bytes)
-  } catch {
-    return value
-  }
-}
-
-function deepRepairText(value: string): string {
-  const firstPass = repairMojibakeText(value || '')
-  if (!/[ÃƒÃ‚Ã°Ã¢]/.test(firstPass)) {
-    return decodeBareUnicodeTokens(decodeUnicodeEscapes(firstPass))
-  }
-  const decoded = decodeUtf8FromLatin1(firstPass)
-  const secondPass = repairMojibakeText(decoded)
-  return decodeBareUnicodeTokens(decodeUnicodeEscapes(secondPass || firstPass))
-}
-
-function decodeUnicodeEscapes(value: string): string {
-  if (!value || value.indexOf('\\u') === -1) return value
-
-  return value
-    .replace(/\\u\{([0-9A-Fa-f]{1,6})\}/g, (raw, hex: string) => {
-      const codePoint = Number.parseInt(hex, 16)
-      if (!Number.isFinite(codePoint)) return raw
-      try {
-        return String.fromCodePoint(codePoint)
-      } catch {
-        return raw
-      }
-    })
-    .replace(/\\u([0-9A-Fa-f]{4})/g, (raw, hex: string) => {
-      const codePoint = Number.parseInt(hex, 16)
-      if (!Number.isFinite(codePoint)) return raw
-      return String.fromCharCode(codePoint)
-    })
-}
-
-function decodeBareUnicodeTokens(value: string): string {
-  if (!value || !/\bu[0-9A-Fa-f]{4,6}\b/.test(value)) return value
-  return value.replace(/\bu([0-9A-Fa-f]{4,6})\b/g, (raw, hex: string) => {
-    const codePoint = Number.parseInt(hex, 16)
-    if (!Number.isFinite(codePoint)) return raw
-    try {
-      return String.fromCodePoint(codePoint)
-    } catch {
-      return raw
-    }
-  })
-}
-
-function stripMatrixDomainText(value: string): string {
-  if (!value) return ''
-  return value
-    .replace(/\bmatrix\s*:\s*/gi, '')
-    .replace(/\bmatrix\s*domain\s*=\s*[^,|)\]]+/gi, '')
-    .replace(/\bmatrix\s*domain\s*:\s*[^,|)\]]+/gi, '')
-    .replace(/\bdomain\s*=\s*[^,|)\]]+/gi, '')
-    .replace(/\bdomain\s*:\s*[^,|)\]]+/gi, '')
-    .replace(/\bmatrix\b/gi, '')
-    .replace(/\s{2,}/g, ' ')
-    .replace(/^[\s,|:;\-]+|[\s,|:;\-]+$/g, '')
-}
-
-function isUnreadableText(value: string): boolean {
-  if (!value) return true
-  if (value.includes('\uFFFD')) return true
-  const suspiciousMatches = value.match(/[ÃÂâìëêíð]/g) || []
-  if (suspiciousMatches.length >= 3) return true
-  return suspiciousMatches.length / Math.max(1, value.length) > 0.15
-}
-
-function safeDisplayText(value: string | null | undefined, fallback = ''): string {
-  if (!value) return fallback
-  const normalized = stripMatrixDomainText(deepRepairText(value)).replace(/\s+/g, ' ').trim()
-  if (!normalized) return fallback
-  return isUnreadableText(normalized) ? fallback : normalized
-}
-
-function formatPolicyMode(mode: 'execute' | 'verify' | 'prepare' | undefined, locale: 'ko' | 'en') {
-  if (locale === 'ko') {
-    if (mode === 'execute') return '실행 우선'
-    if (mode === 'prepare') return '준비 우선'
-    return '검토 우선'
-  }
-  if (mode === 'execute') return 'execute-first'
-  if (mode === 'prepare') return 'prepare-first'
-  return 'verify-first'
-}
-
-function getDomainLabel(
-  domain: 'career' | 'love' | 'money' | 'health' | 'move' | 'general' | undefined,
-  locale: 'ko' | 'en'
-): string {
-  const labels = {
-    ko: {
-      career: '직장/커리어',
-      love: '관계/연애',
-      money: '재물/금전',
-      health: '건강',
-      move: '이동/변화',
-      general: '전반',
-    },
-    en: {
-      career: 'career',
-      love: 'relationships',
-      money: 'finance',
-      health: 'health',
-      move: 'movement/change',
-      general: 'overall',
-    },
-  } as const
-
-  const key = (domain || 'general') as keyof (typeof labels)['ko']
-  return labels[locale][key]
-}
-
-function toCalendarDomain(
-  domain: string | undefined
-): 'career' | 'love' | 'money' | 'health' | 'move' | 'general' | undefined {
-  if (!domain) return undefined
-  if (domain === 'relationship') return 'love'
-  if (domain === 'wealth') return 'money'
-  if (domain === 'career' || domain === 'health' || domain === 'move') return domain
-  return 'general'
-}
-
-function getReliabilityBand(confidence: number | undefined): 'low' | 'medium' | 'high' {
-  if (typeof confidence !== 'number') return 'medium'
-  if (confidence < EVIDENCE_CONFIDENCE_THRESHOLDS.low) return 'low'
-  if (confidence < EVIDENCE_CONFIDENCE_THRESHOLDS.medium) return 'medium'
-  return 'high'
-}
-
-function getReliabilityLabel(confidence: number | undefined, locale: 'ko' | 'en'): string {
-  const band = getReliabilityBand(confidence)
-  if (locale === 'ko') {
-    if (band === 'high') return '높음'
-    if (band === 'medium') return '중간'
-    return '낮음'
-  }
-  if (band === 'high') return 'High'
-  if (band === 'medium') return 'Medium'
-  return 'Low'
-}
-
-function normalizeSemanticKey(value: string): string {
-  if (!value) return ''
-  return value
-    .normalize('NFKC')
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function dedupeDisplayLines(values: string[]): string[] {
-  const out: string[] = []
-  const keys: string[] = []
-
-  for (const value of values) {
-    const line = safeDisplayText(value, '')
-    if (!line) continue
-    const key = normalizeSemanticKey(line)
-    if (!key) continue
-
-    const hasDuplicate = keys.some((existing) => {
-      if (existing === key) return true
-      const canCompareInclusion = existing.length >= 16 && key.length >= 16
-      return canCompareInclusion && (existing.includes(key) || key.includes(existing))
-    })
-    if (hasDuplicate) continue
-
-    keys.push(key)
-    out.push(line)
-  }
-
-  return out
-}
-
-function takeLeadLine(value: string, maxLength = 88): string {
-  const line = safeDisplayText(value, '')
-  if (!line) return ''
-
-  const sentenceMatch = line.match(/(.+?[.!?。]|.+?다\.|.+?요\.|.+?$)/)
-  const sentence = sentenceMatch?.[1]?.trim() || line
-  if (sentence.length <= maxLength) {
-    return sentence
-  }
-  return `${sentence.slice(0, maxLength - 1).trimEnd()}…`
-}
-
-function looksDefensivePhase(value: string): boolean {
-  return /(방어|재정렬|안정|검토|defensive|reset|stabil|review)/i.test(value)
-}
-
-function humanizePhaseLabel(value: string, locale: 'ko' | 'en'): string {
-  const line = safeDisplayText(value, '')
-  if (!line) return ''
-  if (locale === 'ko') {
-    return line
-      .replace(/방어\/재정렬 국면/g, '정비 우선 흐름')
-      .replace(/공격\/확장 국면/g, '추진 우선 흐름')
-      .replace(/국면/g, '흐름')
-  }
-  return line
-    .replace(/defensive\s*reset/gi, 'stabilizing flow')
-    .replace(/aggressive\s*expansion/gi, 'push flow')
-    .replace(/\bphase\b/gi, 'flow')
-}
-
-function buildReadableCrossLine(input: {
-  locale: 'ko' | 'en'
-  confidence?: number
-  crossAgreement?: number
-  focusDomain: string
-}): string {
-  const { locale, confidence, crossAgreement, focusDomain } = input
-  const agreement =
-    typeof crossAgreement === 'number' && Number.isFinite(crossAgreement)
-      ? Math.max(0, Math.min(100, Math.round(crossAgreement)))
-      : undefined
-  const conf =
-    typeof confidence === 'number' && Number.isFinite(confidence)
-      ? Math.max(0, Math.min(100, Math.round(confidence)))
-      : undefined
-
-  if (locale === 'ko') {
-    if (typeof agreement === 'number' && agreement < 60) {
-      return `${focusDomain} 해석에서 사주와 점성 신호가 완전히 겹치지 않아, 오늘은 확정보다 재확인이 더 중요합니다.`
-    }
-    if (typeof conf === 'number' && conf < 45) {
-      return `${focusDomain} 해석 근거는 약한 편이라, 방향은 참고하되 실행 범위는 작게 가져가는 편이 안전합니다.`
-    }
-    return `${focusDomain} 해석에서 사주와 점성 신호가 비교적 같은 방향을 가리켜 핵심 흐름을 읽는 데는 무리가 적습니다.`
-  }
-
-  if (typeof agreement === 'number' && agreement < 60) {
-    return `Saju and astrology are not fully aligned for ${focusDomain}, so re-checking matters more than committing today.`
-  }
-  if (typeof conf === 'number' && conf < 45) {
-    return `Evidence for ${focusDomain} is relatively weak, so keep execution small even if the direction looks usable.`
-  }
-  return `Saju and astrology broadly point in the same direction for ${focusDomain}, so the core flow is reasonably readable.`
-}
-
-function buildReadableFlowSummary(input: {
-  locale: 'ko' | 'en'
-  focusDomain: string
-  phase: string
-  gradeLabel: string
-  reliability: string
-  attackPercent?: number
-  defensePercent?: number
-  action?: string
-  caution?: string
-}): string {
-  const {
-    locale,
-    focusDomain,
-    phase,
-    gradeLabel,
-    reliability,
-    attackPercent,
-    defensePercent,
-    action,
-    caution,
-  } = input
-
-  const hasAttack = typeof attackPercent === 'number' && Number.isFinite(attackPercent)
-  const hasDefense = typeof defensePercent === 'number' && Number.isFinite(defensePercent)
-  const balanceGap = hasAttack && hasDefense ? Math.abs(attackPercent - defensePercent) : undefined
-  const defensive = looksDefensivePhase(phase)
-
-  if (locale === 'ko') {
-    const intro = phase
-      ? defensive
-        ? `지금은 ${phase}이지만 완전 정지보다 정비하면서 움직이는 쪽에 가깝습니다.`
-        : `지금은 ${phase}으로 ${focusDomain} 쪽 일을 밀 수 있는 여지가 있는 날입니다.`
-      : `${focusDomain} 흐름은 ${gradeLabel}이며, 오늘은 방향을 넓히기보다 핵심을 좁히는 편이 좋습니다.`
-
-    const balance = (() => {
-      if (!hasAttack || !hasDefense) return ''
-      if (typeof balanceGap === 'number' && balanceGap <= 8) {
-        return '실행 여력과 리스크 관리 비중이 비슷해 무리한 확장보다 핵심 1~2건만 정확히 처리하는 편이 낫습니다.'
-      }
-      if ((attackPercent as number) > (defensePercent as number)) {
-        return '움직일 여지는 있지만, 범위를 넓히기보다 작은 실행으로 먼저 확인하는 편이 안전합니다.'
-      }
-      return '리스크 관리 비중이 더 커서 속도보다 손실 방지와 조건 점검이 우선입니다.'
-    })()
-
-    const closing = caution || action || reliability
-    return [intro, balance, takeLeadLine(closing || '', 90)].filter(Boolean).join(' ')
-  }
-
-  const intro = phase
-    ? defensive
-      ? `The day sits in a ${phase} phase, but it is closer to review-led execution than a full stop.`
-      : `The day leans toward ${phase}, which supports execution in ${focusDomain}.`
-    : `${focusDomain} is in a ${gradeLabel.toLowerCase()} flow today, and narrowing the focus works better than expanding it.`
-  const balance = (() => {
-    if (!hasAttack || !hasDefense) return ''
-    if (typeof balanceGap === 'number' && balanceGap <= 8) {
-      return 'Attack and defense are close, so handling one or two priorities cleanly is better than pushing broadly.'
-    }
-    if ((attackPercent as number) > (defensePercent as number)) {
-      return 'Expansion is slightly ahead, but smaller verified execution is safer than widening the scope.'
-    }
-    return 'Defensive pressure is stronger, so loss prevention and condition checks matter more than speed.'
-  })()
-  return [intro, balance, takeLeadLine(caution || action || reliability || '', 90)]
-    .filter(Boolean)
-    .join(' ')
-}
-
-function softenDecisionTone(value: string, locale: 'ko' | 'en', lowReliability = false): string {
-  const line = safeDisplayText(value)
-  if (!line) return ''
-
-  if (locale === 'ko') {
-    let softened = line
-      .replace(/1년에 몇 번 없는/gi, '드문 편인')
-      .replace(/결혼 결정/gi, '관계 관련 대화')
-      .replace(/프로포즈/gi, '중요한 감정 표현')
-      .replace(/오늘로 잡으세요/gi, '우선 검토해 보세요')
-      .replace(/지금 결정/gi, '재확인 후 결정')
-
-    if (lowReliability) {
-      softened = softened
-        .replace(/최적/gi, '검토에 무난')
-        .replace(/유리/gi, '무난')
-        .replace(/적합/gi, '보수적 검토에 무난')
-        .replace(/최고조/gi, '높은 편')
-    }
-    return softened
-  }
-
-  let softened = line.replace(/decide now/gi, 'confirm once more before deciding')
-
-  if (lowReliability) {
-    softened = softened
-      .replace(/\boptimal\b/gi, 'reasonable for cautious review')
-      .replace(/\bfavorable\b/gi, 'workable with cautious review')
-      .replace(/\bideal\b/gi, 'reasonable')
-  }
-  return softened
-}
-
-function toUserFacingEvidenceLine(
-  value: string,
-  source: 'saju' | 'astro' | 'bridge',
-  locale: 'ko' | 'en'
-): string {
-  const normalized = normalizeEvidenceLine(value)
-  if (!normalized) return ''
-
-  const stripped = normalized
-    .replace(/\(([AS]\d+)\)\s*/gi, '')
-    .replace(/\b[AS]\d+\s*[↔\-]{1,2}\s*[AS]\d+\b[:：]?\s*/gi, '')
-    .replace(/\b[AS]\d+\b/gi, '')
-    .replace(/\s{2,}/g, ' ')
-    .trim()
-
-  const hasTechnicalPayload =
-    /(pair=|angle=|orb=|allowed=|dayMaster=|geokguk=|yongsin=|sibsin=|daeun=|saeun=|profile=|matrix=|overlap=|orbFit=|set\s*\d+)/i.test(
-      normalized
-    )
-
-  if (hasTechnicalPayload) {
-    if (locale === 'ko') {
-      if (source === 'saju') return '사주 흐름에서 말과 약속의 균형을 점검하면 안정적입니다.'
-      if (source === 'astro')
-        return '점성 흐름에서 감정 반응이 커질 수 있어 속도 조절이 유리합니다.'
-      return '사주와 점성 신호를 함께 보면 방향은 비슷하지만 재확인이 중요합니다.'
-    }
-    if (source === 'saju') return 'Saju signals suggest checking communication and commitments.'
-    if (source === 'astro') return 'Astrology signals suggest pacing emotional reactions.'
-    return 'Saju and astrology are broadly aligned, but confirmation still helps.'
-  }
-
-  return stripped
-}
 
 const SelectedDatePanel = memo(function SelectedDatePanel({
   selectedDay,
@@ -1152,8 +772,6 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     return baseTitle
   })()
 
-  const hasExtendedDetails = safeSajuFactors.length > 0 || safeAstroFactors.length > 0
-
   const detailInsight = (() => {
     const candidates = dedupeDisplayLines([
       readableFlowSummary,
@@ -1274,229 +892,40 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             </div>
           )}
 
-          <div className={styles.quickScanCard}>
-            {quickHighlightCards.length > 0 && (
-              <div className={styles.quickHeroGrid}>
-                {quickHighlightCards.map((item) => (
-                  <div key={`${item.label}-${item.text}`} className={styles.quickHeroBlock}>
-                    <span className={styles.quickHeroLabel}>
-                      {item.label}
-                      {item.tag ? <span className={styles.quickHeroTag}>{item.tag}</span> : null}
-                    </span>
-                    <p className={styles.quickHeroText}>{item.text}</p>
-                    {item.visual?.kind === 'agreement' ? (
-                      <div className={styles.quickHeroMeterWrap}>
-                        <div className={styles.quickHeroMeterRow}>
-                          <span className={styles.quickHeroMeterLabel}>
-                            {locale === 'ko' ? '합의' : 'Alignment'}
-                          </span>
-                          <span className={styles.quickHeroMeterValue}>
-                            {item.visual.agreementPercent}%
-                          </span>
-                        </div>
-                        <div className={styles.quickHeroMeterTrack}>
-                          <div
-                            className={`${styles.quickHeroMeterFill} ${styles.quickHeroMeterFillGood}`}
-                            style={{ width: `${Math.max(6, item.visual.agreementPercent)}%` }}
-                          />
-                        </div>
-                        <div className={styles.quickHeroMeterRow}>
-                          <span className={styles.quickHeroMeterLabel}>
-                            {locale === 'ko' ? '충돌' : 'Conflict'}
-                          </span>
-                          <span className={styles.quickHeroMeterValue}>
-                            {item.visual.contradictionPercent}%
-                          </span>
-                        </div>
-                        <div className={styles.quickHeroMeterTrack}>
-                          <div
-                            className={`${styles.quickHeroMeterFill} ${styles.quickHeroMeterFillRisk}`}
-                            style={{ width: `${Math.max(6, item.visual.contradictionPercent)}%` }}
-                          />
-                        </div>
-                      </div>
-                    ) : null}
-                    {item.visual?.kind === 'branch' && item.visual.rows.length ? (
-                      <div className={styles.quickHeroBranchGrid}>
-                        {item.visual.rows.map((row) => (
-                          <div key={`${item.label}-${row.label}-${row.text}`} className={styles.quickHeroBranchRow}>
-                            <span className={styles.quickHeroBranchLabel}>{row.label}</span>
-                            <span className={styles.quickHeroBranchText}>{row.text}</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
-                    {item.details?.length ? (
-                      <ul className={styles.quickHeroDetailList}>
-                        {item.details.map((detail) => (
-                          <li key={`${item.label}-${detail}`} className={styles.quickHeroDetailItem}>
-                            {detail}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            )}
+          <SelectedDateQuickScanSection
+            locale={locale}
+            quickHighlightCards={quickHighlightCards}
+            safeActionSummary={safeActionSummary}
+            quickThesis={quickThesis}
+            unifiedDayLabel={unifiedDayLabel}
+            focusDomainHeadline={focusDomainHeadline}
+            canonicalPhaseLabel={canonicalPhaseLabel}
+            matrixPhase={humanizePhaseLabel(matrixVerdict?.phase || '', locale)}
+            reliabilityHeadline={reliabilityHeadline}
+            weekSummary={presentation?.weekSummary?.summary}
+            monthSummary={presentation?.monthSummary?.summary}
+            topDomains={presentation?.topDomains || []}
+            relationshipWeatherSummary={presentation?.relationshipWeather?.summary}
+            workMoneyWeatherSummary={presentation?.workMoneyWeather?.summary}
+            topTimingSignals={topTimingSignals}
+            quickDos={quickDos}
+            quickDonts={quickDonts}
+            quickWindows={quickWindows}
+          />
 
-            {safeActionSummary && (
-              <div className={styles.quickSummaryBlock}>
-                <span className={styles.quickSummaryLabel}>
-                  {locale === 'ko' ? '오늘 행동 요약' : 'Action summary'}
-                </span>
-                <p className={styles.quickSummaryText}>{safeActionSummary}</p>
-              </div>
-            )}
-
-            <p className={styles.quickScanThesis}>{quickThesis}</p>
-
-            <div className={styles.quickScanMeta}>
-              <span className={styles.quickMetaChip}>
-                {locale === 'ko' ? '오늘 등급' : 'Today'}: {unifiedDayLabel}
-              </span>
-              <span className={styles.quickMetaChip}>
-                {locale === 'ko' ? '핵심 분야' : 'Focus'}: {focusDomainHeadline}
-              </span>
-              {(canonicalPhaseLabel || matrixVerdict?.phase) && (
-                <span className={styles.quickMetaChip}>
-                  {locale === 'ko' ? '흐름' : 'Flow'}:{' '}
-                  {canonicalPhaseLabel || humanizePhaseLabel(matrixVerdict?.phase || '', locale)}
-                </span>
-              )}
-              <span className={styles.quickMetaChip}>
-                {locale === 'ko' ? '신뢰' : 'Reliability'}: {reliabilityHeadline}
-              </span>
-            </div>
-
-            {topTimingSignals.length > 0 && (
-              <div className={styles.quickTimingSignalList}>
-                {topTimingSignals.map((signal, index) => (
-                  <span key={`timing-signal-${index}`} className={styles.quickTimingSignalChip}>
-                    {signal}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {(presentation?.weekSummary?.summary ||
-              presentation?.monthSummary?.summary ||
-              (presentation?.topDomains || []).length > 0 ||
-              presentation?.relationshipWeather?.summary ||
-              presentation?.workMoneyWeather?.summary) && (
-              <div className={styles.quickSummaryBlock}>
-                <span className={styles.quickSummaryLabel}>
-                  {locale === 'ko' ? '주간/월간 흐름' : 'Week/Month flow'}
-                </span>
-                {presentation?.weekSummary?.summary && (
-                  <p className={styles.quickSummaryText}>
-                    {locale === 'ko' ? '주간: ' : 'Week: '}
-                    {presentation.weekSummary.summary}
-                  </p>
-                )}
-                {presentation?.monthSummary?.summary && (
-                  <p className={styles.quickSummaryText}>
-                    {locale === 'ko' ? '월간: ' : 'Month: '}
-                    {presentation.monthSummary.summary}
-                  </p>
-                )}
-                {(presentation?.topDomains || []).length > 0 && (
-                  <div className={styles.quickScanMeta}>
-                    {(presentation?.topDomains || []).slice(0, 3).map((item, index) => (
-                      <span key={`top-domain-${index}`} className={styles.quickMetaChip}>
-                        {item.label} {Math.round(item.score * 100)}%
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {presentation?.relationshipWeather?.summary && (
-                  <p className={styles.quickSummaryText}>
-                    {locale === 'ko' ? '관계: ' : 'Relationship: '}
-                    {presentation.relationshipWeather.summary}
-                  </p>
-                )}
-                {presentation?.workMoneyWeather?.summary && (
-                  <p className={styles.quickSummaryText}>
-                    {locale === 'ko' ? '일/돈: ' : 'Work/Money: '}
-                    {presentation.workMoneyWeather.summary}
-                  </p>
-                )}
-              </div>
-            )}
-
-            <div className={styles.quickActionGrid}>
-              <div className={styles.quickActionBlock}>
-                <h4 className={styles.quickActionTitle}>{locale === 'ko' ? '추천' : 'Do'}</h4>
-                <ul className={styles.quickActionList}>
-                  {quickDos.map((action, index) => (
-                    <li key={`do-${index}`}>{action}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className={styles.quickActionBlock}>
-                <h4 className={styles.quickActionTitle}>{locale === 'ko' ? '주의' : "Don't"}</h4>
-                <ul className={styles.quickActionList}>
-                  {quickDonts.map((action, index) => (
-                    <li key={`dont-${index}`}>{action}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            <div className={styles.quickWindows}>
-              <h4 className={styles.quickActionTitle}>
-                {locale === 'ko' ? '좋은 시간' : 'Peak windows'}
-              </h4>
-              <div className={styles.quickWindowList}>
-                {quickWindows.map((time, index) => (
-                  <span key={`window-${index}`} className={styles.quickWindowChip}>
-                    {time}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {(detailInsight || selectedDate.evidence) && (
-            <details className={styles.calendarEvidenceDetails}>
-              <summary className={styles.calendarEvidenceSummary}>
-                {locale === 'ko' ? '교차 결론 근거 보기' : 'Cross-evidence for conclusion'}
-              </summary>
-              <div className={styles.calendarEvidenceInner}>
-                {detailInsight && <p className={styles.selectedDesc}>{detailInsight}</p>}
-                {selectedDate.evidence && (
-                  <ul className={styles.calendarEvidenceList}>
-                    {evidenceSummaryPrimary && <li>{evidenceSummaryPrimary}</li>}
-                    {canonicalCore?.gradeReason && (
-                      <li>
-                        {locale === 'ko' ? '등급 설명:' : 'Grade reason:'}{' '}
-                        {canonicalCore.gradeReason}
-                      </li>
-                    )}
-                    {canonicalCore?.riskControl && (
-                      <li>
-                        {locale === 'ko' ? '안전장치:' : 'Guardrail:'} {canonicalCore.riskControl}
-                      </li>
-                    )}
-                    {!canonicalCore?.riskControl && matrixVerdict?.guardrail && (
-                      <li>
-                        {locale === 'ko' ? '안전장치:' : 'Guardrail:'} {matrixVerdict.guardrail}
-                      </li>
-                    )}
-                    {canonicalCore?.judgmentPolicy?.rationale && (
-                      <li>
-                        {locale === 'ko' ? '판단 정책:' : 'Decision policy:'}{' '}
-                        {canonicalCore.judgmentPolicy.rationale}
-                      </li>
-                    )}
-                    {evidenceSummaryCross && <li>{evidenceSummaryCross}</li>}
-                    {evidenceBridgeSummary && <li>{evidenceBridgeSummary}</li>}
-                    {evidenceScoreLine && <li>{evidenceScoreLine}</li>}
-                  </ul>
-                )}
-              </div>
-            </details>
-          )}
+          <SelectedDateEvidenceDetails
+            locale={locale}
+            detailInsight={detailInsight}
+            hasEvidence={Boolean(selectedDate.evidence)}
+            evidenceSummaryPrimary={evidenceSummaryPrimary}
+            canonicalGradeReason={canonicalCore?.gradeReason || ''}
+            canonicalRiskControl={canonicalCore?.riskControl || ''}
+            matrixGuardrail={matrixVerdict?.guardrail || ''}
+            decisionRationale={canonicalCore?.judgmentPolicy?.rationale || ''}
+            evidenceSummaryCross={evidenceSummaryCross}
+            evidenceBridgeSummary={evidenceBridgeSummary}
+            evidenceScoreLine={evidenceScoreLine}
+          />
 
           {selectedDate.ganzhi && (
             <div className={styles.ganzhiBox}>
@@ -1532,48 +961,13 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             </span>
           </div>
 
-          {hasExtendedDetails && (
-            <details className={styles.extendedDetails}>
-              <summary className={styles.extendedDetailsSummary}>
-                {locale === 'ko' ? '사주/점성 세부 근거' : 'Detailed Saju/Astrology evidence'}
-              </summary>
-              <div className={styles.extendedDetailsBody}>
-                {safeSajuFactors.length > 0 && (
-                  <div className={styles.analysisSection}>
-                    <h4 className={styles.analysisTitle}>
-                      <span className={styles.analysisBadge}>{'\u263F\uFE0F'}</span>
-                      {termHelp.sajuTitle}
-                    </h4>
-                    <ul className={styles.analysisList}>
-                      {safeSajuFactors.slice(0, 4).map((factor, i) => (
-                        <li key={i} className={styles.analysisItem}>
-                          <span className={styles.analysisDotSaju}></span>
-                          {factor}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {safeAstroFactors.length > 0 && (
-                  <div className={styles.analysisSection}>
-                    <h4 className={styles.analysisTitle}>
-                      <span className={styles.analysisBadge}>{'\u{1F31F}'}</span>
-                      {termHelp.astroTitle}
-                    </h4>
-                    <ul className={styles.analysisList}>
-                      {safeAstroFactors.slice(0, 4).map((factor, i) => (
-                        <li key={i} className={styles.analysisItem}>
-                          <span className={styles.analysisDotAstro}></span>
-                          {factor}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </details>
-          )}
+          <SelectedDateExtendedDetails
+            locale={locale}
+            safeSajuFactors={safeSajuFactors}
+            safeAstroFactors={safeAstroFactors}
+            sajuTitle={termHelp.sajuTitle}
+            astroTitle={termHelp.astroTitle}
+          />
 
           {status === 'authenticated' && (
             <button
@@ -1618,3 +1012,5 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 })
 
 export default SelectedDatePanel
+
+
