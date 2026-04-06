@@ -630,5 +630,21 @@ export interface MatrixCalculationInput {
     longitude?: number
     houseSystem?: string
     analysisAt?: string
+    birthTimeRectification?: {
+      currentBirthTime?: string
+      candidates?: Array<{
+        birthTime: string
+        label?: string
+        status?: 'current-best' | 'plausible' | 'low-fit'
+        fitScore?: number
+        confidence?: number
+        summary?: string
+        timePillarLabel?: string
+        ascendantSign?: string
+        changedDomains?: string[]
+        supportSignals?: string[]
+        cautionSignals?: string[]
+      }>
+    }
   }
 }

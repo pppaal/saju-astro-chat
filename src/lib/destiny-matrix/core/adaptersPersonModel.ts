@@ -1125,6 +1125,32 @@ function buildBirthTimeHypotheses(
   locale: 'ko' | 'en',
   domainStateGraph: AdapterPersonDomainState[]
 ): AdapterBirthTimeHypothesis[] {
+  const rectificationCandidates =
+    core.normalizedInput.profileContext?.birthTimeRectification?.candidates || []
+  if (rectificationCandidates.length) {
+    return rectificationCandidates
+      .map((item) => {
+        const parsedHour = parseBirthHour(item.birthTime)
+        const bucket = hourToBucket(parsedHour === null ? 12 : parsedHour)
+        return {
+          label: item.label || getBirthBucketLabel(bucket, locale),
+          birthTime: item.birthTime,
+          bucket,
+          status: item.status || 'plausible',
+          fitScore: round2(item.fitScore || 0),
+          confidence: round2(item.confidence || item.fitScore || 0),
+          summary:
+            item.summary ||
+            (locale === 'ko'
+              ? `${item.birthTime} 생시는 재평가 후보로 유지됩니다.`
+              : `${item.birthTime} remains a reevaluated birth-time candidate.`),
+          supportSignals: uniq((item.supportSignals || []).filter(Boolean)).slice(0, 3),
+          cautionSignals: uniq((item.cautionSignals || []).filter(Boolean)).slice(0, 3),
+        }
+      })
+      .sort((left, right) => right.fitScore - left.fitScore)
+  }
+
   const rawHour = parseBirthHour(core.normalizedInput.profileContext?.birthTime)
   const actionState =
     domainStateGraph.find((item) => item.domain === core.canonical.actionFocusDomain) ||

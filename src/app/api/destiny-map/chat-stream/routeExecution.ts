@@ -32,7 +32,11 @@ import {
   buildMatrixProfileSection,
   mapFocusDomainToPromptTheme,
 } from './routePromptSupport'
-import { encodeCounselorUiEvidence, ensureAdvancedAstroData, fetchMatrixSnapshot } from './routeMatrixSnapshot'
+import {
+  encodeCounselorUiEvidence,
+  ensureAdvancedAstroData,
+  fetchMatrixSnapshot,
+} from './routeMatrixSnapshot'
 import type { DestinyMapChatStreamInput } from './lib/validation'
 
 export interface EffectiveCounselorInputs {
@@ -293,6 +297,8 @@ export async function prepareCounselorExecution(params: {
     birthDate: effectiveBirthDate,
     birthTime: effectiveBirthTime,
     gender: effectiveGender,
+    latitude: effectiveLatitude,
+    longitude: effectiveLongitude,
     lang,
     saju: finalSaju,
     astro: finalAstro,
@@ -479,4 +485,3 @@ export async function prepareCounselorExecution(params: {
     backendAstro: finalAstro,
   }
 }
-

@@ -105,4 +105,48 @@ describe('person model adapters', () => {
       reportVm.personModel.pastEventReconstruction.markers[0]?.evidence.length
     ).toBeGreaterThan(0)
   })
+
+  it('prefers runtime birth-time rectification candidates when available', () => {
+    const envelope = buildCoreEnvelope({
+      mode: 'comprehensive',
+      lang: 'ko',
+      matrixInput: createInput({
+        profileContext: {
+          birthTime: '06:30',
+          birthTimeRectification: {
+            currentBirthTime: '06:30',
+            candidates: [
+              {
+                birthTime: '06:30',
+                label: '기록된 생시',
+                status: 'current-best',
+                fitScore: 0.91,
+                confidence: 0.86,
+                summary: '실측 차트 기준으로 기록된 생시가 가장 안정적입니다.',
+                supportSignals: ['상승궁 유지', '시주 유지'],
+                cautionSignals: ['관계 축은 민감'],
+              },
+              {
+                birthTime: '04:30',
+                label: '비교 생시',
+                status: 'plausible',
+                fitScore: 0.63,
+                confidence: 0.49,
+                summary: '비교 생시에서는 해석 축이 더 흔들립니다.',
+                supportSignals: ['시주 변경'],
+                cautionSignals: ['커리어 축 민감도 상승'],
+              },
+            ],
+          },
+        },
+      }),
+    })
+
+    const counselorVm = adaptCoreToCounselor(envelope.coreSeed)
+
+    expect(counselorVm.personModel.birthTimeHypotheses).toHaveLength(2)
+    expect(counselorVm.personModel.birthTimeHypotheses[0]?.birthTime).toBe('06:30')
+    expect(counselorVm.personModel.birthTimeHypotheses[0]?.summary).toContain('기록된 생시')
+    expect(counselorVm.personModel.birthTimeHypotheses[0]?.supportSignals[0]).toBe('상승궁 유지')
+  })
 })

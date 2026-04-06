@@ -42,6 +42,7 @@ import type { SajuDataStructure, AstroDataStructure } from './lib/types'
 import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
 import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
 import type { MatrixSnapshot } from './routePromptSupport'
+import { buildBirthTimeRectificationCandidates } from './lib/birthTimeRectification'
 
 type MatrixHighlight = { layer?: number; keyword?: string; score?: number }
 type MatrixAspectType =
@@ -561,7 +562,11 @@ async function deriveMatrixAstroInputs(natalChartData?: NatalChartData): Promise
       .slice(0, 60)
 
     const meta = natalChartData.meta
-    if (!meta?.jdUT || !Array.isArray(natalChartData.houses) || natalChartData.houses.length === 0) {
+    if (
+      !meta?.jdUT ||
+      !Array.isArray(natalChartData.houses) ||
+      natalChartData.houses.length === 0
+    ) {
       return { ...empty, aspects }
     }
 
@@ -747,7 +752,10 @@ function normalizeDomainScoreMap(value: unknown): Record<string, number> {
     }
     if (!raw || typeof raw !== 'object') continue
     const candidate = raw as { finalScoreAdjusted?: number; baseFinalScore?: number }
-    if (typeof candidate.finalScoreAdjusted === 'number' && Number.isFinite(candidate.finalScoreAdjusted)) {
+    if (
+      typeof candidate.finalScoreAdjusted === 'number' &&
+      Number.isFinite(candidate.finalScoreAdjusted)
+    ) {
       out[key] = candidate.finalScoreAdjusted
       continue
     }
@@ -780,6 +788,8 @@ export async function fetchMatrixSnapshot(input: {
   birthDate: string
   birthTime: string
   gender: 'male' | 'female'
+  latitude: number
+  longitude: number
   lang: string
   saju?: SajuDataStructure
   astro: AstroDataStructure | undefined
@@ -794,16 +804,17 @@ export async function fetchMatrixSnapshot(input: {
     const derived = await deriveMatrixAstroInputs(input.natalChartData)
     const advancedAstroSignals = deriveAdvancedAstroSignals(input.advancedAstro)
     const dominantWesternElement = mapElementToWestern(
-      ((input.astro as Record<string, unknown> | undefined)?.dominantElement as string | undefined) ||
+      ((input.astro as Record<string, unknown> | undefined)?.dominantElement as
+        | string
+        | undefined) ||
         ((input.astro as Record<string, unknown> | undefined)?.dominantWesternElement as
           | string
           | undefined)
     )
     const matrixLang: 'ko' | 'en' = input.lang === 'ko' ? 'ko' : 'en'
 
-    let rawSaju = input.saju && typeof input.saju === 'object'
-      ? (input.saju as Record<string, unknown>)
-      : null
+    let rawSaju =
+      input.saju && typeof input.saju === 'object' ? (input.saju as Record<string, unknown>) : null
     if (!rawSaju || typeof rawSaju !== 'object') {
       rawSaju = calculateSajuData(
         input.birthDate,
@@ -818,7 +829,9 @@ export async function fetchMatrixSnapshot(input: {
     const dayMasterElement =
       normalizeElementToFiveElement(dayPillar?.heavenlyStem?.element) ||
       normalizeElementToFiveElement(
-        ((rawSaju.dayMaster as Record<string, unknown> | undefined)?.element as string | undefined) ||
+        ((rawSaju.dayMaster as Record<string, unknown> | undefined)?.element as
+          | string
+          | undefined) ||
           ((rawSaju.dayMaster as Record<string, unknown> | undefined)?.heavenlyStem as
             | string
             | undefined)
@@ -878,7 +891,9 @@ export async function fetchMatrixSnapshot(input: {
             return hit.kind
           })
           .filter((kind) => typeof kind === 'string' && kind.trim().length > 0)
-        shinsalList = Array.from(new Set(normalizedShinsal)) as MatrixCalculationInput['shinsalList']
+        shinsalList = Array.from(
+          new Set(normalizedShinsal)
+        ) as MatrixCalculationInput['shinsalList']
       } catch (error) {
         logger.warn('[chat-stream] Failed to derive relation/stage/shinsal snapshot', {
           error: error instanceof Error ? error.message : String(error),
@@ -913,7 +928,8 @@ export async function fetchMatrixSnapshot(input: {
         }
       | undefined
     const daeWoon = rawSaju.daeWoon as { current?: { heavenlyStem?: string } } | undefined
-    const currentAnnual = unse?.annual?.find((item) => item?.year === currentYear) || unse?.annual?.[0]
+    const currentAnnual =
+      unse?.annual?.find((item) => item?.year === currentYear) || unse?.annual?.[0]
     const currentMonthly =
       unse?.monthly?.find((item) => item?.year === currentYear && item?.month === currentMonth) ||
       unse?.monthly?.[0]
@@ -928,6 +944,37 @@ export async function fetchMatrixSnapshot(input: {
       activeTransits,
       advancedAstroSignals,
     })
+    let birthTimeRectification:
+      | NonNullable<NonNullable<MatrixCalculationInput['profileContext']>['birthTimeRectification']>
+      | undefined
+
+    try {
+      const rectificationCandidates = await buildBirthTimeRectificationCandidates({
+        birthDate: input.birthDate,
+        birthTime: input.birthTime,
+        gender: input.gender,
+        latitude: input.latitude,
+        longitude: input.longitude,
+        locale: matrixLang,
+        timeZone: input.natalChartData?.meta?.timeZone || 'Asia/Seoul',
+        focusDomain: input.focusDomain,
+        currentSaju: rawSaju as unknown as SajuDataStructure,
+        currentNatalChart: input.natalChartData,
+      })
+      if (rectificationCandidates.length) {
+        birthTimeRectification = {
+          currentBirthTime: input.birthTime,
+          candidates: rectificationCandidates,
+        }
+      }
+    } catch (rectificationError) {
+      logger.warn('[chat-stream] Birth-time rectification candidate build failed', {
+        error:
+          rectificationError instanceof Error
+            ? rectificationError.message
+            : String(rectificationError),
+      })
+    }
 
     const baseMatrixInput: MatrixCalculationInput = {
       dayMasterElement,
@@ -960,18 +1007,25 @@ export async function fetchMatrixSnapshot(input: {
       profileContext: {
         birthDate: input.birthDate,
         birthTime: input.birthTime,
+        latitude: input.latitude,
+        longitude: input.longitude,
+        timezone: input.natalChartData?.meta?.timeZone || 'Asia/Seoul',
         analysisAt: new Date().toISOString(),
+        birthTimeRectification,
       },
       lang: matrixLang,
       startYearMonth: `${new Date().getFullYear()}-01`,
     }
     const matrixInput: MatrixCalculationInput = {
       ...baseMatrixInput,
-      crossSnapshot: buildDerivedCrossSnapshot(baseMatrixInput as unknown as Record<string, unknown>, {
-        source: 'chat-stream',
-        theme: input.theme,
-        category: input.theme,
-      }),
+      crossSnapshot: buildDerivedCrossSnapshot(
+        baseMatrixInput as unknown as Record<string, unknown>,
+        {
+          source: 'chat-stream',
+          theme: input.theme,
+          category: input.theme,
+        }
+      ),
     }
     const crossCompleteInput = ensureMatrixInputCrossCompleteness(matrixInput)
     const crossAudit = buildServiceInputCrossAudit(crossCompleteInput, 'counselor')
@@ -1048,20 +1102,20 @@ export async function fetchMatrixSnapshot(input: {
     const semantics = buildMatrixSemanticContract(matrix)
     const layerThemeProfiles = buildLayerThemeProfiles(matrix, normalizedMatrixInput)
 
-    const strengths: MatrixHighlight[] = ((matrixSummaryForCounselor || matrix.summary).strengthPoints || []).map(
-      (point) => ({
-        layer: point.layer,
-        keyword: point.cell?.interaction?.keyword || '',
-        score: point.cell?.interaction?.score || 0,
-      })
-    )
-    const cautions: MatrixHighlight[] = ((matrixSummaryForCounselor || matrix.summary).cautionPoints || []).map(
-      (point) => ({
-        layer: point.layer,
-        keyword: point.cell?.interaction?.keyword || '',
-        score: point.cell?.interaction?.score || 0,
-      })
-    )
+    const strengths: MatrixHighlight[] = (
+      (matrixSummaryForCounselor || matrix.summary).strengthPoints || []
+    ).map((point) => ({
+      layer: point.layer,
+      keyword: point.cell?.interaction?.keyword || '',
+      score: point.cell?.interaction?.score || 0,
+    }))
+    const cautions: MatrixHighlight[] = (
+      (matrixSummaryForCounselor || matrix.summary).cautionPoints || []
+    ).map((point) => ({
+      layer: point.layer,
+      keyword: point.cell?.interaction?.keyword || '',
+      score: point.cell?.interaction?.score || 0,
+    }))
     const merged = [...strengths, ...cautions]
     const themeDomainMap: Record<string, string> = {
       love: 'love',
@@ -1098,9 +1152,15 @@ export async function fetchMatrixSnapshot(input: {
         .slice(0, 3),
       drivers: normalizeStringList((matrixSummaryForCounselor || matrix.summary).drivers, 6),
       cautions: normalizeStringList((matrixSummaryForCounselor || matrix.summary).cautions, 6),
-      calendarSignals: normalizeCalendarSignalLines((matrixSummaryForCounselor || matrix.summary).calendarSignals),
-      overlapTimeline: normalizeOverlapTimelineLines((matrixSummaryForCounselor || matrix.summary).overlapTimeline),
-      domainScores: normalizeDomainScoreMap((matrixSummaryForCounselor || matrix.summary).domainScores),
+      calendarSignals: normalizeCalendarSignalLines(
+        (matrixSummaryForCounselor || matrix.summary).calendarSignals
+      ),
+      overlapTimeline: normalizeOverlapTimelineLines(
+        (matrixSummaryForCounselor || matrix.summary).overlapTimeline
+      ),
+      domainScores: normalizeDomainScoreMap(
+        (matrixSummaryForCounselor || matrix.summary).domainScores
+      ),
       confidenceScore:
         typeof (matrixSummaryForCounselor || matrix.summary).confidenceScore === 'number'
           ? (matrixSummaryForCounselor || matrix.summary).confidenceScore
