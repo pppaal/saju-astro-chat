@@ -220,6 +220,38 @@ export type AdapterPersonEventOutlook = {
   nextMove: string
 }
 
+export type AdapterBirthTimeHypothesis = {
+  label: string
+  birthTime: string
+  bucket: 'early-morning' | 'morning' | 'afternoon' | 'evening' | 'night'
+  status: 'current-best' | 'plausible' | 'low-fit'
+  fitScore: number
+  confidence: number
+  summary: string
+  supportSignals: string[]
+  cautionSignals: string[]
+}
+
+export type AdapterCrossConflictItem = {
+  domain: SignalDomain
+  label: string
+  status: 'aligned' | 'saju-leading' | 'astro-leading' | 'contested'
+  strongestTimescale?: 'now' | '1-3m' | '3-6m' | '6-12m'
+  summary: string
+  sajuView: string
+  astroView: string
+  resolutionMove: string
+}
+
+export type AdapterPastEventMarker = {
+  key: 'identity-reset' | 'career-pivot' | 'relationship-lesson' | 'money-reset' | 'health-reset'
+  label: string
+  ageWindow: string
+  status: 'anchored' | 'conditional'
+  summary: string
+  evidence: string[]
+}
+
 export type AdapterPersonUncertaintyEnvelope = {
   summary: string
   reliableAreas: string[]
@@ -375,6 +407,12 @@ export type AdapterPersonModel = {
   }
   futureBranches: AdapterPersonFutureBranch[]
   eventOutlook: AdapterPersonEventOutlook[]
+  birthTimeHypotheses: AdapterBirthTimeHypothesis[]
+  crossConflictMap: AdapterCrossConflictItem[]
+  pastEventReconstruction: {
+    summary: string
+    markers: AdapterPastEventMarker[]
+  }
   uncertaintyEnvelope: AdapterPersonUncertaintyEnvelope
   evidenceLedger: {
     topClaimIds: string[]

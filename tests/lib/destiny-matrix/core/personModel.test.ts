@@ -83,6 +83,12 @@ describe('person model adapters', () => {
     expect(counselorVm.personModel.eventOutlook[0]?.entryConditions.length).toBeGreaterThanOrEqual(
       1
     )
+    expect(counselorVm.personModel.birthTimeHypotheses.length).toBeGreaterThanOrEqual(3)
+    expect(counselorVm.personModel.birthTimeHypotheses[0]?.summary.length).toBeGreaterThan(0)
+    expect(counselorVm.personModel.crossConflictMap.length).toBeGreaterThanOrEqual(1)
+    expect(counselorVm.personModel.crossConflictMap[0]?.resolutionMove.length).toBeGreaterThan(0)
+    expect(counselorVm.personModel.pastEventReconstruction.summary.length).toBeGreaterThan(0)
+    expect(counselorVm.personModel.pastEventReconstruction.markers.length).toBeGreaterThanOrEqual(3)
     expect(counselorVm.personModel.uncertaintyEnvelope.summary.length).toBeGreaterThan(0)
     expect(counselorVm.personModel.evidenceLedger.topClaimIds.length).toBeGreaterThanOrEqual(1)
 
@@ -93,5 +99,10 @@ describe('person model adapters', () => {
     expect(reportVm.personModel.domainPortraits[0]?.summary.length).toBeGreaterThan(0)
     expect(reportVm.personModel.futureBranches[0]?.conditions.length).toBeGreaterThan(0)
     expect(reportVm.personModel.eventOutlook[0]?.nextMove.length).toBeGreaterThan(0)
+    expect(reportVm.personModel.birthTimeHypotheses[0]?.birthTime).toMatch(/^\d{2}:\d{2}$/)
+    expect(reportVm.personModel.crossConflictMap[0]?.summary.length).toBeGreaterThan(0)
+    expect(
+      reportVm.personModel.pastEventReconstruction.markers[0]?.evidence.length
+    ).toBeGreaterThan(0)
   })
 })

@@ -1,6 +1,8 @@
 import type { SignalDomain } from './signalSynthesizer'
 import type { DestinyCoreResult } from './runDestinyCore'
 import type {
+  AdapterBirthTimeHypothesis,
+  AdapterCrossConflictItem,
   AdapterPersonAppliedProfile,
   AdapterPersonDimension,
   AdapterPersonDomainState,
@@ -8,6 +10,7 @@ import type {
   AdapterPersonFutureBranch,
   AdapterPersonLayer,
   AdapterPersonModel,
+  AdapterPastEventMarker,
   AdapterPersonState,
   AdapterPersonUncertaintyEnvelope,
 } from './adaptersTypes'
@@ -598,6 +601,142 @@ function parseBirthHour(raw: string | undefined): number | null {
   return hour
 }
 
+function normalizeHour(hour: number): number {
+  const normalized = hour % 24
+  return normalized < 0 ? normalized + 24 : normalized
+}
+
+function hourToBucket(hour: number): AdapterBirthTimeHypothesis['bucket'] {
+  if (hour < 6) return 'night'
+  if (hour < 9) return 'early-morning'
+  if (hour < 12) return 'morning'
+  if (hour < 18) return 'afternoon'
+  return 'evening'
+}
+
+function formatBirthTimeCandidate(hour: number): string {
+  return `${String(normalizeHour(hour)).padStart(2, '0')}:00`
+}
+
+function getBirthBucketLabel(
+  bucket: AdapterBirthTimeHypothesis['bucket'],
+  locale: 'ko' | 'en'
+): string {
+  const labels = {
+    ko: {
+      'early-morning': '이른 오전 가설',
+      morning: '오전 가설',
+      afternoon: '오후 가설',
+      evening: '저녁 가설',
+      night: '야간 가설',
+    },
+    en: {
+      'early-morning': 'Early-morning hypothesis',
+      morning: 'Morning hypothesis',
+      afternoon: 'Afternoon hypothesis',
+      evening: 'Evening hypothesis',
+      night: 'Night hypothesis',
+    },
+  } as const
+  return labels[locale][bucket]
+}
+
+function getCandidateActionFit(
+  bucket: AdapterBirthTimeHypothesis['bucket'],
+  state: AdapterPersonDomainState['currentState'] | undefined
+): number {
+  const table: Record<
+    NonNullable<AdapterPersonDomainState['currentState']>,
+    Record<AdapterBirthTimeHypothesis['bucket'], number>
+  > = {
+    expansion: {
+      'early-morning': 0.86,
+      morning: 0.8,
+      afternoon: 0.66,
+      evening: 0.48,
+      night: 0.34,
+    },
+    stable: {
+      'early-morning': 0.64,
+      morning: 0.74,
+      afternoon: 0.72,
+      evening: 0.58,
+      night: 0.42,
+    },
+    mixed: {
+      'early-morning': 0.54,
+      morning: 0.66,
+      afternoon: 0.7,
+      evening: 0.62,
+      night: 0.44,
+    },
+    defensive: {
+      'early-morning': 0.4,
+      morning: 0.5,
+      afternoon: 0.58,
+      evening: 0.74,
+      night: 0.66,
+    },
+    blocked: {
+      'early-morning': 0.34,
+      morning: 0.42,
+      afternoon: 0.54,
+      evening: 0.72,
+      night: 0.7,
+    },
+  }
+  return table[state || 'mixed'][bucket]
+}
+
+function getCandidateRecoveryFit(
+  bucket: AdapterBirthTimeHypothesis['bucket'],
+  state: AdapterPersonDomainState['currentState'] | undefined
+): number {
+  const needsRecovery = state === 'defensive' || state === 'blocked'
+  if (needsRecovery) {
+    return {
+      'early-morning': 0.38,
+      morning: 0.46,
+      afternoon: 0.58,
+      evening: 0.78,
+      night: 0.72,
+    }[bucket]
+  }
+  return {
+    'early-morning': 0.74,
+    morning: 0.68,
+    afternoon: 0.6,
+    evening: 0.5,
+    night: 0.4,
+  }[bucket]
+}
+
+function calculateProfileAge(
+  birthDate: string | undefined,
+  currentDateIso: string | undefined
+): number | null {
+  if (!birthDate) return null
+  const birth = new Date(`${birthDate}T00:00:00Z`)
+  const current = new Date(`${(currentDateIso || new Date().toISOString()).slice(0, 10)}T00:00:00Z`)
+  if (Number.isNaN(birth.getTime()) || Number.isNaN(current.getTime())) return null
+  let age = current.getUTCFullYear() - birth.getUTCFullYear()
+  const birthMonth = birth.getUTCMonth()
+  const currentMonth = current.getUTCMonth()
+  if (
+    currentMonth < birthMonth ||
+    (currentMonth === birthMonth && current.getUTCDate() < birth.getUTCDate())
+  ) {
+    age -= 1
+  }
+  return age >= 0 ? age : null
+}
+
+function formatAgeWindow(startAge: number, endAge: number, locale: 'ko' | 'en'): string {
+  const safeStart = Math.max(0, startAge)
+  const safeEnd = Math.max(safeStart, endAge)
+  return locale === 'ko' ? `${safeStart}-${safeEnd}세` : `ages ${safeStart}-${safeEnd}`
+}
+
 function buildPeakWindows(hour: number | null, locale: 'ko' | 'en'): string[] {
   if (hour === null) {
     return locale === 'ko'
@@ -981,6 +1120,282 @@ function buildEventOutlook(
   })
 }
 
+function buildBirthTimeHypotheses(
+  core: DestinyCoreResult,
+  locale: 'ko' | 'en',
+  domainStateGraph: AdapterPersonDomainState[]
+): AdapterBirthTimeHypothesis[] {
+  const rawHour = parseBirthHour(core.normalizedInput.profileContext?.birthTime)
+  const actionState =
+    domainStateGraph.find((item) => item.domain === core.canonical.actionFocusDomain) ||
+    domainStateGraph[0]
+  const riskState =
+    domainStateGraph.find((item) => item.domain === rankRiskAxis(core)) || domainStateGraph[1]
+  const candidateHours =
+    rawHour === null
+      ? [6, 12, 18]
+      : uniq([rawHour, normalizeHour(rawHour - 2), normalizeHour(rawHour + 2)])
+
+  const hypotheses = candidateHours.map((hour) => {
+    const bucket = hourToBucket(hour)
+    const actionFit = getCandidateActionFit(bucket, actionState?.currentState)
+    const recoveryFit = getCandidateRecoveryFit(bucket, riskState?.currentState)
+    const proximityScore =
+      rawHour === null ? 0.46 : hour === rawHour ? 0.92 : Math.abs(hour - rawHour) <= 2 ? 0.7 : 0.54
+    const fitScore = round2(avg([actionFit, recoveryFit, proximityScore]))
+    const confidence = round2(rawHour === null ? fitScore * 0.58 : fitScore * 0.82)
+
+    return {
+      label: getBirthBucketLabel(bucket, locale),
+      birthTime: formatBirthTimeCandidate(hour),
+      bucket,
+      status: 'plausible' as const,
+      fitScore,
+      confidence,
+      summary:
+        locale === 'ko'
+          ? `${formatBirthTimeCandidate(hour)} 전후로 읽으면 ${actionState?.label || '핵심 축'} 실행 리듬과 ${riskState?.label || '리스크 축'} 회복 리듬이 ${fitScore >= 0.72 ? '비교적 잘 맞습니다' : fitScore >= 0.58 ? '부분적으로 맞습니다' : '민감하게 흔들립니다'}.`
+          : `Around ${formatBirthTimeCandidate(hour)}, the action rhythm on ${actionState?.label || 'the lead axis'} and the recovery rhythm on ${riskState?.label || 'the risk axis'} ${fitScore >= 0.72 ? 'fit reasonably well' : fitScore >= 0.58 ? 'fit partially' : 'remain sensitive'}.`,
+      supportSignals: uniq([
+        ...(buildPeakWindows(hour, locale).slice(0, 2) || []),
+        actionState?.firstMove || '',
+        ...(actionState?.supportSignals || []).slice(0, 1),
+      ]).filter(Boolean),
+      cautionSignals: uniq([
+        ...(buildRecoveryWindows(hour, locale).slice(0, 1) || []),
+        riskState?.holdMove || '',
+        ...(riskState?.pressureSignals || []).slice(0, 1),
+      ]).filter(Boolean),
+    }
+  })
+
+  const topFit = Math.max(...hypotheses.map((item) => item.fitScore), 0)
+  return hypotheses
+    .sort((left, right) => right.fitScore - left.fitScore)
+    .map((item) => ({
+      ...item,
+      status:
+        rawHour !== null && item.birthTime === formatBirthTimeCandidate(rawHour)
+          ? 'current-best'
+          : item.fitScore >= topFit - 0.06
+            ? 'plausible'
+            : 'low-fit',
+    }))
+}
+
+function buildCrossConflictMap(
+  core: DestinyCoreResult,
+  locale: 'ko' | 'en',
+  domainStateGraph: AdapterPersonDomainState[]
+): AdapterCrossConflictItem[] {
+  const matrix = core.canonical.crossAgreementMatrix || []
+
+  const items = domainStateGraph.map((state) => {
+    const row = matrix.find((item) => item.domain === state.domain)
+    const timescalePairs = (['now', '1-3m', '3-6m', '6-12m'] as const).map((timescale) => ({
+      timescale,
+      agreement: row?.timescales?.[timescale]?.agreement || 0,
+      contradiction: row?.timescales?.[timescale]?.contradiction || 0,
+      leadLag: row?.timescales?.[timescale]?.leadLag ?? row?.leadLag ?? 0,
+    }))
+    const strongest = timescalePairs
+      .slice()
+      .sort(
+        (left, right) =>
+          right.contradiction +
+          Math.abs(right.leadLag) -
+          (left.contradiction + Math.abs(left.leadLag))
+      )[0]
+    const status: AdapterCrossConflictItem['status'] =
+      strongest && strongest.contradiction < 0.26 && Math.abs(strongest.leadLag) < 0.12
+        ? 'aligned'
+        : (strongest?.leadLag || 0) <= -0.16
+          ? 'saju-leading'
+          : (strongest?.leadLag || 0) >= 0.16
+            ? 'astro-leading'
+            : 'contested'
+
+    const sajuView =
+      locale === 'ko'
+        ? `${state.label} 구조는 ${state.firstMove} 쪽이 먼저 맞습니다.`
+        : `The structural read on ${state.label} points first toward ${state.firstMove}.`
+    const astroView =
+      locale === 'ko'
+        ? `${state.label} 촉발은 ${state.nextShift || strongest?.timescale || '현재'} 구간에서 더 선명해집니다.`
+        : `The timing trigger on ${state.label} becomes clearer in the ${state.nextShift || strongest?.timescale || 'current'} window.`
+    const summary =
+      locale === 'ko'
+        ? status === 'aligned'
+          ? `${state.label} 축은 사주 구조와 점성 타이밍이 대체로 같은 방향을 가리킵니다.`
+          : status === 'saju-leading'
+            ? `${state.label} 축은 구조 지지는 먼저 형성됐지만 점성 트리거는 약간 늦게 붙습니다.`
+            : status === 'astro-leading'
+              ? `${state.label} 축은 점성 촉발이 먼저 앞서고 구조적 수용은 뒤따릅니다.`
+              : `${state.label} 축은 구조와 타이밍이 같은 속도로 움직이지 않아 해석 긴장이 큽니다.`
+        : status === 'aligned'
+          ? `${state.label} shows broad alignment between structure and timing.`
+          : status === 'saju-leading'
+            ? `${state.label} has structure support first, while timing triggers lag.`
+            : status === 'astro-leading'
+              ? `${state.label} has timing triggers first, while structural support lags.`
+              : `${state.label} carries meaningful tension between structure and timing.`
+
+    return {
+      domain: state.domain,
+      label: state.label,
+      status,
+      strongestTimescale: strongest?.timescale,
+      summary,
+      sajuView,
+      astroView,
+      resolutionMove: status === 'aligned' ? state.firstMove : state.holdMove || state.firstMove,
+    }
+  })
+
+  return items
+    .sort((left, right) => {
+      const score = (item: AdapterCrossConflictItem) =>
+        item.status === 'contested'
+          ? 3
+          : item.status === 'astro-leading' || item.status === 'saju-leading'
+            ? 2
+            : 1
+      return score(right) - score(left)
+    })
+    .slice(0, 4)
+}
+
+function buildPastEventReconstruction(
+  core: DestinyCoreResult,
+  locale: 'ko' | 'en',
+  domainStateGraph: AdapterPersonDomainState[]
+): {
+  summary: string
+  markers: AdapterPastEventMarker[]
+} {
+  const age = calculateProfileAge(
+    core.normalizedInput.profileContext?.birthDate,
+    core.normalizedInput.currentDateIso
+  )
+  const actionState =
+    domainStateGraph.find((item) => item.domain === core.canonical.actionFocusDomain) ||
+    domainStateGraph[0]
+  const riskState =
+    domainStateGraph.find((item) => item.domain === rankRiskAxis(core)) ||
+    domainStateGraph.find((item) => item.domain === 'health') ||
+    domainStateGraph[1]
+  const relationshipState = domainStateGraph.find((item) => item.domain === 'relationship')
+
+  const markers: AdapterPastEventMarker[] = [
+    {
+      key: 'identity-reset',
+      label: locale === 'ko' ? '정체성 재정렬 구간' : 'Identity reset window',
+      ageWindow:
+        age === null
+          ? locale === 'ko'
+            ? '18-22세'
+            : 'ages 18-22'
+          : formatAgeWindow(Math.max(16, age - 12), Math.max(20, age - 8), locale),
+      status: core.normalizedInput.profileContext?.birthDate ? 'anchored' : 'conditional',
+      summary:
+        locale === 'ko'
+          ? `${core.canonical.focusDomain === core.canonical.actionFocusDomain ? actionState?.label || '핵심 축' : localizeDomain(core.canonical.focusDomain, locale)} 패턴이 이 시기부터 생활 습관으로 굳었을 가능성이 큽니다.`
+          : `The ${actionState?.label || localizeDomain(core.canonical.focusDomain, locale)} pattern likely started consolidating into habit in this window.`,
+      evidence: uniq([
+        ...(core.canonical.topPatterns.slice(0, 2).map((item) => item.family) || []),
+        ...(core.canonical.coherenceAudit.notes || []).slice(0, 1),
+      ]).filter(Boolean),
+    },
+    {
+      key:
+        core.canonical.actionFocusDomain === 'career'
+          ? 'career-pivot'
+          : core.canonical.actionFocusDomain === 'relationship'
+            ? 'relationship-lesson'
+            : core.canonical.actionFocusDomain === 'wealth'
+              ? 'money-reset'
+              : 'career-pivot',
+      label:
+        core.canonical.actionFocusDomain === 'relationship'
+          ? locale === 'ko'
+            ? '관계 학습 구간'
+            : 'Relationship lesson window'
+          : core.canonical.actionFocusDomain === 'wealth'
+            ? locale === 'ko'
+              ? '재정 재배열 구간'
+              : 'Money reset window'
+            : locale === 'ko'
+              ? '커리어 방향 전환 구간'
+              : 'Career pivot window',
+      ageWindow:
+        age === null
+          ? locale === 'ko'
+            ? '24-29세'
+            : 'ages 24-29'
+          : formatAgeWindow(Math.max(22, age - 8), Math.max(25, age - 3), locale),
+      status: 'conditional',
+      summary:
+        locale === 'ko'
+          ? `${actionState?.label || localizeDomain(core.canonical.actionFocusDomain, locale)} 축에서 역할, 관계, 책임 범위를 다시 고르는 분기였을 가능성이 큽니다.`
+          : `This was likely a branching period for role, relationship, or responsibility selection on the ${actionState?.label || localizeDomain(core.canonical.actionFocusDomain, locale)} axis.`,
+      evidence: uniq([
+        ...(actionState?.supportSignals || []).slice(0, 2),
+        ...(
+          core.canonical.domainTimingWindows.find(
+            (item) => item.domain === core.canonical.actionFocusDomain
+          )?.entryConditions || []
+        ).slice(0, 1),
+      ]).filter(Boolean),
+    },
+    {
+      key:
+        rankRiskAxis(core) === 'health'
+          ? 'health-reset'
+          : rankRiskAxis(core) === 'relationship'
+            ? 'relationship-lesson'
+            : 'money-reset',
+      label:
+        rankRiskAxis(core) === 'health'
+          ? locale === 'ko'
+            ? '회복 리셋 구간'
+            : 'Health reset window'
+          : rankRiskAxis(core) === 'relationship'
+            ? locale === 'ko'
+              ? '관계 경계 재설정 구간'
+              : 'Relationship boundary reset window'
+            : locale === 'ko'
+              ? '손실 방지 재정비 구간'
+              : 'Loss-control reset window',
+      ageWindow:
+        age === null
+          ? locale === 'ko'
+            ? '최근 1-3년'
+            : 'recent 1-3 years'
+          : formatAgeWindow(Math.max(0, age - 3), age, locale),
+      status: 'conditional',
+      summary:
+        locale === 'ko'
+          ? `${riskState?.label || localizeDomain(rankRiskAxis(core), locale)} 축에서 과부하를 줄이거나 경계를 다시 세우는 사건이 있었을 가능성이 큽니다.`
+          : `There was likely a recent reset event on the ${riskState?.label || localizeDomain(rankRiskAxis(core), locale)} axis to reduce overload or re-establish boundaries.`,
+      evidence: uniq([
+        ...(riskState?.pressureSignals || []).slice(0, 2),
+        ...(relationshipState?.pressureSignals || []).slice(
+          0,
+          rankRiskAxis(core) === 'relationship' ? 1 : 0
+        ),
+      ]).filter(Boolean),
+    },
+  ]
+
+  return {
+    summary:
+      locale === 'ko'
+        ? '과거 복원은 확정 사건표가 아니라 현재 구조를 가장 잘 설명하는 전환 구간 후보를 제시하는 층입니다.'
+        : 'Past reconstruction is not a fixed event log but a set of likely pivot windows that best explain the current structure.',
+    markers,
+  }
+}
+
 function buildUncertaintyEnvelope(
   core: DestinyCoreResult,
   locale: 'ko' | 'en',
@@ -1045,6 +1460,9 @@ export function buildPersonModel(core: DestinyCoreResult, locale: 'ko' | 'en'): 
     relationshipProfile,
     careerProfile
   )
+  const birthTimeHypotheses = buildBirthTimeHypotheses(core, locale, domainStateGraph)
+  const crossConflictMap = buildCrossConflictMap(core, locale, domainStateGraph)
+  const pastEventReconstruction = buildPastEventReconstruction(core, locale, domainStateGraph)
   const uncertaintyEnvelope = buildUncertaintyEnvelope(core, locale, domainStateGraph)
 
   return {
@@ -1077,6 +1495,9 @@ export function buildPersonModel(core: DestinyCoreResult, locale: 'ko' | 'en'): 
     careerProfile,
     futureBranches: buildFutureBranches(core, locale),
     eventOutlook,
+    birthTimeHypotheses,
+    crossConflictMap,
+    pastEventReconstruction,
     uncertaintyEnvelope,
     evidenceLedger: buildEvidenceLedger(core),
   }
