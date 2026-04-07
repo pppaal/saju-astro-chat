@@ -1,6 +1,6 @@
 # Calendar Language Guide
 
-Last audited: 2026-03-17 (Asia/Hong_Kong)
+Last audited: 2026-04-01 (Asia/Hong_Kong)
 
 This document defines the user-facing language for the calendar service.
 
@@ -26,26 +26,26 @@ Translate engine state into action language.
 
 Use these five labels consistently across UI, API summaries, details, and action plans.
 
-| Grade | Korean | English | Meaning |
-| --- | --- | --- | --- |
-| 0 | `실행 우선` | `Execute-first` | Strong day to move a key task |
-| 1 | `활용 우선` | `Leverage-first` | Good day if you keep one verification step |
-| 2 | `운영 우선` | `Operate-first` | Better for routine, cleanup, maintenance |
-| 3 | `검토 우선` | `Review-first` | Slow down, re-check, split decisions |
-| 4 | `조정 우선` | `Adjust-first` | Reduce scope, stabilize, manage downside |
+| Grade | Korean      | English          | Meaning                                    |
+| ----- | ----------- | ---------------- | ------------------------------------------ |
+| 0     | `실행 우선` | `Execute-first`  | Strong day to move a key task              |
+| 1     | `활용 우선` | `Leverage-first` | Good day if you keep one verification step |
+| 2     | `운영 우선` | `Operate-first`  | Better for routine, cleanup, maintenance   |
+| 3     | `검토 우선` | `Review-first`   | Slow down, re-check, split decisions       |
+| 4     | `조정 우선` | `Adjust-first`   | Reduce scope, stabilize, manage downside   |
 
 ## Approved Meta Labels
 
-| Use case | Korean | English |
-| --- | --- | --- |
-| top thesis label | `오늘 흐름 요약` | `Daily flow summary` |
-| phase label | `흐름` | `Flow` |
-| focus label | `핵심 분야` | `Focus` |
-| reliability label | `신뢰` | `Reliability` |
-| recommendation section | `지금 할 것` | `Do now` |
-| caution section | `주의할 것` | `Watch` |
-| timing section | `좋은 시간` | `Best time` |
-| evidence section | `이렇게 읽은 이유` | `Why it reads this way` |
+| Use case               | Korean             | English                 |
+| ---------------------- | ------------------ | ----------------------- |
+| top thesis label       | `오늘 흐름 요약`   | `Daily flow summary`    |
+| phase label            | `흐름`             | `Flow`                  |
+| focus label            | `핵심 분야`        | `Focus`                 |
+| reliability label      | `신뢰`             | `Reliability`           |
+| recommendation section | `지금 할 것`       | `Do now`                |
+| caution section        | `주의할 것`        | `Watch`                 |
+| timing section         | `좋은 시간`        | `Best time`             |
+| evidence section       | `이렇게 읽은 이유` | `Why it reads this way` |
 
 ## Forbidden Terms
 
@@ -64,15 +64,15 @@ Do not show these directly to users unless they are hidden in internal logs.
 
 ## Required Replacements
 
-| Internal wording | Replace with |
-| --- | --- |
+| Internal wording      | Replace with                    |
+| --------------------- | ------------------------------- |
 | `공격 52% / 방어 48%` | `실행 여력 52% / 안정 관리 48%` |
-| `방어/재정렬 국면` | `정비 우선 흐름` |
-| `공격/확장 국면` | `추진 우선 흐름` |
-| `레이어 0` | `핵심 조건` |
-| `레이어 1` | `보조 조건` |
-| `방어 우선` | `조정 우선` |
-| `검토/방어일` | `검토/조정일` |
+| `방어/재정렬 국면`    | `정비 우선 흐름`                |
+| `공격/확장 국면`      | `추진 우선 흐름`                |
+| `레이어 0`            | `핵심 조건`                     |
+| `레이어 1`            | `보조 조건`                     |
+| `방어 우선`           | `조정 우선`                     |
+| `검토/방어일`         | `검토/조정일`                   |
 
 ## Sentence Style Rules
 

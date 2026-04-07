@@ -3,10 +3,11 @@ import path from 'node:path'
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3005'
 const mockedFontResponses = path.join(process.cwd(), 'tests', 'playwright', 'google-fonts-mock.js')
-const distDir = process.env.NEXT_DIST_DIR || '.next-playwright-calendar'
+const distDir = process.env.NEXT_DIST_DIR || 'tmp/.next-playwright-calendar'
 
 export default defineConfig({
   testDir: './e2e',
+  outputDir: 'tmp/test-results/calendar',
   testMatch: ['calendar-flow.spec.ts', 'calendar-check.spec.ts'],
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
@@ -17,9 +18,9 @@ export default defineConfig({
     timeout: 15000,
   },
   reporter: [
-    ['html', { open: 'never', outputFolder: 'playwright-report/calendar' }],
+    ['html', { open: 'never', outputFolder: 'tmp/playwright-report/calendar' }],
     ['list'],
-    ['json', { outputFile: 'test-results/calendar-results.json' }],
+    ['json', { outputFile: 'tmp/test-results/calendar/calendar-results.json' }],
   ],
   use: {
     baseURL,
@@ -42,8 +43,7 @@ export default defineConfig({
   ],
   ...(process.env.PLAYWRIGHT_SKIP_WEBSERVER !== 'true' && {
     webServer: {
-      command:
-        `cross-env NEXT_DIST_DIR=${distDir} NEXT_FONT_GOOGLE_MOCKED_RESPONSES="${mockedFontResponses}" DEMO_TOKEN=demo-test-token SUPPORT_EMAIL=support@destinypal.com npx next dev --webpack --port 3005`,
+      command: `cross-env NEXT_DIST_DIR=${distDir} NEXT_FONT_GOOGLE_MOCKED_RESPONSES="${mockedFontResponses}" DEMO_TOKEN=demo-test-token SUPPORT_EMAIL=support@destinypal.com npx next dev --webpack --port 3005`,
       url: baseURL,
       reuseExistingServer: true,
       timeout: 600 * 1000,

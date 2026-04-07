@@ -37,4 +37,4 @@ This document tracks long-range product strategy and market assumptions. It is i
 - `BUILD_INSTRUCTIONS.md`
 - `OVERVIEW.md`
 - `SECURITY_AUDIT_REPORT.md`
-- `docs/README.md`
+- `README.md`

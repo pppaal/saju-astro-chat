@@ -1,6 +1,6 @@
 # RAG And GraphRAG
 
-Last audited: 2026-03-17 (Asia/Hong_Kong)
+Last audited: 2026-04-01 (Asia/Hong_Kong)
 
 ## Current Position In The System
 
@@ -145,15 +145,19 @@ python scripts/self_check.py --runtime-evidence
 
 These remain the canonical retrieval and evidence health checks for the Python GraphRAG substrate.
 
-## Current Quality Baseline
+## Current Quality Snapshot
 
-As of 2026-03-17:
+Verified on 2026-04-01:
 
-- 3-service destiny regression: `PASS=10 WARN=0 FAIL=0`
-- counselor regression: `PASS=42 WARN=0 FAIL=0`
-- core quality warnings: `0`
+- `python scripts/self_check.py`: overall `PASS`
+- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`:
+  - blocked by a parse error in `src/lib/destiny-matrix/ai-report/aiReportService.ts`
+- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`:
+  - overall `PASS=21 WARN=13 FAIL=8`
+  - `ko`: `PASS=5 WARN=8 FAIL=8`
+  - `en`: `PASS=16 WARN=5 FAIL=0`
 
-This does not mean GraphRAG replaces the core. It means GraphRAG is currently synchronized well enough with the core and service layers to avoid visible drift in the tested paths.
+This does not change GraphRAG's role. It means the retrieval substrate is healthy, but the current workspace is not at the previous zero-fail service baseline.
 
 ## Current Gaps
 

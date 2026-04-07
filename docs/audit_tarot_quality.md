@@ -68,7 +68,7 @@ python scripts/tarot_coverage_audit.py --corpus-path backend_ai/data/tarot_corpu
 python scripts/tarot_backfill_missing_facets.py --corpus-path backend_ai/data/tarot_corpus/tarot_corpus_v1.jsonl --coverage-report-path artifacts/coverage_report.json --output-path backend_ai/data/tarot_corpus/tarot_corpus_v1_1.jsonl --version v1.1
 python scripts/tarot_lint.py --corpus-path backend_ai/data/tarot_corpus/tarot_corpus_v1_1.jsonl
 python scripts/tarot_coverage_audit.py --corpus-path backend_ai/data/tarot_corpus/tarot_corpus_v1_1.jsonl --min-text-len 300 --output-json artifacts/coverage_report_after.json --output-md artifacts/coverage_report_after.md
-python scripts/tarot_router_eval.py --input-path data/eval/searchbox_queries.jsonl --output-md artifacts/router_eval_report_after.md --output-json artifacts/router_eval_report_after.json
+python scripts/tarot_router_eval.py --input-path tests/fixtures/tarot-eval/searchbox_queries.jsonl --output-md artifacts/router_eval_report_after.md --output-json artifacts/router_eval_report_after.json
 python scripts/tarot_deck_validate.py --output-md artifacts/deck_validation_report.md
 python scripts/tarot_audit_threshold_check.py --coverage-report artifacts/coverage_report_after.json --router-report artifacts/router_eval_report_after.json --e2e-report artifacts/e2e_smoke_report.json --deck-report-md artifacts/deck_validation_report.md --max-missing 0 --max-router-anomaly-rate 0.01
 ```

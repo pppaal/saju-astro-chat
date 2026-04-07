@@ -381,4 +381,4 @@ class TestFullDatasetEvaluation:
         assert overall["entity_recall"] >= 0.5
 
         # 결과 저장
-        evaluator.save_results(results, "data/eval_results_llm.json")
+        evaluator.save_results(results, "tmp/backend-ai/eval_results_llm.json")

@@ -1,13 +1,14 @@
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig, devices } from '@playwright/test'
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000";
+const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 
 /**
  * CI Configuration - Assumes server is already running
  * No webServer configuration to avoid startup timeouts
  */
 export default defineConfig({
-  testDir: "./e2e",
+  testDir: './e2e',
+  outputDir: 'tmp/test-results/ci',
   fullyParallel: false,
   forbidOnly: true,
   retries: 2,
@@ -18,46 +19,38 @@ export default defineConfig({
     timeout: 15000, // 15 seconds for assertions
   },
   reporter: [
-    ["html", { open: "never" }],
-    ["list"],
-    ["junit", { outputFile: "test-results/junit.xml" }],
+    ['html', { open: 'never', outputFolder: 'tmp/playwright-report/ci' }],
+    ['list'],
+    ['junit', { outputFile: 'tmp/test-results/ci/junit.xml' }],
   ],
   use: {
     baseURL,
-    trace: "retain-on-failure",
-    screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
     // Increased timeouts for CI stability
     navigationTimeout: 60000, // 1 minute
     actionTimeout: 30000, // 30 seconds
   },
   projects: [
     {
-      name: "chromium",
+      name: 'chromium',
       use: {
-        ...devices["Desktop Chrome"],
+        ...devices['Desktop Chrome'],
         launchOptions: {
-          args: [
-            "--disable-dev-shm-usage",
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-          ],
+          args: ['--disable-dev-shm-usage', '--no-sandbox', '--disable-setuid-sandbox'],
         },
       },
     },
     {
-      name: "mobile-chrome",
+      name: 'mobile-chrome',
       use: {
-        ...devices["Pixel 5"],
+        ...devices['Pixel 5'],
         launchOptions: {
-          args: [
-            "--disable-dev-shm-usage",
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-          ],
+          args: ['--disable-dev-shm-usage', '--no-sandbox', '--disable-setuid-sandbox'],
         },
       },
     },
   ],
   // No webServer - server should be started externally in CI
-});
+})

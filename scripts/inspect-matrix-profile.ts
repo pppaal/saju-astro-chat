@@ -5,7 +5,9 @@ import { analyzeAdvancedSaju } from '../src/lib/Saju/astrologyengine'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '../src/lib/Saju/relations'
 import { getShinsalHits, getTwelveStagesForPillars } from '../src/lib/Saju/shinsal'
 import { calculateNatalChart, toChart, findNatalAspects } from '../src/lib/astrology'
-import { calculateDestinyMatrix } from '../src/lib/destiny-matrix'
+import { buildCoreEnvelope } from '../src/lib/destiny-matrix/core/buildCoreEnvelope'
+import { adaptCoreToCounselor } from '../src/lib/destiny-matrix/core/adapters'
+import { sanitizeCounselorFreeText } from '../src/lib/destiny-matrix/counselorEvidenceSanitizer'
 
 type WesternElement = 'fire' | 'earth' | 'air' | 'water'
 
@@ -58,10 +60,39 @@ function cellScore(cell: unknown): number {
 function analyzeLayer(layer: unknown) {
   if (!layer || typeof layer !== 'object')
     return { totalCells: 0, nonZeroCells: 0, topCells: [] as any[] }
+  const entries = Object.entries(layer as Record<string, unknown>)
+  const looksLikeFlatCellMap = entries.some(
+    ([, value]) => cellScore(value) > 0 || !!(value as any)?.interaction
+  )
+  if (looksLikeFlatCellMap) {
+    let totalCells = 0
+    let nonZeroCells = 0
+    const scored: Array<{ rowKey: string; colKey: string; score: number; keyword?: string }> = []
+    for (const [cellKey, cell] of entries) {
+      totalCells += 1
+      const score = cellScore(cell)
+      if (score > 0) {
+        nonZeroCells += 1
+        const [rowKey, ...rest] = cellKey.split('_')
+        const colKey = rest.join('_') || cellKey
+        const keyword =
+          typeof (cell as { interaction?: { keyword?: unknown } }).interaction?.keyword === 'string'
+            ? ((cell as { interaction?: { keyword?: string } }).interaction?.keyword ?? undefined)
+            : undefined
+        scored.push({ rowKey, colKey, score, ...(keyword ? { keyword } : {}) })
+      }
+    }
+    scored.sort((a, b) => b.score - a.score)
+    return {
+      totalCells,
+      nonZeroCells,
+      topCells: scored.slice(0, 10),
+    }
+  }
   let totalCells = 0
   let nonZeroCells = 0
   const scored: Array<{ rowKey: string; colKey: string; score: number; keyword?: string }> = []
-  for (const [rowKey, row] of Object.entries(layer as Record<string, unknown>)) {
+  for (const [rowKey, row] of entries) {
     if (!row || typeof row !== 'object') continue
     for (const [colKey, cell] of Object.entries(row as Record<string, unknown>)) {
       totalCells += 1
@@ -82,6 +113,15 @@ function analyzeLayer(layer: unknown) {
     nonZeroCells,
     topCells: scored.slice(0, 10),
   }
+}
+
+function pickComputedLayer(matrix: any, ...keys: string[]) {
+  for (const key of keys) {
+    if (matrix && matrix[key] && typeof matrix[key] === 'object') {
+      return matrix[key]
+    }
+  }
+  return undefined
 }
 
 function buildLayerEvidenceFromSummary(summary: any) {
@@ -111,6 +151,149 @@ function buildLayerEvidenceFromSummary(summary: any) {
     }
   }
   return grouped
+}
+
+function mergeLayerStatsWithSummaryEvidence(
+  layerStats: Record<string, { totalCells: number; nonZeroCells: number; topCells: any[] }>,
+  layerEvidenceFromSummary: Record<
+    string,
+    { count: number; samples: Array<{ rowKey: string; colKey: string; score?: number }> }
+  >
+) {
+  const merged: typeof layerStats = { ...layerStats }
+  for (const [layerKey, evidence] of Object.entries(layerEvidenceFromSummary)) {
+    const current = merged[layerKey]
+    if (!current) continue
+    if (current.nonZeroCells > 0) continue
+    merged[layerKey] = {
+      totalCells: Math.max(current.totalCells, evidence.count),
+      nonZeroCells: evidence.count,
+      topCells: evidence.samples.map((sample) => ({
+        rowKey: sample.rowKey,
+        colKey: sample.colKey,
+        score: sample.score ?? 0,
+      })),
+    }
+  }
+  return merged
+}
+
+function mapSummaryDomainKey(domain: string): string {
+  if (domain === 'love') return 'relationship'
+  if (domain === 'money') return 'wealth'
+  return domain
+}
+
+function deriveFocusDomainFromSummary(summary: any): string | null {
+  const domainScores = summary?.domainScores
+  if (!domainScores || typeof domainScores !== 'object') return null
+  const ranked = Object.values(domainScores)
+    .filter((item): item is any => !!item && typeof item === 'object')
+    .sort((a, b) => (Number(b.finalScoreAdjusted) || 0) - (Number(a.finalScoreAdjusted) || 0))
+  if (!ranked[0]?.domain) return null
+  return mapSummaryDomainKey(String(ranked[0].domain))
+}
+
+function deriveActionFocusDomainFromSummary(summary: any): string | null {
+  const timelineByDomain = summary?.overlapTimelineByDomain
+  if (!timelineByDomain || typeof timelineByDomain !== 'object') return null
+  const ranked = Object.entries(timelineByDomain)
+    .map(([domain, points]) => {
+      const top = Array.isArray(points)
+        ? points.slice(0, 4).reduce((best, item) => {
+            const score = Number(item?.overlapStrength || 0)
+            return score > best ? score : best
+          }, 0)
+        : 0
+      return { domain: mapSummaryDomainKey(domain), score: top }
+    })
+    .sort((a, b) => b.score - a.score)
+  return ranked[0]?.domain || null
+}
+
+function deriveTopScenarios(summary: any): string[] {
+  const signals = Array.isArray(summary?.calendarSignals) ? summary.calendarSignals : []
+  return signals
+    .map((item) => String(item?.trigger || '').trim())
+    .filter(Boolean)
+    .slice(0, 5)
+}
+
+function sanitizeSingleSubjectView(view: any) {
+  if (!view || typeof view !== 'object') return view
+  const polish = (text: string) =>
+    sanitizeCounselorFreeText(text, 'ko')
+      .split('첫 단계 이후에도 흐름이 꺾이지 않을 것')
+      .join('첫 단계 이후에도 흐름이 꺾이지 않는지 확인해야 합니다.')
+      .replace(
+        /첫 단계 이후에도 흐름이 꺾이지 않을 것/g,
+        '첫 단계 이후에도 흐름이 꺾이지 않는지 확인해야 합니다.'
+      )
+      .replace(
+        /첫 단계 이후에도 흐름이 꺾이지 않는지 확인할 것/g,
+        '첫 단계 이후에도 흐름이 꺾이지 않는지 확인해야 합니다.'
+      )
+      .replace(/핵심 근거가 계속 살아 있을 것/g, '핵심 근거가 계속 살아 있어야 합니다.')
+      .replace(
+        /핵심 근거가 계속 살아 있을 것,?\s*시나리오 확률/gi,
+        '핵심 근거가 계속 살아 있고, 시나리오 확률'
+      )
+      .replace(/대운,\s*세운가 겹치며/g, '대운과 세운 흐름이 겹치며')
+      .replace(/대운,\s*세운,\s*이 겹치며/g, '대운과 세운 흐름이 겹치며')
+      .trim()
+  return {
+    ...view,
+    directAnswer: polish(view.directAnswer || ''),
+    nextMove: polish(view.nextMove || ''),
+    entryConditions: Array.isArray(view.entryConditions)
+      ? view.entryConditions.map((item: string) => polish(item))
+      : [],
+    abortConditions: Array.isArray(view.abortConditions)
+      ? view.abortConditions.map((item: string) => polish(item))
+      : [],
+    actionAxis: view.actionAxis
+      ? {
+          ...view.actionAxis,
+          nowAction: polish(view.actionAxis.nowAction || ''),
+          whyThisFirst: polish(view.actionAxis.whyThisFirst || ''),
+        }
+      : view.actionAxis,
+    riskAxis: view.riskAxis
+      ? {
+          ...view.riskAxis,
+          warning: polish(view.riskAxis.warning || ''),
+          hardStops: Array.isArray(view.riskAxis.hardStops)
+            ? view.riskAxis.hardStops.map((item: string) => polish(item))
+            : [],
+        }
+      : view.riskAxis,
+    timingState: view.timingState
+      ? {
+          ...view.timingState,
+          whyNow: polish(view.timingState.whyNow || ''),
+          whyNotYet: polish(view.timingState.whyNotYet || ''),
+          windows: Array.isArray(view.timingState.windows)
+            ? view.timingState.windows.map((item: any) => ({
+                ...item,
+                summary: polish(item.summary || ''),
+              }))
+            : [],
+        }
+      : view.timingState,
+    branches: Array.isArray(view.branches)
+      ? view.branches.map((branch: any) => ({
+          ...branch,
+          summary: polish(branch.summary || ''),
+          entryConditions: Array.isArray(branch.entryConditions)
+            ? branch.entryConditions.map((item: string) => polish(item))
+            : [],
+          abortConditions: Array.isArray(branch.abortConditions)
+            ? branch.abortConditions.map((item: string) => polish(item))
+            : [],
+          nextMove: polish(branch.nextMove || ''),
+        }))
+      : [],
+  }
 }
 
 function parseArgs() {
@@ -232,7 +415,30 @@ async function main() {
     lang: 'ko',
   }
 
-  const matrix: any = calculateDestinyMatrix(matrixInput)
+  const envelope = buildCoreEnvelope({
+    mode: 'themed',
+    lang: 'ko',
+    matrixInput,
+  })
+  const matrix: any = envelope.matrix
+  const counselorCore = adaptCoreToCounselor(envelope.coreSeed, 'ko')
+  const layerEvidenceFromSummary = buildLayerEvidenceFromSummary(matrix.summary)
+  const layerStats = mergeLayerStatsWithSummaryEvidence(
+    {
+      layer1: analyzeLayer(pickComputedLayer(matrix, 'layer1', 'layer1_elementCore')),
+      layer2: analyzeLayer(pickComputedLayer(matrix, 'layer2', 'layer2_sibsinPlanet')),
+      layer3: analyzeLayer(pickComputedLayer(matrix, 'layer3', 'layer3_sibsinHouse')),
+      layer4: analyzeLayer(pickComputedLayer(matrix, 'layer4', 'layer4_timing')),
+      layer5: analyzeLayer(pickComputedLayer(matrix, 'layer5', 'layer5_relationAspect')),
+      layer6: analyzeLayer(pickComputedLayer(matrix, 'layer6', 'layer6_stageHouse')),
+      layer7: analyzeLayer(pickComputedLayer(matrix, 'layer7', 'layer7_advanced')),
+      layer8: analyzeLayer(pickComputedLayer(matrix, 'layer8', 'layer8_shinsalPlanet')),
+      layer9: analyzeLayer(pickComputedLayer(matrix, 'layer9', 'layer9_asteroidHouse')),
+      layer10: analyzeLayer(pickComputedLayer(matrix, 'layer10', 'layer10_extraPointElement')),
+    },
+    layerEvidenceFromSummary
+  )
+
   const output = {
     profile: {
       birthDate: profile.birthDate,
@@ -255,19 +461,42 @@ async function main() {
       hasCurrentDaeun: !!matrixInput.currentDaeunElement,
       hasCurrentSaeun: !!matrixInput.currentSaeunElement,
     },
-    layerStats: {
-      layer1: analyzeLayer(matrix.layer1),
-      layer2: analyzeLayer(matrix.layer2),
-      layer3: analyzeLayer(matrix.layer3),
-      layer4: analyzeLayer(matrix.layer4),
-      layer5: analyzeLayer(matrix.layer5),
-      layer6: analyzeLayer(matrix.layer6),
-      layer7: analyzeLayer(matrix.layer7),
-      layer8: analyzeLayer(matrix.layer8),
-      layer9: analyzeLayer(matrix.layer9),
-      layer10: analyzeLayer(matrix.layer10),
+    alignmentScore: matrix.summary?.alignmentScore ?? null,
+    confidenceScore: matrix.summary?.confidenceScore ?? null,
+    crossAgreement:
+      counselorCore.singleSubjectView?.reliability?.crossAgreement ??
+      matrix.summary?.alignmentScore ??
+      null,
+    focusDomain:
+      counselorCore.focusDomain ||
+      counselorCore.singleSubjectView?.structureAxis?.domain ||
+      deriveFocusDomainFromSummary(matrix.summary),
+    actionFocusDomain:
+      counselorCore.actionFocusDomain ||
+      counselorCore.singleSubjectView?.actionAxis?.domain ||
+      deriveActionFocusDomainFromSummary(matrix.summary),
+    topDecision: counselorCore.topDecisionLabel || null,
+    topDecisionAction: counselorCore.topDecisionAction || null,
+    topScenarios: deriveTopScenarios(matrix.summary),
+    sajuSummary: {
+      dayMaster: saju.dayPillar?.heavenlyStem?.name || null,
+      dayMasterElement: saju.dayPillar?.heavenlyStem?.element || null,
+      dayPillar:
+        `${saju.dayPillar?.heavenlyStem?.name || ''}${saju.dayPillar?.earthlyBranch?.name || ''}` ||
+        null,
+      geokguk: advanced.geokguk?.type || null,
+      yongsin: advanced.yongsin?.primary || null,
     },
-    layerEvidenceFromSummary: buildLayerEvidenceFromSummary(matrix.summary),
+    westernSummary: {
+      dominantElement: matrixInput.dominantWesternElement || null,
+      sunSign: planetSigns.Sun || null,
+      moonSign: planetSigns.Moon || null,
+      jupiterHouse: planetHouses.Jupiter || null,
+    },
+    singleSubjectView: sanitizeSingleSubjectView(counselorCore.singleSubjectView) || null,
+    personModel: counselorCore.personModel || null,
+    layerStats,
+    layerEvidenceFromSummary,
     summary: matrix.summary,
   }
 

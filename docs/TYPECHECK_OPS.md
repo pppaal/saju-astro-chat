@@ -9,16 +9,14 @@ This repo now includes operational scripts for TypeScript error budget tracking.
 - `npm run ops:typecheck:metrics`
   - Refreshes metrics snapshot to:
     - `reports/typecheck/baseline.json`
-    - `data/ops/typecheck-metrics.json`
 - `npm run ops:typecheck:hotspots`
   - Writes top file/code hotspots to:
     - `reports/typecheck/hotspots.json`
-    - `data/ops/typecheck-hotspots.json`
 - `npm run ops:typecheck:gate`
   - Compares current typecheck result vs baseline and fails on regression.
 - `npm run ops:slo:report`
   - Generates weekly SLO report:
-    - `data/ops/slo-report.json`
+    - `reports/ops/slo-report.json`
     - `reports/ops/slo-report.md`
 
 ## Expected Workflow

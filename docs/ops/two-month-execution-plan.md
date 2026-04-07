@@ -8,7 +8,7 @@
 
 ## Current baseline (auto-generated)
 
-- Source: `data/ops/typecheck-metrics.json`
+- Source: `reports/typecheck/baseline.json`
 - Command: `pnpm -s ops:typecheck:metrics`
 - Current: `totalErrors=80` (`TS7006=68`, `TS2305=12`)
 
@@ -82,6 +82,6 @@ pnpm -s exec tsc --noEmit
 
 ## Exit criteria
 
-- `data/ops/typecheck-metrics.json` reports `passed=true` and `totalErrors=0`
+- `reports/typecheck/baseline.json` reports `totalErrors=0`
 - SLO report remains in-target for at least 2 consecutive weekly checkpoints
 - CI gates enforce both conditions

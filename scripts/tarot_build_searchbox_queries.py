@@ -43,7 +43,7 @@ NOISE_TOKENS = ["", "", " ㄹㅇ", " ㅅㅂ", " omg", " fr", " lol", " 제발", 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build searchbox query dataset")
-    parser.add_argument("--output-path", default="data/eval/searchbox_queries.jsonl")
+    parser.add_argument("--output-path", default="tests/fixtures/tarot-eval/searchbox_queries.jsonl")
     parser.add_argument("--target-size", type=int, default=220)
     parser.add_argument("--seed", type=int, default=23)
     return parser.parse_args()

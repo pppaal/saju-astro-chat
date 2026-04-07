@@ -8,7 +8,7 @@ function readArg(flag) {
 }
 
 const outPath = readArg('--out') ?? 'reports/typecheck/baseline.json'
-const mirrorOutPath = readArg('--mirror-out') ?? 'data/ops/typecheck-metrics.json'
+const mirrorOutPath = readArg('--mirror-out')
 const project = readArg('--project') ?? 'tsconfig.json'
 const failOnErrors = process.argv.includes('--fail-on-errors')
 

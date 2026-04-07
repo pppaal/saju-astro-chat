@@ -15,10 +15,12 @@
 /playwright-report/
 /test-results/
 .playwright/
+/htmlcov/
 
 # next.js
 /.next/
 /out/
+/.next-playwright-*/
 
 # production
 /build
@@ -46,6 +48,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.err
+*.pid
+/stdout
+/stderr
 
 # Security cleanup artifacts
 .security-cleanup/
@@ -102,6 +108,7 @@ routes_compare.txt
 tsc_result.txt
 calendar-test-results*.json
 tmp_calendar.json
+*.out.txt
 
 # Build/test verification artifacts
 build-*.txt
@@ -125,6 +132,7 @@ C*Users*scratchpad*
 **/AppData/Local/Temp/claude/**
 
 # Local tool configs / generated assets
+.cursor/
 .claude/settings.local.json
 public/sw.js
 public/sw.js.map
@@ -134,6 +142,30 @@ public/swe-worker-*.js
 public/swe-worker-*.js.map
 public/fallback-*.js
 public/fallback-*.js.map
+
+# Runtime data / generated local stores
+/backend_ai/data/chromadb/
+
+# Generated QA / debug / scratch outputs
+/data/
+/artifacts/*
+!/artifacts/README.md
+/qa-dumps/*
+!/qa-dumps/README.md
+/tmp/*
+!/tmp/README.md
+!/tmp/.gitkeep
+/reports/ops/*
+!/reports/ops/README.md
+/reports/quality/*
+!/reports/quality/README.md
+/reports/typecheck/*
+!/reports/typecheck/README.md
+/reports/*.md
+/reports/*.json
+/reports/*.txt
+!/reports/README.md
+/reports/*.log
 
 # User uploaded files (but keep directory structure)
 public/uploads/profiles/*

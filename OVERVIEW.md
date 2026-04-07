@@ -1,6 +1,6 @@
 # System Overview
 
-Last audited: 2026-03-17 (Asia/Hong_Kong)
+Last audited: 2026-04-01 (Asia/Hong_Kong)
 
 ## Current Stack
 
@@ -88,11 +88,15 @@ Canonical diagnostics:
 - `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`
 - `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`
 
-Current green baseline:
+Current verification snapshot on 2026-04-01:
 
-- 3-service regression: `PASS=10 WARN=0 FAIL=0`
-- counselor regression: `PASS=42 WARN=0 FAIL=0`
-- core quality: `core_quality_warning_count=0`, `core_quality_pass=1`
+- `python scripts/self_check.py`: overall `PASS`
+- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`:
+  - blocked by a parse error in `src/lib/destiny-matrix/ai-report/aiReportService.ts`
+- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`:
+  - overall `PASS=21 WARN=13 FAIL=8`
+  - `ko`: `PASS=5 WARN=8 FAIL=8`
+  - `en`: `PASS=16 WARN=5 FAIL=0`
 
 ## Key Runtime Flags
 

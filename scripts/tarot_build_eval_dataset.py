@@ -20,9 +20,11 @@ from tarot_pipeline_utils import DEFAULT_CORPUS_PATH, load_jsonl_records
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build tarot eval datasets")
     parser.add_argument("--corpus-path", default=str(DEFAULT_CORPUS_PATH))
-    parser.add_argument("--auto-output-path", default="data/eval/eval_auto.jsonl")
-    parser.add_argument("--realstyle-output-path", default="data/eval/eval_realstyle.jsonl")
-    parser.add_argument("--realstyle-draws-output-path", default="data/eval/eval_realstyle_draws.jsonl")
+    parser.add_argument("--auto-output-path", default="tests/fixtures/tarot-eval/eval_auto.jsonl")
+    parser.add_argument("--realstyle-output-path", default="tests/fixtures/tarot-eval/eval_realstyle.jsonl")
+    parser.add_argument(
+        "--realstyle-draws-output-path", default="tests/fixtures/tarot-eval/eval_realstyle_draws.jsonl"
+    )
     parser.add_argument("--max-auto-card-samples", type=int, default=200)
     parser.add_argument("--realstyle-samples", type=int, default=100)
     return parser.parse_args()

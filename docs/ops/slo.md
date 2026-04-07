@@ -8,7 +8,7 @@ This project tracks three baseline service-level objectives (SLO):
 
 ## Local usage
 
-- Update `data/ops/service-metrics.json` with latest snapshot numbers.
+- Copy `scripts/ops/fixtures/service-metrics.example.json` to `reports/ops/service-metrics.json` and update it with latest snapshot numbers.
 - Run:
 
 ```bash

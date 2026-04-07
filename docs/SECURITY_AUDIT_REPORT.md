@@ -15,7 +15,7 @@ npm test
 
 Source artifacts:
 
-- `docs/API_AUDIT_REPORT.md` (generated 2026-02-15)
+- `API_AUDIT_REPORT.md` (generated 2026-02-15)
 - Route implementations under `src/app/api/**`
 
 ## Current Snapshot (from `audit:api`)
@@ -61,7 +61,7 @@ Source artifacts:
 
 1. Non-middleware demo and NextAuth routes remain
 
-- Evidence from `docs/API_AUDIT_REPORT.md` -> "Missing Middleware (9)"
+- Evidence from `API_AUDIT_REPORT.md` -> "Missing Middleware (9)"
 - Includes:
   - `src/app/api/auth/[...nextauth]/route.ts`
   - demo endpoints under `src/app/api/demo/**`
@@ -69,7 +69,7 @@ Source artifacts:
 
 2. Validation signals missing for two routes
 
-- Evidence from `docs/API_AUDIT_REPORT.md` -> "Missing Validation (2)"
+- Evidence from `API_AUDIT_REPORT.md` -> "Missing Validation (2)"
 - Routes:
   - `src/app/api/icp/analytics/route.ts`
   - `src/app/api/webhook/stripe/route.ts`

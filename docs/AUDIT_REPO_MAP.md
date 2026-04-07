@@ -4,7 +4,7 @@
 
 - `npm run -s lint`: PASS
 - `npm run -s typecheck`: PASS
-- `npm run -s build`: PASS (after cleaning `.next`/`tsconfig.tsbuildinfo` and rerunning)
+- `npm run -s build`: PASS (after cleaning `tmp/.next`/`tmp/tsconfig.tsbuildinfo` and rerunning)
 - `npm test`: TIMEOUT at 182s (suite is very large/noisy; targeted critical suites were run instead)
 - Targeted deterministic/contract suites:
   - `npx vitest run tests/lib/Saju/determinism-golden.test.ts tests/lib/astrology/foundation/determinism-golden.test.ts tests/lib/destiny-matrix/fusion-properties-regression.test.ts tests/lib/destiny-matrix/ai-report-score-determinism.test.ts`: PASS

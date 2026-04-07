@@ -23,8 +23,8 @@ from tarot_pipeline_utils import DEFAULT_CORPUS_PATH, load_jsonl_records
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate tarot retrieval quality")
     parser.add_argument("--eval-path", default=None, help="Backward-compatible single eval dataset path")
-    parser.add_argument("--eval-auto-path", default="data/eval/eval_auto.jsonl")
-    parser.add_argument("--eval-realstyle-path", default="data/eval/eval_realstyle_draws.jsonl")
+    parser.add_argument("--eval-auto-path", default="tests/fixtures/tarot-eval/eval_auto.jsonl")
+    parser.add_argument("--eval-realstyle-path", default="tests/fixtures/tarot-eval/eval_realstyle_draws.jsonl")
     parser.add_argument("--corpus-path", default=str(DEFAULT_CORPUS_PATH))
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--context-top-n", type=int, default=3)
@@ -34,7 +34,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-json",
         default=None,
-        help="Path to write evaluation summary JSON (default: data/eval/results/tarot_eval_<ts>.json)",
+        help="Path to write evaluation summary JSON (default: reports/quality/tarot-eval/tarot_eval_<ts>.json)",
     )
     return parser.parse_args()
 
@@ -242,7 +242,7 @@ def main() -> int:
         output_path = Path(args.output_json)
     else:
         ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-        output_path = Path("data/eval/results") / f"tarot_eval_{ts}.json"
+        output_path = Path("reports/quality/tarot-eval") / f"tarot_eval_{ts}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"- output_json: {output_path}")

@@ -21,9 +21,9 @@ From repository root:
 python scripts/tarot_lint.py
 python scripts/tarot_build_eval_dataset.py \
   --corpus-path backend_ai/data/tarot_corpus/tarot_corpus_v1.jsonl \
-  --auto-output-path data/eval/eval_auto.jsonl \
-  --realstyle-output-path data/eval/eval_realstyle.jsonl \
-  --realstyle-draws-output-path data/eval/eval_realstyle_draws.jsonl \
+  --auto-output-path tests/fixtures/tarot-eval/eval_auto.jsonl \
+  --realstyle-output-path tests/fixtures/tarot-eval/eval_realstyle.jsonl \
+  --realstyle-draws-output-path tests/fixtures/tarot-eval/eval_realstyle_draws.jsonl \
   --realstyle-samples 100
 python scripts/tarot_rebuild_chroma.py \
   --corpus-path backend_ai/data/tarot_corpus/tarot_corpus_v1.jsonl \
@@ -32,8 +32,8 @@ python scripts/tarot_rebuild_chroma.py \
   --combo-mode graph_only \
   --embedding-model-id minilm
 python scripts/tarot_eval.py \
-  --eval-auto-path data/eval/eval_auto.jsonl \
-  --eval-realstyle-path data/eval/eval_realstyle_draws.jsonl \
+  --eval-auto-path tests/fixtures/tarot-eval/eval_auto.jsonl \
+  --eval-realstyle-path tests/fixtures/tarot-eval/eval_realstyle_draws.jsonl \
   --top-k 5 \
   --context-top-n 3
 ```

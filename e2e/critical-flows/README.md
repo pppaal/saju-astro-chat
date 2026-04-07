@@ -5,6 +5,7 @@ This directory contains comprehensive end-to-end (E2E) tests for critical user j
 ## Test Coverage
 
 ### 01. Registration & Authentication (`01-registration-auth.spec.ts`)
+
 - User registration flow with validation
 - Login/logout functionality
 - Session management
@@ -15,6 +16,7 @@ This directory contains comprehensive end-to-end (E2E) tests for critical user j
 - Email format validation
 
 ### 02. Tarot Reading Flow (`02-tarot-reading.spec.ts`)
+
 - Complete tarot reading from question to result
 - Card selection and display
 - Three-card spread functionality
@@ -25,6 +27,7 @@ This directory contains comprehensive end-to-end (E2E) tests for critical user j
 - Share tarot readings
 
 ### 03. Saju Analysis Flow (`03-saju-analysis.spec.ts`)
+
 - Complete saju analysis with birth information
 - Display four pillars (사주팔자)
 - Show heavenly stems and earthly branches
@@ -36,6 +39,7 @@ This directory contains comprehensive end-to-end (E2E) tests for critical user j
 - Visual chart/diagram display
 
 ### 04. Compatibility Analysis (`04-compatibility-flow.spec.ts`)
+
 - Two-person compatibility analysis
 - Compatibility score/percentage display
 - Multiple compatibility aspects
@@ -46,6 +50,7 @@ This directory contains comprehensive end-to-end (E2E) tests for critical user j
 - Visual compatibility charts
 
 ### 05. Credit Management (`05-credit-management.spec.ts`)
+
 - Display credit balance
 - Credit deduction for premium features
 - Low credit warnings
@@ -59,6 +64,7 @@ This directory contains comprehensive end-to-end (E2E) tests for critical user j
 - Subscription cancellation
 
 ### 06. Profile Management (`06-profile-management.spec.ts`)
+
 - User profile display and updates
 - Name and email updates
 - Birth information updates
@@ -71,6 +77,7 @@ This directory contains comprehensive end-to-end (E2E) tests for critical user j
 - Notification preferences
 
 ### 07. Premium Subscription (`07-premium-subscription.spec.ts`)
+
 - Pricing plans display
 - Feature comparison
 - Stripe checkout flow
@@ -84,6 +91,7 @@ This directory contains comprehensive end-to-end (E2E) tests for critical user j
 - Webhook signature validation
 
 ### 08. Destiny Features (`08-destiny-features.spec.ts`)
+
 - Destiny map analysis and visualization
 - Destiny map counselor chat
 - Destiny matrix reports
@@ -98,7 +106,9 @@ This directory contains comprehensive end-to-end (E2E) tests for critical user j
 ## Test Utilities
 
 ### Test Helpers (`fixtures/test-helpers.ts`)
+
 Provides utility functions for:
+
 - User registration and login
 - Filling birth information forms
 - Waiting for API responses
@@ -112,31 +122,37 @@ Provides utility functions for:
 ## Running the Tests
 
 ### Prerequisites
+
 ```bash
 npm install
 ```
 
 ### Run All E2E Tests
+
 ```bash
 npm run test:e2e
 ```
 
 ### Run Specific Test Suite
+
 ```bash
 npx playwright test e2e/critical-flows/01-registration-auth.spec.ts
 ```
 
 ### Run Tests in UI Mode (Interactive)
+
 ```bash
 npx playwright test --ui
 ```
 
 ### Run Tests in Debug Mode
+
 ```bash
 npx playwright test --debug
 ```
 
 ### Run Tests with Specific Browser
+
 ```bash
 # Chromium
 npx playwright test --project=chromium
@@ -146,11 +162,13 @@ npx playwright test --project=mobile-chrome
 ```
 
 ### Run Tests in Headed Mode (See Browser)
+
 ```bash
 npx playwright test --headed
 ```
 
 ### Generate Test Report
+
 ```bash
 npx playwright show-report
 ```
@@ -158,6 +176,7 @@ npx playwright show-report
 ## Test Configuration
 
 Tests are configured in `playwright.config.ts`:
+
 - **Base URL**: `http://localhost:3000` (configurable via `PLAYWRIGHT_BASE_URL`)
 - **Timeout**: 60 seconds per test
 - **Retries**: 2 retries in CI, 0 locally
@@ -189,13 +208,15 @@ CI=true
 ## Debugging Failed Tests
 
 1. **Run in Debug Mode**:
+
    ```bash
    npx playwright test --debug e2e/critical-flows/02-tarot-reading.spec.ts
    ```
 
-2. **View Screenshots**: Check `playwright-report/` for screenshots of failures
+2. **View Screenshots**: Check `tmp/playwright-report/` for screenshots of failures
 
 3. **View Trace**: Use Playwright Inspector to step through test execution
+
    ```bash
    npx playwright show-trace trace.zip
    ```
@@ -205,6 +226,7 @@ CI=true
 ## Continuous Integration
 
 These tests are designed to run in CI environments:
+
 - Automatic retries on failure (2 retries in CI)
 - Single worker in CI to avoid race conditions
 - HTML and list reporters for visibility
@@ -226,16 +248,19 @@ When adding new E2E tests:
 ## Common Issues
 
 ### Test Timeout
+
 - Increase timeout in test or config
 - Check if dev server is running
 - Verify network connectivity
 
 ### Element Not Found
+
 - Check if feature is behind authentication
 - Verify element selectors
 - Add appropriate wait conditions
 
 ### Flaky Tests
+
 - Add explicit waits for dynamic content
 - Use `waitForLoadingComplete()` helper
 - Avoid hard-coded timeouts, use element visibility
@@ -243,6 +268,7 @@ When adding new E2E tests:
 ## Support
 
 For issues or questions about E2E tests:
+
 1. Check test output and screenshots
 2. Review Playwright documentation: https://playwright.dev
 3. Consult the main project README

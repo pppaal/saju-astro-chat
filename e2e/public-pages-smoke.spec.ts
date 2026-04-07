@@ -64,7 +64,7 @@ test.describe('Public pages smoke', () => {
         const safeRouteName = route === '/' ? 'home' : route.replace(/[\/:.?&=]/g, '_')
         try {
           await page.screenshot({
-            path: `test-results/public-smoke-${safeRouteName}.png`,
+            path: `tmp/test-results/public/public-smoke-${safeRouteName}.png`,
             fullPage: true,
           })
         } catch {

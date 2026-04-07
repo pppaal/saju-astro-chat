@@ -89,8 +89,8 @@ ${metricLines}
 `
 }
 
-const inputPath = readArg('--in') ?? 'data/ops/slo-input.json'
-const outputJsonPath = readArg('--out-json') ?? 'data/ops/slo-report.json'
+const inputPath = readArg('--in') ?? 'reports/ops/slo-input.json'
+const outputJsonPath = readArg('--out-json') ?? 'reports/ops/slo-report.json'
 const outputMdPath = readArg('--out-md') ?? 'reports/ops/slo-report.md'
 const thresholdsPath = readArg('--thresholds')
 const periodLabel = readArg('--period') ?? defaultPeriodLabel()
@@ -125,18 +125,14 @@ const report = buildSLOReport(mergedInput, {
   thresholds,
 })
 
-const typecheckBaseline =
-  readJsonIfExists<TypecheckBaseline>('reports/typecheck/baseline.json') ??
-  readJsonIfExists<TypecheckBaseline>('data/ops/typecheck-metrics.json')
+const typecheckBaseline = readJsonIfExists<TypecheckBaseline>('reports/typecheck/baseline.json')
 
 const reportPayload = {
   ...report,
   sources: {
     inputPath,
     thresholdsPath: thresholdsPath ?? null,
-    typecheckBaselinePath: typecheckBaseline
-      ? 'reports/typecheck/baseline.json|data/ops/typecheck-metrics.json'
-      : null,
+    typecheckBaselinePath: typecheckBaseline ? 'reports/typecheck/baseline.json' : null,
   },
   typecheck: {
     totalErrors: typecheckBaseline?.totalErrors ?? null,

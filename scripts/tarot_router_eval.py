@@ -25,7 +25,7 @@ from backend_ai.app.tarot.spread_loader import get_spread_loader  # noqa: E402
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate tarot routing quality")
-    parser.add_argument("--input-path", default="data/eval/searchbox_queries.jsonl")
+    parser.add_argument("--input-path", default="tests/fixtures/tarot-eval/searchbox_queries.jsonl")
     parser.add_argument("--sample-size", type=int, default=None)
     parser.add_argument("--output-md", default="artifacts/router_eval_report.md")
     parser.add_argument("--output-json", default="artifacts/router_eval_report.json")

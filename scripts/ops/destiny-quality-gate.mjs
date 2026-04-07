@@ -29,7 +29,9 @@ runStep('consistency-and-guards', 'npx', [
   'run',
   'tests/lib/destiny-matrix/ai-report/rewriteGuards.test.ts',
   'tests/lib/destiny-matrix/ai-report/reportQuality.test.ts',
+  'tests/lib/destiny-matrix/ai-report/singleSubjectQuality.golden.test.ts',
   'tests/lib/destiny-matrix/ai-report/consistencyPriority.golden.test.ts',
+  'tests/app/api/destiny-map/chat-stream/lib/focusDomain.contract.test.ts',
   'tests/app/api/destiny-map/chat-stream/route.mega.test.ts',
 ])
 

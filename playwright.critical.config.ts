@@ -8,6 +8,7 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
  */
 export default defineConfig({
   testDir: './e2e',
+  outputDir: 'tmp/test-results/critical',
   fullyParallel: false, // Run sequentially for critical tests
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 1,
@@ -17,9 +18,9 @@ export default defineConfig({
     timeout: 15000,
   },
   reporter: [
-    ['html', { open: 'never', outputFolder: 'playwright-report/critical' }],
+    ['html', { open: 'never', outputFolder: 'tmp/playwright-report/critical' }],
     ['list'],
-    ['json', { outputFile: 'test-results/critical-results.json' }],
+    ['json', { outputFile: 'tmp/test-results/critical/critical-results.json' }],
   ],
   use: {
     baseURL,

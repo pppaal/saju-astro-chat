@@ -75,7 +75,7 @@ class _DummyHybridRag:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Tarot E2E smoke simulator")
-    parser.add_argument("--queries-path", default="data/eval/searchbox_queries.jsonl")
+    parser.add_argument("--queries-path", default="tests/fixtures/tarot-eval/searchbox_queries.jsonl")
     parser.add_argument("--sample-size", type=int, default=100)
     parser.add_argument("--seed", type=int, default=11)
     parser.add_argument("--output-json", default="artifacts/e2e_smoke_report.json")

@@ -1,6 +1,6 @@
 # Build Instructions
 
-Last audited: 2026-02-15 (Asia/Seoul)
+Last audited: 2026-04-01 (Asia/Hong_Kong)
 
 This document is the canonical setup and build guide for the current repository state.
 
@@ -175,11 +175,15 @@ Fix:
 - set `DEMO_TOKEN`
 - pass `?token=...` or header `x-demo-token`
 
-## Command Baseline (2026-02-15)
+## Verification Snapshot (2026-04-01)
 
-Commands executed during doc audit:
+Commands executed during the current documentation audit:
 
-- `npm ci` -> pass
-- `npm run -s typecheck` -> pass
-- `npm run -s lint` -> pass
-- `npm test` -> fail (existing suites, documented in `docs/DOCS_AUDIT_REPORT_2026-02-15.md`)
+- `npm run docs:stats` -> pass
+- `npm run audit:api` -> pass, regenerated `docs/API_AUDIT_REPORT.md`
+- `python scripts/self_check.py` -> pass
+- `npm run docs:check-links` -> pass
+- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both` -> blocked by a parse error in `src/lib/destiny-matrix/ai-report/aiReportService.ts`
+- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both` -> overall `PASS=21 WARN=13 FAIL=8`
+
+Treat the current workspace as below the prior 2026-03-17 destiny QA baseline until the parse blocker and the Korean counselor regressions are resolved.

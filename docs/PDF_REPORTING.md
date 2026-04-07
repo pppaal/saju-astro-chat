@@ -1,5 +1,7 @@
 # PDF Reporting
 
+Last audited: 2026-04-01 (Asia/Hong_Kong)
+
 ## Overview
 
 The production-style life report pipeline generates a fixed 10-page PDF with image assets.

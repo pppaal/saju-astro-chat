@@ -1,5 +1,7 @@
 # Runbook
 
+Last audited: 2026-04-01 (Asia/Hong_Kong)
+
 ## Scope
 
 Operational runbook for Chroma-backed GraphRAG/cross pipelines, diagnostics, and report generation.

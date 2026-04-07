@@ -1,7 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-const metricsPath = process.env.OPS_METRICS_PATH || path.join(process.cwd(), 'data', 'ops', 'service-metrics.json')
+const metricsPath =
+  process.env.OPS_METRICS_PATH || path.join(process.cwd(), 'reports', 'ops', 'service-metrics.json')
 
 function loadMetrics() {
   if (!fs.existsSync(metricsPath)) {

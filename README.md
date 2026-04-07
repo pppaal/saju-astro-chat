@@ -1,6 +1,6 @@
 # DestinyPal
 
-Last audited: 2026-03-17 (Asia/Hong_Kong)
+Last audited: 2026-04-01 (Asia/Hong_Kong)
 
 DestinyPal is a Next.js App Router application for saju, astrology, tarot, counseling, calendar guidance, and premium reporting, with a Python backend for GraphRAG and cross-domain reasoning.
 
@@ -61,15 +61,15 @@ Production also needs Stripe, Redis, and webhook configuration. See `BUILD_INSTR
 
 ## Repository Snapshot
 
-Measured with `npm run docs:stats` on 2026-02-15 (Asia/Seoul):
+Measured with `npm run docs:stats` on 2026-04-01:
 
-- API routes: `145`
-- App pages: `83`
-- Component files: `594`
+- API routes: `140`
+- App pages: `82`
+- Component files: `608`
 - Prisma models: `42`
-- Test files (`*.test|*.spec`): `1073`
-- Markdown docs: `154`
-- `.env.example` variables: `79`
+- Test files (`*.test|*.spec`): `1157`
+- Markdown docs: `327`
+- `.env.example` variables: `78`
 
 ## Current Destiny Engine Status
 
@@ -94,17 +94,20 @@ Runtime logging strategy:
 - Use `UserInteraction` with a normalized destiny metadata envelope
 - Shared metadata builder: `src/lib/destiny-matrix/core/logging.ts`
 
-## Current QA Baseline
+## Current QA Snapshot
 
-Destiny engine and product sync checks as of 2026-03-17:
+Verified in the current workspace on 2026-04-01:
 
+- `python scripts/self_check.py`
+  - overall `PASS`
+- `npm run docs:check-links`
+  - passed
 - `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`
-  - `PASS=10 WARN=0 FAIL=0`
+  - blocked by a parse error in `src/lib/destiny-matrix/ai-report/aiReportService.ts`
 - `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`
-  - `PASS=42 WARN=0 FAIL=0`
-- Core quality status:
-  - `core_quality_warning_count=0`
-  - `core_quality_pass=1`
+  - overall `PASS=21 WARN=13 FAIL=8`
+  - `ko`: `PASS=5 WARN=8 FAIL=8`
+  - `en`: `PASS=16 WARN=5 FAIL=0`
 
 ## Documentation Map
 
@@ -116,10 +119,9 @@ Start with:
 - `docs/TESTING_AND_GUARDRAILS.md`: required checks and destiny QA scripts
 - `docs/CALCULATION_SPEC.md`: code-derived current calculation spec for the modern pipeline
 
-API route audit baseline from `npm run audit:api`:
+API route audit snapshot from `npm run audit:api` on 2026-04-01:
 
-- Total routes: `145`
-- Uses middleware/guards: `136` (93.8%)
-- Validation signals: `113` (77.9%)
-- Rate limited: `129` (89.0%)
-
+- Total routes: `140`
+- Uses middleware/guards: `138` (98.6%)
+- Validation signals: `114` (81.4%)
+- Rate limited: `131` (93.6%)

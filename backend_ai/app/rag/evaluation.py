@@ -544,7 +544,7 @@ class RAGEvaluator:
             logger.warning("Judge LLM 호출 실패: %s", e)
             return {}
 
-    def save_results(self, results: Dict, output_path: str = "data/eval_results.json"):
+    def save_results(self, results: Dict, output_path: str = "tmp/backend-ai/eval_results.json"):
         """평가 결과를 JSON으로 저장."""
         path = Path(output_path)
         path.parent.mkdir(parents=True, exist_ok=True)

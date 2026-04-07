@@ -1,6 +1,21 @@
 # Project Quality Review
 
-Last reviewed: 2026-03-17 (Asia/Hong_Kong)
+Last reviewed: 2026-04-01 (Asia/Hong_Kong)
+
+## 2026-04-01 Addendum
+
+Verification snapshot in the current workspace:
+
+- `python scripts/self_check.py`: `PASS`
+- `npm run audit:api`: regenerated `docs/API_AUDIT_REPORT.md` with 140 routes, 138 guarded routes, and 131 rate-limited routes
+- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`: blocked by a parse error in `src/lib/destiny-matrix/ai-report/aiReportService.ts`
+- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`: overall `PASS=21 WARN=13 FAIL=8`, with all hard failures currently in `ko`
+
+Updated assessment:
+
+- Architecture direction still holds: core and GraphRAG responsibilities remain clearly separated.
+- Retrieval health is good, but the workspace is no longer at the 2026-03-17 zero-fail destiny baseline.
+- Release readiness for counselor/report-facing destiny work should be treated as degraded until the parse blocker and Korean counselor regressions are resolved.
 
 ## 2026-03-17 Addendum
 
@@ -30,6 +45,7 @@ Revised destiny assessment:
 The original review below remains useful as broader product context.
 
 ---
+
 Last reviewed: 2026-03-16 (Asia/Hong_Kong)
 
 ## Executive Summary
