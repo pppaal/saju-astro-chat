@@ -235,6 +235,11 @@ import {
   recordRewriteModeMetric,
 } from './aiReportServiceRuntimeSupport'
 import {
+  generateThemedReportWithSupport,
+  generateTimingReportWithSupport,
+} from './aiReportServiceGenerationSupport'
+import { generateAIPremiumReportWithSupport } from './aiReportServicePremiumGenerationSupport'
+import {
   buildElementMetaphor,
   buildFocusedCycleLead,
   buildManifestationNarrative,
@@ -257,6 +262,36 @@ import {
   toFiniteNumber,
   toObjectRecord,
 } from './aiReportServiceNarrativeSupport'
+import {
+  buildProjectionFirstThemedSections,
+  buildProjectionMoveSentence,
+  joinNarrativeParts,
+  collectProjectionDriverLabels,
+} from './aiReportServiceThemedSupport'
+import {
+  buildGraphRagSummaryPayload as buildGraphRagSummaryPayloadSupport,
+  buildSectionFactPack as buildSectionFactPackSupport,
+  buildSectionPrompt as buildSectionPromptSupport,
+  buildStrategyFactsForSection as buildStrategyFactsForSectionSupport,
+  buildSynthesisPromptBlock as buildSynthesisPromptBlockSupport,
+  cleanRecommendationLine as cleanRecommendationLineSupport,
+  ensureLongSectionNarrative as ensureLongSectionNarrativeSupport,
+  extractTopMatrixFacts as extractTopMatrixFactsSupport,
+  humanizeCrossSetFact as humanizeCrossSetFactSupport,
+  isComprehensiveSectionsPayload as isComprehensiveSectionsPayloadSupport,
+  postProcessSectionNarrative as postProcessSectionNarrativeSupport,
+  summarizeTopInsightsByCategory as summarizeTopInsightsByCategorySupport,
+  toKoreanDomainLabel as toKoreanDomainLabelSupport,
+  type GraphRagSummaryPayload,
+} from './aiReportServicePromptSupport'
+import {
+  getPremiumPolishPaths as getPremiumPolishPathsSupport,
+  getPremiumPolishBatchSize as getPremiumPolishBatchSizeSupport,
+  maybePolishPremiumSections as maybePolishPremiumSectionsSupport,
+  shouldForceComprehensiveNarrativeFallback as shouldForceComprehensiveNarrativeFallbackSupport,
+  shouldForceThemedNarrativeFallback as shouldForceThemedNarrativeFallbackSupport,
+  shouldUsePremiumSelectivePolish as shouldUsePremiumSelectivePolishSupport,
+} from './aiReportServicePolishSupport'
 import {
   appendEvidenceFooter as appendEvidenceFooterSupport,
   attachTrustNarrativeToSections as attachTrustNarrativeToSectionsSupport,
@@ -316,7 +351,12 @@ function buildReportTrustNarratives(
   coreQuality: DestinyCoreQuality | undefined,
   lang: 'ko' | 'en'
 ): { trust: string; provenance: string } {
-  return buildReportTrustNarrativesSupport(reportCore, coreQuality, lang, aiReportSectionSupportDeps)
+  return buildReportTrustNarrativesSupport(
+    reportCore,
+    coreQuality,
+    lang,
+    aiReportSectionSupportDeps
+  )
 }
 
 function attachTrustNarrativeToSections<T extends Record<string, unknown>>(
@@ -349,7 +389,12 @@ function renderPersonalityDeepSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  return renderPersonalityDeepSectionSupport(reportCore, matrixInput, lang, aiReportSectionSupportDeps)
+  return renderPersonalityDeepSectionSupport(
+    reportCore,
+    matrixInput,
+    lang,
+    aiReportSectionSupportDeps
+  )
 }
 
 function renderTimingAdviceSection(
@@ -401,7 +446,12 @@ function renderWealthPotentialSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  return renderWealthPotentialSectionSupport(reportCore, matrixInput, lang, aiReportSectionSupportDeps)
+  return renderWealthPotentialSectionSupport(
+    reportCore,
+    matrixInput,
+    lang,
+    aiReportSectionSupportDeps
+  )
 }
 
 function renderConclusionSection(
@@ -417,7 +467,12 @@ function renderHealthGuidanceSection(
   matrixInput: MatrixCalculationInput,
   lang: 'ko' | 'en'
 ): string {
-  return renderHealthGuidanceSectionSupport(reportCore, matrixInput, lang, aiReportSectionSupportDeps)
+  return renderHealthGuidanceSectionSupport(
+    reportCore,
+    matrixInput,
+    lang,
+    aiReportSectionSupportDeps
+  )
 }
 
 function renderComprehensiveSpouseProfileSection(
@@ -497,12 +552,7 @@ function getComprehensiveRenderPaths(sections: Partial<AIPremiumReport['sections
 function shouldForceComprehensiveNarrativeFallback(
   quality: ReportQualityMetrics | undefined
 ): boolean {
-  if (!quality) return false
-  return Boolean(
-    (quality.crossSectionRepetition || 0) >= 3 ||
-    (quality.genericAdviceDensity || 0) >= 0.5 ||
-    (quality.internalScenarioLeakCount || 0) > 0
-  )
+  return shouldForceComprehensiveNarrativeFallbackSupport(quality)
 }
 
 function enforceComprehensiveNarrativeQualityFallback(
@@ -531,404 +581,7 @@ function enforceComprehensiveNarrativeQualityFallback(
 }
 
 function shouldForceThemedNarrativeFallback(quality: ReportQualityMetrics | undefined): boolean {
-  if (!quality) return false
-  return Boolean(
-    (quality.crossSectionRepetition || 0) >= 3 ||
-    (quality.genericAdviceDensity || 0) >= 0.5 ||
-    (quality.internalScenarioLeakCount || 0) > 0 ||
-    ((quality.personalizationDensity || 0) > 0 && (quality.personalizationDensity || 0) < 0.8)
-  )
-}
-
-function joinNarrativeParts(parts: Array<string | null | undefined>): string {
-  return sanitizeUserFacingNarrative(
-    parts
-      .map((part) => String(part || '').trim())
-      .filter(Boolean)
-      .join(' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-  )
-}
-
-function toSentenceCaseNarrativeLine(text: string, lang: 'ko' | 'en'): string {
-  const normalized = sanitizeUserFacingNarrative(localizeReportNarrativeText(text, lang))
-    .replace(/\s+/g, ' ')
-    .trim()
-  if (!normalized) return ''
-  if (/[.!?]$/u.test(normalized)) return normalized
-  return lang === 'ko' ? `${normalized}.` : `${normalized}.`
-}
-
-function buildProjectionMoveSentence(
-  moves: string[] | undefined,
-  lang: 'ko' | 'en',
-  fallback: string
-): string {
-  const first = String(moves?.[0] || '').trim()
-  if (!first) return ''
-  const normalized = toSentenceCaseNarrativeLine(first, lang)
-  return normalized || fallback
-}
-
-function collectProjectionDriverLabels(
-  items: string[] | undefined,
-  lang: 'ko' | 'en',
-  limit = 2
-): string[] {
-  return (items || [])
-    .map((item) => sanitizeUserFacingNarrative(localizeReportNarrativeText(item, lang)).trim())
-    .filter(Boolean)
-    .filter((item) => !/(recommended|recommend|caution|warning|recheck|verify)$/i.test(item))
-    .filter((item) => item.length <= 24)
-    .slice(0, limit)
-}
-
-function buildProjectionFirstThemedSections(
-  theme: ReportTheme,
-  reportCore: ReportCoreViewModel,
-  matrixInput: MatrixCalculationInput,
-  lang: 'ko' | 'en',
-  timingData: TimingData | undefined
-): ThemedReportSections {
-  const outputCore = buildReportOutputCoreFields(reportCore, lang)
-  const projections = outputCore.projections
-  const actionDomain = reportCore.actionFocusDomain || reportCore.focusDomain
-  const focusLabel = getReportDomainLabel(reportCore.focusDomain, lang)
-  const actionLabel = getReportDomainLabel(actionDomain, lang)
-  const riskLabel = reportCore.riskAxisLabel || (lang === 'ko' ? '??' : 'health')
-
-  const clean = (value: string | undefined): string =>
-    sanitizeUserFacingNarrative(localizeReportNarrativeText(String(value || ''), lang)).trim()
-
-  const focusTiming = findReportCoreTimingWindow(reportCore, actionDomain)
-  const branchSet = (reportCore.branchSet || []).slice(0, 3)
-  const matrixRows = reportCore.matrixView || []
-  const actionMatrixRow = matrixRows.find((row) => row.domain === actionDomain) || matrixRows[0]
-  const relationshipAdvisory = findReportCoreAdvisory(reportCore, 'relationship')
-  const careerAdvisory = findReportCoreAdvisory(reportCore, 'career')
-  const wealthAdvisory = findReportCoreAdvisory(reportCore, 'wealth')
-  const healthAdvisory = findReportCoreAdvisory(reportCore, 'health')
-
-  const paragraph = (...parts: Array<string | undefined>): string =>
-    joinNarrativeParts(parts.map((part) => clean(part)).filter(Boolean))
-
-  const listText = (values: string[] | undefined): string => {
-    const cleaned = (values || []).map((value) => clean(value)).filter(Boolean)
-    return cleaned.join(lang === 'ko' ? ', ' : ', ')
-  }
-
-  const structureSummary = clean(projections?.structure?.summary || reportCore.thesis)
-  const structureDetail = clean(projections?.structure?.detailLines?.[0] || '')
-  const actionSummary = clean(projections?.action?.summary || reportCore.primaryAction)
-  const actionDetail = clean(projections?.action?.detailLines?.[0] || '')
-  const riskSummary = clean(projections?.risk?.summary || reportCore.riskControl)
-  const timingSummary = clean(projections?.timing?.summary || reportCore.gradeReason)
-  const timingDetail = clean(projections?.timing?.detailLines?.[0] || '')
-  const conflictSummary = clean(projections?.conflict?.summary || reportCore.primaryCaution)
-  const evidenceSummary = clean(
-    projections?.evidence?.summary || reportCore.judgmentPolicy.rationale
-  )
-
-  const windowNarrative = focusTiming
-    ? clean(buildTimingWindowNarrative(actionDomain, focusTiming, lang))
-    : lang === 'ko'
-      ? '??? ?? ????? ????? ??? ?????.'
-      : 'This phase is better used to confirm direction before locking decisions.'
-
-  const firstBranch = branchSet[0]
-  const branchEntry = clean((firstBranch?.entry || []).join(', '))
-  const branchAbort = clean((firstBranch?.abort || []).join(', '))
-  const branchRisk = clean(firstBranch?.reversalRisk || firstBranch?.wrongMoveCost || '')
-  const branchLead = branchSet
-    .map((branch, index) => `${index + 1}. ${clean(branch.summary || branch.label || '')}`)
-    .filter((line) => !/^[0-9]+\.\s*$/.test(line))
-    .join('\n')
-
-  const matrixSummary = actionMatrixRow
-    ? lang === 'ko'
-      ? `${actionLabel} ?? ${clean(
-          actionMatrixRow.cells
-            .map((cell) => cell.summary)
-            .filter(Boolean)
-            .slice(0, 2)
-            .join(', ')
-        )}`
-      : `${actionLabel} currently reads as ${clean(
-          actionMatrixRow.cells
-            .map((cell) => cell.summary)
-            .filter(Boolean)
-            .slice(0, 2)
-            .join(', ')
-        )}`
-    : ''
-
-  const timingDrivers = listText(projections?.timing?.drivers)
-  const actionMoves = listText(projections?.action?.nextMoves)
-  const riskCounters = listText(projections?.risk?.counterweights)
-  const structureDrivers = listText(projections?.structure?.drivers)
-
-  const sharedDeepAnalysis =
-    lang === 'ko'
-      ? paragraph(
-          `${focusLabel}? ?? ??? ???, ?? ??? ???? ? ?? ${actionLabel}???.`,
-          structureSummary || structureDetail,
-          structureDrivers ? `${actionLabel} ??? ??? ???? ??? ${structureDrivers}???.` : '',
-          `${riskLabel} ??? ?? ???? ?? ??? ???? ????.`
-        )
-      : paragraph(
-          `${focusLabel} forms the background while ${actionLabel} is the front line that actually changes outcomes.`,
-          structureSummary || structureDetail,
-          structureDrivers ? `${actionLabel} is being supported by ${structureDrivers}.` : '',
-          `${riskLabel} must be managed at the same time to keep the whole read stable.`
-        )
-
-  const sharedTiming =
-    lang === 'ko'
-      ? paragraph(
-          timingSummary || timingDetail,
-          windowNarrative,
-          matrixSummary,
-          timingDrivers ? `${actionLabel} ???? ??? ?? ??? ${timingDrivers}???.` : '',
-          branchEntry ? `??? ${branchEntry}` : ''
-        )
-      : paragraph(
-          timingSummary || timingDetail,
-          windowNarrative,
-          matrixSummary,
-          timingDrivers ? `${actionLabel} timing is being pushed by ${timingDrivers}.` : '',
-          branchEntry ? `For now, ${branchEntry}` : ''
-        )
-
-  const sharedActionPlan =
-    lang === 'ko'
-      ? paragraph(
-          `?? ${actionLabel}?? ?? ?? ?? ??? ${reportCore.topDecisionLabel || reportCore.primaryAction}???.`,
-          actionDetail,
-          actionMoves ? `?? ??? ${actionMoves}?? ??? ???? ?? ????.` : '',
-          branchAbort ? `${branchAbort} ??? ??? ?? ???? ?? ?? ???? ???.` : '',
-          branchRisk ? `???? ${branchRisk}` : '',
-          riskCounters ? `${riskLabel} ???? ${riskCounters}?? ?? ???? ?? ?????.` : ''
-        )
-      : paragraph(
-          `On the ${actionLabel} axis, ${actionSummary || reportCore.topDecisionLabel || reportCore.primaryAction} is the base operating rule.`,
-          actionDetail,
-          actionMoves ? `The next practical move is ${actionMoves}.` : '',
-          branchAbort ? `If ${branchAbort} shows up, slow down before committing.` : '',
-          branchRisk ? `If you rush, ${branchRisk}` : '',
-          riskCounters ? `On the ${riskLabel} side, reduce ${riskCounters} first.` : ''
-        )
-
-  const recommendations =
-    lang === 'ko'
-      ? [
-          `${actionLabel}??? ???? ??? ???? ?? ????.`,
-          branchAbort
-            ? `${branchAbort} ??? ??? ?? ??? ?? ???? ???.`
-            : `${riskLabel} ??? ??? ???? ???? ?????.`,
-          branchRisk
-            ? `${branchRisk} ?? ??? ??? ??? ?? ??? ??? ? ??? ?? ????.`
-            : `? ?? ?? ?????? ??? ? ?? ?? ???? ???? ?? ????.`,
-        ]
-      : [
-          `Fix criteria before speed on the ${actionLabel} axis.`,
-          branchAbort
-            ? `If ${branchAbort} appears, review before committing.`
-            : `If ${riskLabel} rises, review before committing.`,
-          branchRisk
-            ? `Test in small reversible steps so ${branchRisk} does not grow.`
-            : `Use small reversible moves instead of one large irreversible decision.`,
-        ]
-
-  switch (theme) {
-    case 'love':
-      return {
-        deepAnalysis: paragraph(
-          sharedDeepAnalysis,
-          relationshipAdvisory?.thesis ||
-            (lang === 'ko'
-              ? '??? ??? ???? ??? ??? ?? ??? ?? ? ????? ?????.'
-              : 'Relationships become stable when interpretation and daily rhythm align better than emotional intensity alone.')
-        ),
-        patterns: paragraph(
-          relationshipAdvisory?.caution || conflictSummary,
-          lang === 'ko'
-            ? '?? ?? ??? ??? ????? ??? ???? ??? ?? ??? ?? ?? ?????.'
-            : 'This relationship phase favors aligning pace and expectation before moving closer quickly.'
-        ),
-        timing: sharedTiming,
-        compatibility: paragraph(
-          lang === 'ko'
-            ? '? ?? ??? ??? ???? ?? ??? ?? ??? ??? ?????.'
-            : 'The stronger match is based more on pace and boundaries than intensity.',
-          evidenceSummary
-        ),
-        spouseProfile: paragraph(
-          lang === 'ko'
-            ? '?? ?? ??? ?? ??? ? ???? ???? ?? ??? ?? ?? ? ?? ?? ?? ?????.'
-            : 'The longer-lasting partner is steadier and more realistic than merely exciting.',
-          relationshipAdvisory?.action
-        ),
-        marriageTiming: paragraph(
-          sharedTiming,
-          lang === 'ko'
-            ? '???? ??? ??? ?? ??? ??? ?? ??? ?? ?? ? ? ?????.'
-            : 'Commitment timing strengthens when trust and daily fit rise together.'
-        ),
-        recommendations,
-        actionPlan: sharedActionPlan,
-      }
-    case 'career':
-      return {
-        deepAnalysis: paragraph(
-          sharedDeepAnalysis,
-          careerAdvisory?.thesis ||
-            (lang === 'ko'
-              ? '???? ? ?? ?? ??? ???? ??? ?? ??? ?? ???? ??? ??? ??? ?????.'
-              : 'Career favors the person who fixes role and evaluation criteria before expanding workload.')
-        ),
-        patterns: paragraph(
-          careerAdvisory?.caution || conflictSummary,
-          lang === 'ko'
-            ? '?? ???? ??? ????? ???? ??? ???, ??? ?? ??? ??? ?? ?????.'
-            : 'Right now career punishes rushed expansion and rewards clearly fixed standards.'
-        ),
-        timing: sharedTiming,
-        strategy: paragraph(
-          lang === 'ko'
-            ? '??? ??? ??? ? ?? ?? ?? ???, ?? ??? ??? ??? ?? ???? ? ????.'
-            : 'The strategy is to fix role and ownership before chasing more opportunities.',
-          actionDetail,
-          actionMoves ? `?????? ${actionMoves}?? ???? ?? ????.` : ''
-        ),
-        roleFit: paragraph(
-          lang === 'ko'
-            ? '? ?? ??? ??? ???? ???? ??, ??, ?? ??? ??? ?????.'
-            : 'The better fit is a role where judgment and coordination matter more than raw speed.',
-          structureDetail
-        ),
-        turningPoints: paragraph(
-          lang === 'ko'
-            ? '???? ? ? ??? ?? ?? ???, ?? ????? ?? ??? ? ??? ??? ???? ? ????.'
-            : 'Turning points open when the old operating method stops being enough.',
-          sharedTiming,
-          branchLead
-        ),
-        recommendations,
-        actionPlan: sharedActionPlan,
-      }
-    case 'wealth':
-      return {
-        deepAnalysis: paragraph(
-          sharedDeepAnalysis,
-          wealthAdvisory?.thesis ||
-            (lang === 'ko'
-              ? '??? ?? ?? ????, ?? ??? ?? ?? ??? ???? ??? ?? ????? ?????.'
-              : 'Wealth improves more reliably by fixing leakage and conditions first than by chasing larger upside.')
-        ),
-        patterns: paragraph(
-          wealthAdvisory?.caution || conflictSummary,
-          lang === 'ko'
-            ? '??? ?? ??? ??? ?? ??, ?? ?? ???? ??? ??? ?? ??? ? ????.'
-            : 'Upside can look large now, but unclear conditions can increase both loss and fatigue.'
-        ),
-        timing: sharedTiming,
-        strategy: paragraph(
-          lang === 'ko'
-            ? '?? ??? ??? ??, ??, ?? ??? ?? ?? ?? ? ????.'
-            : 'The financial strategy starts by fixing amount, timing, and downside limit in writing.',
-          actionDetail
-        ),
-        incomeStreams: paragraph(
-          lang === 'ko'
-            ? '? ???? ?? ? ? ?? ????, ?? ???? ?? ??? ??? ??? ??? ? ????.'
-            : 'New income streams are better tested small and kept only if repeatable.',
-          evidenceSummary
-        ),
-        riskManagement: paragraph(
-          lang === 'ko'
-            ? '??? ??? ??? ??? ??? ??? ???? ??? ?? ??? ?? ?????.'
-            : 'Risk management starts by limiting downside before enlarging return.',
-          riskSummary,
-          branchAbort ? `?? ${branchAbort} ?? ??? ??? ?? ??? ???.` : ''
-        ),
-        recommendations,
-        actionPlan: sharedActionPlan,
-      }
-    case 'health':
-      return {
-        deepAnalysis: paragraph(
-          sharedDeepAnalysis,
-          healthAdvisory?.thesis ||
-            (lang === 'ko'
-              ? '??? ??? ??? ?? ??? ??? ?? ???? ?? ?? ?????.'
-              : 'Health improves more through repeatable recovery rhythm than endurance alone.')
-        ),
-        patterns: paragraph(
-          healthAdvisory?.caution || conflictSummary,
-          lang === 'ko'
-            ? '???? ??? ?? ??? ?? ??? ?? ??? ?? ?? ??? ?? ? ????.'
-            : 'If overload is not interrupted early, small fatigue can shake the whole rhythm.'
-        ),
-        timing: sharedTiming,
-        prevention: paragraph(
-          lang === 'ko'
-            ? '??? ??? ? ??? ?? ?? ?? ?? ??? ?? ??? ????.'
-            : 'Prevention starts by responding to small warning signs early.',
-          riskSummary
-        ),
-        riskWindows: paragraph(
-          lang === 'ko'
-            ? '?? ??? ??? ??????, ??? ???? ?? ??? ???? ??? ??? ??? ????.'
-            : 'Risk windows usually open quietly when recovery lags and schedule pressure stacks up.',
-          sharedTiming
-        ),
-        recoveryPlan: paragraph(
-          lang === 'ko'
-            ? '??? ?? ?? ? ???, ?????????? ?? ?? ?? ??? ??? ??? ??? ? ?? ? ????.'
-            : 'Recovery holds better through repeatable routines than a single strong correction.',
-          healthAdvisory?.action
-        ),
-        recommendations,
-        actionPlan: sharedActionPlan,
-      }
-    case 'family':
-      return {
-        deepAnalysis: paragraph(
-          sharedDeepAnalysis,
-          lang === 'ko'
-            ? '?? ??? ?? ????? ??? ?? ??? ??? ?? ? ???? ? ?????.'
-            : 'Family issues improve more through aligned interpretation than deciding who is right.'
-        ),
-        patterns: paragraph(
-          conflictSummary,
-          lang === 'ko'
-            ? '??? ???? ????? ?? ??? ??? ???? ?? ???? ????.'
-            : 'If roles and expectations stay implicit, fatigue and resentment accumulate.'
-        ),
-        timing: sharedTiming,
-        dynamics: paragraph(
-          lang === 'ko'
-            ? '?? ??? ??? ???? ??? ??, ?? ??? ??? ????? ?? ?? ?????.'
-            : 'Family dynamics shift more through clear roles and care distribution than emotion alone.',
-          structureDetail
-        ),
-        communication: paragraph(
-          lang === 'ko'
-            ? '?? ??? ?? ?? ?? ???, ?? ??? ?? ??? ???? ??? ?? ? ?????.'
-            : 'Family communication improves when people understand the same scene the same way.',
-          actionDetail
-        ),
-        legacy: paragraph(
-          lang === 'ko'
-            ? '??? ?? ?? ? ?? ?? ??? ??? ??? ?? ?????.'
-            : 'What remains in family life is shaped more by repeated patterns than one intense moment.',
-          evidenceSummary
-        ),
-        recommendations,
-        actionPlan: sharedActionPlan,
-      }
-  }
+  return shouldForceThemedNarrativeFallbackSupport(quality)
 }
 
 function finalizeThemedSectionsForUser(
@@ -1401,81 +1054,23 @@ function shouldUseDeterministicOnly(flag?: boolean): boolean {
 }
 
 function shouldUsePremiumSelectivePolish(userPlan?: AIUserPlan): boolean {
-  if (isCostOptimizedAiPath()) return false
-  return userPlan === 'premium'
+  return shouldUsePremiumSelectivePolishSupport(userPlan, {
+    isCostOptimizedAiPath,
+  })
 }
 
 function getPremiumPolishPaths(params: {
   reportType: 'comprehensive' | 'timing' | 'themed'
   theme?: ReportTheme
 }): string[] {
-  if (params.reportType === 'comprehensive') {
-    return ['timingAdvice']
-  }
-  if (params.reportType === 'timing') {
-    return ['overview', 'opportunities', 'actionPlan']
-  }
-
-  const shared = ['deepAnalysis', 'timing', 'actionPlan']
-  switch (params.theme) {
-    case 'love':
-      return [...shared, 'compatibility', 'marriageTiming']
-    case 'career':
-      return [...shared, 'strategy', 'roleFit', 'turningPoints']
-    case 'wealth':
-      return [...shared, 'strategy', 'incomeStreams', 'riskManagement']
-    case 'health':
-      return [...shared, 'prevention', 'recoveryPlan', 'riskWindows']
-    case 'family':
-      return [...shared, 'communication', 'legacy', 'dynamics']
-    default:
-      return shared
-  }
+  return getPremiumPolishPathsSupport(params)
 }
 
 function getPremiumPolishBatchSize(params: {
   reportType: 'comprehensive' | 'timing' | 'themed'
   theme?: ReportTheme
 }): number {
-  if (params.reportType === 'comprehensive') return 2
-  if (params.reportType === 'themed') return 3
-  return 3
-}
-
-function chunkPaths(paths: string[], size: number): string[][] {
-  if (size <= 0 || paths.length <= size) return [paths]
-  const chunks: string[][] = []
-  for (let index = 0; index < paths.length; index += size) {
-    chunks.push(paths.slice(index, index + size))
-  }
-  return chunks
-}
-
-function pickSectionEvidenceRefs(
-  evidenceRefs: SectionEvidenceRefs,
-  sectionPaths: string[]
-): SectionEvidenceRefs {
-  const picked: SectionEvidenceRefs = {}
-  for (const path of sectionPaths) {
-    if (evidenceRefs[path]) {
-      picked[path] = evidenceRefs[path]
-    }
-  }
-  return picked
-}
-
-function pickSectionBlocks(
-  blocksBySection: Record<string, DeterministicSectionBlock[]> | undefined,
-  sectionPaths: string[]
-): Record<string, DeterministicSectionBlock[]> | undefined {
-  if (!blocksBySection) return undefined
-  const picked: Record<string, DeterministicSectionBlock[]> = {}
-  for (const path of sectionPaths) {
-    if (blocksBySection[path]) {
-      picked[path] = blocksBySection[path]
-    }
-  }
-  return picked
+  return getPremiumPolishBatchSizeSupport(params)
 }
 
 async function maybePolishPremiumSections<T extends object>(params: {
@@ -1488,65 +1083,12 @@ async function maybePolishPremiumSections<T extends object>(params: {
   blocksBySection?: Record<string, DeterministicSectionBlock[]>
   minCharsPerSection: number
 }): Promise<{ sections: T; modelUsed?: string; tokensUsed?: number }> {
-  if (!shouldUsePremiumSelectivePolish(params.userPlan)) {
-    return { sections: params.sections }
-  }
-
-  const sectionPaths = getPremiumPolishPaths({
-    reportType: params.reportType,
-    theme: params.theme,
-  }).filter(
-    (path) => typeof getPathValue(params.sections as Record<string, unknown>, path) === 'string'
-  )
-
-  if (sectionPaths.length === 0) {
-    return { sections: params.sections }
-  }
-
-  const merged = JSON.parse(JSON.stringify(params.sections)) as Record<string, unknown>
-  const batchSize = getPremiumPolishBatchSize({
-    reportType: params.reportType,
-    theme: params.theme,
+  return maybePolishPremiumSectionsSupport(params, {
+    isCostOptimizedAiPath,
+    getPathValue,
+    setPathText,
+    rewriteSectionsWithFallback,
   })
-  const batches = chunkPaths(sectionPaths, batchSize)
-  let tokensUsedTotal = 0
-  const modelStatuses: string[] = []
-
-  for (const batch of batches) {
-    const rewrite = await rewriteSectionsWithFallback<T>({
-      lang: params.lang,
-      userPlan: params.userPlan,
-      draftSections: merged as T,
-      evidenceRefs: pickSectionEvidenceRefs(params.evidenceRefs, batch),
-      blocksBySection: pickSectionBlocks(params.blocksBySection, batch),
-      sectionPaths: batch,
-      requiredPaths: batch,
-      minCharsPerSection: params.minCharsPerSection,
-      validationMode: 'selective_polish',
-    })
-    tokensUsedTotal += rewrite.tokensUsed || 0
-    if (rewrite.modelUsed) {
-      modelStatuses.push(rewrite.modelUsed)
-    }
-
-    const rewritten = rewrite.sections as Record<string, unknown>
-    for (const path of batch) {
-      const value = getPathValue(rewritten, path)
-      if (typeof value === 'string' && value.trim()) {
-        setPathText(merged, path, value)
-      }
-    }
-  }
-
-  const successfulModels = modelStatuses.filter((status) => !status.startsWith('rewrite-fallback'))
-  const modelUsed =
-    successfulModels[successfulModels.length - 1] || modelStatuses[modelStatuses.length - 1]
-
-  return {
-    sections: merged as T,
-    modelUsed,
-    tokensUsed: tokensUsedTotal,
-  }
 }
 
 type CoreComprehensiveSectionKey =
@@ -1724,118 +1266,18 @@ function enforceEvidenceRefFooters(
 }
 
 function isComprehensiveSectionsPayload(value: unknown): value is Record<string, unknown> {
-  if (!value || typeof value !== 'object') return false
-  const record = value as Record<string, unknown>
-  return COMPREHENSIVE_SECTION_KEYS.every((key) => typeof record[key] === 'string')
-}
-
-const SECTION_CONCRETE_NOUNS: Record<keyof AIPremiumReport['sections'], string[]> = {
-  introduction: ['??', '???', '??', '??', '??', '????'],
-  personalityDeep: ['??', '??', '???', '??', '????', '??'],
-  careerPath: ['??', '??', '??', '???', '?? ??', '?? ??'],
-  relationshipDynamics: ['??', '??', '??', '??', '??', '??'],
-  spouseProfile: ['??', '??', '??', '??', '??', '???'],
-  wealthPotential: ['??', '??', '????', '?? ??', '??', '??'],
-  healthGuidance: ['??', '??', '??', '??', '???', '???'],
-  lifeMission: ['??', '??', '??', '??', '??', '?? ??'],
-  lifeStages: ['??', '??', '??', '??', '??', '??'],
-  turningPoints: ['??', '??', '??', '??', '??', '????'],
-  futureOutlook: ['??', '??', '??', '???', '??', '??'],
-  timingAdvice: ['??', '1~3??', '?', '??', '??', '???'],
-  actionPlan: ['??', '??', '??', '?????', '????', '??'],
-  conclusion: ['??', '????', '??', '???', '??', '??'],
-}
-const REPETITIVE_OPENER_REGEX =
-  /^(?:\uACB0\uB860\uBD80\uD130 \uB9D0\uD558\uBA74|\uC694\uC57D\uD558\uBA74|\uD575\uC2EC\uC740)\b/
-const SECTION_OPENERS_KO: Record<keyof AIPremiumReport['sections'], string> = {
-  introduction: '?? ??? ??? ?? ???? ??? ????.',
-  personalityDeep: '? ??? ??? ??? ??? ??? ? ????.',
-  careerPath: '???? ???? ??? ??? ?? ????? ?????.',
-  relationshipDynamics: '??? ???? ?? ??? ?? ??? ?????.',
-  spouseProfile: '?? ?? ???? ?? ?? ??? ????.',
-  wealthPotential: '??? ???? ??? ?? ??? ? ?? ????.',
-  healthGuidance: '??? ??? ??? ?? ?? ??? ? ?????.',
-  lifeMission: '?? ????? ???? ??? ?? ??? ??? ?????.',
-  lifeStages: '?? ???? ??? ??? ??? ?????.',
-  turningPoints: '?? ??? ???? ??? ?? ??? ????.',
-  futureOutlook: '???? 3~5? ??? ??? ???? ????.',
-  timingAdvice: '?? ???? ???? ?? ??? ??? ?????.',
-  actionPlan: '??? ? ?? ???? ????? ???? ?? ????.',
-  conclusion: '?? ??? ??? ???? ??? ????? ????.',
-}
-function normalizeSentenceKey(sentence: string): string {
-  return sentence
-    .replace(/\s+/g, '')
-    .replace(/[^\p{L}\p{N}]/gu, '')
-    .toLowerCase()
+  return isComprehensiveSectionsPayloadSupport(value, COMPREHENSIVE_SECTION_KEYS)
 }
 function postProcessSectionNarrative(
   text: string,
   sectionKey: keyof AIPremiumReport['sections'],
   lang: 'ko' | 'en'
 ): string {
-  const base = sanitizeSectionNarrative(text)
-  if (!base) return base
-  const sentences = splitSentences(base)
-  if (sentences.length === 0) return base
-  const deduped: string[] = []
-  const seen = new Set<string>()
-  for (const sentence of sentences) {
-    const key = normalizeSentenceKey(sentence)
-    if (key.length < 12 || !seen.has(key)) {
-      deduped.push(sentence)
-      if (key.length >= 12) seen.add(key)
-    }
-  }
-  if (lang === 'ko' && deduped[0] && REPETITIVE_OPENER_REGEX.test(deduped[0])) {
-    deduped[0] = SECTION_OPENERS_KO[sectionKey]
-  }
-  return deduped
-    .join(' ')
-    .replace(/\s{2,}/g, ' ')
-    .trim()
+  return postProcessSectionNarrativeSupport(text, sectionKey, lang)
 }
 
 function toKoreanDomainLabel(domain: SignalDomain): string {
-  const map: Record<SignalDomain, string> = {
-    personality: '??',
-    career: '???',
-    relationship: '??',
-    wealth: '??',
-    health: '??',
-    spirituality: '??',
-    timing: '???',
-    move: '??',
-  }
-  return map[domain]
-}
-
-interface GraphRagSummaryPayload {
-  topInsights: string[]
-  drivers: string[]
-  cautions: string[]
-  trust: {
-    avgOverlapScore: number
-    avgOrbFitScore: number
-    highTrustSetCount: number
-    lowTrustSetCount: number
-    totalSets: number
-  }
-  cautionSections: string[]
-}
-
-function uniqueStrings(values: Array<string | undefined | null>, limit = 6): string[] {
-  const seen = new Set<string>()
-  const out: string[] = []
-  for (const value of values) {
-    const text = String(value || '').trim()
-    if (!text) continue
-    if (seen.has(text)) continue
-    seen.add(text)
-    out.push(text)
-    if (out.length >= limit) break
-  }
-  return out
+  return toKoreanDomainLabelSupport(domain)
 }
 
 function buildGraphRagSummaryPayload(
@@ -1846,182 +1288,22 @@ function buildGraphRagSummaryPayload(
   strategyEngine: StrategyEngineResult | undefined,
   reportCore?: ReportCoreViewModel
 ): GraphRagSummaryPayload {
-  const graphSummary = summarizeGraphRAGEvidence(graphRagEvidence)
-  const preferredDomains: Set<SignalDomain> | null = reportCore
-    ? new Set([
-        reportCore.focusDomain as SignalDomain,
-        ...reportCore.domainVerdicts.slice(0, 2).map((item) => item.domain as SignalDomain),
-      ])
-    : null
-  const topInsightTitles = uniqueStrings(
-    (matrixReport.topInsights || [])
-      .filter((item) => !preferredDomains || preferredDomains.has(item.domain))
-      .map((item) => item.title),
-    5
+  return buildGraphRagSummaryPayloadSupport(
+    lang,
+    matrixReport,
+    graphRagEvidence,
+    signalSynthesis,
+    strategyEngine,
+    reportCore
   )
-  const claimFallback = uniqueStrings(
-    (signalSynthesis?.claims || [])
-      .filter((claim) => !preferredDomains || preferredDomains.has(claim.domain))
-      .map((claim) => claim.thesis),
-    5
-  )
-  const anchorFallback = uniqueStrings(
-    (graphRagEvidence.anchors || []).map((anchor) =>
-      lang === 'ko' ? `${anchor.section} ?? ?? ??` : `${anchor.section} cross evidence`
-    ),
-    5
-  )
-  const topInsights =
-    topInsightTitles.length > 0
-      ? topInsightTitles
-      : claimFallback.length > 0
-        ? claimFallback
-        : anchorFallback
-
-  const strengthSignals = (signalSynthesis?.selectedSignals || [])
-    .filter((signal) => {
-      const domain = resolveSignalDomain(signal.domainHints)
-      return !preferredDomains || preferredDomains.has(domain)
-    })
-    .filter((signal) => signal.polarity === 'strength')
-    .slice(0, 3)
-    .map((signal) => {
-      const domain = resolveSignalDomain(signal.domainHints)
-      if (lang === 'ko') {
-        return `${toKoreanDomainLabel(domain)} ?? ??: ${signal.keyword || signal.rowKey}`
-      }
-      return `${domain} upside signal: ${signal.keyword || signal.rowKey}`
-    })
-  const strategyDrivers = (strategyEngine?.domainStrategies || [])
-    .filter((strategy) => !preferredDomains || preferredDomains.has(strategy.domain))
-    .slice(0, 3)
-    .map((strategy) => {
-      const strategyDomain = strategy.domain as SignalDomain
-      if (lang === 'ko') {
-        return `${toKoreanDomainLabel(strategyDomain)}? ${describePhaseFlow(
-          strategy.phaseLabel,
-          'ko'
-        )} ${describeExecutionStance(strategy.attackPercent, strategy.defensePercent, 'ko')}`
-      }
-      return `${strategy.domain} is in a phase where ${describePhaseFlow(
-        strategy.phaseLabel,
-        'en'
-      ).toLowerCase()} ${describeExecutionStance(strategy.attackPercent, strategy.defensePercent, 'en')}`
-    })
-  const drivers = uniqueStrings(
-    [
-      ...strengthSignals,
-      ...strategyDrivers,
-      ...(signalSynthesis?.claims || [])
-        .filter((claim) => !preferredDomains || preferredDomains.has(claim.domain))
-        .map((claim) => {
-          const claimDomain = claim.domain as SignalDomain
-          return lang === 'ko'
-            ? `${toKoreanDomainLabel(claimDomain)}: ${claim.thesis}`
-            : `${claim.domain}: ${claim.thesis}`
-        }),
-    ],
-    6
-  )
-
-  const cautionSignals = (signalSynthesis?.selectedSignals || [])
-    .filter((signal) => {
-      const domain = resolveSignalDomain(signal.domainHints)
-      return !preferredDomains || preferredDomains.has(domain)
-    })
-    .filter((signal) => signal.polarity === 'caution')
-    .slice(0, 4)
-    .map((signal) => {
-      const domain = resolveSignalDomain(signal.domainHints)
-      if (lang === 'ko') {
-        return `${toKoreanDomainLabel(domain)} ??: ${signal.keyword || signal.rowKey} ??? ?? ? ???? ?????.`
-      }
-      return `${domain} caution: ${signal.keyword || signal.rowKey} requires recheck before commitment.`
-    })
-  const cautionSections = (graphSummary?.cautionSections || []).slice(0, preferredDomains ? 3 : 6)
-  const cautionFromSections = cautionSections.map((section) =>
-    lang === 'ko'
-      ? `${section} ??? ?? ?? ??? ?? ?? ???? ???? ???.`
-      : `${section} section has lower cross-evidence trust and should run verification-first.`
-  )
-  const trustCaution =
-    (graphSummary?.lowTrustSetCount || 0) > 0
-      ? [
-          lang === 'ko'
-            ? `??? ?? ?? ${graphSummary?.lowTrustSetCount || 0}?? ?? ??/??/????? ????? ?????.`
-            : `There are ${graphSummary?.lowTrustSetCount || 0} low-trust cross sets, so keep sign/finalize decisions conservative.`,
-        ]
-      : []
-
-  const cautions = uniqueStrings([...cautionSignals, ...cautionFromSections, ...trustCaution], 6)
-
-  return {
-    topInsights,
-    drivers:
-      drivers.length > 0
-        ? drivers
-        : [
-            lang === 'ko'
-              ? '?? ??? ??? ??? ?? ??? ?? ??? ?? ?? ???? ?? ????.'
-              : 'Use the positive signals together with the current pace and phase before acting.',
-          ],
-    cautions:
-      cautions.length > 0
-        ? cautions
-        : [
-            lang === 'ko'
-              ? '?? ??? ?? ??? ?? ?? ????? ??? ?? ?????.'
-              : 'When evidence trust is low, apply checklist verification before commitment.',
-          ],
-    trust: {
-      avgOverlapScore: graphSummary?.avgOverlapScore || 0,
-      avgOrbFitScore: graphSummary?.avgOrbFitScore || 0,
-      highTrustSetCount: graphSummary?.highTrustSetCount || 0,
-      lowTrustSetCount: graphSummary?.lowTrustSetCount || 0,
-      totalSets: graphSummary?.totalSets || 0,
-    },
-    cautionSections,
-  }
 }
 
 function humanizeCrossSetFact(set: GraphRAGCrossEvidenceSet): string {
-  const pairMatch = set.astrologyEvidence.match(/^([A-Za-z]+)-([a-z]+)-([A-Za-z]+)/i)
-  const p1 = pairMatch?.[1] || '??'
-  const aspectRaw = (pairMatch?.[2] || '').toLowerCase()
-  const p2 = pairMatch?.[3] || '??'
-  const aspectKoMap: Record<string, string> = {
-    conjunction: '??? ????',
-    opposition: '???? ?? ???? ??? ????',
-    square: '?? ??? ??? ???',
-    trine: '????? ??? ????',
-    sextile: '???? ??? ???',
-    quincunx: '??? ??? ??? ?? ????',
-  }
-  const aspectKo = aspectKoMap[aspectRaw] || '??? ???'
-  const domains = set.overlapDomains.map(toKoreanDomainLabel).join(', ')
-  return `${p1}? ${p2} ??? ${aspectKo}. ${domains} ?? ??? ????? ????.`
+  return humanizeCrossSetFactSupport(set)
 }
 
 function extractTopMatrixFacts(matrixReport: FusionReport, sectionKey: string): string[] {
-  const domainBySection: Record<string, string[]> = {
-    introduction: ['personality', 'timing'],
-    personalityDeep: ['personality'],
-    careerPath: ['career', 'wealth'],
-    relationshipDynamics: ['relationship'],
-    wealthPotential: ['wealth', 'career'],
-    healthGuidance: ['health'],
-    lifeMission: ['spirituality', 'personality'],
-    timingAdvice: ['timing'],
-    actionPlan: ['career', 'relationship', 'wealth', 'health', 'timing'],
-    conclusion: ['personality', 'timing'],
-  }
-  const targets = new Set(domainBySection[sectionKey] || ['personality'])
-  return matrixReport.topInsights
-    .filter((item) => targets.has(item.domain))
-    .slice(0, 3)
-    .map(
-      (item) => `${item.title} ??? ?????. ??? ${toKoreanDomainLabel(item.domain)} ? ??? ? ?????.`
-    )
+  return extractTopMatrixFactsSupport(matrixReport, sectionKey)
 }
 
 function buildStrategyFactsForSection(
@@ -2029,64 +1311,7 @@ function buildStrategyFactsForSection(
   sectionKey: keyof AIPremiumReport['sections'],
   lang: 'ko' | 'en'
 ): string[] {
-  if (!strategyEngine) return []
-  const domains = getDomainsForSection(sectionKey)
-  const candidates = strategyEngine.domainStrategies
-    .filter((strategy) => domains.includes(strategy.domain))
-    .slice(0, 2)
-  if (candidates.length === 0) return []
-  const lines: string[] = []
-  for (const strategy of candidates) {
-    const key = `${strategy.domain}:${strategy.phase}`
-    const koActionByKey: Record<string, string> = {
-      'career:expansion': '?? ?? 1~2?? ?? ???? ?? ??? ????? ? ?????.',
-      'career:high_tension_expansion': '??? ?? ?????? 24?? ??? ?? ?? ????.',
-      'relationship:expansion_guarded': '??? ??? ?? ??? ?? ?? ?? ??? ????.',
-      'wealth:expansion_guarded': '?????????? 3?? ?? ???? ?? ??? ?????.',
-      'health:defensive_reset': '??? ??? ???????? ???? ?????.',
-      'timing:high_tension_expansion': '?? ??? ?? ??? ??? ?????? ???? ????.',
-    }
-    const enActionByKey: Record<string, string> = {
-      'career:expansion':
-        'Finish 1-2 core tasks first, then commit externally after checklist pass.',
-      'career:high_tension_expansion':
-        'Decide now, but push signing/sending behind a 24h recheck slot.',
-      'relationship:expansion_guarded':
-        'Increase dialogue and delay final statements to reduce interpretation errors.',
-      'wealth:expansion_guarded':
-        'Lock amount/deadline/cancellation terms first and split position size.',
-      'health:defensive_reset': 'Stop overspeed and restore sleep-hydration-recovery blocks first.',
-      'timing:high_tension_expansion':
-        'Separate decision timing from execution timing to reduce communication risk.',
-    }
-    const phaseAction =
-      lang === 'ko'
-        ? koActionByKey[key] || '??? ??? ??? ???? ?? ? ???? ?????.'
-        : enActionByKey[key] || 'Run staged execution with recheck gates before commitment.'
-
-    if (lang === 'ko') {
-      lines.push(
-        `${toKoreanDomainLabel(strategy.domain)}? ${describePhaseFlow(
-          strategy.phaseLabel,
-          'ko'
-        )} ${describeExecutionStance(strategy.attackPercent, strategy.defensePercent, 'ko')}`
-      )
-      lines.push(strategy.strategy)
-      lines.push(phaseAction)
-      if (strategy.riskControl) lines.push(strategy.riskControl)
-    } else {
-      lines.push(
-        `${strategy.domain} is in a phase where ${describePhaseFlow(
-          strategy.phaseLabel,
-          'en'
-        ).toLowerCase()} ${describeExecutionStance(strategy.attackPercent, strategy.defensePercent, 'en')}`
-      )
-      lines.push(strategy.strategy)
-      lines.push(phaseAction)
-      if (strategy.riskControl) lines.push(strategy.riskControl)
-    }
-  }
-  return lines
+  return buildStrategyFactsForSectionSupport(strategyEngine, sectionKey, lang)
 }
 
 function buildSectionFactPack(
@@ -2099,98 +1324,19 @@ function buildSectionFactPack(
   strategyEngine?: StrategyEngineResult,
   lang: 'ko' | 'en' = 'ko'
 ): string[] {
-  const cleanFact = (line: string): string => {
-    const normalized = sanitizeUserFacingNarrative(localizeReportNarrativeText(line, lang))
-      .replace(/\bcore pattern family\b/gi, '')
-      .replace(/\bpattern\b/gi, lang === 'ko' ? '??' : 'pattern')
-      .replace(/\bscenario\b/gi, lang === 'ko' ? '??? ??' : 'scenario')
-      .replace(/\bList [A-Za-z0-9 ,/-]+\b/g, '')
-      .replace(/\bL\d+\b/gi, '')
-      .replace(/\s{2,}/g, ' ')
-      .trim()
-    return normalized
-  }
-  const bullets: string[] = []
-  const hasReportCore = Boolean(reportCore)
-  if (!hasReportCore && input.dayMasterElement) {
-    bullets.push(`??? ${input.dayMasterElement}??, ?? ??? ?? ??? ?? ??? ????.`)
-  }
-  if (!hasReportCore && input.geokguk) {
-    bullets.push(`??? ${input.geokguk}? ???, ?? ?? ?? ??? ?? ??? ?????.`)
-  }
-  if (!hasReportCore && input.yongsin) {
-    bullets.push(`??? ${input.yongsin}?? ???, ?? ??? ???? ??? ????? ?????.`)
-  }
-
-  const topSets = [...(anchor?.crossEvidenceSets || [])]
-    .sort((a, b) => b.overlapScore - a.overlapScore)
-    .slice(0, hasReportCore ? 1 : 2)
-  for (const set of topSets) {
-    bullets.push(humanizeCrossSetFact(set))
-  }
-
-  let addedTimingNarrative = false
-  if (reportCore) {
-    const sectionDomains = getDomainsForSection(sectionKey)
-    for (const domain of sectionDomains) {
-      const advisory = findReportCoreAdvisory(reportCore, domain)
-      const timing = findReportCoreTimingWindow(reportCore, domain)
-      const manifestation = findReportCoreManifestation(reportCore, domain)
-      const verdict = findReportCoreVerdict(reportCore, domain)
-      if (advisory?.thesis) bullets.push(advisory.thesis)
-      if (advisory?.action) bullets.push(advisory.action)
-      if (advisory?.caution) bullets.push(advisory.caution)
-      if (timing) {
-        bullets.push(buildTimingWindowNarrative(domain, timing, lang))
-        addedTimingNarrative = true
-      }
-      if (manifestation) bullets.push(buildManifestationNarrative(manifestation, lang))
-      if (verdict) bullets.push(buildVerdictNarrative(verdict, lang))
-    }
-    bullets.push(reportCore.primaryAction)
-    bullets.push(reportCore.primaryCaution)
-    bullets.push(reportCore.riskControl)
-    bullets.push(reportCore.judgmentPolicy.rationale)
-  } else {
-    bullets.push(...buildSynthesisFactsForSection(signalSynthesis, sectionKey, lang))
-    bullets.push(...buildStrategyFactsForSection(strategyEngine, sectionKey, lang))
-    bullets.push(...extractTopMatrixFacts(matrixReport, sectionKey))
-  }
-
-  const activeTransits = (input.activeTransits || []).slice(0, 2)
-  if (!hasReportCore && activeTransits.length > 0) {
-    bullets.push(`?? ??? ${activeTransits.join(', ')}? ?? ??? ?? ??? ?????.`)
-  }
-  if (
-    !hasReportCore &&
-    (input.currentDaeunElement ||
-      input.currentSaeunElement ||
-      input.currentWolunElement ||
-      input.currentIljinElement ||
-      input.currentIljinDate)
-  ) {
-    bullets.push('??????????? ??? ?? ??? ?? ??? ?? ??? ?? ??? ???.')
-  }
-  if (
-    hasReportCore &&
-    !addedTimingNarrative &&
-    (input.currentDaeunElement ||
-      input.currentSaeunElement ||
-      input.currentWolunElement ||
-      input.currentIljinElement ||
-      input.currentIljinDate)
-  ) {
-    bullets.push(
-      lang === 'ko'
-        ? '?? ??? ?? ??? ?? ?????, ?? ??? ???? ? ??? ??? ??? ?? ????.'
-        : 'Long-cycle and short-cycle signals are moving together, so fix sequencing and verification before commitment.'
-    )
-  }
-
-  return bullets
-    .map((line) => cleanFact(line))
-    .filter((line, idx, arr) => line.length > 0 && arr.indexOf(line) === idx)
-    .slice(0, 12)
+  return buildSectionFactPackSupport(
+    sectionKey,
+    anchor,
+    matrixReport,
+    input,
+    reportCore,
+    signalSynthesis,
+    strategyEngine,
+    buildTimingWindowNarrative,
+    buildManifestationNarrative,
+    buildVerdictNarrative,
+    lang
+  )
 }
 
 function buildSectionPrompt(
@@ -2200,60 +1346,7 @@ function buildSectionPrompt(
   draftText?: string,
   targetMinChars?: number
 ): string {
-  const facts = factPack.map((fact) => `- ${fact}`).join('\n')
-  const concreteNouns = SECTION_CONCRETE_NOUNS[sectionKey].join(', ')
-  const minChars = Math.max(220, Math.floor(targetMinChars || (lang === 'ko' ? 420 : 320)))
-  const longForm = minChars >= (lang === 'ko' ? 600 : 450)
-  if (lang === 'ko') {
-    return [
-      '??? ??? ??? ?? ?? ?? ??? ??????.',
-      `?? ??: ${sectionKey}`,
-      '?? ??:',
-      '- ??? ????? ?????.',
-      '- ? ??? ? ??? ?? ???? ?????.',
-      longForm ? '- 22~60??? ? ????? ???.' : '- 15~35??? ??? ? ????? ???.',
-      longForm ? '- ??? 8~14???? ???? ???.' : '- ??? 4~7???? ???? ???.',
-      `- ?? ${minChars}? ???? ???.`,
-      '- bullet, ?? ??, JSON ??, ?? ??? ?? ????.',
-      `- ??? ? ?? ??(${concreteNouns})? ????? ?????.`,
-      '- ?? ?? ??, ???, ???? id? ??? ?? ????.',
-      '- ??? ?? ????. ??? ?? ????? ???? ?????.',
-      '- ???? ?? ??? ??? ? ?? ?????.',
-      '- ????? ????? ??? ?? ?? ??? ??? ?? ???? ????.',
-      draftText ? '?? ??? ??? ? ????? ?? ?? ???.' : '?? fact pack? ??? ???.',
-      '?? ??:',
-      facts,
-      draftText ? `??:\n${draftText}` : '',
-      '??? JSON? ?????: {"text":"..."}',
-    ]
-      .filter(Boolean)
-      .join('\n')
-  }
-  return [
-    'You are a combined Saju+Astrology counselor.',
-    `Section: ${sectionKey}`,
-    'Style rules:',
-    '- Start with a direct conclusion, but vary opening expressions by section.',
-    longForm
-      ? '- Use medium-length declarative sentences with concrete detail and context.'
-      : '- Use concise declarative sentences with concrete details.',
-    longForm
-      ? '- Write 8-14 connected sentences for this section.'
-      : '- Write 4-7 connected sentences for this section.',
-    `- This section must be at least ${minChars} characters.`,
-    '- No hype, no absolutes, and no fear language.',
-    '- No bullet or numbered output; prose paragraphs only.',
-    '- Avoid repeating semantically equivalent sentences.',
-    draftText
-      ? 'Refine the draft with stronger depth and precision.'
-      : 'Write only from the fact pack below.',
-    'Fact pack:',
-    facts,
-    draftText ? `Draft:\n${draftText}` : '',
-    'Return JSON only: {"text":"..."}',
-  ]
-    .filter(Boolean)
-    .join('\n')
+  return buildSectionPromptSupport(sectionKey, factPack, lang, draftText, targetMinChars)
 }
 
 function summarizeTopInsightsByCategory(
@@ -2262,39 +1355,15 @@ function summarizeTopInsightsByCategory(
   lang: 'ko' | 'en',
   limit = 3
 ): string {
-  const rows = (report.topInsights || [])
-    .filter((item) => categories.includes(item.category))
-    .slice(0, limit)
-    .map((item) => (lang === 'ko' ? item.title : item.titleEn || item.title))
-    .filter(Boolean)
-  return rows.length > 0
-    ? rows.join(', ')
-    : lang === 'ko'
-      ? '?? ?????? ??'
-      : 'Core signals in review'
+  return summarizeTopInsightsByCategorySupport(report, categories, lang, limit)
 }
 
 function ensureLongSectionNarrative(base: string, minChars: number, extras: string[]): string {
-  let out = String(base || '')
-    .replace(/\s{2,}/g, ' ')
-    .trim()
-  const uniqExtras = [...new Set(extras.map((v) => String(v || '').trim()).filter(Boolean))]
-  for (const extra of uniqExtras) {
-    if (out.length >= minChars) break
-    if (out.includes(extra)) continue
-    out = `${out} ${extra}`.replace(/\s{2,}/g, ' ').trim()
-  }
-  return dedupeNarrativeSentences(out)
+  return ensureLongSectionNarrativeSupport(base, minChars, extras)
 }
 
 function cleanRecommendationLine(text: string, lang: 'ko' | 'en'): string {
-  const normalized = sanitizeUserFacingNarrative(String(text || '').trim())
-    .replace(/,+/g, ',')
-    .replace(/,\s*/g, '. ')
-    .replace(/\.\s*\./g, '.')
-    .replace(/\s{2,}/g, ' ')
-    .trim()
-  return formatNarrativeParagraphs(normalized, lang)
+  return formatNarrativeParagraphs(cleanRecommendationLineSupport(text, lang), lang)
 }
 
 function buildSynthesisPromptBlock(
@@ -2304,64 +1373,7 @@ function buildSynthesisPromptBlock(
   mode: 'timing' | 'themed',
   theme?: ReportTheme
 ): string {
-  if (!synthesis || synthesis.claims.length === 0) return ''
-  const themeDomainMap: Record<ReportTheme, string[]> = {
-    love: ['relationship', 'personality'],
-    career: ['career', 'wealth'],
-    wealth: ['wealth', 'career'],
-    health: ['health', 'timing'],
-    family: ['relationship', 'personality'],
-  }
-  const preferredDomains =
-    mode === 'timing'
-      ? ['timing', 'career', 'relationship', 'wealth', 'health']
-      : themeDomainMap[theme || 'career']
-  const pickedClaims = synthesis.claims
-    .filter((claim) => preferredDomains.includes(claim.domain))
-    .slice(0, 4)
-  const claims = pickedClaims.length > 0 ? pickedClaims : synthesis.claims.slice(0, 3)
-  const claimLines = claims.map((claim) => {
-    const evidence = claim.evidence
-      .slice(0, 2)
-      .map((id) => synthesis.signalsById[id])
-      .filter(Boolean)
-      .map((signal) => `${signal.id}:${signal.keyword || signal.rowKey}`)
-      .join(', ')
-    if (lang === 'ko') {
-      return `- ${claim.domain}: ${claim.thesis} | ??: ${evidence || 'pending'} | ??: ${claim.riskControl}`
-    }
-    return `- ${claim.domain}: ${claim.thesis} | evidence: ${evidence || 'pending'} | control: ${claim.riskControl}`
-  })
-  const strategyLines = (strategyEngine?.domainStrategies || [])
-    .filter((item) => preferredDomains.includes(item.domain))
-    .slice(0, 3)
-    .map((item) =>
-      lang === 'ko'
-        ? `- ?? ${item.domain}: ${describePhaseFlow(item.phaseLabel, 'ko')} ${describeExecutionStance(item.attackPercent, item.defensePercent, 'ko')} | thesis=${item.thesis}`
-        : `- strategy ${item.domain}: ${describePhaseFlow(item.phaseLabel, 'en')} ${describeExecutionStance(item.attackPercent, item.defensePercent, 'en')} | thesis=${item.thesis}`
-    )
-  if (lang === 'ko') {
-    return [
-      '## Signal Synthesizer (?? ??)',
-      '- ?? ???? ?? ID? ???? ?? ?? ??',
-      '- ?? ????? ??/??? ??? ??? ??? "?? + ?????"? ?? ??',
-      strategyEngine
-        ? `- ?? ??: ${describePhaseFlow(strategyEngine.overallPhaseLabel, 'ko')} ${describeExecutionStance(strategyEngine.attackPercent, strategyEngine.defensePercent, 'ko')}`
-        : '',
-      ...strategyLines,
-      ...claimLines,
-    ].join('\n')
-  }
-  return [
-    '## Signal Synthesizer (fixed evidence)',
-    '- Do not add facts beyond these claim/evidence IDs',
-    '- If strength and caution coexist in a domain, synthesize as "upside + risk-control"',
-    strategyEngine
-      ? `- Overall phase: ${strategyEngine.overallPhaseLabel}, offense ${strategyEngine.attackPercent}% / defense ${strategyEngine.defensePercent}%`
-      : '',
-    ...strategyLines,
-    ...claimLines,
-  ].join('\n')
+  return buildSynthesisPromptBlockSupport(synthesis, strategyEngine, lang, mode, theme)
 }
 
 // ===========================
@@ -2373,1210 +1385,104 @@ export async function generateAIPremiumReport(
   matrixReport: FusionReport,
   options: AIReportGenerationOptions = {}
 ): Promise<AIPremiumReport> {
-  const startTime = Date.now()
-  const lang = options.lang || 'ko'
-  const detailLevel = options.detailLevel || 'detailed'
-  const normalizedInput = buildNormalizedMatrixInput(input)
-
-  // 1. Build prompt
-  const graphRagEvidence = buildGraphRAGEvidence(normalizedInput, matrixReport, {
-    mode: 'comprehensive',
-    focusDomain: options.focusDomain,
-  })
-  const deterministicCore = buildDeterministicCore({
-    matrixInput: normalizedInput,
-    matrixReport,
-    graphEvidence: graphRagEvidence,
-    userQuestion: options.userQuestion,
-    lang,
-    profile: options.deterministicProfile,
-  })
-  const coreSeed = runDestinyCore({
-    mode: 'comprehensive',
-    lang,
-    matrixInput: normalizedInput,
-    matrixReport,
-    matrixSummary: options.matrixSummary,
-  })
-  const reportCore = adaptCoreToReport(coreSeed, lang)
-  const signalSynthesis = coreSeed.signalSynthesis
-  const strategyEngine = coreSeed.strategyEngine
-  const topMatchedPatterns = buildTopMatchedPatterns(coreSeed.patterns)
-  const graphRagSummary = buildGraphRagSummaryPayload(
-    lang,
-    matrixReport,
-    graphRagEvidence,
-    signalSynthesis,
-    strategyEngine,
-    reportCore
-  )
-  const deterministicOnly = shouldUseDeterministicOnly(options.deterministicOnly)
-
-  if (deterministicOnly) {
-    const evidenceRefs = buildComprehensiveEvidenceRefs(signalSynthesis)
-    const sectionPaths = [...COMPREHENSIVE_SECTION_KEYS] as string[]
-    const fallbackSections = buildComprehensiveFallbackSectionsExternal(
-      normalizedInput,
-      matrixReport,
-      deterministicCore,
-      lang,
-      comprehensiveFallbackDeps,
-      reportCore,
-      { matrixSummary: options.matrixSummary }
-    )
-    const generatedAt = new Date().toISOString()
-    const unified = buildUnifiedEnvelope({
-      mode: 'comprehensive',
-      lang,
-      generatedAt,
-      matrixInput: normalizedInput,
-      matrixReport,
-      matrixSummary: options.matrixSummary,
-      signalSynthesis,
-      graphRagEvidence,
-      birthDate: options.birthDate,
-      timingData: options.timingData,
-      sectionPaths,
-      evidenceRefs,
-    })
-    const draftSections = mergeComprehensiveDraftWithBlocksExternal(
-      [...COMPREHENSIVE_SECTION_KEYS],
-      fallbackSections,
-      unified.blocksBySection,
-      lang,
-      comprehensiveFallbackDeps
-    )
-    let sections = draftSections as unknown as Record<string, unknown>
-    if (lang === 'ko') {
-      const trustNarratives = buildReportTrustNarratives(reportCore, coreSeed.quality, lang)
-      sections = attachTrustNarrativeToSections(
-        'comprehensive',
-        sections,
-        trustNarratives.trust,
-        trustNarratives.provenance
-      )
-    }
-    const polished = await maybePolishPremiumSections<AIPremiumReport['sections']>({
-      reportType: 'comprehensive',
-      sections: sections as AIPremiumReport['sections'],
-      lang,
-      userPlan: options.userPlan,
-      evidenceRefs,
-      blocksBySection: unified.blocksBySection,
-      minCharsPerSection: lang === 'ko' ? 360 : 260,
-    })
-    sections = polished.sections as unknown as Record<string, unknown>
-    const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
-    if (finalEvidenceCheck.needsRepair) {
-      sections = enforceEvidenceBindingFallback(
-        sections,
-        finalEvidenceCheck.violations,
-        evidenceRefs,
-        lang
-      )
-    }
-    sections = sanitizeSectionsByPathsExternal(sections, sectionPaths, narrativePathSanitizerDeps)
-    sections = sanitizeComprehensiveSectionsForUser(
-      sections as Record<string, unknown>,
-      [...COMPREHENSIVE_SECTION_KEYS],
-      comprehensivePostProcessDeps,
-      lang
-    )
-    sections = applyComprehensiveSectionRoleGuards(
-      sections as AIPremiumReport['sections'],
-      reportCore,
-      normalizedInput,
-      comprehensivePostProcessDeps,
-      lang
-    )
-    sections = repairMalformedComprehensiveSections(
-      sections as AIPremiumReport['sections'],
-      reportCore,
-      normalizedInput,
-      lang
-    )
-    if (lang === 'en') {
-      sections = enforceComprehensiveNarrativeQualityFallback(
-        sections as AIPremiumReport['sections'],
-        reportCore,
-        normalizedInput,
-        lang
-      ) as unknown as Record<string, unknown>
-    }
-    sections = stripGenericEvidenceFooters(sections, sectionPaths, lang)
-    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
-
-    const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
-    const keyStrengths = (matrixReport.topInsights || [])
-      .filter((i) => i.category === 'strength')
-      .slice(0, 3)
-      .map((i) => i.title)
-    const keyChallenges = (matrixReport.topInsights || [])
-      .filter((i) => i.category === 'challenge' || i.category === 'caution')
-      .slice(0, 3)
-      .map((i) => i.title)
-    const domainFallback = [...(matrixReport.domainAnalysis || [])]
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 3)
-      .map((d) =>
-        lang === 'ko' ? `${d.domain} ??(${d.score})` : `${d.domain} strength (${d.score})`
-      )
-    const anchorFallback = (graphRagEvidence.anchors || [])
-      .slice(0, 3)
-      .map((a) =>
-        lang === 'ko' ? `${a.section} ?? ?? ??` : `${a.section} section evidence alignment`
-      )
-    const safeTopInsights = topInsights.length > 0 ? topInsights : anchorFallback
-    const safeKeyStrengths = keyStrengths.length > 0 ? keyStrengths : domainFallback
-    const safeKeyChallenges =
-      keyChallenges.length > 0
-        ? keyChallenges
-        : lang === 'ko'
-          ? ['?? ?? ?? ??', '?? ? ??? ??', '?????? ??? ??']
-          : [
-              'Caution signals require review',
-              'Recheck before final commitment',
-              'Communication risk check',
-            ]
-    let qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
-      requiredPaths: sectionPaths,
-      claims: unified.claims,
-      anchors: unified.anchors,
-      scenarioBundles: unified.scenarioBundles,
-      timelineEvents: unified.timelineEvents,
-      coreQuality: coreSeed.quality,
-    })
-    if (shouldForceComprehensiveNarrativeFallback(qualityMetrics)) {
-      sections = enforceComprehensiveNarrativeQualityFallback(
-        sections as AIPremiumReport['sections'],
-        reportCore,
-        normalizedInput,
-        lang
-      ) as unknown as Record<string, unknown>
-      sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
-      qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
-        requiredPaths: sectionPaths,
-        claims: unified.claims,
-        anchors: unified.anchors,
-        scenarioBundles: unified.scenarioBundles,
-        timelineEvents: unified.timelineEvents,
-        coreQuality: coreSeed.quality,
-      })
-    }
-    if (lang === 'en') {
-      sections = {
-        ...(sections as Record<string, unknown>),
-        personalityDeep: renderPersonalityDeepSection(reportCore, normalizedInput, lang),
-        timingAdvice: renderTimingAdviceSection(
-          reportCore,
-          normalizedInput,
-          lang,
-          options.matrixSummary
-        ),
-        actionPlan: renderActionPlanSection(reportCore, normalizedInput, lang),
-      }
-      sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
-    }
-    const finalModelUsed = polished.modelUsed
-      ? `deterministic+${polished.modelUsed}`
-      : 'deterministic-only'
-    const finalReportVersion = polished.modelUsed
-      ? '1.2.0-deterministic+rewrite'
-      : '1.2.0-deterministic-only'
-    recordReportQualityMetrics('comprehensive', finalModelUsed, qualityMetrics)
-    let outputSections = buildExtendedComprehensiveSections(
-      sections as AIPremiumReport['sections'],
-      reportCore,
-      normalizedInput,
-      lang,
-      options.matrixSummary
-    )
-    let outputSectionPaths = getComprehensiveRenderPaths(outputSections)
-    outputSections = sanitizeComprehensiveSectionsForUser(
-      outputSections as Record<string, unknown>,
-      outputSectionPaths,
-      comprehensivePostProcessDeps,
-      lang
-    ) as AIPremiumReport['sections']
-    outputSectionPaths = getComprehensiveRenderPaths(outputSections)
-    outputSections = applyFinalReportStyle(outputSections, outputSectionPaths, lang, reportCore)
-    outputSections = ensureFinalActionPlanGrounding(outputSections, lang, reportCore)
-    outputSections = ensureFinalReportPolish(outputSections, lang, reportCore)
-    outputSectionPaths = getComprehensiveRenderPaths(outputSections)
-    qualityMetrics = buildReportQualityMetrics(
-      outputSections as Record<string, unknown>,
-      outputSectionPaths,
-      evidenceRefs,
-      {
-        requiredPaths: outputSectionPaths,
-        claims: unified.claims,
-        anchors: unified.anchors,
-        scenarioBundles: unified.scenarioBundles,
-        timelineEvents: unified.timelineEvents,
-        coreQuality: coreSeed.quality,
-      }
-    )
-
-    return {
-      id: `air_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      generatedAt,
-      lang,
-      ...buildReportOutputCoreFields(reportCore, lang),
-      ...unified,
-      coreHash: coreSeed.coreHash,
-      patterns: coreSeed.patterns,
-      topMatchedPatterns,
-      scenarios: coreSeed.scenarios,
-      profile: {
-        name: options.name,
-        birthDate: options.birthDate,
-        dayMaster: input.dayMasterElement,
-        dominantElement: input.dominantWesternElement || input.dayMasterElement,
-        geokguk: input.geokguk,
-      },
-      sections: outputSections,
-      graphRagEvidence,
-      graphRagSummary,
-      evidenceRefs,
-      evidenceRefsByPara: unified.evidenceRefsByPara,
-      deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
-      renderedMarkdown: renderSectionsAsMarkdown(outputSections, outputSectionPaths, lang),
-      renderedText: renderSectionsAsText(outputSections, outputSectionPaths),
-      matrixSummary: {
-        overallScore: matrixReport.overallScore.total,
-        grade: matrixReport.overallScore.grade,
-        topInsights: safeTopInsights,
-        keyStrengths: safeKeyStrengths,
-        keyChallenges: safeKeyChallenges,
-      },
-      signalSynthesis,
-      strategyEngine,
-      meta: {
-        modelUsed: finalModelUsed,
-        tokensUsed: polished.tokensUsed || 0,
-        processingTime: Math.max(1, Date.now() - startTime),
-        reportVersion: finalReportVersion,
-        qualityMetrics,
-      },
-    }
-  }
-
-  if (FORCE_REWRITE_ONLY_MODE && !deterministicOnly) {
-    const evidenceRefs = buildComprehensiveEvidenceRefs(signalSynthesis)
-    const sectionPaths = [...COMPREHENSIVE_SECTION_KEYS] as string[]
-    const fallbackSections = buildComprehensiveFallbackSectionsExternal(
-      input,
-      matrixReport,
-      deterministicCore,
-      lang,
-      comprehensiveFallbackDeps,
-      reportCore,
-      { matrixSummary: options.matrixSummary }
-    )
-    const generatedAt = new Date().toISOString()
-    const unified = buildUnifiedEnvelope({
-      mode: 'comprehensive',
-      lang,
-      generatedAt,
-      matrixInput: normalizedInput,
-      matrixReport,
-      matrixSummary: options.matrixSummary,
-      signalSynthesis,
-      graphRagEvidence,
-      birthDate: options.birthDate,
-      timingData: options.timingData,
-      sectionPaths,
-      evidenceRefs,
-    })
-    const draftSections = mergeComprehensiveDraftWithBlocksExternal(
-      [...COMPREHENSIVE_SECTION_KEYS],
-      fallbackSections,
-      unified.blocksBySection,
-      lang,
-      comprehensiveFallbackDeps
-    )
-    const rewrite = await rewriteSectionsWithFallback<AIPremiumReport['sections']>({
-      lang,
-      userPlan: options.userPlan,
-      draftSections,
-      evidenceRefs,
-      blocksBySection: unified.blocksBySection,
-      sectionPaths,
-      requiredPaths: sectionPaths,
-      minCharsPerSection: lang === 'ko' ? 380 : 280,
-    })
-    let sections = rewrite.sections as unknown as Record<string, unknown>
-    if (lang === 'ko') {
-      const trustNarratives = buildReportTrustNarratives(reportCore, coreSeed.quality, lang)
-      sections = attachTrustNarrativeToSections(
-        'comprehensive',
-        sections,
-        trustNarratives.trust,
-        trustNarratives.provenance
-      )
-    }
-    const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
-    if (finalEvidenceCheck.needsRepair) {
-      sections = enforceEvidenceBindingFallback(
-        sections,
-        finalEvidenceCheck.violations,
-        evidenceRefs,
-        lang
-      )
-    }
-    sections = sanitizeSectionsByPathsExternal(sections, sectionPaths, narrativePathSanitizerDeps)
-    sections = sanitizeComprehensiveSectionsForUser(
-      sections,
-      [...COMPREHENSIVE_SECTION_KEYS],
-      comprehensivePostProcessDeps,
-      lang
-    )
-    sections = sanitizeComprehensiveSectionsForUser(
-      sections as Record<string, unknown>,
-      [...COMPREHENSIVE_SECTION_KEYS],
-      comprehensivePostProcessDeps,
-      lang
-    )
-    sections = applyComprehensiveSectionRoleGuards(
-      sections as AIPremiumReport['sections'],
-      reportCore,
-      normalizedInput,
-      comprehensivePostProcessDeps,
-      lang
-    )
-    sections = repairMalformedComprehensiveSections(
-      sections as AIPremiumReport['sections'],
-      reportCore,
-      normalizedInput,
-      lang
-    )
-    if (lang === 'en') {
-      sections = enforceComprehensiveNarrativeQualityFallback(
-        sections as AIPremiumReport['sections'],
-        reportCore,
-        normalizedInput,
-        lang
-      ) as unknown as Record<string, unknown>
-    }
-    sections = stripGenericEvidenceFooters(sections, sectionPaths, lang)
-    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
-
-    const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
-    const keyStrengths = (matrixReport.topInsights || [])
-      .filter((i) => i.category === 'strength')
-      .slice(0, 3)
-      .map((i) => i.title)
-    const keyChallenges = (matrixReport.topInsights || [])
-      .filter((i) => i.category === 'challenge' || i.category === 'caution')
-      .slice(0, 3)
-      .map((i) => i.title)
-    const domainFallback = [...(matrixReport.domainAnalysis || [])]
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 3)
-      .map((d) =>
-        lang === 'ko' ? `${d.domain} ??(${d.score})` : `${d.domain} strength (${d.score})`
-      )
-    const anchorFallback = (graphRagEvidence.anchors || [])
-      .slice(0, 3)
-      .map((a) =>
-        lang === 'ko' ? `${a.section} ?? ?? ??` : `${a.section} section evidence alignment`
-      )
-    const safeTopInsights = topInsights.length > 0 ? topInsights : anchorFallback
-    const safeKeyStrengths = keyStrengths.length > 0 ? keyStrengths : domainFallback
-    const safeKeyChallenges =
-      keyChallenges.length > 0
-        ? keyChallenges
-        : lang === 'ko'
-          ? ['?? ?? ?? ??', '?? ? ??? ??', '?????? ??? ??']
-          : [
-              'Caution signals require review',
-              'Recheck before final commitment',
-              'Communication risk check',
-            ]
-    let qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
-      requiredPaths: sectionPaths,
-      claims: unified.claims,
-      anchors: unified.anchors,
-      scenarioBundles: unified.scenarioBundles,
-      timelineEvents: unified.timelineEvents,
-      coreQuality: coreSeed.quality,
-    })
-    if (shouldForceComprehensiveNarrativeFallback(qualityMetrics)) {
-      sections = enforceComprehensiveNarrativeQualityFallback(
-        sections as AIPremiumReport['sections'],
-        reportCore,
-        normalizedInput,
-        lang
-      ) as unknown as Record<string, unknown>
-      sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
-      qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
-        requiredPaths: sectionPaths,
-        claims: unified.claims,
-        anchors: unified.anchors,
-        scenarioBundles: unified.scenarioBundles,
-        timelineEvents: unified.timelineEvents,
-        coreQuality: coreSeed.quality,
-      })
-    }
-    recordReportQualityMetrics('comprehensive', rewrite.modelUsed, qualityMetrics)
-
-    recordRewriteModeMetric('comprehensive', rewrite.modelUsed, rewrite.tokensUsed)
-    let outputSections = buildExtendedComprehensiveSections(
-      sections as AIPremiumReport['sections'],
-      reportCore,
-      normalizedInput,
-      lang,
-      options.matrixSummary
-    )
-    let outputSectionPaths = getComprehensiveRenderPaths(outputSections)
-    outputSections = sanitizeComprehensiveSectionsForUser(
-      outputSections as Record<string, unknown>,
-      outputSectionPaths,
-      comprehensivePostProcessDeps,
-      lang
-    ) as AIPremiumReport['sections']
-    outputSectionPaths = getComprehensiveRenderPaths(outputSections)
-    outputSections = applyFinalReportStyle(outputSections, outputSectionPaths, lang, reportCore)
-    outputSections = ensureFinalActionPlanGrounding(outputSections, lang, reportCore)
-    outputSections = ensureFinalReportPolish(outputSections, lang, reportCore)
-    outputSectionPaths = getComprehensiveRenderPaths(outputSections)
-    qualityMetrics = buildReportQualityMetrics(
-      outputSections as Record<string, unknown>,
-      outputSectionPaths,
-      evidenceRefs,
-      {
-        requiredPaths: outputSectionPaths,
-        claims: unified.claims,
-        anchors: unified.anchors,
-        scenarioBundles: unified.scenarioBundles,
-        timelineEvents: unified.timelineEvents,
-        coreQuality: coreSeed.quality,
-      }
-    )
-    return {
-      id: `air_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      generatedAt,
-      lang,
-      ...buildReportOutputCoreFields(reportCore, lang),
-      ...unified,
-      coreHash: coreSeed.coreHash,
-      patterns: coreSeed.patterns,
-      topMatchedPatterns,
-      scenarios: coreSeed.scenarios,
-      profile: {
-        name: options.name,
-        birthDate: options.birthDate,
-        dayMaster: input.dayMasterElement,
-        dominantElement: input.dominantWesternElement || input.dayMasterElement,
-        geokguk: input.geokguk,
-      },
-      sections: outputSections,
-      graphRagEvidence,
-      graphRagSummary,
-      evidenceRefs,
-      evidenceRefsByPara: unified.evidenceRefsByPara,
-      deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
-      renderedMarkdown: renderSectionsAsMarkdown(outputSections, outputSectionPaths, lang),
-      renderedText: renderSectionsAsText(outputSections, outputSectionPaths),
-      matrixSummary: {
-        overallScore: matrixReport.overallScore.total,
-        grade: matrixReport.overallScore.grade,
-        topInsights: safeTopInsights,
-        keyStrengths: safeKeyStrengths,
-        keyChallenges: safeKeyChallenges,
-      },
-      signalSynthesis,
-      strategyEngine,
-      meta: {
-        modelUsed: rewrite.modelUsed,
-        tokensUsed: rewrite.tokensUsed,
-        processingTime: Math.max(1, Date.now() - startTime),
-        reportVersion: '1.1.0-rewrite-only',
-        qualityMetrics,
-      },
-    }
-  }
-
-  const requestedChars =
-    typeof options.targetChars === 'number' && Number.isFinite(options.targetChars)
-      ? Math.max(3500, Math.min(32000, Math.floor(options.targetChars)))
-      : detailLevel === 'comprehensive'
-        ? lang === 'ko'
-          ? 18000
-          : 14000
-        : detailLevel === 'detailed'
-          ? lang === 'ko'
-            ? 11000
-            : 8500
-          : undefined
-  const maxTokensOverride = requestedChars ? Math.ceil(requestedChars / 2) + 1200 : undefined
-  const costOptimizedAiPath = isCostOptimizedAiPath()
-  const sectionTokenBudget = maxTokensOverride
-    ? costOptimizedAiPath
-      ? Math.max(700, Math.min(1400, Math.floor(maxTokensOverride / 6)))
-      : Math.max(850, Math.min(2400, Math.floor(maxTokensOverride / 4)))
-    : undefined
-  const sectionMinChars =
-    detailLevel === 'comprehensive'
-      ? lang === 'ko'
-        ? 850
-        : 650
-      : detailLevel === 'detailed'
-        ? lang === 'ko'
-          ? 600
-          : 450
-        : lang === 'ko'
-          ? 380
-          : 300
-
-  const sectionAnchors = new Map(
-    (graphRagEvidence.anchors || []).map((anchor) => [anchor.section, anchor])
-  )
-  const deterministicFallbackSections = buildComprehensiveFallbackSectionsExternal(
-    normalizedInput,
-    matrixReport,
-    deterministicCore,
-    lang,
+  return generateAIPremiumReportWithSupport(input, matrixReport, options, {
+    FORCE_REWRITE_ONLY_MODE,
+    logger,
+    buildNormalizedMatrixInput,
+    buildGraphRAGEvidence,
+    buildDeterministicCore,
+    runDestinyCore,
+    adaptCoreToReport,
+    buildTopMatchedPatterns,
+    buildGraphRagSummaryPayload,
+    shouldUseDeterministicOnly,
+    buildComprehensiveEvidenceRefs,
+    COMPREHENSIVE_SECTION_KEYS,
+    buildComprehensiveFallbackSectionsExternal,
     comprehensiveFallbackDeps,
-    reportCore,
-    { matrixSummary: options.matrixSummary }
-  ) as Record<string, unknown>
-  let sections: Record<string, unknown> = costOptimizedAiPath
-    ? { ...deterministicFallbackSections }
-    : {}
-  let tokensUsed = 0
-  const models = new Set<string>()
-  let usedDeterministicFallback = false
-
-  try {
-    const liveSectionKeys = costOptimizedAiPath
-      ? getCostOptimizedComprehensiveLiveSectionKeys()
-      : COMPREHENSIVE_SECTION_KEYS
-    for (const sectionKey of liveSectionKeys) {
-      const anchor = sectionAnchors.get(sectionKey)
-      const factPack = buildSectionFactPack(
-        sectionKey,
-        anchor,
-        matrixReport,
-        input,
-        reportCore,
-        signalSynthesis,
-        strategyEngine,
-        lang
-      )
-      const draftPrompt = buildSectionPrompt(sectionKey, factPack, lang, undefined, sectionMinChars)
-
-      const draft = await callAIBackendGeneric<{ text: string }>(draftPrompt, lang, {
-        userPlan: options.userPlan,
-        maxTokensOverride: sectionTokenBudget,
-        qualityTier: getAiQualityTier('base'),
-        debugTag: `comprehensive.sectionDraft.${sectionKey}`,
-      })
-      tokensUsed += draft.tokensUsed || 0
-      models.add(draft.model)
-      const draftText = sanitizeSectionNarrative(draft.sections?.text || '')
-      let sectionText = sanitizeTimingContradictionsExternal(
-        postProcessSectionNarrative(draftText, sectionKey, lang),
-        input
-      )
-
-      if (!costOptimizedAiPath) {
-        const synthesisPrompt = buildSectionPrompt(
-          sectionKey,
-          factPack,
-          lang,
-          draftText,
-          sectionMinChars
-        )
-        const synthesized = await callAIBackendGeneric<{ text: string }>(synthesisPrompt, lang, {
-          userPlan: options.userPlan,
-          maxTokensOverride: sectionTokenBudget,
-          qualityTier: getAiQualityTier('base'),
-          debugTag: `comprehensive.sectionSynthesis.${sectionKey}`,
-        })
-        tokensUsed += synthesized.tokensUsed || 0
-        models.add(synthesized.model)
-        sectionText = sanitizeTimingContradictionsExternal(
-          postProcessSectionNarrative(synthesized.sections?.text || draftText, sectionKey, lang),
-          input
-        )
-      }
-
-      const quality = evaluateSectionGate(sectionText, factPack, sectionKey, containsBannedPhrase)
-      if (!quality.pass && !costOptimizedAiPath) {
-        const repairPrompt = [
-          buildSectionPrompt(sectionKey, factPack, lang, sectionText, sectionMinChars),
-          lang === 'ko'
-            ? `?? ??: ? ???? ?? 3? ??, ?? ??? ?? 2? ??, ?? ?? ?? ??? ?? 2? ?? ???. ?? ?? ??? 40? ??? ??? ?? ??? ??? ???. current novelty=${quality.novelty}, specificity=${quality.specificity}, evidence=${quality.evidenceDensity}, avgLen=${Math.round(quality.avgSentenceLength)}, advice=${quality.adviceCount}, banned=${quality.banned}`
-            : `Repair rules: add at least 3 new points, include at least 2 concrete nouns, and reflect at least 2 fact-pack points. Keep average sentence length under 40 chars and remove banned phrases. current novelty=${quality.novelty}, specificity=${quality.specificity}, evidence=${quality.evidenceDensity}, avgLen=${Math.round(quality.avgSentenceLength)}, advice=${quality.adviceCount}, banned=${quality.banned}`,
-        ].join('\n')
-        try {
-          const repaired = await callAIBackendGeneric<{ text: string }>(repairPrompt, lang, {
-            userPlan: options.userPlan,
-            maxTokensOverride: sectionTokenBudget,
-            qualityTier: getAiQualityTier('repair'),
-            debugTag: `comprehensive.sectionRepair.${sectionKey}`,
-          })
-          tokensUsed += repaired.tokensUsed || 0
-          models.add(repaired.model)
-          sectionText = sanitizeTimingContradictionsExternal(
-            postProcessSectionNarrative(repaired.sections?.text || sectionText, sectionKey, lang),
-            input
-          )
-        } catch (error) {
-          logger.warn('[AI Report] Section repair failed; keeping synthesized text', {
-            section: sectionKey,
-            error: error instanceof Error ? error.message : String(error),
-          })
-        }
-      }
-
-      sections[sectionKey] = sectionText
-    }
-  } catch (error) {
-    usedDeterministicFallback = true
-    const fallbackSections = buildComprehensiveFallbackSectionsExternal(
-      input,
-      matrixReport,
-      deterministicCore,
-      lang,
-      comprehensiveFallbackDeps,
-      reportCore,
-      { matrixSummary: options.matrixSummary }
-    )
-    for (const sectionKey of COMPREHENSIVE_SECTION_KEYS) {
-      sections[sectionKey] = fallbackSections[sectionKey]
-    }
-    logger.warn('[AI Report] Falling back to deterministic narrative sections', {
-      error: error instanceof Error ? error.message : String(error),
-      lang,
-    })
-  }
-
-  const maxRepairPasses = getEffectiveMaxRepairPasses(options.userPlan)
-  if (!usedDeterministicFallback && maxRepairPasses > 0) {
-    const sectionPaths = [...COMPREHENSIVE_SECTION_KEYS] as string[]
-    const crossPaths = sectionPaths.filter((path) => path !== 'conclusion')
-    const timingPaths = ['timingAdvice', 'actionPlan', 'careerPath', 'wealthPotential']
-    const minCharsPerSection =
-      detailLevel === 'comprehensive'
-        ? lang === 'ko'
-          ? 600
-          : 450
-        : detailLevel === 'detailed'
-          ? lang === 'ko'
-            ? 420
-            : 300
-          : lang === 'ko'
-            ? 280
-            : 220
-    const minTotalChars =
-      detailLevel === 'comprehensive'
-        ? lang === 'ko'
-          ? 9000
-          : 7000
-        : detailLevel === 'detailed'
-          ? lang === 'ko'
-            ? 6200
-            : 4600
-          : lang === 'ko'
-            ? 4200
-            : 3200
-    const minCrossCoverage = 0.75
-    const minActionCoverage = 0.7
-    const minEvidenceTripletCoverage = 0.68
-    const minTimingCoverage = 0.55
-
-    const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
-    const missingCross = getMissingCrossPaths(sections, crossPaths)
-    const crossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
-    const missingActionPaths = getMissingPathsByPredicate(sections, crossPaths, hasActionInText)
-    const actionCoverageRatio = getCoverageRatioByPredicate(sections, crossPaths, hasActionInText)
-    const missingEvidenceTripletPaths = getMissingPathsByPredicate(
-      sections,
-      crossPaths,
-      hasEvidenceTriplet
-    )
-    const evidenceTripletCoverageRatio = getCoverageRatioByPredicate(
-      sections,
-      crossPaths,
-      hasEvidenceTriplet
-    )
-    const missingTimingPaths = getMissingPathsByPredicate(sections, timingPaths, hasTimingInText)
-    const timingCoverageRatio = getCoverageRatioByPredicate(sections, timingPaths, hasTimingInText)
-    const listStylePaths = getListStylePaths(sections, sectionPaths)
-    const repetitivePaths = getRepetitivePaths(sections, sectionPaths)
-    const totalChars = countSectionChars(sections)
-    const needsRepair =
-      shortPaths.length > 0 ||
-      missingCross.length > 0 ||
-      totalChars < minTotalChars ||
-      crossCoverageRatio < minCrossCoverage ||
-      actionCoverageRatio < minActionCoverage ||
-      evidenceTripletCoverageRatio < minEvidenceTripletCoverage ||
-      timingCoverageRatio < minTimingCoverage ||
-      listStylePaths.length > 0 ||
-      repetitivePaths.length > 0
-
-    if (needsRepair && maxRepairPasses > 0) {
-      const rewritePrompt = buildNarrativeRewritePrompt(lang, sections, {
-        minCharsPerSection,
-        minTotalChars,
-        requiredTimingSections: timingPaths,
-      })
-      const repairPrompt = [
-        rewritePrompt,
-        buildDepthRepairInstruction(
-          lang,
-          sectionPaths,
-          shortPaths,
-          minCharsPerSection,
-          minTotalChars
-        ),
-        missingCross.length > 0 ? buildCrossRepairInstruction(lang, missingCross) : '',
-        crossCoverageRatio < minCrossCoverage
-          ? buildCrossCoverageRepairInstruction(lang, crossCoverageRatio, minCrossCoverage)
-          : '',
-        actionCoverageRatio < minActionCoverage
-          ? buildActionRepairInstruction(
-              lang,
-              actionCoverageRatio,
-              minActionCoverage,
-              missingActionPaths
-            )
-          : '',
-        evidenceTripletCoverageRatio < minEvidenceTripletCoverage
-          ? buildEvidenceRepairInstruction(
-              lang,
-              evidenceTripletCoverageRatio,
-              minEvidenceTripletCoverage,
-              missingEvidenceTripletPaths
-            )
-          : '',
-        timingCoverageRatio < minTimingCoverage
-          ? buildTimingRepairInstruction(
-              lang,
-              timingCoverageRatio,
-              minTimingCoverage,
-              missingTimingPaths
-            )
-          : '',
-        listStylePaths.length > 0 ? buildNarrativeStyleRepairInstruction(lang, listStylePaths) : '',
-        repetitivePaths.length > 0 ? buildAntiRepetitionInstruction(lang, repetitivePaths) : '',
-      ]
-        .filter(Boolean)
-        .join('\n')
-
-      try {
-        const repaired = await callAIBackendGeneric<AIPremiumReport['sections']>(
-          repairPrompt,
-          lang,
-          {
-            userPlan: options.userPlan,
-            maxTokensOverride,
-            qualityTier: getAiQualityTier('repair'),
-            debugTag: 'comprehensive.globalRepair',
-          }
-        )
-        const candidateSections = repaired.sections as unknown
-        if (isComprehensiveSectionsPayload(candidateSections)) {
-          sections = candidateSections
-        }
-        tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
-        models.add(repaired.model)
-
-        const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
-        const secondCrossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
-        const secondActionCoverageRatio = getCoverageRatioByPredicate(
-          sections,
-          crossPaths,
-          hasActionInText
-        )
-        const secondEvidenceTripletCoverageRatio = getCoverageRatioByPredicate(
-          sections,
-          crossPaths,
-          hasEvidenceTriplet
-        )
-        const secondTimingCoverageRatio = getCoverageRatioByPredicate(
-          sections,
-          timingPaths,
-          hasTimingInText
-        )
-        const secondTotalChars = countSectionChars(sections)
-        if (
-          maxRepairPasses > 1 &&
-          (secondShortPaths.length > 0 ||
-            secondTotalChars < minTotalChars ||
-            secondCrossCoverageRatio < minCrossCoverage ||
-            secondActionCoverageRatio < minActionCoverage ||
-            secondEvidenceTripletCoverageRatio < minEvidenceTripletCoverage ||
-            secondTimingCoverageRatio < minTimingCoverage)
-        ) {
-          const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
-          try {
-            const second = await callAIBackendGeneric<AIPremiumReport['sections']>(
-              secondPrompt,
-              lang,
-              {
-                userPlan: options.userPlan,
-                maxTokensOverride,
-                qualityTier: getAiQualityTier('repair'),
-                debugTag: 'comprehensive.globalRepair.second',
-              }
-            )
-            const secondCandidate = second.sections as unknown
-            if (isComprehensiveSectionsPayload(secondCandidate)) {
-              sections = secondCandidate
-            }
-            tokensUsed = (tokensUsed || 0) + (second.tokensUsed || 0)
-            models.add(second.model)
-          } catch (error) {
-            logger.warn(
-              '[AI Report] Second global repair pass failed; keeping first repaired result',
-              {
-                error: error instanceof Error ? error.message : String(error),
-                plan: options.userPlan || 'free',
-              }
-            )
-          }
-        }
-      } catch (error) {
-        logger.warn('[AI Report] Global narrative repair failed; keeping section-wise result', {
-          error: error instanceof Error ? error.message : String(error),
-          plan: options.userPlan || 'free',
-        })
-      }
-    }
-  }
-
-  const comprehensiveSectionPaths = [...COMPREHENSIVE_SECTION_KEYS] as string[]
-  const comprehensiveEvidenceRefs = buildComprehensiveEvidenceRefs(signalSynthesis)
-  if (!usedDeterministicFallback) {
-    const evidenceCheck = validateEvidenceBinding(
-      sections,
-      comprehensiveSectionPaths,
-      comprehensiveEvidenceRefs
-    )
-    if (evidenceCheck.needsRepair && maxRepairPasses > 0) {
-      try {
-        const repairPrompt = buildEvidenceBindingRepairPrompt(
-          lang,
-          sections,
-          comprehensiveEvidenceRefs,
-          evidenceCheck.violations
-        )
-        const repaired = await callAIBackendGeneric<AIPremiumReport['sections']>(
-          repairPrompt,
-          lang,
-          {
-            userPlan: options.userPlan,
-            maxTokensOverride,
-            qualityTier: getAiQualityTier('repair'),
-            debugTag: 'comprehensive.evidenceRepair',
-          }
-        )
-        const candidate = repaired.sections as unknown
-        if (isComprehensiveSectionsPayload(candidate)) {
-          sections = candidate
-        }
-        tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
-        models.add(repaired.model)
-      } catch (error) {
-        logger.warn('[AI Report] Evidence-binding repair failed; keeping current sections', {
-          error: error instanceof Error ? error.message : String(error),
-          plan: options.userPlan || 'free',
-        })
-      }
-    }
-
-    const finalEvidenceCheck = validateEvidenceBinding(
-      sections,
-      comprehensiveSectionPaths,
-      comprehensiveEvidenceRefs
-    )
-    if (finalEvidenceCheck.needsRepair) {
-      sections = enforceEvidenceBindingFallback(
-        sections,
-        finalEvidenceCheck.violations,
-        comprehensiveEvidenceRefs,
-        lang
-      )
-    }
-  }
-  sections = enforceEvidenceRefFooters(
-    sections,
-    comprehensiveSectionPaths,
-    comprehensiveEvidenceRefs,
-    lang
-  )
-  sections = sanitizeSectionsByPathsExternal(
-    sections,
-    comprehensiveSectionPaths,
-    narrativePathSanitizerDeps
-  )
-  sections = sanitizeComprehensiveSectionsForUser(
-    sections,
-    [...COMPREHENSIVE_SECTION_KEYS],
+    buildUnifiedEnvelope,
+    mergeComprehensiveDraftWithBlocksExternal,
+    maybePolishPremiumSections,
+    validateEvidenceBinding,
+    enforceEvidenceBindingFallback,
+    sanitizeSectionsByPathsExternal,
+    narrativePathSanitizerDeps,
+    sanitizeComprehensiveSectionsForUser,
     comprehensivePostProcessDeps,
-    lang
-  )
-  sections = applyComprehensiveSectionRoleGuards(
-    sections as AIPremiumReport['sections'],
-    reportCore,
-    normalizedInput,
-    comprehensivePostProcessDeps,
-    lang
-  )
-  sections = repairMalformedComprehensiveSections(
-    sections as AIPremiumReport['sections'],
-    reportCore,
-    normalizedInput,
-    lang
-  )
-  if (lang === 'en') {
-    sections = enforceComprehensiveNarrativeQualityFallback(
-      sections as AIPremiumReport['sections'],
-      reportCore,
-      normalizedInput,
-      lang
-    ) as unknown as Record<string, unknown>
-  }
-  sections = enforceEvidenceRefFooters(
-    sections,
-    comprehensiveSectionPaths,
-    comprehensiveEvidenceRefs,
-    lang
-  )
-
-  const model = usedDeterministicFallback ? 'deterministic-fallback' : [...models].join(' -> ')
-  const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
-  const keyStrengths = (matrixReport.topInsights || [])
-    .filter((i) => i.category === 'strength')
-    .slice(0, 3)
-    .map((i) => i.title)
-  const keyChallenges = (matrixReport.topInsights || [])
-    .filter((i) => i.category === 'challenge' || i.category === 'caution')
-    .slice(0, 3)
-    .map((i) => i.title)
-  const domainFallback = [...(matrixReport.domainAnalysis || [])]
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3)
-    .map((d) =>
-      lang === 'ko' ? `${d.domain} ??(${d.score})` : `${d.domain} strength (${d.score})`
-    )
-  const anchorFallback = (graphRagEvidence.anchors || [])
-    .slice(0, 3)
-    .map((a) =>
-      lang === 'ko' ? `${a.section} ?? ?? ??` : `${a.section} section evidence alignment`
-    )
-  const safeTopInsights = topInsights.length > 0 ? topInsights : anchorFallback
-  const safeKeyStrengths = keyStrengths.length > 0 ? keyStrengths : domainFallback
-  const safeKeyChallenges =
-    keyChallenges.length > 0
-      ? keyChallenges
-      : lang === 'ko'
-        ? ['?? ?? ?? ??', '?? ? ??? ??', '?????? ??? ??']
-        : [
-            'Caution signals require review',
-            'Recheck before final commitment',
-            'Communication risk check',
-          ]
-  const generatedAt = new Date().toISOString()
-  const unified = buildUnifiedEnvelope({
-    mode: 'comprehensive',
-    lang,
-    generatedAt,
-    matrixInput: normalizedInput,
-    matrixReport,
-    matrixSummary: options.matrixSummary,
-    signalSynthesis,
-    graphRagEvidence,
-    birthDate: options.birthDate,
-    timingData: options.timingData,
-    sectionPaths: comprehensiveSectionPaths,
-    evidenceRefs: comprehensiveEvidenceRefs,
+    applyComprehensiveSectionRoleGuards,
+    repairMalformedComprehensiveSections,
+    enforceComprehensiveNarrativeQualityFallback,
+    stripGenericEvidenceFooters,
+    enforceEvidenceRefFooters,
+    buildReportQualityMetrics,
+    shouldForceComprehensiveNarrativeFallback,
+    renderPersonalityDeepSection,
+    renderTimingAdviceSection,
+    renderActionPlanSection,
+    recordReportQualityMetrics,
+    buildExtendedComprehensiveSections,
+    getComprehensiveRenderPaths,
+    applyFinalReportStyle,
+    ensureFinalActionPlanGrounding,
+    ensureFinalReportPolish,
+    buildReportOutputCoreFields,
+    attachDeterministicArtifacts,
+    renderSectionsAsMarkdown,
+    renderSectionsAsText,
+    rewriteSectionsWithFallback,
+    recordRewriteModeMetric,
+    buildReportTrustNarratives,
+    attachTrustNarrativeToSections,
+    buildNarrativeSupplementsBySectionExternal,
+    generateNarrativeSectionsFromSynthesis,
+    buildSectionFactPack,
+    buildSectionPrompt,
+    buildSynthesisPromptBlock,
+    buildThemeSchemaPromptBlock,
+    inferAgeFromBirthDate,
+    buildLifeCyclePromptBlock,
+    buildMatrixSummary,
+    summarizeGraphRAGEvidence,
+    buildDirectToneOverride,
+    sanitizeSectionNarrative,
+    sanitizeTimingContradictionsExternal,
+    postProcessSectionNarrative,
+    evaluateSectionGate,
+    containsBannedPhrase,
+    hasTimingInText,
+    buildNarrativeRewritePrompt,
+    buildTimingRepairInstruction,
+    renderProjectionBlocksAsText,
+    callAIBackendGeneric,
+    getAiQualityTier,
+    isComprehensiveSectionsPayload,
+    hasRequiredSectionPaths,
+    getShortSectionPaths,
+    getMissingCrossPaths,
+    getCrossCoverageRatio,
+    getMissingPathsByPredicate,
+    getCoverageRatioByPredicate,
+    hasActionInText,
+    hasEvidenceTriplet,
+    getListStylePaths,
+    countSectionChars,
+    buildDepthRepairInstruction,
+    buildCrossRepairInstruction,
+    buildCrossCoverageRepairInstruction,
+    buildActionRepairInstruction,
+    buildEvidenceRepairInstruction,
+    buildNarrativeStyleRepairInstruction,
+    buildSecondPassInstruction,
+    buildAntiRepetitionInstruction,
+    getRepetitivePaths,
+    hasRepetitiveSentences,
+    buildEvidenceBindingRepairPrompt,
+    buildComprehensiveEvidenceRefsExternal,
+    getEffectiveMaxRepairPasses,
+    getCostOptimizedComprehensiveLiveSectionKeys,
+    isCostOptimizedAiPath,
+    reportCoreEnrichmentDeps,
   })
-  sections = sanitizeComprehensiveSectionsForUser(
-    sections as Record<string, unknown>,
-    [...COMPREHENSIVE_SECTION_KEYS],
-    comprehensivePostProcessDeps,
-    lang
-  )
-  sections = applyComprehensiveSectionRoleGuards(
-    sections as AIPremiumReport['sections'],
-    reportCore,
-    normalizedInput,
-    comprehensivePostProcessDeps,
-    lang
-  )
-  sections = repairMalformedComprehensiveSections(
-    sections as AIPremiumReport['sections'],
-    reportCore,
-    normalizedInput,
-    lang
-  )
-  if (lang === 'en') {
-    sections = enforceComprehensiveNarrativeQualityFallback(
-      sections as AIPremiumReport['sections'],
-      reportCore,
-      normalizedInput,
-      lang
-    ) as unknown as Record<string, unknown>
-  }
-  sections = enforceEvidenceRefFooters(
-    sections as Record<string, unknown>,
-    comprehensiveSectionPaths,
-    comprehensiveEvidenceRefs,
-    lang
-  )
-  let qualityMetrics = buildReportQualityMetrics(
-    sections as Record<string, unknown>,
-    comprehensiveSectionPaths,
-    comprehensiveEvidenceRefs,
-    {
-      requiredPaths: comprehensiveSectionPaths,
-      claims: unified.claims,
-      anchors: unified.anchors,
-      scenarioBundles: unified.scenarioBundles,
-      timelineEvents: unified.timelineEvents,
-      coreQuality: coreSeed.quality,
-    }
-  )
-  if (shouldForceComprehensiveNarrativeFallback(qualityMetrics)) {
-    sections = enforceComprehensiveNarrativeQualityFallback(
-      sections as AIPremiumReport['sections'],
-      reportCore,
-      normalizedInput,
-      lang
-    )
-    sections = enforceEvidenceRefFooters(
-      sections as Record<string, unknown>,
-      comprehensiveSectionPaths,
-      comprehensiveEvidenceRefs,
-      lang
-    ) as AIPremiumReport['sections']
-    qualityMetrics = buildReportQualityMetrics(
-      sections as Record<string, unknown>,
-      comprehensiveSectionPaths,
-      comprehensiveEvidenceRefs,
-      {
-        requiredPaths: comprehensiveSectionPaths,
-        claims: unified.claims,
-        anchors: unified.anchors,
-        scenarioBundles: unified.scenarioBundles,
-        timelineEvents: unified.timelineEvents,
-        coreQuality: coreSeed.quality,
-      }
-    )
-  }
-  recordReportQualityMetrics('comprehensive', model, qualityMetrics)
-
-  sections = repairMalformedComprehensiveSections(
-    sections as AIPremiumReport['sections'],
-    reportCore,
-    normalizedInput,
-    lang
-  ) as unknown as Record<string, unknown>
-  let outputSections = buildExtendedComprehensiveSections(
-    sections as AIPremiumReport['sections'],
-    reportCore,
-    normalizedInput,
-    lang,
-    options.matrixSummary
-  )
-  let outputSectionPaths = getComprehensiveRenderPaths(outputSections)
-  outputSections = sanitizeComprehensiveSectionsForUser(
-    outputSections as Record<string, unknown>,
-    outputSectionPaths,
-    comprehensivePostProcessDeps,
-    lang
-  ) as AIPremiumReport['sections']
-  outputSectionPaths = getComprehensiveRenderPaths(outputSections)
-  outputSections = applyFinalReportStyle(outputSections, outputSectionPaths, lang, reportCore)
-  outputSections = ensureFinalActionPlanGrounding(outputSections, lang, reportCore)
-  outputSections = ensureFinalReportPolish(outputSections, lang, reportCore)
-  outputSectionPaths = getComprehensiveRenderPaths(outputSections)
-  qualityMetrics = buildReportQualityMetrics(
-    outputSections as Record<string, unknown>,
-    outputSectionPaths,
-    comprehensiveEvidenceRefs,
-    {
-      requiredPaths: outputSectionPaths,
-      claims: unified.claims,
-      anchors: unified.anchors,
-      scenarioBundles: unified.scenarioBundles,
-      timelineEvents: unified.timelineEvents,
-      coreQuality: coreSeed.quality,
-    }
-  )
-
-  // 3. ??? ??
-  const report: AIPremiumReport = {
-    id: `air_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    generatedAt,
-    lang,
-    ...buildReportOutputCoreFields(reportCore, lang),
-    ...unified,
-    coreHash: coreSeed.coreHash,
-    patterns: coreSeed.patterns,
-    topMatchedPatterns,
-    scenarios: coreSeed.scenarios,
-
-    profile: {
-      name: options.name,
-      birthDate: options.birthDate,
-      dayMaster: input.dayMasterElement,
-      dominantElement: input.dominantWesternElement || input.dayMasterElement,
-      geokguk: input.geokguk,
-    },
-
-    sections: outputSections,
-    graphRagEvidence,
-    graphRagSummary,
-    evidenceRefs: comprehensiveEvidenceRefs,
-    evidenceRefsByPara: unified.evidenceRefsByPara,
-    deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
-    renderedMarkdown: [
-      renderSectionsAsMarkdown(outputSections as Record<string, unknown>, outputSectionPaths, lang),
-    ]
-      .filter(Boolean)
-      .join('\n\n'),
-    renderedText: [
-      renderProjectionBlocksAsText(
-        buildReportOutputCoreFields(reportCore, lang).projections,
-        lang,
-        {
-          matrixView: buildReportOutputCoreFields(reportCore, lang).matrixView,
-          singleUserModel: buildReportOutputCoreFields(reportCore, lang).singleUserModel,
-          branchSet: buildReportOutputCoreFields(reportCore, lang).branchSet,
-          singleSubjectView: buildReportOutputCoreFields(reportCore, lang).singleSubjectView,
-        }
-      ),
-      renderSectionsAsText(outputSections as Record<string, unknown>, outputSectionPaths, lang),
-    ]
-      .filter(Boolean)
-      .join('\n\n'),
-
-    matrixSummary: {
-      overallScore: matrixReport.overallScore.total,
-      grade: matrixReport.overallScore.grade,
-      topInsights: safeTopInsights,
-      keyStrengths: safeKeyStrengths,
-      keyChallenges: safeKeyChallenges,
-    },
-    signalSynthesis,
-    strategyEngine,
-
-    meta: {
-      modelUsed: model,
-      tokensUsed,
-      processingTime: Math.max(1, Date.now() - startTime),
-      reportVersion: '1.0.0',
-      qualityMetrics,
-    },
-  }
-
-  return report
 }
 
 // ===========================
@@ -3600,717 +1506,80 @@ export async function generateTimingReport(
     matrixSummary?: MatrixSummary
   } = {}
 ): Promise<TimingAIPremiumReport> {
-  const startTime = Date.now()
-  const lang = options.lang || 'ko'
-  const targetDate = options.targetDate || new Date().toISOString().split('T')[0]
-  const normalizedInput = buildNormalizedMatrixInput(input)
-  const graphRagEvidence = buildGraphRAGEvidence(normalizedInput, matrixReport, {
-    mode: 'timing',
-    period,
+  return generateTimingReportWithSupport(input, matrixReport, period, timingData, options, {
+    FORCE_REWRITE_ONLY_MODE,
+    logger,
+    buildNormalizedMatrixInput,
+    buildGraphRAGEvidence,
+    formatGraphRAGEvidenceForPrompt,
+    buildDeterministicCore,
+    runDestinyCore,
+    adaptCoreToReport,
+    buildTopMatchedPatterns,
+    buildGraphRagSummaryPayload,
+    shouldUseDeterministicOnly,
+    buildTimingFallbackSectionsExternal,
+    buildTimingEvidenceRefs,
+    buildUnifiedEnvelope,
+    enrichTimingSectionsWithReportCore,
+    buildReportTrustNarratives,
+    attachTrustNarrativeToSections,
+    maybePolishPremiumSections,
+    validateEvidenceBinding,
+    enforceEvidenceBindingFallback,
+    enforceEvidenceRefFooters,
+    sanitizeSectionsByPathsExternal,
+    narrativePathSanitizerDeps,
+    generatePeriodLabel,
+    calculatePeriodScore,
+    buildReportQualityMetrics,
+    recordReportQualityMetrics,
+    buildReportOutputCoreFields,
+    attachDeterministicArtifacts,
+    renderSectionsAsMarkdown,
+    renderSectionsAsText,
+    rewriteSectionsWithFallback,
+    recordRewriteModeMetric,
+    inferAgeFromBirthDate,
+    buildLifeCyclePromptBlock,
+    buildThemeSchemaPromptBlock,
+    buildSynthesisPromptBlock,
+    buildMatrixSummary,
+    buildTimingPrompt,
+    buildDirectToneOverride,
+    callAIBackendGeneric,
+    getAiQualityTier,
+    hasRequiredSectionPaths,
+    getEffectiveMaxRepairPasses,
+    getShortSectionPaths,
+    getMissingCrossPaths,
+    getCrossCoverageRatio,
+    getMissingPathsByPredicate,
+    getCoverageRatioByPredicate,
+    hasActionInText,
+    hasEvidenceTriplet,
+    getListStylePaths,
+    countSectionChars,
+    buildDepthRepairInstruction,
+    buildCrossRepairInstruction,
+    buildCrossCoverageRepairInstruction,
+    buildActionRepairInstruction,
+    buildEvidenceRepairInstruction,
+    buildNarrativeStyleRepairInstruction,
+    buildSecondPassInstruction,
+    buildEvidenceBindingRepairPrompt,
+    applyFinalReportStyle,
+    ensureFinalActionPlanGrounding,
+    ensureFinalReportPolish,
+    reportCoreEnrichmentDeps,
+    secondaryFallbackDeps,
   })
-  const graphRagEvidencePrompt = formatGraphRAGEvidenceForPrompt(graphRagEvidence, lang)
-  const deterministicCore = buildDeterministicCore({
-    matrixInput: normalizedInput,
-    matrixReport,
-    graphEvidence: graphRagEvidence,
-    userQuestion: options.userQuestion,
-    lang,
-    profile: options.deterministicProfile,
-  })
-  const coreSeed = runDestinyCore({
-    mode: 'timing',
-    lang,
-    matrixInput: normalizedInput,
-    matrixReport,
-    matrixSummary: options.matrixSummary,
-  })
-  const reportCore = adaptCoreToReport(coreSeed, lang)
-  const signalSynthesis = coreSeed.signalSynthesis
-  const strategyEngine = coreSeed.strategyEngine
-  const topMatchedPatterns = buildTopMatchedPatterns(coreSeed.patterns)
-  const graphRagSummary = buildGraphRagSummaryPayload(
-    lang,
-    matrixReport,
-    graphRagEvidence,
-    signalSynthesis,
-    strategyEngine,
-    reportCore
-  )
-  const deterministicOnly = shouldUseDeterministicOnly(options.deterministicOnly)
-
-  if (deterministicOnly) {
-    const sectionPaths = [
-      'overview',
-      'energy',
-      'opportunities',
-      'cautions',
-      'domains.career',
-      'domains.love',
-      'domains.wealth',
-      'domains.health',
-      'actionPlan',
-      'luckyElements',
-    ]
-    const draftSections = buildTimingFallbackSectionsExternal(
-      normalizedInput,
-      reportCore,
-      signalSynthesis,
-      lang,
-      secondaryFallbackDeps
-    )
-    const evidenceRefs = buildTimingEvidenceRefs(sectionPaths, signalSynthesis)
-    const generatedAt = new Date().toISOString()
-    const unified = buildUnifiedEnvelope({
-      mode: 'timing',
-      lang,
-      generatedAt,
-      matrixInput: normalizedInput,
-      matrixReport,
-      matrixSummary: options.matrixSummary,
-      signalSynthesis,
-      graphRagEvidence,
-      period,
-      targetDate,
-      timingData,
-      birthDate: options.birthDate,
-      sectionPaths,
-      evidenceRefs,
-    })
-    let sections = draftSections as unknown as Record<string, unknown>
-    sections = enrichTimingSectionsWithReportCore(
-      sections as unknown as TimingReportSections,
-      reportCore,
-      lang,
-      reportCoreEnrichmentDeps
-    ) as unknown as Record<string, unknown>
-    {
-      const trustNarratives = buildReportTrustNarratives(reportCore, coreSeed.quality, lang)
-      sections = attachTrustNarrativeToSections(
-        'timing',
-        sections,
-        trustNarratives.trust,
-        trustNarratives.provenance
-      )
-    }
-    const polished = await maybePolishPremiumSections<TimingReportSections>({
-      reportType: 'timing',
-      sections: sections as unknown as TimingReportSections,
-      lang,
-      userPlan: options.userPlan,
-      evidenceRefs,
-      blocksBySection: unified.blocksBySection,
-      minCharsPerSection: lang === 'ko' ? 320 : 240,
-    })
-    sections = polished.sections as unknown as Record<string, unknown>
-    {
-      const trustNarratives = buildReportTrustNarratives(reportCore, coreSeed.quality, lang)
-      sections = attachTrustNarrativeToSections(
-        'timing',
-        sections,
-        trustNarratives.trust,
-        trustNarratives.provenance
-      )
-    }
-    const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
-    if (finalEvidenceCheck.needsRepair) {
-      sections = enforceEvidenceBindingFallback(
-        sections,
-        finalEvidenceCheck.violations,
-        evidenceRefs,
-        lang
-      )
-    }
-    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
-    sections = sanitizeSectionsByPathsExternal(sections, sectionPaths, narrativePathSanitizerDeps)
-    const periodLabel = generatePeriodLabel(period, targetDate, lang)
-    const periodScore = calculatePeriodScore(timingData, input.dayMasterElement)
-    const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
-      requiredPaths: [
-        'overview',
-        'energy',
-        'opportunities',
-        'cautions',
-        'domains.career',
-        'domains.love',
-        'domains.wealth',
-        'domains.health',
-        'actionPlan',
-      ],
-      claims: unified.claims,
-      anchors: unified.anchors,
-      scenarioBundles: unified.scenarioBundles,
-      timelineEvents: unified.timelineEvents,
-      coreQuality: coreSeed.quality,
-    })
-    const finalModelUsed = polished.modelUsed
-      ? `deterministic+${polished.modelUsed}`
-      : 'deterministic-only'
-    const finalReportVersion = polished.modelUsed
-      ? '1.2.0-deterministic+rewrite'
-      : '1.2.0-deterministic-only'
-    recordReportQualityMetrics('timing', finalModelUsed, qualityMetrics)
-    return {
-      id: `timing_${period}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      generatedAt,
-      lang,
-      ...buildReportOutputCoreFields(reportCore, lang),
-      ...unified,
-      coreHash: coreSeed.coreHash,
-      patterns: coreSeed.patterns,
-      topMatchedPatterns,
-      scenarios: coreSeed.scenarios,
-      profile: {
-        name: options.name,
-        birthDate: options.birthDate,
-        dayMaster: input.dayMasterElement,
-        dominantElement: input.dominantWesternElement || input.dayMasterElement,
-      },
-      period,
-      targetDate,
-      periodLabel,
-      timingData,
-      sections: sections as unknown as TimingReportSections,
-      graphRagEvidence,
-      graphRagSummary,
-      evidenceRefs,
-      evidenceRefsByPara: unified.evidenceRefsByPara,
-      deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
-      strategyEngine,
-      renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
-      renderedText: renderSectionsAsText(sections, sectionPaths),
-      periodScore,
-      meta: {
-        modelUsed: finalModelUsed,
-        tokensUsed: polished.tokensUsed || 0,
-        processingTime: Math.max(1, Date.now() - startTime),
-        reportVersion: finalReportVersion,
-        qualityMetrics,
-      },
-    }
-  }
-
-  if (FORCE_REWRITE_ONLY_MODE && !deterministicOnly) {
-    const sectionPaths = [
-      'overview',
-      'energy',
-      'opportunities',
-      'cautions',
-      'domains.career',
-      'domains.love',
-      'domains.wealth',
-      'domains.health',
-      'actionPlan',
-      'luckyElements',
-    ]
-    const requiredPaths = [
-      'overview',
-      'energy',
-      'opportunities',
-      'cautions',
-      'domains.career',
-      'domains.love',
-      'domains.wealth',
-      'domains.health',
-      'actionPlan',
-    ]
-    const draftSections = buildTimingFallbackSectionsExternal(
-      normalizedInput,
-      reportCore,
-      signalSynthesis,
-      lang,
-      secondaryFallbackDeps
-    )
-    const evidenceRefs = buildTimingEvidenceRefs(sectionPaths, signalSynthesis)
-    const generatedAt = new Date().toISOString()
-    const unified = buildUnifiedEnvelope({
-      mode: 'timing',
-      lang,
-      generatedAt,
-      matrixInput: normalizedInput,
-      matrixReport,
-      matrixSummary: options.matrixSummary,
-      signalSynthesis,
-      graphRagEvidence,
-      period,
-      targetDate,
-      timingData,
-      birthDate: options.birthDate,
-      sectionPaths,
-      evidenceRefs,
-    })
-    const rewrite = await rewriteSectionsWithFallback<TimingReportSections>({
-      lang,
-      userPlan: options.userPlan,
-      draftSections,
-      evidenceRefs,
-      blocksBySection: unified.blocksBySection,
-      sectionPaths,
-      requiredPaths,
-      minCharsPerSection: lang === 'ko' ? 320 : 240,
-    })
-    let sections = rewrite.sections as unknown as Record<string, unknown>
-    const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
-    if (finalEvidenceCheck.needsRepair) {
-      sections = enforceEvidenceBindingFallback(
-        sections,
-        finalEvidenceCheck.violations,
-        evidenceRefs,
-        lang
-      )
-    }
-    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
-    sections = sanitizeSectionsByPathsExternal(sections, sectionPaths, narrativePathSanitizerDeps)
-    sections = enrichTimingSectionsWithReportCore(
-      sections as unknown as TimingReportSections,
-      reportCore,
-      lang,
-      reportCoreEnrichmentDeps
-    ) as unknown as Record<string, unknown>
-    const periodLabel = generatePeriodLabel(period, targetDate, lang)
-    const periodScore = calculatePeriodScore(timingData, input.dayMasterElement)
-    const qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
-      requiredPaths,
-      claims: unified.claims,
-      anchors: unified.anchors,
-      scenarioBundles: unified.scenarioBundles,
-      timelineEvents: unified.timelineEvents,
-      coreQuality: coreSeed.quality,
-    })
-    recordReportQualityMetrics('timing', rewrite.modelUsed, qualityMetrics)
-    recordRewriteModeMetric('timing', rewrite.modelUsed, rewrite.tokensUsed)
-    return {
-      id: `timing_${period}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      generatedAt,
-      lang,
-      ...unified,
-      coreHash: coreSeed.coreHash,
-      patterns: coreSeed.patterns,
-      topMatchedPatterns,
-      scenarios: coreSeed.scenarios,
-      profile: {
-        name: options.name,
-        birthDate: options.birthDate,
-        dayMaster: input.dayMasterElement,
-        dominantElement: input.dominantWesternElement || input.dayMasterElement,
-      },
-      period,
-      targetDate,
-      periodLabel,
-      timingData,
-      sections: sections as unknown as TimingReportSections,
-      graphRagEvidence,
-      graphRagSummary,
-      evidenceRefs,
-      evidenceRefsByPara: unified.evidenceRefsByPara,
-      deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
-      strategyEngine,
-      renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
-      renderedText: renderSectionsAsText(sections, sectionPaths),
-      periodScore,
-      meta: {
-        modelUsed: rewrite.modelUsed,
-        tokensUsed: rewrite.tokensUsed,
-        processingTime: Math.max(1, Date.now() - startTime),
-        reportVersion: '1.1.0-rewrite-only',
-        qualityMetrics,
-      },
-    }
-  }
-  const inferredAge = inferAgeFromBirthDate(options.birthDate)
-  const lifecyclePrompt = inferredAge !== null ? buildLifeCyclePromptBlock(inferredAge, lang) : ''
-  const themeSchemaPrompt = buildThemeSchemaPromptBlock('comprehensive', lang)
-  const synthesisPromptBlock = buildSynthesisPromptBlock(
-    signalSynthesis,
-    strategyEngine,
-    lang,
-    'timing'
-  )
-
-  // 1. Build matrix summary
-  const matrixSummary = buildMatrixSummary(matrixReport, lang)
-
-  // 2. Build prompt
-  const prompt = `${buildTimingPrompt(
-    period,
-    lang,
-    {
-      name: options.name,
-      birthDate: options.birthDate,
-      dayMaster: input.dayMasterElement,
-      dayMasterElement: input.dayMasterElement,
-    },
-    timingData,
-    targetDate,
-    matrixSummary,
-    graphRagEvidencePrompt,
-    options.userQuestion,
-    deterministicCore.promptBlock
-  )}\n\n${themeSchemaPrompt}\n\n${lifecyclePrompt}\n\n${buildDirectToneOverride(lang)}\n\n${synthesisPromptBlock}`
-
-  // 3. Call AI backend + quality gate (length/cross evidence)
-  const base = await callAIBackendGeneric<TimingReportSections>(prompt, lang, {
-    userPlan: options.userPlan,
-    qualityTier: getAiQualityTier('base'),
-  })
-  const timingRequiredPaths = [
-    'overview',
-    'energy',
-    'opportunities',
-    'cautions',
-    'domains.career',
-    'domains.love',
-    'domains.wealth',
-    'domains.health',
-    'actionPlan',
-  ]
-  let sections = hasRequiredSectionPaths(base.sections as unknown, timingRequiredPaths)
-    ? (base.sections as unknown as Record<string, unknown>)
-    : (buildTimingFallbackSectionsExternal(
-        normalizedInput,
-        reportCore,
-        signalSynthesis,
-        lang,
-        secondaryFallbackDeps
-      ) as unknown as Record<string, unknown>)
-  let model = base.model
-  let tokensUsed = base.tokensUsed
-  const maxRepairPasses = getEffectiveMaxRepairPasses(options.userPlan)
-
-  const sectionPaths = [
-    'overview',
-    'energy',
-    'opportunities',
-    'cautions',
-    'domains.career',
-    'domains.love',
-    'domains.wealth',
-    'domains.health',
-    'actionPlan',
-    'luckyElements',
-  ]
-  const crossPaths = [
-    'overview',
-    'energy',
-    'opportunities',
-    'cautions',
-    'domains.career',
-    'domains.love',
-    'domains.wealth',
-    'domains.health',
-    'actionPlan',
-  ]
-  const minCharsPerSection = lang === 'ko' ? 300 : 230
-  const minTotalChars = lang === 'ko' ? 5200 : 4000
-  const minCrossCoverage = 0.72
-  const minActionCoverage = 0.65
-  const minEvidenceTripletCoverage = 0.65
-
-  const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
-  const missingCross = getMissingCrossPaths(sections, crossPaths)
-  const crossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
-  const missingActionPaths = getMissingPathsByPredicate(sections, crossPaths, hasActionInText)
-  const actionCoverageRatio = getCoverageRatioByPredicate(sections, crossPaths, hasActionInText)
-  const missingEvidenceTripletPaths = getMissingPathsByPredicate(
-    sections,
-    crossPaths,
-    hasEvidenceTriplet
-  )
-  const listStylePaths = getListStylePaths(sections, sectionPaths)
-  const evidenceTripletCoverageRatio = getCoverageRatioByPredicate(
-    sections,
-    crossPaths,
-    hasEvidenceTriplet
-  )
-  const totalChars = countSectionChars(sections)
-  const needsRepair =
-    shortPaths.length > 0 ||
-    missingCross.length > 0 ||
-    totalChars < minTotalChars ||
-    crossCoverageRatio < minCrossCoverage ||
-    actionCoverageRatio < minActionCoverage ||
-    evidenceTripletCoverageRatio < minEvidenceTripletCoverage ||
-    listStylePaths.length > 0
-
-  if (needsRepair && maxRepairPasses > 0) {
-    const repairPrompt = [
-      prompt,
-      buildDepthRepairInstruction(
-        lang,
-        sectionPaths,
-        shortPaths,
-        minCharsPerSection,
-        minTotalChars
-      ),
-      missingCross.length > 0 ? buildCrossRepairInstruction(lang, missingCross) : '',
-      crossCoverageRatio < minCrossCoverage
-        ? buildCrossCoverageRepairInstruction(lang, crossCoverageRatio, minCrossCoverage)
-        : '',
-      actionCoverageRatio < minActionCoverage
-        ? buildActionRepairInstruction(
-            lang,
-            actionCoverageRatio,
-            minActionCoverage,
-            missingActionPaths
-          )
-        : '',
-      evidenceTripletCoverageRatio < minEvidenceTripletCoverage
-        ? buildEvidenceRepairInstruction(
-            lang,
-            evidenceTripletCoverageRatio,
-            minEvidenceTripletCoverage,
-            missingEvidenceTripletPaths
-          )
-        : '',
-      listStylePaths.length > 0 ? buildNarrativeStyleRepairInstruction(lang, listStylePaths) : '',
-    ]
-      .filter(Boolean)
-      .join('\n')
-    try {
-      const repaired = await callAIBackendGeneric<TimingReportSections>(repairPrompt, lang, {
-        userPlan: options.userPlan,
-        qualityTier: getAiQualityTier('repair'),
-      })
-      const repairedSections = repaired.sections as unknown
-      if (hasRequiredSectionPaths(repairedSections, timingRequiredPaths)) {
-        sections = repairedSections as Record<string, unknown>
-      }
-      model = repaired.model
-      tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
-
-      const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
-      const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
-      const secondCrossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
-      const secondActionCoverageRatio = getCoverageRatioByPredicate(
-        sections,
-        crossPaths,
-        hasActionInText
-      )
-      const secondEvidenceTripletCoverageRatio = getCoverageRatioByPredicate(
-        sections,
-        crossPaths,
-        hasEvidenceTriplet
-      )
-      const secondTotalChars = countSectionChars(sections)
-      if (
-        maxRepairPasses > 1 &&
-        (secondShortPaths.length > 0 ||
-          secondMissingCross.length > 0 ||
-          secondTotalChars < minTotalChars ||
-          secondCrossCoverageRatio < minCrossCoverage ||
-          secondActionCoverageRatio < minActionCoverage ||
-          secondEvidenceTripletCoverageRatio < minEvidenceTripletCoverage)
-      ) {
-        const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
-        try {
-          const second = await callAIBackendGeneric<TimingReportSections>(secondPrompt, lang, {
-            userPlan: options.userPlan,
-            qualityTier: getAiQualityTier('repair'),
-          })
-          const secondSections = second.sections as unknown
-          if (hasRequiredSectionPaths(secondSections, timingRequiredPaths)) {
-            sections = secondSections as Record<string, unknown>
-          }
-          model = second.model
-          tokensUsed = (tokensUsed || 0) + (second.tokensUsed || 0)
-        } catch (error) {
-          logger.warn('[Timing Report] Second repair pass failed; using first repaired result', {
-            error: error instanceof Error ? error.message : String(error),
-            plan: options.userPlan || 'free',
-          })
-        }
-      }
-    } catch (error) {
-      logger.warn('[Timing Report] Repair pass failed; using base response', {
-        error: error instanceof Error ? error.message : String(error),
-        plan: options.userPlan || 'free',
-      })
-    }
-  }
-
-  const timingEvidenceRefs = buildTimingEvidenceRefs(sectionPaths, signalSynthesis)
-  const timingEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, timingEvidenceRefs)
-  if (timingEvidenceCheck.needsRepair && maxRepairPasses > 0) {
-    try {
-      const repairPrompt = buildEvidenceBindingRepairPrompt(
-        lang,
-        sections,
-        timingEvidenceRefs,
-        timingEvidenceCheck.violations
-      )
-      const repaired = await callAIBackendGeneric<TimingReportSections>(repairPrompt, lang, {
-        userPlan: options.userPlan,
-        qualityTier: getAiQualityTier('repair'),
-      })
-      const repairedSections = repaired.sections as unknown
-      if (hasRequiredSectionPaths(repairedSections, timingRequiredPaths)) {
-        sections = repairedSections as Record<string, unknown>
-      }
-      model = repaired.model
-      tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
-    } catch (error) {
-      logger.warn('[Timing Report] Evidence-binding repair failed; using current response', {
-        error: error instanceof Error ? error.message : String(error),
-        plan: options.userPlan || 'free',
-      })
-    }
-  }
-
-  const finalTimingEvidenceCheck = validateEvidenceBinding(
-    sections,
-    sectionPaths,
-    timingEvidenceRefs
-  )
-  if (finalTimingEvidenceCheck.needsRepair) {
-    sections = enforceEvidenceBindingFallback(
-      sections,
-      finalTimingEvidenceCheck.violations,
-      timingEvidenceRefs,
-      lang
-    )
-  }
-  sections = enforceEvidenceRefFooters(sections, sectionPaths, timingEvidenceRefs, lang)
-  sections = sanitizeSectionsByPathsExternal(sections, sectionPaths, narrativePathSanitizerDeps)
-  sections = enrichTimingSectionsWithReportCore(
-    sections as unknown as TimingReportSections,
-    reportCore,
-    lang,
-    reportCoreEnrichmentDeps
-  ) as unknown as Record<string, unknown>
-
-  // 4. Build period label
-  const periodLabel = generatePeriodLabel(period, targetDate, lang)
-
-  // 5. Calculate score
-  const periodScore = calculatePeriodScore(timingData, input.dayMasterElement)
-  const generatedAt = new Date().toISOString()
-  const unified = buildUnifiedEnvelope({
-    mode: 'timing',
-    lang,
-    generatedAt,
-    matrixInput: normalizedInput,
-    matrixReport,
-    matrixSummary: options.matrixSummary,
-    signalSynthesis,
-    graphRagEvidence,
-    period,
-    targetDate,
-    timingData,
-    birthDate: options.birthDate,
-    sectionPaths,
-    evidenceRefs: timingEvidenceRefs,
-  })
-  const qualityMetrics = buildReportQualityMetrics(
-    sections as Record<string, unknown>,
-    sectionPaths,
-    timingEvidenceRefs,
-    {
-      requiredPaths: timingRequiredPaths,
-      claims: unified.claims,
-      anchors: unified.anchors,
-      scenarioBundles: unified.scenarioBundles,
-      timelineEvents: unified.timelineEvents,
-      coreQuality: coreSeed.quality,
-    }
-  )
-  sections = applyFinalReportStyle(
-    sections as Record<string, unknown>,
-    sectionPaths,
-    lang,
-    reportCore
-  )
-  sections = ensureFinalActionPlanGrounding(sections as Record<string, unknown>, lang, reportCore)
-  sections = ensureFinalReportPolish(sections as Record<string, unknown>, lang, reportCore)
-  const styledTimingQualityMetrics = buildReportQualityMetrics(
-    sections as Record<string, unknown>,
-    sectionPaths,
-    timingEvidenceRefs,
-    {
-      requiredPaths: timingRequiredPaths,
-      claims: unified.claims,
-      anchors: unified.anchors,
-      scenarioBundles: unified.scenarioBundles,
-      timelineEvents: unified.timelineEvents,
-      coreQuality: coreSeed.quality,
-    }
-  )
-
-  // 6. Assemble report
-  const report: TimingAIPremiumReport = {
-    id: `timing_${period}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    generatedAt,
-    lang,
-    ...buildReportOutputCoreFields(reportCore, lang),
-    ...unified,
-    coreHash: coreSeed.coreHash,
-    patterns: coreSeed.patterns,
-    topMatchedPatterns,
-    scenarios: coreSeed.scenarios,
-
-    profile: {
-      name: options.name,
-      birthDate: options.birthDate,
-      dayMaster: input.dayMasterElement,
-      dominantElement: input.dominantWesternElement || input.dayMasterElement,
-    },
-
-    period,
-    targetDate,
-    periodLabel,
-
-    timingData,
-    sections: sections as unknown as TimingReportSections,
-    graphRagEvidence,
-    graphRagSummary,
-    evidenceRefs: timingEvidenceRefs,
-    evidenceRefsByPara: unified.evidenceRefsByPara,
-    deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
-    strategyEngine,
-    renderedMarkdown: renderSectionsAsMarkdown(
-      sections as Record<string, unknown>,
-      [
-        'overview',
-        'energy',
-        'opportunities',
-        'cautions',
-        'domains.career',
-        'domains.love',
-        'domains.wealth',
-        'domains.health',
-        'actionPlan',
-        'luckyElements',
-      ],
-      lang
-    ),
-    renderedText: renderSectionsAsText(sections as Record<string, unknown>, [
-      'overview',
-      'energy',
-      'opportunities',
-      'cautions',
-      'domains.career',
-      'domains.love',
-      'domains.wealth',
-      'domains.health',
-      'actionPlan',
-      'luckyElements',
-    ]),
-    periodScore,
-
-    meta: {
-      modelUsed: model,
-      tokensUsed,
-      processingTime: Math.max(1, Date.now() - startTime),
-      reportVersion: '1.0.0',
-      qualityMetrics: styledTimingQualityMetrics,
-    },
-  }
-
-  recordReportQualityMetrics('timing', model, report.meta.qualityMetrics!)
-
-  return report
 }
 
 // ===========================
 // Themed report generation function
+// ===========================
+
 // ===========================
 
 export async function generateThemedReport(
@@ -4329,753 +1598,78 @@ export async function generateThemedReport(
     matrixSummary?: MatrixSummary
   } = {}
 ): Promise<ThemedAIPremiumReport> {
-  const startTime = Date.now()
-  const lang = options.lang || 'ko'
-  const normalizedInput = buildNormalizedMatrixInput(input)
-  const graphRagEvidence = buildGraphRAGEvidence(normalizedInput, matrixReport, {
-    mode: 'themed',
-    theme,
-  })
-  const graphRagEvidencePrompt = formatGraphRAGEvidenceForPrompt(graphRagEvidence, lang)
-  const deterministicCore = buildDeterministicCore({
-    matrixInput: normalizedInput,
-    matrixReport,
-    graphEvidence: graphRagEvidence,
-    userQuestion: options.userQuestion,
-    lang,
-    profile: options.deterministicProfile,
-  })
-  const coreSeed = runDestinyCore({
-    mode: 'themed',
-    lang,
-    matrixInput: normalizedInput,
-    matrixReport,
-    matrixSummary: options.matrixSummary,
-  })
-  const reportCore = adaptCoreToReport(coreSeed, lang)
-  const signalSynthesis = coreSeed.signalSynthesis
-  const strategyEngine = coreSeed.strategyEngine
-  const topMatchedPatterns = buildTopMatchedPatterns(coreSeed.patterns)
-  const graphRagSummary = buildGraphRagSummaryPayload(
-    lang,
-    matrixReport,
-    graphRagEvidence,
-    signalSynthesis,
-    strategyEngine,
-    reportCore
-  )
-  const deterministicOnly = shouldUseDeterministicOnly(options.deterministicOnly)
-
-  if (deterministicOnly) {
-    const sectionPaths = [...getThemedSectionKeys(theme)]
-    const draftSections = buildProjectionFirstThemedSections(
-      theme,
-      reportCore,
-      normalizedInput,
-      lang,
-      timingData
-    )
-    const evidenceRefs = buildThemedEvidenceRefs(theme, sectionPaths, signalSynthesis)
-    const generatedAt = new Date().toISOString()
-    const unified = buildUnifiedEnvelope({
-      mode: 'themed',
-      lang,
-      generatedAt,
-      matrixInput: normalizedInput,
-      matrixReport,
-      matrixSummary: options.matrixSummary,
-      signalSynthesis,
-      graphRagEvidence,
-      timingData,
-      birthDate: options.birthDate,
-      sectionPaths,
-      evidenceRefs,
-    })
-    let sections = draftSections as unknown as Record<string, unknown>
-    sections = enrichThemedSectionsWithReportCore(
-      sections as unknown as ThemedReportSections,
-      reportCore,
-      lang,
-      theme,
-      normalizedInput,
-      reportCoreEnrichmentDeps,
-      timingData
-    ) as unknown as Record<string, unknown>
-    {
-      const trustNarratives = buildReportTrustNarratives(reportCore, coreSeed.quality, lang)
-      sections = attachTrustNarrativeToSections(
-        'themed',
-        sections,
-        trustNarratives.trust,
-        trustNarratives.provenance
-      )
-    }
-    const polished = await maybePolishPremiumSections<ThemedReportSections>({
-      reportType: 'themed',
-      theme,
-      sections: sections as unknown as ThemedReportSections,
-      lang,
-      userPlan: options.userPlan,
-      evidenceRefs,
-      blocksBySection: unified.blocksBySection,
-      minCharsPerSection: lang === 'ko' ? 340 : 260,
-    })
-    sections = polished.sections as unknown as Record<string, unknown>
-    {
-      const trustNarratives = buildReportTrustNarratives(reportCore, coreSeed.quality, lang)
-      sections = attachTrustNarrativeToSections(
-        'themed',
-        sections,
-        trustNarratives.trust,
-        trustNarratives.provenance
-      )
-    }
-    const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
-    if (finalEvidenceCheck.needsRepair) {
-      sections = enforceEvidenceBindingFallback(
-        sections,
-        finalEvidenceCheck.violations,
-        evidenceRefs,
-        lang
-      )
-    }
-    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
-    sections = sanitizeSectionsByPathsExternal(sections, sectionPaths, narrativePathSanitizerDeps)
-    sections = sanitizeThemedSectionsForUserExternal(
-      sections,
-      sectionPaths,
-      lang,
-      secondaryPostProcessDeps,
-      theme
-    )
-    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
-    const themeMeta = THEME_META[theme]
-    const themeScore = calculateThemeScore(theme, normalizedInput.sibsinDistribution)
-    const keywords = extractKeywords(sections as unknown as ThemedReportSections, theme, lang)
-    let qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
-      requiredPaths: sectionPaths,
-      claims: unified.claims,
-      anchors: unified.anchors,
-      scenarioBundles: unified.scenarioBundles,
-      timelineEvents: unified.timelineEvents,
-      coreQuality: coreSeed.quality,
-    })
-    if (shouldForceThemedNarrativeFallback(qualityMetrics)) {
-      sections = enforceThemedNarrativeQualityFallback(
-        theme,
-        reportCore,
-        signalSynthesis,
-        normalizedInput,
-        lang,
-        timingData,
-        evidenceRefs
-      ) as unknown as Record<string, unknown>
-      qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
-        requiredPaths: sectionPaths,
-        claims: unified.claims,
-        anchors: unified.anchors,
-        scenarioBundles: unified.scenarioBundles,
-        timelineEvents: unified.timelineEvents,
-        coreQuality: coreSeed.quality,
-      })
-    }
-    sections = finalizeThemedSectionsForUser(
-      theme,
-      reportCore,
-      normalizedInput,
-      lang,
-      timingData
-    ) as unknown as Record<string, unknown>
-    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
-    sections = sanitizeThemedSectionsForUserExternal(
-      sections,
-      sectionPaths,
-      lang,
-      secondaryPostProcessDeps,
-      theme
-    )
-    const finalModelUsed = polished.modelUsed
-      ? `deterministic+${polished.modelUsed}`
-      : 'deterministic-only'
-    const finalReportVersion = polished.modelUsed
-      ? '1.2.0-deterministic+rewrite'
-      : '1.2.0-deterministic-only'
-    recordReportQualityMetrics('themed', finalModelUsed, qualityMetrics)
-    return {
-      id: `themed_${theme}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      generatedAt,
-      lang,
-      ...buildReportOutputCoreFields(reportCore, lang),
-      ...unified,
-      coreHash: coreSeed.coreHash,
-      patterns: coreSeed.patterns,
-      topMatchedPatterns,
-      scenarios: coreSeed.scenarios,
-      profile: {
-        name: options.name,
-        birthDate: options.birthDate,
-        dayMaster: input.dayMasterElement,
-        dominantElement: input.dominantWesternElement || input.dayMasterElement,
-      },
-      theme,
-      themeLabel: themeMeta.label[lang],
-      themeEmoji: themeMeta.emoji,
-      sections: sections as unknown as ThemedReportSections,
-      graphRagEvidence,
-      graphRagSummary,
-      evidenceRefs,
-      evidenceRefsByPara: unified.evidenceRefsByPara,
-      deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
-      strategyEngine,
-      renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
-      renderedText: renderSectionsAsText(sections, sectionPaths),
-      themeScore,
-      keywords,
-      meta: {
-        modelUsed: finalModelUsed,
-        tokensUsed: polished.tokensUsed || 0,
-        processingTime: Math.max(1, Date.now() - startTime),
-        reportVersion: finalReportVersion,
-        qualityMetrics,
-      },
-    }
-  }
-
-  if (FORCE_REWRITE_ONLY_MODE && !deterministicOnly) {
-    const sectionPaths = [...getThemedSectionKeys(theme)]
-    const requiredPaths = [...sectionPaths]
-    const draftSections = buildProjectionFirstThemedSections(
-      theme,
-      reportCore,
-      normalizedInput,
-      lang,
-      timingData
-    )
-    const evidenceRefs = buildThemedEvidenceRefs(theme, sectionPaths, signalSynthesis)
-    const generatedAt = new Date().toISOString()
-    const unified = buildUnifiedEnvelope({
-      mode: 'themed',
-      lang,
-      generatedAt,
-      matrixInput: normalizedInput,
-      matrixReport,
-      matrixSummary: options.matrixSummary,
-      signalSynthesis,
-      graphRagEvidence,
-      timingData,
-      birthDate: options.birthDate,
-      sectionPaths,
-      evidenceRefs,
-    })
-    const rewrite = await rewriteSectionsWithFallback<ThemedReportSections>({
-      lang,
-      userPlan: options.userPlan,
-      draftSections,
-      evidenceRefs,
-      blocksBySection: unified.blocksBySection,
-      sectionPaths,
-      requiredPaths,
-      minCharsPerSection: lang === 'ko' ? 340 : 260,
-    })
-    let sections = rewrite.sections as unknown as Record<string, unknown>
-    const finalEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, evidenceRefs)
-    if (finalEvidenceCheck.needsRepair) {
-      sections = enforceEvidenceBindingFallback(
-        sections,
-        finalEvidenceCheck.violations,
-        evidenceRefs,
-        lang
-      )
-    }
-    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
-    sections = sanitizeSectionsByPathsExternal(sections, sectionPaths, narrativePathSanitizerDeps)
-    sections = enrichThemedSectionsWithReportCore(
-      sections as unknown as ThemedReportSections,
-      reportCore,
-      lang,
-      theme,
-      normalizedInput,
-      reportCoreEnrichmentDeps,
-      timingData
-    ) as unknown as Record<string, unknown>
-    sections = sanitizeThemedSectionsForUserExternal(
-      sections,
-      sectionPaths,
-      lang,
-      secondaryPostProcessDeps,
-      theme
-    )
-    sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
-    const themeMeta = THEME_META[theme]
-    const themeScore = calculateThemeScore(theme, normalizedInput.sibsinDistribution)
-    const keywords = extractKeywords(sections as unknown as ThemedReportSections, theme, lang)
-    let qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
-      requiredPaths,
-      claims: unified.claims,
-      anchors: unified.anchors,
-      scenarioBundles: unified.scenarioBundles,
-      timelineEvents: unified.timelineEvents,
-      coreQuality: coreSeed.quality,
-    })
-    if (shouldForceThemedNarrativeFallback(qualityMetrics)) {
-      sections = enforceThemedNarrativeQualityFallback(
-        theme,
-        reportCore,
-        signalSynthesis,
-        normalizedInput,
-        lang,
-        timingData,
-        evidenceRefs
-      ) as unknown as Record<string, unknown>
-      qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
-        requiredPaths,
-        claims: unified.claims,
-        anchors: unified.anchors,
-        scenarioBundles: unified.scenarioBundles,
-        timelineEvents: unified.timelineEvents,
-        coreQuality: coreSeed.quality,
-      })
-    }
-    sections = sanitizeThemedSectionsForUserExternal(
-      sections,
-      sectionPaths,
-      lang,
-      secondaryPostProcessDeps,
-      theme
-    )
-    recordReportQualityMetrics('themed', rewrite.modelUsed, qualityMetrics)
-    recordRewriteModeMetric('themed', rewrite.modelUsed, rewrite.tokensUsed)
-    return {
-      id: `themed_${theme}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      generatedAt,
-      lang,
-      ...buildReportOutputCoreFields(reportCore, lang),
-      ...unified,
-      coreHash: coreSeed.coreHash,
-      patterns: coreSeed.patterns,
-      topMatchedPatterns,
-      scenarios: coreSeed.scenarios,
-      profile: {
-        name: options.name,
-        birthDate: options.birthDate,
-        dayMaster: input.dayMasterElement,
-        dominantElement: input.dominantWesternElement || input.dayMasterElement,
-      },
-      theme,
-      themeLabel: themeMeta.label[lang],
-      themeEmoji: themeMeta.emoji,
-      sections: sections as unknown as ThemedReportSections,
-      graphRagEvidence,
-      graphRagSummary,
-      evidenceRefs,
-      evidenceRefsByPara: unified.evidenceRefsByPara,
-      deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
-      strategyEngine,
-      renderedMarkdown: renderSectionsAsMarkdown(sections, sectionPaths, lang),
-      renderedText: renderSectionsAsText(sections, sectionPaths),
-      themeScore,
-      keywords,
-      meta: {
-        modelUsed: rewrite.modelUsed,
-        tokensUsed: rewrite.tokensUsed,
-        processingTime: Math.max(1, Date.now() - startTime),
-        reportVersion: '1.1.0-rewrite-only',
-        qualityMetrics,
-      },
-    }
-  }
-  const inferredAge = inferAgeFromBirthDate(options.birthDate)
-  const lifecyclePrompt = inferredAge !== null ? buildLifeCyclePromptBlock(inferredAge, lang) : ''
-  const themeSchemaPrompt = buildThemeSchemaPromptBlock(theme, lang)
-  const synthesisPromptBlock = buildSynthesisPromptBlock(
-    signalSynthesis,
-    strategyEngine,
-    lang,
-    'themed',
-    theme
-  )
-
-  // 1. Build matrix summary
-  const matrixSummary = buildMatrixSummary(matrixReport, lang)
-
-  // 2. Build prompt
-  const prompt = `${buildThemedPrompt(
-    theme,
-    lang,
-    {
-      name: options.name,
-      birthDate: options.birthDate,
-      dayMaster: input.dayMasterElement,
-      dayMasterElement: input.dayMasterElement,
-      sibsinDistribution: input.sibsinDistribution,
-    },
-    timingData,
-    matrixSummary,
-    undefined,
-    graphRagEvidencePrompt,
-    options.userQuestion,
-    deterministicCore.promptBlock
-  )}\n\n${themeSchemaPrompt}\n\n${lifecyclePrompt}\n\n${buildDirectToneOverride(lang)}\n\n${synthesisPromptBlock}`
-
-  // 3. Call AI backend + quality gate (length/cross evidence)
-  const base = await callAIBackendGeneric<ThemedReportSections>(prompt, lang, {
-    userPlan: options.userPlan,
-    qualityTier: getAiQualityTier('base'),
-  })
-  const themedRequiredPaths = [...getThemedSectionKeys(theme)]
-  let sections = hasRequiredSectionPaths(base.sections as unknown, themedRequiredPaths)
-    ? (base.sections as unknown as Record<string, unknown>)
-    : (buildProjectionFirstThemedSections(
-        theme,
-        reportCore,
-        normalizedInput,
-        lang,
-        timingData
-      ) as unknown as Record<string, unknown>)
-  let model = base.model
-  let tokensUsed = base.tokensUsed
-  const maxRepairPasses = getEffectiveMaxRepairPasses(options.userPlan)
-
-  const sectionPaths = [...getThemedSectionKeys(theme)]
-  const crossPaths = sectionPaths.filter((path) => path !== 'recommendations')
-  const minCharsPerSection = lang === 'ko' ? 320 : 240
-  const minTotalChars = lang === 'ko' ? 5600 : 4200
-  const minCrossCoverage = 0.72
-  const minActionCoverage = 0.65
-  const minEvidenceTripletCoverage = 0.65
-  const shortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
-  const missingCross = getMissingCrossPaths(sections, crossPaths)
-  const crossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
-  const missingActionPaths = getMissingPathsByPredicate(sections, crossPaths, hasActionInText)
-  const actionCoverageRatio = getCoverageRatioByPredicate(sections, crossPaths, hasActionInText)
-  const missingEvidenceTripletPaths = getMissingPathsByPredicate(
-    sections,
-    crossPaths,
-    hasEvidenceTriplet
-  )
-  const evidenceTripletCoverageRatio = getCoverageRatioByPredicate(
-    sections,
-    crossPaths,
-    hasEvidenceTriplet
-  )
-  const listStylePaths = getListStylePaths(sections, sectionPaths)
-  const totalChars = countSectionChars(sections)
-  const needsRepair =
-    shortPaths.length > 0 ||
-    missingCross.length > 0 ||
-    totalChars < minTotalChars ||
-    crossCoverageRatio < minCrossCoverage ||
-    actionCoverageRatio < minActionCoverage ||
-    evidenceTripletCoverageRatio < minEvidenceTripletCoverage ||
-    listStylePaths.length > 0
-
-  if (needsRepair && maxRepairPasses > 0) {
-    const repairPrompt = [
-      prompt,
-      buildDepthRepairInstruction(
-        lang,
-        sectionPaths,
-        shortPaths,
-        minCharsPerSection,
-        minTotalChars
-      ),
-      missingCross.length > 0 ? buildCrossRepairInstruction(lang, missingCross) : '',
-      crossCoverageRatio < minCrossCoverage
-        ? buildCrossCoverageRepairInstruction(lang, crossCoverageRatio, minCrossCoverage)
-        : '',
-      actionCoverageRatio < minActionCoverage
-        ? buildActionRepairInstruction(
-            lang,
-            actionCoverageRatio,
-            minActionCoverage,
-            missingActionPaths
-          )
-        : '',
-      evidenceTripletCoverageRatio < minEvidenceTripletCoverage
-        ? buildEvidenceRepairInstruction(
-            lang,
-            evidenceTripletCoverageRatio,
-            minEvidenceTripletCoverage,
-            missingEvidenceTripletPaths
-          )
-        : '',
-      listStylePaths.length > 0 ? buildNarrativeStyleRepairInstruction(lang, listStylePaths) : '',
-    ]
-      .filter(Boolean)
-      .join('\n')
-    try {
-      const repaired = await callAIBackendGeneric<ThemedReportSections>(repairPrompt, lang, {
-        userPlan: options.userPlan,
-        qualityTier: getAiQualityTier('repair'),
-      })
-      const repairedSections = repaired.sections as unknown
-      if (hasRequiredSectionPaths(repairedSections, themedRequiredPaths)) {
-        sections = repairedSections as Record<string, unknown>
-      }
-      model = repaired.model
-      tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
-
-      const secondShortPaths = getShortSectionPaths(sections, sectionPaths, minCharsPerSection)
-      const secondMissingCross = getMissingCrossPaths(sections, crossPaths)
-      const secondCrossCoverageRatio = getCrossCoverageRatio(sections, crossPaths)
-      const secondActionCoverageRatio = getCoverageRatioByPredicate(
-        sections,
-        crossPaths,
-        hasActionInText
-      )
-      const secondEvidenceTripletCoverageRatio = getCoverageRatioByPredicate(
-        sections,
-        crossPaths,
-        hasEvidenceTriplet
-      )
-      const secondListStylePaths = getListStylePaths(sections, sectionPaths)
-      const secondTotalChars = countSectionChars(sections)
-      if (
-        maxRepairPasses > 1 &&
-        (secondShortPaths.length > 0 ||
-          secondMissingCross.length > 0 ||
-          secondTotalChars < minTotalChars ||
-          secondCrossCoverageRatio < minCrossCoverage ||
-          secondActionCoverageRatio < minActionCoverage ||
-          secondEvidenceTripletCoverageRatio < minEvidenceTripletCoverage ||
-          secondListStylePaths.length > 0)
-      ) {
-        const secondPrompt = [repairPrompt, buildSecondPassInstruction(lang)].join('\n')
-        try {
-          const second = await callAIBackendGeneric<ThemedReportSections>(secondPrompt, lang, {
-            userPlan: options.userPlan,
-            qualityTier: getAiQualityTier('repair'),
-          })
-          const secondSections = second.sections as unknown
-          if (hasRequiredSectionPaths(secondSections, themedRequiredPaths)) {
-            sections = secondSections as Record<string, unknown>
-          }
-          model = second.model
-          tokensUsed = (tokensUsed || 0) + (second.tokensUsed || 0)
-        } catch (error) {
-          logger.warn('[Themed Report] Second repair pass failed; using first repaired result', {
-            error: error instanceof Error ? error.message : String(error),
-            plan: options.userPlan || 'free',
-          })
-        }
-      }
-    } catch (error) {
-      logger.warn('[Themed Report] Repair pass failed; using base response', {
-        error: error instanceof Error ? error.message : String(error),
-        plan: options.userPlan || 'free',
-      })
-    }
-  }
-
-  const themedEvidenceRefs = buildThemedEvidenceRefs(theme, sectionPaths, signalSynthesis)
-  const themedEvidenceCheck = validateEvidenceBinding(sections, sectionPaths, themedEvidenceRefs)
-  if (themedEvidenceCheck.needsRepair && maxRepairPasses > 0) {
-    try {
-      const repairPrompt = buildEvidenceBindingRepairPrompt(
-        lang,
-        sections,
-        themedEvidenceRefs,
-        themedEvidenceCheck.violations
-      )
-      const repaired = await callAIBackendGeneric<ThemedReportSections>(repairPrompt, lang, {
-        userPlan: options.userPlan,
-        qualityTier: getAiQualityTier('repair'),
-      })
-      const repairedSections = repaired.sections as unknown
-      if (hasRequiredSectionPaths(repairedSections, themedRequiredPaths)) {
-        sections = repairedSections as Record<string, unknown>
-      }
-      model = repaired.model
-      tokensUsed = (tokensUsed || 0) + (repaired.tokensUsed || 0)
-    } catch (error) {
-      logger.warn('[Themed Report] Evidence-binding repair failed; using current response', {
-        error: error instanceof Error ? error.message : String(error),
-        plan: options.userPlan || 'free',
-      })
-    }
-  }
-
-  const finalThemedEvidenceCheck = validateEvidenceBinding(
-    sections,
-    sectionPaths,
-    themedEvidenceRefs
-  )
-  if (finalThemedEvidenceCheck.needsRepair) {
-    sections = enforceEvidenceBindingFallback(
-      sections,
-      finalThemedEvidenceCheck.violations,
-      themedEvidenceRefs,
-      lang
-    )
-  }
-  sections = enforceEvidenceRefFooters(sections, sectionPaths, themedEvidenceRefs, lang)
-  sections = sanitizeSectionsByPathsExternal(sections, sectionPaths, narrativePathSanitizerDeps)
-  sections = enrichThemedSectionsWithReportCore(
-    sections as unknown as ThemedReportSections,
-    reportCore,
-    lang,
-    theme,
-    normalizedInput,
+  return generateThemedReportWithSupport(input, matrixReport, theme, timingData, options, {
+    FORCE_REWRITE_ONLY_MODE,
+    logger,
+    buildNormalizedMatrixInput,
+    buildGraphRAGEvidence,
+    formatGraphRAGEvidenceForPrompt,
+    buildDeterministicCore,
+    runDestinyCore,
+    adaptCoreToReport,
+    buildTopMatchedPatterns,
+    buildGraphRagSummaryPayload,
+    shouldUseDeterministicOnly,
+    getThemedSectionKeys,
+    buildProjectionFirstThemedSections,
+    buildThemedEvidenceRefs,
+    buildUnifiedEnvelope,
+    enrichThemedSectionsWithReportCore,
+    buildReportTrustNarratives,
+    attachTrustNarrativeToSections,
+    maybePolishPremiumSections,
+    validateEvidenceBinding,
+    enforceEvidenceBindingFallback,
+    enforceEvidenceRefFooters,
+    sanitizeSectionsByPathsExternal,
+    narrativePathSanitizerDeps,
+    sanitizeThemedSectionsForUserExternal,
+    secondaryPostProcessDeps,
+    THEME_META,
+    calculateThemeScore,
+    extractKeywords,
+    buildReportQualityMetrics,
+    shouldForceThemedNarrativeFallback,
+    enforceThemedNarrativeQualityFallback,
+    finalizeThemedSectionsForUser,
+    recordReportQualityMetrics,
+    buildReportOutputCoreFields,
+    attachDeterministicArtifacts,
+    renderSectionsAsMarkdown,
+    renderSectionsAsText,
+    rewriteSectionsWithFallback,
+    recordRewriteModeMetric,
+    inferAgeFromBirthDate,
+    buildLifeCyclePromptBlock,
+    buildThemeSchemaPromptBlock,
+    buildSynthesisPromptBlock,
+    buildMatrixSummary,
+    buildThemedPrompt,
+    buildDirectToneOverride,
+    callAIBackendGeneric,
+    getAiQualityTier,
+    hasRequiredSectionPaths,
+    getEffectiveMaxRepairPasses,
+    getShortSectionPaths,
+    getMissingCrossPaths,
+    getCrossCoverageRatio,
+    getMissingPathsByPredicate,
+    getCoverageRatioByPredicate,
+    hasActionInText,
+    hasEvidenceTriplet,
+    getListStylePaths,
+    countSectionChars,
+    buildDepthRepairInstruction,
+    buildCrossRepairInstruction,
+    buildCrossCoverageRepairInstruction,
+    buildActionRepairInstruction,
+    buildEvidenceRepairInstruction,
+    buildNarrativeStyleRepairInstruction,
+    buildSecondPassInstruction,
+    buildEvidenceBindingRepairPrompt,
+    applyFinalReportStyle,
+    ensureFinalActionPlanGrounding,
+    ensureFinalReportPolish,
     reportCoreEnrichmentDeps,
-    timingData
-  ) as unknown as Record<string, unknown>
-  sections = sanitizeThemedSectionsForUserExternal(
-    sections,
-    sectionPaths,
-    lang,
-    secondaryPostProcessDeps,
-    theme
-  )
-  sections = enforceEvidenceRefFooters(sections, sectionPaths, themedEvidenceRefs, lang)
-
-  // 4. Theme metadata
-  const themeMeta = THEME_META[theme]
-
-  // 5. Calculate score
-  const themeScore = calculateThemeScore(theme, normalizedInput.sibsinDistribution)
-
-  // 6. Extract keywords
-  const keywords = extractKeywords(sections as unknown as ThemedReportSections, theme, lang)
-  const generatedAt = new Date().toISOString()
-  const unified = buildUnifiedEnvelope({
-    mode: 'themed',
-    lang,
-    generatedAt,
-    matrixInput: normalizedInput,
-    matrixReport,
-    matrixSummary: options.matrixSummary,
-    signalSynthesis,
-    graphRagEvidence,
-    timingData,
-    birthDate: options.birthDate,
-    sectionPaths,
-    evidenceRefs: themedEvidenceRefs,
   })
-  let qualityMetrics = buildReportQualityMetrics(
-    sections as Record<string, unknown>,
-    sectionPaths,
-    themedEvidenceRefs,
-    {
-      requiredPaths: themedRequiredPaths,
-      claims: unified.claims,
-      anchors: unified.anchors,
-      scenarioBundles: unified.scenarioBundles,
-      timelineEvents: unified.timelineEvents,
-      coreQuality: coreSeed.quality,
-    }
-  )
-  if (shouldForceThemedNarrativeFallback(qualityMetrics)) {
-    sections = enforceThemedNarrativeQualityFallback(
-      theme,
-      reportCore,
-      signalSynthesis,
-      normalizedInput,
-      lang,
-      timingData,
-      themedEvidenceRefs
-    ) as unknown as Record<string, unknown>
-    qualityMetrics = buildReportQualityMetrics(
-      sections as Record<string, unknown>,
-      sectionPaths,
-      themedEvidenceRefs,
-      {
-        requiredPaths: themedRequiredPaths,
-        claims: unified.claims,
-        anchors: unified.anchors,
-        scenarioBundles: unified.scenarioBundles,
-        timelineEvents: unified.timelineEvents,
-        coreQuality: coreSeed.quality,
-      }
-    )
-  }
-  sections = finalizeThemedSectionsForUser(
-    theme,
-    reportCore,
-    normalizedInput,
-    lang,
-    timingData
-  ) as unknown as Record<string, unknown>
-  sections = enforceEvidenceRefFooters(sections, sectionPaths, themedEvidenceRefs, lang)
-  sections = sanitizeThemedSectionsForUserExternal(
-    sections,
-    sectionPaths,
-    lang,
-    secondaryPostProcessDeps,
-    theme
-  )
-  sections = applyFinalReportStyle(
-    sections as Record<string, unknown>,
-    sectionPaths,
-    lang,
-    reportCore
-  )
-  sections = ensureFinalActionPlanGrounding(sections as Record<string, unknown>, lang, reportCore)
-  sections = ensureFinalReportPolish(sections as Record<string, unknown>, lang, reportCore)
-  qualityMetrics = buildReportQualityMetrics(
-    sections as Record<string, unknown>,
-    sectionPaths,
-    themedEvidenceRefs,
-    {
-      requiredPaths: themedRequiredPaths,
-      claims: unified.claims,
-      anchors: unified.anchors,
-      scenarioBundles: unified.scenarioBundles,
-      timelineEvents: unified.timelineEvents,
-      coreQuality: coreSeed.quality,
-    }
-  )
-
-  // 7. Assemble report
-  const report: ThemedAIPremiumReport = {
-    id: `themed_${theme}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    generatedAt,
-    lang,
-    ...buildReportOutputCoreFields(reportCore, lang),
-    ...unified,
-    coreHash: coreSeed.coreHash,
-    patterns: coreSeed.patterns,
-    topMatchedPatterns,
-    scenarios: coreSeed.scenarios,
-
-    profile: {
-      name: options.name,
-      birthDate: options.birthDate,
-      dayMaster: input.dayMasterElement,
-      dominantElement: input.dominantWesternElement || input.dayMasterElement,
-    },
-
-    theme,
-    themeLabel: themeMeta.label[lang],
-    themeEmoji: themeMeta.emoji,
-
-    sections: sections as unknown as ThemedReportSections,
-    graphRagEvidence,
-    graphRagSummary,
-    evidenceRefs: themedEvidenceRefs,
-    evidenceRefsByPara: unified.evidenceRefsByPara,
-    deterministicCore: attachDeterministicArtifacts(deterministicCore, unified),
-    strategyEngine,
-    renderedMarkdown: renderSectionsAsMarkdown(
-      sections as Record<string, unknown>,
-      sectionPaths,
-      lang
-    ),
-    renderedText: renderSectionsAsText(sections as Record<string, unknown>, sectionPaths),
-    themeScore,
-    keywords,
-
-    meta: {
-      modelUsed: model,
-      tokensUsed,
-      processingTime: Math.max(1, Date.now() - startTime),
-      reportVersion: '1.0.0',
-      qualityMetrics,
-    },
-  }
-
-  recordReportQualityMetrics('themed', model, report.meta.qualityMetrics!)
-
-  return report
 }
-
-

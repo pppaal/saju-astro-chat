@@ -79,6 +79,13 @@ function createSnapshot(): MatrixSnapshot {
               summary: 'Morning execution rhythm fits the career action axis better.',
               supportSignals: ['morning execution block'],
               cautionSignals: ['forced late-night commitments'],
+              coreDiff: {
+                directAnswer: 'Do not commit before the role is documented.',
+                actionDomain: 'career',
+                riskDomain: 'health',
+                bestWindow: '1-3m',
+                branchSummary: 'The documented-role path remains strongest.',
+              },
             },
           ],
           crossConflictMap: [
@@ -129,5 +136,72 @@ describe('routePromptSupport buildMatrixProfileSection', () => {
     expect(text).toContain('condition_1_next=')
     expect(text).toContain('birth_hypothesis_1_time=06:00')
     expect(text).toContain('conflict_1_resolve=')
+    expect(text).toContain('birth_hypothesis_1_action=career')
+    expect(text).toContain('birth_hypothesis_1_branch=')
+  })
+
+  it('keeps action, timing, branch, and condition lines even under cost trimming', () => {
+    const previous = process.env.COUNSELOR_COST_OPTIMIZED
+    process.env.COUNSELOR_COST_OPTIMIZED = 'true'
+    try {
+      const snapshot = createSnapshot()
+      const repeated = Array.from({ length: 60 }, (_, index) => `long filler ${index}`).join(' ')
+      snapshot.core!.counselorEvidence!.personModel!.domainStateGraph![0]!.thesis = repeated
+      snapshot.core!.counselorEvidence!.personModel!.eventOutlook![0]!.summary = repeated
+      snapshot.core!.counselorEvidence!.personModel!.eventOutlook![0]!.entryConditions = [
+        repeated,
+        'agree the scope',
+      ]
+      snapshot.core!.counselorEvidence!.personModel!.eventOutlook![0]!.abortConditions = [
+        repeated,
+        'terms are not documented',
+      ]
+      ;(snapshot.core!.counselorEvidence! as any).singleSubjectView = {
+        directAnswer: 'Do not commit before the role is documented.',
+        actionAxis: {
+          domain: 'career',
+          nowAction: 'Define the role scope first.',
+          whyThisFirst: repeated,
+        },
+        riskAxis: {
+          domain: 'career',
+          warning: 'Ambiguous terms will distort the timing.',
+          hardStops: ['Do not sign vague terms.'],
+        },
+        timingState: {
+          bestWindow: '1-3m',
+          whyNow: 'The trigger opens before the structure fully settles.',
+          whyNotYet: 'Documentation still lags behind momentum.',
+        },
+        branches: [
+          {
+            label: 'documented role',
+            summary: 'The path opens if scope is fixed first.',
+            entryConditions: ['agree the scope'],
+            abortConditions: ['terms are not documented'],
+            nextMove: 'Freeze the role-definition sentence.',
+          },
+        ],
+        nextMove: 'Freeze the role-definition sentence.',
+      }
+
+      const text = buildMatrixProfileSection(snapshot, 'ko', 'career')
+
+      expect(text).toContain('current_direct=')
+      expect(text).toContain('window=')
+      expect(text).toContain('branch_1=')
+      expect(text).toContain('condition_1_entry_1=')
+      expect(text).toContain('condition_1_abort_1=')
+      expect(text).toContain('birth_hypothesis_1_time=06:00')
+      expect(text).toContain('birth_hypothesis_1_action=career')
+      expect(text).toContain('conflict_1_resolve=')
+      expect(text).toContain('past_reconstruction=')
+    } finally {
+      if (previous === undefined) {
+        delete process.env.COUNSELOR_COST_OPTIMIZED
+      } else {
+        process.env.COUNSELOR_COST_OPTIMIZED = previous
+      }
+    }
   })
 })

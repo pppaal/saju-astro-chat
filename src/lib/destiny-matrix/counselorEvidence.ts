@@ -79,6 +79,13 @@ import type {
   CounselorTheme,
 } from '@/lib/destiny-matrix/counselorEvidenceTypes'
 
+function shouldFallbackGuardrail(value: string): boolean {
+  const cleaned = sanitizeCounselorFreeText(value || '', 'ko').trim()
+  if (!cleaned) return true
+  if (cleaned.length < 12) return true
+  return /주의 신호$/u.test(cleaned)
+}
+
 function mapSignalDomainToTimelineDomain(
   domain?: string
 ): import('@/lib/destiny-matrix/types').DomainKey | null {
@@ -127,9 +134,12 @@ export function buildCounselorEvidencePacket(params: {
   const themedQuestionDomain = questionDrivenTheme ? mapThemeToDomain(params.theme) : undefined
   const preferredDomain =
     params.focusDomainOverride ||
-    themedQuestionDomain ||
+    (themedQuestionDomain && themedQuestionDomain !== 'personality'
+      ? themedQuestionDomain
+      : undefined) ||
     counselorCore?.actionFocusDomain ||
     counselorCore?.focusDomain ||
+    themedQuestionDomain ||
     fallbackFocusDomain
 
   const graphRagEvidence = buildGraphRAGEvidence(params.matrixInput, params.matrixReport, {
@@ -173,7 +183,11 @@ export function buildCounselorEvidencePacket(params: {
 
   const topClaim = (unified.claims || [])[0]
   const topClaimText = topClaim ? summarizeClaim(topClaim) : ''
-  const guardrail = buildPacketGuardrail(params.strategyEngine.overallPhase, params.lang)
+  const phaseGuardrail = buildPacketGuardrail(
+    params.strategyEngine.overallPhase,
+    params.lang,
+    preferredDomain
+  )
 
   const topDomainAdvisory =
     counselorCore?.advisories.find(
@@ -869,6 +883,30 @@ export function buildCounselorEvidencePacket(params: {
             summary: sanitizeCounselorFreeText(item.summary, params.lang),
             supportSignals: sanitizeCounselorTextList(item.supportSignals || [], params.lang),
             cautionSignals: sanitizeCounselorTextList(item.cautionSignals || [], params.lang),
+            coreDiff: item.coreDiff
+              ? {
+                  directAnswer: sanitizeCounselorFreeText(
+                    item.coreDiff.directAnswer || '',
+                    params.lang
+                  ),
+                  actionDomain: sanitizeCounselorFreeText(
+                    item.coreDiff.actionDomain || '',
+                    params.lang
+                  ),
+                  riskDomain: sanitizeCounselorFreeText(
+                    item.coreDiff.riskDomain || '',
+                    params.lang
+                  ),
+                  bestWindow: sanitizeCounselorFreeText(
+                    item.coreDiff.bestWindow || '',
+                    params.lang
+                  ),
+                  branchSummary: sanitizeCounselorFreeText(
+                    item.coreDiff.branchSummary || '',
+                    params.lang
+                  ),
+                }
+              : undefined,
           })),
           crossConflictMap: counselorCore.personModel.crossConflictMap.map((item) => ({
             ...item,
@@ -933,7 +971,12 @@ export function buildCounselorEvidencePacket(params: {
       summary: sanitizeCounselorFreeText(item.summary, params.lang),
     })),
     verdict: sanitizeCounselorFreeText(verdict, params.lang),
-    guardrail: sanitizeCounselorFreeText(counselorCore?.primaryCaution || guardrail, params.lang),
+    guardrail: sanitizeCounselorFreeText(
+      shouldFallbackGuardrail(counselorCore?.primaryCaution || '')
+        ? phaseGuardrail
+        : counselorCore?.primaryCaution || phaseGuardrail,
+      params.lang
+    ),
     topAnchorSummary,
     graphRagEvidenceSummary,
     topAnchors: prioritizedAnchors.map((anchor) => ({

@@ -22,6 +22,7 @@ describe('premium report result page', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
+        ok: true,
         json: async () => ({
           success: true,
           report: {
@@ -64,5 +65,165 @@ describe('premium report result page', () => {
 
     expect(screen.getByRole('button', { name: '품질 리포트(.md)' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '계산 근거(.json)' })).toBeInTheDocument()
+  })
+
+  it('shows the structural focus axis and current action axis together in the hero', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          success: true,
+          report: {
+            id: 'report-1',
+            type: 'comprehensive',
+            title: '종합 리포트',
+            summary: '요약',
+            createdAt: '2026-02-18T00:00:00.000Z',
+            sections: [{ title: '분석', content: '내용' }],
+            personModel: {
+              overview: '배경은 재정, 실행은 커리어입니다.',
+              structuralCore: {
+                focusDomain: 'wealth',
+                actionFocusDomain: 'career',
+                riskAxisDomain: 'health',
+                gradeLabel: 'strong',
+                phaseLabel: '방어/재정렬 국면',
+                overview: '배경은 재정, 실행은 커리어입니다.',
+                latentAxes: [],
+              },
+              formationProfile: {
+                summary: '',
+                repeatedPatternFamilies: [],
+                dominantLatentGroups: [],
+                pressureHabits: [],
+                supportHabits: [],
+              },
+              timeProfile: {
+                currentWindow: 'now',
+                timingNarrative: '커리어 창이 먼저 열립니다.',
+                confidence: 0.82,
+                windows: [],
+                activationSources: [],
+              },
+              layers: [],
+              dimensions: [
+                {
+                  domain: 'wealth',
+                  label: 'Money',
+                  score: 0.8,
+                  pressure: 0.9,
+                  support: 0.5,
+                  openness: 0.4,
+                },
+                {
+                  domain: 'career',
+                  label: 'Career',
+                  score: 0.85,
+                  pressure: 0.7,
+                  support: 0.8,
+                  openness: 0.8,
+                },
+              ],
+              domainPortraits: [],
+              domainStateGraph: [],
+              states: [],
+              appliedProfile: {
+                foodProfile: {
+                  summary: '',
+                  thermalBias: '',
+                  digestionStyle: '',
+                  helpfulFoods: [],
+                  cautionFoods: [],
+                  rhythmGuidance: [],
+                },
+                lifeRhythmProfile: {
+                  summary: '',
+                  peakWindows: [],
+                  recoveryWindows: [],
+                  stressBehaviors: [],
+                  regulationMoves: [],
+                },
+                relationshipStyleProfile: {
+                  summary: '',
+                  attractionPatterns: [],
+                  stabilizers: [],
+                  ruptureTriggers: [],
+                  repairMoves: [],
+                },
+                workStyleProfile: {
+                  summary: '',
+                  bestRoles: [],
+                  bestConditions: [],
+                  fatigueTriggers: [],
+                  leverageMoves: [],
+                },
+                moneyStyleProfile: {
+                  summary: '',
+                  earningPattern: [],
+                  savingPattern: [],
+                  leakageRisks: [],
+                  controlRules: [],
+                },
+                environmentProfile: {
+                  summary: '',
+                  preferredSettings: [],
+                  drainSignals: [],
+                  resetActions: [],
+                },
+              },
+              relationshipProfile: {
+                summary: '',
+                partnerArchetypes: [],
+                inflowPaths: [],
+                commitmentConditions: [],
+                breakPatterns: [],
+              },
+              careerProfile: {
+                summary: '',
+                suitableLanes: [],
+                executionStyle: [],
+                hiringTriggers: [],
+                blockers: [],
+              },
+              futureBranches: [],
+              eventOutlook: [],
+              uncertaintyEnvelope: {
+                summary: '',
+                reliableAreas: [],
+                conditionalAreas: [],
+                unresolvedAreas: [],
+              },
+              birthTimeHypotheses: [],
+              crossConflictMap: [],
+              pastEventReconstruction: { summary: '', markers: [] },
+              evidenceLedger: {
+                topClaimIds: [],
+                topSignalIds: [],
+                topPatternIds: [],
+                topScenarioIds: [],
+                topDecisionId: null,
+                topDecisionLabel: null,
+                coherenceNotes: [],
+                contradictionFlags: [],
+              },
+            },
+            fullData: {},
+          },
+        }),
+      })
+    )
+
+    render(<ReportResultPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Focus Axis')).toBeInTheDocument()
+    })
+
+    expect(screen.getByText('Money')).toBeInTheDocument()
+    expect(screen.getByText('Career')).toBeInTheDocument()
+    expect(
+      screen.getByText('배경 압력축은 Money이고, 지금 먼저 움직여야 할 행동축은 Career입니다.')
+    ).toBeInTheDocument()
   })
 })

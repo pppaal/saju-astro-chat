@@ -103,6 +103,7 @@ interface SelectedDatePanelProps {
       date: string
       summary: string
       focusDomain: string
+      actionFocusDomain?: string
       reliability: string
     }
     weekSummary?: {
@@ -157,7 +158,6 @@ interface SelectedDatePanelProps {
   getGradeEmoji: (grade: number) => string
   getScoreClass: (score: number) => string
 }
-
 
 const SelectedDatePanel = memo(function SelectedDatePanel({
   selectedDay,
@@ -484,15 +484,24 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       ? safeDisplayText(presentation?.daySummary?.focusDomain || '', '')
       : '') ||
     domainLabel
+  const canonicalActionFocusDomainLabel = canonicalCore
+    ? getDomainLabel(toCalendarDomain(canonicalCore.actionFocusDomain), locale)
+    : ''
+  const actionFocusDomainHeadline =
+    canonicalActionFocusDomainLabel ||
+    (isPresentationDayMatch
+      ? safeDisplayText(presentation?.daySummary?.actionFocusDomain || '', '')
+      : '') ||
+    focusDomainHeadline
 
   const evidenceSummaryPrimary = canonicalCore
     ? locale === 'ko'
-      ? `오늘 등급 ${unifiedDayLabel} · 흐름 ${canonicalPhaseLabel || canonicalCore.phase} · 핵심 분야 ${focusDomainHeadline} · 판단 기준 ${reliabilityHeadline}`
-      : `Today rating ${unifiedDayLabel} · Flow ${canonicalPhaseLabel || canonicalCore.phase} · Focus ${focusDomainHeadline} · Guidance ${reliabilityHeadline}`
+      ? `오늘 등급 ${unifiedDayLabel} · 흐름 ${canonicalPhaseLabel || canonicalCore.phase} · 핵심 분야 ${focusDomainHeadline} · 현재 행동축 ${actionFocusDomainHeadline} · 판단 기준 ${reliabilityHeadline}`
+      : `Today rating ${unifiedDayLabel} · Flow ${canonicalPhaseLabel || canonicalCore.phase} · Focus ${focusDomainHeadline} · Action Axis ${actionFocusDomainHeadline} · Guidance ${reliabilityHeadline}`
     : selectedDate?.evidence
       ? locale === 'ko'
-        ? `오늘 등급 ${unifiedDayLabel} · 점수 ${displayScore}/100 · 핵심 분야 ${domainLabel}${matrixVerdict?.phase ? ` · 흐름 ${humanizePhaseLabel(matrixVerdict.phase, locale)}` : ''}`
-        : `Today rating ${unifiedDayLabel} · Score ${displayScore}/100 · Focus ${domainLabel}${matrixVerdict?.phase ? ` · Flow ${humanizePhaseLabel(matrixVerdict.phase, locale)}` : ''}`
+        ? `오늘 등급 ${unifiedDayLabel} · 점수 ${displayScore}/100 · 핵심 분야 ${domainLabel} · 현재 행동축 ${actionFocusDomainHeadline}${matrixVerdict?.phase ? ` · 흐름 ${humanizePhaseLabel(matrixVerdict.phase, locale)}` : ''}`
+        : `Today rating ${unifiedDayLabel} · Score ${displayScore}/100 · Focus ${domainLabel} · Action Axis ${actionFocusDomainHeadline}${matrixVerdict?.phase ? ` · Flow ${humanizePhaseLabel(matrixVerdict.phase, locale)}` : ''}`
       : ''
 
   const evidenceSummaryCross = selectedDate?.evidence
@@ -686,22 +695,27 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     tag?: string
     text: string
     details?: string[]
-    visual?: {
-      kind: 'agreement'
-      agreementPercent: number
-      contradictionPercent: number
-      leadLagState: 'structure-ahead' | 'trigger-ahead' | 'balanced'
-    } | {
-      kind: 'branch'
-      rows: Array<{ label: string; text: string }>
-    }
+    visual?:
+      | {
+          kind: 'agreement'
+          agreementPercent: number
+          contradictionPercent: number
+          leadLagState: 'structure-ahead' | 'trigger-ahead' | 'balanced'
+        }
+      | {
+          kind: 'branch'
+          rows: Array<{ label: string; text: string }>
+        }
   }> =
     (presentation?.surfaceCards || [])
       .map((item) => ({
         label: safeDisplayText(item.label, ''),
         tag: safeDisplayText(item.tag || '', ''),
         text: takeLeadLine(item.summary),
-        details: (item.details || []).map((line) => safeDisplayText(line, '')).filter(Boolean).slice(0, 3),
+        details: (item.details || [])
+          .map((line) => safeDisplayText(line, ''))
+          .filter(Boolean)
+          .slice(0, 3),
         visual:
           item.visual?.kind === 'agreement'
             ? {
@@ -729,15 +743,17 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     tag?: string
     text: string
     details?: string[]
-    visual?: {
-      kind: 'agreement'
-      agreementPercent: number
-      contradictionPercent: number
-      leadLagState: 'structure-ahead' | 'trigger-ahead' | 'balanced'
-    } | {
-      kind: 'branch'
-      rows: Array<{ label: string; text: string }>
-    }
+    visual?:
+      | {
+          kind: 'agreement'
+          agreementPercent: number
+          contradictionPercent: number
+          leadLagState: 'structure-ahead' | 'trigger-ahead' | 'balanced'
+        }
+      | {
+          kind: 'branch'
+          rows: Array<{ label: string; text: string }>
+        }
   }> = [
     ...explicitSurfaceCards,
     {
@@ -899,6 +915,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             quickThesis={quickThesis}
             unifiedDayLabel={unifiedDayLabel}
             focusDomainHeadline={focusDomainHeadline}
+            actionFocusDomainHeadline={actionFocusDomainHeadline}
             canonicalPhaseLabel={canonicalPhaseLabel}
             matrixPhase={humanizePhaseLabel(matrixVerdict?.phase || '', locale)}
             reliabilityHeadline={reliabilityHeadline}
@@ -1012,5 +1029,3 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 })
 
 export default SelectedDatePanel
-
-

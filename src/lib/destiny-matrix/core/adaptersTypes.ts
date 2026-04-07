@@ -230,6 +230,13 @@ export type AdapterBirthTimeHypothesis = {
   summary: string
   supportSignals: string[]
   cautionSignals: string[]
+  coreDiff?: {
+    directAnswer?: string
+    actionDomain?: string
+    riskDomain?: string
+    bestWindow?: string
+    branchSummary?: string
+  }
 }
 
 export type AdapterCrossConflictItem = {

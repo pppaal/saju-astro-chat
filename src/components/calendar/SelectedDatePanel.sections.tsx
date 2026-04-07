@@ -32,6 +32,7 @@ interface SelectedDateQuickScanSectionProps {
   quickThesis: string
   unifiedDayLabel: string
   focusDomainHeadline: string
+  actionFocusDomainHeadline: string
   canonicalPhaseLabel: string
   matrixPhase?: string
   reliabilityHeadline: string
@@ -53,6 +54,7 @@ export function SelectedDateQuickScanSection({
   quickThesis,
   unifiedDayLabel,
   focusDomainHeadline,
+  actionFocusDomainHeadline,
   canonicalPhaseLabel,
   matrixPhase,
   reliabilityHeadline,
@@ -153,6 +155,9 @@ export function SelectedDateQuickScanSection({
         </span>
         <span className={styles.quickMetaChip}>
           {locale === 'ko' ? '핵심 분야' : 'Focus'}: {focusDomainHeadline}
+        </span>
+        <span className={styles.quickMetaChip}>
+          {locale === 'ko' ? '현재 행동축' : 'Action Axis'}: {actionFocusDomainHeadline}
         </span>
         {(canonicalPhaseLabel || matrixPhase) && (
           <span className={styles.quickMetaChip}>

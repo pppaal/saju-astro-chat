@@ -44,6 +44,7 @@ export type DaySummary = {
   date: string
   summary: string
   focusDomain: string
+  actionFocusDomain: string
   reliability: string
 }
 
@@ -419,7 +420,10 @@ export function buildBranchCardData(input: {
   }
 }
 
-export function matchesPresentationDomain(date: FormattedDate, domain: PresentationDomain): boolean {
+export function matchesPresentationDomain(
+  date: FormattedDate,
+  domain: PresentationDomain
+): boolean {
   if (domain === 'general') return true
 
   const matrixDomain = date.evidence?.matrix?.domain
@@ -504,7 +508,10 @@ export function softenForDefensivePhase(line: string, locale: Locale): string {
     .replace(/\b(best|optimal|perfect)\b/gi, 'review-first')
 }
 
-export function pickSelectedDate(allDates: FormattedDate[], timeZone: string): FormattedDate | undefined {
+export function pickSelectedDate(
+  allDates: FormattedDate[],
+  timeZone: string
+): FormattedDate | undefined {
   const todayIso = toIsoDate(toDatePartsInTimeZone(new Date(), timeZone))
   return allDates.find((d) => d.date === todayIso) || allDates[0]
 }

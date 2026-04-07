@@ -1,6 +1,7 @@
 import type { DestinyCoreResult } from './runDestinyCore'
 import type { SignalDomain } from './signalSynthesizer'
 import { formatDecisionActionLabels, formatPolicyCheckLabels } from './actionCopy'
+import { repairPossiblyMojibakeText } from '@/lib/destiny-matrix/textRepair'
 import type {
   AdapterArbitrationBrief,
   AdapterBranchCandidate,
@@ -91,7 +92,7 @@ export function getBlockedActionLabels(actions: string[], locale: 'ko' | 'en'): 
 }
 
 function localizeAdapterFreeText(text: string | undefined | null, locale: 'ko' | 'en'): string {
-  const value = String(text || '').trim()
+  const value = repairPossiblyMojibakeText(String(text || '')).trim()
   if (!value) return ''
   if (locale !== 'ko') return value
 
@@ -124,11 +125,23 @@ function localizeAdapterFreeText(text: string | undefined | null, locale: 'ko' |
     .replace(/\bpromotion review\b/gi, '승진 검토')
     .replace(/\bcontract negotiation\b/gi, '조건 협상')
     .replace(/\bspecialist track\b/gi, '전문화 트랙')
-    .replace(/\bExpansion without role clarity can create delivery strain\.?\b/gi, '역할과 범위가 불분명하면 실행 부담이 커질 수 있습니다')
-    .replace(/\bA strong opportunity signal can hide ([^\s]+) and ([^\s]+) risk\./gi, (_, left: string, right: string) =>
-      '강한 기회 신호가 ' + localizeAdapterFreeText(left, 'ko') + '와 ' + localizeAdapterFreeText(right, 'ko') + ' 리스크를 가릴 수 있습니다.'
+    .replace(
+      /\bExpansion without role clarity can create delivery strain\.?\b/gi,
+      '역할과 범위가 불분명하면 실행 부담이 커질 수 있습니다'
     )
-    .replace(/\b\w+\s+stayed secondary because total support remained below the winner\b/gi, '최종 지지가 승자축보다 약해 보조축에 머물렀습니다')
+    .replace(
+      /\bA strong opportunity signal can hide ([^\s]+) and ([^\s]+) risk\./gi,
+      (_, left: string, right: string) =>
+        '강한 기회 신호가 ' +
+        localizeAdapterFreeText(left, 'ko') +
+        '와 ' +
+        localizeAdapterFreeText(right, 'ko') +
+        ' 리스크를 가릴 수 있습니다.'
+    )
+    .replace(
+      /\b\w+\s+stayed secondary because total support remained below the winner\b/gi,
+      '최종 지지가 승자축보다 약해 보조축에 머물렀습니다'
+    )
     .replace(/\bweak_both\b/gi, '구조와 촉발이 모두 약한 상태')
     .replace(/\baligned\b/gi, '구조와 촉발이 함께 맞물린 상태')
     .replace(/\breadiness_ahead\b/gi, '구조가 먼저 열린 상태')
@@ -138,7 +151,7 @@ function localizeAdapterFreeText(text: string | undefined | null, locale: 'ko' |
 
   out = out.replace(/([가-힣]+)은 /g, '$1은 ')
   out = out.replace(/([가-힣]+)이 /g, '$1이 ')
-  return out
+  return repairPossiblyMojibakeText(out)
 }
 
 function buildEvidenceProjectionSummary(
@@ -174,7 +187,9 @@ function buildEvidenceProjectionReasons(
   return [
     topSignals.length ? `${topSignals.length} lead signals are active together.` : '',
     topPatterns.length ? `${topPatterns.length} lead patterns overlap in the same direction.` : '',
-    topScenarios.length ? `${topScenarios.length} lead scenarios are supporting the current read.` : '',
+    topScenarios.length
+      ? `${topScenarios.length} lead scenarios are supporting the current read.`
+      : '',
   ].filter(Boolean)
 }
 
@@ -210,8 +225,18 @@ export function rankRiskAxis(core: DestinyCoreResult): SignalDomain {
   )
 }
 
-export function buildTimingMatrix(core: DestinyCoreResult, locale: 'ko' | 'en'): AdapterTimingMatrixRow[] {
-  const order: SignalDomain[] = ['career', 'relationship', 'wealth', 'health', 'move', 'personality']
+export function buildTimingMatrix(
+  core: DestinyCoreResult,
+  locale: 'ko' | 'en'
+): AdapterTimingMatrixRow[] {
+  const order: SignalDomain[] = [
+    'career',
+    'relationship',
+    'wealth',
+    'health',
+    'move',
+    'personality',
+  ]
   return [...(core.canonical.domainTimingWindows || [])]
     .filter((item) => order.includes(item.domain))
     .sort(
@@ -254,7 +279,11 @@ function localizeTimescale(
   return timescale
 }
 
-function summarizeRatioLevel(value: number, locale: 'ko' | 'en', type: 'agreement' | 'contradiction'): string {
+function summarizeRatioLevel(
+  value: number,
+  locale: 'ko' | 'en',
+  type: 'agreement' | 'contradiction'
+): string {
   if (locale === 'ko') {
     if (type === 'agreement') {
       if (value >= 0.85) return '합의 강함'
@@ -276,7 +305,10 @@ function summarizeRatioLevel(value: number, locale: 'ko' | 'en', type: 'agreemen
   return 'low conflict'
 }
 
-export function buildMatrixView(core: DestinyCoreResult, locale: 'ko' | 'en'): AdapterMatrixViewRow[] {
+export function buildMatrixView(
+  core: DestinyCoreResult,
+  locale: 'ko' | 'en'
+): AdapterMatrixViewRow[] {
   const preferred: SignalDomain[] = [
     core.canonical.actionFocusDomain,
     core.canonical.focusDomain,
@@ -286,7 +318,9 @@ export function buildMatrixView(core: DestinyCoreResult, locale: 'ko' | 'en'): A
     'wealth',
     'health',
     'move',
-  ].filter((value, index, array): value is SignalDomain => Boolean(value) && array.indexOf(value) === index)
+  ].filter(
+    (value, index, array): value is SignalDomain => Boolean(value) && array.indexOf(value) === index
+  )
 
   const matrix = core.canonical.crossAgreementMatrix || []
   return preferred
@@ -345,9 +379,15 @@ export function buildBranchSet(
       locale === 'ko'
         ? `${formatScenarioBranchLabel(scenario.branch || scenario.id, locale)} 경로는 ${localizeAdapterFreeText(scenario.window || 'now', locale)} 구간에서 가장 현실적입니다.`
         : `${formatScenarioBranchLabel(scenario.branch || scenario.id, locale)} is the most realistic path in the ${localizeAdapterFreeText(scenario.window || 'now', locale)} window.`,
-    entry: (scenario.entryConditions || []).slice(0, 3).map((item) => localizeAdapterFreeText(item, locale)),
-    abort: (scenario.abortConditions || []).slice(0, 3).map((item) => localizeAdapterFreeText(item, locale)),
-    sustain: (scenario.sustainConditions || []).slice(0, 3).map((item) => localizeAdapterFreeText(item, locale)),
+    entry: (scenario.entryConditions || [])
+      .slice(0, 3)
+      .map((item) => localizeAdapterFreeText(item, locale)),
+    abort: (scenario.abortConditions || [])
+      .slice(0, 3)
+      .map((item) => localizeAdapterFreeText(item, locale)),
+    sustain: (scenario.sustainConditions || [])
+      .slice(0, 3)
+      .map((item) => localizeAdapterFreeText(item, locale)),
     reversalRisk: localizeAdapterFreeText(scenario.reversalRisk || '', locale),
     sustainability: scenario.sustainability,
     wrongMoveCost: localizeAdapterFreeText(scenario.wrongMoveCost || '', locale),
@@ -359,8 +399,9 @@ export function buildSingleUserModel(
   locale: 'ko' | 'en'
 ): AdapterSingleUserModel {
   const timingWindow =
-    core.canonical.domainTimingWindows.find((item) => item.domain === core.canonical.actionFocusDomain) ||
-    core.canonical.domainTimingWindows[0]
+    core.canonical.domainTimingWindows.find(
+      (item) => item.domain === core.canonical.actionFocusDomain
+    ) || core.canonical.domainTimingWindows[0]
   const riskAxis = rankRiskAxis(core)
   const matrixLead = buildMatrixView(core, locale)[0]
   const facets = [
@@ -373,7 +414,9 @@ export function buildSingleUserModel(
           : `${localizeDomain(core.canonical.focusDomain, locale)} is the background structural axis, while ${localizeDomain(core.canonical.actionFocusDomain, locale)} is the front action axis.`,
       details: [
         buildArbitrationBrief(core, locale).focusNarrative,
-        ...buildLatentTopAxes(core, locale).slice(0, 2).map((axis) => axis.label),
+        ...buildLatentTopAxes(core, locale)
+          .slice(0, 2)
+          .map((axis) => axis.label),
       ].filter(Boolean),
     },
     {
@@ -393,9 +436,18 @@ export function buildSingleUserModel(
       label: locale === 'ko' ? '촉발' : 'Trigger',
       summary:
         locale === 'ko'
-          ? localizeAdapterFreeText(timingWindow?.timingConflictNarrative || '구조와 촉발을 함께 읽어야 합니다.', locale)
-          : localizeAdapterFreeText(timingWindow?.timingConflictNarrative || 'Structure and trigger should be read together.', locale),
-      details: (timingWindow?.entryConditions || []).slice(0, 2).map((item) => localizeAdapterFreeText(item, locale)),
+          ? localizeAdapterFreeText(
+              timingWindow?.timingConflictNarrative || '구조와 촉발을 함께 읽어야 합니다.',
+              locale
+            )
+          : localizeAdapterFreeText(
+              timingWindow?.timingConflictNarrative ||
+                'Structure and trigger should be read together.',
+              locale
+            ),
+      details: (timingWindow?.entryConditions || [])
+        .slice(0, 2)
+        .map((item) => localizeAdapterFreeText(item, locale)),
     },
     {
       key: 'risk' as const,
@@ -404,10 +456,9 @@ export function buildSingleUserModel(
         locale === 'ko'
           ? `${localizeDomain(riskAxis, locale)} 문제가 가장 예민한 변수입니다.`
           : `${localizeDomain(riskAxis, locale)} is the most sensitive risk axis.`,
-      details: [
-        core.canonical.primaryCaution,
-        core.canonical.riskControl,
-      ].map((item) => localizeAdapterFreeText(item, locale)).filter(Boolean),
+      details: [core.canonical.primaryCaution, core.canonical.riskControl]
+        .map((item) => localizeAdapterFreeText(item, locale))
+        .filter(Boolean),
     },
     {
       key: 'action' as const,
@@ -416,7 +467,10 @@ export function buildSingleUserModel(
         locale === 'ko'
           ? `${getTopDecisionLabel(core, locale) || core.canonical.primaryAction}이 현재 실행 우선순위입니다.`
           : `${getTopDecisionLabel(core, locale) || core.canonical.primaryAction} is the current action priority.`,
-      details: getAllowedActionLabels(core.canonical.judgmentPolicy.allowedActions, locale).slice(0, 3),
+      details: getAllowedActionLabels(core.canonical.judgmentPolicy.allowedActions, locale).slice(
+        0,
+        3
+      ),
     },
     {
       key: 'calibration' as const,
@@ -435,10 +489,7 @@ export function buildSingleUserModel(
   }
 }
 
-function formatScenarioBranchLabel(
-  branch: string | undefined | null,
-  locale: 'ko' | 'en'
-): string {
+function formatScenarioBranchLabel(branch: string | undefined | null, locale: 'ko' | 'en'): string {
   const raw = String(branch || '')
     .replace(/_/g, ' ')
     .trim()
@@ -476,10 +527,10 @@ function buildBranchProjectionSummary(
         (scenario.sustainConditions || []).length > 0
           ? localizeAdapterFreeText(scenario.sustainConditions[0], locale)
           : (scenario.entryConditions || []).length > 0
-          ? localizeAdapterFreeText(scenario.entryConditions[0], locale)
-          : locale === 'ko'
-            ? '진입 조건을 먼저 확인하세요.'
-            : 'Check the entry condition first.',
+            ? localizeAdapterFreeText(scenario.entryConditions[0], locale)
+            : locale === 'ko'
+              ? '진입 조건을 먼저 확인하세요.'
+              : 'Check the entry condition first.',
       reason:
         locale === 'ko'
           ? `${label} 경로는 ${window || '현재'} 구간에서 ${reversibility} 잘못 움직이면 ${localizeAdapterFreeText(scenario.wrongMoveCost || '', locale)}가 커집니다.`
@@ -700,7 +751,10 @@ export function buildArbitrationBrief(
   }
 }
 
-export function buildLatentTopAxes(core: DestinyCoreResult, locale: 'ko' | 'en'): AdapterLatentAxis[] {
+export function buildLatentTopAxes(
+  core: DestinyCoreResult,
+  locale: 'ko' | 'en'
+): AdapterLatentAxis[] {
   const axisGroupEntries = Object.entries(core.latentState?.groups || {}) as Array<
     [string, string[]]
   >
@@ -712,7 +766,10 @@ export function buildLatentTopAxes(core: DestinyCoreResult, locale: 'ko' | 'en')
   }))
 }
 
-export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en'): AdapterProjectionSet {
+export function buildProjectionSet(
+  core: DestinyCoreResult,
+  locale: 'ko' | 'en'
+): AdapterProjectionSet {
   const arbitrationBrief = buildArbitrationBrief(core, locale)
   const focusLabel = localizeDomain(core.canonical.focusDomain, locale)
   const actionLabel = localizeDomain(core.canonical.actionFocusDomain, locale)
@@ -721,7 +778,9 @@ export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en')
   const timingMatrix = buildTimingMatrix(core, locale)
   const topAxes = buildLatentTopAxes(core, locale)
   const groupedTopAxes = (group: string, limit = 3) => {
-    const groupAxisIds = ((core.latentState?.groups as Record<string, string[]> | undefined)?.[group] || []) as string[]
+    const groupAxisIds = ((core.latentState?.groups as Record<string, string[]> | undefined)?.[
+      group
+    ] || []) as string[]
     return (core.latentState?.topAxes || [])
       .filter((axis) => groupAxisIds.includes(axis.id))
       .slice(0, limit)
@@ -752,9 +811,9 @@ export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en')
             .map((axis) => axis.label)
             .join(', ')}.`
         : `The identity axis is ${focusLabel}, the action axis is ${actionLabel}, the risk axis is ${riskAxisLabel}, and the live drivers are ${topAxes
-          .slice(0, 3)
-          .map((axis) => axis.label)
-          .join(', ')}. ${arbitrationBrief.focusNarrative}`
+            .slice(0, 3)
+            .map((axis) => axis.label)
+            .join(', ')}. ${arbitrationBrief.focusNarrative}`
 
   const timingSummary =
     locale === 'ko'
@@ -763,8 +822,10 @@ export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en')
 
   const conflictSummary =
     locale === 'ko'
-      ? arbitrationBrief.actionNarrative || `${focusLabel} \uC911\uC2EC\uCD95\uACFC ${actionLabel} \uD589\uB3D9\uCD95\uC774 \uBD84\uB9AC\uB3FC \uC77D\uD788\uB294 \uAD6C\uAC04\uC785\uB2C8\uB2E4.`
-      : arbitrationBrief.actionNarrative || `${focusLabel} and ${actionLabel} currently separate into identity and action axes.`
+      ? arbitrationBrief.actionNarrative ||
+        `${focusLabel} \uC911\uC2EC\uCD95\uACFC ${actionLabel} \uD589\uB3D9\uCD95\uC774 \uBD84\uB9AC\uB3FC \uC77D\uD788\uB294 \uAD6C\uAC04\uC785\uB2C8\uB2E4.`
+      : arbitrationBrief.actionNarrative ||
+        `${focusLabel} and ${actionLabel} currently separate into identity and action axes.`
 
   const actionSummary =
     locale === 'ko'
@@ -798,8 +859,14 @@ export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en')
     .slice(0, 3)
     .map((item) => localizeAdapterFreeText(item, locale))
     .filter(Boolean)
-  const allowedActionLabels = getAllowedActionLabels(core.canonical.judgmentPolicy.allowedActions, locale)
-  const blockedActionLabels = getBlockedActionLabels(core.canonical.judgmentPolicy.blockedActions, locale)
+  const allowedActionLabels = getAllowedActionLabels(
+    core.canonical.judgmentPolicy.allowedActions,
+    locale
+  )
+  const blockedActionLabels = getBlockedActionLabels(
+    core.canonical.judgmentPolicy.blockedActions,
+    locale
+  )
   const hardStopLabels = formatPolicyCheckLabels(core.canonical.judgmentPolicy.hardStops)
     .slice(0, 3)
     .map((item) => localizeAdapterFreeText(item, locale))
@@ -812,7 +879,12 @@ export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en')
     groupedTopAxes('structural').length > 0
       ? groupedTopAxes('structural', 4)
       : topAxes.slice(0, 4).map((axis) => axis.label)
-  const evidenceReasons = buildEvidenceProjectionReasons(locale, topSignals, topPatterns, topScenarios)
+  const evidenceReasons = buildEvidenceProjectionReasons(
+    locale,
+    topSignals,
+    topPatterns,
+    topScenarios
+  )
 
   return {
     structure: {
@@ -858,17 +930,18 @@ export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en')
       granularity: timingGranularity || timingWindow?.timingGranularity,
       reasons: [
         ...groupedTopAxes('timing', 3),
-        timingGranularity || localizeAdapterFreeText(timingWindow?.timingGranularity || 'unknown', locale),
+        timingGranularity ||
+          localizeAdapterFreeText(timingWindow?.timingGranularity || 'unknown', locale),
         precisionReason,
         localizeAdapterFreeText(timingWindow?.timingConflictMode || '', locale),
-      ].filter(Boolean).slice(0, 5),
+      ]
+        .filter(Boolean)
+        .slice(0, 5),
     },
     conflict: {
       headline: locale === 'ko' ? '\uCDA9\uB3CC' : 'Conflict',
       summary: localizeAdapterFreeText(conflictSummary, locale),
-      detailLines: [
-        ...arbitrationBrief.suppressionNarratives.slice(0, 2),
-      ].filter(Boolean),
+      detailLines: [...arbitrationBrief.suppressionNarratives.slice(0, 2)].filter(Boolean),
       drivers: groupedTopAxes('conflict', 4),
       counterweights: arbitrationBrief.suppressionNarratives.slice(0, 3),
       nextMoves: softCheckLabels,
@@ -878,7 +951,9 @@ export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en')
           .slice(0, 3)
           .map((item) => localizeAdapterFreeText(item, locale)),
         ...arbitrationBrief.suppressionNarratives.slice(0, 2),
-      ].filter(Boolean).slice(0, 5),
+      ]
+        .filter(Boolean)
+        .slice(0, 5),
     },
     action: {
       headline: locale === 'ko' ? '\uD589\uB3D9' : 'Action',
@@ -887,13 +962,19 @@ export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en')
         localizeAdapterFreeText(core.canonical.judgmentPolicy.rationale, locale),
       ].filter(Boolean),
       drivers: [...groupedTopAxes('domain', 3), ...allowedActionLabels.slice(0, 2)].filter(Boolean),
-      counterweights: [...blockedActionLabels.slice(0, 2), ...hardStopLabels.slice(0, 2)].filter(Boolean),
-      nextMoves: [...allowedActionLabels.slice(0, 2), ...softCheckLabels.slice(0, 2)].filter(Boolean),
+      counterweights: [...blockedActionLabels.slice(0, 2), ...hardStopLabels.slice(0, 2)].filter(
+        Boolean
+      ),
+      nextMoves: [...allowedActionLabels.slice(0, 2), ...softCheckLabels.slice(0, 2)].filter(
+        Boolean
+      ),
       reasons: [
         ...groupedTopAxes('domain', 3),
         getTopDecisionLabel(core, locale) || '',
         ...allowedActionLabels.slice(0, 2),
-      ].filter(Boolean).slice(0, 5),
+      ]
+        .filter(Boolean)
+        .slice(0, 5),
     },
     risk: {
       headline: locale === 'ko' ? '\uB9AC\uC2A4\uD06C' : 'Risk',
@@ -904,14 +985,18 @@ export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en')
           : `The axis to monitor first right now is ${riskAxisLabel}.`,
         ...hardStopLabels.slice(0, 2),
       ].filter(Boolean),
-      drivers: [...groupedTopAxes('conflict', 2), ...blockedActionLabels.slice(0, 2)].filter(Boolean),
+      drivers: [...groupedTopAxes('conflict', 2), ...blockedActionLabels.slice(0, 2)].filter(
+        Boolean
+      ),
       counterweights: hardStopLabels,
       nextMoves: softCheckLabels,
       reasons: [
         ...groupedTopAxes('conflict', 2),
         ...blockedActionLabels.slice(0, 2),
         ...hardStopLabels.slice(0, 2),
-      ].filter(Boolean).slice(0, 5),
+      ]
+        .filter(Boolean)
+        .slice(0, 5),
     },
     evidence: {
       headline: locale === 'ko' ? '\uADFC\uAC70' : 'Evidence',
@@ -928,7 +1013,9 @@ export function buildProjectionSet(core: DestinyCoreResult, locale: 'ko' | 'en')
         ...groupedTopAxes('astrology', 2),
         ...groupedTopAxes('narrative', 2),
         ...evidenceReasons,
-      ].filter(Boolean).slice(0, 6),
+      ]
+        .filter(Boolean)
+        .slice(0, 6),
     },
     branches: buildBranchProjectionSummary(core, locale),
   }

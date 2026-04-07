@@ -644,6 +644,13 @@ export interface MatrixCalculationInput {
         changedDomains?: string[]
         supportSignals?: string[]
         cautionSignals?: string[]
+        coreDiff?: {
+          directAnswer?: string
+          actionDomain?: string
+          riskDomain?: string
+          bestWindow?: string
+          branchSummary?: string
+        }
       }>
     }
   }

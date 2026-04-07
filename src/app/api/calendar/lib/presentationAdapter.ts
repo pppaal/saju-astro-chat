@@ -93,6 +93,7 @@ export function buildCalendarPresentationView(input: {
         date: '',
         summary: emptySummary,
         focusDomain: getDomainLabel('general', locale),
+        actionFocusDomain: getDomainLabel('general', locale),
         reliability: emptySummary,
       },
       weekSummary: { rangeStart: '', rangeEnd: '', summary: emptySummary },
@@ -488,6 +489,7 @@ export function buildCalendarPresentationView(input: {
         : `${actionCardSummary} ${riskCardSummary} ${windowCardSummary} ${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${projectionBranchLead} ${daySummaryText} ${projectionActionLead} ${crossConflictText}`.trim()
     ),
     focusDomain: focusDomainLabel,
+    actionFocusDomain: actionFocusDomainLabel,
     reliability,
   }
 
