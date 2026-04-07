@@ -1,25 +1,33 @@
-'use client'
+﻿'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
-import PremiumPageScaffold from '@/app/premium-reports/_components/PremiumPageScaffold'
 import {
-  ReportProfileForm,
+  PremiumPageScaffold,
+  PersonModelOverview,
+  ReportBuilderActionPanel,
+  ReportBuilderHero,
+  ReportBulletListSection,
+  ReportFocusGridSection,
+  ReportInsightCards,
+  ReportSummarySection,
+  ReportSurfaceSection,
   type ReportProfileInput,
-} from '@/app/premium-reports/_components/ReportProfileForm'
+} from '@/app/premium-reports/_components'
+import {
+  buildQueryReportProfileInput,
+  fetchPremiumSajuData,
+  type PremiumSajuData,
+  toReportTier,
+} from '@/app/premium-reports/_lib/shared'
+import { usePremiumReportProfile } from '@/app/premium-reports/_lib/usePremiumReportProfile'
 import { savePremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
 import { REPORT_CREDIT_COSTS } from '@/lib/destiny-matrix/ai-report'
-
-interface SajuData {
-  dayMasterElement: string
-}
-
-type ReportTier = 'free' | 'premium'
+import type { AdapterPersonModel } from '@/lib/destiny-matrix/core/adaptersTypes'
 
 interface FreeDigestReport {
   tier: 'free'
@@ -27,6 +35,7 @@ interface FreeDigestReport {
   summary: string
   overallScore: number
   grade: string
+  personModel?: AdapterPersonModel
   topInsights?: Array<{ title: string; reason: string; action: string }>
   focusAreas?: Array<{ domain: string; score: number; summary: string }>
   caution?: string[]
@@ -34,17 +43,13 @@ interface FreeDigestReport {
 }
 
 const FEATURES = [
-  '사주·점성 통합 성향 분석',
-  '대운/세운 기반 타이밍 분석',
-  '연애/커리어/재무/건강 요약',
-  '강점·주의점·실행전략 제안',
-  '교차 근거 기반 해석 흐름',
-  '실행 가능한 체크리스트 제공',
+  '사주·점성 교차 기반 구조 요약',
+  '현재 타이밍과 핵심 흐름 정리',
+  '연애·커리어·재정·건강 포커스 영역 표시',
+  '강점, 주의점, 다음 단계 제안',
+  '무료는 빠른 요약, 프리미엄은 심화 해석',
+  '같은 출생 프로필로 무료/프리미엄 공통 분석',
 ]
-
-function toTier(value: string | null): ReportTier {
-  return value === 'free' ? 'free' : 'premium'
-}
 
 export default function ComprehensiveReportPage() {
   const router = useRouter()
@@ -53,61 +58,28 @@ export default function ComprehensiveReportPage() {
   const redirectedRef = useRef(false)
   const { profile, isLoading: profileLoading } = useUserProfile()
 
-  const reportTier = toTier(searchParams?.get('tier') ?? null)
-  const queryProfileInput = useMemo<ReportProfileInput | null>(() => {
-    const birthDate = searchParams?.get('birthDate') || ''
-    if (!birthDate) return null
+  const reportTier = toReportTier(searchParams?.get('tier') ?? null)
+  const queryProfileInput = useMemo<ReportProfileInput | null>(
+    () => buildQueryReportProfileInput(searchParams, profile),
+    [profile, searchParams]
+  )
+  const { profileInput, setProfileInput } = usePremiumReportProfile(profile, queryProfileInput)
 
-    const name = searchParams?.get('name') || profile.name || '사용자'
-    const birthTime = searchParams?.get('birthTime') || profile.birthTime || '12:00'
-    const birthCity = searchParams?.get('birthCity') || profile.birthCity || undefined
-    const timezone = searchParams?.get('timezone') || profile.timezone || 'Asia/Seoul'
-    const genderParam = searchParams?.get('gender')
-    const latitudeParam = searchParams?.get('lat')
-    const longitudeParam = searchParams?.get('lon')
-
-    const latitude = latitudeParam ? Number(latitudeParam) : profile.latitude
-    const longitude = longitudeParam ? Number(longitudeParam) : profile.longitude
-    const gender =
-      genderParam === 'F' || genderParam === 'Female'
-        ? 'F'
-        : genderParam === 'M' || genderParam === 'Male'
-          ? 'M'
-          : profile.gender === 'Female'
-            ? 'F'
-            : profile.gender === 'Male'
-              ? 'M'
-              : undefined
-
-    return {
-      name,
-      birthDate,
-      birthTime,
-      birthCity,
-      gender,
-      timezone,
-      latitude: Number.isFinite(latitude as number) ? (latitude as number) : undefined,
-      longitude: Number.isFinite(longitude as number) ? (longitude as number) : undefined,
-    }
-  }, [profile, searchParams])
-
-  const { profileInput, setProfileInput } = useReportProfileState(profile, queryProfileInput)
-
-  const [sajuData, setSajuData] = useState<SajuData | null>(null)
+  const [sajuData, setSajuData] = useState<PremiumSajuData | null>(null)
   const [sajuLoading, setSajuLoading] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [freeReport, setFreeReport] = useState<FreeDigestReport | null>(null)
 
   useEffect(() => {
-    if (status === 'unauthenticated' && !redirectedRef.current) {
+    if (reportTier === 'premium' && status === 'unauthenticated' && !redirectedRef.current) {
       redirectedRef.current = true
       router.push('/auth/signin?callbackUrl=/premium-reports/comprehensive')
     }
-    if (status === 'authenticated') {
+    if (status === 'authenticated' || reportTier === 'free') {
       redirectedRef.current = false
     }
-  }, [status, router])
+  }, [reportTier, router, status])
 
   const loadSajuData = useCallback(async () => {
     if (status !== 'authenticated') {
@@ -116,13 +88,7 @@ export default function ComprehensiveReportPage() {
 
     setSajuLoading(true)
     try {
-      const response = await fetch('/api/me/saju')
-      const data = await response.json()
-      if (data.success && data.hasSaju) {
-        setSajuData(data.saju)
-      }
-    } catch {
-      // ignore and use fallback
+      setSajuData(await fetchPremiumSajuData())
     } finally {
       setSajuLoading(false)
     }
@@ -203,7 +169,7 @@ export default function ComprehensiveReportPage() {
     }
   }
 
-  if (status === 'loading' || profileLoading || sajuLoading) {
+  if ((reportTier === 'premium' && status === 'loading') || profileLoading || sajuLoading) {
     return <UnifiedServiceLoading kind="aiReport" locale="ko" />
   }
 
@@ -215,180 +181,164 @@ export default function ComprehensiveReportPage() {
         </div>
       )}
       <PremiumPageScaffold accent="amber">
-        <header className="px-4 py-10">
-          <div className="mx-auto max-w-5xl">
-            <Link
-              href="/premium-reports"
-              className="inline-flex items-center rounded-full border border-white/15 bg-slate-900/60 px-3 py-1 text-sm text-slate-300 backdrop-blur-xl hover:border-cyan-300/60 hover:text-white"
-            >
-              프리미엄 리포트
-            </Link>
-            <div className="mt-5 rounded-3xl border border-white/15 bg-slate-900/60 p-7 backdrop-blur-xl">
-              <div className="inline-flex rounded-full border border-amber-300/35 bg-amber-400/10 px-3 py-1 text-xs font-semibold text-amber-200">
-                Comprehensive
-              </div>
-              <h1 className="mt-3 text-3xl font-black text-white">종합 리포트</h1>
-              <p className="mt-2 text-sm leading-6 text-slate-200">
-                사주·점성·매트릭스 근거를 한 번에 통합해 전체 흐름을 해석합니다.
-              </p>
-
-              <div className="mt-5 inline-flex rounded-xl border border-white/15 bg-slate-950/50 p-1">
-                <button
-                  onClick={() => router.replace('/premium-reports/comprehensive?tier=free')}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                    reportTier === 'free'
-                      ? 'bg-emerald-500 text-white'
-                      : 'text-slate-300 hover:text-white'
-                  }`}
-                >
-                  FREE VERSION
-                </button>
-                <button
-                  onClick={() => router.replace('/premium-reports/comprehensive?tier=premium')}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                    reportTier === 'premium'
-                      ? 'bg-amber-500 text-slate-950'
-                      : 'text-slate-300 hover:text-white'
-                  }`}
-                >
-                  PREMIUM VERSION
-                </button>
-              </div>
-
-              <p className="mt-3 text-xs font-semibold text-amber-200">
-                {reportTier === 'premium'
-                  ? `${REPORT_CREDIT_COSTS.comprehensive} credits - Premium report + PDF`
-                  : '0 credits - Free digest report'}
-              </p>
+        <ReportBuilderHero
+          accent="amber"
+          badge="Persona Report"
+          title="종합 리포트"
+          description="무료는 핵심 구조와 현재 흐름을 먼저 보여주는 빠른 요약입니다. 프리미엄은 같은 출생 프로필을 바탕으로 더 깊은 인물 해석, 타이밍, 적용 가이드, PDF까지 확장합니다."
+          meta={
+            reportTier === 'premium'
+              ? `${REPORT_CREDIT_COSTS.comprehensive} credits · 프리미엄 리포트 + PDF`
+              : '0 credits · 무료 종합 요약'
+          }
+          actions={
+            <div className="inline-flex rounded-xl border border-white/15 bg-slate-950/50 p-1">
+              <button
+                onClick={() => router.replace('/premium-reports/comprehensive?tier=free')}
+                className={`min-h-10 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  reportTier === 'free'
+                    ? 'bg-emerald-500 text-white'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                빠른 요약
+              </button>
+              <button
+                onClick={() => router.replace('/premium-reports/comprehensive?tier=premium')}
+                className={`min-h-10 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  reportTier === 'premium'
+                    ? 'bg-amber-500 text-slate-950'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                프리미엄
+              </button>
             </div>
-          </div>
-        </header>
+          }
+        />
 
         <main className="mx-auto grid max-w-5xl gap-6 px-4 pb-20 lg:grid-cols-[1fr_1fr]">
-          <section className="rounded-3xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
-            <h2 className="text-lg font-semibold text-white">포함 내용</h2>
-            <ul className="mt-4 space-y-2">
+          <ReportSurfaceSection
+            title="포함 내용"
+            tone={reportTier === 'premium' ? 'amber' : 'emerald'}
+          >
+            <ul className="space-y-2">
               {FEATURES.map((feature) => (
                 <li key={feature} className="text-sm text-slate-200">
-                  ? {feature}
+                  • {feature}
                 </li>
               ))}
             </ul>
-          </section>
+          </ReportSurfaceSection>
 
-          <section className="space-y-4 rounded-3xl border border-white/15 bg-slate-900/55 p-5 backdrop-blur-xl">
-            <ReportProfileForm locale="ko" initialName={profile.name} onSubmit={setProfileInput} />
-
-            {error && (
-              <div className="rounded-xl border border-red-500/60 bg-red-500/15 p-3 text-sm text-red-200">
-                {error}
-              </div>
-            )}
-
-            <button
-              onClick={handleGenerate}
-              disabled={!canGenerate}
-              className={`w-full rounded-xl px-4 py-4 text-sm font-semibold text-white transition ${
-                canGenerate
-                  ? reportTier === 'premium'
-                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:brightness-110'
-                    : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110'
-                  : 'cursor-not-allowed bg-slate-700'
-              }`}
-            >
-              {isGenerating
+          <ReportBuilderActionPanel
+            accent={reportTier === 'premium' ? 'amber' : 'emerald'}
+            initialName={profile.name}
+            onProfileSubmit={setProfileInput}
+            actionLabel={
+              isGenerating
                 ? '리포트 생성 중...'
                 : reportTier === 'premium'
                   ? '프리미엄 종합 리포트 생성'
-                  : '무료 요약 리포트 생성'}
-            </button>
-
-            <p className="text-center text-xs text-slate-500">
-              {reportTier === 'premium'
+                  : '무료 요약 리포트 생성'
+            }
+            onAction={handleGenerate}
+            disabled={!canGenerate}
+            error={error}
+            helperText={
+              reportTier === 'premium'
                 ? '프리미엄 리포트는 My Journey에서 다시 확인할 수 있습니다.'
-                : '무료 요약은 저장되지 않으니 필요한 내용은 메모해 주세요.'}
-            </p>
+                : '무료 요약은 세션 기준으로만 유지되며 저장되지 않습니다.'
+            }
+          >
+            <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 text-sm text-slate-200">
+              <p className="font-medium text-white">
+                {reportTier === 'premium' ? '심화 해석 모드' : '빠른 요약 모드'}
+              </p>
+              <p className="mt-2 leading-6 text-slate-300">
+                {reportTier === 'premium'
+                  ? '인물 구조, 현재 활성 상태, 핵심 분기, 적용 가이드와 PDF까지 한 번에 생성합니다.'
+                  : '핵심 구조, 현재 흐름, 상위 포커스 영역과 다음 단계를 짧고 선명하게 정리합니다.'}
+              </p>
+            </div>
 
             {freeReport && (
-              <section className="rounded-2xl border border-emerald-300/35 bg-emerald-500/10 p-4 text-sm text-emerald-50">
-                <h3 className="text-base font-bold text-emerald-100">{freeReport.headline}</h3>
-                <p className="mt-2 leading-6 text-emerald-100/90">{freeReport.summary}</p>
-                <p className="mt-3 font-semibold">
-                  종합 점수 {freeReport.overallScore}점 · 등급 {freeReport.grade}
-                </p>
-
-                {freeReport.topInsights && freeReport.topInsights.length > 0 && (
-                  <div className="mt-4 space-y-3">
-                    {freeReport.topInsights.map((item) => (
-                      <article
-                        key={`${item.title}-${item.action}`}
-                        className="rounded-xl border border-emerald-200/35 bg-emerald-950/35 p-3"
-                      >
-                        <p className="font-semibold text-emerald-50">{item.title}</p>
-                        <p className="mt-1 text-emerald-100/85">{item.reason}</p>
-                        <p className="mt-2 text-xs font-semibold text-emerald-200">
-                          실행: {item.action}
-                        </p>
-                      </article>
-                    ))}
+              <section className="rounded-3xl border border-emerald-300/30 bg-gradient-to-br from-emerald-500/12 to-teal-500/8 p-5 text-sm text-emerald-50">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-200/80">
+                      Free Digest
+                    </p>
+                    <h3 className="mt-1 text-lg font-bold text-emerald-50">
+                      {freeReport.headline}
+                    </h3>
                   </div>
+                  <div className="rounded-2xl border border-emerald-200/30 bg-emerald-950/35 px-4 py-3 text-right">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-200/70">
+                      Score
+                    </p>
+                    <p className="mt-1 text-2xl font-black text-emerald-50">
+                      {freeReport.overallScore}점
+                    </p>
+                    <p className="text-xs text-emerald-100/80">등급 {freeReport.grade}</p>
+                  </div>
+                </div>
+
+                <ReportSummarySection
+                  summary={freeReport.summary}
+                  tone="emerald"
+                  className="mt-4 border-0 p-0 bg-transparent backdrop-blur-0"
+                />
+
+                {freeReport.personModel && (
+                  <PersonModelOverview
+                    personModel={freeReport.personModel}
+                    variant="digest"
+                    className="mt-5"
+                  />
                 )}
 
-                {freeReport.nextSteps && freeReport.nextSteps.length > 0 && (
-                  <div className="mt-4 rounded-xl border border-emerald-200/35 bg-emerald-950/25 p-3">
-                    <p className="font-semibold text-emerald-100">다음 단계</p>
-                    <ul className="mt-2 space-y-1 text-emerald-100/90">
-                      {freeReport.nextSteps.map((step) => (
-                        <li key={step}>? {step}</li>
-                      ))}
-                    </ul>
+                <ReportFocusGridSection
+                  title="포커스 영역"
+                  tone="emerald"
+                  className="mt-5"
+                  items={(freeReport.focusAreas || []).slice(0, 4)}
+                />
+
+                <ReportInsightCards
+                  title="핵심 인사이트"
+                  tone="emerald"
+                  className="mt-5"
+                  items={(freeReport.topInsights || []).map((item) => ({
+                    title: item.title,
+                    body: item.reason,
+                    footer: `Next · ${item.action}`,
+                  }))}
+                />
+
+                {(freeReport.caution && freeReport.caution.length > 0) ||
+                (freeReport.nextSteps && freeReport.nextSteps.length > 0) ? (
+                  <div className="mt-5 grid gap-4 md:grid-cols-2">
+                    <ReportBulletListSection
+                      title="주의 포인트"
+                      tone="amber"
+                      items={(freeReport.caution || []).slice(0, 4)}
+                      className="h-full"
+                    />
+
+                    <ReportBulletListSection
+                      title="다음 단계"
+                      tone="emerald"
+                      items={freeReport.nextSteps || []}
+                      className="h-full"
+                    />
                   </div>
-                )}
+                ) : null}
               </section>
             )}
-          </section>
+          </ReportBuilderActionPanel>
         </main>
       </PremiumPageScaffold>
     </>
   )
-}
-
-function useReportProfileState(
-  profile: {
-    birthDate?: string
-    birthTime?: string
-    birthCity?: string
-    timezone?: string
-    latitude?: number
-    longitude?: number
-    name?: string
-    gender?: string
-  },
-  queryProfileInput: ReportProfileInput | null
-) {
-  const [profileInput, setProfileInput] = useState<ReportProfileInput | null>(null)
-
-  useEffect(() => {
-    if (queryProfileInput && !profileInput) {
-      setProfileInput(queryProfileInput)
-      return
-    }
-
-    if (!profile.birthDate || profileInput) {
-      return
-    }
-
-    setProfileInput({
-      name: profile.name || '사용자',
-      birthDate: profile.birthDate,
-      birthTime: profile.birthTime || '12:00',
-      birthCity: profile.birthCity,
-      gender: profile.gender === 'Female' ? 'F' : profile.gender === 'Male' ? 'M' : undefined,
-      timezone: profile.timezone,
-      latitude: profile.latitude,
-      longitude: profile.longitude,
-    })
-  }, [profile, profileInput, queryProfileInput])
-
-  return { profileInput, setProfileInput }
 }

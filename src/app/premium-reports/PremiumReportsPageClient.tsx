@@ -17,11 +17,12 @@ import {
 } from 'lucide-react'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
-import PremiumPageScaffold from '@/app/premium-reports/_components/PremiumPageScaffold'
 import {
+  PremiumPageScaffold,
   ReportProfileForm,
   type ReportProfileInput,
-} from '@/app/premium-reports/_components/ReportProfileForm'
+} from '@/app/premium-reports/_components'
+import { loadStoredReportProfile } from '@/app/premium-reports/_lib/shared'
 import { savePremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
 
 type ReportMode = 'free' | 'premium'
@@ -44,8 +45,6 @@ const FALLBACK_CITY = 'Seoul, South Korea'
 const FALLBACK_LAT = 37.5665
 const FALLBACK_LON = 126.978
 const PREMIUM_API_TIMEOUT_MS = 60000
-const REPORT_PROFILE_STORAGE_KEY = 'premiumReports:profileInput'
-
 const PREMIUM_OPTIONS: PremiumOption[] = [
   {
     key: 'comprehensive',
@@ -118,27 +117,25 @@ const PREMIUM_OPTIONS: PremiumOption[] = [
   },
 ]
 
-function normalizeGender(value?: ReportProfileInput['gender']): 'male' | 'female' {
-  if (value === 'F' || value === 'Female') return 'female'
-  return 'male'
+function normalizeGender(value?: ReportProfileInput['gender']): 'M' | 'F' {
+  return value === 'F' ? 'F' : 'M'
 }
 
-function createDestinyMapUrl(profile: ReportProfileInput): string {
+function createFreeReportUrl(profile: ReportProfileInput): string {
   const latitude = Number.isFinite(profile.latitude) ? profile.latitude : FALLBACK_LAT
   const longitude = Number.isFinite(profile.longitude) ? profile.longitude : FALLBACK_LON
   const params = new URLSearchParams({
     name: profile.name || '사용자',
     birthDate: profile.birthDate,
     birthTime: profile.birthTime || '12:00',
-    city: profile.birthCity?.trim() || FALLBACK_CITY,
+    birthCity: profile.birthCity?.trim() || FALLBACK_CITY,
+    timezone: profile.timezone || 'Asia/Seoul',
     lat: String(latitude),
     lon: String(longitude),
-    userTz: profile.timezone || 'Asia/Seoul',
-    gender: normalizeGender(profile.gender),
-    lang: 'ko',
-    theme: 'focus_overall',
+    gender: profile.gender ? String(profile.gender) : normalizeGender(profile.gender),
+    tier: 'free',
   })
-  return `/destiny-map/result?${params.toString()}`
+  return `/premium-reports/comprehensive?${params.toString()}`
 }
 
 export default function PremiumReportsPage() {
@@ -167,19 +164,12 @@ export default function PremiumReportsPage() {
     if (profileInput?.birthDate) {
       return profileInput
     }
-    if (typeof window === 'undefined') {
-      return null
-    }
-    try {
-      const raw = sessionStorage.getItem(REPORT_PROFILE_STORAGE_KEY)
-      if (!raw) return null
-      const parsed = JSON.parse(raw) as ReportProfileInput
-      if (!parsed?.birthDate) return null
+    const parsed = loadStoredReportProfile()
+    if (parsed?.birthDate) {
       setProfileInput(parsed)
       return parsed
-    } catch {
-      return null
     }
+    return null
   }
 
   const handleStartFree = () => {
@@ -189,7 +179,7 @@ export default function PremiumReportsPage() {
       return
     }
     setError(null)
-    const nextUrl = createDestinyMapUrl(resolvedProfile)
+    const nextUrl = createFreeReportUrl(resolvedProfile)
     try {
       router.push(nextUrl)
       // Fallback navigation if app-router transition is blocked
@@ -352,14 +342,14 @@ export default function PremiumReportsPage() {
           <div className="mx-auto max-w-6xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-violet-300/40 bg-violet-500/15 px-4 py-1 text-xs font-semibold tracking-wide text-violet-100">
               <Sparkles className="h-3.5 w-3.5" />
-              AI REPORT
+              REPORT STUDIO
             </div>
             <h1 className="mt-4 text-3xl font-black tracking-tight text-white md:text-5xl">
-              한 번 입력하면, Free 인사이트부터 테마별 Premium 리포트까지
+              한 번 입력하면, 빠른 요약부터 심화 프리미엄 리포트까지
             </h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300 md:text-base">
-              사주와 점성 기반 공통 프로필을 한 번 입력한 뒤, 무료 흐름 확인 또는
-              인생총운·신년운·연애·커리어·재물·건강·가족 테마 리포트로 바로 이어집니다.
+              사주와 점성 기반 공통 프로필을 먼저 만든 뒤, 무료 요약 리포트로 핵심 구조를 확인하거나
+              인생총운·신년운·연애·커리어·재물·건강·가족 리포트로 바로 이어집니다.
             </p>
             <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-200">
               {PREMIUM_OPTIONS.map((option) => (
@@ -400,7 +390,7 @@ export default function PremiumReportsPage() {
                       : 'text-slate-300 hover:text-white'
                   }`}
                 >
-                  FREE
+                  빠른 요약
                 </button>
                 <button
                   type="button"
@@ -411,19 +401,28 @@ export default function PremiumReportsPage() {
                       : 'text-slate-300 hover:text-white'
                   }`}
                 >
-                  PREMIUM
+                  프리미엄
                 </button>
               </div>
 
               {mode === 'free' ? (
                 <div className="mt-4 rounded-2xl border border-emerald-300/35 bg-gradient-to-br from-emerald-500/15 to-teal-500/10 p-5">
-                  <p className="text-xs font-semibold text-emerald-200">FREE INSIGHTS</p>
-                  <h2 className="mt-1 text-xl font-extrabold text-white">
-                    Destiny Map 기본 인사이트
-                  </h2>
+                  <p className="text-xs font-semibold text-emerald-200">QUICK DIGEST</p>
+                  <h2 className="mt-1 text-xl font-extrabold text-white">무료 종합 요약 리포트</h2>
                   <p className="mt-2 text-sm leading-6 text-slate-100">
-                    성향, 현재 흐름, 주의 포인트, 지금 바로 써먹을 한 줄 가이드를 먼저 확인합니다.
+                    구조 요약, 현재 흐름, 주의 포인트, 바로 적용할 다음 단계까지 한 화면에서 먼저
+                    확인합니다.
                   </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {['구조 요약', '현재 흐름', '상위 인사이트 3개', '즉시 실행안'].map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-full border border-emerald-200/25 bg-emerald-950/35 px-3 py-1 text-[11px] text-emerald-100"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="mt-4">
@@ -492,11 +491,11 @@ export default function PremiumReportsPage() {
               >
                 {mode === 'free'
                   ? hasProfile
-                    ? 'Free 분석하기'
-                    : '출생정보 입력 후 Free 분석하기'
+                    ? '무료 요약 리포트 보기'
+                    : '출생정보 입력 후 무료 요약 보기'
                   : status === 'authenticated' && !hasProfile
                     ? '출생정보 입력 후 Premium 분석하기'
-                    : 'Premium 분석하기'}
+                    : '프리미엄 리포트 생성'}
                 <ArrowRight className="h-4 w-4" />
               </button>
 
@@ -509,7 +508,7 @@ export default function PremiumReportsPage() {
             </article>
 
             <article className="rounded-2xl border border-white/15 bg-slate-900/50 p-4 text-xs leading-6 text-slate-300 backdrop-blur-xl">
-              <p>프리미엄 생성은 로그인 및 크레딧이 필요합니다.</p>
+              <p>무료 요약은 즉시 확인할 수 있고, 프리미엄 생성은 로그인 및 크레딧이 필요합니다.</p>
               <Link
                 href="/pricing"
                 className="mt-1 inline-flex items-center gap-1 font-semibold text-cyan-200 hover:text-cyan-100"

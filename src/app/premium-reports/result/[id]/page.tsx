@@ -17,18 +17,26 @@ import {
 } from 'lucide-react'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
-import CalculationDetailsSection from '@/app/premium-reports/_components/CalculationDetailsSection'
-import GraphRagEvidenceSection from '@/app/premium-reports/_components/GraphRagEvidenceSection'
-import PersonAppliedProfileSection from '@/app/premium-reports/_components/PersonAppliedProfileSection'
-import PersonDomainStateSection from '@/app/premium-reports/_components/PersonDomainStateSection'
-import PremiumPageScaffold from '@/app/premium-reports/_components/PremiumPageScaffold'
-import PersonModelOverview from '@/app/premium-reports/_components/PersonModelOverview'
-import QualityAuditSection from '@/app/premium-reports/_components/QualityAuditSection'
-import ReportBulletListSection from '@/app/premium-reports/_components/ReportBulletListSection'
-import ReportInsightCards from '@/app/premium-reports/_components/ReportInsightCards'
-import ReportSectionReader from '@/app/premium-reports/_components/ReportSectionReader'
-import ReportSummarySection from '@/app/premium-reports/_components/ReportSummarySection'
-import SingleSubjectViewSection from '@/app/premium-reports/_components/SingleSubjectViewSection'
+import {
+  CalculationDetailsSection,
+  GraphRagEvidenceSection,
+  PersonAppliedProfileSection,
+  PersonDomainStateSection,
+  PersonInterpretationStabilitySection,
+  PremiumPageScaffold,
+  PersonModelOverview,
+  QualityAuditSection,
+  ReportBulletListSection,
+  ReportInsightCards,
+  ReportSectionReader,
+  ReportSummarySection,
+  SingleSubjectViewSection,
+} from '@/app/premium-reports/_components'
+import type {
+  GraphRAGEvidenceBundle,
+  PremiumReportData as ReportData,
+  ReportSection,
+} from '@/app/premium-reports/_lib/types'
 import {
   toQualityMarkdown,
   type QualityAudit,
@@ -43,56 +51,6 @@ import type {
   AdapterSingleSubjectView,
 } from '@/lib/destiny-matrix/core/adaptersTypes'
 import { readPremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
-
-interface ReportSection {
-  title: string
-  content: string
-}
-
-interface GraphRAGEvidenceAnchor {
-  id: string
-  section: string
-  sajuEvidence: string
-  astrologyEvidence: string
-  crossConclusion: string
-  crossEvidenceSets?: Array<{
-    id: string
-    astrologyEvidence: string
-    sajuEvidence: string
-    overlapDomains?: string[]
-    overlapScore?: number
-    combinedConclusion?: string
-  }>
-}
-
-interface GraphRAGEvidenceBundle {
-  mode: 'comprehensive' | 'timing' | 'themed'
-  theme?: string
-  period?: string
-  anchors: GraphRAGEvidenceAnchor[]
-}
-
-interface ReportData {
-  id: string
-  type: 'timing' | 'themed' | 'comprehensive'
-  title: string
-  summary: string
-  createdAt: string
-  period?: string
-  theme?: string
-  score?: number
-  grade?: string
-  sections: ReportSection[]
-  keywords?: string[]
-  insights?: Array<{ title: string; content: string }>
-  actionItems?: string[]
-  qualityAudit?: QualityAudit
-  calculationDetails?: CalculationDetails
-  graphRagEvidence?: GraphRAGEvidenceBundle
-  singleSubjectView?: AdapterSingleSubjectView
-  personModel?: AdapterPersonModel
-  fullData?: Record<string, unknown>
-}
 
 const REPORT_FETCH_MAX_RETRIES = 8
 const REPORT_FETCH_RETRY_MS = 1200
@@ -279,6 +237,33 @@ function labelDomainFromModel(
     return '-'
   }
   return personModel?.dimensions.find((item) => item.domain === domain)?.label || domain
+}
+
+function buildAxisSplitNarrative(
+  personModel: AdapterPersonModel | undefined,
+  locale: 'ko' | 'en' = 'ko'
+): string {
+  const focusDomain = personModel?.structuralCore.focusDomain
+  const actionDomain = personModel?.structuralCore.actionFocusDomain
+  if (!focusDomain || !actionDomain) {
+    return ''
+  }
+
+  const focusLabel = labelDomainFromModel(personModel, focusDomain)
+  const actionLabel = labelDomainFromModel(personModel, actionDomain)
+  if (!focusLabel || !actionLabel) {
+    return ''
+  }
+
+  if (focusDomain === actionDomain) {
+    return locale === 'ko'
+      ? `배경 압력축과 현재 행동축이 모두 ${focusLabel}로 정렬되어 있습니다.`
+      : `Both the structural pressure axis and the current action axis are aligned to ${focusLabel}.`
+  }
+
+  return locale === 'ko'
+    ? `배경 압력축은 ${focusLabel}이고, 지금 먼저 움직여야 할 행동축은 ${actionLabel}입니다.`
+    : `The underlying pressure axis is ${focusLabel}, while the action axis that should move first right now is ${actionLabel}.`
 }
 
 function extractReportPayload(data: unknown): Record<string, unknown> | null {
@@ -617,6 +602,7 @@ export default function ReportResultPage() {
   const leadInsights = report.insights?.slice(0, 3) || []
   const coherenceNotes = personModel?.evidenceLedger.coherenceNotes.slice(0, 3) || []
   const contradictionFlags = personModel?.evidenceLedger.contradictionFlags.slice(0, 3) || []
+  const axisSplitNarrative = buildAxisSplitNarrative(personModel, 'ko')
 
   return (
     <PremiumPageScaffold accent="cyan">
@@ -656,6 +642,11 @@ export default function ReportResultPage() {
                 <p className="mt-3 max-w-3xl whitespace-pre-line text-[15px] leading-7 text-slate-300">
                   {singleSubjectView?.directAnswer || personModel?.overview || report.summary}
                 </p>
+                {axisSplitNarrative && (
+                  <p className="mt-3 max-w-3xl text-sm leading-6 text-cyan-100/78">
+                    {axisSplitNarrative}
+                  </p>
+                )}
 
                 <div className="mt-5 flex flex-wrap gap-3">
                   {personModel?.structuralCore.focusDomain && (
@@ -999,6 +990,7 @@ export default function ReportResultPage() {
           </section>
 
           <PersonAppliedProfileSection personModel={personModel} />
+          <PersonInterpretationStabilitySection personModel={personModel} />
 
           {leadBranches.length > 0 && (
             <section className="mx-auto mt-6 max-w-6xl px-4">

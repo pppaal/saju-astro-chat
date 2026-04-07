@@ -1,26 +1,27 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Heart, Briefcase, Coins, HeartPulse, Users } from 'lucide-react'
+import { Briefcase, Coins, Heart, HeartPulse, Users } from 'lucide-react'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
 import { useUserProfile } from '@/hooks/useUserProfile'
-import PremiumPageScaffold from '@/app/premium-reports/_components/PremiumPageScaffold'
 import {
-  ReportProfileForm,
-  type ReportProfileInput,
-} from '@/app/premium-reports/_components/ReportProfileForm'
+  PremiumPageScaffold,
+  ReportBuilderActionPanel,
+  ReportBuilderHero,
+  ReportSurfaceSection,
+} from '@/app/premium-reports/_components'
+import {
+  fetchPremiumSajuData,
+  type PremiumSajuData,
+  type ThemeType,
+  toReportTier,
+  toThemeType,
+} from '@/app/premium-reports/_lib/shared'
+import { usePremiumReportProfile } from '@/app/premium-reports/_lib/usePremiumReportProfile'
 import { savePremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
-
-interface SajuData {
-  dayMasterElement: string
-}
-
-type ThemeType = 'love' | 'career' | 'wealth' | 'health' | 'family'
-type ReportTier = 'free' | 'premium'
 
 const THEME_INFO: Record<
   ThemeType,
@@ -34,16 +35,16 @@ const THEME_INFO: Record<
   }
 > = {
   love: {
-    label: '연애 흐름 & 관계 확정',
-    description: '썸, 재접근, 관계 확정, 결혼 조건까지 속도와 감정선을 함께 분석합니다.',
+    label: '연애 흐름과 관계 확정',
+    description: '썸, 재접근, 관계 확정, 결혼 조건까지 감정선과 속도를 함께 읽습니다.',
     credits: 3,
     color: 'from-pink-500 to-rose-500',
     icon: Heart,
-    sections: ['연애 속도/감정선', '재접근 가능성', '관계 확정·결혼 조건', '실행 전략'],
+    sections: ['연애 속도와 감정선', '재접근 가능성', '관계 확정과 결혼 조건', '실행 전략'],
   },
   career: {
     label: '커리어 전략',
-    description: '직무 적성, 성장 경로, 전환 타이밍을 구체적으로 제시합니다.',
+    description: '직무 적성, 성장 경로, 전환 타이밍을 구체적으로 정리합니다.',
     credits: 3,
     color: 'from-blue-500 to-indigo-500',
     icon: Briefcase,
@@ -51,48 +52,28 @@ const THEME_INFO: Record<
   },
   wealth: {
     label: '재무 전략',
-    description: '수입/지출 패턴과 투자 리듬을 기반으로 재무 전략을 설계합니다.',
+    description: '수입, 지출, 투자 리듬을 바탕으로 재무 운영 원칙을 설계합니다.',
     credits: 3,
     color: 'from-amber-500 to-orange-500',
     icon: Coins,
-    sections: ['현금흐름', '리스크 구간', '투자 성향', '실행 원칙'],
+    sections: ['현금 흐름', '리스크 구간', '투자 성향', '실행 원칙'],
   },
   health: {
     label: '건강 밸런스',
-    description: '체력 흐름, 소진 신호, 회복 루틴을 함께 분석합니다.',
+    description: '체력 흐름, 소진 신호, 회복 루틴을 함께 정리합니다.',
     credits: 3,
     color: 'from-emerald-500 to-teal-500',
     icon: HeartPulse,
     sections: ['체력 리듬', '취약 구간', '회복 전략', '생활 습관'],
   },
   family: {
-    label: '가족 구조 & 돌봄 전략',
-    description: '부모·형제·자녀 역학, 경계선, 돌봄/경제 부담까지 함께 분석합니다.',
+    label: '가족 구조와 돌봄 전략',
+    description: '부모, 형제, 자녀 역학과 경계선, 돌봄 부담까지 함께 해석합니다.',
     credits: 3,
     color: 'from-violet-500 to-purple-500',
     icon: Users,
-    sections: ['가족 역할 구조', '경계선/갈등', '돌봄·경제 분담', '세대 패턴'],
+    sections: ['가족 역할 구조', '경계선과 갈등', '돌봄과 경제 분담', '세대 패턴'],
   },
-}
-
-function toTheme(value: string | null): ThemeType | null {
-  if (!value) {
-    return null
-  }
-  if (
-    value === 'love' ||
-    value === 'career' ||
-    value === 'wealth' ||
-    value === 'health' ||
-    value === 'family'
-  ) {
-    return value
-  }
-  return null
-}
-
-function toTier(value: string | null): ReportTier {
-  return value === 'free' ? 'free' : 'premium'
 }
 
 export default function ThemedReportPage() {
@@ -102,17 +83,17 @@ export default function ThemedReportPage() {
   const redirectedRef = useRef(false)
   const { profile, isLoading: profileLoading } = useUserProfile()
 
-  const reportTier = toTier(searchParams?.get('tier') ?? null)
+  const reportTier = toReportTier(searchParams?.get('tier') ?? null)
 
   const [selectedTheme, setSelectedTheme] = useState<ThemeType | null>(null)
-  const [profileInput, setProfileInput] = useState<ReportProfileInput | null>(null)
-  const [sajuData, setSajuData] = useState<SajuData | null>(null)
+  const { profileInput, setProfileInput } = usePremiumReportProfile(profile)
+  const [sajuData, setSajuData] = useState<PremiumSajuData | null>(null)
   const [sajuLoading, setSajuLoading] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const themeFromQuery = toTheme(searchParams?.get('theme') ?? null)
+    const themeFromQuery = toThemeType(searchParams?.get('theme') ?? null)
     if (themeFromQuery) {
       setSelectedTheme(themeFromQuery)
     }
@@ -128,23 +109,6 @@ export default function ThemedReportPage() {
     }
   }, [status, router])
 
-  useEffect(() => {
-    if (!profile.birthDate || profileInput) {
-      return
-    }
-
-    setProfileInput({
-      name: profile.name || '사용자',
-      birthDate: profile.birthDate,
-      birthTime: profile.birthTime || '12:00',
-      birthCity: profile.birthCity,
-      gender: profile.gender === 'Female' ? 'F' : profile.gender === 'Male' ? 'M' : undefined,
-      timezone: profile.timezone,
-      latitude: profile.latitude,
-      longitude: profile.longitude,
-    })
-  }, [profile, profileInput])
-
   const loadSajuData = useCallback(async () => {
     if (status !== 'authenticated') {
       return
@@ -152,13 +116,7 @@ export default function ThemedReportPage() {
 
     setSajuLoading(true)
     try {
-      const response = await fetch('/api/me/saju')
-      const data = await response.json()
-      if (data.success && data.hasSaju) {
-        setSajuData(data.saju)
-      }
-    } catch {
-      // ignore and use fallback
+      setSajuData(await fetchPremiumSajuData())
     } finally {
       setSajuLoading(false)
     }
@@ -186,7 +144,7 @@ export default function ThemedReportPage() {
     }
 
     if (!selectedTheme) {
-      setError('테마를 선택해 주세요.')
+      setError('테마를 먼저 선택해 주세요.')
       return
     }
 
@@ -260,30 +218,16 @@ export default function ThemedReportPage() {
         </div>
       )}
       <PremiumPageScaffold accent="violet">
-        <header className="px-4 py-10">
-          <div className="mx-auto max-w-5xl">
-            <Link
-              href="/premium-reports"
-              className="inline-flex items-center rounded-full border border-white/15 bg-slate-900/60 px-3 py-1 text-sm text-slate-300 backdrop-blur-xl hover:border-cyan-300/60 hover:text-white"
-            >
-              프리미엄 리포트
-            </Link>
-            <div className="mt-5 rounded-3xl border border-white/15 bg-slate-900/60 p-7 backdrop-blur-xl">
-              <div className="inline-flex rounded-full border border-violet-300/40 bg-violet-400/10 px-3 py-1 text-xs font-semibold text-violet-200">
-                Themed
-              </div>
-              <h1 className="mt-3 text-3xl font-black text-white">테마 심화 리포트</h1>
-              <p className="mt-2 text-slate-300">
-                원하는 테마를 선택하면 사주+점성 교차 근거로 깊이 있게 해석합니다.
-              </p>
-              <p className="mt-3 text-xs font-semibold text-violet-200">3 credits · Premium 전용</p>
-            </div>
-          </div>
-        </header>
+        <ReportBuilderHero
+          accent="violet"
+          badge="Themed Report"
+          title="테마 심화 리포트"
+          description="하나의 영역을 골라 깊게 읽습니다. 연애, 커리어, 재무, 건강, 가족 중 지금 가장 중요한 질문에 맞춰 사주와 점성의 교차 근거를 집중적으로 정리합니다."
+          meta="3 credits · Premium 전용"
+        />
 
         <main className="mx-auto grid max-w-5xl gap-6 px-4 pb-20 lg:grid-cols-[1.1fr_1fr]">
-          <section className="space-y-4">
-            <h2 className="text-lg font-semibold text-white">테마 선택</h2>
+          <ReportSurfaceSection title="테마 선택" eyebrow="Focus Area" tone="cyan">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {(Object.entries(THEME_INFO) as [ThemeType, (typeof THEME_INFO)[ThemeType]][]).map(
                 ([themeKey, theme]) => {
@@ -297,25 +241,27 @@ export default function ThemedReportPage() {
                       className={`rounded-2xl border p-5 text-left transition ${
                         isSelected
                           ? `border-cyan-300 bg-gradient-to-br ${theme.color} shadow-lg shadow-cyan-500/20`
-                          : 'border-slate-700 bg-slate-800/40 hover:border-slate-500'
+                          : 'border-white/10 bg-slate-950/50 hover:border-white/20'
                       }`}
                     >
                       <div className="mb-3 flex items-center justify-between">
                         <Icon className="h-6 w-6 text-white" />
-                        <span className="rounded-full bg-slate-900/40 px-2 py-1 text-xs text-slate-200">
+                        <span className="rounded-full bg-slate-950/40 px-2 py-1 text-xs text-slate-200">
                           {theme.credits} credits
                         </span>
                       </div>
                       <h3 className="text-base font-semibold text-white">{theme.label}</h3>
-                      <p className="mt-2 text-sm text-slate-100/90">{theme.description}</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-100/90">
+                        {theme.description}
+                      </p>
                     </button>
                   )
                 }
               )}
             </div>
 
-            {selectedTheme && (
-              <div className="rounded-2xl border border-white/15 bg-slate-900/55 p-5 backdrop-blur-xl">
+            {selectedTheme ? (
+              <div className="mt-4 rounded-2xl border border-white/10 bg-slate-950/45 p-5">
                 <h3 className="text-base font-semibold text-white">
                   {THEME_INFO[selectedTheme].label} 포함 내용
                 </h3>
@@ -323,55 +269,55 @@ export default function ThemedReportPage() {
                   {THEME_INFO[selectedTheme].sections.map((section) => (
                     <span
                       key={section}
-                      className="rounded-full border border-slate-600 bg-slate-900/50 px-3 py-1 text-xs text-slate-200"
+                      className="rounded-full border border-slate-600 bg-slate-950/50 px-3 py-1 text-xs text-slate-200"
                     >
                       {section}
                     </span>
                   ))}
                 </div>
               </div>
-            )}
+            ) : null}
 
-            <div className="rounded-xl border border-white/15 bg-slate-950/40 p-3 text-xs text-slate-300">
-              무료 버전은 종합 요약만 제공합니다.
+            <div className="mt-4 rounded-2xl border border-white/10 bg-slate-950/40 p-4 text-sm text-slate-300">
+              무료 버전은 종합 요약까지만 제공합니다.
               <button
                 onClick={() => router.push('/premium-reports/comprehensive?tier=free')}
-                className="ml-2 font-semibold text-emerald-300 hover:text-emerald-200"
+                className="ml-2 font-semibold text-emerald-300 transition hover:text-emerald-200"
               >
-                무료 버전 보기
+                무료 요약 보기
               </button>
             </div>
-          </section>
+          </ReportSurfaceSection>
 
-          <section className="space-y-4 rounded-3xl border border-white/15 bg-slate-900/55 p-5 backdrop-blur-xl">
-            <ReportProfileForm locale="ko" initialName={profile.name} onSubmit={setProfileInput} />
-
-            {error && (
-              <div className="rounded-xl border border-red-500/60 bg-red-500/15 p-3 text-sm text-red-200">
-                {error}
-              </div>
-            )}
-
-            <button
-              onClick={handleGenerate}
-              disabled={!canGenerate}
-              className={`w-full rounded-xl px-4 py-4 text-center text-sm font-semibold text-white transition ${
-                canGenerate
-                  ? `bg-gradient-to-r ${selectedTheme ? THEME_INFO[selectedTheme].color : 'from-cyan-500 to-blue-500'} hover:brightness-110`
-                  : 'cursor-not-allowed bg-slate-700'
-              }`}
-            >
-              {isGenerating
+          <ReportBuilderActionPanel
+            accent="violet"
+            initialName={profile.name}
+            onProfileSubmit={setProfileInput}
+            actionLabel={
+              isGenerating
                 ? '리포트 생성 중...'
                 : selectedTheme
-                  ? `${THEME_INFO[selectedTheme].label} 생성하기`
-                  : '테마를 선택해 주세요'}
-            </button>
-
-            <p className="text-center text-xs text-slate-500">
-              생성 후 My Journey에서 다시 확인할 수 있습니다.
-            </p>
-          </section>
+                  ? `${THEME_INFO[selectedTheme].label} 생성`
+                  : '테마를 먼저 선택해 주세요'
+            }
+            onAction={handleGenerate}
+            disabled={!canGenerate}
+            error={error}
+            helperText="생성 후 My Journey에서 다시 확인할 수 있습니다."
+          >
+            <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 text-sm text-slate-200">
+              <p className="font-medium text-white">
+                {selectedTheme
+                  ? `선택된 영역 · ${THEME_INFO[selectedTheme].label}`
+                  : '집중할 영역을 먼저 고르세요'}
+              </p>
+              <p className="mt-2 leading-6 text-slate-300">
+                {selectedTheme
+                  ? THEME_INFO[selectedTheme].description
+                  : '같은 출생 프로필을 바탕으로 지금 가장 중요한 질문 하나를 깊게 파고드는 구조입니다.'}
+              </p>
+            </div>
+          </ReportBuilderActionPanel>
         </main>
       </PremiumPageScaffold>
     </>

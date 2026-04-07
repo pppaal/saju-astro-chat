@@ -1,28 +1,28 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from 'react'
-import Link from 'next/link'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import DateTimePicker from '@/components/ui/DateTimePicker'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
 import { useUserProfile } from '@/hooks/useUserProfile'
-import PremiumPageScaffold from '@/app/premium-reports/_components/PremiumPageScaffold'
 import {
-  ReportProfileForm,
-  type ReportProfileInput,
-} from '@/app/premium-reports/_components/ReportProfileForm'
+  PremiumPageScaffold,
+  ReportBuilderActionPanel,
+  ReportBuilderHero,
+  ReportSurfaceSection,
+} from '@/app/premium-reports/_components'
+import {
+  fetchPremiumSajuData,
+  type PeriodType,
+  type PremiumSajuData,
+  toPeriodType,
+  toReportTier,
+} from '@/app/premium-reports/_lib/shared'
+import { usePremiumReportProfile } from '@/app/premium-reports/_lib/usePremiumReportProfile'
 import { savePremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
 import { REPORT_CREDIT_COSTS } from '@/lib/destiny-matrix/ai-report'
-
-interface SajuData {
-  dayMasterElement: string
-}
-
-type PeriodType = 'daily' | 'monthly' | 'yearly'
-
-type ReportTier = 'free' | 'premium'
 
 const PERIOD_INFO: Record<
   PeriodType,
@@ -31,37 +31,30 @@ const PERIOD_INFO: Record<
     description: string
     credits: number
     color: string
+    note: string
   }
 > = {
   daily: {
     label: '일간 타이밍 분석',
-    description: '하루 단위로 집중/주의 구간을 정밀하게 점검합니다.',
+    description: '하루 단위로 집중과 주의 구간을 정밀하게 점검합니다.',
     credits: REPORT_CREDIT_COSTS.daily,
     color: 'from-yellow-500 to-orange-500',
+    note: '선택한 날짜의 집중 포인트와 주의 신호를 짧고 선명하게 정리합니다.',
   },
   monthly: {
     label: '월간 타이밍 분석',
-    description: '한 달의 흐름과 전환 포인트를 분석합니다.',
+    description: '한 달의 흐름과 전환 포인트를 입체적으로 읽습니다.',
     credits: REPORT_CREDIT_COSTS.monthly,
     color: 'from-blue-500 to-cyan-500',
+    note: '선택한 달의 상승 구간, 조정 구간, 실전 타이밍을 한 번에 정리합니다.',
   },
   yearly: {
     label: '연간 타이밍 분석',
-    description: '연간 핵심 구간과 변곡점을 분석합니다.',
+    description: '연간 핵심 구간과 변곡점을 길게 조망합니다.',
     credits: REPORT_CREDIT_COSTS.yearly,
     color: 'from-purple-500 to-pink-500',
+    note: '선택한 해의 큰 방향, 전환 시점, 밀어야 할 창을 중심으로 정리합니다.',
   },
-}
-
-function toPeriod(value: string | null): PeriodType {
-  if (value === 'monthly' || value === 'yearly') {
-    return value
-  }
-  return 'daily'
-}
-
-function toTier(value: string | null): ReportTier {
-  return value === 'free' ? 'free' : 'premium'
 }
 
 function TimingReportContent() {
@@ -71,13 +64,13 @@ function TimingReportContent() {
   const redirectedRef = useRef(false)
   const { profile, isLoading: profileLoading } = useUserProfile()
 
-  const period = toPeriod(searchParams?.get('period') ?? null)
-  const reportTier = toTier(searchParams?.get('tier') ?? null)
+  const period = toPeriodType(searchParams?.get('period') ?? null)
+  const reportTier = toReportTier(searchParams?.get('tier') ?? null)
   const periodInfo = PERIOD_INFO[period]
 
   const [targetDate, setTargetDate] = useState(() => new Date().toISOString().slice(0, 10))
-  const [profileInput, setProfileInput] = useState<ReportProfileInput | null>(null)
-  const [sajuData, setSajuData] = useState<SajuData | null>(null)
+  const { profileInput, setProfileInput } = usePremiumReportProfile(profile)
+  const [sajuData, setSajuData] = useState<PremiumSajuData | null>(null)
   const [sajuLoading, setSajuLoading] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -92,23 +85,6 @@ function TimingReportContent() {
     }
   }, [status, router, period])
 
-  useEffect(() => {
-    if (!profile.birthDate || profileInput) {
-      return
-    }
-
-    setProfileInput({
-      name: profile.name || '사용자',
-      birthDate: profile.birthDate,
-      birthTime: profile.birthTime || '12:00',
-      birthCity: profile.birthCity,
-      gender: profile.gender === 'Female' ? 'F' : profile.gender === 'Male' ? 'M' : undefined,
-      timezone: profile.timezone,
-      latitude: profile.latitude,
-      longitude: profile.longitude,
-    })
-  }, [profile, profileInput])
-
   const loadSajuData = useCallback(async () => {
     if (status !== 'authenticated') {
       return
@@ -116,13 +92,7 @@ function TimingReportContent() {
 
     setSajuLoading(true)
     try {
-      const response = await fetch('/api/me/saju')
-      const data = await response.json()
-      if (data.success && data.hasSaju) {
-        setSajuData(data.saju)
-      }
-    } catch {
-      // ignore and use fallback
+      setSajuData(await fetchPremiumSajuData())
     } finally {
       setSajuLoading(false)
     }
@@ -217,80 +187,51 @@ function TimingReportContent() {
         </div>
       )}
       <PremiumPageScaffold accent="cyan">
-        <header className="px-4 py-10">
-          <div className="mx-auto max-w-5xl">
-            <Link
-              href="/premium-reports"
-              className="inline-flex items-center rounded-full border border-white/15 bg-slate-900/60 px-3 py-1 text-sm text-slate-300 backdrop-blur-xl hover:border-cyan-300/60 hover:text-white"
-            >
-              프리미엄 리포트
-            </Link>
-            <div className="mt-5 rounded-3xl border border-white/15 bg-slate-900/60 p-7 backdrop-blur-xl">
-              <div className="inline-flex rounded-full border border-cyan-300/40 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-200">
-                Timing
-              </div>
-              <h1 className="mt-3 text-3xl font-black text-white">{periodInfo.label}</h1>
-              <p className="mt-2 text-sm text-slate-200">{periodInfo.description}</p>
-              <p className="mt-3 text-xs font-semibold text-cyan-200">
-                {periodInfo.credits} credits · Premium 전용
-              </p>
-            </div>
-          </div>
-        </header>
+        <ReportBuilderHero
+          accent="cyan"
+          badge="Timing Report"
+          title={periodInfo.label}
+          description={periodInfo.description}
+          meta={`${periodInfo.credits} credits · Premium 전용`}
+        />
 
         <main className="mx-auto grid max-w-5xl gap-6 px-4 pb-20 lg:grid-cols-[1fr_1fr]">
-          <section className="rounded-3xl border border-white/15 bg-slate-900/55 p-6 backdrop-blur-xl">
-            <h2 className="text-lg font-semibold text-white">분석 날짜</h2>
-            <div className="mt-4">
-              <DateTimePicker
-                value={targetDate}
-                onChange={setTargetDate}
-                label=""
-                locale="ko"
-                minDate="1900-01-01"
-                maxDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
-                  .toISOString()
-                  .slice(0, 10)}
-              />
-            </div>
-            <p className="mt-3 text-sm text-slate-300">
-              {period === 'daily' && '선택한 날짜의 집중/주의 타이밍을 제공합니다.'}
-              {period === 'monthly' && '선택한 달의 상승/조정 구간을 제공합니다.'}
-              {period === 'yearly' && '선택한 해의 전환점과 핵심 타이밍을 제공합니다.'}
-            </p>
-
-            <div className="mt-4 rounded-xl border border-white/15 bg-slate-950/40 p-3 text-xs text-slate-300">
-              무료 버전은 종합 요약만 제공합니다.
+          <ReportSurfaceSection title="분석 시점" eyebrow="Timing Window" tone="cyan">
+            <DateTimePicker
+              value={targetDate}
+              onChange={setTargetDate}
+              label=""
+              locale="ko"
+              minDate="1900-01-01"
+              maxDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)}
+            />
+            <p className="mt-4 text-sm leading-6 text-slate-300">{periodInfo.note}</p>
+            <div className="mt-4 rounded-2xl border border-white/10 bg-slate-950/40 p-4 text-sm text-slate-300">
+              무료 버전은 종합 요약까지만 제공합니다.
               <button
                 onClick={() => router.push('/premium-reports/comprehensive?tier=free')}
-                className="ml-2 font-semibold text-emerald-300 hover:text-emerald-200"
+                className="ml-2 font-semibold text-emerald-300 transition hover:text-emerald-200"
               >
-                무료 버전 보기
+                무료 요약 보기
               </button>
             </div>
-          </section>
+          </ReportSurfaceSection>
 
-          <section className="space-y-4 rounded-3xl border border-white/15 bg-slate-900/55 p-5 backdrop-blur-xl">
-            <ReportProfileForm locale="ko" initialName={profile.name} onSubmit={setProfileInput} />
-
-            {error && (
-              <div className="rounded-xl border border-red-500/60 bg-red-500/15 p-3 text-sm text-red-200">
-                {error}
-              </div>
-            )}
-
-            <button
-              onClick={handleGenerate}
-              disabled={!canGenerate}
-              className={`w-full rounded-xl px-4 py-4 text-sm font-semibold text-white transition ${
-                canGenerate
-                  ? `bg-gradient-to-r ${periodInfo.color} hover:brightness-110`
-                  : 'cursor-not-allowed bg-slate-700'
-              }`}
-            >
-              {isGenerating ? '리포트 생성 중...' : `${periodInfo.label} 생성하기`}
-            </button>
-          </section>
+          <ReportBuilderActionPanel
+            accent="cyan"
+            initialName={profile.name}
+            onProfileSubmit={setProfileInput}
+            actionLabel={isGenerating ? '리포트 생성 중...' : `${periodInfo.label} 생성`}
+            onAction={handleGenerate}
+            disabled={!canGenerate}
+            error={error}
+            helperText="생성 후 My Journey에서 다시 확인할 수 있습니다."
+          >
+            <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 text-sm text-slate-200">
+              <p className="font-medium text-white">선택된 시점 · {targetDate}</p>
+              <p className="mt-2 leading-6 text-slate-300">{periodInfo.note}</p>
+            </div>
+          </ReportBuilderActionPanel>
         </main>
       </PremiumPageScaffold>
     </>

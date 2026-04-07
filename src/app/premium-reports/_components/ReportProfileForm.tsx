@@ -1,26 +1,15 @@
-﻿'use client'
+'use client'
 
 import { useMemo, useState } from 'react'
 import { UnifiedBirthForm, type BirthInfo } from '@/components/common/BirthForm'
-
-export interface ReportProfileInput {
-  name: string
-  birthDate: string
-  birthTime: string
-  gender?: BirthInfo['gender']
-  birthCity?: string
-  latitude?: number
-  longitude?: number
-  timezone?: string
-}
+import type { ReportProfileInput } from '@/app/premium-reports/_lib/types'
+import { saveStoredReportProfile } from '@/app/premium-reports/_lib/shared'
 
 interface ReportProfileFormProps {
   locale?: 'ko' | 'en'
   initialName?: string
   onSubmit: (profile: ReportProfileInput) => void
 }
-
-const REPORT_PROFILE_STORAGE_KEY = 'premiumReports:profileInput'
 
 export function ReportProfileForm({
   locale = 'ko',
@@ -34,13 +23,12 @@ export function ReportProfileForm({
     () =>
       locale === 'ko'
         ? {
-            title: '공통 프로필 입력',
-            subtitle:
-              '생년월일, 출생시간, 출생도시를 먼저 입력하면 Free/Premium 모두 같은 기준으로 분석합니다.',
-            nameLabel: '이름 (선택)',
-            namePlaceholder: '예: 홍길동',
-            submitButton: '입력 저장',
-            savedTitle: '저장된 입력',
+            title: '?? ??? ??',
+            subtitle: '????, ????, ????? ?? ???? Free/Premium ?? ?? ???? ?????.',
+            nameLabel: '?? (??)',
+            namePlaceholder: '?: ???',
+            submitButton: '?? ??',
+            savedTitle: '??? ??',
           }
         : {
             title: 'Report Profile',
@@ -53,20 +41,11 @@ export function ReportProfileForm({
     [locale]
   )
 
-  const persistProfile = (profile: ReportProfileInput) => {
-    if (typeof window === 'undefined') return
-    try {
-      sessionStorage.setItem(REPORT_PROFILE_STORAGE_KEY, JSON.stringify(profile))
-    } catch {
-      // ignore storage failures
-    }
-  }
-
   const toPayload = (birth: BirthInfo): ReportProfileInput => ({
-    name: name.trim() || (locale === 'ko' ? '사용자' : 'User'),
+    name: name.trim() || (locale === 'ko' ? '???' : 'User'),
     birthDate: birth.birthDate,
     birthTime: birth.birthTime || '12:00',
-    gender: birth.gender,
+    gender: birth.gender === 'F' || birth.gender === 'M' ? birth.gender : undefined,
     birthCity: birth.birthCity,
     latitude: birth.latitude,
     longitude: birth.longitude,
@@ -76,21 +55,21 @@ export function ReportProfileForm({
   const handleSubmit = (birth: BirthInfo) => {
     const payload = toPayload(birth)
     setLastSaved(payload)
-    persistProfile(payload)
+    saveStoredReportProfile(payload)
     onSubmit(payload)
   }
 
   const handleProfileLoaded = (birth: BirthInfo) => {
     const payload = toPayload(birth)
     setLastSaved(payload)
-    persistProfile(payload)
+    saveStoredReportProfile(payload)
     onSubmit(payload)
   }
 
   const handleChange = (birth: BirthInfo) => {
     const payload = toPayload(birth)
     setLastSaved(payload)
-    persistProfile(payload)
+    saveStoredReportProfile(payload)
     onSubmit(payload)
   }
 
@@ -134,8 +113,8 @@ export function ReportProfileForm({
         <div className="mt-4 rounded-xl border border-emerald-300/35 bg-emerald-500/10 p-3 text-sm text-emerald-100">
           <p className="font-medium">{labels.savedTitle}</p>
           <p className="mt-1">
-            {lastSaved.name} · {lastSaved.birthDate} {lastSaved.birthTime}
-            {lastSaved.birthCity ? ` · ${lastSaved.birthCity}` : ''}
+            {lastSaved.name} � {lastSaved.birthDate} {lastSaved.birthTime}
+            {lastSaved.birthCity ? ` � ${lastSaved.birthCity}` : ''}
           </p>
         </div>
       )}
