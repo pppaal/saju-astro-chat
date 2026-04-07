@@ -273,6 +273,41 @@ export async function generateThemedReportWithSupport(
       secondaryPostProcessDeps,
       theme
     )
+    qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
+      requiredPaths: sectionPaths,
+      claims: unified.claims,
+      anchors: unified.anchors,
+      scenarioBundles: unified.scenarioBundles,
+      timelineEvents: unified.timelineEvents,
+      coreQuality: coreSeed.quality,
+    })
+    if (shouldForceThemedNarrativeFallback(qualityMetrics)) {
+      sections = enforceThemedNarrativeQualityFallback(
+        theme,
+        reportCore,
+        signalSynthesis,
+        normalizedInput,
+        lang,
+        timingData,
+        evidenceRefs
+      ) as unknown as Record<string, unknown>
+      sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
+      sections = sanitizeThemedSectionsForUserExternal(
+        sections,
+        sectionPaths,
+        lang,
+        secondaryPostProcessDeps,
+        theme
+      )
+      qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
+        requiredPaths: sectionPaths,
+        claims: unified.claims,
+        anchors: unified.anchors,
+        scenarioBundles: unified.scenarioBundles,
+        timelineEvents: unified.timelineEvents,
+        coreQuality: coreSeed.quality,
+      })
+    }
     const finalModelUsed = polished.modelUsed
       ? `deterministic+${polished.modelUsed}`
       : 'deterministic-only'
@@ -422,6 +457,41 @@ export async function generateThemedReportWithSupport(
       secondaryPostProcessDeps,
       theme
     )
+    qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
+      requiredPaths,
+      claims: unified.claims,
+      anchors: unified.anchors,
+      scenarioBundles: unified.scenarioBundles,
+      timelineEvents: unified.timelineEvents,
+      coreQuality: coreSeed.quality,
+    })
+    if (shouldForceThemedNarrativeFallback(qualityMetrics)) {
+      sections = enforceThemedNarrativeQualityFallback(
+        theme,
+        reportCore,
+        signalSynthesis,
+        normalizedInput,
+        lang,
+        timingData,
+        evidenceRefs
+      ) as unknown as Record<string, unknown>
+      sections = enforceEvidenceRefFooters(sections, sectionPaths, evidenceRefs, lang)
+      sections = sanitizeThemedSectionsForUserExternal(
+        sections,
+        sectionPaths,
+        lang,
+        secondaryPostProcessDeps,
+        theme
+      )
+      qualityMetrics = buildReportQualityMetrics(sections, sectionPaths, evidenceRefs, {
+        requiredPaths,
+        claims: unified.claims,
+        anchors: unified.anchors,
+        scenarioBundles: unified.scenarioBundles,
+        timelineEvents: unified.timelineEvents,
+        coreQuality: coreSeed.quality,
+      })
+    }
     recordReportQualityMetrics('themed', rewrite.modelUsed, qualityMetrics)
     recordRewriteModeMetric('themed', rewrite.modelUsed, rewrite.tokensUsed)
     return {
@@ -803,6 +873,46 @@ export async function generateThemedReportWithSupport(
       coreQuality: coreSeed.quality,
     }
   )
+  if (shouldForceThemedNarrativeFallback(qualityMetrics)) {
+    sections = enforceThemedNarrativeQualityFallback(
+      theme,
+      reportCore,
+      signalSynthesis,
+      normalizedInput,
+      lang,
+      timingData,
+      themedEvidenceRefs
+    ) as unknown as Record<string, unknown>
+    sections = enforceEvidenceRefFooters(sections, sectionPaths, themedEvidenceRefs, lang)
+    sections = sanitizeThemedSectionsForUserExternal(
+      sections,
+      sectionPaths,
+      lang,
+      secondaryPostProcessDeps,
+      theme
+    )
+    sections = applyFinalReportStyle(
+      sections as Record<string, unknown>,
+      sectionPaths,
+      lang,
+      reportCore
+    )
+    sections = ensureFinalActionPlanGrounding(sections as Record<string, unknown>, lang, reportCore)
+    sections = ensureFinalReportPolish(sections as Record<string, unknown>, lang, reportCore)
+    qualityMetrics = buildReportQualityMetrics(
+      sections as Record<string, unknown>,
+      sectionPaths,
+      themedEvidenceRefs,
+      {
+        requiredPaths: themedRequiredPaths,
+        claims: unified.claims,
+        anchors: unified.anchors,
+        scenarioBundles: unified.scenarioBundles,
+        timelineEvents: unified.timelineEvents,
+        coreQuality: coreSeed.quality,
+      }
+    )
+  }
 
   // 7. Assemble report
   const report: ThemedAIPremiumReport = {

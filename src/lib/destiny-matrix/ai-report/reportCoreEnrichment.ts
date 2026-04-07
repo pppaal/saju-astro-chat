@@ -376,13 +376,12 @@ export function enrichComprehensiveSectionsWithReportCore(
       ? reinforceNarrativeSection(
           sections.timingAdvice,
           [
-            focusTiming ? deps.buildTimingWindowNarrative(focusTiming.domain, focusTiming, lang) : '',
+            focusTiming
+              ? deps.buildTimingWindowNarrative(focusTiming.domain, focusTiming, lang)
+              : '',
             reportCore.primaryCaution,
           ],
-          [
-            focusAdvisory?.strategyLine || '',
-            ...(sectionSupplements.timingAdvice || []),
-          ],
+          [focusAdvisory?.strategyLine || '', ...(sectionSupplements.timingAdvice || [])],
           lang,
           lang === 'ko' ? 950 : 680,
           deps
@@ -396,10 +395,7 @@ export function enrichComprehensiveSectionsWithReportCore(
       ? reinforceNarrativeSection(
           sections.actionPlan,
           [reportCore.primaryAction, reportCore.riskControl],
-          [
-            focusAdvisory?.action || '',
-            ...(sectionSupplements.actionPlan || []),
-          ],
+          [focusAdvisory?.action || '', ...(sectionSupplements.actionPlan || [])],
           lang,
           lang === 'ko' ? 900 : 650,
           deps
@@ -569,6 +565,19 @@ export function enrichThemedSectionsWithReportCore(
   deps: ReportCoreEnrichmentDeps,
   timingData?: TimingData
 ): ThemedReportSections {
+  const prependOnce = (lead: string | undefined, body: string | undefined): string => {
+    const left = String(lead || '').trim()
+    const right = String(body || '').trim()
+    if (!left) return right
+    if (!right) return left
+    const normalizedLeft = left.toLowerCase()
+    const normalizedRight = right.toLowerCase()
+    if (normalizedRight.startsWith(normalizedLeft) || normalizedRight.includes(normalizedLeft)) {
+      return right
+    }
+    return `${left} ${right}`.trim()
+  }
+
   const leadDomain = reportCore.actionFocusDomain || reportCore.focusDomain
   const actionProjection = reportCore.projections?.action
   const riskProjection = reportCore.projections?.risk
@@ -630,11 +639,9 @@ export function enrichThemedSectionsWithReportCore(
 
   const sectionsWithThemeLead: ThemedReportSections = {
     ...sections,
-    deepAnalysis: [themeLeadBySection.deepAnalysis, sections.deepAnalysis]
-      .filter(Boolean)
-      .join(' '),
-    timing: [themeLeadBySection.timing, sections.timing].filter(Boolean).join(' '),
-    actionPlan: [themeLeadBySection.actionPlan, sections.actionPlan].filter(Boolean).join(' '),
+    deepAnalysis: prependOnce(themeLeadBySection.deepAnalysis, sections.deepAnalysis),
+    timing: prependOnce(themeLeadBySection.timing, sections.timing),
+    actionPlan: prependOnce(themeLeadBySection.actionPlan, sections.actionPlan),
   }
 
   const themeSpecificLines: Record<

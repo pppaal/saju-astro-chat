@@ -144,7 +144,7 @@ function getProjectionLabels(lang: 'ko' | 'en') {
 function normalizeProjectionHeadline(headline: string | undefined, fallback: string): string {
   const value = String(headline || '').trim()
   if (!value) return fallback
-  if (/\?{2,}|�/.test(value)) return fallback
+  if (/\?{2,}|\uFFFD/.test(value)) return fallback
   return value
 }
 

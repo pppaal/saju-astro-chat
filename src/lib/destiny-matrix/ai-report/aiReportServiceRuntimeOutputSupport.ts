@@ -4,6 +4,7 @@ import type { ReportCoreViewModel } from './reportCoreHelpers'
 import { sanitizeUserFacingNarrative } from './reportNarrativeSanitizer'
 import { applyReportBrandVoice } from './reportBrandVoice'
 import { getReportDomainLabel, localizeReportNarrativeText } from './reportTextHelpers'
+import { buildInterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
 
 function applyFinalReportStyle<T extends Record<string, unknown>>(
   sections: T,
@@ -162,6 +163,35 @@ function buildReportOutputCoreFields(
   lang: 'ko' | 'en' = 'ko'
 ) {
   if (!reportCore) return {}
+  const interpretedAnswer = buildInterpretedAnswerContract({
+    packet: {
+      singleSubjectView: reportCore.singleSubjectView,
+      personModel: reportCore.personModel,
+      topTimingWindow: reportCore.topTimingWindow,
+      focusDomain: reportCore.focusDomain,
+    },
+    frame:
+      reportCore.focusDomain === 'career'
+        ? 'career_decision'
+        : reportCore.focusDomain === 'relationship'
+          ? 'relationship_repair'
+          : reportCore.focusDomain === 'wealth'
+            ? 'wealth_planning'
+            : reportCore.focusDomain === 'health'
+              ? 'health_recovery'
+              : reportCore.focusDomain === 'timing'
+                ? 'timing_window'
+                : 'identity_reflection',
+    primaryDomain: (reportCore.actionFocusDomain || reportCore.focusDomain || 'personality') as
+      | 'personality'
+      | 'career'
+      | 'relationship'
+      | 'wealth'
+      | 'health'
+      | 'spirituality'
+      | 'timing'
+      | 'move',
+  })
   const localizeReportFreeText = (text: string | undefined | null): string => {
     const value = String(text || '').trim()
     if (!value || lang !== 'ko') return value
@@ -440,6 +470,30 @@ function buildReportOutputCoreFields(
                 notes: localizeProjectionList(reportCore.singleSubjectView.reliability.notes || []),
               }
             : undefined,
+        }
+      : undefined,
+    interpretedAnswer: interpretedAnswer
+      ? {
+          ...interpretedAnswer,
+          directAnswer: localizeReportFreeText(interpretedAnswer.directAnswer),
+          why: localizeProjectionList(interpretedAnswer.why || []),
+          timing: {
+            bestWindow: localizeReportFreeText(interpretedAnswer.timing.bestWindow),
+            now: localizeReportFreeText(interpretedAnswer.timing.now),
+            next: localizeReportFreeText(interpretedAnswer.timing.next),
+            later: localizeReportFreeText(interpretedAnswer.timing.later),
+          },
+          conditions: {
+            entry: localizeProjectionList(interpretedAnswer.conditions.entry || []),
+            abort: localizeProjectionList(interpretedAnswer.conditions.abort || []),
+          },
+          branches: (interpretedAnswer.branches || []).map((branch) => ({
+            label: localizeReportFreeText(branch.label),
+            summary: localizeReportFreeText(branch.summary),
+            nextMove: localizeReportFreeText(branch.nextMove),
+          })),
+          uncertainty: localizeProjectionList(interpretedAnswer.uncertainty || []),
+          nextMove: localizeReportFreeText(interpretedAnswer.nextMove),
         }
       : undefined,
     personModel: reportCore.personModel

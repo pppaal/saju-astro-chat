@@ -182,9 +182,14 @@ export function shouldForceComprehensiveNarrativeFallback(
 ): boolean {
   if (!quality) return false
   return Boolean(
-    (quality.crossSectionRepetition || 0) >= 3 ||
-    (quality.genericAdviceDensity || 0) >= 0.5 ||
-    (quality.internalScenarioLeakCount || 0) > 0
+    quality.tokenIntegrityPass === false ||
+    quality.structurePass === false ||
+    quality.forbiddenAdditionsPass === false ||
+    (quality.crossSectionRepetition || 0) >= 2 ||
+    (quality.genericAdviceDensity || 0) >= 0.45 ||
+    (quality.internalScenarioLeakCount || 0) > 0 ||
+    (quality.repetitiveLeadPatternCount || 0) >= 2 ||
+    (quality.evidenceCoverageRatio || 0) < 0.72
   )
 }
 
@@ -193,9 +198,17 @@ export function shouldForceThemedNarrativeFallback(
 ): boolean {
   if (!quality) return false
   return Boolean(
-    (quality.crossSectionRepetition || 0) >= 3 ||
-    (quality.genericAdviceDensity || 0) >= 0.5 ||
+    quality.tokenIntegrityPass === false ||
+    quality.structurePass === false ||
+    quality.forbiddenAdditionsPass === false ||
+    (quality.crossSectionRepetition || 0) >= 2 ||
+    (quality.genericAdviceDensity || 0) >= 0.42 ||
     (quality.internalScenarioLeakCount || 0) > 0 ||
+    (quality.repetitiveLeadPatternCount || 0) >= 2 ||
+    (quality.evidenceCoverageRatio || 0) < 0.78 ||
+    (quality.minEvidenceSatisfiedRatio || 0) < 0.55 ||
+    (quality.scenarioBundleCoverage || 0) < 0.5 ||
+    (quality.bilingualToneSkew || 0) > 0.22 ||
     ((quality.personalizationDensity || 0) > 0 && (quality.personalizationDensity || 0) < 0.8)
   )
 }
