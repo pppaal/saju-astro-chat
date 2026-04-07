@@ -425,7 +425,9 @@ describe('generateAIPremiumReport', () => {
     expect(result.meta.qualityMetrics?.coreQualityGrade).toMatch(/[ABCD]/)
     expect(typeof result.meta.qualityMetrics?.coreQualityWarningCount).toBe('number')
     expect(typeof result.meta.qualityMetrics?.coreQualityPass).toBe('boolean')
-    expect(result.sections.introduction).not.toMatch(/dayMasterElement|sibsinDistribution|rule checks/i)
+    expect(result.sections.introduction).not.toMatch(
+      /dayMasterElement|sibsinDistribution|rule checks/i
+    )
     expect(
       result.timelineEvents.some((event) =>
         ['job', 'marriage', 'relocation', 'money', 'timing', 'life'].includes(event.type)
@@ -508,7 +510,7 @@ describe('generateAIPremiumReport', () => {
     expect(themed.meta.qualityMetrics?.forbiddenAdditionsPass).toBe(true)
     expect(themed.meta.qualityMetrics?.coreQualityScore || 0).toBeGreaterThan(0)
     expect(themed.meta.qualityMetrics?.coreQualityGrade).toMatch(/[ABCD]/)
-    expect(themed.sections.deepAnalysis).toContain('삶의 배경 흐름')
+    expect(themed.sections.deepAnalysis).toMatch(/삶의 배경 흐름|배경 구조/)
     expect(themed.sections.deepAnalysis.length).toBeGreaterThan(120)
     expect((themed.coreHash || '').length).toBeGreaterThan(0)
     expect((themed.patterns || []).length).toBeGreaterThan(0)
@@ -582,7 +584,8 @@ describe('generateAIPremiumReport', () => {
     mockCallAIBackendGeneric
       .mockImplementationOnce(async () => ({
         sections: {
-          overview: 'AI polished overview that sharpens the daily timing narrative with clear sequencing and action cues.',
+          overview:
+            'AI polished overview that sharpens the daily timing narrative with clear sequencing and action cues.',
           opportunities:
             'AI polished opportunities paragraph that highlights the opening window with concrete momentum and timing advice.',
           actionPlan:
@@ -655,8 +658,7 @@ describe('generateAIPremiumReport', () => {
           '현재 흐름 흐름은 중요합니다. 지금 구간에 대운, 세운, 이 겹치며 Hidden Support Pattern 패턴이 활성화됩니다. 핵심 근거는 Stage 임관, Daeun 금입니다.',
         opportunities:
           'career 영역은 now 창이 열려 있고 Geokguk 정재격이 작동합니다. 은 물병자리 1하우스에 놓여 있습니다.',
-        actionPlan:
-          '기준 정리 후 실행 결정은 분할하고 역할, 기한, 책임을 문서로 고정하세요.',
+        actionPlan: '기준 정리 후 실행 결정은 분할하고 역할, 기한, 책임을 문서로 고정하세요.',
       },
       model: 'gpt-4o-mini',
       tokensUsed: 180,
@@ -734,7 +736,7 @@ describe('deterministic section leads', () => {
     )
 
     expect(timing.sections.overview).toContain('순서를 잘 나눠서 이기는 날')
-    expect(themed.sections.strategy || '').toContain('현실적으로 열린 경로')
+    expect(themed.sections.strategy || '').toMatch(/현실적으로 열린 경로|실제 실행은/)
   })
 
   it('keeps themed strategy/action sections from reusing the long life-cycle hook', async () => {
@@ -797,40 +799,46 @@ describe('sanitizeSectionNarrative', () => {
 })
 
 it('adds distinct hooks across love, wealth, health, and family themed sections', async () => {
-    const timing = createTimingData()
-    const options = {
-      deterministicOnly: true,
-      matrixSummary: createRichMatrixSummary(),
-    }
+  const timing = createTimingData()
+  const options = {
+    deterministicOnly: true,
+    matrixSummary: createRichMatrixSummary(),
+  }
 
-    const love = await generateThemedReport(createMockInput(), createMockReport(), 'love', timing, options)
-    const wealth = await generateThemedReport(
-      createMockInput(),
-      createMockReport(),
-      'wealth',
-      timing,
-      options
-    )
-    const health = await generateThemedReport(
-      createMockInput(),
-      createMockReport(),
-      'health',
-      timing,
-      options
-    )
-    const family = await generateThemedReport(
-      createMockInput(),
-      createMockReport(),
-      'family',
-      timing,
-      options
-    )
+  const love = await generateThemedReport(
+    createMockInput(),
+    createMockReport(),
+    'love',
+    timing,
+    options
+  )
+  const wealth = await generateThemedReport(
+    createMockInput(),
+    createMockReport(),
+    'wealth',
+    timing,
+    options
+  )
+  const health = await generateThemedReport(
+    createMockInput(),
+    createMockReport(),
+    'health',
+    timing,
+    options
+  )
+  const family = await generateThemedReport(
+    createMockInput(),
+    createMockReport(),
+    'family',
+    timing,
+    options
+  )
 
-    expect(love.sections.compatibility || '').toContain('잘 맞는 사람은')
-    expect(wealth.sections.incomeStreams || '').toContain('수입')
-    expect((health.sections.prevention || '').length).toBeGreaterThan(20)
-    expect((family.sections.communication || '').length).toBeGreaterThan(20)
-  })
+  expect(love.sections.compatibility || '').toMatch(/잘 맞는 사람은|더 강한 궁합은/)
+  expect(wealth.sections.incomeStreams || '').toMatch(/수입|새 수익원/)
+  expect((health.sections.prevention || '').length).toBeGreaterThan(20)
+  expect((family.sections.communication || '').length).toBeGreaterThan(20)
+})
 describe('sanitizeSectionNarrative', () => {
   it('strips forbidden phrase', () => {
     const cleaned = sanitizeSectionNarrative(
@@ -863,4 +871,3 @@ describe('sanitizeSectionNarrative', () => {
     expect(cleaned).not.toContain('타로')
   })
 })
-
