@@ -14,6 +14,7 @@ import type {
   AdapterPersonState,
   AdapterPersonUncertaintyEnvelope,
 } from './adaptersTypes'
+import { repairPossiblyMojibakeText } from '../textRepair'
 import {
   buildBranchSet,
   buildLatentTopAxes,
@@ -30,6 +31,10 @@ export function clamp01(value: number): number {
   if (value < 0) return 0
   if (value > 1) return 1
   return value
+}
+
+function repairLocaleText(text: string, locale: 'ko' | 'en'): string {
+  return locale === 'ko' ? repairPossiblyMojibakeText(text) : text
 }
 
 export function round2(value: number): number {
@@ -49,7 +54,7 @@ export function uniq<T>(items: T[]): T[] {
 export function summarizeWindow(window: string | undefined, locale: 'ko' | 'en'): string {
   const value = String(window || '').trim()
   if (value) return value
-  return locale === 'ko' ? 'í˜„ìž¬' : 'current'
+  return repairLocaleText(locale === 'ko' ? 'í˜„ìž¬' : 'current', locale)
 }
 
 export function getModePressureScore(mode: 'execute' | 'verify' | 'prepare'): number {
@@ -66,9 +71,9 @@ export function getModeSupportScore(mode: 'execute' | 'verify' | 'prepare'): num
 
 export function getModeLabel(mode: 'execute' | 'verify' | 'prepare', locale: 'ko' | 'en'): string {
   if (locale !== 'ko') return mode
-  if (mode === 'execute') return 'ì‹¤í–‰ ìš°ìœ„'
-  if (mode === 'verify') return 'ê²€í†  ìš°ìœ„'
-  return 'ì¤€ë¹„ ìš°ìœ„'
+  if (mode === 'execute') return repairLocaleText('ì‹¤í–‰ ìš°ìœ„', locale)
+  if (mode === 'verify') return repairLocaleText('ê²€í†  ìš°ìœ„', locale)
+  return repairLocaleText('ì¤€ë¹„ ìš°ìœ„', locale)
 }
 
 export function buildDimensionScores(
@@ -200,9 +205,12 @@ export function buildDimensionSummary(params: {
   const manifestation = String(params.manifestation || '').trim()
 
   if (params.locale === 'ko') {
-    return manifestation
-      ? `${params.domainLabel} ì¶•ì€ ${modeLabel} ìƒíƒœì´ë©° ${windowLabel} êµ¬ê°„ì—ì„œ ê°€ìž¥ ê°•í•˜ê²Œ ë°œí˜„ë©ë‹ˆë‹¤. ${manifestation}`
-      : `${params.domainLabel} ì¶•ì€ ${modeLabel} ìƒíƒœì´ë©° ${windowLabel} êµ¬ê°„ì—ì„œ ê°€ìž¥ ê°•í•˜ê²Œ ë°œí˜„ë©ë‹ˆë‹¤.`
+    return repairLocaleText(
+      manifestation
+        ? `${params.domainLabel} ì¶•ì€ ${modeLabel} ìƒíƒœì´ë©° ${windowLabel} êµ¬ê°„ì—ì„œ ê°€ìž¥ ê°•í•˜ê²Œ ë°œí˜„ë©ë‹ˆë‹¤. ${manifestation}`
+        : `${params.domainLabel} ì¶•ì€ ${modeLabel} ìƒíƒœì´ë©° ${windowLabel} êµ¬ê°„ì—ì„œ ê°€ìž¥ ê°•í•˜ê²Œ ë°œí˜„ë©ë‹ˆë‹¤.`,
+      params.locale
+    )
   }
 
   return manifestation
@@ -257,14 +265,14 @@ export function buildPersonLayers(
   return [
     {
       key: 'foundation',
-      label: locale === 'ko' ? 'íƒ€ê³ ë‚œ êµ¬ì¡°' : 'Foundation',
+      label: repairLocaleText(locale === 'ko' ? 'íƒ€ê³ ë‚œ êµ¬ì¡°' : 'Foundation', locale),
       summary: structureFacet?.summary || core.canonical.thesis,
       bullets: (structureFacet?.details || []).slice(0, 4),
     },
     {
       key: 'formation',
-      label: locale === 'ko' ? 'í˜•ì„±ëœ íŒ¨í„´' : 'Formation',
-      summary:
+      label: repairLocaleText(locale === 'ko' ? 'í˜•ì„±ëœ íŒ¨í„´' : 'Formation', locale),
+      summary: repairLocaleText(
         locale === 'ko'
           ? topPatternFamilies.length
             ? `ë°˜ë³µì ìœ¼ë¡œ êµ³ì€ íŒ¨í„´ ì¶•ì€ ${topPatternFamilies.join(', ')}ìž…ë‹ˆë‹¤.`
@@ -272,6 +280,8 @@ export function buildPersonLayers(
           : topPatternFamilies.length
             ? `The repeated pattern families are ${topPatternFamilies.join(', ')}.`
             : 'Repeated patterns are formed by the structure and timing stack.',
+        locale
+      ),
       bullets: [
         ...(cycleFacet?.details || []).slice(0, 2),
         ...(riskFacet?.details || []).slice(0, 2),
@@ -279,7 +289,7 @@ export function buildPersonLayers(
     },
     {
       key: 'active',
-      label: locale === 'ko' ? 'í˜„ìž¬ í™œì„± ìƒíƒœ' : 'Active State',
+      label: repairLocaleText(locale === 'ko' ? 'í˜„ìž¬ í™œì„± ìƒíƒœ' : 'Active State', locale),
       summary: triggerFacet?.summary || cycleFacet?.summary || core.canonical.primaryAction,
       bullets: [
         ...(triggerFacet?.details || []).slice(0, 2),
@@ -288,12 +298,14 @@ export function buildPersonLayers(
     },
     {
       key: 'future',
-      label: locale === 'ko' ? 'ë¯¸ëž˜ ë¶„ê¸°' : 'Future Branches',
-      summary:
+      label: repairLocaleText(locale === 'ko' ? 'ë¯¸ëž˜ ë¶„ê¸°' : 'Future Branches', locale),
+      summary: repairLocaleText(
         topBranch?.summary ||
-        (locale === 'ko'
-          ? 'ì•žìœ¼ë¡œì˜ ë¶„ê¸°ëŠ” ìƒìœ„ ì‹œë‚˜ë¦¬ì˜¤ì™€ íƒ€ì´ë° ì°½ì—ì„œ ê°ˆë¦½ë‹ˆë‹¤.'
-          : 'The future branch is decided by the top scenario stack and timing window.'),
+          (locale === 'ko'
+            ? 'ì•žìœ¼ë¡œì˜ ë¶„ê¸°ëŠ” ìƒìœ„ ì‹œë‚˜ë¦¬ì˜¤ì™€ íƒ€ì´ë° ì°½ì—ì„œ ê°ˆë¦½ë‹ˆë‹¤.'
+            : 'The future branch is decided by the top scenario stack and timing window.'),
+        locale
+      ),
       bullets: [
         ...(topBranch?.entry || []).slice(0, 2),
         ...(topBranch?.abort || []).slice(0, 2),
@@ -313,12 +325,21 @@ export function buildStateSummary(params: {
 }): string {
   if (params.locale === 'ko') {
     if (params.kind === 'baseline') {
-      return `${params.focusLabel}ì´ ê¸°ë³¸ ìžì•„ì˜ ë°°ê²½ì¶•ì´ê³  ${params.actionLabel}ì´ ì‹¤ì œ í–‰ë™ì¶•ìœ¼ë¡œ ì˜¬ë¼ì˜¤ëŠ” ì‚¬ëžŒìž…ë‹ˆë‹¤.`
+      return repairLocaleText(
+        `${params.focusLabel}ì´ ê¸°ë³¸ ìžì•„ì˜ ë°°ê²½ì¶•ì´ê³  ${params.actionLabel}ì´ ì‹¤ì œ í–‰ë™ì¶•ìœ¼ë¡œ ì˜¬ë¼ì˜¤ëŠ” ì‚¬ëžŒìž…ë‹ˆë‹¤.`,
+        params.locale
+      )
     }
     if (params.kind === 'pressure') {
-      return `ì••ë°•ì´ ê±¸ë¦¬ë©´ ${params.riskLabel} ì¶•ì´ ë¨¼ì € ì˜ˆë¯¼í•´ì§€ê³  íŒë‹¨ì€ ë” ë³´ìˆ˜ì ìœ¼ë¡œ ìˆ˜ë ´í•©ë‹ˆë‹¤.`
+      return repairLocaleText(
+        `ì••ë°•ì´ ê±¸ë¦¬ë©´ ${params.riskLabel} ì¶•ì´ ë¨¼ì € ì˜ˆë¯¼í•´ì§€ê³  íŒë‹¨ì€ ë” ë³´ìˆ˜ì ìœ¼ë¡œ ìˆ˜ë ´í•©ë‹ˆë‹¤.`,
+        params.locale
+      )
     }
-    return `${params.topDecisionLabel} ìª½ì´ ê¸°íšŒ ìƒíƒœì—ì„œ ë¨¼ì € ì—´ë¦¬ë©°, ${params.branchSummary || `${params.actionLabel} ì¶•ì—ì„œ ìƒìœ„ ë¶„ê¸°ê°€ ì—´ë¦½ë‹ˆë‹¤.`}`
+    return repairLocaleText(
+      `${params.topDecisionLabel} ìª½ì´ ê¸°íšŒ ìƒíƒœì—ì„œ ë¨¼ì € ì—´ë¦¬ë©°, ${params.branchSummary || `${params.actionLabel} ì¶•ì—ì„œ ìƒìœ„ ë¶„ê¸°ê°€ ì—´ë¦½ë‹ˆë‹¤.`}`,
+      params.locale
+    )
   }
 
   if (params.kind === 'baseline') {
@@ -345,7 +366,7 @@ export function buildPersonStates(
   return [
     {
       key: 'baseline',
-      label: locale === 'ko' ? 'ê¸°ë³¸ ìƒíƒœ' : 'Baseline',
+      label: repairLocaleText(locale === 'ko' ? 'ê¸°ë³¸ ìƒíƒœ' : 'Baseline', locale),
       summary: buildStateSummary({
         kind: 'baseline',
         focusLabel,
@@ -366,7 +387,7 @@ export function buildPersonStates(
     },
     {
       key: 'pressure',
-      label: locale === 'ko' ? 'ì••ë°• ìƒíƒœ' : 'Pressure',
+      label: repairLocaleText(locale === 'ko' ? 'ì••ë°• ìƒíƒœ' : 'Pressure', locale),
       summary: buildStateSummary({
         kind: 'pressure',
         focusLabel,
@@ -387,7 +408,7 @@ export function buildPersonStates(
     },
     {
       key: 'opportunity',
-      label: locale === 'ko' ? 'ê¸°íšŒ ìƒíƒœ' : 'Opportunity',
+      label: repairLocaleText(locale === 'ko' ? 'ê¸°íšŒ ìƒíƒœ' : 'Opportunity', locale),
       summary: buildStateSummary({
         kind: 'opportunity',
         focusLabel,

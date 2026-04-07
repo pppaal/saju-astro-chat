@@ -159,6 +159,7 @@ export type CounselorEvidencePacketLike = {
   branchSet?: CounselorEvidencePacket['branchSet']
   singleUserModel?: CounselorEvidencePacket['singleUserModel']
   singleSubjectView?: CounselorEvidencePacket['singleSubjectView']
+  personModel?: CounselorEvidencePacket['personModel']
   timingMatrix?: CounselorEvidencePacket['timingMatrix']
   verdict?: string
   guardrail?: string
@@ -204,4 +205,3 @@ export type CounselorEvidencePacketLike = {
   projections?: CounselorEvidencePacket['projections']
   whyStack?: string[]
 }
-

@@ -26,6 +26,31 @@ type BuildSingleSubjectViewParams = {
   projections: AdapterProjectionSet
 }
 
+function hasBatchim(text: string): boolean {
+  const trimmed = text.trim()
+  const last = trimmed.charCodeAt(trimmed.length - 1)
+  if (!Number.isFinite(last) || last < 0xac00 || last > 0xd7a3) return false
+  return (last - 0xac00) % 28 !== 0
+}
+
+function withObjectParticle(text: string): string {
+  return `${text}${hasBatchim(text) ? '을' : '를'}`
+}
+
+function buildKoDirectAnswer(
+  actionLabel: string,
+  bestWindow: string,
+  topDecisionLabel: string
+): string {
+  if (bestWindow === 'now' || bestWindow === '지금') {
+    return `${actionLabel}에서는 지금 ${topDecisionLabel}부터 시작하는 쪽이 유리합니다.`
+  }
+  if (/우선$/.test(topDecisionLabel)) {
+    return `${actionLabel}에서는 ${bestWindow} 창을 목표로 ${topDecisionLabel} 전략을 먼저 세우는 쪽이 유리합니다.`
+  }
+  return `${actionLabel}에서는 ${bestWindow} 창을 목표로 ${withObjectParticle(topDecisionLabel)} 준비하는 쪽이 유리합니다.`
+}
+
 function getCellStatus(
   agreement: number,
   contradiction: number
@@ -156,9 +181,7 @@ export function buildSingleSubjectView({
 
   const directAnswer =
     locale === 'ko'
-      ? bestWindow === 'now' || bestWindow === '지금'
-        ? `${actionLabel}에서는 지금 ${topDecisionLabel}부터 시작하는 편이 맞습니다.`
-        : `${actionLabel}에서는 ${bestWindow} 창을 목표로 ${topDecisionLabel}를 준비하는 편이 맞습니다.`
+      ? buildKoDirectAnswer(actionLabel, bestWindow, topDecisionLabel)
       : bestWindow === 'now'
         ? `On the ${actionLabel} axis, ${topDecisionLabel} should be the first move now.`
         : `On the ${actionLabel} axis, prepare ${topDecisionLabel} toward the ${bestWindow} window.`

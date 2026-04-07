@@ -119,33 +119,27 @@ function createInput(): MatrixCalculationInputNormalized {
 
 describe('buildScenarioEngine realism contract', () => {
   it('emits actionable scenario branches with timing and stop conditions', () => {
-    const scenarios = buildScenarioEngine(
-      [createPattern()],
-      createStrategy(),
-      createInput(),
-      'ko'
-    )
+    const scenarios = buildScenarioEngine([createPattern()], createStrategy(), createInput(), 'ko')
 
     expect(scenarios.length).toBeGreaterThan(0)
     expect(scenarios[0].timingRelevance).toBeGreaterThan(0.5)
-    expect(['day', 'week', 'fortnight', 'month', 'season']).toContain(scenarios[0].timingGranularity)
+    expect(['day', 'week', 'fortnight', 'month', 'season']).toContain(
+      scenarios[0].timingGranularity
+    )
     expect(scenarios[0].precisionReason.length).toBeGreaterThan(0)
     expect(scenarios[0].whyNow.length).toBeGreaterThan(0)
     expect(scenarios[0].whyNotYet.length).toBeGreaterThan(0)
     expect(scenarios[0].entryConditions.length).toBeGreaterThan(0)
     expect(scenarios[0].abortConditions.length).toBeGreaterThan(0)
+    expect(scenarios[0].entryConditions[0]).not.toMatch(/Expansion Pattern|Pattern/i)
+    expect(scenarios[0].sustainConditions[0]).not.toMatch(/Expansion Pattern|Pattern/i)
     expect(scenarios[0].manifestationHints.length).toBeGreaterThan(0)
     expect(scenarios[0].supportingSignalIds.length).toBeGreaterThan(0)
     expect(scenarios[0].evidenceIds[0]).toBe('career_expansion')
   })
 
   it('caps timing precision instead of forcing exact-date claims', () => {
-    const scenarios = buildScenarioEngine(
-      [createPattern()],
-      createStrategy(),
-      createInput(),
-      'ko'
-    )
+    const scenarios = buildScenarioEngine([createPattern()], createStrategy(), createInput(), 'ko')
 
     const lead = scenarios[0]
     expect(lead.window).toBe('now')
@@ -178,7 +172,13 @@ describe('buildScenarioEngine realism contract', () => {
         domains: ['health'],
         score: 69,
         confidence: 0.71,
-        scenarioIds: ['routine_lock_window', 'recovery_window', 'habit_rebuild_window', 'early_warning_window', 'recovery_compliance_window'],
+        scenarioIds: [
+          'routine_lock_window',
+          'recovery_window',
+          'habit_rebuild_window',
+          'early_warning_window',
+          'recovery_compliance_window',
+        ],
       }),
       createPattern({
         id: 'travel_relocation_activation',
@@ -187,7 +187,14 @@ describe('buildScenarioEngine realism contract', () => {
         domains: ['move'],
         score: 71,
         confidence: 0.72,
-        scenarioIds: ['travel_window', 'relocation_window', 'foreign_link_window', 'housing_search_window', 'lease_decision_window', 'cross_border_move_window'],
+        scenarioIds: [
+          'travel_window',
+          'relocation_window',
+          'foreign_link_window',
+          'housing_search_window',
+          'lease_decision_window',
+          'cross_border_move_window',
+        ],
       }),
       createPattern({
         id: 'movement_guardrail_window',
@@ -196,7 +203,13 @@ describe('buildScenarioEngine realism contract', () => {
         domains: ['move', 'timing'],
         score: 68,
         confidence: 0.69,
-        scenarioIds: ['route_recheck_window', 'travel_window', 'relocation_window', 'commute_restructure_window', 'basecamp_reset_window'],
+        scenarioIds: [
+          'route_recheck_window',
+          'travel_window',
+          'relocation_window',
+          'commute_restructure_window',
+          'basecamp_reset_window',
+        ],
       }),
     ]
 
@@ -204,18 +217,24 @@ describe('buildScenarioEngine realism contract', () => {
     const healthScenarios = scenarios.filter((scenario) => scenario.domain === 'health')
     const moveScenarios = scenarios.filter((scenario) => scenario.domain === 'move')
 
-    expect(healthScenarios.some((scenario) => scenario.id === 'schedule_reduction_window')).toBe(true)
+    expect(healthScenarios.some((scenario) => scenario.id === 'schedule_reduction_window')).toBe(
+      true
+    )
     expect(healthScenarios.some((scenario) => scenario.id === 'recovery_reset_window')).toBe(true)
     expect(healthScenarios.some((scenario) => scenario.id === 'burnout_trigger_window')).toBe(true)
     expect(healthScenarios.some((scenario) => scenario.id === 'sleep_disruption_window')).toBe(true)
     expect(healthScenarios.some((scenario) => scenario.id === 'inflammation_window')).toBe(true)
-    expect(healthScenarios.some((scenario) => scenario.id === 'recovery_compliance_window')).toBe(true)
+    expect(healthScenarios.some((scenario) => scenario.id === 'recovery_compliance_window')).toBe(
+      true
+    )
     expect(moveScenarios.some((scenario) => scenario.id === 'travel_window')).toBe(true)
     expect(moveScenarios.some((scenario) => scenario.id === 'route_recheck_window')).toBe(true)
     expect(moveScenarios.some((scenario) => scenario.id === 'housing_search_window')).toBe(true)
     expect(moveScenarios.some((scenario) => scenario.id === 'lease_decision_window')).toBe(true)
     expect(moveScenarios.some((scenario) => scenario.id === 'cross_border_move_window')).toBe(true)
-    expect(moveScenarios.some((scenario) => scenario.id === 'commute_restructure_window')).toBe(true)
+    expect(moveScenarios.some((scenario) => scenario.id === 'commute_restructure_window')).toBe(
+      true
+    )
     expect(moveScenarios.some((scenario) => scenario.id === 'basecamp_reset_window')).toBe(true)
     expect(moveScenarios.some((scenario) => scenario.reversible === false)).toBe(true)
   })
@@ -240,7 +259,12 @@ describe('buildScenarioEngine realism contract', () => {
         family: 'career_guardrail',
         profile: 'risk',
         domains: ['career'],
-        scenarioIds: ['role_shift_window', 'exit_preparation_window', 'restart_window', 'authority_conflict_window'],
+        scenarioIds: [
+          'role_shift_window',
+          'exit_preparation_window',
+          'restart_window',
+          'authority_conflict_window',
+        ],
       }),
       createPattern({
         id: 'relationship_activation',
@@ -271,18 +295,30 @@ describe('buildScenarioEngine realism contract', () => {
 
     expect(careerScenarios.some((scenario) => scenario.id === 'entry_window')).toBe(true)
     expect(careerScenarios.some((scenario) => scenario.id === 'authority_gain_window')).toBe(true)
-    expect(careerScenarios.some((scenario) => scenario.id === 'contract_negotiation_window')).toBe(true)
+    expect(careerScenarios.some((scenario) => scenario.id === 'contract_negotiation_window')).toBe(
+      true
+    )
     expect(careerScenarios.some((scenario) => scenario.id === 'promotion_review_window')).toBe(true)
     expect(careerScenarios.some((scenario) => scenario.id === 'manager_track_window')).toBe(true)
     expect(careerScenarios.some((scenario) => scenario.id === 'specialist_track_window')).toBe(true)
     expect(careerScenarios.some((scenario) => scenario.id === 'role_shift_window')).toBe(true)
     expect(careerScenarios.some((scenario) => scenario.id === 'restart_window')).toBe(true)
-    expect(careerScenarios.some((scenario) => scenario.id === 'authority_conflict_window')).toBe(true)
+    expect(careerScenarios.some((scenario) => scenario.id === 'authority_conflict_window')).toBe(
+      true
+    )
 
-    expect(relationshipScenarios.some((scenario) => scenario.id === 'commitment_preparation_window')).toBe(true)
-    expect(relationshipScenarios.some((scenario) => scenario.id === 'commitment_execution_window')).toBe(true)
-    expect(relationshipScenarios.some((scenario) => scenario.id === 'cohabitation_window')).toBe(true)
-    expect(relationshipScenarios.some((scenario) => scenario.id === 'family_acceptance_window')).toBe(true)
+    expect(
+      relationshipScenarios.some((scenario) => scenario.id === 'commitment_preparation_window')
+    ).toBe(true)
+    expect(
+      relationshipScenarios.some((scenario) => scenario.id === 'commitment_execution_window')
+    ).toBe(true)
+    expect(relationshipScenarios.some((scenario) => scenario.id === 'cohabitation_window')).toBe(
+      true
+    )
+    expect(
+      relationshipScenarios.some((scenario) => scenario.id === 'family_acceptance_window')
+    ).toBe(true)
     expect(relationshipScenarios.some((scenario) => scenario.id === 'separation_window')).toBe(true)
   })
 
@@ -293,26 +329,42 @@ describe('buildScenarioEngine realism contract', () => {
         family: 'wealth_guardrail',
         profile: 'risk',
         domains: ['wealth'],
-        scenarioIds: ['liquidity_defense_window', 'debt_pressure_window', 'income_drop_window', 'expense_spike_window', 'debt_restructure_window'],
+        scenarioIds: [
+          'liquidity_defense_window',
+          'debt_pressure_window',
+          'income_drop_window',
+          'expense_spike_window',
+          'debt_restructure_window',
+        ],
       }),
       createPattern({
         id: 'wealth_accumulation',
         family: 'wealth_growth',
         profile: 'upside',
         domains: ['wealth'],
-        scenarioIds: ['income_growth_window', 'asset_build_window', 'pricing_power_window', 'capital_allocation_window', 'asset_exit_window'],
+        scenarioIds: [
+          'income_growth_window',
+          'asset_build_window',
+          'pricing_power_window',
+          'capital_allocation_window',
+          'asset_exit_window',
+        ],
       }),
     ]
 
     const scenarios = buildScenarioEngine(patterns, createStrategy(), createInput(), 'ko')
     const wealthScenarios = scenarios.filter((scenario) => scenario.domain === 'wealth')
 
-    expect(wealthScenarios.some((scenario) => scenario.id === 'liquidity_defense_window')).toBe(true)
+    expect(wealthScenarios.some((scenario) => scenario.id === 'liquidity_defense_window')).toBe(
+      true
+    )
     expect(wealthScenarios.some((scenario) => scenario.id === 'income_drop_window')).toBe(true)
     expect(wealthScenarios.some((scenario) => scenario.id === 'expense_spike_window')).toBe(true)
     expect(wealthScenarios.some((scenario) => scenario.id === 'debt_restructure_window')).toBe(true)
     expect(wealthScenarios.some((scenario) => scenario.id === 'pricing_power_window')).toBe(true)
-    expect(wealthScenarios.some((scenario) => scenario.id === 'capital_allocation_window')).toBe(true)
+    expect(wealthScenarios.some((scenario) => scenario.id === 'capital_allocation_window')).toBe(
+      true
+    )
     expect(wealthScenarios.some((scenario) => scenario.id === 'asset_exit_window')).toBe(true)
   })
 
@@ -401,54 +453,48 @@ describe('buildScenarioEngine realism contract', () => {
       ],
     })
 
-    const scenarios = buildScenarioEngine(
-      [pattern],
-      createStrategy(),
-      createInput(),
-      'ko',
-      {
-        activation: {
-          domains: [
-            {
-              domain: 'career',
-              natalScore: 2.2,
-              timeScore: 1.7,
-              modulationScore: 0.8,
-              activationScore: 3.4,
-              dominantAxes: ['expansion', 'verification', 'deep_work'],
-              sources: [],
-            },
-          ],
-          globalTimePressure: 0.5,
-          globalVerificationPressure: 0.6,
-        },
-        rules: {
-          domains: [
-            {
-              domain: 'career',
-              amplify: ['research_planning', 'strategy_planning'],
-              suppress: [],
-              gate: ['commit_now', 'blind_spot_commitment'],
-              delay: ['finalize_terms', 'certainty -> recheck'],
-              convert: [],
-              contradictionPenalty: 0.08,
-              priorityScore: 0.7,
-              resolvedMode: 'verify',
-            },
-          ],
-          globalNotes: [],
-        },
-        states: {
-          domains: [
-            {
-              domain: 'career',
-              state: 'active',
-              rationale: 'test',
-            },
-          ],
-        },
-      }
-    )
+    const scenarios = buildScenarioEngine([pattern], createStrategy(), createInput(), 'ko', {
+      activation: {
+        domains: [
+          {
+            domain: 'career',
+            natalScore: 2.2,
+            timeScore: 1.7,
+            modulationScore: 0.8,
+            activationScore: 3.4,
+            dominantAxes: ['expansion', 'verification', 'deep_work'],
+            sources: [],
+          },
+        ],
+        globalTimePressure: 0.5,
+        globalVerificationPressure: 0.6,
+      },
+      rules: {
+        domains: [
+          {
+            domain: 'career',
+            amplify: ['research_planning', 'strategy_planning'],
+            suppress: [],
+            gate: ['commit_now', 'blind_spot_commitment'],
+            delay: ['finalize_terms', 'certainty -> recheck'],
+            convert: [],
+            contradictionPenalty: 0.08,
+            priorityScore: 0.7,
+            resolvedMode: 'verify',
+          },
+        ],
+        globalNotes: [],
+      },
+      states: {
+        domains: [
+          {
+            domain: 'career',
+            state: 'active',
+            rationale: 'test',
+          },
+        ],
+      },
+    })
 
     const byId = new Map(scenarios.map((scenario) => [scenario.id, scenario]))
     expect(byId.get('promotion_review_window')?.probability).toBeGreaterThan(
@@ -488,71 +534,65 @@ describe('buildScenarioEngine realism contract', () => {
       }),
     ]
 
-    const scenarios = buildScenarioEngine(
-      patterns,
-      createStrategy(),
-      createInput(),
-      'ko',
-      {
-        activation: {
-          domains: [
-            {
-              domain: 'wealth',
-              natalScore: 1.2,
-              timeScore: 1.2,
-              modulationScore: 0.6,
-              activationScore: 3.0,
-              dominantAxes: ['verification', 'transition'],
-              sources: [],
-            },
-            {
-              domain: 'relationship',
-              natalScore: 1.1,
-              timeScore: 1.2,
-              modulationScore: 0.6,
-              activationScore: 2.8,
-              dominantAxes: ['verification', 'transition'],
-              sources: [],
-            },
-          ],
-          globalTimePressure: 0.7,
-          globalVerificationPressure: 0.7,
-        } as ActivationEngineResult,
-        rules: {
-          domains: [
-            {
-              domain: 'wealth',
-              amplify: ['phase_window'],
-              suppress: [],
-              gate: ['commit_now'],
-              delay: ['finalize_terms'],
-              convert: [],
-              contradictionPenalty: 0.14,
-              priorityScore: 2.1,
-              resolvedMode: 'verify',
-            },
-            {
-              domain: 'relationship',
-              amplify: ['transition_window'],
-              suppress: [],
-              gate: ['projection_bias'],
-              delay: ['emotionally_loaded_decision', 'slow_trust_build'],
-              convert: [],
-              contradictionPenalty: 0.15,
-              priorityScore: 2,
-              resolvedMode: 'verify',
-            },
-          ],
-          globalNotes: [],
-        } as RuleEngineResult,
-        states: {
-          domains: [
-            { domain: 'wealth', state: 'opening', rationale: 'test' },
-            { domain: 'relationship', state: 'opening', rationale: 'test' },
-          ],
-        } as StateEngineResult,
-      }
-    )
+    const scenarios = buildScenarioEngine(patterns, createStrategy(), createInput(), 'ko', {
+      activation: {
+        domains: [
+          {
+            domain: 'wealth',
+            natalScore: 1.2,
+            timeScore: 1.2,
+            modulationScore: 0.6,
+            activationScore: 3.0,
+            dominantAxes: ['verification', 'transition'],
+            sources: [],
+          },
+          {
+            domain: 'relationship',
+            natalScore: 1.1,
+            timeScore: 1.2,
+            modulationScore: 0.6,
+            activationScore: 2.8,
+            dominantAxes: ['verification', 'transition'],
+            sources: [],
+          },
+        ],
+        globalTimePressure: 0.7,
+        globalVerificationPressure: 0.7,
+      } as ActivationEngineResult,
+      rules: {
+        domains: [
+          {
+            domain: 'wealth',
+            amplify: ['phase_window'],
+            suppress: [],
+            gate: ['commit_now'],
+            delay: ['finalize_terms'],
+            convert: [],
+            contradictionPenalty: 0.14,
+            priorityScore: 2.1,
+            resolvedMode: 'verify',
+          },
+          {
+            domain: 'relationship',
+            amplify: ['transition_window'],
+            suppress: [],
+            gate: ['projection_bias'],
+            delay: ['emotionally_loaded_decision', 'slow_trust_build'],
+            convert: [],
+            contradictionPenalty: 0.15,
+            priorityScore: 2,
+            resolvedMode: 'verify',
+          },
+        ],
+        globalNotes: [],
+      } as RuleEngineResult,
+      states: {
+        domains: [
+          { domain: 'wealth', state: 'opening', rationale: 'test' },
+          { domain: 'relationship', state: 'opening', rationale: 'test' },
+        ],
+      } as StateEngineResult,
+    })
 
     const byId = new Map(scenarios.map((scenario) => [scenario.id, scenario]))
     expect(byId.get('capital_allocation_window')?.probability).toBeGreaterThan(
@@ -575,7 +615,12 @@ describe('buildScenarioEngine realism contract', () => {
         matchedKeywords: ['burnout', 'sleep', 'load', 'trigger'],
         resolvedMode: 'prepare',
         domainState: 'opening',
-        scenarioIds: ['burnout_trigger_window', 'sleep_disruption_window', 'recovery_reset_window', 'load_rebalance_window'],
+        scenarioIds: [
+          'burnout_trigger_window',
+          'sleep_disruption_window',
+          'recovery_reset_window',
+          'load_rebalance_window',
+        ],
       }),
       createPattern({
         id: 'healing_routine_stabilization',
@@ -642,7 +687,11 @@ describe('buildScenarioEngine realism contract', () => {
         profile: 'risk',
         domains: ['relationship'],
         matchedKeywords: ['boundary', 'distance', 'clarify', 'expectation', 'space'],
-        scenarioIds: ['boundary_reset_window', 'distance_tuning_window', 'clarify_expectations_window'],
+        scenarioIds: [
+          'boundary_reset_window',
+          'distance_tuning_window',
+          'clarify_expectations_window',
+        ],
       }),
       createPattern({
         id: 'relationship_activation',
@@ -654,48 +703,42 @@ describe('buildScenarioEngine realism contract', () => {
       }),
     ]
 
-    const scenarios = buildScenarioEngine(
-      patterns,
-      createStrategy(),
-      createInput(),
-      'en',
-      {
-        activation: {
-          domains: [
-            {
-              domain: 'relationship',
-              natalScore: 1.2,
-              timeScore: 1.3,
-              modulationScore: 0.7,
-              activationScore: 3.2,
-              dominantAxes: ['bonding', 'verification', 'retreat'],
-              sources: [],
-            },
-          ],
-          globalTimePressure: 0.72,
-          globalVerificationPressure: 0.74,
-        } as ActivationEngineResult,
-        rules: {
-          domains: [
-            {
-              domain: 'relationship',
-              amplify: ['bond_definition'],
-              suppress: [],
-              gate: ['boundary_breach', 'projection_bias', 'forced_closeness'],
-              delay: ['confirmation_before_labeling', 'slow_trust_build'],
-              convert: ['relationship_growth -> selective_distance'],
-              contradictionPenalty: 0.18,
-              priorityScore: 2.2,
-              resolvedMode: 'verify',
-            },
-          ],
-          globalNotes: [],
-        } as RuleEngineResult,
-        states: {
-          domains: [{ domain: 'relationship', state: 'consolidation', rationale: 'test' }],
-        } as StateEngineResult,
-      }
-    )
+    const scenarios = buildScenarioEngine(patterns, createStrategy(), createInput(), 'en', {
+      activation: {
+        domains: [
+          {
+            domain: 'relationship',
+            natalScore: 1.2,
+            timeScore: 1.3,
+            modulationScore: 0.7,
+            activationScore: 3.2,
+            dominantAxes: ['bonding', 'verification', 'retreat'],
+            sources: [],
+          },
+        ],
+        globalTimePressure: 0.72,
+        globalVerificationPressure: 0.74,
+      } as ActivationEngineResult,
+      rules: {
+        domains: [
+          {
+            domain: 'relationship',
+            amplify: ['bond_definition'],
+            suppress: [],
+            gate: ['boundary_breach', 'projection_bias', 'forced_closeness'],
+            delay: ['confirmation_before_labeling', 'slow_trust_build'],
+            convert: ['relationship_growth -> selective_distance'],
+            contradictionPenalty: 0.18,
+            priorityScore: 2.2,
+            resolvedMode: 'verify',
+          },
+        ],
+        globalNotes: [],
+      } as RuleEngineResult,
+      states: {
+        domains: [{ domain: 'relationship', state: 'consolidation', rationale: 'test' }],
+      } as StateEngineResult,
+    })
 
     const byId = new Map(scenarios.map((scenario) => [scenario.id, scenario]))
     expect(byId.get('boundary_reset_window')?.probability).toBeGreaterThan(
@@ -749,7 +792,11 @@ describe('buildScenarioEngine realism contract', () => {
         score: 68,
         confidence: 0.74,
         matchedKeywords: ['boundary', 'distance', 'expectation'],
-        scenarioIds: ['boundary_reset_window', 'distance_tuning_window', 'clarify_expectations_window'],
+        scenarioIds: [
+          'boundary_reset_window',
+          'distance_tuning_window',
+          'clarify_expectations_window',
+        ],
       }),
     ]
 

@@ -120,7 +120,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Promotion-review branch',
     risk: 'If promotion review criteria are vague, energy goes into impression management instead of proof.',
     reversible: true,
-    actions: ['승진 판단 기준을 정리하기', '성과를 근거로 문서화하기', '무엇이 아직 승진을 막는지 확인하기'],
+    actions: [
+      '승진 판단 기준을 정리하기',
+      '성과를 근거로 문서화하기',
+      '무엇이 아직 승진을 막는지 확인하기',
+    ],
   },
   {
     id: 'contract_negotiation_window',
@@ -130,7 +134,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Contract-negotiation branch',
     risk: 'Negotiating without leverage mapping weakens long-term positioning.',
     reversible: true,
-    actions: ['협상 포인트를 정리하기', '역할과 보상 조건을 함께 협의하기', '범위가 고정되기 전에는 서명을 미루기'],
+    actions: [
+      '협상 포인트를 정리하기',
+      '역할과 보상 조건을 함께 협의하기',
+      '범위가 고정되기 전에는 서명을 미루기',
+    ],
   },
   {
     id: 'manager_track_window',
@@ -150,7 +158,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Specialist-track branch',
     risk: 'Expert positioning without proof of depth looks narrower than it is.',
     reversible: true,
-    actions: ['자신의 전문 포지션을 명확히 하기', '깊이를 보여주는 근거를 제시하기', '전문성을 실제 성과와 연결하기'],
+    actions: [
+      '자신의 전문 포지션을 명확히 하기',
+      '깊이를 보여주는 근거를 제시하기',
+      '전문성을 실제 성과와 연결하기',
+    ],
   },
   {
     id: 'role_redefinition_window',
@@ -180,7 +192,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Authority-conflict branch',
     risk: 'Power struggle without scope clarity escalates faster than the actual issue.',
     reversible: true,
-    actions: ['Separate title from scope', 'Document one conflict point', 'Resolve through boundary not force'],
+    actions: [
+      'Separate title from scope',
+      'Document one conflict point',
+      'Resolve through boundary not force',
+    ],
   },
   {
     id: 'role_shift_window',
@@ -240,7 +256,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Commitment-preparation branch',
     risk: 'Naming commitment too early without daily fit creates future friction.',
     reversible: true,
-    actions: ['Check daily rhythm fit', 'Discuss expectation gap', 'Define what commitment means first'],
+    actions: [
+      'Check daily rhythm fit',
+      'Discuss expectation gap',
+      'Define what commitment means first',
+    ],
   },
   {
     id: 'commitment_execution_window',
@@ -250,7 +270,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Commitment-execution branch',
     risk: 'Formal commitment without timing and support mapping increases pressure later.',
     reversible: false,
-    actions: ['Confirm timeline', 'Align family/social expectations', 'Document practical next steps'],
+    actions: [
+      'Confirm timeline',
+      'Align family/social expectations',
+      'Document practical next steps',
+    ],
   },
   {
     id: 'cohabitation_window',
@@ -260,7 +284,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Cohabitation branch',
     risk: 'Living together before rhythm and responsibility are named turns affection into friction.',
     reversible: true,
-    actions: ['Discuss daily rhythm', 'Assign shared responsibilities', 'Test practical fit before full move-in'],
+    actions: [
+      'Discuss daily rhythm',
+      'Assign shared responsibilities',
+      'Test practical fit before full move-in',
+    ],
   },
   {
     id: 'family_acceptance_window',
@@ -270,7 +298,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Family-acceptance branch',
     risk: 'If external approval is rushed, the relationship starts reacting to pressure instead of building structure.',
     reversible: true,
-    actions: ['Align internal stance first', 'Prepare one introduction boundary', 'Clarify who needs to know and when'],
+    actions: [
+      'Align internal stance first',
+      'Prepare one introduction boundary',
+      'Clarify who needs to know and when',
+    ],
   },
   {
     id: 'reconciliation_window',
@@ -320,7 +352,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Separation branch',
     risk: 'Ending in peak emotion can leave avoidable residue and ambiguity.',
     reversible: false,
-    actions: ['Separate facts from emotion', 'Define closure terms clearly', 'Avoid same-day reversal'],
+    actions: [
+      'Separate facts from emotion',
+      'Define closure terms clearly',
+      'Avoid same-day reversal',
+    ],
   },
   {
     id: 'cashflow_swing_window',
@@ -380,7 +416,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Income-drop branch',
     risk: 'If decline is minimized emotionally, adjustment happens later and costs more.',
     reversible: true,
-    actions: ['Rebuild bottom-line estimate', 'Cut one weak revenue dependency', 'Protect baseline liquidity first'],
+    actions: [
+      'Rebuild bottom-line estimate',
+      'Cut one weak revenue dependency',
+      'Protect baseline liquidity first',
+    ],
   },
   {
     id: 'expense_spike_window',
@@ -390,7 +430,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Expense-spike branch',
     risk: 'Sudden expense pressure often breaks systems before it breaks numbers.',
     reversible: true,
-    actions: ['Separate one-off from recurring costs', 'Delay noncritical payments', 'Create a 30-day buffer rule'],
+    actions: [
+      'Separate one-off from recurring costs',
+      'Delay noncritical payments',
+      'Create a 30-day buffer rule',
+    ],
   },
   {
     id: 'debt_restructure_window',
@@ -400,7 +444,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Debt-restructure branch',
     risk: 'Restructuring without full term visibility can improve cashflow short-term but worsen total burden.',
     reversible: true,
-    actions: ['Map full debt stack', 'Compare total cost not just monthly payment', 'Restructure only after downside check'],
+    actions: [
+      'Map full debt stack',
+      'Compare total cost not just monthly payment',
+      'Restructure only after downside check',
+    ],
   },
   {
     id: 'income_growth_window',
@@ -450,7 +498,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Capital-allocation branch',
     risk: 'Allocation without rule structure turns compounding into drift.',
     reversible: true,
-    actions: ['Set allocation bands', 'Separate long-term and tactical money', 'Review by rule not mood'],
+    actions: [
+      'Set allocation bands',
+      'Separate long-term and tactical money',
+      'Review by rule not mood',
+    ],
   },
   {
     id: 'asset_exit_window',
@@ -460,7 +512,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Asset-exit branch',
     risk: 'Exiting a position without rule clarity turns strategy into reaction.',
     reversible: true,
-    actions: ['Define exit thesis first', 'Set one trigger and one invalidation', 'Separate liquidity need from fear response'],
+    actions: [
+      'Define exit thesis first',
+      'Set one trigger and one invalidation',
+      'Separate liquidity need from fear response',
+    ],
   },
   {
     id: 'schedule_reduction_window',
@@ -480,7 +536,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Recovery-reset branch',
     risk: 'Ignoring early warning signs can turn temporary strain into a longer reset.',
     reversible: true,
-    actions: ['Reset sleep and meals', 'Restore hydration baseline', 'Pause nonessential intensity'],
+    actions: [
+      'Reset sleep and meals',
+      'Restore hydration baseline',
+      'Pause nonessential intensity',
+    ],
   },
   {
     id: 'load_rebalance_window',
@@ -510,7 +570,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Recovery branch',
     risk: 'Trying to recover through intensity often backfires in a low-structure phase.',
     reversible: true,
-    actions: ['Choose low-intensity recovery', 'Keep meals regular', 'Protect one quiet block daily'],
+    actions: [
+      'Choose low-intensity recovery',
+      'Keep meals regular',
+      'Protect one quiet block daily',
+    ],
   },
   {
     id: 'habit_rebuild_window',
@@ -550,7 +614,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Sleep-disruption branch',
     risk: 'When sleep rhythm breaks first, judgment quality drops before motivation does.',
     reversible: true,
-    actions: ['Stabilize sleep window first', 'Reduce late stimulation', 'Protect a non-negotiable wind-down hour'],
+    actions: [
+      'Stabilize sleep window first',
+      'Reduce late stimulation',
+      'Protect a non-negotiable wind-down hour',
+    ],
   },
   {
     id: 'inflammation_window',
@@ -560,7 +628,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Inflammation branch',
     risk: 'Pushing through irritation or heat signals often turns a short warning into a longer slowdown.',
     reversible: true,
-    actions: ['Lower intensity immediately', 'Track heat or irritation signs', 'Simplify food and routine for 72 hours'],
+    actions: [
+      'Lower intensity immediately',
+      'Track heat or irritation signs',
+      'Simplify food and routine for 72 hours',
+    ],
   },
   {
     id: 'recovery_compliance_window',
@@ -570,7 +642,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Recovery-compliance branch',
     risk: 'Knowing the right recovery plan matters less than actually repeating it long enough.',
     reversible: true,
-    actions: ['Pick one recovery metric', 'Repeat one protocol daily', 'Review compliance at the end of the week'],
+    actions: [
+      'Pick one recovery metric',
+      'Repeat one protocol daily',
+      'Review compliance at the end of the week',
+    ],
   },
   {
     id: 'travel_window',
@@ -600,7 +676,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Foreign-link branch',
     risk: 'Cross-border upside can be real, but verification gaps grow quickly.',
     reversible: true,
-    actions: ['Verify external channel', 'Document requirements', 'Run a small test before expansion'],
+    actions: [
+      'Verify external channel',
+      'Document requirements',
+      'Run a small test before expansion',
+    ],
   },
   {
     id: 'route_recheck_window',
@@ -620,7 +700,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Housing-search branch',
     risk: 'Picking convenience over fit can create long-term drag.',
     reversible: true,
-    actions: ['Rank fit factors first', 'Visit twice if possible', 'Compare living cost against recovery time'],
+    actions: [
+      'Rank fit factors first',
+      'Visit twice if possible',
+      'Compare living cost against recovery time',
+    ],
   },
   {
     id: 'lease_decision_window',
@@ -630,7 +714,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Lease-decision branch',
     risk: 'A lease chosen under urgency can lock in the wrong base, not just the wrong price.',
     reversible: false,
-    actions: ['Check contract exits first', 'Compare commute and recovery cost together', 'Decide only after one overnight review'],
+    actions: [
+      'Check contract exits first',
+      'Compare commute and recovery cost together',
+      'Decide only after one overnight review',
+    ],
   },
   {
     id: 'cross_border_move_window',
@@ -640,7 +728,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Cross-border-move branch',
     risk: 'Cross-border moves fail more often from paperwork and support gaps than from desire alone.',
     reversible: false,
-    actions: ['Map visa or legal requirements', 'Verify support system on arrival', 'Stage the move in two steps if possible'],
+    actions: [
+      'Map visa or legal requirements',
+      'Verify support system on arrival',
+      'Stage the move in two steps if possible',
+    ],
   },
   {
     id: 'commute_restructure_window',
@@ -650,7 +742,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Commute-restructure branch',
     risk: 'A bad commute quietly taxes health and work quality before the cost feels obvious.',
     reversible: true,
-    actions: ['Measure weekly commute load', 'Reduce one unnecessary trip', 'Compare time cost against rent or role benefit'],
+    actions: [
+      'Measure weekly commute load',
+      'Reduce one unnecessary trip',
+      'Compare time cost against rent or role benefit',
+    ],
   },
   {
     id: 'basecamp_reset_window',
@@ -660,7 +756,11 @@ const SCENARIO_DEFINITIONS: ScenarioDefinition[] = [
     title: 'Basecamp-reset branch',
     risk: 'If your base is misaligned, every other expansion becomes more expensive than it should be.',
     reversible: true,
-    actions: ['Define what the base must support', 'Drop one location mismatch', 'Reset around recovery, not just convenience'],
+    actions: [
+      'Define what the base must support',
+      'Drop one location mismatch',
+      'Reset around recovery, not just convenience',
+    ],
   },
 ]
 
@@ -804,7 +904,9 @@ function resolveTimingGranularity(input: {
   window: ScenarioWindow
   astroTimingIndex: ResolvedAstroTimingIndex | undefined
 }): TimingGranularity {
-  const hasIljin = Boolean(input.normalizedInput.currentIljinElement || input.normalizedInput.currentIljinDate)
+  const hasIljin = Boolean(
+    input.normalizedInput.currentIljinElement || input.normalizedInput.currentIljinDate
+  )
   const hasWolun = Boolean(input.normalizedInput.currentWolunElement)
   const hasSeun = Boolean(input.normalizedInput.currentSaeunElement)
   const transitCount = input.normalizedInput.activeTransits.length
@@ -830,7 +932,9 @@ function buildPrecisionReason(input: {
   normalizedInput: MatrixCalculationInputNormalized
   astroTimingIndex: ResolvedAstroTimingIndex | undefined
 }): string {
-  const hasIljin = Boolean(input.normalizedInput.currentIljinElement || input.normalizedInput.currentIljinDate)
+  const hasIljin = Boolean(
+    input.normalizedInput.currentIljinElement || input.normalizedInput.currentIljinDate
+  )
   const hasWolun = Boolean(input.normalizedInput.currentWolunElement)
   const hasSeun = Boolean(input.normalizedInput.currentSaeunElement)
   const hasDaeun = Boolean(input.normalizedInput.currentDaeunElement)
@@ -843,7 +947,7 @@ function buildPrecisionReason(input: {
       return '단기 사주 신호와 트랜짓이 함께 맞물린 경우에도, 표현 정밀도는 일 단위 상한으로만 엽니다.'
     }
     if (input.granularity === 'week') {
-      return (hasIljin || transitCount > 0 || daily >= 0.58)
+      return hasIljin || transitCount > 0 || daily >= 0.58
         ? '단기 촉발은 살아 있지만 과잉 정밀 예측을 피하려고 주 단위까지만 여는 편이 맞습니다.'
         : '구조 지지가 더 넓게 깔려 있어 주 단위까지만 열어 두는 편이 안전합니다.'
     }
@@ -894,9 +998,12 @@ function buildWhyNow(input: {
   normalizedInput: MatrixCalculationInputNormalized
 }): string {
   const timingDrivers: string[] = []
-  if (input.normalizedInput.currentDaeunElement) timingDrivers.push(input.lang === 'ko' ? '대운' : 'daeun')
-  if (input.normalizedInput.currentSaeunElement) timingDrivers.push(input.lang === 'ko' ? '세운' : 'seun')
-  if (input.normalizedInput.currentWolunElement) timingDrivers.push(input.lang === 'ko' ? '월운' : 'wolun')
+  if (input.normalizedInput.currentDaeunElement)
+    timingDrivers.push(input.lang === 'ko' ? '대운' : 'daeun')
+  if (input.normalizedInput.currentSaeunElement)
+    timingDrivers.push(input.lang === 'ko' ? '세운' : 'seun')
+  if (input.normalizedInput.currentWolunElement)
+    timingDrivers.push(input.lang === 'ko' ? '월운' : 'wolun')
   if (input.normalizedInput.currentIljinElement || input.normalizedInput.currentIljinDate) {
     timingDrivers.push(input.lang === 'ko' ? '일운' : 'daily timing')
   }
@@ -937,16 +1044,32 @@ function buildManifestationHints(input: {
 }): string[] {
   const hints: string[] = []
   if (input.pattern.domainState === 'opening') {
-    hints.push(input.lang === 'ko' ? '기회는 열리지만 아직 조건 정리가 먼저입니다.' : 'The window is opening, but conditions still need shaping.')
+    hints.push(
+      input.lang === 'ko'
+        ? '기회는 열리지만 아직 조건 정리가 먼저입니다.'
+        : 'The window is opening, but conditions still need shaping.'
+    )
   }
   if (input.pattern.domainState === 'consolidation' || input.pattern.domainState === 'residue') {
-    hints.push(input.lang === 'ko' ? '확장보다 정리와 보존 쪽으로 체감될 수 있습니다.' : 'This may feel more like consolidation than expansion.')
+    hints.push(
+      input.lang === 'ko'
+        ? '확장보다 정리와 보존 쪽으로 체감될 수 있습니다.'
+        : 'This may feel more like consolidation than expansion.'
+    )
   }
   if ((input.pattern.blockedBy || []).includes('commit_now')) {
-    hints.push(input.lang === 'ko' ? '즉시 확정보다 초안·탐색·검증이 더 맞습니다.' : 'Drafting and verification fit better than immediate commitment.')
+    hints.push(
+      input.lang === 'ko'
+        ? '즉시 확정보다 초안·탐색·검증이 더 맞습니다.'
+        : 'Drafting and verification fit better than immediate commitment.'
+    )
   }
   if (input.definition.reversible) {
-    hints.push(input.lang === 'ko' ? '되돌릴 수 있는 작은 실행부터 시작하는 편이 유리합니다.' : 'Start with a reversible step first.')
+    hints.push(
+      input.lang === 'ko'
+        ? '되돌릴 수 있는 작은 실행부터 시작하는 편이 유리합니다.'
+        : 'Start with a reversible step first.'
+    )
   }
   if (hints.length === 0) {
     hints.push(
@@ -968,7 +1091,7 @@ function buildEntryConditions(input: {
 }): string[] {
   if (input.lang === 'ko') {
     return [
-      `${input.pattern.label} 패턴 근거가 유지될 것`,
+      `핵심 근거가 계속 살아 있을 것`,
       `시나리오 확률 ${input.probability}%와 신뢰도 ${Math.round(input.confidence * 100)}%가 유지될 것`,
       `타이밍 적합도 ${Math.round(input.timingRelevance * 100)}% 이상에서 ${input.definition.actions[0]}를 바로 실행할 수 있을 것`,
     ]
@@ -1011,7 +1134,7 @@ function buildSustainConditions(input: {
 }): string[] {
   if (input.lang === 'ko') {
     return [
-      `${input.definition.actions[0]} 이후에도 ${input.pattern.label} 근거가 이어질 것`,
+      `첫 단계 이후에도 흐름이 꺾이지 않을 것`,
       `타이밍 적합도 ${Math.round(input.timingRelevance * 100)}% 수준이 급락하지 않을 것`,
       `역할·범위·속도 조절 조건이 동시에 유지될 것`,
     ]
@@ -1066,7 +1189,6 @@ function buildSustainability(input: {
     (input.definition.reversible ? 4 : -2)
   return clamp(round1(base / 100), 0.1, 0.98)
 }
-
 
 export {
   DOMAIN_SENSITIVITY,

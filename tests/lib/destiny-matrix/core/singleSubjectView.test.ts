@@ -59,6 +59,10 @@ describe('single subject view adapters', () => {
     ).toBe(true)
     expect(counselorVm.singleSubjectView.branches.length).toBeGreaterThanOrEqual(1)
     expect(counselorVm.singleSubjectView.branches[0]?.nextMove.length).toBeGreaterThan(0)
+    expect(counselorVm.singleSubjectView.branches[0]?.nextMove).not.toMatch(
+      /Expansion Pattern|Pattern/i
+    )
+    expect(counselorVm.singleSubjectView.directAnswer).not.toContain('우선를')
     expect(reportVm.singleSubjectView.directAnswer).toBe(counselorVm.singleSubjectView.directAnswer)
   })
 })
