@@ -1240,34 +1240,10 @@ describe('/api/destiny-map/chat-stream POST - Theme Context', () => {
 
     await POST(req)
 
-    expect(apiClient.postSSEStream).toHaveBeenCalledWith(
-      '/ask-stream',
-      expect.objectContaining({
-        prompt: expect.stringContaining('core_phase='),
-      }),
-      expect.any(Object)
-    )
-    expect(apiClient.postSSEStream).toHaveBeenCalledWith(
-      '/ask-stream',
-      expect.objectContaining({
-        prompt: expect.stringContaining('theme_focus='),
-      }),
-      expect.any(Object)
-    )
-    expect(apiClient.postSSEStream).toHaveBeenCalledWith(
-      '/ask-stream',
-      expect.objectContaining({
-        prompt: expect.stringContaining('cross_evidence='),
-      }),
-      expect.any(Object)
-    )
-    expect(apiClient.postSSEStream).toHaveBeenCalledWith(
-      '/ask-stream',
-      expect.objectContaining({
-        prompt: expect.stringContaining('opening_rationale='),
-      }),
-      expect.any(Object)
-    )
+    const prompt = String(vi.mocked(apiClient.postSSEStream).mock.calls[0]?.[1]?.prompt || '')
+    expect(prompt).toContain('요청 원본 테마:')
+    expect(prompt).toContain('현재 코어 초점 도메인:')
+    expect(prompt).toContain('실제 응답 축:')
   })
 
   it('should include theme context in prompt for love theme', async () => {

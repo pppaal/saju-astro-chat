@@ -6,5 +6,5 @@
   isIcpStyleCode,
   sanitizeNarrativeList,
   sanitizeNarrativeText,
-} from './narrativeSupport'
-export type { IcpNarrative, IcpNarrativeAxis } from './narrativeSupport'
+} from './narrativeBuildSupport'
+export type { IcpNarrative, IcpNarrativeAxis } from './narrativeBuildSupport'
