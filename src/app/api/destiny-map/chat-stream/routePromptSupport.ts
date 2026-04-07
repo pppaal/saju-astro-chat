@@ -1,6 +1,8 @@
 import { formatCounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
+import { buildInterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
 import { buildContextSections } from './lib/context-builder'
 import { SECTION_PRIORITIES, type PromptSection } from './builders/promptAssembly'
+import type { CounselorQuestionAnalysis } from './lib/focusDomain'
 
 export interface MatrixSnapshot {
   totalScore: number
@@ -178,6 +180,13 @@ export interface MatrixSnapshot {
           summary?: string
           supportSignals?: string[]
           cautionSignals?: string[]
+          coreDiff?: {
+            directAnswer?: string
+            actionDomain?: string
+            riskDomain?: string
+            bestWindow?: string
+            branchSummary?: string
+          }
         }>
         crossConflictMap?: Array<{
           domain?: string
@@ -252,6 +261,112 @@ function trimPromptBlock(content: string, maxChars: number): string {
   const cleaned = content.trim()
   if (!cleaned) return ''
   return cleaned.length > maxChars ? `${cleaned.slice(0, maxChars).trim()}\n...` : cleaned
+}
+
+type ProtectedTrimOptions = {
+  headerLines?: string[]
+  protectedPrefixes?: string[]
+}
+
+function trimPromptBlockWithProtection(
+  content: string,
+  maxChars: number,
+  options: ProtectedTrimOptions
+): string {
+  if (!content) return ''
+  const cleaned = content.trim()
+  if (!cleaned) return ''
+  if (cleaned.length <= maxChars) return cleaned
+
+  const lines = cleaned.split('\n')
+  const protectedPrefixes = options.protectedPrefixes || []
+  const headerLines = new Set(options.headerLines || [])
+  const protectedLines: string[] = []
+  const protectedSeen = new Set<string>()
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim()
+    if (!line) continue
+    const isProtected =
+      headerLines.has(line) || protectedPrefixes.some((prefix) => line.startsWith(prefix))
+    if (!isProtected || protectedSeen.has(line)) continue
+    protectedSeen.add(line)
+    protectedLines.push(line)
+  }
+
+  const protectedBlock = protectedLines.join('\n').trim()
+  if (!protectedBlock) {
+    return trimPromptBlock(cleaned, maxChars)
+  }
+
+  const maxBodyChars = Math.max(0, maxChars - protectedBlock.length - 2)
+  const remainingLines = lines.filter((rawLine) => {
+    const line = rawLine.trim()
+    if (!line) return false
+    return !protectedSeen.has(line)
+  })
+  const remainder = trimPromptBlock(remainingLines.join('\n'), maxBodyChars)
+
+  if (!remainder) return protectedBlock
+  return `${protectedBlock}\n${remainder}`.trim()
+}
+
+function trimCounselorEvidenceBlock(content: string, maxChars: number): string {
+  return trimPromptBlockWithProtection(content, maxChars, {
+    headerLines: [
+      '[Counselor Answer Plan]',
+      '[Current Read]',
+      '[Timing]',
+      '[Branch Options]',
+      '[Risk Guardrails]',
+    ],
+    protectedPrefixes: [
+      'answer=',
+      'action_focus=',
+      'risk_focus=',
+      'opening_rationale=',
+      'next_move=',
+      'current_direct=',
+      'current_why=',
+      'current_risk=',
+      'window=',
+      'why_now=',
+      'why_not_yet=',
+      'branch_1=',
+      'branch_1_entry=',
+      'branch_1_stop=',
+      'branch_1_next=',
+      'risk=',
+      'hard_stop_1=',
+    ],
+  })
+}
+
+function trimThemeAppliedContextBlock(content: string, maxChars: number): string {
+  return trimPromptBlockWithProtection(content, maxChars, {
+    headerLines: ['[Theme Applied Context]', '[Theme Event Condition Packet]'],
+    protectedPrefixes: [
+      'theme_domain=',
+      'domain_state=',
+      'domain_read=',
+      'domain_first_move=',
+      'domain_hold=',
+      'condition_1_',
+      'condition_2_',
+      'birth_hypothesis_1',
+      'birth_hypothesis_2',
+      'conflict_1_',
+      'conflict_2_',
+      'past_reconstruction=',
+      'past_marker_1',
+      'event_1=',
+      'event_1_summary=',
+      'event_1_window=',
+      'event_1_next=',
+      'uncertainty=',
+      'conditional_1=',
+    ],
+  })
 }
 
 function createPromptBlock(
@@ -412,6 +527,18 @@ function buildThemeSpecificAppliedContext(
         ? `birth_hypothesis_${index + 1}_fit=${item.fitScore.toFixed(2)}`
         : '',
       item.summary ? `birth_hypothesis_${index + 1}_summary=${item.summary}` : '',
+      item.coreDiff?.actionDomain
+        ? `birth_hypothesis_${index + 1}_action=${item.coreDiff.actionDomain}`
+        : '',
+      item.coreDiff?.riskDomain
+        ? `birth_hypothesis_${index + 1}_risk=${item.coreDiff.riskDomain}`
+        : '',
+      item.coreDiff?.bestWindow
+        ? `birth_hypothesis_${index + 1}_window=${item.coreDiff.bestWindow}`
+        : '',
+      item.coreDiff?.branchSummary
+        ? `birth_hypothesis_${index + 1}_branch=${item.coreDiff.branchSummary}`
+        : '',
     ]),
     ...crossConflict.flatMap((item, index) => [
       item.label ? `conflict_${index + 1}_label=${item.label}` : '',
@@ -548,7 +675,8 @@ export function buildCompactPromptSections(params: {
 export function buildMatrixProfileSection(
   snapshot: MatrixSnapshot | null,
   lang: string,
-  theme: string
+  theme: string,
+  questionAnalysis?: CounselorQuestionAnalysis | null
 ): string {
   if (!snapshot) {
     return ''
@@ -566,11 +694,75 @@ export function buildMatrixProfileSection(
     snapshot.core?.counselorEvidence as Parameters<typeof formatCounselorEvidencePacket>[0],
     lang === 'ko' ? 'ko' : 'en'
   )
-  const compactCounselorEvidenceText = trimPromptBlock(
+  const compactCounselorEvidenceText = trimCounselorEvidenceBlock(
     counselorEvidenceText,
     costOptimized ? 320 : 700
   )
-  const themeAppliedContext = trimPromptBlock(
+  const interpretedAnswer = buildInterpretedAnswerContract({
+    packet: snapshot.core?.counselorEvidence as Parameters<typeof formatCounselorEvidencePacket>[0],
+    frame: questionAnalysis?.frame || 'open_counseling',
+    primaryDomain: (questionAnalysis?.primaryDomain || 'personality') as
+      | 'personality'
+      | 'career'
+      | 'relationship'
+      | 'wealth'
+      | 'health'
+      | 'spirituality'
+      | 'timing'
+      | 'move',
+  })
+  const interpretedAnswerText = interpretedAnswer
+    ? trimPromptBlockWithProtection(
+        [
+          '[Interpreted Answer Contract]',
+          `frame=${interpretedAnswer.questionFrame}`,
+          `primary_domain=${interpretedAnswer.primaryDomain}`,
+          `direct_answer=${interpretedAnswer.directAnswer}`,
+          ...interpretedAnswer.why.slice(0, 3).map((line, index) => `why_${index + 1}=${line}`),
+          `timing_best=${interpretedAnswer.timing.bestWindow || 'none'}`,
+          `timing_now=${interpretedAnswer.timing.now || 'none'}`,
+          ...(interpretedAnswer.timing.next
+            ? [`timing_next=${interpretedAnswer.timing.next}`]
+            : []),
+          ...(interpretedAnswer.timing.later
+            ? [`timing_later=${interpretedAnswer.timing.later}`]
+            : []),
+          ...interpretedAnswer.conditions.entry
+            .slice(0, 2)
+            .map((line, index) => `entry_${index + 1}=${line}`),
+          ...interpretedAnswer.conditions.abort
+            .slice(0, 2)
+            .map((line, index) => `abort_${index + 1}=${line}`),
+          ...interpretedAnswer.branches
+            .slice(0, 2)
+            .flatMap((branch, index) => [
+              `path_${index + 1}=${branch.summary}`,
+              `path_${index + 1}_next=${branch.nextMove}`,
+            ]),
+          ...interpretedAnswer.uncertainty
+            .slice(0, 2)
+            .map((line, index) => `uncertainty_${index + 1}=${line}`),
+          `next_move=${interpretedAnswer.nextMove}`,
+        ].join('\n'),
+        costOptimized ? 280 : 640,
+        {
+          headerLines: ['[Interpreted Answer Contract]'],
+          protectedPrefixes: [
+            'frame=',
+            'primary_domain=',
+            'direct_answer=',
+            'why_1=',
+            'timing_best=',
+            'timing_now=',
+            'entry_1=',
+            'abort_1=',
+            'path_1=',
+            'next_move=',
+          ],
+        }
+      )
+    : ''
+  const themeAppliedContext = trimThemeAppliedContextBlock(
     buildThemeSpecificAppliedContext(snapshot, lang, theme),
     costOptimized ? 520 : 1100
   )
@@ -582,6 +774,7 @@ export function buildMatrixProfileSection(
       `core_phase=${corePhaseText}`,
       `cross_evidence=${crossEvidenceText}`,
       `cautions=${cautionText}`,
+      interpretedAnswerText,
       compactCounselorEvidenceText,
       themeAppliedContext,
       '첫 두 문장은 질문에 대한 직접 답으로 시작하고, 교차 근거는 설명 보강에만 사용하세요.',
@@ -598,6 +791,7 @@ export function buildMatrixProfileSection(
     `core_phase=${corePhaseText}`,
     `cross_evidence=${crossEvidenceText}`,
     `cautions=${cautionText}`,
+    interpretedAnswerText,
     compactCounselorEvidenceText,
     themeAppliedContext,
     'Answer directly in the first 1-2 sentences, and use cross_evidence only as supporting explanation.',

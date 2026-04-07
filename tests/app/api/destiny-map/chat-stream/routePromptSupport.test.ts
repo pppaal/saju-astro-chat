@@ -31,6 +31,69 @@ function createSnapshot(): MatrixSnapshot {
       topCautionSignalIds: [],
       counselorEvidence: {
         focusDomain: 'career',
+        singleSubjectView: {
+          directAnswer: '커리어에서는 역할 범위를 먼저 고정하는 쪽이 유리합니다.',
+          structureAxis: {
+            domain: 'career',
+            label: 'Career',
+            thesis: 'Career pressure is leading the current structure.',
+            topAxes: ['role clarity', 'timing readiness'],
+          },
+          actionAxis: {
+            domain: 'career',
+            label: 'Career',
+            nowAction: '역할 범위를 먼저 고정하세요.',
+            whyThisFirst: '역할 정의가 먼저 서야 이후 협상과 실행이 흔들리지 않습니다.',
+          },
+          riskAxis: {
+            domain: 'career',
+            label: 'Career',
+            warning: '조건이 흐리면 타이밍 이점이 오히려 소모로 바뀝니다.',
+            hardStops: ['문서 없는 확정은 미루세요.'],
+          },
+          timingState: {
+            bestWindow: '1-3m',
+            whyNow: '1~3개월 구간에서 역할 압력과 기회 신호가 함께 올라옵니다.',
+            whyNotYet: '문서화가 늦으면 타이밍 이점이 약해집니다.',
+            windows: [
+              {
+                timescale: 'now',
+                status: 'mixed',
+                agreement: 0.61,
+                contradiction: 0.34,
+                leadLag: 0.12,
+                summary: '지금은 기준 정리가 먼저입니다.',
+              },
+              {
+                timescale: '1-3m',
+                status: 'open',
+                agreement: 0.82,
+                contradiction: 0.18,
+                leadLag: 0.3,
+                summary: '1~3개월은 실제 진입 창이 열립니다.',
+              },
+            ],
+          },
+          competingPressures: [],
+          branches: [
+            {
+              label: 'documented role',
+              summary: '문서로 역할을 고정하면 경로가 선명해집니다.',
+              entryConditions: ['역할 범위를 합의할 것'],
+              abortConditions: ['조건이 문서화되지 않을 것'],
+              nextMove: '지원 전에 역할 정의 문장을 먼저 고정하세요.',
+            },
+          ],
+          entryConditions: ['역할 범위를 합의할 것'],
+          abortConditions: ['조건이 문서화되지 않을 것'],
+          nextMove: '지원 전에 역할 정의 문장을 먼저 고정하세요.',
+          confidence: 0.84,
+          reliability: {
+            crossAgreement: 0.81,
+            contradictionFlags: [],
+            notes: [],
+          },
+        },
         personModel: {
           domainStateGraph: [
             {
@@ -129,6 +192,8 @@ describe('routePromptSupport buildMatrixProfileSection', () => {
     const text = buildMatrixProfileSection(createSnapshot(), 'ko', 'career')
 
     expect(text).toContain('[Theme Applied Context]')
+    expect(text).toContain('[Interpreted Answer Contract]')
+    expect(text).toContain('frame=open_counseling')
     expect(text).toContain('theme_domain=career')
     expect(text).toContain('domain_state=expansion')
     expect(text).toContain('[Theme Event Condition Packet]')
@@ -203,5 +268,28 @@ describe('routePromptSupport buildMatrixProfileSection', () => {
         process.env.COUNSELOR_COST_OPTIMIZED = previous
       }
     }
+  })
+
+  it('shapes a question-frame-specific interpreted contract when analysis is provided', () => {
+    const text = buildMatrixProfileSection(createSnapshot(), 'ko', 'career', {
+      primaryDomain: 'career',
+      secondaryDomains: ['wealth'],
+      emotionalTone: 'steady',
+      frame: 'career_decision',
+      isDecisionQuestion: true,
+      needsTimingGuidance: false,
+      confidence: 'high',
+    })
+
+    expect(text).toContain('[Interpreted Answer Contract]')
+    expect(text).toContain('frame=career_decision')
+    expect(text).toContain('primary_domain=career')
+    expect(text).toContain('direct_answer=커리어에서는 역할 범위를 먼저 고정하는 쪽이 유리합니다.')
+    expect(text).toContain('why_1=')
+    expect(text).toContain('timing_best=1-3m')
+    expect(text).toContain('entry_1=')
+    expect(text).toContain('abort_1=')
+    expect(text).toContain('path_1=')
+    expect(text).toContain('next_move=지원 전에 역할 정의 문장을 먼저 고정하세요.')
   })
 })

@@ -1,6 +1,6 @@
-import { calculateNatalChart, type NatalChartData } from '@/lib/astrology'
-import { calculateSajuData } from '@/lib/Saju/saju'
+import type { NatalChartData } from '@/lib/astrology'
 import type { SajuDataStructure } from './types'
+import { computeAstroData, computeSajuData } from './chart-calculator'
 
 type RectificationDomain = 'career' | 'relationship' | 'wealth' | 'health' | 'move'
 
@@ -62,11 +62,6 @@ function avg(values: number[]): number {
   const valid = values.filter((value) => Number.isFinite(value))
   if (!valid.length) return 0
   return valid.reduce((sum, value) => sum + value, 0) / valid.length
-}
-
-function parseDateParts(birthDate: string): { year: number; month: number; date: number } {
-  const [year, month, date] = birthDate.split('-').map((value) => Number(value) || 0)
-  return { year, month, date }
 }
 
 function parseTimeParts(birthTime: string): { hour: number; minute: number } {
@@ -352,50 +347,39 @@ export async function buildBirthTimeRectificationCandidates(
   const currentChart =
     params.currentNatalChart ||
     (await (async () => {
-      const { year, month, date } = parseDateParts(params.birthDate)
-      const { hour, minute } = parseTimeParts(params.birthTime)
-      return calculateNatalChart({
-        year,
-        month,
-        date,
-        hour,
-        minute,
-        latitude: params.latitude,
-        longitude: params.longitude,
-        timeZone: params.timeZone || 'Asia/Seoul',
-      })
+      const astroResult = await computeAstroData(
+        params.birthDate,
+        params.birthTime,
+        params.latitude,
+        params.longitude,
+        params.timeZone || 'Asia/Seoul'
+      )
+      return astroResult.natalChartData
     })())
   const currentSaju =
     params.currentSaju ||
-    (calculateSajuData(
+    ((await computeSajuData(
       params.birthDate,
       params.birthTime,
       params.gender,
-      'solar',
       params.timeZone || 'Asia/Seoul'
-    ) as unknown as SajuDataStructure)
+    )) as SajuDataStructure | undefined)
 
   const compared = await Promise.all(
     candidateTimes.map(async (candidateBirthTime) => {
-      const { year, month, date } = parseDateParts(params.birthDate)
-      const { hour, minute } = parseTimeParts(candidateBirthTime)
-      const candidateNatalChart = await calculateNatalChart({
-        year,
-        month,
-        date,
-        hour,
-        minute,
-        latitude: params.latitude,
-        longitude: params.longitude,
-        timeZone: params.timeZone || 'Asia/Seoul',
-      })
-      const candidateSaju = calculateSajuData(
+      const astroResult = await computeAstroData(
+        params.birthDate,
+        candidateBirthTime,
+        params.latitude,
+        params.longitude,
+        params.timeZone || 'Asia/Seoul'
+      )
+      const candidateSaju = (await computeSajuData(
         params.birthDate,
         candidateBirthTime,
         params.gender,
-        'solar',
         params.timeZone || 'Asia/Seoul'
-      ) as unknown as SajuDataStructure
+      )) as SajuDataStructure | undefined
 
       return compareBirthTimeCandidate({
         locale: params.locale,
@@ -405,7 +389,7 @@ export async function buildBirthTimeRectificationCandidates(
         currentSaju,
         candidateSaju,
         currentNatalChart: currentChart,
-        candidateNatalChart,
+        candidateNatalChart: astroResult.natalChartData,
       })
     })
   )

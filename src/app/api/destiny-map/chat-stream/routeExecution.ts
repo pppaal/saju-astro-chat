@@ -307,6 +307,7 @@ export async function prepareCounselorExecution(params: {
     currentTransits,
     theme: effectiveTheme,
     focusDomain: questionAnalysis.primaryDomain,
+    needsPreciseTiming: questionAnalysis.needsTimingGuidance,
   })
 
   if (strictMatrixEnabled && !matrixSnapshot) {
@@ -330,7 +331,12 @@ export async function prepareCounselorExecution(params: {
     coreCounselorPacket as Parameters<typeof formatCounselorEvidencePacket>[0],
     lang === 'ko' ? 'ko' : 'en'
   )
-  const matrixProfileSection = buildMatrixProfileSection(matrixSnapshot, lang, promptTheme)
+  const matrixProfileSection = buildMatrixProfileSection(
+    matrixSnapshot,
+    lang,
+    promptTheme,
+    questionAnalysis
+  )
   const counselorUiEvidence = encodeCounselorUiEvidence(matrixSnapshot, lang) || ''
   const predictionPacket = coreCounselorPacket as PredictionPacket
   const predictionId = await persistDestinyPredictionSnapshot({
