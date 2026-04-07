@@ -2,7 +2,7 @@
   buildNormalizedMatrixInput,
   computeDestinyCoreHash,
   runDestinyCore,
-} from './runDestinyCoreBuildSupport'
+} from './runDestinyCoreCoreSupport'
 
 export type {
   AvailabilityState,
@@ -11,4 +11,4 @@ export type {
   MatrixCalculationInputNormalized,
   MatrixInputAvailability,
   RunDestinyCoreParams,
-} from './runDestinyCoreBuildSupport'
+} from './runDestinyCoreCoreSupport'
