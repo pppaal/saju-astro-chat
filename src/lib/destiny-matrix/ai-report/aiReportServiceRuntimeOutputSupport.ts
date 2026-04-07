@@ -167,7 +167,10 @@ function buildReportOutputCoreFields(
     packet: {
       singleSubjectView: reportCore.singleSubjectView,
       personModel: reportCore.personModel,
-      topTimingWindow: reportCore.topTimingWindow,
+      topTimingWindow:
+        reportCore.domainTimingWindows.find(
+          (item) => item.domain === (reportCore.actionFocusDomain || reportCore.focusDomain)
+        ) || reportCore.domainTimingWindows[0],
       focusDomain: reportCore.focusDomain,
     },
     frame:
