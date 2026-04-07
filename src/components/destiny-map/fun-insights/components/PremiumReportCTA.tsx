@@ -309,7 +309,7 @@ export default function PremiumReportCTA({
         <div className="absolute inset-0 bg-gradient-to-br from-violet-400 to-transparent rounded-full blur-2xl transform translate-x-8 -translate-y-8" />
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes shimmer {
           0% {
             background-position: -200% 0;

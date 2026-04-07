@@ -133,22 +133,20 @@ export async function analyzeTarotQuestionV2(input: {
   const impressionQuestion =
     /(눈에.*내가|나를.*어떻게|어떤 사람|어때 보|어떻게 보)/.test(trimmedQuestion) ||
     /(눈에.*내가|나를.*어떻게|어떤 사람|어때 보|어떻게 보)/.test(questionVariants.join(' '))
-  const effectiveSelection =
-    responseQuestion
-      ? {
-          themeId: 'love-relationships',
-          spreadId: 'crush-feelings',
-          reason:
-            language === 'ko'
-              ? '상대가 어떻게 반응할지 읽는 질문으로 보고 관계 감정 스프레드로 연결했어요.'
-              : 'Routed to a relationship feelings spread for response intent.',
-          userFriendlyExplanation:
-            language === 'ko'
-              ? '내 행동보다 상대 반응을 읽는 질문이라 감정 스프레드가 더 잘 맞습니다.'
-              : 'A feelings spread fits better when the question is about the other person’s response.',
-        }
-      : 
-    impressionQuestion && heuristicSelection.themeId === 'general-insight'
+  const effectiveSelection = responseQuestion
+    ? {
+        themeId: 'love-relationships',
+        spreadId: 'crush-feelings',
+        reason:
+          language === 'ko'
+            ? '상대가 어떻게 반응할지 읽는 질문으로 보고 관계 감정 스프레드로 연결했어요.'
+            : 'Routed to a relationship feelings spread for response intent.',
+        userFriendlyExplanation:
+          language === 'ko'
+            ? '내 행동보다 상대 반응을 읽는 질문이라 감정 스프레드가 더 잘 맞습니다.'
+            : 'A feelings spread fits better when the question is about the other person’s response.',
+      }
+    : impressionQuestion && heuristicSelection.themeId === 'general-insight'
       ? {
           themeId: 'love-relationships',
           spreadId: 'crush-feelings',
@@ -172,11 +170,11 @@ export async function analyzeTarotQuestionV2(input: {
       isDangerous: false,
       themeId: 'general-insight',
       spreadId: 'quick-reading',
-      spreadTitle: language === 'ko' ? 'ë¹ ë¥¸ ë¦¬ë”©' : 'Quick Reading',
+      spreadTitle: language === 'ko' ? '빠른 리딩' : 'Quick Reading',
       cardCount: 1,
       userFriendlyExplanation:
         language === 'ko'
-          ? 'ê¸°ë³¸ ìŠ¤í”„ë ˆë“œë¥¼ ì°¾ì§€ ëª»í•´ ìµœì†Œ ì„¤ì •ìœ¼ë¡œ ì—°ê²°í–ˆì–´ìš”.'
+          ? '기본 스프레드를 찾지 못해 최소 설정으로 연결했어요.'
           : 'A minimal default spread was used because no spread could be resolved.',
       question_summary: buildQuestionSummary(heuristicIntent, language),
       question_profile: buildQuestionProfile(heuristicIntent, language),
@@ -204,26 +202,24 @@ export async function analyzeTarotQuestionV2(input: {
       isDangerous: true,
       message:
         language === 'ko'
-          ? 'íž˜ë“  ì‹œê°„ì„ ë³´ë‚´ê³  ê³„ì‹  ê²ƒ ê°™ì•„ìš”. ì „ë¬¸ê°€ì˜ ë„ì›€ì„ ë°›ìœ¼ì‹œê¸¸ ê¶Œí•´ë“œë ¤ìš”. ìžì‚´ì˜ˆë°©ìƒë‹´ì „í™”: 1393 (24ì‹œê°„)'
+          ? '힘든 시간을 보내고 계신 것 같아요. 전문가의 도움을 받으시길 권해드려요. 자살예방상담전화: 1393 (24시간)'
           : 'I sense you may be going through a difficult time. Please reach out to a professional or local crisis service.',
       recommended_spreads: [],
     })
   }
 
   const heuristicResult = buildResult({
-      question: trimmedQuestion,
-      language,
-      intent: (
-        responseQuestion && heuristicIntent.questionType === 'self_decision'
-          ? { ...heuristicIntent, questionType: 'other_person_response', subject: 'relationship' }
-          : heuristicIntent
-      ) as StructuredIntent,
-      primarySpread: defaultSpread,
-      reason: effectiveSelection.reason,
-      userFriendlyExplanation: effectiveSelection.userFriendlyExplanation,
-      directAnswer: buildHeuristicDirectAnswer(heuristicIntent, questionVariants, language),
-      source: 'heuristic',
-      fallbackReason: null,
+    question: trimmedQuestion,
+    language,
+    intent: (responseQuestion && heuristicIntent.questionType === 'self_decision'
+      ? { ...heuristicIntent, questionType: 'other_person_response', subject: 'relationship' }
+      : heuristicIntent) as StructuredIntent,
+    primarySpread: defaultSpread,
+    reason: effectiveSelection.reason,
+    userFriendlyExplanation: effectiveSelection.userFriendlyExplanation,
+    directAnswer: buildHeuristicDirectAnswer(heuristicIntent, questionVariants, language),
+    source: 'heuristic',
+    fallbackReason: null,
   })
 
   const spreadList = spreadOptions
@@ -327,8 +323,3 @@ export async function analyzeTarotQuestionV2(input: {
     }
   }
 }
-
-
-
-
-

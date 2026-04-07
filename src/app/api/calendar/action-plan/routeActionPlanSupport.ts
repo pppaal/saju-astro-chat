@@ -480,7 +480,7 @@ export function buildSlotNarrative(input: {
     return (
       cleanGuidanceText(repairMojibakeText(fallbackNote || ''), 180) ||
       cleanGuidanceText(
-        repairMojibakeText(`${focusHint || '핵심 흐름'} � ${actionCue || '기본 운영 슬롯입니다.'}`),
+        repairMojibakeText(`${focusHint || '핵심 흐름'} · ${actionCue || '기본 운영 슬롯입니다.'}`),
         180
       ) ||
       '기본 운영 슬롯입니다.'
@@ -505,7 +505,7 @@ export function buildSlotNarrative(input: {
     cleanGuidanceText(repairMojibakeText(fallbackNote || ''), 180) ||
     cleanGuidanceText(
       repairMojibakeText(
-        `${focusHint || 'Core flow'} � ${actionCue || 'Baseline operating slot.'}`
+        `${focusHint || 'Core flow'} · ${actionCue || 'Baseline operating slot.'}`
       ),
       180
     ) ||
@@ -1031,7 +1031,7 @@ export const buildRuleBasedTimeline = (input: {
           getCanonicalSingleSubjectView(calendar)?.timingState.whyNow,
         ]
           .filter(Boolean)
-          .join(' � '),
+          .join(' · '),
         120
       )
       const matrixSummary =

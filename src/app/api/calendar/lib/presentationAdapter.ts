@@ -13,6 +13,7 @@ import {
   describeTimingCalibrationSummary,
   describeTimingWindowBrief,
 } from '@/lib/destiny-matrix/interpretation/humanSemantics'
+import { buildInterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
 import type { FormattedDate } from './types'
 
 import {
@@ -475,6 +476,26 @@ export function buildCalendarPresentationView(input: {
     singleSubjectView?.actionAxis?.nowAction ||
     actionEvent?.nextMove ||
     projectionAction
+  const interpretedAnswer = canonicalCore
+    ? buildInterpretedAnswerContract({
+        packet: {
+          singleSubjectView: canonicalCore.singleSubjectView,
+          personModel: canonicalCore.personModel,
+          topTimingWindow: canonicalCore.topTimingWindow,
+          focusDomain: canonicalCore.focusDomain,
+        },
+        frame: 'timing_window',
+        primaryDomain: (canonicalCore.actionFocusDomain || canonicalCore.focusDomain) as
+          | 'personality'
+          | 'career'
+          | 'relationship'
+          | 'wealth'
+          | 'health'
+          | 'spirituality'
+          | 'timing'
+          | 'move',
+      })
+    : null
 
   const daySummary: DaySummary = {
     date: selected.date,
@@ -491,6 +512,7 @@ export function buildCalendarPresentationView(input: {
     focusDomain: focusDomainLabel,
     actionFocusDomain: actionFocusDomainLabel,
     reliability,
+    interpretedAnswer: interpretedAnswer || undefined,
   }
 
   const weekStart = selected.date

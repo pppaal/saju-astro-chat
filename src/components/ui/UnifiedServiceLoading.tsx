@@ -199,7 +199,7 @@ function AiReportBarcodeProgress({ locale }: { locale: Locale }) {
 
       <p className="mt-2 text-[11px] text-slate-300">{statusText}</p>
 
-      <style jsx>{`
+      <style>{`
         .barcodeSweep {
           position: absolute;
           inset: 0;

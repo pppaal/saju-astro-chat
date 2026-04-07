@@ -165,8 +165,8 @@ export function extractJsonObjectSlice(raw: string): string | null {
 export function sanitizeJsonLikeText(raw: string): string {
   return raw
     .replace(/^\uFEFF/, '')
-    .replace(/[��]/g, '"')
-    .replace(/[��]/g, "'")
+    .replace(/[\uFFFD\u201D]/g, '"')
+    .replace(/[\uFFFD\u2019]/g, "'")
     .replace(/\/\/[^\n\r]*/g, '')
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/,\s*([}\]])/g, '$1')
@@ -642,7 +642,7 @@ export function enforceInterpretationQuality(input: {
         ? payload.affirmation
         : isKorean
           ? '??? ??? ?? ???? ??????.'
-          : 'Prove today�s choice with one small execution.',
+          : "Prove today's choice with one small execution.",
     combinations: normalizeCombinations(payload.combinations, input.cards, input.language),
     followup_questions: Array.isArray(payload.followup_questions) ? payload.followup_questions : [],
     fallback: Boolean(payload.fallback),

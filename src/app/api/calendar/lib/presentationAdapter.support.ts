@@ -5,6 +5,7 @@ import type {
   DomainKey,
   DomainScore,
 } from '@/lib/destiny-matrix/types'
+import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
 import type { FormattedDate } from './types'
 
 export type Locale = 'ko' | 'en'
@@ -46,6 +47,7 @@ export type DaySummary = {
   focusDomain: string
   actionFocusDomain: string
   reliability: string
+  interpretedAnswer?: InterpretedAnswerContract
 }
 
 export type WeekSummary = {

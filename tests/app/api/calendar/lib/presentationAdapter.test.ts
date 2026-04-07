@@ -682,5 +682,8 @@ describe('calendar presentation adapter', () => {
     expect(view.daySummary.actionFocusDomain).toBe('career')
     expect(view.daySummary.summary).toContain('underlying axis is finance')
     expect(view.daySummary.summary).toContain('action axis right now is career')
+    expect(view.daySummary.interpretedAnswer?.questionFrame).toBe('timing_window')
+    expect(view.daySummary.interpretedAnswer?.primaryDomain).toBe('career')
+    expect(view.daySummary.interpretedAnswer?.directAnswer).toBe('This is a career-entry phase.')
   })
 })
