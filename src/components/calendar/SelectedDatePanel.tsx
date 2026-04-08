@@ -6,6 +6,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
 import { getPeakLabel, resolvePeakLevel } from './peakUtils'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
+import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
 import { formatDecisionActionLabel } from '@/lib/destiny-matrix/core/actionCopy'
 import {
   getDisplayGradeFromScore,
@@ -105,6 +106,7 @@ interface SelectedDatePanelProps {
       focusDomain: string
       actionFocusDomain?: string
       reliability: string
+      interpretedAnswer?: InterpretedAnswerContract
     }
     weekSummary?: {
       rangeStart: string
@@ -911,6 +913,9 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
           <SelectedDateQuickScanSection
             locale={locale}
             quickHighlightCards={quickHighlightCards}
+            interpretedAnswer={
+              isPresentationDayMatch ? presentation?.daySummary?.interpretedAnswer : undefined
+            }
             safeActionSummary={safeActionSummary}
             quickThesis={quickThesis}
             unifiedDayLabel={unifiedDayLabel}

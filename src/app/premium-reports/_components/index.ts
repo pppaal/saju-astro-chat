@@ -1,5 +1,6 @@
 export { default as CalculationDetailsSection } from './CalculationDetailsSection'
 export { default as GraphRagEvidenceSection } from './GraphRagEvidenceSection'
+export { default as InterpretedAnswerSection } from './InterpretedAnswerSection'
 export { default as PersonAppliedProfileSection } from './PersonAppliedProfileSection'
 export { default as PersonDomainStateSection } from './PersonDomainStateSection'
 export { default as PersonInterpretationStabilitySection } from './PersonInterpretationStabilitySection'

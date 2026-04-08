@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import ReportResultPage from '@/app/premium-reports/result/[id]/page'
 
@@ -48,6 +48,26 @@ describe('premium report result page', () => {
               matrixSummary: { totalScore: 8.2 },
               layerResults: { layer1: {} },
               topInsightsWithSources: [],
+            },
+            interpretedAnswer: {
+              questionFrame: 'career_decision',
+              primaryDomain: 'career',
+              directAnswer: '지금은 커리어 결정을 검토 기준 위주로 정리해야 합니다.',
+              why: ['역할 범위가 명확할수록 결정력이 올라갑니다.'],
+              timing: {
+                bestWindow: '1-3m',
+                now: '지금은 조건 정리가 우선입니다.',
+              },
+              conditions: { entry: ['역할 범위 정의'], abort: ['모호한 확정'] },
+              branches: [
+                {
+                  label: 'A-track',
+                  summary: '조건이 맞는 자리로 진입합니다.',
+                  nextMove: '지원 전 조건 문장을 먼저 정리합니다.',
+                },
+              ],
+              uncertainty: ['상세 조건은 앞으로 조정될 수 있습니다.'],
+              nextMove: '지원 전 조건 문장을 먼저 정리합니다.',
             },
             fullData: {},
           },
@@ -225,5 +245,17 @@ describe('premium report result page', () => {
     expect(
       screen.getByText('배경 압력축은 Money이고, 지금 먼저 움직여야 할 행동축은 Career입니다.')
     ).toBeInTheDocument()
+  })
+
+  it('renders the interpreted answer section when the contract is present', async () => {
+    render(<ReportResultPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('질문 해석 계약')).toBeInTheDocument()
+    })
+
+    expect(screen.getByText('커리어 판단')).toBeInTheDocument()
+    expect(screen.getByText('Entry Conditions')).toBeInTheDocument()
+    expect(screen.getByText('Next Move')).toBeInTheDocument()
   })
 })

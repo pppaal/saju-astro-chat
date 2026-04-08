@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
 import styles from './DestinyCalendar.module.css'
 
 interface QuickHighlightAgreementVisual {
@@ -28,6 +29,7 @@ interface QuickHighlightCard {
 interface SelectedDateQuickScanSectionProps {
   locale: 'ko' | 'en'
   quickHighlightCards: QuickHighlightCard[]
+  interpretedAnswer?: InterpretedAnswerContract
   safeActionSummary: string
   quickThesis: string
   unifiedDayLabel: string
@@ -50,6 +52,7 @@ interface SelectedDateQuickScanSectionProps {
 export function SelectedDateQuickScanSection({
   locale,
   quickHighlightCards,
+  interpretedAnswer,
   safeActionSummary,
   quickThesis,
   unifiedDayLabel,
@@ -144,6 +147,32 @@ export function SelectedDateQuickScanSection({
             {locale === 'ko' ? '오늘 행동 요약' : 'Action summary'}
           </span>
           <p className={styles.quickSummaryText}>{safeActionSummary}</p>
+        </div>
+      )}
+
+      {interpretedAnswer && (
+        <div className={styles.quickSummaryBlock}>
+          <span className={styles.quickSummaryLabel}>
+            {locale === 'ko' ? 'ì§ˆë¬¸ í•´ì„' : 'Interpretation'}
+          </span>
+          <p className={styles.quickSummaryText}>{interpretedAnswer.directAnswer}</p>
+          {interpretedAnswer.timing.bestWindow && (
+            <p className={styles.quickSummaryText}>
+              {locale === 'ko' ? 'ê°•í•œ ì°½: ' : 'Best window: '}
+              {interpretedAnswer.timing.bestWindow}
+            </p>
+          )}
+          {interpretedAnswer.why.slice(0, 2).map((line, index) => (
+            <p key={`interpreted-why-${index}`} className={styles.quickSummaryText}>
+              {line}
+            </p>
+          ))}
+          {interpretedAnswer.nextMove && (
+            <p className={styles.quickSummaryText}>
+              {locale === 'ko' ? 'ë‹¤ìŒ í–‰ë™: ' : 'Next move: '}
+              {interpretedAnswer.nextMove}
+            </p>
+          )}
         </div>
       )}
 

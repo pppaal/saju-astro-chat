@@ -20,6 +20,7 @@ import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
 import {
   CalculationDetailsSection,
   GraphRagEvidenceSection,
+  InterpretedAnswerSection,
   PersonAppliedProfileSection,
   PersonDomainStateSection,
   PersonInterpretationStabilitySection,
@@ -37,6 +38,7 @@ import type {
   PremiumReportData as ReportData,
   ReportSection,
 } from '@/app/premium-reports/_lib/types'
+import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
 import {
   toQualityMarkdown,
   type QualityAudit,
@@ -215,6 +217,19 @@ function isSingleSubjectView(value: unknown): value is AdapterSingleSubjectView 
   )
 }
 
+function isInterpretedAnswer(value: unknown): value is InterpretedAnswerContract {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+  const candidate = value as Record<string, unknown>
+  return (
+    typeof candidate.directAnswer === 'string' &&
+    typeof candidate.questionFrame === 'string' &&
+    typeof candidate.primaryDomain === 'string' &&
+    !!candidate.conditions
+  )
+}
+
 function formatRatioPercent(value?: number): string {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     return '-'
@@ -384,6 +399,11 @@ function buildReportData(
       ? payload.personModel
       : isPersonModel(fullData.personModel)
         ? fullData.personModel
+        : undefined,
+    interpretedAnswer: isInterpretedAnswer(payload.interpretedAnswer)
+      ? payload.interpretedAnswer
+      : isInterpretedAnswer(fullData.interpretedAnswer)
+        ? fullData.interpretedAnswer
         : undefined,
     fullData,
   }
@@ -595,6 +615,7 @@ export default function ReportResultPage() {
   const themedHeadlineLines = report.type === 'themed' ? buildThemedHeadlineLines(report) : []
   const singleSubjectView = report.singleSubjectView
   const personModel = report.personModel
+  const interpretedAnswer = report.interpretedAnswer
   const primaryWindow = personModel?.timeProfile.windows[0]
   const leadPortraits = personModel?.domainPortraits.slice(0, 4) || []
   const leadStates = personModel?.states.slice(0, 3) || []
@@ -640,7 +661,10 @@ export default function ReportResultPage() {
                   {report.title}
                 </h1>
                 <p className="mt-3 max-w-3xl whitespace-pre-line text-[15px] leading-7 text-slate-300">
-                  {singleSubjectView?.directAnswer || personModel?.overview || report.summary}
+                  {interpretedAnswer?.directAnswer ||
+                    singleSubjectView?.directAnswer ||
+                    personModel?.overview ||
+                    report.summary}
                 </p>
                 {axisSplitNarrative && (
                   <p className="mt-3 max-w-3xl text-sm leading-6 text-cyan-100/78">
@@ -795,6 +819,8 @@ export default function ReportResultPage() {
       {singleSubjectView && (
         <SingleSubjectViewSection view={singleSubjectView} personModel={personModel} />
       )}
+
+      {interpretedAnswer && <InterpretedAnswerSection interpretedAnswer={interpretedAnswer} />}
 
       {personModel && (
         <>
