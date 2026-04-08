@@ -217,6 +217,166 @@ function applyKoDomainSpecificComprehensivePolish(sections, reportCore) {
   }
 }
 
+function applyKoLifeSectionConcreteness(sections, reportCore) {
+  if (!sections) return sections
+
+  const domain = reportCore?.actionFocusDomain || reportCore?.focusDomain || 'life'
+  const concretenessByDomain = {
+    career: {
+      lifeStages:
+        '이 사람의 생애 흐름은 결국 어떤 일을 맡고 어떤 기준으로 평가받는지에서 갈립니다.',
+      turningPoints: '변곡점은 직무, 직함, 책임선이 바뀌는 순간에 가장 직접적으로 들어옵니다.',
+      futureOutlook:
+        '앞으로 몇 년은 어떤 자리를 맡고 어떤 성과 기준을 남기는지가 장기 격차를 만들 가능성이 큽니다.',
+    },
+    relationship: {
+      lifeStages:
+        '이 사람의 생애 흐름은 결국 누구와 속도를 맞추고 어디까지 책임질지를 정하는 데서 갈립니다.',
+      turningPoints:
+        '변곡점은 관계의 속도, 경계, 기대치를 다시 조정해야 할 때 가장 직접적으로 들어옵니다.',
+      futureOutlook:
+        '앞으로 몇 년은 관계를 어디까지 현실화할지, 누구와 생활 리듬을 맞출지가 장기 방향을 가를 가능성이 큽니다.',
+    },
+    love: {
+      lifeStages:
+        '이 사람의 생애 흐름은 결국 누구와 속도를 맞추고 어디까지 책임질지를 정하는 데서 갈립니다.',
+      turningPoints:
+        '변곡점은 관계의 속도, 경계, 기대치를 다시 조정해야 할 때 가장 직접적으로 들어옵니다.',
+      futureOutlook:
+        '앞으로 몇 년은 관계를 어디까지 현실화할지, 누구와 생활 리듬을 맞출지가 장기 방향을 가를 가능성이 큽니다.',
+    },
+    wealth: {
+      lifeStages:
+        '이 사람의 생애 흐름은 결국 어떤 돈을 남기고 어떤 지출을 끊을지 정하는 데서 갈립니다.',
+      turningPoints:
+        '변곡점은 수익 흐름, 정산 방식, 손실 한도를 다시 정해야 할 때 가장 직접적으로 들어옵니다.',
+      futureOutlook:
+        '앞으로 몇 년은 얼마를 벌지보다 어떤 흐름을 지키고 어떤 누수를 끊을지가 장기 격차를 만들 가능성이 큽니다.',
+    },
+    money: {
+      lifeStages:
+        '이 사람의 생애 흐름은 결국 어떤 돈을 남기고 어떤 지출을 끊을지 정하는 데서 갈립니다.',
+      turningPoints:
+        '변곡점은 수익 흐름, 정산 방식, 손실 한도를 다시 정해야 할 때 가장 직접적으로 들어옵니다.',
+      futureOutlook:
+        '앞으로 몇 년은 얼마를 벌지보다 어떤 흐름을 지키고 어떤 누수를 끊을지가 장기 격차를 만들 가능성이 큽니다.',
+    },
+    health: {
+      lifeStages: '이 사람의 생애 흐름은 결국 수면, 식사, 과부하를 어떻게 관리하느냐에서 갈립니다.',
+      turningPoints:
+        '변곡점은 몸의 신호를 무시하던 생활을 멈추고 회복 리듬을 다시 세워야 할 때 가장 직접적으로 들어옵니다.',
+      futureOutlook:
+        '앞으로 몇 년은 회복 리듬을 지키느냐 무너지느냐가 일과 관계의 질까지 함께 바꿀 가능성이 큽니다.',
+    },
+    move: {
+      lifeStages:
+        '이 사람의 생애 흐름은 결국 어디서 살고 어떻게 오가며 얼마를 감당할지 정하는 데서 갈립니다.',
+      turningPoints:
+        '변곡점은 거주지, 이동 경로, 생활비 구조를 다시 짜야 할 때 가장 직접적으로 들어옵니다.',
+      futureOutlook:
+        '앞으로 몇 년은 생활 거점을 어떻게 잡느냐가 일, 돈, 회복의 질까지 같이 바꿀 가능성이 큽니다.',
+    },
+    relocation: {
+      lifeStages:
+        '이 사람의 생애 흐름은 결국 어디서 살고 어떻게 오가며 얼마를 감당할지 정하는 데서 갈립니다.',
+      turningPoints:
+        '변곡점은 거주지, 이동 경로, 생활비 구조를 다시 짜야 할 때 가장 직접적으로 들어옵니다.',
+      futureOutlook:
+        '앞으로 몇 년은 생활 거점을 어떻게 잡느냐가 일, 돈, 회복의 질까지 같이 바꿀 가능성이 큽니다.',
+    },
+    life: {
+      lifeStages: '이 사람의 생애 흐름은 결국 어떤 기준을 반복해서 지킬지 정하는 데서 갈립니다.',
+      turningPoints:
+        '변곡점은 더는 같은 기준으로 버틸 수 없어 새 기준을 세워야 할 때 가장 직접적으로 들어옵니다.',
+      futureOutlook:
+        '앞으로 몇 년은 어떤 기준을 남기고 무엇을 줄일지가 장기 방향을 가를 가능성이 큽니다.',
+    },
+  }
+
+  const concrete = concretenessByDomain[domain] || concretenessByDomain.life
+  const introByDomain = {
+    career:
+      '이번 리포트의 핵심 판은 결국 어떤 일을 맡고 어떤 기준으로 평가받을지를 분명히 하는 데 있습니다.',
+    relationship:
+      '이번 리포트의 핵심 판은 결국 누구와 속도를 맞추고 어디까지 관계를 현실화할지를 분명히 하는 데 있습니다.',
+    love: '이번 리포트의 핵심 판은 결국 누구와 속도를 맞추고 어디까지 관계를 현실화할지를 분명히 하는 데 있습니다.',
+    wealth:
+      '이번 리포트의 핵심 판은 결국 어떤 돈을 지키고 어떤 지출을 끊을지를 분명히 하는 데 있습니다.',
+    money:
+      '이번 리포트의 핵심 판은 결국 어떤 돈을 지키고 어떤 지출을 끊을지를 분명히 하는 데 있습니다.',
+    health:
+      '이번 리포트의 핵심 판은 결국 몸의 신호를 어디서 멈추고 어떻게 회복할지를 분명히 하는 데 있습니다.',
+    move: '이번 리포트의 핵심 판은 결국 어디서 살고 어떻게 오가며 얼마를 감당할지를 분명히 하는 데 있습니다.',
+    relocation:
+      '이번 리포트의 핵심 판은 결국 어디서 살고 어떻게 오가며 얼마를 감당할지를 분명히 하는 데 있습니다.',
+    life: '이번 리포트의 핵심 판은 결국 어떤 기준을 남기고 어떤 선택을 반복할지를 분명히 하는 데 있습니다.',
+  }
+  const personalityByDomain = {
+    career:
+      '이 사람은 일에서 기준이 흐리면 힘이 빠지고, 역할이 분명해질수록 판단력이 살아나는 타입입니다.',
+    relationship: '이 사람은 관계에서 감정보다 속도와 경계가 맞아야 안정감을 느끼는 타입입니다.',
+    love: '이 사람은 관계에서 감정보다 속도와 경계가 맞아야 안정감을 느끼는 타입입니다.',
+    wealth:
+      '이 사람은 돈 문제에서 크게 버는 것보다 새는 곳을 먼저 잡을 때 훨씬 강해지는 타입입니다.',
+    money:
+      '이 사람은 돈 문제에서 크게 버는 것보다 새는 곳을 먼저 잡을 때 훨씬 강해지는 타입입니다.',
+    health:
+      '이 사람은 몸이 크게 무너진 뒤보다 작은 과부하 신호가 쌓일 때 먼저 흔들리는 타입입니다.',
+    move: '이 사람은 생활 거점과 동선이 흔들리면 판단 품질까지 같이 흔들리는 타입입니다.',
+    relocation: '이 사람은 생활 거점과 동선이 흔들리면 판단 품질까지 같이 흔들리는 타입입니다.',
+    life: '이 사람은 기준이 흐려지면 에너지가 흩어지고, 선이 분명해질수록 힘이 살아나는 타입입니다.',
+  }
+  const missionByDomain = {
+    career:
+      '장기 과제는 더 많이 벌이는 것이 아니라, 어떤 역할을 오래 들고 갈지 정하는 데 있습니다.',
+    relationship:
+      '장기 과제는 더 많은 인연을 여는 것이 아니라, 어떤 관계를 현실로 남길지 정하는 데 있습니다.',
+    love: '장기 과제는 더 많은 인연을 여는 것이 아니라, 어떤 관계를 현실로 남길지 정하는 데 있습니다.',
+    wealth: '장기 과제는 단기 수익보다 남는 구조를 만드는 데 있습니다.',
+    money: '장기 과제는 단기 수익보다 남는 구조를 만드는 데 있습니다.',
+    health: '장기 과제는 버티는 힘보다 회복 리듬을 오래 지키는 데 있습니다.',
+    move: '장기 과제는 이동 자체보다 삶의 거점을 어디에 둘지 정하는 데 있습니다.',
+    relocation: '장기 과제는 이동 자체보다 삶의 거점을 어디에 둘지 정하는 데 있습니다.',
+    life: '장기 과제는 선택지를 늘리는 것보다 반복할 기준을 남기는 데 있습니다.',
+  }
+  return {
+    ...sections,
+    introduction: [
+      introByDomain[domain] || introByDomain.life,
+      String(sections.introduction || '').trim(),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .trim(),
+    personalityDeep: [
+      personalityByDomain[domain] || personalityByDomain.life,
+      String(sections.personalityDeep || '').trim(),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .trim(),
+    lifeMission: [
+      missionByDomain[domain] || missionByDomain.life,
+      String(sections.lifeMission || '').trim(),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .trim(),
+    lifeStages: [concrete.lifeStages, String(sections.lifeStages || '').trim()]
+      .filter(Boolean)
+      .join(' ')
+      .trim(),
+    turningPoints: [concrete.turningPoints, String(sections.turningPoints || '').trim()]
+      .filter(Boolean)
+      .join(' ')
+      .trim(),
+    futureOutlook: [concrete.futureOutlook, String(sections.futureOutlook || '').trim()]
+      .filter(Boolean)
+      .join(' ')
+      .trim(),
+  }
+}
+
 export async function runPremiumDeterministicMode(ctx) {
   const {
     input,
@@ -567,6 +727,7 @@ export async function runPremiumDeterministicMode(ctx) {
   )
   if (lang === 'ko') {
     outputSections = applyKoDomainSpecificComprehensivePolish(outputSections, reportCore)
+    outputSections = applyKoLifeSectionConcreteness(outputSections, reportCore)
     outputSections = ensureFinalReportPolish(outputSections, lang, reportCore)
   }
   const directFallbacks = buildDirectComprehensiveSectionFallbacks(

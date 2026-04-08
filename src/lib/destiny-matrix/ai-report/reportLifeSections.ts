@@ -51,6 +51,70 @@ function normalizeNarrativeLabels(
   )
 }
 
+function getKoConcreteLifeFocusLine(
+  domain: string,
+  focusLabel: string,
+  actionLabel: string
+): string {
+  switch (domain) {
+    case 'career':
+      return `${focusLabel} 문제는 삶의 배경에서 계속 작동하고, 실제로 결과를 가르는 지점은 ${actionLabel}에서 어떤 역할을 맡고 어떤 기준으로 평가받는지에 달려 있습니다.`
+    case 'relationship':
+    case 'love':
+      return `${focusLabel} 문제는 삶의 배경에서 계속 작동하고, 실제로 판을 움직이는 지점은 ${actionLabel}에서 누구와 속도를 맞추고 어디까지 책임질지를 정하는 데 있습니다.`
+    case 'wealth':
+    case 'money':
+      return `${focusLabel} 문제는 삶의 배경에서 계속 작동하고, 실제로 손을 대고 움직여야 하는 지점은 ${actionLabel}에서 어떤 돈을 남기고 어떤 지출을 끊을지 정하는 데 있습니다.`
+    case 'health':
+      return `${focusLabel} 문제는 삶의 배경에서 계속 작동하고, 실제로 삶의 질을 가르는 지점은 ${actionLabel}에서 수면, 식사, 과부하를 어떻게 관리하는지에 달려 있습니다.`
+    case 'move':
+    case 'relocation':
+      return `${focusLabel} 문제는 삶의 배경에서 계속 작동하고, 실제로 판을 움직이는 지점은 ${actionLabel}에서 어디서 살고 어떻게 오가며 얼마를 감당할지 정하는 데 있습니다.`
+    default:
+      return `${focusLabel} 문제는 삶의 배경에서 계속 작동하고, 실제로 손을 대고 움직이게 만드는 쪽은 ${actionLabel} 영역으로 모입니다.`
+  }
+}
+
+function getKoConcreteTurningPointLine(domain: string, actionLabel: string): string {
+  switch (domain) {
+    case 'career':
+      return `가장 직접적인 변곡점은 ${actionLabel}에서 역할 범위, 직함, 책임선을 다시 정해야 할 때 들어옵니다.`
+    case 'relationship':
+    case 'love':
+      return `가장 직접적인 변곡점은 ${actionLabel}에서 관계의 속도, 경계, 기대치를 다시 맞춰야 할 때 들어옵니다.`
+    case 'wealth':
+    case 'money':
+      return `가장 직접적인 변곡점은 ${actionLabel}에서 돈의 흐름, 정산 방식, 손실 한도를 다시 정해야 할 때 들어옵니다.`
+    case 'health':
+      return `가장 직접적인 변곡점은 ${actionLabel}에서 몸의 신호를 무시하던 생활을 멈추고 회복 리듬을 다시 세워야 할 때 들어옵니다.`
+    case 'move':
+    case 'relocation':
+      return `가장 직접적인 변곡점은 ${actionLabel}에서 거주지, 이동 경로, 생활비 구조를 다시 짜야 할 때 들어옵니다.`
+    default:
+      return `가장 직접적인 변곡점은 ${actionLabel} 문제를 어떻게 다루느냐에 달려 있습니다.`
+  }
+}
+
+function getKoConcreteFutureLine(domain: string, actionLabel: string): string {
+  switch (domain) {
+    case 'career':
+      return `앞으로 3~5년은 ${actionLabel}에서 어떤 자리를 맡고 어떤 성과 기준을 남기는지가 장기 격차를 만들 가능성이 큽니다.`
+    case 'relationship':
+    case 'love':
+      return `앞으로 3~5년은 ${actionLabel}에서 누구와 리듬을 맞추고 관계를 어디까지 현실화할지가 장기 방향을 가를 가능성이 큽니다.`
+    case 'wealth':
+    case 'money':
+      return `앞으로 3~5년은 ${actionLabel}에서 얼마를 벌지보다 어떤 흐름을 지키고 어떤 누수를 끊을지가 장기 격차를 만들 가능성이 큽니다.`
+    case 'health':
+      return `앞으로 3~5년은 ${actionLabel}에서 회복 리듬을 지키느냐 무너지느냐가 일과 관계까지 함께 좌우할 가능성이 큽니다.`
+    case 'move':
+    case 'relocation':
+      return `앞으로 3~5년은 ${actionLabel}에서 생활 거점을 어떻게 잡느냐가 일, 돈, 회복의 질까지 같이 바꿀 가능성이 큽니다.`
+    default:
+      return `앞으로 3~5년은 ${actionLabel} 쪽에서 어떤 기준을 반복해서 지키느냐가 장기 격차를 만들 가능성이 큽니다.`
+  }
+}
+
 export function renderComprehensiveSpouseProfileSection(
   reportCore: ReportCoreViewModel,
   _matrixInput: MatrixCalculationInput,
@@ -61,6 +125,7 @@ export function renderComprehensiveSpouseProfileSection(
     reportCore.actionFocusDomain || reportCore.focusDomain,
     lang
   )
+  const actionDomain = reportCore.actionFocusDomain || reportCore.focusDomain || 'life'
   const riskLabel =
     reportCore.riskAxisLabel || deps.getReportDomainLabel(reportCore.riskAxisDomain, lang)
 

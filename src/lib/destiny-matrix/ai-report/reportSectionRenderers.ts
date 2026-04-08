@@ -95,6 +95,57 @@ function normalizeNarrativeLabels(
   )
 }
 
+function getKoConcreteIntroLine(domain: string | undefined): string {
+  switch (domain) {
+    case 'career':
+      return '지금은 역할 범위, 평가 기준, 협상 여지를 먼저 분명히 해 두는 편이 유리합니다.'
+    case 'relationship':
+      return '지금은 감정의 속도보다 관계 리듬, 기대치, 약속의 범위를 먼저 확인하는 편이 유리합니다.'
+    case 'wealth':
+      return '지금은 수익 확대보다 고정지출, 계약 조건, 현금 흐름의 빈틈을 먼저 점검하는 편이 유리합니다.'
+    case 'health':
+      return '지금은 의지를 밀어붙이기보다 수면, 식사, 회복 시간을 먼저 고정하는 편이 유리합니다.'
+    case 'move':
+      return '지금은 이동 결정보다 후보 지역, 출퇴근 시간, 생활비, 계약 조건을 먼저 비교하는 편이 유리합니다.'
+    default:
+      return '지금은 결과를 서둘러 확정하기보다 생활 구조와 우선순위를 먼저 분명히 하는 편이 유리합니다.'
+  }
+}
+
+function getKoConcreteMissionLine(domain: string | undefined): string {
+  switch (domain) {
+    case 'career':
+      return '이번 장기 과제는 성과를 더 쌓는 것보다 어떤 역할과 책임 구조를 오래 가져갈지 정하는 데 있습니다.'
+    case 'relationship':
+      return '이번 장기 과제는 만남을 늘리는 것보다 어떤 관계 방식이 오래 유지되는지 분명히 하는 데 있습니다.'
+    case 'wealth':
+      return '이번 장기 과제는 돈을 한 번 더 버는 것보다 어떤 소비 구조와 계약 기준을 오래 유지할지 정하는 데 있습니다.'
+    case 'health':
+      return '이번 장기 과제는 잠깐 버티는 것보다 어떤 회복 리듬을 계속 지킬지 정하는 데 있습니다.'
+    case 'move':
+      return '이번 장기 과제는 이동 자체보다 어디를 생활 거점으로 삼고 어떤 이동 동선을 오래 유지할지 정하는 데 있습니다.'
+    default:
+      return '이번 장기 과제는 선택지를 늘리는 것보다 무엇을 오래 유지할지 분명히 하는 데 있습니다.'
+  }
+}
+
+function getKoConcretePersonalityLine(domain: string | undefined): string {
+  switch (domain) {
+    case 'career':
+      return '이 사람은 일에서 역할 경계와 평가 기준이 흐려지면 판단 속도와 자신감이 같이 흔들리는 편입니다.'
+    case 'relationship':
+      return '이 사람은 관계에서 감정 자체보다 말의 간격, 약속의 범위, 책임감의 일관성에 더 민감하게 반응합니다.'
+    case 'wealth':
+      return '이 사람은 돈 문제에서 수입 규모보다 새는 구멍과 애매한 조건을 더 빠르게 감지하는 편입니다.'
+    case 'health':
+      return '이 사람은 몸이 무너지기 전에 수면, 식사, 집중 리듬이 먼저 흐트러지는 편입니다.'
+    case 'move':
+      return '이 사람은 생활 거점과 동선이 흔들리면 판단 품질과 회복 리듬도 같이 흔들리는 편입니다.'
+    default:
+      return '이 사람은 주변 소음보다 생활 구조가 흐트러질 때 판단이 더 크게 흔들리는 편입니다.'
+  }
+}
+
 export type ReportSectionRendererDeps = {
   buildEvidenceFooter: (input: MatrixCalculationInput, lang: 'ko' | 'en') => string
   normalizeNarrativeCoreText: (text: string, lang: 'ko' | 'en') => string
@@ -267,6 +318,9 @@ export function renderIntroductionSection(
   const timingReason = sanitizeNarrativeReason(focusTiming?.whyNow, lang, deps)
   const safeTimingReason = lang === 'en' && deps.containsHangul(timingReason) ? '' : timingReason
   const metaphor = deps.buildElementMetaphor(matrixInput, lang)
+  const concreteIntroLine = getKoConcreteIntroLine(
+    reportCore.actionFocusDomain || reportCore.focusDomain
+  )
 
   if (lang === 'ko') {
     const body = deps.formatNarrativeParagraphs(
@@ -274,8 +328,8 @@ export function renderIntroductionSection(
         [
           `지금 인생에서 가장 크게 움직이는 흐름은 ${focusLabel}입니다. 지금은 크게 벌이기보다 무엇을 먼저 고정할지가 결과를 가르는 구간입니다.`,
           reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
-            ? `삶의 바탕에는 ${focusLabel} 흐름이 깔려 있지만, 지금 먼저 움직여야 할 영역은 ${actionFocusLabel}입니다. 현재 판단 기준도 ${topDecision} 쪽으로 기울어 있어, 속도보다 순서와 기준 정리가 더 중요하게 작동합니다.`
-            : `현재 판단 기준도 ${topDecision} 쪽으로 기울어 있어, 속도보다 순서와 기준 정리가 더 중요하게 작동합니다.`,
+            ? `삶의 바탕에는 ${focusLabel} 흐름이 깔려 있지만, 지금 먼저 움직여야 할 영역은 ${actionFocusLabel}입니다. 현재 판단 기준도 ${topDecision} 쪽으로 기울어 있습니다. ${concreteIntroLine}`
+            : `현재 판단 기준도 ${topDecision} 쪽으로 기울어 있습니다. ${concreteIntroLine}`,
           timingReason
             ? `이 흐름이 지금 선명한 이유는 ${timingReason}`
             : `이 구간에서는 ${withObjectParticleFallback(metaphor.edge, '기준을')} 한 번에 다 쓰기보다, 어디에 먼저 써야 할지를 아는 쪽이 유리합니다.`,
@@ -324,12 +378,15 @@ export function renderLifeMissionSection(
   const timeline = deps.buildPersonalLifeTimelineNarrative(matrixInput, undefined, lang)
   const focusLabel = deps.getReportDomainLabel(reportCore.focusDomain, lang)
   const metaphor = deps.buildElementMetaphor(matrixInput, lang)
+  const concreteMissionLine = getKoConcreteMissionLine(
+    reportCore.actionFocusDomain || reportCore.focusDomain
+  )
 
   if (lang === 'ko') {
     const body = deps.formatNarrativeParagraphs(
       deps.sanitizeUserFacingNarrative(
         [
-          '이번 인생 구간은 성과 하나를 더 만드는 시기가 아니라, 앞으로 오래 가져갈 기준을 다시 세우는 시기입니다.',
+          concreteMissionLine,
           String(timeline || '')
             .split(/(?<=[.!?])\s+/)
             .map((line) => line.trim())
@@ -382,6 +439,9 @@ export function renderPersonalityDeepSection(
 ): string {
   const focusManifestation = deps.findReportCoreManifestation(reportCore, reportCore.focusDomain)
   const metaphor = deps.buildElementMetaphor(matrixInput, lang)
+  const concretePersonalityLine = getKoConcretePersonalityLine(
+    reportCore.actionFocusDomain || reportCore.focusDomain
+  )
 
   if (lang === 'ko') {
     const body = deps.formatNarrativeParagraphs(
@@ -389,9 +449,10 @@ export function renderPersonalityDeepSection(
         [
           focusManifestation?.baselineThesis ||
             '타고난 구조는 기준을 세우고 흐름을 조율하는 쪽에 가깝습니다.',
+          concretePersonalityLine,
           `기본 성향의 강점은 ${withObjectParticleFallback(metaphor.edge, '기준을')} 빠르게 세우는 데 있고, 약점은 ${metaphor.risk}이 판단 과속으로 바뀔 때 드러납니다.`,
           '그래서 이 성향은 감으로 먼저 밀기보다, 기준 한 줄을 먼저 적고 움직일 때 가장 안정적으로 힘을 냅니다.',
-          '핵심은 빠른 결론이 아니라, 결론과 확정의 타이밍을 분리하는 데 있습니다.',
+          '핵심은 생각이 선명해지는 순간과 실제로 확정하는 순간을 분리해 두는 데 있습니다.',
         ]
           .filter(Boolean)
           .join(' ')

@@ -1,6 +1,6 @@
 # Testing And Guardrails
 
-Last audited: 2026-04-01 (Asia/Hong_Kong)
+Last audited: 2026-04-08 (Asia/Hong_Kong)
 
 ## Policy
 
@@ -46,18 +46,22 @@ npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both
 npx tsx scripts/ops/qa-counselor-questions.ts --lang=both
 ```
 
-Current verification snapshot on 2026-04-01:
+Current verification snapshot on 2026-04-08:
 
 - `python scripts/self_check.py`
   - overall `PASS`
-- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`
-  - blocked by a parse error in `src/lib/destiny-matrix/ai-report/aiReportService.ts`
-- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`
-  - overall `PASS=21 WARN=13 FAIL=8`
-  - `ko`: `PASS=5 WARN=8 FAIL=8`
-  - `en`: `PASS=16 WARN=5 FAIL=0`
+- `npx tsc -p tsconfig.json --noEmit`
+  - passed
+- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=ko`
+  - `PASS=5 WARN=0 FAIL=0`
+- targeted regression bundle
+  - `226 passed, 1 skipped`
+  - includes the report stack, counselor chat-stream, calendar, action-plan, tarot interpret, life-prediction explain-results, premium report result page, and engine contracts
 
-Do not treat the 2026-03-17 zero-fail destiny baseline as current until these issues are cleared.
+Current rule:
+
+- Treat `tsc + destiny three-service QA + targeted regression bundle` as the practical release baseline for the destiny stack.
+- Do not claim "full-suite green" unless the full Vitest matrix has been rerun on the same revision.
 
 ## Extended Checks
 

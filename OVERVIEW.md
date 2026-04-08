@@ -1,6 +1,6 @@
 # System Overview
 
-Last audited: 2026-04-01 (Asia/Hong_Kong)
+Last audited: 2026-04-08 (Asia/Hong_Kong)
 
 ## Current Stack
 
@@ -55,6 +55,13 @@ Current production rule:
 
 This split is important because it prevents service routes from re-judging the same input in different ways.
 
+## Honest Assessment
+
+- The system is technically strong for a solo-built product: deterministic core, shared adapters, GraphRAG support, and multiple user-facing surfaces all exist in one stack.
+- The strongest part is the common judgment model across calendar, counselor, and premium report flows.
+- The weakest part is still the final output layer: prose consistency, fallback shaping, and release discipline are not yet at the same level as the core logic.
+- Conclusion: this is a serious, high-complexity builder system. It is not "unicorn-grade" in operational maturity yet, but it is well above ordinary side-project quality.
+
 ## Product Surfaces Using The Destiny Core
 
 ### Calendar
@@ -88,15 +95,20 @@ Canonical diagnostics:
 - `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`
 - `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`
 
-Current verification snapshot on 2026-04-01:
+Current verification snapshot on 2026-04-08:
 
 - `python scripts/self_check.py`: overall `PASS`
-- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`:
-  - blocked by a parse error in `src/lib/destiny-matrix/ai-report/aiReportService.ts`
-- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`:
-  - overall `PASS=21 WARN=13 FAIL=8`
-  - `ko`: `PASS=5 WARN=8 FAIL=8`
-  - `en`: `PASS=16 WARN=5 FAIL=0`
+- `npx tsc -p tsconfig.json --noEmit`: passed
+- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=ko`:
+  - `PASS=5 WARN=0 FAIL=0`
+- targeted regression bundle:
+  - `226 passed, 1 skipped`
+  - includes the report, counselor, calendar, action-plan, tarot interpret, life-prediction explain-results, premium result page, and engine contract paths
+
+Scope note:
+
+- The current verification claim is based on targeted regression and service QA.
+- Treat full-suite status separately from this snapshot unless the entire Vitest matrix has been rerun for the same revision.
 
 ## Key Runtime Flags
 
