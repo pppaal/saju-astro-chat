@@ -409,9 +409,10 @@ export function buildReportQualityMetrics(params: BuildQualityParams): ReportQua
 export function recordReportQualityMetrics(
   reportType: 'comprehensive' | 'timing' | 'themed',
   modelUsed: string,
-  quality: ReportQualityMetrics
+  quality: ReportQualityMetrics,
+  stage: 'draft' | 'final' = 'final'
 ) {
-  const labels = { report_type: reportType, model_used: modelUsed }
+  const labels = { report_type: reportType, model_used: modelUsed, stage }
   recordGauge(
     'destiny.ai_report.quality.evidence_coverage_ratio',
     quality.evidenceCoverageRatio,

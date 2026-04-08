@@ -167,9 +167,10 @@ function buildReportQualityMetrics(
 function recordReportQualityMetrics(
   reportType: 'comprehensive' | 'timing' | 'themed',
   modelUsed: string,
-  quality: ReportQualityMetrics
+  quality: ReportQualityMetrics,
+  stage: 'draft' | 'final' = 'final'
 ) {
-  recordReportQualityMetricsCore(reportType, modelUsed, quality)
+  recordReportQualityMetricsCore(reportType, modelUsed, quality, stage)
 }
 
 export {

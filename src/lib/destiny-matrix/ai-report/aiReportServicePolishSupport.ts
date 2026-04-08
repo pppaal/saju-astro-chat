@@ -194,6 +194,8 @@ export function shouldForceComprehensiveNarrativeFallback(
     quality.coreQualityPass === false ||
     (quality.crossSectionRepetition || 0) >= 2 ||
     (quality.genericAdviceDensity || 0) >= 0.45 ||
+    ((quality.personalizationDensity || 0) > 0 && (quality.personalizationDensity || 0) < 0.24) ||
+    (quality.abstractNounRatio || 0) >= 0.13 ||
     (quality.internalScenarioLeakCount || 0) > 0 ||
     (quality.repetitiveLeadPatternCount || 0) >= 2 ||
     (quality.evidenceCoverageRatio || 0) < 0.72 ||
