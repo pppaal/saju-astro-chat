@@ -37,6 +37,114 @@ function repairLocaleText(text: string, locale: 'ko' | 'en'): string {
   return locale === 'ko' ? repairPossiblyMojibakeText(text) : text
 }
 
+const TOKEN_LABELS_KO: Record<string, string> = {
+  career: '커리어',
+  relationship: '관계',
+  wealth: '재정',
+  health: '건강',
+  move: '이동',
+  movement: '이동',
+  growth: '확장',
+  rebuild: '재정비',
+  guardrail: '조건 점검',
+  activation: '활성',
+  expansion: '확장',
+  recovery: '회복',
+  structure: '구조',
+  pattern: '패턴',
+  window: '구간',
+  timing: '타이밍',
+  decision: '판단',
+  review: '검토',
+  specialist: '전문화',
+  specialisttrack: '전문화 트랙',
+  contract: '계약',
+  negotiation: '협상',
+  promotion: '승진',
+  reset: '재정렬',
+}
+
+const PHRASE_LABELS_KO: Array<[RegExp, string]> = [
+  [/Career Expansion Pattern/gi, '커리어 확장 패턴'],
+  [/Career Rebuild Pattern/gi, '커리어 재정비 패턴'],
+  [/Relationship Growth Pattern/gi, '관계 확장 패턴'],
+  [/Relationship Activation Pattern/gi, '관계 활성 패턴'],
+  [/Movement Guardrail Pattern/gi, '이동 조건 점검 패턴'],
+  [/Health Recovery Pattern/gi, '건강 회복 패턴'],
+  [/Wealth Structure Pattern/gi, '재정 구조 패턴'],
+  [/career_growth/gi, '커리어 확장'],
+  [/career_rebuild/gi, '커리어 재정비'],
+  [/relationship_growth/gi, '관계 확장'],
+  [/relationship_activation/gi, '관계 활성'],
+  [/movement_guardrail/gi, '이동 조건 점검'],
+  [/health_recovery/gi, '건강 회복'],
+  [/wealth_structure/gi, '재정 구조'],
+  [/\bcareer(?=은|는|이|가|을|를|축|\s)/gi, '커리어'],
+  [/\brelationship(?=은|는|이|가|을|를|축|\s)/gi, '관계'],
+  [/\bwealth(?=은|는|이|가|을|를|축|\s)/gi, '재정'],
+  [/\bhealth(?=은|는|이|가|을|를|축|\s)/gi, '건강'],
+  [/\bmove(?=은|는|이|가|을|를|축|\s)/gi, '이동'],
+]
+
+function localizeStructuredToken(token: string, locale: 'ko' | 'en'): string {
+  const cleaned = String(token || '').trim()
+  if (!cleaned) return ''
+  const parts = cleaned
+    .split(/[_\s-]+/)
+    .map((part) => part.trim().toLowerCase())
+    .filter(Boolean)
+
+  if (!parts.length) return cleaned
+  if (locale !== 'ko') {
+    return parts.map((part) => `${part.slice(0, 1).toUpperCase()}${part.slice(1)}`).join(' ')
+  }
+
+  return parts
+    .map((part) => TOKEN_LABELS_KO[part] || part)
+    .join(' ')
+    .trim()
+}
+
+export function normalizePersonModelText(text: string | undefined, locale: 'ko' | 'en'): string {
+  const repaired = repairLocaleText(String(text || '').trim(), locale)
+  if (!repaired) return ''
+
+  let normalized = repaired
+  if (locale === 'ko') {
+    for (const [pattern, replacement] of PHRASE_LABELS_KO) {
+      normalized = normalized.replace(pattern, replacement)
+    }
+  }
+
+  normalized = normalized.replace(/\b[a-z]+(?:[_-][a-z]+)+\b/gi, (token) =>
+    localizeStructuredToken(token, locale)
+  )
+
+  if (locale === 'ko') {
+    normalized = normalized
+      .replace(/커리어은/g, '커리어는')
+      .replace(/관계은/g, '관계는')
+      .replace(/패턴 패턴/g, '패턴')
+      .replace(/대운,\s*세운가/g, '대운과 세운 흐름이')
+      .replace(/대운,\s*세운이/g, '대운과 세운 흐름이')
+  }
+
+  normalized = normalized.replace(/\s{2,}/g, ' ').trim()
+  return repairLocaleText(normalized, locale)
+}
+
+export function normalizePersonModelList(
+  items: Array<string | undefined | null>,
+  locale: 'ko' | 'en'
+): string[] {
+  return uniq(
+    items
+      .map((item) => normalizePersonModelText(String(item || ''), locale))
+      .map((item) => item.trim())
+      .filter(Boolean)
+  )
+}
+
 export function round2(value: number): number {
   return Math.round(clamp01(value) * 100) / 100
 }
@@ -54,7 +162,7 @@ export function uniq<T>(items: T[]): T[] {
 export function summarizeWindow(window: string | undefined, locale: 'ko' | 'en'): string {
   const value = String(window || '').trim()
   if (value) return value
-  return repairLocaleText(locale === 'ko' ? 'í˜„ìž¬' : 'current', locale)
+  return locale === 'ko' ? '현재' : 'current'
 }
 
 export function getModePressureScore(mode: 'execute' | 'verify' | 'prepare'): number {
@@ -71,9 +179,9 @@ export function getModeSupportScore(mode: 'execute' | 'verify' | 'prepare'): num
 
 export function getModeLabel(mode: 'execute' | 'verify' | 'prepare', locale: 'ko' | 'en'): string {
   if (locale !== 'ko') return mode
-  if (mode === 'execute') return repairLocaleText('ì‹¤í–‰ ìš°ìœ„', locale)
-  if (mode === 'verify') return repairLocaleText('ê²€í†  ìš°ìœ„', locale)
-  return repairLocaleText('ì¤€ë¹„ ìš°ìœ„', locale)
+  if (mode === 'execute') return '실행 우위'
+  if (mode === 'verify') return '검토 우위'
+  return '준비 우위'
 }
 
 export function buildDimensionScores(
@@ -205,12 +313,9 @@ export function buildDimensionSummary(params: {
   const manifestation = String(params.manifestation || '').trim()
 
   if (params.locale === 'ko') {
-    return repairLocaleText(
-      manifestation
-        ? `${params.domainLabel} ì¶•ì€ ${modeLabel} ìƒíƒœì´ë©° ${windowLabel} êµ¬ê°„ì—ì„œ ê°€ìž¥ ê°•í•˜ê²Œ ë°œí˜„ë©ë‹ˆë‹¤. ${manifestation}`
-        : `${params.domainLabel} ì¶•ì€ ${modeLabel} ìƒíƒœì´ë©° ${windowLabel} êµ¬ê°„ì—ì„œ ê°€ìž¥ ê°•í•˜ê²Œ ë°œí˜„ë©ë‹ˆë‹¤.`,
-      params.locale
-    )
+    return manifestation
+      ? `${params.domainLabel} 축은 ${modeLabel} 상태이며 ${windowLabel} 구간에서 가장 또렷하게 드러납니다. ${normalizePersonModelText(manifestation, params.locale)}`
+      : `${params.domainLabel} 축은 ${modeLabel} 상태이며 ${windowLabel} 구간에서 가장 또렷하게 드러납니다.`
   }
 
   return manifestation
@@ -456,11 +561,12 @@ export function buildFutureBranches(
 }
 
 export function buildFormationProfile(core: DestinyCoreResult, locale: 'ko' | 'en') {
-  const repeatedPatternFamilies = uniq(
+  const repeatedPatternFamilies = normalizePersonModelList(
     core.canonical.topPatterns
       .slice(0, 4)
       .map((item) => String(item.family || item.id || '').trim())
-      .filter(Boolean)
+      .filter(Boolean),
+    locale
   )
   const dominantLatentGroups = uniq(
     buildLatentTopAxes(core, locale)
@@ -468,28 +574,32 @@ export function buildFormationProfile(core: DestinyCoreResult, locale: 'ko' | 'e
       .map((axis) => axis.group)
       .filter(Boolean)
   )
-  const pressureHabits = uniq(
+  const pressureHabits = normalizePersonModelList(
     core.canonical.manifestations
       .flatMap((item) => item.riskExpressions || [])
       .slice(0, 4)
-      .filter(Boolean)
+      .filter(Boolean),
+    locale
   )
-  const supportHabits = uniq(
+  const supportHabits = normalizePersonModelList(
     core.canonical.manifestations
       .flatMap((item) => item.likelyExpressions || [])
       .slice(0, 4)
-      .filter(Boolean)
+      .filter(Boolean),
+    locale
   )
 
   return {
-    summary:
+    summary: normalizePersonModelText(
       locale === 'ko'
         ? repeatedPatternFamilies.length
-          ? `ì´ ì‚¬ëžŒì€ ${repeatedPatternFamilies.join(', ')} ê³„ì—´ íŒ¨í„´ì´ ë°˜ë³µë˜ë©° ì„±í–¥ì´ êµ³ì–´ì§‘ë‹ˆë‹¤.`
-          : 'ì´ ì‚¬ëžŒì€ ë°˜ë³µë˜ëŠ” êµ¬ì¡° íŒ¨í„´ê³¼ íƒ€ì´ë° íŒ¨í„´ì´ í–‰ë™ ìŠµê´€ì„ ë§Œë“  ìƒíƒœìž…ë‹ˆë‹¤.'
+          ? `이 사람은 ${repeatedPatternFamilies.join(', ')} 계열 패턴이 반복되며 성향이 굳어집니다.`
+          : '이 사람은 반복되는 구조 패턴과 타이밍 패턴이 행동 습관을 만드는 쪽으로 굳어집니다.'
         : repeatedPatternFamilies.length
           ? `This person tends to consolidate around ${repeatedPatternFamilies.join(', ')} pattern families.`
           : 'This person is shaped by repeated structure and timing patterns.',
+      locale
+    ),
     repeatedPatternFamilies,
     dominantLatentGroups,
     pressureHabits,
@@ -504,9 +614,9 @@ export function buildTimeProfile(core: DestinyCoreResult, locale: 'ko' | 'en') {
     window: summarizeWindow(item.window, locale),
     granularity: String(item.timingGranularity || ''),
     confidence: round2(item.confidence || 0),
-    whyNow: item.whyNow,
-    entryConditions: (item.entryConditions || []).slice(0, 3),
-    abortConditions: (item.abortConditions || []).slice(0, 3),
+    whyNow: normalizePersonModelText(item.whyNow, locale),
+    entryConditions: normalizePersonModelList((item.entryConditions || []).slice(0, 3), locale),
+    abortConditions: normalizePersonModelList((item.abortConditions || []).slice(0, 3), locale),
   }))
   const activationSources = core.canonical.manifestations
     .slice(0, 4)
@@ -514,7 +624,7 @@ export function buildTimeProfile(core: DestinyCoreResult, locale: 'ko' | 'en') {
       (item.activationSources || []).slice(0, 3).map((source) => ({
         domain: item.domain,
         source: source.source,
-        label: source.label,
+        label: normalizePersonModelText(source.label, locale),
         intensity: round2(source.intensity || 0),
         active: Boolean(source.active),
       }))
@@ -528,11 +638,13 @@ export function buildTimeProfile(core: DestinyCoreResult, locale: 'ko' | 'en') {
   return {
     currentWindow: topTiming?.window,
     currentGranularity: topTiming?.timingGranularity,
-    timingNarrative:
+    timingNarrative: normalizePersonModelText(
       topTiming?.timingConflictNarrative ||
-      (locale === 'ko'
-        ? 'í˜„ìž¬ íƒ€ì´ë°ì€ êµ¬ì¡°ì™€ ì´‰ë°œ ì‹ í˜¸ë¥¼ í•¨ê»˜ ì½ì–´ì•¼ í•©ë‹ˆë‹¤.'
-        : 'Current timing should be read through structure and trigger together.'),
+        (locale === 'ko'
+          ? '현재 타이밍은 구조 신호와 촉발 신호를 함께 읽어야 제대로 보입니다.'
+          : 'Current timing should be read through structure and trigger together.'),
+      locale
+    ),
     confidence: round2(core.canonical.confidence || 0),
     windows,
     activationSources,
@@ -562,10 +674,16 @@ export function buildDomainPortraits(core: DestinyCoreResult, locale: 'ko' | 'en
         manifestation: manifestation?.manifestation,
         locale,
       }),
-      baselineThesis: manifestation?.baselineThesis || '',
-      activationThesis: manifestation?.activationThesis || '',
-      likelyExpressions: (manifestation?.likelyExpressions || []).slice(0, 4),
-      riskExpressions: (manifestation?.riskExpressions || []).slice(0, 4),
+      baselineThesis: normalizePersonModelText(manifestation?.baselineThesis || '', locale),
+      activationThesis: normalizePersonModelText(manifestation?.activationThesis || '', locale),
+      likelyExpressions: normalizePersonModelList(
+        (manifestation?.likelyExpressions || []).slice(0, 4),
+        locale
+      ),
+      riskExpressions: normalizePersonModelList(
+        (manifestation?.riskExpressions || []).slice(0, 4),
+        locale
+      ),
       allowedActions: getAllowedActionLabels(verdict?.allowedActions || [], locale).slice(0, 3),
       blockedActions: getBlockedActionLabels(verdict?.blockedActions || [], locale).slice(0, 3),
     }
@@ -584,18 +702,29 @@ export function buildRelationshipProfile(core: DestinyCoreResult, locale: 'ko' |
   )
 
   return {
-    summary:
+    summary: normalizePersonModelText(
       relationshipPortrait?.summary ||
-      (locale === 'ko'
-        ? 'ê´€ê³„ ì¶•ì€ í˜„ìž¬ êµ¬ì¡°ì™€ íƒ€ì´ë°ì„ í•¨ê»˜ ë´ì•¼ ì½ížˆëŠ” ìƒíƒœìž…ë‹ˆë‹¤.'
-        : 'The relationship axis currently needs to be read through structure and timing together.'),
-    partnerArchetypes: (relationshipManifestation?.likelyExpressions || []).slice(0, 4),
-    inflowPaths: relationshipBranch?.conditions || [],
-    commitmentConditions: relationshipPortrait?.allowedActions || [],
-    breakPatterns: [
-      ...(relationshipManifestation?.riskExpressions || []).slice(0, 3),
-      ...(relationshipBranch?.blockers || []).slice(0, 2),
-    ].slice(0, 4),
+        (locale === 'ko'
+          ? '관계 축은 현재 구조와 타이밍을 함께 봐야 정확히 읽힙니다.'
+          : 'The relationship axis currently needs to be read through structure and timing together.'),
+      locale
+    ),
+    partnerArchetypes: normalizePersonModelList(
+      (relationshipManifestation?.likelyExpressions || []).slice(0, 4),
+      locale
+    ),
+    inflowPaths: normalizePersonModelList(relationshipBranch?.conditions || [], locale),
+    commitmentConditions: normalizePersonModelList(
+      relationshipPortrait?.allowedActions || [],
+      locale
+    ),
+    breakPatterns: normalizePersonModelList(
+      [
+        ...(relationshipManifestation?.riskExpressions || []).slice(0, 3),
+        ...(relationshipBranch?.blockers || []).slice(0, 2),
+      ].slice(0, 4),
+      locale
+    ),
   }
 }
 
@@ -605,20 +734,31 @@ export function buildCareerProfile(core: DestinyCoreResult, locale: 'ko' | 'en')
   const careerBranch = buildFutureBranches(core, locale).find((item) => item.domain === 'career')
 
   return {
-    summary:
+    summary: normalizePersonModelText(
       careerPortrait?.summary ||
-      (locale === 'ko'
-        ? 'ì»¤ë¦¬ì–´ ì¶•ì€ í˜„ìž¬ êµ¬ì¡°ì™€ íƒ€ì´ë°ì´ í•¨ê»˜ ì›€ì§ì´ëŠ” ìƒíƒœìž…ë‹ˆë‹¤.'
-        : 'The career axis currently moves through structure and timing together.'),
-    suitableLanes: (careerManifestation?.likelyExpressions || []).slice(0, 4),
-    executionStyle: [careerPortrait?.baselineThesis || '', careerPortrait?.activationThesis || '']
-      .filter(Boolean)
-      .slice(0, 3),
-    hiringTriggers: careerBranch?.conditions || [],
-    blockers: [
-      ...(careerPortrait?.blockedActions || []).slice(0, 2),
-      ...(careerBranch?.blockers || []).slice(0, 2),
-    ].slice(0, 4),
+        (locale === 'ko'
+          ? '커리어 축은 현재 구조와 타이밍이 함께 움직이는 상태입니다.'
+          : 'The career axis currently moves through structure and timing together.'),
+      locale
+    ),
+    suitableLanes: normalizePersonModelList(
+      (careerManifestation?.likelyExpressions || []).slice(0, 4),
+      locale
+    ),
+    executionStyle: normalizePersonModelList(
+      [careerPortrait?.baselineThesis || '', careerPortrait?.activationThesis || '']
+        .filter(Boolean)
+        .slice(0, 3),
+      locale
+    ),
+    hiringTriggers: normalizePersonModelList(careerBranch?.conditions || [], locale),
+    blockers: normalizePersonModelList(
+      [
+        ...(careerPortrait?.blockedActions || []).slice(0, 2),
+        ...(careerBranch?.blockers || []).slice(0, 2),
+      ].slice(0, 4),
+      locale
+    ),
   }
 }
 

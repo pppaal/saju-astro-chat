@@ -229,6 +229,17 @@ vi.mock('@/app/api/destiny-map/chat-stream/lib/context-builder', () => ({
   buildLongTermMemorySection: vi.fn(() => ''),
 }))
 
+vi.mock('@/lib/destiny-matrix/interpretedAnswer', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/destiny-matrix/interpretedAnswer')>(
+    '@/lib/destiny-matrix/interpretedAnswer'
+  )
+  return {
+    ...actual,
+    buildInterpretedAnswerContract: vi.fn(actual.buildInterpretedAnswerContract),
+    evaluateInterpretedAnswerQuality: vi.fn(actual.evaluateInterpretedAnswerQuality),
+  }
+})
+
 // Import mocked modules
 import { initializeApiContext, createAuthenticatedGuard } from '@/lib/api/middleware'
 import { createTransformedSSEStream, createFallbackSSEStream } from '@/lib/streaming'
@@ -242,6 +253,7 @@ import { loadUserProfile } from '@/app/api/destiny-map/chat-stream/lib/profileLo
 import { validateDestinyMapRequest } from '@/app/api/destiny-map/chat-stream/lib/validation'
 import { calculateChartData } from '@/app/api/destiny-map/chat-stream/lib/chart-calculator'
 import * as destinyMatrixModule from '@/lib/destiny-matrix/engine'
+import { evaluateInterpretedAnswerQuality } from '@/lib/destiny-matrix/interpretedAnswer'
 import {
   buildContextSections,
   buildPredictionSection,
@@ -1056,6 +1068,27 @@ describe('/api/destiny-map/chat-stream POST - SSE Streaming', () => {
         }),
       })
     )
+  })
+
+  it('should downgrade to structured fallback text when counselor style gate fails', async () => {
+    vi.mocked(evaluateInterpretedAnswerQuality).mockReturnValueOnce({
+      pass: false,
+      warnings: ['missing_direct_answer'],
+    })
+
+    const req = createNextRequest(createBasicRequest())
+    await POST(req)
+
+    const transformCall = vi.mocked(createTransformedSSEStream).mock.calls[0]?.[0] as
+      | { finalizeText?: (text: string) => string }
+      | undefined
+
+    expect(typeof transformCall?.finalizeText).toBe('function')
+    const finalized = transformCall?.finalizeText?.('action axis says move now.') || ''
+
+    expect(finalized).toContain('## 한 줄 결론')
+    expect(finalized).toContain('## 실행 계획')
+    expect(finalized).not.toContain('action axis')
   })
 
   it('should return fallback stream on backend error', async () => {

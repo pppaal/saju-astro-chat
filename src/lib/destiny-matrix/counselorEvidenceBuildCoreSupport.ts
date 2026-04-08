@@ -120,6 +120,7 @@ export function buildCounselorEvidencePacket(params: {
   theme: CounselorTheme
   lang: 'ko' | 'en'
   focusDomainOverride?: InsightDomain
+  questionText?: string | null
   matrixInput: MatrixCalculationInput
   matrixReport: FusionReport
   matrixSummary?: MatrixSummary
@@ -212,7 +213,8 @@ export function buildCounselorEvidencePacket(params: {
     null
   const scenarioActionHints = buildScenarioActionHints(
     counselorCore?.topScenarioIds || [],
-    params.lang
+    params.lang,
+    { questionText: params.questionText }
   )
   const prefersScenarioActionLead =
     preferredDomain === 'move' &&

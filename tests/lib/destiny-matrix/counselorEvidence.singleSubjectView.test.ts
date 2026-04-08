@@ -152,6 +152,17 @@ describe('counselor evidence formatting', () => {
     expect(hints.join(' ')).not.toContain('?')
   })
 
+  it('prioritizes lease-term language for english housing questions', () => {
+    const hints = buildScenarioActionHints(
+      ['route_recheck_window', 'basecamp_reset_window'],
+      'en',
+      { questionText: 'Is it safe to finalize a housing lease right now?' }
+    )
+
+    expect(hints[0]).toContain('lease')
+    expect(hints.join(' ')).toMatch(/lease|terms|recheck/i)
+  })
+
   it('builds domain-specific korean why reasons with actionable language', () => {
     const reasons = buildDomainSpecificWhyReasons({
       domain: 'health',

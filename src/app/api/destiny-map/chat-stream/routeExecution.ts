@@ -4,6 +4,11 @@ import { isValidDate, isValidLatitude, isValidLongitude, isValidTime } from '@/l
 import { logger } from '@/lib/logger'
 import { buildFortuneWithIcpSection } from '@/lib/prompts/fortuneWithIcp'
 import { formatCounselorEvidencePacket } from '@/lib/destiny-matrix/counselorEvidence'
+import {
+  buildInterpretedAnswerContract,
+  evaluateInterpretedAnswerQuality,
+  type InterpretedAnswerQualityResult,
+} from '@/lib/destiny-matrix/interpretedAnswer'
 import { persistDestinyPredictionSnapshot } from '@/lib/destiny-matrix/predictionSnapshot'
 import type {
   DestinyReliabilityBand,
@@ -209,6 +214,7 @@ export interface PreparedCounselorExecution {
   isStrictMatrixFailure: boolean
   backendSaju?: SajuDataStructure
   backendAstro?: AstroDataStructure
+  interpretedAnswerQuality?: InterpretedAnswerQualityResult | null
 }
 
 export async function prepareCounselorExecution(params: {
@@ -307,6 +313,7 @@ export async function prepareCounselorExecution(params: {
     currentTransits,
     theme: effectiveTheme,
     focusDomain: questionAnalysis.primaryDomain,
+    questionText: lastUserContent,
     needsPreciseTiming: questionAnalysis.needsTimingGuidance,
   })
 
@@ -320,6 +327,7 @@ export async function prepareCounselorExecution(params: {
       isStrictMatrixFailure: true,
       backendSaju: finalSaju,
       backendAstro: finalAstro,
+      interpretedAnswerQuality: null,
     }
   }
 
@@ -339,6 +347,12 @@ export async function prepareCounselorExecution(params: {
   )
   const counselorUiEvidence = encodeCounselorUiEvidence(matrixSnapshot, lang) || ''
   const predictionPacket = coreCounselorPacket as PredictionPacket
+  const interpretedAnswer = buildInterpretedAnswerContract({
+    packet: coreCounselorPacket as Parameters<typeof buildInterpretedAnswerContract>[0]['packet'],
+    frame: questionAnalysis.frame,
+    primaryDomain: questionAnalysis.primaryDomain,
+  })
+  const interpretedAnswerQuality = evaluateInterpretedAnswerQuality(interpretedAnswer)
   const predictionId = await persistDestinyPredictionSnapshot({
     userId,
     service: 'counselor',
@@ -489,5 +503,6 @@ export async function prepareCounselorExecution(params: {
     isStrictMatrixFailure: false,
     backendSaju: finalSaju,
     backendAstro: finalAstro,
+    interpretedAnswerQuality,
   }
 }

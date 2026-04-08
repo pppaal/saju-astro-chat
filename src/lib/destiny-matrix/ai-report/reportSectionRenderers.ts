@@ -146,6 +146,174 @@ function getKoConcretePersonalityLine(domain: string | undefined): string {
   }
 }
 
+function getFiveElementKoLabel(element: unknown): string {
+  switch (String(element || '').toLowerCase()) {
+    case 'wood':
+      return '목'
+    case 'fire':
+      return '화'
+    case 'earth':
+      return '토'
+    case 'metal':
+      return '금'
+    case 'water':
+      return '수'
+    default:
+      return String(element || '').trim()
+  }
+}
+
+function getGeokgukKoLabel(geokguk: unknown): string {
+  switch (String(geokguk || '').toLowerCase()) {
+    case 'jeonggwan':
+      return '정관격'
+    case 'pyeongwan':
+    case 'pyeonggwan':
+      return '편관격'
+    case 'jeongin':
+      return '정인격'
+    case 'pyeongin':
+    case 'pyeonin':
+      return '편인격'
+    case 'siksin':
+      return '식신격'
+    case 'sanggwan':
+      return '상관격'
+    case 'jeongjae':
+      return '정재격'
+    case 'pyeonjae':
+      return '편재격'
+    case 'geonrok':
+      return '건록격'
+    case 'yangin':
+      return '양인격'
+    default:
+      return String(geokguk || '').trim()
+  }
+}
+
+function buildPersonalizationSignalLine(
+  matrixInput: MatrixCalculationInput,
+  lang: 'ko' | 'en',
+  layer: 'structure' | 'timing' | 'personality'
+): string {
+  const dayMaster = getFiveElementKoLabel(matrixInput.dayMasterElement)
+  const yongsin = getFiveElementKoLabel(matrixInput.yongsin)
+  const geokguk = getGeokgukKoLabel(matrixInput.geokguk)
+  const daeun = getFiveElementKoLabel(matrixInput.currentDaeunElement)
+  const saeun = getFiveElementKoLabel(matrixInput.currentSaeunElement)
+  const wolun = getFiveElementKoLabel(matrixInput.currentWolunElement)
+  const sunSign = String(matrixInput.planetSigns?.Sun || '').trim()
+  const moonSign = String(matrixInput.planetSigns?.Moon || '').trim()
+  const sunHouse = matrixInput.planetHouses?.Sun
+  const moonHouse = matrixInput.planetHouses?.Moon
+  const activeTransit = String(matrixInput.activeTransits?.[0] || '').trim()
+
+  if (lang === 'ko') {
+    if (layer === 'structure') {
+      const sajuParts = [
+        dayMaster ? `일간 ${dayMaster}` : '',
+        geokguk ? `격국 ${geokguk}` : '',
+        yongsin ? `용신 ${yongsin}` : '',
+      ].filter(Boolean)
+      const astroParts = [
+        sunSign ? `태양 행성 ${sunSign}` : '',
+        sunHouse ? `${sunHouse}하우스` : '',
+        moonSign ? `달 행성 ${moonSign}` : '',
+        moonHouse ? `${moonHouse}하우스` : '',
+      ].filter(Boolean)
+      if (sajuParts.length === 0 && astroParts.length === 0) return ''
+      return [
+        sajuParts.length > 0
+          ? `사주에서는 ${sajuParts.join(', ')} 축이 반복 기준을 먼저 세우라고 말합니다.`
+          : '',
+        astroParts.length > 0
+          ? `점성에서는 ${astroParts.join(' ')} 배치가 같은 방향을 다시 확인시켜 줍니다.`
+          : '',
+      ]
+        .filter(Boolean)
+        .join(' ')
+    }
+
+    if (layer === 'timing') {
+      const timingParts = [
+        daeun ? `대운 ${daeun}` : '',
+        saeun ? `세운 ${saeun}` : '',
+        wolun ? `월운 ${wolun}` : '',
+      ].filter(Boolean)
+      if (timingParts.length === 0 && !activeTransit) return ''
+      return [
+        timingParts.length > 0
+          ? `지금은 ${timingParts.join(', ')} 흐름이 겹치며 개인 타이밍을 더 선명하게 만듭니다.`
+          : '',
+        activeTransit ? `점성 transit 신호도 ${activeTransit} 쪽으로 같은 압력을 보탭니다.` : '',
+      ]
+        .filter(Boolean)
+        .join(' ')
+    }
+
+    const personalityParts = [
+      dayMaster ? `일간 ${dayMaster}` : '',
+      yongsin ? `용신 ${yongsin}` : '',
+      sunHouse ? `태양 행성 ${sunHouse}하우스` : '',
+      moonHouse ? `달 행성 ${moonHouse}하우스` : '',
+    ].filter(Boolean)
+    if (personalityParts.length === 0) return ''
+    return `${personalityParts.join(', ')} 조합을 보면 이 사람은 기준을 먼저 세우고 그다음 속도를 붙일 때 가장 흔들림이 적습니다.`
+  }
+
+  if (layer === 'structure') {
+    const sajuParts = [
+      matrixInput.dayMasterElement ? `day master ${matrixInput.dayMasterElement}` : '',
+      matrixInput.geokguk ? `${String(matrixInput.geokguk).replace(/_/g, ' ')} pattern` : '',
+      matrixInput.yongsin ? `yongsin ${matrixInput.yongsin}` : '',
+    ].filter(Boolean)
+    const astroParts = [
+      sunSign ? `Sun in ${sunSign}` : '',
+      sunHouse ? `the ${sunHouse}th house` : '',
+      moonSign ? `Moon in ${moonSign}` : '',
+      moonHouse ? `the ${moonHouse}th house` : '',
+    ].filter(Boolean)
+    if (sajuParts.length === 0 && astroParts.length === 0) return ''
+    return [
+      sajuParts.length > 0
+        ? `On the saju side, ${sajuParts.join(', ')} keeps pointing back to standards and repeatable structure.`
+        : '',
+      astroParts.length > 0
+        ? `On the astrology side, ${astroParts.join(' ')} reinforces the same baseline.`
+        : '',
+    ]
+      .filter(Boolean)
+      .join(' ')
+  }
+
+  if (layer === 'timing') {
+    const timingParts = [
+      matrixInput.currentDaeunElement ? `daeun ${matrixInput.currentDaeunElement}` : '',
+      matrixInput.currentSaeunElement ? `saeun ${matrixInput.currentSaeunElement}` : '',
+      matrixInput.currentWolunElement ? `wolun ${matrixInput.currentWolunElement}` : '',
+    ].filter(Boolean)
+    if (timingParts.length === 0 && !activeTransit) return ''
+    return [
+      timingParts.length > 0
+        ? `The current timing is personal rather than generic because ${timingParts.join(', ')} are overlapping in the same chapter.`
+        : '',
+      activeTransit ? `The transit layer is echoing that pressure through ${activeTransit}.` : '',
+    ]
+      .filter(Boolean)
+      .join(' ')
+  }
+
+  const personalityParts = [
+    matrixInput.dayMasterElement ? `day master ${matrixInput.dayMasterElement}` : '',
+    matrixInput.yongsin ? `yongsin ${matrixInput.yongsin}` : '',
+    sunHouse ? `Sun in the ${sunHouse}th house` : '',
+    moonHouse ? `Moon in the ${moonHouse}th house` : '',
+  ].filter(Boolean)
+  if (personalityParts.length === 0) return ''
+  return `${personalityParts.join(', ')} together describe someone who stabilizes first and commits later.`
+}
+
 export type ReportSectionRendererDeps = {
   buildEvidenceFooter: (input: MatrixCalculationInput, lang: 'ko' | 'en') => string
   normalizeNarrativeCoreText: (text: string, lang: 'ko' | 'en') => string
@@ -321,6 +489,7 @@ export function renderIntroductionSection(
   const concreteIntroLine = getKoConcreteIntroLine(
     reportCore.actionFocusDomain || reportCore.focusDomain
   )
+  const personalizationLine = buildPersonalizationSignalLine(matrixInput, lang, 'structure')
 
   if (lang === 'ko') {
     const body = deps.formatNarrativeParagraphs(
@@ -330,6 +499,7 @@ export function renderIntroductionSection(
           reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
             ? `삶의 바탕에는 ${focusLabel} 흐름이 깔려 있지만, 지금 먼저 움직여야 할 영역은 ${actionFocusLabel}입니다. 현재 판단 기준도 ${topDecision} 쪽으로 기울어 있습니다. ${concreteIntroLine}`
             : `현재 판단 기준도 ${topDecision} 쪽으로 기울어 있습니다. ${concreteIntroLine}`,
+          personalizationLine,
           timingReason
             ? `이 흐름이 지금 선명한 이유는 ${timingReason}`
             : `이 구간에서는 ${withObjectParticleFallback(metaphor.edge, '기준을')} 한 번에 다 쓰기보다, 어디에 먼저 써야 할지를 아는 쪽이 유리합니다.`,
@@ -349,6 +519,7 @@ export function renderIntroductionSection(
         reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
           ? `The underlying axis right now is ${focusLabel}, while the action axis is ${actionFocusLabel}. The operating bias is ${topDecision}.`
           : `The central axis right now is ${focusLabel}, and the operating bias is ${topDecision}.`,
+        personalizationLine,
         `${deps.capitalizeFirst(metaphor.environment)} is where your ${metaphor.edge} become visible.`,
         shortDecadeLine,
         safeTimingReason
@@ -381,6 +552,7 @@ export function renderLifeMissionSection(
   const concreteMissionLine = getKoConcreteMissionLine(
     reportCore.actionFocusDomain || reportCore.focusDomain
   )
+  const timingPersonalizationLine = buildPersonalizationSignalLine(matrixInput, lang, 'timing')
 
   if (lang === 'ko') {
     const body = deps.formatNarrativeParagraphs(
@@ -391,6 +563,7 @@ export function renderLifeMissionSection(
             .split(/(?<=[.!?])\s+/)
             .map((line) => line.trim())
             .filter(Boolean)[0] || timeline,
+          timingPersonalizationLine,
           `이번 장기 흐름에서 가장 크게 움직이는 영역은 ${focusLabel}이며, 지금 배워야 할 과제도 이 흐름에서 가장 선명하게 드러납니다.`,
           `${focusLabel}에서는 더 많이 쥐는 것보다, 어떤 기준을 반복 선택의 중심에 둘지가 장기 결과를 가릅니다.`,
           leadScenarios.length > 0
@@ -415,6 +588,7 @@ export function renderLifeMissionSection(
           .split(/(?<=[.!?])\s+/)
           .map((line) => line.trim())
           .filter(Boolean)[0] || timeline,
+        timingPersonalizationLine,
         `The current life chapter is centered on ${focusLabel}, and that is where the main lesson is becoming visible.`,
         `The long arc improves less through isolated wins and more through standards you can repeat under pressure.`,
         leadScenarios.length > 0
@@ -442,6 +616,11 @@ export function renderPersonalityDeepSection(
   const concretePersonalityLine = getKoConcretePersonalityLine(
     reportCore.actionFocusDomain || reportCore.focusDomain
   )
+  const personalityPersonalizationLine = buildPersonalizationSignalLine(
+    matrixInput,
+    lang,
+    'personality'
+  )
 
   if (lang === 'ko') {
     const body = deps.formatNarrativeParagraphs(
@@ -450,6 +629,7 @@ export function renderPersonalityDeepSection(
           focusManifestation?.baselineThesis ||
             '타고난 구조는 기준을 세우고 흐름을 조율하는 쪽에 가깝습니다.',
           concretePersonalityLine,
+          personalityPersonalizationLine,
           `기본 성향의 강점은 ${withObjectParticleFallback(metaphor.edge, '기준을')} 빠르게 세우는 데 있고, 약점은 ${metaphor.risk}이 판단 과속으로 바뀔 때 드러납니다.`,
           '그래서 이 성향은 감으로 먼저 밀기보다, 기준 한 줄을 먼저 적고 움직일 때 가장 안정적으로 힘을 냅니다.',
           '핵심은 생각이 선명해지는 순간과 실제로 확정하는 순간을 분리해 두는 데 있습니다.',
@@ -471,6 +651,7 @@ export function renderPersonalityDeepSection(
     deps.sanitizeUserFacingNarrative(
       [
         'Your baseline temperament is strongest when standards are visible and pace is controlled.',
+        personalityPersonalizationLine,
         `The upside of this structure is how quickly ${metaphor.edge} can be established once the room is clean.`,
         `The risk appears when ${metaphor.risk} turns into premature certainty before the shape of the situation is fully clear.`,
         safeBaseline && !/\b(pattern|layer|signal|engine)\b/i.test(safeBaseline)

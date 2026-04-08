@@ -56,12 +56,14 @@ Comprehensive PR validation:
 
 Long-running destiny validation:
 
-- Full Vitest suite
+- Full Vitest suite, sharded across 3 parallel jobs
 - Full destiny quality gate
 - Nightly reports/ops artifact upload
+- GitHub Actions summary with shard + gate status
+- Shard-level Vitest JSON triage and aggregated top failure categories/files
 
 **When it runs:** Nightly and manual dispatch
-**Duration:** ~20-40 minutes
+**Duration:** ~12-25 minutes depending on shard skew
 
 ---
 
@@ -436,7 +438,7 @@ Formats: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `c
 | --------------------- | ------------ | ------------- |
 | ci.yml                | 10-15 min    | 1             |
 | pr-checks.yml         | 12-18 min    | 5             |
-| destiny-nightly.yml   | 20-40 min    | 1             |
+| destiny-nightly.yml   | 12-25 min    | 4             |
 | security.yml          | 5-8 min      | 4             |
 | e2e-browser.yml       | 15-25 min    | 2             |
 | deploy-preview.yml    | 8-12 min     | 1             |

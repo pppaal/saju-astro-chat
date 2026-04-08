@@ -24,6 +24,180 @@ function buildInterpretedTimingNarrative(interpretedAnswer, lang) {
   return parts.filter(Boolean).join(' ').trim()
 }
 
+function getKoElementLabel(element) {
+  switch (String(element || '').toLowerCase()) {
+    case 'wood':
+      return '목'
+    case 'fire':
+      return '화'
+    case 'earth':
+      return '토'
+    case 'metal':
+      return '금'
+    case 'water':
+      return '수'
+    default:
+      return String(element || '').trim()
+  }
+}
+
+function getKoGeokgukLabel(geokguk) {
+  switch (String(geokguk || '').toLowerCase()) {
+    case 'jeonggwan':
+      return '정관격'
+    case 'jeongin':
+      return '정인격'
+    case 'siksin':
+      return '식신격'
+    case 'sanggwan':
+      return '상관격'
+    case 'jeongjae':
+      return '정재격'
+    case 'pyeonjae':
+      return '편재격'
+    case 'yangin':
+      return '양인격'
+    case 'geonrok':
+      return '건록격'
+    default:
+      return String(geokguk || '').trim()
+  }
+}
+
+function injectComprehensivePersonalizationSignals(sections, matrixInput, lang) {
+  if (!sections || !matrixInput) return sections
+
+  const sunSign = String(matrixInput.planetSigns?.Sun || '').trim()
+  const moonSign = String(matrixInput.planetSigns?.Moon || '').trim()
+  const sunHouse = matrixInput.planetHouses?.Sun
+  const moonHouse = matrixInput.planetHouses?.Moon
+  const geokguk = getKoGeokgukLabel(matrixInput.geokguk)
+  const dayMaster = getKoElementLabel(matrixInput.dayMasterElement)
+  const yongsin = getKoElementLabel(matrixInput.yongsin)
+  const daeun = getKoElementLabel(matrixInput.currentDaeunElement)
+  const saeun = getKoElementLabel(matrixInput.currentSaeunElement)
+  const wolun = getKoElementLabel(matrixInput.currentWolunElement)
+  const activeTransit = String(matrixInput.activeTransits?.[0] || '').trim()
+
+  const joinUnique = (base, extra) => {
+    const current = String(base || '').trim()
+    const next = String(extra || '').trim()
+    if (!next) return current
+    if (current.includes(next)) return current
+    return [current, next].filter(Boolean).join(' ').trim()
+  }
+
+  if (lang === 'ko') {
+    const structureLine = [
+      dayMaster ? `사주에서는 일간 ${dayMaster}` : '',
+      geokguk ? `격국 ${geokguk}` : '',
+      yongsin ? `용신 ${yongsin}` : '',
+    ].filter(Boolean).length
+      ? `사주에서는 ${[dayMaster ? `일간 ${dayMaster}` : '', geokguk ? `격국 ${geokguk}` : '', yongsin ? `용신 ${yongsin}` : ''].filter(Boolean).join(', ')} 축이 먼저 기준을 세우라고 말합니다.`
+      : ''
+    const astrologyLine =
+      sunSign || moonSign || sunHouse || moonHouse
+        ? `점성에서는 ${[
+            sunSign ? `태양 행성 ${sunSign}` : '',
+            sunHouse ? `${sunHouse}하우스` : '',
+            moonSign ? `달 행성 ${moonSign}` : '',
+            moonHouse ? `${moonHouse}하우스` : '',
+          ]
+            .filter(Boolean)
+            .join(' ')} 배치가 같은 흐름을 다시 확인시켜 줍니다.`
+        : ''
+    const timingLine =
+      daeun || saeun || wolun || activeTransit
+        ? `${[
+            daeun ? `대운 ${daeun}` : '',
+            saeun ? `세운 ${saeun}` : '',
+            wolun ? `월운 ${wolun}` : '',
+          ]
+            .filter(Boolean)
+            .join(
+              ', '
+            )}${activeTransit ? `, transit ${activeTransit}` : ''} 흐름이 겹치며 지금 타이밍을 개인적인 장면으로 밀어 올립니다.`
+        : ''
+    const personalityLine =
+      dayMaster || yongsin || sunHouse || moonHouse
+        ? `${[
+            dayMaster ? `일간 ${dayMaster}` : '',
+            yongsin ? `용신 ${yongsin}` : '',
+            sunHouse ? `태양 행성 ${sunHouse}하우스` : '',
+            moonHouse ? `달 행성 ${moonHouse}하우스` : '',
+          ]
+            .filter(Boolean)
+            .join(
+              ', '
+            )} 조합을 보면 이 사람은 기준을 먼저 세우고 그다음 속도를 붙일 때 흔들림이 가장 적습니다.`
+        : ''
+
+    return {
+      ...sections,
+      introduction: joinUnique(joinUnique(sections.introduction, structureLine), astrologyLine),
+      lifeMission: joinUnique(sections.lifeMission, timingLine),
+      personalityDeep: joinUnique(sections.personalityDeep, personalityLine),
+    }
+  }
+
+  const structureLine = [
+    matrixInput.dayMasterElement ? `day master ${matrixInput.dayMasterElement}` : '',
+    matrixInput.geokguk ? `${String(matrixInput.geokguk).replace(/_/g, ' ')} pattern` : '',
+    matrixInput.yongsin ? `yongsin ${matrixInput.yongsin}` : '',
+  ].filter(Boolean).length
+    ? `On the saju side, ${[
+        matrixInput.dayMasterElement ? `day master ${matrixInput.dayMasterElement}` : '',
+        matrixInput.geokguk ? `${String(matrixInput.geokguk).replace(/_/g, ' ')} pattern` : '',
+        matrixInput.yongsin ? `yongsin ${matrixInput.yongsin}` : '',
+      ]
+        .filter(Boolean)
+        .join(', ')} keeps pointing back to standards and repeatable structure.`
+    : ''
+  const astrologyLine =
+    sunSign || moonSign || sunHouse || moonHouse
+      ? `On the astrology side, ${[
+          sunSign ? `Sun in ${sunSign}` : '',
+          sunHouse ? `the ${sunHouse}th house` : '',
+          moonSign ? `Moon in ${moonSign}` : '',
+          moonHouse ? `the ${moonHouse}th house` : '',
+        ]
+          .filter(Boolean)
+          .join(' ')} reinforces the same baseline.`
+      : ''
+  const timingLine =
+    matrixInput.currentDaeunElement ||
+    matrixInput.currentSaeunElement ||
+    matrixInput.currentWolunElement ||
+    activeTransit
+      ? `The timing is personal rather than generic because ${[
+          matrixInput.currentDaeunElement ? `daeun ${matrixInput.currentDaeunElement}` : '',
+          matrixInput.currentSaeunElement ? `saeun ${matrixInput.currentSaeunElement}` : '',
+          matrixInput.currentWolunElement ? `wolun ${matrixInput.currentWolunElement}` : '',
+          activeTransit ? `transit ${activeTransit}` : '',
+        ]
+          .filter(Boolean)
+          .join(', ')} are overlapping in the same chapter.`
+      : ''
+  const personalityLine =
+    matrixInput.dayMasterElement || matrixInput.yongsin || sunHouse || moonHouse
+      ? `${[
+          matrixInput.dayMasterElement ? `day master ${matrixInput.dayMasterElement}` : '',
+          matrixInput.yongsin ? `yongsin ${matrixInput.yongsin}` : '',
+          sunHouse ? `Sun in the ${sunHouse}th house` : '',
+          moonHouse ? `Moon in the ${moonHouse}th house` : '',
+        ]
+          .filter(Boolean)
+          .join(', ')} together describe someone who stabilizes first and commits later.`
+      : ''
+
+  return {
+    ...sections,
+    introduction: joinUnique(joinUnique(sections.introduction, structureLine), astrologyLine),
+    lifeMission: joinUnique(sections.lifeMission, timingLine),
+    personalityDeep: joinUnique(sections.personalityDeep, personalityLine),
+  }
+}
+
 function buildDirectComprehensiveSectionFallbacks(
   reportCore,
   normalizedInput,
@@ -730,6 +904,8 @@ export async function runPremiumDeterministicMode(ctx) {
     outputSections = applyKoLifeSectionConcreteness(outputSections, reportCore)
     outputSections = ensureFinalReportPolish(outputSections, lang, reportCore)
   }
+  outputSections = injectComprehensivePersonalizationSignals(outputSections, normalizedInput, lang)
+  outputSections = ensureFinalReportPolish(outputSections, lang, reportCore)
   const directFallbacks = buildDirectComprehensiveSectionFallbacks(
     reportCore,
     normalizedInput,

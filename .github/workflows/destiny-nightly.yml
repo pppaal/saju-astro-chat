@@ -6,8 +6,81 @@ on:
   workflow_dispatch:
 
 jobs:
-  destiny-nightly:
-    name: Full Destiny Nightly
+  vitest-nightly:
+    name: Full Vitest Nightly (${{ matrix.shard }}/${{ matrix.total }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2]
+        total: [3]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+          cache-dependency-path: |
+            backend_ai/requirements.txt
+            backend_ai/requirements-dev.txt
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
+
+      - name: Full Vitest suite shard
+        run: >
+          npm run test:nightly:shard --
+          --index=${{ matrix.shard }}
+          --total=${{ matrix.total }}
+          --jsonOut=reports/nightly/vitest-shard-${{ matrix.shard }}.json
+
+      - name: Analyze shard failures
+        if: always()
+        run: >
+          node scripts/ops/analyze-vitest-json.mjs
+          --input=reports/nightly/vitest-shard-${{ matrix.shard }}.json
+          --out-json=reports/nightly/vitest-shard-${{ matrix.shard }}-summary.json
+          --out-md=reports/nightly/vitest-shard-${{ matrix.shard }}-summary.md
+
+      - name: Nightly shard summary
+        if: always()
+        run: |
+          echo "## Destiny nightly vitest shard ${{ matrix.shard }}/${{ matrix.total }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Result: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Command: npm run test:nightly:shard -- --index=${{ matrix.shard }} --total=${{ matrix.total }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "reports/nightly/vitest-shard-${{ matrix.shard }}-summary.md" ]; then
+            cat "reports/nightly/vitest-shard-${{ matrix.shard }}-summary.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload nightly shard artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: destiny-nightly-vitest-shard-${{ matrix.shard }}
+          path: |
+            reports/nightly/vitest-shard-${{ matrix.shard }}.json
+            reports/nightly/vitest-shard-${{ matrix.shard }}-summary.json
+            reports/nightly/vitest-shard-${{ matrix.shard }}-summary.md
+          if-no-files-found: ignore
+          retention-days: 14
+
+  destiny-gate-nightly:
+    name: Destiny Gate Nightly
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -35,11 +108,16 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
-      - name: Full Vitest suite
-        run: npm test
-
       - name: Destiny full gate
         run: npm run ops:destiny:gate
+
+      - name: Destiny gate summary
+        if: always()
+        run: |
+          echo "## Destiny nightly gate" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Result: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Command: npm run ops:destiny:gate" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload nightly vitest log placeholder
         if: always()
@@ -51,3 +129,76 @@ jobs:
             reports/ops/*.md
           if-no-files-found: ignore
           retention-days: 14
+
+  nightly-summary:
+    name: Destiny Nightly Summary
+    runs-on: ubuntu-latest
+    needs: [vitest-nightly, destiny-gate-nightly]
+    if: always()
+
+    steps:
+      - name: Download nightly shard artifacts
+        if: always()
+        uses: actions/download-artifact@v4
+        with:
+          path: tmp/nightly-artifacts
+          pattern: destiny-nightly-vitest-shard-*
+          merge-multiple: true
+
+      - name: Publish nightly summary
+        run: |
+          echo "## Destiny nightly summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Vitest shards: ${{ needs.vitest-nightly.result }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Destiny gate: ${{ needs.destiny-gate-nightly.result }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Workflow date: $(date -u +'%Y-%m-%d %H:%M UTC')" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          node - <<'NODE' >> "$GITHUB_STEP_SUMMARY"
+          const fs = require('node:fs')
+          const path = require('node:path')
+          const root = path.join(process.cwd(), 'tmp', 'nightly-artifacts')
+          const files = fs.existsSync(root)
+            ? fs.readdirSync(root).filter((name) => name.endsWith('-summary.json'))
+            : []
+          const summaries = files
+            .map((name) => JSON.parse(fs.readFileSync(path.join(root, name), 'utf8')))
+          const categoryTotals = new Map()
+          const fileTotals = new Map()
+          let totalFailed = 0
+          for (const summary of summaries) {
+            totalFailed += Number(summary.numFailedTests || 0)
+            for (const item of summary.categories || []) {
+              categoryTotals.set(item.key, (categoryTotals.get(item.key) || 0) + Number(item.count || 0))
+            }
+            for (const item of summary.failingFiles || []) {
+              fileTotals.set(item.key, (fileTotals.get(item.key) || 0) + Number(item.count || 0))
+            }
+          }
+          const topCategories = [...categoryTotals.entries()]
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 6)
+          const topFiles = [...fileTotals.entries()]
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 8)
+          console.log(`- Aggregated failed tests across shards: ${totalFailed}`)
+          if (topCategories.length > 0) {
+            console.log('')
+            console.log('### Top Failure Categories')
+            for (const [key, count] of topCategories) {
+              console.log(`- ${key}: ${count}`)
+            }
+          }
+          if (topFiles.length > 0) {
+            console.log('')
+            console.log('### Top Failing Files')
+            for (const [key, count] of topFiles) {
+              console.log(`- ${key}: ${count}`)
+            }
+          }
+          NODE
+
+          if [ "${{ needs.vitest-nightly.result }}" != "success" ] || [ "${{ needs.destiny-gate-nightly.result }}" != "success" ]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "Nightly failed. Inspect the shard or gate job logs before the next release cut." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi

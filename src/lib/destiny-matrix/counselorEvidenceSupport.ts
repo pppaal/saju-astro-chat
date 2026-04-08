@@ -437,8 +437,34 @@ export function inferScenarioSectionHints(scenarioIds: string[]): string[] {
   return [...hints]
 }
 
-export function buildScenarioActionHints(scenarioIds: string[], lang: 'ko' | 'en'): string[] {
+export function buildScenarioActionHints(
+  scenarioIds: string[],
+  lang: 'ko' | 'en',
+  options?: {
+    questionText?: string | null
+  }
+): string[] {
   const hints = new Set<string>()
+  const questionText = String(options?.questionText || '').toLowerCase()
+  const isLeaseQuestion =
+    /lease|housing|rent|rental|deposit|contract|apartment|home base|living base|집|주거|계약|임대|전세|월세|보증금/.test(
+      questionText
+    )
+  const isRouteQuestion = /route|commute|path|travel|direction|경로|동선|출퇴근|이동/.test(
+    questionText
+  )
+  const isBaseQuestion = /base|basecamp|living base|settle|relocat|거점|기반|정착|이사/.test(
+    questionText
+  )
+
+  if (isLeaseQuestion) {
+    hints.add(
+      lang === 'ko'
+        ? '주거 계약 조건을 먼저 재확인하고 필요한 부분을 다시 협의하세요.'
+        : 'review the lease terms, cost, and timing first'
+    )
+  }
+
   for (const id of scenarioIds) {
     const key = String(id || '').toLowerCase()
     if (!key) continue
@@ -461,7 +487,15 @@ export function buildScenarioActionHints(scenarioIds: string[], lang: 'ko' | 'en
       )
     }
     if (/route_recheck/.test(key)) {
-      hints.add(lang === 'ko' ? '경로와 방향부터 다시 확인하세요.' : 'recheck the route first')
+      hints.add(
+        lang === 'ko'
+          ? isLeaseQuestion
+            ? '계약 전에 이동 경로와 실제 생활 동선을 다시 확인하세요.'
+            : '경로와 방향부터 다시 확인하세요.'
+          : isLeaseQuestion
+            ? 'recheck the route and daily commute before signing'
+            : 'recheck the route first'
+      )
     }
     if (/commute_restructure/.test(key)) {
       hints.add(lang === 'ko' ? '이동 동선부터 다시 재정비하세요.' : 'restructure the commute')
@@ -503,6 +537,25 @@ export function buildScenarioActionHints(scenarioIds: string[], lang: 'ko' | 'en
         lang === 'ko' ? '회복 루틴부터 다시 복구하세요.' : 'restore the recovery routine first'
       )
     }
+  }
+  if (isLeaseQuestion) {
+    hints.add(
+      lang === 'ko'
+        ? '조건이 맞지 않으면 계약 확정을 미루고 다시 협상하세요.'
+        : 'negotiate the terms before you lock the lease in'
+    )
+  } else if (isRouteQuestion) {
+    hints.add(
+      lang === 'ko'
+        ? '경로를 비교한 뒤 실제 이동 부담을 다시 점검하세요.'
+        : 'recheck the route before committing to the move'
+    )
+  } else if (isBaseQuestion) {
+    hints.add(
+      lang === 'ko'
+        ? '큰 이동보다 생활 거점과 운영 기준부터 다시 정리하세요.'
+        : 'reset the base of operations before the larger relocation'
+    )
   }
   return [...hints].slice(0, 3)
 }

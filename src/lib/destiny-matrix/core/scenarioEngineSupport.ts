@@ -1091,9 +1091,9 @@ function buildEntryConditions(input: {
 }): string[] {
   if (input.lang === 'ko') {
     return [
-      `핵심 근거가 계속 살아 있을 것`,
-      `시나리오 확률 ${input.probability}%와 신뢰도 ${Math.round(input.confidence * 100)}%가 유지될 것`,
-      `타이밍 적합도 ${Math.round(input.timingRelevance * 100)}% 이상에서 ${input.definition.actions[0]}를 바로 실행할 수 있을 것`,
+      `핵심 근거가 계속 살아 있어야 합니다.`,
+      `시나리오 확률 ${input.probability}%와 신뢰도 ${Math.round(input.confidence * 100)}% 수준이 유지돼야 합니다.`,
+      `타이밍 적합도 ${Math.round(input.timingRelevance * 100)}% 이상에서 ${input.definition.actions[0]}를 바로 실행할 수 있어야 합니다.`,
     ]
   }
 
@@ -1113,8 +1113,8 @@ function buildAbortConditions(input: {
 }): string[] {
   if (input.lang === 'ko') {
     return [
-      `핵심 조건이나 역할 범위가 문서로 정리되지 않으면 중단`,
-      `시나리오 확률이 ${Math.max(35, input.probability - 22)}% 아래로 떨어지면 중단`,
+      `핵심 조건이나 역할 범위가 문서로 정리되지 않으면 멈춰야 합니다.`,
+      `시나리오 확률이 ${Math.max(35, input.probability - 22)}% 아래로 떨어지면 보류해야 합니다.`,
       `${input.pattern.risk}`,
     ]
   }
@@ -1134,9 +1134,9 @@ function buildSustainConditions(input: {
 }): string[] {
   if (input.lang === 'ko') {
     return [
-      `첫 단계 이후에도 흐름이 꺾이지 않을 것`,
-      `타이밍 적합도 ${Math.round(input.timingRelevance * 100)}% 수준이 급락하지 않을 것`,
-      `역할·범위·속도 조절 조건이 동시에 유지될 것`,
+      `첫 단계 이후에도 흐름이 꺾이지 않는지 확인해야 합니다.`,
+      `타이밍 적합도 ${Math.round(input.timingRelevance * 100)}% 수준이 급격히 떨어지지 않아야 합니다.`,
+      `역할, 범위, 속도 조절 조건이 동시에 유지돼야 합니다.`,
     ]
   }
   return [

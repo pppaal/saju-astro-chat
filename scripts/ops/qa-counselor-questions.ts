@@ -59,6 +59,7 @@ async function evaluateCase(questionCase: QuestionCase, lang: QALang): Promise<C
   const packet = buildCounselorEvidencePacket({
     theme: questionCase.theme,
     lang,
+    questionText: question,
     matrixInput: input,
     matrixReport,
     matrixSummary,
@@ -104,7 +105,10 @@ async function evaluateCase(questionCase: QuestionCase, lang: QALang): Promise<C
 
   checks.push({
     name: 'direct answer tone',
-    status: questionDirectnessHit([packet.verdict, packet.topDomainAdvisory?.action].join(' '), lang)
+    status: questionDirectnessHit(
+      [packet.verdict, packet.topDomainAdvisory?.action].join(' '),
+      lang
+    )
       ? 'PASS'
       : 'WARN',
     detail: trimText(packet.verdict, 140),
@@ -122,7 +126,10 @@ async function evaluateCase(questionCase: QuestionCase, lang: QALang): Promise<C
       Boolean(packet.topTimingWindow?.whyNow) || Boolean(packet.canonicalBrief?.timingHint)
         ? 'PASS'
         : 'WARN',
-    detail: trimText(packet.topTimingWindow?.whyNow || packet.canonicalBrief?.timingHint || '', 120),
+    detail: trimText(
+      packet.topTimingWindow?.whyNow || packet.canonicalBrief?.timingHint || '',
+      120
+    ),
   })
 
   checks.push({
@@ -188,7 +195,9 @@ function renderMarkdown(results: CounselorResult[], lang: QALang): string {
   return lines.join('\n')
 }
 
-async function runForLang(lang: QALang): Promise<{ results: CounselorResult[]; jsonPath: string; mdPath: string }> {
+async function runForLang(
+  lang: QALang
+): Promise<{ results: CounselorResult[]; jsonPath: string; mdPath: string }> {
   const cases = createCounselorRegressionCases()
   const results: CounselorResult[] = []
 

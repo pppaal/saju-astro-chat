@@ -19,14 +19,12 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { normalizeCounselorResponse } from '@/lib/counselor/responseContract'
 import { applyCounselorBrandVoice } from '@/lib/counselor/brandVoice'
+import type { InterpretedAnswerQualityResult } from '@/lib/destiny-matrix/interpretedAnswer'
 
 import { clampMessages } from './lib/helpers'
 import { validateDestinyMapRequest } from './lib/validation'
 import { analyzeCounselorQuestion, mapFocusDomainToTheme } from './lib/focusDomain'
-import {
-  prepareCounselorExecution,
-  resolveEffectiveCounselorInputs,
-} from './routeExecution'
+import { prepareCounselorExecution, resolveEffectiveCounselorInputs } from './routeExecution'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -140,11 +138,16 @@ function buildCounselorFallbackContent(
     : []
 
   if (lang === 'ko') {
-    const evidence = bullets.slice(0, 2).map((line) => `- ${line}`).join('\n')
+    const evidence = bullets
+      .slice(0, 2)
+      .map((line) => `- ${line}`)
+      .join('\n')
     const action = bullets
       .filter((line) => /행동|타이밍|들어갈 조건|실행 감각|Action read|Timing read/i.test(line))
       .slice(0, 3)
-      .map((line) => `- ${line.replace(/^(행동 해석:|타이밍 해석:|들어갈 조건:|실행 감각:)\s*/u, '')}`)
+      .map(
+        (line) => `- ${line.replace(/^(행동 해석:|타이밍 해석:|들어갈 조건:|실행 감각:)\s*/u, '')}`
+      )
       .join('\n')
     const caution = bullets
       .filter((line) => /리스크|주의|느출|Slow-down|Caution/i.test(line))
@@ -154,22 +157,23 @@ function buildCounselorFallbackContent(
 
     return applyCounselorBrandVoice(
       normalizeCounselorResponse(
-      [
-        '## 한 줄 결론',
-        summary || '지금은 성급한 확정보다 조건을 다시 확인한 뒤 움직이는 편이 맞습니다.',
-        '',
-        '## 근거',
-        evidence || '- 현재 구조와 타이밍을 함께 보면, 지금은 확정보다 검토가 더 유리한 구간으로 읽힙니다.',
-        '',
-        '## 실행 계획',
-        action ||
-          '- 오늘 가장 중요한 한 가지를 먼저 정하세요.\n- 들어가기 전 조건과 책임 범위를 먼저 확인하세요.\n- 최종 확정은 한 박자 늦게 가져가세요.',
-        '',
-        '## 주의/재확인',
-        caution ||
-          '- 서명, 결제, 확정처럼 되돌리기 어려운 행동은 한 번 더 확인한 뒤 진행하세요.\n- 상대와 핵심 조건을 한 문장으로 다시 맞춰보세요.',
-      ].join('\n'),
-      lang
+        [
+          '## 한 줄 결론',
+          summary || '지금은 성급한 확정보다 조건을 다시 확인한 뒤 움직이는 편이 맞습니다.',
+          '',
+          '## 근거',
+          evidence ||
+            '- 현재 구조와 타이밍을 함께 보면, 지금은 확정보다 검토가 더 유리한 구간으로 읽힙니다.',
+          '',
+          '## 실행 계획',
+          action ||
+            '- 오늘 가장 중요한 한 가지를 먼저 정하세요.\n- 들어가기 전 조건과 책임 범위를 먼저 확인하세요.\n- 최종 확정은 한 박자 늦게 가져가세요.',
+          '',
+          '## 주의/재확인',
+          caution ||
+            '- 서명, 결제, 확정처럼 되돌리기 어려운 행동은 한 번 더 확인한 뒤 진행하세요.\n- 상대와 핵심 조건을 한 문장으로 다시 맞춰보세요.',
+        ].join('\n'),
+        lang
       ),
       lang
     )
@@ -177,26 +181,92 @@ function buildCounselorFallbackContent(
 
   return applyCounselorBrandVoice(
     normalizeCounselorResponse(
-    [
-      '## Direct Answer',
-      summary || 'Move with verification first and delay irreversible commitments.',
-      '',
-      '## Evidence',
-      bullets.slice(0, 2).map((line) => `- ${line}`).join('\n') ||
-        '- Current structure and timing both favor review before commitment.',
-      '',
-      '## Action Plan',
-      bullets.slice(2, 5).map((line) => `- ${line}`).join('\n') ||
-        '- Lock one priority.\n- Confirm conditions before entry.\n- Delay final commitment until the checklist is complete.',
-      '',
-      '## Avoid / Recheck',
-      bullets.slice(5, 7).map((line) => `- ${line}`).join('\n') ||
-        '- Recheck any irreversible action before signing, sending, or paying.',
-    ].join('\n'),
-    lang
+      [
+        '## Direct Answer',
+        summary || 'Move with verification first and delay irreversible commitments.',
+        '',
+        '## Evidence',
+        bullets
+          .slice(0, 2)
+          .map((line) => `- ${line}`)
+          .join('\n') || '- Current structure and timing both favor review before commitment.',
+        '',
+        '## Action Plan',
+        bullets
+          .slice(2, 5)
+          .map((line) => `- ${line}`)
+          .join('\n') ||
+          '- Lock one priority.\n- Confirm conditions before entry.\n- Delay final commitment until the checklist is complete.',
+        '',
+        '## Avoid / Recheck',
+        bullets
+          .slice(5, 7)
+          .map((line) => `- ${line}`)
+          .join('\n') || '- Recheck any irreversible action before signing, sending, or paying.',
+      ].join('\n'),
+      lang
     ),
     lang
   )
+}
+
+const COUNSELOR_INTERNAL_LEAK_REGEX =
+  /(action axis|risk axis|structure axis|questionframe=|primary_domain=|why_\d+=|next_move=|frame=|timing_best=|timing_now=|_window\b|scenario id)/i
+
+function hasRequiredCounselorSections(text: string, lang: 'ko' | 'en'): boolean {
+  if (lang === 'ko') {
+    return (
+      text.includes('## 한 줄 결론') &&
+      text.includes('## 근거') &&
+      text.includes('## 실행 계획') &&
+      text.includes('## 주의/재확인')
+    )
+  }
+  return (
+    text.includes('## Direct Answer') &&
+    text.includes('## Evidence') &&
+    text.includes('## Action Plan') &&
+    text.includes('## Avoid / Recheck')
+  )
+}
+
+function finalizeCounselorContent(params: {
+  rawText: string
+  lang: 'ko' | 'en'
+  uiEvidence: string | null | undefined
+  interpretedAnswerQuality?: InterpretedAnswerQualityResult | null
+}): string {
+  const { rawText, lang, uiEvidence, interpretedAnswerQuality } = params
+  const genericFallback =
+    lang === 'ko'
+      ? '지금은 성급한 확정보다 조건을 다시 확인한 뒤 움직이는 편이 맞습니다.'
+      : 'Move with verification first and delay irreversible commitments.'
+  const normalized = applyCounselorBrandVoice(normalizeCounselorResponse(rawText, lang), lang)
+
+  if (!normalized.trim()) {
+    return buildCounselorFallbackContent(lang, uiEvidence, genericFallback)
+  }
+
+  const warnings: string[] = []
+  if (interpretedAnswerQuality && !interpretedAnswerQuality.pass) {
+    warnings.push(...interpretedAnswerQuality.warnings.map((item) => `contract:${item}`))
+  }
+  if (COUNSELOR_INTERNAL_LEAK_REGEX.test(normalized)) {
+    warnings.push('text:internal_leak')
+  }
+  if (!hasRequiredCounselorSections(normalized, lang)) {
+    warnings.push('text:missing_required_sections')
+  }
+
+  if (warnings.length > 0) {
+    logger.warn('[chat-stream] Counselor style gate fallback', {
+      lang,
+      warnings,
+    })
+    return buildCounselorFallbackContent(lang, uiEvidence, genericFallback)
+  }
+
+  return normalized
 }
 
 export async function POST(req: NextRequest) {
@@ -428,10 +498,12 @@ export async function POST(req: NextRequest) {
           preparedInputs.name
         ),
       finalizeText: (fullText) =>
-        applyCounselorBrandVoice(
-          normalizeCounselorResponse(fullText, preparedInputs.lang),
-          preparedInputs.lang
-        ),
+        finalizeCounselorContent({
+          rawText: fullText,
+          lang: preparedInputs.lang,
+          uiEvidence: preparedExecution.counselorUiEvidence,
+          interpretedAnswerQuality: preparedExecution.interpretedAnswerQuality,
+        }),
       route: 'DestinyMapChatStream',
       additionalHeaders: {
         'X-Fallback': streamResult.response.headers.get('x-fallback') || '0',

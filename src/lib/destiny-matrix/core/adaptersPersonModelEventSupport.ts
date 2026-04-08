@@ -26,6 +26,8 @@ import {
   hourToBucket,
   mapDomainState,
   mapTimingStatus,
+  normalizePersonModelList,
+  normalizePersonModelText,
   normalizeHour,
   parseBirthHour,
   round2,
@@ -59,13 +61,14 @@ export function buildDomainStateGraph(
       [
         ...(manifestation?.activationSources || [])
           .filter((source) => source.active)
-          .map((source) => source.label),
+          .map((source) => normalizePersonModelText(source.label, locale)),
         ...portrait.likelyExpressions,
         ...portrait.allowedActions,
       ].filter(Boolean)
     ).slice(0, 4)
-    const pressureSignals = uniq(
-      [...portrait.riskExpressions, ...portrait.blockedActions].filter(Boolean)
+    const pressureSignals = normalizePersonModelList(
+      [...portrait.riskExpressions, ...portrait.blockedActions].filter(Boolean),
+      locale
     ).slice(0, 4)
     const currentState = mapDomainState(
       portrait.mode,
@@ -97,14 +100,22 @@ export function buildDomainStateGraph(
       return {
         timescale,
         status,
-        thesis:
+        thesis: normalizePersonModelText(
           locale === 'ko'
             ? `${portrait.label} ì¶•ì€ ${timescale} êµ¬ê°„ì—ì„œ ${status === 'open' ? 'ì—´ë¦¼' : status === 'blocked' ? 'ë°©ì–´' : 'í˜¼í•©'} ìƒíƒœë¡œ ì½íž™ë‹ˆë‹¤.`
             : `${portrait.label} reads as ${
                 status === 'open' ? 'open' : status === 'blocked' ? 'defensive' : 'mixed'
               } in the ${timescale} window.`,
-        entryConditions: (timing?.entryConditions || []).slice(0, 2),
-        abortConditions: (timing?.abortConditions || []).slice(0, 2),
+          locale
+        ),
+        entryConditions: normalizePersonModelList(
+          (timing?.entryConditions || []).slice(0, 2),
+          locale
+        ),
+        abortConditions: normalizePersonModelList(
+          (timing?.abortConditions || []).slice(0, 2),
+          locale
+        ),
       }
     })
     const nextShift = timescales.find(
@@ -116,7 +127,10 @@ export function buildDomainStateGraph(
       label: portrait.label,
       currentState,
       currentWindow: portrait.timingWindow,
-      thesis: portrait.activationThesis || portrait.baselineThesis || portrait.summary,
+      thesis: normalizePersonModelText(
+        portrait.activationThesis || portrait.baselineThesis || portrait.summary,
+        locale
+      ),
       supportSignals,
       pressureSignals,
       alignedWith,
@@ -394,20 +408,24 @@ export function buildEventOutlook(
       status: mapCurrentStateToEventStatus(state?.currentState || 'mixed'),
       readiness,
       bestWindow: branch?.window || state?.currentWindow,
-      summary:
+      summary: normalizePersonModelText(
         branch?.summary ||
-        state?.thesis ||
-        portrait?.summary ||
-        (locale === 'ko'
-          ? `${eventDef.label} ì‚¬ê±´ì€ ${localizeDomain(eventDef.domain, locale)} ì¶• ì¡°ê±´ì´ ë§žì„ ë•Œ ì—´ë¦½ë‹ˆë‹¤.`
-          : `${eventDef.label} opens when the ${localizeDomain(eventDef.domain, locale)} axis conditions line up.`),
-      entryConditions: uniq(
-        baseEntry.filter((item): item is string => typeof item === 'string')
-      ).slice(0, 4),
-      abortConditions: uniq(
-        baseAbort.filter((item): item is string => typeof item === 'string')
-      ).slice(0, 4),
-      nextMove,
+          state?.thesis ||
+          portrait?.summary ||
+          (locale === 'ko'
+            ? `${eventDef.label} ì‚¬ê±´ì€ ${localizeDomain(eventDef.domain, locale)} ì¶• ì¡°ê±´ì´ ë§žì„ ë•Œ ì—´ë¦½ë‹ˆë‹¤.`
+            : `${eventDef.label} opens when the ${localizeDomain(eventDef.domain, locale)} axis conditions line up.`),
+        locale
+      ),
+      entryConditions: normalizePersonModelList(
+        uniq(baseEntry.filter((item): item is string => typeof item === 'string')).slice(0, 4),
+        locale
+      ),
+      abortConditions: normalizePersonModelList(
+        uniq(baseAbort.filter((item): item is string => typeof item === 'string')).slice(0, 4),
+        locale
+      ),
+      nextMove: normalizePersonModelText(nextMove, locale),
     }
   })
 }

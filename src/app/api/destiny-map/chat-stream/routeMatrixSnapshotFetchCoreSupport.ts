@@ -397,6 +397,7 @@ export async function fetchMatrixSnapshot(input: {
   currentTransits?: unknown[]
   theme: string
   focusDomain?: InsightDomain
+  questionText?: string
   needsPreciseTiming?: boolean
   skipBirthTimeRectification?: boolean
   skipPreciseTiming?: boolean
@@ -677,6 +678,7 @@ export async function fetchMatrixSnapshot(input: {
       theme: input.theme as Parameters<typeof buildCounselorEvidencePacket>[0]['theme'],
       lang: matrixLang,
       focusDomainOverride: input.focusDomain,
+      questionText: input.questionText,
       matrixInput: normalizedMatrixInput,
       matrixReport,
       matrixSummary: matrixSummaryForCounselor || matrix.summary,
@@ -770,6 +772,7 @@ export async function fetchMatrixSnapshot(input: {
       theme: input.theme as Parameters<typeof buildCounselorEvidencePacket>[0]['theme'],
       lang: matrixLang,
       focusDomainOverride: input.focusDomain,
+      questionText: input.questionText,
       matrixInput: normalizedMatrixInput,
       matrixReport,
       matrixSummary: matrixSummaryForCounselor || matrix.summary,

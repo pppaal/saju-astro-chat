@@ -9,6 +9,18 @@ Use two levels:
 - Required checks: release gate for most changes
 - Extended checks: slower regressions and diagnostics for higher-risk work
 
+For the destiny stack, treat testing as three layers:
+
+1. `quick`
+   - `npm run ops:destiny:gate:quick`
+   - fast smoke on prose/style/quality regressions
+2. `release`
+   - `npm run ops:destiny:release`
+   - required before shipping changes to report, counselor, calendar, or action-plan
+3. `nightly-full`
+   - `.github/workflows/destiny-nightly.yml`
+   - sharded full Vitest coverage plus nightly destiny gate and failure triage summary
+
 ## Required Checks
 
 Run from repo root:
@@ -64,6 +76,9 @@ Current rule:
 - Do not claim "full-suite green" unless the full Vitest matrix has been rerun on the same revision.
 - Preferred release command:
   - `npm run ops:destiny:release`
+- Preferred nightly/triage path:
+  - `npm run test:nightly:shard -- --index=0 --total=1 --jsonOut=reports/nightly/local-full.json`
+  - `node scripts/ops/analyze-vitest-json.mjs --input=reports/nightly/local-full.json --out-json=reports/nightly/local-full-summary.json --out-md=reports/nightly/local-full-summary.md`
 
 ## Extended Checks
 
@@ -80,6 +95,7 @@ Notes:
 - Full suites include broad legacy and integration coverage.
 - `trace-destinypal-pipeline.ts` is the main end-to-end inspection path for core, evaluation, input audit, GraphRAG, and service consistency.
 - Treat destiny QA regressions as release blockers for counselor, calendar, and premium-report changes.
+- Nightly full-suite failures should be triaged by category before they are treated as release blockers. The nightly analyzer currently groups failures into auth/guard, import/module drift, UI/copy, contract drift, runtime, rate-limit/env, and report/engine buckets.
 
 ## Playwright Local/CI Execution
 
