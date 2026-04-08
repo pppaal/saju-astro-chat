@@ -2,8 +2,39 @@ import type { MatrixCalculationInput } from '../types'
 import type { ReportTheme, ThemedReportSections, TimingReportSections } from './types'
 import type { SignalSynthesisResult } from './signalSynthesizer'
 import type { ReportCoreViewModel } from './reportCoreHelpers'
+import { normalizeUserFacingGuidance } from '@/lib/destiny-matrix/guidanceLanguage'
 
 type Lang = 'ko' | 'en'
+
+function normalizeTimingSections(sections: TimingReportSections, lang: Lang): TimingReportSections {
+  return {
+    overview: normalizeUserFacingGuidance(sections.overview, lang),
+    energy: normalizeUserFacingGuidance(sections.energy, lang),
+    opportunities: normalizeUserFacingGuidance(sections.opportunities, lang),
+    cautions: normalizeUserFacingGuidance(sections.cautions, lang),
+    domains: {
+      career: normalizeUserFacingGuidance(sections.domains.career, lang),
+      love: normalizeUserFacingGuidance(sections.domains.love, lang),
+      wealth: normalizeUserFacingGuidance(sections.domains.wealth, lang),
+      health: normalizeUserFacingGuidance(sections.domains.health, lang),
+    },
+    actionPlan: normalizeUserFacingGuidance(sections.actionPlan, lang),
+    luckyElements: normalizeUserFacingGuidance(sections.luckyElements, lang),
+  }
+}
+
+function normalizeThemedSections(sections: ThemedReportSections, lang: Lang): ThemedReportSections {
+  const normalizedEntries = Object.entries(sections).map(([key, value]) => {
+    if (Array.isArray(value)) {
+      return [key, value.map((item) => normalizeUserFacingGuidance(item, lang))]
+    }
+    if (typeof value === 'string') {
+      return [key, normalizeUserFacingGuidance(value, lang)]
+    }
+    return [key, value]
+  })
+  return Object.fromEntries(normalizedEntries) as ThemedReportSections
+}
 
 export interface SecondaryFallbackDeps {
   ensureLongSectionNarrative: (base: string, minChars: number, extras: string[]) => string
@@ -55,60 +86,66 @@ export function buildTimingFallbackSections(
         actionPlan: `${reportCore.primaryAction} ${reportCore.primaryCaution} ${reportCore.riskControl}`,
         luckyElements: reportCore.judgmentPolicy.rationale,
       }
-      return {
-        overview: deps.ensureLongSectionNarrative(coreSections.overview, 560, [
-          '타이밍 해석의 핵심은 속도를 높이는 것이 아니라, 실행과 확정을 분리해 오류 비용을 줄이는 데 있습니다.',
-          '지금 구간은 같은 결론도 언제 어떻게 실행하느냐에 따라 결과 편차가 크게 갈릴 수 있습니다.',
-        ]),
-        energy: deps.ensureLongSectionNarrative(coreSections.energy, 520, [
-          '피로 신호를 뒤늦게 다루기보다, 먼저 회복 슬롯을 배치하는 방식이 현재 흐름과 더 잘 맞습니다.',
-          '짧은 회복 루틴을 반복하는 쪽이 한 번의 강한 몰입보다 컨디션을 더 안정시킵니다.',
-        ]),
-        opportunities: deps.ensureLongSectionNarrative(coreSections.opportunities, 520, [
-          '기회는 넓게 벌리는 것보다, 이미 열린 문을 단계적으로 확정하는 과정에서 더 선명해집니다.',
-          '지금은 시작 자체보다 완료 품질과 조건 합의가 다음 기회를 결정합니다.',
-        ]),
-        cautions: deps.ensureLongSectionNarrative(coreSections.cautions, 500, [
-          '특히 관계와 소통 영역의 주의 신호는 결론보다 확인 절차를 먼저 두라는 뜻으로 읽는 편이 맞습니다.',
-          '같은 메시지도 해석 차이가 크면 결과가 달라지므로, 짧은 재확인이 리스크를 크게 줄입니다.',
-        ]),
-        domains: {
-          career: deps.ensureLongSectionNarrative(coreSections.domains.career, 420, [
-            '커리어는 새로운 약속보다 기존 역할과 기준을 선명하게 정할수록 결과가 더 안정됩니다.',
+      return normalizeTimingSections(
+        {
+          overview: deps.ensureLongSectionNarrative(coreSections.overview, 560, [
+            '타이밍 해석의 핵심은 속도를 높이는 것이 아니라, 실행과 확정을 분리해 오류 비용을 줄이는 데 있습니다.',
+            '지금 구간은 같은 결론도 언제 어떻게 실행하느냐에 따라 결과 편차가 크게 갈릴 수 있습니다.',
           ]),
-          love: deps.ensureLongSectionNarrative(coreSections.domains.love, 420, [
-            '관계는 감정의 크기보다 해석 일치를 먼저 맞추는 편이 현재 흐름에 더 적합합니다.',
+          energy: deps.ensureLongSectionNarrative(coreSections.energy, 520, [
+            '피로 신호를 뒤늦게 다루기보다, 먼저 회복 슬롯을 배치하는 방식이 현재 흐름과 더 잘 맞습니다.',
+            '짧은 회복 루틴을 반복하는 쪽이 한 번의 강한 몰입보다 컨디션을 더 안정시킵니다.',
           ]),
-          wealth: deps.ensureLongSectionNarrative(coreSections.domains.wealth, 420, [
-            '재정은 상승 신호가 있어도 조건 검토가 빠지면 같은 속도로 새는 구멍도 커질 수 있습니다.',
+          opportunities: deps.ensureLongSectionNarrative(coreSections.opportunities, 520, [
+            '기회는 넓게 벌리는 것보다, 이미 열린 문을 단계적으로 확정하는 과정에서 더 선명해집니다.',
+            '지금은 시작 자체보다 완료 품질과 조건 합의가 다음 기회를 결정합니다.',
           ]),
-          health: deps.ensureLongSectionNarrative(coreSections.domains.health, 420, [
-            '건강은 무너지기 전에 리듬을 유지하는 운영이 가장 큰 차이를 만듭니다.',
+          cautions: deps.ensureLongSectionNarrative(coreSections.cautions, 500, [
+            '특히 관계와 소통 영역의 주의 신호는 결론보다 확인 절차를 먼저 두라는 뜻으로 읽는 편이 맞습니다.',
+            '같은 메시지도 해석 차이가 크면 결과가 달라지므로, 짧은 재확인이 리스크를 크게 줄입니다.',
+          ]),
+          domains: {
+            career: deps.ensureLongSectionNarrative(coreSections.domains.career, 420, [
+              '커리어는 새로운 약속보다 기존 역할과 기준을 선명하게 정할수록 결과가 더 안정됩니다.',
+            ]),
+            love: deps.ensureLongSectionNarrative(coreSections.domains.love, 420, [
+              '관계는 감정의 크기보다 해석 일치를 먼저 맞추는 편이 현재 흐름에 더 적합합니다.',
+            ]),
+            wealth: deps.ensureLongSectionNarrative(coreSections.domains.wealth, 420, [
+              '재정은 상승 신호가 있어도 조건 검토가 빠지면 같은 속도로 새는 구멍도 커질 수 있습니다.',
+            ]),
+            health: deps.ensureLongSectionNarrative(coreSections.domains.health, 420, [
+              '건강은 무너지기 전에 리듬을 유지하는 운영이 가장 큰 차이를 만듭니다.',
+            ]),
+          },
+          actionPlan: deps.ensureLongSectionNarrative(coreSections.actionPlan, 520, [
+            '실행 기준을 단순하게 유지해야 실제 행동 전환률과 결과 재현성이 함께 올라갑니다.',
+            '오늘은 많이 하기보다 중요한 것을 정확히 닫는 구조가 맞습니다.',
+          ]),
+          luckyElements: deps.ensureLongSectionNarrative(coreSections.luckyElements || '', 360, [
+            '행운 요소는 감이 아니라 운영 원칙으로 작동하며, 기준을 지킬수록 체감 품질이 올라갑니다.',
           ]),
         },
-        actionPlan: deps.ensureLongSectionNarrative(coreSections.actionPlan, 520, [
-          '실행 기준을 단순하게 유지해야 실제 행동 전환률과 결과 재현성이 함께 올라갑니다.',
-          '오늘은 많이 하기보다 중요한 것을 정확히 닫는 구조가 맞습니다.',
-        ]),
-        luckyElements: deps.ensureLongSectionNarrative(coreSections.luckyElements || '', 360, [
-          '행운 요소는 감이 아니라 운영 원칙으로 작동하며, 기준을 지킬수록 체감 품질이 올라갑니다.',
-        ]),
-      }
+        lang
+      )
     }
-    return {
-      overview: `${reportCore.thesis} ${timing ? deps.buildTimingWindowNarrative(reportCore.focusDomain, timing, lang) : reportCore.gradeReason}`,
-      energy: `${health?.thesis || 'Energy should be managed with recovery-first pacing.'} ${health?.caution || reportCore.primaryCaution}`,
-      opportunities: `${career?.thesis || 'Opportunity opens through staged career moves.'} ${career?.action || reportCore.primaryAction}`,
-      cautions: `${relation?.caution || reportCore.primaryCaution} ${reportCore.riskControl}`,
-      domains: {
-        career: `${career?.thesis || ''} ${career?.action || reportCore.primaryAction}`.trim(),
-        love: `${relation?.thesis || ''} ${relation?.caution || reportCore.primaryCaution}`.trim(),
-        wealth: `${wealth?.thesis || ''} ${wealth?.caution || reportCore.riskControl}`.trim(),
-        health: `${health?.thesis || ''} ${health?.action || reportCore.primaryAction}`.trim(),
+    return normalizeTimingSections(
+      {
+        overview: `${reportCore.thesis} ${timing ? deps.buildTimingWindowNarrative(reportCore.focusDomain, timing, lang) : reportCore.gradeReason}`,
+        energy: `${health?.thesis || 'Energy should be managed with recovery-first pacing.'} ${health?.caution || reportCore.primaryCaution}`,
+        opportunities: `${career?.thesis || 'Opportunity opens through staged career moves.'} ${career?.action || reportCore.primaryAction}`,
+        cautions: `${relation?.caution || reportCore.primaryCaution} ${reportCore.riskControl}`,
+        domains: {
+          career: `${career?.thesis || ''} ${career?.action || reportCore.primaryAction}`.trim(),
+          love: `${relation?.thesis || ''} ${relation?.caution || reportCore.primaryCaution}`.trim(),
+          wealth: `${wealth?.thesis || ''} ${wealth?.caution || reportCore.riskControl}`.trim(),
+          health: `${health?.thesis || ''} ${health?.action || reportCore.primaryAction}`.trim(),
+        },
+        actionPlan: `${reportCore.primaryAction} ${reportCore.primaryCaution} ${reportCore.riskControl}`,
+        luckyElements: reportCore.judgmentPolicy.rationale,
       },
-      actionPlan: `${reportCore.primaryAction} ${reportCore.primaryCaution} ${reportCore.riskControl}`,
-      luckyElements: reportCore.judgmentPolicy.rationale,
-    }
+      lang
+    )
   }
 
   const claims = synthesis?.claims || []
@@ -206,62 +243,68 @@ export function buildTimingFallbackSections(
       ],
     }
 
-    return {
-      overview: deps.ensureLongSectionNarrative(koSections.overview, 560, extra.overview),
-      energy: deps.ensureLongSectionNarrative(koSections.energy, 520, extra.energy),
-      opportunities: deps.ensureLongSectionNarrative(
-        koSections.opportunities,
-        520,
-        extra.opportunities
-      ),
-      cautions: deps.ensureLongSectionNarrative(koSections.cautions, 500, extra.cautions),
-      domains: {
-        career: deps.ensureLongSectionNarrative(koSections.domains.career, 420, extra.career),
-        love: deps.ensureLongSectionNarrative(koSections.domains.love, 420, extra.love),
-        wealth: deps.ensureLongSectionNarrative(koSections.domains.wealth, 420, extra.wealth),
-        health: deps.ensureLongSectionNarrative(koSections.domains.health, 420, extra.health),
+    return normalizeTimingSections(
+      {
+        overview: deps.ensureLongSectionNarrative(koSections.overview, 560, extra.overview),
+        energy: deps.ensureLongSectionNarrative(koSections.energy, 520, extra.energy),
+        opportunities: deps.ensureLongSectionNarrative(
+          koSections.opportunities,
+          520,
+          extra.opportunities
+        ),
+        cautions: deps.ensureLongSectionNarrative(koSections.cautions, 500, extra.cautions),
+        domains: {
+          career: deps.ensureLongSectionNarrative(koSections.domains.career, 420, extra.career),
+          love: deps.ensureLongSectionNarrative(koSections.domains.love, 420, extra.love),
+          wealth: deps.ensureLongSectionNarrative(koSections.domains.wealth, 420, extra.wealth),
+          health: deps.ensureLongSectionNarrative(koSections.domains.health, 420, extra.health),
+        },
+        actionPlan: deps.ensureLongSectionNarrative(koSections.actionPlan, 520, extra.actionPlan),
+        luckyElements: deps.ensureLongSectionNarrative(
+          koSections.luckyElements || '',
+          360,
+          extra.luckyElements
+        ),
       },
-      actionPlan: deps.ensureLongSectionNarrative(koSections.actionPlan, 520, extra.actionPlan),
-      luckyElements: deps.ensureLongSectionNarrative(
-        koSections.luckyElements || '',
-        360,
-        extra.luckyElements
-      ),
-    }
+      lang
+    )
   }
 
-  return {
-    overview:
-      timing?.thesis ||
-      'Today favors verification order over commitment speed. Separate decision timing from execution timing.',
-    energy:
-      health?.thesis ||
-      'Your energy pattern needs recovery-first pacing. Lock sleep, hydration, and routine before scaling workload.',
-    opportunities:
-      career?.thesis ||
-      'High-yield windows reward narrow-and-finish execution. Lock scope and ownership before expansion.',
-    cautions:
-      relation?.riskControl ||
-      'Communication drift can amplify loss. Add one-line confirmation before sending messages or documents.',
-    domains: {
-      career:
-        career?.riskControl ||
-        'For career, stabilize schedule, priorities, and deadlines before hard commitment.',
-      love:
+  return normalizeTimingSections(
+    {
+      overview:
+        timing?.thesis ||
+        'Today favors verification order over commitment speed. Separate decision timing from execution timing.',
+      energy:
+        health?.thesis ||
+        'Your energy pattern needs recovery-first pacing. Lock sleep, hydration, and routine before scaling workload.',
+      opportunities:
+        career?.thesis ||
+        'High-yield windows reward narrow-and-finish execution. Lock scope and ownership before expansion.',
+      cautions:
         relation?.riskControl ||
-        'In relationships, alignment quality beats emotional speed. Use confirmation questions.',
-      wealth:
-        wealth?.riskControl ||
-        'For money decisions, validate amount, due date, and cancellation terms before commit.',
-      health:
-        health?.riskControl ||
-        'For health, preserve recovery rhythm and cut overdrive before fatigue compounds.',
+        'Communication drift can amplify loss. Add one-line confirmation before sending messages or documents.',
+      domains: {
+        career:
+          career?.riskControl ||
+          'For career, stabilize schedule, priorities, and deadlines before hard commitment.',
+        love:
+          relation?.riskControl ||
+          'In relationships, alignment quality beats emotional speed. Use confirmation questions.',
+        wealth:
+          wealth?.riskControl ||
+          'For money decisions, validate amount, due date, and cancellation terms before commit.',
+        health:
+          health?.riskControl ||
+          'For health, preserve recovery rhythm and cut overdrive before fatigue compounds.',
+      },
+      actionPlan:
+        'Execution sequence: 1) define one must-finish output, 2) verify scope/deadline/ownership before external delivery, 3) move non-urgent commitments into a 24h recheck slot.',
+      luckyElements:
+        'Your practical lucky element is disciplined sequencing: verify first, then commit.',
     },
-    actionPlan:
-      'Execution sequence: 1) define one must-finish output, 2) verify scope/deadline/ownership before external delivery, 3) move non-urgent commitments into a 24h recheck slot.',
-    luckyElements:
-      'Your practical lucky element is disciplined sequencing: verify first, then commit.',
-  }
+    lang
+  )
 }
 
 function enforceThemedDepth(
@@ -466,74 +509,88 @@ export function buildThemedFallbackSections(
         const loveHealth = deps.findReportCoreAdvisory(reportCore, 'health')
         const loveRelationshipTiming = deps.findReportCoreTimingWindow(reportCore, 'relationship')
         const loveWealthTiming = deps.findReportCoreTimingWindow(reportCore, 'wealth')
-        return enforceThemedDepth(
-          {
-            ...common,
-            compatibility:
-              `${loveRelationship?.thesis || reportCore.thesis} ${loveHealth?.caution || reportCore.riskControl}`.trim(),
-            spouseProfile:
-              `${deps.findReportCoreManifestation(reportCore, 'relationship')?.manifestation || reportCore.gradeReason} ${loveWealth?.thesis || ''}`.trim(),
-            marriageTiming: loveRelationshipTiming
-              ? `${deps.buildTimingWindowNarrative('relationship', loveRelationshipTiming, lang)} ${loveWealthTiming ? deps.buildTimingWindowNarrative('wealth', loveWealthTiming, lang) : reportCore.riskControl}`.trim()
-              : reportCore.riskControl,
-          },
-          theme,
-          deps
+        return normalizeThemedSections(
+          enforceThemedDepth(
+            {
+              ...common,
+              compatibility:
+                `${loveRelationship?.thesis || reportCore.thesis} ${loveHealth?.caution || reportCore.riskControl}`.trim(),
+              spouseProfile:
+                `${deps.findReportCoreManifestation(reportCore, 'relationship')?.manifestation || reportCore.gradeReason} ${loveWealth?.thesis || ''}`.trim(),
+              marriageTiming: loveRelationshipTiming
+                ? `${deps.buildTimingWindowNarrative('relationship', loveRelationshipTiming, lang)} ${loveWealthTiming ? deps.buildTimingWindowNarrative('wealth', loveWealthTiming, lang) : reportCore.riskControl}`.trim()
+                : reportCore.riskControl,
+            },
+            theme,
+            deps
+          ),
+          lang
         )
       }
       case 'career':
-        return enforceThemedDepth(
-          {
-            ...common,
-            strategy:
-              deps.findReportCoreAdvisory(reportCore, 'career')?.thesis || reportCore.thesis,
-            roleFit:
-              deps.findReportCoreManifestation(reportCore, 'career')?.manifestation ||
-              reportCore.gradeReason,
-            turningPoints: deps.findReportCoreTimingWindow(reportCore, 'career')
-              ? deps.buildTimingWindowNarrative(
-                  'career',
-                  deps.findReportCoreTimingWindow(reportCore, 'career')!,
-                  lang
-                )
-              : reportCore.riskControl,
-          },
-          theme,
-          deps
+        return normalizeThemedSections(
+          enforceThemedDepth(
+            {
+              ...common,
+              strategy:
+                deps.findReportCoreAdvisory(reportCore, 'career')?.thesis || reportCore.thesis,
+              roleFit:
+                deps.findReportCoreManifestation(reportCore, 'career')?.manifestation ||
+                reportCore.gradeReason,
+              turningPoints: deps.findReportCoreTimingWindow(reportCore, 'career')
+                ? deps.buildTimingWindowNarrative(
+                    'career',
+                    deps.findReportCoreTimingWindow(reportCore, 'career')!,
+                    lang
+                  )
+                : reportCore.riskControl,
+            },
+            theme,
+            deps
+          ),
+          lang
         )
       case 'wealth':
-        return enforceThemedDepth(
-          {
-            ...common,
-            strategy:
-              deps.findReportCoreAdvisory(reportCore, 'wealth')?.thesis || reportCore.thesis,
-            incomeStreams:
-              deps.findReportCoreManifestation(reportCore, 'wealth')?.manifestation ||
-              reportCore.gradeReason,
-            riskManagement:
-              deps.findReportCoreAdvisory(reportCore, 'wealth')?.caution || reportCore.riskControl,
-          },
-          theme,
-          deps
+        return normalizeThemedSections(
+          enforceThemedDepth(
+            {
+              ...common,
+              strategy:
+                deps.findReportCoreAdvisory(reportCore, 'wealth')?.thesis || reportCore.thesis,
+              incomeStreams:
+                deps.findReportCoreManifestation(reportCore, 'wealth')?.manifestation ||
+                reportCore.gradeReason,
+              riskManagement:
+                deps.findReportCoreAdvisory(reportCore, 'wealth')?.caution ||
+                reportCore.riskControl,
+            },
+            theme,
+            deps
+          ),
+          lang
         )
       case 'health':
-        return enforceThemedDepth(
-          {
-            ...common,
-            prevention:
-              deps.findReportCoreAdvisory(reportCore, 'health')?.thesis || reportCore.thesis,
-            riskWindows: deps.findReportCoreTimingWindow(reportCore, 'health')
-              ? deps.buildTimingWindowNarrative(
-                  'health',
-                  deps.findReportCoreTimingWindow(reportCore, 'health')!,
-                  lang
-                )
-              : reportCore.gradeReason,
-            recoveryPlan:
-              deps.findReportCoreAdvisory(reportCore, 'health')?.action || reportCore.primaryAction,
-          },
-          theme,
-          deps
+        return normalizeThemedSections(
+          enforceThemedDepth(
+            {
+              ...common,
+              prevention:
+                deps.findReportCoreAdvisory(reportCore, 'health')?.thesis || reportCore.thesis,
+              riskWindows: deps.findReportCoreTimingWindow(reportCore, 'health')
+                ? deps.buildTimingWindowNarrative(
+                    'health',
+                    deps.findReportCoreTimingWindow(reportCore, 'health')!,
+                    lang
+                  )
+                : reportCore.gradeReason,
+              recoveryPlan:
+                deps.findReportCoreAdvisory(reportCore, 'health')?.action ||
+                reportCore.primaryAction,
+            },
+            theme,
+            deps
+          ),
+          lang
         )
       case 'family': {
         const familyRelationship = deps.findReportCoreAdvisory(reportCore, 'relationship')
@@ -541,18 +598,21 @@ export function buildThemedFallbackSections(
         const familyHealth = deps.findReportCoreAdvisory(reportCore, 'health')
         const familyRelationshipTiming = deps.findReportCoreTimingWindow(reportCore, 'relationship')
         const familyHealthTiming = deps.findReportCoreTimingWindow(reportCore, 'health')
-        return enforceThemedDepth(
-          {
-            ...common,
-            dynamics:
-              `${familyRelationship?.thesis || reportCore.thesis} ${familyWealth?.caution || familyHealth?.caution || reportCore.riskControl}`.trim(),
-            communication:
-              `${familyRelationship?.caution || reportCore.primaryCaution} ${familyHealth?.action || reportCore.primaryAction}`.trim(),
-            legacy:
-              `${familyWealth?.thesis || reportCore.judgmentPolicy.rationale} ${familyRelationshipTiming ? deps.buildTimingWindowNarrative('relationship', familyRelationshipTiming, lang) : familyHealthTiming ? deps.buildTimingWindowNarrative('health', familyHealthTiming, lang) : reportCore.riskControl}`.trim(),
-          },
-          theme,
-          deps
+        return normalizeThemedSections(
+          enforceThemedDepth(
+            {
+              ...common,
+              dynamics:
+                `${familyRelationship?.thesis || reportCore.thesis} ${familyWealth?.caution || familyHealth?.caution || reportCore.riskControl}`.trim(),
+              communication:
+                `${familyRelationship?.caution || reportCore.primaryCaution} ${familyHealth?.action || reportCore.primaryAction}`.trim(),
+              legacy:
+                `${familyWealth?.thesis || reportCore.judgmentPolicy.rationale} ${familyRelationshipTiming ? deps.buildTimingWindowNarrative('relationship', familyRelationshipTiming, lang) : familyHealthTiming ? deps.buildTimingWindowNarrative('health', familyHealthTiming, lang) : reportCore.riskControl}`.trim(),
+            },
+            theme,
+            deps
+          ),
+          lang
         )
       }
     }
@@ -600,100 +660,115 @@ export function buildThemedFallbackSections(
 
   switch (theme) {
     case 'love':
-      return enforceThemedDepth(
-        {
-          ...baseKo,
-          compatibility: merge(
-            `${relation?.thesis || ''} ${health?.riskControl || ''}`.trim(),
-            '관계 궁합은 감정 강도보다 해석 일치와 관계 속도 합이 맞는지가 핵심입니다. 서로의 기대를 문장으로 맞추면 갈등 비용이 줄어듭니다. 좋아하는 마음이 있어도 표현 속도와 확정 속도가 다르면 관계는 쉽게 흔들릴 수 있으니, 감정보다 먼저 속도와 기준을 맞추는 것이 중요합니다.'
-          ),
-          spouseProfile: merge(
-            wealth?.thesis,
-            '관계형 파트너와의 조합에서 장점이 커집니다. 다만 확정 속도가 빠르면 오해가 누적되므로 확인 질문 루틴이 필요합니다. 잘 맞는 상대일수록 작은 말실수도 크게 남을 수 있으니, 감정 표현과 사실 확인을 분리하는 대화 습관이 중요합니다. 장기적으로는 설렘만큼 생활 적합도와 책임감의 합이 관계를 지켜주는 순간이 많습니다.'
-          ),
-          marriageTiming: merge(
-            `${timing?.riskControl || ''} ${wealth?.riskControl || ''}`.trim(),
-            '중요 확정은 당일보다 24시간 검증 창을 둔 뒤 진행하는 방식이 더 안전합니다. 일정·예산·역할 분담을 문서로 먼저 맞추면 감정 변수에 흔들릴 확률이 낮아집니다. 타이밍이 좋을수록 더 신중하게 기준을 맞추는 것이 실제 만족도를 높이고, 재접근과 결혼 논의는 서로 다른 속도로 운영해야 만족도가 올라갑니다.'
-          ),
-        },
-        theme,
-        deps
+      return normalizeThemedSections(
+        enforceThemedDepth(
+          {
+            ...baseKo,
+            compatibility: merge(
+              `${relation?.thesis || ''} ${health?.riskControl || ''}`.trim(),
+              '관계 궁합은 감정 강도보다 해석 일치와 관계 속도 합이 맞는지가 핵심입니다. 서로의 기대를 문장으로 맞추면 갈등 비용이 줄어듭니다. 좋아하는 마음이 있어도 표현 속도와 확정 속도가 다르면 관계는 쉽게 흔들릴 수 있으니, 감정보다 먼저 속도와 기준을 맞추는 것이 중요합니다.'
+            ),
+            spouseProfile: merge(
+              wealth?.thesis,
+              '관계형 파트너와의 조합에서 장점이 커집니다. 다만 확정 속도가 빠르면 오해가 누적되므로 확인 질문 루틴이 필요합니다. 잘 맞는 상대일수록 작은 말실수도 크게 남을 수 있으니, 감정 표현과 사실 확인을 분리하는 대화 습관이 중요합니다. 장기적으로는 설렘만큼 생활 적합도와 책임감의 합이 관계를 지켜주는 순간이 많습니다.'
+            ),
+            marriageTiming: merge(
+              `${timing?.riskControl || ''} ${wealth?.riskControl || ''}`.trim(),
+              '중요 확정은 당일보다 24시간 검증 창을 둔 뒤 진행하는 방식이 더 안전합니다. 일정·예산·역할 분담을 문서로 먼저 맞추면 감정 변수에 흔들릴 확률이 낮아집니다. 타이밍이 좋을수록 더 신중하게 기준을 맞추는 것이 실제 만족도를 높이고, 재접근과 결혼 논의는 서로 다른 속도로 운영해야 만족도가 올라갑니다.'
+            ),
+          },
+          theme,
+          deps
+        ),
+        lang
       )
     case 'career':
-      return enforceThemedDepth(
-        {
-          ...baseKo,
-          strategy: merge(
-            career?.thesis,
-            '커리어 전략은 폭넓은 시도보다 핵심 과업 완결 중심이 유리합니다. 역할·마감·책임의 명확화가 성과를 지킵니다. 상승 신호가 있어도 리스크 관리가 함께 필요하므로, 실행은 공격적으로 하되 확정은 단계적으로 진행하세요. 성과가 나는 사람의 공통점은 속도보다 누락 없는 마감 품질에 있습니다.'
-          ),
-          roleFit:
-            '의사결정과 구조화가 필요한 포지션에서 강점이 큽니다. 단, 속도전보다 품질 검증 프로세스가 필수입니다. 리더/기획/운영처럼 기준을 정하고 조율하는 역할에서 특히 성과가 잘 납니다. 반대로 기준 없는 다중 업무는 에너지를 분산시키므로 업무 구조를 먼저 정리해야 합니다.',
-          turningPoints: merge(
-            timing?.thesis,
-            '전환점은 상승 신호와 조정 신호가 동시에 들어오는 구간에서 나타납니다. 확장과 재정의를 병행하세요. 새로운 기회를 잡을 때 기존 방식의 일부를 정리해야 다음 레벨로 올라갈 수 있습니다. 전환기의 핵심은 “더 많이”가 아니라 “더 정확히”입니다.'
-          ),
-        },
-        theme,
-        deps
+      return normalizeThemedSections(
+        enforceThemedDepth(
+          {
+            ...baseKo,
+            strategy: merge(
+              career?.thesis,
+              '커리어 전략은 폭넓은 시도보다 핵심 과업 완결 중심이 유리합니다. 역할·마감·책임의 명확화가 성과를 지킵니다. 상승 신호가 있어도 리스크 관리가 함께 필요하므로, 실행은 공격적으로 하되 확정은 단계적으로 진행하세요. 성과가 나는 사람의 공통점은 속도보다 누락 없는 마감 품질에 있습니다.'
+            ),
+            roleFit:
+              '의사결정과 구조화가 필요한 포지션에서 강점이 큽니다. 단, 속도전보다 품질 검증 프로세스가 필수입니다. 리더/기획/운영처럼 기준을 정하고 조율하는 역할에서 특히 성과가 잘 납니다. 반대로 기준 없는 다중 업무는 에너지를 분산시키므로 업무 구조를 먼저 정리해야 합니다.',
+            turningPoints: merge(
+              timing?.thesis,
+              '전환점은 상승 신호와 조정 신호가 동시에 들어오는 구간에서 나타납니다. 확장과 재정의를 병행하세요. 새로운 기회를 잡을 때 기존 방식의 일부를 정리해야 다음 레벨로 올라갈 수 있습니다. 전환기의 핵심은 “더 많이”가 아니라 “더 정확히”입니다.'
+            ),
+          },
+          theme,
+          deps
+        ),
+        lang
       )
     case 'wealth':
-      return enforceThemedDepth(
-        {
-          ...baseKo,
-          strategy: merge(
-            wealth?.thesis,
-            '재정 전략은 수익 기대보다 현금흐름 안정과 조건 검증에 우선순위를 둬야 합니다. 기회가 있어도 리스크를 통제하지 못하면 누적 성과가 흔들릴 수 있으므로, 먼저 손실 상한을 정하고 그 안에서 실행해야 합니다. 수익률보다 생존률을 높이는 운영이 장기적으로 더 큰 결과를 만듭니다.'
-          ),
-          incomeStreams:
-            '수입원 다각화는 가능하지만, 새 채널 확정은 소규모 검증 후 확대가 안전합니다. 파일럿 단계에서 고객 반응/비용 구조/회수 기간을 먼저 확인하면 실패 비용을 크게 줄일 수 있습니다. 작은 성공을 반복해 확장하는 방식이 현재 흐름과 잘 맞습니다.',
-          riskManagement: merge(
-            wealth?.riskControl,
-            '지출 상한과 손절 규칙을 먼저 정하고 실행하세요. 계약/투자/결제는 당일 확정보다 24시간 검토를 넣어 리스크를 통제하는 편이 안정적입니다.'
-          ),
-        },
-        theme,
-        deps
+      return normalizeThemedSections(
+        enforceThemedDepth(
+          {
+            ...baseKo,
+            strategy: merge(
+              wealth?.thesis,
+              '재정 전략은 수익 기대보다 현금흐름 안정과 조건 검증에 우선순위를 둬야 합니다. 기회가 있어도 리스크를 통제하지 못하면 누적 성과가 흔들릴 수 있으므로, 먼저 손실 상한을 정하고 그 안에서 실행해야 합니다. 수익률보다 생존률을 높이는 운영이 장기적으로 더 큰 결과를 만듭니다.'
+            ),
+            incomeStreams:
+              '수입원 다각화는 가능하지만, 새 채널 확정은 소규모 검증 후 확대가 안전합니다. 파일럿 단계에서 고객 반응/비용 구조/회수 기간을 먼저 확인하면 실패 비용을 크게 줄일 수 있습니다. 작은 성공을 반복해 확장하는 방식이 현재 흐름과 잘 맞습니다.',
+            riskManagement: merge(
+              wealth?.riskControl,
+              '지출 상한과 손절 규칙을 먼저 정하고 실행하세요. 계약/투자/결제는 당일 확정보다 24시간 검토를 넣어 리스크를 통제하는 편이 안정적입니다.'
+            ),
+          },
+          theme,
+          deps
+        ),
+        lang
       )
     case 'health':
-      return enforceThemedDepth(
-        {
-          ...baseKo,
-          prevention: merge(
-            health?.thesis,
-            '예방의 핵심은 과부하 누적을 차단하는 것입니다. 수면·수분·회복 루틴을 일정에 고정하세요. 컨디션이 좋을 때 무리해서 당기는 패턴이 반복되면 반동 피로가 커질 수 있으니 강도 조절이 필수입니다. 건강 전략은 의지보다 시스템이 오래 갑니다.'
-          ),
-          riskWindows: merge(
-            timing?.thesis,
-            '리스크 구간은 일정 밀집과 커뮤니케이션 과부하가 겹칠 때 커집니다. 일정 분할로 충격을 줄이세요. 특히 이동/야근/수면 부족이 동시에 겹치면 실수 확률이 급격히 올라갈 수 있습니다. 위험 구간은 미리 예고하고 일정 강도를 낮추는 것이 안전합니다.'
-          ),
-          recoveryPlan: merge(
-            health?.riskControl,
-            '회복 계획은 강도보다 지속성이 중요합니다. 2주 단위로 재점검하세요. 무리한 목표보다 매일 지킬 수 있는 기본 루틴을 정해두면 회복 효율이 높아집니다. 기준은 “완벽한 하루”가 아니라 “무너지지 않는 패턴”입니다.'
-          ),
-        },
-        theme,
-        deps
+      return normalizeThemedSections(
+        enforceThemedDepth(
+          {
+            ...baseKo,
+            prevention: merge(
+              health?.thesis,
+              '예방의 핵심은 과부하 누적을 차단하는 것입니다. 수면·수분·회복 루틴을 일정에 고정하세요. 컨디션이 좋을 때 무리해서 당기는 패턴이 반복되면 반동 피로가 커질 수 있으니 강도 조절이 필수입니다. 건강 전략은 의지보다 시스템이 오래 갑니다.'
+            ),
+            riskWindows: merge(
+              timing?.thesis,
+              '리스크 구간은 일정 밀집과 커뮤니케이션 과부하가 겹칠 때 커집니다. 일정 분할로 충격을 줄이세요. 특히 이동/야근/수면 부족이 동시에 겹치면 실수 확률이 급격히 올라갈 수 있습니다. 위험 구간은 미리 예고하고 일정 강도를 낮추는 것이 안전합니다.'
+            ),
+            recoveryPlan: merge(
+              health?.riskControl,
+              '회복 계획은 강도보다 지속성이 중요합니다. 2주 단위로 재점검하세요. 무리한 목표보다 매일 지킬 수 있는 기본 루틴을 정해두면 회복 효율이 높아집니다. 기준은 “완벽한 하루”가 아니라 “무너지지 않는 패턴”입니다.'
+            ),
+          },
+          theme,
+          deps
+        ),
+        lang
       )
     case 'family':
-      return enforceThemedDepth(
-        {
-          ...baseKo,
-          dynamics: merge(
-            `${relation?.thesis || ''} ${wealth?.riskControl || ''}`.trim(),
-            '가족 역학은 표현 속도 차이만이 아니라 책임 배분과 실무 부담에서 오해가 커지기 쉽습니다. 누가 감정 정리와 실무 처리를 동시에 떠안는지 보이지 않으면 가까운 관계일수록 억울함이 누적됩니다. 그래서 결론보다 역할, 비용, 돌봄 범위를 먼저 맞추는 습관이 중요합니다. 작은 불균형을 빠르게 정리하면 장기 갈등을 예방할 수 있습니다.'
-          ),
-          communication: merge(
-            `${relation?.riskControl || ''} ${health?.riskControl || ''}`.trim(),
-            '결론 전달 전 상대 해석을 다시 확인하면 갈등 비용을 줄일 수 있습니다. 민감한 주제는 즉시 해결하려 하기보다 합의 가능한 기준부터 정하는 편이 안정적입니다. 특히 부모/형제/자녀마다 받아들이는 속도가 다르기 때문에, 누구와는 설명을 길게 하고 누구와는 경계선을 먼저 세워야 하는지 구분하는 것이 중요합니다.'
-          ),
-          legacy: merge(
-            `${wealth?.thesis || ''} ${health?.thesis || ''}`.trim(),
-            '세대 과제는 단기 성과보다 일관된 운영 원칙을 남기는 것입니다. 가족 안에서 반복되는 돈 문제, 돌봄 부담, 감정 노동의 패턴을 먼저 보이는 언어로 바꿔야 합니다. 기준 문서화를 습관화하면 역할/책임/기대치가 선명해지고, 남기는 것은 말이 아니라 반복 가능한 운영 규칙이 됩니다.'
-          ),
-        },
-        theme,
-        deps
+      return normalizeThemedSections(
+        enforceThemedDepth(
+          {
+            ...baseKo,
+            dynamics: merge(
+              `${relation?.thesis || ''} ${wealth?.riskControl || ''}`.trim(),
+              '가족 역학은 표현 속도 차이만이 아니라 책임 배분과 실무 부담에서 오해가 커지기 쉽습니다. 누가 감정 정리와 실무 처리를 동시에 떠안는지 보이지 않으면 가까운 관계일수록 억울함이 누적됩니다. 그래서 결론보다 역할, 비용, 돌봄 범위를 먼저 맞추는 습관이 중요합니다. 작은 불균형을 빠르게 정리하면 장기 갈등을 예방할 수 있습니다.'
+            ),
+            communication: merge(
+              `${relation?.riskControl || ''} ${health?.riskControl || ''}`.trim(),
+              '결론 전달 전 상대 해석을 다시 확인하면 갈등 비용을 줄일 수 있습니다. 민감한 주제는 즉시 해결하려 하기보다 합의 가능한 기준부터 정하는 편이 안정적입니다. 특히 부모/형제/자녀마다 받아들이는 속도가 다르기 때문에, 누구와는 설명을 길게 하고 누구와는 경계선을 먼저 세워야 하는지 구분하는 것이 중요합니다.'
+            ),
+            legacy: merge(
+              `${wealth?.thesis || ''} ${health?.thesis || ''}`.trim(),
+              '세대 과제는 단기 성과보다 일관된 운영 원칙을 남기는 것입니다. 가족 안에서 반복되는 돈 문제, 돌봄 부담, 감정 노동의 패턴을 먼저 보이는 언어로 바꿔야 합니다. 기준 문서화를 습관화하면 역할/책임/기대치가 선명해지고, 남기는 것은 말이 아니라 반복 가능한 운영 규칙이 됩니다.'
+            ),
+          },
+          theme,
+          deps
+        ),
+        lang
       )
   }
 }

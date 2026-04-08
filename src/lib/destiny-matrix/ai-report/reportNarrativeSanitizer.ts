@@ -1,3 +1,4 @@
+import { normalizeUserFacingGuidance } from '@/lib/destiny-matrix/guidanceLanguage'
 import { splitSentences } from './sectionQualityGate'
 
 const USER_FACING_NOISE_REGEX =
@@ -66,7 +67,10 @@ export function normalizeUserFacingArtifacts(text: string): string {
     .replace(/\bList promotion criteria\b/gi, '승진 판단 기준을 정리하기')
     .replace(/\bList leverage points\b/gi, '협상 포인트를 정리하기')
     .replace(/\bName your narrow edge\b/gi, '자신의 전문 포지션을 명확히 하기')
-    .replace(/\bExpansion without role clarity can create delivery strain\.?\b/gi, '역할과 범위가 불분명하면 실행 부담이 커질 수 있습니다')
+    .replace(
+      /\bExpansion without role clarity can create delivery strain\.?\b/gi,
+      '역할과 범위가 불분명하면 실행 부담이 커질 수 있습니다'
+    )
     .replace(/\bExpansion Pattern\b/gi, '확장 패턴')
     .replace(/\bTension Pattern\b/gi, '긴장 패턴')
     .replace(/\bsaju pillars\b/gi, '사주 원국 축')
@@ -130,8 +134,14 @@ export function normalizeUserFacingArtifacts(text: string): string {
     .replace(/\uB808\uC774\uC5B4\s*\d+\s*\uC2E0\uD638[^.!?\n]*[.!?]?/g, '')
     .replace(/Layer\s*\d+\s*signal[^.!?\n]*[.!?]?/gi, '')
     .replace(/\uD575\uC2EC \uADFC\uAC70\uB294[^.!?\n]*\uC785\uB2C8\uB2E4\.?/gu, '')
-    .replace(/\uC774 \uD750\uB984\uC744 \uBC1B\uCCD0\uC8FC\uB294 \uBC14\uD0D5\uC740[^.!?\n]*\uC785\uB2C8\uB2E4\.?/gu, '')
-    .replace(/\uC9C0\uAE08 \uC0C1\uB300\uC801\uC73C\uB85C \uD798\uC774 \uC2E4\uB9AC\uB294 \uCD95\uC740[^.!?\n]*\uC785\uB2C8\uB2E4\.?/gu, '')
+    .replace(
+      /\uC774 \uD750\uB984\uC744 \uBC1B\uCCD0\uC8FC\uB294 \uBC14\uD0D5\uC740[^.!?\n]*\uC785\uB2C8\uB2E4\.?/gu,
+      ''
+    )
+    .replace(
+      /\uC9C0\uAE08 \uC0C1\uB300\uC801\uC73C\uB85C \uD798\uC774 \uC2E4\uB9AC\uB294 \uCD95\uC740[^.!?\n]*\uC785\uB2C8\uB2E4\.?/gu,
+      ''
+    )
     .replace(/\bMeasure weekly commute load\b/gi, '')
     .replace(/\bPush back on emotional certainty\b/gi, '')
     .replace(/\baction\?+\b/gi, '')
@@ -151,7 +161,7 @@ export function normalizeUserFacingArtifacts(text: string): string {
     .replace(/\s{2,}/g, ' ')
     .trim()
 
-  return normalized
+  return normalizeUserFacingGuidance(normalized, /[가-힣]/.test(normalized) ? 'ko' : 'en')
 }
 
 export function sanitizeSectionNarrative(text: string): string {
@@ -162,7 +172,10 @@ export function sanitizeSectionNarrative(text: string): string {
   }
   cleaned = stripBannedPhrases(cleaned)
   cleaned = normalizeUserFacingArtifacts(cleaned)
-  return cleaned.replace(/\n{3,}/g, '\n\n').trim()
+  return normalizeUserFacingGuidance(
+    cleaned.replace(/\n{3,}/g, '\n\n').trim(),
+    /[가-힣]/.test(cleaned) ? 'ko' : 'en'
+  )
 }
 
 export function sentenceKey(text: string): string {
@@ -204,7 +217,9 @@ export function sanitizeUserFacingNarrative(text: string): string {
   const sentences = splitSentences(normalized)
     .map((s) => String(s || '').trim())
     .filter(Boolean)
-  if (sentences.length === 0) return normalized
+  if (sentences.length === 0) {
+    return normalizeUserFacingGuidance(normalized, /[가-힣]/.test(normalized) ? 'ko' : 'en')
+  }
   const engineTokenRegex =
     /\b[a-z]+(?:_[a-z0-9]+){1,}\b|\b(?:career|relationship|wealth|health|move|personality|timing)\(\d+\)\b/i
   const corruptedMojibakeRegex =
@@ -328,8 +343,14 @@ export function sanitizeUserFacingNarrative(text: string): string {
     .replace(/Alt:\s*/g, '')
     .replace(/Main:\s*/g, '')
     .replace(/\uD575\uC2EC \uADFC\uAC70\uB294[^.!?\n]*\uC785\uB2C8\uB2E4\.?/gu, '')
-    .replace(/\uC774 \uD750\uB984\uC744 \uBC1B\uCCD0\uC8FC\uB294 \uBC14\uD0D5\uC740[^.!?\n]*\uC785\uB2C8\uB2E4\.?/gu, '')
-    .replace(/\uC9C0\uAE08 \uC0C1\uB300\uC801\uC73C\uB85C \uD798\uC774 \uC2E4\uB9AC\uB294 \uCD95\uC740[^.!?\n]*\uC785\uB2C8\uB2E4\.?/gu, '')
+    .replace(
+      /\uC774 \uD750\uB984\uC744 \uBC1B\uCCD0\uC8FC\uB294 \uBC14\uD0D5\uC740[^.!?\n]*\uC785\uB2C8\uB2E4\.?/gu,
+      ''
+    )
+    .replace(
+      /\uC9C0\uAE08 \uC0C1\uB300\uC801\uC73C\uB85C \uD798\uC774 \uC2E4\uB9AC\uB294 \uCD95\uC740[^.!?\n]*\uC785\uB2C8\uB2E4\.?/gu,
+      ''
+    )
     .replace(/\b(?:Push|Measure|List|Compare|Reduce)\b[^.!?\n]*[.!?]?/g, '')
     .replace(/\baction\?+\b/gi, '')
     .replace(/([\uAC00-\uD7A3]+)\?{2,}/gu, '$1')
@@ -384,5 +405,6 @@ export function sanitizeUserFacingNarrative(text: string): string {
     .replace(/\.\s*\./g, '.')
     .replace(/\s{2,}/g, ' ')
     .trim()
-  return dedupeNarrativeSentences(normalizeUserFacingArtifacts(cleaned))
+  const polished = dedupeNarrativeSentences(normalizeUserFacingArtifacts(cleaned))
+  return normalizeUserFacingGuidance(polished, /[가-힣]/.test(polished) ? 'ko' : 'en')
 }

@@ -7,9 +7,11 @@ This directory contains all CI/CD workflows for the Saju Astro Chat application.
 ### Core Workflows
 
 #### 1. [ci.yml](./ci.yml) - Main CI Pipeline
+
 **Triggers:** Push to `main`, PRs to `main`
 
 Complete CI pipeline with:
+
 - Environment validation
 - Linting & type checking
 - Unit, integration, and E2E tests
@@ -22,9 +24,11 @@ Complete CI pipeline with:
 ---
 
 #### 2. [pr-checks.yml](./pr-checks.yml) - Enhanced PR Checks
+
 **Triggers:** PR opened, updated, or reopened
 
 Comprehensive PR validation:
+
 - Conventional commit format checking
 - Large file detection
 - Console.log detection
@@ -35,6 +39,7 @@ Comprehensive PR validation:
 - Automated coverage reports with PR comments
 
 **Features:**
+
 - Cancels outdated runs
 - Skips draft PRs
 - Posts summary comment
@@ -45,24 +50,27 @@ Comprehensive PR validation:
 
 ---
 
-#### 3. [quality.yml](./quality.yml) - Code Quality
-**Triggers:** Push and PRs to `main` and `develop`
+#### 3. [destiny-nightly.yml](./destiny-nightly.yml) - Destiny Nightly
 
-Multi-version quality checks:
-- Matrix testing (Node.js 18.x, 20.x)
-- Coverage reporting
-- Codecov integration
-- Automated PR coverage comments
+**Triggers:** Daily schedule, manual dispatch
 
-**When it runs:** Push and PRs
-**Duration:** ~8-12 minutes per version
+Long-running destiny validation:
+
+- Full Vitest suite
+- Full destiny quality gate
+- Nightly reports/ops artifact upload
+
+**When it runs:** Nightly and manual dispatch
+**Duration:** ~20-40 minutes
 
 ---
 
 #### 4. [security.yml](./security.yml) - Security Scanning
+
 **Triggers:** Push to `main`, PRs, Weekly schedule
 
 Security validation:
+
 - Dependency audit (npm audit)
 - Secret scanning (Gitleaks)
 - SAST (Static analysis)
@@ -70,18 +78,21 @@ Security validation:
 - Hardcoded secret detection
 
 **When it runs:**
+
 - Every push/PR
 - Weekly on Sundays at midnight
-**Duration:** ~5-8 minutes
+  **Duration:** ~5-8 minutes
 
 ---
 
 ### Testing Workflows
 
 #### 5. [e2e-browser.yml](./e2e-browser.yml) - Browser E2E Tests
+
 **Triggers:** PRs, Push to `main`, Manual dispatch
 
 Playwright browser testing:
+
 - Desktop Chrome tests
 - Mobile Chrome tests
 - Parallel execution
@@ -95,9 +106,11 @@ Playwright browser testing:
 ### Deployment Workflows
 
 #### 6. [deploy-production.yml](./deploy-production.yml) - Production Deployment
+
 **Triggers:** Push to `main`, Version tags (`v*.*.*`), Manual dispatch
 
 Full deployment pipeline:
+
 - Pre-deployment validation
 - Production build
 - Vercel deployment
@@ -108,6 +121,7 @@ Full deployment pipeline:
 - Deployment notifications
 
 **Features:**
+
 - Skip deployment with `[skip-deploy]` in commit message
 - Automatic version detection
 - Post-deployment validation
@@ -119,15 +133,18 @@ Full deployment pipeline:
 ---
 
 #### 7. [deploy-preview.yml](./deploy-preview.yml) - Preview Deployments
+
 **Triggers:** PR opened, updated, reopened
 
 Preview environment deployment:
+
 - Automatic preview URL generation
 - PR comment with links
 - Smoke tests on preview
 - Cleanup on PR close
 
 **Features:**
+
 - Unique URL per PR
 - Auto-cleanup on PR close
 - Mobile view links
@@ -139,21 +156,25 @@ Preview environment deployment:
 ---
 
 #### 8. [deploy-backend.yml](./deploy-backend.yml) - Backend AI Deployment
+
 **Triggers:** Push to `main` (backend_ai changes), Manual dispatch
 
 Backend AI service deployment:
+
 - Python unit tests
 - Fly.io deployment
 - Health checks
 - Deployment notifications
 
 **Features:**
+
 - Only triggers on backend_ai changes
 - Fly.io remote Docker build
 - Environment-specific deployments (staging/production)
 - Automatic health verification
 
 **Required Secrets:**
+
 - `FLY_API_TOKEN` - Fly.io API token
 - `BACKEND_AI_URL` - Backend URL for health checks (optional)
 
@@ -168,7 +189,7 @@ Backend AI service deployment:
 PR Created
     │
     ├─→ pr-checks.yml (Quick validation)
-    ├─→ quality.yml (Multi-version testing)
+    ├─→ destiny-nightly.yml (Nightly long-running validation, separate trigger)
     ├─→ security.yml (Security scans)
     ├─→ e2e-browser.yml (Browser tests)
     └─→ deploy-preview.yml (Preview environment)
@@ -176,7 +197,7 @@ PR Created
 PR Merged to main
     │
     ├─→ ci.yml (Full CI)
-    ├─→ quality.yml (Quality checks)
+    ├─→ destiny-nightly.yml (Nightly long-running validation, separate trigger)
     ├─→ security.yml (Security validation)
     └─→ deploy-production.yml (Production deploy)
 ```
@@ -247,6 +268,7 @@ CODECOV_TOKEN          # Coverage reporting
 ### Deploying to Production
 
 **Option 1: Automatic (Recommended)**
+
 ```bash
 git checkout main
 git pull
@@ -256,6 +278,7 @@ git push origin main
 ```
 
 **Option 2: Version Tag**
+
 ```bash
 git tag v1.2.3
 git push origin v1.2.3
@@ -263,6 +286,7 @@ git push origin v1.2.3
 ```
 
 **Option 3: Manual Dispatch**
+
 1. Go to Actions → Deploy to Production
 2. Click "Run workflow"
 3. Select environment
@@ -271,6 +295,7 @@ git push origin v1.2.3
 ### Skipping Deployment
 
 Add `[skip-deploy]` to commit message:
+
 ```bash
 git commit -m "docs: update README [skip-deploy]"
 ```
@@ -280,12 +305,15 @@ git commit -m "docs: update README [skip-deploy]"
 ## Monitoring Workflows
 
 ### View Status
+
 - **All workflows:** `https://github.com/{owner}/{repo}/actions`
 - **Specific run:** Click on workflow in PR checks
 - **Logs:** Click on job name in workflow run
 
 ### PR Status Checks
+
 Each PR shows:
+
 - ✅ All checks passed
 - ⏳ Checks running
 - ❌ Checks failed
@@ -293,6 +321,7 @@ Each PR shows:
 Click "Details" to see logs.
 
 ### Deployment Status
+
 - Check Actions tab for deployment progress
 - Preview URLs posted in PR comments
 - Production deployments create GitHub releases
@@ -304,12 +333,14 @@ Click "Details" to see logs.
 ### Workflow Not Running
 
 **Check:**
+
 1. Workflow file syntax (YAML)
 2. Trigger conditions match
 3. Branch protection rules
 4. GitHub Actions enabled for repo
 
 **Fix:**
+
 ```bash
 # Validate YAML locally
 npm install -g yaml-lint
@@ -319,10 +350,12 @@ yamllint .github/workflows/*.yml
 ### Secret Not Available
 
 **Symptoms:**
+
 - "secret not found" errors
 - Authentication failures
 
 **Fix:**
+
 1. Verify secret exists in repo settings
 2. Check secret name spelling
 3. Ensure secret is available to workflow
@@ -330,6 +363,7 @@ yamllint .github/workflows/*.yml
 ### Build Failures
 
 **Quick fixes:**
+
 ```bash
 # Run locally first
 npm run check:all
@@ -344,10 +378,12 @@ npm run build
 ### Rate Limits
 
 GitHub Actions has limits:
+
 - **Free:** 2,000 minutes/month
 - **Pro:** 3,000 minutes/month
 
 **Optimize:**
+
 - Use caching (already configured)
 - Run fewer matrix combinations
 - Skip unnecessary workflows
@@ -357,11 +393,13 @@ GitHub Actions has limits:
 ## Best Practices
 
 ### 1. Test Locally First
+
 ```bash
 npm run check:all
 ```
 
 ### 2. Use Conventional Commits
+
 ```bash
 git commit -m "feat: add new feature"
 git commit -m "fix: resolve bug"
@@ -371,16 +409,19 @@ git commit -m "docs: update docs"
 Formats: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`, `build`, `revert`
 
 ### 3. Keep PRs Small
+
 - Easier to review
 - Faster CI runs
 - Easier to debug failures
 
 ### 4. Review PR Comments
+
 - Check coverage reports
 - Review automated feedback
 - Address warnings
 
 ### 5. Don't Skip Checks
+
 - All checks exist for a reason
 - Fix issues instead of bypassing
 - Security checks are critical
@@ -391,15 +432,15 @@ Formats: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `c
 
 ### Current Benchmarks
 
-| Workflow | Average Time | Parallel Jobs |
-|----------|-------------|---------------|
-| ci.yml | 10-15 min | 1 |
-| pr-checks.yml | 12-18 min | 5 |
-| quality.yml | 8-12 min | 2 |
-| security.yml | 5-8 min | 4 |
-| e2e-browser.yml | 15-25 min | 2 |
-| deploy-preview.yml | 8-12 min | 1 |
-| deploy-production.yml | 20-30 min | Sequential |
+| Workflow              | Average Time | Parallel Jobs |
+| --------------------- | ------------ | ------------- |
+| ci.yml                | 10-15 min    | 1             |
+| pr-checks.yml         | 12-18 min    | 5             |
+| destiny-nightly.yml   | 20-40 min    | 1             |
+| security.yml          | 5-8 min      | 4             |
+| e2e-browser.yml       | 15-25 min    | 2             |
+| deploy-preview.yml    | 8-12 min     | 1             |
+| deploy-production.yml | 20-30 min    | Sequential    |
 
 ### Optimization Tips
 
@@ -423,15 +464,18 @@ Formats: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `c
 ### Regular Tasks
 
 **Weekly:**
+
 - Review security scan results
 - Check for outdated dependencies
 
 **Monthly:**
+
 - Review workflow performance
 - Update action versions
 - Audit secret usage
 
 **Quarterly:**
+
 - Review and optimize workflows
 - Update Node.js versions
 - Review coverage trends
@@ -439,6 +483,7 @@ Formats: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `c
 ### Updating Actions
 
 Keep actions up to date:
+
 ```yaml
 # Check for updates
 actions/checkout@v4       → actions/checkout@v5
@@ -446,14 +491,15 @@ actions/setup-node@v4     → actions/setup-node@v5
 ```
 
 Use Dependabot for automatic updates:
+
 ```yaml
 # .github/dependabot.yml
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
+      interval: 'weekly'
 ```
 
 ---
@@ -471,6 +517,7 @@ updates:
 ## Support
 
 Issues with workflows?
+
 1. Check workflow logs
 2. Review this documentation
 3. Check GitHub Actions status

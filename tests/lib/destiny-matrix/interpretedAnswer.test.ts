@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { buildInterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
+import {
+  buildInterpretedAnswerContract,
+  evaluateInterpretedAnswerQuality,
+} from '@/lib/destiny-matrix/interpretedAnswer'
 import type { CounselorEvidencePacketLike } from '@/lib/destiny-matrix/counselorEvidenceTypes'
 
 function buildBasePacket(): CounselorEvidencePacketLike {
@@ -251,5 +254,36 @@ describe('buildInterpretedAnswerContract', () => {
     expect(contract?.conditions.entry).toContain('거점 기준을 먼저 정리하세요.')
     expect(contract?.conditions.abort).toContain('과도한 이동과 소음')
     expect(contract?.nextMove).toBe('거점 기준을 먼저 정리하세요.')
+  })
+
+  it('passes counselor-facing quality checks when direct answer and next move are clean', () => {
+    const contract = buildInterpretedAnswerContract({
+      packet: buildBasePacket(),
+      frame: 'career_decision',
+      primaryDomain: 'career',
+    })
+
+    const result = evaluateInterpretedAnswerQuality(contract)
+    expect(result.pass).toBe(true)
+    expect(result.warnings).toEqual([])
+  })
+
+  it('flags internal token leaks in direct answer and branches', () => {
+    const result = evaluateInterpretedAnswerQuality({
+      questionFrame: 'career_decision',
+      primaryDomain: 'career',
+      directAnswer: 'action axis says move now.',
+      why: ['why_1=scope first'],
+      timing: {},
+      conditions: { entry: [], abort: [] },
+      branches: [{ label: 'A', summary: 'scenario id career_window', nextMove: 'next_move=apply' }],
+      uncertainty: [],
+      nextMove: 'next_move=apply',
+    })
+
+    expect(result.pass).toBe(false)
+    expect(result.warnings).toContain('direct_answer_internal_leak')
+    expect(result.warnings).toContain('branch_internal_leak')
+    expect(result.warnings).toContain('next_move_internal_leak')
   })
 })

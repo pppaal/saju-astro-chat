@@ -214,7 +214,7 @@ export function buildAgreementCardData(input: {
         agreementPct >= 75
           ? '같은 방향이 강합니다'
           : agreementPct >= 60
-            ? '대체로 같은 방향이지만 재확인이 필요합니다'
+            ? '대체로 같은 방향이지만 한 번 더 확인하는 편이 안전합니다'
             : '엇갈림이 커서 보수적으로 읽어야 합니다'
       const contradictionLine =
         contradictionPct >= 35
@@ -272,7 +272,7 @@ export function buildAgreementCardData(input: {
   if (fallbackConflictText) {
     return {
       summary: fallbackConflictText,
-      tag: locale === 'ko' ? '합의 재확인' : 'Recheck alignment',
+      tag: locale === 'ko' ? '합의 점검' : 'Check alignment',
       details: [],
       visual: {
         kind: 'agreement',
@@ -287,7 +287,7 @@ export function buildAgreementCardData(input: {
     return locale === 'ko'
       ? {
           summary: `${focusDomainLabel} 기준 교차 합의도는 ${fallbackAgreementPercent}% 수준입니다.`,
-          tag: '합의 재확인',
+          tag: '합의 점검',
           details: ['세부 창과 충돌 신호를 한 번 더 확인하는 편이 낫습니다.'],
           visual: {
             kind: 'agreement',
@@ -312,7 +312,7 @@ export function buildAgreementCardData(input: {
     ? {
         summary: `${focusDomainLabel} 기준 합의도는 중간 수준입니다.`,
         tag: '합의 보통',
-        details: ['한 방향으로만 밀기보다 재확인을 끼워 넣는 편이 낫습니다.'],
+        details: ['한 방향으로만 밀기보다 중간 점검을 끼워 넣는 편이 낫습니다.'],
         visual: {
           kind: 'agreement',
           agreementPercent: 58,
@@ -482,7 +482,7 @@ export function getReliabilityText(
   if (locale === 'ko') {
     if (lowConf && lowAgreement) return '신호 일치도가 낮아 확정보다 검토가 우선입니다.'
     if (lowConf) return '근거 강도가 낮아 보수적으로 움직이는 편이 좋습니다.'
-    if (lowAgreement) return '사주와 점성의 합의가 약해 재확인이 유리합니다.'
+    if (lowAgreement) return '사주와 점성의 합의가 약해 한 번 더 확인하는 편이 유리합니다.'
     return '신호는 안정적인 편이며 핵심 1~2개 실행에 집중하기 좋습니다.'
   }
 

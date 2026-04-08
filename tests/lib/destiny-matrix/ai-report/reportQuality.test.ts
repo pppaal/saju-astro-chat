@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { buildReportQualityMetrics } from '@/lib/destiny-matrix/ai-report/reportQuality'
+import {
+  buildReportQualityMetrics,
+  evaluateReportStyleGate,
+} from '@/lib/destiny-matrix/ai-report/reportQuality'
 import type { SectionEvidenceRefs } from '@/lib/destiny-matrix/ai-report/evidenceRefs'
 
 describe('reportQuality.buildReportQualityMetrics', () => {
@@ -167,5 +170,45 @@ describe('reportQuality.buildReportQualityMetrics', () => {
       'decision_domain_coverage_low',
     ])
     expect(quality.coreQualityPass).toBe(false)
+  })
+
+  it('fails style gate when the report is too abstract and lead patterns repeat', () => {
+    const result = evaluateReportStyleGate('themed', {
+      sectionCount: 5,
+      avgSectionChars: 250,
+      evidenceCoverageRatio: 1,
+      minEvidenceSatisfiedRatio: 1,
+      contradictionCount: 0,
+      recheckGuidanceRatio: 0.2,
+      overclaimCount: 0,
+      repetitiveLeadPatternCount: 2,
+      abstractNounRatio: 0.14,
+      sentenceLengthVariance: 320,
+      bilingualToneSkew: 0.05,
+    })
+
+    expect(result.pass).toBe(false)
+    expect(result.warnings).toContain('repetitive_lead_patterns_high')
+    expect(result.warnings).toContain('abstract_noun_ratio_high')
+  })
+
+  it('fails style gate when sentence rhythm is too flat or bilingual skew is high', () => {
+    const result = evaluateReportStyleGate('comprehensive', {
+      sectionCount: 6,
+      avgSectionChars: 420,
+      evidenceCoverageRatio: 1,
+      minEvidenceSatisfiedRatio: 1,
+      contradictionCount: 0,
+      recheckGuidanceRatio: 0.2,
+      overclaimCount: 0,
+      repetitiveLeadPatternCount: 0,
+      abstractNounRatio: 0.08,
+      sentenceLengthVariance: 12,
+      bilingualToneSkew: 0.3,
+    })
+
+    expect(result.pass).toBe(false)
+    expect(result.warnings).toContain('sentence_length_variance_too_flat')
+    expect(result.warnings).toContain('bilingual_tone_skew_high')
   })
 })

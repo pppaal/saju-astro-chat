@@ -43,6 +43,11 @@ export type InterpretedAnswerContract = {
   nextMove: string
 }
 
+export type InterpretedAnswerQualityResult = {
+  pass: boolean
+  warnings: string[]
+}
+
 function uniqueLines(items: Array<string | undefined | null>, max = 3): string[] {
   const seen = new Set<string>()
   const lines: string[] = []
@@ -322,6 +327,43 @@ function resolveDomainSpecificNextMove(
       )
     default:
       return undefined
+  }
+}
+
+const INTERPRETED_ANSWER_INTERNAL_LEAK_REGEX =
+  /(action axis|risk axis|structure axis|questionframe=|primary_domain=|why_\d+=|next_move=|frame=|timing_best=|timing_now=|_window\b|scenario id)/i
+
+export function evaluateInterpretedAnswerQuality(
+  contract: InterpretedAnswerContract | null | undefined
+): InterpretedAnswerQualityResult {
+  if (!contract) {
+    return { pass: false, warnings: ['missing_contract'] }
+  }
+
+  const warnings: string[] = []
+  const directAnswer = String(contract.directAnswer || '').trim()
+  const nextMove = String(contract.nextMove || '').trim()
+
+  if (!directAnswer) warnings.push('missing_direct_answer')
+  if (!nextMove) warnings.push('missing_next_move')
+  if ((contract.why || []).filter(Boolean).length === 0) warnings.push('missing_why_lines')
+  if (INTERPRETED_ANSWER_INTERNAL_LEAK_REGEX.test(directAnswer)) {
+    warnings.push('direct_answer_internal_leak')
+  }
+  if (INTERPRETED_ANSWER_INTERNAL_LEAK_REGEX.test(nextMove)) {
+    warnings.push('next_move_internal_leak')
+  }
+  if (
+    (contract.branches || []).some((branch) =>
+      INTERPRETED_ANSWER_INTERNAL_LEAK_REGEX.test(branch.summary)
+    )
+  ) {
+    warnings.push('branch_internal_leak')
+  }
+
+  return {
+    pass: warnings.length === 0,
+    warnings,
   }
 }
 

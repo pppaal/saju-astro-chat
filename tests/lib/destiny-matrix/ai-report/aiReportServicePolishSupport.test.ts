@@ -66,4 +66,25 @@ describe('aiReportServicePolishSupport hard gates', () => {
       })
     ).toBe(true)
   })
+
+  it('forces themed fallback when style rhythm is too flat even if evidence is present', () => {
+    expect(
+      shouldForceThemedNarrativeFallback({
+        tokenIntegrityPass: true,
+        structurePass: true,
+        forbiddenAdditionsPass: true,
+        evidenceCoverageRatio: 0.92,
+        minEvidenceSatisfiedRatio: 0.9,
+        scenarioBundleCoverage: 0.9,
+        genericAdviceDensity: 0.08,
+        personalizationDensity: 0.9,
+        sentenceLengthVariance: 10,
+        repetitiveLeadPatternCount: 0,
+        bilingualToneSkew: 0.03,
+        coreQualityScore: 96,
+        coreQualityBlockingWarningCount: 0,
+        coreQualityPass: true,
+      })
+    ).toBe(true)
+  })
 })

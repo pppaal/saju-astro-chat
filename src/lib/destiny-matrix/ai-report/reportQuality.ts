@@ -54,6 +54,11 @@ export interface ReportQualityContext {
   }
 }
 
+export interface ReportStyleGateResult {
+  pass: boolean
+  warnings: string[]
+}
+
 type BuildQualityRegexRules = {
   recheck: RegExp
   absoluteRisk: RegExp
@@ -212,6 +217,73 @@ function countTimelineEventsByDomain(
     else out.life += 1
   }
   return out
+}
+
+function getStyleThresholds(reportType: 'comprehensive' | 'timing' | 'themed') {
+  if (reportType === 'themed') {
+    return {
+      maxAbstractNounRatio: 0.11,
+      maxRepetitiveLeadPatternCount: 1,
+      maxBilingualToneSkew: 0.22,
+      minSentenceLengthVariance: 20,
+      maxSentenceLengthVariance: 2200,
+    }
+  }
+
+  if (reportType === 'timing') {
+    return {
+      maxAbstractNounRatio: 0.12,
+      maxRepetitiveLeadPatternCount: 1,
+      maxBilingualToneSkew: 0.24,
+      minSentenceLengthVariance: 18,
+      maxSentenceLengthVariance: 2400,
+    }
+  }
+
+  return {
+    maxAbstractNounRatio: 0.13,
+    maxRepetitiveLeadPatternCount: 1,
+    maxBilingualToneSkew: 0.24,
+    minSentenceLengthVariance: 18,
+    maxSentenceLengthVariance: 2600,
+  }
+}
+
+export function evaluateReportStyleGate(
+  reportType: 'comprehensive' | 'timing' | 'themed',
+  quality: ReportQualityMetrics | undefined
+): ReportStyleGateResult {
+  if (!quality) {
+    return { pass: false, warnings: ['quality_missing'] }
+  }
+
+  const thresholds = getStyleThresholds(reportType)
+  const warnings: string[] = []
+
+  if ((quality.repetitiveLeadPatternCount || 0) > thresholds.maxRepetitiveLeadPatternCount) {
+    warnings.push('repetitive_lead_patterns_high')
+  }
+  if ((quality.abstractNounRatio || 0) >= thresholds.maxAbstractNounRatio) {
+    warnings.push('abstract_noun_ratio_high')
+  }
+  if ((quality.bilingualToneSkew || 0) > thresholds.maxBilingualToneSkew) {
+    warnings.push('bilingual_tone_skew_high')
+  }
+
+  const variance = quality.sentenceLengthVariance
+  if (typeof variance === 'number') {
+    if (variance < thresholds.minSentenceLengthVariance) {
+      warnings.push('sentence_length_variance_too_flat')
+    }
+    if (variance > thresholds.maxSentenceLengthVariance) {
+      warnings.push('sentence_length_variance_too_wide')
+    }
+  }
+
+  return {
+    pass: warnings.length === 0,
+    warnings,
+  }
 }
 
 export function buildReportQualityMetrics(params: BuildQualityParams): ReportQualityMetrics {
@@ -413,6 +485,7 @@ export function recordReportQualityMetrics(
   stage: 'draft' | 'final' = 'final'
 ) {
   const labels = { report_type: reportType, model_used: modelUsed, stage }
+  const styleGate = evaluateReportStyleGate(reportType, quality)
   recordGauge(
     'destiny.ai_report.quality.evidence_coverage_ratio',
     quality.evidenceCoverageRatio,
@@ -532,6 +605,12 @@ export function recordReportQualityMetrics(
   if (typeof quality.bilingualToneSkew === 'number') {
     recordGauge('destiny.ai_report.quality.bilingual_tone_skew', quality.bilingualToneSkew, labels)
   }
+  recordGauge('destiny.ai_report.quality.style_gate_pass', styleGate.pass ? 1 : 0, labels)
+  recordGauge(
+    'destiny.ai_report.quality.style_gate_warning_count',
+    styleGate.warnings.length,
+    labels
+  )
   if (typeof quality.coreQualityScore === 'number') {
     recordGauge('destiny.ai_report.quality.core_quality_score', quality.coreQualityScore, labels)
   }

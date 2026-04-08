@@ -153,12 +153,12 @@ export function SelectedDateQuickScanSection({
       {interpretedAnswer && (
         <div className={styles.quickSummaryBlock}>
           <span className={styles.quickSummaryLabel}>
-            {locale === 'ko' ? 'ì§ˆë¬¸ í•´ì„' : 'Interpretation'}
+            {locale === 'ko' ? '?? ??' : 'Interpretation'}
           </span>
           <p className={styles.quickSummaryText}>{interpretedAnswer.directAnswer}</p>
           {interpretedAnswer.timing.bestWindow && (
             <p className={styles.quickSummaryText}>
-              {locale === 'ko' ? 'ê°•í•œ ì°½: ' : 'Best window: '}
+              {locale === 'ko' ? '?? ?: ' : 'Best window: '}
               {interpretedAnswer.timing.bestWindow}
             </p>
           )}
@@ -169,7 +169,7 @@ export function SelectedDateQuickScanSection({
           ))}
           {interpretedAnswer.nextMove && (
             <p className={styles.quickSummaryText}>
-              {locale === 'ko' ? 'ë‹¤ìŒ í–‰ë™: ' : 'Next move: '}
+              {locale === 'ko' ? '?? ??: ' : 'Next move: '}
               {interpretedAnswer.nextMove}
             </p>
           )}

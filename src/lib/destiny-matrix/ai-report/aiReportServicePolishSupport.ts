@@ -1,6 +1,7 @@
 import type { ReportTheme } from './types'
 import type { AIUserPlan } from './reportTypes'
 import type { ReportQualityMetrics } from './reportQuality'
+import { evaluateReportStyleGate } from './reportQuality'
 import type { SectionEvidenceRefs } from './evidenceRefs'
 import type { DeterministicSectionBlock } from './deterministicCore'
 
@@ -181,6 +182,7 @@ export function shouldForceComprehensiveNarrativeFallback(
   quality: ReportQualityMetrics | undefined
 ): boolean {
   if (!quality) return false
+  const styleGate = evaluateReportStyleGate('comprehensive', quality)
   const criticalDomainCoverage =
     quality.eventCountByDomain &&
     ['career', 'love', 'money', 'health', 'move'].every(
@@ -192,12 +194,11 @@ export function shouldForceComprehensiveNarrativeFallback(
     quality.forbiddenAdditionsPass === false ||
     (quality.coreQualityBlockingWarningCount || 0) > 0 ||
     quality.coreQualityPass === false ||
+    styleGate.pass === false ||
     (quality.crossSectionRepetition || 0) >= 2 ||
     (quality.genericAdviceDensity || 0) >= 0.45 ||
     ((quality.personalizationDensity || 0) > 0 && (quality.personalizationDensity || 0) < 0.24) ||
-    (quality.abstractNounRatio || 0) >= 0.13 ||
     (quality.internalScenarioLeakCount || 0) > 0 ||
-    (quality.repetitiveLeadPatternCount || 0) >= 2 ||
     (quality.evidenceCoverageRatio || 0) < 0.72 ||
     criticalDomainCoverage === false
   )
@@ -207,20 +208,20 @@ export function shouldForceThemedNarrativeFallback(
   quality: ReportQualityMetrics | undefined
 ): boolean {
   if (!quality) return false
+  const styleGate = evaluateReportStyleGate('themed', quality)
   return Boolean(
     quality.tokenIntegrityPass === false ||
     quality.structurePass === false ||
     quality.forbiddenAdditionsPass === false ||
     (quality.coreQualityBlockingWarningCount || 0) > 0 ||
     quality.coreQualityPass === false ||
+    styleGate.pass === false ||
     (quality.crossSectionRepetition || 0) >= 2 ||
     (quality.genericAdviceDensity || 0) >= 0.42 ||
     (quality.internalScenarioLeakCount || 0) > 0 ||
-    (quality.repetitiveLeadPatternCount || 0) >= 2 ||
     (quality.evidenceCoverageRatio || 0) < 0.78 ||
     (quality.minEvidenceSatisfiedRatio || 0) < 0.55 ||
     (quality.scenarioBundleCoverage || 0) < 0.5 ||
-    (quality.bilingualToneSkew || 0) > 0.22 ||
     ((quality.personalizationDensity || 0) > 0 && (quality.personalizationDensity || 0) < 0.8)
   )
 }

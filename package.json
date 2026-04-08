@@ -114,6 +114,7 @@
     "ops:typecheck:hotspots": "node scripts/ops/typecheck-hotspots.mjs",
     "ops:destiny:gate:quick": "node scripts/ops/destiny-quality-gate.mjs --quick",
     "ops:destiny:gate": "node scripts/ops/destiny-quality-gate.mjs --full",
+    "ops:destiny:nightly": "npm test && npm run ops:destiny:gate",
     "ops:destiny:release": "npm run typecheck && npm run test:destiny:release && npx tsx scripts/ops/qa-destiny-three-services.ts --lang=ko"
   },
   "overrides": {

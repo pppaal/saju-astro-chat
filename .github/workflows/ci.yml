@@ -79,6 +79,9 @@ jobs:
       - name: Destiny quality gate (quick)
         run: npm run ops:destiny:gate:quick
 
+      - name: Destiny release gate
+        run: npm run ops:destiny:release
+
       - name: Generate typecheck snapshots
         if: always()
         run: |

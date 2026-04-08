@@ -10,9 +10,7 @@ import type {
 } from '@/lib/destiny-map/destinyCalendar'
 import type { TranslationData } from '@/types/calendar-api'
 import type { PillarData } from '@/lib/Saju/types'
-import type {
-  CalendarMatrixEvidencePacketMap,
-} from './matrixEvidencePacket'
+import type { CalendarMatrixEvidencePacketMap } from './matrixEvidencePacket'
 import type { SajuPillarAccessor, FormattedDate, LocationCoord } from './types'
 export {
   __resetAIDatesCircuitStateForTests,
@@ -35,7 +33,11 @@ import {
   resolveRecommendationTranslation,
   resolveWarningTranslation,
 } from './calendarRecommendationSupport'
-import { GRADE_THRESHOLDS, EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/destiny-map/calendar/scoring-config'
+import {
+  GRADE_THRESHOLDS,
+  EVIDENCE_CONFIDENCE_THRESHOLDS,
+} from '@/lib/destiny-map/calendar/scoring-config'
+import { normalizeUserFacingGuidance } from '@/lib/destiny-matrix/guidanceLanguage'
 import { normalizeMojibakePayload } from '@/lib/text/mojibake'
 export { generateBestTimes, generateSummary } from './calendarSummarySupport'
 import {
@@ -360,7 +362,7 @@ function buildEnhancedRecommendations(
     irreversibleKeyPresent: date.recommendationKeys.some((key) =>
       IRREVERSIBLE_RECOMMENDATION_KEYS.has(key)
     ),
-  })
+  }).map((text) => normalizeUserFacingGuidance(text, lang))
 }
 
 function buildEnhancedWarnings(
@@ -419,7 +421,9 @@ function buildEnhancedWarnings(
     }
   }
 
-  return dedupeTexts([...translated, ...contextual]).slice(0, 6)
+  return dedupeTexts([...translated, ...contextual])
+    .slice(0, 6)
+    .map((text) => normalizeUserFacingGuidance(text, lang))
 }
 
 export function applyMatrixPreformatRegrade(
@@ -712,25 +716,28 @@ export function formatDateForResponse(
       IRREVERSIBLE_RECOMMENDATION_KEYS.has(key)
     ),
   })
-  const finalDescription = sanitizeCalendarCopy(
-    forceConservativeMode
-      ? lang === 'ko'
-        ? '신호가 엇갈립니다. 큰 결정은 재확인 후 진행하세요.'
-        : 'Signals are mixed. Re-check major decisions before committing.'
-      : buildMatrixFirstDescription({
-          topAnchorSummary: matrixVerdict?.topAnchorSummary,
-          verdict: matrixVerdict?.verdict,
-          topClaim: matrixVerdict?.topClaim,
-          overlaySummary: matrixOverlay.summary,
-          fallbackDescription: CALENDAR_MATRIX_STRICT_MODE
-            ? buildMatrixStrictDescriptionFallback({
-                lang,
-                evidence: evidenceWithVerdict,
-                summary: finalSummary,
-                guardrail: matrixVerdict?.guardrail,
-              })
-            : getTranslation(date.descKey, translations),
-        }),
+  const finalDescription = normalizeUserFacingGuidance(
+    sanitizeCalendarCopy(
+      forceConservativeMode
+        ? lang === 'ko'
+          ? '신호가 엇갈립니다. 큰 결정은 재확인 후 진행하세요.'
+          : 'Signals are mixed. Re-check major decisions before committing.'
+        : buildMatrixFirstDescription({
+            topAnchorSummary: matrixVerdict?.topAnchorSummary,
+            verdict: matrixVerdict?.verdict,
+            topClaim: matrixVerdict?.topClaim,
+            overlaySummary: matrixOverlay.summary,
+            fallbackDescription: CALENDAR_MATRIX_STRICT_MODE
+              ? buildMatrixStrictDescriptionFallback({
+                  lang,
+                  evidence: evidenceWithVerdict,
+                  summary: finalSummary,
+                  guardrail: matrixVerdict?.guardrail,
+                })
+              : getTranslation(date.descKey, translations),
+          }),
+      lang
+    ),
     lang
   )
   const summarizedBase = sanitizeCalendarCopy(
@@ -744,7 +751,7 @@ export function formatDateForResponse(
       : finalSummary,
     lang
   )
-  const summarized = summarizedBase
+  const summarized = normalizeUserFacingGuidance(summarizedBase, lang)
   const actionSummaryCategory: EventCategory =
     evidenceWithVerdict.matrix.domain === 'career'
       ? 'career'
@@ -757,14 +764,17 @@ export function formatDateForResponse(
             : evidenceWithVerdict.matrix.domain === 'move'
               ? 'travel'
               : uniqueCategories[0] || 'general'
-  const actionSummary = buildActionSummary({
-    lang,
-    category: actionSummaryCategory,
-    recommendations: recommendationsForResponse.map((text) => sanitizeCalendarCopy(text, lang)),
-    warnings: warningsForResponse.map((text) => sanitizeCalendarCopy(text, lang)),
-    bestTimes: bestTimes.map((text) => sanitizeCalendarCopy(text, lang)),
-    timingSignals: timingSignals.map((text) => sanitizeCalendarCopy(text, lang)),
-  })
+  const actionSummary = normalizeUserFacingGuidance(
+    buildActionSummary({
+      lang,
+      category: actionSummaryCategory,
+      recommendations: recommendationsForResponse.map((text) => sanitizeCalendarCopy(text, lang)),
+      warnings: warningsForResponse.map((text) => sanitizeCalendarCopy(text, lang)),
+      bestTimes: bestTimes.map((text) => sanitizeCalendarCopy(text, lang)),
+      timingSignals: timingSignals.map((text) => sanitizeCalendarCopy(text, lang)),
+    }),
+    lang
+  )
 
   return normalizeMojibakePayload({
     date: date.date,
@@ -776,16 +786,24 @@ export function formatDateForResponse(
     displayScore: alignedDisplayScore,
     displayGrade: alignedEffectiveGrade,
     categories: uniqueCategories,
-    title: sanitizeCalendarCopy(title, lang),
+    title: normalizeUserFacingGuidance(sanitizeCalendarCopy(title, lang), lang),
     description: finalDescription,
     summary: summarized,
     actionSummary,
-    timingSignals: timingSignals.map((text) => sanitizeCalendarCopy(text, lang)),
-    bestTimes: bestTimes.map((text) => sanitizeCalendarCopy(text, lang)),
+    timingSignals: timingSignals.map((text) =>
+      normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)
+    ),
+    bestTimes: bestTimes.map((text) =>
+      normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)
+    ),
     sajuFactors: orderedSajuFactors,
     astroFactors: orderedAstroFactors,
-    recommendations: recommendationsForResponse.map((text) => sanitizeCalendarCopy(text, lang)),
-    warnings: warningsForResponse.map((text) => sanitizeCalendarCopy(text, lang)),
+    recommendations: recommendationsForResponse.map((text) =>
+      normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)
+    ),
+    warnings: warningsForResponse.map((text) =>
+      normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)
+    ),
     evidence: evidenceWithVerdict,
   })
 }

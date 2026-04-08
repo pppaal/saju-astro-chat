@@ -1,5 +1,6 @@
 import { sanitizeUserFacingNarrative, sentenceKey } from './reportNarrativeSanitizer'
 import { formatNarrativeParagraphs } from './reportNarrativeFormatting'
+import { normalizeUserFacingGuidance } from '@/lib/destiny-matrix/guidanceLanguage'
 import { repairPossiblyMojibakeText } from '@/lib/destiny-matrix/textRepair'
 
 export function getReportDomainLabel(domain: string, lang: 'ko' | 'en'): string {
@@ -67,12 +68,12 @@ export function localizeReportNarrativeText(
       .replace(/\bcontract negotiation\b/gi, '조건 협상')
       .replace(/\bspecialist track\b/gi, '전문화 트랙')
       .replace(/\bpromotion review\b/gi, '승진 검토')
-      .replace(/\bcommute restructure\b/gi, '?? ?? ???')
-      .replace(/\broute recheck\b/gi, '?? ???')
-      .replace(/\bbasecamp reset\b/gi, '?? ?? ???')
-      .replace(/\blease decision review\b/gi, '?? ?? ???')
-      .replace(/\bhousing search\b/gi, '??? ??')
-      .replace(/\brelocation\b/gi, '??')
+      .replace(/\bcommute restructure\b/gi, '통근 구조 재정비')
+      .replace(/\broute recheck\b/gi, '경로 비교')
+      .replace(/\bbasecamp reset\b/gi, '거점 재정비')
+      .replace(/\blease decision review\b/gi, '임대 조건 검토')
+      .replace(/\bhousing search\b/gi, '거주지 탐색')
+      .replace(/\brelocation\b/gi, '이동')
       .replace(/\bList promotion criteria\b/gi, '승진 판단 기준을 정리하기')
       .replace(/\bList leverage points\b/gi, '협상 포인트를 정리하기')
       .replace(/\bName your narrow edge\b/gi, '자신의 전문 포지션을 명확히 하기')
@@ -567,7 +568,7 @@ export function normalizeNarrativeCoreText(
   const ENGINE_NOISE_REGEX =
     /(패턴 근거|시나리오 확률|타이밍 적합도|현재 모드는|resolvedmode|crossagreement|blockedby|signalid|claimid|anchorid|^career\s|^relationship\s|^wealth\s|^health\s|commit_now|staged_commit)/i
   if (ENGINE_NOISE_REGEX.test(cleaned)) return ''
-  return polishReportSurfaceText(cleaned || '', lang)
+  return normalizeUserFacingGuidance(polishReportSurfaceText(cleaned || '', lang), lang)
 }
 
 export function buildReportCoreLine(value: string | undefined | null, lang: 'ko' | 'en'): string {
