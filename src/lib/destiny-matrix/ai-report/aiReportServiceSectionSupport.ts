@@ -277,7 +277,12 @@ export function renderLifeMissionSection(
   lang: 'ko' | 'en',
   deps: AiReportSectionSupportDeps
 ): string {
-  return renderLifeMissionSectionExternal(reportCore, matrixInput, lang, deps.reportSectionRendererDeps)
+  return renderLifeMissionSectionExternal(
+    reportCore,
+    matrixInput,
+    lang,
+    deps.reportSectionRendererDeps
+  )
 }
 
 export function renderPersonalityDeepSection(
@@ -381,7 +386,7 @@ export function renderActionPlanSection(
   void matrixInput
   const actionDomain = reportCore.actionFocusDomain || reportCore.focusDomain
   if (lang === 'ko' && actionDomain === 'move') {
-    const decision = reportCore.topDecisionLabel || reportCore.primaryAction || '경로 재확인 우선'
+    const decision = reportCore.topDecisionLabel || reportCore.primaryAction || '경로 비교 우선'
     const riskControl = reportCore.riskControl || '큰 이동은 미루고, 작은 확인부터 진행하세요.'
     const branchLine = reportCore.projections?.branches?.nextMoves?.length
       ? deps.buildProjectionMoveSentence(
@@ -471,7 +476,12 @@ export function renderCareerPathSection(
   lang: 'ko' | 'en',
   deps: AiReportSectionSupportDeps
 ): string {
-  return renderCareerPathSectionExternal(reportCore, matrixInput, lang, deps.reportSectionRendererDeps)
+  return renderCareerPathSectionExternal(
+    reportCore,
+    matrixInput,
+    lang,
+    deps.reportSectionRendererDeps
+  )
 }
 
 export function renderRelationshipDynamicsSection(

@@ -226,7 +226,7 @@ function actionLabel(action: DecisionActionType, lang: 'ko' | 'en'): string {
     if (action === 'negotiate_first') return '협의 우선'
     if (action === 'boundary_first') return '경계 정리 우선'
     if (action === 'pilot_first') return '파일럿 우선'
-    if (action === 'route_recheck_first') return '경로 재확인 우선'
+    if (action === 'route_recheck_first') return '경로 비교 우선'
     if (action === 'lease_review_first') return '조건 재확인·협의 우선'
     if (action === 'basecamp_reset_first') return '거점 재정비 우선'
     return '준비 우선'
@@ -237,7 +237,7 @@ function actionLabel(action: DecisionActionType, lang: 'ko' | 'en'): string {
   if (action === 'negotiate_first') return 'Negotiate first'
   if (action === 'boundary_first') return 'Boundary first'
   if (action === 'pilot_first') return 'Pilot first'
-  if (action === 'route_recheck_first') return 'Recheck the route first'
+  if (action === 'route_recheck_first') return 'Compare route options first'
   if (action === 'lease_review_first') return 'Review the lease first'
   if (action === 'basecamp_reset_first') return 'Reset the basecamp first'
   return 'Prepare first'
@@ -357,12 +357,18 @@ function buildDomainContexts(
     ).length
     const riskPatternCount = domainPatterns.filter((pattern) => isRiskPattern(pattern)).length
     const leadPattern = domainPatterns[0]
-    const blockedActions = unique(domainPatterns.flatMap((pattern) => pattern.blockedBy || [])).slice(0, 6)
+    const blockedActions = unique(
+      domainPatterns.flatMap((pattern) => pattern.blockedBy || [])
+    ).slice(0, 6)
     const manifestationPressure = clamp(
       round(
         domainScenarios
           .slice(0, 4)
-          .reduce((sum, scenario) => sum + (scenario.whyNotYet ? 6 : 0) + scenario.abortConditions.length * 2, 0)
+          .reduce(
+            (sum, scenario) =>
+              sum + (scenario.whyNotYet ? 6 : 0) + scenario.abortConditions.length * 2,
+            0
+          )
       ),
       0,
       60
@@ -406,20 +412,28 @@ function templateEligible(context: DomainContext, template: OptionTemplate): boo
   const hasBranch = (pattern: RegExp) => branches.some((branch) => pattern.test(branch))
 
   if (template.action === 'review_first') {
-    return hasBranch(/review|clarify|recheck|restructure|preparation|compliance|search|expectations/)
+    return hasBranch(
+      /review|clarify|recheck|restructure|preparation|compliance|search|expectations/
+    )
   }
   if (template.action === 'negotiate_first') {
-    return hasBranch(/negotiation|acceptance|boundary|authority_conflict|lease_decision|pricing|allocation|cohabitation/)
+    return hasBranch(
+      /negotiation|acceptance|boundary|authority_conflict|lease_decision|pricing|allocation|cohabitation/
+    )
   }
   if (template.action === 'boundary_first') {
     return (
       context.domain === 'relationship' ||
       context.domain === 'health' ||
-      hasBranch(/boundary|distance_tuning|separation|load_rebalance|early_warning|burnout|sleep_disruption/)
+      hasBranch(
+        /boundary|distance_tuning|separation|load_rebalance|early_warning|burnout|sleep_disruption/
+      )
     )
   }
   if (template.action === 'pilot_first') {
-    return hasBranch(/entry|launch|restart|new_connection|travel|housing_search|side_income|income_growth|role_shift/)
+    return hasBranch(
+      /entry|launch|restart|new_connection|travel|housing_search|side_income|income_growth|role_shift/
+    )
   }
   if (template.action === 'route_recheck_first') {
     return hasBranch(/route_recheck|commute_restructure|cross_border_move|relocation/)
@@ -444,19 +458,24 @@ function actionContextBonus(context: DomainContext, action: DecisionActionType):
     return bonus
   }
   if (action === 'negotiate_first') {
-    let bonus = hasBranch(/negotiation|acceptance|lease_decision|allocation|authority_conflict/) ? 7 : 1
+    let bonus = hasBranch(/negotiation|acceptance|lease_decision|allocation|authority_conflict/)
+      ? 7
+      : 1
     if (context.blockedActions.includes('commit_now')) bonus += 3
     if (context.resolvedMode === 'verify') bonus += 2
     return bonus
   }
   if (action === 'boundary_first') {
     let bonus = context.domain === 'relationship' || context.domain === 'health' ? 5 : 1
-    if (hasBranch(/boundary|distance_tuning|separation|burnout|sleep_disruption|early_warning/)) bonus += 6
+    if (hasBranch(/boundary|distance_tuning|separation|burnout|sleep_disruption|early_warning/))
+      bonus += 6
     if (context.riskPatternCount >= 1) bonus += 2
     return bonus
   }
   if (action === 'pilot_first') {
-    let bonus = hasBranch(/entry|launch|restart|travel|housing_search|side_income|income_growth/) ? 6 : 1
+    let bonus = hasBranch(/entry|launch|restart|travel|housing_search|side_income|income_growth/)
+      ? 6
+      : 1
     if (context.resolvedMode === 'verify') bonus += 2
     if (context.domainState === 'opening' || context.domainState === 'active') bonus += 2
     return bonus
@@ -488,11 +507,17 @@ function actionSpecificityAdjustment(context: DomainContext, action: DecisionAct
 
   const hasBoundaryCluster = hasBranch(/boundary|distance_tuning|separation/)
   const hasReviewCluster = hasBranch(/review|clarify|expectations|preparation|recheck|compliance/)
-  const hasNegotiationCluster = hasBranch(/negotiation|acceptance|allocation|lease_decision|authority_conflict|cohabitation/)
-  const hasPilotCluster = hasBranch(/entry|launch|restart|travel|housing_search|commute_restructure|side_income|income_growth|route_recheck/)
+  const hasNegotiationCluster = hasBranch(
+    /negotiation|acceptance|allocation|lease_decision|authority_conflict|cohabitation/
+  )
+  const hasPilotCluster = hasBranch(
+    /entry|launch|restart|travel|housing_search|commute_restructure|side_income|income_growth|route_recheck/
+  )
   const hasRouteCluster = hasBranch(/route_recheck|commute_restructure|cross_border_move/)
   const hasLeaseCluster = hasBranch(/lease_decision|housing_search|relocation/)
-  const hasBasecampCluster = hasBranch(/basecamp_reset|commute_restructure|relocation|cross_border_move/)
+  const hasBasecampCluster = hasBranch(
+    /basecamp_reset|commute_restructure|relocation|cross_border_move/
+  )
 
   let adjustment = 0
 
@@ -530,7 +555,16 @@ function actionSpecificityAdjustment(context: DomainContext, action: DecisionAct
     if (hasNegotiationCluster) adjustment -= 2
     if (hasRouteCluster || hasLeaseCluster || hasBasecampCluster) adjustment -= 4
   } else if (action === 'prepare_only') {
-    if (hasBoundaryCluster || hasReviewCluster || hasNegotiationCluster || hasPilotCluster || hasRouteCluster || hasLeaseCluster || hasBasecampCluster) adjustment -= 5
+    if (
+      hasBoundaryCluster ||
+      hasReviewCluster ||
+      hasNegotiationCluster ||
+      hasPilotCluster ||
+      hasRouteCluster ||
+      hasLeaseCluster ||
+      hasBasecampCluster
+    )
+      adjustment -= 5
     if (context.resolvedMode === 'prepare' && context.domainState === 'closure') adjustment += 2
   } else if (action === 'commit_now') {
     if (hasBoundaryCluster || hasReviewCluster) adjustment -= 6
@@ -563,11 +597,7 @@ function scoreOption(context: DomainContext, template: OptionTemplate): Decision
     context.scenarioConfidence * 0.18
 
   const modeAdjustment =
-    context.resolvedMode === 'execute'
-      ? 6
-      : context.resolvedMode === 'prepare'
-        ? -8
-        : -2
+    context.resolvedMode === 'execute' ? 6 : context.resolvedMode === 'prepare' ? -8 : -2
   const stateAdjustment =
     context.domainState === 'peak'
       ? 5
@@ -589,7 +619,13 @@ function scoreOption(context: DomainContext, template: OptionTemplate): Decision
           ? -6
           : -1
 
-  const growth = clamp(round(growthBase * template.growthBias + modeAdjustment + stateAdjustment + agreementAdjustment), 1, 99)
+  const growth = clamp(
+    round(
+      growthBase * template.growthBias + modeAdjustment + stateAdjustment + agreementAdjustment
+    ),
+    1,
+    99
+  )
   const risk = clamp(
     round(
       riskBase * template.riskBias +
@@ -720,20 +756,21 @@ export function buildDecisionEngine(input: {
 }): DecisionEngineResult {
   const contexts = buildDomainContexts(input.patterns, input.scenarios, input.strategyEngine)
   const options = contexts.flatMap((context) =>
-    OPTION_TEMPLATES
-      .filter((template) => templateEligible(context, template))
-      .map((template) => toOption(context, template, input.lang))
+    OPTION_TEMPLATES.filter((template) => templateEligible(context, template)).map((template) =>
+      toOption(context, template, input.lang)
+    )
   )
 
   const ranked = options
     .sort((a, b) => b.scores.total - a.scores.total || b.confidence - a.confidence)
     .map((option, index) => ({ ...option, rank: index + 1 }))
   const ungatedRanked = ranked.filter((option) => !option.gated)
-  const preferredDomain = normalizeDomain(input.strategyEngine.domainStrategies[0]?.domain || 'personality')
+  const preferredDomain = normalizeDomain(
+    input.strategyEngine.domainStrategies[0]?.domain || 'personality'
+  )
   const preferredDomainOptions = ranked.filter((option) => option.domain === preferredDomain)
   const preferredDomainUngated = preferredDomainOptions.filter((option) => !option.gated)
-  const preferredTopOption =
-    preferredDomainUngated[0] || preferredDomainOptions[0] || null
+  const preferredTopOption = preferredDomainUngated[0] || preferredDomainOptions[0] || null
   const globalTopOption = ungatedRanked[0] || ranked[0] || null
   const topOption = preferredTopOption || globalTopOption
 
