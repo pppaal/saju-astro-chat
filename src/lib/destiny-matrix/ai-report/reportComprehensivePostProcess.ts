@@ -348,6 +348,65 @@ export function applyComprehensiveSectionRoleGuards(
       'ko'
     )
 
+  const actionDomain = reportCore.actionFocusDomain || reportCore.focusDomain || 'life'
+  const buildKoTimingExecutionLine = (domain: string): string => {
+    switch (domain) {
+      case 'career':
+        return '지금은 결론을 서두르기보다 역할 범위, 평가 기준, 협상 범위를 먼저 잠그는 편이 맞습니다.'
+      case 'relationship':
+      case 'love':
+        return '지금은 관계를 밀어붙이기보다 연락 간격, 기대치, 감정 속도를 먼저 맞추는 편이 맞습니다.'
+      case 'wealth':
+      case 'money':
+        return '지금은 수익 확대보다 금액 기준, 손실 한도, 정산 순서를 먼저 고정하는 편이 맞습니다.'
+      case 'health':
+        return '지금은 강행보다 수면, 식사 간격, 과부하 신호를 먼저 복구하는 편이 맞습니다.'
+      case 'move':
+      case 'relocation':
+        return '지금은 이동 결정보다 후보 지역, 출퇴근 시간, 생활비, 계약 조건을 먼저 비교하는 편이 맞습니다.'
+      default:
+        return '지금은 결론을 서두르기보다 기준과 순서를 먼저 고정하는 편이 맞습니다.'
+    }
+  }
+  const buildKoActionExecutionLine = (domain: string): string => {
+    switch (domain) {
+      case 'career':
+        return '오늘은 지원·협상·보고 중 하나만 정하고, 역할 기준을 한 문장으로 남기세요.'
+      case 'relationship':
+      case 'love':
+        return '오늘은 감정 해석보다 관계 리듬과 경계를 한 문장으로 확인하세요.'
+      case 'wealth':
+      case 'money':
+        return '오늘은 늘릴 돈보다 새는 돈과 보류할 지출을 먼저 나누세요.'
+      case 'health':
+        return '오늘은 회복 블록 하나를 먼저 확보하고, 몸이 꺾이는 신호를 기록하세요.'
+      case 'move':
+      case 'relocation':
+        return '오늘은 한 번에 정하지 말고 후보 두 곳의 생활 조건부터 표로 정리하세요.'
+      default:
+        return '오늘은 먼저 닫을 것과 보류할 것을 분리해 기준을 짧게 적어 두세요.'
+    }
+  }
+  const buildKoBlockedLine = (domain: string): string => {
+    switch (domain) {
+      case 'career':
+        return '반대로 피해야 할 것은 분위기만 보고 역할이 흐린 자리를 바로 확정하는 방식입니다.'
+      case 'relationship':
+      case 'love':
+        return '반대로 피해야 할 것은 확인되지 않은 기대를 관계의 결론처럼 밀어붙이는 방식입니다.'
+      case 'wealth':
+      case 'money':
+        return '반대로 피해야 할 것은 손실 한도 없이 금액을 먼저 늘리는 방식입니다.'
+      case 'health':
+        return '반대로 피해야 할 것은 회복 신호를 무시한 채 버티는 시간을 늘리는 방식입니다.'
+      case 'move':
+      case 'relocation':
+        return '반대로 피해야 할 것은 생활 조건을 보지 않고 계약부터 급히 잡는 방식입니다.'
+      default:
+        return '반대로 피해야 할 것은 분위기나 압박에 밀려 바로 확정하는 방식입니다.'
+    }
+  }
+
   const branchLabels = Array.from(
     new Set(
       (reportCore.branchSet || [])
@@ -418,6 +477,29 @@ export function applyComprehensiveSectionRoleGuards(
       blockedLabels.length > 0
         ? '반대로 피해야 할 것은 분위기나 압박에 밀려 바로 확정하는 방식입니다.'
         : '',
+      reportCore.riskControl,
+      '실행은 착수-재확인-확정으로 나누고, 오늘 먼저 닫을 것과 보류할 것을 분리하세요.',
+    ]
+      .filter(Boolean)
+      .join(' ')
+  )
+
+  next.timingAdvice = finalizeKoSection(
+    [
+      focusWindow || reportCore.gradeReason,
+      buildKoTimingExecutionLine(actionDomain),
+      softChecks.length > 0 ? '지금은 문서, 합의, 전달 순서를 먼저 고정하는 편이 안전합니다.' : '',
+      reportCore.riskControl,
+    ]
+      .filter(Boolean)
+      .join(' ')
+  )
+
+  next.actionPlan = finalizeKoSection(
+    [
+      `우선 행동은 ${reportCore.topDecisionLabel || reportCore.primaryAction}입니다.`,
+      buildKoActionExecutionLine(actionDomain),
+      blockedLabels.length > 0 ? buildKoBlockedLine(actionDomain) : '',
       reportCore.riskControl,
       '실행은 착수-재확인-확정으로 나누고, 오늘 먼저 닫을 것과 보류할 것을 분리하세요.',
     ]

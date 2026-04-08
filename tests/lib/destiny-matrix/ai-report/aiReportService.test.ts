@@ -708,7 +708,7 @@ describe('deterministic section leads', () => {
     })
 
     expect(result.sections.introduction).toContain('\uD310')
-    expect(result.sections.careerPath).toContain('\uC6B0\uC120\uC21C\uC704')
+    expect(result.sections.careerPath).toContain('\uC2E4\uD589\uCD95')
     expect(result.sections.wealthPotential).toContain('\uC190\uC2E4 \uC0C1\uD55C')
     expect(result.sections.conclusion).toContain('\uC7AC\uB2A5\uBCF4\uB2E4 \uC6B4\uC601')
   })
