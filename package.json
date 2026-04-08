@@ -43,6 +43,7 @@
     "test:tarot:question-golden": "vitest run tests/lib/Tarot/questionEngineGoldenSet.test.ts",
     "test:tarot:fallback-quality": "vitest run tests/lib/Tarot/fallbackQualityGoldenSet.test.ts",
     "test:tarot:interpret-quality": "vitest run tests/lib/Tarot/interpretationQualityBenchmark.test.ts",
+    "test:destiny:release": "vitest run tests/lib/destiny-matrix/ai-report/aiReportService.test.ts tests/app/api/destiny-map/chat-stream/route.mega.test.ts tests/app/api/calendar/route.test.ts tests/app/api/calendar/action-plan/route.test.ts tests/app/api/life-prediction/explain-results/route.test.ts tests/app/api/tarot/interpret/route.test.ts tests/app/premium-reports/result/page.test.tsx tests/lib/destiny-matrix/core/engineContract.test.ts --pool forks --poolOptions.forks.singleFork --testTimeout 120000",
     "qa:tarot:engine": "tsx scripts/tarot-question-engine-report.ts --out reports/quality/tarot_question_engine_latest.json",
     "qa:tarot:backend": "python backend_ai/scripts/evaluate_tarot_quality.py",
     "qa:tarot:full": "npm run qa:tarot:engine && npx tsx scripts/eval-tarot-question-sample.ts --count 80 --seed 20260324 --concurrency 12 && npm run qa:tarot:backend",
@@ -112,7 +113,8 @@
     "ops:typecheck:metrics": "node scripts/ops/typecheck-metrics.mjs",
     "ops:typecheck:hotspots": "node scripts/ops/typecheck-hotspots.mjs",
     "ops:destiny:gate:quick": "node scripts/ops/destiny-quality-gate.mjs --quick",
-    "ops:destiny:gate": "node scripts/ops/destiny-quality-gate.mjs --full"
+    "ops:destiny:gate": "node scripts/ops/destiny-quality-gate.mjs --full",
+    "ops:destiny:release": "npm run typecheck && npm run test:destiny:release && npx tsx scripts/ops/qa-destiny-three-services.ts --lang=ko"
   },
   "overrides": {
     "node-gyp": "^10.0.1",

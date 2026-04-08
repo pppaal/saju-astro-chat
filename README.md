@@ -117,6 +117,13 @@ Verified in the current workspace on 2026-04-08:
 - `tests/lib/destiny-matrix/ai-report/aiReportService.test.ts`
   - `24 passed, 1 skipped`
 
+Practical release command:
+
+- `npm run ops:destiny:release`
+  - runs `typecheck`
+  - runs the targeted destiny regression bundle
+  - runs `qa-destiny-three-services` in Korean mode
+
 Important nuance:
 
 - The repo is green on `tsc`, targeted regression suites, and the destiny three-service QA.

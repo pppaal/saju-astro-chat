@@ -62,6 +62,8 @@ Current rule:
 
 - Treat `tsc + destiny three-service QA + targeted regression bundle` as the practical release baseline for the destiny stack.
 - Do not claim "full-suite green" unless the full Vitest matrix has been rerun on the same revision.
+- Preferred release command:
+  - `npm run ops:destiny:release`
 
 ## Extended Checks
 
