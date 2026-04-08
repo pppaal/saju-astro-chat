@@ -43,4 +43,27 @@ describe('aiReportServicePolishSupport hard gates', () => {
       })
     ).toBe(true)
   })
+
+  it('forces comprehensive fallback when personalization is thin and abstract phrasing is high', () => {
+    expect(
+      shouldForceComprehensiveNarrativeFallback({
+        tokenIntegrityPass: true,
+        structurePass: true,
+        forbiddenAdditionsPass: true,
+        evidenceCoverageRatio: 0.9,
+        genericAdviceDensity: 0.12,
+        personalizationDensity: 0.18,
+        abstractNounRatio: 0.15,
+        eventCountByDomain: {
+          career: 2,
+          love: 2,
+          money: 2,
+          health: 2,
+          move: 1,
+          timing: 6,
+          life: 3,
+        },
+      })
+    ).toBe(true)
+  })
 })
