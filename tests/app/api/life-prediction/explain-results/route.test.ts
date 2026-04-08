@@ -135,6 +135,9 @@ describe('Life Prediction Explain Results API - POST', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
+    delete process.env.PUBLIC_API_TOKEN
+    delete process.env.NEXT_PUBLIC_API_TOKEN
+
     // Default: rate limit allows requests
     mockRateLimit.mockResolvedValue({
       allowed: true,
@@ -294,9 +297,7 @@ describe('Life Prediction Explain Results API - POST', () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
-          issues: [
-            { path: ['question'], message: 'String must contain at most 500 character(s)' },
-          ],
+          issues: [{ path: ['question'], message: 'String must contain at most 500 character(s)' }],
         },
       })
 
@@ -373,7 +374,9 @@ describe('Life Prediction Explain Results API - POST', () => {
       mockSafeParse.mockReturnValue({
         success: false,
         error: {
-          issues: [{ path: ['optimalPeriods', '0', 'score'], message: 'Number must be at most 100' }],
+          issues: [
+            { path: ['optimalPeriods', '0', 'score'], message: 'Number must be at most 100' },
+          ],
         },
       })
 
@@ -719,10 +722,7 @@ describe('Life Prediction Explain Results API - POST', () => {
 
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
-      expect(logger.error).toHaveBeenCalledWith(
-        'Result explanation failed:',
-        expect.any(Error)
-      )
+      expect(logger.error).toHaveBeenCalledWith('Result explanation failed:', expect.any(Error))
     })
 
     it('should return fallback response when OpenAI returns invalid JSON', async () => {
@@ -996,9 +996,7 @@ describe('Life Prediction Explain Results API - POST', () => {
     })
 
     it('should handle empty reasons array in period', async () => {
-      const periodsWithEmptyReasons = [
-        { ...validOptimalPeriods[0], reasons: [] },
-      ]
+      const periodsWithEmptyReasons = [{ ...validOptimalPeriods[0], reasons: [] }]
       mockSafeParse.mockReturnValue({
         success: true,
         data: { ...validRequestBody, optimalPeriods: periodsWithEmptyReasons },

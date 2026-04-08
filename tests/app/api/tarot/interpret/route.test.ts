@@ -65,6 +65,8 @@ vi.mock('@/lib/api/ApiClient', () => ({
 describe('POST /api/tarot/interpret', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    delete process.env.PUBLIC_API_TOKEN
+    delete process.env.NEXT_PUBLIC_API_TOKEN
     process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'test-openai-key'
     global.fetch = vi.fn()
   })
