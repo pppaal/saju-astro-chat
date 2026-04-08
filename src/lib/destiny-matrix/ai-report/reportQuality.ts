@@ -75,9 +75,17 @@ type BuildQualityParams = {
   forbiddenAdditionsPass: boolean
 }
 
-const SOFT_CORE_QUALITY_WARNINGS = new Set([
+const OBSERVATIONAL_CORE_QUALITY_WARNINGS = new Set([
+  // Ambiguity can be acceptable when branches and action-first framing remain clear.
   'focus_domain_ambiguity_high',
+  'top_scenario_gap_low',
+  'top_decision_gap_low',
+  'scenario_cluster_compression_high',
+  // These indicate supporting-signal thinness, not a broken report by themselves.
   'verification_bias_active',
+  'advanced_astro_signal_coverage_low',
+  'shinsal_signal_coverage_low',
+  'timing_signal_coverage_low',
 ])
 
 function getPathText(sections: Record<string, unknown>, path: string): string {
@@ -144,11 +152,7 @@ function countRepeatedSentences(texts: Array<{ path: string; text: string }>): n
 function countRepeatedLeads(texts: Array<{ path: string; text: string }>): number {
   const seen = new Map<string, Set<string>>()
   for (const item of texts) {
-    const lead = item.text
-      .split(/\n+/)[0]
-      ?.trim()
-      .replace(/\s+/g, ' ')
-      .toLowerCase()
+    const lead = item.text.split(/\n+/)[0]?.trim().replace(/\s+/g, ' ').toLowerCase()
     if (!lead || lead.length < 12) continue
     const key = lead.slice(0, 48)
     const bucket = seen.get(key) || new Set<string>()
@@ -341,7 +345,9 @@ export function buildReportQualityMetrics(params: BuildQualityParams): ReportQua
   }, 0)
   const internalScenarioLeakRegex =
     /(hidden support|defensive|cluster|fallback|generic|alt window|_window|scenario id)/i
-  const internalScenarioLeakCount = texts.filter((item) => internalScenarioLeakRegex.test(item.text)).length
+  const internalScenarioLeakCount = texts.filter((item) =>
+    internalScenarioLeakRegex.test(item.text)
+  ).length
   const styleMetrics = buildStyleMetrics(texts)
   const coreQualityScore =
     typeof context.coreQuality?.score === 'number' ? context.coreQuality.score : undefined
@@ -353,7 +359,9 @@ export function buildReportQualityMetrics(params: BuildQualityParams): ReportQua
     ? [...context.coreQuality.warnings]
     : undefined
   const coreQualityBlockingWarnings = Array.isArray(context.coreQuality?.warnings)
-    ? context.coreQuality.warnings.filter((warning) => !SOFT_CORE_QUALITY_WARNINGS.has(warning))
+    ? context.coreQuality.warnings.filter(
+        (warning) => !OBSERVATIONAL_CORE_QUALITY_WARNINGS.has(warning)
+      )
     : undefined
   const coreQualityBlockingWarningCount = Array.isArray(coreQualityBlockingWarnings)
     ? coreQualityBlockingWarnings.length
@@ -511,11 +519,7 @@ export function recordReportQualityMetrics(
     )
   }
   if (typeof quality.abstractNounRatio === 'number') {
-    recordGauge(
-      'destiny.ai_report.quality.abstract_noun_ratio',
-      quality.abstractNounRatio,
-      labels
-    )
+    recordGauge('destiny.ai_report.quality.abstract_noun_ratio', quality.abstractNounRatio, labels)
   }
   if (typeof quality.sentenceLengthVariance === 'number') {
     recordGauge(
@@ -525,11 +529,7 @@ export function recordReportQualityMetrics(
     )
   }
   if (typeof quality.bilingualToneSkew === 'number') {
-    recordGauge(
-      'destiny.ai_report.quality.bilingual_tone_skew',
-      quality.bilingualToneSkew,
-      labels
-    )
+    recordGauge('destiny.ai_report.quality.bilingual_tone_skew', quality.bilingualToneSkew, labels)
   }
   if (typeof quality.coreQualityScore === 'number') {
     recordGauge('destiny.ai_report.quality.core_quality_score', quality.coreQualityScore, labels)

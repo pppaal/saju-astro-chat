@@ -112,6 +112,219 @@ function resolveDomainState(
   )
 }
 
+function resolveDomainSpecificWhy(
+  packet: CounselorEvidencePacketLike | null | undefined,
+  domain: InterpretedAnswerDomain
+): string[] {
+  const personModel = packet?.personModel
+  const applied = personModel?.appliedProfile
+
+  switch (domain) {
+    case 'career':
+      return uniqueLines(
+        [
+          ...(personModel?.careerProfile?.executionStyle || []),
+          ...(applied?.workStyleProfile?.bestConditions || []),
+          ...(personModel?.careerProfile?.suitableLanes || []),
+        ],
+        3
+      )
+    case 'relationship':
+      return uniqueLines(
+        [
+          ...(personModel?.relationshipProfile?.partnerArchetypes || []),
+          ...(applied?.relationshipStyleProfile?.stabilizers || []),
+          ...(personModel?.relationshipProfile?.inflowPaths || []),
+        ],
+        3
+      )
+    case 'wealth':
+      return uniqueLines(
+        [
+          ...(applied?.moneyStyleProfile?.earningPattern || []),
+          ...(applied?.moneyStyleProfile?.savingPattern || []),
+          ...(applied?.moneyStyleProfile?.controlRules || []),
+        ],
+        3
+      )
+    case 'health':
+      return uniqueLines(
+        [
+          ...(applied?.lifeRhythmProfile?.recoveryWindows || []),
+          ...(applied?.lifeRhythmProfile?.regulationMoves || []),
+          ...(applied?.foodProfile?.rhythmGuidance || []),
+        ],
+        3
+      )
+    case 'move':
+      return uniqueLines(
+        [
+          ...(applied?.environmentProfile?.preferredSettings || []),
+          ...(applied?.environmentProfile?.resetActions || []),
+          personModel?.relationshipProfile?.summary,
+        ],
+        3
+      )
+    default:
+      return []
+  }
+}
+
+function resolveDomainSpecificEntry(
+  packet: CounselorEvidencePacketLike | null | undefined,
+  domain: InterpretedAnswerDomain
+): string[] {
+  const personModel = packet?.personModel
+  const applied = personModel?.appliedProfile
+
+  switch (domain) {
+    case 'career':
+      return uniqueLines(
+        [
+          ...(personModel?.careerProfile?.hiringTriggers || []),
+          ...(applied?.workStyleProfile?.bestConditions || []),
+        ],
+        3
+      )
+    case 'relationship':
+      return uniqueLines(
+        [
+          ...(personModel?.relationshipProfile?.commitmentConditions || []),
+          ...(applied?.relationshipStyleProfile?.stabilizers || []),
+        ],
+        3
+      )
+    case 'wealth':
+      return uniqueLines(
+        [
+          ...(applied?.moneyStyleProfile?.controlRules || []),
+          ...(applied?.moneyStyleProfile?.savingPattern || []),
+        ],
+        3
+      )
+    case 'health':
+      return uniqueLines(
+        [
+          ...(applied?.lifeRhythmProfile?.recoveryWindows || []),
+          ...(applied?.foodProfile?.rhythmGuidance || []),
+        ],
+        3
+      )
+    case 'move':
+      return uniqueLines(
+        [
+          ...(applied?.environmentProfile?.preferredSettings || []),
+          ...(applied?.environmentProfile?.resetActions || []),
+        ],
+        3
+      )
+    default:
+      return []
+  }
+}
+
+function resolveDomainSpecificAbort(
+  packet: CounselorEvidencePacketLike | null | undefined,
+  domain: InterpretedAnswerDomain
+): string[] {
+  const personModel = packet?.personModel
+  const applied = personModel?.appliedProfile
+
+  switch (domain) {
+    case 'career':
+      return uniqueLines(
+        [
+          ...(personModel?.careerProfile?.blockers || []),
+          ...(applied?.workStyleProfile?.fatigueTriggers || []),
+        ],
+        3
+      )
+    case 'relationship':
+      return uniqueLines(
+        [
+          ...(personModel?.relationshipProfile?.breakPatterns || []),
+          ...(applied?.relationshipStyleProfile?.ruptureTriggers || []),
+        ],
+        3
+      )
+    case 'wealth':
+      return uniqueLines(
+        [
+          ...(applied?.moneyStyleProfile?.leakageRisks || []),
+          ...(personModel?.uncertaintyEnvelope.conditionalAreas || []),
+        ],
+        3
+      )
+    case 'health':
+      return uniqueLines(
+        [
+          ...(applied?.lifeRhythmProfile?.stressBehaviors || []),
+          ...(applied?.foodProfile?.cautionFoods || []),
+        ],
+        3
+      )
+    case 'move':
+      return uniqueLines(
+        [
+          ...(applied?.environmentProfile?.drainSignals || []),
+          ...(personModel?.uncertaintyEnvelope.conditionalAreas || []),
+        ],
+        3
+      )
+    default:
+      return []
+  }
+}
+
+function resolveDomainSpecificNextMove(
+  packet: CounselorEvidencePacketLike | null | undefined,
+  domain: InterpretedAnswerDomain
+): string | undefined {
+  const personModel = packet?.personModel
+  const applied = personModel?.appliedProfile
+  const domainState = resolveDomainState(packet, domain)
+  const event = resolveDomainEvent(packet, domain)
+
+  switch (domain) {
+    case 'career':
+      return (
+        event?.nextMove ||
+        domainState?.firstMove ||
+        applied?.workStyleProfile?.leverageMoves?.[0] ||
+        personModel?.careerProfile?.hiringTriggers?.[0]
+      )
+    case 'relationship':
+      return (
+        event?.nextMove ||
+        domainState?.firstMove ||
+        applied?.relationshipStyleProfile?.repairMoves?.[0] ||
+        personModel?.relationshipProfile?.commitmentConditions?.[0]
+      )
+    case 'wealth':
+      return (
+        event?.nextMove ||
+        domainState?.firstMove ||
+        applied?.moneyStyleProfile?.controlRules?.[0] ||
+        applied?.moneyStyleProfile?.savingPattern?.[0]
+      )
+    case 'health':
+      return (
+        event?.nextMove ||
+        domainState?.firstMove ||
+        applied?.lifeRhythmProfile?.regulationMoves?.[0] ||
+        applied?.foodProfile?.rhythmGuidance?.[0]
+      )
+    case 'move':
+      return (
+        domainState?.firstMove ||
+        applied?.environmentProfile?.resetActions?.[0] ||
+        applied?.environmentProfile?.preferredSettings?.[0]
+      )
+    default:
+      return undefined
+  }
+}
+
 export function buildInterpretedAnswerContract(input: {
   packet: CounselorEvidencePacketLike | null | undefined
   frame: InterpretedAnswerFrame
@@ -136,6 +349,7 @@ export function buildInterpretedAnswerContract(input: {
       singleSubject.actionAxis?.whyThisFirst,
       domainState?.thesis,
       event?.summary,
+      ...resolveDomainSpecificWhy(packet, primaryDomain),
       resolveAppliedSummary(packet, primaryDomain),
       packet?.topTimingWindow?.timingConflictNarrative,
     ],
@@ -147,6 +361,7 @@ export function buildInterpretedAnswerContract(input: {
       ...(event?.entryConditions || []),
       ...(singleSubject.entryConditions || []),
       ...(domainState?.timescales?.[0]?.entryConditions || []),
+      ...resolveDomainSpecificEntry(packet, primaryDomain),
     ],
     3
   )
@@ -155,6 +370,7 @@ export function buildInterpretedAnswerContract(input: {
       ...(event?.abortConditions || []),
       ...(singleSubject.abortConditions || []),
       ...(domainState?.timescales?.[0]?.abortConditions || []),
+      ...resolveDomainSpecificAbort(packet, primaryDomain),
       ...(singleSubject.riskAxis?.hardStops || []),
     ],
     3
@@ -182,6 +398,9 @@ export function buildInterpretedAnswerContract(input: {
     },
     branches,
     uncertainty: resolveUncertainty(packet, primaryDomain),
-    nextMove: singleSubject.nextMove,
+    nextMove:
+      resolveDomainSpecificNextMove(packet, primaryDomain) ||
+      domainState?.firstMove ||
+      singleSubject.nextMove,
   }
 }

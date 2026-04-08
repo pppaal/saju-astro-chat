@@ -126,6 +126,17 @@ function compactComprehensiveNarrative(
   return normalized.replace(/\s{2,}/g, ' ').trim()
 }
 
+function localizeBranchLabel(label: string | undefined | null): string {
+  return String(label || '')
+    .replace(/_/g, ' ')
+    .replace(/\bdistance tuning\b/gi, '거리 조절')
+    .replace(/\bcontract negotiation\b/gi, '조건 협상')
+    .replace(/\bpromotion review\b/gi, '승진 검토')
+    .replace(/\bspecialist track\b/gi, '전문 트랙')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 function applyPremiumVoiceLayerToComprehensiveSections(
   sections: Record<string, unknown>,
   deps: ComprehensivePostProcessDeps
@@ -337,11 +348,39 @@ export function applyComprehensiveSectionRoleGuards(
       'ko'
     )
 
-  next.introduction = finalizeKoSection(
+  const branchLabels = Array.from(
+    new Set(
+      (reportCore.branchSet || [])
+        .slice(0, 3)
+        .map((branch) => localizeBranchLabel(branch.label || branch.summary || ''))
+        .filter(Boolean)
+    )
+  )
+  const repairKoArtifacts = (text: string) =>
+    finalizeKoSection(
+      String(text || '')
+        .replace(/distance tuning/gi, '거리 조절')
+        .replace(/contract negotiation/gi, '조건 협상')
+        .replace(/promotion review/gi, '승진 검토')
+        .replace(/specialist track/gi, '전문 트랙')
+        .replace(/이 구간에서는\s*를\s*한 번에/gu, '이 구간에서는 기준을 한 번에')
+        .replace(/강점은\s*를\s*빠르게/gu, '강점은 기준을 빠르게')
+        .replace(/약점은\s*이\s*판단 과속/gu, '약점은 판단 과속이')
+        .replace(/현실적으로는\s*,\s*/gu, '현실적으로는 ')
+        .replace(/현실적인 경로는\s*,\s*/gu, '현실적인 경로는 ')
+        .replace(
+          /1안은\s*\?+\s*[^.]*\./gu,
+          branchLabels.length > 0
+            ? `우선 경로는 ${branchLabels.join(', ')} 쪽입니다.`
+            : '우선은 비교 가능한 경로부터 좁혀 가는 쪽이 맞습니다.'
+        )
+    )
+
+  next.introduction = repairKoArtifacts(
     deps.renderIntroductionSection(reportCore, matrixInput, lang)
   )
 
-  next.personalityDeep = finalizeKoSection(
+  next.personalityDeep = repairKoArtifacts(
     [
       personalityStructure,
       '기본 성향의 강점은 구조화와 재정렬이고, 취약점은 해석이 끝나기 전에 확정을 서두를 때 발생합니다.',
@@ -359,7 +398,7 @@ export function applyComprehensiveSectionRoleGuards(
   next.healthGuidance = finalizeKoSection(
     deps.renderHealthGuidanceSection(reportCore, matrixInput, lang)
   )
-  next.lifeMission = finalizeKoSection(deps.renderLifeMissionSection(reportCore, matrixInput, lang))
+  next.lifeMission = repairKoArtifacts(deps.renderLifeMissionSection(reportCore, matrixInput, lang))
 
   next.timingAdvice = finalizeKoSection(
     [
@@ -386,7 +425,9 @@ export function applyComprehensiveSectionRoleGuards(
       .join(' ')
   )
 
-  next.conclusion = finalizeKoSection(deps.renderConclusionSection(reportCore, matrixInput, lang))
+  next.turningPoints = repairKoArtifacts(String(next.turningPoints || ''))
+  next.futureOutlook = repairKoArtifacts(String(next.futureOutlook || ''))
+  next.conclusion = repairKoArtifacts(deps.renderConclusionSection(reportCore, matrixInput, lang))
 
   return next
 }

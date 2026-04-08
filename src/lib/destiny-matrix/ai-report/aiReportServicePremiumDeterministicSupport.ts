@@ -291,10 +291,48 @@ export async function runPremiumDeterministicMode(ctx) {
     comprehensivePostProcessDeps,
     lang
   ) as AIPremiumReport['sections']
+  outputSections = applyComprehensiveSectionRoleGuards(
+    outputSections as AIPremiumReport['sections'],
+    reportCore,
+    normalizedInput,
+    comprehensivePostProcessDeps,
+    lang
+  )
+  outputSections = repairMalformedComprehensiveSections(
+    outputSections as AIPremiumReport['sections'],
+    reportCore,
+    normalizedInput,
+    lang
+  )
   outputSectionPaths = getComprehensiveRenderPaths(outputSections)
   outputSections = applyFinalReportStyle(outputSections, outputSectionPaths, lang, reportCore)
   outputSections = ensureFinalActionPlanGrounding(outputSections, lang, reportCore)
   outputSections = ensureFinalReportPolish(outputSections, lang, reportCore)
+  if (lang === 'ko') {
+    const cleanKoreanComprehensive = (text) =>
+      String(text || '')
+        .replace(/현실적으로는\s*,\s*/g, '현실적으로는 ')
+        .replace(/현실적인 경로는\s*,\s*/g, '현실적인 경로는 ')
+        .replace(/\s+/g, ' ')
+        .trim()
+    outputSections.turningPoints = cleanKoreanComprehensive(outputSections.turningPoints)
+    outputSections.futureOutlook = cleanKoreanComprehensive(outputSections.futureOutlook)
+  }
+  if (!String(outputSections.introduction || '').trim()) {
+    outputSections.introduction = comprehensiveFallbackDeps.renderIntroductionSection(
+      reportCore,
+      normalizedInput,
+      lang
+    )
+  }
+  if (!String(outputSections.timingAdvice || '').trim()) {
+    outputSections.timingAdvice = renderTimingAdviceSection(
+      reportCore,
+      normalizedInput,
+      lang,
+      options.matrixSummary
+    )
+  }
   outputSectionPaths = getComprehensiveRenderPaths(outputSections)
   qualityMetrics = buildReportQualityMetrics(
     outputSections as Record<string, unknown>,

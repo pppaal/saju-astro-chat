@@ -181,15 +181,23 @@ export function shouldForceComprehensiveNarrativeFallback(
   quality: ReportQualityMetrics | undefined
 ): boolean {
   if (!quality) return false
+  const criticalDomainCoverage =
+    quality.eventCountByDomain &&
+    ['career', 'love', 'money', 'health', 'move'].every(
+      (domain) => (quality.eventCountByDomain?.[domain] || 0) >= 1
+    )
   return Boolean(
     quality.tokenIntegrityPass === false ||
     quality.structurePass === false ||
     quality.forbiddenAdditionsPass === false ||
+    (quality.coreQualityBlockingWarningCount || 0) > 0 ||
+    quality.coreQualityPass === false ||
     (quality.crossSectionRepetition || 0) >= 2 ||
     (quality.genericAdviceDensity || 0) >= 0.45 ||
     (quality.internalScenarioLeakCount || 0) > 0 ||
     (quality.repetitiveLeadPatternCount || 0) >= 2 ||
-    (quality.evidenceCoverageRatio || 0) < 0.72
+    (quality.evidenceCoverageRatio || 0) < 0.72 ||
+    criticalDomainCoverage === false
   )
 }
 
@@ -201,6 +209,8 @@ export function shouldForceThemedNarrativeFallback(
     quality.tokenIntegrityPass === false ||
     quality.structurePass === false ||
     quality.forbiddenAdditionsPass === false ||
+    (quality.coreQualityBlockingWarningCount || 0) > 0 ||
+    quality.coreQualityPass === false ||
     (quality.crossSectionRepetition || 0) >= 2 ||
     (quality.genericAdviceDensity || 0) >= 0.42 ||
     (quality.internalScenarioLeakCount || 0) > 0 ||

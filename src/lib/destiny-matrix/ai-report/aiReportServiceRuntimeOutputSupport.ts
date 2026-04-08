@@ -3,8 +3,128 @@ import { buildUnifiedEnvelope } from './unifiedReport'
 import type { ReportCoreViewModel } from './reportCoreHelpers'
 import { sanitizeUserFacingNarrative } from './reportNarrativeSanitizer'
 import { applyReportBrandVoice } from './reportBrandVoice'
-import { getReportDomainLabel, localizeReportNarrativeText } from './reportTextHelpers'
+import {
+  getReportDomainLabel,
+  localizeReportNarrativeText,
+  normalizeNarrativeCoreText,
+} from './reportTextHelpers'
 import { buildInterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
+
+function getDomainSpecificGenericRewrite(
+  actionDomain: string,
+  lang: 'ko' | 'en'
+): ReadonlyArray<readonly [RegExp, string]> {
+  if (lang !== 'ko') return []
+
+  const domainSpecific = {
+    career: [
+      [
+        /지금은 준비와 정보 수집에 집중하세요\.?/g,
+        '이번 주에는 역할 범위, 평가 기준, 협상 조건을 문장으로 분리해 두세요.',
+      ],
+      [
+        /결론보다 검토 기준과 보류 조건을 먼저 정리하세요\.?/g,
+        '바로 수락하기보다 어떤 조건에서만 움직일지 기준부터 적어 두는 편이 유리합니다.',
+      ],
+      [
+        /감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요\.?/g,
+        '기대감보다 역할 정의와 책임 범위 확인을 앞세워야 판단 오차가 줄어듭니다.',
+      ],
+    ],
+    relationship: [
+      [
+        /지금은 준비와 정보 수집에 집중하세요\.?/g,
+        '이번 주에는 관계 속도, 기대치, 연락 리듬을 짧은 문장으로 먼저 맞춰 보세요.',
+      ],
+      [
+        /결론보다 검토 기준과 보류 조건을 먼저 정리하세요\.?/g,
+        '관계를 정의하기보다 어떤 거리와 리듬이 편한지부터 분명히 하는 편이 낫습니다.',
+      ],
+      [
+        /감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요\.?/g,
+        '감정 표현보다 서로의 기대와 경계가 맞는지 확인하는 질문을 앞세워야 합니다.',
+      ],
+    ],
+    wealth: [
+      [
+        /지금은 준비와 정보 수집에 집중하세요\.?/g,
+        '이번 주에는 수익 조건, 지출 누수, 보류 기준을 따로 적어 재정 구조를 먼저 정리하세요.',
+      ],
+      [
+        /결론보다 검토 기준과 보류 조건을 먼저 정리하세요\.?/g,
+        '확장보다 손실 상한과 조건선을 먼저 정해 두는 편이 결과를 더 오래 지킵니다.',
+      ],
+      [
+        /감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요\.?/g,
+        '수익 기대보다 비용 구조와 계약 조건 확인을 앞세워야 재정 판단이 흔들리지 않습니다.',
+      ],
+    ],
+    health: [
+      [
+        /지금은 준비와 정보 수집에 집중하세요\.?/g,
+        '이번 주에는 회복 시간부터 확보하고, 과부하가 올라오는 시간을 먼저 기록해 두세요.',
+      ],
+      [
+        /결론보다 검토 기준과 보류 조건을 먼저 정리하세요\.?/g,
+        '버티기보다 무엇을 줄여야 몸이 회복되는지 기준부터 세우는 편이 맞습니다.',
+      ],
+      [
+        /감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요\.?/g,
+        '의욕보다 수면, 식사, 과부하 신호를 먼저 확인해야 회복 판단이 정확해집니다.',
+      ],
+    ],
+    move: [
+      [
+        /지금은 준비와 정보 수집에 집중하세요\.?/g,
+        '이번 주에는 후보 지역, 통근 시간, 생활비 차이를 나란히 비교해 이동 조건을 좁혀 보세요.',
+      ],
+      [
+        /결론보다 검토 기준과 보류 조건을 먼저 정리하세요\.?/g,
+        '이사 결론보다 어떤 조건이면 옮기고 어떤 조건이면 보류할지부터 정리해야 손실이 줄어듭니다.',
+      ],
+      [
+        /감정 속도보다 확인 질문을 먼저 놓고 해석 오차를 줄이세요\.?/g,
+        '기분보다 거리, 비용, 계약 조건 같은 생활 기준을 먼저 확인해야 이동 판단이 선명해집니다.',
+      ],
+    ],
+  } as const
+
+  return [...(domainSpecific[actionDomain as keyof typeof domainSpecific] || [])]
+}
+
+function polishFinalSectionValue(value: unknown, actionDomain: string, lang: 'ko' | 'en'): unknown {
+  if (typeof value === 'string') {
+    const normalized = normalizeNarrativeCoreText(
+      value
+        .replace(
+          /Pushing through fatigue can degrade judgment quality\.?/gi,
+          '무리해서 버티면 판단 품질이 급격히 떨어질 수 있습니다.'
+        )
+        .replace(
+          /Pushing through irritation or heat signals often turns a short warning into a longer slowdown\.?/gi,
+          '경고 신호를 무시하고 밀어붙이면 짧게 끝날 문제도 길게 끌 수 있습니다.'
+        ),
+      lang
+    )
+    const rewritten = getDomainSpecificGenericRewrite(actionDomain, lang).reduce(
+      (current, [pattern, replacement]) => current.replace(pattern, replacement),
+      normalized
+    )
+    return sanitizeUserFacingNarrative(rewritten)
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => polishFinalSectionValue(item, actionDomain, lang))
+  }
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, child]) => [
+        key,
+        polishFinalSectionValue(child, actionDomain, lang),
+      ])
+    )
+  }
+  return value
+}
 
 function applyFinalReportStyle<T extends Record<string, unknown>>(
   sections: T,
@@ -122,11 +242,15 @@ function ensureFinalReportPolish<T extends Record<string, unknown>>(
     )
   }
 
-  return {
-    ...sections,
-    actionPlan,
-    conclusion,
-  }
+  return polishFinalSectionValue(
+    {
+      ...sections,
+      actionPlan,
+      conclusion,
+    },
+    actionDomain,
+    lang
+  ) as T
 }
 
 function attachDeterministicArtifacts(
@@ -198,81 +322,77 @@ function buildReportOutputCoreFields(
   const localizeReportFreeText = (text: string | undefined | null): string => {
     const value = String(text || '').trim()
     if (!value || lang !== 'ko') return value
-    return value
-      .replace(/\bpersonality\b/gi, '??')
-      .replace(/\bcareer\b/gi, '???')
-      .replace(/\brelationship\b/gi, '??')
-      .replace(/\bwealth\b/gi, '??')
-      .replace(/\bhealth\b/gi, '??')
-      .replace(/\bmove\b/gi, '??')
-      .replace(/\bspirituality\b/gi, '??')
-      .replace(/\bnow\b/gi, '??')
-      .replace(/\bweek\b/gi, '?? ?')
-      .replace(/\bfortnight\b/gi, '2?')
-      .replace(/\bmonth\b/gi, '?? ?')
-      .replace(/\bseason\b/gi, '?? ??')
-      .replace(/\bverify\b/gi, '???')
-      .replace(/\bprepare\b/gi, '??')
-      .replace(/\bexecute\b/gi, '??')
-      .replace(/\bTransit\s+saturnReturn\b/gi, '?? ?? ??')
-      .replace(/\bTransit\s+jupiterReturn\b/gi, '?? ??')
-      .replace(/\bTransit\s+nodeReturn\b/gi, '?? ?? ??')
-      .replace(/\bTransit\s+mercuryRetrograde\b/gi, '?? ??? ??')
-      .replace(/\bTransit\s+marsRetrograde\b/gi, '?? ??? ??')
-      .replace(/\bTransit\s+venusRetrograde\b/gi, '?? ??? ??')
-      .replace(/\bsaturnReturn\b/gi, '?? ?? ??')
-      .replace(/\bjupiterReturn\b/gi, '?? ??')
-      .replace(/\bnodeReturn\b/gi, '?? ?? ??')
-      .replace(/\bmercuryRetrograde\b/gi, '?? ??? ??')
-      .replace(/\bmarsRetrograde\b/gi, '?? ??? ??')
-      .replace(/\bvenusRetrograde\b/gi, '?? ??? ??')
-      .replace(/\bsolarReturn\b/gi, '?? ?? ??')
-      .replace(/\blunarReturn\b/gi, '?? ?? ??')
-      .replace(/\bprogressions?\b/gi, '?? ?? ??')
-      .replace(/\bcaution\b/gi, '?? ??')
-      .replace(/\bdowngrade pressure\b/gi, '?? ?? ??')
-      .replace(/\bgeokguk strength\b/gi, '?? ???')
-      .replace(/\bdebt restructure\b/gi, '?? ???')
-      .replace(/\bliquidity defense\b/gi, '??? ??')
-      .replace(/\bexpense spike\b/gi, '?? ?? ??')
-      .replace(/\bpromotion review\b/gi, '?? ??')
-      .replace(/\brecovery reset\b/gi, '?? ???')
-      .replace(/\bbasecamp reset\b/gi, '?? ???')
-      .replace(/\bmap full debt stack\b/gi, '?? ?? ??? ?? ????')
-      .replace(/\bwealth volatility pattern\b/gi, '?? ??? ??')
-      .replace(/\bcareer expansion pattern\b/gi, '??? ?? ??')
-      .replace(/\brelationship tension pattern\b/gi, '?? ?? ??')
-      .replace(/\bcashflow\b/gi, '????')
-      .replace(/\bmoney expansion action\b/gi, '?? ??? ?? ???? ?????')
-      .replace(/\brelationship caution\b/gi, '????? ???? ?? ??? ?????')
-      .replace(/action pressure/gi, 'action pressure')
-      .replace(/relationship caution/gi, 'relationship caution')
-      .replace(/money expansion action/gi, 'money expansion action')
-      .replace(/career expansion pattern/gi, 'career expansion pattern')
-      .replace(/relationship tension pattern/gi, 'relationship tension pattern')
+    const directReplacements: Array<[RegExp, string]> = [
+      [/\bpersonality\b/gi, '성향'],
+      [/\bcareer\b/gi, '커리어'],
+      [/\brelationship\b/gi, '관계'],
+      [/\bwealth\b/gi, '재정'],
+      [/\bhealth\b/gi, '건강'],
+      [/\bmove\b/gi, '이동'],
+      [/\bspirituality\b/gi, '내면'],
+      [/\bnow\b/gi, '지금'],
+      [/\bweek\b/gi, '주간'],
+      [/\bfortnight\b/gi, '2주'],
+      [/\bmonth\b/gi, '월간'],
+      [/\bseason\b/gi, '분기'],
+      [/\bverify\b/gi, '검증'],
+      [/\bprepare\b/gi, '준비'],
+      [/\bexecute\b/gi, '실행'],
+      [/\bTransit\s+saturnReturn\b/gi, '토성 회귀'],
+      [/\bTransit\s+jupiterReturn\b/gi, '목성 회귀'],
+      [/\bTransit\s+nodeReturn\b/gi, '노드 회귀'],
+      [/\bTransit\s+mercuryRetrograde\b/gi, '수성 역행'],
+      [/\bTransit\s+marsRetrograde\b/gi, '화성 역행'],
+      [/\bTransit\s+venusRetrograde\b/gi, '금성 역행'],
+      [/\bsaturnReturn\b/gi, '토성 회귀'],
+      [/\bjupiterReturn\b/gi, '목성 회귀'],
+      [/\bnodeReturn\b/gi, '노드 회귀'],
+      [/\bmercuryRetrograde\b/gi, '수성 역행'],
+      [/\bmarsRetrograde\b/gi, '화성 역행'],
+      [/\bvenusRetrograde\b/gi, '금성 역행'],
+      [/\bsolarReturn\b/gi, '태양 회귀'],
+      [/\blunarReturn\b/gi, '달 회귀'],
+      [/\bprogressions?\b/gi, '프로그레션'],
+      [/\bcaution\b/gi, '주의 신호'],
+      [/\bdowngrade pressure\b/gi, '하향 압력'],
+      [/\bgeokguk strength\b/gi, '격국 강도'],
+      [/\bdebt restructure\b/gi, '부채 재구성'],
+      [/\bliquidity defense\b/gi, '유동성 방어'],
+      [/\bexpense spike\b/gi, '지출 급증'],
+      [/\bpromotion review\b/gi, '승진 검토'],
+      [/\brecovery reset\b/gi, '회복 재정비'],
+      [/\bbasecamp reset\b/gi, '거점 재정비'],
+      [/\bmap full debt stack\b/gi, '부채 구조 전체 점검'],
+      [/\bwealth volatility pattern\b/gi, '재정 변동 흐름'],
+      [/\bcareer expansion pattern\b/gi, '커리어 확장 흐름'],
+      [/\brelationship tension pattern\b/gi, '관계 긴장 흐름'],
+      [/\bcashflow\b/gi, '현금흐름'],
+      [/\bmoney expansion action\b/gi, '재정 확장 실행'],
+      [/\brelationship caution\b/gi, '관계 주의 신호'],
+      [/\bcontract negotiation\b/gi, '조건 협상'],
+      [/\bspecialist track\b/gi, '전문 트랙'],
+      [/\bsleep disruption\b/gi, '수면 교란'],
+      [/\bburnout risk\b/gi, '번아웃 위험'],
+      [/\bdebt restructuring\b/gi, '부채 재구성'],
+      [/\broute recheck\b/gi, '경로 재점검'],
+      [/\bdistance tuning\b/gi, '거리 조절'],
+    ]
+
+    let localized = value
+    for (const [pattern, replacement] of directReplacements) {
+      localized = localized.replace(pattern, replacement)
+    }
+
+    return localized
       .replace(
         /action pressure stayed narrow between ([^\s]+) and ([^\s]+)/gi,
         (_, left: string, right: string) =>
-          `${getReportDomainLabel(left, 'ko')}? ${getReportDomainLabel(right, 'ko')} ??? ?? ??? ???? ?????.`
+          `${getReportDomainLabel(left, 'ko')}과 ${getReportDomainLabel(right, 'ko')} 사이에서 행동 압력이 좁게 유지됐습니다.`
       )
       .replace(
         /\b\w+\s+stayed secondary because total support remained below the winner\b/gi,
-        '?? ??? ????? ?? ???? ??????.'
+        '총 지지가 우세 축보다 낮아 보조 축에 머물렀습니다.'
       )
-      .replace(/basecamp reset/gi, '?? ???')
-      .replace(/promotion review/gi, '?? ??')
-      .replace(/contract negotiation/gi, '?? ??')
-      .replace(/specialist track/gi, '??? ??')
-      .replace(/wealth volatility pattern/gi, '?? ??? ??')
-      .replace(/career expansion pattern/gi, '??? ?? ??')
-      .replace(/relationship tension pattern/gi, '?? ?? ??')
-      .replace(/sleep disruption/gi, '?? ???')
-      .replace(/burnout risk/gi, '??? ??')
-      .replace(/liquidity defense/gi, '??? ??')
-      .replace(/debt restructuring/gi, '?? ???')
-      .replace(/route recheck/gi, '?? ???')
-      .replace(/recovery reset/gi, '?? ???')
-      .replace(/cashflow/gi, '????')
       .replace(/\s+/g, ' ')
       .trim()
   }
@@ -343,14 +463,14 @@ function buildReportOutputCoreFields(
   const structureSummary =
     lang === 'ko'
       ? reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
-        ? `?? ?? ???? ? ??? ${actionLabel}??, ?? ?? ??? ${focusLabel}???. ?? ?? ?? ?? ${reportCore.latentTopAxes
+        ? `지금 직접 다뤄야 할 축은 ${actionLabel}이고, 배경 구조축은 ${focusLabel}입니다. 상위 잠재 축은 ${reportCore.latentTopAxes
             .slice(0, 3)
             .map((axis) => axis.label)
-            .join(', ')}???.`
-        : `?? ?? ?? ???? ??? ${focusLabel}??, ??? ?? ???? ? ??? ${actionLabel}???. ?? ?? ?? ?? ${reportCore.latentTopAxes
+            .join(', ')}입니다.`
+        : `기본 구조축은 ${focusLabel}이고, 현재 실행축도 ${actionLabel}입니다. 상위 잠재 축은 ${reportCore.latentTopAxes
             .slice(0, 3)
             .map((axis) => axis.label)
-            .join(', ')}???.`
+            .join(', ')}입니다.`
       : reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
         ? `The axis to handle directly right now is ${actionLabel}, while ${focusLabel} remains the background structural axis. The top latent drivers are ${reportCore.latentTopAxes
             .slice(0, 3)
@@ -362,17 +482,17 @@ function buildReportOutputCoreFields(
             .join(', ')}.`
   const timingSummary =
     lang === 'ko'
-      ? `${actionLabel} ??? ?? ?? ${localizeReportFreeText(timingWindow?.window || '??')}??, ${localizeReportFreeText(timingWindow?.timingConflictNarrative || '??? ??? ?? ?? ???.')}`
+      ? `${actionLabel} 타이밍 창은 ${localizeReportFreeText(timingWindow?.window || '확인 필요')}이며, ${localizeReportFreeText(timingWindow?.timingConflictNarrative || '구조와 촉발 신호를 함께 읽어야 합니다.')}`
       : `Timing for ${actionLabel} reads as ${timingWindow?.window || 'unknown'}, and ${timingWindow?.timingConflictNarrative || 'structure and trigger need to be read together.'}`
   const conflictSummary =
     lang === 'ko'
       ? localizeReportFreeText(reportCore.arbitrationBrief.conflictReasons[0]) ||
-        `${focusLabel}? ?? ??? ?? ??, ${actionLabel}? ?? ??? ??? ? ?? ?? ???.`
+        `${focusLabel}은 배경 구조축이고, ${actionLabel}은 실제로 움직일 실행축입니다.`
       : reportCore.arbitrationBrief.conflictReasons[0] ||
         `${focusLabel} and ${actionLabel} currently separate into identity and action axes.`
   const evidenceSummary =
     lang === 'ko'
-      ? `?? ?? ${reportCore.topSignalIds.slice(0, 3).length}?, ?? ?? ${reportCore.topPatternIds.slice(0, 2).length}?, ?? ?? ${reportCore.topScenarioIds.slice(0, 2).length}?? ?? ??? ??? ????.`
+      ? `상위 신호 ${reportCore.topSignalIds.slice(0, 3).length}개, 패턴 ${reportCore.topPatternIds.slice(0, 2).length}개, 시나리오 ${reportCore.topScenarioIds.slice(0, 2).length}개가 현재 해석의 중심축을 이룹니다.`
       : `Top signals ${reportCore.topSignalIds.slice(0, 3).join(', ')}, patterns ${reportCore.topPatternIds.slice(0, 2).join(', ')}, and scenarios ${reportCore.topScenarioIds.slice(0, 2).join(', ')} form the current spine.`
   return {
     focusDomain: reportCore.focusDomain,
@@ -811,7 +931,7 @@ function buildReportOutputCoreFields(
     latentTopAxes: reportCore.latentTopAxes,
     projections: {
       structure: {
-        headline: lang === 'ko' ? '?? ??' : 'Structure Projection',
+        headline: lang === 'ko' ? '구조 해석' : 'Structure Projection',
         summary: structureSummary,
         topAxes: reportCore.latentTopAxes.slice(0, 4).map((axis) => axis.label),
         detailLines: localizeProjectionList(reportCore.projections?.structure?.detailLines || []),
@@ -822,7 +942,7 @@ function buildReportOutputCoreFields(
         nextMoves: localizeProjectionList(reportCore.projections?.structure?.nextMoves || []),
       },
       timing: {
-        headline: lang === 'ko' ? '??? ??' : 'Timing Projection',
+        headline: lang === 'ko' ? '타이밍 해석' : 'Timing Projection',
         summary: timingSummary,
         window: timingWindow?.window,
         granularity: timingWindow?.timingGranularity,
@@ -834,7 +954,7 @@ function buildReportOutputCoreFields(
         nextMoves: localizeProjectionList(reportCore.projections?.timing?.nextMoves || []),
       },
       conflict: {
-        headline: lang === 'ko' ? '?? ??' : 'Conflict Projection',
+        headline: lang === 'ko' ? '충돌 해석' : 'Conflict Projection',
         summary: conflictSummary,
         detailLines: localizeProjectionList(reportCore.projections?.conflict?.detailLines || []),
         drivers: localizeProjectionList(reportCore.projections?.conflict?.drivers || []),
@@ -850,10 +970,10 @@ function buildReportOutputCoreFields(
             : reportCore.arbitrationBrief.conflictReasons.slice(0, 3),
       },
       action: {
-        headline: lang === 'ko' ? '?? ??' : 'Action Projection',
+        headline: lang === 'ko' ? '행동 해석' : 'Action Projection',
         summary:
           lang === 'ko'
-            ? `${actionLabel}??? ${reportCore.topDecisionLabel || reportCore.topDecisionId || reportCore.primaryAction}? ?? ?? ???????.`
+            ? `${actionLabel} 축에서는 ${reportCore.topDecisionLabel || reportCore.topDecisionId || reportCore.primaryAction}이 현재 우선 행동입니다.`
             : `On the ${actionLabel} axis, ${reportCore.topDecisionLabel || reportCore.topDecisionId || reportCore.primaryAction} is the live move.`,
         detailLines: localizeProjectionList(reportCore.projections?.action?.detailLines || []),
         drivers: localizeProjectionList(reportCore.projections?.action?.drivers || []),
@@ -867,7 +987,7 @@ function buildReportOutputCoreFields(
         ].filter(Boolean),
       },
       risk: {
-        headline: lang === 'ko' ? '??? ??' : 'Risk Projection',
+        headline: lang === 'ko' ? '리스크 해석' : 'Risk Projection',
         summary:
           lang === 'ko'
             ? [
@@ -889,7 +1009,7 @@ function buildReportOutputCoreFields(
           .filter(Boolean),
       },
       evidence: {
-        headline: lang === 'ko' ? '?? ??' : 'Evidence Projection',
+        headline: lang === 'ko' ? '근거 해석' : 'Evidence Projection',
         summary: evidenceSummary,
         detailLines: localizeProjectionList(reportCore.projections?.evidence?.detailLines || []),
         drivers: localizeProjectionList(reportCore.projections?.evidence?.drivers || []),
@@ -901,13 +1021,13 @@ function buildReportOutputCoreFields(
           lang === 'ko'
             ? [
                 reportCore.topSignalIds.length
-                  ? `?? ?? ${reportCore.topSignalIds.slice(0, 3).length}?? ??? ?? ????.`
+                  ? `상위 신호 ${reportCore.topSignalIds.slice(0, 3).length}개가 현재 구조를 지지합니다.`
                   : '',
                 reportCore.topPatternIds.length
-                  ? `?? ?? ${reportCore.topPatternIds.slice(0, 2).length}?? ?? ???? ????.`
+                  ? `상위 패턴 ${reportCore.topPatternIds.slice(0, 2).length}개가 반복 흐름을 설명합니다.`
                   : '',
                 reportCore.topScenarioIds.length
-                  ? `?? ???? ${reportCore.topScenarioIds.slice(0, 2).length}?? ?? ??? ?????.`
+                  ? `상위 시나리오 ${reportCore.topScenarioIds.slice(0, 2).length}개가 가능한 전개를 좁혀 줍니다.`
                   : '',
               ].filter(Boolean)
             : [
@@ -917,11 +1037,11 @@ function buildReportOutputCoreFields(
               ].filter(Boolean),
       },
       branches: {
-        headline: lang === 'ko' ? '?? ??' : 'Branch Projection',
+        headline: lang === 'ko' ? '분기 해석' : 'Branch Projection',
         summary:
           localizeReportFreeText(reportCore.projections?.branches?.summary) ||
           (lang === 'ko'
-            ? '??? ??? ??? ?????? 2~3?? ?? ??? ??? ?? ????.'
+            ? '하나의 고정 결론보다 2~3개의 현실적인 분기를 함께 비교해야 합니다.'
             : 'Multiple realistic branches are open rather than one fixed outcome.'),
         window: reportCore.projections?.branches?.window,
         granularity: reportCore.projections?.branches?.granularity,

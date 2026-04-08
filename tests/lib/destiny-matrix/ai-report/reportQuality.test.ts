@@ -74,4 +74,98 @@ describe('reportQuality.buildReportQualityMetrics', () => {
 
     expect(quality.scenarioBundleCoverage).toBe(1)
   })
+
+  it('treats ambiguity and signal-thinness warnings as observational when score stays high', () => {
+    const sections = {
+      overview: '사주 구조와 점성 타이밍이 함께 열리는 구간입니다.',
+      actionPlan: '지금은 조건부터 문서로 정리하고 다음 창을 기다리세요.',
+    }
+    const sectionPaths = ['overview', 'actionPlan']
+    const evidenceRefs: SectionEvidenceRefs = {
+      overview: [{ id: 'SIG:overview', keyword: '구조' }],
+      actionPlan: [{ id: 'SIG:action', keyword: '조건' }],
+    }
+
+    const quality = buildReportQualityMetrics({
+      sections,
+      sectionPaths,
+      evidenceRefs,
+      context: {
+        requiredPaths: sectionPaths,
+        coreQuality: {
+          score: 100,
+          grade: 'A',
+          warnings: [
+            'focus_domain_ambiguity_high',
+            'verification_bias_active',
+            'advanced_astro_signal_coverage_low',
+            'timing_signal_coverage_low',
+            'top_decision_gap_low',
+          ],
+        },
+      },
+      minEvidenceRefsPerSection: 1,
+      regex: {
+        recheck: /재확인/i,
+        absoluteRisk: /절대/i,
+        irreversibleAction: /서명/i,
+        cautionIndicator: /주의/i,
+        immediateForce: /즉시/i,
+        mitigation: /점검|조건/i,
+        recommendationTone: /우선|먼저|하세요/i,
+      },
+      hasEvidenceSupport: () => true,
+      forbiddenAdditionsPass: true,
+    })
+
+    expect(quality.coreQualityWarningCount).toBe(5)
+    expect(quality.coreQualityBlockingWarningCount).toBe(0)
+    expect(quality.coreQualityBlockingWarnings).toEqual([])
+    expect(quality.coreQualityPass).toBe(true)
+  })
+
+  it('keeps structural coverage warnings as blocking even with a high score', () => {
+    const sections = {
+      overview: '사주 구조와 점성 타이밍을 함께 검토한 결과입니다.',
+      actionPlan: '지금은 범위와 역할부터 다시 확인하세요.',
+    }
+    const sectionPaths = ['overview', 'actionPlan']
+    const evidenceRefs: SectionEvidenceRefs = {
+      overview: [{ id: 'SIG:overview', keyword: '구조' }],
+      actionPlan: [{ id: 'SIG:action', keyword: '역할' }],
+    }
+
+    const quality = buildReportQualityMetrics({
+      sections,
+      sectionPaths,
+      evidenceRefs,
+      context: {
+        requiredPaths: sectionPaths,
+        coreQuality: {
+          score: 96,
+          grade: 'A',
+          warnings: ['scenario_domain_coverage_low', 'decision_domain_coverage_low'],
+        },
+      },
+      minEvidenceRefsPerSection: 1,
+      regex: {
+        recheck: /재확인/i,
+        absoluteRisk: /절대/i,
+        irreversibleAction: /서명/i,
+        cautionIndicator: /주의/i,
+        immediateForce: /즉시/i,
+        mitigation: /점검|조건/i,
+        recommendationTone: /우선|먼저|하세요/i,
+      },
+      hasEvidenceSupport: () => true,
+      forbiddenAdditionsPass: true,
+    })
+
+    expect(quality.coreQualityBlockingWarningCount).toBe(2)
+    expect(quality.coreQualityBlockingWarnings).toEqual([
+      'scenario_domain_coverage_low',
+      'decision_domain_coverage_low',
+    ])
+    expect(quality.coreQualityPass).toBe(false)
+  })
 })

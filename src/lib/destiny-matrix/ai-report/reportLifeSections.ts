@@ -12,6 +12,45 @@ export interface ReportLifeSectionDeps {
   sanitizeUserFacingNarrative: (text: string) => string
 }
 
+function normalizeNarrativeLabel(label: string | null | undefined, lang: 'ko' | 'en'): string {
+  const value = String(label || '')
+    .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!value || /^(unknown|null|undefined|n\/a)$/i.test(value)) {
+    return ''
+  }
+
+  const localized =
+    lang === 'ko'
+      ? value
+          .replace(/\bdistance tuning\b/gi, '거리 조절')
+          .replace(/\bcontract negotiation\b/gi, '조건 협상')
+          .replace(/\bpromotion review\b/gi, '승진 검토')
+          .replace(/\bspecialist track\b/gi, '전문 트랙')
+      : value
+
+  const cleaned = localized
+    .replace(/^\s*[,/.-]+\s*/g, '')
+    .replace(/\s*[,/.-]+\s*$/g, '')
+    .trim()
+
+  if (!cleaned || /^[,/.-]+$/.test(cleaned)) {
+    return ''
+  }
+
+  return cleaned
+}
+
+function normalizeNarrativeLabels(
+  labels: Array<string | null | undefined>,
+  lang: 'ko' | 'en'
+): string[] {
+  return Array.from(
+    new Set(labels.map((label) => normalizeNarrativeLabel(label, lang)).filter(Boolean))
+  )
+}
+
 export function renderComprehensiveSpouseProfileSection(
   reportCore: ReportCoreViewModel,
   _matrixInput: MatrixCalculationInput,
@@ -119,13 +158,14 @@ export function renderComprehensiveTurningPointsSection(
     lang
   )
   const branches = (reportCore.branchSet || []).slice(0, 3)
-  const branchLabels = branches
-    .map((branch) =>
+  const branchLabels = normalizeNarrativeLabels(
+    branches.map((branch) =>
       deps.sanitizeUserFacingNarrative(
         deps.localizeReportNarrativeText(branch.label || branch.summary || '', lang)
       )
-    )
-    .filter(Boolean)
+    ),
+    lang
+  )
 
   if (lang === 'ko') {
     return deps.formatNarrativeParagraphs(
@@ -175,8 +215,7 @@ export function renderComprehensiveFutureOutlookSection(
       ? (() => {
           const cells = matrixRow.cells.slice(0, 3)
           const avgAgreement =
-            cells.reduce((sum, cell) => sum + (cell.agreement || 0), 0) /
-            Math.max(1, cells.length)
+            cells.reduce((sum, cell) => sum + (cell.agreement || 0), 0) / Math.max(1, cells.length)
           const avgContradiction =
             cells.reduce((sum, cell) => sum + (cell.contradiction || 0), 0) /
             Math.max(1, cells.length)
@@ -190,16 +229,18 @@ export function renderComprehensiveFutureOutlookSection(
         })()
       : ''
 
+    const branchLabels = normalizeNarrativeLabels(
+      topBranches.map((branch) =>
+        deps.sanitizeUserFacingNarrative(
+          deps.localizeReportNarrativeText(branch.label || branch.summary || '', lang)
+        )
+      ),
+      lang
+    )
+
     const branchLine =
-      topBranches.length > 0
-        ? `현실적인 경로는 ${topBranches
-            .map((branch) =>
-              deps.sanitizeUserFacingNarrative(
-                deps.localizeReportNarrativeText(branch.label || branch.summary || '', lang)
-              )
-            )
-            .filter(Boolean)
-            .join(', ')} 쪽으로 열려 있습니다. 한 번에 확정하기보다 비교 가능한 경로부터 좁혀가는 편이 맞습니다.`
+      branchLabels.length > 0
+        ? `현실적인 경로는 ${branchLabels.join(', ')} 쪽으로 열려 있습니다. 한 번에 확정하기보다 비교 가능한 경로부터 좁혀가는 편이 맞습니다.`
         : ''
 
     return deps.formatNarrativeParagraphs(
@@ -232,16 +273,19 @@ export function renderComprehensiveFutureOutlookSection(
               .filter(Boolean)
               .join(' / ')
           : '',
-        topBranches.length > 0
-          ? `The realistic paths are ${topBranches
-              .map((branch) =>
-                deps.sanitizeUserFacingNarrative(
-                  deps.localizeReportNarrativeText(branch.label || branch.summary || '', lang)
-                )
+        (() => {
+          const branchLabels = normalizeNarrativeLabels(
+            topBranches.map((branch) =>
+              deps.sanitizeUserFacingNarrative(
+                deps.localizeReportNarrativeText(branch.label || branch.summary || '', lang)
               )
-              .filter(Boolean)
-              .join(', ')}.`
-          : '',
+            ),
+            lang
+          )
+          return branchLabels.length > 0
+            ? `The realistic paths are ${branchLabels.join(', ')}.`
+            : ''
+        })(),
         riskLabel ? `Longer-term results depend heavily on how well ${riskLabel} is managed.` : '',
       ].join(' ')
     ),
