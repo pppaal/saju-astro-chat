@@ -8,28 +8,28 @@ import type { CounselorEvidencePacketLike } from '@/lib/destiny-matrix/counselor
 function buildBasePacket(): CounselorEvidencePacketLike {
   return {
     singleSubjectView: {
-      directAnswer: '지금은 기준을 먼저 세워야 합니다.',
+      directAnswer: 'Set the criteria first before you move.',
       structureAxis: {
         domain: 'career',
         label: 'Career',
-        thesis: '커리어 구조가 선행합니다.',
+        thesis: 'Career structure is the leading axis.',
         topAxes: ['career pressure'],
       },
       actionAxis: {
         domain: 'career',
         label: 'Career',
-        nowAction: '조건을 먼저 정리하세요.',
-        whyThisFirst: '역할 정의가 먼저입니다.',
+        nowAction: 'Define the role conditions first.',
+        whyThisFirst: 'Role clarity has to come before execution.',
       },
       riskAxis: {
         domain: 'health',
         label: 'Health',
-        warning: '과부하를 먼저 낮추세요.',
-        hardStops: ['수면 붕괴'],
+        warning: 'Lower the overload before you accelerate.',
+        hardStops: ['sleep collapse'],
       },
       timingState: {
         bestWindow: '1-3m',
-        whyNow: '지금은 구조를 정리할 시간입니다.',
+        whyNow: 'This is the phase to tighten the structure before pushing forward.',
         confidence: 0.82,
         windows: [
           {
@@ -38,7 +38,7 @@ function buildBasePacket(): CounselorEvidencePacketLike {
             agreement: 0.8,
             contradiction: 0.2,
             leadLag: 0.1,
-            summary: '다음 분기부터 실행이 쉬워집니다.',
+            summary: 'Execution becomes easier over the next quarter.',
           },
         ],
       },
@@ -46,36 +46,36 @@ function buildBasePacket(): CounselorEvidencePacketLike {
       branches: [
         {
           label: 'A-track',
-          summary: '조건이 맞는 자리로 들어갑니다.',
-          entryConditions: ['역할 범위를 정의한다'],
-          abortConditions: ['조건이 흐릿하다'],
-          nextMove: '포지션 문장을 먼저 정리하세요.',
+          summary: 'Move into the role only when the conditions are clear.',
+          entryConditions: ['define the role boundary'],
+          abortConditions: ['the role remains vague'],
+          nextMove: 'Rewrite the position criteria before you apply.',
         },
       ],
-      entryConditions: ['역할 범위를 정의한다'],
-      abortConditions: ['조건이 흐릿하다'],
-      nextMove: '포지션 문장을 먼저 정리하세요.',
+      entryConditions: ['define the role boundary'],
+      abortConditions: ['the role remains vague'],
+      nextMove: 'Rewrite the position criteria before you apply.',
       confidence: 0.8,
       reliability: { contradictionFlags: [], notes: [] },
     },
     topTimingWindow: {
       domain: 'career',
       window: '1-3m',
-      whyNow: '다음 분기에 창이 강해집니다.',
-      entryConditions: ['역할 범위가 분명함'],
-      abortConditions: ['현금 압박 급증'],
-      timingConflictNarrative: '준비는 됐지만 확정은 늦춰야 합니다.',
+      whyNow: 'The next quarter gives the strongest opening.',
+      entryConditions: ['the role scope is clear'],
+      abortConditions: ['cash pressure rises too quickly'],
+      timingConflictNarrative: 'Preparation is ready, but confirmation should still be delayed.',
     },
     personModel: {
       subject: 'tester',
-      overview: '커리어 구조가 우선입니다.',
+      overview: 'Career structure takes the lead.',
       structuralCore: {
         focusDomain: 'career',
         actionFocusDomain: 'career',
         riskAxisDomain: 'health',
         gradeLabel: 'strong',
         phaseLabel: 'prepare',
-        overview: '커리어 구조가 우선입니다.',
+        overview: 'Career structure takes the lead.',
         latentAxes: [],
       },
       formationProfile: {
@@ -99,21 +99,67 @@ function buildBasePacket(): CounselorEvidencePacketLike {
           label: 'Career',
           currentState: 'mixed',
           currentWindow: '1-3m',
-          thesis: '커리어는 실행보다 조건 정의가 먼저입니다.',
+          thesis: 'Career needs clearer conditions before execution.',
           supportSignals: [],
           pressureSignals: [],
           alignedWith: [],
           conflictingWith: [],
-          nextShift: '실행이 빨라집니다.',
-          firstMove: '지원 전 조건을 문장으로 만드세요.',
-          holdMove: '모호한 자리는 보류하세요.',
+          nextShift: 'Execution speeds up once the structure is defined.',
+          firstMove: 'Turn the role criteria into one clean sentence.',
+          holdMove: 'Hold any offer that leaves the responsibility line vague.',
           timescales: [
             {
               timescale: '1-3m',
               status: 'open',
-              thesis: '다음 분기부터 실행이 쉬워집니다.',
-              entryConditions: ['직무 범위 명확'],
-              abortConditions: ['조건 불명확'],
+              thesis: 'This is the best quarter to move once the role scope is explicit.',
+              entryConditions: ['the role scope is explicit'],
+              abortConditions: ['the role scope remains vague'],
+            },
+          ],
+        },
+        {
+          domain: 'wealth',
+          label: 'Wealth',
+          currentState: 'mixed',
+          currentWindow: '1-3m',
+          thesis: 'Wealth needs control before expansion.',
+          supportSignals: [],
+          pressureSignals: [],
+          alignedWith: [],
+          conflictingWith: [],
+          nextShift: 'Cash flow stabilizes once the contract terms are cleaned up.',
+          firstMove: 'Review the fixed costs and contract terms first.',
+          holdMove: 'Pause vague spending and prepaid commitments.',
+          timescales: [
+            {
+              timescale: '1-3m',
+              status: 'open',
+              thesis: 'This is the best window to tighten leakage and rebuild control.',
+              entryConditions: ['set a spending rule before adding new commitments'],
+              abortConditions: ['impulsive spending starts rising again'],
+            },
+          ],
+        },
+        {
+          domain: 'health',
+          label: 'Health',
+          currentState: 'blocked',
+          currentWindow: '1-3m',
+          thesis: 'Health needs recovery rhythm before any expansion of workload.',
+          supportSignals: [],
+          pressureSignals: [],
+          alignedWith: [],
+          conflictingWith: [],
+          nextShift: 'Recovery improves once sleep and meals stop drifting.',
+          firstMove: 'Lock the sleep window and first meal time first.',
+          holdMove: 'Stop late-night load and empty-stomach caffeine.',
+          timescales: [
+            {
+              timescale: '1-3m',
+              status: 'open',
+              thesis: 'This is the best window to rebuild a recovery routine.',
+              entryConditions: ['fix the sleep window before increasing workload'],
+              abortConditions: ['late-night work keeps breaking the rhythm'],
             },
           ],
         },
@@ -126,57 +172,57 @@ function buildBasePacket(): CounselorEvidencePacketLike {
           thermalBias: '',
           digestionStyle: '',
           helpfulFoods: [],
-          cautionFoods: ['공복 카페인'],
-          rhythmGuidance: ['식사 시간을 일정하게 유지하세요.'],
+          cautionFoods: ['empty-stomach caffeine'],
+          rhythmGuidance: ['keep the meal timing consistent'],
         },
         lifeRhythmProfile: {
-          summary: '회복 리듬이 먼저입니다.',
+          summary: 'Recovery rhythm comes first.',
           peakWindows: [],
-          recoveryWindows: ['밤 회복 블록 확보'],
-          stressBehaviors: ['과로 후 무기력'],
-          regulationMoves: ['잠드는 시간을 먼저 고정하세요.'],
+          recoveryWindows: ['protect the evening recovery block'],
+          stressBehaviors: ['flat shutdown after overload'],
+          regulationMoves: ['fix the sleep start time first'],
         },
         relationshipStyleProfile: {
-          summary: '속도보다 신뢰가 중요합니다.',
+          summary: 'Trust matters more than speed.',
           attractionPatterns: [],
-          stabilizers: ['대화 리듬 확인'],
-          ruptureTriggers: ['추측으로 확신하기'],
-          repairMoves: ['기대치를 먼저 확인하세요.'],
+          stabilizers: ['confirm the pace in conversation'],
+          ruptureTriggers: ['deciding on assumptions'],
+          repairMoves: ['realign the expectations first'],
         },
         workStyleProfile: {
-          summary: '역할이 분명할수록 강합니다.',
+          summary: 'The clearer the role is, the stronger the execution gets.',
           bestRoles: [],
-          bestConditions: ['역할 범위가 명확한 자리'],
-          fatigueTriggers: ['애매한 책임선'],
-          leverageMoves: ['지원 전 JD를 다시 문장화하세요.'],
+          bestConditions: ['roles with explicit scope and ownership'],
+          fatigueTriggers: ['blurred ownership lines'],
+          leverageMoves: ['rewrite the JD into one clean role sentence'],
         },
         moneyStyleProfile: {
-          summary: '누수 관리가 먼저입니다.',
-          earningPattern: ['역할 기반 수익화'],
-          savingPattern: ['고정지출부터 정리'],
-          leakageRisks: ['불명확한 계약 지출'],
-          controlRules: ['지출 기준을 먼저 고정하세요.'],
+          summary: 'Leakage control has to come first.',
+          earningPattern: ['turn role clarity into repeatable income'],
+          savingPattern: ['stabilize fixed costs first'],
+          leakageRisks: ['vague contract spending'],
+          controlRules: ['set the spending rule before you expand'],
         },
         environmentProfile: {
-          summary: '환경 자극에 민감합니다.',
-          preferredSettings: ['정착 기준이 분명한 환경'],
-          drainSignals: ['과도한 이동과 소음'],
-          resetActions: ['거점 기준을 먼저 정리하세요.'],
+          summary: 'Environment friction drains more than it looks.',
+          preferredSettings: ['a base with clear commute and cost rules'],
+          drainSignals: ['too much movement and noise'],
+          resetActions: ['reset the base criteria before relocating'],
         },
       },
       relationshipProfile: {
-        summary: '느린 신뢰형 관계입니다.',
-        partnerArchetypes: ['차분한 상대'],
-        inflowPaths: ['일상 접점'],
-        commitmentConditions: ['기대치 정렬'],
-        breakPatterns: ['과속한 확정'],
+        summary: 'This is a slow-trust relationship pattern.',
+        partnerArchetypes: ['steady partner'],
+        inflowPaths: ['daily overlap'],
+        commitmentConditions: ['align expectations explicitly'],
+        breakPatterns: ['forcing early commitment'],
       },
       careerProfile: {
-        summary: '역할 정의가 강점입니다.',
-        suitableLanes: ['운영/기획'],
-        executionStyle: ['검토 후 실행'],
-        hiringTriggers: ['역할 범위가 분명함'],
-        blockers: ['애매한 책임선'],
+        summary: 'Role definition is the main strength.',
+        suitableLanes: ['operations/planning'],
+        executionStyle: ['review first, then execute'],
+        hiringTriggers: ['role scope is explicit'],
+        blockers: ['blurred responsibility lines'],
       },
       futureBranches: [],
       eventOutlook: [
@@ -187,10 +233,34 @@ function buildBasePacket(): CounselorEvidencePacketLike {
           status: 'open',
           readiness: 0.84,
           bestWindow: '1-3m',
-          summary: '역할이 분명한 곳에서 진입이 쉬워집니다.',
-          entryConditions: ['역할 범위를 정의한다'],
-          abortConditions: ['조건이 흐릿하다'],
-          nextMove: '지원 전에 JD를 다시 정리하세요.',
+          summary: 'Entry becomes easier when the role is explicit.',
+          entryConditions: ['define the role boundary'],
+          abortConditions: ['the role remains vague'],
+          nextMove: 'Rewrite the JD before you apply.',
+        },
+        {
+          key: 'wealthReset',
+          label: 'Wealth Reset',
+          domain: 'wealth',
+          status: 'mixed',
+          readiness: 0.72,
+          bestWindow: '1-3m',
+          summary: 'Cash flow stabilizes when spending rules and contract terms are tightened.',
+          entryConditions: ['set a spending rule before adding new commitments'],
+          abortConditions: ['impulsive spending starts rising again'],
+          nextMove: 'Review recurring payments and contract terms this week.',
+        },
+        {
+          key: 'healthReset',
+          label: 'Health Reset',
+          domain: 'health',
+          status: 'blocked',
+          readiness: 0.68,
+          bestWindow: '1-3m',
+          summary: 'Recovery returns when sleep rhythm and food timing are restored.',
+          entryConditions: ['fix the sleep window before increasing workload'],
+          abortConditions: ['late-night work keeps breaking the rhythm'],
+          nextMove: 'Lock the sleep window and first meal time this week.',
         },
       ],
       birthTimeHypotheses: [],
@@ -199,7 +269,7 @@ function buildBasePacket(): CounselorEvidencePacketLike {
       uncertaintyEnvelope: {
         summary: '',
         reliableAreas: [],
-        conditionalAreas: ['조건 협상 결과에 따라 달라집니다.'],
+        conditionalAreas: ['outcome still depends on the negotiation quality'],
         unresolvedAreas: [],
       },
       evidenceLedger: {
@@ -224,10 +294,13 @@ describe('buildInterpretedAnswerContract', () => {
       primaryDomain: 'career',
     })
 
-    expect(contract?.why).toContain('검토 후 실행')
-    expect(contract?.conditions.entry).toContain('역할 범위가 분명함')
-    expect(contract?.conditions.abort).toContain('애매한 책임선')
-    expect(contract?.nextMove).toBe('지원 전에 JD를 다시 정리하세요.')
+    expect(contract?.why).toContain('review first, then execute')
+    expect(contract?.conditions.entry).toContain('define the role boundary')
+    expect(contract?.conditions.abort).toContain('blurred responsibility lines')
+    expect(contract?.timing.next).toBe(
+      'This is the best quarter to move once the role scope is explicit.'
+    )
+    expect(contract?.nextMove).toBe('Rewrite the JD before you apply.')
   })
 
   it('uses relationship-specific conditions and repair moves for relationship questions', () => {
@@ -237,10 +310,10 @@ describe('buildInterpretedAnswerContract', () => {
       primaryDomain: 'relationship',
     })
 
-    expect(contract?.why).toContain('대화 리듬 확인')
-    expect(contract?.conditions.entry).toContain('기대치 정렬')
-    expect(contract?.conditions.abort).toContain('과속한 확정')
-    expect(contract?.nextMove).toBe('기대치를 먼저 확인하세요.')
+    expect(contract?.why).toContain('confirm the pace in conversation')
+    expect(contract?.conditions.entry).toContain('align expectations explicitly')
+    expect(contract?.conditions.abort).toContain('forcing early commitment')
+    expect(contract?.nextMove).toBe('realign the expectations first')
   })
 
   it('uses environment and reset actions for move-oriented interpretation', () => {
@@ -250,10 +323,51 @@ describe('buildInterpretedAnswerContract', () => {
       primaryDomain: 'move',
     })
 
-    expect(contract?.why).toContain('정착 기준이 분명한 환경')
-    expect(contract?.conditions.entry).toContain('거점 기준을 먼저 정리하세요.')
-    expect(contract?.conditions.abort).toContain('과도한 이동과 소음')
-    expect(contract?.nextMove).toBe('거점 기준을 먼저 정리하세요.')
+    expect(contract?.why).toContain('a base with clear commute and cost rules')
+    expect(contract?.conditions.entry).toContain('reset the base criteria before relocating')
+    expect(contract?.conditions.abort).toContain('too much movement and noise')
+    expect(contract?.nextMove).toBe('reset the base criteria before relocating')
+  })
+
+  it('thickens wealth interpretation with domain state, event outlook, and control rules', () => {
+    const contract = buildInterpretedAnswerContract({
+      packet: buildBasePacket(),
+      frame: 'wealth_planning',
+      primaryDomain: 'wealth',
+    })
+
+    expect(contract?.why).toContain('Wealth needs control before expansion.')
+    expect(contract?.conditions.entry).toContain(
+      'set a spending rule before adding new commitments'
+    )
+    expect(contract?.conditions.abort).toContain('impulsive spending starts rising again')
+    expect(contract?.timing.bestWindow).toBe('1-3m')
+    expect(contract?.timing.next).toBe(
+      'This is the best window to tighten leakage and rebuild control.'
+    )
+    expect(contract?.branches[0]?.summary).toContain(
+      'Cash flow stabilizes when spending rules and contract terms are tightened.'
+    )
+    expect(contract?.nextMove).toBe('Review recurring payments and contract terms this week.')
+  })
+
+  it('thickens health interpretation with recovery timing, stop conditions, and next move', () => {
+    const contract = buildInterpretedAnswerContract({
+      packet: buildBasePacket(),
+      frame: 'health_recovery',
+      primaryDomain: 'health',
+    })
+
+    expect(contract?.why).toContain(
+      'Health needs recovery rhythm before any expansion of workload.'
+    )
+    expect(contract?.conditions.entry).toContain('fix the sleep window before increasing workload')
+    expect(contract?.conditions.abort).toContain('late-night work keeps breaking the rhythm')
+    expect(contract?.timing.next).toBe('This is the best window to rebuild a recovery routine.')
+    expect(contract?.branches[0]?.summary).toContain(
+      'Recovery returns when sleep rhythm and food timing are restored.'
+    )
+    expect(contract?.nextMove).toBe('Lock the sleep window and first meal time this week.')
   })
 
   it('passes counselor-facing quality checks when direct answer and next move are clean', () => {
