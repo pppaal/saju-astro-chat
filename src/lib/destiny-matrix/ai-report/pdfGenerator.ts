@@ -43,7 +43,9 @@ async function tryFetchBytes(url: string): Promise<Uint8Array | null> {
 }
 
 async function loadFonts(pdf: PDFDocumentType): Promise<EmbeddedFonts> {
-  pdf.registerFontkit(fontkit)
+  if (typeof (pdf as { registerFontkit?: unknown }).registerFontkit === 'function') {
+    pdf.registerFontkit(fontkit)
+  }
   const [regularBytes, boldBytes] = await Promise.all([
     tryFetchBytes(FONT_URLS.regular),
     tryFetchBytes(FONT_URLS.bold),
@@ -141,7 +143,10 @@ function collectSectionEntries(report: AnyAIReport): Array<{ title: string; cont
 }
 
 function textWidth(font: PDFFontType, text: string, size: number): number {
-  return font.widthOfTextAtSize(text, size)
+  if (typeof (font as { widthOfTextAtSize?: unknown }).widthOfTextAtSize === 'function') {
+    return font.widthOfTextAtSize(text, size)
+  }
+  return Math.max(text.length, 1) * size * 0.52
 }
 
 function wrapByWidth(text: string, font: PDFFontType, size: number, maxWidth: number): string[] {

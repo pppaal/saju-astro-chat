@@ -69,30 +69,72 @@ function reduceKoAbstractTone(text: string): string {
     .replace(/통합 레이어:?/g, '')
     .replace(/핵심 패턴이 중심을 잡고 있습니다\./g, '')
     .replace(/방어적 재정비 국면이며,?/g, '')
-    .replace(/기본 구조에서 검토와 정밀 조정 성향이 강합니다\./g, '기본적으로 세밀하게 확인하고 조정하는 성향이 강합니다.')
-    .replace(/양 성향이 강해 역할과 존재감이 앞에 서는 구조입니다\./g, '밖으로 드러나는 역할과 존재감이 중요한 사람입니다.')
-    .replace(/확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다\./g, '조건만 맞으면 실행력을 높이기 좋은 구간입니다.')
-    .replace(/전체 패턴을 실행 가능한 전략으로 압축합니다\./g, '지금은 흐름을 실제 전략으로 옮기는 힘이 중요합니다.')
+    .replace(
+      /기본 구조에서 검토와 정밀 조정 성향이 강합니다\./g,
+      '기본적으로 세밀하게 확인하고 조정하는 성향이 강합니다.'
+    )
+    .replace(
+      /양 성향이 강해 역할과 존재감이 앞에 서는 구조입니다\./g,
+      '밖으로 드러나는 역할과 존재감이 중요한 사람입니다.'
+    )
+    .replace(
+      /확장 신호가 우세하여 실행력을 올리기 좋은 구간입니다\./g,
+      '조건만 맞으면 실행력을 높이기 좋은 구간입니다.'
+    )
+    .replace(
+      /전체 패턴을 실행 가능한 전략으로 압축합니다\./g,
+      '지금은 흐름을 실제 전략으로 옮기는 힘이 중요합니다.'
+    )
     .replace(/관계에서는 안정화 국면이며,\s*/g, '관계는 지금 속도보다 안정화가 우선이며, ')
     .replace(/관계 활성화 흐름이 활성화됩니다\./g, '관계에서 움직임이 커지는 시기입니다.')
-    .replace(/재정 변동성 흐름이 활성화됩니다\./g, '재정은 흔들림이 커질 수 있어 기준 관리가 중요합니다.')
-    .replace(/커리어 확장 흐름이 활성화됩니다\./g, '커리어는 넓어질 기회가 강하게 들어오는 시기입니다.')
+    .replace(
+      /재정 변동성 흐름이 활성화됩니다\./g,
+      '재정은 흔들림이 커질 수 있어 기준 관리가 중요합니다.'
+    )
+    .replace(
+      /커리어 확장 흐름이 활성화됩니다\./g,
+      '커리어는 넓어질 기회가 강하게 들어오는 시기입니다.'
+    )
     .replace(/Activation Pattern 패턴/gi, '활성화 흐름')
     .replace(/Volatility Pattern 패턴/gi, '변동성 흐름')
     .replace(/Activation Pattern/gi, '활성화 흐름')
     .replace(/Volatility Pattern/gi, '변동성 흐름')
     .replace(/\?이 몸에서는/g, '이 몸은')
     .replace(/결단력보다\./g, '결단력보다')
-    .replace(/현실적인 분기점은 \? 쪽으로 열려 있습니다\./g, '현실적인 분기점은 여러 갈래로 열려 있습니다.')
-    .replace(/따라서 앞으로는 \? 같은 경로를 비교하면서 움직이는 편이 맞습니다\./g, '따라서 앞으로는 몇 가지 현실적인 경로를 비교하면서 움직이는 편이 맞습니다.')
-    .replace(/커리어 확장 패턴 근거가 유지될 것 같은 조건이 맞는 사람이 실제로 오래 갑니다\./g, '말보다 행동 기준이 분명하고, 서로의 속도를 맞출 수 있는 사람이 실제로 오래 갑니다.')
+    .replace(
+      /현실적인 분기점은 \? 쪽으로 열려 있습니다\./g,
+      '현실적인 분기점은 여러 갈래로 열려 있습니다.'
+    )
+    .replace(
+      /따라서 앞으로는 \? 같은 경로를 비교하면서 움직이는 편이 맞습니다\./g,
+      '따라서 앞으로는 몇 가지 현실적인 경로를 비교하면서 움직이는 편이 맞습니다.'
+    )
+    .replace(
+      /커리어 확장 패턴 근거가 유지될 것 같은 조건이 맞는 사람이 실제로 오래 갑니다\./g,
+      '말보다 행동 기준이 분명하고, 서로의 속도를 맞출 수 있는 사람이 실제로 오래 갑니다.'
+    )
     .replace(/커리어 확장 패턴 근거가 유지될 것\./g, '기준이 무너지지 않을 것.')
-    .replace(/시나리오 확률이 [\d.]+% 아래로 떨어지면 중단/g, '가능성과 신뢰도가 눈에 띄게 꺾이면 멈춤')
+    .replace(
+      /시나리오 확률이 [\d.]+% 아래로 떨어지면 중단/g,
+      '가능성과 신뢰도가 눈에 띄게 꺾이면 멈춤'
+    )
     .replace(/타이밍 적합도는 [\d.]+% 수준입니다\./g, '지금은 타이밍 적합도가 높은 편입니다.')
-    .replace(/현실적인 분기점은\s*쪽으로 열려 있습니다\./g, '현실적인 분기점은 여러 갈래로 열려 있습니다.')
-    .replace(/앞으로는\s*같은 경로를 비교하면서 움직이는 편이 맞습니다\./g, '앞으로는 몇 가지 현실적인 경로를 비교하면서 움직이는 편이 맞습니다.')
-    .replace(/지금:\s*합의\s*\d+%\s*\/\s*충돌\s*\d+%\s*\/\s*촉발 선행\s*\/\s*1~3개월:\s*합의\s*\d+%\s*\/\s*충돌\s*\d+%\s*\/\s*거의 동시\s*\/\s*3~6개월:\s*합의\s*\d+%\s*\/\s*충돌\s*\d+%\s*\/\s*촉발 선행/gi, '가까운 시기부터 중기까지는 전반적으로 합의도가 높고, 충돌은 낮은 편입니다.')
-    .replace(/현재 타이밍은 지금 창이 가장 직접적이며,\s*/g, '현재는 조건이 맞으면 바로 움직일 수 있는 창이 열려 있으며, ')
+    .replace(
+      /현실적인 분기점은\s*쪽으로 열려 있습니다\./g,
+      '현실적인 분기점은 여러 갈래로 열려 있습니다.'
+    )
+    .replace(
+      /앞으로는\s*같은 경로를 비교하면서 움직이는 편이 맞습니다\./g,
+      '앞으로는 몇 가지 현실적인 경로를 비교하면서 움직이는 편이 맞습니다.'
+    )
+    .replace(
+      /지금:\s*합의\s*\d+%\s*\/\s*충돌\s*\d+%\s*\/\s*촉발 선행\s*\/\s*1~3개월:\s*합의\s*\d+%\s*\/\s*충돌\s*\d+%\s*\/\s*거의 동시\s*\/\s*3~6개월:\s*합의\s*\d+%\s*\/\s*충돌\s*\d+%\s*\/\s*촉발 선행/gi,
+      '가까운 시기부터 중기까지는 전반적으로 합의도가 높고, 충돌은 낮은 편입니다.'
+    )
+    .replace(
+      /현재 타이밍은 지금 창이 가장 직접적이며,\s*/g,
+      '현재는 조건이 맞으면 바로 움직일 수 있는 창이 열려 있으며, '
+    )
     .replace(/\?\s*/g, '')
     .replace(/\s{2,}/g, ' ')
     .trim()
@@ -114,8 +156,7 @@ function addKoConcreteExample(section: string, text: string, context: ReportVoic
       '예를 들어, 말이 통하는 사람보다 생활 리듬과 책임감이 맞는 사람이 실제로 오래 가는 인연이 될 가능성이 큽니다.',
     wealthPotential:
       '예를 들어, 수입이 늘어나는 선택이라도 취소 조건, 고정비 증가, 손실 상한을 먼저 적어두면 돈이 새는 구간을 줄일 수 있습니다.',
-    healthGuidance:
-      `예를 들어, ${risk} 때문에 일정이 흔들리기 쉬우니 수면 시간과 회복 루틴을 먼저 고정해두는 편이 전체 판단 품질을 지켜줍니다.`,
+    healthGuidance: `예를 들어, ${risk} 때문에 일정이 흔들리기 쉬우니 수면 시간과 회복 루틴을 먼저 고정해두는 편이 전체 판단 품질을 지켜줍니다.`,
     lifeMission:
       '예를 들어, 눈앞의 성과 하나보다 앞으로 3년 동안 반복해서 지킬 기준 세 개를 정하는 쪽이 지금 더 큰 자산이 됩니다.',
     lifeStages:
@@ -134,9 +175,11 @@ function addKoConcreteExample(section: string, text: string, context: ReportVoic
   let extra = lineBySection[section]
   if (context.actionFocusDomain === 'move') {
     if (section === 'introduction') {
-      extra = '예를 들어, 이사 후보가 여러 곳이라면 감정으로 고르기보다 통근 시간, 생활비, 계약 조건을 먼저 표로 비교하는 편이 맞습니다.'
+      extra =
+        '예를 들어, 이사 후보가 여러 곳이라면 감정으로 고르기보다 통근 시간, 생활비, 계약 조건을 먼저 표로 비교하는 편이 맞습니다.'
     } else if (section === 'actionPlan') {
-      extra = '예를 들어, 이번 주에는 후보 지역을 세 곳으로 좁히고 통근 시간, 생활비, 계약 조건을 나란히 비교해 보세요.'
+      extra =
+        '예를 들어, 이번 주에는 후보 지역을 세 곳으로 좁히고 통근 시간, 생활비, 계약 조건을 나란히 비교해 보세요.'
     } else if (section === 'conclusion') {
       extra = ''
     }
@@ -190,7 +233,10 @@ function rewriteKoSection(section: string, text: string, context: ReportVoiceCon
     next = punchUpKoConclusion(next, context)
   }
 
-  return next.replace(/\s{2,}/g, ' ').replace(/\n{3,}/g, '\n\n').trim()
+  return next
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
 }
 
 export function applyReportBrandVoice(
@@ -205,9 +251,7 @@ export function applyReportBrandVoice(
     if (!value) continue
     const section = path.split('.').pop() || path
     const rewritten =
-      lang === 'ko'
-        ? rewriteKoSection(section, value, context)
-        : sanitizeUserFacingNarrative(value)
+      lang === 'ko' ? rewriteKoSection(section, value, context) : sanitizeUserFacingNarrative(value)
     setPathValue(next, path, rewritten)
   }
   return next
@@ -241,14 +285,21 @@ export function buildReportStyleMetrics(
   const abstractHits = lang === 'ko' ? (joined.match(KO_ABSTRACT_NOUN_REGEX) || []).length : 0
   const abstractNounRatio = Number((abstractHits / tokenCount).toFixed(4))
 
-  const sentences = joined.split(/[.!?\n]+/).map((item) => item.trim()).filter(Boolean)
+  const sentences = joined
+    .split(/[.!?\n]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
   const lengths = sentences.map((sentence) => sentence.length)
   const avg = lengths.reduce((sum, len) => sum + len, 0) / Math.max(1, lengths.length)
-  const variance = lengths.reduce((sum, len) => sum + (len - avg) ** 2, 0) / Math.max(1, lengths.length)
+  const variance =
+    lengths.reduce((sum, len) => sum + (len - avg) ** 2, 0) / Math.max(1, lengths.length)
   const sentenceLengthVariance = Number(variance.toFixed(2))
 
   const englishWordCount = (joined.match(/[A-Za-z]{3,}/g) || []).length
-  const bilingualToneSkew = Number((englishWordCount / tokenCount).toFixed(4))
+  const hangulWordCount = (joined.match(/[가-힣]{2,}/g) || []).length
+  const dominantLanguageCount = Math.max(englishWordCount, hangulWordCount, 1)
+  const minorityLanguageCount = Math.min(englishWordCount, hangulWordCount)
+  const bilingualToneSkew = Number((minorityLanguageCount / dominantLanguageCount).toFixed(4))
 
   return {
     repetitiveLeadPatternCount,

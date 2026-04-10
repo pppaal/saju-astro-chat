@@ -1,16 +1,18 @@
-import { access, readFile, stat } from 'node:fs/promises'
-import type { TimingCalibrationSummary, DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
+import type {
+  TimingCalibrationSummary,
+  DomainKey,
+  MonthlyOverlapPoint,
+} from '@/lib/destiny-matrix/types'
 import type {
   DestinyLoggedService,
   DestinyPredictionType,
   DestinyTimingGranularity,
   DestinyTimingWindow,
 } from '@/lib/destiny-matrix/core/logging'
-import type { DestinyCalibrationAggregate, DestinyCalibrationReport } from '@/lib/destiny-matrix/calibration'
-
-function getDefaultCandidatePaths(): string[] {
-  return []
-}
+import type {
+  DestinyCalibrationAggregate,
+  DestinyCalibrationReport,
+} from '@/lib/destiny-matrix/calibration'
 
 type RuntimeCalibrationContext = {
   service: DestinyLoggedService
@@ -24,8 +26,7 @@ type RuntimeCalibrationContext = {
 
 type JsonRecord = Record<string, unknown>
 
-let cachedPath: string | null = null
-let cachedMtimeMs = -1
+let cachedEnvPayload: string | null = null
 let cachedReport: DestinyCalibrationReport | null = null
 
 function clamp01(value: number): number {
@@ -46,35 +47,38 @@ function asCalibrationReport(value: unknown): DestinyCalibrationReport | null {
   return value as DestinyCalibrationReport
 }
 
-async function resolveCalibrationPath(): Promise<string | null> {
-  const envPath = process.env.DESTINY_CALIBRATION_TABLE_PATH?.trim()
-  const candidates = envPath ? [envPath, ...getDefaultCandidatePaths()] : getDefaultCandidatePaths()
-  for (const candidate of candidates) {
-    try {
-      await access(candidate)
-      return candidate
-    } catch {
-      continue
-    }
+function readCalibrationPayloadFromEnv(): string | null {
+  const inlineJson = process.env.DESTINY_CALIBRATION_TABLE_JSON?.trim()
+  if (inlineJson) return inlineJson
+
+  const base64Json = process.env.DESTINY_CALIBRATION_TABLE_JSON_BASE64?.trim()
+  if (!base64Json) return null
+
+  try {
+    return Buffer.from(base64Json, 'base64').toString('utf8')
+  } catch {
+    return null
   }
-  return null
 }
 
 async function loadCalibrationReport(): Promise<DestinyCalibrationReport | null> {
-  const resolved = await resolveCalibrationPath()
-  if (!resolved) return null
+  const payload = readCalibrationPayloadFromEnv()
+  if (!payload) return null
 
-  const fileStat = await stat(resolved)
-  if (cachedPath === resolved && cachedMtimeMs === fileStat.mtimeMs && cachedReport) {
+  if (cachedEnvPayload === payload && cachedReport) {
     return cachedReport
   }
 
-  const raw = await readFile(resolved, 'utf8')
-  const parsed = asCalibrationReport(JSON.parse(raw))
-  cachedPath = resolved
-  cachedMtimeMs = fileStat.mtimeMs
-  cachedReport = parsed
-  return parsed
+  try {
+    const parsed = asCalibrationReport(JSON.parse(payload))
+    cachedEnvPayload = payload
+    cachedReport = parsed
+    return parsed
+  } catch {
+    cachedEnvPayload = payload
+    cachedReport = null
+    return null
+  }
 }
 
 function mapActionDomainToTimelineDomain(actionFocusDomain?: string | null): DomainKey | null {
@@ -104,12 +108,18 @@ function probeBucketFromDay(day?: number | null): 'early' | 'mid' | 'late' | 'un
 function pickProbeBucket(context: RuntimeCalibrationContext): 'early' | 'mid' | 'late' | 'unknown' {
   const domainKey = mapActionDomainToTimelineDomain(context.actionFocusDomain)
   const domainPoints = domainKey ? context.overlapTimelineByDomain?.[domainKey] : undefined
-  const points = (domainPoints && domainPoints.length > 0 ? domainPoints : context.overlapTimeline) || []
-  const strongest = [...points].sort((a, b) => (b.overlapStrength || 0) - (a.overlapStrength || 0))[0]
+  const points =
+    (domainPoints && domainPoints.length > 0 ? domainPoints : context.overlapTimeline) || []
+  const strongest = [...points].sort(
+    (a, b) => (b.overlapStrength || 0) - (a.overlapStrength || 0)
+  )[0]
   return probeBucketFromDay(strongest?.probeDay)
 }
 
-function scoreAggregate(aggregate: DestinyCalibrationAggregate, context: RuntimeCalibrationContext): number {
+function scoreAggregate(
+  aggregate: DestinyCalibrationAggregate,
+  context: RuntimeCalibrationContext
+): number {
   let score = 0
   if (aggregate.bucket.actionFocusDomain === (context.actionFocusDomain || 'unknown')) score += 5
   if (aggregate.bucket.timingWindow === (context.timingWindow || 'unknown')) score += 4
@@ -125,9 +135,13 @@ function chooseBestAggregate(
   report: DestinyCalibrationReport,
   context: RuntimeCalibrationContext
 ): DestinyCalibrationAggregate | null {
-  const serviceAggregates = report.aggregates.filter((aggregate) => aggregate.bucket.service === context.service)
+  const serviceAggregates = report.aggregates.filter(
+    (aggregate) => aggregate.bucket.service === context.service
+  )
   if (serviceAggregates.length === 0) return null
-  const sorted = [...serviceAggregates].sort((left, right) => scoreAggregate(right, context) - scoreAggregate(left, context))
+  const sorted = [...serviceAggregates].sort(
+    (left, right) => scoreAggregate(right, context) - scoreAggregate(left, context)
+  )
   return sorted[0] || null
 }
 
@@ -165,4 +179,3 @@ export async function applyRuntimeCalibration(
     ].join('|'),
   }
 }
-

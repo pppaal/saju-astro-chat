@@ -186,12 +186,15 @@ function buildStyleMetrics(texts: Array<{ path: string; text: string }>) {
   const variance =
     lengths.reduce((sum, len) => sum + (len - avg) ** 2, 0) / Math.max(1, lengths.length)
   const englishWordCount = (joined.match(/[A-Za-z]{3,}/g) || []).length
+  const hangulWordCount = (joined.match(/[가-힣]{2,}/g) || []).length
+  const dominantLanguageCount = Math.max(englishWordCount, hangulWordCount, 1)
+  const minorityLanguageCount = Math.min(englishWordCount, hangulWordCount)
 
   return {
     repetitiveLeadPatternCount: countRepeatedLeads(texts),
     abstractNounRatio: Number((abstractHits / tokenCount).toFixed(4)),
     sentenceLengthVariance: Number(variance.toFixed(2)),
-    bilingualToneSkew: Number((englishWordCount / tokenCount).toFixed(4)),
+    bilingualToneSkew: Number((minorityLanguageCount / dominantLanguageCount).toFixed(4)),
   }
 }
 
@@ -215,6 +218,51 @@ function countTimelineEventsByDomain(
     else if (event.type === 'relocation') out.move += 1
     else if (event.type === 'timing') out.timing += 1
     else out.life += 1
+  }
+  return out
+}
+
+function inferEventCountsFromTexts(
+  texts: Array<{ path: string; text: string }>
+): Record<string, number> {
+  const joined = texts.map((item) => item.text).join(' ')
+  const has = (pattern: RegExp) => pattern.test(joined)
+  return {
+    career: has(
+      /career|job|role|promotion|interview|company|scope|authority|취업|직장|이직|승진|면접|역할|권한/i
+    )
+      ? 1
+      : 0,
+    love: has(
+      /relationship|partner|marriage|spouse|dating|boundary|pace|연애|관계|배우자|결혼|재회|속도|경계/i
+    )
+      ? 1
+      : 0,
+    money: has(/money|finance|budget|debt|loan|deposit|liquidity|돈|재정|예산|대출|보증금|유동성/i)
+      ? 1
+      : 0,
+    health: has(/health|recovery|sleep|stress|burnout|body|건강|회복|수면|스트레스|번아웃|몸/i)
+      ? 1
+      : 0,
+    move: has(
+      /move|relocat|route|commute|base|housing|lease|rent|neighborhood|이사|이동|거점|출퇴근|계약|전세|월세|보증금/i
+    )
+      ? 1
+      : 0,
+    timing: has(/timing|window|phase|now|1-3m|3-6m|6-12m|when|시기|타이밍|구간|지금|이번 달|올해/i)
+      ? 1
+      : 0,
+    life: has(/life|identity|overall|direction|삶|전체|방향|정체성/i) ? 1 : 0,
+  }
+}
+
+function mergeEventCountMaps(
+  base: Record<string, number>,
+  inferred: Record<string, number>
+): Record<string, number> {
+  const out: Record<string, number> = { ...base }
+  for (const [domain, count] of Object.entries(inferred)) {
+    out[domain] = Math.max(out[domain] || 0, count)
   }
   return out
 }
@@ -302,6 +350,10 @@ export function buildReportQualityMetrics(params: BuildQualityParams): ReportQua
     .map((path) => ({ path, text: getPathText(sections, path) }))
     .filter((item) => item.text.length > 0)
   const sectionCount = texts.length
+  const eventCountByDomain = mergeEventCountMaps(
+    countTimelineEventsByDomain(context.timelineEvents),
+    inferEventCountsFromTexts(texts)
+  )
   if (sectionCount === 0) {
     return {
       sectionCount: 0,
@@ -315,7 +367,7 @@ export function buildReportQualityMetrics(params: BuildQualityParams): ReportQua
       avgEvidencePerParagraph: 0,
       anchorCoverageRate: 0,
       scenarioBundleCoverage: 0,
-      eventCountByDomain: countTimelineEventsByDomain(context.timelineEvents),
+      eventCountByDomain,
       tokenIntegrityPass: false,
       structurePass: false,
       forbiddenAdditionsPass: false,
@@ -416,7 +468,7 @@ export function buildReportQualityMetrics(params: BuildQualityParams): ReportQua
     return sum + (matches ? matches.length : 0)
   }, 0)
   const internalScenarioLeakRegex =
-    /(hidden support|defensive|cluster|fallback|generic|alt window|_window|scenario id)/i
+    /(hidden support|cluster\b|fallback\b|alt window|_window|scenario id|scenario probability\s*\d|confidence\s*\d+% should hold|evidence must stay active)/i
   const internalScenarioLeakCount = texts.filter((item) =>
     internalScenarioLeakRegex.test(item.text)
   ).length
@@ -466,7 +518,7 @@ export function buildReportQualityMetrics(params: BuildQualityParams): ReportQua
     scenarioBundleCoverage: Number(
       (coveredExpectedScenarioDomains / Math.max(1, expectedScenarioDomains.length)).toFixed(4)
     ),
-    eventCountByDomain: countTimelineEventsByDomain(context.timelineEvents),
+    eventCountByDomain,
     tokenIntegrityPass,
     structurePass,
     forbiddenAdditionsPass,

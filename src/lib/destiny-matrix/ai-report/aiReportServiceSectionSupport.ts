@@ -415,14 +415,34 @@ export function renderActionPlanSection(
   const openingLine =
     lang === 'ko'
       ? `지금 ${actionLabel}에서 가장 맞는 기본 자세는 ${topDecisionLabel}입니다.`
-      : `The operating rule on the ${actionLabel} axis is ${topDecisionLabel}.`
+      : actionDomain === 'move'
+        ? 'On the relocation axis, compare the route, the living base, and the lease terms before you commit.'
+        : actionDomain === 'relationship'
+          ? 'On the relationship axis, clarify pace, boundaries, and commitment conditions before you move closer.'
+          : actionDomain === 'career'
+            ? 'On the career axis, verify role scope, evaluation criteria, and decision authority before you accept the next step.'
+            : actionDomain === 'wealth'
+              ? 'On the wealth axis, review cashflow, contract terms, and downside limits before you expand or commit.'
+              : actionDomain === 'health'
+                ? 'On the health axis, stabilize recovery rhythm and load limits before you push output higher.'
+                : `The operating rule on the ${actionLabel} axis is ${topDecisionLabel}.`
   const guardrailLine = reportCore.riskControl
   const actionProjection = reportCore.projections?.action
   const actionDriverLabels = deps.collectProjectionDriverLabels(actionProjection?.drivers, lang)
   const actionDriverLine = actionDriverLabels.length
     ? lang === 'ko'
       ? `현재 실행을 미는 축은 ${actionDriverLabels.join(', ')}입니다.`
-      : `The current execution drivers are ${actionDriverLabels.join(', ')}.`
+      : actionDomain === 'move'
+        ? `Right now, relocation pressure is being shaped by ${actionDriverLabels.join(', ')}.`
+        : actionDomain === 'relationship'
+          ? `Right now, the relationship climate is being shaped by ${actionDriverLabels.join(', ')}.`
+          : actionDomain === 'career'
+            ? `Right now, career execution is being shaped by ${actionDriverLabels.join(', ')}.`
+            : actionDomain === 'wealth'
+              ? `Right now, wealth decisions are being shaped by ${actionDriverLabels.join(', ')}.`
+              : actionDomain === 'health'
+                ? `Right now, recovery capacity is being shaped by ${actionDriverLabels.join(', ')}.`
+                : `The current execution drivers are ${actionDriverLabels.join(', ')}.`
     : ''
   const actionCounterweightLine = actionProjection?.counterweights?.length
     ? lang === 'ko'
@@ -438,7 +458,13 @@ export function renderActionPlanSection(
         lang,
         lang === 'ko'
           ? '지금은 기준을 다시 세우고 작은 단계부터 실행하는 편이 맞습니다.'
-          : 'The next move should begin by resetting execution criteria in smaller steps.'
+          : actionDomain === 'career'
+            ? 'Start by narrowing the role definition and placing one review checkpoint before commitment.'
+            : actionDomain === 'wealth'
+              ? 'Start by checking payment terms, loss limits, and one hold condition before you move money.'
+              : actionDomain === 'health'
+                ? 'Start by reducing load and locking one repeatable recovery block before you push harder.'
+                : 'The next move should begin by resetting execution criteria in smaller steps.'
       )
     : ''
   const riskAxisLine = reportCore.riskAxisLabel

@@ -5,9 +5,12 @@ import ReportSurfaceSection from './ReportSurfaceSection'
 
 const FRAME_LABELS: Record<InterpretedAnswerContract['questionFrame'], string> = {
   relationship_repair: '관계 정렬',
+  relationship_commitment: '관계 확정',
   career_decision: '커리어 판단',
   wealth_planning: '재정 판단',
   health_recovery: '회복 판단',
+  move_lease: '계약/거주 판단',
+  move_relocation: '이동/거점 판단',
   timing_window: '타이밍 판단',
   identity_reflection: '인물 해석',
   open_counseling: '상담 해석',

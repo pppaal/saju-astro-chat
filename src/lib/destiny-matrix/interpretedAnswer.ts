@@ -580,22 +580,24 @@ export function buildInterpretedAnswerContract(input: {
     ],
     4
   )
+  const prioritizedEntry = resolveDomainSpecificEntry(packet, effectiveDomain, frame)
+  const prioritizedAbort = resolveDomainSpecificAbort(packet, effectiveDomain, frame)
 
   const entry = uniqueLines(
     [
+      ...prioritizedEntry,
       ...(event?.entryConditions || []),
       ...(singleSubject.entryConditions || []),
       ...(domainState?.timescales?.[0]?.entryConditions || []),
-      ...resolveDomainSpecificEntry(packet, effectiveDomain, frame),
     ],
     3
   )
   const abort = uniqueLines(
     [
+      ...prioritizedAbort,
       ...(event?.abortConditions || []),
       ...(singleSubject.abortConditions || []),
       ...(domainState?.timescales?.[0]?.abortConditions || []),
-      ...resolveDomainSpecificAbort(packet, effectiveDomain, frame),
       ...(singleSubject.riskAxis?.hardStops || []),
     ],
     3

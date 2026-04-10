@@ -211,4 +211,74 @@ describe('reportQuality.buildReportQualityMetrics', () => {
     expect(result.warnings).toContain('sentence_length_variance_too_flat')
     expect(result.warnings).toContain('bilingual_tone_skew_high')
   })
+
+  it('does not treat a clean single-language report as bilingual skew', () => {
+    const quality = buildReportQualityMetrics({
+      sections: {
+        introduction:
+          'The current phase rewards explicit standards, staged verification, and careful commitment.',
+        actionPlan:
+          'Review the route, the housing terms, and the daily cost before you choose the next step.',
+        conclusion:
+          'The stronger outcome comes from verification discipline, not from one fast emotional decision.',
+      },
+      sectionPaths: ['introduction', 'actionPlan', 'conclusion'],
+      evidenceRefs: {
+        introduction: [{ claimId: 'c1', sourceType: 'derived' }],
+        actionPlan: [{ claimId: 'c2', sourceType: 'derived' }],
+        conclusion: [{ claimId: 'c3', sourceType: 'derived' }],
+      },
+      context: {},
+      minEvidenceRefsPerSection: 1,
+      regex: {
+        recheck: /review|verify/i,
+        absoluteRisk: /never/i,
+        irreversibleAction: /sign/i,
+        cautionIndicator: /risk|caution/i,
+        immediateForce: /immediately/i,
+        mitigation: /review|verify|condition/i,
+        recommendationTone: /start|review|verify/i,
+      },
+      hasEvidenceSupport: () => true,
+      forbiddenAdditionsPass: true,
+    })
+
+    expect(quality.bilingualToneSkew || 0).toBeLessThan(0.05)
+    expect(evaluateReportStyleGate('comprehensive', quality).warnings).not.toContain(
+      'bilingual_tone_skew_high'
+    )
+  })
+
+  it('infers move event coverage from relocation text even without timeline events', () => {
+    const quality = buildReportQualityMetrics({
+      sections: {
+        timing:
+          'This relocation window is best used to compare the route, the living base, and the lease terms before you commit.',
+        actionPlan:
+          'Review the commute, housing cost, and daily friction first, then narrow the move to one reversible step.',
+      },
+      sectionPaths: ['timing', 'actionPlan'],
+      evidenceRefs: {
+        timing: [{ claimId: 'c1', sourceType: 'derived' }],
+        actionPlan: [{ claimId: 'c2', sourceType: 'derived' }],
+      },
+      context: {
+        timelineEvents: [],
+      },
+      minEvidenceRefsPerSection: 1,
+      regex: {
+        recheck: /review|verify/i,
+        absoluteRisk: /never/i,
+        irreversibleAction: /sign/i,
+        cautionIndicator: /risk|caution/i,
+        immediateForce: /immediately/i,
+        mitigation: /review|verify|condition/i,
+        recommendationTone: /start|review|verify/i,
+      },
+      hasEvidenceSupport: () => true,
+      forbiddenAdditionsPass: true,
+    })
+
+    expect(quality.eventCountByDomain?.move).toBe(1)
+  })
 })

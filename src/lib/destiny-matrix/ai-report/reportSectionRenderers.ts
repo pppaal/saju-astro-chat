@@ -1078,8 +1078,16 @@ export function renderConclusionSection(
             reportCore.riskControl,
           ].join(' ')
         : [
-            `The conclusion is simple: in ${focusLabel}, the person who sets the standard first usually controls the phase.`,
-            `What changes the outcome here is not raw talent, but how ${metaphor.edge} get applied in sequence.`,
+            reportCore.focusDomain === 'move'
+              ? `The conclusion is simple: relocation improves when you verify route, living base, and contract terms before you commit.`
+              : reportCore.focusDomain === 'relationship'
+                ? `The conclusion is simple: relationship progress depends more on aligned pace and standards than on emotional force alone.`
+                : `The conclusion is simple: in ${focusLabel}, the person who sets the standard first usually controls the phase.`,
+            reportCore.focusDomain === 'move'
+              ? `What changes the outcome here is not raw momentum, but how ${metaphor.edge} get applied after one more round of verification.`
+              : reportCore.focusDomain === 'relationship'
+                ? `What changes the outcome here is not raw intensity, but how ${metaphor.edge} get applied in a steadier relational sequence.`
+                : `What changes the outcome here is not raw talent, but how ${metaphor.edge} get applied in sequence.`,
             reportCore.riskControl,
           ].join(' ')
     ),

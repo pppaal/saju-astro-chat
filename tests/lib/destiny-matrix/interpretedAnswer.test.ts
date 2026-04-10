@@ -295,7 +295,7 @@ describe('buildInterpretedAnswerContract', () => {
     })
 
     expect(contract?.why).toContain('review first, then execute')
-    expect(contract?.conditions.entry).toContain('define the role boundary')
+    expect(contract?.conditions.entry).toContain('role scope is explicit')
     expect(contract?.conditions.abort).toContain('blurred responsibility lines')
     expect(contract?.timing.next).toBe(
       'This is the best quarter to move once the role scope is explicit.'
@@ -316,6 +316,19 @@ describe('buildInterpretedAnswerContract', () => {
     expect(contract?.nextMove).toBe('realign the expectations first')
   })
 
+  it('uses commitment-oriented conditions for relationship commitment questions', () => {
+    const contract = buildInterpretedAnswerContract({
+      packet: buildBasePacket(),
+      frame: 'relationship_commitment',
+      primaryDomain: 'relationship',
+    })
+
+    expect(contract?.why).toContain('align expectations explicitly')
+    expect(contract?.conditions.entry).toContain('daily overlap')
+    expect(contract?.conditions.abort).toContain('forcing early commitment')
+    expect(contract?.nextMove).toBe('align expectations explicitly')
+  })
+
   it('uses environment and reset actions for move-oriented interpretation', () => {
     const contract = buildInterpretedAnswerContract({
       packet: buildBasePacket(),
@@ -329,6 +342,20 @@ describe('buildInterpretedAnswerContract', () => {
     expect(contract?.nextMove).toBe('reset the base criteria before relocating')
   })
 
+  it('uses lease-oriented control rules for housing contract questions', () => {
+    const contract = buildInterpretedAnswerContract({
+      packet: buildBasePacket(),
+      frame: 'move_lease',
+      primaryDomain: 'timing',
+    })
+
+    expect(contract?.primaryDomain).toBe('move')
+    expect(contract?.why).toContain('set the spending rule before you expand')
+    expect(contract?.conditions.entry).toContain('set the spending rule before you expand')
+    expect(contract?.conditions.abort).toContain('vague contract spending')
+    expect(contract?.nextMove).toBe('set the spending rule before you expand')
+  })
+
   it('thickens wealth interpretation with domain state, event outlook, and control rules', () => {
     const contract = buildInterpretedAnswerContract({
       packet: buildBasePacket(),
@@ -337,10 +364,8 @@ describe('buildInterpretedAnswerContract', () => {
     })
 
     expect(contract?.why).toContain('Wealth needs control before expansion.')
-    expect(contract?.conditions.entry).toContain(
-      'set a spending rule before adding new commitments'
-    )
-    expect(contract?.conditions.abort).toContain('impulsive spending starts rising again')
+    expect(contract?.conditions.entry).toContain('set the spending rule before you expand')
+    expect(contract?.conditions.abort).toContain('vague contract spending')
     expect(contract?.timing.bestWindow).toBe('1-3m')
     expect(contract?.timing.next).toBe(
       'This is the best window to tighten leakage and rebuild control.'
@@ -361,8 +386,8 @@ describe('buildInterpretedAnswerContract', () => {
     expect(contract?.why).toContain(
       'Health needs recovery rhythm before any expansion of workload.'
     )
-    expect(contract?.conditions.entry).toContain('fix the sleep window before increasing workload')
-    expect(contract?.conditions.abort).toContain('late-night work keeps breaking the rhythm')
+    expect(contract?.conditions.entry).toContain('protect the evening recovery block')
+    expect(contract?.conditions.abort).toContain('flat shutdown after overload')
     expect(contract?.timing.next).toBe('This is the best window to rebuild a recovery routine.')
     expect(contract?.branches[0]?.summary).toContain(
       'Recovery returns when sleep rhythm and food timing are restored.'

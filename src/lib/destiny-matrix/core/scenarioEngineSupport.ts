@@ -1098,9 +1098,9 @@ function buildEntryConditions(input: {
   }
 
   return [
-    `${input.pattern.label} evidence must stay active`,
-    `Scenario probability ${input.probability}% and confidence ${Math.round(input.confidence * 100)}% should hold`,
-    `Timing relevance ${Math.round(input.timingRelevance * 100)}% should support immediate execution of the first action`,
+    'The core conditions behind this path should still be visible in real life.',
+    `This path stays stronger while the signal remains around ${input.probability}% with confidence near ${Math.round(input.confidence * 100)}%.`,
+    `The timing should still support a first step now, not just a delayed intention.`,
   ]
 }
 
@@ -1120,8 +1120,8 @@ function buildAbortConditions(input: {
   }
 
   return [
-    'Abort if scope, terms, or owner map cannot be written down clearly',
-    `Abort if scenario probability drops below ${Math.max(35, input.probability - 22)}%`,
+    'Stop if scope, terms, or ownership still cannot be written down clearly.',
+    `Hold back if the signal drops below roughly ${Math.max(35, input.probability - 22)}%.`,
     input.pattern.risk,
   ]
 }
@@ -1140,9 +1140,9 @@ function buildSustainConditions(input: {
     ]
   }
   return [
-    `${input.pattern.label} evidence should stay active after the first move`,
-    `Timing relevance should not collapse after the initial step`,
-    `Scope, pace, and role alignment should stay intact at the same time`,
+    'After the first move, the same supporting conditions should still be visible.',
+    'Timing should stay usable after the first step instead of collapsing immediately.',
+    'Scope, pace, and role alignment should stay intact together.',
   ]
 }
 
