@@ -114,8 +114,8 @@ Useful variants:
 
 ```bash
 npm run test:e2e:browser
-npm run test:e2e:browser:headed
-npm run test:e2e:browser:debug
+npx playwright test --headed
+npx playwright test --debug
 ```
 
 ## Failure Triage Order

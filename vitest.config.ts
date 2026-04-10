@@ -11,9 +11,7 @@ const isIntegration =
 
 // Performance tests require a running server - opt-in via `npm run test:performance`
 const isPerformance =
-  process.env.npm_lifecycle_event === 'test:performance' ||
-  process.env.npm_lifecycle_event === 'test:performance:watch' ||
-  process.env.VITEST_PERFORMANCE === '1'
+  process.env.npm_lifecycle_event === 'test:performance' || process.env.VITEST_PERFORMANCE === '1'
 
 // Coverage thresholds only enforced on full suite (test:coverage) to avoid
 // failures when running subset commands (test:a11y, test:tarot, etc.)

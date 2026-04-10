@@ -30,6 +30,7 @@ import {
   parseBirthDate,
   applyMatrixPreformatRegrade,
   formatDateForResponse,
+  rebalanceCalendarDisplayGrades,
   LOCATION_COORDS,
   type MatrixCalendarContext,
 } from './lib/helpers'
@@ -149,16 +150,19 @@ type CalendarAstroProfile = {
   birthMonth?: number
   birthDay?: number
   inputMode?: 'full-chart' | 'lite'
-  natalChart?: {
-    planets?: Array<{
-      name?: string
-      sign?: string
-      degree?: number
-      house?: number
-      retrograde?: boolean
-    }>
-    houses?: Array<{ index?: number; sign?: string; cusp?: number; formatted?: string }>
-  } | NatalChartData | null
+  natalChart?:
+    | {
+        planets?: Array<{
+          name?: string
+          sign?: string
+          degree?: number
+          house?: number
+          retrograde?: boolean
+        }>
+        houses?: Array<{ index?: number; sign?: string; cusp?: number; formatted?: string }>
+      }
+    | NatalChartData
+    | null
   transitChart?: {
     planets?: Array<{
       name?: string
@@ -201,33 +205,42 @@ const MATRIX_PLANET_NAMES = new Set<keyof MatrixCalculationInput['planetSigns']>
   'Pluto',
 ])
 
-const MATRIX_ASPECT_TYPES = new Set<
-  NonNullable<MatrixCalculationInput['aspects']>[number]['type']
->([
-  'conjunction',
-  'sextile',
-  'square',
-  'trine',
-  'opposition',
-  'semisextile',
-  'quincunx',
-  'quintile',
-  'biquintile',
-])
+const MATRIX_ASPECT_TYPES = new Set<NonNullable<MatrixCalculationInput['aspects']>[number]['type']>(
+  [
+    'conjunction',
+    'sextile',
+    'square',
+    'trine',
+    'opposition',
+    'semisextile',
+    'quincunx',
+    'quintile',
+    'biquintile',
+  ]
+)
 
 function isMatrixPlanetName(
   value: string | undefined
 ): value is NonNullable<MatrixCalculationInput['aspects']>[number]['planet1'] {
-  return Boolean(value && MATRIX_PLANET_NAMES.has(value as keyof MatrixCalculationInput['planetSigns']))
+  return Boolean(
+    value && MATRIX_PLANET_NAMES.has(value as keyof MatrixCalculationInput['planetSigns'])
+  )
 }
 
 function isMatrixAspectType(
   value: string | undefined
 ): value is NonNullable<MatrixCalculationInput['aspects']>[number]['type'] {
-  return Boolean(value && MATRIX_ASPECT_TYPES.has(value as NonNullable<MatrixCalculationInput['aspects']>[number]['type']))
+  return Boolean(
+    value &&
+    MATRIX_ASPECT_TYPES.has(value as NonNullable<MatrixCalculationInput['aspects']>[number]['type'])
+  )
 }
 
-function clampHouseNumber(value: number | undefined): MatrixCalculationInput['planetHouses'][keyof MatrixCalculationInput['planetHouses']] | undefined {
+function clampHouseNumber(
+  value: number | undefined
+):
+  | MatrixCalculationInput['planetHouses'][keyof MatrixCalculationInput['planetHouses']]
+  | undefined {
   if (typeof value !== 'number' || !Number.isInteger(value)) return undefined
   if (value < 1 || value > 12) return undefined
   return value as MatrixCalculationInput['planetHouses'][keyof MatrixCalculationInput['planetHouses']]
@@ -242,8 +255,10 @@ function buildActiveTransitCycles(
 ): NonNullable<MatrixCalculationInput['activeTransits']> {
   const cycles = new Set<NonNullable<MatrixCalculationInput['activeTransits']>[number]>()
   for (const aspect of astroProfile.majorTransits || []) {
-    if (aspect.transitPlanet === 'Saturn' && aspect.natalPoint === 'Saturn') cycles.add('saturnReturn')
-    if (aspect.transitPlanet === 'Jupiter' && aspect.natalPoint === 'Jupiter') cycles.add('jupiterReturn')
+    if (aspect.transitPlanet === 'Saturn' && aspect.natalPoint === 'Saturn')
+      cycles.add('saturnReturn')
+    if (aspect.transitPlanet === 'Jupiter' && aspect.natalPoint === 'Jupiter')
+      cycles.add('jupiterReturn')
     if (aspect.transitPlanet === 'Uranus' && aspect.type === 'square') cycles.add('uranusSquare')
     if (aspect.transitPlanet === 'Neptune' && aspect.type === 'square') cycles.add('neptuneSquare')
     if (aspect.transitPlanet === 'Pluto') cycles.add('plutoTransit')
@@ -320,7 +335,8 @@ function buildCalendarMatrixInput(params: {
     const house = clampHouseNumber(planet.house)
     if (house) planetHouses[planet.name] = house
     if (planet.sign && MATRIX_PLANET_NAMES.has(planet.name)) {
-      planetSigns[planet.name] = planet.sign as MatrixCalculationInput['planetSigns'][typeof planet.name]
+      planetSigns[planet.name] =
+        planet.sign as MatrixCalculationInput['planetSigns'][typeof planet.name]
     }
   }
 
@@ -336,7 +352,11 @@ function buildCalendarMatrixInput(params: {
       const planet1 = aspect.from?.name
       const planet2 = aspect.to?.name
       const type = aspect.type
-      if (!isMatrixPlanetName(planet1) || !isMatrixPlanetName(planet2) || !isMatrixAspectType(type)) {
+      if (
+        !isMatrixPlanetName(planet1) ||
+        !isMatrixPlanetName(planet2) ||
+        !isMatrixAspectType(type)
+      ) {
         return null
       }
       return {
@@ -415,11 +435,14 @@ function buildCalendarMatrixInput(params: {
   }
   return {
     ...baseMatrixInput,
-    crossSnapshot: buildDerivedCrossSnapshot(baseMatrixInput as unknown as Record<string, unknown>, {
-      source: 'calendar-route',
-      theme: params.category || 'yearly',
-      category: params.category || 'yearly',
-    }),
+    crossSnapshot: buildDerivedCrossSnapshot(
+      baseMatrixInput as unknown as Record<string, unknown>,
+      {
+        source: 'calendar-route',
+        theme: params.category || 'yearly',
+        category: params.category || 'yearly',
+      }
+    ),
   }
 }
 
@@ -577,12 +600,15 @@ export const GET = withApiMiddleware(
     try {
       const birthHour = Number.parseInt((birthTimeParam || '12:00').split(':')[0] || '12', 10)
       const birthMinute = Number.parseInt((birthTimeParam || '12:00').split(':')[1] || '0', 10)
-      const [{ calculateNatalChart, toChart }, { calculateTransitChart, findMajorTransits, findTransitAspects }, { findNatalAspects }] =
-        await Promise.all([
-          import('@/lib/astrology/foundation/astrologyService'),
-          import('@/lib/astrology/foundation/transit'),
-          import('@/lib/astrology/foundation/aspects'),
-        ])
+      const [
+        { calculateNatalChart, toChart },
+        { calculateTransitChart, findMajorTransits, findTransitAspects },
+        { findNatalAspects },
+      ] = await Promise.all([
+        import('@/lib/astrology/foundation/astrologyService'),
+        import('@/lib/astrology/foundation/transit'),
+        import('@/lib/astrology/foundation/aspects'),
+      ])
 
       const natalChartData = await calculateNatalChart({
         year: birthDate.getFullYear(),
@@ -605,7 +631,8 @@ export const GET = withApiMiddleware(
       const transitAspects = findTransitAspects(transitChart, natalChart)
       const majorTransits = findMajorTransits(transitChart, natalChart)
 
-      astroProfile.sunSign = natalChart.planets.find((planet) => planet.name === 'Sun')?.sign || sunSign
+      astroProfile.sunSign =
+        natalChart.planets.find((planet) => planet.name === 'Sun')?.sign || sunSign
       astroProfile.sunElement = ZODIAC_TO_ELEMENT[astroProfile.sunSign] || astroProfile.sunElement
       astroProfile.inputMode = 'full-chart'
       astroProfile.natalChart = natalChartData
@@ -876,7 +903,7 @@ export const GET = withApiMiddleware(
     const cautionDateSet = new Set(
       (aiDates?.caution || []).map((item) => item.date).filter(Boolean)
     )
-    const formattedDates = formattedDatesBase.map((item) => {
+    const formattedDatesWithAI = formattedDatesBase.map((item) => {
       const aiNotes: string[] = []
       if (auspiciousDateSet.has(item.date)) {
         aiNotes.push(
@@ -904,6 +931,7 @@ export const GET = withApiMiddleware(
         summary: [item.summary, ...aiNotes].join(' '),
       }
     })
+    const formattedDates = rebalanceCalendarDisplayGrades(formattedDatesWithAI)
     const sortByDisplayScoreDesc = (
       a: (typeof formattedDates)[number],
       b: (typeof formattedDates)[number]

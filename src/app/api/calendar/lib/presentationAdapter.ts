@@ -48,6 +48,12 @@ import {
 
 export type { CalendarPresentationView } from './presentationAdapter.support'
 
+function compactSummaryLines(lines: Array<string | undefined>, max = 3): string {
+  return dedupe(lines.filter(Boolean) as string[])
+    .slice(0, max)
+    .join(' ')
+}
+
 export function buildCalendarPresentationView(input: {
   allDates: FormattedDate[]
   locale: Locale
@@ -391,67 +397,38 @@ export function buildCalendarPresentationView(input: {
     },
   ]
 
-  const daySummaryText =
-    singleSubjectView?.directAnswer ||
-    actionPersonState?.thesis ||
-    actionEvent?.summary ||
-    (canonicalTimingWindows[0]
-      ? describeTimingWindowBrief({
-          domainLabel: focusDomainLabel,
-          window: canonicalTimingWindows[0].window,
-          whyNow: canonicalTimingWindows[0].whyNow,
-          entryConditions: canonicalTimingWindows[0].entryConditions,
-          abortConditions: canonicalTimingWindows[0].abortConditions,
-          timingGranularity: canonicalTimingWindows[0].timingGranularity,
-          precisionReason: canonicalTimingWindows[0].precisionReason,
-          timingConflictNarrative: canonicalTimingWindows[0].timingConflictNarrative,
-          lang: locale,
-        })
-      : '') ||
-    detailSelected.actionSummary ||
-    detailSelected.summary ||
-    canonicalCore?.thesis ||
-    (locale === 'ko'
-      ? '오늘은 핵심 과제 1~2개 중심으로 운영하는 편이 좋습니다.'
-      : 'Today is better handled by focusing on one or two priorities.')
-  const focusSplitLead =
-    actionFocusDomain !== focusDomain
-      ? locale === 'ko'
-        ? `중심축은 ${focusDomainLabel}이고, 지금 행동축은 ${actionFocusDomainLabel}입니다.`
-        : `The underlying axis is ${focusDomainLabel}, while the action axis right now is ${actionFocusDomainLabel}.`
-      : ''
-  const focusRunnerUpLabel = canonicalCore?.arbitrationBrief?.focusRunnerUpDomain
+  const _focusRunnerUpLabel = canonicalCore?.arbitrationBrief?.focusRunnerUpDomain
     ? getDomainLabel(
         mapCoreDomainToPresentationDomain(canonicalCore.arbitrationBrief.focusRunnerUpDomain) ||
           'general',
         locale
       )
     : ''
-  const actionRunnerUpLabel = canonicalCore?.arbitrationBrief?.actionRunnerUpDomain
+  const _actionRunnerUpLabel = canonicalCore?.arbitrationBrief?.actionRunnerUpDomain
     ? getDomainLabel(
         mapCoreDomainToPresentationDomain(canonicalCore.arbitrationBrief.actionRunnerUpDomain) ||
           'general',
         locale
       )
     : ''
-  const arbitrationLead = canonicalCore?.arbitrationBrief
+  const _arbitrationLead = canonicalCore?.arbitrationBrief
     ? locale === 'ko'
       ? actionFocusDomain !== focusDomain
-        ? actionRunnerUpLabel
-          ? `${actionFocusDomainLabel} 축이 ${actionRunnerUpLabel}보다 앞서 이번 실행축으로 올라왔습니다.`
+        ? _actionRunnerUpLabel
+          ? `${actionFocusDomainLabel} 축이 ${_actionRunnerUpLabel}보다 앞서 이번 실행축으로 올라왔습니다.`
           : `${actionFocusDomainLabel} 축이 이번 실행 판단을 가장 직접 끌고 갑니다.`
-        : focusRunnerUpLabel
-          ? `${focusDomainLabel} 축이 ${focusRunnerUpLabel}보다 앞서 이번 중심축으로 남았습니다.`
+        : _focusRunnerUpLabel
+          ? `${focusDomainLabel} 축이 ${_focusRunnerUpLabel}보다 앞서 이번 중심축으로 남았습니다.`
           : `${focusDomainLabel} 축이 이번 중심 판단을 가장 직접 끌고 갑니다.`
       : actionFocusDomain !== focusDomain
-        ? actionRunnerUpLabel
-          ? `${actionFocusDomainLabel} moved ahead of ${actionRunnerUpLabel} as the current action axis.`
+        ? _actionRunnerUpLabel
+          ? `${actionFocusDomainLabel} moved ahead of ${_actionRunnerUpLabel} as the current action axis.`
           : `${actionFocusDomainLabel} is carrying the action pressure most directly right now.`
-        : focusRunnerUpLabel
-          ? `${focusDomainLabel} stayed ahead of ${focusRunnerUpLabel} as the current lead axis.`
+        : _focusRunnerUpLabel
+          ? `${focusDomainLabel} stayed ahead of ${_focusRunnerUpLabel} as the current lead axis.`
           : `${focusDomainLabel} is carrying the lead pressure most directly right now.`
     : ''
-  const latentLead = canonicalCore?.latentTopAxes?.length
+  const _latentLead = canonicalCore?.latentTopAxes?.length
     ? locale === 'ko'
       ? `가장 강하게 작동하는 층은 ${canonicalCore.latentTopAxes
           .slice(0, 2)
@@ -462,8 +439,8 @@ export function buildCalendarPresentationView(input: {
           .map((axis) => axis.label)
           .join(', ')}.`
     : ''
-  const projectionDayLead = [projectionStructure, projectionTiming].filter(Boolean).join(' ')
-  const projectionBranchLead = singleSubjectBranchSummary || projectionBranch
+  const _projectionDayLead = [projectionStructure, projectionTiming].filter(Boolean).join(' ')
+  const _projectionBranchLead = singleSubjectBranchSummary || projectionBranch
   const projectionRiskLead = [
     singleSubjectView?.riskAxis?.warning || '',
     projectionConflict,
@@ -497,21 +474,28 @@ export function buildCalendarPresentationView(input: {
       })
     : null
 
+  const simplifiedDaySummary =
+    locale === 'ko'
+      ? defensivePhase
+        ? `${actionFocusDomainLabel} 이슈는 오늘 크게 넓히기보다 점검하며 운영하는 편이 맞습니다.`
+        : `${actionFocusDomainLabel} 이슈는 무리 없이 운영하기 좋은 흐름입니다.`
+      : defensivePhase
+        ? `${actionFocusDomainLabel} is better handled through review and reset than by widening the scope today.`
+        : `${actionFocusDomainLabel} is in a workable operating flow today.`
+
   const daySummary: DaySummary = {
     date: selected.date,
-    summary: buildDomainSummaryFrame(
-      locale,
-      'day',
-      focusDomain,
-      defensivePhase
-        ? locale === 'ko'
-          ? `${actionCardSummary} ${riskCardSummary} ${windowCardSummary} ${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${projectionBranchLead} ${daySummaryText} 오늘은 확정보다 검토와 재정렬을 우선하세요.`
-          : `${actionCardSummary} ${riskCardSummary} ${windowCardSummary} ${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${projectionBranchLead} ${daySummaryText} Today favors review and reset over commitment.`
-        : `${actionCardSummary} ${riskCardSummary} ${windowCardSummary} ${focusSplitLead} ${arbitrationLead} ${latentLead} ${projectionDayLead} ${projectionBranchLead} ${daySummaryText} ${projectionActionLead} ${crossConflictText}`.trim()
-    ),
-    focusDomain: focusDomainLabel,
+    summary: simplifiedDaySummary,
+    focusDomain: actionFocusDomainLabel,
     actionFocusDomain: actionFocusDomainLabel,
+    backgroundFocusDomain: actionFocusDomain !== focusDomain ? focusDomainLabel : undefined,
     reliability,
+    doNow: actionCardSummary,
+    watchOut: riskCardSummary,
+    bestTimes: dedupe([
+      canonicalAdvisories[0]?.timingHint || '',
+      ...(detailSelected.bestTimes || []),
+    ]).slice(0, 2),
     interpretedAnswer: interpretedAnswer || undefined,
   }
 
@@ -523,7 +507,7 @@ export function buildCalendarPresentationView(input: {
   )
   const weekTop = weekSorted[0]
   const weekLow = weekSorted[weekSorted.length - 1]
-  const weekDomain = topDomains[0] || buildTopDomains(locale, weekDates, undefined)[0]
+  const weekDomain = buildTopDomains(locale, weekDates, undefined)[0] || topDomains[0]
   const weekDomainLabel = preferredFocusDomain
     ? focusDomainLabel
     : weekDomain?.label || focusDomainLabel
@@ -555,16 +539,23 @@ export function buildCalendarPresentationView(input: {
       'week',
       focusDomain,
       defensivePhase
-        ? locale === 'ko'
-          ? `${projectionStructure} ${weekSummaryText} ${projectionRiskLead} 주간 전체로는 검토형 실행이 더 유리합니다.`
-          : `${projectionStructure} ${weekSummaryText} ${projectionRiskLead} Across the week, review-led execution is safer.`
-        : `${projectionStructure} ${weekSummaryText} ${projectionActionLead} ${crossConflictText}`.trim()
+        ? compactSummaryLines(
+            [
+              weekSummaryText,
+              projectionRiskLead,
+              locale === 'ko'
+                ? '주간 전체로는 검토형 실행이 더 유리합니다.'
+                : 'Across the week, review-led execution is safer.',
+            ],
+            3
+          )
+        : compactSummaryLines([weekSummaryText, projectionActionLead, crossConflictText], 3)
     ),
   }
 
   const monthKey = selected.date.slice(0, 7)
   const monthDates = allDates.filter((d) => d.date.startsWith(monthKey))
-  const monthDomain = topDomains[0] || buildTopDomains(locale, monthDates, undefined)[0]
+  const monthDomain = buildTopDomains(locale, monthDates, undefined)[0] || topDomains[0]
   const monthAvg =
     monthDates.length > 0
       ? monthDates.reduce((sum, d) => sum + (d.displayScore ?? d.score), 0) / monthDates.length
@@ -580,22 +571,37 @@ export function buildCalendarPresentationView(input: {
       'month',
       focusDomain,
       locale === 'ko'
-        ? `${projectionStructure} ${monthKey}은 ${monthDomainLabel} 중심으로 보는 편이 맞습니다. ${
-            canonicalTimingWindows[0]
-              ? describeTimingWindowBrief({
-                  domainLabel: monthDomainLabel,
-                  window: canonicalTimingWindows[0].window,
-                  whyNow: canonicalTimingWindows[0].whyNow,
-                  entryConditions: canonicalTimingWindows[0].entryConditions,
-                  abortConditions: canonicalTimingWindows[0].abortConditions,
-                  timingGranularity: canonicalTimingWindows[0].timingGranularity,
-                  precisionReason: canonicalTimingWindows[0].precisionReason,
-                  timingConflictNarrative: canonicalTimingWindows[0].timingConflictNarrative,
-                  lang: 'ko',
-                })
-              : `이번 달 평균 흐름은 ${Math.round(monthAvg)}/100 수준이며, 크게 벌리기보다 우선순위를 분명히 할수록 안정적입니다.`
-          } ${projectionActionLead} ${crossConflictText}`.trim()
-        : `${projectionStructure} ${monthKey} is best read through ${monthDomain?.label || focusDomainLabel}. ${canonicalCore?.gradeReason || `Average intensity is ${Math.round(monthAvg)}/100, with review and operation mixed into the month.`} ${projectionActionLead} ${crossConflictText}`.trim()
+        ? compactSummaryLines(
+            [
+              `${monthKey}은 ${monthDomainLabel} 중심으로 보는 편이 맞습니다.`,
+              canonicalTimingWindows[0]
+                ? describeTimingWindowBrief({
+                    domainLabel: monthDomainLabel,
+                    window: canonicalTimingWindows[0].window,
+                    whyNow: canonicalTimingWindows[0].whyNow,
+                    entryConditions: canonicalTimingWindows[0].entryConditions,
+                    abortConditions: canonicalTimingWindows[0].abortConditions,
+                    timingGranularity: canonicalTimingWindows[0].timingGranularity,
+                    precisionReason: canonicalTimingWindows[0].precisionReason,
+                    timingConflictNarrative: canonicalTimingWindows[0].timingConflictNarrative,
+                    lang: 'ko',
+                  })
+                : `이번 달 평균 흐름은 ${Math.round(monthAvg)}/100 수준이며, 크게 벌리기보다 우선순위를 분명히 할수록 안정적입니다.`,
+              projectionActionLead,
+              crossConflictText,
+            ],
+            4
+          )
+        : compactSummaryLines(
+            [
+              `${monthKey} is best read through ${monthDomain?.label || focusDomainLabel}.`,
+              canonicalCore?.gradeReason ||
+                `Average intensity is ${Math.round(monthAvg)}/100, with review and operation mixed into the month.`,
+              projectionActionLead,
+              crossConflictText,
+            ],
+            4
+          )
     ),
   }
 

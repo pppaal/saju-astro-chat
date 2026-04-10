@@ -248,18 +248,45 @@ export function calculateYearlyImportantDatesLite(
     const primary = domainRanking[0] || { domain: 'career' as DomainKey, score: 0.52 }
     const secondary = domainRanking[1] || { domain: 'love' as DomainKey, score: 0.48 }
     const seasonalPulse = (Math.sin((day / 31) * Math.PI) + 1) / 2
+    const dailyWave = (Math.sin((day / 31) * Math.PI * 2 - Math.PI / 2) + 1) / 2
     const weekday = date.getDay()
     const weekdayBoost =
       weekday === 1 || weekday === 4 ? 0.04 : weekday === 0 || weekday === 6 ? -0.03 : 0
+    const primaryMonthStrength = getMonthStrength(
+      options?.matrixContext?.overlapTimelineByDomain?.[primary.domain],
+      currentMonthKey
+    )
+    const secondaryMonthStrength = getMonthStrength(
+      options?.matrixContext?.overlapTimelineByDomain?.[secondary.domain],
+      currentMonthKey
+    )
+    const dominanceGap = clamp(primary.score - secondary.score, 0, 1)
     const primaryStrength = clamp(
-      primary.score * 0.68 + seasonalPulse * 0.22 + reliability * 0.1 + weekdayBoost,
+      primary.score * 0.52 +
+        primaryMonthStrength * 0.18 +
+        dailyWave * 0.12 +
+        seasonalPulse * 0.08 +
+        reliability * 0.08 +
+        dominanceGap * 0.08 +
+        weekdayBoost,
       0,
       1
     )
     const crossAgreementPercent = Math.round(
       clamp(primary.score * 55 + secondary.score * 20 + reliability * 25, 0, 1) * 100
     )
-    const score = Math.round(clamp(38 + primaryStrength * 48 + secondary.score * 9, 15, 96))
+    const score = Math.round(
+      clamp(
+        22 +
+          primaryStrength * 50 +
+          primaryMonthStrength * 14 +
+          secondaryMonthStrength * 4 +
+          secondary.score * 8 +
+          dominanceGap * 8,
+        8,
+        97
+      )
+    )
     const grade = scoreToGrade(score)
     if (typeof options?.minGrade === 'number' && grade > options.minGrade) {
       continue

@@ -10,7 +10,10 @@ import type {
   CalendarMatrixEvidencePacket,
   CalendarMatrixEvidencePacketMap,
 } from './matrixEvidencePacket'
-import { GRADE_THRESHOLDS, EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/destiny-map/calendar/scoring-config'
+import {
+  GRADE_THRESHOLDS,
+  EVIDENCE_CONFIDENCE_THRESHOLDS,
+} from '@/lib/destiny-map/calendar/scoring-config'
 import { getFactorTranslation } from './translations'
 import {
   describeCrossAgreement,
@@ -337,7 +340,10 @@ export function buildCrossEvidenceBundle(
   aspectList.forEach((detail, index) => {
     const sajuKey = pickSajuKey(detail.tone === 'negative')
     const translatedSaju = sajuKey ? getFactorTranslation(sajuKey, lang) || sajuKey : ''
-    const sajuText = compactText(translatedSaju || orderedSajuFactors[index] || orderedSajuFactors[0] || '', 72)
+    const sajuText = compactText(
+      translatedSaju || orderedSajuFactors[index] || orderedSajuFactors[0] || '',
+      72
+    )
     if (!sajuText) {
       return
     }
@@ -434,12 +440,16 @@ export function buildMatrixOverlay(
       domain: domain as DomainKey,
       point: points.find((point) => point.month === monthKey),
     }))
-    .filter((entry): entry is { domain: DomainKey; point: MonthlyOverlapPoint } => Boolean(entry.point))
+    .filter((entry): entry is { domain: DomainKey; point: MonthlyOverlapPoint } =>
+      Boolean(entry.point)
+    )
     .filter((entry) => entry.point.peakLevel === 'peak' || entry.point.peakLevel === 'high')
     .sort((a, b) => b.point.overlapStrength - a.point.overlapStrength)
 
   const topDomain = domainPeakCandidates[0]?.domain
-  const cautionSignals = (matrixContext.calendarSignals || []).filter((signal) => signal.level === 'caution')
+  const cautionSignals = (matrixContext.calendarSignals || []).filter(
+    (signal) => signal.level === 'caution'
+  )
   const hasMonthCautionSignal = cautionSignals.some((signal) => signal.trigger.includes(monthKey))
   const preferredDomain = getPreferredDomainByCategory(categories, matrixContext)
   const weightedDomain = preferredDomain || topDomain || null
@@ -499,7 +509,8 @@ export function buildMatrixOverlay(
   }
 
   if (!riskDay && weightedDomain && domainWeight >= 0.55) {
-    const domainLabel = lang === 'ko' ? koDomainLabel[weightedDomain] : enDomainLabel[weightedDomain]
+    const domainLabel =
+      lang === 'ko' ? koDomainLabel[weightedDomain] : enDomainLabel[weightedDomain]
     if (lang === 'ko') {
       recommendations.push(
         domainWeight >= 0.75
@@ -520,7 +531,8 @@ export function buildMatrixOverlay(
   }
 
   if (riskDay && weightedDomain) {
-    const domainLabel = lang === 'ko' ? koDomainLabel[weightedDomain] : enDomainLabel[weightedDomain]
+    const domainLabel =
+      lang === 'ko' ? koDomainLabel[weightedDomain] : enDomainLabel[weightedDomain]
     summaryParts.push(
       lang === 'ko'
         ? `${domainLabel} 쪽은 변동성이 있어 서두르기보다 확인과 조율을 먼저 하는 편이 좋습니다.`
@@ -544,8 +556,13 @@ export function buildMatrixOverlay(
     )
   }
 
-  if (weightedDomain && domainWeight >= 0.6 && (hasMonthCautionSignal || cautionSignals.length > 0)) {
-    const domainLabel = lang === 'ko' ? koDomainLabel[weightedDomain] : enDomainLabel[weightedDomain]
+  if (
+    weightedDomain &&
+    domainWeight >= 0.6 &&
+    (hasMonthCautionSignal || cautionSignals.length > 0)
+  ) {
+    const domainLabel =
+      lang === 'ko' ? koDomainLabel[weightedDomain] : enDomainLabel[weightedDomain]
     warnings.push(
       lang === 'ko'
         ? `${domainLabel} 쪽은 바로 키우기보다 체크리스트로 확인한 뒤 움직이는 편이 안전합니다.`
@@ -599,7 +616,9 @@ export function selectMatrixPacketForDate(input: {
   if (byDomain) return byDomain
 
   for (const category of input.categories) {
-    const normalizedCategory = String(category || '').trim().toLowerCase()
+    const normalizedCategory = String(category || '')
+      .trim()
+      .toLowerCase()
     const packetKey = CATEGORY_PACKET_KEY[normalizedCategory]
     if (packetKey && packets[packetKey]) return packets[packetKey]
   }
@@ -642,12 +661,13 @@ export function buildMatrixFirstSummary(input: {
   topAnchorSummary?: string
   fallbackSummary: string
 }): string {
-  return dedupeTexts([
-    sanitizeMatrixNarrativeLine(input.fallbackSummary),
-    sanitizeMatrixNarrativeLine(input.verdict),
-    sanitizeMatrixNarrativeLine(input.topClaim),
-    sanitizeMatrixNarrativeLine(input.topAnchorSummary),
-  ]).join(' ')
+  const primary = compactText(sanitizeMatrixNarrativeLine(input.fallbackSummary), 160)
+  const supportSource = sanitizeMatrixNarrativeLine(
+    input.topAnchorSummary || input.topClaim || input.verdict
+  )
+  const support =
+    supportSource && !/[�]|\?\?/.test(supportSource) ? compactText(supportSource, 120) : ''
+  return dedupeTexts([primary, support]).slice(0, 2).join(' ')
 }
 
 export function buildMatrixFirstDescription(input: {
@@ -730,7 +750,10 @@ export function buildMatrixStrictRecommendations(input: {
   topClaim?: string
   matrixRecommendations: string[]
 }): string[] {
-  const out = dedupeTexts([input.topClaim || '', ...(input.matrixRecommendations || [])]).slice(0, 6)
+  const out = dedupeTexts([input.topClaim || '', ...(input.matrixRecommendations || [])]).slice(
+    0,
+    6
+  )
   if (out.length > 0) return out
 
   const domainLabel = getMatrixDomainLabel(input.evidence.matrix?.domain, input.lang)

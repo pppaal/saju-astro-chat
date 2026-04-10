@@ -46,7 +46,11 @@ export type DaySummary = {
   summary: string
   focusDomain: string
   actionFocusDomain: string
+  backgroundFocusDomain?: string
   reliability: string
+  doNow?: string
+  watchOut?: string
+  bestTimes?: string[]
   interpretedAnswer?: InterpretedAnswerContract
 }
 
@@ -446,7 +450,8 @@ export function pickDomainAlignedDate(
   domain: PresentationDomain,
   fallback: FormattedDate
 ): FormattedDate {
-  return allDates.find((item) => matchesPresentationDomain(item, domain)) || fallback
+  if (matchesPresentationDomain(fallback, domain)) return fallback
+  return fallback
 }
 
 export function getDomainLabel(domain: PresentationDomain, locale: Locale): string {

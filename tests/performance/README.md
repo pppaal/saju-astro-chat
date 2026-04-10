@@ -50,7 +50,7 @@ Node.js-based performance tests integrated with existing test suite.
 
 ```bash
 npm run test:performance          # Run once
-npm run test:performance:watch    # Watch mode
+npx vitest watch tests/performance/api-endpoints.test.ts    # Watch mode
 ```
 
 **Tests:**

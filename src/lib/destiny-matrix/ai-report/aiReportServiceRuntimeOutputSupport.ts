@@ -110,7 +110,7 @@ function polishFinalSectionValue(value: unknown, actionDomain: string, lang: 'ko
       (current, [pattern, replacement]) => current.replace(pattern, replacement),
       normalized
     )
-    return sanitizeUserFacingNarrative(rewritten)
+    return sanitizeUserFacingNarrative(dedupeNarrativeSentences(rewritten, lang))
   }
   if (Array.isArray(value)) {
     return value.map((item) => polishFinalSectionValue(item, actionDomain, lang))
@@ -124,6 +124,53 @@ function polishFinalSectionValue(value: unknown, actionDomain: string, lang: 'ko
     )
   }
   return value
+}
+
+function dedupeNarrativeSentences(text: string, lang: 'ko' | 'en'): string {
+  const normalized = sanitizeUserFacingNarrative(text).replace(/\s+/g, ' ').trim()
+  if (!normalized) return ''
+
+  const parts = normalized
+    .split(/(?<=[.!?])\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+
+  const seen = new Set<string>()
+  const kept: string[] = []
+
+  for (const part of parts) {
+    const key = part
+      .replace(/[.!?]+$/g, '')
+      .replace(/\s+/g, ' ')
+      .replace(/이번 주에는/gi, '')
+      .replace(/지금은/gi, '')
+      .replace(/다음 행동은/gi, '')
+      .trim()
+      .toLowerCase()
+    if (!key || seen.has(key)) continue
+    seen.add(key)
+    kept.push(part)
+  }
+
+  const joined = kept.join(lang === 'ko' ? ' ' : ' ')
+  return sanitizeUserFacingNarrative(joined).trim()
+}
+
+function buildKoActionPlanLead(actionDomain: string, decision: string): string {
+  switch (actionDomain) {
+    case 'career':
+      return `지금 커리어에서는 ${decision} 기조로 역할 범위와 조건선을 먼저 정리하는 편이 유리합니다.`
+    case 'relationship':
+      return `지금 관계에서는 ${decision} 기조로 속도와 기대치를 먼저 맞추는 편이 유리합니다.`
+    case 'wealth':
+      return `지금 재정에서는 ${decision} 기조로 현금흐름과 손실 상한을 먼저 정리하는 편이 유리합니다.`
+    case 'health':
+      return `지금 건강에서는 ${decision} 기조로 회복 리듬과 부하 한계를 먼저 바로잡는 편이 유리합니다.`
+    case 'move':
+      return `지금 이동과 거점 문제에서는 ${decision} 기조로 후보 지역과 생활 조건을 먼저 비교하는 편이 유리합니다.`
+    default:
+      return `지금 가장 맞는 기본 자세는 ${decision}입니다.`
+  }
 }
 
 function applyFinalReportStyle<T extends Record<string, unknown>>(
@@ -151,11 +198,12 @@ function ensureFinalActionPlanGrounding<T extends Record<string, unknown>>(
 
   const decision = String(reportCore.topDecisionLabel || reportCore.primaryAction || '').trim()
   const riskControl = String(reportCore.riskControl || '').trim()
+  const actionDomain = String(reportCore.actionFocusDomain || reportCore.focusDomain || '').trim()
   const prefix: string[] = []
 
   if (lang === 'ko') {
     if (decision && !current.includes(decision)) {
-      prefix.push(`지금 가장 맞는 기본 자세는 ${decision}입니다.`)
+      prefix.push(buildKoActionPlanLead(actionDomain, decision))
     }
     if (riskControl && !current.includes(riskControl)) {
       prefix.push(riskControl)
@@ -187,7 +235,7 @@ function ensureFinalActionPlanGrounding<T extends Record<string, unknown>>(
 
   return {
     ...sections,
-    actionPlan: cleaned,
+    actionPlan: dedupeNarrativeSentences(cleaned, lang),
   }
 }
 

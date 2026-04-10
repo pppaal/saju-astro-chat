@@ -809,6 +809,49 @@ export function formatDateForResponse(
 }
 
 // 위치 좌표
+export function rebalanceCalendarDisplayGrades<T extends { displayScore?: number; score: number }>(
+  dates: T[]
+): Array<T & { displayGrade: ImportanceGrade }> {
+  const total = dates.length
+  if (total === 0) return []
+
+  const sorted = dates
+    .map((item, index) => ({ item, index, score: item.displayScore ?? item.score }))
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score
+      return a.index - b.index
+    })
+
+  const executeCount = Math.max(1, Math.round(total * 0.05))
+  const leverageCount = Math.max(1, Math.round(total * 0.15))
+  const reviewCount = Math.max(1, Math.round(total * 0.15))
+  const adjustCount = Math.max(1, Math.round(total * 0.05))
+  const operateBoundary = total - reviewCount - adjustCount
+  const reviewBoundary = total - adjustCount
+  const assigned = new Map<number, ImportanceGrade>()
+
+  sorted.forEach((entry, rank) => {
+    let grade: ImportanceGrade
+    if (rank < executeCount) {
+      grade = 0
+    } else if (rank < executeCount + leverageCount) {
+      grade = 1
+    } else if (rank < operateBoundary) {
+      grade = 2
+    } else if (rank < reviewBoundary) {
+      grade = 3
+    } else {
+      grade = 4
+    }
+    assigned.set(entry.index, grade)
+  })
+
+  return dates.map((item, index) => ({
+    ...item,
+    displayGrade: assigned.get(index) ?? 2,
+  }))
+}
+
 export const LOCATION_COORDS: Record<string, LocationCoord> = {
   Seoul: { lat: 37.5665, lng: 126.978, tz: 'Asia/Seoul' },
   'Seoul, KR': { lat: 37.5665, lng: 126.978, tz: 'Asia/Seoul' },
