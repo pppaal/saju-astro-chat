@@ -106,6 +106,11 @@ function buildSavedInterpretationSnapshot(rawBody: unknown) {
       }
     }
     presentation?: {
+      dailyView?: {
+        oneLineSummary?: unknown
+        doNow?: unknown
+        watchOut?: unknown
+      }
       daySummary?: { summary?: unknown }
     }
   }
@@ -145,6 +150,7 @@ function buildSavedInterpretationSnapshot(rawBody: unknown) {
 
   const summary =
     cleanText(singleSubjectView?.directAnswer, 240) ||
+    cleanText(input.presentation?.dailyView?.oneLineSummary, 240) ||
     cleanText(input.presentation?.daySummary?.summary, 240) ||
     cleanText(input.summary, 240)
 
@@ -152,6 +158,7 @@ function buildSavedInterpretationSnapshot(rawBody: unknown) {
     new Set(
       [
         cleanText(singleSubjectView?.actionAxis?.nowAction, 180),
+        cleanText(input.presentation?.dailyView?.doNow, 180),
         cleanText(singleSubjectView?.nextMove, 180),
         ...compactBranchLines(singleSubjectView?.branches),
         ...domainStateLines,
@@ -165,6 +172,7 @@ function buildSavedInterpretationSnapshot(rawBody: unknown) {
     new Set(
       [
         cleanText(singleSubjectView?.riskAxis?.warning, 180),
+        cleanText(input.presentation?.dailyView?.watchOut, 180),
         ...compactLines(singleSubjectView?.riskAxis?.hardStops, 3, 160),
         ...compactLines(singleSubjectView?.abortConditions, 3, 160),
         ...compactLines(input.warnings, 4, 180),

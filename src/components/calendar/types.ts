@@ -102,6 +102,41 @@ export interface CalendarData {
   goodDates?: ImportantDate[]
   cautionDates?: ImportantDate[]
   allDates?: ImportantDate[]
+  calendarDailyView?: {
+    date: string
+    grade: number
+    label: string
+    frontDomain: string
+    frontDomainLabel: string
+    watchDomain?: string
+    watchDomainLabel?: string
+    oneLineSummary: string
+    doNow: string
+    watchOut: string
+    bestTimes: string[]
+    reliability: string
+    confidence?: number
+    reasonShort?: string
+  }
+  calendarWeekView?: {
+    rangeStart: string
+    rangeEnd: string
+    frontDomain: string
+    frontDomainLabel: string
+    oneLineSummary: string
+    operatingRule: string
+    brightWindow?: string
+    cautiousWindow?: string
+  }
+  calendarMonthView?: {
+    month: string
+    frontDomain: string
+    frontDomainLabel: string
+    oneLineSummary: string
+    operatingRule: string
+    strongestWindow?: string
+    cautionWindow?: string
+  }
   daySummary?: {
     date: string
     summary: string

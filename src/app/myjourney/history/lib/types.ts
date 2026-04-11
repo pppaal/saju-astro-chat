@@ -76,6 +76,22 @@ export type CalendarContent = {
   recommendations?: string[]
   warnings?: string[]
   presentation?: {
+    dailyView?: {
+      date: string
+      grade: number
+      label: string
+      frontDomain: string
+      frontDomainLabel: string
+      watchDomain?: string
+      watchDomainLabel?: string
+      oneLineSummary: string
+      doNow: string
+      watchOut: string
+      bestTimes: string[]
+      reliability: string
+      confidence?: number
+      reasonShort?: string
+    }
     daySummary?: {
       date: string
       summary: string

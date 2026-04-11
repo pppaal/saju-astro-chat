@@ -105,6 +105,33 @@ export function buildCalendarPresentationView(input: {
       },
       weekSummary: { rangeStart: '', rangeEnd: '', summary: emptySummary },
       monthSummary: { month: '', summary: emptySummary },
+      dailyView: {
+        date: '',
+        grade: 2,
+        label: locale === 'ko' ? '운영' : 'Operate',
+        frontDomain: 'general',
+        frontDomainLabel: getDomainLabel('general', locale),
+        oneLineSummary: emptySummary,
+        doNow: emptySummary,
+        watchOut: emptySummary,
+        bestTimes: [],
+        reliability: emptySummary,
+      },
+      weekView: {
+        rangeStart: '',
+        rangeEnd: '',
+        frontDomain: 'general',
+        frontDomainLabel: getDomainLabel('general', locale),
+        oneLineSummary: emptySummary,
+        operatingRule: emptySummary,
+      },
+      monthView: {
+        month: '',
+        frontDomain: 'general',
+        frontDomainLabel: getDomainLabel('general', locale),
+        oneLineSummary: emptySummary,
+        operatingRule: emptySummary,
+      },
       surfaceCards: [],
       topDomains: [],
       timingSignals: [],
@@ -134,6 +161,9 @@ export function buildCalendarPresentationView(input: {
   const topDomains = prioritizeTopDomains(rawTopDomains, focusDomain).slice(0, 3)
   const focusDomainLabel = getDomainLabel(focusDomain, locale)
   const actionFocusDomainLabel = getDomainLabel(actionFocusDomain, locale)
+  const selectedFocusDomain =
+    (selected.evidence?.matrix?.domain as PresentationDomain | undefined) || focusDomain
+  const selectedFocusDomainLabel = getDomainLabel(selectedFocusDomain, locale)
   const singleSubjectView = canonicalCore?.singleSubjectView
   const personModel = canonicalCore?.personModel
   const focusPersonState =
@@ -477,26 +507,57 @@ export function buildCalendarPresentationView(input: {
   const simplifiedDaySummary =
     locale === 'ko'
       ? defensivePhase
-        ? `${actionFocusDomainLabel} 이슈는 오늘 크게 넓히기보다 점검하며 운영하는 편이 맞습니다.`
-        : `${actionFocusDomainLabel} 이슈는 무리 없이 운영하기 좋은 흐름입니다.`
+        ? `${selectedFocusDomainLabel} 이슈는 오늘 크게 넓히기보다 점검하며 운영하는 편이 맞습니다.`
+        : `${selectedFocusDomainLabel} 이슈는 무리 없이 운영하기 좋은 흐름입니다.`
       : defensivePhase
-        ? `${actionFocusDomainLabel} is better handled through review and reset than by widening the scope today.`
-        : `${actionFocusDomainLabel} is in a workable operating flow today.`
+        ? `${selectedFocusDomainLabel} is better handled through review and reset than by widening the scope today.`
+        : `${selectedFocusDomainLabel} is in a workable operating flow today.`
+  void projectionActionLead
 
   const daySummary: DaySummary = {
     date: selected.date,
     summary: simplifiedDaySummary,
-    focusDomain: actionFocusDomainLabel,
+    focusDomain: selectedFocusDomainLabel,
     actionFocusDomain: actionFocusDomainLabel,
-    backgroundFocusDomain: actionFocusDomain !== focusDomain ? focusDomainLabel : undefined,
+    backgroundFocusDomain:
+      actionFocusDomain !== selectedFocusDomain ? actionFocusDomainLabel : undefined,
     reliability,
     doNow: actionCardSummary,
     watchOut: riskCardSummary,
-    bestTimes: dedupe([
-      canonicalAdvisories[0]?.timingHint || '',
-      ...(detailSelected.bestTimes || []),
-    ]).slice(0, 2),
+    bestTimes: dedupe(detailSelected.bestTimes || []).slice(0, 2),
     interpretedAnswer: interpretedAnswer || undefined,
+  }
+
+  const riskDomain =
+    mapCoreDomainToPresentationDomain(singleSubjectView?.riskAxis?.domain) || undefined
+  const riskDomainLabel =
+    riskDomain && riskDomain !== selectedFocusDomain
+      ? getDomainLabel(riskDomain, locale)
+      : undefined
+  const dailyView = {
+    date: selected.date,
+    grade: selected.displayGrade ?? selected.grade,
+    label: locale === 'ko' ? detailSelected.title : detailSelected.title,
+    frontDomain: selectedFocusDomain,
+    frontDomainLabel: selectedFocusDomainLabel,
+    watchDomain: riskDomain,
+    watchDomainLabel: riskDomainLabel,
+    oneLineSummary: simplifiedDaySummary,
+    doNow: actionCardSummary,
+    watchOut: riskCardSummary,
+    bestTimes: dedupe(detailSelected.bestTimes || []).slice(0, 2),
+    reliability,
+    confidence:
+      typeof canonicalCore?.confidence === 'number'
+        ? canonicalCore.confidence
+        : typeof selected.evidence?.confidence === 'number'
+          ? selected.evidence.confidence / 100
+          : undefined,
+    reasonShort:
+      canonicalCore?.gradeReason ||
+      canonicalCore?.topDecisionLabel ||
+      detailSelected.summary ||
+      undefined,
   }
 
   const weekStart = selected.date
@@ -553,9 +614,31 @@ export function buildCalendarPresentationView(input: {
     ),
   }
 
+  const weekView = {
+    rangeStart: weekStart,
+    rangeEnd: weekEnd,
+    frontDomain: focusDomain,
+    frontDomainLabel: weekDomainLabel,
+    oneLineSummary: weekSummary.summary,
+    operatingRule:
+      recommendedActions[0] ||
+      actionCardSummary ||
+      (locale === 'ko'
+        ? '한 번에 넓히기보다 기준을 먼저 맞추세요.'
+        : 'Set the rule before widening scope.'),
+    brightWindow: weekTop?.date,
+    cautiousWindow: weekLow?.date,
+  }
+
   const monthKey = selected.date.slice(0, 7)
   const monthDates = allDates.filter((d) => d.date.startsWith(monthKey))
   const monthDomain = buildTopDomains(locale, monthDates, undefined)[0] || topDomains[0]
+  const monthSortedDesc = [...monthDates].sort(
+    (a, b) => (b.displayScore ?? b.score) - (a.displayScore ?? a.score)
+  )
+  const monthSortedAsc = [...monthDates].sort(
+    (a, b) => (a.displayScore ?? a.score) - (b.displayScore ?? b.score)
+  )
   const monthAvg =
     monthDates.length > 0
       ? monthDates.reduce((sum, d) => sum + (d.displayScore ?? d.score), 0) / monthDates.length
@@ -603,6 +686,21 @@ export function buildCalendarPresentationView(input: {
             4
           )
     ),
+  }
+
+  const monthView = {
+    month: monthKey,
+    frontDomain: focusDomain,
+    frontDomainLabel: monthDomainLabel,
+    oneLineSummary: monthSummary.summary,
+    operatingRule:
+      recommendedActions[0] ||
+      actionCardSummary ||
+      (locale === 'ko'
+        ? '핵심 조건부터 맞추며 운영하세요.'
+        : 'Operate by locking the core conditions first.'),
+    strongestWindow: monthSortedDesc[0]?.date,
+    cautionWindow: monthSortedAsc[0]?.date,
   }
 
   const timingSignalsWithConflict = dedupe(
@@ -661,6 +759,9 @@ export function buildCalendarPresentationView(input: {
     daySummary,
     weekSummary,
     monthSummary,
+    dailyView,
+    weekView,
+    monthView,
     surfaceCards,
     topDomains,
     timingSignals: timingSignalsWithConflict,

@@ -25,6 +25,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export function CalendarDetailModal({ detail }: CalendarDetailModalProps) {
   const gradeMeta = GRADE_META[detail.grade] || GRADE_META[2]
+  const dailyView = detail.presentation?.dailyView
   const daySummary = detail.presentation?.daySummary
   const surfaceCards = detail.presentation?.surfaceCards || []
   const recommendedActions = detail.presentation?.recommendedActions || detail.recommendations || []
@@ -52,21 +53,34 @@ export function CalendarDetailModal({ detail }: CalendarDetailModalProps) {
         <p>{detail.description}</p>
       </div>
 
-      {daySummary && (
+      {(dailyView || daySummary) && (
         <div className={styles.aiSection}>
           <h3 className={styles.aiSectionTitle}>
             <span>🧭</span> 오늘 해석 요약
           </h3>
           <div className={styles.aiBlock}>
             <h4>직접 답</h4>
-            <p>{daySummary.summary}</p>
+            <p>{dailyView?.oneLineSummary || daySummary?.summary}</p>
           </div>
           <div className={styles.aiBlock}>
             <h4>핵심 축</h4>
             <p>
-              집중 영역은 {daySummary.focusDomain}, 신뢰도는 {daySummary.reliability}입니다.
+              집중 영역은 {dailyView?.frontDomainLabel || daySummary?.focusDomain}, 신뢰도는{' '}
+              {dailyView?.reliability || daySummary?.reliability}입니다.
             </p>
           </div>
+          {dailyView?.doNow && (
+            <div className={styles.aiBlock}>
+              <h4>지금 할 일</h4>
+              <p>{dailyView.doNow}</p>
+            </div>
+          )}
+          {dailyView?.watchOut && (
+            <div className={styles.aiBlock}>
+              <h4>주의</h4>
+              <p>{dailyView.watchOut}</p>
+            </div>
+          )}
         </div>
       )}
 

@@ -477,6 +477,9 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
           canonicalCore: data?.canonicalCore,
           presentation: data
             ? {
+                dailyView: data.calendarDailyView,
+                weekView: data.calendarWeekView,
+                monthView: data.calendarMonthView,
                 daySummary: data.daySummary,
                 weekSummary: data.weekSummary,
                 monthSummary: data.monthSummary,

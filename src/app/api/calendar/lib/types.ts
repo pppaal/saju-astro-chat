@@ -38,6 +38,44 @@ export interface FormattedDate {
   evidence?: CalendarEvidence
 }
 
+export interface CalendarDailyView {
+  date: string
+  grade: ImportanceGrade
+  label: string
+  frontDomain: string
+  frontDomainLabel: string
+  watchDomain?: string
+  watchDomainLabel?: string
+  oneLineSummary: string
+  doNow: string
+  watchOut: string
+  bestTimes: string[]
+  reliability: string
+  confidence?: number
+  reasonShort?: string
+}
+
+export interface CalendarWeekView {
+  rangeStart: string
+  rangeEnd: string
+  frontDomain: string
+  frontDomainLabel: string
+  oneLineSummary: string
+  operatingRule: string
+  brightWindow?: string
+  cautiousWindow?: string
+}
+
+export interface CalendarMonthView {
+  month: string
+  frontDomain: string
+  frontDomainLabel: string
+  oneLineSummary: string
+  operatingRule: string
+  strongestWindow?: string
+  cautionWindow?: string
+}
+
 // Location coordinates type
 export interface LocationCoord {
   lat: number

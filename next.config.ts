@@ -76,9 +76,12 @@ const withPWA = withPWAInit({
   },
 })
 
+const isVercelBuild = process.env.VERCEL === '1' || process.env.VERCEL === 'true'
+const resolvedDistDir = process.env.NEXT_DIST_DIR || (isVercelBuild ? '.next' : 'tmp/.next')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  distDir: process.env.NEXT_DIST_DIR || 'tmp/.next',
+  distDir: resolvedDistDir,
   // 이 옵션은 swisseph가 node_modules를 참조할 수 있도록 도와줍니다.
   outputFileTracingRoot: path.join(__dirname),
   // Performance optimizations

@@ -100,12 +100,51 @@ interface SelectedDatePanelProps {
   selectedDate: ImportantDate | null
   canonicalCore?: CalendarCoreAdapterResult
   presentation?: {
+    dailyView?: {
+      date: string
+      grade: number
+      label: string
+      frontDomain: string
+      frontDomainLabel: string
+      watchDomain?: string
+      watchDomainLabel?: string
+      oneLineSummary: string
+      doNow: string
+      watchOut: string
+      bestTimes: string[]
+      reliability: string
+      confidence?: number
+      reasonShort?: string
+    }
+    weekView?: {
+      rangeStart: string
+      rangeEnd: string
+      frontDomain: string
+      frontDomainLabel: string
+      oneLineSummary: string
+      operatingRule: string
+      brightWindow?: string
+      cautiousWindow?: string
+    }
+    monthView?: {
+      month: string
+      frontDomain: string
+      frontDomainLabel: string
+      oneLineSummary: string
+      operatingRule: string
+      strongestWindow?: string
+      cautionWindow?: string
+    }
     daySummary?: {
       date: string
       summary: string
       focusDomain: string
       actionFocusDomain?: string
+      backgroundFocusDomain?: string
       reliability: string
+      doNow?: string
+      watchOut?: string
+      bestTimes?: string[]
       interpretedAnswer?: InterpretedAnswerContract
     }
     weekSummary?: {
@@ -465,10 +504,13 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     canonicalGradeLabel || (selectedDate ? getDisplayLabelFromScore(displayScore, locale) : '')
   const isPresentationDayMatch =
     Boolean(selectedDate?.date) &&
-    Boolean(presentation?.daySummary?.date) &&
-    selectedDate?.date === presentation?.daySummary?.date
+    Boolean(presentation?.dailyView?.date || presentation?.daySummary?.date) &&
+    selectedDate?.date === (presentation?.dailyView?.date || presentation?.daySummary?.date)
   const presentationReliability = isPresentationDayMatch
-    ? safeDisplayText(presentation?.daySummary?.reliability || '', '')
+    ? safeDisplayText(
+        presentation?.dailyView?.reliability || presentation?.daySummary?.reliability || '',
+        ''
+      )
     : ''
   const reliabilityLabel = selectedDate
     ? getReliabilityLabel(selectedDate.evidence?.confidence, locale)
@@ -480,21 +522,36 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     : locale === 'ko'
       ? '전반'
       : 'overall'
-  const focusDomainHeadline =
-    canonicalFocusDomainLabel ||
-    (isPresentationDayMatch
-      ? safeDisplayText(presentation?.daySummary?.focusDomain || '', '')
-      : '') ||
-    domainLabel
   const canonicalActionFocusDomainLabel = canonicalCore
     ? getDomainLabel(toCalendarDomain(canonicalCore.actionFocusDomain), locale)
     : ''
-  const actionFocusDomainHeadline =
+  const focusDomainHeadline =
+    (isPresentationDayMatch
+      ? safeDisplayText(presentation?.dailyView?.frontDomainLabel || '', '')
+      : '') ||
+    (isPresentationDayMatch
+      ? safeDisplayText(presentation?.daySummary?.focusDomain || '', '')
+      : '') ||
     canonicalActionFocusDomainLabel ||
+    canonicalFocusDomainLabel ||
+    domainLabel
+  const actionFocusDomainHeadline =
+    (isPresentationDayMatch
+      ? safeDisplayText(presentation?.dailyView?.frontDomainLabel || '', '')
+      : '') ||
     (isPresentationDayMatch
       ? safeDisplayText(presentation?.daySummary?.actionFocusDomain || '', '')
       : '') ||
+    canonicalActionFocusDomainLabel ||
     focusDomainHeadline
+  const backgroundDomainHeadline =
+    (isPresentationDayMatch
+      ? safeDisplayText(presentation?.dailyView?.watchDomainLabel || '', '')
+      : '') ||
+    (isPresentationDayMatch
+      ? safeDisplayText(presentation?.daySummary?.backgroundFocusDomain || '', '')
+      : '') ||
+    (canonicalFocusDomainLabel !== actionFocusDomainHeadline ? canonicalFocusDomainLabel : '')
 
   const evidenceSummaryPrimary = canonicalCore
     ? locale === 'ko'
@@ -569,6 +626,12 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
   const quickThesis = (() => {
     if (!selectedDate) return ''
+    if (isPresentationDayMatch && presentation?.dailyView?.oneLineSummary) {
+      return softenDecisionTone(presentation.dailyView.oneLineSummary, locale, isLowReliability)
+    }
+    if (isPresentationDayMatch && presentation?.daySummary?.summary) {
+      return softenDecisionTone(presentation.daySummary.summary, locale, isLowReliability)
+    }
     if (readableFlowSummary) {
       return softenDecisionTone(readableFlowSummary, locale, isLowReliability)
     }
@@ -577,9 +640,6 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     }
     if (canonicalCore?.thesis) {
       return softenDecisionTone(canonicalCore.thesis, locale, isLowReliability)
-    }
-    if (isPresentationDayMatch && presentation?.daySummary?.summary) {
-      return softenDecisionTone(presentation.daySummary.summary, locale, isLowReliability)
     }
     if (matrixVerdict?.verdict) {
       return softenDecisionTone(matrixVerdict.verdict, locale, isLowReliability)
@@ -912,15 +972,24 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
 
           <SelectedDateQuickScanSection
             locale={locale}
-            quickHighlightCards={quickHighlightCards}
+            quickHighlightCards={quickHighlightCards.slice(0, 3)}
             interpretedAnswer={
               isPresentationDayMatch ? presentation?.daySummary?.interpretedAnswer : undefined
             }
-            safeActionSummary={safeActionSummary}
-            quickThesis={quickThesis}
+            safeActionSummary={
+              (isPresentationDayMatch ? presentation?.dailyView?.doNow || '' : '') ||
+              (isPresentationDayMatch ? presentation?.daySummary?.doNow || '' : '') ||
+              safeActionSummary
+            }
+            quickThesis={
+              (isPresentationDayMatch ? presentation?.dailyView?.oneLineSummary || '' : '') ||
+              (isPresentationDayMatch ? presentation?.daySummary?.summary || '' : '') ||
+              quickThesis
+            }
             unifiedDayLabel={unifiedDayLabel}
             focusDomainHeadline={focusDomainHeadline}
             actionFocusDomainHeadline={actionFocusDomainHeadline}
+            backgroundDomainHeadline={backgroundDomainHeadline}
             canonicalPhaseLabel={canonicalPhaseLabel}
             matrixPhase={humanizePhaseLabel(matrixVerdict?.phase || '', locale)}
             reliabilityHeadline={reliabilityHeadline}
@@ -929,10 +998,46 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             topDomains={presentation?.topDomains || []}
             relationshipWeatherSummary={presentation?.relationshipWeather?.summary}
             workMoneyWeatherSummary={presentation?.workMoneyWeather?.summary}
-            topTimingSignals={topTimingSignals}
-            quickDos={quickDos}
-            quickDonts={quickDonts}
-            quickWindows={quickWindows}
+            topTimingSignals={topTimingSignals.slice(0, 2)}
+            quickDos={
+              (isPresentationDayMatch
+                ? dedupeDisplayLines([presentation?.dailyView?.doNow || '']).slice(0, 1)
+                : []
+              ).length > 0
+                ? dedupeDisplayLines([presentation?.dailyView?.doNow || '']).slice(0, 1)
+                : (isPresentationDayMatch
+                      ? dedupeDisplayLines([presentation?.daySummary?.doNow || '']).slice(0, 1)
+                      : []
+                    ).length > 0
+                  ? dedupeDisplayLines([presentation?.daySummary?.doNow || '']).slice(0, 1)
+                  : quickDos
+            }
+            quickDonts={
+              (isPresentationDayMatch
+                ? dedupeDisplayLines([presentation?.dailyView?.watchOut || '']).slice(0, 1)
+                : []
+              ).length > 0
+                ? dedupeDisplayLines([presentation?.dailyView?.watchOut || '']).slice(0, 1)
+                : (isPresentationDayMatch
+                      ? dedupeDisplayLines([presentation?.daySummary?.watchOut || '']).slice(0, 1)
+                      : []
+                    ).length > 0
+                  ? dedupeDisplayLines([presentation?.daySummary?.watchOut || '']).slice(0, 1)
+                  : quickDonts
+            }
+            quickWindows={
+              (isPresentationDayMatch
+                ? dedupeDisplayLines(presentation?.dailyView?.bestTimes || []).slice(0, 2)
+                : []
+              ).length > 0
+                ? dedupeDisplayLines(presentation?.dailyView?.bestTimes || []).slice(0, 2)
+                : (isPresentationDayMatch
+                      ? dedupeDisplayLines(presentation?.daySummary?.bestTimes || []).slice(0, 2)
+                      : []
+                    ).length > 0
+                  ? dedupeDisplayLines(presentation?.daySummary?.bestTimes || []).slice(0, 2)
+                  : quickWindows
+            }
           />
 
           <SelectedDateEvidenceDetails

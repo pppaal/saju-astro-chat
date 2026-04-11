@@ -136,6 +136,22 @@ const buildSavedDatePresentation = (savedDate: SavedCalendarDetail) => {
   }
 
   return {
+    dailyView: {
+      date: savedDate.date,
+      grade:
+        focus.domain === 'general' ? 2 : savedDate.score >= 85 ? 1 : savedDate.score >= 65 ? 2 : 3,
+      label: savedDate.title.trim(),
+      frontDomain: focus.domain,
+      frontDomainLabel: focus.label,
+      oneLineSummary: summary,
+      doNow: recommendations[0] || summary,
+      watchOut: warnings[0] || '',
+      bestTimes,
+      reliability: getReliabilityLabel(savedDate.score),
+      confidence: Math.max(0, Math.min(1, savedDate.score / 100)),
+      reasonShort:
+        savedDate.summary?.trim() || savedDate.description?.trim() || savedDate.title.trim(),
+    },
     daySummary: {
       date: savedDate.date,
       summary,

@@ -6,7 +6,7 @@ import type {
   DomainScore,
 } from '@/lib/destiny-matrix/types'
 import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
-import type { FormattedDate } from './types'
+import type { CalendarDailyView, CalendarMonthView, CalendarWeekView, FormattedDate } from './types'
 
 export type Locale = 'ko' | 'en'
 export type PresentationDomain = DomainKey | 'general'
@@ -69,6 +69,9 @@ export type CalendarPresentationView = {
   daySummary: DaySummary
   weekSummary: WeekSummary
   monthSummary: MonthSummary
+  dailyView: CalendarDailyView
+  weekView: CalendarWeekView
+  monthView: CalendarMonthView
   surfaceCards: SurfaceCard[]
   topDomains: TopDomain[]
   timingSignals: string[]
