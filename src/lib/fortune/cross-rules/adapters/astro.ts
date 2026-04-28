@@ -131,8 +131,13 @@ export interface AstroExtrasInput {
   sect: 'day' | 'night'
   sectLight: 'Sun' | 'Moon'
   lotOfFortune: { longitude: number; sign: string; house: number }
+  lotOfSpirit: { longitude: number; sign: string; house: number }
   triplicityRulers: Array<{ element: 'fire' | 'earth' | 'air' | 'water'; primary: string; secondary: string; participating: string }>
   profectionRuler?: { house: number; sign: string; ruler: string; rulerHouse: number }
+  // Planetary Joys (each planet's "happy" house).
+  planetaryJoys: Array<{ planet: string; joyHouse: number; inJoy: boolean }>
+  // Simplified bonification/maltreatment per planet from natal aspects.
+  bonifications: Array<{ planet: string; condition: 'bonified' | 'maltreated' | 'mixed' | 'neutral'; benefics: string[]; malefics: string[] }>
 }
 
 function computeExtras(natal: Chart): AstroExtrasInput {
@@ -251,27 +256,79 @@ function computeExtras(natal: Chart): AstroExtrasInput {
   const sect: 'day' | 'night' = sun && sun.house >= 7 && sun.house <= 12 ? 'day' : 'night'
   const sectLight: 'Sun' | 'Moon' = sect === 'day' ? 'Sun' : 'Moon'
 
-  // ─── Lot of Fortune ─────────────────────────────────────
-  // Day chart:  ASC + Moon - Sun
-  // Night chart: ASC + Sun - Moon
+  // ─── Lot of Fortune & Lot of Spirit ─────────────────────
+  // Fortune: 신체·재물 / Spirit: 정신·직업/소명. Spirit는 Fortune의 부호 반대.
+  const SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
+  function findHouse(lon: number): number {
+    if (!natal.houses || natal.houses.length !== 12) return 1
+    for (let i = 0; i < 12; i++) {
+      const cur = natal.houses[i].cusp
+      const next = natal.houses[(i + 1) % 12].cusp
+      const inBetween = cur < next ? lon >= cur && lon < next : lon >= cur || lon < next
+      if (inBetween) return natal.houses[i].index
+    }
+    return 1
+  }
+  function lonToSignHouse(lonRaw: number) {
+    const lon = ((lonRaw % 360) + 360) % 360
+    return { longitude: lon, sign: SIGNS[Math.floor(lon / 30)] ?? '', house: findHouse(lon) }
+  }
   let lotOfFortune: AstroExtrasInput['lotOfFortune'] = { longitude: 0, sign: '', house: 1 }
+  let lotOfSpirit: AstroExtrasInput['lotOfSpirit'] = { longitude: 0, sign: '', house: 1 }
   if (sun && moon) {
     const ascLon = natal.ascendant.longitude
-    const lonRaw = sect === 'day' ? ascLon + moon.longitude - sun.longitude : ascLon + sun.longitude - moon.longitude
-    const lon = ((lonRaw % 360) + 360) % 360
-    const SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
-    const sign = SIGNS[Math.floor(lon / 30)] ?? ''
-    // Determine house by walking through houses cusps.
-    let house = 1
-    if (natal.houses && natal.houses.length === 12) {
-      for (let i = 0; i < 12; i++) {
-        const cur = natal.houses[i].cusp
-        const next = natal.houses[(i + 1) % 12].cusp
-        const inBetween = cur < next ? lon >= cur && lon < next : lon >= cur || lon < next
-        if (inBetween) { house = natal.houses[i].index; break }
+    const fortuneRaw = sect === 'day' ? ascLon + moon.longitude - sun.longitude : ascLon + sun.longitude - moon.longitude
+    const spiritRaw = sect === 'day' ? ascLon + sun.longitude - moon.longitude : ascLon + moon.longitude - sun.longitude
+    lotOfFortune = lonToSignHouse(fortuneRaw)
+    lotOfSpirit = lonToSignHouse(spiritRaw)
+  }
+
+  // ─── Planetary Joys (Hellenistic) ────────────────────────
+  const JOY_HOUSES: Record<string, number> = {
+    Mercury: 1, Moon: 3, Venus: 5, Mars: 6, Sun: 9, Jupiter: 11, Saturn: 12,
+  }
+  const planetaryJoys: AstroExtrasInput['planetaryJoys'] = planets
+    .filter((p) => p.name in JOY_HOUSES)
+    .map((p) => ({ planet: p.name, joyHouse: JOY_HOUSES[p.name], inJoy: p.house === JOY_HOUSES[p.name] }))
+
+  // ─── Bonification / Maltreatment (simplified) ───────────
+  // Hellenistic 8-condition full system은 복잡. 간단판:
+  // 각 행성에 대해 자연 길성(Jupiter/Venus)·흉성(Mars/Saturn)이 hard aspect(opp/sq)
+  // 또는 conjunction을 5° 이내로 가하는지 체크. 한쪽만 → bonified/maltreated, 양쪽 → mixed.
+  const NAT_BENEFICS = new Set(['Jupiter', 'Venus'])
+  const NAT_MALEFICS = new Set(['Mars', 'Saturn'])
+  const HARD_OR_CONJ = new Set(['conjunction', 'opposition', 'square'])
+  const bonifications: AstroExtrasInput['bonifications'] = []
+  for (const target of planets) {
+    if (NAT_BENEFICS.has(target.name) || NAT_MALEFICS.has(target.name)) {
+      // benefics·malefics 자체는 평가 대상에서 제외 (자기 자신 평가 의미 없음)
+      continue
+    }
+    const benefics: string[] = []
+    const malefics: string[] = []
+    for (const ap of natal.planets) {
+      if (ap === target) continue
+      const diff = Math.abs(((ap.longitude - target.longitude + 540) % 360) - 180) // 0=opposition, 180=conj
+      // simpler: any aspect within 5° at 0/60/90/120/180
+      const angle = ((ap.longitude - target.longitude + 360) % 360)
+      const closest = [0, 60, 90, 120, 180].reduce((best, a) => {
+        const d = Math.min(Math.abs(angle - a), Math.abs(360 - angle - a))
+        return d < best.d ? { a, d } : best
+      }, { a: -1, d: 999 })
+      void diff
+      if (closest.d <= 5 && closest.a >= 0) {
+        const aspectType = closest.a === 0 ? 'conjunction' : closest.a === 60 ? 'sextile' : closest.a === 90 ? 'square' : closest.a === 120 ? 'trine' : 'opposition'
+        if (HARD_OR_CONJ.has(aspectType) || aspectType === 'trine') {
+          if (NAT_BENEFICS.has(ap.name)) benefics.push(ap.name)
+          if (NAT_MALEFICS.has(ap.name)) malefics.push(ap.name)
+        }
       }
     }
-    lotOfFortune = { longitude: lon, sign, house }
+    let condition: 'bonified' | 'maltreated' | 'mixed' | 'neutral' = 'neutral'
+    if (benefics.length && malefics.length) condition = 'mixed'
+    else if (benefics.length) condition = 'bonified'
+    else if (malefics.length) condition = 'maltreated'
+    bonifications.push({ planet: target.name, condition, benefics, malefics })
   }
 
   // ─── Triplicity rulers (Dorothean/Hellenistic) ──────────
@@ -296,7 +353,10 @@ function computeExtras(natal: Chart): AstroExtrasInput {
     sect,
     sectLight,
     lotOfFortune,
+    lotOfSpirit,
     triplicityRulers,
+    planetaryJoys,
+    bonifications,
     // profectionRuler is filled in build step (needs profectionHouse + house signs).
   }
 }

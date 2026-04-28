@@ -197,4 +197,121 @@ export const classicalRules: Rule[] = [
     sajuPredicate: (s) => hitByKeys(s, ['saju.relation.day.공망']),
     astroPredicate: (a) => hitByPrefix(a, ['astro.state.planet.Neptune.house.7']),
   },
+
+  // ─── 성격(成格) × Bonification ───────────────────────────
+  {
+    id: 'self.state.successful-pattern',
+    layer: 'state',
+    domain: 'self',
+    meaning: '성격(成格) × bonified key planet',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '사주 격국이 상신과 함께 성격(成格)으로 완성됨 + 점성도 핵심 행성이 길성에 의해 bonified — 평생 자기 길이 양 시스템 모두에서 또렷하게 받쳐주는 결.',
+    },
+    sajuPredicate: (s) => hitByKeys(s, ['saju.state.seonggyeok']),
+    astroPredicate: (a) =>
+      hitByPrefix(a, [
+        'astro.state.bonified.Sun',
+        'astro.state.bonified.Moon',
+        'astro.state.bonified.Mercury',
+      ]),
+  },
+
+  // ─── 파격(破格) × Maltreatment ───────────────────────────
+  {
+    id: 'self.state.broken-pattern',
+    layer: 'state',
+    domain: 'self',
+    meaning: '파격(破格) × maltreated key planet',
+    polarityHint: 'neg',
+    narrative: {
+      confirm: '사주 격국이 상신을 잃어 파격(破格)으로 흔들림 + 점성도 핵심 행성이 흉성에 의해 maltreated — 평생 자기 길에 구조적 누락이 박혀 있어 의식적 보강이 필요한 결.',
+    },
+    sajuPredicate: (s) => hitByKeys(s, ['saju.state.pagyeok']),
+    astroPredicate: (a) =>
+      hitByPrefix(a, [
+        'astro.state.maltreated.Sun',
+        'astro.state.maltreated.Moon',
+        'astro.state.maltreated.Mercury',
+      ]),
+  },
+
+  // ─── 상신(相神) 흐름 강함 ─────────────────────────────────
+  {
+    id: 'self.state.sangsin-strong',
+    layer: 'state',
+    domain: 'self',
+    meaning: '상신 강세 — 격국 보좌 흐름',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '사주 격국의 상신(보좌하는 십성 그룹)이 살아있고 점성 길성(sect 길성 또는 dignified Jupiter/Venus)도 강세 — 평생 격국이 흐름을 받아 자기 길을 자연스럽게 펼치는 결.',
+    },
+    sajuPredicate: (s) => hitByPrefix(s, ['saju.state.sangsin.']),
+    astroPredicate: (a) =>
+      hitByKeys(a, [
+        'astro.state.sectBenefic.greater.Jupiter',
+        'astro.state.sectBenefic.greater.Venus',
+        'astro.state.dignity.Jupiter.domicile',
+        'astro.state.dignity.Venus.domicile',
+      ]),
+  },
+
+  // ─── Planetary Joys × 신살 길성 ──────────────────────────
+  {
+    id: 'self.state.planetary-joy',
+    layer: 'state',
+    domain: 'self',
+    meaning: 'Planetary Joy × 길성 신살',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '점성 행성이 자기 기쁨의 자리(joy)에 있고 사주 길성 신살이 함께 — 평생 본인 결이 자연스럽게 받쳐지는 자리. 행운·보호의 자원이 박혀 있는 결.',
+    },
+    sajuPredicate: (s) => hitByPrefix(s, ['saju.state.shinsal.lucky.']),
+    astroPredicate: (a) => hitByPrefix(a, ['astro.state.planetaryJoy.']),
+  },
+
+  // ─── Lot of Spirit × 격국 ────────────────────────────────
+  {
+    id: 'career.state.spirit-lot-vocation',
+    layer: 'state',
+    domain: 'career',
+    meaning: 'Lot of Spirit × 격국 — 직업 소명',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '점성 Lot of Spirit이 직업·소명 라인(10/9/3궁 등)에 들어와 있고 사주 격국도 또렷하게 잡힘 — 평생 직업·소명이 양 시스템에서 같은 방향을 가리키는 결.',
+    },
+    sajuPredicate: (s) =>
+      hitByPrefix(s, [
+        'saju.state.geokguk.category.정격',
+      ]),
+    astroPredicate: (a) =>
+      hitByKeys(a, [
+        'astro.state.lotOfSpirit.house.10',
+        'astro.state.lotOfSpirit.house.9',
+        'astro.state.lotOfSpirit.house.3',
+        'astro.state.lotOfSpirit.house.1',
+      ]),
+  },
+
+  // ─── 성중유패 (Success Containing Failure) — 운에서 발화 ─
+  {
+    id: 'self.timing.event.seong-jung-yu-pae',
+    layer: 'timing',
+    scale: 'event',
+    domain: 'self',
+    meaning: '성중유패 — 성격이 운에서 흔들림',
+    polarityHint: 'neg',
+    narrative: {
+      confirm: '사주 성격(成格)이었던 사람의 상신·용신이 운에서 충/형으로 약화됨 + 점성 outer planet이 natal benefic을 hard로 자극 — 본래 잘 짜인 인생 구조가 일시적으로 흔들리는 시기. 그러나 본 격국이 살아있어 회복 가능.',
+    },
+    sajuPredicate: (s, ctx) => {
+      const isSuccess = ctx.hasSaju('saju.state.seonggyeok')
+      if (!isSuccess) return { fired: false, strength: 0, evidence: {} }
+      const eventActivation = ctx.sajuByPrefix('saju.timing.event.day.')[0]
+      if (!eventActivation) return { fired: false, strength: 0, evidence: {} }
+      return { fired: true, strength: eventActivation.strength, evidence: { isSuccess, activation: eventActivation.evidence } }
+    },
+    astroPredicate: (a) =>
+      hitByPrefix(a, ['astro.timing.transit.Saturn.', 'astro.timing.transit.Pluto.', 'astro.timing.transit.Neptune.']),
+  },
 ]

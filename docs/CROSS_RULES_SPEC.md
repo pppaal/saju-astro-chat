@@ -2,25 +2,25 @@
 
 > 자동 생성 문서. 룰 정의가 진실의 원천이며, 이 문서는 `scripts/generate-rules-spec.ts`로 재생성됩니다.
 
-총 룰 수: **96**  ·  메타룰 수: **10**
+총 룰 수: **102**  ·  메타룰 수: **10**
 
 ## 인덱스
 
-- **정적 (state)**: 53개
+- **정적 (state)**: 58개
 - **관계 (relation)**: 11개
-- **시점 (timing)**: 32개
+- **시점 (timing)**: 33개
     - 10년 (대운): 6개
     - 1년 (세운/SR): 16개
     - 1달 (월운/LR): 3개
     - 1일 (일진/transit): 2개
-    - 이벤트 (활성화): 5개
+    - 이벤트 (활성화): 6개
 
 ### 도메인 분포
 
-- **self**: 42개
+- **self**: 47개
 - **love**: 9개
 - **money**: 10개
-- **career**: 18개
+- **career**: 19개
 - **health**: 7개
 - **family**: 10개
 
@@ -659,6 +659,61 @@
 
 > 공망의 비움과 7궁 활성이 어긋남 — 외형적 관계는 활성인데 내적 안정감은 잡히지 않는 양면.
 
+### `self.state.successful-pattern`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: 성격(成格) × bonified key planet
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.seonggyeok`
+- 점성 측: `astro.state.bonified.Mercury` / `astro.state.bonified.Moon` / `astro.state.bonified.Sun`
+**서술 (confirm)**
+> 사주 격국이 상신과 함께 성격(成格)으로 완성됨 + 점성도 핵심 행성이 길성에 의해 bonified — 평생 자기 길이 양 시스템 모두에서 또렷하게 받쳐주는 결.
+
+### `self.state.broken-pattern`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: 파격(破格) × maltreated key planet
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.pagyeok`
+- 점성 측: `astro.state.maltreated.Mercury` / `astro.state.maltreated.Moon` / `astro.state.maltreated.Sun`
+**서술 (confirm)**
+> 사주 격국이 상신을 잃어 파격(破格)으로 흔들림 + 점성도 핵심 행성이 흉성에 의해 maltreated — 평생 자기 길에 구조적 누락이 박혀 있어 의식적 보강이 필요한 결.
+
+### `self.state.sangsin-strong`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: 상신 강세 — 격국 보좌 흐름
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.sangsin.`
+- 점성 측: `astro.state.dignity.Jupiter.domicile` / `astro.state.dignity.Venus.domicile` / `astro.state.sectBenefic.greater.Jupiter` / `astro.state.sectBenefic.greater.Venus`
+**서술 (confirm)**
+> 사주 격국의 상신(보좌하는 십성 그룹)이 살아있고 점성 길성(sect 길성 또는 dignified Jupiter/Venus)도 강세 — 평생 격국이 흐름을 받아 자기 길을 자연스럽게 펼치는 결.
+
+### `self.state.planetary-joy`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: Planetary Joy × 길성 신살
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.shinsal.lucky.`
+- 점성 측: `astro.state.planetaryJoy.`
+**서술 (confirm)**
+> 점성 행성이 자기 기쁨의 자리(joy)에 있고 사주 길성 신살이 함께 — 평생 본인 결이 자연스럽게 받쳐지는 자리. 행운·보호의 자원이 박혀 있는 결.
+
+### `career.state.spirit-lot-vocation`
+- **레이어**: 정적 (state)
+- **도메인**: career
+- **의미**: Lot of Spirit × 격국 — 직업 소명
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.lotOfSpirit.house.1` / `astro.state.lotOfSpirit.house.10` / `astro.state.lotOfSpirit.house.3` / `astro.state.lotOfSpirit.house.9`
+**서술 (confirm)**
+> 점성 Lot of Spirit이 직업·소명 라인(10/9/3궁 등)에 들어와 있고 사주 격국도 또렷하게 잡힘 — 평생 직업·소명이 양 시스템에서 같은 방향을 가리키는 결.
+
 ---
 
 ## 관계 (RELATION) 레이어
@@ -1185,6 +1240,17 @@
 - 점성 측: `astro.timing.event.activate.` / `astro.timing.transit.Neptune.` / `astro.timing.transit.Saturn.`
 **서술 (confirm)**
 > 운이 일주를 발화시키고 점성도 Neptune/Saturn이 natal 약점 자리를 자극 — 평소 잠복하던 만성 패턴이 표면화될 수 있음. 미루던 검진/관리 점검 시기.
+
+### `self.timing.event.seong-jung-yu-pae`
+- **레이어**: 시점 (timing)  ·  **스케일**: 이벤트 (활성화)
+- **도메인**: self
+- **의미**: 성중유패 — 성격이 운에서 흔들림
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.seonggyeok` / `saju.timing.event.day.`
+- 점성 측: `astro.timing.transit.Neptune.` / `astro.timing.transit.Pluto.` / `astro.timing.transit.Saturn.`
+**서술 (confirm)**
+> 사주 성격(成格)이었던 사람의 상신·용신이 운에서 충/형으로 약화됨 + 점성 outer planet이 natal benefic을 hard로 자극 — 본래 잘 짜인 인생 구조가 일시적으로 흔들리는 시기. 그러나 본 격국이 살아있어 회복 가능.
 
 ---
 

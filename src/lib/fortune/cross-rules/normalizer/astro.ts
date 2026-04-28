@@ -464,4 +464,43 @@ function pushAstroExtras(out: AstroSignal[], extras: AstroExtrasInput) {
       evidence: { ruler: pr.ruler, rulerHouse: pr.rulerHouse },
     })
   }
+
+  // ─── Lot of Spirit (직업·정신·소명) ──────────────────────
+  out.push({
+    system: 'astro', layer: 'state',
+    key: `astro.state.lotOfSpirit.house.${extras.lotOfSpirit.house}`,
+    fired: true, strength: 0.9,
+    evidence: { house: extras.lotOfSpirit.house, sign: extras.lotOfSpirit.sign },
+  })
+  out.push({
+    system: 'astro', layer: 'state',
+    key: `astro.state.lotOfSpirit.sign.${extras.lotOfSpirit.sign}`,
+    fired: true, strength: 0.7,
+    evidence: { sign: extras.lotOfSpirit.sign },
+  })
+
+  // ─── Planetary Joys ──────────────────────────────────────
+  for (const j of extras.planetaryJoys) {
+    if (j.inJoy) {
+      out.push({
+        system: 'astro', layer: 'state',
+        key: `astro.state.planetaryJoy.${j.planet}`,
+        fired: true, strength: 0.9,
+        evidence: { planet: j.planet, joyHouse: j.joyHouse },
+      })
+    }
+  }
+
+  // ─── Bonification / Maltreatment ─────────────────────────
+  for (const b of extras.bonifications) {
+    if (b.condition !== 'neutral') {
+      out.push({
+        system: 'astro', layer: 'state',
+        key: `astro.state.${b.condition === 'bonified' ? 'bonified' : b.condition === 'maltreated' ? 'maltreated' : 'mixed'}.${b.planet}`,
+        fired: true,
+        strength: b.condition === 'mixed' ? 0.7 : 0.85,
+        evidence: { planet: b.planet, condition: b.condition, benefics: b.benefics, malefics: b.malefics },
+      })
+    }
+  }
 }

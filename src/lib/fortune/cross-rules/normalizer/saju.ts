@@ -795,8 +795,79 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
         })
       }
     }
+
+    // ── 상신(相神) derivation + 성격(成格)/파격(破格) ────────
+    // 자평진전: 격국마다 그 격을 보좌하는 "재상" 십성 그룹이 정해져 있음.
+    const sangsinByGeokguk: Record<string, string[]> = {
+      정관격: ['재성', '인성'],   // 생관 또는 호관
+      편관격: ['식상', '인성'],   // 식신제살 또는 살인상생
+      정인격: ['관성'],           // 생인
+      편인격: ['관성'],
+      정재격: ['식상', '관성'],   // 생재 또는 호재
+      편재격: ['식상', '관성'],
+      식신격: ['재성'],           // 식신생재
+      상관격: ['재성', '인성'],   // 생재 또는 수상관
+      양인격: ['관성'],           // 제양인 (칠살)
+      건록격: ['관성', '재성'],
+      월겁격: ['관성', '재성'],
+    }
+    const candidates = sangsinByGeokguk[extras.geokguk.primary] ?? []
+    let foundSangsin: string | null = null
+    let strongCount = 0
+    for (const cand of candidates) {
+      // 후보 그룹이 사주 안에 살아있는가 (≥2회)
+      const cnt = (sibsinGroupCountsExternal as Record<string, number> | undefined)?.[cand] ?? 0
+      // sibsinGroupCountsExternal not exposed; instead, check signals already pushed for this group.
+      // Use ctx-style: rebuild from out array.
+      const inOut = out.find((s) => s.key === `saju.state.sibsinGroup.${cand}.strong` && s.fired)
+      if (inOut) {
+        foundSangsin = cand
+        strongCount += 1
+      } else {
+        // weak/absent
+        const weakInOut = out.find((s) => s.key === `saju.state.sibsinGroup.${cand}.count` && s.fired)
+        if (weakInOut) {
+          // present but not strong
+          if (!foundSangsin) foundSangsin = cand
+        }
+      }
+    }
+    if (foundSangsin) {
+      out.push({
+        system: 'saju',
+        layer: 'state',
+        key: `saju.state.sangsin.${foundSangsin}`,
+        fired: true,
+        strength: strongCount > 0 ? 0.9 : 0.55,
+        evidence: { geokguk: extras.geokguk.primary, sangsinGroup: foundSangsin, strongCount },
+      })
+      if (strongCount > 0) {
+        out.push({
+          system: 'saju',
+          layer: 'state',
+          key: 'saju.state.seonggyeok',
+          fired: true,
+          strength: 0.9,
+          evidence: { geokguk: extras.geokguk.primary, sangsin: foundSangsin, status: '성격' },
+        })
+      }
+    } else if (candidates.length > 0) {
+      // 격국은 잡혔는데 상신 후보가 모두 약함/부재 → 파격
+      out.push({
+        system: 'saju',
+        layer: 'state',
+        key: 'saju.state.pagyeok',
+        fired: true,
+        strength: 0.85,
+        evidence: { geokguk: extras.geokguk.primary, missingSangsin: candidates, status: '파격' },
+      })
+    }
   }
 }
+
+// 외부 변수: sibsinGroup count는 normalizeSaju 본문에 있음.
+// pushExtraSignals가 그 값을 직접 못 보므로 위에서는 out 배열 검색으로 대체.
+const sibsinGroupCountsExternal = undefined
 
 function pushUnseSignals(
   out: SajuSignal[],
