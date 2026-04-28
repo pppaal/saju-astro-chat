@@ -14,6 +14,7 @@ import type {
   RelationHit,
   UnseData,
 } from '@/lib/Saju/types'
+import type { StrengthScore } from '@/lib/Saju/strengthScore'
 import { KO_TO_SAJU_ELEMENT } from '../bridges/element'
 import type { SajuSignal } from '../types'
 
@@ -29,6 +30,9 @@ export interface SajuNormalizerInput {
     source: 'daeun' | 'seun' | 'wolun' | 'iljin'
     relation: RelationHit
   }>
+  // Optional real strength score from saju engine. When provided, the
+  // heuristic in this normalizer is skipped.
+  strength?: StrengthScore
 }
 
 export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
@@ -41,6 +45,7 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
     currentWolun,
     currentIljin,
     unseRelations = [],
+    strength,
   } = input
 
   // ── state layer ─────────────────────────────────────────
@@ -88,30 +93,50 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
     }
   }
 
-  // 일간 강약 근사: 일간 오행 + 같은 오행 카운트로 거칠게 추정.
-  // 정확한 왕쇠는 saju 엔진 보강 후 교체.
-  if (dmEl) {
-    const sameElCount = fe[dmEl as keyof typeof fe] ?? 0
-    const strong = sameElCount >= 3
-    const weak = sameElCount <= 1
-    if (strong) {
+  // 일간 강약: real engine `calculateStrengthScore` 결과 우선, 없으면 휴리스틱.
+  if (strength) {
+    const strongLevels: StrengthScore['level'][] = ['극강', '강', '중강']
+    const weakLevels: StrengthScore['level'][] = ['중약', '약', '극약']
+    if (strongLevels.includes(strength.level)) {
       out.push({
         system: 'saju',
         layer: 'state',
-        key: `saju.state.dayMaster.strength.strong`,
+        key: 'saju.state.dayMaster.strength.strong',
         fired: true,
-        strength: Math.min(1, sameElCount / 4),
-        evidence: { sameElCount, dmEl },
+        strength: Math.min(1, strength.total / 100),
+        evidence: { level: strength.level, total: strength.total },
       })
     }
-    if (weak) {
+    if (weakLevels.includes(strength.level)) {
       out.push({
         system: 'saju',
         layer: 'state',
-        key: `saju.state.dayMaster.strength.weak`,
+        key: 'saju.state.dayMaster.strength.weak',
+        fired: true,
+        strength: Math.min(1, 1 - strength.total / 100),
+        evidence: { level: strength.level, total: strength.total },
+      })
+    }
+  } else if (dmEl) {
+    const sameElCount = fe[dmEl as keyof typeof fe] ?? 0
+    if (sameElCount >= 3) {
+      out.push({
+        system: 'saju',
+        layer: 'state',
+        key: 'saju.state.dayMaster.strength.strong',
+        fired: true,
+        strength: Math.min(1, sameElCount / 4),
+        evidence: { sameElCount, dmEl, source: 'heuristic' },
+      })
+    }
+    if (sameElCount <= 1) {
+      out.push({
+        system: 'saju',
+        layer: 'state',
+        key: 'saju.state.dayMaster.strength.weak',
         fired: true,
         strength: 1 - sameElCount / 4,
-        evidence: { sameElCount, dmEl },
+        evidence: { sameElCount, dmEl, source: 'heuristic' },
       })
     }
   }
