@@ -530,6 +530,91 @@ describe('health rules sanity', () => {
   })
 })
 
+// ── 다양한 출생 조합으로 대운 방향·범위 회귀 ──
+//
+// 男+양년 = 순행, 男+음년 = 역행
+// 女+양년 = 역행, 女+음년 = 순행
+//
+// year stem yin/yang:
+//   1990 = 庚午 (양) / 1991 = 辛未 (음) / 1992 = 壬申 (양) /
+//   1993 = 癸酉 (음) / 1994 = 甲戌 (양) / 1995 = 乙亥 (음)
+describe('regression: 대운 direction across yin/yang × gender', () => {
+  type Case = {
+    name: string
+    date: string
+    time: string
+    gender: 'male' | 'female'
+    expectedYearGanji: string
+    expectedDirection: 'forward' | 'backward'
+    expectedDaeunsuRange: [number, number]
+  }
+  const cases: Case[] = [
+    {
+      name: '男+양년 → 순행 (1990-05-15 14:30 male)',
+      date: '1990-05-15', time: '14:30', gender: 'male',
+      expectedYearGanji: '庚午', expectedDirection: 'forward',
+      expectedDaeunsuRange: [3, 10],
+    },
+    {
+      name: '女+음년 → 순행 (1991-03-10 03:00 female)',
+      date: '1991-03-10', time: '03:00', gender: 'female',
+      expectedYearGanji: '辛未', expectedDirection: 'forward',
+      expectedDaeunsuRange: [4, 12],
+    },
+    {
+      name: '女+양년 → 역행 (1992-08-20 12:00 female)',
+      date: '1992-08-20', time: '12:00', gender: 'female',
+      expectedYearGanji: '壬申', expectedDirection: 'backward',
+      expectedDaeunsuRange: [3, 8],
+    },
+    {
+      name: '男+음년 → 역행 (1995-02-09 06:40 male)',
+      date: '1995-02-09', time: '06:40', gender: 'male',
+      expectedYearGanji: '乙亥', expectedDirection: 'backward',
+      expectedDaeunsuRange: [1, 4],
+    },
+  ]
+
+  for (const c of cases) {
+    it(c.name, async () => {
+      const { calculateSajuData } = await import('@/lib/Saju/saju')
+      const r = calculateSajuData(c.date, c.time, c.gender, 'solar', 'Asia/Seoul')
+      const yearGanji = `${r.pillars.year.heavenlyStem.name}${r.pillars.year.earthlyBranch.name}`
+      expect(yearGanji).toBe(c.expectedYearGanji)
+      expect(r.daeWoon.isForward).toBe(c.expectedDirection === 'forward')
+      const [lo, hi] = c.expectedDaeunsuRange
+      expect(r.daeWoon.startAge).toBeGreaterThanOrEqual(lo)
+      expect(r.daeWoon.startAge).toBeLessThanOrEqual(hi)
+      // 대운 시퀀스가 10년 간격으로 진행
+      for (let i = 1; i < r.daeWoon.list.length; i++) {
+        expect(r.daeWoon.list[i].age - r.daeWoon.list[i - 1].age).toBe(10)
+      }
+    })
+  }
+})
+
+describe('regression: unified ganji + stem/branch fields', () => {
+  it('saju engine fills both ganji AND heavenlyStem/earthlyBranch on annual', async () => {
+    const { calculateSajuData } = await import('@/lib/Saju/saju')
+    const r = calculateSajuData('1995-02-09', '06:40', 'male', 'solar', 'Asia/Seoul')
+    const a2026 = r.unse.annual.find((x) => x.year === 2026)
+    expect(a2026?.ganji).toBe('丙午')
+    expect(a2026?.heavenlyStem).toBe('丙')
+    expect(a2026?.earthlyBranch).toBe('午')
+  })
+
+  it('saju engine fills both ganji AND heavenlyStem/earthlyBranch on monthly', async () => {
+    const { calculateSajuData } = await import('@/lib/Saju/saju')
+    const r = calculateSajuData('1995-02-09', '06:40', 'male', 'solar', 'Asia/Seoul')
+    // monthly is "from current month, 12 entries forward" — not tied to birth year.
+    // Just verify the first entry has all three fields.
+    const m = r.unse.monthly[0]
+    expect(m?.ganji).toBeTruthy()
+    expect(m?.heavenlyStem).toBeTruthy()
+    expect(m?.earthlyBranch).toBeTruthy()
+  })
+})
+
 describe('regression: 대운 calculation', () => {
   // 1995-02-09 06:40 서울 남자용 8자 + 대운 검증.
   // 이전 saju.ts:346 버그로 역행 대운수 = 11 (정답은 2). 이 테스트는

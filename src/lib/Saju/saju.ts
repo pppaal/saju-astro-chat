@@ -467,6 +467,9 @@ export function calculateSajuData(
       annualCycles.push({
         year: yr,
         ganji: `${stem.name}${branch.name}`,
+        // 별도 필드도 함께 채워 다운스트림(어댑터·UI)에서 어느 쪽을 읽어도 안전.
+        heavenlyStem: stem.name,
+        earthlyBranch: branch.name,
         element: stem.element,
         sibsin: {
           cheon: getSibseong(dayMaster, stem),
@@ -496,6 +499,8 @@ export function calculateSajuData(
         year: yr,
         month: mo,
         ganji: `${stem.name}${branch.name}`,
+        heavenlyStem: stem.name,
+        earthlyBranch: branch.name,
         element: stem.element,
         sibsin: {
           cheon: getSibseong(dayMaster, stem),
