@@ -117,6 +117,7 @@ export const loveDeepRules: Rule[] = [
     polarityHint: 'mixed',
     narrative: {
       confirm: '사주 인성 강 + 점성 Neptune 7궁 또는 Venus-Neptune aspect — 상대를 이상화하는 결. 깊은 사랑 가능하나 현실 인식이 늦게 옴.',
+      conflict: '이상과 현실의 간극 — 환상이 깊을수록 실망도 큼. 영감과 자기기만의 양면.',
     },
     sajuPredicate: (s) => hitByKeys(s, ['saju.state.sibsinGroup.인성.strong']),
     astroPredicate: (a) => hitByPrefix(a, [
@@ -262,6 +263,7 @@ export const loveDeepRules: Rule[] = [
     polarityHint: 'mixed',
     narrative: {
       confirm: '세운 인성·편인 + 점성 Neptune이 Venus 또는 7궁 자극 — 영적·이상적 결합 또는 환상에서 깨어나는 시기. 분별이 중요.',
+      conflict: '영적 끌림과 현실 검증의 충돌 — 신비함이 깊어질수록 실체 확인이 늦어질 수 있음.',
     },
     sajuPredicate: (s) => hitByKeys(s, [
       'saju.timing.seun.sibsin.정인',

@@ -3,8 +3,14 @@
 import React from 'react'
 import CrossAugmentCard from './CrossAugmentCard'
 import { useAugmentFetch, type AugmentScope } from './useAugmentFetch'
+import { useI18n } from '@/i18n/I18nProvider'
 import styles from './CrossAugmentCard.module.css'
 import type { BirthInfo } from './types'
+
+const MSG = {
+  ko: { loading: '운세 데이터 불러오는 중', error: '큰 흐름 데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.' },
+  en: { loading: 'Loading fortune data', error: "Couldn't load augment data. Please try again shortly." },
+} as const
 
 interface AugmentSectionProps {
   birthInfo: BirthInfo
@@ -35,6 +41,8 @@ export default function AugmentSection({
   variant = 'default',
   hideOnIdle = true,
 }: AugmentSectionProps) {
+  const { locale } = useI18n()
+  const M = locale === 'en' ? MSG.en : MSG.ko
   const state = useAugmentFetch({ birth: birthInfo, scope, year, month, queryDate, weekStart })
 
   if (state.phase === 'idle') {
@@ -43,7 +51,7 @@ export default function AugmentSection({
 
   if (state.phase === 'loading') {
     return (
-      <div className={`${styles.skeleton} ${variant === 'compact' ? styles.compact : ''}`} aria-busy="true" aria-label="운세 데이터 불러오는 중">
+      <div className={`${styles.skeleton} ${variant === 'compact' ? styles.compact : ''}`} aria-busy="true" aria-label={M.loading}>
         <div className={`${styles.skelLine} ${styles.skelTitle}`} />
         <div className={`${styles.skelLine} ${styles.skelTheme}`} />
         <div className={styles.skelGrid}>
@@ -57,9 +65,7 @@ export default function AugmentSection({
     return (
       <div className={styles.errorCard} role="alert">
         <span className={styles.errorIcon}>!</span>
-        <span className={styles.errorBody}>
-          큰 흐름 데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.
-        </span>
+        <span className={styles.errorBody}>{M.error}</span>
       </div>
     )
   }
