@@ -144,8 +144,32 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
   const [selectedDay, setSelectedDay] = useState<Date | null>(null)
 
   // UI state
-  const [isDarkTheme] = useState(true)
+  const [isDarkTheme, setIsDarkTheme] = useState<boolean>(true)
   const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null)
+
+  // Hydrate theme preference from localStorage on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const saved = window.localStorage.getItem('calendar.theme')
+      if (saved === 'light') setIsDarkTheme(false)
+      else if (saved === 'dark') setIsDarkTheme(true)
+    } catch {
+      // ignore (private mode, etc.)
+    }
+  }, [])
+
+  const handleThemeToggle = useCallback(() => {
+    setIsDarkTheme((prev) => {
+      const next = !prev
+      try {
+        window.localStorage.setItem('calendar.theme', next ? 'dark' : 'light')
+      } catch {
+        // ignore
+      }
+      return next
+    })
+  }, [])
 
   // Birth info state
   const [birthInfo, setBirthInfo] = useState<BirthInfo>({
@@ -591,6 +615,7 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
       onGoToToday={goToToday}
       onSaveDate={handleSaveDate}
       onUnsaveDate={handleUnsaveDate}
+      onThemeToggle={handleThemeToggle}
     />
   )
 })

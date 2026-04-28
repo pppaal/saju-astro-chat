@@ -32,6 +32,7 @@ interface CalendarMainViewProps {
   onGoToToday: () => void
   onSaveDate: () => void
   onUnsaveDate: () => void
+  onThemeToggle?: () => void
 }
 
 const MONTHS_KO = [
@@ -84,6 +85,7 @@ const CalendarMainView = memo(function CalendarMainView({
   onGoToToday,
   onSaveDate,
   onUnsaveDate,
+  onThemeToggle,
 }: CalendarMainViewProps) {
   const { locale } = useI18n()
   const [activeView, setActiveView] = useState<'calendar' | 'action'>('calendar')
@@ -94,6 +96,25 @@ const CalendarMainView = memo(function CalendarMainView({
 
   const WEEKDAYS = locale === 'ko' ? WEEKDAYS_KO : WEEKDAYS_EN
   const MONTHS = locale === 'ko' ? MONTHS_KO : MONTHS_EN
+
+  // Compute Monday-anchored week range for selectedDate so we can show the
+  // surrounding week's augment alongside the day's augment.
+  const selectedWeek = useMemo(() => {
+    if (!selectedDate?.date) return null
+    const d = new Date(selectedDate.date + 'T12:00:00+09:00')
+    const day = d.getDay() // 0=Sun, 1=Mon, ...
+    const offset = (day + 6) % 7 // Monday-anchored: Mon→0, Sun→6
+    const start = new Date(d)
+    start.setDate(d.getDate() - offset)
+    const end = new Date(start)
+    end.setDate(start.getDate() + 6)
+    return {
+      startISO: start.toISOString(),
+      label: locale === 'ko'
+        ? `${start.getMonth() + 1}.${start.getDate()} ~ ${end.getMonth() + 1}.${end.getDate()} 흐름`
+        : `Week of ${start.getMonth() + 1}/${start.getDate()}`,
+    }
+  }, [selectedDate?.date, locale])
   const currentSystemYear = useMemo(() => new Date().getFullYear(), [])
   const yearOptions = useMemo(() => {
     const start = currentSystemYear - 20
@@ -261,6 +282,7 @@ const CalendarMainView = memo(function CalendarMainView({
   return (
     <div
       className={`${styles.container} ${styles.largeTextMode} ${!isDarkTheme ? styles.lightTheme : ''}`}
+      data-cal-theme={isDarkTheme ? 'dark' : 'light'}
     >
       {/* Header */}
       <div className={styles.calendarHeader}>
@@ -285,7 +307,27 @@ const CalendarMainView = memo(function CalendarMainView({
               </p>
             </div>
           </div>
-          <div className={styles.headerRight} />
+          <div className={styles.headerRight}>
+            {onThemeToggle && (
+              <button
+                type="button"
+                className={styles.themeToggleBtn}
+                onClick={onThemeToggle}
+                aria-label={
+                  isDarkTheme
+                    ? locale === 'ko' ? '라이트 테마로 전환' : 'Switch to light theme'
+                    : locale === 'ko' ? '다크 테마로 전환' : 'Switch to dark theme'
+                }
+                title={
+                  isDarkTheme
+                    ? locale === 'ko' ? '라이트 모드' : 'Light mode'
+                    : locale === 'ko' ? '다크 모드' : 'Dark mode'
+                }
+              >
+                <span aria-hidden="true">{isDarkTheme ? '☀️' : '🌙'}</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Year Summary Badges */}
@@ -654,6 +696,17 @@ const CalendarMainView = memo(function CalendarMainView({
               scope="daily"
               queryDate={new Date(selectedDate.date + 'T12:00:00+09:00').toISOString()}
               scopeLabel={`${selectedDate.date} 흐름`}
+              variant="compact"
+            />
+          )}
+
+          {/* Weekly augment — 선택한 날이 속한 주의 흐름 */}
+          {selectedDate && selectedWeek && (
+            <AugmentSection
+              birthInfo={birthInfo}
+              scope="weekly"
+              weekStart={selectedWeek.startISO}
+              scopeLabel={selectedWeek.label}
               variant="compact"
             />
           )}

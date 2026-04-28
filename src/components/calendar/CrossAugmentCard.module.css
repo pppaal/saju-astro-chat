@@ -372,3 +372,113 @@
   gap: 8px;
 }
 .skeleton.compact .skelCard { height: 78px; }
+
+/* ─── Light-theme overrides ────────────────────────────
+   Triggered by data-cal-theme='light' set on .container in CalendarMainView.
+   Saturated badge bg + light text fails on white; here we flip to deeper
+   text colors and slightly stronger backgrounds for readability. */
+:global([data-cal-theme='light']) .scopeBadge {
+  background: rgba(139, 92, 246, 0.12);
+  color: rgb(91, 33, 182);
+  border-color: rgba(139, 92, 246, 0.35);
+}
+
+:global([data-cal-theme='light']) .imminentBadge {
+  background: rgba(202, 138, 4, 0.12);
+  color: rgb(146, 64, 14);
+  border-color: rgba(202, 138, 4, 0.4);
+}
+
+:global([data-cal-theme='light']) .themeItem {
+  background: rgba(139, 92, 246, 0.08);
+  border-left-color: rgb(124, 58, 237);
+}
+
+:global([data-cal-theme='light']) .themeMeaning {
+  color: rgb(91, 33, 182);
+}
+
+:global([data-cal-theme='light']) .domainCard.tone_positive {
+  border-color: rgba(22, 163, 74, 0.4);
+  background: rgba(34, 197, 94, 0.06);
+}
+
+:global([data-cal-theme='light']) .domainCard.tone_negative {
+  border-color: rgba(202, 138, 4, 0.4);
+  background: rgba(251, 191, 36, 0.06);
+}
+
+:global([data-cal-theme='light']) .domainCard.tone_mixed {
+  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(139, 92, 246, 0.06);
+}
+
+:global([data-cal-theme='light']) .badge_positive {
+  background: rgba(34, 197, 94, 0.18);
+  color: rgb(21, 128, 61);
+}
+
+:global([data-cal-theme='light']) .badge_negative {
+  background: rgba(202, 138, 4, 0.18);
+  color: rgb(146, 64, 14);
+}
+
+:global([data-cal-theme='light']) .badge_mixed {
+  background: rgba(139, 92, 246, 0.18);
+  color: rgb(91, 33, 182);
+}
+
+:global([data-cal-theme='light']) .badge_neutral {
+  background: rgba(100, 116, 139, 0.18);
+  color: rgb(51, 65, 85);
+}
+
+:global([data-cal-theme='light']) .dualLabel {
+  color: rgb(146, 64, 14);
+}
+
+:global([data-cal-theme='light']) .intensity_strong {
+  background: rgba(124, 58, 237, 0.2);
+  color: rgb(91, 33, 182);
+}
+
+:global([data-cal-theme='light']) .intensity_moderate {
+  background: rgba(100, 116, 139, 0.2);
+  color: rgb(51, 65, 85);
+}
+
+:global([data-cal-theme='light']) .intensity_weak {
+  background: rgba(100, 116, 139, 0.12);
+  color: rgb(71, 85, 105);
+}
+
+:global([data-cal-theme='light']) .errorCard {
+  background: rgba(202, 138, 4, 0.08);
+  border-color: rgba(202, 138, 4, 0.35);
+  color: rgb(146, 64, 14);
+}
+
+:global([data-cal-theme='light']) .errorBody {
+  color: rgb(71, 85, 105);
+}
+
+/* Skeleton shimmer needs darker tones on white bg to be visible */
+:global([data-cal-theme='light']) .skelLine {
+  background: linear-gradient(
+    90deg,
+    rgba(15, 23, 42, 0.04) 0%,
+    rgba(15, 23, 42, 0.10) 50%,
+    rgba(15, 23, 42, 0.04) 100%
+  );
+  background-size: 200% 100%;
+}
+
+:global([data-cal-theme='light']) .skelCard {
+  background: linear-gradient(
+    90deg,
+    rgba(15, 23, 42, 0.03) 0%,
+    rgba(15, 23, 42, 0.08) 50%,
+    rgba(15, 23, 42, 0.03) 100%
+  );
+  background-size: 200% 100%;
+}
