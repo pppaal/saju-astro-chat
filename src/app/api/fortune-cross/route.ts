@@ -31,6 +31,7 @@ const bodySchema = z.object({
   }),
   queryDate: z.string().datetime().optional(),
   llm: z.boolean().optional(),
+  mode: z.enum(['counselor', 'report']).optional(), // LLM render mode
   skipReturns: z.boolean().optional(),
 })
 
@@ -48,7 +49,7 @@ export const POST = withApiMiddleware(async (req: NextRequest) => {
     return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid input', parsed.error.flatten())
   }
 
-  const { birth, queryDate, llm, skipReturns } = parsed.data
+  const { birth, queryDate, llm, mode, skipReturns } = parsed.data
   const queryDateObj = queryDate ? new Date(queryDate) : new Date()
 
   let report
@@ -64,11 +65,13 @@ export const POST = withApiMiddleware(async (req: NextRequest) => {
   }
 
   if (llm) {
-    const rendered = await renderWithLlm(report)
+    const rendered = await renderWithLlm(report, { mode: mode ?? 'counselor' })
     return apiSuccess({
       report,
       text: rendered.text,
+      sections: rendered.sections,
       usedLlm: rendered.usedLlm,
+      mode: rendered.mode,
       model: rendered.model,
     })
   }
@@ -77,5 +80,6 @@ export const POST = withApiMiddleware(async (req: NextRequest) => {
     report,
     text: renderToText(report),
     usedLlm: false,
+    mode: mode ?? 'counselor',
   })
 })

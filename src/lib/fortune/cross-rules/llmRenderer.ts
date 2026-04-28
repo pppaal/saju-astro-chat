@@ -1,59 +1,111 @@
-// LLM renderer: turns FortuneReport into a polished Korean prose reading.
+// LLM renderer: turns FortuneReport into polished Korean prose.
+// Two modes: 'counselor' (conversational, single flow) and 'report'
+// (counselor voice but theme-by-theme deep dive, browseable by section).
 //
 // Design:
-// - System prompt is the same on every call → prompt-cached.
+// - System prompt is the same on every call within a mode → prompt-cached.
 // - User message contains only the per-call structured data (the report).
-// - Renderer is constrained: no new facts, must cite evidence, must not
-//   invent rule outcomes. We pass narratives in so it just rephrases.
-// - Falls back to the deterministic renderer when no API key.
+// - Renderer is constrained: no new facts, must cite engine findings,
+//   must not invent rule outcomes.
+// - Report mode emits markdown H2 sections so the frontend can split into
+//   navigable tabs/cards.
+// - Falls back to deterministic renderer when no API key.
 
 import type { FortuneReport } from './types'
 import { renderToText } from './renderer'
 
-const SYSTEM_PROMPT = `당신은 사주·점성을 함께 보는 운세 해석가입니다.
-입력으로 받은 운세 리포트는 결정론적 룰 엔진의 출력입니다.
-당신의 역할은 그 결과를 자연스러운 한국어 문단으로 다듬는 것입니다.
+export type RenderMode = 'counselor' | 'report'
 
-규칙:
-1. 리포트에 적힌 룰 결과·증거 외의 새로운 사실을 만들지 마세요.
-2. 각 룰의 narrative 문장을 베이스로 풀어 쓰되, 반복·나열을 피해 자연스러운 흐름으로.
-3. 양면성(conflict)은 절대 누락하지 말고 명시적으로 양쪽 측면을 함께 언급.
-4. 도메인별 한 문단(3~5문장). 그 외 통합 테마는 별도 문단.
-5. 단정·과장 금지. "할 수 있다", "주의가 필요하다" 같은 톤.
-6. evidence는 인라인으로 짧게만 인용 (예: "세운 정재와 Solar Return 2궁 Jupiter").
+const COUNSELOR_PROMPT = `당신은 사주와 점성을 함께 보는 운세 상담사입니다.
+입력 JSON은 결정론 룰 엔진의 출력이며, 양 시스템이 동시에 가리킨 신호(confirms),
+양면적 신호(conflicts), 통합 테마(themes)가 도메인별로 정리되어 있습니다.
+당신은 이 데이터를 자연스러운 한국어 대화체 상담으로 풀어냅니다.
 
-출력 형식 (정확히 따르세요):
-## 통합 테마
-(통합 테마 문단. 없으면 "특별한 통합 테마는 없습니다." 한 줄.)
+말투·스타일:
+- 실제로 사람과 마주 앉아 이야기하듯 부드럽고 차분하게.
+- "~네요", "~예요", "~한 결이에요" 같은 어미 자연스럽게 섞기.
+- 단정·과장 금지. "~할 수 있어요", "~하시는 게 좋겠어요" 톤.
+- 한 호흡으로 읽히는 흐름. 불릿·번호·제목 사용 금지.
+- 4~6 문단, 전체 500~700자.
 
-## 자아
-(문단)
+내용·정확성:
+- 입력 데이터에 없는 사실 절대 만들지 말기 (rule outcome / evidence / themes에 한해 인용).
+- 양면성(conflicts)은 반드시 한 번 이상 명시적으로 언급.
+- 사주 용어(일간, 격국, 대운, 세운, 일지 등)와 점성 용어(MC, 7궁, transit, dignity 등)를
+  어색하지 않게 자연스럽게 섞어 사용.
+- 두 시스템이 같은 사건을 가리키고 있다는 점이 핵심 — "양쪽이 동시에",
+  "사주에서도, 점성에서도" 같은 표현으로 그 의미를 살리기.
+- 마지막에 한두 문장의 자연스러운 권고로 마무리.
 
-## 사랑
-(문단)
+피해야 할 것:
+- evidence JSON 그대로 노출 ("source=daeun" 같은 raw 데이터).
+- "긍정/주의/양면" 같은 룰 엔진 라벨 단어 그대로 쓰지 말기.
+- 같은 표현 반복 (모든 문단이 "~함께 — ~결" 구조면 안 됨).
+- 종교적·운명론적 단정.`.trim()
 
-## 재물
-(문단)
+const REPORT_PROMPT = `당신은 사주와 점성을 함께 보는 운세 상담사입니다.
+입력 JSON은 결정론 룰 엔진의 출력입니다. 당신은 이 데이터를 **상담사 말투의 섹션별
+리포트**로 풀어냅니다 — 형식은 보고서가 아니라, 실제 상담사가 한 영역씩 차근차근
+설명하듯 길게 풀어 쓰는 형태입니다.
 
-## 직업
-(문단)
+출력 형식 (마크다운, 정확히 따르세요):
 
-## 건강
-(문단)
+## 큰 흐름
+(전체 흐름을 잡는 도입. 일간·격국·평생 골격을 짚고, 지금 시점이 어떤
+국면인지 한 단락. 7~10 문장.)
 
-## 가정
-(문단)`.trim()
+## 테마: <통합 테마 1 이름>
+(메타 테마 1을 상담사 어조로 풀어 씀. 8~12 문장. 사주·점성 양쪽 어떻게
+가리키는지, 왜 의미가 있는지, 어떻게 다뤄야 할지.)
+
+## 테마: <통합 테마 2 이름>
+(같은 형식, 다음 메타 테마)
+
+(테마는 입력의 themes 배열 길이만큼 반복. 없으면 섹션 생략.)
+
+## 영역: 자아
+(자아 도메인 confirms·conflicts를 상담사 어조로 풀어 씀. 8~12 문장.
+양면성은 반드시 명시. 신호가 없으면 "이 영역은 잠잠하다"고 짧게.)
+
+## 영역: 사랑
+## 영역: 재물
+## 영역: 직업
+## 영역: 건강
+## 영역: 가정
+
+## 마무리
+(전체를 한 호흡으로 묶는 마무리. 무게중심·재구성 영역·핵심 원칙을
+실제 상담사가 헤어지면서 말해주듯. 5~8 문장.)
+
+말투·스타일 (모든 섹션에 적용):
+- 실제 상담사 대화체. "~네요", "~예요", "~한 결이에요".
+- 분석 보고서 어투 금지 ("~로 해석된다", "~다" 종결 X).
+- 불릿·번호·표 사용 금지. 자연스러운 문단으로만.
+- 같은 표현 반복 회피. 섹션마다 톤·시작·맺음 변주.
+- 단정·과장 금지.
+- 사주 용어와 점성 용어를 자연스럽게 섞기.
+- 양 시스템 동시 신호의 의미("양쪽이 같은 곳을 가리킨다")를 살리기.
+- evidence raw 데이터(source=daeun 같은) 노출 금지.
+
+내용·정확성:
+- 입력 데이터에 없는 사실 절대 만들지 말기.
+- 모든 결은 rule outcome 또는 메타 테마에 근거.
+- 양면성(conflicts)은 영역별로 빠짐없이 한 번 이상 명시.
+
+총 길이: 2500~3500자.`.trim()
 
 export interface LlmRenderOptions {
-  apiKey?: string // overrides env
-  model?: string // default from env or claude-sonnet-4-6
+  apiKey?: string
+  model?: string
   maxTokens?: number
   timeoutMs?: number
+  mode?: RenderMode // default 'counselor'
 }
 
 const DEFAULT_MODEL = 'claude-sonnet-4-6'
 const DEFAULT_TIMEOUT_MS = 60_000
-const DEFAULT_MAX_TOKENS = 1500
+const DEFAULT_MAX_TOKENS_COUNSELOR = 1200
+const DEFAULT_MAX_TOKENS_REPORT = 4000
 
 interface AnthropicTextBlock {
   type: 'text'
@@ -71,25 +123,24 @@ interface AnthropicResponse {
   }
 }
 
-export async function renderWithLlm(
-  report: FortuneReport,
-  options: LlmRenderOptions = {},
-): Promise<{ text: string; usedLlm: boolean; model?: string; usage?: AnthropicResponse['usage'] }> {
-  const apiKey =
-    options.apiKey ?? process.env.ANTHROPIC_API_KEY ?? process.env.CLAUDE_API_KEY
+export interface RenderedSection {
+  kind: 'overview' | 'theme' | 'domain' | 'closing'
+  title: string
+  body: string
+}
 
-  // No key → deterministic fallback so the pipeline always returns text.
-  if (!apiKey) {
-    return { text: renderToText(report), usedLlm: false }
-  }
+export interface LlmRenderResult {
+  text: string
+  sections?: RenderedSection[] // populated for 'report' mode
+  usedLlm: boolean
+  mode: RenderMode
+  model?: string
+  usage?: AnthropicResponse['usage']
+}
 
-  const model = options.model ?? process.env.ANTHROPIC_MODEL ?? DEFAULT_MODEL
-  const maxTokens = options.maxTokens ?? DEFAULT_MAX_TOKENS
-  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS
-
-  // The user message carries the per-call structured data only — the system
-  // prompt is identical across calls so it can be cached server-side.
-  const userPayload = {
+// Strip evidence noise from the data we send — keeps prompt small + private.
+function compactReport(report: FortuneReport) {
+  return {
     themes: report.themes.map((t) => ({
       meaning: t.rule.meaning,
       narrative: t.rule.narrative,
@@ -101,16 +152,59 @@ export async function renderWithLlm(
         meaning: m.rule.meaning,
         intensity: m.intensity,
         narrative: m.rule.narrative.confirm,
-        evidence: { saju: m.saju.evidence, astro: m.astro.evidence },
+        polarityHint: m.rule.polarityHint,
       })),
       conflicts: agg.conflicts.map((m) => ({
         meaning: m.rule.meaning,
         intensity: m.intensity,
         narrative: m.rule.narrative.conflict ?? m.rule.narrative.confirm,
-        evidence: { saju: m.saju.evidence, astro: m.astro.evidence },
       })),
     })),
   }
+}
+
+// Split markdown body into sections by `## ` headings.
+function splitReportSections(markdown: string): RenderedSection[] {
+  const lines = markdown.split('\n')
+  const sections: RenderedSection[] = []
+  let cur: { title: string; body: string[] } | null = null
+
+  const titleKind = (title: string): RenderedSection['kind'] => {
+    if (title.startsWith('테마:')) return 'theme'
+    if (title.startsWith('영역:')) return 'domain'
+    if (title === '마무리') return 'closing'
+    return 'overview'
+  }
+
+  for (const line of lines) {
+    const m = /^##\s+(.+?)\s*$/.exec(line)
+    if (m) {
+      if (cur) sections.push({ kind: titleKind(cur.title), title: cur.title, body: cur.body.join('\n').trim() })
+      cur = { title: m[1], body: [] }
+    } else if (cur) {
+      cur.body.push(line)
+    }
+  }
+  if (cur) sections.push({ kind: titleKind(cur.title), title: cur.title, body: cur.body.join('\n').trim() })
+  return sections
+}
+
+export async function renderWithLlm(
+  report: FortuneReport,
+  options: LlmRenderOptions = {},
+): Promise<LlmRenderResult> {
+  const mode: RenderMode = options.mode ?? 'counselor'
+  const apiKey = options.apiKey ?? process.env.ANTHROPIC_API_KEY ?? process.env.CLAUDE_API_KEY
+
+  if (!apiKey) {
+    return { text: renderToText(report), usedLlm: false, mode }
+  }
+
+  const model = options.model ?? process.env.ANTHROPIC_MODEL ?? DEFAULT_MODEL
+  const maxTokens =
+    options.maxTokens ?? (mode === 'report' ? DEFAULT_MAX_TOKENS_REPORT : DEFAULT_MAX_TOKENS_COUNSELOR)
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS
+  const systemPrompt = mode === 'report' ? REPORT_PROMPT : COUNSELOR_PROMPT
 
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), timeoutMs)
@@ -127,11 +221,10 @@ export async function renderWithLlm(
       body: JSON.stringify({
         model,
         max_tokens: maxTokens,
-        // Prompt caching: identical system prompt across calls is cached.
         system: [
           {
             type: 'text',
-            text: SYSTEM_PROMPT,
+            text: systemPrompt,
             cache_control: { type: 'ephemeral' },
           },
         ],
@@ -141,7 +234,7 @@ export async function renderWithLlm(
             content: [
               {
                 type: 'text',
-                text: `리포트 (JSON):\n${JSON.stringify(userPayload, null, 2)}`,
+                text: `리포트 데이터:\n${JSON.stringify(compactReport(report), null, 2)}`,
               },
             ],
           },
@@ -161,12 +254,20 @@ export async function renderWithLlm(
       .trim()
 
     if (!text) {
-      return { text: renderToText(report), usedLlm: false, model }
+      return { text: renderToText(report), usedLlm: false, mode, model }
     }
-    return { text, usedLlm: true, model: data.model, usage: data.usage }
+
+    const result: LlmRenderResult = {
+      text,
+      usedLlm: true,
+      mode,
+      model: data.model,
+      usage: data.usage,
+    }
+    if (mode === 'report') result.sections = splitReportSections(text)
+    return result
   } catch {
-    // Any failure falls back deterministically — never fail the pipeline.
-    return { text: renderToText(report), usedLlm: false }
+    return { text: renderToText(report), usedLlm: false, mode }
   } finally {
     clearTimeout(timeout)
   }
