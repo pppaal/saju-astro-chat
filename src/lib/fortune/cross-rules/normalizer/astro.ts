@@ -8,6 +8,7 @@
 import type { AspectHit, Chart, PlanetBase } from '@/lib/astrology/foundation/types'
 import { SIGN_TO_ASTRO_ELEMENT } from '../bridges/element'
 import type { AstroSignal } from '../types'
+import type { AstroExtrasInput } from '../adapters/astro'
 
 export interface AstroNormalizerInput {
   natal: Chart
@@ -18,6 +19,8 @@ export interface AstroNormalizerInput {
   lunarReturn?: { chart: Chart; aspects?: AspectHit[] }
   // 1-based: which natal house is "activated" this year by profection.
   profectionHouse?: number
+  // Pulled extras: dignity / mode / stellium / mutual reception / progression / fixed stars.
+  extras?: AstroExtrasInput
 }
 
 const HARD = new Set(['opposition', 'square'])
@@ -257,5 +260,135 @@ export function normalizeAstro(input: AstroNormalizerInput): AstroSignal[] {
     })
   }
 
+  if (input.extras) pushAstroExtras(out, input.extras)
+
   return out
+}
+
+function pushAstroExtras(out: AstroSignal[], extras: AstroExtrasInput) {
+  // dignities
+  for (const d of extras.dignities) {
+    out.push({
+      system: 'astro',
+      layer: 'state',
+      key: `astro.state.dignity.${d.planet}.${d.status}`,
+      fired: true,
+      strength: d.status === 'peregrine' ? 0.5 : 0.9,
+      evidence: { planet: d.planet, sign: d.sign, status: d.status },
+    })
+  }
+
+  // mode distribution
+  const total = extras.modeCount.cardinal + extras.modeCount.fixed + extras.modeCount.mutable || 1
+  for (const mode of ['cardinal', 'fixed', 'mutable'] as const) {
+    out.push({
+      system: 'astro',
+      layer: 'state',
+      key: `astro.state.modeCount.${mode}`,
+      fired: extras.modeCount[mode] > 0,
+      strength: extras.modeCount[mode] / total,
+      evidence: { count: extras.modeCount[mode], total },
+    })
+  }
+  if (extras.modeDominant) {
+    out.push({
+      system: 'astro',
+      layer: 'state',
+      key: `astro.state.modeDominant.${extras.modeDominant}`,
+      fired: true,
+      strength: extras.modeCount[extras.modeDominant] / total,
+      evidence: { mode: extras.modeDominant, count: extras.modeCount[extras.modeDominant] },
+    })
+  }
+
+  // retrograde
+  for (const planet of extras.retrograde) {
+    out.push({
+      system: 'astro',
+      layer: 'state',
+      key: `astro.state.retrograde.${planet}`,
+      fired: true,
+      strength: 0.8,
+      evidence: { planet },
+    })
+  }
+
+  // stellium by house
+  for (const s of extras.stelliumByHouse) {
+    out.push({
+      system: 'astro',
+      layer: 'state',
+      key: `astro.state.stellium.house.${s.house}`,
+      fired: true,
+      strength: Math.min(1, s.planets.length / 5),
+      evidence: { house: s.house, planets: s.planets },
+    })
+  }
+
+  // stellium by sign
+  for (const s of extras.stelliumBySign) {
+    out.push({
+      system: 'astro',
+      layer: 'state',
+      key: `astro.state.stellium.sign.${s.sign}`,
+      fired: true,
+      strength: Math.min(1, s.planets.length / 5),
+      evidence: { sign: s.sign, planets: s.planets },
+    })
+  }
+
+  // house cusp signs
+  for (const c of extras.houseCusps) {
+    out.push({
+      system: 'astro',
+      layer: 'state',
+      key: `astro.state.houseCusp.${c.index}.${c.sign}`,
+      fired: true,
+      strength: 0.6,
+      evidence: { house: c.index, sign: c.sign },
+    })
+  }
+
+  // mutual receptions
+  for (const mr of extras.mutualReceptions) {
+    out.push({
+      system: 'astro',
+      layer: 'relation',
+      key: `astro.relation.mutualReception.${mr.a}.${mr.b}`,
+      fired: true,
+      strength: 0.85,
+      evidence: { a: mr.a, b: mr.b, aIn: mr.aIn, bIn: mr.bIn },
+    })
+  }
+
+  // progressed-to-natal aspects (timing scale: year-ish; emit as year)
+  if (extras.progressedAspects) {
+    for (const p of extras.progressedAspects) {
+      out.push({
+        system: 'astro',
+        layer: 'timing',
+        scale: 'year',
+        key: `astro.timing.progression.${p.progressed}.angle.${Math.round(p.angle)}.natal.${p.natal}`,
+        fired: true,
+        strength: 0.7,
+        evidence: { progressed: p.progressed, natal: p.natal, angle: p.angle },
+      })
+    }
+  }
+
+  // fixed star conjunctions
+  if (extras.fixedStarConjunctions) {
+    for (const fs of extras.fixedStarConjunctions) {
+      const orb = Math.abs(fs.orb)
+      const strength = Math.max(0, Math.min(1, 1 - orb))
+      out.push({
+        system: 'astro',
+        layer: 'state',
+        key: `astro.state.fixedStar.${fs.star.name}.conjunct.${fs.planet}`,
+        fired: true,
+        strength,
+        evidence: { star: fs.star.name, planet: fs.planet, orb },
+      })
+    }
+  }
 }

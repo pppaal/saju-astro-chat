@@ -12,11 +12,24 @@
 import type {
   CalculateSajuDataResult,
   RelationHit,
+  ShinsalHit,
+  TwelveStage,
   UnseData,
+  PillarKind,
 } from '@/lib/Saju/types'
 import type { StrengthScore } from '@/lib/Saju/strengthScore'
+import type { GeokgukResult } from '@/lib/Saju/geokguk'
+import type { YongsinResult } from '@/lib/Saju/yongsin'
 import { KO_TO_SAJU_ELEMENT } from '../bridges/element'
 import type { SajuSignal } from '../types'
+
+export interface SajuExtrasInput {
+  shinsal: ShinsalHit[]
+  twelveStages: { [K in PillarKind]: TwelveStage }
+  geokguk: GeokgukResult | null
+  yongsin: YongsinResult | null
+  jijanggan: { [K in PillarKind]: string[] }
+}
 
 export interface SajuNormalizerInput {
   saju: CalculateSajuDataResult
@@ -33,6 +46,8 @@ export interface SajuNormalizerInput {
   // Optional real strength score from saju engine. When provided, the
   // heuristic in this normalizer is skipped.
   strength?: StrengthScore
+  // Pulled extras: 신살, 12운성, 격국, 용신, 지장간.
+  extras?: SajuExtrasInput
 }
 
 export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
@@ -214,7 +229,155 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
     })
   }
 
+  // ── extras: 신살 / 12운성 / 격국 / 용신 / 지장간 ────────
+  if (input.extras) {
+    pushExtraSignals(out, input.extras)
+  }
+
   return out
+}
+
+function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerInput['extras']>) {
+  // 신살 (각 hit를 single signal로 + 길/흉 분류 시그널)
+  const luckyShinsal = new Set(['천을귀인','천덕귀인','월덕귀인','문창','학당','금여','암록','복성귀인','반안','장성','길성'])
+  const unluckyShinsal = new Set(['망신','겁살','재살','천살','월살','육해','괘살','흉성','자형'])
+  for (const hit of extras.shinsal) {
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.shinsal.${hit.kind}`,
+      fired: true,
+      strength: 0.85,
+      evidence: { kind: hit.kind, pillars: hit.pillars, target: hit.target, detail: hit.detail },
+    })
+    if (luckyShinsal.has(hit.kind)) {
+      out.push({
+        system: 'saju',
+        layer: 'state',
+        key: `saju.state.shinsal.lucky.${hit.kind}`,
+        fired: true,
+        strength: 0.9,
+        evidence: { kind: hit.kind, pillars: hit.pillars },
+      })
+    }
+    if (unluckyShinsal.has(hit.kind)) {
+      out.push({
+        system: 'saju',
+        layer: 'state',
+        key: `saju.state.shinsal.unlucky.${hit.kind}`,
+        fired: true,
+        strength: 0.9,
+        evidence: { kind: hit.kind, pillars: hit.pillars },
+      })
+    }
+  }
+
+  // 12운성
+  const activeStages = new Set(['장생','관대','임관','왕지','건록','제왕'])
+  const dormantStages = new Set(['쇠','병','사','묘','절'])
+  for (const [pillar, stage] of Object.entries(extras.twelveStages) as [keyof typeof extras.twelveStages, string][]) {
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.twelveStage.${pillar}.${stage}`,
+      fired: true,
+      strength: 0.7,
+      evidence: { pillar, stage },
+    })
+    if (activeStages.has(stage)) {
+      out.push({
+        system: 'saju',
+        layer: 'state',
+        key: `saju.state.twelveStage.active.${pillar}`,
+        fired: true,
+        strength: 0.85,
+        evidence: { pillar, stage },
+      })
+    }
+    if (dormantStages.has(stage)) {
+      out.push({
+        system: 'saju',
+        layer: 'state',
+        key: `saju.state.twelveStage.dormant.${pillar}`,
+        fired: true,
+        strength: 0.85,
+        evidence: { pillar, stage },
+      })
+    }
+  }
+
+  // 격국
+  if (extras.geokguk && extras.geokguk.primary !== '미정') {
+    const confidenceWeight = extras.geokguk.confidence === 'high' ? 1 : extras.geokguk.confidence === 'medium' ? 0.7 : 0.4
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.geokguk.${extras.geokguk.primary}`,
+      fired: true,
+      strength: confidenceWeight,
+      evidence: { type: extras.geokguk.primary, category: extras.geokguk.category },
+    })
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.geokguk.category.${extras.geokguk.category}`,
+      fired: true,
+      strength: confidenceWeight,
+      evidence: { type: extras.geokguk.primary, category: extras.geokguk.category },
+    })
+  }
+
+  // 용신
+  if (extras.yongsin) {
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.yongsin.primary.${extras.yongsin.primaryYongsin}`,
+      fired: true,
+      strength: 1,
+      evidence: { yongsin: extras.yongsin.primaryYongsin, type: extras.yongsin.yongsinType },
+    })
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.yongsin.type.${extras.yongsin.yongsinType}`,
+      fired: true,
+      strength: 0.9,
+      evidence: { type: extras.yongsin.yongsinType },
+    })
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.yongsin.daymasterStrength.${extras.yongsin.daymasterStrength}`,
+      fired: true,
+      strength: 0.9,
+      evidence: { strength: extras.yongsin.daymasterStrength },
+    })
+    if (extras.yongsin.kibsin) {
+      out.push({
+        system: 'saju',
+        layer: 'state',
+        key: `saju.state.yongsin.kibsin.${extras.yongsin.kibsin}`,
+        fired: true,
+        strength: 0.8,
+        evidence: { kibsin: extras.yongsin.kibsin },
+      })
+    }
+  }
+
+  // 지장간 (각 기둥의 hidden stems)
+  for (const [pillar, hiddenStems] of Object.entries(extras.jijanggan) as [keyof typeof extras.jijanggan, string[]][]) {
+    for (const hs of hiddenStems) {
+      out.push({
+        system: 'saju',
+        layer: 'state',
+        key: `saju.state.jijanggan.${pillar}.${hs}`,
+        fired: true,
+        strength: 0.5,
+        evidence: { pillar, hidden: hs },
+      })
+    }
+  }
 }
 
 function pushUnseSignals(
