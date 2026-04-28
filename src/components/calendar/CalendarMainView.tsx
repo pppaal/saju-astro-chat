@@ -1,7 +1,7 @@
 'use client'
 
 // src/components/calendar/CalendarMainView.tsx
-import React, { memo, useCallback, useMemo, useState, useEffect } from 'react'
+import React, { memo, useCallback, useMemo, useState } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
 import { CATEGORY_EMOJI, WEEKDAYS_KO, WEEKDAYS_EN } from './constants'
@@ -9,10 +9,8 @@ import { getGradeEmoji, getCategoryLabel, getScoreClass } from './utils'
 import SelectedDatePanel from './SelectedDatePanel'
 import MonthHighlights from './MonthHighlights'
 import CalendarActionPlanView from './CalendarActionPlanView'
-import CrossAugmentCard from './CrossAugmentCard'
-import DailyAugmentCard from './DailyAugmentCard'
+import AugmentSection from './AugmentSection'
 import type { CalendarData, ImportantDate, EventCategory, BirthInfo } from './types'
-import type { CalendarCrossAugment } from '@/lib/destiny-map/destinyCalendar'
 
 interface CalendarMainViewProps {
   data: CalendarData
@@ -93,37 +91,6 @@ const CalendarMainView = memo(function CalendarMainView({
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
   const today = useMemo(() => new Date(), [])
-
-  // ─── Cross-rules augment (양면성·테마·대운 임박 등) ─────
-  // 페이지 진입 + 월 변경 시마다 한 번 fetch. 실패해도 본 화면은 정상.
-  const [crossAugment, setCrossAugment] = useState<CalendarCrossAugment | null>(null)
-  useEffect(() => {
-    const lat = birthInfo.latitude
-    const lng = birthInfo.longitude
-    if (lat == null || lng == null) return
-    let cancelled = false
-    fetch('/api/calendar/cross-augment', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        birth: {
-          birthDate: birthInfo.birthDate,
-          birthTime: birthInfo.birthTime,
-          gender: birthInfo.gender.toLowerCase(),
-          timezone: birthInfo.timezone ?? 'Asia/Seoul',
-          latitude: lat,
-          longitude: lng,
-        },
-        scope: 'monthly',
-        year,
-        month: month + 1,
-      }),
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j) => { if (!cancelled && j?.data) setCrossAugment(j.data) })
-      .catch(() => { /* 실패는 조용히 무시 — 보조 데이터 */ })
-    return () => { cancelled = true }
-  }, [birthInfo.birthDate, birthInfo.birthTime, birthInfo.gender, birthInfo.timezone, birthInfo.latitude, birthInfo.longitude, year, month])
 
   const WEEKDAYS = locale === 'ko' ? WEEKDAYS_KO : WEEKDAYS_EN
   const MONTHS = locale === 'ko' ? MONTHS_KO : MONTHS_EN
@@ -682,9 +649,12 @@ const CalendarMainView = memo(function CalendarMainView({
 
           {/* Daily augment (cross-rules) — 선택된 날짜의 양면성/큰 흐름 */}
           {selectedDate && (
-            <DailyAugmentCard
-              selectedDateIso={selectedDate.date}
+            <AugmentSection
               birthInfo={birthInfo}
+              scope="daily"
+              queryDate={new Date(selectedDate.date + 'T12:00:00+09:00').toISOString()}
+              scopeLabel={`${selectedDate.date} 흐름`}
+              variant="compact"
             />
           )}
 
@@ -720,10 +690,14 @@ const CalendarMainView = memo(function CalendarMainView({
             getScoreClass={getScoreClass}
           />
 
-          {/* Cross-rules Augment (큰 흐름·테마·양면성) */}
-          {crossAugment && (
-            <CrossAugmentCard augment={crossAugment} scope="monthly" />
-          )}
+          {/* Cross-rules Augment (큰 흐름·테마·양면성) — skeleton/error 자동 처리 */}
+          <AugmentSection
+            birthInfo={birthInfo}
+            scope="monthly"
+            year={year}
+            month={month + 1}
+          />
+
 
           {/* Month Highlights */}
           {data?.allDates && data.allDates.length > 0 && (

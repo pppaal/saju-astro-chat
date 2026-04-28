@@ -261,3 +261,73 @@
   margin-left: 10px;
   color: var(--cal-text-tertiary, #94a3b8);
 }
+
+/* ─── Skeleton loading state ───────────────────────────── */
+.skeleton {
+  background: var(--cal-bg-card, rgba(30, 30, 50, 0.95));
+  border: 1px solid var(--cal-border, rgba(255, 255, 255, 0.08));
+  border-radius: 16px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.skelLine {
+  height: 12px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.10) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+.skelTitle { width: 35%; height: 16px; }
+.skelTheme { width: 80%; height: 32px; border-radius: 8px; }
+.skelGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.skelCard {
+  height: 96px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.07) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 10px;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Error state ──────────────────────────────────────── */
+.errorCard {
+  background: rgba(251, 191, 36, 0.05);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 13px;
+  color: rgb(253, 224, 71);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.errorIcon { font-weight: 700; opacity: 0.8; }
+.errorBody { color: var(--cal-text-secondary, #cbd5e1); flex: 1; }
+
+/* ─── Compact variant (daily card) ─────────────────────── */
+.compact .domainsGrid {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+.compact .themeNarrative { font-size: 12.5px; }
+.compact .signalItem { font-size: 12px; }
+.compact .domainCard { padding: 10px 12px; gap: 8px; }
+.compact .footer { padding-top: 10px; }
