@@ -21,7 +21,34 @@ export function runCrossRules(input: CrossRulesInput): FortuneReport {
   const sajuSignals = normalizeSaju(input.saju)
   const astroSignals = normalizeAstro(input.astro)
   const matches = runRules(input.rules ?? allRules, sajuSignals, astroSignals)
-  return aggregate(matches, input.metaRules ?? defaultMetaRules)
+
+  // Compose life-stage / sequence context from saju adapter outputs.
+  const ageYears = input.saju.ageYears
+  let lifeStage: 'child' | 'teen' | 'young-adult' | 'mid-adult' | 'late-adult' | 'elder' | 'adult' | undefined
+  if (typeof ageYears === 'number') {
+    if (ageYears < 12) lifeStage = 'child'
+    else if (ageYears < 20) lifeStage = 'teen'
+    else if (ageYears < 35) lifeStage = 'young-adult'
+    else if (ageYears < 55) lifeStage = 'mid-adult'
+    else if (ageYears < 70) lifeStage = 'late-adult'
+    else lifeStage = 'elder'
+  }
+  const ds = input.saju.daeunSequence
+  const context = {
+    ageYears,
+    lifeStage,
+    daeun: ds
+      ? {
+          index: ds.index,
+          yearsIntoCurrent: ds.yearsIntoCurrent,
+          yearsToNext: ds.yearsToNext,
+          previousSibsin: ds.previous?.sibsin?.cheon,
+          nextSibsin: ds.next?.sibsin?.cheon,
+          transitionImminent: !!ds.next && ds.yearsToNext <= 1,
+        }
+      : undefined,
+  }
+  return aggregate(matches, input.metaRules ?? defaultMetaRules, context)
 }
 
 export type { FortuneReport, Rule, MetaRule } from './types'

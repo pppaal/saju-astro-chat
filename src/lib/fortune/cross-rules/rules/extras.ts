@@ -379,4 +379,162 @@ export const extraRules: Rule[] = [
         'astro.relation.mutualReception.',
       ]),
   },
+
+  // ─── 통근 (rooting) × accidental dignity ─────────────────
+  {
+    id: 'self.state.rooted-vitality',
+    layer: 'state',
+    domain: 'self',
+    meaning: '통근 깊이 × accidental 강세',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '사주 일주 통근이 깊고 점성 Sun 또는 1궁 행성이 accidental dignity 강 — 자기 표현이 외부 환경에 잘 받쳐지는 구조.',
+    },
+    sajuPredicate: (s) => hitByKeys(s, ['saju.state.tonggeun.day.deep', 'saju.state.tonggeun.day.moderate']),
+    astroPredicate: (a) =>
+      hitByKeys(a, [
+        'astro.state.accidental.Sun.very_strong',
+        'astro.state.accidental.Sun.strong',
+        'astro.state.accidental.Mars.very_strong',
+        'astro.state.accidental.Mars.strong',
+      ]),
+  },
+  {
+    id: 'self.state.weak-rooting',
+    layer: 'state',
+    domain: 'self',
+    meaning: '통근 부족 × accidental 약세',
+    polarityHint: 'neg',
+    narrative: {
+      confirm: '사주 일주 통근이 약하거나 없고 점성도 핵심 행성 accidental dignity 약 — 외부 발휘가 환경에 잘 받쳐지지 않는 결.',
+    },
+    sajuPredicate: (s) => hitByKeys(s, ['saju.state.tonggeun.day.weak', 'saju.state.tonggeun.day.none']),
+    astroPredicate: (a) =>
+      hitByKeys(a, [
+        'astro.state.accidental.Sun.weak',
+        'astro.state.accidental.Sun.very_weak',
+        'astro.state.accidental.Mars.weak',
+      ]),
+  },
+
+  // ─── 합화 (transformation) ───────────────────────────────
+  {
+    id: 'self.state.transform-active',
+    layer: 'state',
+    domain: 'self',
+    meaning: '오행 합화 — 본질의 변환',
+    polarityHint: 'mixed',
+    narrative: {
+      confirm: '사주에 합화로 다른 오행이 형성됨과 점성 mutual reception이 함께 — 본질이 외부 결합으로 변환되는 구조.',
+      conflict: '합화 신호와 본 오행 우세가 불일치 — 자기 본질과 변환된 결이 분리감을 만들 수 있음.',
+    },
+    sajuPredicate: (s) => hitByPrefix(s, ['saju.state.transform.']),
+    astroPredicate: (a) => hitByPrefix(a, ['astro.relation.mutualReception.']),
+  },
+
+  // ─── 신살 충 무력화 ──────────────────────────────────────
+  {
+    id: 'self.state.shinsal-cancelled',
+    layer: 'state',
+    domain: 'self',
+    meaning: '신살 무력화 — 충에 의한 약화',
+    polarityHint: 'mixed',
+    narrative: {
+      confirm: '사주 신살이 충으로 무력화되고 점성도 같은 행성 accidental 약함 — 신살의 길흉이 풀리거나 완화됨.',
+      conflict: '길성 신살이 충되어 약해지는 사주 + 점성 강함, 또는 그 반대 — 양쪽 시스템 신호가 맞물리지 않음.',
+    },
+    sajuPredicate: (s) => hitByPrefix(s, ['saju.state.shinsal.cancelled.']),
+    astroPredicate: (a) =>
+      hitByPrefix(a, ['astro.state.accidental.', 'astro.state.dignity.']),
+  },
+
+  // ─── 대운 시퀀스: 다음 대운 임박 ────────────────────────
+  {
+    id: 'self.timing.daeun-transition',
+    layer: 'timing',
+    scale: 'event',
+    domain: 'self',
+    meaning: '대운 전환 임박',
+    polarityHint: 'mixed',
+    narrative: {
+      confirm: '사주 대운 전환기 + 점성 outer planet의 큰 angle 변화 — 인생의 큰 국면이 바뀌는 자리. 새 흐름에 맞춰 재정렬 시기.',
+      conflict: '대운은 바뀌는데 점성 흐름은 안정적이거나 그 반대 — 내·외 변화 속도가 다른 시기.',
+    },
+    sajuPredicate: (s) => hitByKeys(s, ['saju.timing.daeun.transition.imminent']),
+    astroPredicate: (a) =>
+      hitByPrefix(a, [
+        'astro.timing.transit.Saturn.',
+        'astro.timing.transit.Uranus.',
+        'astro.timing.transit.Pluto.',
+        'astro.timing.transit.Neptune.',
+      ]),
+  },
+
+  // ─── 대운 흐름: 이전→현재→다음 십성 시퀀스 ───────────────
+  {
+    id: 'career.timing.decade-flow',
+    layer: 'timing',
+    scale: 'decade',
+    domain: 'career',
+    meaning: '대운 흐름 — 다음 단계 준비',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '사주 다음 대운에 관성/재성/식상 등 활동 십성이 들어옴 + 점성 Jupiter/Saturn 외행성 transition — 다음 10년 준비기.',
+    },
+    sajuPredicate: (s) =>
+      hitByPrefix(s, [
+        'saju.timing.daeun.next.sibsin.정관',
+        'saju.timing.daeun.next.sibsin.편관',
+        'saju.timing.daeun.next.sibsin.정재',
+        'saju.timing.daeun.next.sibsin.편재',
+        'saju.timing.daeun.next.sibsin.식신',
+        'saju.timing.daeun.next.sibsin.상관',
+      ]),
+    astroPredicate: (a) =>
+      hitByPrefix(a, ['astro.timing.transit.Jupiter.', 'astro.timing.transit.Saturn.']),
+  },
+
+  // ─── 육친 호명: 어머니 영향 ──────────────────────────────
+  {
+    id: 'family.state.maternal-influence',
+    layer: 'state',
+    domain: 'family',
+    meaning: '어머니 영향',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '사주에 어머니 자리(인성)가 강하게 자리잡고 점성 Moon 4궁 또는 IC 강조 — 어머니 또는 어머니 같은 보호자의 영향이 인생에 깊이 박혀 있는 결.',
+    },
+    sajuPredicate: (s) =>
+      hitByPrefix(s, [
+        'saju.state.yukchin.어머니.in.부모',
+        'saju.state.sibsinGroup.인성.strong',
+      ]),
+    astroPredicate: (a) =>
+      hitByKeys(a, [
+        'astro.state.planet.Moon.house.4',
+        'astro.state.planet.Moon.sign.Cancer',
+        'astro.state.planet.Moon.sign.게자리',
+      ]),
+  },
+
+  // ─── 육친 호명: 배우자 자리 ─────────────────────────────
+  {
+    id: 'love.state.spouse-presence',
+    layer: 'state',
+    domain: 'love',
+    meaning: '배우자 자리 표면화',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '사주 일지(배우자궁)에 배우자에 해당하는 십성(정재/편재 또는 정관/편관)이 자리잡고 점성도 7궁 활성 또는 Venus 강세 — 배우자/파트너 관계가 인생 핵심 무대.',
+    },
+    sajuPredicate: (s) =>
+      hitByKeys(s, [
+        'saju.state.yukchin.배우자.in.배우자',
+      ]),
+    astroPredicate: (a) =>
+      hitByPrefix(a, [
+        'astro.state.planet.Venus.house.7',
+        'astro.state.stellium.house.7',
+      ]),
+  },
 ]

@@ -61,14 +61,31 @@ function detectUnseRelations(
   return out
 }
 
-function pickCurrentDaeun(saju: CalculateSajuDataResult, queryDate: Date, birthDate: Date): UnseData | null {
+function pickDaeunSequence(saju: CalculateSajuDataResult, queryDate: Date, birthDate: Date): {
+  current: UnseData | null
+  previous: UnseData | null
+  next: UnseData | null
+  index: number
+  ageYears: number
+  yearsIntoCurrent: number
+  yearsToNext: number
+} {
   const cycles = saju.daeWoon?.list ?? []
-  if (cycles.length === 0) return null
   const ageYears = Math.floor((queryDate.getTime() - birthDate.getTime()) / (365.25 * 24 * 3600 * 1000))
-  for (let i = cycles.length - 1; i >= 0; i--) {
-    if (ageYears >= cycles[i].age) return cycles[i]
+  if (cycles.length === 0) {
+    return { current: null, previous: null, next: null, index: -1, ageYears, yearsIntoCurrent: 0, yearsToNext: 0 }
   }
-  return cycles[0] ?? null
+  let index = -1
+  for (let i = cycles.length - 1; i >= 0; i--) {
+    if (ageYears >= cycles[i].age) { index = i; break }
+  }
+  if (index < 0) index = 0
+  const current = cycles[index] ?? null
+  const previous = index > 0 ? cycles[index - 1] : null
+  const next = index + 1 < cycles.length ? cycles[index + 1] : null
+  const yearsIntoCurrent = current ? ageYears - current.age : 0
+  const yearsToNext = next ? next.age - ageYears : 99
+  return { current, previous, next, index, ageYears, yearsIntoCurrent, yearsToNext }
 }
 
 function pickCurrentSeun(saju: CalculateSajuDataResult, queryDate: Date): UnseData | null {
@@ -194,7 +211,8 @@ export function buildSajuNormalizerInput(input: SajuAdapterInput): SajuNormalize
   )
 
   const birthDateObj = new Date(`${input.birthDate}T${input.birthTime}:00`)
-  const currentDaeun = pickCurrentDaeun(saju, input.queryDate, birthDateObj)
+  const daeunSeq = pickDaeunSequence(saju, input.queryDate, birthDateObj)
+  const currentDaeun = daeunSeq.current
   const currentSeun = pickCurrentSeun(saju, input.queryDate)
   const currentWolun = pickCurrentWolun(saju, input.queryDate)
   const currentIljin = pickCurrentIljin(saju, input.queryDate)
@@ -228,5 +246,13 @@ export function buildSajuNormalizerInput(input: SajuAdapterInput): SajuNormalize
     unseRelations,
     strength,
     extras,
+    daeunSequence: {
+      previous: daeunSeq.previous,
+      next: daeunSeq.next,
+      index: daeunSeq.index,
+      yearsIntoCurrent: daeunSeq.yearsIntoCurrent,
+      yearsToNext: daeunSeq.yearsToNext,
+    },
+    ageYears: daeunSeq.ageYears,
   }
 }

@@ -41,7 +41,25 @@ const COUNSELOR_PROMPT = `당신은 사주와 점성을 함께 보는 운세 상
 - evidence JSON 그대로 노출 ("source=daeun" 같은 raw 데이터).
 - "긍정/주의/양면" 같은 룰 엔진 라벨 단어 그대로 쓰지 말기.
 - 같은 표현 반복 (모든 문단이 "~함께 — ~결" 구조면 안 됨).
-- 종교적·운명론적 단정.`.trim()
+- 종교적·운명론적 단정.
+
+생애 단계 / 대운 컨텍스트 사용:
+- 입력 JSON의 \`context\` 필드에 \`ageYears\`, \`lifeStage\`, \`daeun.index\`,
+  \`daeun.previousSibsin\`, \`daeun.nextSibsin\`, \`daeun.transitionImminent\`,
+  \`daeun.yearsToNext\`이 들어옵니다.
+- \`lifeStage\`(child/teen/young-adult/mid-adult/late-adult/elder)에 맞춰 톤·예시 조절.
+- \`daeun.transitionImminent === true\`이면 "곧 다가오는 다음 대운"을 자연스럽게 언급.
+- \`daeun.previousSibsin\`이 있으면 "이전 ~운에서 넘어온 흐름" 식으로 한 번 정도 회상.
+- 단정적 나이 예언 금지. 단계 인식만.
+
+육친(六親) 호명:
+- 신호 데이터에 정재=배우자/돈, 편재=활동가족/변동재물, 정관=직장상사/명예,
+  편관=압박원/경쟁, 정인=어머니/학습, 편인=양모·이모/비정형 학습,
+  식신=자녀/즐거운 표현, 상관=자녀/도전적 표현, 비견=형제/동료,
+  겁재=이복형제/경쟁자가 매핑되어 있음.
+- 도메인이 "love"고 정재 신호면 "배우자"로, "family"고 정인이면 "어머니"
+  또는 "어머니 같은 보호자"로 자연스럽게 호명.
+- 단정 금지 — "~로 해석되는 자리"처럼 가능성으로 표현.`.trim()
 
 const REPORT_PROMPT = `당신은 사주와 점성을 함께 보는 운세 상담사입니다.
 입력 JSON은 결정론 룰 엔진의 출력입니다. 당신은 이 데이터를 **상담사 말투의 섹션별
@@ -92,7 +110,21 @@ const REPORT_PROMPT = `당신은 사주와 점성을 함께 보는 운세 상담
 - 모든 결은 rule outcome 또는 메타 테마에 근거.
 - 양면성(conflicts)은 영역별로 빠짐없이 한 번 이상 명시.
 
-총 길이: 2500~3500자.`.trim()
+총 길이: 2500~3500자.
+
+생애 단계 / 대운 컨텍스트 사용:
+- 입력 JSON의 \`context\` 필드(\`ageYears\`, \`lifeStage\`, \`daeun.{index,previousSibsin,nextSibsin,transitionImminent,yearsToNext}\`).
+- \`큰 흐름\` 섹션 도입에서 \`lifeStage\`와 현재 대운 위치를 자연스럽게 짚기.
+- \`daeun.transitionImminent === true\`이면 \`마무리\` 섹션에서 "다음 대운으로
+  넘어가는 시기"를 한 단락 다루기.
+- \`previousSibsin\`이 있으면 \`큰 흐름\`에서 "이전 ~운에서 넘어온 흐름" 한 번 회상.
+
+육친(六親) 호명:
+- 정재=배우자/돈, 편재=활동가족/변동재물, 정관=직장상사/명예, 편관=압박원/경쟁,
+  정인=어머니/학습, 편인=양모·이모/비정형 학습, 식신=자녀/즐거운 표현,
+  상관=자녀/도전적 표현, 비견=형제/동료, 겁재=이복형제/경쟁자.
+- 도메인 영역 섹션에서 해당 신호가 강하면 사람 관계로 호명 (예: "어머니의 영향").
+- 항상 가능성 표현 — 단정 금지.`.trim()
 
 export interface LlmRenderOptions {
   apiKey?: string
@@ -141,6 +173,7 @@ export interface LlmRenderResult {
 // Strip evidence noise from the data we send — keeps prompt small + private.
 function compactReport(report: FortuneReport) {
   return {
+    context: report.context,
     themes: report.themes.map((t) => ({
       meaning: t.rule.meaning,
       narrative: t.rule.narrative,

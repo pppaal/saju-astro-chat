@@ -1,7 +1,7 @@
 // Aggregator: groups CrossMatch[] by domain and assigns a categorical Tone.
 // Conflicts are surfaced (never discarded) — that's the whole point of crossing.
 
-import type { CrossMatch, Domain, DomainAggregate, FortuneReport, MetaHit, MetaRule, Tone } from './types'
+import type { CrossMatch, Domain, DomainAggregate, FortuneContext, FortuneReport, MetaHit, MetaRule, Tone } from './types'
 
 const DOMAINS: Domain[] = ['self', 'love', 'money', 'career', 'health', 'family']
 
@@ -15,7 +15,7 @@ function decideTone(confirms: CrossMatch[], conflicts: CrossMatch[]): Tone {
   return 'mixed'
 }
 
-export function aggregate(matches: CrossMatch[], metaRules: MetaRule[] = []): FortuneReport {
+export function aggregate(matches: CrossMatch[], metaRules: MetaRule[] = [], context?: FortuneContext): FortuneReport {
   const byDomain = Object.fromEntries(
     DOMAINS.map((d) => [
       d,
@@ -52,5 +52,6 @@ export function aggregate(matches: CrossMatch[], metaRules: MetaRule[] = []): Fo
     generatedAt: new Date().toISOString(),
     byDomain,
     themes,
+    context,
   }
 }

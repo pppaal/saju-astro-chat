@@ -48,6 +48,16 @@ export interface SajuNormalizerInput {
   strength?: StrengthScore
   // Pulled extras: 신살, 12운성, 격국, 용신, 지장간.
   extras?: SajuExtrasInput
+  // 대운 sequence (previous/next + transition status).
+  daeunSequence?: {
+    previous: UnseData | null
+    next: UnseData | null
+    index: number
+    yearsIntoCurrent: number
+    yearsToNext: number
+  }
+  // Age at queryDate (used for life-stage context).
+  ageYears?: number
 }
 
 export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
@@ -61,6 +71,8 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
     currentIljin,
     unseRelations = [],
     strength,
+    daeunSequence,
+    ageYears,
   } = input
 
   // ── state layer ─────────────────────────────────────────
@@ -276,26 +288,130 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
     })
   }
 
-  // ── relation layer (원국 내부 관계) ─────────────────────
+  // ── relation layer (원국 내부 관계) — with 충 무력화 by 합 ──
+  // Build pillar-pair sets for 합 (합 family weakens 충).
+  const hapPairs = new Set<string>()
+  const chungPairs = new Set<string>()
+  const pairKey = (ps: string[]) => [...ps].sort().join('|')
   for (const r of natalRelations) {
+    const k = pairKey(r.pillars)
+    if (
+      r.kind === '천간합' || r.kind === '지지육합' ||
+      r.kind === '지지삼합' || r.kind === '지지방합'
+    ) hapPairs.add(k)
+    if (r.kind === '천간충' || r.kind === '지지충') chungPairs.add(k)
+  }
+  // Pillars involved in 충 — used later for 신살 cancellation.
+  const chungPillars = new Set<string>()
+  for (const r of natalRelations) {
+    if (r.kind === '천간충' || r.kind === '지지충' || r.kind === '지지형') {
+      for (const p of r.pillars) chungPillars.add(p)
+    }
+  }
+
+  for (const r of natalRelations) {
+    const isChung = r.kind === '천간충' || r.kind === '지지충'
+    const dampedByHap = isChung && hapPairs.has(pairKey(r.pillars))
+    const baseStr = isChung ? (dampedByHap ? 0.4 : 0.8) : 0.8
     out.push({
       system: 'saju',
       layer: 'relation',
       key: `saju.relation.${r.kind}`,
       fired: true,
-      strength: 0.8,
-      evidence: { kind: r.kind, pillars: r.pillars, detail: r.detail },
+      strength: baseStr,
+      evidence: { kind: r.kind, pillars: r.pillars, detail: r.detail, dampedByHap },
     })
+    if (dampedByHap) {
+      out.push({
+        system: 'saju',
+        layer: 'relation',
+        key: `saju.relation.${r.kind}.damped`,
+        fired: true,
+        strength: 0.6,
+        evidence: { kind: r.kind, pillars: r.pillars, dampedByHap: true },
+      })
+    }
     if (r.pillars.includes('day')) {
       out.push({
         system: 'saju',
         layer: 'relation',
         key: `saju.relation.day.${r.kind}`,
         fired: true,
-        strength: 0.9,
-        evidence: { pillars: r.pillars, detail: r.detail },
+        strength: dampedByHap ? 0.5 : 0.9,
+        evidence: { pillars: r.pillars, detail: r.detail, dampedByHap },
       })
     }
+
+    // 합화 추출: detail에 "합화X" 또는 "化X" 포함 시 해당 오행 신호 추가.
+    if ((r.kind === '천간합' || r.kind === '지지육합' || r.kind === '지지삼합' || r.kind === '지지방합') && r.detail) {
+      const m = /합화\s*(목|화|토|금|수)|化\s*(목|화|토|금|수)/.exec(r.detail)
+      const transformed = m ? (m[1] || m[2]) : null
+      if (transformed) {
+        out.push({
+          system: 'saju',
+          layer: 'state',
+          key: `saju.state.transform.${transformed}`,
+          fired: true,
+          strength: 0.8,
+          evidence: { kind: r.kind, pillars: r.pillars, transformed, detail: r.detail },
+        })
+      }
+    }
+  }
+
+  // ── 신살 충 처리: 신살이 충된 기둥에 있으면 cancelled 신호 ──
+  const cancelledShinsalLater = chungPillars
+  // (extras 처리 시 사용 — extras 함수에서 이 set을 읽어 신살 무력화 신호 추가)
+  ;(out as { _cancelledShinsalPillars?: Set<string> } & SajuSignal[])._cancelledShinsalPillars = cancelledShinsalLater
+
+  // ── 통근 (rooting) — 천간이 지지 지장간에 뿌리 있는지 ───
+  // jeonggi=3, junggi=2, chogi=1 가중. 4기둥 지지 모두 검사.
+  const elementToKo: Record<string, string> = { 목: '목', 화: '화', 토: '토', 금: '금', 수: '수' }
+  type Pillar = typeof saju.pillars.year
+  type WithJijanggan = Pillar & { jijanggan?: { chogi?: { name?: string }; junggi?: { name?: string }; jeonggi?: { name?: string } } }
+  function jijangganElements(p: WithJijanggan): Array<{ stem: string; weight: number }> {
+    const j = p.jijanggan ?? {}
+    const out: Array<{ stem: string; weight: number }> = []
+    if (j.jeonggi?.name) out.push({ stem: j.jeonggi.name, weight: 3 })
+    if (j.junggi?.name) out.push({ stem: j.junggi.name, weight: 2 })
+    if (j.chogi?.name) out.push({ stem: j.chogi.name, weight: 1 })
+    return out
+  }
+  function stemElement(stemName: string): string {
+    // 갑을=목, 병정=화, 무기=토, 경신=금, 임계=수
+    const map: Record<string, string> = {
+      甲: '목', 乙: '목', 丙: '화', 丁: '화', 戊: '토', 己: '토',
+      庚: '금', 辛: '금', 壬: '수', 癸: '수',
+    }
+    return map[stemName] ?? ''
+  }
+  for (const pillarKind of ['year', 'month', 'day', 'time'] as const) {
+    const stemEl = saju.pillars[pillarKind].heavenlyStem.element
+    const elKo = elementToKo[stemEl] ?? stemEl
+    let totalWeight = 0
+    let detail: string[] = []
+    for (const otherKind of ['year', 'month', 'day', 'time'] as const) {
+      const p = saju.pillars[otherKind] as WithJijanggan
+      for (const hidden of jijangganElements(p)) {
+        if (stemElement(hidden.stem) === elKo) {
+          totalWeight += hidden.weight
+          detail.push(`${otherKind}/${hidden.stem}(+${hidden.weight})`)
+        }
+      }
+    }
+    let level: 'deep' | 'moderate' | 'weak' | 'none'
+    if (totalWeight >= 6) level = 'deep'
+    else if (totalWeight >= 3) level = 'moderate'
+    else if (totalWeight >= 1) level = 'weak'
+    else level = 'none'
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.tonggeun.${pillarKind}.${level}`,
+      fired: true,
+      strength: Math.min(1, totalWeight / 8),
+      evidence: { pillarKind, totalWeight, level, detail: detail.slice(0, 4) },
+    })
   }
 
   // ── timing layer ────────────────────────────────────────
@@ -349,6 +465,112 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
     })
   }
 
+  // ── 대운 시퀀스 (이전/다음/전환임박) ─────────────────────
+  if (daeunSequence) {
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.daeun.index.${daeunSequence.index}`,
+      fired: true,
+      strength: 1,
+      evidence: { index: daeunSequence.index, yearsIntoCurrent: daeunSequence.yearsIntoCurrent },
+    })
+    if (daeunSequence.previous?.sibsin?.cheon) {
+      out.push({
+        system: 'saju',
+        layer: 'timing',
+        scale: 'decade',
+        key: `saju.timing.daeun.previous.sibsin.${daeunSequence.previous.sibsin.cheon}`,
+        fired: true,
+        strength: 0.6, // weaker — past influence echoing
+        evidence: { previous: daeunSequence.previous },
+      })
+    }
+    if (daeunSequence.next?.sibsin?.cheon) {
+      out.push({
+        system: 'saju',
+        layer: 'timing',
+        scale: 'decade',
+        key: `saju.timing.daeun.next.sibsin.${daeunSequence.next.sibsin.cheon}`,
+        fired: true,
+        strength: 0.6, // weaker — future preview
+        evidence: { next: daeunSequence.next, yearsToNext: daeunSequence.yearsToNext },
+      })
+    }
+    if (daeunSequence.next && daeunSequence.yearsToNext <= 1) {
+      out.push({
+        system: 'saju',
+        layer: 'timing',
+        scale: 'event',
+        key: 'saju.timing.daeun.transition.imminent',
+        fired: true,
+        strength: 1 - Math.max(0, daeunSequence.yearsToNext) / 1,
+        evidence: { yearsToNext: daeunSequence.yearsToNext, next: daeunSequence.next },
+      })
+    }
+  }
+
+  // ── 인생 단계 (life-stage) ──────────────────────────────
+  if (typeof ageYears === 'number') {
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.age.years.${ageYears}`,
+      fired: true,
+      strength: 1,
+      evidence: { ageYears },
+    })
+    let stage = 'adult'
+    if (ageYears < 12) stage = 'child'
+    else if (ageYears < 20) stage = 'teen'
+    else if (ageYears < 35) stage = 'young-adult'
+    else if (ageYears < 55) stage = 'mid-adult'
+    else if (ageYears < 70) stage = 'late-adult'
+    else stage = 'elder'
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.lifeStage.${stage}`,
+      fired: true,
+      strength: 1,
+      evidence: { ageYears, stage },
+    })
+  }
+
+  // ── 육친 (六親) 호명 ─────────────────────────────────────
+  // 십성 → 사람 관계 매핑. 도메인과 별개로 LLM/렌더러에 풍부한 컨텍스트 제공.
+  // (일간 양음에 따라 일부 다르지만 표준 매핑 사용)
+  const yukchinMap: Record<string, string[]> = {
+    정재: ['배우자', '재물'],
+    편재: ['활동가족', '변동재물'],
+    정관: ['직장상사', '명예'],
+    편관: ['압박원', '경쟁'],
+    정인: ['어머니', '학습'],
+    편인: ['양모/이모', '비정형 학습'],
+    식신: ['자녀', '즐거운 표현'],
+    상관: ['자녀', '도전적 표현'],
+    비견: ['형제', '동료'],
+    겁재: ['이복형제', '경쟁자'],
+  }
+  for (const [pillarKind, palace] of [
+    ['year', '조상'], ['month', '부모'], ['day', '배우자'], ['time', '자녀'],
+  ] as const) {
+    const sb = String(saju.pillars[pillarKind].earthlyBranch.sibsin ?? '')
+    const persons = yukchinMap[sb]
+    if (persons) {
+      for (const person of persons) {
+        out.push({
+          system: 'saju',
+          layer: 'state',
+          key: `saju.state.yukchin.${person}.in.${palace}`,
+          fired: true,
+          strength: 0.7,
+          evidence: { palace, sibsin: sb, person, pillar: pillarKind },
+        })
+      }
+    }
+  }
+
   // ── extras: 신살 / 12운성 / 격국 / 용신 / 지장간 ────────
   if (input.extras) {
     pushExtraSignals(out, input.extras)
@@ -361,16 +583,30 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
   // 신살 (각 hit를 single signal로 + 길/흉 분류 시그널)
   const luckyShinsal = new Set(['천을귀인','천덕귀인','월덕귀인','문창','학당','금여','암록','복성귀인','반안','장성','길성'])
   const unluckyShinsal = new Set(['망신','겁살','재살','천살','월살','육해','괘살','흉성','자형'])
+  // 신살 충 처리: 운반자 구조에 cancellation set이 들어있으면 사용.
+  const cancelSet: Set<string> | undefined = (out as { _cancelledShinsalPillars?: Set<string> })._cancelledShinsalPillars
   for (const hit of extras.shinsal) {
+    const cancelled = !!cancelSet && hit.pillars.some((p) => cancelSet.has(p))
     out.push({
       system: 'saju',
       layer: 'state',
       key: `saju.state.shinsal.${hit.kind}`,
       fired: true,
-      strength: 0.85,
-      evidence: { kind: hit.kind, pillars: hit.pillars, target: hit.target, detail: hit.detail },
+      strength: cancelled ? 0.4 : 0.85,
+      evidence: { kind: hit.kind, pillars: hit.pillars, target: hit.target, detail: hit.detail, cancelled },
     })
-    if (luckyShinsal.has(hit.kind)) {
+    if (cancelled) {
+      // 충된 길성 = 불귀인 (효력 약화), 충된 흉성 = 비교적 풀림 (소손). 둘 다 cancelled 신호.
+      out.push({
+        system: 'saju',
+        layer: 'state',
+        key: `saju.state.shinsal.cancelled.${hit.kind}`,
+        fired: true,
+        strength: 0.7,
+        evidence: { kind: hit.kind, pillars: hit.pillars, cancelledByChung: true },
+      })
+    }
+    if (luckyShinsal.has(hit.kind) && !cancelled) {
       out.push({
         system: 'saju',
         layer: 'state',
@@ -380,7 +616,7 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
         evidence: { kind: hit.kind, pillars: hit.pillars },
       })
     }
-    if (unluckyShinsal.has(hit.kind)) {
+    if (unluckyShinsal.has(hit.kind) && !cancelled) {
       out.push({
         system: 'saju',
         layer: 'state',

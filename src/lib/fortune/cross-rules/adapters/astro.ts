@@ -115,6 +115,9 @@ const SIGN_MODE: Record<string, 'cardinal' | 'fixed' | 'mutable'> = {
 
 export interface AstroExtrasInput {
   dignities: Array<{ planet: string; sign: string; status: DignityStatus }>
+  // Accidental dignity per planet (Lilly-style aggregate score).
+  // tier: very_strong (>=8) / strong (>=4) / neutral (>=-2) / weak (>=-6) / very_weak (<-6)
+  accidentals: Array<{ planet: string; score: number; tier: 'very_strong' | 'strong' | 'neutral' | 'weak' | 'very_weak'; reasons: string[] }>
   modeCount: Record<'cardinal' | 'fixed' | 'mutable', number>
   modeDominant: 'cardinal' | 'fixed' | 'mutable' | null
   retrograde: string[] // planet names
@@ -195,8 +198,49 @@ function computeExtras(natal: Chart): AstroExtrasInput {
     }
   }
 
+  // Accidental dignity (Lilly-style abridged):
+  //   angular house (1/4/7/10) +5, succedent (2/5/8/11) +4, cadent (3/6/9/12) -2.
+  //   Mercury / Saturn favor cadent → cadent +2 instead.
+  //   Jupiter / Venus / Sun favor angular bonus.
+  //   retrograde -5; combust (Sun within 8.5°) -5 not computed here.
+  //   Direct + fast (speed > average) +2 — speed not always available; skip if missing.
+  const ANGULAR = new Set([1, 4, 7, 10])
+  const SUCCEDENT = new Set([2, 5, 8, 11])
+  const CADENT_FRIENDLY = new Set(['Mercury', 'Saturn'])
+  const accidentals: AstroExtrasInput['accidentals'] = []
+  for (const p of planets) {
+    let score = 0
+    const reasons: string[] = []
+    if (ANGULAR.has(p.house)) {
+      score += 5; reasons.push(`angular house ${p.house} +5`)
+    } else if (SUCCEDENT.has(p.house)) {
+      score += 4; reasons.push(`succedent house ${p.house} +4`)
+    } else {
+      // cadent
+      if (CADENT_FRIENDLY.has(p.name)) {
+        score += 2; reasons.push(`cadent house ${p.house} (Mercury/Saturn favor) +2`)
+      } else {
+        score -= 2; reasons.push(`cadent house ${p.house} -2`)
+      }
+    }
+    if (p.retrograde) {
+      score -= 5; reasons.push('retrograde -5')
+    } else if (typeof p.speed === 'number' && p.speed > 0) {
+      // direct & moving
+      score += 1; reasons.push('direct +1')
+    }
+    let tier: AstroExtrasInput['accidentals'][number]['tier']
+    if (score >= 8) tier = 'very_strong'
+    else if (score >= 4) tier = 'strong'
+    else if (score >= -2) tier = 'neutral'
+    else if (score >= -6) tier = 'weak'
+    else tier = 'very_weak'
+    accidentals.push({ planet: p.name, score, tier, reasons })
+  }
+
   return {
     dignities,
+    accidentals,
     modeCount,
     modeDominant,
     retrograde,

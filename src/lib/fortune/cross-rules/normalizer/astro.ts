@@ -266,6 +266,18 @@ export function normalizeAstro(input: AstroNormalizerInput): AstroSignal[] {
 }
 
 function pushAstroExtras(out: AstroSignal[], extras: AstroExtrasInput) {
+  // accidentals (Lilly-style)
+  for (const a of extras.accidentals) {
+    out.push({
+      system: 'astro',
+      layer: 'state',
+      key: `astro.state.accidental.${a.planet}.${a.tier}`,
+      fired: true,
+      strength: Math.min(1, Math.max(0.3, (a.score + 6) / 14)),
+      evidence: { planet: a.planet, score: a.score, tier: a.tier, reasons: a.reasons },
+    })
+  }
+
   // dignities
   for (const d of extras.dignities) {
     out.push({

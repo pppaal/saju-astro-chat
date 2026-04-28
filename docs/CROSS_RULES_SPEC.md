@@ -2,27 +2,27 @@
 
 > 자동 생성 문서. 룰 정의가 진실의 원천이며, 이 문서는 `scripts/generate-rules-spec.ts`로 재생성됩니다.
 
-총 룰 수: **77**  ·  메타룰 수: **10**
+총 룰 수: **85**  ·  메타룰 수: **10**
 
 ## 인덱스
 
-- **정적 (state)**: 37개
+- **정적 (state)**: 43개
 - **관계 (relation)**: 11개
-- **시점 (timing)**: 29개
-    - 10년 (대운): 5개
+- **시점 (timing)**: 31개
+    - 10년 (대운): 6개
     - 1년 (세운/SR): 15개
     - 1달 (월운/LR): 3개
     - 1일 (일진/transit): 2개
-    - 이벤트 (활성화): 4개
+    - 이벤트 (활성화): 5개
 
 ### 도메인 분포
 
-- **self**: 33개
-- **love**: 7개
+- **self**: 38개
+- **love**: 8개
 - **money**: 8개
-- **career**: 13개
+- **career**: 14개
 - **health**: 7개
-- **family**: 9개
+- **family**: 10개
 
 ---
 
@@ -419,6 +419,80 @@
 **서술 (confirm)**
 > 사주 지장간(지지 안의 숨은 천간)이 다양 + 점성 12궁 행성 또는 mutual reception — 표면에 안 드러난 자원을 활용 가능한 결.
 
+### `self.state.rooted-vitality`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: 통근 깊이 × accidental 강세
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.tonggeun.day.deep` / `saju.state.tonggeun.day.moderate`
+- 점성 측: `astro.state.accidental.Mars.strong` / `astro.state.accidental.Mars.very_strong` / `astro.state.accidental.Sun.strong` / `astro.state.accidental.Sun.very_strong`
+**서술 (confirm)**
+> 사주 일주 통근이 깊고 점성 Sun 또는 1궁 행성이 accidental dignity 강 — 자기 표현이 외부 환경에 잘 받쳐지는 구조.
+
+### `self.state.weak-rooting`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: 통근 부족 × accidental 약세
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.tonggeun.day.none` / `saju.state.tonggeun.day.weak`
+- 점성 측: `astro.state.accidental.Mars.weak` / `astro.state.accidental.Sun.very_weak` / `astro.state.accidental.Sun.weak`
+**서술 (confirm)**
+> 사주 일주 통근이 약하거나 없고 점성도 핵심 행성 accidental dignity 약 — 외부 발휘가 환경에 잘 받쳐지지 않는 결.
+
+### `self.state.transform-active`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: 오행 합화 — 본질의 변환
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: `saju.state.transform.`
+- 점성 측: `astro.relation.mutualReception.`
+**서술 (confirm)**
+> 사주에 합화로 다른 오행이 형성됨과 점성 mutual reception이 함께 — 본질이 외부 결합으로 변환되는 구조.
+
+**서술 (conflict / 양면)**
+
+> 합화 신호와 본 오행 우세가 불일치 — 자기 본질과 변환된 결이 분리감을 만들 수 있음.
+
+### `self.state.shinsal-cancelled`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: 신살 무력화 — 충에 의한 약화
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: `saju.state.shinsal.cancelled.`
+- 점성 측: `astro.state.accidental.` / `astro.state.dignity.`
+**서술 (confirm)**
+> 사주 신살이 충으로 무력화되고 점성도 같은 행성 accidental 약함 — 신살의 길흉이 풀리거나 완화됨.
+
+**서술 (conflict / 양면)**
+
+> 길성 신살이 충되어 약해지는 사주 + 점성 강함, 또는 그 반대 — 양쪽 시스템 신호가 맞물리지 않음.
+
+### `family.state.maternal-influence`
+- **레이어**: 정적 (state)
+- **도메인**: family
+- **의미**: 어머니 영향
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Moon.house.4` / `astro.state.planet.Moon.sign.Cancer`
+**서술 (confirm)**
+> 사주에 어머니 자리(인성)가 강하게 자리잡고 점성 Moon 4궁 또는 IC 강조 — 어머니 또는 어머니 같은 보호자의 영향이 인생에 깊이 박혀 있는 결.
+
+### `love.state.spouse-presence`
+- **레이어**: 정적 (state)
+- **도메인**: love
+- **의미**: 배우자 자리 표면화
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Venus.house.7` / `astro.state.stellium.house.7`
+**서술 (confirm)**
+> 사주 일지(배우자궁)에 배우자에 해당하는 십성(정재/편재 또는 정관/편관)이 자리잡고 점성도 7궁 활성 또는 Venus 강세 — 배우자/파트너 관계가 인생 핵심 무대.
+
 ### `health.state.balanced-elements`
 - **레이어**: 정적 (state)
 - **도메인**: health
@@ -652,6 +726,17 @@
 - 점성 측: `astro.timing.transit.Mars.house.1`
 **서술 (confirm)**
 > 대운 비겁과 Mars의 1궁 통과가 함께 — 자아·독립·주도성이 10년의 키워드.
+
+### `career.timing.decade-flow`
+- **레이어**: 시점 (timing)  ·  **스케일**: 10년 (대운)
+- **도메인**: career
+- **의미**: 대운 흐름 — 다음 단계 준비
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Jupiter.` / `astro.timing.transit.Saturn.`
+**서술 (confirm)**
+> 사주 다음 대운에 관성/재성/식상 등 활동 십성이 들어옴 + 점성 Jupiter/Saturn 외행성 transition — 다음 10년 준비기.
 
 ### 스케일: 1년 (세운/SR)
 
@@ -945,6 +1030,21 @@
 **서술 (conflict / 양면)**
 
 > 안정 신호와 변동 신호가 혼재 — 머무를지 옮길지 분기되는 시점.
+
+### `self.timing.daeun-transition`
+- **레이어**: 시점 (timing)  ·  **스케일**: 이벤트 (활성화)
+- **도메인**: self
+- **의미**: 대운 전환 임박
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: `saju.timing.daeun.transition.imminent`
+- 점성 측: `astro.timing.transit.Neptune.` / `astro.timing.transit.Pluto.` / `astro.timing.transit.Saturn.` / `astro.timing.transit.Uranus.`
+**서술 (confirm)**
+> 사주 대운 전환기 + 점성 outer planet의 큰 angle 변화 — 인생의 큰 국면이 바뀌는 자리. 새 흐름에 맞춰 재정렬 시기.
+
+**서술 (conflict / 양면)**
+
+> 대운은 바뀌는데 점성 흐름은 안정적이거나 그 반대 — 내·외 변화 속도가 다른 시기.
 
 ### `health.timing.event.chronic-trigger`
 - **레이어**: 시점 (timing)  ·  **스케일**: 이벤트 (활성화)

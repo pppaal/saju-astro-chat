@@ -118,8 +118,24 @@ export interface MetaHit {
   rule: MetaRule
 }
 
+// Context for life-stage / sequence aware interpretation. Filled by the
+// orchestrator from saju adapter outputs.
+export interface FortuneContext {
+  ageYears?: number
+  lifeStage?: 'child' | 'teen' | 'young-adult' | 'mid-adult' | 'late-adult' | 'elder' | 'adult'
+  daeun?: {
+    index: number
+    yearsIntoCurrent: number
+    yearsToNext: number
+    previousSibsin?: string
+    nextSibsin?: string
+    transitionImminent: boolean
+  }
+}
+
 export interface FortuneReport {
   generatedAt: string
   byDomain: Record<Domain, DomainAggregate>
   themes: MetaHit[]
+  context?: FortuneContext
 }
