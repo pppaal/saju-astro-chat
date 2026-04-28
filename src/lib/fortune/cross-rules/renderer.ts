@@ -81,23 +81,77 @@ function formatMatch(m: CrossMatch, mode: 'confirm' | 'conflict'): string {
 
 function formatEvidence(m: CrossMatch): string {
   const parts: string[] = []
-  const sajuEv = compactEvidence(m.saju.evidence)
-  const astroEv = compactEvidence(m.astro.evidence)
+  const sajuEv = compactEvidence(m.saju.evidence, SAJU_KEY_KO)
+  const astroEv = compactEvidence(m.astro.evidence, ASTRO_KEY_KO)
   if (sajuEv) parts.push(`사주: ${sajuEv}`)
   if (astroEv) parts.push(`점성: ${astroEv}`)
   return parts.join(' / ')
 }
 
-function compactEvidence(ev: Record<string, unknown>): string {
-  const keys = Object.keys(ev)
+// 사주 evidence 키 → 한국어 라벨
+const SAJU_KEY_KO: Record<string, string> = {
+  source: '운',
+  kind: '관계',
+  detail: '내용',
+  pillars: '기둥',
+  sibsin: '십성',
+  unse: '운',
+  count: '개수',
+  group: '그룹',
+  level: '단계',
+  total: '총',
+  yongsin: '용신',
+  geokguk: '격국',
+  category: '분류',
+  dayMaster: '일간',
+  type: '유형',
+}
+// 점성 evidence 키 → 한국어 라벨
+const ASTRO_KEY_KO: Record<string, string> = {
+  trigger: '자극원',
+  target: '대상',
+  type: '각도',
+  orb: '오브',
+  from: '출발',
+  to: '도달',
+  house: '하우스',
+  sign: '사인',
+  planet: '행성',
+  ruler: '통치자',
+  rulerHouse: '통치자 하우스',
+  status: '상태',
+  score: '점수',
+  tier: '등급',
+  reasons: '근거',
+  sect: 'sect',
+}
+
+function formatValue(v: unknown): string {
+  if (v === null || v === undefined) return ''
+  if (typeof v === 'string') return v
+  if (typeof v === 'number') return String(Math.round(v * 100) / 100)
+  if (typeof v === 'boolean') return v ? '예' : '아니오'
+  if (Array.isArray(v)) return v.map((x) => formatValue(x)).filter(Boolean).join('·')
+  if (typeof v === 'object') {
+    const o = v as Record<string, unknown>
+    if (typeof o.cheon === 'string') return String(o.cheon) // 십성
+    if (typeof o.name === 'string') return String(o.name)   // 일간 등
+    return ''
+  }
+  return String(v)
+}
+
+function compactEvidence(ev: Record<string, unknown>, koKeys: Record<string, string> = {}): string {
+  const keys = Object.keys(ev).filter((k) => !k.startsWith('_'))
   if (keys.length === 0) return ''
   return keys
     .slice(0, 3)
     .map((k) => {
       const v = ev[k]
-      if (v === null || v === undefined) return ''
-      if (typeof v === 'object') return `${k}=${JSON.stringify(v).slice(0, 40)}`
-      return `${k}=${String(v).slice(0, 40)}`
+      const label = koKeys[k] ?? k
+      const val = formatValue(v)
+      if (!val) return ''
+      return `${label} ${val}`
     })
     .filter(Boolean)
     .join(', ')
