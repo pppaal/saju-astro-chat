@@ -131,3 +131,15 @@ export {
   buildMonthlyCrossAugment,
   type CalendarCrossAugment,
 } from './calendar/cross-augment';
+
+// ═══════════════════════════════════════════════════════════════
+// 학파별 점수 preset (opt-in). 자평진전/적천수/강호/default
+// ═══════════════════════════════════════════════════════════════
+export {
+  setSchoolPreset,
+  getSchoolPreset,
+  SCHOOL_LABELS,
+  SCHOOL_SAJU_WEIGHTS,
+  SCHOOL_CROSS_BONUS,
+  type SchoolPreset,
+} from './calendar/school-presets';
