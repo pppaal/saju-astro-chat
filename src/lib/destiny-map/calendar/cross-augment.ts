@@ -35,6 +35,46 @@ export async function buildCalendarCrossAugment(
   birth: BirthProfile,
   queryDate: Date = new Date(),
 ): Promise<CalendarCrossAugment> {
+  return _buildAugmentForDate(birth, queryDate)
+}
+
+/**
+ * 주간 augment — 7일 중 가운데 날을 대표로 한 번만 호출.
+ * 일별 호출 7회 대신 1회로 줄이면서 그 주의 큰 흐름 보여줌.
+ */
+export async function buildWeeklyCrossAugment(
+  birth: BirthProfile,
+  weekStart: Date,
+): Promise<CalendarCrossAugment & { weekStart: string; weekEnd: string }> {
+  const mid = new Date(weekStart)
+  mid.setDate(mid.getDate() + 3)
+  const aug = await _buildAugmentForDate(birth, mid)
+  const end = new Date(weekStart)
+  end.setDate(end.getDate() + 6)
+  return {
+    ...aug,
+    weekStart: weekStart.toISOString().slice(0, 10),
+    weekEnd: end.toISOString().slice(0, 10),
+  }
+}
+
+/**
+ * 월간 augment — 그 달 15일 기준 한 번 호출. 캘린더 헤더에 그 달 큰 흐름.
+ */
+export async function buildMonthlyCrossAugment(
+  birth: BirthProfile,
+  year: number,
+  month: number, // 1-12
+): Promise<CalendarCrossAugment & { year: number; month: number }> {
+  const mid = new Date(year, month - 1, 15, 12, 0, 0)
+  const aug = await _buildAugmentForDate(birth, mid)
+  return { ...aug, year, month }
+}
+
+async function _buildAugmentForDate(
+  birth: BirthProfile,
+  queryDate: Date,
+): Promise<CalendarCrossAugment> {
   const report = await runFortune({
     birth,
     queryDate,

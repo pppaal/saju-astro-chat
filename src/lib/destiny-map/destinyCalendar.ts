@@ -127,5 +127,7 @@ export {
 // ═══════════════════════════════════════════════════════════════
 export {
   buildCalendarCrossAugment,
+  buildWeeklyCrossAugment,
+  buildMonthlyCrossAugment,
   type CalendarCrossAugment,
 } from './calendar/cross-augment';
