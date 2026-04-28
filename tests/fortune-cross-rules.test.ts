@@ -548,6 +548,28 @@ describe('regression: 대운 calculation', () => {
     expect(cycle22?.heavenlyStem).toBe('乙')
     expect(cycle22?.earthlyBranch).toBe('亥')
   })
+
+  // saju 엔진의 unse.annual / unse.monthly는 stem/branch가 아니라 ganji 단일 필드만
+  // 채워서, 어댑터가 기존엔 undefined로 받아 운-원국 합충이 모두 누락됐음.
+  // 이 테스트는 어댑터의 ganji 분해 로직을 고정시킨다.
+  it('1995-02-09 06:40 male / query 2026-04-28 → 세운·월운 stem/branch parsed', async () => {
+    const { buildSajuNormalizerInput } = await import('@/lib/fortune/cross-rules/adapters/saju')
+    const r = buildSajuNormalizerInput({
+      birthDate: '1995-02-09', birthTime: '06:40', gender: 'male',
+      timezone: 'Asia/Seoul', queryDate: new Date('2026-04-28T12:00:00+09:00'),
+    })
+    expect(r.currentDaeun?.heavenlyStem).toBe('乙')
+    expect(r.currentDaeun?.earthlyBranch).toBe('亥')
+    expect(r.currentSeun?.heavenlyStem).toBe('丙')
+    expect(r.currentSeun?.earthlyBranch).toBe('午')
+    expect(r.currentWolun?.heavenlyStem).toBe('癸')
+    expect(r.currentWolun?.earthlyBranch).toBe('巳')
+    expect(r.currentIljin?.heavenlyStem).toBe('壬')
+    expect(r.currentIljin?.earthlyBranch).toBe('申')
+    // 세운 합충도 잡혀야 함 (이전엔 한 개도 안 잡혔음).
+    const seunRelations = (r.unseRelations ?? []).filter((u) => u.source === 'seun')
+    expect(seunRelations.length).toBeGreaterThanOrEqual(1)
+  })
 })
 
 describe('rule predicate purity', () => {

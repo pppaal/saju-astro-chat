@@ -91,13 +91,20 @@ function pickDaeunSequence(saju: CalculateSajuDataResult, queryDate: Date, birth
 function pickCurrentSeun(saju: CalculateSajuDataResult, queryDate: Date): UnseData | null {
   const yr = queryDate.getFullYear()
   const annual = saju.unse?.annual ?? []
-  const found = annual.find((a) => a.year === yr)
+  const found = annual.find((a) => a.year === yr) as
+    | { year: number; ganji?: string; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon: string; ji: string } }
+    | undefined
   if (!found) return null
+  // saju 엔진은 annual에 ganji 단일 필드만 채움 (예: '丙午'). 양 시스템 어댑터는
+  // stem/branch 분리값을 요구하므로 ganji를 한자 단위로 분해해서 채운다.
+  const stem = found.heavenlyStem ?? (found.ganji ? found.ganji.slice(0, 1) : '')
+  const branch = found.earthlyBranch ?? (found.ganji ? found.ganji.slice(1) : '')
+  if (!stem || !branch) return null
   return {
-    heavenlyStem: found.heavenlyStem,
-    earthlyBranch: found.earthlyBranch,
-    sibsin: found.sibsin,
-  } as UnseData
+    heavenlyStem: stem,
+    earthlyBranch: branch,
+    sibsin: found.sibsin ?? { cheon: '', ji: '' },
+  }
 }
 
 function pickCurrentWolun(saju: CalculateSajuDataResult, queryDate: Date): UnseData | null {
@@ -105,11 +112,16 @@ function pickCurrentWolun(saju: CalculateSajuDataResult, queryDate: Date): UnseD
   const yr = queryDate.getFullYear()
   const mo = queryDate.getMonth() + 1
   const found = monthly.find(
-    (m: { year?: number; month?: number; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon: string; ji: string } }) =>
+    (m: { year?: number; month?: number; ganji?: string; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon: string; ji: string } }) =>
       m.year === yr && m.month === mo,
-  )
-  if (!found || !found.heavenlyStem || !found.earthlyBranch) return null
-  return { heavenlyStem: found.heavenlyStem, earthlyBranch: found.earthlyBranch, sibsin: found.sibsin ?? { cheon: '', ji: '' } }
+  ) as
+    | { year?: number; month?: number; ganji?: string; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon: string; ji: string } }
+    | undefined
+  if (!found) return null
+  const stem = found.heavenlyStem ?? (found.ganji ? found.ganji.slice(0, 1) : '')
+  const branch = found.earthlyBranch ?? (found.ganji ? found.ganji.slice(1) : '')
+  if (!stem || !branch) return null
+  return { heavenlyStem: stem, earthlyBranch: branch, sibsin: found.sibsin ?? { cheon: '', ji: '' } }
 }
 
 function pickCurrentIljin(saju: CalculateSajuDataResult, queryDate: Date): UnseData | null {
