@@ -156,6 +156,126 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
     }
   }
 
+  // ── 십성 distribution + palace branches (전문가 시그널) ─
+  const sibsinCounts: Record<string, number> = {}
+  const sibsinGroupCounts: Record<string, number> = {
+    비겁: 0, // 비견 + 겁재
+    식상: 0, // 식신 + 상관
+    재성: 0, // 정재 + 편재
+    관성: 0, // 정관 + 편관
+    인성: 0, // 정인 + 편인
+  }
+  const sibsinToGroup: Record<string, keyof typeof sibsinGroupCounts> = {
+    비견: '비겁', 겁재: '비겁',
+    식신: '식상', 상관: '식상',
+    정재: '재성', 편재: '재성',
+    정관: '관성', 편관: '관성',
+    정인: '인성', 편인: '인성',
+  }
+  for (const pillarKind of ['year', 'month', 'day', 'time'] as const) {
+    const p = saju.pillars[pillarKind]
+    for (const slot of [p.heavenlyStem, p.earthlyBranch]) {
+      const sb = String(slot.sibsin ?? '')
+      if (!sb) continue
+      sibsinCounts[sb] = (sibsinCounts[sb] ?? 0) + 1
+      const grp = sibsinToGroup[sb]
+      if (grp) sibsinGroupCounts[grp]++
+    }
+  }
+  for (const [sb, count] of Object.entries(sibsinCounts)) {
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.sibsin.count.${sb}`,
+      fired: count > 0,
+      strength: Math.min(1, count / 4),
+      evidence: { sibsin: sb, count },
+    })
+    if (count >= 2) {
+      out.push({
+        system: 'saju',
+        layer: 'state',
+        key: `saju.state.sibsin.strong.${sb}`,
+        fired: true,
+        strength: Math.min(1, count / 3),
+        evidence: { sibsin: sb, count },
+      })
+    }
+  }
+  // group totals + dominance
+  const groupTotal = Object.values(sibsinGroupCounts).reduce((a, b) => a + b, 0) || 1
+  let dominantGroup: keyof typeof sibsinGroupCounts | null = null
+  let dominantCount = 0
+  for (const [grp, count] of Object.entries(sibsinGroupCounts) as Array<[keyof typeof sibsinGroupCounts, number]>) {
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.sibsinGroup.${grp}.count`,
+      fired: count > 0,
+      strength: count / groupTotal,
+      evidence: { group: grp, count, total: groupTotal },
+    })
+    if (count >= 3) {
+      out.push({
+        system: 'saju',
+        layer: 'state',
+        key: `saju.state.sibsinGroup.${grp}.strong`,
+        fired: true,
+        strength: Math.min(1, count / 4),
+        evidence: { group: grp, count },
+      })
+    }
+    if (count > dominantCount) {
+      dominantCount = count
+      dominantGroup = grp
+    }
+  }
+  if (dominantGroup && dominantCount >= 3) {
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.sibsinGroup.dominant.${dominantGroup}`,
+      fired: true,
+      strength: dominantCount / groupTotal,
+      evidence: { group: dominantGroup, count: dominantCount },
+    })
+  }
+
+  // ── palace branches (year=조상궁, month=부모궁, day=배우자궁, time=자녀궁) ──
+  const palaces: Record<'year' | 'month' | 'day' | 'time', string> = {
+    year: '조상',
+    month: '부모',
+    day: '배우자',
+    time: '자녀',
+  }
+  for (const [pillarKind, palace] of Object.entries(palaces) as Array<['year' | 'month' | 'day' | 'time', string]>) {
+    const p = saju.pillars[pillarKind]
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.palace.${palace}.branch.${p.earthlyBranch.name}`,
+      fired: true,
+      strength: 1,
+      evidence: { pillar: pillarKind, palace, branch: p.earthlyBranch.name },
+    })
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.palace.${palace}.element.${p.earthlyBranch.element}`,
+      fired: true,
+      strength: 1,
+      evidence: { pillar: pillarKind, palace, element: p.earthlyBranch.element },
+    })
+    out.push({
+      system: 'saju',
+      layer: 'state',
+      key: `saju.state.palace.${palace}.sibsin.${p.earthlyBranch.sibsin}`,
+      fired: true,
+      strength: 1,
+      evidence: { pillar: pillarKind, palace, sibsin: p.earthlyBranch.sibsin },
+    })
+  }
+
   // ── relation layer (원국 내부 관계) ─────────────────────
   for (const r of natalRelations) {
     out.push({

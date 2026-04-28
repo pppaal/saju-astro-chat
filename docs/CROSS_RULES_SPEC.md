@@ -2,26 +2,26 @@
 
 > 자동 생성 문서. 룰 정의가 진실의 원천이며, 이 문서는 `scripts/generate-rules-spec.ts`로 재생성됩니다.
 
-총 룰 수: **68**  ·  메타룰 수: **10**
+총 룰 수: **77**  ·  메타룰 수: **10**
 
 ## 인덱스
 
-- **정적 (state)**: 31개
+- **정적 (state)**: 37개
 - **관계 (relation)**: 11개
-- **시점 (timing)**: 26개
+- **시점 (timing)**: 29개
     - 10년 (대운): 5개
-    - 1년 (세운/SR): 13개
+    - 1년 (세운/SR): 15개
     - 1달 (월운/LR): 3개
     - 1일 (일진/transit): 2개
-    - 이벤트 (활성화): 3개
+    - 이벤트 (활성화): 4개
 
 ### 도메인 분포
 
-- **self**: 32개
+- **self**: 33개
 - **love**: 7개
-- **money**: 7개
+- **money**: 8개
 - **career**: 13개
-- **health**: 0개
+- **health**: 7개
 - **family**: 9개
 
 ---
@@ -63,7 +63,7 @@
 - 사주 측: `saju.state.elementDominant.earth`
 - 점성 측: `astro.state.elementDominant.earth`
 **서술 (confirm)**
-> 사주 토 기운과 점성 earth 사인이 함께 — 천천히 쌓는 형태의 재물 안정성. 단기 투기보다 장기 축적이 자기 결.
+> 사주 토 기운과 점성 earth 사인이 함께 — 천천히 쌓는 형태의 재물 안정성.
 
 ### `self.state.wood-growth`
 - **레이어**: 정적 (state)
@@ -74,7 +74,7 @@
 - 사주 측: `saju.state.elementDominant.wood`
 - 점성 측: `astro.state.elementDominant.air`
 **서술 (confirm)**
-> 사주 목 기운과 점성 air 사인이 함께 — 새 시작·확장·움직임에 적성. 장기 인내보다 변화 흡수에 강점.
+> 사주 목 기운과 점성 air 사인이 함께 — 새 시작·확장·움직임에 적성.
 
 ### `career.state.metal-discipline`
 - **레이어**: 정적 (state)
@@ -105,7 +105,7 @@
 - **폴라리티 힌트**: 런타임 결정 (predicate가 polarity 반환)
 **발화 조건**
 - 사주 측: `saju.state.dayMaster.strength.strong` / `saju.state.dayMaster.strength.weak`
-- 점성 측: `astro.state.planet.Sun.house.1` / `astro.state.planet.Sun.house.10` / `astro.state.planet.Sun.house.12` / `astro.state.planet.Sun.house.6` / `astro.state.planet.Sun.sign.Aquarius` / `astro.state.planet.Sun.sign.Aries` / `astro.state.planet.Sun.sign.Leo` / `astro.state.planet.Sun.sign.Libra`
+- 점성 측: `astro.state.dignity.Sun.detriment` / `astro.state.dignity.Sun.domicile` / `astro.state.dignity.Sun.exaltation` / `astro.state.dignity.Sun.fall` / `astro.state.planet.Sun.house.1` / `astro.state.planet.Sun.house.10` / `astro.state.planet.Sun.house.12` / `astro.state.planet.Sun.house.6`
 **서술 (confirm)**
 > 사주 일간의 강약과 점성 태양의 dignity가 같은 방향을 가리킴. 자기 표현이 환경과 잘 맞음.
 
@@ -119,10 +119,10 @@
 - **의미**: 관계 영역 본질 비중
 - **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
 **발화 조건**
-- 사주 측: `saju.state.dayMaster.element.`
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
 - 점성 측: `astro.state.planet.Venus.house.5` / `astro.state.planet.Venus.house.7` / `astro.state.planet.Venus.sign.Libra` / `astro.state.planet.Venus.sign.Taurus`
 **서술 (confirm)**
-> 사주 일지(배우자궁)의 활성과 점성 Venus 또는 7궁 강조가 함께 — 관계가 인생 중심 테마.
+> 사주 일지(배우자궁)에 재성/관성이 들어와 있고 점성 Venus도 7궁/5궁 또는 자기 별자리에 있음 — 관계가 평생 핵심 테마.
 
 ### `family.state.parental-palace`
 - **레이어**: 정적 (state)
@@ -130,10 +130,10 @@
 - **의미**: 부모·뿌리 영역 비중
 - **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
 **발화 조건**
-- 사주 측: `saju.state.dayMaster.element.`
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
 - 점성 측: `astro.state.planet.Moon.house.4` / `astro.state.planet.Moon.sign.Cancer`
 **서술 (confirm)**
-> 사주 월지(부모·사회궁)의 활성과 점성 IC/4궁 또는 Moon의 강한 위치가 함께 — 가정·뿌리가 정체성에 큰 비중.
+> 사주 월지(부모·사회궁)에 인성이 깔려 있고 점성도 4궁 강조 또는 Cancer 사인 강세 — 가정·뿌리가 정체성에 큰 비중.
 
 ### `family.state.children-palace`
 - **레이어**: 정적 (state)
@@ -141,10 +141,10 @@
 - **의미**: 자녀·창조 영역
 - **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
 **발화 조건**
-- 사주 측: `saju.state.dayMaster.element.`
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
 - 점성 측: `astro.state.planet.Jupiter.house.5` / `astro.state.planet.Sun.house.5` / `astro.state.planet.Venus.house.5`
 **서술 (confirm)**
-> 사주 시지(자녀궁)의 활성과 점성 5궁 강조가 함께 — 자녀·창조 표현이 인생의 한 축.
+> 사주 시지(자녀궁)에 식상이 깔려 있고 점성도 5궁 강조 — 자녀·창조 표현이 인생의 한 축.
 
 ### `career.state.officer-emphasis`
 - **레이어**: 정적 (state)
@@ -152,10 +152,10 @@
 - **의미**: 책임·관성 본성
 - **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
 **발화 조건**
-- 사주 측: `saju.state.dayMaster.element.`
-- 점성 측: `astro.state.planet.Saturn.house.10` / `astro.state.planet.Saturn.sign.Capricorn`
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Saturn.domicile` / `astro.state.dignity.Saturn.exaltation` / `astro.state.planet.Saturn.house.10` / `astro.state.planet.Saturn.sign.Capricorn`
 **서술 (confirm)**
-> 사주 관성(정관/편관) 비중과 점성 Saturn dignity 또는 10궁 강조가 함께 — 책임 구조 안에서 성취가 자기 결.
+> 사주 관성이 강하고 점성도 Saturn dignity 또는 10궁 강조 — 책임 구조 안에서 성취가 자기 결.
 
 ### `self.state.expression-strength`
 - **레이어**: 정적 (state)
@@ -163,10 +163,10 @@
 - **의미**: 표현·창조 본성
 - **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
 **발화 조건**
-- 사주 측: `saju.state.dayMaster.element.`
-- 점성 측: `astro.state.planet.Mercury.house.3` / `astro.state.planet.Mercury.house.5`
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Mercury.domicile` / `astro.state.dignity.Mercury.exaltation` / `astro.state.planet.Mercury.house.3` / `astro.state.planet.Mercury.house.5`
 **서술 (confirm)**
-> 사주 식상(식신/상관) 비중과 점성 Mercury 또는 3궁/5궁 강조가 함께 — 표현·창조가 자기 발산 통로.
+> 사주 식상이 강하고 점성도 Mercury 또는 3궁/5궁 강조 — 표현·창조가 자기 발산 통로.
 
 ### `family.state.scholar-emphasis`
 - **레이어**: 정적 (state)
@@ -174,10 +174,32 @@
 - **의미**: 학습·보호 본성
 - **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
 **발화 조건**
-- 사주 측: `saju.state.dayMaster.element.`
-- 점성 측: `astro.state.planet.Jupiter.house.9` / `astro.state.planet.Moon.house.9`
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Jupiter.domicile` / `astro.state.dignity.Jupiter.exaltation` / `astro.state.planet.Jupiter.house.9` / `astro.state.planet.Moon.house.9`
 **서술 (confirm)**
-> 사주 인성(정인/편인) 비중과 점성 Jupiter 또는 9궁 강조가 함께 — 학습·전통·보호가 인생 자원.
+> 사주 인성이 강하고 점성도 Jupiter 또는 9궁 강조 — 학습·전통·보호가 인생 자원.
+
+### `money.state.wealth-emphasis`
+- **레이어**: 정적 (state)
+- **도메인**: money
+- **의미**: 재물 본성
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Venus.domicile` / `astro.state.dignity.Venus.exaltation` / `astro.state.planet.Jupiter.house.2` / `astro.state.planet.Venus.house.2`
+**서술 (confirm)**
+> 사주 재성이 강하고 점성도 Venus dignity 또는 2궁 강조 — 재물 영역이 평생 활성화된 자기 결.
+
+### `self.state.self-emphasis`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: 자아 강세
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Mars.domicile` / `astro.state.dignity.Mars.exaltation` / `astro.state.planet.Mars.house.1`
+**서술 (confirm)**
+> 사주 비겁이 강하고 점성도 Mars dignity 또는 1궁 강조 — 독립·주도가 자기 결.
 
 ### `self.state.lucky-shinsal-cross-benefic`
 - **레이어**: 정적 (state)
@@ -396,6 +418,54 @@
 - 점성 측: `astro.relation.mutualReception.` / `astro.state.planet.Moon.house.12` / `astro.state.planet.Sun.house.12`
 **서술 (confirm)**
 > 사주 지장간(지지 안의 숨은 천간)이 다양 + 점성 12궁 행성 또는 mutual reception — 표면에 안 드러난 자원을 활용 가능한 결.
+
+### `health.state.balanced-elements`
+- **레이어**: 정적 (state)
+- **도메인**: health
+- **의미**: 오행 균형
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.modeDominant.cardinal` / `astro.state.modeDominant.fixed` / `astro.state.modeDominant.mutable`
+**서술 (confirm)**
+> 사주 오행 분포가 비교적 고르고 점성 4원소도 한쪽에 쏠리지 않음 — 체질 기반의 균형이 잡힌 결로, 건강의 회복 탄력성이 좋음.
+
+### `health.state.fire-water-imbalance`
+- **레이어**: 정적 (state)
+- **도메인**: health
+- **의미**: 한열 불균형
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.elementAbsent.fire` / `saju.state.elementAbsent.water` / `saju.state.elementDominant.fire` / `saju.state.elementDominant.water`
+- 점성 측: `astro.state.elementCount.fire` / `astro.state.elementCount.water`
+**서술 (confirm)**
+> 사주 화·수 분포가 한쪽으로 치우침과 점성 fire/water 사인 분포 불균형이 함께 — 한열·면역 균형 관리에 의식적 노력이 필요한 결.
+
+### `health.state.weak-vitality`
+- **레이어**: 정적 (state)
+- **도메인**: health
+- **의미**: 체력 자원 약
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.dayMaster.strength.weak`
+- 점성 측: `astro.state.dignity.Mars.detriment` / `astro.state.dignity.Mars.fall`
+**서술 (confirm)**
+> 사주 일간이 약하고 비겁도 부족하며 점성도 Mars detriment/fall 또는 1궁 약 — 체력·즉발력 자원이 얕은 결. 회복·휴식 루틴이 평생 중요.
+
+### `health.state.digestive-emphasis`
+- **레이어**: 정적 (state)
+- **도메인**: health
+- **의미**: 소화·대사 영역
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Mercury.house.6` / `astro.state.planet.Sun.house.6` / `astro.state.stellium.house.6`
+**서술 (confirm)**
+> 사주 식상과 점성 6궁 emphasis가 함께 — 소화·대사·일상 루틴 영역이 건강의 키. 잘 관리하면 자산.
+
+**서술 (conflict / 양면)**
+
+> 식상 강한데 6궁 신호와 어긋남 — 활동량과 회복량이 매칭 안 되는 패턴이 있을 수 있음.
 
 ---
 
@@ -748,6 +818,28 @@
 
 > 진행 별과 운의 방향이 어긋남 — 내적 진화와 외적 사건이 다른 속도로 가는 시기.
 
+### `health.timing.year.stress-load`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: health
+- **의미**: 올해 스트레스 부하
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Mars.` / `astro.timing.transit.Pluto.` / `astro.timing.transit.Saturn.`
+**서술 (confirm)**
+> 세운 편관 또는 일간 충 + 점성 Saturn/Mars hard 트랜짓이 함께 — 신체 부담이 누적되기 쉬운 한 해. 수면·식이 우선.
+
+### `health.timing.year.recovery-window`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: health
+- **의미**: 올해 회복기
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.solarReturn.Jupiter.house.6` / `astro.timing.solarReturn.Moon.house.4` / `astro.timing.solarReturn.Moon.house.6`
+**서술 (confirm)**
+> 세운 인성과 Solar Return의 Jupiter/Moon benefic 위치가 함께 — 회복·치유·휴식의 흐름이 자연스러운 해.
+
 ### 스케일: 1달 (월운/LR)
 
 ### `self.timing.month.tension`
@@ -854,6 +946,17 @@
 
 > 안정 신호와 변동 신호가 혼재 — 머무를지 옮길지 분기되는 시점.
 
+### `health.timing.event.chronic-trigger`
+- **레이어**: 시점 (timing)  ·  **스케일**: 이벤트 (활성화)
+- **도메인**: health
+- **의미**: 만성 패턴 활성화
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.timing.event.day.`
+- 점성 측: `astro.timing.event.activate.` / `astro.timing.transit.Neptune.` / `astro.timing.transit.Saturn.`
+**서술 (confirm)**
+> 운이 일주를 발화시키고 점성도 Neptune/Saturn이 natal 약점 자리를 자극 — 평소 잠복하던 만성 패턴이 표면화될 수 있음. 미루던 검진/관리 점검 시기.
+
 ---
 
 ## 메타룰 (Cross-domain themes)
@@ -866,12 +969,12 @@
 
 **서술**
 
-> 사랑·재물 두 영역에서 동시에 부정 신호가 모임 — 분리·분할·재산 분쟁의 잠재 시기. 큰 결정은 보류 권장.
+> 사랑·재물 두 영역에서 동시에 강한 부정 신호가 모임 — 분리·분할·재산 분쟁의 잠재 시기. 큰 결정은 보류 권장.
 
 **검출 로직**: 도메인별 집계 결과(`Record<Domain, DomainAggregate>`)에서 다음 조건이 참일 때 발화
 
 ```ts
-d=>has(d,"love",negativeOrMixed)&&has(d,"money",negativeOrMixed)
+d=>has(d,"love",strongNegative)&&has(d,"money",strongNegative)
 ```
 
 ### `theme.career-health-tradeoff`
@@ -885,7 +988,7 @@ d=>has(d,"love",negativeOrMixed)&&has(d,"money",negativeOrMixed)
 **검출 로직**: 도메인별 집계 결과(`Record<Domain, DomainAggregate>`)에서 다음 조건이 참일 때 발화
 
 ```ts
-d=>d.career.tone==="positive"&&has(d,"health",negativeOrMixed)
+d=>has(d,"career",strongPositive)&&has(d,"health",strongNegative)
 ```
 
 ### `theme.identity-shift`
@@ -894,12 +997,12 @@ d=>d.career.tone==="positive"&&has(d,"health",negativeOrMixed)
 
 **서술**
 
-> 자아·관계가 동시에 흔들림 — 정체성의 외피와 거울이 같이 변하는 전환기. 새 자기 정의의 호기.
+> 자아·관계가 동시에 강하게 흔들림 — 정체성의 외피와 거울이 같이 변하는 전환기. 새 자기 정의의 호기.
 
 **검출 로직**: 도메인별 집계 결과(`Record<Domain, DomainAggregate>`)에서 다음 조건이 참일 때 발화
 
 ```ts
-d=>d.self.tone==="mixed"&&d.love.tone!=="neutral"
+d=>strongMixed(d.self)&&strongMixed(d.love)
 ```
 
 ### `theme.expansion-window`
@@ -908,12 +1011,12 @@ d=>d.self.tone==="mixed"&&d.love.tone!=="neutral"
 
 **서술**
 
-> 재물·직업·자아가 모두 양호 — 외부 활동·확장·계약에 유리한 드문 시기. 실행 우선.
+> 재물·직업·자아가 모두 양호하고 강한 confirm이 다수 — 외부 활동·확장·계약에 유리한 드문 시기. 실행 우선.
 
 **검출 로직**: 도메인별 집계 결과(`Record<Domain, DomainAggregate>`)에서 다음 조건이 참일 때 발화
 
 ```ts
-d=>d.money.tone==="positive"&&d.career.tone==="positive"&&(d.self.tone==="positive"||d.self.tone==="neutral")
+d=>has(d,"money",strongPositive)&&has(d,"career",strongPositive)&&(d.self.tone==="positive"||d.self.tone==="neutral")
 ```
 
 ### `theme.family-roots-call`
@@ -922,12 +1025,12 @@ d=>d.money.tone==="positive"&&d.career.tone==="positive"&&(d.self.tone==="positi
 
 **서술**
 
-> 가정·자아 영역에 동시 신호 — 원가족·고향·뿌리 관련 사건/감정이 표면화되는 시기.
+> 가정·자아 영역에 강한 신호가 동시 — 원가족·고향·뿌리 관련 사건/감정이 표면화되는 시기.
 
 **검출 로직**: 도메인별 집계 결과(`Record<Domain, DomainAggregate>`)에서 다음 조건이 참일 때 발화
 
 ```ts
-d=>d.family.tone!=="neutral"&&d.self.tone!=="neutral"
+d=>anyStrongConfirm(d.family)&&(anyStrongConfirm(d.self)||strongMixed(d.self))
 ```
 
 ### `theme.solo-ascent`
@@ -950,12 +1053,12 @@ d=>strongPositive(d.self)&&strongPositive(d.career)&&d.love.tone==="neutral"
 
 **서술**
 
-> 가정·재물 영역에 부정 신호 동시 — 살림·기반 재정비의 시기. 외부 확장보다 내부 정리가 효과적.
+> 가정·재물 영역에 강한 부정 신호 동시 — 살림·기반 재정비의 시기. 외부 확장보다 내부 정리가 효과적.
 
 **검출 로직**: 도메인별 집계 결과(`Record<Domain, DomainAggregate>`)에서 다음 조건이 참일 때 발화
 
 ```ts
-d=>has(d,"family",negativeOrMixed)&&has(d,"money",negativeOrMixed)
+d=>has(d,"family",strongNegative)&&has(d,"money",strongNegative)
 ```
 
 ### `theme.creative-flow`
@@ -969,7 +1072,7 @@ d=>has(d,"family",negativeOrMixed)&&has(d,"money",negativeOrMixed)
 **검출 로직**: 도메인별 집계 결과(`Record<Domain, DomainAggregate>`)에서 다음 조건이 참일 때 발화
 
 ```ts
-d=>d.career.tone==="positive"&&d.self.tone!=="negative"&&d.love.tone!=="negative"&&d.career.confirms.some(m=>m.rule.meaning.includes("\uD45C\uD604")||m.rule.meaning.includes("\uCC3D\uC870"))
+d=>strongPositive(d.career)&&d.self.tone!=="negative"&&d.love.tone!=="negative"&&d.career.confirms.some(m=>m.rule.meaning.includes("\uD45C\uD604")||m.rule.meaning.includes("\uCC3D\uC870"))
 ```
 
 ### `theme.duty-overload`
@@ -978,12 +1081,12 @@ d=>d.career.tone==="positive"&&d.self.tone!=="negative"&&d.love.tone!=="negative
 
 **서술**
 
-> 직업·자아 모두 부정 신호 — 책임은 늘고 자원은 감소. 위임·우선순위 정리 권장.
+> 직업·자아 모두 강한 부정 신호 — 책임은 늘고 자원은 감소. 위임·우선순위 정리 권장.
 
 **검출 로직**: 도메인별 집계 결과(`Record<Domain, DomainAggregate>`)에서 다음 조건이 참일 때 발화
 
 ```ts
-d=>has(d,"career",negativeOrMixed)&&has(d,"self",negativeOrMixed)
+d=>has(d,"career",strongNegative)&&has(d,"self",strongNegative)
 ```
 
 ### `theme.harvest-season`
@@ -992,12 +1095,12 @@ d=>has(d,"career",negativeOrMixed)&&has(d,"self",negativeOrMixed)
 
 **서술**
 
-> 재물·가정·자아 모두 안정 신호 — 그동안의 노력이 결실로 돌아오는 안정기. 확산보다 누림이 적기.
+> 재물·가정·자아 모두 강한 안정 신호 — 그동안의 노력이 결실로 돌아오는 안정기. 확산보다 누림이 적기.
 
 **검출 로직**: 도메인별 집계 결과(`Record<Domain, DomainAggregate>`)에서 다음 조건이 참일 때 발화
 
 ```ts
-d=>d.money.tone==="positive"&&d.family.tone==="positive"&&d.self.tone==="positive"
+d=>strongPositive(d.money)&&strongPositive(d.family)&&strongPositive(d.self)
 ```
 
 ---

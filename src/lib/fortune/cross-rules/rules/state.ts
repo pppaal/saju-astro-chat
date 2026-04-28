@@ -4,11 +4,6 @@
 import { hitByKeys, hitByPrefix, noHit } from '../engine'
 import type { Hit, Rule } from '../types'
 
-// ── helpers ─────────────────────────────────────────────────
-function elementCount(strength: number, threshold = 0.4): boolean {
-  return strength >= threshold
-}
-
 export const stateRules: Rule[] = [
   // ── 원소 분포 (5 saju × 4 astro) ────────────────────────
   {
@@ -48,7 +43,7 @@ export const stateRules: Rule[] = [
     meaning: '재물 안정 본성',
     polarityHint: 'pos',
     narrative: {
-      confirm: '사주 토 기운과 점성 earth 사인이 함께 — 천천히 쌓는 형태의 재물 안정성. 단기 투기보다 장기 축적이 자기 결.',
+      confirm: '사주 토 기운과 점성 earth 사인이 함께 — 천천히 쌓는 형태의 재물 안정성.',
     },
     sajuPredicate: (s) => hitByKeys(s, ['saju.state.elementDominant.earth']),
     astroPredicate: (a) => hitByKeys(a, ['astro.state.elementDominant.earth']),
@@ -60,10 +55,14 @@ export const stateRules: Rule[] = [
     meaning: '성장·시작 본성',
     polarityHint: 'pos',
     narrative: {
-      confirm: '사주 목 기운과 점성 air 사인이 함께 — 새 시작·확장·움직임에 적성. 장기 인내보다 변화 흡수에 강점.',
+      confirm: '사주 목 기운과 점성 air 사인이 함께 — 새 시작·확장·움직임에 적성.',
     },
     sajuPredicate: (s) => hitByKeys(s, ['saju.state.elementDominant.wood']),
-    astroPredicate: (a) => hitByKeys(a, ['astro.state.elementDominant.air']),
+    // 추정 매핑(wood↔air)이라 strength 0.7 페널티
+    astroPredicate: (a) => {
+      const h = hitByKeys(a, ['astro.state.elementDominant.air'])
+      return h.fired ? { ...h, strength: h.strength * 0.7 } : noHit
+    },
   },
   {
     id: 'career.state.metal-discipline',
@@ -75,7 +74,10 @@ export const stateRules: Rule[] = [
       confirm: '사주 금 기운과 점성 air 사인이 함께 — 분석·결단·정제. 책임 영역에서 성과 가능성 큰 결.',
     },
     sajuPredicate: (s) => hitByKeys(s, ['saju.state.elementDominant.metal']),
-    astroPredicate: (a) => hitByKeys(a, ['astro.state.elementDominant.air']),
+    astroPredicate: (a) => {
+      const h = hitByKeys(a, ['astro.state.elementDominant.air'])
+      return h.fired ? { ...h, strength: h.strength * 0.7 } : noHit
+    },
   },
   {
     id: 'self.state.fire-deficient',
@@ -115,22 +117,24 @@ export const stateRules: Rule[] = [
     },
     astroPredicate: (_, ctx) => {
       const strongSun =
-        ctx.hasAstro('astro.state.planet.Sun.sign.Aries') ||
-        ctx.hasAstro('astro.state.planet.Sun.sign.Leo') ||
+        ctx.hasAstro('astro.state.dignity.Sun.domicile') ||
+        ctx.hasAstro('astro.state.dignity.Sun.exaltation') ||
         ctx.hasAstro('astro.state.planet.Sun.house.1') ||
         ctx.hasAstro('astro.state.planet.Sun.house.10')
       const weakSun =
-        ctx.hasAstro('astro.state.planet.Sun.sign.Aquarius') ||
-        ctx.hasAstro('astro.state.planet.Sun.sign.Libra') ||
+        ctx.hasAstro('astro.state.dignity.Sun.detriment') ||
+        ctx.hasAstro('astro.state.dignity.Sun.fall') ||
         ctx.hasAstro('astro.state.planet.Sun.house.12') ||
         ctx.hasAstro('astro.state.planet.Sun.house.6')
-      if (strongSun) return { fired: true, strength: 0.8, polarity: 'pos', evidence: { sun: 'strong' } } as Hit
-      if (weakSun) return { fired: true, strength: 0.7, polarity: 'neg', evidence: { sun: 'weak' } } as Hit
+      if (strongSun) return { fired: true, strength: 0.85, polarity: 'pos', evidence: { sun: 'strong' } } as Hit
+      if (weakSun) return { fired: true, strength: 0.8, polarity: 'neg', evidence: { sun: 'weak' } } as Hit
       return noHit
     },
   },
 
-  // ── 일지 / 월지 / 시지 (궁) ─────────────────────────────
+  // ── 일지 / 월지 / 시지 (궁) — 전문가 시그널로 재작성 ─────
+  // 이전엔 사주 측이 dayMaster.element.* 로 항상 발화 → 의미 없는 confirm.
+  // 이제는 일지의 실제 십성 + Venus 위치로 짝짓는다.
   {
     id: 'love.state.spouse-palace-emphasis',
     layer: 'state',
@@ -138,9 +142,17 @@ export const stateRules: Rule[] = [
     meaning: '관계 영역 본질 비중',
     polarityHint: 'pos',
     narrative: {
-      confirm: '사주 일지(배우자궁)의 활성과 점성 Venus 또는 7궁 강조가 함께 — 관계가 인생 중심 테마.',
+      confirm: '사주 일지(배우자궁)에 재성/관성이 들어와 있고 점성 Venus도 7궁/5궁 또는 자기 별자리에 있음 — 관계가 평생 핵심 테마.',
     },
-    sajuPredicate: (s) => hitByPrefix(s, ['saju.state.dayMaster.element.']),
+    // 일지 자체에 재성·관성이 깔려 있을 때만 (또는 재성이 사주 전체에 명확하게 강함)
+    sajuPredicate: (s) =>
+      hitByKeys(s, [
+        'saju.state.palace.배우자.sibsin.정재',
+        'saju.state.palace.배우자.sibsin.편재',
+        'saju.state.palace.배우자.sibsin.정관',
+        'saju.state.palace.배우자.sibsin.편관',
+        'saju.state.sibsinGroup.재성.strong',
+      ]),
     astroPredicate: (a) =>
       hitByKeys(a, [
         'astro.state.planet.Venus.house.5',
@@ -158,9 +170,15 @@ export const stateRules: Rule[] = [
     meaning: '부모·뿌리 영역 비중',
     polarityHint: 'pos',
     narrative: {
-      confirm: '사주 월지(부모·사회궁)의 활성과 점성 IC/4궁 또는 Moon의 강한 위치가 함께 — 가정·뿌리가 정체성에 큰 비중.',
+      confirm: '사주 월지(부모·사회궁)에 인성이 깔려 있고 점성도 4궁 강조 또는 Cancer 사인 강세 — 가정·뿌리가 정체성에 큰 비중.',
     },
-    sajuPredicate: (s) => hitByPrefix(s, ['saju.state.dayMaster.element.']),
+    // 월지에 인성(정인/편인) 또는 인성 그룹이 사주 전체에 강함
+    sajuPredicate: (s) =>
+      hitByKeys(s, [
+        'saju.state.palace.부모.sibsin.정인',
+        'saju.state.palace.부모.sibsin.편인',
+        'saju.state.sibsinGroup.인성.strong',
+      ]),
     astroPredicate: (a) =>
       hitByKeys(a, [
         'astro.state.planet.Moon.house.4',
@@ -175,9 +193,14 @@ export const stateRules: Rule[] = [
     meaning: '자녀·창조 영역',
     polarityHint: 'pos',
     narrative: {
-      confirm: '사주 시지(자녀궁)의 활성과 점성 5궁 강조가 함께 — 자녀·창조 표현이 인생의 한 축.',
+      confirm: '사주 시지(자녀궁)에 식상이 깔려 있고 점성도 5궁 강조 — 자녀·창조 표현이 인생의 한 축.',
     },
-    sajuPredicate: (s) => hitByPrefix(s, ['saju.state.dayMaster.element.']),
+    sajuPredicate: (s) =>
+      hitByKeys(s, [
+        'saju.state.palace.자녀.sibsin.식신',
+        'saju.state.palace.자녀.sibsin.상관',
+        'saju.state.sibsinGroup.식상.strong',
+      ]),
     astroPredicate: (a) =>
       hitByPrefix(a, [
         'astro.state.planet.Sun.house.5',
@@ -186,7 +209,9 @@ export const stateRules: Rule[] = [
       ]),
   },
 
-  // ── 십성 분포 (사주) ↔ 행성·하우스 강조 (점성) ──────────
+  // ── 십성 그룹 분포 (사주) ↔ 행성·하우스 강조 (점성) ──────
+  // 이전엔 사주 측이 dayMaster.element.* 로 매번 발화 → 가짜 confirm.
+  // 이제는 진짜 십성 그룹 강도로 발화.
   {
     id: 'career.state.officer-emphasis',
     layer: 'state',
@@ -194,11 +219,17 @@ export const stateRules: Rule[] = [
     meaning: '책임·관성 본성',
     polarityHint: 'pos',
     narrative: {
-      confirm: '사주 관성(정관/편관) 비중과 점성 Saturn dignity 또는 10궁 강조가 함께 — 책임 구조 안에서 성취가 자기 결.',
+      confirm: '사주 관성이 강하고 점성도 Saturn dignity 또는 10궁 강조 — 책임 구조 안에서 성취가 자기 결.',
     },
-    sajuPredicate: (s) => hitByPrefix(s, ['saju.state.dayMaster.element.']),
+    sajuPredicate: (s) =>
+      hitByKeys(s, [
+        'saju.state.sibsinGroup.관성.strong',
+        'saju.state.sibsinGroup.dominant.관성',
+      ]),
     astroPredicate: (a) =>
       hitByKeys(a, [
+        'astro.state.dignity.Saturn.domicile',
+        'astro.state.dignity.Saturn.exaltation',
         'astro.state.planet.Saturn.house.10',
         'astro.state.planet.Saturn.sign.Capricorn',
         'astro.state.planet.Saturn.sign.염소자리',
@@ -211,13 +242,19 @@ export const stateRules: Rule[] = [
     meaning: '표현·창조 본성',
     polarityHint: 'pos',
     narrative: {
-      confirm: '사주 식상(식신/상관) 비중과 점성 Mercury 또는 3궁/5궁 강조가 함께 — 표현·창조가 자기 발산 통로.',
+      confirm: '사주 식상이 강하고 점성도 Mercury 또는 3궁/5궁 강조 — 표현·창조가 자기 발산 통로.',
     },
-    sajuPredicate: (s) => hitByPrefix(s, ['saju.state.dayMaster.element.']),
+    sajuPredicate: (s) =>
+      hitByKeys(s, [
+        'saju.state.sibsinGroup.식상.strong',
+        'saju.state.sibsinGroup.dominant.식상',
+      ]),
     astroPredicate: (a) =>
-      hitByPrefix(a, [
+      hitByKeys(a, [
         'astro.state.planet.Mercury.house.3',
         'astro.state.planet.Mercury.house.5',
+        'astro.state.dignity.Mercury.domicile',
+        'astro.state.dignity.Mercury.exaltation',
       ]),
   },
   {
@@ -227,13 +264,62 @@ export const stateRules: Rule[] = [
     meaning: '학습·보호 본성',
     polarityHint: 'pos',
     narrative: {
-      confirm: '사주 인성(정인/편인) 비중과 점성 Jupiter 또는 9궁 강조가 함께 — 학습·전통·보호가 인생 자원.',
+      confirm: '사주 인성이 강하고 점성도 Jupiter 또는 9궁 강조 — 학습·전통·보호가 인생 자원.',
     },
-    sajuPredicate: (s) => hitByPrefix(s, ['saju.state.dayMaster.element.']),
+    sajuPredicate: (s) =>
+      hitByKeys(s, [
+        'saju.state.sibsinGroup.인성.strong',
+        'saju.state.sibsinGroup.dominant.인성',
+      ]),
     astroPredicate: (a) =>
-      hitByPrefix(a, [
+      hitByKeys(a, [
         'astro.state.planet.Jupiter.house.9',
         'astro.state.planet.Moon.house.9',
+        'astro.state.dignity.Jupiter.domicile',
+        'astro.state.dignity.Jupiter.exaltation',
+      ]),
+  },
+  {
+    id: 'money.state.wealth-emphasis',
+    layer: 'state',
+    domain: 'money',
+    meaning: '재물 본성',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '사주 재성이 강하고 점성도 Venus dignity 또는 2궁 강조 — 재물 영역이 평생 활성화된 자기 결.',
+    },
+    sajuPredicate: (s) =>
+      hitByKeys(s, [
+        'saju.state.sibsinGroup.재성.strong',
+        'saju.state.sibsinGroup.dominant.재성',
+      ]),
+    astroPredicate: (a) =>
+      hitByKeys(a, [
+        'astro.state.planet.Venus.house.2',
+        'astro.state.planet.Jupiter.house.2',
+        'astro.state.dignity.Venus.domicile',
+        'astro.state.dignity.Venus.exaltation',
+      ]),
+  },
+  {
+    id: 'self.state.self-emphasis',
+    layer: 'state',
+    domain: 'self',
+    meaning: '자아 강세',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '사주 비겁이 강하고 점성도 Mars dignity 또는 1궁 강조 — 독립·주도가 자기 결.',
+    },
+    sajuPredicate: (s) =>
+      hitByKeys(s, [
+        'saju.state.sibsinGroup.비겁.strong',
+        'saju.state.sibsinGroup.dominant.비겁',
+      ]),
+    astroPredicate: (a) =>
+      hitByKeys(a, [
+        'astro.state.planet.Mars.house.1',
+        'astro.state.dignity.Mars.domicile',
+        'astro.state.dignity.Mars.exaltation',
       ]),
   },
 ]
