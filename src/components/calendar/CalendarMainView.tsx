@@ -10,6 +10,7 @@ import SelectedDatePanel from './SelectedDatePanel'
 import MonthHighlights from './MonthHighlights'
 import CalendarActionPlanView from './CalendarActionPlanView'
 import CrossAugmentCard from './CrossAugmentCard'
+import DailyAugmentCard from './DailyAugmentCard'
 import type { CalendarData, ImportantDate, EventCategory, BirthInfo } from './types'
 import type { CalendarCrossAugment } from '@/lib/destiny-map/destinyCalendar'
 
@@ -677,6 +678,14 @@ const CalendarMainView = memo(function CalendarMainView({
                 })}
               </div>
             </div>
+          )}
+
+          {/* Daily augment (cross-rules) — 선택된 날짜의 양면성/큰 흐름 */}
+          {selectedDate && (
+            <DailyAugmentCard
+              selectedDateIso={selectedDate.date}
+              birthInfo={birthInfo}
+            />
           )}
 
           {/* Selected Date Panel */}
