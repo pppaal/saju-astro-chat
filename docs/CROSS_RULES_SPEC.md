@@ -2,11 +2,11 @@
 
 > 자동 생성 문서. 룰 정의가 진실의 원천이며, 이 문서는 `scripts/generate-rules-spec.ts`로 재생성됩니다.
 
-총 룰 수: **117**  ·  메타룰 수: **10**
+총 룰 수: **127**  ·  메타룰 수: **10**
 
 ## 인덱스
 
-- **정적 (state)**: 67개
+- **정적 (state)**: 77개
 - **관계 (relation)**: 11개
 - **시점 (timing)**: 39개
     - 10년 (대운): 6개
@@ -17,11 +17,11 @@
 
 ### 도메인 분포
 
-- **self**: 57개
+- **self**: 59개
 - **love**: 9개
 - **money**: 11개
-- **career**: 22개
-- **health**: 7개
+- **career**: 23개
+- **health**: 14개
 - **family**: 11개
 
 ---
@@ -541,6 +541,91 @@
 
 > 식상 강한데 6궁 신호와 어긋남 — 활동량과 회복량이 매칭 안 되는 패턴이 있을 수 있음.
 
+### `health.state.wood-fire-liver-heat`
+- **레이어**: 정적 (state)
+- **도메인**: health
+- **의미**: 간열 패턴 (목 일간 + 화 강)
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.dayMaster.element.wood` / `saju.state.elementDominant.fire`
+- 점성 측: `astro.relation.hard.Mars.` / `astro.state.elementDominant.fire`
+**서술 (confirm)**
+> 사주 일간이 갑·을(목)이고 화 기운이 강함 + 점성 fire 사인 강세 또는 Mars hard aspect — 한방 관점의 간열·두통·분노 누적 패턴이 평생 잠재. 정서 발산·휴식 루틴 중요.
+
+### `health.state.fire-earth-skin-heat`
+- **레이어**: 정적 (state)
+- **도메인**: health
+- **의미**: 화토상관 패턴 (화 일간 + 토 강)
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: `saju.state.dayMaster.element.fire` / `saju.state.elementDominant.earth`
+- 점성 측: `astro.state.elementDominant.earth`
+**서술 (confirm)**
+> 사주 일간이 병·정(화)이고 토 기운이 강함 + 점성 earth 강세 — 한방의 화토상관·피부·소화 부담 패턴. 단 식상 표현이 잘 되면 외부 발산으로 균형.
+
+**서술 (conflict / 양면)**
+
+> 화 일간의 표현 욕구와 토의 안정 욕구가 부딪힘 — 외향과 내향의 균형이 건강의 키.
+
+### `health.state.earth-water-digestive`
+- **레이어**: 정적 (state)
+- **도메인**: health
+- **의미**: 토류 패턴 (토 일간 + 수 강)
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.dayMaster.element.earth` / `saju.state.elementDominant.water`
+- 점성 측: `astro.state.elementDominant.water`
+**서술 (confirm)**
+> 사주 일간이 무·기(토)이고 수 기운이 강함 + 점성 water 강세 — 한방의 토류(土流)·소화기 약화 패턴. 따뜻한 식이·규칙적 식사가 평생 중요.
+
+### `health.state.metal-fire-respiratory`
+- **레이어**: 정적 (state)
+- **도메인**: health
+- **의미**: 폐열 패턴 (금 일간 + 화 강)
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.dayMaster.element.metal` / `saju.state.elementDominant.fire`
+- 점성 측: `astro.state.elementDominant.fire` / `astro.state.planet.Mars.house.6`
+**서술 (confirm)**
+> 사주 일간이 경·신(금)이고 화 기운이 강함 + 점성 fire 강세 또는 Mars hard 6궁 — 한방의 폐열·호흡기·대장 부담 패턴. 호흡 운동·맑은 공기 중요.
+
+### `health.state.water-earth-kidney`
+- **레이어**: 정적 (state)
+- **도메인**: health
+- **의미**: 신장 부담 (수 일간 + 토 강)
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.dayMaster.element.water` / `saju.state.elementDominant.earth`
+- 점성 측: `astro.state.planet.Saturn.house.6` / `astro.state.planet.Saturn.sign.Capricorn`
+**서술 (confirm)**
+> 사주 일간이 임·계(수)이고 토 기운이 강함 + 점성 Saturn 6궁 또는 Capricorn 강세 — 한방의 신장·방광·뼈 부담 패턴. 수분·휴식·따뜻함 우선.
+
+### `health.state.chronic-foundation`
+- **레이어**: 정적 (state)
+- **도메인**: health
+- **의미**: 만성·잠복 영역
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.twelveStage.dormant.day`
+- 점성 측: `astro.state.planet.Saturn.house.6`
+**서술 (confirm)**
+> 사주 일주 12운성이 휴면(쇠/병/사/묘/절)이고 점성 Saturn이 6궁에 자리 — 만성 컨디션 영역의 평생 잠재. 단기 회복보다 장기 관리·예방이 결.
+
+### `health.state.psychosomatic`
+- **레이어**: 정적 (state)
+- **도메인**: health
+- **의미**: 심신 연결 — 정서가 신체로
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.relation.aspect.Moon.conjunction.Neptune` / `astro.relation.aspect.Moon.opposition.Neptune` / `astro.relation.aspect.Moon.square.Neptune` / `astro.state.planet.Moon.house.12`
+**서술 (confirm)**
+> 사주 인성이 강하고 점성 Moon-Neptune 또는 12궁 emphasis — 정서·무의식이 신체에 직접 영향을 주는 결. 마음 관리가 곧 건강 관리.
+
+**서술 (conflict / 양면)**
+
+> 내면 작업과 신체 활동의 우선순위가 바뀌는 시기 — 스트레스가 몸으로 가거나, 몸 상태가 정서를 좌우함.
+
 ### `self.state.sect-benefic-strong`
 - **레이어**: 정적 (state)
 - **도메인**: self
@@ -816,6 +901,39 @@
 - 점성 측: `astro.state.bonif.overcoming.malefic.Moon` / `astro.state.bonif.overcoming.malefic.Sun`
 **서술 (confirm)**
 > 점성 핵심 행성이 흉성에 의해 superior square로 overcome되는 sign-based 압박 + 사주 천간충 또는 일지 형 — 외부에서 들어오는 권위·책임의 구조적 압박이 양 시스템에서 동시에 박혀 있는 결.
+
+### `self.state.combust-key-planet`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: Combust 핵심 행성 × 사주 흉성 신살
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.shinsal.unlucky.`
+- 점성 측: `astro.state.combust.combust.Mercury` / `astro.state.combust.combust.Moon` / `astro.state.combust.combust.Venus`
+**서술 (confirm)**
+> 점성 핵심 행성(달·수성·금성)이 태양에 합으로 가려져 combust(8.5° 이내) — 그 행성이 가리키는 영역이 표면에 안 드러나는 구조. 사주 흉성 신살이 함께 있어 그 영역의 약점이 평생 패턴으로 박혀 있는 결.
+
+### `self.state.cazimi-power`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: Cazimi (heart of Sun) × 사주 길성 신살
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.shinsal.lucky.`
+- 점성 측: `astro.state.combust.cazimi.`
+**서술 (confirm)**
+> 점성 행성이 태양의 심장 안(cazimi, 0.28° 이내)에 들어 강하게 활성화 — 그 행성 영역에서 비범한 강세. 사주 길성 신살과 함께 — 인생에 강한 정점·재능 자원이 박혀 있는 결.
+
+### `career.state.classical-yangin-hapsal-fine`
+- **레이어**: 정적 (state)
+- **도메인**: career
+- **의미**: 양인합살 × Mars-Saturn dignified
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Mars.domicile` / `astro.state.dignity.Mars.exaltation` / `astro.state.dignity.Saturn.domicile` / `astro.state.dignity.Saturn.exaltation`
+**서술 (confirm)**
+> 사주 양인격에 칠살(편관)이 합으로 묶이는 양인합살 + 점성 Mars 또는 Saturn이 dignified(domicile/exalt) — 무관·정치·강한 결단 영역에서 두각을 나타내는 평생 결. 보편적 직장인보다 권력·구조 영역에서 형통.
 
 ---
 

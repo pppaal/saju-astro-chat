@@ -1,12 +1,42 @@
 // Meta-rules: detect cross-domain themes from per-domain aggregates.
 // Run AFTER the regular rule pass.
 //
-// 임계 정책:
+// Threshold philosophy:
 // - 단순 tone 기반 발화는 헐거움 → 강도 조건을 같이 본다.
-// - "negativeOrMixed" 정의에 strong confirm 또는 conflict 2+ 등의 강도 게이트.
-// - "strongPositive"는 strong confirm 1+ 요구.
+// - 모든 임계값은 META_THRESHOLDS 객체로 모아 외부 calibration 가능.
 
 import type { Domain, DomainAggregate, MetaRule } from './types'
+
+// 외부에서 calibration 가능한 메타룰 임계값.
+// - 운영 데이터 누적 후 통계적으로 보정할 때 이 객체만 갱신하면 모든 룰이 따라옴.
+export interface MetaThresholds {
+  /** strongNegative: minimum count of strong/moderate negative confirms or conflicts. */
+  strongNegativeMinSignals: number
+  /** strongPositive: requires at least one strong confirm. */
+  strongPositiveRequiresStrongConfirm: boolean
+  /** strongMixed: tone === 'mixed' AND has at least one strong intensity match. */
+  strongMixedRequiresStrongIntensity: boolean
+  /** anyStrongConfirm: minimum count of strong confirms. */
+  anyStrongConfirmMin: number
+}
+
+export const DEFAULT_META_THRESHOLDS: MetaThresholds = {
+  strongNegativeMinSignals: 2,
+  strongPositiveRequiresStrongConfirm: true,
+  strongMixedRequiresStrongIntensity: true,
+  anyStrongConfirmMin: 1,
+}
+
+let activeThresholds: MetaThresholds = { ...DEFAULT_META_THRESHOLDS }
+export function setMetaThresholds(t: Partial<MetaThresholds>): void {
+  activeThresholds = { ...activeThresholds, ...t }
+}
+export function getMetaThresholds(): MetaThresholds {
+  return { ...activeThresholds }
+}
+export function resetMetaThresholds(): void {
+  activeThresholds = { ...DEFAULT_META_THRESHOLDS }
+}
 
 const has = (
   byDomain: Record<Domain, DomainAggregate>,
@@ -15,18 +45,35 @@ const has = (
 ) => pred(byDomain[domain])
 
 // 실제 강한 부정 신호가 있는가? (단순 mixed tone만으론 부족)
-const strongNegative = (b: DomainAggregate) =>
-  b.confirms.some((m) => m.rule.polarityHint === 'neg' && (m.intensity === 'strong' || m.intensity === 'moderate')) ||
-  b.conflicts.filter((m) => m.intensity === 'strong' || m.intensity === 'moderate').length >= 2
+const strongNegative = (b: DomainAggregate) => {
+  const t = activeThresholds
+  const negativeStrong = b.confirms.some(
+    (m) => m.rule.polarityHint === 'neg' && (m.intensity === 'strong' || m.intensity === 'moderate'),
+  )
+  if (negativeStrong) return true
+  const conflictStrong = b.conflicts.filter(
+    (m) => m.intensity === 'strong' || m.intensity === 'moderate',
+  ).length
+  return conflictStrong >= t.strongNegativeMinSignals
+}
 
-const strongPositive = (b: DomainAggregate) =>
-  b.tone === 'positive' && b.confirms.some((m) => m.intensity === 'strong')
+const strongPositive = (b: DomainAggregate) => {
+  const t = activeThresholds
+  if (b.tone !== 'positive') return false
+  if (!t.strongPositiveRequiresStrongConfirm) return true
+  return b.confirms.some((m) => m.intensity === 'strong')
+}
 
-const strongMixed = (b: DomainAggregate) =>
-  b.tone === 'mixed' && (b.conflicts.some((m) => m.intensity === 'strong') || b.confirms.some((m) => m.intensity === 'strong'))
+const strongMixed = (b: DomainAggregate) => {
+  const t = activeThresholds
+  if (b.tone !== 'mixed') return false
+  if (!t.strongMixedRequiresStrongIntensity) return true
+  return b.conflicts.some((m) => m.intensity === 'strong') ||
+         b.confirms.some((m) => m.intensity === 'strong')
+}
 
 const anyStrongConfirm = (b: DomainAggregate) =>
-  b.confirms.some((m) => m.intensity === 'strong')
+  b.confirms.filter((m) => m.intensity === 'strong').length >= activeThresholds.anyStrongConfirmMin
 
 export const metaRules: MetaRule[] = [
   {

@@ -622,4 +622,16 @@ function pushAstroExtras(out: AstroSignal[], extras: AstroExtrasInput) {
       })
     }
   }
+
+  // ─── Combust / Cazimi / Under-Beams ──────────────────────
+  for (const c of extras.combustState) {
+    if (c.state === 'free') continue
+    out.push({
+      system: 'astro', layer: 'state',
+      key: `astro.state.combust.${c.state}.${c.planet}`,
+      fired: true,
+      strength: c.state === 'cazimi' ? 1 : c.state === 'combust' ? 0.9 : 0.6,
+      evidence: { planet: c.planet, state: c.state, orb: c.orb },
+    })
+  }
 }

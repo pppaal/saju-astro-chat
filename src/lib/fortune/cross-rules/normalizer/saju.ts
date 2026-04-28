@@ -815,10 +815,7 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
     let foundSangsin: string | null = null
     let strongCount = 0
     for (const cand of candidates) {
-      // 후보 그룹이 사주 안에 살아있는가 (≥2회)
-      const cnt = (sibsinGroupCountsExternal as Record<string, number> | undefined)?.[cand] ?? 0
-      // sibsinGroupCountsExternal not exposed; instead, check signals already pushed for this group.
-      // Use ctx-style: rebuild from out array.
+      // 후보 그룹이 사주 안에 살아있는가 — 이미 푸시된 sibsinGroup 신호를 검사.
       const inOut = out.find((s) => s.key === `saju.state.sibsinGroup.${cand}.strong` && s.fired)
       if (inOut) {
         foundSangsin = cand
@@ -956,9 +953,9 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
   }
 }
 
-// 외부 변수: sibsinGroup count는 normalizeSaju 본문에 있음.
-// pushExtraSignals가 그 값을 직접 못 보므로 위에서는 out 배열 검색으로 대체.
-const sibsinGroupCountsExternal = undefined
+// (note) 상신 후보 평가는 pushExtraSignals 안에서 'out' 배열을 검색해 이미
+// emit된 sibsinGroup.<grp>.strong 시그널을 확인하는 식으로 처리한다 — 별도
+// 외부 카운터 변수를 노출하지 않는다.
 
 function pushUnseSignals(
   out: SajuSignal[],

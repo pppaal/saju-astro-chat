@@ -164,4 +164,147 @@ export const healthRules: Rule[] = [
     astroPredicate: (a) =>
       hitByPrefix(a, ['astro.timing.event.activate.', 'astro.timing.transit.Neptune.', 'astro.timing.transit.Saturn.']),
   },
+
+  // ─── 한방(韓方) 일간 × 오행 불균형 패턴 ──────────────────
+  // 갑·을(목) — 간/담 / 병·정(화) — 심/소장 / 무·기(토) — 비/위
+  // 경·신(금) — 폐/대장 / 임·계(수) — 신/방광
+  // 일간이 강한 element + 그 element를 극하는 다른 element 강 = 부담
+
+  {
+    id: 'health.state.wood-fire-liver-heat',
+    layer: 'state',
+    domain: 'health',
+    meaning: '간열 패턴 (목 일간 + 화 강)',
+    polarityHint: 'neg',
+    narrative: {
+      confirm: '사주 일간이 갑·을(목)이고 화 기운이 강함 + 점성 fire 사인 강세 또는 Mars hard aspect — 한방 관점의 간열·두통·분노 누적 패턴이 평생 잠재. 정서 발산·휴식 루틴 중요.',
+    },
+    sajuPredicate: (_, ctx) => {
+      const dmEl = ctx.hasSaju('saju.state.dayMaster.element.wood')
+      const fireDom = ctx.hasSaju('saju.state.elementDominant.fire')
+      if (dmEl && fireDom) return { fired: true, strength: 0.85, evidence: { dayMaster: 'wood', fire: 'dominant' } }
+      return { fired: false, strength: 0, evidence: {} }
+    },
+    astroPredicate: (a) =>
+      hitByPrefix(a, [
+        'astro.state.elementDominant.fire',
+        'astro.relation.hard.Mars.',
+      ]),
+  },
+
+  {
+    id: 'health.state.fire-earth-skin-heat',
+    layer: 'state',
+    domain: 'health',
+    meaning: '화토상관 패턴 (화 일간 + 토 강)',
+    polarityHint: 'mixed',
+    narrative: {
+      confirm: '사주 일간이 병·정(화)이고 토 기운이 강함 + 점성 earth 강세 — 한방의 화토상관·피부·소화 부담 패턴. 단 식상 표현이 잘 되면 외부 발산으로 균형.',
+      conflict: '화 일간의 표현 욕구와 토의 안정 욕구가 부딪힘 — 외향과 내향의 균형이 건강의 키.',
+    },
+    sajuPredicate: (_, ctx) => {
+      const dmEl = ctx.hasSaju('saju.state.dayMaster.element.fire')
+      const earthDom = ctx.hasSaju('saju.state.elementDominant.earth')
+      if (dmEl && earthDom) return { fired: true, strength: 0.8, evidence: { dayMaster: 'fire', earth: 'dominant' } }
+      return { fired: false, strength: 0, evidence: {} }
+    },
+    astroPredicate: (a) => hitByKeys(a, ['astro.state.elementDominant.earth']),
+  },
+
+  {
+    id: 'health.state.earth-water-digestive',
+    layer: 'state',
+    domain: 'health',
+    meaning: '토류 패턴 (토 일간 + 수 강)',
+    polarityHint: 'neg',
+    narrative: {
+      confirm: '사주 일간이 무·기(토)이고 수 기운이 강함 + 점성 water 강세 — 한방의 토류(土流)·소화기 약화 패턴. 따뜻한 식이·규칙적 식사가 평생 중요.',
+    },
+    sajuPredicate: (_, ctx) => {
+      const dmEl = ctx.hasSaju('saju.state.dayMaster.element.earth')
+      const waterDom = ctx.hasSaju('saju.state.elementDominant.water')
+      if (dmEl && waterDom) return { fired: true, strength: 0.85, evidence: { dayMaster: 'earth', water: 'dominant' } }
+      return { fired: false, strength: 0, evidence: {} }
+    },
+    astroPredicate: (a) => hitByKeys(a, ['astro.state.elementDominant.water']),
+  },
+
+  {
+    id: 'health.state.metal-fire-respiratory',
+    layer: 'state',
+    domain: 'health',
+    meaning: '폐열 패턴 (금 일간 + 화 강)',
+    polarityHint: 'neg',
+    narrative: {
+      confirm: '사주 일간이 경·신(금)이고 화 기운이 강함 + 점성 fire 강세 또는 Mars hard 6궁 — 한방의 폐열·호흡기·대장 부담 패턴. 호흡 운동·맑은 공기 중요.',
+    },
+    sajuPredicate: (_, ctx) => {
+      const dmEl = ctx.hasSaju('saju.state.dayMaster.element.metal')
+      const fireDom = ctx.hasSaju('saju.state.elementDominant.fire')
+      if (dmEl && fireDom) return { fired: true, strength: 0.85, evidence: { dayMaster: 'metal', fire: 'dominant' } }
+      return { fired: false, strength: 0, evidence: {} }
+    },
+    astroPredicate: (a) =>
+      hitByPrefix(a, [
+        'astro.state.elementDominant.fire',
+        'astro.state.planet.Mars.house.6',
+      ]),
+  },
+
+  {
+    id: 'health.state.water-earth-kidney',
+    layer: 'state',
+    domain: 'health',
+    meaning: '신장 부담 (수 일간 + 토 강)',
+    polarityHint: 'neg',
+    narrative: {
+      confirm: '사주 일간이 임·계(수)이고 토 기운이 강함 + 점성 Saturn 6궁 또는 Capricorn 강세 — 한방의 신장·방광·뼈 부담 패턴. 수분·휴식·따뜻함 우선.',
+    },
+    sajuPredicate: (_, ctx) => {
+      const dmEl = ctx.hasSaju('saju.state.dayMaster.element.water')
+      const earthDom = ctx.hasSaju('saju.state.elementDominant.earth')
+      if (dmEl && earthDom) return { fired: true, strength: 0.85, evidence: { dayMaster: 'water', earth: 'dominant' } }
+      return { fired: false, strength: 0, evidence: {} }
+    },
+    astroPredicate: (a) =>
+      hitByKeys(a, [
+        'astro.state.planet.Saturn.house.6',
+        'astro.state.planet.Saturn.sign.Capricorn',
+        'astro.state.planet.Saturn.sign.염소자리',
+      ]),
+  },
+
+  // ─── 만성·정신 영역 ────────────────────────────────────
+  {
+    id: 'health.state.chronic-foundation',
+    layer: 'state',
+    domain: 'health',
+    meaning: '만성·잠복 영역',
+    polarityHint: 'neg',
+    narrative: {
+      confirm: '사주 일주 12운성이 휴면(쇠/병/사/묘/절)이고 점성 Saturn이 6궁에 자리 — 만성 컨디션 영역의 평생 잠재. 단기 회복보다 장기 관리·예방이 결.',
+    },
+    sajuPredicate: (s) => hitByKeys(s, ['saju.state.twelveStage.dormant.day']),
+    astroPredicate: (a) => hitByKeys(a, ['astro.state.planet.Saturn.house.6']),
+  },
+
+  {
+    id: 'health.state.psychosomatic',
+    layer: 'state',
+    domain: 'health',
+    meaning: '심신 연결 — 정서가 신체로',
+    polarityHint: 'mixed',
+    narrative: {
+      confirm: '사주 인성이 강하고 점성 Moon-Neptune 또는 12궁 emphasis — 정서·무의식이 신체에 직접 영향을 주는 결. 마음 관리가 곧 건강 관리.',
+      conflict: '내면 작업과 신체 활동의 우선순위가 바뀌는 시기 — 스트레스가 몸으로 가거나, 몸 상태가 정서를 좌우함.',
+    },
+    sajuPredicate: (s) => hitByKeys(s, ['saju.state.sibsinGroup.인성.strong']),
+    astroPredicate: (a) =>
+      hitByPrefix(a, [
+        'astro.state.planet.Moon.house.12',
+        'astro.relation.aspect.Moon.conjunction.Neptune',
+        'astro.relation.aspect.Moon.opposition.Neptune',
+        'astro.relation.aspect.Moon.square.Neptune',
+      ]),
+  },
 ]

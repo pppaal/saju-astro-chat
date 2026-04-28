@@ -153,7 +153,8 @@ export interface AstroExtrasInput {
       reception?: { by: string; method: 'domicile' | 'exaltation' }
     }
   }>
-  // Zodiacal Releasing Level 1 from Lot of Spirit (default starting Lot).
+  // Combust / Cazimi / Under-Beams per planet (Sun proximity).
+  combustState: Array<{ planet: string; state: 'cazimi' | 'combust' | 'under_beams' | 'free'; orb: number }>  // Zodiacal Releasing Level 1 from Lot of Spirit (default starting Lot).
   zodiacalReleasing?: {
     startingSign: string
     currentL1Sign: string
@@ -426,6 +427,24 @@ function computeExtras(natal: Chart): AstroExtrasInput {
     bonifications.push({ planet: target.name, condition, benefics, malefics, conditions })
   }
 
+  // ─── Combust / Under-the-Beams / Cazimi (Sun proximity) ──
+  // - Cazimi: within 17 arc-minutes (≈0.283°) of Sun → planet strengthened
+  // - Combust: within 8.5° of Sun → planet weakened
+  // - Under the Beams: within 17° but not 8.5° → mildly weakened
+  const combustState: Array<{ planet: string; state: 'cazimi' | 'combust' | 'under_beams' | 'free'; orb: number }> = []
+  if (sun) {
+    for (const p of planets) {
+      if (p.name === 'Sun') continue
+      const angle = ((p.longitude - sun.longitude + 360) % 360)
+      const folded = angle > 180 ? 360 - angle : angle
+      let state: 'cazimi' | 'combust' | 'under_beams' | 'free' = 'free'
+      if (folded < 0.283) state = 'cazimi'
+      else if (folded < 8.5) state = 'combust'
+      else if (folded < 17) state = 'under_beams'
+      combustState.push({ planet: p.name, state, orb: folded })
+    }
+  }
+
   // ─── Triplicity rulers (Dorothean/Hellenistic) ──────────
   // primary = day ruler, secondary = night ruler, participating = third.
   const triplicityRulers: AstroExtrasInput['triplicityRulers'] = [
@@ -452,6 +471,7 @@ function computeExtras(natal: Chart): AstroExtrasInput {
     triplicityRulers,
     planetaryJoys,
     bonifications,
+    combustState,
     // profectionRuler is filled in build step (needs profectionHouse + house signs).
   }
 }

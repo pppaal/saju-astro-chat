@@ -580,4 +580,63 @@ export const classicalRules: Rule[] = [
         'astro.state.bonif.overcoming.malefic.Moon',
       ]),
   },
+
+  // ─── Combust / Under-Beams / Cazimi ────────────────────────
+  {
+    id: 'self.state.combust-key-planet',
+    layer: 'state',
+    domain: 'self',
+    meaning: 'Combust 핵심 행성 × 사주 흉성 신살',
+    polarityHint: 'neg',
+    narrative: {
+      confirm: '점성 핵심 행성(달·수성·금성)이 태양에 합으로 가려져 combust(8.5° 이내) — 그 행성이 가리키는 영역이 표면에 안 드러나는 구조. 사주 흉성 신살이 함께 있어 그 영역의 약점이 평생 패턴으로 박혀 있는 결.',
+    },
+    sajuPredicate: (s) => hitByPrefix(s, ['saju.state.shinsal.unlucky.']),
+    astroPredicate: (a) =>
+      hitByPrefix(a, [
+        'astro.state.combust.combust.Moon',
+        'astro.state.combust.combust.Mercury',
+        'astro.state.combust.combust.Venus',
+      ]),
+  },
+  {
+    id: 'self.state.cazimi-power',
+    layer: 'state',
+    domain: 'self',
+    meaning: 'Cazimi (heart of Sun) × 사주 길성 신살',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '점성 행성이 태양의 심장 안(cazimi, 0.28° 이내)에 들어 강하게 활성화 — 그 행성 영역에서 비범한 강세. 사주 길성 신살과 함께 — 인생에 강한 정점·재능 자원이 박혀 있는 결.',
+    },
+    sajuPredicate: (s) => hitByPrefix(s, ['saju.state.shinsal.lucky.']),
+    astroPredicate: (a) => hitByPrefix(a, ['astro.state.combust.cazimi.']),
+  },
+
+  // ─── 양인합살(陽刃合殺) fine-grain ─────────────────────────
+  {
+    id: 'career.state.classical-yangin-hapsal-fine',
+    layer: 'state',
+    domain: 'career',
+    meaning: '양인합살 × Mars-Saturn dignified',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '사주 양인격에 칠살(편관)이 합으로 묶이는 양인합살 + 점성 Mars 또는 Saturn이 dignified(domicile/exalt) — 무관·정치·강한 결단 영역에서 두각을 나타내는 평생 결. 보편적 직장인보다 권력·구조 영역에서 형통.',
+    },
+    sajuPredicate: (s, ctx) => {
+      const yangin = ctx.hasSaju('saju.state.geokguk.양인격')
+      const sevenkill = ctx.hasSaju('saju.state.sibsin.strong.편관') ||
+                        ctx.hasSaju('saju.state.sibsinGroup.관성.strong')
+      if (yangin && sevenkill) {
+        return { fired: true, strength: 0.95, evidence: { yangin: true, sevenkill: true } }
+      }
+      return { fired: false, strength: 0, evidence: {} }
+    },
+    astroPredicate: (a) =>
+      hitByKeys(a, [
+        'astro.state.dignity.Mars.domicile',
+        'astro.state.dignity.Mars.exaltation',
+        'astro.state.dignity.Saturn.domicile',
+        'astro.state.dignity.Saturn.exaltation',
+      ]),
+  },
 ]

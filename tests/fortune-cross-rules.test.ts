@@ -270,4 +270,279 @@ describe('hitByKeys / hitByPrefix helpers', () => {
     expect(hitByPrefix(signals, ['astro.relation.hard.']).fired).toBe(true)
     expect(hitByPrefix(signals, ['astro.relation.soft.']).fired).toBe(false)
   })
+
+  it('hitByKeys returns no-hit when no signals match', () => {
+    const signals: SajuSignal[] = [sig('saju', 'state', 'saju.a') as SajuSignal]
+    expect(hitByKeys(signals, ['saju.zzz']).fired).toBe(false)
+  })
+
+  it('hitByPrefix considers multiple prefixes', () => {
+    const signals: SajuSignal[] = [
+      sig('saju', 'state', 'saju.foo.bar', 0.6) as SajuSignal,
+      sig('saju', 'state', 'saju.qux.baz', 0.8) as SajuSignal,
+    ]
+    expect(hitByPrefix(signals, ['saju.foo.', 'saju.qux.']).strength).toBe(0.8)
+  })
+})
+
+// ── extended coverage ────────────────────────────────────────
+import {
+  DEFAULT_META_THRESHOLDS,
+  getMetaThresholds,
+  resetMetaThresholds,
+  setMetaThresholds,
+  metaRules,
+} from '@/lib/fortune/cross-rules/metaRules'
+
+describe('rule corpus invariants', () => {
+  it('has at least 100 rules', () => {
+    expect(allRules.length).toBeGreaterThanOrEqual(100)
+  })
+
+  it('all rules have unique ids', () => {
+    const ids = allRules.map((r) => r.id)
+    const dup = ids.find((id, i) => ids.indexOf(id) !== i)
+    expect(dup, `duplicate id: ${dup}`).toBeUndefined()
+  })
+
+  it('every domain has at least one rule', () => {
+    const domains = new Set(allRules.map((r) => r.domain))
+    for (const d of ['self', 'love', 'money', 'career', 'health', 'family']) {
+      expect(domains.has(d as never), `domain ${d} has no rules`).toBe(true)
+    }
+  })
+
+  it('every layer has at least one rule', () => {
+    const layers = new Set(allRules.map((r) => r.layer))
+    expect(layers.has('state')).toBe(true)
+    expect(layers.has('relation')).toBe(true)
+    expect(layers.has('timing')).toBe(true)
+  })
+
+  it('every timing rule has a valid scale', () => {
+    const valid = ['longterm', 'decade', 'year', 'month', 'day', 'event']
+    for (const r of allRules) {
+      if (r.layer === 'timing') {
+        expect(valid.includes(r.scale!), `${r.id} has invalid scale ${r.scale}`).toBe(true)
+      }
+    }
+  })
+
+  it('rule narrative.confirm strings are non-trivial', () => {
+    for (const r of allRules) {
+      expect(r.narrative.confirm.length, `${r.id} narrative too short`).toBeGreaterThan(20)
+    }
+  })
+
+  it('meta-rules detect functions are pure (deterministic)', () => {
+    const empty = {
+      self: { domain: 'self', tone: 'neutral', confirms: [], conflicts: [], silents: [] },
+      love: { domain: 'love', tone: 'neutral', confirms: [], conflicts: [], silents: [] },
+      money: { domain: 'money', tone: 'neutral', confirms: [], conflicts: [], silents: [] },
+      career: { domain: 'career', tone: 'neutral', confirms: [], conflicts: [], silents: [] },
+      health: { domain: 'health', tone: 'neutral', confirms: [], conflicts: [], silents: [] },
+      family: { domain: 'family', tone: 'neutral', confirms: [], conflicts: [], silents: [] },
+    } as Parameters<typeof metaRules[number]['detect']>[0]
+    for (const m of metaRules) {
+      const a = m.detect(empty)
+      const b = m.detect(empty)
+      expect(a).toBe(b)
+      expect(typeof a).toBe('boolean')
+    }
+  })
+})
+
+describe('engine — edge cases', () => {
+  it('returns empty array when no rules given', () => {
+    expect(runRules([], [], [])).toEqual([])
+  })
+
+  it('strength=0 signals do not fire predicates (silent)', () => {
+    const r: Rule = {
+      id: 't.zero',
+      layer: 'state',
+      domain: 'self',
+      meaning: '',
+      polarityHint: 'pos',
+      narrative: { confirm: 'x' },
+      sajuPredicate: (s) => hitByKeys(s, ['saju.x']),
+      astroPredicate: (a) => hitByKeys(a, ['astro.y']),
+    }
+    const m = runRules(
+      [r],
+      [{ system: 'saju', layer: 'state', key: 'saju.x', fired: true, strength: 0, evidence: {} }],
+      [{ system: 'astro', layer: 'state', key: 'astro.y', fired: true, strength: 0, evidence: {} }],
+    )[0]
+    // hitByKeys requires strength > 0 to count, so strength=0 doesn't update best.
+    // Result: predicate returns no-hit → silent (correct: 0-strength = no real signal).
+    expect(m.polarity).toBe('silent')
+  })
+
+  it('non-fired signals do not contribute', () => {
+    const r: Rule = {
+      id: 't.unfired',
+      layer: 'relation',
+      domain: 'love',
+      meaning: '',
+      polarityHint: 'pos',
+      narrative: { confirm: 'x' },
+      sajuPredicate: (s) => hitByKeys(s, ['saju.x']),
+      astroPredicate: (a) => hitByKeys(a, ['astro.y']),
+    }
+    const m = runRules(
+      [r],
+      [{ system: 'saju', layer: 'relation', key: 'saju.x', fired: false, strength: 0.9, evidence: {} }],
+      [{ system: 'astro', layer: 'relation', key: 'astro.y', fired: true, strength: 0.9, evidence: {} }],
+    )[0]
+    expect(m.polarity).toBe('silent')
+  })
+})
+
+describe('aggregator — domain & meta interplay', () => {
+  it('all 6 domains present with neutral tone if no matches', () => {
+    const report = aggregate([], [])
+    for (const d of ['self', 'love', 'money', 'career', 'health', 'family']) {
+      expect(report.byDomain[d as never]).toBeDefined()
+      expect(report.byDomain[d as never].tone).toBe('neutral')
+    }
+  })
+
+  it('multiple confirms in same domain accumulate', () => {
+    const r1 = (
+      domain: 'self' | 'love' | 'money' | 'career' | 'health' | 'family',
+      id: string,
+    ): Rule => ({
+      id,
+      layer: 'state',
+      domain,
+      meaning: '',
+      polarityHint: 'pos',
+      narrative: { confirm: '' },
+      sajuPredicate: (s) => hitByKeys(s, [`saju.${id}`]),
+      astroPredicate: (a) => hitByKeys(a, [`astro.${id}`]),
+    })
+    const sajuS: SajuSignal[] = [
+      sig('saju', 'state', 'saju.a') as SajuSignal,
+      sig('saju', 'state', 'saju.b') as SajuSignal,
+    ]
+    const astroS: AstroSignal[] = [
+      sig('astro', 'state', 'astro.a') as AstroSignal,
+      sig('astro', 'state', 'astro.b') as AstroSignal,
+    ]
+    const matches = runRules([r1('money', 'a'), r1('money', 'b')], sajuS, astroS)
+    const r = aggregate(matches, [])
+    expect(r.byDomain.money.confirms).toHaveLength(2)
+  })
+})
+
+describe('meta thresholds — configurable knob', () => {
+  beforeEach(() => resetMetaThresholds())
+  afterEach(() => resetMetaThresholds())
+
+  it('default thresholds are applied', () => {
+    const t = getMetaThresholds()
+    expect(t).toEqual(DEFAULT_META_THRESHOLDS)
+  })
+
+  it('setMetaThresholds merges partials', () => {
+    setMetaThresholds({ strongNegativeMinSignals: 5 })
+    expect(getMetaThresholds().strongNegativeMinSignals).toBe(5)
+    expect(getMetaThresholds().anyStrongConfirmMin).toBe(DEFAULT_META_THRESHOLDS.anyStrongConfirmMin)
+  })
+
+  it('resetMetaThresholds restores defaults', () => {
+    setMetaThresholds({ strongNegativeMinSignals: 99 })
+    resetMetaThresholds()
+    expect(getMetaThresholds()).toEqual(DEFAULT_META_THRESHOLDS)
+  })
+})
+
+describe('classical patterns sanity', () => {
+  const classicalIds = [
+    'career.state.classical-bugwi-ssang',
+    'career.state.classical-gwanin',
+    'money.state.classical-siksin-saengjae',
+    'career.state.classical-sarin',
+    'career.state.classical-yangin-hapsal',
+    'self.state.classical-jongwang',
+    'family.state.classical-jonggang',
+    'career.state.classical-jongah',
+    'money.state.classical-jongjae',
+    'career.state.classical-jongsal',
+    'self.state.classical-hwagi',
+    'self.state.successful-pattern',
+    'self.state.broken-pattern',
+    'self.state.sangsin-strong',
+    'career.state.classical-yangin-hapsal-fine',
+  ]
+  for (const id of classicalIds) {
+    it(`rule "${id}" exists`, () => {
+      expect(allRules.find((r) => r.id === id), `missing ${id}`).toBeDefined()
+    })
+  }
+})
+
+describe('Hellenistic-pattern rules sanity', () => {
+  const hellenisticIds = [
+    'self.state.sect-benefic-strong',
+    'self.state.sect-malefic-strong',
+    'money.state.fortune-lot',
+    'self.timing.year.profection-lord',
+    'self.state.planetary-joy',
+    'career.state.spirit-lot-vocation',
+    'self.timing.event.zr-loosing',
+    'career.timing.year.zr-peak',
+    'self.timing.year.zr-ruler-active',
+    'self.timing.month.zr-l2-active',
+    'self.timing.month.zr-l2-peak',
+    'self.state.bonif-enclosure-malefic',
+    'self.state.bonif-reception',
+    'self.state.bonif-overcoming-malefic',
+    'self.state.combust-key-planet',
+    'self.state.cazimi-power',
+  ]
+  for (const id of hellenisticIds) {
+    it(`rule "${id}" exists`, () => {
+      expect(allRules.find((r) => r.id === id), `missing ${id}`).toBeDefined()
+    })
+  }
+})
+
+describe('health rules sanity', () => {
+  it('has health rules for at least 5 distinct meanings', () => {
+    const healthRules = allRules.filter((r) => r.domain === 'health')
+    expect(healthRules.length).toBeGreaterThanOrEqual(5)
+    const meanings = new Set(healthRules.map((r) => r.meaning))
+    expect(meanings.size).toBeGreaterThanOrEqual(5)
+  })
+
+  it('한방 일간×오행 patterns exist for all 5 day-master elements', () => {
+    const ids = [
+      'health.state.wood-fire-liver-heat',
+      'health.state.fire-earth-skin-heat',
+      'health.state.earth-water-digestive',
+      'health.state.metal-fire-respiratory',
+      'health.state.water-earth-kidney',
+    ]
+    for (const id of ids) {
+      expect(allRules.find((r) => r.id === id), `missing ${id}`).toBeDefined()
+    }
+  })
+})
+
+describe('rule predicate purity', () => {
+  it('no rule predicate throws on empty signal arrays', () => {
+    const ctx = {
+      hasSaju: () => false,
+      hasAstro: () => false,
+      sajuStrength: () => 0,
+      astroStrength: () => 0,
+      sajuByPrefix: () => [] as SajuSignal[],
+      astroByPrefix: () => [] as AstroSignal[],
+    }
+    for (const rule of allRules) {
+      expect(() => rule.sajuPredicate([], ctx), `${rule.id} sajuPredicate threw`).not.toThrow()
+      expect(() => rule.astroPredicate([], ctx), `${rule.id} astroPredicate threw`).not.toThrow()
+    }
+  })
 })
