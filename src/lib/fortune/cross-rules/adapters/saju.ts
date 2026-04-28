@@ -207,7 +207,10 @@ export function buildSajuNormalizerInput(input: SajuAdapterInput): SajuNormalize
   )
 
   const natalRelations = analyzeRelations(
-    toAnalyzeInputFromSaju(saju.pillars, saju.dayMaster.name),
+    toAnalyzeInputFromSaju(saju.pillars, saju.dayMaster.name, {
+      includeGongmang: true,
+      gongmangPolicy: 'dayPillar-60jiazi',
+    }),
   )
 
   const birthDateObj = new Date(`${input.birthDate}T${input.birthTime}:00`)

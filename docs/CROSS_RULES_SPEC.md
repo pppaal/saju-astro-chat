@@ -2,25 +2,25 @@
 
 > 자동 생성 문서. 룰 정의가 진실의 원천이며, 이 문서는 `scripts/generate-rules-spec.ts`로 재생성됩니다.
 
-총 룰 수: **85**  ·  메타룰 수: **10**
+총 룰 수: **96**  ·  메타룰 수: **10**
 
 ## 인덱스
 
-- **정적 (state)**: 43개
+- **정적 (state)**: 53개
 - **관계 (relation)**: 11개
-- **시점 (timing)**: 31개
+- **시점 (timing)**: 32개
     - 10년 (대운): 6개
-    - 1년 (세운/SR): 15개
+    - 1년 (세운/SR): 16개
     - 1달 (월운/LR): 3개
     - 1일 (일진/transit): 2개
     - 이벤트 (활성화): 5개
 
 ### 도메인 분포
 
-- **self**: 38개
-- **love**: 8개
-- **money**: 8개
-- **career**: 14개
+- **self**: 42개
+- **love**: 9개
+- **money**: 10개
+- **career**: 18개
 - **health**: 7개
 - **family**: 10개
 
@@ -541,6 +541,124 @@
 
 > 식상 강한데 6궁 신호와 어긋남 — 활동량과 회복량이 매칭 안 되는 패턴이 있을 수 있음.
 
+### `self.state.sect-benefic-strong`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: sect 길성 강세
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.shinsal.lucky.`
+- 점성 측: `astro.state.sectBenefic.greater.Jupiter` / `astro.state.sectBenefic.greater.Venus`
+**서술 (confirm)**
+> 점성 sect 길성(낮차트=목성, 밤차트=금성)이 dignity 강하고 사주 길성 신살이 함께 — 본인 sect 색의 길성 자원이 평생 자기 결.
+
+### `self.state.sect-malefic-strong`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: sect 흉성 강세
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.shinsal.unlucky.`
+- 점성 측: `astro.state.sectMalefic.greater.Mars` / `astro.state.sectMalefic.greater.Saturn`
+**서술 (confirm)**
+> 점성 sect 흉성(낮차트=화성, 밤차트=토성)이 강하고 사주 흉성 신살이 함께 — sect 흉성 영역의 도전이 인생 패턴으로 들어옴.
+
+### `money.state.fortune-lot`
+- **레이어**: 정적 (state)
+- **도메인**: money
+- **의미**: Lot of Fortune × 재성 자리
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.lotOfFortune.house.11` / `astro.state.lotOfFortune.house.2` / `astro.state.lotOfFortune.house.8`
+**서술 (confirm)**
+> 점성 Lot of Fortune이 2궁/8궁/11궁 등 재물 라인에 들어와 있고 사주 재성 그룹도 강세 — 평생 재물 자리가 또렷하게 그려진 결.
+
+### `career.state.classical-bugwi-ssang`
+- **레이어**: 정적 (state)
+- **도메인**: career
+- **의미**: 부귀쌍전 (정관격+재성용신)
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Jupiter.house.10` / `astro.state.planet.Jupiter.house.2` / `astro.state.planet.Sun.house.10` / `astro.state.planet.Venus.house.2`
+**서술 (confirm)**
+> 사주 정관격 + 재성용신의 부귀쌍전 구조가 잡혔고 점성 MC 또는 2궁/10궁 강세가 함께 — 명예와 부가 양립 가능한 평생 결.
+
+### `career.state.classical-gwanin`
+- **레이어**: 정적 (state)
+- **도메인**: career
+- **의미**: 관인상생 (정관격+인성용신)
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Jupiter.house.9` / `astro.state.planet.Mercury.house.3` / `astro.state.planet.Mercury.house.9`
+**서술 (confirm)**
+> 사주 관인상생(정관격+인성용신) 학자형 구조 + 점성 9궁/3궁 또는 Jupiter 강조 — 학문과 명예가 자연스럽게 연결되는 평생 결.
+
+### `money.state.classical-siksin-saengjae`
+- **레이어**: 정적 (state)
+- **도메인**: money
+- **의미**: 식신생재 (식신격+재성용신)
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Jupiter.house.2` / `astro.state.planet.Venus.house.2` / `astro.state.planet.Venus.house.5`
+**서술 (confirm)**
+> 사주 식신생재 구조 + 점성 5궁/2궁 강조 — 표현·창작이 직접 재물로 연결되는 결.
+
+### `career.state.classical-sarin`
+- **레이어**: 정적 (state)
+- **도메인**: career
+- **의미**: 살인상생 (편관격+인성용신)
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Saturn.domicile` / `astro.state.dignity.Saturn.exaltation` / `astro.state.planet.Saturn.house.10`
+**서술 (confirm)**
+> 사주 살인상생(편관을 인성으로 화) 권력자 구조 + 점성 Saturn dignity 또는 10궁 — 큰 압박을 지혜로 다루는 권력 패턴.
+
+### `career.state.classical-yangin-hapsal`
+- **레이어**: 정적 (state)
+- **도메인**: career
+- **의미**: 양인합살 (양인격+칠살용신)
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Mars.domicile` / `astro.state.dignity.Mars.exaltation` / `astro.state.planet.Mars.house.1` / `astro.state.planet.Mars.house.10`
+**서술 (confirm)**
+> 사주 양인합살 구조 + 점성 Mars dignity 또는 angular Mars — 무관·정치·결단력 직업의 평생 결.
+
+### `self.state.gongmang-day`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: 일주 공망
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Moon.house.12` / `astro.state.planet.Sun.house.12` / `astro.state.stellium.house.12`
+**서술 (confirm)**
+> 사주 일주가 공망에 든 위치 + 점성 12궁 행성 강조 — 자아 영역에 비어있음·내적 영역의 비중. 영성·내면 작업이 자기 결과 잘 맞음.
+
+**서술 (conflict / 양면)**
+
+> 공망은 비움인데 점성 12궁이 비활성 — 안과 밖이 다른 메시지. 의식적으로 내면 시간 마련 필요.
+
+### `family.state.gongmang-spouse`
+- **레이어**: 정적 (state)
+- **도메인**: love
+- **의미**: 배우자궁 공망
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Neptune.house.7`
+**서술 (confirm)**
+> 일지가 공망 위치 + 점성 7궁 비활성 또는 Neptune 7궁 — 관계 영역에 "잡히지 않는" 결. 늦게 만나거나 영적·이상적 결합 패턴.
+
+**서술 (conflict / 양면)**
+
+> 공망의 비움과 7궁 활성이 어긋남 — 외형적 관계는 활성인데 내적 안정감은 잡히지 않는 양면.
+
 ---
 
 ## 관계 (RELATION) 레이어
@@ -924,6 +1042,17 @@
 - 점성 측: `astro.timing.solarReturn.Jupiter.house.6` / `astro.timing.solarReturn.Moon.house.4` / `astro.timing.solarReturn.Moon.house.6`
 **서술 (confirm)**
 > 세운 인성과 Solar Return의 Jupiter/Moon benefic 위치가 함께 — 회복·치유·휴식의 흐름이 자연스러운 해.
+
+### `self.timing.year.profection-lord`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: self
+- **의미**: 연 통치자 활성
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.timing.seun.sibsin.`
+- 점성 측: `astro.timing.profectionLord.`
+**서술 (confirm)**
+> 점성 annual profection ruler가 어느 하우스에 있는지에 따라 그 영역이 올해 핵심. 사주 세운에서도 같은 영역의 십성이 활성화되어 있음.
 
 ### 스케일: 1달 (월운/LR)
 

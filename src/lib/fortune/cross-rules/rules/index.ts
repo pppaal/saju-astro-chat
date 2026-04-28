@@ -1,3 +1,4 @@
+import { classicalRules } from './classical'
 import { extraRules } from './extras'
 import { healthRules } from './health'
 import { relationRules } from './relation'
@@ -11,6 +12,7 @@ export const allRules: Rule[] = [
   ...timingRules,
   ...extraRules,
   ...healthRules,
+  ...classicalRules,
 ]
 
-export { stateRules, relationRules, timingRules, extraRules, healthRules }
+export { stateRules, relationRules, timingRules, extraRules, healthRules, classicalRules }

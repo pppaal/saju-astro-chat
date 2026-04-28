@@ -573,13 +573,13 @@ export function normalizeSaju(input: SajuNormalizerInput): SajuSignal[] {
 
   // ── extras: 신살 / 12운성 / 격국 / 용신 / 지장간 ────────
   if (input.extras) {
-    pushExtraSignals(out, input.extras)
+    pushExtraSignals(out, input.extras, saju)
   }
 
   return out
 }
 
-function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerInput['extras']>) {
+function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerInput['extras']>, saju: CalculateSajuDataResult) {
   // 신살 (각 hit를 single signal로 + 길/흉 분류 시그널)
   const luckyShinsal = new Set(['천을귀인','천덕귀인','월덕귀인','문창','학당','금여','암록','복성귀인','반안','장성','길성'])
   const unluckyShinsal = new Set(['망신','겁살','재살','천살','월살','육해','괘살','흉성','자형'])
@@ -732,6 +732,68 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
         strength: 0.5,
         evidence: { pillar, hidden: hs },
       })
+    }
+  }
+
+  // ─── 격국 + 용신 classical 조합 (자평진전 패턴) ──────────
+  // 용신 오행으로 이어지는 십성을 매핑해서 조합 식별.
+  if (extras.geokguk && extras.yongsin && extras.geokguk.primary !== '미정') {
+    const elementToSibsinForDM: Record<string, string> = {
+      // (간단 매핑) 일간이 X일 때 어떤 오행이 어떤 십성? — 일간 양음에 따라 정/편 미세 차이는 LLM에서 보정.
+      // 여기서는 그룹 단위로만 사용.
+    }
+    void elementToSibsinForDM // (사용 안 함; 그룹 매칭으로 진행)
+
+    const yongsinKo = extras.yongsin.primaryYongsin // '목'/'화'/'토'/'금'/'수'
+    const dmEl = saju.dayMaster.element
+    // 일간 vs 용신 오행 관계 → 어떤 십성 그룹이 용신인지 결정
+    const sangsang: Record<string, string> = { 목: '화', 화: '토', 토: '금', 금: '수', 수: '목' } // 생함
+    const sangsangBack: Record<string, string> = { 화: '목', 토: '화', 금: '토', 수: '금', 목: '수' } // 받음
+    const sangkeuk: Record<string, string> = { 목: '토', 토: '수', 수: '화', 화: '금', 금: '목' } // 극함
+    const sangkeukBack: Record<string, string> = { 토: '목', 수: '토', 화: '수', 금: '화', 목: '금' } // 극받음
+
+    let yongsinGroup: string | null = null
+    if (yongsinKo === dmEl) yongsinGroup = '비겁'
+    else if (sangsang[dmEl] === yongsinKo) yongsinGroup = '식상'
+    else if (sangsangBack[dmEl] === yongsinKo) yongsinGroup = '인성'
+    else if (sangkeuk[dmEl] === yongsinKo) yongsinGroup = '재성'
+    else if (sangkeukBack[dmEl] === yongsinKo) yongsinGroup = '관성'
+
+    if (yongsinGroup) {
+      out.push({
+        system: 'saju',
+        layer: 'state',
+        key: `saju.state.yongsinGroup.${yongsinGroup}`,
+        fired: true,
+        strength: 0.9,
+        evidence: { yongsin: yongsinKo, dayMaster: dmEl, group: yongsinGroup },
+      })
+
+      // 자평진전 classical 조합 식별:
+      const geokguk = extras.geokguk.primary
+      const combos: Array<{ geokguk: string; yongsin: string; id: string; meaning: string }> = [
+        { geokguk: '정관격', yongsin: '재성', id: '부귀쌍전', meaning: '정관격에 재성이 받쳐주는 부귀쌍전 구조' },
+        { geokguk: '정관격', yongsin: '인성', id: '관인상생', meaning: '정관격에 인성이 흐르는 명예·학문 구조' },
+        { geokguk: '식신격', yongsin: '재성', id: '식신생재', meaning: '식신이 재성을 생하는 부유 패턴' },
+        { geokguk: '편관격', yongsin: '인성', id: '살인상생', meaning: '칠살을 인성으로 화하는 권력자 구조' },
+        { geokguk: '편관격', yongsin: '식상', id: '식신제살', meaning: '식상이 칠살을 제어하는 능동적 권력' },
+        { geokguk: '양인격', yongsin: '관성', id: '양인합살', meaning: '양인이 칠살과 합하는 무관·정치 패턴' },
+        { geokguk: '정인격', yongsin: '관성', id: '관인쌍청', meaning: '관성과 인성이 함께 청한 학자형 구조' },
+        { geokguk: '편인격', yongsin: '관성', id: '편인봉관', meaning: '비정형 학습이 권위와 만나는 구조' },
+        { geokguk: '정재격', yongsin: '관성', id: '재관인상생', meaning: '재성이 관성을 생하는 부유한 책임가' },
+        { geokguk: '편재격', yongsin: '관성', id: '편재봉살', meaning: '활동 재성이 권력과 만나는 큰 흐름' },
+      ]
+      const matched = combos.find((c) => c.geokguk === geokguk && c.yongsin === yongsinGroup)
+      if (matched) {
+        out.push({
+          system: 'saju',
+          layer: 'state',
+          key: `saju.state.classicalCombo.${matched.id}`,
+          fired: true,
+          strength: 0.95,
+          evidence: { geokguk, yongsinGroup, comboId: matched.id, meaning: matched.meaning },
+        })
+      }
     }
   }
 }

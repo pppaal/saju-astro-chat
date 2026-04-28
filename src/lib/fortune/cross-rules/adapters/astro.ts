@@ -127,6 +127,12 @@ export interface AstroExtrasInput {
   mutualReceptions: Array<{ a: string; b: string; aIn: string; bIn: string }>
   progressedAspects?: Array<{ progressed: string; natal: string; angle: number }>
   fixedStarConjunctions?: FixedStarConjunction[]
+  // Classical Hellenistic additions:
+  sect: 'day' | 'night'
+  sectLight: 'Sun' | 'Moon'
+  lotOfFortune: { longitude: number; sign: string; house: number }
+  triplicityRulers: Array<{ element: 'fire' | 'earth' | 'air' | 'water'; primary: string; secondary: string; participating: string }>
+  profectionRuler?: { house: number; sign: string; ruler: string; rulerHouse: number }
 }
 
 function computeExtras(natal: Chart): AstroExtrasInput {
@@ -238,6 +244,45 @@ function computeExtras(natal: Chart): AstroExtrasInput {
     accidentals.push({ planet: p.name, score, tier, reasons })
   }
 
+  // ─── Sect (Hellenistic 낮/밤 차트 결정) ─────────────────
+  // Day: Sun above horizon = houses 7-12. Night: houses 1-6.
+  const sun = planets.find((p) => p.name === 'Sun')
+  const moon = planets.find((p) => p.name === 'Moon')
+  const sect: 'day' | 'night' = sun && sun.house >= 7 && sun.house <= 12 ? 'day' : 'night'
+  const sectLight: 'Sun' | 'Moon' = sect === 'day' ? 'Sun' : 'Moon'
+
+  // ─── Lot of Fortune ─────────────────────────────────────
+  // Day chart:  ASC + Moon - Sun
+  // Night chart: ASC + Sun - Moon
+  let lotOfFortune: AstroExtrasInput['lotOfFortune'] = { longitude: 0, sign: '', house: 1 }
+  if (sun && moon) {
+    const ascLon = natal.ascendant.longitude
+    const lonRaw = sect === 'day' ? ascLon + moon.longitude - sun.longitude : ascLon + sun.longitude - moon.longitude
+    const lon = ((lonRaw % 360) + 360) % 360
+    const SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
+    const sign = SIGNS[Math.floor(lon / 30)] ?? ''
+    // Determine house by walking through houses cusps.
+    let house = 1
+    if (natal.houses && natal.houses.length === 12) {
+      for (let i = 0; i < 12; i++) {
+        const cur = natal.houses[i].cusp
+        const next = natal.houses[(i + 1) % 12].cusp
+        const inBetween = cur < next ? lon >= cur && lon < next : lon >= cur || lon < next
+        if (inBetween) { house = natal.houses[i].index; break }
+      }
+    }
+    lotOfFortune = { longitude: lon, sign, house }
+  }
+
+  // ─── Triplicity rulers (Dorothean/Hellenistic) ──────────
+  // primary = day ruler, secondary = night ruler, participating = third.
+  const triplicityRulers: AstroExtrasInput['triplicityRulers'] = [
+    { element: 'fire', primary: 'Sun', secondary: 'Jupiter', participating: 'Saturn' },
+    { element: 'earth', primary: 'Venus', secondary: 'Moon', participating: 'Mars' },
+    { element: 'air', primary: 'Saturn', secondary: 'Mercury', participating: 'Jupiter' },
+    { element: 'water', primary: 'Venus', secondary: 'Mars', participating: 'Moon' },
+  ]
+
   return {
     dignities,
     accidentals,
@@ -248,6 +293,11 @@ function computeExtras(natal: Chart): AstroExtrasInput {
     stelliumBySign,
     houseCusps,
     mutualReceptions,
+    sect,
+    sectLight,
+    lotOfFortune,
+    triplicityRulers,
+    // profectionRuler is filled in build step (needs profectionHouse + house signs).
   }
 }
 
@@ -314,6 +364,30 @@ export async function buildAstroNormalizerInput(input: AstroAdapterInput): Promi
   }
 
   const profectionHouse = profectionHouseFor(input, q)
+
+  // Profection ruler: traditional sign rulers used.
+  // Profected sign = sign of natal house at profectionHouse cusp.
+  const TRAD_RULER: Record<string, string> = {
+    Aries: 'Mars', Taurus: 'Venus', Gemini: 'Mercury', Cancer: 'Moon',
+    Leo: 'Sun', Virgo: 'Mercury', Libra: 'Venus', Scorpio: 'Mars',
+    Sagittarius: 'Jupiter', Capricorn: 'Saturn', Aquarius: 'Saturn', Pisces: 'Jupiter',
+    양자리: 'Mars', 황소자리: 'Venus', 쌍둥이자리: 'Mercury', 게자리: 'Moon',
+    사자자리: 'Sun', 처녀자리: 'Mercury', 천칭자리: 'Venus', 전갈자리: 'Mars',
+    사수자리: 'Jupiter', 염소자리: 'Saturn', 물병자리: 'Saturn', 물고기자리: 'Jupiter',
+  }
+  const profectedHouseObj = (natal.houses ?? []).find((h) => h.index === profectionHouse)
+  if (profectedHouseObj) {
+    const ruler = TRAD_RULER[profectedHouseObj.sign]
+    if (ruler) {
+      const rulerPlanet = natal.planets.find((p) => p.name === ruler)
+      extras.profectionRuler = {
+        house: profectionHouse,
+        sign: profectedHouseObj.sign,
+        ruler,
+        rulerHouse: rulerPlanet?.house ?? profectionHouse,
+      }
+    }
+  }
 
   return {
     natal,

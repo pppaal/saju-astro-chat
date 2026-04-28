@@ -403,4 +403,65 @@ function pushAstroExtras(out: AstroSignal[], extras: AstroExtrasInput) {
       })
     }
   }
+
+  // ─── Sect (Hellenistic 낮/밤 차트) ────────────────────────
+  out.push({
+    system: 'astro', layer: 'state',
+    key: `astro.state.sect.${extras.sect}`,
+    fired: true, strength: 1,
+    evidence: { sect: extras.sect, sectLight: extras.sectLight },
+  })
+  // sect-aware benefic/malefic 강도. 낮차트는 Jupiter강·Saturn약, 밤차트는 Venus강·Mars약.
+  if (extras.sect === 'day') {
+    out.push({ system: 'astro', layer: 'state', key: 'astro.state.sectBenefic.greater.Jupiter', fired: true, strength: 0.9, evidence: { sect: 'day' } })
+    out.push({ system: 'astro', layer: 'state', key: 'astro.state.sectBenefic.lesser.Venus', fired: true, strength: 0.7, evidence: { sect: 'day' } })
+    out.push({ system: 'astro', layer: 'state', key: 'astro.state.sectMalefic.greater.Mars', fired: true, strength: 0.9, evidence: { sect: 'day' } })
+    out.push({ system: 'astro', layer: 'state', key: 'astro.state.sectMalefic.lesser.Saturn', fired: true, strength: 0.7, evidence: { sect: 'day' } })
+  } else {
+    out.push({ system: 'astro', layer: 'state', key: 'astro.state.sectBenefic.greater.Venus', fired: true, strength: 0.9, evidence: { sect: 'night' } })
+    out.push({ system: 'astro', layer: 'state', key: 'astro.state.sectBenefic.lesser.Jupiter', fired: true, strength: 0.7, evidence: { sect: 'night' } })
+    out.push({ system: 'astro', layer: 'state', key: 'astro.state.sectMalefic.greater.Saturn', fired: true, strength: 0.9, evidence: { sect: 'night' } })
+    out.push({ system: 'astro', layer: 'state', key: 'astro.state.sectMalefic.lesser.Mars', fired: true, strength: 0.7, evidence: { sect: 'night' } })
+  }
+
+  // ─── Lot of Fortune ──────────────────────────────────────
+  out.push({
+    system: 'astro', layer: 'state',
+    key: `astro.state.lotOfFortune.house.${extras.lotOfFortune.house}`,
+    fired: true, strength: 0.9,
+    evidence: { house: extras.lotOfFortune.house, sign: extras.lotOfFortune.sign },
+  })
+  out.push({
+    system: 'astro', layer: 'state',
+    key: `astro.state.lotOfFortune.sign.${extras.lotOfFortune.sign}`,
+    fired: true, strength: 0.7,
+    evidence: { sign: extras.lotOfFortune.sign },
+  })
+
+  // ─── Triplicity rulers (참고 신호 — 단일 사실) ──────────
+  for (const t of extras.triplicityRulers) {
+    out.push({
+      system: 'astro', layer: 'state',
+      key: `astro.state.triplicity.${t.element}.${extras.sect === 'day' ? t.primary : t.secondary}`,
+      fired: true, strength: 0.5,
+      evidence: { element: t.element, ruler: extras.sect === 'day' ? t.primary : t.secondary },
+    })
+  }
+
+  // ─── Profection time-lord (연 통치자) ────────────────────
+  if (extras.profectionRuler) {
+    const pr = extras.profectionRuler
+    out.push({
+      system: 'astro', layer: 'timing', scale: 'year',
+      key: `astro.timing.profectionLord.${pr.ruler}`,
+      fired: true, strength: 0.85,
+      evidence: { ruler: pr.ruler, rulerHouse: pr.rulerHouse, profectedHouse: pr.house, profectedSign: pr.sign },
+    })
+    out.push({
+      system: 'astro', layer: 'timing', scale: 'year',
+      key: `astro.timing.profectionLord.${pr.ruler}.house.${pr.rulerHouse}`,
+      fired: true, strength: 0.9,
+      evidence: { ruler: pr.ruler, rulerHouse: pr.rulerHouse },
+    })
+  }
 }
