@@ -17,6 +17,11 @@ export interface BirthProfile {
   longitude: number
   // If absent, derived from birthDate parts.
   astroTimezone?: string
+  /**
+   * 사주 시간 보정 모드. 기본 'standard'.
+   * 'meanSolar' 또는 'trueSolar' 시 longitude로 보정.
+   */
+  solarTimeMode?: 'standard' | 'meanSolar' | 'trueSolar'
 }
 
 export interface RunFortuneInput {
@@ -46,6 +51,8 @@ export async function runFortune(input: RunFortuneInput): Promise<FortuneReport>
       calendarType: input.birth.calendarType,
       timezone: tz,
       queryDate,
+      solarTimeMode: input.birth.solarTimeMode,
+      longitude: input.birth.longitude,
     }),
   )
 

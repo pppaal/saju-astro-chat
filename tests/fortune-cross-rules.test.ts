@@ -615,6 +615,42 @@ describe('regression: unified ganji + stem/branch fields', () => {
   })
 })
 
+describe('solarTimeMode opt-in', () => {
+  it('standard mode is default and preserves time', async () => {
+    const { correctSolarTime } = await import('@/lib/fortune/cross-rules/adapters/solar-time')
+    const r = correctSolarTime('1995-02-09', '06:40', 126.978, 'standard')
+    expect(r.date).toBe('1995-02-09')
+    expect(r.time).toBe('06:40')
+  })
+
+  it('meanSolar mode shifts Seoul time ~32 min earlier', async () => {
+    const { correctSolarTime } = await import('@/lib/fortune/cross-rules/adapters/solar-time')
+    const r = correctSolarTime('1995-02-09', '06:40', 126.978, 'meanSolar')
+    expect(r.date).toBe('1995-02-09')
+    // (126.978 - 135) * 4 = -32.088 min → 06:40 - 32 = 06:08
+    expect(r.time).toBe('06:08')
+  })
+
+  it('trueSolar mode adds equation-of-time correction', async () => {
+    const { correctSolarTime } = await import('@/lib/fortune/cross-rules/adapters/solar-time')
+    const r = correctSolarTime('1995-02-09', '06:40', 126.978, 'trueSolar')
+    expect(r.date).toBe('1995-02-09')
+    // Feb 9 EoT ≈ -14 min → 06:40 - 32 - 14 = 05:54 (±1)
+    const [hh, mm] = r.time.split(':').map(Number)
+    const totalMin = hh * 60 + mm
+    expect(totalMin).toBeGreaterThan(5 * 60 + 50)
+    expect(totalMin).toBeLessThan(6 * 60 + 0)
+  })
+
+  it('time crossing midnight adjusts date', async () => {
+    const { correctSolarTime } = await import('@/lib/fortune/cross-rules/adapters/solar-time')
+    // 00:10 KST + (-32 min) = -22 min → previous day 23:38
+    const r = correctSolarTime('1995-02-09', '00:10', 126.978, 'meanSolar')
+    expect(r.date).toBe('1995-02-08')
+    expect(r.time).toBe('23:38')
+  })
+})
+
 describe('regression: 대운 calculation', () => {
   // 1995-02-09 06:40 서울 남자용 8자 + 대운 검증.
   // 이전 saju.ts:346 버그로 역행 대운수 = 11 (정답은 2). 이 테스트는

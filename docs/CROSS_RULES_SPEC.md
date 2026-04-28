@@ -2,27 +2,27 @@
 
 > 자동 생성 문서. 룰 정의가 진실의 원천이며, 이 문서는 `scripts/generate-rules-spec.ts`로 재생성됩니다.
 
-총 룰 수: **147**  ·  메타룰 수: **10**
+총 룰 수: **205**  ·  메타룰 수: **10**
 
 ## 인덱스
 
-- **정적 (state)**: 91개
+- **정적 (state)**: 121개
 - **관계 (relation)**: 11개
-- **시점 (timing)**: 45개
+- **시점 (timing)**: 73개
     - 10년 (대운): 6개
-    - 1년 (세운/SR): 23개
-    - 1달 (월운/LR): 5개
+    - 1년 (세운/SR): 46개
+    - 1달 (월운/LR): 7개
     - 1일 (일진/transit): 2개
-    - 이벤트 (활성화): 9개
+    - 이벤트 (활성화): 12개
 
 ### 도메인 분포
 
-- **self**: 59개
-- **love**: 9개
-- **money**: 11개
-- **career**: 43개
+- **self**: 62개
+- **love**: 26개
+- **money**: 29개
+- **career**: 49개
 - **health**: 14개
-- **family**: 11개
+- **family**: 25개
 
 ---
 
@@ -1093,6 +1093,356 @@
 
 > 변혁 신호와 안정 신호가 혼재 — 깊게 들어가는 일과 표면 안정 사이 분기.
 
+### `love.state.spouse-element-match`
+- **레이어**: 정적 (state)
+- **도메인**: love
+- **의미**: 배우자 오행과 본인 일간 상생
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Venus.domicile` / `astro.state.dignity.Venus.exaltation`
+**서술 (confirm)**
+> 사주 일지(배우자궁) 오행이 일간을 생하거나 일간이 생하는 관계 + 점성 Venus가 ASC sign과 친화 사인 — 본인을 도울 배우자상이 평생에 박힘.
+
+### `love.state.early-marriage`
+- **레이어**: 정적 (state)
+- **도메인**: love
+- **의미**: 이른 결합 결
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Venus.house.1` / `astro.state.planet.Venus.house.10` / `astro.state.planet.Venus.house.4` / `astro.state.planet.Venus.house.7`
+**서술 (confirm)**
+> 사주 정재 천간 투출 + 일지 합·삼합 + 점성 Venus angular(1·4·7·10궁) — 비교적 이른 시기에 안정 결합 가능한 결.
+
+### `love.state.late-marriage`
+- **레이어**: 정적 (state)
+- **도메인**: love
+- **의미**: 늦은 결합 결
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Saturn.house.7` / `astro.state.retrograde.Venus`
+**서술 (confirm)**
+> 사주 일지 공망 또는 화개·관성 부재 + 점성 Saturn 7궁 또는 Venus retrograde — 결합이 늦거나 의식적 시점 선택이 필요한 결. 깊이는 갖춤.
+
+**서술 (conflict / 양면)**
+
+> 늦은 결합 신호와 조기 결합 신호가 혼재 — 결혼 시기에 대한 외부·내부 기대가 충돌 가능.
+
+### `love.state.romantic-magnetism`
+- **레이어**: 정적 (state)
+- **도메인**: love
+- **의미**: 관계 자성 — 끌어당기는 결
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.relation.aspect.Venus.conjunction.Mars` / `astro.state.planet.Venus.house.5` / `astro.state.stellium.house.5`
+**서술 (confirm)**
+> 사주 도화살 또는 홍염 + 점성 Venus·Mars 합 또는 5궁 강조 — 관계에서 끌어당기는 자성이 평생 강한 결. 다만 선택권을 가지는 입장.
+
+### `love.state.partnership-orientation`
+- **레이어**: 정적 (state)
+- **도메인**: love
+- **의미**: 파트너십 지향
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Ascendant.sign.Libra` / `astro.state.stellium.house.7`
+**서술 (confirm)**
+> 사주 정관 강 + 점성 Libra ASC 또는 7궁 ruler가 angular — 둘이 함께 만드는 결을 선호. 혼자보다 동반자와의 시너지가 본인 결.
+
+### `love.state.independence-in-love`
+- **레이어**: 정적 (state)
+- **도메인**: love
+- **의미**: 관계 안에서의 독립
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Mars.house.7` / `astro.state.planet.Uranus.house.7`
+**서술 (confirm)**
+> 사주 비겁·식상 강 + 점성 Mars 7궁 또는 Uranus 7궁 — 깊은 관계 안에서도 독립·자유 영역 보존이 본인에게 중요한 결.
+
+**서술 (conflict / 양면)**
+
+> 독립 욕구와 관계 헌신 욕구가 같이 있음 — 거리감 조절이 평생 과제.
+
+### `love.state.idealization-pattern`
+- **레이어**: 정적 (state)
+- **도메인**: love
+- **의미**: 이상화 패턴
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.relation.aspect.Venus.conjunction.Neptune` / `astro.relation.aspect.Venus.opposition.Neptune` / `astro.relation.aspect.Venus.square.Neptune` / `astro.state.planet.Neptune.house.7`
+**서술 (confirm)**
+> 사주 인성 강 + 점성 Neptune 7궁 또는 Venus-Neptune aspect — 상대를 이상화하는 결. 깊은 사랑 가능하나 현실 인식이 늦게 옴.
+
+### `love.state.power-dynamics`
+- **레이어**: 정적 (state)
+- **도메인**: love
+- **의미**: 관계 권력 구조
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.relation.aspect.Mars.opposition.Venus` / `astro.relation.aspect.Mars.square.Venus` / `astro.state.planet.Pluto.house.7`
+**서술 (confirm)**
+> 사주 편관 강 또는 양인격 + 점성 Pluto 7궁 또는 Mars-Venus square — 깊고 강렬한 관계. 권력·의존·재생의 테마가 평생 결.
+
+**서술 (conflict / 양면)**
+
+> 강렬함과 안정의 균형 — 한쪽이 압도하면 분리, 균형이면 깊이.
+
+### `love.state.communication-bond`
+- **레이어**: 정적 (state)
+- **도메인**: love
+- **의미**: 소통 기반 결합
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.relation.aspect.Venus.conjunction.Mercury` / `astro.state.planet.Mercury.house.7`
+**서술 (confirm)**
+> 사주 식상 + 인성 균형 + 점성 Mercury 7궁 또는 Venus-Mercury 합 — 대화·이해를 통한 깊은 유대가 본인 결.
+
+### `money.state.steady-accumulator`
+- **레이어**: 정적 (state)
+- **도메인**: money
+- **의미**: 안정 축적형
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.elementDominant.earth`
+- 점성 측: `astro.state.dignity.Saturn.exaltation` / `astro.state.planet.Saturn.house.2` / `astro.state.stellium.house.2`
+**서술 (confirm)**
+> 사주 정재격 + 토 기운 + 점성 Saturn dignified 또는 2궁 stellium — 천천히 안정적으로 쌓는 형의 재물 결. 단기 변동보다 장기 누적이 본인 결.
+
+### `money.state.dynamic-mover`
+- **레이어**: 정적 (state)
+- **도메인**: money
+- **의미**: 큰 변동·기회형
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Jupiter.house.8` / `astro.state.planet.Uranus.house.2` / `astro.state.stellium.house.8`
+**서술 (confirm)**
+> 사주 편재격 + 점성 Jupiter 8궁 또는 Uranus 2궁 — 큰 변동·외부 자산·투자·중개로 움직이는 결. 보수적 운영보다 기회 포착이 본인 결.
+
+**서술 (conflict / 양면)**
+
+> 큰 기회 신호와 안정 신호가 혼재 — 투자 적극성과 안전 자산의 균형이 평생 과제.
+
+### `money.state.expression-to-wealth`
+- **레이어**: 정적 (state)
+- **도메인**: money
+- **의미**: 표현·재능이 곧 자산
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Venus.house.2` / `astro.state.planet.Venus.house.5` / `astro.state.stellium.house.5`
+**서술 (confirm)**
+> 사주 식신생재 또는 식상→재성 흐름 + 점성 5궁·2궁 같이 강조 — 본인 표현·창작·재능이 직접 재물로 전환되는 결.
+
+### `money.state.inherited-resources`
+- **레이어**: 정적 (state)
+- **도메인**: money
+- **의미**: 상속·기반 자산
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Jupiter.house.4` / `astro.state.stellium.house.4` / `astro.state.stellium.house.8`
+**서술 (confirm)**
+> 사주 인성 강 또는 정재격 + 점성 4궁(부모/뿌리) 또는 8궁(상속) 강조 — 가족·부모로부터 물려받는 자산 또는 기반이 인생 한 축.
+
+### `money.state.partnership-wealth`
+- **레이어**: 정적 (state)
+- **도메인**: money
+- **의미**: 동업·결합 자산
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Jupiter.house.7` / `astro.state.stellium.house.7` / `astro.state.stellium.house.8`
+**서술 (confirm)**
+> 사주 정재 + 정관 둘 다 살아있음 + 점성 7궁/8궁 강조 — 동업·결혼·동맹을 통한 자산 형성이 본인 결.
+
+### `money.state.outflow-pattern`
+- **레이어**: 정적 (state)
+- **도메인**: money
+- **의미**: 지출·소실 패턴
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.relation.aspect.Saturn.opposition.Venus` / `astro.relation.aspect.Saturn.square.Venus`
+**서술 (confirm)**
+> 사주 비겁 강 + 재성 약 + 점성 2궁 ruler가 12궁 또는 Saturn-Venus hard — 들어오는 만큼 나가는 결. 지출 통제 시스템이 평생 중요.
+
+### `money.state.hidden-wealth`
+- **레이어**: 정적 (state)
+- **도메인**: money
+- **의미**: 잠재 자산
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.jijanggan.`
+- 점성 측: `astro.state.stellium.house.12` / `astro.state.stellium.house.8`
+**서술 (confirm)**
+> 사주 지장간에 재성 다수 + 점성 8궁 또는 12궁 강조 — 표면 안 드러난 잠재 자산·기회가 인생 결에 박혀 있음. 적기에 발견·활용.
+
+### `money.state.creative-wealth`
+- **레이어**: 정적 (state)
+- **도메인**: money
+- **의미**: 창작·콘텐츠 자산
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Venus.domicile` / `astro.state.planet.Venus.house.2`
+**서술 (confirm)**
+> 사주 식신·상관 강 + 점성 5궁 ruler가 2궁 또는 Venus 강 — 창작·저작권·콘텐츠로 형성되는 자산이 본인 결.
+
+### `family.state.strong-mother-line`
+- **레이어**: 정적 (state)
+- **도메인**: family
+- **의미**: 모계 자원 강세
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Moon.domicile` / `astro.state.dignity.Moon.exaltation` / `astro.state.planet.Ascendant.sign.Cancer` / `astro.state.planet.Moon.house.4`
+**서술 (confirm)**
+> 사주 정인 강 + 점성 Moon dignified 또는 Cancer ASC/Moon angular — 어머니 또는 모계로부터의 정서·자원·보호가 평생 자기 결의 기반.
+
+### `family.state.strong-father-line`
+- **레이어**: 정적 (state)
+- **도메인**: family
+- **의미**: 부계 자원 강세
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Sun.domicile` / `astro.state.dignity.Sun.exaltation` / `astro.state.planet.Sun.house.10`
+**서술 (confirm)**
+> 사주 정관·편관 강 (부친 십성) + 점성 Sun dignified 또는 10궁/Saturn 강 — 아버지 또는 부계 권위·후원·구조가 본인 결의 기반.
+
+### `family.state.early-independence`
+- **레이어**: 정적 (state)
+- **도메인**: family
+- **의미**: 이른 독립
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Saturn.house.4` / `astro.state.stellium.house.4`
+**서술 (confirm)**
+> 사주 월지 충 또는 인성 약 + 점성 4궁 ruler가 12궁 또는 Saturn 4궁 — 가정으로부터 일찍 독립하거나 정서적 거리감을 만드는 결.
+
+**서술 (conflict / 양면)**
+
+> 독립 욕구와 가족 의무가 같이 있음 — 거리와 책임의 균형이 평생 과제.
+
+### `family.state.children-emphasis`
+- **레이어**: 정적 (state)
+- **도메인**: family
+- **의미**: 자녀 영역 강세
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Jupiter.house.5` / `astro.state.stellium.house.5`
+**서술 (confirm)**
+> 사주 시지에 식상 + 점성 5궁 강조 또는 Jupiter 5궁 — 자녀·후세·창조 영역이 인생 한 축으로 분명한 결.
+
+### `family.state.delayed-children`
+- **레이어**: 정적 (state)
+- **도메인**: family
+- **의미**: 자녀 영역 늦음·신중
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Saturn.house.5`
+**서술 (confirm)**
+> 사주 시지 공망 또는 식상 약 + 점성 Saturn 5궁 또는 5궁 ruler가 12궁 — 자녀를 갖는 시기가 늦거나 의식적 선택. 양육 깊이는 깊음.
+
+### `family.state.sibling-rivalry`
+- **레이어**: 정적 (state)
+- **도메인**: family
+- **의미**: 형제 경쟁·갈등 패턴
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.relation.aspect.Mercury.square.Mars` / `astro.state.planet.Mars.house.3`
+**서술 (confirm)**
+> 사주 비겁 강 + 년·월지 충 + 점성 3궁 hard aspect — 형제·또래와의 경쟁·갈등 패턴이 평생 잠재. 의식적 거리 조절 필요.
+
+### `family.state.elder-care`
+- **레이어**: 정적 (state)
+- **도메인**: family
+- **의미**: 연장자 돌봄 책임
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Saturn.house.4` / `astro.state.planet.Saturn.house.6`
+**서술 (confirm)**
+> 사주 인성 + 식상 동시 강 + 점성 4궁 ruler가 6궁 또는 Saturn 4궁 — 부모·연장자 돌봄이 인생 한 축으로 들어옴. 보람과 부담이 같이.
+
+### `family.state.adopted-or-step`
+- **레이어**: 정적 (state)
+- **도메인**: family
+- **의미**: 비전형 가족 구조
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.relation.aspect.Moon.conjunction.Uranus` / `astro.relation.aspect.Moon.opposition.Uranus` / `astro.relation.aspect.Moon.square.Uranus` / `astro.state.planet.Uranus.house.4`
+**서술 (confirm)**
+> 사주 편인 강 또는 시주 천간충 + 점성 Uranus 4궁 또는 Moon-Uranus aspect — 입양·재혼·동거·이산 등 비전형 가족 구조 가능성. 다양한 결합 형태.
+
+### `family.state.home-builder`
+- **레이어**: 정적 (state)
+- **도메인**: family
+- **의미**: 가정 안정·기반 구축형
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.elementDominant.earth`
+- 점성 측: `astro.relation.aspect.Moon.trine.Saturn` / `astro.state.stellium.house.4`
+**서술 (confirm)**
+> 사주 토 기운 + 정인격 + 점성 4궁 강조 + Moon trine Saturn — 가정·집·기반을 안정적으로 구축하는 결. 정착이 본인 결.
+
+### `career.state.yangin-hapsal-military`
+- **레이어**: 정적 (state)
+- **도메인**: career
+- **의미**: 양인합살 — 무관·격투 정밀
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Mars.house.1` / `astro.state.planet.Mars.house.10` / `astro.state.planet.Sun.sign.Aries`
+**서술 (confirm)**
+> 사주 양인합살 + 점성 Mars 1궁/10궁 또는 Aries Sun — 군경·외과·격투·소방·구조 등 강한 결단·물리 영역의 정밀 패턴.
+
+### `career.state.yangin-hapsal-political`
+- **레이어**: 정적 (state)
+- **도메인**: career
+- **의미**: 양인합살 — 정치·권력 정밀
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Pluto.house.1` / `astro.state.planet.Pluto.house.10` / `astro.state.planet.Sun.house.10`
+**서술 (confirm)**
+> 사주 양인합살 + 점성 Sun 10궁 또는 Pluto angular — 정치·고위 권력·CEO·결단 리더십 영역의 정밀 패턴.
+
+### `career.state.yangin-hapsal-judicial`
+- **레이어**: 정적 (state)
+- **도메인**: career
+- **의미**: 양인합살 — 법조·심판 정밀
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Saturn.domicile` / `astro.state.dignity.Saturn.exaltation` / `astro.state.planet.Jupiter.house.9`
+**서술 (confirm)**
+> 사주 양인합살 + 점성 Jupiter 9궁 또는 Saturn dignified — 법조·검사·심판·집행 등 강한 결단을 정통 안에서 행사하는 영역.
+
+### `career.state.siksin-jesal-active-leader`
+- **레이어**: 정적 (state)
+- **도메인**: career
+- **의미**: 식신제살 — 능동적 리더 정밀
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.planet.Mercury.house.1` / `astro.state.planet.Mercury.house.10` / `astro.state.stellium.house.5`
+**서술 (confirm)**
+> 사주 식신제살(편관격+식상용신) + 점성 Mercury angular 또는 5궁 강 — 압박을 능동적 표현으로 다루는 결. 콘텐츠·미디어·스포츠 코치·교육자 등.
+
 ---
 
 ## 관계 (RELATION) 레이어
@@ -1569,6 +1919,271 @@
 **서술 (confirm)**
 > 세운 식신·상관 + 점성 Mercury·Venus가 3궁/5궁 강조 — 글·콘텐츠·발신·출판에 유리한 해.
 
+### `love.timing.year.encounter`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: love
+- **의미**: 새 만남의 해
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.solarReturn.Jupiter.house.5` / `astro.timing.solarReturn.Jupiter.house.7` / `astro.timing.solarReturn.Venus.house.5` / `astro.timing.solarReturn.Venus.house.7`
+**서술 (confirm)**
+> 세운 정재·편재·식상 + 점성 Solar Return Venus 5궁/7궁 또는 Jupiter 5궁/7궁 — 새로운 만남·관계 시작이 자연스러운 해.
+
+### `love.timing.year.commitment`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: love
+- **의미**: 약속·결혼의 해
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Jupiter.house.7` / `astro.timing.transit.Saturn.house.7`
+**서술 (confirm)**
+> 세운 정관·정재 + 점성 Saturn 7궁 transit 또는 Jupiter 7궁 — 관계 공식화·결혼·약혼에 적합한 해.
+
+### `love.timing.year.crisis`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: love
+- **의미**: 관계 위기의 해
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Pluto.opposition.natal.Venus` / `astro.timing.transit.Pluto.square.natal.Venus` / `astro.timing.transit.Saturn.opposition.natal.Venus` / `astro.timing.transit.Saturn.square.natal.Venus`
+**서술 (confirm)**
+> 세운에서 일지 충 발화 + 점성 Saturn·Pluto가 Venus·7궁을 hard로 자극 — 관계 위기·갈등 표면화. 심층 정리 시기.
+
+### `love.timing.year.reconciliation`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: love
+- **의미**: 재결합·화해의 해
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Jupiter.trine.natal.Venus` / `astro.timing.transit.Venus.trine.natal.Venus`
+**서술 (confirm)**
+> 세운에서 일지 합·삼합 발화 + 점성 Venus 7궁 trine·sextile transit — 갈등 후 재결합 또는 깊어지는 화해의 해.
+
+### `love.timing.year.passionate`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: love
+- **의미**: 강렬한 감정의 해
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Mars.conjunction.natal.Venus` / `astro.timing.transit.Venus.conjunction.natal.Mars`
+**서술 (confirm)**
+> 세운 도화·식상 + 점성 Mars-Venus 합 transit — 강렬한 감정·매혹·열정의 해. 결정의 강도 큼.
+
+**서술 (conflict / 양면)**
+
+> 열정과 안정의 균형 — 빠른 끌림이 깊이 있는 결합으로 갈지, 일시적 격동으로 그칠지 분기.
+
+### `love.timing.year.spiritual-bond`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: love
+- **의미**: 영적·이상적 결합
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Neptune.conjunction.natal.Venus` / `astro.timing.transit.Neptune.opposition.natal.Venus` / `astro.timing.transit.Neptune.square.natal.Venus`
+**서술 (confirm)**
+> 세운 인성·편인 + 점성 Neptune이 Venus 또는 7궁 자극 — 영적·이상적 결합 또는 환상에서 깨어나는 시기. 분별이 중요.
+
+### `money.timing.year.peak-income`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: money
+- **의미**: 수입 정점의 해
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.solarReturn.Jupiter.house.2` / `astro.timing.transit.Jupiter.conjunction.natal.Venus` / `astro.timing.transit.Jupiter.trine.natal.Sun`
+**서술 (confirm)**
+> 세운 정재 + 점성 SR Jupiter 2궁 또는 Jupiter trine natal Sun — 수입·재물이 정점에 도달하는 해. 협상·계약에 유리.
+
+### `money.timing.year.investment-window`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: money
+- **의미**: 투자·확장 호기
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Jupiter.house.11` / `astro.timing.transit.Jupiter.house.8`
+**서술 (confirm)**
+> 세운 편재 + 점성 Jupiter가 8궁 또는 11궁 transit — 큰 결정·투자·확장에 적합한 해. 다만 리스크 관리 동반.
+
+### `money.timing.year.tightening`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: money
+- **의미**: 재정 조이기·긴축
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Saturn.house.2` / `astro.timing.transit.Saturn.house.8` / `astro.timing.transit.Saturn.square.natal.Venus`
+**서술 (confirm)**
+> 세운에서 비겁 강 또는 재성 충 + 점성 Saturn이 2궁/8궁 hard transit — 재정 압박·지출 증가·긴축 필요한 해.
+
+### `money.timing.year.unexpected-income`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: money
+- **의미**: 예상 외 수입
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Uranus.conjunction.natal.Venus` / `astro.timing.transit.Uranus.house.2` / `astro.timing.transit.Uranus.house.8`
+**서술 (confirm)**
+> 세운 편재 + 점성 Uranus가 2궁 또는 8궁 자극 — 예상 못 한 수입·기회·상속·갑작스런 변동. 빠른 의사결정 필요.
+
+**서술 (conflict / 양면)**
+
+> 예측 불가 변동 — 받아들이고 빠르게 흡수하는 능력이 결과를 가르는 해.
+
+### `money.timing.year.contract-fortune`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: money
+- **의미**: 계약·합의 호기
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Jupiter.house.7` / `astro.timing.transit.Jupiter.trine.natal.Saturn`
+**서술 (confirm)**
+> 세운 정관 + 점성 Jupiter trine natal Saturn 또는 7궁 활성 — 계약·합의·동업으로 자산 형성에 유리한 해.
+
+### `money.timing.year.transformation`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: money
+- **의미**: 재정 구조 재편
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Pluto.house.2` / `astro.timing.transit.Pluto.house.8` / `astro.timing.transit.Pluto.square.natal.Venus`
+**서술 (confirm)**
+> 세운 편관 + 점성 Pluto가 2궁/8궁 hard transit — 재정 구조의 깊은 재편. 큰 정리·재구성을 거쳐 다음 단계로 가는 해.
+
+**서술 (conflict / 양면)**
+
+> 재편 신호와 안정 신호가 혼재 — 큰 정리할지 그대로 유지할지 의식적 선택.
+
+### `family.timing.year.parent-event`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: family
+- **의미**: 부모 관련 사건의 해
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Pluto.house.4` / `astro.timing.transit.Pluto.square.natal.Moon` / `astro.timing.transit.Saturn.house.4` / `astro.timing.transit.Saturn.square.natal.Moon`
+**서술 (confirm)**
+> 세운에서 인성 또는 관성 충 발화 + 점성 Saturn·Pluto가 4궁/Moon 자극 — 부모 건강·관계·사건이 표면화되는 시기. 의식적 시간 마련 권장.
+
+### `family.timing.year.children-cycle`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: family
+- **의미**: 자녀 영역 활성
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.solarReturn.Jupiter.house.5` / `astro.timing.transit.Jupiter.house.5` / `astro.timing.transit.Venus.house.5`
+**서술 (confirm)**
+> 세운 식신 + 점성 Jupiter 5궁 또는 Venus 5궁 transit — 자녀·임신·가족 확장 영역이 활성화되는 해.
+
+### `family.timing.year.relocation`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: family
+- **의미**: 이주·이사의 해
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Jupiter.house.4` / `astro.timing.transit.Uranus.house.4`
+**서술 (confirm)**
+> 세운에서 역마살 또는 월지 충 + 점성 4궁 ruler가 transit으로 자극 — 이사·이주·집 이동이 자연스러운 해. 새 정착지 결정.
+
+### `family.timing.year.return-to-roots`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: family
+- **의미**: 뿌리 회귀의 해
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Jupiter.conjunction.natal.IC` / `astro.timing.transit.Saturn.conjunction.natal.IC`
+**서술 (confirm)**
+> 세운 정인 + 점성 IC/4궁 transit + 사주 월지 활성 — 원가족·고향·뿌리로 돌아가거나 재인식하는 시기.
+
+### `self.timing.year.jongwang-favorable`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: self
+- **의미**: 종왕격 운로 형통
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Jupiter.house.1` / `astro.timing.transit.Mars.house.1`
+**서술 (confirm)**
+> 사주 종왕격이고 세운에 비겁·인성이 들어옴 + 점성 1궁 transit 활성 — 본 일간 그룹이 더 강해지는 형통 흐름. 자기 영역 확장에 적기.
+
+### `self.timing.year.jongwang-unfavorable`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: self
+- **의미**: 종왕격 거스르는 운
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Pluto.` / `astro.timing.transit.Saturn.`
+**서술 (confirm)**
+> 사주 종왕격에 식상·재성·관성 운이 들어옴 + 점성 outer planet hard — 본 그룹을 거스르는 흐름. 외부 도전·압박 누적, 일시 후퇴 권장.
+
+### `self.timing.year.jonggang-favorable`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: self
+- **의미**: 종강격 운로 형통
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.solarReturn.Jupiter.house.9` / `astro.timing.transit.Jupiter.house.9`
+**서술 (confirm)**
+> 사주 종강격에 인성·비겁 운 + 점성 9궁 transit 또는 Jupiter angular — 학습·정통·인정으로 형통하는 시기.
+
+### `career.timing.year.jongah-favorable`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: career
+- **의미**: 종아격 운로 형통
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Jupiter.house.5` / `astro.timing.transit.Venus.house.5`
+**서술 (confirm)**
+> 사주 종아격에 식상·재성 운 + 점성 5궁 ruler 활성 — 창작·표현·재능이 가장 잘 발휘되는 시기. 발신·작품 발표 호기.
+
+### `money.timing.year.jongjae-favorable`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: money
+- **의미**: 종재격 운로 형통
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Jupiter.house.2` / `astro.timing.transit.Jupiter.house.8`
+**서술 (confirm)**
+> 사주 종재격에 재성·식상 운 + 점성 2궁/8궁 transit 활성 — 자산·수입 정점에 도달할 수 있는 시기.
+
+### `money.timing.year.jongjae-unfavorable`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: money
+- **의미**: 종재격 거스르는 운
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Saturn.house.2` / `astro.timing.transit.Saturn.square.natal.Venus`
+**서술 (confirm)**
+> 사주 종재격에 비겁·인성 운 + 점성 Saturn 2궁 hard — 가장 위험한 시기. 손재 누적 가능, 보수적 운영 필수.
+
+### `career.timing.year.jongsal-favorable`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: career
+- **의미**: 종살격 운로 형통
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.transit.Pluto.house.10` / `astro.timing.transit.Saturn.conjunction.natal.MC` / `astro.timing.transit.Saturn.house.10`
+**서술 (confirm)**
+> 사주 종살격에 관성·재성 운 + 점성 10궁/MC 강 transit — 권력·직책·외부 인정이 정점에 도달하는 시기.
+
 ### 스케일: 1달 (월운/LR)
 
 ### `self.timing.month.tension`
@@ -1625,6 +2240,28 @@
 - 점성 측: `astro.timing.zr.l2.peak`
 **서술 (confirm)**
 > 점성 ZR L2 sub-period가 L1 sign에 angular한 시기(L2 peak) + 사주 월운 활동 십성 — 이번 달이 인생 chapter 안에서 작은 정점기.
+
+### `love.timing.month.relationship-pulse`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1달 (월운/LR)
+- **도메인**: love
+- **의미**: 이번 달 관계 활성
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.lunarReturn.Venus.house.5` / `astro.timing.lunarReturn.Venus.house.7`
+**서술 (confirm)**
+> 월운 재성·식상 + 점성 Lunar Return Venus 5궁/7궁 — 한 달 단위로 관계·만남이 활성화되는 시기.
+
+### `money.timing.month.cash-flow`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1달 (월운/LR)
+- **도메인**: money
+- **의미**: 이번 달 현금 흐름
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.lunarReturn.Jupiter.house.2` / `astro.timing.lunarReturn.Venus.house.2`
+**서술 (confirm)**
+> 월운 재성 + 점성 Lunar Return Venus 또는 Jupiter 2궁 — 한 달 단위 수입·결제 사이클 활성. 청구·정산에 유리.
 
 ### 스케일: 1일 (일진/transit)
 
@@ -1774,6 +2411,51 @@
 **서술 (conflict / 양면)**
 
 > MC 자극과 사주 안정 신호가 혼재 — 외부 변화에 내부가 천천히 따라가는 형태.
+
+### `love.timing.event.spouse-axis-activation`
+- **레이어**: 시점 (timing)  ·  **스케일**: 이벤트 (활성화)
+- **도메인**: love
+- **의미**: 배우자 축 활성화
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: `saju.timing.event.day.`
+- 점성 측: `astro.timing.transit.Pluto.conjunction.natal.Venus` / `astro.timing.transit.Saturn.conjunction.natal.Venus` / `astro.timing.transit.Uranus.conjunction.natal.Venus`
+**서술 (confirm)**
+> 점성 outer planet (Saturn/Pluto/Uranus)이 natal Venus 또는 DSC를 자극 + 사주 일지 운에 발화 — 평생 관계 축이 재정의되는 결정적 시기.
+
+**서술 (conflict / 양면)**
+
+> 관계 외부 변화와 내적 안정이 어긋남 — 변화에 휩쓸릴지, 핵심을 지킬지 의식적 선택 필요.
+
+### `money.timing.event.wealth-axis-shift`
+- **레이어**: 시점 (timing)  ·  **스케일**: 이벤트 (활성화)
+- **도메인**: money
+- **의미**: 재물 축 변동
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: `saju.timing.event.day.`
+- 점성 측: `astro.timing.transit.Pluto.conjunction.natal.Venus` / `astro.timing.transit.Saturn.conjunction.natal.Venus` / `astro.timing.transit.Uranus.conjunction.natal.Venus`
+**서술 (confirm)**
+> 점성 outer planet이 natal 2궁/8궁 ruler 자극 + 사주 운에 재성 충 발화 — 평생 재물 구조의 큰 전환점.
+
+**서술 (conflict / 양면)**
+
+> 구조적 재편과 표면 안정이 동시에 — 부분 정리하면서 핵심은 유지하는 균형.
+
+### `family.timing.event.home-axis-shift`
+- **레이어**: 시점 (timing)  ·  **스케일**: 이벤트 (활성화)
+- **도메인**: family
+- **의미**: 가정 축 변동
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: `saju.timing.event.day.`
+- 점성 측: `astro.timing.transit.Pluto.conjunction.natal.IC` / `astro.timing.transit.Saturn.conjunction.natal.IC` / `astro.timing.transit.Uranus.conjunction.natal.IC`
+**서술 (confirm)**
+> 점성 outer planet이 IC/4궁 ruler 자극 + 사주 월지 운에 발화 — 평생 가정 축이 재정의되는 결정적 시기. 결혼·이주·가족 변동.
+
+**서술 (conflict / 양면)**
+
+> 내적 안정 욕구와 외적 변화가 충돌 — 변화가 깊을수록 핵심 가치는 더 명확해짐.
 
 ---
 

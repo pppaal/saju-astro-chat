@@ -24,6 +24,7 @@ import type { GeokgukResult } from '@/lib/Saju/geokguk'
 import type { YongsinResult } from '@/lib/Saju/yongsin'
 import type { StrengthScore } from '@/lib/Saju/strengthScore'
 import type { SajuNormalizerInput } from '../normalizer/saju'
+import { correctSolarTime, type SolarTimeMode } from './solar-time'
 
 export interface SajuAdapterInput {
   birthDate: string
@@ -32,6 +33,14 @@ export interface SajuAdapterInput {
   calendarType?: 'solar' | 'lunar'
   timezone?: string
   queryDate: Date
+  /**
+   * 시간 보정 모드. 기본 'standard' (KST 그대로).
+   * 'meanSolar' = 출생지 경도 기반 평균태양시 (서울은 ~-32분).
+   * 'trueSolar' = 평균태양시 + 균시차 (계절별 ±16분).
+   */
+  solarTimeMode?: SolarTimeMode
+  /** Required when solarTimeMode != 'standard'. 출생지 경도 (°E). */
+  longitude?: number
 }
 
 const BRANCH_CHUNG = new Set(['子-午','午-子','丑-未','未-丑','寅-申','申-寅','卯-酉','酉-卯','辰-戌','戌-辰','巳-亥','亥-巳'])
@@ -209,10 +218,26 @@ function pickJijanggan(pillar: unknown): string[] {
 export function buildSajuNormalizerInput(input: SajuAdapterInput): SajuNormalizerInput {
   const calendarType = input.calendarType ?? 'solar'
   const timezone = input.timezone ?? 'Asia/Seoul'
+  const mode = input.solarTimeMode ?? 'standard'
+
+  // 진태양시·평균태양시 보정이 요청되면 birth 시각을 변환 후 saju 엔진에 넘김.
+  // 표준시(기본)면 그대로.
+  let effectiveDate = input.birthDate
+  let effectiveTime = input.birthTime
+  if (mode !== 'standard' && typeof input.longitude === 'number') {
+    const corrected = correctSolarTime(
+      input.birthDate,
+      input.birthTime,
+      input.longitude,
+      mode,
+    )
+    effectiveDate = corrected.date
+    effectiveTime = corrected.time
+  }
 
   const saju = calculateSajuData(
-    input.birthDate,
-    input.birthTime,
+    effectiveDate,
+    effectiveTime,
     input.gender,
     calendarType,
     timezone,

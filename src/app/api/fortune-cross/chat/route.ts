@@ -31,6 +31,7 @@ const bodySchema = z.object({
     latitude: z.number().min(-90).max(90),
     longitude: z.number().min(-180).max(180),
     astroTimezone: z.string().optional(),
+    solarTimeMode: z.enum(['standard', 'meanSolar', 'trueSolar']).optional(),
   }),
   queryDate: z.string().datetime().optional(),
   question: z.string().min(1).max(2000),
