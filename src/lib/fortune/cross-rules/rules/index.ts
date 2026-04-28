@@ -2,6 +2,7 @@ import { careerDeepRules } from './career-deep'
 import { classicalRules } from './classical'
 import { extraRules } from './extras'
 import { healthRules } from './health'
+import { loveDeepRules } from './love-deep'
 import { relationRules } from './relation'
 import { stateRules } from './state'
 import { timingRules } from './timing'
@@ -15,6 +16,7 @@ export const allRules: Rule[] = [
   ...healthRules,
   ...classicalRules,
   ...careerDeepRules,
+  ...loveDeepRules,
 ]
 
-export { stateRules, relationRules, timingRules, extraRules, healthRules, classicalRules, careerDeepRules }
+export { stateRules, relationRules, timingRules, extraRules, healthRules, classicalRules, careerDeepRules, loveDeepRules }
