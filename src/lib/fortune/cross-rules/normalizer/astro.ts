@@ -503,4 +503,42 @@ function pushAstroExtras(out: AstroSignal[], extras: AstroExtrasInput) {
       })
     }
   }
+
+  // ─── Zodiacal Releasing (Hellenistic time-lord) ──────────
+  const zr = extras.zodiacalReleasing
+  if (zr) {
+    // Active L1 ruler — strong year-scale signal (current chapter's planet).
+    out.push({
+      system: 'astro', layer: 'timing', scale: 'year',
+      key: `astro.timing.zr.l1.ruler.${zr.currentL1Ruler}`,
+      fired: true,
+      strength: 0.9,
+      evidence: { sign: zr.currentL1Sign, ruler: zr.currentL1Ruler, startAge: zr.currentL1StartAge, endAge: zr.currentL1EndAge },
+    })
+    out.push({
+      system: 'astro', layer: 'timing', scale: 'year',
+      key: `astro.timing.zr.l1.sign.${zr.currentL1Sign}`,
+      fired: true,
+      strength: 0.85,
+      evidence: { sign: zr.currentL1Sign, ruler: zr.currentL1Ruler },
+    })
+    if (zr.isPeakPeriod) {
+      out.push({
+        system: 'astro', layer: 'timing', scale: 'year',
+        key: 'astro.timing.zr.peak',
+        fired: true,
+        strength: 1,
+        evidence: { sign: zr.currentL1Sign, ruler: zr.currentL1Ruler, note: 'angular to starting sign' },
+      })
+    }
+    if (zr.isLoosingOfTheBond) {
+      out.push({
+        system: 'astro', layer: 'timing', scale: 'event',
+        key: 'astro.timing.zr.loosingOfTheBond',
+        fired: true,
+        strength: 1,
+        evidence: { sign: zr.currentL1Sign, ruler: zr.currentL1Ruler, note: 'opposition to starting sign — major life transition' },
+      })
+    }
+  }
 }

@@ -138,6 +138,16 @@ export interface AstroExtrasInput {
   planetaryJoys: Array<{ planet: string; joyHouse: number; inJoy: boolean }>
   // Simplified bonification/maltreatment per planet from natal aspects.
   bonifications: Array<{ planet: string; condition: 'bonified' | 'maltreated' | 'mixed' | 'neutral'; benefics: string[]; malefics: string[] }>
+  // Zodiacal Releasing Level 1 from Lot of Spirit (default starting Lot).
+  zodiacalReleasing?: {
+    startingSign: string
+    currentL1Sign: string
+    currentL1Ruler: string
+    currentL1StartAge: number
+    currentL1EndAge: number
+    isPeakPeriod: boolean // current sign angular (1/4/7/10) to starting sign
+    isLoosingOfTheBond: boolean // current is 7th sign from starting (opposition transition)
+  }
 }
 
 function computeExtras(natal: Chart): AstroExtrasInput {
@@ -446,6 +456,68 @@ export async function buildAstroNormalizerInput(input: AstroAdapterInput): Promi
         ruler,
         rulerHouse: rulerPlanet?.house ?? profectionHouse,
       }
+    }
+  }
+
+  // ─── Zodiacal Releasing Level 1 from Lot of Spirit ──────
+  // Periods (Hellenistic minor years per planetary ruler):
+  //   Sun=19, Moon=25, Mercury=20, Venus=8, Mars=15, Jupiter=12, Saturn=27
+  // Sign rulers (traditional). Walk signs in zodiacal order from
+  // Lot of Spirit's sign; each sign's period = ruler's planetary years.
+  const SIGN_PERIODS: Record<string, { ruler: string; years: number }> = {
+    Aries: { ruler: 'Mars', years: 15 },
+    Taurus: { ruler: 'Venus', years: 8 },
+    Gemini: { ruler: 'Mercury', years: 20 },
+    Cancer: { ruler: 'Moon', years: 25 },
+    Leo: { ruler: 'Sun', years: 19 },
+    Virgo: { ruler: 'Mercury', years: 20 },
+    Libra: { ruler: 'Venus', years: 8 },
+    Scorpio: { ruler: 'Mars', years: 15 },
+    Sagittarius: { ruler: 'Jupiter', years: 12 },
+    Capricorn: { ruler: 'Saturn', years: 27 },
+    Aquarius: { ruler: 'Saturn', years: 27 },
+    Pisces: { ruler: 'Jupiter', years: 12 },
+  }
+  const SIGN_ORDER = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
+
+  const birthDate = new Date(input.year, input.month - 1, input.date)
+  const ageDays = Math.max(0, (q.getTime() - birthDate.getTime()) / (24 * 3600 * 1000))
+  const ageYears = ageDays / 365.25
+
+  const startSign = extras.lotOfSpirit.sign
+  if (startSign && SIGN_PERIODS[startSign]) {
+    const startIdx = SIGN_ORDER.indexOf(startSign)
+    let cursor = 0
+    let curIdx = startIdx
+    let l1StartAge = 0
+    let l1EndAge = 0
+    let l1Sign = ''
+    let l1Ruler = ''
+    let safety = 100
+    while (safety-- > 0) {
+      const sign = SIGN_ORDER[curIdx]
+      const period = SIGN_PERIODS[sign].years
+      l1StartAge = cursor
+      l1EndAge = cursor + period
+      l1Sign = sign
+      l1Ruler = SIGN_PERIODS[sign].ruler
+      if (ageYears < l1EndAge) break
+      cursor = l1EndAge
+      curIdx = (curIdx + 1) % 12
+    }
+    // Peak period: current sign angular to starting sign (positions 1, 4, 7, 10 from start in zodiacal order)
+    const offsetFromStart = ((SIGN_ORDER.indexOf(l1Sign) - startIdx + 12) % 12) + 1
+    const isPeakPeriod = [1, 4, 7, 10].includes(offsetFromStart)
+    // Loosing of the bond: 7th sign from start (opposition transition; only signs >17.5y can produce it but the marker fires when releasing reaches the 7th)
+    const isLoosingOfTheBond = offsetFromStart === 7
+    extras.zodiacalReleasing = {
+      startingSign: startSign,
+      currentL1Sign: l1Sign,
+      currentL1Ruler: l1Ruler,
+      currentL1StartAge: l1StartAge,
+      currentL1EndAge: l1EndAge,
+      isPeakPeriod,
+      isLoosingOfTheBond,
     }
   }
 

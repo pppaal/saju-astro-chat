@@ -2,25 +2,25 @@
 
 > 자동 생성 문서. 룰 정의가 진실의 원천이며, 이 문서는 `scripts/generate-rules-spec.ts`로 재생성됩니다.
 
-총 룰 수: **102**  ·  메타룰 수: **10**
+총 룰 수: **106**  ·  메타룰 수: **10**
 
 ## 인덱스
 
 - **정적 (state)**: 58개
 - **관계 (relation)**: 11개
-- **시점 (timing)**: 33개
+- **시점 (timing)**: 37개
     - 10년 (대운): 6개
-    - 1년 (세운/SR): 16개
+    - 1년 (세운/SR): 18개
     - 1달 (월운/LR): 3개
     - 1일 (일진/transit): 2개
-    - 이벤트 (활성화): 6개
+    - 이벤트 (활성화): 8개
 
 ### 도메인 분포
 
-- **self**: 47개
+- **self**: 50개
 - **love**: 9개
 - **money**: 10개
-- **career**: 19개
+- **career**: 20개
 - **health**: 7개
 - **family**: 10개
 
@@ -1109,6 +1109,28 @@
 **서술 (confirm)**
 > 점성 annual profection ruler가 어느 하우스에 있는지에 따라 그 영역이 올해 핵심. 사주 세운에서도 같은 영역의 십성이 활성화되어 있음.
 
+### `career.timing.year.zr-peak`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: career
+- **의미**: ZR Peak Period — 인생 정점기
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.zr.peak`
+**서술 (confirm)**
+> 점성 Zodiacal Releasing이 시작 사인에 angular한 시기(peak period)에 진입. 사주도 활동 십성(관성·재성·식상)이 운에 발화 — 인생 chapter가 정점에 가까운 시기로, 외부 활동·성취 가능성이 한껏 열림.
+
+### `self.timing.year.zr-ruler-active`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1년 (세운/SR)
+- **도메인**: self
+- **의미**: ZR L1 ruler × 세운 동조
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.timing.seun.sibsin.`
+- 점성 측: `astro.timing.zr.l1.ruler.`
+**서술 (confirm)**
+> 점성 Zodiacal Releasing 현재 chapter의 통치 행성과 사주 세운 십성이 같은 영역을 가리킴 — 인생 chapter의 핵심 테마가 올해 그대로 활성. 그 영역에서의 결정이 인생 맥락과 일치.
+
 ### 스케일: 1달 (월운/LR)
 
 ### `self.timing.month.tension`
@@ -1247,10 +1269,36 @@
 - **의미**: 성중유패 — 성격이 운에서 흔들림
 - **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
 **발화 조건**
-- 사주 측: `saju.state.seonggyeok` / `saju.timing.event.day.`
+- 사주 측: `saju.timing.seongJungYuPae.strike`
 - 점성 측: `astro.timing.transit.Neptune.` / `astro.timing.transit.Pluto.` / `astro.timing.transit.Saturn.`
 **서술 (confirm)**
-> 사주 성격(成格)이었던 사람의 상신·용신이 운에서 충/형으로 약화됨 + 점성 outer planet이 natal benefic을 hard로 자극 — 본래 잘 짜인 인생 구조가 일시적으로 흔들리는 시기. 그러나 본 격국이 살아있어 회복 가능.
+> 사주 성격(成格)이었던 사람의 상신이 운에서 극받아 약화됨 + 점성 outer planet이 natal benefic을 hard로 자극 — 본래 잘 짜인 인생 구조가 일시적으로 흔들리는 시기. 본 격국이 살아있어 회복 가능.
+
+### `self.timing.event.gueung-rescue`
+- **레이어**: 시점 (timing)  ·  **스케일**: 이벤트 (활성화)
+- **도메인**: self
+- **의미**: 구응(救應) — 패격이 운에서 회복
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.timing.gueung.rescue`
+- 점성 측: `astro.state.sectBenefic.greater.Jupiter` / `astro.state.sectBenefic.greater.Venus`
+**서술 (confirm)**
+> 사주 패격(破格)에 부재한 상신이 운에서 들어와 격국이 회복(救應/패중유성). 점성도 sect 길성이 활성 — 평소 비어 있던 인생 구조가 이 시기에 일시적으로 채워짐. 진로 결단·시작 적기.
+
+### `self.timing.event.zr-loosing`
+- **레이어**: 시점 (timing)  ·  **스케일**: 이벤트 (활성화)
+- **도메인**: self
+- **의미**: Loosing of the Bond — 큰 인생 전환
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: `saju.timing.daeun.transition.imminent`
+- 점성 측: `astro.timing.zr.loosingOfTheBond`
+**서술 (confirm)**
+> 점성 Zodiacal Releasing이 시작 사인 반대편(7번째)에 진입 — Hellenistic 전통의 가장 큰 인생 전환 표지. 사주 대운 전환 임박과 겹치면 진정한 chapter 변경기.
+
+**서술 (conflict / 양면)**
+
+> ZR loosing 신호와 사주 대운 흐름이 어긋남 — 점성은 큰 전환을 가리키는데 사주는 안정 — 외적 환경 변화에 내부 본질이 따라가지 못할 수 있음.
 
 ---
 

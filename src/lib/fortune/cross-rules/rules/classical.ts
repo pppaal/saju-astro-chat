@@ -293,7 +293,7 @@ export const classicalRules: Rule[] = [
       ]),
   },
 
-  // ─── 성중유패 (Success Containing Failure) — 운에서 발화 ─
+  // ─── 성중유패 (성격이 운로에서 상신을 잃음) ──────────────
   {
     id: 'self.timing.event.seong-jung-yu-pae',
     layer: 'timing',
@@ -302,16 +302,83 @@ export const classicalRules: Rule[] = [
     meaning: '성중유패 — 성격이 운에서 흔들림',
     polarityHint: 'neg',
     narrative: {
-      confirm: '사주 성격(成格)이었던 사람의 상신·용신이 운에서 충/형으로 약화됨 + 점성 outer planet이 natal benefic을 hard로 자극 — 본래 잘 짜인 인생 구조가 일시적으로 흔들리는 시기. 그러나 본 격국이 살아있어 회복 가능.',
+      confirm: '사주 성격(成格)이었던 사람의 상신이 운에서 극받아 약화됨 + 점성 outer planet이 natal benefic을 hard로 자극 — 본래 잘 짜인 인생 구조가 일시적으로 흔들리는 시기. 본 격국이 살아있어 회복 가능.',
     },
-    sajuPredicate: (s, ctx) => {
-      const isSuccess = ctx.hasSaju('saju.state.seonggyeok')
-      if (!isSuccess) return { fired: false, strength: 0, evidence: {} }
-      const eventActivation = ctx.sajuByPrefix('saju.timing.event.day.')[0]
-      if (!eventActivation) return { fired: false, strength: 0, evidence: {} }
-      return { fired: true, strength: eventActivation.strength, evidence: { isSuccess, activation: eventActivation.evidence } }
-    },
+    sajuPredicate: (s) => hitByKeys(s, ['saju.timing.seongJungYuPae.strike']),
     astroPredicate: (a) =>
       hitByPrefix(a, ['astro.timing.transit.Saturn.', 'astro.timing.transit.Pluto.', 'astro.timing.transit.Neptune.']),
+  },
+
+  // ─── 구응(救應) — 패격이 운에서 회복 ─────────────────────
+  {
+    id: 'self.timing.event.gueung-rescue',
+    layer: 'timing',
+    scale: 'event',
+    domain: 'self',
+    meaning: '구응(救應) — 패격이 운에서 회복',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '사주 패격(破格)에 부재한 상신이 운에서 들어와 격국이 회복(救應/패중유성). 점성도 sect 길성이 활성 — 평소 비어 있던 인생 구조가 이 시기에 일시적으로 채워짐. 진로 결단·시작 적기.',
+    },
+    sajuPredicate: (s) => hitByKeys(s, ['saju.timing.gueung.rescue']),
+    astroPredicate: (a) =>
+      hitByKeys(a, [
+        'astro.state.sectBenefic.greater.Jupiter',
+        'astro.state.sectBenefic.greater.Venus',
+      ]),
+  },
+
+  // ─── Zodiacal Releasing peak period (peak chapter) ───────
+  {
+    id: 'career.timing.year.zr-peak',
+    layer: 'timing',
+    scale: 'year',
+    domain: 'career',
+    meaning: 'ZR Peak Period — 인생 정점기',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '점성 Zodiacal Releasing이 시작 사인에 angular한 시기(peak period)에 진입. 사주도 활동 십성(관성·재성·식상)이 운에 발화 — 인생 chapter가 정점에 가까운 시기로, 외부 활동·성취 가능성이 한껏 열림.',
+    },
+    sajuPredicate: (s) =>
+      hitByPrefix(s, [
+        'saju.timing.daeun.sibsin.정관',
+        'saju.timing.daeun.sibsin.편관',
+        'saju.timing.daeun.sibsin.정재',
+        'saju.timing.daeun.sibsin.편재',
+        'saju.timing.daeun.sibsin.식신',
+        'saju.timing.daeun.sibsin.상관',
+      ]),
+    astroPredicate: (a) => hitByKeys(a, ['astro.timing.zr.peak']),
+  },
+
+  // ─── Loosing of the Bond (큰 인생 전환) ──────────────────
+  {
+    id: 'self.timing.event.zr-loosing',
+    layer: 'timing',
+    scale: 'event',
+    domain: 'self',
+    meaning: 'Loosing of the Bond — 큰 인생 전환',
+    polarityHint: 'mixed',
+    narrative: {
+      confirm: '점성 Zodiacal Releasing이 시작 사인 반대편(7번째)에 진입 — Hellenistic 전통의 가장 큰 인생 전환 표지. 사주 대운 전환 임박과 겹치면 진정한 chapter 변경기.',
+      conflict: 'ZR loosing 신호와 사주 대운 흐름이 어긋남 — 점성은 큰 전환을 가리키는데 사주는 안정 — 외적 환경 변화에 내부 본질이 따라가지 못할 수 있음.',
+    },
+    sajuPredicate: (s) => hitByKeys(s, ['saju.timing.daeun.transition.imminent']),
+    astroPredicate: (a) => hitByKeys(a, ['astro.timing.zr.loosingOfTheBond']),
+  },
+
+  // ─── ZR ruler activation × 세운 ─────────────────────────
+  {
+    id: 'self.timing.year.zr-ruler-active',
+    layer: 'timing',
+    scale: 'year',
+    domain: 'self',
+    meaning: 'ZR L1 ruler × 세운 동조',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '점성 Zodiacal Releasing 현재 chapter의 통치 행성과 사주 세운 십성이 같은 영역을 가리킴 — 인생 chapter의 핵심 테마가 올해 그대로 활성. 그 영역에서의 결정이 인생 맥락과 일치.',
+    },
+    sajuPredicate: (s) => hitByPrefix(s, ['saju.timing.seun.sibsin.']),
+    astroPredicate: (a) => hitByPrefix(a, ['astro.timing.zr.l1.ruler.']),
   },
 ]

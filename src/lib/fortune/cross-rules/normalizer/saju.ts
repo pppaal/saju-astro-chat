@@ -861,6 +861,97 @@ function pushExtraSignals(out: SajuSignal[], extras: NonNullable<SajuNormalizerI
         strength: 0.85,
         evidence: { geokguk: extras.geokguk.primary, missingSangsin: candidates, status: '파격' },
       })
+
+      // ── 구응(救應) 검출: 운에서 부재한 상신 그룹이 들어오면 회복 ──
+      // 사주 운(대운/세운)에서 들어오는 십성이 missingSangsin 그룹에 속하면
+      // "패중유성" — 패격이 운에서 회복되는 시기.
+      const sibsinToGroupForRescue: Record<string, string> = {
+        비견: '비겁', 겁재: '비겁',
+        식신: '식상', 상관: '식상',
+        정재: '재성', 편재: '재성',
+        정관: '관성', 편관: '관성',
+        정인: '인성', 편인: '인성',
+      }
+      const unseSignals = out.filter((s) =>
+        s.fired &&
+        (s.key.startsWith('saju.timing.daeun.sibsin.') ||
+         s.key.startsWith('saju.timing.seun.sibsin.')),
+      )
+      for (const us of unseSignals) {
+        const m = /sibsin\.(.+)$/.exec(us.key)
+        if (!m) continue
+        const sibsin = m[1]
+        const grp = sibsinToGroupForRescue[sibsin]
+        if (grp && candidates.includes(grp)) {
+          const scale: 'decade' | 'year' = us.key.includes('.daeun.') ? 'decade' : 'year'
+          out.push({
+            system: 'saju',
+            layer: 'timing',
+            scale,
+            key: 'saju.timing.gueung.rescue',
+            fired: true,
+            strength: 0.95,
+            evidence: {
+              geokguk: extras.geokguk.primary,
+              missingSangsin: candidates,
+              rescuedBy: sibsin,
+              rescueGroup: grp,
+              scale,
+              status: '패중유성·구응',
+            },
+          })
+          break
+        }
+      }
+    }
+
+    // ── 성중유패 검출: 성격이었던 사주에 운이 상신을 충/극으로 약화 ──
+    // (운에서 들어오는 십성이 상신 그룹의 반대편이면 — 예: 상신=인성인데 운에서 재성이 강하게 들어와 인성 극)
+    if (foundSangsin && strongCount > 0) {
+      const oppositeGroup: Record<string, string> = {
+        비겁: '관성', // 관극비
+        식상: '인성', // 인극식
+        재성: '비겁', // 비극재
+        관성: '식상', // 식극관 (식신제살 다른 맥락)
+        인성: '재성', // 재극인
+      }
+      const opp = oppositeGroup[foundSangsin]
+      if (opp) {
+        const sibsinToGroupOpp: Record<string, string> = {
+          비견: '비겁', 겁재: '비겁',
+          식신: '식상', 상관: '식상',
+          정재: '재성', 편재: '재성',
+          정관: '관성', 편관: '관성',
+          정인: '인성', 편인: '인성',
+        }
+        const unseStrike = out.find((s) =>
+          s.fired &&
+          (s.key.startsWith('saju.timing.daeun.sibsin.') || s.key.startsWith('saju.timing.seun.sibsin.')) &&
+          (() => {
+            const mm = /sibsin\.(.+)$/.exec(s.key)
+            if (!mm) return false
+            return sibsinToGroupOpp[mm[1]] === opp
+          })()
+        )
+        if (unseStrike) {
+          const scale: 'decade' | 'year' = unseStrike.key.includes('.daeun.') ? 'decade' : 'year'
+          out.push({
+            system: 'saju',
+            layer: 'timing',
+            scale,
+            key: 'saju.timing.seongJungYuPae.strike',
+            fired: true,
+            strength: 0.85,
+            evidence: {
+              geokguk: extras.geokguk.primary,
+              sangsin: foundSangsin,
+              strikeGroup: opp,
+              scale,
+              status: '성중유패',
+            },
+          })
+        }
+      }
     }
   }
 }
