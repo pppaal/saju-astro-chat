@@ -530,6 +530,26 @@ describe('health rules sanity', () => {
   })
 })
 
+describe('regression: 대운 calculation', () => {
+  // 1995-02-09 06:40 서울 남자용 8자 + 대운 검증.
+  // 이전 saju.ts:346 버그로 역행 대운수 = 11 (정답은 2). 이 테스트는
+  // 그 버그가 다시 생기지 않도록 공식 결과(입춘에서 4.76일 ≈ 1.58년 → round 2)를 고정시킨다.
+  it('1995-02-09 06:40 male KST → 대운수 = 2 (not 11)', async () => {
+    const { calculateSajuData } = await import('@/lib/Saju/saju')
+    const r = calculateSajuData('1995-02-09', '06:40', 'male', 'solar', 'Asia/Seoul')
+    expect(r.daeWoon.startAge).toBe(2)
+    expect(r.daeWoon.isForward).toBe(false)
+    // 시퀀스 첫 그룹: 2-11세 = 丁丑
+    expect(r.daeWoon.list[0].age).toBe(2)
+    expect(r.daeWoon.list[0].heavenlyStem).toBe('丁')
+    expect(r.daeWoon.list[0].earthlyBranch).toBe('丑')
+    // 22-31세 = 乙亥
+    const cycle22 = r.daeWoon.list.find((c) => c.age === 22)
+    expect(cycle22?.heavenlyStem).toBe('乙')
+    expect(cycle22?.earthlyBranch).toBe('亥')
+  })
+})
+
 describe('rule predicate purity', () => {
   it('no rule predicate throws on empty signal arrays', () => {
     const ctx = {

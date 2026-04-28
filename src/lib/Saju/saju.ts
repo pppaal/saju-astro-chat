@@ -343,16 +343,13 @@ export function calculateSajuData(
       nextTermUTC = nextTerm
       prevTermUTC = termUTC_current
     } else {
-      const prevMonth = sajuMonth === 1 ? 12 : sajuMonth - 1
-      const prevYear = sajuMonth === 1 ? year - 1 : year
-      const prevTerm = getSolarTermKST(prevYear, prevMonth)
-      if (!prevTerm) {
-        throw new Error(
-          `Cannot determine Daeun: solar term data missing for ${prevYear}/${prevMonth}`
-        )
-      }
-      prevTermUTC = prevTerm
-      nextTermUTC = termUTC_current
+      // 역행(逆行) 대운수: 출생 시각에서 *직전* 절기까지의 시간으로 계산.
+      // sajuMonth 보정 후 termUTC_current는 항상 birth가 그 이후인 절기이므로
+      // (= 직전 절기), prevTermUTC = termUTC_current로 두면 된다.
+      // 이전엔 prev month's term을 prevTerm으로 사용해 30일 가량의 오차가
+      // 누적되어 대운수가 비정상적으로 컸음. (regression test 참조)
+      prevTermUTC = termUTC_current
+      nextTermUTC = termUTC_current // 역행에서는 사용되지 않음
     }
 
     const diffToTermMs = isForward
