@@ -13,23 +13,22 @@ import type { BirthProfile } from '@/lib/fortune/cross-rules'
 export interface CalendarCrossAugment {
   /** 통합 테마 (메타룰 발화 결과). */
   themes: Array<{ id: string; meaning: string; narrative: string }>
-  /** 도메인별 톤 + 강한 confirm 1~2개. */
+  /** 도메인별 톤 + 강한 confirm + 양면 신호 (cross-rules의 핵심 가치). */
   domains: Array<{
     domain: 'self' | 'love' | 'money' | 'career' | 'health' | 'family'
     tone: 'positive' | 'negative' | 'mixed' | 'neutral'
     topConfirms: Array<{ meaning: string; intensity: 'strong' | 'moderate' | 'weak' }>
+    /** 양면성(conflict) 신호 — 점수 시스템이 평탄화하는 정보를 보존. */
+    dualSignals: Array<{
+      meaning: string
+      intensity: 'strong' | 'moderate' | 'weak'
+      narrative: string
+    }>
+    /** 양면성 존재 여부 (UI에서 양면 배지 표시용). */
     hasConflict: boolean
   }>
   /** 컨텍스트 (현재 대운/세운/ZR chapter 등). */
   context: FortuneReport['context']
-  /** ZR L1 chapter 정보 (있을 때) — 캘린더 큰 흐름 표시용. */
-  zrChapter?: {
-    sign: string
-    ruler: string
-    startAge: number
-    endAge: number
-    isPeak: boolean
-  }
 }
 
 export async function buildCalendarCrossAugment(
@@ -56,6 +55,11 @@ export async function buildCalendarCrossAugment(
       topConfirms: agg.confirms.slice(0, 2).map((m) => ({
         meaning: m.rule.meaning,
         intensity: m.intensity,
+      })),
+      dualSignals: agg.conflicts.slice(0, 2).map((m) => ({
+        meaning: m.rule.meaning,
+        intensity: m.intensity,
+        narrative: m.rule.narrative.conflict ?? m.rule.narrative.confirm,
       })),
       hasConflict: agg.conflicts.length > 0,
     }

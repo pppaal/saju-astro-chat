@@ -13,7 +13,9 @@ async function main() {
   console.log()
   console.log('도메인:')
   for (const d of aug.domains) {
-    console.log(`  ${d.domain.padEnd(8)} : ${d.tone}${d.hasConflict ? ' (양면 있음)' : ''} — top: ${d.topConfirms.map((c) => c.meaning).join(' / ')}`)
+    console.log(`  ${d.domain.padEnd(8)} : ${d.tone}${d.hasConflict ? ' (양면 있음)' : ''}`)
+    if (d.topConfirms.length) console.log(`    동의: ${d.topConfirms.map((c) => `(${c.intensity}) ${c.meaning}`).join(' / ')}`)
+    if (d.dualSignals.length) console.log(`    양면: ${d.dualSignals.map((c) => `(${c.intensity}) ${c.meaning}`).join(' / ')}`)
   }
   console.log()
   console.log('Context:', JSON.stringify(aug.context, null, 2))
