@@ -2,27 +2,27 @@
 
 > 자동 생성 문서. 룰 정의가 진실의 원천이며, 이 문서는 `scripts/generate-rules-spec.ts`로 재생성됩니다.
 
-총 룰 수: **106**  ·  메타룰 수: **10**
+총 룰 수: **117**  ·  메타룰 수: **10**
 
 ## 인덱스
 
-- **정적 (state)**: 58개
+- **정적 (state)**: 67개
 - **관계 (relation)**: 11개
-- **시점 (timing)**: 37개
+- **시점 (timing)**: 39개
     - 10년 (대운): 6개
     - 1년 (세운/SR): 18개
-    - 1달 (월운/LR): 3개
+    - 1달 (월운/LR): 5개
     - 1일 (일진/transit): 2개
     - 이벤트 (활성화): 8개
 
 ### 도메인 분포
 
-- **self**: 50개
+- **self**: 57개
 - **love**: 9개
-- **money**: 10개
-- **career**: 20개
+- **money**: 11개
+- **career**: 22개
 - **health**: 7개
-- **family**: 10개
+- **family**: 11개
 
 ---
 
@@ -714,6 +714,109 @@
 **서술 (confirm)**
 > 점성 Lot of Spirit이 직업·소명 라인(10/9/3궁 등)에 들어와 있고 사주 격국도 또렷하게 잡힘 — 평생 직업·소명이 양 시스템에서 같은 방향을 가리키는 결.
 
+### `self.state.classical-jongwang`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: 종왕격 — 비겁이 가득한 일관된 자아
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Mars.domicile` / `astro.state.dignity.Mars.exaltation` / `astro.state.stellium.house.1`
+**서술 (confirm)**
+> 사주 종왕격(從旺格): 일간 비겁이 사주 전체를 이끌고 관성 천간 부재, 인성 1-2개 보조 + 점성 1궁 stellium 또는 Mars 강세 — 외부 흐름 거스르고 비겁·인성 길로 가야 형통하는 특수 결.
+
+### `family.state.classical-jonggang`
+- **레이어**: 정적 (state)
+- **도메인**: family
+- **의미**: 종강격 — 인성이 가득한 학자형 결
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Jupiter.domicile` / `astro.state.dignity.Jupiter.exaltation` / `astro.state.stellium.house.9`
+**서술 (confirm)**
+> 사주 종강격(從强格): 인성이 사주 전체를 받침 + 점성 9궁 stellium 또는 Jupiter 강세 — 학습·권위·정통 경로로 형통하는 특수 결.
+
+### `career.state.classical-jongah`
+- **레이어**: 정적 (state)
+- **도메인**: career
+- **의미**: 종아격 — 식상이 가득한 표현·창조형
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Mercury.domicile` / `astro.state.dignity.Venus.domicile` / `astro.state.stellium.house.5`
+**서술 (confirm)**
+> 사주 종아격(從兒格): 식상이 사주 전체를 채움 + 점성 5궁 강조 또는 Mercury·Venus 강세 — 창작·표현·자녀 영역이 평생 핵심 무대인 특수 결.
+
+### `money.state.classical-jongjae`
+- **레이어**: 정적 (state)
+- **도메인**: money
+- **의미**: 종재격 — 재성이 가득한 부유형
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Jupiter.domicile` / `astro.state.dignity.Venus.domicile` / `astro.state.stellium.house.2` / `astro.state.stellium.house.8`
+**서술 (confirm)**
+> 사주 종재격(從財格): 재성이 사주 전체를 차지 + 점성 2궁/8궁 stellium 또는 Venus·Jupiter 강세 — 평생 재물·자산이 인생 중심인 특수 결. 재성 운에 형통.
+
+### `career.state.classical-jongsal`
+- **레이어**: 정적 (state)
+- **도메인**: career
+- **의미**: 종살격 — 칠살이 가득한 권력형
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.dignity.Mars.domicile` / `astro.state.dignity.Saturn.domicile` / `astro.state.stellium.house.10`
+**서술 (confirm)**
+> 사주 종살격(從殺格): 편관·정관이 사주 전체를 차지 + 점성 10궁 stellium 또는 Saturn·Mars 강세 — 권력·관직·강한 책임 영역의 특수 결. 관성 운에 형통.
+
+### `self.state.classical-hwagi`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: 화기격국 — 합화로 변환된 본질
+- **폴라리티 힌트**: 양면 (양쪽 동의 → conflict)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.relation.mutualReception.` / `astro.state.stellium.sign.`
+**서술 (confirm)**
+> 사주 화기격국(갑기화토·을경화금·병신화수·정임화목·무계화화 중 하나): 일간이 합화로 변환된 특수 결 + 점성 mutual reception 또는 강한 stellium — 본 일간을 떠나 합화 오행을 따라가는 특수 인생.
+
+**서술 (conflict / 양면)**
+
+> 합화 신호는 강한데 본 일간 강도도 살아있음 — 화기격이 완전치 않은 양면. 합화 따를지 본 일간 따를지 인생에서 분기.
+
+### `self.state.bonif-enclosure-malefic`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: Enclosure (besieged) by malefics × 사주 흉성 신살
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.shinsal.unlucky.`
+- 점성 측: `astro.state.bonif.enclosure.malefic.Mercury` / `astro.state.bonif.enclosure.malefic.Moon` / `astro.state.bonif.enclosure.malefic.Sun`
+**서술 (confirm)**
+> 점성 핵심 행성(태양·달 등)이 양쪽에서 흉성에 둘러싸여 enclosure(besiegement) — 사주 흉성 신살과 함께 — 평생 자아 표현이 두 종류의 압박 사이에 끼이는 구조적 결.
+
+### `self.state.bonif-reception`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: Reception (mutual dignity mitigation) × 격국 성격
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.state.seonggyeok`
+- 점성 측: `astro.state.bonif.reception.`
+**서술 (confirm)**
+> 점성 핵심 행성이 자기 sign의 ruler·exalt로 reception 받는 구조 + 사주 격국이 성격(成格) — 인생의 핵심 자원이 양 시스템에서 받쳐지는 안정 구조.
+
+### `self.state.bonif-overcoming-malefic`
+- **레이어**: 정적 (state)
+- **도메인**: self
+- **의미**: Overcoming by malefic × 사주 충/형
+- **폴라리티 힌트**: 부정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.state.bonif.overcoming.malefic.Moon` / `astro.state.bonif.overcoming.malefic.Sun`
+**서술 (confirm)**
+> 점성 핵심 행성이 흉성에 의해 superior square로 overcome되는 sign-based 압박 + 사주 천간충 또는 일지 형 — 외부에서 들어오는 권위·책임의 구조적 압박이 양 시스템에서 동시에 박혀 있는 결.
+
 ---
 
 ## 관계 (RELATION) 레이어
@@ -1165,6 +1268,28 @@
 - 점성 측: `astro.timing.lunarReturn.Mercury.`
 **서술 (confirm)**
 > 월운 식상과 Lunar Return Mercury 활성이 함께 — 한 달간 발신·콘텐츠·미팅에 유리.
+
+### `self.timing.month.zr-l2-active`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1달 (월운/LR)
+- **도메인**: self
+- **의미**: ZR L2 sub-ruler × 월운 동조
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: `saju.timing.wolun.sibsin.`
+- 점성 측: `astro.timing.zr.l2.ruler.`
+**서술 (confirm)**
+> 점성 ZR L2 월 단위 sub-chapter ruler와 사주 월운 십성이 같은 영역 — 이번 달의 작은 chapter가 명확하게 한 방향으로 정렬되는 시기.
+
+### `self.timing.month.zr-l2-peak`
+- **레이어**: 시점 (timing)  ·  **스케일**: 1달 (월운/LR)
+- **도메인**: self
+- **의미**: ZR L2 peak month
+- **폴라리티 힌트**: 긍정 (양쪽 동의 → confirm)
+**발화 조건**
+- 사주 측: _(predicate가 컨텍스트 조회. 예: ctx.hasSaju)_
+- 점성 측: `astro.timing.zr.l2.peak`
+**서술 (confirm)**
+> 점성 ZR L2 sub-period가 L1 sign에 angular한 시기(L2 peak) + 사주 월운 활동 십성 — 이번 달이 인생 chapter 안에서 작은 정점기.
 
 ### 스케일: 1일 (일진/transit)
 

@@ -540,5 +540,86 @@ function pushAstroExtras(out: AstroSignal[], extras: AstroExtrasInput) {
         evidence: { sign: zr.currentL1Sign, ruler: zr.currentL1Ruler, note: 'opposition to starting sign — major life transition' },
       })
     }
+    // L2 sub-period (월·달 단위 — month scale로 노출)
+    if (zr.currentL2Ruler && zr.currentL2Sign) {
+      out.push({
+        system: 'astro', layer: 'timing', scale: 'month',
+        key: `astro.timing.zr.l2.ruler.${zr.currentL2Ruler}`,
+        fired: true,
+        strength: 0.85,
+        evidence: { sign: zr.currentL2Sign, ruler: zr.currentL2Ruler, startAge: zr.currentL2StartAgeYears, endAge: zr.currentL2EndAgeYears },
+      })
+      if (zr.isL2Peak) {
+        out.push({
+          system: 'astro', layer: 'timing', scale: 'month',
+          key: 'astro.timing.zr.l2.peak',
+          fired: true,
+          strength: 0.95,
+          evidence: { sign: zr.currentL2Sign, ruler: zr.currentL2Ruler, note: 'L2 angular to L1 sign' },
+        })
+      }
+    }
+  }
+
+  // ─── Bonification 7 conditions — explicit signals ────────
+  for (const b of extras.bonifications) {
+    if (b.conditions.adherence) {
+      const isMal = ['Mars', 'Saturn'].includes(b.conditions.adherence.by)
+      out.push({
+        system: 'astro', layer: 'state',
+        key: `astro.state.bonif.adherence.${isMal ? 'malefic' : 'benefic'}.${b.planet}`,
+        fired: true,
+        strength: Math.min(1, 1 - b.conditions.adherence.orb / 3),
+        evidence: { planet: b.planet, by: b.conditions.adherence.by, orb: b.conditions.adherence.orb },
+      })
+    }
+    if (b.conditions.strikingRay) {
+      const isMal = ['Mars', 'Saturn'].includes(b.conditions.strikingRay.by)
+      out.push({
+        system: 'astro', layer: 'state',
+        key: `astro.state.bonif.strikingRay.${isMal ? 'malefic' : 'benefic'}.${b.planet}`,
+        fired: true,
+        strength: Math.min(1, 1 - b.conditions.strikingRay.orb / 3),
+        evidence: { planet: b.planet, by: b.conditions.strikingRay.by, orb: b.conditions.strikingRay.orb },
+      })
+    }
+    if (b.conditions.overcoming) {
+      const isMal = ['Mars', 'Saturn'].includes(b.conditions.overcoming.by)
+      out.push({
+        system: 'astro', layer: 'state',
+        key: `astro.state.bonif.overcoming.${isMal ? 'malefic' : 'benefic'}.${b.planet}`,
+        fired: true,
+        strength: 0.85,
+        evidence: { planet: b.planet, by: b.conditions.overcoming.by, note: 'sign-based superior square' },
+      })
+    }
+    if (b.conditions.opposition) {
+      const isMal = ['Mars', 'Saturn'].includes(b.conditions.opposition.by)
+      out.push({
+        system: 'astro', layer: 'state',
+        key: `astro.state.bonif.opposition.${isMal ? 'malefic' : 'benefic'}.${b.planet}`,
+        fired: true,
+        strength: 0.8,
+        evidence: { planet: b.planet, by: b.conditions.opposition.by },
+      })
+    }
+    if (b.conditions.enclosure) {
+      out.push({
+        system: 'astro', layer: 'state',
+        key: `astro.state.bonif.enclosure.malefic.${b.planet}`,
+        fired: true,
+        strength: 0.95,
+        evidence: { planet: b.planet, left: b.conditions.enclosure.left, right: b.conditions.enclosure.right },
+      })
+    }
+    if (b.conditions.reception) {
+      out.push({
+        system: 'astro', layer: 'state',
+        key: `astro.state.bonif.reception.${b.planet}`,
+        fired: true,
+        strength: 0.85,
+        evidence: { planet: b.planet, by: b.conditions.reception.by, method: b.conditions.reception.method },
+      })
+    }
   }
 }

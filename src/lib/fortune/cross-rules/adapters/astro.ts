@@ -136,8 +136,23 @@ export interface AstroExtrasInput {
   profectionRuler?: { house: number; sign: string; ruler: string; rulerHouse: number }
   // Planetary Joys (each planet's "happy" house).
   planetaryJoys: Array<{ planet: string; joyHouse: number; inJoy: boolean }>
-  // Simplified bonification/maltreatment per planet from natal aspects.
-  bonifications: Array<{ planet: string; condition: 'bonified' | 'maltreated' | 'mixed' | 'neutral'; benefics: string[]; malefics: string[] }>
+  // Hellenistic 7-condition bonification/maltreatment per planet.
+  // Each condition tracked separately so rules can target specific patterns.
+  bonifications: Array<{
+    planet: string
+    condition: 'bonified' | 'maltreated' | 'mixed' | 'neutral'
+    benefics: string[]
+    malefics: string[]
+    // Detailed conditions (true if pattern detected):
+    conditions: {
+      adherence?: { by: string; orb: number }      // applying conjunction within 3°
+      strikingRay?: { by: string; orb: number }    // applying square within 3°
+      overcoming?: { by: string }                  // sign-based superior square (10th from)
+      opposition?: { by: string }                  // sign-based opposition
+      enclosure?: { left: string; right: string }  // besieged between two planets
+      reception?: { by: string; method: 'domicile' | 'exaltation' }
+    }
+  }>
   // Zodiacal Releasing Level 1 from Lot of Spirit (default starting Lot).
   zodiacalReleasing?: {
     startingSign: string
@@ -147,6 +162,12 @@ export interface AstroExtrasInput {
     currentL1EndAge: number
     isPeakPeriod: boolean // current sign angular (1/4/7/10) to starting sign
     isLoosingOfTheBond: boolean // current is 7th sign from starting (opposition transition)
+    // L2 sub-period (months within L1).
+    currentL2Sign?: string
+    currentL2Ruler?: string
+    currentL2StartAgeYears?: number
+    currentL2EndAgeYears?: number
+    isL2Peak?: boolean // L2 angular to L1 sign
   }
 }
 
@@ -301,44 +322,108 @@ function computeExtras(natal: Chart): AstroExtrasInput {
     .filter((p) => p.name in JOY_HOUSES)
     .map((p) => ({ planet: p.name, joyHouse: JOY_HOUSES[p.name], inJoy: p.house === JOY_HOUSES[p.name] }))
 
-  // ─── Bonification / Maltreatment (simplified) ───────────
-  // Hellenistic 8-condition full system은 복잡. 간단판:
-  // 각 행성에 대해 자연 길성(Jupiter/Venus)·흉성(Mars/Saturn)이 hard aspect(opp/sq)
-  // 또는 conjunction을 5° 이내로 가하는지 체크. 한쪽만 → bonified/maltreated, 양쪽 → mixed.
+  // ─── Bonification / Maltreatment (Hellenistic 7 conditions) ──
+  // Per Demetra George (Ancient Astrology) + Robert Schmidt:
+  //   1. Adherence — applying conjunction within 3°
+  //   2. Striking with a ray — applying square within 3°
+  //   3. Overcoming — sign-based superior square (10th sign from target)
+  //   4. Opposition — sign-based 7th from target
+  //   5. Enclosure — besieged between two planets within 7° on each side
+  //   6. Bodily-aspect proximity (general 5° aspects, fallback)
+  //   7. Reception — target in by-domicile-or-exaltation house of approaching planet (mitigation)
   const NAT_BENEFICS = new Set(['Jupiter', 'Venus'])
   const NAT_MALEFICS = new Set(['Mars', 'Saturn'])
-  const HARD_OR_CONJ = new Set(['conjunction', 'opposition', 'square'])
+  const SIGNS_LIST = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
+  const signIdx = (s: string) => SIGNS_LIST.indexOf(s)
+
   const bonifications: AstroExtrasInput['bonifications'] = []
   for (const target of planets) {
-    if (NAT_BENEFICS.has(target.name) || NAT_MALEFICS.has(target.name)) {
-      // benefics·malefics 자체는 평가 대상에서 제외 (자기 자신 평가 의미 없음)
-      continue
-    }
+    if (NAT_BENEFICS.has(target.name) || NAT_MALEFICS.has(target.name)) continue
+
+    const conditions: AstroExtrasInput['bonifications'][number]['conditions'] = {}
     const benefics: string[] = []
     const malefics: string[] = []
+
     for (const ap of natal.planets) {
       if (ap === target) continue
-      const diff = Math.abs(((ap.longitude - target.longitude + 540) % 360) - 180) // 0=opposition, 180=conj
-      // simpler: any aspect within 5° at 0/60/90/120/180
+      const isBenefic = NAT_BENEFICS.has(ap.name)
+      const isMalefic = NAT_MALEFICS.has(ap.name)
+      if (!isBenefic && !isMalefic) continue
+
+      // Closest aspect angle 0-180
       const angle = ((ap.longitude - target.longitude + 360) % 360)
-      const closest = [0, 60, 90, 120, 180].reduce((best, a) => {
-        const d = Math.min(Math.abs(angle - a), Math.abs(360 - angle - a))
-        return d < best.d ? { a, d } : best
-      }, { a: -1, d: 999 })
-      void diff
-      if (closest.d <= 5 && closest.a >= 0) {
-        const aspectType = closest.a === 0 ? 'conjunction' : closest.a === 60 ? 'sextile' : closest.a === 90 ? 'square' : closest.a === 120 ? 'trine' : 'opposition'
-        if (HARD_OR_CONJ.has(aspectType) || aspectType === 'trine') {
-          if (NAT_BENEFICS.has(ap.name)) benefics.push(ap.name)
-          if (NAT_MALEFICS.has(ap.name)) malefics.push(ap.name)
+      const folded = angle > 180 ? 360 - angle : angle
+      // applying = ap.speed - target.speed; if positive, ap moves toward target
+      const isApplying = (ap.speed ?? 0) > (target.speed ?? 0) ? false : true
+
+      // 1. Adherence (conjunction within 3°)
+      if (folded <= 3) {
+        if (isBenefic) {
+          conditions.adherence = { by: ap.name, orb: folded }
+          benefics.push(ap.name)
+        }
+        if (isMalefic) {
+          conditions.adherence = { by: ap.name, orb: folded }
+          malefics.push(ap.name)
+        }
+      }
+      // 2. Striking with a ray (applying square within 3°)
+      if (isApplying && Math.abs(folded - 90) <= 3) {
+        conditions.strikingRay = { by: ap.name, orb: Math.abs(folded - 90) }
+        if (isBenefic) benefics.push(ap.name)
+        if (isMalefic) malefics.push(ap.name)
+      }
+      // 3. Overcoming (sign-based: ap is in 10th sign from target)
+      const tIdx = signIdx(target.sign)
+      const aIdx = signIdx(ap.sign)
+      if (tIdx >= 0 && aIdx >= 0) {
+        const dist = ((aIdx - tIdx + 12) % 12)
+        if (dist === 9) { // 10th sign (0-indexed: target's sign + 9)
+          conditions.overcoming = { by: ap.name }
+          if (isBenefic && !benefics.includes(ap.name)) benefics.push(ap.name)
+          if (isMalefic && !malefics.includes(ap.name)) malefics.push(ap.name)
+        }
+        // 4. Opposition (sign-based 7th)
+        if (dist === 6) {
+          conditions.opposition = { by: ap.name }
+          if (isBenefic && !benefics.includes(ap.name)) benefics.push(ap.name)
+          if (isMalefic && !malefics.includes(ap.name)) malefics.push(ap.name)
         }
       }
     }
+
+    // 5. Enclosure: target's longitude has malefic on one side and another malefic on the other
+    //    within 7° (or both benefics → bonification by enclosure).
+    const others = planets.filter((p) => p !== target && (NAT_BENEFICS.has(p.name) || NAT_MALEFICS.has(p.name)))
+    const maleficsAround = others
+      .map((p) => ({ p, signed: ((p.longitude - target.longitude + 540) % 360) - 180 }))
+      .filter((o) => Math.abs(o.signed) <= 7)
+    const leftMal = maleficsAround.find((o) => o.signed < 0 && NAT_MALEFICS.has(o.p.name))
+    const rightMal = maleficsAround.find((o) => o.signed > 0 && NAT_MALEFICS.has(o.p.name))
+    if (leftMal && rightMal) {
+      conditions.enclosure = { left: leftMal.p.name, right: rightMal.p.name }
+      if (!malefics.includes(leftMal.p.name)) malefics.push(leftMal.p.name)
+      if (!malefics.includes(rightMal.p.name)) malefics.push(rightMal.p.name)
+    }
+
+    // 7. Reception (by domicile or exaltation): an aspecting benefic that rules target's sign
+    //    counts as reception → mitigates maltreatment.
+    for (const apName of benefics.slice()) {
+      if (DOMICILE[apName]?.includes(target.sign)) {
+        conditions.reception = { by: apName, method: 'domicile' }
+        break
+      }
+      if (EXALTATION[apName]?.includes(target.sign)) {
+        conditions.reception = { by: apName, method: 'exaltation' }
+        break
+      }
+    }
+
     let condition: 'bonified' | 'maltreated' | 'mixed' | 'neutral' = 'neutral'
     if (benefics.length && malefics.length) condition = 'mixed'
     else if (benefics.length) condition = 'bonified'
     else if (malefics.length) condition = 'maltreated'
-    bonifications.push({ planet: target.name, condition, benefics, malefics })
+    bonifications.push({ planet: target.name, condition, benefics, malefics, conditions })
   }
 
   // ─── Triplicity rulers (Dorothean/Hellenistic) ──────────
@@ -510,6 +595,33 @@ export async function buildAstroNormalizerInput(input: AstroAdapterInput): Promi
     const isPeakPeriod = [1, 4, 7, 10].includes(offsetFromStart)
     // Loosing of the bond: 7th sign from start (opposition transition; only signs >17.5y can produce it but the marker fires when releasing reaches the 7th)
     const isLoosingOfTheBond = offsetFromStart === 7
+
+    // ── L2 sub-periods (months within L1) ───────────────────
+    // L2 starts from same L1 sign, with each sub-sign active for its
+    // ruler's planetary years measured in MONTHS instead of years.
+    const yearsIntoL1 = ageYears - l1StartAge
+    const monthsIntoL1 = yearsIntoL1 * 12
+    let l2Cursor = 0
+    let l2Idx = SIGN_ORDER.indexOf(l1Sign)
+    let l2Sign = l1Sign
+    let l2Ruler = SIGN_PERIODS[l1Sign].ruler
+    let l2StartMonths = 0
+    let l2EndMonths = 0
+    let l2Safety = 200
+    while (l2Safety-- > 0) {
+      const sign = SIGN_ORDER[l2Idx]
+      const monthPeriod = SIGN_PERIODS[sign].years // years → months conversion: same numeric value
+      l2StartMonths = l2Cursor
+      l2EndMonths = l2Cursor + monthPeriod
+      l2Sign = sign
+      l2Ruler = SIGN_PERIODS[sign].ruler
+      if (monthsIntoL1 < l2EndMonths) break
+      l2Cursor = l2EndMonths
+      l2Idx = (l2Idx + 1) % 12
+    }
+    const l2OffsetFromL1 = ((SIGN_ORDER.indexOf(l2Sign) - SIGN_ORDER.indexOf(l1Sign) + 12) % 12) + 1
+    const isL2Peak = [1, 4, 7, 10].includes(l2OffsetFromL1)
+
     extras.zodiacalReleasing = {
       startingSign: startSign,
       currentL1Sign: l1Sign,
@@ -518,6 +630,11 @@ export async function buildAstroNormalizerInput(input: AstroAdapterInput): Promi
       currentL1EndAge: l1EndAge,
       isPeakPeriod,
       isLoosingOfTheBond,
+      currentL2Sign: l2Sign,
+      currentL2Ruler: l2Ruler,
+      currentL2StartAgeYears: l1StartAge + l2StartMonths / 12,
+      currentL2EndAgeYears: l1StartAge + l2EndMonths / 12,
+      isL2Peak,
     }
   }
 

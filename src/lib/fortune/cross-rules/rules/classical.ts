@@ -381,4 +381,203 @@ export const classicalRules: Rule[] = [
     sajuPredicate: (s) => hitByPrefix(s, ['saju.timing.seun.sibsin.']),
     astroPredicate: (a) => hitByPrefix(a, ['astro.timing.zr.l1.ruler.']),
   },
+
+  // ─── ZR L2 month-scale activation × 월운 ─────────────────
+  {
+    id: 'self.timing.month.zr-l2-active',
+    layer: 'timing',
+    scale: 'month',
+    domain: 'self',
+    meaning: 'ZR L2 sub-ruler × 월운 동조',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '점성 ZR L2 월 단위 sub-chapter ruler와 사주 월운 십성이 같은 영역 — 이번 달의 작은 chapter가 명확하게 한 방향으로 정렬되는 시기.',
+    },
+    sajuPredicate: (s) => hitByPrefix(s, ['saju.timing.wolun.sibsin.']),
+    astroPredicate: (a) => hitByPrefix(a, ['astro.timing.zr.l2.ruler.']),
+  },
+  {
+    id: 'self.timing.month.zr-l2-peak',
+    layer: 'timing',
+    scale: 'month',
+    domain: 'self',
+    meaning: 'ZR L2 peak month',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '점성 ZR L2 sub-period가 L1 sign에 angular한 시기(L2 peak) + 사주 월운 활동 십성 — 이번 달이 인생 chapter 안에서 작은 정점기.',
+    },
+    sajuPredicate: (s) =>
+      hitByPrefix(s, [
+        'saju.timing.wolun.sibsin.정관',
+        'saju.timing.wolun.sibsin.편관',
+        'saju.timing.wolun.sibsin.정재',
+        'saju.timing.wolun.sibsin.편재',
+        'saju.timing.wolun.sibsin.식신',
+        'saju.timing.wolun.sibsin.상관',
+      ]),
+    astroPredicate: (a) => hitByKeys(a, ['astro.timing.zr.l2.peak']),
+  },
+
+  // ─── 종격 (从格) 계열 ────────────────────────────────────
+  {
+    id: 'self.state.classical-jongwang',
+    layer: 'state',
+    domain: 'self',
+    meaning: '종왕격 — 비겁이 가득한 일관된 자아',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '사주 종왕격(從旺格): 일간 비겁이 사주 전체를 이끌고 관성 천간 부재, 인성 1-2개 보조 + 점성 1궁 stellium 또는 Mars 강세 — 외부 흐름 거스르고 비겁·인성 길로 가야 형통하는 특수 결.',
+    },
+    sajuPredicate: (s) => hitByKeys(s, ['saju.state.geokguk.종왕격', 'saju.state.geokguk.category.종격']),
+    astroPredicate: (a) =>
+      hitByPrefix(a, [
+        'astro.state.stellium.house.1',
+        'astro.state.dignity.Mars.domicile',
+        'astro.state.dignity.Mars.exaltation',
+      ]),
+  },
+  {
+    id: 'family.state.classical-jonggang',
+    layer: 'state',
+    domain: 'family',
+    meaning: '종강격 — 인성이 가득한 학자형 결',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '사주 종강격(從强格): 인성이 사주 전체를 받침 + 점성 9궁 stellium 또는 Jupiter 강세 — 학습·권위·정통 경로로 형통하는 특수 결.',
+    },
+    sajuPredicate: (s) => hitByKeys(s, ['saju.state.geokguk.종강격']),
+    astroPredicate: (a) =>
+      hitByPrefix(a, [
+        'astro.state.stellium.house.9',
+        'astro.state.dignity.Jupiter.domicile',
+        'astro.state.dignity.Jupiter.exaltation',
+      ]),
+  },
+  {
+    id: 'career.state.classical-jongah',
+    layer: 'state',
+    domain: 'career',
+    meaning: '종아격 — 식상이 가득한 표현·창조형',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '사주 종아격(從兒格): 식상이 사주 전체를 채움 + 점성 5궁 강조 또는 Mercury·Venus 강세 — 창작·표현·자녀 영역이 평생 핵심 무대인 특수 결.',
+    },
+    sajuPredicate: (s) => hitByKeys(s, ['saju.state.geokguk.종아격']),
+    astroPredicate: (a) =>
+      hitByPrefix(a, [
+        'astro.state.stellium.house.5',
+        'astro.state.dignity.Mercury.domicile',
+        'astro.state.dignity.Venus.domicile',
+      ]),
+  },
+  {
+    id: 'money.state.classical-jongjae',
+    layer: 'state',
+    domain: 'money',
+    meaning: '종재격 — 재성이 가득한 부유형',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '사주 종재격(從財格): 재성이 사주 전체를 차지 + 점성 2궁/8궁 stellium 또는 Venus·Jupiter 강세 — 평생 재물·자산이 인생 중심인 특수 결. 재성 운에 형통.',
+    },
+    sajuPredicate: (s) => hitByKeys(s, ['saju.state.geokguk.종재격']),
+    astroPredicate: (a) =>
+      hitByPrefix(a, [
+        'astro.state.stellium.house.2',
+        'astro.state.stellium.house.8',
+        'astro.state.dignity.Venus.domicile',
+        'astro.state.dignity.Jupiter.domicile',
+      ]),
+  },
+  {
+    id: 'career.state.classical-jongsal',
+    layer: 'state',
+    domain: 'career',
+    meaning: '종살격 — 칠살이 가득한 권력형',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '사주 종살격(從殺格): 편관·정관이 사주 전체를 차지 + 점성 10궁 stellium 또는 Saturn·Mars 강세 — 권력·관직·강한 책임 영역의 특수 결. 관성 운에 형통.',
+    },
+    sajuPredicate: (s) => hitByKeys(s, ['saju.state.geokguk.종살격']),
+    astroPredicate: (a) =>
+      hitByPrefix(a, [
+        'astro.state.stellium.house.10',
+        'astro.state.dignity.Saturn.domicile',
+        'astro.state.dignity.Mars.domicile',
+      ]),
+  },
+
+  // ─── 화기격국 (transformation patterns) ─────────────────
+  {
+    id: 'self.state.classical-hwagi',
+    layer: 'state',
+    domain: 'self',
+    meaning: '화기격국 — 합화로 변환된 본질',
+    polarityHint: 'mixed',
+    narrative: {
+      confirm: '사주 화기격국(갑기화토·을경화금·병신화수·정임화목·무계화화 중 하나): 일간이 합화로 변환된 특수 결 + 점성 mutual reception 또는 강한 stellium — 본 일간을 떠나 합화 오행을 따라가는 특수 인생.',
+      conflict: '합화 신호는 강한데 본 일간 강도도 살아있음 — 화기격이 완전치 않은 양면. 합화 따를지 본 일간 따를지 인생에서 분기.',
+    },
+    sajuPredicate: (s) =>
+      hitByKeys(s, [
+        'saju.state.geokguk.갑기화토격',
+        'saju.state.geokguk.을경화금격',
+        'saju.state.geokguk.병신화수격',
+        'saju.state.geokguk.정임화목격',
+        'saju.state.geokguk.무계화화격',
+        'saju.state.geokguk.category.화기격국',
+      ]),
+    astroPredicate: (a) =>
+      hitByPrefix(a, [
+        'astro.relation.mutualReception.',
+        'astro.state.stellium.sign.',
+      ]),
+  },
+
+  // ─── Bonification 7 conditions — specific patterns ──────
+  {
+    id: 'self.state.bonif-enclosure-malefic',
+    layer: 'state',
+    domain: 'self',
+    meaning: 'Enclosure (besieged) by malefics × 사주 흉성 신살',
+    polarityHint: 'neg',
+    narrative: {
+      confirm: '점성 핵심 행성(태양·달 등)이 양쪽에서 흉성에 둘러싸여 enclosure(besiegement) — 사주 흉성 신살과 함께 — 평생 자아 표현이 두 종류의 압박 사이에 끼이는 구조적 결.',
+    },
+    sajuPredicate: (s) => hitByPrefix(s, ['saju.state.shinsal.unlucky.']),
+    astroPredicate: (a) =>
+      hitByKeys(a, [
+        'astro.state.bonif.enclosure.malefic.Sun',
+        'astro.state.bonif.enclosure.malefic.Moon',
+        'astro.state.bonif.enclosure.malefic.Mercury',
+      ]),
+  },
+  {
+    id: 'self.state.bonif-reception',
+    layer: 'state',
+    domain: 'self',
+    meaning: 'Reception (mutual dignity mitigation) × 격국 성격',
+    polarityHint: 'pos',
+    narrative: {
+      confirm: '점성 핵심 행성이 자기 sign의 ruler·exalt로 reception 받는 구조 + 사주 격국이 성격(成格) — 인생의 핵심 자원이 양 시스템에서 받쳐지는 안정 구조.',
+    },
+    sajuPredicate: (s) => hitByKeys(s, ['saju.state.seonggyeok']),
+    astroPredicate: (a) => hitByPrefix(a, ['astro.state.bonif.reception.']),
+  },
+  {
+    id: 'self.state.bonif-overcoming-malefic',
+    layer: 'state',
+    domain: 'self',
+    meaning: 'Overcoming by malefic × 사주 충/형',
+    polarityHint: 'neg',
+    narrative: {
+      confirm: '점성 핵심 행성이 흉성에 의해 superior square로 overcome되는 sign-based 압박 + 사주 천간충 또는 일지 형 — 외부에서 들어오는 권위·책임의 구조적 압박이 양 시스템에서 동시에 박혀 있는 결.',
+    },
+    sajuPredicate: (s) =>
+      hitByKeys(s, ['saju.relation.천간충', 'saju.relation.day.지지형']),
+    astroPredicate: (a) =>
+      hitByPrefix(a, [
+        'astro.state.bonif.overcoming.malefic.Sun',
+        'astro.state.bonif.overcoming.malefic.Moon',
+      ]),
+  },
 ]
