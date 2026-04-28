@@ -1,18 +1,27 @@
-// Aggregator: groups CrossMatch[] by domain and computes a per-domain score.
-// Conflicts are surfaced (not subtracted into oblivion) so the renderer can
-// produce "양면성" notes — that's the whole point of crossing two systems.
+// Aggregator: groups CrossMatch[] by domain and assigns a categorical Tone.
+// Conflicts are surfaced (never discarded) — that's the whole point of crossing.
 
-import type { CrossMatch, Domain, DomainAggregate, FortuneReport } from './types'
+import type { CrossMatch, Domain, DomainAggregate, FortuneReport, MetaHit, MetaRule, Tone } from './types'
 
 const DOMAINS: Domain[] = ['self', 'love', 'money', 'career', 'health', 'family']
 
-export function aggregate(matches: CrossMatch[]): FortuneReport {
+function decideTone(confirms: CrossMatch[], conflicts: CrossMatch[]): Tone {
+  if (confirms.length === 0 && conflicts.length === 0) return 'neutral'
+  if (conflicts.length >= confirms.length && conflicts.length > 0) return 'mixed'
+  const posCount = confirms.filter((m) => m.rule.polarityHint === 'pos').length
+  const negCount = confirms.filter((m) => m.rule.polarityHint === 'neg').length
+  if (posCount > negCount && conflicts.length === 0) return 'positive'
+  if (negCount > posCount && conflicts.length === 0) return 'negative'
+  return 'mixed'
+}
+
+export function aggregate(matches: CrossMatch[], metaRules: MetaRule[] = []): FortuneReport {
   const byDomain = Object.fromEntries(
     DOMAINS.map((d) => [
       d,
       {
         domain: d,
-        score: 0,
+        tone: 'neutral' as Tone,
         confirms: [] as CrossMatch[],
         conflicts: [] as CrossMatch[],
         silents: [] as CrossMatch[],
@@ -22,26 +31,26 @@ export function aggregate(matches: CrossMatch[]): FortuneReport {
 
   for (const m of matches) {
     const bucket = byDomain[m.rule.domain]
-    if (m.polarity === 'confirm') {
-      bucket.confirms.push(m)
-      bucket.score += m.weight * (m.rule.polarityHint === 'neg' ? -1 : 1)
-    } else if (m.polarity === 'conflict') {
-      bucket.conflicts.push(m)
-      // Conflicts dampen score but don't zero it; signal ambivalence.
-      bucket.score += m.weight * 0.3 * (m.rule.polarityHint === 'neg' ? -1 : 1)
-    } else {
-      bucket.silents.push(m)
-    }
+    if (m.polarity === 'confirm') bucket.confirms.push(m)
+    else if (m.polarity === 'conflict') bucket.conflicts.push(m)
+    else bucket.silents.push(m)
   }
 
-  // Sort each bucket by weight desc for renderer ergonomics.
   for (const d of DOMAINS) {
-    byDomain[d].confirms.sort((a, b) => b.weight - a.weight)
-    byDomain[d].conflicts.sort((a, b) => b.weight - a.weight)
+    const b = byDomain[d]
+    b.confirms.sort((a, c) => c.rawWeight - a.rawWeight)
+    b.conflicts.sort((a, c) => c.rawWeight - a.rawWeight)
+    b.tone = decideTone(b.confirms, b.conflicts)
+  }
+
+  const themes: MetaHit[] = []
+  for (const mr of metaRules) {
+    if (mr.detect(byDomain)) themes.push({ rule: mr })
   }
 
   return {
     generatedAt: new Date().toISOString(),
     byDomain,
+    themes,
   }
 }
