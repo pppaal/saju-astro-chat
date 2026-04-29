@@ -79,14 +79,7 @@ type BuildActionPlanPayloadInput = {
   persona?: ActionPlanPersonaProfile
   isPremiumUser: boolean
   baselineConfidence?: number
-  usingAiRefinement: boolean
-  canUseAiPrecision: boolean
-  hasOpenAiKey: boolean
-  aiFailureReason?: string | null
-  aiSummary?: string
   intervalMinutes: 30 | 60
-  premiumOnly: boolean
-  creditCost: number
 }
 
 function buildCanonicalActionPlanLead(input: {
@@ -148,14 +141,7 @@ export function buildActionPlanPayload(
     persona,
     isPremiumUser,
     baselineConfidence,
-    usingAiRefinement,
-    canUseAiPrecision,
-    hasOpenAiKey,
-    aiFailureReason,
-    aiSummary,
     intervalMinutes,
-    premiumOnly,
-    creditCost,
   } = input
 
   const timeline = sourceTimeline.map((slot) => {
@@ -268,43 +254,12 @@ export function buildActionPlanPayload(
   if (personalizationTag) {
     summaryParts.push(personalizationTag)
   }
-  if (usingAiRefinement && aiSummary) {
-    summaryParts.push(locale === 'ko' ? `AI 미세조정: ${aiSummary}` : `AI refinement: ${aiSummary}`)
-  }
-  if (!canUseAiPrecision) {
-    summaryParts.push(
-      locale === 'ko'
-        ? '\uc815\ubc00 AI \ube44\ud65c\uc131: \uc0ac\uc8fc+\uc810\uc131 \uaddc\uce59 \ud0c0\uc784\ub77c\uc778\uc73c\ub85c \uc81c\uacf5'
-        : 'AI precision disabled: serving rule-based Saju+Astrology timeline'
-    )
-  } else if (!hasOpenAiKey) {
-    summaryParts.push(
-      locale === 'ko'
-        ? '\uc815\ubc00 \uc0dd\uc131 \ube44\ud65c\uc131: OPENAI_API_KEY \ub204\ub77d\uc73c\ub85c \uaddc\uce59 \ud0c0\uc784\ub77c\uc778 \uc81c\uacf5'
-        : 'AI precision disabled: missing OPENAI_API_KEY, serving rule-based timeline'
-    )
-  } else if (!usingAiRefinement) {
-    summaryParts.push(
-      locale === 'ko'
-        ? '\uc815\ubc00 \uc0dd\uc131 \uc2e4\ud328: \uc0ac\uc8fc+\uc810\uc131 \uaddc\uce59 \ud0c0\uc784\ub77c\uc778\uc73c\ub85c \uc790\ub3d9 \uc804\ud658'
-        : 'Precision generation failed: automatically switched to rule-based Saju+Astrology timeline'
-    )
-  }
-
   return normalizeMojibakePayload({
     timeline,
     summary: repairMojibakeText(summaryParts.join(' · ')) || undefined,
     insights,
     intervalMinutes,
-    precisionMode: usingAiRefinement ? 'ai-graphrag' : 'rule-fallback',
-    aiAccess: {
-      premiumOnly,
-      allowed: canUseAiPrecision,
-      applied: usingAiRefinement,
-      isPremiumUser,
-      hasOpenAiKey,
-      failureReason: aiFailureReason,
-      creditCost,
-    },
+    precisionMode: 'rule',
+    isPremiumUser,
   })
 }

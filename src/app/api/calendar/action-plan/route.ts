@@ -12,7 +12,6 @@ import { LIST_LIMITS, TEXT_LIMITS } from '@/lib/constants/api-limits'
 import { logger } from '@/lib/logger'
 import { checkPremiumFromDatabase } from '@/lib/stripe/premiumCache'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
-import { generatePrecisionTimelineWithRag } from './routePrecisionTimeline'
 import { buildActionPlanPayload } from './routeTimelineAssembly'
 import {
   analyzeConfidenceMeta,
@@ -23,16 +22,10 @@ import {
   buildSlotGuardrail,
   buildSlotNarrative,
   buildSlotWhy,
-  clampPercent,
-  cleanGuidanceText,
-  extractHoursFromText,
   getEffectiveCalendarGrade,
   getEffectiveCalendarScore,
-  getMatrixPacket,
   inferSlotTypes,
   pickCategoryByHour,
-  summarizeMatrixPacketForPrompt,
-  summarizeMatrixVerdictForPrompt,
   trimList,
 } from './routeActionPlanSupport'
 
@@ -174,9 +167,6 @@ export type RagContextResponse = {
     insights?: string[]
   }
 }
-
-const CALENDAR_AI_PREMIUM_ONLY = false
-const CALENDAR_AI_CREDIT_COST = 0
 
 const matrixEvidencePacketSchema = z
   .object({
@@ -648,8 +638,6 @@ export const POST = withApiMiddleware(
         })
       }
     }
-    const hasOpenAiKey = Boolean(process.env.OPENAI_API_KEY)
-    const canUseAiPrecision = !CALENDAR_AI_PREMIUM_ONLY || isPremiumUser
 
     const baseTimeline = buildRuleBasedTimeline({
       date,
@@ -696,58 +684,6 @@ export const POST = withApiMiddleware(
         : null,
     })
 
-    const aiResult = canUseAiPrecision
-      ? await generatePrecisionTimelineWithRag(
-          {
-            date,
-            locale: lang,
-            intervalMinutes: safeInterval,
-            baseTimeline,
-            calendar: actionPlanCalendar
-              ? {
-                  grade: getEffectiveCalendarGrade(actionPlanCalendar),
-                  displayGrade: actionPlanCalendar.displayGrade,
-                  score: getEffectiveCalendarScore(actionPlanCalendar),
-                  displayScore: actionPlanCalendar.displayScore,
-                  categories: trimList(actionPlanCalendar.categories, 3),
-                  bestTimes: trimList(actionPlanCalendar.bestTimes, 3),
-                  warnings: trimList(actionPlanCalendar.warnings, 3),
-                  recommendations: trimList(actionPlanCalendar.recommendations, 3),
-                  sajuFactors: trimList(actionPlanCalendar.sajuFactors, 3),
-                  astroFactors: trimList(actionPlanCalendar.astroFactors, 3),
-                  summary: actionPlanCalendar.summary,
-                  canonicalCore: actionPlanCalendar.canonicalCore,
-                  evidence: actionPlanCalendar.evidence,
-                }
-              : null,
-          },
-          {
-            extractHoursFromText,
-            getEffectiveCalendarGrade,
-            getEffectiveCalendarScore,
-            getMatrixPacket,
-            summarizeMatrixPacketForPrompt: (packet, locale) =>
-              summarizeMatrixPacketForPrompt(packet as ReturnType<typeof getMatrixPacket>, locale),
-            summarizeMatrixVerdictForPrompt,
-            cleanGuidanceText,
-            clampPercent,
-          }
-        )
-      : { timeline: null, errorReason: 'premium_required' }
-    const aiRefined = aiResult.timeline
-      ? { timeline: aiResult.timeline, summary: aiResult.summary }
-      : null
-    const aiFailureReason = !canUseAiPrecision
-      ? 'premium_required'
-      : !hasOpenAiKey
-        ? 'missing_openai_api_key'
-        : !aiRefined
-          ? aiResult.errorReason || 'openai_request_failed_or_empty'
-          : null
-    const usingAiRefinement = Boolean(
-      canUseAiPrecision && aiRefined && aiRefined.timeline && aiRefined.timeline.length > 0
-    )
-    const sourceTimeline = usingAiRefinement ? aiRefined!.timeline : baseTimeline
     const baselineConfidence =
       typeof actionPlanCalendar?.evidence?.confidence === 'number'
         ? actionPlanCalendar.evidence.confidence
@@ -756,20 +692,13 @@ export const POST = withApiMiddleware(
     const responsePayload = buildActionPlanPayload(
       {
         locale: lang,
-        sourceTimeline,
+        sourceTimeline: baseTimeline,
         calendar: actionPlanCalendar,
         icp,
         persona,
         isPremiumUser,
         baselineConfidence,
-        usingAiRefinement,
-        canUseAiPrecision,
-        hasOpenAiKey,
-        aiFailureReason,
-        aiSummary: aiRefined?.summary,
         intervalMinutes: safeInterval,
-        premiumOnly: CALENDAR_AI_PREMIUM_ONLY,
-        creditCost: CALENDAR_AI_CREDIT_COST,
       },
       {
         buildPersonalizationHint,
@@ -789,14 +718,7 @@ export const POST = withApiMiddleware(
       timezone,
       hasIcp: Boolean(icp),
       hasPersona: Boolean(persona),
-      aiRefined: Boolean(aiRefined),
-      usingAiRefinement,
-      canUseAiPrecision,
       isPremiumUser,
-      aiCreditCost: CALENDAR_AI_CREDIT_COST,
-      aiFailureReason,
-      aiFailureDebug: aiResult.debug,
-      aiModel: 'gpt-4o-mini',
     })
 
     return apiSuccess(responsePayload)

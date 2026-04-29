@@ -160,6 +160,33 @@ const ELEMENT_RELATIONS: Record<string, Record<string, 'same' | 'support' | 'dra
   water: { water: 'same', wood: 'drain', fire: 'control', earth: 'controlled', metal: 'support' },
 }
 
+function hasFinalConsonant(ko: string): boolean {
+  if (!ko) return false
+  const ch = ko.charCodeAt(ko.length - 1)
+  if (ch < 0xac00 || ch > 0xd7a3) return false
+  return (ch - 0xac00) % 28 !== 0
+}
+
+function objectMarkerKo(label: string): string {
+  return hasFinalConsonant(label) ? '을' : '를'
+}
+
+const MOON_GRAIN_KO: Record<DomainKey, string> = {
+  career: '실행 동기',
+  love: '감정 결',
+  money: '결정 흐름',
+  health: '리듬',
+  move: '의지 흐름',
+}
+
+const MOON_GRAIN_EN: Record<DomainKey, string> = {
+  career: 'execution drive',
+  love: 'emotional grain',
+  money: 'decision flow',
+  health: 'rhythm',
+  move: 'momentum',
+}
+
 function getMonthStrength(rows: MonthlyOverlapPoint[] | undefined, month: string): number {
   if (!rows?.length) return 0
   return rows
@@ -278,28 +305,31 @@ function buildDescription(
   seed: string
 ): string {
   const label = DOMAIN_LABELS[locale][domain]
+  const om = locale === 'ko' ? objectMarkerKo(label) : ''
   const focusKo =
-    dominanceGap >= 0.18 ? `${label} 단일 축에` : `${label}을 중심으로 보조 축까지`
+    dominanceGap >= 0.18 ? `${label} 단일 축에` : `${label}${om} 중심으로 보조 축까지`
   const focusEn =
     dominanceGap >= 0.18 ? `solely on ${label}` : `${label} with a secondary axis in support`
-  const crossPhraseKo =
-    crossAgreementPercent >= 70
-      ? '사주·점성 신호가 같은 방향을 가리킵니다'
-      : crossAgreementPercent >= 50
-        ? '큰 줄기는 맞지만 세부 신호가 갈립니다'
-        : '신호가 엇갈립니다'
-  const crossPhraseEn =
-    crossAgreementPercent >= 70
-      ? 'saju and astrology point the same way'
-      : crossAgreementPercent >= 50
-        ? 'the broad direction holds but details diverge'
-        : 'signals are mixed'
+  const aligned = crossAgreementPercent >= 70
+  const conflicted = crossAgreementPercent < 50
+  const crossPhraseKo = aligned
+    ? '사주·점성 신호가 같은 방향을 가리킵니다'
+    : conflicted
+      ? '신호가 엇갈립니다'
+      : '큰 줄기는 맞지만 세부 신호가 갈립니다'
+  const crossPhraseEn = aligned
+    ? 'saju and astrology point the same way'
+    : conflicted
+      ? 'signals are mixed'
+      : 'the broad direction holds but details diverge'
 
   const corePoolKo: Record<StrengthTier, string[]> = {
     rising: [
       `${label} 추진력이 분명히 살아 있어 ${focusKo} 우선순위를 좁혀 실행하기 좋습니다.`,
       `${label} 결단의 무게를 가져갈 만큼 흐름이 받쳐주는 날이라 작은 일은 뒤로 미뤄도 됩니다.`,
-      `${label} 신호가 또렷해 결과까지 끌고 갈 수 있는 날입니다. ${crossPhraseKo}.`,
+      aligned
+        ? `${label} 신호가 또렷하고 사주·점성 결이 같은 방향이라 결과까지 끌고 갈 수 있는 날입니다.`
+        : `${label} 신호가 또렷해 결과까지 끌고 갈 수 있지만, ${crossPhraseKo}.`,
     ],
     aligned: [
       `${label} 흐름이 가지런해 ${focusKo} 일정과 우선순위를 정리하기 좋습니다.`,
@@ -307,14 +337,20 @@ function buildDescription(
       `${label} 결이 맞아들어 작은 결정 여러 개를 묶어 처리할 수 있습니다.`,
     ],
     wavering: [
-      `${label} 축은 살아 있지만 ${crossPhraseKo}. 실행보다 조건 확인이 먼저입니다.`,
+      conflicted
+        ? `${label} 축은 살아 있지만 ${crossPhraseKo}. 실행보다 조건 확인이 먼저입니다.`
+        : `${label} 축은 살아 있어도 무게를 크게 싣기엔 이른 날입니다. 조건 확인부터 하세요.`,
       `${label} 신호가 흔들리니 범위를 좁히고 결정 기한을 다음 날로 미뤄도 됩니다.`,
-      `${label} 흐름은 보이지만 확신을 크게 싣기엔 이른 날입니다.`,
+      aligned
+        ? `${label} 흐름은 안정적이지만 추진력이 약해, 새 결정보다 점검 항목을 정리하기 좋은 날입니다.`
+        : `${label} 흐름은 보이지만 확신을 크게 싣기엔 이른 날입니다.`,
     ],
     guarded: [
-      `${label} 축에 제약이 큰 날입니다. ${crossPhraseKo}. 무리하게 확정하지 말고 리스크를 줄이세요.`,
+      `${label} 축에 제약이 큰 날입니다. 무리하게 확정하지 말고 리스크를 줄이세요.`,
       `${label} 추진력이 약한 날이라 큰 결정은 다음 흐름까지 보류하는 편이 안전합니다.`,
-      `${label} 신호가 약하니 새 일을 벌이기보다 기존 흐름을 정리해 두세요.`,
+      conflicted
+        ? `${label} 신호가 약하고 ${crossPhraseKo}. 새 일을 벌이기보다 기존 흐름을 정리해 두세요.`
+        : `${label} 신호가 약하니 새 일을 벌이기보다 기존 흐름을 정리해 두세요.`,
     ],
   }
 
@@ -322,7 +358,9 @@ function buildDescription(
     rising: [
       `${label} momentum is clear; lean ${focusEn} and tighten priorities to push real outcomes.`,
       `${label} carries enough weight today to make decisive moves while smaller tasks can wait.`,
-      `${label} signals are sharp; ${crossPhraseEn}, so follow through to a clean outcome.`,
+      aligned
+        ? `${label} signals are sharp and ${crossPhraseEn}, so follow through to a clean outcome.`
+        : `${label} signals are sharp, but ${crossPhraseEn}; keep one verification step.`,
     ],
     aligned: [
       `${label} flow is steady; focus ${focusEn} and clean up the schedule.`,
@@ -330,14 +368,20 @@ function buildDescription(
       `${label} alignment lets you bundle small decisions efficiently.`,
     ],
     wavering: [
-      `${label} is active but ${crossPhraseEn}; verify conditions before executing.`,
+      conflicted
+        ? `${label} is active but ${crossPhraseEn}; verify conditions before executing.`
+        : `${label} is active but the weight isn't there yet. Verify conditions first.`,
       `${label} signals wobble; narrow the scope and delay binding decisions by one day.`,
-      `${label} is visible but not clean enough for a hard commitment today.`,
+      aligned
+        ? `${label} flow is steady but momentum is thin; clean up checklists rather than commit new work.`
+        : `${label} is visible but not clean enough for a hard commitment today.`,
     ],
     guarded: [
-      `${label} faces stronger constraints than momentum. ${crossPhraseEn}; reduce risk rather than push.`,
+      `${label} faces stronger constraints than momentum; reduce risk rather than push.`,
       `${label} pull is weak today; defer large decisions to the next cycle.`,
-      `${label} signals are thin; consolidate existing work instead of starting new.`,
+      conflicted
+        ? `${label} signals are thin and ${crossPhraseEn}; consolidate existing work instead of starting new.`
+        : `${label} signals are thin; consolidate existing work instead of starting new.`,
     ],
   }
 
@@ -365,8 +409,8 @@ function buildSajuFactors(
       : `일간 흐름은 이번 ${elLabel} 기운과 만나 ${label} 축의 ${relationActionKo(relation)}.`
     const cycleLines = [
       `대운·세운의 기본 구조는 ${label} 판단을 한 번에 넓히기보다 단계로 다루기를 지지합니다.`,
-      `이번 달 사주 결은 ${label} 축의 우선순위를 ${relation === 'support' || relation === 'same' ? '올립니다' : relation === 'control' ? '눌러둡니다' : '잠시 흐트러뜨립니다'}.`,
-      `${profile.dayBranch ? `일지 ${profile.dayBranch}` : '일지'}와 월령 사이의 결이 ${label} 쪽 결정의 ${relation === 'support' ? '추진' : '점검'} 신호를 만듭니다.`,
+      `이번 달 사주 결은 ${label} 축의 우선순위를 ${relationCyclePriorityKo(relation)}.`,
+      `${profile.dayBranch ? `일지 ${profile.dayBranch}` : '일지'}와 월령 사이의 결이 ${label} 쪽 결정의 ${relationCycleSignalKo(relation)} 신호를 만듭니다.`,
     ]
     return [dayLine, pickBySeed(seed, cycleLines)]
   }
@@ -393,11 +437,31 @@ function relationLabelKo(rel: 'same' | 'support' | 'drain' | 'control' | 'contro
 
 function relationActionKo(rel: 'same' | 'support' | 'drain' | 'control' | 'controlled'): string {
   switch (rel) {
-    case 'same': return '추진력이 두꺼워집니다'
-    case 'support': return '받쳐주는 힘이 들어옵니다'
-    case 'drain': return '에너지를 흘려보내기 쉽습니다'
-    case 'control': return '제동이 걸리기 쉽습니다'
-    case 'controlled': return '한 박자 늦춰야 안전합니다'
+    case 'same': return '기운이 같이 모입니다'
+    case 'support': return '받쳐주는 결이 들어옵니다'
+    case 'drain': return '에너지가 바깥으로 풀려나갑니다'
+    case 'control': return '진행에 제동이 걸리기 쉽습니다'
+    case 'controlled': return '한 박자 늦추는 결이 보입니다'
+  }
+}
+
+function relationCycleSignalKo(rel: 'same' | 'support' | 'drain' | 'control' | 'controlled'): string {
+  switch (rel) {
+    case 'same':
+    case 'support': return '추진'
+    case 'drain': return '확장'
+    case 'control': return '제동'
+    case 'controlled': return '점검'
+  }
+}
+
+function relationCyclePriorityKo(rel: 'same' | 'support' | 'drain' | 'control' | 'controlled'): string {
+  switch (rel) {
+    case 'same':
+    case 'support': return '올립니다'
+    case 'drain': return '바깥으로 분산시킵니다'
+    case 'control': return '눌러둡니다'
+    case 'controlled': return '잠시 미뤄둡니다'
   }
 }
 
@@ -434,8 +498,11 @@ function buildAstroFactors(
   const moonSign = astroProfile.moonSign
   const isWinter = month <= 2 || month === 12
   const isSummer = month >= 6 && month <= 8
+  const strongTrigger = crossAgreementPercent >= 70
+  const weakTrigger = crossAgreementPercent < 50
 
   if (locale === 'ko') {
+    const grainKo = MOON_GRAIN_KO[domain]
     const seasonalKo = isWinter
       ? '겨울 트랜짓이 깊이 있는 결정에 무게를 더합니다'
       : isSummer
@@ -443,15 +510,28 @@ function buildAstroFactors(
         : '환절기 트랜짓이 우선순위 재배치를 유도합니다'
     const sunLine = `${sunSign} 기준 트랜짓은 ${seasonalKo}.`
     const moonLine = moonSign
-      ? `${moonSign} 달 신호는 ${label} 쪽 감정 결을 ${crossAgreementPercent >= 60 ? '받쳐줍니다' : '흩트립니다'}.`
+      ? `${moonSign} 달 신호는 ${label} 쪽 ${grainKo}${objectMarkerKo(grainKo)} ${crossAgreementPercent >= 60 ? '받쳐줍니다' : '흩트립니다'}.`
       : `달 트랜짓은 ${label} 결정의 ${crossAgreementPercent >= 60 ? '실행 신호' : '재확인 신호'}로 작용합니다.`
-    const closer = pickBySeed(seed, [
-      `단기 트리거는 살아 있어도 지속성은 따로 확인하세요.`,
-      `행성 어스펙트가 ${label} 쪽으로 작은 점화를 보탭니다.`,
-      `트랜짓 정렬이 약하니 큰 결정 전에 한 박자 두세요.`,
-    ])
-    return [sunLine, moonLine, closer]
+    const closerPool = strongTrigger
+      ? [
+          `행성 어스펙트가 ${label} 쪽으로 또렷한 점화를 보탭니다.`,
+          `단기 트리거가 살아 있어 짧은 호흡으로 진도 빼기 좋습니다.`,
+          `트랜짓 정렬이 좋으니 결정 후 실행까지 같은 날 묶어도 됩니다.`,
+        ]
+      : weakTrigger
+        ? [
+            `트랜짓 정렬이 약하니 큰 결정 전에 한 박자 두세요.`,
+            `단기 트리거가 흐릿해 즉답보다 자료를 한 번 더 보세요.`,
+            `행성 어스펙트가 흩어져 있어 무리한 일정은 미루는 편이 안전합니다.`,
+          ]
+        : [
+            `단기 트리거는 살아 있어도 지속성은 따로 확인하세요.`,
+            `행성 어스펙트가 ${label} 쪽으로 작은 점화를 보탭니다.`,
+            `트랜짓이 안정 구간에 있어 큰 변동 없이 흐름을 끌고 갈 수 있습니다.`,
+          ]
+    return [sunLine, moonLine, pickBySeed(seed, closerPool)]
   }
+  const grainEn = MOON_GRAIN_EN[domain]
   const seasonalEn = isWinter
     ? 'winter transits add weight to deep decisions'
     : isSummer
@@ -459,14 +539,26 @@ function buildAstroFactors(
       : 'shoulder-season transits drive a re-prioritization'
   const sunLine = `Around ${sunSign}, ${seasonalEn}.`
   const moonLine = moonSign
-    ? `The ${moonSign} Moon signal ${crossAgreementPercent >= 60 ? 'supports' : 'scatters'} the emotional grain on ${label}.`
+    ? `The ${moonSign} Moon signal ${crossAgreementPercent >= 60 ? 'supports' : 'scatters'} ${grainEn} on ${label}.`
     : `Lunar transit acts as ${crossAgreementPercent >= 60 ? 'an execution cue' : 'a re-check cue'} for ${label} decisions.`
-  const closer = pickBySeed(seed, [
-    `Short-term triggers may be alive, but verify durability separately.`,
-    `Planetary aspects add a small spark toward ${label}.`,
-    `Transit alignment is thin; pause one beat before large decisions.`,
-  ])
-  return [sunLine, moonLine, closer]
+  const closerPool = strongTrigger
+    ? [
+        `Planetary aspects add a clear spark toward ${label}.`,
+        `Short-term triggers are alive; bundle decision and execution today.`,
+        `Transit alignment is strong; tighten the loop and ship.`,
+      ]
+    : weakTrigger
+      ? [
+          `Transit alignment is thin; pause one beat before large decisions.`,
+          `Short-term triggers are faint; review notes once more before answering.`,
+          `Planetary aspects are scattered; defer aggressive scheduling.`,
+        ]
+      : [
+          `Short-term triggers may be alive, but verify durability separately.`,
+          `Planetary aspects add a small spark toward ${label}.`,
+          `Transit sits in a stable band; carry the flow without forcing changes.`,
+        ]
+  return [sunLine, moonLine, pickBySeed(seed, closerPool)]
 }
 
 function buildRecommendations(grade: ImportanceGrade): string[] {
@@ -476,7 +568,8 @@ function buildRecommendations(grade: ImportanceGrade): string[] {
 }
 
 function buildWarnings(grade: ImportanceGrade, crossAgreementPercent: number): string[] {
-  if (grade >= 3 || crossAgreementPercent < 58) return ['confusion']
+  if (grade >= 3) return ['confusion']
+  if (grade === 2 && crossAgreementPercent < 50) return ['confusion']
   return []
 }
 

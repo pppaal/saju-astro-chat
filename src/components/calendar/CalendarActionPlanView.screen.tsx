@@ -1321,12 +1321,12 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     const precisionText =
       aiStatus === 'error'
         ? isKo
-          ? '?? ?? ?? ??'
-          : 'Auto-switched to rule-based mode'
-        : aiPrecisionMode === 'rule-fallback'
+          ? '기본 모드 자동 전환'
+          : 'Auto-switched to baseline mode'
+        : aiPrecisionMode === 'rule'
           ? isKo
-            ? '?? ?? ??? ??'
-            : 'Rule-based personalized mode'
+            ? '사주+점성 규칙 기반 개인 모드'
+            : 'Saju+Astrology rule-based personalized mode'
           : aiSummary
             ? cleanText(aiSummary, '')
             : ''
