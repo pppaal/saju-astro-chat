@@ -107,6 +107,95 @@ export function getTimeBucket(hour: number): 'morning' | 'day' | 'evening' {
   return 'evening'
 }
 
+// ─────────────────────────────────────────────────────────────
+// 직장인 시간대 — 수면/통근/업무/점심/퇴근/저녁 패턴
+// ─────────────────────────────────────────────────────────────
+export type OfficeBucket =
+  | 'sleep'        // 22-06 (취침)
+  | 'wakeup'       // 06-08 (기상·통근)
+  | 'amCore'       // 08-12 (오전 핵심 업무)
+  | 'lunch'        // 12-13 (점심)
+  | 'pmCore'       // 13-18 (오후 업무)
+  | 'commute'      // 18-19 (퇴근)
+  | 'evening'      // 19-21 (저녁·식사·관계)
+  | 'personal'     // 21-22 (개인 시간)
+
+export function getOfficeBucket(hour: number): OfficeBucket {
+  if (hour >= 22 || hour < 6) return 'sleep'
+  if (hour < 8) return 'wakeup'
+  if (hour < 12) return 'amCore'
+  if (hour === 12) return 'lunch'
+  if (hour < 18) return 'pmCore'
+  if (hour < 19) return 'commute'
+  if (hour < 21) return 'evening'
+  return 'personal'
+}
+
+const OFFICE_BUCKET_THEME_KO: Record<OfficeBucket, string> = {
+  sleep: '깊은 휴식·수면 시간',
+  wakeup: '기상·통근 — 하루 시동',
+  amCore: '오전 핵심 업무 시간',
+  lunch: '점심·관계 대화 시간',
+  pmCore: '오후 실행·정리 시간',
+  commute: '퇴근 — 마무리·전환 구간',
+  evening: '저녁 — 식사·회복·관계',
+  personal: '개인 시간 — 자기관리·정리',
+}
+
+const OFFICE_BUCKET_DEFAULT_ACTION_KO: Record<OfficeBucket, { best: string; caution: string; neutral: string }> = {
+  sleep: {
+    best: '깊은 잠으로 회복하세요. 내일 흐름이 좋은 만큼 컨디션이 핵심이에요',
+    caution: '오늘 잡힌 신호가 무겁거든요. 일찍 자고 내일을 위해 비축하세요',
+    neutral: '취침 루틴을 지키세요. 자정 전에 잠드는 게 좋아요',
+  },
+  wakeup: {
+    best: '오늘 핵심 업무 1건을 통근길에 미리 정리해두세요. 출근하자마자 그걸 먼저 처리하면 흐름을 잡습니다',
+    caution: '서두르지 마시고 컨디션부터 챙기세요. 조용한 통근 시간을 활용해 우선순위만 정리해도 충분해요',
+    neutral: '아침 루틴 그대로 가세요. 통근에 오늘 일정 한 번 훑어두면 안정적입니다',
+  },
+  amCore: {
+    best: '회의·보고·핵심 결정을 이 시간에 잡으세요. 오늘 흐름이 가장 잘 받쳐주는 구간이에요',
+    caution: '큰 결정은 오후로 미루고, 자료 정리·이메일 답신·문서 작업으로 가세요',
+    neutral: '집중 1시간 블록 잡고 핵심 1건 처리하세요. 회의는 짧게',
+  },
+  lunch: {
+    best: '동료·외부 미팅·중요한 점심 약속이 잘 풀리는 시간이에요. 관계 투자 좋은 타이밍',
+    caution: '점심은 가볍게 혼자 또는 익숙한 사람과. 무거운 대화는 다음 기회에',
+    neutral: '편하게 식사하시고 오후 일정 머릿속에서 한 번 정리해두세요',
+  },
+  pmCore: {
+    best: '결과물 마감·외부 발송·계약 확정에 좋아요. 오전에 결정한 것을 실행으로 옮기세요',
+    caution: '새 일을 시작하지 마시고 진행 중인 일 정리·검토에 집중. 큰 결정은 내일로',
+    neutral: '협업·정리·문서 작업이 잘 풀립니다. 무리한 일정은 자제',
+  },
+  commute: {
+    best: '하루 마무리 메모 5분만 — 오늘 잘된 것 1개·내일 우선순위 1개. 이 시간이 다음 날 핵심이에요',
+    caution: '퇴근하면서 마음 정리부터. 오늘 잘 안 풀린 일은 일단 놔두세요',
+    neutral: '오늘 일정 클로징하고 퇴근. 전환 시간을 가지세요',
+  },
+  evening: {
+    best: '관계 시간으로 가세요. 가족·친구·연인과의 대화가 깊어지기 좋아요. 가벼운 운동도 잘 받습니다',
+    caution: '예민한 대화는 피하고 회복에 집중. 식사 후 가벼운 산책 정도가 적당해요',
+    neutral: '저녁 식사 챙기시고 가벼운 활동. 무리한 약속은 잡지 마세요',
+  },
+  personal: {
+    best: '학습·자기관리·내일 준비에 좋은 시간. 책 한 챕터·간단한 기록·내일 첫 일 정해두기',
+    caution: '오늘 무거웠다면 이 시간은 휴식 우선. 일찍 잠자리 준비가 답이에요',
+    neutral: '내일 우선순위 3개 정리하고 wind down. 폰은 일찍 끄세요',
+  },
+}
+
+export function getOfficeBucketTheme(bucket: OfficeBucket): string {
+  return OFFICE_BUCKET_THEME_KO[bucket]
+}
+
+export function getOfficeBucketAction(
+  bucket: OfficeBucket,
+  tone: 'best' | 'caution' | 'neutral'
+): string {
+  return OFFICE_BUCKET_DEFAULT_ACTION_KO[bucket][tone]
+}
+
 export function normalizeActionCategory(category?: string): string {
   if (!category) return 'career'
   const normalized = normalizeReportTheme(category)

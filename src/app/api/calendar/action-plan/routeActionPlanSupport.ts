@@ -17,6 +17,9 @@ import {
   extractHoursFromText,
   getCategoryFocusHint,
   getHourlyWindowLabel,
+  getOfficeBucket,
+  getOfficeBucketAction,
+  getOfficeBucketTheme,
   normalizeActionCategory,
   pickByHour,
   pickCategoryByHour,
@@ -1095,21 +1098,47 @@ export const buildRuleBasedTimeline = (input: {
         tone = 'caution'
       }
       // 시진(時辰)이 이미 자체 액션 풀이를 가지고 있으니, 추가 라인은 캘린더 추천/경고만 짧게 덧붙임
-      let detailLine = ''
+      // ─────────────────────────────────────────────────────────
+      // 직장인 기준 슬롯 단락 (3-5문장 상담사 톤)
+      // 구성: [시간대 의미] → [사주 근거] → [점성 근거] → [직장인 액션]
+      // 수면(22-06)은 짧게 회복 톤, 업무 액션 X
+      // ─────────────────────────────────────────────────────────
+      const officeBucket = getOfficeBucket(hour)
+      const isSleep = officeBucket === 'sleep'
+      let note: string
+
       if (locale === 'ko') {
-        if (tone === 'caution') {
-          detailLine = warningHint
-            ? `주의: ${warningHint}`
-            : `주의: ${avoid || '무리한 결정 자제'}`
-        } else if (recHint) {
-          detailLine = `오늘 실행: ${recHint}`
-        } else if (best) {
-          detailLine = `오늘 활용: ${best}`
-        }
-        if (personalHint) {
-          detailLine = detailLine ? `${detailLine} (${personalHint})` : `개인화: ${personalHint}`
+        if (isSleep) {
+          const sleepLines: string[] = ['취침 시간이에요. 깊이 쉬는 게 오늘 신호 활용보다 중요합니다.']
+          if (sajuHour.event?.kind === '천간충' || sajuHour.event?.kind === '지지충' || sajuHour.event?.kind === '공망' || sajuHour.event?.kind === '지지형') {
+            sleepLines.push('이 시간 본인 사주에 부담이 들어와 있어 일찍 자는 게 더 좋아요.')
+          } else if (sajuHour.event?.kind === '천간합' || sajuHour.event?.kind === '지지합') {
+            sleepLines.push('이 시간은 잠재의식이 부드럽게 정리되는 결이라 깊은 잠으로 갑니다.')
+          }
+          note = repairMojibakeText(sleepLines.join(' '))
+        } else {
+          const bucketTheme = getOfficeBucketTheme(officeBucket)
+          const sajuReason = `사주로 보면 ${sajuHour.line}`
+          const planetText = planetaryHour ? planetaryHour.ko : ''
+          const astroReason = planetText
+            ? `점성으로는 ${planetText.replace(/^점성 흐름은\s+/, '').replace(/의 시간$/, '의 결')} 시기예요.`
+            : ''
+          const activityNote = activityMatch?.line ? `${activityMatch.line}.` : ''
+          let action = getOfficeBucketAction(officeBucket, tone)
+          if (tone === 'caution' && warningHint) {
+            action = `${action} 특히 오늘은 \"${warningHint}\" 신호가 있어 더 신중히 가세요.`
+          } else if (tone !== 'caution' && recHint) {
+            action = `${action} 오늘 핵심 액션은 \"${recHint}\".`
+          }
+          if (personalHint) {
+            action = `${action} (개인 패턴: ${personalHint})`
+          }
+          const sentences = [`${bucketTheme}예요.`, sajuReason, astroReason, activityNote, action]
+            .filter((s) => s && s.trim().length > 0)
+          note = repairMojibakeText(sentences.join(' '))
         }
       } else {
+        let detailLine = ''
         if (tone === 'caution') {
           detailLine = warningHint ? `Watch-out: ${warningHint}` : 'Avoid high-risk decisions'
         } else if (recHint) {
@@ -1120,24 +1149,17 @@ export const buildRuleBasedTimeline = (input: {
         if (personalHint) {
           detailLine = detailLine ? `${detailLine} (${personalHint})` : `Personalized: ${personalHint}`
         }
+        const planetaryLine = planetaryHour ? planetaryHour.en : ''
+        const activityLine = activityMatch?.line || ''
+        const noteParts = [
+          cleanGuidanceText(sajuHour.line, 132),
+          cleanGuidanceText(planetaryLine, 96),
+          cleanGuidanceText(activityLine, 96),
+          cleanGuidanceText(detailLine, 108),
+          crossReason,
+        ].filter(Boolean).slice(0, 4)
+        note = repairMojibakeText(noteParts.join(' \u00b7 ').trim())
       }
-
-      const planetaryLine = planetaryHour
-        ? locale === 'ko'
-          ? planetaryHour.ko
-          : planetaryHour.en
-        : ''
-      const activityLine = activityMatch?.line || ''
-      const noteParts = [
-        cleanGuidanceText(sajuHour.line, 132),
-        cleanGuidanceText(planetaryLine, 96),
-        cleanGuidanceText(activityLine, 96),
-        cleanGuidanceText(detailLine, 108),
-        crossReason,
-      ]
-        .filter(Boolean)
-        .slice(0, 4)
-      const note = repairMojibakeText(noteParts.join(' \u00b7 ').trim())
       // 사주 detail (십신/신살/용신) 라인을 따로 잡아 슬롯에서도 노출
       const sajuDetailLine =
         pickCrossLineByTone(calendar?.evidence?.cross?.sajuDetails, tone) ||
