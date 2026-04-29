@@ -705,6 +705,14 @@ export function enrichThemedSectionsWithReportCore(
       communication: [relationship?.caution || '', relationshipTiming?.whyNow || ''],
       legacy: [deps.buildPersonalLifeTimelineNarrative(matrixInput, timingData, lang)],
     },
+    move: {
+      // 이동·이사 — 이동 신호는 캘린더 도메인의 'move'로 흘러옴 (역마, 환경 변동)
+      // 본 섹션은 careerTiming/Manifestation을 참조해 이동 톤으로 구성
+      timing: [
+        careerTiming?.whyNow || '',
+        careerTiming ? deps.buildTimingWindowNarrative('career', careerTiming, lang) : '',
+      ],
+    },
   }
 
   return {

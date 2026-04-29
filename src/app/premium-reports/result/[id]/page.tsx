@@ -65,6 +65,7 @@ const THEME_LABELS: Record<ReportThemeValue, string> = {
   wealth: '재물',
   health: '건강',
   family: '가족',
+  move: '이동·이사',
 }
 
 const REPORT_TYPE_LABELS: Record<ReportData['type'], string> = {
@@ -112,6 +113,11 @@ const THEME_SUMMARY_KEYS: Record<ReportThemeValue, Array<{ key: string; label: s
     { key: 'deepAnalysis', label: '핵심 흐름' },
     { key: 'dynamics', label: '가족 구조' },
     { key: 'communication', label: '대화 포인트' },
+  ],
+  move: [
+    { key: 'deepAnalysis', label: '핵심 흐름' },
+    { key: 'movementWindows', label: '이동 적기' },
+    { key: 'baseStability', label: '거점 안정성' },
   ],
 }
 

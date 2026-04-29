@@ -487,52 +487,109 @@ export type HourEvent = {
   en: string
 }
 
+// 같은 이벤트가 종일 반복될 때 단조로움을 줄이기 위한 변형 풀
+const HOUR_EVENT_VARIANTS_KO: Record<HourEvent['kind'], string[]> = {
+  천간합: [
+    '오늘 이 시간엔 사람들이랑 얘기가 잘 통할 거예요',
+    '이 시간대는 조율과 합의가 부드럽게 풀려요',
+    '말이 잘 떨어지는 시간이라 협업·대화에 유리해요',
+  ],
+  천간충: [
+    '이 시간엔 부딪히기 쉬워요. 큰 결정은 피하세요',
+    '톤이 세질 수 있는 시간 — 한 박자 늦추세요',
+    '의견 충돌 가능성이 있어요. 결론은 다음 시간으로',
+  ],
+  지지합: [
+    '가까운 사람과 마음이 잘 맞는 시간이에요',
+    '편안한 사람들과 같이 있기 좋은 시간이에요',
+    '관계가 따뜻하게 풀리는 분위기예요',
+  ],
+  지지충: [
+    '뭔가 흔들릴 수 있는 시간 — 이동이나 변동에 조심하세요',
+    '약속이나 동선이 바뀌기 쉬운 시간이에요',
+    '환경 변동이 잦은 구간이라 여유 시간 두세요',
+  ],
+  지지형: [
+    '실수 나오기 쉬운 시간이에요. 평소보다 한 번 더 확인하세요',
+    '신경전이 일어나기 쉬운 구간 — 톤 낮추세요',
+    '오류·마찰이 생길 수 있어요. 두 번 검토하세요',
+  ],
+  공망: [
+    '이 시간엔 뭘 해도 무게가 잘 안 실려요. 큰 결정은 미루세요',
+    '결정 무게가 비는 시간 — 확정은 다음으로',
+    '약속이 흐려지기 쉬워요. 가벼운 일만 하세요',
+  ],
+}
+
+const HOUR_EVENT_VARIANTS_EN: Record<HourEvent['kind'], string[]> = {
+  천간합: [
+    'people and you click well around this hour',
+    'a smooth alignment window for talks and agreements',
+    'words land cleanly — good for collaboration',
+  ],
+  천간충: [
+    'easy to clash this hour — avoid big calls',
+    'tones can sharpen — slow down a beat',
+    'disagreement risk — defer conclusions',
+  ],
+  지지합: [
+    'good time with close people',
+    'comfortable hour to spend with familiar people',
+    'relationships warm up around this window',
+  ],
+  지지충: [
+    'things may shift — be careful with moves and changes',
+    'plans and routes can wobble — leave buffer',
+    'volatile window for environment changes',
+  ],
+  지지형: [
+    'mistakes slip in this hour — double-check',
+    'friction-prone window — keep the tone low',
+    'errors and snags more likely — verify twice',
+  ],
+  공망: [
+    'decisions feel weightless here — defer them',
+    'commitments lose weight this hour — push later',
+    'promises blur easily — keep tasks light',
+  ],
+}
+
+// 행 결정용 안정 해시 (hour + kind) — 같은 hour에서 같은 변형이 안정적으로 나오도록
+function pickEventVariant(kind: HourEvent['kind'], hour: number, locale: 'ko' | 'en'): string {
+  const pool = locale === 'ko' ? HOUR_EVENT_VARIANTS_KO[kind] : HOUR_EVENT_VARIANTS_EN[kind]
+  if (!pool || pool.length === 0) return ''
+  return pool[hour % pool.length]
+}
+
 export function detectHourEvent(input: {
   natalDayStem: string
   natalDayBranch: string
   hourStem: string
   hourBranch: string
   gongmangBranches?: string[]
+  hour?: number
+  locale?: 'ko' | 'en'
 }): HourEvent | null {
-  const { natalDayStem, natalDayBranch, hourStem, hourBranch, gongmangBranches } = input
+  const { natalDayStem, natalDayBranch, hourStem, hourBranch, gongmangBranches, hour = 0 } = input
   if (!natalDayStem || !natalDayBranch) return null
-  // 천간 합 — 사람 말투
+  const buildEvent = (kind: HourEvent['kind'], shift: 'lift' | 'press'): HourEvent => ({
+    kind,
+    shift,
+    ko: pickEventVariant(kind, hour, 'ko'),
+    en: pickEventVariant(kind, hour, 'en'),
+  })
   if (STEM_HAP_PARTNER_LOCAL[natalDayStem] === hourStem && natalDayStem !== hourStem) {
-    return {
-      kind: '천간합',
-      shift: 'lift',
-      ko: '오늘 이 시간엔 사람들이랑 얘기가 잘 통할 거예요',
-      en: 'people and you click well around this hour',
-    }
+    return buildEvent('천간합', 'lift')
   }
-  // 천간 충
   if (STEM_CHUNG_PAIRS.has(`${natalDayStem}-${hourStem}`)) {
-    return {
-      kind: '천간충',
-      shift: 'press',
-      ko: '이 시간엔 부딪히기 쉬워요. 큰 결정은 피하세요',
-      en: 'easy to clash this hour — avoid big calls',
-    }
+    return buildEvent('천간충', 'press')
   }
-  // 지지 합
   if (BRANCH_HAP_PARTNER[natalDayBranch] === hourBranch && natalDayBranch !== hourBranch) {
-    return {
-      kind: '지지합',
-      shift: 'lift',
-      ko: '가까운 사람과 마음이 잘 맞는 시간이에요',
-      en: 'good time with close people',
-    }
+    return buildEvent('지지합', 'lift')
   }
-  // 지지 충
   if (BRANCH_CHUNG_PARTNER[natalDayBranch] === hourBranch) {
-    return {
-      kind: '지지충',
-      shift: 'press',
-      ko: '뭔가 흔들릴 수 있는 시간 — 이동이나 변동에 조심하세요',
-      en: 'things may shift — be careful with moves and changes',
-    }
+    return buildEvent('지지충', 'press')
   }
-  // 지지 형 (삼형)
   if (
     (BRANCH_HYUNG_TRIO_LOCAL.includes(natalDayBranch) &&
       BRANCH_HYUNG_TRIO_LOCAL.includes(hourBranch) &&
@@ -541,21 +598,10 @@ export function detectHourEvent(input: {
       BRANCH_HYUNG_TRIO_LOCAL2.includes(hourBranch) &&
       natalDayBranch !== hourBranch)
   ) {
-    return {
-      kind: '지지형',
-      shift: 'press',
-      ko: '실수 나오기 쉬운 시간이에요. 평소보다 한 번 더 확인하세요',
-      en: 'mistakes slip in this hour — double-check',
-    }
+    return buildEvent('지지형', 'press')
   }
-  // 공망
   if (gongmangBranches?.includes(hourBranch)) {
-    return {
-      kind: '공망',
-      shift: 'press',
-      ko: '이 시간엔 뭘 해도 무게가 잘 안 실려요. 큰 결정은 미루세요',
-      en: 'decisions feel weightless here — defer them',
-    }
+    return buildEvent('공망', 'press')
   }
   return null
 }
@@ -697,6 +743,8 @@ export function buildHourSajuLine(input: {
           hourStem: stem,
           hourBranch: branch,
           gongmangBranches,
+          hour,
+          locale,
         })
       : null
 

@@ -1355,21 +1355,28 @@ export function calculateYearlyImportantDatesLite(
     )
     const dailyShift = dailyEvents.reduce((sum, e) => sum + e.scoreShift, 0)
     const dailySibsin = natalDayStem ? getSibsinDailyKo(natalDayStem, dailyPillar.stem) : ''
-    const score = Math.round(
-      clamp(
-        8 +
-          primaryStrength * 64 +
-          primaryMonthStrength * 18 +
-          secondaryMonthStrength * 5 +
-          secondary.score * 6 +
-          dominanceGap * 6 +
-          peakBoost +
-          dailyShift -
-          weakPenalty,
-        2,
-        99
-      )
-    )
+
+    // 용신 multiplier — 용신은 의미 해석엔 이미 반영되지만 점수에 곱셈으로 가중
+    // support: 1.06배 (이번 달 용신이 본명 받쳐줌), conflict: 0.94배, neutral: 1.0
+    const monthPack = counselorPacks[month]
+    const yongsinMul =
+      monthPack?.yongsinAlign === 'support'
+        ? 1.06
+        : monthPack?.yongsinAlign === 'conflict'
+          ? 0.94
+          : 1.0
+
+    const rawScore =
+      8 +
+      primaryStrength * 64 +
+      primaryMonthStrength * 18 +
+      secondaryMonthStrength * 5 +
+      secondary.score * 6 +
+      dominanceGap * 6 +
+      peakBoost +
+      dailyShift -
+      weakPenalty
+    const score = Math.round(clamp(rawScore * yongsinMul, 2, 99))
     const grade = scoreToGrade(score)
     const baseTier = tierFromStrength(primaryStrength)
     const tier: StrengthTier =

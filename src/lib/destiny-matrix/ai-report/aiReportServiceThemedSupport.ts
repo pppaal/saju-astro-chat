@@ -845,5 +845,54 @@ export function buildProjectionFirstThemedSections(
         actionPlan: themedActionPlan,
         conclusion: themedConclusion,
       } as ThemedReportSections
+    case 'move':
+      // 이동·이사 — 캘린더의 'move' 도메인 신호와 점성 4·9·10하우스 트랜짓을 결합
+      return {
+        deepAnalysis: paragraph(
+          sharedDeepAnalysis,
+          environmentProfile?.summary,
+          lang === 'ko'
+            ? '이동·이사 흐름은 목적지보다 순서·거점·준비 기간이 단단한지가 결정짓습니다.'
+            : 'Movement flow depends more on sequence, base and lead time than the destination itself.'
+        ),
+        patterns: paragraph(
+          conflictSummary,
+          moveDrainSignals
+            ? lang === 'ko'
+              ? `최근 ${moveDrainSignals} 같은 환경 마찰이 누적되고 있습니다.`
+              : `Recent friction such as ${moveDrainSignals} has been accumulating.`
+            : '',
+          lang === 'ko'
+            ? '이동 결정은 단발 결심보다 단계별 정렬이 맞아드는 시점에서 흔들림이 적습니다.'
+            : 'Move decisions stay stable when sequenced alignments lock in step by step.'
+        ),
+        timing: sharedTiming,
+        movementWindows: paragraph(
+          focusTiming?.whyNow || '',
+          lang === 'ko'
+            ? '이동 적기는 사주의 충/합/형/공망과 점성의 4·9·10하우스 트랜짓이 같은 방향을 가리키는 구간에서 가장 안정됩니다.'
+            : 'Move timing stabilizes when saju openings and 4/9/10 house transits align.'
+        ),
+        environmentFit: paragraph(
+          structureDetail,
+          environmentProfile?.summary,
+          lang === 'ko'
+            ? '환경 적합성은 단순 선호보다 본명 일주가 어떤 자극에서 가장 잘 회복되는지를 봐야 합니다.'
+            : 'Environment fit comes from where the natal day-master recovers best, not just preference.'
+        ),
+        baseStability: paragraph(
+          moveResetActions
+            ? lang === 'ko'
+              ? `현재 거점은 ${moveResetActions} 같은 작업으로 리셋이 들어와야 흔들림이 줄어듭니다.`
+              : `The current base needs resets such as ${moveResetActions} to settle.`
+            : '',
+          lang === 'ko'
+            ? '거점 안정성은 결정 직후의 추진력보다 6~12주의 적응 기간을 어떻게 설계하느냐에 달려 있습니다.'
+            : 'Base stability depends on how the next 6–12 weeks of adaptation are designed.'
+        ),
+        recommendations,
+        actionPlan: themedActionPlan,
+        conclusion: themedConclusion,
+      } as ThemedReportSections
   }
 }

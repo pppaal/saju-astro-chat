@@ -16,7 +16,9 @@ import type { ScenarioResult } from '@/lib/destiny-matrix/core/scenarioEngine'
 
 export type ReportPeriod = 'daily' | 'monthly' | 'yearly' | 'comprehensive'
 
-export type ReportTheme = 'love' | 'career' | 'wealth' | 'health' | 'family'
+// `family`는 deprecated이지만 기존 데이터 호환을 위해 union에 유지.
+// 캘린더 도메인과 일치시키기 위해 `move`(이동·이사) 테마를 정식 멤버로 추가.
+export type ReportTheme = 'love' | 'career' | 'wealth' | 'health' | 'family' | 'move'
 
 // ===========================
 // 크레딧 비용 설정
@@ -36,6 +38,7 @@ export const REPORT_CREDIT_COSTS: Record<ReportPeriod | ReportTheme | 'themed', 
   wealth: 3,
   health: 3,
   family: 3,
+  move: 3,
 }
 
 // ===========================
@@ -218,6 +221,9 @@ export interface ThemedReportSections {
   dynamics?: string // 역학 (family)
   communication?: string // 가족 소통 방식 (family)
   legacy?: string // 가족 유산/세대 과제 (family)
+  movementWindows?: string // 이동 적기 (move)
+  environmentFit?: string // 환경 적합성 (move)
+  baseStability?: string // 거점 안정성 (move)
   recommendations: string[] // 추천 사항
   actionPlan: string // 실천 가이드
 }
@@ -546,6 +552,15 @@ export const THEME_META: Record<
     description: {
       ko: '가족 관계, 부모/자녀운, 소통 방법, 화합 포인트',
       en: 'Family dynamics, parent/child fortune, communication, harmony',
+    },
+  },
+  move: {
+    label: { ko: '이동·이사', en: 'Movement & Relocation' },
+    emoji: '🧭',
+    color: 'teal',
+    description: {
+      ko: '역마, 환경 변동, 이사·이직 적기, 거점 안정성',
+      en: 'Movement signals, environment shifts, relocation timing, base stability',
     },
   },
 }

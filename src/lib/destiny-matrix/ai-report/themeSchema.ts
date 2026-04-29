@@ -1,4 +1,4 @@
-export const REPORT_THEME_VALUES = ['love', 'career', 'wealth', 'health', 'family'] as const
+export const REPORT_THEME_VALUES = ['love', 'career', 'wealth', 'health', 'family', 'move'] as const
 
 export type ReportThemeValue = (typeof REPORT_THEME_VALUES)[number]
 
@@ -19,6 +19,11 @@ const THEME_ALIASES: Record<string, ReportThemeValue> = {
   wellness: 'health',
   family: 'family',
   home: 'family',
+  move: 'move',
+  movement: 'move',
+  travel: 'move',
+  relocation: 'move',
+  moving: 'move',
 }
 
 const THEMED_SECTION_KEYS: Record<ReportThemeValue, readonly string[]> = {
@@ -69,6 +74,16 @@ const THEMED_SECTION_KEYS: Record<ReportThemeValue, readonly string[]> = {
     'dynamics',
     'communication',
     'legacy',
+    'recommendations',
+    'actionPlan',
+  ],
+  move: [
+    'deepAnalysis',
+    'patterns',
+    'timing',
+    'movementWindows',
+    'environmentFit',
+    'baseStability',
     'recommendations',
     'actionPlan',
   ],

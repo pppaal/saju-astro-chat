@@ -1135,7 +1135,10 @@ export const buildRuleBasedTimeline = (input: {
         } else {
           const bucketTheme = getOfficeBucketTheme(officeBucket)
           const sajuReason = `${sajuHour.line}`
-          const astroReason = planetaryHour?.ko ? `점성으로 보면 ${planetaryHour.ko}예요.` : ''
+          // 점성 prefix 변형 풀 — 같은 24시간 안에 단조롭지 않게
+          const astroPrefixes = ['점성으로 보면', '하늘 흐름은', '오늘 행성 기운은', '서양 점성으론']
+          const astroPrefix = astroPrefixes[hour % astroPrefixes.length]
+          const astroReason = planetaryHour?.ko ? `${astroPrefix} ${planetaryHour.ko}예요.` : ''
           // activityMatch는 카테고리당 하루 한 번만 — 24시간 반복 차단
           let activityNote = ''
           if (activityMatch?.line && !dayState.activityCategoriesShown.has(category)) {
@@ -1144,11 +1147,13 @@ export const buildRuleBasedTimeline = (input: {
           }
           let action = getOfficeBucketAction(officeBucket, tone)
           // 하루 단위 경고/추천은 첫 등장 슬롯에서만 — 같은 문장 반복 차단
-          if (tone === 'caution' && warningHint && !dayState.warningShown) {
+          // + 06:00 같은 첫 슬롯이 너무 길어지지 않도록, activityNote가 있는 슬롯에선 추천/경고는 다음 슬롯으로 미룸
+          const hasActivityNote = activityNote.length > 0
+          if (tone === 'caution' && warningHint && !dayState.warningShown && !hasActivityNote) {
             dayState.warningShown = true
             const cleaned = warningHint.replace(/^오늘은\s*/, '')
             action = `${action} ${cleaned}`
-          } else if (tone !== 'caution' && recHint && !dayState.recShown) {
+          } else if (tone !== 'caution' && recHint && !dayState.recShown && !hasActivityNote) {
             dayState.recShown = true
             const cleaned = recHint.replace(/^오늘은\s*/, '')
             action = `${action} ${cleaned}`
@@ -1158,8 +1163,6 @@ export const buildRuleBasedTimeline = (input: {
           }
           const sentences = [`${bucketTheme}.`, sajuReason, astroReason, activityNote, action]
             .filter((s) => s && s.trim().length > 0)
-          // 첫 문장이 이미 ~이에요로 끝나면 마침표만 정리
-
           note = repairMojibakeText(sentences.join(' '))
         }
       } else {

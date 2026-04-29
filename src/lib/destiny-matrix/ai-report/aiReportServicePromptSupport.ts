@@ -635,6 +635,7 @@ export function buildSynthesisPromptBlock(
     wealth: ['wealth', 'career'],
     health: ['health', 'timing'],
     family: ['relationship', 'personality'],
+    move: ['career', 'timing'], // 이동 신호 — 외부 활동·타이밍·환경 변동
   }
   const preferredDomains =
     mode === 'timing'
