@@ -23,34 +23,45 @@ const astroProfile: UserAstroProfile = {
 
 const matrixContext = {
   domainScores: {
-    career: { finalScoreAdjusted: 7.8 },
-    love: { finalScoreAdjusted: 6.2 },
-    money: { finalScoreAdjusted: 5.4 },
-    health: { finalScoreAdjusted: 4.8 },
-    move: { finalScoreAdjusted: 3.9 },
+    career: { finalScoreAdjusted: 7.4 },
+    love: { finalScoreAdjusted: 6.6 },
+    money: { finalScoreAdjusted: 5.2 },
+    health: { finalScoreAdjusted: 4.4 },
+    move: { finalScoreAdjusted: 3.6 },
   },
   overlapTimelineByDomain: {
     career: [
-      { month: '2026-01', overlapStrength: 0.42 },
-      { month: '2026-02', overlapStrength: 0.55 },
-      { month: '2026-03', overlapStrength: 0.78 },
-      { month: '2026-04', overlapStrength: 0.86 },
+      { month: '2026-01', overlapStrength: 0.18 },
+      { month: '2026-02', overlapStrength: 0.32 },
+      { month: '2026-03', overlapStrength: 0.62 },
+      { month: '2026-04', overlapStrength: 0.88 },
       { month: '2026-05', overlapStrength: 0.71 },
-      { month: '2026-06', overlapStrength: 0.62 },
-      { month: '2026-07', overlapStrength: 0.48 },
-      { month: '2026-08', overlapStrength: 0.51 },
+      { month: '2026-06', overlapStrength: 0.45 },
+      { month: '2026-07', overlapStrength: 0.22 },
+      { month: '2026-08', overlapStrength: 0.34 },
       { month: '2026-09', overlapStrength: 0.66 },
-      { month: '2026-10', overlapStrength: 0.74 },
-      { month: '2026-11', overlapStrength: 0.58 },
-      { month: '2026-12', overlapStrength: 0.45 },
+      { month: '2026-10', overlapStrength: 0.78 },
+      { month: '2026-11', overlapStrength: 0.42 },
+      { month: '2026-12', overlapStrength: 0.16 },
     ],
     love: [
       { month: '2026-04', overlapStrength: 0.52 },
-      { month: '2026-05', overlapStrength: 0.64 },
-      { month: '2026-06', overlapStrength: 0.71 },
+      { month: '2026-05', overlapStrength: 0.74 },
+      { month: '2026-06', overlapStrength: 0.81 },
+      { month: '2026-09', overlapStrength: 0.55 },
     ],
+    money: [
+      { month: '2026-02', overlapStrength: 0.62 },
+      { month: '2026-08', overlapStrength: 0.5 },
+      { month: '2026-11', overlapStrength: 0.7 },
+    ],
+    health: [
+      { month: '2026-01', overlapStrength: 0.4 },
+      { month: '2026-07', overlapStrength: 0.6 },
+    ],
+    move: [{ month: '2026-12', overlapStrength: 0.45 }],
   },
-  timingCalibration: { reliabilityScore: 0.72 },
+  timingCalibration: { reliabilityScore: 0.65 },
 }
 
 const dates = calculateYearlyImportantDatesLite(2026, sajuProfile, astroProfile, {
