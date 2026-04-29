@@ -36,6 +36,10 @@ export interface FormattedDate {
   recommendations: string[]
   warnings: string[]
   evidence?: CalendarEvidence
+  /** 본문에 등장한 사주·점성 용어 → 한 줄 풀이 (프런트 툴팁용) */
+  glossary?: Record<string, string>
+  /** 사주 ↔ 점성 교차 확인 한 줄 + 일치도 % */
+  crossCheck?: { line: string; agreementPercent: number }
 }
 
 export interface CalendarDailyView {

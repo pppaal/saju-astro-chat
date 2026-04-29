@@ -75,5 +75,42 @@ for (const item of formatted) {
   for (const f of item.astroFactors || []) console.log(`    - ${f}`)
   console.log(`  recommendations: ${(item.recommendations || []).slice(0, 2).join(' / ')}`)
   console.log(`  warnings:        ${(item.warnings || []).slice(0, 2).join(' / ')}`)
+  const cc = (item as { crossCheck?: { line: string; agreementPercent: number } }).crossCheck
+  if (cc) console.log(`  cross-check:     [${cc.agreementPercent}%] ${cc.line}`)
+  const gl = (item as { glossary?: Record<string, string> }).glossary
+  if (gl) {
+    console.log(`  glossary:`)
+    for (const [k, v] of Object.entries(gl).slice(0, 6)) console.log(`    · ${k} = ${v}`)
+  }
   console.log('')
+}
+
+// 행동플래너 슬롯 — 사주/점성 컨셉이 실제로 박혀나오는지 확인
+import { buildRuleBasedTimeline } from '@/app/api/calendar/action-plan/routeActionPlanSupport'
+
+const sample = formatted[0]
+const slots = buildRuleBasedTimeline({
+  date: sample.date,
+  locale: 'ko',
+  intervalMinutes: 60,
+  calendar: {
+    grade: sample.grade,
+    displayGrade: sample.displayGrade,
+    score: sample.score,
+    displayScore: sample.displayScore,
+    categories: sample.categories,
+    bestTimes: sample.bestTimes,
+    recommendations: sample.recommendations,
+    warnings: sample.warnings,
+    summary: sample.summary,
+    sajuFactors: sample.sajuFactors,
+    astroFactors: sample.astroFactors,
+    evidence: sample.evidence,
+  } as never,
+})
+
+console.log(`\n=== 행동플래너 슬롯 (${sample.date}) ===\n`)
+for (const slot of slots.filter((s) => [9, 14, 21].includes(s.hour))) {
+  console.log(`${slot.label} (${slot.tone}) — ${slot.note}`)
+  for (const e of slot.evidenceSummary || []) console.log(`   · ${e}`)
 }

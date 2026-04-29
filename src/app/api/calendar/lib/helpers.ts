@@ -814,6 +814,8 @@ export function formatDateForResponse(
     ),
     sajuFactors: orderedSajuFactors,
     astroFactors: orderedAstroFactors,
+    glossary: (date as { glossary?: Record<string, string> }).glossary,
+    crossCheck: (date as { crossCheck?: { line: string; agreementPercent: number } }).crossCheck,
     recommendations: recommendationsForResponse.map((text) =>
       normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)
     ),

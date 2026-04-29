@@ -1095,11 +1095,20 @@ export const buildRuleBasedTimeline = (input: {
         .filter(Boolean)
         .slice(0, 3)
       const note = repairMojibakeText(noteParts.join(' \u00b7 ').trim())
+      // 사주 detail (십신/신살/용신) 라인을 따로 잡아 슬롯에서도 노출
+      const sajuDetailLine =
+        pickCrossLineByTone(calendar?.evidence?.cross?.sajuDetails, tone) ||
+        cleanGuidanceText(calendar?.evidence?.cross?.sajuEvidence || '', 124) ||
+        cleanGuidanceText(calendar?.sajuFactors?.[0] || '', 124)
+      const astroDetailLine =
+        primaryAstroLine ||
+        cleanGuidanceText(calendar?.astroFactors?.[0] || '', 124)
       const evidenceSummary = Array.from(
         new Set(
           [
+            cleanGuidanceText(sajuDetailLine, 124),
+            cleanGuidanceText(astroDetailLine, 124),
             cleanGuidanceText(matrixSummary || 'Matrix baseline evidence', 90),
-            cleanGuidanceText(crossSummary || 'Cross evidence: baseline saju/astro flow', 124),
             cleanGuidanceText(
               personalHint
                 ? locale === 'ko'
@@ -1110,7 +1119,7 @@ export const buildRuleBasedTimeline = (input: {
             ),
           ].filter(Boolean)
         )
-      ).slice(0, 3)
+      ).slice(0, 4)
       slots.push({ hour, minute, label, note, tone, evidenceSummary, source: 'rule' })
     }
   }

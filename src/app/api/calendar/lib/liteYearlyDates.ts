@@ -43,6 +43,10 @@ export interface LiteImportantDate {
   confidence?: number
   confidenceNote?: string
   crossAgreementPercent?: number
+  /** 본문에 등장한 사주·점성 용어 → 한 줄 풀이 (프런트 툴팁용) */
+  glossary?: Record<string, string>
+  /** 사주 ↔ 점성 교차 확인 한 줄 + 신뢰도 % */
+  crossCheck?: { line: string; agreementPercent: number }
 }
 
 type LiteOptions = {
@@ -266,6 +270,74 @@ const SINSAL_BLURB_KO: Record<string, string> = {
   도화: '관계 끌림·매력·공개 자리',
   화개: '내적 정리·예술·고요',
   망신: '체면 흔들림 주의·실수 점검',
+}
+
+const GLOSSARY_KO: Record<string, string> = {
+  // 십신
+  비견: '나와 같은 오행·성별 — 동료, 동등한 협업의 결',
+  겁재: '나와 같은 오행·반대 성별 — 경쟁자, 자원을 나누는 관계',
+  식신: '내가 만들어내는 부드러운 산출 — 꾸준한 표현·생산',
+  상관: '내가 만들어내는 강한 발산 — 창의·도전·말발',
+  편재: '내가 통제할 자원·외부 거래 — 유동적인 돈 흐름',
+  정재: '내가 안정적으로 거두는 자원 — 고정 수입·계약',
+  편관: '나를 누르는 강한 책임 — 도전적·압박형 업무',
+  정관: '나를 다스리는 정식 직책 — 공식·규칙 안의 일',
+  편인: '나를 키우는 비주류 인성 — 학습·내적 재정비',
+  정인: '나를 키우는 정식 인성 — 돌봄·문서·인정',
+  // 신살
+  역마: '이동·출장·전직 같은 환경 변동 신호',
+  도화: '관계 끌림·매력·공개적인 자리에 서기 좋은 결',
+  화개: '내적 정리·예술·고독한 시간이 깊어지는 결',
+  망신: '체면 흔들림·실수 노출에 조심해야 하는 결',
+  // 사주 기본 어휘
+  일간: '내 사주의 기준 천간(태어난 날의 위 글자) — 본인 그 자체',
+  일지: '태어난 날의 아래 글자(地支) — 배우자 자리·내 일상의 결',
+  월간: '태어난 달의 위 글자(천간) — 사회·직장·환경 결',
+  월지: '태어난 달의 아래 글자(지지) — 시기·계절·격국의 뿌리',
+  대운: '10년 단위의 큰 운 흐름',
+  세운: '한 해의 운 흐름',
+  격국: '사주가 어떤 틀에 가까운지(정관격·정재격 등) — 본명의 큰 성격',
+  조후용신: '계절(月)에 비춰 본명을 살리는 핵심 오행',
+  // 오행
+  목: '나무 — 자라남·계획·시작',
+  화: '불 — 표현·확장·열정',
+  토: '흙 — 중재·신뢰·축적',
+  금: '쇠 — 결단·구조·정리',
+  수: '물 — 지혜·휴식·흐름',
+  // 점성
+  네이탈: '태어난 순간의 천체 위치(본명 차트)',
+  트랜짓: '오늘 하늘에 떠 있는 행성과 본명의 만남',
+  '환절기 트랜짓': '계절이 바뀌는 구간(3·9월 등)에 일어나는 외부 신호',
+  // 분석 용어
+  교차: '사주와 점성이 같은 결을 가리키는지 확인하는 cross-check',
+}
+
+function pickGlossaryTerms(text: string): string[] {
+  const out: string[] = []
+  for (const term of Object.keys(GLOSSARY_KO)) {
+    if (text.includes(term)) out.push(term)
+  }
+  return out
+}
+
+function buildCrossCheckLineKo(percent: number): string {
+  if (percent >= 75) {
+    return `사주 신호와 점성 신호가 ${percent}%로 같은 방향을 가리킵니다. 둘이 동시에 받쳐줘 결정의 신뢰도가 높습니다.`
+  }
+  if (percent >= 55) {
+    return `사주·점성 교차 일치도 ${percent}% — 큰 줄기는 같지만 세부에서 갈리니 핵심만 잡고 나머지는 미루는 편이 안전합니다.`
+  }
+  return `사주·점성 교차 일치도 ${percent}%로 낮습니다. 한쪽 신호만 보고 움직이지 말고 다른 축에서 다시 확인하세요.`
+}
+
+function buildCrossCheckLineEn(percent: number): string {
+  if (percent >= 75) {
+    return `Saju and astrology align at ${percent}% — both axes back the same direction, so confidence is high.`
+  }
+  if (percent >= 55) {
+    return `Cross-check ${percent}% — broad direction holds but details diverge; keep the core moves and defer the rest.`
+  }
+  return `Cross-check ${percent}% — signals diverge. Don't move on a single axis; verify on the other before committing.`
 }
 
 function hasFinalConsonant(ko: string): boolean {
@@ -1016,21 +1088,58 @@ export function calculateYearlyImportantDatesLite(
         counselorPacks[month],
         `${seed}|s`
       ),
-      astroFactorKeys: buildAstroFactors(
-        locale,
-        astroProfile,
-        primary.domain,
-        month,
-        crossAgreementPercent,
-        tier,
-        `${seed}|a`
-      ),
+      astroFactorKeys: [
+        locale === 'ko'
+          ? `사주↔점성 교차 일치도 ${crossAgreementPercent}% — ${
+              crossAgreementPercent >= 70
+                ? '두 축이 같은 방향'
+                : crossAgreementPercent >= 50
+                  ? '큰 줄기는 같지만 세부는 갈림'
+                  : '신호가 엇갈림'
+            }`
+          : `Saju↔astrology cross-check ${crossAgreementPercent}% — ${
+              crossAgreementPercent >= 70
+                ? 'both axes align'
+                : crossAgreementPercent >= 50
+                  ? 'broad direction holds, details diverge'
+                  : 'signals diverge'
+            }`,
+        ...buildAstroFactors(
+          locale,
+          astroProfile,
+          primary.domain,
+          month,
+          crossAgreementPercent,
+          tier,
+          `${seed}|a`
+        ),
+      ],
       recommendationKeys: buildRecommendations(grade),
       warningKeys: buildWarnings(grade, crossAgreementPercent),
       confidence: Math.round(clamp(primaryStrength * 100, 0, 100)),
       confidenceNote:
         locale === 'ko' ? '캘린더 경량 스코어링 기준' : 'Calendar lite scoring baseline',
       crossAgreementPercent,
+      glossary: (() => {
+        if (locale !== 'ko') return undefined
+        const surface = [
+          counselorPacks[month]?.sibsin || '',
+          ...(counselorPacks[month]?.sinsals || []),
+          ...buildSajuFactors(locale, sajuProfile, primary.domain, month, counselorPacks[month], `${seed}|s`),
+        ].join(' ')
+        const terms = pickGlossaryTerms(surface)
+        if (!terms.length) return undefined
+        const map: Record<string, string> = {}
+        for (const t of terms) map[t] = GLOSSARY_KO[t]
+        return map
+      })(),
+      crossCheck: {
+        line:
+          locale === 'ko'
+            ? buildCrossCheckLineKo(crossAgreementPercent)
+            : buildCrossCheckLineEn(crossAgreementPercent),
+        agreementPercent: crossAgreementPercent,
+      },
     })
   }
 
