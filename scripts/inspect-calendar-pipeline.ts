@@ -97,8 +97,8 @@ for (const item of samples) {
 // 행동플래너 슬롯 — 사주/점성 컨셉이 실제로 박혀나오는지 확인
 import { buildRuleBasedTimeline } from '@/app/api/calendar/action-plan/routeActionPlanSupport'
 
-// 행동플래너: 대길(grade 0)과 대흉(grade 4) 비교
-for (const sample of [grade0, grade4].filter(Boolean)) {
+// 행동플래너: 대길(grade 0) 전체 24시간
+for (const sample of [grade0].filter(Boolean)) {
   const slots = buildRuleBasedTimeline({
     date: sample.date,
     locale: 'ko',
@@ -119,10 +119,38 @@ for (const sample of [grade0, grade4].filter(Boolean)) {
     } as never,
   })
 
-  console.log(`\n=== 행동플래너 슬롯 (${sample.date} grade=${sample.grade}) ===\n`)
-  for (const slot of slots.filter((s) => [8, 14, 20].includes(s.hour))) {
-    console.log(`${slot.label} (${slot.tone}) — ${slot.note}`)
-    for (const e of slot.evidenceSummary || []) console.log(`   · ${e}`)
-    console.log('')
+  console.log(`\n=== 행동플래너 24시 (${sample.date} · grade=${sample.grade}) ===\n`)
+  for (const slot of slots) {
+    const tone = slot.tone === 'best' ? '🟢' : slot.tone === 'caution' ? '🔴' : '⚪'
+    console.log(`${tone} ${slot.label}  ${slot.note}`)
+  }
+}
+
+// 행동플래너: 대흉(grade 4) 전체 24시간
+for (const sample of [grade4].filter(Boolean)) {
+  const slots = buildRuleBasedTimeline({
+    date: sample.date,
+    locale: 'ko',
+    intervalMinutes: 60,
+    calendar: {
+      grade: sample.grade,
+      displayGrade: sample.displayGrade,
+      score: sample.score,
+      displayScore: sample.displayScore,
+      categories: sample.categories,
+      bestTimes: sample.bestTimes,
+      recommendations: sample.recommendations,
+      warnings: sample.warnings,
+      summary: sample.summary,
+      sajuFactors: sample.sajuFactors,
+      astroFactors: sample.astroFactors,
+      evidence: sample.evidence,
+    } as never,
+  })
+
+  console.log(`\n=== 행동플래너 24시 (${sample.date} · grade=${sample.grade}) ===\n`)
+  for (const slot of slots) {
+    const tone = slot.tone === 'best' ? '🟢' : slot.tone === 'caution' ? '🔴' : '⚪'
+    console.log(`${tone} ${slot.label}  ${slot.note}`)
   }
 }
