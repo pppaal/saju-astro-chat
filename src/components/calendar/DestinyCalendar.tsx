@@ -392,10 +392,19 @@ const DestinyCalendarContent = memo(function DestinyCalendarContent() {
       return
     }
 
+    // When the user skips city/coords (Quick mode → BirthInfoForm fills
+    // birthPlace with 'Seoul' but leaves lat/lng undefined), default coords
+    // to Seoul so cross-augment (which needs lat/lng) can still fire.
+    const hasCoords =
+      typeof submittedInfo.latitude === 'number' &&
+      typeof submittedInfo.longitude === 'number'
     const normalizedBirthInfo: BirthInfo = {
       ...submittedInfo,
       birthTime: submittedInfo.birthTime || '12:00',
       birthPlace: submittedInfo.birthPlace || 'Seoul',
+      latitude: hasCoords ? submittedInfo.latitude : 37.5665,
+      longitude: hasCoords ? submittedInfo.longitude : 126.978,
+      timezone: submittedInfo.timezone || 'Asia/Seoul',
     }
 
     setBirthInfo(normalizedBirthInfo)
