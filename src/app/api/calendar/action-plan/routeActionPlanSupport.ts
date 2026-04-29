@@ -9,6 +9,7 @@ import {
 
 import {
   buildCrossReasonText,
+  buildHourSajuLine,
   clampPercent,
   cleanGuidanceText,
   extractHoursFromText,
@@ -1060,35 +1061,38 @@ export const buildRuleBasedTimeline = (input: {
       const best = hourlyRec.bestActivities.slice(0, 2).join(', ')
       const avoid = hourlyRec.avoidActivities.slice(0, 2).join(', ')
 
+      // 시진(時辰)이 이미 자체 액션 풀이를 가지고 있으니, 추가 라인은 캘린더 추천/경고만 짧게 덧붙임
       let detailLine = ''
       if (locale === 'ko') {
         if (tone === 'caution') {
-          detailLine = `${focusHint}. ${
-            warningHint ? `주의 포인트: ${warningHint}` : `주의: ${avoid || '무리한 결정'}`
-          }`
-        } else {
-          detailLine = `${focusHint}. ${
-            recHint ? `실행: ${recHint}` : `추천: ${best || '핵심 업무'}`
-          }`
+          detailLine = warningHint
+            ? `주의: ${warningHint}`
+            : `주의: ${avoid || '무리한 결정 자제'}`
+        } else if (recHint) {
+          detailLine = `오늘 실행: ${recHint}`
+        } else if (best) {
+          detailLine = `오늘 활용: ${best}`
         }
         if (personalHint) {
-          detailLine = `${detailLine}. 개인화: ${personalHint}`
+          detailLine = detailLine ? `${detailLine} (${personalHint})` : `개인화: ${personalHint}`
         }
       } else {
         if (tone === 'caution') {
-          detailLine = `${focusHint}. ${
-            warningHint ? `Watch-out: ${warningHint}` : 'Avoid high-risk decisions right now'
-          }.`
-        } else {
-          detailLine = `${focusHint}. ${recHint ? `Action: ${recHint}` : 'Action: do one focused task'}.`
+          detailLine = warningHint ? `Watch-out: ${warningHint}` : 'Avoid high-risk decisions'
+        } else if (recHint) {
+          detailLine = `Today's action: ${recHint}`
+        } else if (best) {
+          detailLine = `Lean into: ${best}`
         }
         if (personalHint) {
-          detailLine = `${detailLine} Personalized: ${personalHint}.`
+          detailLine = detailLine ? `${detailLine} (${personalHint})` : `Personalized: ${personalHint}`
         }
       }
 
+      // \uc0ac\uc8fc \uc2dc\uc9c4(\u6642\u8fb0) \u2014 \uadf8 \uc2dc\uac04\uc758 \uc2dc\uc9c0\u00b7\uc2dc\uac04 \ucc9c\uac04\u00b7\uc2dc\uac04 \uc2ed\uc2e0\uc744 \ub04c\uc5b4\uc640 \uc0c1\ub2f4\uc0ac \ud1a4\uc73c\ub85c
+      const sajuHour = buildHourSajuLine({ locale, hour, natalDayStem: daily.stem })
       const noteParts = [
-        cleanGuidanceText(energyText, 54),
+        cleanGuidanceText(sajuHour.line, 132),
         cleanGuidanceText(detailLine, 108),
         crossReason,
       ]

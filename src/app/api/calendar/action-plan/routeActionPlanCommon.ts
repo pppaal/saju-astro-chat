@@ -262,3 +262,149 @@ export function getHourlyWindowLabel(hour: number, locale: 'ko' | 'en'): string 
   if (hour < 21) return 'Evening relationship window: communication quality tends to improve'
   return 'Night recovery window: reduce load and prep for tomorrow'
 }
+
+// ─────────────────────────────────────────────────────────────
+// 사주 시진(時辰) — 시간 단위 일주(시주) 분석을 슬롯 텍스트에 끌어옴
+// ─────────────────────────────────────────────────────────────
+
+const SAJU_STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
+const SAJU_STEM_INDEX: Record<string, number> = Object.fromEntries(
+  SAJU_STEMS.map((s, i) => [s, i])
+)
+const SAJU_STEM_YIN: Record<string, boolean> = {
+  甲: false, 乙: true, 丙: false, 丁: true, 戊: false,
+  己: true, 庚: false, 辛: true, 壬: false, 癸: true,
+}
+const SAJU_STEM_TO_KO_ELEMENT: Record<string, string> = {
+  甲: '목', 乙: '목', 丙: '화', 丁: '화', 戊: '토',
+  己: '토', 庚: '금', 辛: '금', 壬: '수', 癸: '수',
+}
+const HOUR_BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+
+/** 24h → 12지지 매핑 (子: 23-01, 丑: 01-03, ...) */
+export function hourBranchOf(hour: number): string {
+  const idx = Math.floor(((hour + 1) % 24) / 2)
+  return HOUR_BRANCHES[idx]
+}
+
+/** 일간 기준 그 시간의 천간 (5운 12지 시간 천간 규칙) */
+export function hourStemOf(dayStem: string, hour: number): string {
+  const sIdx = SAJU_STEM_INDEX[dayStem]
+  if (sIdx === undefined) return SAJU_STEMS[0]
+  const baseHourStemIdx = ((sIdx % 5) * 2) % 10 // 子時 시작 천간 idx
+  const branchIdx = Math.floor(((hour + 1) % 24) / 2)
+  return SAJU_STEMS[(baseHourStemIdx + branchIdx) % 10]
+}
+
+/** 일간 vs 시간 십신 — 한국어 라벨 */
+export function hourSibsinKo(dayStem: string, hourStem: string): string {
+  const dayEl = SAJU_STEM_TO_KO_ELEMENT[dayStem]
+  const hEl = SAJU_STEM_TO_KO_ELEMENT[hourStem]
+  if (!dayEl || !hEl) return ''
+  const elements = ['목', '화', '토', '금', '수']
+  const samePolarity = SAJU_STEM_YIN[dayStem] === SAJU_STEM_YIN[hourStem]
+  const diff = (elements.indexOf(hEl) - elements.indexOf(dayEl) + 5) % 5
+  const labels = [
+    ['비견', '겁재'],
+    ['식신', '상관'],
+    ['편재', '정재'],
+    ['편관', '정관'],
+    ['편인', '정인'],
+  ]
+  return labels[diff][samePolarity ? 0 : 1]
+}
+
+/** 12 시지 자연 의미 — 사주 상담 시진 풀이 */
+export const HOUR_BRANCH_THEME_KO: Record<string, string> = {
+  子: '깊은 휴식·잠재의식이 강한 子時(자시)',
+  丑: '새벽 정리·내면 묵상의 丑時(축시)',
+  寅: '큰 그림 시동·기획에 좋은 寅時(인시)',
+  卯: '활동 시작·아침 결정에 우호적인 卯時(묘시)',
+  辰: '아침 집중·핵심 1건에 좋은 辰時(진시)',
+  巳: '표현·발표·미팅의 골든 巳時(사시)',
+  午: '결단·정렬의 정점 午時(오시)',
+  未: '마무리·정리·문서의 未時(미시)',
+  申: '결과물 마감 속도가 살아나는 申時(신시)',
+  酉: '매듭·협력 마감의 酉時(유시)',
+  戌: '회복·식사·관계의 戌時(술시)',
+  亥: '깊은 학습·내면 정리의 亥時(해시)',
+}
+
+export const HOUR_BRANCH_THEME_EN: Record<string, string> = {
+  子: 'Ja-si (23–01) — deep rest, subconscious surfaces',
+  丑: 'Chuk-si (01–03) — pre-dawn cleanup, inner reflection',
+  寅: 'In-si (03–05) — big-picture ignition, planning',
+  卯: 'Myo-si (05–07) — activity onset, morning calls',
+  辰: 'Jin-si (07–09) — morning focus, one core task',
+  巳: 'Sa-si (09–11) — golden window for expression and meetings',
+  午: 'O-si (11–13) — decision peak and alignment',
+  未: 'Mi-si (13–15) — wrap-up, cleanup, paperwork',
+  申: 'Shin-si (15–17) — closure speed on deliverables',
+  酉: 'Yu-si (17–19) — handoff, collaborative finish',
+  戌: 'Sul-si (19–21) — recovery, meals, relationships',
+  亥: 'Hae-si (21–23) — deep study, inner cleanup',
+}
+
+/** 시간 십신 → 행동 풀이 (한 줄). 도메인 별 미세 톤 — 보편적 수준에서 시작. */
+export const SIBSIN_HOUR_ACTION_KO: Record<string, string> = {
+  비견: '동료·동등 협업이 자연스러운 시간 — 같은 결의 사람과 함께 가세요',
+  겁재: '경쟁·자원 분배가 예민한 시간 — 비교 말고 본인 페이스 유지',
+  식신: '표현·발표·창작이 가벼운 시간 — 미팅·발표 잡기 좋음',
+  상관: '강한 발산·설득의 시간 — 핵심 메시지를 던지기 좋음',
+  편재: '외부 거래·유동 자금이 살아나는 시간 — 미팅·딜 좋음',
+  정재: '안정 자금·계약 정리에 우호적 — 문서·서명 다듬기',
+  편관: '책임감 있게 압박을 다룰 시간 — 어려운 결정 정면 돌파',
+  정관: '공식 직책·규칙 안의 일에 적합 — 회의·보고·검토',
+  편인: '학습·내적 재정비 시간 — 책상 앞에 앉기 좋음',
+  정인: '돌봄·문서·인정 받는 시간 — 정리·기록·정중한 답신',
+}
+
+export const SIBSIN_HOUR_ACTION_EN: Record<string, string> = {
+  비견: 'natural for peer-level collaboration — go alongside same-tier folks',
+  겁재: 'rivalry and resource-split tension — keep your own pace',
+  식신: 'expression and craft flow easily — book talks and meetings',
+  상관: 'sharp persuasion window — drop the core message',
+  편재: 'external deals and fluid money flow open up — pitch and trade',
+  정재: 'stable income and contract cleanup — sign documents',
+  편관: 'handle pressure with responsibility — face hard decisions',
+  정관: 'formal roles and review work — meetings, reports',
+  편인: 'learning and inner reset — desk time is productive',
+  정인: 'caregiving, paperwork, recognition — organize and reply',
+}
+
+/**
+ * 슬롯 한 줄 — 시진 + 시간 십신 + 시지 자연 의미를 합쳐 상담사 톤으로
+ * 작성. 도메인·하루 톤은 호출자가 추가로 덧대기 좋게 일반형으로 둠.
+ */
+export function buildHourSajuLine(input: {
+  locale: 'ko' | 'en'
+  hour: number
+  natalDayStem: string
+}): { sigan: string; sibsin: string; line: string } {
+  const { locale, hour, natalDayStem } = input
+  const branch = hourBranchOf(hour)
+  const stem = natalDayStem ? hourStemOf(natalDayStem, hour) : ''
+  const sibsin = stem && natalDayStem ? hourSibsinKo(natalDayStem, stem) : ''
+  if (locale === 'ko') {
+    const branchTheme = HOUR_BRANCH_THEME_KO[branch] || `${branch}時`
+    const action = sibsin ? SIBSIN_HOUR_ACTION_KO[sibsin] : ''
+    const stemPart = stem ? ` · ${stem}${branch}` : ''
+    return {
+      sigan: `${branch}時${stemPart}`,
+      sibsin,
+      line: action
+        ? `${branchTheme}${stemPart}${sibsin ? ` · ${sibsin} 시간` : ''} — ${action}.`
+        : `${branchTheme}${stemPart}.`,
+    }
+  }
+  const branchTheme = HOUR_BRANCH_THEME_EN[branch] || `${branch} hour`
+  const action = sibsin ? SIBSIN_HOUR_ACTION_EN[sibsin] : ''
+  const stemPart = stem ? ` · ${stem}${branch}` : ''
+  return {
+    sigan: `${branch}-hour${stemPart}`,
+    sibsin,
+    line: action
+      ? `${branchTheme}${stemPart}${sibsin ? ` · ${sibsin}-hour` : ''} — ${action}.`
+      : `${branchTheme}${stemPart}.`,
+  }
+}
