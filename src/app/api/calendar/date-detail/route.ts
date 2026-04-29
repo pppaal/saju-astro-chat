@@ -24,8 +24,10 @@ import { logger } from '@/lib/logger'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { STEM_TO_ELEMENT } from '@/lib/Saju/constants'
 import { analyzeDate } from '@/lib/destiny-map/calendar/date-analysis-orchestrator'
+import { calculateYearlyImportantDatesLite } from '@/app/api/calendar/lib/liteYearlyDates'
 import { getPillarStemName, getPillarBranchName } from '@/app/api/calendar/lib/helpers'
-import { cacheOrCalculate, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { cacheOrCalculate, cacheGet, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
+import type { LiteImportantDate } from '@/app/api/calendar/lib/liteYearlyDates'
 import type {
   UserSajuProfile,
   UserAstroProfile,
@@ -139,22 +141,58 @@ export const GET = withApiMiddleware(
     } as UserAstroProfile
 
     const targetDate = new Date(date + 'T00:00:00')
-    // 같은 사용자가 같은 날짜를 또 누르거나 캘린더에서 좌우로 옮길 때 풀 엔진 재계산을 막기 위해 1일 캐싱
-    const cacheKey = `cal-detail:v1:${birthDate}:${birthTime || ''}:${sajuGender}:${date}`
-    const detail = await cacheOrCalculate(
+    const yearOfDate = targetDate.getFullYear()
+
+    // 1) 365 캘린더 뷰가 캐시에 있으면 그걸 권위 있는 답으로 사용 (사용자가 캘린더 페이지 들어왔으면 항상 채워져 있음)
+    let liteForDay: LiteImportantDate | undefined
+    for (const cat of ['', 'general', 'career', 'love', 'wealth', 'health', 'travel', 'study'] as const) {
+      const yk = CacheKeys.yearlyCalendar(birthDate, birthTime || '', sajuGender, yearOfDate, cat || undefined)
+      const cached = await cacheGet<LiteImportantDate[]>(yk)
+      const hit = cached?.find((d) => d.date === date)
+      if (hit) {
+        liteForDay = hit
+        break
+      }
+    }
+
+    // 2) 캐시 없으면 같은 lite 점수식으로 그 해 한 번 돌려서 사용 (point-of-truth는 lite)
+    const cacheKey = `cal-detail:v3:${birthDate}:${birthTime || ''}:${sajuGender}:${date}`
+    const merged = await cacheOrCalculate(
       cacheKey,
-      async () => analyzeDate(targetDate, sajuProfile, astroProfile),
+      async () => {
+        const detail = analyzeDate(targetDate, sajuProfile, astroProfile)
+        if (!detail) return null
+        let lite = liteForDay
+        if (!lite) {
+          const liteList = calculateYearlyImportantDatesLite(
+            yearOfDate,
+            sajuProfile,
+            astroProfile,
+            { locale: 'ko' }
+          )
+          lite = liteList.find((d) => d.date === detail.date)
+        }
+        return { detail, lite }
+      },
       CACHE_TTL.CALENDAR_DATA
     )
-    if (!detail) {
+    if (!merged?.detail) {
       return apiError(ErrorCodes.SERVICE_UNAVAILABLE, 'Date analysis unavailable')
     }
+    const { detail, lite } = merged
+    // 365 lite를 정답으로 — 365 뷰 grade와 detail grade가 어긋나지 않게
+    const canonicalGrade = lite?.grade ?? detail.grade
+    const canonicalScore = lite?.score ?? detail.score
+    const canonicalDisplayScore = lite?.displayScore ?? detail.displayScore ?? canonicalScore
 
     return apiSuccess({
       date: detail.date,
-      grade: detail.grade,
-      score: detail.score,
-      displayScore: detail.displayScore,
+      grade: canonicalGrade,
+      score: canonicalScore,
+      displayScore: canonicalDisplayScore,
+      // 분석기가 따로 낸 점수 — UI는 안 쓰고 진단/모니터링 용
+      analystGrade: detail.grade,
+      analystScore: detail.score,
       categories: detail.categories,
       ganzhi: detail.ganzhi,
       transitSunSign: detail.transitSunSign,
