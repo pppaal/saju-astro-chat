@@ -577,7 +577,8 @@ describe('Calendar Helpers', () => {
       expect(result.grade).toBe(0)
       expect(result.score).toBeLessThanOrEqual(95)
       expect(result.score).toBeGreaterThan(0)
-      expect(result.title).toBe('활용 흐름이 좋은 구간')
+      // sanitizeCalendarCopy no longer rewrites natural counselor phrases like "좋은 날"
+      expect(result.title).toBe('좋은 날')
     })
 
     it('should deduplicate categories', () => {
