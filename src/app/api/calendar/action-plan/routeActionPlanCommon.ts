@@ -314,49 +314,49 @@ export function hourSibsinKo(dayStem: string, hourStem: string): string {
   return labels[diff][samePolarity ? 0 : 1]
 }
 
-/** 12 시지 자연 의미 — 사주 상담 시진 풀이 */
+/** 12 시지 자연 의미 — 한자 빼고 평어로 (단, 데이터에는 한자 유지) */
 export const HOUR_BRANCH_THEME_KO: Record<string, string> = {
-  子: '깊은 휴식·잠재의식이 강한 子時(자시)',
-  丑: '새벽 정리·내면 묵상의 丑時(축시)',
-  寅: '큰 그림 시동·기획에 좋은 寅時(인시)',
-  卯: '활동 시작·아침 결정에 우호적인 卯時(묘시)',
-  辰: '아침 집중·핵심 1건에 좋은 辰時(진시)',
-  巳: '표현·발표·미팅의 골든 巳時(사시)',
-  午: '결단·정렬의 정점 午時(오시)',
-  未: '마무리·정리·문서의 未時(미시)',
-  申: '결과물 마감 속도가 살아나는 申時(신시)',
-  酉: '매듭·협력 마감의 酉時(유시)',
-  戌: '회복·식사·관계의 戌時(술시)',
-  亥: '깊은 학습·내면 정리의 亥時(해시)',
+  子: '23-01시는 깊은 휴식·잠재의식이 살아나는 시간',
+  丑: '1-3시는 새벽 정리·내면 묵상의 시간',
+  寅: '3-5시는 큰 그림 시동·기획이 잘되는 시간',
+  卯: '5-7시는 활동 시작·아침 결정에 우호적인 시간',
+  辰: '7-9시는 아침 집중·핵심 1건에 좋은 시간',
+  巳: '9-11시는 표현·발표·미팅이 풀리는 황금 시간',
+  午: '11-13시는 결단·정렬의 정점',
+  未: '13-15시는 마무리·정리·문서의 시간',
+  申: '15-17시는 결과물 마감 속도가 살아나는 시간',
+  酉: '17-19시는 매듭·협력 마감의 시간',
+  戌: '19-21시는 회복·식사·관계의 시간',
+  亥: '21-23시는 깊은 학습·내면 정리의 시간',
 }
 
 export const HOUR_BRANCH_THEME_EN: Record<string, string> = {
-  子: 'Ja-si (23–01) — deep rest, subconscious surfaces',
-  丑: 'Chuk-si (01–03) — pre-dawn cleanup, inner reflection',
-  寅: 'In-si (03–05) — big-picture ignition, planning',
-  卯: 'Myo-si (05–07) — activity onset, morning calls',
-  辰: 'Jin-si (07–09) — morning focus, one core task',
-  巳: 'Sa-si (09–11) — golden window for expression and meetings',
-  午: 'O-si (11–13) — decision peak and alignment',
-  未: 'Mi-si (13–15) — wrap-up, cleanup, paperwork',
-  申: 'Shin-si (15–17) — closure speed on deliverables',
-  酉: 'Yu-si (17–19) — handoff, collaborative finish',
-  戌: 'Sul-si (19–21) — recovery, meals, relationships',
-  亥: 'Hae-si (21–23) — deep study, inner cleanup',
+  子: '23–01 — deep rest, subconscious surfaces',
+  丑: '01–03 — pre-dawn cleanup, inner reflection',
+  寅: '03–05 — big-picture ignition, planning',
+  卯: '05–07 — activity onset, morning calls',
+  辰: '07–09 — morning focus, one core task',
+  巳: '09–11 — golden window for expression and meetings',
+  午: '11–13 — decision peak and alignment',
+  未: '13–15 — wrap-up, cleanup, paperwork',
+  申: '15–17 — closure speed on deliverables',
+  酉: '17–19 — handoff, collaborative finish',
+  戌: '19–21 — recovery, meals, relationships',
+  亥: '21–23 — deep study, inner cleanup',
 }
 
-/** 시간 십신 → 행동 풀이 (한 줄). 도메인 별 미세 톤 — 보편적 수준에서 시작. */
+/** 시간 십신 → 행동 풀이. 십신 라벨 빼고 행동만. */
 export const SIBSIN_HOUR_ACTION_KO: Record<string, string> = {
-  비견: '동료·동등 협업이 자연스러운 시간 — 같은 결의 사람과 함께 가세요',
-  겁재: '경쟁·자원 분배가 예민한 시간 — 비교 말고 본인 페이스 유지',
-  식신: '표현·발표·창작이 가벼운 시간 — 미팅·발표 잡기 좋음',
-  상관: '강한 발산·설득의 시간 — 핵심 메시지를 던지기 좋음',
-  편재: '외부 거래·유동 자금이 살아나는 시간 — 미팅·딜 좋음',
-  정재: '안정 자금·계약 정리에 우호적 — 문서·서명 다듬기',
-  편관: '책임감 있게 압박을 다룰 시간 — 어려운 결정 정면 돌파',
-  정관: '공식 직책·규칙 안의 일에 적합 — 회의·보고·검토',
-  편인: '학습·내적 재정비 시간 — 책상 앞에 앉기 좋음',
-  정인: '돌봄·문서·인정 받는 시간 — 정리·기록·정중한 답신',
+  비견: '동료·동등 협업이 자연스러운 결 — 같은 결의 사람과 함께 가세요',
+  겁재: '경쟁·자원 분배가 예민한 결 — 비교 말고 본인 페이스 유지',
+  식신: '표현·발표·창작이 가벼운 결 — 미팅·발표 잡기 좋음',
+  상관: '강한 발산·설득의 결 — 핵심 메시지를 던지기 좋음',
+  편재: '외부 거래·유동 자금이 살아나는 결 — 미팅·딜 좋음',
+  정재: '안정 자금·계약 정리에 우호적인 결 — 문서·서명 다듬기',
+  편관: '책임감 있게 압박을 다룰 결 — 어려운 결정 정면 돌파',
+  정관: '공식 직책·규칙 안의 일에 적합한 결 — 회의·보고·검토',
+  편인: '학습·내적 재정비의 결 — 책상 앞에 앉기 좋음',
+  정인: '돌봄·문서·인정의 결 — 정리·기록·정중한 답신',
 }
 
 export const SIBSIN_HOUR_ACTION_EN: Record<string, string> = {
@@ -407,13 +407,13 @@ export function detectHourEvent(input: {
 }): HourEvent | null {
   const { natalDayStem, natalDayBranch, hourStem, hourBranch, gongmangBranches } = input
   if (!natalDayStem || !natalDayBranch) return null
-  // 천간 합
+  // 천간 합 — 평어
   if (STEM_HAP_PARTNER_LOCAL[natalDayStem] === hourStem && natalDayStem !== hourStem) {
     return {
       kind: '천간합',
       shift: 'lift',
-      ko: `시간 천간 ${hourStem}이 본명 일간 ${natalDayStem}과 합 — 결속·동의가 잘 맺히는 시간`,
-      en: `Hour stem ${hourStem} combines with natal day-master ${natalDayStem} — agreements land cleanly`,
+      ko: '본인 사주 흐름과 부드럽게 맞물리는 순간 — 협의·동의가 잘 맺히는 시간',
+      en: 'aligns gently with your natal flow — agreements land cleanly',
     }
   }
   // 천간 충
@@ -421,8 +421,8 @@ export function detectHourEvent(input: {
     return {
       kind: '천간충',
       shift: 'press',
-      ko: `시간 천간 ${hourStem}이 본명 일간 ${natalDayStem}과 충 — 압박·갈등 시간`,
-      en: `Hour stem ${hourStem} clashes with natal day-master ${natalDayStem} — friction window`,
+      ko: '본인 사주를 누르는 압박 시간 — 갈등·긴장이 일어나기 쉬움',
+      en: 'a pressure window against your natal flow — friction is more likely',
     }
   }
   // 지지 합
@@ -430,8 +430,8 @@ export function detectHourEvent(input: {
     return {
       kind: '지지합',
       shift: 'lift',
-      ko: `시지 ${hourBranch}이 본명 일지 ${natalDayBranch}과 육합 — 가까운 사람과 결속이 단단`,
-      en: `Hour branch ${hourBranch} combines with natal day-branch ${natalDayBranch} — closeness deepens`,
+      ko: '가까운 사람·일상 결속이 단단해지는 시간',
+      en: 'closeness with people and daily ties consolidates',
     }
   }
   // 지지 충
@@ -439,8 +439,8 @@ export function detectHourEvent(input: {
     return {
       kind: '지지충',
       shift: 'press',
-      ko: `시지 ${hourBranch}이 본명 일지 ${natalDayBranch}과 충 — 변동·이동·환경 흔들림`,
-      en: `Hour branch ${hourBranch} clashes with natal day-branch ${natalDayBranch} — environment may shift`,
+      ko: '환경·이동·관계의 변동이 일어나기 쉬운 시간',
+      en: 'environment / movement / relationships may shift',
     }
   }
   // 지지 형 (삼형)
@@ -455,8 +455,8 @@ export function detectHourEvent(input: {
     return {
       kind: '지지형',
       shift: 'press',
-      ko: `시지 ${hourBranch}이 본명 일지 ${natalDayBranch}과 형 — 마찰·실수 노출 가능`,
-      en: `Hour branch ${hourBranch} clashes (punish) with natal day-branch — friction / errors more likely`,
+      ko: '마찰·실수 노출이 잦은 시간 — 신중하게 가세요',
+      en: 'friction / exposed mistakes are more likely — proceed carefully',
     }
   }
   // 공망
@@ -464,8 +464,8 @@ export function detectHourEvent(input: {
     return {
       kind: '공망',
       shift: 'press',
-      ko: `시지 ${hourBranch}이 본명 공망 — 결정·확정의 무게가 비는 시간`,
-      en: `Hour branch ${hourBranch} falls in natal void (gongmang) — decisions feel weightless here`,
+      ko: '결정·확정의 무게가 비는 시간 — 새 일은 미루세요',
+      en: 'decisions lose weight here — defer new starts',
     }
   }
   return null
@@ -517,19 +517,14 @@ export function buildPlanetaryHourLine(input: {
   if (!y || !m || !d) return null
   const ph = getPlanetaryHourForDate(new Date(y, m - 1, d, hour, 0, 0))
   if (!ph?.planet) return null
-  const planetKo = PLANET_KO_LABEL[ph.planet] || ph.planet
-  const dayRulerKo = PLANET_KO_LABEL[ph.dayRuler] || ph.dayRuler
-  const ko =
-    locale === 'ko'
-      ? `행성시간 ${planetKo}(요일주 ${dayRulerKo}) — ${PLANET_KO_ACTION[ph.planet] || ''}`
-      : `Planetary hour ${ph.planet} (day-ruler ${ph.dayRuler}) — ${PLANET_EN_ACTION[ph.planet] || ''}`
-  return {
-    planet: ph.planet,
-    dayRuler: ph.dayRuler,
-    isDay: ph.isDay,
-    ko: locale === 'ko' ? ko : '',
-    en: locale === 'en' ? ko : '',
-  }
+  // "행성시간 / 요일주" 라벨 빼고 의미만 풀어서
+  const ko = locale === 'ko'
+    ? `점성 흐름은 ${PLANET_KO_ACTION[ph.planet] || ''}`
+    : ''
+  const en = locale === 'en'
+    ? `astro window favors ${PLANET_EN_ACTION[ph.planet] || ''}`
+    : ''
+  return { planet: ph.planet, dayRuler: ph.dayRuler, isDay: ph.isDay, ko, en }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -622,29 +617,24 @@ export function buildHourSajuLine(input: {
       : null
 
   if (locale === 'ko') {
-    const branchTheme = HOUR_BRANCH_THEME_KO[branch] || `${branch}時`
+    const branchTheme = HOUR_BRANCH_THEME_KO[branch] || ''
     const action = sibsin ? SIBSIN_HOUR_ACTION_KO[sibsin] : ''
-    const stemPart = stem ? ` · ${stem}${branch}` : ''
-    const eventPart = event ? ` · ${event.ko}` : ''
+    const eventPart = event ? ` ${event.ko}.` : ''
+    // 한자 시지·천간·십신 라벨 모두 빼고 평어로 합침
     return {
-      sigan: `${branch}時${stemPart}`,
+      sigan: branchTheme,
       sibsin,
       event,
-      line: action
-        ? `${branchTheme}${stemPart}${sibsin ? ` · ${sibsin} 시간` : ''} — ${action}.${eventPart ? `${eventPart}.` : ''}`
-        : `${branchTheme}${stemPart}.${eventPart ? `${eventPart}.` : ''}`,
+      line: action ? `${branchTheme} — ${action}.${eventPart}` : `${branchTheme}.${eventPart}`,
     }
   }
   const branchTheme = HOUR_BRANCH_THEME_EN[branch] || `${branch} hour`
   const action = sibsin ? SIBSIN_HOUR_ACTION_EN[sibsin] : ''
-  const stemPart = stem ? ` · ${stem}${branch}` : ''
-  const eventPart = event ? ` · ${event.en}` : ''
+  const eventPart = event ? ` ${event.en}.` : ''
   return {
-    sigan: `${branch}-hour${stemPart}`,
+    sigan: branchTheme,
     sibsin,
     event,
-    line: action
-      ? `${branchTheme}${stemPart}${sibsin ? ` · ${sibsin}-hour` : ''} — ${action}.${eventPart ? `${eventPart}.` : ''}`
-      : `${branchTheme}${stemPart}.${eventPart ? `${eventPart}.` : ''}`,
+    line: action ? `${branchTheme} — ${action}.${eventPart}` : `${branchTheme}.${eventPart}`,
   }
 }

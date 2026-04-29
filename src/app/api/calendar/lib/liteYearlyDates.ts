@@ -380,7 +380,7 @@ function analyzeDailyPillarEvents(
       kind: '천간합',
       label: `${natalStem}-${dailyStem} 천간합(${transform})`,
       labelEn: `${natalStem}-${dailyStem} stem combine (${transformEn})`,
-      blurb: '본명 일간과 결속·협력·동의가 잘 맺히는 결',
+      blurb: '본인 사주 흐름과 부드럽게 맞물려서 협의·동의가 잘 떨어지는 날',
       blurbEn: 'binds with the natal day-master — collaboration and agreement land cleanly',
       scoreShift: 2.5,
     })
@@ -391,7 +391,7 @@ function analyzeDailyPillarEvents(
       kind: '천간충',
       label: `${natalStem}-${dailyStem} 천간충`,
       labelEn: `${natalStem}-${dailyStem} stem clash`,
-      blurb: '본명 일간을 누르는 압박·갈등 신호',
+      blurb: '본인 사주를 누르는 압박이 들어오는 날 — 갈등·긴장 주의',
       blurbEn: 'presses against the natal day-master — friction and conflict are likely',
       scoreShift: -2.5,
       warningWeight: 1,
@@ -768,28 +768,28 @@ function pickTopDailyEvent(events: DailyEvent[]): DailyEvent | null {
 }
 
 const DAILY_EVENT_BADGE_KO: Record<DailyEvent['kind'], string> = {
-  천간합: '천간합',
-  천간충: '천간충',
-  지지합: '지지합',
-  지지충: '지지충',
-  지지형: '형',
-  지지해: '해',
-  지지파: '파',
-  자형: '자형',
-  공망: '공망',
+  천간합: '결속의 날',
+  천간충: '압박 주의',
+  지지합: '관계 결속',
+  지지충: '변동 주의',
+  지지형: '마찰 주의',
+  지지해: '오해 주의',
+  지지파: '틀어짐 주의',
+  자형: '내적 마찰',
+  공망: '결정 비는 날',
   평이: '',
 }
 
 const DAILY_EVENT_BADGE_EN: Record<DailyEvent['kind'], string> = {
-  천간합: 'Stem combine',
-  천간충: 'Stem clash',
-  지지합: 'Branch combine',
-  지지충: 'Branch clash',
-  지지형: 'Punish',
-  지지해: 'Harm',
-  지지파: 'Break',
-  자형: 'Self-punish',
-  공망: 'Void',
+  천간합: 'Bonding',
+  천간충: 'Pressure',
+  지지합: 'Closeness',
+  지지충: 'Shift risk',
+  지지형: 'Friction',
+  지지해: 'Misread risk',
+  지지파: 'Drift risk',
+  자형: 'Inner friction',
+  공망: 'Hollow day',
   평이: '',
 }
 
@@ -814,16 +814,11 @@ function buildTitle(
       : DAILY_EVENT_BADGE_EN[top.kind]
     : ''
 
-  let body = base
-  if (locale === 'ko' && sibsin && (tier === 'rising' || tier === 'aligned')) {
-    body = `${sibsin} 흐름의 날 · ${base}`
-  } else if (locale === 'en' && sibsin && (tier === 'rising' || tier === 'aligned')) {
-    body = `${sibsin} day · ${base}`
-  }
+  // 십신 라벨(편인/정관 등) prefix 빼고 본문만. 이벤트 배지만 평어로 prepend.
   if (badge) {
-    return locale === 'ko' ? `[${badge}] ${body}` : `[${badge}] ${body}`
+    return `[${badge}] ${base}`
   }
-  return body
+  return base
 }
 
 function buildDescription(
@@ -923,7 +918,7 @@ function buildDescription(
     const prefixCandidates: string[] = []
     if (pack.sibsin) {
       prefixCandidates.push(
-        `이번 달 십신은 ${pack.sibsin}—${pack.sibsinTheme}${subjectMarkerKo(pack.sibsinTheme)} 결을 만듭니다.`
+        `이번 달은 ${pack.sibsinTheme}${subjectMarkerKo(pack.sibsinTheme)} 자연스러운 흐름이에요.`
       )
     }
     if (pack.sinsals.length) {
@@ -947,7 +942,7 @@ function buildDescription(
   const prefixCandidates: string[] = []
   if (pack.sibsin) {
     prefixCandidates.push(
-      `This month leans on ${pack.sibsin} (${SIBSIN_THEME_EN[pack.sibsin] || 'natal grain'}).`
+      `This month leans on ${SIBSIN_THEME_EN[pack.sibsin] || 'a steady grain'}.`
     )
   }
   if (pack.sinsals.length) {
@@ -1038,15 +1033,20 @@ function buildSajuFactorsWithDaily(
   // 가장 강한 이벤트 한 개만 추가 (점수 절댓값 기준)
   const sorted = [...dailyEvents].sort((a, b) => Math.abs(b.scoreShift) - Math.abs(a.scoreShift))
   const top = sorted[0]
+  // 한자 일주·십신 라벨 빼고, 그 날의 자연어 풀이 한 줄로
   if (locale !== 'ko') {
-    const dailyLine = `Today's pillar ${daily.stem}${daily.branch}${dailySibsin ? ` — a ${dailySibsin} day for the natal day-master` : ''}.`
-    const eventLine = top ? `${top.labelEn} — ${top.blurbEn}.` : ''
+    const dailyTheme = dailySibsin ? SIBSIN_THEME_EN[dailySibsin] : ''
+    const dailyLine = dailyTheme
+      ? `Today leans toward ${dailyTheme}.`
+      : `Today carries a steady frame.`
+    const eventLine = top ? `${top.blurbEn}.` : ''
     return [dailyLine, ...(eventLine ? [eventLine] : []), ...monthly]
   }
-  const dailyLine = `오늘의 일진은 ${daily.stem}${daily.branch}${
-    dailySibsin ? ` — 본명 일간 기준 ${dailySibsin} 결의 날` : ''
-  }입니다.`
-  const eventLine = top ? `${top.label} — ${top.blurb}.` : ''
+  const dailyTheme = dailySibsin ? SIBSIN_THEME_KO[dailySibsin] : ''
+  const dailyLine = dailyTheme
+    ? `오늘은 ${dailyTheme}${subjectMarkerKo(dailyTheme)} 자연스러운 결입니다.`
+    : `오늘은 큰 변동 없이 안정적인 결입니다.`
+  const eventLine = top ? `${top.blurb}.` : ''
   return [dailyLine, ...(eventLine ? [eventLine] : []), ...monthly]
 }
 
@@ -1065,48 +1065,45 @@ function buildSajuFactors(
   const relation = ELEMENT_RELATIONS[dayElement]?.[seasonEl] || 'same'
 
   if (locale === 'ko') {
-    const dayElKo = ELEMENT_LABEL_KO[dayElement]
-    const monthElKo = STEM_TO_KO_ELEMENT[pack.monthStem] || ELEMENT_LABEL_KO[seasonEl]
     const seasonKo = pack.season || ''
-    // 1) 일간-월령 십신 한 줄
-    const sibsinLine = pack.sibsin
-      ? `이번 달은 일간 ${dayMaster}(${dayElKo}) 위에 월간 ${pack.monthStem}(${monthElKo})${subjectMarkerKo(monthElKo)} ${pack.sibsin}${instrumentalMarkerKo(pack.sibsin)} 들어와 ${pack.sibsinTheme}${subjectMarkerKo(pack.sibsinTheme)} 두드러집니다.`
-      : `이번 달 월령은 일간 ${dayMaster}(${dayElKo})에게 ${relationLabelKo(relation)} 결로 들어옵니다.`
-    // 2) 신살 / 용신 / 격국 중 하나를 seed로 골라서 두 번째 줄 구성
+    // 1) 이번 달의 결 한 줄 — 한자/십신 라벨 빼고 평어로
+    const sibsinLine = pack.sibsinTheme
+      ? `이번 달은 ${pack.sibsinTheme}${subjectMarkerKo(pack.sibsinTheme)} 자연스럽게 살아나는 시기예요.`
+      : `이번 달은 큰 변동 없이 안정적인 흐름입니다.`
+    // 2) 신살 / 용신 / 격국 중 하나를 seed로 골라서 두 번째 줄
     const secondPool: string[] = []
     if (pack.sinsals.length) {
       const s = pickBySeed(`${seed}|sl`, pack.sinsals)
       const blurb = SINSAL_BLURB_KO[s]
       secondPool.push(
-        `일지 ${profile.dayBranch || ''} 기준 ${s}${subjectMarkerKo(s)} 활성화되어 ${blurb}${subjectMarkerKo(blurb)} ${label} 쪽 흐름에 끼어듭니다.`
+        `${blurb}${subjectMarkerKo(blurb)} ${label} 쪽 흐름에 자연스럽게 끼어듭니다.`
       )
     }
     if (pack.yongsinPrimary) {
-      const alignText =
+      const yongsinAction =
         pack.yongsinAlign === 'support'
-          ? '용신 결과 부합해 결정이 가벼워집니다'
+          ? '본명을 잘 받쳐주고 있어 결정이 가벼워지는 시기'
           : pack.yongsinAlign === 'conflict'
-            ? '용신과 결이 어긋나 한 박자 늦추는 편이 안전합니다'
-            : '조후용신은 흐름과 큰 충돌 없이 무난하게 작동합니다'
+            ? '본명과 결이 어긋나서 한 박자 늦추는 편이 안전한 시기'
+            : '본명과 큰 충돌 없이 무난하게 가는 시기'
       secondPool.push(
-        `${seasonKo ? `${seasonKo} ` : ''}월령 ${pack.monthBranch}의 조후용신은 ${pack.yongsinPrimary} 기운이라, 본명에 비춰 ${alignText}.`
+        `${seasonKo ? `${seasonKo} 계절 흐름이 ` : '계절 흐름이 '}${yongsinAction}입니다.`
       )
     }
     if (profile.geokguk?.type) {
+      const strengthHint = profile.geokguk.strength === '신강' ? '본명이 강한 편이라' : profile.geokguk.strength === '신약' ? '본명이 약한 편이라' : ''
       secondPool.push(
-        `${profile.geokguk.type}${profile.geokguk.strength ? `·${profile.geokguk.strength}` : ''} 격에 비추어 ${label} 결정은 ${pack.yongsinAlign === 'conflict' ? '범위를 좁혀' : '꾸준한 호흡으로'} 다루는 편이 본명과 잘 맞습니다.`
+        `${strengthHint ? `${strengthHint} ` : ''}${label} 결정은 ${pack.yongsinAlign === 'conflict' ? '범위를 좁혀' : '꾸준한 호흡으로'} 다루는 게 본인 결에 맞습니다.`
       )
     }
     if (!secondPool.length) {
       secondPool.push(
-        `대운·세운의 기본 구조는 ${label} 판단을 한 번에 넓히기보다 단계로 다루기를 지지합니다.`
+        `장기 운 흐름이 ${label}을 한 번에 넓히기보다 단계로 다루도록 지지하고 있어요.`
       )
     }
-    const branchLine = profile.dayBranch
-      ? `일지 ${profile.dayBranch}와 월지 ${pack.monthBranch} 사이는 ${label} 쪽 결정의 ${relationCycleSignalKo(relation)} 신호를 만듭니다.`
-      : ''
+    const branchLine = `오늘 일상 결은 ${label} 쪽 결정의 ${relationCycleSignalKo(relation)} 신호를 만들고 있어요.`
     const second = pickBySeed(`${seed}|s2`, secondPool)
-    return branchLine ? [sibsinLine, second, branchLine] : [sibsinLine, second]
+    return [sibsinLine, second, branchLine]
   }
 
   const dayElEn = ELEMENT_LABEL_EN[dayElement]
@@ -1220,30 +1217,30 @@ function buildAstroFactors(
     const grainKo = MOON_GRAIN_KO[domain]
     const sunHouseFlavor = signHouseFlavorKo(sunSign, domain)
     const seasonalKo = isWinter
-      ? '겨울 트랜짓이 깊이 있는 결정에 무게를 더합니다'
+      ? '겨울이라 깊이 있는 결정에 무게가 실리는 시기'
       : isSummer
-        ? '여름 트랜짓이 외부 활동과 표현을 키웁니다'
-        : '환절기 트랜짓이 우선순위 재배치를 유도합니다'
-    const sunLine = `네이탈 태양 ${sunSignKoLabel(sunSign)}—${sunHouseFlavor}. 이번 ${seasonalKo}.`
+        ? '여름이라 외부 활동과 표현이 잘 풀리는 시기'
+        : '환절기라 우선순위 재배치가 자연스러운 시기'
+    const sunLine = `본인 별자리 ${sunSignKoLabel(sunSign)} 결로 ${sunHouseFlavor}. 지금은 ${seasonalKo}.`
     const moonLine = moonSign
-      ? `${sunSignKoLabel(moonSign)} 달은 ${label} 쪽 ${grainKo}${objectMarkerKo(grainKo)} ${crossAgreementPercent >= 60 ? '받쳐줍니다' : '흩트립니다'}.`
-      : `달 트랜짓은 ${label} 결정의 ${crossAgreementPercent >= 60 ? '실행 신호' : '재확인 신호'}로 작용합니다.`
+      ? `${sunSignKoLabel(moonSign)} 달 영향으로 ${label} 쪽 ${grainKo}${objectMarkerKo(grainKo)} ${crossAgreementPercent >= 60 ? '받쳐주는 분위기예요' : '흩트리는 분위기예요'}.`
+      : `달 흐름은 ${label} 결정의 ${crossAgreementPercent >= 60 ? '실행 신호' : '재확인 신호'}로 작용합니다.`
     const closerPool = strongTrigger
       ? [
-          `행성 어스펙트가 ${label} 쪽으로 또렷한 점화를 보탭니다.`,
-          `단기 트리거가 살아 있어 짧은 호흡으로 진도 빼기 좋습니다.`,
-          `트랜짓 정렬이 좋으니 결정 후 실행까지 같은 날 묶어도 됩니다.`,
+          `점성 흐름도 ${label} 쪽으로 또렷한 신호를 보태고 있어요.`,
+          `짧은 호흡으로 진도 빼기 좋은 흐름이에요.`,
+          `흐름 정렬이 좋으니 결정 후 실행까지 같은 날 묶어도 됩니다.`,
         ]
       : weakTrigger
         ? [
-            `트랜짓 정렬이 약하니 큰 결정 전에 한 박자 두세요.`,
-            `단기 트리거가 흐릿해 즉답보다 자료를 한 번 더 보세요.`,
-            `행성 어스펙트가 흩어져 있어 무리한 일정은 미루는 편이 안전합니다.`,
+            `점성 흐름이 약하니 큰 결정 전에 한 박자 두세요.`,
+            `신호가 흐릿해 즉답보다 자료를 한 번 더 보세요.`,
+            `흐름이 흩어져 있어 무리한 일정은 미루는 편이 안전합니다.`,
           ]
         : [
-            `단기 트리거는 살아 있어도 지속성은 따로 확인하세요.`,
-            `행성 어스펙트가 ${label} 쪽으로 작은 점화를 보탭니다.`,
-            `트랜짓이 안정 구간에 있어 큰 변동 없이 흐름을 끌고 갈 수 있습니다.`,
+            `짧은 흐름은 살아 있어도 지속성은 따로 확인하세요.`,
+            `점성 흐름이 ${label} 쪽으로 작은 신호를 보탭니다.`,
+            `흐름이 안정 구간에 있어 큰 변동 없이 진도 빼기 좋습니다.`,
           ]
     return [sunLine, moonLine, pickBySeed(seed, closerPool)]
   }
