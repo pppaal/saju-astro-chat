@@ -671,22 +671,70 @@ const TITLE_POOL_EN: Record<DomainKey, Record<StrengthTier, string[]>> = {
   },
 }
 
+function pickTopDailyEvent(events: DailyEvent[]): DailyEvent | null {
+  if (!events.length) return null
+  // 강도 큰 이벤트 우선 (충/형/공망 > 합 > 해/파 > 자형)
+  const sorted = [...events].sort((a, b) => Math.abs(b.scoreShift) - Math.abs(a.scoreShift))
+  return sorted[0]
+}
+
+const DAILY_EVENT_BADGE_KO: Record<DailyEvent['kind'], string> = {
+  천간합: '천간합',
+  천간충: '천간충',
+  지지합: '지지합',
+  지지충: '지지충',
+  지지형: '형',
+  지지해: '해',
+  지지파: '파',
+  자형: '자형',
+  공망: '공망',
+  평이: '',
+}
+
+const DAILY_EVENT_BADGE_EN: Record<DailyEvent['kind'], string> = {
+  천간합: 'Stem combine',
+  천간충: 'Stem clash',
+  지지합: 'Branch combine',
+  지지충: 'Branch clash',
+  지지형: 'Punish',
+  지지해: 'Harm',
+  지지파: 'Break',
+  자형: 'Self-punish',
+  공망: 'Void',
+  평이: '',
+}
+
 function buildTitle(
   locale: CalendarLocale,
   domain: DomainKey,
   tier: StrengthTier,
   sibsin: string,
+  dailyEvents: DailyEvent[],
   seed: string
 ): string {
   const pool = (locale === 'ko' ? TITLE_POOL_KO : TITLE_POOL_EN)[domain][tier]
   const base = pickBySeed(seed, pool)
+
+  // 충/형/공망/천간합 같이 점수 변동이 큰 이벤트는 캘린더 한눈에 보이도록 배지로 prepend
+  const top = pickTopDailyEvent(dailyEvents)
+  const HEAVY: DailyEvent['kind'][] = ['천간충', '지지충', '지지형', '공망', '천간합', '지지합']
+  const showBadge = top && Math.abs(top.scoreShift) >= 2 && HEAVY.includes(top.kind)
+  const badge = showBadge
+    ? locale === 'ko'
+      ? DAILY_EVENT_BADGE_KO[top.kind]
+      : DAILY_EVENT_BADGE_EN[top.kind]
+    : ''
+
+  let body = base
   if (locale === 'ko' && sibsin && (tier === 'rising' || tier === 'aligned')) {
-    return `${sibsin} 흐름의 날 · ${base}`
+    body = `${sibsin} 흐름의 날 · ${base}`
+  } else if (locale === 'en' && sibsin && (tier === 'rising' || tier === 'aligned')) {
+    body = `${sibsin} day · ${base}`
   }
-  if (locale === 'en' && sibsin && (tier === 'rising' || tier === 'aligned')) {
-    return `${sibsin} day · ${base}`
+  if (badge) {
+    return locale === 'ko' ? `[${badge}] ${body}` : `[${badge}] ${body}`
   }
-  return base
+  return body
 }
 
 function buildDescription(
@@ -1277,6 +1325,7 @@ export function calculateYearlyImportantDatesLite(
         primary.domain,
         tier,
         counselorPacks[month]?.sibsin || '',
+        dailyEvents,
         `${seed}|t`
       ),
       descKey: buildDescription(

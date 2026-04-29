@@ -255,10 +255,9 @@ function getAspectMeaning(
 
 function formatAstroEvidenceLine(
   detail: AspectEvidenceLite,
-  index: number,
+  _index: number,
   lang: 'ko' | 'en'
 ): string {
-  const id = `A${index + 1}`
   const icon = detail.tone === 'negative' ? '⚠️' : detail.tone === 'positive' ? '✅' : 'ℹ️'
   const symbol = ASPECT_SYMBOL[detail.aspect]
   const orbText = formatOrb(detail.orb)
@@ -267,11 +266,11 @@ function formatAstroEvidenceLine(
   if (lang === 'ko') {
     const planetA = PLANET_KO[detail.planetA] || detail.planetA
     const planetB = PLANET_KO[detail.planetB] || detail.planetB
-    return `${icon} (${id}) ${planetA}(${detail.signA}) ${symbol} ${planetB}(${detail.signB}) (${orbText}) - ${meaning}`
+    return `${icon} ${planetA}(${detail.signA}) ${symbol} ${planetB}(${detail.signB}) (${orbText}) - ${meaning}`
   }
 
   const word = ASPECT_WORD_EN[detail.aspect]
-  return `${icon} (${id}) ${detail.planetA} in ${detail.signA} ${word} ${detail.planetB} in ${detail.signB} (${orbText}) - ${meaning}`
+  return `${icon} ${detail.planetA} in ${detail.signA} ${word} ${detail.planetB} in ${detail.signB} (${orbText}) - ${meaning}`
 }
 
 function toAspectEvidenceList(date: ImportantDate): AspectEvidenceLite[] {
@@ -347,15 +346,15 @@ export function buildCrossEvidenceBundle(
     if (!sajuText) {
       return
     }
-    sajuDetails.push(`(S${index + 1}) ${sajuText}`)
+    sajuDetails.push(sajuText)
     bridges.push(describeCrossEvidenceBridge({ tone: detail.tone, aligned: isAligned, lang }))
   })
 
   if (astroDetails.length === 0 && orderedAstroFactors[0]) {
-    astroDetails.push(`(A1) ${compactText(orderedAstroFactors[0], 78)}`)
+    astroDetails.push(compactText(orderedAstroFactors[0], 78))
   }
   if (sajuDetails.length === 0 && orderedSajuFactors[0]) {
-    sajuDetails.push(`(S1) ${compactText(orderedSajuFactors[0], 78)}`)
+    sajuDetails.push(compactText(orderedSajuFactors[0], 78))
   }
 
   const astroEvidence = compactText(astroDetails[0] || orderedAstroFactors[0] || '', 120)
@@ -369,8 +368,8 @@ export function buildCrossEvidenceBundle(
             lang === 'ko'
               ? describeCrossAgreement(isAligned ? 80 : 35, 'ko')
               : isAligned
-                ? 'A1 ↔ S1: Astrology and Saju evidence point in the same direction.'
-                : 'A1 ↔ S1: Signals are mixed. Re-check before final commitments.',
+                ? 'Astrology and saju evidence point in the same direction.'
+                : 'Signals are mixed. Re-check before final commitments.',
           ]
         : []
 

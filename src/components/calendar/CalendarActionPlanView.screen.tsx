@@ -1375,6 +1375,29 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       timelineSlots,
       clampConfidence,
     })
+    // 오늘의 활동별 점수 (결혼/커리어/투자/이사/수술/공부) — 분산이 있을 때만 노출
+    const activity = dateDetail?.activityScores
+    if (activity) {
+      const labels: Record<string, { ko: string; en: string }> = {
+        marriage: { ko: '결혼', en: 'Marriage' },
+        career: { ko: '커리어', en: 'Career' },
+        investment: { ko: '투자', en: 'Investment' },
+        moving: { ko: '이사', en: 'Move' },
+        surgery: { ko: '수술', en: 'Surgery' },
+        study: { ko: '공부', en: 'Study' },
+      }
+      const entries = Object.entries(activity)
+        .filter(([, v]) => typeof v === 'number')
+        .map(([k, v]) => ({ key: k, score: v as number, label: labels[k] }))
+      const distinct = new Set(entries.map((e) => e.score)).size
+      if (entries.length && distinct > 1) {
+        const top = [...entries].sort((a, b) => b.score - a.score).slice(0, 3)
+        const text = top
+          .map((e) => `${e.label ? (isKo ? e.label.ko : e.label.en) : e.key} ${e.score}`)
+          .join(' · ')
+        base.push(isKo ? `오늘 활동 점수 — ${text}` : `Activity scores — ${text}`)
+      }
+    }
     // 캘린더 응답이 들고 온 용어 풀이를 한 줄로 합쳐 마지막에 노출
     const glossary = enrichedBaseInfo?.glossary
     if (glossary) {
@@ -1386,7 +1409,13 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       }
     }
     return base
-  }, [clampConfidence, enrichedBaseInfo?.glossary, isKo, timelineSlots])
+  }, [
+    clampConfidence,
+    dateDetail?.activityScores,
+    enrichedBaseInfo?.glossary,
+    isKo,
+    timelineSlots,
+  ])
 
   const todayInsight = useMemo(
     () =>
