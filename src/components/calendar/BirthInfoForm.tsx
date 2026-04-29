@@ -161,4 +161,3 @@ const BirthInfoForm = memo(function BirthInfoForm({
 })
 
 export default BirthInfoForm
-export { BirthInfoForm as BirthInfoFormInline }

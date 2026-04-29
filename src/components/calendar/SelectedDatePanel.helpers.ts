@@ -16,13 +16,13 @@ export const CATEGORY_EMOJI: Record<SelectedPanelEventCategory, string> = {
 export const WEEKDAYS_KO = ['\uC77C', '\uC6D4', '\uD654', '\uC218', '\uBAA9', '\uAE08', '\uD1A0']
 export const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-export function normalizeEvidenceLine(value: string): string {
+function normalizeEvidenceLine(value: string): string {
   if (!value) return ''
   const normalized = stripMatrixDomainText(deepRepairText(value)).replace(/\s+/g, ' ').trim()
   return isUnreadableText(normalized) ? '' : normalized
 }
 
-export function decodeUtf8FromLatin1(value: string): string {
+function decodeUtf8FromLatin1(value: string): string {
   try {
     const bytes = Uint8Array.from([...value].map((ch) => ch.charCodeAt(0) & 0xff))
     return new TextDecoder('utf-8', { fatal: false }).decode(bytes)
@@ -31,7 +31,7 @@ export function decodeUtf8FromLatin1(value: string): string {
   }
 }
 
-export function deepRepairText(value: string): string {
+function deepRepairText(value: string): string {
   const firstPass = repairMojibakeText(value || '')
   if (!/[ÃƒÃ‚Ã°Ã¢]/.test(firstPass)) {
     return decodeBareUnicodeTokens(decodeUnicodeEscapes(firstPass))
@@ -41,7 +41,7 @@ export function deepRepairText(value: string): string {
   return decodeBareUnicodeTokens(decodeUnicodeEscapes(secondPass || firstPass))
 }
 
-export function decodeUnicodeEscapes(value: string): string {
+function decodeUnicodeEscapes(value: string): string {
   if (!value || value.indexOf('\\u') === -1) return value
 
   return value
@@ -61,7 +61,7 @@ export function decodeUnicodeEscapes(value: string): string {
     })
 }
 
-export function decodeBareUnicodeTokens(value: string): string {
+function decodeBareUnicodeTokens(value: string): string {
   if (!value || !/\bu[0-9A-Fa-f]{4,6}\b/.test(value)) return value
   return value.replace(/\bu([0-9A-Fa-f]{4,6})\b/g, (raw, hex: string) => {
     const codePoint = Number.parseInt(hex, 16)
@@ -74,7 +74,7 @@ export function decodeBareUnicodeTokens(value: string): string {
   })
 }
 
-export function stripMatrixDomainText(value: string): string {
+function stripMatrixDomainText(value: string): string {
   if (!value) return ''
   return value
     .replace(/\bmatrix\s*:\s*/gi, '')
@@ -87,7 +87,7 @@ export function stripMatrixDomainText(value: string): string {
     .replace(/^[\s,|:;\-]+|[\s,|:;\-]+$/g, '')
 }
 
-export function isUnreadableText(value: string): boolean {
+function isUnreadableText(value: string): boolean {
   if (!value) return true
   if (value.includes('\uFFFD')) return true
   const suspiciousMatches = value.match(/[ÃÂâìëêíð]/g) || []
@@ -215,7 +215,7 @@ export function takeLeadLine(value: string, maxLength = 88): string {
   return `${sentence.slice(0, maxLength - 1).trimEnd()}…`
 }
 
-export function looksDefensivePhase(value: string): boolean {
+function looksDefensivePhase(value: string): boolean {
   return /(방어|재정렬|안정|검토|defensive|reset|stabil|review)/i.test(value)
 }
 

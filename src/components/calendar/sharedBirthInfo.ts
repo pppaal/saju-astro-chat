@@ -1,7 +1,7 @@
 import type { BirthInfo } from './types'
 
 const SHARED_BIRTH_INFO_KEY = 'calendar.sharedBirthInfo.v1'
-export const SHARED_BIRTH_INFO_UPDATED_EVENT = 'calendar.sharedBirthInfo.updated'
+const SHARED_BIRTH_INFO_UPDATED_EVENT = 'calendar.sharedBirthInfo.updated'
 
 const DEFAULT_BIRTH_INFO: BirthInfo = {
   birthDate: '',

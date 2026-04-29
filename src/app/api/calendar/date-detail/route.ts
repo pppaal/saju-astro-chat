@@ -25,6 +25,7 @@ import { calculateSajuData } from '@/lib/Saju/saju'
 import { STEM_TO_ELEMENT } from '@/lib/Saju/constants'
 import { analyzeDate } from '@/lib/destiny-map/calendar/date-analysis-orchestrator'
 import { getPillarStemName, getPillarBranchName } from '@/app/api/calendar/lib/helpers'
+import { cacheOrCalculate, CACHE_TTL } from '@/lib/cache/redis-cache'
 import type {
   UserSajuProfile,
   UserAstroProfile,
@@ -138,7 +139,13 @@ export const GET = withApiMiddleware(
     } as UserAstroProfile
 
     const targetDate = new Date(date + 'T00:00:00')
-    const detail = analyzeDate(targetDate, sajuProfile, astroProfile)
+    // 같은 사용자가 같은 날짜를 또 누르거나 캘린더에서 좌우로 옮길 때 풀 엔진 재계산을 막기 위해 1일 캐싱
+    const cacheKey = `cal-detail:v1:${birthDate}:${birthTime || ''}:${sajuGender}:${date}`
+    const detail = await cacheOrCalculate(
+      cacheKey,
+      async () => analyzeDate(targetDate, sajuProfile, astroProfile),
+      CACHE_TTL.CALENDAR_DATA
+    )
     if (!detail) {
       return apiError(ErrorCodes.SERVICE_UNAVAILABLE, 'Date analysis unavailable')
     }

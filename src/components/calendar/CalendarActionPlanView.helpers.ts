@@ -31,7 +31,7 @@ export const SLOT_TYPE_LABELS_EN: Record<string, string> = {
   recovery: 'Recovery',
 }
 
-export const SLOT_TYPE_VALUES = [
+const SLOT_TYPE_VALUES = [
   'deepWork',
   'decision',
   'communication',
@@ -191,7 +191,7 @@ export const CATEGORY_ACTIONS: Record<
   },
 }
 
-export const isEventCategory = (value: string): value is EventCategory =>
+const isEventCategory = (value: string): value is EventCategory =>
   Object.prototype.hasOwnProperty.call(CATEGORY_ACTIONS, value)
 
 export const normalizeCategory = (value?: string | null): EventCategory =>

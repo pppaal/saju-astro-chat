@@ -1370,12 +1370,23 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   ])
 
   const timelineHighlights = useMemo(() => {
-    return buildTimelineHighlights({
+    const base = buildTimelineHighlights({
       isKo,
       timelineSlots,
       clampConfidence,
     })
-  }, [clampConfidence, isKo, timelineSlots])
+    // 캘린더 응답이 들고 온 용어 풀이를 한 줄로 합쳐 마지막에 노출
+    const glossary = enrichedBaseInfo?.glossary
+    if (glossary) {
+      const terms = Object.entries(glossary).slice(0, 3)
+      if (terms.length) {
+        const sep = isKo ? ' / ' : ' / '
+        const text = terms.map(([term, gloss]) => `${term}: ${gloss}`).join(sep)
+        base.push(isKo ? `용어 풀이 — ${text}` : `Glossary — ${text}`)
+      }
+    }
+    return base
+  }, [clampConfidence, enrichedBaseInfo?.glossary, isKo, timelineSlots])
 
   const todayInsight = useMemo(
     () =>
