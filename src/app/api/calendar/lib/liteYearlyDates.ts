@@ -403,7 +403,7 @@ function analyzeDailyPillarEvents(
       kind: '지지합',
       label: `${natalBranch}-${dailyBranch} 지지육합`,
       labelEn: `${natalBranch}-${dailyBranch} branch combine`,
-      blurb: '가까운 관계·일상 결속이 단단해지는 결',
+      blurb: '가까운 관계·일상이 단단해지는 시기',
       blurbEn: 'close relationships and daily ties consolidate',
       scoreShift: 2,
     })
@@ -414,7 +414,7 @@ function analyzeDailyPillarEvents(
       kind: '지지충',
       label: `${natalBranch}-${dailyBranch} 지지충`,
       labelEn: `${natalBranch}-${dailyBranch} branch clash`,
-      blurb: '환경·이동·관계의 변동이 잦은 결',
+      blurb: '환경·이동·관계의 변동이 잦은 시기',
       blurbEn: 'environment / movement / relationships shift more than usual',
       scoreShift: -2,
       warningWeight: 1,
@@ -460,7 +460,7 @@ function analyzeDailyPillarEvents(
       kind: '지지파',
       label: `${natalBranch}-${dailyBranch} 파`,
       labelEn: `${natalBranch}-${dailyBranch} break`,
-      blurb: '진행 중인 일이 살짝 틀어질 수 있는 결',
+      blurb: '진행 중인 일이 살짝 틀어질 수 있어요',
       blurbEn: 'in-progress work can drift slightly off course',
       scoreShift: -1,
     })
@@ -472,7 +472,7 @@ function analyzeDailyPillarEvents(
       kind: '공망',
       label: `${dailyBranch} 공망일`,
       labelEn: `${dailyBranch} void day`,
-      blurb: '결정·확정의 무게가 비는 날 — 새 일은 미루는 편',
+      blurb: '결정·확정의 무게가 가벼운 날 — 새 일은 미루는 편',
       blurbEn: 'commitments lose weight today — defer new starts',
       scoreShift: -1.8,
       warningWeight: 1,
@@ -487,7 +487,7 @@ function getSibsinDailyKo(dayStem: string, dailyStem: string): string {
 
 const GLOSSARY_KO: Record<string, string> = {
   // 십신
-  비견: '나와 같은 오행·성별 — 동료, 동등한 협업의 결',
+  비견: '나와 같은 오행·성별 — 동료, 동등한 협업 흐름',
   겁재: '나와 같은 오행·반대 성별 — 경쟁자, 자원을 나누는 관계',
   식신: '내가 만들어내는 부드러운 산출 — 꾸준한 표현·생산',
   상관: '내가 만들어내는 강한 발산 — 창의·도전·말발',
@@ -499,13 +499,13 @@ const GLOSSARY_KO: Record<string, string> = {
   정인: '나를 키우는 정식 인성 — 돌봄·문서·인정',
   // 신살
   역마: '이동·출장·전직 같은 환경 변동 신호',
-  도화: '관계 끌림·매력·공개적인 자리에 서기 좋은 결',
-  화개: '내적 정리·예술·고독한 시간이 깊어지는 결',
-  망신: '체면 흔들림·실수 노출에 조심해야 하는 결',
+  도화: '관계 끌림·매력·공개적인 자리에 서기 좋은 흐름',
+  화개: '내적 정리·예술·고독한 시간이 깊어지는 흐름',
+  망신: '체면 흔들림·실수 노출에 조심해야 하는 흐름',
   // 사주 기본 어휘
   일간: '내 사주의 기준 천간(태어난 날의 위 글자) — 본인 그 자체',
-  일지: '태어난 날의 아래 글자(地支) — 배우자 자리·내 일상의 결',
-  월간: '태어난 달의 위 글자(천간) — 사회·직장·환경 결',
+  일지: '태어난 날의 아래 글자(地支) — 배우자 자리·내 일상의 분위기',
+  월간: '태어난 달의 위 글자(천간) — 사회·직장·환경의 분위기',
   월지: '태어난 달의 아래 글자(지지) — 시기·계절·격국의 뿌리',
   대운: '10년 단위의 큰 운 흐름',
   세운: '한 해의 운 흐름',
@@ -522,7 +522,7 @@ const GLOSSARY_KO: Record<string, string> = {
   트랜짓: '오늘 하늘에 떠 있는 행성과 본명의 만남',
   '환절기 트랜짓': '계절이 바뀌는 구간(3·9월 등)에 일어나는 외부 신호',
   // 분석 용어
-  교차: '사주와 점성이 같은 결을 가리키는지 확인하는 cross-check',
+  교차: '사주와 점성이 같은 방향을 가리키는지 확인하는 cross-check',
 }
 
 const GLOSSARY_EN: Record<string, string> = {
@@ -619,7 +619,7 @@ function instrumentalMarkerKo(label: string): string {
 
 const MOON_GRAIN_KO: Record<DomainKey, string> = {
   career: '실행 동기',
-  love: '감정 결',
+  love: '감정 흐름',
   money: '결정 흐름',
   health: '리듬',
   move: '의지 흐름',
@@ -703,7 +703,7 @@ const TITLE_POOL_KO: Record<DomainKey, Record<StrengthTier, string[]>> = {
   },
   love: {
     rising: ['관계가 따뜻해지는 날', '대화가 잘 풀리는 날', '마음이 통하는 날'],
-    aligned: ['감정 정리하기 좋은 날', '관계 한 걸음 다가설 날', '결이 맞는 날'],
+    aligned: ['감정 정리하기 좋은 날', '관계 한 걸음 다가설 날', '분위기가 잘 맞는 날'],
     wavering: ['관계 거리 조정이 필요한 날', '대화 톤을 낮춰야 할 날', '마음이 살짝 엇갈리는 날'],
     guarded: ['관계 충돌을 피해야 할 날', '말 아껴야 할 날', '오늘은 표현 자제하세요'],
   },
@@ -860,7 +860,7 @@ function buildDescription(
     aligned: [
       `${label} 흐름이 가지런해서 ${focusKo} 일정·우선순위 정리하기 좋아요.`,
       `${label} 쪽이 안정적이라 무리수 없이 진도 빼는 게 효율적이에요.`,
-      `${label} 결이 맞아서 작은 결정 여러 개 묶어 처리할 수 있어요.`,
+      `${label} 흐름이 가지런해서 작은 결정 여러 개 묶어 처리할 수 있어요.`,
     ],
     wavering: [
       conflicted
@@ -932,7 +932,7 @@ function buildDescription(
       prefixCandidates.push(
         pack.yongsinAlign === 'support'
           ? `조후용신 ${pack.yongsinPrimary}${subjectMarkerKo(pack.yongsinPrimary)} 본명을 받쳐줍니다.`
-          : `조후용신 ${pack.yongsinPrimary}${subjectMarkerKo(pack.yongsinPrimary)} 본명과 결이 어긋납니다.`
+          : `조후용신 ${pack.yongsinPrimary}${subjectMarkerKo(pack.yongsinPrimary)} 본명 흐름과 어긋납니다.`
       )
     }
     if (!prefixCandidates.length) return core
@@ -1044,8 +1044,8 @@ function buildSajuFactorsWithDaily(
   }
   const dailyTheme = dailySibsin ? SIBSIN_THEME_KO[dailySibsin] : ''
   const dailyLine = dailyTheme
-    ? `오늘은 ${dailyTheme}${subjectMarkerKo(dailyTheme)} 자연스러운 결입니다.`
-    : `오늘은 큰 변동 없이 안정적인 결입니다.`
+    ? `오늘은 ${dailyTheme}${subjectMarkerKo(dailyTheme)} 자연스럽게 살아나는 분위기예요.`
+    : `오늘은 큰 변동 없이 무난하게 흘러가는 날이에요.`
   const eventLine = top ? `${top.blurb}.` : ''
   return [dailyLine, ...(eventLine ? [eventLine] : []), ...monthly]
 }
@@ -1084,7 +1084,7 @@ function buildSajuFactors(
         pack.yongsinAlign === 'support'
           ? '본명을 잘 받쳐주고 있어 결정이 가벼워지는 시기'
           : pack.yongsinAlign === 'conflict'
-            ? '본명과 결이 어긋나서 한 박자 늦추는 편이 안전한 시기'
+            ? '본명 흐름과 어긋나서 한 박자 늦추는 편이 안전한 시기'
             : '본명과 큰 충돌 없이 무난하게 가는 시기'
       secondPool.push(
         `${seasonKo ? `${seasonKo} 계절 흐름이 ` : '계절 흐름이 '}${yongsinAction}입니다.`
@@ -1093,7 +1093,7 @@ function buildSajuFactors(
     if (profile.geokguk?.type) {
       const strengthHint = profile.geokguk.strength === '신강' ? '본명이 강한 편이라' : profile.geokguk.strength === '신약' ? '본명이 약한 편이라' : ''
       secondPool.push(
-        `${strengthHint ? `${strengthHint} ` : ''}${label} 결정은 ${pack.yongsinAlign === 'conflict' ? '범위를 좁혀' : '꾸준한 호흡으로'} 다루는 게 본인 결에 맞습니다.`
+        `${strengthHint ? `${strengthHint} ` : ''}${label} 결정은 ${pack.yongsinAlign === 'conflict' ? '범위를 좁혀' : '꾸준한 호흡으로'} 다루는 게 본인 사주 흐름에 맞아요.`
       )
     }
     if (!secondPool.length) {
@@ -1101,7 +1101,7 @@ function buildSajuFactors(
         `장기 운 흐름이 ${label}을 한 번에 넓히기보다 단계로 다루도록 지지하고 있어요.`
       )
     }
-    const branchLine = `오늘 일상 결은 ${label} 쪽 결정의 ${relationCycleSignalKo(relation)} 신호를 만들고 있어요.`
+    const branchLine = `오늘 하루 분위기는 ${label} 쪽 결정에 ${relationCycleSignalKo(relation)}.`
     const second = pickBySeed(`${seed}|s2`, secondPool)
     return [sibsinLine, second, branchLine]
   }
@@ -1148,20 +1148,20 @@ function relationLabelKo(rel: 'same' | 'support' | 'drain' | 'control' | 'contro
 function relationActionKo(rel: 'same' | 'support' | 'drain' | 'control' | 'controlled'): string {
   switch (rel) {
     case 'same': return '기운이 같이 모입니다'
-    case 'support': return '받쳐주는 결이 들어옵니다'
+    case 'support': return '받쳐주는 흐름이 들어옵니다'
     case 'drain': return '에너지가 바깥으로 풀려나갑니다'
     case 'control': return '진행에 제동이 걸리기 쉽습니다'
-    case 'controlled': return '한 박자 늦추는 결이 보입니다'
+    case 'controlled': return '한 박자 늦추는 분위기가 보입니다'
   }
 }
 
 function relationCycleSignalKo(rel: 'same' | 'support' | 'drain' | 'control' | 'controlled'): string {
   switch (rel) {
     case 'same':
-    case 'support': return '추진'
-    case 'drain': return '확장'
-    case 'control': return '제동'
-    case 'controlled': return '점검'
+    case 'support': return '힘을 실어줘요'
+    case 'drain': return '범위를 넓혀줘요'
+    case 'control': return '제동을 걸어요'
+    case 'controlled': return '한 번 점검하라고 해요'
   }
 }
 
@@ -1221,7 +1221,7 @@ function buildAstroFactors(
       : isSummer
         ? '여름이라 외부 활동과 표현이 잘 풀리는 시기'
         : '환절기라 우선순위 재배치가 자연스러운 시기'
-    const sunLine = `본인 별자리 ${sunSignKoLabel(sunSign)} 결로 ${sunHouseFlavor}. 지금은 ${seasonalKo}.`
+    const sunLine = `본인 별자리는 ${sunSignKoLabel(sunSign)}라서 ${sunHouseFlavor} 분위기예요. 지금은 ${seasonalKo}.`
     const moonLine = moonSign
       ? `${sunSignKoLabel(moonSign)} 달 영향으로 ${label} 쪽 ${grainKo}${objectMarkerKo(grainKo)} ${crossAgreementPercent >= 60 ? '받쳐주는 분위기예요' : '흩트리는 분위기예요'}.`
       : `달 흐름은 ${label} 결정의 ${crossAgreementPercent >= 60 ? '실행 신호' : '재확인 신호'}로 작용합니다.`

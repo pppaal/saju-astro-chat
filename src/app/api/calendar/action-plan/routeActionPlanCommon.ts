@@ -132,14 +132,14 @@ export function getOfficeBucket(hour: number): OfficeBucket {
 }
 
 const OFFICE_BUCKET_THEME_KO: Record<OfficeBucket, string> = {
-  sleep: '깊은 휴식·수면 시간',
-  wakeup: '기상·통근 — 하루 시동',
-  amCore: '오전 핵심 업무 시간',
-  lunch: '점심·관계 대화 시간',
-  pmCore: '오후 실행·정리 시간',
-  commute: '퇴근 — 마무리·전환 구간',
-  evening: '저녁 — 식사·회복·관계',
-  personal: '개인 시간 — 자기관리·정리',
+  sleep: '깊은 휴식·수면 시간이에요',
+  wakeup: '하루 시동을 거는 기상·통근 시간이에요',
+  amCore: '오전 핵심 업무 시간이에요',
+  lunch: '점심·관계 대화 시간이에요',
+  pmCore: '오후 실행·정리 시간이에요',
+  commute: '퇴근하면서 마무리·전환하는 구간이에요',
+  evening: '저녁 식사·회복·관계 시간이에요',
+  personal: '하루를 정리하는 개인 시간이에요',
 }
 
 const OFFICE_BUCKET_DEFAULT_ACTION_KO: Record<OfficeBucket, { best: string; caution: string; neutral: string }> = {
@@ -436,16 +436,16 @@ export const HOUR_BRANCH_THEME_EN: Record<string, string> = {
 
 /** 시간 십신 → 사람 말투 행동 풀이 */
 export const SIBSIN_HOUR_ACTION_KO: Record<string, string> = {
-  비견: '동료들이랑 같이 일하기 좋은 결',
+  비견: '동료들이랑 같이 일하기 좋은 시간',
   겁재: '경쟁이 예민해지니 자기 페이스 지키는 게 좋아요',
-  식신: '뭔가 만들고 표현하기 좋은 결',
+  식신: '뭔가 만들고 표현하기 좋은 시간',
   상관: '말빨 살아나는 시간 — 핵심 메시지 던지기 좋아요',
-  편재: '외부 미팅·딜이 잘 풀리는 결',
+  편재: '외부 미팅·딜이 잘 풀려요',
   정재: '계약·문서·돈 관련 정리에 좋아요',
   편관: '어려운 결정 정면돌파해야 할 때',
   정관: '회의·보고·검토 같은 공식 업무에 잘 맞아요',
   편인: '책상 앞에서 공부하거나 정리하기 좋아요',
-  정인: '문서 챙기고 정중하게 답신하기 좋은 결',
+  정인: '문서 챙기고 정중하게 답신하기 좋아요',
 }
 
 export const SIBSIN_HOUR_ACTION_EN: Record<string, string> = {

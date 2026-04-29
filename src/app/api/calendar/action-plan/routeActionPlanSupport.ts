@@ -1001,6 +1001,13 @@ export const buildRuleBasedTimeline = (input: {
   const slots: TimelineSlot[] = []
   const slotsPerHour = intervalMinutes === 30 ? 2 : 1
 
+  // 하루 단위 중복 안내 차단 — 같은 문장이 24시간 반복되지 않게 한 번만 노출
+  const dayState = {
+    activityCategoriesShown: new Set<string>(),
+    warningShown: false,
+    recShown: false,
+  }
+
   for (let hour = 0; hour < 24; hour++) {
     for (let slotIdx = 0; slotIdx < slotsPerHour; slotIdx++) {
       const minute = slotIdx === 0 ? 0 : 30
@@ -1109,31 +1116,50 @@ export const buildRuleBasedTimeline = (input: {
 
       if (locale === 'ko') {
         if (isSleep) {
-          const sleepLines: string[] = ['지금은 자고 쉬는 시간이에요. 푹 쉬는 게 오늘 일정 중에 제일 중요해요.']
+          // 시간대별로 자연스럽게 변화하는 수면 안내
+          let leadLine: string
+          if (hour === 22) leadLine = '하루 마무리하고 슬슬 잘 준비 하실 시간이에요. 핸드폰 내려놓고 호흡 가다듬어 보세요.'
+          else if (hour === 23) leadLine = '이미 늦은 시간이에요. 더 늦기 전에 잠자리 드시는 게 내일 컨디션에 도움 돼요.'
+          else if (hour === 0) leadLine = '자정이에요. 안 주무시면 내일 흐름이 무거워질 수 있으니 정리하시고 누우세요.'
+          else if (hour >= 1 && hour <= 3) leadLine = '깊이 잠들어 있을 시간이에요. 이때 잘 자야 사주에서 말하는 본명 기운이 회복돼요.'
+          else if (hour === 4) leadLine = '몸이 가장 쉬는 시간이에요. 알람 전까지 깊은 잠 유지하세요.'
+          else leadLine = '곧 일어나야 할 시간이라 마지막 회복 구간이에요. 너무 일찍 깨지 마세요.'
+
+          const sleepLines: string[] = [leadLine]
           if (sajuHour.event?.kind === '천간충' || sajuHour.event?.kind === '지지충' || sajuHour.event?.kind === '공망' || sajuHour.event?.kind === '지지형') {
-            sleepLines.push('오늘은 좀 무거운 흐름이라 일찍 자는 게 더 좋아요.')
+            sleepLines.push('오늘은 좀 무거운 흐름이라 평소보다 일찍 푹 자는 게 더 좋아요.')
           } else if (sajuHour.event?.kind === '천간합' || sajuHour.event?.kind === '지지합') {
-            sleepLines.push('마음 편히 잠들기 좋은 시간이에요. 깊이 잘 거예요.')
+            sleepLines.push('마음 편히 잠들기 좋은 시간대예요. 깊이 잘 수 있을 거예요.')
           }
           note = repairMojibakeText(sleepLines.join(' '))
         } else {
           const bucketTheme = getOfficeBucketTheme(officeBucket)
           const sajuReason = `${sajuHour.line}`
           const astroReason = planetaryHour?.ko ? `점성으로 보면 ${planetaryHour.ko}예요.` : ''
-          const activityNote = activityMatch?.line ? `${activityMatch.line}.` : ''
+          // activityMatch는 카테고리당 하루 한 번만 — 24시간 반복 차단
+          let activityNote = ''
+          if (activityMatch?.line && !dayState.activityCategoriesShown.has(category)) {
+            dayState.activityCategoriesShown.add(category)
+            activityNote = `${activityMatch.line}.`
+          }
           let action = getOfficeBucketAction(officeBucket, tone)
-          if (tone === 'caution' && warningHint) {
+          // 하루 단위 경고/추천은 첫 등장 슬롯에서만 — 같은 문장 반복 차단
+          if (tone === 'caution' && warningHint && !dayState.warningShown) {
+            dayState.warningShown = true
             const cleaned = warningHint.replace(/^오늘은\s*/, '')
             action = `${action} ${cleaned}`
-          } else if (tone !== 'caution' && recHint) {
+          } else if (tone !== 'caution' && recHint && !dayState.recShown) {
+            dayState.recShown = true
             const cleaned = recHint.replace(/^오늘은\s*/, '')
             action = `${action} ${cleaned}`
           }
           if (personalHint) {
             action = `${action} (${personalHint})`
           }
-          const sentences = [`${bucketTheme}이에요.`, sajuReason, astroReason, activityNote, action]
+          const sentences = [`${bucketTheme}.`, sajuReason, astroReason, activityNote, action]
             .filter((s) => s && s.trim().length > 0)
+          // 첫 문장이 이미 ~이에요로 끝나면 마침표만 정리
+
           note = repairMojibakeText(sentences.join(' '))
         }
       } else {
