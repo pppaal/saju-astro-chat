@@ -144,44 +144,44 @@ const OFFICE_BUCKET_THEME_KO: Record<OfficeBucket, string> = {
 
 const OFFICE_BUCKET_DEFAULT_ACTION_KO: Record<OfficeBucket, { best: string; caution: string; neutral: string }> = {
   sleep: {
-    best: '깊은 잠으로 회복하세요. 내일 흐름이 좋은 만큼 컨디션이 핵심이에요',
-    caution: '오늘 잡힌 신호가 무겁거든요. 일찍 자고 내일을 위해 비축하세요',
-    neutral: '취침 루틴을 지키세요. 자정 전에 잠드는 게 좋아요',
+    best: '내일 일이 잘 풀릴 거니까 오늘 푹 자두세요.',
+    caution: '오늘이 좀 무거운 날이라 일찍 자고 컨디션 챙기는 게 좋아요.',
+    neutral: '자정 전에 잠드는 게 좋아요.',
   },
   wakeup: {
-    best: '오늘 핵심 업무 1건을 통근길에 미리 정리해두세요. 출근하자마자 그걸 먼저 처리하면 흐름을 잡습니다',
-    caution: '서두르지 마시고 컨디션부터 챙기세요. 조용한 통근 시간을 활용해 우선순위만 정리해도 충분해요',
-    neutral: '아침 루틴 그대로 가세요. 통근에 오늘 일정 한 번 훑어두면 안정적입니다',
+    best: '오늘 가장 중요한 일 한 가지를 통근길에 미리 정리해두면 출근하자마자 잘 풀려요.',
+    caution: '서두르지 마시고 컨디션부터 챙기세요. 통근 중에 오늘 우선순위만 한 번 정리해두면 충분해요.',
+    neutral: '평소 아침 루틴 그대로 가시면 돼요. 출근길에 오늘 일정 한 번 훑어보세요.',
   },
   amCore: {
-    best: '회의·보고·핵심 결정을 이 시간에 잡으세요. 오늘 흐름이 가장 잘 받쳐주는 구간이에요',
-    caution: '큰 결정은 오후로 미루고, 자료 정리·이메일 답신·문서 작업으로 가세요',
-    neutral: '집중 1시간 블록 잡고 핵심 1건 처리하세요. 회의는 짧게',
+    best: '오늘 가장 중요한 회의·보고·결정은 이 시간에 잡으세요. 잘 풀리는 구간이에요.',
+    caution: '큰 결정은 오후로 미루고, 이메일 답신이나 자료 정리 같은 가벼운 일부터 하세요.',
+    neutral: '집중 한 블록 잡고 핵심 일 한 가지 처리하세요. 회의는 짧게.',
   },
   lunch: {
-    best: '동료·외부 미팅·중요한 점심 약속이 잘 풀리는 시간이에요. 관계 투자 좋은 타이밍',
-    caution: '점심은 가볍게 혼자 또는 익숙한 사람과. 무거운 대화는 다음 기회에',
-    neutral: '편하게 식사하시고 오후 일정 머릿속에서 한 번 정리해두세요',
+    best: '점심 약속·외부 미팅 잡기 좋은 시간이에요. 사람 만나기 좋은 타이밍.',
+    caution: '점심은 가볍게 혼자 드시거나 익숙한 사람이랑만. 무거운 대화는 다음으로 미루세요.',
+    neutral: '편하게 식사하시고 오후 일정 한 번 정리해두세요.',
   },
   pmCore: {
-    best: '결과물 마감·외부 발송·계약 확정에 좋아요. 오전에 결정한 것을 실행으로 옮기세요',
-    caution: '새 일을 시작하지 마시고 진행 중인 일 정리·검토에 집중. 큰 결정은 내일로',
-    neutral: '협업·정리·문서 작업이 잘 풀립니다. 무리한 일정은 자제',
+    best: '결과물 마감·외부 발송·계약 마무리에 좋아요. 오전에 정한 거 실행으로 옮기세요.',
+    caution: '새로 일 벌이지 마시고 진행 중인 거 정리·검토에 집중하세요. 큰 결정은 내일로.',
+    neutral: '협업이나 문서 정리 같은 일 잘 풀려요. 무리한 일정은 잡지 마세요.',
   },
   commute: {
-    best: '하루 마무리 메모 5분만 — 오늘 잘된 것 1개·내일 우선순위 1개. 이 시간이 다음 날 핵심이에요',
-    caution: '퇴근하면서 마음 정리부터. 오늘 잘 안 풀린 일은 일단 놔두세요',
-    neutral: '오늘 일정 클로징하고 퇴근. 전환 시간을 가지세요',
+    best: '퇴근길에 5분만 — 오늘 잘된 일 한 개, 내일 첫 일 한 개 적어두세요. 이게 내일을 갈라요.',
+    caution: '퇴근하면서 마음부터 가다듬으세요. 오늘 안 풀린 일은 일단 놔두세요.',
+    neutral: '오늘 일정 마무리하고 퇴근. 전환 시간을 가지세요.',
   },
   evening: {
-    best: '관계 시간으로 가세요. 가족·친구·연인과의 대화가 깊어지기 좋아요. 가벼운 운동도 잘 받습니다',
-    caution: '예민한 대화는 피하고 회복에 집중. 식사 후 가벼운 산책 정도가 적당해요',
-    neutral: '저녁 식사 챙기시고 가벼운 활동. 무리한 약속은 잡지 마세요',
+    best: '가족·친구·연인이랑 대화 깊어지기 좋은 시간이에요. 가벼운 운동도 잘 받아요.',
+    caution: '예민한 대화는 피하고 그냥 쉬세요. 저녁 산책 정도가 딱 좋아요.',
+    neutral: '저녁 챙기시고 가벼운 활동 정도만. 무리한 약속은 잡지 마세요.',
   },
   personal: {
-    best: '학습·자기관리·내일 준비에 좋은 시간. 책 한 챕터·간단한 기록·내일 첫 일 정해두기',
-    caution: '오늘 무거웠다면 이 시간은 휴식 우선. 일찍 잠자리 준비가 답이에요',
-    neutral: '내일 우선순위 3개 정리하고 wind down. 폰은 일찍 끄세요',
+    best: '책 한 챕터, 간단한 일기, 내일 첫 일 정해두기 — 이런 게 잘 되는 시간이에요.',
+    caution: '오늘 무거웠으면 그냥 쉬세요. 일찍 잘 준비 하는 게 답이에요.',
+    neutral: '내일 우선순위 세 개만 적어두고 폰 끄세요.',
   },
 }
 
@@ -403,62 +403,62 @@ export function hourSibsinKo(dayStem: string, hourStem: string): string {
   return labels[diff][samePolarity ? 0 : 1]
 }
 
-/** 12 시지 자연 의미 — 한자 빼고 평어로 (단, 데이터에는 한자 유지) */
+/** 12 시지 자연 의미 — 사람 말투로 (이중 "시간" 안 나오도록 끝에 시간 단어 X) */
 export const HOUR_BRANCH_THEME_KO: Record<string, string> = {
-  子: '23-01시는 깊은 휴식·잠재의식이 살아나는 시간',
-  丑: '1-3시는 새벽 정리·내면 묵상의 시간',
-  寅: '3-5시는 큰 그림 시동·기획이 잘되는 시간',
-  卯: '5-7시는 활동 시작·아침 결정에 우호적인 시간',
-  辰: '7-9시는 아침 집중·핵심 1건에 좋은 시간',
-  巳: '9-11시는 표현·발표·미팅이 풀리는 황금 시간',
-  午: '11-13시는 결단·정렬의 정점',
-  未: '13-15시는 마무리·정리·문서의 시간',
-  申: '15-17시는 결과물 마감 속도가 살아나는 시간',
-  酉: '17-19시는 매듭·협력 마감의 시간',
-  戌: '19-21시는 회복·식사·관계의 시간',
-  亥: '21-23시는 깊은 학습·내면 정리의 시간',
+  子: '한밤중이라 깊이 쉬고 잠재의식이 활발해지는 때',
+  丑: '새벽이라 머리 정리하고 차분히 묵상하기 좋아요',
+  寅: '동트기 전이라 큰 그림 그리고 하루 계획 세우기 좋아요',
+  卯: '아침 일어나 하루 시작하는 때',
+  辰: '오전 초반 — 핵심 일 한 가지에 집중하기 좋아요',
+  巳: '오전 중반 — 발표·미팅·대화가 잘 풀리는 황금 타이밍',
+  午: '한낮 — 결정하고 정리할 거 많은 때',
+  未: '점심 후 — 천천히 마무리하고 문서 정리하기 좋아요',
+  申: '오후 중반 — 결과물 마감 속도가 살아나는 때',
+  酉: '해질녘 — 협업이나 마감 잡기 좋아요',
+  戌: '저녁 — 식사하고 사람들 만나기 좋아요',
+  亥: '늦은 밤 — 깊이 공부하거나 내일 정리하기 좋아요',
 }
 
 export const HOUR_BRANCH_THEME_EN: Record<string, string> = {
-  子: '23–01 — deep rest, subconscious surfaces',
-  丑: '01–03 — pre-dawn cleanup, inner reflection',
-  寅: '03–05 — big-picture ignition, planning',
-  卯: '05–07 — activity onset, morning calls',
-  辰: '07–09 — morning focus, one core task',
-  巳: '09–11 — golden window for expression and meetings',
-  午: '11–13 — decision peak and alignment',
-  未: '13–15 — wrap-up, cleanup, paperwork',
-  申: '15–17 — closure speed on deliverables',
-  酉: '17–19 — handoff, collaborative finish',
-  戌: '19–21 — recovery, meals, relationships',
-  亥: '21–23 — deep study, inner cleanup',
+  子: 'late night — deep rest and subconscious time',
+  丑: 'pre-dawn — quiet cleanup and reflection',
+  寅: 'before sunrise — big-picture and planning',
+  卯: 'morning — start the day',
+  辰: 'early AM — focus on one core task',
+  巳: 'mid-morning — golden window for talks and meetings',
+  午: 'noon — decisions and alignment',
+  未: 'after lunch — wrap up and paperwork',
+  申: 'mid-afternoon — closure speed picks up',
+  酉: 'late afternoon — collaboration and handoff',
+  戌: 'evening — meals and people',
+  亥: 'late evening — deep study or tomorrow prep',
 }
 
-/** 시간 십신 → 행동 풀이. 십신 라벨 빼고 행동만. */
+/** 시간 십신 → 사람 말투 행동 풀이 */
 export const SIBSIN_HOUR_ACTION_KO: Record<string, string> = {
-  비견: '동료·동등 협업이 자연스러운 결 — 같은 결의 사람과 함께 가세요',
-  겁재: '경쟁·자원 분배가 예민한 결 — 비교 말고 본인 페이스 유지',
-  식신: '표현·발표·창작이 가벼운 결 — 미팅·발표 잡기 좋음',
-  상관: '강한 발산·설득의 결 — 핵심 메시지를 던지기 좋음',
-  편재: '외부 거래·유동 자금이 살아나는 결 — 미팅·딜 좋음',
-  정재: '안정 자금·계약 정리에 우호적인 결 — 문서·서명 다듬기',
-  편관: '책임감 있게 압박을 다룰 결 — 어려운 결정 정면 돌파',
-  정관: '공식 직책·규칙 안의 일에 적합한 결 — 회의·보고·검토',
-  편인: '학습·내적 재정비의 결 — 책상 앞에 앉기 좋음',
-  정인: '돌봄·문서·인정의 결 — 정리·기록·정중한 답신',
+  비견: '동료들이랑 같이 일하기 좋은 결',
+  겁재: '경쟁이 예민해지니 자기 페이스 지키는 게 좋아요',
+  식신: '뭔가 만들고 표현하기 좋은 결',
+  상관: '말빨 살아나는 시간 — 핵심 메시지 던지기 좋아요',
+  편재: '외부 미팅·딜이 잘 풀리는 결',
+  정재: '계약·문서·돈 관련 정리에 좋아요',
+  편관: '어려운 결정 정면돌파해야 할 때',
+  정관: '회의·보고·검토 같은 공식 업무에 잘 맞아요',
+  편인: '책상 앞에서 공부하거나 정리하기 좋아요',
+  정인: '문서 챙기고 정중하게 답신하기 좋은 결',
 }
 
 export const SIBSIN_HOUR_ACTION_EN: Record<string, string> = {
-  비견: 'natural for peer-level collaboration — go alongside same-tier folks',
-  겁재: 'rivalry and resource-split tension — keep your own pace',
-  식신: 'expression and craft flow easily — book talks and meetings',
-  상관: 'sharp persuasion window — drop the core message',
-  편재: 'external deals and fluid money flow open up — pitch and trade',
-  정재: 'stable income and contract cleanup — sign documents',
-  편관: 'handle pressure with responsibility — face hard decisions',
-  정관: 'formal roles and review work — meetings, reports',
-  편인: 'learning and inner reset — desk time is productive',
-  정인: 'caregiving, paperwork, recognition — organize and reply',
+  비견: 'good for peer collaboration',
+  겁재: 'rivalry edge — keep your own pace',
+  식신: 'great for making and expressing',
+  상관: 'sharp message window — drop the key point',
+  편재: 'external deals and trades flow well',
+  정재: 'contracts, paperwork, money cleanup',
+  편관: 'time to face hard decisions',
+  정관: 'fits formal meetings and reviews',
+  편인: 'desk time — study or organize',
+  정인: 'paperwork and polite replies',
 }
 
 /** 시간 천간/지지가 본명 일주에 어떤 이벤트를 일으키는지 검사 */
@@ -496,13 +496,13 @@ export function detectHourEvent(input: {
 }): HourEvent | null {
   const { natalDayStem, natalDayBranch, hourStem, hourBranch, gongmangBranches } = input
   if (!natalDayStem || !natalDayBranch) return null
-  // 천간 합 — 평어
+  // 천간 합 — 사람 말투
   if (STEM_HAP_PARTNER_LOCAL[natalDayStem] === hourStem && natalDayStem !== hourStem) {
     return {
       kind: '천간합',
       shift: 'lift',
-      ko: '본인 사주 흐름과 부드럽게 맞물리는 순간 — 협의·동의가 잘 맺히는 시간',
-      en: 'aligns gently with your natal flow — agreements land cleanly',
+      ko: '오늘 이 시간엔 사람들이랑 얘기가 잘 통할 거예요',
+      en: 'people and you click well around this hour',
     }
   }
   // 천간 충
@@ -510,8 +510,8 @@ export function detectHourEvent(input: {
     return {
       kind: '천간충',
       shift: 'press',
-      ko: '본인 사주를 누르는 압박 시간 — 갈등·긴장이 일어나기 쉬움',
-      en: 'a pressure window against your natal flow — friction is more likely',
+      ko: '이 시간엔 부딪히기 쉬워요. 큰 결정은 피하세요',
+      en: 'easy to clash this hour — avoid big calls',
     }
   }
   // 지지 합
@@ -519,8 +519,8 @@ export function detectHourEvent(input: {
     return {
       kind: '지지합',
       shift: 'lift',
-      ko: '가까운 사람·일상 결속이 단단해지는 시간',
-      en: 'closeness with people and daily ties consolidates',
+      ko: '가까운 사람과 마음이 잘 맞는 시간이에요',
+      en: 'good time with close people',
     }
   }
   // 지지 충
@@ -528,8 +528,8 @@ export function detectHourEvent(input: {
     return {
       kind: '지지충',
       shift: 'press',
-      ko: '환경·이동·관계의 변동이 일어나기 쉬운 시간',
-      en: 'environment / movement / relationships may shift',
+      ko: '뭔가 흔들릴 수 있는 시간 — 이동이나 변동에 조심하세요',
+      en: 'things may shift — be careful with moves and changes',
     }
   }
   // 지지 형 (삼형)
@@ -544,8 +544,8 @@ export function detectHourEvent(input: {
     return {
       kind: '지지형',
       shift: 'press',
-      ko: '마찰·실수 노출이 잦은 시간 — 신중하게 가세요',
-      en: 'friction / exposed mistakes are more likely — proceed carefully',
+      ko: '실수 나오기 쉬운 시간이에요. 평소보다 한 번 더 확인하세요',
+      en: 'mistakes slip in this hour — double-check',
     }
   }
   // 공망
@@ -553,8 +553,8 @@ export function detectHourEvent(input: {
     return {
       kind: '공망',
       shift: 'press',
-      ko: '결정·확정의 무게가 비는 시간 — 새 일은 미루세요',
-      en: 'decisions lose weight here — defer new starts',
+      ko: '이 시간엔 뭘 해도 무게가 잘 안 실려요. 큰 결정은 미루세요',
+      en: 'decisions feel weightless here — defer them',
     }
   }
   return null
@@ -570,22 +570,22 @@ const PLANET_KO_LABEL: Record<string, string> = {
   Jupiter: '목성', Venus: '금성', Saturn: '토성',
 }
 const PLANET_KO_ACTION: Record<string, string> = {
-  Sun: '리더십·권위·성공의 시간',
-  Moon: '직관·돌봄·가정의 시간',
-  Mercury: '문서·소통·학습의 시간',
-  Venus: '관계·예술·재물의 시간',
-  Mars: '추진력·운동·결단의 시간',
-  Jupiter: '확장·교육·기회의 시간',
-  Saturn: '구조화·인내·장기계획의 시간',
+  Sun: '리더십 발휘하거나 사람들 앞에 서기 좋은 분위기',
+  Moon: '직관이 살고 가족·가까운 사람과 시간 보내기 좋은 분위기',
+  Mercury: '문서 정리하고 소통하고 공부하기 좋은 분위기',
+  Venus: '관계·예술·돈 관련 일이 잘 풀리는 분위기',
+  Mars: '추진력 살아서 운동하거나 결단 내리기 좋은 분위기',
+  Jupiter: '큰 그림 그리고 기회 잡기 좋은 분위기',
+  Saturn: '구조 잡고 차근차근 장기 계획 세우기 좋은 분위기',
 }
 const PLANET_EN_ACTION: Record<string, string> = {
-  Sun: 'leadership / authority / wins',
-  Moon: 'intuition / care / home',
-  Mercury: 'documents / talks / learning',
-  Venus: 'relationships / art / money beauty',
-  Mars: 'drive / sport / decisive moves',
-  Jupiter: 'expansion / education / opportunity',
-  Saturn: 'structure / patience / long-term planning',
+  Sun: 'leading and showing up in public',
+  Moon: 'intuition, family and close people',
+  Mercury: 'paperwork, talks, learning',
+  Venus: 'relationships, art, money matters',
+  Mars: 'drive, sport, decisive moves',
+  Jupiter: 'big-picture thinking and opportunities',
+  Saturn: 'structure and long-term planning',
 }
 
 export type PlanetaryHourLine = {
@@ -606,13 +606,8 @@ export function buildPlanetaryHourLine(input: {
   if (!y || !m || !d) return null
   const ph = getPlanetaryHourForDate(new Date(y, m - 1, d, hour, 0, 0))
   if (!ph?.planet) return null
-  // "행성시간 / 요일주" 라벨 빼고 의미만 풀어서
-  const ko = locale === 'ko'
-    ? `점성 흐름은 ${PLANET_KO_ACTION[ph.planet] || ''}`
-    : ''
-  const en = locale === 'en'
-    ? `astro window favors ${PLANET_EN_ACTION[ph.planet] || ''}`
-    : ''
+  const ko = locale === 'ko' ? PLANET_KO_ACTION[ph.planet] || '' : ''
+  const en = locale === 'en' ? PLANET_EN_ACTION[ph.planet] || '' : ''
   return { planet: ph.planet, dayRuler: ph.dayRuler, isDay: ph.isDay, ko, en }
 }
 
@@ -667,8 +662,8 @@ export function buildActivityMatchLine(input: {
     return {
       line:
         locale === 'ko'
-          ? `오늘 ${labelKo} 활동 점수 ${score} — 이 카테고리는 강하게 밀어도 좋음`
-          : `${labelEn} activity score ${score} — push this category confidently`,
+          ? `오늘은 ${labelKo} 쪽 일이 잘 풀리는 날이라 이쪽으로 가시면 좋아요`
+          : `${labelEn} is flowing well today — push this`,
       shift: 'lift',
     }
   }
@@ -676,8 +671,8 @@ export function buildActivityMatchLine(input: {
     return {
       line:
         locale === 'ko'
-          ? `오늘 ${labelKo} 활동 점수 ${score} — 이 카테고리는 가볍게 가는 편이 안전`
-          : `${labelEn} activity score ${score} — go light on this category today`,
+          ? `오늘은 ${labelKo} 쪽 일이 잘 안 풀릴 수 있어요. 무리하지 마세요`
+          : `${labelEn} won't flow well today — don't push`,
       shift: 'press',
     }
   }

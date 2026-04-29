@@ -777,8 +777,8 @@ export function buildMatrixStrictWarnings(input: {
   if (out.length > 0) return out
 
   return input.lang === 'ko'
-    ? ['신호가 약하거나 엇갈릴 때는 확정 전에 한 번 더 재검증하는 편이 안전합니다.']
-    : ['When shared-matrix confidence is low, re-validate before irreversible actions.']
+    ? ['오늘 흐름이 좀 흔들리니, 큰 결정은 한 번 더 보고 정하세요.']
+    : ['Things feel a bit shaky today — double-check before big calls.']
 }
 
 export function buildMatrixFirstRecommendations(input: {

@@ -1109,31 +1109,30 @@ export const buildRuleBasedTimeline = (input: {
 
       if (locale === 'ko') {
         if (isSleep) {
-          const sleepLines: string[] = ['취침 시간이에요. 깊이 쉬는 게 오늘 신호 활용보다 중요합니다.']
+          const sleepLines: string[] = ['지금은 자고 쉬는 시간이에요. 푹 쉬는 게 오늘 일정 중에 제일 중요해요.']
           if (sajuHour.event?.kind === '천간충' || sajuHour.event?.kind === '지지충' || sajuHour.event?.kind === '공망' || sajuHour.event?.kind === '지지형') {
-            sleepLines.push('이 시간 본인 사주에 부담이 들어와 있어 일찍 자는 게 더 좋아요.')
+            sleepLines.push('오늘은 좀 무거운 흐름이라 일찍 자는 게 더 좋아요.')
           } else if (sajuHour.event?.kind === '천간합' || sajuHour.event?.kind === '지지합') {
-            sleepLines.push('이 시간은 잠재의식이 부드럽게 정리되는 결이라 깊은 잠으로 갑니다.')
+            sleepLines.push('마음 편히 잠들기 좋은 시간이에요. 깊이 잘 거예요.')
           }
           note = repairMojibakeText(sleepLines.join(' '))
         } else {
           const bucketTheme = getOfficeBucketTheme(officeBucket)
-          const sajuReason = `사주로 보면 ${sajuHour.line}`
-          const planetText = planetaryHour ? planetaryHour.ko : ''
-          const astroReason = planetText
-            ? `점성으로는 ${planetText.replace(/^점성 흐름은\s+/, '').replace(/의 시간$/, '의 결')} 시기예요.`
-            : ''
+          const sajuReason = `${sajuHour.line}`
+          const astroReason = planetaryHour?.ko ? `점성으로 보면 ${planetaryHour.ko}예요.` : ''
           const activityNote = activityMatch?.line ? `${activityMatch.line}.` : ''
           let action = getOfficeBucketAction(officeBucket, tone)
           if (tone === 'caution' && warningHint) {
-            action = `${action} 특히 오늘은 \"${warningHint}\" 신호가 있어 더 신중히 가세요.`
+            const cleaned = warningHint.replace(/^오늘은\s*/, '')
+            action = `${action} ${cleaned}`
           } else if (tone !== 'caution' && recHint) {
-            action = `${action} 오늘 핵심 액션은 \"${recHint}\".`
+            const cleaned = recHint.replace(/^오늘은\s*/, '')
+            action = `${action} ${cleaned}`
           }
           if (personalHint) {
-            action = `${action} (개인 패턴: ${personalHint})`
+            action = `${action} (${personalHint})`
           }
-          const sentences = [`${bucketTheme}예요.`, sajuReason, astroReason, activityNote, action]
+          const sentences = [`${bucketTheme}이에요.`, sajuReason, astroReason, activityNote, action]
             .filter((s) => s && s.trim().length > 0)
           note = repairMojibakeText(sentences.join(' '))
         }
