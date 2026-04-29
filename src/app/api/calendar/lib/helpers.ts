@@ -519,15 +519,24 @@ export function formatDateForResponse(
   // 중복 카테고리 제거
   const uniqueCategories = [...new Set(date.categories)]
 
-  // 번역된 요소만 포함 (번역 없으면 제외)
+  // 번역된 요소만 포함 (사전에 없는 풀-문장 키는 그대로 통과)
+  const looksLikeShortKey = (key: string) =>
+    key.length <= 32 && !/[\s.　]/.test(key) && !/[가-힣]/.test(key.replace(/^[a-zA-Z]+$/, ''))
+  const resolveFactor = (key: string): string | null => {
+    const translated = getFactorTranslation(key, lang)
+    if (translated) return translated
+    // 짧은 영문 키 형태(stemBijeon 등)인데 번역이 없으면 표시하지 않음 (옛 동작 유지)
+    if (looksLikeShortKey(key)) return null
+    return key
+  }
   const translatedSajuFactors = date.sajuFactorKeys
-    .map((key) => getFactorTranslation(key, lang))
-    .filter((t): t is string => t !== null)
+    .map(resolveFactor)
+    .filter((t): t is string => t !== null && t.length > 0)
     .map((text) => sanitizeCalendarCopy(text, lang))
 
   const translatedAstroFactors = date.astroFactorKeys
-    .map((key) => getFactorTranslation(key, lang))
-    .filter((t): t is string => t !== null)
+    .map(resolveFactor)
+    .filter((t): t is string => t !== null && t.length > 0)
     .map((text) => sanitizeCalendarCopy(text, lang))
 
   // Grade 3 이상(안좋음)에서는 부정적 요소를 먼저 표시
@@ -637,12 +646,17 @@ export function formatDateForResponse(
     date.date,
     date.crossAgreementPercent
   )
-  const matrixFallbackSummary = CALENDAR_MATRIX_STRICT_MODE
+  const liteDescription = sanitizeCalendarCopy(getTranslation(date.descKey, translations), lang)
+  const matrixHasNarrative = Boolean(
+    matrixVerdict?.topAnchorSummary || matrixVerdict?.topClaim || matrixVerdict?.verdict
+  )
+  // 매트릭스가 풍부한 서사를 주면 그걸 쓰고, 없을 땐 lite 베이스(상담사 톤)를 우선
+  const matrixFallbackSummary = matrixHasNarrative && CALENDAR_MATRIX_STRICT_MODE
     ? buildMatrixStrictSummaryFallback({
         lang,
         evidence: evidenceWithVerdict,
       })
-    : baseSummary
+    : liteDescription || baseSummary
   const finalSummary = buildMatrixFirstSummary({
     verdict: matrixVerdict?.verdict,
     topClaim: matrixVerdict?.topClaim,
@@ -727,14 +741,16 @@ export function formatDateForResponse(
             verdict: matrixVerdict?.verdict,
             topClaim: matrixVerdict?.topClaim,
             overlaySummary: matrixOverlay.summary,
-            fallbackDescription: CALENDAR_MATRIX_STRICT_MODE
-              ? buildMatrixStrictDescriptionFallback({
-                  lang,
-                  evidence: evidenceWithVerdict,
-                  summary: finalSummary,
-                  guardrail: matrixVerdict?.guardrail,
-                })
-              : getTranslation(date.descKey, translations),
+            // 매트릭스 서사가 비어 있을 땐 strict 일반문구 대신 lite의 상담사 톤 description을 사용
+            fallbackDescription:
+              matrixHasNarrative && CALENDAR_MATRIX_STRICT_MODE
+                ? buildMatrixStrictDescriptionFallback({
+                    lang,
+                    evidence: evidenceWithVerdict,
+                    summary: finalSummary,
+                    guardrail: matrixVerdict?.guardrail,
+                  })
+                : liteDescription || getTranslation(date.descKey, translations),
           }),
       lang
     ),
