@@ -51,7 +51,7 @@ const dates = calculateYearlyImportantDatesLite(2026, sajuProfile, astroProfile,
 
 const matrixRegraded = dates.map((d) => applyMatrixPreformatRegrade(d, matrixContext as never))
 
-const formatted = matrixRegraded.slice(0, 5).map((d) =>
+const formatted = matrixRegraded.map((d) =>
   formatDateForResponse(
     d as never,
     'ko',
@@ -63,8 +63,17 @@ const formatted = matrixRegraded.slice(0, 5).map((d) =>
   )
 )
 
+// 등급·도메인 다양하게 섞어서 6일 뽑기
+const grade0 = formatted.filter((d) => d.grade === 0)[0]
+const grade1Career = formatted.filter((d) => d.grade === 1 && d.categories.includes('career'))[0]
+const grade1Love = formatted.filter((d) => d.grade === 1 && d.categories.includes('love'))[0]
+const grade2 = formatted.filter((d) => d.grade === 2)[0]
+const grade3 = formatted.filter((d) => d.grade === 3)[0]
+const grade4 = formatted.filter((d) => d.grade === 4)[0]
+const samples = [grade0, grade1Career, grade1Love, grade2, grade3, grade4].filter(Boolean)
+
 console.log('=== 풀 파이프 응답 (lite → helpers → format) ===\n')
-for (const item of formatted) {
+for (const item of samples) {
   console.log(`📅 ${item.date} | grade=${item.grade} | score=${item.score} | confidence=${item.evidence?.confidence}`)
   console.log(`  title:        ${item.title}`)
   console.log(`  summary:      ${item.summary}`)
@@ -88,29 +97,32 @@ for (const item of formatted) {
 // 행동플래너 슬롯 — 사주/점성 컨셉이 실제로 박혀나오는지 확인
 import { buildRuleBasedTimeline } from '@/app/api/calendar/action-plan/routeActionPlanSupport'
 
-const sample = formatted[0]
-const slots = buildRuleBasedTimeline({
-  date: sample.date,
-  locale: 'ko',
-  intervalMinutes: 60,
-  calendar: {
-    grade: sample.grade,
-    displayGrade: sample.displayGrade,
-    score: sample.score,
-    displayScore: sample.displayScore,
-    categories: sample.categories,
-    bestTimes: sample.bestTimes,
-    recommendations: sample.recommendations,
-    warnings: sample.warnings,
-    summary: sample.summary,
-    sajuFactors: sample.sajuFactors,
-    astroFactors: sample.astroFactors,
-    evidence: sample.evidence,
-  } as never,
-})
+// 행동플래너: 대길(grade 0)과 대흉(grade 4) 비교
+for (const sample of [grade0, grade4].filter(Boolean)) {
+  const slots = buildRuleBasedTimeline({
+    date: sample.date,
+    locale: 'ko',
+    intervalMinutes: 60,
+    calendar: {
+      grade: sample.grade,
+      displayGrade: sample.displayGrade,
+      score: sample.score,
+      displayScore: sample.displayScore,
+      categories: sample.categories,
+      bestTimes: sample.bestTimes,
+      recommendations: sample.recommendations,
+      warnings: sample.warnings,
+      summary: sample.summary,
+      sajuFactors: sample.sajuFactors,
+      astroFactors: sample.astroFactors,
+      evidence: sample.evidence,
+    } as never,
+  })
 
-console.log(`\n=== 행동플래너 슬롯 (${sample.date}) ===\n`)
-for (const slot of slots.filter((s) => [9, 14, 21].includes(s.hour))) {
-  console.log(`${slot.label} (${slot.tone}) — ${slot.note}`)
-  for (const e of slot.evidenceSummary || []) console.log(`   · ${e}`)
+  console.log(`\n=== 행동플래너 슬롯 (${sample.date} grade=${sample.grade}) ===\n`)
+  for (const slot of slots.filter((s) => [8, 14, 20].includes(s.hour))) {
+    console.log(`${slot.label} (${slot.tone}) — ${slot.note}`)
+    for (const e of slot.evidenceSummary || []) console.log(`   · ${e}`)
+    console.log('')
+  }
 }
