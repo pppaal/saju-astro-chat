@@ -471,9 +471,134 @@ export function detectHourEvent(input: {
   return null
 }
 
+// ─────────────────────────────────────────────────────────────
+// 점성 행성시간 (Planetary Hours) — 시진과 별개로 그 시간을 지배하는 행성
+// ─────────────────────────────────────────────────────────────
+import { getPlanetaryHourForDate } from '@/lib/destiny-map/calendar/planetary-hours'
+
+const PLANET_KO_LABEL: Record<string, string> = {
+  Sun: '태양', Moon: '달', Mars: '화성', Mercury: '수성',
+  Jupiter: '목성', Venus: '금성', Saturn: '토성',
+}
+const PLANET_KO_ACTION: Record<string, string> = {
+  Sun: '리더십·권위·성공의 시간',
+  Moon: '직관·돌봄·가정의 시간',
+  Mercury: '문서·소통·학습의 시간',
+  Venus: '관계·예술·재물의 시간',
+  Mars: '추진력·운동·결단의 시간',
+  Jupiter: '확장·교육·기회의 시간',
+  Saturn: '구조화·인내·장기계획의 시간',
+}
+const PLANET_EN_ACTION: Record<string, string> = {
+  Sun: 'leadership / authority / wins',
+  Moon: 'intuition / care / home',
+  Mercury: 'documents / talks / learning',
+  Venus: 'relationships / art / money beauty',
+  Mars: 'drive / sport / decisive moves',
+  Jupiter: 'expansion / education / opportunity',
+  Saturn: 'structure / patience / long-term planning',
+}
+
+export type PlanetaryHourLine = {
+  planet: string
+  dayRuler: string
+  isDay: boolean
+  ko: string
+  en: string
+}
+
+export function buildPlanetaryHourLine(input: {
+  date: string
+  hour: number
+  locale: 'ko' | 'en'
+}): PlanetaryHourLine | null {
+  const { date, hour, locale } = input
+  const [y, m, d] = date.split('-').map(Number)
+  if (!y || !m || !d) return null
+  const ph = getPlanetaryHourForDate(new Date(y, m - 1, d, hour, 0, 0))
+  if (!ph?.planet) return null
+  const planetKo = PLANET_KO_LABEL[ph.planet] || ph.planet
+  const dayRulerKo = PLANET_KO_LABEL[ph.dayRuler] || ph.dayRuler
+  const ko =
+    locale === 'ko'
+      ? `행성시간 ${planetKo}(요일주 ${dayRulerKo}) — ${PLANET_KO_ACTION[ph.planet] || ''}`
+      : `Planetary hour ${ph.planet} (day-ruler ${ph.dayRuler}) — ${PLANET_EN_ACTION[ph.planet] || ''}`
+  return {
+    planet: ph.planet,
+    dayRuler: ph.dayRuler,
+    isDay: ph.isDay,
+    ko: locale === 'ko' ? ko : '',
+    en: locale === 'en' ? ko : '',
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// activityScores → 시간 카테고리 매칭 강조
+// ─────────────────────────────────────────────────────────────
+const ACTIVITY_TO_CATEGORY: Record<string, string> = {
+  marriage: 'love',
+  career: 'career',
+  investment: 'wealth',
+  moving: 'travel',
+  surgery: 'health',
+  study: 'study',
+}
+const ACTIVITY_LABEL_KO: Record<string, string> = {
+  marriage: '결혼',
+  career: '커리어',
+  investment: '투자',
+  moving: '이사',
+  surgery: '수술',
+  study: '공부',
+}
+const ACTIVITY_LABEL_EN: Record<string, string> = {
+  marriage: 'marriage',
+  career: 'career',
+  investment: 'investment',
+  moving: 'move',
+  surgery: 'surgery',
+  study: 'study',
+}
+
 /**
- * 슬롯 한 줄 — 시진 + 시간 십신 + 시지 자연 의미 + (있으면) 본명 vs 시간 이벤트
+ * 슬롯의 카테고리와 그 날의 activityScores가 정렬되면 강조 라인 한 줄
+ * 같은 카테고리에서 score >= 65 면 lift, <= 35 면 caution 힌트
  */
+export function buildActivityMatchLine(input: {
+  category: string
+  activityScores?: Record<string, number | undefined>
+  locale: 'ko' | 'en'
+}): { line: string; shift: 'lift' | 'press' | null } | null {
+  const { category, activityScores, locale } = input
+  if (!activityScores) return null
+  const matchedKey = Object.entries(ACTIVITY_TO_CATEGORY).find(
+    ([, cat]) => cat === category
+  )?.[0]
+  if (!matchedKey) return null
+  const score = activityScores[matchedKey]
+  if (typeof score !== 'number' || Number.isNaN(score)) return null
+  const labelKo = ACTIVITY_LABEL_KO[matchedKey] || matchedKey
+  const labelEn = ACTIVITY_LABEL_EN[matchedKey] || matchedKey
+  if (score >= 65) {
+    return {
+      line:
+        locale === 'ko'
+          ? `오늘 ${labelKo} 활동 점수 ${score} — 이 카테고리는 강하게 밀어도 좋음`
+          : `${labelEn} activity score ${score} — push this category confidently`,
+      shift: 'lift',
+    }
+  }
+  if (score <= 35) {
+    return {
+      line:
+        locale === 'ko'
+          ? `오늘 ${labelKo} 활동 점수 ${score} — 이 카테고리는 가볍게 가는 편이 안전`
+          : `${labelEn} activity score ${score} — go light on this category today`,
+      shift: 'press',
+    }
+  }
+  return null
+}
 export function buildHourSajuLine(input: {
   locale: 'ko' | 'en'
   hour: number

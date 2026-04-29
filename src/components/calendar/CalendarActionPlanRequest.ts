@@ -204,6 +204,7 @@ export function buildActionPlanAiPayload(input: {
         natalSaju: baseInfo.natalSaju,
         gongmangBranches: baseInfo.gongmangBranches,
         shinsalActive: baseInfo.shinsalActive,
+        activityScores: baseInfo.activityScores,
         canonicalCore: canonicalCore
           ? {
               focusDomain: trimText(canonicalCore.focusDomain, 24),

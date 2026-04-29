@@ -318,5 +318,6 @@ export function mergeDateDetailIntoBaseInfo(
     natalSaju: detail.natalSaju,
     gongmangBranches: detail.gongmangStatus?.emptyBranches,
     shinsalActive: detail.shinsalActive,
+    activityScores: detail.activityScores as ImportantDate['activityScores'],
   }
 }

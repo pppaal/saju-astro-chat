@@ -84,6 +84,15 @@ export interface ImportantDate {
   gongmangBranches?: string[]
   /** 활성 신살 (역마/도화/화개 등) */
   shinsalActive?: { name: string; type: string; affectedArea: string }[]
+  /** 그 날 카테고리별 활동 점수 (0-100) */
+  activityScores?: {
+    marriage?: number
+    career?: number
+    investment?: number
+    moving?: number
+    surgery?: number
+    study?: number
+  }
 }
 
 export interface CalendarData {

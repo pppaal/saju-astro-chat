@@ -153,6 +153,14 @@ export type ActionPlanCalendarContext = {
   }
   gongmangBranches?: string[]
   shinsalActive?: { name: string; type?: string; affectedArea?: string }[]
+  activityScores?: {
+    marriage?: number
+    career?: number
+    investment?: number
+    moving?: number
+    surgery?: number
+    study?: number
+  }
 } | null
 
 export type ActionPlanInsights = {
@@ -536,6 +544,16 @@ const actionPlanTimelineRequestSchema = z.object({
           })
         )
         .max(8)
+        .optional(),
+      activityScores: z
+        .object({
+          marriage: z.number().min(0).max(100).optional(),
+          career: z.number().min(0).max(100).optional(),
+          investment: z.number().min(0).max(100).optional(),
+          moving: z.number().min(0).max(100).optional(),
+          surgery: z.number().min(0).max(100).optional(),
+          study: z.number().min(0).max(100).optional(),
+        })
         .optional(),
       evidence: z
         .object({

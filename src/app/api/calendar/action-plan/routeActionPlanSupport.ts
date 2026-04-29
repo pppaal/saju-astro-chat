@@ -8,8 +8,10 @@ import {
 } from '@/lib/destiny-matrix/core/actionCopy'
 
 import {
+  buildActivityMatchLine,
   buildCrossReasonText,
   buildHourSajuLine,
+  buildPlanetaryHourLine,
   clampPercent,
   cleanGuidanceText,
   extractHoursFromText,
@@ -1077,6 +1079,21 @@ export const buildRuleBasedTimeline = (input: {
       } else if (sajuHour.event?.shift === 'lift' && tone !== 'caution') {
         tone = 'best'
       }
+
+      // 점성 행성시간 — 그 시간을 지배하는 행성 (Sun/Mercury/Venus 등)
+      const planetaryHour = buildPlanetaryHourLine({ date, hour, locale })
+
+      // activityScores 카테고리 매칭 — 그 시간 카테고리가 오늘 결혼/커리어/투자 중 강한 것이면 lift
+      const activityMatch = buildActivityMatchLine({
+        category,
+        activityScores: calendar?.activityScores,
+        locale,
+      })
+      if (activityMatch?.shift === 'lift' && tone !== 'caution') {
+        tone = 'best'
+      } else if (activityMatch?.shift === 'press' && tone !== 'best') {
+        tone = 'caution'
+      }
       // 시진(時辰)이 이미 자체 액션 풀이를 가지고 있으니, 추가 라인은 캘린더 추천/경고만 짧게 덧붙임
       let detailLine = ''
       if (locale === 'ko') {
@@ -1105,13 +1122,21 @@ export const buildRuleBasedTimeline = (input: {
         }
       }
 
+      const planetaryLine = planetaryHour
+        ? locale === 'ko'
+          ? planetaryHour.ko
+          : planetaryHour.en
+        : ''
+      const activityLine = activityMatch?.line || ''
       const noteParts = [
         cleanGuidanceText(sajuHour.line, 132),
+        cleanGuidanceText(planetaryLine, 96),
+        cleanGuidanceText(activityLine, 96),
         cleanGuidanceText(detailLine, 108),
         crossReason,
       ]
         .filter(Boolean)
-        .slice(0, 3)
+        .slice(0, 4)
       const note = repairMojibakeText(noteParts.join(' \u00b7 ').trim())
       // 사주 detail (십신/신살/용신) 라인을 따로 잡아 슬롯에서도 노출
       const sajuDetailLine =
