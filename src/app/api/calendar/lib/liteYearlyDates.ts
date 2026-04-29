@@ -6,6 +6,7 @@ import type {
 import type { EventCategory, ImportanceGrade } from '@/lib/destiny-map/calendar/types'
 import type { UserAstroProfile, UserSajuProfile } from '@/lib/destiny-map/calendar/types'
 import { getJohuYongsin, MONTH_CLIMATE } from '@/lib/Saju/johuYongsin'
+import { calculateDailyPillar } from '@/lib/prediction/ultra-precision-daily'
 
 type CalendarLocale = 'ko' | 'en'
 
@@ -270,6 +271,169 @@ const SINSAL_BLURB_KO: Record<string, string> = {
   도화: '관계 끌림·매력·공개 자리',
   화개: '내적 정리·예술·고요',
   망신: '체면 흔들림 주의·실수 점검',
+}
+
+// ───── 일진(오늘의 일주) × 본명 일주 상호작용 ─────
+const STEM_HAP_PARTNER: Record<string, { partner: string; transform: string }> = {
+  '甲': { partner: '己', transform: '토' },
+  '乙': { partner: '庚', transform: '금' },
+  '丙': { partner: '辛', transform: '수' },
+  '丁': { partner: '壬', transform: '목' },
+  '戊': { partner: '癸', transform: '화' },
+  '己': { partner: '甲', transform: '토' },
+  '庚': { partner: '乙', transform: '금' },
+  '辛': { partner: '丙', transform: '수' },
+  '壬': { partner: '丁', transform: '목' },
+  '癸': { partner: '戊', transform: '화' },
+}
+const STEM_CHUNG_SET = new Set([
+  '甲-庚','庚-甲','乙-辛','辛-乙','丙-壬','壬-丙','丁-癸','癸-丁',
+])
+const BRANCH_HAP_PARTNER: Record<string, string> = {
+  '子':'丑','丑':'子','寅':'亥','亥':'寅','卯':'戌','戌':'卯',
+  '辰':'酉','酉':'辰','巳':'申','申':'巳','午':'未','未':'午',
+}
+const BRANCH_CHUNG_PARTNER: Record<string, string> = {
+  '子':'午','午':'子','丑':'未','未':'丑','寅':'申','申':'寅',
+  '卯':'酉','酉':'卯','辰':'戌','戌':'辰','巳':'亥','亥':'巳',
+}
+const BRANCH_HAE_PAIRS = new Set([
+  '子-未','未-子','丑-午','午-丑','寅-巳','巳-寅',
+  '卯-辰','辰-卯','申-亥','亥-申','酉-戌','戌-酉',
+])
+const BRANCH_PA_PAIRS = new Set([
+  '子-酉','酉-子','丑-辰','辰-丑','寅-亥','亥-寅',
+  '卯-午','午-卯','申-巳','巳-申','未-戌','戌-未',
+])
+const BRANCH_HYUNG_TRIO = ['寅', '巳', '申']
+const BRANCH_HYUNG_TRIO2 = ['丑', '戌', '未']
+const BRANCH_HYUNG_PAIR = new Set(['子-卯', '卯-子'])
+
+type DailyEvent = {
+  kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형' | '공망' | '평이'
+  label: string
+  blurb: string
+  scoreShift: number
+  warningWeight?: number
+}
+
+function gongmangBranches(natalStem: string, natalBranch: string): [string, string] | null {
+  const sIdx = STEM_INDEX[natalStem]
+  const bIdx = MONTH_BRANCHES.indexOf(natalBranch)
+  if (sIdx < 0 || bIdx < 0) return null
+  // 60갑자 인덱스: i % 10 === sIdx, i % 12 === bIdx 인 i (0..59)
+  let cycleIdx = -1
+  for (let i = 0; i < 60; i++) {
+    if (i % 10 === sIdx && i % 12 === bIdx) {
+      cycleIdx = i
+      break
+    }
+  }
+  if (cycleIdx < 0) return null
+  const groupStart = cycleIdx - (cycleIdx % 10) // 갑X일 시작 인덱스
+  const firstBranchIdx = groupStart % 12
+  return [MONTH_BRANCHES[(firstBranchIdx + 10) % 12], MONTH_BRANCHES[(firstBranchIdx + 11) % 12]]
+}
+
+function analyzeDailyPillarEvents(
+  natalStem: string,
+  natalBranch: string,
+  dailyStem: string,
+  dailyBranch: string
+): DailyEvent[] {
+  const events: DailyEvent[] = []
+  if (!natalStem || !natalBranch) return events
+  // 천간합
+  if (STEM_HAP_PARTNER[natalStem]?.partner === dailyStem) {
+    events.push({
+      kind: '천간합',
+      label: `${natalStem}-${dailyStem} 천간합(${STEM_HAP_PARTNER[natalStem].transform})`,
+      blurb: '본명 일간과 결속·협력·동의가 잘 맺히는 결',
+      scoreShift: 2.5,
+    })
+  }
+  // 천간충
+  if (STEM_CHUNG_SET.has(`${natalStem}-${dailyStem}`)) {
+    events.push({
+      kind: '천간충',
+      label: `${natalStem}-${dailyStem} 천간충`,
+      blurb: '본명 일간을 누르는 압박·갈등 신호',
+      scoreShift: -2.5,
+      warningWeight: 1,
+    })
+  }
+  // 지지합
+  if (BRANCH_HAP_PARTNER[natalBranch] === dailyBranch && natalBranch !== dailyBranch) {
+    events.push({
+      kind: '지지합',
+      label: `${natalBranch}-${dailyBranch} 지지육합`,
+      blurb: '가까운 관계·일상 결속이 단단해지는 결',
+      scoreShift: 2,
+    })
+  }
+  // 지지충
+  if (BRANCH_CHUNG_PARTNER[natalBranch] === dailyBranch) {
+    events.push({
+      kind: '지지충',
+      label: `${natalBranch}-${dailyBranch} 지지충`,
+      blurb: '환경·이동·관계의 변동이 잦은 결',
+      scoreShift: -2,
+      warningWeight: 1,
+    })
+  }
+  // 지지형 (삼형 + 子卯형 + 자형)
+  const inTrio = (set: string[]) => set.includes(natalBranch) && set.includes(dailyBranch) && natalBranch !== dailyBranch
+  if (inTrio(BRANCH_HYUNG_TRIO) || inTrio(BRANCH_HYUNG_TRIO2) || BRANCH_HYUNG_PAIR.has(`${natalBranch}-${dailyBranch}`)) {
+    events.push({
+      kind: '지지형',
+      label: `${natalBranch}-${dailyBranch} 형`,
+      blurb: '마찰·실수 노출·구설 가능성',
+      scoreShift: -3,
+      warningWeight: 2,
+    })
+  } else if (natalBranch === dailyBranch) {
+    events.push({
+      kind: '자형',
+      label: `${natalBranch} 자형`,
+      blurb: '내적 마찰·과로·신경전이 일어나기 쉬움',
+      scoreShift: -1.2,
+    })
+  }
+  // 지지해
+  if (BRANCH_HAE_PAIRS.has(`${natalBranch}-${dailyBranch}`)) {
+    events.push({
+      kind: '지지해',
+      label: `${natalBranch}-${dailyBranch} 해`,
+      blurb: '오해·어긋남·관계 균열 가능성',
+      scoreShift: -1.5,
+      warningWeight: 1,
+    })
+  }
+  // 지지파
+  if (BRANCH_PA_PAIRS.has(`${natalBranch}-${dailyBranch}`)) {
+    events.push({
+      kind: '지지파',
+      label: `${natalBranch}-${dailyBranch} 파`,
+      blurb: '진행 중인 일이 살짝 틀어질 수 있는 결',
+      scoreShift: -1,
+    })
+  }
+  // 공망
+  const gongmang = gongmangBranches(natalStem, natalBranch)
+  if (gongmang && gongmang.includes(dailyBranch)) {
+    events.push({
+      kind: '공망',
+      label: `${dailyBranch} 공망일`,
+      blurb: '결정·확정의 무게가 비는 날 — 새 일은 미루는 편',
+      scoreShift: -1.8,
+      warningWeight: 1,
+    })
+  }
+  return events
+}
+
+function getSibsinDailyKo(dayStem: string, dailyStem: string): string {
+  return getSibsinKo(dayStem, dailyStem)
 }
 
 const GLOSSARY_KO: Record<string, string> = {
@@ -717,6 +881,40 @@ function buildMonthlyCounselorPacks(
   return out
 }
 
+function buildSajuFactorsWithDaily(
+  locale: CalendarLocale,
+  profile: UserSajuProfile,
+  domain: DomainKey,
+  month: number,
+  pack: MonthlyCounselorPack,
+  daily: { stem: string; branch: string },
+  dailySibsin: string,
+  dailyEvents: DailyEvent[],
+  seed: string
+): string[] {
+  const monthly = buildSajuFactors(locale, profile, domain, month, pack, seed)
+  if (locale !== 'ko') {
+    // EN: prepend a single daily line capturing daily sibsin + first event if any
+    const ev = dailyEvents[0]
+    const dailyLine = `Today's pillar ${daily.stem}${daily.branch}${dailySibsin ? ` — ${dailySibsin} day` : ''}${
+      ev ? `; ${ev.label} (${ev.blurb})` : ''
+    }.`
+    return [dailyLine, ...monthly]
+  }
+  // KO: 일진 한 줄 + (있으면) 가장 강한 일진 이벤트 한 줄
+  const dailyLine = `오늘의 일진은 ${daily.stem}${daily.branch}${
+    dailySibsin ? ` — 본명 일간 기준 ${dailySibsin} 결의 날` : ''
+  }입니다.`
+  // 가장 강한 이벤트 한 개만 추가 (점수 절댓값 기준)
+  const sorted = [...dailyEvents].sort((a, b) => Math.abs(b.scoreShift) - Math.abs(a.scoreShift))
+  const top = sorted[0]
+  const eventLine = top
+    ? `${top.label} — ${top.blurb}.`
+    : ''
+  const out = [dailyLine, ...(eventLine ? [eventLine] : []), ...monthly]
+  return out
+}
+
 function buildSajuFactors(
   locale: CalendarLocale,
   profile: UserSajuProfile,
@@ -1013,6 +1211,18 @@ export function calculateYearlyImportantDatesLite(
         ? clamp((0.4 - primaryMonthStrength) * 32 + (0.6 - reliability) * 14, 0, 28)
         : 0
     const peakBoost = primaryStrength >= 0.8 && primaryMonthStrength >= 0.7 ? 4 : 0
+    // 일진(오늘의 일주) × 본명 일주 이벤트
+    const natalDayStem = sajuProfile.dayMaster || sajuProfile.pillars?.day?.stem || ''
+    const natalDayBranch = sajuProfile.dayBranch || sajuProfile.pillars?.day?.branch || ''
+    const dailyPillar = calculateDailyPillar(date)
+    const dailyEvents = analyzeDailyPillarEvents(
+      natalDayStem,
+      natalDayBranch,
+      dailyPillar.stem,
+      dailyPillar.branch
+    )
+    const dailyShift = dailyEvents.reduce((sum, e) => sum + e.scoreShift, 0)
+    const dailySibsin = natalDayStem ? getSibsinDailyKo(natalDayStem, dailyPillar.stem) : ''
     const score = Math.round(
       clamp(
         8 +
@@ -1021,7 +1231,8 @@ export function calculateYearlyImportantDatesLite(
           secondaryMonthStrength * 5 +
           secondary.score * 6 +
           dominanceGap * 6 +
-          peakBoost -
+          peakBoost +
+          dailyShift -
           weakPenalty,
         2,
         99
@@ -1077,15 +1288,18 @@ export function calculateYearlyImportantDatesLite(
         counselorPacks[month],
         `${seed}|d`
       ),
-      ganzhi: `${counselorPacks[month]?.monthStem || ''}${counselorPacks[month]?.monthBranch || ''}`,
+      ganzhi: `${dailyPillar.stem}${dailyPillar.branch}`,
       crossVerified: crossAgreementPercent >= 60,
       transitSunSign: astroProfile.sunSign || '',
-      sajuFactorKeys: buildSajuFactors(
+      sajuFactorKeys: buildSajuFactorsWithDaily(
         locale,
         sajuProfile,
         primary.domain,
         month,
         counselorPacks[month],
+        dailyPillar,
+        dailySibsin,
+        dailyEvents,
         `${seed}|s`
       ),
       astroFactorKeys: [
@@ -1115,7 +1329,12 @@ export function calculateYearlyImportantDatesLite(
         ),
       ],
       recommendationKeys: buildRecommendations(grade),
-      warningKeys: buildWarnings(grade, crossAgreementPercent),
+      warningKeys: (() => {
+        const base = buildWarnings(grade, crossAgreementPercent)
+        const heavyEvent = dailyEvents.find((e) => (e.warningWeight || 0) >= 1)
+        if (heavyEvent && !base.includes('confusion')) base.push('confusion')
+        return base
+      })(),
       confidence: Math.round(clamp(primaryStrength * 100, 0, 100)),
       confidenceNote:
         locale === 'ko' ? '캘린더 경량 스코어링 기준' : 'Calendar lite scoring baseline',
