@@ -5,6 +5,7 @@ import type {
 } from '@/lib/destiny-matrix/types'
 import type { EventCategory, ImportanceGrade } from '@/lib/destiny-map/calendar/types'
 import type { UserAstroProfile, UserSajuProfile } from '@/lib/destiny-map/calendar/types'
+import { getJohuYongsin, MONTH_CLIMATE } from '@/lib/Saju/johuYongsin'
 
 type CalendarLocale = 'ko' | 'en'
 
@@ -160,6 +161,113 @@ const ELEMENT_RELATIONS: Record<string, Record<string, 'same' | 'support' | 'dra
   water: { water: 'same', wood: 'drain', fire: 'control', earth: 'controlled', metal: 'support' },
 }
 
+// 천간 (year-stem index 0..9 = 甲乙丙丁戊己庚辛壬癸)
+const STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
+const STEM_INDEX: Record<string, number> = Object.fromEntries(STEMS.map((s, i) => [s, i]))
+const STEM_YIN: Record<string, boolean> = {
+  '甲': false, '乙': true, '丙': false, '丁': true, '戊': false,
+  '己': true, '庚': false, '辛': true, '壬': false, '癸': true,
+}
+const STEM_TO_KO_ELEMENT: Record<string, string> = {
+  '甲': '목', '乙': '목', '丙': '화', '丁': '화', '戊': '토',
+  '己': '토', '庚': '금', '辛': '금', '壬': '수', '癸': '수',
+}
+const ELEMENT_KO_TO_EN_MAP: Record<string, 'wood' | 'fire' | 'earth' | 'metal' | 'water'> = {
+  '목': 'wood', '화': 'fire', '토': 'earth', '금': 'metal', '수': 'water',
+}
+// 월지: Gregorian month 1~12 → 丑寅卯辰巳午未申酉戌亥子
+const MONTH_BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+function monthBranchOf(month: number): string {
+  return MONTH_BRANCHES[month % 12]
+}
+function yearStemOf(year: number): string {
+  return STEMS[((year - 4) % 10 + 10) % 10]
+}
+// 寅月 천간 = (year stem % 5) * 2 → 0=甲己→丙(2), 1=乙庚→戊(4), 2=丙辛→庚(6), 3=丁壬→壬(8), 4=戊癸→甲(0)
+function monthStemOf(year: number, month: number): string {
+  const yIdx = ((year - 4) % 10 + 10) % 10
+  const baseStemIdx = ((yIdx % 5) * 2 + 2) % 10
+  const monthsFromYin = month >= 2 ? month - 2 : month + 10
+  return STEMS[(baseStemIdx + monthsFromYin) % 10]
+}
+
+// 십신 (day-master vs target stem)
+function getSibsinKo(dayStem: string, targetStem: string): string {
+  const dayEl = STEM_TO_KO_ELEMENT[dayStem]
+  const tEl = STEM_TO_KO_ELEMENT[targetStem]
+  if (!dayEl || !tEl) return ''
+  const elements = ['목', '화', '토', '금', '수']
+  const samePolarity = STEM_YIN[dayStem] === STEM_YIN[targetStem]
+  const dayIdx = elements.indexOf(dayEl)
+  const tIdx = elements.indexOf(tEl)
+  const diff = (tIdx - dayIdx + 5) % 5
+  // diff 0 same el, 1 day produces target (식상), 2 day controls target (재성),
+  // 3 target controls day (관성), 4 target produces day (인성)
+  const labels = [
+    ['비견', '겁재'], // 0
+    ['식신', '상관'], // 1
+    ['편재', '정재'], // 2
+    ['편관', '정관'], // 3
+    ['편인', '정인'], // 4
+  ]
+  return labels[diff][samePolarity ? 0 : 1]
+}
+
+const SIBSIN_DOMAIN: Record<string, DomainKey> = {
+  비견: 'career', 겁재: 'money',
+  식신: 'love', 상관: 'love',
+  편재: 'money', 정재: 'money',
+  편관: 'career', 정관: 'career',
+  편인: 'health', 정인: 'health',
+}
+
+const SIBSIN_THEME_KO: Record<string, string> = {
+  비견: '동료·동료성 협업',
+  겁재: '경쟁·자원 분배 신경전',
+  식신: '꾸준한 표현·생산 활동',
+  상관: '강한 발산·표현·창작',
+  편재: '유동적인 돈 흐름·외부 거래',
+  정재: '고정 수입·계약 안정',
+  편관: '도전적 책임·압박 업무',
+  정관: '공식 직책·규칙 안의 일',
+  편인: '학습·내적 정리 시간',
+  정인: '돌봄·문서·인정의 흐름',
+}
+
+// 12신살 핵심 4종 — 일지 三合 그룹별 트리거 월지
+const SAMHAP_GROUP: Record<string, '寅午戌' | '申子辰' | '巳酉丑' | '亥卯未'> = {
+  寅: '寅午戌', 午: '寅午戌', 戌: '寅午戌',
+  申: '申子辰', 子: '申子辰', 辰: '申子辰',
+  巳: '巳酉丑', 酉: '巳酉丑', 丑: '巳酉丑',
+  亥: '亥卯未', 卯: '亥卯未', 未: '亥卯未',
+}
+const SHINSAL_TRIGGERS: Record<
+  '寅午戌' | '申子辰' | '巳酉丑' | '亥卯未',
+  { 역마: string; 도화: string; 화개: string; 망신: string }
+> = {
+  寅午戌: { 역마: '申', 도화: '卯', 화개: '戌', 망신: '巳' },
+  申子辰: { 역마: '寅', 도화: '酉', 화개: '辰', 망신: '亥' },
+  巳酉丑: { 역마: '亥', 도화: '午', 화개: '丑', 망신: '申' },
+  亥卯未: { 역마: '巳', 도화: '子', 화개: '未', 망신: '寅' },
+}
+function activeSinsals(dayBranch: string, transitBranch: string): string[] {
+  const grp = SAMHAP_GROUP[dayBranch]
+  if (!grp) return []
+  const trig = SHINSAL_TRIGGERS[grp]
+  const out: string[] = []
+  if (trig.역마 === transitBranch) out.push('역마')
+  if (trig.도화 === transitBranch) out.push('도화')
+  if (trig.화개 === transitBranch) out.push('화개')
+  if (trig.망신 === transitBranch) out.push('망신')
+  return out
+}
+const SINSAL_BLURB_KO: Record<string, string> = {
+  역마: '환경 이동·출장·전직 신호',
+  도화: '관계 끌림·매력·공개 자리',
+  화개: '내적 정리·예술·고요',
+  망신: '체면 흔들림 주의·실수 점검',
+}
+
 function hasFinalConsonant(ko: string): boolean {
   if (!ko) return false
   const ch = ko.charCodeAt(ko.length - 1)
@@ -171,12 +279,53 @@ function objectMarkerKo(label: string): string {
   return hasFinalConsonant(label) ? '을' : '를'
 }
 
+function subjectMarkerKo(label: string): string {
+  return hasFinalConsonant(label) ? '이' : '가'
+}
+
+function instrumentalMarkerKo(label: string): string {
+  if (!label) return '으로'
+  const ch = label.charCodeAt(label.length - 1)
+  if (ch < 0xac00 || ch > 0xd7a3) return '으로'
+  const jong = (ch - 0xac00) % 28
+  // 받침 없음 또는 ㄹ(8) 받침 → '로', 그 외 → '으로'
+  return jong === 0 || jong === 8 ? '로' : '으로'
+}
+
 const MOON_GRAIN_KO: Record<DomainKey, string> = {
   career: '실행 동기',
   love: '감정 결',
   money: '결정 흐름',
   health: '리듬',
   move: '의지 흐름',
+}
+
+const SIGN_KO_LABEL: Record<string, string> = {
+  Aries: '양자리', Taurus: '황소자리', Gemini: '쌍둥이자리', Cancer: '게자리',
+  Leo: '사자자리', Virgo: '처녀자리', Libra: '천칭자리', Scorpio: '전갈자리',
+  Sagittarius: '사수자리', Capricorn: '염소자리', Aquarius: '물병자리', Pisces: '물고기자리',
+}
+function sunSignKoLabel(sign: string | undefined): string {
+  if (!sign) return '태양'
+  return SIGN_KO_LABEL[sign] || sign
+}
+const SIGN_DOMAIN_FLAVOR_KO: Record<string, Partial<Record<DomainKey, string>>> = {
+  Aries: { career: '주도형 추진력', love: '직진형 표현', money: '빠른 결단', health: '활동형 회복', move: '단발적 이동' },
+  Taurus: { career: '꾸준한 누적', love: '안정 지향', money: '자산·실물 관리', health: '리듬 누적', move: '계획적 이동' },
+  Gemini: { career: '커뮤니케이션·다중 라인', love: '대화 중심', money: '단기 거래', health: '두뇌·호흡', move: '잦은 이동' },
+  Cancer: { career: '돌봄·기반 다지기', love: '정서 결속', money: '생활 자금', health: '정서 회복', move: '귀가·홈베이스' },
+  Leo: { career: '주목·발표', love: '표현·로맨스', money: '대담한 베팅', health: '심장·체력', move: '공식 자리' },
+  Virgo: { career: '디테일·운영', love: '세심한 배려', money: '예산 정리', health: '식습관·점검', move: '점검형 이동' },
+  Libra: { career: '협상·중재', love: '관계 균형', money: '공동 결제', health: '균형·자세', move: '동행 이동' },
+  Scorpio: { career: '집중·재구성', love: '깊은 결속', money: '레버리지·차입', health: '대사·해독', move: '비공개 이동' },
+  Sagittarius: { career: '확장·기획', love: '오픈 마인드', money: '큰 그림 투자', health: '하체·간', move: '장거리 이동' },
+  Capricorn: { career: '구조·책임', love: '진중한 약속', money: '장기 자산', health: '뼈·관절', move: '업무 출장' },
+  Aquarius: { career: '혁신·네트워크', love: '거리 있는 우정형', money: '신기술 투자', health: '신경계', move: '돌발 이동' },
+  Pisces: { career: '창작·직관', love: '교감·헌신', money: '감정 소비', health: '면역·수면', move: '내면 여행' },
+}
+function signHouseFlavorKo(sign: string | undefined, domain: DomainKey): string {
+  if (!sign) return '본인 축의 색을 드러내는 시기'
+  return SIGN_DOMAIN_FLAVOR_KO[sign]?.[domain] || `${sunSignKoLabel(sign)} 색이 흐름에 묻어납니다`
 }
 
 const MOON_GRAIN_EN: Record<DomainKey, string> = {
@@ -290,10 +439,18 @@ function buildTitle(
   locale: CalendarLocale,
   domain: DomainKey,
   tier: StrengthTier,
+  sibsin: string,
   seed: string
 ): string {
   const pool = (locale === 'ko' ? TITLE_POOL_KO : TITLE_POOL_EN)[domain][tier]
-  return pickBySeed(seed, pool)
+  const base = pickBySeed(seed, pool)
+  if (locale === 'ko' && sibsin && (tier === 'rising' || tier === 'aligned')) {
+    return `${sibsin} 흐름의 날 · ${base}`
+  }
+  if (locale === 'en' && sibsin && (tier === 'rising' || tier === 'aligned')) {
+    return `${sibsin} day · ${base}`
+  }
+  return base
 }
 
 function buildDescription(
@@ -302,6 +459,7 @@ function buildDescription(
   tier: StrengthTier,
   dominanceGap: number,
   crossAgreementPercent: number,
+  pack: MonthlyCounselorPack | undefined,
   seed: string
 ): string {
   const label = DOMAIN_LABELS[locale][domain]
@@ -386,7 +544,105 @@ function buildDescription(
   }
 
   const pool = locale === 'ko' ? corePoolKo[tier] : corePoolEn[tier]
-  return pickBySeed(seed, pool)
+  const core = pickBySeed(seed, pool)
+  if (!pack) return core
+  if (locale === 'ko') {
+    const prefixCandidates: string[] = []
+    if (pack.sibsin) {
+      prefixCandidates.push(
+        `이번 달 십신은 ${pack.sibsin}—${pack.sibsinTheme}${subjectMarkerKo(pack.sibsinTheme)} 결을 만듭니다.`
+      )
+    }
+    if (pack.sinsals.length) {
+      const s = pack.sinsals[0]
+      const blurb = SINSAL_BLURB_KO[s]
+      prefixCandidates.push(
+        `본명에 ${s}${subjectMarkerKo(s)} 활성화돼 ${blurb}${subjectMarkerKo(blurb)} 함께 옵니다.`
+      )
+    }
+    if (pack.yongsinPrimary && pack.yongsinAlign !== 'neutral') {
+      prefixCandidates.push(
+        pack.yongsinAlign === 'support'
+          ? `조후용신 ${pack.yongsinPrimary}${subjectMarkerKo(pack.yongsinPrimary)} 본명을 받쳐줍니다.`
+          : `조후용신 ${pack.yongsinPrimary}${subjectMarkerKo(pack.yongsinPrimary)} 본명과 결이 어긋납니다.`
+      )
+    }
+    if (!prefixCandidates.length) return core
+    const prefix = pickBySeed(`${seed}|p`, prefixCandidates)
+    return `${prefix} ${core}`
+  }
+  const prefixCandidates: string[] = []
+  if (pack.sibsin) {
+    prefixCandidates.push(`This month leans on ${pack.sibsin}—shaping the grain.`)
+  }
+  if (pack.sinsals.length) {
+    prefixCandidates.push(`Sinsal ${pack.sinsals[0]} is active in your chart.`)
+  }
+  if (pack.yongsinPrimary && pack.yongsinAlign !== 'neutral') {
+    prefixCandidates.push(
+      pack.yongsinAlign === 'support'
+        ? `Johu yongsin ${pack.yongsinPrimary} backs the natal frame.`
+        : `Johu yongsin ${pack.yongsinPrimary} pulls against the natal frame.`
+    )
+  }
+  if (!prefixCandidates.length) return core
+  return `${pickBySeed(`${seed}|p`, prefixCandidates)} ${core}`
+}
+
+type MonthlyCounselorPack = {
+  monthStem: string
+  monthBranch: string
+  sibsin: string // 십신 라벨
+  sibsinTheme: string // 한국어 한 줄
+  sinsals: string[] // 활성 신살
+  yongsinAlign: 'support' | 'neutral' | 'conflict' // 용신과의 호환
+  yongsinPrimary?: string // 한글 오행 라벨
+  climate?: string // 月支 기후 라벨
+  season?: string
+}
+
+function buildMonthlyCounselorPacks(
+  year: number,
+  profile: UserSajuProfile
+): Record<number, MonthlyCounselorPack> {
+  const out: Record<number, MonthlyCounselorPack> = {}
+  const dayStem = profile.dayMaster || profile.pillars?.day?.stem || ''
+  const dayBranch = profile.dayBranch || profile.pillars?.day?.branch || ''
+  const yongsin = profile.yongsin?.primary // 한글 오행 (목/화/토/금/수) 또는 영문 가능
+  for (let m = 1; m <= 12; m++) {
+    const ms = monthStemOf(year, m)
+    const mb = monthBranchOf(m)
+    const sibsin = dayStem ? getSibsinKo(dayStem, ms) : ''
+    const sinsals = dayBranch ? activeSinsals(dayBranch, mb) : []
+    const johu = dayStem ? getJohuYongsin(dayStem, mb) : null
+    const climate = MONTH_CLIMATE[mb]?.climate
+    const season = MONTH_CLIMATE[mb]?.season
+    let yongsinAlign: MonthlyCounselorPack['yongsinAlign'] = 'neutral'
+    let yongsinPrimary: string | undefined = johu?.primaryYongsin
+    if (yongsin && yongsinPrimary) {
+      const userYongsinKo = ELEMENT_KO_TO_EN_MAP[yongsin]
+        ? yongsin
+        : Object.entries(ELEMENT_KO_TO_EN_MAP).find(([_, en]) => en === yongsin)?.[0]
+      yongsinAlign =
+        userYongsinKo === yongsinPrimary
+          ? 'support'
+          : userYongsinKo
+            ? 'conflict'
+            : 'neutral'
+    }
+    out[m] = {
+      monthStem: ms,
+      monthBranch: mb,
+      sibsin,
+      sibsinTheme: sibsin ? SIBSIN_THEME_KO[sibsin] || '' : '',
+      sinsals,
+      yongsinAlign,
+      yongsinPrimary,
+      climate,
+      season,
+    }
+  }
+  return out
 }
 
 function buildSajuFactors(
@@ -394,35 +650,87 @@ function buildSajuFactors(
   profile: UserSajuProfile,
   domain: DomainKey,
   month: number,
+  pack: MonthlyCounselorPack,
   seed: string
 ): string[] {
   const label = DOMAIN_LABELS[locale][domain]
-  const dayMaster = profile.dayMaster || ''
+  const dayMaster = profile.dayMaster || profile.pillars?.day?.stem || ''
   const dayElement = (profile.dayMasterElement as string) || STEM_TO_ELEMENT[dayMaster] || 'earth'
   const seasonEl = seasonElement(month)
   const relation = ELEMENT_RELATIONS[dayElement]?.[seasonEl] || 'same'
-  const elLabel = (locale === 'ko' ? ELEMENT_LABEL_KO : ELEMENT_LABEL_EN)[seasonEl]
 
   if (locale === 'ko') {
-    const dayLine = dayMaster
-      ? `일간 ${dayMaster}(${ELEMENT_LABEL_KO[dayElement]})은 이번 ${elLabel} 기운과 ${relationLabelKo(relation)} 관계라 ${label} 쪽으로 ${relationActionKo(relation)}.`
-      : `일간 흐름은 이번 ${elLabel} 기운과 만나 ${label} 축의 ${relationActionKo(relation)}.`
-    const cycleLines = [
-      `대운·세운의 기본 구조는 ${label} 판단을 한 번에 넓히기보다 단계로 다루기를 지지합니다.`,
-      `이번 달 사주 결은 ${label} 축의 우선순위를 ${relationCyclePriorityKo(relation)}.`,
-      `${profile.dayBranch ? `일지 ${profile.dayBranch}` : '일지'}와 월령 사이의 결이 ${label} 쪽 결정의 ${relationCycleSignalKo(relation)} 신호를 만듭니다.`,
-    ]
-    return [dayLine, pickBySeed(seed, cycleLines)]
+    const dayElKo = ELEMENT_LABEL_KO[dayElement]
+    const monthElKo = STEM_TO_KO_ELEMENT[pack.monthStem] || ELEMENT_LABEL_KO[seasonEl]
+    const seasonKo = pack.season || ''
+    // 1) 일간-월령 십신 한 줄
+    const sibsinLine = pack.sibsin
+      ? `이번 달은 일간 ${dayMaster}(${dayElKo}) 위에 월간 ${pack.monthStem}(${monthElKo})${subjectMarkerKo(monthElKo)} ${pack.sibsin}${instrumentalMarkerKo(pack.sibsin)} 들어와 ${pack.sibsinTheme}${subjectMarkerKo(pack.sibsinTheme)} 두드러집니다.`
+      : `이번 달 월령은 일간 ${dayMaster}(${dayElKo})에게 ${relationLabelKo(relation)} 결로 들어옵니다.`
+    // 2) 신살 / 용신 / 격국 중 하나를 seed로 골라서 두 번째 줄 구성
+    const secondPool: string[] = []
+    if (pack.sinsals.length) {
+      const s = pickBySeed(`${seed}|sl`, pack.sinsals)
+      const blurb = SINSAL_BLURB_KO[s]
+      secondPool.push(
+        `일지 ${profile.dayBranch || ''} 기준 ${s}${subjectMarkerKo(s)} 활성화되어 ${blurb}${subjectMarkerKo(blurb)} ${label} 쪽 흐름에 끼어듭니다.`
+      )
+    }
+    if (pack.yongsinPrimary) {
+      const alignText =
+        pack.yongsinAlign === 'support'
+          ? '용신 결과 부합해 결정이 가벼워집니다'
+          : pack.yongsinAlign === 'conflict'
+            ? '용신과 결이 어긋나 한 박자 늦추는 편이 안전합니다'
+            : '조후용신은 흐름과 큰 충돌 없이 무난하게 작동합니다'
+      secondPool.push(
+        `${seasonKo ? `${seasonKo} ` : ''}월령 ${pack.monthBranch}의 조후용신은 ${pack.yongsinPrimary} 기운이라, 본명에 비춰 ${alignText}.`
+      )
+    }
+    if (profile.geokguk?.type) {
+      secondPool.push(
+        `${profile.geokguk.type}${profile.geokguk.strength ? `·${profile.geokguk.strength}` : ''} 격에 비추어 ${label} 결정은 ${pack.yongsinAlign === 'conflict' ? '범위를 좁혀' : '꾸준한 호흡으로'} 다루는 편이 본명과 잘 맞습니다.`
+      )
+    }
+    if (!secondPool.length) {
+      secondPool.push(
+        `대운·세운의 기본 구조는 ${label} 판단을 한 번에 넓히기보다 단계로 다루기를 지지합니다.`
+      )
+    }
+    const branchLine = profile.dayBranch
+      ? `일지 ${profile.dayBranch}와 월지 ${pack.monthBranch} 사이는 ${label} 쪽 결정의 ${relationCycleSignalKo(relation)} 신호를 만듭니다.`
+      : ''
+    const second = pickBySeed(`${seed}|s2`, secondPool)
+    return branchLine ? [sibsinLine, second, branchLine] : [sibsinLine, second]
   }
-  const dayLine = dayMaster
-    ? `Day-master ${dayMaster} (${ELEMENT_LABEL_EN[dayElement]}) meets the current ${elLabel} season as a ${relationLabelEn(relation)} pairing, ${relationActionEn(relation)} ${label}.`
-    : `The day-master frame meets ${elLabel} season and ${relationActionEn(relation)} ${label}.`
-  const cycleLines = [
-    `Long-cycle structure prefers handling ${label} step-by-step rather than expanding all at once.`,
-    `This month's saju lift on ${label} is ${relation === 'support' || relation === 'same' ? 'positive' : relation === 'control' ? 'restrained' : 'slightly scattered'}.`,
-    `${profile.dayBranch ? `Day-branch ${profile.dayBranch}` : 'The day-branch'} interaction with the month adds a ${relation === 'support' ? 'push' : 'check'} signal for ${label}.`,
-  ]
-  return [dayLine, pickBySeed(seed, cycleLines)]
+
+  const dayElEn = ELEMENT_LABEL_EN[dayElement]
+  const monthElEn = ELEMENT_LABEL_EN[ELEMENT_KO_TO_EN_MAP[STEM_TO_KO_ELEMENT[pack.monthStem]] || seasonEl]
+  const sibsinLine = pack.sibsin
+    ? `This month, day-master ${dayMaster} (${dayElEn}) meets month-stem ${pack.monthStem} (${monthElEn}) as ${pack.sibsin}; the ${label} axis carries that flavour.`
+    : `This month's month frame meets day-master ${dayMaster} (${dayElEn}) as a ${relationLabelEn(relation)} pairing.`
+  const secondPool: string[] = []
+  if (pack.sinsals.length) {
+    const s = pickBySeed(`${seed}|sl`, pack.sinsals)
+    secondPool.push(`Day-branch ${profile.dayBranch || ''} activates ${s} this month, adding a ${s === '역마' ? 'movement' : s === '도화' ? 'attraction' : s === '화개' ? 'introspection' : 'caution'} signal to ${label}.`)
+  }
+  if (pack.yongsinPrimary) {
+    const alignText =
+      pack.yongsinAlign === 'support'
+        ? 'aligns with the natal yongsin, easing decisions'
+        : pack.yongsinAlign === 'conflict'
+          ? 'misaligns with the natal yongsin; slow the pace'
+          : 'sits in a neutral band against the natal yongsin'
+    secondPool.push(`The month's johu yongsin is ${pack.yongsinPrimary}, which ${alignText}.`)
+  }
+  if (!secondPool.length) {
+    secondPool.push(`Long-cycle structure prefers handling ${label} step-by-step rather than expanding all at once.`)
+  }
+  const branchLine = profile.dayBranch
+    ? `Day-branch ${profile.dayBranch} against month-branch ${pack.monthBranch} produces a ${relation === 'support' ? 'push' : relation === 'control' ? 'brake' : 'check'} signal for ${label}.`
+    : ''
+  const second = pickBySeed(`${seed}|s2`, secondPool)
+  return branchLine ? [sibsinLine, second, branchLine] : [sibsinLine, second]
 }
 
 function relationLabelKo(rel: 'same' | 'support' | 'drain' | 'control' | 'controlled'): string {
@@ -491,6 +799,7 @@ function buildAstroFactors(
   domain: DomainKey,
   month: number,
   crossAgreementPercent: number,
+  tier: StrengthTier,
   seed: string
 ): string[] {
   const label = DOMAIN_LABELS[locale][domain]
@@ -498,19 +807,21 @@ function buildAstroFactors(
   const moonSign = astroProfile.moonSign
   const isWinter = month <= 2 || month === 12
   const isSummer = month >= 6 && month <= 8
-  const strongTrigger = crossAgreementPercent >= 70
-  const weakTrigger = crossAgreementPercent < 50
+  const dayIsStrong = tier === 'rising' || tier === 'aligned'
+  const strongTrigger = crossAgreementPercent >= 70 && dayIsStrong
+  const weakTrigger = crossAgreementPercent < 50 || tier === 'guarded'
 
   if (locale === 'ko') {
     const grainKo = MOON_GRAIN_KO[domain]
+    const sunHouseFlavor = signHouseFlavorKo(sunSign, domain)
     const seasonalKo = isWinter
       ? '겨울 트랜짓이 깊이 있는 결정에 무게를 더합니다'
       : isSummer
         ? '여름 트랜짓이 외부 활동과 표현을 키웁니다'
         : '환절기 트랜짓이 우선순위 재배치를 유도합니다'
-    const sunLine = `${sunSign} 기준 트랜짓은 ${seasonalKo}.`
+    const sunLine = `네이탈 태양 ${sunSignKoLabel(sunSign)}—${sunHouseFlavor}. 이번 ${seasonalKo}.`
     const moonLine = moonSign
-      ? `${moonSign} 달 신호는 ${label} 쪽 ${grainKo}${objectMarkerKo(grainKo)} ${crossAgreementPercent >= 60 ? '받쳐줍니다' : '흩트립니다'}.`
+      ? `${sunSignKoLabel(moonSign)} 달은 ${label} 쪽 ${grainKo}${objectMarkerKo(grainKo)} ${crossAgreementPercent >= 60 ? '받쳐줍니다' : '흩트립니다'}.`
       : `달 트랜짓은 ${label} 결정의 ${crossAgreementPercent >= 60 ? '실행 신호' : '재확인 신호'}로 작용합니다.`
     const closerPool = strongTrigger
       ? [
@@ -588,6 +899,7 @@ export function calculateYearlyImportantDatesLite(
     0,
     1
   )
+  const counselorPacks = buildMonthlyCounselorPacks(year, sajuProfile)
 
   for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
     const month = date.getMonth() + 1
@@ -677,25 +989,40 @@ export function calculateYearlyImportantDatesLite(
       adjustedScore: score,
       displayScore: score,
       categories,
-      titleKey: buildTitle(locale, primary.domain, tier, `${seed}|t`),
+      titleKey: buildTitle(
+        locale,
+        primary.domain,
+        tier,
+        counselorPacks[month]?.sibsin || '',
+        `${seed}|t`
+      ),
       descKey: buildDescription(
         locale,
         primary.domain,
         tier,
         dominanceGap,
         crossAgreementPercent,
+        counselorPacks[month],
         `${seed}|d`
       ),
-      ganzhi: '',
+      ganzhi: `${counselorPacks[month]?.monthStem || ''}${counselorPacks[month]?.monthBranch || ''}`,
       crossVerified: crossAgreementPercent >= 60,
       transitSunSign: astroProfile.sunSign || '',
-      sajuFactorKeys: buildSajuFactors(locale, sajuProfile, primary.domain, month, `${seed}|s`),
+      sajuFactorKeys: buildSajuFactors(
+        locale,
+        sajuProfile,
+        primary.domain,
+        month,
+        counselorPacks[month],
+        `${seed}|s`
+      ),
       astroFactorKeys: buildAstroFactors(
         locale,
         astroProfile,
         primary.domain,
         month,
         crossAgreementPercent,
+        tier,
         `${seed}|a`
       ),
       recommendationKeys: buildRecommendations(grade),
