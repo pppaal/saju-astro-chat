@@ -144,6 +144,15 @@ export type ActionPlanCalendarContext = {
   summary?: string
   canonicalCore?: Partial<CalendarCoreAdapterResult>
   evidence?: CalendarEvidence
+  natalSaju?: {
+    dayStem: string
+    dayBranch: string
+    yearBranch?: string
+    monthStem?: string
+    monthBranch?: string
+  }
+  gongmangBranches?: string[]
+  shinsalActive?: { name: string; type?: string; affectedArea?: string }[]
 } | null
 
 export type ActionPlanInsights = {
@@ -508,6 +517,26 @@ const actionPlanTimelineRequestSchema = z.object({
         .optional(),
       ganzhi: z.string().max(TEXT_LIMITS.MAX_TITLE).optional(),
       transitSunSign: z.string().max(TEXT_LIMITS.MAX_TITLE).optional(),
+      natalSaju: z
+        .object({
+          dayStem: z.string().max(8),
+          dayBranch: z.string().max(8),
+          yearBranch: z.string().max(8).optional(),
+          monthStem: z.string().max(8).optional(),
+          monthBranch: z.string().max(8).optional(),
+        })
+        .optional(),
+      gongmangBranches: z.array(z.string().max(8)).max(4).optional(),
+      shinsalActive: z
+        .array(
+          z.object({
+            name: z.string().max(20),
+            type: z.string().max(20).optional(),
+            affectedArea: z.string().max(40).optional(),
+          })
+        )
+        .max(8)
+        .optional(),
       evidence: z
         .object({
           matrix: z

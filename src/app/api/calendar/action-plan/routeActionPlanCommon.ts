@@ -372,39 +372,154 @@ export const SIBSIN_HOUR_ACTION_EN: Record<string, string> = {
   정인: 'caregiving, paperwork, recognition — organize and reply',
 }
 
+/** 시간 천간/지지가 본명 일주에 어떤 이벤트를 일으키는지 검사 */
+const STEM_HAP_PARTNER_LOCAL: Record<string, string> = {
+  甲: '己', 乙: '庚', 丙: '辛', 丁: '壬', 戊: '癸',
+  己: '甲', 庚: '乙', 辛: '丙', 壬: '丁', 癸: '戊',
+}
+const STEM_CHUNG_PAIRS = new Set([
+  '甲-庚', '庚-甲', '乙-辛', '辛-乙', '丙-壬', '壬-丙', '丁-癸', '癸-丁',
+])
+const BRANCH_CHUNG_PARTNER: Record<string, string> = {
+  子: '午', 午: '子', 丑: '未', 未: '丑', 寅: '申', 申: '寅',
+  卯: '酉', 酉: '卯', 辰: '戌', 戌: '辰', 巳: '亥', 亥: '巳',
+}
+const BRANCH_HAP_PARTNER: Record<string, string> = {
+  子: '丑', 丑: '子', 寅: '亥', 亥: '寅', 卯: '戌', 戌: '卯',
+  辰: '酉', 酉: '辰', 巳: '申', 申: '巳', 午: '未', 未: '午',
+}
+const BRANCH_HYUNG_TRIO_LOCAL = ['寅', '巳', '申']
+const BRANCH_HYUNG_TRIO_LOCAL2 = ['丑', '戌', '未']
+
+export type HourEvent = {
+  kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '공망'
+  shift: 'lift' | 'press'
+  ko: string
+  en: string
+}
+
+export function detectHourEvent(input: {
+  natalDayStem: string
+  natalDayBranch: string
+  hourStem: string
+  hourBranch: string
+  gongmangBranches?: string[]
+}): HourEvent | null {
+  const { natalDayStem, natalDayBranch, hourStem, hourBranch, gongmangBranches } = input
+  if (!natalDayStem || !natalDayBranch) return null
+  // 천간 합
+  if (STEM_HAP_PARTNER_LOCAL[natalDayStem] === hourStem && natalDayStem !== hourStem) {
+    return {
+      kind: '천간합',
+      shift: 'lift',
+      ko: `시간 천간 ${hourStem}이 본명 일간 ${natalDayStem}과 합 — 결속·동의가 잘 맺히는 시간`,
+      en: `Hour stem ${hourStem} combines with natal day-master ${natalDayStem} — agreements land cleanly`,
+    }
+  }
+  // 천간 충
+  if (STEM_CHUNG_PAIRS.has(`${natalDayStem}-${hourStem}`)) {
+    return {
+      kind: '천간충',
+      shift: 'press',
+      ko: `시간 천간 ${hourStem}이 본명 일간 ${natalDayStem}과 충 — 압박·갈등 시간`,
+      en: `Hour stem ${hourStem} clashes with natal day-master ${natalDayStem} — friction window`,
+    }
+  }
+  // 지지 합
+  if (BRANCH_HAP_PARTNER[natalDayBranch] === hourBranch && natalDayBranch !== hourBranch) {
+    return {
+      kind: '지지합',
+      shift: 'lift',
+      ko: `시지 ${hourBranch}이 본명 일지 ${natalDayBranch}과 육합 — 가까운 사람과 결속이 단단`,
+      en: `Hour branch ${hourBranch} combines with natal day-branch ${natalDayBranch} — closeness deepens`,
+    }
+  }
+  // 지지 충
+  if (BRANCH_CHUNG_PARTNER[natalDayBranch] === hourBranch) {
+    return {
+      kind: '지지충',
+      shift: 'press',
+      ko: `시지 ${hourBranch}이 본명 일지 ${natalDayBranch}과 충 — 변동·이동·환경 흔들림`,
+      en: `Hour branch ${hourBranch} clashes with natal day-branch ${natalDayBranch} — environment may shift`,
+    }
+  }
+  // 지지 형 (삼형)
+  if (
+    (BRANCH_HYUNG_TRIO_LOCAL.includes(natalDayBranch) &&
+      BRANCH_HYUNG_TRIO_LOCAL.includes(hourBranch) &&
+      natalDayBranch !== hourBranch) ||
+    (BRANCH_HYUNG_TRIO_LOCAL2.includes(natalDayBranch) &&
+      BRANCH_HYUNG_TRIO_LOCAL2.includes(hourBranch) &&
+      natalDayBranch !== hourBranch)
+  ) {
+    return {
+      kind: '지지형',
+      shift: 'press',
+      ko: `시지 ${hourBranch}이 본명 일지 ${natalDayBranch}과 형 — 마찰·실수 노출 가능`,
+      en: `Hour branch ${hourBranch} clashes (punish) with natal day-branch — friction / errors more likely`,
+    }
+  }
+  // 공망
+  if (gongmangBranches?.includes(hourBranch)) {
+    return {
+      kind: '공망',
+      shift: 'press',
+      ko: `시지 ${hourBranch}이 본명 공망 — 결정·확정의 무게가 비는 시간`,
+      en: `Hour branch ${hourBranch} falls in natal void (gongmang) — decisions feel weightless here`,
+    }
+  }
+  return null
+}
+
 /**
- * 슬롯 한 줄 — 시진 + 시간 십신 + 시지 자연 의미를 합쳐 상담사 톤으로
- * 작성. 도메인·하루 톤은 호출자가 추가로 덧대기 좋게 일반형으로 둠.
+ * 슬롯 한 줄 — 시진 + 시간 십신 + 시지 자연 의미 + (있으면) 본명 vs 시간 이벤트
  */
 export function buildHourSajuLine(input: {
   locale: 'ko' | 'en'
   hour: number
   natalDayStem: string
-}): { sigan: string; sibsin: string; line: string } {
-  const { locale, hour, natalDayStem } = input
+  natalDayBranch?: string
+  gongmangBranches?: string[]
+}): { sigan: string; sibsin: string; line: string; event: HourEvent | null } {
+  const { locale, hour, natalDayStem, natalDayBranch, gongmangBranches } = input
   const branch = hourBranchOf(hour)
   const stem = natalDayStem ? hourStemOf(natalDayStem, hour) : ''
   const sibsin = stem && natalDayStem ? hourSibsinKo(natalDayStem, stem) : ''
+  const event =
+    natalDayStem && natalDayBranch
+      ? detectHourEvent({
+          natalDayStem,
+          natalDayBranch,
+          hourStem: stem,
+          hourBranch: branch,
+          gongmangBranches,
+        })
+      : null
+
   if (locale === 'ko') {
     const branchTheme = HOUR_BRANCH_THEME_KO[branch] || `${branch}時`
     const action = sibsin ? SIBSIN_HOUR_ACTION_KO[sibsin] : ''
     const stemPart = stem ? ` · ${stem}${branch}` : ''
+    const eventPart = event ? ` · ${event.ko}` : ''
     return {
       sigan: `${branch}時${stemPart}`,
       sibsin,
+      event,
       line: action
-        ? `${branchTheme}${stemPart}${sibsin ? ` · ${sibsin} 시간` : ''} — ${action}.`
-        : `${branchTheme}${stemPart}.`,
+        ? `${branchTheme}${stemPart}${sibsin ? ` · ${sibsin} 시간` : ''} — ${action}.${eventPart ? `${eventPart}.` : ''}`
+        : `${branchTheme}${stemPart}.${eventPart ? `${eventPart}.` : ''}`,
     }
   }
   const branchTheme = HOUR_BRANCH_THEME_EN[branch] || `${branch} hour`
   const action = sibsin ? SIBSIN_HOUR_ACTION_EN[sibsin] : ''
   const stemPart = stem ? ` · ${stem}${branch}` : ''
+  const eventPart = event ? ` · ${event.en}` : ''
   return {
     sigan: `${branch}-hour${stemPart}`,
     sibsin,
+    event,
     line: action
-      ? `${branchTheme}${stemPart}${sibsin ? ` · ${sibsin}-hour` : ''} — ${action}.`
-      : `${branchTheme}${stemPart}.`,
+      ? `${branchTheme}${stemPart}${sibsin ? ` · ${sibsin}-hour` : ''} — ${action}.${eventPart ? `${eventPart}.` : ''}`
+      : `${branchTheme}${stemPart}.${eventPart ? `${eventPart}.` : ''}`,
   }
 }

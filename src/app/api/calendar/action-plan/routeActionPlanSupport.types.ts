@@ -113,6 +113,18 @@ export type ActionPlanCalendarContext = {
   summary?: string
   canonicalCore?: Partial<CalendarCoreAdapterResult>
   evidence?: CalendarEvidence
+  /** 본명 사주 — 시간 십신 / 시지 충 정확 계산용 */
+  natalSaju?: {
+    dayStem: string
+    dayBranch: string
+    yearBranch?: string
+    monthStem?: string
+    monthBranch?: string
+  }
+  /** 그 날의 공망 지지 */
+  gongmangBranches?: string[]
+  /** 그 날 활성 신살 */
+  shinsalActive?: { name: string; type?: string; affectedArea?: string }[]
 } | null
 
 export type ActionPlanInsights = {

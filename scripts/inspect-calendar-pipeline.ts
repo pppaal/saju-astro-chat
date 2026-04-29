@@ -116,6 +116,9 @@ for (const sample of [grade0].filter(Boolean)) {
       sajuFactors: sample.sajuFactors,
       astroFactors: sample.astroFactors,
       evidence: sample.evidence,
+      // 본명 사주 + 그날 공망 — date-detail에서 합쳐 들어오는 데이터를 시뮬레이션
+      natalSaju: { dayStem: '甲', dayBranch: '子', yearBranch: '午' },
+      gongmangBranches: ['戌', '亥'],
     } as never,
   })
 
@@ -145,6 +148,9 @@ for (const sample of [grade4].filter(Boolean)) {
       sajuFactors: sample.sajuFactors,
       astroFactors: sample.astroFactors,
       evidence: sample.evidence,
+      // 본명 사주 + 그날 공망 — date-detail에서 합쳐 들어오는 데이터를 시뮬레이션
+      natalSaju: { dayStem: '甲', dayBranch: '子', yearBranch: '午' },
+      gongmangBranches: ['戌', '亥'],
     } as never,
   })
 

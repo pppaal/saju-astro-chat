@@ -42,6 +42,13 @@ export type DateDetailResponse = {
     daysFromToday: number
     retrospectiveNote?: string
   }
+  natalSaju?: {
+    dayStem: string
+    dayBranch: string
+    yearBranch: string
+    monthStem: string
+    monthBranch: string
+  }
 }
 
 type Cache = Record<string, DateDetailResponse>

@@ -174,6 +174,14 @@ export const GET = withApiMiddleware(
       activityScores: detail.activityScores,
       timeContext: detail.timeContext,
       astroAspectEvidence: detail.astroAspectEvidence,
+      // 본명 사주 — 행동플래너가 시간 십신/시지 충 등 정확히 계산하려면 필요
+      natalSaju: {
+        dayStem: dayMasterStem,
+        dayBranch,
+        yearBranch,
+        monthStem,
+        monthBranch,
+      },
     })
   },
   createPublicStreamGuard({

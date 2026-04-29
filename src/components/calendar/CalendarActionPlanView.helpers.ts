@@ -314,5 +314,9 @@ export function mergeDateDetailIntoBaseInfo(
     astroFactors: astroFactors.slice(0, 6),
     bestTimes: bestTimes.slice(0, 6),
     ganzhi,
+    // 행동플래너가 시간 십신·시지 충/공망을 본명 기준으로 계산하도록 그대로 전달
+    natalSaju: detail.natalSaju,
+    gongmangBranches: detail.gongmangStatus?.emptyBranches,
+    shinsalActive: detail.shinsalActive,
   }
 }

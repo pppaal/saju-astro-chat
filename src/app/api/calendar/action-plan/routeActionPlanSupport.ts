@@ -1061,6 +1061,22 @@ export const buildRuleBasedTimeline = (input: {
       const best = hourlyRec.bestActivities.slice(0, 2).join(', ')
       const avoid = hourlyRec.avoidActivities.slice(0, 2).join(', ')
 
+      // 시진(時辰) — 본명 일주가 있으면 그 기준으로 시간 십신·시간 충/합/공망 검사
+      const natalDayStem = calendar?.natalSaju?.dayStem || daily.stem
+      const natalDayBranch = calendar?.natalSaju?.dayBranch || daily.branch
+      const sajuHour = buildHourSajuLine({
+        locale,
+        hour,
+        natalDayStem,
+        natalDayBranch,
+        gongmangBranches: calendar?.gongmangBranches,
+      })
+      // 시간 이벤트가 강하면 톤도 그쪽으로 당김
+      if (sajuHour.event?.shift === 'press') {
+        tone = 'caution'
+      } else if (sajuHour.event?.shift === 'lift' && tone !== 'caution') {
+        tone = 'best'
+      }
       // 시진(時辰)이 이미 자체 액션 풀이를 가지고 있으니, 추가 라인은 캘린더 추천/경고만 짧게 덧붙임
       let detailLine = ''
       if (locale === 'ko') {
@@ -1089,8 +1105,6 @@ export const buildRuleBasedTimeline = (input: {
         }
       }
 
-      // \uc0ac\uc8fc \uc2dc\uc9c4(\u6642\u8fb0) \u2014 \uadf8 \uc2dc\uac04\uc758 \uc2dc\uc9c0\u00b7\uc2dc\uac04 \ucc9c\uac04\u00b7\uc2dc\uac04 \uc2ed\uc2e0\uc744 \ub04c\uc5b4\uc640 \uc0c1\ub2f4\uc0ac \ud1a4\uc73c\ub85c
-      const sajuHour = buildHourSajuLine({ locale, hour, natalDayStem: daily.stem })
       const noteParts = [
         cleanGuidanceText(sajuHour.line, 132),
         cleanGuidanceText(detailLine, 108),
