@@ -65,6 +65,7 @@ const CATEGORIES: EventCategory[] = ['wealth', 'career', 'love', 'health', 'trav
 
 const CalendarMainView = memo(function CalendarMainView({
   data,
+  birthInfo,
   currentDate,
   selectedDay,
   selectedDate,
@@ -690,6 +691,7 @@ const CalendarMainView = memo(function CalendarMainView({
       ) : (
         <CalendarActionPlanView
           data={data}
+          birthInfo={birthInfo}
           selectedDay={selectedDay}
           selectedDate={selectedDate}
           onSelectDate={onDayClick}

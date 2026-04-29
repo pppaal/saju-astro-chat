@@ -21,7 +21,7 @@ import {
   formatDecisionActionLabels,
   formatPolicyCheckLabels,
 } from '@/lib/destiny-matrix/core/actionCopy'
-import type { CalendarData, ImportantDate, EventCategory } from './types'
+import type { CalendarData, ImportantDate, EventCategory, BirthInfo } from './types'
 import { getPeakLabel, resolvePeakLevel } from './peakUtils'
 import {
   buildActionPlanAiButtonLabel,
@@ -30,6 +30,8 @@ import {
 } from './CalendarActionPlanAI'
 import { buildActionPlanAiPayload } from './CalendarActionPlanRequest'
 import { useActionPlanAiTimeline } from './useActionPlanAiTimeline'
+import { useDateDetail } from './useDateDetail'
+import { mergeDateDetailIntoBaseInfo } from './CalendarActionPlanView.helpers'
 import {
   buildActionPlanShareText,
   buildFallbackActionPlanInsights,
@@ -66,6 +68,7 @@ import {
 
 interface CalendarActionPlanViewProps {
   data: CalendarData
+  birthInfo?: BirthInfo
   selectedDay: Date | null
   selectedDate: ImportantDate | null
   onSelectDate?: (date: Date) => void
@@ -91,6 +94,7 @@ type TimelineSlotView = {
 
 const CalendarActionPlanView = memo(function CalendarActionPlanView({
   data,
+  birthInfo,
   selectedDay,
   selectedDate,
   onSelectDate,
@@ -186,6 +190,18 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const baseInfo = useMemo(
     () => selectedDate ?? getDateInfo(baseDate),
     [selectedDate, baseDate, getDateInfo]
+  )
+
+  // 클릭한 날짜는 풀 엔진(/api/calendar/date-detail) 한 번 더 호출해 일진/공망/신살/bestHours 가져옴
+  const { detail: dateDetail } = useDateDetail({
+    birthInfo,
+    selectedDay: baseDate,
+    enabled: profileReady && Boolean(birthInfo?.birthDate),
+  })
+
+  const enrichedBaseInfo = useMemo(
+    () => mergeDateDetailIntoBaseInfo(baseInfo, dateDetail, isKo),
+    [baseInfo, dateDetail, isKo]
   )
   const resolvedPeakLevel = useMemo(
     () =>
@@ -619,7 +635,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         dateKey,
         locale: analysisLocale,
         intervalMinutes,
-        baseInfo,
+        baseInfo: enrichedBaseInfo,
         canonicalCore: data?.canonicalCore,
         selectedMatrixPacket,
         icpResult,
@@ -629,7 +645,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       }),
     [
       analysisLocale,
-      baseInfo,
+      enrichedBaseInfo,
       cleanText,
       dateKey,
       data?.canonicalCore,
@@ -1330,13 +1346,28 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           : aiSummary
             ? cleanText(aiSummary, '')
             : ''
-    return buildTimelineInsight({
+    const base = buildTimelineInsight({
       isKo,
       peakText,
       hasWarnings: Boolean(baseInfo.warnings?.length),
       precisionText,
     })
-  }, [aiPrecisionMode, aiStatus, aiSummary, baseInfo, cleanText, isKo, resolvedPeakLevel])
+    // 캘린더 응답이 사주↔점성 교차 라인을 포함하면 인사이트에 한 줄 더 노출
+    const crossLine = enrichedBaseInfo?.crossCheck?.line
+    if (crossLine) {
+      return `${base} · ${cleanText(crossLine, '')}`
+    }
+    return base
+  }, [
+    aiPrecisionMode,
+    aiStatus,
+    aiSummary,
+    baseInfo,
+    enrichedBaseInfo?.crossCheck?.line,
+    cleanText,
+    isKo,
+    resolvedPeakLevel,
+  ])
 
   const timelineHighlights = useMemo(() => {
     return buildTimelineHighlights({

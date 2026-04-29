@@ -68,6 +68,10 @@ export interface ImportantDate {
   ganzhi?: string // 일주 간지
   transitSunSign?: string // 트랜짓 태양 별자리
   crossVerified?: boolean // 사주+점성술 교차 검증
+  /** 본문에 등장한 사주·점성 용어 → 한 줄 풀이 */
+  glossary?: Record<string, string>
+  /** 사주 ↔ 점성 교차 확인 */
+  crossCheck?: { line: string; agreementPercent: number }
 }
 
 export interface CalendarData {

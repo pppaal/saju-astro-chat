@@ -1,4 +1,9 @@
-import type { EventCategory } from './types'
+import {
+  SAJU_FACTOR_TRANSLATIONS,
+  ASTRO_FACTOR_TRANSLATIONS,
+} from '@/app/api/calendar/lib/translations'
+import type { EventCategory, ImportantDate } from './types'
+import type { DateDetailResponse } from './useDateDetail'
 
 export type SanitizedSlotType =
   | 'deepWork'
@@ -191,3 +196,123 @@ export const isEventCategory = (value: string): value is EventCategory =>
 
 export const normalizeCategory = (value?: string | null): EventCategory =>
   value && isEventCategory(value) ? value : 'general'
+
+// ─────────────────────────────────────────────────────────────
+// 풀 엔진 응답(/api/calendar/date-detail)을 lite ImportantDate에 합칩니다.
+// 행동플래너로 흘러갈 때 일진/공망/신살/bestHours가 함께 전달되도록.
+// ─────────────────────────────────────────────────────────────
+
+function translateFactorKey(key: string, lang: 'ko' | 'en'): string | null {
+  const saju = SAJU_FACTOR_TRANSLATIONS[key]?.[lang]
+  if (saju) return saju
+  const astro = ASTRO_FACTOR_TRANSLATIONS[key]?.[lang]
+  if (astro) return astro
+  return null
+}
+
+function dedupePush(target: string[], item: string): void {
+  if (!item) return
+  if (target.some((existing) => existing === item)) return
+  target.push(item)
+}
+
+const QUALITY_LABEL_KO: Record<string, string> = {
+  excellent: '최상',
+  good: '좋음',
+  neutral: '평이',
+  caution: '주의',
+}
+
+function formatBestHourKo(hour: number, quality: string): string {
+  const start = `${String(hour).padStart(2, '0')}:00`
+  const end = `${String((hour + 1) % 24).padStart(2, '0')}:00`
+  const q = QUALITY_LABEL_KO[quality] || quality
+  return `${start}-${end} (${q})`
+}
+
+function formatBestHourEn(hour: number, quality: string): string {
+  const start = `${String(hour).padStart(2, '0')}:00`
+  const end = `${String((hour + 1) % 24).padStart(2, '0')}:00`
+  return `${start}-${end} (${quality})`
+}
+
+export function mergeDateDetailIntoBaseInfo(
+  baseInfo: ImportantDate | null,
+  detail: DateDetailResponse | null,
+  isKo: boolean
+): ImportantDate | null {
+  if (!baseInfo) return null
+  if (!detail) return baseInfo
+
+  const lang: 'ko' | 'en' = isKo ? 'ko' : 'en'
+
+  // 1) saju factors: 풀 엔진 키들을 번역해 뒤에 합치기 (lite의 상담사 톤은 그대로 유지)
+  const sajuFactors = [...(baseInfo.sajuFactors || [])]
+  for (const key of detail.sajuFactorKeys || []) {
+    const text = translateFactorKey(key, lang)
+    if (text) dedupePush(sajuFactors, text)
+  }
+
+  // 2) astro factors
+  const astroFactors = [...(baseInfo.astroFactors || [])]
+  for (const key of detail.astroFactorKeys || []) {
+    const text = translateFactorKey(key, lang)
+    if (text) dedupePush(astroFactors, text)
+  }
+
+  // 3) bestHours → bestTimes ('05:00-06:00 (excellent)')
+  const bestTimes = [...(baseInfo.bestTimes || [])]
+  for (const slot of detail.bestHours || []) {
+    if (slot.quality === 'excellent' || slot.quality === 'good') {
+      dedupePush(
+        bestTimes,
+        isKo
+          ? formatBestHourKo(slot.hour, slot.quality)
+          : formatBestHourEn(slot.hour, slot.quality)
+      )
+    }
+  }
+
+  // 4) shinsal active → 보조 사주 라인
+  if (detail.shinsalActive?.length) {
+    for (const s of detail.shinsalActive.slice(0, 2)) {
+      dedupePush(
+        sajuFactors,
+        isKo
+          ? `오늘 ${s.name} 활성 (${s.affectedArea}) — ${s.type === 'lucky' ? '도움' : s.type === 'unlucky' ? '주의' : '특별 결'} 신호`
+          : `${s.name} active today (${s.affectedArea}) — ${s.type} signal`
+      )
+    }
+  }
+
+  // 5) 공망 표시
+  if (detail.gongmangStatus?.isEmpty && detail.gongmangStatus.emptyBranches.length) {
+    dedupePush(
+      sajuFactors,
+      isKo
+        ? `공망일 (비는 자리: ${detail.gongmangStatus.emptyBranches.join(', ')}) — 결정·확정의 무게가 비는 날입니다.`
+        : `Void day (empty branches: ${detail.gongmangStatus.emptyBranches.join(', ')}) — commitments lose weight today.`
+    )
+  }
+
+  // 6) energy flow
+  if (detail.energyFlow) {
+    dedupePush(
+      sajuFactors,
+      isKo
+        ? `오늘의 에너지 흐름은 ${detail.energyFlow.strength} (${detail.energyFlow.dominantElement} 우세, 통근 ${detail.energyFlow.tonggeunCount}/투출 ${detail.energyFlow.tuechulCount}).`
+        : `Today's energy is ${detail.energyFlow.strength} (${detail.energyFlow.dominantElement} dominant, tonggeun ${detail.energyFlow.tonggeunCount}/tuechul ${detail.energyFlow.tuechulCount}).`
+    )
+  }
+
+  // 7) 일진 ganzhi 보강
+  const ganzhi = detail.ganzhi || baseInfo.ganzhi
+
+  return {
+    ...baseInfo,
+    sajuFactors: sajuFactors.slice(0, 6),
+    astroFactors: astroFactors.slice(0, 6),
+    bestTimes: bestTimes.slice(0, 6),
+    ganzhi,
+  }
+}
