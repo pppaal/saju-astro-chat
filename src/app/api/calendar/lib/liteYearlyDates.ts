@@ -821,6 +821,46 @@ function buildTitle(
   return base
 }
 
+/**
+ * 같은 grade·도메인의 다른 날들이 똑같은 description으로 떨어지지 않게,
+ * 일주 이벤트(충/합/형/공망)와 점수 밴드를 활용한 day-specific suffix 한 줄을 만듭니다.
+ */
+function buildDayDescriptionSuffixKo(input: {
+  dailyEvents?: DailyEvent[]
+  score?: number
+  label: string
+}): string {
+  const { dailyEvents, score, label } = input
+  // 1) 일주 이벤트 우선 — 강도 큰 것부터 (이미 score 절댓값 기준 정렬돼서 들어옴)
+  const top = dailyEvents && dailyEvents.length > 0 ? dailyEvents[0] : null
+  if (top) {
+    const eventLine: Partial<Record<DailyEvent['kind'], string>> = {
+      천간합: `오늘은 본명과 부드럽게 맞물려 ${label} 결정이 가벼워지는 날이에요.`,
+      천간충: `오늘은 본명을 누르는 압박이 들어오니 ${label} 큰 결정은 한 번 더 보고 정하세요.`,
+      지지합: `가까운 관계와 호흡이 맞아 ${label} 협의·동의가 잘 떨어지는 날이에요.`,
+      지지충: `환경 변동이 잦은 날이라 ${label}는 일정·동선부터 다시 점검하세요.`,
+      지지형: `마찰·실수가 노출되기 쉬운 날이라 ${label}는 평소보다 한 번 더 확인하세요.`,
+      자형: `내적 마찰과 과로가 쌓이기 쉬운 날이라 ${label}는 무리한 일정은 줄이세요.`,
+      지지해: `오해가 쌓이기 쉬운 날이라 ${label}는 결론보다 해석 일치 확인이 먼저예요.`,
+      지지파: `진행 중인 일이 살짝 틀어지기 쉬운 날이라 ${label}는 마감 여유를 두세요.`,
+      공망: `결정 무게가 가벼운 날이라 ${label} 새 일은 다음 흐름으로 미루세요.`,
+    }
+    const line = eventLine[top.kind]
+    if (line) return line
+  }
+  // 2) 점수 밴드별 카운슬링 — 같은 grade에서도 점수 차이를 텍스트에 반영
+  if (typeof score === 'number') {
+    if (score >= 90) return `흐름이 가장 강한 구간이라 ${label} 핵심 결정은 오늘 안에 마무리해도 됩니다.`
+    if (score >= 80) return `안정적인 흐름이라 ${label}는 평소 속도로 진행해도 무리가 없습니다.`
+    if (score >= 70) return `${label}는 한 번 점검하고 진행하면 결과가 안정적입니다.`
+    if (score >= 60) return `${label}는 큰 결정보다 정리·재확인 작업에 어울리는 날이에요.`
+    if (score >= 50) return `${label}는 새 일 벌이지 말고 진행 중인 거 마무리에 집중하세요.`
+    if (score >= 40) return `${label}는 일정·범위를 좁혀서 가는 편이 안전한 날입니다.`
+    return `${label} 추진력이 약한 날이라 큰 결정은 다음 흐름까지 미루는 게 좋습니다.`
+  }
+  return ''
+}
+
 function buildDescription(
   locale: CalendarLocale,
   domain: DomainKey,
@@ -828,7 +868,11 @@ function buildDescription(
   dominanceGap: number,
   crossAgreementPercent: number,
   pack: MonthlyCounselorPack | undefined,
-  seed: string
+  seed: string,
+  /** 그 날 일주 이벤트 (충/합/형/공망 등) — description에 day-specific 라인 합성 */
+  dailyEvents?: DailyEvent[],
+  /** 그 날 점수 (2-99) — 점수 밴드별로 서로 다른 카운슬링 한 줄 덧붙임 */
+  score?: number
 ): string {
   const label = DOMAIN_LABELS[locale][domain]
   const om = locale === 'ko' ? objectMarkerKo(label) : ''
@@ -935,9 +979,10 @@ function buildDescription(
           : `조후용신 ${pack.yongsinPrimary}${subjectMarkerKo(pack.yongsinPrimary)} 본명 흐름과 어긋납니다.`
       )
     }
-    if (!prefixCandidates.length) return core
-    const prefix = pickBySeed(`${seed}|p`, prefixCandidates)
-    return `${prefix} ${core}`
+    // day-specific suffix: 그 날 일주 충/합/형 이벤트 + 점수 밴드별 카운슬링
+    const suffix = buildDayDescriptionSuffixKo({ dailyEvents, score, label })
+    const prefix = prefixCandidates.length ? pickBySeed(`${seed}|p`, prefixCandidates) : ''
+    return [prefix, core, suffix].filter(Boolean).join(' ')
   }
   const prefixCandidates: string[] = []
   if (pack.sibsin) {
@@ -1335,9 +1380,6 @@ export function calculateYearlyImportantDatesLite(
       0,
       1
     )
-    const crossAgreementPercent = Math.round(
-      clamp(primary.score * 55 + secondary.score * 20 + reliability * 25, 0, 1) * 100
-    )
     const weakPenalty =
       primaryStrength < 0.5
         ? clamp((0.4 - primaryMonthStrength) * 32 + (0.6 - reliability) * 14, 0, 28)
@@ -1365,6 +1407,42 @@ export function calculateYearlyImportantDatesLite(
         : monthPack?.yongsinAlign === 'conflict'
           ? 0.94
           : 1.0
+
+    // ─────────────────────────────────────────────────────────
+    // 사주↔점성 클레임-레벨 교차 일치도
+    // 이전: 단순 distance 계산이라 매일 100% 가까이 떨어졌음.
+    // 현재: 사주 측 polarity (일주 이벤트 + 용신) ↔ 점성 측 polarity
+    //   (월간 트랜짓 강도) 가 같은 방향인지 부호로 비교.
+    // ─────────────────────────────────────────────────────────
+    const sajuClaim: 1 | 0 | -1 = (() => {
+      let signal = 0
+      if (dailyShift >= 1) signal += 1
+      else if (dailyShift <= -1) signal -= 1
+      if (monthPack?.yongsinAlign === 'support') signal += 1
+      else if (monthPack?.yongsinAlign === 'conflict') signal -= 1
+      return signal > 0 ? 1 : signal < 0 ? -1 : 0
+    })()
+    const astroClaim: 1 | 0 | -1 =
+      primaryMonthStrength >= 0.6 ? 1 : primaryMonthStrength < 0.4 ? -1 : 0
+    const crossAgreementPercent = (() => {
+      // 둘 다 같은 방향 (둘 다 긍정 or 둘 다 부정) → 80~92
+      if (sajuClaim !== 0 && astroClaim !== 0 && sajuClaim === astroClaim) {
+        return Math.round(82 + reliability * 10)
+      }
+      // 한 쪽만 강하고 한 쪽 중립 → 60~72
+      if (
+        (sajuClaim !== 0 && astroClaim === 0) ||
+        (astroClaim !== 0 && sajuClaim === 0)
+      ) {
+        return Math.round(62 + reliability * 10)
+      }
+      // 둘 다 중립 → 50~58 (확실한 신호 없음)
+      if (sajuClaim === 0 && astroClaim === 0) {
+        return Math.round(50 + reliability * 8)
+      }
+      // 부호가 반대 → 28~40 (충돌)
+      return Math.round(30 + reliability * 10)
+    })()
 
     const rawScore =
       8 +
@@ -1426,7 +1504,9 @@ export function calculateYearlyImportantDatesLite(
         dominanceGap,
         crossAgreementPercent,
         counselorPacks[month],
-        `${seed}|d`
+        `${seed}|d`,
+        dailyEvents,
+        score
       ),
       ganzhi: `${dailyPillar.stem}${dailyPillar.branch}`,
       crossVerified: crossAgreementPercent >= 60,

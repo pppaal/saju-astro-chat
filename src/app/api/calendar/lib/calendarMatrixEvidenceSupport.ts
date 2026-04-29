@@ -772,9 +772,14 @@ export function buildMatrixStrictWarnings(input: {
   evidence: CalendarEvidence
   guardrail?: string
   matrixWarnings: string[]
+  /** 캘린더 grade — 0=가장 좋음 ~ 4=가장 나쁨. 좋은 등급에선 폴백 워닝 안 붙임 */
+  grade?: number
 }): string[] {
   const out = dedupeTexts([input.guardrail || '', ...(input.matrixWarnings || [])]).slice(0, 6)
   if (out.length > 0) return out
+
+  // grade가 좋으면(<=1) 일반 폴백 워닝 안 붙임 — "흐름이 흔들리니"가 95점 날에 거짓말이 됨
+  if (typeof input.grade === 'number' && input.grade <= 1) return []
 
   return input.lang === 'ko'
     ? ['오늘 흐름이 좀 흔들리니, 큰 결정은 한 번 더 보고 정하세요.']

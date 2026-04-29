@@ -693,6 +693,7 @@ export function formatDateForResponse(
         evidence: evidenceWithVerdict,
         guardrail: matrixVerdict?.guardrail,
         matrixWarnings: matrixOverlay.warnings,
+        grade: alignedEffectiveGrade,
       })
     : dedupeTexts([...warnings, ...matrixOverlay.warnings]).slice(0, 6)
   const warningsForResponse = buildMatrixFirstWarnings({
