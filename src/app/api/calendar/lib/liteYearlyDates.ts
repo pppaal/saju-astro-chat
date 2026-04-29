@@ -239,6 +239,19 @@ const SIBSIN_THEME_KO: Record<string, string> = {
   정인: '돌봄·문서·인정의 흐름',
 }
 
+const SIBSIN_THEME_EN: Record<string, string> = {
+  비견: 'peer collaboration, even-keeled work',
+  겁재: 'rivalry, contested resources',
+  식신: 'steady output and craft',
+  상관: 'strong expression and bold moves',
+  편재: 'fluid money flow and external deals',
+  정재: 'stable income and contract work',
+  편관: 'pressing responsibility and high-stakes tasks',
+  정관: 'official roles within rules',
+  편인: 'learning and inner reset',
+  정인: 'caregiving, paperwork, recognition',
+}
+
 // 12신살 핵심 4종 — 일지 三合 그룹별 트리거 월지
 const SAMHAP_GROUP: Record<string, '寅午戌' | '申子辰' | '巳酉丑' | '亥卯未'> = {
   寅: '寅午戌', 午: '寅午戌', 戌: '寅午戌',
@@ -271,6 +284,20 @@ const SINSAL_BLURB_KO: Record<string, string> = {
   도화: '관계 끌림·매력·공개 자리',
   화개: '내적 정리·예술·고요',
   망신: '체면 흔들림 주의·실수 점검',
+}
+
+const SINSAL_BLURB_EN: Record<string, string> = {
+  역마: 'movement / travel / job-change signal',
+  도화: 'attraction / charm / public spotlight',
+  화개: 'introspection / art / quiet',
+  망신: 'face-loss caution / check for slips',
+}
+
+const SINSAL_LABEL_EN: Record<string, string> = {
+  역마: 'Yeokma',
+  도화: 'Dohwa',
+  화개: 'Hwagae',
+  망신: 'Mangshin',
 }
 
 // ───── 일진(오늘의 일주) × 본명 일주 상호작용 ─────
@@ -312,7 +339,9 @@ const BRANCH_HYUNG_PAIR = new Set(['子-卯', '卯-子'])
 type DailyEvent = {
   kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형' | '공망' | '평이'
   label: string
+  labelEn: string
   blurb: string
+  blurbEn: string
   scoreShift: number
   warningWeight?: number
 }
@@ -345,10 +374,14 @@ function analyzeDailyPillarEvents(
   if (!natalStem || !natalBranch) return events
   // 천간합
   if (STEM_HAP_PARTNER[natalStem]?.partner === dailyStem) {
+    const transform = STEM_HAP_PARTNER[natalStem].transform
+    const transformEn = ELEMENT_LABEL_EN[ELEMENT_KO_TO_EN_MAP[transform]] || transform
     events.push({
       kind: '천간합',
-      label: `${natalStem}-${dailyStem} 천간합(${STEM_HAP_PARTNER[natalStem].transform})`,
+      label: `${natalStem}-${dailyStem} 천간합(${transform})`,
+      labelEn: `${natalStem}-${dailyStem} stem combine (${transformEn})`,
       blurb: '본명 일간과 결속·협력·동의가 잘 맺히는 결',
+      blurbEn: 'binds with the natal day-master — collaboration and agreement land cleanly',
       scoreShift: 2.5,
     })
   }
@@ -357,7 +390,9 @@ function analyzeDailyPillarEvents(
     events.push({
       kind: '천간충',
       label: `${natalStem}-${dailyStem} 천간충`,
+      labelEn: `${natalStem}-${dailyStem} stem clash`,
       blurb: '본명 일간을 누르는 압박·갈등 신호',
+      blurbEn: 'presses against the natal day-master — friction and conflict are likely',
       scoreShift: -2.5,
       warningWeight: 1,
     })
@@ -367,7 +402,9 @@ function analyzeDailyPillarEvents(
     events.push({
       kind: '지지합',
       label: `${natalBranch}-${dailyBranch} 지지육합`,
+      labelEn: `${natalBranch}-${dailyBranch} branch combine`,
       blurb: '가까운 관계·일상 결속이 단단해지는 결',
+      blurbEn: 'close relationships and daily ties consolidate',
       scoreShift: 2,
     })
   }
@@ -376,7 +413,9 @@ function analyzeDailyPillarEvents(
     events.push({
       kind: '지지충',
       label: `${natalBranch}-${dailyBranch} 지지충`,
+      labelEn: `${natalBranch}-${dailyBranch} branch clash`,
       blurb: '환경·이동·관계의 변동이 잦은 결',
+      blurbEn: 'environment / movement / relationships shift more than usual',
       scoreShift: -2,
       warningWeight: 1,
     })
@@ -387,7 +426,9 @@ function analyzeDailyPillarEvents(
     events.push({
       kind: '지지형',
       label: `${natalBranch}-${dailyBranch} 형`,
+      labelEn: `${natalBranch}-${dailyBranch} punish`,
       blurb: '마찰·실수 노출·구설 가능성',
+      blurbEn: 'friction / exposed mistakes / harsh words are more likely',
       scoreShift: -3,
       warningWeight: 2,
     })
@@ -395,7 +436,9 @@ function analyzeDailyPillarEvents(
     events.push({
       kind: '자형',
       label: `${natalBranch} 자형`,
+      labelEn: `${natalBranch} self-punish`,
       blurb: '내적 마찰·과로·신경전이 일어나기 쉬움',
+      blurbEn: 'inner friction / overwork / nerves run high',
       scoreShift: -1.2,
     })
   }
@@ -404,7 +447,9 @@ function analyzeDailyPillarEvents(
     events.push({
       kind: '지지해',
       label: `${natalBranch}-${dailyBranch} 해`,
+      labelEn: `${natalBranch}-${dailyBranch} harm`,
       blurb: '오해·어긋남·관계 균열 가능성',
+      blurbEn: 'misunderstandings / drift / relationship cracks may surface',
       scoreShift: -1.5,
       warningWeight: 1,
     })
@@ -414,7 +459,9 @@ function analyzeDailyPillarEvents(
     events.push({
       kind: '지지파',
       label: `${natalBranch}-${dailyBranch} 파`,
+      labelEn: `${natalBranch}-${dailyBranch} break`,
       blurb: '진행 중인 일이 살짝 틀어질 수 있는 결',
+      blurbEn: 'in-progress work can drift slightly off course',
       scoreShift: -1,
     })
   }
@@ -424,7 +471,9 @@ function analyzeDailyPillarEvents(
     events.push({
       kind: '공망',
       label: `${dailyBranch} 공망일`,
+      labelEn: `${dailyBranch} void day`,
       blurb: '결정·확정의 무게가 비는 날 — 새 일은 미루는 편',
+      blurbEn: 'commitments lose weight today — defer new starts',
       scoreShift: -1.8,
       warningWeight: 1,
     })
@@ -474,6 +523,46 @@ const GLOSSARY_KO: Record<string, string> = {
   '환절기 트랜짓': '계절이 바뀌는 구간(3·9월 등)에 일어나는 외부 신호',
   // 분석 용어
   교차: '사주와 점성이 같은 결을 가리키는지 확인하는 cross-check',
+}
+
+const GLOSSARY_EN: Record<string, string> = {
+  // 십신 (sibsin)
+  비견: 'Bigyeon — same element & polarity: a peer, even-keeled collaboration',
+  겁재: 'Geopjae — same element opposite polarity: rivalry, resources are split',
+  식신: 'Sikshin — soft output you produce: steady expression and craft',
+  상관: 'Sanggwan — strong output you radiate: creativity, daring, sharp speech',
+  편재: 'Pyeonjae — moving wealth you handle externally: fluid money flow',
+  정재: 'Jeongjae — stable wealth you collect: fixed income, contracts',
+  편관: 'Pyeongwan — pressing responsibility: high-stakes / pressured work',
+  정관: 'Jeonggwan — formal authority over you: official roles within rules',
+  편인: 'Pyeonin — non-mainstream nurture: learning, inner reset',
+  정인: 'Jeongin — formal nurture: care, paperwork, recognition',
+  // 신살 (sinsal)
+  역마: 'Yeokma — movement / travel / job-change signal',
+  도화: 'Dohwa — attraction / charm / public spotlight',
+  화개: 'Hwagae — inner cleanup / art / solitude deepens',
+  망신: 'Mangshin — caution against face-loss / exposed slips',
+  // 사주 기본
+  일간: 'Day-master (top character of birth day): the self',
+  일지: 'Day-branch (bottom character of birth day): spouse-seat / daily texture',
+  월간: 'Month-stem (top of birth month): social / work environment',
+  월지: 'Month-branch (bottom of birth month): season / root of the geokguk',
+  대운: 'Daeun — 10-year major luck cycle',
+  세운: 'Seun — single-year luck flow',
+  격국: 'Geokguk — chart structure (정관격, 정재격 …): the natal frame',
+  조후용신: 'Johu-yongsin — season-balancing element that keeps the chart healthy',
+  // 오행
+  목: 'Wood — growing, planning, beginnings',
+  화: 'Fire — expression, expansion, passion',
+  토: 'Earth — mediation, trust, accumulation',
+  금: 'Metal — decision, structure, cleanup',
+  수: 'Water — wisdom, rest, flow',
+  // 점성
+  네이탈: 'Natal — planetary positions at the moment of birth',
+  트랜짓: 'Transit — current sky planets meeting your natal chart',
+  '환절기 트랜짓': 'Shoulder-season transits (around March / September equinoxes etc.) — external prompts',
+  // 분석 용어
+  교차: 'Cross-check — verifying that saju and astrology point the same way',
 }
 
 function pickGlossaryTerms(text: string): string[] {
@@ -857,10 +946,15 @@ function buildDescription(
   }
   const prefixCandidates: string[] = []
   if (pack.sibsin) {
-    prefixCandidates.push(`This month leans on ${pack.sibsin}—shaping the grain.`)
+    prefixCandidates.push(
+      `This month leans on ${pack.sibsin} (${SIBSIN_THEME_EN[pack.sibsin] || 'natal grain'}).`
+    )
   }
   if (pack.sinsals.length) {
-    prefixCandidates.push(`Sinsal ${pack.sinsals[0]} is active in your chart.`)
+    const sname = pack.sinsals[0]
+    prefixCandidates.push(
+      `Sinsal ${SINSAL_LABEL_EN[sname] || sname} is active — ${SINSAL_BLURB_EN[sname] || 'a notable signal'}.`
+    )
   }
   if (pack.yongsinPrimary && pack.yongsinAlign !== 'neutral') {
     prefixCandidates.push(
@@ -941,26 +1035,19 @@ function buildSajuFactorsWithDaily(
   seed: string
 ): string[] {
   const monthly = buildSajuFactors(locale, profile, domain, month, pack, seed)
-  if (locale !== 'ko') {
-    // EN: prepend a single daily line capturing daily sibsin + first event if any
-    const ev = dailyEvents[0]
-    const dailyLine = `Today's pillar ${daily.stem}${daily.branch}${dailySibsin ? ` — ${dailySibsin} day` : ''}${
-      ev ? `; ${ev.label} (${ev.blurb})` : ''
-    }.`
-    return [dailyLine, ...monthly]
-  }
-  // KO: 일진 한 줄 + (있으면) 가장 강한 일진 이벤트 한 줄
-  const dailyLine = `오늘의 일진은 ${daily.stem}${daily.branch}${
-    dailySibsin ? ` — 본명 일간 기준 ${dailySibsin} 결의 날` : ''
-  }입니다.`
   // 가장 강한 이벤트 한 개만 추가 (점수 절댓값 기준)
   const sorted = [...dailyEvents].sort((a, b) => Math.abs(b.scoreShift) - Math.abs(a.scoreShift))
   const top = sorted[0]
-  const eventLine = top
-    ? `${top.label} — ${top.blurb}.`
-    : ''
-  const out = [dailyLine, ...(eventLine ? [eventLine] : []), ...monthly]
-  return out
+  if (locale !== 'ko') {
+    const dailyLine = `Today's pillar ${daily.stem}${daily.branch}${dailySibsin ? ` — a ${dailySibsin} day for the natal day-master` : ''}.`
+    const eventLine = top ? `${top.labelEn} — ${top.blurbEn}.` : ''
+    return [dailyLine, ...(eventLine ? [eventLine] : []), ...monthly]
+  }
+  const dailyLine = `오늘의 일진은 ${daily.stem}${daily.branch}${
+    dailySibsin ? ` — 본명 일간 기준 ${dailySibsin} 결의 날` : ''
+  }입니다.`
+  const eventLine = top ? `${top.label} — ${top.blurb}.` : ''
+  return [dailyLine, ...(eventLine ? [eventLine] : []), ...monthly]
 }
 
 function buildSajuFactors(
@@ -1389,16 +1476,24 @@ export function calculateYearlyImportantDatesLite(
         locale === 'ko' ? '캘린더 경량 스코어링 기준' : 'Calendar lite scoring baseline',
       crossAgreementPercent,
       glossary: (() => {
-        if (locale !== 'ko') return undefined
+        // 본문에 등장한 한글 용어를 골라 풀이를 첨부 (KO/EN 둘 다 지원 — EN도 한글 용어가 본문에 박힐 수 있음)
         const surface = [
           counselorPacks[month]?.sibsin || '',
           ...(counselorPacks[month]?.sinsals || []),
-          ...buildSajuFactors(locale, sajuProfile, primary.domain, month, counselorPacks[month], `${seed}|s`),
+          ...buildSajuFactors(
+            locale,
+            sajuProfile,
+            primary.domain,
+            month,
+            counselorPacks[month],
+            `${seed}|s`
+          ),
         ].join(' ')
         const terms = pickGlossaryTerms(surface)
         if (!terms.length) return undefined
+        const dict = locale === 'ko' ? GLOSSARY_KO : GLOSSARY_EN
         const map: Record<string, string> = {}
-        for (const t of terms) map[t] = GLOSSARY_KO[t]
+        for (const t of terms) map[t] = dict[t] || GLOSSARY_KO[t]
         return map
       })(),
       crossCheck: {
