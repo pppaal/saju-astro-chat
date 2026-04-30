@@ -108,7 +108,7 @@ export function analyzeEventCorrelation(
   const 천간합 = CHEONGAN_HAP[dayPillar.stem]
   if (천간합 && (yearPillar.stem === 천간합.partner || monthPillar.stem === 천간합.partner)) {
     correlationFactors.push({
-      factor: `일간 ${dayPillar.stem}와 ${천간합.partner} 천간합`,
+      factor: `일간 ${dayPillar.stem}↔${천간합.partner} 천간합`,
       type: '합',
       strength: 80,
       description: `${천간합.result} 에너지로 합화되어 조화로운 시기`,
@@ -120,7 +120,7 @@ export function analyzeEventCorrelation(
   const 천간충 = CHEONGAN_CHUNG[dayPillar.stem]
   if (천간충 && (yearPillar.stem === 천간충 || monthPillar.stem === 천간충)) {
     correlationFactors.push({
-      factor: `일간 ${dayPillar.stem}와 ${천간충} 천간충`,
+      factor: `일간 ${dayPillar.stem}↔${천간충} 천간충`,
       type: '충',
       strength: 70,
       description: '변화와 충돌의 에너지가 강한 시기',
@@ -132,7 +132,7 @@ export function analyzeEventCorrelation(
   const 육합 = YUKAP[dayPillar.branch]
   if (육합 && (yearPillar.branch === 육합.partner || monthPillar.branch === 육합.partner)) {
     correlationFactors.push({
-      factor: `일지 ${dayPillar.branch}와 ${육합.partner} 육합`,
+      factor: `일지 ${dayPillar.branch}↔${육합.partner} 육합`,
       type: '합',
       strength: 75,
       description: `${육합.result} 에너지로 합화, 협력과 지원의 시기`,
@@ -144,7 +144,7 @@ export function analyzeEventCorrelation(
   const 지지충 = CHUNG[dayPillar.branch]
   if (지지충 && (yearPillar.branch === 지지충 || monthPillar.branch === 지지충)) {
     correlationFactors.push({
-      factor: `일지 ${dayPillar.branch}와 ${지지충} 지지충`,
+      factor: `일지 ${dayPillar.branch}↔${지지충} 지지충`,
       type: '충',
       strength: 85,
       description: '환경의 급격한 변화, 이동, 변동의 시기',

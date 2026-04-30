@@ -185,18 +185,18 @@ function analyzeUnseInteractions(unseBranch: string, pillars: SajuPillars): Unse
     const interactions: UnseInteractionDetail['interactions'] = [];
 
     if (YUKAP[unseBranch] === pillar.branch) {
-      interactions.push({ type: '육합', description: `${unseBranch}와 ${pillar.branch}의 육합`, impact: 'positive', score: 15 });
+      interactions.push({ type: '육합', description: `${unseBranch}↔${pillar.branch}의 육합`, impact: 'positive', score: 15 });
     }
 
     for (const [, members] of Object.entries(SAMHAP)) {
       if (members.includes(unseBranch) && members.includes(pillar.branch)) {
-        interactions.push({ type: '삼합', description: `${unseBranch}와 ${pillar.branch}의 삼합`, impact: 'positive', score: 20 });
+        interactions.push({ type: '삼합', description: `${unseBranch}↔${pillar.branch}의 삼합`, impact: 'positive', score: 20 });
         break;
       }
     }
 
     if (CHUNG[unseBranch] === pillar.branch) {
-      interactions.push({ type: '충', description: `${unseBranch}와 ${pillar.branch}의 충`, impact: 'negative', score: -20 });
+      interactions.push({ type: '충', description: `${unseBranch}↔${pillar.branch}의 충`, impact: 'negative', score: -20 });
     }
 
     results.push({ target: pillarKorean[name], targetPillar: pillar, interactions });
