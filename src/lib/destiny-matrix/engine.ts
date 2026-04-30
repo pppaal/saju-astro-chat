@@ -298,30 +298,52 @@ function calculateLayer3(input: MatrixCalculationInput): Record<string, MatrixCe
   return results
 }
 
+// MatrixCalculationInput.currentDaeunElement 등은 영문 ('wood'/'fire'/...)인데
+// TIMING_OVERLAY_MATRIX의 대운/세운 row 키는 한글 ('목'/'화'/...). 변환 필요.
+const FIVE_ELEMENT_EN_TO_KO: Record<string, TimingCycleRow> = {
+  wood: '목' as TimingCycleRow,
+  fire: '화' as TimingCycleRow,
+  earth: '토' as TimingCycleRow,
+  metal: '금' as TimingCycleRow,
+  water: '수' as TimingCycleRow,
+}
+
 function calculateLayer4(input: MatrixCalculationInput): Record<string, MatrixCell> {
   const results: Record<string, MatrixCell> = {}
   const activeTransits = input.activeTransits || []
 
-  // Determine timing row based on current luck cycle element
-  let timingRow: TimingCycleRow = 'shortTerm'
+  // 활성화된 모든 timing 레이어와 transit 페어를 cross 시킴.
+  // 이전 코드는 가장 구체적인 한 timing(일운→월운→대운→세운)만 사용했는데,
+  // 실제로는 4개 timing이 동시에 작동하므로 모두 cross.
+  const TIMING_PRIORITY: Array<{ row: TimingCycleRow; label: string }> = []
+  if (input.currentDaeunElement) {
+    const ko = FIVE_ELEMENT_EN_TO_KO[input.currentDaeunElement]
+    if (ko) TIMING_PRIORITY.push({ row: ko, label: 'daeun' })
+  }
+  if (input.currentSaeunElement) {
+    const ko = FIVE_ELEMENT_EN_TO_KO[input.currentSaeunElement]
+    if (ko) TIMING_PRIORITY.push({ row: ko, label: 'saeun' })
+  }
+  if (input.currentWolunElement) {
+    TIMING_PRIORITY.push({ row: 'wolun', label: 'wolun' })
+  }
   if (input.currentIljinElement) {
-    timingRow = 'ilun'
-  } else if (input.currentWolunElement) {
-    timingRow = 'wolun'
-  } else if (input.currentDaeunElement) {
-    timingRow = input.currentDaeunElement
-  } else if (input.currentSaeunElement) {
-    timingRow = input.currentSaeunElement
+    TIMING_PRIORITY.push({ row: 'ilun', label: 'ilun' })
+  }
+  if (TIMING_PRIORITY.length === 0) {
+    TIMING_PRIORITY.push({ row: 'shortTerm', label: 'shortTerm' })
   }
 
-  for (const transit of activeTransits) {
-    const matrixCell = TIMING_OVERLAY_MATRIX[timingRow]?.[transit]
-    if (matrixCell) {
-      const key = `${timingRow}_${transit}`
-      results[key] = {
-        interaction: matrixCell,
-        sajuBasis: `운 ${timingRow}`,
-        astroBasis: `트랜짓 ${transit}`,
+  for (const t of TIMING_PRIORITY) {
+    for (const transit of activeTransits) {
+      const matrixCell = TIMING_OVERLAY_MATRIX[t.row]?.[transit]
+      if (matrixCell) {
+        const key = `${t.label}_${transit}`
+        results[key] = {
+          interaction: matrixCell,
+          sajuBasis: `운 ${t.label}`,
+          astroBasis: `트랜짓 ${transit}`,
+        }
       }
     }
   }
