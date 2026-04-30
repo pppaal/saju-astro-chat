@@ -731,7 +731,7 @@ export default function ReportResultPage() {
                         <p className="pb-1 text-sm text-cyan-100/72">{report.grade}</p>
                       )}
                     </div>
-                    <p className="mt-3 text-sm leading-6 text-slate-300">
+                    <p className="mt-3 text-[15px] leading-[1.7] text-slate-200/95">
                       생성일 {new Date(report.createdAt).toLocaleDateString('ko-KR')}
                     </p>
                   </div>
@@ -744,7 +744,7 @@ export default function ReportResultPage() {
                       {personModel?.states[0]?.label ||
                         (primaryWindow ? labelWindow(primaryWindow.window) : '요약 모드')}
                     </p>
-                    <p className="mt-2 text-sm leading-6 text-slate-300">
+                    <p className="mt-2 text-[15px] leading-[1.7] text-slate-200/95">
                       {singleSubjectView?.actionAxis.whyThisFirst ||
                         personModel?.timeProfile.timingNarrative ||
                         report.summary}
@@ -853,7 +853,7 @@ export default function ReportResultPage() {
                             .join(' / ')}
                         </span>
                       </div>
-                      <p className="mt-3 text-sm leading-6 text-slate-300">{state.summary}</p>
+                      <p className="mt-3 text-[15px] leading-[1.7] text-slate-200/95">{state.summary}</p>
                       {state.drivers.length > 0 && (
                         <div className="mt-4">
                           <p className="text-xs uppercase tracking-[0.18em] text-cyan-100/70">
@@ -915,7 +915,7 @@ export default function ReportResultPage() {
                           구조 {formatRatioPercent(portrait.structuralScore)}
                         </span>
                       </div>
-                      <p className="mt-3 text-sm leading-6 text-slate-300">{portrait.summary}</p>
+                      <p className="mt-3 text-[15px] leading-[1.7] text-slate-200/95">{portrait.summary}</p>
 
                       <div className="mt-4 grid gap-3 sm:grid-cols-2">
                         <div className="rounded-2xl border border-emerald-300/12 bg-emerald-400/[0.05] p-3">
@@ -1042,7 +1042,7 @@ export default function ReportResultPage() {
                         {branch.window ? labelWindow(branch.window) : '시기 미정'} · 가능성{' '}
                         {formatRatioPercent(branch.probability)}
                       </p>
-                      <p className="mt-3 text-sm leading-6 text-slate-300">{branch.summary}</p>
+                      <p className="mt-3 text-[15px] leading-[1.7] text-slate-200/95">{branch.summary}</p>
                       {branch.conditions.length > 0 && (
                         <div className="mt-4">
                           <p className="text-xs uppercase tracking-[0.18em] text-emerald-100/70">

@@ -205,7 +205,7 @@ function TimingReportContent() {
               minDate="1900-01-01"
               maxDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)}
             />
-            <p className="mt-4 text-sm leading-6 text-slate-300">{periodInfo.note}</p>
+            <p className="mt-4 text-[15px] leading-[1.7] text-slate-200/95">{periodInfo.note}</p>
             <div className="mt-4 rounded-2xl border border-white/10 bg-slate-950/40 p-4 text-sm text-slate-300">
               무료 버전은 종합 요약까지만 제공합니다.
               <button

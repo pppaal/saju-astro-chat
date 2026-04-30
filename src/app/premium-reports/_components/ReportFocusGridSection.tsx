@@ -36,16 +36,21 @@ export default function ReportFocusGridSection({
             }`}
           >
             <div className="flex items-center justify-between gap-3">
-              <p className="font-semibold text-white">{item.domain}</p>
+              <p className="text-[16px] font-semibold text-white">{item.domain}</p>
               <span
-                className={`text-xs font-semibold ${
+                className={`text-[13px] font-semibold ${
                   tone === 'emerald' ? 'text-emerald-200' : 'text-cyan-100'
                 }`}
               >
                 {item.score}점
               </span>
             </div>
-            <p className="mt-2 text-sm leading-6 text-slate-300">{item.summary}</p>
+            <p
+              className="mt-2 text-[15px] leading-[1.7] text-slate-200/95"
+              style={{ wordBreak: 'keep-all' }}
+            >
+              {item.summary}
+            </p>
           </article>
         ))}
       </div>

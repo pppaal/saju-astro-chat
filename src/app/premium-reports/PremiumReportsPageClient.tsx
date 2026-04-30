@@ -347,7 +347,7 @@ export default function PremiumReportsPage() {
             <h1 className="mt-4 text-3xl font-black tracking-tight text-white md:text-5xl">
               한 번 입력하면, 빠른 요약부터 심화 프리미엄 리포트까지
             </h1>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300 md:text-base">
+            <p className="mt-3 max-w-3xl text-[15px] leading-[1.7] text-slate-200/95 md:text-base">
               사주와 점성 기반 공통 프로필을 먼저 만든 뒤, 무료 요약 리포트로 핵심 구조를 확인하거나
               인생총운·신년운·연애·커리어·재물·건강·가족 리포트로 바로 이어집니다.
             </p>

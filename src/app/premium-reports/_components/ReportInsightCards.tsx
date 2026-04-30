@@ -36,7 +36,7 @@ export default function ReportInsightCards({
             }`}
           >
             <p className="text-sm font-semibold text-white">{item.title}</p>
-            <p className="mt-2 text-sm leading-6 text-slate-300">{item.body}</p>
+            <p className="mt-2 text-[15px] leading-[1.7] text-slate-200/95">{item.body}</p>
             {item.footer && (
               <p
                 className={`mt-3 text-xs font-semibold uppercase tracking-[0.14em] ${
