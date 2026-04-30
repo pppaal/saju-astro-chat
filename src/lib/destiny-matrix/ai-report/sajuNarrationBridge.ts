@@ -352,6 +352,22 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
       p1.push(`주변에서 자주 듣는 평가는 "${impression.praise}" 쪽이고, 정작 본인이 가장 거슬려하는 말은 "${impression.sting}" 쪽이에요.`)
     }
   }
+  // (NEW) 길성+흉성 상호작용 — 같이 들어왔을 때 의미
+  if (input.shinsalList && input.shinsalList.length > 0) {
+    const list = input.shinsalList as string[]
+    const NEGATIVE = new Set(['망신', '백호', '공망', '삼재', '괴강', '양인', '귀문관', '현침', '고신', '원진', '천라지망'])
+    const luckyHits = list.filter((s) => LUCKY_SHINSAL_SET.has(s))
+    const negativeHits = list.filter((s) => NEGATIVE.has(s))
+    if (luckyHits.length > 0 && negativeHits.length > 0) {
+      const luckTop = luckyHits[0]
+      const negTop = negativeHits[0]
+      p1.push(`${luckTop}(길)과 ${negTop}(흉)이 같이 들어와 있어, 위기 상황마다 결정적인 도움이 들어오면서도 한 번씩 부침을 거치는 패턴이 반복돼요.`)
+    } else if (luckyHits.length >= 2) {
+      p1.push(`${luckyHits[0]}·${luckyHits[1]} 두 개가 같이 들어와 있어, 평균 이상으로 외부 도움·기회가 많이 들어오는 결이에요.`)
+    } else if (negativeHits.length >= 2) {
+      p1.push(`${negativeHits[0]}·${negativeHits[1]} 두 개가 같이 들어와 있어, 한 번에 풀리기보다 단련을 거쳐 자기 색을 만드는 패턴이에요.`)
+    }
+  }
   if (p1.length > 0) paragraphs.push(p1.join(' '))
 
   // ───────── ¶ Specific 천간/지지: 본명 안에 이미 형성된 관계 한 줄 ─────────
@@ -367,6 +383,16 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   // + 사주↔점성 cross가 한 단락에서 만남.
   const nowCrossSection = buildNowCrossSectionKo(input)
   if (nowCrossSection) paragraphs.push(nowCrossSection)
+
+  // ───────── ¶ 도메인별 mini cross-section ─────────
+  // career/love/wealth/health/move 5개 도메인에 사주+점성+transit 신호 펼침
+  const domainCross = buildDomainMiniCrossSectionsKo(input)
+  if (domainCross) paragraphs.push(domainCross)
+
+  // ───────── ¶ 다중 시간점 진화 ─────────
+  // 지금 → 6개월 뒤 → 내년 → 10년 뒤 다음 대운까지의 결 변화
+  const evolution = buildTemporalEvolutionKo(input)
+  if (evolution) paragraphs.push(evolution)
 
   // ───────── ¶ 단기 시기 — 월별/일별 + 사이클 충돌 ─────────
   // 월별 peak는 cross-section에 폴딩됨 (중복 방지).
@@ -446,6 +472,15 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     p3.push(`${outerParts.join(', ')} 결이에요.`)
   }
   // 의미 있는 행성 하우스 highlight
+  if (houses.Sun && [1, 5, 7, 10].includes(houses.Sun)) {
+    const sunHouseMeaning: Record<number, string> = {
+      1: '자기 표현·정체성',
+      5: '창조·연애·자녀',
+      7: '파트너십',
+      10: '커리어·사회 무대',
+    }
+    p3.push(`태양이 ${houses.Sun}하우스라 ${sunHouseMeaning[houses.Sun]} 영역이 인생 무대의 중심으로 잡혀요.`)
+  }
   if (houses.Jupiter && [9, 10, 11].includes(houses.Jupiter)) {
     p3.push(`목성이 ${houses.Jupiter}하우스에 있어 확장·기회가 ${houses.Jupiter === 10 ? '커리어·사회 무대' : houses.Jupiter === 9 ? '학문·해외·신념' : '커뮤니티·미래 비전'} 쪽으로 열려요.`)
   }
@@ -787,6 +822,214 @@ export function buildNowCrossSectionKo(input: MatrixCalculationInput): string {
   if (crossClosing) sentences.push(crossClosing)
 
   return sentences.join(' ')
+}
+
+// ──────────────────────────────────────────────────────────
+// 도메인별 mini cross-section (A) — 5개 도메인 각각에 사주+점성+transit 펼침
+// ──────────────────────────────────────────────────────────
+
+function countSibsinFor(input: MatrixCalculationInput, kinds: string[]): number {
+  const dist = input.sibsinDistribution as Record<string, number> | undefined
+  if (!dist) return 0
+  let sum = 0
+  for (const k of kinds) sum += dist[k] || 0
+  return sum
+}
+
+function hasShinsalAny(input: MatrixCalculationInput, names: string[]): boolean {
+  const list = input.shinsalList as string[] | undefined
+  if (!list || list.length === 0) return false
+  return list.some((s) => names.includes(s))
+}
+
+function hasTransitAny(input: MatrixCalculationInput, types: string[]): boolean {
+  const list = (input as { activeTransits?: string[] }).activeTransits
+  if (!list || list.length === 0) return false
+  return list.some((t) => types.includes(t))
+}
+
+function buildCareerMiniKo(input: MatrixCalculationInput): string {
+  const parts: string[] = []
+  const gwanCount = countSibsinFor(input, ['정관', '편관'])
+  if (gwanCount > 0) parts.push(`관성 ${gwanCount}개(공식 책임)`)
+  const houses = input.planetHouses || {}
+  if (houses.Saturn === 10) parts.push('토성 10하우스(커리어 책임 무게)')
+  else if (houses.Saturn === 1) parts.push('토성 1하우스(자기 정체성 우선)')
+  if (houses.Sun === 10) parts.push('태양 10하우스(무대 중앙)')
+  if (hasTransitAny(input, ['saturnReturn'])) parts.push('토성 리턴(직책·역할 재정의)')
+  else if (hasTransitAny(input, ['jupiterReturn'])) parts.push('목성 리턴(확장 기회 문)')
+  if (parts.length === 0) return ''
+  return `직장은 ${parts.slice(0, 3).join(' + ')} 결`
+}
+
+function buildLoveMiniKo(input: MatrixCalculationInput): string {
+  const parts: string[] = []
+  const jaeCount = countSibsinFor(input, ['정재', '편재'])
+  if (jaeCount > 0) parts.push(`재성 ${jaeCount}개(관계 자원)`)
+  const venusSign = input.planetSigns?.Venus as string | undefined
+  const SIGN_KO: Record<string, string> = {
+    Aries: '양자리', Taurus: '황소자리', Gemini: '쌍둥이자리', Cancer: '게자리',
+    Leo: '사자자리', Virgo: '처녀자리', Libra: '천칭자리', Scorpio: '전갈자리',
+    Sagittarius: '사수자리', Capricorn: '염소자리', Aquarius: '물병자리', Pisces: '물고기자리',
+  }
+  const SIGN_TRAIT: Record<string, string> = {
+    Aries: '주도·도전', Taurus: '안정·축적', Gemini: '소통·다중',
+    Cancer: '돌봄·정서', Leo: '주목·표현', Virgo: '디테일·분석',
+    Libra: '조율·균형', Scorpio: '집중·재구성', Sagittarius: '확장·신념',
+    Capricorn: '구조·책임', Aquarius: '독립·혁신', Pisces: '직관·공감',
+  }
+  if (venusSign && SIGN_KO[venusSign]) parts.push(`금성 ${SIGN_KO[venusSign]}(${SIGN_TRAIT[venusSign]})`)
+  const houses = input.planetHouses || {}
+  if (houses.Venus === 7) parts.push('금성 7하우스(파트너십 강조)')
+  if (houses.Mars === 5) parts.push('화성 5하우스(연애·창조 추진)')
+  if (hasShinsalAny(input, ['도화', '홍염살'])) parts.push('도화·매력 활성')
+  if (hasTransitAny(input, ['venusRetrograde'])) parts.push('금성 역행(가치관 재검토)')
+  if (parts.length === 0) return ''
+  return `관계는 ${parts.slice(0, 3).join(' + ')} 결`
+}
+
+function buildWealthMiniKo(input: MatrixCalculationInput): string {
+  const parts: string[] = []
+  const jeongJae = countSibsinFor(input, ['정재'])
+  const pyeonJae = countSibsinFor(input, ['편재'])
+  if (pyeonJae > jeongJae && pyeonJae > 0) parts.push(`편재 ${pyeonJae}개(외부 거래·자산 회전)`)
+  else if (jeongJae > 0) parts.push(`정재 ${jeongJae}개(안정 자원 운용)`)
+  const houses = input.planetHouses || {}
+  if (houses.Jupiter === 2) parts.push('목성 2하우스(소득·자원 확장)')
+  else if (houses.Jupiter === 8) parts.push('목성 8하우스(외부 자산·투자 확장)')
+  else if (houses.Jupiter === 9) parts.push('목성 9하우스(학문·해외 쪽 자원)')
+  if (hasTransitAny(input, ['jupiterReturn'])) parts.push('목성 리턴(12년 만의 확장 문)')
+  else if (hasTransitAny(input, ['jupiterRetrograde'])) parts.push('목성 역행(확장 잠시 멈춤)')
+  if (hasShinsalAny(input, ['금여성', '천을귀인'])) parts.push('인덕·귀인 도움')
+  if (parts.length === 0) return ''
+  return `재정은 ${parts.slice(0, 3).join(' + ')} 결`
+}
+
+function buildHealthMiniKo(input: MatrixCalculationInput): string {
+  const parts: string[] = []
+  // 12운성 stage
+  const stage = readDayMasterStage(input)
+  if (stage === '쇠' || stage === '병' || stage === '사' || stage === '묘') {
+    parts.push(`12운성 ${stage}(회복·정리 단계)`)
+  } else if (stage === '제왕' || stage === '건록') {
+    parts.push(`12운성 ${stage}(체력 정점)`)
+  }
+  const houses = input.planetHouses || {}
+  if (houses.Mars === 6) parts.push('화성 6하우스(체력·과로 주의)')
+  else if (houses.Saturn === 6) parts.push('토성 6하우스(만성·체력 관리)')
+  if (hasTransitAny(input, ['saturnReturn', 'saturnRetrograde'])) parts.push('토성 흐름(체력 재정비)')
+  else if (hasTransitAny(input, ['marsRetrograde'])) parts.push('화성 역행(에너지 안으로)')
+  if (hasShinsalAny(input, ['귀문관', '백호'])) parts.push('귀문·백호(예민함·과민)')
+  if (parts.length === 0) return ''
+  return `건강은 ${parts.slice(0, 3).join(' + ')} 결`
+}
+
+function buildMoveMiniKo(input: MatrixCalculationInput): string {
+  const parts: string[] = []
+  if (hasShinsalAny(input, ['역마', '지살'])) parts.push('역마·지살(이동 활성)')
+  const houses = input.planetHouses || {}
+  if (houses.Jupiter === 9 || houses.Sun === 9) parts.push('9하우스 강조(해외·학문 이동)')
+  if (houses.Saturn === 4) parts.push('토성 4하우스(가정·뿌리 정리)')
+  if (hasTransitAny(input, ['uranusSquare'])) parts.push('천왕 스퀘어(급변 가능)')
+  else if (hasTransitAny(input, ['nodeReturn'])) parts.push('노드 리턴(방향 재정렬)')
+  if (parts.length === 0) return ''
+  return `이동은 ${parts.slice(0, 3).join(' + ')} 결`
+}
+
+// ──────────────────────────────────────────────────────────
+// 다중 시간점 진화 (C) — 지금 → 6개월 → 1년 → 다음 대운 흐름
+// ──────────────────────────────────────────────────────────
+
+/**
+ * 시간 흐름 위 진화 — 지금(현재 세운+월peak) → 가을(6개월 뒤) → 내년(다음 세운) → 다음 대운(10년 뒤).
+ * 각 시점의 주된 결을 한 줄씩으로 묶어 시간축 위 변화를 보여줌.
+ */
+export function buildTemporalEvolutionKo(input: MatrixCalculationInput): string {
+  const natal = (input as { dayMasterElement?: string }).dayMasterElement
+  if (!natal) return ''
+  const natalKo = ELEMENT_KO_LABEL[natal]
+  if (!natalKo) return ''
+  const SEQ = ['목', '화', '토', '금', '수']
+
+  const segments: string[] = []
+  const currentDateIso = (input as { currentDateIso?: string }).currentDateIso || new Date().toISOString().slice(0, 10)
+  const currentYear = Number(currentDateIso.slice(0, 4))
+
+  // 현재 (세운 element 기반 톤)
+  const saeunEl = input.currentSaeunElement
+  const saeunKo = saeunEl ? ELEMENT_KO_LABEL[saeunEl] : ''
+  if (saeunKo) {
+    const ni = SEQ.indexOf(natalKo)
+    const si = SEQ.indexOf(saeunKo)
+    const diff = ni >= 0 && si >= 0 ? (si - ni + 5) % 5 : -1
+    const tone = ['본인 색이 진해지는', '표현·확장 압력이 큰', '결정·통제력이 또렷한', '책임 무게가 무거운', '받쳐주는 흐름이 들어오는'][diff] || '한 해의 톤이 잡히는'
+    segments.push(`지금 ${currentYear}년 봄~여름은 ${tone} 시점`)
+  }
+
+  // 6개월 뒤 (가을·겨울 — 보통 톤 약화 또는 다른 element 강조)
+  // 같은 세운이지만 계절이 바뀌므로 월별 기운 변화로 표현
+  if (saeunKo) {
+    const SEASON_TONE: Record<string, string> = {
+      목: '늦여름~가을은 정리·갈무리 톤',
+      화: '가을~초겨울은 압력 누그러지고 회복 톤',
+      토: '가을은 안정·정착 톤',
+      금: '겨울은 칼날 결단 톤이 가장 강해지는',
+      수: '봄으로 넘어가며 흐름이 풀리는 톤',
+    }
+    const seasonHint = SEASON_TONE[saeunKo]
+    if (seasonHint) segments.push(`6개월 뒤 ${seasonHint}`)
+  }
+
+  // 내년 (다음 세운 — annual arc가 있으면)
+  const nextYear = currentYear + 1
+  const arc = readAnnualArc(input, currentYear)
+  if (arc.next) {
+    const nextSplit = splitGanji(arc.next)
+    const nextG = ganjiLabel(nextSplit.stem, nextSplit.branch)
+    const nextEl = nextSplit.stem ? STEM_KO_ELEMENT[nextSplit.stem] : ''
+    if (nextG && nextEl) {
+      const ni = SEQ.indexOf(natalKo)
+      const ei = SEQ.indexOf(nextEl)
+      const diff = ni >= 0 && ei >= 0 ? (ei - ni + 5) % 5 : -1
+      const nextTone = ['본인 색 더 강해지는', '표현·확장이 더 붙는', '통제·정리가 더 또렷한', '책임 무게가 한 단계 더 묵직해지는', '인성이 받쳐주는'][diff] || '톤이 한 번 바뀌는'
+      segments.push(`내년 ${nextYear}년 ${nextG}로 넘어가면서 ${nextTone} 결로 옮겨감`)
+    }
+  }
+
+  // 10년 뒤 다음 대운
+  const daeunArc = readDaeunArc(input)
+  if (daeunArc.next?.heavenlyStem && daeunArc.next?.earthlyBranch && daeunArc.next?.age != null) {
+    const nextDaeunStem = daeunArc.next.heavenlyStem
+    const nextDaeunEl = STEM_KO_ELEMENT[nextDaeunStem]
+    const nextDaeunGanji = `${daeunArc.next.heavenlyStem}${daeunArc.next.earthlyBranch}`
+    const nextDaeunRange = `${daeunArc.next.age}~${daeunArc.next.age + 9}세`
+    if (nextDaeunEl) {
+      segments.push(`10년 뒤 ${nextDaeunRange} ${nextDaeunGanji} 대운(${nextDaeunEl} 흐름)으로 챕터 전환`)
+    }
+  }
+
+  if (segments.length === 0) return ''
+  return `시간 흐름으로 보면 — ${segments.join(' → ')}.`
+}
+
+/**
+ * 도메인별 mini cross-section — 5개 도메인 각각에 사주+점성+transit 펼침.
+ * 각 도메인이 너무 빈약하면 스킵.
+ */
+export function buildDomainMiniCrossSectionsKo(input: MatrixCalculationInput): string {
+  const lines: string[] = []
+  const career = buildCareerMiniKo(input)
+  const love = buildLoveMiniKo(input)
+  const wealth = buildWealthMiniKo(input)
+  const health = buildHealthMiniKo(input)
+  const move = buildMoveMiniKo(input)
+  if (career) lines.push(career)
+  if (love) lines.push(love)
+  if (wealth) lines.push(wealth)
+  if (health) lines.push(health)
+  if (move) lines.push(move)
+  if (lines.length === 0) return ''
+  return `도메인별로 펼쳐 보면 — ${lines.join('. ')}.`
 }
 
 // "지금 시점 cross" — natal element + dominant western 한 줄 (shorter than buildCrossIntegrationKo)
