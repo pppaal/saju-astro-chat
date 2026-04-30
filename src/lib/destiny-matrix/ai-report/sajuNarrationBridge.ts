@@ -394,11 +394,11 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   }
   if (p1.length > 0) paragraphs.push(p1.join(' '))
 
-  // ───────── ¶ 약점·함정 3개 — reflective psychology ─────────
+  // ───────── ¶ 약점·함정 3개 — heading + bullet list ─────────
   if (input.geokguk) {
     const traps = GEOKGUK_TRAPS_KO[input.geokguk as string]
     if (traps) {
-      paragraphs.push(`자주 빠지는 함정 3개: ${traps[0]} / ${traps[1]} / ${traps[2]}. 셋이 동시에 작동하면 한 발짝 늦추는 게 안전한데, 본인은 보통 그 순간을 못 알아채요.`)
+      paragraphs.push(`## 자주 빠지는 함정\n- ${traps[0]}\n- ${traps[1]}\n- ${traps[2]}\n셋이 동시에 작동하면 한 발짝 늦추는 게 안전한데, 본인은 보통 그 순간을 못 알아채요.`)
     }
   }
 
@@ -550,7 +550,8 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
         else if (diff === 2) scenario = '지금 6개월은 외부 자원·관계 정리에 유리한 시기라, 계약·재정 정리부터 손대보세요.'
       }
       if (scenario) {
-        paragraphs.push(`정리하자면 — ${scenario}`)
+        // callout block — UI 카드가 강조 박스로 렌더
+        paragraphs.push(`> **정리하자면** — ${scenario}`)
       }
     }
   }
@@ -1100,27 +1101,46 @@ export function buildTemporalEvolutionKo(input: MatrixCalculationInput): string 
   }
 
   if (segments.length === 0) return ''
-  return `시간 흐름으로 보면 — ${segments.join(' → ')}.`
+  // heading + bullet list (timeline) 형태로 변환
+  const labels = ['지금', '6개월 뒤', '내년', '10년 뒤']
+  const bullets = segments
+    .map((seg, idx) => {
+      const lbl = labels[idx] || `시점 ${idx + 1}`
+      // segment 시작 부분이 라벨과 중복되면 제거
+      const cleaned = seg
+        .replace(/^지금\s*/, '')
+        .replace(/^6개월 뒤\s*/, '')
+        .replace(/^내년\s*/, '')
+        .replace(/^10년 뒤\s*/, '')
+      return `- **${lbl}** — ${cleaned}`
+    })
+    .join('\n')
+  return `## 시간 흐름 위 진화\n${bullets}`
 }
 
 /**
  * 도메인별 mini cross-section — 5개 도메인 각각에 사주+점성+transit 펼침.
- * 각 도메인이 너무 빈약하면 스킵.
+ * heading + bullet list 형태로 출력 (UI 카드가 마커 파싱해서 시각적으로 표시).
  */
 export function buildDomainMiniCrossSectionsKo(input: MatrixCalculationInput): string {
-  const lines: string[] = []
+  const items: Array<[string, string]> = []
   const career = buildCareerMiniKo(input)
   const love = buildLoveMiniKo(input)
   const wealth = buildWealthMiniKo(input)
   const health = buildHealthMiniKo(input)
   const move = buildMoveMiniKo(input)
-  if (career) lines.push(career)
-  if (love) lines.push(love)
-  if (wealth) lines.push(wealth)
-  if (health) lines.push(health)
-  if (move) lines.push(move)
-  if (lines.length === 0) return ''
-  return `도메인별로 펼쳐 보면 — ${lines.join('. ')}.`
+  // 각 helper 결과는 '직장은/관계는 X 결' 형태 → 라벨과 'X' 분리
+  const stripLabel = (text: string, label: string): string => {
+    return text.replace(new RegExp(`^${label}[은는]\\s*`), '').replace(/\s*결$/, '')
+  }
+  if (career) items.push(['직장', stripLabel(career, '직장')])
+  if (love) items.push(['관계', stripLabel(love, '관계')])
+  if (wealth) items.push(['재정', stripLabel(wealth, '재정')])
+  if (health) items.push(['건강', stripLabel(health, '건강')])
+  if (move) items.push(['이동', stripLabel(move, '이동')])
+  if (items.length === 0) return ''
+  const bullets = items.map(([label, body]) => `- **${label}**: ${body}`).join('\n')
+  return `## 도메인별 펼침\n${bullets}`
 }
 
 // "지금 시점 cross" — natal element + dominant western 한 줄 (shorter than buildCrossIntegrationKo)
