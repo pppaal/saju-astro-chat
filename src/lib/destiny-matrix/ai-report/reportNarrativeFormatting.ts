@@ -15,10 +15,21 @@ export interface NarrativePathSanitizerDeps {
 }
 
 export function formatNarrativeParagraphs(text: string, lang: Lang): string {
-  const normalized = String(text || '')
-    .replace(/\s{2,}/g, ' ')
-    .trim()
-  if (!normalized) return normalized
+  const raw = String(text || '').trim()
+  if (!raw) return raw
+
+  // 이미 의도된 단락 구분(\n\n)이 있으면 보존 — synthesizeExpertNarrationKo 등이
+  // 의미 단위로 ¶ 분리한 결과를 자동 chunking으로 깨뜨리지 않게.
+  if (/\n\s*\n/.test(raw)) {
+    return raw
+      .split(/\n\s*\n+/)
+      .map((p) => p.replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, ' ').trim())
+      .filter(Boolean)
+      .join('\n\n')
+  }
+
+  // 단락 구분이 없는 경우만 자동 chunking (3문장씩 묶어 ¶ 만듦)
+  const normalized = raw.replace(/\s{2,}/g, ' ').trim()
   const sentences = splitSentences(normalized)
     .map((s) => String(s || '').trim())
     .filter(Boolean)

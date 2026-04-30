@@ -431,10 +431,12 @@ export function buildNarrativeSectionFromCore(
   const primaryLines = collectCleanNarrativeLines(primary, lang)
   const supportingLines = collectCleanNarrativeLines(supporting, lang)
   const baseLine = includeBase ? buildReportCoreLine(base, lang) : ''
-  let out = primaryLines.join(' ').trim()
+  // 단락 구분(\n\n)이 있는 entry가 있으면 entry끼리도 \n\n로 연결해서 의도 보존
+  const hasParagraphBreaks = primaryLines.some((l) => /\n\s*\n/.test(l))
+  let out = primaryLines.join(hasParagraphBreaks ? '\n\n' : ' ').trim()
 
   if (baseLine && !out.includes(baseLine)) {
-    out = out ? `${out} ${baseLine}` : baseLine
+    out = out ? (hasParagraphBreaks ? `${out}\n\n${baseLine}` : `${out} ${baseLine}`) : baseLine
   }
 
   out = ensureLongSectionNarrative(out, minChars, supportingLines)
@@ -445,14 +447,20 @@ export function buildNarrativeSectionFromCore(
 }
 
 function ensureLongSectionNarrative(base: string, minChars: number, extras: string[]): string {
-  let out = String(base || '')
-    .replace(/\s{2,}/g, ' ')
-    .trim()
+  // base가 \n\n 단락 구분을 가지면 보존, 없으면 정규화
+  const hasParagraphBreaks = /\n\s*\n/.test(base)
+  let out = hasParagraphBreaks
+    ? String(base || '').trim()
+    : String(base || '').replace(/\s{2,}/g, ' ').trim()
   const uniqExtras = [...new Set(extras.map((v) => String(v || '').trim()).filter(Boolean))]
   for (const extra of uniqExtras) {
     if (out.length >= minChars) break
     if (out.includes(extra)) continue
-    out = `${out} ${extra}`.replace(/\s{2,}/g, ' ').trim()
+    if (hasParagraphBreaks) {
+      out = `${out}\n\n${extra}`.trim()
+    } else {
+      out = `${out} ${extra}`.replace(/\s{2,}/g, ' ').trim()
+    }
   }
   return out
 }

@@ -210,7 +210,18 @@ export function dedupeNarrativeSentences(text: string): string {
 }
 
 export function sanitizeUserFacingNarrative(text: string): string {
-  const normalized = normalizeUserFacingArtifacts(String(text || ''))
+  const input = String(text || '')
+  // 의도된 단락 구분(\n\n)이 있으면 split 먼저, 각 단락에 normalize·sanitize 후 다시 join
+  // (normalizeUserFacingArtifacts가 \s{2,}을 ' '로 collapse하므로 split을 앞에서 수행)
+  if (/\n\s*\n/.test(input)) {
+    const paragraphs = input
+      .split(/\n\s*\n+/)
+      .map((p) => sanitizeUserFacingNarrative(p))
+      .filter(Boolean)
+    return paragraphs.join('\n\n')
+  }
+  const raw = normalizeUserFacingArtifacts(input)
+  const normalized = raw
     .replace(/\s{2,}/g, ' ')
     .trim()
   if (!normalized) return normalized
