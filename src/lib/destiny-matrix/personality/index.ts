@@ -32,6 +32,14 @@ export {
   detectLearningStyle,
 }
 
+export {
+  adaptAdviceTone,
+  adaptAdviceListTone,
+  pickToneCategory,
+  type ToneCategory,
+  type ToneOptions,
+} from './toneAdapter'
+
 /**
  * 한 번 호출로 5종 인격 프로필 추출.
  * 리포트 introduction이나 상담사 컨텍스트에 그대로 첨부 가능.
