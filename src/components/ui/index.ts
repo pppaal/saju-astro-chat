@@ -24,9 +24,6 @@ export {
 } from "./EmptyState";
 export { FormField as FormFieldComponent, validators } from "./FormField";
 export { default as ScrollToTop } from "./ScrollToTop";
-export { default as ErrorWithRetry, type ErrorWithRetryProps } from "./ErrorWithRetry";
-export { default as ConfirmDialog, type ConfirmDialogProps } from "./ConfirmDialog";
-export { default as TextareaWithCounter, type TextareaWithCounterProps } from "./TextareaWithCounter";
 export { default as ImageWithShimmer, type ImageWithShimmerProps } from "./ImageWithShimmer";
 export { default as CopyButton, type CopyButtonProps } from "./CopyButton";
 
