@@ -198,7 +198,7 @@ function scoreScenario(
     const cnt = sibsinDist[sib] || 0
     if (cnt > 0) {
       const delta = Math.min(cnt * 4, 12)
-      signals.push({ source: 'saju', text: `본명에 ${sib}이 ${cnt}개 활성 (${meta.label} 적합)`, delta })
+      signals.push({ source: 'saju', text: `본명에 ${sib}${igaScenario(sib)} ${cnt}개 활성 (${meta.label} 적합)`, delta })
       score += delta
       supportSignals++
     }
@@ -207,7 +207,7 @@ function scoreScenario(
     const cnt = sibsinDist[sib] || 0
     if (cnt > 0) {
       const delta = -Math.min(cnt * 3, 10)
-      signals.push({ source: 'saju', text: `본명에 ${sib}이 ${cnt}개 (${meta.label}엔 부담 신호)`, delta })
+      signals.push({ source: 'saju', text: `본명에 ${sib}${igaScenario(sib)} ${cnt}개 (${meta.label}엔 부담 신호)`, delta })
       score += delta
       resistSignals++
     }
@@ -337,6 +337,21 @@ function scoreScenario(
   }
 }
 
+// 한국어 조사 자동 선택 (을/를)
+function eulReul(word: string): '을' | '를' {
+  if (!word) return '을'
+  const last = word.charCodeAt(word.length - 1)
+  if (last < 0xac00 || last > 0xd7a3) return '을'
+  return (last - 0xac00) % 28 !== 0 ? '을' : '를'
+}
+// 이/가
+function igaScenario(word: string): '이' | '가' {
+  if (!word) return '이'
+  const last = word.charCodeAt(word.length - 1)
+  if (last < 0xac00 || last > 0xd7a3) return '이'
+  return (last - 0xac00) % 28 !== 0 ? '이' : '가'
+}
+
 function composeNarration(
   meta: typeof ACTION_META[ScenarioAction],
   score: number,
@@ -347,8 +362,9 @@ function composeNarration(
   const supports = signals.filter((s) => s.delta > 0).slice(0, 2)
   const resists = signals.filter((s) => s.delta < 0).slice(0, 2)
   const lines: string[] = []
+  const labelEul = `${meta.label}${eulReul(meta.label)}`
 
-  lines.push(`${targetDate} 시점에 ${meta.label}을(를) 하면 신호 종합 점수는 ${score}/100, 등급은 "${level}"이에요.`)
+  lines.push(`${targetDate} 시점에 ${labelEul} 하면 신호 종합 점수는 ${score}/100, 등급은 "${level}"이에요.`)
 
   if (supports.length > 0) {
     lines.push(`받쳐주는 신호: ${supports.map((s) => s.text).join(' / ')}.`)
@@ -360,10 +376,10 @@ function composeNarration(
   // level별 마무리 조언
   const closing: Record<ScenarioForecast['level'], string> = {
     '강력 추천': `여러 신호가 같은 방향이라 이 시점은 ${meta.label}에 가장 유리한 구간이에요. 결정 후 실행까지 같은 분기에 묶어도 됩니다.`,
-    '진행 가능': `핵심 신호가 우호적이라 ${meta.label}을(를) 진행해도 무리 없는 시점이에요. 다만 작은 검증 1단계만 잡으세요.`,
+    '진행 가능': `핵심 신호가 우호적이라 ${labelEul} 진행해도 무리 없는 시점이에요. 다만 작은 검증 1단계만 잡으세요.`,
     '검토 후 진행': `유리한 신호와 주의 신호가 섞여 있어요. 결정 전 반대 근거 1개 확인하고, 1주 보류 후 재검토하시면 좋습니다.`,
     '주의': `이 시점은 ${meta.label}에 부담 신호가 많아요. 가능하면 1-3개월 미루고 다른 시점을 찾는 편이 안전합니다.`,
-    '비추천': `${meta.label}을(를) 이 시점에 하면 손실·갈등 신호가 우세해요. 이 결정은 다음 흐름까지 보류 권장합니다.`,
+    '비추천': `${labelEul} 이 시점에 하면 손실·갈등 신호가 우세해요. 이 결정은 다음 흐름까지 보류 권장합니다.`,
   }
   lines.push(closing[level])
 

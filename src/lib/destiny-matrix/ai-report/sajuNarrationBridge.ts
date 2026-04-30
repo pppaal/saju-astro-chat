@@ -62,6 +62,31 @@ function topEntry<T extends string>(
   return bestKey
 }
 
+// 일주의 12운성을 sajuSnapshot.pillars.day에서 직접 추출 (분포 top이 아니라 본인 일간 stage)
+import { getTwelveStage } from '@/lib/Saju/shinsal'
+function readDayMasterStage(input: MatrixCalculationInput): string | null {
+  const snap = (input as { sajuSnapshot?: { pillars?: { day?: { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } } } } }).sajuSnapshot
+  const stem = snap?.pillars?.day?.heavenlyStem?.name
+  const branch = snap?.pillars?.day?.earthlyBranch?.name
+  if (!stem || !branch) return null
+  const stage = getTwelveStage(stem, branch)
+  return stage || null
+}
+
+// 격국 description 끝맺음을 자연스럽게 이어주는 분기
+function suffixGeokgukDescription(desc: string): string {
+  const cleaned = desc.replace(/\.$/, '').trim()
+  // 형용사·명사 종결 (… 인자함·강함·있음 등)
+  if (/(?:있음|함|많음|뛰어남|풍부함|강함|약함|좋음)$/.test(cleaned)) {
+    return `${cleaned} 성향이 두드러지는 분이에요.`
+  }
+  // 동사형 종결 (… 추구·중시·다룸·축적·…)
+  if (/(?:추구|축적|관심|보유|중시|성공|사고력|결단력|독립적)$/.test(cleaned)) {
+    return `${cleaned}하는 분이에요.`
+  }
+  return `${cleaned}을 보이는 분이에요.`
+}
+
 /**
  * 본명 사주 narration 한국어 라인 묶음 — deepAnalysis에 prepend하기 좋도록 한 단락 합성.
  * matrixInput에 격국·12운성·십신·신살이 이미 채워져 있어서 그대로 재해석.
@@ -73,14 +98,12 @@ export function buildSajuNarrationKo(input: MatrixCalculationInput): string {
   if (input.geokguk) {
     const desc = getGeokgukDescription(input.geokguk as GeokgukType)
     if (desc) {
-      // description은 명사·형용사구 혼재라 "하는 분"이 어색할 수 있어 ", " 결합 사용
-      const cleanDesc = desc.endsWith('.') ? desc.slice(0, -1) : desc
-      lines.push(`본명이 ${input.geokguk}이라, ${cleanDesc}을 보이는 분이에요.`)
+      lines.push(`본명이 ${input.geokguk}이라, ${suffixGeokgukDescription(desc)}`)
     }
   }
 
-  // 2) 12운성 — 일간 기준 가장 두드러진 단계 한 줄 (formal 톤)
-  const topStage = topEntry(input.twelveStages)
+  // 2) 12운성 — 일주의 실제 stage 우선, 없으면 분포 top 폴백 (formal 톤)
+  const topStage = readDayMasterStage(input) || topEntry(input.twelveStages)
   if (topStage) {
     const stageText = generateTwelveStageText(topStage, { style: 'formal' })
     if (stageText?.main) {
@@ -289,7 +312,7 @@ function describeCycleRelation(
     '본인을 누르고 시험하는',
     '본인을 받쳐주고 길러주는',
   ][diff]
-  return `${cycleLabel}은 ${cycle} — ${relationNarr} 결이라 ${flavor}`
+  return `${cycleLabel}은 ${cycle} — ${relationNarr} 흐름이라 ${flavor}`
 }
 
 // 두 시기가 충돌하는지/받쳐주는지 (예: 대운 화 + 세운 금 = 화극금 충돌)
@@ -329,9 +352,10 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   const p1: string[] = []
   if (input.geokguk) {
     const desc = getGeokgukDescription(input.geokguk as GeokgukType)
-    if (desc) p1.push(`이 분은 ${input.geokguk}으로 들어가신 분이라 ${desc}하는 분이에요.`)
+    if (desc) p1.push(`이 분은 ${input.geokguk}으로 들어가신 분이라, ${suffixGeokgukDescription(desc)}`)
   }
-  const topStage = topEntry(input.twelveStages)
+  // 일주의 실제 stage를 우선 사용 (분포 top은 폴백)
+  const topStage = readDayMasterStage(input) || topEntry(input.twelveStages)
   if (topStage) {
     const stagePhrase = STAGE_LIFE_PHRASE[topStage]
     if (stagePhrase) {
@@ -372,11 +396,11 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   // 대운 ↔ 세운 사이클 충돌 narration
   const daeunSaeunClash = describeCycleClash(input.currentDaeunElement, input.currentSaeunElement, '대운', '세운')
   if (daeunSaeunClash) p2.push(`두 흐름을 함께 보면 ${daeunSaeunClash} 형국이라, 큰 방향이 정해진 가운데 한 해 단위로 환경이 어떻게 받쳐주는지가 중요해집니다.`)
-  if (wolunRel) p2.push(`${wolunRel} 결이 깔립니다.`)
+  if (wolunRel) p2.push(`${wolunRel} 분위기가 깔립니다.`)
   if (iljinRel) p2.push(`${iljinRel} 흐름이고요.`)
   if (p2.length > 0) paragraphs.push(p2.join(' '))
 
-  // ───────── ¶3: 사주↔점성 정합 + scenario ─────────
+  // ───────── ¶3: 사주↔점성 정합 + 점성 본명 디테일 + scenario ─────────
   const p3: string[] = []
   const aspectsCount = input.aspects?.length || 0
   const dominantWestern = input.dominantWesternElement
@@ -390,6 +414,44 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
           : '점성 측 강조 원소와 본명 일간이 달라 두 시스템이 서로 다른 방향을 비추는'
       p3.push(`점성으로 보면 ${w} 기운이 가장 강조되는 차트라, ${matchHint} 형국이에요.`)
     }
+  }
+
+  // 점성 본명 디테일 — 태양·달·금성·화성 sign + ASC 추정
+  const signs = input.planetSigns || {}
+  const houses = input.planetHouses || {}
+  const SIGN_KO: Record<string, string> = {
+    Aries: '양자리', Taurus: '황소자리', Gemini: '쌍둥이자리', Cancer: '게자리',
+    Leo: '사자자리', Virgo: '처녀자리', Libra: '천칭자리', Scorpio: '전갈자리',
+    Sagittarius: '사수자리', Capricorn: '염소자리', Aquarius: '물병자리', Pisces: '물고기자리',
+  }
+  const SIGN_TRAIT: Record<string, string> = {
+    Aries: '주도·도전', Taurus: '안정·축적', Gemini: '소통·다중',
+    Cancer: '돌봄·정서', Leo: '주목·표현', Virgo: '디테일·분석',
+    Libra: '조율·균형', Scorpio: '집중·재구성', Sagittarius: '확장·신념',
+    Capricorn: '구조·책임', Aquarius: '독립·혁신', Pisces: '직관·공감',
+  }
+  const sunSign = signs.Sun as string | undefined
+  if (sunSign && SIGN_KO[sunSign]) {
+    p3.push(`태양 ${SIGN_KO[sunSign]}로 자아의 색은 ${SIGN_TRAIT[sunSign]} 쪽이에요.`)
+  }
+  const moonSign = signs.Moon as string | undefined
+  if (moonSign && SIGN_KO[moonSign]) {
+    p3.push(`달이 ${SIGN_KO[moonSign]}에 있어 정서·내면은 ${SIGN_TRAIT[moonSign]} 흐름.`)
+  }
+  const venusSign = signs.Venus as string | undefined
+  if (venusSign && SIGN_KO[venusSign]) {
+    p3.push(`금성 ${SIGN_KO[venusSign]} — 관계·가치관에서 ${SIGN_TRAIT[venusSign]} 결이 드러납니다.`)
+  }
+  const marsSign = signs.Mars as string | undefined
+  if (marsSign && SIGN_KO[marsSign]) {
+    p3.push(`화성 ${SIGN_KO[marsSign]} — 추진·욕구는 ${SIGN_TRAIT[marsSign]} 방식으로 풀려요.`)
+  }
+  // 의미 있는 행성 하우스 highlight
+  if (houses.Jupiter && [9, 10, 11].includes(houses.Jupiter)) {
+    p3.push(`목성이 ${houses.Jupiter}하우스에 있어 확장·기회가 ${houses.Jupiter === 10 ? '커리어·사회 무대' : houses.Jupiter === 9 ? '학문·해외·신념' : '커뮤니티·미래 비전'} 쪽으로 열려요.`)
+  }
+  if (houses.Saturn && [1, 4, 10].includes(houses.Saturn)) {
+    p3.push(`토성이 ${houses.Saturn}하우스라 ${houses.Saturn === 1 ? '자기 정체성 형성' : houses.Saturn === 4 ? '가정·뿌리 안정' : '커리어·책임 무게'}에 구조와 시간이 필요한 차트예요.`)
   }
   if (aspectsCount >= 3) {
     p3.push(`주요 어스펙트가 ${aspectsCount}개 활성화돼 있어 본명 차트의 변동성과 자극이 평균보다 많은 편입니다.`)
