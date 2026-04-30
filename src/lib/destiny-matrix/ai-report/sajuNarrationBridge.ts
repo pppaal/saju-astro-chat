@@ -302,17 +302,17 @@ function describeCycleRelation(
   const SEQ = ['목', '화', '토', '금', '수']
   const ni = SEQ.indexOf(natal)
   const ci = SEQ.indexOf(cycle)
-  if (ni < 0 || ci < 0) return `${cycleLabel}은 ${cycle} 기운이라 ${flavor}`
+  if (ni < 0 || ci < 0) return `${cycleLabel}은 ${cycle} 기운이 도는 자리라 ${flavor}`
   const diff = (ci - ni + 5) % 5
   // 0=동기 1=설기 2=재 3=관 4=인
-  const relationNarr = [
-    '본명과 같은 기운이 모이는',
-    '본인 기운이 밖으로 풀려나가는',
-    '본인이 다스리고 통제하는',
-    '본인을 누르고 시험하는',
-    '본인을 받쳐주고 길러주는',
-  ][diff]
-  return `${cycleLabel}은 ${cycle} — ${relationNarr} 흐름이라 ${flavor}`
+  const relationLines = [
+    `${cycleLabel}은 ${cycle} — 본명과 같은 기운이 한 자리에 모이는 구간이라 ${flavor}`,
+    `${cycleLabel}은 ${cycle} — 본인 기운을 밖으로 풀어내는 국면이라 ${flavor}`,
+    `${cycleLabel}은 ${cycle} — 본인이 환경을 다스리고 통제하는 구도라 ${flavor}`,
+    `${cycleLabel}은 ${cycle} — 본인을 누르고 시험하는 형국이라 ${flavor}`,
+    `${cycleLabel}은 ${cycle} — 본인을 받쳐주고 길러주는 인성 구도라 ${flavor}`,
+  ]
+  return relationLines[diff]
 }
 
 // 두 시기가 충돌하는지/받쳐주는지 (예: 대운 화 + 세운 금 = 화극금 충돌)
@@ -352,7 +352,7 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   const p1: string[] = []
   if (input.geokguk) {
     const desc = getGeokgukDescription(input.geokguk as GeokgukType)
-    if (desc) p1.push(`이 분은 ${input.geokguk}으로 들어가신 분이라, ${suffixGeokgukDescription(desc)}`)
+    if (desc) p1.push(`본명이 ${input.geokguk}으로 짜여 있어, ${suffixGeokgukDescription(desc)}`)
   }
   // 일주의 실제 stage를 우선 사용 (분포 top은 폴백)
   const topStage = readDayMasterStage(input) || topEntry(input.twelveStages)
@@ -371,7 +371,12 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     const blurbs = top.map((k) => SHINSAL_THEMATIC_KO[k]).filter(Boolean) as string[]
     if (blurbs.length > 0) {
       const lastWord = top[top.length - 1]
-      p1.push(`거기에 ${top.join('·')}${iga(lastWord)} 활성화돼 ${blurbs.join(', ')}, 그래서 한 자리에 머물기보다 자기 색을 점점 키워가는 분이에요.`)
+      const NEGATIVE_SHINSAL = new Set(['망신', '백호', '공망', '삼재', '괴강', '양인', '귀문관', '현침', '고신', '원진'])
+      const hasNegative = top.some((s) => NEGATIVE_SHINSAL.has(s))
+      const closing = hasNegative
+        ? `, 그래서 평탄하게 가기보다 부침을 거치며 자기 색을 단련해가는 구조로 짜여 있어요.`
+        : `, 그래서 한 자리에 머물기보다 자기 색을 차근차근 키워가는 구조예요.`
+      p1.push(`거기에 ${top.join('·')}${iga(lastWord)} 활성화돼 ${blurbs.join(', ')}${closing}`)
     }
   }
   if (p1.length > 0) paragraphs.push(p1.join(' '))
@@ -388,16 +393,16 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   const p2: string[] = []
   const daeunRel = describeCycleRelation(natal, input.currentDaeunElement, '대운', '인생 전반을 그 색으로 물들이는')
   const saeunRel = describeCycleRelation(natal, input.currentSaeunElement, '올해 세운', '한 해 동안 환경을 그쪽으로 밀어붙이는')
-  const wolunRel = describeCycleRelation(natal, input.currentWolunElement, '이번 달 월운', '한 달 톤을 살짝 비추는')
-  const iljinRel = describeCycleRelation(natal, input.currentIljinElement, '오늘 일운', '오늘 하루 분위기를 잡아주는')
+  const wolunRel = describeCycleRelation(natal, input.currentWolunElement, '이번 달 월운', '한 달 분위기를 살짝 끌어주는')
+  const iljinRel = describeCycleRelation(natal, input.currentIljinElement, '오늘 일운', '오늘 하루 톤을 잡아주는')
 
   if (daeunRel) p2.push(`${daeunRel} 시기예요.`)
-  if (saeunRel) p2.push(`${saeunRel} 형국입니다.`)
+  if (saeunRel) p2.push(`${saeunRel} 한 해입니다.`)
   // 대운 ↔ 세운 사이클 충돌 narration
   const daeunSaeunClash = describeCycleClash(input.currentDaeunElement, input.currentSaeunElement, '대운', '세운')
-  if (daeunSaeunClash) p2.push(`두 흐름을 함께 보면 ${daeunSaeunClash} 형국이라, 큰 방향이 정해진 가운데 한 해 단위로 환경이 어떻게 받쳐주는지가 중요해집니다.`)
-  if (wolunRel) p2.push(`${wolunRel} 분위기가 깔립니다.`)
-  if (iljinRel) p2.push(`${iljinRel} 흐름이고요.`)
+  if (daeunSaeunClash) p2.push(`두 흐름을 함께 보면 ${daeunSaeunClash} 그림이라, 큰 방향이 정해진 가운데 한 해 단위로 환경이 어떻게 받쳐주는지가 중요해집니다.`)
+  if (wolunRel) p2.push(`${wolunRel} 색이 깔립니다.`)
+  if (iljinRel) p2.push(`${iljinRel} 분위기로 마무리됩니다.`)
   if (p2.length > 0) paragraphs.push(p2.join(' '))
 
   // ───────── ¶3: 사주↔점성 정합 + 점성 본명 디테일 + scenario ─────────
@@ -436,15 +441,15 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   }
   const moonSign = signs.Moon as string | undefined
   if (moonSign && SIGN_KO[moonSign]) {
-    p3.push(`달이 ${SIGN_KO[moonSign]}에 있어 정서·내면은 ${SIGN_TRAIT[moonSign]} 흐름.`)
+    p3.push(`달이 ${SIGN_KO[moonSign]}에 있어 정서·내면은 ${SIGN_TRAIT[moonSign]} 쪽으로 작동합니다.`)
   }
   const venusSign = signs.Venus as string | undefined
   if (venusSign && SIGN_KO[venusSign]) {
-    p3.push(`금성 ${SIGN_KO[venusSign]} — 관계·가치관에서 ${SIGN_TRAIT[venusSign]} 결이 드러납니다.`)
+    p3.push(`금성 ${SIGN_KO[venusSign]} — 관계·가치관에서 ${SIGN_TRAIT[venusSign]} 색이 두드러집니다.`)
   }
   const marsSign = signs.Mars as string | undefined
   if (marsSign && SIGN_KO[marsSign]) {
-    p3.push(`화성 ${SIGN_KO[marsSign]} — 추진·욕구는 ${SIGN_TRAIT[marsSign]} 방식으로 풀려요.`)
+    p3.push(`화성 ${SIGN_KO[marsSign]} — 추진·욕구는 ${SIGN_TRAIT[marsSign]} 방식으로 풀립니다.`)
   }
   // 의미 있는 행성 하우스 highlight
   if (houses.Jupiter && [9, 10, 11].includes(houses.Jupiter)) {
@@ -453,7 +458,7 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   if (houses.Saturn && [1, 4, 10].includes(houses.Saturn)) {
     p3.push(`토성이 ${houses.Saturn}하우스라 ${houses.Saturn === 1 ? '자기 정체성 형성' : houses.Saturn === 4 ? '가정·뿌리 안정' : '커리어·책임 무게'}에 구조와 시간이 필요한 차트예요.`)
   }
-  if (aspectsCount >= 3) {
+  if (aspectsCount >= 8) {
     p3.push(`주요 어스펙트가 ${aspectsCount}개 활성화돼 있어 본명 차트의 변동성과 자극이 평균보다 많은 편입니다.`)
   }
 
@@ -629,10 +634,10 @@ export function buildStoryArcKo(input: MatrixCalculationInput): string {
   }
   if (currG && currEl) {
     const range = `${arc.current.age}~${arc.current.age + 9}세`
-    lines.push(`지금 ${range} ${currG} 대운으로 들어와 ${currEl} 흐름이 본명을 새로 물들이는 구간입니다.`)
+    lines.push(`지금 ${range} ${currG} 대운으로 들어와 ${currEl}이 본명을 새로 물들이는 구간입니다.`)
   }
   if (nextG && nextEl) {
-    lines.push(`10년 뒤 ${arc.next?.age}~${(arc.next?.age ?? 0) + 9}세 ${nextG} 대운에서는 ${nextEl}이 다음 챕터를 열어주게 되니, 지금 흐름을 잘 정리해두면 자연스럽게 옮겨갑니다.`)
+    lines.push(`10년 뒤 ${arc.next?.age}~${(arc.next?.age ?? 0) + 9}세 ${nextG} 대운에서는 ${nextEl}이 다음 챕터를 열어주게 되니, 지금 결을 잘 정리해두면 자연스럽게 옮겨갑니다.`)
   }
 
   // 세운 arc
@@ -649,10 +654,13 @@ export function buildStoryArcKo(input: MatrixCalculationInput): string {
     if (curG) {
       const prevG2 = ganjiLabel(prev.stem, prev.branch)
       const nextG2 = ganjiLabel(next.stem, next.branch)
+      const curEl = ganjiElementLabel(cur.stem, cur.branch)
       const annualLine =
         prevG2 && nextG2
-          ? `세운으로 보면 ${currentYear - 1}년 ${prevG2} 흐름에서 시작된 줄기가 올해 ${currentYear}년 ${curG}로 넘어왔고, 내년 ${nextG2}에서 한 번 더 정리될 가능성이 있어요.`
-          : `올해 ${currentYear}년 세운은 ${curG}로 흐릅니다.`
+          ? `세운으로 보면 ${currentYear - 1}년 ${prevG2}에서 시작된 줄기가 올해 ${currentYear}년 ${curG}로 넘어왔고, 내년 ${nextG2}에서 한 번 더 정리될 가능성이 있어요.`
+          : curEl
+            ? `올해 ${currentYear}년 세운은 ${curG}로, ${curEl}이 한 해 환경의 톤을 잡아주는 구간입니다.`
+            : `올해 ${currentYear}년 세운은 ${curG}이 한 해 환경의 톤을 잡아주는 구간입니다.`
       lines.push(annualLine)
     }
   }
