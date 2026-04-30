@@ -132,8 +132,9 @@ export function buildSajuNarrationKo(input: MatrixCalculationInput): string {
       .map((k) => KO_SHINSAL_BLURB[k])
       .filter(Boolean)
     if (blurbs.length > 0) {
+      const lastWord = top[top.length - 1]
       lines.push(
-        `본명에 ${top.join('·')}이(가) 활성화돼 ${blurbs.join(', ')} 작용합니다.`
+        `본명에 ${top.join('·')}${iga(lastWord)} 활성화돼 ${blurbs.join(', ')} 작용해요.`
       )
     }
   }
@@ -359,12 +360,12 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   if (topStage) {
     const stagePhrase = STAGE_LIFE_PHRASE[topStage]
     if (stagePhrase) {
-      p1.push(`12운성으로 보면 일간이 마침 ${topStage} 단계에 들어와 있는데, 이게 ${stagePhrase} 시기라서 평소 머리로만 알던 흐름이 실제 행동으로 옮겨갑니다.`)
+      p1.push(`12운성으로 보면 일간이 마침 ${topStage} 단계에 들어와 있는데, 이게 ${stagePhrase} 시기라서 평소 머리로만 알던 감각이 실제 행동으로 옮겨가요.`)
     }
   }
   const topSibsin = topEntry(input.sibsinDistribution)
   if (topSibsin) {
-    p1.push(`십신 중에서는 ${topSibsin}${iga(topSibsin as string)} 가장 두텁게 잡혀 있어 이 흐름이 본명 안에서 꽉 맞물려 작동합니다.`)
+    p1.push(`십신 중에서는 ${topSibsin}${iga(topSibsin as string)} 가장 두텁게 잡혀 있어, 그 색이 본명 안에서 꽉 맞물려 작동해요.`)
   }
   if (input.shinsalList && input.shinsalList.length > 0) {
     const top = input.shinsalList.slice(0, 3) as string[]
@@ -397,12 +398,12 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   const iljinRel = describeCycleRelation(natal, input.currentIljinElement, '오늘 일운', '오늘 하루 톤을 잡아주는')
 
   if (daeunRel) p2.push(`${daeunRel} 시기예요.`)
-  if (saeunRel) p2.push(`${saeunRel} 한 해입니다.`)
+  if (saeunRel) p2.push(`${saeunRel} 한 해예요.`)
   // 대운 ↔ 세운 사이클 충돌 narration
   const daeunSaeunClash = describeCycleClash(input.currentDaeunElement, input.currentSaeunElement, '대운', '세운')
-  if (daeunSaeunClash) p2.push(`두 흐름을 함께 보면 ${daeunSaeunClash} 그림이라, 큰 방향이 정해진 가운데 한 해 단위로 환경이 어떻게 받쳐주는지가 중요해집니다.`)
-  if (wolunRel) p2.push(`${wolunRel} 색이 깔립니다.`)
-  if (iljinRel) p2.push(`${iljinRel} 분위기로 마무리됩니다.`)
+  if (daeunSaeunClash) p2.push(`두 사이클을 함께 보면 ${daeunSaeunClash} 그림이라, 큰 방향이 정해진 가운데 한 해 단위로 환경이 어떻게 받쳐주는지가 중요해져요.`)
+  if (wolunRel) p2.push(`${wolunRel} 색이 깔려요.`)
+  if (iljinRel) p2.push(`${iljinRel} 분위기로 마무리돼요.`)
   if (p2.length > 0) paragraphs.push(p2.join(' '))
 
   // ───────── ¶3: 사주↔점성 정합 + 점성 본명 디테일 + scenario ─────────
@@ -441,15 +442,15 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   }
   const moonSign = signs.Moon as string | undefined
   if (moonSign && SIGN_KO[moonSign]) {
-    p3.push(`달이 ${SIGN_KO[moonSign]}에 있어 정서·내면은 ${SIGN_TRAIT[moonSign]} 쪽으로 작동합니다.`)
+    p3.push(`달이 ${SIGN_KO[moonSign]}에 있어 정서·내면은 ${SIGN_TRAIT[moonSign]} 쪽으로 작동해요.`)
   }
   const venusSign = signs.Venus as string | undefined
   if (venusSign && SIGN_KO[venusSign]) {
-    p3.push(`금성 ${SIGN_KO[venusSign]} — 관계·가치관에서 ${SIGN_TRAIT[venusSign]} 색이 두드러집니다.`)
+    p3.push(`금성 ${SIGN_KO[venusSign]} — 관계·가치관에서 ${SIGN_TRAIT[venusSign]} 색이 두드러져요.`)
   }
   const marsSign = signs.Mars as string | undefined
   if (marsSign && SIGN_KO[marsSign]) {
-    p3.push(`화성 ${SIGN_KO[marsSign]} — 추진·욕구는 ${SIGN_TRAIT[marsSign]} 방식으로 풀립니다.`)
+    p3.push(`화성 ${SIGN_KO[marsSign]} — 추진·욕구는 ${SIGN_TRAIT[marsSign]} 방식으로 풀려요.`)
   }
   // 의미 있는 행성 하우스 highlight
   if (houses.Jupiter && [9, 10, 11].includes(houses.Jupiter)) {
@@ -459,7 +460,7 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     p3.push(`토성이 ${houses.Saturn}하우스라 ${houses.Saturn === 1 ? '자기 정체성 형성' : houses.Saturn === 4 ? '가정·뿌리 안정' : '커리어·책임 무게'}에 구조와 시간이 필요한 차트예요.`)
   }
   if (aspectsCount >= 8) {
-    p3.push(`주요 어스펙트가 ${aspectsCount}개 활성화돼 있어 본명 차트의 변동성과 자극이 평균보다 많은 편입니다.`)
+    p3.push(`주요 어스펙트가 ${aspectsCount}개 활성화돼 있어 본명 차트의 변동성과 자극이 평균보다 많은 편이에요.`)
   }
 
   // 시나리오 한 줄 — 격국 + 대운 element 조합으로
@@ -472,10 +473,10 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
       const diff = ni >= 0 && di >= 0 ? (di - ni + 5) % 5 : -1
       let scenario = ''
       if (diff === 1) scenario = `${input.geokguk}의 강점을 밖으로 표현하기 좋은 구간이라 발표·확장·새 시도에 힘을 실어보세요.`
-      else if (diff === 3) scenario = `${input.geokguk}의 책임 무게가 더 무거워지는 구간이라 무리한 확장보다 기존 책임을 정리하는 편이 안전합니다.`
-      else if (diff === 4) scenario = `${input.geokguk}${eulReul(input.geokguk)} 받쳐주는 흐름이 들어와 있어 학습·재정비·내적 충전에 시간 쓰기 좋은 시기입니다.`
-      else if (diff === 0) scenario = `${input.geokguk} 색이 더 진해지는 구간이라 본인이 가진 기조를 더 분명히 드러내는 결정에 무게가 실립니다.`
-      else if (diff === 2) scenario = `${input.geokguk}${iga(input.geokguk)} 환경을 통제하는 위치라 외부 자원·계약·대인 관계 정리에 유리합니다.`
+      else if (diff === 3) scenario = `${input.geokguk}의 책임 무게가 더 무거워지는 구간이라 무리한 확장보다 기존 책임을 정리하는 편이 안전해요.`
+      else if (diff === 4) scenario = `${input.geokguk}${eulReul(input.geokguk)} 받쳐주는 기운이 들어와 있어 학습·재정비·내적 충전에 시간 쓰기 좋은 시기예요.`
+      else if (diff === 0) scenario = `${input.geokguk} 색이 더 진해지는 구간이라 본인이 가진 기조를 더 분명히 드러내는 결정에 무게가 실려요.`
+      else if (diff === 2) scenario = `${input.geokguk}${iga(input.geokguk)} 환경을 통제하는 위치라 외부 자원·계약·대인 관계 정리에 유리해요.`
       if (scenario) p3.push(scenario)
     }
   }
@@ -496,18 +497,20 @@ const BRANCH_KO_ELEMENT: Record<string, string> = {
   子: '수', 丑: '토', 寅: '목', 卯: '목', 辰: '토', 巳: '화',
   午: '화', 未: '토', 申: '금', 酉: '금', 戌: '토', 亥: '수',
 }
+// blurb는 wrapping 문장의 후반부로 들어가서 kind 이름이 앞에 이미 적혀 있어
+// blurb는 효과만 묘사하도록 작성 (kind 이름 중복 금지). 모든 종결 -요 톤으로 통일.
 const RELATION_KIND_BLURB: Record<string, string> = {
-  천간합: '천간합으로 부드럽게 맞물려 협력·동의가 자연스럽게 떨어집니다',
-  천간충: '천간충으로 부딪쳐 추진력은 있지만 갈등·압박이 함께 옵니다',
-  지지육합: '지지육합으로 일상이 단단해지고 가까운 관계가 더 깊어집니다',
-  지지삼합: '지지삼합으로 큰 흐름이 한 방향으로 모이는 강한 추진 구도예요',
-  지지방합: '지지방합으로 같은 계절 기운이 모여 안정적인 진도가 나옵니다',
-  지지충: '지지충으로 환경·이동·관계 변동이 잦은 결입니다',
-  지지형: '지지형으로 마찰·실수가 노출되기 쉬워 평소보다 한 번 더 점검해야 합니다',
-  지지파: '지지파로 진행 중인 일이 살짝 틀어질 가능성이 있습니다',
-  지지해: '지지해로 오해·어긋남이 쌓이기 쉬우니 해석 일치 확인이 먼저예요',
-  원진: '원진으로 미묘한 거부감과 오해가 자라기 쉬운 구도입니다',
-  공망: '공망에 들어가 결정 무게가 가벼워지니 새 일은 다음 흐름으로 미루는 편이 좋아요',
+  천간합: '부드럽게 맞물려 협력·동의가 자연스럽게 떨어져요',
+  천간충: '부딪치며 추진력은 있지만 갈등·압박이 함께 와요',
+  지지육합: '일상이 단단해지고 가까운 관계가 더 깊어져요',
+  지지삼합: '큰 기운이 한 방향으로 모이는 강한 추진 구도예요',
+  지지방합: '같은 계절 기운이 모여 안정적인 진도가 나와요',
+  지지충: '환경·이동·관계 변동이 잦은 자리예요',
+  지지형: '마찰·실수가 노출되기 쉬워 평소보다 한 번 더 점검해야 해요',
+  지지파: '진행 중인 일이 살짝 틀어질 가능성이 있어요',
+  지지해: '오해·어긋남이 쌓이기 쉬우니 해석 일치 확인이 먼저예요',
+  원진: '미묘한 거부감과 오해가 자라기 쉬운 구도예요',
+  공망: '결정 무게가 가벼워져 새 일은 다음 사이클로 미루는 편이 안전해요',
 }
 
 function readDayPillar(input: MatrixCalculationInput): { stem?: string; branch?: string } {
@@ -533,9 +536,10 @@ export function buildNatalRelationKo(input: MatrixCalculationInput): string {
   const top = sorted[0]
   if (!top) return ''
   const blurb = RELATION_KIND_BLURB[top.kind] || ''
-  const detail = top.detail ? `(${top.detail})` : ''
   if (!blurb) return ''
-  return `본명 안에서 이미 ${top.kind}${detail}이 형성돼 있어, ${blurb}.`
+  const detail = top.detail ? `(${top.detail})` : ''
+  // kind 이름을 기준으로 조사 결정 (괄호 안 detail은 무시)
+  return `본명 안에 이미 ${top.kind}${detail}${iga(top.kind)} 형성돼 있어, ${blurb}.`
 }
 
 // ──────────────────────────────────────────────────────────
@@ -634,10 +638,10 @@ export function buildStoryArcKo(input: MatrixCalculationInput): string {
   }
   if (currG && currEl) {
     const range = `${arc.current.age}~${arc.current.age + 9}세`
-    lines.push(`지금 ${range} ${currG} 대운으로 들어와 ${currEl}이 본명을 새로 물들이는 구간입니다.`)
+    lines.push(`지금 ${range} ${currG} 대운으로 들어와 ${currEl}이 본명을 새로 물들이는 구간이에요.`)
   }
   if (nextG && nextEl) {
-    lines.push(`10년 뒤 ${arc.next?.age}~${(arc.next?.age ?? 0) + 9}세 ${nextG} 대운에서는 ${nextEl}이 다음 챕터를 열어주게 되니, 지금 결을 잘 정리해두면 자연스럽게 옮겨갑니다.`)
+    lines.push(`10년 뒤 ${arc.next?.age}~${(arc.next?.age ?? 0) + 9}세 ${nextG} 대운에서는 ${nextEl}이 다음 챕터를 열어주게 되니, 지금 톤을 잘 정리해두면 자연스럽게 옮겨가요.`)
   }
 
   // 세운 arc
@@ -659,8 +663,8 @@ export function buildStoryArcKo(input: MatrixCalculationInput): string {
         prevG2 && nextG2
           ? `세운으로 보면 ${currentYear - 1}년 ${prevG2}에서 시작된 줄기가 올해 ${currentYear}년 ${curG}로 넘어왔고, 내년 ${nextG2}에서 한 번 더 정리될 가능성이 있어요.`
           : curEl
-            ? `올해 ${currentYear}년 세운은 ${curG}로, ${curEl}이 한 해 환경의 톤을 잡아주는 구간입니다.`
-            : `올해 ${currentYear}년 세운은 ${curG}이 한 해 환경의 톤을 잡아주는 구간입니다.`
+            ? `올해 ${currentYear}년 세운은 ${curG}로, ${curEl}이 한 해 환경의 톤을 잡아주는 구간이에요.`
+            : `올해 ${currentYear}년 세운은 ${curG}이 한 해 환경의 톤을 잡아주는 구간이에요.`
       lines.push(annualLine)
     }
   }

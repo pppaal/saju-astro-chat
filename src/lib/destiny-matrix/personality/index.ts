@@ -61,18 +61,24 @@ export function buildPersonalityProfile(input: MatrixCalculationInput): Personal
 export function buildPersonalityNarrationKo(input: MatrixCalculationInput): string {
   const p = buildPersonalityProfile(input)
   const lines: string[] = []
-  lines.push(`인격 fingerprint로 보면 ${p.mbti.type}형(${p.mbti.summaryKo})에 가깝고, 진단 명확도는 ${p.mbti.confidence}% 정도입니다.`)
+  const koJongsung = (s: string): boolean => {
+    if (!s) return false
+    const last = s.charCodeAt(s.length - 1)
+    if (last < 0xac00 || last > 0xd7a3) return false
+    return (last - 0xac00) % 28 !== 0
+  }
+  const ig = (s: string) => (koJongsung(s) ? '이' : '가')
+
+  lines.push(`인격 fingerprint로 보면 ${p.mbti.type}형(${p.mbti.summaryKo})에 가깝고, 진단 명확도는 ${p.mbti.confidence}% 정도예요.`)
   lines.push(p.bigFive.summaryKo)
-  // 조사 보정해서 자연스럽게
   const cog = p.cognitiveStyle
   lines.push(
-    `인지 스타일은 ${cog.primary}가 주, ${cog.secondary}가 보조로 작동하고, ${cog.optimalEnvironment}에서 가장 잘 풀려요.`
+    `인지 스타일은 ${cog.primary}${ig(cog.primary)} 주, ${cog.secondary}${ig(cog.secondary)} 보조로 작동하고, ${cog.optimalEnvironment}에서 가장 잘 풀려요.`
   )
-  // 갈등 패턴은 너무 길어지지 않게 핵심만
   const ct = p.conflictTrigger
   lines.push(
     `갈등은 주로 ${ct.triggers.slice(0, 2).join(', ')} 같은 상황에서 일어나고, 반응 패턴은 ${ct.reactionStyle}이라 회복엔 한 박자 거리가 필요해요.`
   )
-  lines.push(`학습은 ${p.learningStyle.best} 방식 + "${p.learningStyle.pace}" 페이스가 자연스럽습니다.`)
+  lines.push(`학습은 ${p.learningStyle.best} 방식 + "${p.learningStyle.pace}" 페이스가 자연스러워요.`)
   return lines.join(' ')
 }

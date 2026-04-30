@@ -213,9 +213,16 @@ export function detectCognitiveStyle(input: MatrixCalculationInput): CognitiveSt
     '실용·구조': '명확한 절차와 측정 가능한 결과가 있는 환경',
   }
 
+  const koJongsung = (s: string): boolean => {
+    if (!s) return false
+    const last = s.charCodeAt(s.length - 1)
+    if (last < 0xac00 || last > 0xd7a3) return false
+    return (last - 0xac00) % 28 !== 0
+  }
+  const ig = (s: string) => (koJongsung(s) ? '이' : '가')
   const summaryKo =
-    `${primary}가 주, ${secondary}가 보조로 작동하는 인지 스타일이에요. ` +
-    `${optimalEnvByStyle[primary]}이 가장 잘 받쳐주고, ${weakest}이(가) 약점입니다.`
+    `${primary}${ig(primary)} 주, ${secondary}${ig(secondary)} 보조로 작동하는 인지 스타일이에요. ` +
+    `${optimalEnvByStyle[primary]}${ig(optimalEnvByStyle[primary])} 가장 잘 받쳐주고, ${weakest}${ig(weakest)} 약점이에요.`
 
   return {
     primary,
@@ -284,7 +291,7 @@ export function detectConflictTrigger(input: MatrixCalculationInput): ConflictTr
 
   const summaryKo =
     `이 분이 갈등에 빠지는 trigger는 ${triggers.slice(0, 3).join(', ')} 같은 상황이에요. ` +
-    `반응 패턴은 ${reactionStyle}이고, 회복은 ${recoveryAdviceByStyle[reactionStyle]}`
+    `반응 패턴은 ${reactionStyle}이고, 회복은 이렇게 가는 게 좋아요 — ${recoveryAdviceByStyle[reactionStyle]}`
 
   return {
     triggers: triggers.length > 0 ? triggers : ['특정 trigger가 두드러지지 않는 균형형'],
@@ -333,7 +340,7 @@ export function detectLearningStyle(input: MatrixCalculationInput): LearningStyl
   else if (countSibsin(input, ['정인', '정관', '정재']) >= 3) pace = '반복·꾸준히'
 
   const summaryKo =
-    `${best} 방식이 가장 잘 맞고, ${worst} 방식은 효율이 떨어집니다. ` +
+    `${best} 방식이 가장 잘 맞고, ${worst} 방식은 효율이 떨어져요. ` +
     `학습 페이스는 "${pace}"가 자연스러워요.`
 
   return { best, worst, pace, summaryKo }
