@@ -1108,7 +1108,7 @@
   cursor: pointer;
   list-style: none;
   padding: 12px 14px;
-  font-size: 0.93rem;
+  font-size: 0.98rem;
   font-weight: 700;
   color: rgba(196, 181, 253, 0.96);
   display: flex;
@@ -1134,16 +1134,18 @@
 .messageEvidenceLead {
   margin: 0;
   padding: 0 14px 10px;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.97rem;
+  line-height: 1.7;
   line-height: 1.6;
 }
 
 .messageEvidenceList {
   margin: 0;
   padding: 0 14px 14px 30px;
-  color: rgba(255, 255, 255, 0.74);
-  font-size: 0.89rem;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.94rem;
+  line-height: 1.7;
   line-height: 1.6;
 }
 
