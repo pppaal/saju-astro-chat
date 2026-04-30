@@ -7,6 +7,7 @@ import {
   type UltraPrecisionScore,
   type HourlyAdvice,
 } from './ultraPrecisionEngine';
+import { iga, eulReul } from '@/lib/i18n/koParticle';
 import {
   calculatePreciseTwelveStage,
   analyzeBranchInteractions,
@@ -658,7 +659,7 @@ export function findYongsinActivationPeriods(
     };
     if (dailyStemElement === generating[yongsin]) {
       score += 10;
-      sources.push(`${dailyStemElement}이 ${yongsin}을 생함`);
+      sources.push(`${dailyStemElement}${iga(dailyStemElement)} ${yongsin}${eulReul(yongsin)} 생함`);
     }
 
     if (score <= 10) {continue;}
@@ -708,9 +709,11 @@ function generateYongsinAdvice(
   if (level === 'very_strong') {
     return `${yongsin} 기운이 매우 강합니다! ${elementAdvice[yongsin]}에 최적입니다.`;
   } else if (level === 'strong') {
-    return `${yongsin} 기운이 강합니다. ${elementAdvice[yongsin]}을 진행하기 좋습니다.`;
+    const adv = elementAdvice[yongsin]
+    return `${yongsin} 기운이 강합니다. ${adv}${eulReul(adv)} 진행하기 좋습니다.`;
   } else {
-    return `${yongsin} 기운이 활성화됩니다. ${elementAdvice[yongsin]}을 고려해보세요.`;
+    const adv = elementAdvice[yongsin]
+    return `${yongsin} 기운이 활성화됩니다. ${adv}${eulReul(adv)} 고려해보세요.`;
   }
 }
 

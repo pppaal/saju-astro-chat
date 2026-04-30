@@ -6,6 +6,7 @@ import {
   describeTimingWindowNarrative,
 } from '@/lib/destiny-matrix/interpretation/humanSemantics'
 import type { MatrixSnapshot } from './routePromptSupport'
+import { eulReul } from '@/lib/i18n/koParticle'
 
 type CounselorUiEvidencePayload = {
   title: string
@@ -183,7 +184,11 @@ export function encodeCounselorUiEvidence(
     lang === 'ko'
       ? {
           title: '왜 이런 답변이 나왔는지',
-          summary: topClaim || `${focus || '지금 질문'}을 먼저 보기 위해 ${phaseText}`,
+          summary: (() => {
+            if (topClaim) return topClaim
+            const f = focus || '지금 질문'
+            return `${f}${eulReul(f)} 먼저 보기 위해 ${phaseText}`
+          })(),
           bullets: [
             projectionStructure ? `구조 해석: ${projectionStructure}` : '',
             projectionTiming ? `타이밍 해석: ${projectionTiming}` : '',

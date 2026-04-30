@@ -1,6 +1,7 @@
 ﻿import { repairMojibakeText } from '@/lib/text/mojibake'
 import { prepareForMatching } from './utils/koreanTextNormalizer'
 import { recommendSpreads } from './tarot-recommend'
+import { eunNeun } from '@/lib/i18n/koParticle'
 import {
   buildPath,
   getSpreadOptions,
@@ -125,7 +126,7 @@ export function expandColloquialQuestionVariants(question: string): string[] {
 
   const compact = rewritten.replace(/\s+/g, ' ').trim()
   if (/속마음|마음|감정/.test(compact) && !/(어때|어떨까|뭐야|무엇|생각|좋아하|식은|있어)/.test(compact)) {
-    variants.add(`${compact}은 어떨까?`)
+    variants.add(`${compact}${eunNeun(compact)} 어떨까?`)
   }
   if (/재회/.test(compact) && !/(가능성|올까|다시|있어|있을까)/.test(compact)) {
     variants.add(`${compact} 가능성 있을까?`)

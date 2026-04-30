@@ -656,7 +656,7 @@ export function buildCalendarPresentationView(input: {
       locale === 'ko'
         ? compactSummaryLines(
             [
-              `${monthKey}은 ${monthDomainLabel} 중심으로 보는 편이 맞습니다.`,
+              `${monthKey} 한 달은 ${monthDomainLabel} 중심으로 보는 편이 맞습니다.`,
               canonicalTimingWindows[0]
                 ? describeTimingWindowBrief({
                     domainLabel: monthDomainLabel,

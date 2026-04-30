@@ -608,6 +608,10 @@ function subjectMarkerKo(label: string): string {
   return hasFinalConsonant(label) ? '이' : '가'
 }
 
+function topicMarkerKo(label: string): string {
+  return hasFinalConsonant(label) ? '은' : '는'
+}
+
 function instrumentalMarkerKo(label: string): string {
   if (!label) return '으로'
   const ch = label.charCodeAt(label.length - 1)
@@ -831,6 +835,7 @@ function buildDayDescriptionSuffixKo(input: {
   label: string
 }): string {
   const { dailyEvents, score, label } = input
+  const labelTopic = `${label}${topicMarkerKo(label)}`
   // 1) 일주 이벤트 우선 — 강도 큰 것부터 (이미 score 절댓값 기준 정렬돼서 들어옴)
   const top = dailyEvents && dailyEvents.length > 0 ? dailyEvents[0] : null
   if (top) {
@@ -838,11 +843,11 @@ function buildDayDescriptionSuffixKo(input: {
       천간합: `오늘은 본명과 부드럽게 맞물려 ${label} 결정이 가벼워지는 날이에요.`,
       천간충: `오늘은 본명을 누르는 압박이 들어오니 ${label} 큰 결정은 한 번 더 보고 정하세요.`,
       지지합: `가까운 관계와 호흡이 맞아 ${label} 협의·동의가 잘 떨어지는 날이에요.`,
-      지지충: `환경 변동이 잦은 날이라 ${label}는 일정·동선부터 다시 점검하세요.`,
-      지지형: `마찰·실수가 노출되기 쉬운 날이라 ${label}는 평소보다 한 번 더 확인하세요.`,
-      자형: `내적 마찰과 과로가 쌓이기 쉬운 날이라 ${label}는 무리한 일정은 줄이세요.`,
-      지지해: `오해가 쌓이기 쉬운 날이라 ${label}는 결론보다 해석 일치 확인이 먼저예요.`,
-      지지파: `진행 중인 일이 살짝 틀어지기 쉬운 날이라 ${label}는 마감 여유를 두세요.`,
+      지지충: `환경 변동이 잦은 날이라 ${labelTopic} 일정·동선부터 다시 점검하세요.`,
+      지지형: `마찰·실수가 노출되기 쉬운 날이라 ${labelTopic} 평소보다 한 번 더 확인하세요.`,
+      자형: `내적 마찰과 과로가 쌓이기 쉬운 날이라 ${labelTopic} 무리한 일정은 줄이세요.`,
+      지지해: `오해가 쌓이기 쉬운 날이라 ${labelTopic} 결론보다 해석 일치 확인이 먼저예요.`,
+      지지파: `진행 중인 일이 살짝 틀어지기 쉬운 날이라 ${labelTopic} 마감 여유를 두세요.`,
       공망: `결정 무게가 가벼운 날이라 ${label} 새 일은 다음 흐름으로 미루세요.`,
     }
     const line = eventLine[top.kind]
@@ -851,11 +856,11 @@ function buildDayDescriptionSuffixKo(input: {
   // 2) 점수 밴드별 카운슬링 — 같은 grade에서도 점수 차이를 텍스트에 반영
   if (typeof score === 'number') {
     if (score >= 90) return `흐름이 가장 강한 구간이라 ${label} 핵심 결정은 오늘 안에 마무리해도 됩니다.`
-    if (score >= 80) return `안정적인 흐름이라 ${label}는 평소 속도로 진행해도 무리가 없습니다.`
-    if (score >= 70) return `${label}는 한 번 점검하고 진행하면 결과가 안정적입니다.`
-    if (score >= 60) return `${label}는 큰 결정보다 정리·재확인 작업에 어울리는 날이에요.`
-    if (score >= 50) return `${label}는 새 일 벌이지 말고 진행 중인 거 마무리에 집중하세요.`
-    if (score >= 40) return `${label}는 일정·범위를 좁혀서 가는 편이 안전한 날입니다.`
+    if (score >= 80) return `안정적인 흐름이라 ${labelTopic} 평소 속도로 진행해도 무리가 없습니다.`
+    if (score >= 70) return `${labelTopic} 한 번 점검하고 진행하면 결과가 안정적입니다.`
+    if (score >= 60) return `${labelTopic} 큰 결정보다 정리·재확인 작업에 어울리는 날이에요.`
+    if (score >= 50) return `${labelTopic} 새 일 벌이지 말고 진행 중인 거 마무리에 집중하세요.`
+    if (score >= 40) return `${labelTopic} 일정·범위를 좁혀서 가는 편이 안전한 날입니다.`
     return `${label} 추진력이 약한 날이라 큰 결정은 다음 흐름까지 미루는 게 좋습니다.`
   }
   return ''
@@ -1143,7 +1148,7 @@ function buildSajuFactors(
     }
     if (!secondPool.length) {
       secondPool.push(
-        `장기 운 흐름이 ${label}을 한 번에 넓히기보다 단계로 다루도록 지지하고 있어요.`
+        `장기 운 흐름이 ${label}${objectMarkerKo(label)} 한 번에 넓히기보다 단계로 다루도록 지지하고 있어요.`
       )
     }
     const branchLine = `오늘 하루 분위기는 ${label} 쪽 결정에 ${relationCycleSignalKo(relation)}.`
