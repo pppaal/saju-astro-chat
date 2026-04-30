@@ -442,7 +442,7 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     }
   }
 
-  // 점성 본명 디테일 — 태양·달·금성·화성 sign + ASC 추정
+  // 점성 본명 디테일 — 태양·달·금성·화성을 한 호흡으로 weave (4줄 → 2문장)
   const signs = input.planetSigns || {}
   const houses = input.planetHouses || {}
   const SIGN_KO: Record<string, string> = {
@@ -457,20 +457,35 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     Capricorn: '구조·책임', Aquarius: '독립·혁신', Pisces: '직관·공감',
   }
   const sunSign = signs.Sun as string | undefined
-  if (sunSign && SIGN_KO[sunSign]) {
-    p3.push(`태양 ${SIGN_KO[sunSign]}로 자아의 색은 ${SIGN_TRAIT[sunSign]} 쪽이에요.`)
-  }
   const moonSign = signs.Moon as string | undefined
-  if (moonSign && SIGN_KO[moonSign]) {
-    p3.push(`달이 ${SIGN_KO[moonSign]}에 있어 정서·내면은 ${SIGN_TRAIT[moonSign]} 쪽으로 작동해요.`)
-  }
   const venusSign = signs.Venus as string | undefined
-  if (venusSign && SIGN_KO[venusSign]) {
-    p3.push(`금성 ${SIGN_KO[venusSign]} — 관계·가치관에서 ${SIGN_TRAIT[venusSign]} 색이 두드러져요.`)
-  }
   const marsSign = signs.Mars as string | undefined
+
+  // 첫 문장: 자아(태양) + 정서(달) — 안쪽 결
+  // SIGN_KO는 모두 '자리'로 끝나 받침 없음 → '라' 사용 (이라 X)
+  const innerParts: string[] = []
+  if (sunSign && SIGN_KO[sunSign]) {
+    const trait = SIGN_TRAIT[sunSign]
+    innerParts.push(`자아 본질은 태양 ${SIGN_KO[sunSign]}라 ${trait}${eulReul(trait)} 좇는 톤`)
+  }
+  if (moonSign && SIGN_KO[moonSign]) {
+    innerParts.push(`안쪽 정서는 달 ${SIGN_KO[moonSign]}라 ${SIGN_TRAIT[moonSign]} 결로 흐르는 톤`)
+  }
+  if (innerParts.length > 0) {
+    p3.push(`${innerParts.join(', ')}이에요.`)
+  }
+
+  // 둘째 문장: 관계(금성) + 추진(화성) — 밖으로 풀리는 결
+  const outerParts: string[] = []
+  if (venusSign && SIGN_KO[venusSign]) {
+    const trait = SIGN_TRAIT[venusSign]
+    outerParts.push(`관계·가치관은 금성 ${SIGN_KO[venusSign]}라 ${trait}${eulReul(trait)} 우선시하는`)
+  }
   if (marsSign && SIGN_KO[marsSign]) {
-    p3.push(`화성 ${SIGN_KO[marsSign]} — 추진·욕구는 ${SIGN_TRAIT[marsSign]} 방식으로 풀려요.`)
+    outerParts.push(`추진·욕구는 화성 ${SIGN_KO[marsSign]}라 ${SIGN_TRAIT[marsSign]} 방향으로 풀리는`)
+  }
+  if (outerParts.length > 0) {
+    p3.push(`${outerParts.join(', ')} 결이에요.`)
   }
   // 의미 있는 행성 하우스 highlight
   if (houses.Jupiter && [9, 10, 11].includes(houses.Jupiter)) {
@@ -483,7 +498,10 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     p3.push(`주요 어스펙트가 ${aspectsCount}개 활성화돼 있어 본명 차트의 변동성과 자극이 평균보다 많은 편이에요.`)
   }
 
-  // 시나리오 한 줄 — 격국 있으면 격국+대운, 없으면 일간+대운 폴백
+  if (p3.length > 0) paragraphs.push(p3.join(' '))
+
+  // ───────── ¶4: 6개월 시나리오 처방 — 별도 단락 ─────────
+  // 격국 있으면 격국+대운, 없으면 일간+대운 폴백
   if (input.currentDaeunElement && natalKo) {
     const daeunKo = ELEMENT_KO_LABEL[input.currentDaeunElement] || ''
     if (daeunKo) {
@@ -506,10 +524,11 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
         else if (diff === 0) scenario = '지금 6개월은 본인 기조가 더 진해지는 구간이라, 평소 망설이던 결정에 무게가 실려요.'
         else if (diff === 2) scenario = '지금 6개월은 외부 자원·관계 정리에 유리한 시기라, 계약·재정 정리부터 손대보세요.'
       }
-      if (scenario) p3.push(scenario)
+      if (scenario) {
+        paragraphs.push(`정리하자면 — ${scenario}`)
+      }
     }
   }
-  if (p3.length > 0) paragraphs.push(p3.join(' '))
 
   return paragraphs.join('\n\n')
 }
