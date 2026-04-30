@@ -397,7 +397,14 @@ async function callAnthropicMessages<T>(
     },
     body: JSON.stringify({
       model,
-      system: systemMessage,
+      // system을 배열로 감싸 cache_control: ephemeral 마킹 — 90% 입력 토큰 할인
+      system: [
+        {
+          type: 'text',
+          text: systemMessage,
+          cache_control: { type: 'ephemeral' },
+        },
+      ],
       messages: [
         {
           role: 'user',
@@ -433,6 +440,17 @@ async function callAnthropicMessages<T>(
         .map((block: { text?: string }) => block.text || '')
         .join('\n')
     : ''
+
+  // 캐시 hit 모니터링 — usage.cache_read_input_tokens 가 클수록 할인 큼
+  if (data?.usage) {
+    logger.info('[AI Backend] anthropic usage', {
+      input: data.usage.input_tokens,
+      output: data.usage.output_tokens,
+      cacheRead: data.usage.cache_read_input_tokens,
+      cacheCreate: data.usage.cache_creation_input_tokens,
+      model: data.model || model,
+    })
+  }
 
   return {
     sections: extractJSONFromResponse<T>(responseText),
