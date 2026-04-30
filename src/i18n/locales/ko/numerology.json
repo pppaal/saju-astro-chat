@@ -120,7 +120,7 @@
       "errorBirthdate": "생년월일을 입력해주세요.",
       "errorRequest": "분석에 실패했습니다.",
       "errorGeneral": "오류가 발생했습니다. 다시 시도해주세요.",
-      "interpretation": "인생 경로 {{lifePath}}을(를) 기반으로 생성된 행운의 숫자입니다. 이 숫자들은 당신의 에너지와 공명합니다.",
+      "interpretation": "인생 경로 {{lifePath}}에 기반해 생성된 행운의 숫자입니다. 이 숫자들은 당신의 에너지와 공명합니다.",
       "copied": "숫자가 복사되었습니다!",
       "nameLabel": "이름 (영문, 선택사항)",
       "nameHint": "더 정확한 행운의 숫자를 위해 이름을 입력하세요",

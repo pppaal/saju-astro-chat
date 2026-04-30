@@ -3,6 +3,7 @@ import type { MatrixCalculationInput } from '../types'
 import type { AIPremiumReport } from './reportTypes'
 import type { ReportTheme } from './types'
 import type { SignalDomain, SignalSynthesisResult } from './signalSynthesizer'
+import { eunNeun } from '@/lib/i18n/koParticle'
 import type { StrategyEngineResult } from './strategyEngine'
 import type { ReportCoreViewModel } from './reportCoreHelpers'
 import type { GraphRAGEvidenceAnchor, GraphRAGCrossEvidenceSet } from './graphRagEvidence'
@@ -217,7 +218,8 @@ export function buildGraphRagSummaryPayload(
     .map((strategy) => {
       const strategyDomain = strategy.domain as SignalDomain
       if (lang === 'ko') {
-        return `${toKoreanDomainLabel(strategyDomain)}은 ${describePhaseFlow(
+        const label = toKoreanDomainLabel(strategyDomain)
+        return `${label}${eunNeun(label)} ${describePhaseFlow(
           strategy.phaseLabel,
           'ko'
         )} ${describeExecutionStance(strategy.attackPercent, strategy.defensePercent, 'ko')}`
@@ -320,7 +322,7 @@ export function humanizeCrossSetFact(set: GraphRAGCrossEvidenceSet): string {
   }
   const aspectKo = aspectKoMap[aspectRaw] || '각도 차이를 만듭니다'
   const domains = set.overlapDomains.map(toKoreanDomainLabel).join(', ')
-  return `${p1}와 ${p2}의 흐름이 ${aspectKo}. ${domains} 영역에서 같은 근거가 반복됩니다.`
+  return `${p1} ↔ ${p2}의 흐름이 ${aspectKo}. ${domains} 영역에서 같은 근거가 반복됩니다.`
 }
 
 export function extractTopMatrixFacts(matrixReport: FusionReport, sectionKey: string): string[] {
@@ -393,8 +395,9 @@ export function buildStrategyFactsForSection(
         : enActionByKey[key] || 'Run staged execution with recheck gates before commitment.'
 
     if (lang === 'ko') {
+      const dLabel = toKoreanDomainLabel(strategy.domain as SignalDomain)
       lines.push(
-        `${toKoreanDomainLabel(strategy.domain as SignalDomain)}은 ${describePhaseFlow(
+        `${dLabel}${eunNeun(dLabel)} ${describePhaseFlow(
           strategy.phaseLabel,
           'ko'
         )} ${describeExecutionStance(strategy.attackPercent, strategy.defensePercent, 'ko')}`
@@ -482,7 +485,7 @@ export function buildSectionFactPack(
 
   const activeTransits = (input.activeTransits || []).slice(0, 2)
   if (!hasReportCore && activeTransits.length > 0) {
-    bullets.push(`현재 트랜짓 ${activeTransits.join(', ')}가 같이 작동해 실행 압력을 높입니다.`)
+    bullets.push(`현재 트랜짓 ${activeTransits.join(', ')} 같이 작동해 실행 압력을 높입니다.`)
   }
   if (
     !hasReportCore &&

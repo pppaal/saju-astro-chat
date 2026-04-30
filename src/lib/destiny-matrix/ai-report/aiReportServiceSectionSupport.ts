@@ -4,6 +4,7 @@ import type { AIPremiumReport } from './reportTypes'
 import type { ReportCoreViewModel } from './reportCoreHelpers'
 import type { ReportSectionRendererDeps } from './reportSectionRenderers'
 import type { ReportLifeSectionDeps } from './reportLifeSections'
+import { iga, eunNeun } from '@/lib/i18n/koParticle'
 import {
   attachTrustNarrativeToSections as attachTrustNarrativeToSectionsExternal,
   buildReportTrustNarratives as buildReportTrustNarrativesExternal,
@@ -181,7 +182,7 @@ export function renderIntroductionSection(
       ? reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
         ? `배경 축은 ${focusLabel}이지만, 지금 먼저 손을 대야 할 곳은 ${actionLabel}입니다.`
         : focusRunnerUpLabel
-          ? `${focusLabel}이 ${focusRunnerUpLabel}보다 조금 더 앞에 서면서 이번 흐름의 중심을 잡습니다.`
+          ? `${focusLabel}${iga(focusLabel)} ${focusRunnerUpLabel}보다 조금 더 앞에 서면서 이번 흐름의 중심을 잡습니다.`
           : ''
       : reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
         ? `${actionLabel} is the axis that answers the question most directly, and it is carrying the actionable pressure in this phase.`
@@ -223,7 +224,7 @@ export function renderIntroductionSection(
   const structureBackgroundLine =
     reportCore.actionFocusDomain && reportCore.actionFocusDomain !== reportCore.focusDomain
       ? lang === 'ko'
-        ? `${focusLabel}은 이번 해석에서 배경 구조를 설명하는 축으로 남아 있습니다.`
+        ? `${focusLabel}${eunNeun(focusLabel)} 이번 해석에서 배경 구조를 설명하는 축으로 남아 있습니다.`
         : `${focusLabel} remains the background structural axis behind this reading.`
       : ''
   const structureDriversLine = structureProjection?.drivers?.length

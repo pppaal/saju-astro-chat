@@ -812,7 +812,7 @@ function finalizeThemedSectionsForUser(
         timingLine,
         '지금은 컨디션이 잠깐 올라오는 순간을 성과로 착각하기보다, 회복이 실제로 안정되는지부터 확인하는 편이 맞습니다.',
         branchEntry
-          ? `특히 ${branchEntry}가 자연스럽게 맞아떨어질 때 회복 리듬도 함께 안정됩니다.`
+          ? `특히 ${withSubjectParticle(branchEntry)} 자연스럽게 맞아떨어질 때 회복 리듬도 함께 안정됩니다.`
           : ''
       ),
       prevention: p(
@@ -859,7 +859,7 @@ function finalizeThemedSectionsForUser(
       timing: p(
         timingLine,
         '지금은 한 번에 정답을 내리기보다, 누가 무엇을 맡고 어디까지 책임질지를 먼저 맞추는 편이 안정적입니다.',
-        branchEntry ? `특히 ${branchEntry}가 자연스럽게 맞아떨어질 때 갈등도 훨씬 덜 커집니다.` : ''
+        branchEntry ? `특히 ${withSubjectParticle(branchEntry)} 자연스럽게 맞아떨어질 때 갈등도 훨씬 덜 커집니다.` : ''
       ),
       dynamics: p(
         '가족 안에서는 감정보다 역할 구조가 먼저 정리돼야 합니다.',

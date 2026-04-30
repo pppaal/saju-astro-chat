@@ -1,6 +1,7 @@
 import type { MatrixCalculationInput, MatrixSummary } from '../types'
 import type { ReportCoreViewModel } from './reportCoreHelpers'
 import type { DestinyCoreQuality } from '@/lib/destiny-matrix/core/runDestinyCore'
+import { iga, eunNeun } from '@/lib/i18n/koParticle'
 
 type TimingWindowLike = {
   whyNow?: string | null
@@ -570,7 +571,7 @@ export function renderLifeMissionSection(
             ? `지금 인생 서사를 실제로 앞으로 미는 장면은 ${leadScenarios.join(', ')} 쪽입니다.`
             : '',
           '그래서 이번 10년은 성과를 늘리는 법보다, 다음 구간까지 들고 갈 원칙을 남기는 법을 배우는 쪽에 가깝습니다.',
-          `장기 흐름에서 가장 위험한 지점은 ${metaphor.risk}이 기준 상실이나 과속 확정으로 바뀌는 순간입니다.`,
+          `장기 흐름에서 가장 위험한 지점은 ${metaphor.risk}${iga(metaphor.risk)} 기준 상실이나 과속 확정으로 바뀌는 순간입니다.`,
         ]
           .filter(Boolean)
           .join(' ')
@@ -630,7 +631,7 @@ export function renderPersonalityDeepSection(
             '타고난 구조는 기준을 세우고 흐름을 조율하는 쪽에 가깝습니다.',
           concretePersonalityLine,
           personalityPersonalizationLine,
-          `기본 성향의 강점은 ${withObjectParticleFallback(metaphor.edge, '기준을')} 빠르게 세우는 데 있고, 약점은 ${metaphor.risk}이 판단 과속으로 바뀔 때 드러납니다.`,
+          `기본 성향의 강점은 ${withObjectParticleFallback(metaphor.edge, '기준을')} 빠르게 세우는 데 있고, 약점은 ${metaphor.risk}${iga(metaphor.risk)} 판단 과속으로 바뀔 때 드러납니다.`,
           '그래서 이 성향은 감으로 먼저 밀기보다, 기준 한 줄을 먼저 적고 움직일 때 가장 안정적으로 힘을 냅니다.',
           '핵심은 생각이 선명해지는 순간과 실제로 확정하는 순간을 분리해 두는 데 있습니다.',
         ]
@@ -891,13 +892,13 @@ export function renderCareerPathSection(
       deps.sanitizeUserFacingNarrative(
         [
           `당신의 커리어는 ${metaphor.archetype}처럼, 복잡한 판을 정리할수록 더 위력이 생깁니다.`,
-          `${metaphor.environment}에서 ${metaphor.edge}이 커리어 강점으로 드러납니다.`,
+          `${metaphor.environment}에서 ${metaphor.edge}${iga(metaphor.edge)} 커리어 강점으로 드러납니다.`,
           '핵심은 일을 늘리는 것보다 우선순위와 책임 범위를 먼저 고정하는 데 있습니다.',
           leadScenario ? `실제 커리어 서사는 ${leadScenario} 쪽으로 열려 있습니다.` : '',
           timing?.whyNow
             ? `지금 이 장면이 중요한 이유는 ${sanitizeNarrativeReason(timing.whyNow, lang, deps)}`
             : '',
-          `${metaphor.risk}이 커리어 손실로 이어지기 쉬우니, 확정보다 기준 고정이 먼저입니다.`,
+          `${metaphor.risk}${iga(metaphor.risk)} 커리어 손실로 이어지기 쉬우니, 확정보다 기준 고정이 먼저입니다.`,
           allowed
             ? '지금 커리어에서는 한 번에 닫기보다, 역할을 먼저 고정하고 중간 점검을 끼워 넣는 방식이 맞습니다.'
             : '',
@@ -1019,7 +1020,7 @@ export function renderWealthPotentialSection(
           timing?.whyNow
             ? `지금 이 판단이 필요한 이유는 ${sanitizeNarrativeReason(timing.whyNow, lang, deps)}`
             : '',
-          `${metaphor.risk}이 재정에서는 과속 투자, 대충 넘긴 조건, 손실 상한 없는 약속으로 바뀌기 쉽습니다.`,
+          `${metaphor.risk}${iga(metaphor.risk)} 재정에서는 과속 투자, 대충 넘긴 조건, 손실 상한 없는 약속으로 바뀌기 쉽습니다.`,
           '이번 재정의 승부처는 많이 버는 장면이 아니라, 어디까지 잃을 수 있고 무엇까지 책임질지를 먼저 써두는 데 있습니다.',
           '돈이 들어오는 문보다 먼저 점검해야 할 것은 계약 조건, 정산 기준, 손실 상한입니다.',
           deps.normalizeNarrativeCoreText(
@@ -1112,7 +1113,7 @@ export function renderHealthGuidanceSection(
         [
           '건강은 버티는 힘보다 회복 리듬과 과부하 신호를 얼마나 빨리 정리하느냐에서 갈립니다.',
           '이번 건강 흐름은 몰아붙이는 하루보다 반복 가능한 회복 루틴을 먼저 고정하는 쪽이 강합니다.',
-          `${metaphor.risk}은 몸에서 피로 누적과 회복 지연으로 번지기 쉽습니다.`,
+          `${metaphor.risk}${eunNeun(metaphor.risk)} 몸에서 피로 누적과 회복 지연으로 번지기 쉽습니다.`,
           timing?.whyNow
             ? `지금 몸 상태를 다시 봐야 하는 이유는 ${sanitizeNarrativeReason(timing.whyNow, lang, deps)}`
             : '',

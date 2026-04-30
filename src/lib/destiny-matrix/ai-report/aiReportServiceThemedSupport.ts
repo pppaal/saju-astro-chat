@@ -155,16 +155,16 @@ function buildKoSharedDeepAnalysis(
 ): string {
   const intro =
     actionDomain === 'career'
-      ? `${focusLabel}이 배경 구조라도 실제 결과는 ${actionLabel}에서 역할 범위와 평가 기준을 어떻게 세우느냐에 따라 갈립니다.`
+      ? `${withSubjectParticle(focusLabel)} 배경 구조라도 실제 결과는 ${actionLabel}에서 역할 범위와 평가 기준을 어떻게 세우느냐에 따라 갈립니다.`
       : actionDomain === 'relationship'
-        ? `${focusLabel}이 배경 구조라도 실제 관계 흐름은 ${actionLabel}에서 답장 간격과 만나는 빈도를 어떻게 맞추느냐에 따라 갈립니다.`
+        ? `${withSubjectParticle(focusLabel)} 배경 구조라도 실제 관계 흐름은 ${actionLabel}에서 답장 간격과 만나는 빈도를 어떻게 맞추느냐에 따라 갈립니다.`
         : actionDomain === 'wealth'
-          ? `${focusLabel}이 배경 구조라도 실제 재정 흐름은 ${actionLabel}에서 현금흐름과 손실 상한을 어떻게 잠그느냐에 따라 갈립니다.`
+          ? `${withSubjectParticle(focusLabel)} 배경 구조라도 실제 재정 흐름은 ${actionLabel}에서 현금흐름과 손실 상한을 어떻게 잠그느냐에 따라 갈립니다.`
           : actionDomain === 'health'
-            ? `${focusLabel}이 배경 구조라도 실제 컨디션은 ${actionLabel}에서 회복 리듬과 과부하 한계를 어떻게 지키느냐에 따라 갈립니다.`
+            ? `${withSubjectParticle(focusLabel)} 배경 구조라도 실제 컨디션은 ${actionLabel}에서 회복 리듬과 과부하 한계를 어떻게 지키느냐에 따라 갈립니다.`
             : actionDomain === 'move'
-              ? `${focusLabel}이 배경 구조라도 실제 생활 변화는 ${actionLabel}에서 거점, 동선, 계약 조건을 어떻게 비교하느냐에 따라 갈립니다.`
-              : `${focusLabel}이 배경 구조라도 실제 결과를 바꾸는 전면 축은 ${actionLabel}입니다.`
+              ? `${withSubjectParticle(focusLabel)} 배경 구조라도 실제 생활 변화는 ${actionLabel}에서 거점, 동선, 계약 조건을 어떻게 비교하느냐에 따라 갈립니다.`
+              : `${withSubjectParticle(focusLabel)} 배경 구조라도 실제 결과를 바꾸는 전면 축은 ${actionLabel}입니다.`
 
   const support =
     structureDrivers && actionDomain === 'career'
@@ -270,10 +270,10 @@ function buildKoDomainRecommendations(
 
   const third = branchRisk
     ? actionDomain === 'wealth'
-      ? `${branchRisk}가 커지지 않도록 큰 결정보다 되돌릴 수 있는 작은 조정부터 시험하세요.`
+      ? `${withSubjectParticle(branchRisk)} 커지지 않도록 큰 결정보다 되돌릴 수 있는 작은 조정부터 시험하세요.`
       : actionDomain === 'health'
-        ? `${branchRisk}가 커지지 않도록 무리한 버티기보다 회복 가능 범위 안에서만 움직이세요.`
-        : `${branchRisk}가 커지지 않도록 작은 단위의 가역적 행동으로 시험하세요.`
+        ? `${withSubjectParticle(branchRisk)} 커지지 않도록 무리한 버티기보다 회복 가능 범위 안에서만 움직이세요.`
+        : `${withSubjectParticle(branchRisk)} 커지지 않도록 작은 단위의 가역적 행동으로 시험하세요.`
     : actionDomain === 'move'
       ? '한 번에 주소를 바꾸기보다 출퇴근 동선과 생활비부터 작은 단위로 시험하세요.'
       : '한 번에 크게 움직이기보다 되돌릴 수 있는 작은 단계로 진행하세요.'
@@ -564,7 +564,7 @@ export function buildProjectionFirstThemedSections(
   const sharedConclusion =
     lang === 'ko'
       ? paragraph(
-          `${focusLabel}이 배경 압력축이고 ${actionLabel}이 현재 실행축입니다.`,
+          `${withSubjectParticle(focusLabel)} 배경 압력축이고 ${withSubjectParticle(actionLabel)} 현재 실행축입니다.`,
           `${reportCore.topDecisionLabel || reportCore.primaryAction} 쪽으로 순서를 잡는 사람이 이 구간을 더 안정적으로 통과합니다.`,
           reportCore.riskControl
         )

@@ -84,7 +84,7 @@ function suffixGeokgukDescription(desc: string): string {
   if (/(?:추구|축적|관심|보유|중시|성공|사고력|결단력|독립적)$/.test(cleaned)) {
     return `${cleaned}하는 분이에요.`
   }
-  return `${cleaned}을 보이는 분이에요.`
+  return `${cleaned}${eulReul(cleaned)} 보이는 분이에요.`
 }
 
 /**
@@ -664,7 +664,7 @@ export function buildStoryArcKo(input: MatrixCalculationInput): string {
           ? `세운으로 보면 ${currentYear - 1}년 ${prevG2}에서 시작된 줄기가 올해 ${currentYear}년 ${curG}로 넘어왔고, 내년 ${nextG2}에서 한 번 더 정리될 가능성이 있어요.`
           : curEl
             ? `올해 ${currentYear}년 세운은 ${curG}로, ${curEl}이 한 해 환경의 톤을 잡아주는 구간이에요.`
-            : `올해 ${currentYear}년 세운은 ${curG}이 한 해 환경의 톤을 잡아주는 구간이에요.`
+            : `올해 ${currentYear}년 세운은 ${curG} — 한 해 환경의 톤을 잡아주는 구간이에요.`
       lines.push(annualLine)
     }
   }
