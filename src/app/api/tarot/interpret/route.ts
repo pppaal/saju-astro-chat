@@ -258,7 +258,7 @@ export const POST = withApiMiddleware(
         fallback: Boolean(finalizedResult.fallback),
       })
 
-      // ======== ?? ?? (??? ????) ========
+      // ======== DB 저장 (사용자 인증 시) ========
       const session = context.session
       if (session?.user?.id) {
         try {
@@ -325,7 +325,7 @@ export const POST = withApiMiddleware(
   })
 )
 
-// GPT-4o-mini API ?? ?? (?? ???)
+// GPT-4o-mini API 호출 함수 (저비용 모델)
 async function callGPT(
   prompt: string,
   maxTokens = 400,
@@ -465,7 +465,7 @@ function truncatePromptContext(input: string | undefined, maxLength = 1200): str
   return `${normalized.slice(0, maxLength)}\n...[truncated]`
 }
 
-// GPT? ??? ?? ?? (??? ?? ?? ??) - ?? ????? ?? ???
+// GPT로 통합형 타로 해석 (전체 메시지 + 카드별 + 조언) — 백엔드 RAG 실패 시 폴백
 async function generateGPTInterpretation(
   cards: CardInput[],
   spreadTitle: string,
@@ -478,17 +478,17 @@ async function generateGPTInterpretation(
   const isLargeSpread = cards.length >= LARGE_SPREAD_THRESHOLD
   const budget = getPromptBudget(cards.length, isKorean)
 
-  // ??? ?? ??
+  // 카드 정보 정리
   const cardListText = cards
     .map((c, i) => {
       const name = isKorean && c.nameKo ? c.nameKo : c.name
       const pos = isKorean && c.positionKo ? c.positionKo : c.position
       const keywords = (isKorean && c.keywordsKo ? c.keywordsKo : c.keywords) || []
-      return `${i + 1}. [${pos}] ${name}${c.isReversed ? '(???)' : ''} - ${keywords.slice(0, 3).join(', ')}`
+      return `${i + 1}. [${pos}] ${name}${c.isReversed ? '(역방향)' : ''} - ${keywords.slice(0, 3).join(', ')}`
     })
     .join('\n')
 
-  let q = userQuestion || (isKorean ? '?? ??' : 'general reading')
+  let q = userQuestion || (isKorean ? '일반 상담' : 'general reading')
   const compactSaju = truncatePromptContext(sajuContext)
   const compactAstro = truncatePromptContext(astroContext)
   const contextBlock = [compactSaju, compactAstro].filter(Boolean).join('\n')
@@ -502,7 +502,7 @@ async function generateGPTInterpretation(
         .map((c, i) => {
           const pos = isKorean && c.positionKo ? c.positionKo : c.position
           const ordinal = isKorean
-            ? `${i + 1}??`
+            ? `${i + 1}번째`
             : i === 0
               ? 'First'
               : i === 1
@@ -513,7 +513,7 @@ async function generateGPTInterpretation(
           return isKorean
             ? `    {
       "position": "${pos}",
-      "interpretation": "${ordinal} ?? ?? (${budget.perCardGuide})"
+      "interpretation": "${ordinal} 카드 해석 (${budget.perCardGuide})"
     }`
             : `    {
       "position": "${pos}",
@@ -524,15 +524,15 @@ async function generateGPTInterpretation(
 
   const outputSchemaKo = isLargeSpread
     ? `{
-  "overall": "?? ??? (${budget.overallGuide})",
-  "advice": "?? ?? (150-230?)"
+  "overall": "전체 메시지 (${budget.overallGuide})",
+  "advice": "실행 지침 (150-230자)"
 }`
     : `{
-  "overall": "?? ??? (${budget.overallGuide})",
+  "overall": "전체 메시지 (${budget.overallGuide})",
   "cards": [
 ${cardExamples}
   ],
-  "advice": "?? ?? (${budget.adviceGuide})"
+  "advice": "실행 지침 (${budget.adviceGuide})"
 }`
 
   const outputSchemaEn = isLargeSpread
@@ -548,33 +548,33 @@ ${cardExamples}
   "advice": "Practical action steps (${budget.adviceGuide})"
 }`
 
-  // ?? ???? (?? ?? + ??? ?? + ??)
+  // 통합 프롬프트 (전체 해석 + 카드별 해석 + 조언)
   const unifiedPrompt = isKorean
-    ? `??? ??? ?? ?????. ??? ???? ???? ?????.
+    ? `당신은 실전형 타로 리더입니다. 핵심만 정확하고 따뜻하게 전달하세요.
 
-## ????: ${spreadTitle}
-## ??: "${q}"
+## 스프레드: ${spreadTitle}
+## 질문: "${q}"
 
-## ?? ??
+## 뽑힌 카드
 ${cardListText}
 
-## ??
-- ??? ?? ???, ??? ??? ?????.
-- ??? ?? JSON???.
+## 중요
+- 질문에 직접 답하고, 장황한 설명은 금지합니다.
+- 출력은 오직 JSON입니다.
 - ${
         isLargeSpread
-          ? '?? ??????? cards ??? ???? ??, ?? ???? ?? ??? ??? ?????.'
-          : `??? ?? ${cards.length}? ?? ??? ?????.`
+          ? '대형 스프레드이므로 cards 필드는 출력하지 말고, 전체 메시지와 실행 지침만 정확히 작성하세요.'
+          : `반드시 모든 ${cards.length}개 카드 해석을 포함하세요.`
       }
 
-## ?? ?? (JSON)
-?? ???? ??? JSON ??:
+## 출력 형식 (JSON)
+다음 형식으로 정확히 JSON 응답:
 ${outputSchemaKo}
 
-## ?? ??
-- ${isLargeSpread ? '?? ???? ?? ???? ????, ?? ??? 3??? ???' : '? ?? ??? ?? ?? + ?? ?? ?? + ?? ?? ???? ??'}
-- ??? ??? ??/??/??? ???? ???
-- ??? ?? ??, ?? ?? ??? ?? ??`
+## 작성 규칙
+- ${isLargeSpread ? '전체 메시지는 질문 중심으로 작성하고, 실행 지침은 3단계로 구체화' : '각 카드 해석은 위치 의미 + 현재 상황 연결 + 오늘 실행 포인트를 포함'}
+- 역방향 카드는 막힘/지연/내면화 관점으로 구체화
+- 추상적 문장 금지, 바로 실행 가능한 문장 사용`
     : `You are a practical tarot reader. Be precise, warm, and concise.
 
 ## Spread: ${spreadTitle}
@@ -619,7 +619,7 @@ ${outputSchemaEn}
             let interpretation =
               typeof cardData.interpretation === 'string' ? cardData.interpretation : ''
 
-            // ??? ?? ??? ???, ???/???/?? ??? ?? ?? ?? ???? ??
+            // 해석이 너무 짧으면 스프레드/위치/방향 정보 기반 최소 보장 텍스트로 보강
             if (!interpretation || interpretation.length < 80) {
               interpretation = ensureCardAnchoring(
                 language,
@@ -652,7 +652,7 @@ ${outputSchemaEn}
         guidance:
           (typeof parsed.advice === 'string' && parsed.advice) ||
           buildActionableGuidance(language, userQuestion),
-        affirmation: isKorean ? '?? ??? ??? ?? ??.' : 'Just be yourself today.',
+        affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
         combinations: normalizeCombinations(parsed.combinations, cards, language),
         followup_questions: [],
         fallback: false,
@@ -663,12 +663,12 @@ ${outputSchemaEn}
       preview: result.slice(0, 280),
     })
 
-    // JSON ?? ?? ? ?? ???? overall? ??
+    // JSON 파싱 실패 시 원본 텍스트로 overall 폴백
     return {
       overall_message: result,
       card_insights: buildAnchoredCardInsights(cards, language, userQuestion),
-      guidance: isKorean ? '??? ???? ? ??????.' : 'Listen to the cards.',
-      affirmation: isKorean ? '??? ???!' : 'You got this!',
+      guidance: isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.',
+      affirmation: isKorean ? '오늘도 화이팅!' : 'You got this!',
       combinations: normalizeCombinations(undefined, cards, language),
       followup_questions: [],
       fallback: false,
