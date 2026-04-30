@@ -390,6 +390,13 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
       p1.push(`거기에 ${top.join('·')}${iga(lastWord)} 활성화돼 ${blurbs.join(', ')}${closing}`)
     }
   }
+  // (NEW) 주변 인상 callback — 십신 dominant로 "주변에서 듣는 말 / 거슬려하는 말" 한 줄
+  if (topSibsin) {
+    const impression = SIBSIN_PUBLIC_IMPRESSION_KO[topSibsin as string]
+    if (impression) {
+      p1.push(`주변에서 자주 듣는 평가는 "${impression.praise}" 쪽이고, 정작 본인이 가장 거슬려하는 말은 "${impression.sting}" 쪽이에요.`)
+    }
+  }
   if (p1.length > 0) paragraphs.push(p1.join(' '))
 
   // ───────── ¶ Specific 천간/지지: 본명 안에 이미 형성된 관계 한 줄 ─────────
@@ -400,21 +407,18 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   const storyArc = buildStoryArcKo(input)
   if (storyArc) paragraphs.push(storyArc)
 
-  // ───────── ¶2: 시기 흐름 — 대운/세운/월운 + 사이클 충돌·상생 narration ─────────
+  // ───────── ¶2: 시기 흐름 — 월별 peak + 사이클 충돌 + 월운/일운 ─────────
+  // 대운/세운 relation은 이미 buildStoryArcKo에 폴딩됨 (중복 제거).
+  // 이 단락은 단기 시기(월/일) + 월별 peak + 큰 사이클 충돌만 다룸.
   const p2: string[] = []
-  const daeunRel = describeCycleRelation(natal, input.currentDaeunElement, '대운', '인생 전반을 그 색으로 물들이는')
-  const saeunRel = describeCycleRelation(natal, input.currentSaeunElement, '올해 세운', '한 해 동안 환경을 그쪽으로 밀어붙이는')
-  const wolunRel = describeCycleRelation(natal, input.currentWolunElement, '이번 달 월운', '한 달 분위기를 살짝 끌어주는')
-  const iljinRel = describeCycleRelation(natal, input.currentIljinElement, '오늘 일운', '오늘 하루 톤을 잡아주는')
-
-  if (daeunRel) p2.push(`${daeunRel} 시기예요.`)
-  if (saeunRel) p2.push(`${saeunRel} 한 해예요.`)
   // (B) Specific timing anchor — 일간 vs 세운 관계로 월별 peak 한 줄
   const annualPeak = describeAnnualPeak(input.currentSaeunElement, natal)
   if (annualPeak) p2.push(annualPeak)
   // 대운 ↔ 세운 사이클 충돌 narration
   const daeunSaeunClash = describeCycleClash(input.currentDaeunElement, input.currentSaeunElement, '대운', '세운')
   if (daeunSaeunClash) p2.push(`두 사이클을 함께 보면 ${daeunSaeunClash} 그림이라, 큰 방향이 정해진 가운데 한 해 단위로 환경이 어떻게 받쳐주는지가 중요해져요.`)
+  const wolunRel = describeCycleRelation(natal, input.currentWolunElement, '이번 달 월운', '한 달 분위기를 살짝 끌어주는')
+  const iljinRel = describeCycleRelation(natal, input.currentIljinElement, '오늘 일운', '오늘 하루 톤을 잡아주는')
   if (wolunRel) p2.push(`${wolunRel} 색이 깔려요.`)
   if (iljinRel) p2.push(`${iljinRel} 분위기로 마무리돼요.`)
   if (p2.length > 0) paragraphs.push(p2.join(' '))
@@ -542,7 +546,20 @@ const STEM_INTRO_KO: Record<string, string> = {
   癸: '계수(癸水) 일간으로, 섬세하고 직관적인 빗물 같은 결이 본명의 중심이에요',
 }
 
-// 일간 element vs 세운 element diff → 월별 peak 한 줄
+// 십신 dominant → 주변에서 흔히 듣는 인상 + 본인이 거슬려하는 말
+const SIBSIN_PUBLIC_IMPRESSION_KO: Partial<Record<string, { praise: string; sting: string }>> = {
+  비견: { praise: '주관 강하고 독립적이다', sting: '혼자 다 하려고 한다 / 고집 세다' },
+  겁재: { praise: '추진력 있고 경쟁심 강하다', sting: '배려가 부족하다 / 자기 페이스만 본다' },
+  식신: { praise: '여유롭고 표현이 자연스럽다', sting: '느긋하다 / 결단력 부족하다' },
+  상관: { praise: '예리하고 다재다능하다', sting: '비판적이다 / 잘난 척한다' },
+  정재: { praise: '성실하고 꼼꼼하다', sting: '융통성 없다 / 재미없다' },
+  편재: { praise: '재주 많고 사람 관계 넓다', sting: '산만하다 / 한 곳에 못 머문다' },
+  정관: { praise: '원칙 있고 리더 같다', sting: '딱딱하다 / 융통성 없다' },
+  편관: { praise: '추진력 있고 강단 있다', sting: '성격 급하다 / 강압적이다' },
+  정인: { praise: '차분하고 신뢰감 있다', sting: '느리다 / 결단을 미룬다' },
+  편인: { praise: '독창적이고 직관적이다', sting: '이상하다 / 현실감 없다' },
+}
+
 const ELEMENT_PEAK_MONTHS_KO: Record<string, string> = {
   목: '3월~5월 봄철',
   화: '5월~7월 초여름',
@@ -603,7 +620,7 @@ function buildCrossIntegrationKo(natalKo: string, dominantWestern: string | unde
   if (isAligned) {
     return `사주의 ${ko1}이 점성의 ${ko2}과 같은 방향을 가리켜, 두 시스템이 서로 보태주는 결이에요. 결정에 가속이 잘 붙는 차트입니다.`
   }
-  return `사주는 ${ko1}을 가리키는데 점성은 ${ko2}을 부추기는 결이라, 한 사람 안에 brake와 accelerator가 같이 들어 있어요. 잘 맞물리면 '계산된 모험'이 되고, 어긋나면 결정 직전 늘 한 박자 망설이는 톤이 돼요.`
+  return `사주는 ${ko1}을 가리키는데 점성은 ${ko2}을 부추기는 결이라, 한 사람 안에 brake와 accelerator가 같이 들어 있어요. 잘 맞물리면 '계산된 모험'이 되고, 어긋나면 결정 직전 늘 한 박자 망설이는 톤이 돼요. 운영 팁은 영역별로 나누는 거예요 — 큰 결정·돈·계약은 사주 신중함을 따르고, 새 만남·표현·확장은 점성 추진력을 살려 쓰면 둘이 부딪히지 않습니다.`
 }
 
 const STEM_KO_ELEMENT: Record<string, string> = {
@@ -755,7 +772,27 @@ export function buildStoryArcKo(input: MatrixCalculationInput): string {
   }
   if (currG && currEl) {
     const range = `${arc.current.age}~${arc.current.age + 9}세`
-    lines.push(`지금 ${range} ${currG} 대운으로 들어와 ${currEl}이 본명을 새로 물들이는 구간이에요.`)
+    // 일간 vs 현재 대운 element 관계로 한 줄에 시간 axis + relation 압축
+    const natalRaw = (input as { dayMasterElement?: string }).dayMasterElement
+    const natalKoEl = natalRaw ? ELEMENT_KO_LABEL[natalRaw] : ''
+    const cycleKoEl = arc.current.heavenlyStem ? STEM_KO_ELEMENT[arc.current.heavenlyStem] : ''
+    const SEQ = ['목', '화', '토', '금', '수']
+    const ni = SEQ.indexOf(natalKoEl)
+    const ci = SEQ.indexOf(cycleKoEl)
+    const diff = ni >= 0 && ci >= 0 ? (ci - ni + 5) % 5 : -1
+    const RELATION_TONE = [
+      '본명 색이 한 자리에 더 진해지는',
+      '본인 기운을 밖으로 풀어내는',
+      '본인이 환경을 다스리고 통제하는',
+      '본인을 누르고 시험하며 단단해지게 만드는',
+      '본인을 받쳐주고 길러주는 인성',
+    ]
+    const tone = diff >= 0 && diff < 5 ? RELATION_TONE[diff] : ''
+    if (tone) {
+      lines.push(`지금 ${range} ${currG} 대운으로 들어와 있는데, ${tone} 구도라 인생 전반의 색이 그쪽으로 잡혀요.`)
+    } else {
+      lines.push(`지금 ${range} ${currG} 대운에 들어와 있어요.`)
+    }
   }
   if (nextG && nextEl) {
     lines.push(`10년 뒤 ${arc.next?.age}~${(arc.next?.age ?? 0) + 9}세 ${nextG} 대운에서는 ${nextEl}이 다음 챕터를 열어주게 되니, 지금 톤을 잘 정리해두면 자연스럽게 옮겨가요.`)
