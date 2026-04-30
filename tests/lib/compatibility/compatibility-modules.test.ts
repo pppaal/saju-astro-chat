@@ -23,27 +23,7 @@ describe('Cosmic Compatibility', () => {
 
 });
 
-describe('Group Compatibility', () => {
-  it('should export GroupMember type', async () => {
-    const module = await import('@/lib/compatibility/groupCompatibility');
-    expect(module).toBeDefined();
-  }, 60000);
-
-  it('should export analyzeGroupSajuCompatibility function', async () => {
-    const { analyzeGroupSajuCompatibility } = await import('@/lib/compatibility/groupCompatibility');
-    expect(typeof analyzeGroupSajuCompatibility).toBe('function');
-  });
-
-  it('should export analyzeGroupAstrologyCompatibility function', async () => {
-    const { analyzeGroupAstrologyCompatibility } = await import('@/lib/compatibility/groupCompatibility');
-    expect(typeof analyzeGroupAstrologyCompatibility).toBe('function');
-  });
-
-  it('should export analyzeGroupCompatibility function', async () => {
-    const { analyzeGroupCompatibility } = await import('@/lib/compatibility/groupCompatibility');
-    expect(typeof analyzeGroupCompatibility).toBe('function');
-  });
-});
+// Group Compatibility — 미사용으로 삭제됨 (2025 정리)
 
 describe('Cross System Analysis', () => {
   it('should export analyzeDayMasterVsSun function', async () => {
