@@ -23,12 +23,12 @@ export function ReportProfileForm({
     () =>
       locale === 'ko'
         ? {
-            title: '?? ??? ??',
-            subtitle: '????, ????, ????? ?? ???? Free/Premium ?? ?? ???? ?????.',
-            nameLabel: '?? (??)',
-            namePlaceholder: '?: ???',
-            submitButton: '?? ??',
-            savedTitle: '??? ??',
+            title: '리포트 프로필 입력',
+            subtitle: '생년월일, 출생지, 출생시간을 한 번 채워두면 Free/Premium 리포트 모두에 동일하게 적용됩니다.',
+            nameLabel: '이름 (선택)',
+            namePlaceholder: '예: 홍길동',
+            submitButton: '입력 저장',
+            savedTitle: '저장된 입력',
           }
         : {
             title: 'Report Profile',
@@ -42,7 +42,7 @@ export function ReportProfileForm({
   )
 
   const toPayload = (birth: BirthInfo): ReportProfileInput => ({
-    name: name.trim() || (locale === 'ko' ? '???' : 'User'),
+    name: name.trim() || (locale === 'ko' ? '사용자' : 'User'),
     birthDate: birth.birthDate,
     birthTime: birth.birthTime || '12:00',
     gender: birth.gender === 'F' || birth.gender === 'M' ? birth.gender : undefined,
@@ -113,8 +113,8 @@ export function ReportProfileForm({
         <div className="mt-4 rounded-xl border border-emerald-300/35 bg-emerald-500/10 p-3 text-sm text-emerald-100">
           <p className="font-medium">{labels.savedTitle}</p>
           <p className="mt-1">
-            {lastSaved.name} ? {lastSaved.birthDate} {lastSaved.birthTime}
-            {lastSaved.birthCity ? ` ? ${lastSaved.birthCity}` : ''}
+            {lastSaved.name} · {lastSaved.birthDate} {lastSaved.birthTime}
+            {lastSaved.birthCity ? ` · ${lastSaved.birthCity}` : ''}
           </p>
         </div>
       )}
