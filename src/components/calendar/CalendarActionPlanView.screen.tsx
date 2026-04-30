@@ -322,23 +322,23 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   )
 
   const todayFocus = baseInfo?.categories?.length
-    ? baseInfo.categories.slice(0, 2).map(categoryLabel).join(' � ')
+    ? baseInfo.categories.slice(0, 2).map(categoryLabel).join(' · ')
     : isKo
-      ? '??? ??'
+      ? '오늘의 흐름'
       : 'Today flow'
 
   const weekFocus = topCategory
-    ? `${categoryLabel(topCategory)} ${isKo ? '??' : 'focus'}`
+    ? `${categoryLabel(topCategory)} ${isKo ? '중심' : 'focus'}`
     : isKo
-      ? '??? ??'
+      ? '균형과 정리'
       : 'Balance & structure'
   const weekTitle =
     rangeDays === 7
       ? isKo
-        ? '?? ? ?????'
+        ? '이번 주 체크리스트'
         : 'This Week Checklist'
       : isKo
-        ? '2? ?????'
+        ? '2주 체크리스트'
         : '2-Week Checklist'
 
   const formatHourLabel = useCallback(
@@ -408,7 +408,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
   const shouldDecodeLatin1 = useCallback((value: string) => {
     if (!value) return false
-    if (/[?-?\u3040-\u30ff\u3400-\u9fff]/.test(value)) return false
+    if (/[\uac00-\ud7a3\u3040-\u30ff\u3400-\u9fff]/.test(value)) return false
     const latinExtendedCount = (value.match(/[\u00C0-\u00FF]/g) || []).length
     return latinExtendedCount >= 2
   }, [])
@@ -488,28 +488,28 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       if (slot.whyPatterns?.length) {
         parts.push(
           isKo
-            ? `???? ?? ${slot.whyPatterns.map(formatWhyPatternLabel).join(' � ')}`
-            : `Dominant pattern ${slot.whyPatterns.map(formatWhyPatternLabel).join(' � ')}`
+            ? `두드러진 흐름 ${slot.whyPatterns.map(formatWhyPatternLabel).join(' · ')}`
+            : `Dominant pattern ${slot.whyPatterns.map(formatWhyPatternLabel).join(' · ')}`
         )
       }
       if (slot.whySignalIds?.length) {
         parts.push(
-          isKo ? `?? ?? ${slot.whySignalIds.length}?` : `${slot.whySignalIds.length} signals`
+          isKo ? `근거 신호 ${slot.whySignalIds.length}개` : `${slot.whySignalIds.length} signals`
         )
       }
       if (slot.whyAnchorIds?.length) {
-        parts.push(isKo ? `?? ${slot.whyAnchorIds.length}?` : `${slot.whyAnchorIds.length} anchors`)
+        parts.push(isKo ? `앵커 ${slot.whyAnchorIds.length}개` : `${slot.whyAnchorIds.length} anchors`)
       }
-      return parts.join(' � ')
+      return parts.join(' · ')
     },
     [formatWhyPatternLabel, isKo]
   )
 
   const formatConfidenceNote = useCallback(
     (reasons: string[]) => {
-      const joined = reasons.map(formatConfidenceReasonLabel).join(' � ')
+      const joined = reasons.map(formatConfidenceReasonLabel).join(' · ')
       if (!joined) return ''
-      return isKo ? `??? ??: ${joined}` : `Confidence note: ${joined}`
+      return isKo ? `신뢰도 메모: ${joined}` : `Confidence note: ${joined}`
     },
     [formatConfidenceReasonLabel, isKo]
   )
@@ -520,14 +520,14 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       if (!normalized) return false
       const genericNeedles = isKo
         ? [
-            '?? ?? ??? ???? ??? ??? ?? ?????',
-            '?? ?? ?? ??? ?? ??',
-            '?? ??? ?? ?? ?? ??',
-            '?? ??? ?? ??? ??',
-            '?? ?? ??',
-            '??? ??',
-            '?? ? ?? ?? 1? ?? ??',
-            '??? ?? ?? ?? 1? ?? ? ?? ??',
+            '오늘 신호 균형을 기준으로 슬롯별 강약을 나눠 운영합니다',
+            '사주 일진 점성 트랜짓 기본 신호',
+            '좋은 시간대 사주 점성 공통 우세',
+            '주의 시간대 교차 리스크 신호',
+            '신호 정렬 양호',
+            '리스크 구간',
+            '실행 전 성공 조건 1줄 먼저 작성',
+            '결정은 하되 반대 근거 1개 확인 전 확정 금지',
           ]
         : [
             'operate each slot based on today signal balance',
@@ -552,7 +552,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   )
 
   const extractBestHours = useCallback((value: string) => {
-    if (!value || /[??]/.test(value)) {
+    if (!value || /년|월/.test(value)) {
       return [] as number[]
     }
     const normalized = value.replace(/\s+/g, '')
@@ -596,7 +596,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     if (baseInfo?.bestTimes?.[0]) {
       const bestTimeText = cleanText(baseInfo.bestTimes[0])
       if (bestTimeText) {
-        pushItem(isKo ? `${bestTimeText}? ?? ?? ??` : `Schedule a key task at ${bestTimeText}`)
+        pushItem(isKo ? `${bestTimeText}에 핵심 일정 배치` : `Schedule a key task at ${bestTimeText}`)
       }
     }
 
@@ -610,11 +610,11 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     if (items.length < 3) {
       const grade = baseInfo?.displayGrade ?? baseInfo?.grade ?? 2
       if (grade <= 1) {
-        pushItem(isKo ? '?? ??/?? ??' : 'Push a key decision or meeting')
+        pushItem(isKo ? '중요 결정/미팅 추진' : 'Push a key decision or meeting')
       } else if (grade === 2) {
-        pushItem(isKo ? '?? ?? 1? ???' : 'Wrap up one core task')
+        pushItem(isKo ? '핵심 업무 1건 마무리' : 'Wrap up one core task')
       } else {
-        pushItem(isKo ? '? ?? ??? ??/??' : 'Avoid big decisions and recover')
+        pushItem(isKo ? '큰 결정 피하고 회복/정비' : 'Avoid big decisions and recover')
       }
     }
 
@@ -671,15 +671,15 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
   const aiContextLabel = useMemo(() => {
     if (hasIcp && hasPersona) {
-      return isKo ? 'ICP+?? ??' : 'ICP + personality'
+      return isKo ? 'ICP+성격 반영' : 'ICP + personality'
     }
     if (hasIcp) {
-      return isKo ? 'ICP ??' : 'ICP only'
+      return isKo ? 'ICP 반영' : 'ICP only'
     }
     if (hasPersona) {
-      return isKo ? '?? ??' : 'Personality only'
+      return isKo ? '성격 반영' : 'Personality only'
     }
-    return isKo ? '??' : 'Base'
+    return isKo ? '기본' : 'Base'
   }, [hasIcp, hasPersona, isKo])
 
   const aiStatusText = useMemo(
@@ -711,16 +711,16 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
   const baseTexts = useCallback(
     (hour: number) => {
-      if (hour < 5) return isKo ? '??/??' : 'Sleep & rest'
-      if (hour < 7) return isKo ? '??/???' : 'Wake & stretch'
-      if (hour < 9) return isKo ? '?? ?? ??' : 'Review goals'
-      if (hour < 12) return isKo ? '?? ??' : 'Deep work'
-      if (hour < 13) return isKo ? '??/????' : 'Lunch & reset'
-      if (hour < 15) return isKo ? '??/??' : 'Admin & sync'
-      if (hour < 18) return isKo ? '??/?? ???' : 'Execution'
-      if (hour < 20) return isKo ? '??/??' : 'Recovery & connection'
-      if (hour < 22) return isKo ? '??/?? ??' : 'Review & plan'
-      return isKo ? '?? ??' : 'Wind down'
+      if (hour < 5) return isKo ? '수면/휴식' : 'Sleep & rest'
+      if (hour < 7) return isKo ? '기상/몸풀기' : 'Wake & stretch'
+      if (hour < 9) return isKo ? '오늘 목표 점검' : 'Review goals'
+      if (hour < 12) return isKo ? '집중 업무' : 'Deep work'
+      if (hour < 13) return isKo ? '점심/리프레시' : 'Lunch & reset'
+      if (hour < 15) return isKo ? '정리/소통' : 'Admin & sync'
+      if (hour < 18) return isKo ? '실행/성과 만들기' : 'Execution'
+      if (hour < 20) return isKo ? '회복/관계' : 'Recovery & connection'
+      if (hour < 22) return isKo ? '리뷰/내일 준비' : 'Review & plan'
+      return isKo ? '휴식 준비' : 'Wind down'
     },
     [isKo]
   )
@@ -764,7 +764,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       const hour = Math.floor(index / slotsPerHour)
       const defaultAction = cleanText(defaultActionByHour(hour), '')
       const defaultNote = cleanText(
-        `${baseTexts(hour)}${defaultAction ? ` � ${defaultAction}` : ''}`,
+        `${baseTexts(hour)}${defaultAction ? ` · ${defaultAction}` : ''}`,
         baseTexts(hour)
       )
       return {
@@ -811,19 +811,19 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         hour: 9,
         minute: 0,
         note: todayItems[0],
-        evidence: [isKo ? '?? ??/??? ?? ?? ?? ??' : 'Saju daily-time focus slot'],
+        evidence: [isKo ? '사주 일진/시간대 기반 오전 집중 슬롯' : 'Saju daily-time focus slot'],
       },
       {
         hour: 14,
         minute: 0,
         note: todayItems[1],
-        evidence: [isKo ? '?? ??/?? ?? ?? ?? ??' : 'Astrology execution-flow PM slot'],
+        evidence: [isKo ? '점성 흐름/실행 구간 기반 오후 슬롯' : 'Astrology execution-flow PM slot'],
       },
       {
         hour: 20,
         minute: 0,
         note: todayItems[2],
-        evidence: [isKo ? '??/?? ?? ?? ?? ??' : 'Recovery-and-review evening slot'],
+        evidence: [isKo ? '회복/정리 구간 기반 저녁 슬롯' : 'Recovery-and-review evening slot'],
       },
     ]
     mainSlots.forEach((slot) => {
@@ -832,22 +832,22 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
     if (baseInfo?.recommendations?.[0]) {
       applySlot(10, baseInfo.recommendations[0], 'best', 0, [
-        isKo ? '?? ??(??+?? ?? ??)' : 'Recommended action (cross-interpreted from Saju+Astrology)',
+        isKo ? '추천 행동(사주+점성 교차 해석)' : 'Recommended action (cross-interpreted from Saju+Astrology)',
       ])
     }
     if (baseInfo?.recommendations?.[1]) {
       applySlot(15, baseInfo.recommendations[1], 'best', 0, [
-        isKo ? '?? ??(??+?? ?? ??)' : 'Recommended action (cross-interpreted from Saju+Astrology)',
+        isKo ? '추천 행동(사주+점성 교차 해석)' : 'Recommended action (cross-interpreted from Saju+Astrology)',
       ])
     }
     if (baseInfo?.warnings?.[0]) {
       applySlot(13, baseInfo.warnings[0], 'caution', 0, [
-        isKo ? '?? ??(?? ???)' : 'Caution signal (cross-risk)',
+        isKo ? '주의 신호(교차 리스크)' : 'Caution signal (cross-risk)',
       ])
     }
     if (baseInfo?.warnings?.[1]) {
       applySlot(21, baseInfo.warnings[1], 'caution', 0, [
-        isKo ? '?? ??(?? ???)' : 'Caution signal (cross-risk)',
+        isKo ? '주의 신호(교차 리스크)' : 'Caution signal (cross-risk)',
       ])
     }
 
@@ -935,11 +935,11 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
           slot.tone = 'best'
         }
         if (!slot.note || slot.note === baseTexts(hour)) {
-          slot.note = isKo ? '?? ?? ??' : 'Place key task'
+          slot.note = isKo ? '핵심 일정 배치' : 'Place key task'
         }
         if (!slot.evidenceSummary?.length) {
           slot.evidenceSummary = [
-            isKo ? '?? ???(??+?? ?? ??)' : 'Best time window (Saju+Astrology aligned)',
+            isKo ? '좋은 시간대(사주+점성 공통 우세)' : 'Best time window (Saju+Astrology aligned)',
           ]
         }
       })
@@ -953,7 +953,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         }
         if (!slot.evidenceSummary?.length) {
           slot.evidenceSummary = [
-            isKo ? '?? ???(?? ??? ??)' : 'Caution time window (cross-risk signal)',
+            isKo ? '주의 시간대(교차 리스크 신호)' : 'Caution time window (cross-risk signal)',
           ]
         }
       })
@@ -961,9 +961,9 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
 
     slots.forEach((slot) => {
       if (slot.tone === 'best') {
-        slot.badge = isKo ? '??' : 'Core'
+        slot.badge = isKo ? '핵심' : 'Core'
       } else if (slot.tone === 'caution') {
-        slot.badge = isKo ? '??' : 'Pace'
+        slot.badge = isKo ? '조절' : 'Pace'
       } else {
         slot.badge = null
       }
@@ -981,7 +981,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       if (!slot.evidenceSummary.length && slot.tone !== 'neutral') {
         slot.evidenceSummary = [
           isKo
-            ? '?? ?? + ?? ??? ?? ??'
+            ? '사주 일진 + 점성 트랜짓 기본 신호'
             : 'Baseline signal from Saju daily pillar + astrology transit',
         ]
       }
@@ -1000,15 +1000,15 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         slot.guardrail =
           slot.tone === 'caution'
             ? isKo
-              ? '??? ??, ?? ?? 1? ?? ? ?? ??'
+              ? '결정은 하되, 반대 근거 1개 확인 전 확정 금지'
               : 'Do not finalize before one counter-evidence check.'
             : isKo
-              ? '?? ? ?? ?? 1? ?? ??'
+              ? '실행 전 성공 조건 1줄 먼저 작성'
               : 'Write one success condition before execution.'
       }
       if (!slot.whySummary && slot.tone !== 'neutral') {
         slot.whySummary = isKo
-          ? '?? ?? ??? ???? ??? ??? ?? ?????.'
+          ? '오늘 신호 균형을 기준으로 슬롯별 강약을 나눠 운영합니다.'
           : 'Operate each slot based on today signal balance.'
       }
       if (!slot.whyPatterns?.length && slot.tone !== 'neutral') {
@@ -1025,8 +1025,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       if (!slot.confidenceReason?.length && slot.tone !== 'neutral') {
         slot.confidenceReason =
           slot.tone === 'caution'
-            ? [isKo ? '??? ??' : 'Risk window']
-            : [isKo ? '?? ?? ??' : 'Signals aligned']
+            ? [isKo ? '리스크 구간' : 'Risk window']
+            : [isKo ? '신호 정렬 양호' : 'Signals aligned']
       }
 
       if (slot.whySummary && isGenericTimelineCopy(slot.whySummary) && slot.tone === 'neutral') {
@@ -1106,7 +1106,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       isKo ? CATEGORY_ACTIONS[weekCategory].week.ko : CATEGORY_ACTIONS[weekCategory].week.en
     )[0]
     const weekRangeLabel =
-      rangeDays === 7 ? (isKo ? '?? ?' : 'this week') : isKo ? '?? 2?' : 'the next 2 weeks'
+      rangeDays === 7 ? (isKo ? '이번 주' : 'this week') : isKo ? '이번 2주' : 'the next 2 weeks'
     const bestRec = bestDays.find((d) => d.info.recommendations?.length)?.info.recommendations?.[0]
     return buildWeekItems({
       isKo,
@@ -1135,9 +1135,9 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const todayCaution = cleanText(baseInfo?.warnings?.[0])
   const evidenceBadges = useMemo(
     () => [
-      isKo ? '?? ?? ??' : 'Combined signals',
-      isKo ? '?? ??' : 'Cross-verified',
-      isKo ? '?? ??' : 'Caution signal',
+      isKo ? '종합 신호 기반' : 'Combined signals',
+      isKo ? '교차 검증' : 'Cross-verified',
+      isKo ? '주의 신호' : 'Caution signal',
     ],
     [isKo]
   )
@@ -1145,14 +1145,14 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     const lines: string[] = []
     const topDecisionLine = cleanText(
       data?.canonicalCore?.topDecisionLabel
-        ? `${isKo ? '?? ??' : 'Priority action'}: ${data.canonicalCore.topDecisionLabel}`
+        ? `${isKo ? '우선 행동' : 'Priority action'}: ${data.canonicalCore.topDecisionLabel}`
         : '',
       ''
     )
     const allowedActionLine = cleanText(
       data?.canonicalCore?.judgmentPolicy?.allowedActionLabels?.length ||
         data?.canonicalCore?.judgmentPolicy?.allowedActions?.length
-        ? `${isKo ? '?? ??' : 'Allowed moves'}: ${(
+        ? `${isKo ? '허용 행동' : 'Allowed moves'}: ${(
             data?.canonicalCore?.judgmentPolicy?.allowedActionLabels ||
             formatDecisionActionLabels(
               data?.canonicalCore?.judgmentPolicy?.allowedActions || [],
@@ -1160,14 +1160,14 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
             )
           )
             .slice(0, 2)
-            .join(' � ')}`
+            .join(' · ')}`
         : '',
       ''
     )
     const blockedActionLine = cleanText(
       data?.canonicalCore?.judgmentPolicy?.blockedActionLabels?.length ||
         data?.canonicalCore?.judgmentPolicy?.blockedActions?.length
-        ? `${isKo ? '?? ??' : 'Blocked moves'}: ${(
+        ? `${isKo ? '차단 행동' : 'Blocked moves'}: ${(
             data?.canonicalCore?.judgmentPolicy?.blockedActionLabels ||
             formatDecisionActionLabels(
               data?.canonicalCore?.judgmentPolicy?.blockedActions || [],
@@ -1176,13 +1176,13 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
             )
           )
             .slice(0, 2)
-            .join(' � ')}`
+            .join(' · ')}`
         : '',
       ''
     )
     const checkLine = cleanText(
       data?.canonicalCore?.judgmentPolicy
-        ? `${isKo ? '?? ???' : 'Checkpoints'}: ${formatPolicyCheckLabels([
+        ? `${isKo ? '점검 포인트' : 'Checkpoints'}: ${formatPolicyCheckLabels([
             ...((data.canonicalCore.judgmentPolicy.softCheckLabels ||
               data.canonicalCore.judgmentPolicy.softChecks ||
               []) as string[]),
@@ -1191,13 +1191,13 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
               []) as string[]),
           ])
             .slice(0, 2)
-            .join(' � ')}`
+            .join(' · ')}`
         : '',
       ''
     )
     const graphFocusSummary = cleanText(
       selectedMatrixPacket?.focusDomain && selectedMatrixPacket.topAnchors?.[0]?.summary
-        ? `${isKo ? '?? ?? ??' : 'Core cross evidence'}: ${categoryLabel(
+        ? `${isKo ? '핵심 교차 근거' : 'Core cross evidence'}: ${categoryLabel(
             normalizeCategory(
               selectedMatrixPacket.focusDomain === 'wealth'
                 ? 'wealth'
@@ -1207,7 +1207,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
                     ? 'travel'
                     : (selectedMatrixPacket.focusDomain as EventCategory | 'today')
             ) || 'general'
-          )} � ${selectedMatrixPacket.topAnchors[0].summary}`
+          )} · ${selectedMatrixPacket.topAnchors[0].summary}`
         : '',
       ''
     )
@@ -1217,8 +1217,8 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       const confidence = baseInfo.evidence.confidence
       lines.push(
         isKo
-          ? `?? ??: ${matrixDomain} ?? � ?? ${matrixScore ?? '-'} � ??? ${confidence ?? '-'}%`
-          : `Combined signal: ${matrixDomain} domain � score ${matrixScore ?? '-'} � confidence ${confidence ?? '-'}%`
+          ? `종합 신호: ${matrixDomain} 영역 · 점수 ${matrixScore ?? '-'} · 신뢰도 ${confidence ?? '-'}%`
+          : `Combined signal: ${matrixDomain} domain · score ${matrixScore ?? '-'} · confidence ${confidence ?? '-'}%`
       )
     }
     if (topDecisionLine) {
@@ -1241,7 +1241,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     if (sajuEvidence || astroEvidence) {
       lines.push(
         isKo
-          ? `?? ??: ?? ${sajuEvidence || '?? ??'} / ?? ${astroEvidence || '?? ??'}`
+          ? `교차 근거: 사주 ${sajuEvidence || '신호 있음'} / 점성 ${astroEvidence || '신호 있음'}`
           : `Cross evidence: Saju ${sajuEvidence || 'signal present'} / Astrology ${astroEvidence || 'signal present'}`
       )
     }
@@ -1264,12 +1264,12 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       }
     })
     if (todayCaution) {
-      lines.push(isKo ? `?? ??: ${todayCaution}` : `Caution signal: ${todayCaution}`)
+      lines.push(isKo ? `주의 신호: ${todayCaution}` : `Caution signal: ${todayCaution}`)
     }
     if (!lines.length) {
       lines.push(
         isKo
-          ? '?? ??? ?? ???? ?? ??? ???? ?? ????? ??????.'
+          ? '사주 일진과 점성 트랜짓의 공통 신호를 기준으로 행동 우선순위를 구성했습니다.'
           : 'Priorities are built from overlapping Saju daily-pillar and astrology transit signals.'
       )
     }
@@ -1324,7 +1324,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
   const timelineInsight = useMemo(() => {
     if (!baseInfo) {
       return isKo
-        ? '??? ??? ???? ???? ?? ?????.'
+        ? '선택한 날짜를 기준으로 시간대를 자동 정리합니다.'
         : 'Timeline is generated from selected-date signals.'
     }
     const peakText = resolvedPeakLevel
@@ -1332,7 +1332,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
         ? getPeakLabel(resolvedPeakLevel, 'ko')
         : getPeakLabel(resolvedPeakLevel, 'en')
       : isKo
-        ? '?? ??'
+        ? '기본 구간'
         : 'Base window'
     const precisionText =
       aiStatus === 'error'
@@ -1431,7 +1431,7 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
       isKo,
       bestCount: bestDays.length,
       cautionCount: cautionDays.length,
-      focusLabel: topCategory ? categoryLabel(topCategory) : isKo ? '??' : 'general',
+      focusLabel: topCategory ? categoryLabel(topCategory) : isKo ? '전체' : 'general',
     })
   }, [bestDays.length, cautionDays.length, topCategory, categoryLabel, isKo])
 
@@ -1505,14 +1505,14 @@ const CalendarActionPlanView = memo(function CalendarActionPlanView({
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(text)
-        setShareStatus(isKo ? '???' : 'Copied')
+        setShareStatus(isKo ? '복사됨' : 'Copied')
         return
       }
       const ok = fallbackCopy()
-      setShareStatus(ok ? (isKo ? '???' : 'Copied') : isKo ? '?? ??' : 'Copy failed')
+      setShareStatus(ok ? (isKo ? '복사됨' : 'Copied') : isKo ? '복사 실패' : 'Copy failed')
     } catch {
       const ok = fallbackCopy()
-      setShareStatus(ok ? (isKo ? '???' : 'Copied') : isKo ? '?? ??' : 'Copy failed')
+      setShareStatus(ok ? (isKo ? '복사됨' : 'Copied') : isKo ? '복사 실패' : 'Copy failed')
     }
   }, [shareText, setShareStatus, isKo])
 

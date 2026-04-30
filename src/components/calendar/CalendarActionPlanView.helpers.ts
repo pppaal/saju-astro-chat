@@ -14,12 +14,12 @@ export type SanitizedSlotType =
   | 'recovery'
 
 export const SLOT_TYPE_LABELS_KO: Record<string, string> = {
-  deepWork: '??',
-  decision: '??',
-  communication: '??',
-  money: '??',
-  relationship: '??',
-  recovery: '??',
+  deepWork: '집중',
+  decision: '결정',
+  communication: '소통',
+  money: '재정',
+  relationship: '관계',
+  recovery: '회복',
 }
 
 export const SLOT_TYPE_LABELS_EN: Record<string, string> = {
@@ -56,12 +56,12 @@ export function normalizeTimelineSemanticKey(value: string): string {
 }
 
 export const WHY_PATTERN_LABELS_KO: Record<string, string> = {
-  speed_up_validation_down: '??? ???',
-  risk_exposure_up: '??? ???',
-  relationship_sensitivity_up: '?? ????',
-  spending_impulse_up: '?? ???',
-  recovery_need_up: '?? ???',
-  signal_balance: '?? ??',
+  speed_up_validation_down: '속도↑ 검증↓',
+  risk_exposure_up: '리스크 노출↑',
+  relationship_sensitivity_up: '관계 민감도↑',
+  spending_impulse_up: '지출 충동↑',
+  recovery_need_up: '회복 필요↑',
+  signal_balance: '신호 균형',
 }
 
 export const WHY_PATTERN_LABELS_EN: Record<string, string> = {
@@ -74,12 +74,12 @@ export const WHY_PATTERN_LABELS_EN: Record<string, string> = {
 }
 
 export const CONFIDENCE_REASON_LABELS_KO: Record<string, string> = {
-  'Evidence conflict': '?? ??',
-  'Anchor shortage': '?? ??',
-  'Low signal density': '?? ?? ??',
-  'Risk window': '?? ??',
-  'Low baseline confidence': '?? ??? ??',
-  'Signals aligned': '?? ?? ??',
+  'Evidence conflict': '근거 충돌',
+  'Anchor shortage': '앵커 부족',
+  'Low signal density': '신호 밀도 낮음',
+  'Risk window': '주의 구간',
+  'Low baseline confidence': '기본 신뢰도 낮음',
+  'Signals aligned': '신호 정렬 양호',
 }
 
 export const CONFIDENCE_REASON_LABELS_EN: Record<string, string> = {
@@ -92,9 +92,9 @@ export const CONFIDENCE_REASON_LABELS_EN: Record<string, string> = {
 }
 
 export const DEFAULT_TODAY_KO = [
-  '???? 3? ????',
-  '??? ? 1? 25? ??',
-  '?/?? ?? 10? ??',
+  '우선순위 3개 정리하기',
+  '집중할 일 1개 25분 진행',
+  '몸/마음 회복 10분 확보',
 ]
 export const DEFAULT_TODAY_EN = [
   'List your top 3 priorities',
@@ -103,10 +103,10 @@ export const DEFAULT_TODAY_EN = [
 ]
 
 export const DEFAULT_WEEK_KO = [
-  '?? ? ?? 1? ??',
-  '?? ?? 1?? ???? ??',
-  '?? ?? 1? ??',
-  '??? 10? ??',
+  '이번 주 목표 1개 설정',
+  '중요 일정 1개를 캘린더에 고정',
+  '회복 시간 1회 확보',
+  '주말에 10분 리뷰',
 ]
 export const DEFAULT_WEEK_EN = [
   'Set one weekly goal',
@@ -121,71 +121,71 @@ export const CATEGORY_ACTIONS: Record<
 > = {
   wealth: {
     day: {
-      ko: ['?? ?? ?? ? ??', '??/?? ?? ?? 1?', '?? ?? 1? ??'],
+      ko: ['지출 한도 확인 및 기록', '수익/거래 관련 연락 1건', '예산 항목 1개 정리'],
       en: ['Check spending limits and log', 'Make one income/transaction follow-up', 'Tidy one budget item'],
     },
     week: {
-      ko: ['??/?? ?? 1?', '??/?? ?? 1? ??', '???? ??'],
+      ko: ['수입/지출 점검 1회', '저축/투자 목표 1개 설정', '현금흐름 정리'],
       en: ['Review income/expenses once', 'Set one saving/investment goal', 'Organize cash flow'],
     },
   },
   career: {
     day: {
-      ko: ['?? ?? 1? ???', '??/?? ?? ?? 1?', '?? ?? 1? ??'],
+      ko: ['핵심 업무 1개 마무리', '성과/진행 상황 공유 1회', '다음 액션 1개 정의'],
       en: ['Finish one core task', 'Share progress once', 'Define the next action'],
     },
     week: {
-      ko: ['?? ??/??? 1?', '?? ??/?? 1? ??', '?? ?? 1? ??'],
+      ko: ['성과 공유/리포트 1회', '중요 미팅/제안 1건 추진', '업무 개선 1건 적용'],
       en: ['Share results/report once', 'Advance one key meeting/proposal', 'Apply one workflow improvement'],
     },
   },
   love: {
     day: {
-      ko: ['??? ??? 1?', '?? 20? ??', '?? ?? 1??'],
+      ko: ['따뜻한 메시지 1회', '대화 20분 확보', '배려 행동 1가지'],
       en: ['Send one warm message', 'Secure 20 minutes of conversation', 'Do one caring action'],
     },
     week: {
-      ko: ['??/??? ?? ??', '?? ?? ?? 1?', '??/?? ?? 1?'],
+      ko: ['만남/데이트 일정 확정', '관계 회복 대화 1회', '감사/칭찬 표현 1회'],
       en: ['Confirm a date/meetup', 'Have one repair conversation', 'Express gratitude/compliment once'],
     },
   },
   health: {
     day: {
-      ko: ['30? ??? ??', '?? ?? ??', '?/?? ??'],
+      ko: ['30분 가벼운 운동', '수면 루틴 점검', '물/식단 관리'],
       en: ['30-minute light workout', 'Check sleep routine', 'Hydration and diet care'],
     },
     week: {
-      ko: ['?? 2-3? ??', '??/?? ????? ??', '????/?? ?? 1?'],
+      ko: ['운동 2-3회 확보', '수면/식단 체크리스트 점검', '스트레칭/회복 루틴 1회'],
       en: ['Schedule 2-3 workouts', 'Review sleep/diet checklist', 'One stretch/recovery routine'],
     },
   },
   travel: {
     day: {
-      ko: ['??/?? ??', '?? ??? ??', '??/?? ??'],
+      ko: ['이동/동선 점검', '필수 준비물 체크', '예약/시간 확인'],
       en: ['Check route/movements', 'Verify essentials checklist', 'Confirm reservations/timing'],
     },
     week: {
-      ko: ['??/?? ??', '??/?? ??', '?? ?? ??'],
+      ko: ['일정/동선 확정', '예약/예산 정리', '대체 일정 준비'],
       en: ['Finalize itinerary/routes', 'Organize reservations/budget', 'Prepare a backup plan'],
     },
   },
   study: {
     day: {
-      ko: ['?? ?? 45?', '?? 20?', '??/?? ??'],
+      ko: ['집중 학습 45분', '복습 20분', '노트/요약 정리'],
       en: ['45-minute focused study', '20-minute review', 'Organize notes/summary'],
     },
     week: {
-      ko: ['?? ?? ?? ??', '???/?? 1?', '?? ?? ??'],
+      ko: ['주간 학습 계획 수립', '스터디/강의 1회', '진행 상황 기록'],
       en: ['Plan weekly study', 'Join one study/lecture', 'Log progress'],
     },
   },
   general: {
     day: {
-      ko: ['???? ???', '?? ?? 1?', '?? ?? ??'],
+      ko: ['우선순위 재정렬', '작은 정리 1건', '회복 시간 확보'],
       en: ['Reset priorities', 'Do one small cleanup', 'Secure recovery time'],
     },
     week: {
-      ko: ['?? ?? 1? ??', '??/?? 1?', '?? ?? 1?'],
+      ko: ['주간 목표 1개 설정', '정리/정돈 1회', '주간 리뷰 1회'],
       en: ['Set one weekly goal', 'One organize/cleanup session', 'One weekly review'],
     },
   },
