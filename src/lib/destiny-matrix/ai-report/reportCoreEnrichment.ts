@@ -11,6 +11,10 @@ import {
   findReportCoreVerdict,
   type ReportCoreViewModel,
 } from './reportCoreHelpers'
+import {
+  buildDomainSajuLensKo,
+  buildSajuNarrationKo,
+} from './sajuNarrationBridge'
 
 type Lang = 'ko' | 'en'
 
@@ -208,11 +212,15 @@ export function enrichComprehensiveSectionsWithReportCore(
   const moveVerdict = findReportCoreVerdict(reportCore, 'move')
   const blockedCareerLines = [careerAdvisory?.thesis, careerAdvisory?.action, reportCore.thesis]
 
+  // Saju 라이브러리 본명 narration — 종합 리포트 introduction에 격국·12운성·십신·신살 결합
+  const comprehensiveSajuNarration = lang === 'ko' ? buildSajuNarrationKo(matrixInput) : ''
+
   return {
     introduction: deps.buildNarrativeSectionFromCore(
       [
         buildComprehensiveSectionHookLocal('introduction', lang),
         deps.buildSectionPersonalLead('introduction', matrixInput, lang, timingData),
+        comprehensiveSajuNarration,
         lang === 'ko'
           ? `지금 실제로 먼저 대응해야 할 축은 ${focusDomainLabel}이고, 현재 국면은 ${focusNarrativeForIntro}`
           : `The strongest axis in your life right now is ${focusDomainLabel}, and the current movement is ${focusNarrativeForIntro}.`,
@@ -715,18 +723,24 @@ export function enrichThemedSectionsWithReportCore(
     },
   }
 
+  // Saju 라이브러리 한국어 풀이 wiring — 격국·12운성·십신·신살 narration 끌어옴
+  const sajuNarration = lang === 'ko' ? buildSajuNarrationKo(matrixInput) : ''
+  const domainLens = lang === 'ko' ? buildDomainSajuLensKo(matrixInput, theme) : ''
+
   return {
     ...sectionsWithThemeLead,
     deepAnalysis: reinforceNarrativeSection(
       sectionsWithThemeLead.deepAnalysis,
       [
         buildThemedSectionHook(theme, 'deepAnalysis', lang),
+        sajuNarration,
+        domainLens,
         reportCore.thesis,
         focusManifestation?.baselineThesis || '',
       ],
       [focusManifestation?.activationThesis || '', focusManifestation?.manifestation || ''],
       lang,
-      lang === 'ko' ? 420 : 280,
+      lang === 'ko' ? 540 : 280,
       deps
     ),
     patterns: reinforceNarrativeSection(
