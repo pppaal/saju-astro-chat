@@ -264,7 +264,7 @@ export class InsightGenerator {
    * 도메인 추론
    */
   private inferDomain(cellKey: string, sajuBasis?: string, astroBasis?: string): InsightDomain {
-    // ??? ?? ??
+    // 하우스 기반 추론
     const houseMatch = astroBasis?.match(/H(\d+)/);
     if (houseMatch) {
       const houseNum = parseInt(houseMatch[1], 10) as HouseNumber;
@@ -273,21 +273,21 @@ export class InsightGenerator {
       }
     }
 
-    // ?? ?? ??
+    // 십신 기반 추론
     for (const [sibsin, domains] of Object.entries(SIBSIN_DOMAIN_MAP)) {
       if (cellKey.includes(sibsin) || sajuBasis?.includes(sibsin)) {
         return domains[0];
       }
     }
 
-    // ?? ?? ??
+    // 행성 기반 추론
     for (const [planet, domains] of Object.entries(PLANET_DOMAIN_MAP)) {
       if (cellKey.includes(planet) || astroBasis?.includes(planet)) {
         return domains[0];
       }
     }
 
-    // ???
+    // 기본값
     return 'personality';
   }
 

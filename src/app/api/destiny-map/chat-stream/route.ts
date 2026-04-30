@@ -411,7 +411,7 @@ export async function POST(req: NextRequest) {
         code: ErrorCodes.INTERNAL_ERROR,
         message:
           validated.lang === 'ko'
-            ? '??? ?? ???? ???? ???? ?????. ?? ? ?? ??????.'
+            ? '공유된 매트릭스 스냅샷이 없어 상담을 중단합니다. 잠시 후 다시 시도해주세요.'
             : 'Counseling stopped because the shared matrix snapshot is unavailable. Please try again.',
         locale: extractLocale(req),
         route: 'destiny-map/chat-stream',
@@ -464,7 +464,7 @@ export async function POST(req: NextRequest) {
 
       const fallback =
         preparedInputs.lang === 'ko'
-          ? 'AI ???? ???? ?????. ?? ? ?? ??????.'
+          ? 'AI 서비스에 연결하지 못했습니다. 잠시 후 다시 시도해주세요.'
           : 'Could not connect to AI service. Please try again.'
 
       const fallbackContent = buildCounselorFallbackContent(

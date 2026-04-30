@@ -385,7 +385,7 @@ export function buildProjectionFirstThemedSections(
   const windowNarrative = focusTiming
     ? clean(buildTimingWindowNarrative(actionDomain, focusTiming, lang))
     : lang === 'ko'
-      ? '??? ?? ????? ????? ??? ?????.'
+      ? '확정을 잠시 미루고 방향을 다시 점검하기 좋은 구간입니다.'
       : 'This phase is better used to confirm direction before locking decisions.'
 
   const firstBranch = branchSet[0]

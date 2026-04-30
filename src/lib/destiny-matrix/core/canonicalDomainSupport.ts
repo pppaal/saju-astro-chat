@@ -353,7 +353,7 @@ export function buildDomainAdvisories(
         cautionSignal?.advice ||
         cautionSignal?.keyword ||
         (input.lang === 'ko'
-          ? '?? ??? ? ? ? ????? ?? ?????.'
+          ? '확정 단계 전 한 번 더 점검하는 절차를 건너뛰지 마세요.'
           : 'Do not skip the recheck step before commitment.'),
       verdictRationale: verdict?.rationale,
     })
