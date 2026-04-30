@@ -301,65 +301,7 @@ export {
   type MultiPersonCompatibility,
 } from './compatibility';
 
-// 복합 운세 시뮬레이션
-export {
-  generateFortuneSnapshot,
-  simulateFortuneFlow,
-  simulateScenario,
-  simulateDecision,
-  simulateLifeCycle,
-  simulateMonthlyFortune,
-  findOptimalTiming,
-  type TimeUnit,
-  type FortuneArea,
-  type TimePoint,
-  type AreaFortune,
-  type FortuneSnapshot,
-  type FortuneFlow,
-  type ScenarioResult,
-  type DecisionSimulation,
-  type LifeCycleSimulation,
-} from './fortuneSimulator';
-
-// 사주 시각화 데이터
-export {
-  ELEMENT_COLORS,
-  generateElementDistribution,
-  generatePillarVisualization,
-  generateSajuBoardVisualization,
-  generateFortuneTimeline,
-  generateRadarChartData,
-  generateRelationHeatmap,
-  generateNetworkGraph,
-  generateAuraVisualization,
-  generatePillarRevealAnimation,
-  type ColorPalette,
-  type ChartDataPoint,
-  type ElementDistributionData,
-  type PillarVisualization,
-  type SajuBoardVisualization,
-  type InteractionVisualization,
-  type FortuneTimelineData,
-  type RadarChartData,
-  type HeatmapData,
-  type NetworkGraphData,
-  type AuraVisualization,
-  type AnimationSequence,
-} from './visualizationData';
-
-// AI 프롬프트 생성기
-export {
-  generateLLMPrompt,
-  generateImagePrompt,
-  generateNarrativePrompt,
-  generateChatPrompt,
-  type PromptType,
-  type PromptStyle,
-  type PromptLanguage,
-  type PromptOptions,
-  type GeneratedPrompt,
-  type ImagePrompt,
-} from './aiPromptGenerator';
+// 미사용으로 삭제됨 (2025 정리): fortuneSimulator, visualizationData, aiPromptGenerator
 
 // 패턴 매칭 엔진
 export {
@@ -489,34 +431,4 @@ export {
   type PerformanceMetrics,
 } from './cache';
 
-// 사주 통계 분석 엔진
-export {
-  calculateStatisticalSummary,
-  calculateCorrelation,
-  chiSquareTest,
-  calculateElementDistribution,
-  calculateStemDistribution,
-  calculateBranchDistribution,
-  calculateDayMasterDistribution,
-  calculateYinYangRatio,
-  performFrequencyAnalysis,
-  analyzeGabjaFrequency,
-  calculateRarityScore,
-  analyzeElementCorrelations,
-  performClusterAnalysis,
-  detectAnomalies,
-  calculatePopulationStats,
-  analyzeTrend,
-  generateStatisticsReport,
-  type ElementDistribution,
-  type StemDistribution,
-  type BranchDistribution,
-  type StatisticalSummary,
-  type CorrelationResult,
-  type FrequencyAnalysis,
-  type PopulationStats,
-  type RarityScore,
-  type TrendAnalysis,
-  type ClusterAnalysis,
-  type AnomalyDetection,
-} from './sajuStatistics';
+// 사주 통계 분석 엔진 — 미사용으로 삭제됨 (2025 정리)
