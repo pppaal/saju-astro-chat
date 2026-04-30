@@ -325,6 +325,91 @@ export const POST = withApiMiddleware(
   })
 )
 
+// Claude Haiku 4.5 — 한국어 톤 우수, 프롬프트 캐싱 지원 (system 부분 캐시 시 90% 할인)
+const CLAUDE_MODEL = 'claude-haiku-4-5-20251001'
+
+async function callClaude(
+  systemPrompt: string,
+  userPrompt: string,
+  maxTokens = 1500,
+  timeoutMs = OPENAI_TIMEOUT_MS
+): Promise<string> {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    throw new Error('ANTHROPIC_API_KEY is not set')
+  }
+
+  const response = await fetchWithRetry(
+    'https://api.anthropic.com/v1/messages',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: CLAUDE_MODEL,
+        max_tokens: maxTokens,
+        temperature: 0.7,
+        // system은 배열로 전달 — cache_control 마킹으로 정적 부분 캐싱
+        system: [
+          {
+            type: 'text',
+            text: systemPrompt,
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
+        messages: [{ role: 'user', content: userPrompt }],
+      }),
+    },
+    {
+      maxRetries: OPENAI_MAX_RETRIES,
+      initialDelayMs: 700,
+      maxDelayMs: 4000,
+      timeoutMs,
+      retryStatusCodes: [408, 409, 425, 429, 500, 502, 503, 504],
+      onRetry: (attempt, error, delayMs) => {
+        logger.warn('[Tarot interpret] Claude retry scheduled', {
+          attempt,
+          delayMs,
+          reason: error.message,
+        })
+      },
+    }
+  )
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '')
+    throw new Error(`Claude API error: ${response.status} ${errorText.slice(0, 280)}`)
+  }
+
+  const rawText = await response.text().catch(() => '')
+  let data: {
+    content?: Array<{ type: string; text?: string }>
+    usage?: { input_tokens?: number; cache_read_input_tokens?: number }
+  } | null = null
+  try {
+    data = JSON.parse(rawText)
+  } catch (parseErr) {
+    logger.warn('[Tarot interpret] Claude JSON parse failed', {
+      error: parseErr instanceof Error ? parseErr.message : String(parseErr),
+      preview: rawText.slice(0, 280),
+    })
+    throw new Error('Claude response parse failed')
+  }
+
+  // 캐시 hit 모니터링용 로그
+  if (data?.usage) {
+    logger.info('[Tarot interpret] Claude usage', {
+      input: data.usage.input_tokens,
+      cacheRead: data.usage.cache_read_input_tokens,
+    })
+  }
+
+  return data?.content?.find((c) => c.type === 'text')?.text || ''
+}
+
 // GPT-4o-mini API 호출 함수 (저비용 모델)
 async function callGPT(
   prompt: string,
@@ -550,8 +635,8 @@ ${cardExamples}
   "advice": "Practical action steps (${budget.adviceGuide})"
 }`
 
-  // 통합 프롬프트 — 전문 리더 페르소나 + 4단계 메서드
-  const unifiedPrompt = isKorean
+  // System 프롬프트 — 정적 (페르소나 + 4단계 메서드 + 출력 형식). 캐시 가능.
+  const systemPrompt = isKorean
     ? `당신은 15년차 한국인 타로 리더입니다. 길에서 만난 친구처럼 따뜻하고, 사촌언니처럼 직설적이며, 구체적인 행동까지 짚어줍니다.
 
 # 페르소나
@@ -560,13 +645,6 @@ ${cardExamples}
 - 정/역방향, 위치, 카드끼리의 관계를 **이야기로** 엮습니다.
 - 절대 운명론 금지. 가능성과 변수, 사용자가 움직일 여지를 함께 보여줍니다.
 - 톤: 차분, 따뜻, 신뢰감. 과장이나 점쟁이톤("당신은 반드시…") 금지.
-
-# 입력 정보
-## 스프레드: ${spreadTitle}
-## 사용자 질문: "${q}"
-
-## 뽑힌 카드
-${cardListText}
 
 # 4단계 메서드 (반드시 이 순서로 사고)
 
@@ -582,14 +660,10 @@ ${cardListText}
 - 정/역 톤 (역방향 = 막힘/지연/내면화/미숙함)
 - 질문 맥락 (주체·대상·상황) 한 번 이상
 - 마무리에 시간 앵커 (오늘/이번 주/14일 안)
-${
-  isLargeSpread
-    ? ''
-    : '- 사전식 정의 금지. 카드 이름을 직접 인용하기보다 *그 카드가 이 자리에서 말하는 것*을 풀어쓰세요.'
-}
+- 사전식 정의 금지. 카드 이름을 직접 인용하기보다 *그 카드가 이 자리에서 말하는 것*을 풀어쓰세요.
 
-## 3) 시너지 (synergy 필드 ${isLargeSpread ? '— 대형 스프레드는 overall 안에 포함' : ''})
-세 카드가 *함께* 말하는 한 줄. 카드들 사이의 관계(보완·충돌·전개)를 봅니다.
+## 3) 시너지 (synergy 필드)
+카드들이 *함께* 말하는 한 줄. 카드들 사이의 관계(보완·충돌·전개)를 봅니다.
 좋은 예: "끌림(컵 2)과 망설임(컵 기사 역)이 별의 가능성을 만나면, 결과는 닫힌 게 아니라 그 사람의 신호 해석이 늦은 거예요."
 나쁜 예: "세 카드 모두 긍정적입니다." (요약식)
 
@@ -599,17 +673,10 @@ ${
 나쁜 예: "마음을 열고 기다리세요." (추상)
 
 # 작성 규칙
-- 출력은 오직 JSON.
-- ${
-        isLargeSpread
-          ? '대형 스프레드이므로 cards 배열은 출력하지 말고, overall에 오프닝+카드 흐름+시너지를 모두 녹여서 작성하고, advice는 3단계로 구체화.'
-          : `반드시 ${cards.length}개 카드 해석을 모두 포함하고, 그 외에 synergy 한 줄과 advice를 작성.`
-      }
+- 출력은 오직 JSON. 마크다운 코드펜스 금지.
 - 사용자 질문이 모호하면 가장 가능성 높은 의도로 해석하고 그 전제를 첫 문장에 한 번 명시.
 - 같은 문장 골격을 반복하지 마세요 (카드별로 다른 문장 형태).
-
-# 출력 형식 (JSON)
-${outputSchemaKo}`
+- 대형 스프레드(8장 이상)이면 cards 배열은 비우고 overall에 흐름을 녹입니다.`
     : `You are a 15-year veteran tarot reader. Warm like a friend, direct like an older sister, concrete with action.
 
 # Persona
@@ -618,13 +685,6 @@ ${outputSchemaKo}`
 - Weave the cards into a *story*: orientation, position, and how they speak to each other.
 - No fatalism. Show possibilities, variables, and what the user can move.
 - Tone: calm, warm, trustworthy. No fortune-teller theatrics ("you must…").
-
-# Input
-## Spread: ${spreadTitle}
-## User Question: "${q}"
-
-## Cards Drawn
-${cardListText}
 
 # 4-Step Method (think in this order)
 
@@ -640,13 +700,9 @@ Cross **position × card × upright/reversed × question** four ways:
 - Upright/reversed tone (reversed = blockage / delay / internalization / immaturity)
 - Question context (subject/object/situation) at least once
 - End with a time anchor (today / this week / within 14 days)
-${
-  isLargeSpread
-    ? ''
-    : '- No definitions. Rather than name-dropping the card, unpack *what it says in this seat*.'
-}
+- No definitions. Rather than name-dropping the card, unpack *what it says in this seat*.
 
-## 3) Synergy (synergy field${isLargeSpread ? ' — for large spreads, fold into overall' : ''})
+## 3) Synergy (synergy field)
 One line on what the cards say *together*. Look at the relationships (complement / clash / progression).
 Good: "Attraction (Two of Cups) and hesitation (Knight of Cups reversed) meeting the Star's possibility = the answer is not closed; his timing of reading signals is just slow."
 Bad: "All three cards are positive." (summary)
@@ -657,20 +713,64 @@ Good: "Send a light hello within the week. If the reply is slow, do not push; ob
 Bad: "Open your heart and wait." (abstract)
 
 # Rules
-- Output JSON only.
-- ${
-        isLargeSpread
-          ? 'Large spread: do not output cards array. Fold opening + card flow + synergy into overall, and write 3 concrete advice steps.'
-          : `Include all ${cards.length} per-card interpretations, plus a synergy line and advice.`
-      }
+- Output JSON only. No markdown code fences.
 - If the question is ambiguous, pick the most likely intent and state that assumption in the first sentence.
 - Vary sentence shape across cards — do not reuse the same sentence skeleton.
+- For large spreads (8+ cards), leave cards array empty and fold the flow into overall.`
+
+  // User 프롬프트 — 동적 (이번 요청의 입력만)
+  const userPrompt = isKorean
+    ? `# 입력
+## 스프레드: ${spreadTitle}
+## 사용자 질문: "${q}"
+## 뽑힌 카드
+${cardListText}
+
+# 출력 지시
+- ${
+        isLargeSpread
+          ? '대형 스프레드이므로 cards 배열은 비우고, overall에 오프닝+카드 흐름+시너지를 모두 녹이고, advice는 3단계로 구체화.'
+          : `반드시 ${cards.length}개 카드 해석을 모두 포함하고, synergy 한 줄과 advice를 작성.`
+      }
+- overall ${budget.overallGuide}, 카드별 ${budget.perCardGuide}, advice ${budget.adviceGuide}.
+
+# 출력 형식 (JSON)
+${outputSchemaKo}`
+    : `# Input
+## Spread: ${spreadTitle}
+## User Question: "${q}"
+## Cards Drawn
+${cardListText}
+
+# Output instructions
+- ${
+        isLargeSpread
+          ? 'Large spread: leave cards array empty; fold opening + card flow + synergy into overall; write 3 concrete advice steps.'
+          : `Include all ${cards.length} per-card interpretations, plus synergy and advice.`
+      }
+- Length: overall ${budget.overallGuide}, per-card ${budget.perCardGuide}, advice ${budget.adviceGuide}.
 
 # Output Format (JSON)
 ${outputSchemaEn}`
 
+  // Claude 우선 시도 → GPT fallback
+  const useClaude = Boolean(process.env.ANTHROPIC_API_KEY)
+
   try {
-    const result = await callGPT(unifiedPrompt, budget.maxTokens, budget.timeoutMs)
+    let result: string
+    if (useClaude) {
+      try {
+        result = await callClaude(systemPrompt, userPrompt, budget.maxTokens, budget.timeoutMs)
+      } catch (claudeErr) {
+        logger.warn('[Tarot interpret] Claude failed, falling back to GPT', {
+          error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
+        })
+        recordCounter('tarot.interpret.fallback_total', 1, { from: 'claude', to: 'gpt' })
+        result = await callGPT(`${systemPrompt}\n\n${userPrompt}`, budget.maxTokens, budget.timeoutMs)
+      }
+    } else {
+      result = await callGPT(`${systemPrompt}\n\n${userPrompt}`, budget.maxTokens, budget.timeoutMs)
+    }
 
     const parsed = tryParseJsonCandidate(result)
     if (parsed) {
