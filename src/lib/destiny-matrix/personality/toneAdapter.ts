@@ -142,11 +142,18 @@ function adjustForAgreeableness(text: string, agreeableness: number): string {
 }
 
 function adjustForConscientiousness(text: string, conscientiousness: number): string {
-  // 높은 conscientiousness: 체계 단어 추가
-  if (conscientiousness >= 70 && !/체계|단계|절차|체크/.test(text)) {
-    return text + ' (체계적으로 단계 잡고 진행 권장)'
+  // 높은 conscientiousness만 — text에 체계 단어가 없을 때만 (이미 있으면 중복)
+  if (conscientiousness >= 70 && !/체계|단계|절차|체크|순서|기록|점검/.test(text)) {
+    return text + ' (단계 정리하고 진행 권장)'
   }
   return text
+}
+
+// 다양한 seed 생성 — char sum + length로 보다 균등 분포
+function stableSeed(text: string): number {
+  let sum = 0
+  for (let i = 0; i < text.length; i++) sum = (sum + text.charCodeAt(i)) % 997
+  return sum + text.length
 }
 
 // ─────────────────────────────────────────────────────────
@@ -177,22 +184,25 @@ export function adaptAdviceTone(
   // 2) 종결어 변환
   out = CLOSING_TRANSFORM[tone](out)
 
-  // 3) prefix 추가 (advice 첫 글자 기반 deterministic 선택)
+  // 3) prefix · suffix 다양화 — advice 본문 content seed로 풀에서 분산 선택
+  const seed = stableSeed(advice)
   const prefixes = PREFIX_BY_TONE[tone]
-  const seed = advice.charCodeAt(0) || 0
   const prefix = prefixes[seed % prefixes.length]
+  const suffixes = SUFFIX_BY_TONE[tone]
+  const suffix = suffixes[(seed * 13 + 5) % suffixes.length]
 
-  // 4) 정량화 — logicalAnalyst만, 컨텍스트 있을 때
-  let prefixWithData = prefix
-  if (tone === 'logicalAnalyst' && typeof options.crossAgreementPercent === 'number') {
-    prefixWithData = `${prefix} (사주↔점성 정합 ${options.crossAgreementPercent}%)`
+  // 4) 정량화 — logicalAnalyst만, 컨텍스트 있을 때, 그리고 짝수 seed에만 (50% 확률)
+  //    매번 정량 표시면 단조롭고 길어짐
+  let prefixFull = prefix
+  if (
+    tone === 'logicalAnalyst' &&
+    typeof options.crossAgreementPercent === 'number' &&
+    seed % 2 === 0
+  ) {
+    prefixFull = `${prefix} (정합 ${options.crossAgreementPercent}%)`
   }
 
-  // 5) suffix 추가
-  const suffixes = SUFFIX_BY_TONE[tone]
-  const suffix = suffixes[(seed + 7) % suffixes.length]
-
-  return `${prefixWithData}, ${out} ${suffix}`
+  return `${prefixFull}, ${out} ${suffix}`
 }
 
 /**

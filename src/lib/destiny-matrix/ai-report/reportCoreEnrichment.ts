@@ -17,7 +17,11 @@ import {
   buildTimingNarrationKo,
   synthesizeExpertNarrationKo,
 } from './sajuNarrationBridge'
-import { buildPersonalityNarrationKo } from '@/lib/destiny-matrix/personality'
+import {
+  buildPersonalityNarrationKo,
+  buildPersonalityProfile,
+  adaptAdviceTone,
+} from '@/lib/destiny-matrix/personality'
 
 type Lang = 'ko' | 'en'
 
@@ -992,19 +996,40 @@ export function enrichThemedSectionsWithReportCore(
           deps
         )
       : sections.legacy,
-    recommendations: [
-      ...new Set(
-        [
-          safePrimaryAction,
-          focusAdvisory?.action,
-          focusAdvisory?.caution,
-          safeRiskControl,
-          ...sections.recommendations,
-        ]
-          .map((item) => deps.sanitizeUserFacingNarrative(String(item || '').trim()))
-          .filter(Boolean)
-      ),
-    ],
+    recommendations: (() => {
+      const baseList = Array.from(
+        new Set(
+          [
+            safePrimaryAction,
+            focusAdvisory?.action,
+            focusAdvisory?.caution,
+            safeRiskControl,
+            ...sections.recommendations,
+          ]
+            .map((item) => deps.sanitizeUserFacingNarrative(String(item || '').trim()))
+            .filter(Boolean)
+        )
+      )
+      // 사용자 인격에 맞춰 톤 변형 (한국어 + matrixInput 있을 때만)
+      if (lang === 'ko') {
+        try {
+          const profile = buildPersonalityProfile(matrixInput)
+          const xPct = typeof reportCore.crossAgreement === 'number'
+            ? Math.round(reportCore.crossAgreement * 100)
+            : undefined
+          const themedDomainLabel = deps.getReportDomainLabel(leadDomain, lang)
+          return baseList.map((item) =>
+            adaptAdviceTone(item, profile, {
+              crossAgreementPercent: xPct,
+              domainLabel: themedDomainLabel,
+            })
+          )
+        } catch {
+          return baseList
+        }
+      }
+      return baseList
+    })(),
     actionPlan: reinforceNarrativeSection(
       sectionsWithThemeLead.actionPlan,
       [
