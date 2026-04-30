@@ -1,5 +1,6 @@
 ﻿import type { DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
 import type { SignalDomain } from './signalSynthesizer'
+import { eunNeun, waGwa } from '@/lib/i18n/koParticle'
 import type {
   CoreArbitrationEntry,
   CoreArbitrationLedger,
@@ -216,8 +217,8 @@ function buildArbitrationLedger(input: {
     scoreGap: round2(Math.max(0, (focusWinner?.score || 0) - item.score)),
     reason:
       item.breakdown.convergenceBonus && item.breakdown.convergenceBonus < 1.5
-        ? `${item.domain}은 승자축보다 타이밍 합의가 약해 보조축에 머물렀습니다`
-        : `${item.domain}은 전체 지지가 승자축보다 약해 보조축에 머물렀습니다`,
+        ? `${item.domain}${eunNeun(item.domain)} 승자축보다 타이밍 합의가 약해 보조축에 머물렀습니다`
+        : `${item.domain}${eunNeun(item.domain)} 전체 지지가 승자축보다 약해 보조축에 머물렀습니다`,
   }))
 
   const conflictReasons: string[] = []
@@ -228,7 +229,7 @@ function buildArbitrationLedger(input: {
   }
   if (focusWinner && focusRunnerUp && focusWinner.score - focusRunnerUp.score < 8) {
     conflictReasons.push(
-      `${focusWinner.domain}과 ${focusRunnerUp.domain} 사이의 주도권 경쟁이 아주 가깝게 붙어 있습니다`
+      `${focusWinner.domain}${waGwa(focusWinner.domain)} ${focusRunnerUp.domain} 사이의 주도권 경쟁이 아주 가깝게 붙어 있습니다`
     )
   }
   if (actionWinner && actionRunnerUp && actionWinner.score - actionRunnerUp.score < 6) {

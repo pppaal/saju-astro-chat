@@ -2,6 +2,7 @@ import type { DestinyCoreResult } from './runDestinyCore'
 import type { SignalDomain } from './signalSynthesizer'
 import { formatDecisionActionLabels, formatPolicyCheckLabels } from './actionCopy'
 import { repairPossiblyMojibakeText } from '@/lib/destiny-matrix/textRepair'
+import { iga, eunNeun } from '@/lib/i18n/koParticle'
 import type {
   AdapterArbitrationBrief,
   AdapterBranchCandidate,
@@ -252,7 +253,7 @@ export function buildTimingMatrix(
       const granularity = localizeAdapterFreeText(item.timingGranularity, locale)
       const summary =
         locale === 'ko'
-          ? `${label}은 ${window} 창이 가장 직접적이며, ${localizeAdapterFreeText(item.timingConflictNarrative, locale)}`
+          ? `${label}${eunNeun(label)} ${window} 창이 가장 직접적이며, ${localizeAdapterFreeText(item.timingConflictNarrative, locale)}`
           : `${label} is most active in the ${window} window, and ${localizeAdapterFreeText(item.timingConflictNarrative, locale)}`
       return {
         domain: item.domain,
@@ -533,7 +534,10 @@ function buildBranchProjectionSummary(
               : 'Check the entry condition first.',
       reason:
         locale === 'ko'
-          ? `${label} 경로는 ${window || '현재'} 구간에서 ${reversibility} 잘못 움직이면 ${localizeAdapterFreeText(scenario.wrongMoveCost || '', locale)}가 커집니다.`
+          ? (() => {
+              const cost = localizeAdapterFreeText(scenario.wrongMoveCost || '', locale)
+              return `${label} 경로는 ${window || '현재'} 구간에서 ${reversibility} 잘못 움직이면 ${cost}${iga(cost)} 커집니다.`
+            })()
           : `${label} is strongest in ${window || 'the current'} window, ${reversibility}, and the wrong move cost is ${localizeAdapterFreeText(scenario.wrongMoveCost || '', locale)}.`,
     }
   })
@@ -745,7 +749,10 @@ export function buildArbitrationBrief(
           : `${actionWinnerDomain} is carrying the live action pressure.`,
     suppressionNarratives: suppressedDomains.map((item) =>
       locale === 'ko'
-        ? `${localizeDomain(item.domain, locale)}은 ${item.scoreGap.toFixed(1)}점 차이로 보조축에 머물렀습니다. ${localizeAdapterFreeText(item.reason, locale)}`
+        ? (() => {
+            const dom = localizeDomain(item.domain, locale)
+            return `${dom}${eunNeun(dom)} ${item.scoreGap.toFixed(1)}점 차이로 보조축에 머물렀습니다. ${localizeAdapterFreeText(item.reason, locale)}`
+          })()
         : `${item.domain} stayed secondary with a ${item.scoreGap.toFixed(1)} gap because ${item.reason}.`
     ),
   }

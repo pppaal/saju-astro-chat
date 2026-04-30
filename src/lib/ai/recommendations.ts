@@ -237,7 +237,10 @@ function generateMockRecommendations(profile: UserProfile): LifeRecommendation {
       recommendedFields: [
         {
           field: dominantElement === "fire" ? "창업/스타트업" : "금융/투자",
-          reason: `${dominantElement} 기운이 강해 ${dominantElement === "fire" ? "열정과 추진력" : "분석력과 안정성"}이 뛰어남`,
+          reason: (() => {
+            const elKo = ({ wood: '목', fire: '화', earth: '토', metal: '금', water: '수' } as Record<string, string>)[dominantElement] || dominantElement
+            return `${elKo} 기운이 강해 ${dominantElement === "fire" ? "열정과 추진력" : "분석력과 안정성"}이 뛰어남`
+          })(),
           successRate: 85,
           timeframe: "6-12개월",
         },
