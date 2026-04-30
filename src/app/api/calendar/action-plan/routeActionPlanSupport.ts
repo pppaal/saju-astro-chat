@@ -1,4 +1,5 @@
 import { repairMojibakeText } from '@/lib/text/mojibake'
+import { adaptAdviceTone } from '@/lib/destiny-matrix/personality'
 import { calculateDailyPillar, generateHourlyAdvice } from '@/lib/prediction/ultra-precision-daily'
 import { STEM_ELEMENTS } from '@/lib/destiny-map/config/specialDays.data'
 import { getHourlyRecommendation } from '@/lib/destiny-map/calendar/specialDays-analysis'
@@ -1160,6 +1161,14 @@ export const buildRuleBasedTimeline = (input: {
           }
           if (personalHint) {
             action = `${action} (${personalHint})`
+          }
+          // 인격 fingerprint가 있으면 action 부분만 톤 변형 (전체 단락 변형은 길이 폭증)
+          if (calendar?.personalityProfile) {
+            try {
+              action = adaptAdviceTone(action, calendar.personalityProfile, {})
+            } catch {
+              // adapter 에러 시 원본 유지
+            }
           }
           const sentences = [`${bucketTheme}.`, sajuReason, astroReason, activityNote, action]
             .filter((s) => s && s.trim().length > 0)

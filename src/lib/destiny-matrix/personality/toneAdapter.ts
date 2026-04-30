@@ -91,22 +91,18 @@ const SUFFIX_BY_TONE: Record<ToneCategory, string[]> = {
   ],
 }
 
-// 종결어 변환: "~해보세요" → tone별
+// 종결어 변환: 동사 + 하세요 → 동사 + tone별 어미 (동사 보존)
 const CLOSING_TRANSFORM: Record<ToneCategory, (text: string) => string> = {
   logicalAnalyst: (t) =>
     t
-      .replace(/(?<=[가-힣])해보세요\.?$/g, '시도하시면 됩니다.')
-      .replace(/(?<=[가-힣])하세요\.?$/g, '진행하시면 됩니다.'),
+      .replace(/하세요\.?$/g, '하시면 됩니다.')
+      .replace(/하시는 편이 좋습니다\.?$/g, '하시면 됩니다.'),
   visionaryEmpath: (t) =>
-    t
-      .replace(/(?<=[가-힣])하세요\.?$/g, '하시면 더 자연스러워요.'),
+    t.replace(/하세요\.?$/g, '하시면 자연스러워요.'),
   practicalSteward: (t) =>
-    t
-      .replace(/(?<=[가-힣])하세요\.?$/g, '단계별로 처리하세요.'),
+    t.replace(/하세요\.?$/g, '단계대로 처리하세요.'),
   spontaneousDoer: (t) =>
-    t
-      .replace(/(?<=[가-힣])진행하세요\.?$/g, '바로 시작하세요.')
-      .replace(/(?<=[가-힣])정리하세요\.?$/g, '오늘 안에 정리하세요.'),
+    t.replace(/하세요\.?$/g, '바로 시작하세요.'),
 }
 
 // ─────────────────────────────────────────────────────────

@@ -134,6 +134,8 @@ export type ActionPlanCalendarContext = {
     surgery?: number
     study?: number
   }
+  /** 사용자 인격 fingerprint — buildPersonalityProfile() 결과 (선택) */
+  personalityProfile?: import('@/lib/destiny-matrix/personality').PersonalityProfile
 } | null
 
 export type ActionPlanInsights = {
