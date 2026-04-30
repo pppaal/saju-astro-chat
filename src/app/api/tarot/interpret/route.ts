@@ -408,9 +408,9 @@ function getPromptBudget(cardCount: number, isKorean: boolean): PromptBudget {
   if (cardCount >= LARGE_SPREAD_THRESHOLD) {
     return isKorean
       ? {
-          overallGuide: '180-300?',
-          perCardGuide: '90-160?',
-          adviceGuide: '120-180?',
+          overallGuide: '180-300자',
+          perCardGuide: '90-160자',
+          adviceGuide: '120-180자',
           maxTokens: LARGE_SPREAD_GPT_MAX_TOKENS,
           timeoutMs: LARGE_SPREAD_GPT_TIMEOUT_MS,
         }
@@ -426,9 +426,9 @@ function getPromptBudget(cardCount: number, isKorean: boolean): PromptBudget {
   if (cardCount >= 5) {
     return isKorean
       ? {
-          overallGuide: '320-520?',
-          perCardGuide: '180-320?',
-          adviceGuide: '140-220?',
+          overallGuide: '320-520자',
+          perCardGuide: '180-320자',
+          adviceGuide: '140-220자',
           maxTokens: 2600,
           timeoutMs: 55000,
         }
@@ -443,9 +443,9 @@ function getPromptBudget(cardCount: number, isKorean: boolean): PromptBudget {
 
   return isKorean
     ? {
-        overallGuide: '500-850?',
-        perCardGuide: '260-480?',
-        adviceGuide: '160-260?',
+        overallGuide: '500-850자',
+        perCardGuide: '260-480자',
+        adviceGuide: '160-260자',
         maxTokens: 3000,
         timeoutMs: OPENAI_TIMEOUT_MS,
       }
@@ -559,7 +559,9 @@ ${cardExamples}
 ${cardListText}
 
 ## 중요
-- 질문에 직접 답하고, 장황한 설명은 금지합니다.
+- 사용자 질문에 **직접** 답합니다. 일반론 금지.
+- overall_message 첫 문장에 사용자 질문의 핵심 단어를 자연스럽게 인용하세요 (예: "이직 시기를 묻는 이 질문은…").
+- 각 카드 해석에도 질문의 맥락(주체·대상·상황)을 1회 이상 반영하세요.
 - 출력은 오직 JSON입니다.
 - ${
         isLargeSpread
@@ -572,9 +574,10 @@ ${cardListText}
 ${outputSchemaKo}
 
 ## 작성 규칙
-- ${isLargeSpread ? '전체 메시지는 질문 중심으로 작성하고, 실행 지침은 3단계로 구체화' : '각 카드 해석은 위치 의미 + 현재 상황 연결 + 오늘 실행 포인트를 포함'}
+- ${isLargeSpread ? '전체 메시지는 질문 중심으로 작성하고, 실행 지침은 3단계로 구체화' : '각 카드 해석은 위치 의미 + 질문 맥락 연결 + 오늘 실행 포인트를 포함'}
 - 역방향 카드는 막힘/지연/내면화 관점으로 구체화
-- 추상적 문장 금지, 바로 실행 가능한 문장 사용`
+- 추상적 문장 금지, 바로 실행 가능한 문장 사용
+- 사용자 질문이 모호하면, 가장 가능성 높은 의도로 합리적으로 해석하고 그 전제를 한 문장으로 명시`
     : `You are a practical tarot reader. Be precise, warm, and concise.
 
 ## Spread: ${spreadTitle}
@@ -584,7 +587,9 @@ ${outputSchemaKo}
 ${cardListText}
 
 ## IMPORTANT
-- Answer the user question directly with concise, practical language.
+- Answer the user question **directly**. No generic platitudes.
+- The first sentence of overall_message must naturally quote a key noun/intent from the user's question (e.g., "On the job-change you're considering…").
+- Each card interpretation must reference the question's context (subject/object/situation) at least once.
 - Output JSON only.
 - ${
         isLargeSpread
