@@ -73,7 +73,9 @@ export function buildSajuNarrationKo(input: MatrixCalculationInput): string {
   if (input.geokguk) {
     const desc = getGeokgukDescription(input.geokguk as GeokgukType)
     if (desc) {
-      lines.push(`본명이 ${input.geokguk}이라 ${desc}하는 분이에요.`)
+      // description은 명사·형용사구 혼재라 "하는 분"이 어색할 수 있어 ", " 결합 사용
+      const cleanDesc = desc.endsWith('.') ? desc.slice(0, -1) : desc
+      lines.push(`본명이 ${input.geokguk}이라, ${cleanDesc}을 보이는 분이에요.`)
     }
   }
 
@@ -404,9 +406,9 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
       let scenario = ''
       if (diff === 1) scenario = `${input.geokguk}의 강점을 밖으로 표현하기 좋은 구간이라 발표·확장·새 시도에 힘을 실어보세요.`
       else if (diff === 3) scenario = `${input.geokguk}의 책임 무게가 더 무거워지는 구간이라 무리한 확장보다 기존 책임을 정리하는 편이 안전합니다.`
-      else if (diff === 4) scenario = `${input.geokguk}을(를) 받쳐주는 흐름이 들어와 있어 학습·재정비·내적 충전에 시간 쓰기 좋은 시기입니다.`
+      else if (diff === 4) scenario = `${input.geokguk}${eulReul(input.geokguk)} 받쳐주는 흐름이 들어와 있어 학습·재정비·내적 충전에 시간 쓰기 좋은 시기입니다.`
       else if (diff === 0) scenario = `${input.geokguk} 색이 더 진해지는 구간이라 본인이 가진 기조를 더 분명히 드러내는 결정에 무게가 실립니다.`
-      else if (diff === 2) scenario = `${input.geokguk}이(가) 환경을 통제하는 위치라 외부 자원·계약·대인 관계 정리에 유리합니다.`
+      else if (diff === 2) scenario = `${input.geokguk}${iga(input.geokguk)} 환경을 통제하는 위치라 외부 자원·계약·대인 관계 정리에 유리합니다.`
       if (scenario) p3.push(scenario)
     }
   }
@@ -481,9 +483,21 @@ type DaeunRow = {
 
 type AnnualRow = {
   year: number
+  ganji?: string
   heavenlyStem?: string
   earthlyBranch?: string
   element?: string
+}
+
+function splitGanji(row: AnnualRow): { stem?: string; branch?: string } {
+  if (row.heavenlyStem || row.earthlyBranch) {
+    return { stem: row.heavenlyStem, branch: row.earthlyBranch }
+  }
+  // unse.annual 은 보통 ganji 단일 문자열만 채워짐 (예: '丙午')
+  if (row.ganji && row.ganji.length >= 2) {
+    return { stem: row.ganji[0], branch: row.ganji[1] }
+  }
+  return {}
 }
 
 function readDaeunArc(input: MatrixCalculationInput): {
@@ -566,13 +580,13 @@ export function buildStoryArcKo(input: MatrixCalculationInput): string {
   const currentYear = Number(targetIso.slice(0, 4))
   if (!Number.isNaN(currentYear)) {
     const aArc = readAnnualArc(input, currentYear)
-    const cur = aArc.current
-    const prev = aArc.prev
-    const next = aArc.next
-    const curG = ganjiLabel(cur?.heavenlyStem, cur?.earthlyBranch)
+    const cur = aArc.current ? splitGanji(aArc.current) : {}
+    const prev = aArc.prev ? splitGanji(aArc.prev) : {}
+    const next = aArc.next ? splitGanji(aArc.next) : {}
+    const curG = ganjiLabel(cur.stem, cur.branch)
     if (curG) {
-      const prevG2 = ganjiLabel(prev?.heavenlyStem, prev?.earthlyBranch)
-      const nextG2 = ganjiLabel(next?.heavenlyStem, next?.earthlyBranch)
+      const prevG2 = ganjiLabel(prev.stem, prev.branch)
+      const nextG2 = ganjiLabel(next.stem, next.branch)
       const annualLine =
         prevG2 && nextG2
           ? `세운으로 보면 ${currentYear - 1}년 ${prevG2} 흐름에서 시작된 줄기가 올해 ${currentYear}년 ${curG}로 넘어왔고, 내년 ${nextG2}에서 한 번 더 정리될 가능성이 있어요.`
