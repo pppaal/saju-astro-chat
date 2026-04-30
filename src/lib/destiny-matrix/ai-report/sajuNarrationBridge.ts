@@ -304,11 +304,28 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   const natal = input.dayMasterElement
   const natalKo = natal ? ELEMENT_KO_LABEL[natal] || '' : ''
 
-  // ───────── ¶1: 본명 인격 — 격국 + 12운성 + 십신 + 신살을 한 호흡으로 ─────────
+  // ───────── ¶1: 본명 인격 — 격국 + 신강/신약 + 12운성 + 십신 + 신살 ─────────
   const p1: string[] = []
   if (input.geokguk) {
     const desc = getGeokgukDescription(input.geokguk as GeokgukType)
     if (desc) p1.push(`본명이 ${input.geokguk}으로 짜여 있어, ${suffixGeokgukDescription(desc)}`)
+    // (NEW) 신강/신약 + 용신 — 사주 정통 강도 처방
+    const strength = deriveStrength(input)
+    if (strength) {
+      const prescript = STRENGTH_PRESCRIPT_KO[strength]
+      const yongsinKo = input.yongsin ? ELEMENT_KO_LABEL[input.yongsin] || '' : ''
+      // 받침 있는 단어 + 이라 / 없는 단어 + 라 (copula 활용형)
+      const cop = (w: string) => (iga(w) === '이' ? '이라' : '라')
+      let prefix: string
+      if (yongsinKo) {
+        // "강도로 보면 신강, 용신은 토 기운이라" (기운=ㄴ → 이라)
+        prefix = `강도로 보면 ${strength}, 용신은 ${yongsinKo} 기운이라`
+      } else {
+        // "강도로 보면 중화라" / "강도로 보면 신강이라"
+        prefix = `강도로 보면 ${strength}${cop(strength)}`
+      }
+      if (prescript) p1.push(`${prefix}, ${prescript}.`)
+    }
   } else {
     // 격국 미산출 시 일간 한자로 폴백 인트로 — 텍스트가 ¶1 첫 문장 없이 시작하지 않게
     const dayStem = ((input as { sajuSnapshot?: { pillars?: { day?: { heavenlyStem?: { name?: string } } } } }).sajuSnapshot)?.pillars?.day?.heavenlyStem?.name
@@ -368,7 +385,22 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
       p1.push(`${negativeHits[0]}·${negativeHits[1]} 두 개가 같이 들어와 있어, 한 번에 풀리기보다 단련을 거쳐 자기 색을 만드는 패턴이에요.`)
     }
   }
+  // (NEW) 인생 미션 한 줄 — 격국 + 일간 element가 합쳐서 도출
+  if (input.geokguk) {
+    const mission = GEOKGUK_MISSION_KO[input.geokguk as string]
+    if (mission && natalKo) {
+      p1.push(`한 줄로 정리하면, 이 분의 인생 미션은 ${mission} 데 있어요.`)
+    }
+  }
   if (p1.length > 0) paragraphs.push(p1.join(' '))
+
+  // ───────── ¶ 약점·함정 3개 — reflective psychology ─────────
+  if (input.geokguk) {
+    const traps = GEOKGUK_TRAPS_KO[input.geokguk as string]
+    if (traps) {
+      paragraphs.push(`자주 빠지는 함정 3개: ${traps[0]} / ${traps[1]} / ${traps[2]}. 셋이 동시에 작동하면 한 발짝 늦추는 게 안전한데, 본인은 보통 그 순간을 못 알아채요.`)
+    }
+  }
 
   // ───────── ¶ Specific 천간/지지: 본명 안에 이미 형성된 관계 한 줄 ─────────
   const natalRel = buildNatalRelationKo(input)
@@ -542,6 +574,65 @@ const SIBSIN_DOMAIN_KO: Partial<Record<string, { domain: string; manifest: strin
   편관: { domain: '책임 압박·도전 과제', manifest: '강한 책임 무게와 도전 과제를 정면으로 다루는' },
   정인: { domain: '학습·문서·인정', manifest: '꾸준한 학습과 문서 정리로 기반을 다지는' },
   편인: { domain: '직관·연구·내면 탐구', manifest: '직관적 통찰과 깊은 탐구로 영역을 파고드는' },
+}
+
+// ──────────────────────────────────────────────────────────
+// Top 3 추가 — 인생 미션 / 신강·신약 / 약점·함정
+// ──────────────────────────────────────────────────────────
+
+// 격국 → 인생 미션 핵심 표현
+const GEOKGUK_MISSION_KO: Record<string, string> = {
+  정관격: '공식 책임을 통해 사회적 가치를 실현하는',
+  편관격: '강한 책임 무게로 변혁을 추진하는',
+  정인격: '학문·체계 베이스 위에 깊이 있는 통찰을 전달하는',
+  편인격: '직관과 깊은 연구로 영역을 파고드는',
+  식신격: '꾸준한 표현으로 결과물을 차곡차곡 쌓는',
+  상관격: '날카로운 비판·재정의로 기존 틀을 흔들어 바꾸는',
+  정재격: '안정적 자원 운용과 신뢰 구축을 통해 가치를 만드는',
+  편재격: '외부 거래·자산 회전을 통해 흐름을 다루는',
+  비견격: '독립적 정체성으로 자기 자리를 만드는',
+  겁재격: '경쟁 속에서도 자기 자리를 지키는',
+  양인격: '결단·칼날 추진으로 한 영역을 정복하는',
+  건록격: '자수성가와 전문성으로 한 분야를 깊이 다지는',
+  종왕격: '강한 흐름을 따라 그 색을 극대화하는',
+  종강격: '본인 흐름의 색을 극대화하는',
+  종재격: '재성을 따라 외부 자원·관계를 다루는',
+  종관격: '관성을 따라 책임과 평판을 쌓는',
+  종아격: '식상을 따라 표현·창작을 펼치는',
+}
+
+// 격국 → 자주 빠지는 함정 3개
+const GEOKGUK_TRAPS_KO: Record<string, [string, string, string]> = {
+  정관격: ['과도한 책임을 혼자 짊어지기', '원칙에 갇혀 유연성 잃기', '외부 인정·평가에 휘둘리기'],
+  편관격: ['성격 급해 충돌 자초하기', '압박을 자기에게 더 강하게 씌우기', '주변에 무리한 기준 강요'],
+  정인격: ['분석에 빠져 결단 미루기', '자료 모으다 행동 지연시키기', '자기만의 옳음에 갇히기'],
+  편인격: ['직관에 의존해 검증 건너뛰기', '독창성에 갇혀 소통 단절', '내면 탐구에 함몰돼 현실 외면'],
+  식신격: ['여유에 미루다 결과 못 만들기', '표현이 과해 갈등 부르기', '즐기는 데 빠져 깊이 약해지기'],
+  상관격: ['비판이 강해 적 만들기', '기존을 무너뜨리려는 충동', '잘난 척으로 인덕 잃기'],
+  정재격: ['융통성 부족으로 변화 거부하기', '작은 손익에 과도하게 집착', '재미·즐거움 놓치고 일만 하기'],
+  편재격: ['외부 회전에 마음이 분산됨', '한 곳에 못 머물러 깊이 약해지기', '큰 거래·기회에 휩쓸리기'],
+  비견격: ['혼자 다 하려고 협력 거부', '고집 세서 의견 못 받아들임', '경쟁자에게 과민 반응'],
+  겁재격: ['경쟁심 과해 배려 부족', '자기 페이스만 보고 주변 못 봄', '외부 자원에 욕심 부리기'],
+  양인격: ['충돌 잦고 극단으로 치우침', '무리수를 정당화하기', '결단 과정에서 사람 다치게 함'],
+  건록격: ['독불장군이 돼 협력 어려움', '자수성가의 외로움 자초', '도움받기를 꺼려 한계 자초'],
+}
+
+// 신강/신약 → 처방 한 줄
+const STRENGTH_PRESCRIPT_KO: Record<string, string> = {
+  신강: '본명이 강한 편이라, 자기 흐름을 더 키우기보다 식상·재성·관성으로 풀어내고 정리하는 게 균형에 맞아요',
+  신약: '본명이 약한 편이라, 비겁·인성으로 받쳐주고 휴식·학습으로 충전하는 게 회복에 도움이 돼요',
+  중화: '본명이 중화에 가까워, 강점은 키우고 약점은 받쳐주는 양면 운용이 맞아요',
+}
+
+function deriveStrength(input: MatrixCalculationInput): '신강' | '신약' | '중화' | null {
+  const dist = input.sibsinDistribution as Record<string, number> | undefined
+  if (!dist) return null
+  const supporting = (dist['비견'] || 0) + (dist['겁재'] || 0) + (dist['편인'] || 0) + (dist['정인'] || 0)
+  const opposing = (dist['식신'] || 0) + (dist['상관'] || 0) + (dist['편재'] || 0) + (dist['정재'] || 0) + (dist['편관'] || 0) + (dist['정관'] || 0)
+  if (supporting + opposing === 0) return null
+  if (supporting >= opposing + 2) return '신강'
+  if (opposing >= supporting + 2) return '신약'
+  return '중화'
 }
 
 // 일간 한자 → 인격 한 줄 (격국이 없을 때 폴백 인트로)
