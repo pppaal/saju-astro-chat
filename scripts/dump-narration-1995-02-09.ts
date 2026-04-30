@@ -132,6 +132,7 @@ async function main(): Promise<void> {
       pillars: saju.pillars,
       daeWoon: saju.daeWoon,
       unse: saju.unse,
+      birthYear: Number(PROFILE.birthDate.slice(0, 4)),
     },
     geokguk: geokgukName,
     twelveStages: twelveStagesDist,

@@ -362,13 +362,16 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   const storyArc = buildStoryArcKo(input)
   if (storyArc) paragraphs.push(storyArc)
 
-  // ───────── ¶2: 시기 흐름 — 월별 peak + 사이클 충돌 + 월운/일운 ─────────
-  // 대운/세운 relation은 이미 buildStoryArcKo에 폴딩됨 (중복 제거).
-  // 이 단락은 단기 시기(월/일) + 월별 peak + 큰 사이클 충돌만 다룸.
+  // ───────── ¶ 입체 통합: 지금 이 순간 cross-section ─────────
+  // 시간(나이+대운+세운+월peak) + 본명(격국·십신·길성) + 점성(토성·목성 하우스)
+  // + 사주↔점성 cross가 한 단락에서 만남.
+  const nowCrossSection = buildNowCrossSectionKo(input)
+  if (nowCrossSection) paragraphs.push(nowCrossSection)
+
+  // ───────── ¶ 단기 시기 — 월별/일별 + 사이클 충돌 ─────────
+  // 월별 peak는 cross-section에 폴딩됨 (중복 방지).
+  // 이 단락은 단기 시기(월운/일운) + 큰 사이클 충돌만 다룸.
   const p2: string[] = []
-  // (B) Specific timing anchor — 일간 vs 세운 관계로 월별 peak 한 줄
-  const annualPeak = describeAnnualPeak(input.currentSaeunElement, natal)
-  if (annualPeak) p2.push(annualPeak)
   // 대운 ↔ 세운 사이클 충돌 narration
   const daeunSaeunClash = describeCycleClash(input.currentDaeunElement, input.currentSaeunElement, '대운', '세운')
   if (daeunSaeunClash) p2.push(`두 사이클을 함께 보면 ${daeunSaeunClash} 그림이라, 큰 방향이 정해진 가운데 한 해 단위로 환경이 어떻게 받쳐주는지가 중요해져요.`)
@@ -559,6 +562,205 @@ function describeAnnualPeak(saeunEl: string | undefined, natalEl: string | undef
   if (diff === 3) return `특히 ${peak} 구간에 압박과 책임 무게가 가장 무거워지니 한 박자 늦추는 편이 안전해요.`
   if (diff === 4) return `특히 ${peak} 구간이 받쳐주는 흐름이 들어오는 시기라 학습·정비에 좋아요.`
   return ''
+}
+
+// ──────────────────────────────────────────────────────────
+// "지금 이 순간 cross-section" — 시간+본명+점성 한 점 통합
+// 모든 layer의 신호를 한 시점에 묶어 입체적으로 보여주는 단락.
+// 격국·십신·신살·일간 + 대운·세운·월peak + 점성 dominant·하우스 transit이
+// 한 단락에서 만남.
+// ──────────────────────────────────────────────────────────
+
+// 십신 dominant → 한 단어 발현 (cross-section용 짧은 형)
+const SIBSIN_SHORT_EXPR_KO: Partial<Record<string, string>> = {
+  비견: '독립·자기 정체성',
+  겁재: '경쟁·자기 자리',
+  식신: '꾸준한 표현·창작',
+  상관: '날카로운 비판·재정의',
+  정재: '안정 자원 운용',
+  편재: '외부 거래·자산 회전',
+  정관: '공식 책임·평판',
+  편관: '강한 책임 압박',
+  정인: '학문·체계 베이스',
+  편인: '직관·연구',
+}
+
+// 길성 셋 — cross-section에 한 줄 추가용
+const LUCKY_SHINSAL_SET = new Set([
+  '천을귀인', '태극귀인', '문창', '문곡', '금여성', '월덕귀인', '천덕귀인', '학당귀인', '암록',
+])
+const LUCKY_SHINSAL_GLOSS_KO: Record<string, string> = {
+  천을귀인: '귀인의 도움',
+  태극귀인: '학문·통찰 받침',
+  문창: '학습·문서 운',
+  문곡: '문장·표현',
+  금여성: '인덕·도움',
+  월덕귀인: '월 단위 보호',
+  천덕귀인: '큰 흉 막는 보호',
+  학당귀인: '배움 인연',
+  암록: '숨은 후원',
+}
+
+// 점성 토성 하우스 → 시기 의미
+const SATURN_HOUSE_NOW_KO: Record<number, string> = {
+  1: '자기 정체성을 다지는 무게',
+  4: '뿌리·가정 기반을 정리하는 시기',
+  10: '커리어 책임이 무거워지는 단계',
+}
+
+// 점성 목성 하우스 → 시기 의미
+const JUPITER_HOUSE_NOW_KO: Record<number, string> = {
+  9: '학문·해외·신념 쪽으로 열려 있는 확장',
+  10: '커리어·사회 무대 쪽 확장',
+  11: '커뮤니티·미래 비전 쪽 확장',
+}
+
+// 대운 단계 — '시작/중반/끝자락' 결정
+function describeDaeunStage(currentAge: number | undefined, daeunStartAge: number | undefined): string {
+  if (typeof currentAge !== 'number' || typeof daeunStartAge !== 'number') return ''
+  const within = currentAge - daeunStartAge
+  if (within <= 2) return '초입'
+  if (within >= 7) return '끝자락'
+  return '중반'
+}
+
+/**
+ * "지금 이 순간 cross-section" — 시간 + 본명 + 점성을 한 단락에 통합.
+ *
+ * 출력 예 (1995-02-09 06:40 男 서울, 2026-04-30 기준):
+ *   "31세에 들어선 지금, 22~31세 乙亥 대운 끝자락 + 2026년 丙午 세운 + 5월~7월 초여름 peak가
+ *    한 점에서 만나는 시점이에요. 본명에서는 정인격(학문·체계 베이스) + 편재 우세(외부 거래·자산 회전)
+ *    + 천을귀인(귀인의 도움)이 이 시기에 같이 활성화돼 있고, 점성에서는 토성 1하우스(자기 정체성을
+ *    다지는 무게)와 목성 9하우스(학문·해외·신념 쪽으로 열려 있는 확장)가 같이 들어와 있어요.
+ *    사주의 칼날 같은 신중함과 점성의 확장 가속이 같은 시점에서 만나는 결이라, 무게중심을 어디에
+ *    두느냐가 한 해 결과를 가르는 봄~여름이에요."
+ */
+export function buildNowCrossSectionKo(input: MatrixCalculationInput): string {
+  const natal = input.dayMasterElement
+  const natalKo = natal ? ELEMENT_KO_LABEL[natal] || '' : ''
+  if (!natalKo) return ''
+
+  // 시간 anchor 조립
+  const timeParts: string[] = []
+  // 1) 대운 (range만 — 정확한 나이는 입력에 없을 수 있어 stage hint 생략)
+  const arc = readDaeunArc(input)
+  const currentDaeun = arc.current
+  const currentDateIso = (input as { currentDateIso?: string }).currentDateIso || new Date().toISOString().slice(0, 10)
+  const currentYear = Number(currentDateIso.slice(0, 4))
+  // birthYear가 sajuSnapshot에 있으면 stage hint 추가, 없으면 range만
+  const snapBirthYear = (input as { sajuSnapshot?: { birthYear?: number } }).sajuSnapshot?.birthYear
+  const ageNow = snapBirthYear && currentYear ? currentYear - snapBirthYear + 1 : undefined
+  if (currentDaeun?.heavenlyStem && currentDaeun?.earthlyBranch && currentDaeun?.age != null) {
+    const ganji = `${currentDaeun.heavenlyStem}${currentDaeun.earthlyBranch}`
+    const range = `${currentDaeun.age}~${currentDaeun.age + 9}세`
+    const stage = describeDaeunStage(ageNow, currentDaeun.age)
+    timeParts.push(`${range} ${ganji} 대운${stage ? ` ${stage}` : ''}`)
+  }
+  // 2) 세운
+  const annualArc = readAnnualArc(input, currentYear)
+  if (annualArc.current) {
+    const cur = splitGanji(annualArc.current)
+    const curG = ganjiLabel(cur.stem, cur.branch)
+    if (curG) timeParts.push(`${currentYear}년 ${curG} 세운`)
+  }
+  // 3) 월별 peak
+  const peakLine = describeAnnualPeak(input.currentSaeunElement, natal)
+
+  // 본명 layer 핵심
+  const natalCoreParts: string[] = []
+  if (input.geokguk) {
+    natalCoreParts.push(`${input.geokguk}`)
+  }
+  const topSibsin = topEntry(input.sibsinDistribution)
+  if (topSibsin) {
+    const expr = SIBSIN_SHORT_EXPR_KO[topSibsin as string]
+    natalCoreParts.push(expr ? `${topSibsin} 우세(${expr})` : `${topSibsin} 우세`)
+  }
+  // 길성 1개 추출
+  if (input.shinsalList && input.shinsalList.length > 0) {
+    const lucky = (input.shinsalList as string[]).find((s) => LUCKY_SHINSAL_SET.has(s))
+    if (lucky) {
+      const gloss = LUCKY_SHINSAL_GLOSS_KO[lucky]
+      natalCoreParts.push(gloss ? `${lucky}(${gloss})` : lucky)
+    }
+  }
+
+  // 점성 layer 핵심
+  const astroCoreParts: string[] = []
+  const houses = input.planetHouses || {}
+  const sat = houses.Saturn
+  if (sat && SATURN_HOUSE_NOW_KO[sat]) {
+    astroCoreParts.push(`토성 ${sat}하우스(${SATURN_HOUSE_NOW_KO[sat]})`)
+  }
+  const jup = houses.Jupiter
+  if (jup && JUPITER_HOUSE_NOW_KO[jup]) {
+    astroCoreParts.push(`목성 ${jup}하우스(${JUPITER_HOUSE_NOW_KO[jup]})`)
+  }
+
+  // 사주↔점성 cross 한 줄
+  const crossClosing = buildCrossNowKo(natalKo, input.dominantWesternElement)
+
+  // peakLine 인라인용 — '특히 X 구간에 ...' → '특히 X 구간이 핵심' 짧은 형
+  const peakInline = peakLine
+    ? peakLine
+        .replace(/^특히 /, '')
+        .replace(/이 본인 색이.*$/, '구간이 본인 색이 가장 진하게 드러나는 시기')
+        .replace(/에 표현·확장.*$/, '에 표현·확장 압력이 가장 큰 시기')
+        .replace(/이 결정·통제력.*$/, '구간이 결정·통제력이 가장 또렷한 시기')
+        .replace(/에 압박과 책임.*$/, '에 압박과 책임 무게가 가장 무거운 시기')
+        .replace(/이 받쳐주는.*$/, '구간이 받쳐주는 흐름이 들어오는 시기')
+    : ''
+
+  // 조립
+  const sentences: string[] = []
+  // S1: 시간 anchor — "지금 X + Y + peak가 한 점에서 만나는"
+  if (timeParts.length > 0) {
+    const ageAnchor = ageNow ? `${ageNow}세 시점에서 보면, ` : '지금 시점에서는 '
+    const parts = [...timeParts]
+    if (peakInline) parts.push(peakInline)
+    const lastPart = parts[parts.length - 1]
+    sentences.push(`${ageAnchor}${parts.join(' + ')}${iga(lastPart)} 한 자리에서 만나는 결이에요.`)
+  }
+  // S2: 본명 layer + 점성 layer — '·' join + '같은 신호가' 명사 anchor로 조사 안전
+  if (natalCoreParts.length > 0 && astroCoreParts.length > 0) {
+    sentences.push(`본명에서는 ${natalCoreParts.join(' · ')} 같은 신호가 같이 활성화돼 있고, 점성에서는 ${astroCoreParts.join(' · ')} 같은 신호가 같은 시점에 들어와 있어요.`)
+  } else if (natalCoreParts.length > 0) {
+    sentences.push(`본명에서는 ${natalCoreParts.join(' · ')} 같은 신호가 같이 활성화돼 있는 그림이에요.`)
+  } else if (astroCoreParts.length > 0) {
+    sentences.push(`점성에서는 ${astroCoreParts.join(' · ')} 같은 신호가 같이 들어와 있는 시점이에요.`)
+  }
+  // S3: cross integration closing
+  if (crossClosing) sentences.push(crossClosing)
+
+  return sentences.join(' ')
+}
+
+// "지금 시점 cross" — natal element + dominant western 한 줄 (shorter than buildCrossIntegrationKo)
+function buildCrossNowKo(natalKo: string, dominantWestern: string | undefined): string {
+  if (!natalKo || !dominantWestern) return ''
+  const westKo: Record<string, string> = { fire: '화', earth: '토', air: '풍', water: '수' }
+  const w = westKo[dominantWestern]
+  if (!w) return ''
+  const sajuTone: Record<string, string> = {
+    목: '자라남·계획의 신중한 추진',
+    화: '표현·확장의 빠른 추진',
+    토: '신뢰·축적의 묵직한 안정',
+    금: '결단·정리의 칼날 같은 신중함',
+    수: '관찰·통찰의 깊은 호흡',
+  }
+  const astroTone: Record<string, string> = {
+    화: '확장·도전의 가속',
+    토: '실용·구조의 다짐',
+    풍: '소통·다중의 회전',
+    수: '직관·정서의 깊이',
+  }
+  const a = sajuTone[natalKo]
+  const b = astroTone[w]
+  if (!a || !b) return ''
+  if (natalKo === w) {
+    return `사주의 ${a}이 점성의 ${b}과 같은 방향이라, 같은 시점에서 두 시스템이 서로 보태주는 결이에요. 결정에 가속이 잘 붙어요.`
+  }
+  return `사주의 ${a}과 점성의 ${b}이 같은 시점에서 만나는 결이라, 무게중심을 어디에 두느냐가 한 해 결과를 가르는 시기예요.`
 }
 
 // 사주 일간 element × 점성 dominant element → 두 시스템 통합 한 문장
