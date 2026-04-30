@@ -62,8 +62,6 @@ const serviceModules = [
   'lib/weeklyFortune',
   'lib/userProfile',
   'lib/iChing/changingLineData',
-  'lib/marketing/imageGenerator',
-  'lib/marketing/socialMediaPoster',
   'lib/metrics',
   'lib/telemetry',
   'lib/env',
