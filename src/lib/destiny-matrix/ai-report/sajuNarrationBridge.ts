@@ -350,6 +350,14 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   }
   if (p1.length > 0) paragraphs.push(p1.join(' '))
 
+  // ───────── ¶ Specific 천간/지지: 본명 안에 이미 형성된 관계 한 줄 ─────────
+  const natalRel = buildNatalRelationKo(input)
+  if (natalRel) paragraphs.push(natalRel)
+
+  // ───────── ¶ 시계열: 이전 → 현재 → 다음 대운 + 세운 arc ─────────
+  const storyArc = buildStoryArcKo(input)
+  if (storyArc) paragraphs.push(storyArc)
+
   // ───────── ¶2: 시기 흐름 — 대운/세운/월운 + 사이클 충돌·상생 narration ─────────
   const p2: string[] = []
   const daeunRel = describeCycleRelation(natal, input.currentDaeunElement, '대운', '인생 전반을 그 색으로 물들이는')
@@ -405,4 +413,173 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   if (p3.length > 0) paragraphs.push(p3.join(' '))
 
   return paragraphs.join('\n\n')
+}
+
+// ──────────────────────────────────────────────────────────
+// 천간/지지 specific 페어 narration (甲庚충 / 甲己합 등)
+// ──────────────────────────────────────────────────────────
+
+const STEM_KO_ELEMENT: Record<string, string> = {
+  甲: '목', 乙: '목', 丙: '화', 丁: '화', 戊: '토',
+  己: '토', 庚: '금', 辛: '금', 壬: '수', 癸: '수',
+}
+const BRANCH_KO_ELEMENT: Record<string, string> = {
+  子: '수', 丑: '토', 寅: '목', 卯: '목', 辰: '토', 巳: '화',
+  午: '화', 未: '토', 申: '금', 酉: '금', 戌: '토', 亥: '수',
+}
+const RELATION_KIND_BLURB: Record<string, string> = {
+  천간합: '천간합으로 부드럽게 맞물려 협력·동의가 자연스럽게 떨어집니다',
+  천간충: '천간충으로 부딪쳐 추진력은 있지만 갈등·압박이 함께 옵니다',
+  지지육합: '지지육합으로 일상이 단단해지고 가까운 관계가 더 깊어집니다',
+  지지삼합: '지지삼합으로 큰 흐름이 한 방향으로 모이는 강한 추진 구도예요',
+  지지방합: '지지방합으로 같은 계절 기운이 모여 안정적인 진도가 나옵니다',
+  지지충: '지지충으로 환경·이동·관계 변동이 잦은 결입니다',
+  지지형: '지지형으로 마찰·실수가 노출되기 쉬워 평소보다 한 번 더 점검해야 합니다',
+  지지파: '지지파로 진행 중인 일이 살짝 틀어질 가능성이 있습니다',
+  지지해: '지지해로 오해·어긋남이 쌓이기 쉬우니 해석 일치 확인이 먼저예요',
+  원진: '원진으로 미묘한 거부감과 오해가 자라기 쉬운 구도입니다',
+  공망: '공망에 들어가 결정 무게가 가벼워지니 새 일은 다음 흐름으로 미루는 편이 좋아요',
+}
+
+function readDayPillar(input: MatrixCalculationInput): { stem?: string; branch?: string } {
+  const snap = (input as { sajuSnapshot?: { pillars?: unknown } }).sajuSnapshot
+  const pillars = snap?.pillars as
+    | { day?: { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } } }
+    | undefined
+  return {
+    stem: pillars?.day?.heavenlyStem?.name,
+    branch: pillars?.day?.earthlyBranch?.name,
+  }
+}
+
+/** 본명 4기둥 안에서 이미 형성된 specific 천간/지지 관계를 자연어로 한 줄. */
+export function buildNatalRelationKo(input: MatrixCalculationInput): string {
+  const relations = input.relations || []
+  if (relations.length === 0) return ''
+  // 강도 큰 관계 우선 — 충/형/공망 > 합 > 해/파 > 원진
+  const priority = ['천간충', '지지충', '지지형', '공망', '천간합', '지지삼합', '지지육합', '지지방합', '지지해', '지지파', '원진']
+  const sorted = [...relations].sort(
+    (a, b) => priority.indexOf(a.kind) - priority.indexOf(b.kind)
+  )
+  const top = sorted[0]
+  if (!top) return ''
+  const blurb = RELATION_KIND_BLURB[top.kind] || ''
+  const detail = top.detail ? `(${top.detail})` : ''
+  if (!blurb) return ''
+  return `본명 안에서 이미 ${top.kind}${detail}이 형성돼 있어, ${blurb}.`
+}
+
+// ──────────────────────────────────────────────────────────
+// 시계열 스토리 — 이전/현재/다음 대운 + 작년/올해/내년 세운
+// ──────────────────────────────────────────────────────────
+
+type DaeunRow = {
+  age: number
+  heavenlyStem?: string
+  earthlyBranch?: string
+}
+
+type AnnualRow = {
+  year: number
+  heavenlyStem?: string
+  earthlyBranch?: string
+  element?: string
+}
+
+function readDaeunArc(input: MatrixCalculationInput): {
+  prev?: DaeunRow
+  current?: DaeunRow
+  next?: DaeunRow
+} {
+  const snap = (input as { sajuSnapshot?: { daeWoon?: unknown } }).sajuSnapshot
+  const daeWoon = snap?.daeWoon as
+    | { current?: DaeunRow; list?: DaeunRow[] }
+    | undefined
+  const list = daeWoon?.list || []
+  const current = daeWoon?.current
+  if (!current) return { current: undefined }
+  const idx = list.findIndex((d) => d.age === current.age)
+  return {
+    prev: idx > 0 ? list[idx - 1] : undefined,
+    current,
+    next: idx >= 0 && idx < list.length - 1 ? list[idx + 1] : undefined,
+  }
+}
+
+function readAnnualArc(
+  input: MatrixCalculationInput,
+  currentYear: number
+): { prev?: AnnualRow; current?: AnnualRow; next?: AnnualRow } {
+  const snap = (input as { sajuSnapshot?: { unse?: unknown } }).sajuSnapshot
+  const unse = snap?.unse as { annual?: AnnualRow[] } | undefined
+  const list = unse?.annual || []
+  const findYear = (y: number) => list.find((row) => row.year === y)
+  return {
+    prev: findYear(currentYear - 1),
+    current: findYear(currentYear),
+    next: findYear(currentYear + 1),
+  }
+}
+
+function ganjiLabel(stem?: string, branch?: string): string {
+  if (!stem && !branch) return ''
+  return `${stem || ''}${branch || ''}`
+}
+
+function ganjiElementLabel(stem?: string, branch?: string): string {
+  const el = stem ? STEM_KO_ELEMENT[stem] : branch ? BRANCH_KO_ELEMENT[branch] : ''
+  return el ? `${el} 기운` : ''
+}
+
+/**
+ * 시계열 스토리 — 이전 대운 → 현재 대운 → 다음 대운 + 작년/올해/내년 세운.
+ * 스토리 한 단락으로 합성. sajuSnapshot 없으면 빈 문자열 반환.
+ */
+export function buildStoryArcKo(input: MatrixCalculationInput): string {
+  const arc = readDaeunArc(input)
+  if (!arc.current) return ''
+  const lines: string[] = []
+
+  // 대운 arc
+  const prevG = ganjiLabel(arc.prev?.heavenlyStem, arc.prev?.earthlyBranch)
+  const currG = ganjiLabel(arc.current.heavenlyStem, arc.current.earthlyBranch)
+  const nextG = ganjiLabel(arc.next?.heavenlyStem, arc.next?.earthlyBranch)
+  const prevEl = ganjiElementLabel(arc.prev?.heavenlyStem, arc.prev?.earthlyBranch)
+  const currEl = ganjiElementLabel(arc.current.heavenlyStem, arc.current.earthlyBranch)
+  const nextEl = ganjiElementLabel(arc.next?.heavenlyStem, arc.next?.earthlyBranch)
+
+  if (prevG && prevEl) {
+    lines.push(`지난 ${arc.prev?.age}~${(arc.prev?.age ?? 0) + 9}세 ${prevG} 대운은 ${prevEl}이 인생의 색을 잡아주던 시기였고,`)
+  }
+  if (currG && currEl) {
+    const range = `${arc.current.age}~${arc.current.age + 9}세`
+    lines.push(`지금 ${range} ${currG} 대운으로 들어와 ${currEl} 흐름이 본명을 새로 물들이는 구간입니다.`)
+  }
+  if (nextG && nextEl) {
+    lines.push(`10년 뒤 ${arc.next?.age}~${(arc.next?.age ?? 0) + 9}세 ${nextG} 대운에서는 ${nextEl}이 다음 챕터를 열어주게 되니, 지금 흐름을 잘 정리해두면 자연스럽게 옮겨갑니다.`)
+  }
+
+  // 세운 arc
+  const targetIso =
+    (input as { currentDateIso?: string }).currentDateIso ||
+    new Date().toISOString().slice(0, 10)
+  const currentYear = Number(targetIso.slice(0, 4))
+  if (!Number.isNaN(currentYear)) {
+    const aArc = readAnnualArc(input, currentYear)
+    const cur = aArc.current
+    const prev = aArc.prev
+    const next = aArc.next
+    const curG = ganjiLabel(cur?.heavenlyStem, cur?.earthlyBranch)
+    if (curG) {
+      const prevG2 = ganjiLabel(prev?.heavenlyStem, prev?.earthlyBranch)
+      const nextG2 = ganjiLabel(next?.heavenlyStem, next?.earthlyBranch)
+      const annualLine =
+        prevG2 && nextG2
+          ? `세운으로 보면 ${currentYear - 1}년 ${prevG2} 흐름에서 시작된 줄기가 올해 ${currentYear}년 ${curG}로 넘어왔고, 내년 ${nextG2}에서 한 번 더 정리될 가능성이 있어요.`
+          : `올해 ${currentYear}년 세운은 ${curG}로 흐릅니다.`
+      lines.push(annualLine)
+    }
+  }
+
+  return lines.join(' ')
 }
