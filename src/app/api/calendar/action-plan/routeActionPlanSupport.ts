@@ -120,8 +120,8 @@ export function buildPersonalizationHint(input: {
     hints.push(
       locale === 'ko'
         ? tone === 'caution'
-          ? '?? ??? ??? ??????? ?????.'
-          : '1? ??? ?? ???? ?? ???? ??????.'
+          ? '결론을 미루고 체크리스트부터 검증하세요.'
+          : '1차 결론을 빠르게 내고 후속 보완으로 마무리하세요.'
         : tone === 'caution'
           ? 'Delay the final decision and validate the checklist first.'
           : 'Lock the first decision, then finish with follow-up refinement.'
@@ -129,7 +129,7 @@ export function buildPersonalizationHint(input: {
   } else if ((icp?.dominanceScore || 100) <= 35) {
     hints.push(
       locale === 'ko'
-        ? '???? ?? ?? ?? ?? ?? ?????.'
+        ? '의사결정 전에 기준 두세 개를 먼저 고정하세요.'
         : 'Fix two or three decision criteria before acting.'
     )
   }
@@ -137,7 +137,7 @@ export function buildPersonalizationHint(input: {
   if ((icp?.affiliationScore || 0) >= 70) {
     hints.push(
       locale === 'ko'
-        ? '?? ??? ? ??? ?? ??? ??? ????.'
+        ? '핵심 관계자 한 명에게 먼저 공유해 오해를 줄이세요.'
         : 'Pre-brief one key stakeholder to reduce misunderstanding.'
     )
   }
@@ -146,13 +146,13 @@ export function buildPersonalizationHint(input: {
   if (decisionPole === 'logic') {
     hints.push(
       locale === 'ko'
-        ? '???? ??? ?? ? ?? ???? ???.'
+        ? '판단은 감각보다 수치 두 개를 기준으로 두세요.'
         : 'Anchor decisions on two concrete metrics over intuition.'
     )
   } else if (decisionPole === 'empathic') {
     hints.push(
       locale === 'ko'
-        ? '?? ?? ?? ?? ? ??? ?? ?????.'
+        ? '결정 전에 상대 영향 한 가지를 먼저 확인하세요.'
         : 'Check one human-impact factor before deciding.'
     )
   }
@@ -169,12 +169,12 @@ export function buildPersonalSummaryTag(input: {
   const tokens: string[] = []
   if (icp?.primaryStyle) tokens.push(`ICP ${icp.primaryStyle}`)
   if (persona?.personaName) {
-    tokens.push(locale === 'ko' ? `???? ${persona.personaName}` : `Persona ${persona.personaName}`)
+    tokens.push(locale === 'ko' ? `페르소나 ${persona.personaName}` : `Persona ${persona.personaName}`)
   } else if (persona?.typeCode) {
-    tokens.push(locale === 'ko' ? `???? ${persona.typeCode}` : `Persona ${persona.typeCode}`)
+    tokens.push(locale === 'ko' ? `페르소나 ${persona.typeCode}` : `Persona ${persona.typeCode}`)
   }
   if (tokens.length === 0) return null
-  return locale === 'ko' ? `???: ${tokens.join(', ')}` : `Personalization: ${tokens.join(', ')}`
+  return locale === 'ko' ? `개인화: ${tokens.join(', ')}` : `Personalization: ${tokens.join(', ')}`
 }
 
 export function inferSlotTypes(input: {

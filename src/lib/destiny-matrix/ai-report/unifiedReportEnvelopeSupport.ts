@@ -60,7 +60,7 @@ export function buildUnifiedTimelineEventsFromClaims(params: {
         timeHint: { ageRange: stage, confidence: 0.64 },
         thesis:
           params.lang === 'ko'
-            ? `${stage}? ??? ?? ??? ????? ?? ??? ????? ?? ???? ???? ?????.${age ? ` ?? ??(? ${age}?) ???? ????? ?????.` : ''}`
+            ? `${stage}세 구간은 핵심 기준을 단순화하고 반복 루틴을 고정할수록 성과 변동폭이 줄어드는 흐름입니다.${age ? ` 현재 나이(약 ${age}세) 기준으로 우선순위를 정렬하세요.` : ''}`
             : `Stage ${stage} rewards simpler decision rules and repeatable routines for lower variance.${age ? ` Current age context (${age}) can refine priorities.` : ''}`,
         evidenceRefs: params.claims.flatMap((claim) => claim.selectedSignalIds).slice(0, 3),
       })
@@ -79,7 +79,7 @@ export function buildUnifiedTimelineEventsFromClaims(params: {
         },
         thesis:
           params.lang === 'ko'
-            ? `${claim.text} ??? ????? ??? ????? ?? ?? ?? ??? ??? ?? ??? ????.`
+            ? `${claim.text} 변곡점 구간에서는 결정을 단계화하고 확정 전에 조건 검증을 거치면 누적 성과가 커집니다.`
             : `${claim.text} In turning-point windows, staged decisions with pre-commit verification improve cumulative outcomes.`,
         evidenceRefs: [
           ...(claim.selectedSignalIds || []).slice(0, 3),
@@ -95,7 +95,7 @@ export function buildUnifiedTimelineEventsFromClaims(params: {
         timeHint: { year, month, confidence: 0.52 },
         thesis:
           params.lang === 'ko'
-            ? `${anchor.section} ?? ??? ?? ???? ?? ??? ??? ??? ?? ? ??? ?????.`
+            ? `${anchor.section} 교차 근거는 월간 실행에서 검증 단계를 넣으면 오차를 줄일 수 있음을 보여줍니다.`
             : `Cross evidence in ${anchor.section} suggests monthly execution is safer with explicit verification gates.`,
         evidenceRefs: [anchor.id],
       })
@@ -115,7 +115,7 @@ export function buildUnifiedTimelineEventsFromClaims(params: {
       },
       thesis:
         params.lang === 'ko'
-          ? `${claim.text} ?? ??? ??? ??? ???? ??? ??? ????? ?? ???? ?????.`
+          ? `${claim.text} 해당 구간은 착수와 확정을 분리하고 재확인 단계를 포함할수록 결과 안정성이 올라갑니다.`
           : `${claim.text} This window is more stable when start and finalization are separated with one recheck step.`,
       evidenceRefs: [
         ...(claim.selectedSignalIds || []).slice(0, 3),
@@ -131,7 +131,7 @@ export function buildUnifiedTimelineEventsFromClaims(params: {
       timeHint: { year, month, confidence: 0.58 },
       thesis:
         params.lang === 'ko'
-          ? `${anchor.section} ?? ???? ??-?? ?? ??? ????, ?? ????? ?? ??? ?? ??? ???? ?? ? ????.`
+          ? `${anchor.section} 근거 묶음에서 사주-점성 교차 신호가 확인되어, 해당 의사결정은 검증 단계를 먼저 거치면 리스크를 줄일 수 있습니다.`
           : `Cross evidence in ${anchor.section} indicates lower variance when a verification step is applied before commitment.`,
       evidenceRefs: [anchor.id],
     })
@@ -274,33 +274,33 @@ export function sectionHeading(lang: 'ko' | 'en', sectionPath: string, index: nu
   }
   const key = sectionPath.split('.').join('_')
   const koMap: Record<string, [string, string, string]> = {
-    introduction: ['# ?? ?? ? ? ????', '## ?? ??/?? ??', '## ???? ?? ??'],
-    personalityDeep: ['# ?? ??(??)', '# ??? ??(???)', '# ?? ??? ???? ??'],
+    introduction: ['# 인생 총운 한 줄 로그라인', '## 전체 점수/신뢰 요약', '## 승부처와 실행 레버'],
+    personalityDeep: ['# 성향 엔진(강점)', '# 그림자 패턴(리스크)', '# 회복 루틴과 의사결정 기준'],
     careerPath: [
-      '# ??? ??(?? ????)',
-      '# ??·?? ??? ??',
-      '# ????? 90? ??',
+      '# 커리어 엔진(역할 아키타입)',
+      '# 직군·국가 적합도 근거',
+      '# 시나리오와 90일 실행',
     ],
     relationshipDynamics: [
-      '# ??? ????(??)',
-      '# ?? ??·??? ??',
-      '# ?? ????? ????',
+      '# 배우자 아키타입(누구)',
+      '# 만남 채널·알아볼 단서',
+      '# 관계 타임라인과 방어전략',
     ],
     spouseProfile: ['# 배우자 아키타입', '## 만남 채널과 관계 단서', '## 오래 가는 관계 운영법'],
-    wealthPotential: ['# ?? ???', '# ?? ??·?? ??? ??', '# ?? ??? ??? ?'],
-    healthGuidance: ['# ?? ??', '# ?? ??', '# ?? ??'],
-    lifeMission: ['# ?? ? ?', '# ?? ?? 3', '# ??/?? ???'],
+    wealthPotential: ['# 머니 스타일', '# 수입 밴드·점프 이벤트 근거', '# 누수 차단과 리스크 룰'],
+    healthGuidance: ['# 취약 패턴', '# 경고 신호', '# 최소 루틴'],
+    lifeMission: ['# 미션 한 줄', '# 결정 기준 3', '# 확장/축소 포인트'],
     lifeStages: ['# 인생 단계별 흐름', '## 단계별 과제', '## 다음 구간 준비'],
     turningPoints: ['# 주요 변곡점', '## 변곡점 근거', '## 대응 원칙'],
     futureOutlook: ['# 앞으로 3~5년', '## 중기 흐름', '## 준비할 변화'],
-    timingAdvice: ['# ?? ?? ??', '## ??? Top7 ??', '## ?? ??? ??'],
-    actionPlan: ['# 2? ?? 3??', '# ?????', '# KPI? ??? ????'],
-    conclusion: ['# ?? ??', '# ??? ? ??', '# ??? ???'],
-    overview: ['# ?? ??', '## ?? ??', '## ?? ??'],
-    energy: ['# ??? ??', '## ?? ??', '## ?? ??'],
-    opportunities: ['# ?? ???', '## ?? ??', '## ?? ??'],
-    cautions: ['# ?? ???', '## ?? ??', '## ?? ??'],
-    actionPlan_timing: ['# ?? ??', '## ?? ??', '## ?? ??'],
+    timingAdvice: ['# 인생 챕터 흐름', '## 변곡점 Top7 근거', '## 실행 타이밍 전략'],
+    actionPlan: ['# 2주 실행 3단계', '# 체크리스트', '# KPI와 트리거 프로토콜'],
+    conclusion: ['# 승리 조건', '# 피해야 할 조건', '# 마지막 메시지'],
+    overview: ['# 기간 총평', '## 근거 요약', '## 실행 전략'],
+    energy: ['# 에너지 흐름', '## 근거 요약', '## 실행 전략'],
+    opportunities: ['# 기회 포인트', '## 근거 요약', '## 실행 전략'],
+    cautions: ['# 주의 포인트', '## 근거 요약', '## 실행 전략'],
+    actionPlan_timing: ['# 실행 플랜', '## 근거 요약', '## 실행 전략'],
   }
   const enMap: Record<string, [string, string, string]> = {
     introduction: ['# Life Logline', '## Score and Trust Summary', '## Levers and Execution'],
@@ -340,9 +340,9 @@ export function sectionHeading(lang: 'ko' | 'en', sectionPath: string, index: nu
   const indexSafe = headingIndex
   if (lang === 'ko') {
     const headings = koMap[mapKey] || [
-      `## ${key} ?? ??`,
-      `## ${key} ?? ??`,
-      `## ${key} ?? ??`,
+      `## ${key} 핵심 결론`,
+      `## ${key} 근거 요약`,
+      `## ${key} 실행 전략`,
     ]
     return headings[indexSafe]
   }
@@ -355,13 +355,13 @@ export function sectionHeading(lang: 'ko' | 'en', sectionPath: string, index: nu
 }
 
 export function formatTimeHintLabel(lang: 'ko' | 'en', hint?: UnifiedTimelineEvent['timeHint']): string {
-  if (!hint) return lang === 'ko' ? '?? ??' : 'timing pending'
-  if (hint.ageRange) return lang === 'ko' ? `${hint.ageRange}?` : `age ${hint.ageRange}`
+  if (!hint) return lang === 'ko' ? '시기 미정' : 'timing pending'
+  if (hint.ageRange) return lang === 'ko' ? `${hint.ageRange}세` : `age ${hint.ageRange}`
   if (hint.date) return hint.date
   if (hint.year && hint.month) return `${hint.year}-${String(hint.month).padStart(2, '0')}`
   if (hint.year) return `${hint.year}`
-  if (hint.month) return lang === 'ko' ? `${hint.month}?` : `M${hint.month}`
-  return lang === 'ko' ? '?? ??' : 'timing pending'
+  if (hint.month) return lang === 'ko' ? `${hint.month}월` : `M${hint.month}`
+  return lang === 'ko' ? '시기 미정' : 'timing pending'
 }
 
 export function formatTimelineEventLine(lang: 'ko' | 'en', event: UnifiedTimelineEvent): string {
@@ -389,7 +389,7 @@ export function formatScenarioLines(params: {
   if (!bundle) {
     return [
       lang === 'ko'
-        ? '??/?? ????? ?? ??? ???? ???????.'
+        ? '메인/대안 시나리오는 핵심 이벤트 기준으로 업데이트됩니다.'
         : 'Main/alternative scenarios will be updated from core events.',
     ]
   }
@@ -409,7 +409,7 @@ export function formatScenarioLines(params: {
   if (out.length === 0) {
     out.push(
       lang === 'ko'
-        ? '???? ??? ???? ?? ?? ??? ?????.'
+        ? '시나리오 근거가 제한적이라 기본 안전 전략을 유지합니다.'
         : 'Scenario evidence is limited; keep base safety strategy.'
     )
   }
@@ -418,14 +418,14 @@ export function formatScenarioLines(params: {
 
 export function formatCountryFitLine(lang: 'ko' | 'en', item: MappingCountryFit): string {
   return lang === 'ko'
-    ? `${item.country} ??? ${item.fitScore}: ${item.tradeOff}`
+    ? `${item.country} 적합도 ${item.fitScore}: ${item.tradeOff}`
     : `${item.country} fit ${item.fitScore}: ${item.tradeOff}`
 }
 
 export function formatIncomeBandLine(lang: 'ko' | 'en', item: MappingIncomeBand): string {
   const confidence = Math.round(clamp(item.confidence, 0, 1) * 100)
   return lang === 'ko'
-    ? `${item.label} (${confidence}%): ????=${item.conditionsUpper} / ?????=${item.risksLower}`
+    ? `${item.label} (${confidence}%): 상한조건=${item.conditionsUpper} / 하한리스크=${item.risksLower}`
     : `${item.label} (${confidence}%): upper=${item.conditionsUpper} / lower-risk=${item.risksLower}`
 }
 
@@ -517,32 +517,32 @@ export function buildBlocksBySection(params: {
 
     const primaryTraitLine =
       params.lang === 'ko'
-        ? `?? ??: ${params.mappingRulebook.partnerArchetype.primaryTraits.join(', ')} / ??: ${params.mappingRulebook.partnerArchetype.supportTraits.join(', ')}`
+        ? `핵심 성향: ${params.mappingRulebook.partnerArchetype.primaryTraits.join(', ')} / 보조: ${params.mappingRulebook.partnerArchetype.supportTraits.join(', ')}`
         : `Primary traits: ${params.mappingRulebook.partnerArchetype.primaryTraits.join(', ')} / support: ${params.mappingRulebook.partnerArchetype.supportTraits.join(', ')}`
 
     const partnerVibeLine =
       params.lang === 'ko'
-        ? `???/???: ${params.mappingRulebook.partnerArchetype.vibe.slice(0, 3).join(', ')} / ${params.mappingRulebook.partnerArchetype.style.slice(0, 3).join(', ')}`
+        ? `분위기/스타일: ${params.mappingRulebook.partnerArchetype.vibe.slice(0, 3).join(', ')} / ${params.mappingRulebook.partnerArchetype.style.slice(0, 3).join(', ')}`
         : `Vibe/style: ${params.mappingRulebook.partnerArchetype.vibe.slice(0, 3).join(', ')} / ${params.mappingRulebook.partnerArchetype.style.slice(0, 3).join(', ')}`
 
     const partnerChannelLine =
       params.lang === 'ko'
-        ? `?? ?? Top3: ${params.mappingRulebook.partnerArchetype.meetChannels.slice(0, 3).join(', ')}`
+        ? `만남 채널 Top3: ${params.mappingRulebook.partnerArchetype.meetChannels.slice(0, 3).join(', ')}`
         : `Top channels: ${params.mappingRulebook.partnerArchetype.meetChannels.slice(0, 3).join(', ')}`
 
     const partnerClueLine =
       params.lang === 'ko'
-        ? `??? ??: ${params.mappingRulebook.partnerArchetype.recognitionClues.slice(0, 3).join(', ')}`
+        ? `알아볼 단서: ${params.mappingRulebook.partnerArchetype.recognitionClues.slice(0, 3).join(', ')}`
         : `Recognition clues: ${params.mappingRulebook.partnerArchetype.recognitionClues.slice(0, 3).join(', ')}`
 
     const roleLine =
       params.lang === 'ko'
-        ? `?? ????: ${params.mappingRulebook.careerClusters.roleArchetypes.slice(0, 3).join(', ')}`
+        ? `역할 아키타입: ${params.mappingRulebook.careerClusters.roleArchetypes.slice(0, 3).join(', ')}`
         : `Role archetypes: ${params.mappingRulebook.careerClusters.roleArchetypes.slice(0, 3).join(', ')}`
 
     const industryLine =
       params.lang === 'ko'
-        ? `??/?? Top5: ${params.mappingRulebook.careerClusters.industryClusters.slice(0, 5).join(', ')}`
+        ? `직군/산업 Top5: ${params.mappingRulebook.careerClusters.industryClusters.slice(0, 5).join(', ')}`
         : `Industry clusters Top5: ${params.mappingRulebook.careerClusters.industryClusters.slice(0, 5).join(', ')}`
 
     let block1Bullets: string[] = []
