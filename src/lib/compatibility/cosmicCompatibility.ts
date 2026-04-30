@@ -4,6 +4,7 @@
  */
 
 import { FiveElement } from '../Saju/types'
+import { iga, eulReul } from '../i18n/koParticle'
 
 // ============================================================
 // 타입 정의
@@ -217,21 +218,21 @@ function calculateDayMasterHarmony(
 
   // 상생 관계: 90점
   if (ELEMENT_RELATIONS.generates[el1En] === el2En) {
-    insights.push(`✨ ${el1}이(가) ${el2}을(를) 생해주는 상생 관계입니다`);
+    insights.push(`✨ ${el1}${iga(el1)} ${el2}${eulReul(el2)} 생해주는 상생 관계입니다`);
     return 90
   }
   if (ELEMENT_RELATIONS.generates[el2En] === el1En) {
-    insights.push(`✨ ${el2}이(가) ${el1}을(를) 생해주는 상생 관계입니다`);
+    insights.push(`✨ ${el2}${iga(el2)} ${el1}${eulReul(el1)} 생해주는 상생 관계입니다`);
     return 90
   }
 
   // 상극 관계: 40점
   if (ELEMENT_RELATIONS.controls[el1En] === el2En) {
-    insights.push(`⚠️ ${el1}이(가) ${el2}을(를) 극하는 관계로 조율이 필요합니다`);
+    insights.push(`⚠️ ${el1}${iga(el1)} ${el2}${eulReul(el2)} 극하는 관계로 조율이 필요합니다`);
     return 40
   }
   if (ELEMENT_RELATIONS.controls[el2En] === el1En) {
-    insights.push(`⚠️ ${el2}이(가) ${el1}을(를) 극하는 관계로 조율이 필요합니다`);
+    insights.push(`⚠️ ${el2}${iga(el2)} ${el1}${eulReul(el1)} 극하는 관계로 조율이 필요합니다`);
     return 40
   }
 

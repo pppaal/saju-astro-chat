@@ -129,7 +129,13 @@ export function joinNaturalList(items: string[], lang: HumanSemanticsLang): stri
   if (cleaned.length === 0) return ''
   if (cleaned.length === 1) return cleaned[0]
   if (lang === 'ko') {
-    if (cleaned.length === 2) return `${cleaned[0]}와 ${cleaned[1]}`
+    if (cleaned.length === 2) {
+      const w = cleaned[0]
+      const last = w.charCodeAt(w.length - 1)
+      const inHangul = last >= 0xac00 && last <= 0xd7a3
+      const wa = inHangul && (last - 0xac00) % 28 !== 0 ? '과' : '와'
+      return `${cleaned[0]}${wa} ${cleaned[1]}`
+    }
     return `${cleaned.slice(0, -1).join(', ')}, 그리고 ${cleaned[cleaned.length - 1]}`
   }
   if (cleaned.length === 2) return `${cleaned[0]} and ${cleaned[1]}`

@@ -140,7 +140,7 @@ export function findMidpointActivations(
           activator: point.name,
           aspectType: "conjunction",
           orb: diff,
-          description: `${point.name}이(가) ${mp.id} 미드포인트를 합으로 활성화`,
+          description: `${point.name} → ${mp.id} 미드포인트를 합으로 활성화`,
         });
       }
       // Opposition (180도)
@@ -150,7 +150,7 @@ export function findMidpointActivations(
           activator: point.name,
           aspectType: "opposition",
           orb: Math.abs(diff - 180),
-          description: `${point.name}이(가) ${mp.id} 미드포인트를 충으로 활성화`,
+          description: `${point.name} → ${mp.id} 미드포인트를 충으로 활성화`,
         });
       }
       // Square (90도)
@@ -160,7 +160,7 @@ export function findMidpointActivations(
           activator: point.name,
           aspectType: "square",
           orb: Math.abs(diff - 90),
-          description: `${point.name}이(가) ${mp.id} 미드포인트를 사각으로 활성화`,
+          description: `${point.name} → ${mp.id} 미드포인트를 사각으로 활성화`,
         });
       }
     }
@@ -213,7 +213,7 @@ export function findCrossMidpointActivations(
           activator: `A의 ${point.name}`,
           aspectType: "conjunction",
           orb: diff,
-          description: `A의 ${point.name}이(가) B의 ${mp.id} 미드포인트를 활성화`,
+          description: `A의 ${point.name} → B의 ${mp.id} 미드포인트 활성화`,
         });
       } else if (Math.abs(diff - 180) <= orb) {
         activations.push({
@@ -221,7 +221,7 @@ export function findCrossMidpointActivations(
           activator: `A의 ${point.name}`,
           aspectType: "opposition",
           orb: Math.abs(diff - 180),
-          description: `A의 ${point.name}이(가) B의 ${mp.id} 미드포인트를 충으로 활성화`,
+          description: `A의 ${point.name} → B의 ${mp.id} 미드포인트 충 활성화`,
         });
       } else if (Math.abs(diff - 90) <= orb) {
         activations.push({
@@ -229,7 +229,7 @@ export function findCrossMidpointActivations(
           activator: `A의 ${point.name}`,
           aspectType: "square",
           orb: Math.abs(diff - 90),
-          description: `A의 ${point.name}이(가) B의 ${mp.id} 미드포인트를 사각으로 활성화`,
+          description: `A의 ${point.name} → B의 ${mp.id} 미드포인트 사각 활성화`,
         });
       }
     }

@@ -168,7 +168,7 @@ function getEclipseInterpretation(
   const eclipseType = eclipse.type === "solar" ? "일식" : "월식";
   const aspectKo = aspect === "conjunction" ? "합" : aspect === "opposition" ? "충" : "사각";
 
-  const baseInterpretation = `${eclipse.date}의 ${eclipseType}이 ${house}하우스에서 ${planet}와(과) ${aspectKo}을 이룹니다.`;
+  const baseInterpretation = `${eclipse.date}의 ${eclipseType}이 ${house}하우스에서 ${planet}와 ${aspectKo}을 이룹니다.`;
 
   const planetMeanings: Record<string, string> = {
     Sun: "정체성과 자아의식에 중요한 변화의 시기",

@@ -144,7 +144,7 @@ export function calculateSynastry(input: SynastryInput): SynastryResult {
       planet: pA.name,
       planetSign: pA.sign,
       inHouse: houseInB,
-      description: `A의 ${pA.name}이(가) B의 ${houseInB}하우스에 위치`,
+      description: `A의 ${pA.name} → B의 ${houseInB}하우스에 위치`,
     });
   }
 
@@ -158,7 +158,7 @@ export function calculateSynastry(input: SynastryInput): SynastryResult {
       planet: pB.name,
       planetSign: pB.sign,
       inHouse: houseInA,
-      description: `B의 ${pB.name}이(가) A의 ${houseInA}하우스에 위치`,
+      description: `B의 ${pB.name} → A의 ${houseInA}하우스에 위치`,
     });
   }
 
