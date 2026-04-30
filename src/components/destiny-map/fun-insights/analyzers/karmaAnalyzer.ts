@@ -4,6 +4,7 @@
 import type { GeokgukType, ZodiacSign, HouseNumber, HeavenlyStem, BilingualText } from '../types/core';
 import type { SajuData, AstroData } from '../types';
 import { getGeokgukType } from '../utils/geokguk';
+import { eulReul } from '@/lib/i18n/koParticle';
 import { getChironData } from '../utils/planets';
 import { getPlanetHouse } from '../utils/houses';
 import { calculateKarmaScore } from '../scoring';
@@ -508,7 +509,7 @@ export function getKarmaAnalysis(
       : (isKo ? "자아 성장의 여정 중" : "On a journey of self-growth");
 
     const futurePotential = isKo
-      ? `${soulMission.expression}을 통해 영혼의 완성에 다가가요`
+      ? `${soulMission.expression}${eulReul(soulMission.expression)} 통해 영혼의 완성에 나아가요`
       : `Moving towards soul completion through ${soulMission.expression}`;
 
     const keyTransition = saturnHouse

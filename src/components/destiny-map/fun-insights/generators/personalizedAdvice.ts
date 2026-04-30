@@ -1,5 +1,6 @@
 // 개인화된 어드바이스 생성기 - 사주 요소 조합 + 조건부 변형
 import type { SajuData, AstroData } from '../types'
+import { iga, eulReul } from '@/lib/i18n/koParticle'
 
 interface PersonalizedAdvice {
   emoji: string
@@ -465,10 +466,14 @@ export function getCombinedLifeTheme(
   const weakName = elementNames[weakEl]
 
   return {
-    ko: `${dmTheme.ko}을 추구하되, ${strongName.ko}(${strongRatio}%)의 힘을 활용하고 ${weakName.ko}(${weakRatio}%)을 보완하는 여정`,
+    ko: `${dmTheme.ko}${eulReul(dmTheme.ko)} 추구하되, ${strongName.ko}(${strongRatio}%)의 힘을 활용하고 ${weakName.ko}(${weakRatio}%)${eulReul(weakName.ko)} 보완하는 여정`,
     en: `A journey pursuing ${dmTheme.en}, leveraging ${strongName.en} (${strongRatio}%) while complementing ${weakName.en} (${weakRatio}%)`,
     detail: {
-      ko: `당신의 본질은 ${dmTheme.ko}이에요. ${strongName.ko} 기운이 ${strongRatio}%로 강해서 ${strongEl === 'wood' ? '시작과 성장' : strongEl === 'fire' ? '열정과 표현' : strongEl === 'earth' ? '안정과 신뢰' : strongEl === 'metal' ? '결단과 완결' : '직관과 유연함'}에 탁월해요. 반면 ${weakName.ko} 기운이 ${weakRatio}%로 부족해서 ${weakEl === 'wood' ? '새로운 시작' : weakEl === 'fire' ? '열정 표현' : weakEl === 'earth' ? '안정감 확보' : weakEl === 'metal' ? '결단력 발휘' : '휴식과 직관'}을 의식적으로 챙겨야 해요.`,
+      ko: (() => {
+        const dmCop = dmTheme.ko.match(/[가-힣]$/) && (dmTheme.ko.charCodeAt(dmTheme.ko.length - 1) - 0xac00) % 28 !== 0 ? '이에요' : '예요'
+        const weakObj = (weakEl === 'wood' ? '새로운 시작' : weakEl === 'fire' ? '열정 표현' : weakEl === 'earth' ? '안정감 확보' : weakEl === 'metal' ? '결단력 발휘' : '휴식과 직관')
+        return `당신의 본질은 ${dmTheme.ko}${dmCop}. ${strongName.ko} 기운이 ${strongRatio}%로 강해서 ${strongEl === 'wood' ? '시작과 성장' : strongEl === 'fire' ? '열정과 표현' : strongEl === 'earth' ? '안정과 신뢰' : strongEl === 'metal' ? '결단과 완결' : '직관과 유연함'}에 탁월해요. 반면 ${weakName.ko} 기운이 ${weakRatio}%로 부족해서 ${weakObj}${eulReul(weakObj)} 의식적으로 챙겨야 해요.`
+      })(),
       en: `Your essence is ${dmTheme.en}. With ${strongName.en} at ${strongRatio}%, you excel at ${strongEl === 'wood' ? 'starting and growing' : strongEl === 'fire' ? 'passion and expression' : strongEl === 'earth' ? 'stability and trust' : strongEl === 'metal' ? 'decisiveness and completion' : 'intuition and flexibility'}. Meanwhile, ${weakName.en} at ${weakRatio}% means you need to consciously cultivate ${weakEl === 'wood' ? 'new beginnings' : weakEl === 'fire' ? 'passion expression' : weakEl === 'earth' ? 'securing stability' : weakEl === 'metal' ? 'decisiveness' : 'rest and intuition'}.`,
     },
   }

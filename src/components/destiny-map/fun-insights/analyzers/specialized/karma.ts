@@ -4,6 +4,7 @@
  */
 
 import { getInteractionColor } from '@/lib/destiny-matrix/engine';
+import { iga } from '@/lib/i18n/koParticle';
 import { ELEMENT_CORE_GRID, SIGN_TO_ELEMENT } from '@/lib/destiny-matrix/data/layer1-element-core';
 import { RELATION_ASPECT_MATRIX } from '@/lib/destiny-matrix/data/layer5-relation-aspect';
 import { ADVANCED_ANALYSIS_MATRIX } from '@/lib/destiny-matrix/data/layer7-advanced-analysis';
@@ -206,7 +207,7 @@ export function getKarmaMatrixAnalysis(
           description: { ko: plutoData.keyword, en: plutoData.keywordEn },
         },
         hint: {
-          ko: `${shinsal}이 전생의 흔적을 보여줍니다`,
+          ko: `${shinsal}${iga(shinsal)} 전생의 흔적을 보여줘요`,
           en: `${shinsal} reveals past life traces`,
         },
       });

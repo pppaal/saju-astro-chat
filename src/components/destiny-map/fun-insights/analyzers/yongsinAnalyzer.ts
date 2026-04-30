@@ -42,7 +42,7 @@ export function getYongsinAnalysis(saju: SajuData | undefined, lang: string): { 
     title: isKo ? "용신 (필요한 에너지)" : "Yongsin (Needed Energy)",
     element: isKo ? `${elementInfo.ko} 기운` : `${elementInfo.en} energy`,
     why: isKo
-      ? `현재 ${elementInfo.ko} 에너지가 ${weakest[1]}%로 부족해요. 이 기운을 보충하면 균형이 맞춰집니다.`
+      ? `현재 ${elementInfo.ko} 에너지가 ${weakest[1]}%로 부족해요. 이 기운을 보충하면 균형이 맞춰져요.`
       : `Your ${elementInfo.en} energy is low at ${weakest[1]}%. Boosting this brings balance.`,
     how: isKo ? howToBoost[element].ko : howToBoost[element].en,
     emoji: elementInfo.emoji
