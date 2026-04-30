@@ -4,6 +4,8 @@ import { PATTERN_MAPPINGS, getExamInterviewMapping } from './pattern-mappings'
 import { prepareForMatching } from '@/lib/Tarot/utils/koreanTextNormalizer'
 import { recommendSpreads } from '@/lib/Tarot/tarot-recommend'
 
+export type AnalyzeConfidence = 'high' | 'medium' | 'low'
+
 export interface ParsedResult {
   themeId: string
   spreadId: string
@@ -15,6 +17,8 @@ export interface ParsedResult {
   timeframe?: string
   tone?: string
   directAnswer?: string
+  confidence?: AnalyzeConfidence
+  assumption?: string
 }
 
 export interface SpreadOption {
@@ -650,6 +654,13 @@ Spread selection rules:
 - prefer semantic fit over surface keywords
 - choose one exact spread ID from the list
 
+Confidence rules (be honest):
+- "high": the question's intent is clearly one specific topic/spread (single subject, clear ask)
+- "medium": the intent is reasonable but multiple spreads could fit, OR the question is broad
+- "low": the question is ambiguous, vague, off-topic, gibberish, or you had to guess heavily
+- If confidence is medium/low, fill "assumption" with the single-sentence interpretation you used (e.g. "남편의 외도를 의심하는 상황으로 해석했어요").
+- If confidence is high, leave "assumption" as empty string.
+
 Examples of good direct answers:
 - "내일 바로 성사 쪽보다는 간격과 변수 확인이 먼저라서, 기대를 낮추고 가볍게 접근하는 편이 좋아 보여요."
 - "지금 전체 흐름은 정리와 재정비가 먼저인 전환기로 읽혀요."
@@ -664,7 +675,9 @@ Output JSON only:
   "spreadId": "exact spread ID from list",
   "reason": "why this spread fits",
   "userFriendlyExplanation": "short user-facing explanation",
-  "directAnswer": "1-2 sentence direct answer before the spread"
+  "directAnswer": "1-2 sentence direct answer before the spread",
+  "confidence": "high | medium | low",
+  "assumption": "one-sentence stated interpretation when confidence is medium/low, else empty"
 }`
 }
 

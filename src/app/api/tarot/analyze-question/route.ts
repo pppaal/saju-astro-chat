@@ -217,6 +217,17 @@ export const POST = withApiMiddleware(
           )
 
           if (hasStructuredLLMResult) {
+            const rawConfidence = (maybeParsed as { confidence?: string }).confidence
+            const normalizedConfidence: 'high' | 'medium' | 'low' | undefined =
+              rawConfidence === 'high' || rawConfidence === 'medium' || rawConfidence === 'low'
+                ? rawConfidence
+                : undefined
+            const rawAssumption = (maybeParsed as { assumption?: string }).assumption
+            const normalizedAssumption =
+              typeof rawAssumption === 'string' && rawAssumption.trim().length > 0
+                ? rawAssumption.trim()
+                : undefined
+
             parsed = {
               themeId: maybeParsed.themeId as string,
               spreadId: maybeParsed.spreadId as string,
@@ -239,6 +250,8 @@ export const POST = withApiMiddleware(
               tone: llmQuestionFields.tone,
               directAnswer:
                 typeof maybeParsed.directAnswer === 'string' ? maybeParsed.directAnswer : undefined,
+              confidence: normalizedConfidence,
+              assumption: normalizedAssumption,
             }
             source = 'llm'
             fallbackReason = null
@@ -317,6 +330,9 @@ export const POST = withApiMiddleware(
             question_summary: buildQuestionSummary(trimmedQuestion, detectedIntent, language),
             question_profile: questionProfile,
             direct_answer: directAnswer,
+            confidence: 'low' as const,
+            assumption: null,
+            requires_confirmation: true,
             recommended_spreads: buildRecommendedSpreads(
               trimmedQuestion,
               language,
@@ -343,6 +359,9 @@ export const POST = withApiMiddleware(
           question_summary: buildQuestionSummary(trimmedQuestion, detectedIntent, language),
           question_profile: questionProfile,
           direct_answer: directAnswer,
+          confidence: 'low' as const,
+          assumption: null,
+          requires_confirmation: true,
           recommended_spreads: buildRecommendedSpreads(trimmedQuestion, language, spreadOptions, {
             themeId: 'general-insight',
             spreadId: 'past-present-future',
@@ -353,6 +372,38 @@ export const POST = withApiMiddleware(
           path: buildPath('general-insight', 'past-present-future', trimmedQuestion),
         })
       }
+
+      // 확신도: AI가 명시한 값 우선, 없으면 source 기반 추정
+      let inferredConfidence: 'high' | 'medium' | 'low' =
+        parsed.confidence ||
+        (source === 'llm' ? 'high' : source === 'pattern' ? 'medium' : 'low')
+
+      // 의미적 sanity 체크: detected intent와 선택된 theme이 어긋나면 다운그레이드
+      const intentToExpectedThemes: Record<string, string[]> = {
+        self_decision: ['decisions-crossroads', 'career-work', 'money-finance', 'love-relationships', 'general-insight'],
+        other_person_response: ['love-relationships'],
+        meeting_likelihood: ['love-relationships', 'decisions-crossroads'],
+        reconciliation: ['love-relationships'],
+        inner_feelings: ['love-relationships', 'well-being-health', 'self-discovery'],
+        timing: ['decisions-crossroads', 'daily-reading', 'career-work', 'money-finance', 'love-relationships'],
+        near_term_outcome: ['decisions-crossroads', 'career-work', 'money-finance', 'love-relationships', 'daily-reading', 'general-insight'],
+      }
+      const expectedThemes = intentToExpectedThemes[detectedIntent]
+      if (
+        expectedThemes &&
+        !expectedThemes.includes(parsed.themeId) &&
+        detectedIntent !== 'unknown'
+      ) {
+        // 의도와 다른 theme → confidence 강등
+        inferredConfidence = inferredConfidence === 'high' ? 'medium' : 'low'
+        logger.info('[analyze-question] confidence downgraded — theme mismatch', {
+          detectedIntent,
+          chosenTheme: parsed.themeId,
+          expectedThemes,
+        })
+      }
+
+      const requiresConfirmation = inferredConfidence === 'low' || source === 'fallback'
 
       const res = NextResponse.json({
         isDangerous: false,
@@ -369,6 +420,9 @@ export const POST = withApiMiddleware(
         question_summary: buildQuestionSummary(trimmedQuestion, detectedIntent, language),
         question_profile: questionProfile,
         direct_answer: directAnswer,
+        confidence: inferredConfidence,
+        assumption: parsed.assumption || null,
+        requires_confirmation: requiresConfirmation,
         recommended_spreads: buildRecommendedSpreads(
           trimmedQuestion,
           language,

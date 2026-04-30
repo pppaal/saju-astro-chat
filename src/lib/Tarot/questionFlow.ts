@@ -40,6 +40,9 @@ export interface TarotQuestionAnalysisResult {
   path: string
   source?: 'pattern' | 'llm' | 'heuristic' | 'fallback'
   fallback_reason?: string | null
+  confidence?: 'high' | 'medium' | 'low'
+  assumption?: string | null
+  requires_confirmation?: boolean
 }
 
 export interface TarotQuestionAnalysisSnapshot {

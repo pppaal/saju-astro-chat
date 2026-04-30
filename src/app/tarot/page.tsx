@@ -301,6 +301,19 @@ export default function TarotHomePage() {
                 {analysisResult.question_summary && (
                   <p className={styles.analysisSummary}>{analysisResult.question_summary}</p>
                 )}
+                {analysisResult.requires_confirmation && (
+                  <div className={styles.confirmStrip} role="status">
+                    <span className={styles.confirmBadge}>
+                      {isKo ? '해석 확인' : 'Interpretation check'}
+                    </span>
+                    <p className={styles.confirmText}>
+                      {analysisResult.assumption ||
+                        (isKo
+                          ? '질문이 짧거나 모호해서 가장 가능성 높은 의도로 해석했어요. 의도가 다르면 아래 추천 스프레드 중에서 직접 골라주세요.'
+                          : 'The question is brief or ambiguous, so I picked the most likely intent. If that does not match, choose another spread below.')}
+                    </p>
+                  </div>
+                )}
                 {questionProfile && (
                   <div className={styles.profileGrid}>
                     <div className={styles.profileItem}>
