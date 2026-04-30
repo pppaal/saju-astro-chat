@@ -123,9 +123,18 @@ export const POST = withApiMiddleware(
       fallbackCards = validatedCards
       fallbackLanguage = language
       const normalizedQuestionContext = normalizeQuestionContext(questionContext)
+      // questionMeta가 있으면 profile 필드(type/subject/focus/timeframe/tone)는
+      // 프롬프트의 "사전 분석" 블록에서 이미 다루므로 중복 제거 — summary/direct_answer만 남김.
+      const contextForEnrichment =
+        questionMeta && normalizedQuestionContext
+          ? {
+              question_summary: normalizedQuestionContext.question_summary,
+              direct_answer: normalizedQuestionContext.direct_answer,
+            }
+          : normalizedQuestionContext
       const enrichedUserQuestion = buildQuestionContextPrompt(
         userQuestion || '',
-        normalizedQuestionContext,
+        contextForEnrichment,
         language
       )
       fallbackQuestion = enrichedUserQuestion
@@ -426,56 +435,97 @@ type PromptBudget = {
 }
 
 function getPromptBudget(cardCount: number, isKorean: boolean): PromptBudget {
+  // Large spread (8+장): overall에 흐름 통합, cards 배열 생략
   if (cardCount >= LARGE_SPREAD_THRESHOLD) {
     return isKorean
       ? {
-          overallGuide: '180-300자',
-          perCardGuide: '90-160자',
+          overallGuide: '180-280자',
+          perCardGuide: '',
           adviceGuide: '120-180자',
-          maxTokens: LARGE_SPREAD_GPT_MAX_TOKENS,
+          maxTokens: 900,
           timeoutMs: LARGE_SPREAD_GPT_TIMEOUT_MS,
         }
       : {
-          overallGuide: '100-170 words',
-          perCardGuide: '40-70 words',
-          adviceGuide: '60-100 words',
-          maxTokens: LARGE_SPREAD_GPT_MAX_TOKENS,
+          overallGuide: '100-160 words',
+          perCardGuide: '',
+          adviceGuide: '60-90 words',
+          maxTokens: 900,
           timeoutMs: LARGE_SPREAD_GPT_TIMEOUT_MS,
         }
   }
 
-  if (cardCount >= 5) {
+  // 6-7장: 중대형
+  if (cardCount >= 6) {
     return isKorean
       ? {
-          overallGuide: '320-520자',
-          perCardGuide: '180-320자',
-          adviceGuide: '140-220자',
-          maxTokens: 2600,
-          timeoutMs: 55000,
+          overallGuide: '320-480자',
+          perCardGuide: '160-240자',
+          adviceGuide: '140-200자',
+          maxTokens: 2400,
+          timeoutMs: 50000,
         }
       : {
-          overallGuide: '180-300 words',
-          perCardGuide: '90-150 words',
+          overallGuide: '180-260 words',
+          perCardGuide: '80-130 words',
           adviceGuide: '90-130 words',
-          maxTokens: 2600,
-          timeoutMs: 55000,
+          maxTokens: 2400,
+          timeoutMs: 50000,
         }
   }
 
+  // 4-5장: 중간
+  if (cardCount >= 4) {
+    return isKorean
+      ? {
+          overallGuide: '280-450자',
+          perCardGuide: '180-260자',
+          adviceGuide: '140-200자',
+          maxTokens: 2000,
+          timeoutMs: 40000,
+        }
+      : {
+          overallGuide: '160-240 words',
+          perCardGuide: '90-130 words',
+          adviceGuide: '90-130 words',
+          maxTokens: 2000,
+          timeoutMs: 40000,
+        }
+  }
+
+  // 2-3장: 소형
+  if (cardCount >= 2) {
+    return isKorean
+      ? {
+          overallGuide: '200-350자',
+          perCardGuide: '180-280자',
+          adviceGuide: '120-180자',
+          maxTokens: 1400,
+          timeoutMs: 30000,
+        }
+      : {
+          overallGuide: '120-200 words',
+          perCardGuide: '90-150 words',
+          adviceGuide: '80-120 words',
+          maxTokens: 1400,
+          timeoutMs: 30000,
+        }
+  }
+
+  // 1장 (daily reading): 가장 작음 — 시너지 단계 없음
   return isKorean
     ? {
-        overallGuide: '500-850자',
-        perCardGuide: '260-480자',
-        adviceGuide: '160-260자',
-        maxTokens: 3000,
-        timeoutMs: OPENAI_TIMEOUT_MS,
+        overallGuide: '120-200자',
+        perCardGuide: '180-300자',
+        adviceGuide: '100-160자',
+        maxTokens: 700,
+        timeoutMs: 25000,
       }
     : {
-        overallGuide: '260-420 words',
-        perCardGuide: '120-220 words',
-        adviceGuide: '100-150 words',
-        maxTokens: 3000,
-        timeoutMs: OPENAI_TIMEOUT_MS,
+        overallGuide: '70-120 words',
+        perCardGuide: '90-160 words',
+        adviceGuide: '60-100 words',
+        maxTokens: 700,
+        timeoutMs: 25000,
       }
 }
 
