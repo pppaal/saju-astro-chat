@@ -1,5 +1,6 @@
 ﻿import type { MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
 import type { SignalDomain } from './signalSynthesizer'
+import { eunNeun } from '@/lib/i18n/koParticle'
 import type {
   BuildCoreCanonicalOutputInput,
   CoreDomainTimingWindow,
@@ -27,7 +28,7 @@ export function resolveTimingConflictProfile(input: {
       timingConflictMode: 'weak_both',
       timingConflictNarrative:
         input.lang === 'ko'
-          ? `${domainLabel}은 구조 지지와 촉발 신호가 모두 약해, 사건을 좁혀 보기보다 판이 살아나는지부터 관찰하는 편이 맞습니다.`
+          ? `${domainLabel}${eunNeun(domainLabel)} 구조 지지와 촉발 신호가 모두 약해, 사건을 좁혀 보기보다 판이 살아나는지부터 관찰하는 편이 맞습니다.`
           : `${domainLabel} has weak structural support and weak triggering pressure, so the right move is to watch for activation before narrowing the timeline.`,
     }
   }
@@ -37,7 +38,7 @@ export function resolveTimingConflictProfile(input: {
       timingConflictMode: 'readiness_ahead',
       timingConflictNarrative:
         input.lang === 'ko'
-          ? `${domainLabel}은 구조 지지는 먼저 열려 있지만 촉발 신호가 아직 좁지 않아, 지금은 실행보다 준비와 검토가 더 맞습니다.`
+          ? `${domainLabel}${eunNeun(domainLabel)} 구조 지지는 먼저 열려 있지만 촉발 신호가 아직 좁지 않아, 지금은 실행보다 준비와 검토가 더 맞습니다.`
           : `${domainLabel} has structural readiness before a clean trigger, so preparation and staged review fit better than immediate execution.`,
     }
   }
@@ -47,7 +48,7 @@ export function resolveTimingConflictProfile(input: {
       timingConflictMode: 'trigger_ahead',
       timingConflictNarrative:
         input.lang === 'ko'
-          ? `${domainLabel}은 촉발은 강하지만 구조 지지가 뒤따르지 않아, 사건성은 있어도 지속성은 약할 수 있습니다.`
+          ? `${domainLabel}${eunNeun(domainLabel)} 촉발은 강하지만 구조 지지가 뒤따르지 않아, 사건성은 있어도 지속성은 약할 수 있습니다.`
           : `${domainLabel} has a live trigger before full structural support, so event pressure may be real while long-term sustainability stays weaker.`,
     }
   }
@@ -56,7 +57,7 @@ export function resolveTimingConflictProfile(input: {
     timingConflictMode: 'aligned',
     timingConflictNarrative:
       input.lang === 'ko'
-        ? `${domainLabel}은 구조 지지와 촉발 신호가 비교적 같은 방향으로 맞물려, 준비와 실행 리듬을 함께 잡을 수 있는 구간입니다.`
+        ? `${domainLabel}${eunNeun(domainLabel)} 구조 지지와 촉발 신호가 비교적 같은 방향으로 맞물려, 준비와 실행 리듬을 함께 잡을 수 있는 구간입니다.`
         : `${domainLabel} shows structural support and trigger pressure moving in the same direction, so timing can be staged without fighting the underlying trend.`,
   }
 }

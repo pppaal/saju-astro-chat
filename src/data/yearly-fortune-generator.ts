@@ -1,4 +1,5 @@
 import { BlogPost } from "./blog-posts";
+import { iga, eulReul, waGwa } from "@/lib/i18n/koParticle";
 
 // 천간 (Heavenly Stems)
 const HEAVENLY_STEMS = [
@@ -303,21 +304,21 @@ ${year}년은 전통 동아시아 달력으로 ${yearNameKo}(${yearName}年), ${
 ## ${year}년의 에너지 이해하기
 
 ### 천간: ${stem.ko}(${stem.hanja}) - ${yinYangKo}${elementKo[stem.element]}
-${stem.ko}${elementKo[stem.element]}이 나타내는 것:
+${stem.ko}${elementKo[stem.element]}${iga(elementKo[stem.element])} 나타내는 것:
 - **${traits.ko[0]}**: ${elementKo[stem.element]}의 핵심 에너지
 - **${traits.ko[1]}**: ${yinYangKo}의 표현
 - **${traits.ko[2]}**: 자연스러운 성향
 - **${traits.ko[3]}**: 삶의 방향
 
 ### 지지: ${branch.ko}(${branch.hanja}) - ${branch.animalKo}
-${branch.animalKo}가 구현하는 것:
+${branch.animalKo}${iga(branch.animalKo)} 구현하는 것:
 - **지혜**: ${branch.animalKo}의 특성
 - **숨겨진 ${elementKo[branch.hiddenElement]}기**: 내면의 에너지
 - **전략**: ${branch.animalKo}의 도전 접근법
 - **타이밍**: ${branch.animalKo}의 자연스러운 리듬
 
 ### 오행 조합
-${elementKo[stem.element]}과 ${elementKo[hiddenElement]}의 상호작용 (${branch.animalKo}에 숨겨진 ${elementKo[hiddenElement]}기):
+${elementKo[stem.element]}${waGwa(elementKo[stem.element])} ${elementKo[hiddenElement]}의 상호작용 (${branch.animalKo}에 숨겨진 ${elementKo[hiddenElement]}기):
 - ${traits.interaction.feeds === hiddenElement ? `${elementKo[stem.element]}생${elementKo[hiddenElement]} - 상생 관계` : `복잡한 오행 역학`}
 - 계획과 아이디어가 형태를 갖춤
 - 연중 ${traits.ko[0]} 에너지
@@ -325,7 +326,7 @@ ${elementKo[stem.element]}과 ${elementKo[hiddenElement]}의 상호작용 (${bra
 ## 일간별 ${year}년 운세
 
 ### 목 일간 (甲, 乙)
-**종합**: ${stem.element === "Wood" ? "비견의 해 - 자기 표현 강화" : `${elementKo[stem.element]}이 성장에 영향`}
+**종합**: ${stem.element === "Wood" ? "비견의 해 - 자기 표현 강화" : `${elementKo[stem.element]}${iga(elementKo[stem.element])} 성장에 영향`}
 
 **갑목(甲)**
 - ${stem.element === "Wood" ? "리더십에 강한 해" : "적응이 필요한 해"}
@@ -340,7 +341,7 @@ ${elementKo[stem.element]}과 ${elementKo[hiddenElement]}의 상호작용 (${bra
 - 좋은 달: 3월, 7월, 11월
 
 ### 화 일간 (丙, 丁)
-**종합**: ${stem.element === "Fire" ? "비견의 해 - 가시성과 행동" : `${elementKo[stem.element]}이 표현에 영향`}
+**종합**: ${stem.element === "Fire" ? "비견의 해 - 가시성과 행동" : `${elementKo[stem.element]}${iga(elementKo[stem.element])} 표현에 영향`}
 
 **병화(丙)**
 - 자원 ${traits.interaction.feeds === "Fire" ? "순조로움" : "관리 필요"}
@@ -355,7 +356,7 @@ ${elementKo[stem.element]}과 ${elementKo[hiddenElement]}의 상호작용 (${bra
 - 좋은 달: 3월, 6월, 9월
 
 ### 토 일간 (戊, 己)
-**종합**: ${stem.element === "Earth" ? "비견의 해 - 안정과 성장" : `${elementKo[stem.element]}이 기반에 영향`}
+**종합**: ${stem.element === "Earth" ? "비견의 해 - 안정과 성장" : `${elementKo[stem.element]}${iga(elementKo[stem.element])} 기반에 영향`}
 
 **무토(戊)**
 - 창작 산출 증가
@@ -370,7 +371,7 @@ ${elementKo[stem.element]}과 ${elementKo[hiddenElement]}의 상호작용 (${bra
 - 좋은 달: 5월, 8월, 11월
 
 ### 금 일간 (庚, 辛)
-**종합**: ${stem.element === "Metal" ? "비견의 해 - 정제와 가치" : `${elementKo[stem.element]}이 자원에 영향`}
+**종합**: ${stem.element === "Metal" ? "비견의 해 - 정제와 가치" : `${elementKo[stem.element]}${iga(elementKo[stem.element])} 자원에 영향`}
 
 **경금(庚)**
 - 금전 ${traits.interaction.controls === "Metal" ? "주의 필요" : "이득 가능"}
@@ -385,7 +386,7 @@ ${elementKo[stem.element]}과 ${elementKo[hiddenElement]}의 상호작용 (${bra
 - 좋은 달: 2월, 8월, 11월
 
 ### 수 일간 (壬, 癸)
-**종합**: ${stem.element === "Water" ? "비견의 해 - 지혜와 흐름" : `${elementKo[stem.element]}이 권위에 영향`}
+**종합**: ${stem.element === "Water" ? "비견의 해 - 지혜와 흐름" : `${elementKo[stem.element]}${iga(elementKo[stem.element])} 권위에 영향`}
 
 **임수(壬)**
 - 리더십 역할 가능

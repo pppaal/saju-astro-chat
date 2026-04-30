@@ -1,5 +1,6 @@
 ﻿import type { DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
 import type { SignalDomain } from './signalSynthesizer'
+import { iga, eunNeun } from '@/lib/i18n/koParticle'
 import type {
   BuildCoreCanonicalOutputInput,
   CoreCoherenceAudit,
@@ -484,7 +485,12 @@ export function buildDomainVerdicts(input: {
 
     const rationale =
       input.lang === 'ko'
-        ? `${localizeCanonicalDomain(lead.domain)} 영역은 ${localizeCanonicalPhase(lead.phase)}이며, ${localizePatternFamily(leadPattern?.family)}이 중심을 잡고 있습니다. 현재 판단은 ${localizeCanonicalMode(mode)} 쪽으로 정리됩니다.`
+        ? (() => {
+            const phase = localizeCanonicalPhase(lead.phase)
+            const fam = localizePatternFamily(leadPattern?.family)
+            const phaseCop = phase.match(/[가-힣]$/) && (phase.charCodeAt(phase.length - 1) - 0xac00) % 28 !== 0 ? '이며' : '며'
+            return `${localizeCanonicalDomain(lead.domain)} 영역은 ${phase}${phaseCop}, ${fam}${iga(fam)} 중심을 잡고 있습니다. 현재 판단은 ${localizeCanonicalMode(mode)} 쪽으로 정리됩니다.`
+          })()
         : `${lead.domain} is in ${lead.phase} phase, led by the ${leadPattern?.family || 'core'} pattern family. The current judgment resolves toward ${mode}.`
 
     return {
