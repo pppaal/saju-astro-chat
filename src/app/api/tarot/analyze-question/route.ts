@@ -1,12 +1,12 @@
 ﻿// src/app/api/tarot/analyze-question/route.ts
-// GPT-4o-mini를 사용해서 사용자 질문을 분석하고 적절한 스프레드 추천 (비용 효율적)
+// Claude Haiku 4.5로 사용자 질문을 분석하고 적절한 스프레드 추천 (프롬프트 캐싱).
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createTarotGuard } from '@/lib/api/middleware'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { tarotAnalyzeQuestionSchema as AnalyzeQuestionSchema } from '@/lib/api/zodValidation'
-import { fetchWithRetry } from '@/lib/http'
+import { callClaudeJson, isClaudeAvailable } from '@/lib/llm/claude'
 import {
   type AnalyzeFallbackReason,
   type AnalyzeSource,
@@ -35,51 +35,20 @@ import {
   resolveDeterministicFallback,
 } from './routeSupport'
 
-async function callOpenAI(messages: { role: string; content: string }[], maxTokens = 400) {
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY_MISSING')
+// Claude Haiku 4.5로 질문 분류. system 프롬프트는 자동 캐싱(90% 입력 할인).
+async function callLLM(systemPrompt: string, userPrompt: string, maxTokens = 400): Promise<string> {
+  if (!isClaudeAvailable()) {
+    throw new Error('ANTHROPIC_API_KEY_MISSING')
   }
-
-  const response = await fetchWithRetry(
-    'https://api.openai.com/v1/chat/completions',
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini', // 질문 분류는 단순 작업이므로 mini 사용 (96% 저렴)
-        messages,
-        max_tokens: maxTokens,
-        temperature: 0.3, // 복잡한 뉘앙스 파악을 위해 약간 높임
-        response_format: { type: 'json_object' },
-      }),
-    },
-    {
-      maxRetries: 2,
-      initialDelayMs: 600,
-      maxDelayMs: 2500,
-      timeoutMs: 15000,
-      retryStatusCodes: [408, 409, 425, 429, 500, 502, 503, 504],
-      onRetry: (attempt, error, delayMs) => {
-        logger.warn('[analyze-question] OpenAI retry scheduled', {
-          attempt,
-          delayMs,
-          reason: error.message,
-        })
-      },
-    }
-  )
-
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`OpenAI API error: ${error}`)
-  }
-
-  const data = await response.json()
-  return data.choices[0]?.message?.content || ''
+  const result = await callClaudeJson({
+    systemPrompt,
+    userPrompt,
+    maxTokens,
+    temperature: 0.3,
+    timeoutMs: 15000,
+    label: 'tarot-analyze-question',
+  })
+  return result.raw
 }
 
 // 스프레드 정보를 GPT에게 전달할 형식으로 변환
@@ -142,20 +111,16 @@ export const POST = withApiMiddleware(
 
       let intentResponseText = ''
       let answerResponseText = ''
-      let openAiFailed = false
+      let llmFailed = false
 
       try {
-        intentResponseText = await callOpenAI(
-          [
-            { role: 'system', content: intentPrompt },
-            { role: 'user', content: formattedQuestion },
-          ],
-          220
-        )
+        intentResponseText = await callLLM(intentPrompt, formattedQuestion, 220)
       } catch (error) {
-        openAiFailed = true
+        llmFailed = true
         fallbackReason =
-          error instanceof Error && /OPENAI_API_KEY_MISSING/.test(error.message)
+          error instanceof Error &&
+          (/ANTHROPIC_API_KEY_MISSING/.test(error.message) ||
+            /OPENAI_API_KEY_MISSING/.test(error.message))
             ? 'auth_failed'
             : 'server_error'
         logger.warn('[analyze-question] Intent analysis unavailable, using fallback routing', error)
@@ -173,7 +138,7 @@ export const POST = withApiMiddleware(
         }
       }
 
-      if (!openAiFailed) {
+      if (!llmFailed) {
         const intentContext = JSON.stringify(
           {
             questionType: llmQuestionFields.questionType || detectedIntent,
@@ -188,16 +153,16 @@ export const POST = withApiMiddleware(
         )
 
         try {
-          answerResponseText = await callOpenAI([
-            { role: 'system', content: answerPrompt },
-            {
-              role: 'user',
-              content: `${formattedQuestion}\n\nStructured intent analysis:\n${intentContext}`,
-            },
-          ])
+          answerResponseText = await callLLM(
+            answerPrompt,
+            `${formattedQuestion}\n\nStructured intent analysis:\n${intentContext}`,
+            400
+          )
         } catch (error) {
           fallbackReason =
-            error instanceof Error && /OPENAI_API_KEY_MISSING/.test(error.message)
+            error instanceof Error &&
+            (/ANTHROPIC_API_KEY_MISSING/.test(error.message) ||
+              /OPENAI_API_KEY_MISSING/.test(error.message))
               ? 'auth_failed'
               : 'server_error'
           logger.warn(
@@ -258,7 +223,7 @@ export const POST = withApiMiddleware(
           } else {
             fallbackReason = 'parse_failed'
           }
-        } else if (!openAiFailed) {
+        } else if (!llmFailed) {
           fallbackReason = fallbackReason || 'no_candidate'
         }
       } catch {

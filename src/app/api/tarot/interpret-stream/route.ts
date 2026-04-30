@@ -1,5 +1,5 @@
 // src/app/api/tarot/interpret-stream/route.ts
-// Direct OpenAI Streaming Tarot Interpretation API
+// Tarot streaming interpretation — Claude Haiku 4.5 (single-chunk emit) with OpenAI streaming fallback.
 
 import { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
@@ -11,6 +11,7 @@ import { logger } from '@/lib/logger'
 import { recordExternalCall } from '@/lib/metrics/index'
 import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { callClaude as callSharedClaude, isClaudeAvailable } from '@/lib/llm/claude'
 import {
   buildQuestionContextPrompt,
   type TarotQuestionAnalysisSnapshot,
@@ -575,9 +576,68 @@ ${personalizationContext}
 ${cardListText}
 ${zodiac ? `\nNaturally incorporate ${zodiac.sign}'s ${zodiac.element} element traits.` : ''}${astroContext ? '\nApply the provided astrology context in your interpretation.' : ''}${sajuContext ? '\nApply the provided saju context in your interpretation.' : ''}${previousReadings.length > 0 ? '\nReference connections to previous readings if relevant.' : ''}`
 
-    // OpenAI Streaming
+    // Claude 우선: 비스트리밍 단일 청크 emit (페르소나/메서드 system 자동 캐싱)
+    if (isClaudeAvailable()) {
+      const claudeStartTime = Date.now()
+      try {
+        logger.info('Tarot stream Claude request', {
+          systemLen: systemPrompt.length,
+          userLen: userPrompt.length,
+        })
+        const claudeResult = await callSharedClaude({
+          systemPrompt,
+          userPrompt,
+          maxTokens: 4000,
+          temperature: 0.7,
+          timeoutMs: OPENAI_TIMEOUT_MS,
+          label: 'tarot-stream',
+        })
+        recordExternalCall(
+          'anthropic',
+          'claude-haiku-4-5',
+          'success',
+          Date.now() - claudeStartTime
+        )
+        // 응답을 SSE 단일 청크로 emit — 클라이언트는 동일 컨트랙트 유지
+        const encoder = new TextEncoder()
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(
+              encoder.encode(createSSEEvent({ content: claudeResult.text }))
+            )
+            controller.enqueue(encoder.encode(createSSEDoneEvent()))
+            controller.close()
+          },
+        })
+        return withCreditCookies(
+          new NextResponse(stream, {
+            headers: {
+              'Content-Type': 'text/event-stream',
+              'Cache-Control': 'no-cache, no-transform',
+              Connection: 'keep-alive',
+              'X-Accel-Buffering': 'no',
+              'X-Provider': 'claude',
+            },
+          }),
+          creditResult
+        )
+      } catch (claudeErr) {
+        recordExternalCall(
+          'anthropic',
+          'claude-haiku-4-5',
+          'error',
+          Date.now() - claudeStartTime
+        )
+        logger.warn('Tarot stream Claude failed, falling back to OpenAI', {
+          error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
+        })
+        // fall through to OpenAI streaming
+      }
+    }
+
+    // OpenAI Streaming (fallback when Claude unavailable or failed)
     if (!process.env.OPENAI_API_KEY) {
-      logger.warn('Tarot stream missing OPENAI_API_KEY, using fallback')
+      logger.warn('Tarot stream missing both ANTHROPIC_API_KEY and OPENAI_API_KEY, using fallback')
       const fallback = buildFallbackPayload(rawCards, language)
       return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
     }

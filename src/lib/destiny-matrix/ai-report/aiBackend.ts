@@ -83,10 +83,10 @@ function getAnthropicModel(qualityTier: AIQualityTier = 'quality'): string {
     return (
       process.env.ANTHROPIC_FAST_MODEL ||
       process.env.CLAUDE_FAST_MODEL ||
-      'claude-3-haiku-20240307'
+      'claude-haiku-4-5-20251001'
     )
   }
-  return process.env.ANTHROPIC_MODEL || process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514'
+  return process.env.ANTHROPIC_MODEL || process.env.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929'
 }
 
 function getReplicateApiKey(): string | undefined {

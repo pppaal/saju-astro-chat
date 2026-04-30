@@ -509,11 +509,20 @@ export function shouldPreferHeuristicSpread(
   return false
 }
 
-export function classifyOpenAIFailure(error: unknown): QuestionEngineV2FallbackReason {
-  if (error instanceof Error && /OPENAI_API_KEY_MISSING/.test(error.message)) return 'auth_failed'
+export function classifyLLMFailure(error: unknown): QuestionEngineV2FallbackReason {
+  if (
+    error instanceof Error &&
+    (/ANTHROPIC_API_KEY_MISSING/.test(error.message) ||
+      /OPENAI_API_KEY_MISSING/.test(error.message))
+  ) {
+    return 'auth_failed'
+  }
   if (error instanceof SyntaxError) return 'parse_failed'
   return 'server_error'
 }
+
+// Backward-compat alias — keep until callers migrate.
+export const classifyOpenAIFailure = classifyLLMFailure
 
 export function buildResult(args: {
   question: string

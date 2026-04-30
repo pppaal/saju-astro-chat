@@ -91,7 +91,7 @@ export function recordCreditUsage(
  * Record external API call (OpenAI, etc.)
  */
 export function recordExternalCall(
-  provider: "openai" | "stripe" | "sentry",
+  provider: "openai" | "anthropic" | "stripe" | "sentry",
   model: string,
   status: "success" | "error",
   durationMs: number,

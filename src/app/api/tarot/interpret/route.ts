@@ -1,5 +1,5 @@
 // src/app/api/tarot/interpret/route.ts
-// Premium Tarot Interpretation API using Hybrid RAG
+// Premium Tarot Interpretation API — Claude Haiku 4.5 with prompt caching, GPT fallback.
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createPublicStreamGuard } from '@/lib/api/middleware'
@@ -17,6 +17,7 @@ import { HTTP_STATUS } from '@/lib/constants/http'
 import { tarotInterpretRequestSchema } from '@/lib/api/zodValidation'
 import { buildQuestionContextPrompt } from '@/lib/Tarot/questionFlow'
 import { recordCounter, recordTiming } from '@/lib/metrics'
+import { callClaude as callSharedClaude, isClaudeAvailable } from '@/lib/llm/claude'
 import {
   type CardInput,
   asRecord,
@@ -327,92 +328,25 @@ export const POST = withApiMiddleware(
   })
 )
 
-// Claude Haiku 4.5 — 한국어 톤 우수, 프롬프트 캐싱 지원 (system 부분 캐시 시 90% 할인)
-const CLAUDE_MODEL = 'claude-haiku-4-5-20251001'
-
+// 공유 Claude helper로 위임 (src/lib/llm/claude.ts)
 async function callClaude(
   systemPrompt: string,
   userPrompt: string,
   maxTokens = 1500,
   timeoutMs = OPENAI_TIMEOUT_MS
 ): Promise<string> {
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
-    throw new Error('ANTHROPIC_API_KEY is not set')
-  }
-
-  const response = await fetchWithRetry(
-    'https://api.anthropic.com/v1/messages',
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: CLAUDE_MODEL,
-        max_tokens: maxTokens,
-        temperature: 0.7,
-        // system은 배열로 전달 — cache_control 마킹으로 정적 부분 캐싱
-        system: [
-          {
-            type: 'text',
-            text: systemPrompt,
-            cache_control: { type: 'ephemeral' },
-          },
-        ],
-        messages: [{ role: 'user', content: userPrompt }],
-      }),
-    },
-    {
-      maxRetries: OPENAI_MAX_RETRIES,
-      initialDelayMs: 700,
-      maxDelayMs: 4000,
-      timeoutMs,
-      retryStatusCodes: [408, 409, 425, 429, 500, 502, 503, 504],
-      onRetry: (attempt, error, delayMs) => {
-        logger.warn('[Tarot interpret] Claude retry scheduled', {
-          attempt,
-          delayMs,
-          reason: error.message,
-        })
-      },
-    }
-  )
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => '')
-    throw new Error(`Claude API error: ${response.status} ${errorText.slice(0, 280)}`)
-  }
-
-  const rawText = await response.text().catch(() => '')
-  let data: {
-    content?: Array<{ type: string; text?: string }>
-    usage?: { input_tokens?: number; cache_read_input_tokens?: number }
-  } | null = null
-  try {
-    data = JSON.parse(rawText)
-  } catch (parseErr) {
-    logger.warn('[Tarot interpret] Claude JSON parse failed', {
-      error: parseErr instanceof Error ? parseErr.message : String(parseErr),
-      preview: rawText.slice(0, 280),
-    })
-    throw new Error('Claude response parse failed')
-  }
-
-  // 캐시 hit 모니터링용 로그
-  if (data?.usage) {
-    logger.info('[Tarot interpret] Claude usage', {
-      input: data.usage.input_tokens,
-      cacheRead: data.usage.cache_read_input_tokens,
-    })
-  }
-
-  return data?.content?.find((c) => c.type === 'text')?.text || ''
+  const result = await callSharedClaude({
+    systemPrompt,
+    userPrompt,
+    maxTokens,
+    temperature: 0.7,
+    timeoutMs,
+    label: 'tarot-interpret',
+  })
+  return result.text
 }
 
-// GPT-4o-mini API 호출 함수 (저비용 모델)
+// GPT-4o-mini fallback (Claude 실패 시)
 async function callGPT(
   prompt: string,
   maxTokens = 400,
@@ -782,7 +716,7 @@ ${cardListText}
 ${outputSchemaEn}`
 
   // Claude 우선 시도 → GPT fallback
-  const useClaude = Boolean(process.env.ANTHROPIC_API_KEY)
+  const useClaude = isClaudeAvailable()
 
   try {
     let result: string
