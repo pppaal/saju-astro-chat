@@ -354,6 +354,11 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   if (input.geokguk) {
     const desc = getGeokgukDescription(input.geokguk as GeokgukType)
     if (desc) p1.push(`본명이 ${input.geokguk}으로 짜여 있어, ${suffixGeokgukDescription(desc)}`)
+  } else {
+    // 격국 미산출 시 일간 한자로 폴백 인트로 — 텍스트가 ¶1 첫 문장 없이 시작하지 않게
+    const dayStem = ((input as { sajuSnapshot?: { pillars?: { day?: { heavenlyStem?: { name?: string } } } } }).sajuSnapshot)?.pillars?.day?.heavenlyStem?.name
+    const intro = dayStem ? STEM_INTRO_KO[dayStem] : ''
+    if (intro) p1.push(`${intro}.`)
   }
   // 일주의 실제 stage를 우선 사용 (분포 top은 폴백)
   const topStage = readDayMasterStage(input) || topEntry(input.twelveStages)
@@ -366,6 +371,11 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   const topSibsin = topEntry(input.sibsinDistribution)
   if (topSibsin) {
     p1.push(`십신 중에서는 ${topSibsin}${iga(topSibsin as string)} 가장 두텁게 잡혀 있어, 그 색이 본명 안에서 꽉 맞물려 작동해요.`)
+    // (A) Causal bridge — 십신을 실제 일상 영역에 anchor
+    const sibsinDomain = SIBSIN_DOMAIN_KO[topSibsin as string]
+    if (sibsinDomain) {
+      p1.push(`실제 일상에서는 ${sibsinDomain.domain} 영역에서 가장 또렷하게 나타나서, ${sibsinDomain.manifest} 결로 하루가 짜이는 분이에요.`)
+    }
   }
   if (input.shinsalList && input.shinsalList.length > 0) {
     const top = input.shinsalList.slice(0, 3) as string[]
@@ -399,6 +409,9 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
 
   if (daeunRel) p2.push(`${daeunRel} 시기예요.`)
   if (saeunRel) p2.push(`${saeunRel} 한 해예요.`)
+  // (B) Specific timing anchor — 일간 vs 세운 관계로 월별 peak 한 줄
+  const annualPeak = describeAnnualPeak(input.currentSaeunElement, natal)
+  if (annualPeak) p2.push(annualPeak)
   // 대운 ↔ 세운 사이클 충돌 narration
   const daeunSaeunClash = describeCycleClash(input.currentDaeunElement, input.currentSaeunElement, '대운', '세운')
   if (daeunSaeunClash) p2.push(`두 사이클을 함께 보면 ${daeunSaeunClash} 그림이라, 큰 방향이 정해진 가운데 한 해 단위로 환경이 어떻게 받쳐주는지가 중요해져요.`)
@@ -419,6 +432,9 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
           ? '점성 측 강조 원소가 본명 일간과 같아 두 시스템이 같은 색을 가리키는'
           : '점성 측 강조 원소와 본명 일간이 달라 두 시스템이 서로 다른 방향을 비추는'
       p3.push(`점성으로 보면 ${w} 기운이 가장 강조되는 차트라, ${matchHint} 형국이에요.`)
+      // (D) 사주↔점성 cross integration — 두 시스템이 한 사람 안에서 어떻게 만나는지
+      const crossLine = buildCrossIntegrationKo(natalKo, dominantWestern)
+      if (crossLine) p3.push(crossLine)
     }
   }
 
@@ -463,8 +479,8 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     p3.push(`주요 어스펙트가 ${aspectsCount}개 활성화돼 있어 본명 차트의 변동성과 자극이 평균보다 많은 편이에요.`)
   }
 
-  // 시나리오 한 줄 — 격국 + 대운 element 조합으로
-  if (input.geokguk && input.currentDaeunElement && natalKo) {
+  // 시나리오 한 줄 — 격국 있으면 격국+대운, 없으면 일간+대운 폴백
+  if (input.currentDaeunElement && natalKo) {
     const daeunKo = ELEMENT_KO_LABEL[input.currentDaeunElement] || ''
     if (daeunKo) {
       const SEQ = ['목', '화', '토', '금', '수']
@@ -472,11 +488,20 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
       const di = SEQ.indexOf(daeunKo)
       const diff = ni >= 0 && di >= 0 ? (di - ni + 5) % 5 : -1
       let scenario = ''
-      if (diff === 1) scenario = `${input.geokguk}의 강점을 밖으로 표현하기 좋은 구간이라 발표·확장·새 시도에 힘을 실어보세요.`
-      else if (diff === 3) scenario = `${input.geokguk}의 책임 무게가 더 무거워지는 구간이라 무리한 확장보다 기존 책임을 정리하는 편이 안전해요.`
-      else if (diff === 4) scenario = `${input.geokguk}${eulReul(input.geokguk)} 받쳐주는 기운이 들어와 있어 학습·재정비·내적 충전에 시간 쓰기 좋은 시기예요.`
-      else if (diff === 0) scenario = `${input.geokguk} 색이 더 진해지는 구간이라 본인이 가진 기조를 더 분명히 드러내는 결정에 무게가 실려요.`
-      else if (diff === 2) scenario = `${input.geokguk}${iga(input.geokguk)} 환경을 통제하는 위치라 외부 자원·계약·대인 관계 정리에 유리해요.`
+      if (input.geokguk) {
+        if (diff === 1) scenario = `${input.geokguk}의 강점을 밖으로 표현하기 좋은 구간이라 발표·확장·새 시도에 힘을 실어보세요.`
+        else if (diff === 3) scenario = `${input.geokguk}의 책임 무게가 더 무거워지는 구간이라 무리한 확장보다 기존 책임을 정리하는 편이 안전해요.`
+        else if (diff === 4) scenario = `${input.geokguk}${eulReul(input.geokguk)} 받쳐주는 기운이 들어와 있어 학습·재정비·내적 충전에 시간 쓰기 좋은 시기예요.`
+        else if (diff === 0) scenario = `${input.geokguk} 색이 더 진해지는 구간이라 본인이 가진 기조를 더 분명히 드러내는 결정에 무게가 실려요.`
+        else if (diff === 2) scenario = `${input.geokguk}${iga(input.geokguk)} 환경을 통제하는 위치라 외부 자원·계약·대인 관계 정리에 유리해요.`
+      } else {
+        // 폴백: 격국 미산출 시 일간 + 대운 관계만으로 6개월 시나리오
+        if (diff === 1) scenario = '지금 6개월 사이 큰 결정이 들어오면, 표현·확장 쪽이 잘 풀리는 흐름이라 한 번 발 디뎌볼 만해요.'
+        else if (diff === 3) scenario = '지금 6개월 사이 책임이 큰 결정이 들어오면, 무리한 확장보다 정리·재정비 쪽이 안전해요.'
+        else if (diff === 4) scenario = '지금 6개월은 학습·재정비에 시간 쓰기 좋은 구간이라, 큰 변화는 다음 흐름까지 미루는 편이 맞아요.'
+        else if (diff === 0) scenario = '지금 6개월은 본인 기조가 더 진해지는 구간이라, 평소 망설이던 결정에 무게가 실려요.'
+        else if (diff === 2) scenario = '지금 6개월은 외부 자원·관계 정리에 유리한 시기라, 계약·재정 정리부터 손대보세요.'
+      }
       if (scenario) p3.push(scenario)
     }
   }
@@ -486,8 +511,100 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
 }
 
 // ──────────────────────────────────────────────────────────
-// 천간/지지 specific 페어 narration (甲庚충 / 甲己합 등)
+// 휴머니즘 보강용 — 십신/시기/일간 → 삶의 영역 구체 발현 매핑
 // ──────────────────────────────────────────────────────────
+
+// 십신 dominant → 실제 일상 영역 + 발현 결
+const SIBSIN_DOMAIN_KO: Partial<Record<string, { domain: string; manifest: string }>> = {
+  비견: { domain: '동료·자기 정체성', manifest: '독립적 위치에서 자기 색을 분명히 드러내는' },
+  겁재: { domain: '경쟁·협업 경계', manifest: '경쟁자 사이에서 자기 자리를 지키는' },
+  식신: { domain: '표현·창작', manifest: '꾸준한 표현으로 결과물을 쌓아가는' },
+  상관: { domain: '비판·표현·재정의', manifest: '날카로운 표현으로 기존을 다시 짜는' },
+  정재: { domain: '돈·자원 관리', manifest: '꾸준한 자원 운용과 안정 축적이 중심인' },
+  편재: { domain: '돈·자산 회전·외부 거래', manifest: '큰 자원 회전과 외부 기회를 다루는' },
+  정관: { domain: '직장·책임·평판', manifest: '명확한 역할과 평가 기준을 세우며 움직이는' },
+  편관: { domain: '책임 압박·도전 과제', manifest: '강한 책임 무게와 도전 과제를 정면으로 다루는' },
+  정인: { domain: '학습·문서·인정', manifest: '꾸준한 학습과 문서 정리로 기반을 다지는' },
+  편인: { domain: '직관·연구·내면 탐구', manifest: '직관적 통찰과 깊은 탐구로 영역을 파고드는' },
+}
+
+// 일간 한자 → 인격 한 줄 (격국이 없을 때 폴백 인트로)
+const STEM_INTRO_KO: Record<string, string> = {
+  甲: '갑목(甲木) 일간으로, 곧게 뻗어나가는 큰 나무 같은 추진력이 본명의 중심이에요',
+  乙: '을목(乙木) 일간으로, 부드러우면서 어디든 적응하는 풀 같은 결이 본명의 중심이에요',
+  丙: '병화(丙火) 일간으로, 밝고 표현력 강한 태양 같은 결이 본명의 중심이에요',
+  丁: '정화(丁火) 일간으로, 섬세하고 따스한 촛불 같은 결이 본명의 중심이에요',
+  戊: '무토(戊土) 일간으로, 묵직하고 흔들리지 않는 산 같은 안정감이 본명의 중심이에요',
+  己: '기토(己土) 일간으로, 포용적이고 실용적인 들 같은 결이 본명의 중심이에요',
+  庚: '경금(庚金) 일간으로, 강하고 직설적인 강철 같은 결단력이 본명의 중심이에요',
+  辛: '신금(辛金) 일간으로, 정련된 보석·칼날 같은 절제와 결단이 본명의 중심이에요',
+  壬: '임수(壬水) 일간으로, 흐름이 강하고 통찰이 깊은 큰 물 같은 결이 본명의 중심이에요',
+  癸: '계수(癸水) 일간으로, 섬세하고 직관적인 빗물 같은 결이 본명의 중심이에요',
+}
+
+// 일간 element vs 세운 element diff → 월별 peak 한 줄
+const ELEMENT_PEAK_MONTHS_KO: Record<string, string> = {
+  목: '3월~5월 봄철',
+  화: '5월~7월 초여름',
+  토: '환절기(4·7·10·1월)',
+  금: '8월~10월 가을철',
+  수: '11월~1월 겨울철',
+}
+
+function describeAnnualPeak(saeunEl: string | undefined, natalEl: string | undefined): string {
+  if (!saeunEl || !natalEl) return ''
+  const saeunKo = ELEMENT_KO_LABEL[saeunEl]
+  const natalKo = ELEMENT_KO_LABEL[natalEl]
+  const peak = ELEMENT_PEAK_MONTHS_KO[saeunKo]
+  if (!peak) return ''
+  const SEQ = ['목', '화', '토', '금', '수']
+  const ni = SEQ.indexOf(natalKo)
+  const si = SEQ.indexOf(saeunKo)
+  if (ni < 0 || si < 0) return `특히 ${peak} 구간이 한 해 흐름의 분수령이에요.`
+  const diff = (si - ni + 5) % 5
+  if (diff === 0) return `특히 ${peak} 구간이 본인 색이 가장 진하게 드러나는 시기예요.`
+  if (diff === 1) return `특히 ${peak} 구간에 표현·확장 압력이 가장 커져요.`
+  if (diff === 2) return `특히 ${peak} 구간이 결정·통제력이 가장 또렷해지는 시기예요.`
+  if (diff === 3) return `특히 ${peak} 구간에 압박과 책임 무게가 가장 무거워지니 한 박자 늦추는 편이 안전해요.`
+  if (diff === 4) return `특히 ${peak} 구간이 받쳐주는 흐름이 들어오는 시기라 학습·정비에 좋아요.`
+  return ''
+}
+
+// 사주 일간 element × 점성 dominant element → 두 시스템 통합 한 문장
+function buildCrossIntegrationKo(natalKo: string, dominantWestern: string | undefined): string {
+  if (!natalKo || !dominantWestern) return ''
+  const westKo: Record<string, string> = { fire: '화', earth: '토', air: '풍', water: '수' }
+  const w = westKo[dominantWestern]
+  if (!w) return ''
+  const SAJU_TONE: Record<string, string> = {
+    목: '자라남·계획 중심의 신중한 추진',
+    화: '표현·확장의 빠른 추진',
+    토: '신뢰·축적의 묵직한 안정',
+    금: '결단·정리의 칼날 같은 신중함',
+    수: '지혜·관찰의 깊은 호흡',
+  }
+  const ASTRO_TONE: Record<string, string> = {
+    화: '확장·도전·열정의 가속',
+    토: '실용·구조·안정의 다짐',
+    풍: '소통·다중·아이디어의 회전',
+    수: '직관·공감·정서의 깊이',
+  }
+  const ko1 = SAJU_TONE[natalKo]
+  const ko2 = ASTRO_TONE[w]
+  if (!ko1 || !ko2) return ''
+  // 같은 방향: 사주 목+점성 화(상생), 사주 화+점성 토(상생), 사주 금+점성 토(상생/같은 차분), 사주 수+점성 수
+  const isAligned =
+    natalKo === w ||
+    (natalKo === '목' && w === '화') ||
+    (natalKo === '화' && w === '토') ||
+    (natalKo === '토' && w === '금') ||
+    (natalKo === '금' && w === '토') ||
+    (natalKo === '수' && w === '수')
+  if (isAligned) {
+    return `사주의 ${ko1}이 점성의 ${ko2}과 같은 방향을 가리켜, 두 시스템이 서로 보태주는 결이에요. 결정에 가속이 잘 붙는 차트입니다.`
+  }
+  return `사주는 ${ko1}을 가리키는데 점성은 ${ko2}을 부추기는 결이라, 한 사람 안에 brake와 accelerator가 같이 들어 있어요. 잘 맞물리면 '계산된 모험'이 되고, 어긋나면 결정 직전 늘 한 박자 망설이는 톤이 돼요.`
+}
 
 const STEM_KO_ELEMENT: Record<string, string> = {
   甲: '목', 乙: '목', 丙: '화', 丁: '화', 戊: '토',
