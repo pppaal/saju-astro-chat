@@ -110,6 +110,9 @@ const DAYMASTER_BIRTH_BRANCH: Record<string, string> = {
   '己': '酉', '庚': '巳', '辛': '子', '壬': '申', '癸': '卯',
 };
 
+/* 음간 일간 — 12운성은 음간일 때 역행으로 계산 */
+const YIN_DAY_MASTERS = new Set(['乙', '丁', '己', '辛', '癸'])
+
 const BRANCH_ORDER = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'] as const;
 
 export function getTwelveStage(dayStemNameRaw: string, branchNameRaw: string): TwelveStage {
@@ -120,7 +123,11 @@ export function getTwelveStage(dayStemNameRaw: string, branchNameRaw: string): T
   const startIdx = (BRANCH_ORDER as readonly string[]).indexOf(start);
   const targetIdx = (BRANCH_ORDER as readonly string[]).indexOf(branchName);
   if (startIdx < 0 || targetIdx < 0) {return '묘';}
-  const diff = (targetIdx - startIdx + 12) % 12;
+  // 양간 순행 / 음간 역행
+  const isYin = YIN_DAY_MASTERS.has(dayStemName)
+  const diff = isYin
+    ? (startIdx - targetIdx + 12) % 12
+    : (targetIdx - startIdx + 12) % 12
   return TWELVE_STAGE_ORDER[diff];
 }
 export function getTwelveStagesForPillars(p: SajuPillarsLike, _basis: 'day' = 'day'): { [K in PillarKind]: TwelveStage } {
