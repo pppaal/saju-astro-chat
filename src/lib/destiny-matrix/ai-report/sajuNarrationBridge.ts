@@ -615,6 +615,52 @@ const JUPITER_HOUSE_NOW_KO: Record<number, string> = {
   11: '커뮤니티·미래 비전 쪽 확장',
 }
 
+// 점성 transit cycle → 지금 시점 짧은 한 줄 (괄호 안에 의미 함축)
+const TRANSIT_NOW_NARRATIVE_KO: Record<string, string> = {
+  saturnReturn: '토성 리턴(인생 첫 챕터 정리·재출발)',
+  jupiterReturn: '목성 리턴(12년 만의 확장 기회 문)',
+  uranusSquare: '천왕 스퀘어(자유·해방 욕구 강해지는 결)',
+  neptuneSquare: '해왕 스퀘어(영성·현실 사이 환상 짙어지는 결)',
+  plutoTransit: '명왕 transit(깊은 변형·재탄생 요구)',
+  nodeReturn: '노드 리턴(운명 방향 재정렬)',
+  eclipse: '일식·월식(6개월 큰 전환점)',
+  mercuryRetrograde: '수성 역행(소통·계약 한 박자 늦추기)',
+  venusRetrograde: '금성 역행(관계·재정 가치관 재검토)',
+  marsRetrograde: '화성 역행(추진 멈추고 안으로 돌리기)',
+  jupiterRetrograde: '목성 역행(확장 잠깐 멈추고 내면 정리)',
+  saturnRetrograde: '토성 역행(책임 재구조화·기존 기준 점검)',
+}
+
+// transit 우선순위 (cross-section에 가장 임팩트 큰 것부터)
+const TRANSIT_PRIORITY = [
+  'saturnReturn',
+  'plutoTransit',
+  'jupiterReturn',
+  'uranusSquare',
+  'neptuneSquare',
+  'nodeReturn',
+  'eclipse',
+  'saturnRetrograde',
+  'mercuryRetrograde',
+  'venusRetrograde',
+  'marsRetrograde',
+  'jupiterRetrograde',
+]
+
+function pickTopTransitNarratives(transits: string[] | undefined, max = 2): string[] {
+  if (!transits || transits.length === 0) return []
+  const sorted = [...transits].sort(
+    (a, b) => TRANSIT_PRIORITY.indexOf(a) - TRANSIT_PRIORITY.indexOf(b)
+  )
+  const out: string[] = []
+  for (const t of sorted) {
+    const narr = TRANSIT_NOW_NARRATIVE_KO[t]
+    if (narr) out.push(narr)
+    if (out.length >= max) break
+  }
+  return out
+}
+
 // 대운 단계 — '시작/중반/끝자락' 결정
 function describeDaeunStage(currentAge: number | undefined, daeunStartAge: number | undefined): string {
   if (typeof currentAge !== 'number' || typeof daeunStartAge !== 'number') return ''
@@ -697,6 +743,10 @@ export function buildNowCrossSectionKo(input: MatrixCalculationInput): string {
     astroCoreParts.push(`목성 ${jup}하우스(${JUPITER_HOUSE_NOW_KO[jup]})`)
   }
 
+  // Transit micro 신호 — 현재 작동 중인 점성 cycle (있으면)
+  const activeTransitsRaw = (input as { activeTransits?: string[] }).activeTransits
+  const transitNarratives = pickTopTransitNarratives(activeTransitsRaw, 2)
+
   // 사주↔점성 cross 한 줄
   const crossClosing = buildCrossNowKo(natalKo, input.dominantWesternElement)
 
@@ -729,7 +779,11 @@ export function buildNowCrossSectionKo(input: MatrixCalculationInput): string {
   } else if (astroCoreParts.length > 0) {
     sentences.push(`점성에서는 ${astroCoreParts.join(' · ')} 같은 신호가 같이 들어와 있는 시점이에요.`)
   }
-  // S3: cross integration closing
+  // S3 (NEW): 점성 transit micro — 현재 진행 중인 cycle 1-2개
+  if (transitNarratives.length > 0) {
+    sentences.push(`거기에 지금 ${transitNarratives.join(', ')} 같은 transit이 같이 작동하면서, 시점 자체에 한 겹이 더 얹혀 있어요.`)
+  }
+  // S4: cross integration closing
   if (crossClosing) sentences.push(crossClosing)
 
   return sentences.join(' ')

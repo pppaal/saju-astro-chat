@@ -162,6 +162,8 @@ async function main(): Promise<void> {
       { p1: 'Mercury', p2: 'Saturn', type: 'opposition' },
     ],
     dominantWesternElement: 'fire',
+    // 2026-04-30 기준 활성 transit (1995-02-09 출생 31세 — 토성 리턴 막바지 가능)
+    activeTransits: ['saturnReturn', 'mercuryRetrograde'],
     currentDateIso: PROFILE.currentDate,
   }
 
