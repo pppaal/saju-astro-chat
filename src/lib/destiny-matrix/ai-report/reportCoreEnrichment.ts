@@ -15,6 +15,7 @@ import {
   buildDomainSajuLensKo,
   buildSajuNarrationKo,
   buildTimingNarrationKo,
+  synthesizeExpertNarrationKo,
 } from './sajuNarrationBridge'
 
 type Lang = 'ko' | 'en'
@@ -217,14 +218,16 @@ export function enrichComprehensiveSectionsWithReportCore(
   const comprehensiveSajuNarration = lang === 'ko' ? buildSajuNarrationKo(matrixInput) : ''
   // 시기별 timing narration — 대운/세운/월운/일운 원소 기반 한 줄씩
   const comprehensiveTimingNarration = lang === 'ko' ? buildTimingNarrationKo(matrixInput) : ''
+  // Expert synthesis — 위 두 layer를 weave한 3-4단락 자연어 (전문가 톤)
+  const expertSynthesis = lang === 'ko' ? synthesizeExpertNarrationKo(matrixInput) : ''
 
   return {
     introduction: deps.buildNarrativeSectionFromCore(
       [
         buildComprehensiveSectionHookLocal('introduction', lang),
         deps.buildSectionPersonalLead('introduction', matrixInput, lang, timingData),
-        comprehensiveSajuNarration,
-        comprehensiveTimingNarration,
+        // expertSynthesis가 있으면 본명+timing narration 대체 — 더 풍부하고 이미 weave돼 있음
+        expertSynthesis || `${comprehensiveSajuNarration} ${comprehensiveTimingNarration}`.trim(),
         lang === 'ko'
           ? `지금 실제로 먼저 대응해야 할 축은 ${focusDomainLabel}이고, 현재 국면은 ${focusNarrativeForIntro}`
           : `The strongest axis in your life right now is ${focusDomainLabel}, and the current movement is ${focusNarrativeForIntro}.`,
@@ -727,11 +730,15 @@ export function enrichThemedSectionsWithReportCore(
     },
   }
 
-  // Saju 라이브러리 한국어 풀이 wiring — 격국·12운성·십신·신살 narration 끌어옴
-  const sajuNarration = lang === 'ko' ? buildSajuNarrationKo(matrixInput) : ''
+  // Expert synthesis — 본명+시기 weave된 3-4단락 자연어 (옵션 A 톤)
+  const themedExpertSynthesis = lang === 'ko' ? synthesizeExpertNarrationKo(matrixInput) : ''
+  // 도메인 lens — 격국이 그 테마에서 어떻게 발현되는지 한 줄
   const domainLens = lang === 'ko' ? buildDomainSajuLensKo(matrixInput, theme) : ''
-  // 시기별 timing — 대운/세운/월운/일운 원소가 본명 일간을 받쳐주는지 누르는지
-  const themedTimingNarration = lang === 'ko' ? buildTimingNarrationKo(matrixInput) : ''
+  // Fallback (synthesis가 비어있을 때만): 분리된 본명·timing narration
+  const themedFallbackNarration =
+    lang === 'ko' && !themedExpertSynthesis
+      ? `${buildSajuNarrationKo(matrixInput)} ${buildTimingNarrationKo(matrixInput)}`.trim()
+      : ''
 
   return {
     ...sectionsWithThemeLead,
@@ -739,9 +746,8 @@ export function enrichThemedSectionsWithReportCore(
       sectionsWithThemeLead.deepAnalysis,
       [
         buildThemedSectionHook(theme, 'deepAnalysis', lang),
-        sajuNarration,
+        themedExpertSynthesis || themedFallbackNarration,
         domainLens,
-        themedTimingNarration,
         reportCore.thesis,
         focusManifestation?.baselineThesis || '',
       ],
