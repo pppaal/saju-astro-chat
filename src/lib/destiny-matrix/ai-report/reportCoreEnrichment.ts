@@ -14,6 +14,7 @@ import {
 import {
   buildDomainSajuLensKo,
   buildSajuNarrationKo,
+  buildTimingNarrationKo,
 } from './sajuNarrationBridge'
 
 type Lang = 'ko' | 'en'
@@ -214,6 +215,8 @@ export function enrichComprehensiveSectionsWithReportCore(
 
   // Saju 라이브러리 본명 narration — 종합 리포트 introduction에 격국·12운성·십신·신살 결합
   const comprehensiveSajuNarration = lang === 'ko' ? buildSajuNarrationKo(matrixInput) : ''
+  // 시기별 timing narration — 대운/세운/월운/일운 원소 기반 한 줄씩
+  const comprehensiveTimingNarration = lang === 'ko' ? buildTimingNarrationKo(matrixInput) : ''
 
   return {
     introduction: deps.buildNarrativeSectionFromCore(
@@ -221,6 +224,7 @@ export function enrichComprehensiveSectionsWithReportCore(
         buildComprehensiveSectionHookLocal('introduction', lang),
         deps.buildSectionPersonalLead('introduction', matrixInput, lang, timingData),
         comprehensiveSajuNarration,
+        comprehensiveTimingNarration,
         lang === 'ko'
           ? `지금 실제로 먼저 대응해야 할 축은 ${focusDomainLabel}이고, 현재 국면은 ${focusNarrativeForIntro}`
           : `The strongest axis in your life right now is ${focusDomainLabel}, and the current movement is ${focusNarrativeForIntro}.`,
@@ -726,6 +730,8 @@ export function enrichThemedSectionsWithReportCore(
   // Saju 라이브러리 한국어 풀이 wiring — 격국·12운성·십신·신살 narration 끌어옴
   const sajuNarration = lang === 'ko' ? buildSajuNarrationKo(matrixInput) : ''
   const domainLens = lang === 'ko' ? buildDomainSajuLensKo(matrixInput, theme) : ''
+  // 시기별 timing — 대운/세운/월운/일운 원소가 본명 일간을 받쳐주는지 누르는지
+  const themedTimingNarration = lang === 'ko' ? buildTimingNarrationKo(matrixInput) : ''
 
   return {
     ...sectionsWithThemeLead,
@@ -735,12 +741,13 @@ export function enrichThemedSectionsWithReportCore(
         buildThemedSectionHook(theme, 'deepAnalysis', lang),
         sajuNarration,
         domainLens,
+        themedTimingNarration,
         reportCore.thesis,
         focusManifestation?.baselineThesis || '',
       ],
       [focusManifestation?.activationThesis || '', focusManifestation?.manifestation || ''],
       lang,
-      lang === 'ko' ? 540 : 280,
+      lang === 'ko' ? 600 : 280,
       deps
     ),
     patterns: reinforceNarrativeSection(
