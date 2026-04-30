@@ -16,12 +16,7 @@
 
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
 import { getGeokgukDescription } from '@/lib/Saju/geokguk'
-import {
-  generateSibsinText,
-  generateTwelveStageText,
-} from '@/lib/Saju/textGenerator'
 import type { GeokgukType } from '@/lib/Saju/geokguk'
-import type { SibsinKind, FiveElement } from '@/lib/Saju/types'
 
 const KO_SHINSAL_BLURB: Record<string, string> = {
   역마: '이동·출장·전직 같은 환경 변동이 잘 일어나고',
@@ -88,58 +83,18 @@ function suffixGeokgukDescription(desc: string): string {
 }
 
 /**
- * 본명 사주 narration 한국어 라인 묶음 — deepAnalysis에 prepend하기 좋도록 한 단락 합성.
- * matrixInput에 격국·12운성·십신·신살이 이미 채워져 있어서 그대로 재해석.
+ * 본명 사주 narration 한국어 — deepAnalysis에 prepend하기 좋도록 한 단락.
+ * synthesizeExpertNarrationKo의 ¶1(본명 인격 단락)만 추출해서
+ * 격국·12운성·십신·신살·일상 영역 매핑·주변 인상까지 포함된 풍부한 narration 반환.
+ *
+ * 기존 generateTwelveStageText/generateSibsinText 라이브러리 직접 호출은
+ * 톤이 평면적이고 짧아서 (예: '12운성 쇠의 안정의 기운이 작용합니다.')
+ * synthesize의 ¶1을 재사용하는 형태로 통일.
  */
 export function buildSajuNarrationKo(input: MatrixCalculationInput): string {
-  const lines: string[] = []
-
-  // 1) 격국 — 본명의 큰 성격 한 줄
-  if (input.geokguk) {
-    const desc = getGeokgukDescription(input.geokguk as GeokgukType)
-    if (desc) {
-      lines.push(`본명이 ${input.geokguk}이라, ${suffixGeokgukDescription(desc)}`)
-    }
-  }
-
-  // 2) 12운성 — 일주의 실제 stage 우선, 없으면 분포 top 폴백 (formal 톤)
-  const topStage = readDayMasterStage(input) || topEntry(input.twelveStages)
-  if (topStage) {
-    const stageText = generateTwelveStageText(topStage, { style: 'formal' })
-    if (stageText?.main) {
-      lines.push(stageText.main)
-    }
-  }
-
-  // 3) 십신 — 가장 강한 십신 한 줄 (formal 톤)
-  // generateSibsinText는 SIBSIN_INTERPRETATIONS에 없는 키엔 throw하므로 방어적으로 wrap
-  const topSibsin = topEntry<SibsinKind>(input.sibsinDistribution)
-  if (topSibsin) {
-    try {
-      const sibsinText = generateSibsinText(topSibsin, { style: 'formal' })
-      if (sibsinText?.main) {
-        lines.push(sibsinText.main)
-      }
-    } catch {
-      // 데이터 사전에 없는 십신이면 라이브러리가 throw — 조용히 스킵
-    }
-  }
-
-  // 4) 신살 — 활성 신살 중 위 사전에 있는 항목들을 자연어로 묶음
-  if (input.shinsalList && input.shinsalList.length > 0) {
-    const top = input.shinsalList.slice(0, 3) as string[]
-    const blurbs = top
-      .map((k) => KO_SHINSAL_BLURB[k])
-      .filter(Boolean)
-    if (blurbs.length > 0) {
-      const lastWord = top[top.length - 1]
-      lines.push(
-        `본명에 ${top.join('·')}${iga(lastWord)} 활성화돼 ${blurbs.join(', ')} 작용해요.`
-      )
-    }
-  }
-
-  return lines.join(' ')
+  const full = synthesizeExpertNarrationKo(input)
+  const firstParagraph = full.split('\n\n')[0]
+  return firstParagraph || ''
 }
 
 /**

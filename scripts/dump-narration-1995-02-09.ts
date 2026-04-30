@@ -40,7 +40,7 @@ async function main(): Promise<void> {
 
   // sibsin 분포 — 4기둥 천간/지지에서 추출
   const sibsinDistribution: Record<string, number> = {}
-  for (const pName of ['year', 'month', 'day', 'hour']) {
+  for (const pName of ['year', 'month', 'day', 'time']) {
     const p = saju.pillars?.[pName]
     if (!p) continue
     if (p.heavenlyStem?.sibsin) {
@@ -54,7 +54,7 @@ async function main(): Promise<void> {
   // 12운성 — 일간 기준
   const dayStem = saju.pillars?.day?.heavenlyStem?.name
   const twelveStagesDist: Record<string, number> = {}
-  for (const pName of ['year', 'month', 'day', 'hour']) {
+  for (const pName of ['year', 'month', 'day', 'time']) {
     const p = saju.pillars?.[pName]
     if (!p?.earthlyBranch?.name || !dayStem) continue
     const stage = getTwelveStage(dayStem, p.earthlyBranch.name)
@@ -68,19 +68,35 @@ async function main(): Promise<void> {
       year: { stem: saju.pillars.year.heavenlyStem.name, branch: saju.pillars.year.earthlyBranch.name },
       month: { stem: saju.pillars.month.heavenlyStem.name, branch: saju.pillars.month.earthlyBranch.name },
       day: { stem: saju.pillars.day.heavenlyStem.name, branch: saju.pillars.day.earthlyBranch.name },
-      hour: saju.pillars.hour ? { stem: saju.pillars.hour.heavenlyStem?.name, branch: saju.pillars.hour.earthlyBranch?.name } : undefined,
+      time: saju.pillars.time ? { stem: saju.pillars.time.heavenlyStem?.name, branch: saju.pillars.time.earthlyBranch?.name } : undefined,
     }
     const geokRes = determineGeokguk(pillarsSimple)
     geokgukName = geokRes?.primary || geokRes?.name
-  } catch {}
+  } catch (e) {
+    console.error('geokguk error:', (e as Error).message)
+  }
 
-  // 신살
+  // 신살 — toSajuPillarsLike는 yearPillar/monthPillar/dayPillar/timePillar 형태 요구
   let shinsalList: string[] = []
   try {
-    const sajuLike = toSajuPillarsLike(saju as any)
-    const hits = getShinsalHits(sajuLike)
-    shinsalList = hits.map((h: any) => h.name).filter(Boolean)
-  } catch {}
+    const sajuLike = toSajuPillarsLike({
+      yearPillar: saju.yearPillar || saju.pillars.year,
+      monthPillar: saju.monthPillar || saju.pillars.month,
+      dayPillar: saju.dayPillar || saju.pillars.day,
+      timePillar: saju.timePillar || saju.pillars.time,
+    } as any)
+    const hits = getShinsalHits(sajuLike, {
+      includeLucky: true,
+      includeUnlucky: true,
+      includeTwelveAll: true,
+      includeGeneralShinsal: true,
+      includeLuckyDetails: true,
+      ruleSet: 'your',
+    })
+    shinsalList = hits.map((h: any) => h.kind).filter(Boolean)
+  } catch (e) {
+    console.error('shinsal error:', (e as Error).message)
+  }
 
   // 관계
   let relations: any[] = []
