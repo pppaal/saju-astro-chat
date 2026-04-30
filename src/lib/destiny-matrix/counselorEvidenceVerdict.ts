@@ -470,24 +470,24 @@ export function buildCounselorWhyStack(input: {
             : isCareer
               ? `\uCEE4\uB9AC\uC5B4 \uD574\uC11D \uC2E0\uB8B0\uB3C4\uB294 ${normalized}.`
               : isWealth
-                ? `?? ?? ???? ${normalized}.`
+                ? `재정 해석 신뢰도는 ${normalized}.`
                 : isHealth
-                  ? `?? ?? ???? ${normalized}.`
+                  ? `건강 해석 신뢰도는 ${normalized}.`
                   : isMove
-                    ? `?? ?? ???? ${normalized}.`
-                    : `???? ${normalized}.`
+                    ? `이동 해석 신뢰도는 ${normalized}.`
+                    : `신뢰도는 ${normalized}.`
         case 'provenance':
           return isRelationship
-            ? `?? ??? ${normalized}.`
+            ? `관계 출처는 ${normalized}.`
             : isCareer
-              ? `??? ??? ${normalized}.`
+              ? `커리어 출처는 ${normalized}.`
               : isWealth
-                ? `?? ??? ${normalized}.`
+                ? `재정 출처는 ${normalized}.`
                 : isHealth
-                  ? `?? ??? ${normalized}.`
+                  ? `건강 출처는 ${normalized}.`
                   : isMove
-                    ? `?? ??? ${normalized}.`
-                    : `?? ??? ${normalized}.`
+                    ? `이동 출처는 ${normalized}.`
+                    : `근거 출처는 ${normalized}.`
       }
     }
 

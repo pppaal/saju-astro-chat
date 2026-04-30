@@ -613,7 +613,7 @@ export function buildBlocksBySection(params: {
           ? countryLines
           : [
               params.lang === 'ko'
-                ? '?? ??? ???? ??? ??-?? ?? ???? ?????.'
+                ? '국가 적합도 데이터가 부족해 역할-직군 우선 전략으로 대체합니다.'
                 : 'Country-fit data is limited; role/cluster-first strategy is used.',
             ]
       block3Bullets = [
@@ -621,7 +621,7 @@ export function buildBlocksBySection(params: {
         ...(relevantEvents.slice(0, 3).length > 0
           ? [
               params.lang === 'ko'
-                ? `??? ???: ${relevantEvents
+                ? `커리어 이벤트: ${relevantEvents
                     .slice(0, 3)
                     .map((event) => formatTimelineEventLine(params.lang, event))
                     .join(' / ')}`
@@ -640,7 +640,7 @@ export function buildBlocksBySection(params: {
         ...(relevantEvents.slice(0, 3).length > 0
           ? [
               params.lang === 'ko'
-                ? `?? ????: ${relevantEvents
+                ? `관계 타임라인: ${relevantEvents
                     .slice(0, 3)
                     .map((event) => formatTimelineEventLine(params.lang, event))
                     .join(' / ')}`
@@ -657,7 +657,7 @@ export function buildBlocksBySection(params: {
         ...(incomeBandLines.length > 0
           ? [
               params.lang === 'ko'
-                ? `?? ??: ${incomeBandLines.join(' / ')}`
+                ? `수입 밴드: ${incomeBandLines.join(' / ')}`
                 : `Income bands: ${incomeBandLines.join(' / ')}`,
             ]
           : []),
@@ -665,19 +665,19 @@ export function buildBlocksBySection(params: {
       block2Bullets = signalSummaries.length
         ? signalSummaries.map((summary) =>
             params.lang === 'ko'
-              ? `${summary} ??? ???? ??/?? ??? ?????.`
+              ? `${summary} 근거를 기준으로 상단/하단 조건을 분리합니다.`
               : `Use ${summary} evidence to split upside/downside conditions.`
           )
         : [
             params.lang === 'ko'
-              ? '?? ?? ??? ?? ??? ?? ??? ?? ?????.'
+              ? '재정 신호 밀도가 낮아 보수적 방어 밴드를 우선 적용합니다.'
               : 'Wealth signal density is low; defense band is prioritized.',
           ]
       block3Bullets = [...scenarioLines]
     } else if (sectionKey === 'timingAdvice') {
       block1Bullets = [
         params.lang === 'ko'
-          ? `??? ???: ${params.timeWindow.scope} (${params.timeWindow.start || '-'} ~ ${params.timeWindow.end || '-'})`
+          ? `리포트 스코프: ${params.timeWindow.scope} (${params.timeWindow.start || '-'} ~ ${params.timeWindow.end || '-'})`
           : `Report scope: ${params.timeWindow.scope} (${params.timeWindow.start || '-'} ~ ${params.timeWindow.end || '-'})`,
         ...(claim?.text ? [claim.text] : []),
       ]
@@ -685,18 +685,18 @@ export function buildBlocksBySection(params: {
         topLifeEvents.length > 0
           ? [
               params.lang === 'ko'
-                ? `?? ?? ??: ${topLifeEvents.join(' / ')}`
+                ? `생애 챕터 요약: ${topLifeEvents.join(' / ')}`
                 : `Life chapter summary: ${topLifeEvents.join(' / ')}`,
             ]
           : [
               params.lang === 'ko'
-                ? '?? ?? ???? ??? ?? ???? ???? ?????.'
+                ? '생애 챕터 데이터가 부족해 현재 타임라인 중심으로 해석합니다.'
                 : 'Life chapter data is limited; use current timeline events.',
             ]
       block3Bullets = turningEvents.length
         ? [
             params.lang === 'ko'
-              ? `??? Top: ${turningEvents.join(' / ')}`
+              ? `변곡점 Top: ${turningEvents.join(' / ')}`
               : `Top turning points: ${turningEvents.join(' / ')}`,
             ...scenarioLines,
           ]
@@ -704,50 +704,50 @@ export function buildBlocksBySection(params: {
     } else if (sectionKey === 'actionPlan') {
       block1Bullets = [
         params.lang === 'ko'
-          ? '2? ?? 3??: ?? 1? ?? -> ??? 1? -> ??/?? ??.'
+          ? '2주 실행 3단계: 완료 1건 고정 -> 재확인 1건 -> 보류/확정 분리.'
           : 'Two-week loop: one completion -> one recheck -> split defer/commit.',
         ...(claim?.text ? [claim.text] : []),
       ]
       block2Bullets = [
         params.lang === 'ko'
-          ? `?? ????: ${topDomainScores.join(' / ')}`
+          ? `실행 우선순위: ${topDomainScores.join(' / ')}`
           : `Execution priority: ${topDomainScores.join(' / ')}`,
       ]
       block3Bullets = [
         ...scenarioLines,
         params.lang === 'ko'
-          ? 'KPI: ???, ??? ???, ?? ???? ?? ?????.'
+          ? 'KPI: 완료율, 재확인 누락률, 일정 지연률을 함께 추적합니다.'
           : 'KPI: completion rate, recheck miss rate, and schedule delay rate.',
       ]
     } else if (sectionKey === 'lifeMission') {
       block1Bullets = [
         ...(claim?.text ? [claim.text] : []),
         params.lang === 'ko'
-          ? '?? ??? ?? ???? ?? ??? ?? ??? ??? ? ????.'
+          ? '장기 미션은 단기 성과보다 반복 가능한 선택 기준을 남기는 데 있습니다.'
           : 'The long mission is to leave repeatable decision criteria, not one-off wins.',
       ]
       block2Bullets = signalSummaries.length
         ? signalSummaries.map((summary) =>
             params.lang === 'ko'
-              ? `${summary} ??? ??/?? ??? ????.`
+              ? `${summary} 신호가 확장/축소 기준을 만듭니다.`
               : `${summary} signal sets expand/reduce criteria.`
           )
         : [
             params.lang === 'ko'
-              ? '?? ??? ??? ??/??/??? ?? ??? ?????.'
+              ? '핵심 신호가 부족해 건강/관계/커리어 균형 기준을 우선합니다.'
               : 'With limited signals, prioritize health/relationship/career balance.',
           ]
       block3Bullets = [...scenarioLines]
     } else if (sectionKey === 'conclusion') {
       block1Bullets = [
         params.lang === 'ko'
-          ? `?? ??: ?? ${params.scores.overall.score}?, ?? ${Math.round((params.scores.overall.confidence || 0) * 100)}%`
+          ? `최종 결론: 총점 ${params.scores.overall.score}점, 신뢰 ${Math.round((params.scores.overall.confidence || 0) * 100)}%`
           : `Final view: score ${params.scores.overall.score}, confidence ${Math.round((params.scores.overall.confidence || 0) * 100)}%`,
         ...(claim?.text ? [claim.text] : []),
       ]
       block2Bullets = [
         params.lang === 'ko'
-          ? `?? ???: ${topDomainScores.join(' / ')}`
+          ? `핵심 유지축: ${topDomainScores.join(' / ')}`
           : `Core axes to keep: ${topDomainScores.join(' / ')}`,
       ]
       block3Bullets = [...scenarioLines]
@@ -755,32 +755,32 @@ export function buildBlocksBySection(params: {
       block1Bullets = [
         claim?.text ||
           (params.lang === 'ko'
-            ? '?? ??? ???? ????? ?????.'
+            ? '핵심 신호를 기준으로 우선순위를 고정하세요.'
             : 'Lock priorities first using core signals.'),
       ]
       block2Bullets =
         signalSummaries.length > 0
           ? signalSummaries.map((summary) =>
               params.lang === 'ko'
-                ? `${summary} ??? ??? ?? ??? ?????.`
+                ? `${summary} 신호를 근거로 판단 강도를 조절합니다.`
                 : `Calibrate decision intensity with ${summary} as evidence.`
             )
           : [
               params.lang === 'ko'
-                ? '?? ?? ??? ?? ???? ?? ??? ????.'
+                ? '근거 신호 밀도를 먼저 확인하고 결론 강도를 맞추세요.'
                 : 'Check evidence density first, then set conclusion strength.',
             ]
       block3Bullets = [...eventLines, ...scenarioHint]
         .slice(0, 3)
         .map((line) =>
           params.lang === 'ko'
-            ? `${line} ?? ? ??? ? ?? ??? ?????.`
+            ? `${line} 실행 시 재확인 후 확정 순서를 유지하세요.`
             : `${line} Keep verify-then-commit ordering during execution.`
         )
       if (block3Bullets.length === 0) {
         block3Bullets = [
           params.lang === 'ko'
-            ? '??? ??-???-??? 3??? ??? ???? ????.'
+            ? '실행은 착수-재확인-확정의 3단계로 나누어 변동성을 줄입니다.'
             : 'Split execution into start-recheck-commit to reduce variance.',
         ]
       }

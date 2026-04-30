@@ -254,7 +254,7 @@ export function isTooGenericGuidance(guidance: string, language: string): boolea
   if (!normalized || normalized.length < 25) return true
 
   if (language === 'ko') {
-    return ['??? ???', '??? ???', '?? ??', '?????'].some((term) => guidance.includes(term))
+    return /(메시지에 귀 기울|화이팅|힘내|좋은 하루)/i.test(guidance)
   }
   return /(listen to the cards|you got this|stay positive|good luck)/i.test(normalized)
 }
@@ -267,15 +267,15 @@ export function buildActionableGuidance(
   const focusLabel =
     question.length > 0
       ? language === 'ko'
-        ? `??(${question}) ????`
+        ? `질문(${question}) 기준으로`
         : `Based on your question (${question})`
       : ''
 
   if (language === 'ko') {
     return [
-      `1) ??: ${focusLabel || '?? ?? ?? ????'} ?? ??? ?? 1?? ???, ??? ?? 1?? 20? ?? ?????.`,
-      '2) ?? ?: ??? 3?? ?????. (??? ???/?? ??? ????/?? ?? ???)',
-      '3) ?? 7?: ?? ?? 1?? ?? ??? ??, ??? ??? ?? ???? 1? ? ?????.',
+      `1) 오늘: ${focusLabel || '현재 카드 흐름 기준으로'} 가장 중요한 변수 1개를 정하고, 실행할 행동 1개를 20분 안에 시작하세요.`,
+      '2) 이번 주: 결과를 3줄로 기록하세요. (무엇을 했는지/어떤 반응이 있었는지/다음 수정 포인트)',
+      '3) 다음 7일: 반복 패턴 1개를 끊는 실험을 하고, 효과가 있으면 같은 방식으로 1회 더 실행하세요.',
     ].join('\n')
   }
 
@@ -296,17 +296,17 @@ export function extractQuestionAnchorTerms(question: string): string[] {
       (token) =>
         token.length >= 2 &&
         ![
-          '??',
-          '??',
-          '??',
-          '??',
-          '??',
-          '??',
-          '???',
-          '?',
-          '??',
-          '??',
-          '??',
+          '지금',
+          '이번',
+          '오늘',
+          '내일',
+          '정말',
+          '그냥',
+          '어떻게',
+          '뭐',
+          '무슨',
+          '대한',
+          '기준',
           'where',
           'what',
           'when',
@@ -525,16 +525,16 @@ export function diversifyDuplicateInsights(input: {
     const position = language === 'ko' ? card.positionKo || card.position : card.position
     const orientation = card.isReversed
       ? language === 'ko'
-        ? '???'
+        ? '역방향'
         : 'reversed'
       : language === 'ko'
-        ? '???'
+        ? '정방향'
         : 'upright'
 
     const koVariations = [
-      `??? ${position}? ${cardName}(${orientation}) ???? ?? ?? ???? ????. ?? ?? ? ? ?? ?? 1??? ???, ??? ??? ?? ?? ??? ?????.`,
-      `${position}? ${cardName}(${orientation})? ??? ?? ?? ???? ???? ?????. ?? ? ? ????, ??? ? ?? ?? ?? ?? ???? ????.`,
-      `???? ${position}? ${cardName}(${orientation})? ???? ??? ??? ???. 10? ?? ??? ???? ????, ?? ? ?? ??? ?????.`,
+      `핵심은 ${position}의 ${cardName}(${orientation}) 메시지를 오늘 바로 실천하는 것입니다. 지금 당장 할 수 있는 행동 1가지를 정하고, 하루가 끝나기 전에 변화 여부를 확인하세요.`,
+      `${position}의 ${cardName}(${orientation})는 미루지 말고 작은 실행으로 확인하는 카드입니다. 오늘 한 번 시도하고, 결과를 한 줄로 남겨 다음 선택 기준으로 삼으세요.`,
+      `이번에는 ${position}의 ${cardName}(${orientation})를 계획보다 실행에 연결해 보세요. 10분 안에 가능한 행동부터 시작하고, 끝난 뒤 체감 변화를 점검하세요.`,
     ]
     const enVariations = [
       `The key is to apply ${cardName} (${orientation}) in the ${position} position today. Choose one immediate action and check before the day ends whether anything shifted.`,
@@ -641,7 +641,7 @@ export function enforceInterpretationQuality(input: {
       typeof payload.affirmation === 'string' && payload.affirmation.trim()
         ? payload.affirmation
         : isKorean
-          ? '??? ??? ?? ???? ??????.'
+          ? '오늘의 선택을 작은 실행으로 증명해보세요.'
           : "Prove today's choice with one small execution.",
     combinations: normalizeCombinations(payload.combinations, input.cards, input.language),
     followup_questions: Array.isArray(payload.followup_questions) ? payload.followup_questions : [],
@@ -726,21 +726,21 @@ export function buildLocalCombinationHints(
       const nameB = isKorean ? cardB.nameKo || cardB.name : cardB.name
       const orientationA = cardA.isReversed
         ? isKorean
-          ? '???'
+          ? '역방향'
           : 'reversed'
         : isKorean
-          ? '???'
+          ? '정방향'
           : 'upright'
       const orientationB = cardB.isReversed
         ? isKorean
-          ? '???'
+          ? '역방향'
           : 'reversed'
         : isKorean
-          ? '???'
+          ? '정방향'
           : 'upright'
 
       const summary = isKorean
-        ? `${nameA}(${orientationA})? ${nameB}(${orientationB}) ??? ?? ???? ?? ?? ?? ??? ????.`
+        ? `${nameA}(${orientationA})와 ${nameB}(${orientationB}) 조합은 같은 주제를 강화 또는 견제 방향으로 묶습니다.`
         : `${nameA} (${orientationA}) with ${nameB} (${orientationB}) creates either reinforcement or tension in the same theme.`
 
       hints.push({
@@ -777,7 +777,7 @@ export function buildAnchoredCardInsights(
   }))
 }
 
-// ??? fallback (GPT? ??? ??)
+// 안전한 fallback (GPT가 실패할 경우)
 export function generateSimpleFallback(
   cards: CardInput[],
   spreadTitle: string,
@@ -788,19 +788,19 @@ export function generateSimpleFallback(
   const question = (userQuestion || '').trim()
   const questionLine = question
     ? isKorean
-      ? `?? "${question}"? ???? ??, `
+      ? `질문 "${question}"을 기준으로 보면, `
       : `For your question "${question}", `
     : ''
 
   const overallMessage = isKorean
-    ? `${questionLine}${cards.map((c) => c.nameKo || c.name).join(', ')} ?? ??? ?? ??? ??? ???????, ????? ??? ? ?? ???? ?? ???? ????.`
+    ? `${questionLine}${cards.map((c) => c.nameKo || c.name).join(', ')} 카드 흐름은 결과 자체를 강제로 끌어오기보다, 우선순위를 정리한 뒤 작은 행동으로 흐름을 바꾸는 편이 맞다는 신호입니다.`
     : `${questionLine}the spread of ${cards.map((c) => c.name).join(', ')} suggests that steady prioritization and small decisive actions will shift the current momentum more effectively than forcing outcomes.`
 
   const guidanceMessage = isKorean
     ? [
-        '1) ??: ?? ?? ? ?? 1?? ?? 20? ?????.',
-        '2) 3?: ??? ????(??? ???/??/???) ?? ??? ? ? ? ?????.',
-        '3) 7?: ?? ??? ??? ??? ???? ??? ?????.',
+        '1) 오늘: 통제 가능 한 변수 1개를 잡고 20분 집중하세요.',
+        '2) 3일: 결과를 한줄로(무엇을 했는지/반응/조정점) 짧게 남기고 한 번 더 시도하세요.',
+        '3) 7일: 효과 있었던 방식만 남기고 나머지는 과감히 정리하세요.',
       ].join('\n')
     : [
         '1) Today: choose one controllable variable and run a focused 20-minute action block.',
@@ -832,7 +832,7 @@ export function generateSimpleFallback(
     }),
     guidance: guidanceMessage,
     affirmation: isKorean
-      ? '??? ??? ?? ???? ??? ?? ?? ?????.'
+      ? '실행한 결과의 작은 단서들이 다음 길을 비춰줍니다.'
       : 'Let evidence from your actions lead your next move.',
     combinations: buildLocalCombinationHints(cards, language),
     followup_questions: [],

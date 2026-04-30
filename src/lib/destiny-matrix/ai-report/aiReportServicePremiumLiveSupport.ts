@@ -216,7 +216,7 @@ export async function runPremiumLiveMode(ctx) {
         const repairPrompt = [
           buildSectionPrompt(sectionKey, factPack, lang, sectionText, sectionMinChars),
           lang === 'ko'
-            ? `?? ??: ? ???? ?? 3? ??, ?? ??? ?? 2? ??, ?? ?? ?? ??? ?? 2? ?? ???. ?? ?? ??? 40? ??? ??? ?? ??? ??? ???. current novelty=${quality.novelty}, specificity=${quality.specificity}, evidence=${quality.evidenceDensity}, avgLen=${Math.round(quality.avgSentenceLength)}, advice=${quality.adviceCount}, banned=${quality.banned}`
+            ? `보강 규칙: 새 포인트를 최소 3개 넣고, 구체 명사를 최소 2개 넣고, 사실 묶음 반영 문장을 최소 2개 넣어 주세요. 평균 문장 길이는 40자 이하로 맞추고 금지 표현은 제거해 주세요. current novelty=${quality.novelty}, specificity=${quality.specificity}, evidence=${quality.evidenceDensity}, avgLen=${Math.round(quality.avgSentenceLength)}, advice=${quality.adviceCount}, banned=${quality.banned}`
             : `Repair rules: add at least 3 new points, include at least 2 concrete nouns, and reflect at least 2 fact-pack points. Keep average sentence length under 40 chars and remove banned phrases. current novelty=${quality.novelty}, specificity=${quality.specificity}, evidence=${quality.evidenceDensity}, avgLen=${Math.round(quality.avgSentenceLength)}, advice=${quality.adviceCount}, banned=${quality.banned}`,
         ].join('\n')
         try {
@@ -559,12 +559,12 @@ export async function runPremiumLiveMode(ctx) {
     .sort((a, b) => b.score - a.score)
     .slice(0, 3)
     .map((d) =>
-      lang === 'ko' ? `${d.domain} ??(${d.score})` : `${d.domain} strength (${d.score})`
+      lang === 'ko' ? `${d.domain} 강점(${d.score})` : `${d.domain} strength (${d.score})`
     )
   const anchorFallback = (graphRagEvidence.anchors || [])
     .slice(0, 3)
     .map((a) =>
-      lang === 'ko' ? `${a.section} ?? ?? ??` : `${a.section} section evidence alignment`
+      lang === 'ko' ? `${a.section} 섹션 근거 정렬` : `${a.section} section evidence alignment`
     )
   const safeTopInsights = topInsights.length > 0 ? topInsights : anchorFallback
   const safeKeyStrengths = keyStrengths.length > 0 ? keyStrengths : domainFallback
@@ -572,7 +572,7 @@ export async function runPremiumLiveMode(ctx) {
     keyChallenges.length > 0
       ? keyChallenges
       : lang === 'ko'
-        ? ['?? ?? ?? ??', '?? ? ??? ??', '?????? ??? ??']
+        ? ['주의 신호 검토 필요', '확정 전 재확인 필요', '커뮤니케이션 리스크 점검']
         : [
             'Caution signals require review',
             'Recheck before final commitment',
@@ -707,7 +707,7 @@ export async function runPremiumLiveMode(ctx) {
     }
   )
 
-  // 3. ??? ??
+  // 3. 리포트 조립
   const report: AIPremiumReport = {
     id: `air_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     generatedAt,

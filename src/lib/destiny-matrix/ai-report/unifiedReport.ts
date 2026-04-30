@@ -446,29 +446,29 @@ function buildMappingRulebook(params: {
       relationshipKeywords.slice(0, 2).length > 0
         ? relationshipKeywords.slice(0, 2)
         : params.lang === 'ko'
-          ? ['??? ??', '??? ?? ??']
+          ? ['신중한 소통', '책임감 있는 합의']
           : ['measured communication', 'responsible commitment'],
     supportTraits:
       relationshipKeywords.slice(2, 5).length > 0
         ? relationshipKeywords.slice(2, 5)
         : params.lang === 'ko'
-          ? ['?? ??', '?? ??', '?? ??']
+          ? ['감정 정리', '경계 존중', '현실 조율']
           : ['emotional regulation', 'boundary respect', 'practical alignment'],
     vibe:
       params.lang === 'ko'
-        ? ['??? ???', '??? ???', '??? ??? ???']
+        ? ['차분한 집중감', '실무형 안정감', '약속을 지키는 분위기']
         : ['calm focus', 'practical stability', 'reliable promise-keeping'],
     style:
       params.lang === 'ko'
-        ? ['??? ???', '??? ??', '?? ?? ??']
+        ? ['단정한 기본형', '기능성 우선', '과장 없는 취향']
         : ['clean basics', 'function-first', 'low-noise style'],
     meetChannels:
       params.lang === 'ko'
-        ? ['???? ??', '?? ??', '??? ?? ????']
+        ? ['프로젝트 협업', '지인 소개', '커리어 관련 커뮤니티']
         : ['project collaboration', 'trusted introductions', 'career communities'],
     recognitionClues:
       params.lang === 'ko'
-        ? ['?? ??? ???', '?? ? ??? ??', '?? ?? ??? ???']
+        ? ['약속 시간을 엄수함', '대화 후 요약을 남김', '결정 전에 조건을 확인함']
         : [
             'punctual around commitments',
             'leaves concise summaries after talks',
@@ -480,7 +480,7 @@ function buildMappingRulebook(params: {
     careerKeywords.slice(0, 3).length > 0
       ? careerKeywords.slice(0, 3)
       : params.lang === 'ko'
-        ? ['??-?? ?????', '??? ??? ??', '?? ??? ???']
+        ? ['전략-실행 하이브리드', '리스크 관리형 리더', '협업 조율형 운영자']
         : ['strategy-execution hybrid', 'risk-managed leader', 'coordination operator']
 
   const industryClusters =
@@ -488,7 +488,7 @@ function buildMappingRulebook(params: {
       [
         ...careerKeywords,
         ...(params.lang === 'ko'
-          ? ['???/??', '??/??? ??', '??/?? ??', '??/???', '??? ????']
+          ? ['데이터/분석', '제품/서비스 운영', '금융/자산 관리', '교육/컨설팅', '글로벌 프로젝트']
           : [
               'data/analytics',
               'product/service operations',
@@ -502,35 +502,35 @@ function buildMappingRulebook(params: {
 
   const baseCountryRules = [
     {
-      country: params.lang === 'ko' ? '????' : 'Singapore',
+      country: params.lang === 'ko' ? '싱가포르' : 'Singapore',
       score: 72,
       tradeOff:
         params.lang === 'ko'
-          ? '??? ???? ?? ??? ??? ?????.'
+          ? '속도는 빠르지만 문서 규율을 강하게 요구합니다.'
           : 'Fast cycle, but demands strict documentation discipline.',
     },
     {
-      country: params.lang === 'ko' ? '??' : 'United States',
+      country: params.lang === 'ko' ? '미국' : 'United States',
       score: 70,
       tradeOff:
         params.lang === 'ko'
-          ? '?? ?? ??? ?? ??? ????.'
+          ? '기회 폭이 크지만 경쟁 강도가 높습니다.'
           : 'Wide opportunity range, with high competition intensity.',
     },
     {
-      country: params.lang === 'ko' ? '???' : 'Canada',
+      country: params.lang === 'ko' ? '캐나다' : 'Canada',
       score: 68,
       tradeOff:
         params.lang === 'ko'
-          ? '???? ??? ???? ??? ?? ? ????.'
+          ? '안정성이 높지만 의사결정 속도는 느릴 수 있습니다.'
           : 'Higher stability, with slower decision velocity.',
     },
     {
-      country: params.lang === 'ko' ? '??' : 'Germany',
+      country: params.lang === 'ko' ? '독일' : 'Germany',
       score: 67,
       tradeOff:
         params.lang === 'ko'
-          ? '?? ??? ??? ?? ?? ??? ???.'
+          ? '품질 기준은 높지만 초기 적응 비용이 큽니다.'
           : 'High quality standards with larger onboarding cost.',
     },
   ]
@@ -568,52 +568,52 @@ function buildMappingRulebook(params: {
     wealthScore >= 80
       ? [
           {
-            label: params.lang === 'ko' ? '?? ?? ??' : 'upper growth band',
+            label: params.lang === 'ko' ? '상단 성장 밴드' : 'upper growth band',
             conditionsUpper:
               params.lang === 'ko'
-                ? '??? ?? + ??? ?? ?? ? ???? ?????.'
+                ? '협상력 강화 + 고가치 역할 집중 시 상단으로 이동합니다.'
                 : 'Moves upward when negotiation power and high-value role focus are secured.',
             risksLower:
               params.lang === 'ko'
-                ? '?? ??? ??? ?? ???? ?? ???? ?????.'
+                ? '확정 속도가 과하면 조건 누락으로 하단 되돌림이 발생합니다.'
                 : 'Over-speed finalization can pull results back to the lower band.',
             confidence: round2(clamp(overallConf + 0.05, 0.35, 0.95)),
           },
           {
-            label: params.lang === 'ko' ? '?? ?? ??' : 'stable operating band',
+            label: params.lang === 'ko' ? '안정 운영 밴드' : 'stable operating band',
             conditionsUpper:
               params.lang === 'ko'
-                ? '???? ?? ?? ? ???? ?????.'
+                ? '현금흐름 루틴 유지 시 변동폭이 줄어듭니다.'
                 : 'Variance compresses with disciplined cash-flow routines.',
             risksLower:
               params.lang === 'ko'
-                ? '?? ??? ??? ?? ??? ??? ? ????.'
+                ? '단기 욕심이 커지면 회복 구간이 길어질 수 있습니다.'
                 : 'Short-term overreach may lengthen recovery windows.',
             confidence: round2(clamp(overallConf, 0.3, 0.9)),
           },
         ]
       : [
           {
-            label: params.lang === 'ko' ? '?? ?? ??' : 'foundation-building band',
+            label: params.lang === 'ko' ? '기반 구축 밴드' : 'foundation-building band',
             conditionsUpper:
               params.lang === 'ko'
-                ? '?? ??? ?? ?? ?? ? ?? ?????.'
+                ? '지출 규율과 학습 투자 병행 시 점진 상승합니다.'
                 : 'Gradual upside appears when spending discipline and skill investment are paired.',
             risksLower:
               params.lang === 'ko'
-                ? '?? ?? ??? ?? ?? ???? ?????.'
+                ? '검증 없는 확정은 손실 확대 구간으로 연결됩니다.'
                 : 'Unverified commitments can expand downside.',
             confidence: round2(clamp(overallConf, 0.28, 0.88)),
           },
           {
-            label: params.lang === 'ko' ? '?? ?? ??' : 'conservative defense band',
+            label: params.lang === 'ko' ? '보수 방어 밴드' : 'conservative defense band',
             conditionsUpper:
               params.lang === 'ko'
-                ? '?? ?? ?? ? ??? ??? ?? ? ????.'
+                ? '현금 쿠션 확보 시 변동성 충격을 줄일 수 있습니다.'
                 : 'Cash cushion reduces volatility shocks.',
             risksLower:
               params.lang === 'ko'
-                ? '?? ?? ??? ???? ??? ????.'
+                ? '대외 약속 과다가 누적되면 하방이 커집니다.'
                 : 'Over-committing external promises increases downside risk.',
             confidence: round2(clamp(overallConf - 0.04, 0.2, 0.85)),
           },
@@ -627,7 +627,7 @@ function buildMappingRulebook(params: {
         industryClusters.length > 0
           ? industryClusters
           : params.lang === 'ko'
-            ? ['???/??', '??/??', '??? ??']
+            ? ['데이터/분석', '운영/기획', '리스크 관리']
             : ['data/analytics', 'operations/planning', 'risk management'],
     },
     countryFit,

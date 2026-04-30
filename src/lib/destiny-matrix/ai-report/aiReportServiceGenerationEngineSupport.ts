@@ -1,6 +1,6 @@
 // src/lib/destiny-matrix/ai-report/aiReportService.ts
 // Destiny Fusion Matrix(TM) - AI Premium Report Generator
-// ?? ??: AI ?? ?? ???? ??? ??
+// 유료 기능: AI 기반 상세 내러티브 리포트 생성
 
 import type { FusionReport } from '../interpreter/types'
 import type { MatrixCalculationInput, MatrixSummary } from '../types'
@@ -925,14 +925,14 @@ function enforceThemedNarrativeQualityFallback(
     if (needsTimingDisclaimer) {
       additions.push(
         lang === 'ko'
-          ? '? ?? ???? ???? ?? ????.'
+          ? '큰 흐름 중심으로 참고하는 편이 맞습니다.'
           : 'Use this as a broad directional guide and confirm finer timing separately.'
       )
     }
     if (needsEvidenceNarrative) {
       additions.push(
         lang === 'ko'
-          ? '?? ?? ??? ?? ? ?????.'
+          ? '교차 근거 묶음을 함께 본 결과입니다.'
           : 'This read is grounded in a cross-evidence bundle and rule arbitration.'
       )
     }
@@ -1026,7 +1026,7 @@ function softenOverclaimPhrases(text: string): string {
     .replace(/always/gi, 'often')
     .replace(/never/gi, 'rarely')
     .replace(/guaranteed/gi, 'high-probability')
-    .replace(/100%/gi, '?? ???')
+    .replace(/100%/gi, '높은 확률로')
     .replace(/\bguaranteed\b/gi, 'high-probability')
     .replace(/\bcertainly\b/gi, 'likely')
     .replace(/\balways\b/gi, 'in most cases')
