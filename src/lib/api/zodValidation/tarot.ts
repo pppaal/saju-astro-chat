@@ -95,6 +95,18 @@ export const tarotQuerySchema = z.object({
 
 export type TarotQueryValidated = z.infer<typeof tarotQuerySchema>
 
+// 분석 단계에서 추출된 메타데이터 — interpret 단계에 직접 전달해 재추론 비용 절감
+export const tarotQuestionMetaSchema = z.object({
+  intent: z.string().max(60).optional(),
+  subject: z.string().max(60).optional(),
+  focus: z.string().max(120).optional(),
+  timeframe: z.string().max(60).optional(),
+  tone: z.string().max(60).optional(),
+  questionType: z.string().max(60).optional(),
+})
+
+export type TarotQuestionMeta = z.infer<typeof tarotQuestionMetaSchema>
+
 export const tarotInterpretRequestSchema = z.object({
   categoryId: z.string().min(1).max(120),
   spreadId: z.string().min(1).max(120),
@@ -109,6 +121,7 @@ export const tarotInterpretRequestSchema = z.object({
   sajuContext: z.string().max(1000).optional(),
   astroContext: z.string().max(1000).optional(),
   questionContext: tarotQuestionContextSchema.optional(),
+  questionMeta: tarotQuestionMetaSchema.optional(),
 })
 
 export type TarotInterpretRequest = z.infer<typeof tarotInterpretRequestSchema>

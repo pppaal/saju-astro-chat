@@ -403,6 +403,18 @@ export function useTarotInterpretation({
         }
       }
 
+      // 분석 결과에서 메타데이터 추출 — interpret 단계 재추론 비용 절감
+      const questionMeta = questionAnalysis
+        ? {
+            intent: questionAnalysis.intent,
+            subject: questionAnalysis.question_profile?.subject?.label,
+            focus: questionAnalysis.question_profile?.focus?.label,
+            timeframe: questionAnalysis.question_profile?.timeframe?.label,
+            tone: questionAnalysis.question_profile?.tone?.label,
+            questionType: questionAnalysis.question_profile?.type?.label,
+          }
+        : undefined
+
       const requestBody = {
         categoryId: categoryName,
         spreadId,
@@ -415,6 +427,7 @@ export function useTarotInterpretation({
         includeSaju,
         sajuContext,
         questionContext: questionAnalysis || undefined,
+        questionMeta,
       }
 
       const requestNonStreamInterpretation = async (

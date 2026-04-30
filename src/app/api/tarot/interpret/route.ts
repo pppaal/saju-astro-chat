@@ -116,6 +116,7 @@ export const POST = withApiMiddleware(
         sajuContext,
         astroContext,
         questionContext,
+        questionMeta,
       } = validationResult.data
 
       fallbackCards = validatedCards
@@ -212,7 +213,8 @@ export const POST = withApiMiddleware(
             language,
             enrichedUserQuestion,
             promptSajuContext,
-            promptAstroContext
+            promptAstroContext,
+            questionMeta
           )
           interpretationSource = 'gpt_fallback'
         } catch (gptErr) {
@@ -550,14 +552,24 @@ function truncatePromptContext(input: string | undefined, maxLength = 1200): str
   return `${normalized.slice(0, maxLength)}\n...[truncated]`
 }
 
-// GPT로 통합형 타로 해석 (전체 메시지 + 카드별 + 조언) — 백엔드 RAG 실패 시 폴백
+type QuestionMetaShape = {
+  intent?: string
+  subject?: string
+  focus?: string
+  timeframe?: string
+  tone?: string
+  questionType?: string
+}
+
+// LLM 통합형 타로 해석 (Claude 우선, GPT fallback) — 백엔드 RAG 실패 시 폴백
 async function generateGPTInterpretation(
   cards: CardInput[],
   spreadTitle: string,
   language: string,
   userQuestion?: string,
   sajuContext?: string,
-  astroContext?: string
+  astroContext?: string,
+  questionMeta?: QuestionMetaShape
 ) {
   const isKorean = language === 'ko'
   const isLargeSpread = cards.length >= LARGE_SPREAD_THRESHOLD
@@ -722,7 +734,15 @@ Bad: "Open your heart and wait." (abstract)
   const userPrompt = isKorean
     ? `# 입력
 ## 스프레드: ${spreadTitle}
-## 사용자 질문: "${q}"
+## 사용자 질문: "${q}"${
+        questionMeta
+          ? `
+## 사전 분석 (이미 추출됨 — 다시 추론하지 말고 그대로 사용)
+- intent: ${questionMeta.intent || '-'}
+- subject: ${questionMeta.subject || '-'} | focus: ${questionMeta.focus || '-'}
+- timeframe: ${questionMeta.timeframe || '-'} | tone: ${questionMeta.tone || '-'}`
+          : ''
+      }
 ## 뽑힌 카드
 ${cardListText}
 
@@ -738,7 +758,15 @@ ${cardListText}
 ${outputSchemaKo}`
     : `# Input
 ## Spread: ${spreadTitle}
-## User Question: "${q}"
+## User Question: "${q}"${
+        questionMeta
+          ? `
+## Pre-analyzed (already extracted — do NOT re-infer, use as-is)
+- intent: ${questionMeta.intent || '-'}
+- subject: ${questionMeta.subject || '-'} | focus: ${questionMeta.focus || '-'}
+- timeframe: ${questionMeta.timeframe || '-'} | tone: ${questionMeta.tone || '-'}`
+          : ''
+      }
 ## Cards Drawn
 ${cardListText}
 
