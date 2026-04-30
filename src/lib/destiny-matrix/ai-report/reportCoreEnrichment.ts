@@ -17,6 +17,7 @@ import {
   buildTimingNarrationKo,
   synthesizeExpertNarrationKo,
 } from './sajuNarrationBridge'
+import { buildPersonalityNarrationKo } from '@/lib/destiny-matrix/personality'
 
 type Lang = 'ko' | 'en'
 
@@ -220,12 +221,15 @@ export function enrichComprehensiveSectionsWithReportCore(
   const comprehensiveTimingNarration = lang === 'ko' ? buildTimingNarrationKo(matrixInput) : ''
   // Expert synthesis — 위 두 layer를 weave한 3-4단락 자연어 (전문가 톤)
   const expertSynthesis = lang === 'ko' ? synthesizeExpertNarrationKo(matrixInput) : ''
+  // 개인화 인격 fingerprint — MBTI / Big Five / 인지스타일 / 갈등 trigger / 학습 스타일
+  const personalityNarration = lang === 'ko' ? buildPersonalityNarrationKo(matrixInput) : ''
 
   return {
     introduction: deps.buildNarrativeSectionFromCore(
       [
         buildComprehensiveSectionHookLocal('introduction', lang),
         deps.buildSectionPersonalLead('introduction', matrixInput, lang, timingData),
+        personalityNarration,
         // expertSynthesis가 있으면 본명+timing narration 대체 — 더 풍부하고 이미 weave돼 있음
         expertSynthesis || `${comprehensiveSajuNarration} ${comprehensiveTimingNarration}`.trim(),
         lang === 'ko'
