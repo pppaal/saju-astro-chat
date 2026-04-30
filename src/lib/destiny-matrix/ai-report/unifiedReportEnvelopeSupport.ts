@@ -552,17 +552,17 @@ export function buildBlocksBySection(params: {
     if (sectionKey === 'introduction') {
       block1Bullets = [
         params.lang === 'ko'
-          ? `?? ${params.scores.overall.score}?, ?? ${Math.round((params.scores.overall.confidence || 0) * 100)}% ???? ??? ?????.`
+          ? `총점 ${params.scores.overall.score}점, 신뢰 ${Math.round((params.scores.overall.confidence || 0) * 100)}% 기준으로 해석을 시작합니다.`
           : `Start with score ${params.scores.overall.score} and confidence ${Math.round((params.scores.overall.confidence || 0) * 100)}%.`,
         ...(claim?.text ? [claim.text] : []),
       ]
       block2Bullets = [
         params.lang === 'ko'
-          ? `?? ???: ${topDomainScores.join(' / ')}`
+          ? `상위 도메인: ${topDomainScores.join(' / ')}`
           : `Top domains: ${topDomainScores.join(' / ')}`,
         ...signalSummaries.map((summary) =>
           params.lang === 'ko'
-            ? `${summary} ??? ????? ?????.`
+            ? `${summary} 신호가 우선순위를 압축합니다.`
             : `${summary} signal compresses priorities.`
         ),
       ]
@@ -571,7 +571,7 @@ export function buildBlocksBySection(params: {
         ...(turningEvents.length > 0
           ? [
               params.lang === 'ko'
-                ? `??? Top: ${turningEvents.join(' / ')}`
+                ? `변곡점 Top: ${turningEvents.join(' / ')}`
                 : `Top turning points: ${turningEvents.join(' / ')}`,
             ]
           : []),
@@ -579,29 +579,29 @@ export function buildBlocksBySection(params: {
     } else if (sectionKey === 'personalityDeep') {
       block1Bullets = [
         params.lang === 'ko'
-          ? `?? ??? ?? ${params.matrixInput?.dayMasterElement || '-'} + ?? ?? ${params.matrixInput?.dominantWesternElement || '-'} ???? ?????.`
+          ? `기본 기질은 일간 ${params.matrixInput?.dayMasterElement || '-'} + 서양 원소 ${params.matrixInput?.dominantWesternElement || '-'} 결합으로 해석합니다.`
           : `Core temperament is read from day master ${params.matrixInput?.dayMasterElement || '-'} + dominant element ${params.matrixInput?.dominantWesternElement || '-'}.`,
         ...(claim?.text ? [claim.text] : []),
       ]
       block2Bullets = signalSummaries.length
         ? signalSummaries.map((summary) =>
             params.lang === 'ko'
-              ? `${summary} ??? ?? ??? ?? ??? ?? ?????.`
+              ? `${summary} 패턴이 판단 속도와 검증 강도를 함께 결정합니다.`
               : `${summary} pattern co-determines speed and verification depth.`
           )
         : [
             params.lang === 'ko'
-              ? '?? ?? ??? ?? ?? ?? ???? ?????.'
+              ? '성향 신호 밀도가 낮아 기본 루틴 중심으로 해석합니다.'
               : 'Personality signal density is low; routine-first mode is used.',
           ]
       block3Bullets = [
         params.lang === 'ko'
-          ? '?? ??: ?? 1? + ?? 1? + ??? 1?.'
+          ? '실행 기준: 결론 1줄 + 근거 1줄 + 재확인 1회.'
           : 'Execution rule: one-line conclusion + one-line evidence + one recheck.',
         ...(topLifeEvents.length > 0
           ? [
               params.lang === 'ko'
-                ? `?? ??: ${topLifeEvents.join(' / ')}`
+                ? `생애 흐름: ${topLifeEvents.join(' / ')}`
                 : `Life-stage flow: ${topLifeEvents.join(' / ')}`,
             ]
           : []),
