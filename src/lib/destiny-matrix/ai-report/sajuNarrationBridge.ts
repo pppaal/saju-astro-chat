@@ -639,6 +639,26 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   const aspectsRel = buildAspectsRelationsCrossKo(input)
   if (aspectsRel) mainParagraphs.push(aspectsRel)
 
+  // ───────── ¶ 어스펙트 detail × 사주 5행 cross (메인) ─────────
+  const aspectDetail = buildAspectDetailCrossKo(input)
+  if (aspectDetail) mainParagraphs.push(aspectDetail)
+
+  // ───────── ¶ Solar Return × 세운 cross (메인) ─────────
+  const solarSaeun = buildSolarReturnSaeunCrossKo(input)
+  if (solarSaeun) mainParagraphs.push(solarSaeun)
+
+  // ───────── ¶ Lunar Return × 월운 cross (메인) ─────────
+  const lunarWolun = buildLunarReturnWolunCrossKo(input)
+  if (lunarWolun) mainParagraphs.push(lunarWolun)
+
+  // ───────── ¶ Eclipses × 사주 충/형 cross (메인) ─────────
+  const eclipsesRel = buildEclipsesRelationsCrossKo(input)
+  if (eclipsesRel) mainParagraphs.push(eclipsesRel)
+
+  // ───────── ¶ ASC × 일간 cross (메인) ─────────
+  const ascDm = buildAscDayMasterCrossKo(input)
+  if (ascDm) mainParagraphs.push(ascDm)
+
   // ───────── ¶ 단기 시기 — 월별/일별 + 사이클 충돌 (사주 보조) ─────────
   // 월별 peak는 cross-section에 폴딩됨 (중복 방지).
   // 이 단락은 단기 시기(월운/일운) + 큰 사이클 충돌만 다룸.
@@ -1650,6 +1670,143 @@ export function buildNatalRelationKo(input: MatrixCalculationInput): string {
     lines.push(`그리고 ${third.kind}${thirdDetail}이 더해져, ${RELATION_KIND_BLURB[third.kind]}.`)
   }
   return lines.join(' ')
+}
+
+/**
+ * 점성 어스펙트 detail × 사주 5행 cross — 본명 안의 행성 간 어스펙트가
+ * 사주 5행과 어떻게 만나는지 풀어서.
+ * 예: Sun-Saturn square × 일간 약함 → 권위·자아 마찰이 본명 약점과 겹침
+ */
+export function buildAspectDetailCrossKo(input: MatrixCalculationInput): string {
+  const aspects = input.aspects || []
+  if (aspects.length === 0) return ''
+  const natalRaw = input.dayMasterElement
+  const natalKo = natalRaw ? ELEMENT_KO_LABEL[natalRaw] : ''
+  if (!natalKo) return ''
+
+  // Top 3 의미 있는 aspect (square/opposition 우선, conjunction은 luminaries만)
+  const PRIORITY_PLANETS = new Set(['Sun', 'Moon', 'Saturn', 'Pluto', 'Mars', 'Jupiter', 'Venus', 'Mercury'])
+  const tense = aspects.filter((a) =>
+    (a.type === 'square' || a.type === 'opposition') &&
+    PRIORITY_PLANETS.has(a.planet1) && PRIORITY_PLANETS.has(a.planet2)
+  )
+  const flow = aspects.filter((a) =>
+    (a.type === 'trine' || a.type === 'sextile') &&
+    PRIORITY_PLANETS.has(a.planet1) && PRIORITY_PLANETS.has(a.planet2)
+  )
+
+  const PLANET_KO: Record<string, string> = {
+    Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성',
+    Jupiter: '목성', Saturn: '토성', Uranus: '천왕성', Neptune: '해왕성', Pluto: '명왕성',
+  }
+  const ASPECT_TONE: Record<string, string> = {
+    square: '서로 부딪치며 마찰을 만드는',
+    opposition: '두 축이 마주서서 균형을 요구하는',
+    trine: '자연스럽게 흘러 서로 받쳐주는',
+    sextile: '협력하며 풀려나가는',
+    conjunction: '한 점에 모여 강하게 융합되는',
+  }
+  const PLANET_THEME: Record<string, string> = {
+    Sun: '자아·정체성', Moon: '정서·정착감', Mercury: '사고·소통',
+    Venus: '관계·가치관', Mars: '행동·욕구', Jupiter: '확장·기회',
+    Saturn: '책임·구조', Uranus: '혁신·해방', Neptune: '이상·녹아듦', Pluto: '재구성·집중',
+  }
+
+  const lines: string[] = []
+  for (const a of tense.slice(0, 2)) {
+    const p1 = PLANET_KO[a.planet1] || a.planet1
+    const p2 = PLANET_KO[a.planet2] || a.planet2
+    const tone = ASPECT_TONE[a.type]
+    const t1 = PLANET_THEME[a.planet1] || ''
+    const t2 = PLANET_THEME[a.planet2] || ''
+    lines.push(`${p1}-${p2} ${a.type === 'square' ? '스퀘어' : '오포지션'}: ${t1}과 ${t2}이 ${tone} 결이라, 사주 ${natalKo} 일간이 평소 다듬어야 하는 영역에 외부 자극이 더해져요.`)
+  }
+  for (const a of flow.slice(0, 1)) {
+    const p1 = PLANET_KO[a.planet1] || a.planet1
+    const p2 = PLANET_KO[a.planet2] || a.planet2
+    const tone = ASPECT_TONE[a.type]
+    const t1 = PLANET_THEME[a.planet1] || ''
+    const t2 = PLANET_THEME[a.planet2] || ''
+    lines.push(`${p1}-${p2} ${a.type === 'trine' ? '트라인' : '섹스타일'}: ${t1}과 ${t2}이 ${tone} 결이라, 사주 ${natalKo} 일간이 자기 색을 내는 자리에 자연스러운 도움이 들어와요.`)
+  }
+  if (lines.length === 0) return ''
+  return lines.join(' ')
+}
+
+/**
+ * Solar Return × 세운 cross — 올해 생일 차트와 사주 세운이 같이 작동하는 결.
+ */
+export function buildSolarReturnSaeunCrossKo(input: MatrixCalculationInput): string {
+  const adv = input.advancedAstroSignals || {}
+  if (!adv.solarReturn) return ''
+  const saeunRaw = input.currentSaeunElement
+  const saeunKo = saeunRaw ? ELEMENT_KO_LABEL[saeunRaw] : ''
+  if (!saeunKo) return ''
+  const natalRaw = input.dayMasterElement
+  const natalKo = natalRaw ? ELEMENT_KO_LABEL[natalRaw] : ''
+  if (!natalKo) return ''
+  const SEQ = ['목', '화', '토', '금', '수']
+  const ni = SEQ.indexOf(natalKo)
+  const si = SEQ.indexOf(saeunKo)
+  const diff = ni >= 0 && si >= 0 ? (si - ni + 5) % 5 : -1
+  const sibsinRel = ['비겁', '식상', '재성', '관성', '인성'][diff] || ''
+  if (!sibsinRel) return ''
+  return `점성 측 Solar Return(올해 생일 차트)이 사주 측 ${saeunKo} ${sibsinRel}운과 같이 작동하는 해라, 점성으로 한 해 시작 톤이 강조되는 동시에 사주로는 ${sibsinRel} 영역이 무대 중심으로 올라와요. 두 시스템이 한 해의 주제를 같은 방향으로 가리키는 시점이에요.`
+}
+
+/**
+ * Lunar Return × 월운 cross — 이번 달 달 회귀와 사주 월운.
+ */
+export function buildLunarReturnWolunCrossKo(input: MatrixCalculationInput): string {
+  const adv = input.advancedAstroSignals || {}
+  if (!adv.lunarReturn) return ''
+  const wolunRaw = input.currentWolunElement
+  const wolunKo = wolunRaw ? ELEMENT_KO_LABEL[wolunRaw] : ''
+  if (!wolunKo) return ''
+  return `점성 측 Lunar Return(이번 달 달 회귀)이 사주 측 ${wolunKo} 월운과 함께 들어와, 한 달 단위 정서·일상 리듬이 두 시스템에서 같은 결로 잡히는 시점이에요. 평소보다 직감과 흐름이 일치하는 달이에요.`
+}
+
+/**
+ * Eclipses × 사주 충/형 cross — 식이 사주 충돌 결을 자극할 때.
+ */
+export function buildEclipsesRelationsCrossKo(input: MatrixCalculationInput): string {
+  const adv = input.advancedAstroSignals || {}
+  if (!adv.eclipses) return ''
+  const relations = input.relations || []
+  const tenseRel = relations.find((r) => ['천간충', '지지충', '지지형'].includes(r.kind))
+  if (!tenseRel) {
+    return `점성 측 Eclipses(현재 식)가 본명 차트 포인트에 닿아 12-18개월 사이 큰 전환점이 들어와요. 사주 측 큰 충·형은 없어 식의 충격은 외부 환경에서 더 또렷하게 들어와요.`
+  }
+  return `점성 측 Eclipses(현재 식)가 본명 차트에 닿는 시기에 사주 측 ${tenseRel.kind}${tenseRel.detail ? `(${tenseRel.detail})` : ''}이 같이 활성화돼, 외부 식 trigger와 본명 내부 충돌이 동시에 일어나는 12-18개월 전환점이에요. 큰 결정은 식 영향이 직접 닿는 신월·삭망 전후를 피하는 편이 안전해요.`
+}
+
+/**
+ * ASC × 일간 cross — 첫인상(상승)과 본명 일간의 결.
+ */
+export function buildAscDayMasterCrossKo(input: MatrixCalculationInput): string {
+  const signsAny = (input.planetSigns || {}) as unknown as Record<string, string | undefined>
+  const ascSign = signsAny.Ascendant
+  if (!ascSign) return ''
+  const natalRaw = input.dayMasterElement
+  const natalKo = natalRaw ? ELEMENT_KO_LABEL[natalRaw] : ''
+  if (!natalKo) return ''
+  const SIGN_EL: Record<string, string> = {
+    Aries: '화', Leo: '화', Sagittarius: '화',
+    Taurus: '토', Virgo: '토', Capricorn: '토',
+    Gemini: '풍', Libra: '풍', Aquarius: '풍',
+    Cancer: '수', Scorpio: '수', Pisces: '수',
+  }
+  const ascEl = SIGN_EL[ascSign] || ''
+  if (!ascEl) return ''
+  const SIGN_KO: Record<string, string> = {
+    Aries: '양자리', Taurus: '황소자리', Gemini: '쌍둥이자리', Cancer: '게자리',
+    Leo: '사자자리', Virgo: '처녀자리', Libra: '천칭자리', Scorpio: '전갈자리',
+    Sagittarius: '사수자리', Capricorn: '염소자리', Aquarius: '물병자리', Pisces: '물고기자리',
+  }
+  if (ascEl === natalKo || (ascEl === '풍' && natalKo === '금') || (ascEl === '수' && natalKo === '수')) {
+    return `점성 측 상승 ${SIGN_KO[ascSign]}(${ascEl} 결)와 사주 측 일간 ${natalKo}이 같은 결을 가리키는 차트라, 겉으로 비치는 첫인상과 본명 결정 결이 한 방향이라 안팎이 일치하는 자기 표현이 가능한 분이에요.`
+  }
+  return `점성 측 상승 ${SIGN_KO[ascSign]}(${ascEl} 결)와 사주 측 일간 ${natalKo}이 다른 결을 가리키는 차트라, 첫인상은 ${ascEl} 톤으로 비치지만 본명 결정은 ${natalKo} 결로 흐르는 — 안팎이 다른 두 겹의 자아가 있는 분이에요.`
 }
 
 /**
