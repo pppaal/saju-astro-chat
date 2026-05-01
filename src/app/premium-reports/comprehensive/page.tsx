@@ -69,12 +69,20 @@ export default function ComprehensiveReportPage() {
   const [error, setError] = useState<string | null>(null)
   const [freeReport, setFreeReport] = useState<FreeDigestReport | null>(null)
 
+  // tier=free 진입 시 → /destiny-map으로 통합 redirect
+  // (기존 free 흐름은 destiny-map의 풍부한 종합 분석으로 흡수됨)
+  useEffect(() => {
+    if (reportTier === 'free') {
+      router.replace('/destiny-map')
+    }
+  }, [reportTier, router])
+
   useEffect(() => {
     if (reportTier === 'premium' && status === 'unauthenticated' && !redirectedRef.current) {
       redirectedRef.current = true
       router.push('/auth/signin?callbackUrl=/premium-reports/comprehensive')
     }
-    if (status === 'authenticated' || reportTier === 'free') {
+    if (status === 'authenticated') {
       redirectedRef.current = false
     }
   }, [reportTier, router, status])
@@ -186,51 +194,34 @@ export default function ComprehensiveReportPage() {
               <span
                 className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.28em]"
                 style={{
-                  borderColor: reportTier === 'premium' ? 'rgba(251,191,36,0.4)' : 'rgba(148,163,184,0.4)',
-                  color: reportTier === 'premium' ? '#fbbf24' : '#cbd5e1',
-                  background: reportTier === 'premium' ? 'rgba(251,191,36,0.12)' : 'rgba(148,163,184,0.1)',
+                  borderColor: 'rgba(251,191,36,0.4)',
+                  color: '#fbbf24',
+                  background: 'rgba(251,191,36,0.12)',
                 }}
               >
-                {reportTier === 'premium' ? 'Premium · 인생 총운' : 'Free · 맛보기 운세'}
+                Premium · 인생 총운
               </span>
             </div>
             <h1
               className="text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-4xl font-semibold leading-[1.1] text-transparent sm:text-5xl"
               style={{ letterSpacing: '-0.025em', wordBreak: 'keep-all' }}
             >
-              {reportTier === 'premium'
-                ? '연애·커리어·재물·건강·가족·이동까지 한 번에'
-                : '핵심 구조와 흐름을 빠르게'}
+              연애·커리어·재물·건강·가족·이동까지 한 번에
             </h1>
             <p className="mx-auto max-w-xl text-[15px] leading-relaxed text-slate-400">
-              {reportTier === 'premium'
-                ? '6 영역 통합 인생 전반 분석 · 8천자+ long-form · 5행 도넛/합의 강도/cross map 시각'
-                : '본인 사주로 1500자 digest · 핵심 통찰 3개 · 주요 영역 4개 점수'}
+              6 영역 통합 인생 전반 분석 · 24천자 long-form · 5행 도넛/합의 강도/cross map 시각
             </p>
 
-            {/* Tier toggle */}
-            <div className="mx-auto mt-4 inline-flex rounded-2xl border border-white/10 bg-white/[0.03] p-1 backdrop-blur-md">
+            {/* 무료 맛보기 안내 — destiny-map으로 분리됨 */}
+            <p className="mx-auto mt-4 text-[12px] text-slate-500">
+              가볍게 먼저 보고 싶으세요?{' '}
               <button
-                onClick={() => router.replace('/premium-reports/comprehensive?tier=free')}
-                className={`min-w-[100px] rounded-xl px-4 py-2 text-[13px] font-medium transition-all duration-300 ${
-                  reportTier === 'free'
-                    ? 'bg-white/10 text-white shadow-[0_0_20px_rgba(148,163,184,0.18)]'
-                    : 'text-slate-400 hover:text-white'
-                }`}
+                onClick={() => router.push('/destiny-map')}
+                className="font-medium text-cyan-300/80 underline-offset-2 hover:underline"
               >
-                Free 맛보기
+                무료 운명 지도로 시작
               </button>
-              <button
-                onClick={() => router.replace('/premium-reports/comprehensive?tier=premium')}
-                className={`min-w-[100px] rounded-xl px-4 py-2 text-[13px] font-medium transition-all duration-300 ${
-                  reportTier === 'premium'
-                    ? 'bg-[linear-gradient(135deg,rgba(251,191,36,0.25),rgba(251,191,36,0.1))] text-amber-200 shadow-[0_0_20px_rgba(251,191,36,0.25)]'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Premium 인생총운
-              </button>
-            </div>
+            </p>
           </header>
 
           <main className="mt-12 grid gap-5 lg:grid-cols-[1fr_1fr]">

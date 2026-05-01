@@ -13,7 +13,7 @@ import { useSession } from 'next-auth/react'
 import { Crown, Sparkles, Compass } from 'lucide-react'
 
 const ROUTES = {
-  free: '/premium-reports/comprehensive?tier=free',
+  free: '/destiny-map',
   comprehensive: '/premium-reports/comprehensive?tier=premium',
   themed: '/premium-reports/themed?tier=premium',
 } as const
@@ -36,13 +36,14 @@ const CARDS: ReportCard[] = [
   {
     key: 'free',
     badge: 'Free',
-    title: '맛보기 운세',
-    subtitle: '본인 사주로 짧은 요약',
-    description: '핵심 흐름·강점·주의 신호를 1500자 digest로 받아보세요.',
+    title: '운명 지도',
+    subtitle: '사주·점성 종합 무료 분석',
+    description: '본인 사주·점성 결을 다영역으로 펼쳐보고 챗봇과 대화도 가능해요.',
     features: [
-      '본인 사주 1500자 digest',
-      '핵심 통찰 3개',
-      '주요 영역 4개 점수',
+      '사주·점성 종합 시각',
+      '테마별 풀이 (관계·커리어 등)',
+      '인생 예측 + 성향 분석',
+      '무료 채팅 카운슬러',
     ],
     Icon: Compass,
     accent: '#94a3b8',
