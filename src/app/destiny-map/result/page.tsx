@@ -302,8 +302,30 @@ export default function DestinyResultPage({
         <ShareButton variant="compact" />
       </div>
       <section className={styles.card}>
-        {/* 📅 분석 기준일 표시 */}
-        <div className={styles.analysisDateWrapper}>{analysisDateDisplay}</div>
+        {/* Apple-tier Hero */}
+        <header className="mb-7 space-y-3 text-center">
+          <div className="flex justify-center">
+            <span
+              className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.32em]"
+              style={{
+                borderColor: 'rgba(148,163,184,0.4)',
+                color: '#cbd5e1',
+                background: 'rgba(148,163,184,0.1)',
+              }}
+            >
+              Free · 운명 지도 분석 결과
+            </span>
+          </div>
+          <h2
+            className="text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-3xl font-semibold leading-[1.15] text-transparent sm:text-4xl"
+            style={{ letterSpacing: '-0.025em', wordBreak: 'keep-all' }}
+          >
+            {lang === 'ko'
+              ? '본인 사주·점성으로 비춰본 결'
+              : 'Your Saju × Astrology Reading'}
+          </h2>
+          <div className={styles.analysisDateWrapper}>{analysisDateDisplay}</div>
+        </header>
 
         {/* 🗂️ 탭 네비게이션 */}
         <div
