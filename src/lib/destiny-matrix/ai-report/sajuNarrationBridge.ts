@@ -144,6 +144,127 @@ const ELEMENT_FLAVOR_KO: Record<string, string> = {
 
 // 본명 일간 원소와 시기 원소 관계 → 한 줄 카운슬링
 /**
+ * ## 분석 근거 — 계산된 모든 raw 값을 사용자에게 명시적으로 노출.
+ * narration 결론(메인 본문)의 출처를 사용자가 직접 확인 가능.
+ * 비어있는 카테고리는 자동 silent.
+ */
+export function buildEvidenceDigestKo(input: MatrixCalculationInput): string {
+  const sections: string[] = []
+
+  // 사주 raw
+  const sajuItems: string[] = []
+  if (input.dayMasterElement) {
+    const dm = ELEMENT_KO_LABEL[input.dayMasterElement] || input.dayMasterElement
+    sajuItems.push(`- 일간: ${dm}`)
+  }
+  if (input.geokguk) {
+    sajuItems.push(`- 격국: ${input.geokguk}`)
+  }
+  if (input.yongsin) {
+    const ys = ELEMENT_KO_LABEL[input.yongsin] || input.yongsin
+    sajuItems.push(`- 용신: ${ys}`)
+  }
+  const fe = (input as { sajuSnapshot?: { fiveElements?: Record<string, number> } }).sajuSnapshot?.fiveElements
+  if (fe) {
+    const feLine = ['목', '화', '토', '금', '수']
+      .map((k) => {
+        const key = { '목': 'wood', '화': 'fire', '토': 'earth', '금': 'metal', '수': 'water' }[k] || k
+        return `${k}${fe[key as keyof typeof fe] || 0}`
+      })
+      .join(' / ')
+    sajuItems.push(`- 5행 분포: ${feLine}`)
+  }
+  if (input.sibsinDistribution && Object.keys(input.sibsinDistribution).length > 0) {
+    const sibLine = Object.entries(input.sibsinDistribution)
+      .filter(([, v]) => typeof v === 'number' && v > 0)
+      .map(([k, v]) => `${k}(${v})`)
+      .join(', ')
+    if (sibLine) sajuItems.push(`- 십신 분포: ${sibLine}`)
+  }
+  if (input.twelveStages && Object.keys(input.twelveStages).length > 0) {
+    const stagesLine = Object.entries(input.twelveStages)
+      .filter(([, v]) => typeof v === 'number' && v > 0)
+      .slice(0, 3)
+      .map(([k, v]) => `${k}(${v})`)
+      .join(', ')
+    if (stagesLine) sajuItems.push(`- 12운성 top: ${stagesLine}`)
+  }
+  if (input.shinsalList && input.shinsalList.length > 0) {
+    sajuItems.push(`- 활성 신살: ${input.shinsalList.slice(0, 8).join(', ')}`)
+  }
+  if (input.relations && input.relations.length > 0) {
+    const relLine = input.relations.slice(0, 5).map((r) => r.kind + (r.detail ? `(${r.detail})` : '')).join(', ')
+    sajuItems.push(`- 관계(합/충/형): ${relLine}`)
+  }
+  // 시기별 element
+  const timing: string[] = []
+  if (input.currentDaeunElement) timing.push(`대운 ${ELEMENT_KO_LABEL[input.currentDaeunElement] || input.currentDaeunElement}`)
+  if (input.currentSaeunElement) timing.push(`세운 ${ELEMENT_KO_LABEL[input.currentSaeunElement] || input.currentSaeunElement}`)
+  if (input.currentWolunElement) timing.push(`월운 ${ELEMENT_KO_LABEL[input.currentWolunElement] || input.currentWolunElement}`)
+  if (input.currentIljinElement) timing.push(`일운 ${ELEMENT_KO_LABEL[input.currentIljinElement] || input.currentIljinElement}`)
+  if (timing.length > 0) sajuItems.push(`- 현재 시기: ${timing.join(' · ')}`)
+
+  if (sajuItems.length > 0) {
+    sections.push(`### 사주 raw\n${sajuItems.join('\n')}`)
+  }
+
+  // 점성 raw
+  const astroItems: string[] = []
+  if (input.dominantWesternElement) {
+    const we: Record<string, string> = { fire: '화', earth: '토', air: '풍', water: '수' }
+    astroItems.push(`- dominant element: ${we[input.dominantWesternElement] || input.dominantWesternElement}`)
+  }
+  const signsAny = (input.planetSigns || {}) as unknown as Record<string, string | undefined>
+  const housesAny = (input.planetHouses || {}) as unknown as Record<string, number | undefined>
+  const planetOrder = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto']
+  const planetLines: string[] = []
+  for (const p of planetOrder) {
+    const sign = signsAny[p]
+    const house = housesAny[p]
+    if (sign || house) {
+      const parts = [p]
+      if (sign) parts.push(sign)
+      if (house) parts.push(`${house}H`)
+      planetLines.push(parts.join(' '))
+    }
+  }
+  if (planetLines.length > 0) astroItems.push(`- 행성 위치: ${planetLines.join(', ')}`)
+  if (signsAny.Ascendant) astroItems.push(`- 상승 (ASC): ${signsAny.Ascendant}`)
+  if (signsAny.Midheaven) astroItems.push(`- 중천 (MC): ${signsAny.Midheaven}`)
+  if (input.aspects && input.aspects.length > 0) {
+    const typeCount: Record<string, number> = {}
+    for (const a of input.aspects) typeCount[a.type] = (typeCount[a.type] || 0) + 1
+    const aspectsLine = Object.entries(typeCount).map(([t, c]) => `${t} ${c}`).join(', ')
+    astroItems.push(`- 어스펙트: ${aspectsLine} (총 ${input.aspects.length})`)
+  }
+  const transits = (input as { activeTransits?: string[] }).activeTransits
+  if (transits && transits.length > 0) {
+    astroItems.push(`- 활성 트랜짓: ${transits.slice(0, 5).join(', ')}`)
+  }
+  if (input.asteroidHouses && Object.keys(input.asteroidHouses).length > 0) {
+    const astLine = Object.entries(input.asteroidHouses).map(([k, h]) => `${k} ${h}H`).join(', ')
+    astroItems.push(`- 소행성: ${astLine}`)
+  }
+  if (input.extraPointSigns && Object.keys(input.extraPointSigns).length > 0) {
+    const epLine = Object.entries(input.extraPointSigns).map(([k, s]) => `${k} ${s}`).join(', ')
+    astroItems.push(`- 특수점: ${epLine}`)
+  }
+  const adv = input.advancedAstroSignals || {}
+  const advFlags: string[] = []
+  for (const [k, v] of Object.entries(adv)) {
+    if (v) advFlags.push(k)
+  }
+  if (advFlags.length > 0) astroItems.push(`- 활성 고급 신호: ${advFlags.join(', ')}`)
+
+  if (astroItems.length > 0) {
+    sections.push(`### 점성 raw\n${astroItems.join('\n')}`)
+  }
+
+  if (sections.length === 0) return ''
+  return `## 분석 근거\n\n${sections.join('\n\n')}`
+}
+
+/**
  * 신년 운세 월별 breakdown — 12개월 한 줄씩.
  * 매월 월운 element × 본명 일간으로 톤 잡고, peak 시점은 강조.
  *
@@ -798,7 +919,7 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     }
   }
 
-  // 최종 조립 — 메인 cross 본문 → ## 사주 본명 분석 → ## 점성 본명 차트 → callout
+  // 최종 조립 — 메인 cross 본문 → ## 사주 본명 분석 → ## 점성 본명 차트 → callout → ## 분석 근거 (raw)
   const sections: string[] = [...mainParagraphs]
   if (sajuSupporting.length > 0) {
     sections.push(['## 사주 본명 분석', ...sajuSupporting].join('\n\n'))
@@ -807,6 +928,10 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     sections.push(['## 점성 본명 차트', ...astroSupporting].join('\n\n'))
   }
   sections.push(...calloutParagraphs)
+
+  // ## 분석 근거 — 계산된 raw 데이터를 명시적으로 노출. narration 결론의 출처를 사용자가 직접 확인.
+  const evidenceDigest = buildEvidenceDigestKo(input)
+  if (evidenceDigest) sections.push(evidenceDigest)
   return sections.join('\n\n')
 }
 

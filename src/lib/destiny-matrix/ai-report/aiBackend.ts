@@ -34,19 +34,20 @@ const TOGETHER_TIMEOUT_MS = parseTimeoutMs(
 )
 
 // 플랜별 AI 토큰 한도
-// 종합 리포트(10개 섹션 JSON)에는 최소 2500+ 토큰 필요
+// 종합 리포트(10개 섹션 JSON + 사주/점성 근거 명시)에는 충분한 토큰 필요
+// 입체 narration + 12개월 월별 + 분석 근거 raw 데이터를 모두 담으려면 budget ↑
 const TOKEN_LIMITS_BY_PLAN = {
-  free: 3000,
-  starter: 4000,
-  pro: 6000,
-  premium: 8000,
+  free: 5000,
+  starter: 7000,
+  pro: 10000,
+  premium: 14000,
 } as const
 
 const TOKEN_CEILING_BY_PLAN = {
-  free: 4000,
-  starter: 6000,
-  pro: 10000,
-  premium: 14000,
+  free: 7000,
+  starter: 10000,
+  pro: 16000,
+  premium: 24000,
 } as const
 
 interface AIBackendResponse<T> {
