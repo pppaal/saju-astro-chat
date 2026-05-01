@@ -1719,7 +1719,23 @@ export function buildAspectDetailCrossKo(input: MatrixCalculationInput): string 
     const tone = ASPECT_TONE[a.type]
     const t1 = PLANET_THEME[a.planet1] || ''
     const t2 = PLANET_THEME[a.planet2] || ''
-    lines.push(`${p1}-${p2} ${a.type === 'square' ? '스퀘어' : '오포지션'}: ${t1}과 ${t2}이 ${tone} 결이라, 사주 ${natalKo} 일간이 평소 다듬어야 하는 영역에 외부 자극이 더해져요.`)
+    const aspectName = a.type === 'square' ? '스퀘어' : '오포지션'
+    const sajuTone: Record<string, string> = {
+      목: '시작·확장 욕구',
+      화: '표현·열정 발산',
+      토: '안정·축적 성향',
+      금: '결단·정리 성향',
+      수: '관찰·통찰 성향',
+    }
+    const sajuKey = sajuTone[natalKo] || '본명 기조'
+    lines.push(
+      `${p1}-${p2} ${aspectName} — 이 사람 차트 안에서 ${t1}과 ${t2}이 ${tone} 결로 짜여 있어요. ` +
+      `이게 ${natalKo} 일간의 ${sajuKey}과 만나면, 평소 ${natalKo} 결로 매끄럽게 흐르던 ${a.planet1 === 'Sun' || a.planet2 === 'Sun' ? '자아 표현' : a.planet1 === 'Moon' || a.planet2 === 'Moon' ? '정서 안정' : '결정 흐름'}에 ${aspectName === '스퀘어' ? '주기적인 마찰' : '극단의 균형'}이 끼어드는 패턴이 만들어져요. ` +
+      `${aspectName === '스퀘어'
+        ? '겉으로는 외부 환경이 만든 갈등처럼 보이지만, 본질은 두 영역이 같이 자라야 한다는 본명 차트의 신호예요.'
+        : '한쪽으로 기울지 않게 두 축을 모두 살리는 게 핵심이라, 한 쪽을 누르려 하면 반대편이 더 강하게 올라와요.'} ` +
+      `이번 시기에는 ${t1.split('·')[0]} 영역에서 결정할 때 ${t2.split('·')[0]} 쪽 신호도 같이 점검하고, 한 박자 늦춰서 두 결을 함께 보는 습관이 도움이 됩니다.`
+    )
   }
   for (const a of flow.slice(0, 1)) {
     const p1 = PLANET_KO[a.planet1] || a.planet1
@@ -1727,7 +1743,15 @@ export function buildAspectDetailCrossKo(input: MatrixCalculationInput): string 
     const tone = ASPECT_TONE[a.type]
     const t1 = PLANET_THEME[a.planet1] || ''
     const t2 = PLANET_THEME[a.planet2] || ''
-    lines.push(`${p1}-${p2} ${a.type === 'trine' ? '트라인' : '섹스타일'}: ${t1}과 ${t2}이 ${tone} 결이라, 사주 ${natalKo} 일간이 자기 색을 내는 자리에 자연스러운 도움이 들어와요.`)
+    const aspectName = a.type === 'trine' ? '트라인' : '섹스타일'
+    lines.push(
+      `${p1}-${p2} ${aspectName} — ${t1}과 ${t2}이 ${tone} 결이라, 사주 ${natalKo} 일간이 자기 색을 내는 자리에 자연스러운 도움이 들어와요. ` +
+      `이런 흐름은 평소엔 잘 의식 못 하지만, 의식적으로 활용하면 가장 큰 자산이 되는 자리예요. ` +
+      `${aspectName === '트라인'
+        ? '특히 결정이 어려운 순간에 이 두 영역을 같은 결로 묶어서 보면, 막힘이 풀리고 가장 자연스러운 답이 나와요.'
+        : '평소엔 잠재돼 있다가 작은 trigger가 들어오면 활성화되는 결이라, 이번 시기에는 한 번 의식적으로 시도해 볼 만해요.'} ` +
+      `이번 시기 ${t1.split('·')[0]} 결정에서 ${t2.split('·')[0]} 결을 같이 살려보세요.`
+    )
   }
   if (lines.length === 0) return ''
   return lines.join(' ')
@@ -1751,7 +1775,21 @@ export function buildSolarReturnSaeunCrossKo(input: MatrixCalculationInput): str
   const diff = ni >= 0 && si >= 0 ? (si - ni + 5) % 5 : -1
   const sibsinRel = ['비겁', '식상', '재성', '관성', '인성'][diff] || ''
   if (!sibsinRel) return ''
-  return `점성 측 Solar Return(올해 생일 차트)이 사주 측 ${saeunKo} ${sibsinRel}운과 같이 작동하는 해라, 점성으로 한 해 시작 톤이 강조되는 동시에 사주로는 ${sibsinRel} 영역이 무대 중심으로 올라와요. 두 시스템이 한 해의 주제를 같은 방향으로 가리키는 시점이에요.`
+  const sibsinDeep: Record<string, string> = {
+    비겁: '자기 색을 더 진하게 내고 주장·돌파력을 키우는 시기. 동업·경쟁·자기 사업이 무대로 올라오기 쉬워요',
+    식상: '내가 만들어내는 표현·창작·자식 영역이 활발해지는 시기. 발표·출산·창업·SNS 같은 외부 발산이 늘어나요',
+    재성: '재물·기회·이성 인연이 잡히는 시기. 다만 재성은 통제 가능한 자원이지 가만히 들어오는 게 아니라 적극적으로 다스려야 잡혀요',
+    관성: '직책·시험·책임 압박이 들어오는 시기. 외부에서 평가받는 자리가 만들어지고 결과가 또렷이 매겨져요',
+    인성: '학습·문서·귀인의 도움이 들어오는 시기. 자격증·계약서·스승·후원자 같은 받쳐주는 인연이 결정적 도움을 줘요',
+  }
+  return (
+    `점성 측 Solar Return(올해 생일 차트)이 사주 측 ${saeunKo} ${sibsinRel}운과 같이 작동하는 해입니다. ` +
+    `점성에서는 한 해 전체의 시작 톤이 생일 시점의 천체 배치로 다시 잡히는 시기인데, 사주 ${sibsinRel}운이 같이 들어오면 ${sibsinDeep[sibsinRel] || ''}. ` +
+    `두 시스템이 한 해의 주제를 같은 방향으로 가리키는 시점이라, 평소처럼 흘러가는 한 해가 아니라 *주제가 명확한 한 해*가 됩니다. ` +
+    `${sibsinRel === '관성' || sibsinRel === '재성'
+      ? '특히 외부 환경이 결과를 묻는 시기라, 막연히 기다리지 말고 무엇을 보여줄지 한 해 시작에 정하고 가는 게 좋아요.'
+      : '평소보다 한 해의 결이 또렷하니, 새해 시작에 한 해의 핵심 주제 한 줄을 정하고 거기에 맞춰 결정하면 흐름을 잘 탑니다.'}`
+  )
 }
 
 /**
@@ -1763,7 +1801,13 @@ export function buildLunarReturnWolunCrossKo(input: MatrixCalculationInput): str
   const wolunRaw = input.currentWolunElement
   const wolunKo = wolunRaw ? ELEMENT_KO_LABEL[wolunRaw] : ''
   if (!wolunKo) return ''
-  return `점성 측 Lunar Return(이번 달 달 회귀)이 사주 측 ${wolunKo} 월운과 함께 들어와, 한 달 단위 정서·일상 리듬이 두 시스템에서 같은 결로 잡히는 시점이에요. 평소보다 직감과 흐름이 일치하는 달이에요.`
+  return (
+    `점성 측 Lunar Return(이번 달 달 회귀)이 사주 측 ${wolunKo} 월운과 함께 들어왔어요. ` +
+    `Lunar Return은 매달 달이 본명 위치로 돌아오는 시점인데, 이때 다음 한 달의 정서·일상 리듬이 새로 잡혀요. ` +
+    `사주 ${wolunKo} 월운과 같은 결로 만나면, 보통 달과 달리 *직감과 흐름이 한 방향으로 일치하는* 한 달이 됩니다. ` +
+    `평소엔 머리로 결정하던 일도 이번 달은 직감대로 움직여도 어긋나지 않고, 큰 결정이 있으면 첫 직감을 신뢰해 보세요. ` +
+    `반면 의식적으로 *반대 방향*으로 움직이려 하면 평소보다 더 큰 저항이 걸려요.`
+  )
 }
 
 /**
@@ -1775,9 +1819,21 @@ export function buildEclipsesRelationsCrossKo(input: MatrixCalculationInput): st
   const relations = input.relations || []
   const tenseRel = relations.find((r) => ['천간충', '지지충', '지지형'].includes(r.kind))
   if (!tenseRel) {
-    return `점성 측 Eclipses(현재 식)가 본명 차트 포인트에 닿아 12-18개월 사이 큰 전환점이 들어와요. 사주 측 큰 충·형은 없어 식의 충격은 외부 환경에서 더 또렷하게 들어와요.`
+    return (
+      `점성 측 Eclipses(현재 식)가 본명 차트 포인트에 닿는 시기예요. ` +
+      `식은 평소 trasit과 다르게 12-18개월 단위로 영향이 누적되는 큰 전환 신호로, 인생의 *방향이 바뀌는* 시점에 자주 옵니다. ` +
+      `사주 측에 큰 충·형이 없어, 본명 안에서 부딪치는 결은 약하지만 외부 환경(직장·관계·이주)에서 갑자기 들어오는 변화가 또렷합니다. ` +
+      `식이 직접 닿는 신월·삭망 전후 한 주는 큰 결정·계약·이주를 피하고, 그 외 시기에 천천히 결정해 가는 게 안전해요. ` +
+      `식 trigger 자체는 좋고 나쁨이 정해진 게 아니라 *기존 패턴이 정리되는 신호*라, 변화를 거부하기보다 받아들일 준비를 하는 시기입니다.`
+    )
   }
-  return `점성 측 Eclipses(현재 식)가 본명 차트에 닿는 시기에 사주 측 ${tenseRel.kind}${tenseRel.detail ? `(${tenseRel.detail})` : ''}이 같이 활성화돼, 외부 식 trigger와 본명 내부 충돌이 동시에 일어나는 12-18개월 전환점이에요. 큰 결정은 식 영향이 직접 닿는 신월·삭망 전후를 피하는 편이 안전해요.`
+  return (
+    `점성 측 Eclipses(현재 식)가 본명 차트에 닿는 시기에 사주 측 ${tenseRel.kind}${tenseRel.detail ? `(${tenseRel.detail})` : ''}이 같이 활성화됐어요. ` +
+    `이건 외부 식 trigger와 본명 내부 충돌이 *동시에 일어나는* 흔치 않은 12-18개월 전환점이에요. ` +
+    `평소 같으면 식이 와도 본명에 충·형이 없으면 외부 환경 변화로만 끝나는데, 지금은 본명 안에서도 같이 움직이는 결이라 변화 강도가 평균보다 높습니다. ` +
+    `큰 결정은 식 영향이 직접 닿는 신월·삭망 전후 한 주를 피하고, 가능하면 변화 흐름을 *밀어내지 말고 정리 쪽으로* 받아들이세요. ` +
+    `이 시기를 잘 통과하면 12-18개월 후 본명 안의 ${tenseRel.kind} 결이 정리되는 효과까지 같이 옵니다.`
+  )
 }
 
 /**
@@ -1804,9 +1860,21 @@ export function buildAscDayMasterCrossKo(input: MatrixCalculationInput): string 
     Sagittarius: '사수자리', Capricorn: '염소자리', Aquarius: '물병자리', Pisces: '물고기자리',
   }
   if (ascEl === natalKo || (ascEl === '풍' && natalKo === '금') || (ascEl === '수' && natalKo === '수')) {
-    return `점성 측 상승 ${SIGN_KO[ascSign]}(${ascEl} 결)와 사주 측 일간 ${natalKo}이 같은 결을 가리키는 차트라, 겉으로 비치는 첫인상과 본명 결정 결이 한 방향이라 안팎이 일치하는 자기 표현이 가능한 분이에요.`
+    return (
+      `점성 측 상승 ${SIGN_KO[ascSign]}(${ascEl} 결)와 사주 측 일간 ${natalKo}이 같은 결을 가리키는 차트예요. ` +
+      `상승은 처음 만나는 사람이 받는 첫인상과 외부에 비치는 자기 모습을 결정하고, 일간은 안에서 결정하고 움직이는 본인의 핵심이에요. ` +
+      `이 둘이 같은 결이라는 건, 겉으로 보이는 모습과 속에서 결정하는 모습이 한 방향이라는 뜻 — 안팎이 일치하는 자기 표현이 자연스럽게 됩니다. ` +
+      `다른 사람이 본인을 오해할 일이 적고, 본인도 자기 모습에 대한 위화감 없이 자기답게 살아가는 차트예요. ` +
+      `다만 같은 결이 너무 진하면 한 톤만 발달하고 반대 결을 못 키울 수 있으니, 의식적으로 다른 결도 시도해 보는 게 좋아요.`
+    )
   }
-  return `점성 측 상승 ${SIGN_KO[ascSign]}(${ascEl} 결)와 사주 측 일간 ${natalKo}이 다른 결을 가리키는 차트라, 첫인상은 ${ascEl} 톤으로 비치지만 본명 결정은 ${natalKo} 결로 흐르는 — 안팎이 다른 두 겹의 자아가 있는 분이에요.`
+  return (
+    `점성 측 상승 ${SIGN_KO[ascSign]}(${ascEl} 결)와 사주 측 일간 ${natalKo}이 *다른 결*을 가리키는 차트예요. ` +
+    `상승은 첫인상·외부 표현 결을 잡고, 일간은 본인이 결정하고 움직이는 핵심이에요. ` +
+    `이 둘이 다르다는 건 첫인상은 ${ascEl} 톤으로 비치지만 본명 결정은 ${natalKo} 결로 흐른다는 뜻 — *안팎이 다른 두 겹의 자아*를 가진 분이에요. ` +
+    `처음 만난 사람이 본인을 ${ascEl} 결로 보는데, 깊이 알게 되면 ${natalKo} 결로 결정한다는 걸 알게 되는 패턴이라, 가끔 "처음과 다르다"는 평가를 들을 수 있어요. ` +
+    `이건 단점이 아니라 두 결을 모두 가진 자산이에요. 외부 무대에선 ${ascEl} 결을 살리고, 핵심 결정은 ${natalKo} 결로 내리는 식으로 분리해서 운영하면 두 결이 서로 부딪치지 않고 잘 맞물립니다.`
+  )
 }
 
 /**
