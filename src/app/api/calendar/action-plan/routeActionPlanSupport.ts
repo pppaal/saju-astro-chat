@@ -886,11 +886,51 @@ export function buildActionPlanInsights(input: {
       : 60
   const bestCount = timeline.filter((slot) => slot.tone === 'best').length
 
+  // 사주·점성 anchor — best/caution 슬롯의 evidence를 키워드로 분류해서
+  // do/dont/alternative 항목에 한 줄 anchor 부여 (LLM polish 없이도 raw가 풍부)
+  const SAJU_KW = ['일진', '대운', '세운', '월운', '식상', '재성', '관성', '인성', '비겁', '신살', '천을귀인', '도화', '역마', '백호', '양인', '괴강', '공망', '격국', '용신', '12운성', '천간', '지지', '오행']
+  const ASTRO_KW = ['하우스', '트랜짓', '어스펙트', 'aspect', 'transit', 'house', 'Sun', 'Moon', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'ASC', 'MC', 'Vertex', 'Juno', 'Vesta', '태양', '달', '금성', '화성', '목성', '토성', '천왕성', '해왕성', '명왕성']
+  const slotEvidenceSignals = (slot?: TimelineSlot): { saju: string[]; astro: string[] } => {
+    if (!slot) return { saju: [], astro: [] }
+    const lines: string[] = [
+      ...((slot.evidenceSummary as string[] | undefined) || []),
+      ...((slot.confidenceReason as string[] | undefined) || []),
+      ...((slot.why?.patterns as string[] | undefined) || []),
+    ]
+    const saju: string[] = []
+    const astro: string[] = []
+    for (const ln of lines) {
+      const isSaju = SAJU_KW.some((k) => ln.includes(k))
+      const isAstro = ASTRO_KW.some((k) => ln.includes(k))
+      if (isSaju) saju.push(ln)
+      if (isAstro) astro.push(ln)
+    }
+    return { saju: Array.from(new Set(saju)).slice(0, 2), astro: Array.from(new Set(astro)).slice(0, 2) }
+  }
+  const bestSignals = slotEvidenceSignals(bestSlot)
+  const cautionSignals = slotEvidenceSignals(cautionSlot)
+  const anchorBest = (text: string): string => {
+    if (!text) return text
+    const parts: string[] = []
+    if (bestSignals.saju[0]) parts.push(`사주 ${bestSignals.saju[0]}`)
+    if (bestSignals.astro[0]) parts.push(`점성 ${bestSignals.astro[0]}`)
+    if (parts.length === 0) return text
+    return isKo ? `${text} — 근거: ${parts.join(' × ')}` : `${text} — Why: ${parts.join(' × ')}`
+  }
+  const anchorCaution = (text: string): string => {
+    if (!text) return text
+    const parts: string[] = []
+    if (cautionSignals.saju[0]) parts.push(`사주 ${cautionSignals.saju[0]}`)
+    if (cautionSignals.astro[0]) parts.push(`점성 ${cautionSignals.astro[0]}`)
+    if (parts.length === 0) return text
+    return isKo ? `${text} — 근거: ${parts.join(' × ')}` : `${text} — Why: ${parts.join(' × ')}`
+  }
+
   const actionFramework = {
     do: unique(
       [
-        (calendar?.recommendations || [])[0],
-        singleSubjectView?.actionAxis.nowAction,
+        anchorBest((calendar?.recommendations || [])[0] || ''),
+        anchorBest(singleSubjectView?.actionAxis.nowAction || ''),
         singleSubjectView?.nextMove,
         personDomainState?.firstMove,
         eventOutlook?.nextMove,
@@ -905,8 +945,8 @@ export function buildActionPlanInsights(input: {
     ),
     dont: unique(
       [
-        (calendar?.warnings || [])[0],
-        singleSubjectView?.riskAxis.warning,
+        anchorCaution((calendar?.warnings || [])[0] || ''),
+        anchorCaution(singleSubjectView?.riskAxis.warning || ''),
         personDomainState?.holdMove,
         isKo ? '근거 없는 즉흥 결정 금지' : 'No impulsive decision without evidence',
         isKo ? '주의 슬롯에서 확정 결론 금지' : 'No final decisions in caution slots',
@@ -917,16 +957,20 @@ export function buildActionPlanInsights(input: {
     alternative: unique(
       [
         cautionSlot
-          ? isKo
-            ? `${formatSlotLabel(cautionSlot)}에는 결정보다 초안 작성/검증 작업으로 대체`
-            : `At ${formatSlotLabel(cautionSlot)}, switch from decision to draft/validation work`
+          ? anchorCaution(
+              isKo
+                ? `${formatSlotLabel(cautionSlot)}에는 결정보다 초안 작성/검증 작업으로 대체`
+                : `At ${formatSlotLabel(cautionSlot)}, switch from decision to draft/validation work`
+            )
           : null,
         personDomainState?.holdMove,
         appliedProfileLead,
         bestSlot
-          ? isKo
-            ? `${formatSlotLabel(bestSlot)}에는 핵심 1건만 완수하고 로그 기록`
-            : `At ${formatSlotLabel(bestSlot)}, complete one key action and log it`
+          ? anchorBest(
+              isKo
+                ? `${formatSlotLabel(bestSlot)}에는 핵심 1건만 완수하고 로그 기록`
+                : `At ${formatSlotLabel(bestSlot)}, complete one key action and log it`
+            )
           : null,
         isPremiumUser
           ? isKo
