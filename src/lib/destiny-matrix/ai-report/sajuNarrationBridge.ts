@@ -143,6 +143,72 @@ const ELEMENT_FLAVOR_KO: Record<string, string> = {
 }
 
 // 본명 일간 원소와 시기 원소 관계 → 한 줄 카운슬링
+/**
+ * 신년 운세 월별 breakdown — 12개월 한 줄씩.
+ * 매월 월운 element × 본명 일간으로 톤 잡고, peak 시점은 강조.
+ *
+ * 사용처: 신년 리포트의 "## 월별 흐름" 섹션, 상담사가 "올해 어때?" 질문에
+ * 응답할 때 호출.
+ */
+export function buildAnnualMonthlyBreakdownKo(
+  input: MatrixCalculationInput,
+  startYearMonth?: string
+): string {
+  const natalRaw = input.dayMasterElement
+  if (!natalRaw) return ''
+  const natal = ELEMENT_KO_LABEL[natalRaw]
+  if (!natal) return ''
+
+  // 12개월 element 시퀀스 — 음력 월별 지지 element 매핑 (절기 단순화)
+  // 인(목)→묘(목)→진(토)→사(화)→오(화)→미(토)→신(금)→유(금)→술(토)→해(수)→자(수)→축(토)
+  const MONTH_BRANCH_EL: string[] = ['수', '토', '목', '목', '토', '화', '화', '토', '금', '금', '토', '수']
+  // 인덱스: 0=1월, 1=2월, ..., 11=12월
+
+  const SEQ = ['목', '화', '토', '금', '수']
+  const ni = SEQ.indexOf(natal)
+  const RELATION_KO = [
+    '본명 색이 더 진해져 자기 결정·표현에 힘이 실리는',
+    '내 기운을 밖으로 풀어내며 표현·창조·확장에 좋은',
+    '내가 다스리는 영역이라 통제·관리·재정 정리에 유리한',
+    '나를 누르고 시험하는 시기라 책임·압박이 들어오는',
+    '나를 받쳐주고 도와주는 시기라 학습·재정비·휴식에 좋은',
+  ]
+
+  const startMatch = (startYearMonth || input.startYearMonth || '').match(/^(\d{4})/)
+  const year = startMatch ? Number(startMatch[1]) : new Date().getFullYear()
+
+  const lines: string[] = []
+  for (let m = 0; m < 12; m++) {
+    const monthLabel = `${m + 1}월`
+    const cycleEl = MONTH_BRANCH_EL[m]
+    const ci = SEQ.indexOf(cycleEl)
+    if (ni < 0 || ci < 0) {
+      lines.push(`- **${monthLabel}** — ${cycleEl} 흐름이 이어져요.`)
+      continue
+    }
+    const diff = (ci - ni + 5) % 5
+    const relation = RELATION_KO[diff]
+    const flavor = ELEMENT_FLAVOR_KO[cycleEl] || ''
+
+    // 강조 — 같은 element 또는 충돌 element면 peak
+    let badge = ''
+    if (diff === 0) badge = ' 🔥' // 본명과 같음
+    else if (diff === 3) badge = ' ⚠️' // 나를 누름
+
+    // 월운 × 세운 동시 강조 (세운 element와 월운 element 충돌)
+    const saeunEl = input.currentSaeunElement
+    const saeunKo = saeunEl ? ELEMENT_KO_LABEL[saeunEl] : ''
+    let saeunNote = ''
+    if (saeunKo && saeunKo === cycleEl) {
+      saeunNote = ' (세운 강조)'
+    }
+
+    lines.push(`- **${monthLabel}**${badge} — ${cycleEl} 흐름이라 ${relation} 시기. ${flavor} 분위기${saeunNote}.`)
+  }
+
+  return `## ${year}년 월별 흐름\n${lines.join('\n')}`
+}
+
 function describeElementInteraction(
   natalElementRaw: string | undefined,
   cycleElementRaw: string | undefined,
@@ -436,6 +502,10 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   // 지금 → 6개월 뒤 → 내년 → 10년 뒤 다음 대운까지의 결 변화
   const evolution = buildTemporalEvolutionKo(input)
   if (evolution) mainParagraphs.push(evolution)
+
+  // ───────── ¶ 12개월 month-by-month breakdown (메인 — 신년 운세) ─────────
+  const monthlyBreakdown = buildAnnualMonthlyBreakdownKo(input)
+  if (monthlyBreakdown) mainParagraphs.push(monthlyBreakdown)
 
   // ───────── ¶ 트랜짓 ↔ 신살 cross (메인) ─────────
   const transitShinsal = buildTransitShinsalCrossKo(input)
