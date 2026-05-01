@@ -14,6 +14,7 @@ import { checkPremiumFromDatabase } from '@/lib/stripe/premiumCache'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 import { buildActionPlanPayload } from './routeTimelineAssembly'
 import { polishCalendarDayNarrationKo } from '@/lib/llm/calendarNarrativePolish'
+import { buildDayContinuity, buildDayOfWeekTone } from '@/lib/calendar/dayContext'
 import {
   analyzeConfidenceMeta,
   buildActionPlanInsights,
@@ -847,6 +848,25 @@ export const POST = withApiMiddleware(
             focus: (actionPlanCalendar as any)?.canonicalCore?.topDecisionLabel,
             risk: (actionPlanCalendar as any)?.canonicalCore?.riskAxisLabel,
           },
+          continuity: (() => {
+            const c = buildDayContinuity(date, lang)
+            return {
+              yesterdayElement: c.yesterdayElement,
+              todayElement: c.todayElement,
+              tomorrowElement: c.tomorrowElement,
+              flowChange: c.flowChange,
+              narrative: lang === 'ko' ? c.flowNarrativeKo : c.flowNarrativeEn,
+            }
+          })(),
+          weekday: (() => {
+            const w = buildDayOfWeekTone(date)
+            if (!w) return undefined
+            return {
+              label: lang === 'ko' ? w.weekdayKo : w.weekdayEn,
+              tone: lang === 'ko' ? w.toneKo : w.toneEn,
+              weekPosition: w.weekPosition,
+            }
+          })(),
         },
         skeleton
       )

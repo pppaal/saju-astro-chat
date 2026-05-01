@@ -58,6 +58,20 @@ export interface CalendarDayPolishInput {
     focus?: string
     risk?: string
   }
+  /** 어제·내일 흐름 변화 narrative (continuity) */
+  continuity?: {
+    yesterdayElement?: string
+    todayElement?: string
+    tomorrowElement?: string
+    flowChange?: 'rising' | 'falling' | 'stable' | 'pivot' | 'unknown'
+    narrative?: string
+  }
+  /** 요일 톤 컨텍스트 */
+  weekday?: {
+    label?: string // "월" / "Mon"
+    tone?: string // "한 주 시작 톤..."
+    weekPosition?: 'start' | 'mid' | 'end' | 'weekend'
+  }
 }
 
 const SYSTEM_PROMPT_KO = `당신은 15년차 한국 사주명리 + 서양 점성술 통합 상담사입니다.
@@ -74,7 +88,7 @@ const SYSTEM_PROMPT_KO = `당신은 15년차 한국 사주명리 + 서양 점성
 # 출력 형식
 4-5 단락의 자연스러운 한국어 산문. 마크다운 heading 없이 단락만.
 각 단락은 다른 결을 다룸:
-1) 오늘 하루 첫 인상 — 사주 일진 + 점성 트랜짓이 만나는 첫 단락
+1) 오늘 하루 첫 인상 — 사주 일진 + 점성 트랜짓이 만나는 첫 단락. *어제·내일 흐름 변화*가 input에 있으면 자연스럽게 한 줄 녹여 ("어제 X 결에서 오늘 Y로 들어와요") + *요일 톤*도 한 줄 (월요일=시작 톤 / 주말=정리 톤 등)
 2) 좋은 시간대 처방 — best 슬롯이 의미하는 것
 3) 조심할 시간대 처방 — caution 슬롯의 본질
 4) 한 줄 핵심 — 오늘 가장 중요한 한 가지 행동 (구체적)
@@ -105,7 +119,7 @@ Write today's daily reading in a rich, natural expert voice.
 # Output
 4-5 natural English paragraphs. No markdown headings, just paragraphs.
 Each paragraph addresses a different thread:
-1) First impression of today — where saju iljin meets astro transits
+1) First impression of today — where saju iljin meets astro transits. If *yesterday→today→tomorrow continuity* is provided in input, weave it in one line ("yesterday X → today Y") + *day-of-week tone* (Mon = starting tone / weekend = recovery tone)
 2) Best time guidance — what the favorable slots really mean
 3) Caution time guidance — the essence of risky slots
 4) One key action — the single most important specific action for today
@@ -122,7 +136,7 @@ Each paragraph addresses a different thread:
 - Vary sentence structures — no template repetition`
 
 function buildUserPrompt(input: CalendarDayPolishInput): string {
-  const { date, locale, natal, timing, astro, bestSlots, cautionSlots, matrixCore } = input
+  const { date, locale, natal, timing, astro, bestSlots, cautionSlots, matrixCore, continuity, weekday } = input
   const isKo = locale === 'ko'
 
   const natalLine = isKo
@@ -189,18 +203,32 @@ function buildUserPrompt(input: CalendarDayPolishInput): string {
       : `Matrix: phase=${matrixCore.phase ?? '-'} / focus=${matrixCore.focus ?? '-'} / risk=${matrixCore.risk ?? '-'}`
     : ''
 
+  const continuityLine = continuity?.narrative
+    ? isKo
+      ? `흐름 변화 (어제→오늘→내일): ${continuity.narrative}`
+      : `Flow (yesterday→today→tomorrow): ${continuity.narrative}`
+    : ''
+
+  const weekdayLine = weekday?.tone
+    ? isKo
+      ? `요일 톤 (${weekday.label || ''}요일): ${weekday.tone}`
+      : `Weekday tone (${weekday.label || ''}): ${weekday.tone}`
+    : ''
+
   const lines = [
     isKo ? `# 오늘 (${date}) 데이터` : `# Today (${date}) data`,
     natalLine,
     timingLine,
     astroLine,
+    continuityLine,
+    weekdayLine,
     bestLine,
     cautionLine,
     matrixLine,
     '',
     isKo
-      ? `위 데이터로 오늘 하루 운세를 4-5 단락 자연스러운 전문가 산문으로 풀어주세요. 사주와 점성이 한 단락 안에서 만나게 하고, 마지막 단락은 "오늘 가장 중요한 한 가지 행동"으로 마무리하세요.`
-      : `Write 4-5 paragraphs of natural expert prose for today using the above data. Saju and astrology must meet in the same paragraph, and the last paragraph must end with "the single most important action for today".`,
+      ? `위 데이터로 오늘 하루 운세를 4-5 단락 자연스러운 전문가 산문으로 풀어주세요. 사주와 점성이 한 단락 안에서 만나게 하고, *어제·내일 흐름 변화*와 *요일 톤*은 첫 단락에 자연스럽게 녹여주세요. 마지막 단락은 "오늘 가장 중요한 한 가지 행동"으로 마무리하세요.`
+      : `Write 4-5 paragraphs of natural expert prose for today using the above data. Saju and astrology must meet in the same paragraph. Weave the *flow continuity* and *weekday tone* into the first paragraph. The last paragraph must end with "the single most important action for today".`,
   ].filter(Boolean)
 
   return lines.join('\n')
