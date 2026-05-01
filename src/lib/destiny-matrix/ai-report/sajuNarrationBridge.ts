@@ -818,7 +818,16 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     planetsSection.push(`토성이 ${houses.Saturn}하우스라 ${houses.Saturn === 1 ? '자기 정체성 형성' : houses.Saturn === 4 ? '가정·뿌리 안정' : '커리어·책임 무게'}에 구조와 시간이 필요한 차트예요.`)
   }
   if (aspectsCount >= 8) {
-    aspectsSection.push(`주요 어스펙트가 ${aspectsCount}개 활성화돼 있어 본명 차트의 변동성과 자극이 평균보다 많은 편이에요.`)
+    aspectsSection.push(
+      `주요 어스펙트가 ${aspectsCount}개 활성화돼 있어 본명 차트의 변동성과 자극이 평균보다 많은 편이에요. ` +
+      `어스펙트가 많다는 건 행성 간 대화가 활발하다는 뜻이라, 한 영역의 변화가 다른 영역으로 빠르게 번지는 본명이에요. ` +
+      `평소 한 가지 일에만 몰입하기 어렵고 동시에 여러 자극을 받는 패턴이 자연스러우니, 다채로운 자극을 단점이 아니라 자기 색으로 받아들이는 게 좋아요.`
+    )
+  } else if (aspectsCount >= 4) {
+    aspectsSection.push(
+      `주요 어스펙트가 ${aspectsCount}개 활성화돼 있어 평균 정도의 변동성이 있는 본명이에요. ` +
+      `한쪽으로 치우치지 않고 행성들이 적당한 간격으로 대화하는 차트라, 여러 영역을 균형 있게 운영하기에 유리해요.`
+    )
   }
 
   // Aspect 분포 — 어떤 종류가 우세한지 (어떤 aspect인지 풀어쓰기)
@@ -879,7 +888,12 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   if (adv.progressions) advSignals.push('Progressions(진행 차트)가 작동해 내적 성숙·태도 변화가 진행 중')
   if (adv.fixedStars) advSignals.push('Fixed Stars(고정성)가 본명 행성에 정렬돼 평소보다 더 또렷한 운명적 색')
   if (advSignals.length > 0) {
-    advancedSection.push(`추가로 ${advSignals.slice(0, 3).join(', ')} 신호가 같이 작동해요.`)
+    advancedSection.push(
+      `${advSignals.slice(0, 3).join(' / ')} 신호가 같이 작동하는 시기예요. ` +
+      `이런 advanced 신호는 평소 차트엔 잠자던 결인데, 활성화되면 평소보다 큰 단위(년/달/생애)로 영향이 들어와요. ` +
+      `Solar Return은 한 해의 시작 톤을, Lunar Return은 한 달 정서 리듬을, Eclipses는 12-18개월 단위 인생 방향을, Progressions는 내적 성숙의 진행을 가리키는 신호라 — 평소처럼 흘러가는 한 해가 아니라 *결이 명확한 한 해*가 됩니다. ` +
+      `각 신호의 영향은 위 메인 본문 cross 단락에서 사주와 묶어 풀어쓴 그대로니, 한 해 큰 그림 그릴 때 이 신호들을 같이 읽으세요.`
+    )
   }
 
   // Asteroids — 4 여신 (Ceres/Pallas/Juno/Vesta)
@@ -891,17 +905,29 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   if (asteroidHousesAny.Ceres) asteroidLines.push(`Ceres ${asteroidHousesAny.Ceres}하우스(돌봄·양육 영역)`)
   if (asteroidHousesAny.Pallas) asteroidLines.push(`Pallas ${asteroidHousesAny.Pallas}하우스(전략·지혜 영역)`)
   if (asteroidLines.length > 0) {
-    extraSection.push(`소행성 결로는 ${asteroidLines.slice(0, 2).join(', ')}가 본명에 더해져 있어요.`)
+    extraSection.push(
+      `소행성 결로는 ${asteroidLines.slice(0, 2).join(', ')}가 본명에 더해져 있어요. ` +
+      `소행성은 메인 행성과 다르게 *세부적인 삶의 영역*을 가리키는 신호라, 평소 큰 행성으로 못 잡는 미묘한 결을 보충해줘요. ` +
+      `Juno는 결혼·동반자, Vesta는 헌신·집중 영역, Ceres는 돌봄·양육, Pallas는 전략·지혜 — 본명 차트에 활성화된 소행성은 본인이 인생에서 자연스럽게 끌리는 *세부 주제*를 알려줍니다.`
+    )
   }
 
   // Extra points — Vertex / Part of Fortune
   const extraPointSigns = input.extraPointSigns || {}
   const extraPointsAny = extraPointSigns as unknown as Record<string, string | undefined>
   if (extraPointsAny.Vertex && SIGN_KO[extraPointsAny.Vertex]) {
-    extraSection.push(`Vertex ${SIGN_KO[extraPointsAny.Vertex]} 자리라 운명적 만남이 ${SIGN_TRAIT[extraPointsAny.Vertex]} 톤으로 들어오는 결이에요.`)
+    extraSection.push(
+      `Vertex ${SIGN_KO[extraPointsAny.Vertex]} 자리라 운명적 만남이 ${SIGN_TRAIT[extraPointsAny.Vertex]} 톤으로 들어와요. ` +
+      `Vertex는 점성술에서 "운명의 문" 같은 자리로, 본인이 의식적으로 선택하지 않았는데 갑자기 들어온 만남·기회를 가리켜요. ` +
+      `이 자리가 ${SIGN_KO[extraPointsAny.Vertex]}에 있다는 건, 인생의 결정적 만남이 ${SIGN_TRAIT[extraPointsAny.Vertex]} 결을 가진 사람·기회 형태로 들어온다는 뜻 — 평소 본인이 끌리는 톤이 아니어도 거부감을 느끼지 말고 한 번 받아보는 게 좋아요.`
+    )
   }
   if (extraPointsAny.PartOfFortune && SIGN_KO[extraPointsAny.PartOfFortune]) {
-    extraSection.push(`Part of Fortune ${SIGN_KO[extraPointsAny.PartOfFortune]}라 행운·번영의 결이 ${SIGN_TRAIT[extraPointsAny.PartOfFortune]} 방향으로 풀려요.`)
+    extraSection.push(
+      `Part of Fortune ${SIGN_KO[extraPointsAny.PartOfFortune]}라 행운·번영의 결이 ${SIGN_TRAIT[extraPointsAny.PartOfFortune]} 방향으로 풀려요. ` +
+      `Part of Fortune은 점성에서 본명이 가장 자연스럽게 만족·성취감을 느끼는 자리를 가리키는 신호예요. ` +
+      `이 자리가 ${SIGN_KO[extraPointsAny.PartOfFortune]}에 있다는 건 ${SIGN_TRAIT[extraPointsAny.PartOfFortune]} 결을 추구할 때 가장 자연스러운 행운·번영을 만난다는 뜻이라, 인생의 큰 결정에서 이 결을 잊지 마세요.`
+    )
   }
 
   // sub-heading으로 분리 출력 — 가독성 개선
@@ -1508,21 +1534,25 @@ export function buildTemporalEvolutionKo(input: MatrixCalculationInput): string 
   }
 
   if (segments.length === 0) return ''
-  // heading + bullet list (timeline) 형태로 변환
+  // heading + sub-section 형태 (각 시점 2-3문장 풀이로)
   const labels = ['지금', '6개월 뒤', '내년', '10년 뒤']
-  const bullets = segments
-    .map((seg, idx) => {
-      const lbl = labels[idx] || `시점 ${idx + 1}`
-      // segment 시작 부분이 라벨과 중복되면 제거
-      const cleaned = seg
-        .replace(/^지금\s*/, '')
-        .replace(/^6개월 뒤\s*/, '')
-        .replace(/^내년\s*/, '')
-        .replace(/^10년 뒤\s*/, '')
-      return `- **${lbl}** — ${cleaned}`
-    })
-    .join('\n')
-  return `## 시간 흐름 위 진화\n${bullets}`
+  const ENRICH_BY_LABEL: Record<string, string> = {
+    '지금': '이 시기 결정은 다음 6개월의 토대가 되니, 한 해 핵심 주제 한 줄을 정해 두고 거기에 맞게 무게를 실어보세요.',
+    '6개월 뒤': '톤이 한 번 바뀌는 자연스러운 환절기라, 지금까지 펼친 일을 정리하거나 새 단계로 넘어가기 좋은 시점이에요.',
+    '내년': '한 해 단위로 결이 다시 잡히는 시점이라, 올해 끝자락에 내년 결을 미리 짚고 한 해 단위 큰 그림을 그려두면 흐름을 잘 탑니다.',
+    '10년 뒤': '대운 챕터가 통째로 바뀌는 인생의 큰 전환점이라, 지금부터 새 챕터의 색을 의식적으로 준비하면 전환 충격이 줄어들어요.',
+  }
+  const blocks = segments.map((seg, idx) => {
+    const lbl = labels[idx] || `시점 ${idx + 1}`
+    const cleaned = seg
+      .replace(/^지금\s*/, '')
+      .replace(/^6개월 뒤\s*/, '')
+      .replace(/^내년\s*/, '')
+      .replace(/^10년 뒤\s*/, '')
+    const action = ENRICH_BY_LABEL[lbl] || ''
+    return `### ${lbl}\n${cleaned} 결이에요. ${action}`
+  })
+  return `## 시간 흐름 위 진화\n\n${blocks.join('\n\n')}`
 }
 
 /**
