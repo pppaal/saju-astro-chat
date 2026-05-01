@@ -392,27 +392,25 @@ export default function DestinyResultPage({
             {/* ✨ 성격 유형 인사이트 (노바 페르소나 결과 연동) */}
             <PersonalityInsight lang={lang} />
 
-            {/* 🔮 상담사 연결 버튼 */}
+            {/* Premium 업그레이드 CTA */}
             <div className={styles.counselorSection}>
               <div className={styles.counselorDivider}>
                 <div className={styles.counselorLine} />
                 <span className={styles.counselorLabel}>
-                  {lang === 'ko' ? '더 궁금한 점이 있으신가요?' : 'Want to know more?'}
+                  {lang === 'ko' ? '더 깊이 들어가고 싶다면' : 'Want to go deeper?'}
                 </span>
                 <div className={styles.counselorLine} />
               </div>
 
               <button
                 onClick={() => {
-                  const params = new URLSearchParams(window.location.search)
-                  params.set('lang', lang)
-                  window.location.href = `/destiny-map/counselor?${params.toString()}`
+                  window.location.href = '/premium-reports'
                 }}
                 className={styles.counselorButton}
               >
-                <span className={styles.counselorButtonIcon}>🔮</span>
+                <span className={styles.counselorButtonIcon}>✨</span>
                 <span>
-                  {lang === 'ko' ? '상담사에게 직접 물어보기' : 'Ask the Counselor Directly'}
+                  {lang === 'ko' ? 'Premium 리포트로 이어보기' : 'Continue with Premium Report'}
                 </span>
                 <span className={styles.counselorButtonArrow}>→</span>
               </button>
