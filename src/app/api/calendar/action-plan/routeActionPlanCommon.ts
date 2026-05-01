@@ -76,6 +76,14 @@ export const pickCrossLineByTone = (lines: string[] | undefined, tone: TimelineT
   return list[0]
 }
 
+/**
+ * 사주 ↔ 점성 cross 한 줄 — 진짜 weaving (단순 ` + ` join 금지).
+ *
+ * 우선순위:
+ *   1) bridges[]에 이미 만들어진 cross-line이 있으면 그걸 사용 (이미 두 결이 만난 문장)
+ *   2) 둘 다 있으면 한 문장으로 묶음 ("X 흐름이 Y와 만나는 시점")
+ *   3) 한쪽만 있으면 그쪽만 표기
+ */
 export const buildCrossReasonText = (
   cross:
     | {
@@ -90,15 +98,34 @@ export const buildCrossReasonText = (
   locale: 'ko' | 'en'
 ): string => {
   if (!cross) return ''
+  const prefix = locale === 'ko' ? '근거: ' : 'Evidence: '
+
+  // Priority 1 — bridges already encode saju↔astro as a real cross sentence.
+  const bridgeLine = pickCrossLineByTone(cross.bridges, tone) || cross.bridges?.[0]
+  if (bridgeLine) {
+    return cleanGuidanceText(`${prefix}${bridgeLine}`, 140)
+  }
+
   const astro =
     pickCrossLineByTone(cross.astroDetails, tone) ||
     cleanGuidanceText(cross.astroEvidence || '', 92)
   const saju =
     pickCrossLineByTone(cross.sajuDetails, tone) || cleanGuidanceText(cross.sajuEvidence || '', 80)
-  if (!astro && !saju) return ''
-  const merged = [astro, saju].filter(Boolean).join(' + ')
-  const prefix = locale === 'ko' ? '근거: ' : 'Evidence: '
-  return cleanGuidanceText(`${prefix}${merged}`, 132)
+
+  // Priority 2 — both sides present: weave into one sentence so the reader
+  // sees the two threads meeting, not two facts placed side by side.
+  if (saju && astro) {
+    const woven =
+      locale === 'ko'
+        ? `사주 측면에서는 ${saju}, 점성 측면에서는 ${astro} — 두 결이 함께 흐르는 시점이에요.`
+        : `On the saju side, ${saju}; on the astrology side, ${astro} — the two threads run together right now.`
+    return cleanGuidanceText(`${prefix}${woven}`, 180)
+  }
+
+  // Priority 3 — single side fallback.
+  const single = saju || astro
+  if (!single) return ''
+  return cleanGuidanceText(`${prefix}${single}`, 132)
 }
 
 export function getTimeBucket(hour: number): 'morning' | 'day' | 'evening' {
