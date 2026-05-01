@@ -38,16 +38,16 @@ const TOGETHER_TIMEOUT_MS = parseTimeoutMs(
 // 입체 narration + 12개월 월별 + 분석 근거 raw 데이터를 모두 담으려면 budget ↑
 const TOKEN_LIMITS_BY_PLAN = {
   free: 5000,
-  starter: 7000,
-  pro: 10000,
-  premium: 14000,
+  starter: 8000,
+  pro: 14000,
+  premium: 22000,
 } as const
 
 const TOKEN_CEILING_BY_PLAN = {
   free: 7000,
-  starter: 10000,
-  pro: 16000,
-  premium: 24000,
+  starter: 12000,
+  pro: 20000,
+  premium: 32000,
 } as const
 
 interface AIBackendResponse<T> {

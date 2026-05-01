@@ -594,9 +594,13 @@ export async function generateThemedReportWithSupport(
   )}\n\n${themeSchemaPrompt}\n\n${lifecyclePrompt}\n\n${buildDirectToneOverride(lang)}\n\n${synthesisPromptBlock}`
 
   // 3. Call AI backend + quality gate (length/cross evidence)
+  // 한국어 themed report — 12000~16000자 long-form 강제 (premium ceiling 32k 토큰)
+  const themedTargetChars = lang === 'ko' ? 14000 : 11000
+  const themedMaxTokens = Math.ceil(themedTargetChars / 2) + 1500
   const base = await callAIBackendGeneric(prompt, lang, {
     userPlan: options.userPlan,
     qualityTier: getAiQualityTier('base'),
+    maxTokensOverride: themedMaxTokens,
   })
   const themedRequiredPaths = [...getThemedSectionKeys(theme)]
   let sections = hasRequiredSectionPaths(base.sections as unknown, themedRequiredPaths)

@@ -108,15 +108,15 @@ export async function runPremiumLiveMode(ctx) {
 
   const requestedChars =
     typeof options.targetChars === 'number' && Number.isFinite(options.targetChars)
-      ? Math.max(3500, Math.min(32000, Math.floor(options.targetChars)))
+      ? Math.max(3500, Math.min(40000, Math.floor(options.targetChars)))
       : detailLevel === 'comprehensive'
         ? lang === 'ko'
-          ? 18000
-          : 14000
+          ? 24000  // 인생총운 — 6 영역 통합 깊이 (was 18000)
+          : 18000
         : detailLevel === 'detailed'
           ? lang === 'ko'
-            ? 11000
-            : 8500
+            ? 14000  // detailed (was 11000)
+            : 11000
           : undefined
   const maxTokensOverride = requestedChars ? Math.ceil(requestedChars / 2) + 1200 : undefined
   const costOptimizedAiPath = isCostOptimizedAiPath()
