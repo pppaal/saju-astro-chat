@@ -227,20 +227,39 @@ export default function ThemeSelectClient() {
           </div>
         </header>
 
-        <div className={styles.grid}>
-          {THEMES.map((th, index) => (
-            <button
-              key={th.key}
-              onClick={() => onPick(th.key)}
-              className={styles.themeCard}
-              style={{ animationDelay: `${index * 0.05}s` }}
-            >
-              <div className={styles.emoji}>{th.emoji}</div>
-              <div className={styles.themeTitle}>{th.title}</div>
-              <div className={styles.themeDesc}>{th.desc}</div>
-            </button>
-          ))}
-        </div>
+        {(['시기', '영역'] as const).map((groupName) => {
+          const groupThemes = THEMES.filter((t) => t.group === groupName)
+          return (
+            <div key={groupName} style={{ marginBottom: 24 }}>
+              <p
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: '0.28em',
+                  color: 'rgba(148,163,184,0.85)',
+                  textTransform: 'uppercase',
+                  marginBottom: 12,
+                }}
+              >
+                {groupName === '시기' ? '시기 운세' : '영역 운세'}
+              </p>
+              <div className={styles.grid}>
+                {groupThemes.map((th, index) => (
+                  <button
+                    key={th.key}
+                    onClick={() => onPick(th.key)}
+                    className={styles.themeCard}
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    <div className={styles.emoji}>{th.emoji}</div>
+                    <div className={styles.themeTitle}>{th.title}</div>
+                    <div className={styles.themeDesc}>{th.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        })}
 
         <div className={styles.matrixSection}>
           <button

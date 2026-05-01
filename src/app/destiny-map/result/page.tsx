@@ -448,7 +448,7 @@ export default function DestinyResultPage({
                 style={{ wordBreak: 'keep-all' }}
               >
                 {lang === 'ko'
-                  ? '맛보기로는 짚어내지 못한 정관격·신살 정통 풀이, 60갑자 specific 페어, 점성 advanced 신호(소행성·Vertex·POF)까지 *Premium에서 24,000자 long-form*으로 풀어드려요.'
+                  ? '맛보기로는 짚어내지 못한 정관격·신살 정통 풀이, 60갑자 specific 페어, 점성 advanced 신호(소행성·Vertex·POF)까지 Premium에서 24,000자 long-form으로 풀어드려요.'
                   : 'The full report unfolds 24,000+ words — orthodox geokguk readings, 60갑자 pair specifics, and advanced astro signals woven together.'}
               </p>
 

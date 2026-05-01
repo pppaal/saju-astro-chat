@@ -157,7 +157,7 @@ function ThemedBuilderContent() {
 
   const handleGenerate = async () => {
     if (reportTier !== 'premium') {
-      router.push('/premium-reports/comprehensive?tier=free')
+      router.push('/destiny-map')
       return
     }
     if (!theme) {
@@ -257,7 +257,7 @@ function ThemedBuilderContent() {
             {heroTitle}
           </h1>
           <p className="mx-auto max-w-md text-[15px] leading-relaxed text-slate-400">
-            6 테마 × 3 시기 조합으로 *지금 가장 알고 싶은* 결을 깊이 풀어드려요.
+            6 테마 × 3 시기 조합으로 지금 가장 알고 싶은 결을 깊이 풀어드려요.
           </p>
         </header>
 
@@ -404,7 +404,7 @@ function ThemedBuilderContent() {
               {!theme
                 ? '테마를 선택하세요'
                 : reportTier !== 'premium'
-                  ? '무료 요약 보러 가기'
+                  ? '무료 운명 지도로 가기'
                   : `${heroTitle} 만들기 →`}
             </span>
           </button>

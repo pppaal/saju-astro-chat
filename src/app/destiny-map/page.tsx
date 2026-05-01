@@ -83,7 +83,7 @@ export default function DestinyMapPage() {
 
         {/* Bottom hint */}
         <p className="mx-auto mt-16 max-w-md text-center text-[11.5px] leading-relaxed text-slate-500">
-          모든 분석은 사주명리·점성술 전통에 기반한 *참고 자료*이며 미래를 단정하지 않습니다.
+          모든 분석은 사주명리·점성술 전통에 기반한 <em className="not-italic text-slate-400">참고 자료</em>이며 미래를 단정하지 않습니다.
         </p>
       </div>
     </div>

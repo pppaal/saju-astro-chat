@@ -38,7 +38,7 @@ const CARDS: ReportCard[] = [
     badge: 'Free',
     title: '운명 지도',
     subtitle: '사주·점성 종합 무료 분석',
-    description: '본인 사주·점성 결을 다영역으로 펼쳐보고 챗봇과 대화도 가능해요.',
+    description: '본인 사주·점성 결을 시기 운세·영역 운세로 풀어보고 핵심 흐름까지 확인할 수 있어요.',
     features: [
       '사주·점성 종합 시각',
       '테마별 풀이 (관계·커리어 등)',

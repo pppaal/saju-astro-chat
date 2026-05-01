@@ -79,8 +79,8 @@ export default function FreeCrossPreview({ saju, astrology, lang = 'ko', classNa
       label: isKo ? '본명 결' : 'Core',
       text: isKo
         ? same
-          ? `사주 일간 ${sajuElement} + 점성 태양 ${ELEMENT_KO[astroElement] || astroElement} — 두 시스템이 같은 ${ELEMENT_TONE[sajuElement]} 결을 가리켜요. 자기 색이 또렷한 차트.`
-          : `사주 일간 ${sajuElement}(${ELEMENT_TONE[sajuElement]}) + 점성 태양 ${ELEMENT_KO[astroElement] || astroElement}(${ELEMENT_TONE[ELEMENT_KO[astroElement] || astroElement]}) — *두 결이 다른* 차트라, 안과 밖이 다른 톤이에요.`
+          ? `사주 일간 ${sajuElement} + 점성 태양 ${ELEMENT_KO[astroElement] || astroElement} — 두 시스템이 같은 ${ELEMENT_TONE[sajuElement]} 결을 가리켜요. 자기 색이 또렷한 차트예요.`
+          : `사주 일간 ${sajuElement}(${ELEMENT_TONE[sajuElement]}) + 점성 태양 ${ELEMENT_KO[astroElement] || astroElement}(${ELEMENT_TONE[ELEMENT_KO[astroElement] || astroElement]}) — 두 결이 다른 차트라 안과 밖이 다른 톤이에요.`
         : same
           ? `Saju day master ${sajuElement} + Sun ${astroElement} — both systems point to the same tone.`
           : `Saju day master ${sajuElement} + Sun ${astroElement} — inner and outer tones differ.`,
@@ -96,8 +96,8 @@ export default function FreeCrossPreview({ saju, astrology, lang = 'ko', classNa
         label: isKo ? '첫인상' : 'First impression',
         text: isKo
           ? same
-            ? `상승 ${ascSign}(${ELEMENT_TONE[ELEMENT_KO[ascEl] || ascEl]} 결)와 일간이 같은 결 — 안팎이 일치하는 자기 표현이 자연스러운 차트.`
-            : `상승 ${ascSign}(${ELEMENT_TONE[ELEMENT_KO[ascEl] || ascEl]} 결) — 첫인상은 ${ELEMENT_TONE[ELEMENT_KO[ascEl] || ascEl]} 톤으로 비치되 본명 결정은 ${ELEMENT_TONE[sajuElement]} 결이라 *두 겹의 자아*.`
+            ? `상승 ${ascSign}(${ELEMENT_TONE[ELEMENT_KO[ascEl] || ascEl]} 결)와 일간이 같은 결 — 안팎이 일치하는 자기 표현이 자연스러운 차트예요.`
+            : `상승 ${ascSign}(${ELEMENT_TONE[ELEMENT_KO[ascEl] || ascEl]} 결) — 첫인상은 ${ELEMENT_TONE[ELEMENT_KO[ascEl] || ascEl]} 톤으로 비치되 본명 결정은 ${ELEMENT_TONE[sajuElement]} 결이라, 안팎이 다른 두 겹의 자아를 가진 차트예요.`
           : `Ascendant ${ascSign}.`,
       })
     }
