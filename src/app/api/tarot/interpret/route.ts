@@ -569,13 +569,21 @@ async function generateGPTInterpretation(
     })
     .join('\n')
 
-  let q = userQuestion || (isKorean ? '일반 상담' : 'general reading')
+  const q = userQuestion || (isKorean ? '일반 상담' : 'general reading')
   const compactSaju = truncatePromptContext(sajuContext)
   const compactAstro = truncatePromptContext(astroContext)
-  const contextBlock = [compactSaju, compactAstro].filter(Boolean).join('\n')
-  if (contextBlock) {
-    q = `${q}\n${contextBlock}`
-  }
+  // 사주·점성 컨텍스트는 *별도 블록*으로 분리 (옛: 질문에 dump → 새: structured section)
+  const sajuBlock = compactSaju
+    ? isKorean
+      ? `\n## 사주 컨텍스트\n${compactSaju}`
+      : `\n## Saju Context\n${compactSaju}`
+    : ''
+  const astroBlock = compactAstro
+    ? isKorean
+      ? `\n## 점성 컨텍스트\n${compactAstro}`
+      : `\n## Astrology Context\n${compactAstro}`
+    : ''
+  const hasContext = Boolean(sajuBlock || astroBlock)
 
   const cardExamples = isLargeSpread
     ? ''
@@ -740,7 +748,7 @@ Bad: "Open your heart and wait." (abstract)
 - subject: ${questionMeta.subject || '-'} | focus: ${questionMeta.focus || '-'}
 - timeframe: ${questionMeta.timeframe || '-'} | tone: ${questionMeta.tone || '-'}`
           : ''
-      }
+      }${sajuBlock}${astroBlock}
 ## 뽑힌 카드
 ${cardListText}
 
@@ -750,7 +758,11 @@ ${cardListText}
           ? '대형 스프레드이므로 cards 배열은 비우고, overall에 오프닝+카드 흐름+시너지를 모두 녹이고, advice는 3단계로 구체화.'
           : `반드시 ${cards.length}개 카드 해석을 모두 포함하고, synergy 한 줄과 advice를 작성.`
       }
-- overall ${budget.overallGuide}, 카드별 ${budget.perCardGuide}, advice ${budget.adviceGuide}.
+- overall ${budget.overallGuide}, 카드별 ${budget.perCardGuide}, advice ${budget.adviceGuide}.${
+        hasContext
+          ? '\n- 사주/점성 컨텍스트가 입력됐으니 cross-only 모드: 모든 카드별 해석에 카드 ↔ 사주/점성 anchor 1회 이상, synergy/overall 첫 문장도 cross로 시작.'
+          : ''
+      }
 
 # 출력 형식 (JSON)
 ${outputSchemaKo}`
@@ -764,7 +776,7 @@ ${outputSchemaKo}`
 - subject: ${questionMeta.subject || '-'} | focus: ${questionMeta.focus || '-'}
 - timeframe: ${questionMeta.timeframe || '-'} | tone: ${questionMeta.tone || '-'}`
           : ''
-      }
+      }${sajuBlock}${astroBlock}
 ## Cards Drawn
 ${cardListText}
 
@@ -774,7 +786,11 @@ ${cardListText}
           ? 'Large spread: leave cards array empty; fold opening + card flow + synergy into overall; write 3 concrete advice steps.'
           : `Include all ${cards.length} per-card interpretations, plus synergy and advice.`
       }
-- Length: overall ${budget.overallGuide}, per-card ${budget.perCardGuide}, advice ${budget.adviceGuide}.
+- Length: overall ${budget.overallGuide}, per-card ${budget.perCardGuide}, advice ${budget.adviceGuide}.${
+        hasContext
+          ? '\n- Saju/Astrology context provided: enter cross-only mode. Each card interpretation must anchor to saju OR astro at least once. Synergy and opening lines must start with a cross.'
+          : ''
+      }
 
 # Output Format (JSON)
 ${outputSchemaEn}`
