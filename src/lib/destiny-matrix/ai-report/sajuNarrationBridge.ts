@@ -409,7 +409,11 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     }
   }
 
-  // ───────── ¶ Specific 천간/지지: 본명 안에 이미 형성된 관계 한 줄 (사주 보조) ─────────
+  // ───────── ¶ 5행 분포 — 강/약 기운 (사주 보조) ─────────
+  const fiveBalance = buildFiveElementsBalanceKo(input)
+  if (fiveBalance) sajuSupporting.push(fiveBalance)
+
+  // ───────── ¶ Specific 천간/지지: 본명 안에 이미 형성된 관계 (사주 보조) ─────────
   const natalRel = buildNatalRelationKo(input)
   if (natalRel) sajuSupporting.push(natalRel)
 
@@ -432,6 +436,14 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   // 지금 → 6개월 뒤 → 내년 → 10년 뒤 다음 대운까지의 결 변화
   const evolution = buildTemporalEvolutionKo(input)
   if (evolution) mainParagraphs.push(evolution)
+
+  // ───────── ¶ 트랜짓 ↔ 신살 cross (메인) ─────────
+  const transitShinsal = buildTransitShinsalCrossKo(input)
+  if (transitShinsal) mainParagraphs.push(transitShinsal)
+
+  // ───────── ¶ 어스펙트 ↔ 사주 합/충 cross (메인) ─────────
+  const aspectsRel = buildAspectsRelationsCrossKo(input)
+  if (aspectsRel) mainParagraphs.push(aspectsRel)
 
   // ───────── ¶ 단기 시기 — 월별/일별 + 사이클 충돌 (사주 보조) ─────────
   // 월별 peak는 cross-section에 폴딩됨 (중복 방지).
@@ -484,8 +496,12 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   }
   const sunSign = signs.Sun as string | undefined
   const moonSign = signs.Moon as string | undefined
+  const mercurySign = signs.Mercury as string | undefined
   const venusSign = signs.Venus as string | undefined
   const marsSign = signs.Mars as string | undefined
+  const uranusSign = signs.Uranus as string | undefined
+  const neptuneSign = signs.Neptune as string | undefined
+  const plutoSign = signs.Pluto as string | undefined
 
   // 첫 문장: 자아(태양) + 정서(달) — 안쪽 결
   // SIGN_KO는 모두 '자리'로 끝나 받침 없음 → '라' 사용 (이라 X)
@@ -501,17 +517,62 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     p3.push(`${innerParts.join(', ')}이에요.`)
   }
 
-  // 둘째 문장: 관계(금성) + 추진(화성) — 밖으로 풀리는 결
-  const outerParts: string[] = []
+  // 둘째 문장: 사고(수성) + 관계(금성) + 추진(화성) — 일상 작동 결
+  const operatingParts: string[] = []
+  if (mercurySign && SIGN_KO[mercurySign]) {
+    operatingParts.push(`사고·소통은 수성 ${SIGN_KO[mercurySign]}라 ${SIGN_TRAIT[mercurySign]} 방식으로 정리되는`)
+  }
   if (venusSign && SIGN_KO[venusSign]) {
     const trait = SIGN_TRAIT[venusSign]
-    outerParts.push(`관계·가치관은 금성 ${SIGN_KO[venusSign]}라 ${trait}${eulReul(trait)} 우선시하는`)
+    operatingParts.push(`관계·가치관은 금성 ${SIGN_KO[venusSign]}라 ${trait}${eulReul(trait)} 우선시하는`)
   }
   if (marsSign && SIGN_KO[marsSign]) {
-    outerParts.push(`추진·욕구는 화성 ${SIGN_KO[marsSign]}라 ${SIGN_TRAIT[marsSign]} 방향으로 풀리는`)
+    operatingParts.push(`추진·욕구는 화성 ${SIGN_KO[marsSign]}라 ${SIGN_TRAIT[marsSign]} 방향으로 풀리는`)
   }
-  if (outerParts.length > 0) {
-    p3.push(`${outerParts.join(', ')} 결이에요.`)
+  if (operatingParts.length > 0) {
+    p3.push(`${operatingParts.join(', ')} 결이에요.`)
+  }
+
+  // 셋째 문장: 외행성 — 세대적·심층 변화 결 (Uranus/Neptune/Pluto)
+  const outerPlanetParts: string[] = []
+  if (uranusSign && SIGN_KO[uranusSign]) {
+    outerPlanetParts.push(`혁신·해방은 천왕성 ${SIGN_KO[uranusSign]}라 ${SIGN_TRAIT[uranusSign]} 방식으로 깨고 나가는 결`)
+  }
+  if (neptuneSign && SIGN_KO[neptuneSign]) {
+    outerPlanetParts.push(`이상·꿈은 해왕성 ${SIGN_KO[neptuneSign]}라 ${SIGN_TRAIT[neptuneSign]} 톤으로 녹아드는 결`)
+  }
+  if (plutoSign && SIGN_KO[plutoSign]) {
+    outerPlanetParts.push(`재구성·집중은 명왕성 ${SIGN_KO[plutoSign]}라 ${SIGN_TRAIT[plutoSign]} 깊이로 파고드는 결`)
+  }
+  if (outerPlanetParts.length > 0) {
+    p3.push(`${outerPlanetParts.join(', ')}이에요.`)
+  }
+
+  // 넷째 문장: Ascendant + Midheaven — 외부 노출 결
+  // PlanetName 타입엔 Ascendant/Midheaven이 없을 수 있어 Record로 캐스팅해 안전 접근
+  const signsAny = signs as unknown as Record<string, string | undefined>
+  const ascSign = signsAny.Ascendant
+  const mcSign = signsAny.Midheaven
+  const personaParts: string[] = []
+  if (ascSign && SIGN_KO[ascSign]) {
+    personaParts.push(`겉으로 비치는 첫인상은 상승 ${SIGN_KO[ascSign]}라 ${SIGN_TRAIT[ascSign]} 톤`)
+  }
+  if (mcSign && SIGN_KO[mcSign]) {
+    personaParts.push(`사회·커리어 무대는 MC ${SIGN_KO[mcSign]}라 ${SIGN_TRAIT[mcSign]} 방향으로 보여지는 결`)
+  }
+  if (personaParts.length > 0) {
+    p3.push(`${personaParts.join(', ')}이에요.`)
+  }
+
+  // Mercury house — 사고·소통 영역
+  if (houses.Mercury && [3, 6, 9, 11].includes(houses.Mercury)) {
+    const mercuryHouseMeaning: Record<number, string> = {
+      3: '단거리 소통·학습',
+      6: '일상 업무·디테일',
+      9: '학문·해외·신념',
+      11: '커뮤니티·아이디어 교환',
+    }
+    p3.push(`수성이 ${houses.Mercury}하우스라 ${mercuryHouseMeaning[houses.Mercury]} 영역에서 가장 또렷하게 작동해요.`)
   }
   // 의미 있는 행성 하우스 highlight
   if (houses.Sun && [1, 5, 7, 10].includes(houses.Sun)) {
@@ -531,6 +592,89 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   }
   if (aspectsCount >= 8) {
     p3.push(`주요 어스펙트가 ${aspectsCount}개 활성화돼 있어 본명 차트의 변동성과 자극이 평균보다 많은 편이에요.`)
+  }
+
+  // Aspect 분포 — 어떤 종류가 우세한지 (어떤 aspect인지 풀어쓰기)
+  const aspectsArr = input.aspects || []
+  if (aspectsArr.length > 0) {
+    const typeCount: Record<string, number> = {}
+    for (const a of aspectsArr) {
+      typeCount[a.type] = (typeCount[a.type] || 0) + 1
+    }
+    const ASPECT_TONE_KO: Record<string, string> = {
+      conjunction: '한 점에 모이는 융합',
+      opposition: '두 축이 마주서는 긴장',
+      square: '서로 부딪치며 압박이 되는 자극',
+      trine: '자연스럽게 흐르는 지원',
+      sextile: '협력하며 풀리는 기회',
+      quincunx: '조정이 필요한 어긋남',
+    }
+    const sortedTypes = Object.entries(typeCount).sort((a, b) => b[1] - a[1]).slice(0, 2)
+    const aspectLines: string[] = []
+    for (const [type, count] of sortedTypes) {
+      const tone = ASPECT_TONE_KO[type]
+      if (tone) aspectLines.push(`${type === 'square' ? '스퀘어' : type === 'trine' ? '트라인' : type === 'opposition' ? '오포지션' : type === 'conjunction' ? '컨정션' : type === 'sextile' ? '섹스타일' : '퀸컹스'} ${count}개(${tone})`)
+    }
+    if (aspectLines.length > 0) {
+      p3.push(`어스펙트 분포는 ${aspectLines.join(', ')} 결로 짜여 있어, 본명 안에 ${sortedTypes[0]?.[0] === 'square' || sortedTypes[0]?.[0] === 'opposition' ? '긴장 자극이' : '조화 흐름이'} 더 두텁게 깔린 차트예요.`)
+    }
+  }
+
+  // 외행성 하우스 (Uranus/Neptune/Pluto 위치 = 세대적 무대)
+  const housesAny = houses as unknown as Record<string, number | undefined>
+  if (housesAny.Uranus && [1, 5, 7, 10, 11].includes(housesAny.Uranus)) {
+    const uranusHouseMeaning: Record<number, string> = {
+      1: '자기 정체성·외모',
+      5: '창조·연애 표현',
+      7: '파트너십·계약',
+      10: '커리어·사회 무대',
+      11: '커뮤니티·미래 비전',
+    }
+    p3.push(`천왕성이 ${housesAny.Uranus}하우스라 ${uranusHouseMeaning[housesAny.Uranus]} 영역에 깨고 나가는 변화 결이 들어와 있어요.`)
+  }
+  if (housesAny.Pluto && [1, 4, 7, 8, 10].includes(housesAny.Pluto)) {
+    const plutoHouseMeaning: Record<number, string> = {
+      1: '자기 정체성',
+      4: '가정·뿌리',
+      7: '파트너십',
+      8: '재구성·자원 통합',
+      10: '커리어 권력 구조',
+    }
+    p3.push(`명왕성이 ${housesAny.Pluto}하우스라 ${plutoHouseMeaning[housesAny.Pluto]}에 깊은 재구성·집중 결이 작동해요.`)
+  }
+
+  // Advanced astro signals — solar/lunar return, eclipses, fixed stars 활성 여부
+  const adv = input.advancedAstroSignals || {}
+  const advSignals: string[] = []
+  if (adv.solarReturn) advSignals.push('Solar Return(올해 생일 차트)이 들어와 한 해 초기 색이 강조되는 시기')
+  if (adv.lunarReturn) advSignals.push('Lunar Return(이번 달 달 회귀)이 들어와 감정·일상 리듬 새로 잡히는 결')
+  if (adv.eclipses) advSignals.push('Eclipses(현재 식)가 본명 포인트에 닿아 12-18개월 사이 중요한 전환')
+  if (adv.progressions) advSignals.push('Progressions(진행 차트)가 작동해 내적 성숙·태도 변화가 진행 중')
+  if (adv.fixedStars) advSignals.push('Fixed Stars(고정성)가 본명 행성에 정렬돼 평소보다 더 또렷한 운명적 색')
+  if (advSignals.length > 0) {
+    p3.push(`추가로 ${advSignals.slice(0, 3).join(', ')} 신호가 같이 작동해요.`)
+  }
+
+  // Asteroids — 4 여신 (Ceres/Pallas/Juno/Vesta)
+  const asteroidHouses = input.asteroidHouses || {}
+  const asteroidHousesAny = asteroidHouses as unknown as Record<string, number | undefined>
+  const asteroidLines: string[] = []
+  if (asteroidHousesAny.Juno) asteroidLines.push(`Juno ${asteroidHousesAny.Juno}하우스(파트너 결합 영역)`)
+  if (asteroidHousesAny.Vesta) asteroidLines.push(`Vesta ${asteroidHousesAny.Vesta}하우스(헌신·집중 영역)`)
+  if (asteroidHousesAny.Ceres) asteroidLines.push(`Ceres ${asteroidHousesAny.Ceres}하우스(돌봄·양육 영역)`)
+  if (asteroidHousesAny.Pallas) asteroidLines.push(`Pallas ${asteroidHousesAny.Pallas}하우스(전략·지혜 영역)`)
+  if (asteroidLines.length > 0) {
+    p3.push(`소행성 결로는 ${asteroidLines.slice(0, 2).join(', ')}가 본명에 더해져 있어요.`)
+  }
+
+  // Extra points — Vertex / Part of Fortune
+  const extraPointSigns = input.extraPointSigns || {}
+  const extraPointsAny = extraPointSigns as unknown as Record<string, string | undefined>
+  if (extraPointsAny.Vertex && SIGN_KO[extraPointsAny.Vertex]) {
+    p3.push(`Vertex ${SIGN_KO[extraPointsAny.Vertex]} 자리라 운명적 만남이 ${SIGN_TRAIT[extraPointsAny.Vertex]} 톤으로 들어오는 결이에요.`)
+  }
+  if (extraPointsAny.PartOfFortune && SIGN_KO[extraPointsAny.PartOfFortune]) {
+    p3.push(`Part of Fortune ${SIGN_KO[extraPointsAny.PartOfFortune]}라 행운·번영의 결이 ${SIGN_TRAIT[extraPointsAny.PartOfFortune]} 방향으로 풀려요.`)
   }
 
   if (p3.length > 0) astroSupporting.push(p3.join(' '))
@@ -1261,7 +1405,7 @@ function readDayPillar(input: MatrixCalculationInput): { stem?: string; branch?:
   }
 }
 
-/** 본명 4기둥 안에서 이미 형성된 specific 천간/지지 관계를 자연어로 한 줄. */
+/** 본명 4기둥 안에서 형성된 specific 천간/지지 관계를 자연어로 (top 2-3개). */
 export function buildNatalRelationKo(input: MatrixCalculationInput): string {
   const relations = input.relations || []
   if (relations.length === 0) return ''
@@ -1270,13 +1414,100 @@ export function buildNatalRelationKo(input: MatrixCalculationInput): string {
   const sorted = [...relations].sort(
     (a, b) => priority.indexOf(a.kind) - priority.indexOf(b.kind)
   )
-  const top = sorted[0]
-  if (!top) return ''
-  const blurb = RELATION_KIND_BLURB[top.kind] || ''
-  if (!blurb) return ''
-  const detail = top.detail ? `(${top.detail})` : ''
-  // kind 이름을 기준으로 조사 결정 (괄호 안 detail은 무시)
-  return `본명 안에 이미 ${top.kind}${detail}${iga(top.kind)} 형성돼 있어, ${blurb}.`
+  // top 2-3개 narration — 1개만 쓰면 다른 관계가 dead. 2-3개로 풍부하게.
+  const picked = sorted.slice(0, 3).filter((r) => RELATION_KIND_BLURB[r.kind])
+  if (picked.length === 0) return ''
+
+  const lines: string[] = []
+  const first = picked[0]
+  const firstDetail = first.detail ? `(${first.detail})` : ''
+  lines.push(`본명 안에 이미 ${first.kind}${firstDetail}${iga(first.kind)} 형성돼 있어, ${RELATION_KIND_BLURB[first.kind]}.`)
+
+  if (picked.length >= 2) {
+    const second = picked[1]
+    const secondDetail = second.detail ? `(${second.detail})` : ''
+    lines.push(`거기에 ${second.kind}${secondDetail}도 같이 들어와 ${RELATION_KIND_BLURB[second.kind]}.`)
+  }
+  if (picked.length >= 3) {
+    const third = picked[2]
+    const thirdDetail = third.detail ? `(${third.detail})` : ''
+    lines.push(`그리고 ${third.kind}${thirdDetail}이 더해져, ${RELATION_KIND_BLURB[third.kind]}.`)
+  }
+  return lines.join(' ')
+}
+
+/**
+ * 점성 트랜짓 ↔ 사주 신살 cross — 두 시스템이 같은 방향을 가리키는 시점 한 줄.
+ * 예: 토성 트랜짓이 들어왔는데 백호·괴강 활성 → 책임 압박이 두 시스템에서 동시에 신호.
+ */
+export function buildTransitShinsalCrossKo(input: MatrixCalculationInput): string {
+  const transits = (input as { activeTransits?: string[] }).activeTransits || []
+  const shinsal = input.shinsalList || []
+  if (transits.length === 0 || shinsal.length === 0) return ''
+
+  const HEAVY_TRANSIT = /(saturn|pluto|chiron|토성|명왕성|키론)/i
+  const FLOW_TRANSIT = /(jupiter|venus|목성|금성)/i
+  const HEAVY_SHINSAL = new Set(['백호', '괴강', '양인', '망신', '삼재', '천라지망'])
+  const LUCKY_SHINSAL = new Set(['천을귀인', '천덕귀인', '월덕귀인', '학당'])
+
+  const heavyTransit = transits.find((t) => HEAVY_TRANSIT.test(String(t)))
+  const flowTransit = transits.find((t) => FLOW_TRANSIT.test(String(t)))
+  const heavyShinsal = shinsal.find((s) => HEAVY_SHINSAL.has(s as string))
+  const luckyShinsal = shinsal.find((s) => LUCKY_SHINSAL.has(s as string))
+
+  if (heavyTransit && heavyShinsal) {
+    return `점성 측 ${heavyTransit} 트랜짓과 사주 측 ${heavyShinsal} 신살이 같은 시점에 활성화돼 있어, 책임·시험·재정비 신호가 두 시스템에서 동시에 들어와요. 큰 결정은 한 박자 늦추는 편이 안전한 시기예요.`
+  }
+  if (flowTransit && luckyShinsal) {
+    return `점성 측 ${flowTransit} 트랜짓과 사주 측 ${luckyShinsal} 신살이 같이 활성화돼, 외부 도움·기회 신호가 두 시스템에서 같은 방향으로 들어와요. 평소 미루던 시도를 가볍게 시작해 보기 좋은 결이에요.`
+  }
+  if (heavyTransit && luckyShinsal) {
+    return `점성 측 ${heavyTransit} 트랜짓이 무게를 더하지만 사주 측 ${luckyShinsal} 신살이 받쳐주고 있어, 어려운 결정에 외부 도움이 한 번 들어오는 patterns예요.`
+  }
+  return ''
+}
+
+/**
+ * 점성 어스펙트 ↔ 사주 합/충 cross — 같은 방향을 가리키는지 한 줄.
+ * 점성 square/opposition (긴장) ↔ 사주 충/형 (충돌) 동시 활성 → 외부·내부 모두 마찰 시기.
+ */
+export function buildAspectsRelationsCrossKo(input: MatrixCalculationInput): string {
+  const aspects = input.aspects || []
+  const relations = input.relations || []
+  if (aspects.length === 0 || relations.length === 0) return ''
+
+  const tenseAspectCount = aspects.filter((a) => a.type === 'square' || a.type === 'opposition').length
+  const flowAspectCount = aspects.filter((a) => a.type === 'trine' || a.type === 'sextile').length
+  const tenseRel = relations.find((r) => ['천간충', '지지충', '지지형'].includes(r.kind))
+  const flowRel = relations.find((r) => ['천간합', '지지삼합', '지지육합'].includes(r.kind))
+
+  if (tenseAspectCount >= 3 && tenseRel) {
+    return `점성 어스펙트 측 긴장(스퀘어·오포지션 ${tenseAspectCount}개)과 사주 측 ${tenseRel.kind}이 함께 들어와 있어, 외부 환경 마찰과 본명 내부 충돌이 같은 결로 작동하는 시기예요. 한 번에 모두 풀려고 하면 더 꼬일 수 있어요.`
+  }
+  if (flowAspectCount >= 3 && flowRel) {
+    return `점성 어스펙트 측 흐름(트라인·섹스타일 ${flowAspectCount}개)과 사주 측 ${flowRel.kind}이 같이 활성화돼, 두 시스템 모두 협력·통합 방향을 가리키고 있어요. 큰 그림을 짤 때 좋은 결이에요.`
+  }
+  return ''
+}
+
+/** 본명 5행 분포 — 강한 기운 / 약한 기운 한 줄. */
+export function buildFiveElementsBalanceKo(input: MatrixCalculationInput): string {
+  const snap = (input as { sajuSnapshot?: { fiveElements?: unknown } }).sajuSnapshot
+  const fe = snap?.fiveElements as Record<string, number> | undefined
+  if (!fe) return ''
+  // saju.ts는 wood/fire/earth/metal/water 키로 저장
+  const ko: Record<string, string> = { wood: '목', fire: '화', earth: '토', metal: '금', water: '수' }
+  const entries = Object.entries(fe).filter(([k, v]) => typeof v === 'number' && ko[k])
+  if (entries.length === 0) return ''
+  entries.sort((a, b) => (b[1] as number) - (a[1] as number))
+  const strongest = entries[0]
+  const weakest = entries[entries.length - 1]
+  if (!strongest || !weakest || strongest[0] === weakest[0]) return ''
+  const strongCount = strongest[1] as number
+  const weakCount = weakest[1] as number
+  if (strongCount - weakCount < 2) return '' // 균형 잡힌 경우 narration 생략
+
+  return `5행 분포로는 ${ko[strongest[0]]} 기운이 ${strongCount}개로 가장 두텁고 ${ko[weakest[0]]} 기운이 ${weakCount}${weakCount === 0 ? '개로 비어 있어' : '개로 얇아'}, 평소 ${ko[strongest[0]]} 결로 결정·표현이 흐르되 ${ko[weakest[0]]} 영역에서 자주 막힘이 보이는 균형이에요.`
 }
 
 // ──────────────────────────────────────────────────────────
