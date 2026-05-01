@@ -30,6 +30,10 @@ export async function generateThemedReportWithSupport(
     userQuestion?: string
     deterministicProfile?: DeterministicProfile
     matrixSummary?: MatrixSummary
+    /** themed report 분석 시기 — 'lifetime' (기본) / 'yearly' / 'monthly' */
+    period?: 'lifetime' | 'yearly' | 'monthly'
+    /** yearly/monthly일 때 기준 날짜 (YYYY-MM-DD) */
+    targetDate?: string
   } = {},
   deps: GenerationDeps
 ): Promise<ThemedAIPremiumReport> {
@@ -564,7 +568,11 @@ export async function generateThemedReportWithSupport(
     ? `\n## 결정론적 본명 분석 skeleton (이 raw 분석을 바탕으로 ${theme} 관점에서 풀어쓰세요)\n\n${expertSkeleton}\n`
     : ''
 
-  // 2. Build prompt
+  // 2. Build prompt — theme + optional period (lifetime/yearly/monthly) + targetDate
+  const periodForPrompt =
+    options.period === 'yearly' || options.period === 'monthly' || options.period === 'lifetime'
+      ? options.period
+      : undefined
   const prompt = `${buildThemedPrompt(
     theme,
     lang,
@@ -580,7 +588,9 @@ export async function generateThemedReportWithSupport(
     undefined,
     graphRagEvidencePrompt,
     options.userQuestion,
-    `${deterministicCore.promptBlock}${skeletonBlock}`
+    `${deterministicCore.promptBlock}${skeletonBlock}`,
+    periodForPrompt,
+    options.targetDate
   )}\n\n${themeSchemaPrompt}\n\n${lifecyclePrompt}\n\n${buildDirectToneOverride(lang)}\n\n${synthesisPromptBlock}`
 
   // 3. Call AI backend + quality gate (length/cross evidence)

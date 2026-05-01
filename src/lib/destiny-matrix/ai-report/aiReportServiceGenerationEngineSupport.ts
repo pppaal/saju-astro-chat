@@ -1596,6 +1596,8 @@ export async function generateThemedReport(
     userQuestion?: string
     deterministicProfile?: DeterministicProfile
     matrixSummary?: MatrixSummary
+    period?: 'lifetime' | 'yearly' | 'monthly'
+    targetDate?: string
   } = {}
 ): Promise<ThemedAIPremiumReport> {
   return generateThemedReportWithSupport(input, matrixReport, theme, timingData, options, {

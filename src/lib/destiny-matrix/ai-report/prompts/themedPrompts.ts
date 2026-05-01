@@ -604,7 +604,9 @@ export function buildThemedPrompt(
   astroSummary?: string,
   graphRagEvidencePrompt?: string,
   userQuestion?: string,
-  deterministicCorePrompt?: string
+  deterministicCorePrompt?: string,
+  period?: 'lifetime' | 'yearly' | 'monthly',
+  targetDate?: string
 ): string {
   const isKo = lang === 'ko'
   const questionIntentInstruction = buildQuestionIntentInstruction(userQuestion, lang)
@@ -612,6 +614,25 @@ export function buildThemedPrompt(
   const sections = THEME_SECTIONS[theme][lang]
   const themeLabel = THEME_LABELS[theme][lang]
   const responseSchema = buildThemedResponseSchema(theme)
+
+  // 분석 시점 scope — period + targetDate
+  const periodScopeBlock = (() => {
+    if (!period || period === 'lifetime') return ''
+    const dt = targetDate ? new Date(targetDate) : new Date()
+    const year = dt.getFullYear()
+    const month = dt.getMonth() + 1
+    if (period === 'yearly') {
+      return isKo
+        ? `\n## 분석 시점 — ${year}년 한 해 (Yearly Scope)\n*리포트 전체를 ${year}년 한 해 흐름에 맞춰* 풀어주세요. 인생 전반이 아닌 *${year}년 1월~12월* 사이에 일어날 일·만남·기회·주의 위주로. 분기별(상반기/하반기)·월별 핵심 변곡점도 자연스럽게 녹여 주세요.\n`
+        : `\n## Time Scope — Year ${year}\nFrame the entire report around the *${year} year flow*. Focus on what unfolds between Jan and Dec of ${year}, with quarterly and key monthly inflection points woven in.\n`
+    }
+    if (period === 'monthly') {
+      return isKo
+        ? `\n## 분석 시점 — ${year}년 ${month}월 한 달 (Monthly Scope)\n*리포트 전체를 ${year}년 ${month}월 한 달 흐름에 맞춰* 풀어주세요. 평생 흐름이 아닌 *이 한 달 안에서의* 핵심 일·기회·주의·관계 변동 위주로. 주차별(1주차~4주차) 또는 상순/중순/하순 단위 흐름도 자연스럽게.\n`
+        : `\n## Time Scope — ${year}-${String(month).padStart(2, '0')}\nFrame the entire report around *that single month's* flow — events, opportunities, cautions, relationship shifts within those weeks. Include weekly or thirds-of-month rhythm.\n`
+    }
+    return ''
+  })()
 
   // 십신 분포 포맷
   const sibsinText = profileData.sibsinDistribution

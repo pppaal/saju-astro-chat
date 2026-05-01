@@ -7,7 +7,7 @@ export type PremiumSajuData = {
 }
 
 export type ReportTier = 'free' | 'premium'
-export type ThemeType = 'love' | 'career' | 'wealth' | 'health' | 'family'
+export type ThemeType = 'love' | 'career' | 'wealth' | 'health' | 'family' | 'move'
 export type PeriodType = 'daily' | 'monthly' | 'yearly'
 
 export const REPORT_PROFILE_STORAGE_KEY = 'premiumReports:profileInput'
@@ -22,7 +22,8 @@ export function toThemeType(value: string | null): ThemeType | null {
     value === 'career' ||
     value === 'wealth' ||
     value === 'health' ||
-    value === 'family'
+    value === 'family' ||
+    value === 'move'
   ) {
     return value
   }
