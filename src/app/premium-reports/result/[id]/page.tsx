@@ -33,6 +33,7 @@ import {
   ReportSummarySection,
   SingleSubjectViewSection,
 } from '@/app/premium-reports/_components'
+import ReportVisualSummary from '@/components/reports/ReportVisualSummary'
 import type {
   GraphRAGEvidenceBundle,
   PremiumReportData as ReportData,
@@ -1148,6 +1149,48 @@ export default function ReportResultPage() {
           <GraphRagEvidenceSection evidence={report.graphRagEvidence} />
         </div>
       )}
+
+      {/* Tier 1-4 시각 요약 — 5행 분포 / 합의 강도 / cross map */}
+      {(() => {
+        const saju = (report.calculationDetails?.inputSnapshot?.saju as Record<string, unknown> | undefined) || undefined
+        const fiveElementsRaw = (saju?.fiveElements as Record<string, number> | undefined) || undefined
+        const fiveElements = fiveElementsRaw && {
+          wood: fiveElementsRaw.wood,
+          fire: fiveElementsRaw.fire,
+          earth: fiveElementsRaw.earth,
+          metal: fiveElementsRaw.metal,
+          water: fiveElementsRaw.water,
+        }
+        const confidenceRaw = (report.fullData?.crossConfidence as
+          | { scorePercent?: number; band?: 'high' | 'medium' | 'low' | 'conflict'; description?: string }
+          | undefined) || undefined
+        const confidence =
+          confidenceRaw?.scorePercent != null && confidenceRaw.band
+            ? {
+                scorePercent: confidenceRaw.scorePercent,
+                band: confidenceRaw.band,
+                description: confidenceRaw.description,
+              }
+            : undefined
+        const crossSignalsRaw = report.fullData?.crossSignals as
+          | Array<{
+              axis: string
+              saju: string
+              astro: string
+              meaning?: string
+              strength?: 'strong' | 'medium' | 'weak'
+              direction?: 'flow' | 'caution' | 'neutral'
+            }>
+          | undefined
+        return (
+          <ReportVisualSummary
+            fiveElements={fiveElements}
+            confidence={confidence}
+            crossSignals={crossSignalsRaw}
+            className="mt-6"
+          />
+        )
+      })()}
 
       {report.sections.length > 0 && <ReportSectionReader sections={report.sections} />}
 
