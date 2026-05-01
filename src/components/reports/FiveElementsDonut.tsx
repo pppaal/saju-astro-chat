@@ -76,7 +76,7 @@ export default function FiveElementsDonut({
           />
           {/* 각 element segment */}
           <g transform={`rotate(-90 ${cx} ${cy})`}>
-            {segments.map((s, i) =>
+            {segments.map((s) =>
               s.value > 0 ? (
                 <circle
                   key={s.el.key}
