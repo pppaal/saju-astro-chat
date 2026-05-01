@@ -23,6 +23,7 @@ import {
   estimateAstroSignalStrength,
 } from './crossConfidence'
 import { buildGeokgukDeepKo, buildShinsalDeepKo } from './expertKBDeep'
+import { buildSajuDynamicsKo } from './sajuDynamicsKB'
 
 const KO_SHINSAL_BLURB: Record<string, string> = {
   역마: '이동·출장·전직 같은 환경 변동이 잘 일어나고',
@@ -637,6 +638,10 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   // ───────── ¶ Specific 천간/지지: 본명 안에 이미 형성된 관계 (사주 보조) ─────────
   const natalRel = buildNatalRelationKo(input)
   if (natalRel) sajuSupporting.push(natalRel)
+
+  // ───────── ¶ Tier 3: 60갑자 동적 상호작용 deep KB (사주 보조) ─────────
+  const dynamicsBlock = buildSajuDynamicsKo(input.relations)
+  if (dynamicsBlock) sajuSupporting.push(dynamicsBlock)
 
   // ───────── ¶ 시계열: 이전 → 현재 → 다음 대운 + 세운 arc (사주 보조) ─────────
   const storyArc = buildStoryArcKo(input)
