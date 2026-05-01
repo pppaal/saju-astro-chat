@@ -667,18 +667,40 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   const ascDm = buildAscDayMasterCrossKo(input)
   if (ascDm) mainParagraphs.push(ascDm)
 
-  // ───────── ¶ 단기 시기 — 월별/일별 + 사이클 충돌 (사주 보조) ─────────
-  // 월별 peak는 cross-section에 폴딩됨 (중복 방지).
-  // 이 단락은 단기 시기(월운/일운) + 큰 사이클 충돌만 다룸.
-  const p2: string[] = []
-  // 대운 ↔ 세운 사이클 충돌 narration
-  const daeunSaeunClash = describeCycleClash(input.currentDaeunElement, input.currentSaeunElement, '대운', '세운')
-  if (daeunSaeunClash) p2.push(`두 사이클을 함께 보면 ${daeunSaeunClash} 그림이라, 큰 방향이 정해진 가운데 한 해 단위로 환경이 어떻게 받쳐주는지가 중요해져요.`)
+  // ───────── ¶ 단기 시기 (사주 보조) ─────────
+  // 사이클 충돌 / 이번 달 월운 / 오늘 일운 — 각자 독립 sub-section
+  const cycleClashLine = describeCycleClash(input.currentDaeunElement, input.currentSaeunElement, '대운', '세운')
+  if (cycleClashLine) {
+    sajuSupporting.push(`### 대운·세운 사이클\n두 사이클을 함께 보면 ${cycleClashLine} 그림이에요. 큰 방향(대운)이 정해진 가운데 한 해 단위 환경(세운)이 어떻게 받쳐주는지가 결과를 가르는 핵심이라, 이 시점에는 거시 방향과 미시 흐름을 함께 보는 습관이 도움이 됩니다.`)
+  }
+
   const wolunRel = describeCycleRelation(natal, input.currentWolunElement, '이번 달 월운', '한 달 분위기를 살짝 끌어주는')
+  if (wolunRel) {
+    const wolunEl = input.currentWolunElement ? ELEMENT_KO_LABEL[input.currentWolunElement] : ''
+    const WOLUN_TIP: Record<string, string> = {
+      목: '이번 달은 새 일을 시작하거나 계획을 세우기 좋은 흐름이라, 미뤄둔 시작을 한 가지만 잡아 한 달 안에 출발해 보세요',
+      화: '이번 달은 외부 평가·발표·도전 자리가 들어오기 쉬운 흐름이라, 결과를 만들 게 있으면 이 달에 마무리하는 편이 유리해요',
+      토: '이번 달은 정착·축적·관계 다지기에 좋은 흐름이라, 안정감 있는 일정과 신뢰 관계 강화에 시간을 쓰는 편이 좋아요',
+      금: '이번 달은 정리·결단·마무리에 좋은 흐름이라, 미뤄둔 결정 한 가지를 이 달 안에 매듭짓는 게 자연스러워요',
+      수: '이번 달은 관찰·복기·내적 정리에 좋은 흐름이라, 한 발짝 떨어져 큰 그림을 다시 보는 시간이 도움이 돼요',
+    }
+    const tip = wolunEl ? WOLUN_TIP[wolunEl] || '' : ''
+    sajuSupporting.push(`### 이번 달 (월운)\n${wolunRel}. ${tip}.`)
+  }
+
   const iljinRel = describeCycleRelation(natal, input.currentIljinElement, '오늘 일운', '오늘 하루 톤을 잡아주는')
-  if (wolunRel) p2.push(`${wolunRel} 색이 깔려요.`)
-  if (iljinRel) p2.push(`${iljinRel} 분위기로 마무리돼요.`)
-  if (p2.length > 0) sajuSupporting.push(p2.join(' '))
+  if (iljinRel) {
+    const iljinEl = input.currentIljinElement ? ELEMENT_KO_LABEL[input.currentIljinElement] : ''
+    const ILJIN_TIP: Record<string, string> = {
+      목: '오늘은 새 시도·미팅 첫 운을 잡기 좋은 일진. 미뤄둔 연락·새 사람과의 첫 대화를 오늘 시도해 보세요',
+      화: '오늘은 발화·결정·외부 표현이 잘 풀리는 일진. 발표·중요한 대화·강한 결정 같이 결과를 만드는 행동에 좋아요',
+      토: '오늘은 정착·약속·신뢰 다지기 좋은 일진. 중요한 약속 잡기·계약 체결·관계 다지기 같이 안정감 있는 행동에 적합',
+      금: '오늘은 정리·마무리·청소·결단에 좋은 일진. 미뤄둔 정리 한 가지를 오늘 처리해 보세요. 큰 결정 매듭짓기에도 좋음',
+      수: '오늘은 관찰·복기·휴식·글쓰기 좋은 일진. 일기·복기 노트·중요한 기록 정리 같이 내적 정리에 시간을 쓰면 효과적',
+    }
+    const tip = iljinEl ? ILJIN_TIP[iljinEl] || '' : ''
+    sajuSupporting.push(`### 오늘 (일운)\n${iljinRel}. ${tip}.`)
+  }
 
   // ───────── 사주↔점성 정합 cross (메인) ─────────
   const aspectsCount = input.aspects?.length || 0
