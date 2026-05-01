@@ -13,6 +13,7 @@ import { logger } from '@/lib/logger'
 import { checkPremiumFromDatabase } from '@/lib/stripe/premiumCache'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 import { buildActionPlanPayload } from './routeTimelineAssembly'
+import { polishCalendarDayNarrationKo } from '@/lib/llm/calendarNarrativePolish'
 import {
   analyzeConfidenceMeta,
   buildActionPlanInsights,
@@ -767,6 +768,68 @@ export const POST = withApiMiddleware(
       hasPersona: Boolean(persona),
       isPremiumUser,
     })
+
+    // Day-level expert polish — Claude로 4-5단락 자연어 풀이.
+    // Skeleton: 결정론적 summary + best/caution slots + 사주·점성 raw.
+    // Claude 미설정 시 skeleton 그대로.
+    try {
+      const tl: any[] = (responsePayload as any).timeline || []
+      const bestSlots = tl
+        .filter((s: any) => s.tone === 'best')
+        .slice(0, 3)
+        .map((s: any) => ({ hour: s.label || s.hour || '', reason: s.note || s.action || '' }))
+      const cautionSlots = tl
+        .filter((s: any) => s.tone === 'caution')
+        .slice(0, 3)
+        .map((s: any) => ({ hour: s.label || s.hour || '', reason: s.note || s.action || '' }))
+
+      const skeletonParts = [
+        (responsePayload as any).summary,
+        bestSlots.length ? `좋은 시간: ${bestSlots.map((s) => s.hour).join(', ')}` : '',
+        cautionSlots.length ? `조심: ${cautionSlots.map((s) => s.hour).join(', ')}` : '',
+      ].filter(Boolean)
+      const skeleton = skeletonParts.join(' · ')
+
+      const polishedNarrative = await polishCalendarDayNarrationKo(
+        {
+          date,
+          locale: lang,
+          natal: {
+            dayMaster: (actionPlanCalendar as any)?.natalSaju?.dayStem,
+            dayMasterElement: (actionPlanCalendar as any)?.dayMasterElement,
+            geokguk: (actionPlanCalendar as any)?.geokguk,
+            fiveElements: (actionPlanCalendar as any)?.fiveElements,
+          },
+          timing: {
+            daeunGanji: (actionPlanCalendar as any)?.evidence?.cycle?.daeunGanji,
+            daeunElement: (actionPlanCalendar as any)?.evidence?.cycle?.daeunElement,
+            saeunYear: (actionPlanCalendar as any)?.evidence?.cycle?.saeunYear,
+            saeunElement: (actionPlanCalendar as any)?.evidence?.cycle?.saeunElement,
+            wolunElement: (actionPlanCalendar as any)?.evidence?.cycle?.wolunElement,
+            iljinElement: (actionPlanCalendar as any)?.evidence?.cycle?.iljinElement,
+          },
+          astro: {
+            transits: (actionPlanCalendar as any)?.evidence?.cross?.bridges,
+            saturnHouse: (actionPlanCalendar as any)?.evidence?.cross?.saturnHouse,
+            jupiterHouse: (actionPlanCalendar as any)?.evidence?.cross?.jupiterHouse,
+          },
+          bestSlots,
+          cautionSlots,
+          matrixCore: {
+            phase: (actionPlanCalendar as any)?.canonicalCore?.phase,
+            focus: (actionPlanCalendar as any)?.canonicalCore?.topDecisionLabel,
+            risk: (actionPlanCalendar as any)?.canonicalCore?.riskAxisLabel,
+          },
+        },
+        skeleton
+      )
+
+      ;(responsePayload as any).dayNarrative = polishedNarrative
+    } catch (polishErr) {
+      logger.warn('[ActionPlan] day narrative polish failed', {
+        error: polishErr instanceof Error ? polishErr.message : String(polishErr),
+      })
+    }
 
     return apiSuccess(responsePayload)
   },
