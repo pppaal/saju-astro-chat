@@ -387,11 +387,34 @@ export function useTarotInterpretation({
               const dayMaster = (saju.dayMaster as string) || ''
               const dayMasterElement = (saju.dayMasterElement as string) || ''
               const dayMasterYinYang = (saju.dayMasterYinYang as string) || ''
+              const pillars = (saju.pillars as Record<string, { stem?: string; branch?: string }>) || {}
+              const formatPillar = (p?: { stem?: string; branch?: string }) =>
+                p?.stem && p?.branch ? `${p.stem}${p.branch}` : ''
+              const pillarLine = isKorean
+                ? [
+                    pillars.year && `년주 ${formatPillar(pillars.year)}`,
+                    pillars.month && `월주 ${formatPillar(pillars.month)}`,
+                    pillars.day && `일주 ${formatPillar(pillars.day)}`,
+                    pillars.time && `시주 ${formatPillar(pillars.time)}`,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')
+                : [
+                    pillars.year && `Year ${formatPillar(pillars.year)}`,
+                    pillars.month && `Month ${formatPillar(pillars.month)}`,
+                    pillars.day && `Day ${formatPillar(pillars.day)}`,
+                    pillars.time && `Hour ${formatPillar(pillars.time)}`,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')
 
               if (dayMaster || dayMasterElement) {
-                sajuContext = isKorean
+                // 구조화된 4기둥 cross context — 카드 해석 시 LLM이 일간/오행 외에도
+                // 4기둥을 함께 참조하여 입체 weaving 가능.
+                const headLine = isKorean
                   ? `사주 핵심: 일간 ${dayMaster}, 오행 ${dayMasterElement}${dayMasterYinYang ? `, 음양 ${dayMasterYinYang}` : ''}`
                   : `Saju core: Day master ${dayMaster}, element ${dayMasterElement}${dayMasterYinYang ? `, yin-yang ${dayMasterYinYang}` : ''}`
+                sajuContext = pillarLine ? `${headLine}\n사주 4기둥: ${pillarLine}` : headLine
               }
             }
           }

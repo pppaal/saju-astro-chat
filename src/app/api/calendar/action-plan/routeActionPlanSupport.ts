@@ -1060,8 +1060,12 @@ export const buildRuleBasedTimeline = (input: {
         cleanGuidanceText(calendar?.evidence?.cross?.astroEvidence || '', 112)
       const primaryBridgeLine =
         pickCrossLineByTone(calendar?.evidence?.cross?.bridges, tone) ||
-        [calendar?.sajuFactors?.[0], calendar?.astroFactors?.[0]]
-          .map((line) => cleanGuidanceText(line || '', 96))
+        // sajuFactors/astroFactors 배열 전체를 일관 사용 — [0]만 쓰던 이전 동작은 나머지 신호 폐기
+        [
+          ...(calendar?.sajuFactors?.slice(0, 2) || []),
+          ...(calendar?.astroFactors?.slice(0, 2) || []),
+        ]
+          .map((line) => cleanGuidanceText(line || '', 92))
           .filter(Boolean)
           .join(' / ')
       const crossReason = buildCrossReasonText(calendar?.evidence?.cross, tone, locale)
