@@ -134,12 +134,13 @@ const ELEMENT_KO_LABEL: Record<string, string> = {
   수: '수',
 }
 
+// 정통 명리 idiom — 5행 통변 표현. 일반론 대신 명리학 용어로.
 const ELEMENT_FLAVOR_KO: Record<string, string> = {
-  목: '자라남·계획·시작이 강해지는',
-  화: '표현·확장·열정이 뜨거워지는',
-  토: '신뢰·축적·중재가 단단해지는',
-  금: '결단·구조·정리가 또렷해지는',
-  수: '지혜·휴식·내적 흐름이 깊어지는',
+  목: '인성과 식상의 결이 살아나 새 일의 기운이 도는',
+  화: '관성과 재성의 작용이 강해져 외부 압력과 결과가 함께 올라오는',
+  토: '인수와 비겁의 토양이 두터워져 자리 잡고 받쳐주는',
+  금: '식신과 재성을 다스려 정리·결단이 또렷해지는',
+  수: '식상과 재기가 흘러 표현·관계·재물 변동이 활발해지는',
 }
 
 // 본명 일간 원소와 시기 원소 관계 → 한 줄 카운슬링
@@ -287,12 +288,14 @@ export function buildAnnualMonthlyBreakdownKo(
 
   const SEQ = ['목', '화', '토', '금', '수']
   const ni = SEQ.indexOf(natal)
+  // 정통 명리 통변 — 본명 일간 vs 운(運) 오행 관계의 십신 명칭으로 호칭
+  // diff: 0=비겁(同氣) / 1=식상(我生) / 2=재성(我剋) / 3=관성(剋我) / 4=인성(生我)
   const RELATION_KO = [
-    '본명 색이 더 진해져 자기 결정·표현에 힘이 실리는',
-    '내 기운을 밖으로 풀어내며 표현·창조·확장에 좋은',
-    '내가 다스리는 영역이라 통제·관리·재정 정리에 유리한',
-    '나를 누르고 시험하는 시기라 책임·압박이 들어오는',
-    '나를 받쳐주고 도와주는 시기라 학습·재정비·휴식에 좋은',
+    '비겁운으로 본명 기운이 두터워져 자기 주장·돌파력이 살아나는',
+    '식상운으로 내 기운이 밖으로 풀려나가 표현·창의·자식 영역이 활발해지는',
+    '재성운으로 내가 다스리는 자리라 재물·기회·이성 인연이 잡히는',
+    '관성운으로 나를 다스리는 자리라 직책·시험·책임 압박이 들어오는',
+    '인성운으로 나를 도와주는 자리라 학습·문서·귀인의 도움이 들어오는',
   ]
 
   const startMatch = (startYearMonth || input.startYearMonth || '').match(/^(\d{4})/)
@@ -324,10 +327,10 @@ export function buildAnnualMonthlyBreakdownKo(
       saeunNote = ' (세운 강조)'
     }
 
-    lines.push(`- **${monthLabel}**${badge} — ${cycleEl} 흐름이라 ${relation} 시기. ${flavor} 분위기${saeunNote}.`)
+    lines.push(`- **${monthLabel}**${badge} — ${cycleEl}월(${relation} 시기). ${flavor} 결${saeunNote}.`)
   }
 
-  return `## ${year}년 월별 흐름\n${lines.join('\n')}`
+  return `## ${year}년 월별 흐름 (월운 통변)\n${lines.join('\n')}`
 }
 
 function describeElementInteraction(
