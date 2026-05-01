@@ -22,6 +22,7 @@ import {
   estimateSajuSignalStrength,
   estimateAstroSignalStrength,
 } from './crossConfidence'
+import { buildGeokgukDeepKo, buildShinsalDeepKo } from './expertKBDeep'
 
 const KO_SHINSAL_BLURB: Record<string, string> = {
   역마: '이동·출장·전직 같은 환경 변동이 잘 일어나고',
@@ -609,6 +610,23 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     const traps = GEOKGUK_TRAPS_KO[input.geokguk as string]
     if (traps) {
       sajuSupporting.push(`### 자주 빠지는 함정\n- ${traps[0]}\n- ${traps[1]}\n- ${traps[2]}\n셋이 동시에 작동하면 한 발짝 늦추는 게 안전한데, 본인은 보통 그 순간을 못 알아채요.`)
+    }
+  }
+
+  // ───────── ¶ 격국 정통 deep KB — 5필드 expert 풀이 (사주 보조) ─────────
+  if (input.geokguk) {
+    const deepGeokguk = buildGeokgukDeepKo(input.geokguk as string)
+    if (deepGeokguk) {
+      sajuSupporting.push(`### ${input.geokguk} 정통 풀이\n${deepGeokguk}`)
+    }
+  }
+
+  // ───────── ¶ 신살 정통 deep KB — 핵심 신살 3개 (사주 보조) ─────────
+  if (input.shinsalList && input.shinsalList.length > 0) {
+    const top3 = (input.shinsalList as string[]).slice(0, 3)
+    const deepBlocks = top3.map((s) => buildShinsalDeepKo(s)).filter(Boolean)
+    if (deepBlocks.length > 0) {
+      sajuSupporting.push(`### 활성 신살 정통 풀이\n${deepBlocks.join('\n\n')}`)
     }
   }
 
