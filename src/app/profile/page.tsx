@@ -195,6 +195,9 @@ export default function ProfilePage() {
             >
               {t("profile.statistics", "Statistics")}
             </button>
+            <Link href="/profile/decisions" className={styles.tab}>
+              {t("profile.decisions", "결정 기록")}
+            </Link>
           </div>
 
           <div className={styles.content}>
