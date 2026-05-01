@@ -3,7 +3,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createPublicStreamGuard } from '@/lib/api/middleware'
-import { apiClient } from '@/lib/api/ApiClient'
 import { prisma } from '@/lib/db/prisma'
 import { captureServerError } from '@/lib/telemetry'
 import { enforceBodySize, fetchWithRetry } from '@/lib/http'
@@ -160,62 +159,17 @@ export const POST = withApiMiddleware(
         return creditErrorResponse(creditResult)
       }
 
-      // Call Python backend for Hybrid RAG interpretation (with fallback on connection failure)
-      let interpretation = null
+      // Python backend 제거 — Claude 직접 호출 (옛 backend RAG 흐름 폐기)
       const isLargeSpread = validatedCards.length >= LARGE_SPREAD_THRESHOLD
-      const backendRequestOptions = isLargeSpread
-        ? { timeout: LARGE_SPREAD_BACKEND_TIMEOUT_MS, retries: 0, retryDelay: 500 }
-        : { timeout: 60000, retries: 2, retryDelay: 1200 }
       if (isLargeSpread) {
-        logger.info('[Tarot interpret] large spread detected; using fast backend fallback policy', {
+        logger.info('[Tarot interpret] large spread detected', {
           spreadId,
           cardCount: validatedCards.length,
-          timeout: backendRequestOptions.timeout,
-          retries: backendRequestOptions.retries,
         })
       }
-      try {
-        const response = await apiClient.post(
-          '/api/tarot/interpret',
-          {
-            category: categoryId,
-            spread_id: spreadId,
-            spread_title: spreadTitle,
-            cards: validatedCards.map((c) => ({
-              name: c.name,
-              is_reversed: c.isReversed,
-              position: c.position,
-            })),
-            user_question: enrichedUserQuestion,
-            language,
-            birthdate: includeAstrology ? birthdate : undefined,
-            moon_phase: moonPhase,
-            saju_context: parsedSajuContext,
-            astro_context: parsedAstroContext,
-          },
-          backendRequestOptions
-        )
 
-        if (response.ok) {
-          interpretation = response.data
-        } else {
-          logger.warn('[Tarot interpret] backend response not ok', {
-            status: response.status,
-            error: response.error,
-          })
-        }
-      } catch (fetchError) {
-        logger.warn('Backend connection failed, using fallback:', fetchError)
-      }
-
-      // Use backend response or GPT fallback
       let result
-      if (interpretation && !(interpretation as Record<string, unknown>).error) {
-        result = interpretation
-        interpretationSource = 'backend_rag'
-      } else {
-        logger.warn('Backend unavailable, using GPT interpretation')
-        recordCounter('tarot.interpret.fallback_total', 1, { from: 'backend_rag', to: 'gpt' })
+      {
         try {
           result = await generateGPTInterpretation(
             validatedCards,

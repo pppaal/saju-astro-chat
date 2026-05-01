@@ -1,6 +1,6 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
 import { initializeApiContext, createAuthenticatedGuard, extractLocale } from '@/lib/api/middleware'
-import { apiClient } from '@/lib/api/ApiClient'
+import { askClaude } from '@/lib/llm/askClaude'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { buildAllDataPrompt } from '@/lib/destiny-map/prompt/fortune/base'
@@ -290,20 +290,15 @@ export async function POST(request: NextRequest) {
         ? 'AI 분석 서비스가 일시적으로 불가합니다. 잠시 후 다시 시도해 주세요.'
         : 'AI analysis service is temporarily unavailable. Please try again later.'
 
-    const response = await apiClient.post(
-      '/ask',
-      {
-        theme: theme || 'chat',
-        prompt: chatPrompt,
-        saju: result.saju,
-        astro: result.astrology,
-        locale: lang,
-      },
-      { timeout: 60000 }
-    )
+    const response = await askClaude(chatPrompt, {
+      theme: theme || 'chat',
+      maxTokens: 2000,
+      timeoutMs: 60000,
+      label: 'destiny-map-chat',
+    })
 
     const success = response.ok
-    const data = response.data as { fusion_layer?: string; report?: string } | undefined
+    const data = response.data?.data
     const rawReply =
       response.ok && data ? data.fusion_layer || data.report || fallbackReply : fallbackReply
     const reply = maskTextWithName(sanitizeLocaleText(rawReply, lang), name)

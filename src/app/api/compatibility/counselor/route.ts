@@ -1,7 +1,7 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
 import { initializeApiContext, createAuthenticatedGuard } from '@/lib/api/middleware'
 import { createFallbackSSEStream } from '@/lib/streaming'
-import { apiClient } from '@/lib/api/ApiClient'
+import { askClaude } from '@/lib/llm/askClaude'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { logger } from '@/lib/logger'
 import {
@@ -312,36 +312,19 @@ Based on the deep analysis above, provide friendly but professional guidance.
 
     // Call backend AI (extended timeout for fusion analysis)
     try {
-      const response = await apiClient.post<Record<string, unknown>>(
-        '/api/compatibility/chat',
-        {
-          persons,
-          prompt: counselorPrompt,
-          question: userQuestion,
-          history: trimmedHistory,
-          locale: lang,
-          compatibility_context: fusionContext,
-          compatibility_saju_extended: extendedSajuCompatibility,
-          compatibility_astrology_extended: extendedAstroCompatibility,
-          compatibility_timing_detail: timingDetails,
-          full_context: resolvedFullContext,
-          full_context_text: fullContextText,
-          use_rag: useRag,
-          theme,
-          is_premium: true,
-        },
-        { timeout: 80000 }
-      )
+      const response = await askClaude(counselorPrompt, {
+        theme: theme || 'compatibility-counselor',
+        maxTokens: 3500,
+        timeoutMs: 80000,
+        label: 'compatibility-counselor',
+      })
 
       if (!response.ok) {
-        throw new Error(`Backend returned ${response.status}`)
+        throw new Error(`Claude error: ${response.error || response.status}`)
       }
 
-      const aiData = response.data as Record<string, unknown>
       const answer = String(
-        (aiData?.data as Record<string, unknown>)?.response ||
-          aiData?.response ||
-          aiData?.interpretation ||
+        response.data?.data?.report ||
           (lang === 'ko'
             ? '\uC8C4\uC1A1\uD569\uB2C8\uB2E4. \uC751\uB2F5\uC744 \uC0DD\uC131\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.'
             : "Sorry, couldn't generate response. Please try again.")

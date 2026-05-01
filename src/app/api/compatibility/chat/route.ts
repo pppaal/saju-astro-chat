@@ -6,7 +6,7 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { createFallbackSSEStream } from '@/lib/streaming'
-import { apiClient } from '@/lib/api/ApiClient'
+import { askClaude } from '@/lib/llm/askClaude'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { logger } from '@/lib/logger'
 import { type ChatMessage } from '@/lib/api'
@@ -110,32 +110,19 @@ export const POST = withApiMiddleware(
 
     // Call backend AI
     try {
-      const response = await apiClient.post(
-        '/api/compatibility/chat',
-        {
-          persons,
-          prompt: chatPrompt,
-          question: userQuestion,
-          history: trimmedHistory,
-          locale: lang,
-          compatibility_context: compatibilityResult,
-          full_context: fullContext || null,
-          full_context_text: fullContext ? stringifyForPrompt(fullContext) : '',
-          use_rag: useRag,
-          theme,
-        },
-        { timeout: 60000 }
-      )
+      const response = await askClaude(chatPrompt, {
+        theme: theme || 'compatibility',
+        maxTokens: 2000,
+        timeoutMs: 60000,
+        label: 'compatibility-chat',
+      })
 
       if (!response.ok) {
-        throw new Error(`Backend returned ${response.status}`)
+        throw new Error(`Claude returned error: ${response.error || response.status}`)
       }
 
-      const aiData = response.data as Record<string, unknown>
       const answer = String(
-        (aiData?.data as Record<string, unknown>)?.response ||
-          aiData?.response ||
-          aiData?.interpretation ||
+        response.data?.data?.report ||
           (lang === 'ko'
             ? '죄송합니다. 응답을 생성할 수 없습니다. 다시 시도해 주세요.'
             : 'Sorry, unable to generate a response. Please try again.')

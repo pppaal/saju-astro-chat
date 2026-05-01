@@ -1,6 +1,6 @@
 // src/app/api/astrology/route.ts
 import { NextRequest } from 'next/server'
-import { apiClient } from '@/lib/api/ApiClient'
+import { askClaude } from '@/lib/llm/askClaude'
 import { prisma } from '@/lib/db/prisma'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -172,22 +172,12 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     try {
       const astroPrompt = `Analyze this natal chart as an expert astrologer:\n\nAscendant: ${ascStr}\nMC: ${mcStr}\n\nPlanet Positions:\n${planetLines}\n\nProvide insights on personality, life path, strengths, and challenges.`
 
-      const response = await apiClient.post(
-        '/ask',
-        {
-          theme: 'astrology',
-          prompt: astroPrompt,
-          astro: {
-            ascendant: natal.ascendant,
-            mc: natal.mc,
-            planets: natal.planets,
-            houses,
-            aspects: aspectsPlus,
-          },
-          locale: locKey,
-        },
-        { timeout: 60000 }
-      )
+      const response = await askClaude(astroPrompt, {
+        theme: 'astrology',
+        maxTokens: 2500,
+        timeoutMs: 60000,
+        label: 'astrology-route',
+      })
 
       if (response.ok) {
         const resData = response.data as {
