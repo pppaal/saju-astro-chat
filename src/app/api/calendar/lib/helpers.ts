@@ -679,8 +679,8 @@ export function formatDateForResponse(
       : 'Mixed signals'
     : highGradePhaseConflict
       ? lang === 'ko'
-        ? '검토 우선의 날'
-        : 'Review-first day'
+        ? '⚠ 조심하는 날'
+        : '⚠ Caution day'
       : defaultTitle
   const alignedDisplayScore = highGradePhaseConflict
     ? Math.min(displayScore, GRADE_THRESHOLDS.grade0 - 1)

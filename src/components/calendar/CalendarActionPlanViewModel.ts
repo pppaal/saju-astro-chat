@@ -255,8 +255,8 @@ export function buildWeekItems(input: {
 
   if (cautionDayLabels.length > 0) {
     const labels = cautionDayLabels.join(', ')
-    pushItem(isKo ? `검토/조정일: ${labels}` : `Review/adjust days: ${labels}`)
-    pushItem(isKo ? '위험한 일은 실행 우선일로 이동' : 'Move risky tasks to execute-first days')
+    pushItem(isKo ? `조심·지키는 날: ${labels}` : `Caution/hold days: ${labels}`)
+    pushItem(isKo ? '위험한 일은 최고의 날로 이동' : 'Move risky tasks to peak-day windows')
   }
 
   let fallbackIndex = 0
