@@ -77,12 +77,15 @@ export const pickCrossLineByTone = (lines: string[] | undefined, tone: TimelineT
 }
 
 /**
- * 사주 ↔ 점성 cross 한 줄 — 진짜 weaving (단순 ` + ` join 금지).
+ * 사주 ↔ 점성 cross 한 줄 — cross-only narration.
  *
  * 우선순위:
- *   1) bridges[]에 이미 만들어진 cross-line이 있으면 그걸 사용 (이미 두 결이 만난 문장)
- *   2) 둘 다 있으면 한 문장으로 묶음 ("X 흐름이 Y와 만나는 시점")
- *   3) 한쪽만 있으면 그쪽만 표기
+ *   1) bridges[]에 사전 빌드된 cross-line이 있으면 그걸 사용 (가장 정확)
+ *   2) 사주 + 점성 둘 다 있으면 한 문장으로 묶음 ("X 흐름이 Y와 만나는 시점")
+ *   3) 한쪽만 있으면 *침묵* — 단독 신호로는 출력하지 않음. 노이즈 차단.
+ *
+ * 단독 fallback 제거 사유: cross-validated 신호만 narration에 노출하는 정책.
+ * 단독 데이터는 UI 배지/스코어로 표면화되거나 다른 타이밍에서 cross될 때 활성화.
  */
 export const buildCrossReasonText = (
   cross:
@@ -112,8 +115,7 @@ export const buildCrossReasonText = (
   const saju =
     pickCrossLineByTone(cross.sajuDetails, tone) || cleanGuidanceText(cross.sajuEvidence || '', 80)
 
-  // Priority 2 — both sides present: weave into one sentence so the reader
-  // sees the two threads meeting, not two facts placed side by side.
+  // Priority 2 — both sides present: weave into one sentence.
   if (saju && astro) {
     const woven =
       locale === 'ko'
@@ -122,10 +124,8 @@ export const buildCrossReasonText = (
     return cleanGuidanceText(`${prefix}${woven}`, 180)
   }
 
-  // Priority 3 — single side fallback.
-  const single = saju || astro
-  if (!single) return ''
-  return cleanGuidanceText(`${prefix}${single}`, 132)
+  // Priority 3 — cross 없으면 침묵. 단독 신호로 채우지 않음.
+  return ''
 }
 
 export function getTimeBucket(hour: number): 'morning' | 'day' | 'evening' {
