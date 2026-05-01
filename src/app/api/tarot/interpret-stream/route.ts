@@ -5,7 +5,6 @@ import { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { initializeApiContext, createPublicStreamGuard, extractLocale } from '@/lib/api/middleware'
 import { createSSEEvent, createSSEDoneEvent } from '@/lib/streaming'
-import { apiClient } from '@/lib/api/ApiClient'
 import { enforceBodySize } from '@/lib/http'
 import { logger } from '@/lib/logger'
 import { recordExternalCall } from '@/lib/metrics/index'
@@ -188,7 +187,7 @@ function streamJsonPayload(
   })
 }
 
-async function fetchBackendFallback(payload: {
+async function fetchBackendFallback(_payload: {
   categoryId: string
   spreadId: string
   spreadTitle: string
@@ -201,40 +200,8 @@ async function fetchBackendFallback(payload: {
   sajuContext?: string
   astroContext?: string
 }): Promise<unknown | null> {
-  try {
-    const result = await apiClient.post(
-      '/api/tarot/interpret',
-      {
-        category: payload.categoryId,
-        spread_id: payload.spreadId,
-        spread_title: payload.spreadTitle,
-        cards: payload.cards.map((card) => ({
-          name: card.name,
-          is_reversed: card.isReversed,
-          position: card.position,
-        })),
-        user_question: payload.userQuestion,
-        language: payload.language,
-        birthdate: payload.includeAstrology ? payload.birthdate || undefined : undefined,
-        saju_context: payload.includeSaju ? payload.sajuContext || undefined : undefined,
-        astro_context: payload.includeAstrology ? payload.astroContext || undefined : undefined,
-      },
-      { timeout: BACKEND_TIMEOUT_MS }
-    )
-
-    if (!result.ok) {
-      logger.error('Tarot stream backend fallback error:', {
-        status: result.status,
-        error: result.error,
-      })
-      return null
-    }
-
-    return result.data
-  } catch (error) {
-    logger.error('Tarot stream backend fallback exception:', { error })
-    return null
-  }
+  // Python backend 제거 — 항상 null 반환해 Claude/OpenAI 직접 streaming 흐름으로.
+  return null
 }
 
 // 별자리 계산 함수
