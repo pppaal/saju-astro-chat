@@ -235,14 +235,70 @@ function buildUserPrompt(input: CalendarDayPolishInput): string {
 }
 
 /**
- * Day-level expert polish. ANTHROPIC_API_KEY 없으면 skeleton 그대로 반환.
+ * Polish 실패 시 fallback — input 데이터로 친근한 2-3 단락 자동 생성.
+ * (raw skeleton "summary · 좋은시간: 14 · 조심: 11" 노출 방지)
+ */
+function buildFriendlyFallbackKo(input: CalendarDayPolishInput): string {
+  const isKo = input.locale === 'ko'
+  const { date, natal, timing, bestSlots, cautionSlots } = input
+  const dt = new Date(`${date}T12:00:00+09:00`)
+  const month = dt.getMonth() + 1
+  const day = dt.getDate()
+
+  const opening = isKo
+    ? `${month}월 ${day}일 — ${natal.dayMasterElement || ''} 일간을 가진 분에게 ${
+        timing.iljinElement ? `${timing.iljinElement} 기운이 흐르는 하루` : '한 흐름이 들어오는 날'
+      }이에요. 큰 결정보다 *오늘의 결*에 맞춰 한 가지 핵심만 잡고 가는 편이 자연스러워요.`
+    : `${month}/${day} — for a ${natal.dayMasterElement || ''} day master, today carries ${
+        timing.iljinElement ? `${timing.iljinElement} energy` : 'a particular flow'
+      }. Pick one anchor and let the day unfold around it.`
+
+  const bestLine = bestSlots && bestSlots.length > 0
+    ? isKo
+      ? `좋은 시간대는 ${bestSlots.slice(0, 2).map((s) => s.hour).join(', ')}예요. 미뤄둔 한 가지를 이 시간에 처리하면 가속이 잘 붙어요.`
+      : `Best windows: ${bestSlots.slice(0, 2).map((s) => s.hour).join(', ')}. Move one delayed item into these slots.`
+    : ''
+
+  const cautionLine = cautionSlots && cautionSlots.length > 0
+    ? isKo
+      ? `${cautionSlots.slice(0, 2).map((s) => s.hour).join(', ')} 시간대엔 비가역 결정(서명·확정·결제)을 한 박자 늦추는 편이 안전해요.`
+      : `Around ${cautionSlots.slice(0, 2).map((s) => s.hour).join(', ')}, hold off on irreversible commitments.`
+    : ''
+
+  const closing = isKo
+    ? `오늘 가장 중요한 한 가지: ${
+        bestSlots && bestSlots.length > 0
+          ? `${bestSlots[0].hour}에 미뤄둔 핵심 한 건 처리`
+          : '오늘의 핵심 한 줄을 정하고 시작'
+      }.`
+    : `One key action today: ${
+        bestSlots && bestSlots.length > 0
+          ? `wrap one delayed item at ${bestSlots[0].hour}`
+          : 'name today\'s anchor before starting'
+      }.`
+
+  return [opening, bestLine, cautionLine, closing].filter(Boolean).join('\n\n')
+}
+
+/**
+ * Day-level expert polish. ANTHROPIC_API_KEY 없거나 LLM 실패 시
+ * raw skeleton 대신 *친근한 fallback* 반환.
  */
 export async function polishCalendarDayNarrationKo(
   input: CalendarDayPolishInput,
   fallbackSkeleton: string
 ): Promise<string> {
+  // Build friendly fallback once — used in all error paths
+  const friendlyFallback = (() => {
+    try {
+      return buildFriendlyFallbackKo(input)
+    } catch {
+      return fallbackSkeleton
+    }
+  })()
+
   if (!isClaudeAvailable()) {
-    return fallbackSkeleton
+    return friendlyFallback
   }
   const isKo = input.locale === 'ko'
   const systemPrompt = isKo ? SYSTEM_PROMPT_KO : SYSTEM_PROMPT_EN
@@ -260,16 +316,16 @@ export async function polishCalendarDayNarrationKo(
     })
     const text = result.text.trim()
     if (text.length < 200) {
-      logger.warn('[calendar-day-polish] short Claude output, using skeleton', {
+      logger.warn('[calendar-day-polish] short Claude output, using friendly fallback', {
         len: text.length,
       })
-      return fallbackSkeleton
+      return friendlyFallback
     }
     return text
   } catch (err) {
-    logger.warn('[calendar-day-polish] Claude failed, using skeleton', {
+    logger.warn('[calendar-day-polish] Claude failed, using friendly fallback', {
       error: err instanceof Error ? err.message : String(err),
     })
-    return fallbackSkeleton
+    return friendlyFallback
   }
 }
