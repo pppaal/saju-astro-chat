@@ -24,6 +24,14 @@ import {
 } from './crossConfidence'
 import { buildGeokgukDeepKo, buildShinsalDeepKo } from './expertKBDeep'
 import { buildSajuDynamicsKo } from './sajuDynamicsKB'
+import {
+  buildAsteroidsSibsinCrossKo,
+  buildVertexSajuCrossKo,
+  buildPartOfFortuneSajuCrossKo,
+  buildAspectSajuElementCrossKo,
+  buildYongsinAstroCrossKo,
+  buildTwelveStageAstroCrossKo,
+} from './advancedAstroCrossKB'
 
 const KO_SHINSAL_BLURB: Record<string, string> = {
   역마: '이동·출장·전직 같은 환경 변동이 잘 일어나고',
@@ -725,6 +733,43 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   // ───────── ¶ ASC × 일간 cross (메인) ─────────
   const ascDm = buildAscDayMasterCrossKo(input)
   if (ascDm) mainParagraphs.push(ascDm)
+
+  // ───────── ¶ Tier 4: 소행성 × 사주 십신 cross (메인) ─────────
+  const dayStage = readDayMasterStage(input)
+  const t4Input = {
+    natalElement: input.dayMasterElement,
+    yongsin: (input as { yongsin?: string }).yongsin,
+    twelveStage: dayStage || undefined,
+    currentSaeunElement: input.currentSaeunElement,
+    currentDaeunElement: input.currentDaeunElement,
+    sibsinDistribution: input.sibsinDistribution,
+    asteroidHouses: input.asteroidHouses,
+    extraPointSigns: input.extraPointSigns,
+    aspects: input.aspects,
+    activeTransits: input.activeTransits,
+  }
+  const asteroidsCross = buildAsteroidsSibsinCrossKo(t4Input)
+  if (asteroidsCross) mainParagraphs.push(asteroidsCross)
+
+  // ───────── ¶ Tier 4: Vertex × 일간 element cross (메인) ─────────
+  const vertexCross = buildVertexSajuCrossKo(t4Input)
+  if (vertexCross) mainParagraphs.push(vertexCross)
+
+  // ───────── ¶ Tier 4: Part of Fortune × 일간 cross (메인) ─────────
+  const pofCross = buildPartOfFortuneSajuCrossKo(t4Input)
+  if (pofCross) mainParagraphs.push(pofCross)
+
+  // ───────── ¶ Tier 4: 개별 aspect × 일간 element cross (메인) ─────────
+  const aspectElCross = buildAspectSajuElementCrossKo(t4Input)
+  if (aspectElCross) mainParagraphs.push(aspectElCross)
+
+  // ───────── ¶ Tier 4: 용신 × astro transit cross (메인) ─────────
+  const yongsinCross = buildYongsinAstroCrossKo(t4Input)
+  if (yongsinCross) mainParagraphs.push(yongsinCross)
+
+  // ───────── ¶ Tier 4: 12운성 × astro transit cross (메인) ─────────
+  const stageCross = buildTwelveStageAstroCrossKo(t4Input)
+  if (stageCross) mainParagraphs.push(stageCross)
 
   // ───────── ¶ 단기 시기 (사주 보조) ─────────
   // 사이클 충돌 / 이번 달 월운 / 오늘 일운 — 각자 독립 sub-section
