@@ -479,8 +479,13 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     }
   }
 
-  // ───────── 점성 본명 디테일 (점성 보조) — 태양·달·금성·화성 weave ─────────
-  const p3: string[] = []
+  // ───────── 점성 본명 디테일 (점성 보조) — 4 sub-section으로 분리 ─────────
+  // 가독성: ### 행성 위치 / ### 어스펙트 / ### 추가 신호 / ### 소행성·특수점
+  const planetsSection: string[] = []  // 행성 sign + house
+  const aspectsSection: string[] = []  // 어스펙트 count + 분포
+  const advancedSection: string[] = [] // Solar/Lunar Return, Eclipses, Progressions
+  const extraSection: string[] = []    // Asteroids + Extra points (Vertex/PoF)
+  const p3: string[] = []  // 도입부 (사주↔점성 정합 cross 흐름) — 메인 cross로 빠짐, 비어있음
   const signs = input.planetSigns || {}
   const houses = input.planetHouses || {}
   const SIGN_KO: Record<string, string> = {
@@ -514,7 +519,7 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     innerParts.push(`안쪽 정서는 달 ${SIGN_KO[moonSign]}라 ${SIGN_TRAIT[moonSign]} 결로 흐르는 톤`)
   }
   if (innerParts.length > 0) {
-    p3.push(`${innerParts.join(', ')}이에요.`)
+    planetsSection.push(`${innerParts.join(', ')}이에요.`)
   }
 
   // 둘째 문장: 사고(수성) + 관계(금성) + 추진(화성) — 일상 작동 결
@@ -530,7 +535,7 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     operatingParts.push(`추진·욕구는 화성 ${SIGN_KO[marsSign]}라 ${SIGN_TRAIT[marsSign]} 방향으로 풀리는`)
   }
   if (operatingParts.length > 0) {
-    p3.push(`${operatingParts.join(', ')} 결이에요.`)
+    planetsSection.push(`${operatingParts.join(', ')} 결이에요.`)
   }
 
   // 셋째 문장: 외행성 — 세대적·심층 변화 결 (Uranus/Neptune/Pluto)
@@ -545,7 +550,7 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     outerPlanetParts.push(`재구성·집중은 명왕성 ${SIGN_KO[plutoSign]}라 ${SIGN_TRAIT[plutoSign]} 깊이로 파고드는 결`)
   }
   if (outerPlanetParts.length > 0) {
-    p3.push(`${outerPlanetParts.join(', ')}이에요.`)
+    planetsSection.push(`${outerPlanetParts.join(', ')}이에요.`)
   }
 
   // 넷째 문장: Ascendant + Midheaven — 외부 노출 결
@@ -561,7 +566,7 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     personaParts.push(`사회·커리어 무대는 MC ${SIGN_KO[mcSign]}라 ${SIGN_TRAIT[mcSign]} 방향으로 보여지는 결`)
   }
   if (personaParts.length > 0) {
-    p3.push(`${personaParts.join(', ')}이에요.`)
+    planetsSection.push(`${personaParts.join(', ')}이에요.`)
   }
 
   // Mercury house — 사고·소통 영역
@@ -572,7 +577,7 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
       9: '학문·해외·신념',
       11: '커뮤니티·아이디어 교환',
     }
-    p3.push(`수성이 ${houses.Mercury}하우스라 ${mercuryHouseMeaning[houses.Mercury]} 영역에서 가장 또렷하게 작동해요.`)
+    planetsSection.push(`수성이 ${houses.Mercury}하우스라 ${mercuryHouseMeaning[houses.Mercury]} 영역에서 가장 또렷하게 작동해요.`)
   }
   // 의미 있는 행성 하우스 highlight
   if (houses.Sun && [1, 5, 7, 10].includes(houses.Sun)) {
@@ -582,16 +587,16 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
       7: '파트너십',
       10: '커리어·사회 무대',
     }
-    p3.push(`태양이 ${houses.Sun}하우스라 ${sunHouseMeaning[houses.Sun]} 영역이 인생 무대의 중심으로 잡혀요.`)
+    planetsSection.push(`태양이 ${houses.Sun}하우스라 ${sunHouseMeaning[houses.Sun]} 영역이 인생 무대의 중심으로 잡혀요.`)
   }
   if (houses.Jupiter && [9, 10, 11].includes(houses.Jupiter)) {
-    p3.push(`목성이 ${houses.Jupiter}하우스에 있어 확장·기회가 ${houses.Jupiter === 10 ? '커리어·사회 무대' : houses.Jupiter === 9 ? '학문·해외·신념' : '커뮤니티·미래 비전'} 쪽으로 열려요.`)
+    planetsSection.push(`목성이 ${houses.Jupiter}하우스에 있어 확장·기회가 ${houses.Jupiter === 10 ? '커리어·사회 무대' : houses.Jupiter === 9 ? '학문·해외·신념' : '커뮤니티·미래 비전'} 쪽으로 열려요.`)
   }
   if (houses.Saturn && [1, 4, 10].includes(houses.Saturn)) {
-    p3.push(`토성이 ${houses.Saturn}하우스라 ${houses.Saturn === 1 ? '자기 정체성 형성' : houses.Saturn === 4 ? '가정·뿌리 안정' : '커리어·책임 무게'}에 구조와 시간이 필요한 차트예요.`)
+    planetsSection.push(`토성이 ${houses.Saturn}하우스라 ${houses.Saturn === 1 ? '자기 정체성 형성' : houses.Saturn === 4 ? '가정·뿌리 안정' : '커리어·책임 무게'}에 구조와 시간이 필요한 차트예요.`)
   }
   if (aspectsCount >= 8) {
-    p3.push(`주요 어스펙트가 ${aspectsCount}개 활성화돼 있어 본명 차트의 변동성과 자극이 평균보다 많은 편이에요.`)
+    aspectsSection.push(`주요 어스펙트가 ${aspectsCount}개 활성화돼 있어 본명 차트의 변동성과 자극이 평균보다 많은 편이에요.`)
   }
 
   // Aspect 분포 — 어떤 종류가 우세한지 (어떤 aspect인지 풀어쓰기)
@@ -616,7 +621,7 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
       if (tone) aspectLines.push(`${type === 'square' ? '스퀘어' : type === 'trine' ? '트라인' : type === 'opposition' ? '오포지션' : type === 'conjunction' ? '컨정션' : type === 'sextile' ? '섹스타일' : '퀸컹스'} ${count}개(${tone})`)
     }
     if (aspectLines.length > 0) {
-      p3.push(`어스펙트 분포는 ${aspectLines.join(', ')} 결로 짜여 있어, 본명 안에 ${sortedTypes[0]?.[0] === 'square' || sortedTypes[0]?.[0] === 'opposition' ? '긴장 자극이' : '조화 흐름이'} 더 두텁게 깔린 차트예요.`)
+      aspectsSection.push(`어스펙트 분포는 ${aspectLines.join(', ')} 결로 짜여 있어, 본명 안에 ${sortedTypes[0]?.[0] === 'square' || sortedTypes[0]?.[0] === 'opposition' ? '긴장 자극이' : '조화 흐름이'} 더 두텁게 깔린 차트예요.`)
     }
   }
 
@@ -630,7 +635,7 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
       10: '커리어·사회 무대',
       11: '커뮤니티·미래 비전',
     }
-    p3.push(`천왕성이 ${housesAny.Uranus}하우스라 ${uranusHouseMeaning[housesAny.Uranus]} 영역에 깨고 나가는 변화 결이 들어와 있어요.`)
+    planetsSection.push(`천왕성이 ${housesAny.Uranus}하우스라 ${uranusHouseMeaning[housesAny.Uranus]} 영역에 깨고 나가는 변화 결이 들어와 있어요.`)
   }
   if (housesAny.Pluto && [1, 4, 7, 8, 10].includes(housesAny.Pluto)) {
     const plutoHouseMeaning: Record<number, string> = {
@@ -640,7 +645,7 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
       8: '재구성·자원 통합',
       10: '커리어 권력 구조',
     }
-    p3.push(`명왕성이 ${housesAny.Pluto}하우스라 ${plutoHouseMeaning[housesAny.Pluto]}에 깊은 재구성·집중 결이 작동해요.`)
+    planetsSection.push(`명왕성이 ${housesAny.Pluto}하우스라 ${plutoHouseMeaning[housesAny.Pluto]}에 깊은 재구성·집중 결이 작동해요.`)
   }
 
   // Advanced astro signals — solar/lunar return, eclipses, fixed stars 활성 여부
@@ -652,7 +657,7 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   if (adv.progressions) advSignals.push('Progressions(진행 차트)가 작동해 내적 성숙·태도 변화가 진행 중')
   if (adv.fixedStars) advSignals.push('Fixed Stars(고정성)가 본명 행성에 정렬돼 평소보다 더 또렷한 운명적 색')
   if (advSignals.length > 0) {
-    p3.push(`추가로 ${advSignals.slice(0, 3).join(', ')} 신호가 같이 작동해요.`)
+    advancedSection.push(`추가로 ${advSignals.slice(0, 3).join(', ')} 신호가 같이 작동해요.`)
   }
 
   // Asteroids — 4 여신 (Ceres/Pallas/Juno/Vesta)
@@ -664,20 +669,33 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   if (asteroidHousesAny.Ceres) asteroidLines.push(`Ceres ${asteroidHousesAny.Ceres}하우스(돌봄·양육 영역)`)
   if (asteroidHousesAny.Pallas) asteroidLines.push(`Pallas ${asteroidHousesAny.Pallas}하우스(전략·지혜 영역)`)
   if (asteroidLines.length > 0) {
-    p3.push(`소행성 결로는 ${asteroidLines.slice(0, 2).join(', ')}가 본명에 더해져 있어요.`)
+    extraSection.push(`소행성 결로는 ${asteroidLines.slice(0, 2).join(', ')}가 본명에 더해져 있어요.`)
   }
 
   // Extra points — Vertex / Part of Fortune
   const extraPointSigns = input.extraPointSigns || {}
   const extraPointsAny = extraPointSigns as unknown as Record<string, string | undefined>
   if (extraPointsAny.Vertex && SIGN_KO[extraPointsAny.Vertex]) {
-    p3.push(`Vertex ${SIGN_KO[extraPointsAny.Vertex]} 자리라 운명적 만남이 ${SIGN_TRAIT[extraPointsAny.Vertex]} 톤으로 들어오는 결이에요.`)
+    extraSection.push(`Vertex ${SIGN_KO[extraPointsAny.Vertex]} 자리라 운명적 만남이 ${SIGN_TRAIT[extraPointsAny.Vertex]} 톤으로 들어오는 결이에요.`)
   }
   if (extraPointsAny.PartOfFortune && SIGN_KO[extraPointsAny.PartOfFortune]) {
-    p3.push(`Part of Fortune ${SIGN_KO[extraPointsAny.PartOfFortune]}라 행운·번영의 결이 ${SIGN_TRAIT[extraPointsAny.PartOfFortune]} 방향으로 풀려요.`)
+    extraSection.push(`Part of Fortune ${SIGN_KO[extraPointsAny.PartOfFortune]}라 행운·번영의 결이 ${SIGN_TRAIT[extraPointsAny.PartOfFortune]} 방향으로 풀려요.`)
   }
 
+  // sub-heading으로 분리 출력 — 가독성 개선
   if (p3.length > 0) astroSupporting.push(p3.join(' '))
+  if (planetsSection.length > 0) {
+    astroSupporting.push(`### 행성 위치\n${planetsSection.join(' ')}`)
+  }
+  if (aspectsSection.length > 0) {
+    astroSupporting.push(`### 어스펙트\n${aspectsSection.join(' ')}`)
+  }
+  if (advancedSection.length > 0) {
+    astroSupporting.push(`### 추가 신호\n${advancedSection.join(' ')}`)
+  }
+  if (extraSection.length > 0) {
+    astroSupporting.push(`### 소행성·특수점\n${extraSection.join(' ')}`)
+  }
 
   // ───────── ¶4: 6개월 시나리오 처방 — 별도 단락 ─────────
   // 격국 있으면 격국+대운, 없으면 일간+대운 폴백
