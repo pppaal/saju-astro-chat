@@ -7,10 +7,8 @@ import { analytics } from '@/components/analytics/GoogleAnalytics'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
 import {
-  PremiumPageScaffold,
   PersonModelOverview,
   ReportBuilderActionPanel,
-  ReportBuilderHero,
   ReportBulletListSection,
   ReportFocusGridSection,
   ReportInsightCards,
@@ -180,165 +178,210 @@ export default function ComprehensiveReportPage() {
           <UnifiedServiceLoading kind="aiReport" locale="ko" />
         </div>
       )}
-      <PremiumPageScaffold accent="amber">
-        <ReportBuilderHero
-          accent="amber"
-          badge="Persona Report"
-          title="종합 리포트"
-          description="무료는 핵심 구조와 현재 흐름을 먼저 보여주는 빠른 요약입니다. 프리미엄은 같은 출생 프로필을 바탕으로 더 깊은 인물 해석, 타이밍, 적용 가이드, PDF까지 확장합니다."
-          meta={
-            reportTier === 'premium'
-              ? `${REPORT_CREDIT_COSTS.comprehensive} credits · 프리미엄 리포트 + PDF`
-              : '0 credits · 무료 종합 요약'
-          }
-          actions={
-            <div className="inline-flex rounded-xl border border-white/15 bg-slate-950/50 p-1">
+      <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,#1a1c2e_0%,#0a0a14_60%)] text-slate-100">
+        <div className="mx-auto max-w-5xl px-6 pb-20 pt-16 sm:pt-24">
+          {/* Apple-tier Hero */}
+          <header className="space-y-5 text-center">
+            <div className="flex justify-center">
+              <span
+                className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.28em]"
+                style={{
+                  borderColor: reportTier === 'premium' ? 'rgba(251,191,36,0.4)' : 'rgba(148,163,184,0.4)',
+                  color: reportTier === 'premium' ? '#fbbf24' : '#cbd5e1',
+                  background: reportTier === 'premium' ? 'rgba(251,191,36,0.12)' : 'rgba(148,163,184,0.1)',
+                }}
+              >
+                {reportTier === 'premium' ? 'Premium · 인생 총운' : 'Free · 맛보기 운세'}
+              </span>
+            </div>
+            <h1
+              className="text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-4xl font-semibold leading-[1.1] text-transparent sm:text-5xl"
+              style={{ letterSpacing: '-0.025em', wordBreak: 'keep-all' }}
+            >
+              {reportTier === 'premium'
+                ? '연애·커리어·재물·건강·가족·이동까지 한 번에'
+                : '핵심 구조와 흐름을 빠르게'}
+            </h1>
+            <p className="mx-auto max-w-xl text-[15px] leading-relaxed text-slate-400">
+              {reportTier === 'premium'
+                ? '6 영역 통합 인생 전반 분석 · 8천자+ long-form · 5행 도넛/합의 강도/cross map 시각'
+                : '본인 사주로 1500자 digest · 핵심 통찰 3개 · 주요 영역 4개 점수'}
+            </p>
+
+            {/* Tier toggle */}
+            <div className="mx-auto mt-4 inline-flex rounded-2xl border border-white/10 bg-white/[0.03] p-1 backdrop-blur-md">
               <button
                 onClick={() => router.replace('/premium-reports/comprehensive?tier=free')}
-                className={`min-h-10 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                className={`min-w-[100px] rounded-xl px-4 py-2 text-[13px] font-medium transition-all duration-300 ${
                   reportTier === 'free'
-                    ? 'bg-emerald-500 text-white'
-                    : 'text-slate-300 hover:text-white'
+                    ? 'bg-white/10 text-white shadow-[0_0_20px_rgba(148,163,184,0.18)]'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
-                빠른 요약
+                Free 맛보기
               </button>
               <button
                 onClick={() => router.replace('/premium-reports/comprehensive?tier=premium')}
-                className={`min-h-10 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                className={`min-w-[100px] rounded-xl px-4 py-2 text-[13px] font-medium transition-all duration-300 ${
                   reportTier === 'premium'
-                    ? 'bg-amber-500 text-slate-950'
-                    : 'text-slate-300 hover:text-white'
+                    ? 'bg-[linear-gradient(135deg,rgba(251,191,36,0.25),rgba(251,191,36,0.1))] text-amber-200 shadow-[0_0_20px_rgba(251,191,36,0.25)]'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
-                프리미엄
+                Premium 인생총운
               </button>
             </div>
-          }
-        />
+          </header>
 
-        <main className="mx-auto grid max-w-5xl gap-6 px-4 pb-20 lg:grid-cols-[1fr_1fr]">
-          <ReportSurfaceSection
-            title="포함 내용"
-            tone={reportTier === 'premium' ? 'amber' : 'emerald'}
-          >
-            <ul className="space-y-2">
-              {FEATURES.map((feature) => (
-                <li key={feature} className="text-sm text-slate-200">
-                  • {feature}
-                </li>
-              ))}
-            </ul>
-          </ReportSurfaceSection>
+          <main className="mt-12 grid gap-5 lg:grid-cols-[1fr_1fr]">
+            <ReportSurfaceSection
+              title="포함 내용"
+              tone={reportTier === 'premium' ? 'amber' : 'emerald'}
+            >
+              <ul className="space-y-2.5">
+                {FEATURES.map((feature) => (
+                  <li
+                    key={feature}
+                    className="flex items-start gap-2 text-[13.5px] leading-[1.6] text-slate-300"
+                  >
+                    <span
+                      className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full"
+                      style={{
+                        background: reportTier === 'premium' ? '#fbbf24' : '#34d399',
+                      }}
+                      aria-hidden
+                    />
+                    <span style={{ wordBreak: 'keep-all' }}>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </ReportSurfaceSection>
 
-          <ReportBuilderActionPanel
-            accent={reportTier === 'premium' ? 'amber' : 'emerald'}
-            initialName={profile.name}
-            onProfileSubmit={setProfileInput}
-            actionLabel={
-              isGenerating
-                ? '리포트 생성 중...'
-                : reportTier === 'premium'
-                  ? '프리미엄 종합 리포트 생성'
-                  : '무료 요약 리포트 생성'
-            }
-            onAction={handleGenerate}
-            disabled={!canGenerate}
-            error={error}
-            helperText={
-              reportTier === 'premium'
-                ? '프리미엄 리포트는 My Journey에서 다시 확인할 수 있습니다.'
-                : '무료 요약은 세션 기준으로만 유지되며 저장되지 않습니다.'
-            }
-          >
-            <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 text-sm text-slate-200">
-              <p className="font-medium text-white">
-                {reportTier === 'premium' ? '심화 해석 모드' : '빠른 요약 모드'}
-              </p>
-              <p className="mt-2 leading-6 text-slate-300">
-                {reportTier === 'premium'
-                  ? '인물 구조, 현재 활성 상태, 핵심 분기, 적용 가이드와 PDF까지 한 번에 생성합니다.'
-                  : '핵심 구조, 현재 흐름, 상위 포커스 영역과 다음 단계를 짧고 선명하게 정리합니다.'}
-              </p>
-            </div>
+            <ReportBuilderActionPanel
+              accent={reportTier === 'premium' ? 'amber' : 'emerald'}
+              initialName={profile.name}
+              onProfileSubmit={setProfileInput}
+              actionLabel={
+                isGenerating
+                  ? '리포트 생성 중...'
+                  : reportTier === 'premium'
+                    ? `인생총운 생성 (${REPORT_CREDIT_COSTS.comprehensive} credits)`
+                    : '무료 요약 생성'
+              }
+              onAction={handleGenerate}
+              disabled={!canGenerate}
+              error={error}
+              helperText={
+                reportTier === 'premium'
+                  ? '생성 후 My Journey에서 다시 확인할 수 있습니다.'
+                  : '무료 요약은 세션 기준으로만 유지되며 저장되지 않습니다.'
+              }
+            >
+              <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 text-sm text-slate-200">
+                <p className="font-medium text-white">
+                  {reportTier === 'premium' ? '심화 해석 모드' : '빠른 요약 모드'}
+                </p>
+                <p className="mt-2 leading-6 text-slate-300" style={{ wordBreak: 'keep-all' }}>
+                  {reportTier === 'premium'
+                    ? '인물 구조, 현재 활성 상태, 핵심 분기, 적용 가이드와 PDF까지 한 번에 생성합니다.'
+                    : '핵심 구조, 현재 흐름, 상위 포커스 영역과 다음 단계를 짧고 선명하게 정리합니다.'}
+                </p>
+              </div>
 
-            {freeReport && (
-              <section className="rounded-3xl border border-emerald-300/30 bg-gradient-to-br from-emerald-500/12 to-teal-500/8 p-5 text-sm text-emerald-50">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-200/80">
-                      Free Digest
-                    </p>
-                    <h3 className="mt-1 text-lg font-bold text-emerald-50">
-                      {freeReport.headline}
-                    </h3>
+              {freeReport && (
+                <section className="rounded-3xl border border-emerald-300/30 bg-gradient-to-br from-emerald-500/12 to-teal-500/8 p-5 text-sm text-emerald-50">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-200/80">
+                        Free Digest
+                      </p>
+                      <h3 className="mt-1 text-lg font-bold text-emerald-50">
+                        {freeReport.headline}
+                      </h3>
+                    </div>
+                    <div className="rounded-2xl border border-emerald-200/30 bg-emerald-950/35 px-4 py-3 text-right">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-200/70">
+                        Score
+                      </p>
+                      <p className="mt-1 text-2xl font-black text-emerald-50">
+                        {freeReport.overallScore}점
+                      </p>
+                      <p className="text-xs text-emerald-100/80">등급 {freeReport.grade}</p>
+                    </div>
                   </div>
-                  <div className="rounded-2xl border border-emerald-200/30 bg-emerald-950/35 px-4 py-3 text-right">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-200/70">
-                      Score
-                    </p>
-                    <p className="mt-1 text-2xl font-black text-emerald-50">
-                      {freeReport.overallScore}점
-                    </p>
-                    <p className="text-xs text-emerald-100/80">등급 {freeReport.grade}</p>
-                  </div>
-                </div>
 
-                <ReportSummarySection
-                  summary={freeReport.summary}
-                  tone="emerald"
-                  className="mt-4 border-0 p-0 bg-transparent backdrop-blur-0"
-                />
-
-                {freeReport.personModel && (
-                  <PersonModelOverview
-                    personModel={freeReport.personModel}
-                    variant="digest"
-                    className="mt-5"
+                  <ReportSummarySection
+                    summary={freeReport.summary}
+                    tone="emerald"
+                    className="mt-4 border-0 p-0 bg-transparent backdrop-blur-0"
                   />
-                )}
 
-                <ReportFocusGridSection
-                  title="포커스 영역"
-                  tone="emerald"
-                  className="mt-5"
-                  items={(freeReport.focusAreas || []).slice(0, 4)}
-                />
-
-                <ReportInsightCards
-                  title="핵심 인사이트"
-                  tone="emerald"
-                  className="mt-5"
-                  items={(freeReport.topInsights || []).map((item) => ({
-                    title: item.title,
-                    body: item.reason,
-                    footer: `Next · ${item.action}`,
-                  }))}
-                />
-
-                {(freeReport.caution && freeReport.caution.length > 0) ||
-                (freeReport.nextSteps && freeReport.nextSteps.length > 0) ? (
-                  <div className="mt-5 grid gap-4 md:grid-cols-2">
-                    <ReportBulletListSection
-                      title="주의 포인트"
-                      tone="amber"
-                      items={(freeReport.caution || []).slice(0, 4)}
-                      className="h-full"
+                  {freeReport.personModel && (
+                    <PersonModelOverview
+                      personModel={freeReport.personModel}
+                      variant="digest"
+                      className="mt-5"
                     />
+                  )}
 
-                    <ReportBulletListSection
-                      title="다음 단계"
-                      tone="emerald"
-                      items={freeReport.nextSteps || []}
-                      className="h-full"
-                    />
+                  <ReportFocusGridSection
+                    title="포커스 영역"
+                    tone="emerald"
+                    className="mt-5"
+                    items={(freeReport.focusAreas || []).slice(0, 4)}
+                  />
+
+                  <ReportInsightCards
+                    title="핵심 인사이트"
+                    tone="emerald"
+                    className="mt-5"
+                    items={(freeReport.topInsights || []).map((item) => ({
+                      title: item.title,
+                      body: item.reason,
+                      footer: `Next · ${item.action}`,
+                    }))}
+                  />
+
+                  {(freeReport.caution && freeReport.caution.length > 0) ||
+                  (freeReport.nextSteps && freeReport.nextSteps.length > 0) ? (
+                    <div className="mt-5 grid gap-4 md:grid-cols-2">
+                      <ReportBulletListSection
+                        title="주의 포인트"
+                        tone="amber"
+                        items={(freeReport.caution || []).slice(0, 4)}
+                        className="h-full"
+                      />
+
+                      <ReportBulletListSection
+                        title="다음 단계"
+                        tone="emerald"
+                        items={freeReport.nextSteps || []}
+                        className="h-full"
+                      />
+                    </div>
+                  ) : null}
+
+                  {/* Free → Premium 업그레이드 CTA */}
+                  <div className="mt-6 rounded-2xl border border-amber-300/25 bg-gradient-to-br from-amber-500/10 to-amber-300/5 p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-200/80">
+                      Want deeper?
+                    </p>
+                    <p className="mt-1.5 text-[14px] leading-relaxed text-amber-50/95" style={{ wordBreak: 'keep-all' }}>
+                      6 영역을 8천자+로 풀어주는 인생총운 또는 한 테마 깊이로 보고 싶으면 Premium에서.
+                    </p>
+                    <button
+                      onClick={() => router.replace('/premium-reports/comprehensive?tier=premium')}
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-[linear-gradient(135deg,#fbbf24_0%,#f59e0b_100%)] px-4 py-2 text-[13px] font-semibold text-slate-950 transition hover:opacity-90"
+                    >
+                      Premium으로 업그레이드 →
+                    </button>
                   </div>
-                ) : null}
-              </section>
-            )}
-          </ReportBuilderActionPanel>
-        </main>
-      </PremiumPageScaffold>
+                </section>
+              )}
+            </ReportBuilderActionPanel>
+          </main>
+        </div>
+      </div>
     </>
   )
 }

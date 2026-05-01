@@ -1,525 +1,233 @@
-﻿'use client'
+'use client'
 
-import { useMemo, useState } from 'react'
+/**
+ * Apple-tier Premium Reports Hub.
+ *
+ * 3 카드 — Free / 인생총운 / 테마별.
+ * 큰 헤드라인 / 절제된 카드 / smooth interaction.
+ */
+
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import {
-  ArrowRight,
-  Briefcase,
-  CalendarDays,
-  Coins,
-  Crown,
-  Heart,
-  HeartPulse,
-  Sparkles,
-  Users,
-} from 'lucide-react'
-import { analytics } from '@/components/analytics/GoogleAnalytics'
-import UnifiedServiceLoading from '@/components/ui/UnifiedServiceLoading'
-import {
-  PremiumPageScaffold,
-  ReportProfileForm,
-  type ReportProfileInput,
-} from '@/app/premium-reports/_components'
-import { loadStoredReportProfile } from '@/app/premium-reports/_lib/shared'
-import { savePremiumReportSnapshot } from '@/lib/premium-reports/reportSnapshot'
+import { Crown, Sparkles, Compass } from 'lucide-react'
 
-type ReportMode = 'free' | 'premium'
-type ReportTheme = 'love' | 'career' | 'wealth' | 'health' | 'family'
-type PremiumSelectionType = 'theme' | 'comprehensive' | 'timing'
+const ROUTES = {
+  free: '/premium-reports/comprehensive?tier=free',
+  comprehensive: '/premium-reports/comprehensive?tier=premium',
+  themed: '/premium-reports/themed?tier=premium',
+} as const
 
-type PremiumOption = {
-  key: string
-  type: PremiumSelectionType
-  label: string
+interface ReportCard {
+  key: 'free' | 'comprehensive' | 'themed'
+  badge: string
+  title: string
+  subtitle: string
   description: string
-  color: string
-  icon: typeof Heart
-  sections: string[]
-  theme?: ReportTheme
-  period?: 'yearly'
+  features: string[]
+  Icon: typeof Crown
+  accent: string
+  glow: string
+  cta: string
+  authRequired: boolean
 }
 
-const FALLBACK_CITY = 'Seoul, South Korea'
-const FALLBACK_LAT = 37.5665
-const FALLBACK_LON = 126.978
-const PREMIUM_API_TIMEOUT_MS = 60000
-const PREMIUM_OPTIONS: PremiumOption[] = [
+const CARDS: ReportCard[] = [
+  {
+    key: 'free',
+    badge: 'Free',
+    title: '맛보기 운세',
+    subtitle: '본인 사주로 짧은 요약',
+    description: '핵심 흐름·강점·주의 신호를 1500자 digest로 받아보세요.',
+    features: [
+      '본인 사주 1500자 digest',
+      '핵심 통찰 3개',
+      '주요 영역 4개 점수',
+    ],
+    Icon: Compass,
+    accent: '#94a3b8',
+    glow: 'rgba(148,163,184,0.15)',
+    cta: '무료로 시작',
+    authRequired: false,
+  },
   {
     key: 'comprehensive',
-    type: 'comprehensive',
-    label: '인생총운',
-    description: '전체 흐름, 전환점, 장기 실행 전략을 종합 리포트로 제공합니다.',
-    color: 'from-amber-500 to-orange-500',
-    icon: Crown,
-    sections: ['전체 흐름', '장기 전환점', '핵심 과제', '종합 실행안'],
+    badge: 'Premium',
+    title: '인생 총운',
+    subtitle: '모든 영역 통합 깊이 분석',
+    description:
+      '연애·커리어·재물·건강·가족·이동까지 6 영역을 한 번에 8천자+ 깊이로 풀어드려요.',
+    features: [
+      '8000자+ long-form',
+      '6 영역 통합 분석',
+      '5행 도넛 + 합의 강도 시각',
+      'Tier 1-4 깊이 KB',
+    ],
+    Icon: Crown,
+    accent: '#fbbf24',
+    glow: 'rgba(251,191,36,0.22)',
+    cta: '인생총운 시작',
+    authRequired: true,
   },
   {
-    key: 'yearly',
-    type: 'timing',
-    period: 'yearly',
-    label: '신년운',
-    description: '올해의 기회 구간, 주의 시점, 영역별 타이밍을 집중 분석합니다.',
-    color: 'from-cyan-500 to-blue-500',
-    icon: CalendarDays,
-    sections: ['연간 흐름', '기회 시점', '주의 구간', '올해 행동 가이드'],
-  },
-  {
-    key: 'love',
-    type: 'theme',
-    theme: 'love',
-    label: '연애/관계',
-    description: '감정 리듬, 소통 포인트, 관계 안정성과 전환 타이밍을 분석합니다.',
-    color: 'from-pink-500 to-rose-500',
-    icon: Heart,
-    sections: ['관계 흐름', '소통 포인트', '리스크 신호', '실행 가이드'],
-  },
-  {
-    key: 'career',
-    type: 'theme',
-    theme: 'career',
-    label: '커리어/직업',
-    description: '일의 방향성, 기회 창, 협업 패턴, 의사결정 타이밍을 제시합니다.',
-    color: 'from-blue-500 to-indigo-500',
-    icon: Briefcase,
-    sections: ['일의 방향', '성장 구간', '협업 전략', '행동 플랜'],
-  },
-  {
-    key: 'wealth',
-    type: 'theme',
-    theme: 'wealth',
-    label: '재물/자산',
-    description: '현금흐름, 투자 시기, 소비 리스크, 자산 운영 힌트를 제공합니다.',
-    color: 'from-amber-500 to-orange-500',
-    icon: Coins,
-    sections: ['수입/지출', '투자 타이밍', '주의 구간', '현실 실행안'],
-  },
-  {
-    key: 'health',
-    type: 'theme',
-    theme: 'health',
-    label: '건강/컨디션',
-    description: '에너지 변동, 회복 루틴, 과부하 신호, 생활 패턴 최적화를 분석합니다.',
-    color: 'from-emerald-500 to-teal-500',
-    icon: HeartPulse,
-    sections: ['에너지 리듬', '회복 루틴', '주의 지표', '실천 체크'],
-  },
-  {
-    key: 'family',
-    type: 'theme',
-    theme: 'family',
-    label: '가족/생활',
-    description: '가정 내 역할, 정서 흐름, 갈등 완화 포인트를 제안합니다.',
-    color: 'from-violet-500 to-purple-500',
-    icon: Users,
-    sections: ['관계 역학', '정서 흐름', '갈등 완화', '현실 조정안'],
+    key: 'themed',
+    badge: 'Premium',
+    title: '테마 심층',
+    subtitle: '한 영역만 집중적으로',
+    description:
+      '연애·커리어·재물·건강·가족·이동 중 하나를 인생/연/월 시기로 깊이.',
+    features: [
+      '6 테마 × 3 시기 = 18 조합',
+      '한 테마 8000자 집중',
+      '시기 scope (인생/연/월)',
+      'Cross map 시각',
+    ],
+    Icon: Sparkles,
+    accent: '#a78bfa',
+    glow: 'rgba(167,139,250,0.22)',
+    cta: '테마 선택',
+    authRequired: true,
   },
 ]
 
-function normalizeGender(value?: ReportProfileInput['gender']): 'M' | 'F' {
-  return value === 'F' ? 'F' : 'M'
-}
-
-function createFreeReportUrl(profile: ReportProfileInput): string {
-  const latitude = Number.isFinite(profile.latitude) ? profile.latitude : FALLBACK_LAT
-  const longitude = Number.isFinite(profile.longitude) ? profile.longitude : FALLBACK_LON
-  const params = new URLSearchParams({
-    name: profile.name || '사용자',
-    birthDate: profile.birthDate,
-    birthTime: profile.birthTime || '12:00',
-    birthCity: profile.birthCity?.trim() || FALLBACK_CITY,
-    timezone: profile.timezone || 'Asia/Seoul',
-    lat: String(latitude),
-    lon: String(longitude),
-    gender: profile.gender ? String(profile.gender) : normalizeGender(profile.gender),
-    tier: 'free',
-  })
-  return `/premium-reports/comprehensive?${params.toString()}`
-}
-
-export default function PremiumReportsPage() {
+export default function PremiumReportsPageClient() {
   const router = useRouter()
-  const { data: session, status } = useSession()
+  const { status } = useSession()
 
-  const [mode, setMode] = useState<ReportMode>('free')
-  const [selectedOptionKey, setSelectedOptionKey] = useState<string>('comprehensive')
-  const [profileInput, setProfileInput] = useState<ReportProfileInput | null>(null)
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const initialName = useMemo(() => {
-    const fromSession = session?.user?.name
-    return typeof fromSession === 'string' ? fromSession : ''
-  }, [session])
-
-  const hasProfile = Boolean(profileInput?.birthDate)
-  const canRun =
-    !isGenerating &&
-    (mode === 'free' ? hasProfile : status === 'authenticated' ? hasProfile : status !== 'loading')
-  const selectedOption =
-    PREMIUM_OPTIONS.find((option) => option.key === selectedOptionKey) ?? PREMIUM_OPTIONS[0]
-
-  const getResolvedProfile = () => {
-    if (profileInput?.birthDate) {
-      return profileInput
-    }
-    const parsed = loadStoredReportProfile()
-    if (parsed?.birthDate) {
-      setProfileInput(parsed)
-      return parsed
-    }
-    return null
-  }
-
-  const handleStartFree = () => {
-    const resolvedProfile = getResolvedProfile()
-    if (!resolvedProfile) {
-      setError('출생 정보를 입력한 뒤 분석하기를 눌러주세요.')
+  const handleClick = (card: ReportCard) => {
+    if (card.authRequired && status === 'unauthenticated') {
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(ROUTES[card.key])}`)
       return
     }
-    setError(null)
-    const nextUrl = createFreeReportUrl(resolvedProfile)
-    try {
-      router.push(nextUrl)
-      // Fallback navigation if app-router transition is blocked
-      setTimeout(() => {
-        if (typeof window !== 'undefined' && window.location.pathname === '/premium-reports') {
-          window.location.assign(nextUrl)
-        }
-      }, 350)
-    } catch {
-      if (typeof window !== 'undefined') {
-        window.location.assign(nextUrl)
-      }
-    }
-  }
-
-  const handleGeneratePremium = async () => {
-    if (status !== 'authenticated') {
-      const signinUrl = '/auth/signin?callbackUrl=/premium-reports'
-      try {
-        router.push(signinUrl)
-        // Fallback navigation if app-router transition is blocked
-        setTimeout(() => {
-          if (typeof window !== 'undefined' && window.location.pathname === '/premium-reports') {
-            window.location.assign(signinUrl)
-          }
-        }, 350)
-      } catch {
-        if (typeof window !== 'undefined') {
-          window.location.assign(signinUrl)
-        }
-      }
-      return
-    }
-
-    const resolvedProfile = getResolvedProfile()
-    if (!resolvedProfile) {
-      setError('출생 정보를 입력한 뒤 분석하기를 눌러주세요.')
-      return
-    }
-
-    setError(null)
-    setIsGenerating(true)
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), PREMIUM_API_TIMEOUT_MS)
-
-    try {
-      const payload: Record<string, unknown> = {
-        reportTier: 'premium',
-        detailLevel: selectedOption.type === 'timing' ? 'detailed' : 'comprehensive',
-        lang: 'ko',
-        name: resolvedProfile.name || '사용자',
-        birthDate: resolvedProfile.birthDate,
-        birthTime: resolvedProfile.birthTime || '12:00',
-        birthCity: resolvedProfile.birthCity || FALLBACK_CITY,
-        timezone: resolvedProfile.timezone || 'Asia/Seoul',
-        gender: resolvedProfile.gender,
-        latitude: Number.isFinite(resolvedProfile.latitude)
-          ? resolvedProfile.latitude
-          : FALLBACK_LAT,
-        longitude: Number.isFinite(resolvedProfile.longitude)
-          ? resolvedProfile.longitude
-          : FALLBACK_LON,
-      }
-
-      if (selectedOption.type === 'theme' && selectedOption.theme) {
-        payload.theme = selectedOption.theme
-      } else if (selectedOption.type === 'timing' && selectedOption.period) {
-        payload.period = selectedOption.period
-        payload.targetDate = `${new Date().getFullYear()}-01-01`
-      } else {
-        payload.period = 'comprehensive'
-      }
-
-      const response = await fetch('/api/destiny-matrix/ai-report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      })
-
-      clearTimeout(timeout)
-
-      const data = (await response.json().catch(() => ({}))) as {
-        success?: boolean
-        report?: { id?: string; reportType?: 'timing' | 'themed' | 'comprehensive' }
-        error?: { code?: string; message?: string }
-      }
-
-      if (!data.success) {
-        if (data.error?.code === 'INSUFFICIENT_CREDITS') {
-          router.push('/pricing?reason=credits')
-          return
-        }
-        throw new Error(data.error?.message || '리포트 생성에 실패했습니다.')
-      }
-
-      const reportId = data.report?.id
-      if (!reportId) {
-        throw new Error('리포트 ID를 받지 못했습니다.')
-      }
-
-      const reportType: 'timing' | 'themed' | 'comprehensive' =
-        data.report?.reportType ||
-        (selectedOption.type === 'theme'
-          ? 'themed'
-          : selectedOption.type === 'timing'
-            ? 'timing'
-            : 'comprehensive')
-
-      savePremiumReportSnapshot({
-        reportId,
-        reportType,
-        period:
-          selectedOption.type === 'timing'
-            ? selectedOption.period
-            : reportType === 'comprehensive'
-              ? 'comprehensive'
-              : undefined,
-        theme: selectedOption.type === 'theme' ? selectedOption.theme : undefined,
-        createdAt: new Date().toISOString(),
-        report: (data.report ?? {}) as Record<string, unknown>,
-      })
-
-      analytics.matrixGenerate('premium-reports')
-      const resultUrl = `/premium-reports/result/${reportId}?type=${reportType}`
-      try {
-        router.push(resultUrl)
-        setTimeout(() => {
-          if (typeof window !== 'undefined' && window.location.pathname === '/premium-reports') {
-            window.location.assign(resultUrl)
-          }
-        }, 350)
-      } catch {
-        if (typeof window !== 'undefined') {
-          window.location.assign(resultUrl)
-        }
-      }
-    } catch (e) {
-      if (e instanceof Error && e.name === 'AbortError') {
-        setError('응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.')
-      } else {
-        setError(e instanceof Error ? e.message : '리포트 생성 중 오류가 발생했습니다.')
-      }
-    } finally {
-      clearTimeout(timeout)
-      setIsGenerating(false)
-    }
+    router.push(ROUTES[card.key])
   }
 
   return (
-    <>
-      {isGenerating && (
-        <div className="fixed inset-0 z-[120]">
-          <UnifiedServiceLoading kind="aiReport" locale="ko" />
-        </div>
-      )}
-
-      <PremiumPageScaffold accent="violet">
-        <header className="px-4 pb-7 pt-12">
-          <div className="mx-auto max-w-6xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-violet-300/40 bg-violet-500/15 px-4 py-1 text-xs font-semibold tracking-wide text-violet-100">
-              <Sparkles className="h-3.5 w-3.5" />
-              REPORT STUDIO
-            </div>
-            <h1 className="mt-4 text-3xl font-black tracking-tight text-white md:text-5xl">
-              한 번 입력하면, 빠른 요약부터 심화 프리미엄 리포트까지
-            </h1>
-            <p className="mt-3 max-w-3xl text-[15px] leading-[1.7] text-slate-200/95 md:text-base">
-              사주와 점성 기반 공통 프로필을 먼저 만든 뒤, 무료 요약 리포트로 핵심 구조를 확인하거나
-              인생총운·신년운·연애·커리어·재물·건강·가족 리포트로 바로 이어집니다.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-200">
-              {PREMIUM_OPTIONS.map((option) => (
-                <span
-                  key={option.key}
-                  className="rounded-full border border-white/15 bg-white/5 px-3 py-1"
-                >
-                  {option.label}
-                </span>
-              ))}
-            </div>
-          </div>
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,#1a1c2e_0%,#0a0a14_60%)] text-slate-100">
+      <div className="mx-auto max-w-5xl px-6 py-16 sm:py-24">
+        {/* Hero */}
+        <header className="space-y-4 text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-cyan-300/70">
+            Destiny Reports
+          </p>
+          <h1
+            className="text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-4xl font-semibold leading-[1.1] text-transparent sm:text-6xl"
+            style={{ letterSpacing: '-0.025em', wordBreak: 'keep-all' }}
+          >
+            사주와 점성으로 읽는<br />
+            지금 가장 알고 싶은 결
+          </h1>
+          <p className="mx-auto max-w-md pt-2 text-[15px] leading-relaxed text-slate-400">
+            맛보기·인생총운·테마 심층 — 원하는 깊이로 받아보세요.
+          </p>
         </header>
 
-        <section
-          className="mx-auto grid max-w-6xl gap-6 px-4 pb-20 lg:grid-cols-[1.05fr_1fr]"
-          aria-label="AI report mode and profile setup"
-        >
-          <section className="space-y-4">
-            <ReportProfileForm locale="ko" initialName={initialName} onSubmit={setProfileInput} />
-
-            {error && (
-              <div className="rounded-xl border border-red-500/50 bg-red-500/15 px-4 py-3 text-sm text-red-100">
-                {error}
-              </div>
-            )}
-          </section>
-
-          <section className="space-y-4">
-            <article className="rounded-3xl border border-white/15 bg-slate-900/60 p-5 backdrop-blur-xl">
-              <div className="inline-flex rounded-xl border border-white/15 bg-slate-950/50 p-1">
-                <button
-                  type="button"
-                  onClick={() => setMode('free')}
-                  className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
-                    mode === 'free'
-                      ? 'bg-emerald-500 text-white'
-                      : 'text-slate-300 hover:text-white'
-                  }`}
-                >
-                  빠른 요약
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode('premium')}
-                  className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
-                    mode === 'premium'
-                      ? 'bg-violet-500 text-white'
-                      : 'text-slate-300 hover:text-white'
-                  }`}
-                >
-                  프리미엄
-                </button>
-              </div>
-
-              {mode === 'free' ? (
-                <div className="mt-4 rounded-2xl border border-emerald-300/35 bg-gradient-to-br from-emerald-500/15 to-teal-500/10 p-5">
-                  <p className="text-xs font-semibold text-emerald-200">QUICK DIGEST</p>
-                  <h2 className="mt-1 text-xl font-extrabold text-white">무료 종합 요약 리포트</h2>
-                  <p className="mt-2 text-sm leading-6 text-slate-100">
-                    구조 요약, 현재 흐름, 주의 포인트, 바로 적용할 다음 단계까지 한 화면에서 먼저
-                    확인합니다.
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {['구조 요약', '현재 흐름', '상위 인사이트 3개', '즉시 실행안'].map((item) => (
-                      <span
-                        key={item}
-                        className="rounded-full border border-emerald-200/25 bg-emerald-950/35 px-3 py-1 text-[11px] text-emerald-100"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-4">
-                  <div className="mb-3 flex items-center gap-2 text-violet-100">
-                    <Crown className="h-4 w-4" />
-                    <span className="text-sm font-semibold">테마를 선택하세요</span>
-                  </div>
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {PREMIUM_OPTIONS.map((option) => {
-                      const Icon = option.icon
-                      const isSelected = selectedOption.key === option.key
-
-                      return (
-                        <button
-                          type="button"
-                          key={option.key}
-                          onClick={() => setSelectedOptionKey(option.key)}
-                          className={`rounded-2xl border p-4 text-left transition ${
-                            isSelected
-                              ? `border-violet-300 bg-gradient-to-br ${option.color} shadow-lg shadow-violet-500/25`
-                              : 'border-slate-700 bg-slate-800/40 hover:border-slate-500'
-                          }`}
-                        >
-                          <div className="mb-2 inline-flex rounded-lg bg-black/25 p-2 text-white">
-                            <Icon className="h-4 w-4" />
-                          </div>
-                          <p className="text-sm font-bold text-white">{option.label}</p>
-                          <p className="mt-1 text-xs leading-5 text-slate-100/90">
-                            {option.description}
-                          </p>
-                        </button>
-                      )
-                    })}
-                  </div>
-
-                  <div className="mt-3 rounded-xl border border-violet-300/30 bg-violet-500/10 p-3">
-                    <p className="text-xs font-semibold text-violet-100">
-                      선택된 리포트: {selectedOption.label}
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {selectedOption.sections.map((section) => (
-                        <span
-                          key={section}
-                          className="rounded-full border border-violet-300/40 bg-slate-950/50 px-3 py-1 text-[11px] text-violet-100"
-                        >
-                          {section}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
+        {/* 3 cards */}
+        <section className="mt-16 grid gap-5 lg:grid-cols-3">
+          {CARDS.map((card) => {
+            const Icon = card.Icon
+            return (
               <button
+                key={card.key}
                 type="button"
-                onClick={mode === 'free' ? handleStartFree : handleGeneratePremium}
-                disabled={!canRun}
-                className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white transition ${
-                  canRun
-                    ? mode === 'free'
-                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110'
-                      : `bg-gradient-to-r ${selectedOption.color} hover:brightness-110`
-                    : 'cursor-not-allowed bg-slate-700'
-                }`}
+                onClick={() => handleClick(card)}
+                className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-7 text-left transition-all duration-500 hover:border-white/25 hover:bg-white/[0.06] hover:scale-[1.01]"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = `0 30px 80px ${card.glow}`
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = `0 0 0 transparent`
+                }}
               >
-                {mode === 'free'
-                  ? hasProfile
-                    ? '무료 요약 리포트 보기'
-                    : '출생정보 입력 후 무료 요약 보기'
-                  : status === 'authenticated' && !hasProfile
-                    ? '출생정보 입력 후 Premium 분석하기'
-                    : '프리미엄 리포트 생성'}
-                <ArrowRight className="h-4 w-4" />
-              </button>
+                {/* Glow background */}
+                <div
+                  className="absolute -right-16 -top-16 h-40 w-40 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
+                  style={{ background: card.glow }}
+                  aria-hidden
+                />
 
-              {!hasProfile && (
-                <p className="mt-2 text-xs text-amber-200">
-                  출생 정보를 입력하면 바로 분석을 시작할 수 있습니다.
+                {/* Badge */}
+                <div className="flex items-center justify-between">
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-[0.22em]"
+                    style={{
+                      borderColor: card.accent + '50',
+                      color: card.accent,
+                      background: card.accent + '14',
+                    }}
+                  >
+                    {card.badge}
+                  </span>
+                  <Icon
+                    className="h-6 w-6 transition-colors duration-300"
+                    style={{ color: card.accent }}
+                    strokeWidth={1.5}
+                  />
+                </div>
+
+                {/* Title */}
+                <h2
+                  className="mt-6 text-[1.75rem] font-semibold leading-tight tracking-tight text-white"
+                  style={{ wordBreak: 'keep-all', letterSpacing: '-0.015em' }}
+                >
+                  {card.title}
+                </h2>
+                <p className="mt-1 text-[13.5px] text-slate-400" style={{ wordBreak: 'keep-all' }}>
+                  {card.subtitle}
                 </p>
-              )}
-              {error && <p className="mt-2 text-xs text-red-200">{error}</p>}
-            </article>
 
-            <article className="rounded-2xl border border-white/15 bg-slate-900/50 p-4 text-xs leading-6 text-slate-300 backdrop-blur-xl">
-              <p>무료 요약은 즉시 확인할 수 있고, 프리미엄 생성은 로그인 및 크레딧이 필요합니다.</p>
-              <Link
-                href="/pricing"
-                className="mt-1 inline-flex items-center gap-1 font-semibold text-cyan-200 hover:text-cyan-100"
-              >
-                요금제 보기
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </article>
-          </section>
+                {/* Description */}
+                <p
+                  className="mt-5 text-[14px] leading-[1.7] text-slate-300/90"
+                  style={{ wordBreak: 'keep-all' }}
+                >
+                  {card.description}
+                </p>
+
+                {/* Features */}
+                <ul className="mt-5 space-y-1.5">
+                  {card.features.map((f) => (
+                    <li
+                      key={f}
+                      className="flex items-start gap-2 text-[12.5px] leading-[1.5] text-slate-300/80"
+                    >
+                      <span
+                        className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full"
+                        style={{ background: card.accent }}
+                        aria-hidden
+                      />
+                      <span style={{ wordBreak: 'keep-all' }}>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* CTA */}
+                <div className="mt-7 flex items-center justify-between border-t border-white/[0.07] pt-5">
+                  <span className="text-[13.5px] font-medium text-white">{card.cta}</span>
+                  <span
+                    className="text-[18px] transition-transform duration-300 group-hover:translate-x-1"
+                    style={{ color: card.accent }}
+                    aria-hidden
+                  >
+                    →
+                  </span>
+                </div>
+              </button>
+            )
+          })}
         </section>
-      </PremiumPageScaffold>
-    </>
+
+        {/* Footer hint */}
+        <p className="mt-12 text-center text-[12px] text-slate-500">
+          모든 분석은 사주명리·점성술 전통에 기반한 <em className="not-italic text-slate-400">참고 자료</em>이며 미래를 단정하지 않습니다.{' '}
+          <Link
+            href="/premium-reports/preview"
+            className="text-cyan-300/80 underline-offset-2 hover:underline"
+          >
+            샘플 미리보기
+          </Link>
+        </p>
+      </div>
+    </div>
   )
 }
