@@ -206,6 +206,116 @@ export async function callClaude(opts: CallClaudeOptions): Promise<CallClaudeRes
 }
 
 /**
+ * Streaming Claude — SSE 형식 token-by-token 출력.
+ * 사용처: counselor chat-stream (Python backend `/ask-stream` 대체).
+ *
+ * @returns ReadableStream<string> — 각 chunk가 token text
+ */
+export async function callClaudeStream(opts: CallClaudeOptions): Promise<ReadableStream<string>> {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    throw new Error('ANTHROPIC_API_KEY is not set')
+  }
+  const {
+    systemPrompt,
+    userPrompt,
+    maxTokens = 2000,
+    temperature = 0.7,
+    timeoutMs = 60000,
+    model = DEFAULT_CLAUDE_MODEL,
+    label = 'claude-stream',
+  } = opts
+
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+
+  const response = await fetch(ANTHROPIC_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': ANTHROPIC_VERSION,
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: maxTokens,
+      temperature,
+      stream: true,
+      system: [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }],
+      messages: [{ role: 'user', content: userPrompt }],
+    }),
+    signal: controller.signal,
+  })
+
+  if (!response.ok || !response.body) {
+    clearTimeout(timer)
+    const errText = await response.text().catch(() => '')
+    throw new Error(`Claude stream error: ${response.status} ${errText.slice(0, 200)}`)
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+
+  return new ReadableStream<string>({
+    async start(streamController) {
+      let buffer = ''
+      let inputTokens = 0
+      let outputTokens = 0
+      try {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          buffer += decoder.decode(value, { stream: true })
+          // SSE format: each event is "data: {...}\n\n"
+          let idx
+          while ((idx = buffer.indexOf('\n\n')) !== -1) {
+            const block = buffer.slice(0, idx)
+            buffer = buffer.slice(idx + 2)
+            const dataLine = block.split('\n').find((l) => l.startsWith('data: '))
+            if (!dataLine) continue
+            const json = dataLine.slice(6).trim()
+            if (json === '[DONE]') continue
+            try {
+              const event = JSON.parse(json) as {
+                type?: string
+                delta?: { text?: string; type?: string }
+                message?: { usage?: { input_tokens?: number; output_tokens?: number } }
+                usage?: { input_tokens?: number; output_tokens?: number }
+              }
+              if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
+                const text = event.delta.text || ''
+                if (text) streamController.enqueue(text)
+              } else if (event.type === 'message_start' && event.message?.usage) {
+                inputTokens = event.message.usage.input_tokens || 0
+              } else if (event.type === 'message_delta' && event.usage) {
+                outputTokens = event.usage.output_tokens || 0
+              }
+            } catch {
+              // partial JSON — skip
+            }
+          }
+        }
+        // 비용 모니터링
+        if (inputTokens || outputTokens) {
+          recordCounter('claude.tokens.input', inputTokens, { model, label })
+          recordCounter('claude.tokens.output', outputTokens, { model, label })
+          recordExternalCall('anthropic', model, 'success', 0, {
+            input: inputTokens,
+            output: outputTokens,
+          })
+        }
+      } catch (err) {
+        recordExternalCall('anthropic', model, 'error', 0, {})
+        streamController.error(err)
+      } finally {
+        clearTimeout(timer)
+        streamController.close()
+      }
+    },
+  })
+}
+
+/**
  * JSON 응답 보장형 호출. 응답에서 첫 번째 JSON 객체만 파싱해 반환.
  */
 export async function callClaudeJson<T = unknown>(

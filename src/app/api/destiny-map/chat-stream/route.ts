@@ -5,8 +5,9 @@ import {
   extractLocale,
   type MiddlewareOptions,
 } from '@/lib/api/middleware'
-import { createTransformedSSEStream, createFallbackSSEStream } from '@/lib/streaming'
-import { apiClient } from '@/lib/api/ApiClient'
+import { createFallbackSSEStream } from '@/lib/streaming'
+import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
+import { counselorSystemPrompt } from '@/app/api/destiny-map/chat-stream/lib/helpers'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { sanitizeLocaleText } from '@/lib/destiny-map/sanitize'
 import { maskTextWithName } from '@/lib/security'
@@ -422,43 +423,46 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    const streamResult = await apiClient.postSSEStream(
-      '/ask-stream',
-      {
-        theme: preparedExecution.promptTheme,
-        prompt: preparedExecution.chatPrompt,
-        locale: preparedInputs.lang,
-        saju: preparedExecution.backendSaju || preparedInputs.effectiveSaju || undefined,
-        astro: preparedExecution.backendAstro || preparedInputs.effectiveAstro || undefined,
-        birth: {
-          date: preparedInputs.effectiveBirthDate,
-          time: preparedInputs.effectiveBirthTime,
-          gender: preparedInputs.effectiveGender,
-          lat: preparedInputs.effectiveLatitude,
-          lon: preparedInputs.effectiveLongitude,
+    // Claude 직접 호출 (Python backend `/ask-stream` 대체)
+    try {
+      return await streamClaudeAsSSE({
+        systemPrompt: counselorSystemPrompt(preparedInputs.lang),
+        userPrompt: preparedExecution.chatPrompt,
+        maxTokens: 2500,
+        temperature: 0.7,
+        timeoutMs: 60000,
+        label: 'counselor-chat-stream',
+        transform: (chunk) =>
+          maskTextWithName(sanitizeLocaleText(chunk, preparedInputs.lang), preparedInputs.name),
+        finalize: (fullText) => {
+          const finalized = finalizeCounselorContent({
+            rawText: fullText,
+            lang: preparedInputs.lang,
+            uiEvidence: preparedExecution.counselorUiEvidence,
+            interpretedAnswerQuality: preparedExecution.interpretedAnswerQuality,
+          })
+          // finalize는 *전체 보강 문자열* 반환. 토큰으로 흘리고 끝에 한 번 더 송출.
+          return finalized && finalized !== fullText ? finalized.slice(fullText.length) : null
         },
-        history: preparedInputs.trimmedHistory.filter((m) => m.role !== 'system'),
-        session_id: req.headers.get('x-session-id') || undefined,
-        user_context: preparedInputs.userContext || undefined,
-        cv_text: preparedInputs.cvText || undefined,
-        provider_hint: getCounselorBackendProviderHint(),
-        model_hint: getCounselorBackendModelHint(),
-        quality_tier: isCounselorCostOptimized() ? 'fast' : 'quality',
-        cost_optimized: isCounselorCostOptimized(),
-      },
-      { timeout: 60000 }
-    )
-
-    if (!streamResult.ok) {
-      logger.error('[DestinyMapChatStream] Backend error:', {
-        status: streamResult.status,
-        error: streamResult.error,
+        additionalHeaders: {
+          'X-Fallback': '0',
+          ...(preparedExecution.counselorUiEvidence
+            ? { 'X-Counselor-Evidence': preparedExecution.counselorUiEvidence }
+            : {}),
+          ...(preparedExecution.predictionId
+            ? { 'X-Destiny-Prediction-Id': preparedExecution.predictionId }
+            : {}),
+          'X-Guest-Mode': isGuestMode ? '1' : '0',
+        },
+      })
+    } catch (claudeErr) {
+      logger.error('[DestinyMapChatStream] Claude error:', {
+        error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
       })
 
       if (context.refundCreditsOnError) {
-        await context.refundCreditsOnError(`Backend stream error: ${streamResult.status}`, {
+        await context.refundCreditsOnError(`Claude error: ${claudeErr instanceof Error ? claudeErr.message : 'unknown'}`, {
           route: 'destiny-map-chat-stream',
-          status: streamResult.status,
         })
       }
 
@@ -487,35 +491,6 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    return createTransformedSSEStream({
-      source: streamResult.response,
-      transform: (chunk) => {
-        return maskTextWithName(sanitizeLocaleText(chunk, preparedInputs.lang), preparedInputs.name)
-      },
-      extractText: (chunk) =>
-        maskTextWithName(
-          sanitizeLocaleText(extractCounselorTextFromSSEChunk(chunk), preparedInputs.lang),
-          preparedInputs.name
-        ),
-      finalizeText: (fullText) =>
-        finalizeCounselorContent({
-          rawText: fullText,
-          lang: preparedInputs.lang,
-          uiEvidence: preparedExecution.counselorUiEvidence,
-          interpretedAnswerQuality: preparedExecution.interpretedAnswerQuality,
-        }),
-      route: 'DestinyMapChatStream',
-      additionalHeaders: {
-        'X-Fallback': streamResult.response.headers.get('x-fallback') || '0',
-        ...(preparedExecution.counselorUiEvidence
-          ? { 'X-Counselor-Evidence': preparedExecution.counselorUiEvidence }
-          : {}),
-        ...(preparedExecution.predictionId
-          ? { 'X-Destiny-Prediction-Id': preparedExecution.predictionId }
-          : {}),
-        'X-Guest-Mode': isGuestMode ? '1' : '0',
-      },
-    })
   } catch (err: unknown) {
     logger.error('[Chat-Stream API error]', err)
 
