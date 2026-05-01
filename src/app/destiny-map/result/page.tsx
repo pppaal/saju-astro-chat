@@ -8,6 +8,7 @@ import { logger } from '@/lib/logger'
 import { analyzeDestiny } from '@/components/destiny-map/Analyzer'
 import Display from '@/components/destiny-map/Display'
 import FunInsights from '@/components/destiny-map/FunInsights'
+import FreeCrossPreview from '@/components/destiny-map/FreeCrossPreview'
 import AnalyzingLoader, { LifePredictionSkeleton } from './AnalyzingLoader'
 import { useLifePrediction } from './useLifePrediction'
 const FortuneDashboard = lazy(() => import('@/components/life-prediction/FortuneDashboard'))
@@ -414,27 +415,83 @@ export default function DestinyResultPage({
             {/* ✨ 성격 유형 인사이트 (노바 페르소나 결과 연동) */}
             <PersonalityInsight lang={lang} />
 
-            {/* Premium 업그레이드 CTA */}
-            <div className={styles.counselorSection}>
-              <div className={styles.counselorDivider}>
-                <div className={styles.counselorLine} />
-                <span className={styles.counselorLabel}>
-                  {lang === 'ko' ? '더 깊이 들어가고 싶다면' : 'Want to go deeper?'}
-                </span>
-                <div className={styles.counselorLine} />
-              </div>
+            {/* 사주·점성 cross 맛보기 — Premium 깊이 preview */}
+            <div className="mt-6">
+              <FreeCrossPreview
+                saju={result?.saju}
+                astrology={(result?.astrology || result?.astro) as Record<string, unknown> | undefined}
+                lang={lang as 'ko' | 'en'}
+              />
+            </div>
+
+            {/* Premium 업그레이드 CTA — 본격 가치 제안 */}
+            <div className="mt-8 overflow-hidden rounded-3xl border border-amber-300/25 bg-[linear-gradient(135deg,rgba(251,191,36,0.12),rgba(251,191,36,0.02))] p-6 backdrop-blur-md">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-amber-300/80">
+                Premium · 더 깊이
+              </p>
+              <h3
+                className="mt-2 text-balance text-[1.6rem] font-semibold leading-tight text-white sm:text-[1.85rem]"
+                style={{ letterSpacing: '-0.02em', wordBreak: 'keep-all' }}
+              >
+                {lang === 'ko' ? (
+                  <>
+                    여기서 끝내기엔
+                    <br />
+                    아쉬운 결이 너무 많아요
+                  </>
+                ) : (
+                  <>Your story has more depth waiting</>
+                )}
+              </h3>
+              <p
+                className="mt-3 text-[14px] leading-[1.7] text-slate-300/90"
+                style={{ wordBreak: 'keep-all' }}
+              >
+                {lang === 'ko'
+                  ? '맛보기로는 짚어내지 못한 정관격·신살 정통 풀이, 60갑자 specific 페어, 점성 advanced 신호(소행성·Vertex·POF)까지 *Premium에서 24,000자 long-form*으로 풀어드려요.'
+                  : 'The full report unfolds 24,000+ words — orthodox geokguk readings, 60갑자 pair specifics, and advanced astro signals woven together.'}
+              </p>
+
+              <ul className="mt-5 grid gap-2 sm:grid-cols-2">
+                {(lang === 'ko'
+                  ? [
+                      '12+ 사주×점성 cross 신호',
+                      '격국·신살 정통 5필드 풀이',
+                      '60갑자 specific 페어 해석',
+                      '소행성·Vertex·POF advanced',
+                    ]
+                  : [
+                      '12+ Saju×Astro cross signals',
+                      'Orthodox geokguk·shinsal',
+                      '60-pair specific readings',
+                      'Asteroids·Vertex·POF',
+                    ]
+                ).map((f) => (
+                  <li
+                    key={f}
+                    className="flex items-start gap-2 text-[12.5px] leading-[1.5] text-amber-50/85"
+                  >
+                    <span
+                      className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full bg-amber-300"
+                      aria-hidden
+                    />
+                    <span style={{ wordBreak: 'keep-all' }}>{f}</span>
+                  </li>
+                ))}
+              </ul>
 
               <button
                 onClick={() => {
                   window.location.href = '/premium-reports'
                 }}
-                className={styles.counselorButton}
+                className="group mt-6 inline-flex items-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#fbbf24_0%,#f59e0b_100%)] px-6 py-3 text-[14px] font-semibold text-slate-950 shadow-[0_18px_50px_rgba(251,191,36,0.35)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_22px_60px_rgba(251,191,36,0.5)]"
               >
-                <span className={styles.counselorButtonIcon}>✨</span>
                 <span>
-                  {lang === 'ko' ? 'Premium 리포트로 이어보기' : 'Continue with Premium Report'}
+                  {lang === 'ko' ? 'Premium으로 이어보기' : 'Continue with Premium'}
                 </span>
-                <span className={styles.counselorButtonArrow}>→</span>
+                <span className="text-[18px] transition-transform duration-300 group-hover:translate-x-1">
+                  →
+                </span>
               </button>
             </div>
           </div>
