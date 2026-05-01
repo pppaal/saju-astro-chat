@@ -887,43 +887,53 @@ export function buildActionPlanInsights(input: {
   const bestCount = timeline.filter((slot) => slot.tone === 'best').length
 
   // 사주·점성 anchor — best/caution 슬롯의 evidence를 키워드로 분류해서
-  // do/dont/alternative 항목에 한 줄 anchor 부여 (LLM polish 없이도 raw가 풍부)
-  const SAJU_KW = ['일진', '대운', '세운', '월운', '식상', '재성', '관성', '인성', '비겁', '신살', '천을귀인', '도화', '역마', '백호', '양인', '괴강', '공망', '격국', '용신', '12운성', '천간', '지지', '오행']
+  // do/dont/alternative 항목에 사주·점성 *full detail*로 anchor 부여
+  const SAJU_KW = ['일진', '대운', '세운', '월운', '식상', '재성', '관성', '인성', '비겁', '신살', '천을귀인', '도화', '역마', '백호', '양인', '괴강', '공망', '격국', '용신', '12운성', '천간', '지지', '오행', '갑목', '을목', '병화', '정화', '무토', '기토', '경금', '신금', '임수', '계수']
   const ASTRO_KW = ['하우스', '트랜짓', '어스펙트', 'aspect', 'transit', 'house', 'Sun', 'Moon', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'ASC', 'MC', 'Vertex', 'Juno', 'Vesta', '태양', '달', '금성', '화성', '목성', '토성', '천왕성', '해왕성', '명왕성']
-  const slotEvidenceSignals = (slot?: TimelineSlot): { saju: string[]; astro: string[] } => {
-    if (!slot) return { saju: [], astro: [] }
+  const slotEvidenceSignals = (slot?: TimelineSlot): { saju: string; astro: string; cross: string } => {
+    if (!slot) return { saju: '', astro: '', cross: '' }
     const lines: string[] = [
       ...((slot.evidenceSummary as string[] | undefined) || []),
       ...((slot.confidenceReason as string[] | undefined) || []),
       ...((slot.why?.patterns as string[] | undefined) || []),
-    ]
-    const saju: string[] = []
-    const astro: string[] = []
-    for (const ln of lines) {
-      const isSaju = SAJU_KW.some((k) => ln.includes(k))
-      const isAstro = ASTRO_KW.some((k) => ln.includes(k))
-      if (isSaju) saju.push(ln)
-      if (isAstro) astro.push(ln)
-    }
-    return { saju: Array.from(new Set(saju)).slice(0, 2), astro: Array.from(new Set(astro)).slice(0, 2) }
+    ].map((s) => cleanGuidanceText(s, 110)).filter(Boolean)
+
+    const saju = lines.find((ln) => SAJU_KW.some((k) => ln.includes(k)) && !ASTRO_KW.some((k) => ln.includes(k))) || ''
+    const astro = lines.find((ln) => ASTRO_KW.some((k) => ln.includes(k)) && !SAJU_KW.some((k) => ln.includes(k))) || ''
+    const cross = lines.find((ln) => SAJU_KW.some((k) => ln.includes(k)) && ASTRO_KW.some((k) => ln.includes(k))) || ''
+    return { saju, astro, cross }
   }
   const bestSignals = slotEvidenceSignals(bestSlot)
   const cautionSignals = slotEvidenceSignals(cautionSlot)
+  const formatSlotTime = (slot?: TimelineSlot): string =>
+    slot ? `${String(slot.hour).padStart(2, '0')}시` : ''
+  const buildAnchor = (signals: { saju: string; astro: string; cross: string }, slot?: TimelineSlot): string => {
+    const parts: string[] = []
+    const timeTag = formatSlotTime(slot)
+    if (signals.cross) {
+      // cross-line은 이미 두 시스템 묶여 있으니 그대로
+      parts.push(signals.cross)
+    } else {
+      if (signals.saju) parts.push(isKo ? `사주: ${signals.saju}` : `Saju: ${signals.saju}`)
+      if (signals.astro) parts.push(isKo ? `점성: ${signals.astro}` : `Astro: ${signals.astro}`)
+    }
+    if (parts.length === 0) return ''
+    const joined = parts.join(isKo ? ' / ' : ' / ')
+    return timeTag
+      ? isKo ? `[${timeTag}] ${joined}` : `[${timeTag}] ${joined}`
+      : joined
+  }
+  const bestAnchorText = buildAnchor(bestSignals, bestSlot)
+  const cautionAnchorText = buildAnchor(cautionSignals, cautionSlot)
   const anchorBest = (text: string): string => {
     if (!text) return text
-    const parts: string[] = []
-    if (bestSignals.saju[0]) parts.push(`사주 ${bestSignals.saju[0]}`)
-    if (bestSignals.astro[0]) parts.push(`점성 ${bestSignals.astro[0]}`)
-    if (parts.length === 0) return text
-    return isKo ? `${text} — 근거: ${parts.join(' × ')}` : `${text} — Why: ${parts.join(' × ')}`
+    if (!bestAnchorText) return text
+    return isKo ? `${text} — 근거: ${bestAnchorText}` : `${text} — Why: ${bestAnchorText}`
   }
   const anchorCaution = (text: string): string => {
     if (!text) return text
-    const parts: string[] = []
-    if (cautionSignals.saju[0]) parts.push(`사주 ${cautionSignals.saju[0]}`)
-    if (cautionSignals.astro[0]) parts.push(`점성 ${cautionSignals.astro[0]}`)
-    if (parts.length === 0) return text
-    return isKo ? `${text} — 근거: ${parts.join(' × ')}` : `${text} — Why: ${parts.join(' × ')}`
+    if (!cautionAnchorText) return text
+    return isKo ? `${text} — 근거: ${cautionAnchorText}` : `${text} — Why: ${cautionAnchorText}`
   }
 
   const actionFramework = {
