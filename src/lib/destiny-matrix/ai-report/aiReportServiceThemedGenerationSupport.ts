@@ -547,6 +547,23 @@ export async function generateThemedReportWithSupport(
   // 1. Build matrix summary
   const matrixSummary = buildMatrixSummary(matrixReport, lang)
 
+  // 1b. Build expert skeleton — 사주+점성 raw 데이터를 narrative로 풀어쓴 8000자
+  // skeleton. LLM이 이걸 받아 theme 관점으로 재배치 + 자연스러운 expert 풀이.
+  // 이게 빠지면 LLM이 격국·신살·5행·12운성·합충·행성·어스펙트·트랜짓·소행성 등
+  // raw data에 접근 못 해 narrative가 빈약해짐.
+  let expertSkeleton = ''
+  if (lang === 'ko') {
+    try {
+      const { synthesizeExpertNarrationKo } = await import('./sajuNarrationBridge')
+      expertSkeleton = synthesizeExpertNarrationKo(input)
+    } catch (err) {
+      // skeleton 빌드 실패 시 silent — 기존 prompt만 사용
+    }
+  }
+  const skeletonBlock = expertSkeleton
+    ? `\n## 결정론적 본명 분석 skeleton (이 raw 분석을 바탕으로 ${theme} 관점에서 풀어쓰세요)\n\n${expertSkeleton}\n`
+    : ''
+
   // 2. Build prompt
   const prompt = `${buildThemedPrompt(
     theme,
@@ -563,7 +580,7 @@ export async function generateThemedReportWithSupport(
     undefined,
     graphRagEvidencePrompt,
     options.userQuestion,
-    deterministicCore.promptBlock
+    `${deterministicCore.promptBlock}${skeletonBlock}`
   )}\n\n${themeSchemaPrompt}\n\n${lifecyclePrompt}\n\n${buildDirectToneOverride(lang)}\n\n${synthesisPromptBlock}`
 
   // 3. Call AI backend + quality gate (length/cross evidence)
