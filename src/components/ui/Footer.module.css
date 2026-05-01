@@ -50,6 +50,17 @@
   text-align: center;
 }
 
+.disclaimer {
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 11.5px;
+  line-height: 1.55;
+  text-align: center;
+  margin-top: 12px;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 20px 16px;

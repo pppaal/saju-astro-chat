@@ -72,19 +72,30 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid date/time/timeZone combination.')
   }
 
-  // 4. Calculate natal chart
+  // 4. Calculate natal chart — ephemeris 실패 시 graceful fallback
   const opts = resolveOptions(options)
 
-  const natal = await calculateNatalChart({
-    year,
-    month,
-    date: day,
-    hour: h,
-    minute: m,
-    latitude,
-    longitude,
-    timeZone: String(timeZone),
-  })
+  let natal
+  try {
+    natal = await calculateNatalChart({
+      year,
+      month,
+      date: day,
+      hour: h,
+      minute: m,
+      latitude,
+      longitude,
+      timeZone: String(timeZone),
+    })
+  } catch (chartError) {
+    logger.error('[Astrology API] calculateNatalChart failed:', chartError)
+    return apiError(
+      ErrorCodes.INTERNAL_ERROR,
+      context.locale === 'ko'
+        ? '점성 차트 계산에 일시적 오류가 있어요. 잠시 후 다시 시도해 주세요.'
+        : 'Astrology chart calculation temporarily unavailable. Please try again shortly.'
+    )
+  }
 
   // 5. Build localized display strings
   const ascSplit = splitSignAndDegree(natal.ascendant.formatted)

@@ -8,6 +8,29 @@
 
 import { fetchWithRetry } from '@/lib/http'
 import { logger } from '@/lib/logger'
+import { recordCounter, recordExternalCall } from '@/lib/metrics/index'
+
+// Claude pricing (per 1M tokens, USD) — Haiku 4.5 기준
+// Sonnet 4.5: input $3 / output $15 / cache_read $0.30
+// Haiku 4.5: input $1 / output $5 / cache_read $0.10
+const CLAUDE_PRICING: Record<string, { input: number; output: number; cacheRead: number }> = {
+  'claude-haiku-4-5-20251001': { input: 1, output: 5, cacheRead: 0.1 },
+  'claude-sonnet-4-5-20250929': { input: 3, output: 15, cacheRead: 0.3 },
+  'claude-opus-4-7': { input: 15, output: 75, cacheRead: 1.5 },
+}
+
+function calculateUsdCost(
+  model: string,
+  input?: number,
+  output?: number,
+  cacheRead?: number
+): number {
+  const p = CLAUDE_PRICING[model] || CLAUDE_PRICING['claude-haiku-4-5-20251001']
+  const i = (input || 0) * (p.input / 1_000_000)
+  const o = (output || 0) * (p.output / 1_000_000)
+  const c = (cacheRead || 0) * (p.cacheRead / 1_000_000)
+  return i + o + c
+}
 
 export type ClaudeModel =
   | 'claude-haiku-4-5-20251001'
@@ -132,13 +155,45 @@ export async function callClaude(opts: CallClaudeOptions): Promise<CallClaudeRes
   const text = data?.content?.find((c) => c.type === 'text')?.text || ''
 
   if (data?.usage) {
+    const usage = data.usage
     logger.info(`[${label}] Claude usage`, {
-      input: data.usage.input_tokens,
-      output: data.usage.output_tokens,
-      cacheRead: data.usage.cache_read_input_tokens,
-      cacheCreate: data.usage.cache_creation_input_tokens,
+      input: usage.input_tokens,
+      output: usage.output_tokens,
+      cacheRead: usage.cache_read_input_tokens,
+      cacheCreate: usage.cache_creation_input_tokens,
       model,
     })
+    // 비용 모니터링 — metric 카운터로 token + USD 추적.
+    // Anthropic dashboard나 외부 모니터링이 polling/scrape 가능.
+    const usd = calculateUsdCost(
+      model,
+      usage.input_tokens,
+      usage.output_tokens,
+      usage.cache_read_input_tokens
+    )
+    recordCounter('claude.tokens.input', usage.input_tokens || 0, { model: model, label })
+    recordCounter('claude.tokens.output', usage.output_tokens || 0, { model: model, label })
+    recordCounter('claude.tokens.cache_read', usage.cache_read_input_tokens || 0, {
+      model: model,
+      label,
+    })
+    recordCounter('claude.cost.usd_micro', Math.round(usd * 1_000_000), {
+      model: model,
+      label,
+    })
+    recordExternalCall('anthropic', model, 'success', 0, {
+      input: usage.input_tokens,
+      output: usage.output_tokens,
+    })
+    // 호출당 임계값 초과 시 alert (1 호출 $0.10 = 100,000 micro)
+    if (usd > 0.1) {
+      logger.warn(`[${label}] Claude high-cost call`, {
+        model: model,
+        usd: usd.toFixed(4),
+        input: usage.input_tokens,
+        output: usage.output_tokens,
+      })
+    }
   }
 
   return {
