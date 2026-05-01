@@ -3,6 +3,8 @@
  * 1995-02-09 06:40 AM Seoul, male — synthesizeExpertNarrationKo 출력 확인
  */
 import { calculateSajuData } from '../src/lib/Saju/saju'
+import { determineGeokguk } from '../src/lib/Saju/geokguk'
+import { getShinsalHits } from '../src/lib/Saju/shinsal'
 import { synthesizeExpertNarrationKo } from '../src/lib/destiny-matrix/ai-report/sajuNarrationBridge'
 
 const sajuResult = calculateSajuData('1995-02-09', '06:40', 'male', 'solar', 'Asia/Seoul')
@@ -38,24 +40,44 @@ const ageNow = currentYear - 1995
 const currentDaeun = daeWoonList.find((d: { startAge: number }) => ageNow >= d.startAge && ageNow < d.startAge + 10)
 const currentDaeunElement = currentDaeun?.heavenlyStem?.element
 
+// 진짜 격국 + 신살 계산
+const pillarsInput = {
+  yearPillar: sajuResult.yearPillar,
+  monthPillar: sajuResult.monthPillar,
+  dayPillar: sajuResult.dayPillar,
+  timePillar: sajuResult.timePillar,
+}
+let geokgukResult: any = null
+let shinsalList: string[] = []
+try {
+  geokgukResult = determineGeokguk(pillarsInput as any)
+} catch (e) {
+  console.log('[geokguk error]', e)
+}
+try {
+  const hits = getShinsalHits(pillarsInput as any)
+  shinsalList = Array.from(new Set(hits.map((h: any) => h.kind)))
+} catch (e) {
+  console.log('[shinsal error]', e)
+}
+
 const input: any = {
   dayMasterElement: sajuResult.dayMaster.element,
   pillarElements,
   sibsinDistribution,
   twelveStages,
-  geokguk: undefined,
-  yongsin: undefined,
+  geokguk: geokgukResult?.primary,
+  yongsin: geokgukResult?.yongsin
+    ? ({ '목': '목', '화': '화', '토': '토', '금': '금', '수': '수' }[geokgukResult.yongsin] || undefined)
+    : undefined,
   currentDaeunElement,
   currentSaeunElement,
   currentWolunElement: '화',
   currentIljinElement: '수',
   currentIljinDate: now.toISOString().slice(0, 10),
-  shinsalList: ['천을귀인', '도화', '백호'],
-  relations: [
-    { kind: '천간충', detail: '乙辛' },
-    { kind: '지지형', detail: '寅未' },
-    { kind: '천간합', detail: '戊癸' },
-  ],
+  shinsalList,
+  // 1995-02-09 06:40 Seoul 남자 — Sun ~ 물병자리 끝, Moon Cancer 정도, 등등
+  relations: [],
   dominantWesternElement: 'air' as const,
   planetHouses: { Sun: 11, Moon: 8, Mercury: 11, Venus: 10, Mars: 9, Jupiter: 9, Saturn: 1, Uranus: 11, Pluto: 8 },
   planetSigns: {
@@ -74,30 +96,30 @@ const input: any = {
     { planet1: 'Jupiter', planet2: 'Neptune', type: 'trine' },
     { planet1: 'Venus', planet2: 'Mars', type: 'sextile' },
   ],
-  activeTransits: ['saturn return', 'jupiter on natal MC', '명왕성'],
+  activeTransits: ['saturn return', 'jupiter on natal MC'],
   asteroidHouses: { Juno: 7, Vesta: 6, Ceres: 4, Pallas: 11 },
   extraPointSigns: { Vertex: 'Leo', PartOfFortune: 'Virgo' },
-  advancedAstroSignals: { solarReturn: true, lunarReturn: true, eclipses: true, progressions: true, fixedStars: false },
+  advancedAstroSignals: { solarReturn: true, lunarReturn: true, eclipses: true, progressions: true },
   sajuSnapshot: {
-    fiveElements: { wood: 1, fire: 1, earth: 1, metal: 4, water: 1 },
+    fiveElements,
   },
   lang: 'ko' as const,
   startYearMonth: now.toISOString().slice(0, 7),
 }
 
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-console.log('1995-02-09 06:40 AM Seoul, male — 리포트 narration')
+console.log('1995-02-09 06:40 AM Seoul, male — 2026년 리포트')
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 console.log()
 console.log(`일간: ${sajuResult.dayMaster.name} (${sajuResult.dayMaster.element}, ${sajuResult.dayMaster.yin_yang})`)
-console.log(`년주: ${sajuResult.yearPillar?.heavenlyStem?.name}${sajuResult.yearPillar?.earthlyBranch?.name}`)
-console.log(`월주: ${sajuResult.monthPillar?.heavenlyStem?.name}${sajuResult.monthPillar?.earthlyBranch?.name}`)
-console.log(`일주: ${sajuResult.dayPillar?.heavenlyStem?.name}${sajuResult.dayPillar?.earthlyBranch?.name}`)
-console.log(`시주: ${sajuResult.timePillar?.heavenlyStem?.name}${sajuResult.timePillar?.earthlyBranch?.name}`)
-console.log(`현재 대운: ${currentDaeun?.heavenlyStem?.name || '?'}${currentDaeun?.earthlyBranch?.name || '?'} (${currentDaeunElement || '?'})`)
-console.log(`현재 세운: ${currentYear}년 (${currentSaeunElement})`)
+console.log(`사주: ${sajuResult.yearPillar?.heavenlyStem?.name}${sajuResult.yearPillar?.earthlyBranch?.name} / ${sajuResult.monthPillar?.heavenlyStem?.name}${sajuResult.monthPillar?.earthlyBranch?.name} / ${sajuResult.dayPillar?.heavenlyStem?.name}${sajuResult.dayPillar?.earthlyBranch?.name} / ${sajuResult.timePillar?.heavenlyStem?.name}${sajuResult.timePillar?.earthlyBranch?.name}`)
+console.log(`격국: ${geokgukResult?.primary || '미정'} (confidence: ${geokgukResult?.confidence || '-'})`)
+console.log(`신살: ${shinsalList.slice(0, 8).join(', ') || '없음'}`)
+console.log(`5행 분포: 목${fiveElements.wood} 화${fiveElements.fire} 토${fiveElements.earth} 금${fiveElements.metal} 수${fiveElements.water}`)
+console.log(`현재 대운: ${currentDaeun?.heavenlyStem?.name || '?'}${currentDaeun?.earthlyBranch?.name || '?'} (${currentDaeunElement || '?'}) — 시작 ${currentDaeun?.startAge}세`)
+console.log(`현재 세운: 2026년 (${currentSaeunElement})`)
 console.log()
-console.log('━━━━━━ NARRATION OUTPUT ━━━━━━')
+console.log('━━━━━━ 2026 NARRATION ━━━━━━')
 console.log()
 
 const narration = synthesizeExpertNarrationKo(input)
