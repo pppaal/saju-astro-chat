@@ -659,12 +659,21 @@ export default function ReportResultPage() {
                   )}
                   {report.period && (
                     <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-300">
-                      {report.period}
+                      {report.period === 'yearly'
+                        ? '한 해 분석'
+                        : report.period === 'monthly'
+                          ? '한 달 분석'
+                          : report.period === 'daily'
+                            ? '하루 분석'
+                            : report.period}
                     </span>
                   )}
                 </div>
 
-                <h1 className="mt-4 text-3xl font-black tracking-tight text-white md:text-4xl">
+                <h1
+                  className="mt-5 text-balance text-[2.25rem] font-semibold leading-[1.1] tracking-[-0.025em] text-white md:text-[3rem]"
+                  style={{ wordBreak: 'keep-all' }}
+                >
                   {report.title}
                 </h1>
                 <p className="mt-3 max-w-3xl whitespace-pre-line text-[15px] leading-7 text-slate-300">
