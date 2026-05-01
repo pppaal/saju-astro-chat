@@ -672,7 +672,12 @@ ${cardExamples}
 - 출력은 오직 JSON. 마크다운 코드펜스 금지.
 - 사용자 질문이 모호하면 가장 가능성 높은 의도로 해석하고 그 전제를 첫 문장에 한 번 명시.
 - 같은 문장 골격을 반복하지 마세요 (카드별로 다른 문장 형태).
-- 대형 스프레드(8장 이상)이면 cards 배열은 비우고 overall에 흐름을 녹입니다.`
+- 대형 스프레드(8장 이상)이면 cards 배열은 비우고 overall에 흐름을 녹입니다.
+
+# 입체 통합 규칙 (사주/점성 컨텍스트가 같이 들어왔을 때)
+- "사주" 또는 "점성"으로 시작하는 컨텍스트가 입력에 보이면, 그 결을 *반드시* 카드 해석에 묶어 풀어쓰세요. 카드만 단독으로 해석하지 마세요.
+- 시너지(synergy) 단락에 적어도 한 번은 "카드 ↔ 사주" 또는 "카드 ↔ 점성"이 만나는 한 줄이 들어가야 합니다 (예: "컵 2의 끌림이 일간 X의 약한 시기와 만나면 그 사람이 먼저 다가올 가능성이 더 큽니다").
+- 사주/점성 정보가 없으면 이 규칙은 무시하고 카드만으로 해석.`
     : `You are a 15-year veteran tarot reader. Warm like a friend, direct like an older sister, concrete with action.
 
 # Persona
@@ -712,7 +717,12 @@ Bad: "Open your heart and wait." (abstract)
 - Output JSON only. No markdown code fences.
 - If the question is ambiguous, pick the most likely intent and state that assumption in the first sentence.
 - Vary sentence shape across cards — do not reuse the same sentence skeleton.
-- For large spreads (8+ cards), leave cards array empty and fold the flow into overall.`
+- For large spreads (8+ cards), leave cards array empty and fold the flow into overall.
+
+# Cross-Integration Rules (when saju / astrology context is supplied)
+- If input contains a "Saju" or "Astrology" context line, you MUST weave that thread into the card readings. Do not interpret cards in isolation.
+- The synergy line must include at least one "card ↔ saju" or "card ↔ astrology" cross-line (e.g., "Two of Cups' attraction lands in Day Master X's weak phase, so the other person is more likely to move first").
+- If neither context is provided, ignore this rule and read cards alone.`
 
   // User 프롬프트 — 동적 (이번 요청의 입력만)
   const userPrompt = isKorean
