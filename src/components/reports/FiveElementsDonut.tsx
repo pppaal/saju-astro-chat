@@ -142,7 +142,7 @@ export default function FiveElementsDonut({
 
       {/* 한 줄 풀이 */}
       {dominant.value > 0 && lacking.value === 0 && (
-        <p className="max-w-md text-center text-[11.5px] leading-relaxed text-slate-300">
+        <p className="max-w-md text-center text-[12px] leading-relaxed text-slate-300">
           <span className="text-white">{dominant.el.ko}</span> 기운이 두텁고{' '}
           <span className="text-white">{lacking.el.ko}</span> 기운이 비어 있어
           {' '}{lacking.el.ko === '화'
@@ -158,7 +158,7 @@ export default function FiveElementsDonut({
         </p>
       )}
       {dominant.value > 0 && lacking.value > 0 && dominant.value > lacking.value + 1 && (
-        <p className="max-w-md text-center text-[11.5px] leading-relaxed text-slate-300">
+        <p className="max-w-md text-center text-[12px] leading-relaxed text-slate-300">
           <span className="text-white">{dominant.el.ko}</span> 기운이 가장 두텁고{' '}
           <span className="text-white">{lacking.el.ko}</span> 기운이 가장 약한 분포예요.
         </p>

@@ -176,7 +176,7 @@ export default function PremiumNarrativeCard({
         aria-expanded={isOpen}
       >
         <div>
-          <p className="text-[10.5px] font-semibold uppercase tracking-[0.28em] text-cyan-200/70">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-cyan-200/70">
             Narrative
           </p>
           <h3 className="mt-1.5 text-[1.35rem] font-semibold leading-tight text-white">

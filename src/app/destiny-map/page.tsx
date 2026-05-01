@@ -9,7 +9,7 @@ export default function DestinyMapPage() {
         <header className="space-y-5 text-center">
           <div className="flex justify-center">
             <span
-              className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.32em]"
+              className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.32em]"
               style={{
                 borderColor: 'rgba(148,163,184,0.4)',
                 color: '#cbd5e1',
@@ -53,7 +53,7 @@ export default function DestinyMapPage() {
                 className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 backdrop-blur-md"
               >
                 <Icon className="h-4 w-4 flex-shrink-0 text-cyan-300/70" strokeWidth={1.5} />
-                <span className="text-[13.5px] text-slate-300" style={{ wordBreak: 'keep-all' }}>
+                <span className="text-[14px] text-slate-300" style={{ wordBreak: 'keep-all' }}>
                   {f.label}
                 </span>
               </div>
@@ -82,7 +82,7 @@ export default function DestinyMapPage() {
         </section>
 
         {/* Bottom hint */}
-        <p className="mx-auto mt-16 max-w-md text-center text-[11.5px] leading-relaxed text-slate-500">
+        <p className="mx-auto mt-16 max-w-md text-center text-[12px] leading-relaxed text-slate-500">
           모든 분석은 사주명리·점성술 전통에 기반한 <em className="not-italic text-slate-400">참고 자료</em>이며 미래를 단정하지 않습니다.
         </p>
       </div>

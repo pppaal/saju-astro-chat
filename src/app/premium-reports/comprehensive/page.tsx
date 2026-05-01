@@ -167,7 +167,7 @@ export default function ComprehensiveReportPage() {
           <header className="space-y-5 text-center">
             <div className="flex justify-center">
               <span
-                className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.28em]"
+                className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em]"
                 style={{
                   borderColor: 'rgba(251,191,36,0.4)',
                   color: '#fbbf24',
@@ -205,7 +205,7 @@ export default function ComprehensiveReportPage() {
                 {FEATURES.map((feature) => (
                   <li
                     key={feature}
-                    className="flex items-start gap-2 text-[13.5px] leading-[1.6] text-slate-300"
+                    className="flex items-start gap-2 text-[14px] leading-[1.6] text-slate-300"
                   >
                     <span
                       className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full"

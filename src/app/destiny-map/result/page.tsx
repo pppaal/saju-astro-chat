@@ -469,7 +469,7 @@ export default function DestinyResultPage({
                 ).map((f) => (
                   <li
                     key={f}
-                    className="flex items-start gap-2 text-[12.5px] leading-[1.5] text-amber-50/85"
+                    className="flex items-start gap-2 text-[13px] leading-[1.5] text-amber-50/85"
                   >
                     <span
                       className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full bg-amber-300"

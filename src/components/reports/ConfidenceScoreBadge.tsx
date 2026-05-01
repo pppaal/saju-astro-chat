@@ -128,7 +128,7 @@ export default function ConfidenceScoreBadge({
         </p>
         <p className="mt-1 text-[14px] font-semibold text-white">{style.label}</p>
         {description && (
-          <p className="mt-1.5 line-clamp-2 text-[11.5px] leading-snug text-slate-300/85">
+          <p className="mt-1.5 line-clamp-2 text-[12px] leading-snug text-slate-300/85">
             {description}
           </p>
         )}

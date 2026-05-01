@@ -150,7 +150,7 @@ export default function PremiumReportsPageClient() {
                 {/* Badge */}
                 <div className="flex items-center justify-between">
                   <span
-                    className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-[0.22em]"
+                    className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.22em]"
                     style={{
                       borderColor: card.accent + '50',
                       color: card.accent,
@@ -173,7 +173,7 @@ export default function PremiumReportsPageClient() {
                 >
                   {card.title}
                 </h2>
-                <p className="mt-1 text-[13.5px] text-slate-400" style={{ wordBreak: 'keep-all' }}>
+                <p className="mt-1 text-[14px] text-slate-400" style={{ wordBreak: 'keep-all' }}>
                   {card.subtitle}
                 </p>
 
@@ -190,7 +190,7 @@ export default function PremiumReportsPageClient() {
                   {card.features.map((f) => (
                     <li
                       key={f}
-                      className="flex items-start gap-2 text-[12.5px] leading-[1.5] text-slate-300/80"
+                      className="flex items-start gap-2 text-[13px] leading-[1.5] text-slate-300/80"
                     >
                       <span
                         className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full"
@@ -204,7 +204,7 @@ export default function PremiumReportsPageClient() {
 
                 {/* CTA */}
                 <div className="mt-7 flex items-center justify-between border-t border-white/[0.07] pt-5">
-                  <span className="text-[13.5px] font-medium text-white">{card.cta}</span>
+                  <span className="text-[14px] font-medium text-white">{card.cta}</span>
                   <span
                     className="text-[18px] transition-transform duration-300 group-hover:translate-x-1"
                     style={{ color: card.accent }}

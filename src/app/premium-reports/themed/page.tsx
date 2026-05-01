@@ -300,7 +300,7 @@ function ThemedBuilderContent() {
                     style={{ color: selected ? t.accent : 'rgba(255,255,255,0.5)' }}
                     strokeWidth={1.5}
                   />
-                  <p className="mt-4 text-[10.5px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                  <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
                     {t.english}
                   </p>
                   <h3 className="mt-1 text-[1.4rem] font-semibold tracking-tight text-white">

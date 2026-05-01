@@ -68,7 +68,7 @@ export default function SajuAstroCrossMap({
               {/* axis label */}
               <div className="flex items-center">
                 <span
-                  className="rounded-full border px-2 py-0.5 text-[10.5px] font-medium"
+                  className="rounded-full border px-2 py-0.5 text-[11px] font-medium"
                   style={{
                     borderColor: sStyle.color + '50',
                     color: sStyle.color,
@@ -83,7 +83,7 @@ export default function SajuAstroCrossMap({
                 <p className="text-[9.5px] font-semibold uppercase tracking-[0.18em] text-amber-300/70">
                   사주
                 </p>
-                <p className="mt-0.5 truncate text-[12.5px] text-slate-200">{sig.saju}</p>
+                <p className="mt-0.5 truncate text-[13px] text-slate-200">{sig.saju}</p>
               </div>
               {/* connector */}
               <div className="flex flex-col items-center justify-center text-cyan-300/70">
@@ -100,11 +100,11 @@ export default function SajuAstroCrossMap({
                 <p className="text-[9.5px] font-semibold uppercase tracking-[0.18em] text-cyan-300/70">
                   점성
                 </p>
-                <p className="mt-0.5 truncate text-[12.5px] text-slate-200">{sig.astro}</p>
+                <p className="mt-0.5 truncate text-[13px] text-slate-200">{sig.astro}</p>
               </div>
               {/* meaning row (full width below) */}
               {sig.meaning && (
-                <p className="col-span-4 mt-1 border-t border-white/[0.05] pt-2 text-[11.5px] leading-relaxed text-slate-400">
+                <p className="col-span-4 mt-1 border-t border-white/[0.05] pt-2 text-[12px] leading-relaxed text-slate-400">
                   {sig.meaning}
                 </p>
               )}
@@ -113,7 +113,7 @@ export default function SajuAstroCrossMap({
         })}
       </div>
 
-      <footer className="mt-4 flex items-center justify-between border-t border-white/[0.06] pt-3 text-[10.5px] text-slate-400">
+      <footer className="mt-4 flex items-center justify-between border-t border-white/[0.06] pt-3 text-[11px] text-slate-400">
         <span className="inline-flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> 강
           <span className="ml-2 h-1.5 w-1.5 rounded-full bg-amber-400" /> 중
