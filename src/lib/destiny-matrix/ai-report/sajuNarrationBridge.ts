@@ -450,15 +450,23 @@ function describeCycleRelation(
   const ci = SEQ.indexOf(cycle)
   if (ni < 0 || ci < 0) return `${cycleLabel}은 ${cycle} 기운이 도는 자리라 ${flavor}`
   const diff = (ci - ni + 5) % 5
-  // 0=동기 1=설기 2=재 3=관 4=인
-  const relationLines = [
-    `${cycleLabel}은 ${cycle} — 본명과 같은 기운이 한 자리에 모이는 구간이라 ${flavor}`,
-    `${cycleLabel}은 ${cycle} — 본인 기운을 밖으로 풀어내는 국면이라 ${flavor}`,
-    `${cycleLabel}은 ${cycle} — 본인이 환경을 다스리고 통제하는 구도라 ${flavor}`,
-    `${cycleLabel}은 ${cycle} — 본인을 누르고 시험하는 형국이라 ${flavor}`,
-    `${cycleLabel}은 ${cycle} — 본인을 받쳐주고 길러주는 인성 구도라 ${flavor}`,
+  // 0=비겁 1=식상 2=재성 3=관성 4=인성 — 십신 통변 + 풍부 해석
+  const SIBSIN_DEEP_KO: string[] = [
+    `본명과 같은 ${cycle} 기운이 더해지는 비겁 자리라 자기 주장·돌파력이 한층 살아나며, ${flavor} — 동업·경쟁·자기 사업 같은 자리에서 본인 색을 더 진하게 내기 좋은 시점이에요`,
+    `본인 기운이 ${cycle}로 풀려나가는 식상 자리라 표현·창작·자식 영역이 활발해지며, ${flavor} — 발표·창업·SNS 같은 외부 발산이 자연스럽게 늘어나는 시점이에요`,
+    `${cycle}이 본인이 다스리는 재성 자리라 재물·기회·이성 인연이 잡히며, ${flavor} — 다만 재성은 가만히 있어 들어오는 게 아니라 적극적으로 다스려야 잡히는 자원이라 능동성이 필요해요`,
+    `${cycle}이 본인을 누르는 관성 자리라 직책·시험·책임 압박이 들어오며, ${flavor} — 외부 평가가 또렷한 자리가 만들어지니 결과를 만들어 보여줄 시점이에요`,
+    `${cycle}이 본인을 받쳐주는 인성 자리라 학습·문서·귀인 도움이 들어오며, ${flavor} — 자격증·계약·스승·후원자 같은 받쳐주는 인연이 결정적 도움을 주는 시점이에요`,
   ]
-  return relationLines[diff]
+  void SIBSIN_DEEP_KO // 단순 reference list — 사용은 directLines
+  const directLines = [
+    `${cycleLabel} ${cycle} — 본명과 같은 ${cycle} 기운이 더해지는 비겁 자리라 자기 주장·돌파력이 한층 살아나며, ${flavor} 결. 동업·경쟁·자기 사업 같은 자리에서 본인 색을 더 진하게 내기 좋은 시점이에요`,
+    `${cycleLabel} ${cycle} — 본인 기운이 ${cycle}로 풀려나가는 식상 자리라 표현·창작·자식 영역이 활발해지며, ${flavor} 결. 발표·창업·SNS 같은 외부 발산이 자연스럽게 늘어나는 시점이에요`,
+    `${cycleLabel} ${cycle} — ${cycle}이 본인이 다스리는 재성 자리라 재물·기회·이성 인연이 잡히며, ${flavor} 결. 재성은 가만히 들어오지 않고 적극적으로 다스려야 잡히는 자원이라 능동성이 필요해요`,
+    `${cycleLabel} ${cycle} — ${cycle}이 본인을 누르는 관성 자리라 직책·시험·책임 압박이 들어오며, ${flavor} 결. 외부 평가가 또렷한 자리가 만들어지니 결과를 만들어 보여줄 시점이에요`,
+    `${cycleLabel} ${cycle} — ${cycle}이 본인을 받쳐주는 인성 자리라 학습·문서·귀인 도움이 들어오며, ${flavor} 결. 자격증·계약·스승·후원자 같은 받쳐주는 인연이 결정적 도움을 주는 시점이에요`,
+  ]
+  return directLines[diff]
 }
 
 // 두 시기가 충돌하는지/받쳐주는지 (예: 대운 화 + 세운 금 = 화극금 충돌)
@@ -1538,8 +1546,46 @@ export function buildDomainMiniCrossSectionsKo(input: MatrixCalculationInput): s
   if (health) items.push(['건강', stripLabel(health, '건강')])
   if (move) items.push(['이동', stripLabel(move, '이동')])
   if (items.length === 0) return ''
-  const bullets = items.map(([label, body]) => `- **${label}**: ${body}`).join('\n')
-  return `## 도메인별 펼침\n${bullets}`
+  // 각 도메인을 4문장 풀이로 — 신호 + 의미 + 발현 + 활용
+  const DOMAIN_DEPTH: Record<string, { meaning: string; manifest: string; action: string }> = {
+    직장: {
+      meaning: '직장 영역은 본명이 외부 사회에 자리 잡고 평가받는 무대를 가리키는 자리예요',
+      manifest: '여기서 들어온 신호는 회사 안의 위치·동료 관계·승진·이직 같은 결정으로 발현돼요',
+      action: '이번 시기에는 이 신호 결을 회사 내 자기 포지셔닝과 다음 6개월 목표 설정에 활용해 보세요',
+    },
+    관계: {
+      meaning: '관계 영역은 본명이 가까운 사람들과 어떻게 결합하고 거리를 두는지 보여주는 자리예요',
+      manifest: '여기서 들어온 신호는 연애·결혼·우정·가족 관계의 결정 패턴으로 발현돼요',
+      action: '이번 시기에는 새 인연을 시도하거나 기존 관계의 결을 한 번 점검해 보는 데 이 신호를 활용해 보세요',
+    },
+    재정: {
+      meaning: '재정 영역은 본명이 자원을 어떻게 끌어오고 다스리는지 보여주는 자리예요',
+      manifest: '여기서 들어온 신호는 수입·지출·투자·계약 같은 자원 결정의 톤으로 발현돼요',
+      action: '이번 시기에는 한 해 재정 목표 한 줄을 정하고 이 신호 결에 맞게 결정하는 습관을 들여 보세요',
+    },
+    건강: {
+      meaning: '건강 영역은 본명의 몸과 정서가 어떤 부담을 받고 어디서 회복되는지 보여주는 자리예요',
+      manifest: '여기서 들어온 신호는 체력·수면·예민함·만성 질환 같은 신체 패턴으로 발현돼요',
+      action: '이번 시기에는 약점 영역을 미리 챙기는 작은 루틴(스트레칭·수면 시간·식사 패턴) 한 가지를 정해 보세요',
+    },
+    이동: {
+      meaning: '이동 영역은 본명이 환경 변화·여행·이주·새 시도에 어떻게 반응하는지 보여주는 자리예요',
+      manifest: '여기서 들어온 신호는 이사·해외·여행·새 학교/회사 같은 환경 전환 결정으로 발현돼요',
+      action: '이번 시기에는 지금 환경을 그대로 유지할지, 새 자리로 옮길지 한 번 진지하게 점검할 만해요',
+    },
+  }
+  const richBlocks = items.map(([label, body]) => {
+    const depth = DOMAIN_DEPTH[label]
+    if (!depth) return `### ${label}\n${body}.`
+    return (
+      `### ${label}\n` +
+      `이번 시기 ${label} 영역에서는 ${body} 결이에요. ` +
+      `${depth.meaning}. ` +
+      `${depth.manifest}. ` +
+      `${depth.action}.`
+    )
+  })
+  return `## 도메인별 펼침\n\n${richBlocks.join('\n\n')}`
 }
 
 // "지금 시점 cross" — natal element + dominant western 한 줄 (shorter than buildCrossIntegrationKo)
@@ -1948,7 +1994,36 @@ export function buildFiveElementsBalanceKo(input: MatrixCalculationInput): strin
   const weakCount = weakest[1] as number
   if (strongCount - weakCount < 2) return '' // 균형 잡힌 경우 narration 생략
 
-  return `5행 분포로는 ${ko[strongest[0]]} 기운이 ${strongCount}개로 가장 두텁고 ${ko[weakest[0]]} 기운이 ${weakCount}${weakCount === 0 ? '개로 비어 있어' : '개로 얇아'}, 평소 ${ko[strongest[0]]} 결로 결정·표현이 흐르되 ${ko[weakest[0]]} 영역에서 자주 막힘이 보이는 균형이에요.`
+  const strongK = ko[strongest[0]]
+  const weakK = ko[weakest[0]]
+  const STRONG_TONE: Record<string, string> = {
+    목: '시작·확장·계획 영역에서 추진력이 살아 새 일이 자연스럽게 잡히는',
+    화: '표현·열정·확장에서 외부로 풀려나가는 에너지가 두터운',
+    토: '안정·신뢰·축적 영역에서 묵직한 받침이 생기는',
+    금: '결단·정리·구조화에서 칼날 같은 마무리력이 살아 있는',
+    수: '관찰·통찰·내적 흐름에서 깊은 호흡이 자연스럽게 잡히는',
+  }
+  const WEAK_TONE: Record<string, string> = {
+    목: '새로 시작하는 동력·계획 추진이 약해 일을 미루기 쉬운',
+    화: '표현·발산·열정 발화가 약해 마음만큼 밖으로 풀려나가지 않는',
+    토: '안정·중재·소속감이 얇아 한 자리에 정착하기 어려운',
+    금: '결단·정리·마무리력이 약해 시작은 잘하되 끝맺음에서 흐려지는',
+    수: '관찰·정리·복기 능력이 얕아 같은 실수를 반복하기 쉬운',
+  }
+  const COMPENSATION: Record<string, string> = {
+    목: '아침 산책·새 책·자라는 식물 가까이 두기 같이 *목 기운 보강*',
+    화: '운동·강한 색·사람 만남·발표 자리 같이 *화 기운 보강*',
+    토: '한 자리 앉아 있는 시간·정착감 있는 공간·신뢰 관계 정착 같이 *토 기운 보강*',
+    금: '정리·청소·결단해야 할 일 명단 만들기 같이 *금 기운 보강*',
+    수: '글쓰기·복기 노트·물 가까이 머무르기 같이 *수 기운 보강*',
+  }
+  return (
+    `5행 분포로는 **${strongK} 기운 ${strongCount}개**가 가장 두텁고 **${weakK} 기운 ${weakCount}${weakCount === 0 ? '개로 비어 있어요' : '개로 얇아요'}**. ` +
+    `${strongK}이 두텁다는 건 ${STRONG_TONE[strongK] || '본명의 한 결이 또렷한'} 본명이라는 뜻이에요. ` +
+    `반대로 ${weakK}이 ${weakCount === 0 ? '0개라는 건' : '얇다는 건'} ${WEAK_TONE[weakK] || '그 영역에서 약점이 자주 드러나는'} 결을 같이 가진다는 의미예요. ` +
+    `이 두 결이 같이 작동하니, 평소엔 ${strongK} 결로 매끄럽게 풀리지만 ${weakK} 영역에서 자주 막히는 패턴이 반복돼요. ` +
+    `보완 처방으로는 일상에 ${COMPENSATION[weakK] || '그 영역과 관련된 작은 행동'}을 짜서 의식적으로 ${weakK} 기운을 보태주면, 본명 균형이 한 단계 올라갑니다.`
+  )
 }
 
 // ──────────────────────────────────────────────────────────
