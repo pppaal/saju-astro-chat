@@ -203,8 +203,19 @@ export function buildGeokgukDeepKo(geokguk: string | undefined): string {
     `강점은 ${deep.strength}.`,
     `반대로 약점은 ${deep.weakness}.`,
     `현대 적용으로는 ${deep.modern}.`,
-    `평생의 과제는 ${deep.lifelong}.`,
+    `${deep.lifelong}.`,
   ].join(' ')
+}
+
+function hasJongsung(word: string): boolean {
+  if (!word) return false
+  const last = word.charCodeAt(word.length - 1)
+  if (last < 0xac00 || last > 0xd7a3) return false
+  return (last - 0xac00) % 28 !== 0
+}
+
+function eunNeun(word: string): string {
+  return hasJongsung(word) ? '은' : '는'
 }
 
 /**
@@ -214,7 +225,7 @@ export function buildShinsalDeepKo(shinsal: string): string {
   const deep = SHINSAL_DEEP_KO[shinsal]
   if (!deep) return ''
   return [
-    `${shinsal}은 ${deep.core}이에요.`,
+    `${shinsal}${eunNeun(shinsal)} ${deep.core}이에요.`,
     `${deep.pattern}.`,
     `처방은 ${deep.prescription}.`,
   ].join(' ')

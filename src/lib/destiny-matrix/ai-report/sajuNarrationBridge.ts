@@ -626,7 +626,7 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     const top3 = (input.shinsalList as string[]).slice(0, 3)
     const deepBlocks = top3.map((s) => buildShinsalDeepKo(s)).filter(Boolean)
     if (deepBlocks.length > 0) {
-      sajuSupporting.push(`### 활성 신살 정통 풀이\n${deepBlocks.join('\n\n')}`)
+      sajuSupporting.push(`### 활성 신살 정통 풀이\n${deepBlocks.join('\n')}`)
     }
   }
 
