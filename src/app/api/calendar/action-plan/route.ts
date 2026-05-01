@@ -774,14 +774,41 @@ export const POST = withApiMiddleware(
     // Claude 미설정 시 skeleton 그대로.
     try {
       const tl: any[] = (responsePayload as any).timeline || []
-      const bestSlots = tl
-        .filter((s: any) => s.tone === 'best')
-        .slice(0, 3)
-        .map((s: any) => ({ hour: s.label || s.hour || '', reason: s.note || s.action || '' }))
-      const cautionSlots = tl
-        .filter((s: any) => s.tone === 'caution')
-        .slice(0, 3)
-        .map((s: any) => ({ hour: s.label || s.hour || '', reason: s.note || s.action || '' }))
+      // Tier 4 anchor — slot evidence (사주·점성 신호 분리)
+      const SAJU_KW = ['일진', '대운', '세운', '월운', '식상', '재성', '관성', '인성', '비겁', '신살', '천을귀인', '도화', '역마', '백호', '양인', '괴강', '공망', '격국', '용신', '12운성', '천간', '지지', '오행', '갑자', '갑목', '을목', '병화', '정화', '무토', '기토', '경금', '신금', '임수', '계수']
+      const ASTRO_KW = ['하우스', '트랜짓', '어스펙트', 'aspect', 'transit', 'house', 'Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'ASC', 'MC', 'Vertex', 'Juno', 'Vesta', 'Ceres', 'Pallas', '태양', '달', '수성', '금성', '화성', '목성', '토성', '천왕성', '해왕성', '명왕성', '상승궁', '천정']
+      const splitSignals = (lines: string[] = []): { saju: string[]; astro: string[] } => {
+        const saju: string[] = []
+        const astro: string[] = []
+        for (const ln of lines) {
+          const isSaju = SAJU_KW.some((k) => ln.includes(k))
+          const isAstro = ASTRO_KW.some((k) => ln.includes(k))
+          if (isSaju && !isAstro) saju.push(ln)
+          else if (isAstro && !isSaju) astro.push(ln)
+          else if (isSaju && isAstro) {
+            saju.push(ln)
+            astro.push(ln)
+          }
+        }
+        return { saju, astro }
+      }
+      const mapSlot = (s: any) => {
+        const rawSignals = [
+          ...((s.evidenceSummary as string[] | undefined) || []),
+          ...((s.confidenceReason as string[] | undefined) || []),
+          ...(((s.why as { patterns?: string[] } | undefined)?.patterns) || []),
+        ]
+        const { saju, astro } = splitSignals(rawSignals)
+        return {
+          hour: s.label || s.hour || '',
+          reason: s.note || s.action || '',
+          sajuSignals: saju.slice(0, 3),
+          astroSignals: astro.slice(0, 3),
+          summary: (s.why as { summary?: string } | undefined)?.summary,
+        }
+      }
+      const bestSlots = tl.filter((s: any) => s.tone === 'best').slice(0, 3).map(mapSlot)
+      const cautionSlots = tl.filter((s: any) => s.tone === 'caution').slice(0, 3).map(mapSlot)
 
       const skeletonParts = [
         (responsePayload as any).summary,

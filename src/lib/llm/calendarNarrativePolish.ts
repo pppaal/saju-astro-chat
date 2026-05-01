@@ -36,8 +36,23 @@ export interface CalendarDayPolishInput {
     moonSign?: string
     ascSign?: string
   }
-  bestSlots?: Array<{ hour: string; reason: string }>
-  cautionSlots?: Array<{ hour: string; reason: string }>
+  bestSlots?: Array<{
+    hour: string
+    reason: string
+    /** 왜 이 시간이 best인지 사주 신호 (식상 강·관성 보태기 등) */
+    sajuSignals?: string[]
+    /** 왜 이 시간이 best인지 점성 신호 (Venus on natal MC 등) */
+    astroSignals?: string[]
+    /** 한 줄 요약 — slot.why.summary */
+    summary?: string
+  }>
+  cautionSlots?: Array<{
+    hour: string
+    reason: string
+    sajuSignals?: string[]
+    astroSignals?: string[]
+    summary?: string
+  }>
   matrixCore?: {
     phase?: string
     focus?: string
@@ -64,6 +79,12 @@ const SYSTEM_PROMPT_KO = `당신은 15년차 한국 사주명리 + 서양 점성
 3) 조심할 시간대 처방 — caution 슬롯의 본질
 4) 한 줄 핵심 — 오늘 가장 중요한 한 가지 행동 (구체적)
 
+# 시간대 anchor 규칙 (중요)
+- best/caution 슬롯의 "왜 이 시간인가"를 *반드시 사주·점성 신호에 anchor*해서 풀어쓰세요.
+- 단순 "14시가 좋아요" 대신: "14시는 일진 화 기운이 정점에 도달하는 시간 + 점성 금성이 본명 MC에 닿는 자리라 표현·발표가 자연스러운 시점"
+- input의 sajuSignals/astroSignals 값을 직접 인용하면서 *왜 그게 그 시간을 좋게/위험하게 만드는지* 한 줄로 설명.
+- 시간 나열만 하는 mechanical 패턴 금지 — 각 시간대마다 *고유한 신호 anchor* 필수.
+
 # 규칙
 - 각 단락 4-6 문장
 - 사주 idiom (식상·재성·관성·인성·비겁) 자연스럽게 사용
@@ -89,6 +110,12 @@ Each paragraph addresses a different thread:
 3) Caution time guidance — the essence of risky slots
 4) One key action — the single most important specific action for today
 
+# Time-slot anchor rule (important)
+- For each best/caution slot, *anchor "why this hour" to specific saju & astro signals*.
+- Not "2 PM is good" but: "2 PM lands when the daily fire energy peaks AND Venus crosses your natal MC — favorable for expression/presentation".
+- Cite the input sajuSignals/astroSignals directly and explain *why each signal makes that hour favorable or risky*.
+- No mechanical lists — each slot needs its own unique signal anchor.
+
 # Rules
 - 4-6 sentences per paragraph
 - Use technical idioms naturally (sibsin types / transits / houses / aspects)
@@ -112,29 +139,48 @@ function buildUserPrompt(input: CalendarDayPolishInput): string {
       : `Astrology: Sun ${astro.sunSign ?? '-'} / Moon ${astro.moonSign ?? '-'} / ASC ${astro.ascSign ?? '-'} / Saturn ${astro.saturnHouse ?? '-'}H / Jupiter ${astro.jupiterHouse ?? '-'}H / Transits: ${(astro.transits ?? []).slice(0, 3).join(', ') || '-'} / Active aspects: ${(astro.activeAspects ?? []).slice(0, 3).join(', ') || '-'}`
     : ''
 
+  function formatSlotWithAnchors(s: {
+    hour: string
+    reason: string
+    sajuSignals?: string[]
+    astroSignals?: string[]
+    summary?: string
+  }): string {
+    const parts: string[] = [s.hour]
+    if (s.summary) parts.push(`핵심: ${s.summary}`)
+    if (s.sajuSignals && s.sajuSignals.length > 0) {
+      parts.push(`사주 신호: ${s.sajuSignals.slice(0, 3).join(', ')}`)
+    }
+    if (s.astroSignals && s.astroSignals.length > 0) {
+      parts.push(`점성 신호: ${s.astroSignals.slice(0, 3).join(', ')}`)
+    }
+    if (s.reason) parts.push(`기본: ${s.reason}`)
+    return parts.join(' / ')
+  }
+
   const bestLine =
     bestSlots && bestSlots.length > 0
       ? isKo
-        ? `좋은 시간대: ${bestSlots
+        ? `좋은 시간대 (각 슬롯의 사주·점성 신호 anchor):\n${bestSlots
             .slice(0, 3)
-            .map((s) => `${s.hour}(${s.reason})`)
-            .join(', ')}`
-        : `Best slots: ${bestSlots
+            .map((s) => `  - ${formatSlotWithAnchors(s)}`)
+            .join('\n')}`
+        : `Best slots (each anchored to saju/astro signals):\n${bestSlots
             .slice(0, 3)
-            .map((s) => `${s.hour}(${s.reason})`)
-            .join(', ')}`
+            .map((s) => `  - ${formatSlotWithAnchors(s)}`)
+            .join('\n')}`
       : ''
   const cautionLine =
     cautionSlots && cautionSlots.length > 0
       ? isKo
-        ? `조심할 시간대: ${cautionSlots
+        ? `조심할 시간대 (각 슬롯의 사주·점성 신호 anchor):\n${cautionSlots
             .slice(0, 3)
-            .map((s) => `${s.hour}(${s.reason})`)
-            .join(', ')}`
-        : `Caution slots: ${cautionSlots
+            .map((s) => `  - ${formatSlotWithAnchors(s)}`)
+            .join('\n')}`
+        : `Caution slots (each anchored to saju/astro signals):\n${cautionSlots
             .slice(0, 3)
-            .map((s) => `${s.hour}(${s.reason})`)
-            .join(', ')}`
+            .map((s) => `  - ${formatSlotWithAnchors(s)}`)
+            .join('\n')}`
       : ''
 
   const matrixLine = matrixCore
