@@ -88,6 +88,7 @@ model User {
   reportsMade           UserReport[]   @relation("ReportsMade")
   reportsReceived       UserReport[]   @relation("ReportsReceived")
   savedPersons          SavedPerson[]
+  decisions             UserDecision[]
 
   @@index([referrerId])
 }
@@ -302,6 +303,39 @@ model PersonaMemory {
   sajuProfile Json? // 사주 프로필
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Decision Tracker (Tier 2B) — 사용자 결정 + 후속 검증
+// 사주·점성 분석을 했을 때 어떤 결정을 했고 결과가 어땠는지 추적해서
+// 다음 결정에 학습 데이터로 활용 (post-evaluation feedback loop).
+model UserDecision {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 결정 컨텍스트
+  decisionType String // career_change | marriage | move | investment | health | other
+  context      String // 사용자 발화에서 추출한 결정 요지 (verbatim)
+  recommendedAction String? // 시스템이 권한 방향 (e.g., "이번 분기는 보수적", "확장 추천")
+  tookAction        Boolean? // 사용자가 실제로 진행했는지
+
+  // 시기 메타
+  decidedAt DateTime? // 결정 시점 (사용자 입력)
+  reviewAt  DateTime? // 후속 평가 예정 시점 (3-6개월 뒤)
+
+  // 결과 평가 (later)
+  outcome      String? // good | mixed | bad | pending
+  outcomeNote  String? // 사용자 후기 verbatim
+  evaluatedAt  DateTime?
+
+  // 분석 시점 사주·점성 신호 (학습 데이터)
+  signalAtDecision Json? // { sajuConfidence, astroConfidence, crossBand }
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, outcome])
 }
 
 // 내 사람들 - 가족, 친구, 연인 정보 저장

@@ -9,6 +9,11 @@ import {
   formatRecallContextKo,
   formatRecallContextEn,
 } from '@/lib/ai/personaMemoryRecall'
+import {
+  getDecisionHistory,
+  formatDecisionHistoryKo,
+  formatDecisionHistoryEn,
+} from '@/lib/ai/decisionTracker'
 
 export interface ProfileLoadResult {
   birthDate?: string
@@ -261,6 +266,23 @@ export async function loadPersonaMemory(
     if (sessionSummaries.length > 0) {
       recentSessionSummaries = sessionSummaries.join('\n')
       logger.debug(`[profileLoader] Loaded ${sessionSummaries.length} recent session summaries`)
+    }
+
+    // 3. (Tier 2B) Decision Tracker — 이전 결정·결과 narrative
+    try {
+      const history = await getDecisionHistory(userId, 5)
+      if (history.length > 0) {
+        const decisionBlock =
+          lang === 'ko' ? formatDecisionHistoryKo(history) : formatDecisionHistoryEn(history)
+        if (decisionBlock) {
+          recentSessionSummaries = recentSessionSummaries
+            ? `${recentSessionSummaries}\n\n${decisionBlock}`
+            : decisionBlock
+          logger.debug(`[profileLoader] Loaded ${history.length} decisions`)
+        }
+      }
+    } catch (e) {
+      logger.warn('[profileLoader] decision history load failed', e)
     }
   } catch (e) {
     logger.warn('[profileLoader] Failed to load persona memory:', e)
