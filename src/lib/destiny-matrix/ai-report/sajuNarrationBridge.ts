@@ -300,11 +300,18 @@ function describeCycleClash(
  * 반환: 단락 사이에 \n\n 들어간 한 덩어리.
  */
 export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): string {
-  const paragraphs: string[] = []
+  // 정보 계층 구조: 메인 본문(cross-driven) → ## 사주 본명 분석(보조) → ## 점성 본명 차트(보조) → callout
+  // - 메인은 cross-validated 신호만으로 구성해 정확도 우선
+  // - 단독 사주 / 단독 점성 신호는 헤딩으로 명확히 분리해 부가 자료로 표시
+  const mainParagraphs: string[] = []
+  const sajuSupporting: string[] = []
+  const astroSupporting: string[] = []
+  const calloutParagraphs: string[] = []
+
   const natal = input.dayMasterElement
   const natalKo = natal ? ELEMENT_KO_LABEL[natal] || '' : ''
 
-  // ───────── ¶1: 본명 인격 — 격국 + 신강/신약 + 12운성 + 십신 + 신살 ─────────
+  // ───────── ¶1: 본명 인격 — 격국 + 신강/신약 + 12운성 + 십신 + 신살 (사주 보조) ─────────
   const p1: string[] = []
   if (input.geokguk) {
     const desc = getGeokgukDescription(input.geokguk as GeokgukType)
@@ -392,41 +399,41 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
       p1.push(`한 줄로 정리하면, 이 분의 인생 미션은 ${mission} 데 있어요.`)
     }
   }
-  if (p1.length > 0) paragraphs.push(p1.join(' '))
+  if (p1.length > 0) sajuSupporting.push(p1.join(' '))
 
-  // ───────── ¶ 약점·함정 3개 — heading + bullet list ─────────
+  // ───────── ¶ 약점·함정 3개 — heading + bullet list (사주 보조) ─────────
   if (input.geokguk) {
     const traps = GEOKGUK_TRAPS_KO[input.geokguk as string]
     if (traps) {
-      paragraphs.push(`## 자주 빠지는 함정\n- ${traps[0]}\n- ${traps[1]}\n- ${traps[2]}\n셋이 동시에 작동하면 한 발짝 늦추는 게 안전한데, 본인은 보통 그 순간을 못 알아채요.`)
+      sajuSupporting.push(`### 자주 빠지는 함정\n- ${traps[0]}\n- ${traps[1]}\n- ${traps[2]}\n셋이 동시에 작동하면 한 발짝 늦추는 게 안전한데, 본인은 보통 그 순간을 못 알아채요.`)
     }
   }
 
-  // ───────── ¶ Specific 천간/지지: 본명 안에 이미 형성된 관계 한 줄 ─────────
+  // ───────── ¶ Specific 천간/지지: 본명 안에 이미 형성된 관계 한 줄 (사주 보조) ─────────
   const natalRel = buildNatalRelationKo(input)
-  if (natalRel) paragraphs.push(natalRel)
+  if (natalRel) sajuSupporting.push(natalRel)
 
-  // ───────── ¶ 시계열: 이전 → 현재 → 다음 대운 + 세운 arc ─────────
+  // ───────── ¶ 시계열: 이전 → 현재 → 다음 대운 + 세운 arc (사주 보조) ─────────
   const storyArc = buildStoryArcKo(input)
-  if (storyArc) paragraphs.push(storyArc)
+  if (storyArc) sajuSupporting.push(storyArc)
 
-  // ───────── ¶ 입체 통합: 지금 이 순간 cross-section ─────────
+  // ───────── ¶ 입체 통합: 지금 이 순간 cross-section (메인 cross) ─────────
   // 시간(나이+대운+세운+월peak) + 본명(격국·십신·길성) + 점성(토성·목성 하우스)
   // + 사주↔점성 cross가 한 단락에서 만남.
   const nowCrossSection = buildNowCrossSectionKo(input)
-  if (nowCrossSection) paragraphs.push(nowCrossSection)
+  if (nowCrossSection) mainParagraphs.push(nowCrossSection)
 
-  // ───────── ¶ 도메인별 mini cross-section ─────────
+  // ───────── ¶ 도메인별 mini cross-section (메인 cross) ─────────
   // career/love/wealth/health/move 5개 도메인에 사주+점성+transit 신호 펼침
   const domainCross = buildDomainMiniCrossSectionsKo(input)
-  if (domainCross) paragraphs.push(domainCross)
+  if (domainCross) mainParagraphs.push(domainCross)
 
-  // ───────── ¶ 다중 시간점 진화 ─────────
+  // ───────── ¶ 다중 시간점 진화 (메인 — 시간 cross) ─────────
   // 지금 → 6개월 뒤 → 내년 → 10년 뒤 다음 대운까지의 결 변화
   const evolution = buildTemporalEvolutionKo(input)
-  if (evolution) paragraphs.push(evolution)
+  if (evolution) mainParagraphs.push(evolution)
 
-  // ───────── ¶ 단기 시기 — 월별/일별 + 사이클 충돌 ─────────
+  // ───────── ¶ 단기 시기 — 월별/일별 + 사이클 충돌 (사주 보조) ─────────
   // 월별 peak는 cross-section에 폴딩됨 (중복 방지).
   // 이 단락은 단기 시기(월운/일운) + 큰 사이클 충돌만 다룸.
   const p2: string[] = []
@@ -437,10 +444,9 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   const iljinRel = describeCycleRelation(natal, input.currentIljinElement, '오늘 일운', '오늘 하루 톤을 잡아주는')
   if (wolunRel) p2.push(`${wolunRel} 색이 깔려요.`)
   if (iljinRel) p2.push(`${iljinRel} 분위기로 마무리돼요.`)
-  if (p2.length > 0) paragraphs.push(p2.join(' '))
+  if (p2.length > 0) sajuSupporting.push(p2.join(' '))
 
-  // ───────── ¶3: 사주↔점성 정합 + 점성 본명 디테일 + scenario ─────────
-  const p3: string[] = []
+  // ───────── 사주↔점성 정합 cross (메인) ─────────
   const aspectsCount = input.aspects?.length || 0
   const dominantWestern = input.dominantWesternElement
   if (dominantWestern && natalKo) {
@@ -451,14 +457,18 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
         w === natalKo
           ? '점성 측 강조 원소가 본명 일간과 같아 두 시스템이 같은 색을 가리키는'
           : '점성 측 강조 원소와 본명 일간이 달라 두 시스템이 서로 다른 방향을 비추는'
-      p3.push(`점성으로 보면 ${w} 기운이 가장 강조되는 차트라, ${matchHint} 형국이에요.`)
+      const crossSentences: string[] = [
+        `점성으로 보면 ${w} 기운이 가장 강조되는 차트라, ${matchHint} 형국이에요.`,
+      ]
       // (D) 사주↔점성 cross integration — 두 시스템이 한 사람 안에서 어떻게 만나는지
       const crossLine = buildCrossIntegrationKo(natalKo, dominantWestern)
-      if (crossLine) p3.push(crossLine)
+      if (crossLine) crossSentences.push(crossLine)
+      mainParagraphs.push(crossSentences.join(' '))
     }
   }
 
-  // 점성 본명 디테일 — 태양·달·금성·화성을 한 호흡으로 weave (4줄 → 2문장)
+  // ───────── 점성 본명 디테일 (점성 보조) — 태양·달·금성·화성 weave ─────────
+  const p3: string[] = []
   const signs = input.planetSigns || {}
   const houses = input.planetHouses || {}
   const SIGN_KO: Record<string, string> = {
@@ -523,7 +533,7 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
     p3.push(`주요 어스펙트가 ${aspectsCount}개 활성화돼 있어 본명 차트의 변동성과 자극이 평균보다 많은 편이에요.`)
   }
 
-  if (p3.length > 0) paragraphs.push(p3.join(' '))
+  if (p3.length > 0) astroSupporting.push(p3.join(' '))
 
   // ───────── ¶4: 6개월 시나리오 처방 — 별도 단락 ─────────
   // 격국 있으면 격국+대운, 없으면 일간+대운 폴백
@@ -551,12 +561,21 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
       }
       if (scenario) {
         // callout block — UI 카드가 강조 박스로 렌더
-        paragraphs.push(`> **정리하자면** — ${scenario}`)
+        calloutParagraphs.push(`> **정리하자면** — ${scenario}`)
       }
     }
   }
 
-  return paragraphs.join('\n\n')
+  // 최종 조립 — 메인 cross 본문 → ## 사주 본명 분석 → ## 점성 본명 차트 → callout
+  const sections: string[] = [...mainParagraphs]
+  if (sajuSupporting.length > 0) {
+    sections.push(['## 사주 본명 분석', ...sajuSupporting].join('\n\n'))
+  }
+  if (astroSupporting.length > 0) {
+    sections.push(['## 점성 본명 차트', ...astroSupporting].join('\n\n'))
+  }
+  sections.push(...calloutParagraphs)
+  return sections.join('\n\n')
 }
 
 // ──────────────────────────────────────────────────────────
