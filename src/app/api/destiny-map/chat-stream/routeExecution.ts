@@ -18,6 +18,7 @@ import type {
 } from '@/lib/destiny-matrix/core/logging'
 import { clampMessages, counselorSystemPrompt } from './lib/helpers'
 import { loadPersonaMemory, loadUserProfile, type ProfileLoadResult } from './lib/profileLoader'
+import { appendUserUtteranceToRecall } from '@/lib/ai/personaMemoryRecall'
 import { calculateChartData } from './lib/chart-calculator'
 import {
   buildContextSections,
@@ -248,6 +249,11 @@ export async function prepareCounselorExecution(params: {
   let personaMemoryContext = ''
   let recentSessionSummaries = ''
   if (userId) {
+    // (Tier 2A) 이번 사용자 발화를 recall에 누적 (질문·결정 verbatim 추출)
+    if (lastUserContent) {
+      // fire-and-forget — recall append 실패가 메인 응답을 막지 않게
+      appendUserUtteranceToRecall(userId, lastUserContent).catch(() => {})
+    }
     const memoryResult = await loadPersonaMemory(userId, effectiveTheme, lang)
     personaMemoryContext = memoryResult.personaMemoryContext
     recentSessionSummaries = memoryResult.recentSessionSummaries

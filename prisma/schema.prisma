@@ -293,6 +293,10 @@ model PersonaMemory {
   recurringIssues Json? // 반복되는 이슈들
   sessionCount    Int   @default(0) // 총 상담 횟수
 
+  // 회상 깊이 — 이전 질문·결정 verbatim 기록 (Tier 2A)
+  recentQuestions    Json? // 최근 사용자 질문 verbatim (최대 8개, 최신순)
+  decisionsMentioned Json? // 사용자가 언급한 결정·계획 (최대 8개, 최신순)
+
   // 점성술/사주 핵심 정보 (캐싱)
   birthChart  Json? // 핵심 차트 정보
   sajuProfile Json? // 사주 프로필
