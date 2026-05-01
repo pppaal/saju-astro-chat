@@ -90,7 +90,7 @@ export default function PersonAppliedProfileSection({
                 className="rounded-[22px] border border-white/10 bg-[#090f1b]/88 p-5"
               >
                 <p className="text-base font-semibold text-white">{card.title}</p>
-                <p className="mt-3 text-[15px] leading-[1.7] text-slate-200/95">{card.summary}</p>
+                <p className="mt-3 text-[15px] leading-[1.7] text-slate-200">{card.summary}</p>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-2xl border border-emerald-300/12 bg-emerald-400/[0.05] p-3">
@@ -133,7 +133,7 @@ export default function PersonAppliedProfileSection({
         </ReportSurfaceSection>
 
         <ReportSurfaceSection title="해석 불확실성" eyebrow="Uncertainty Envelope" tone="amber">
-          <p className="text-[15px] leading-[1.7] text-slate-200/95">{uncertainty.summary}</p>
+          <p className="text-[15px] leading-[1.7] text-slate-200">{uncertainty.summary}</p>
 
           <div className="mt-5 space-y-4">
             <div>

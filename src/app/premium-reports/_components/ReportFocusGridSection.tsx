@@ -46,7 +46,7 @@ export default function ReportFocusGridSection({
               </span>
             </div>
             <p
-              className="mt-2 text-[15px] leading-[1.7] text-slate-200/95"
+              className="mt-2 text-[15px] leading-[1.7] text-slate-200"
               style={{ wordBreak: 'keep-all' }}
             >
               {item.summary}

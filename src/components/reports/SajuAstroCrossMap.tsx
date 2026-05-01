@@ -45,7 +45,7 @@ export default function SajuAstroCrossMap({
     >
       <header className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-200/70">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
             Cross Map
           </p>
           <h3 className="mt-1 text-[1.05rem] font-semibold text-white">{title}</h3>
@@ -86,7 +86,7 @@ export default function SajuAstroCrossMap({
                 <p className="mt-0.5 truncate text-[13px] text-slate-200">{sig.saju}</p>
               </div>
               {/* connector */}
-              <div className="flex flex-col items-center justify-center text-cyan-300/70">
+              <div className="flex flex-col items-center justify-center text-cyan-300">
                 <span
                   className="text-base leading-none"
                   style={{ color: sStyle.color }}
@@ -97,7 +97,7 @@ export default function SajuAstroCrossMap({
               </div>
               {/* 점성 column */}
               <div className="min-w-0">
-                <p className="text-[9.5px] font-semibold uppercase tracking-[0.18em] text-cyan-300/70">
+                <p className="text-[9.5px] font-semibold uppercase tracking-[0.18em] text-cyan-300">
                   점성
                 </p>
                 <p className="mt-0.5 truncate text-[13px] text-slate-200">{sig.astro}</p>

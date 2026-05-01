@@ -176,7 +176,7 @@ export default function PremiumNarrativeCard({
         aria-expanded={isOpen}
       >
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-cyan-200/70">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-cyan-300">
             Narrative
           </p>
           <h3 className="mt-1.5 text-[1.35rem] font-semibold leading-tight text-white">
@@ -245,7 +245,7 @@ export default function PremiumNarrativeCard({
               return (
                 <p
                   key={key}
-                  className="text-[1rem] leading-[1.85] text-slate-200/95 first-letter:font-medium"
+                  className="text-[1rem] leading-[1.85] text-slate-200 first-letter:font-medium"
                   style={{
                     letterSpacing: '-0.005em',
                     wordBreak: 'keep-all',

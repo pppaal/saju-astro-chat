@@ -108,11 +108,11 @@ export default function PremiumReportsPageClient() {
       <div className="mx-auto max-w-5xl px-6 py-16 sm:py-24">
         {/* Hero */}
         <header className="space-y-4 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-cyan-300/70">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-cyan-300">
             Destiny Reports
           </p>
           <h1
-            className="text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-4xl font-semibold leading-[1.1] text-transparent sm:text-6xl"
+            className="text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-4xl font-semibold leading-[1.1] text-transparent md:text-5xl lg:text-6xl"
             style={{ letterSpacing: '-0.025em', wordBreak: 'keep-all' }}
           >
             사주와 점성으로 읽는<br />
@@ -179,7 +179,7 @@ export default function PremiumReportsPageClient() {
 
                 {/* Description */}
                 <p
-                  className="mt-5 text-[14px] leading-[1.7] text-slate-300/90"
+                  className="mt-5 text-[14px] leading-[1.7] text-slate-300"
                   style={{ wordBreak: 'keep-all' }}
                 >
                   {card.description}
@@ -190,7 +190,7 @@ export default function PremiumReportsPageClient() {
                   {card.features.map((f) => (
                     <li
                       key={f}
-                      className="flex items-start gap-2 text-[13px] leading-[1.5] text-slate-300/80"
+                      className="flex items-start gap-2 text-[13px] leading-[1.5] text-slate-300"
                     >
                       <span
                         className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full"
@@ -223,7 +223,7 @@ export default function PremiumReportsPageClient() {
           모든 분석은 사주명리·점성술 전통에 기반한 <em className="not-italic text-slate-400">참고 자료</em>이며 미래를 단정하지 않습니다.{' '}
           <Link
             href="/premium-reports/preview"
-            className="text-cyan-300/80 underline-offset-2 hover:underline"
+            className="text-cyan-300 underline-offset-2 hover:underline"
           >
             샘플 미리보기
           </Link>

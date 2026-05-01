@@ -4,7 +4,7 @@ import { Compass, Sparkles } from 'lucide-react'
 export default function DestinyMapPage() {
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,#1a1c2e_0%,#0a0a14_60%)] text-slate-100">
-      <div className="mx-auto max-w-4xl px-6 py-20 sm:py-28">
+      <div className="mx-auto max-w-5xl px-6 py-20 sm:py-28">
         {/* Hero */}
         <header className="space-y-5 text-center">
           <div className="flex justify-center">
@@ -21,7 +21,7 @@ export default function DestinyMapPage() {
           </div>
 
           <h1
-            className="text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-4xl font-semibold leading-[1.1] text-transparent sm:text-6xl"
+            className="text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-4xl font-semibold leading-[1.1] text-transparent md:text-5xl lg:text-6xl"
             style={{ letterSpacing: '-0.025em', wordBreak: 'keep-all' }}
           >
             사주와 점성으로
@@ -52,7 +52,7 @@ export default function DestinyMapPage() {
                 key={i}
                 className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 backdrop-blur-md"
               >
-                <Icon className="h-4 w-4 flex-shrink-0 text-cyan-300/70" strokeWidth={1.5} />
+                <Icon className="h-4 w-4 flex-shrink-0 text-cyan-300" strokeWidth={1.5} />
                 <span className="text-[14px] text-slate-300" style={{ wordBreak: 'keep-all' }}>
                   {f.label}
                 </span>
@@ -75,7 +75,7 @@ export default function DestinyMapPage() {
 
           <Link
             href="/premium-reports"
-            className="text-[13px] text-slate-400 underline-offset-4 transition hover:text-cyan-300/80 hover:underline"
+            className="text-[13px] text-slate-400 underline-offset-4 transition hover:text-cyan-300 hover:underline"
           >
             더 깊이 보고 싶다면 — Premium 리포트
           </Link>

@@ -74,13 +74,13 @@ export default function PreviewPage() {
       <div className="mx-auto max-w-5xl space-y-8">
         {/* Hero */}
         <header className="space-y-3 pt-8 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-cyan-300/70">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-cyan-300">
             Premium Report Preview
           </p>
           <h1 className="bg-[linear-gradient(135deg,#fff_0%,#7c5cff_100%)] bg-clip-text text-3xl font-bold leading-tight text-transparent sm:text-4xl">
             사주 × 점성 통합 리포트
           </h1>
-          <p className="mx-auto max-w-xl text-sm leading-relaxed text-slate-300/85">
+          <p className="mx-auto max-w-xl text-sm leading-relaxed text-slate-300">
             8,000~10,000자 long-form, 6 테마 × 8 섹션, 사주·점성 50:50 cross.
             아래는 결제하면 받게 될 리포트 시각 요소 미리보기예요.
           </p>
@@ -89,13 +89,13 @@ export default function PreviewPage() {
         {/* Sample 1: 5행 도넛 + Confidence */}
         <section className="grid gap-6 rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md sm:grid-cols-2">
           <div className="flex flex-col items-center gap-3 border-b border-white/[0.07] pb-6 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-6">
-            <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-200/70">
+            <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
               5행 분포 시각화
             </h2>
             <FiveElementsDonut fiveElements={SAMPLE_FIVE_ELEMENTS} />
           </div>
           <div className="flex flex-col justify-center gap-3">
-            <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-200/70">
+            <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
               사주·점성 합의 강도
             </h2>
             <ConfidenceScoreBadge
@@ -120,13 +120,13 @@ export default function PreviewPage() {
 
         {/* Sample 3: Narration */}
         <section className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,16,28,0.94),rgba(7,11,19,0.88))] p-6 backdrop-blur-md">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-300/70">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
             Narrative Sample
           </p>
           <h2 className="mt-1.5 text-[1.35rem] font-semibold text-white">
             연애 DNA — 핵심 흐름
           </h2>
-          <div className="mt-4 space-y-4 text-[15px] leading-[1.85] text-slate-200/95">
+          <div className="mt-4 space-y-4 text-[15px] leading-[1.85] text-slate-200">
             <p style={{ wordBreak: 'keep-all' }}>
               네 연애 스타일을 보면, 사주로는{' '}
               <strong className="font-semibold text-white">정관이 강해서</strong> 진지하고 안정적인 관계를
@@ -180,7 +180,7 @@ export default function PreviewPage() {
         {/* CTA */}
         <section className="flex flex-col items-center gap-4 rounded-3xl border border-white/10 bg-[linear-gradient(135deg,rgba(124,92,255,0.18),rgba(124,92,255,0.04))] p-8 text-center backdrop-blur-md">
           <h2 className="text-2xl font-bold text-white">실제 내 사주로 풀어보기</h2>
-          <p className="max-w-md text-sm text-slate-300/85">
+          <p className="max-w-md text-sm text-slate-300">
             본인 생년월일·시간만 있으면 위 모든 분석을 사주·점성 cross로 8천자 이상 풀어드려요.
           </p>
           <Link

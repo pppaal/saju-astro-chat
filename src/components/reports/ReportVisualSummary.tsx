@@ -47,7 +47,7 @@ export default function ReportVisualSummary({
         <section className="grid gap-6 rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md sm:grid-cols-2">
           {hasFive && fiveElements && (
             <div className="flex flex-col items-center gap-3 border-b border-white/[0.07] pb-6 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-6">
-              <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-200/70">
+              <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
                 5행 분포
               </h2>
               <FiveElementsDonut fiveElements={fiveElements} />
@@ -55,7 +55,7 @@ export default function ReportVisualSummary({
           )}
           {hasConfidence && confidence && (
             <div className="flex flex-col justify-center gap-3">
-              <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-200/70">
+              <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
                 사주·점성 합의 강도
               </h2>
               <ConfidenceScoreBadge

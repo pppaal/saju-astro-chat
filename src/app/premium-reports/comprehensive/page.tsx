@@ -178,7 +178,7 @@ export default function ComprehensiveReportPage() {
               </span>
             </div>
             <h1
-              className="text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-4xl font-semibold leading-[1.1] text-transparent sm:text-5xl"
+              className="text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-4xl font-semibold leading-[1.1] text-transparent md:text-5xl"
               style={{ letterSpacing: '-0.025em', wordBreak: 'keep-all' }}
             >
               연애·커리어·재물·건강·가족·이동까지 한 번에
@@ -192,7 +192,7 @@ export default function ComprehensiveReportPage() {
               가볍게 먼저 보고 싶으세요?{' '}
               <button
                 onClick={() => router.push('/destiny-map')}
-                className="font-medium text-cyan-300/80 underline-offset-2 hover:underline"
+                className="font-medium text-cyan-300 underline-offset-2 hover:underline"
               >
                 무료 운명 지도로 시작
               </button>

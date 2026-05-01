@@ -444,7 +444,7 @@ export default function DestinyResultPage({
                 )}
               </h3>
               <p
-                className="mt-3 text-[14px] leading-[1.7] text-slate-300/90"
+                className="mt-3 text-[14px] leading-[1.7] text-slate-300"
                 style={{ wordBreak: 'keep-all' }}
               >
                 {lang === 'ko'

@@ -247,11 +247,11 @@ function ThemedBuilderContent() {
       <div className="mx-auto max-w-5xl px-6 py-16 sm:py-24">
         {/* Hero */}
         <header className="space-y-4 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-cyan-300/70">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-cyan-300">
             Themed Report
           </p>
           <h1
-            className="text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-4xl font-semibold leading-[1.15] text-transparent transition-all duration-500 sm:text-6xl"
+            className="text-balance bg-[linear-gradient(135deg,#fff_0%,#a89fcf_100%)] bg-clip-text text-4xl font-semibold leading-[1.15] text-transparent transition-all duration-500 md:text-5xl lg:text-6xl"
             style={{ letterSpacing: '-0.025em', wordBreak: 'keep-all' }}
           >
             {heroTitle}

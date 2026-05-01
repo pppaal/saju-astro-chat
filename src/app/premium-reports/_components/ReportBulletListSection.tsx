@@ -23,7 +23,7 @@ export default function ReportBulletListSection({
         {items.map((item, index) => (
           <li
             key={`${item}-${index}`}
-            className="text-[15px] leading-[1.75] text-slate-200/95"
+            className="text-[15px] leading-[1.75] text-slate-200"
             style={{ wordBreak: 'keep-all' }}
           >
             • {item}
