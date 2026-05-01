@@ -17,6 +17,11 @@
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
 import { getGeokgukDescription } from '@/lib/Saju/geokguk'
 import type { GeokgukType } from '@/lib/Saju/geokguk'
+import {
+  calculateCrossConfidence,
+  estimateSajuSignalStrength,
+  estimateAstroSignalStrength,
+} from './crossConfidence'
 
 const KO_SHINSAL_BLURB: Record<string, string> = {
   역마: '이동·출장·전직 같은 환경 변동이 잘 일어나고',
@@ -630,10 +635,41 @@ export function synthesizeExpertNarrationKo(input: MatrixCalculationInput): stri
   const domainCross = buildDomainMiniCrossSectionsKo(input)
   if (domainCross) mainParagraphs.push(domainCross)
 
-  // ───────── ¶ 다중 시간점 진화 (메인 — 시간 cross) ─────────
-  // 지금 → 6개월 뒤 → 내년 → 10년 뒤 다음 대운까지의 결 변화
-  const evolution = buildTemporalEvolutionKo(input)
-  if (evolution) mainParagraphs.push(evolution)
+  // ───────── ¶ Confidence Score — 두 시스템 합의 강도 (메인) ─────────
+  // 사주 신호 강도와 점성 신호 강도를 정량화해 합의 강도 0-100%로 표시
+  {
+    const sajuSig = estimateSajuSignalStrength({
+      natalElement: natalKo,
+      cycleElement: input.currentSaeunElement ? ELEMENT_KO_LABEL[input.currentSaeunElement] : undefined,
+      shinsalActive: (input.shinsalList || []).length,
+      hasGeokguk: Boolean(input.geokguk),
+    })
+    const aspectsAll = input.aspects || []
+    const tense = aspectsAll.filter((a) => a.type === 'square' || a.type === 'opposition').length
+    const flow = aspectsAll.filter((a) => a.type === 'trine' || a.type === 'sextile').length
+    const transitsCount = (input as { activeTransits?: string[] }).activeTransits?.length || 0
+    const adv = input.advancedAstroSignals || {}
+    const advCount = Object.values(adv).filter((v) => v).length
+    const astroSig = estimateAstroSignalStrength({
+      activeTransitsCount: transitsCount,
+      tenseAspectsCount: tense,
+      flowAspectsCount: flow,
+      hasAdvancedSignals: advCount >= 1,
+    })
+    const conf = calculateCrossConfidence(
+      {
+        sajuStrength: sajuSig.strength,
+        sajuDirection: sajuSig.direction,
+        astroStrength: astroSig.strength,
+        astroDirection: astroSig.direction,
+      },
+      'ko'
+    )
+    mainParagraphs.push(
+      `**합의 강도 ${conf.scorePercent}%** — ${conf.description}`
+    )
+  }
+
 
   // ───────── ¶ 12개월 month-by-month breakdown (메인 — 신년 운세) ─────────
   const monthlyBreakdown = buildAnnualMonthlyBreakdownKo(input)
