@@ -175,7 +175,7 @@ export const CoupleElementsDonut = memo(function CoupleElementsDonut({
             textAnchor="middle"
             style={{ fontSize: 10, fill: 'rgba(255,255,255,0.5)' }}
           >
-            안 {p1Name} · 밖 {p2Name}
+            안쪽 {p1Name} · 바깥 {p2Name}
           </text>
         </svg>
       </div>

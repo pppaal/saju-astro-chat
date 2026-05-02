@@ -184,7 +184,7 @@ export const ScoreDashboard = memo(function ScoreDashboard(props: ScoreDashboard
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <BigGroupCard
           label="감정·끌림"
-          tooltip="두 분 사이의 케미와 감정이 얼마나 잘 통하는지 — 점성술의 태양·달·금성·화성 결을 합산."
+          tooltip="두 분 사이의 케미와 감정이 얼마나 잘 통하는지를 봅니다. 태양·달·금성·화성의 만남을 함께 살펴 평균을 낸 점수예요."
           score={heartScore}
           kind="overall"
           description="첫인상부터 일상까지 마음이 흐르는 결"
@@ -238,7 +238,7 @@ export const ScoreDashboard = memo(function ScoreDashboard(props: ScoreDashboard
             />
             <ScoreRow
               label="점성"
-              tooltip="서양 점성술 차트로 본 시너스트리 — Sun·Moon·Venus·Mars 등 행성 결."
+              tooltip="서양 점성술 차트로 본 두 분의 만남 — 태양·달·금성·화성 등 행성의 결."
               score={props.astro}
               kind="astro"
             />

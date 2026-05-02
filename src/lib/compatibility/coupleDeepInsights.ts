@@ -213,7 +213,7 @@ function attractionReasons(input: DeepInsightInput): string[] {
     )
   } else if (dmRel === 'same') {
     reasons.push(
-      `사주 본성이 동기인 결 — 같은 ${p1Saju.dayMaster.element} 기운을 공유해 비슷한 결이 편안함을 줍니다.`
+      `사주 본성이 동기예요. 같은 ${p1Saju.dayMaster.element} 기운을 공유해 비슷한 성향이 서로에게 편안함을 줍니다.`
     )
   } else if (dmRel === 'drain') {
     reasons.push(
@@ -363,10 +363,10 @@ function buildIdealMatch(input: DeepInsightInput): IdealTypeMatch[] {
   ] as const) {
     const ideal = VENUS_IDEAL[self.venus.sign] || '편안한 사람'
     const drive = MARS_DRIVE[self.mars.sign] || '꾸준한'
-    const seeks = `${ideal}. ${drive} 결에 끌립니다.`
+    const seeks = `${ideal}이에요. ${drive} 분위기에 특히 끌립니다.`
     const partnerCore = SUN_PERSONALITY[partner.sun.sign] || partner.sun.sign
     const partnerDrive = MARS_DRIVE[partner.mars.sign] || '편안한'
-    const partnerActually = `${partnerCore}을 가진 사람, ${partnerDrive} 결을 풍기는 분이에요.`
+    const partnerActually = `${partnerCore}을 가진 분으로, ${partnerDrive} 분위기를 풍깁니다.`
 
     // Match scoring — Venus sign element vs partner Sun element
     let level: IdealTypeMatch['matchLevel'] = 'partial'
