@@ -17,6 +17,7 @@ import { normalizeGender } from '@/lib/utils/gender'
 import BackButton from '@/components/ui/BackButton'
 import ShareButton from '@/components/ui/ShareButton'
 import PersonalityInsight from '@/components/personality/PersonalityInsight'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 
 type Lang = 'ko' | 'en'
 type DestinyResult = {
@@ -122,6 +123,7 @@ export default function DestinyResultPage({
           userTimezone: userTz || undefined,
         })
         setResult(res as DestinyResult)
+        analytics.freeResultView('destiny-map')
 
         // Store saju/astro for counselor chat (avoids re-computation)
         // Note: API returns "astrology" but we store as "astro" for consistency
@@ -482,6 +484,7 @@ export default function DestinyResultPage({
 
               <button
                 onClick={() => {
+                  analytics.premiumCtaClick('destiny-map-result', 'comprehensive')
                   window.location.href = '/premium-reports'
                 }}
                 className="group mt-6 inline-flex items-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#fbbf24_0%,#f59e0b_100%)] px-6 py-3 text-[14px] font-semibold text-slate-950 shadow-[0_18px_50px_rgba(251,191,36,0.35)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_22px_60px_rgba(251,191,36,0.5)]"

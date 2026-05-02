@@ -99,6 +99,7 @@ export default function ComprehensiveReportPage() {
 
     setError(null)
     setIsGenerating(true)
+    analytics.premiumReportStart('comprehensive')
 
     try {
       const response = await fetch('/api/destiny-matrix/ai-report', {

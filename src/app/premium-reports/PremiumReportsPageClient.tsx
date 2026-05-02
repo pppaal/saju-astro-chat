@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Crown, Sparkles, Compass } from 'lucide-react'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 
 const ROUTES = {
   free: '/destiny-map',
@@ -96,6 +97,9 @@ export default function PremiumReportsPageClient() {
   const { status } = useSession()
 
   const handleClick = (card: ReportCard) => {
+    if (card.key !== 'free') {
+      analytics.premiumCtaClick('premium-hub', card.key)
+    }
     if (card.authRequired && status === 'unauthenticated') {
       router.push(`/auth/signin?callbackUrl=${encodeURIComponent(ROUTES[card.key])}`)
       return

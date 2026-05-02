@@ -172,6 +172,7 @@ function ThemedBuilderContent() {
 
     setError(null)
     setIsGenerating(true)
+    analytics.premiumReportStart('themed', theme)
     try {
       const response = await fetch('/api/destiny-matrix/ai-report', {
         method: 'POST',
@@ -279,7 +280,10 @@ function ThemedBuilderContent() {
                 <button
                   key={t.key}
                   type="button"
-                  onClick={() => setTheme(t.key)}
+                  onClick={() => {
+                    setTheme(t.key)
+                    analytics.premiumThemeSelect(t.key, period)
+                  }}
                   className={`group relative overflow-hidden rounded-3xl border p-5 text-left transition-all duration-300 ${
                     selected
                       ? 'border-white/30 bg-white/[0.06]'
