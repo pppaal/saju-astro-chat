@@ -6,7 +6,7 @@
  * visual layout matching premium-reports/result/[id] design language.
  */
 
-import { memo } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   Sparkles,
@@ -161,11 +161,107 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
   actionItems,
 }: CompatibilityRichReportProps) {
   const primaryPair = pairDetails[0]
+
+  const [narrative, setNarrative] = useState('')
+  const [narrativeStatus, setNarrativeStatus] = useState<
+    'idle' | 'loading' | 'streaming' | 'done' | 'error'
+  >('idle')
+  const fetchedKeyRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!primaryPair || !deepInsights) return
+    const key = `${pairLabels.join('|')}|${primaryPair.weightedScore}|${deepInsights.attractionReasons.length}`
+    if (fetchedKeyRef.current === key) return
+    fetchedKeyRef.current = key
+
+    const controller = new AbortController()
+    setNarrativeStatus('loading')
+    setNarrative('')
+    ;(async () => {
+      try {
+        const res = await fetch('/api/compatibility/narrative-stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            pairLabels,
+            overallScore: overallScore ?? primaryPair.weightedScore,
+            scoreBreakdown: {
+              saju: primaryPair.sajuScore,
+              astro: primaryPair.astrologyScore,
+              fusion: primaryPair.fusionScore,
+              cross: primaryPair.crossScore,
+            },
+            deepInsights,
+            coupleTiming: coupleTiming
+              ? {
+                  activationPeriod: coupleTiming.activationPeriod,
+                  cautionPeriod: coupleTiming.cautionPeriod,
+                  primeYearWindow: coupleTiming.primeYearWindow,
+                  monthlyOutlook: coupleTiming.monthlyOutlook,
+                }
+              : null,
+            astroTiming: astroTiming
+              ? {
+                  saturnEra: astroTiming.saturnEra,
+                  jupiterEra: astroTiming.jupiterEra,
+                  crossNarrative: astroTiming.crossNarrative,
+                }
+              : null,
+          }),
+        })
+        if (!res.ok || !res.body) {
+          setNarrativeStatus('error')
+          return
+        }
+        setNarrativeStatus('streaming')
+        const reader = res.body.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+        let acc = ''
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          buffer += decoder.decode(value, { stream: true })
+          let nl = buffer.indexOf('\n\n')
+          while (nl !== -1) {
+            const event = buffer.slice(0, nl)
+            buffer = buffer.slice(nl + 2)
+            for (const line of event.split('\n')) {
+              if (!line.startsWith('data:')) continue
+              const data = line.slice(5).trim()
+              if (!data || data === '[DONE]') continue
+              try {
+                const parsed = JSON.parse(data) as { content?: string; done?: boolean }
+                if (parsed.content) {
+                  acc += parsed.content
+                  setNarrative(acc)
+                }
+              } catch {
+                // ignore parse errors
+              }
+            }
+            nl = buffer.indexOf('\n\n')
+          }
+        }
+        setNarrativeStatus('done')
+      } catch (err) {
+        if ((err as Error)?.name !== 'AbortError') {
+          setNarrativeStatus('error')
+        }
+      }
+    })()
+
+    return () => controller.abort()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [primaryPair?.weightedScore, pairLabels.join('|'), Boolean(deepInsights)])
+
   if (!primaryPair) return null
 
   const fusion = primaryPair.fusionInsights
   const score = overallScore ?? primaryPair.weightedScore
   const band = scoreBand(score)
+  const narrativeParagraphs = narrative.split(/\n\n+/).filter((p) => p.trim().length > 0)
 
   return (
     <div className="relative">
@@ -217,6 +313,55 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
             </div>
           </div>
         </header>
+
+        {/* AI Narrative — Claude-polished long-form Korean */}
+        {(narrativeStatus !== 'idle' || narrative) && (
+          <section className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,16,28,0.94),rgba(7,11,19,0.86))] p-6 backdrop-blur-2xl sm:p-8">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-cyan-300" />
+              <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
+                AI 풀이
+              </h2>
+              {narrativeStatus === 'streaming' && (
+                <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-cyan-300/25 bg-cyan-400/10 px-2.5 py-0.5 text-[10.5px] font-medium text-cyan-100">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-300" />
+                  생성 중
+                </span>
+              )}
+            </div>
+
+            {narrativeStatus === 'loading' && narrative === '' && (
+              <div className="mt-4 space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className="h-4 animate-pulse rounded-full bg-white/[0.06]"
+                    style={{ width: `${85 + ((i * 7) % 15)}%`, animationDelay: `${i * 0.1}s` }}
+                  />
+                ))}
+                <p className="mt-3 text-[12px] text-slate-500">
+                  두 분의 사주·점성·교차 데이터로 풀이 생성 중...
+                </p>
+              </div>
+            )}
+
+            {narrativeStatus === 'error' && (
+              <p className="mt-3 text-[13px] text-amber-200/80">
+                AI 풀이를 불러오지 못했어요. 아래 분석 카드들로 풀이 가능합니다.
+              </p>
+            )}
+
+            {narrativeParagraphs.length > 0 && (
+              <div className="mt-4 space-y-4 text-[15px] leading-[1.85] text-slate-200">
+                {narrativeParagraphs.map((p, i) => (
+                  <p key={i} style={{ wordBreak: 'keep-all' }}>
+                    {p}
+                  </p>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Fusion deep analysis */}
         {fusion?.deepAnalysis && (

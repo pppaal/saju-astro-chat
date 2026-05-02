@@ -1,7 +1,15 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
-import { initializeApiContext, createAuthenticatedGuard } from '@/lib/api/middleware'
+import {
+  initializeApiContext,
+  createAuthenticatedGuard,
+  type MiddlewareOptions,
+} from '@/lib/api/middleware'
 import { createFallbackSSEStream } from '@/lib/streaming'
-import { askClaude } from '@/lib/llm/askClaude'
+import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
+import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { extractLocale } from '@/lib/api/middleware'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/authOptions'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { logger } from '@/lib/logger'
 import {
@@ -17,6 +25,31 @@ import { buildThemeDepthGuide, buildEvidenceGroundingGuide } from '@/lib/prompts
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 90
+
+// Guest free trial — 2 turns of compatibility counselor before login wall
+const GUEST_COMPAT_TURN_LIMIT = 2
+const GUEST_COMPAT_TURN_COOKIE = 'guest_compat_counselor_turns'
+const GUEST_COMPAT_COOKIE_MAX_AGE = 60 * 60 * 24 * 30
+const GUEST_COMPAT_RATE_LIMIT = { limit: 12, windowSeconds: 60 } as const
+
+function readGuestCompatTurns(req: NextRequest): number {
+  const raw = req.cookies.get(GUEST_COMPAT_TURN_COOKIE)?.value
+  if (!raw) return 0
+  const n = parseInt(raw, 10)
+  return Number.isFinite(n) && n > 0 ? n : 0
+}
+
+function buildGuestCompatTurnCookie(next: number): string {
+  const parts = [
+    `${GUEST_COMPAT_TURN_COOKIE}=${next}`,
+    'Path=/',
+    `Max-Age=${GUEST_COMPAT_COOKIE_MAX_AGE}`,
+    'SameSite=Lax',
+    'HttpOnly',
+  ]
+  if (process.env.NODE_ENV === 'production') parts.push('Secure')
+  return parts.join('; ')
+}
 
 import {
   clampMessages,
@@ -39,19 +72,63 @@ import {
 
 export async function POST(req: NextRequest) {
   try {
-    // Apply middleware: authentication + rate limiting + credit consumption
-    const guardOptions = createAuthenticatedGuard({
+    // Apply middleware: prefer authenticated guard (with credits) but fall
+    // back to guest guard so first-time visitors can sample 2 turns before
+    // the login wall — same pattern as destiny-map/chat-stream.
+    const authedGuardOptions = createAuthenticatedGuard({
       route: 'compatibility-counselor',
       limit: 30,
       windowSeconds: 60,
       requireCredits: true,
-      creditType: 'compatibility', // 궁합 상담은 compatibility 타입 사용
+      creditType: 'compatibility',
       creditAmount: 1,
     })
 
-    const { context, error } = await initializeApiContext(req, guardOptions)
+    const guestGuardOptions: MiddlewareOptions = {
+      route: 'compatibility-counselor-guest',
+      rateLimit: {
+        limit: GUEST_COMPAT_RATE_LIMIT.limit,
+        windowSeconds: GUEST_COMPAT_RATE_LIMIT.windowSeconds,
+      },
+    }
+
+    let prefersAuthedGuard = false
+    try {
+      const session = await getServerSession(authOptions)
+      prefersAuthedGuard = Boolean(session?.user)
+    } catch {
+      prefersAuthedGuard = false
+    }
+
+    let initialized = await initializeApiContext(
+      req,
+      prefersAuthedGuard ? authedGuardOptions : guestGuardOptions
+    )
+    if (prefersAuthedGuard && initialized.error && initialized.error.status === 401) {
+      initialized = await initializeApiContext(req, guestGuardOptions)
+    }
+
+    const { context, error } = initialized
     if (error) {
       return error
+    }
+
+    const isGuestMode = !context.userId
+
+    // Guest free-trial gate
+    let guestTurnsUsed = 0
+    if (isGuestMode) {
+      guestTurnsUsed = readGuestCompatTurns(req)
+      if (guestTurnsUsed >= GUEST_COMPAT_TURN_LIMIT) {
+        return createErrorResponse({
+          code: ErrorCodes.UNAUTHORIZED,
+          message:
+            '궁합 상담 무료 체험 2회를 모두 사용했어요. 로그인하면 가입 보너스 2 크레딧으로 계속 이용할 수 있어요.',
+          locale: extractLocale(req),
+          route: 'compatibility/counselor',
+          headers: { 'X-Guest-Limit-Reached': '1' },
+        })
+      }
     }
 
     const rawBody = await req.json()
@@ -269,98 +346,83 @@ export async function POST(req: NextRequest) {
     const themeDepthGuide = buildThemeDepthGuide(String(theme || 'general'), normalizedLang)
     const evidenceGuide = buildEvidenceGroundingGuide(normalizedLang)
 
-    // Build enhanced prompt for counselor
-    const counselorPrompt = [
-      `== 프리미엄 궁합 상담사 ==`,
+    // System prompt — counselor role
+    const systemPrompt =
+      lang === 'ko'
+        ? `당신은 사주명리학과 점성학을 결합한 전문 궁합 상담사입니다. 친근하지만 전문적인 어조로 답변하세요.
+- 제공된 사주·점성·교차 데이터에 근거해 구체적이고 실천 가능한 조언 제공
+- 숨겨진 패턴과 시너지를 쉽게 설명
+- 시기별 미래 가이던스 안내
+- 긍정적이지만 현실적인 조언, 추측·과장 금지
+- 마크다운 헤더(## 등) 쓰지 말고 평문 단락으로`
+        : `You are an expert compatibility counselor combining Saju and Astrology.
+Provide friendly but professional guidance:
+- Specific, actionable advice grounded in the provided saju/astro/cross data
+- Explain hidden patterns simply
+- Time-based future guidance
+- Positive yet realistic, no speculation
+- Plain prose paragraphs, no markdown headers`
+
+    // User prompt — context + question
+    const userPrompt = [
       `테마: ${themeContext}`,
       ``,
       `== 참여자 정보 ==`,
       personsInfo,
       fusionContext ? `\n${fusionContext}` : '',
       extendedSajuCompatibility
-        ? `\n== EXTENDED SAJU COMPATIBILITY ==\n${stringifyForPrompt(extendedSajuCompatibility)}`
+        ? `\n== 사주 심화 분석 ==\n${stringifyForPrompt(extendedSajuCompatibility)}`
         : '',
       extendedAstroCompatibility
-        ? `\n== EXTENDED ASTROLOGY COMPATIBILITY ==\n${stringifyForPrompt(extendedAstroCompatibility)}`
+        ? `\n== 점성 심화 분석 ==\n${stringifyForPrompt(extendedAstroCompatibility)}`
         : '',
-      `\n== TIMING DETAIL (DAEUN/SEUN/WOLUN/ILUN) ==\n${stringifyForPrompt(timingDetails)}`,
-      `\n== DETERMINISTIC CONTEXT TRACE ==\n${stringifyForPrompt(contextTrace)}`,
-      fullContextText ? `\n== FULL RAW CONTEXT (SAJU + ASTRO) ==\n${fullContextText}` : '',
+      `\n== 시기 흐름 (대운/세운/월운/일운) ==\n${stringifyForPrompt(timingDetails)}`,
+      `\n== 결정적 컨텍스트 ==\n${stringifyForPrompt(contextTrace)}`,
+      fullContextText ? `\n== 전체 raw 컨텍스트 ==\n${fullContextText}` : '',
       historyText ? `\n== 이전 대화 ==\n${historyText}` : '',
+      `\n== 품질 기준 ==\n${themeDepthGuide}`,
+      `\n== 근거 사용 가이드 ==\n${evidenceGuide}`,
       `\n== 사용자 질문 ==\n${userQuestion}`,
-      ``,
-      `== INTERPRETATION QUALITY CONTRACT ==\n${themeDepthGuide}`,
-      `\n== EVIDENCE GATE ==\n${evidenceGuide}`,
-      ``,
-      `== 상담사 지침 ==`,
-      lang === 'ko'
-        ? `당신은 사주명리학과 점성학을 결합한 전문 궁합 상담사입니다.
-위의 심층 분석 데이터를 바탕으로 친근하지만 전문적인 어조로 답변하세요.
-- 구체적인 조언과 실천 가능한 팁을 제공합니다.
-- 숨겨진 패턴과 시너지를 쉽게 설명합니다.
-- 미래 가이던스를 시기별로 안내합니다.
-- 긍정적이면서도 현실적인 조언을 제공합니다.`
-        : `You are an expert compatibility counselor combining Saju and Astrology.
-Based on the deep analysis above, provide friendly but professional guidance.
-- Give specific, actionable advice
-- Explain hidden patterns and synergies simply
-- Provide time-based future guidance
-- Be positive yet realistic`,
     ]
       .filter(Boolean)
       .join('\n')
 
-    // Call backend AI (extended timeout for fusion analysis)
     try {
-      const response = await askClaude(counselorPrompt, {
-        theme: theme || 'compatibility-counselor',
+      return await streamClaudeAsSSE({
+        systemPrompt,
+        userPrompt,
         maxTokens: 3500,
+        temperature: 0.7,
         timeoutMs: 80000,
         label: 'compatibility-counselor',
+        additionalHeaders: {
+          'X-Guest-Mode': isGuestMode ? '1' : '0',
+          ...(isGuestMode
+            ? {
+                'Set-Cookie': buildGuestCompatTurnCookie(guestTurnsUsed + 1),
+                'X-Guest-Turns-Remaining': String(
+                  Math.max(0, GUEST_COMPAT_TURN_LIMIT - (guestTurnsUsed + 1))
+                ),
+              }
+            : {}),
+        },
+      })
+    } catch (claudeErr) {
+      logger.error('[Compatibility Counselor] Claude error:', {
+        error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
       })
 
-      if (!response.ok) {
-        throw new Error(`Claude error: ${response.error || response.status}`)
+      // Refund credit if Claude failed (authed users only)
+      if (context?.refundCreditsOnError) {
+        await context.refundCreditsOnError(
+          `Claude error: ${claudeErr instanceof Error ? claudeErr.message : 'unknown'}`,
+          { route: 'compatibility-counselor' }
+        )
       }
-
-      const answer = String(
-        response.data?.data?.report ||
-          (lang === 'ko'
-            ? '\uC8C4\uC1A1\uD569\uB2C8\uB2E4. \uC751\uB2F5\uC744 \uC0DD\uC131\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.'
-            : "Sorry, couldn't generate response. Please try again.")
-      )
-
-      // Stream response in chunks for better UX
-      const encoder = new TextEncoder()
-      return new Response(
-        new ReadableStream({
-          start(controller) {
-            const chunks = answer.match(/.{1,60}/g) || [answer]
-            chunks.forEach((chunk: string, index: number) => {
-              setTimeout(() => {
-                controller.enqueue(encoder.encode(`data: ${chunk}\n\n`))
-                if (index === chunks.length - 1) {
-                  controller.enqueue(encoder.encode('data: [DONE]\n\n'))
-                  controller.close()
-                }
-              }, index * 15)
-            })
-          },
-        }),
-        {
-          headers: {
-            'Content-Type': 'text/event-stream',
-            'Cache-Control': 'no-cache',
-            Connection: 'keep-alive',
-          },
-        }
-      )
-    } catch (fetchError) {
-      logger.error('[Compatibility Counselor] Backend error:', { error: fetchError })
 
       const fallback =
         lang === 'ko'
-          ? 'AI \uC11C\uBC84 \uC5F0\uACB0\uC5D0 \uBB38\uC81C\uAC00 \uC788\uC2B5\uB2C8\uB2E4. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.'
+          ? 'AI \uC11C\uBC84 \uC5F0\uACB0\uC5D0 \uBB38\uC81C\uAC00 \uC788\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.'
           : 'AI server connection issue. Please try again later.'
 
       return createFallbackSSEStream({
