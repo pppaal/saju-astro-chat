@@ -30,10 +30,24 @@ import type {
   CoupleDeepInsights,
 } from '@/hooks/useCompatibilityAnalysis'
 
+interface NarrativePerson {
+  name?: string
+  date: string
+  time: string
+  gender?: 'male' | 'female' | 'M' | 'F' | 'Male' | 'Female'
+  latitude?: number
+  longitude?: number
+  timeZone?: string
+  city?: string
+  relationToP1?: string
+}
+
 interface CompatibilityRichReportProps {
   pairDetails: PairDetails[]
   overallScore: number | null
   pairLabels: string[]
+  /** Raw birth info needed for the narrative endpoint to recompute extended saju + astro */
+  personsForNarrative?: NarrativePerson[]
   relationshipDynamics: RelationshipDynamics | null
   futureGuidance: FutureGuidance | null
   coupleTiming?: CoupleTimingData | null
@@ -153,6 +167,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
   pairDetails,
   overallScore,
   pairLabels,
+  personsForNarrative,
   relationshipDynamics,
   futureGuidance,
   coupleTiming,
@@ -169,7 +184,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
   const fetchedKeyRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!primaryPair || !deepInsights) return
+    if (!primaryPair || !deepInsights || !personsForNarrative || personsForNarrative.length < 2) return
     const key = `${pairLabels.join('|')}|${primaryPair.weightedScore}|${deepInsights.attractionReasons.length}`
     if (fetchedKeyRef.current === key) return
     fetchedKeyRef.current = key
@@ -185,6 +200,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
           signal: controller.signal,
           body: JSON.stringify({
             pairLabels,
+            persons: personsForNarrative,
             overallScore: overallScore ?? primaryPair.weightedScore,
             scoreBreakdown: {
               saju: primaryPair.sajuScore,
@@ -192,7 +208,13 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
               fusion: primaryPair.fusionScore,
               cross: primaryPair.crossScore,
             },
-            deepInsights,
+            deepInsightsSummary: {
+              attractionReasons: deepInsights.attractionReasons,
+              whyItWorks: deepInsights.whyItWorks,
+              frictionPoints: deepInsights.frictionPoints,
+              marriageSummary: deepInsights.marriage?.summary,
+              longevitySummary: deepInsights.longevity?.summary,
+            },
             coupleTiming: coupleTiming
               ? {
                   activationPeriod: coupleTiming.activationPeriod,

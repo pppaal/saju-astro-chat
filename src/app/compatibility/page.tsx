@@ -361,6 +361,17 @@ export default function CompatPage() {
                 pairDetails={pairDetails}
                 overallScore={overallScore}
                 pairLabels={persons.map((p) => p.name || 'Person')}
+                personsForNarrative={persons.map((p) => ({
+                  name: p.name || 'Person',
+                  date: p.date,
+                  time: p.time || '12:00',
+                  gender: p.gender,
+                  latitude: p.lat ?? undefined,
+                  longitude: p.lon ?? undefined,
+                  timeZone: p.timeZone || 'Asia/Seoul',
+                  city: p.cityQuery || undefined,
+                  relationToP1: p.relation,
+                }))}
                 relationshipDynamics={relationshipDynamics}
                 futureGuidance={futureGuidance}
                 coupleTiming={coupleTiming}
