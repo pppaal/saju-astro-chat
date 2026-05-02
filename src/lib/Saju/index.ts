@@ -21,7 +21,6 @@ export {
   getSeasonFromMonthBranch,
   type StrengthLevel,
   type DaymasterStrengthAnalysis,
-  type StrengthAnalysis, // deprecated alias
   type GeokgukType,
   type GeokgukAnalysis,
   type YongsinAnalysis,
@@ -127,7 +126,6 @@ export {
   type HoegukResult,
   type DeukryeongResult,
   type TonggeunStrengthAnalysis,
-  type StrengthAnalysis as TonggeunStrengthAnalysisDeprecated, // deprecated alias
 } from './tonggeun';
 
 // 조후용신 (궁통보감) 모듈

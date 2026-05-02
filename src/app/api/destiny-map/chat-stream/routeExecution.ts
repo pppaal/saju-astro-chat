@@ -1,4 +1,4 @@
-﻿import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
+﻿import type { CombinedResult } from '@/lib/destiny-map/astrology'
 import { ErrorCodes, type ErrorCode } from '@/lib/api/errorHandler'
 import { isValidDate, isValidLatitude, isValidLongitude, isValidTime } from '@/lib/validation'
 import { logger } from '@/lib/logger'

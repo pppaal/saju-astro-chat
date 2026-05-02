@@ -91,9 +91,6 @@ export interface ExtractedSajuData {
   facts: AstrologyFactsForPrompt;
 }
 
-/** @deprecated Use ExtractedSajuData instead */
-export type SajuData = ExtractedSajuData;
-
 /**
  * Extracted advanced astrology points
  */

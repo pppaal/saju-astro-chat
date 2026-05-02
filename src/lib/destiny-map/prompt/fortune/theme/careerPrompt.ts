@@ -1,7 +1,7 @@
 // Career prompt v2.0 - 직업 적성, 업종, 성공 패턴까지 상세 분석
 import { buildAllDataPrompt } from "../base";
 import { buildTonePrompt } from "../base/toneStyle";
-import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
+import type { CombinedResult } from "@/lib/destiny-map/astrology";
 
 export function buildCareerPrompt(lang: string, data: CombinedResult, _useStructured = true) {
   const theme = "career";

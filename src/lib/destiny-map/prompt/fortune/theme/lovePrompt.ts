@@ -1,6 +1,6 @@
 import { buildAllDataPrompt } from "../base";
 import { buildTonePrompt } from "../base/toneStyle";
-import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
+import type { CombinedResult } from "@/lib/destiny-map/astrology";
 
 // Love/Relationship prompt v2.0 - 배우자 성향, 연령대, 만남장소까지 상세 분석
 export function buildLovePrompt(lang: string, data: CombinedResult, _useStructured = true) {

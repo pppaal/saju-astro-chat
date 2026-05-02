@@ -1,7 +1,7 @@
 // src/lib/destiny-map/local-report-generator.ts
 // Local template-based report generation (AI 없이 사주/점성 데이터만으로)
 
-import type { CombinedResult } from './astrologyengine'
+import type { CombinedResult } from './astrology'
 import { logger } from '@/lib/logger'
 import { ELEMENT_RELATIONS, ZODIAC_TO_ELEMENT } from './calendar/constants'
 import { normalizeElement } from './calendar/utils'

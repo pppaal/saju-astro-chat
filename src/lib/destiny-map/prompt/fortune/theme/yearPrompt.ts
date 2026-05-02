@@ -1,6 +1,6 @@
 import { buildAllDataPrompt } from "../base";
 import { buildTonePrompt } from "../base/toneStyle";
-import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
+import type { CombinedResult } from "@/lib/destiny-map/astrology";
 
 // Yearly prompt (동양+서양 교차 전용, 섹션 고정)
 export function buildThisYearPrompt(lang: string, data: CombinedResult, _useStructured = true) {

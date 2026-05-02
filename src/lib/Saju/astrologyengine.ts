@@ -42,9 +42,6 @@ export interface DaymasterStrengthAnalysis {
   };
 }
 
-/** @deprecated Use DaymasterStrengthAnalysis instead */
-export type StrengthAnalysis = DaymasterStrengthAnalysis;
-
 export interface GeokgukAnalysis {
   type: GeokgukType;
   basis: string;           // 판단 근거
@@ -60,7 +57,7 @@ export interface YongsinAnalysis {
 }
 
 export interface AdvancedSajuAnalysis {
-  strength: StrengthAnalysis;
+  strength: DaymasterStrengthAnalysis;
   geokguk: GeokgukAnalysis;
   yongsin: YongsinAnalysis;
 }
@@ -185,7 +182,7 @@ export function analyzeStrength(
     dayPillar: PillarInput;
     timePillar: PillarInput;
   }
-): StrengthAnalysis {
+): DaymasterStrengthAnalysis {
   const dayElement = dayMaster.element;
 
   const details = {
@@ -287,7 +284,7 @@ export function analyzeGeokguk(
     dayPillar: PillarInput;
     timePillar: PillarInput;
   },
-  strength: StrengthAnalysis
+  strength: DaymasterStrengthAnalysis
 ): GeokgukAnalysis {
   const monthBranchName = pillars.monthPillar.earthlyBranch.name;
   const dayElement = dayMaster.element;
@@ -401,7 +398,7 @@ export function analyzeGeokguk(
 
 export function analyzeYongsin(
   dayMaster: { name: string; element: FiveElement; yin_yang: YinYang },
-  strength: StrengthAnalysis,
+  strength: DaymasterStrengthAnalysis,
   geokguk: GeokgukAnalysis
 ): YongsinAnalysis {
   const dayElement = dayMaster.element;

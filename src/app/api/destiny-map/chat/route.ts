@@ -4,7 +4,7 @@ import { askClaude } from '@/lib/llm/askClaude'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { buildAllDataPrompt } from '@/lib/destiny-map/prompt/fortune/base'
-import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
+import type { CombinedResult } from '@/lib/destiny-map/astrology'
 import Stripe from 'stripe'
 import { isDbPremiumUser } from '@/lib/auth/premium'
 import {
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Lazy-load heavy astro engine to avoid resolving swisseph during build/deploy
-    const { computeDestinyMap } = await import('@/lib/destiny-map/astrologyengine')
+    const { computeDestinyMap } = await import('@/lib/destiny-map/astrology')
 
     // DEV MODE: Skip Stripe check for local development
     const isDev = process.env.NODE_ENV === 'development'

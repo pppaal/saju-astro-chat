@@ -147,13 +147,6 @@ export const paginationQuerySchema = z.object({
 
 export type PaginationQueryValidated = z.infer<typeof paginationQuerySchema>
 
-/** @deprecated Use paginationQuerySchema instead */
-export const paginationSchema = paginationQuerySchema
-/** @deprecated Use paginationQuerySchema instead */
-export const paginationParamsSchema = paginationQuerySchema
-export type PaginationValidated = PaginationQueryValidated
-export type PaginationParams = PaginationQueryValidated
-
 // ============ Common Param Schemas ============
 
 export const idParamSchema = z.object({

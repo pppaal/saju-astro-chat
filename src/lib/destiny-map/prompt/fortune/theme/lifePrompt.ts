@@ -1,7 +1,7 @@
 import { buildAllDataPrompt } from "../base";
 import { buildTonePrompt } from "../base/toneStyle";
 import { buildStructuredFortunePrompt } from "../base/structuredPrompt";
-import type { CombinedResult } from "@/lib/destiny-map/astrologyengine";
+import type { CombinedResult } from "@/lib/destiny-map/astrology";
 
 // 빠른 분석용 최소 데이터 (토큰 절약)
 function buildQuickData(data: CombinedResult): string {

@@ -31,7 +31,7 @@ import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/
 import { analyzeAdvancedSaju } from '@/lib/Saju/astrologyengine'
 import { logger } from '@/lib/logger'
 import type { SajuDataStructure, AstroDataStructure } from './lib/types'
-import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
+import type { CombinedResult } from '@/lib/destiny-map/astrology'
 import type { InsightDomain } from '@/lib/destiny-matrix/interpreter/types'
 import type { MatrixSnapshot } from './routePromptSupport'
 import { buildBirthTimeRectificationCandidates } from './lib/birthTimeRectification'

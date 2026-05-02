@@ -2,8 +2,8 @@
 
 // Note: 'use server' removed - exports include interface definitions
 
-import { computeDestinyMap } from './astrologyengine'
-import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
+import { computeDestinyMap } from './astrology'
+import type { CombinedResult } from '@/lib/destiny-map/astrology'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { cacheGet, cacheSet, makeCacheKey } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'

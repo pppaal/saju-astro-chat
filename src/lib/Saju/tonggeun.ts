@@ -75,9 +75,6 @@ export interface TonggeunStrengthAnalysis {
   score: number;  // -100 ~ 100
 }
 
-/** @deprecated Use TonggeunStrengthAnalysis instead */
-export type StrengthAnalysis = TonggeunStrengthAnalysis;
-
 // ============ 통근 계산 ============
 
 /**
@@ -479,7 +476,7 @@ export function calculateElementStrengths(pillars: SajuPillarsInput): Record<Fiv
 /**
  * 종합 세력 분석
  */
-export function analyzeStrength(pillars: SajuPillarsInput): StrengthAnalysis {
+export function analyzeStrength(pillars: SajuPillarsInput): TonggeunStrengthAnalysis {
   const daymaster = pillars.day.stem;
   const daymasterElement = getStemElement(daymaster);
 
@@ -529,7 +526,7 @@ export function analyzeStrength(pillars: SajuPillarsInput): StrengthAnalysis {
   score += ratio * 30;
 
   // 강약 판정
-  let finalStrength: StrengthAnalysis['finalStrength'];
+  let finalStrength: TonggeunStrengthAnalysis['finalStrength'];
   if (score > 50) {finalStrength = '극신강';}
   else if (score > 20) {finalStrength = '신강';}
   else if (score > -20) {finalStrength = '중화';}

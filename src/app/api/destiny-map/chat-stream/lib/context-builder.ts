@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger'
 import { guardText } from '@/lib/textGuards'
 import { buildAllDataPrompt } from '@/lib/destiny-map/prompt/fortune/base'
 import { extractBirthYear } from '@/lib/prediction/utils'
-import type { CombinedResult } from '@/lib/destiny-map/astrologyengine'
+import type { CombinedResult } from '@/lib/destiny-map/astrology'
 import type { SajuDataStructure, AstroDataStructure, ChatMessage } from './types'
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 import {

@@ -270,26 +270,6 @@ export function createErrorResponse(options: APIErrorOptions): NextResponse {
 }
 
 /**
- * @deprecated Use withApiMiddleware from @/lib/api/middleware instead.
- * This function has been replaced by withApiMiddleware which provides:
- * - Unified auth, rate limiting, CSRF protection
- * - Automatic error classification and handling
- * - Credit consumption integration
- * - Consistent response formatting
- *
- * All routes have been migrated to withApiMiddleware.
- * This export will be removed in a future version.
- */
-export function withErrorHandler<T>(
-  _handler: (req: Request) => Promise<T>,
-  _route: string
-) {
-  throw new Error(
-    'withErrorHandler is deprecated. Use withApiMiddleware from @/lib/api/middleware instead.'
-  );
-}
-
-/**
  * Extract locale from request
  */
 function extractLocale(req: Request): string {
