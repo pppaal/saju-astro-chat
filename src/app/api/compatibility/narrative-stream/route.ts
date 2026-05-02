@@ -39,7 +39,7 @@ import { normalizeSajuGender } from '@/app/api/compatibility/routeSupportCommon'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-export const maxDuration = 120
+export const maxDuration = 180
 
 // In-memory cache — same couple birth pair → reuse Sonnet output for 24h.
 // Sonnet narrative is ~$0.05/call so even modest reuse pays off. Max 500
@@ -145,15 +145,19 @@ interface NarrativeRequest {
 const SYSTEM_PROMPT = `당신은 한국의 최고급 사주명리·점성술 통합 카운슬러입니다. 두 분의 궁합을 깊이 있고 자연스러운 한국어 long-form으로 풀어주세요.
 
 규칙:
-1. 8개 단락으로 구성 (각 단락 700-1000자, 총 6000-8000자):
-   ① 첫인상과 만남의 결 — 두 분이 만나면 어떤 분위기가 만들어지는지, 첫 끌림의 본질
-   ② 본성의 결 — 두 분의 타고난 성격(사주 일간)과 음양 결이 어떻게 상호작용하는지
-   ③ 끌림의 별 — 마음(태양·달)과 케미(금성·화성)가 어떻게 만나는지 구체적으로
-   ④ 대화·세계관 — 소통 패턴(수성)과 깊은 가치관 정렬
-   ⑤ 사주와 별이 같이 가리키는 곳 — 동양과 서양 두 시각이 어디서 동의하고 어디서 다른지
-   ⑥ 일상의 흐름과 마찰 — 함께할 때 자연스러운 부분, 부드럽게 다스려야 할 부분
-   ⑦ 시기 흐름 — 만남이 깊어지는 시기, 큰 약속을 고려해도 좋은 해, 조심해야 할 시기
-   ⑧ 솔직한 마무리 — 결혼·약속 적합도, 관계가 오래 가는지, 핵심 조언 3가지
+1. 12개 단락으로 구성 (각 단락 800-1100자, 총 10000-12000자):
+   ① 첫인상과 만남의 결 — 두 분이 만나면 흐르는 분위기와 첫 끌림의 본질
+   ② 본성의 만남 — 두 분의 타고난 성격이 어떻게 마주하고 어울리는지 (사주 일간 · 음양)
+   ③ 마음의 결 — 의식과 감정이 같은 곳을 보는지 (태양 · 달의 만남)
+   ④ 끌림의 본질 — 로맨스·신체적 케미가 어떻게 흐르는지 (금성 · 화성)
+   ⑤ 대화와 사고 — 두 분의 소통 패턴과 사고방식 결 (수성)
+   ⑥ 깊은 가치와 세계관 — 인생을 보는 큰 방향, 영적 결, 가치관 정렬
+   ⑦ 그림자와 치유 — 무의식적 끌림과 서로의 상처를 치유하는 자리 (그림자점·상처점·운명점·행복점)
+   ⑧ 사주에서 본 두 분의 결 — 십성·신살·합·충 등 동양적 신호 풀이
+   ⑨ 일상의 흐름 — 함께할 때 자연스러운 부분과 부드럽게 다스려야 할 마찰
+   ⑩ 시기 흐름 — 관계가 깊어질 시기, 큰 약속 고려할 해, 조심할 시기 (사주 활성기 + 점성 새턴/주피터)
+   ⑪ 결혼·약속과 지속력 — 장기 약속 적합도와 시간이 지나도 단단해질 가능성
+   ⑫ 솔직한 마무리 — 종합 결론과 두 분에게 가장 중요한 핵심 조언 3가지
 
 2. 톤: 따뜻하지만 명확. 평어 "...해요" 체. 정중한 3인칭 ("두 분의 결", "이 관계는", "한쪽이...").
 
@@ -177,7 +181,7 @@ const SYSTEM_PROMPT = `당신은 한국의 최고급 사주명리·점성술 통
    - "house overlay" → "삶의 영역에서의 만남"
    - "transit" → "지금 별의 흐름"
 
-4. 마크다운(##, **, -, * 등) 절대 금지 — 평문 단락 8개만, 단락 사이 빈 줄 한 칸.
+4. 마크다운(##, **, -, * 등) 절대 금지 — 평문 단락 12개만, 단락 사이 빈 줄 한 칸.
 
 5. 데이터 기반: 제공된 사주·점성 데이터를 자연스럽게 녹여 쓰기. 점수 숫자 그대로 노출 X — 의미로 풀이.
 
@@ -382,7 +386,7 @@ function buildUserPrompt(
   }
 
   lines.push(
-    `\n위 모든 데이터를 종합해 8 단락 자연 풀이를 작성하세요. 각 단락 700-1000자, 총 6000-8000자. 마크다운 헤더 없이 평문 단락 8개만. 한자/영어 용어는 절대 단독 노출 금지 — 모두 풀이된 한국어로.`
+    `\n위 모든 데이터를 종합해 12 단락 자연 풀이를 작성하세요. 각 단락 800-1100자, 총 10000-12000자. 마크다운 헤더 없이 평문 단락 12개만. 한자/영어 용어는 절대 단독 노출 금지 — 모두 풀이된 한국어로. 절대 짧게 쓰지 말 것 — 짧으면 다시 쓰세요.`
   )
   return lines.join('\n')
 }
@@ -614,9 +618,9 @@ export async function POST(req: NextRequest) {
     return await streamClaudeAsSSE({
       systemPrompt: SYSTEM_PROMPT,
       userPrompt,
-      maxTokens: 12000, // ~7000-9000자 Korean (Sonnet 4.5 supports up to 16k)
+      maxTokens: 16000, // ~10000-12000자 Korean (Sonnet 4.5 max output)
       temperature: 0.55,
-      timeoutMs: 110000,
+      timeoutMs: 150000,
       label: 'compatibility-narrative',
       model: PREMIUM_CLAUDE_MODEL, // Sonnet 4.5 — long-form Korean quality
       transform: (chunk) => {

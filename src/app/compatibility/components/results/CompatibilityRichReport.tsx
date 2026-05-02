@@ -390,28 +390,8 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
               <p className="mt-3 text-[14px] leading-relaxed text-slate-300">
                 {primaryPair.relationLabel}
               </p>
-              <div className="mt-4 flex flex-wrap justify-center gap-2 sm:justify-start">
-                {primaryPair.sajuScore !== null && (
-                  <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-2.5 py-1 text-[11px] font-medium text-amber-100">
-                    사주 {Math.round(primaryPair.sajuScore)}
-                  </span>
-                )}
-                {primaryPair.astrologyScore !== null && (
-                  <span className="rounded-full border border-cyan-300/25 bg-cyan-300/10 px-2.5 py-1 text-[11px] font-medium text-cyan-100">
-                    점성 {Math.round(primaryPair.astrologyScore)}
-                  </span>
-                )}
-                {primaryPair.fusionScore !== null && (
-                  <span className="rounded-full border border-violet-300/25 bg-violet-300/10 px-2.5 py-1 text-[11px] font-medium text-violet-100">
-                    융합 {Math.round(primaryPair.fusionScore)}
-                  </span>
-                )}
-                {primaryPair.crossScore !== null && (
-                  <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2.5 py-1 text-[11px] font-medium text-emerald-100">
-                    교차 {Math.round(primaryPair.crossScore)}
-                  </span>
-                )}
-              </div>
+              {/* Single unified score — sub-scores moved to expandable
+                  detail in ScoreDashboard. Heroes stay clean. */}
             </div>
           </div>
         </header>
@@ -497,7 +477,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
                   />
                 ))}
                 <p className="mt-3 text-[12.5px] leading-relaxed text-slate-400">
-                  사주·점성·교차 데이터로 long-form 풀이 작성 중 (약 15-20초 소요)
+                  사주·점성 데이터로 12 단락 long-form 풀이 작성 중 (약 20-30초 소요)
                 </p>
               </div>
             )}

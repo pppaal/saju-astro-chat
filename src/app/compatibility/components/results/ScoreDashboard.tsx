@@ -227,34 +227,20 @@ export const ScoreDashboard = memo(function ScoreDashboard(props: ScoreDashboard
           <div className="my-4 h-px bg-white/[0.06]" />
 
           <p className="mb-2 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-            핵심 점수
+            동양 vs 서양
           </p>
           <div className="grid gap-1 sm:grid-cols-2 sm:gap-x-6">
             <ScoreRow
-              label="사주 본성"
+              label="사주"
               tooltip="동양 사주명리학으로 본 두 분의 본성 결 — 일간·오행·십성 상호작용."
               score={props.saju}
               kind="saju"
             />
             <ScoreRow
-              label="점성 별"
+              label="점성"
               tooltip="서양 점성술 차트로 본 시너스트리 — Sun·Moon·Venus·Mars 등 행성 결."
               score={props.astro}
               kind="astro"
-            />
-            <ScoreRow
-              label="융합"
-              hint="(둘 다 합산)"
-              tooltip="사주와 점성을 통합한 종합 평가."
-              score={props.fusion}
-              kind="fusion"
-            />
-            <ScoreRow
-              label="교차"
-              hint="(같은 방향?)"
-              tooltip="동양과 서양이 같은 결을 가리키는지 — 둘이 동의할수록 신뢰 높은 점수."
-              score={props.cross}
-              kind="cross"
             />
           </div>
 
