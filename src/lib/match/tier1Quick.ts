@@ -10,52 +10,18 @@
  */
 
 import type { MatchProfile, Element } from './matchProfile'
+import {
+  signDistance,
+  elementRel,
+  COMPATIBLE_ASTRO_ELEMENT as COMPATIBLE_ELEMENT,
+  type ElementRel,
+} from '@/lib/compatibility/_shared/signMath'
 
-const ELEMENT_GENERATES: Record<Element, Element> = {
-  wood: 'fire',
-  fire: 'earth',
-  earth: 'metal',
-  metal: 'water',
-  water: 'wood',
-}
-
-const ELEMENT_CONTROLS: Record<Element, Element> = {
-  wood: 'earth',
-  earth: 'water',
-  water: 'fire',
-  fire: 'metal',
-  metal: 'wood',
-}
-
-type DmRelation = 'same' | 'support' | 'drain' | 'control' | 'controlled'
+type DmRelation = Exclude<ElementRel, 'unknown'>
 
 function dayMasterRelation(a: Element, b: Element): DmRelation {
-  if (a === b) return 'same'
-  if (ELEMENT_GENERATES[b] === a) return 'support'
-  if (ELEMENT_GENERATES[a] === b) return 'drain'
-  if (ELEMENT_CONTROLS[a] === b) return 'control'
-  if (ELEMENT_CONTROLS[b] === a) return 'controlled'
-  return 'same'
-}
-
-const ZODIAC_ORDER = [
-  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
-] as const
-
-function signDistance(s1: string, s2: string): number {
-  const i1 = ZODIAC_ORDER.indexOf(s1 as (typeof ZODIAC_ORDER)[number])
-  const i2 = ZODIAC_ORDER.indexOf(s2 as (typeof ZODIAC_ORDER)[number])
-  if (i1 < 0 || i2 < 0) return -1
-  const diff = Math.abs(i1 - i2) % 12
-  return Math.min(diff, 12 - diff)
-}
-
-const COMPATIBLE_ELEMENT: Record<string, string> = {
-  fire: 'air',
-  air: 'fire',
-  earth: 'water',
-  water: 'earth',
+  const r = elementRel(a, b)
+  return r === 'unknown' ? 'same' : r
 }
 
 export type MatchBand = 'soulmate' | 'strong' | 'compatible' | 'worth' | 'different'

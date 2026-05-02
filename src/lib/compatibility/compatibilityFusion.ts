@@ -385,36 +385,9 @@ function generateRecommendedActions(
 // 관계 역학 분석
 // ============================================================
 
-const ZODIAC_ORDER = [
-  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
-] as const
+import { signDistance, aspectStrengthScore } from './_shared/signMath'
 
-/** Sign-based aspect distance (0..6). Returns -1 for unknown signs. */
-function signDistance(s1?: string, s2?: string): number {
-  if (!s1 || !s2) return -1
-  const i1 = ZODIAC_ORDER.indexOf(s1 as (typeof ZODIAC_ORDER)[number])
-  const i2 = ZODIAC_ORDER.indexOf(s2 as (typeof ZODIAC_ORDER)[number])
-  if (i1 < 0 || i2 < 0) return -1
-  const diff = Math.abs(i1 - i2) % 12
-  return Math.min(diff, 12 - diff)
-}
-
-/** Score a sign-based synastry aspect (0=conjunction, 4=trine, etc.) into 0-100. */
-function aspectStrengthScore(distance: number): number {
-  if (distance < 0) return 0
-  switch (distance) {
-    case 0: return 95   // conjunction (very strong)
-    case 4: return 90   // trine
-    case 2: return 75   // sextile
-    case 6: return 70   // opposition (strong but tense)
-    case 3: return 35   // square (challenging)
-    case 1: return 50   // semisextile
-    case 5: return 45   // quincunx
-    default: return 50
-  }
-}
-
+// Same-or-compatible elements (fusion semantic — includes self-pair).
 const ELEMENT_PAIR: Record<string, string[]> = {
   fire: ['fire', 'air'],
   earth: ['earth', 'water'],

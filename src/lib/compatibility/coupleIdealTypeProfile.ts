@@ -211,26 +211,7 @@ const SIBSIN_IDEAL: Record<NonNullable<DominantSibsin>, { name: string; ideal: s
 
 type MatchLevel = 'strong' | 'partial' | 'weak'
 
-const ZODIAC_ORDER = [
-  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
-] as const
-
-function signDistance(s1?: string, s2?: string): number {
-  if (!s1 || !s2) return -1
-  const i1 = ZODIAC_ORDER.indexOf(s1 as (typeof ZODIAC_ORDER)[number])
-  const i2 = ZODIAC_ORDER.indexOf(s2 as (typeof ZODIAC_ORDER)[number])
-  if (i1 < 0 || i2 < 0) return -1
-  const diff = Math.abs(i1 - i2) % 12
-  return Math.min(diff, 12 - diff)
-}
-
-const COMPATIBLE_ELEMENT: Record<string, string> = {
-  fire: 'air',
-  air: 'fire',
-  earth: 'water',
-  water: 'earth',
-}
+import { signDistance, COMPATIBLE_ASTRO_ELEMENT as COMPATIBLE_ELEMENT } from './_shared/signMath'
 
 function levelFromSignAndElement(
   selfSign?: string,

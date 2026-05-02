@@ -16,62 +16,14 @@
 
 import type { SajuProfile, AstrologyProfile } from './cosmicCompatibility'
 import type { ExtendedAstrologyProfile } from './astrology/comprehensive'
-
-const ZODIAC_ORDER = [
-  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
-] as const
-
-function signDistance(s1?: string, s2?: string): number {
-  if (!s1 || !s2) return -1
-  const i1 = ZODIAC_ORDER.indexOf(s1 as (typeof ZODIAC_ORDER)[number])
-  const i2 = ZODIAC_ORDER.indexOf(s2 as (typeof ZODIAC_ORDER)[number])
-  if (i1 < 0 || i2 < 0) return -1
-  const diff = Math.abs(i1 - i2) % 12
-  return Math.min(diff, 12 - diff)
-}
-
-type Aspect = 'conjunction' | 'sextile' | 'square' | 'trine' | 'opposition' | null
-
-function aspectFromDistance(d: number): Aspect {
-  if (d === 0) return 'conjunction'
-  if (d === 2) return 'sextile'
-  if (d === 3) return 'square'
-  if (d === 4) return 'trine'
-  if (d === 6) return 'opposition'
-  return null
-}
-
-const ASPECT_SCORE: Record<NonNullable<Aspect>, number> = {
-  conjunction: 90,
-  trine: 85,
-  sextile: 70,
-  opposition: 60,
-  square: 35,
-}
-
-const ELEMENT_GENERATES: Record<string, string> = {
-  wood: 'fire', fire: 'earth', earth: 'metal', metal: 'water', water: 'wood',
-  목: '화', 화: '토', 토: '금', 금: '수', 수: '목',
-}
-const ELEMENT_CONTROLS: Record<string, string> = {
-  wood: 'earth', earth: 'water', water: 'fire', fire: 'metal', metal: 'wood',
-  목: '토', 토: '수', 수: '화', 화: '금', 금: '목',
-}
-
-function elementRel(a?: string, b?: string): 'same' | 'support' | 'drain' | 'control' | 'controlled' | 'unknown' {
-  if (!a || !b) return 'unknown'
-  if (a === b) return 'same'
-  if (ELEMENT_GENERATES[b] === a) return 'support'
-  if (ELEMENT_GENERATES[a] === b) return 'drain'
-  if (ELEMENT_CONTROLS[a] === b) return 'control'
-  if (ELEMENT_CONTROLS[b] === a) return 'controlled'
-  return 'unknown'
-}
-
-const COMPATIBLE_ELEMENT: Record<string, string> = {
-  fire: 'air', air: 'fire', water: 'earth', earth: 'water',
-}
+import {
+  signDistance,
+  aspectFromDistance,
+  ASPECT_SCORE,
+  elementRel,
+  COMPATIBLE_ASTRO_ELEMENT as COMPATIBLE_ELEMENT,
+  type Aspect,
+} from './_shared/signMath'
 
 export type FacetKey =
   | 'dating'

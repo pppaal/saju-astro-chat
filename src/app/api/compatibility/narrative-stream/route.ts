@@ -29,7 +29,7 @@ import { authOptions } from '@/lib/auth/authOptions'
 import { isDbPremiumUser } from '@/lib/auth/premium'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { LRUCache } from '@/lib/Saju/cache/LRUCache'
-import { sanitizeNarrative, hasJargonLeak } from '@/lib/compatibility/narrativeSanitizer'
+import { sanitizeAstroJargon, hasJargonLeak } from '@/lib/text/sanitizeAstroJargon'
 import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehensive'
 import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/comprehensive'
 import { performCrossSystemAnalysis } from '@/lib/compatibility/crossSystemAnalysis'
@@ -676,7 +676,7 @@ export async function POST(req: NextRequest) {
         // Live per-chunk sanitize — catches Sonnet emitting "Venus"
         // as a single token. Partial matches across token boundaries
         // are corrected in the cache later.
-        const { cleaned } = sanitizeNarrative(chunk)
+        const { cleaned } = sanitizeAstroJargon(chunk)
         fullText += cleaned
         return cleaned
       },
@@ -684,7 +684,7 @@ export async function POST(req: NextRequest) {
         if (fullText.length >= 300) {
           // Final whole-text sanitize before caching — catches anything
           // that slipped per-chunk.
-          const { cleaned, replacementsCount } = sanitizeNarrative(fullText)
+          const { cleaned, replacementsCount } = sanitizeAstroJargon(fullText)
           narrativeCache.set(cacheKey, cleaned)
           logger.info('[compatibility/narrative-stream] cached', {
             cacheKey,

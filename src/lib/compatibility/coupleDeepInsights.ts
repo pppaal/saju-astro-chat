@@ -14,42 +14,12 @@
 
 import type { SajuProfile, AstrologyProfile } from './cosmicCompatibility'
 import type { ExtendedAstrologyProfile } from './astrology/comprehensive'
+import { signDistance, elementRel as sharedElementRel } from './_shared/signMath'
 
-// ============================================================
-// Sign-based aspect helpers (re-stated for module independence)
-// ============================================================
-
-const ZODIAC = [
-  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
-] as const
-
-function signDistance(s1?: string, s2?: string): number {
-  if (!s1 || !s2) return -1
-  const i1 = ZODIAC.indexOf(s1 as (typeof ZODIAC)[number])
-  const i2 = ZODIAC.indexOf(s2 as (typeof ZODIAC)[number])
-  if (i1 < 0 || i2 < 0) return -1
-  const diff = Math.abs(i1 - i2) % 12
-  return Math.min(diff, 12 - diff)
-}
-
-const ELEMENT_GENERATES: Record<string, string> = {
-  wood: 'fire', fire: 'earth', earth: 'metal', metal: 'water', water: 'wood',
-}
-const ELEMENT_CONTROLS: Record<string, string> = {
-  wood: 'earth', earth: 'water', water: 'fire', fire: 'metal', metal: 'wood',
-}
-
+// Local wrapper preserves the older nullable contract used downstream.
 function elementRel(a?: string, b?: string): 'support' | 'same' | 'drain' | 'control' | 'controlled' | null {
-  if (!a || !b) return null
-  const A = a.toLowerCase()
-  const B = b.toLowerCase()
-  if (A === B) return 'same'
-  if (ELEMENT_GENERATES[B] === A) return 'support' // B generates A
-  if (ELEMENT_GENERATES[A] === B) return 'drain' // A generates B
-  if (ELEMENT_CONTROLS[A] === B) return 'control' // A controls B
-  if (ELEMENT_CONTROLS[B] === A) return 'controlled' // B controls A
-  return null
+  const rel = sharedElementRel(a, b)
+  return rel === 'unknown' ? null : rel
 }
 
 // ============================================================
