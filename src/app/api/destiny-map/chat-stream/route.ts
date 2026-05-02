@@ -36,6 +36,22 @@ const GUEST_CHAT_RATE_LIMIT = {
   windowSeconds: 60,
 } as const
 
+// 게스트 카운슬러 무료 체험: 2턴까지 허용 후 로그인 유도
+const GUEST_COUNSELOR_TURN_LIMIT = 2
+const GUEST_COUNSELOR_TURN_COOKIE = 'guest_counselor_turns'
+const GUEST_COUNSELOR_COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30일
+
+function readGuestCounselorTurns(req: NextRequest): number {
+  const raw = req.cookies.get(GUEST_COUNSELOR_TURN_COOKIE)?.value
+  if (!raw) return 0
+  const n = parseInt(raw, 10)
+  return Number.isFinite(n) && n > 0 ? n : 0
+}
+
+function buildGuestTurnCookie(nextTurnCount: number): string {
+  return `${GUEST_COUNSELOR_TURN_COOKIE}=${nextTurnCount}; Path=/; Max-Age=${GUEST_COUNSELOR_COOKIE_MAX_AGE}; SameSite=Lax`
+}
+
 function isCounselorStrictMatrixEnabled(): boolean {
   const raw = process.env.COUNSELOR_STRICT_MATRIX?.trim().toLowerCase()
   if (raw === 'true') return true
@@ -321,6 +337,21 @@ export async function POST(req: NextRequest) {
     }
     isGuestMode = !context.userId
 
+    // 게스트 무료 체험 한도 (2턴) 체크
+    let guestTurnsUsed = 0
+    if (isGuestMode) {
+      guestTurnsUsed = readGuestCounselorTurns(req)
+      if (guestTurnsUsed >= GUEST_COUNSELOR_TURN_LIMIT) {
+        return createErrorResponse({
+          code: ErrorCodes.UNAUTHORIZED,
+          message: '무료 체험 2회를 모두 사용했어요. 로그인하면 가입 보너스 2 크레딧으로 계속 이용할 수 있어요.',
+          locale: extractLocale(req),
+          route: 'destiny-map/chat-stream',
+          headers: { 'X-Guest-Limit-Reached': '1' },
+        })
+      }
+    }
+
     const userId = context.userId
     const body = await parseRequestBody<Record<string, unknown>>(req, {
       context: 'Destiny-map Chat-stream',
@@ -453,6 +484,14 @@ export async function POST(req: NextRequest) {
             ? { 'X-Destiny-Prediction-Id': preparedExecution.predictionId }
             : {}),
           'X-Guest-Mode': isGuestMode ? '1' : '0',
+          ...(isGuestMode
+            ? {
+                'Set-Cookie': buildGuestTurnCookie(guestTurnsUsed + 1),
+                'X-Guest-Turns-Remaining': String(
+                  Math.max(0, GUEST_COUNSELOR_TURN_LIMIT - (guestTurnsUsed + 1))
+                ),
+              }
+            : {}),
         },
       })
     } catch (claudeErr) {

@@ -256,6 +256,11 @@ export function useChatApi({
             throw new Error('INSUFFICIENT_CREDITS')
           }
 
+          if (res.status === 401 && res.headers.get('x-guest-limit-reached') === '1') {
+            logger.info('[Chat] Guest counselor limit reached')
+            throw new Error('GUEST_LIMIT_REACHED')
+          }
+
           if (res.status >= 500 && attempt < CHAT_LIMITS.MAX_RETRY_ATTEMPTS) {
             logger.warn(`[Chat] Server error ${res.status}, retrying...`)
             setRetryCount(attempt + 1)

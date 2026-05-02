@@ -92,6 +92,12 @@ export function getConnectionStatus(responseTimeMs: number): ConnectionStatus {
 export function getErrorMessage(error: Error, lang: LangKey, tr: Copy): string {
   const message = error.message || ''
 
+  if (message.includes('GUEST_LIMIT_REACHED')) {
+    return lang === 'ko'
+      ? '무료 체험 2회를 모두 사용했어요. 로그인하면 가입 보너스 2 크레딧으로 계속 이용할 수 있어요.'
+      : 'You have used both free guest turns. Sign in to claim your 2-credit signup bonus and continue.'
+  }
+
   if (
     message.includes('API_ERROR:401') ||
     message.toLowerCase().includes('unauthorized') ||
