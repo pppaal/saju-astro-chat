@@ -176,19 +176,19 @@ function attractionReasons(input: DeepInsightInput): string[] {
   const vm2 = signDistance(p2Astro.venus.sign, p1Astro.mars.sign)
   if (vm1 === 0 || vm2 === 0) {
     reasons.push(
-      `Venus-Mars 합 — 서로의 에너지 결이 ${MARS_DRIVE[p1Astro.mars.sign] || ''} 직접 끌림. 첫인상부터 케미가 느껴지는 결.`
+      `금성과 화성이 같은 자리에 만나 첫인상부터 강한 케미가 흐릅니다. ${MARS_DRIVE[p1Astro.mars.sign] || '직접적인'} 결이 서로를 끌어당겨요.`
     )
   } else if (vm1 === 4 || vm2 === 4) {
     reasons.push(
-      `Venus-Mars trine — 자연스러운 끌림. 노력 안 해도 흐름이 잘 흘러요.`
+      `금성과 화성이 부드럽게 만나는 자리예요. 노력하지 않아도 끌림이 자연스럽게 흐릅니다.`
     )
   } else if (vm1 === 6 || vm2 === 6) {
     reasons.push(
-      `Venus-Mars 대립 — "정반대 끌림" 클래식. 서로 없는 걸 갖고 있어 강하게 호기심을 느낌.`
+      `금성과 화성이 정반대로 마주치는 자리 — "정반대에 끌리는" 결입니다. 서로 없는 면을 가지고 있어 호기심이 강하게 발동해요.`
     )
   } else if (vm1 === 2 || vm2 === 2) {
     reasons.push(
-      `Venus-Mars sextile — 잔잔하지만 꾸준한 매력. 시간 지날수록 더 좋아지는 결.`
+      `금성과 화성이 잔잔히 호응하는 자리 — 시간이 지날수록 매력이 더 깊어지는 결이에요.`
     )
   }
 
@@ -197,11 +197,11 @@ function attractionReasons(input: DeepInsightInput): string[] {
   const sm2 = signDistance(p2Astro.sun.sign, p1Astro.moon.sign)
   if (sm1 === 0 || sm2 === 0) {
     reasons.push(
-      `Sun-Moon 합 — 한쪽의 본질(Sun)이 다른쪽의 정서(Moon)와 같은 자리. 서로가 "고향처럼 느껴지는" 결이에요.`
+      `한쪽의 본질(태양)과 다른쪽의 정서(달)가 같은 자리에 놓여 — 서로가 "고향처럼 편안한" 결이에요.`
     )
   } else if (sm1 === 4 || sm2 === 4) {
     reasons.push(
-      `Sun-Moon trine — 의식과 감정이 같은 결. 말하지 않아도 통하는 부분 많음.`
+      `태양과 달이 부드럽게 만나는 자리 — 의식과 감정이 같은 방향을 향해, 말하지 않아도 통하는 부분이 많아요.`
     )
   }
 
@@ -209,34 +209,34 @@ function attractionReasons(input: DeepInsightInput): string[] {
   const dmRel = elementRel(p1Saju.dayMaster.element, p2Saju.dayMaster.element)
   if (dmRel === 'support') {
     reasons.push(
-      `사주 일간 상생 — ${p1Saju.dayMaster.name}일간이 ${p2Saju.dayMaster.name}일간을 키워주는 결. 함께 있으면 한쪽이 더 빛나는 자리.`
+      `사주 본성이 상생하는 결 — ${p1Saju.dayMaster.name}이 ${p2Saju.dayMaster.name}을 자연스럽게 키워주는 자리예요. 함께 있을 때 한쪽이 더 빛납니다.`
     )
   } else if (dmRel === 'same') {
     reasons.push(
-      `사주 일간 동기 — 같은 ${p1Saju.dayMaster.element} 기운을 공유. 결이 비슷해 편안함을 느끼는 자리.`
+      `사주 본성이 동기인 결 — 같은 ${p1Saju.dayMaster.element} 기운을 공유해 비슷한 결이 편안함을 줍니다.`
     )
   } else if (dmRel === 'drain') {
     reasons.push(
-      `사주 일간 식상 관계 — 한쪽이 다른쪽의 표현·창의를 끌어내는 결. 함께하면 새로운 면이 나옴.`
+      `한쪽이 다른쪽의 표현과 창의를 끌어내는 결 — 함께하면 평소엔 안 보이던 새로운 면이 자연스럽게 나옵니다.`
     )
   }
 
   // Day-master yin/yang complement
   if (p1Saju.dayMaster.yin_yang !== p2Saju.dayMaster.yin_yang) {
     reasons.push(
-      `사주 음양 보완 — 한쪽 양(陽), 한쪽 음(陰)으로 자연스러운 조화. 정반대 결이 서로의 빈자리를 채움.`
+      `사주의 음양이 보완되는 결 — 한쪽이 양, 한쪽이 음의 기운이라 정반대가 서로의 빈자리를 자연스럽게 채워줘요.`
     )
   }
 
   // Strong fusion signals
   if ((fusion.venusMarsSynergy ?? 0) >= 70) {
     reasons.push(
-      `Venus-Mars 시너지 ${Math.round(fusion.venusMarsSynergy!)}점 — 로맨틱 케미가 강하게 흐름.`
+      `금성과 화성의 시너지가 강해 로맨틱한 케미가 흐르는 결입니다.`
     )
   }
   if ((fusion.sunMoonHarmony ?? 0) >= 70) {
     reasons.push(
-      `Sun-Moon 조화 ${Math.round(fusion.sunMoonHarmony!)}점 — 가치관과 정서 결이 잘 맞음.`
+      `태양과 달의 결이 정렬돼 가치관과 정서가 같은 방향으로 흐릅니다.`
     )
   }
 
@@ -249,29 +249,29 @@ function whyItWorks(input: DeepInsightInput): string[] {
 
   if ((fusion.dayMasterHarmony ?? 0) >= 70) {
     reasons.push(
-      `사주 일간 조화 ${Math.round(fusion.dayMasterHarmony!)}점 — 본성 결이 잘 맞아 일상 리듬이 자연스럽게 합쳐짐.`
+      `사주 본성 결이 잘 맞아 일상의 리듬이 자연스럽게 합쳐집니다.`
     )
   }
   if ((fusion.intellectualAlignment ?? 0) >= 65) {
     reasons.push(
-      `점성 Mercury 시너스트리 양호 — 대화 패턴이 비슷해 사소한 갈등 없이 의사 결정이 가능.`
+      `대화 패턴(수성)이 비슷해 사소한 의사 결정에서 갈등이 적습니다.`
     )
   }
   if ((fusion.spiritualConnection ?? 0) >= 65) {
     reasons.push(
-      `깊은 가치·세계관이 같은 방향 — 인생의 "왜"에 대한 답이 비슷.`
+      `삶을 보는 큰 방향이 같아 "왜 사느냐"에 대한 답이 닮아있어요.`
     )
   }
   if ((fusion.crossScore ?? 0) >= 70) {
     reasons.push(
-      `사주와 점성이 같은 방향 — 두 시스템이 같은 신호를 보내는 흔치 않은 일관성.`
+      `동양과 서양이 같은 결을 가리키는 보기 드문 일관성이 있습니다.`
     )
   }
 
   // 사주 일간 yin/yang complement is positive
   if (p1Saju.dayMaster.yin_yang !== p2Saju.dayMaster.yin_yang) {
     reasons.push(
-      `음양 보완 구조 — 한쪽이 강할 때 다른쪽이 받쳐주는 자연스러운 역할 분담.`
+      `음양이 보완되는 구조라 한쪽이 강할 때 다른쪽이 받쳐주는 자연스러운 역할 분담이 가능해요.`
     )
   }
 
@@ -288,7 +288,7 @@ function whyItWorks(input: DeepInsightInput): string[] {
       wood: '목', fire: '화', earth: '토', metal: '금', water: '수',
     }
     reasons.push(
-      `사주 5행 보완 — 한쪽 부족한 ${filled.map((e) => elKo[e] || e).join('·')} 기운을 상대가 채워줌.`
+      `한쪽이 부족한 ${filled.map((e) => elKo[e] || e).join('·')} 기운을 상대가 풍부히 가지고 있어 5행이 자연스럽게 보완됩니다.`
     )
   }
 
@@ -303,11 +303,11 @@ function frictionPoints(input: DeepInsightInput): string[] {
   const dmRel = elementRel(p1Saju.dayMaster.element, p2Saju.dayMaster.element)
   if (dmRel === 'controlled') {
     points.push(
-      `사주 일간 상극 — ${p2Saju.dayMaster.name}일간이 ${p1Saju.dayMaster.name}일간을 누르는 결. 한쪽이 위축감을 느낄 수 있음, 의식적인 존중이 중요.`
+      `사주 본성이 상극인 결 — ${p2Saju.dayMaster.name}이 ${p1Saju.dayMaster.name}을 누르는 자리예요. 한쪽이 위축감을 느낄 수 있어 의식적인 존중이 중요합니다.`
     )
   } else if (dmRel === 'control') {
     points.push(
-      `사주 일간 상극 — ${p1Saju.dayMaster.name}일간이 ${p2Saju.dayMaster.name}일간을 누르는 결. 주도권 균형을 의식해야 함.`
+      `사주 본성이 상극인 결 — ${p1Saju.dayMaster.name}이 ${p2Saju.dayMaster.name}을 누르는 자리. 주도권의 균형을 의식해야 해요.`
     )
   }
 
@@ -315,7 +315,7 @@ function frictionPoints(input: DeepInsightInput): string[] {
   const ss = signDistance(p1Astro.sun.sign, p2Astro.sun.sign)
   if (ss === 3) {
     points.push(
-      `Sun square — 의지·자아 방향이 90도. 큰 결정에서 "왜 그렇게 생각해?" 식 충돌 발생 가능.`
+      `태양과 태양이 팽팽하게 마주치는 자리 — 큰 결정에서 "왜 그렇게 생각해?" 식의 의지 충돌이 종종 일어날 수 있어요.`
     )
   }
 
@@ -323,11 +323,11 @@ function frictionPoints(input: DeepInsightInput): string[] {
   const mm = signDistance(p1Astro.mars.sign, p2Astro.mars.sign)
   if (mm === 3) {
     points.push(
-      `Mars square — 행동 패턴이 90도. 갈등 처리 방식이 정반대로 어긋날 수 있음.`
+      `화성끼리 팽팽한 결 — 갈등을 처리하는 방식이 정반대로 어긋날 수 있어 행동 합 조율이 필요합니다.`
     )
   } else if (mm === 6) {
     points.push(
-      `Mars 대립 — 한쪽이 직진할 때 다른쪽이 멈추는 패턴. 속도 조정 노력 필요.`
+      `화성이 정반대로 마주치는 결 — 한쪽이 직진할 때 다른쪽이 멈추는 패턴이라 속도 조절 노력이 필요해요.`
     )
   }
 
@@ -335,18 +335,18 @@ function frictionPoints(input: DeepInsightInput): string[] {
   if (p1Saju.dayMaster.yin_yang === p2Saju.dayMaster.yin_yang) {
     if (p1Saju.dayMaster.yin_yang === 'yang') {
       points.push(
-        `둘 다 양일간 — 추진력은 강하지만 둘 다 리드하려는 충돌 발생 가능. 역할 분담 명확히.`
+        `둘 다 양의 본성이라 추진력은 강하지만, 둘 다 주도하려고 해서 충돌이 생길 수 있어요. 역할 분담을 명확히 하는 편이 좋습니다.`
       )
     } else {
       points.push(
-        `둘 다 음일간 — 안정적이지만 결정 미루기·소극적 패턴 누적 가능. 누가 결정자 역할인지 정해야.`
+        `둘 다 음의 본성이라 안정적이지만, 결정을 서로 미루거나 소극적인 패턴이 쌓일 수 있어요. 누가 결정자 역할을 맡을지 정해두는 편이 안전합니다.`
       )
     }
   }
 
   if ((fusion.intellectualAlignment ?? 50) < 45) {
     points.push(
-      `Mercury 시너스트리 약함 — 의사소통 스타일 차이. 같은 말을 다르게 받아들이기 쉬워, 명확한 표현이 핵심.`
+      `대화의 별(수성) 결이 약해 같은 말을 서로 다르게 받아들이기 쉬워요. 명확한 표현이 관계의 핵심이 됩니다.`
     )
   }
 
@@ -361,8 +361,12 @@ function buildIdealMatch(input: DeepInsightInput): IdealTypeMatch[] {
     [p1Astro, p2Astro, 1, 2],
     [p2Astro, p1Astro, 2, 1],
   ] as const) {
-    const seeks = `${VENUS_IDEAL[self.venus.sign] || '편안한 사람'} · ${MARS_DRIVE[self.mars.sign] || ''}타입에 끌림`
-    const partnerActually = `${SUN_PERSONALITY[partner.sun.sign] || partner.sun.sign}, ${MARS_DRIVE[partner.mars.sign] || ''}결`
+    const ideal = VENUS_IDEAL[self.venus.sign] || '편안한 사람'
+    const drive = MARS_DRIVE[self.mars.sign] || '꾸준한'
+    const seeks = `${ideal}. ${drive} 결에 끌립니다.`
+    const partnerCore = SUN_PERSONALITY[partner.sun.sign] || partner.sun.sign
+    const partnerDrive = MARS_DRIVE[partner.mars.sign] || '편안한'
+    const partnerActually = `${partnerCore}을 가진 사람, ${partnerDrive} 결을 풍기는 분이에요.`
 
     // Match scoring — Venus sign element vs partner Sun element
     let level: IdealTypeMatch['matchLevel'] = 'partial'
@@ -377,13 +381,13 @@ function buildIdealMatch(input: DeepInsightInput): IdealTypeMatch[] {
       (marsElRel === 'same' && venusElRel !== 'controlled')
     ) {
       level = 'strong'
-      note = `이상형과 실제가 잘 맞아요. 첫 만남에 끌릴 가능성 큼.`
+      note = `이상형과 실제 결이 잘 맞아 첫 만남에서부터 끌릴 가능성이 큽니다.`
     } else if (venusElRel === 'controlled' || venusElRel === 'control') {
       level = 'weak'
-      note = `이상형과 실제 결이 다른 결. 처음엔 낯설지만, 차이를 통해 새로움을 발견할 수 있어요.`
+      note = `이상형과 실제 결이 다른 자리예요. 처음엔 낯설지만 그 차이가 오히려 새로운 매력으로 다가올 수 있습니다.`
     } else {
       level = 'partial'
-      note = `부분적으로 맞음. 시간이 지나면서 매력을 발견하는 결이에요.`
+      note = `부분적으로 맞아 시간이 지나면서 매력을 발견하는 결이에요.`
     }
 
     out.push({
@@ -462,20 +466,20 @@ function buildLongevity(input: DeepInsightInput): LongevityAssessment {
   const positive: string[] = []
   const cautionary: string[] = []
 
-  if ((fusion.dayMasterHarmony ?? 0) >= 65) positive.push('사주 일간 조화 — 본성 결이 잘 맞음')
-  if ((fusion.spiritualConnection ?? 0) >= 65) positive.push('가치관·세계관 정렬 — 큰 그림 같은 방향')
-  if ((fusion.crossScore ?? 0) >= 70) positive.push('사주·점성 두 시스템 일관 — 흔치 않은 신호')
+  if ((fusion.dayMasterHarmony ?? 0) >= 65) positive.push('사주 본성이 잘 맞아 일상 리듬이 자연스러워요')
+  if ((fusion.spiritualConnection ?? 0) >= 65) positive.push('삶을 보는 큰 방향이 같아 가치관이 정렬돼 있어요')
+  if ((fusion.crossScore ?? 0) >= 70) positive.push('동양과 서양이 같은 결을 가리키는 흔치 않은 일관성')
   if (p1Saju.dayMaster.yin_yang !== p2Saju.dayMaster.yin_yang)
-    positive.push('음양 보완 — 자연스러운 역할 분담')
+    positive.push('음양이 보완돼 자연스러운 역할 분담이 가능해요')
 
   if ((fusion.dayMasterHarmony ?? 50) < 45)
-    cautionary.push('사주 일간 결이 어긋나 — 본성 차이가 일상에 누적될 수 있음')
+    cautionary.push('사주 본성이 어긋나 일상에 차이가 누적될 수 있어요')
   if ((fusion.intellectualAlignment ?? 50) < 45)
-    cautionary.push('소통 스타일 차이 — 같은 말의 다른 해석 자주 발생 가능')
+    cautionary.push('대화 결이 약해 같은 말도 서로 다르게 해석되기 쉬워요')
   if ((fusion.sunMoonHarmony ?? 50) < 45)
-    cautionary.push('Sun-Moon 정서 결 약함 — 정서 시너지 의식적으로 만들어야')
+    cautionary.push('태양과 달의 정서 결이 약해 시너지를 의식적으로 만들어야 해요')
   if (p1Saju.dayMaster.yin_yang === p2Saju.dayMaster.yin_yang)
-    cautionary.push('같은 음양 — 강함이 충돌하거나 둘 다 미루는 패턴 가능')
+    cautionary.push('음양이 같아 충돌이나 미루기 패턴이 누적될 수 있어요')
 
   // Conflict count if available (from PairAnalysis topAspects/topHouseOverlays inferred)
   const conflictPenalty = (input.fusion.conflictCount ?? 0) >= 3 ? 10 : 0

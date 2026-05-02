@@ -472,6 +472,7 @@ export const POST = withApiMiddleware(
       couple_timing: coupleTiming,
       astro_timing: astroTiming,
       deep_insights: deepInsights,
+      person_elements: personAnalyses.map((a) => a.sajuProfile?.elements || null),
       action_items: actionItems,
       fusion_enabled: fusionEnabled,
       is_group: isGroup,

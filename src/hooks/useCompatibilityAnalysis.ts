@@ -137,6 +137,13 @@ interface CompatibilityResult {
   couple_timing?: CoupleTimingData | null
   astro_timing?: CoupleAstroTiming | null
   deep_insights?: CoupleDeepInsights | null
+  person_elements?: Array<{
+    wood?: number
+    fire?: number
+    earth?: number
+    metal?: number
+    water?: number
+  } | null>
   error?: string | { message?: string }
 }
 
@@ -188,6 +195,15 @@ export function useCompatibilityAnalysis() {
   const [coupleTiming, setCoupleTiming] = useState<CoupleTimingData | null>(null)
   const [astroTiming, setAstroTiming] = useState<CoupleAstroTiming | null>(null)
   const [deepInsights, setDeepInsights] = useState<CoupleDeepInsights | null>(null)
+  const [personElements, setPersonElements] = useState<
+    Array<{
+      wood?: number
+      fire?: number
+      earth?: number
+      metal?: number
+      water?: number
+    } | null>
+  >([])
 
   const validate = useCallback(
     (persons: PersonForm[], count: number, t: (key: string, fallback: string) => string) => {
@@ -312,6 +328,7 @@ export function useCompatibilityAnalysis() {
         setCoupleTiming(data.couple_timing ?? null)
         setAstroTiming(data.astro_timing ?? null)
         setDeepInsights(data.deep_insights ?? null)
+        setPersonElements(Array.isArray(data.person_elements) ? data.person_elements : [])
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'Failed to fetch compatibility.'
         setError(errorMessage)
@@ -337,6 +354,7 @@ export function useCompatibilityAnalysis() {
     setCoupleTiming(null)
     setAstroTiming(null)
     setDeepInsights(null)
+    setPersonElements([])
   }, [])
 
   return {
@@ -356,6 +374,7 @@ export function useCompatibilityAnalysis() {
     coupleTiming,
     astroTiming,
     deepInsights,
+    personElements,
     validate,
     analyzeCompatibility,
     resetResults,

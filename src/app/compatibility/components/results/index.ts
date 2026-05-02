@@ -9,3 +9,4 @@ export { TimingGuideCard } from './TimingGuideCard';
 export { ActionButtons } from './ActionButtons';
 export { CompatibilityRichReport } from './CompatibilityRichReport';
 export { ScoreDashboard } from './ScoreDashboard';
+export { CoupleElementsDonut } from './CoupleElementsDonut';

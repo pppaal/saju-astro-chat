@@ -9,6 +9,7 @@
 import { memo, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ScoreDashboard } from './ScoreDashboard'
+import { CoupleElementsDonut } from './CoupleElementsDonut'
 import { buildCoupleTagline } from '@/lib/compatibility/coupleTagline'
 import {
   Sparkles,
@@ -55,6 +56,13 @@ interface CompatibilityRichReportProps {
   coupleTiming?: CoupleTimingData | null
   astroTiming?: CoupleAstroTiming | null
   deepInsights?: CoupleDeepInsights | null
+  personElements?: Array<{
+    wood?: number
+    fire?: number
+    earth?: number
+    metal?: number
+    water?: number
+  } | null>
   actionItems: string[]
 }
 
@@ -175,6 +183,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
   coupleTiming,
   astroTiming,
   deepInsights,
+  personElements,
   actionItems,
 }: CompatibilityRichReportProps) {
   const primaryPair = pairDetails[0]
@@ -505,6 +514,28 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
             )}
           </section>
         )}
+
+        {/* Couple 5행 donut — visual saju element complement */}
+        {activeTab === 'overview' &&
+          personElements &&
+          personElements[0] &&
+          personElements[1] && (
+            <section className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,16,28,0.94),rgba(7,11,19,0.86))] p-6 backdrop-blur-2xl sm:p-7">
+              <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-amber-300">
+                5행 결합 — 두 분의 사주 원소
+              </h2>
+              <p className="mb-4 text-[12.5px] text-slate-400" style={{ wordBreak: 'keep-all' }}>
+                안쪽 고리는 {pairLabels[0]}, 바깥 고리는 {pairLabels[1]}의 5행 분포.
+                서로 부족한 부분을 채워주는지 한눈에 보여요.
+              </p>
+              <CoupleElementsDonut
+                p1={personElements[0]}
+                p2={personElements[1]}
+                p1Name={pairLabels[0]}
+                p2Name={pairLabels[1]}
+              />
+            </section>
+          )}
 
         {/* Top 3 actions — surface on overview so users get clear next steps */}
         {activeTab === 'overview' && actionItems.length > 0 && (
