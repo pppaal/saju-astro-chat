@@ -856,3 +856,76 @@ body {
     -webkit-backdrop-filter: none;
   }
 }
+
+/* ============ Print / PDF (browser-native fallback) ============ */
+@media print {
+  @page {
+    size: A4;
+    margin: 16mm 14mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #111111 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide chrome the user can't act on in printed/saved PDF */
+  nav,
+  header[role='banner'],
+  [data-print-hide],
+  [aria-label='Toggle navigation'],
+  .no-print {
+    display: none !important;
+  }
+
+  /* Premium report containers — strip background flair */
+  [data-print-area] {
+    background: #ffffff !important;
+  }
+
+  [data-print-area] *,
+  [data-print-area] {
+    color: #111111 !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    background-image: none !important;
+    -webkit-text-fill-color: #111111 !important;
+  }
+
+  [data-print-area] [class*='backdrop-blur'],
+  [data-print-area] [class*='blur'] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+  }
+
+  [data-print-area] section,
+  [data-print-area] article,
+  [data-print-area] [data-print-block] {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    border-color: #d1d5db !important;
+    background: #ffffff !important;
+  }
+
+  [data-print-area] h1,
+  [data-print-area] h2,
+  [data-print-area] h3 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  /* Keep links readable but compact */
+  [data-print-area] a {
+    color: #1d4ed8 !important;
+    text-decoration: underline;
+  }
+
+  /* Don't render decorative orbs/grids in print */
+  [aria-hidden='true']:not([data-print-keep]) {
+    display: none !important;
+  }
+}

@@ -634,11 +634,12 @@ export default function ReportResultPage() {
 
   return (
     <PremiumPageScaffold accent="cyan">
+      <div data-print-area>
       <header className="px-4 pb-6 pt-8">
         <div className="mx-auto max-w-6xl">
           <Link
             href="/premium-reports"
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-slate-300 backdrop-blur-xl transition hover:border-cyan-300/45 hover:text-white"
+            className="no-print inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-slate-300 backdrop-blur-xl transition hover:border-cyan-300/45 hover:text-white"
           >
             <ArrowRight className="h-3.5 w-3.5 rotate-180" />
             리포트 목록으로
@@ -762,12 +763,21 @@ export default function ReportResultPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 no-print">
                   <button
                     onClick={handleDownloadPDF}
                     className="rounded-xl border border-cyan-300/28 bg-cyan-400/8 px-4 py-2.5 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/14"
                   >
                     PDF 다운로드
+                  </button>
+                  <button
+                    onClick={() => {
+                      analytics.matrixPdfDownload()
+                      window.print()
+                    }}
+                    className="rounded-xl border border-white/12 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-white transition hover:border-cyan-300/35"
+                  >
+                    인쇄 / PDF 저장
                   </button>
                   <button
                     onClick={handleShare}
@@ -1208,6 +1218,7 @@ export default function ReportResultPage() {
           <ReportBulletListSection title="실천 가이드" items={report.actionItems} />
         </div>
       )}
+      </div>
     </PremiumPageScaffold>
   )
 }
