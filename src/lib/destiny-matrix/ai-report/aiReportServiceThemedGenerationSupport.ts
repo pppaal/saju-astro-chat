@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { sanitizeAstroJargon } from '@/lib/text/sanitizeAstroJargon'
 import type { FusionReport } from '../interpreter/types'
 import type { MatrixCalculationInput, MatrixSummary } from '../types'
 import type {
@@ -790,6 +791,17 @@ export async function generateThemedReportWithSupport(
   }
   sections = enforceEvidenceRefFooters(sections, sectionPaths, themedEvidenceRefs, lang)
   sections = sanitizeSectionsByPathsExternal(sections, sectionPaths, narrativePathSanitizerDeps)
+
+  // Final pass — strip remaining astro/saju English jargon leaks for KO output
+  if (lang === 'ko') {
+    for (const path of sectionPaths) {
+      const current = String((sections as Record<string, unknown>)[path] || '').trim()
+      if (!current) continue
+      const { cleaned } = sanitizeAstroJargon(current)
+      ;(sections as Record<string, unknown>)[path] = cleaned
+    }
+  }
+
   sections = enrichThemedSectionsWithReportCore(
     sections as unknown as ThemedReportSections,
     reportCore,

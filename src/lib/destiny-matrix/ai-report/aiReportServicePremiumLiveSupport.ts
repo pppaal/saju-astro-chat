@@ -1,5 +1,8 @@
 // @ts-nocheck
 
+import { sanitizeAstroJargon, hasJargonLeak } from '@/lib/text/sanitizeAstroJargon'
+import { logger } from '@/lib/logger'
+
 export async function runPremiumLiveMode(ctx) {
   const {
     input,
@@ -544,6 +547,28 @@ export async function runPremiumLiveMode(ctx) {
     comprehensiveEvidenceRefs,
     lang
   )
+
+  // Final pass — strip remaining astro/saju English jargon leaks
+  // (Venus → 금성, trine → 부드럽게 만나는 자리, etc.)
+  // Only applies to Korean output; idempotent.
+  if (lang === 'ko') {
+    let totalReplacements = 0
+    for (const key of COMPREHENSIVE_SECTION_KEYS) {
+      const current = String(sections[key] || '').trim()
+      if (!current) continue
+      const { cleaned, replacementsCount } = sanitizeAstroJargon(current)
+      if (replacementsCount > 0) {
+        sections[key] = cleaned
+        totalReplacements += replacementsCount
+      }
+    }
+    if (totalReplacements > 0 || COMPREHENSIVE_SECTION_KEYS.some((k) => hasJargonLeak(String(sections[k] || '')))) {
+      logger.info('[premium-report] astro jargon sanitizer applied', {
+        replacements: totalReplacements,
+        residualLeaks: COMPREHENSIVE_SECTION_KEYS.filter((k) => hasJargonLeak(String(sections[k] || ''))).length,
+      })
+    }
+  }
 
   const model = usedDeterministicFallback ? 'deterministic-fallback' : [...models].join(' -> ')
   const topInsights = (matrixReport.topInsights || []).slice(0, 3).map((i) => i.title)
