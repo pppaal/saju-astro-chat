@@ -10,7 +10,7 @@
  * - Loading steps display
  */
 
-import { memo, type ReactNode, useMemo } from 'react';
+import { memo, type ReactNode, useEffect, useMemo, useState } from 'react';
 import styles from './LoadingScreen.module.css';
 
 // ============ Types ============
@@ -115,22 +115,59 @@ export const OrbitAnimation = memo(function OrbitAnimation({
 interface LoadingStepsProps {
   steps: LoadingStep[];
   className?: string;
+  /** 진행 단계 시간 분배 (초). 미지정 시 단계당 8초. */
+  stepDurationSec?: number;
 }
 
 export const LoadingSteps = memo(function LoadingSteps({
   steps,
   className = '',
+  stepDurationSec = 8,
 }: LoadingStepsProps) {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    if (!steps || steps.length === 0) return;
+    const timer = window.setInterval(() => {
+      setActiveIndex((prev) => Math.min(prev + 1, steps.length - 1));
+    }, stepDurationSec * 1000);
+    return () => window.clearInterval(timer);
+  }, [steps, stepDurationSec]);
+
   if (!steps || steps.length === 0) return null;
 
   return (
     <div className={`${styles.loadingSteps} ${className}`}>
-      {steps.map((step, i) => (
-        <span key={i} className={styles.loadingStep}>
-          {step.icon && <span className={styles.stepIcon}>{step.icon}</span>}
-          {step.text}
-        </span>
-      ))}
+      {steps.map((step, i) => {
+        const isCompleted = i < activeIndex;
+        const isActive = i === activeIndex;
+        const isFuture = i > activeIndex;
+        return (
+          <span
+            key={i}
+            className={styles.loadingStep}
+            style={{
+              opacity: isFuture ? 0.35 : 1,
+              fontWeight: isActive ? 600 : 400,
+              color: isCompleted
+                ? 'rgba(125, 211, 252, 0.95)'
+                : isActive
+                  ? 'rgba(255, 255, 255, 0.98)'
+                  : undefined,
+              transition: 'opacity 0.4s ease, color 0.4s ease',
+            }}
+          >
+            {isCompleted ? (
+              <span className={styles.stepIcon} aria-hidden>
+                ✓
+              </span>
+            ) : (
+              step.icon && <span className={styles.stepIcon}>{step.icon}</span>
+            )}
+            {step.text}
+          </span>
+        );
+      })}
     </div>
   );
 });
