@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { ScoreDashboard } from './ScoreDashboard'
 import { CoupleElementsDonut } from './CoupleElementsDonut'
 import { CouplePlanetStrip } from './CouplePlanetStrip'
+import { MultiFacetGrid } from './MultiFacetGrid'
 import { buildCoupleTagline } from '@/lib/compatibility/coupleTagline'
 import {
   Sparkles,
@@ -34,6 +35,7 @@ import type {
   CoupleDeepInsights,
   PersonIdealProfile,
   CompatibilityTier,
+  FacetReport,
 } from '@/hooks/useCompatibilityAnalysis'
 
 interface NarrativePerson {
@@ -75,6 +77,7 @@ interface CompatibilityRichReportProps {
     ascendant?: { sign?: string; element?: string }
   } | null>
   idealTypeProfiles?: PersonIdealProfile[] | null
+  multiFacetReport?: FacetReport[] | null
   tier?: CompatibilityTier
   actionItems: string[]
 }
@@ -199,6 +202,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
   personElements,
   personCharts,
   idealTypeProfiles,
+  multiFacetReport,
   tier = 'free',
   actionItems,
 }: CompatibilityRichReportProps) {
@@ -210,11 +214,12 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
   >('idle')
   const fetchedKeyRef = useRef<string | null>(null)
 
-  type TabKey = 'overview' | 'depth' | 'marriage' | 'timing' | 'next'
+  type TabKey = 'overview' | 'facets' | 'depth' | 'marriage' | 'timing' | 'next'
   const [activeTab, setActiveTab] = useState<TabKey>('overview')
 
   const TABS: Array<{ key: TabKey; label: string }> = [
     { key: 'overview', label: '한눈에' },
+    { key: 'facets', label: '8 각도' },
     { key: 'depth', label: '두 분의 결' },
     { key: 'marriage', label: '결혼·지속력' },
     { key: 'timing', label: '시기' },
@@ -445,6 +450,28 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
             })}
           </div>
         </nav>
+
+        {/* Multi-Facet 8-dimension report */}
+        {activeTab === 'facets' && multiFacetReport && multiFacetReport.length > 0 && (
+          <section className="space-y-4">
+            <div className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,16,28,0.94),rgba(7,11,19,0.86))] p-6 backdrop-blur-2xl sm:p-7">
+              <div className="flex items-center gap-2">
+                <Compass className="h-4 w-4 text-cyan-300" />
+                <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
+                  관계의 {tier === 'premium' ? '8' : '4'} 각도
+                </h2>
+              </div>
+              <p
+                className="mt-2 text-[13px] leading-relaxed text-slate-400"
+                style={{ wordBreak: 'keep-all' }}
+              >
+                연애·친밀감·소통·약속{tier === 'premium' ? '·갈등·가치관·일상·성장' : ''} —
+                관계의 핵심 영역을 각 각도별로 점수와 함께 풀이했어요.
+              </p>
+            </div>
+            <MultiFacetGrid facets={multiFacetReport} tier={tier} />
+          </section>
+        )}
 
         {/* Unified score dashboard — visible on Overview tab */}
         {activeTab === 'overview' && (

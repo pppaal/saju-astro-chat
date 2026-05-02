@@ -147,6 +147,28 @@ export interface PersonIdealProfile {
 
 export type CompatibilityTier = 'free' | 'premium'
 
+export type FacetKey =
+  | 'dating'
+  | 'intimacy'
+  | 'communication'
+  | 'conflict'
+  | 'values'
+  | 'commitment'
+  | 'daily'
+  | 'growth'
+
+export interface FacetReport {
+  key: FacetKey
+  label: string
+  emoji: string
+  score: number
+  band: 'great' | 'good' | 'mixed' | 'caution'
+  headline: string
+  strengths: string[]
+  minds: string[]
+  tip: string
+}
+
 interface CompatibilityResult {
   interpretation?: string
   overall_score?: number
@@ -170,6 +192,7 @@ interface CompatibilityResult {
     water?: number
   } | null>
   ideal_type_profiles?: PersonIdealProfile[] | null
+  multi_facet_report?: FacetReport[] | null
   tier?: CompatibilityTier
   person_charts?: Array<{
     sun?: { sign?: string; element?: string }
@@ -240,6 +263,7 @@ export function useCompatibilityAnalysis() {
     } | null>
   >([])
   const [idealTypeProfiles, setIdealTypeProfiles] = useState<PersonIdealProfile[] | null>(null)
+  const [multiFacetReport, setMultiFacetReport] = useState<FacetReport[] | null>(null)
   const [tier, setTier] = useState<CompatibilityTier>('free')
   const [personCharts, setPersonCharts] = useState<
     Array<{
@@ -378,6 +402,7 @@ export function useCompatibilityAnalysis() {
         setPersonElements(Array.isArray(data.person_elements) ? data.person_elements : [])
         setPersonCharts(Array.isArray(data.person_charts) ? data.person_charts : [])
         setIdealTypeProfiles(data.ideal_type_profiles ?? null)
+        setMultiFacetReport(data.multi_facet_report ?? null)
         setTier(data.tier ?? 'free')
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'Failed to fetch compatibility.'
@@ -407,6 +432,7 @@ export function useCompatibilityAnalysis() {
     setPersonElements([])
     setPersonCharts([])
     setIdealTypeProfiles(null)
+    setMultiFacetReport(null)
     setTier('free')
   }, [])
 
@@ -430,6 +456,7 @@ export function useCompatibilityAnalysis() {
     personElements,
     personCharts,
     idealTypeProfiles,
+    multiFacetReport,
     tier,
     validate,
     analyzeCompatibility,

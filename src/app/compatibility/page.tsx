@@ -137,6 +137,7 @@ export default function CompatPage() {
     personElements,
     personCharts,
     idealTypeProfiles,
+    multiFacetReport,
     tier,
     validate,
     analyzeCompatibility,
@@ -384,6 +385,7 @@ export default function CompatPage() {
                 personElements={personElements}
                 personCharts={personCharts}
                 idealTypeProfiles={idealTypeProfiles}
+                multiFacetReport={multiFacetReport}
                 tier={tier}
                 actionItems={actionItems}
               />

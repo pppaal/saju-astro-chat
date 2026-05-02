@@ -15,6 +15,7 @@ import { analyzeCoupleTiming } from '@/lib/compatibility/coupleTimingAnalysis'
 import { analyzeCoupleAstroTiming } from '@/lib/compatibility/coupleAstroTiming'
 import { analyzeCoupleDeepInsights } from '@/lib/compatibility/coupleDeepInsights'
 import { buildIdealTypeProfiles } from '@/lib/compatibility/coupleIdealTypeProfile'
+import { buildMultiFacetReport, filterFacetsByTier } from '@/lib/compatibility/coupleMultiFacetReport'
 import { isDbPremiumUser } from '@/lib/auth/premium'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { calculateTransitChart } from '@/lib/astrology/foundation/transit'
@@ -436,6 +437,40 @@ export const POST = withApiMiddleware(
     const isPremium = await isDbPremiumUser(userId).catch(() => false)
     const tier: 'free' | 'premium' = isPremium ? 'premium' : 'free'
 
+    // Multi-facet report — 8 dimensions of the relationship
+    let multiFacetReport: ReturnType<typeof buildMultiFacetReport> | null = null
+    try {
+      if (primaryPair && !isGroup) {
+        const [aIdx, bIdx] = primaryPair.pair
+        const analysisA = personAnalyses[aIdx]
+        const analysisB = personAnalyses[bIdx]
+        if (
+          analysisA?.sajuProfile &&
+          analysisB?.sajuProfile &&
+          analysisA.astroProfile &&
+          analysisB.astroProfile
+        ) {
+          const allFacets = buildMultiFacetReport({
+            p1Saju: analysisA.sajuProfile,
+            p2Saju: analysisB.sajuProfile,
+            p1Astro: analysisA.extendedAstroProfile || analysisA.astroProfile,
+            p2Astro: analysisB.extendedAstroProfile || analysisB.astroProfile,
+            fusion: {
+              dayMasterHarmony: primaryPair.fusionInsights?.dayMasterHarmony,
+              sunMoonHarmony: primaryPair.fusionInsights?.sunMoonHarmony,
+              venusMarsSynergy: primaryPair.fusionInsights?.venusMarsSynergy,
+              intellectualAlignment: primaryPair.fusionInsights?.intellectualAlignment,
+              spiritualConnection: primaryPair.fusionInsights?.spiritualConnection,
+              emotionalIntensity: primaryPair.fusionInsights?.emotionalIntensity,
+            },
+          })
+          multiFacetReport = filterFacetsByTier(allFacets, tier)
+        }
+      }
+    } catch (facetErr) {
+      logger.warn('[Compatibility] multi-facet report failed (non-fatal):', facetErr)
+    }
+
     const interpretation = buildInterpretationMarkdown({
       locale,
       names,
@@ -505,6 +540,7 @@ export const POST = withApiMiddleware(
       astro_timing: astroTiming,
       deep_insights: deepInsights,
       ideal_type_profiles: tier === 'premium' ? idealTypeProfiles : null,
+      multi_facet_report: multiFacetReport,
       tier,
       person_elements: personAnalyses.map((a) => a.sajuProfile?.elements || null),
       person_charts: personAnalyses.map((a) =>
