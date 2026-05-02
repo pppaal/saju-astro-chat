@@ -25,6 +25,7 @@ import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
 import { logger } from '@/lib/logger'
 import { calculateSajuData } from '@/lib/Saju/saju'
+import { LRUCache } from '@/lib/Saju/cache/LRUCache'
 import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehensive'
 import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/comprehensive'
 import { performCrossSystemAnalysis } from '@/lib/compatibility/crossSystemAnalysis'
@@ -38,6 +39,63 @@ import { normalizeSajuGender } from '@/app/api/compatibility/routeSupportCommon'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 90
+
+// In-memory cache — same couple birth pair → reuse Sonnet output for 24h.
+// Sonnet narrative is ~$0.05/call so even modest reuse pays off. Max 500
+// entries × ~12KB each = ~6MB ceiling.
+const narrativeCache = new LRUCache<string>({
+  maxSize: 500,
+  ttlMs: 24 * 60 * 60 * 1000, // 24h
+  cleanupIntervalMs: 60 * 60 * 1000, // 1h
+})
+
+function buildCacheKey(persons: NarrativePerson[]): string {
+  // Order-independent — same couple regardless of who's listed first
+  const tag = (p: NarrativePerson) =>
+    `${p.date}|${p.time}|${p.gender || ''}|${(p.timeZone || '').slice(0, 6)}`
+  const tags = persons.slice(0, 2).map(tag).sort()
+  return `compat-narrative:${tags.join('::')}`
+}
+
+function streamCachedNarrative(text: string, headers: Record<string, string>): Response {
+  const encoder = new TextEncoder()
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      // Replay cached text in small chunks so the FE reuses the same
+      // streaming UI (skeleton → streaming → done) without a special path.
+      const chunks = text.match(/[\s\S]{1,40}/g) || [text]
+      let i = 0
+      const tick = () => {
+        if (i >= chunks.length) {
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ content: '', done: true })}\n\n`)
+          )
+          controller.close()
+          return
+        }
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({ content: chunks[i], done: false })}\n\n`
+          )
+        )
+        i += 1
+        // ~10ms tick — replay 6000 chars in ~1.5s so user still sees the streaming feel
+        setTimeout(tick, 8)
+      }
+      tick()
+    },
+  })
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+      'X-Narrative-Cache': 'hit',
+      ...headers,
+    },
+  })
+}
 
 interface NarrativePerson {
   name?: string
@@ -457,10 +515,20 @@ export async function POST(req: NextRequest) {
   )
   if (initialized.error) return initialized.error
 
+  // Cache check — same couple in 24h replays cached Sonnet output.
+  const cacheKey = buildCacheKey(body.persons)
+  const cached = narrativeCache.get(cacheKey)
+  if (cached) {
+    logger.info('[compatibility/narrative-stream] cache hit', { cacheKey })
+    return streamCachedNarrative(cached, {})
+  }
+
   try {
     const blocks = await buildExtendedBlocks(body.persons)
     const userPrompt = buildUserPrompt(body, blocks)
 
+    // Capture full text as it streams so we can write-through to cache.
+    let fullText = ''
     return await streamClaudeAsSSE({
       systemPrompt: SYSTEM_PROMPT,
       userPrompt,
@@ -469,6 +537,21 @@ export async function POST(req: NextRequest) {
       timeoutMs: 80000,
       label: 'compatibility-narrative',
       model: PREMIUM_CLAUDE_MODEL, // Sonnet 4.5 — long-form Korean quality
+      transform: (chunk) => {
+        fullText += chunk
+        return chunk
+      },
+      finalize: () => {
+        if (fullText.length >= 300) {
+          narrativeCache.set(cacheKey, fullText)
+          logger.info('[compatibility/narrative-stream] cached', {
+            cacheKey,
+            chars: fullText.length,
+          })
+        }
+        return null
+      },
+      additionalHeaders: { 'X-Narrative-Cache': 'miss' },
     })
   } catch (err) {
     logger.error('[compatibility/narrative-stream] failed:', err)

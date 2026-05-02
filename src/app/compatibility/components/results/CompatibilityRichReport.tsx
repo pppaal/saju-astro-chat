@@ -183,6 +183,17 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
   >('idle')
   const fetchedKeyRef = useRef<string | null>(null)
 
+  type TabKey = 'overview' | 'depth' | 'marriage' | 'timing' | 'next'
+  const [activeTab, setActiveTab] = useState<TabKey>('overview')
+
+  const TABS: Array<{ key: TabKey; label: string }> = [
+    { key: 'overview', label: '한눈에' },
+    { key: 'depth', label: '두 분의 결' },
+    { key: 'marriage', label: '결혼·지속력' },
+    { key: 'timing', label: '시기' },
+    { key: 'next', label: '다음 단계' },
+  ]
+
   useEffect(() => {
     if (!primaryPair || !deepInsights || !personsForNarrative || personsForNarrative.length < 2) return
     const key = `${pairLabels.join('|')}|${primaryPair.weightedScore}|${deepInsights.attractionReasons.length}`
@@ -295,7 +306,18 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
         <div className="absolute bottom-[-220px] right-[-110px] h-[460px] w-[460px] rounded-full bg-gradient-to-br from-cyan-400/10 to-blue-500/0 blur-3xl" />
       </div>
 
-      <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6" data-print-area>
+        {/* Print / PDF action — hidden in print output */}
+        <div className="no-print flex justify-end">
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-[12.5px] font-medium text-slate-200 transition hover:border-cyan-300/35 hover:text-white"
+          >
+            인쇄 / PDF 저장
+          </button>
+        </div>
+
         {/* Hero */}
         <header className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,16,28,0.94),rgba(7,11,19,0.86))] p-6 backdrop-blur-2xl sm:p-8">
           <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-center sm:gap-8 sm:text-left">
@@ -336,8 +358,31 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
           </div>
         </header>
 
+        {/* Tab navigation — groups 16 sections into 5 readable chunks */}
+        <nav className="no-print sticky top-2 z-20 -mx-2 overflow-x-auto rounded-2xl border border-white/10 bg-[rgba(10,16,28,0.85)] p-1.5 backdrop-blur-xl sm:mx-0">
+          <div className="flex gap-1">
+            {TABS.map((t) => {
+              const active = activeTab === t.key
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => setActiveTab(t.key)}
+                  className={`flex-1 whitespace-nowrap rounded-xl px-3 py-2 text-[12.5px] font-medium transition ${
+                    active
+                      ? 'bg-[linear-gradient(135deg,rgba(124,92,255,0.22),rgba(34,211,238,0.16))] text-white shadow-[0_4px_16px_rgba(124,92,255,0.18)]'
+                      : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              )
+            })}
+          </div>
+        </nav>
+
         {/* AI Narrative — Claude-polished long-form Korean */}
-        {(narrativeStatus !== 'idle' || narrative) && (
+        {activeTab === 'overview' && (narrativeStatus !== 'idle' || narrative) && (
           <section className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,16,28,0.94),rgba(7,11,19,0.86))] p-6 backdrop-blur-2xl sm:p-8">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-cyan-300" />
@@ -353,16 +398,30 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
             </div>
 
             {narrativeStatus === 'loading' && narrative === '' && (
-              <div className="mt-4 space-y-3">
-                {[1, 2, 3, 4, 5].map((i) => (
+              <div className="mx-auto mt-5 max-w-[68ch] space-y-3.5">
+                {[
+                  '92%',
+                  '88%',
+                  '95%',
+                  '83%',
+                  '90%',
+                  '78%',
+                  '95%',
+                  '85%',
+                  '92%',
+                  '70%',
+                ].map((w, i) => (
                   <div
                     key={i}
-                    className="h-4 animate-pulse rounded-full bg-white/[0.06]"
-                    style={{ width: `${85 + ((i * 7) % 15)}%`, animationDelay: `${i * 0.1}s` }}
+                    className="h-3.5 animate-pulse rounded-full bg-white/[0.05]"
+                    style={{
+                      width: w,
+                      animationDelay: `${i * 0.08}s`,
+                    }}
                   />
                 ))}
-                <p className="mt-3 text-[12px] text-slate-500">
-                  두 분의 사주·점성·교차 데이터로 풀이 생성 중...
+                <p className="mt-3 text-[12.5px] leading-relaxed text-slate-400">
+                  사주·점성·교차 데이터로 long-form 풀이 작성 중 (약 10-15초 소요)
                 </p>
               </div>
             )}
@@ -374,9 +433,15 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
             )}
 
             {narrativeParagraphs.length > 0 && (
-              <div className="mt-4 space-y-4 text-[15px] leading-[1.85] text-slate-200">
+              <div
+                className="mx-auto mt-5 max-w-[68ch] space-y-6 text-[16px] leading-[1.95] text-slate-100/95"
+                style={{
+                  letterSpacing: '0.005em',
+                  fontFeatureSettings: '"kern", "palt"',
+                }}
+              >
                 {narrativeParagraphs.map((p, i) => (
-                  <p key={i} style={{ wordBreak: 'keep-all' }}>
+                  <p key={i} style={{ wordBreak: 'keep-all', textWrap: 'pretty' }}>
                     {p}
                   </p>
                 ))}
@@ -386,7 +451,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
         )}
 
         {/* Fusion deep analysis */}
-        {fusion?.deepAnalysis && (
+        {activeTab === 'overview' && fusion?.deepAnalysis && (
           <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-cyan-300" />
@@ -404,7 +469,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
         )}
 
         {/* Why they click — attraction reasons */}
-        {deepInsights && deepInsights.attractionReasons.length > 0 && (
+        {activeTab === 'depth' && deepInsights && deepInsights.attractionReasons.length > 0 && (
           <section className="rounded-3xl border border-pink-300/20 bg-[linear-gradient(135deg,rgba(244,114,182,0.10),rgba(244,114,182,0.02))] p-6 backdrop-blur-md">
             <div className="flex items-center gap-2">
               <Heart className="h-4 w-4 text-pink-300" />
@@ -428,7 +493,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
         )}
 
         {/* Why it works + Friction points */}
-        {deepInsights && (deepInsights.whyItWorks.length > 0 || deepInsights.frictionPoints.length > 0) && (
+        {activeTab === 'depth' && deepInsights && (deepInsights.whyItWorks.length > 0 || deepInsights.frictionPoints.length > 0) && (
           <section className="grid gap-3 sm:grid-cols-2">
             {deepInsights.whyItWorks.length > 0 && (
               <div className="rounded-3xl border border-emerald-300/20 bg-emerald-400/[0.04] p-5 backdrop-blur-md">
@@ -472,7 +537,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
         )}
 
         {/* Ideal type matching */}
-        {deepInsights && deepInsights.idealMatch.length > 0 && (
+        {activeTab === 'depth' && deepInsights && deepInsights.idealMatch.length > 0 && (
           <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md">
             <div className="flex items-center gap-2">
               <Compass className="h-4 w-4 text-violet-300" />
@@ -538,7 +603,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
         )}
 
         {/* Marriage readiness */}
-        {deepInsights?.marriage && (
+        {activeTab === 'marriage' && deepInsights?.marriage && (
           <section className="rounded-3xl border border-white/10 bg-[linear-gradient(135deg,rgba(124,92,255,0.10),rgba(124,92,255,0.02))] p-6 backdrop-blur-md">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
@@ -605,7 +670,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
         )}
 
         {/* Longevity assessment */}
-        {deepInsights?.longevity && (
+        {activeTab === 'marriage' && deepInsights?.longevity && (
           <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
@@ -676,6 +741,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
         )}
 
         {/* Theme breakdown — 5 dimensions */}
+        {activeTab === 'depth' && (
         <section>
           <h2 className="mb-3 text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
             5 차원 분석
@@ -703,9 +769,10 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
             />
           </div>
         </section>
+        )}
 
         {/* Relationship dynamics + key signals */}
-        {relationshipDynamics?.conflictResolutionStyle && (
+        {activeTab === 'depth' && relationshipDynamics?.conflictResolutionStyle && (
           <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-emerald-300" />
@@ -724,7 +791,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
         )}
 
         {/* Strengths & Challenges */}
-        {(primaryPair.strengths.length > 0 || primaryPair.challenges.length > 0) && (
+        {activeTab === 'depth' && (primaryPair.strengths.length > 0 || primaryPair.challenges.length > 0) && (
           <section className="grid gap-3 sm:grid-cols-2">
             {primaryPair.strengths.length > 0 && (
               <div className="rounded-3xl border border-emerald-300/20 bg-emerald-400/[0.04] p-5 backdrop-blur-md">
@@ -774,7 +841,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
         )}
 
         {/* Top synastry aspects + house overlays */}
-        {(primaryPair.topAspects.length > 0 || primaryPair.topHouseOverlays.length > 0) && (
+        {activeTab === 'depth' && (primaryPair.topAspects.length > 0 || primaryPair.topHouseOverlays.length > 0) && (
           <section className="grid gap-3 sm:grid-cols-2">
             {primaryPair.topAspects.length > 0 && (
               <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md">
@@ -816,7 +883,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
         )}
 
         {/* Concrete timing — best meeting month, activation, caution, prime year */}
-        {coupleTiming && (
+        {activeTab === 'timing' && coupleTiming && (
           <section className="rounded-3xl border border-white/10 bg-[linear-gradient(135deg,rgba(34,211,238,0.10),rgba(34,211,238,0.02))] p-6 backdrop-blur-md">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-cyan-300" />
@@ -945,7 +1012,8 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
         )}
 
         {/* Astro timing — Saturn/Jupiter era + life-stage transits */}
-        {astroTiming &&
+        {activeTab === 'timing' &&
+          astroTiming &&
           (astroTiming.saturnEra ||
             astroTiming.jupiterEra ||
             astroTiming.lifeStages.length > 0 ||
@@ -1046,7 +1114,8 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
           )}
 
         {/* Future guidance — 3 horizons */}
-        {futureGuidance &&
+        {activeTab === 'timing' &&
+          futureGuidance &&
           (futureGuidance.shortTerm || futureGuidance.mediumTerm || futureGuidance.longTerm) && (
             <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md">
               <div className="flex items-center gap-2">
@@ -1089,6 +1158,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
           )}
 
         {/* Counselor CTA — embedded at end of report */}
+        {activeTab === 'next' && (
         <section className="rounded-3xl border border-white/10 bg-[linear-gradient(135deg,rgba(124,92,255,0.18),rgba(34,211,238,0.08))] p-6 backdrop-blur-md sm:p-7">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-violet-400/20">
@@ -1115,9 +1185,10 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
             </div>
           </div>
         </section>
+        )}
 
         {/* Action items */}
-        {actionItems.length > 0 && (
+        {activeTab === 'next' && actionItems.length > 0 && (
           <section className="rounded-3xl border border-white/10 bg-[linear-gradient(135deg,rgba(124,92,255,0.12),rgba(124,92,255,0.02))] p-6 backdrop-blur-md">
             <div className="flex items-center gap-2">
               <Lightbulb className="h-4 w-4 text-violet-300" />
