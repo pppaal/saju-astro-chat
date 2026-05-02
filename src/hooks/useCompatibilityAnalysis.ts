@@ -65,6 +65,28 @@ export interface CoupleTimingData {
   monthlyOutlook: string
 }
 
+export interface AstroEraCard {
+  planet: 'Saturn' | 'Jupiter'
+  sign: string
+  signKo: string
+  themeKo: string
+  bothImpact: string
+}
+
+export interface LifeStageEvent {
+  person: 1 | 2
+  label: string
+  timing: string
+  description: string
+}
+
+export interface CoupleAstroTiming {
+  saturnEra: AstroEraCard | null
+  jupiterEra: AstroEraCard | null
+  lifeStages: LifeStageEvent[]
+  crossNarrative: string | null
+}
+
 interface CompatibilityResult {
   interpretation?: string
   overall_score?: number
@@ -78,6 +100,7 @@ interface CompatibilityResult {
   relationship_dynamics?: RelationshipDynamics | null
   future_guidance?: FutureGuidance | null
   couple_timing?: CoupleTimingData | null
+  astro_timing?: CoupleAstroTiming | null
   error?: string | { message?: string }
 }
 
@@ -127,6 +150,7 @@ export function useCompatibilityAnalysis() {
   )
   const [futureGuidance, setFutureGuidance] = useState<FutureGuidance | null>(null)
   const [coupleTiming, setCoupleTiming] = useState<CoupleTimingData | null>(null)
+  const [astroTiming, setAstroTiming] = useState<CoupleAstroTiming | null>(null)
 
   const validate = useCallback(
     (persons: PersonForm[], count: number, t: (key: string, fallback: string) => string) => {
@@ -249,6 +273,7 @@ export function useCompatibilityAnalysis() {
         setRelationshipDynamics(data.relationship_dynamics ?? null)
         setFutureGuidance(data.future_guidance ?? null)
         setCoupleTiming(data.couple_timing ?? null)
+        setAstroTiming(data.astro_timing ?? null)
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'Failed to fetch compatibility.'
         setError(errorMessage)
@@ -272,6 +297,7 @@ export function useCompatibilityAnalysis() {
     setRelationshipDynamics(null)
     setFutureGuidance(null)
     setCoupleTiming(null)
+    setAstroTiming(null)
   }, [])
 
   return {
@@ -289,6 +315,7 @@ export function useCompatibilityAnalysis() {
     relationshipDynamics,
     futureGuidance,
     coupleTiming,
+    astroTiming,
     validate,
     analyzeCompatibility,
     resetResults,

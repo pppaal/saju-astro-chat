@@ -25,6 +25,7 @@ import type {
   RelationshipDynamics,
   FutureGuidance,
   CoupleTimingData,
+  CoupleAstroTiming,
 } from '@/hooks/useCompatibilityAnalysis'
 
 interface CompatibilityRichReportProps {
@@ -34,6 +35,7 @@ interface CompatibilityRichReportProps {
   relationshipDynamics: RelationshipDynamics | null
   futureGuidance: FutureGuidance | null
   coupleTiming?: CoupleTimingData | null
+  astroTiming?: CoupleAstroTiming | null
   actionItems: string[]
 }
 
@@ -151,6 +153,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
   relationshipDynamics,
   futureGuidance,
   coupleTiming,
+  astroTiming,
   actionItems,
 }: CompatibilityRichReportProps) {
   const primaryPair = pairDetails[0]
@@ -497,6 +500,107 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
             )}
           </section>
         )}
+
+        {/* Astro timing — Saturn/Jupiter era + life-stage transits */}
+        {astroTiming &&
+          (astroTiming.saturnEra ||
+            astroTiming.jupiterEra ||
+            astroTiming.lifeStages.length > 0 ||
+            astroTiming.crossNarrative) && (
+            <section className="rounded-3xl border border-white/10 bg-[linear-gradient(135deg,rgba(167,139,250,0.10),rgba(167,139,250,0.02))] p-6 backdrop-blur-md">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-violet-300" />
+                <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-violet-300">
+                  점성 타이밍 (현재 흐름)
+                </h2>
+              </div>
+
+              {astroTiming.crossNarrative && (
+                <p
+                  className="mt-3 text-[14px] leading-relaxed text-slate-200"
+                  style={{ wordBreak: 'keep-all' }}
+                >
+                  <span className="rounded bg-violet-400/15 px-1.5 py-0.5 text-violet-100">
+                    교차 신호
+                  </span>{' '}
+                  {astroTiming.crossNarrative}
+                </p>
+              )}
+
+              <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+                {astroTiming.saturnEra && (
+                  <div className="rounded-2xl border border-slate-300/20 bg-slate-400/[0.04] p-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-300">
+                      Saturn — 구조의 시기
+                    </p>
+                    <p className="mt-1.5 text-[1.05rem] font-semibold text-white">
+                      {astroTiming.saturnEra.signKo}
+                    </p>
+                    <p className="mt-1 text-[12.5px] text-slate-300">
+                      {astroTiming.saturnEra.themeKo}
+                    </p>
+                    <p
+                      className="mt-2 text-[12.5px] leading-relaxed text-slate-400"
+                      style={{ wordBreak: 'keep-all' }}
+                    >
+                      {astroTiming.saturnEra.bothImpact}
+                    </p>
+                  </div>
+                )}
+                {astroTiming.jupiterEra && (
+                  <div className="rounded-2xl border border-amber-300/25 bg-amber-400/[0.04] p-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300">
+                      Jupiter — 확장의 시기
+                    </p>
+                    <p className="mt-1.5 text-[1.05rem] font-semibold text-white">
+                      {astroTiming.jupiterEra.signKo}
+                    </p>
+                    <p className="mt-1 text-[12.5px] text-slate-300">
+                      {astroTiming.jupiterEra.themeKo}
+                    </p>
+                    <p
+                      className="mt-2 text-[12.5px] leading-relaxed text-slate-400"
+                      style={{ wordBreak: 'keep-all' }}
+                    >
+                      {astroTiming.jupiterEra.bothImpact}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {astroTiming.lifeStages.length > 0 && (
+                <div className="mt-4">
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    인생 단계 전환
+                  </p>
+                  <div className="space-y-2">
+                    {astroTiming.lifeStages.map((ls, i) => (
+                      <div
+                        key={i}
+                        className="rounded-2xl border border-violet-300/20 bg-violet-400/[0.04] p-3.5"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-[13px] font-semibold text-white">
+                            {pairLabels[ls.person - 1] || `Person ${ls.person}`} ·{' '}
+                            {ls.label}
+                          </p>
+                          <span className="rounded-full border border-violet-300/30 bg-violet-300/10 px-2 py-0.5 text-[10.5px] font-medium text-violet-100">
+                            {ls.timing}
+                          </span>
+                        </div>
+                        <p
+                          className="mt-1.5 text-[12.5px] leading-relaxed text-slate-300"
+                          style={{ wordBreak: 'keep-all' }}
+                        >
+                          {ls.description}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
 
         {/* Future guidance — 3 horizons */}
         {futureGuidance &&

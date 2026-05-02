@@ -12,7 +12,9 @@ import { performCrossSystemAnalysis } from '@/lib/compatibility/crossSystemAnaly
 import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehensive'
 import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/comprehensive'
 import { analyzeCoupleTiming } from '@/lib/compatibility/coupleTimingAnalysis'
+import { analyzeCoupleAstroTiming } from '@/lib/compatibility/coupleAstroTiming'
 import { calculateSajuData } from '@/lib/Saju/saju'
+import { calculateTransitChart } from '@/lib/astrology/foundation/transit'
 import { normalizeSajuGender } from './routeSupportCommon'
 import { calculateSynastry } from '@/lib/astrology/foundation/synastry'
 import type { PersonInput } from './types'
@@ -325,6 +327,47 @@ export const POST = withApiMiddleware(
       logger.warn('[Compatibility] couple timing failed (non-fatal):', timingErr)
     }
 
+    // Astro timing layer — current Saturn/Jupiter era + life-stage transits
+    // for both. Single transit chart call, then aspect math against natal Suns.
+    let astroTiming: ReturnType<typeof analyzeCoupleAstroTiming> | null = null
+    try {
+      if (primaryPair && !isGroup) {
+        const [aIdx, bIdx] = primaryPair.pair
+        const a = persons[aIdx]
+        const b = persons[bIdx]
+        const analysisA = personAnalyses[aIdx]
+        const analysisB = personAnalyses[bIdx]
+
+        if (a && b && analysisA?.natalChart && analysisB?.natalChart) {
+          const transitChart = await calculateTransitChart({
+            iso: new Date().toISOString().slice(0, 19),
+            latitude: a.latitude ?? 37.5665,
+            longitude: a.longitude ?? 126.978,
+            timeZone: a.timeZone || 'Asia/Seoul',
+          }).catch(() => null)
+
+          // NatalChartData/Chart shapes differ on the sign type alias
+          // (string vs ZodiacKo) but the runtime data is identical.
+          const natalA = analysisA.natalChart as unknown as Parameters<
+            typeof analyzeCoupleAstroTiming
+          >[0]
+          const natalB = analysisB.natalChart as unknown as Parameters<
+            typeof analyzeCoupleAstroTiming
+          >[1]
+          astroTiming = analyzeCoupleAstroTiming(
+            natalA,
+            natalB,
+            a.date,
+            b.date,
+            transitChart,
+            coupleTiming?.activationPeriod?.when ?? null
+          )
+        }
+      }
+    } catch (astroErr) {
+      logger.warn('[Compatibility] couple astro timing failed (non-fatal):', astroErr)
+    }
+
     const interpretation = buildInterpretationMarkdown({
       locale,
       names,
@@ -391,6 +434,7 @@ export const POST = withApiMiddleware(
         : null,
       timing,
       couple_timing: coupleTiming,
+      astro_timing: astroTiming,
       action_items: actionItems,
       fusion_enabled: fusionEnabled,
       is_group: isGroup,

@@ -132,6 +132,7 @@ export default function CompatPage() {
     relationshipDynamics,
     futureGuidance,
     coupleTiming,
+    astroTiming,
     validate,
     analyzeCompatibility,
     resetResults,
@@ -362,6 +363,7 @@ export default function CompatPage() {
                 relationshipDynamics={relationshipDynamics}
                 futureGuidance={futureGuidance}
                 coupleTiming={coupleTiming}
+                astroTiming={astroTiming}
                 actionItems={actionItems}
               />
             ) : (
