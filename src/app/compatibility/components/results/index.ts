@@ -7,3 +7,4 @@ export { SynergyBreakdownCard } from './SynergyBreakdownCard';
 export { PairwiseMatrixCard } from './PairwiseMatrixCard';
 export { TimingGuideCard } from './TimingGuideCard';
 export { ActionButtons } from './ActionButtons';
+export { CompatibilityRichReport } from './CompatibilityRichReport';

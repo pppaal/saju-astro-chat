@@ -6,6 +6,49 @@ import type {
   SynergyBreakdown,
 } from '@/app/compatibility/lib'
 
+export interface PairDetails {
+  pair: [number, number]
+  pairLabel: string
+  relationLabel: string
+  weightedScore: number
+  sajuScore: number | null
+  astrologyScore: number | null
+  fusionScore: number | null
+  crossScore: number | null
+  strengths: string[]
+  challenges: string[]
+  advice: string[]
+  topAspects: string[]
+  topHouseOverlays: string[]
+  fusionInsights: {
+    deepAnalysis?: string
+    dayMasterHarmony?: number | null
+    sunMoonHarmony?: number | null
+    venusMarsSynergy?: number | null
+    emotionalIntensity?: number | null
+    intellectualAlignment?: number | null
+    spiritualConnection?: number | null
+    conflictResolutionStyle?: string | null
+    shortTerm?: string | null
+    mediumTerm?: string | null
+    longTerm?: string | null
+    recommendedActions?: string[]
+  } | null
+}
+
+export interface RelationshipDynamics {
+  emotionalIntensity?: number | null
+  intellectualAlignment?: number | null
+  spiritualConnection?: number | null
+  conflictResolutionStyle?: string | null
+}
+
+export interface FutureGuidance {
+  shortTerm?: string | null
+  mediumTerm?: string | null
+  longTerm?: string | null
+}
+
 interface CompatibilityResult {
   interpretation?: string
   overall_score?: number
@@ -15,7 +58,10 @@ interface CompatibilityResult {
   is_group?: boolean
   group_analysis?: GroupAnalysisData
   synergy_breakdown?: SynergyBreakdown
-  error?: string
+  pair_details?: PairDetails[]
+  relationship_dynamics?: RelationshipDynamics | null
+  future_guidance?: FutureGuidance | null
+  error?: string | { message?: string }
 }
 
 const QUICK_MODE_DEFAULTS = {
@@ -58,6 +104,11 @@ export function useCompatibilityAnalysis() {
   const [groupAnalysis, setGroupAnalysis] = useState<GroupAnalysisData | null>(null)
   const [synergyBreakdown, setSynergyBreakdown] = useState<SynergyBreakdown | null>(null)
   const [isGroupResult, setIsGroupResult] = useState(false)
+  const [pairDetails, setPairDetails] = useState<PairDetails[]>([])
+  const [relationshipDynamics, setRelationshipDynamics] = useState<RelationshipDynamics | null>(
+    null
+  )
+  const [futureGuidance, setFutureGuidance] = useState<FutureGuidance | null>(null)
 
   const validate = useCallback(
     (persons: PersonForm[], count: number, t: (key: string, fallback: string) => string) => {
@@ -174,6 +225,11 @@ export function useCompatibilityAnalysis() {
         } else {
           setSynergyBreakdown(null)
         }
+
+        // Rich report data — pair details, relationship dynamics, future guidance
+        setPairDetails(Array.isArray(data.pair_details) ? data.pair_details : [])
+        setRelationshipDynamics(data.relationship_dynamics ?? null)
+        setFutureGuidance(data.future_guidance ?? null)
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'Failed to fetch compatibility.'
         setError(errorMessage)
@@ -193,6 +249,9 @@ export function useCompatibilityAnalysis() {
     setGroupAnalysis(null)
     setSynergyBreakdown(null)
     setIsGroupResult(false)
+    setPairDetails([])
+    setRelationshipDynamics(null)
+    setFutureGuidance(null)
   }, [])
 
   return {
@@ -206,6 +265,9 @@ export function useCompatibilityAnalysis() {
     groupAnalysis,
     synergyBreakdown,
     isGroupResult,
+    pairDetails,
+    relationshipDynamics,
+    futureGuidance,
     validate,
     analyzeCompatibility,
     resetResults,

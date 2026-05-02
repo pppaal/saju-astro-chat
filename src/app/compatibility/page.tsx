@@ -37,6 +37,7 @@ import {
   GroupAnalysisSection,
   TimingGuideCard,
   ActionButtons,
+  CompatibilityRichReport,
 } from './components'
 
 const KO_COMPAT_FALLBACKS: Record<string, string> = {
@@ -127,6 +128,9 @@ export default function CompatPage() {
     groupAnalysis,
     synergyBreakdown,
     isGroupResult,
+    pairDetails,
+    relationshipDynamics,
+    futureGuidance,
     validate,
     analyzeCompatibility,
     resetResults,
@@ -348,29 +352,44 @@ export default function CompatPage() {
         {/* Results */}
         {resultText && (
           <div className={`${styles.resultsContainer} ${styles.fadeIn}`}>
-            {/* Result Header */}
-            <div className={styles.resultHeader}>
-              <div className={styles.resultIcon}>{'\u{1F495}'}</div>
-              <h1 className={styles.resultTitle}>
-                {compatT('compatibilityPage.resultTitle', 'Compatibility Analysis')}
-              </h1>
-              <p className={styles.resultSubtitle}>
-                {persons.map((p) => p.name || 'Person').join(' & ')}
-              </p>
-            </div>
-
-            {/* Overall Score Circle */}
-            {overallScore !== null && <OverallScoreCard score={overallScore} t={compatT} />}
-
-            {/* Parsed Sections */}
-            {sections.length > 0 ? (
-              <ResultSectionsDisplay sections={sections} t={compatT} locale={normalizedLocale} />
+            {/* Apple-tier rich report — preferred when pair details are available */}
+            {pairDetails.length > 0 && !isGroupResult ? (
+              <CompatibilityRichReport
+                pairDetails={pairDetails}
+                overallScore={overallScore}
+                pairLabels={persons.map((p) => p.name || 'Person')}
+                relationshipDynamics={relationshipDynamics}
+                futureGuidance={futureGuidance}
+                actionItems={actionItems}
+              />
             ) : (
-              // Fallback: plain text display with beautiful styling
-              <div className={styles.interpretationText}>{resultText}</div>
+              <>
+                {/* Legacy markdown rendering — used for group (3+) or when pair_details missing */}
+                <div className={styles.resultHeader}>
+                  <div className={styles.resultIcon}>{'\u{1F495}'}</div>
+                  <h1 className={styles.resultTitle}>
+                    {compatT('compatibilityPage.resultTitle', 'Compatibility Analysis')}
+                  </h1>
+                  <p className={styles.resultSubtitle}>
+                    {persons.map((p) => p.name || 'Person').join(' & ')}
+                  </p>
+                </div>
+
+                {overallScore !== null && <OverallScoreCard score={overallScore} t={compatT} />}
+
+                {sections.length > 0 ? (
+                  <ResultSectionsDisplay
+                    sections={sections}
+                    t={compatT}
+                    locale={normalizedLocale}
+                  />
+                ) : (
+                  <div className={styles.interpretationText}>{resultText}</div>
+                )}
+              </>
             )}
 
-            {/* Group Analysis Section */}
+            {/* Group Analysis Section — only for 3+ people */}
             {isGroupResult && groupAnalysis && (
               <GroupAnalysisSection
                 groupAnalysis={groupAnalysis}
@@ -385,8 +404,8 @@ export default function CompatPage() {
               <TimingGuideCard timing={timing} isGroupResult={isGroupResult} t={compatT} />
             )}
 
-            {/* Action Items Section */}
-            {actionItems.length > 0 && (
+            {/* Legacy Action Items — only show for group mode (rich report already renders for pairs) */}
+            {isGroupResult && actionItems.length > 0 && (
               <div className={styles.actionSection}>
                 <div className={styles.resultCard}>
                   <div className={styles.resultCardGlow} />
