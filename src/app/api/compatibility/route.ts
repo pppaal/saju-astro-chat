@@ -473,6 +473,18 @@ export const POST = withApiMiddleware(
       astro_timing: astroTiming,
       deep_insights: deepInsights,
       person_elements: personAnalyses.map((a) => a.sajuProfile?.elements || null),
+      person_charts: personAnalyses.map((a) =>
+        a.astroProfile
+          ? {
+              sun: a.astroProfile.sun,
+              moon: a.astroProfile.moon,
+              venus: a.astroProfile.venus,
+              mars: a.astroProfile.mars,
+              mercury: a.astroProfile.mercury,
+              ascendant: a.astroProfile.ascendant,
+            }
+          : null
+      ),
       action_items: actionItems,
       fusion_enabled: fusionEnabled,
       is_group: isGroup,

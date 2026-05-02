@@ -143,23 +143,26 @@ function detectLifeStages(
   if (age >= 27 && age <= 31) {
     events.push({
       person,
-      label: '첫 새턴 리턴',
-      timing: `${age}세 — 활성 중`,
-      description: '구조·책임·인생 큰 정리 — 어른의 첫 큰 결단기. 관계 약속도 무겁게 의미화됨.',
+      label: '첫 토성 리턴',
+      timing: `${age}세 — 진행 중`,
+      description:
+        '인생의 큰 구조와 책임을 새로 정리하는 시기예요. 어른의 첫 결단기로, 관계의 약속도 무겁게 의미를 가지는 자리입니다.',
     })
   } else if (age >= 25 && age <= 27) {
     events.push({
       person,
-      label: '첫 새턴 리턴 직전',
+      label: '첫 토성 리턴 직전',
       timing: `${age}세 — 1~3년 안 도래`,
-      description: '인생 구조 정리 시기 진입 중 — 진지한 약속·결혼·이직 등 큰 결정 리듬에 들어감.',
+      description:
+        '인생 구조를 새로 정리하는 시기에 들어서고 있어요. 진지한 약속·결혼·이직 같은 큰 결정의 리듬이 만들어지기 시작합니다.',
     })
   } else if (age >= 57 && age <= 61) {
     events.push({
       person,
-      label: '두번째 새턴 리턴',
-      timing: `${age}세 — 활성 중`,
-      description: '인생 후반 구조 재정의 — 관계의 본질·우선순위 재정렬기.',
+      label: '두번째 토성 리턴',
+      timing: `${age}세 — 진행 중`,
+      description:
+        '인생 후반의 구조를 다시 정의하는 시기예요. 관계의 본질과 우선순위를 차분히 재정렬하는 자리입니다.',
     })
   }
 
@@ -168,8 +171,9 @@ function detectLifeStages(
     events.push({
       person,
       label: '카이런 리턴',
-      timing: `${age}세 — 활성 중`,
-      description: '오래된 상처 통합기 — 관계에서도 깊은 화해와 치유 가능.',
+      timing: `${age}세 — 진행 중`,
+      description:
+        '오래된 상처를 통합하는 시기예요. 관계 안에서도 깊은 화해와 치유가 가능한 자리입니다.',
     })
   }
 
@@ -178,9 +182,10 @@ function detectLifeStages(
   if (age >= 23 && (jupiterMod === 0 || jupiterMod === 11 || jupiterMod === 1)) {
     events.push({
       person,
-      label: '주피터 리턴',
-      timing: `${age}세 ${jupiterMod === 11 ? '직전' : jupiterMod === 1 ? '직후' : '진행'}`,
-      description: '확장·기회·관계 확장기 — 새 단계 진입에 좋은 흐름.',
+      label: '목성 리턴',
+      timing: `${age}세 ${jupiterMod === 11 ? '직전' : jupiterMod === 1 ? '직후' : '진행 중'}`,
+      description:
+        '확장과 기회의 시기예요. 새 단계로 진입하기에 좋은 흐름이 흐릅니다.',
     })
   }
 
@@ -210,15 +215,15 @@ export function analyzeCoupleAstroTiming(
 
     let bothImpact = ''
     if (total >= 3) {
-      bothImpact = '둘 다 새턴이 안정적으로 받쳐줘 — 구조와 약속을 단단히 빌드하기 좋음'
+      bothImpact = '두 분 모두 토성이 안정적으로 받쳐주는 흐름이에요. 약속과 구조를 단단히 쌓아가기 좋은 시기입니다.'
     } else if (total <= -3) {
-      bothImpact = '둘 다 새턴 압박 시기 — 큰 결정·약속은 압박감과 함께 옴, 의도적 속도 조절'
+      bothImpact = '두 분 모두 토성의 무게가 실린 시기예요. 큰 결정은 압박감과 함께 오니 의식적인 속도 조절이 필요합니다.'
     } else if (total >= 1) {
-      bothImpact = '한쪽에 새턴 도움 — 그 사람이 안정 축으로 작용'
+      bothImpact = '한쪽에 토성의 든든한 도움이 들어와 그분이 자연스럽게 안정의 축이 되는 시기예요.'
     } else if (total <= -1) {
-      bothImpact = '한쪽에 새턴 압박 — 그 사람의 무게를 함께 들어주는 시기'
+      bothImpact = '한쪽에 토성의 무게가 실린 시기 — 그분의 부담을 함께 들어주는 마음이 필요합니다.'
     } else {
-      bothImpact = '새턴이 직접 영향은 약함 — 큰 구조 변동보다 일상의 다지기'
+      bothImpact = '토성의 직접 영향은 약한 편이에요. 큰 구조 변화보다는 일상을 다지는 시기로 활용하세요.'
     }
 
     saturnEra = {
@@ -243,13 +248,13 @@ export function analyzeCoupleAstroTiming(
 
     let bothImpact = ''
     if (total >= 4) {
-      bothImpact = '둘 다 주피터의 확장 흐름 — 관계가 확장·외부 기회로 풍성해지는 시기'
+      bothImpact = '두 분 모두 목성의 확장 흐름이 들어와 관계가 외부 기회로 풍성해지는 시기예요.'
     } else if (total >= 2) {
-      bothImpact = '한쪽에 강한 주피터 도움 — 그 사람의 확장이 관계도 함께 끌어올림'
+      bothImpact = '한쪽에 강한 목성의 도움이 들어와 그분의 확장이 관계 전체를 함께 끌어올립니다.'
     } else if (total <= -2) {
-      bothImpact = '주피터가 약간 빗겨 — 큰 확장보다 내실 다지기'
+      bothImpact = '목성이 비스듬히 비껴가는 시기예요. 큰 확장보다 내실을 다지는 편이 좋습니다.'
     } else {
-      bothImpact = '주피터 영향 보통 — 자연스러운 흐름 유지'
+      bothImpact = '목성의 영향은 평이한 편이에요. 자연스러운 흐름을 유지하면 됩니다.'
     }
 
     jupiterEra = {
@@ -275,15 +280,15 @@ export function analyzeCoupleAstroTiming(
   const hasLifeStage = lifeStages.length > 0
 
   if (sajuActivationWhen && hasJupiterBoost) {
-    crossNarrative = `사주 활성기 (${sajuActivationWhen}) 와 점성 주피터 확장 흐름이 겹쳐 — 이 시기에 큰 결정이나 만남을 미루지 마세요. 두 시스템이 같은 신호를 보내는 강한 시기예요.`
+    crossNarrative = `사주 활성기(${sajuActivationWhen})와 목성의 확장 흐름이 겹치는 시기예요. 큰 결정이나 만남을 미루지 마세요 — 동양과 서양 두 시각이 같은 신호를 보내는 보기 드문 강한 시기입니다.`
   } else if (sajuActivationWhen && hasSaturnSupport) {
-    crossNarrative = `사주 활성기 (${sajuActivationWhen}) 위에 새턴의 안정 흐름이 더해져 — 빠르게 펼치기보단 단단히 빌드하는 시기. 약속·동거·결혼 등 장기 약속에 적합.`
+    crossNarrative = `사주 활성기(${sajuActivationWhen}) 위에 토성의 안정 흐름이 더해져 — 빠르게 펼치기보다 단단히 다지는 시기예요. 약속·동거·결혼 같은 장기 약속에 가장 적합한 자리입니다.`
   } else if (hasSaturnPressure && hasLifeStage) {
-    crossNarrative = `점성 새턴 압박 + 인생 단계 전환점이 겹친 시기 — 관계 본질을 정직하게 점검하는 흐름. 어려워도 솔직한 대화가 관계를 다음 단계로 옮김.`
+    crossNarrative = `토성의 무게와 인생 단계의 전환점이 겹친 시기예요. 관계의 본질을 정직하게 점검하게 되는 흐름이라, 어려워도 솔직한 대화가 두 분을 다음 단계로 옮겨줍니다.`
   } else if (hasJupiterBoost && !hasSaturnPressure) {
-    crossNarrative = `점성 주피터 확장 흐름이 두 분에게 들어와 — 새 경험·여행·공동 프로젝트 같은 외부 활동이 관계를 풍성하게 함.`
+    crossNarrative = `목성의 확장 흐름이 두 분에게 들어와 새 경험·여행·공동 프로젝트 같은 외부 활동이 관계를 풍성하게 만드는 시기예요.`
   } else if (hasSaturnPressure) {
-    crossNarrative = `새턴 압박 시기엔 관계의 본질만 남음 — 형식보다 신뢰의 깊이가 검증되는 흐름. 통과하면 단단해짐.`
+    crossNarrative = `토성의 무게가 실린 시기엔 관계의 본질만 남습니다. 형식보다 신뢰의 깊이가 검증되는 흐름이라, 통과하면 단단해지는 자리예요.`
   }
 
   return {

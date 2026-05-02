@@ -144,6 +144,14 @@ interface CompatibilityResult {
     metal?: number
     water?: number
   } | null>
+  person_charts?: Array<{
+    sun?: { sign?: string; element?: string }
+    moon?: { sign?: string; element?: string }
+    venus?: { sign?: string; element?: string }
+    mars?: { sign?: string; element?: string }
+    mercury?: { sign?: string; element?: string }
+    ascendant?: { sign?: string; element?: string }
+  } | null>
   error?: string | { message?: string }
 }
 
@@ -202,6 +210,16 @@ export function useCompatibilityAnalysis() {
       earth?: number
       metal?: number
       water?: number
+    } | null>
+  >([])
+  const [personCharts, setPersonCharts] = useState<
+    Array<{
+      sun?: { sign?: string; element?: string }
+      moon?: { sign?: string; element?: string }
+      venus?: { sign?: string; element?: string }
+      mars?: { sign?: string; element?: string }
+      mercury?: { sign?: string; element?: string }
+      ascendant?: { sign?: string; element?: string }
     } | null>
   >([])
 
@@ -329,6 +347,7 @@ export function useCompatibilityAnalysis() {
         setAstroTiming(data.astro_timing ?? null)
         setDeepInsights(data.deep_insights ?? null)
         setPersonElements(Array.isArray(data.person_elements) ? data.person_elements : [])
+        setPersonCharts(Array.isArray(data.person_charts) ? data.person_charts : [])
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'Failed to fetch compatibility.'
         setError(errorMessage)
@@ -355,6 +374,7 @@ export function useCompatibilityAnalysis() {
     setAstroTiming(null)
     setDeepInsights(null)
     setPersonElements([])
+    setPersonCharts([])
   }, [])
 
   return {
@@ -375,6 +395,7 @@ export function useCompatibilityAnalysis() {
     astroTiming,
     deepInsights,
     personElements,
+    personCharts,
     validate,
     analyzeCompatibility,
     resetResults,

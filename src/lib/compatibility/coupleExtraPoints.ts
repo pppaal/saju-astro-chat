@@ -68,6 +68,18 @@ const POINT_MEANING: Record<string, string> = {
   Ceres: '돌봄·양육',
 }
 
+const PLANET_KO: Record<string, string> = {
+  Sun: '태양',
+  Moon: '달',
+  Venus: '금성',
+  Mars: '화성',
+  Mercury: '수성',
+  Jupiter: '목성',
+  Saturn: '토성',
+  Ascendant: '상승점',
+  MC: '천정',
+}
+
 const ASPECT_KO: Record<string, string> = {
   conjunction: '합 (강한 결합)',
   opposition: '대립 (정반대 끌림)',
@@ -119,7 +131,7 @@ function detectCrossAspects(
             to: tp.name,
             aspect: def.type as CrossAspect['aspect'],
             orb: Math.round(orb * 10) / 10,
-            meaning: `${POINT_MEANING[pt.key]} ↔ ${tp.name}: ${ASPECT_KO[def.type]}`,
+            meaning: `${POINT_MEANING[pt.key]} ↔ ${PLANET_KO[tp.name] || tp.name}: ${ASPECT_KO[def.type]}`,
           })
           break
         }
@@ -220,7 +232,7 @@ export function analyzeCoupleExtraPoints(
     )
     if (vertexHits.length > 0) {
       summary.push(
-        `운명점(Vertex)이 상대 ${vertexHits[0].to}와 합 — 두 분의 만남에 운명적 신호가 강하게 흐름`
+        `운명점이 상대의 ${PLANET_KO[vertexHits[0].to] || vertexHits[0].to}과 같은 자리에 만나 — 두 분의 만남에 운명적인 신호가 강하게 흐릅니다.`
       )
     }
 
@@ -230,7 +242,7 @@ export function analyzeCoupleExtraPoints(
     )
     if (chironHits.length > 0) {
       summary.push(
-        `상처점(Chiron)이 상대 ${chironHits[0].to}와 ${ASPECT_KO[chironHits[0].aspect]} — 두 분이 서로의 깊은 상처를 치유해주는 결`
+        `상처점이 상대의 ${PLANET_KO[chironHits[0].to] || chironHits[0].to}과 ${ASPECT_KO[chironHits[0].aspect]}로 닿아 — 두 분이 서로의 오래된 상처를 부드럽게 치유해주는 결입니다.`
       )
     }
 
@@ -240,7 +252,7 @@ export function analyzeCoupleExtraPoints(
     )
     if (lilithHits.length > 0) {
       summary.push(
-        `그림자점(Lilith)이 상대 ${lilithHits[0].to}와 합 — 무의식적 강한 끌림과 동시에 금기적 긴장이 공존`
+        `그림자점이 상대의 ${PLANET_KO[lilithHits[0].to] || lilithHits[0].to}과 같은 자리에 만나 — 무의식적인 강한 끌림과 동시에 금기적인 긴장이 공존합니다.`
       )
     }
 
@@ -250,11 +262,11 @@ export function analyzeCoupleExtraPoints(
     )
     if (pofHits.length > 0) {
       summary.push(
-        `행복점(POF)이 상대 ${pofHits[0].to}와 ${ASPECT_KO[pofHits[0].aspect]} — 함께할 때 자연스러운 기쁨과 운이 흐르는 결`
+        `행복점이 상대의 ${PLANET_KO[pofHits[0].to] || pofHits[0].to}과 ${ASPECT_KO[pofHits[0].aspect]}로 — 함께할 때 자연스러운 기쁨과 운이 흐르는 결입니다.`
       )
     }
 
-    // Juno (결혼점) — strongest signal for marriage compatibility
+    // Juno (결혼점)
     const junoHits = [...p1ToP2, ...p2ToP1].filter(
       (a) =>
         a.point === 'Juno' &&
@@ -263,21 +275,21 @@ export function analyzeCoupleExtraPoints(
     )
     if (junoHits.length > 0) {
       summary.push(
-        `결혼점(Juno)이 상대 ${junoHits[0].to}와 ${ASPECT_KO[junoHits[0].aspect]} — 결혼 파트너로서 깊이 어울리는 신호`
+        `결혼점이 상대의 ${PLANET_KO[junoHits[0].to] || junoHits[0].to}과 ${ASPECT_KO[junoHits[0].aspect]}로 — 결혼 파트너로서 깊이 어울리는 신호입니다.`
       )
     }
 
-    // Vesta (헌신점) — devotion / shared focus
+    // Vesta (헌신점)
     const vestaHits = [...p1ToP2, ...p2ToP1].filter(
       (a) => a.point === 'Vesta' && (a.aspect === 'conjunction' || a.aspect === 'trine')
     )
     if (vestaHits.length > 0) {
       summary.push(
-        `헌신점(Vesta)이 상대 ${vestaHits[0].to}와 ${ASPECT_KO[vestaHits[0].aspect]} — 깊은 헌신과 공동 목표가 자연스럽게 흐르는 결`
+        `헌신점이 상대의 ${PLANET_KO[vestaHits[0].to] || vestaHits[0].to}과 ${ASPECT_KO[vestaHits[0].aspect]}로 — 깊은 헌신과 공동의 목표가 자연스럽게 흐르는 결이에요.`
       )
     }
 
-    // Pallas (지혜점) — intellectual partnership
+    // Pallas (지혜점)
     const pallasHits = [...p1ToP2, ...p2ToP1].filter(
       (a) =>
         a.point === 'Pallas' &&
@@ -286,7 +298,7 @@ export function analyzeCoupleExtraPoints(
     )
     if (pallasHits.length > 0) {
       summary.push(
-        `지혜점(Pallas)이 상대 ${pallasHits[0].to}와 만남 — 지적 동반자, 함께 문제 해결하는 결`
+        `지혜점이 상대의 ${PLANET_KO[pallasHits[0].to] || pallasHits[0].to}과 만나 — 지적인 동반자이자 함께 문제를 풀어가는 결입니다.`
       )
     }
 

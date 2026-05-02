@@ -10,6 +10,7 @@ import { memo, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ScoreDashboard } from './ScoreDashboard'
 import { CoupleElementsDonut } from './CoupleElementsDonut'
+import { CouplePlanetStrip } from './CouplePlanetStrip'
 import { buildCoupleTagline } from '@/lib/compatibility/coupleTagline'
 import {
   Sparkles,
@@ -62,6 +63,14 @@ interface CompatibilityRichReportProps {
     earth?: number
     metal?: number
     water?: number
+  } | null>
+  personCharts?: Array<{
+    sun?: { sign?: string; element?: string }
+    moon?: { sign?: string; element?: string }
+    venus?: { sign?: string; element?: string }
+    mars?: { sign?: string; element?: string }
+    mercury?: { sign?: string; element?: string }
+    ascendant?: { sign?: string; element?: string }
   } | null>
   actionItems: string[]
 }
@@ -184,6 +193,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
   astroTiming,
   deepInsights,
   personElements,
+  personCharts,
   actionItems,
 }: CompatibilityRichReportProps) {
   const primaryPair = pairDetails[0]
@@ -583,6 +593,21 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
             >
               {fusion.deepAnalysis}
             </p>
+          </section>
+        )}
+
+        {/* Planet comparison strip — quick visual of both persons' core planets */}
+        {activeTab === 'depth' && personCharts && personCharts[0] && personCharts[1] && (
+          <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md">
+            <h2 className="mb-3 text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
+              두 분의 별 비교
+            </h2>
+            <CouplePlanetStrip
+              p1={personCharts[0]}
+              p2={personCharts[1]}
+              p1Name={pairLabels[0]}
+              p2Name={pairLabels[1]}
+            />
           </section>
         )}
 

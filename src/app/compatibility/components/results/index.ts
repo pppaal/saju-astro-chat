@@ -10,3 +10,4 @@ export { ActionButtons } from './ActionButtons';
 export { CompatibilityRichReport } from './CompatibilityRichReport';
 export { ScoreDashboard } from './ScoreDashboard';
 export { CoupleElementsDonut } from './CoupleElementsDonut';
+export { CouplePlanetStrip } from './CouplePlanetStrip';
