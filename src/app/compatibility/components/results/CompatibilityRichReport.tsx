@@ -9,6 +9,7 @@
 import { memo, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ScoreDashboard } from './ScoreDashboard'
+import { buildCoupleTagline } from '@/lib/compatibility/coupleTagline'
 import {
   Sparkles,
   Heart,
@@ -296,6 +297,13 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
   const score = overallScore ?? primaryPair.weightedScore
   const band = scoreBand(score)
   const narrativeParagraphs = narrative.split(/\n\n+/).filter((p) => p.trim().length > 0)
+  const tagline = buildCoupleTagline({
+    overallScore: score,
+    sajuScore: primaryPair.sajuScore,
+    astrologyScore: primaryPair.astrologyScore,
+    crossScore: primaryPair.crossScore,
+    fusion: primaryPair.fusionInsights,
+  })
   // Percentile context for hero (vs typical couples — mean 65, sd 12)
   const heroPercentile = (() => {
     const erfP = 0.3275911
@@ -336,6 +344,22 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
 
         {/* Hero */}
         <header className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,16,28,0.94),rgba(7,11,19,0.86))] p-6 backdrop-blur-2xl sm:p-8">
+          {/* Tagline — single-sentence headline above everything */}
+          <div className="mb-6 text-center">
+            <h1
+              className="text-balance text-[1.5rem] font-semibold leading-[1.25] tracking-[-0.018em] text-white sm:text-[1.85rem]"
+              style={{ wordBreak: 'keep-all' }}
+            >
+              {tagline.headline}
+            </h1>
+            <p
+              className="mt-2 text-[13.5px] leading-relaxed text-slate-400"
+              style={{ wordBreak: 'keep-all' }}
+            >
+              {tagline.subline}
+            </p>
+          </div>
+
           <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-center sm:gap-8 sm:text-left">
             <ScoreCircle score={score} />
             <div className="flex-1">
@@ -473,7 +497,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
                   />
                 ))}
                 <p className="mt-3 text-[12.5px] leading-relaxed text-slate-400">
-                  사주·점성·교차 데이터로 long-form 풀이 작성 중 (약 10-15초 소요)
+                  사주·점성·교차 데이터로 long-form 풀이 작성 중 (약 15-20초 소요)
                 </p>
               </div>
             )}
@@ -498,6 +522,37 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
                   </p>
                 ))}
               </div>
+            )}
+          </section>
+        )}
+
+        {/* Top 3 actions — surface on overview so users get clear next steps */}
+        {activeTab === 'overview' && actionItems.length > 0 && (
+          <section className="rounded-3xl border border-violet-300/20 bg-[linear-gradient(135deg,rgba(124,92,255,0.12),rgba(34,211,238,0.06))] p-6 backdrop-blur-md">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-violet-300">
+                지금 바로 해볼 것
+              </h2>
+              <span className="text-[11px] text-slate-400">상위 3개</span>
+            </div>
+            <ul className="mt-4 space-y-3">
+              {actionItems.slice(0, 3).map((item, i) => (
+                <li
+                  key={i}
+                  className="flex gap-3 text-[14.5px] leading-relaxed text-slate-100"
+                  style={{ wordBreak: 'keep-all' }}
+                >
+                  <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-violet-400/20 text-[11.5px] font-semibold text-violet-200">
+                    {i + 1}
+                  </span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+            {actionItems.length > 3 && (
+              <p className="mt-3 text-[11.5px] text-slate-500">
+                전체 {actionItems.length}개는 "다음 단계" 탭에서 볼 수 있어요
+              </p>
             )}
           </section>
         )}

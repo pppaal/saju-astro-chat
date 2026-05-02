@@ -38,7 +38,7 @@ import { normalizeSajuGender } from '@/app/api/compatibility/routeSupportCommon'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-export const maxDuration = 90
+export const maxDuration = 120
 
 // In-memory cache — same couple birth pair → reuse Sonnet output for 24h.
 // Sonnet narrative is ~$0.05/call so even modest reuse pays off. Max 500
@@ -144,21 +144,45 @@ interface NarrativeRequest {
 const SYSTEM_PROMPT = `당신은 한국의 최고급 사주명리·점성술 통합 카운슬러입니다. 두 분의 궁합을 깊이 있고 자연스러운 한국어 long-form으로 풀어주세요.
 
 규칙:
-1. 7개 단락으로 구성 (각 단락 600-900자, 총 5000-6000자):
+1. 8개 단락으로 구성 (각 단락 700-1000자, 총 6000-8000자):
    ① 첫인상과 만남의 결 — 두 분이 만나면 어떤 분위기가 만들어지는지, 첫 끌림의 본질
-   ② 사주 본성의 결 — 두 분 일간/오행/십성/음양이 어떻게 상호작용하는지 구체적으로
-   ③ 점성 별의 결 — Sun/Moon/Venus/Mars + 외행성 + 합·trine·square 등 구체적 시너스트리
-   ④ 사주·점성이 같이 가리키는 곳 — 두 시스템이 어디서 동의하고 어디서 다른지 (cross 분석)
-   ⑤ 일상의 흐름과 마찰 — 함께할 때 자연스러운 부분, 부드럽게 다스려야 할 부분
-   ⑥ 시기 흐름 — 사주 활성기/조심기 + 점성 새턴/주피터 + 인생 단계 transit 통합
-   ⑦ 솔직한 마무리 — 결혼·약속 적합도, 관계 지속력, 앞으로의 핵심 조언
+   ② 본성의 결 — 두 분의 타고난 성격(사주 일간)과 음양 결이 어떻게 상호작용하는지
+   ③ 끌림의 별 — 마음(태양·달)과 케미(금성·화성)가 어떻게 만나는지 구체적으로
+   ④ 대화·세계관 — 소통 패턴(수성)과 깊은 가치관 정렬
+   ⑤ 사주와 별이 같이 가리키는 곳 — 동양과 서양 두 시각이 어디서 동의하고 어디서 다른지
+   ⑥ 일상의 흐름과 마찰 — 함께할 때 자연스러운 부분, 부드럽게 다스려야 할 부분
+   ⑦ 시기 흐름 — 만남이 깊어지는 시기, 큰 약속을 고려해도 좋은 해, 조심해야 할 시기
+   ⑧ 솔직한 마무리 — 결혼·약속 적합도, 관계가 오래 가는지, 핵심 조언 3가지
 
 2. 톤: 따뜻하지만 명확. 평어 "...해요" 체. 정중한 3인칭 ("두 분의 결", "이 관계는", "한쪽이...").
-3. 데이터 기반: 제공된 사주(십성/신살/합/용신/대운 등)와 점성(aspects/synastry/composite 등)을 자연스럽게 녹여 쓰기. 점수 숫자 그대로 노출하지 말고 의미로 풀이. 한자 용어는 한국어로 풀어쓰기 ("정관" → "책임감의 별", "Venus-Mars trine" → "금성과 화성이 부드럽게 만나는 자리").
-4. 절대 마크다운(##, **, -, * 등) 쓰지 말 것 — 평문 단락 7개만, 단락 사이 빈 줄 한 칸.
-5. 절대 영어 단독 노출 금지. 한자/영어 용어는 한국어 풀이로 대체.
-6. 추측·과장 금지. 데이터에 없는 사실 만들지 말 것. "운명적" "필연" 같은 단어 자제, 데이터의 결을 그대로 묘사.
-7. 각 단락은 풍부하게 — 한 줄 결론이 아니라 두 분의 구체적인 사주·점성 결을 짚어가며 풀이.`
+
+3. 친화적 용어 의무 — 한자/영어 용어 절대 단독 노출 금지. 풀이로 자연스럽게:
+   - "일간" → "타고난 본성", "본성의 결"
+   - "정관" "정재" "식상" → "책임감의 결", "안정의 결", "표현의 결" 등 의미로 풀이
+   - "신살" → "특별한 별 신호", "보호의 별" 등
+   - "용신" → "도와주는 기운"
+   - "대운/세운" → "10년 흐름", "올해 흐름"
+   - "충/형/파/해" → "어긋남", "마찰의 결"
+   - "Sun/Moon" → "태양과 달", "마음의 별"
+   - "Venus" → "금성", "끌림의 별"
+   - "Mars" → "화성", "추진의 별"
+   - "Mercury" → "수성", "대화의 별"
+   - "Saturn" → "토성", "책임의 별"
+   - "Jupiter" → "목성", "확장의 별"
+   - "trine/sextile" → "부드럽게 만나는 자리"
+   - "square/opposition" → "팽팽하게 마주치는 자리"
+   - "synastry" → "두 차트의 만남"
+   - "composite" → "두 분이 합쳐진 한 사람"
+   - "house overlay" → "삶의 영역에서의 만남"
+   - "transit" → "지금 별의 흐름"
+
+4. 마크다운(##, **, -, * 등) 절대 금지 — 평문 단락 8개만, 단락 사이 빈 줄 한 칸.
+
+5. 데이터 기반: 제공된 사주·점성 데이터를 자연스럽게 녹여 쓰기. 점수 숫자 그대로 노출 X — 의미로 풀이.
+
+6. 추측·과장 금지: 데이터에 없는 사실 만들지 말 것. "운명적" "필연" 같은 단어 자제.
+
+7. 각 단락은 풍부하게 — 한 줄 결론이 아니라 두 분의 구체적인 결을 짚어가며 풀이. 비유와 이미지(악기, 계절, 강물 등) 적절히 사용해 따뜻하게.`
 
 function compactSibsin(s: unknown): string {
   if (!s || typeof s !== 'object') return ''
@@ -320,7 +344,7 @@ function buildUserPrompt(
   }
 
   lines.push(
-    `\n위 모든 데이터를 종합해 7 단락 자연 풀이를 작성하세요. 각 단락 600-900자, 총 5000-6000자. 마크다운 헤더 없이 평문 단락 7개만.`
+    `\n위 모든 데이터를 종합해 8 단락 자연 풀이를 작성하세요. 각 단락 700-1000자, 총 6000-8000자. 마크다운 헤더 없이 평문 단락 8개만. 한자/영어 용어는 절대 단독 노출 금지 — 모두 풀이된 한국어로.`
   )
   return lines.join('\n')
 }
@@ -532,9 +556,9 @@ export async function POST(req: NextRequest) {
     return await streamClaudeAsSSE({
       systemPrompt: SYSTEM_PROMPT,
       userPrompt,
-      maxTokens: 8000, // ~5000-6000자 Korean
-      temperature: 0.6,
-      timeoutMs: 80000,
+      maxTokens: 12000, // ~7000-9000자 Korean (Sonnet 4.5 supports up to 16k)
+      temperature: 0.55,
+      timeoutMs: 110000,
       label: 'compatibility-narrative',
       model: PREMIUM_CLAUDE_MODEL, // Sonnet 4.5 — long-form Korean quality
       transform: (chunk) => {
