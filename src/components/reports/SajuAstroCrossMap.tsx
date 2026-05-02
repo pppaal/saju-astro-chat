@@ -63,48 +63,50 @@ export default function SajuAstroCrossMap({
           return (
             <div
               key={i}
-              className="grid grid-cols-[120px_1fr_36px_1fr] gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 transition hover:border-cyan-300/20"
+              className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 transition hover:border-cyan-300/20"
             >
-              {/* axis label */}
-              <div className="flex items-center">
-                <span
-                  className="rounded-full border px-2 py-0.5 text-[11px] font-medium"
-                  style={{
-                    borderColor: sStyle.color + '50',
-                    color: sStyle.color,
-                    background: sStyle.color + '14',
-                  }}
-                >
-                  {sig.axis}
-                </span>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-[110px_1fr_28px_1fr] sm:items-center">
+                {/* axis label */}
+                <div className="flex items-center">
+                  <span
+                    className="rounded-full border px-2 py-0.5 text-[11px] font-medium"
+                    style={{
+                      borderColor: sStyle.color + '50',
+                      color: sStyle.color,
+                      background: sStyle.color + '14',
+                    }}
+                  >
+                    {sig.axis}
+                  </span>
+                </div>
+                {/* 사주 column */}
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300/70">
+                    사주
+                  </p>
+                  <p className="mt-0.5 truncate text-[13px] text-slate-200">{sig.saju}</p>
+                </div>
+                {/* connector — hidden on mobile, visible from sm */}
+                <div className="hidden sm:flex sm:flex-col sm:items-center sm:justify-center text-cyan-300">
+                  <span
+                    className="text-base leading-none"
+                    style={{ color: sStyle.color }}
+                    title={sStyle.label}
+                  >
+                    {dirIcon}
+                  </span>
+                </div>
+                {/* 점성 column */}
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-300">
+                    점성 <span className="ml-1 sm:hidden" style={{ color: sStyle.color }}>{dirIcon}</span>
+                  </p>
+                  <p className="mt-0.5 truncate text-[13px] text-slate-200">{sig.astro}</p>
+                </div>
               </div>
-              {/* 사주 column */}
-              <div className="min-w-0">
-                <p className="text-[9.5px] font-semibold uppercase tracking-[0.18em] text-amber-300/70">
-                  사주
-                </p>
-                <p className="mt-0.5 truncate text-[13px] text-slate-200">{sig.saju}</p>
-              </div>
-              {/* connector */}
-              <div className="flex flex-col items-center justify-center text-cyan-300">
-                <span
-                  className="text-base leading-none"
-                  style={{ color: sStyle.color }}
-                  title={sStyle.label}
-                >
-                  {dirIcon}
-                </span>
-              </div>
-              {/* 점성 column */}
-              <div className="min-w-0">
-                <p className="text-[9.5px] font-semibold uppercase tracking-[0.18em] text-cyan-300">
-                  점성
-                </p>
-                <p className="mt-0.5 truncate text-[13px] text-slate-200">{sig.astro}</p>
-              </div>
-              {/* meaning row (full width below) */}
+              {/* meaning — full width below */}
               {sig.meaning && (
-                <p className="col-span-4 mt-1 border-t border-white/[0.05] pt-2 text-[12px] leading-relaxed text-slate-400">
+                <p className="mt-2 border-t border-white/[0.05] pt-2 text-[12px] leading-relaxed text-slate-400">
                   {sig.meaning}
                 </p>
               )}
