@@ -11,6 +11,9 @@ import { calculateFusionCompatibility } from '@/lib/compatibility/compatibilityF
 import { performCrossSystemAnalysis } from '@/lib/compatibility/crossSystemAnalysis'
 import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehensive'
 import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/comprehensive'
+import { analyzeCoupleTiming } from '@/lib/compatibility/coupleTimingAnalysis'
+import { calculateSajuData } from '@/lib/Saju/saju'
+import { normalizeSajuGender } from './routeSupportCommon'
 import { calculateSynastry } from '@/lib/astrology/foundation/synastry'
 import type { PersonInput } from './types'
 import { compatibilityRequestSchema } from '@/lib/api/zodValidation'
@@ -286,6 +289,42 @@ export const POST = withApiMiddleware(
       locale
     )
     const timing = buildTimingPayload(primaryPair, persons, personAnalyses, isGroup, locale)
+
+    // Couple timing analysis — concrete months/years using full unse data.
+    // Best-effort: re-runs calculateSajuData (cached internally) for both
+    // people in the primary pair to access annual + monthly cycles that
+    // the slim sajuProfile drops.
+    let coupleTiming: ReturnType<typeof analyzeCoupleTiming> = null
+    try {
+      if (primaryPair && !isGroup) {
+        const [aIdx, bIdx] = primaryPair.pair
+        const a = persons[aIdx]
+        const b = persons[bIdx]
+        if (a && b) {
+          const fullA = calculateSajuData(
+            a.date,
+            a.time,
+            normalizeSajuGender(a.gender),
+            'solar',
+            a.timeZone
+          )
+          const fullB = calculateSajuData(
+            b.date,
+            b.time,
+            normalizeSajuGender(b.gender),
+            'solar',
+            b.timeZone
+          )
+          coupleTiming = analyzeCoupleTiming(
+            fullA as unknown as Record<string, unknown>,
+            fullB as unknown as Record<string, unknown>
+          )
+        }
+      }
+    } catch (timingErr) {
+      logger.warn('[Compatibility] couple timing failed (non-fatal):', timingErr)
+    }
+
     const interpretation = buildInterpretationMarkdown({
       locale,
       names,
@@ -351,6 +390,7 @@ export const POST = withApiMiddleware(
           }
         : null,
       timing,
+      couple_timing: coupleTiming,
       action_items: actionItems,
       fusion_enabled: fusionEnabled,
       is_group: isGroup,

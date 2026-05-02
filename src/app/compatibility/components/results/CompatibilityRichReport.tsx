@@ -24,6 +24,7 @@ import type {
   PairDetails,
   RelationshipDynamics,
   FutureGuidance,
+  CoupleTimingData,
 } from '@/hooks/useCompatibilityAnalysis'
 
 interface CompatibilityRichReportProps {
@@ -32,6 +33,7 @@ interface CompatibilityRichReportProps {
   pairLabels: string[]
   relationshipDynamics: RelationshipDynamics | null
   futureGuidance: FutureGuidance | null
+  coupleTiming?: CoupleTimingData | null
   actionItems: string[]
 }
 
@@ -148,6 +150,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
   pairLabels,
   relationshipDynamics,
   futureGuidance,
+  coupleTiming,
   actionItems,
 }: CompatibilityRichReportProps) {
   const primaryPair = pairDetails[0]
@@ -361,6 +364,135 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
                     </li>
                   ))}
                 </ul>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Concrete timing — best meeting month, activation, caution, prime year */}
+        {coupleTiming && (
+          <section className="rounded-3xl border border-white/10 bg-[linear-gradient(135deg,rgba(34,211,238,0.10),rgba(34,211,238,0.02))] p-6 backdrop-blur-md">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-cyan-300" />
+              <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
+                구체적 타이밍
+              </h2>
+            </div>
+
+            <p
+              className="mt-3 text-[14px] leading-relaxed text-slate-200"
+              style={{ wordBreak: 'keep-all' }}
+            >
+              {coupleTiming.monthlyOutlook}
+            </p>
+
+            <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
+              {coupleTiming.bestMeetingMonth && (
+                <div className="rounded-2xl border border-emerald-300/25 bg-emerald-400/[0.06] p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                    만남·약속 좋은 달
+                  </p>
+                  <p className="mt-1.5 text-[1.1rem] font-semibold text-white">
+                    {coupleTiming.bestMeetingMonth.year}년{' '}
+                    {coupleTiming.bestMeetingMonth.month}월
+                  </p>
+                  <p
+                    className="mt-1.5 text-[12.5px] leading-relaxed text-slate-300"
+                    style={{ wordBreak: 'keep-all' }}
+                  >
+                    {coupleTiming.bestMeetingMonth.reason}
+                  </p>
+                </div>
+              )}
+
+              {coupleTiming.activationPeriod && (
+                <div className="rounded-2xl border border-cyan-300/25 bg-cyan-400/[0.06] p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-300">
+                    발휘 시기
+                  </p>
+                  <p className="mt-1.5 text-[1.1rem] font-semibold text-white">
+                    {coupleTiming.activationPeriod.when}
+                  </p>
+                  <p
+                    className="mt-1.5 text-[12.5px] leading-relaxed text-slate-300"
+                    style={{ wordBreak: 'keep-all' }}
+                  >
+                    {coupleTiming.activationPeriod.reason}
+                  </p>
+                </div>
+              )}
+
+              {coupleTiming.cautionPeriod && (
+                <div className="rounded-2xl border border-amber-300/25 bg-amber-400/[0.06] p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300">
+                    조심 시기
+                  </p>
+                  <p className="mt-1.5 text-[1.1rem] font-semibold text-white">
+                    {coupleTiming.cautionPeriod.when}
+                  </p>
+                  <p
+                    className="mt-1.5 text-[12.5px] leading-relaxed text-slate-300"
+                    style={{ wordBreak: 'keep-all' }}
+                  >
+                    {coupleTiming.cautionPeriod.reason}
+                  </p>
+                </div>
+              )}
+
+              {coupleTiming.primeYearWindow && (
+                <div className="rounded-2xl border border-violet-300/25 bg-violet-400/[0.06] p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-violet-300">
+                    장기 약속 좋은 해
+                  </p>
+                  <p className="mt-1.5 text-[1.1rem] font-semibold text-white">
+                    {coupleTiming.primeYearWindow.startYear}년
+                    {coupleTiming.primeYearWindow.endYear !==
+                      coupleTiming.primeYearWindow.startYear &&
+                      ` ~ ${coupleTiming.primeYearWindow.endYear}년`}
+                  </p>
+                  <p
+                    className="mt-1.5 text-[12.5px] leading-relaxed text-slate-300"
+                    style={{ wordBreak: 'keep-all' }}
+                  >
+                    {coupleTiming.primeYearWindow.reason}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* 12-month strip */}
+            {coupleTiming.upcomingMonths.length > 0 && (
+              <div className="mt-5">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  앞으로 12개월
+                </p>
+                <div className="flex gap-1.5 overflow-x-auto pb-1">
+                  {coupleTiming.upcomingMonths.map((m, i) => {
+                    const bg =
+                      m.label === 'great'
+                        ? 'bg-emerald-400/30 border-emerald-300/40 text-emerald-50'
+                        : m.label === 'good'
+                          ? 'bg-cyan-400/20 border-cyan-300/30 text-cyan-50'
+                          : m.label === 'caution'
+                            ? 'bg-amber-400/20 border-amber-300/30 text-amber-50'
+                            : 'bg-white/[0.04] border-white/10 text-slate-300'
+                    return (
+                      <div
+                        key={i}
+                        className={`flex min-w-[64px] flex-col items-center rounded-xl border px-2 py-2 ${bg}`}
+                        title={m.reason}
+                      >
+                        <span className="text-[10px] opacity-70">{m.year % 100}</span>
+                        <span className="text-[15px] font-semibold leading-none">
+                          {m.month}월
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+                <p className="mt-2 text-[11px] text-slate-500">
+                  💚 활성 · 🩵 좋음 · 🤍 평이 · 🟡 조심
+                </p>
               </div>
             )}
           </section>

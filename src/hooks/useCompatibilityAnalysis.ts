@@ -49,6 +49,22 @@ export interface FutureGuidance {
   longTerm?: string | null
 }
 
+export interface CoupleTimingMonth {
+  year: number
+  month: number
+  label: 'great' | 'good' | 'neutral' | 'caution'
+  reason: string
+}
+
+export interface CoupleTimingData {
+  bestMeetingMonth: CoupleTimingMonth | null
+  upcomingMonths: CoupleTimingMonth[]
+  activationPeriod: { when: string; reason: string } | null
+  cautionPeriod: { when: string; reason: string } | null
+  primeYearWindow: { startYear: number; endYear: number; reason: string } | null
+  monthlyOutlook: string
+}
+
 interface CompatibilityResult {
   interpretation?: string
   overall_score?: number
@@ -61,6 +77,7 @@ interface CompatibilityResult {
   pair_details?: PairDetails[]
   relationship_dynamics?: RelationshipDynamics | null
   future_guidance?: FutureGuidance | null
+  couple_timing?: CoupleTimingData | null
   error?: string | { message?: string }
 }
 
@@ -109,6 +126,7 @@ export function useCompatibilityAnalysis() {
     null
   )
   const [futureGuidance, setFutureGuidance] = useState<FutureGuidance | null>(null)
+  const [coupleTiming, setCoupleTiming] = useState<CoupleTimingData | null>(null)
 
   const validate = useCallback(
     (persons: PersonForm[], count: number, t: (key: string, fallback: string) => string) => {
@@ -230,6 +248,7 @@ export function useCompatibilityAnalysis() {
         setPairDetails(Array.isArray(data.pair_details) ? data.pair_details : [])
         setRelationshipDynamics(data.relationship_dynamics ?? null)
         setFutureGuidance(data.future_guidance ?? null)
+        setCoupleTiming(data.couple_timing ?? null)
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'Failed to fetch compatibility.'
         setError(errorMessage)
@@ -252,6 +271,7 @@ export function useCompatibilityAnalysis() {
     setPairDetails([])
     setRelationshipDynamics(null)
     setFutureGuidance(null)
+    setCoupleTiming(null)
   }, [])
 
   return {
@@ -268,6 +288,7 @@ export function useCompatibilityAnalysis() {
     pairDetails,
     relationshipDynamics,
     futureGuidance,
+    coupleTiming,
     validate,
     analyzeCompatibility,
     resetResults,

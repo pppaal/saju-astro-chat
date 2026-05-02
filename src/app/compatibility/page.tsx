@@ -131,6 +131,7 @@ export default function CompatPage() {
     pairDetails,
     relationshipDynamics,
     futureGuidance,
+    coupleTiming,
     validate,
     analyzeCompatibility,
     resetResults,
@@ -360,6 +361,7 @@ export default function CompatPage() {
                 pairLabels={persons.map((p) => p.name || 'Person')}
                 relationshipDynamics={relationshipDynamics}
                 futureGuidance={futureGuidance}
+                coupleTiming={coupleTiming}
                 actionItems={actionItems}
               />
             ) : (
