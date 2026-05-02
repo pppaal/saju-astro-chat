@@ -32,6 +32,8 @@ import type {
   CoupleTimingData,
   CoupleAstroTiming,
   CoupleDeepInsights,
+  PersonIdealProfile,
+  CompatibilityTier,
 } from '@/hooks/useCompatibilityAnalysis'
 
 interface NarrativePerson {
@@ -72,6 +74,8 @@ interface CompatibilityRichReportProps {
     mercury?: { sign?: string; element?: string }
     ascendant?: { sign?: string; element?: string }
   } | null>
+  idealTypeProfiles?: PersonIdealProfile[] | null
+  tier?: CompatibilityTier
   actionItems: string[]
 }
 
@@ -194,6 +198,8 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
   deepInsights,
   personElements,
   personCharts,
+  idealTypeProfiles,
+  tier = 'free',
   actionItems,
 }: CompatibilityRichReportProps) {
   const primaryPair = pairDetails[0]
@@ -217,6 +223,8 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
 
   useEffect(() => {
     if (!primaryPair || !deepInsights || !personsForNarrative || personsForNarrative.length < 2) return
+    // Skip Sonnet narrative for free tier — premium only
+    if (tier !== 'premium') return
     const key = `${pairLabels.join('|')}|${primaryPair.weightedScore}|${deepInsights.attractionReasons.length}`
     if (fetchedKeyRef.current === key) return
     fetchedKeyRef.current = key
@@ -308,7 +316,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
 
     return () => controller.abort()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [primaryPair?.weightedScore, pairLabels.join('|'), Boolean(deepInsights)])
+  }, [primaryPair?.weightedScore, pairLabels.join('|'), Boolean(deepInsights), tier])
 
   if (!primaryPair) return null
 
@@ -456,8 +464,58 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
           />
         )}
 
-        {/* AI Narrative — Claude-polished long-form Korean */}
-        {activeTab === 'overview' && (narrativeStatus !== 'idle' || narrative) && (
+        {/* Premium upsell — shown on overview when user is on free tier */}
+        {activeTab === 'overview' && tier !== 'premium' && (
+          <section className="rounded-3xl border border-violet-300/30 bg-[linear-gradient(135deg,rgba(124,92,255,0.18),rgba(34,211,238,0.10))] p-6 backdrop-blur-md sm:p-7">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-violet-400/25">
+                <Sparkles className="h-5 w-5 text-violet-100" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-balance text-[1.15rem] font-semibold leading-tight tracking-[-0.01em] text-white">
+                  프리미엄으로 진짜 풀이 받기
+                </h2>
+                <p
+                  className="mt-1.5 text-[13.5px] leading-relaxed text-slate-300"
+                  style={{ wordBreak: 'keep-all' }}
+                >
+                  AI 카운슬러가 두 분의 사주·점성·교차 데이터로 작성하는 1만자 long-form 풀이,
+                  7 각도 이상형 다각도 분석, 결혼·시기·치유의 결까지 — 모두 프리미엄에서만.
+                </p>
+                <ul className="mt-3 grid gap-1.5 text-[12.5px] text-slate-300 sm:grid-cols-2">
+                  <li className="flex items-start gap-1.5">
+                    <span className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full bg-violet-300" />
+                    <span>12 단락 자연 한국어 long-form 풀이</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full bg-violet-300" />
+                    <span>7 각도 이상형 다각도 분석 (각자)</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full bg-violet-300" />
+                    <span>결혼 적기 + 12개월 시기 흐름</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full bg-violet-300" />
+                    <span>1:1 카운슬러 무제한 대화</span>
+                  </li>
+                </ul>
+                <Link
+                  href="/pricing"
+                  className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[linear-gradient(135deg,#7c5cff_0%,#9b7fff_100%)] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_12px_40px_rgba(124,92,255,0.35)] transition hover:opacity-90"
+                >
+                  프리미엄 시작하기
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* AI Narrative — Claude-polished long-form Korean (premium only) */}
+        {activeTab === 'overview' &&
+          tier === 'premium' &&
+          (narrativeStatus !== 'idle' || narrative) && (
           <section className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,16,28,0.94),rgba(7,11,19,0.86))] p-6 backdrop-blur-2xl sm:p-8">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-cyan-300" />
@@ -679,7 +737,109 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
           </section>
         )}
 
-        {/* Ideal type matching */}
+        {/* Multi-angle ideal type profiles (premium) */}
+        {activeTab === 'depth' &&
+          tier === 'premium' &&
+          idealTypeProfiles &&
+          idealTypeProfiles.length > 0 && (
+            <section className="rounded-3xl border border-violet-300/20 bg-[linear-gradient(180deg,rgba(124,92,255,0.06),rgba(124,92,255,0.01))] p-6 backdrop-blur-md sm:p-7">
+              <div className="flex items-center gap-2">
+                <Compass className="h-4 w-4 text-violet-300" />
+                <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-violet-300">
+                  이상형 다각도 분석
+                </h2>
+                <span className="ml-2 rounded-full border border-violet-300/30 bg-violet-400/15 px-2 py-0.5 text-[10px] font-medium text-violet-100">
+                  PREMIUM
+                </span>
+              </div>
+              <p
+                className="mt-2 text-[13px] leading-relaxed text-slate-400"
+                style={{ wordBreak: 'keep-all' }}
+              >
+                두 분 각자 본성 · 마음 · 로맨틱 · 끌림 · 대화 · 약속 · 사주 신호 7 각도에서 이상형을
+                추구하고, 상대가 그 결을 어떻게 채워주는지 분석했어요.
+              </p>
+
+              <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                {idealTypeProfiles.map((profile) => (
+                  <div
+                    key={profile.personIndex}
+                    className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5"
+                  >
+                    <div className="flex items-baseline justify-between gap-2">
+                      <h3 className="text-[1rem] font-semibold text-white">
+                        {pairLabels[profile.personIndex - 1] || `Person ${profile.personIndex}`}의
+                        이상형
+                      </h3>
+                      <span className="text-[11px] text-slate-500">
+                        {profile.angles.length} 각도
+                      </span>
+                    </div>
+                    <p
+                      className="mt-2 text-[12.5px] leading-relaxed text-slate-300"
+                      style={{ wordBreak: 'keep-all' }}
+                    >
+                      {profile.matchSummary}
+                    </p>
+
+                    <div className="mt-4 space-y-3">
+                      {profile.angles.map((angle, i) => {
+                        const accent =
+                          angle.level === 'strong'
+                            ? 'border-emerald-300/30 bg-emerald-400/8 text-emerald-100'
+                            : angle.level === 'partial'
+                              ? 'border-cyan-300/25 bg-cyan-400/8 text-cyan-100'
+                              : 'border-amber-300/25 bg-amber-400/8 text-amber-100'
+                        const lbl =
+                          angle.level === 'strong'
+                            ? '강한 매칭'
+                            : angle.level === 'partial'
+                              ? '부분 매칭'
+                              : '대비 매칭'
+                        return (
+                          <div
+                            key={i}
+                            className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3.5"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[12.5px] font-semibold text-white">
+                                {angle.label}
+                              </span>
+                              <span
+                                className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${accent}`}
+                              >
+                                {lbl}
+                              </span>
+                            </div>
+                            <p
+                              className="mt-1.5 text-[12px] leading-relaxed text-slate-300"
+                              style={{ wordBreak: 'keep-all' }}
+                            >
+                              <span className="text-violet-200">추구:</span> {angle.seeks}
+                            </p>
+                            <p
+                              className="mt-1 text-[12px] leading-relaxed text-slate-300"
+                              style={{ wordBreak: 'keep-all' }}
+                            >
+                              <span className="text-cyan-200">상대:</span> {angle.partnerOffers}
+                            </p>
+                            <p
+                              className="mt-1.5 text-[11.5px] leading-relaxed text-slate-400"
+                              style={{ wordBreak: 'keep-all' }}
+                            >
+                              {angle.note}
+                            </p>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+        {/* Ideal type matching (basic — shown for both tiers) */}
         {activeTab === 'depth' && deepInsights && deepInsights.idealMatch.length > 0 && (
           <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md">
             <div className="flex items-center gap-2">

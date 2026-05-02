@@ -24,6 +24,9 @@ import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
 import { logger } from '@/lib/logger'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/authOptions'
+import { isDbPremiumUser } from '@/lib/auth/premium'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { LRUCache } from '@/lib/Saju/cache/LRUCache'
 import { sanitizeNarrative, hasJargonLeak } from '@/lib/compatibility/narrativeSanitizer'
@@ -630,6 +633,20 @@ export async function POST(req: NextRequest) {
     })
   )
   if (initialized.error) return initialized.error
+
+  // Premium gate — long-form Sonnet narrative is premium-tier only.
+  // Free users get the basic structured analysis without LLM polish.
+  const userId = (await getServerSession(authOptions))?.user?.id
+  const isPremium = await isDbPremiumUser(userId).catch(() => false)
+  if (!isPremium) {
+    return createErrorResponse({
+      code: ErrorCodes.UNAUTHORIZED,
+      message: 'AI 풀이는 프리미엄 멤버십에서 제공됩니다. 업그레이드 후 다시 시도해주세요.',
+      locale: extractLocale(req),
+      route: 'compatibility/narrative-stream',
+      headers: { 'X-Premium-Required': '1' },
+    })
+  }
 
   // Cache check — same couple in 24h replays cached Sonnet output.
   const cacheKey = buildCacheKey(body.persons)

@@ -122,6 +122,31 @@ export interface CoupleDeepInsights {
   longevity: LongevityAssessment
 }
 
+export interface IdealAngleResult {
+  angle:
+    | 'sun_personality'
+    | 'moon_emotional'
+    | 'venus_romantic'
+    | 'mars_physical'
+    | 'mercury_communication'
+    | 'saturn_commitment'
+    | 'saju_signal'
+  label: string
+  seeks: string
+  partnerOffers: string
+  level: 'strong' | 'partial' | 'weak'
+  note: string
+}
+
+export interface PersonIdealProfile {
+  personIndex: 1 | 2
+  partnerIndex: 1 | 2
+  angles: IdealAngleResult[]
+  matchSummary: string
+}
+
+export type CompatibilityTier = 'free' | 'premium'
+
 interface CompatibilityResult {
   interpretation?: string
   overall_score?: number
@@ -144,6 +169,8 @@ interface CompatibilityResult {
     metal?: number
     water?: number
   } | null>
+  ideal_type_profiles?: PersonIdealProfile[] | null
+  tier?: CompatibilityTier
   person_charts?: Array<{
     sun?: { sign?: string; element?: string }
     moon?: { sign?: string; element?: string }
@@ -212,6 +239,8 @@ export function useCompatibilityAnalysis() {
       water?: number
     } | null>
   >([])
+  const [idealTypeProfiles, setIdealTypeProfiles] = useState<PersonIdealProfile[] | null>(null)
+  const [tier, setTier] = useState<CompatibilityTier>('free')
   const [personCharts, setPersonCharts] = useState<
     Array<{
       sun?: { sign?: string; element?: string }
@@ -348,6 +377,8 @@ export function useCompatibilityAnalysis() {
         setDeepInsights(data.deep_insights ?? null)
         setPersonElements(Array.isArray(data.person_elements) ? data.person_elements : [])
         setPersonCharts(Array.isArray(data.person_charts) ? data.person_charts : [])
+        setIdealTypeProfiles(data.ideal_type_profiles ?? null)
+        setTier(data.tier ?? 'free')
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'Failed to fetch compatibility.'
         setError(errorMessage)
@@ -375,6 +406,8 @@ export function useCompatibilityAnalysis() {
     setDeepInsights(null)
     setPersonElements([])
     setPersonCharts([])
+    setIdealTypeProfiles(null)
+    setTier('free')
   }, [])
 
   return {
@@ -396,6 +429,8 @@ export function useCompatibilityAnalysis() {
     deepInsights,
     personElements,
     personCharts,
+    idealTypeProfiles,
+    tier,
     validate,
     analyzeCompatibility,
     resetResults,

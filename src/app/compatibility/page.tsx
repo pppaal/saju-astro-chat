@@ -136,6 +136,8 @@ export default function CompatPage() {
     deepInsights,
     personElements,
     personCharts,
+    idealTypeProfiles,
+    tier,
     validate,
     analyzeCompatibility,
     resetResults,
@@ -381,6 +383,8 @@ export default function CompatPage() {
                 deepInsights={deepInsights}
                 personElements={personElements}
                 personCharts={personCharts}
+                idealTypeProfiles={idealTypeProfiles}
+                tier={tier}
                 actionItems={actionItems}
               />
             ) : (

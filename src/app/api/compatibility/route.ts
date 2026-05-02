@@ -14,6 +14,8 @@ import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/
 import { analyzeCoupleTiming } from '@/lib/compatibility/coupleTimingAnalysis'
 import { analyzeCoupleAstroTiming } from '@/lib/compatibility/coupleAstroTiming'
 import { analyzeCoupleDeepInsights } from '@/lib/compatibility/coupleDeepInsights'
+import { buildIdealTypeProfiles } from '@/lib/compatibility/coupleIdealTypeProfile'
+import { isDbPremiumUser } from '@/lib/auth/premium'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { calculateTransitChart } from '@/lib/astrology/foundation/transit'
 import { normalizeSajuGender } from './routeSupportCommon'
@@ -404,6 +406,36 @@ export const POST = withApiMiddleware(
       logger.warn('[Compatibility] deep insights failed (non-fatal):', deepErr)
     }
 
+    // Multi-angle ideal type profiles (premium tier — 7 angles per person)
+    let idealTypeProfiles: ReturnType<typeof buildIdealTypeProfiles> | null = null
+    try {
+      if (primaryPair && !isGroup) {
+        const [aIdx, bIdx] = primaryPair.pair
+        const analysisA = personAnalyses[aIdx]
+        const analysisB = personAnalyses[bIdx]
+        if (
+          analysisA?.sajuProfile &&
+          analysisB?.sajuProfile &&
+          analysisA.astroProfile &&
+          analysisB.astroProfile
+        ) {
+          idealTypeProfiles = buildIdealTypeProfiles(
+            analysisA.sajuProfile,
+            analysisB.sajuProfile,
+            analysisA.extendedAstroProfile || analysisA.astroProfile,
+            analysisB.extendedAstroProfile || analysisB.astroProfile
+          )
+        }
+      }
+    } catch (idealErr) {
+      logger.warn('[Compatibility] ideal type profile failed (non-fatal):', idealErr)
+    }
+
+    // Determine tier — premium content gates on this
+    const userId = (await getServerSession(authOptions))?.user?.id
+    const isPremium = await isDbPremiumUser(userId).catch(() => false)
+    const tier: 'free' | 'premium' = isPremium ? 'premium' : 'free'
+
     const interpretation = buildInterpretationMarkdown({
       locale,
       names,
@@ -472,6 +504,8 @@ export const POST = withApiMiddleware(
       couple_timing: coupleTiming,
       astro_timing: astroTiming,
       deep_insights: deepInsights,
+      ideal_type_profiles: tier === 'premium' ? idealTypeProfiles : null,
+      tier,
       person_elements: personAnalyses.map((a) => a.sajuProfile?.elements || null),
       person_charts: personAnalyses.map((a) =>
         a.astroProfile
