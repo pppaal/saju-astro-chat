@@ -105,7 +105,7 @@ export const PLANS: Record<PlanType, Plan> = {
   free: {
     id: 'free',
     config: {
-      monthlyCredits: 7,
+      monthlyCredits: 0,
       compatibilityLimit: 0,
       followUpLimit: 0,
       historyRetention: 7,
