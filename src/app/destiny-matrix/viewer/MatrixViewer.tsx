@@ -95,11 +95,13 @@ export default function MatrixViewer() {
     setError(null);
     try {
       const res = await fetch('/api/destiny-matrix');
-      if (!res.ok) {throw new Error('Failed to fetch matrix summary');}
+      if (!res.ok) {throw new Error('매트릭스 요약을 불러오지 못했어요.');}
       const data = await res.json();
       setSummary(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      const raw = err instanceof Error ? err.message : '';
+      const looksKorean = /[가-힣]/.test(raw);
+      setError(looksKorean ? raw : '잠시 후 다시 시도해주세요.');
     } finally {
       setLoading(false);
     }

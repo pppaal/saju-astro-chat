@@ -467,7 +467,7 @@ export default function ReportResultPage() {
 
         const apiError = (data as { error?: { code?: string; message?: string } }).error
         const errorCode = apiError?.code
-        if (apiError?.message) {
+        if (apiError?.message && /[가-힣]/.test(apiError.message)) {
           lastErrorMessage = apiError.message
         }
 

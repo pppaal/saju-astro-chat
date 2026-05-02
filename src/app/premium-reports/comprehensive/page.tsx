@@ -144,7 +144,9 @@ export default function ComprehensiveReportPage() {
       analytics.matrixGenerate('premium-reports/comprehensive')
       router.push(`/premium-reports/result/${data.report.id}?type=comprehensive`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '요청 처리 중 오류가 발생했습니다.')
+      const raw = err instanceof Error ? err.message : ''
+      const looksKorean = /[가-힣]/.test(raw)
+      setError(looksKorean ? raw : 'AI 리포트 생성 중 일시적인 오류가 발생했어요. 잠시 후 다시 시도해주세요.')
     } finally {
       setIsGenerating(false)
     }
