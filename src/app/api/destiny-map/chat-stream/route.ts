@@ -49,7 +49,17 @@ function readGuestCounselorTurns(req: NextRequest): number {
 }
 
 function buildGuestTurnCookie(nextTurnCount: number): string {
-  return `${GUEST_COUNSELOR_TURN_COOKIE}=${nextTurnCount}; Path=/; Max-Age=${GUEST_COUNSELOR_COOKIE_MAX_AGE}; SameSite=Lax`
+  const parts = [
+    `${GUEST_COUNSELOR_TURN_COOKIE}=${nextTurnCount}`,
+    'Path=/',
+    `Max-Age=${GUEST_COUNSELOR_COOKIE_MAX_AGE}`,
+    'SameSite=Lax',
+    'HttpOnly',
+  ]
+  if (process.env.NODE_ENV === 'production') {
+    parts.push('Secure')
+  }
+  return parts.join('; ')
 }
 
 function isCounselorStrictMatrixEnabled(): boolean {
