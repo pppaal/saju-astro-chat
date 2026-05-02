@@ -11,6 +11,7 @@ import {
   checkAndConsumeCredits,
   creditErrorResponse,
 } from '@/lib/credits/withCredits'
+import { refundCredits } from '@/lib/credits/creditRefund'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { tarotInterpretRequestSchema } from '@/lib/api/zodValidation'
@@ -208,6 +209,21 @@ export const POST = withApiMiddleware(
         interpretation_source: interpretationSource,
       }
 
+      // Refund credit when we fell all the way back to emergency text
+      // (user gets degraded output, shouldn't be charged)
+      if (interpretationSource === 'emergency_fallback' && creditResult?.userId) {
+        await refundCredits({
+          userId: creditResult.userId,
+          creditType: 'reading',
+          amount: 1,
+          reason: 'tarot_emergency_fallback',
+          apiRoute: '/api/tarot/interpret',
+          errorMessage: 'AI providers failed; emergency fallback served',
+        }).catch((refundErr) => {
+          logger.warn('[Tarot interpret] refund failed (non-fatal):', refundErr)
+        })
+      }
+
       const elapsedMs = Date.now() - startedAt
       recordCounter('tarot.interpret.source_total', 1, {
         source: interpretationSource,
@@ -280,6 +296,21 @@ export const POST = withApiMiddleware(
         cardCount: fallbackCards.length,
         elapsedMs,
       })
+
+      // Refund credit on hard error path (user got degraded output)
+      if (creditResult?.userId) {
+        await refundCredits({
+          userId: creditResult.userId,
+          creditType: 'reading',
+          amount: 1,
+          reason: 'tarot_route_error',
+          apiRoute: '/api/tarot/interpret',
+          errorMessage: err instanceof Error ? err.message : String(err),
+        }).catch((refundErr) => {
+          logger.warn('[Tarot interpret] refund failed (non-fatal):', refundErr)
+        })
+      }
+
       const response = NextResponse.json(fallbackWithSource, { status: HTTP_STATUS.OK })
       return applyCreditResultCookies(response, creditResult)
     }
