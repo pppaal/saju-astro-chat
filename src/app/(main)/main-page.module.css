@@ -1025,6 +1025,12 @@
   --card-glow: rgba(98, 164, 255, 0.18);
 }
 
+.heroServiceCardPink {
+  --card-accent: rgba(244, 114, 182, 0.38);
+  --card-border: rgba(251, 113, 191, 0.36);
+  --card-glow: rgba(244, 114, 182, 0.20);
+}
+
 .heroServiceGlow {
   position: absolute;
   inset: 0;

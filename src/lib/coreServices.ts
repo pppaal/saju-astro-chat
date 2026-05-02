@@ -45,6 +45,17 @@ export const HOME_CORE_SERVICE_OPTIONS: readonly HomeCoreServiceOption[] = [
     coreKey: 'tarot',
   },
   {
+    key: 'compatibility',
+    labelKey: 'menu.compatibility',
+    labelFallback: {
+      ko: '궁합',
+      en: 'Compatibility',
+    },
+    icon: '\u{1F49E}',
+    path: '/compatibility',
+    coreKey: 'compatibility',
+  },
+  {
     key: 'report',
     labelKey: 'menu.report',
     labelFallback: {

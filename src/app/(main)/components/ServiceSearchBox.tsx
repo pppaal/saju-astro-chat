@@ -5,7 +5,7 @@ import { HOME_CORE_SERVICE_OPTIONS } from '@/lib/coreServices'
 
 type CSSModule = Record<string, string>
 type Locale = 'en' | 'ko'
-type ServiceTone = 'Cyan' | 'Violet' | 'Rose' | 'Indigo'
+type ServiceTone = 'Cyan' | 'Violet' | 'Rose' | 'Indigo' | 'Pink'
 
 interface ServiceSearchBoxProps {
   translate: (key: string, fallback: string) => string
@@ -61,6 +61,23 @@ export default function ServiceSearchBox({ translate, styles, locale }: ServiceS
         )
       ),
       tone: 'Violet',
+    },
+    {
+      key: 'compatibility',
+      path: '/compatibility',
+      icon: '💞',
+      title: translate(
+        'landing.heroServiceCompatibilityTitle',
+        localizedFallback('궁합 분석', 'Compatibility Analysis')
+      ),
+      description: translate(
+        'landing.heroServiceCompatibilityDescription',
+        localizedFallback(
+          '사주·점성 통합으로 두 사람의 결과 시기를 풀어드립니다.',
+          'Analyze two people through Saju × astrology cross-system depth.'
+        )
+      ),
+      tone: 'Pink',
     },
     {
       key: 'report',

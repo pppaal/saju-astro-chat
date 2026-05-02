@@ -11,6 +11,7 @@ import {
   Sparkles,
   MessageCircle,
   Wand2,
+  Heart,
   ArrowRight,
   Coins,
   Clock,
@@ -22,7 +23,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { logger } from '@/lib/logger'
 
-type ServiceKey = 'calendar' | 'report' | 'counselor' | 'tarot'
+type ServiceKey = 'calendar' | 'report' | 'counselor' | 'tarot' | 'compatibility'
 
 interface ServiceRecord {
   id: string
@@ -51,12 +52,14 @@ const SERVICE_LABELS: Record<ServiceKey, { ko: string; Icon: typeof Calendar; ac
   report: { ko: '리포트', Icon: Sparkles, accent: '#a78bfa' },
   counselor: { ko: '카운슬러', Icon: MessageCircle, accent: '#f59e0b' },
   tarot: { ko: '타로', Icon: Wand2, accent: '#f472b6' },
+  compatibility: { ko: '궁합', Icon: Heart, accent: '#fb7185' },
 }
 
 function classifyService(serviceId: string): ServiceKey {
   if (serviceId === 'tarot') return 'tarot'
   if (serviceId === 'destiny-calendar' || serviceId === 'daily-fortune') return 'calendar'
-  if (serviceId === 'destiny-counselor' || serviceId === 'compatibility') return 'counselor'
+  if (serviceId === 'compatibility') return 'compatibility'
+  if (serviceId === 'destiny-counselor') return 'counselor'
   return 'report'
 }
 
@@ -129,7 +132,13 @@ export default function ProfilePage() {
     }
   }, [status])
 
-  const counts: Record<ServiceKey, number> = { calendar: 0, report: 0, counselor: 0, tarot: 0 }
+  const counts: Record<ServiceKey, number> = {
+    calendar: 0,
+    report: 0,
+    counselor: 0,
+    tarot: 0,
+    compatibility: 0,
+  }
   for (const day of history) {
     for (const rec of day.records || []) {
       counts[classifyService(rec.service)] += 1
@@ -252,7 +261,7 @@ export default function ProfilePage() {
                   결정 기록 <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+              <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
                 {(Object.keys(SERVICE_LABELS) as ServiceKey[]).map((key) => {
                   const sm = SERVICE_LABELS[key]
                   const ServiceIcon = sm.Icon
@@ -316,6 +325,12 @@ export default function ProfilePage() {
                         className="rounded-full border border-white/12 bg-white/[0.04] px-3.5 py-1.5 text-[12px] text-slate-200 transition hover:border-cyan-300/40"
                       >
                         타로
+                      </Link>
+                      <Link
+                        href="/compatibility"
+                        className="rounded-full border border-white/12 bg-white/[0.04] px-3.5 py-1.5 text-[12px] text-slate-200 transition hover:border-cyan-300/40"
+                      >
+                        궁합
                       </Link>
                       <Link
                         href="/premium-reports"
