@@ -26,6 +26,7 @@ import { PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
 import { logger } from '@/lib/logger'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { LRUCache } from '@/lib/Saju/cache/LRUCache'
+import { sanitizeNarrative, hasJargonLeak } from '@/lib/compatibility/narrativeSanitizer'
 import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehensive'
 import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/comprehensive'
 import { performCrossSystemAnalysis } from '@/lib/compatibility/crossSystemAnalysis'
@@ -218,6 +219,27 @@ function compactSajuOverview(saju: unknown): string {
     return `${hs?.name || ''}${eb?.name || ''}`
   }
   lines.push(`4 pillars: 년 ${fmt(yp)} / 월 ${fmt(mp)} / 일 ${fmt(dp)} / 시 ${fmt(tp)}`)
+
+  // 지장간 (hidden stems within branches) — adds depth to saju interpretation
+  const fmtJijang = (p: Record<string, unknown> | undefined, label: string): string => {
+    if (!p) return ''
+    const j = p.jijanggan as Record<string, unknown> | undefined
+    if (!j) return ''
+    const chogi = (j.chogi as Record<string, unknown> | undefined)?.name
+    const junggi = (j.junggi as Record<string, unknown> | undefined)?.name
+    const jeonggi = (j.jeonggi as Record<string, unknown> | undefined)?.name
+    const parts = [chogi, junggi, jeonggi].filter(Boolean).join('·')
+    return parts ? `${label}: ${parts}` : ''
+  }
+  const jijangParts = [
+    fmtJijang(yp, '년'),
+    fmtJijang(mp, '월'),
+    fmtJijang(dp, '일'),
+    fmtJijang(tp, '시'),
+  ].filter(Boolean)
+  if (jijangParts.length) {
+    lines.push(`지장간(지지의 숨은 천간): ${jijangParts.join(' / ')}`)
+  }
   if (elements) {
     lines.push(
       `5행: ${Object.entries(elements)
@@ -311,20 +333,28 @@ function buildUserPrompt(
   if (blocks.extraPoints) {
     const ep = blocks.extraPoints
     const lines2: string[] = []
-    lines2.push(`\n== 추가 점성 포인트 (상처점·그림자점·운명점·행복점) ==`)
-    if (ep.p1.chiron || ep.p1.lilith || ep.p1.vertex || ep.p1.partOfFortune) {
+    lines2.push(`\n== 추가 점성 포인트 (상처·그림자·운명·행복점 + 결혼·헌신·지혜·돌봄 소행성) ==`)
+    if (ep.p1.chiron || ep.p1.lilith || ep.p1.vertex || ep.p1.partOfFortune || ep.p1.juno) {
       lines2.push(`${req.pairLabels[0]}:`)
       if (ep.p1.chiron) lines2.push(`  · 카이런(상처점): ${ep.p1.chiron}`)
       if (ep.p1.lilith) lines2.push(`  · 릴리스(그림자점): ${ep.p1.lilith}`)
       if (ep.p1.vertex) lines2.push(`  · 버텍스(운명점): ${ep.p1.vertex}`)
       if (ep.p1.partOfFortune) lines2.push(`  · 행운점(POF): ${ep.p1.partOfFortune}`)
+      if (ep.p1.juno) lines2.push(`  · 주노(결혼점): ${ep.p1.juno}`)
+      if (ep.p1.vesta) lines2.push(`  · 베스타(헌신점): ${ep.p1.vesta}`)
+      if (ep.p1.pallas) lines2.push(`  · 팔라스(지혜점): ${ep.p1.pallas}`)
+      if (ep.p1.ceres) lines2.push(`  · 케레스(돌봄점): ${ep.p1.ceres}`)
     }
-    if (ep.p2.chiron || ep.p2.lilith || ep.p2.vertex || ep.p2.partOfFortune) {
+    if (ep.p2.chiron || ep.p2.lilith || ep.p2.vertex || ep.p2.partOfFortune || ep.p2.juno) {
       lines2.push(`${req.pairLabels[1]}:`)
       if (ep.p2.chiron) lines2.push(`  · 카이런(상처점): ${ep.p2.chiron}`)
       if (ep.p2.lilith) lines2.push(`  · 릴리스(그림자점): ${ep.p2.lilith}`)
       if (ep.p2.vertex) lines2.push(`  · 버텍스(운명점): ${ep.p2.vertex}`)
       if (ep.p2.partOfFortune) lines2.push(`  · 행운점(POF): ${ep.p2.partOfFortune}`)
+      if (ep.p2.juno) lines2.push(`  · 주노(결혼점): ${ep.p2.juno}`)
+      if (ep.p2.vesta) lines2.push(`  · 베스타(헌신점): ${ep.p2.vesta}`)
+      if (ep.p2.pallas) lines2.push(`  · 팔라스(지혜점): ${ep.p2.pallas}`)
+      if (ep.p2.ceres) lines2.push(`  · 케레스(돌봄점): ${ep.p2.ceres}`)
     }
     if (ep.crossAspects.p1ToP2.length || ep.crossAspects.p2ToP1.length) {
       lines2.push(`교차 aspects (서로의 추가 포인트가 상대 행성에 닿는 자리):`)
@@ -339,7 +369,7 @@ function buildUserPrompt(
       ep.summary.forEach((s) => lines2.push(`  · ${s}`))
     }
     if (lines2.length > 1) {
-      lines.push(lines2.join('\n').slice(0, 2500))
+      lines.push(lines2.join('\n').slice(0, 4000))
     }
   }
 
@@ -613,26 +643,37 @@ export async function POST(req: NextRequest) {
     const blocks = await buildExtendedBlocks(body.persons)
     const userPrompt = buildUserPrompt(body, blocks)
 
-    // Capture full text as it streams so we can write-through to cache.
+    // Capture full text as it streams; per-chunk sanitize catches most
+    // jargon leaks live, finalize stores the fully cleaned version in
+    // cache so subsequent reads are pristine.
     let fullText = ''
     return await streamClaudeAsSSE({
       systemPrompt: SYSTEM_PROMPT,
       userPrompt,
-      maxTokens: 16000, // ~10000-12000자 Korean (Sonnet 4.5 max output)
+      maxTokens: 16000,
       temperature: 0.55,
       timeoutMs: 150000,
       label: 'compatibility-narrative',
-      model: PREMIUM_CLAUDE_MODEL, // Sonnet 4.5 — long-form Korean quality
+      model: PREMIUM_CLAUDE_MODEL,
       transform: (chunk) => {
-        fullText += chunk
-        return chunk
+        // Live per-chunk sanitize — catches Sonnet emitting "Venus"
+        // as a single token. Partial matches across token boundaries
+        // are corrected in the cache later.
+        const { cleaned } = sanitizeNarrative(chunk)
+        fullText += cleaned
+        return cleaned
       },
       finalize: () => {
         if (fullText.length >= 300) {
-          narrativeCache.set(cacheKey, fullText)
+          // Final whole-text sanitize before caching — catches anything
+          // that slipped per-chunk.
+          const { cleaned, replacementsCount } = sanitizeNarrative(fullText)
+          narrativeCache.set(cacheKey, cleaned)
           logger.info('[compatibility/narrative-stream] cached', {
             cacheKey,
-            chars: fullText.length,
+            chars: cleaned.length,
+            jargonReplacements: replacementsCount,
+            stillHasLeak: hasJargonLeak(cleaned),
           })
         }
         return null

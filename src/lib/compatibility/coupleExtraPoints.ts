@@ -12,6 +12,7 @@
 import type { Chart, ExtraPoint } from '@/lib/astrology/foundation/types'
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 import { extendChartWithExtraPoints } from '@/lib/astrology/foundation/extraPoints'
+import { calculateAllAsteroids, type Asteroid } from '@/lib/astrology/foundation/asteroids'
 
 const SIGN_KO: Record<string, string> = {
   Aries: '양자리',
@@ -41,7 +42,7 @@ function angleSeparation(a: number, b: number): number {
 }
 
 interface CrossAspect {
-  point: 'Chiron' | 'Lilith' | 'Vertex' | 'PartOfFortune'
+  point: 'Chiron' | 'Lilith' | 'Vertex' | 'PartOfFortune' | 'Juno' | 'Vesta' | 'Pallas' | 'Ceres'
   to: string // partner planet name
   aspect: 'conjunction' | 'opposition' | 'trine' | 'square' | 'sextile'
   orb: number
@@ -61,6 +62,10 @@ const POINT_MEANING: Record<string, string> = {
   Lilith: '그림자와 무의식적 끌림',
   Vertex: '운명적 만남',
   PartOfFortune: '함께하는 기쁨',
+  Juno: '결혼 파트너의 결',
+  Vesta: '깊은 헌신',
+  Pallas: '지혜·전략적 사고',
+  Ceres: '돌봄·양육',
 }
 
 const ASPECT_KO: Record<string, string> = {
@@ -73,6 +78,7 @@ const ASPECT_KO: Record<string, string> = {
 
 function detectCrossAspects(
   selfExtras: ExtraSet,
+  selfAsteroids: { Juno?: Asteroid; Vesta?: Asteroid; Pallas?: Asteroid; Ceres?: Asteroid },
   partnerChart: Chart
 ): CrossAspect[] {
   const out: CrossAspect[] = []
@@ -95,6 +101,10 @@ function detectCrossAspects(
     { key: 'Lilith', lon: selfExtras.lilith?.longitude },
     { key: 'Vertex', lon: selfExtras.vertex?.longitude },
     { key: 'PartOfFortune', lon: selfExtras.partOfFortune?.longitude },
+    { key: 'Juno', lon: selfAsteroids.Juno?.longitude },
+    { key: 'Vesta', lon: selfAsteroids.Vesta?.longitude },
+    { key: 'Pallas', lon: selfAsteroids.Pallas?.longitude },
+    { key: 'Ceres', lon: selfAsteroids.Ceres?.longitude },
   ]
 
   for (const pt of points) {
@@ -117,31 +127,32 @@ function detectCrossAspects(
     }
   }
 
-  // Sort by tightness (lowest orb first), keep top 6
-  return out.sort((a, b) => a.orb - b.orb).slice(0, 6)
+  // Sort by tightness (lowest orb first), keep top 8 (more points = more aspects to surface)
+  return out.sort((a, b) => a.orb - b.orb).slice(0, 8)
+}
+
+interface PersonExtras {
+  chiron: string | null
+  lilith: string | null
+  vertex: string | null
+  partOfFortune: string | null
+  juno: string | null
+  vesta: string | null
+  pallas: string | null
+  ceres: string | null
 }
 
 export interface CoupleExtraPointsResult {
-  p1: {
-    chiron: string | null
-    lilith: string | null
-    vertex: string | null
-    partOfFortune: string | null
-  }
-  p2: {
-    chiron: string | null
-    lilith: string | null
-    vertex: string | null
-    partOfFortune: string | null
-  }
+  p1: PersonExtras
+  p2: PersonExtras
   crossAspects: {
-    p1ToP2: CrossAspect[] // p1's extras → p2's planets
+    p1ToP2: CrossAspect[]
     p2ToP1: CrossAspect[]
   }
   summary: string[]
 }
 
-function describeExtra(p?: ExtraPoint): string | null {
+function describeExtra(p?: ExtraPoint | Asteroid): string | null {
   if (!p) return null
   return `${SIGN_KO[p.sign] || p.sign} ${Math.round(p.degree)}도 (${p.house}하우스)`
 }
@@ -175,8 +186,27 @@ export function analyzeCoupleExtraPoints(
       partOfFortune: extB.partOfFortune,
     }
 
-    const p1ToP2 = detectCrossAspects(p1Extras, extB)
-    const p2ToP1 = detectCrossAspects(p2Extras, extA)
+    // Asteroids — Juno (결혼), Vesta (헌신), Pallas (지혜), Ceres (돌봄)
+    const houseCuspsA = (natalA as Chart).houses.map((h) => h.cusp)
+    const houseCuspsB = (natalB as Chart).houses.map((h) => h.cusp)
+    const asteroidsA = calculateAllAsteroids(jdA, houseCuspsA)
+    const asteroidsB = calculateAllAsteroids(jdB, houseCuspsB)
+
+    const p1Asteroids = {
+      Juno: asteroidsA.Juno,
+      Vesta: asteroidsA.Vesta,
+      Pallas: asteroidsA.Pallas,
+      Ceres: asteroidsA.Ceres,
+    }
+    const p2Asteroids = {
+      Juno: asteroidsB.Juno,
+      Vesta: asteroidsB.Vesta,
+      Pallas: asteroidsB.Pallas,
+      Ceres: asteroidsB.Ceres,
+    }
+
+    const p1ToP2 = detectCrossAspects(p1Extras, p1Asteroids, extB)
+    const p2ToP1 = detectCrossAspects(p2Extras, p2Asteroids, extA)
 
     // Summary highlights
     const summary: string[] = []
@@ -224,18 +254,62 @@ export function analyzeCoupleExtraPoints(
       )
     }
 
+    // Juno (결혼점) — strongest signal for marriage compatibility
+    const junoHits = [...p1ToP2, ...p2ToP1].filter(
+      (a) =>
+        a.point === 'Juno' &&
+        (a.aspect === 'conjunction' || a.aspect === 'trine' || a.aspect === 'sextile') &&
+        ['Sun', 'Moon', 'Venus', 'Mars'].includes(a.to)
+    )
+    if (junoHits.length > 0) {
+      summary.push(
+        `결혼점(Juno)이 상대 ${junoHits[0].to}와 ${ASPECT_KO[junoHits[0].aspect]} — 결혼 파트너로서 깊이 어울리는 신호`
+      )
+    }
+
+    // Vesta (헌신점) — devotion / shared focus
+    const vestaHits = [...p1ToP2, ...p2ToP1].filter(
+      (a) => a.point === 'Vesta' && (a.aspect === 'conjunction' || a.aspect === 'trine')
+    )
+    if (vestaHits.length > 0) {
+      summary.push(
+        `헌신점(Vesta)이 상대 ${vestaHits[0].to}와 ${ASPECT_KO[vestaHits[0].aspect]} — 깊은 헌신과 공동 목표가 자연스럽게 흐르는 결`
+      )
+    }
+
+    // Pallas (지혜점) — intellectual partnership
+    const pallasHits = [...p1ToP2, ...p2ToP1].filter(
+      (a) =>
+        a.point === 'Pallas' &&
+        (a.aspect === 'conjunction' || a.aspect === 'trine' || a.aspect === 'sextile') &&
+        ['Mercury', 'Sun'].includes(a.to)
+    )
+    if (pallasHits.length > 0) {
+      summary.push(
+        `지혜점(Pallas)이 상대 ${pallasHits[0].to}와 만남 — 지적 동반자, 함께 문제 해결하는 결`
+      )
+    }
+
     return {
       p1: {
         chiron: describeExtra(p1Extras.chiron),
         lilith: describeExtra(p1Extras.lilith),
         vertex: describeExtra(p1Extras.vertex),
         partOfFortune: describeExtra(p1Extras.partOfFortune),
+        juno: describeExtra(p1Asteroids.Juno),
+        vesta: describeExtra(p1Asteroids.Vesta),
+        pallas: describeExtra(p1Asteroids.Pallas),
+        ceres: describeExtra(p1Asteroids.Ceres),
       },
       p2: {
         chiron: describeExtra(p2Extras.chiron),
         lilith: describeExtra(p2Extras.lilith),
         vertex: describeExtra(p2Extras.vertex),
         partOfFortune: describeExtra(p2Extras.partOfFortune),
+        juno: describeExtra(p2Asteroids.Juno),
+        vesta: describeExtra(p2Asteroids.Vesta),
+        pallas: describeExtra(p2Asteroids.Pallas),
+        ceres: describeExtra(p2Asteroids.Ceres),
       },
       crossAspects: { p1ToP2, p2ToP1 },
       summary,
