@@ -14,6 +14,16 @@ import {
   compatibilityChatRequestSchema,
   createValidationErrorResponse,
 } from '@/lib/api/zodValidation'
+import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehensive'
+import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/comprehensive'
+import {
+  buildPersonSeed,
+  buildAutoSajuContext,
+  buildAutoAstroContext,
+  buildSajuProfile,
+  buildExtendedAstroProfile,
+  getAgeFromBirthDate,
+} from '@/app/api/compatibility/counselor/routeSupport'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -97,11 +107,57 @@ export const POST = withApiMiddleware(
       )
       .join('\n')
 
+    // Compute extended saju/astro analyses for the pair so the LLM has
+    // the same depth of evidence the counselor route gets — best effort,
+    // never fails the chat (lighter completeness than counselor).
+    let extendedSajuBlock = ''
+    let extendedAstroBlock = ''
+    try {
+      const seed1 = buildPersonSeed((persons?.[0] as Record<string, unknown>) || null)
+      const seed2 = buildPersonSeed((persons?.[1] as Record<string, unknown>) || null)
+      const now = new Date()
+      const [auto1Saju, auto2Saju, auto1Astro, auto2Astro] = await Promise.all([
+        buildAutoSajuContext(seed1, now),
+        buildAutoSajuContext(seed2, now),
+        buildAutoAstroContext(seed1, now),
+        buildAutoAstroContext(seed2, now),
+      ])
+      const p1Saju = buildSajuProfile(auto1Saju)
+      const p2Saju = buildSajuProfile(auto2Saju)
+      const p1ExtAstro = buildExtendedAstroProfile(auto1Astro)
+      const p2ExtAstro = buildExtendedAstroProfile(auto2Astro)
+      const p1Age = getAgeFromBirthDate(persons?.[0]?.date)
+      const p2Age = getAgeFromBirthDate(persons?.[1]?.date)
+
+      if (p1Saju && p2Saju) {
+        const sajuAnalysis = performExtendedSajuAnalysis(
+          p1Saju,
+          p2Saju,
+          p1Age,
+          p2Age,
+          now.getFullYear()
+        )
+        extendedSajuBlock = `\n== 사주 심화 분석 ==\n${stringifyForPrompt(sajuAnalysis).slice(0, 3500)}`
+      }
+      if (p1ExtAstro && p2ExtAstro) {
+        const astroAnalysis = performExtendedAstrologyAnalysis(
+          p1ExtAstro,
+          p2ExtAstro,
+          Math.abs(p1Age - p2Age)
+        )
+        extendedAstroBlock = `\n== 점성 심화 분석 ==\n${stringifyForPrompt(astroAnalysis).slice(0, 3500)}`
+      }
+    } catch (enrichErr) {
+      logger.warn('[Compatibility chat] enrichment failed (non-fatal):', enrichErr)
+    }
+
     // Build prompt for compatibility chat
     const chatPrompt = [
       `== 궁합 상담 ==`,
       personsInfo,
       compatibilityResult ? `\n== 이전 분석 결과 ==\n${guardText(compatibilityResult, 2000)}` : '',
+      extendedSajuBlock,
+      extendedAstroBlock,
       historyText ? `\n== 대화 ==\n${historyText}` : '',
       `\n== 질문 ==\n${userQuestion}`,
     ]
