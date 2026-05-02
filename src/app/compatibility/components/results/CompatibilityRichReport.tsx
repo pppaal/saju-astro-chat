@@ -8,6 +8,7 @@
 
 import { memo, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { ScoreDashboard } from './ScoreDashboard'
 import {
   Sparkles,
   Heart,
@@ -295,6 +296,21 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
   const score = overallScore ?? primaryPair.weightedScore
   const band = scoreBand(score)
   const narrativeParagraphs = narrative.split(/\n\n+/).filter((p) => p.trim().length > 0)
+  // Percentile context for hero (vs typical couples — mean 65, sd 12)
+  const heroPercentile = (() => {
+    const erfP = 0.3275911
+    const a = [0.254829592, -0.284496736, 1.421413741, -1.453152027, 1.061405429]
+    const x = (score - 65) / (12 * Math.SQRT2)
+    const sign = x >= 0 ? 1 : -1
+    const ax = Math.abs(x)
+    const t = 1 / (1 + erfP * ax)
+    const y =
+      1 -
+      (((((a[4] * t + a[3]) * t) + a[2]) * t + a[1]) * t + a[0]) *
+        t *
+        Math.exp(-ax * ax)
+    return Math.round(0.5 * (1 + sign * y) * 100)
+  })()
 
   return (
     <div className="relative">
@@ -323,9 +339,27 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
           <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-center sm:gap-8 sm:text-left">
             <ScoreCircle score={score} />
             <div className="flex-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-cyan-300">
-                Compatibility Report
-              </p>
+              <div className="flex items-center justify-center gap-2 sm:justify-start">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-cyan-300">
+                  Compatibility Report
+                </p>
+                {heroPercentile >= 50 && (
+                  <span
+                    className="rounded-full border px-2 py-0.5 text-[10.5px] font-medium"
+                    style={{
+                      borderColor: heroPercentile >= 80 ? '#34d39960' : '#22d3ee60',
+                      background: heroPercentile >= 80 ? '#34d39915' : '#22d3ee15',
+                      color: heroPercentile >= 80 ? '#a7f3d0' : '#a5f3fc',
+                    }}
+                  >
+                    {heroPercentile >= 90
+                      ? `상위 ${100 - heroPercentile}%`
+                      : heroPercentile >= 75
+                        ? `상위 ${100 - heroPercentile}%`
+                        : '평균 이상'}
+                  </span>
+                )}
+              </div>
               <h1 className="mt-2 text-balance text-[1.85rem] font-semibold leading-[1.1] tracking-[-0.025em] text-white sm:text-[2.4rem]">
                 {pairLabels.join(' & ')}
               </h1>
@@ -380,6 +414,24 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
             })}
           </div>
         </nav>
+
+        {/* Unified score dashboard — visible on Overview tab */}
+        {activeTab === 'overview' && (
+          <ScoreDashboard
+            overall={score}
+            saju={primaryPair.sajuScore}
+            astro={primaryPair.astrologyScore}
+            fusion={primaryPair.fusionScore}
+            cross={primaryPair.crossScore}
+            marriage={deepInsights?.marriage?.score ?? null}
+            longevity={deepInsights?.longevity?.score ?? null}
+            dayMaster={fusion?.dayMasterHarmony}
+            sunMoon={fusion?.sunMoonHarmony}
+            venusMars={fusion?.venusMarsSynergy}
+            intellectual={fusion?.intellectualAlignment}
+            spiritual={fusion?.spiritualConnection}
+          />
+        )}
 
         {/* AI Narrative — Claude-polished long-form Korean */}
         {activeTab === 'overview' && (narrativeStatus !== 'idle' || narrative) && (
