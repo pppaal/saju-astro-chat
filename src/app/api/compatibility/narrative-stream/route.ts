@@ -30,6 +30,7 @@ import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehens
 import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/comprehensive'
 import { performCrossSystemAnalysis } from '@/lib/compatibility/crossSystemAnalysis'
 import { calculateFusionCompatibility } from '@/lib/compatibility/compatibilityFusion'
+import { analyzeCoupleExtraPoints } from '@/lib/compatibility/coupleExtraPoints'
 import {
   buildSajuProfileFromBirth,
   buildAstrologyProfileFromBirth,
@@ -249,6 +250,7 @@ function buildUserPrompt(
     extendedAstro?: unknown
     crossSystem?: unknown
     fusionDeepAnalysis?: string
+    extraPoints?: ReturnType<typeof analyzeCoupleExtraPoints>
   }
 ): string {
   const lines: string[] = []
@@ -299,6 +301,42 @@ function buildUserPrompt(
   // Fusion deep analysis
   if (blocks.fusionDeepAnalysis) {
     lines.push(`\n== 융합 핵심 흐름 ==\n${blocks.fusionDeepAnalysis.slice(0, 1500)}`)
+  }
+
+  // Extra points — Lilith / Chiron / Vertex / Part of Fortune
+  if (blocks.extraPoints) {
+    const ep = blocks.extraPoints
+    const lines2: string[] = []
+    lines2.push(`\n== 추가 점성 포인트 (상처점·그림자점·운명점·행복점) ==`)
+    if (ep.p1.chiron || ep.p1.lilith || ep.p1.vertex || ep.p1.partOfFortune) {
+      lines2.push(`${req.pairLabels[0]}:`)
+      if (ep.p1.chiron) lines2.push(`  · 카이런(상처점): ${ep.p1.chiron}`)
+      if (ep.p1.lilith) lines2.push(`  · 릴리스(그림자점): ${ep.p1.lilith}`)
+      if (ep.p1.vertex) lines2.push(`  · 버텍스(운명점): ${ep.p1.vertex}`)
+      if (ep.p1.partOfFortune) lines2.push(`  · 행운점(POF): ${ep.p1.partOfFortune}`)
+    }
+    if (ep.p2.chiron || ep.p2.lilith || ep.p2.vertex || ep.p2.partOfFortune) {
+      lines2.push(`${req.pairLabels[1]}:`)
+      if (ep.p2.chiron) lines2.push(`  · 카이런(상처점): ${ep.p2.chiron}`)
+      if (ep.p2.lilith) lines2.push(`  · 릴리스(그림자점): ${ep.p2.lilith}`)
+      if (ep.p2.vertex) lines2.push(`  · 버텍스(운명점): ${ep.p2.vertex}`)
+      if (ep.p2.partOfFortune) lines2.push(`  · 행운점(POF): ${ep.p2.partOfFortune}`)
+    }
+    if (ep.crossAspects.p1ToP2.length || ep.crossAspects.p2ToP1.length) {
+      lines2.push(`교차 aspects (서로의 추가 포인트가 상대 행성에 닿는 자리):`)
+      ;[...ep.crossAspects.p1ToP2.slice(0, 4), ...ep.crossAspects.p2ToP1.slice(0, 4)].forEach(
+        (a) => {
+          lines2.push(`  · ${a.point} → ${a.to} ${a.aspect} (orb ${a.orb}°): ${a.meaning}`)
+        }
+      )
+    }
+    if (ep.summary.length) {
+      lines2.push(`핵심 신호:`)
+      ep.summary.forEach((s) => lines2.push(`  · ${s}`))
+    }
+    if (lines2.length > 1) {
+      lines.push(lines2.join('\n').slice(0, 2500))
+    }
   }
 
   // Deep insights summary (already plain Korean, used as scaffolding)
@@ -358,6 +396,7 @@ async function buildExtendedBlocks(
   extendedAstro?: unknown
   crossSystem?: unknown
   fusionDeepAnalysis?: string
+  extraPoints?: ReturnType<typeof analyzeCoupleExtraPoints>
 }> {
   const [p1, p2] = persons
   if (!p1 || !p2) return { p1SajuOverview: '', p2SajuOverview: '' }
@@ -489,6 +528,24 @@ async function buildExtendedBlocks(
     }
   }
 
+  // Extra points (Lilith / Chiron / Vertex / Part of Fortune) — wires
+  // engine output that was previously unused in compatibility flow.
+  let extraPoints: ReturnType<typeof analyzeCoupleExtraPoints> = null
+  try {
+    if (p1Astro?.natalChart && p2Astro?.natalChart) {
+      extraPoints = analyzeCoupleExtraPoints(
+        p1Astro.natalChart,
+        p2Astro.natalChart,
+        p1.latitude ?? 37.5665,
+        p1.longitude ?? 126.978,
+        p2.latitude ?? 37.5665,
+        p2.longitude ?? 126.978
+      )
+    }
+  } catch (e) {
+    logger.warn('[narrative-stream] extra points failed', e)
+  }
+
   return {
     p1SajuOverview: compactSajuOverview(p1Full),
     p2SajuOverview: compactSajuOverview(p2Full),
@@ -496,6 +553,7 @@ async function buildExtendedBlocks(
     extendedAstro,
     crossSystem,
     fusionDeepAnalysis,
+    extraPoints,
   }
 }
 
