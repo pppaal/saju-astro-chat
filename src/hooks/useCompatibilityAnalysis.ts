@@ -167,6 +167,7 @@ export interface FacetReport {
   strengths: string[]
   minds: string[]
   tip: string
+  prose?: string
 }
 
 interface CompatibilityResult {

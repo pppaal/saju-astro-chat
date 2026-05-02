@@ -473,6 +473,62 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
           </section>
         )}
 
+        {/* AI Narrative — Claude-polished long-form Korean (premium only) */}
+        {/*    Intentionally rendered FIRST on overview so the report reads
+              like a book: chapter prose, then supporting visuals below. */}
+        {activeTab === 'overview' &&
+          tier === 'premium' &&
+          (narrativeStatus !== 'idle' || narrative) && (
+          <section className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,16,28,0.94),rgba(7,11,19,0.86))] p-6 backdrop-blur-2xl sm:p-8">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-cyan-300" />
+              <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
+                두 분의 이야기
+              </h2>
+              {narrativeStatus === 'streaming' && (
+                <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-cyan-300/25 bg-cyan-400/10 px-2.5 py-0.5 text-[10.5px] font-medium text-cyan-100">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-300" />
+                  쓰는 중
+                </span>
+              )}
+            </div>
+
+            {narrativeStatus === 'loading' && narrative === '' && (
+              <div className="mx-auto mt-5 max-w-[68ch] space-y-3.5">
+                {['92%', '88%', '95%', '83%', '90%', '78%', '95%', '85%', '92%', '70%'].map((w, i) => (
+                  <div
+                    key={i}
+                    className="h-3.5 animate-pulse rounded-full bg-white/[0.05]"
+                    style={{ width: w, animationDelay: `${i * 0.08}s` }}
+                  />
+                ))}
+                <p className="mt-3 text-[12.5px] leading-relaxed text-slate-400">
+                  사주·점성 데이터로 12 단락 풀이를 쓰는 중이에요 (약 20-30초)
+                </p>
+              </div>
+            )}
+
+            {narrativeStatus === 'error' && (
+              <p className="mt-3 text-[13px] text-amber-200/80">
+                풀이를 불러오지 못했어요. 아래 분석으로 대체할 수 있습니다.
+              </p>
+            )}
+
+            {narrativeParagraphs.length > 0 && (
+              <div
+                className="mx-auto mt-5 max-w-[68ch] space-y-6 text-[16px] leading-[1.95] text-slate-100/95"
+                style={{ letterSpacing: '0.005em', fontFeatureSettings: '"kern", "palt"' }}
+              >
+                {narrativeParagraphs.map((p, i) => (
+                  <p key={i} style={{ wordBreak: 'keep-all', textWrap: 'pretty' }}>
+                    {p}
+                  </p>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
         {/* Unified score dashboard — visible on Overview tab */}
         {activeTab === 'overview' && (
           <ScoreDashboard
@@ -536,77 +592,6 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
                 </Link>
               </div>
             </div>
-          </section>
-        )}
-
-        {/* AI Narrative — Claude-polished long-form Korean (premium only) */}
-        {activeTab === 'overview' &&
-          tier === 'premium' &&
-          (narrativeStatus !== 'idle' || narrative) && (
-          <section className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,16,28,0.94),rgba(7,11,19,0.86))] p-6 backdrop-blur-2xl sm:p-8">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-cyan-300" />
-              <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
-                AI 풀이
-              </h2>
-              {narrativeStatus === 'streaming' && (
-                <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-cyan-300/25 bg-cyan-400/10 px-2.5 py-0.5 text-[10.5px] font-medium text-cyan-100">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-300" />
-                  생성 중
-                </span>
-              )}
-            </div>
-
-            {narrativeStatus === 'loading' && narrative === '' && (
-              <div className="mx-auto mt-5 max-w-[68ch] space-y-3.5">
-                {[
-                  '92%',
-                  '88%',
-                  '95%',
-                  '83%',
-                  '90%',
-                  '78%',
-                  '95%',
-                  '85%',
-                  '92%',
-                  '70%',
-                ].map((w, i) => (
-                  <div
-                    key={i}
-                    className="h-3.5 animate-pulse rounded-full bg-white/[0.05]"
-                    style={{
-                      width: w,
-                      animationDelay: `${i * 0.08}s`,
-                    }}
-                  />
-                ))}
-                <p className="mt-3 text-[12.5px] leading-relaxed text-slate-400">
-                  사주·점성 데이터로 12 단락 long-form 풀이 작성 중 (약 20-30초 소요)
-                </p>
-              </div>
-            )}
-
-            {narrativeStatus === 'error' && (
-              <p className="mt-3 text-[13px] text-amber-200/80">
-                AI 풀이를 불러오지 못했어요. 아래 분석 카드들로 풀이 가능합니다.
-              </p>
-            )}
-
-            {narrativeParagraphs.length > 0 && (
-              <div
-                className="mx-auto mt-5 max-w-[68ch] space-y-6 text-[16px] leading-[1.95] text-slate-100/95"
-                style={{
-                  letterSpacing: '0.005em',
-                  fontFeatureSettings: '"kern", "palt"',
-                }}
-              >
-                {narrativeParagraphs.map((p, i) => (
-                  <p key={i} style={{ wordBreak: 'keep-all', textWrap: 'pretty' }}>
-                    {p}
-                  </p>
-                ))}
-              </div>
-            )}
           </section>
         )}
 
@@ -787,80 +772,59 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
                 추구하고, 상대가 그 결을 어떻게 채워주는지 분석했어요.
               </p>
 
-              <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              <div className="mt-6 space-y-10">
                 {idealTypeProfiles.map((profile) => (
-                  <div
-                    key={profile.personIndex}
-                    className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5"
-                  >
-                    <div className="flex items-baseline justify-between gap-2">
-                      <h3 className="text-[1rem] font-semibold text-white">
-                        {pairLabels[profile.personIndex - 1] || `Person ${profile.personIndex}`}의
-                        이상형
+                  <article key={profile.personIndex} className="space-y-4">
+                    <header className="border-b border-white/[0.06] pb-2">
+                      <h3 className="text-[1.05rem] font-semibold tracking-[-0.012em] text-white">
+                        {pairLabels[profile.personIndex - 1] || `Person ${profile.personIndex}`}의 이상형
                       </h3>
-                      <span className="text-[11px] text-slate-500">
-                        {profile.angles.length} 각도
-                      </span>
-                    </div>
-                    <p
-                      className="mt-2 text-[12.5px] leading-relaxed text-slate-300"
-                      style={{ wordBreak: 'keep-all' }}
-                    >
-                      {profile.matchSummary}
-                    </p>
+                      <p
+                        className="mt-1.5 text-[13px] leading-relaxed text-slate-400"
+                        style={{ wordBreak: 'keep-all' }}
+                      >
+                        {profile.matchSummary}
+                      </p>
+                    </header>
 
-                    <div className="mt-4 space-y-3">
+                    <div
+                      className="mx-auto max-w-[68ch] space-y-5 text-[15px] leading-[1.95] text-slate-100/95"
+                      style={{
+                        letterSpacing: '0.005em',
+                        fontFeatureSettings: '"kern", "palt"',
+                      }}
+                    >
                       {profile.angles.map((angle, i) => {
-                        const accent =
+                        const dot =
                           angle.level === 'strong'
-                            ? 'border-emerald-300/30 bg-emerald-400/8 text-emerald-100'
+                            ? '#34d399'
                             : angle.level === 'partial'
-                              ? 'border-cyan-300/25 bg-cyan-400/8 text-cyan-100'
-                              : 'border-amber-300/25 bg-amber-400/8 text-amber-100'
-                        const lbl =
-                          angle.level === 'strong'
-                            ? '강한 매칭'
-                            : angle.level === 'partial'
-                              ? '부분 매칭'
-                              : '대비 매칭'
+                              ? '#22d3ee'
+                              : '#fbbf24'
+                        // Stitch into one flowing sentence per angle
+                        const partnerName =
+                          pairLabels[profile.partnerIndex - 1] ||
+                          `Person ${profile.partnerIndex}`
+                        const prose = `${angle.seeks}을(를) 자연스럽게 추구하는 결인데, ${partnerName}은 ${angle.partnerOffers} 같은 결을 가지고 있어요. ${angle.note}`
+                          .replace(/을\(를\)/g, '에')
+                          .replace(/\s+/g, ' ')
                         return (
-                          <div
+                          <p
                             key={i}
-                            className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3.5"
+                            style={{ wordBreak: 'keep-all', textWrap: 'pretty' }}
                           >
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="text-[12.5px] font-semibold text-white">
-                                {angle.label}
-                              </span>
-                              <span
-                                className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${accent}`}
-                              >
-                                {lbl}
-                              </span>
-                            </div>
-                            <p
-                              className="mt-1.5 text-[12px] leading-relaxed text-slate-300"
-                              style={{ wordBreak: 'keep-all' }}
-                            >
-                              <span className="text-violet-200">추구:</span> {angle.seeks}
-                            </p>
-                            <p
-                              className="mt-1 text-[12px] leading-relaxed text-slate-300"
-                              style={{ wordBreak: 'keep-all' }}
-                            >
-                              <span className="text-cyan-200">상대:</span> {angle.partnerOffers}
-                            </p>
-                            <p
-                              className="mt-1.5 text-[11.5px] leading-relaxed text-slate-400"
-                              style={{ wordBreak: 'keep-all' }}
-                            >
-                              {angle.note}
-                            </p>
-                          </div>
+                            <span
+                              className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle"
+                              style={{ background: dot }}
+                              aria-hidden
+                            />
+                            <strong className="text-white">{angle.label}.</strong>{' '}
+                            {prose}
+                          </p>
                         )
                       })}
                     </div>
-                  </div>
+                  </article>
                 ))}
               </div>
             </section>

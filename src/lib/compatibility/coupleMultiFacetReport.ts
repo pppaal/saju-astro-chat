@@ -93,6 +93,9 @@ export interface FacetReport {
   strengths: string[]
   minds: string[]
   tip: string
+  /** Book-style flowing paragraph combining headline + strengths + minds + tip.
+   *  Always present on the public output (added by buildMultiFacetReport). */
+  prose?: string
 }
 
 interface FusionInput {
@@ -117,6 +120,42 @@ function bandFor(score: number): FacetReport['band'] {
   if (score >= 65) return 'good'
   if (score >= 50) return 'mixed'
   return 'caution'
+}
+
+/**
+ * Stitch the structured analysis into a single book-style paragraph.
+ * Reads naturally end-to-end without bullets.
+ */
+function weaveProse(parts: {
+  headline: string
+  strengths: string[]
+  minds: string[]
+  tip: string
+}): string {
+  const segments: string[] = [parts.headline]
+
+  if (parts.strengths.length > 0) {
+    if (parts.strengths.length === 1) {
+      segments.push(parts.strengths[0])
+    } else if (parts.strengths.length === 2) {
+      segments.push(`${parts.strengths[0]} ${parts.strengths[1]}`)
+    } else {
+      segments.push(
+        `${parts.strengths[0]} 그리고 ${parts.strengths[1]} ${parts.strengths.slice(2).join(' ')}`
+      )
+    }
+  }
+
+  if (parts.minds.length > 0) {
+    const opener = parts.strengths.length > 0 ? '다만 ' : ''
+    segments.push(`${opener}${parts.minds.join(' ')}`)
+  }
+
+  if (parts.tip) {
+    segments.push(parts.tip)
+  }
+
+  return segments.join(' ').replace(/\s+/g, ' ').trim()
 }
 
 function blendScore(...vals: Array<number | null | undefined>): number {
@@ -601,7 +640,7 @@ function analyzeGrowth(input: MultiFacetInput): FacetReport {
 // ============================================================
 
 export function buildMultiFacetReport(input: MultiFacetInput): FacetReport[] {
-  return [
+  const facets = [
     analyzeDating(input),
     analyzeIntimacy(input),
     analyzeCommunication(input),
@@ -611,6 +650,19 @@ export function buildMultiFacetReport(input: MultiFacetInput): FacetReport[] {
     analyzeDaily(input),
     analyzeGrowth(input),
   ]
+
+  // Add book-style prose paragraph to each facet (single source of truth
+  // built from headline + strengths + minds + tip — UI prefers this over
+  // bullet lists for a natural reading flow).
+  return facets.map((f) => ({
+    ...f,
+    prose: weaveProse({
+      headline: f.headline,
+      strengths: f.strengths,
+      minds: f.minds,
+      tip: f.tip,
+    }),
+  }))
 }
 
 /** Free tier — 4 most important facets only */
