@@ -385,6 +385,48 @@ function generateRecommendedActions(
 // 관계 역학 분석
 // ============================================================
 
+const ZODIAC_ORDER = [
+  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
+] as const
+
+/** Sign-based aspect distance (0..6). Returns -1 for unknown signs. */
+function signDistance(s1?: string, s2?: string): number {
+  if (!s1 || !s2) return -1
+  const i1 = ZODIAC_ORDER.indexOf(s1 as (typeof ZODIAC_ORDER)[number])
+  const i2 = ZODIAC_ORDER.indexOf(s2 as (typeof ZODIAC_ORDER)[number])
+  if (i1 < 0 || i2 < 0) return -1
+  const diff = Math.abs(i1 - i2) % 12
+  return Math.min(diff, 12 - diff)
+}
+
+/** Score a sign-based synastry aspect (0=conjunction, 4=trine, etc.) into 0-100. */
+function aspectStrengthScore(distance: number): number {
+  if (distance < 0) return 0
+  switch (distance) {
+    case 0: return 95   // conjunction (very strong)
+    case 4: return 90   // trine
+    case 2: return 75   // sextile
+    case 6: return 70   // opposition (strong but tense)
+    case 3: return 35   // square (challenging)
+    case 1: return 50   // semisextile
+    case 5: return 45   // quincunx
+    default: return 50
+  }
+}
+
+const ELEMENT_PAIR: Record<string, string[]> = {
+  fire: ['fire', 'air'],
+  earth: ['earth', 'water'],
+  air: ['air', 'fire'],
+  water: ['water', 'earth'],
+}
+
+function elementsCompatible(e1?: string, e2?: string): boolean {
+  if (!e1 || !e2) return false
+  return ELEMENT_PAIR[e1.toLowerCase()]?.includes(e2.toLowerCase()) ?? false
+}
+
 function analyzeRelationshipDynamics(
   p1Saju: SajuProfile,
   p1Astro: AstrologyProfile,
@@ -398,30 +440,45 @@ function analyzeRelationshipDynamics(
   const powerBalance =
     ((p2ElementStrength - p1ElementStrength) / Math.max(p1ElementStrength, p2ElementStrength)) * 100
 
-  // Emotional Intensity (Venus-Mars)
-  const p1VenusElement = p1Astro.venus.element
-  const p2MarsElement = p2Astro.mars.element
-  const p2VenusElement = p2Astro.venus.element
-  const p1MarsElement = p1Astro.mars.element
+  // Emotional Intensity — Venus-Mars sign aspect synastry (real)
+  //
+  // Score is the max of (p1.Venus ↔ p2.Mars) and (p2.Venus ↔ p1.Mars)
+  // sign-based aspect strength, plus a small bonus when Venus elements
+  // are compatible. This produces a continuous distribution (~30-95)
+  // instead of binary 50/75/100 from element-only matching.
+  const vm1 = aspectStrengthScore(signDistance(p1Astro.venus.sign, p2Astro.mars.sign))
+  const vm2 = aspectStrengthScore(signDistance(p2Astro.venus.sign, p1Astro.mars.sign))
+  const venusElementBonus = elementsCompatible(p1Astro.venus.element, p2Astro.venus.element)
+    ? 8
+    : 0
+  const emotionalIntensity = Math.min(100, Math.max(vm1, vm2) + venusElementBonus)
 
-  let emotionalIntensity = 50
-  if (p1VenusElement === p2MarsElement) {
-    emotionalIntensity += 25
-  }
-  if (p2VenusElement === p1MarsElement) {
-    emotionalIntensity += 25
-  }
-
-  // Intellectual Alignment (Sun-Moon)
-  const sunSignMatch = p1Astro.sun.sign === p2Astro.sun.sign
-  const moonSignMatch = p1Astro.moon.sign === p2Astro.moon.sign
-
+  // Intellectual Alignment — Mercury synastry + Sun-Mercury cross
+  //
+  // Real intellectual alignment is about how the two minds talk to each
+  // other (Mercury), not whether they share the same Sun sign. Use
+  // Mercury-Mercury aspect when both charts have Mercury data, plus
+  // Sun-Mercury cross-aspects, plus a small element-compat bonus.
+  // Falls back to Sun-Moon aspect when Mercury data is missing.
   let intellectualAlignment = 50
-  if (sunSignMatch) {
-    intellectualAlignment += 30
-  }
-  if (moonSignMatch) {
-    intellectualAlignment += 20
+  const mercury1 = (p1Astro as { mercury?: { sign: string; element: string } }).mercury
+  const mercury2 = (p2Astro as { mercury?: { sign: string; element: string } }).mercury
+
+  if (mercury1 && mercury2) {
+    const merc = aspectStrengthScore(signDistance(mercury1.sign, mercury2.sign))
+    const sunMerc1 = aspectStrengthScore(signDistance(p1Astro.sun.sign, mercury2.sign))
+    const sunMerc2 = aspectStrengthScore(signDistance(p2Astro.sun.sign, mercury1.sign))
+    const elBonus = elementsCompatible(mercury1.element, mercury2.element) ? 8 : 0
+    intellectualAlignment = Math.min(
+      100,
+      Math.round(merc * 0.5 + Math.max(sunMerc1, sunMerc2) * 0.4 + elBonus)
+    )
+  } else {
+    // No Mercury → use Sun-Moon cross aspect (closest proxy)
+    const sm1 = aspectStrengthScore(signDistance(p1Astro.sun.sign, p2Astro.moon.sign))
+    const sm2 = aspectStrengthScore(signDistance(p2Astro.sun.sign, p1Astro.moon.sign))
+    const elBonus = elementsCompatible(p1Astro.sun.element, p2Astro.sun.element) ? 8 : 0
+    intellectualAlignment = Math.min(100, Math.round(Math.max(sm1, sm2) + elBonus))
   }
 
   // Spiritual Connection (graph clustering)
