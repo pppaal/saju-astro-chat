@@ -56,6 +56,11 @@ const SSR_PRICING_KEYS = [
   'features.calendar2years',
   'features.aiChat200',
   'features.prioritySupport',
+  'features.compatibility2',
+  'features.compatibility5',
+  'features.compatibility10',
+  'features.tarotUnlimited',
+  'features.premiumReports',
 ] as const
 
 export default async function PricingPage() {

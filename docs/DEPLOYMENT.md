@@ -1,5 +1,13 @@
 # 배포 체크리스트 (Production Launch)
 
+## 5개 서비스 (출시 시점)
+
+1. 💬 AI 운세 상담 (`/destiny-counselor`)
+2. 🔮 타로 리딩 (`/tarot`)
+3. 💞 궁합 분석 (`/compatibility`) — 다각도 + 8 facets + 7 이상형 + Sonnet 12 단락
+4. ✨ 정밀 운세 리포트 (`/premium-reports`) — 종합 24,000자 / 테마 14,000-18,000자
+5. 📅 운세 캘린더 (`/calendar`)
+
 ## 출시 전 필수 작업 (5)
 
 ### 1. 환경변수 셋팅 (Production)
