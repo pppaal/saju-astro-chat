@@ -13,6 +13,7 @@ import { performExtendedSajuAnalysis } from '@/lib/compatibility/saju/comprehens
 import { performExtendedAstrologyAnalysis } from '@/lib/compatibility/astrology/comprehensive'
 import { analyzeCoupleTiming } from '@/lib/compatibility/coupleTimingAnalysis'
 import { analyzeCoupleAstroTiming } from '@/lib/compatibility/coupleAstroTiming'
+import { analyzeCoupleDeepInsights } from '@/lib/compatibility/coupleDeepInsights'
 import { calculateSajuData } from '@/lib/Saju/saju'
 import { calculateTransitChart } from '@/lib/astrology/foundation/transit'
 import { normalizeSajuGender } from './routeSupportCommon'
@@ -368,6 +369,41 @@ export const POST = withApiMiddleware(
       logger.warn('[Compatibility] couple astro timing failed (non-fatal):', astroErr)
     }
 
+    // Deep insights — translate the rich saju + astro + fusion data into
+    // plain-Korean answers (왜 끌리는지, 결혼 준비도, 지속력, 이상형 매칭).
+    let deepInsights: ReturnType<typeof analyzeCoupleDeepInsights> | null = null
+    try {
+      if (primaryPair && !isGroup) {
+        const [aIdx, bIdx] = primaryPair.pair
+        const analysisA = personAnalyses[aIdx]
+        const analysisB = personAnalyses[bIdx]
+        if (analysisA?.sajuProfile && analysisB?.sajuProfile && analysisA.astroProfile && analysisB.astroProfile) {
+          deepInsights = analyzeCoupleDeepInsights({
+            p1Saju: analysisA.sajuProfile,
+            p2Saju: analysisB.sajuProfile,
+            p1Astro: analysisA.extendedAstroProfile || analysisA.astroProfile,
+            p2Astro: analysisB.extendedAstroProfile || analysisB.astroProfile,
+            fusion: {
+              sajuScore: primaryPair.sajuScore,
+              astrologyScore: primaryPair.astrologyScore,
+              fusionScore: primaryPair.fusionScore,
+              crossScore: primaryPair.crossScore,
+              dayMasterHarmony: primaryPair.fusionInsights?.dayMasterHarmony,
+              sunMoonHarmony: primaryPair.fusionInsights?.sunMoonHarmony,
+              venusMarsSynergy: primaryPair.fusionInsights?.venusMarsSynergy,
+              emotionalIntensity: primaryPair.fusionInsights?.emotionalIntensity,
+              intellectualAlignment: primaryPair.fusionInsights?.intellectualAlignment,
+              spiritualConnection: primaryPair.fusionInsights?.spiritualConnection,
+            },
+            sajuActivationWhen: coupleTiming?.activationPeriod?.when ?? null,
+            primeYear: coupleTiming?.primeYearWindow?.startYear ?? null,
+          })
+        }
+      }
+    } catch (deepErr) {
+      logger.warn('[Compatibility] deep insights failed (non-fatal):', deepErr)
+    }
+
     const interpretation = buildInterpretationMarkdown({
       locale,
       names,
@@ -435,6 +471,7 @@ export const POST = withApiMiddleware(
       timing,
       couple_timing: coupleTiming,
       astro_timing: astroTiming,
+      deep_insights: deepInsights,
       action_items: actionItems,
       fusion_enabled: fusionEnabled,
       is_group: isGroup,

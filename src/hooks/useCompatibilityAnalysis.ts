@@ -87,6 +87,41 @@ export interface CoupleAstroTiming {
   crossNarrative: string | null
 }
 
+export interface IdealTypeMatch {
+  personIndex: 1 | 2
+  partnerIndex: 1 | 2
+  seeks: string
+  partnerActually: string
+  matchLevel: 'strong' | 'partial' | 'weak'
+  note: string
+}
+
+export interface MarriageReadiness {
+  score: number
+  band: 'high' | 'medium' | 'low'
+  bestWindow: string | null
+  sajuSignal: string
+  astroSignal: string
+  summary: string
+}
+
+export interface LongevityAssessment {
+  score: number
+  band: 'strong' | 'medium' | 'fragile'
+  positive: string[]
+  cautionary: string[]
+  summary: string
+}
+
+export interface CoupleDeepInsights {
+  attractionReasons: string[]
+  whyItWorks: string[]
+  frictionPoints: string[]
+  idealMatch: IdealTypeMatch[]
+  marriage: MarriageReadiness
+  longevity: LongevityAssessment
+}
+
 interface CompatibilityResult {
   interpretation?: string
   overall_score?: number
@@ -101,6 +136,7 @@ interface CompatibilityResult {
   future_guidance?: FutureGuidance | null
   couple_timing?: CoupleTimingData | null
   astro_timing?: CoupleAstroTiming | null
+  deep_insights?: CoupleDeepInsights | null
   error?: string | { message?: string }
 }
 
@@ -151,6 +187,7 @@ export function useCompatibilityAnalysis() {
   const [futureGuidance, setFutureGuidance] = useState<FutureGuidance | null>(null)
   const [coupleTiming, setCoupleTiming] = useState<CoupleTimingData | null>(null)
   const [astroTiming, setAstroTiming] = useState<CoupleAstroTiming | null>(null)
+  const [deepInsights, setDeepInsights] = useState<CoupleDeepInsights | null>(null)
 
   const validate = useCallback(
     (persons: PersonForm[], count: number, t: (key: string, fallback: string) => string) => {
@@ -274,6 +311,7 @@ export function useCompatibilityAnalysis() {
         setFutureGuidance(data.future_guidance ?? null)
         setCoupleTiming(data.couple_timing ?? null)
         setAstroTiming(data.astro_timing ?? null)
+        setDeepInsights(data.deep_insights ?? null)
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : 'Failed to fetch compatibility.'
         setError(errorMessage)
@@ -298,6 +336,7 @@ export function useCompatibilityAnalysis() {
     setFutureGuidance(null)
     setCoupleTiming(null)
     setAstroTiming(null)
+    setDeepInsights(null)
   }, [])
 
   return {
@@ -316,6 +355,7 @@ export function useCompatibilityAnalysis() {
     futureGuidance,
     coupleTiming,
     astroTiming,
+    deepInsights,
     validate,
     analyzeCompatibility,
     resetResults,

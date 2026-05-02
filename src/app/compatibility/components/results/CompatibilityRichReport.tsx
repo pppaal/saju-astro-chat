@@ -7,6 +7,7 @@
  */
 
 import { memo } from 'react'
+import Link from 'next/link'
 import {
   Sparkles,
   Heart,
@@ -26,6 +27,7 @@ import type {
   FutureGuidance,
   CoupleTimingData,
   CoupleAstroTiming,
+  CoupleDeepInsights,
 } from '@/hooks/useCompatibilityAnalysis'
 
 interface CompatibilityRichReportProps {
@@ -36,6 +38,7 @@ interface CompatibilityRichReportProps {
   futureGuidance: FutureGuidance | null
   coupleTiming?: CoupleTimingData | null
   astroTiming?: CoupleAstroTiming | null
+  deepInsights?: CoupleDeepInsights | null
   actionItems: string[]
 }
 
@@ -154,6 +157,7 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
   futureGuidance,
   coupleTiming,
   astroTiming,
+  deepInsights,
   actionItems,
 }: CompatibilityRichReportProps) {
   const primaryPair = pairDetails[0]
@@ -229,6 +233,278 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
             >
               {fusion.deepAnalysis}
             </p>
+          </section>
+        )}
+
+        {/* Why they click — attraction reasons */}
+        {deepInsights && deepInsights.attractionReasons.length > 0 && (
+          <section className="rounded-3xl border border-pink-300/20 bg-[linear-gradient(135deg,rgba(244,114,182,0.10),rgba(244,114,182,0.02))] p-6 backdrop-blur-md">
+            <div className="flex items-center gap-2">
+              <Heart className="h-4 w-4 text-pink-300" />
+              <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-pink-300">
+                서로 끌리는 이유
+              </h2>
+            </div>
+            <ul className="mt-4 space-y-3">
+              {deepInsights.attractionReasons.map((r, i) => (
+                <li
+                  key={i}
+                  className="flex gap-3 text-[14px] leading-relaxed text-slate-200"
+                  style={{ wordBreak: 'keep-all' }}
+                >
+                  <span className="mt-[7px] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-pink-300" />
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Why it works + Friction points */}
+        {deepInsights && (deepInsights.whyItWorks.length > 0 || deepInsights.frictionPoints.length > 0) && (
+          <section className="grid gap-3 sm:grid-cols-2">
+            {deepInsights.whyItWorks.length > 0 && (
+              <div className="rounded-3xl border border-emerald-300/20 bg-emerald-400/[0.04] p-5 backdrop-blur-md">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-300">
+                  잘 맞는 이유
+                </p>
+                <ul className="mt-3 space-y-2.5">
+                  {deepInsights.whyItWorks.map((r, i) => (
+                    <li
+                      key={i}
+                      className="flex gap-2 text-[13.5px] leading-relaxed text-slate-200"
+                      style={{ wordBreak: 'keep-all' }}
+                    >
+                      <span className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full bg-emerald-300" />
+                      <span>{r}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {deepInsights.frictionPoints.length > 0 && (
+              <div className="rounded-3xl border border-amber-300/20 bg-amber-400/[0.04] p-5 backdrop-blur-md">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-300">
+                  마찰 가능 지점
+                </p>
+                <ul className="mt-3 space-y-2.5">
+                  {deepInsights.frictionPoints.map((r, i) => (
+                    <li
+                      key={i}
+                      className="flex gap-2 text-[13.5px] leading-relaxed text-slate-200"
+                      style={{ wordBreak: 'keep-all' }}
+                    >
+                      <span className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full bg-amber-300" />
+                      <span>{r}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Ideal type matching */}
+        {deepInsights && deepInsights.idealMatch.length > 0 && (
+          <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md">
+            <div className="flex items-center gap-2">
+              <Compass className="h-4 w-4 text-violet-300" />
+              <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-violet-300">
+                이상형 vs 실제 매칭
+              </h2>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {deepInsights.idealMatch.map((m, i) => {
+                const labelColor =
+                  m.matchLevel === 'strong'
+                    ? 'border-emerald-300/30 bg-emerald-400/10 text-emerald-100'
+                    : m.matchLevel === 'partial'
+                      ? 'border-cyan-300/30 bg-cyan-400/10 text-cyan-100'
+                      : 'border-amber-300/30 bg-amber-400/10 text-amber-100'
+                const matchKo =
+                  m.matchLevel === 'strong'
+                    ? '강한 매칭'
+                    : m.matchLevel === 'partial'
+                      ? '부분 매칭'
+                      : '대비 매칭'
+                return (
+                  <div
+                    key={i}
+                    className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-[13px] font-semibold text-white">
+                        {pairLabels[m.personIndex - 1] || `Person ${m.personIndex}`}의 이상형
+                      </p>
+                      <span
+                        className={`rounded-full border px-2 py-0.5 text-[10.5px] font-medium ${labelColor}`}
+                      >
+                        {matchKo}
+                      </span>
+                    </div>
+                    <p
+                      className="mt-2 text-[12.5px] leading-relaxed text-slate-300"
+                      style={{ wordBreak: 'keep-all' }}
+                    >
+                      <span className="text-violet-200">추구:</span> {m.seeks}
+                    </p>
+                    <p
+                      className="mt-1 text-[12.5px] leading-relaxed text-slate-300"
+                      style={{ wordBreak: 'keep-all' }}
+                    >
+                      <span className="text-cyan-200">
+                        {pairLabels[m.partnerIndex - 1] || `Person ${m.partnerIndex}`} 실제:
+                      </span>{' '}
+                      {m.partnerActually}
+                    </p>
+                    <p
+                      className="mt-2 text-[12px] leading-relaxed text-slate-400"
+                      style={{ wordBreak: 'keep-all' }}
+                    >
+                      {m.note}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Marriage readiness */}
+        {deepInsights?.marriage && (
+          <section className="rounded-3xl border border-white/10 bg-[linear-gradient(135deg,rgba(124,92,255,0.10),rgba(124,92,255,0.02))] p-6 backdrop-blur-md">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-violet-300" />
+                <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-violet-300">
+                  결혼·약속 준비도
+                </h2>
+              </div>
+              <span
+                className="text-[2rem] font-semibold leading-none text-white"
+                style={{
+                  color:
+                    deepInsights.marriage.band === 'high'
+                      ? '#a78bfa'
+                      : deepInsights.marriage.band === 'medium'
+                        ? '#22d3ee'
+                        : '#fbbf24',
+                }}
+              >
+                {deepInsights.marriage.score}
+              </span>
+            </div>
+            <p
+              className="mt-3 text-[14px] leading-relaxed text-slate-200"
+              style={{ wordBreak: 'keep-all' }}
+            >
+              {deepInsights.marriage.summary}
+            </p>
+            <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+              {deepInsights.marriage.bestWindow && (
+                <div className="rounded-2xl border border-violet-300/25 bg-violet-400/[0.06] p-3.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-violet-300">
+                    최적 시기
+                  </p>
+                  <p className="mt-1.5 text-[13.5px] font-medium text-white">
+                    {deepInsights.marriage.bestWindow}
+                  </p>
+                </div>
+              )}
+              <div className="rounded-2xl border border-amber-300/25 bg-amber-400/[0.04] p-3.5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300">
+                  사주 신호
+                </p>
+                <p
+                  className="mt-1.5 text-[12.5px] leading-relaxed text-slate-300"
+                  style={{ wordBreak: 'keep-all' }}
+                >
+                  {deepInsights.marriage.sajuSignal}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-cyan-300/25 bg-cyan-400/[0.04] p-3.5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-300">
+                  점성 신호
+                </p>
+                <p
+                  className="mt-1.5 text-[12.5px] leading-relaxed text-slate-300"
+                  style={{ wordBreak: 'keep-all' }}
+                >
+                  {deepInsights.marriage.astroSignal}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Longevity assessment */}
+        {deepInsights?.longevity && (
+          <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-emerald-300" />
+                <h2 className="text-[12px] font-semibold uppercase tracking-[0.22em] text-emerald-300">
+                  관계 지속력
+                </h2>
+              </div>
+              <span
+                className="text-[2rem] font-semibold leading-none"
+                style={{
+                  color:
+                    deepInsights.longevity.band === 'strong'
+                      ? '#34d399'
+                      : deepInsights.longevity.band === 'medium'
+                        ? '#22d3ee'
+                        : '#fbbf24',
+                }}
+              >
+                {deepInsights.longevity.score}
+              </span>
+            </div>
+            <p
+              className="mt-3 text-[14px] leading-relaxed text-slate-200"
+              style={{ wordBreak: 'keep-all' }}
+            >
+              {deepInsights.longevity.summary}
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {deepInsights.longevity.positive.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                    지지 요소
+                  </p>
+                  <ul className="mt-2 space-y-1.5">
+                    {deepInsights.longevity.positive.map((p, i) => (
+                      <li
+                        key={i}
+                        className="text-[12.5px] leading-relaxed text-slate-300"
+                        style={{ wordBreak: 'keep-all' }}
+                      >
+                        • {p}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {deepInsights.longevity.cautionary.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300">
+                    주의 신호
+                  </p>
+                  <ul className="mt-2 space-y-1.5">
+                    {deepInsights.longevity.cautionary.map((c, i) => (
+                      <li
+                        key={i}
+                        className="text-[12.5px] leading-relaxed text-slate-300"
+                        style={{ wordBreak: 'keep-all' }}
+                      >
+                        • {c}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </section>
         )}
 
@@ -644,6 +920,34 @@ export const CompatibilityRichReport = memo(function CompatibilityRichReport({
               </div>
             </section>
           )}
+
+        {/* Counselor CTA — embedded at end of report */}
+        <section className="rounded-3xl border border-white/10 bg-[linear-gradient(135deg,rgba(124,92,255,0.18),rgba(34,211,238,0.08))] p-6 backdrop-blur-md sm:p-7">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-violet-400/20">
+              <MessageCircle className="h-5 w-5 text-violet-200" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-balance text-[1.1rem] font-semibold leading-tight tracking-[-0.01em] text-white">
+                이 궁합으로 더 깊이 물어보세요
+              </h2>
+              <p
+                className="mt-1.5 text-[13.5px] leading-relaxed text-slate-300"
+                style={{ wordBreak: 'keep-all' }}
+              >
+                두 분의 사주·점성·교차 데이터를 모두 알고 있는 카운슬러와 1:1로 — 이상형, 결혼
+                시기, 갈등 해결, 미래 흐름 등 궁금한 것 무엇이든.
+              </p>
+              <Link
+                href="/compatibility/counselor"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-[linear-gradient(135deg,#7c5cff_0%,#9b7fff_100%)] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_12px_40px_rgba(124,92,255,0.35)] transition hover:opacity-90"
+              >
+                상담사와 대화 시작
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+        </section>
 
         {/* Action items */}
         {actionItems.length > 0 && (
