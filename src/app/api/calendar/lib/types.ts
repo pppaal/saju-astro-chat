@@ -47,6 +47,12 @@ export interface FormattedDate {
     wolwoon?: { ganji: string; sibsinStem?: string }
     iljin?: { ganji: string; sibsinStem?: string; sibsinBranch?: string }
   }
+  /** 운끼리의 충/합/형 */
+  cycleInteractions?: Array<{
+    pair: string
+    kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형'
+    blurb: string
+  }>
 }
 
 export interface CalendarDailyView {

@@ -94,6 +94,21 @@ interface ImportantDate {
     wolwoon?: { ganji: string; sibsinStem?: string }
     iljin?: { ganji: string; sibsinStem?: string; sibsinBranch?: string }
   }
+  cycleInteractions?: Array<{
+    pair: string
+    kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형'
+    blurb: string
+  }>
+  transit?: {
+    aspects: Array<{
+      transitPlanet: string
+      natalPoint: string
+      aspect: string
+      orb: number
+      isApplying: boolean
+    }>
+    summary?: string
+  }
 }
 
 interface SelectedDatePanelProps {
@@ -1062,6 +1077,22 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
               </div>
             )}
 
+          {/* ── Cycle interactions: 충 / 합 / 형 between cycles ── */}
+          {selectedDate?.cycleInteractions && selectedDate.cycleInteractions.length > 0 && (
+            <div className={styles.quickSummaryBlock}>
+              <span className={styles.quickSummaryLabel}>
+                ⚡ {locale === 'ko' ? '운끼리의 충·합·형' : 'Cycle Clashes'}
+              </span>
+              <ul style={{ margin: '8px 0 0', paddingLeft: 0, listStyle: 'none' }}>
+                {selectedDate.cycleInteractions.slice(0, 4).map((it, i) => (
+                  <li key={i} style={{ padding: '4px 0', fontSize: '0.92em' }}>
+                    · {it.blurb}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {/* ── Saju evidence ──────────────────────────────────── */}
           {safeSajuFactors.length > 0 && (
             <div className={styles.quickSummaryBlock}>
@@ -1072,6 +1103,34 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                 {safeSajuFactors.slice(0, 3).map((f, i) => (
                   <li key={i} style={{ padding: '4px 0', fontSize: '0.95em' }}>
                     · {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* ── Transit aspects ─────────────────────────────────── */}
+          {selectedDate?.transit?.aspects && selectedDate.transit.aspects.length > 0 && (
+            <div className={styles.quickSummaryBlock}>
+              <span className={styles.quickSummaryLabel}>
+                🪐 {locale === 'ko' ? '점성 트랜짓' : 'Transit Aspects'}
+              </span>
+              {selectedDate.transit.summary && (
+                <p
+                  className={styles.quickSummaryText}
+                  style={{ marginTop: 4, fontSize: '0.92em', opacity: 0.85 }}
+                >
+                  {selectedDate.transit.summary}
+                </p>
+              )}
+              <ul style={{ margin: '8px 0 0', paddingLeft: 0, listStyle: 'none' }}>
+                {selectedDate.transit.aspects.slice(0, 4).map((a, i) => (
+                  <li key={i} style={{ padding: '4px 0', fontSize: '0.92em' }}>
+                    · <strong>{a.transitPlanet}</strong> {a.aspect}{' '}
+                    <strong>{a.natalPoint}</strong>
+                    {' '}<span style={{ opacity: 0.7 }}>
+                      (오브 {a.orb.toFixed(1)}°{a.isApplying ? ', 접근' : ', 분리'})
+                    </span>
                   </li>
                 ))}
               </ul>

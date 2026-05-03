@@ -185,6 +185,66 @@ export const GET = withApiMiddleware(
     const canonicalScore = lite?.score ?? detail.score
     const canonicalDisplayScore = lite?.displayScore ?? detail.displayScore ?? canonicalScore
 
+    // ── Transit aspects on the selected date ──
+    // Engine has the same transit module the rest of the app uses; cheap
+    // to call once per selected date (Swiss ephemeris ~50ms). Aspect
+    // longitudes are location-independent so Seoul defaults work fine —
+    // we don't surface house cusps here.
+    let transitData:
+      | { aspects: Array<{ transitPlanet: string; natalPoint: string; aspect: string; orb: number; isApplying: boolean }>; summary?: string }
+      | undefined
+    try {
+      const [
+        { calculateNatalChart, toChart },
+        { calculateTransitChart, findTransitAspects },
+      ] = await Promise.all([
+        import('@/lib/astrology/foundation/astrologyService'),
+        import('@/lib/astrology/foundation/transit'),
+      ])
+      const birthDateObjForAstro = new Date(birthDate + 'T00:00:00')
+      const [bH, bM] = (birthTime || '12:00').split(':').map((v) => Number.parseInt(v, 10))
+      const natalChartData = await calculateNatalChart({
+        year: birthDateObjForAstro.getFullYear(),
+        month: birthDateObjForAstro.getMonth() + 1,
+        date: birthDateObjForAstro.getDate(),
+        hour: Number.isFinite(bH) ? bH : 12,
+        minute: Number.isFinite(bM) ? bM : 0,
+        latitude: 37.5665,
+        longitude: 126.978,
+        timeZone: timezone || 'Asia/Seoul',
+      })
+      const natalChart = toChart(natalChartData)
+      const transitChart = await calculateTransitChart({
+        iso: `${date}T12:00:00`,
+        latitude: 37.5665,
+        longitude: 126.978,
+        timeZone: timezone || 'Asia/Seoul',
+      })
+      const aspects = findTransitAspects(transitChart, natalChart)
+      const trimmed = (aspects || [])
+        .slice()
+        .sort((a, b) => Math.abs(a.orb) - Math.abs(b.orb))
+        .slice(0, 6)
+        .map((a) => ({
+          transitPlanet: a.transitPlanet,
+          natalPoint: a.natalPoint,
+          aspect: a.type,
+          orb: Math.abs(a.orb),
+          isApplying: a.isApplying,
+        }))
+      transitData = {
+        aspects: trimmed,
+        summary:
+          trimmed.length > 0
+            ? `${trimmed.length}개의 트랜짓 aspect — 가장 타이트: ${trimmed[0].transitPlanet} ${trimmed[0].aspect} ${trimmed[0].natalPoint} (오브 ${trimmed[0].orb.toFixed(1)}°)`
+            : '오늘은 본명 차트와 타이트한 트랜짓 aspect가 없습니다.',
+      }
+    } catch (err) {
+      logger.warn('[calendar/date-detail] transit aspect calc failed', {
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+
     return apiSuccess({
       date: detail.date,
       grade: canonicalGrade,
@@ -220,6 +280,9 @@ export const GET = withApiMiddleware(
         monthStem,
         monthBranch,
       },
+      longCycleContext: lite?.longCycleContext,
+      cycleInteractions: lite?.cycleInteractions,
+      transit: transitData,
     })
   },
   createPublicStreamGuard({

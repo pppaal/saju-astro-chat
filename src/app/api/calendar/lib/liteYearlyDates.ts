@@ -62,6 +62,12 @@ export interface LiteImportantDate {
     wolwoon?: { ganji: string; sibsinStem?: string }
     iljin?: { ganji: string; sibsinStem?: string; sibsinBranch?: string }
   }
+  /** 운끼리의 충/합/형 — 대운·세운·월운·일운 사이 + 본명 일주 vs 각 운 */
+  cycleInteractions?: Array<{
+    pair: string
+    kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형'
+    blurb: string
+  }>
 }
 
 type LiteOptions = {
@@ -1628,6 +1634,102 @@ export function calculateYearlyImportantDatesLite(
     return { ganji: `${stem}${pack.monthBranch}`, sibsinStem }
   }
 
+  // ── Cycle ↔ cycle clash detector ──
+  // Pairwise 충/합/형 between (natal-day, 대운, 세운, 월운, 일운). Saju
+  // calendar gold: "대운 세운이 충하는 해" / "월운이 일운과 합하는 날" —
+  // these are the moments practitioners flag. We surface them so the user
+  // doesn't have to read the ganji and run the comparison themselves.
+  type CycleSlot = { id: string; label: string; stem: string; branch: string }
+  const interactionFor = (a: CycleSlot, b: CycleSlot): LiteImportantDate['cycleInteractions'] => {
+    const out: NonNullable<LiteImportantDate['cycleInteractions']> = []
+    const pair = `${a.label}↔${b.label}`
+    if (a.stem && b.stem && STEM_HAP_PARTNER[a.stem]?.partner === b.stem) {
+      out.push({
+        pair,
+        kind: '천간합',
+        blurb: `${a.label}(${a.stem})과 ${b.label}(${b.stem})이 천간합 — 두 흐름이 부드럽게 묶입니다.`,
+      })
+    }
+    if (a.stem && b.stem && STEM_CHUNG_SET.has(`${a.stem}-${b.stem}`)) {
+      out.push({
+        pair,
+        kind: '천간충',
+        blurb: `${a.label}(${a.stem})과 ${b.label}(${b.stem})이 천간충 — 결정 압박이 크게 들어옵니다.`,
+      })
+    }
+    if (a.branch && b.branch && BRANCH_HAP_PARTNER[a.branch] === b.branch && a.branch !== b.branch) {
+      out.push({
+        pair,
+        kind: '지지합',
+        blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 지지합 — 환경이 손발 맞춰 돕습니다.`,
+      })
+    }
+    if (a.branch && b.branch && BRANCH_CHUNG_PARTNER[a.branch] === b.branch) {
+      out.push({
+        pair,
+        kind: '지지충',
+        blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 지지충 — 환경 변동·이동·교체 신호.`,
+      })
+    }
+    const inTrio = (set: string[]) =>
+      set.includes(a.branch) && set.includes(b.branch) && a.branch !== b.branch
+    if (
+      a.branch && b.branch && (
+        inTrio(BRANCH_HYUNG_TRIO) ||
+        inTrio(BRANCH_HYUNG_TRIO2) ||
+        BRANCH_HYUNG_PAIR.has(`${a.branch}-${b.branch}`)
+      )
+    ) {
+      out.push({
+        pair,
+        kind: '지지형',
+        blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 형 — 마찰·구설·실수 노출 주의.`,
+      })
+    }
+    if (a.branch && b.branch && BRANCH_HAE_PAIRS.has(`${a.branch}-${b.branch}`)) {
+      out.push({
+        pair,
+        kind: '지지해',
+        blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 해 — 오해·관계 균열 주의.`,
+      })
+    }
+    if (a.branch && b.branch && BRANCH_PA_PAIRS.has(`${a.branch}-${b.branch}`)) {
+      out.push({
+        pair,
+        kind: '지지파',
+        blurb: `${a.label}(${a.branch})과 ${b.label}(${b.branch})이 파 — 진행 중인 일이 살짝 어긋날 수 있어요.`,
+      })
+    }
+    return out
+  }
+  const buildCycleInteractions = (
+    natalDayBranch: string,
+    daeun: { ganji: string } | null,
+    sewoon: { ganji: string },
+    wolwoon: { ganji: string },
+    iljin: { ganji: string }
+  ): LiteImportantDate['cycleInteractions'] => {
+    const split = (g: string): { stem: string; branch: string } => ({
+      stem: g.charAt(0) || '',
+      branch: g.charAt(1) || '',
+    })
+    const slots: CycleSlot[] = [
+      { id: 'natal', label: '본명', stem: natalDayMaster, branch: natalDayBranch },
+      ...(daeun ? [{ id: 'daeun', label: '대운', ...split(daeun.ganji) }] : []),
+      { id: 'sewoon', label: '세운', ...split(sewoon.ganji) },
+      { id: 'wolwoon', label: '월운', ...split(wolwoon.ganji) },
+      { id: 'iljin', label: '일운', ...split(iljin.ganji) },
+    ]
+    const out: NonNullable<LiteImportantDate['cycleInteractions']> = []
+    for (let i = 0; i < slots.length; i++) {
+      for (let j = i + 1; j < slots.length; j++) {
+        const hits = interactionFor(slots[i], slots[j]) || []
+        out.push(...hits)
+      }
+    }
+    return out.length > 0 ? out : undefined
+  }
+
   for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
     const month = date.getMonth() + 1
     const day = date.getDate()
@@ -1916,6 +2018,13 @@ export function calculateYearlyImportantDatesLite(
               : undefined,
         },
       },
+      cycleInteractions: buildCycleInteractions(
+        sajuProfile.dayBranch || sajuProfile.pillars?.day?.branch || '',
+        findDaeunForDate(date),
+        sewoonForYear(date.getFullYear()),
+        wolwoonForPack(dailyPack),
+        { ganji: `${dailyPillar.stem}${dailyPillar.branch}` }
+      ),
     })
   }
 

@@ -100,6 +100,23 @@ export interface ImportantDate {
     wolwoon?: { ganji: string; sibsinStem?: string }
     iljin?: { ganji: string; sibsinStem?: string; sibsinBranch?: string }
   }
+  /** 대운/세운/월운/일운/본명 끼리 충/합/형 */
+  cycleInteractions?: Array<{
+    pair: string
+    kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형'
+    blurb: string
+  }>
+  /** 트랜짓 점성 — 선택일 기준 행성 위치 + 본명 차트와의 aspect */
+  transit?: {
+    aspects: Array<{
+      transitPlanet: string
+      natalPoint: string
+      aspect: string
+      orb: number
+      isApplying: boolean
+    }>
+    summary?: string
+  }
 }
 
 export interface CalendarData {

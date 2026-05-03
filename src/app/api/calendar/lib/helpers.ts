@@ -818,6 +818,8 @@ export function formatDateForResponse(
     crossCheck: (date as { crossCheck?: { line: string; agreementPercent: number } }).crossCheck,
     longCycleContext: (date as { longCycleContext?: import('./liteYearlyDates').LiteImportantDate['longCycleContext'] })
       .longCycleContext,
+    cycleInteractions: (date as { cycleInteractions?: import('./liteYearlyDates').LiteImportantDate['cycleInteractions'] })
+      .cycleInteractions,
     recommendations: recommendationsForResponse.map((text) =>
       normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)
     ),
