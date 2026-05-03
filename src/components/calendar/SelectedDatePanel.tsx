@@ -2,9 +2,10 @@
 
 import React, { memo, useCallback, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
+import KoreanLunarCalendar from 'korean-lunar-calendar'
 import { useI18n } from '@/i18n/I18nProvider'
 import styles from './DestinyCalendar.module.css'
-import { getPeakLabel, resolvePeakLevel } from './peakUtils'
+import { resolvePeakLevel } from './peakUtils'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
 import { formatDecisionActionLabel } from '@/lib/destiny-matrix/core/actionCopy'
@@ -13,7 +14,6 @@ import {
 } from '@/lib/destiny-map/calendar/scoring-config'
 import { getGradeLabel as getUnifiedGradeLabel } from './constants'
 import {
-  CATEGORY_EMOJI,
   WEEKDAYS_EN,
   WEEKDAYS_KO,
   buildReadableCrossLine,
@@ -32,11 +32,6 @@ import {
   toUserFacingEvidenceLine,
   type SelectedPanelEventCategory,
 } from './SelectedDatePanel.helpers'
-import {
-  SelectedDateEvidenceDetails,
-  SelectedDateExtendedDetails,
-  SelectedDateQuickScanSection,
-} from './SelectedDatePanel.sections'
 
 type EventCategory = SelectedPanelEventCategory
 type ImportanceGrade = 0 | 1 | 2 | 3 | 4
@@ -211,7 +206,7 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   onSave,
   onUnsave,
   getGradeEmoji,
-  getScoreClass,
+  getScoreClass: _getScoreClass,
 }: SelectedDatePanelProps) {
   const { locale } = useI18n()
   const { status } = useSession()
@@ -258,6 +253,30 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
       ),
     [selectedDate?.bestTimes, locale, isLowReliability]
   )
+
+  // Compute the lunar date label for the selected day. Falls back silently
+  // when the library can't convert (out-of-range / invalid input) — the panel
+  // simply omits the lunar chip in that case.
+  const lunarDateLabel = useMemo(() => {
+    if (!selectedDay) return ''
+    try {
+      const cal = new KoreanLunarCalendar()
+      const ok = cal.setSolarDate(
+        selectedDay.getFullYear(),
+        selectedDay.getMonth() + 1,
+        selectedDay.getDate(),
+      )
+      if (!ok) return ''
+      const lunar = cal.getLunarCalendar()
+      if (!lunar?.month || !lunar?.day) return ''
+      const leap = lunar.intercalation ? (locale === 'ko' ? '윤' : 'leap ') : ''
+      return locale === 'ko'
+        ? `음력 ${leap}${lunar.month}.${lunar.day}`
+        : `Lunar ${leap}${lunar.month}/${lunar.day}`
+    } catch {
+      return ''
+    }
+  }, [selectedDay, locale])
 
   const handleAddToCalendar = useCallback(async () => {
     if (!selectedDate || !selectedDay) return
@@ -879,27 +898,75 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
     return distinct || ''
   })()
 
+  // Cross-agreement percent for the dedicated section (not buried inside reliability headline).
+  const crossAgreementPercent: number | null = (() => {
+    const fromCanonical =
+      typeof canonicalCore?.crossAgreement === 'number' ? canonicalCore.crossAgreement : null
+    if (fromCanonical !== null && Number.isFinite(fromCanonical)) return Math.round(fromCanonical)
+    const fromEvidence = selectedDate?.evidence?.crossAgreementPercent
+    if (typeof fromEvidence === 'number' && Number.isFinite(fromEvidence))
+      return Math.round(fromEvidence)
+    return null
+  })()
+  const crossAgreementVerdict: string =
+    crossAgreementPercent === null
+      ? ''
+      : crossAgreementPercent >= 70
+        ? locale === 'ko'
+          ? '사주와 점성이 같은 결을 가리킵니다'
+          : 'Saju and astrology point the same way'
+        : crossAgreementPercent >= 50
+          ? locale === 'ko'
+            ? '사주와 점성이 대체로 비슷한 결입니다'
+            : 'Saju and astrology mostly agree'
+          : locale === 'ko'
+            ? '사주와 점성이 다른 결을 가리킵니다'
+            : 'Saju and astrology disagree'
+
+  // Single-line key takeaway for the hero block.
+  const headlineOneLine: string =
+    presentation?.daySummary?.interpretedAnswer?.directAnswer ||
+    presentation?.dailyView?.oneLineSummary ||
+    presentation?.daySummary?.summary ||
+    quickThesis ||
+    safeSummary ||
+    ''
+
+  // Suppress lint for computed values retained from the legacy panel layout.
+  // The simplified fortune-calendar UI no longer renders them, but the data
+  // pipelines that produce them are shared with other surfaces — keeping the
+  // bindings prevents accidental dead-code removal mid-refactor.
+  void getCategoryLabel
+  void backgroundDomainHeadline
+  void evidenceSummaryPrimary
+  void evidenceSummaryCross
+  void evidenceBridgeSummary
+  void evidenceScoreLine
+  void topTimingSignals
+  void quickDos
+  void quickDonts
+  void quickWindows
+  void safeActionSummary
+  void quickHighlightCards
+  void detailInsight
+
   return (
     <div className={`${styles.selectedDayInfo} ${styles.largeTextMode}`}>
+      {/* ── Header: date + grade emoji + save ─────────────────── */}
       <div className={styles.selectedDayHeader}>
         <span className={styles.selectedDayDate}>
           {selectedDay.getMonth() + 1}/{selectedDay.getDate()}
           {locale === 'ko' && ` (${WEEKDAYS[selectedDay.getDay()]})`}
+          {lunarDateLabel && (
+            <span style={{ marginLeft: 8, opacity: 0.6, fontSize: '0.75em', fontWeight: 'normal' }}>
+              {lunarDateLabel}
+            </span>
+          )}
         </span>
-
-        {resolvedPeakLevel && (
-          <span className={styles.peakLevelChip}>
-            {locale === 'ko'
-              ? getPeakLabel(resolvedPeakLevel, 'ko')
-              : getPeakLabel(resolvedPeakLevel, 'en')}
-          </span>
-        )}
-
         <div className={styles.headerActions}>
           {selectedDate && (
             <span className={styles.selectedGrade}>{getGradeEmoji(displayGrade)}</span>
           )}
-
           {status === 'authenticated' && selectedDate && (
             <button
               className={`${styles.saveBtn} ${isSaved ? styles.saved : ''}`}
@@ -914,150 +981,122 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
                     ? '이 날짜 저장하기'
                     : 'Save this date'
               }
-              title={
-                isSaved
-                  ? locale === 'ko'
-                    ? '저장됨 (클릭하여 삭제)'
-                    : 'Saved (click to remove)'
-                  : locale === 'ko'
-                    ? '이 날짜 저장하기'
-                    : 'Save this date'
-              }
             >
-              {saving ? '...' : isSaved ? '\u2605' : '\u2606'}
+              {saving ? '...' : isSaved ? '★' : '☆'}
             </button>
           )}
         </div>
       </div>
-
       {saveMsg && <div className={styles.saveMsg}>{saveMsg}</div>}
 
       {selectedDate ? (
         <div className={styles.selectedDayContent}>
-          <h3 className={styles.selectedTitle}>{displayTitle}</h3>
+          {/* ── Hero: grade label + score + one-liner ───────────── */}
+          <div className={styles.quickScanCard}>
+            <h3 className={styles.selectedTitle}>
+              {unifiedDayLabel || displayTitle}
+              <span style={{ marginLeft: 8, opacity: 0.7, fontSize: '0.75em' }}>
+                {displayScore}/100
+              </span>
+            </h3>
+            {headlineOneLine && (
+              <p className={styles.quickScanThesis}>{headlineOneLine}</p>
+            )}
+          </div>
 
-          {displayGrade >= 3 && safeWarnings.length > 0 && (
-            <div
-              className={`${styles.urgentWarningBox} ${displayGrade === 4 ? styles.worstDay : ''}`}
-            >
-              <div className={styles.urgentWarningHeader}>
-                <span className={styles.urgentWarningIcon}>
-                  {displayGrade === 4 ? '\u{1F6A8}' : '\u26A0\uFE0F'}
-                </span>
-                <span className={styles.urgentWarningTitle}>
-                  {locale === 'ko'
-                    ? displayGrade === 4
-                      ? '오늘 주의해야 할 점!'
-                      : '오늘의 주의사항'
-                    : displayGrade === 4
-                      ? 'Critical Warnings!'
-                      : "Today's Cautions"}
-                </span>
-              </div>
-              <ul className={styles.urgentWarningList}>
-                {safeWarnings.slice(0, 3).map((w, i) => (
-                  <li key={i} className={styles.urgentWarningItem}>
-                    <span className={styles.urgentWarningDot}>{'\u2022'}</span>
-                    {w}
+          {/* ── Saju evidence ──────────────────────────────────── */}
+          {safeSajuFactors.length > 0 && (
+            <div className={styles.quickSummaryBlock}>
+              <span className={styles.quickSummaryLabel}>
+                📍 {locale === 'ko' ? '사주 근거' : 'Saju Evidence'}
+              </span>
+              <ul style={{ margin: '8px 0 0', paddingLeft: 0, listStyle: 'none' }}>
+                {safeSajuFactors.slice(0, 3).map((f, i) => (
+                  <li key={i} style={{ padding: '4px 0', fontSize: '0.95em' }}>
+                    · {f}
                   </li>
                 ))}
               </ul>
             </div>
           )}
 
-          {selectedDate.crossVerified && displayGrade <= 1 && (
-            <div className={styles.crossVerifiedBadge}>
-              <span className={styles.crossVerifiedIcon}>{'\u{1F52E}'}</span>
-              <span className={styles.crossVerifiedText}>
-                {locale === 'ko' ? '사주 + 점성 교차 검증 완료' : 'Saju + Astrology Cross-verified'}
+          {/* ── Astro evidence ─────────────────────────────────── */}
+          {safeAstroFactors.length > 0 && (
+            <div className={styles.quickSummaryBlock}>
+              <span className={styles.quickSummaryLabel}>
+                ⭐ {locale === 'ko' ? '점성 근거' : 'Astrology Evidence'}
               </span>
+              <ul style={{ margin: '8px 0 0', paddingLeft: 0, listStyle: 'none' }}>
+                {safeAstroFactors.slice(0, 3).map((f, i) => (
+                  <li key={i} style={{ padding: '4px 0', fontSize: '0.95em' }}>
+                    · {f}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
-          <SelectedDateQuickScanSection
-            locale={locale}
-            quickHighlightCards={quickHighlightCards.slice(0, 3)}
-            interpretedAnswer={
-              isPresentationDayMatch ? presentation?.daySummary?.interpretedAnswer : undefined
-            }
-            safeActionSummary={
-              (isPresentationDayMatch ? presentation?.dailyView?.doNow || '' : '') ||
-              (isPresentationDayMatch ? presentation?.daySummary?.doNow || '' : '') ||
-              safeActionSummary
-            }
-            quickThesis={
-              (isPresentationDayMatch ? presentation?.dailyView?.oneLineSummary || '' : '') ||
-              (isPresentationDayMatch ? presentation?.daySummary?.summary || '' : '') ||
-              quickThesis
-            }
-            unifiedDayLabel={unifiedDayLabel}
-            focusDomainHeadline={focusDomainHeadline}
-            actionFocusDomainHeadline={actionFocusDomainHeadline}
-            backgroundDomainHeadline={backgroundDomainHeadline}
-            canonicalPhaseLabel={canonicalPhaseLabel}
-            matrixPhase={humanizePhaseLabel(matrixVerdict?.phase || '', locale)}
-            reliabilityHeadline={reliabilityHeadline}
-            weekSummary={presentation?.weekSummary?.summary}
-            monthSummary={presentation?.monthSummary?.summary}
-            topDomains={presentation?.topDomains || []}
-            relationshipWeatherSummary={presentation?.relationshipWeather?.summary}
-            workMoneyWeatherSummary={presentation?.workMoneyWeather?.summary}
-            topTimingSignals={topTimingSignals.slice(0, 2)}
-            quickDos={
-              (isPresentationDayMatch
-                ? dedupeDisplayLines([presentation?.dailyView?.doNow || '']).slice(0, 1)
-                : []
-              ).length > 0
-                ? dedupeDisplayLines([presentation?.dailyView?.doNow || '']).slice(0, 1)
-                : (isPresentationDayMatch
-                      ? dedupeDisplayLines([presentation?.daySummary?.doNow || '']).slice(0, 1)
-                      : []
-                    ).length > 0
-                  ? dedupeDisplayLines([presentation?.daySummary?.doNow || '']).slice(0, 1)
-                  : quickDos
-            }
-            quickDonts={
-              (isPresentationDayMatch
-                ? dedupeDisplayLines([presentation?.dailyView?.watchOut || '']).slice(0, 1)
-                : []
-              ).length > 0
-                ? dedupeDisplayLines([presentation?.dailyView?.watchOut || '']).slice(0, 1)
-                : (isPresentationDayMatch
-                      ? dedupeDisplayLines([presentation?.daySummary?.watchOut || '']).slice(0, 1)
-                      : []
-                    ).length > 0
-                  ? dedupeDisplayLines([presentation?.daySummary?.watchOut || '']).slice(0, 1)
-                  : quickDonts
-            }
-            quickWindows={
-              (isPresentationDayMatch
-                ? dedupeDisplayLines(presentation?.dailyView?.bestTimes || []).slice(0, 2)
-                : []
-              ).length > 0
-                ? dedupeDisplayLines(presentation?.dailyView?.bestTimes || []).slice(0, 2)
-                : (isPresentationDayMatch
-                      ? dedupeDisplayLines(presentation?.daySummary?.bestTimes || []).slice(0, 2)
-                      : []
-                    ).length > 0
-                  ? dedupeDisplayLines(presentation?.daySummary?.bestTimes || []).slice(0, 2)
-                  : quickWindows
-            }
-          />
+          {/* ── Cross agreement ────────────────────────────────── */}
+          {crossAgreementPercent !== null && (
+            <div className={styles.quickSummaryBlock}>
+              <span className={styles.quickSummaryLabel}>
+                ✅ {locale === 'ko' ? '교차 합의' : 'Cross Agreement'} ({crossAgreementPercent}%)
+              </span>
+              <p className={styles.quickSummaryText} style={{ marginTop: 4 }}>
+                {crossAgreementVerdict}
+              </p>
+            </div>
+          )}
 
-          <SelectedDateEvidenceDetails
-            locale={locale}
-            detailInsight={detailInsight}
-            hasEvidence={Boolean(selectedDate.evidence)}
-            evidenceSummaryPrimary={evidenceSummaryPrimary}
-            canonicalGradeReason={canonicalCore?.gradeReason || ''}
-            canonicalRiskControl={canonicalCore?.riskControl || ''}
-            matrixGuardrail={matrixVerdict?.guardrail || ''}
-            decisionRationale={canonicalCore?.judgmentPolicy?.rationale || ''}
-            evidenceSummaryCross={evidenceSummaryCross}
-            evidenceBridgeSummary={evidenceBridgeSummary}
-            evidenceScoreLine={evidenceScoreLine}
-          />
+          {/* ── Best times ─────────────────────────────────────── */}
+          {normalizedBestTimes.length > 0 && (
+            <div className={styles.quickSummaryBlock}>
+              <span className={styles.quickSummaryLabel}>
+                ⏰ {locale === 'ko' ? '좋은 시간' : 'Best Times'}
+              </span>
+              <ul style={{ margin: '8px 0 0', paddingLeft: 0, listStyle: 'none' }}>
+                {normalizedBestTimes.slice(0, 3).map((t, i) => (
+                  <li key={i} style={{ padding: '4px 0' }}>
+                    ⭐ {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
+          {/* ── Caution / warnings ─────────────────────────────── */}
+          {displayGrade >= 3 && safeWarnings.length > 0 && (
+            <div className={styles.quickSummaryBlock}>
+              <span className={styles.quickSummaryLabel}>
+                ⚠ {locale === 'ko' ? '조심할 점' : 'Cautions'}
+              </span>
+              <ul style={{ margin: '8px 0 0', paddingLeft: 0, listStyle: 'none' }}>
+                {safeWarnings.slice(0, 3).map((w, i) => (
+                  <li key={i} style={{ padding: '4px 0' }}>
+                    · {w}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* ── Recommendations / advice ──────────────────────── */}
+          {safeRecommendations.length > 0 && (
+            <div className={styles.quickSummaryBlock}>
+              <span className={styles.quickSummaryLabel}>
+                💡 {locale === 'ko' ? '조언' : 'Advice'}
+              </span>
+              <ul style={{ margin: '8px 0 0', paddingLeft: 0, listStyle: 'none' }}>
+                {safeRecommendations.slice(0, 3).map((r, i) => (
+                  <li key={i} style={{ padding: '4px 0' }}>
+                    {i + 1}. {r}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* ── Mini meta: ganzhi + sun sign ──────────────────── */}
           {selectedDate.ganzhi && (
             <div className={styles.ganzhiBox}>
               <span className={styles.ganzhiLabel}>{termHelp.dayPillar}</span>
@@ -1072,69 +1111,19 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
             </div>
           )}
 
-          <div className={styles.selectedCategories}>
-            {selectedDate.categories.map((cat) => (
-              <span key={cat} className={`${styles.categoryTag} ${styles[cat]}`}>
-                {CATEGORY_EMOJI[cat]} {getCategoryLabel(cat)}
-              </span>
-            ))}
-          </div>
-
-          <div className={styles.scoreWrapper}>
-            <div className={styles.scoreBar}>
-              <div
-                className={`${styles.scoreFill} ${getScoreClass(displayScore)}`}
-                style={{ width: `${displayScore}%` }}
-              />
-            </div>
-            <span className={styles.scoreText}>
-              {locale === 'ko' ? '점수' : 'Score'}: {displayScore}/100
-            </span>
-          </div>
-
-          <SelectedDateExtendedDetails
-            locale={locale}
-            safeSajuFactors={safeSajuFactors}
-            safeAstroFactors={safeAstroFactors}
-            sajuTitle={termHelp.sajuTitle}
-            astroTitle={termHelp.astroTitle}
-          />
-
+          {/* ── Add to calendar (existing button) ─────────────── */}
           {status === 'authenticated' && (
             <button
-              className={`${styles.saveBtnLarge} ${isSaved ? styles.saved : ''}`}
-              onClick={isSaved ? onUnsave : onSave}
-              disabled={saving}
+              className={styles.saveBtn}
+              onClick={handleAddToCalendar}
+              style={{ marginTop: 12, width: '100%' }}
             >
-              {saving ? (
-                <span>{locale === 'ko' ? '저장 중...' : 'Saving...'}</span>
-              ) : isSaved ? (
-                <>
-                  <span>{'\u2605'}</span>
-                  <span>
-                    {locale === 'ko' ? '저장됨 (클릭하여 삭제)' : 'Saved (click to remove)'}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span>{'\u2606'}</span>
-                  <span>{locale === 'ko' ? '이 날짜 저장하기' : 'Save this date'}</span>
-                </>
-              )}
+              📅 {locale === 'ko' ? '내 캘린더에 추가' : 'Add to my calendar'}
             </button>
           )}
-
-          <button
-            className={styles.calendarSyncBtn}
-            onClick={handleAddToCalendar}
-            aria-label={locale === 'ko' ? '휴대폰 캘린더에 추가' : 'Add to phone calendar'}
-          >
-            <span>{'\u{1F4F2}'}</span>
-            <span>{locale === 'ko' ? '캘린더에 추가' : 'Add to Calendar'}</span>
-          </button>
         </div>
       ) : (
-        <div className={styles.noInfo}>
+        <div className={styles.selectedDayContent}>
           <p>{locale === 'ko' ? '이 날짜에 대한 정보가 없습니다' : 'No info for this date'}</p>
         </div>
       )}

@@ -15,7 +15,6 @@ import { getGradeEmoji, getCategoryLabel, getScoreClass } from './utils'
 import SelectedDatePanel from './SelectedDatePanel'
 import MonthHighlights from './MonthHighlights'
 import CalendarActionPlanView from './CalendarActionPlanView'
-import AugmentSection from './AugmentSection'
 import type { CalendarData, ImportantDate, EventCategory, BirthInfo } from './types'
 
 interface CalendarMainViewProps {
@@ -103,24 +102,6 @@ const CalendarMainView = memo(function CalendarMainView({
   const WEEKDAYS = locale === 'ko' ? WEEKDAYS_KO : WEEKDAYS_EN
   const MONTHS = locale === 'ko' ? MONTHS_KO : MONTHS_EN
 
-  // Compute Monday-anchored week range for selectedDate so we can show the
-  // surrounding week's augment alongside the day's augment.
-  const selectedWeek = useMemo(() => {
-    if (!selectedDate?.date) return null
-    const d = new Date(selectedDate.date + 'T12:00:00+09:00')
-    const day = d.getDay() // 0=Sun, 1=Mon, ...
-    const offset = (day + 6) % 7 // Monday-anchored: Mon→0, Sun→6
-    const start = new Date(d)
-    start.setDate(d.getDate() - offset)
-    const end = new Date(start)
-    end.setDate(start.getDate() + 6)
-    return {
-      startISO: start.toISOString(),
-      label: locale === 'ko'
-        ? `${start.getMonth() + 1}.${start.getDate()} ~ ${end.getMonth() + 1}.${end.getDate()} 흐름`
-        : `Week of ${start.getMonth() + 1}/${start.getDate()}`,
-    }
-  }, [selectedDate?.date, locale])
   const currentSystemYear = useMemo(() => new Date().getFullYear(), [])
   const yearOptions = useMemo(() => {
     const start = currentSystemYear - 20
@@ -659,28 +640,6 @@ const CalendarMainView = memo(function CalendarMainView({
             </div>
           )}
 
-          {/* Daily augment (cross-rules) — 선택된 날짜의 양면성/큰 흐름 */}
-          {selectedDate && (
-            <AugmentSection
-              birthInfo={birthInfo}
-              scope="daily"
-              queryDate={new Date(selectedDate.date + 'T12:00:00+09:00').toISOString()}
-              scopeLabel={`${selectedDate.date} 흐름`}
-              variant="compact"
-            />
-          )}
-
-          {/* Weekly augment — 선택한 날이 속한 주의 흐름 */}
-          {selectedDate && selectedWeek && (
-            <AugmentSection
-              birthInfo={birthInfo}
-              scope="weekly"
-              weekStart={selectedWeek.startISO}
-              scopeLabel={selectedWeek.label}
-              variant="compact"
-            />
-          )}
-
           {/* Selected Date Panel */}
           <SelectedDatePanel
             selectedDay={selectedDay}
@@ -712,15 +671,6 @@ const CalendarMainView = memo(function CalendarMainView({
             getGradeEmoji={getGradeEmoji}
             getScoreClass={getScoreClass}
           />
-
-          {/* Cross-rules Augment (큰 흐름·테마·양면성) — skeleton/error 자동 처리 */}
-          <AugmentSection
-            birthInfo={birthInfo}
-            scope="monthly"
-            year={year}
-            month={month + 1}
-          />
-
 
           {/* Month Highlights */}
           {data?.allDates && data.allDates.length > 0 && (
