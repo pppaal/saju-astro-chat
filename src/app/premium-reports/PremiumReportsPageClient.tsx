@@ -14,7 +14,10 @@ import { Crown, Sparkles, Compass } from 'lucide-react'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
 
 const ROUTES = {
-  free: '/destiny-map',
+  // Free card lands users directly on the theme picker that leads to a free
+  // result. The /destiny-map landing was a detour that pushed them into the
+  // counselor chat, which is a different service.
+  free: '/destiny-map/theme',
   comprehensive: '/premium-reports/comprehensive?tier=premium',
   themed: '/premium-reports/themed?tier=premium',
 } as const
