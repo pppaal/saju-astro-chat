@@ -1950,15 +1950,16 @@
     0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Grade 1: 좋은 날 (~15%) - Bright Blue */
+/* Grade 1: 좋은 날 (~15%) - Bright Cyan-Green so it reads distinctly from
+   the deep blues used for "today" / "selected" rings. */
 .day.dayGrade1 {
-  background: linear-gradient(135deg, rgba(30, 64, 175, 0.92), rgba(59, 130, 246, 0.9)) !important;
-  border-color: rgba(96, 165, 250, 0.72) !important;
-  box-shadow: 0 6px 12px rgba(59, 130, 246, 0.22);
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.92), rgba(20, 184, 166, 0.88)) !important;
+  border-color: rgba(94, 234, 212, 0.72) !important;
+  box-shadow: 0 6px 12px rgba(20, 184, 166, 0.22);
 }
 
 .day.dayGrade1 .dayNumber {
-  color: #dbeafe !important;
+  color: #ccfbf1 !important;
   font-weight: 700;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
@@ -2072,7 +2073,7 @@
 }
 
 .grade1Dot {
-  background: #3b82f6; /* 좋음 - 파랑 */
+  background: #14b8a6; /* 좋음 - 청록 (matches dayGrade1 cell color) */
 }
 
 .grade2Dot {
@@ -3569,8 +3570,18 @@
   }
 
   .summaryBadge {
-    flex: 1 1 132px;
+    flex: 1 1 calc(50% - 8px);
     min-width: 0;
+    padding: 7px 8px;
+    font-size: 12.5px;
+    gap: 4px;
+  }
+
+  /* On phone widths drop the engine-total chip + divider so the 5 grade
+     chips can lay out as a clean 2-column grid. */
+  .summaryTotal,
+  .badgeDivider {
+    display: none;
   }
 
   .monthNav {

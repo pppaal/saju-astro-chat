@@ -81,6 +81,29 @@ export default function MonthHighlights({
     }
   }
 
+  // Track text we've already shown so each card carries a distinct sentence.
+  // Without this every card collapses onto the same template phrase
+  // ("커리어 쪽은 변동성이 있어 …") because the upstream signal generator
+  // often emits one canned summary per domain — feeling like lazy advice.
+  const usedReasons = new Set<string>()
+  const usedActions = new Set<string>()
+  const pickFresh = (used: Set<string>, candidates: Array<string | undefined | null>): string => {
+    for (const raw of candidates) {
+      const v = String(raw || '').trim()
+      if (!v) continue
+      if (used.has(v)) continue
+      used.add(v)
+      return v
+    }
+    // Fall back to the first non-empty candidate even if duplicate, so the
+    // card never goes empty.
+    for (const raw of candidates) {
+      const v = String(raw || '').trim()
+      if (v) return v
+    }
+    return ''
+  }
+
   return (
     <div className={styles.monthHighlights}>
       <h2 className={styles.highlightsTitle}>
@@ -89,22 +112,32 @@ export default function MonthHighlights({
       <div className={styles.highlightsList}>
         {highlightDates.map((dateInfo, index) => {
           const peakLevel = resolvePeakLevel(dateInfo.evidence?.matrix?.peakLevel, dateInfo.score)
-          const reason =
-            dateInfo.summary ||
-            dateInfo.evidence?.cross?.sajuEvidence ||
-            dateInfo.sajuFactors?.[0] ||
-            dateInfo.astroFactors?.[0] ||
-            ''
+          const reason = pickFresh(usedReasons, [
+            dateInfo.summary,
+            dateInfo.evidence?.cross?.sajuEvidence,
+            dateInfo.sajuFactors?.[0],
+            dateInfo.sajuFactors?.[1],
+            dateInfo.astroFactors?.[0],
+            dateInfo.astroFactors?.[1],
+            dateInfo.evidence?.cross?.astroEvidence,
+          ])
           const action =
             dateInfo.grade >= 3
-              ? dateInfo.warnings?.[0] ||
-                (activeLocale === 'ko'
-                  ? '속도를 낮추고 확인 절차를 먼저 거치세요.'
-                  : 'Slow down and run checks first.')
-              : dateInfo.recommendations?.[0] ||
-                (activeLocale === 'ko'
-                  ? '핵심 과제 1~2개를 앞단에 배치하세요.'
-                  : 'Front-load one or two key tasks.')
+              ? pickFresh(usedActions, [
+                  dateInfo.warnings?.[0],
+                  dateInfo.warnings?.[1],
+                  activeLocale === 'ko'
+                    ? '속도를 낮추고 확인 절차를 먼저 거치세요.'
+                    : 'Slow down and run checks first.',
+                ])
+              : pickFresh(usedActions, [
+                  dateInfo.recommendations?.[0],
+                  dateInfo.recommendations?.[1],
+                  dateInfo.recommendations?.[2],
+                  activeLocale === 'ko'
+                    ? '핵심 과제 1~2개를 앞단에 배치하세요.'
+                    : 'Front-load one or two key tasks.',
+                ])
 
           return (
             <div

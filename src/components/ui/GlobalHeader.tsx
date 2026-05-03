@@ -49,7 +49,9 @@ function GlobalHeaderContent() {
         '/destiny-map/counselor',
         '/destiny-map/result',
         '/astrology/counselor',
+        '/calendar',
       ].includes(pathname) ||
+      pathname.startsWith('/calendar/') ||
       pathname.startsWith('/premium-reports/result') ||
       pathname.startsWith('/premium-reports/comprehensive') ||
       pathname.startsWith('/premium-reports/themed') ||

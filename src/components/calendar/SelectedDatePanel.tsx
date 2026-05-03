@@ -899,10 +899,12 @@ const SelectedDatePanel = memo(function SelectedDatePanel({
   })()
 
   // Cross-agreement percent for the dedicated section (not buried inside reliability headline).
+  // canonicalCore.crossAgreement is a 0–1 fraction; evidence.crossAgreementPercent is already 0–100.
   const crossAgreementPercent: number | null = (() => {
     const fromCanonical =
       typeof canonicalCore?.crossAgreement === 'number' ? canonicalCore.crossAgreement : null
-    if (fromCanonical !== null && Number.isFinite(fromCanonical)) return Math.round(fromCanonical)
+    if (fromCanonical !== null && Number.isFinite(fromCanonical))
+      return Math.round(fromCanonical * 100)
     const fromEvidence = selectedDate?.evidence?.crossAgreementPercent
     if (typeof fromEvidence === 'number' && Number.isFinite(fromEvidence))
       return Math.round(fromEvidence)
